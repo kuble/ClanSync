@@ -1,6 +1,0 @@
-초기 프로젝트 설정
-
-- Next.js 15 App Router + TypeScript + Tailwind CSS
-- shadcn/ui 컴포넌트 14종 설치
-- Cursor Rules 설정
-- 다크 모드 기본값, TooltipProvider, Sonner 설정
