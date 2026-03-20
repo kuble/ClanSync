@@ -1,0 +1,58 @@
+---
+description: Next.js App Router 패턴 및 TypeScript 규칙
+globs: **/*.ts,**/*.tsx
+alwaysApply: false
+---
+
+# Next.js + TypeScript 패턴
+
+## Server vs Client Component
+
+```tsx
+// ✅ 기본: Server Component (async 가능)
+export default async function ClanPage() {
+  const clans = await getClanList();
+  return <ClanList clans={clans} />;
+}
+
+// ✅ 상호작용 필요시만 Client Component
+'use client';
+export function LikeButton({ clanId }: { clanId: string }) {
+  const [liked, setLiked] = useState(false);
+  ...
+}
+```
+
+## 타입 정의
+
+```typescript
+// ✅ interface로 도메인 모델 정의
+interface Clan {
+  id: string;
+  name: string;
+  game: string;
+  memberCount: number;
+  createdAt: Date;
+}
+
+// ❌ any 사용 금지
+const data: any = await fetch(...);
+```
+
+## 에러 처리
+
+```typescript
+// ✅ Result 패턴 사용
+const { data, error } = await supabase.from('clans').select();
+if (error) throw new Error(`클랜 조회 실패: ${error.message}`);
+```
+
+## API Route
+
+```typescript
+// src/app/api/clans/route.ts
+export async function GET() {
+  // 항상 NextResponse 반환
+  return NextResponse.json({ clans });
+}
+```

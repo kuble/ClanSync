@@ -1,0 +1,30 @@
+---
+description: ClanSync 프로젝트 컨텍스트 및 핵심 원칙
+alwaysApply: true
+---
+
+# ClanSync 프로젝트
+
+게임 클랜/길드 관리를 위한 커뮤니티 웹 플랫폼.
+
+## 기술 스택
+- **Frontend**: Next.js 15 App Router, TypeScript, Tailwind CSS
+- **UI**: shadcn/ui 컴포넌트
+- **Backend**: Supabase (DB + Auth + Storage)
+- **배포**: Vercel
+
+## 폴더 구조
+```
+src/
+  app/          # Next.js App Router 페이지
+  components/   # 재사용 컴포넌트
+    ui/         # shadcn/ui 기반 기본 컴포넌트
+    features/   # 기능별 컴포넌트
+  lib/          # 유틸리티, Supabase 클라이언트
+  types/        # TypeScript 타입 정의
+```
+
+## 핵심 원칙
+- Server Component 우선, 필요한 경우만 'use client'
+- 한국어 주석 및 변수명은 영어
+- Supabase RLS(Row Level Security) 항상 적용
