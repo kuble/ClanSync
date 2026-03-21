@@ -191,6 +191,12 @@
 .promo-tag-label {
   font-size: 10px; color: var(--text-muted); white-space: nowrap; flex-shrink: 0;
 }
+.promo-tag-active {
+  background: rgba(124,58,237,0.15);
+  border-color: rgba(124,58,237,0.4);
+  color: #a78bfa;
+  font-weight: 600;
+}
 
 /* ── Premium 인증 배지 ── */
 .verified-badge {
@@ -1035,12 +1041,18 @@ function promoTagsHtml(p) {
 
   // 1행: 지향
   if (p.style && p.style !== 'all') {
-    rows.push({ label: '지향', tags: [PROMO_FILTER_LABELS.style[p.style]] });
+    rows.push({ label: '지향', items: [{
+      text: PROMO_FILTER_LABELS.style[p.style],
+      active: promoFilter.style === p.style
+    }]});
   }
 
   // 2행: 모집군
   if (p.positions.length > 0) {
-    rows.push({ label: '모집군', tags: p.positions.map(pos => PROMO_FILTER_LABELS.pos[pos]) });
+    rows.push({ label: '모집군', items: p.positions.map(pos => ({
+      text: PROMO_FILTER_LABELS.pos[pos],
+      active: promoFilter.pos.includes(pos)
+    }))});
   }
 
   // 3행: 티어대
@@ -1048,19 +1060,22 @@ function promoTagsHtml(p) {
     const sorted = [...p.tiers].sort((a, b) => TIER_ORDER.indexOf(a) - TIER_ORDER.indexOf(b));
     const first = PROMO_FILTER_LABELS.tier[sorted[0]];
     const last  = sorted.length > 1 ? PROMO_FILTER_LABELS.tier[sorted[sorted.length - 1]] : null;
-    rows.push({ label: '티어대', tags: [last ? `${first} ~ ${last}` : first] });
+    rows.push({ label: '티어대', items: [{
+      text: last ? `${first} ~ ${last}` : first,
+      active: promoFilter.tier.length > 0 && promoFilter.tier.some(t => p.tiers.includes(t))
+    }]});
   }
 
   // 4행: 기타 (discord / 신생)
   const etc = [];
-  if (p.isNew)   etc.push('신생');
-  if (p.discord) etc.push('Discord');
-  if (etc.length > 0) rows.push({ label: '기타', tags: etc });
+  if (p.isNew)   etc.push({ text: '신생',   active: promoFilter.etc.includes('new') });
+  if (p.discord) etc.push({ text: 'Discord', active: promoFilter.etc.includes('discord') });
+  if (etc.length > 0) rows.push({ label: '기타', items: etc });
 
   return rows.map(row => `
     <div class="promo-tag-row">
       <span class="promo-tag-label">${row.label}</span>
-      ${row.tags.map(t => `<span class="promo-tag">${t}</span>`).join('')}
+      ${row.items.map(i => `<span class="promo-tag${i.active ? ' promo-tag-active' : ''}">${i.text}</span>`).join('')}
     </div>`).join('');
 }
 
