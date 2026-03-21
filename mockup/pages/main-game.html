@@ -595,7 +595,7 @@
           <div class="filter-group">
             <span class="filter-group-label">역할</span>
             <div class="filter-divider-v"></div>
-            <div class="filter-chip active" data-lg="role" data-val="all"  onclick="setLfgFilter(this)">무관</div>
+            <div class="filter-chip active" data-lg="role" data-val="all"  onclick="setLfgFilter(this)">올포지</div>
             <div class="filter-chip"        data-lg="role" data-val="탱커" onclick="setLfgFilter(this)">탱커</div>
             <div class="filter-chip"        data-lg="role" data-val="딜러" onclick="setLfgFilter(this)">딜러</div>
             <div class="filter-chip"        data-lg="role" data-val="힐러" onclick="setLfgFilter(this)">힐러</div>
@@ -603,7 +603,7 @@
           <div class="filter-group">
             <span class="filter-group-label">마이크</span>
             <div class="filter-divider-v"></div>
-            <div class="filter-chip active" data-lg="mic" data-val="all"   onclick="setLfgFilter(this)">마이크 자유</div>
+            <div class="filter-chip active" data-lg="mic" data-val="all"   onclick="setLfgFilter(this)">자유</div>
             <div class="filter-chip"        data-lg="mic" data-val="true"  onclick="setLfgFilter(this)">필수</div>
           </div>
           <div style="display:flex;justify-content:flex-end;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
@@ -906,39 +906,28 @@
         <div class="lfg-chip"    data-val="6vs6" onclick="selLfgChip('pmFormat',this)">6vs6</div>
       </div>
     </div>
-    <!-- 모집 인원 -->
-    <div>
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;font-weight:600">모집 인원</div>
-      <div style="display:flex;gap:6px" id="pmSlots">
-        <div class="lfg-chip on" data-val="1" onclick="selLfgChip('pmSlots',this)">+1</div>
-        <div class="lfg-chip"    data-val="2" onclick="selLfgChip('pmSlots',this)">+2</div>
-        <div class="lfg-chip"    data-val="3" onclick="selLfgChip('pmSlots',this)">+3</div>
-        <div class="lfg-chip"    data-val="4" onclick="selLfgChip('pmSlots',this)">+4</div>
-        <div class="lfg-chip"    data-val="5" onclick="selLfgChip('pmSlots',this)">+5</div>
-      </div>
-    </div>
     <!-- 티어 -->
     <div>
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;font-weight:600">희망 티어 <span style="font-weight:400">(중복 선택)</span></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap" id="pmTiers">
-        <div class="lfg-chip" data-val="브론즈"  onclick="toggleLfgChip(this)">브론즈</div>
-        <div class="lfg-chip" data-val="실버"    onclick="toggleLfgChip(this)">실버</div>
-        <div class="lfg-chip" data-val="골드"    onclick="toggleLfgChip(this)">골드</div>
-        <div class="lfg-chip" data-val="플레티넘" onclick="toggleLfgChip(this)">플레티넘</div>
-        <div class="lfg-chip" data-val="다이아"  onclick="toggleLfgChip(this)">다이아</div>
-        <div class="lfg-chip" data-val="마스터"  onclick="toggleLfgChip(this)">마스터</div>
-        <div class="lfg-chip" data-val="그마"    onclick="toggleLfgChip(this)">그랜드마스터</div>
+        <div class="lfg-chip on" data-val="무관"   onclick="toggleLfgChipExclusive(this,'pmTiers')">무관</div>
+        <div class="lfg-chip"    data-val="브론즈"  onclick="toggleLfgChipExclusive(this,'pmTiers')">브론즈</div>
+        <div class="lfg-chip"    data-val="실버"    onclick="toggleLfgChipExclusive(this,'pmTiers')">실버</div>
+        <div class="lfg-chip"    data-val="골드"    onclick="toggleLfgChipExclusive(this,'pmTiers')">골드</div>
+        <div class="lfg-chip"    data-val="플레티넘" onclick="toggleLfgChipExclusive(this,'pmTiers')">플레티넘</div>
+        <div class="lfg-chip"    data-val="다이아"  onclick="toggleLfgChipExclusive(this,'pmTiers')">다이아</div>
+        <div class="lfg-chip"    data-val="마스터"  onclick="toggleLfgChipExclusive(this,'pmTiers')">마스터</div>
+        <div class="lfg-chip"    data-val="그마"    onclick="toggleLfgChipExclusive(this,'pmTiers')">그랜드마스터</div>
       </div>
-      <div style="font-size:11px;color:var(--text-muted);margin-top:5px">선택 없으면 티어 무관</div>
     </div>
     <!-- 역할 -->
     <div>
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;font-weight:600">내 역할</div>
       <div style="display:flex;gap:6px" id="pmRole">
-        <div class="lfg-chip on" data-val="무관" onclick="selLfgChip('pmRole',this)">무관</div>
-        <div class="lfg-chip"    data-val="탱커" onclick="selLfgChip('pmRole',this)">탱커</div>
-        <div class="lfg-chip"    data-val="딜러" onclick="selLfgChip('pmRole',this)">딜러</div>
-        <div class="lfg-chip"    data-val="힐러" onclick="selLfgChip('pmRole',this)">힐러</div>
+        <div class="lfg-chip on" data-val="올포지" onclick="selLfgChip('pmRole',this)">올포지</div>
+        <div class="lfg-chip"    data-val="탱커"   onclick="selLfgChip('pmRole',this)">탱커</div>
+        <div class="lfg-chip"    data-val="딜러"   onclick="selLfgChip('pmRole',this)">딜러</div>
+        <div class="lfg-chip"    data-val="힐러"   onclick="selLfgChip('pmRole',this)">힐러</div>
       </div>
     </div>
     <!-- 게임 시작 시간 -->
@@ -966,8 +955,8 @@
     <div>
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;font-weight:600">마이크 필수 여부</div>
       <div style="display:flex;gap:6px" id="pmMic">
-        <div class="lfg-chip on" data-val="false" onclick="selLfgChip('pmMic',this)">마이크 자유</div>
-        <div class="lfg-chip"    data-val="true"  onclick="selLfgChip('pmMic',this)">마이크 필수</div>
+        <div class="lfg-chip on" data-val="false" onclick="selLfgChip('pmMic',this)">자유</div>
+        <div class="lfg-chip"    data-val="true"  onclick="selLfgChip('pmMic',this)">필수</div>
       </div>
     </div>
     <!-- 한마디 -->
@@ -1159,6 +1148,19 @@ function selLfgChip(gid, el) {
   el.classList.add('on');
 }
 function toggleLfgChip(el) { el.classList.toggle('on'); }
+function toggleLfgChipExclusive(el, gid) {
+  const isNone = el.dataset.val === '무관';
+  if (isNone) {
+    document.querySelectorAll(`#${gid} .lfg-chip`).forEach(c => c.classList.remove('on'));
+    el.classList.add('on');
+  } else {
+    document.querySelector(`#${gid} .lfg-chip[data-val="무관"]`)?.classList.remove('on');
+    el.classList.toggle('on');
+    if (!document.querySelectorAll(`#${gid} .lfg-chip.on`).length) {
+      document.querySelector(`#${gid} .lfg-chip[data-val="무관"]`)?.classList.add('on');
+    }
+  }
+}
 function getSelChip(gid) { return document.querySelector(`#${gid} .lfg-chip.on`)?.dataset.val || null; }
 function getToggleChips(gid) { return [...document.querySelectorAll(`#${gid} .lfg-chip.on`)].map(c => c.dataset.val); }
 
@@ -1227,9 +1229,10 @@ function applyLfgFilter(posts) {
 
 /* ─── 모집 올리기 모달 ─── */
 function openLfgPostModal() {
-  ['pmMode','pmFormat','pmSlots','pmRole','pmMic'].forEach(gid => {
+  ['pmMode','pmFormat','pmRole','pmMic'].forEach(gid => {
     document.querySelectorAll(`#${gid} .lfg-chip`).forEach((c,i) => c.classList.toggle('on', i===0));
   });
+  document.querySelectorAll('#pmTiers .lfg-chip').forEach((c,i) => c.classList.toggle('on', i===0));
   document.querySelectorAll('#pmTiers .lfg-chip').forEach(c => c.classList.remove('on'));
   document.getElementById('pmDesc').value = '';
   document.getElementById('lfgPostModal').style.display = 'flex';
@@ -1244,9 +1247,9 @@ function submitLfgPost() {
     bg: 'linear-gradient(135deg,#7c3aed,#3b82f6)', online: true, mine: true,
     mode:        getSelChip('pmMode')    || '경쟁전',
     format:      getSelChip('pmFormat') || '5vs5',
-    slots:       parseInt(getSelChip('pmSlots') || '1'),
-    tiers,
-    positions:   [getSelChip('pmRole') || '무관'].filter(r => r !== '무관'),
+    slots:       1,
+    tiers:       tiers.filter(t => t !== '무관'),
+    positions:   [getSelChip('pmRole') || '올포지'].filter(r => r !== '올포지'),
     startTime:   parseInt(document.getElementById('pmStartTime').value),
     expires:     parseInt(document.getElementById('pmExpires').value),
     micRequired: getSelChip('pmMic') === 'true',
@@ -1278,7 +1281,7 @@ function goLfgPage(p) { lfgPage = p; renderLfg(); }
 
 function lfgCard(p) {
   const tierLabel  = p.tiers && p.tiers.length ? p.tiers.join(' · ') : '무관';
-  const posLabel   = (p.positions||[]).length ? p.positions.join(' · ') : '무관';
+  const posLabel   = (p.positions||[]).length ? p.positions.join(' · ') : '올포지';
   const tagRow = (label, val) =>
     `<div class="promo-tag-row"><span class="promo-tag-label">${label}</span><span class="promo-tag">${val}</span></div>`;
   return `<div class="lfg-card" onclick="${p.mine ? '' : `openLfgDrawer(${p.id})`}" style="${p.mine?'cursor:default':''}">
@@ -1308,7 +1311,7 @@ function lfgCard(p) {
     <div class="lfg-card-footer">
       <span style="font-size:11px;color:var(--text-muted)">⏰ ${p.startTime}시 · ${p.expires}시간 후 마감</span>
       <div style="display:flex;align-items:center;gap:6px">
-        ${p.micRequired ? '<span style="color:#4ade80;font-size:11px">🎙 마이크 필수</span>' : '<span style="color:var(--text-muted);font-size:11px">🔇 마이크 자유</span>'}
+        ${p.micRequired ? '<span style="color:#4ade80;font-size:11px">🎙 필수</span>' : '<span style="color:var(--text-muted);font-size:11px">🔇 자유</span>'}
         ${p.mine ? `<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();removeLfg(${p.id})" style="font-size:11px;padding:3px 10px">취소</button>` : ''}
       </div>
     </div>
@@ -1828,6 +1831,7 @@ function openLfgDrawer(id) {
   document.getElementById('ldTier').textContent = (p.tiers && p.tiers.length) ? p.tiers.join(', ') : '티어 무관';
   document.getElementById('ldTime').textContent = `${p.startTime}시 시작 · ${p.expires}시간 후 만료`;
   document.getElementById('ldMic').textContent = p.micRequired ? '🎙 필수' : '🔇 자유';
+
 
   const posEl = document.getElementById('ldPositions');
   posEl.innerHTML = (p.positions || []).map(pos => `<span class="lfg-tag">${pos}</span>`).join('');
