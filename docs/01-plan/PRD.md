@@ -138,3 +138,20 @@
   - 신청 클랜명, 신청 날짜, 현재 상태(대기 중 / 승인 / 거절) 표시
   - 대기 중인 신청은 취소 가능
   - 관련 파일: `mockup/pages/main-game.html` → `openJoinModal()` / `submitJoin()`
+
+### 에셋 교체 대기 목록
+> 현재 플레이스홀더로 구현되어 있음. 실제 이미지/아이콘 준비되면 교체 필요.
+
+- [ ] **티어 아이콘** — 클랜 홍보 카드 및 LFG 카드의 티어 배지를 실제 게임 랭크 이미지로 교체
+  - 현재: `B / S / G / P / D / M / GM` 문자 + 색상 배지 (`.tier-ic` CSS 클래스)
+  - 교체 위치: `TIER_IC` 상수 → `abbr` 대신 `<img src="...">` 적용
+  - 관련 파일: `mockup/pages/main-game.html` → `TIER_IC`, `promoTagsHtml()`, `lfgTierIconsHtml()`
+
+- [ ] **클랜 배지 아이콘** — 카드 하단 및 드로워의 배지를 실제 아이콘 이미지로 교체
+  - 현재: 이모지 (⚔️ 🎙️ 🏆 💬 등)
+  - 교체 위치: `BADGE_DEFS` 상수의 `icon` 필드
+  - 관련 파일: `mockup/pages/main-game.html` → `BADGE_DEFS`, `clanBadgesHtml()`
+
+- [ ] **게임 사이드바 썸네일** — 게임 선택 사이드바의 게임 커버 이미지 교체
+  - 현재: 이모지 또는 텍스트 약자
+  - 관련 파일: `mockup/pages/main-game.html` → 사이드바 게임 목록 HTML
