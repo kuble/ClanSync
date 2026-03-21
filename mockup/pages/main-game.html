@@ -797,9 +797,27 @@
   </div>
 
   <div class="promo-drawer-footer">
-    <button class="btn btn-primary w-full" style="padding:13px;font-size:15px" onclick="window.location.href='clan-auth.html'">
+    <button class="btn btn-primary w-full" style="padding:13px;font-size:15px" onclick="openJoinModal()">
       가입 신청하기 →
     </button>
+  </div>
+</div>
+
+<!-- 가입 신청 모달 -->
+<div id="joinModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:300;align-items:center;justify-content:center" onclick="if(event.target===this)closeJoinModal()">
+  <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-xl);width:320px;padding:28px 24px;display:flex;flex-direction:column;gap:16px">
+    <div>
+      <div id="joinModalTitle" style="font-size:18px;font-weight:700;margin-bottom:6px"></div>
+      <div style="font-size:13px;color:var(--text-muted)">클랜장의 승인 후 클랜에 참여됩니다</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <label style="font-size:13px;color:var(--text-secondary)">자기소개 (선택)</label>
+      <textarea id="joinModalMsg" class="input" rows="4" placeholder="클랜장에게 전할 한마디..." style="resize:vertical;font-size:13px;line-height:1.5"></textarea>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeJoinModal()">취소</button>
+      <button class="btn btn-primary" style="flex:1" onclick="submitJoin()">가입 신청</button>
+    </div>
   </div>
 </div>
 
@@ -1426,6 +1444,21 @@ function closePromoDrawer() {
   document.getElementById('promoDrawerOverlay').classList.remove('open');
   document.getElementById('promoDrawer').classList.remove('open');
   document.body.style.overflow = '';
+}
+
+let _joinClanName = '';
+function openJoinModal() {
+  _joinClanName = document.getElementById('pdName')?.textContent || '클랜';
+  document.getElementById('joinModalTitle').textContent = _joinClanName + ' 가입 신청';
+  document.getElementById('joinModalMsg').value = '';
+  document.getElementById('joinModal').style.display = 'flex';
+}
+function closeJoinModal() {
+  document.getElementById('joinModal').style.display = 'none';
+}
+function submitJoin() {
+  closeJoinModal();
+  alert('가입 신청이 완료되었습니다!\n클랜장의 승인을 기다려 주세요.');
 }
 
 function openScrimChat() { document.getElementById('scrimChatModal').style.display = 'flex'; }
