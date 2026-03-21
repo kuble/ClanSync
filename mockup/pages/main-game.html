@@ -431,10 +431,7 @@
 
       <!-- 2행 왼쪽: 스크림 모집 -->
       <div class="d-card">
-        <div class="d-label">
-          ⚔️ 스크림 모집 중
-          <span onclick="navTo('scrim')" style="font-size:12px;color:var(--brand-secondary);font-weight:400;cursor:pointer">전체 →</span>
-        </div>
+        <div class="d-label">⚔️ 스크림 모집 중</div>
         <div>
           <div class="preview-row">
             <div class="avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#7c3aed,#3b82f6)">🔥</div>
@@ -452,7 +449,7 @@
             <span class="badge badge-muted" style="font-size:10px">예정</span>
           </div>
         </div>
-        <button class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%" onclick="navTo('scrim')">전체 보기</button>
+        <button class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%" onclick="navTo('scrim')">+ 스크림 모집 전체 보기</button>
       </div>
 
       <!-- 2행 오른쪽: 스크림 자동 매칭 -->
@@ -480,20 +477,17 @@
 
       <!-- 3행 왼쪽: 같이 할 사람 -->
       <div class="d-card">
-        <div class="d-label">
-          🔍 같이 할 사람
-          <span onclick="navTo('lfg')" style="font-size:12px;color:var(--brand-secondary);font-weight:400;cursor:pointer">전체 보기 →</span>
-        </div>
+        <div class="d-label">🔍 같이 할 사람</div>
         <div class="preview-list" id="home-lfg-preview"></div>
-        <button class="btn btn-primary btn-sm" style="margin-top:12px;width:100%" onclick="navTo('lfg')">+ 파티 모집 올리기</button>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-secondary btn-sm" style="flex:1" onclick="navTo('lfg')">+ 같이 할 사람 전체 보기</button>
+          <button class="btn btn-primary btn-sm" style="flex:1" onclick="navTo('lfg')">+ 파티 모집 올리기</button>
+        </div>
       </div>
 
       <!-- 3행 오른쪽: 이달의 클랜 순위 -->
       <div class="d-card">
-        <div class="d-label">
-          🏆 이달의 클랜 순위
-          <span onclick="navTo('ranking')" style="font-size:12px;color:var(--brand-secondary);font-weight:400;cursor:pointer">전체 →</span>
-        </div>
+        <div class="d-label">🏆 이달의 클랜 순위</div>
         <div class="rank-row">
           <div class="rank-num top1">1</div>
           <div class="avatar" style="width:24px;height:24px;font-size:10px;background:linear-gradient(135deg,#f59e0b,#ef4444)">B</div>
@@ -518,6 +512,7 @@
           <div style="flex:1"><div style="font-size:13px;font-weight:600">Phoenix Rising <span style="font-size:11px;color:var(--text-muted)">(내 클랜)</span></div></div>
           <div style="font-size:12px;color:var(--success)">↑2</div>
         </div>
+        <button class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%" onclick="navTo('ranking')">+ 클랜 순위 전체 보기</button>
       </div>
 
     </div>
