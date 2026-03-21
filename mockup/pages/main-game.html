@@ -1277,30 +1277,36 @@ function removeLfg(id) { lfgPosts = lfgPosts.filter(p => p.id !== id); renderLfg
 function goLfgPage(p) { lfgPage = p; renderLfg(); }
 
 function lfgCard(p) {
-  const tierLabel = p.tiers && p.tiers.length ? p.tiers.join('·') : '티어무관';
-  const posHtml   = (p.positions||[]).length ? (p.positions||[]).map(pos => `<span class="lfg-tag">${pos}</span>`).join('') : '<span class="lfg-tag">역할무관</span>';
+  const tierLabel  = p.tiers && p.tiers.length ? p.tiers.join(' · ') : '무관';
+  const posLabel   = (p.positions||[]).length ? p.positions.join(' · ') : '무관';
+  const tagRow = (label, val) =>
+    `<div class="promo-tag-row"><span class="promo-tag-label">${label}</span><span class="promo-tag">${val}</span></div>`;
   return `<div class="lfg-card" onclick="${p.mine ? '' : `openLfgDrawer(${p.id})`}" style="${p.mine?'cursor:default':''}">
     <div class="lfg-card-body">
-      <div class="lfg-avatar-wrap">
-        <div class="avatar" style="width:42px;height:42px;font-size:17px;background:${p.bg}">${p.name[0]}</div>
-        <div class="online-dot ${p.online?'g':'y'}" style="position:absolute;bottom:1px;right:1px;width:9px;height:9px;border:1.5px solid var(--bg-elevated)"></div>
+      <!-- 왼쪽: 아바타 + 이름 + 소개 -->
+      <div style="display:flex;gap:10px;align-items:flex-start;flex:1;min-width:0">
+        <div class="lfg-avatar-wrap">
+          <div class="avatar" style="width:38px;height:38px;font-size:16px;background:${p.bg}">${p.name[0]}</div>
+          <div class="online-dot ${p.online?'g':'y'}" style="position:absolute;bottom:1px;right:1px;width:9px;height:9px;border:1.5px solid var(--bg-elevated)"></div>
+        </div>
+        <div style="min-width:0;flex:1">
+          <div style="font-size:13px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            ${p.name}${p.mine?' <span style="font-size:10px;color:var(--brand-primary);font-weight:500">(내 모집)</span>':''}
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">${p.clan}</div>
+          <div style="font-size:12px;color:var(--text-secondary);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${p.desc || '소개가 없습니다.'}</div>
+        </div>
       </div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:700;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-          ${p.name}${p.mine?' <span style="font-size:11px;color:var(--brand-primary);font-weight:400">(내 모집)</span>':''}
-          <span style="font-size:11px;color:var(--text-muted);font-weight:400"> · ${p.clan}</span>
-        </div>
-        <div class="lfg-tags">
-          <span class="lfg-tag lfg-tag-mode">${p.mode}</span>
-          <span class="lfg-tag">${p.format}</span>
-          <span class="lfg-tag">+${p.slots} 모집</span>
-          <span class="lfg-tag">${tierLabel}</span>
-          ${posHtml}
-        </div>
+      <!-- 오른쪽: 태그 -->
+      <div style="flex-shrink:0;display:flex;flex-direction:column;gap:3px;align-items:flex-end;min-width:90px">
+        ${tagRow('모드', `${p.mode} ${p.format}`)}
+        ${tagRow('인원', `+${p.slots}명`)}
+        ${tagRow('티어', tierLabel)}
+        ${tagRow('역할', posLabel)}
       </div>
     </div>
     <div class="lfg-card-footer">
-      <span class="lfg-tag lfg-tag-time" style="font-size:11px">⏰ ${p.startTime}시 · ${p.expires}시간</span>
+      <span style="font-size:11px;color:var(--text-muted)">⏰ ${p.startTime}시 · ${p.expires}시간 후 마감</span>
       <div style="display:flex;align-items:center;gap:6px">
         ${p.micRequired ? '<span style="color:#4ade80;font-size:11px">🎙 마이크 필수</span>' : '<span style="color:var(--text-muted);font-size:11px">🔇 마이크 자유</span>'}
         ${p.mine ? `<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();removeLfg(${p.id})" style="font-size:11px;padding:3px 10px">취소</button>` : ''}
