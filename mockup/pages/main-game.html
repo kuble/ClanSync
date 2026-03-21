@@ -92,7 +92,8 @@
 .lfg-card-footer { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 40px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); }
 
 /* ── 인라인 필터 패널 (LFG·스크림·홍보 공용) ── */
-.lfg-filter-panel { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 18px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
+.lfg-filter-panel { position: relative; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 18px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
+.lfg-filter-panel > .filter-reset-icon { position: absolute; top: 10px; right: 12px; }
 .lfg-filter-panel .filter-group { gap: 6px; }
 .lfg-filter-panel .filter-group-label { min-width: 44px; }
 .filter-reset-icon { display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:99px;border:1px solid var(--border);background:var(--bg-surface);color:var(--text-muted);font-size:15px;cursor:pointer;transition:all .15s;flex-shrink:0; }
@@ -566,6 +567,7 @@
 
     <!-- 인라인 필터 패널 -->
     <div class="lfg-filter-panel">
+      <div class="filter-reset-icon" onclick="resetLfgFilters()" title="필터 초기화">↺</div>
       <div class="filter-group">
         <span class="filter-group-label">모드</span>
         <div class="filter-divider-v"></div>
@@ -608,9 +610,6 @@
         <div class="filter-chip active" data-lg="mic" data-val="all"  onclick="setLfgFilter(this)">자유</div>
         <div class="filter-chip"        data-lg="mic" data-val="true" onclick="setLfgFilter(this)">필수</div>
       </div>
-      <div style="display:flex;justify-content:flex-end;padding-top:4px;border-top:1px solid var(--border)">
-        <div class="filter-reset-icon" onclick="resetLfgFilters()" title="필터 초기화">↺</div>
-      </div>
     </div>
 
     <div id="lfgList"></div>
@@ -631,6 +630,7 @@
 
     <!-- 스크림 필터 -->
     <div class="lfg-filter-panel">
+      <div class="filter-reset-icon" onclick="resetScrimFilters()" title="필터 초기화">↺</div>
       <div class="filter-group">
         <span class="filter-group-label">상태</span>
         <div class="filter-divider-v"></div>
@@ -646,9 +646,6 @@
         <div class="filter-chip"    data-sf="tier" data-val="플래"    onclick="setScrimFilter('tier',this)">플래</div>
         <div class="filter-chip"    data-sf="tier" data-val="다이아"  onclick="setScrimFilter('tier',this)">다이아</div>
         <div class="filter-chip"    data-sf="tier" data-val="마스터↑" onclick="setScrimFilter('tier',this)">마스터↑</div>
-      </div>
-      <div style="display:flex;justify-content:flex-end;padding-top:4px;border-top:1px solid var(--border)">
-        <div class="filter-reset-icon" onclick="resetScrimFilters()" title="필터 초기화">↺</div>
       </div>
     </div>
 
@@ -670,6 +667,7 @@
 
     <!-- 클랜 홍보 필터 -->
     <div class="lfg-filter-panel">
+      <div class="filter-reset-icon" onclick="resetPromoFiltersAll()" title="필터 초기화">↺</div>
       <div class="filter-group">
         <span class="filter-group-label">모집</span>
         <div class="filter-divider-v"></div>
@@ -713,17 +711,7 @@
         <div class="filter-chip" data-pg="etc" data-val="new"     onclick="togglePromoSpecial(this)">신생 클랜</div>
         <div class="filter-chip" data-pg="etc" data-val="discord" onclick="togglePromoSpecial(this)">Discord 있음</div>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;padding-top:4px;border-top:1px solid var(--border)">
-        <div id="promoActiveFilterTags" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"></div>
-        <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
-          <select style="font-size:12px;padding:4px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-overlay);color:var(--text-secondary);cursor:pointer" onchange="setPromoSort(this.value)">
-            <option value="newest">최신순</option>
-            <option value="popular">인기순</option>
-            <option value="space">여유순</option>
-          </select>
-          <div class="filter-reset-icon" onclick="resetPromoFiltersAll()" title="필터 초기화">↺</div>
-        </div>
-      </div>
+      <div id="promoActiveFilterTags" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-height:0"></div>
     </div>
 
     <div id="promoList"></div>
