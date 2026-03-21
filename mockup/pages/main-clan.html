@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClanSync — Phoenix Rising</title>
+<link rel="stylesheet" href="../styles/main.css">
+<style>
+/* ── 클랜 컬러 테마 (운영진이 선택한 메인 컬러) ── */
+:root {
+  --clan-color:    #7c3aed;
+  --clan-color-2:  #3b82f6;
+  --clan-gradient: linear-gradient(135deg, var(--clan-color), var(--clan-color-2));
+}
+
+/* ── 사이드바 클랜 헤더 ── */
+.clan-header { padding: 4px 0 16px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+.clan-logo {
+  width: 48px; height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--clan-gradient);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; margin-bottom: 8px;
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.25);
+}
+.clan-name { font-size: 15px; font-weight: 700; }
+.clan-role { font-size: 12px; color: var(--text-muted); }
+
+/* ── 클랜 배너 ── */
+.clan-banner {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  margin-bottom: 0;
+  background: var(--clan-gradient);
+}
+.clan-banner-pattern {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(255,255,255,0.07) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 40%);
+}
+.clan-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(10,10,15,0.75) 0%, transparent 60%);
+  display: flex;
+  align-items: flex-end;
+  padding: 18px 20px;
+  gap: 14px;
+}
+.clan-banner-logo {
+  width: 64px; height: 64px;
+  border-radius: var(--radius-md);
+  background: var(--clan-gradient);
+  border: 3px solid rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.clan-banner-info { flex: 1; }
+.clan-banner-name {
+  font-size: 20px; font-weight: 800;
+  color: white;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  margin-bottom: 4px;
+}
+.clan-banner-meta { font-size: 12px; color: rgba(255,255,255,0.65); display: flex; gap: 10px; align-items: center; }
+.clan-banner-actions {
+  display: flex; gap: 8px; align-self: flex-end;
+}
+.clan-banner-edit {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.8);
+  border-radius: var(--radius-sm);
+  padding: 5px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: background 0.15s;
+  backdrop-filter: blur(4px);
+}
+.clan-banner-edit:hover { background: rgba(255,255,255,0.2); }
+
+/* ── 클랜 배지 (업적) ── */
+.clan-badge-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 8px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-overlay);
+  min-width: 72px;
+  text-align: center;
+  transition: border-color 0.15s;
+}
+.clan-badge-item:hover { border-color: var(--clan-color); }
+.clan-badge-icon { font-size: 24px; }
+.clan-badge-name { font-size: 10px; font-weight: 600; color: var(--text-secondary); line-height: 1.3; }
+.clan-badge-date { font-size: 10px; color: var(--text-muted); }
+.clan-badge-locked { opacity: 0.3; filter: grayscale(1); }
+
+/* ── 공지사항 ── */
+.notice-pin {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-overlay);
+  border-left: 3px solid var(--clan-color);
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+.notice-pin:last-child { margin-bottom: 0; }
+.notice-pin-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.notice-pin-body { flex: 1; }
+.notice-pin-title { font-weight: 600; margin-bottom: 2px; }
+.notice-pin-time { font-size: 11px; color: var(--text-muted); }
+
+/* ── Bento 대시보드 그리드 ── */
+.dashboard-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.d-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 20px; }
+.d-card-sm  { grid-column: span 1; }
+.d-card-md  { grid-column: span 1; }
+.d-card-full{ grid-column: span 2; }
+.d-card-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+.d-card-value { font-size: 36px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+.d-card-sub   { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+
+/* ── MVP 카드 ── */
+.mvp-crown {
+  font-size: 28px;
+  margin-bottom: 10px;
+  display: block;
+}
+.mvp-name { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+.mvp-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+.mvp-highlight {
+  background: rgba(124,58,237,0.12);
+  border: 1px solid rgba(124,58,237,0.25);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #a78bfa;
+  font-weight: 600;
+}
+
+/* ── 이벤트 ── */
+.event-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.event-item:last-child { border-bottom: none; }
+.event-date { width: 44px; text-align: center; background: var(--bg-overlay); border-radius: var(--radius-sm); padding: 6px; flex-shrink: 0; }
+.event-date-day { font-size: 18px; font-weight: 800; }
+.event-date-month { font-size: 10px; color: var(--text-muted); }
+.event-info { flex: 1; }
+.event-name { font-weight: 600; font-size: 14px; }
+.event-time { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* ── 활동 일지 ── */
+.activity-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.activity-row:last-child { border-bottom: none; }
+.activity-date { font-size: 11px; color: var(--text-muted); width: 80px; flex-shrink: 0; }
+.activity-map  { font-weight: 600; flex: 1; }
+.activity-type { font-size: 11px; color: var(--text-muted); }
+
+/* ── 멤버 행 ── */
+.member-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.member-row:last-child { border-bottom: none; }
+
+/* ── 코인 ── */
+.coin-amount { font-size: 24px; font-weight: 800; color: #fcd34d; }
+
+/* ── Premium 오버레이 ── */
+.pro-overlay { position: relative; overflow: hidden; }
+.pro-overlay::after { content: ''; position: absolute; inset: 0; background: rgba(10,10,15,0.72); border-radius: var(--radius-xl); pointer-events: none; }
+.pro-overlay-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2; pointer-events: none; }
+
+</style>
+</head>
+<body>
+
+<!-- 네비게이션 -->
+<nav class="navbar">
+  <a href="games.html"><span class="navbar-brand">⚡ ClanSync</span></a>
+  <div class="navbar-nav" style="gap:12px">
+    <a href="main-game.html"><button class="btn btn-ghost btn-sm">🌐 커뮤니티</button></a>
+    <div class="profile-menu" id="profileMenu">
+      <button class="profile-btn" onclick="toggleProfileMenu()">
+        <div class="avatar" style="width:28px;height:28px;font-size:12px">김</div>
+        <span class="profile-btn-arrow">▾</span>
+      </button>
+      <div class="profile-dropdown" id="profileDropdown">
+        <div class="pd-header">
+          <div class="avatar" style="width:40px;height:40px;font-size:16px">김</div>
+          <div>
+            <div style="font-weight:700;font-size:14px">김클랜</div>
+            <div style="font-size:12px;color:var(--text-muted)">kim@example.com</div>
+          </div>
+        </div>
+        <div class="pd-divider"></div>
+        <a href="profile.html"><div class="pd-item">
+          <span class="pd-item-icon">👤</span>
+          <span>플레이어 프로필</span>
+          <span class="pd-item-arrow">›</span>
+        </div></a>
+        <div class="pd-item pd-coins">
+          <span class="pd-item-icon">🪙</span>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500;color:var(--text-primary)">클랜 코인</div>
+            <div style="font-size:11px;color:var(--text-muted)">나의 코인 <span class="pd-coin-value">1,240</span></div>
+          </div>
+        </div>
+        <div class="pd-divider"></div>
+        <div class="pd-item" onclick="toggleTheme()">
+          <span class="pd-item-icon" id="themeIcon">🌙</span>
+          <span style="flex:1">다크 모드</span>
+          <div class="toggle on" id="themeToggle"></div>
+        </div>
+        <div class="pd-item" style="cursor:default">
+          <span class="pd-item-icon">🌐</span>
+          <span style="flex:1">언어</span>
+          <div class="lang-tabs">
+            <button class="lang-tab active" onclick="setLang(this,'ko')">한국어</button>
+            <button class="lang-tab" onclick="setLang(this,'en')">EN</button>
+            <button class="lang-tab" onclick="setLang(this,'ja')">日本語</button>
+          </div>
+        </div>
+        <div class="pd-divider"></div>
+        <div class="pd-item pd-logout" onclick="window.location.href='sign-in.html'">
+          <span class="pd-item-icon">🚪</span>
+          <span>로그아웃</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- 사이드바 -->
+<aside class="sidebar">
+  <div class="clan-header">
+    <div class="clan-logo" style="background:var(--clan-gradient)">🔥</div>
+    <div class="clan-name">Phoenix Rising</div>
+    <div class="clan-role" style="display:flex;align-items:center;gap:5px">
+      <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--clan-color)"></span>
+      클랜장
+    </div>
+  </div>
+
+  <div class="sidebar-section-title">메뉴</div>
+  <a href="main-clan.html"><div class="sidebar-item active">🏠 대시보드</div></a>
+  <a href="balance.html"><div class="sidebar-item">⚖️ 밸런스메이커</div></a>
+  <a href="stats.html"><div class="sidebar-item">📊 클랜 통계</div></a>
+  <a href="#"><div class="sidebar-item">🗓️ 이벤트</div></a>
+  <a href="#"><div class="sidebar-item">👥 클랜 관리</div></a>
+
+  <div class="sidebar-section-title" style="margin-top:8px">기타</div>
+  <a href="#"><div class="sidebar-item">🛒 클랜 스토어</div></a>
+  <a href="main-game.html"><div class="sidebar-item">🌐 커뮤니티</div></a>
+
+  <!-- Premium 배너 -->
+  <div style="margin-top:auto; padding-top:16px;">
+    <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:var(--radius-md);padding:14px">
+      <div style="font-size:13px;font-weight:700;color:#fcd34d;margin-bottom:4px">👑 Premium으로 업그레이드</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">AI 밸런싱, 승부예측, OCR 등 강력한 기능</div>
+      <button class="btn btn-sm" style="width:100%;background:var(--pro-gradient);color:white;border:none">업그레이드</button>
+    </div>
+  </div>
+</aside>
+
+<!-- 메인 콘텐츠 -->
+<main class="page-with-sidebar">
+
+  <!-- ── 클랜 배너 ── -->
+  <div class="clan-banner" style="margin-bottom:20px">
+    <div class="clan-banner-pattern"></div>
+    <div class="clan-banner-overlay">
+      <div class="clan-banner-logo">🔥</div>
+      <div class="clan-banner-info">
+        <div class="clan-banner-name">Phoenix Rising</div>
+        <div class="clan-banner-meta">
+          <span>오버워치 2</span>
+          <span>·</span>
+          <span>👥 28명</span>
+          <span>·</span>
+          <span style="color:rgba(255,255,255,0.5)">친목 · 빡겜</span>
+        </div>
+      </div>
+      <div class="clan-banner-actions">
+        <a href="balance.html"><button class="clan-banner-edit" style="background:rgba(124,58,237,0.5);border-color:rgba(124,58,237,0.6);color:white">⚖️ 내전 시작</button></a>
+        <button class="clan-banner-edit" onclick="alert('배너 편집 (운영진 전용)')">✏️ 배너 편집</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+
+    <!-- ── 공지사항 ── -->
+    <div class="d-card d-card-md" style="border-color:rgba(124,58,237,0.3)">
+      <div class="d-card-label">
+        📌 클랜 공지사항
+        <button class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 10px" onclick="alert('공지 작성 (운영진 전용)')">+ 공지 작성</button>
+      </div>
+      <div class="notice-pin">
+        <div class="notice-pin-icon">🔔</div>
+        <div class="notice-pin-body">
+          <div class="notice-pin-title">3월 정기 내전 일정 안내</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:3px">3/22(토) 21:00 정기 내전이 예정되어 있습니다. 참여 가능 여부를 Discord에 미리 알려주세요.</div>
+          <div class="notice-pin-time">김클랜 · 2일 전</div>
+        </div>
+      </div>
+      <div class="notice-pin">
+        <div class="notice-pin-icon">⚠️</div>
+        <div class="notice-pin-body">
+          <div class="notice-pin-title">비매너 행위 경고 규정 업데이트</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:3px">3회 경고 시 자동 퇴출로 규정이 강화되었습니다. 클랜 규칙을 다시 한번 확인해주세요.</div>
+          <div class="notice-pin-time">김클랜 · 1주일 전</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 클랜 배지 (업적) ── -->
+    <div class="d-card d-card-sm">
+      <div class="d-card-label">클랜 배지</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <div class="clan-badge-item">
+          <div class="clan-badge-icon">🔥</div>
+          <div class="clan-badge-name">창단</div>
+          <div class="clan-badge-date">2024.01</div>
+        </div>
+        <div class="clan-badge-item">
+          <div class="clan-badge-icon">⚔️</div>
+          <div class="clan-badge-name">내전<br>100회</div>
+          <div class="clan-badge-date">2024.08</div>
+        </div>
+        <div class="clan-badge-item">
+          <div class="clan-badge-icon">🏆</div>
+          <div class="clan-badge-name">스크림<br>우승</div>
+          <div class="clan-badge-date">2025.02</div>
+        </div>
+        <div class="clan-badge-item">
+          <div class="clan-badge-icon">👥</div>
+          <div class="clan-badge-name">만원<br>클랜</div>
+          <div class="clan-badge-date">2025.03</div>
+        </div>
+        <div class="clan-badge-item clan-badge-locked" title="내전 500회 달성 시 해금">
+          <div class="clan-badge-icon">💎</div>
+          <div class="clan-badge-name">내전<br>500회</div>
+          <div class="clan-badge-date">잠김</div>
+        </div>
+        <div class="clan-badge-item clan-badge-locked" title="1주년 달성 시 해금">
+          <div class="clan-badge-icon">🎂</div>
+          <div class="clan-badge-name">1주년</div>
+          <div class="clan-badge-date">잠김</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Zone 1: 지난달 MVP ── -->
+
+    <!-- 승률 MVP -->
+    <div class="d-card d-card-sm">
+      <div class="d-card-label">지난달 승률 MVP 🏆</div>
+      <div style="display:flex;align-items:center;gap:14px;margin-top:4px">
+        <div class="avatar avatar-xl" style="background:linear-gradient(135deg,#f59e0b,#ef4444);flex-shrink:0">이</div>
+        <div>
+          <div class="mvp-name">이프로</div>
+          <div class="mvp-desc">DPS · 3월 내전 12경기 참여</div>
+          <div class="mvp-highlight">🎯 팀 기여도 1위</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 출석 MVP -->
+    <div class="d-card d-card-sm">
+      <div class="d-card-label">지난달 출석 MVP 📅</div>
+      <div style="display:flex;align-items:center;gap:14px;margin-top:4px">
+        <div class="avatar avatar-xl" style="background:linear-gradient(135deg,#22c55e,#10b981);flex-shrink:0">박</div>
+        <div>
+          <div class="mvp-name">박힐러</div>
+          <div class="mvp-desc">힐러 · 이번 달 개근</div>
+          <div class="mvp-highlight" style="color:#34d399;border-color:rgba(52,211,153,0.3);background:rgba(52,211,153,0.1)">📌 전경기 참여</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 승부예측 MVP (Premium 잠금) -->
+    <div class="d-card d-card-sm pro-overlay">
+      <div class="d-card-label">지난달 승부예측 MVP 🔮</div>
+      <div style="opacity:0.25;filter:blur(2px);margin-top:4px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div class="avatar avatar-xl" style="background:linear-gradient(135deg,#7c3aed,#3b82f6)">김</div>
+          <div>
+            <div class="mvp-name">김클랜</div>
+            <div class="mvp-desc">12연속 적중</div>
+            <div class="mvp-highlight">🔮 예측왕</div>
+          </div>
+        </div>
+      </div>
+      <div class="pro-overlay-label">
+        <div style="font-size:24px;margin-bottom:6px">👑</div>
+        <div style="font-weight:700;color:#fcd34d;font-size:13px;text-align:center">Premium 전용</div>
+        <button class="btn btn-sm" style="background:var(--pro-gradient);color:white;border:none;margin-top:8px;pointer-events:all">업그레이드</button>
+      </div>
+    </div>
+
+    <!-- ── Zone 2: 다가오는 일정 + 내 참여 ── -->
+
+    <!-- 다가오는 일정 -->
+    <div class="d-card d-card-md">
+      <div class="d-card-label">
+        다가오는 일정
+        <button class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 10px">+ 이벤트</button>
+      </div>
+      <div class="event-item">
+        <div class="event-date">
+          <div class="event-date-day">22</div>
+          <div class="event-date-month">03월</div>
+        </div>
+        <div class="event-info">
+          <div class="event-name">정기 내전</div>
+          <div class="event-time">토요일 21:00</div>
+        </div>
+        <span class="badge badge-brand" style="font-size:11px">오늘</span>
+      </div>
+      <div class="event-item">
+        <div class="event-date">
+          <div class="event-date-day">25</div>
+          <div class="event-date-month">03월</div>
+        </div>
+        <div class="event-info">
+          <div class="event-name">Blue Storm 스크림</div>
+          <div class="event-time">화요일 20:00</div>
+        </div>
+        <span class="badge badge-success" style="font-size:11px">확정</span>
+      </div>
+      <div class="event-item">
+        <div class="event-date">
+          <div class="event-date-day">29</div>
+          <div class="event-date-month">03월</div>
+        </div>
+        <div class="event-info">
+          <div class="event-name">클랜 토너먼트</div>
+          <div class="event-time">토요일 종일</div>
+        </div>
+        <span class="badge badge-pro" style="font-size:11px">Premium</span>
+      </div>
+    </div>
+
+    <!-- 내 이번달 참여 -->
+    <div class="d-card d-card-sm" style="display:flex;flex-direction:column;justify-content:center">
+      <div class="d-card-label">내 이번달 참여</div>
+      <div style="display:flex;align-items:flex-end;gap:6px;margin-bottom:4px">
+        <div class="d-card-value gradient-text">9</div>
+        <div style="font-size:13px;color:var(--text-muted);padding-bottom:5px">/ 47경기</div>
+      </div>
+      <div class="d-card-sub">내전 7 · 스크림 2</div>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px">
+        <!-- 전체 경기 대비 내 참여 바 -->
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:5px">
+            <span>전체 경기 대비 참여율</span>
+            <span style="color:#a78bfa;font-weight:600">19%</span>
+          </div>
+          <div style="height:5px;background:var(--bg-overlay);border-radius:99px;overflow:hidden">
+            <div style="width:19%;height:100%;background:var(--gradient-brand);border-radius:99px"></div>
+          </div>
+        </div>
+        <!-- 최소 규정 경기 달성 여부 -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:var(--radius-sm);background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2)">
+          <div>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:1px">순위권 최소 규정</div>
+            <div style="font-size:12px;font-weight:600;color:var(--text-primary)">월 <span style="color:#34d399">6경기</span> 이상</div>
+          </div>
+          <div style="font-size:20px">✅</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Zone 4: 클랜 규칙 + 활성 클랜원 ── -->
+
+    <!-- 클랜 규칙 -->
+    <div class="d-card d-card-md">
+      <div class="d-card-label">
+        📋 클랜 규칙
+        <button class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 10px" onclick="alert('규칙 편집 (운영진 전용)')">✏️ 편집</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px">
+          <span style="width:20px;height:20px;border-radius:50%;background:rgba(124,58,237,0.2);color:#a78bfa;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">1</span>
+          <span style="color:var(--text-secondary)">정기 내전은 <strong style="color:var(--text-primary)">월 6경기 이상</strong> 참여를 권장합니다. 미달 시 순위 집계에서 제외됩니다.</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px">
+          <span style="width:20px;height:20px;border-radius:50%;background:rgba(124,58,237,0.2);color:#a78bfa;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">2</span>
+          <span style="color:var(--text-secondary)">경기 중 비매너 언행은 <strong style="color:var(--danger)">경고 3회</strong> 누적 시 자동 퇴출 처리됩니다.</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px">
+          <span style="width:20px;height:20px;border-radius:50%;background:rgba(124,58,237,0.2);color:#a78bfa;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">3</span>
+          <span style="color:var(--text-secondary)">가입 후 <strong style="color:var(--text-primary)">2주 이내</strong> 첫 내전 참여를 완료해야 정식 멤버로 승인됩니다.</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px">
+          <span style="width:20px;height:20px;border-radius:50%;background:rgba(124,58,237,0.2);color:#a78bfa;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">4</span>
+          <span style="color:var(--text-secondary)">장기 미접속(<strong style="color:var(--text-primary)">30일 이상</strong>) 시 사전 공지 없으면 비활성 처리될 수 있습니다.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 활성 클랜원 -->
+    <div class="d-card d-card-sm">
+      <div class="d-card-label">
+        활성 클랜원
+        <a href="#" style="font-size:12px;color:var(--brand-secondary);font-weight:400;text-transform:none;letter-spacing:0">관리 →</a>
+      </div>
+      <div class="member-row">
+        <div class="avatar" style="width:28px;height:28px;font-size:11px">김</div>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:13px">김클랜 <span class="badge badge-brand" style="font-size:10px;padding:1px 5px">장</span></div>
+        </div>
+        <span style="font-size:18px">🟢</span>
+      </div>
+      <div class="member-row">
+        <div class="avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#f59e0b,#ef4444)">이</div>
+        <div style="flex:1"><div style="font-weight:600;font-size:13px">이프로</div></div>
+        <span style="font-size:18px">🟢</span>
+      </div>
+      <div class="member-row">
+        <div class="avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#22c55e,#10b981)">박</div>
+        <div style="flex:1"><div style="font-weight:600;font-size:13px">박힐러</div></div>
+        <span style="font-size:18px">🟡</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:8px;text-align:center">+ 21명 온라인</div>
+    </div>
+
+  </div>
+</main>
+
+<script src="../scripts/app.js"></script>
+</body>
+</html>

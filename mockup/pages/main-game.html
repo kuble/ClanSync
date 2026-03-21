@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClanSync — 오버워치 2 커뮤니티</title>
+<link rel="stylesheet" href="../styles/main.css">
+<style>
+
+/* ── 게임 헤더 (사이드바 상단) ── */
+.game-header {
+  padding: 4px 0 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+.game-icon {
+  width: 48px; height: 48px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #f97316, #ef4444);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; margin-bottom: 8px;
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.2);
+}
+.game-name { font-size: 15px; font-weight: 700; }
+.game-sub  { font-size: 12px; color: var(--text-muted); }
+
+/* ── 내 클랜 미니 뱃지 (사이드바) ── */
+.my-clan-badge {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px; border-radius: var(--radius-sm);
+  border: 1px solid rgba(124,58,237,0.3);
+  background: rgba(124,58,237,0.08);
+  cursor: pointer; transition: background 0.15s;
+  font-size: 13px; font-weight: 600; color: #a78bfa;
+}
+.my-clan-badge:hover { background: rgba(124,58,237,0.16); }
+
+/* ── 대시보드 그리드 ── */
+.dash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.d-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 20px; }
+.d-card-sm   { grid-column: span 1; }
+.d-card-md   { grid-column: span 2; }
+.d-card-full { grid-column: span 3; }
+.d-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+.d-big   { font-size: 36px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+.d-sub   { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
+
+/* ── LFG ── */
+.lfg-bar {
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;
+}
+.lfg-field { display: flex; flex-direction: column; gap: 5px; }
+.lfg-label { font-size: 11px; color: var(--text-muted); font-weight: 700; letter-spacing: 0.04em; }
+.lfg-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+.lfg-chip {
+  padding: 4px 11px; border-radius: 99px; font-size: 12px;
+  border: 1px solid var(--border); background: var(--bg-surface);
+  color: var(--text-secondary); cursor: pointer; transition: all 0.15s; user-select: none;
+}
+.lfg-chip.on { background: rgba(124,58,237,0.18); border-color: rgba(124,58,237,0.5); color: #c4b5fd; font-weight: 600; }
+.lfg-chip:hover:not(.on) { border-color: rgba(124,58,237,0.4); color: var(--text-primary); }
+
+.lfg-post {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 12px 16px; margin-bottom: 8px;
+  transition: border-color 0.15s;
+}
+.lfg-post:hover { border-color: rgba(124,58,237,0.35); }
+.online-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.online-dot.g { background: #4ade80; }
+.online-dot.y { background: #fbbf24; }
+.lfg-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 4px; }
+.lfg-tag { font-size: 11px; padding: 1px 7px; border-radius: 99px; background: var(--bg-base); border: 1px solid var(--border); color: var(--text-muted); }
+.lfg-tag-mode { color: #a78bfa; border-color: rgba(124,58,237,0.3); }
+.lfg-tag-time { color: #60a5fa; border-color: rgba(96,165,250,0.3); }
+
+/* ── 스크림 카드 ── */
+.scrim-card {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 10px; transition: all 0.15s;
+}
+.scrim-card:hover { border-color: rgba(59,130,246,0.4); }
+.scrim-chip { padding: 3px 10px; background: var(--bg-overlay); border: 1px solid var(--border); border-radius: 99px; font-size: 12px; color: var(--text-muted); }
+.scrim-chip.hi { color: var(--text-secondary); border-color: var(--border); background: var(--bg-overlay); }
+.card-avatar { width:56px;height:56px;flex-shrink:0;border-radius:12px;background:var(--bg-overlay);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:26px; }
+
+/* ── 클랜 홍보 ── */
+.promo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.promo-card {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 0; transition: border-color 0.15s; overflow: hidden;
+}
+.promo-card:hover { border-color: var(--border-focus); cursor: pointer; }
+.promo-card.pinned {}
+
+/* ── 순위 ── */
+.rank-row { display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px; }
+.rank-row:last-child { border-bottom: none; }
+.rank-num { width:22px;font-size:12px;font-weight:700;color:var(--text-muted);text-align:center;flex-shrink:0; }
+.rank-num.top1 { color:#f59e0b; } .rank-num.top2 { color:#9ca3af; } .rank-num.top3 { color:#cd7c2e; }
+
+/* ── 섹션 제목 ── */
+.section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.section-title { font-size: 18px; font-weight: 700; }
+.section-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+/* ── 스탯 카드 ── */
+.stat-card {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-xl); padding: 18px 20px;
+}
+
+/* ── 홈 대시보드 미리보기 목록 ── */
+.preview-list { display: flex; flex-direction: column; gap: 0; }
+.preview-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.preview-row:last-child { border-bottom: none; }
+
+/* ── 자동 매칭 버튼 ── */
+.match-btn { width:100%;padding:12px;background:var(--gradient-brand);border:none;border-radius:var(--radius-md);color:white;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity 0.2s;margin-bottom:10px; }
+.match-btn:hover { opacity: 0.9; }
+
+/* ── 필터 바 ── */
+.filter-bar {
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+  padding: 14px 16px; background: var(--bg-elevated);
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  margin-bottom: 16px;
+}
+.filter-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.filter-label { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em; white-space: nowrap; }
+.filter-chip {
+  padding: 4px 12px; border-radius: 99px; font-size: 12px;
+  border: 1px solid var(--border); background: var(--bg-overlay);
+  color: var(--text-secondary); cursor: pointer; transition: all 0.15s; user-select: none;
+}
+.filter-chip.on { background: rgba(124,58,237,0.18); border-color: rgba(124,58,237,0.5); color: #c4b5fd; font-weight: 600; }
+.filter-chip:hover:not(.on) { border-color: rgba(124,58,237,0.4); color: var(--text-primary); }
+.filter-divider { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+.filter-sort { margin-left: auto; }
+.filter-sort select { font-size: 12px; padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-overlay); color: var(--text-secondary); cursor: pointer; }
+
+/* ── 페이지네이션 ── */
+.pagination {
+  display: flex; align-items: center; justify-content: center;
+  gap: 4px; margin-top: 20px; padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.pg-btn {
+  min-width: 34px; height: 34px; padding: 0 8px;
+  border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+  border: 1px solid var(--border); background: var(--bg-elevated);
+  color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.pg-btn:hover:not(:disabled) { border-color: var(--brand-primary); color: var(--text-primary); }
+.pg-btn.on { background: var(--brand-primary); border-color: var(--brand-primary); color: white; font-weight: 700; }
+.pg-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.pg-info { font-size: 12px; color: var(--text-muted); padding: 0 6px; }
+
+/* ── 결과 없음 ── */
+.empty-state { text-align:center;padding:48px 24px;color:var(--text-muted); }
+.empty-state-icon { font-size:36px;margin-bottom:10px; }
+.empty-state-text { font-size:14px; }
+
+/* ── 클랜 홍보 카드 태그 ── */
+.promo-tag {
+  padding: 2px 8px;
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.promo-tag-row {
+  display: flex; align-items: center; gap: 5px; justify-content: flex-end;
+}
+.promo-tag-label {
+  font-size: 10px; color: var(--text-muted); white-space: nowrap; flex-shrink: 0;
+}
+
+/* ── Premium 인증 배지 ── */
+.verified-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed, #3b82f6);
+  color: white; font-size: 9px; font-weight: 900;
+  flex-shrink: 0; cursor: default;
+  position: relative;
+}
+.verified-badge .vb-tooltip {
+  display: none;
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 50%; transform: translateX(-50%);
+  background: var(--bg-elevated);
+  border: 1px solid rgba(124,58,237,0.35);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  width: 200px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  pointer-events: none;
+  z-index: 50;
+}
+.verified-badge .vb-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: 100%; left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: rgba(124,58,237,0.35);
+}
+.verified-badge:hover .vb-tooltip { display: block; }
+.vb-title { font-size: 12px; font-weight: 700; color: #a78bfa; margin-bottom: 4px; }
+.vb-desc  { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+
+/* ── 클랜 홍보 팝오버 필터 ── */
+.filter-trigger-bar { display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap; }
+.filter-btn { display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-elevated);font-size:13px;color:var(--text-secondary);cursor:pointer;transition:all 0.15s;font-family:var(--font-sans); }
+.filter-btn:hover { border-color:var(--border-hover);color:var(--text-primary); }
+.filter-btn.has-active { border-color:rgba(124,58,237,0.5);color:#a78bfa;background:rgba(124,58,237,0.08); }
+.filter-count { display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:var(--brand-primary);color:white;border-radius:50%;font-size:10px;font-weight:700; }
+.active-filter-tag { display:inline-flex;align-items:center;gap:4px;padding:4px 8px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.3);border-radius:99px;font-size:12px;color:#a78bfa;cursor:pointer; }
+.active-filter-tag:hover { background:rgba(124,58,237,0.2); }
+.filter-reset-all { font-size:12px;color:var(--text-muted);cursor:pointer;text-decoration:underline;text-underline-offset:2px;white-space:nowrap; }
+.filter-reset-all:hover { color:var(--text-secondary); }
+.filter-popover-wrap { position:relative; }
+.filter-popover { display:none;position:absolute;top:calc(100% + 6px);left:0;z-index:100;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;min-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.4);flex-direction:column;gap:10px; }
+.filter-popover.open { display:flex; }
+.filter-group-label { font-size:11px;font-weight:600;color:var(--text-muted);min-width:40px;flex-shrink:0; }
+.filter-divider-v { width:1px;height:14px;background:var(--border);flex-shrink:0; }
+.filter-chip.active { background:rgba(124,58,237,0.15);border-color:rgba(124,58,237,0.4);color:#a78bfa; }
+.filter-popover-footer { padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center; }
+.filter-apply-btn { padding:5px 14px;background:var(--brand-primary);color:white;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-sans); }
+.filter-reset-btn { font-size:12px;color:var(--text-muted);cursor:pointer;text-decoration:underline;text-underline-offset:2px; }
+.filter-reset-btn:hover { color:var(--text-secondary); }
+
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="games.html"><span class="navbar-brand">⚡ ClanSync</span></a>
+  <div class="navbar-nav" style="gap:12px">
+    <span style="font-size:13px;color:var(--text-secondary)">🎮 오버워치 2</span>
+    <a href="main-clan.html"><button class="btn btn-secondary btn-sm">내 클랜 →</button></a>
+    <div class="profile-menu" id="profileMenu">
+      <button class="profile-btn" onclick="toggleProfileMenu()">
+        <div class="avatar" style="width:28px;height:28px;font-size:12px">김</div>
+        <span class="profile-btn-arrow">▾</span>
+      </button>
+      <div class="profile-dropdown" id="profileDropdown">
+        <div class="pd-header">
+          <div class="avatar" style="width:40px;height:40px;font-size:16px">김</div>
+          <div>
+            <div style="font-weight:700;font-size:14px">김클랜</div>
+            <div style="font-size:12px;color:var(--text-muted)">kim@example.com</div>
+          </div>
+        </div>
+        <div class="pd-divider"></div>
+        <a href="profile.html"><div class="pd-item">
+          <span class="pd-item-icon">👤</span><span>플레이어 프로필</span><span class="pd-item-arrow">›</span>
+        </div></a>
+        <div class="pd-divider"></div>
+        <div class="pd-item" onclick="toggleTheme()">
+          <span class="pd-item-icon" id="themeIcon">🌙</span>
+          <span style="flex:1">다크 모드</span>
+          <div class="toggle on" id="themeToggle"></div>
+        </div>
+        <div class="pd-item" style="cursor:default">
+          <span class="pd-item-icon">🌐</span><span style="flex:1">언어</span>
+          <div class="lang-tabs">
+            <button class="lang-tab active" onclick="setLang(this,'ko')">한국어</button>
+            <button class="lang-tab" onclick="setLang(this,'en')">EN</button>
+            <button class="lang-tab" onclick="setLang(this,'ja')">日本語</button>
+          </div>
+        </div>
+        <div class="pd-divider"></div>
+        <div class="pd-item pd-logout" onclick="window.location.href='sign-in.html'">
+          <span class="pd-item-icon">🚪</span><span>로그아웃</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- 사이드바 -->
+<aside class="sidebar">
+  <div class="game-header">
+    <div class="game-icon">🎮</div>
+    <div class="game-name">오버워치 2</div>
+    <div class="game-sub">커뮤니티</div>
+  </div>
+
+  <div class="sidebar-section-title">커뮤니티</div>
+  <div class="sidebar-item active" id="nav-home"     onclick="navTo('home')">🏠 홈</div>
+  <div class="sidebar-item"        id="nav-lfg"      onclick="navTo('lfg')">🔍 같이 할 사람</div>
+  <div class="sidebar-item"        id="nav-scrim"    onclick="navTo('scrim')">⚔️ 스크림 모집</div>
+  <div class="sidebar-item"        id="nav-promo"    onclick="navTo('promo')">📢 클랜 홍보</div>
+  <div class="sidebar-item"        id="nav-ranking"  onclick="navTo('ranking')">🏆 클랜 순위</div>
+
+  <div class="sidebar-section-title" style="margin-top:8px">내 클랜</div>
+  <a href="main-clan.html" style="text-decoration:none">
+    <div class="my-clan-badge">
+      <span>🔥</span>Phoenix Rising
+    </div>
+  </a>
+
+</aside>
+
+<!-- 메인 콘텐츠 -->
+<div class="page-with-sidebar">
+
+  <!-- ══════════════════════════════
+       섹션 0: 홈 (대시보드)
+  ══════════════════════════════ -->
+  <div id="sec-home">
+    <div class="section-head" style="margin-bottom:20px">
+      <div>
+        <div class="section-title">🏠 오버워치 2 커뮤니티</div>
+        <div class="section-sub">지금 활발하게 활동 중인 플레이어 · 클랜을 만나세요</div>
+      </div>
+    </div>
+
+    <div class="dash-grid">
+
+      <!-- 클랜 홍보 미리보기 (3×2 = full) -->
+      <div class="d-card d-card-full">
+        <div class="d-label" style="margin-bottom:14px">
+          📢 클랜 홍보
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:12px;color:var(--text-muted);font-weight:400">모집 중인 클랜 14개</span>
+            <span onclick="window.location.href='clan-auth.html'" style="font-size:12px;color:var(--brand-secondary);font-weight:400;cursor:pointer">클랜 찾기 →</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+
+          <!-- 1 -->
+          <div style="background:var(--bg-overlay);border:1px solid rgba(245,158,11,0.3);border-radius:var(--radius-lg);padding:14px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="avatar" style="width:32px;height:32px;font-size:14px;background:linear-gradient(135deg,#f59e0b,#ef4444)">🔥</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Phoenix Rising</div>
+                <div style="font-size:11px;color:var(--text-muted)">경쟁 · 친목</div>
+              </div>
+              <span class="badge badge-brand" style="font-size:10px">📌</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-secondary);line-height:1.4">플레 이상 모집 중. 매주 토/일 정기 내전.</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:auto">
+              <span style="font-size:11px;color:var(--text-muted)">👥 24/30명 · 📅 토/일</span>
+              <button class="btn btn-primary btn-sm" style="margin-left:auto;font-size:11px" onclick="window.location.href='clan-auth.html'">신청</button>
+            </div>
+          </div>
+
+          <!-- 2 -->
+          <div style="background:var(--bg-overlay);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="avatar" style="width:32px;height:32px;font-size:14px;background:linear-gradient(135deg,#0ea5e9,#06b6d4)">⚡</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Blue Storm</div>
+                <div style="font-size:11px;color:var(--text-muted)">경쟁</div>
+              </div>
+              <span style="font-size:11px;color:var(--warning);white-space:nowrap">🔔 급모집</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-secondary);line-height:1.4">탱커+힐러 각 1명 급구. 평일 저녁 내전.</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:auto">
+              <span style="font-size:11px;color:var(--text-muted)">👥 18/25명 · 📅 평일</span>
+              <button class="btn btn-secondary btn-sm" style="margin-left:auto;font-size:11px">신청</button>
+            </div>
+          </div>
+
+          <!-- 3 -->
+          <div style="background:var(--bg-overlay);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="avatar" style="width:32px;height:32px;font-size:14px;background:linear-gradient(135deg,#22c55e,#10b981)">🌟</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Casual Heroes</div>
+                <div style="font-size:11px;color:var(--text-muted)">친목</div>
+              </div>
+              <span class="badge badge-success" style="font-size:10px">입문 환영</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-secondary);line-height:1.4">즐겜 위주. 랭크 제한 없음. 주말 편하게 내전.</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:auto">
+              <span style="font-size:11px;color:var(--text-muted)">👥 15/30명 · 📅 주말</span>
+              <button class="btn btn-secondary btn-sm" style="margin-left:auto;font-size:11px">신청</button>
+            </div>
+          </div>
+
+          <!-- 4 -->
+          <div style="background:var(--bg-overlay);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="avatar" style="width:32px;height:32px;font-size:14px;background:linear-gradient(135deg,#374151,#6b7280)">🌙</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Midnight</div>
+                <div style="font-size:11px;color:var(--text-muted)">친목 · 직장인</div>
+              </div>
+            </div>
+            <div style="font-size:12px;color:var(--text-secondary);line-height:1.4">자정~새벽 활동 메인. 사회인 클랜. 주 2~3회.</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:auto">
+              <span style="font-size:11px;color:var(--text-muted)">👥 20/30명 · 📅 야간</span>
+              <button class="btn btn-secondary btn-sm" style="margin-left:auto;font-size:11px">신청</button>
+            </div>
+          </div>
+
+          <!-- 5 -->
+          <div style="background:var(--bg-overlay);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="avatar" style="width:32px;height:32px;font-size:14px;background:linear-gradient(135deg,#ef4444,#f97316)">🐉</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Red Dragons</div>
+                <div style="font-size:11px;color:var(--text-muted)">경쟁</div>
+              </div>
+              <span class="badge badge-brand" style="font-size:10px">신규</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-secondary);line-height:1.4">마스터 이상 모집 중. 주 4~5회 내전. 진지한 클랜.</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:auto">
+              <span style="font-size:11px;color:var(--text-muted)">👥 8/20명 · 📅 평일+주말</span>
+              <button class="btn btn-secondary btn-sm" style="margin-left:auto;font-size:11px">신청</button>
+            </div>
+          </div>
+
+          <!-- 6 -->
+          <div style="background:var(--bg-overlay);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="avatar" style="width:32px;height:32px;font-size:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6)">🌀</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Vortex</div>
+                <div style="font-size:11px;color:var(--text-muted)">경쟁 · 친목</div>
+              </div>
+            </div>
+            <div style="font-size:12px;color:var(--text-secondary);line-height:1.4">다이아~마스터 환영. 디스코드 소통 중심 클랜.</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:auto">
+              <span style="font-size:11px;color:var(--text-muted)">👥 12/25명 · 📅 주말</span>
+              <button class="btn btn-secondary btn-sm" style="margin-left:auto;font-size:11px">신청</button>
+            </div>
+          </div>
+
+        </div>
+        <button class="btn btn-secondary btn-sm" style="margin-top:14px;width:100%" onclick="navTo('promo')">📢 클랜 홍보 전체 보기</button>
+      </div>
+
+      <!-- 같이 할 사람 미리보기 -->
+      <div class="d-card d-card-md">
+        <div class="d-label">
+          🔍 같이 할 사람
+          <span onclick="navTo('lfg')" style="font-size:12px;color:var(--brand-secondary);font-weight:400;cursor:pointer">전체 보기 →</span>
+        </div>
+        <div class="preview-list" id="home-lfg-preview"></div>
+        <button class="btn btn-primary btn-sm" style="margin-top:12px;width:100%" onclick="navTo('lfg')">+ 파티 모집 올리기</button>
+      </div>
+
+      <!-- 클랜 순위 미리보기 -->
+      <div class="d-card d-card-sm">
+        <div class="d-label">
+          🏆 이달의 클랜 순위
+          <span onclick="navTo('ranking')" style="font-size:12px;color:var(--brand-secondary);font-weight:400;cursor:pointer">전체 →</span>
+        </div>
+        <div class="rank-row">
+          <div class="rank-num top1">1</div>
+          <div class="avatar" style="width:24px;height:24px;font-size:10px;background:linear-gradient(135deg,#f59e0b,#ef4444)">B</div>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600">Best Warriors</div></div>
+          <div style="font-size:13px">🥇</div>
+        </div>
+        <div class="rank-row">
+          <div class="rank-num top2">2</div>
+          <div class="avatar" style="width:24px;height:24px;font-size:10px;background:linear-gradient(135deg,#0ea5e9,#06b6d4)">S</div>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600">Storm Rising</div></div>
+          <div style="font-size:13px">🥈</div>
+        </div>
+        <div class="rank-row">
+          <div class="rank-num top3">3</div>
+          <div class="avatar" style="width:24px;height:24px;font-size:10px">N</div>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600">Night Owls</div></div>
+          <div style="font-size:13px">🥉</div>
+        </div>
+        <div class="rank-row" style="background:rgba(124,58,237,0.08);border-radius:var(--radius-sm);padding:8px;border:1px solid rgba(124,58,237,0.2);margin-top:4px">
+          <div class="rank-num" style="color:var(--brand-primary)">8</div>
+          <div class="avatar" style="width:24px;height:24px;font-size:10px">🔥</div>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600">Phoenix Rising <span style="font-size:11px;color:var(--text-muted)">(내 클랜)</span></div></div>
+          <div style="font-size:12px;color:var(--success)">↑2</div>
+        </div>
+      </div>
+
+      <!-- 스크림 모집 미리보기 -->
+      <div class="d-card d-card-md">
+        <div class="d-label">
+          ⚔️ 스크림 모집 중
+          <span onclick="navTo('scrim')" style="font-size:12px;color:var(--brand-secondary);font-weight:400;cursor:pointer">전체 →</span>
+        </div>
+        <div>
+          <div class="preview-row">
+            <div class="avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#7c3aed,#3b82f6)">🔥</div>
+            <div style="flex:1"><div style="font-weight:600;font-size:13px">Phoenix Rising</div><div style="font-size:11px;color:var(--text-muted)">토/일 21:00 · 플레~다이아</div></div>
+            <span class="badge badge-success" style="font-size:10px">모집 중</span>
+          </div>
+          <div class="preview-row">
+            <div class="avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#0ea5e9,#06b6d4)">⚡</div>
+            <div style="flex:1"><div style="font-weight:600;font-size:13px">Blue Storm</div><div style="font-size:11px;color:var(--text-muted)">화/목 저녁 · 다이아~마스터</div></div>
+            <span class="badge badge-success" style="font-size:10px">모집 중</span>
+          </div>
+          <div class="preview-row">
+            <div class="avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#374151,#6b7280)">🛡</div>
+            <div style="flex:1"><div style="font-weight:600;font-size:13px">Iron Wall</div><div style="font-size:11px;color:var(--text-muted)">다음 주 주말 · 골드~플래</div></div>
+            <span class="badge badge-muted" style="font-size:10px">예정</span>
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%" onclick="navTo('scrim')">전체 보기</button>
+      </div>
+
+      <!-- 스크림 자동 매칭 -->
+      <div class="d-card d-card-sm">
+        <div class="d-label">
+          ⚡ 스크림 자동 매칭
+          <span class="badge badge-brand" style="font-size:10px">운영진+</span>
+        </div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;line-height:1.6">비슷한 티어의 클랜을 자동으로 연결합니다</div>
+        <div class="form-group" style="margin:0 0 8px">
+          <label class="label" style="font-size:11px">희망 날짜</label>
+          <input class="input" type="date" value="2026-03-22" style="font-size:13px">
+        </div>
+        <div class="form-group" style="margin:0 0 12px">
+          <label class="label" style="font-size:11px">희망 시간대</label>
+          <select class="input" style="font-size:13px">
+            <option>19:00 이후</option>
+            <option selected>21:00 이후</option>
+            <option>주말 종일</option>
+          </select>
+        </div>
+        <button class="match-btn" onclick="alert('자동 매칭 시작 (목업)')">🎯 자동 매칭 시작</button>
+        <div style="font-size:11px;text-align:center;color:var(--text-muted)">현재 대기 클랜 12팀</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       섹션 1: 같이 할 사람 (LFG)
+  ══════════════════════════════ -->
+  <div id="sec-lfg" style="display:none">
+    <div class="section-head">
+      <div>
+        <div class="section-title">🔍 같이 할 사람</div>
+        <div class="section-sub">지금 파티를 구하는 플레이어들</div>
+      </div>
+    </div>
+
+    <!-- 모집 폼 -->
+    <div class="lfg-bar">
+      <div class="lfg-field">
+        <span class="lfg-label">모드</span>
+        <div class="lfg-chips" id="lfgMode">
+          <div class="lfg-chip on" data-val="경쟁" onclick="selChip('lfgMode',this)">경쟁</div>
+          <div class="lfg-chip" data-val="빠대" onclick="selChip('lfgMode',this)">빠대</div>
+          <div class="lfg-chip" data-val="아케이드" onclick="selChip('lfgMode',this)">아케이드</div>
+          <div class="lfg-chip" data-val="커스텀" onclick="selChip('lfgMode',this)">커스텀</div>
+        </div>
+      </div>
+      <div class="lfg-field">
+        <span class="lfg-label">인원</span>
+        <div class="lfg-chips" id="lfgSlots">
+          <div class="lfg-chip on" data-val="+1" onclick="selChip('lfgSlots',this)">+1</div>
+          <div class="lfg-chip" data-val="+2" onclick="selChip('lfgSlots',this)">+2</div>
+          <div class="lfg-chip" data-val="+3" onclick="selChip('lfgSlots',this)">+3</div>
+          <div class="lfg-chip" data-val="+4" onclick="selChip('lfgSlots',this)">+4</div>
+          <div class="lfg-chip" data-val="+5" onclick="selChip('lfgSlots',this)">+5</div>
+        </div>
+      </div>
+      <div class="lfg-field">
+        <span class="lfg-label">티어</span>
+        <div class="lfg-chips" id="lfgTier">
+          <div class="lfg-chip on" data-val="전체" onclick="selChip('lfgTier',this)">전체</div>
+          <div class="lfg-chip" data-val="골드↑" onclick="selChip('lfgTier',this)">골드↑</div>
+          <div class="lfg-chip" data-val="플래↑" onclick="selChip('lfgTier',this)">플래↑</div>
+          <div class="lfg-chip" data-val="다이아↑" onclick="selChip('lfgTier',this)">다이아↑</div>
+          <div class="lfg-chip" data-val="마스터↑" onclick="selChip('lfgTier',this)">마스터↑</div>
+        </div>
+      </div>
+      <div class="lfg-field">
+        <span class="lfg-label">시간</span>
+        <div class="lfg-chips" id="lfgTime">
+          <div class="lfg-chip on" data-val="지금 바로" onclick="selChip('lfgTime',this)">지금 바로</div>
+          <div class="lfg-chip" data-val="30분 후" onclick="selChip('lfgTime',this)">30분 후</div>
+          <div class="lfg-chip" data-val="1시간 후" onclick="selChip('lfgTime',this)">1시간 후</div>
+        </div>
+      </div>
+      <div style="margin-left:auto;align-self:flex-end">
+        <button class="btn btn-primary btn-sm" onclick="postLfg()" style="height:34px;padding:0 18px">모집 올리기</button>
+      </div>
+    </div>
+
+    <div id="lfgList"></div>
+    <div id="lfgPagination" class="pagination"></div>
+  </div>
+
+  <!-- ══════════════════════════════
+       섹션 2: 스크림 모집
+  ══════════════════════════════ -->
+  <div id="sec-scrim" style="display:none">
+    <div class="section-head">
+      <div>
+        <div class="section-title">⚔️ 스크림 모집</div>
+        <div class="section-sub" id="scrim-count-label">스크림 상대를 구하는 클랜 목록</div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="alert('스크림 신청 (운영진 이상)')">+ 스크림 신청</button>
+    </div>
+
+    <!-- 스크림 필터 -->
+    <div class="filter-bar">
+      <div class="filter-group">
+        <span class="filter-label">상태</span>
+        <div class="filter-chip on"  data-sf="status" data-val="전체"   onclick="setScrimFilter('status',this)">전체</div>
+        <div class="filter-chip"     data-sf="status" data-val="모집 중" onclick="setScrimFilter('status',this)">모집 중</div>
+        <div class="filter-chip"     data-sf="status" data-val="예정"   onclick="setScrimFilter('status',this)">예정</div>
+      </div>
+      <div class="filter-divider"></div>
+      <div class="filter-group">
+        <span class="filter-label">티어</span>
+        <div class="filter-chip on" data-sf="tier" data-val="전체"   onclick="setScrimFilter('tier',this)">전체</div>
+        <div class="filter-chip"    data-sf="tier" data-val="골드↓"  onclick="setScrimFilter('tier',this)">골드↓</div>
+        <div class="filter-chip"    data-sf="tier" data-val="플래"   onclick="setScrimFilter('tier',this)">플래</div>
+        <div class="filter-chip"    data-sf="tier" data-val="다이아" onclick="setScrimFilter('tier',this)">다이아</div>
+        <div class="filter-chip"    data-sf="tier" data-val="마스터↑" onclick="setScrimFilter('tier',this)">마스터↑</div>
+      </div>
+    </div>
+
+    <div id="scrimList"></div>
+    <div id="scrimPagination" class="pagination"></div>
+  </div>
+
+  <!-- ══════════════════════════════
+       섹션 3: 클랜 홍보
+  ══════════════════════════════ -->
+  <div id="sec-promo" style="display:none">
+    <div class="section-head">
+      <div>
+        <div class="section-title">📢 클랜 홍보</div>
+        <div class="section-sub" id="promo-count-label">클랜원을 모집 중인 클랜들</div>
+      </div>
+      <a href="clan-auth.html"><button class="btn btn-secondary btn-sm">🔍 클랜 찾기</button></a>
+    </div>
+
+    <!-- 클랜 홍보 필터 -->
+    <div class="filter-trigger-bar" id="promoFilterTriggerBar">
+      <div class="filter-popover-wrap">
+        <button class="filter-btn" id="promoFilterBtn" onclick="togglePromoFilterPopover()">
+          ⚙ 필터
+          <span class="filter-count" id="promoFilterCount" style="display:none">0</span>
+        </button>
+        <div class="filter-popover" id="promoFilterPopover">
+          <!-- 모집 상태 -->
+          <div class="filter-group">
+            <span class="filter-group-label">모집</span>
+            <div class="filter-divider-v"></div>
+            <div class="filter-chip active" data-pg="recruit" data-val="all"    onclick="setPromoGroupFilter(this)">전체</div>
+            <div class="filter-chip"        data-pg="recruit" data-val="open"   onclick="setPromoGroupFilter(this)">모집 중</div>
+            <div class="filter-chip"        data-pg="recruit" data-val="soon"   onclick="setPromoGroupFilter(this)">모집 예정</div>
+            <div class="filter-chip"        data-pg="recruit" data-val="closed" onclick="setPromoGroupFilter(this)">모집 완료</div>
+          </div>
+          <!-- 클랜 지향 -->
+          <div class="filter-group">
+            <span class="filter-group-label">지향</span>
+            <div class="filter-divider-v"></div>
+            <div class="filter-chip active" data-pg="style" data-val="all"      onclick="setPromoGroupFilter(this)">전체</div>
+            <div class="filter-chip"        data-pg="style" data-val="social"   onclick="setPromoGroupFilter(this)">친목</div>
+            <div class="filter-chip"        data-pg="style" data-val="tryhard"  onclick="setPromoGroupFilter(this)">빡겜</div>
+            <div class="filter-chip"        data-pg="style" data-val="casual"   onclick="setPromoGroupFilter(this)">즐겜</div>
+            <div class="filter-chip"        data-pg="style" data-val="pro"      onclick="setPromoGroupFilter(this)">프로</div>
+          </div>
+          <!-- 모집 포지션 -->
+          <div class="filter-group">
+            <span class="filter-group-label">포지션</span>
+            <div class="filter-divider-v"></div>
+            <div class="filter-chip" data-pg="pos" data-val="tank"    onclick="togglePromoSpecial(this)">🛡 탱커</div>
+            <div class="filter-chip" data-pg="pos" data-val="dps"     onclick="togglePromoSpecial(this)">⚔️ 딜러</div>
+            <div class="filter-chip" data-pg="pos" data-val="support" onclick="togglePromoSpecial(this)">💚 힐러</div>
+          </div>
+          <!-- 티어대 -->
+          <div class="filter-group" style="flex-wrap:nowrap;align-items:flex-start">
+            <span class="filter-group-label" style="padding-top:4px">티어</span>
+            <div class="filter-divider-v" style="margin-top:4px"></div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <div style="display:flex;gap:5px;flex-wrap:wrap">
+                <div class="filter-chip" data-pg="tier" data-val="bronze"  onclick="togglePromoSpecial(this)">🥉 브론즈</div>
+                <div class="filter-chip" data-pg="tier" data-val="silver"  onclick="togglePromoSpecial(this)">🥈 실버</div>
+                <div class="filter-chip" data-pg="tier" data-val="gold"    onclick="togglePromoSpecial(this)">🥇 골드</div>
+                <div class="filter-chip" data-pg="tier" data-val="plat"    onclick="togglePromoSpecial(this)">💠 플래티넘</div>
+              </div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap">
+                <div class="filter-chip" data-pg="tier" data-val="diamond" onclick="togglePromoSpecial(this)">💎 다이아몬드</div>
+                <div class="filter-chip" data-pg="tier" data-val="master"  onclick="togglePromoSpecial(this)">🔮 마스터</div>
+                <div class="filter-chip" data-pg="tier" data-val="gm"      onclick="togglePromoSpecial(this)">👑 그랜드마스터</div>
+              </div>
+            </div>
+          </div>
+          <!-- 기타 -->
+          <div class="filter-group">
+            <span class="filter-group-label">기타</span>
+            <div class="filter-divider-v"></div>
+            <div class="filter-chip" data-pg="etc" data-val="new"     onclick="togglePromoSpecial(this)">🌱 신생 클랜</div>
+            <div class="filter-chip" data-pg="etc" data-val="discord" onclick="togglePromoSpecial(this)">💬 Discord 있음</div>
+          </div>
+          <!-- 팝오버 하단 -->
+          <div class="filter-popover-footer">
+            <span class="filter-reset-btn" onclick="resetPromoFiltersAll()">초기화</span>
+            <button class="filter-apply-btn" onclick="togglePromoFilterPopover()">적용</button>
+          </div>
+        </div>
+      </div>
+      <!-- 활성 필터 태그 인라인 표시 -->
+      <div id="promoActiveFilterTags" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"></div>
+      <!-- 정렬 -->
+      <div style="margin-left:auto">
+        <select style="font-size:12px;padding:4px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-overlay);color:var(--text-secondary);cursor:pointer" onchange="setPromoSort(this.value)">
+          <option value="newest">최신순</option>
+          <option value="popular">인기순</option>
+          <option value="space">여유순</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="promoList"></div>
+    <div id="promoPagination" class="pagination"></div>
+  </div>
+
+  <!-- ══════════════════════════════
+       섹션 4: 클랜 순위
+  ══════════════════════════════ -->
+  <div id="sec-ranking" style="display:none">
+    <div class="section-head">
+      <div>
+        <div class="section-title">🏆 클랜 순위</div>
+        <div class="section-sub">이달 활동량 기준 · 매월 1일 초기화</div>
+      </div>
+      <select class="input" style="font-size:13px;padding:6px 12px;width:auto">
+        <option selected>이달 활동량</option>
+        <option>누적 경기수</option>
+        <option>스크림 참여율</option>
+      </select>
+    </div>
+
+    <!-- 내 클랜 현재 순위 -->
+    <div style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:var(--radius-xl);padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:14px">
+      <div style="font-size:28px;font-weight:800;color:var(--brand-primary)">8</div>
+      <div class="avatar" style="background:linear-gradient(135deg,#7c3aed,#3b82f6)">🔥</div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:700">Phoenix Rising <span style="font-size:12px;color:var(--text-muted);font-weight:400">(내 클랜)</span></div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px">클랜원 24명 · 이달 경기 47회 · 활성 24명</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:13px;color:var(--success);font-weight:700">↑2 상승</div>
+        <div style="font-size:11px;color:var(--text-muted)">지난달 10위</div>
+      </div>
+    </div>
+
+    <!-- 전체 순위 테이블 -->
+    <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden">
+      <div style="display:grid;grid-template-columns:40px 1fr 80px 80px 80px;padding:10px 16px;background:var(--bg-overlay);font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;gap:8px">
+        <div>#</div><div>클랜</div><div style="text-align:right">경기수</div><div style="text-align:right">클랜원</div><div style="text-align:right">활성</div>
+      </div>
+      <div id="ranking-list"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 스크림 채팅 모달 -->
+<div id="scrimChatModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-xl);max-width:480px;width:calc(100%-40px);overflow:hidden;max-height:80vh;display:flex;flex-direction:column">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-weight:700;font-size:15px">Phoenix Rising × Blue Storm</div>
+        <div style="font-size:12px;color:var(--text-muted)">스크림 채팅 · 스크림 종료 시 자동 종료됩니다</div>
+      </div>
+      <button onclick="document.getElementById('scrimChatModal').style.display='none'" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px">×</button>
+    </div>
+    <div style="flex:1;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;min-height:200px">
+      <div style="display:flex;gap:8px;align-items:flex-start">
+        <div class="avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#0ea5e9,#06b6d4)">이</div>
+        <div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">Blue Storm · 이매너</div>
+          <div style="background:var(--bg-overlay);border-radius:0 var(--radius-md) var(--radius-md) var(--radius-md);padding:8px 12px;font-size:13px">안녕하세요! 이번 주 토요일 21시 어떠세요?</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-start;justify-content:flex-end">
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">Phoenix Rising · 김클랜</div>
+          <div style="background:var(--brand-primary);border-radius:var(--radius-md) 0 var(--radius-md) var(--radius-md);padding:8px 12px;font-size:13px;color:white">좋아요! 맵은 제어점 위주로 하실래요?</div>
+        </div>
+        <div class="avatar" style="width:28px;height:28px;font-size:11px">김</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-start">
+        <div class="avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#0ea5e9,#06b6d4)">이</div>
+        <div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">Blue Storm · 이매너</div>
+          <div style="background:var(--bg-overlay);border-radius:0 var(--radius-md) var(--radius-md) var(--radius-md);padding:8px 12px;font-size:13px">네 좋아요! 오아시스, 일리오스, 부산 순서로 어떨까요?</div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px">
+      <input class="input" type="text" placeholder="메시지 입력..." style="flex:1;font-size:13px">
+      <button class="btn btn-primary btn-sm">전송</button>
+    </div>
+  </div>
+</div>
+
+<script src="../scripts/app.js"></script>
+<script>
+
+/* ════════════════════════════════════════
+   내비게이션
+════════════════════════════════════════ */
+const SECTIONS = ['home','lfg','scrim','promo','ranking'];
+function navTo(id) {
+  SECTIONS.forEach(s => {
+    document.getElementById('sec-'+s).style.display = s === id ? '' : 'none';
+    document.getElementById('nav-'+s).classList.toggle('active', s === id);
+  });
+}
+
+/* ════════════════════════════════════════
+   공통 유틸
+════════════════════════════════════════ */
+function renderPagination(containerId, page, total, pageSize, onPageFn) {
+  const totalPages = Math.ceil(total / pageSize);
+  if (totalPages <= 1) { document.getElementById(containerId).innerHTML = ''; return; }
+  const maxBtns = 7;
+  let pages = [];
+  if (totalPages <= maxBtns) {
+    pages = Array.from({length: totalPages}, (_, i) => i + 1);
+  } else {
+    pages = [1];
+    let start = Math.max(2, page - 2), end = Math.min(totalPages - 1, page + 2);
+    if (start > 2) pages.push('…');
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (end < totalPages - 1) pages.push('…');
+    pages.push(totalPages);
+  }
+  const btns = pages.map(p =>
+    p === '…'
+      ? `<span class="pg-info">…</span>`
+      : `<button class="pg-btn${p===page?' on':''}" onclick="${onPageFn}(${p})">${p}</button>`
+  ).join('');
+  document.getElementById(containerId).innerHTML =
+    `<button class="pg-btn" onclick="${onPageFn}(${page-1})" ${page===1?'disabled':''}>‹</button>
+     ${btns}
+     <button class="pg-btn" onclick="${onPageFn}(${page+1})" ${page===totalPages?'disabled':''}>›</button>
+     <span class="pg-info">${total}개 중 ${(page-1)*pageSize+1}–${Math.min(page*pageSize,total)}</span>`;
+}
+
+/* ════════════════════════════════════════
+   LFG
+════════════════════════════════════════ */
+const LFG_PAGE = 8;
+const LFG_S = { lfgMode:'경쟁', lfgSlots:'+1', lfgTier:'전체', lfgTime:'지금 바로' };
+let lfgPage = 1;
+let lfgPosts = [
+  { id:1,  name:'이프로',  clan:'Phoenix Rising', bg:'linear-gradient(135deg,#f59e0b,#ef4444)', online:true,  mode:'경쟁',     slots:'+2', tier:'다이아↑', time:'지금 바로' },
+  { id:2,  name:'박힐러',  clan:'Phoenix Rising', bg:'linear-gradient(135deg,#22c55e,#10b981)', online:true,  mode:'빠대',     slots:'+3', tier:'전체',    time:'30분 후'  },
+  { id:3,  name:'최서폿',  clan:'Blue Storm',     bg:'linear-gradient(135deg,#0ea5e9,#06b6d4)', online:false, mode:'경쟁',     slots:'+1', tier:'플래↑',   time:'지금'     },
+  { id:4,  name:'정탱커',  clan:'Iron Wall',      bg:'linear-gradient(135deg,#374151,#6b7280)', online:true,  mode:'경쟁',     slots:'+2', tier:'골드↑',   time:'지금 바로' },
+  { id:5,  name:'한딜러',  clan:'없음',           bg:'linear-gradient(135deg,#6366f1,#8b5cf6)', online:true,  mode:'아케이드', slots:'+1', tier:'전체',    time:'지금 바로' },
+  { id:6,  name:'김지원',  clan:'Night Owls',     bg:'linear-gradient(135deg,#8b5cf6,#6366f1)', online:true,  mode:'경쟁',     slots:'+2', tier:'마스터↑', time:'1시간 후' },
+  { id:7,  name:'오민준',  clan:'없음',           bg:'linear-gradient(135deg,#ec4899,#f43f5e)', online:false, mode:'빠대',     slots:'+4', tier:'전체',    time:'30분 후'  },
+  { id:8,  name:'유현서',  clan:'Dark Matter',    bg:'linear-gradient(135deg,#1f2937,#374151)', online:true,  mode:'경쟁',     slots:'+1', tier:'다이아↑', time:'지금 바로' },
+  { id:9,  name:'강도윤',  clan:'없음',           bg:'linear-gradient(135deg,#f97316,#eab308)', online:true,  mode:'커스텀',   slots:'+5', tier:'전체',    time:'지금 바로' },
+  { id:10, name:'손예진',  clan:'Casual Heroes',  bg:'linear-gradient(135deg,#22c55e,#84cc16)', online:false, mode:'아케이드', slots:'+2', tier:'전체',    time:'1시간 후' },
+  { id:11, name:'배성민',  clan:'Alpha Team',     bg:'linear-gradient(135deg,#8b5cf6,#a78bfa)', online:true,  mode:'경쟁',     slots:'+1', tier:'플래↑',   time:'지금 바로' },
+  { id:12, name:'윤아린',  clan:'없음',           bg:'linear-gradient(135deg,#06b6d4,#0ea5e9)', online:true,  mode:'빠대',     slots:'+3', tier:'골드↑',   time:'30분 후'  },
+], lfgNextId = 13;
+
+function selChip(gid, el) {
+  document.querySelectorAll(`#${gid} .lfg-chip`).forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  LFG_S[gid] = el.dataset.val;
+}
+function postLfg() {
+  lfgPosts.unshift({ id:lfgNextId++, name:'김클랜', clan:'Phoenix Rising',
+    bg:'linear-gradient(135deg,#7c3aed,#3b82f6)', online:true, mine:true,
+    mode:LFG_S.lfgMode, slots:LFG_S.lfgSlots, tier:LFG_S.lfgTier, time:LFG_S.lfgTime });
+  lfgPage = 1; renderLfg(); renderHomeLfg();
+}
+function removeLfg(id) { lfgPosts = lfgPosts.filter(p => p.id !== id); renderLfg(); renderHomeLfg(); }
+function goLfgPage(p) { lfgPage = p; renderLfg(); document.getElementById('sec-lfg').scrollTop = 0; }
+
+function lfgRow(p) {
+  return `<div class="lfg-post">
+    <div class="online-dot ${p.online?'g':'y'}"></div>
+    <div class="avatar" style="width:36px;height:36px;font-size:14px;background:${p.bg};flex-shrink:0">${p.name[0]}</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13px;font-weight:600;margin-bottom:3px">${p.name}
+        <span style="font-size:11px;color:var(--text-muted);font-weight:400">· ${p.clan}${p.mine?' (나)':''}</span></div>
+      <div class="lfg-tags">
+        <span class="lfg-tag lfg-tag-mode">${p.mode}</span>
+        <span class="lfg-tag">${p.slots} 모집</span>
+        <span class="lfg-tag">${p.tier}</span>
+        <span class="lfg-tag lfg-tag-time">⏰ ${p.time}</span>
+      </div>
+    </div>
+    ${p.mine
+      ? `<button class="btn btn-secondary btn-sm" onclick="removeLfg(${p.id})" style="font-size:11px;flex-shrink:0">취소</button>`
+      : `<button class="btn btn-primary btn-sm" onclick="alert('${p.name}님께 참여 신청!')" style="font-size:11px;flex-shrink:0">참여 신청</button>`}
+  </div>`;
+}
+function renderLfg() {
+  const start = (lfgPage - 1) * LFG_PAGE, end = start + LFG_PAGE;
+  const slice = lfgPosts.slice(start, end);
+  document.getElementById('lfgList').innerHTML = slice.length
+    ? slice.map(lfgRow).join('')
+    : `<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">모집 중인 파티가 없습니다</div></div>`;
+  renderPagination('lfgPagination', lfgPage, lfgPosts.length, LFG_PAGE, 'goLfgPage');
+}
+function renderHomeLfg() {
+  document.getElementById('home-lfg-preview').innerHTML = lfgPosts.slice(0,4).map(p => `
+    <div class="preview-row">
+      <div class="online-dot ${p.online?'g':'y'}"></div>
+      <div class="avatar" style="width:28px;height:28px;font-size:11px;background:${p.bg};flex-shrink:0">${p.name[0]}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">${p.name} <span style="font-size:11px;color:var(--text-muted);font-weight:400">· ${p.clan}</span></div>
+        <div class="lfg-tags" style="margin-top:3px">
+          <span class="lfg-tag lfg-tag-mode">${p.mode}</span>
+          <span class="lfg-tag">${p.slots}</span>
+          <span class="lfg-tag">${p.tier}</span>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="navTo('lfg')" style="font-size:11px;flex-shrink:0">참여 →</button>
+    </div>`).join('');
+}
+
+/* ════════════════════════════════════════
+   스크림
+════════════════════════════════════════ */
+const SCRIM_PAGE = 5;
+let scrimPage = 1;
+let scrimFilter = { status:'전체', tier:'전체' };
+const SCRIMS = [
+  { id:1,  icon:'🔥', name:'Phoenix Rising', bg:'linear-gradient(135deg,#7c3aed,#3b82f6)', members:24, type:'경쟁·친목', status:'모집 중', date:'이번 주 토/일', time:'21:00 이후', tier:'플레~다이아', mode:'6v6',     desc:'정기 스크림 상대 구합니다. 비슷한 실력대 환영. 디스코드 통화 가능 팀 우대.' },
+  { id:2,  icon:'⚡', name:'Blue Storm',     bg:'linear-gradient(135deg,#0ea5e9,#06b6d4)', members:18, type:'경쟁',     status:'모집 중', date:'화/목 저녁',    time:'20:00~23:00', tier:'다이아~마스터', mode:'5v5~6v6', desc:'실력 중심 스크림 상대 구합니다. 경기 후 피드백 나눌 수 있는 팀 환영.' },
+  { id:3,  icon:'🛡', name:'Iron Wall',      bg:'linear-gradient(135deg,#374151,#6b7280)', members:10, type:'경쟁',     status:'예정',    date:'다음 주 주말',  time:'20:00 이후',  tier:'골드~플래',    mode:'5v5',    desc:'신생 클랜입니다. 비슷한 규모의 클랜과 스크림 원해요.' },
+  { id:4,  icon:'🌟', name:'Casual Heroes',  bg:'linear-gradient(135deg,#22c55e,#10b981)', members:30, type:'친목',     status:'모집 중', date:'이번 주 일요일',time:'18:00 이후',  tier:'전체',         mode:'6v6',    desc:'즐겜 친선 스크림. 승부보다 재미 중심. 초보도 환영합니다!' },
+  { id:5,  icon:'🐉', name:'Red Dragons',    bg:'linear-gradient(135deg,#ef4444,#f97316)', members:26, type:'경쟁',     status:'모집 중', date:'매주 수/금',    time:'21:00 이후',  tier:'마스터↑',      mode:'6v6',    desc:'고티어 스크림 상대 구합니다. 진지한 팀 우대.' },
+  { id:6,  icon:'🌀', name:'Vortex',         bg:'linear-gradient(135deg,#6366f1,#8b5cf6)', members:25, type:'경쟁·친목', status:'예정',   date:'이번 주 토요일',time:'20:00 이후',  tier:'다이아↑',      mode:'5v5',    desc:'다이아 이상 클랜과 친선 경기 원합니다.' },
+  { id:7,  icon:'N',  name:'Night Owls',     bg:'',                                          members:19, type:'친목',     status:'모집 중', date:'평일 야간',     time:'23:00 이후',  tier:'전체',         mode:'6v6',    desc:'야간 활동 클랜입니다. 자정~새벽 스크림 환영합니다.' },
+  { id:8,  icon:'A',  name:'Alpha Team',     bg:'linear-gradient(135deg,#8b5cf6,#6366f1)', members:30, type:'경쟁',     status:'모집 중', date:'주말',          time:'15:00 이후',  tier:'플레~다이아',  mode:'5v5',    desc:'주말 오후 스크림 상대 구합니다. 매너 있는 팀 환영.' },
+  { id:9,  icon:'D',  name:'Dark Matter',    bg:'linear-gradient(135deg,#374151,#1f2937)', members:15, type:'경쟁',     status:'예정',    date:'다음 달 초',    time:'20:00 이후',  tier:'다이아~마스터', mode:'6v6',   desc:'정규 시즌 시작 전 조기 스크림 일정을 잡고 싶습니다.' },
+  { id:10, icon:'🌙', name:'Midnight',       bg:'',                                          members:20, type:'친목',     status:'모집 중', date:'매주 토요일',   time:'자정~새벽',   tier:'전체',         mode:'5v5',    desc:'늦은 밤 활동하는 클랜입니다. 편한 분위기 스크림 환영.' },
+  { id:11, icon:'B',  name:'Best Warriors',  bg:'linear-gradient(135deg,#f59e0b,#ef4444)', members:28, type:'경쟁',     status:'모집 중', date:'이번 주 수요일',time:'21:00 이후',  tier:'마스터↑',      mode:'6v6',    desc:'상위 티어 클랜 스크림 구합니다. 전략적인 팀 우대.' },
+];
+const SCRIM_TIER_MAP = { '골드↓':['골드~플래','전체'], '플래':['플레~다이아','골드~플래','전체'], '다이아':['다이아~마스터','플레~다이아','전체'], '마스터↑':['마스터↑','다이아~마스터','전체'], '전체':null };
+
+function setScrimFilter(key, el) {
+  document.querySelectorAll(`[data-sf="${key}"]`).forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  scrimFilter[key] = el.dataset.val;
+  scrimPage = 1; renderScrims();
+}
+function goScrimPage(p) { scrimPage = p; renderScrims(); }
+
+function renderScrims() {
+  let list = SCRIMS.filter(s => {
+    if (scrimFilter.status !== '전체' && s.status !== scrimFilter.status) return false;
+    if (scrimFilter.tier !== '전체') {
+      const allowed = SCRIM_TIER_MAP[scrimFilter.tier];
+      if (allowed && !allowed.some(t => s.tier.includes(t.replace('~','')))) return false;
+    }
+    return true;
+  });
+  document.getElementById('scrim-count-label').textContent = `스크림 모집 ${list.length}건`;
+  const start = (scrimPage - 1) * SCRIM_PAGE;
+  const slice = list.slice(start, start + SCRIM_PAGE);
+  document.getElementById('scrimList').innerHTML = slice.length ? slice.map(s => `
+    <div class="scrim-card" style="display:flex;align-items:center;gap:16px;padding:16px 20px">
+      <div class="card-avatar">${s.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px">
+          <div style="font-weight:700;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div>
+          <span class="badge ${s.status==='모집 중'?'badge-success':'badge-muted'}" style="flex-shrink:0">${s.status}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">클랜원 ${s.members}명 · ${s.type}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="scrim-chip">${s.date}</span>
+            <span class="scrim-chip">${s.time}</span>
+            <span class="scrim-chip">${s.tier}</span>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0">
+            <button class="btn btn-secondary btn-sm">상세 보기</button>
+            <button class="btn btn-primary btn-sm" onclick="openScrimChat()">채팅방 열기</button>
+          </div>
+        </div>
+      </div>
+    </div>`).join('')
+    : `<div class="empty-state"><div class="empty-state-icon">⚔️</div><div class="empty-state-text">조건에 맞는 스크림 모집이 없습니다</div></div>`;
+  renderPagination('scrimPagination', scrimPage, list.length, SCRIM_PAGE, 'goScrimPage');
+}
+
+/* ════════════════════════════════════════
+   클랜 홍보
+════════════════════════════════════════ */
+const PROMO_PAGE = 10;
+let promoPage = 1;
+let promoFilter = { recruit:'all', style:'all', pos:[], tier:[], etc:[] };
+let promoSort = 'newest';
+const PROMOS = [
+  { id:1,  icon:'🔥', name:'Phoenix Rising', bg:'linear-gradient(135deg,#f59e0b,#ef4444)', now:24, max:30, title:'경쟁 지향 클랜 Phoenix Rising 클랜원 모집!', desc:'오버워치 2 경쟁 클랜. 매주 토/일 정기 내전. 플레 이상 모집 중.', tags:['경쟁','친목'], pinned:true,  urgent:false, views:340, days:0,  recruit:'open',   style:'tryhard', positions:['dps','support'],       tiers:['plat','diamond'],          discord:true,  isNew:false },
+  { id:2,  icon:'⚡', name:'Blue Storm',     bg:'linear-gradient(135deg,#0ea5e9,#06b6d4)', now:18, max:25, title:'탱커 + 힐러 1명씩 급구!',                  desc:'평일 저녁 내전 위주. 다이아~마스터 티어 대환영. 성인 클랜.',  tags:['경쟁'],         pinned:false, urgent:true,  views:210, days:1,  recruit:'open',   style:'tryhard', positions:['tank','support'],       tiers:['diamond','master'],        discord:true,  isNew:false },
+  { id:3,  icon:'🌟', name:'Casual Heroes',  bg:'linear-gradient(135deg,#22c55e,#10b981)', now:15, max:30, title:'입문자/복귀자 환영! 부담 없는 친목 클랜',   desc:'즐겜 위주. 랭크 제한 없음. 주말 편하게 내전합니다.',         tags:['친목','입문'],  pinned:false, urgent:false, views:180, days:2,  recruit:'open',   style:'casual',  positions:['tank','dps','support'], tiers:['bronze','silver','gold','plat'], discord:false, isNew:false },
+  { id:4,  icon:'🌙', name:'Midnight',       bg:'linear-gradient(135deg,#374151,#6b7280)', now:20, max:30, title:'늦은 밤 게이머 모임 — Midnight 클랜 모집',   desc:'자정~새벽 활동 메인. 사회인 클랜. 주 2~3회 내전.',           tags:['야간','직장인'],pinned:false, urgent:false, views:95,  days:3,  recruit:'open',   style:'social',  positions:['tank','dps','support'], tiers:['silver','gold','plat','diamond'], discord:false, isNew:false },
+  { id:5,  icon:'🐉', name:'Red Dragons',    bg:'linear-gradient(135deg,#ef4444,#f97316)', now:8,  max:20, title:'마스터↑ 경쟁 클랜 Red Dragons 신규 모집',   desc:'마스터 이상 모집 중. 주 4~5회 내전. 진지한 클랜 문화.',      tags:['경쟁','고티어'],pinned:false, urgent:false, views:155, days:1,  recruit:'open',   style:'tryhard', positions:['dps'],                  tiers:['master','gm'],             discord:false, isNew:true  },
+  { id:6,  icon:'🌀', name:'Vortex',         bg:'linear-gradient(135deg,#6366f1,#8b5cf6)', now:12, max:25, title:'Vortex 클랜원 모집 — 다이아↑ 환영',          desc:'다이아~마스터 환영. 디스코드 소통 중심. 친근한 분위기.',     tags:['경쟁','친목'],  pinned:false, urgent:false, views:122, days:4,  recruit:'open',   style:'social',  positions:['tank','dps'],           tiers:['diamond','master'],        discord:true,  isNew:false },
+  { id:7,  icon:'N',  name:'Night Owls',     bg:'',                                          now:14, max:19, title:'Night Owls — 야간 활동 클랜원 모집',         desc:'자정 이후 활동. 부담 없는 주 2회 내전. 직장인/학생 환영.',   tags:['야간'],         pinned:false, urgent:false, views:88,  days:5,  recruit:'open',   style:'social',  positions:['dps'],                  tiers:['gold','plat','diamond'],   discord:false, isNew:false },
+  { id:8,  icon:'A',  name:'Alpha Team',     bg:'linear-gradient(135deg,#8b5cf6,#6366f1)', now:25, max:30, title:'Alpha Team 경쟁 클랜원 모집',                desc:'플레~다이아 환영. 체계적인 전략 스크림. 주말 오후 활동.',    tags:['경쟁','전략'],  pinned:false, urgent:false, views:200, days:0,  recruit:'open',   style:'tryhard', positions:['tank','dps'],           tiers:['plat','diamond'],          discord:true,  isNew:false },
+  { id:9,  icon:'D',  name:'Dark Matter',    bg:'linear-gradient(135deg,#374151,#1f2937)', now:10, max:15, title:'Dark Matter 소수 정예 클랜 모집',             desc:'소수 정예 운영. 다이아~마스터. 진지한 팀원 우대.',           tags:['경쟁','소수'],  pinned:false, urgent:false, views:75,  days:6,  recruit:'open',   style:'pro',     positions:['dps','support'],       tiers:['diamond','master'],        discord:false, isNew:false },
+  { id:10, icon:'B',  name:'Best Warriors',  bg:'linear-gradient(135deg,#f59e0b,#ef4444)', now:22, max:28, title:'Best Warriors — 시즌 우승 목표 클랜',        desc:'매우 진지한 경쟁 클랜. 마스터↑ 위주. 주말 집중 훈련.',      tags:['경쟁','엘리트'],pinned:false, urgent:false, views:310, days:2,  recruit:'open',   style:'pro',     positions:['dps'],                  tiers:['master','gm'],             discord:true,  isNew:false },
+  { id:11, icon:'S',  name:'Storm Rising',   bg:'linear-gradient(135deg,#0ea5e9,#06b6d4)', now:16, max:22, title:'Storm Rising 클랜 신규 멤버 모집',            desc:'평일 저녁 활동 위주. 경쟁과 친목 균형. 다이아 이상.',        tags:['경쟁','친목'],  pinned:false, urgent:false, views:130, days:3,  recruit:'open',   style:'social',  positions:['tank','dps','support'], tiers:['diamond','master'],        discord:true,  isNew:false },
+  { id:12, icon:'🛡', name:'Iron Wall',      bg:'linear-gradient(135deg,#374151,#6b7280)', now:6,  max:10, title:'Iron Wall 신생 경쟁 클랜 창단 모집',          desc:'신생 클랜입니다. 함께 성장할 팀원 모집. 골드~플래 환영.',   tags:['경쟁','신규'],  pinned:false, urgent:true,  views:45,  days:0,  recruit:'open',   style:'tryhard', positions:['tank','dps','support'], tiers:['gold','plat'],             discord:false, isNew:true  },
+];
+
+/* 클랜 홍보 카드 태그 생성 */
+const TIER_ORDER = ['bronze','silver','gold','plat','diamond','master','gm'];
+function promoTagsHtml(p) {
+  const rows = [];
+
+  // 1행: 지향
+  if (p.style && p.style !== 'all') {
+    rows.push({ label: '지향', tags: [PROMO_FILTER_LABELS.style[p.style]] });
+  }
+
+  // 2행: 모집군
+  if (p.positions.length > 0) {
+    rows.push({ label: '모집군', tags: p.positions.map(pos => PROMO_FILTER_LABELS.pos[pos]) });
+  }
+
+  // 3행: 티어대
+  if (p.tiers.length > 0) {
+    const sorted = [...p.tiers].sort((a, b) => TIER_ORDER.indexOf(a) - TIER_ORDER.indexOf(b));
+    const first = PROMO_FILTER_LABELS.tier[sorted[0]];
+    const last  = sorted.length > 1 ? PROMO_FILTER_LABELS.tier[sorted[sorted.length - 1]] : null;
+    rows.push({ label: '티어대', tags: [last ? `${first} ~ ${last}` : first] });
+  }
+
+  // 4행: 기타 (discord / 신생)
+  const etc = [];
+  if (p.isNew)   etc.push('신생');
+  if (p.discord) etc.push('Discord');
+  if (etc.length > 0) rows.push({ label: '기타', tags: etc });
+
+  return rows.map(row => `
+    <div class="promo-tag-row">
+      <span class="promo-tag-label">${row.label}</span>
+      ${row.tags.map(t => `<span class="promo-tag">${t}</span>`).join('')}
+    </div>`).join('');
+}
+
+function setPromoGroupFilter(el) {
+  const group = el.dataset.pg;
+  document.querySelectorAll(`.filter-chip[data-pg="${group}"]`).forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  promoFilter[group] = el.dataset.val;
+  updatePromoFilterSummary();
+  promoPage = 1; renderPromos();
+}
+
+function togglePromoSpecial(el) {
+  const group = el.dataset.pg; // pos, tier, etc
+  const val = el.dataset.val;
+  if (el.classList.contains('active')) {
+    el.classList.remove('active');
+    promoFilter[group] = promoFilter[group].filter(v => v !== val);
+  } else {
+    el.classList.add('active');
+    promoFilter[group].push(val);
+  }
+  updatePromoFilterSummary();
+  promoPage = 1; renderPromos();
+}
+
+function togglePromoFilterPopover() {
+  const pop = document.getElementById('promoFilterPopover');
+  pop.classList.toggle('open');
+  if (pop.classList.contains('open')) {
+    setTimeout(() => document.addEventListener('click', closePromoPopoverOutside, { once: true }), 0);
+  }
+}
+
+function closePromoPopoverOutside(e) {
+  const wrap = document.querySelector('#promoFilterTriggerBar .filter-popover-wrap');
+  if (!wrap.contains(e.target)) {
+    document.getElementById('promoFilterPopover').classList.remove('open');
+  } else {
+    setTimeout(() => document.addEventListener('click', closePromoPopoverOutside, { once: true }), 0);
+  }
+}
+
+const PROMO_FILTER_LABELS = {
+  recruit: { all:null, open:'모집 중', soon:'모집 예정', closed:'모집 완료' },
+  style:   { all:null, social:'친목', tryhard:'빡겜', casual:'즐겜', pro:'프로' },
+  pos:     { tank:'탱커', dps:'딜러', support:'힐러' },
+  tier:    { bronze:'브론즈', silver:'실버', gold:'골드', plat:'플래티넘', diamond:'다이아몬드', master:'마스터', gm:'그랜드마스터' },
+  etc:     { new:'신생 클랜', discord:'Discord 있음' }
+};
+
+function updatePromoFilterSummary() {
+  const active = [];
+  ['recruit', 'style'].forEach(g => {
+    if (promoFilter[g] !== 'all') active.push({ label: PROMO_FILTER_LABELS[g][promoFilter[g]], group: g });
+  });
+  [...promoFilter.pos, ...promoFilter.tier, ...promoFilter.etc].forEach(v => {
+    const label = PROMO_FILTER_LABELS.pos[v] || PROMO_FILTER_LABELS.tier[v] || PROMO_FILTER_LABELS.etc[v];
+    const group = PROMO_FILTER_LABELS.pos[v] ? 'pos' : PROMO_FILTER_LABELS.tier[v] ? 'tier' : 'etc';
+    if (label) active.push({ label, group, val: v });
+  });
+  const count = active.length;
+  const btn = document.getElementById('promoFilterBtn');
+  const badge = document.getElementById('promoFilterCount');
+  if (count > 0) {
+    btn.classList.add('has-active');
+    badge.style.display = 'inline-flex';
+    badge.textContent = count;
+  } else {
+    btn.classList.remove('has-active');
+    badge.style.display = 'none';
+  }
+  const tagsEl = document.getElementById('promoActiveFilterTags');
+  if (count === 0) {
+    tagsEl.innerHTML = '';
+  } else {
+    tagsEl.innerHTML = active.map(f =>
+      `<span class="active-filter-tag" onclick="removePromoFilter('${f.group}','${f.val||''}')">${f.label} ✕</span>`
+    ).join('') + (count > 1 ? `<span class="filter-reset-all" onclick="resetPromoFiltersAll()">전체 초기화</span>` : '');
+  }
+}
+
+function removePromoFilter(group, val) {
+  if (['recruit','style'].includes(group)) {
+    promoFilter[group] = 'all';
+    document.querySelectorAll(`.filter-chip[data-pg="${group}"]`).forEach(c => {
+      c.classList.toggle('active', c.dataset.val === 'all');
+    });
+  } else {
+    promoFilter[group] = promoFilter[group].filter(v => v !== val);
+    document.querySelector(`.filter-chip[data-pg="${group}"][data-val="${val}"]`)?.classList.remove('active');
+  }
+  updatePromoFilterSummary();
+  promoPage = 1; renderPromos();
+}
+
+function resetPromoFiltersAll() {
+  promoFilter.recruit = 'all';
+  promoFilter.style = 'all';
+  promoFilter.pos = [];
+  promoFilter.tier = [];
+  promoFilter.etc = [];
+  document.querySelectorAll('.filter-chip[data-pg]').forEach(c => {
+    c.classList.toggle('active', c.dataset.val === 'all');
+  });
+  updatePromoFilterSummary();
+  promoPage = 1; renderPromos();
+}
+
+function setPromoSort(val) { promoSort = val; promoPage = 1; renderPromos(); }
+function goPromoPage(p) { promoPage = p; renderPromos(); }
+
+function renderPromos() {
+  let list = PROMOS.filter(p => {
+    if (promoFilter.recruit !== 'all' && p.recruit !== promoFilter.recruit) return false;
+    if (promoFilter.style !== 'all' && p.style !== promoFilter.style) return false;
+    if (promoFilter.pos.length > 0 && !promoFilter.pos.some(pos => p.positions.includes(pos))) return false;
+    if (promoFilter.tier.length > 0 && !promoFilter.tier.some(t => p.tiers.includes(t))) return false;
+    if (promoFilter.etc.includes('new') && !p.isNew) return false;
+    if (promoFilter.etc.includes('discord') && !p.discord) return false;
+    return true;
+  });
+  if (promoSort === 'newest')  list = [...list].sort((a,b) => a.days - b.days);
+  if (promoSort === 'popular') list = [...list].sort((a,b) => b.views - a.views);
+  if (promoSort === 'space')   list = [...list].sort((a,b) => (a.max-a.now) - (b.max-b.now));
+  const pinned = list.filter(p => p.pinned), rest = list.filter(p => !p.pinned);
+  list = [...pinned, ...rest];
+  document.getElementById('promo-count-label').textContent = `클랜원 모집 중 ${list.length}개`;
+  const start = (promoPage - 1) * PROMO_PAGE;
+  const slice = list.slice(start, start + PROMO_PAGE);
+  document.getElementById('promoList').innerHTML = slice.length
+    ? `<div class="promo-grid">${slice.map(p => `
+    <div class="promo-card${p.pinned?' pinned':''}">
+      <div style="display:flex;gap:12px;padding:16px;align-items:flex-start">
+        <!-- 아이콘 -->
+        <div class="card-avatar" style="width:44px;height:44px;font-size:22px;flex-shrink:0">${p.icon}</div>
+        <!-- 이름 + 제목 -->
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px">
+            <span style="font-weight:700;font-size:15px">${p.name}</span>
+            ${p.pinned ? `<span class="verified-badge">✓<div class="vb-tooltip"><div class="vb-title">✦ Premium 구독 클랜</div><div class="vb-desc">AI 팀 밸런싱, 전적 분석, 승부 예측 등 프리미엄 기능을 활성화한 클랜입니다.</div></div></span>` : ''}
+            ${p.urgent ? `<span style="font-size:11px;color:var(--warning)">🔔 급모집</span>` : ''}
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:7px">${PROMO_FILTER_LABELS.recruit[p.recruit]} · ${PROMO_FILTER_LABELS.style[p.style]}</div>
+          <div style="font-size:13px;color:var(--text-secondary);line-height:1.45">${p.title}</div>
+        </div>
+        <!-- 태그 (우측) -->
+        <div style="flex-shrink:0;display:flex;flex-direction:column;gap:4px;align-items:flex-end;padding-top:2px">
+          ${promoTagsHtml(p)}
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;color:var(--text-muted)">
+          👥 ${p.now}/${p.max}명 &nbsp;·&nbsp; 조회 ${p.views} &nbsp;·&nbsp; ${p.days===0?'오늘':p.days===1?'1일 전':p.days+'일 전'}
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="window.location.href='clan-auth.html'" style="font-size:11px">가입 신청</button>
+      </div>
+    </div>`).join('')}</div>`
+    : `<div class="empty-state"><div class="empty-state-icon">📢</div><div class="empty-state-text">조건에 맞는 클랜이 없습니다</div></div>`;
+  renderPagination('promoPagination', promoPage, list.length, PROMO_PAGE, 'goPromoPage');
+}
+
+/* ════════════════════════════════════════
+   클랜 순위
+════════════════════════════════════════ */
+const RANKING = [
+  { rank:1,  name:'Best Warriors', icon:'B', bg:'linear-gradient(135deg,#f59e0b,#ef4444)', count:68, members:28, active:25, medal:'🥇' },
+  { rank:2,  name:'Storm Rising',  icon:'S', bg:'linear-gradient(135deg,#0ea5e9,#06b6d4)', count:61, members:22, active:19, medal:'🥈' },
+  { rank:3,  name:'Night Owls',    icon:'N', bg:'',                                         count:55, members:19, active:15, medal:'🥉' },
+  { rank:4,  name:'Alpha Team',    icon:'A', bg:'linear-gradient(135deg,#8b5cf6,#6366f1)', count:52, members:30, active:24, medal:'' },
+  { rank:5,  name:'Dark Matter',   icon:'D', bg:'linear-gradient(135deg,#374151,#1f2937)', count:48, members:15, active:12, medal:'' },
+  { rank:6,  name:'Red Dragons',   icon:'R', bg:'linear-gradient(135deg,#ef4444,#f97316)', count:47, members:26, active:21, medal:'' },
+  { rank:7,  name:'Casual Heroes', icon:'🌟',bg:'linear-gradient(135deg,#22c55e,#10b981)',count:47, members:30, active:18, medal:'' },
+  { rank:8,  name:'Phoenix Rising',icon:'🔥',bg:'linear-gradient(135deg,#7c3aed,#3b82f6)',count:47, members:24, active:24, medal:'', mine:true, trend:'↑2' },
+  { rank:9,  name:'Iron Wall',     icon:'🛡',bg:'linear-gradient(135deg,#374151,#6b7280)',count:38, members:10, active: 8, medal:'' },
+  { rank:10, name:'Midnight',      icon:'🌙',bg:'',                                        count:31, members:20, active:11, medal:'' },
+];
+function renderRanking() {
+  document.getElementById('ranking-list').innerHTML = RANKING.map(r => `
+    <div style="display:grid;grid-template-columns:40px 1fr 80px 80px 80px;padding:12px 16px;border-bottom:1px solid var(--border);align-items:center;gap:8px;${r.mine?'background:rgba(124,58,237,0.06)':''}">
+      <div class="rank-num${r.rank<=3?' top'+r.rank:''}">${r.medal||r.rank}</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="avatar" style="width:28px;height:28px;font-size:12px;${r.bg?'background:'+r.bg:''}">${r.icon}</div>
+        <div>
+          <div style="font-size:13px;font-weight:600">${r.name}${r.mine?' <span style="font-size:11px;color:var(--text-muted);font-weight:400">(내 클랜)</span>':''}</div>
+          ${r.trend?`<div style="font-size:11px;color:var(--success)">${r.trend} 상승</div>`:''}
+        </div>
+      </div>
+      <div style="text-align:right;font-size:13px;font-weight:600">${r.count}회</div>
+      <div style="text-align:right;font-size:13px;color:var(--text-secondary)">${r.members}명</div>
+      <div style="text-align:right;font-size:13px;color:var(--success)">${r.active}명</div>
+    </div>`).join('');
+}
+
+function openScrimChat() { document.getElementById('scrimChatModal').style.display = 'flex'; }
+
+/* ── 초기화 ── */
+renderLfg();
+renderHomeLfg();
+renderScrims();
+renderPromos();
+renderRanking();
+</script>
+</body>
+</html>
