@@ -848,11 +848,6 @@
       <div class="lfg-drawer-info-row"><span class="label">게임 시작</span><span class="val" id="ldTime"></span></div>
       <div class="lfg-drawer-info-row"><span class="label">마이크</span><span class="val" id="ldMic"></span></div>
     </div>
-    <!-- 플레이어 정보 -->
-    <div>
-      <div class="lfg-drawer-section-title">플레이어 정보</div>
-      <div class="lfg-drawer-info-row"><span class="label">역할</span><span class="val" id="ldPositions"></span></div>
-    </div>
     <!-- 한마디 -->
     <div id="ldDescWrap">
       <div class="lfg-drawer-section-title">한마디</div>
@@ -1781,7 +1776,7 @@ function openLfgDrawer(id) {
   document.getElementById('ldTier').textContent = (p.tiers && p.tiers.length) ? p.tiers.join(' · ') : '무관';
   document.getElementById('ldTime').textContent = `${p.startTime}시 시작 · ${p.expires}시간 후 만료`;
   document.getElementById('ldMic').textContent = p.micRequired ? '🎙 필수' : '🔇 자유';
-  document.getElementById('ldPositions').textContent = (p.positions && p.positions.length) ? p.positions.join(' · ') : '올포지';
+
 
   const descWrap = document.getElementById('ldDescWrap');
   if (p.desc) {
