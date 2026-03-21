@@ -576,8 +576,7 @@
           <div class="filter-group">
             <span class="filter-group-label">구분</span>
             <div class="filter-divider-v"></div>
-            <div class="filter-chip active" data-lg="format" data-val="all"   onclick="setLfgFilter(this)">전체</div>
-            <div class="filter-chip"        data-lg="format" data-val="5vs5"  onclick="setLfgFilter(this)">5vs5</div>
+            <div class="filter-chip active" data-lg="format" data-val="5vs5"  onclick="setLfgFilter(this)">5vs5</div>
             <div class="filter-chip"        data-lg="format" data-val="6vs6"  onclick="setLfgFilter(this)">6vs6</div>
           </div>
           <div class="filter-group" style="align-items:flex-start;flex-wrap:wrap">
@@ -1166,7 +1165,7 @@ function getSelChip(gid) { return document.querySelector(`#${gid} .lfg-chip.on`)
 function getToggleChips(gid) { return [...document.querySelectorAll(`#${gid} .lfg-chip.on`)].map(c => c.dataset.val); }
 
 /* ─── LFG 필터 ─── */
-let lfgFilter = { mode:'all', format:'all', tiers:[], role:'all', mic:'all' };
+let lfgFilter = { mode:'all', format:'5vs5', tiers:[], role:'all', mic:'all' };
 function setLfgFilter(el) {
   const group = el.dataset.lg;
   document.querySelectorAll(`.filter-chip[data-lg="${group}"]`).forEach(c => c.classList.remove('active'));
@@ -1191,9 +1190,10 @@ function setLfgMultiFilter(el) {
   lfgPage = 1; renderLfg(); updateLfgFilterSummary();
 }
 function resetLfgFilters() {
-  lfgFilter = { mode:'all', format:'all', tiers:[], role:'all', mic:'all' };
+  lfgFilter = { mode:'all', format:'5vs5', tiers:[], role:'all', mic:'all' };
   document.querySelectorAll('#lfgFilterPopover .filter-chip').forEach(c => c.classList.remove('active'));
-  ['mode','format','role','mic'].forEach(g => document.querySelector(`.filter-chip[data-lg="${g}"][data-val="all"]`)?.classList.add('active'));
+  ['mode','role','mic'].forEach(g => document.querySelector(`.filter-chip[data-lg="${g}"][data-val="all"]`)?.classList.add('active'));
+  document.querySelector('.filter-chip[data-lg="format"][data-val="5vs5"]')?.classList.add('active');
   document.querySelector('.filter-chip[data-lg="tier"][data-val="all"]')?.classList.add('active');
   lfgPage = 1; renderLfg(); updateLfgFilterSummary();
 }
