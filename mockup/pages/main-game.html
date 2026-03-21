@@ -91,10 +91,12 @@
 .lfg-card-body { flex: 1; display: flex; gap: 12px; padding: 16px 16px 12px; align-items: flex-start; }
 .lfg-card-footer { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 40px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); }
 
-/* ── LFG 인라인 필터 패널 ── */
+/* ── 인라인 필터 패널 (LFG·스크림·홍보 공용) ── */
 .lfg-filter-panel { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 18px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
 .lfg-filter-panel .filter-group { gap: 6px; }
 .lfg-filter-panel .filter-group-label { min-width: 44px; }
+.filter-reset-icon { display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:99px;border:1px solid var(--border);background:var(--bg-surface);color:var(--text-muted);font-size:15px;cursor:pointer;transition:all .15s;flex-shrink:0; }
+.filter-reset-icon:hover { border-color:rgba(124,58,237,0.5);color:#c4b5fd;background:rgba(124,58,237,0.1); }
 .lfg-avatar-wrap { position: relative; flex-shrink: 0; }
 .lfg-avatar-wrap .online-dot { position: absolute; bottom: 1px; right: 1px; width: 9px; height: 9px; border: 1.5px solid var(--bg-elevated); }
 
@@ -607,7 +609,7 @@
         <div class="filter-chip"        data-lg="mic" data-val="true" onclick="setLfgFilter(this)">필수</div>
       </div>
       <div style="display:flex;justify-content:flex-end;padding-top:4px;border-top:1px solid var(--border)">
-        <button class="btn btn-secondary btn-sm" onclick="resetLfgFilters()">필터 초기화</button>
+        <div class="filter-reset-icon" onclick="resetLfgFilters()" title="필터 초기화">↺</div>
       </div>
     </div>
 
@@ -628,21 +630,25 @@
     </div>
 
     <!-- 스크림 필터 -->
-    <div class="filter-bar">
+    <div class="lfg-filter-panel">
       <div class="filter-group">
-        <span class="filter-label">상태</span>
-        <div class="filter-chip on"  data-sf="status" data-val="전체"   onclick="setScrimFilter('status',this)">전체</div>
-        <div class="filter-chip"     data-sf="status" data-val="모집 중" onclick="setScrimFilter('status',this)">모집 중</div>
-        <div class="filter-chip"     data-sf="status" data-val="예정"   onclick="setScrimFilter('status',this)">예정</div>
+        <span class="filter-group-label">상태</span>
+        <div class="filter-divider-v"></div>
+        <div class="filter-chip on" data-sf="status" data-val="전체"   onclick="setScrimFilter('status',this)">전체</div>
+        <div class="filter-chip"    data-sf="status" data-val="모집 중" onclick="setScrimFilter('status',this)">모집 중</div>
+        <div class="filter-chip"    data-sf="status" data-val="예정"   onclick="setScrimFilter('status',this)">예정</div>
       </div>
-      <div class="filter-divider"></div>
       <div class="filter-group">
-        <span class="filter-label">티어</span>
-        <div class="filter-chip on" data-sf="tier" data-val="전체"   onclick="setScrimFilter('tier',this)">전체</div>
-        <div class="filter-chip"    data-sf="tier" data-val="골드↓"  onclick="setScrimFilter('tier',this)">골드↓</div>
-        <div class="filter-chip"    data-sf="tier" data-val="플래"   onclick="setScrimFilter('tier',this)">플래</div>
-        <div class="filter-chip"    data-sf="tier" data-val="다이아" onclick="setScrimFilter('tier',this)">다이아</div>
+        <span class="filter-group-label">티어</span>
+        <div class="filter-divider-v"></div>
+        <div class="filter-chip on" data-sf="tier" data-val="전체"    onclick="setScrimFilter('tier',this)">전체</div>
+        <div class="filter-chip"    data-sf="tier" data-val="골드↓"   onclick="setScrimFilter('tier',this)">골드↓</div>
+        <div class="filter-chip"    data-sf="tier" data-val="플래"    onclick="setScrimFilter('tier',this)">플래</div>
+        <div class="filter-chip"    data-sf="tier" data-val="다이아"  onclick="setScrimFilter('tier',this)">다이아</div>
         <div class="filter-chip"    data-sf="tier" data-val="마스터↑" onclick="setScrimFilter('tier',this)">마스터↑</div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;padding-top:4px;border-top:1px solid var(--border)">
+        <div class="filter-reset-icon" onclick="resetScrimFilters()" title="필터 초기화">↺</div>
       </div>
     </div>
 
@@ -663,81 +669,60 @@
     </div>
 
     <!-- 클랜 홍보 필터 -->
-    <div class="filter-trigger-bar" id="promoFilterTriggerBar">
-      <div class="filter-popover-wrap">
-        <button class="filter-btn" id="promoFilterBtn" onclick="togglePromoFilterPopover()">
-          ⚙ 필터
-          <span class="filter-count" id="promoFilterCount" style="display:none">0</span>
-        </button>
-        <div class="filter-popover" id="promoFilterPopover">
-          <!-- 모집 상태 -->
-          <div class="filter-group">
-            <span class="filter-group-label">모집</span>
-            <div class="filter-divider-v"></div>
-            <div class="filter-chip active" data-pg="recruit" data-val="all"    onclick="setPromoGroupFilter(this)">전체</div>
-            <div class="filter-chip"        data-pg="recruit" data-val="open"   onclick="setPromoGroupFilter(this)">모집 중</div>
-            <div class="filter-chip"        data-pg="recruit" data-val="soon"   onclick="setPromoGroupFilter(this)">모집 예정</div>
-            <div class="filter-chip"        data-pg="recruit" data-val="closed" onclick="setPromoGroupFilter(this)">모집 완료</div>
-          </div>
-          <!-- 클랜 지향 -->
-          <div class="filter-group">
-            <span class="filter-group-label">지향</span>
-            <div class="filter-divider-v"></div>
-            <div class="filter-chip active" data-pg="style" data-val="all"      onclick="setPromoGroupFilter(this)">전체</div>
-            <div class="filter-chip"        data-pg="style" data-val="social"   onclick="setPromoGroupFilter(this)">친목</div>
-            <div class="filter-chip"        data-pg="style" data-val="tryhard"  onclick="setPromoGroupFilter(this)">빡겜</div>
-            <div class="filter-chip"        data-pg="style" data-val="casual"   onclick="setPromoGroupFilter(this)">즐겜</div>
-            <div class="filter-chip"        data-pg="style" data-val="pro"      onclick="setPromoGroupFilter(this)">프로</div>
-          </div>
-          <!-- 모집 포지션 -->
-          <div class="filter-group">
-            <span class="filter-group-label">포지션</span>
-            <div class="filter-divider-v"></div>
-            <div class="filter-chip" data-pg="pos" data-val="tank"    onclick="togglePromoSpecial(this)">🛡 탱커</div>
-            <div class="filter-chip" data-pg="pos" data-val="dps"     onclick="togglePromoSpecial(this)">⚔️ 딜러</div>
-            <div class="filter-chip" data-pg="pos" data-val="support" onclick="togglePromoSpecial(this)">💚 힐러</div>
-          </div>
-          <!-- 티어대 -->
-          <div class="filter-group" style="flex-wrap:nowrap;align-items:flex-start">
-            <span class="filter-group-label" style="padding-top:4px">티어</span>
-            <div class="filter-divider-v" style="margin-top:4px"></div>
-            <div style="display:flex;flex-direction:column;gap:5px">
-              <div style="display:flex;gap:5px;flex-wrap:wrap">
-                <div class="filter-chip" data-pg="tier" data-val="bronze"  onclick="togglePromoSpecial(this)">🥉 브론즈</div>
-                <div class="filter-chip" data-pg="tier" data-val="silver"  onclick="togglePromoSpecial(this)">🥈 실버</div>
-                <div class="filter-chip" data-pg="tier" data-val="gold"    onclick="togglePromoSpecial(this)">🥇 골드</div>
-                <div class="filter-chip" data-pg="tier" data-val="plat"    onclick="togglePromoSpecial(this)">💠 플래티넘</div>
-              </div>
-              <div style="display:flex;gap:5px;flex-wrap:wrap">
-                <div class="filter-chip" data-pg="tier" data-val="diamond" onclick="togglePromoSpecial(this)">💎 다이아몬드</div>
-                <div class="filter-chip" data-pg="tier" data-val="master"  onclick="togglePromoSpecial(this)">🔮 마스터</div>
-                <div class="filter-chip" data-pg="tier" data-val="gm"      onclick="togglePromoSpecial(this)">👑 그랜드마스터</div>
-              </div>
-            </div>
-          </div>
-          <!-- 기타 -->
-          <div class="filter-group">
-            <span class="filter-group-label">기타</span>
-            <div class="filter-divider-v"></div>
-            <div class="filter-chip" data-pg="etc" data-val="new"     onclick="togglePromoSpecial(this)">🌱 신생 클랜</div>
-            <div class="filter-chip" data-pg="etc" data-val="discord" onclick="togglePromoSpecial(this)">💬 Discord 있음</div>
-          </div>
-          <!-- 팝오버 하단 -->
-          <div class="filter-popover-footer">
-            <span class="filter-reset-btn" onclick="resetPromoFiltersAll()">초기화</span>
-            <button class="filter-apply-btn" onclick="togglePromoFilterPopover()">적용</button>
-          </div>
+    <div class="lfg-filter-panel">
+      <div class="filter-group">
+        <span class="filter-group-label">모집</span>
+        <div class="filter-divider-v"></div>
+        <div class="filter-chip active" data-pg="recruit" data-val="all"    onclick="setPromoGroupFilter(this)">전체</div>
+        <div class="filter-chip"        data-pg="recruit" data-val="open"   onclick="setPromoGroupFilter(this)">모집 중</div>
+        <div class="filter-chip"        data-pg="recruit" data-val="soon"   onclick="setPromoGroupFilter(this)">모집 예정</div>
+        <div class="filter-chip"        data-pg="recruit" data-val="closed" onclick="setPromoGroupFilter(this)">모집 완료</div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-group-label">지향</span>
+        <div class="filter-divider-v"></div>
+        <div class="filter-chip active" data-pg="style" data-val="all"     onclick="setPromoGroupFilter(this)">전체</div>
+        <div class="filter-chip"        data-pg="style" data-val="social"  onclick="setPromoGroupFilter(this)">친목</div>
+        <div class="filter-chip"        data-pg="style" data-val="tryhard" onclick="setPromoGroupFilter(this)">빡겜</div>
+        <div class="filter-chip"        data-pg="style" data-val="casual"  onclick="setPromoGroupFilter(this)">즐겜</div>
+        <div class="filter-chip"        data-pg="style" data-val="pro"     onclick="setPromoGroupFilter(this)">프로</div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-group-label">포지션</span>
+        <div class="filter-divider-v"></div>
+        <div class="filter-chip" data-pg="pos" data-val="tank"    onclick="togglePromoSpecial(this)">탱커</div>
+        <div class="filter-chip" data-pg="pos" data-val="dps"     onclick="togglePromoSpecial(this)">딜러</div>
+        <div class="filter-chip" data-pg="pos" data-val="support" onclick="togglePromoSpecial(this)">힐러</div>
+      </div>
+      <div class="filter-group" style="align-items:flex-start">
+        <span class="filter-group-label" style="padding-top:2px">티어</span>
+        <div class="filter-divider-v"></div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <div class="filter-chip" data-pg="tier" data-val="bronze"  onclick="togglePromoSpecial(this)">브론즈</div>
+          <div class="filter-chip" data-pg="tier" data-val="silver"  onclick="togglePromoSpecial(this)">실버</div>
+          <div class="filter-chip" data-pg="tier" data-val="gold"    onclick="togglePromoSpecial(this)">골드</div>
+          <div class="filter-chip" data-pg="tier" data-val="plat"    onclick="togglePromoSpecial(this)">플래티넘</div>
+          <div class="filter-chip" data-pg="tier" data-val="diamond" onclick="togglePromoSpecial(this)">다이아몬드</div>
+          <div class="filter-chip" data-pg="tier" data-val="master"  onclick="togglePromoSpecial(this)">마스터</div>
+          <div class="filter-chip" data-pg="tier" data-val="gm"      onclick="togglePromoSpecial(this)">그랜드마스터</div>
         </div>
       </div>
-      <!-- 활성 필터 태그 인라인 표시 -->
-      <div id="promoActiveFilterTags" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"></div>
-      <!-- 정렬 -->
-      <div style="margin-left:auto">
-        <select style="font-size:12px;padding:4px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-overlay);color:var(--text-secondary);cursor:pointer" onchange="setPromoSort(this.value)">
-          <option value="newest">최신순</option>
-          <option value="popular">인기순</option>
-          <option value="space">여유순</option>
-        </select>
+      <div class="filter-group">
+        <span class="filter-group-label">기타</span>
+        <div class="filter-divider-v"></div>
+        <div class="filter-chip" data-pg="etc" data-val="new"     onclick="togglePromoSpecial(this)">신생 클랜</div>
+        <div class="filter-chip" data-pg="etc" data-val="discord" onclick="togglePromoSpecial(this)">Discord 있음</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-top:4px;border-top:1px solid var(--border)">
+        <div id="promoActiveFilterTags" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+          <select style="font-size:12px;padding:4px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-overlay);color:var(--text-secondary);cursor:pointer" onchange="setPromoSort(this.value)">
+            <option value="newest">최신순</option>
+            <option value="popular">인기순</option>
+            <option value="space">여유순</option>
+          </select>
+          <div class="filter-reset-icon" onclick="resetPromoFiltersAll()" title="필터 초기화">↺</div>
+        </div>
       </div>
     </div>
 
@@ -1550,22 +1535,6 @@ function togglePromoSpecial(el) {
   promoPage = 1; renderPromos();
 }
 
-function togglePromoFilterPopover() {
-  const pop = document.getElementById('promoFilterPopover');
-  pop.classList.toggle('open');
-  if (pop.classList.contains('open')) {
-    setTimeout(() => document.addEventListener('click', closePromoPopoverOutside, { once: true }), 0);
-  }
-}
-
-function closePromoPopoverOutside(e) {
-  const wrap = document.querySelector('#promoFilterTriggerBar .filter-popover-wrap');
-  if (!wrap.contains(e.target)) {
-    document.getElementById('promoFilterPopover').classList.remove('open');
-  } else {
-    setTimeout(() => document.addEventListener('click', closePromoPopoverOutside, { once: true }), 0);
-  }
-}
 
 const PROMO_FILTER_LABELS = {
   recruit: { all:null, open:'모집 중', soon:'모집 예정', closed:'모집 완료' },
@@ -1585,25 +1554,19 @@ function updatePromoFilterSummary() {
     const group = PROMO_FILTER_LABELS.pos[v] ? 'pos' : PROMO_FILTER_LABELS.tier[v] ? 'tier' : 'etc';
     if (label) active.push({ label, group, val: v });
   });
-  const count = active.length;
-  const btn = document.getElementById('promoFilterBtn');
-  const badge = document.getElementById('promoFilterCount');
-  if (count > 0) {
-    btn.classList.add('has-active');
-    badge.style.display = 'inline-flex';
-    badge.textContent = count;
-  } else {
-    btn.classList.remove('has-active');
-    badge.style.display = 'none';
-  }
   const tagsEl = document.getElementById('promoActiveFilterTags');
-  if (count === 0) {
-    tagsEl.innerHTML = '';
-  } else {
-    tagsEl.innerHTML = active.map(f =>
-      `<span class="active-filter-tag" onclick="removePromoFilter('${f.group}','${f.val||''}')">${f.label} ✕</span>`
-    ).join('') + (count > 1 ? `<span class="filter-reset-all" onclick="resetPromoFiltersAll()">전체 초기화</span>` : '');
-  }
+  if (!tagsEl) return;
+  tagsEl.innerHTML = active.map(f =>
+    `<span class="active-filter-tag" onclick="removePromoFilter('${f.group}','${f.val||''}')">${f.label} ✕</span>`
+  ).join('');
+}
+
+function resetScrimFilters() {
+  scrimFilter = { status:'전체', tier:'전체' };
+  document.querySelectorAll('.filter-chip[data-sf]').forEach(c => {
+    c.classList.toggle('on', c.dataset.val === '전체');
+  });
+  scrimPage = 1; renderScrims();
 }
 
 function removePromoFilter(group, val) {
