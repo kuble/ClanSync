@@ -218,27 +218,37 @@
 .clan-badge-icon .cbi-tip {
   display: none;
   position: absolute;
-  bottom: calc(100% + 6px);
+  bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
   background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 3px 8px;
-  font-size: 11px;
-  color: var(--text-primary);
-  white-space: nowrap;
+  border: 1px solid rgba(124,58,237,0.3);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  width: 180px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
   z-index: 60;
   pointer-events: none;
 }
+.clan-badge-icon .cbi-tip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgba(124,58,237,0.3);
+}
 .clan-badge-icon:hover .cbi-tip { display: block; }
+.cbi-tip-title { font-size: 12px; font-weight: 700; color: #a78bfa; margin-bottom: 4px; }
+.cbi-tip-desc  { font-size: 11px; color: var(--text-secondary); line-height: 1.5; white-space: normal; }
 /* 드로어 내 배지는 좀 더 크게 */
 .clan-badge-icon.lg {
   width: 36px;
   height: 36px;
   font-size: 18px;
 }
-.clan-badge-icon.lg .cbi-tip { bottom: calc(100% + 6px); }
+.clan-badge-icon.lg .cbi-tip { bottom: calc(100% + 8px); }
 
 /* ── 클랜 상세 드로어 ── */
 .promo-drawer-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(3px);z-index:150; }
@@ -1161,26 +1171,26 @@ const TIER_ORDER = ['bronze','silver','gold','plat','diamond','master','gm'];
 
 /* ── 클랜 배지 정의 ── */
 const BADGE_DEFS = {
-  regular:  { icon: '⚔️',  label: '정기 내전'    },
-  voice:    { icon: '🎙️',  label: '음성 소통'    },
-  scrim:    { icon: '🏆',  label: '스크림 운영'  },
-  discord:  { icon: '💬',  label: '디스코드 활성' },
-  manner:   { icon: '🤝',  label: '매너 클랜'    },
-  newbie:   { icon: '🌱',  label: '초보 환영'    },
-  flexible: { icon: '📅',  label: '자유 참여'    },
-  adult:    { icon: '🔞',  label: '성인 클랜'    },
-  night:    { icon: '🌙',  label: '야간 활동'    },
-  elite:    { icon: '💎',  label: '고티어 전용'  },
-  strategy: { icon: '📊',  label: '전략 분석'    },
-  small:    { icon: '⭐',  label: '소수 정예'    },
-  worker:   { icon: '💼',  label: '직장인 환영'  },
+  regular:  { icon: '⚔️',  label: '정기 내전',   desc: '정기적으로 내전(팀 대결)을 운영합니다.' },
+  voice:    { icon: '🎙️',  label: '음성 소통',   desc: '디스코드 등 음성 채널을 통해 소통합니다.' },
+  scrim:    { icon: '🏆',  label: '스크림 운영', desc: '타 클랜과의 공식 스크림 경기를 진행합니다.' },
+  discord:  { icon: '💬',  label: '디스코드 활성', desc: '전용 디스코드 서버를 운영 중입니다.' },
+  manner:   { icon: '🤝',  label: '매너 클랜',   desc: '비매너 행위에 무관용 원칙을 적용합니다.' },
+  newbie:   { icon: '🌱',  label: '초보 환영',   desc: '실력에 관계없이 입문자도 지원할 수 있습니다.' },
+  flexible: { icon: '📅',  label: '자유 참여',   desc: '내전 참여 강제 없이 자유롭게 활동할 수 있습니다.' },
+  adult:    { icon: '🔞',  label: '성인 클랜',   desc: '19세 이상 성인만 가입 가능한 클랜입니다.' },
+  night:    { icon: '🌙',  label: '야간 활동',   desc: '주로 자정 이후 야간 시간대에 활동합니다.' },
+  elite:    { icon: '💎',  label: '고티어 전용', desc: '마스터 이상 고티어 플레이어만 지원 가능합니다.' },
+  strategy: { icon: '📊',  label: '전략 분석',   desc: '경기 전후 전략 리뷰와 팀 전술을 연구합니다.' },
+  small:    { icon: '⭐',  label: '소수 정예',   desc: '소수의 핵심 멤버로만 구성된 정예 클랜입니다.' },
+  worker:   { icon: '💼',  label: '직장인 환영', desc: '직장인·사회인도 참여하기 좋은 일정으로 운영합니다.' },
 };
 
 function clanBadgesHtml(keys, lg = false) {
   return keys.map(k => {
     const b = BADGE_DEFS[k];
     if (!b) return '';
-    return `<span class="clan-badge-icon${lg ? ' lg' : ''}">${b.icon}<span class="cbi-tip">${b.label}</span></span>`;
+    return `<span class="clan-badge-icon${lg ? ' lg' : ''}">${b.icon}<span class="cbi-tip"><div class="cbi-tip-title">${b.icon} ${b.label}</div><div class="cbi-tip-desc">${b.desc}</div></span></span>`;
   }).join('');
 }
 function promoTagsHtml(p) {
