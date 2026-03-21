@@ -215,40 +215,32 @@
   transition: border-color 0.15s, background 0.15s;
 }
 .clan-badge-icon:hover { background: var(--bg-elevated); border-color: var(--border-hover); }
-.clan-badge-icon .cbi-tip {
+/* 드로어 내 배지는 좀 더 크게 */
+.clan-badge-icon.lg { width: 36px; height: 36px; font-size: 18px; }
+/* 전역 배지 툴팁 (fixed → 클리핑 없음) */
+#badgeTip {
   display: none;
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
+  position: fixed;
   background: var(--bg-elevated);
   border: 1px solid rgba(124,58,237,0.3);
   border-radius: var(--radius-md);
   padding: 8px 12px;
-  width: 180px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-  z-index: 60;
+  width: 190px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+  z-index: 9999;
   pointer-events: none;
 }
-.clan-badge-icon .cbi-tip::after {
+#badgeTip::after {
   content: '';
   position: absolute;
   top: 100%;
-  left: 50%;
+  left: var(--arrow-left, 50%);
   transform: translateX(-50%);
   border: 5px solid transparent;
   border-top-color: rgba(124,58,237,0.3);
 }
-.clan-badge-icon:hover .cbi-tip { display: block; }
 .cbi-tip-title { font-size: 12px; font-weight: 700; color: #a78bfa; margin-bottom: 4px; }
-.cbi-tip-desc  { font-size: 11px; color: var(--text-secondary); line-height: 1.5; white-space: normal; }
-/* 드로어 내 배지는 좀 더 크게 */
-.clan-badge-icon.lg {
-  width: 36px;
-  height: 36px;
-  font-size: 18px;
-}
-.clan-badge-icon.lg .cbi-tip { bottom: calc(100% + 8px); }
+.cbi-tip-desc  { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
 
 /* ── 클랜 상세 드로어 ── */
 .promo-drawer-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(3px);z-index:150; }
@@ -1190,8 +1182,32 @@ function clanBadgesHtml(keys, lg = false) {
   return keys.map(k => {
     const b = BADGE_DEFS[k];
     if (!b) return '';
-    return `<span class="clan-badge-icon${lg ? ' lg' : ''}">${b.icon}<span class="cbi-tip"><div class="cbi-tip-title">${b.icon} ${b.label}</div><div class="cbi-tip-desc">${b.desc}</div></span></span>`;
+    return `<span class="clan-badge-icon${lg ? ' lg' : ''}" data-badge="${k}" onmouseenter="showBadgeTip(this)" onmouseleave="hideBadgeTip()">${b.icon}</span>`;
   }).join('');
+}
+
+function showBadgeTip(el) {
+  const b = BADGE_DEFS[el.dataset.badge];
+  if (!b) return;
+  const tip = document.getElementById('badgeTip');
+  document.getElementById('badgeTipTitle').textContent = b.icon + ' ' + b.label;
+  document.getElementById('badgeTipDesc').textContent  = b.desc;
+  tip.style.display = 'block';
+  const rect   = el.getBoundingClientRect();
+  const tipW   = tip.offsetWidth;
+  const tipH   = tip.offsetHeight;
+  let left = rect.left + rect.width / 2 - tipW / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - tipW - 8));
+  const top  = rect.top - tipH - 10;
+  tip.style.left = left + 'px';
+  tip.style.top  = top  + 'px';
+  /* 화살표를 배지 중앙에 정렬 */
+  const arrowLeft = (rect.left + rect.width / 2) - left;
+  tip.style.setProperty('--arrow-left', arrowLeft + 'px');
+}
+
+function hideBadgeTip() {
+  document.getElementById('badgeTip').style.display = 'none';
 }
 function promoTagsHtml(p) {
   const rows = [];
@@ -1502,5 +1518,9 @@ renderScrims();
 renderPromos();
 renderRanking();
 </script>
+<div id="badgeTip">
+  <div id="badgeTipTitle" class="cbi-tip-title"></div>
+  <div id="badgeTipDesc"  class="cbi-tip-desc"></div>
+</div>
 </body>
 </html>
