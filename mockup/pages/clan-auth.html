@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClanSync — 클랜 참여</title>
+<link rel="stylesheet" href="../styles/main.css">
+<style>
+.page-content {
+  max-width: 720px;
+  margin: 80px auto 0;
+  padding: 48px 24px;
+}
+.step-header {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--text-muted); margin-bottom: 32px;
+}
+.step-dot {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--bg-overlay); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600;
+}
+.step-dot.active { background: var(--brand-primary); border-color: var(--brand-primary); color: white; }
+.step-dot.done { background: var(--success); border-color: var(--success); color: white; }
+.step-line { flex: 1; height: 1px; background: var(--border); }
+.step-line.done { background: var(--success); }
+
+/* 탭 */
+.tab-panels { margin-top: 24px; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* 클랜 목록 그리드 */
+.promo-grid { display: grid; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 175px; gap: 12px; }
+.promo-card {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 0; transition: border-color 0.15s; overflow: hidden;
+  display: flex; flex-direction: column; cursor: pointer;
+}
+.promo-card:hover { border-color: var(--border-focus); }
+.clan-tag {
+  padding: 2px 8px; background: var(--bg-overlay); border: 1px solid var(--border);
+  border-radius: 99px; font-size: 11px; color: var(--text-muted);
+}
+/* 우측 태그 행 */
+.promo-tag {
+  padding: 2px 8px; background: var(--bg-overlay); border: 1px solid var(--border);
+  border-radius: 99px; font-size: 11px; color: var(--text-muted); white-space: nowrap;
+}
+.promo-tag-row { display: flex; align-items: center; gap: 5px; justify-content: flex-end; }
+.promo-tag-label { font-size: 10px; color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
+.promo-tag-active { background: rgba(124,58,237,0.15); border-color: rgba(124,58,237,0.4); color: #a78bfa; font-weight: 600; }
+/* 인증 배지 */
+.verified-badge {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px;
+  background: linear-gradient(135deg,rgba(124,58,237,0.2),rgba(139,92,246,0.15));
+  border: 1px solid rgba(124,58,237,0.5); border-radius: 50%;
+  font-size: 10px; font-weight: 800; color: #a78bfa; cursor: default; flex-shrink: 0;
+}
+.verified-badge .vb-tooltip {
+  display: none; position: absolute; top: calc(100% + 7px); left: 50%; transform: translateX(-50%);
+  background: var(--bg-elevated); border: 1px solid rgba(124,58,237,0.35); border-radius: var(--radius-md);
+  padding: 8px 12px; width: 200px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); pointer-events: none; z-index: 200;
+}
+.verified-badge .vb-tooltip::after {
+  content: ''; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent; border-bottom-color: rgba(124,58,237,0.35);
+}
+.verified-badge:hover .vb-tooltip { display: block; }
+.vb-title { font-size: 12px; font-weight: 700; color: #a78bfa; margin-bottom: 4px; }
+.vb-desc  { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+/* 배지 아이콘 */
+.clan-badge-icon {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; background: var(--bg-overlay); border: 1px solid var(--border);
+  border-radius: 50%; font-size: 13px; cursor: default; flex-shrink: 0; transition: border-color 0.15s, background 0.15s;
+}
+.clan-badge-icon:hover { background: var(--bg-elevated); border-color: var(--border-hover); }
+.clan-badge-icon.lg { width: 36px; height: 36px; font-size: 18px; }
+/* 전역 배지 툴팁 */
+#badgeTip {
+  display: none; position: fixed; background: var(--bg-elevated);
+  border: 1px solid rgba(124,58,237,0.3); border-radius: var(--radius-md);
+  padding: 8px 12px; width: 190px; box-shadow: 0 6px 20px rgba(0,0,0,0.45); z-index: 9999; pointer-events: none;
+}
+#badgeTip::after {
+  content: ''; position: absolute; top: 100%; left: var(--arrow-left, 50%); transform: translateX(-50%);
+  border: 5px solid transparent; border-top-color: rgba(124,58,237,0.3);
+}
+.cbi-tip-title { font-size: 12px; font-weight: 700; color: #a78bfa; margin-bottom: 4px; }
+.cbi-tip-desc  { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+
+/* 필터 */
+.filter-trigger-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--font-sans);
+  position: relative;
+}
+.filter-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.filter-btn.has-active {
+  border-color: rgba(124,58,237,0.5);
+  color: #a78bfa;
+  background: rgba(124,58,237,0.08);
+}
+.filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px; height: 16px;
+  background: var(--brand-primary);
+  color: white;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 700;
+}
+.active-filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(124,58,237,0.12);
+  border: 1px solid rgba(124,58,237,0.3);
+  border-radius: 99px;
+  font-size: 12px;
+  color: #a78bfa;
+  cursor: pointer;
+}
+.active-filter-tag:hover { background: rgba(124,58,237,0.2); }
+.filter-reset-all {
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+.filter-reset-all:hover { color: var(--text-secondary); }
+
+/* 필터 드롭다운 팝오버 */
+.filter-popover-wrap {
+  position: relative;
+}
+.filter-popover {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 100;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  min-width: 360px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+.filter-popover.open { display: flex; }
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.filter-group-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  min-width: 32px;
+  flex-shrink: 0;
+}
+.filter-divider-v {
+  width: 1px;
+  height: 14px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+.filter-chip {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  background: none;
+}
+.filter-chip:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.filter-chip.active {
+  background: rgba(124,58,237,0.15);
+  border-color: rgba(124,58,237,0.4);
+  color: #a78bfa;
+}
+.filter-chip.special { border-style: dashed; }
+.filter-chip.special.active {
+  background: rgba(16,185,129,0.12);
+  border-color: rgba(16,185,129,0.4);
+  color: #6ee7b7;
+  border-style: solid;
+}
+.filter-popover-footer {
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.filter-apply-btn {
+  padding: 5px 14px;
+  background: var(--brand-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-sans);
+}
+.filter-reset {
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.filter-reset:hover { color: var(--text-secondary); }
+
+/* 클랜 생성 폼 */
+.create-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group { margin-bottom: 16px; }
+.form-row { display: flex; gap: 12px; }
+.form-row .form-group { flex: 1; }
+
+/* 클랜 특성 카드 */
+.trait-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.trait-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+}
+.trait-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 28px;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+.trait-divider-v {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+.trait-divider-h {
+  height: 1px;
+  background: var(--border);
+  margin: 0;
+}
+
+/* 클랜 생성 선택 칩 */
+.create-chip {
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+  white-space: nowrap;
+}
+.create-chip:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.create-chip.active {
+  background: rgba(124,58,237,0.15);
+  border-color: rgba(124,58,237,0.4);
+  color: #a78bfa;
+  font-weight: 600;
+}
+
+
+
+select.input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235a5a72' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+textarea.input { resize: vertical; min-height: 80px; }
+
+.tag-input-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  min-height: 44px;
+  align-items: center;
+}
+.tag-input-area:focus-within { border-color: var(--brand-primary); box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
+.tag-chip {
+  display: flex; align-items: center; gap: 4px;
+  padding: 3px 8px;
+  background: rgba(124,58,237,0.2);
+  border-radius: 99px;
+  font-size: 12px; color: #a78bfa;
+}
+.tag-chip button { background: none; border: none; color: #a78bfa; cursor: pointer; font-size: 13px; line-height: 1; }
+.tag-input-area input {
+  border: none; background: none; color: var(--text-primary);
+  font-size: 13px; outline: none; min-width: 80px;
+  font-family: var(--font-sans);
+}
+
+/* 클랜 디테일 드로어 */
+.drawer-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(3px);
+  z-index: 150;
+}
+.drawer-overlay.open { display: block; }
+.drawer {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 420px;
+  max-width: 100vw;
+  background: var(--bg-base);
+  border-left: 1px solid var(--border);
+  z-index: 151;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+}
+.drawer.open { transform: translateX(0); }
+.drawer-header {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.drawer-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted);
+  transition: all 0.15s;
+}
+.drawer-close:hover { color: var(--text-primary); border-color: var(--border-hover); }
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+.drawer-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--bg-base);
+}
+.drawer-clan-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-right: 36px;
+  margin-bottom: 14px;
+}
+.drawer-clan-name {
+  font-size: 20px; font-weight: 800; margin-bottom: 4px;
+}
+.drawer-clan-badges {
+  display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+}
+.drawer-section {
+  margin-bottom: 20px;
+}
+.drawer-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+.drawer-section-body {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  white-space: pre-line;
+}
+.drawer-stat-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.drawer-stat {
+  flex: 1;
+  min-width: 90px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  text-align: center;
+}
+.drawer-stat-val {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+.drawer-stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.badge-pro {
+  padding: 2px 7px;
+  background: linear-gradient(90deg, rgba(245,158,11,0.2), rgba(234,179,8,0.15));
+  border: 1px solid rgba(245,158,11,0.4);
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fcd34d;
+}
+
+/* 페이지네이션 */
+.pg-btn {
+  width: 32px; height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.pg-btn:hover:not(:disabled) { border-color: var(--border-hover); color: var(--text-primary); }
+.pg-btn:disabled { opacity: 0.35; cursor: default; }
+.pg-btn.pg-active {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: white;
+  font-weight: 700;
+}
+
+/* 가입 대기 상태 카드 */
+.pending-card {
+  background: var(--bg-elevated);
+  border: 1px solid rgba(245,158,11,0.3);
+  border-radius: var(--radius-xl);
+  padding: 40px;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="games.html"><span class="navbar-brand">⚡ ClanSync</span></a>
+  <div class="navbar-nav">
+    <a href="games.html"><button class="btn btn-ghost btn-sm">← 게임 목록</button></a>
+    <div class="profile-menu" id="profileMenu">
+      <button class="profile-btn" onclick="toggleProfileMenu()">
+        <div class="avatar" style="width:28px;height:28px;font-size:12px">김</div>
+        <span class="profile-btn-arrow">▾</span>
+      </button>
+      <div class="profile-dropdown" id="profileDropdown">
+        <div class="pd-header">
+          <div class="avatar" style="width:40px;height:40px;font-size:16px">김</div>
+          <div>
+            <div style="font-weight:700;font-size:14px">김클랜</div>
+            <div style="font-size:12px;color:var(--text-muted)">kim@example.com</div>
+          </div>
+        </div>
+        <div class="pd-divider"></div>
+        <a href="profile.html"><div class="pd-item">
+          <span class="pd-item-icon">👤</span>
+          <span>플레이어 프로필</span>
+          <span class="pd-item-arrow">›</span>
+        </div></a>
+        <div class="pd-item pd-coins">
+          <span class="pd-item-icon">🪙</span>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500;color:var(--text-primary)">클랜 코인</div>
+            <div style="font-size:11px;color:var(--text-muted)">나의 코인 <span class="pd-coin-value">1,240</span></div>
+          </div>
+        </div>
+        <div class="pd-divider"></div>
+        <div class="pd-item" onclick="toggleTheme()">
+          <span class="pd-item-icon" id="themeIcon">🌙</span>
+          <span style="flex:1">다크 모드</span>
+          <div class="toggle on" id="themeToggle"></div>
+        </div>
+        <div class="pd-item" style="cursor:default">
+          <span class="pd-item-icon">🌐</span>
+          <span style="flex:1">언어</span>
+          <div class="lang-tabs">
+            <button class="lang-tab active" onclick="setLang(this,'ko')">한국어</button>
+            <button class="lang-tab" onclick="setLang(this,'en')">EN</button>
+            <button class="lang-tab" onclick="setLang(this,'ja')">日本語</button>
+          </div>
+        </div>
+        <div class="pd-divider"></div>
+        <div class="pd-item pd-logout" onclick="window.location.href='sign-in.html'">
+          <span class="pd-item-icon">🚪</span>
+          <span>로그아웃</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="page-content">
+
+  <!-- 스텝 -->
+  <div class="step-header">
+    <div class="step-dot done">✓</div>
+    <div style="font-size:12px">로그인</div>
+    <div class="step-line done"></div>
+    <div class="step-dot done">✓</div>
+    <div style="font-size:12px">게임 인증</div>
+    <div class="step-line done"></div>
+    <div class="step-dot active">3</div>
+    <div style="font-size:12px; color:var(--text-primary)">클랜 참여</div>
+  </div>
+
+  <div style="margin-bottom: 24px">
+    <div style="font-size:26px; font-weight:800; margin-bottom:6px">클랜에 참여하세요</div>
+    <div style="font-size:14px; color:var(--text-secondary)">기존 클랜에 가입하거나, 새 클랜을 만들어보세요</div>
+  </div>
+
+  <!-- 탭 -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab(this, 'join')">클랜 가입</div>
+    <div class="tab" onclick="switchTab(this, 'create')">클랜 만들기</div>
+  </div>
+
+  <div class="tab-panels">
+
+    <!-- 가입 탭 -->
+    <div class="tab-panel active" id="tab-join">
+      <div style="display:flex; gap:10px; margin-bottom:16px">
+        <div style="position:relative; flex:1">
+          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)">🔍</span>
+          <input class="input" type="text" placeholder="클랜명 검색..." style="padding-left:34px" oninput="filterClans(this.value)">
+        </div>
+      </div>
+
+      <!-- 필터 트리거 바 -->
+      <div class="filter-trigger-bar" id="filterTriggerBar">
+        <div class="filter-popover-wrap">
+          <button class="filter-btn" id="filterBtn" onclick="toggleFilterPopover()">
+            ⚙ 필터
+            <span class="filter-count" id="filterCount" style="display:none">0</span>
+          </button>
+          <!-- 필터 팝오버 -->
+          <div class="filter-popover" id="filterPopover">
+            <!-- 모집 상태 -->
+            <div class="filter-group">
+              <span class="filter-group-label">모집</span>
+              <div class="filter-divider-v"></div>
+              <div class="filter-chip active" data-group="recruit" data-val="all" onclick="setGroupFilter(this)">전체</div>
+              <div class="filter-chip" data-group="recruit" data-val="open" onclick="setGroupFilter(this)">모집 중</div>
+              <div class="filter-chip" data-group="recruit" data-val="soon" onclick="setGroupFilter(this)">모집 예정</div>
+              <div class="filter-chip" data-group="recruit" data-val="closed" onclick="setGroupFilter(this)">모집 완료</div>
+            </div>
+            <!-- 클랜 지향 -->
+            <div class="filter-group">
+              <span class="filter-group-label">지향</span>
+              <div class="filter-divider-v"></div>
+              <div class="filter-chip active" data-group="style" data-val="all" onclick="setGroupFilter(this)">전체</div>
+              <div class="filter-chip" data-group="style" data-val="social" onclick="setGroupFilter(this)">친목</div>
+              <div class="filter-chip" data-group="style" data-val="tryhard" onclick="setGroupFilter(this)">빡겜</div>
+              <div class="filter-chip" data-group="style" data-val="casual" onclick="setGroupFilter(this)">즐겜</div>
+              <div class="filter-chip" data-group="style" data-val="pro" onclick="setGroupFilter(this)">프로</div>
+            </div>
+            <!-- 모집 포지션 -->
+            <div class="filter-group">
+              <span class="filter-group-label">포지션</span>
+              <div class="filter-divider-v"></div>
+              <div class="filter-chip special" data-group="pos" data-val="tank" onclick="toggleSpecial(this)">🛡 탱커</div>
+              <div class="filter-chip special" data-group="pos" data-val="dps" onclick="toggleSpecial(this)">⚔️ 딜러</div>
+              <div class="filter-chip special" data-group="pos" data-val="support" onclick="toggleSpecial(this)">💚 힐러</div>
+            </div>
+            <!-- 티어대 -->
+            <div class="filter-group" style="flex-wrap:nowrap;align-items:flex-start">
+              <span class="filter-group-label" style="padding-top:4px">티어</span>
+              <div class="filter-divider-v" style="margin-top:4px"></div>
+              <div style="display:flex;flex-direction:column;gap:5px">
+                <div style="display:flex;gap:5px">
+                  <div class="filter-chip special" data-group="tier" data-val="bronze"  onclick="toggleSpecial(this)">🥉 브론즈</div>
+                  <div class="filter-chip special" data-group="tier" data-val="silver"  onclick="toggleSpecial(this)">🥈 실버</div>
+                  <div class="filter-chip special" data-group="tier" data-val="gold"    onclick="toggleSpecial(this)">🥇 골드</div>
+                  <div class="filter-chip special" data-group="tier" data-val="plat"    onclick="toggleSpecial(this)">💠 플래티넘</div>
+                </div>
+                <div style="display:flex;gap:5px">
+                  <div class="filter-chip special" data-group="tier" data-val="diamond" onclick="toggleSpecial(this)">💎 다이아몬드</div>
+                  <div class="filter-chip special" data-group="tier" data-val="master"  onclick="toggleSpecial(this)">🔮 마스터</div>
+                  <div class="filter-chip special" data-group="tier" data-val="gm"      onclick="toggleSpecial(this)">👑 그랜드마스터</div>
+                </div>
+              </div>
+            </div>
+            <!-- 기타 -->
+            <div class="filter-group">
+              <span class="filter-group-label">기타</span>
+              <div class="filter-divider-v"></div>
+              <div class="filter-chip special" data-group="etc" data-val="new" onclick="toggleSpecial(this)">🌱 신생 클랜</div>
+              <div class="filter-chip special" data-group="etc" data-val="discord" onclick="toggleSpecial(this)">💬 Discord 있음</div>
+            </div>
+            <!-- 팝오버 하단 -->
+            <div class="filter-popover-footer">
+              <span class="filter-reset" onclick="resetFilters()">초기화</span>
+              <button class="filter-apply-btn" onclick="toggleFilterPopover()">적용</button>
+            </div>
+          </div>
+        </div>
+        <!-- 활성 필터 태그 인라인 표시 -->
+        <div id="activeFilterTags" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"></div>
+      </div>
+
+      <!-- 클랜 목록 (JS 렌더링) -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div id="clanCount" style="font-size:13px;color:var(--text-muted)"></div>
+      </div>
+      <div id="clanList"></div>
+      <!-- 페이지네이션 -->
+      <div id="pagination" style="display:flex;justify-content:center;align-items:center;gap:6px;margin-top:16px"></div>
+    </div>
+
+    <!-- 생성 탭 -->
+    <div class="tab-panel" id="tab-create">
+      <form onsubmit="handleCreateClan(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="label">클랜명 <span style="color:var(--danger)">*</span></label>
+            <input class="input" type="text" placeholder="최대 30자" maxlength="30">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="label">성별 정책</label>
+            <select class="input">
+              <option value="all">무관</option>
+              <option value="male">남성 전용</option>
+              <option value="female">여성 전용</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="label">최대 인원</label>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input class="input" type="number" id="maxMembers" min="2" max="200" value="30"
+                     style="flex:1" oninput="clampMembers(this)">
+              <span style="font-size:13px;color:var(--text-secondary);white-space:nowrap">명</span>
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:5px">2~200명 사이로 입력</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="label">클랜 소개</label>
+          <textarea class="input" placeholder="클랜을 소개해주세요 (선택)"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="label">클랜 규칙</label>
+          <textarea class="input" placeholder="클랜 규칙을 입력하세요 (선택)"></textarea>
+        </div>
+
+        <!-- 클랜 특성 카드 -->
+        <div class="form-group">
+          <label class="label">클랜 특성</label>
+          <div class="trait-card">
+            <!-- 지향 -->
+            <div class="trait-row">
+              <span class="trait-label">지향</span>
+              <div class="trait-divider-v"></div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <div class="create-chip" data-group="cStyle" data-val="social"  onclick="selectSingleChip(this,'cStyle')">친목</div>
+                <div class="create-chip" data-group="cStyle" data-val="casual"  onclick="selectSingleChip(this,'cStyle')">즐겜</div>
+                <div class="create-chip" data-group="cStyle" data-val="tryhard" onclick="selectSingleChip(this,'cStyle')">빡겜</div>
+                <div class="create-chip" data-group="cStyle" data-val="pro"     onclick="selectSingleChip(this,'cStyle')">프로</div>
+              </div>
+            </div>
+            <div class="trait-divider-h"></div>
+            <!-- 티어 -->
+            <div class="trait-row" style="align-items:flex-start">
+              <span class="trait-label" style="padding-top:3px">티어</span>
+              <div class="trait-divider-v" style="margin-top:3px"></div>
+              <div style="display:flex;flex-direction:column;gap:5px">
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  <div class="create-chip" data-group="cTier" data-val="bronze"  onclick="toggleCreateChip(this)">🥉 브론즈</div>
+                  <div class="create-chip" data-group="cTier" data-val="silver"  onclick="toggleCreateChip(this)">🥈 실버</div>
+                  <div class="create-chip" data-group="cTier" data-val="gold"    onclick="toggleCreateChip(this)">🥇 골드</div>
+                  <div class="create-chip" data-group="cTier" data-val="plat"    onclick="toggleCreateChip(this)">💠 플래티넘</div>
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  <div class="create-chip" data-group="cTier" data-val="diamond" onclick="toggleCreateChip(this)">💎 다이아몬드</div>
+                  <div class="create-chip" data-group="cTier" data-val="master"  onclick="toggleCreateChip(this)">🔮 마스터</div>
+                  <div class="create-chip" data-group="cTier" data-val="gm"      onclick="toggleCreateChip(this)">👑 그랜드마스터</div>
+                </div>
+              </div>
+            </div>
+            <div class="trait-divider-h"></div>
+            <!-- 태그 -->
+            <div class="trait-row" style="align-items:flex-start">
+              <span class="trait-label" style="padding-top:3px">태그</span>
+              <div class="trait-divider-v" style="margin-top:3px"></div>
+              <div style="flex:1">
+                <div id="presetTagArea" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"></div>
+                <div style="font-size:11px;color:var(--text-muted)" id="tagSelectHint">0 / 5개 선택됨</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="label">Discord 링크 <span style="font-size:12px; color:var(--text-muted)">(선택)</span></label>
+            <input class="input" type="url" placeholder="https://discord.gg/...">
+          </div>
+          <div class="form-group">
+            <label class="label">카카오톡 링크 <span style="font-size:12px; color:var(--text-muted)">(선택)</span></label>
+            <input class="input" type="url" placeholder="https://open.kakao.com/...">
+          </div>
+        </div>
+
+        <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:var(--radius-sm);padding:12px 16px;font-size:13px;color:#fcd34d;margin-bottom:20px">
+          ⚠️ 클랜 생성 시 클랜장 권한이 부여됩니다. 가짜 클랜 생성 시 서비스 이용이 제한될 수 있습니다.
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full" style="padding:13px">
+          클랜 만들기 →
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<!-- 클랜 디테일 드로어 -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeClanDrawer()"></div>
+<div class="drawer" id="clanDrawer">
+  <div class="drawer-close" onclick="closeClanDrawer()">✕</div>
+
+  <div class="drawer-header">
+    <div class="drawer-clan-header">
+      <div class="clan-avatar" id="drawerAvatar" style="width:56px;height:56px;font-size:26px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center"></div>
+      <div>
+        <div class="drawer-clan-name" id="drawerName"></div>
+        <div class="drawer-clan-badges" id="drawerBadges"></div>
+      </div>
+    </div>
+    <!-- 간단 스탯 -->
+    <div class="drawer-stat-row" id="drawerStats"></div>
+  </div>
+
+  <div class="drawer-body">
+    <div class="drawer-section">
+      <div class="drawer-section-title">홍보글</div>
+      <div class="drawer-section-body" id="drawerPromo"></div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-title">클랜 규칙</div>
+      <div class="drawer-section-body" id="drawerRules"></div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-title">모집 포지션</div>
+      <div id="drawerPositions" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-title">티어대</div>
+      <div id="drawerTiers" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-title">클랜 배지</div>
+      <div id="drawerBadgeList" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    </div>
+    <div class="drawer-section" id="drawerLinkSection">
+      <div class="drawer-section-title">외부 링크</div>
+      <div id="drawerLinks" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+  </div>
+
+  <div class="drawer-footer">
+    <button class="btn btn-primary w-full" style="padding:13px;font-size:15px" onclick="openJoinFromDrawer()">
+      가입 신청하기 →
+    </button>
+  </div>
+</div>
+
+<!-- 가입 신청 모달 -->
+<div id="joinModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center">
+  <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-xl);padding:32px;max-width:400px;width:calc(100%-40px)">
+    <div style="font-size:20px;font-weight:800;margin-bottom:8px" id="modalClanName">클랜 가입 신청</div>
+    <div style="font-size:14px;color:var(--text-secondary);margin-bottom:20px">클랜장의 승인 후 클랜에 참여됩니다</div>
+    <div class="form-group">
+      <label class="label">자기소개 (선택)</label>
+      <textarea class="input" placeholder="클랜장에게 전할 한마디..." style="min-height:80px"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeModal()">취소</button>
+      <button class="btn btn-primary" style="flex:1" onclick="submitJoin()">가입 신청</button>
+    </div>
+  </div>
+</div>
+
+<!-- 가입 대기 상태 -->
+<div id="pendingView" style="display:none;position:fixed;inset:0;background:var(--bg-base);z-index:300;display:none;align-items:center;justify-content:center">
+  <div class="pending-card" style="max-width:400px;width:calc(100%-40px)">
+    <div style="font-size:48px;margin-bottom:16px">⏳</div>
+    <div style="font-size:22px;font-weight:800;margin-bottom:8px">가입 신청 완료!</div>
+    <div style="font-size:14px;color:var(--text-secondary);line-height:1.7;margin-bottom:24px">
+      <strong id="pendingClanName">Phoenix Rising</strong> 클랜에 가입 신청했습니다.<br>
+      클랜장의 승인 후 클랜에 참여됩니다.
+    </div>
+    <a href="games.html"><button class="btn btn-secondary w-full">게임 목록으로</button></a>
+  </div>
+</div>
+
+<div id="badgeTip">
+  <div id="badgeTipTitle" class="cbi-tip-title"></div>
+  <div id="badgeTipDesc"  class="cbi-tip-desc"></div>
+</div>
+<script src="../scripts/app.js"></script>
+<script>
+function switchTab(el, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+}
+const filterState = { recruit: 'all', style: 'all', pos: [], tier: [], etc: [] };
+
+function setGroupFilter(el) {
+  const group = el.dataset.group;
+  const val = el.dataset.val;
+  document.querySelectorAll(`.filter-chip[data-group="${group}"]`).forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  filterState[group] = val;
+  updateFilterSummary();
+}
+
+// 포지션·기타: 중복 선택 토글
+function toggleSpecial(el) {
+  const group = el.dataset.group;
+  const val = el.dataset.val;
+  if (el.classList.contains('active')) {
+    el.classList.remove('active');
+    filterState[group] = filterState[group].filter(v => v !== val);
+  } else {
+    el.classList.add('active');
+    filterState[group].push(val);
+  }
+  updateFilterSummary();
+}
+
+const FILTER_LABELS = {
+  recruit: { all: null, open: '모집 중', soon: '모집 예정', closed: '모집 완료' },
+  style:   { all: null, social: '친목', tryhard: '빡겜', casual: '즐겜', pro: '프로' },
+  pos:     { tank: '🛡 탱커', dps: '⚔️ 딜러', support: '💚 힐러' },
+  tier:    { bronze: '🥉 브론즈', silver: '🥈 실버', gold: '🥇 골드', plat: '💠 플래티넘', diamond: '💎 다이아몬드', master: '🔮 마스터', gm: '👑 그랜드마스터' },
+  etc:     { new: '🌱 신생 클랜', discord: '💬 Discord 있음' }
+};
+
+function getActiveFilters() {
+  const active = [];
+  ['recruit', 'style'].forEach(g => {
+    if (filterState[g] !== 'all') active.push({ key: g + ':' + filterState[g], label: FILTER_LABELS[g][filterState[g]], group: g });
+  });
+  [...filterState.pos, ...filterState.tier, ...filterState.etc].forEach(v => {
+    const label = FILTER_LABELS.pos[v] || FILTER_LABELS.tier[v] || FILTER_LABELS.etc[v];
+    const group = FILTER_LABELS.pos[v] ? 'pos' : FILTER_LABELS.tier[v] ? 'tier' : 'etc';
+    if (label) active.push({ key: group + ':' + v, label, group, val: v });
+  });
+  return active;
+}
+
+function updateFilterSummary() {
+  const active = getActiveFilters();
+  const count = active.length;
+
+  // 필터 버튼 상태
+  const btn = document.getElementById('filterBtn');
+  const countBadge = document.getElementById('filterCount');
+  if (count > 0) {
+    btn.classList.add('has-active');
+    countBadge.style.display = 'inline-flex';
+    countBadge.textContent = count;
+  } else {
+    btn.classList.remove('has-active');
+    countBadge.style.display = 'none';
+  }
+
+  // 활성 태그 인라인 표시
+  const tagsEl = document.getElementById('activeFilterTags');
+  if (count === 0) {
+    tagsEl.innerHTML = '';
+  } else {
+    tagsEl.innerHTML = active.map(f =>
+      `<span class="active-filter-tag" onclick="removeFilter('${f.group}','${f.val || ''}')">${f.label} ✕</span>`
+    ).join('') + (count > 1 ? `<span class="filter-reset-all" onclick="resetFilters()">전체 초기화</span>` : '');
+  }
+}
+
+function removeFilter(group, val) {
+  if (['recruit','style'].includes(group)) {
+    filterState[group] = 'all';
+    document.querySelectorAll(`.filter-chip[data-group="${group}"]`).forEach(c => {
+      c.classList.toggle('active', c.dataset.val === 'all');
+    });
+  } else {
+    filterState[group] = filterState[group].filter(v => v !== val);
+    document.querySelector(`.filter-chip[data-group="${group}"][data-val="${val}"]`)?.classList.remove('active');
+  }
+  updateFilterSummary();
+}
+
+function toggleFilterPopover() {
+  const pop = document.getElementById('filterPopover');
+  pop.classList.toggle('open');
+  if (pop.classList.contains('open')) {
+    setTimeout(() => document.addEventListener('click', closePopoverOutside, { once: true }), 0);
+  }
+}
+
+function closePopoverOutside(e) {
+  const wrap = document.querySelector('.filter-popover-wrap');
+  if (!wrap.contains(e.target)) {
+    document.getElementById('filterPopover').classList.remove('open');
+  } else {
+    setTimeout(() => document.addEventListener('click', closePopoverOutside, { once: true }), 0);
+  }
+}
+
+function resetFilters() {
+  filterState.recruit = 'all';
+  filterState.style = 'all';
+  filterState.pos = [];
+  filterState.tier = [];
+  filterState.etc = [];
+  document.querySelectorAll('.filter-chip').forEach(c => {
+    if (c.dataset.val === 'all') c.classList.add('active');
+    else c.classList.remove('active');
+  });
+  updateFilterSummary();
+}
+/* ── 클랜 목업 데이터 ── */
+const CLANS = {
+  phoenix: {
+    name: 'Phoenix Rising', icon: '🔥', bg: 'linear-gradient(135deg,#f59e0b,#ef4444)',
+    now: 24, max: 30, pinned: true, days: 0,
+    recruit: 'open', style: 'tryhard', positions: ['dps','support'], tiers: ['plat','diamond'],
+    discord: true, discordUrl: 'https://discord.gg/phoenix', isNew: false, createdAt: '2023.01',
+    badges: ['regular','voice','scrim','discord'],
+    title: '경쟁과 친목을 함께! Phoenix Rising 클랜원 모집',
+    desc: '경쟁과 친목을 동시에 즐기는 20대 위주 클랜입니다. 매주 토/일 정기 내전을 운영하며, 팀 밸런싱 시스템으로 공정한 경기를 보장합니다.\n\n같이 성장할 팀원을 환영합니다!',
+    rules: '1. 정기 내전 2회/월 이상 참여\n2. 비매너 언행 금지\n3. 가입 후 2주 내 첫 내전 참여\n4. 장기 미접속 시 사전 공지',
+  },
+  bluestorm: {
+    name: 'Blue Storm', icon: '⚡', bg: 'linear-gradient(135deg,#0ea5e9,#06b6d4)',
+    now: 18, max: 25, pinned: true, days: 1,
+    recruit: 'open', style: 'tryhard', positions: ['tank'], tiers: ['diamond','master'],
+    discord: true, discordUrl: 'https://discord.gg/bluestorm', isNew: false, createdAt: '2022.11',
+    badges: ['regular','discord','adult'],
+    title: '탱커 집중 모집 — Blue Storm 경쟁 클랜',
+    desc: '경쟁을 즐기는 클랜원을 모집합니다 ⚡\n\n평일 저녁 정기 내전, 월 1회 스크림 진행. Premium 플랜으로 자동 팀밸런싱과 전적 분석을 활용 중입니다.\n\n현재 탱커 포지션 집중 모집 중!',
+    rules: '1. 주 1회 내전 참여 필수\n2. 포지션 미리 공지\n3. 노쇼 3회 시 경고\n4. 디스코드 상주 권장',
+  },
+  casual: {
+    name: 'Casual Heroes', icon: '🌟', bg: 'linear-gradient(135deg,#22c55e,#10b981)',
+    now: 15, max: 30, pinned: false, days: 2,
+    recruit: 'open', style: 'casual', positions: ['tank','dps','support'], tiers: ['bronze','silver','gold','plat'],
+    discord: false, discordUrl: null, isNew: false, createdAt: '2024.01',
+    badges: ['newbie','flexible','manner'],
+    title: '입문자/복귀자 환영! 부담 없는 친목 클랜',
+    desc: '부담 없이 즐기는 클랜을 찾고 계신가요? 🌟\n\n강제 참여 없이 원할 때 내전에 참여하는 자유로운 분위기입니다. 입문자도 언제나 환영합니다!',
+    rules: '1. 서로 배려하기\n2. 참여 강요 없음\n3. 즐겁게 게임하기',
+  },
+  nightwatch: {
+    name: 'Night Watch', icon: '🌙', bg: 'linear-gradient(135deg,#1e1b4b,#4c1d95)',
+    now: 28, max: 30, pinned: true, days: 0,
+    recruit: 'soon', style: 'social', positions: ['dps'], tiers: ['silver','gold','plat','diamond'],
+    discord: true, discordUrl: 'https://discord.gg/nightwatch', isNew: false, createdAt: '2023.08',
+    badges: ['night','voice','worker','discord'],
+    title: '야간 활동 클랜 Night Watch — 직장인 환영',
+    desc: '늦은 밤 함께 즐기는 야간 내전 클랜 🌙\n\n주말 자정 이후 정기 내전. 직장인 환영, 낮에 바빠도 OK. Premium 팀밸런싱으로 매 경기 균형 있게 즐깁니다.',
+    rules: '1. 자정 이후 내전 참여 가능한 분\n2. 음성 채팅 권장\n3. 매너 필수',
+  },
+  ironwall: {
+    name: 'Iron Wall', icon: '🛡', bg: 'linear-gradient(135deg,#374151,#6b7280)',
+    now: 10, max: 20, pinned: false, days: 0,
+    recruit: 'open', style: 'tryhard', positions: ['tank','support'], tiers: ['gold','plat'],
+    discord: false, discordUrl: null, isNew: true, createdAt: '2026.02',
+    badges: ['newbie','regular'],
+    title: '탱커·힐러 모집 중 — Iron Wall 창단 멤버',
+    desc: '탱킹을 사랑하는 신생 클랜입니다 🛡\n\n탱커 위주 전략 연구, 열정은 최고입니다. 탱커·힐러 포지션 적극 환영!',
+    rules: '1. 포지션 탱커 또는 힐러 권장\n2. 월 2회 이상 참여\n3. 전략 공유 적극 참여',
+  },
+  solarflare: {
+    name: 'Solar Flare', icon: '☀️', bg: 'linear-gradient(135deg,#f59e0b,#ef4444)',
+    now: 22, max: 25, pinned: true, days: 1,
+    recruit: 'open', style: 'pro', positions: ['dps','support'], tiers: ['diamond','master'],
+    discord: true, discordUrl: 'https://discord.gg/solarflare', isNew: false, createdAt: '2023.03',
+    badges: ['scrim','strategy','discord','elite'],
+    title: '다이아↑ 경쟁 클랜 Solar Flare — 스크림 운영',
+    desc: '전국구 실력자 모집! ☀️\n\n다이아~마스터 경쟁 지향 클랜입니다. 스크림, 대회 참가 목표. 포지션별 코칭 세션도 운영합니다.',
+    rules: '1. 다이아 이상 필수\n2. 주 2회 내전 참여\n3. 전술 회의 월 1회 참여\n4. 비매너 즉시 제명',
+  },
+  raindrop: {
+    name: 'Raindrop', icon: '🌧', bg: 'linear-gradient(135deg,#0369a1,#0ea5e9)',
+    now: 8, max: 30, pinned: false, days: 0,
+    recruit: 'open', style: 'casual', positions: ['tank','dps','support'], tiers: ['bronze','silver','gold'],
+    discord: false, discordUrl: null, isNew: true, createdAt: '2026.01',
+    badges: ['newbie','flexible'],
+    title: '학생 즐겜 신생 클랜 Raindrop — 함께 성장해요',
+    desc: '10대 신생 클랜 🌧\n\n학생 위주 즐겜 클랜입니다. 아직 인원이 적어 같이 성장할 멤버를 찾고 있어요. 부담 없이 지원해주세요!',
+    rules: '1. 욕설·비매너 금지\n2. 활동 강요 없음',
+  },
+};
+
+const CLAN_KEYS = ['phoenix','bluestorm','casual','nightwatch','ironwall','solarflare','raindrop'];
+
+const TIER_ORDER = ['bronze','silver','gold','plat','diamond','master','gm'];
+const PROMO_FILTER_LABELS = {
+  recruit: { all:'전체', open:'모집 중', soon:'모집 예정', closed:'모집 완료' },
+  style:   { all:'전체', social:'친목', tryhard:'빡겜', casual:'즐겜', pro:'프로' },
+  pos:     { tank:'탱커', dps:'딜러', support:'힐러' },
+  tier:    { bronze:'브론즈', silver:'실버', gold:'골드', plat:'플래티넘', diamond:'다이아몬드', master:'마스터', gm:'그랜드마스터' },
+};
+
+const BADGE_DEFS = {
+  regular:  { icon: '⚔️',  label: '정기 내전',   desc: '정기적으로 내전(팀 대결)을 운영합니다.' },
+  voice:    { icon: '🎙️',  label: '음성 소통',   desc: '디스코드 등 음성 채널을 통해 소통합니다.' },
+  scrim:    { icon: '🏆',  label: '스크림 운영', desc: '타 클랜과의 공식 스크림 경기를 진행합니다.' },
+  discord:  { icon: '💬',  label: '디스코드 활성', desc: '전용 디스코드 서버를 운영 중입니다.' },
+  manner:   { icon: '🤝',  label: '매너 클랜',   desc: '비매너 행위에 무관용 원칙을 적용합니다.' },
+  newbie:   { icon: '🌱',  label: '초보 환영',   desc: '실력에 관계없이 입문자도 지원할 수 있습니다.' },
+  flexible: { icon: '📅',  label: '자유 참여',   desc: '내전 참여 강제 없이 자유롭게 활동할 수 있습니다.' },
+  adult:    { icon: '🔞',  label: '성인 클랜',   desc: '19세 이상 성인만 가입 가능한 클랜입니다.' },
+  night:    { icon: '🌙',  label: '야간 활동',   desc: '주로 자정 이후 야간 시간대에 활동합니다.' },
+  elite:    { icon: '💎',  label: '고티어 전용', desc: '마스터 이상 고티어 플레이어만 지원 가능합니다.' },
+  strategy: { icon: '📊',  label: '전략 분석',   desc: '경기 전후 전략 리뷰와 팀 전술을 연구합니다.' },
+  small:    { icon: '⭐',  label: '소수 정예',   desc: '소수의 핵심 멤버로만 구성된 정예 클랜입니다.' },
+  worker:   { icon: '💼',  label: '직장인 환영', desc: '직장인·사회인도 참여하기 좋은 일정으로 운영합니다.' },
+};
+
+function clanBadgesHtml(keys, lg = false) {
+  return keys.map(k => {
+    const b = BADGE_DEFS[k];
+    if (!b) return '';
+    return `<span class="clan-badge-icon${lg ? ' lg' : ''}" data-badge="${k}" onmouseenter="showBadgeTip(this)" onmouseleave="hideBadgeTip()">${b.icon}</span>`;
+  }).join('');
+}
+function showBadgeTip(el) {
+  const b = BADGE_DEFS[el.dataset.badge];
+  if (!b) return;
+  const tip = document.getElementById('badgeTip');
+  document.getElementById('badgeTipTitle').textContent = b.icon + ' ' + b.label;
+  document.getElementById('badgeTipDesc').textContent  = b.desc;
+  tip.style.display = 'block';
+  const rect = el.getBoundingClientRect();
+  const tipW = tip.offsetWidth, tipH = tip.offsetHeight;
+  let left = rect.left + rect.width / 2 - tipW / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - tipW - 8));
+  tip.style.left = left + 'px';
+  tip.style.top  = (rect.top - tipH - 10) + 'px';
+  tip.style.setProperty('--arrow-left', ((rect.left + rect.width / 2) - left) + 'px');
+}
+function hideBadgeTip() { document.getElementById('badgeTip').style.display = 'none'; }
+
+function clanTagsHtml(c) {
+  const filter = filterState;
+  const rows = [];
+  if (c.style && c.style !== 'all') {
+    rows.push({ label: '지향', items: [{ text: PROMO_FILTER_LABELS.style[c.style], active: filter.style === c.style }] });
+  }
+  if (c.positions.length > 0) {
+    rows.push({ label: '모집군', items: c.positions.map(p => ({ text: PROMO_FILTER_LABELS.pos[p], active: filter.pos.includes(p) })) });
+  }
+  if (c.tiers.length > 0) {
+    const sorted = [...c.tiers].sort((a, b) => TIER_ORDER.indexOf(a) - TIER_ORDER.indexOf(b));
+    const first = PROMO_FILTER_LABELS.tier[sorted[0]];
+    const last  = sorted.length > 1 ? PROMO_FILTER_LABELS.tier[sorted[sorted.length - 1]] : null;
+    rows.push({ label: '티어대', items: [{ text: last ? `${first} ~ ${last}` : first, active: filter.tier.length > 0 && filter.tier.some(t => c.tiers.includes(t)) }] });
+  }
+  const etc = [];
+  if (c.isNew) etc.push({ text: '신생', active: filter.etc.includes('new') });
+  if (c.discord) etc.push({ text: 'Discord', active: filter.etc.includes('discord') });
+  if (etc.length > 0) rows.push({ label: '기타', items: etc });
+  return rows.map(row => `
+    <div class="promo-tag-row">
+      <span class="promo-tag-label">${row.label}</span>
+      ${row.items.map(i => `<span class="promo-tag${i.active ? ' promo-tag-active' : ''}">${i.text}</span>`).join('')}
+    </div>`).join('');
+}
+const PAGE_SIZE = 5;
+let currentPage = 1;
+
+function renderClanList() {
+  const total = CLAN_KEYS.length;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageKeys = CLAN_KEYS.slice(start, start + PAGE_SIZE);
+
+  document.getElementById('clanCount').textContent = `총 ${total}개 클랜`;
+
+  const list = document.getElementById('clanList');
+  list.innerHTML = `<div class="promo-grid">${pageKeys.map(key => {
+    const c = CLANS[key];
+    return `
+    <div class="promo-card${c.pinned ? ' pinned' : ''}" onclick="openClanDrawer('${key}')">
+      <div style="flex:1;display:flex;gap:12px;padding:16px;align-items:flex-start;overflow:hidden">
+        <div style="width:44px;height:44px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;background:${c.bg || 'var(--bg-overlay)'};">${c.icon}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px">
+            <span style="font-weight:700;font-size:15px">${c.name}</span>
+            ${c.pinned ? `<span class="verified-badge">✓<div class="vb-tooltip"><div class="vb-title">✦ Premium 구독 클랜</div><div class="vb-desc">AI 팀 밸런싱, 전적 분석, 승부 예측 등 프리미엄 기능을 활성화한 클랜입니다.</div></div></span>` : ''}
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:7px">${PROMO_FILTER_LABELS.recruit[c.recruit]} · ${PROMO_FILTER_LABELS.style[c.style]}</div>
+          <div style="font-size:13px;color:var(--text-secondary);line-height:1.45">${c.title}</div>
+        </div>
+        <div style="flex-shrink:0;display:flex;flex-direction:column;gap:4px;align-items:flex-end;padding-top:2px;min-height:100px;justify-content:flex-start">
+          ${clanTagsHtml(c)}
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 16px;height:40px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;color:var(--text-muted);flex-shrink:0">👥 ${c.now}/${c.max}명 &nbsp;·&nbsp; ${c.createdAt} 창설</div>
+        <div style="display:flex;gap:4px;flex-wrap:nowrap;overflow:hidden;align-items:center">${clanBadgesHtml(c.badges)}</div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+
+  renderPagination(totalPages);
+}
+
+function renderPagination(totalPages) {
+  const pg = document.getElementById('pagination');
+  if (totalPages <= 1) { pg.innerHTML = ''; return; }
+
+  let html = '';
+  // 이전 버튼
+  html += `<button class="pg-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  // 페이지 번호
+  for (let i = 1; i <= totalPages; i++) {
+    html += `<button class="pg-btn ${i===currentPage?'pg-active':''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  // 다음 버튼
+  html += `<button class="pg-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button>`;
+
+  pg.innerHTML = html;
+}
+
+function goPage(page) {
+  const totalPages = Math.ceil(CLAN_KEYS.length / PAGE_SIZE);
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  renderClanList();
+  document.getElementById('clanList').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// 초기 렌더
+renderClanList();
+
+let _drawerClanKey = null;
+
+function openClanDrawer(key) {
+  const c = CLANS[key];
+  _drawerClanKey = key;
+
+  const av = document.getElementById('drawerAvatar');
+  av.textContent = c.icon;
+  av.style.background = c.bg || 'var(--bg-overlay)';
+
+  document.getElementById('drawerName').textContent = c.name;
+
+  let badgeHtml = '';
+  if (c.pinned) badgeHtml += `<span class="verified-badge" style="width:18px;height:18px;font-size:11px">✓<div class="vb-tooltip"><div class="vb-title">✦ Premium 구독 클랜</div><div class="vb-desc">AI 팀 밸런싱, 전적 분석, 승부 예측 등 프리미엄 기능을 활성화한 클랜입니다.</div></div></span>`;
+  if (c.isNew) badgeHtml += `<span class="promo-tag promo-tag-active" style="font-size:11px">신생</span>`;
+  document.getElementById('drawerBadges').innerHTML = badgeHtml;
+
+  document.getElementById('drawerStats').innerHTML = `
+    <div class="drawer-stat"><div class="drawer-stat-val">${c.now}/${c.max}명</div><div class="drawer-stat-label">구성원</div></div>
+    <div class="drawer-stat"><div class="drawer-stat-val">${PROMO_FILTER_LABELS.recruit[c.recruit]}</div><div class="drawer-stat-label">모집 상태</div></div>
+    <div class="drawer-stat"><div class="drawer-stat-val">${c.createdAt}</div><div class="drawer-stat-label">창설일</div></div>
+    <div class="drawer-stat"><div class="drawer-stat-val">${c.days === 0 ? '오늘' : c.days + '일 전'}</div><div class="drawer-stat-label">등록일</div></div>
+  `;
+
+  document.getElementById('drawerPromo').textContent = c.title + '\n\n' + c.desc;
+
+  const rulesEl = document.getElementById('drawerRules');
+  const rulesSec = rulesEl.closest('.drawer-section');
+  if (c.rules) { rulesEl.textContent = c.rules; rulesSec.style.display = ''; }
+  else { rulesSec.style.display = 'none'; }
+
+  document.getElementById('drawerPositions').innerHTML =
+    c.positions.map(p => `<span class="promo-tag">${PROMO_FILTER_LABELS.pos[p]}</span>`).join('');
+
+  const sortedTiers = [...c.tiers].sort((a, b) => TIER_ORDER.indexOf(a) - TIER_ORDER.indexOf(b));
+  document.getElementById('drawerTiers').innerHTML =
+    sortedTiers.map(t => `<span class="promo-tag">${PROMO_FILTER_LABELS.tier[t]}</span>`).join('');
+
+  document.getElementById('drawerBadgeList').innerHTML = clanBadgesHtml(c.badges, true);
+
+  const linkSec = document.getElementById('drawerLinkSection');
+  const linksEl = document.getElementById('drawerLinks');
+  if (c.discordUrl) {
+    linkSec.style.display = '';
+    linksEl.innerHTML = `<a href="${c.discordUrl}" style="display:flex;align-items:center;gap:8px;font-size:13px;color:#a78bfa;text-decoration:none">💬 Discord 서버 →</a>`;
+  } else {
+    linkSec.style.display = 'none';
+  }
+
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.getElementById('clanDrawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeClanDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('clanDrawer').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function openJoinFromDrawer() {
+  const c = CLANS[_drawerClanKey];
+  closeClanDrawer();
+  const modal = document.getElementById('joinModal');
+  document.getElementById('modalClanName').textContent = c.name + ' 가입 신청';
+  modal.style.display = 'flex';
+  window._joinClanName = c.name;
+}
+
+function showJoinModal(en, ko) {
+  const modal = document.getElementById('joinModal');
+  document.getElementById('modalClanName').textContent = ko + ' 가입 신청';
+  modal.style.display = 'flex';
+  window._joinClanName = ko;
+}
+function closeModal() {
+  document.getElementById('joinModal').style.display = 'none';
+}
+function submitJoin() {
+  closeModal();
+  const pv = document.getElementById('pendingView');
+  document.getElementById('pendingClanName').textContent = window._joinClanName;
+  pv.style.display = 'flex';
+}
+function handleCreateClan(e) {
+  e.preventDefault();
+  window.location.href = 'main-clan.html';
+}
+function clampMembers(input) {
+  const v = parseInt(input.value);
+  if (v < 2) input.value = 2;
+  if (v > 200) input.value = 200;
+}
+
+/* 단일 선택 (지향) */
+function selectSingleChip(el, group) {
+  document.querySelectorAll(`.create-chip[data-group="${group}"]`).forEach(c => c.classList.remove('active'));
+  el.classList.toggle('active', !el.classList.contains('active'));
+  // 이미 active였던 걸 다시 누르면 선택 해제
+}
+
+/* 복수 선택 (티어) */
+function toggleCreateChip(el) {
+  el.classList.toggle('active');
+}
+
+/* ── 서버 제공 태그 목록 (목업) ── */
+const PRESET_TAGS = [
+  '입문자 환영', '대학생', '직장인', '학생', '신생',
+  '대회 참가', '스크림', '정기 내전', '음성 채팅', '여성 환영',
+  '주말 위주', '평일 위주', '야간 활동', '해외 거주', '롤드컵 시청',
+];
+const MAX_TAGS = 5;
+let selectedTags = new Set();
+
+(function initPresetTags() {
+  const area = document.getElementById('presetTagArea');
+  PRESET_TAGS.forEach(tag => {
+    const el = document.createElement('div');
+    el.className = 'create-chip';
+    el.textContent = tag;
+    el.onclick = () => togglePresetTag(el, tag);
+    area.appendChild(el);
+  });
+})();
+
+function togglePresetTag(el, tag) {
+  if (selectedTags.has(tag)) {
+    selectedTags.delete(tag);
+    el.classList.remove('active');
+  } else {
+    if (selectedTags.size >= MAX_TAGS) {
+      document.getElementById('tagSelectHint').textContent =
+        `최대 ${MAX_TAGS}개까지 선택할 수 있습니다`;
+      document.getElementById('tagSelectHint').style.color = 'var(--danger)';
+      setTimeout(() => {
+        document.getElementById('tagSelectHint').style.color = '';
+        updateTagHint();
+      }, 1500);
+      return;
+    }
+    selectedTags.add(tag);
+    el.classList.add('active');
+  }
+  updateTagHint();
+}
+
+function updateTagHint() {
+  document.getElementById('tagSelectHint').textContent =
+    `${selectedTags.size} / ${MAX_TAGS}개 선택됨`;
+}
+
+function filterClans(q) { /* 목업: 실제 필터 없음 */ }
+
+</script>
+</body>
+</html>
