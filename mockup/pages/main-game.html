@@ -603,7 +603,7 @@
           <div class="filter-group">
             <span class="filter-group-label">마이크</span>
             <div class="filter-divider-v"></div>
-            <div class="filter-chip active" data-lg="mic" data-val="all"   onclick="setLfgFilter(this)">무관</div>
+            <div class="filter-chip active" data-lg="mic" data-val="all"   onclick="setLfgFilter(this)">마이크 자유</div>
             <div class="filter-chip"        data-lg="mic" data-val="true"  onclick="setLfgFilter(this)">필수</div>
           </div>
           <div style="display:flex;justify-content:flex-end;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
@@ -966,7 +966,7 @@
     <div>
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;font-weight:600">마이크 필수 여부</div>
       <div style="display:flex;gap:6px" id="pmMic">
-        <div class="lfg-chip on" data-val="false" onclick="selLfgChip('pmMic',this)">무관</div>
+        <div class="lfg-chip on" data-val="false" onclick="selLfgChip('pmMic',this)">마이크 자유</div>
         <div class="lfg-chip"    data-val="true"  onclick="selLfgChip('pmMic',this)">마이크 필수</div>
       </div>
     </div>
@@ -1302,7 +1302,7 @@ function lfgCard(p) {
     <div class="lfg-card-footer">
       <span class="lfg-tag lfg-tag-time" style="font-size:11px">⏰ ${p.startTime}시 · ${p.expires}시간</span>
       <div style="display:flex;align-items:center;gap:6px">
-        ${p.micRequired ? '<span style="color:#4ade80;font-size:11px">🎙 마이크 필수</span>' : '<span style="color:var(--text-muted);font-size:11px">🔇 마이크 무관</span>'}
+        ${p.micRequired ? '<span style="color:#4ade80;font-size:11px">🎙 마이크 필수</span>' : '<span style="color:var(--text-muted);font-size:11px">🔇 마이크 자유</span>'}
         ${p.mine ? `<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();removeLfg(${p.id})" style="font-size:11px;padding:3px 10px">취소</button>` : ''}
       </div>
     </div>
@@ -1821,7 +1821,7 @@ function openLfgDrawer(id) {
   document.getElementById('ldSlots').textContent = `+${p.slots}명 모집`;
   document.getElementById('ldTier').textContent = (p.tiers && p.tiers.length) ? p.tiers.join(', ') : '티어 무관';
   document.getElementById('ldTime').textContent = `${p.startTime}시 시작 · ${p.expires}시간 후 만료`;
-  document.getElementById('ldMic').textContent = p.micRequired ? '🎙 필수' : '🔇 무관';
+  document.getElementById('ldMic').textContent = p.micRequired ? '🎙 필수' : '🔇 자유';
 
   const posEl = document.getElementById('ldPositions');
   posEl.innerHTML = (p.positions || []).map(pos => `<span class="lfg-tag">${pos}</span>`).join('');
