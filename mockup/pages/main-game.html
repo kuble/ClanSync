@@ -197,16 +197,47 @@
   color: #a78bfa;
   font-weight: 600;
 }
-/* ── 클랜 배지 ── */
-.clan-badge {
-  padding: 2px 7px;
+/* ── 클랜 배지 아이콘 ── */
+.clan-badge-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
   background: var(--bg-overlay);
   border: 1px solid var(--border);
-  border-radius: 99px;
-  font-size: 10px;
-  color: var(--text-muted);
-  white-space: nowrap;
+  border-radius: 50%;
+  font-size: 13px;
+  cursor: default;
+  flex-shrink: 0;
+  transition: border-color 0.15s, background 0.15s;
 }
+.clan-badge-icon:hover { background: var(--bg-elevated); border-color: var(--border-hover); }
+.clan-badge-icon .cbi-tip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  font-size: 11px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  z-index: 60;
+  pointer-events: none;
+}
+.clan-badge-icon:hover .cbi-tip { display: block; }
+/* 드로어 내 배지는 좀 더 크게 */
+.clan-badge-icon.lg {
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+}
+.clan-badge-icon.lg .cbi-tip { bottom: calc(100% + 6px); }
 
 /* ── 클랜 상세 드로어 ── */
 .promo-drawer-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(3px);z-index:150; }
@@ -1110,22 +1141,47 @@ let promoPage = 1;
 let promoFilter = { recruit:'all', style:'all', pos:[], tier:[], etc:[] };
 let promoSort = 'newest';
 const PROMOS = [
-  { id:1,  icon:'🔥', name:'Phoenix Rising', bg:'linear-gradient(135deg,#f59e0b,#ef4444)', now:24, max:30, title:'경쟁 지향 클랜 Phoenix Rising 클랜원 모집!', desc:'안녕하세요, Phoenix Rising 클랜입니다 🔥\n\n경쟁과 친목을 동시에 즐기는 20대 위주 클랜입니다. 매주 토/일 정기 내전을 운영하며, AI 팀 밸런싱 시스템으로 공정한 경기를 보장합니다.\n\n같이 성장할 팀원을 환영합니다!', rules:'1. 정기 내전 월 2회 이상 참여\n2. 비매너 언행 금지\n3. 가입 후 2주 내 첫 내전 참여\n4. 장기 미접속 시 사전 공지',  pinned:true,  days:0,  recruit:'open',   style:'tryhard', positions:['dps','support'],       tiers:['plat','diamond'],          discord:true,  discordUrl:'https://discord.gg/phoenix',   isNew:false, createdAt:'2023.04', badges:['정기 내전','음성 소통','스크림 운영','디스코드 활성'] },
-  { id:2,  icon:'⚡', name:'Blue Storm',     bg:'linear-gradient(135deg,#0ea5e9,#06b6d4)', now:18, max:25, title:'탱커 + 힐러 1명씩 급구!',                  desc:'경쟁을 즐기는 클랜원을 모집합니다 ⚡\n\n평일 저녁 정기 내전 위주. 현재 탱커/힐러 포지션 집중 모집 중!\n다이아~마스터 티어 대환영. 성인 클랜입니다.',                                                 rules:'1. 주 1회 내전 참여 필수\n2. 포지션 미리 공지\n3. 노쇼 3회 시 경고\n4. 디스코드 상주 권장',          pinned:false, days:1,  recruit:'open',   style:'tryhard', positions:['tank','support'],       tiers:['diamond','master'],        discord:true,  discordUrl:'https://discord.gg/bluestorm', isNew:false, createdAt:'2022.11', badges:['정기 내전','디스코드 활성','성인 클랜'] },
-  { id:3,  icon:'🌟', name:'Casual Heroes',  bg:'linear-gradient(135deg,#22c55e,#10b981)', now:15, max:30, title:'입문자/복귀자 환영! 부담 없는 친목 클랜',   desc:'부담 없이 즐기는 클랜을 찾고 계신가요? 🌟\n\n강제 참여 없이 원할 때 내전에 참여하는 자유로운 분위기입니다. 즐겜 위주, 랭크 제한 없음. 입문자도 언제나 환영합니다!',                              rules:'1. 서로 배려하기\n2. 참여 강요 없음\n3. 즐겁게 게임하기',                                             pinned:false, days:2,  recruit:'open',   style:'casual',  positions:['tank','dps','support'], tiers:['bronze','silver','gold','plat'], discord:false, discordUrl:null,                           isNew:false, createdAt:'2024.01', badges:['초보 환영','자유 참여','매너 클랜'] },
-  { id:4,  icon:'🌙', name:'Midnight',       bg:'linear-gradient(135deg,#374151,#6b7280)', now:20, max:30, title:'늦은 밤 게이머 모임 — Midnight 클랜 모집',   desc:'늦은 밤 함께 즐기는 야간 내전 클랜 🌙\n\n자정~새벽 활동 메인. 직장인 환영, 낮에 바빠도 OK. 주 2~3회 부담 없는 내전을 즐깁니다.',                                                                       rules:'1. 자정 이후 내전 참여 가능한 분\n2. 음성 채팅 권장\n3. 매너 필수',                                  pinned:false, days:3,  recruit:'open',   style:'social',  positions:['tank','dps','support'], tiers:['silver','gold','plat','diamond'], discord:false, discordUrl:null,                           isNew:false, createdAt:'2023.08', badges:['야간 활동','음성 소통','직장인 환영'] },
-  { id:5,  icon:'🐉', name:'Red Dragons',    bg:'linear-gradient(135deg,#ef4444,#f97316)', now:8,  max:20, title:'마스터↑ 경쟁 클랜 Red Dragons 신규 모집',   desc:'전국구 실력자 모집! 🐉\n\n마스터 이상 모집 중. 주 4~5회 내전. 진지한 클랜 문화를 지향합니다. 신생 클랜이지만 열정만큼은 최고입니다.',                                                                  rules:'1. 마스터 이상 필수\n2. 주 3회 이상 내전 참여\n3. 비매너 즉시 제명',                                  pinned:false, days:1,  recruit:'open',   style:'tryhard', positions:['dps'],                  tiers:['master','gm'],             discord:false, discordUrl:null,                           isNew:true,  createdAt:'2026.02', badges:['고티어 전용','스크림 운영'] },
-  { id:6,  icon:'🌀', name:'Vortex',         bg:'linear-gradient(135deg,#6366f1,#8b5cf6)', now:12, max:25, title:'Vortex 클랜원 모집 — 다이아↑ 환영',          desc:'다이아~마스터 환영. 디스코드 소통 중심의 친근한 분위기 클랜입니다 🌀\n\n경쟁과 친목의 균형을 중시하며 주말 정기 내전을 운영합니다.',                                                                       rules:'1. 다이아 이상 권장\n2. 디스코드 활동 권장\n3. 주말 내전 월 2회 이상',                               pinned:false, days:4,  recruit:'open',   style:'social',  positions:['tank','dps'],           tiers:['diamond','master'],        discord:true,  discordUrl:'https://discord.gg/vortex',    isNew:false, createdAt:'2023.06', badges:['디스코드 활성','정기 내전','매너 클랜'] },
-  { id:7,  icon:'N',  name:'Night Owls',     bg:'',                                          now:14, max:19, title:'Night Owls — 야간 활동 클랜원 모집',         desc:'자정 이후 활동하는 야행성 게이머 클랜입니다 🦉\n\n부담 없는 주 2회 내전. 직장인/학생 모두 환영합니다.',                                                                                                     rules:'1. 야간(23시 이후) 참여 가능한 분\n2. 활동 강요 없음\n3. 서로 배려',                                  pinned:false, days:5,  recruit:'open',   style:'social',  positions:['dps'],                  tiers:['gold','plat','diamond'],   discord:false, discordUrl:null,                           isNew:false, createdAt:'2023.12', badges:['야간 활동','자유 참여'] },
-  { id:8,  icon:'A',  name:'Alpha Team',     bg:'linear-gradient(135deg,#8b5cf6,#6366f1)', now:25, max:30, title:'Alpha Team 경쟁 클랜원 모집',                desc:'체계적인 전략 스크림을 즐기는 경쟁 클랜입니다 🅰️\n\n플레~다이아 환영. 주말 오후 정기 내전 및 스크림. 팀워크를 중시합니다.',                                                                            rules:'1. 플래티넘 이상 권장\n2. 주말 내전 성실 참여\n3. 전략 공유 적극 참여',                               pinned:false, days:0,  recruit:'open',   style:'tryhard', positions:['tank','dps'],           tiers:['plat','diamond'],          discord:true,  discordUrl:'https://discord.gg/alphateam', isNew:false, createdAt:'2022.09', badges:['스크림 운영','전략 분석','디스코드 활성'] },
-  { id:9,  icon:'D',  name:'Dark Matter',    bg:'linear-gradient(135deg,#374151,#1f2937)', now:10, max:15, title:'Dark Matter 소수 정예 클랜 모집',             desc:'소수 정예로 운영되는 진지한 경쟁 클랜입니다.\n\n다이아~마스터 위주. 팀원 한 명 한 명을 소중히 여기며, 개인 성장과 팀 전략을 함께 추구합니다.',                                                           rules:'1. 다이아 이상 필수\n2. 월 4회 이상 참여\n3. 피드백 수용 가능한 분',                                  pinned:false, days:6,  recruit:'open',   style:'pro',     positions:['dps','support'],       tiers:['diamond','master'],        discord:false, discordUrl:null,                           isNew:false, createdAt:'2023.03', badges:['소수 정예','전략 분석','매너 클랜'] },
-  { id:10, icon:'B',  name:'Best Warriors',  bg:'linear-gradient(135deg,#f59e0b,#ef4444)', now:22, max:28, title:'Best Warriors — 시즌 우승 목표 클랜',        desc:'시즌 우승을 목표로 하는 엘리트 경쟁 클랜입니다 🏆\n\n마스터↑ 위주. 주말 집중 훈련 및 스크림. 매우 진지한 분위기입니다.',                                                                                 rules:'1. 마스터 이상 필수\n2. 주말 훈련 필참\n3. 전술 회의 월 1회 참여\n4. 비매너 즉시 제명',              pinned:false, days:2,  recruit:'open',   style:'pro',     positions:['dps'],                  tiers:['master','gm'],             discord:true,  discordUrl:'https://discord.gg/bestwarriors', isNew:false, createdAt:'2022.06', badges:['고티어 전용','스크림 운영','전략 분석','디스코드 활성'] },
-  { id:11, icon:'S',  name:'Storm Rising',   bg:'linear-gradient(135deg,#0ea5e9,#06b6d4)', now:16, max:22, title:'Storm Rising 클랜 신규 멤버 모집',            desc:'경쟁과 친목의 균형을 잡는 클랜입니다 ⛈️\n\n평일 저녁 활동 위주. 다이아 이상 환영. 편안한 분위기에서 함께 성장해 나갑시다.',                                                                            rules:'1. 다이아 이상 권장\n2. 평일 참여 가능한 분\n3. 서로 존중',                                           pinned:false, days:3,  recruit:'open',   style:'social',  positions:['tank','dps','support'], tiers:['diamond','master'],        discord:true,  discordUrl:'https://discord.gg/stormrising', isNew:false, createdAt:'2024.03', badges:['정기 내전','디스코드 활성','음성 소통'] },
-  { id:12, icon:'🛡', name:'Iron Wall',      bg:'linear-gradient(135deg,#374151,#6b7280)', now:6,  max:10, title:'Iron Wall 신생 경쟁 클랜 창단 모집',          desc:'탱킹을 사랑하는 신생 클랜입니다 🛡\n\n함께 성장할 팀원 모집. 골드~플래 환영. 탱커/힐러 포지션 적극 환영합니다!',                                                                                        rules:'1. 포지션 탱커/힐러 권장\n2. 월 2회 이상 참여\n3. 전략 공유 참여',                                    pinned:false, days:0,  recruit:'open',   style:'tryhard', positions:['tank','dps','support'], tiers:['gold','plat'],             discord:false, discordUrl:null,                           isNew:true,  createdAt:'2026.03', badges:['초보 환영','정기 내전'] },
+  { id:1,  icon:'🔥', name:'Phoenix Rising', bg:'linear-gradient(135deg,#f59e0b,#ef4444)', now:24, max:30, title:'경쟁 지향 클랜 Phoenix Rising 클랜원 모집!', desc:'안녕하세요, Phoenix Rising 클랜입니다 🔥\n\n경쟁과 친목을 동시에 즐기는 20대 위주 클랜입니다. 매주 토/일 정기 내전을 운영하며, AI 팀 밸런싱 시스템으로 공정한 경기를 보장합니다.\n\n같이 성장할 팀원을 환영합니다!', rules:'1. 정기 내전 월 2회 이상 참여\n2. 비매너 언행 금지\n3. 가입 후 2주 내 첫 내전 참여\n4. 장기 미접속 시 사전 공지',  pinned:true,  days:0,  recruit:'open',   style:'tryhard', positions:['dps','support'],       tiers:['plat','diamond'],          discord:true,  discordUrl:'https://discord.gg/phoenix',   isNew:false, createdAt:'2023.04', badges:['regular','voice','scrim','discord'] },
+  { id:2,  icon:'⚡', name:'Blue Storm',     bg:'linear-gradient(135deg,#0ea5e9,#06b6d4)', now:18, max:25, title:'탱커 + 힐러 1명씩 급구!',                  desc:'경쟁을 즐기는 클랜원을 모집합니다 ⚡\n\n평일 저녁 정기 내전 위주. 현재 탱커/힐러 포지션 집중 모집 중!\n다이아~마스터 티어 대환영. 성인 클랜입니다.',                                                 rules:'1. 주 1회 내전 참여 필수\n2. 포지션 미리 공지\n3. 노쇼 3회 시 경고\n4. 디스코드 상주 권장',          pinned:false, days:1,  recruit:'open',   style:'tryhard', positions:['tank','support'],       tiers:['diamond','master'],        discord:true,  discordUrl:'https://discord.gg/bluestorm', isNew:false, createdAt:'2022.11', badges:['regular','discord','adult'] },
+  { id:3,  icon:'🌟', name:'Casual Heroes',  bg:'linear-gradient(135deg,#22c55e,#10b981)', now:15, max:30, title:'입문자/복귀자 환영! 부담 없는 친목 클랜',   desc:'부담 없이 즐기는 클랜을 찾고 계신가요? 🌟\n\n강제 참여 없이 원할 때 내전에 참여하는 자유로운 분위기입니다. 즐겜 위주, 랭크 제한 없음. 입문자도 언제나 환영합니다!',                              rules:'1. 서로 배려하기\n2. 참여 강요 없음\n3. 즐겁게 게임하기',                                             pinned:false, days:2,  recruit:'open',   style:'casual',  positions:['tank','dps','support'], tiers:['bronze','silver','gold','plat'], discord:false, discordUrl:null,                           isNew:false, createdAt:'2024.01', badges:['newbie','flexible','manner'] },
+  { id:4,  icon:'🌙', name:'Midnight',       bg:'linear-gradient(135deg,#374151,#6b7280)', now:20, max:30, title:'늦은 밤 게이머 모임 — Midnight 클랜 모집',   desc:'늦은 밤 함께 즐기는 야간 내전 클랜 🌙\n\n자정~새벽 활동 메인. 직장인 환영, 낮에 바빠도 OK. 주 2~3회 부담 없는 내전을 즐깁니다.',                                                                       rules:'1. 자정 이후 내전 참여 가능한 분\n2. 음성 채팅 권장\n3. 매너 필수',                                  pinned:false, days:3,  recruit:'open',   style:'social',  positions:['tank','dps','support'], tiers:['silver','gold','plat','diamond'], discord:false, discordUrl:null,                           isNew:false, createdAt:'2023.08', badges:['night','voice','worker'] },
+  { id:5,  icon:'🐉', name:'Red Dragons',    bg:'linear-gradient(135deg,#ef4444,#f97316)', now:8,  max:20, title:'마스터↑ 경쟁 클랜 Red Dragons 신규 모집',   desc:'전국구 실력자 모집! 🐉\n\n마스터 이상 모집 중. 주 4~5회 내전. 진지한 클랜 문화를 지향합니다. 신생 클랜이지만 열정만큼은 최고입니다.',                                                                  rules:'1. 마스터 이상 필수\n2. 주 3회 이상 내전 참여\n3. 비매너 즉시 제명',                                  pinned:false, days:1,  recruit:'open',   style:'tryhard', positions:['dps'],                  tiers:['master','gm'],             discord:false, discordUrl:null,                           isNew:true,  createdAt:'2026.02', badges:['elite','scrim'] },
+  { id:6,  icon:'🌀', name:'Vortex',         bg:'linear-gradient(135deg,#6366f1,#8b5cf6)', now:12, max:25, title:'Vortex 클랜원 모집 — 다이아↑ 환영',          desc:'다이아~마스터 환영. 디스코드 소통 중심의 친근한 분위기 클랜입니다 🌀\n\n경쟁과 친목의 균형을 중시하며 주말 정기 내전을 운영합니다.',                                                                       rules:'1. 다이아 이상 권장\n2. 디스코드 활동 권장\n3. 주말 내전 월 2회 이상',                               pinned:false, days:4,  recruit:'open',   style:'social',  positions:['tank','dps'],           tiers:['diamond','master'],        discord:true,  discordUrl:'https://discord.gg/vortex',    isNew:false, createdAt:'2023.06', badges:['discord','regular','manner'] },
+  { id:7,  icon:'N',  name:'Night Owls',     bg:'',                                          now:14, max:19, title:'Night Owls — 야간 활동 클랜원 모집',         desc:'자정 이후 활동하는 야행성 게이머 클랜입니다 🦉\n\n부담 없는 주 2회 내전. 직장인/학생 모두 환영합니다.',                                                                                                     rules:'1. 야간(23시 이후) 참여 가능한 분\n2. 활동 강요 없음\n3. 서로 배려',                                  pinned:false, days:5,  recruit:'open',   style:'social',  positions:['dps'],                  tiers:['gold','plat','diamond'],   discord:false, discordUrl:null,                           isNew:false, createdAt:'2023.12', badges:['night','flexible'] },
+  { id:8,  icon:'A',  name:'Alpha Team',     bg:'linear-gradient(135deg,#8b5cf6,#6366f1)', now:25, max:30, title:'Alpha Team 경쟁 클랜원 모집',                desc:'체계적인 전략 스크림을 즐기는 경쟁 클랜입니다 🅰️\n\n플레~다이아 환영. 주말 오후 정기 내전 및 스크림. 팀워크를 중시합니다.',                                                                            rules:'1. 플래티넘 이상 권장\n2. 주말 내전 성실 참여\n3. 전략 공유 적극 참여',                               pinned:false, days:0,  recruit:'open',   style:'tryhard', positions:['tank','dps'],           tiers:['plat','diamond'],          discord:true,  discordUrl:'https://discord.gg/alphateam', isNew:false, createdAt:'2022.09', badges:['scrim','strategy','discord'] },
+  { id:9,  icon:'D',  name:'Dark Matter',    bg:'linear-gradient(135deg,#374151,#1f2937)', now:10, max:15, title:'Dark Matter 소수 정예 클랜 모집',             desc:'소수 정예로 운영되는 진지한 경쟁 클랜입니다.\n\n다이아~마스터 위주. 팀원 한 명 한 명을 소중히 여기며, 개인 성장과 팀 전략을 함께 추구합니다.',                                                           rules:'1. 다이아 이상 필수\n2. 월 4회 이상 참여\n3. 피드백 수용 가능한 분',                                  pinned:false, days:6,  recruit:'open',   style:'pro',     positions:['dps','support'],       tiers:['diamond','master'],        discord:false, discordUrl:null,                           isNew:false, createdAt:'2023.03', badges:['small','strategy','manner'] },
+  { id:10, icon:'B',  name:'Best Warriors',  bg:'linear-gradient(135deg,#f59e0b,#ef4444)', now:22, max:28, title:'Best Warriors — 시즌 우승 목표 클랜',        desc:'시즌 우승을 목표로 하는 엘리트 경쟁 클랜입니다 🏆\n\n마스터↑ 위주. 주말 집중 훈련 및 스크림. 매우 진지한 분위기입니다.',                                                                                 rules:'1. 마스터 이상 필수\n2. 주말 훈련 필참\n3. 전술 회의 월 1회 참여\n4. 비매너 즉시 제명',              pinned:false, days:2,  recruit:'open',   style:'pro',     positions:['dps'],                  tiers:['master','gm'],             discord:true,  discordUrl:'https://discord.gg/bestwarriors', isNew:false, createdAt:'2022.06', badges:['elite','scrim','strategy','discord'] },
+  { id:11, icon:'S',  name:'Storm Rising',   bg:'linear-gradient(135deg,#0ea5e9,#06b6d4)', now:16, max:22, title:'Storm Rising 클랜 신규 멤버 모집',            desc:'경쟁과 친목의 균형을 잡는 클랜입니다 ⛈️\n\n평일 저녁 활동 위주. 다이아 이상 환영. 편안한 분위기에서 함께 성장해 나갑시다.',                                                                            rules:'1. 다이아 이상 권장\n2. 평일 참여 가능한 분\n3. 서로 존중',                                           pinned:false, days:3,  recruit:'open',   style:'social',  positions:['tank','dps','support'], tiers:['diamond','master'],        discord:true,  discordUrl:'https://discord.gg/stormrising', isNew:false, createdAt:'2024.03', badges:['regular','discord','voice'] },
+  { id:12, icon:'🛡', name:'Iron Wall',      bg:'linear-gradient(135deg,#374151,#6b7280)', now:6,  max:10, title:'Iron Wall 신생 경쟁 클랜 창단 모집',          desc:'탱킹을 사랑하는 신생 클랜입니다 🛡\n\n함께 성장할 팀원 모집. 골드~플래 환영. 탱커/힐러 포지션 적극 환영합니다!',                                                                                        rules:'1. 포지션 탱커/힐러 권장\n2. 월 2회 이상 참여\n3. 전략 공유 참여',                                    pinned:false, days:0,  recruit:'open',   style:'tryhard', positions:['tank','dps','support'], tiers:['gold','plat'],             discord:false, discordUrl:null,                           isNew:true,  createdAt:'2026.03', badges:['newbie','regular'] },
 ];
 
 /* 클랜 홍보 카드 태그 생성 */
 const TIER_ORDER = ['bronze','silver','gold','plat','diamond','master','gm'];
+
+/* ── 클랜 배지 정의 ── */
+const BADGE_DEFS = {
+  regular:  { icon: '⚔️',  label: '정기 내전'    },
+  voice:    { icon: '🎙️',  label: '음성 소통'    },
+  scrim:    { icon: '🏆',  label: '스크림 운영'  },
+  discord:  { icon: '💬',  label: '디스코드 활성' },
+  manner:   { icon: '🤝',  label: '매너 클랜'    },
+  newbie:   { icon: '🌱',  label: '초보 환영'    },
+  flexible: { icon: '📅',  label: '자유 참여'    },
+  adult:    { icon: '🔞',  label: '성인 클랜'    },
+  night:    { icon: '🌙',  label: '야간 활동'    },
+  elite:    { icon: '💎',  label: '고티어 전용'  },
+  strategy: { icon: '📊',  label: '전략 분석'    },
+  small:    { icon: '⭐',  label: '소수 정예'    },
+  worker:   { icon: '💼',  label: '직장인 환영'  },
+};
+
+function clanBadgesHtml(keys, lg = false) {
+  return keys.map(k => {
+    const b = BADGE_DEFS[k];
+    if (!b) return '';
+    return `<span class="clan-badge-icon${lg ? ' lg' : ''}">${b.icon}<span class="cbi-tip">${b.label}</span></span>`;
+  }).join('');
+}
 function promoTagsHtml(p) {
   const rows = [];
 
@@ -1321,7 +1377,7 @@ function renderPromos() {
           👥 ${p.now}/${p.max}명 &nbsp;·&nbsp; ${p.createdAt} 창설
         </div>
         <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
-          ${p.badges.map(b => `<span class="clan-badge">${b}</span>`).join('')}
+          ${clanBadgesHtml(p.badges)}
         </div>
       </div>
     </div>`).join('')}</div>`
@@ -1404,8 +1460,7 @@ function openPromoDrawer(id) {
   document.getElementById('pdTiers').innerHTML =
     sortedTiers.map(t => `<span class="promo-tag">${PROMO_FILTER_LABELS.tier[t]}</span>`).join('');
 
-  document.getElementById('pdBadgeList').innerHTML =
-    p.badges.map(b => `<span class="clan-badge" style="font-size:12px;padding:3px 10px">${b}</span>`).join('');
+  document.getElementById('pdBadgeList').innerHTML = clanBadgesHtml(p.badges, true);
 
   const linkSec = document.getElementById('pdLinkSection');
   const linksEl = document.getElementById('pdLinks');
