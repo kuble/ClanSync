@@ -88,8 +88,13 @@
   cursor: pointer; transition: border-color .15s, transform .1s;
 }
 .lfg-card:hover { border-color: rgba(124,58,237,0.5); transform: translateY(-1px); }
-.lfg-card-body { flex: 1; display: flex; gap: 10px; padding: 14px 14px 10px; align-items: flex-start; }
-.lfg-card-footer { display: flex; align-items: center; justify-content: space-between; padding: 0 14px; height: 36px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-muted); }
+.lfg-card-body { flex: 1; display: flex; gap: 12px; padding: 16px 16px 12px; align-items: flex-start; }
+.lfg-card-footer { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 40px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); }
+
+/* ── LFG 인라인 필터 패널 ── */
+.lfg-filter-panel { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 18px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
+.lfg-filter-panel .filter-group { gap: 6px; }
+.lfg-filter-panel .filter-group-label { min-width: 44px; }
 .lfg-avatar-wrap { position: relative; flex-shrink: 0; }
 .lfg-avatar-wrap .online-dot { position: absolute; bottom: 1px; right: 1px; width: 9px; height: 9px; border: 1.5px solid var(--bg-elevated); }
 
@@ -557,62 +562,53 @@
       <button class="btn btn-primary btn-sm" onclick="openLfgPostModal()">+ 모집 올리기</button>
     </div>
 
-    <!-- 필터 바 -->
-    <div class="filter-trigger-bar" id="lfgFilterTriggerBar">
-      <div class="filter-popover-wrap">
-        <button class="filter-btn" id="lfgFilterBtn" onclick="toggleLfgFilterPopover()">
-          ⚙ 필터
-          <span class="filter-count" id="lfgFilterCount" style="display:none">0</span>
-        </button>
-        <div class="filter-popover" id="lfgFilterPopover">
-          <div class="filter-group">
-            <span class="filter-group-label">모드</span>
-            <div class="filter-divider-v"></div>
-            <div class="filter-chip active" data-lg="mode" data-val="all"    onclick="setLfgFilter(this)">전체</div>
-            <div class="filter-chip"        data-lg="mode" data-val="경쟁전"  onclick="setLfgFilter(this)">경쟁전</div>
-            <div class="filter-chip"        data-lg="mode" data-val="빠른대전" onclick="setLfgFilter(this)">빠른대전</div>
-            <div class="filter-chip"        data-lg="mode" data-val="아케이드" onclick="setLfgFilter(this)">아케이드</div>
-          </div>
-          <div class="filter-group">
-            <span class="filter-group-label">구분</span>
-            <div class="filter-divider-v"></div>
-            <div class="filter-chip active" data-lg="format" data-val="5vs5"  onclick="setLfgFilter(this)">5vs5</div>
-            <div class="filter-chip"        data-lg="format" data-val="6vs6"  onclick="setLfgFilter(this)">6vs6</div>
-          </div>
-          <div class="filter-group" style="align-items:flex-start;flex-wrap:wrap">
-            <span class="filter-group-label" style="padding-top:2px">티어</span>
-            <div class="filter-divider-v"></div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px">
-              <div class="filter-chip active" data-lg="tier" data-val="all"    onclick="setLfgMultiFilter(this)">전체</div>
-              <div class="filter-chip"        data-lg="tier" data-val="브론즈"  onclick="setLfgMultiFilter(this)">브론즈</div>
-              <div class="filter-chip"        data-lg="tier" data-val="실버"   onclick="setLfgMultiFilter(this)">실버</div>
-              <div class="filter-chip"        data-lg="tier" data-val="골드"   onclick="setLfgMultiFilter(this)">골드</div>
-              <div class="filter-chip"        data-lg="tier" data-val="플레티넘" onclick="setLfgMultiFilter(this)">플레티넘</div>
-              <div class="filter-chip"        data-lg="tier" data-val="다이아"  onclick="setLfgMultiFilter(this)">다이아</div>
-              <div class="filter-chip"        data-lg="tier" data-val="마스터"  onclick="setLfgMultiFilter(this)">마스터</div>
-              <div class="filter-chip"        data-lg="tier" data-val="그마"   onclick="setLfgMultiFilter(this)">그랜드마스터</div>
-            </div>
-          </div>
-          <div class="filter-group">
-            <span class="filter-group-label">역할</span>
-            <div class="filter-divider-v"></div>
-            <div class="filter-chip active" data-lg="role" data-val="all"  onclick="setLfgFilter(this)">올포지</div>
-            <div class="filter-chip"        data-lg="role" data-val="탱커" onclick="setLfgFilter(this)">탱커</div>
-            <div class="filter-chip"        data-lg="role" data-val="딜러" onclick="setLfgFilter(this)">딜러</div>
-            <div class="filter-chip"        data-lg="role" data-val="힐러" onclick="setLfgFilter(this)">힐러</div>
-          </div>
-          <div class="filter-group">
-            <span class="filter-group-label">마이크</span>
-            <div class="filter-divider-v"></div>
-            <div class="filter-chip active" data-lg="mic" data-val="all"   onclick="setLfgFilter(this)">자유</div>
-            <div class="filter-chip"        data-lg="mic" data-val="true"  onclick="setLfgFilter(this)">필수</div>
-          </div>
-          <div style="display:flex;justify-content:flex-end;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
-            <button class="btn btn-secondary btn-sm" onclick="resetLfgFilters()">필터 초기화</button>
-          </div>
+    <!-- 인라인 필터 패널 -->
+    <div class="lfg-filter-panel">
+      <div class="filter-group">
+        <span class="filter-group-label">모드</span>
+        <div class="filter-divider-v"></div>
+        <div class="filter-chip active" data-lg="mode" data-val="all"     onclick="setLfgFilter(this)">전체</div>
+        <div class="filter-chip"        data-lg="mode" data-val="경쟁전"   onclick="setLfgFilter(this)">경쟁전</div>
+        <div class="filter-chip"        data-lg="mode" data-val="빠른대전" onclick="setLfgFilter(this)">빠른대전</div>
+        <div class="filter-chip"        data-lg="mode" data-val="아케이드" onclick="setLfgFilter(this)">아케이드</div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-group-label">구분</span>
+        <div class="filter-divider-v"></div>
+        <div class="filter-chip active" data-lg="format" data-val="5vs5" onclick="setLfgFilter(this)">5vs5</div>
+        <div class="filter-chip"        data-lg="format" data-val="6vs6" onclick="setLfgFilter(this)">6vs6</div>
+      </div>
+      <div class="filter-group" style="align-items:flex-start">
+        <span class="filter-group-label" style="padding-top:2px">티어</span>
+        <div class="filter-divider-v"></div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <div class="filter-chip active" data-lg="tier" data-val="all"     onclick="setLfgMultiFilter(this)">전체</div>
+          <div class="filter-chip"        data-lg="tier" data-val="브론즈"   onclick="setLfgMultiFilter(this)">브론즈</div>
+          <div class="filter-chip"        data-lg="tier" data-val="실버"    onclick="setLfgMultiFilter(this)">실버</div>
+          <div class="filter-chip"        data-lg="tier" data-val="골드"    onclick="setLfgMultiFilter(this)">골드</div>
+          <div class="filter-chip"        data-lg="tier" data-val="플레티넘" onclick="setLfgMultiFilter(this)">플레티넘</div>
+          <div class="filter-chip"        data-lg="tier" data-val="다이아"   onclick="setLfgMultiFilter(this)">다이아</div>
+          <div class="filter-chip"        data-lg="tier" data-val="마스터"   onclick="setLfgMultiFilter(this)">마스터</div>
+          <div class="filter-chip"        data-lg="tier" data-val="그마"    onclick="setLfgMultiFilter(this)">그랜드마스터</div>
         </div>
       </div>
-      <div id="lfgActiveFilters" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"></div>
+      <div class="filter-group">
+        <span class="filter-group-label">역할</span>
+        <div class="filter-divider-v"></div>
+        <div class="filter-chip active" data-lg="role" data-val="all"  onclick="setLfgFilter(this)">올포지</div>
+        <div class="filter-chip"        data-lg="role" data-val="탱커" onclick="setLfgFilter(this)">탱커</div>
+        <div class="filter-chip"        data-lg="role" data-val="딜러" onclick="setLfgFilter(this)">딜러</div>
+        <div class="filter-chip"        data-lg="role" data-val="힐러" onclick="setLfgFilter(this)">힐러</div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-group-label">마이크</span>
+        <div class="filter-divider-v"></div>
+        <div class="filter-chip active" data-lg="mic" data-val="all"  onclick="setLfgFilter(this)">자유</div>
+        <div class="filter-chip"        data-lg="mic" data-val="true" onclick="setLfgFilter(this)">필수</div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;padding-top:4px;border-top:1px solid var(--border)">
+        <button class="btn btn-secondary btn-sm" onclick="resetLfgFilters()">필터 초기화</button>
+      </div>
     </div>
 
     <div id="lfgList"></div>
@@ -1197,25 +1193,7 @@ function resetLfgFilters() {
   document.querySelector('.filter-chip[data-lg="tier"][data-val="all"]')?.classList.add('active');
   lfgPage = 1; renderLfg(); updateLfgFilterSummary();
 }
-function updateLfgFilterSummary() {
-  let count = 0;
-  if (lfgFilter.mode !== 'all') count++;
-  if (lfgFilter.format !== 'all') count++;
-  if (lfgFilter.tiers.length) count++;
-  if (lfgFilter.role !== 'all') count++;
-  if (lfgFilter.mic !== 'all') count++;
-  const badge = document.getElementById('lfgFilterCount');
-  badge.style.display = count ? '' : 'none';
-  badge.textContent = count;
-  document.getElementById('lfgActiveFilters').innerHTML = '';
-}
-function toggleLfgFilterPopover() {
-  document.getElementById('lfgFilterPopover').classList.toggle('open');
-}
-document.addEventListener('click', e => {
-  const pop = document.getElementById('lfgFilterPopover');
-  if (pop && !document.getElementById('lfgFilterTriggerBar')?.contains(e.target)) pop.classList.remove('open');
-});
+function updateLfgFilterSummary() {}
 
 function applyLfgFilter(posts) {
   return posts.filter(p => {
