@@ -80,6 +80,31 @@
 .lfg-tag-mode { color: #a78bfa; border-color: rgba(124,58,237,0.3); }
 .lfg-tag-time { color: #60a5fa; border-color: rgba(96,165,250,0.3); }
 
+/* ── LFG 카드 그리드 ── */
+.lfg-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.lfg-card {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); display: flex; flex-direction: column;
+  cursor: pointer; transition: border-color .15s, transform .1s;
+}
+.lfg-card:hover { border-color: rgba(124,58,237,0.5); transform: translateY(-1px); }
+.lfg-card-body { flex: 1; display: flex; gap: 10px; padding: 14px 14px 10px; align-items: flex-start; }
+.lfg-card-footer { display: flex; align-items: center; justify-content: space-between; padding: 0 14px; height: 36px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-muted); }
+.lfg-avatar-wrap { position: relative; flex-shrink: 0; }
+.lfg-avatar-wrap .online-dot { position: absolute; bottom: 1px; right: 1px; width: 9px; height: 9px; border: 1.5px solid var(--bg-elevated); }
+
+/* ── LFG 드로워 ── */
+.lfg-drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 150; opacity: 0; pointer-events: none; transition: opacity .25s; }
+.lfg-drawer-overlay.open { opacity: 1; pointer-events: all; }
+.lfg-drawer { position: fixed; top: 0; right: 0; height: 100vh; width: 380px; max-width: 100vw; background: var(--bg-base); border-left: 1px solid var(--border); z-index: 151; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .28s cubic-bezier(.4,0,.2,1); }
+.lfg-drawer.open { transform: translateX(0); }
+.lfg-drawer-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+.lfg-drawer-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 18px; }
+.lfg-drawer-footer { padding: 16px 20px; border-top: 1px solid var(--border); flex-shrink: 0; background: var(--bg-base); }
+.lfg-drawer-section-title { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
+.lfg-drawer-info-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); margin-bottom: 7px; }
+.lfg-drawer-info-row span.label { color: var(--text-muted); font-size: 12px; width: 52px; flex-shrink: 0; }
+
 /* ── 스크림 카드 ── */
 .scrim-card {
   background: var(--bg-elevated); border: 1px solid var(--border);
@@ -798,6 +823,49 @@
   </div>
 </div>
 
+<!-- LFG 드로워 -->
+<div class="lfg-drawer-overlay" id="lfgDrawerOverlay" onclick="closeLfgDrawer()"></div>
+<div class="lfg-drawer" id="lfgDrawer">
+  <div class="lfg-drawer-header">
+    <div class="lfg-avatar-wrap">
+      <div id="ldAvatar" class="avatar" style="width:48px;height:48px;font-size:20px"></div>
+      <div id="ldOnlineDot" class="online-dot g" style="position:absolute;bottom:1px;right:1px;width:10px;height:10px;border:2px solid var(--bg-base)"></div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+        <div id="ldName" style="font-size:16px;font-weight:700"></div>
+        <span id="ldOnlineLabel" style="font-size:11px;padding:2px 7px;border-radius:99px;background:rgba(74,222,128,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.3)"></span>
+      </div>
+      <div id="ldClan" style="font-size:13px;color:var(--text-muted)"></div>
+    </div>
+    <button onclick="closeLfgDrawer()" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;line-height:1;padding:4px">✕</button>
+  </div>
+  <div class="lfg-drawer-body">
+    <!-- 모집 정보 -->
+    <div>
+      <div class="lfg-drawer-section-title">모집 정보</div>
+      <div class="lfg-drawer-info-row"><span class="label">게임 모드</span><span id="ldMode"></span></div>
+      <div class="lfg-drawer-info-row"><span class="label">모집 인원</span><span id="ldSlots"></span></div>
+      <div class="lfg-drawer-info-row"><span class="label">티어</span><span id="ldTier"></span></div>
+      <div class="lfg-drawer-info-row"><span class="label">시간</span><span id="ldTime"></span></div>
+    </div>
+    <!-- 플레이어 정보 -->
+    <div>
+      <div class="lfg-drawer-section-title">플레이어 정보</div>
+      <div class="lfg-drawer-info-row"><span class="label">포지션</span><div id="ldPositions" style="display:flex;gap:4px;flex-wrap:wrap"></div></div>
+      <div class="lfg-drawer-info-row"><span class="label">마이크</span><span id="ldMic"></span></div>
+    </div>
+    <!-- 한마디 -->
+    <div id="ldDescWrap">
+      <div class="lfg-drawer-section-title">한마디</div>
+      <div id="ldDesc" style="font-size:13px;color:var(--text-secondary);line-height:1.7;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px"></div>
+    </div>
+  </div>
+  <div class="lfg-drawer-footer" id="ldFooter">
+    <button class="btn btn-primary w-full" style="padding:13px;font-size:15px" onclick="alert('참여 신청이 완료되었습니다!')">참여 신청하기 →</button>
+  </div>
+</div>
+
 <!-- 가입 신청 모달 -->
 <div id="joinModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:300;align-items:center;justify-content:center" onclick="if(event.target===this)closeJoinModal()">
   <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-xl);width:320px;padding:28px 24px;display:flex;flex-direction:column;gap:16px">
@@ -903,22 +971,22 @@ function renderPagination(containerId, page, total, pageSize, onPageFn) {
 /* ════════════════════════════════════════
    LFG
 ════════════════════════════════════════ */
-const LFG_PAGE = 8;
+const LFG_PAGE = 10;
 const LFG_S = { lfgMode:'경쟁', lfgSlots:'+1', lfgTier:'전체', lfgTime:'지금 바로' };
 let lfgPage = 1;
 let lfgPosts = [
-  { id:1,  name:'이프로',  clan:'Phoenix Rising', bg:'linear-gradient(135deg,#f59e0b,#ef4444)', online:true,  mode:'경쟁',     slots:'+2', tier:'다이아↑', time:'지금 바로' },
-  { id:2,  name:'박힐러',  clan:'Phoenix Rising', bg:'linear-gradient(135deg,#22c55e,#10b981)', online:true,  mode:'빠대',     slots:'+3', tier:'전체',    time:'30분 후'  },
-  { id:3,  name:'최서폿',  clan:'Blue Storm',     bg:'linear-gradient(135deg,#0ea5e9,#06b6d4)', online:false, mode:'경쟁',     slots:'+1', tier:'플래↑',   time:'지금'     },
-  { id:4,  name:'정탱커',  clan:'Iron Wall',      bg:'linear-gradient(135deg,#374151,#6b7280)', online:true,  mode:'경쟁',     slots:'+2', tier:'골드↑',   time:'지금 바로' },
-  { id:5,  name:'한딜러',  clan:'없음',           bg:'linear-gradient(135deg,#6366f1,#8b5cf6)', online:true,  mode:'아케이드', slots:'+1', tier:'전체',    time:'지금 바로' },
-  { id:6,  name:'김지원',  clan:'Night Owls',     bg:'linear-gradient(135deg,#8b5cf6,#6366f1)', online:true,  mode:'경쟁',     slots:'+2', tier:'마스터↑', time:'1시간 후' },
-  { id:7,  name:'오민준',  clan:'없음',           bg:'linear-gradient(135deg,#ec4899,#f43f5e)', online:false, mode:'빠대',     slots:'+4', tier:'전체',    time:'30분 후'  },
-  { id:8,  name:'유현서',  clan:'Dark Matter',    bg:'linear-gradient(135deg,#1f2937,#374151)', online:true,  mode:'경쟁',     slots:'+1', tier:'다이아↑', time:'지금 바로' },
-  { id:9,  name:'강도윤',  clan:'없음',           bg:'linear-gradient(135deg,#f97316,#eab308)', online:true,  mode:'커스텀',   slots:'+5', tier:'전체',    time:'지금 바로' },
-  { id:10, name:'손예진',  clan:'Casual Heroes',  bg:'linear-gradient(135deg,#22c55e,#84cc16)', online:false, mode:'아케이드', slots:'+2', tier:'전체',    time:'1시간 후' },
-  { id:11, name:'배성민',  clan:'Alpha Team',     bg:'linear-gradient(135deg,#8b5cf6,#a78bfa)', online:true,  mode:'경쟁',     slots:'+1', tier:'플래↑',   time:'지금 바로' },
-  { id:12, name:'윤아린',  clan:'없음',           bg:'linear-gradient(135deg,#06b6d4,#0ea5e9)', online:true,  mode:'빠대',     slots:'+3', tier:'골드↑',   time:'30분 후'  },
+  { id:1,  name:'이프로',  clan:'Phoenix Rising', bg:'linear-gradient(135deg,#f59e0b,#ef4444)', online:true,  mode:'경쟁',     slots:'+2', tier:'다이아↑', time:'지금 바로', mic:true,  positions:['딜러'],         desc:'경쟁 다이아 이상 팀원 구합니다. 소통 잘 되는 분 환영!' },
+  { id:2,  name:'박힐러',  clan:'Phoenix Rising', bg:'linear-gradient(135deg,#22c55e,#10b981)', online:true,  mode:'빠대',     slots:'+3', tier:'전체',    time:'30분 후',  mic:false, positions:['힐러'],         desc:'가볍게 빠대 같이 할 사람~ 티어 상관없어요.' },
+  { id:3,  name:'최서폿',  clan:'Blue Storm',     bg:'linear-gradient(135deg,#0ea5e9,#06b6d4)', online:false, mode:'경쟁',     slots:'+1', tier:'플래↑',   time:'지금 바로',mic:true,  positions:['서포터'],       desc:'플래 이상 경쟁 모드 한 판 하실 분. 마이크 필수입니다.' },
+  { id:4,  name:'정탱커',  clan:'Iron Wall',      bg:'linear-gradient(135deg,#374151,#6b7280)', online:true,  mode:'경쟁',     slots:'+2', tier:'골드↑',   time:'지금 바로', mic:true,  positions:['탱커','딜러'],  desc:'골드 이상 빡겜 원하시는 분! 마이크 켜고 소통해요.' },
+  { id:5,  name:'한딜러',  clan:'없음',           bg:'linear-gradient(135deg,#6366f1,#8b5cf6)', online:true,  mode:'아케이드', slots:'+1', tier:'전체',    time:'지금 바로', mic:false, positions:['딜러'],         desc:'아케이드 같이 즐길 분 구해요. 부담 없이 연락 주세요.' },
+  { id:6,  name:'김지원',  clan:'Night Owls',     bg:'linear-gradient(135deg,#8b5cf6,#6366f1)', online:true,  mode:'경쟁',     slots:'+2', tier:'마스터↑', time:'1시간 후', mic:true,  positions:['딜러','서포터'], desc:'마스터 이상 경쟁 듀오/트리오 구합니다. 진지하게 플레이하실 분!' },
+  { id:7,  name:'오민준',  clan:'없음',           bg:'linear-gradient(135deg,#ec4899,#f43f5e)', online:false, mode:'빠대',     slots:'+4', tier:'전체',    time:'30분 후',  mic:false, positions:['탱커'],         desc:'빠른 대전 5인팟 채울 사람 구해요. 편하게 오세요.' },
+  { id:8,  name:'유현서',  clan:'Dark Matter',    bg:'linear-gradient(135deg,#1f2937,#374151)', online:true,  mode:'경쟁',     slots:'+1', tier:'다이아↑', time:'지금 바로', mic:true,  positions:['딜러'],         desc:'다이아↑ 경쟁 고수 구합니다. 오더 가능한 분 우대.' },
+  { id:9,  name:'강도윤',  clan:'없음',           bg:'linear-gradient(135deg,#f97316,#eab308)', online:true,  mode:'커스텀',   slots:'+5', tier:'전체',    time:'지금 바로', mic:true,  positions:['힐러','탱커'],  desc:'커스텀 게임 6인 다 채워요. 편하게 오세요!' },
+  { id:10, name:'손예진',  clan:'Casual Heroes',  bg:'linear-gradient(135deg,#22c55e,#84cc16)', online:false, mode:'아케이드', slots:'+2', tier:'전체',    time:'1시간 후', mic:false, positions:['서포터'],       desc:'아케이드 미션 같이 하실 분 환영합니다.' },
+  { id:11, name:'배성민',  clan:'Alpha Team',     bg:'linear-gradient(135deg,#8b5cf6,#a78bfa)', online:true,  mode:'경쟁',     slots:'+1', tier:'플래↑',   time:'지금 바로', mic:true,  positions:['탱커'],         desc:'플래 이상 탱커 포지션 하시는 분과 경쟁 팀 구성 원해요.' },
+  { id:12, name:'윤아린',  clan:'없음',           bg:'linear-gradient(135deg,#06b6d4,#0ea5e9)', online:true,  mode:'빠대',     slots:'+3', tier:'골드↑',   time:'30분 후',  mic:false, positions:['딜러','힐러'],  desc:'골드↑ 빠대 같이 할 사람! 부캐도 ok' },
 ], lfgNextId = 13;
 
 function selChip(gid, el) {
@@ -935,30 +1003,41 @@ function postLfg() {
 function removeLfg(id) { lfgPosts = lfgPosts.filter(p => p.id !== id); renderLfg(); renderHomeLfg(); }
 function goLfgPage(p) { lfgPage = p; renderLfg(); document.getElementById('sec-lfg').scrollTop = 0; }
 
-function lfgRow(p) {
-  return `<div class="lfg-post">
-    <div class="online-dot ${p.online?'g':'y'}"></div>
-    <div class="avatar" style="width:36px;height:36px;font-size:14px;background:${p.bg};flex-shrink:0">${p.name[0]}</div>
-    <div style="flex:1;min-width:0">
-      <div style="font-size:13px;font-weight:600;margin-bottom:3px">${p.name}
-        <span style="font-size:11px;color:var(--text-muted);font-weight:400">· ${p.clan}${p.mine?' (나)':''}</span></div>
-      <div class="lfg-tags">
-        <span class="lfg-tag lfg-tag-mode">${p.mode}</span>
-        <span class="lfg-tag">${p.slots} 모집</span>
-        <span class="lfg-tag">${p.tier}</span>
-        <span class="lfg-tag lfg-tag-time">⏰ ${p.time}</span>
+function lfgCard(p) {
+  const posHtml = (p.positions || []).map(pos => `<span class="lfg-tag">${pos}</span>`).join('');
+  return `<div class="lfg-card" onclick="${p.mine ? '' : `openLfgDrawer(${p.id})`}">
+    <div class="lfg-card-body">
+      <div class="lfg-avatar-wrap">
+        <div class="avatar" style="width:42px;height:42px;font-size:17px;background:${p.bg}">${p.name[0]}</div>
+        <div class="online-dot ${p.online?'g':'y'}" style="position:absolute;bottom:1px;right:1px;width:9px;height:9px;border:1.5px solid var(--bg-elevated)"></div>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+          ${p.name}${p.mine ? ' <span style="font-size:11px;color:var(--text-muted);font-weight:400">(나)</span>' : ''}
+          <span style="font-size:11px;color:var(--text-muted);font-weight:400"> · ${p.clan}</span>
+        </div>
+        <div class="lfg-tags">
+          <span class="lfg-tag lfg-tag-mode">${p.mode}</span>
+          <span class="lfg-tag">${p.slots} 모집</span>
+          <span class="lfg-tag">${p.tier}</span>
+          ${posHtml}
+        </div>
       </div>
     </div>
-    ${p.mine
-      ? `<button class="btn btn-secondary btn-sm" onclick="removeLfg(${p.id})" style="font-size:11px;flex-shrink:0">취소</button>`
-      : `<button class="btn btn-primary btn-sm" onclick="alert('${p.name}님께 참여 신청!')" style="font-size:11px;flex-shrink:0">참여 신청</button>`}
+    <div class="lfg-card-footer">
+      <span class="lfg-tag lfg-tag-time" style="font-size:11px">⏰ ${p.time}</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        ${p.mic ? '<span style="color:#4ade80;font-size:11px">🎙 마이크 가능</span>' : '<span style="color:var(--text-muted);font-size:11px">🔇 마이크 없음</span>'}
+        ${p.mine ? `<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();removeLfg(${p.id})" style="font-size:11px;padding:3px 10px">취소</button>` : ''}
+      </div>
+    </div>
   </div>`;
 }
 function renderLfg() {
   const start = (lfgPage - 1) * LFG_PAGE, end = start + LFG_PAGE;
   const slice = lfgPosts.slice(start, end);
   document.getElementById('lfgList').innerHTML = slice.length
-    ? slice.map(lfgRow).join('')
+    ? `<div class="lfg-grid">${slice.map(lfgCard).join('')}</div>`
     : `<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">모집 중인 파티가 없습니다</div></div>`;
   renderPagination('lfgPagination', lfgPage, lfgPosts.length, LFG_PAGE, 'goLfgPage');
 }
@@ -1438,6 +1517,56 @@ function openPromoDrawer(id) {
 function closePromoDrawer() {
   document.getElementById('promoDrawerOverlay').classList.remove('open');
   document.getElementById('promoDrawer').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function openLfgDrawer(id) {
+  const p = lfgPosts.find(x => x.id === id);
+  if (!p) return;
+
+  const av = document.getElementById('ldAvatar');
+  av.textContent = p.name[0];
+  av.style.background = p.bg;
+
+  const dot = document.getElementById('ldOnlineDot');
+  dot.className = `online-dot ${p.online ? 'g' : 'y'}`;
+  dot.style.cssText = 'position:absolute;bottom:1px;right:1px;width:10px;height:10px;border:2px solid var(--bg-base)';
+
+  document.getElementById('ldName').textContent = p.name;
+  document.getElementById('ldOnlineLabel').textContent = p.online ? '온라인' : '자리비움';
+  document.getElementById('ldOnlineLabel').style.cssText = p.online
+    ? 'font-size:11px;padding:2px 7px;border-radius:99px;background:rgba(74,222,128,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.3)'
+    : 'font-size:11px;padding:2px 7px;border-radius:99px;background:rgba(251,191,36,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.3)';
+  document.getElementById('ldClan').textContent = p.clan !== '없음' ? `소속 클랜: ${p.clan}` : '클랜 미소속';
+
+  document.getElementById('ldMode').textContent = p.mode;
+  document.getElementById('ldSlots').textContent = p.slots + '명 모집';
+  document.getElementById('ldTier').textContent = p.tier;
+  document.getElementById('ldTime').textContent = p.time;
+  document.getElementById('ldMic').textContent = p.mic ? '🎙 가능' : '🔇 없음';
+
+  const posEl = document.getElementById('ldPositions');
+  posEl.innerHTML = (p.positions || []).map(pos => `<span class="lfg-tag">${pos}</span>`).join('');
+
+  const descWrap = document.getElementById('ldDescWrap');
+  if (p.desc) {
+    descWrap.style.display = '';
+    document.getElementById('ldDesc').textContent = p.desc;
+  } else {
+    descWrap.style.display = 'none';
+  }
+
+  document.getElementById('ldFooter').innerHTML = p.mine
+    ? `<button class="btn btn-secondary w-full" style="padding:13px;font-size:15px" onclick="removeLfg(${p.id});closeLfgDrawer()">모집 취소</button>`
+    : `<button class="btn btn-primary w-full" style="padding:13px;font-size:15px" onclick="alert('${p.name}님께 참여 신청이 완료되었습니다!')">참여 신청하기 →</button>`;
+
+  document.getElementById('lfgDrawerOverlay').classList.add('open');
+  document.getElementById('lfgDrawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLfgDrawer() {
+  document.getElementById('lfgDrawerOverlay').classList.remove('open');
+  document.getElementById('lfgDrawer').classList.remove('open');
   document.body.style.overflow = '';
 }
 
