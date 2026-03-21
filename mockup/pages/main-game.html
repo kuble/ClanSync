@@ -36,7 +36,7 @@
 .my-clan-badge:hover { background: rgba(124,58,237,0.16); }
 
 /* ── 대시보드 그리드 ── */
-.dash-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 310px 250px; gap: 16px; }
+.dash-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 .d-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 20px; }
 .d-card-sm   { grid-column: span 1; }
 .d-card-md   { grid-column: span 2; }
@@ -417,20 +417,22 @@
 
     <div class="dash-grid">
 
-      <!-- 1열: 클랜 홍보 (2행 모두 점유) -->
-      <div class="d-card" style="grid-column:1;grid-row:1/3;display:flex;flex-direction:column">
+      <!-- 1행: 클랜 홍보 (전체 너비) -->
+      <div class="d-card" style="grid-column:1/-1">
         <div class="d-label" style="margin-bottom:14px">
-          클랜 홍보
-          <span style="font-size:12px;color:var(--text-muted);font-weight:400">모집 중인 클랜 14개</span>
+          📢 클랜 홍보
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:12px;color:var(--text-muted);font-weight:400">모집 중인 클랜 14개</span>
+          </div>
         </div>
-        <div id="homePromoGrid" style="display:flex;flex-direction:column;gap:8px;flex:1;overflow:hidden"></div>
-        <button class="btn btn-secondary btn-sm" style="margin-top:12px;width:100%" onclick="navTo('promo')">+ 클랜 홍보 전체 보기</button>
+        <div id="homePromoGrid" style="display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:145px;gap:10px"></div>
+        <button class="btn btn-secondary btn-sm" style="margin-top:14px;width:100%" onclick="navTo('promo')">+ 클랜 홍보 전체 보기</button>
       </div>
 
-      <!-- 2열 1행: 스크림 모집 -->
-      <div class="d-card" style="grid-column:2;grid-row:1">
+      <!-- 2행 왼쪽: 스크림 모집 -->
+      <div class="d-card">
         <div class="d-label">
-          스크림 모집 중
+          ⚔️ 스크림 모집 중
           <span onclick="navTo('scrim')" style="font-size:12px;color:var(--brand-secondary);font-weight:400;cursor:pointer">전체 →</span>
         </div>
         <div>
@@ -453,18 +455,18 @@
         <button class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%" onclick="navTo('scrim')">전체 보기</button>
       </div>
 
-      <!-- 2열 2행: 스크림 자동 매칭 -->
-      <div class="d-card" style="grid-column:2;grid-row:2">
+      <!-- 2행 오른쪽: 스크림 자동 매칭 -->
+      <div class="d-card">
         <div class="d-label">
-          스크림 자동 매칭
+          ⚡ 스크림 자동 매칭
           <span class="badge badge-brand" style="font-size:10px">운영진+</span>
         </div>
-        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;line-height:1.6">비슷한 티어의 클랜을 자동으로 연결합니다</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;line-height:1.6">비슷한 티어의 클랜을 자동으로 연결합니다</div>
         <div class="form-group" style="margin:0 0 8px">
           <label class="label" style="font-size:11px">희망 날짜</label>
           <input class="input" type="date" value="2026-03-22" style="font-size:13px">
         </div>
-        <div class="form-group" style="margin:0 0 10px">
+        <div class="form-group" style="margin:0 0 12px">
           <label class="label" style="font-size:11px">희망 시간대</label>
           <select class="input" style="font-size:13px">
             <option>19:00 이후</option>
@@ -472,24 +474,24 @@
             <option>주말 종일</option>
           </select>
         </div>
-        <button class="match-btn" onclick="alert('자동 매칭 시작 (목업)')">자동 매칭 시작</button>
-        <div style="font-size:11px;text-align:center;color:var(--text-muted);margin-top:6px">현재 대기 클랜 12팀</div>
+        <button class="match-btn" onclick="alert('자동 매칭 시작 (목업)')">🎯 자동 매칭 시작</button>
+        <div style="font-size:11px;text-align:center;color:var(--text-muted)">현재 대기 클랜 12팀</div>
       </div>
 
-      <!-- 3열 1행: 같이 할 사람 -->
-      <div class="d-card" style="grid-column:3;grid-row:1">
+      <!-- 3행 왼쪽: 같이 할 사람 -->
+      <div class="d-card">
         <div class="d-label">
-          같이 할 사람
+          🔍 같이 할 사람
           <span onclick="navTo('lfg')" style="font-size:12px;color:var(--brand-secondary);font-weight:400;cursor:pointer">전체 보기 →</span>
         </div>
         <div class="preview-list" id="home-lfg-preview"></div>
         <button class="btn btn-primary btn-sm" style="margin-top:12px;width:100%" onclick="navTo('lfg')">+ 파티 모집 올리기</button>
       </div>
 
-      <!-- 3열 2행: 이달의 클랜 순위 -->
-      <div class="d-card" style="grid-column:3;grid-row:2">
+      <!-- 3행 오른쪽: 이달의 클랜 순위 -->
+      <div class="d-card">
         <div class="d-label">
-          이달의 클랜 순위
+          🏆 이달의 클랜 순위
           <span onclick="navTo('ranking')" style="font-size:12px;color:var(--brand-secondary);font-weight:400;cursor:pointer">전체 →</span>
         </div>
         <div class="rank-row">
@@ -948,18 +950,24 @@ function renderLfg() {
   renderPagination('lfgPagination', lfgPage, lfgPosts.length, LFG_PAGE, 'goLfgPage');
 }
 function renderHomePromos() {
-  const list = PROMOS.slice(0, 5);
+  const list = PROMOS.slice(0, 6);
   document.getElementById('homePromoGrid').innerHTML = list.map(p => `
-    <div onclick="openPromoDrawer(${p.id})" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-md);background:var(--bg-elevated);border:1px solid var(--border);transition:border-color .15s" onmouseenter="this.style.borderColor='var(--brand-primary)'" onmouseleave="this.style.borderColor='var(--border)'">
-      <div style="width:34px;height:34px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:${p.bg || 'var(--bg-overlay)'}">${p.icon}</div>
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">
-          <span style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">${p.name}</span>
-          ${p.pinned ? `<span class="verified-badge" style="width:14px;height:14px;font-size:8px">✓<div class="vb-tooltip"><div class="vb-title">✦ Premium 구독 클랜</div><div class="vb-desc">AI 팀 밸런싱, 전적 분석, 승부 예측 등 프리미엄 기능을 활성화한 클랜입니다.</div></div></span>` : ''}
+    <div class="promo-card${p.pinned ? ' pinned' : ''}" onclick="openPromoDrawer(${p.id})" style="cursor:pointer">
+      <div style="flex:1;display:flex;gap:10px;padding:12px;align-items:flex-start;overflow:hidden">
+        <div style="width:36px;height:36px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:${p.bg || 'var(--bg-overlay)'};">${p.icon}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;flex-wrap:wrap">
+            <span style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px">${p.name}</span>
+            ${p.pinned ? `<span class="verified-badge" style="width:15px;height:15px;font-size:9px">✓<div class="vb-tooltip"><div class="vb-title">✦ Premium 구독 클랜</div><div class="vb-desc">AI 팀 밸런싱, 전적 분석, 승부 예측 등 프리미엄 기능을 활성화한 클랜입니다.</div></div></span>` : ''}
+          </div>
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:5px">${PROMO_FILTER_LABELS.recruit[p.recruit]} · ${PROMO_FILTER_LABELS.style[p.style]}</div>
+          <div style="font-size:12px;color:var(--text-secondary);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${p.title}</div>
         </div>
-        <div style="font-size:11px;color:var(--text-muted)">${PROMO_FILTER_LABELS.recruit[p.recruit]} · ${PROMO_FILTER_LABELS.style[p.style]} · 👥 ${p.now}/${p.max}명</div>
       </div>
-      <div style="display:flex;gap:3px;flex-shrink:0">${clanBadgesHtml(p.badges, false)}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 12px;height:34px;border-top:1px solid var(--border)">
+        <div style="font-size:11px;color:var(--text-muted);flex-shrink:0">👥 ${p.now}/${p.max}명 · ${p.createdAt}</div>
+        <div style="display:flex;gap:3px;flex-wrap:nowrap;overflow:hidden;align-items:center">${clanBadgesHtml(p.badges)}</div>
+      </div>
     </div>`).join('');
 }
 
