@@ -102,8 +102,9 @@
 .lfg-drawer-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 18px; }
 .lfg-drawer-footer { padding: 16px 20px; border-top: 1px solid var(--border); flex-shrink: 0; background: var(--bg-base); }
 .lfg-drawer-section-title { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
-.lfg-drawer-info-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); margin-bottom: 7px; }
-.lfg-drawer-info-row span.label { color: var(--text-muted); font-size: 12px; width: 52px; flex-shrink: 0; }
+.lfg-drawer-info-row { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
+.lfg-drawer-info-row span.label { color: var(--text-muted); font-size: 12px; width: 68px; flex-shrink: 0; white-space: nowrap; }
+.lfg-drawer-info-row span.val { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ── 스크림 카드 ── */
 .scrim-card {
@@ -860,16 +861,15 @@
     <!-- 모집 정보 -->
     <div>
       <div class="lfg-drawer-section-title">모집 정보</div>
-      <div class="lfg-drawer-info-row"><span class="label">게임 모드</span><span id="ldMode"></span></div>
-      <div class="lfg-drawer-info-row"><span class="label">모집 인원</span><span id="ldSlots"></span></div>
-      <div class="lfg-drawer-info-row"><span class="label">티어</span><span id="ldTier"></span></div>
-      <div class="lfg-drawer-info-row"><span class="label">시간</span><span id="ldTime"></span></div>
+      <div class="lfg-drawer-info-row"><span class="label">게임 모드</span><span class="val" id="ldMode"></span></div>
+      <div class="lfg-drawer-info-row"><span class="label">희망 티어</span><span class="val" id="ldTier"></span></div>
+      <div class="lfg-drawer-info-row"><span class="label">게임 시작</span><span class="val" id="ldTime"></span></div>
     </div>
     <!-- 플레이어 정보 -->
     <div>
       <div class="lfg-drawer-section-title">플레이어 정보</div>
-      <div class="lfg-drawer-info-row"><span class="label">포지션</span><div id="ldPositions" style="display:flex;gap:4px;flex-wrap:wrap"></div></div>
-      <div class="lfg-drawer-info-row"><span class="label">마이크</span><span id="ldMic"></span></div>
+      <div class="lfg-drawer-info-row"><span class="label">역할</span><span class="val" id="ldPositions"></span></div>
+      <div class="lfg-drawer-info-row"><span class="label">마이크</span><span class="val" id="ldMic"></span></div>
     </div>
     <!-- 한마디 -->
     <div id="ldDescWrap">
@@ -1827,14 +1827,10 @@ function openLfgDrawer(id) {
   document.getElementById('ldClan').textContent = p.clan !== '없음' ? `소속 클랜: ${p.clan}` : '클랜 미소속';
 
   document.getElementById('ldMode').textContent = `${p.mode} · ${p.format}`;
-  document.getElementById('ldSlots').textContent = `+${p.slots}명 모집`;
-  document.getElementById('ldTier').textContent = (p.tiers && p.tiers.length) ? p.tiers.join(', ') : '티어 무관';
+  document.getElementById('ldTier').textContent = (p.tiers && p.tiers.length) ? p.tiers.join(' · ') : '무관';
   document.getElementById('ldTime').textContent = `${p.startTime}시 시작 · ${p.expires}시간 후 만료`;
   document.getElementById('ldMic').textContent = p.micRequired ? '🎙 필수' : '🔇 자유';
-
-
-  const posEl = document.getElementById('ldPositions');
-  posEl.innerHTML = (p.positions || []).map(pos => `<span class="lfg-tag">${pos}</span>`).join('');
+  document.getElementById('ldPositions').textContent = (p.positions && p.positions.length) ? p.positions.join(' · ') : '올포지';
 
   const descWrap = document.getElementById('ldDescWrap');
   if (p.desc) {
