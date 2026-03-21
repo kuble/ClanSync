@@ -834,9 +834,8 @@
     <div style="flex:1;min-width:0">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
         <div id="ldName" style="font-size:16px;font-weight:700"></div>
-        <span id="ldOnlineLabel" style="font-size:11px;padding:2px 7px;border-radius:99px;background:rgba(74,222,128,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.3)"></span>
+        <span id="ldRoleLabel" style="font-size:11px;padding:2px 7px;border-radius:99px;background:var(--bg-overlay);color:var(--text-secondary);border:1px solid var(--border)"></span>
       </div>
-      <div id="ldClan" style="font-size:13px;color:var(--text-muted)"></div>
     </div>
     <button onclick="closeLfgDrawer()" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;line-height:1;padding:4px">✕</button>
   </div>
@@ -1775,11 +1774,8 @@ function openLfgDrawer(id) {
   dot.style.cssText = 'position:absolute;bottom:1px;right:1px;width:10px;height:10px;border:2px solid var(--bg-base)';
 
   document.getElementById('ldName').textContent = p.name;
-  document.getElementById('ldOnlineLabel').textContent = p.online ? '온라인' : '자리비움';
-  document.getElementById('ldOnlineLabel').style.cssText = p.online
-    ? 'font-size:11px;padding:2px 7px;border-radius:99px;background:rgba(74,222,128,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.3)'
-    : 'font-size:11px;padding:2px 7px;border-radius:99px;background:rgba(251,191,36,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.3)';
-  document.getElementById('ldClan').textContent = p.clan !== '없음' ? `소속 클랜: ${p.clan}` : '클랜 미소속';
+  const roleLabel = (p.positions && p.positions.length) ? p.positions.join(' · ') : '올포지';
+  document.getElementById('ldRoleLabel').textContent = roleLabel;
 
   document.getElementById('ldMode').textContent = `${p.mode} · ${p.format}`;
   document.getElementById('ldTier').textContent = (p.tiers && p.tiers.length) ? p.tiers.join(' · ') : '무관';
