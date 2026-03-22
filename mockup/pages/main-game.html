@@ -2197,8 +2197,11 @@ function renderHomeLfg() {
         <div class="online-dot ${p.online ? 'g' : 'y'}" style="position:absolute;bottom:0;right:0;width:7px;height:7px;border:1.5px solid var(--bg-elevated)"></div>
       </div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:600">${p.name}</div>
-        <div style="font-size:11px;color:var(--text-muted)">${p.mode} · ${p.format}</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0">
+          <span style="font-size:13px;font-weight:600;flex-shrink:0">${p.name}</span>
+          <span style="display:inline-flex;align-items:center;gap:3px;flex-wrap:wrap;line-height:1">${lfgTierIconsHtml(p.tiers || [], [])}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${p.mode} · ${p.format}</div>
       </div>
       <span style="font-size:16px;color:var(--text-muted);flex-shrink:0;line-height:1" aria-hidden="true">›</span>
     </div>`).join('');
