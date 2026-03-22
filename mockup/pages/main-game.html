@@ -37,6 +37,9 @@
 
 /* ── 대시보드 그리드 ── */
 .dash-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+@media (max-width: 900px) {
+  .dash-grid { grid-template-columns: 1fr; }
+}
 .d-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 20px; }
 .d-card-sm   { grid-column: span 1; }
 .d-card-md   { grid-column: span 2; }
@@ -44,6 +47,25 @@
 .d-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
 .d-big   { font-size: 36px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
 .d-sub   { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
+/* 홈 대시보드 블록 한 줄 설명 */
+.home-block-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0 0 12px 0;
+}
+.home-promo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 145px;
+  gap: 10px;
+}
+@media (max-width: 1000px) {
+  .home-promo-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .home-promo-grid { grid-template-columns: 1fr; }
+}
 
 /* ── LFG ── */
 .lfg-bar {
@@ -1208,7 +1230,7 @@
     <div class="section-head" style="margin-bottom:20px">
       <div>
         <div class="section-title">🏠 오버워치 2 커뮤니티</div>
-        <div class="section-sub">지금 활발하게 활동 중인 플레이어 · 클랜을 만나세요</div>
+        <div class="section-sub">클랜 모집·파티·스크림·순위를 한 화면에서 빠르게 훑어보세요</div>
       </div>
     </div>
 
@@ -1216,36 +1238,20 @@
 
       <!-- 1행: 클랜 홍보 (전체 너비) -->
       <div class="d-card" style="grid-column:1/-1">
-        <div class="d-label" style="margin-bottom:14px">
-          📢 클랜 홍보
-          <div style="display:flex;align-items:center;gap:10px">
-            <span style="font-size:12px;color:var(--text-muted);font-weight:400">모집 중인 클랜 14개</span>
-          </div>
+        <div class="d-label" style="margin-bottom:10px;align-items:flex-start;flex-wrap:wrap;gap:8px">
+          <span>📢 클랜 홍보</span>
+          <span id="home-promo-meta" style="font-size:12px;color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:0">—</span>
         </div>
-        <div id="homePromoGrid" style="display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:145px;gap:10px"></div>
+        <p class="home-block-sub" id="home-promo-sub">등록된 클랜 모집 글을 요약해 보여줍니다.</p>
+        <div id="homePromoGrid" class="home-promo-grid"></div>
         <button class="btn btn-secondary btn-sm" style="margin-top:14px;width:100%" onclick="navTo('promo')">+ 클랜 홍보 전체 보기</button>
       </div>
 
       <!-- 2행 왼쪽: 스크림 모집 -->
       <div class="d-card">
-        <div class="d-label">⚔️ 스크림 모집 중</div>
-        <div>
-          <div class="preview-row">
-            <div class="avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#7c3aed,#3b82f6)">🔥</div>
-            <div style="flex:1"><div style="font-weight:600;font-size:13px">Phoenix Rising</div><div style="font-size:11px;color:var(--text-muted)">21:00 · 플레~다이아</div></div>
-            <span class="badge badge-success" style="font-size:10px">모집 중</span>
-          </div>
-          <div class="preview-row">
-            <div class="avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#0ea5e9,#06b6d4)">⚡</div>
-            <div style="flex:1"><div style="font-weight:600;font-size:13px">Blue Storm</div><div style="font-size:11px;color:var(--text-muted)">20:00 · 다이아~마스터</div></div>
-            <span class="badge badge-success" style="font-size:10px">모집 중</span>
-          </div>
-          <div class="preview-row">
-            <div class="avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#374151,#6b7280)">🛡</div>
-            <div style="flex:1"><div style="font-weight:600;font-size:13px">Iron Wall</div><div style="font-size:11px;color:var(--text-muted)">20:00 · 골드~플래</div></div>
-            <span class="badge badge-muted" style="font-size:10px">모집 완료</span>
-          </div>
-        </div>
+        <div class="d-label" style="margin-bottom:6px">⚔️ 스크림 모집 중</div>
+        <p class="home-block-sub" id="home-scrim-sub">클랜 간 대전 모집 요약</p>
+        <div id="home-scrim-preview"></div>
         <button class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%" onclick="navTo('scrim')">+ 스크림 모집 전체 보기</button>
       </div>
 
@@ -1255,7 +1261,7 @@
           ⚡ 스크림 자동 매칭
           <span class="badge badge-brand" style="font-size:10px">운영진+</span>
         </div>
-        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;line-height:1.6">비슷한 티어의 클랜을 자동으로 연결합니다</div>
+        <p class="home-block-sub">목록에서 상대를 직접 고르지 않고, 조건에 맞는 클랜을 시스템이 연결합니다 (스크림 탭의 카드 목록과는 다른 흐름).</p>
         <div class="form-group" style="margin:0 0 8px">
           <label class="label" style="font-size:11px">희망 날짜</label>
           <input class="input" type="date" value="2026-03-22" style="font-size:13px">
@@ -1274,38 +1280,17 @@
 
       <!-- 3행 왼쪽: 같이 할 사람 -->
       <div class="d-card">
-        <div class="d-label">🔍 같이 할 사람</div>
+        <div class="d-label" style="margin-bottom:6px">🔍 같이 할 사람</div>
+        <p class="home-block-sub" id="home-lfg-sub">—</p>
         <div class="preview-list" id="home-lfg-preview"></div>
         <button class="btn btn-secondary btn-sm" style="margin-top:12px;width:100%" onclick="navTo('lfg')">+ 같이 할 사람 전체 보기</button>
       </div>
 
       <!-- 3행 오른쪽: 이달의 클랜 순위 -->
       <div class="d-card">
-        <div class="d-label">🏆 이달의 클랜 순위</div>
-        <div class="rank-row">
-          <div class="rank-num top1">1</div>
-          <div class="avatar" style="width:24px;height:24px;font-size:10px;background:linear-gradient(135deg,#f59e0b,#ef4444)">B</div>
-          <div style="flex:1"><div style="font-size:13px;font-weight:600">Best Warriors</div></div>
-          <div style="font-size:13px">🥇</div>
-        </div>
-        <div class="rank-row">
-          <div class="rank-num top2">2</div>
-          <div class="avatar" style="width:24px;height:24px;font-size:10px;background:linear-gradient(135deg,#0ea5e9,#06b6d4)">S</div>
-          <div style="flex:1"><div style="font-size:13px;font-weight:600">Storm Rising</div></div>
-          <div style="font-size:13px">🥈</div>
-        </div>
-        <div class="rank-row">
-          <div class="rank-num top3">3</div>
-          <div class="avatar" style="width:24px;height:24px;font-size:10px">N</div>
-          <div style="flex:1"><div style="font-size:13px;font-weight:600">Night Owls</div></div>
-          <div style="font-size:13px">🥉</div>
-        </div>
-        <div class="rank-row" style="background:rgba(124,58,237,0.08);border-radius:var(--radius-sm);padding:8px;border:1px solid rgba(124,58,237,0.2);margin-top:4px">
-          <div class="rank-num" style="color:var(--brand-primary)">8</div>
-          <div class="avatar" style="width:24px;height:24px;font-size:10px">🔥</div>
-          <div style="flex:1"><div style="font-size:13px;font-weight:600">Phoenix Rising <span style="font-size:11px;color:var(--text-muted)">(내 클랜)</span></div></div>
-          <div style="font-size:12px;color:var(--success)">↑2</div>
-        </div>
+        <div class="d-label" style="margin-bottom:6px">🏆 이달의 클랜 순위</div>
+        <p class="home-block-sub" id="home-ranking-sub">매월 1일 초기화 · 활동(내전 참여) 기준</p>
+        <div id="home-ranking-preview"></div>
         <button class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%" onclick="navTo('ranking')">+ 클랜 순위 전체 보기</button>
       </div>
 
@@ -2174,7 +2159,15 @@ function renderLfg() {
 }
 function renderHomePromos() {
   const list = PROMOS.slice(0, 6);
-  document.getElementById('homePromoGrid').innerHTML = list.map(p => `
+  const meta = document.getElementById('home-promo-meta');
+  if (meta) meta.textContent = `모집 중인 클랜 ${PROMOS.length}개`;
+  const grid = document.getElementById('homePromoGrid');
+  if (!grid) return;
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;padding:24px"><div class="empty-state-icon">📢</div><div class="empty-state-text">등록된 클랜 모집이 없습니다</div></div>';
+    return;
+  }
+  grid.innerHTML = list.map(p => `
     <div class="promo-card${p.pinned ? ' pinned' : ''}" onclick="openPromoDrawer(${p.id})" style="cursor:pointer">
       <div style="flex:1;display:flex;gap:10px;padding:12px 12px 8px;overflow:hidden">
         <div class="card-avatar" style="width:38px;height:38px;font-size:18px;flex-shrink:0;background:${p.bg||'var(--bg-overlay)'};">${p.icon}</div>
@@ -2199,7 +2192,13 @@ function renderHomePromos() {
 
 function renderHomeLfg() {
   const el = document.getElementById('home-lfg-preview');
+  const sub = document.getElementById('home-lfg-sub');
+  if (sub) sub.textContent = `듀오·파티 모집 ${lfgPosts.length}건 · 아래는 최신 순 일부`;
   if (!el) return;
+  if (!lfgPosts.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:12px 0"><div class="empty-state-icon">🔍</div><div class="empty-state-text">모집 중인 파티가 없습니다</div></div>';
+    return;
+  }
   el.innerHTML = lfgPosts.slice(0,4).map(p => `
     <div class="preview-row">
       <div class="online-dot ${p.online?'g':'y'}"></div>
@@ -2237,6 +2236,29 @@ let SCRIMS = [
   { id:10, icon:'🌙', name:'Midnight',       opponentClanName:'Night Owls',       bg:'',                                          members:20, type:'친목',     status:'모집 중', date:'매주 토요일',   time:'자정~새벽',   tier:'전체',         tierMin:0, tierMax:7, mode:'5v5',    dayOffset:8,  hour:1,  minute:0,  desc:'늦은 밤 활동하는 클랜입니다. 편한 분위기 스크림 환영.' },
   { id:11, icon:'B',  name:'Best Warriors',  opponentClanName:'Red Dragons',    bg:'linear-gradient(135deg,#f59e0b,#ef4444)', members:28, type:'경쟁',     status:'모집 중', date:'이번 주 수요일',time:'21:00 이후',  tier:'마스터↑',      tierMin:5, tierMax:7, mode:'6v6',    dayOffset:3,  hour:22, minute:0,  desc:'상위 티어 클랜 스크림 구합니다. 전략적인 팀 우대.' },
 ];
+function renderHomeScrims() {
+  const el = document.getElementById('home-scrim-preview');
+  const sub = document.getElementById('home-scrim-sub');
+  if (!el) return;
+  const open = SCRIMS.filter(s => s.status === '모집 중');
+  if (sub) sub.textContent = `클랜 간 대전 모집 · 모집 중 ${open.length}건`;
+  if (!open.length) {
+    el.innerHTML =
+      '<div class="empty-state" style="padding:12px 0 4px"><div class="empty-state-icon">⚔️</div><div class="empty-state-text">모집 중인 스크림이 없습니다</div></div>';
+    return;
+  }
+  el.innerHTML = open
+    .slice(0, 3)
+    .map(s => {
+      const ic = s.icon != null ? String(s.icon) : (s.name && s.name[0]) || '?';
+      return `<div class="preview-row" style="cursor:pointer" onclick="navTo('scrim')">
+      <div class="avatar" style="width:28px;height:28px;font-size:11px;background:${s.bg || 'var(--bg-overlay)'}">${escHtml(ic)}</div>
+      <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px">${escHtml(s.name)}</div><div style="font-size:11px;color:var(--text-muted)">${escHtml(s.date)} · ${escHtml(s.time)} · ${escHtml(s.tier)}</div></div>
+      <span class="badge badge-success" style="font-size:10px;flex-shrink:0">모집 중</span>
+    </div>`;
+    })
+    .join('');
+}
 const SCRIM_DOW = ['일','월','화','수','목','금','토'];
 /** OW2 경쟁전식 티어 슬라이더: 브론즈 5~1 … 그랜드마스터 5~1 → 챌린저 5~1 → 프로 (총 41단계, 인덱스 0~40) */
 const SCRIM_APPLY_RANKS = (() => {
@@ -2790,6 +2812,34 @@ const RANKING = [
   { rank:9,  name:'Iron Wall',     icon:'🛡',bg:'linear-gradient(135deg,#374151,#6b7280)',count:38, totalGames:520, monthScrims:8, activeRatioPct:80, members:10, active: 8, medal:'' },
   { rank:10, name:'Midnight',      icon:'🌙',bg:'',                                        count:31, totalGames:680, monthScrims:12, activeRatioPct:55, members:20, active:11, medal:'' },
 ];
+function renderHomeRanking() {
+  const el = document.getElementById('home-ranking-preview');
+  const sub = document.getElementById('home-ranking-sub');
+  if (sub) sub.textContent = '매월 1일 초기화 · 활동(내전 참여) 기준';
+  if (!el) return;
+  const top3 = RANKING.filter(r => r.rank <= 3);
+  const mine = RANKING.find(r => r.mine);
+  let html = top3
+    .map(r => {
+      const cls = r.rank === 1 ? 'top1' : r.rank === 2 ? 'top2' : 'top3';
+      return `<div class="rank-row">
+      <div class="rank-num ${cls}">${r.rank}</div>
+      <div class="avatar" style="width:24px;height:24px;font-size:10px;background:${r.bg || 'var(--bg-overlay)'}">${escHtml(String(r.icon))}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${escHtml(r.name)}</div></div>
+      <div style="font-size:13px">${r.medal || ''}</div>
+    </div>`;
+    })
+    .join('');
+  if (mine && mine.rank > 3) {
+    html += `<div class="rank-row" style="background:rgba(124,58,237,0.08);border-radius:var(--radius-sm);padding:8px;border:1px solid rgba(124,58,237,0.2);margin-top:4px">
+      <div class="rank-num" style="color:var(--brand-primary)">${mine.rank}</div>
+      <div class="avatar" style="width:24px;height:24px;font-size:10px;background:${mine.bg || 'var(--bg-overlay)'}">${escHtml(String(mine.icon))}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${escHtml(mine.name)} <span style="font-size:11px;color:var(--text-muted)">(내 클랜)</span></div></div>
+      <div style="font-size:12px;color:var(--success)">${mine.trend || ''}</div>
+    </div>`;
+  }
+  el.innerHTML = html;
+}
 /** 목업: 이번 달 내전 참여 횟수 TOP (게임 전체, 닉네임·클랜) */
 const RANKING_INTRA_LEADERS = [
   { rank: 1, nick: '윈터플레이', clan: 'Phoenix Rising', intraCount: 41 },
@@ -3803,9 +3853,11 @@ function openScrimChat() {
 renderLfg();
 renderHomeLfg();
 renderScrims();
+renderHomeScrims();
 renderHomePromos();
 renderPromos();
 renderRanking();
+renderHomeRanking();
 renderRankingIntraLeaders();
 renderRankingHourChart();
 renderRankingDowChart();
