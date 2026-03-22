@@ -1282,6 +1282,7 @@
       <!-- 3행 오른쪽: 이달의 클랜 순위 -->
       <div class="d-card">
         <div class="d-label" style="margin-bottom:6px">🏆 이달의 클랜 순위</div>
+        <p id="home-ranking-topic" class="home-ranking-topic" style="font-size:12px;color:var(--text-secondary);line-height:1.45;margin:0 0 10px 0">—</p>
         <div id="home-ranking-preview"></div>
         <button class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%" onclick="navTo('ranking')">+ 클랜 순위 전체 보기</button>
       </div>
@@ -2802,25 +2803,57 @@ const RANKING = [
   { rank:9,  name:'Iron Wall',     icon:'🛡',bg:'linear-gradient(135deg,#374151,#6b7280)',count:38, totalGames:520, monthScrims:8, activeRatioPct:80, members:10, active: 8, medal:'' },
   { rank:10, name:'Midnight',      icon:'🌙',bg:'',                                        count:31, totalGames:680, monthScrims:12, activeRatioPct:55, members:20, active:11, medal:'' },
 ];
+/** 클랜 순위 탭과 동일 정렬 (홈 미리보기·목록 공통) */
+function getSortedRankingList() {
+  const tie = (a, b) => a.name.localeCompare(b.name, 'ko');
+  const list = [...RANKING];
+  if (rankingSort === 'activity') {
+    list.sort((a, b) => (b.count - a.count) || tie(a, b));
+  } else if (rankingSort === 'monthScrims') {
+    list.sort((a, b) => (b.monthScrims - a.monthScrims) || tie(a, b));
+  } else if (rankingSort === 'activeRatio') {
+    list.sort((a, b) => (b.activeRatioPct - a.activeRatioPct) || tie(a, b));
+  } else if (rankingSort === 'total') {
+    list.sort((a, b) => (b.totalGames - a.totalGames) || tie(a, b));
+  }
+  return list;
+}
+function homeRankingTopicLine() {
+  const reset = ' · 매월 1일 초기화';
+  if (rankingSort === 'activity') return `기준: 이번 달 내전 경기 수${reset}`;
+  if (rankingSort === 'monthScrims') return `기준: 이번 달 스크림 횟수${reset}`;
+  if (rankingSort === 'activeRatio') return `기준: 활성 유저 비율${reset}`;
+  if (rankingSort === 'total') return '기준: 누적 경기 수 (전체 기간)';
+  return `기준: 이번 달 내전 경기 수${reset}`;
+}
 function renderHomeRanking() {
+  const topicEl = document.getElementById('home-ranking-topic');
+  if (topicEl) topicEl.textContent = homeRankingTopicLine();
+
   const el = document.getElementById('home-ranking-preview');
   if (!el) return;
-  const top3 = RANKING.filter(r => r.rank <= 3);
-  const mine = RANKING.find(r => r.mine);
+
+  const list = getSortedRankingList();
+  const top3 = list.slice(0, 3);
+  const mine = list.find(r => r.mine);
+  const minePos = mine ? list.findIndex(r => r.mine) + 1 : 0;
+
   let html = top3
-    .map(r => {
-      const cls = r.rank === 1 ? 'top1' : r.rank === 2 ? 'top2' : 'top3';
+    .map((r, i) => {
+      const pos = i + 1;
+      const cls = pos === 1 ? 'top1' : pos === 2 ? 'top2' : 'top3';
+      const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉';
       return `<div class="rank-row">
-      <div class="rank-num ${cls}">${r.rank}</div>
+      <div class="rank-num ${cls}">${pos}</div>
       <div class="avatar" style="width:24px;height:24px;font-size:10px;background:${r.bg || 'var(--bg-overlay)'}">${escHtml(String(r.icon))}</div>
       <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${escHtml(r.name)}</div></div>
-      <div style="font-size:13px">${r.medal || ''}</div>
+      <div style="font-size:13px">${medal}</div>
     </div>`;
     })
     .join('');
-  if (mine && mine.rank > 3) {
+  if (mine && minePos > 3) {
     html += `<div class="rank-row" style="background:rgba(124,58,237,0.08);border-radius:var(--radius-sm);padding:8px;border:1px solid rgba(124,58,237,0.2);margin-top:4px">
-      <div class="rank-num" style="color:var(--brand-primary)">${mine.rank}</div>
+      <div class="rank-num" style="color:var(--brand-primary)">${minePos}</div>
       <div class="avatar" style="width:24px;height:24px;font-size:10px;background:${mine.bg || 'var(--bg-overlay)'}">${escHtml(String(mine.icon))}</div>
       <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${escHtml(mine.name)} <span style="font-size:11px;color:var(--text-muted)">(내 클랜)</span></div></div>
       <div style="font-size:12px;color:var(--success)">${mine.trend || ''}</div>
@@ -2880,17 +2913,7 @@ function renderRanking() {
             ? '활성 유저 비율'
             : '누적 경기';
   }
-  const tie = (a, b) => a.name.localeCompare(b.name, 'ko');
-  let list = [...RANKING];
-  if (rankingSort === 'activity') {
-    list.sort((a, b) => (b.count - a.count) || tie(a, b));
-  } else if (rankingSort === 'monthScrims') {
-    list.sort((a, b) => (b.monthScrims - a.monthScrims) || tie(a, b));
-  } else if (rankingSort === 'activeRatio') {
-    list.sort((a, b) => (b.activeRatioPct - a.activeRatioPct) || tie(a, b));
-  } else if (rankingSort === 'total') {
-    list.sort((a, b) => (b.totalGames - a.totalGames) || tie(a, b));
-  }
+  const list = getSortedRankingList();
   const metricCell = r => {
     if (rankingSort === 'activity') return `${r.count}회`;
     if (rankingSort === 'monthScrims') return `${r.monthScrims}회`;
@@ -2917,6 +2940,7 @@ function renderRanking() {
     </div>`;
   }).join('');
   updateRankingMyClanBar(list);
+  renderHomeRanking();
 }
 /** 정렬된 목록 기준으로 상단 「내 클랜」 바 갱신 */
 function updateRankingMyClanBar(sortedList) {
@@ -3845,7 +3869,6 @@ renderHomeScrims();
 renderHomePromos();
 renderPromos();
 renderRanking();
-renderHomeRanking();
 renderRankingIntraLeaders();
 renderRankingHourChart();
 renderRankingDowChart();
