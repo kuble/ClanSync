@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClanSync — 회원가입</title>
+<link rel="stylesheet" href="../styles/main.css">
+<style>
+.auth-container { display: flex; min-height: 100vh; }
+.auth-left {
+  flex: 1;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px;
+  position: relative;
+  overflow: hidden;
+}
+.auth-left-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(59,130,246,0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+.benefits-list { list-style: none; margin-top: 40px; display: flex; flex-direction: column; gap: 16px; max-width: 300px; }
+.benefit-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  font-size: 14px; color: var(--text-secondary);
+}
+.benefit-icon {
+  width: 32px; height: 32px;
+  background: rgba(124, 58, 237, 0.15);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.benefit-text strong { display: block; color: var(--text-primary); font-size: 14px; margin-bottom: 2px; }
+
+.auth-right {
+  width: 500px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px 56px;
+  overflow-y: auto;
+}
+.auth-title { font-size: 26px; font-weight: 800; margin-bottom: 8px; }
+.auth-subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 32px; }
+
+.form-group { margin-bottom: 16px; }
+.input-hint { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
+.input-error { font-size: 12px; color: var(--danger); margin-top: 5px; display: none; }
+
+.pwd-strength {
+  margin-top: 8px;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.pwd-strength-bar {
+  flex: 1;
+  height: 3px;
+  background: var(--bg-overlay);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.pwd-strength-fill { height: 100%; border-radius: 99px; transition: width 0.3s; }
+.pwd-strength-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+
+.terms-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 13px; color: var(--text-secondary);
+  margin-top: 8px; margin-bottom: 20px;
+}
+.terms-row input[type="checkbox"] {
+  width: 16px; height: 16px;
+  margin-top: 2px;
+  accent-color: var(--brand-primary);
+  cursor: pointer;
+}
+.terms-row a { color: var(--brand-secondary); }
+
+.gender-opt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  user-select: none;
+}
+.gender-opt input { display: none; }
+.gender-opt:has(input:checked) {
+  background: rgba(124,58,237,0.15);
+  color: #a78bfa;
+  font-weight: 600;
+}
+.gender-opt:not(:has(input:checked)):hover {
+  background: var(--bg-overlay);
+  color: var(--text-primary);
+}
+
+.back-btn {
+  position: absolute; top: 20px; left: 20px;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--text-secondary); cursor: pointer;
+}
+.back-btn:hover { color: var(--text-primary); }
+
+@media (max-width: 768px) {
+  .auth-left { display: none; }
+  .auth-right { width: 100%; padding: 40px 24px; }
+}
+</style>
+</head>
+<body>
+<div class="auth-container">
+
+  <div class="auth-left">
+    <div class="auth-left-bg"></div>
+    <div style="position:relative">
+      <div style="font-size:32px; font-weight:800; background:var(--gradient-brand); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:8px;">ClanSync</div>
+      <div style="font-size:16px; color:var(--text-secondary); margin-bottom:4px;">클랜 운영에 필요한 도구를 한곳에</div>
+      <ul class="benefits-list">
+        <li class="benefit-item">
+          <div class="benefit-icon">📊</div>
+          <div class="benefit-text">
+            <strong>클랜 통계와 성적 한눈에</strong>
+            승률, 참여율, 히어로 기록까지
+          </div>
+        </li>
+        <li class="benefit-item">
+          <div class="benefit-icon">🎯</div>
+          <div class="benefit-text">
+            <strong>내전·스크림 매치 기록</strong>
+            과거 대전 결과를 언제든 조회
+          </div>
+        </li>
+        <li class="benefit-item">
+          <div class="benefit-icon">👥</div>
+          <div class="benefit-text">
+            <strong>클랜원 관리</strong>
+            역할, 티어, 포지션을 한곳에서
+          </div>
+        </li>
+        <li class="benefit-item">
+          <div class="benefit-icon">🔗</div>
+          <div class="benefit-text">
+            <strong>Battle.net 연동</strong>
+            오버워치 계정과 안전하게 연결
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="auth-right" style="position:relative">
+    <a href="index.html" class="back-btn">← 랜딩으로</a>
+
+    <div style="margin-bottom: 28px">
+      <div class="auth-title">ClanSync에 오신 걸 환영해요</div>
+      <div class="auth-subtitle">몇 가지 정보만 입력하면 바로 시작할 수 있어요.</div>
+    </div>
+
+    <form onsubmit="handleSignUp(event)">
+      <div class="form-group">
+        <label class="label">이메일 <span style="color:var(--danger)">*</span></label>
+        <input class="input" type="email" id="email" placeholder="your@email.com">
+      </div>
+
+      <div class="form-group">
+        <label class="label">닉네임 <span style="color:var(--danger)">*</span></label>
+        <input class="input" type="text" id="nickname" placeholder="2~12자 (영문·한글·숫자)" maxlength="12"
+               oninput="checkNickname(this)">
+        <div class="input-hint">다른 유저에게 보이는 이름입니다 (최대 12자)</div>
+        <div class="input-error" id="nickname-err">이 닉네임은 사용할 수 없습니다</div>
+      </div>
+
+      <div style="display:flex;gap:12px">
+        <div class="form-group" style="flex:1">
+          <label class="label">출생 연도 <span style="color:var(--danger)">*</span></label>
+          <select class="input" id="birthYear" required>
+            <option value="" disabled selected>선택</option>
+          </select>
+          <div class="input-hint">서비스 이용 자격 확인에 사용됩니다</div>
+        </div>
+        <div class="form-group" style="flex:1">
+          <label class="label">성별 <span style="color:var(--danger)">*</span></label>
+          <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;height:44px">
+            <label class="gender-opt" style="flex:1">
+              <input type="radio" name="gender" value="male" required>
+              <span>남</span>
+            </label>
+            <label class="gender-opt" style="flex:1;border-left:1px solid var(--border)">
+              <input type="radio" name="gender" value="female">
+              <span>여</span>
+            </label>
+            <label class="gender-opt" style="flex:1;border-left:1px solid var(--border)">
+              <input type="radio" name="gender" value="private">
+              <span>비공개</span>
+            </label>
+          </div>
+          <div class="input-hint">통계 목적이며 언제든 변경 가능합니다</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="label">비밀번호 <span style="color:var(--danger)">*</span></label>
+        <div style="position:relative">
+          <input class="input" type="password" id="password" placeholder="영문+숫자+특수문자 8자 이상"
+                 oninput="checkPwdStrength(this.value)" style="padding-right:42px">
+          <button type="button" onclick="togglePwd(this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px">보기</button>
+        </div>
+        <div class="pwd-strength" id="pwd-strength" style="display:none">
+          <div class="pwd-strength-bar"><div class="pwd-strength-fill" id="pwd-fill" style="width:0%;background:var(--danger)"></div></div>
+          <div class="pwd-strength-bar"><div class="pwd-strength-fill" id="pwd-fill2" style="width:0%;background:var(--warning)"></div></div>
+          <div class="pwd-strength-bar"><div class="pwd-strength-fill" id="pwd-fill3" style="width:0%;background:var(--success)"></div></div>
+          <span class="pwd-strength-label" id="pwd-label">약함</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="label">비밀번호 확인 <span style="color:var(--danger)">*</span></label>
+        <input class="input" type="password" id="password-confirm" placeholder="비밀번호를 다시 입력하세요"
+               oninput="checkPwdMatch()">
+        <div class="input-error" id="pwd-match-err">비밀번호가 일치하지 않습니다</div>
+      </div>
+
+      <div class="terms-row">
+        <input type="checkbox" id="terms" required>
+        <label for="terms">
+          <a href="#">이용약관</a> 및 <a href="#">개인정보처리방침</a>에 동의합니다 (필수)
+        </label>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-full" style="padding:13px">
+        가입하기
+      </button>
+    </form>
+
+    <div style="text-align:center; font-size:13px; color:var(--text-secondary); margin-top:20px">
+      이미 계정이 있으신가요? <a href="sign-in.html" style="color:var(--brand-secondary)">로그인</a>
+    </div>
+  </div>
+</div>
+
+<script src="../scripts/app.js"></script>
+<script>
+(function() {
+  const sel = document.getElementById('birthYear');
+  const cur = new Date().getFullYear();
+  for (let y = cur - 10; y >= 1950; y--) {
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y + '년';
+    sel.appendChild(opt);
+  }
+})();
+
+function handleSignUp(e) {
+  e.preventDefault();
+  window.location.href = 'games.html';
+}
+function togglePwd(btn) {
+  const input = btn.previousElementSibling;
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = '숨기기'; }
+  else { input.type = 'password'; btn.textContent = '보기'; }
+}
+function checkNickname(input) {
+  const err = document.getElementById('nickname-err');
+  if (input.value === 'admin') {
+    err.style.display = 'block';
+    input.style.borderColor = 'var(--danger)';
+  } else {
+    err.style.display = 'none';
+    input.style.borderColor = '';
+  }
+}
+function checkPwdStrength(val) {
+  const bar = document.getElementById('pwd-strength');
+  if (!val) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  let score = 0;
+  if (val.length >= 8) score++;
+  if (/[A-Za-z]/.test(val) && /[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+  const labels = ['약함', '보통', '강함'];
+  const colors = ['var(--danger)', 'var(--warning)', 'var(--success)'];
+  ['pwd-fill','pwd-fill2','pwd-fill3'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.style.width = i < score ? '100%' : '0%';
+    el.style.background = colors[score - 1] || 'var(--danger)';
+  });
+  document.getElementById('pwd-label').textContent = labels[score - 1] || '약함';
+}
+function checkPwdMatch() {
+  const pwd = document.getElementById('password').value;
+  const confirm = document.getElementById('password-confirm').value;
+  const err = document.getElementById('pwd-match-err');
+  if (confirm && pwd !== confirm) {
+    err.style.display = 'block';
+    document.getElementById('password-confirm').style.borderColor = 'var(--danger)';
+  } else {
+    err.style.display = 'none';
+    document.getElementById('password-confirm').style.borderColor = '';
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+{
+  "clan": {
+    "id": "clan-phoenix-001",
+    "name": "Phoenix Rising",
+    "game_slug": "overwatch",
+    "emoji": "??",
+    "description": "???? ?? ??. ?? ??? ?? ?? ??.",
+    "tags": [
+      "??",
+      "??",
+      "20?"
+    ],
+    "age_range": "20?",
+    "gender_policy": "all",
+    "max_members": 30,
+    "discord_url": "https://discord.gg/example",
+    "subscription_tier": "free",
+    "created_at": "2025-09-01"
+  },
+  "stats": {
+    "total_members": 28,
+    "active_members": 24,
+    "this_month": {
+      "wins": 32,
+      "losses": 15,
+      "win_rate": 68.1,
+      "total_matches": 47
+    },
+    "recent_5": [
+      "W",
+      "W",
+      "L",
+      "W",
+      "W"
+    ],
+    "coin_pool": 4820
+  },
+  "members": [
+    {
+      "id": "u001",
+      "nickname": "???",
+      "role": "leader",
+      "participation_rate": 100,
+      "manual_scores": {
+        "tank": 3.5,
+        "dps": 4,
+        "support": 2
+      }
+    },
+    {
+      "id": "u002",
+      "nickname": "???",
+      "role": "officer",
+      "participation_rate": 88,
+      "manual_scores": {
+        "tank": 2,
+        "dps": 4.5,
+        "support": 1.5
+      }
+    },
+    {
+      "id": "u003",
+      "nickname": "???",
+      "role": "member",
+      "participation_rate": 76,
+      "manual_scores": {
+        "tank": 1,
+        "dps": 1.5,
+        "support": 4.2
+      }
+    },
+    {
+      "id": "u004",
+      "nickname": "???",
+      "role": "member",
+      "participation_rate": 82,
+      "manual_scores": {
+        "tank": 4.8,
+        "dps": 2,
+        "support": 1
+      }
+    }
+  ],
+  "maps_winrate": [
+    {
+      "map": "????",
+      "map_type": "??",
+      "wins": 9,
+      "losses": 2
+    },
+    {
+      "map": "????",
+      "map_type": "??",
+      "wins": 6,
+      "losses": 2
+    },
+    {
+      "map": "????",
+      "map_type": "??",
+      "wins": 8,
+      "losses": 4
+    },
+    {
+      "map": "??",
+      "map_type": "??",
+      "wins": 6,
+      "losses": 5
+    },
+    {
+      "map": "??",
+      "map_type": "??",
+      "wins": 4,
+      "losses": 6
+    }
+  ],
+  "recent_matches": [
+    {
+      "id": "m001",
+      "map": "????",
+      "map_type": "??",
+      "result": "W",
+      "score": "2-1",
+      "match_type": "intra",
+      "played_at": "2026-03-20T21:30:00"
+    },
+    {
+      "id": "m002",
+      "map": "????",
+      "map_type": "??",
+      "result": "W",
+      "score": "1-0",
+      "match_type": "intra",
+      "played_at": "2026-03-20T20:15:00"
+    },
+    {
+      "id": "m003",
+      "map": "??",
+      "map_type": "??",
+      "result": "L",
+      "score": "1-2",
+      "match_type": "scrim",
+      "opponent": "Blue Storm",
+      "played_at": "2026-03-19T21:00:00"
+    },
+    {
+      "id": "m004",
+      "map": "????",
+      "map_type": "??",
+      "result": "W",
+      "score": "2-0",
+      "match_type": "intra",
+      "played_at": "2026-03-19T20:00:00"
+    }
+  ],
+  "events": [
+    {
+      "id": "e001",
+      "title": "?? ??",
+      "event_type": "intra",
+      "scheduled_at": "2026-03-22T21:00:00"
+    },
+    {
+      "id": "e002",
+      "title": "Blue Storm ???",
+      "event_type": "scrim",
+      "scheduled_at": "2026-03-25T20:00:00"
+    },
+    {
+      "id": "e003",
+      "title": "?? ????",
+      "event_type": "event",
+      "scheduled_at": "2026-03-29T10:00:00"
+    }
+  ]
+}

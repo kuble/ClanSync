@@ -1,0 +1,29 @@
+{
+  "games": [
+    {
+      "id": "ow2",
+      "slug": "overwatch",
+      "name_ko": "????",
+      "name_en": "Overwatch 2",
+      "is_active": true,
+      "thumbnail_emoji": "??"
+    },
+    {
+      "id": "valo",
+      "slug": "valorant",
+      "name_ko": "????",
+      "name_en": "Valorant",
+      "is_active": true,
+      "thumbnail_emoji": "??"
+    },
+    {
+      "id": "lol",
+      "slug": "lol",
+      "name_ko": "?? ?? ???",
+      "name_en": "League of Legends",
+      "is_active": false,
+      "thumbnail_emoji": "??",
+      "launch_eta": "2026 Q3"
+    }
+  ]
+}

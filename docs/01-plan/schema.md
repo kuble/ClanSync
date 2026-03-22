@@ -242,3 +242,74 @@ ClanMember ──< CoinTransaction
 | clan_id | uuid FK → clans | null = 개인 구매 |
 | item_id | uuid FK → store_items | |
 | purchased_at | timestamptz | |
+
+---
+
+## 클랜 순위·통계 지표 (승률 등 경쟁 지표 제외)
+
+아래 지표는 `matches` + `match_players` + `clan_members`로 집계한다.  
+**경기 시각**은 `matches.played_at`(timestamptz) 기준이며, UI·랭킹 집계 시 **표시 타임존**(예: KST)을 정해 시간대별 히스토그램에 사용한다.
+
+### 1) 이번달 활성 유저 비율 (%)
+
+**정의:** 해당 월에 **내전 또는 스크림**에 1회 이상 참여 기록이 있는 **고유 구성원 수** ÷ **클랜 등록 전체 구성원 수** × 100.
+
+| 항목 | 소스·조건 |
+|------|-----------|
+| 분자 (고유 인원) | `match_players.user_id`의 `DISTINCT` 개수. 조인: `matches.id = match_players.match_id`, `matches.clan_id = 대상 클랜`, `matches.match_type IN ('intra','scrim')`, `matches.played_at`이 해당 달(캘린더 월)에 포함, `matches.status = 'finished'`(기록 확정된 경기만 집계 권장). |
+| 분모 (전체 구성원) | `clan_members`에서 `clan_id = 대상 클랜`이고 **`status = 'active'`**인 행 수(가입 승인·활동 중인 멤버만). 대기·탈퇴·차단은 제외. |
+
+**비고:** 분모가 0이면 비율은 null 또는 표시 생략. 스크림이 타 클랜과의 경기인 경우에도 **우리 클랜 소속으로 `match_players`에 올라간 인원만** 해당 클랜의 분자에 포함된다고 가정(스키마상 `matches.clan_id`가 주최 클랜인지 전역 설계에 맞게 한 번 더 확정 필요).
+
+### 2) 최다 참여 구성원 순위 (내전 참여 횟수 기반)
+
+**정의:** 집계 기간(예: 당월 또는 롤링 30일) 동안 **`match_type = 'intra'`**인 경기에 `match_players`로 참여한 **횟수 합**이 큰 순.
+
+| 항목 | 소스·조건 |
+|------|-----------|
+| 카운트 | `matches` ∩ `match_players`에서 `match_type = 'intra'`, `status = 'finished'`, 기간 필터. 동일 경기에 양 팀 모두 기록되면 행 수만큼 합산(한 경기 = 1회 참여로 카운트). |
+| 범위 | **「전체 클랜원 통틀어」**는 게임 단위 글로벌 랭킹으로 정의: `matches.game_id = :gameId`로 한정하고, 클랜 무관하게 `user_id`별 합산 후 순위. 클랜 **내부** 랭킹만 필요하면 `matches.clan_id = :clanId`를 추가로 필터. |
+
+**비고:** 닉네임 표시는 `users` 조인. 동점 시 `user_id` 사전순 등 타이브레이크 규칙을 정한다.
+
+### 3) 주간 가장 내전 진행이 많이 된 시간대
+
+**정의:** 입력된 **내전** 기록(`match_type = 'intra'`)만 사용. **최근 1주**(또는 ISO 주차) 구간에서 `played_at`을 표준 타임존으로 변환한 **시(hour) 0~23**별 건수를 세고, **건수가 최대인 시간대**를 표시(동점이면 복수 표시 또는 가장 이른 시각).
+
+| 항목 | 소스·조건 |
+|------|-----------|
+| 집계 | `matches`에서 `clan_id`(클랜 대시보드용) 또는 `game_id`(게임 전체용), `match_type = 'intra'`, `status = 'finished'`, `played_at`이 주간 윈도우 내. `date_trunc('hour', played_at AT TIME ZONE 'Asia/Seoul')` 등으로 시간 버킷. |
+| 표시 | 예: **「이번 주 가장 많이 진행된 시간대: 21시~22시」** 또는 막대 차트로 0~23 분포. |
+
+---
+
+### (선택) 집계 캐시 테이블
+
+배치·뷰로 매월/매주 갱신해 조회 비용을 줄일 수 있다.
+
+#### clan_monthly_metrics (예시)
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| clan_id | uuid FK → clans | |
+| year_month | varchar | `YYYY-MM` |
+| member_total | int | 분모용 활성 멤버 수 |
+| active_distinct_month | int | 분자용 고유 참여자 수 |
+| active_ratio | numeric(5,2) | 활성 유저 비율 (%) |
+| updated_at | timestamptz | |
+
+`UNIQUE(clan_id, year_month)`
+
+#### user_intra_participation_monthly (예시, 글로벌 랭킹용)
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| game_id | uuid FK → games | |
+| user_id | uuid FK → users | |
+| year_month | varchar | |
+| intra_count | int | 해당 월 내전 참여 횟수 |
+| updated_at | timestamptz | |
+
+`UNIQUE(game_id, user_id, year_month)`
+
+인덱스 권장: `matches (clan_id, played_at, match_type)`, `matches (game_id, played_at, match_type)`, `match_players (user_id, match_id)`.

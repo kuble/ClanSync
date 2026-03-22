@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClanSync — 게임 선택</title>
+<link rel="stylesheet" href="../styles/main.css">
+<style>
+.page-content {
+  max-width: 900px;
+  margin: 80px auto 0;
+  padding: 48px 24px;
+}
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 36px;
+}
+.page-title { font-size: 26px; font-weight: 800; }
+.page-desc { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+
+.search-box {
+  position: relative;
+  width: 280px;
+}
+.search-box input {
+  width: 100%;
+  padding: 9px 14px 9px 36px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: var(--font-sans);
+  outline: none;
+}
+.search-box input:focus { border-color: var(--brand-primary); }
+.search-box .search-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted); font-size: 16px; pointer-events: none;
+}
+
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.game-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.game-card:hover {
+  border-color: rgba(124, 58, 237, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+}
+.game-card.inactive { opacity: 0.5; cursor: not-allowed; }
+.game-card.inactive:hover { transform: none; box-shadow: none; border-color: var(--border); }
+
+.game-thumbnail {
+  width: 100%;
+  aspect-ratio: 16/9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  position: relative;
+  overflow: hidden;
+}
+.game-thumb-ow { background: linear-gradient(135deg, #1e3a5f 0%, #0a1628 100%); }
+.game-thumb-valo { background: linear-gradient(135deg, #3d0000 0%, #1a0000 100%); }
+.game-thumb-lol { background: linear-gradient(135deg, #2d1b00 0%, #0f0800 100%); }
+.game-thumb-pubg { background: linear-gradient(135deg, #1a2a1a 0%, #0a0f0a 100%); }
+.game-thumb-more { background: var(--bg-overlay); }
+
+.game-status-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.status-active { background: rgba(34,197,94,0.2); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+.status-soon { background: rgba(90,90,114,0.4); color: var(--text-muted); border: 1px solid var(--border); }
+
+.game-verified-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(59,130,246,0.25);
+  border: 1px solid rgba(59,130,246,0.4);
+  border-radius: 99px;
+  font-size: 11px;
+  color: #93c5fd;
+  padding: 3px 10px;
+}
+
+.game-body {
+  padding: 16px;
+}
+.game-name { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.game-clan-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.game-clan-dot { width: 6px; height: 6px; background: var(--success); border-radius: 50%; }
+.game-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.profile-menu {
+  position: relative;
+}
+.profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 14px;
+}
+.profile-btn:hover { border-color: var(--border-hover); }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html"><span class="navbar-brand">⚡ ClanSync</span></a>
+  <div class="navbar-nav">
+    <div class="profile-menu" id="profileMenu">
+      <button class="profile-btn" onclick="toggleProfileMenu()">
+        <div class="avatar" style="width:28px;height:28px;font-size:12px">김</div>
+        <span class="profile-btn-arrow">▼</span>
+      </button>
+      <div class="profile-dropdown" id="profileDropdown">
+        <div class="pd-header">
+          <div class="avatar" style="width:40px;height:40px;font-size:16px">김</div>
+          <div>
+            <div style="font-weight:700;font-size:14px">김테스트</div>
+            <div style="font-size:12px;color:var(--text-muted)">kim@example.com</div>
+          </div>
+        </div>
+        <div class="pd-divider"></div>
+        <a href="profile.html"><div class="pd-item">
+          <span class="pd-item-icon">👤</span><span>마이페이지</span><span class="pd-item-arrow">›</span>
+        </div></a>
+        <div class="pd-item pd-coins">
+          <span class="pd-item-icon">🪙</span>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500;color:var(--text-primary)">코인</div>
+            <div style="font-size:11px;color:var(--text-muted)">보유 <span class="pd-coin-value">1,240</span></div>
+          </div>
+        </div>
+        <div class="pd-divider"></div>
+        <div class="pd-item" onclick="toggleTheme()">
+          <span class="pd-item-icon" id="themeIcon">🌙</span>
+          <span style="flex:1">다크 모드</span>
+          <div class="toggle on" id="themeToggle"></div>
+        </div>
+        <div class="pd-item" style="cursor:default">
+          <span class="pd-item-icon">🌐</span><span style="flex:1">언어</span>
+          <div class="lang-tabs">
+            <button class="lang-tab active" onclick="setLang(this,'ko')">한국어</button>
+            <button class="lang-tab" onclick="setLang(this,'en')">EN</button>
+            <button class="lang-tab" onclick="setLang(this,'ja')">日本語</button>
+          </div>
+        </div>
+        <div class="pd-divider"></div>
+        <div class="pd-item pd-logout" onclick="window.location.href='sign-in.html'">
+          <span class="pd-item-icon">🚪</span><span>로그아웃</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="page-content">
+  <div class="page-header">
+    <div>
+      <div class="page-title">게임 선택</div>
+      <div class="page-desc">플레이할 게임을 선택하세요.</div>
+    </div>
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="게임 검색" oninput="filterGames(this.value)">
+    </div>
+  </div>
+
+  <div class="games-grid" id="gamesGrid">
+
+    <div class="game-card" onclick="window.location.href='main-clan.html'">
+      <div class="game-thumbnail game-thumb-ow">
+        <span>🎮</span>
+        <span class="game-status-badge status-active">서비스 중</span>
+        <span class="game-verified-badge">연동됨</span>
+      </div>
+      <div class="game-body">
+        <div class="game-name">오버워치</div>
+        <div class="game-clan-info">
+          <div class="game-clan-dot"></div>
+          <span>Phoenix Rising 클랜 가입됨</span>
+        </div>
+      </div>
+      <div class="game-footer">
+        <span>마지막 접속 28일 전</span>
+        <span style="color:var(--brand-secondary); font-weight:600">바로 가기</span>
+      </div>
+    </div>
+
+    <div class="game-card" onclick="window.location.href='game-auth.html?game=valorant'">
+      <div class="game-thumbnail game-thumb-valo">
+        <span>🎯</span>
+        <span class="game-status-badge status-active">서비스 중</span>
+      </div>
+      <div class="game-body">
+        <div class="game-name">발로란트</div>
+        <div class="game-clan-info" style="color:var(--warning)">
+          <span>⚠</span>
+          <span>계정 연동이 필요합니다</span>
+        </div>
+      </div>
+      <div class="game-footer">
+        <span>라이엇 연동 후 이용</span>
+        <span style="color:var(--warning); font-weight:600">연동하기</span>
+      </div>
+    </div>
+
+    <div class="game-card inactive">
+      <div class="game-thumbnail game-thumb-lol">
+        <span>⚔️</span>
+        <span class="game-status-badge status-soon">준비 중</span>
+      </div>
+      <div class="game-body">
+        <div class="game-name">리그 오브 레전드</div>
+        <div class="game-clan-info">
+          <span>출시 예정</span>
+        </div>
+      </div>
+      <div class="game-footer">
+        <span>오픈 예정 2026 Q3</span>
+      </div>
+    </div>
+
+    <div class="game-card inactive">
+      <div class="game-thumbnail game-thumb-pubg">
+        <span>🪖</span>
+        <span class="game-status-badge status-soon">준비 중</span>
+      </div>
+      <div class="game-body">
+        <div class="game-name">PUBG BATTLEGROUNDS</div>
+        <div class="game-clan-info">
+          <span>출시 예정</span>
+        </div>
+      </div>
+      <div class="game-footer">
+        <span>오픈 예정 2026 Q4</span>
+      </div>
+    </div>
+
+    <div class="game-card" style="border-style:dashed; cursor:default">
+      <div class="game-thumbnail game-thumb-more">
+        <div style="text-align:center">
+          <div style="font-size:32px; margin-bottom:8px">+</div>
+          <div style="font-size:12px; color:var(--text-muted)">곧 추가 예정</div>
+        </div>
+      </div>
+      <div class="game-body">
+        <div class="game-name" style="color:var(--text-muted)">다른 게임</div>
+        <div class="game-clan-info">요청하시면 검토합니다</div>
+      </div>
+      <div class="game-footer">
+        <a href="#" style="color:var(--brand-secondary); font-size:12px">게임 요청하기</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="../scripts/app.js"></script>
+<script>
+function filterGames(query) {
+  const cards = document.querySelectorAll('.game-card');
+  const q = query.toLowerCase();
+  cards.forEach(card => {
+    const name = card.querySelector('.game-name')?.textContent.toLowerCase() || '';
+    card.style.display = (!q || name.includes(q)) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>

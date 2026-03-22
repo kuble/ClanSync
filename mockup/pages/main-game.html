@@ -119,10 +119,411 @@
   background: var(--bg-elevated); border: 1px solid var(--border);
   border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 10px; transition: all 0.15s;
 }
+/* 목록형: 좌측 프로필 스트립 = 카드 전체 높이, 왼쪽 모서리만 카드 radius와 일치 */
+.scrim-card--media {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
+  gap: 0;
+}
+.scrim-card--media .scrim-card-body {
+  flex: 1;
+  min-width: 0;
+  padding: 16px 20px;
+}
+.scrim-card-visual {
+  width: 78px;
+  flex-shrink: 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+}
+.scrim-card-vis-cell {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1;
+}
+.scrim-card-vis-cell + .scrim-card-vis-cell {
+  border-top: 1px solid var(--border);
+}
+.scrim-card-vis-cell--duo {
+  font-size: 22px;
+}
 .scrim-card:hover { border-color: rgba(59,130,246,0.4); }
+.scrim-card--interactive:hover { border-color: rgba(124, 58, 237, 0.45); box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.12); }
+.scrim-card--interactive:focus { outline: 2px solid rgba(124, 58, 237, 0.45); outline-offset: 2px; }
+/* 스크림 신청 티어: 단일 트랙 + 이중 썸 · 집 모양(수직 벽 오각형) 핸들 */
+.sa-rank-label-main {
+  text-align: center; font-size: 14px; font-weight: 700; color: #a78bfa;
+  line-height: 1.4; padding: 10px 12px; background: var(--bg-surface);
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+}
+.sa-rank-dual-wrap {
+  --sa-track-h: 6px;
+  --sa-thumb-h: 16px;
+  --sa-thumb-w: 14px;
+  position: relative;
+  height: calc(var(--sa-thumb-h) + 8px);
+  margin: 10px 6px 4px;
+  touch-action: none;
+}
+.sa-rank-dual-track {
+  position: absolute;
+  left: 0; right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: var(--sa-track-h);
+  background: var(--bg-overlay);
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  pointer-events: none;
+  z-index: 0;
+}
+.sa-rank-dual-fill {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: var(--sa-track-h);
+  width: 0;
+  left: 0;
+  background: linear-gradient(90deg, #6d28d9, #7c3aed);
+  border-radius: 99px;
+  pointer-events: none;
+  z-index: 1;
+}
+.sa-rank-dual-wrap input[type="range"] {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  top: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: none;
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: none;
+  z-index: 2;
+}
+/* 집 모양: 위 꼭짓점 + 양쪽 수직 벽(하단 직각) */
+.sa-rank-dual-wrap input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: var(--sa-thumb-w);
+  height: var(--sa-thumb-h);
+  border: none;
+  border-radius: 0;
+  background: #a78bfa;
+  clip-path: polygon(50% 0%, 100% 38%, 100% 100%, 0 100%, 0 38%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  cursor: grab;
+  pointer-events: auto;
+}
+.sa-rank-dual-wrap input[type="range"]::-webkit-slider-runnable-track {
+  height: var(--sa-track-h);
+  background: transparent;
+  border: none;
+}
+.sa-rank-dual-wrap input[type="range"]::-moz-range-thumb {
+  width: var(--sa-thumb-w);
+  height: var(--sa-thumb-h);
+  border: none;
+  border-radius: 0;
+  background: #a78bfa;
+  clip-path: polygon(50% 0%, 100% 38%, 100% 100%, 0 100%, 0 38%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  cursor: grab;
+  pointer-events: auto;
+}
+.sa-rank-dual-wrap input[type="range"]::-moz-range-track {
+  height: var(--sa-track-h);
+  background: transparent;
+  border: none;
+}
+.sa-rank-dual-wrap input[type="range"]::-moz-range-progress {
+  background: transparent;
+}
+#saRankLo { z-index: 2; }
+#saRankHi { z-index: 3; }
+.sa-rank-dual-wrap input[type="range"]:active::-webkit-slider-thumb { cursor: grabbing; }
+.sa-rank-dual-wrap input[type="range"]:active::-moz-range-thumb { cursor: grabbing; }
 .scrim-chip { padding: 3px 10px; background: var(--bg-overlay); border: 1px solid var(--border); border-radius: 99px; font-size: 12px; color: var(--text-muted); }
 .scrim-chip.hi { color: var(--text-secondary); border-color: var(--border); background: var(--bg-overlay); }
+.scrim-chip-tier { font-size: 11px; line-height: 1.35; max-width: min(100%, 240px); text-align: left; }
+.scrim-vs-match {
+  font-size: 15px; font-weight: 700; color: var(--text-primary);
+  margin: 6px 0 8px; line-height: 1.35; letter-spacing: -0.01em;
+}
+.scrim-vs-match .scrim-vs-x {
+  background: linear-gradient(135deg, #a78bfa, #60a5fa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 800; margin: 0 6px; font-size: 13px;
+}
 .card-avatar { width:56px;height:56px;flex-shrink:0;border-radius:12px;background:var(--bg-overlay);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:26px; }
+.scrim-card-title-vs.scrim-vs-match {
+  font-size: 17px;
+  margin: 0;
+  line-height: 1.35;
+  white-space: normal;
+  word-break: keep-all;
+  flex: 1;
+  min-width: 0;
+}
+.scrim-card-title-vs .scrim-vs-x { font-size: 14px; }
+.scrim-drawer-duo .scrim-duo-face {
+  width: 52px;
+  height: 52px;
+  font-size: 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.promo-drawer-clan-name.scrim-vs-match { font-size: 18px; line-height: 1.35; word-break: keep-all; }
+.promo-drawer-clan-name.scrim-vs-match .scrim-vs-x { font-size: 15px; }
+
+/* 스크림 채팅 · 양측 참가 확정 (심플 행 UI) */
+.scrim-join-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.scrim-join-hint--below {
+  margin-top: 10px;
+}
+.scrim-join-rows { display: flex; flex-direction: column; gap: 8px; }
+.scrim-join-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.scrim-join-status {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: transparent;
+  box-sizing: border-box;
+}
+.scrim-join-status.on {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: #22c55e;
+  color: #4ade80;
+}
+.scrim-join-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scrim-join-done-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #4ade80;
+  flex-shrink: 0;
+}
+.scrim-join-wait {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.scrim-join-confirm {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(124, 58, 237, 0.45);
+  background: transparent;
+  color: #c4b5fd;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.scrim-join-confirm:hover {
+  background: rgba(124, 58, 237, 0.12);
+  border-color: rgba(167, 139, 250, 0.65);
+}
+.scrim-join-confirm:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+/* 스크림 드로어 · 상단 닫기 + 연필 편집 (부모는 .promo-drawer의 position:fixed 유지 — relative로 덮으면 드로어가 안 보임) */
+#scrimDrawer .scrim-drawer-actions {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#scrimDrawer .scrim-drawer-actions .promo-drawer-close {
+  position: static;
+  top: auto;
+  right: auto;
+}
+.scrim-drawer-edit-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  padding: 0;
+  flex-shrink: 0;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.scrim-drawer-edit-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-hover);
+  background: var(--bg-surface);
+}
+.scrim-drawer-edit-btn svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+/* 스크림 드로어 · 상대별 1:1 채팅방 목록 */
+.sd-neg-list { display: flex; flex-direction: column; gap: 8px; }
+.sd-neg-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.sd-neg-row:hover {
+  border-color: rgba(124, 58, 237, 0.25);
+  background: rgba(124, 58, 237, 0.05);
+}
+.sd-neg-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sd-neg-st, .sd-neg-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.sd-neg-badge { color: #4ade80; }
+.sd-neg-open {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(124, 58, 237, 0.4);
+  background: transparent;
+  color: #c4b5fd;
+  cursor: pointer;
+}
+.sd-neg-open:hover {
+  background: rgba(124, 58, 237, 0.1);
+}
+
+/* ── 스크림 2주 캘린더 ── */
+.scrim-layout {
+  display: grid;
+  grid-template-columns: 1fr minmax(260px, 300px);
+  gap: 20px;
+  align-items: start;
+}
+.scrim-layout-main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.scrim-layout-aside { position: sticky; top: 72px; align-self: start; width: 100%; }
+.scrim-upcoming { padding: 16px 18px; }
+.scrim-upcoming-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.scrim-upcoming-title { font-size: 13px; font-weight: 700; color: var(--text-secondary); letter-spacing: 0.02em; }
+.scrim-upcoming-rows { display: flex; flex-direction: column; gap: 8px; }
+.scrim-up-row {
+  display: flex; align-items: flex-start; gap: 10px; padding: 12px 12px;
+  background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+  cursor: pointer; transition: border-color .15s, background .15s;
+}
+.scrim-up-row:hover { border-color: rgba(124, 58, 237, 0.35); background: rgba(124, 58, 237, 0.06); }
+.scrim-up-maincol { flex: 1; min-width: 0; }
+.scrim-up-datetime {
+  font-size: 12px; font-weight: 700; color: #a78bfa; letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums; margin-bottom: 4px; line-height: 1.35;
+}
+.scrim-up-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.scrim-up-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+@media (max-width: 1024px) {
+  .scrim-layout { grid-template-columns: 1fr; }
+  .scrim-layout-aside { position: static; }
+}
+.scrim-calendar-wrap { padding: 16px 18px 18px; }
+.scrim-cal-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.scrim-cal-range { font-size: 15px; font-weight: 700; }
+.scrim-cal-hint { font-size: 12px; color: var(--text-muted); }
+.scrim-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.scrim-cal-cell {
+  min-height: 72px; padding: 8px 6px; border-radius: var(--radius-md);
+  border: 1px solid var(--border); background: var(--bg-surface);
+  cursor: pointer; transition: border-color .15s, box-shadow .15s, background .15s;
+  display: flex; flex-direction: column; align-items: stretch; gap: 4px;
+}
+.scrim-cal-cell:hover { border-color: rgba(167, 139, 250, 0.35); }
+.scrim-cal-cell.past { opacity: 0.5; cursor: default; }
+.scrim-cal-cell.past:hover { border-color: var(--border); }
+.scrim-cal-cell.today { box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.45); border-color: rgba(124, 58, 237, 0.35); }
+.scrim-cal-cell.selected { background: rgba(124, 58, 237, 0.12); border-color: rgba(124, 58, 237, 0.55); }
+.scrim-cal-dnum { font-size: 15px; font-weight: 700; line-height: 1.2; }
+.scrim-cal-dow { font-size: 10px; color: var(--text-muted); font-weight: 600; margin-top: -1px; }
+.scrim-cal-badges { display: flex; flex-wrap: wrap; gap: 3px; margin-top: auto; }
+.scrim-cal-badge { font-size: 9px; padding: 2px 5px; border-radius: 4px; background: var(--bg-overlay); color: var(--text-secondary); border: 1px solid var(--border); font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scrim-cal-more { font-size: 9px; color: var(--text-muted); font-weight: 600; padding: 0 2px; }
+.scrim-cal-zero { font-size: 10px; color: var(--text-muted); margin-top: auto; }
+.scrim-day-panel { margin-top: 0; }
+.scrim-day-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--text-secondary); }
+.scrim-day-title span { color: var(--text-primary); }
+@media (max-width: 720px) {
+  .scrim-cal-cell { min-height: 68px; padding: 6px 4px; }
+  .scrim-cal-badge { font-size: 8px; }
+}
 
 /* ── 클랜 홍보 ── */
 .promo-grid { display: grid; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 175px; gap: 12px; }
@@ -139,6 +540,219 @@
 .rank-row:last-child { border-bottom: none; }
 .rank-num { width:22px;font-size:12px;font-weight:700;color:var(--text-muted);text-align:center;flex-shrink:0; }
 .rank-num.top1 { color:#f59e0b; } .rank-num.top2 { color:#9ca3af; } .rank-num.top3 { color:#cd7c2e; }
+
+/* 클랜 순위 · 부가 통계 */
+.ranking-peak-card {
+  background: var(--bg-elevated);
+  border: 1px solid rgba(124, 58, 237, 0.22);
+  border-radius: var(--radius-xl);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2) inset;
+}
+.ranking-subblock-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+}
+.ranking-intra-table {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.ranking-intra-table .ri-head {
+  display: grid;
+  grid-template-columns: 36px 1fr 100px 88px;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--bg-overlay);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.ranking-intra-table .ri-row {
+  display: grid;
+  grid-template-columns: 36px 1fr 100px 88px;
+  gap: 8px;
+  padding: 11px 16px;
+  border-top: 1px solid var(--border);
+  align-items: center;
+  font-size: 13px;
+}
+.ranking-intra-table .ri-row:last-child { border-bottom: none; }
+
+/* 클랜 순위 · 탭 */
+.ranking-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.ranking-tab {
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: color 0.15s, border-color 0.15s;
+}
+.ranking-tab:hover { color: var(--text-primary); }
+.ranking-tab.on {
+  color: #c4b5fd;
+  border-bottom-color: #7c3aed;
+}
+.ranking-panel[hidden] { display: none !important; }
+.ranking-clan-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.ranking-toolbar-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+.ranking-my-clan-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  background: rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  border-radius: var(--radius-lg);
+}
+.ranking-panel-intro {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin: 0 0 12px;
+}
+.ranking-insight-placeholder {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* 인사이트 · 시간대별 내전 건수 (세로 막대) */
+.ranking-peak-summary {
+  font-size: 14px;
+  font-weight: 700;
+  color: #c4b5fd;
+  margin-top: 10px;
+  line-height: 1.35;
+}
+.ranking-hour-chart-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 14px;
+  padding-bottom: 4px;
+  margin-left: -2px;
+  margin-right: -2px;
+}
+.ranking-hour-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  min-height: 148px;
+  min-width: 100%;
+  padding: 0 4px;
+}
+.ranking-hour-col {
+  flex: 1;
+  min-width: 8px;
+  max-width: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 148px;
+}
+.ranking-hour-bar {
+  width: 100%;
+  min-height: 0;
+  border-radius: 4px 4px 2px 2px;
+  background: linear-gradient(180deg, rgba(124, 58, 237, 0.55), rgba(124, 58, 237, 0.12));
+  transition: box-shadow 0.15s;
+}
+.ranking-hour-bar.is-peak {
+  background: linear-gradient(180deg, #a78bfa, #6d28d9);
+  box-shadow: 0 0 12px rgba(124, 58, 237, 0.45);
+}
+.ranking-hour-tick {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-top: 5px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  min-height: 10px;
+}
+.ranking-hour-legend {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 10px;
+  line-height: 1.45;
+}
+
+/* 인사이트 · 요일별 내전 건수 (월~일, 시간대 차트와 동일 톤) */
+.ranking-dow-chart-wrap {
+  margin-top: 14px;
+  padding-bottom: 4px;
+}
+.ranking-dow-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  min-height: 148px;
+  padding: 0 2px;
+}
+.ranking-dow-col {
+  flex: 1;
+  min-width: 0;
+  max-width: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 148px;
+}
+.ranking-dow-bar {
+  width: 100%;
+  min-height: 0;
+  border-radius: 4px 4px 2px 2px;
+  background: linear-gradient(180deg, rgba(124, 58, 237, 0.55), rgba(124, 58, 237, 0.12));
+  transition: box-shadow 0.15s;
+}
+.ranking-dow-bar.is-peak {
+  background: linear-gradient(180deg, #a78bfa, #6d28d9);
+  box-shadow: 0 0 12px rgba(124, 58, 237, 0.45);
+}
+.ranking-dow-tick {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  min-height: 12px;
+}
 
 /* ── 섹션 제목 ── */
 .section-head {
@@ -293,6 +907,139 @@
 /* ── 클랜 상세 드로어 ── */
 .promo-drawer-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(3px);z-index:150; }
 .promo-drawer-overlay.open { display:block; }
+#scrimDrawerOverlay { z-index: 160; }
+#scrimDrawer {
+  z-index: 161;
+  box-shadow: -20px 0 50px rgba(0, 0, 0, 0.45);
+  /* 일정·모집 안내 · 하단 채팅/푸터 가로 여백 단일 기준 */
+  --scrim-drawer-inline: 20px;
+}
+/* 헤더 */
+#scrimDrawer .promo-drawer-header {
+  padding: 22px var(--scrim-drawer-inline) 16px;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.14);
+  background: linear-gradient(180deg, rgba(124, 58, 237, 0.05) 0%, transparent 100%);
+}
+/* 본문: 가로 패딩을 부모 한 곳에서만 적용 */
+#scrimDrawer .scrim-drawer-inset-x {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-left: var(--scrim-drawer-inline);
+  padding-right: var(--scrim-drawer-inline);
+  box-sizing: border-box;
+}
+#scrimDrawer .scrim-drawer-header-clan {
+  padding-right: 76px;
+  margin-bottom: 0;
+}
+#scrimDrawer .promo-drawer-clan-header {
+  padding-right: 0;
+  margin-bottom: 0;
+  align-items: center;
+}
+#scrimDrawer .promo-drawer-clan-name {
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+#scrimDrawer #sdMeta .badge {
+  font-weight: 600;
+}
+/* 본문: 세로만 (가로는 .scrim-drawer-inset-x) */
+#scrimDrawer .promo-drawer-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 20px 0 22px;
+}
+#scrimDrawer .promo-drawer-section {
+  margin-bottom: 22px;
+}
+#scrimDrawer .promo-drawer-section:last-child {
+  margin-bottom: 0;
+}
+#scrimDrawer .promo-drawer-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  color: #a78bfa;
+  margin-bottom: 10px;
+  opacity: 0.95;
+}
+.scrim-drawer-schedule-card {
+  background: var(--bg-elevated);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2) inset;
+}
+.scrim-drawer-datetime {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.scrim-drawer-datetime-k {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.scrim-drawer-datetime-v {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+}
+.scrim-drawer-schedule-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.scrim-drawer-schedule-stack .scrim-drawer-datetime-v--tier {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+}
+#scrimDrawer .scrim-drawer-desc-body {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  white-space: pre-line;
+}
+/* 하단 채팅 */
+#scrimDrawer .scrim-drawer-bottom {
+  flex-shrink: 0;
+  background: var(--bg-base);
+  border-top: 1px solid rgba(124, 58, 237, 0.12);
+}
+#scrimDrawer .scrim-drawer-bottom .scrim-drawer-neg-wrap {
+  padding: 16px var(--scrim-drawer-inline) 12px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+#scrimDrawer .scrim-drawer-bottom #sdFooter {
+  border-top: 1px solid var(--border);
+}
+#scrimDrawer #sdNegotiation .promo-drawer-section-title {
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+#scrimDrawer #sdNegotiation .promo-drawer-section-title:first-of-type {
+  margin-top: 0;
+}
+#scrimDrawer .promo-drawer-footer#sdFooter {
+  padding: 14px var(--scrim-drawer-inline) 18px;
+  background: rgba(0, 0, 0, 0.12);
+}
 .promo-drawer {
   position:fixed;top:0;right:0;bottom:0;width:420px;max-width:100vw;
   background:var(--bg-base);border-left:1px solid var(--border);z-index:151;
@@ -310,6 +1057,7 @@
 .promo-drawer-body { flex:1;overflow-y:auto;padding:20px; }
 .promo-drawer-footer { padding:16px 20px;border-top:1px solid var(--border);flex-shrink:0;background:var(--bg-base); }
 .promo-drawer-clan-header { display:flex;align-items:center;gap:14px;padding-right:36px;margin-bottom:14px; }
+.promo-drawer-clan-header:has(.scrim-drawer-duo) { align-items: flex-start; }
 .promo-drawer-clan-name { font-size:20px;font-weight:800;margin-bottom:4px; }
 .promo-drawer-clan-badges { display:flex;gap:6px;flex-wrap:wrap;align-items:center; }
 .promo-drawer-stat-row { display:flex;gap:10px;flex-wrap:wrap; }
@@ -484,18 +1232,18 @@
         <div>
           <div class="preview-row">
             <div class="avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#7c3aed,#3b82f6)">🔥</div>
-            <div style="flex:1"><div style="font-weight:600;font-size:13px">Phoenix Rising</div><div style="font-size:11px;color:var(--text-muted)">토/일 21:00 · 플레~다이아</div></div>
+            <div style="flex:1"><div style="font-weight:600;font-size:13px">Phoenix Rising</div><div style="font-size:11px;color:var(--text-muted)">21:00 · 플레~다이아</div></div>
             <span class="badge badge-success" style="font-size:10px">모집 중</span>
           </div>
           <div class="preview-row">
             <div class="avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#0ea5e9,#06b6d4)">⚡</div>
-            <div style="flex:1"><div style="font-weight:600;font-size:13px">Blue Storm</div><div style="font-size:11px;color:var(--text-muted)">화/목 저녁 · 다이아~마스터</div></div>
+            <div style="flex:1"><div style="font-weight:600;font-size:13px">Blue Storm</div><div style="font-size:11px;color:var(--text-muted)">20:00 · 다이아~마스터</div></div>
             <span class="badge badge-success" style="font-size:10px">모집 중</span>
           </div>
           <div class="preview-row">
             <div class="avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#374151,#6b7280)">🛡</div>
-            <div style="flex:1"><div style="font-weight:600;font-size:13px">Iron Wall</div><div style="font-size:11px;color:var(--text-muted)">다음 주 주말 · 골드~플래</div></div>
-            <span class="badge badge-muted" style="font-size:10px">예정</span>
+            <div style="flex:1"><div style="font-weight:600;font-size:13px">Iron Wall</div><div style="font-size:11px;color:var(--text-muted)">20:00 · 골드~플래</div></div>
+            <span class="badge badge-muted" style="font-size:10px">모집 완료</span>
           </div>
         </div>
         <button class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%" onclick="navTo('scrim')">+ 스크림 모집 전체 보기</button>
@@ -528,10 +1276,7 @@
       <div class="d-card">
         <div class="d-label">🔍 같이 할 사람</div>
         <div class="preview-list" id="home-lfg-preview"></div>
-        <div style="display:flex;gap:8px;margin-top:12px">
-          <button class="btn btn-secondary btn-sm" style="flex:1" onclick="navTo('lfg')">+ 같이 할 사람 전체 보기</button>
-          <button class="btn btn-primary btn-sm" style="flex:1" onclick="navTo('lfg')">+ 파티 모집 올리기</button>
-        </div>
+        <button class="btn btn-secondary btn-sm" style="margin-top:12px;width:100%" onclick="navTo('lfg')">+ 같이 할 사람 전체 보기</button>
       </div>
 
       <!-- 3행 오른쪽: 이달의 클랜 순위 -->
@@ -639,7 +1384,7 @@
         <div class="section-title">⚔️ 스크림 모집</div>
         <div class="section-sub" id="scrim-count-label">스크림 상대를 구하는 클랜 목록</div>
       </div>
-      <button class="btn btn-primary btn-sm" onclick="alert('스크림 신청 (운영진 이상)')">+ 스크림 신청</button>
+      <button class="btn btn-primary btn-sm" onclick="openScrimApplyModal()">+ 스크림 신청</button>
     </div>
 
     <!-- 스크림 필터 -->
@@ -648,23 +1393,39 @@
       <div class="filter-group">
         <span class="filter-group-label">상태</span>
         <div class="filter-divider-v"></div>
-        <div class="filter-chip on" data-sf="status" data-val="전체"   onclick="setScrimFilter('status',this)">전체</div>
-        <div class="filter-chip"    data-sf="status" data-val="모집 중" onclick="setScrimFilter('status',this)">모집 중</div>
-        <div class="filter-chip"    data-sf="status" data-val="예정"   onclick="setScrimFilter('status',this)">예정</div>
+        <div class="filter-chip on" data-sf="status" data-val="전체"     onclick="setScrimFilter('status',this)">전체</div>
+        <div class="filter-chip"    data-sf="status" data-val="모집 중"   onclick="setScrimFilter('status',this)">모집 중</div>
+        <div class="filter-chip"    data-sf="status" data-val="모집 완료" onclick="setScrimFilter('status',this)">모집 완료</div>
       </div>
-      <div class="filter-group">
-        <span class="filter-group-label">티어</span>
+      <div class="filter-group" style="align-items:flex-start">
+        <span class="filter-group-label" style="padding-top:2px">티어</span>
         <div class="filter-divider-v"></div>
-        <div class="filter-chip on" data-sf="tier" data-val="전체"    onclick="setScrimFilter('tier',this)">전체</div>
-        <div class="filter-chip"    data-sf="tier" data-val="골드↓"   onclick="setScrimFilter('tier',this)">골드↓</div>
-        <div class="filter-chip"    data-sf="tier" data-val="플래"    onclick="setScrimFilter('tier',this)">플래</div>
-        <div class="filter-chip"    data-sf="tier" data-val="다이아"  onclick="setScrimFilter('tier',this)">다이아</div>
-        <div class="filter-chip"    data-sf="tier" data-val="마스터↑" onclick="setScrimFilter('tier',this)">마스터↑</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <div class="filter-chip on" data-st="tier-all" onclick="clearScrimTierFilter(this)">전체</div>
+          <div class="filter-chip" data-st="tier" data-val="브론즈" onclick="toggleScrimTierFilter(this)">브론즈</div>
+          <div class="filter-chip" data-st="tier" data-val="실버" onclick="toggleScrimTierFilter(this)">실버</div>
+          <div class="filter-chip" data-st="tier" data-val="골드" onclick="toggleScrimTierFilter(this)">골드</div>
+          <div class="filter-chip" data-st="tier" data-val="플래티넘" onclick="toggleScrimTierFilter(this)">플래티넘</div>
+          <div class="filter-chip" data-st="tier" data-val="다이아" onclick="toggleScrimTierFilter(this)">다이아</div>
+          <div class="filter-chip" data-st="tier" data-val="마스터" onclick="toggleScrimTierFilter(this)">마스터</div>
+          <div class="filter-chip" data-st="tier" data-val="그랜드마스터" onclick="toggleScrimTierFilter(this)">그랜드마스터</div>
+          <div class="filter-chip" data-st="tier" data-val="프로" onclick="toggleScrimTierFilter(this)">프로</div>
+        </div>
       </div>
     </div>
 
-    <div id="scrimList"></div>
-    <div id="scrimPagination" class="pagination"></div>
+    <div id="scrim-layout" class="scrim-layout">
+      <div class="scrim-layout-main">
+        <div id="scrimCalendar" class="card scrim-calendar-wrap"></div>
+        <div class="scrim-day-panel">
+          <div id="scrimDayTitle" class="scrim-day-title"></div>
+          <div id="scrimDayList"></div>
+        </div>
+      </div>
+      <aside class="scrim-layout-aside">
+        <div id="scrimUpcoming" class="card scrim-upcoming"></div>
+      </aside>
+    </div>
   </div>
 
   <!-- ══════════════════════════════
@@ -736,38 +1497,89 @@
        섹션 4: 클랜 순위
   ══════════════════════════════ -->
   <div id="sec-ranking" style="display:none">
-    <div class="section-head">
+    <div class="section-head" style="margin-bottom:12px">
       <div>
-        <div class="section-title">🏆 클랜 순위</div>
-        <div class="section-sub">이달 활동량 기준 · 매월 1일 초기화</div>
-      </div>
-      <select class="input" style="font-size:13px;padding:6px 12px;width:auto">
-        <option selected>이달 활동량</option>
-        <option>누적 경기수</option>
-        <option>스크림 참여율</option>
-      </select>
-    </div>
-
-    <!-- 내 클랜 현재 순위 -->
-    <div style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:var(--radius-xl);padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:14px">
-      <div style="font-size:28px;font-weight:800;color:var(--brand-primary)">8</div>
-      <div class="avatar" style="background:linear-gradient(135deg,#7c3aed,#3b82f6)">🔥</div>
-      <div style="flex:1">
-        <div style="font-size:15px;font-weight:700">Phoenix Rising <span style="font-size:12px;color:var(--text-muted);font-weight:400">(내 클랜)</span></div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:2px">클랜원 24명 · 이달 경기 47회</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:13px;color:var(--success);font-weight:700">↑2 상승</div>
-        <div style="font-size:11px;color:var(--text-muted)">지난달 10위</div>
+        <div class="section-title">🏆 랭킹</div>
+        <div class="section-sub">매월 1일 초기화</div>
       </div>
     </div>
 
-    <!-- 전체 순위 테이블 -->
-    <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden">
-      <div style="display:grid;grid-template-columns:40px 1fr 80px 80px;padding:10px 16px;background:var(--bg-overlay);font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;gap:8px">
-        <div>#</div><div>클랜</div><div style="text-align:right">경기수</div><div style="text-align:right">클랜원</div>
+    <div class="ranking-tabs" role="tablist" aria-label="랭킹 구분">
+      <button type="button" class="ranking-tab on" role="tab" aria-selected="true" id="rankingTabClan" data-ranking-tab="clan" onclick="setRankingTab('clan')">클랜 순위</button>
+      <button type="button" class="ranking-tab" role="tab" aria-selected="false" id="rankingTabPerson" data-ranking-tab="person" onclick="setRankingTab('person')">개인 랭킹</button>
+      <button type="button" class="ranking-tab" role="tab" aria-selected="false" id="rankingTabInsight" data-ranking-tab="insight" onclick="setRankingTab('insight')">인사이트</button>
+    </div>
+
+    <!-- 탭: 클랜 순위 -->
+    <div id="ranking-panel-clan" class="ranking-panel" role="tabpanel" aria-labelledby="rankingTabClan">
+      <div class="ranking-clan-toolbar">
+        <span class="ranking-toolbar-label" id="rankingSortLabel">정렬 기준</span>
+        <select id="rankingSort" class="input" style="font-size:13px;padding:6px 12px;width:auto;min-width:200px" onchange="setRankingSort(this.value)" aria-labelledby="rankingSortLabel">
+          <option value="activity" selected>이번달 내전 경기수</option>
+          <option value="monthScrims">이번달 스크림 횟수</option>
+          <option value="activeRatio">이번달 활성 유저 비율</option>
+          <option value="total">누적 경기수</option>
+        </select>
       </div>
-      <div id="ranking-list"></div>
+
+      <div class="ranking-my-clan-bar" id="ranking-my-clan-bar">
+        <div id="ranking-my-clan-rank" style="font-size:22px;font-weight:800;color:var(--brand-primary);min-width:28px;text-align:center">—</div>
+        <div id="ranking-my-clan-avatar" class="avatar" style="width:36px;height:36px;font-size:14px;background:linear-gradient(135deg,#7c3aed,#3b82f6)">🔥</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700"><span id="ranking-my-clan-name">Phoenix Rising</span> <span style="font-size:11px;color:var(--text-muted);font-weight:500">(내 클랜)</span></div>
+          <div id="ranking-my-clan-detail" style="font-size:11px;color:var(--text-muted);margin-top:2px">—</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div id="ranking-my-clan-trend" style="font-size:12px;color:var(--success);font-weight:700">—</div>
+          <div id="ranking-my-clan-trend-sub" style="font-size:10px;color:var(--text-muted)">—</div>
+        </div>
+      </div>
+
+      <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden">
+        <div style="display:grid;grid-template-columns:40px 1fr 88px 80px;padding:10px 16px;background:var(--bg-overlay);font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;gap:8px">
+          <div>#</div><div>클랜</div><div style="text-align:right" id="ranking-metric-head">이번달 내전 경기수</div><div style="text-align:right">클랜원</div>
+        </div>
+        <div id="ranking-list"></div>
+      </div>
+    </div>
+
+    <!-- 탭: 개인 랭킹 -->
+    <div id="ranking-panel-person" class="ranking-panel" role="tabpanel" aria-labelledby="rankingTabPerson" hidden>
+      <p class="ranking-panel-intro">이번 달 기준, 게임 내 전체 클랜을 통틀어 <strong>내전 참여 횟수</strong>가 많은 순입니다. (목업 데이터)</p>
+      <div class="ranking-intra-table">
+        <div class="ri-head">
+          <div>#</div>
+          <div>닉네임</div>
+          <div>소속 클랜</div>
+          <div style="text-align:right">내전 참여</div>
+        </div>
+        <div id="ranking-intra-leaders"></div>
+      </div>
+    </div>
+
+    <!-- 탭: 인사이트 -->
+    <div id="ranking-panel-insight" class="ranking-panel" role="tabpanel" aria-labelledby="rankingTabInsight" hidden>
+      <p class="ranking-panel-intro">승률 등 경쟁 지표가 아닌, <strong>활동 패턴</strong> 위주의 요약입니다.</p>
+      <div class="ranking-peak-card" style="margin-bottom:0">
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px">주간 통계 · 내전</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text-primary)">시간대별 내전 진행 건수 (0~23시, KST)</div>
+        <div class="ranking-peak-summary" id="rankingPeakHourLine">—</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;line-height:1.45" id="rankingPeakHourSub">3/16 – 3/22 · 입력된 내전 기록 기준 · 총 <span id="rankingHourTotal">0</span>건 (목업)</div>
+        <div class="ranking-hour-chart-wrap">
+          <div id="ranking-hour-chart" class="ranking-hour-chart" role="img" aria-label="시간대별 내전 건수 막대 그래프"></div>
+        </div>
+        <p class="ranking-hour-legend">막대 높이 = 해당 시각에 시작한 내전 건수. 가장 높은 막대가 피크 시간대입니다.</p>
+      </div>
+      <div class="ranking-peak-card" style="margin-top:16px;margin-bottom:0">
+        <div style="font-size:14px;font-weight:700;color:var(--text-primary)">요일별 내전 진행 건수 (월~일, KST)</div>
+        <div class="ranking-peak-summary" id="rankingPeakDowLine">—</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;line-height:1.45" id="rankingPeakDowSub">3/16 – 3/22 · 입력된 내전 기록 기준 · 총 <span id="rankingDowTotal">0</span>건 (목업)</div>
+        <div class="ranking-dow-chart-wrap">
+          <div id="ranking-dow-chart" class="ranking-dow-chart" role="img" aria-label="요일별 내전 건수 막대 그래프"></div>
+        </div>
+        <p class="ranking-hour-legend">막대 높이 = 해당 요일에 시작한 내전 건수. 가장 높은 막대가 가장 활발한 요일입니다.</p>
+      </div>
+      <div class="ranking-insight-placeholder">추가 인사이트(예: 상대 클랜 다양도, 월간 스크림 매칭 수 등)는 연동 후 이 영역에 표시할 수 있습니다.</div>
     </div>
   </div>
 
@@ -820,6 +1632,50 @@
     <button class="btn btn-primary w-full" style="padding:13px;font-size:15px" onclick="openJoinModal()">
       가입 신청하기 →
     </button>
+  </div>
+</div>
+
+<!-- 스크림 상세 드로어 -->
+<div class="promo-drawer-overlay" id="scrimDrawerOverlay" onclick="closeScrimDrawer()"></div>
+<div class="promo-drawer" id="scrimDrawer">
+  <div class="scrim-drawer-actions" id="scrimDrawerActions">
+    <button type="button" id="sdEditBtn" class="scrim-drawer-edit-btn" style="display:none" onclick="openScrimEditModal(_scrimDrawerId)" aria-label="모집 수정" title="모집 수정">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    </button>
+    <button type="button" class="promo-drawer-close" onclick="closeScrimDrawer()">✕</button>
+  </div>
+  <div class="promo-drawer-header">
+    <div class="scrim-drawer-header-clan">
+      <div class="promo-drawer-clan-header">
+        <div id="sdAvatars"></div>
+        <div style="min-width:0">
+          <div class="promo-drawer-clan-name" id="sdName"></div>
+          <div id="sdMeta" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="scrim-drawer-inset-x">
+  <div class="promo-drawer-body">
+    <div class="promo-drawer-section" id="sdVsSection" style="display:none">
+      <div class="promo-drawer-section-title">매칭 결과</div>
+      <div class="promo-drawer-section-body" id="sdVsBody" style="padding:14px 16px"></div>
+    </div>
+    <div class="promo-drawer-section">
+      <div class="promo-drawer-section-title">일정 · 조건</div>
+      <div id="sdSchedule" class="scrim-drawer-schedule-card"></div>
+    </div>
+    <div class="promo-drawer-section">
+      <div class="promo-drawer-section-title">모집 안내</div>
+      <div class="promo-drawer-section-body scrim-drawer-desc-body" id="sdDesc"></div>
+    </div>
+  </div>
+  </div>
+  <div class="scrim-drawer-bottom">
+    <div class="promo-drawer-section scrim-drawer-neg-wrap" id="sdNegotiationWrap" style="margin-bottom:0">
+      <div id="sdNegotiation"></div>
+    </div>
+    <div class="promo-drawer-footer" id="sdFooter" style="display:flex;flex-direction:column;gap:0;align-items:stretch"></div>
   </div>
 </div>
 
@@ -1014,42 +1870,73 @@
   </div>
 </div>
 
-<!-- 스크림 채팅 모달 -->
-<div id="scrimChatModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center">
-  <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-xl);max-width:480px;width:calc(100%-40px);overflow:hidden;max-height:80vh;display:flex;flex-direction:column">
-    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+<!-- 스크림 신청 모달 -->
+<div id="scrimApplyModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:300;align-items:center;justify-content:center" onclick="if(event.target===this)closeScrimApplyModal()">
+  <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-xl);width:460px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto;padding:28px 24px;display:flex;flex-direction:column;gap:18px">
+    <div style="display:flex;align-items:center;justify-content:space-between">
       <div>
-        <div style="font-weight:700;font-size:15px">Phoenix Rising × Blue Storm</div>
-        <div style="font-size:12px;color:var(--text-muted)">스크림 채팅 · 스크림 종료 시 자동 종료됩니다</div>
+        <div id="scrimApplyModalTitle" style="font-size:18px;font-weight:700">스크림 신청</div>
+        <div id="scrimApplyModalSub" style="font-size:12px;color:var(--text-muted);margin-top:4px">운영진 이상 · 필수 항목을 입력해 주세요</div>
       </div>
-      <button onclick="document.getElementById('scrimChatModal').style.display='none'" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px">×</button>
+      <button type="button" onclick="closeScrimApplyModal()" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer">✕</button>
     </div>
-    <div style="flex:1;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;min-height:200px">
-      <div style="display:flex;gap:8px;align-items:flex-start">
-        <div class="avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#0ea5e9,#06b6d4)">이</div>
-        <div>
-          <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">Blue Storm · 이매너</div>
-          <div style="background:var(--bg-overlay);border-radius:0 var(--radius-md) var(--radius-md) var(--radius-md);padding:8px 12px;font-size:13px">안녕하세요! 이번 주 토요일 21시 어떠세요?</div>
-        </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div>
+        <label class="label" style="margin-bottom:6px">희망 날짜 <span style="color:var(--danger)">*</span></label>
+        <input type="date" class="input" id="saDate" style="font-size:13px">
       </div>
-      <div style="display:flex;gap:8px;align-items:flex-start;justify-content:flex-end">
-        <div style="text-align:right">
-          <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">Phoenix Rising · 김클랜</div>
-          <div style="background:var(--brand-primary);border-radius:var(--radius-md) 0 var(--radius-md) var(--radius-md);padding:8px 12px;font-size:13px;color:white">좋아요! 맵은 제어점 위주로 하실래요?</div>
-        </div>
-        <div class="avatar" style="width:28px;height:28px;font-size:11px">김</div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:flex-start">
-        <div class="avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#0ea5e9,#06b6d4)">이</div>
-        <div>
-          <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">Blue Storm · 이매너</div>
-          <div style="background:var(--bg-overlay);border-radius:0 var(--radius-md) var(--radius-md) var(--radius-md);padding:8px 12px;font-size:13px">네 좋아요! 오아시스, 일리오스, 부산 순서로 어떨까요?</div>
-        </div>
+      <div>
+        <label class="label" style="margin-bottom:6px">희망 시작 시각 <span style="color:var(--danger)">*</span></label>
+        <input type="time" class="input" id="saTime" style="font-size:13px" value="21:00">
       </div>
     </div>
+    <div>
+      <label class="label" style="margin-bottom:8px">희망 모드 <span style="color:var(--danger)">*</span></label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="saMode">
+        <div class="lfg-chip on" data-sa-mode="5v5" onclick="selScrimApplyChip('saMode',this)">5v5</div>
+        <div class="lfg-chip" data-sa-mode="6v6" onclick="selScrimApplyChip('saMode',this)">6v6</div>
+        <div class="lfg-chip" data-sa-mode="혼합" onclick="selScrimApplyChip('saMode',this)">혼합</div>
+      </div>
+    </div>
+    <div>
+      <label class="label" style="margin-bottom:6px">희망 상대 티어 구간 <span style="color:var(--danger)">*</span></label>
+      <div id="saRankLabel" class="sa-rank-label-main">브론즈 5 — 프로</div>
+      <div class="sa-rank-dual-wrap" id="saRankDualWrap">
+        <div class="sa-rank-dual-track" aria-hidden="true"></div>
+        <div class="sa-rank-dual-fill" id="saRankFill" aria-hidden="true"></div>
+        <input type="range" id="saRankLo" min="0" max="40" value="0" step="1" aria-label="희망 티어 하한" oninput="syncSaRankRange('lo')">
+        <input type="range" id="saRankHi" min="0" max="40" value="40" step="1" aria-label="희망 티어 상한" oninput="syncSaRankRange('hi')">
+      </div>
+    </div>
+    <div>
+      <label class="label" style="margin-bottom:6px">한마디 <span style="font-weight:400;color:var(--text-muted)">(선택)</span></label>
+      <textarea class="input" id="saNote" rows="3" placeholder="상대 클랜에게 전할 메모..." style="resize:none;font-size:13px;line-height:1.5"></textarea>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button type="button" class="btn btn-secondary" style="flex:1" onclick="closeScrimApplyModal()">취소</button>
+      <button type="button" class="btn btn-primary" style="flex:1" id="scrimApplySubmitBtn" onclick="submitScrimApply()">신청하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 스크림 채팅 모달 (양측 운영진 1:1 채팅 · 상호 참가 확정 후 성사) -->
+<div id="scrimChatModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:320;align-items:center;justify-content:center" onclick="if(event.target===this)closeScrimChatModal()">
+  <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-xl);max-width:480px;width:calc(100%-40px);overflow:hidden;max-height:85vh;display:flex;flex-direction:column">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+      <div style="min-width:0">
+        <div style="font-weight:700;font-size:15px" id="scrimChatTitle">스크림 채팅</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;line-height:1.45" id="scrimChatSubtitle">양측 운영진이 일정·룰을 조율하는 1:1 채팅 공간입니다.</div>
+      </div>
+      <button type="button" onclick="closeScrimChatModal()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px;line-height:1;padding:2px">×</button>
+    </div>
+    <div id="scrimChatSessionWrap" style="padding:6px 18px 10px;border-bottom:1px solid var(--border)">
+      <div style="font-size:11px;color:var(--text-muted);line-height:1.45" id="scrimChatSessionLine">—</div>
+    </div>
+    <div id="scrimChatJoinSection" style="padding:12px 18px;border-bottom:1px solid var(--border)"></div>
+    <div id="scrimChatMockBody" style="flex:1;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;min-height:180px"></div>
     <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px">
-      <input class="input" type="text" placeholder="메시지 입력..." style="flex:1;font-size:13px">
-      <button class="btn btn-primary btn-sm">전송</button>
+      <input class="input" type="text" id="scrimChatInput" placeholder="운영진 간 메시지 (목업)" style="flex:1;font-size:13px" disabled>
+      <button type="button" class="btn btn-primary btn-sm" disabled>전송</button>
     </div>
   </div>
 </div>
@@ -1311,7 +2198,9 @@ function renderHomePromos() {
 }
 
 function renderHomeLfg() {
-  document.getElementById('home-lfg-preview').innerHTML = lfgPosts.slice(0,4).map(p => `
+  const el = document.getElementById('home-lfg-preview');
+  if (!el) return;
+  el.innerHTML = lfgPosts.slice(0,4).map(p => `
     <div class="preview-row">
       <div class="online-dot ${p.online?'g':'y'}"></div>
       <div class="avatar" style="width:28px;height:28px;font-size:11px;background:${p.bg};flex-shrink:0">${p.name[0]}</div>
@@ -1330,68 +2219,292 @@ function renderHomeLfg() {
 /* ════════════════════════════════════════
    스크림
 ════════════════════════════════════════ */
-const SCRIM_PAGE = 5;
-let scrimPage = 1;
-let scrimFilter = { status:'전체', tier:'전체' };
-const SCRIMS = [
-  { id:1,  icon:'🔥', name:'Phoenix Rising', bg:'linear-gradient(135deg,#7c3aed,#3b82f6)', members:24, type:'경쟁·친목', status:'모집 중', date:'이번 주 토/일', time:'21:00 이후', tier:'플레~다이아', mode:'6v6',     desc:'정기 스크림 상대 구합니다. 비슷한 실력대 환영. 디스코드 통화 가능 팀 우대.' },
-  { id:2,  icon:'⚡', name:'Blue Storm',     bg:'linear-gradient(135deg,#0ea5e9,#06b6d4)', members:18, type:'경쟁',     status:'모집 중', date:'화/목 저녁',    time:'20:00~23:00', tier:'다이아~마스터', mode:'5v5~6v6', desc:'실력 중심 스크림 상대 구합니다. 경기 후 피드백 나눌 수 있는 팀 환영.' },
-  { id:3,  icon:'🛡', name:'Iron Wall',      bg:'linear-gradient(135deg,#374151,#6b7280)', members:10, type:'경쟁',     status:'예정',    date:'다음 주 주말',  time:'20:00 이후',  tier:'골드~플래',    mode:'5v5',    desc:'신생 클랜입니다. 비슷한 규모의 클랜과 스크림 원해요.' },
-  { id:4,  icon:'🌟', name:'Casual Heroes',  bg:'linear-gradient(135deg,#22c55e,#10b981)', members:30, type:'친목',     status:'모집 중', date:'이번 주 일요일',time:'18:00 이후',  tier:'전체',         mode:'6v6',    desc:'즐겜 친선 스크림. 승부보다 재미 중심. 초보도 환영합니다!' },
-  { id:5,  icon:'🐉', name:'Red Dragons',    bg:'linear-gradient(135deg,#ef4444,#f97316)', members:26, type:'경쟁',     status:'모집 중', date:'매주 수/금',    time:'21:00 이후',  tier:'마스터↑',      mode:'6v6',    desc:'고티어 스크림 상대 구합니다. 진지한 팀 우대.' },
-  { id:6,  icon:'🌀', name:'Vortex',         bg:'linear-gradient(135deg,#6366f1,#8b5cf6)', members:25, type:'경쟁·친목', status:'예정',   date:'이번 주 토요일',time:'20:00 이후',  tier:'다이아↑',      mode:'5v5',    desc:'다이아 이상 클랜과 친선 경기 원합니다.' },
-  { id:7,  icon:'N',  name:'Night Owls',     bg:'',                                          members:19, type:'친목',     status:'모집 중', date:'평일 야간',     time:'23:00 이후',  tier:'전체',         mode:'6v6',    desc:'야간 활동 클랜입니다. 자정~새벽 스크림 환영합니다.' },
-  { id:8,  icon:'A',  name:'Alpha Team',     bg:'linear-gradient(135deg,#8b5cf6,#6366f1)', members:30, type:'경쟁',     status:'모집 중', date:'주말',          time:'15:00 이후',  tier:'플레~다이아',  mode:'5v5',    desc:'주말 오후 스크림 상대 구합니다. 매너 있는 팀 환영.' },
-  { id:9,  icon:'D',  name:'Dark Matter',    bg:'linear-gradient(135deg,#374151,#1f2937)', members:15, type:'경쟁',     status:'예정',    date:'다음 달 초',    time:'20:00 이후',  tier:'다이아~마스터', mode:'6v6',   desc:'정규 시즌 시작 전 조기 스크림 일정을 잡고 싶습니다.' },
-  { id:10, icon:'🌙', name:'Midnight',       bg:'',                                          members:20, type:'친목',     status:'모집 중', date:'매주 토요일',   time:'자정~새벽',   tier:'전체',         mode:'5v5',    desc:'늦은 밤 활동하는 클랜입니다. 편한 분위기 스크림 환영.' },
-  { id:11, icon:'B',  name:'Best Warriors',  bg:'linear-gradient(135deg,#f59e0b,#ef4444)', members:28, type:'경쟁',     status:'모집 중', date:'이번 주 수요일',time:'21:00 이후',  tier:'마스터↑',      mode:'6v6',    desc:'상위 티어 클랜 스크림 구합니다. 전략적인 팀 우대.' },
+let scrimFilter = { status: '전체', tiers: [] };
+let scrimSelectedDateKey = null;
+/* OW2 티어 랭크 (필터 칩 순서와 동일). tierMin~tierMax: 모집에 포함되는 구간 */
+const SCRIM_TIER_RANKS = ['브론즈', '실버', '골드', '플래티넘', '다이아', '마스터', '그랜드마스터', '프로'];
+/* dayOffset: 오늘 0시 기준 일 수, hour/minute: 시작 시각 (목업 캘린더 정렬용) */
+let SCRIMS = [
+  { id:1,  icon:'🔥', name:'Phoenix Rising', opponentClanName:'Blue Storm', negotiationThreads:[{ opponentClanName:'Blue Storm', status:'진행 중' },{ opponentClanName:'Vortex', status:'진행 중' },{ opponentClanName:'Iron Wall', status:'대기' }], bg:'linear-gradient(135deg,#7c3aed,#3b82f6)', members:24, type:'경쟁·친목', status:'모집 중', date:'이번 주 토/일', time:'21:00 이후', tier:'플레~다이아', tierMin:3, tierMax:4, mode:'6v6',     dayOffset:5,  hour:21, minute:0,  desc:'정기 스크림 상대 구합니다. 비슷한 실력대 환영. 디스코드 통화 가능 팀 우대.', mine:true },
+  { id:2,  icon:'⚡', name:'Blue Storm',     opponentClanName:'Phoenix Rising', bg:'linear-gradient(135deg,#0ea5e9,#06b6d4)', members:18, type:'경쟁',     status:'모집 중', date:'화/목 저녁',    time:'20:00~23:00', tier:'다이아~마스터', tierMin:4, tierMax:5, mode:'6v6', applyRankLo:21, applyRankHi:24, dayOffset:2,  hour:20, minute:0,  desc:'실력 중심 스크림 상대 구합니다. 경기 후 피드백 나눌 수 있는 팀 환영.' },
+  { id:3,  icon:'🛡', name:'Iron Wall',      bg:'linear-gradient(135deg,#374151,#6b7280)', members:10, type:'경쟁',     status:'모집 완료', vsOpponent:'Thunder Strike', vsOpponentIcon:'⚡', vsOpponentBg:'linear-gradient(135deg,#eab308,#f59e0b)', date:'다음 주 주말',  time:'20:00 이후',  tier:'골드~플래',    tierMin:2, tierMax:3, mode:'5v5',    dayOffset:12, hour:20, minute:0,  desc:'신생 클랜입니다. 비슷한 규모의 클랜과 스크림 원해요.' },
+  { id:4,  icon:'🌟', name:'Casual Heroes',  opponentClanName:'Midnight',        bg:'linear-gradient(135deg,#22c55e,#10b981)', members:30, type:'친목',     status:'모집 중', date:'이번 주 일요일',time:'18:00 이후',  tier:'전체',         tierMin:0, tierMax:7, mode:'6v6',    dayOffset:7,  hour:18, minute:0,  desc:'즐겜 친선 스크림. 승부보다 재미 중심. 초보도 환영합니다!' },
+  { id:5,  icon:'🐉', name:'Red Dragons',    opponentClanName:'Alpha Team',     bg:'linear-gradient(135deg,#ef4444,#f97316)', members:26, type:'경쟁',     status:'모집 중', date:'매주 수/금',    time:'21:00 이후',  tier:'마스터↑',      tierMin:5, tierMax:7, mode:'6v6',    dayOffset:3,  hour:21, minute:0,  desc:'고티어 스크림 상대 구합니다. 진지한 팀 우대.' },
+  { id:6,  icon:'🌀', name:'Vortex',         bg:'linear-gradient(135deg,#6366f1,#8b5cf6)', members:25, type:'경쟁·친목', status:'모집 완료', vsOpponent:'Alpha Team', vsOpponentIcon:'A', vsOpponentBg:'linear-gradient(135deg,#8b5cf6,#6366f1)', date:'이번 주 토요일',time:'20:00 이후',  tier:'다이아↑',      tierMin:4, tierMax:7, mode:'5v5',    dayOffset:6,  hour:20, minute:0,  desc:'다이아 이상 클랜과 친선 경기 원합니다.' },
+  { id:7,  icon:'N',  name:'Night Owls',     opponentClanName:'Casual Heroes',    bg:'',                                          members:19, type:'친목',     status:'모집 중', date:'평일 야간',     time:'23:00 이후',  tier:'전체',         tierMin:0, tierMax:7, mode:'6v6',    dayOffset:1,  hour:23, minute:0,  desc:'야간 활동 클랜입니다. 자정~새벽 스크림 환영합니다.' },
+  { id:8,  icon:'A',  name:'Alpha Team',     opponentClanName:'Vortex',          bg:'linear-gradient(135deg,#8b5cf6,#6366f1)', members:30, type:'경쟁',     status:'모집 중', date:'주말',          time:'15:00 이후',  tier:'플레~다이아',  tierMin:3, tierMax:4, mode:'5v5',    dayOffset:6,  hour:15, minute:0,  desc:'주말 오후 스크림 상대 구합니다. 매너 있는 팀 환영.' },
+  { id:9,  icon:'D',  name:'Dark Matter',    bg:'linear-gradient(135deg,#374151,#1f2937)', members:15, type:'경쟁',     status:'모집 완료', vsOpponent:'Solar Flare', vsOpponentIcon:'S', vsOpponentBg:'linear-gradient(135deg,#f97316,#fb7185)', date:'다음 달 초',    time:'20:00 이후',  tier:'다이아~마스터', tierMin:4, tierMax:5, mode:'6v6',   dayOffset:13, hour:20, minute:0,  desc:'정규 시즌 시작 전 조기 스크림 일정을 잡고 싶습니다.' },
+  { id:10, icon:'🌙', name:'Midnight',       opponentClanName:'Night Owls',       bg:'',                                          members:20, type:'친목',     status:'모집 중', date:'매주 토요일',   time:'자정~새벽',   tier:'전체',         tierMin:0, tierMax:7, mode:'5v5',    dayOffset:8,  hour:1,  minute:0,  desc:'늦은 밤 활동하는 클랜입니다. 편한 분위기 스크림 환영.' },
+  { id:11, icon:'B',  name:'Best Warriors',  opponentClanName:'Red Dragons',    bg:'linear-gradient(135deg,#f59e0b,#ef4444)', members:28, type:'경쟁',     status:'모집 중', date:'이번 주 수요일',time:'21:00 이후',  tier:'마스터↑',      tierMin:5, tierMax:7, mode:'6v6',    dayOffset:3,  hour:22, minute:0,  desc:'상위 티어 클랜 스크림 구합니다. 전략적인 팀 우대.' },
 ];
-const SCRIM_TIER_MAP = { '골드↓':['골드~플래','전체'], '플래':['플레~다이아','골드~플래','전체'], '다이아':['다이아~마스터','플레~다이아','전체'], '마스터↑':['마스터↑','다이아~마스터','전체'], '전체':null };
+const SCRIM_DOW = ['일','월','화','수','목','금','토'];
+/** OW2 경쟁전식 티어 슬라이더: 브론즈 5~1 … 그랜드마스터 5~1 → 챌린저 5~1 → 프로 (총 41단계, 인덱스 0~40) */
+const SCRIM_APPLY_RANKS = (() => {
+  const tiers = ['브론즈', '실버', '골드', '플래티넘', '다이아', '마스터', '그랜드마스터'];
+  const list = [];
+  tiers.forEach(t => {
+    for (let d = 5; d >= 1; d--) list.push(`${t} ${d}`);
+  });
+  for (let d = 5; d >= 1; d--) list.push(`챌린저 ${d}`);
+  list.push('프로');
+  return list;
+})();
+
+function scrimDateKeyFromDate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function scrimComputeStart(s) {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + s.dayOffset);
+  d.setHours(s.hour, s.minute, 0, 0);
+  return d;
+}
+function scrimTimeLabel(s) {
+  const t = scrimComputeStart(s);
+  return `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+}
+/** 다가오는 모집 카드용: 날짜 + 시각 (한 줄, 보라 강조용과 동일 정보) */
+function scrimKoreanDateTimeLine(s) {
+  const t = scrimComputeStart(s);
+  const m = t.getMonth() + 1;
+  const d = t.getDate();
+  const dow = SCRIM_DOW[t.getDay()];
+  const hh = String(t.getHours()).padStart(2, '0');
+  const mm = String(t.getMinutes()).padStart(2, '0');
+  return `${m}월 ${d}일 (${dow}) · ${hh}:${mm}`;
+}
+function scrimRangeKeys() {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const keys = [];
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    keys.push(scrimDateKeyFromDate(d));
+  }
+  return { start, keys };
+}
+function scrimFmtRangeLabel(d0, d13) {
+  return `${d0.getMonth() + 1}월 ${d0.getDate()}일 – ${d13.getMonth() + 1}월 ${d13.getDate()}일`;
+}
+/** 모집 완료 카드·드로어: 상대 클랜 아바타 (목업에 없으면 이니셜·그라데이션 자동) */
+function scrimOpponentLetter(name) {
+  const t = String(name || '').trim();
+  if (!t) return '?';
+  const m = t.match(/./u);
+  return m ? m[0] : '?';
+}
+function scrimOpponentHashGradient(seed) {
+  const g = [
+    'linear-gradient(135deg,#f97316,#ef4444)',
+    'linear-gradient(135deg,#0ea5e9,#06b6d4)',
+    'linear-gradient(135deg,#22c55e,#10b981)',
+    'linear-gradient(135deg,#ec4899,#f472b6)',
+    'linear-gradient(135deg,#a855f7,#6366f1)',
+  ];
+  let h = 0;
+  const s = String(seed || '');
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return g[Math.abs(h) % g.length];
+}
+function scrimOpponentAvatar(s) {
+  const name = s.vsOpponent || '';
+  const icon =
+    s.vsOpponentIcon != null && String(s.vsOpponentIcon).length > 0
+      ? s.vsOpponentIcon
+      : scrimOpponentLetter(name);
+  const bg = s.vsOpponentBg || scrimOpponentHashGradient(name);
+  return { icon, bg };
+}
 
 function setScrimFilter(key, el) {
   document.querySelectorAll(`[data-sf="${key}"]`).forEach(c => c.classList.remove('on'));
   el.classList.add('on');
   scrimFilter[key] = el.dataset.val;
-  scrimPage = 1; renderScrims();
+  scrimSelectedDateKey = null;
+  renderScrims();
 }
-function goScrimPage(p) { scrimPage = p; renderScrims(); }
+/** 티어 다중 선택: 선택한 티어 중 하나라도 모집 구간(tierMin~tierMax)에 포함되면 표시 */
+function toggleScrimTierFilter(el) {
+  const val = el.dataset.val;
+  const allChip = document.querySelector('[data-st="tier-all"]');
+  if (allChip) allChip.classList.remove('on');
+  const i = scrimFilter.tiers.indexOf(val);
+  if (i >= 0) {
+    scrimFilter.tiers.splice(i, 1);
+    el.classList.remove('on');
+  } else {
+    scrimFilter.tiers.push(val);
+    el.classList.add('on');
+  }
+  if (scrimFilter.tiers.length === 0 && allChip) allChip.classList.add('on');
+  scrimSelectedDateKey = null;
+  renderScrims();
+}
+function clearScrimTierFilter(el) {
+  scrimFilter.tiers = [];
+  document.querySelectorAll('[data-st="tier"]').forEach(c => c.classList.remove('on'));
+  document.querySelector('[data-st="tier-all"]')?.classList.add('on');
+  scrimSelectedDateKey = null;
+  renderScrims();
+}
+function scrimMatchesTierMulti(s) {
+  if (!scrimFilter.tiers.length) return true;
+  for (const name of scrimFilter.tiers) {
+    const idx = SCRIM_TIER_RANKS.indexOf(name);
+    if (idx < 0) continue;
+    if (idx >= s.tierMin && idx <= s.tierMax) return true;
+  }
+  return false;
+}
+function selectScrimDate(dateKey) {
+  scrimSelectedDateKey = dateKey;
+  renderScrims();
+}
+function focusScrimFromUpcoming(dateKey) {
+  scrimSelectedDateKey = dateKey;
+  renderScrims();
+  document.getElementById('sec-scrim')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
 function renderScrims() {
-  let list = SCRIMS.filter(s => {
+  const list = SCRIMS.filter(s => {
     if (scrimFilter.status !== '전체' && s.status !== scrimFilter.status) return false;
-    if (scrimFilter.tier !== '전체') {
-      const allowed = SCRIM_TIER_MAP[scrimFilter.tier];
-      if (allowed && !allowed.some(t => s.tier.includes(t.replace('~','')))) return false;
-    }
+    if (!scrimMatchesTierMulti(s)) return false;
     return true;
+  }).map(s => ({ ...s, startAt: scrimComputeStart(s), dateKey: scrimDateKeyFromDate(scrimComputeStart(s)) }));
+
+  document.getElementById('scrim-count-label').textContent = `스크림 모집 ${list.length}건 · 아래 캘린더에서 일정 확인`;
+
+  const { start: rangeStart, keys: windowKeys } = scrimRangeKeys();
+  const rangeEnd = new Date(rangeStart);
+  rangeEnd.setDate(rangeEnd.getDate() + 13);
+
+  const byKey = {};
+  windowKeys.forEach(k => { byKey[k] = []; });
+  list.forEach(s => {
+    if (!byKey[s.dateKey]) byKey[s.dateKey] = [];
+    byKey[s.dateKey].push(s);
   });
-  document.getElementById('scrim-count-label').textContent = `스크림 모집 ${list.length}건`;
-  const start = (scrimPage - 1) * SCRIM_PAGE;
-  const slice = list.slice(start, start + SCRIM_PAGE);
-  document.getElementById('scrimList').innerHTML = slice.length ? slice.map(s => `
-    <div class="scrim-card" style="display:flex;align-items:center;gap:16px;padding:16px 20px">
-      <div class="card-avatar">${s.icon}</div>
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px">
-          <div style="font-weight:700;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div>
-          <span class="badge ${s.status==='모집 중'?'badge-success':'badge-muted'}" style="flex-shrink:0">${s.status}</span>
-        </div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">클랜원 ${s.members}명 · ${s.type}</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <span class="scrim-chip">${s.date}</span>
-            <span class="scrim-chip">${s.time}</span>
-            <span class="scrim-chip">${s.tier}</span>
-          </div>
-          <div style="display:flex;gap:8px;flex-shrink:0">
-            <button class="btn btn-secondary btn-sm">상세 보기</button>
-            <button class="btn btn-primary btn-sm" onclick="openScrimChat()">채팅방 열기</button>
-          </div>
-        </div>
+  Object.keys(byKey).forEach(k => {
+    byKey[k].sort((a, b) => a.startAt - b.startAt);
+  });
+
+  // 모집이 없는 날짜를 눌렀을 때는 선택을 유지. (이전: 빈 날짜면 항상 windowKeys[0]=오늘로 덮어써 버그)
+  const selectedInRange =
+    scrimSelectedDateKey != null && scrimSelectedDateKey !== '' && windowKeys.includes(scrimSelectedDateKey);
+  if (!selectedInRange) {
+    scrimSelectedDateKey =
+      windowKeys.find(k => byKey[k]?.length) ||
+      Object.keys(byKey).find(k => byKey[k].length) ||
+      windowKeys[0];
+  }
+
+  const now = new Date();
+  const upcoming = list
+    .filter(s => s.startAt >= now && s.status !== '모집 완료')
+    .sort((a, b) => a.startAt - b.startAt)
+    .slice(0, 5);
+
+  const upEl = document.getElementById('scrimUpcoming');
+  if (upEl) {
+    upEl.innerHTML = `
+      <div class="scrim-upcoming-head">
+        <div class="scrim-upcoming-title">다가오는 모집</div>
+        <span style="font-size:11px;color:var(--text-muted)">가장 가까운 순 · 최대 5건</span>
       </div>
-    </div>`).join('')
-    : `<div class="empty-state"><div class="empty-state-icon">⚔️</div><div class="empty-state-text">조건에 맞는 스크림 모집이 없습니다</div></div>`;
-  renderPagination('scrimPagination', scrimPage, list.length, SCRIM_PAGE, 'goScrimPage');
+      ${upcoming.length ? `<div class="scrim-upcoming-rows">${upcoming.map(s => `
+        <div class="scrim-up-row" onclick="focusScrimFromUpcoming('${s.dateKey}')">
+          <div class="scrim-up-maincol">
+            <div class="scrim-up-datetime">${scrimKoreanDateTimeLine(s)}</div>
+            <div class="scrim-up-name">${s.name}</div>
+            <div class="scrim-up-sub">${escHtml(scrimModeDisplaySingle(s))} · ${escHtml(scrimTierDetailLabel(s))}</div>
+          </div>
+          <span class="badge ${s.status === '모집 중' ? 'badge-success' : 'badge-muted'}" style="flex-shrink:0;font-size:10px;margin-top:2px">${s.status}</span>
+        </div>`).join('')}</div>`
+      : `<div class="empty-state" style="padding:12px 0"><div class="empty-state-text" style="font-size:13px">다가오는 일정이 없습니다</div></div>`}`;
+  }
+
+  const calEl = document.getElementById('scrimCalendar');
+  if (calEl) {
+    calEl.innerHTML = `
+      <div class="scrim-cal-head">
+        <div class="scrim-cal-range">${scrimFmtRangeLabel(rangeStart, rangeEnd)}</div>
+        <div class="scrim-cal-hint">날짜를 눌러 그날의 모집을 시간순으로 볼 수 있습니다</div>
+      </div>
+      <div class="scrim-cal-grid">
+        ${windowKeys.map(k => {
+          const [yy, mm, dd] = k.split('-').map(Number);
+          const cellDate = new Date(yy, mm - 1, dd);
+          const dnum = cellDate.getDate();
+          const dow = SCRIM_DOW[cellDate.getDay()];
+          const daySc = byKey[k] || [];
+          const endOfDay = new Date(yy, mm - 1, dd, 23, 59, 59, 999);
+          const isPast = endOfDay < now;
+          const isToday = k === scrimDateKeyFromDate(now);
+          const sel = k === scrimSelectedDateKey;
+          const times = daySc.slice(0, 2).map(s => scrimTimeLabel(s));
+          const more = daySc.length > 2 ? daySc.length - 2 : 0;
+          return `
+            <div class="scrim-cal-cell${isPast ? ' past' : ''}${isToday ? ' today' : ''}${sel ? ' selected' : ''}"
+              ${isPast ? '' : `onclick="selectScrimDate('${k}')"`}>
+              <div class="scrim-cal-dnum">${dnum}</div>
+              <div class="scrim-cal-dow">${dow}</div>
+              ${daySc.length ? `
+                <div class="scrim-cal-badges">
+                  ${times.map(t => `<span class="scrim-cal-badge">${t}</span>`).join('')}
+                  ${more > 0 ? `<span class="scrim-cal-more">+${more}</span>` : ''}
+                </div>` : `<span class="scrim-cal-zero">—</span>`}
+            </div>`;
+        }).join('')}
+      </div>`;
+  }
+
+  const dayList = byKey[scrimSelectedDateKey] || [];
+  const titleEl = document.getElementById('scrimDayTitle');
+  const listEl = document.getElementById('scrimDayList');
+  if (titleEl && listEl) {
+    const label = scrimSelectedDateKey.replace(/-/g, '.');
+    titleEl.innerHTML = `${label} <span>· ${dayList.length}건</span>`;
+    listEl.innerHTML = dayList.length ? dayList.map(s => {
+      const isDone = s.status === '모집 완료' && s.vsOpponent;
+      const hostBg = s.bg || 'var(--bg-overlay)';
+      const opp = isDone ? scrimOpponentAvatar(s) : null;
+      const leftAvatars = isDone
+        ? `<div class="scrim-card-visual" aria-hidden="true">
+            <div class="scrim-card-vis-cell scrim-card-vis-cell--duo" style="background:${hostBg}">${s.icon}</div>
+            <div class="scrim-card-vis-cell scrim-card-vis-cell--duo" style="background:${opp.bg}">${opp.icon}</div>
+          </div>`
+        : `<div class="scrim-card-visual" aria-hidden="true">
+            <div class="scrim-card-vis-cell" style="background:${hostBg}">${s.icon}</div>
+          </div>`;
+      const titleHtml = isDone
+        ? `<div class="scrim-card-title-vs scrim-vs-match">${s.name}<span class="scrim-vs-x">vs</span>${s.vsOpponent}</div>`
+        : `<div style="font-weight:700;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0">${s.name}</div>`;
+      return `
+      <div class="scrim-card scrim-card--interactive scrim-card--media" style="margin-bottom:10px;cursor:pointer" onclick="openScrimDrawer(${s.id})" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openScrimDrawer(${s.id})}">
+        ${leftAvatars}
+        <div class="scrim-card-body">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px">
+            ${titleHtml}
+            <span class="badge ${s.status==='모집 중'?'badge-success':'badge-muted'}" style="flex-shrink:0">${s.status}</span>
+          </div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">클랜원 ${s.members}명</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+            <span class="scrim-chip hi">${scrimTimeLabel(s)}</span>
+            <span class="scrim-chip scrim-chip-tier">${escHtml(scrimTierDetailLabel(s))}</span>
+            <span class="scrim-chip">${escHtml(scrimModeDisplaySingle(s))}</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:10px">클릭하여 상세 정보 · 채팅</div>
+        </div>
+      </div>`;
+    }).join('')
+      : `<div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-text">이 날짜에 예정된 모집이 없습니다</div></div>`;
+  }
 }
 
 /* ════════════════════════════════════════
@@ -1578,11 +2691,14 @@ function updatePromoFilterSummary() {
 }
 
 function resetScrimFilters() {
-  scrimFilter = { status:'전체', tier:'전체' };
-  document.querySelectorAll('.filter-chip[data-sf]').forEach(c => {
+  scrimFilter = { status: '전체', tiers: [] };
+  scrimSelectedDateKey = null;
+  document.querySelectorAll('.filter-chip[data-sf="status"]').forEach(c => {
     c.classList.toggle('on', c.dataset.val === '전체');
   });
-  scrimPage = 1; renderScrims();
+  document.querySelectorAll('.filter-chip[data-st="tier"]').forEach(c => c.classList.remove('on'));
+  document.querySelector('.filter-chip[data-st="tier-all"]')?.classList.add('on');
+  renderScrims();
 }
 
 function removePromoFilter(group, val) {
@@ -1663,21 +2779,94 @@ function renderPromos() {
    클랜 순위
 ════════════════════════════════════════ */
 const RANKING = [
-  { rank:1,  name:'Best Warriors', icon:'B', bg:'linear-gradient(135deg,#f59e0b,#ef4444)', count:68, members:28, active:25, medal:'🥇' },
-  { rank:2,  name:'Storm Rising',  icon:'S', bg:'linear-gradient(135deg,#0ea5e9,#06b6d4)', count:61, members:22, active:19, medal:'🥈' },
-  { rank:3,  name:'Night Owls',    icon:'N', bg:'',                                         count:55, members:19, active:15, medal:'🥉' },
-  { rank:4,  name:'Alpha Team',    icon:'A', bg:'linear-gradient(135deg,#8b5cf6,#6366f1)', count:52, members:30, active:24, medal:'' },
-  { rank:5,  name:'Dark Matter',   icon:'D', bg:'linear-gradient(135deg,#374151,#1f2937)', count:48, members:15, active:12, medal:'' },
-  { rank:6,  name:'Red Dragons',   icon:'R', bg:'linear-gradient(135deg,#ef4444,#f97316)', count:47, members:26, active:21, medal:'' },
-  { rank:7,  name:'Casual Heroes', icon:'🌟',bg:'linear-gradient(135deg,#22c55e,#10b981)',count:47, members:30, active:18, medal:'' },
-  { rank:8,  name:'Phoenix Rising',icon:'🔥',bg:'linear-gradient(135deg,#7c3aed,#3b82f6)',count:47, members:24, active:24, medal:'', mine:true, trend:'↑2' },
-  { rank:9,  name:'Iron Wall',     icon:'🛡',bg:'linear-gradient(135deg,#374151,#6b7280)',count:38, members:10, active: 8, medal:'' },
-  { rank:10, name:'Midnight',      icon:'🌙',bg:'',                                        count:31, members:20, active:11, medal:'' },
+  { rank:1,  name:'Best Warriors', icon:'B', bg:'linear-gradient(135deg,#f59e0b,#ef4444)', count:68, totalGames:2180, monthScrims:26, activeRatioPct:86, members:28, active:25, medal:'🥇' },
+  { rank:2,  name:'Storm Rising',  icon:'S', bg:'linear-gradient(135deg,#0ea5e9,#06b6d4)', count:61, totalGames:1890, monthScrims:28, activeRatioPct:88, members:22, active:19, medal:'🥈' },
+  { rank:3,  name:'Night Owls',    icon:'N', bg:'',                                         count:55, totalGames:1120, monthScrims:19, activeRatioPct:82, members:19, active:15, medal:'🥉' },
+  { rank:4,  name:'Alpha Team',    icon:'A', bg:'linear-gradient(135deg,#8b5cf6,#6366f1)', count:52, totalGames:2460, monthScrims:34, activeRatioPct:80, members:30, active:24, medal:'' },
+  { rank:5,  name:'Dark Matter',   icon:'D', bg:'linear-gradient(135deg,#374151,#1f2937)', count:48, totalGames:940, monthScrims:11, activeRatioPct:80, members:15, active:12, medal:'' },
+  { rank:6,  name:'Red Dragons',   icon:'R', bg:'linear-gradient(135deg,#ef4444,#f97316)', count:47, totalGames:1650, monthScrims:22, activeRatioPct:81, members:26, active:21, medal:'' },
+  { rank:7,  name:'Casual Heroes', icon:'🌟',bg:'linear-gradient(135deg,#22c55e,#10b981)',count:47, totalGames:1320, monthScrims:16, activeRatioPct:58, members:30, active:18, medal:'' },
+  { rank:8,  name:'Phoenix Rising',icon:'🔥',bg:'linear-gradient(135deg,#7c3aed,#3b82f6)',count:47, totalGames:1480, monthScrims:30, activeRatioPct:92, members:24, active:24, medal:'', mine:true, trend:'↑2' },
+  { rank:9,  name:'Iron Wall',     icon:'🛡',bg:'linear-gradient(135deg,#374151,#6b7280)',count:38, totalGames:520, monthScrims:8, activeRatioPct:80, members:10, active: 8, medal:'' },
+  { rank:10, name:'Midnight',      icon:'🌙',bg:'',                                        count:31, totalGames:680, monthScrims:12, activeRatioPct:55, members:20, active:11, medal:'' },
 ];
+/** 목업: 이번 달 내전 참여 횟수 TOP (게임 전체, 닉네임·클랜) */
+const RANKING_INTRA_LEADERS = [
+  { rank: 1, nick: '윈터플레이', clan: 'Phoenix Rising', intraCount: 41 },
+  { rank: 2, nick: '스톰메인', clan: 'Storm Rising', intraCount: 38 },
+  { rank: 3, nick: '알파장인', clan: 'Alpha Team', intraCount: 36 },
+  { rank: 4, nick: '레드캐리', clan: 'Red Dragons', intraCount: 33 },
+  { rank: 5, nick: '나이트Owl', clan: 'Night Owls', intraCount: 31 },
+  { rank: 6, nick: '베스트딜', clan: 'Best Warriors', intraCount: 29 },
+  { rank: 7, nick: '캐주얼킹', clan: 'Casual Heroes', intraCount: 27 },
+  { rank: 8, nick: '다크서폿', clan: 'Dark Matter', intraCount: 24 },
+];
+/** 목업: 이번 주 KST 시간대별 내전 시작 건수 (인덱스 = 시 0~23) */
+const RANKING_INTRA_HOURLY_COUNTS = [
+  0, 0, 0, 0, 0, 1, 2, 5, 9, 12, 10, 7,
+  6, 7, 9, 11, 14, 17, 19, 23, 26, 34, 28, 14,
+];
+/** 목업: 동일 주간(3/16–3/22) 요일별 내전 시작 건수 (인덱스 0=월 … 6=일). 합계는 시간대 배열 합과 동일(254). */
+const RANKING_INTRA_WEEKDAY_COUNTS = [28, 32, 35, 38, 42, 45, 34];
+const RANKING_DOW_LABELS = ['월', '화', '수', '목', '금', '토', '일'];
+let rankingSort = 'activity';
+function setRankingTab(tab) {
+  const panels = {
+    clan: document.getElementById('ranking-panel-clan'),
+    person: document.getElementById('ranking-panel-person'),
+    insight: document.getElementById('ranking-panel-insight'),
+  };
+  if (!panels.clan) return;
+  panels.clan.hidden = tab !== 'clan';
+  if (panels.person) panels.person.hidden = tab !== 'person';
+  if (panels.insight) panels.insight.hidden = tab !== 'insight';
+  document.querySelectorAll('.ranking-tab').forEach(btn => {
+    const on = btn.getAttribute('data-ranking-tab') === tab;
+    btn.classList.toggle('on', on);
+    btn.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+}
+function setRankingSort(val) {
+  rankingSort = val;
+  renderRanking();
+}
 function renderRanking() {
-  document.getElementById('ranking-list').innerHTML = RANKING.map(r => `
-    <div style="display:grid;grid-template-columns:40px 1fr 80px 80px;padding:12px 16px;border-bottom:1px solid var(--border);align-items:center;gap:8px;${r.mine?'background:rgba(124,58,237,0.06)':''}">
-      <div class="rank-num${r.rank<=3?' top'+r.rank:''}">${r.medal||r.rank}</div>
+  const head = document.getElementById('ranking-metric-head');
+  if (head) {
+    head.textContent =
+      rankingSort === 'activity'
+        ? '이번달 내전 경기수'
+        : rankingSort === 'monthScrims'
+          ? '이번달 스크림'
+          : rankingSort === 'activeRatio'
+            ? '활성 유저 비율'
+            : '누적 경기';
+  }
+  const tie = (a, b) => a.name.localeCompare(b.name, 'ko');
+  let list = [...RANKING];
+  if (rankingSort === 'activity') {
+    list.sort((a, b) => (b.count - a.count) || tie(a, b));
+  } else if (rankingSort === 'monthScrims') {
+    list.sort((a, b) => (b.monthScrims - a.monthScrims) || tie(a, b));
+  } else if (rankingSort === 'activeRatio') {
+    list.sort((a, b) => (b.activeRatioPct - a.activeRatioPct) || tie(a, b));
+  } else if (rankingSort === 'total') {
+    list.sort((a, b) => (b.totalGames - a.totalGames) || tie(a, b));
+  }
+  const metricCell = r => {
+    if (rankingSort === 'activity') return `${r.count}회`;
+    if (rankingSort === 'monthScrims') return `${r.monthScrims}회`;
+    if (rankingSort === 'activeRatio') return `${r.activeRatioPct}%`;
+    return `${r.totalGames.toLocaleString('ko-KR')}회`;
+  };
+  document.getElementById('ranking-list').innerHTML = list.map((r, i) => {
+    const pos = i + 1;
+    const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : '';
+    const numHtml = medal || String(pos);
+    const topCls = pos <= 3 ? ` top${pos}` : '';
+    return `
+    <div style="display:grid;grid-template-columns:40px 1fr 88px 80px;padding:12px 16px;border-bottom:1px solid var(--border);align-items:center;gap:8px;${r.mine?'background:rgba(124,58,237,0.06)':''}">
+      <div class="rank-num${topCls}">${numHtml}</div>
       <div style="display:flex;align-items:center;gap:8px">
         <div class="avatar" style="width:28px;height:28px;font-size:12px;${r.bg?'background:'+r.bg:''}">${r.icon}</div>
         <div>
@@ -1685,9 +2874,139 @@ function renderRanking() {
           ${r.trend?`<div style="font-size:11px;color:var(--success)">${r.trend} 상승</div>`:''}
         </div>
       </div>
-      <div style="text-align:right;font-size:13px;font-weight:600">${r.count}회</div>
+      <div style="text-align:right;font-size:13px;font-weight:600">${metricCell(r)}</div>
       <div style="text-align:right;font-size:13px;color:var(--text-secondary)">${r.members}명</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+  updateRankingMyClanBar(list);
+}
+/** 정렬된 목록 기준으로 상단 「내 클랜」 바 갱신 */
+function updateRankingMyClanBar(sortedList) {
+  const mine = sortedList.find(r => r.mine);
+  const rankEl = document.getElementById('ranking-my-clan-rank');
+  const nameEl = document.getElementById('ranking-my-clan-name');
+  const detailEl = document.getElementById('ranking-my-clan-detail');
+  const avEl = document.getElementById('ranking-my-clan-avatar');
+  const trendEl = document.getElementById('ranking-my-clan-trend');
+  const subEl = document.getElementById('ranking-my-clan-trend-sub');
+  const bar = document.getElementById('ranking-my-clan-bar');
+  if (!rankEl || !bar) return;
+  if (!mine) {
+    bar.style.display = 'none';
+    return;
+  }
+  bar.style.display = '';
+  const pos = sortedList.findIndex(r => r.mine) + 1;
+  rankEl.textContent = String(pos);
+  if (nameEl) nameEl.textContent = mine.name;
+  if (avEl) {
+    avEl.textContent = mine.icon;
+    avEl.style.background = mine.bg || 'var(--bg-overlay)';
+  }
+  const detailBySort = {
+    activity: `클랜원 ${mine.members}명 · 이번달 내전 ${mine.count}경기`,
+    monthScrims: `클랜원 ${mine.members}명 · 이번달 스크림 ${mine.monthScrims}회`,
+    activeRatio: `클랜원 ${mine.members}명 · 활성 비율 ${mine.activeRatioPct}%`,
+    total: `클랜원 ${mine.members}명 · 누적 경기 ${mine.totalGames.toLocaleString('ko-KR')}회`,
+  };
+  if (detailEl) detailEl.textContent = detailBySort[rankingSort] || detailBySort.activity;
+  if (trendEl && subEl) {
+    if (rankingSort === 'activity' && mine.trend) {
+      trendEl.textContent = mine.trend;
+      trendEl.style.color = 'var(--success)';
+      subEl.textContent = '지난달 10위';
+    } else {
+      trendEl.textContent = '현재 정렬';
+      trendEl.style.color = '#a78bfa';
+      subEl.textContent = '지표마다 순위가 달라집니다';
+    }
+  }
+}
+function renderRankingIntraLeaders() {
+  const host = document.getElementById('ranking-intra-leaders');
+  if (!host) return;
+  host.innerHTML = RANKING_INTRA_LEADERS.map(r => {
+    const medal = r.rank <= 3 ? ['🥇', '🥈', '🥉'][r.rank - 1] : String(r.rank);
+    const topCls = r.rank <= 3 ? ` top${r.rank}` : '';
+    return `
+    <div class="ri-row">
+      <div class="rank-num${topCls}">${medal}</div>
+      <div style="font-weight:600">${escHtml(r.nick)}</div>
+      <div style="color:var(--text-secondary);font-size:12px">${escHtml(r.clan)}</div>
+      <div style="text-align:right;font-weight:700">${r.intraCount}회</div>
+    </div>`;
+  }).join('');
+}
+function renderRankingHourChart() {
+  const chart = document.getElementById('ranking-hour-chart');
+  const line = document.getElementById('rankingPeakHourLine');
+  const totalEl = document.getElementById('rankingHourTotal');
+  if (!chart) return;
+  const counts = RANKING_INTRA_HOURLY_COUNTS;
+  const max = Math.max(...counts, 1);
+  let peakH = 0;
+  for (let h = 1; h < 24; h++) {
+    if (counts[h] > counts[peakH]) peakH = h;
+  }
+  const total = counts.reduce((a, b) => a + b, 0);
+  if (totalEl) totalEl.textContent = String(total);
+  if (line) {
+    line.textContent =
+      counts[peakH] > 0
+        ? `가장 많이 진행된 시간: ${peakH}시 (${counts[peakH]}건)`
+        : '이번 주 기록된 내전이 없습니다.';
+  }
+  chart.setAttribute(
+    'aria-label',
+    `시간대별 내전 ${total}건, 피크 ${counts[peakH] > 0 ? peakH + '시' : '없음'}`,
+  );
+  chart.innerHTML = counts
+    .map((c, h) => {
+      const pct = c === 0 ? 0 : Math.max((c / max) * 100, 6);
+      const isPeak = h === peakH && c > 0;
+      return `
+    <div class="ranking-hour-col" title="${h}시 · ${c}건">
+      <div class="ranking-hour-bar${isPeak ? ' is-peak' : ''}" style="height:${pct}%"></div>
+      <span class="ranking-hour-tick">${h % 2 === 0 ? h : ''}</span>
+    </div>`;
+    })
+    .join('');
+}
+function renderRankingDowChart() {
+  const chart = document.getElementById('ranking-dow-chart');
+  const line = document.getElementById('rankingPeakDowLine');
+  const totalEl = document.getElementById('rankingDowTotal');
+  if (!chart) return;
+  const counts = RANKING_INTRA_WEEKDAY_COUNTS;
+  const max = Math.max(...counts, 1);
+  let peakD = 0;
+  for (let d = 1; d < 7; d++) {
+    if (counts[d] > counts[peakD]) peakD = d;
+  }
+  const total = counts.reduce((a, b) => a + b, 0);
+  if (totalEl) totalEl.textContent = String(total);
+  if (line) {
+    line.textContent =
+      counts[peakD] > 0
+        ? `가장 많이 진행된 요일: ${RANKING_DOW_LABELS[peakD]}요일 (${counts[peakD]}건)`
+        : '이번 주 기록된 내전이 없습니다.';
+  }
+  chart.setAttribute(
+    'aria-label',
+    `요일별 내전 ${total}건, 피크 ${counts[peakD] > 0 ? RANKING_DOW_LABELS[peakD] + '요일' : '없음'}`,
+  );
+  chart.innerHTML = counts
+    .map((c, d) => {
+      const pct = c === 0 ? 0 : Math.max((c / max) * 100, 6);
+      const isPeak = d === peakD && c > 0;
+      const lab = RANKING_DOW_LABELS[d];
+      return `
+    <div class="ranking-dow-col" title="${lab}요일 · ${c}건">
+      <div class="ranking-dow-bar${isPeak ? ' is-peak' : ''}" style="height:${pct}%"></div>
+      <span class="ranking-dow-tick">${lab}</span>
+    </div>`;
+    })
+    .join('');
 }
 
 /* ════════════════════════════════════════
@@ -1799,6 +3118,647 @@ function closeLfgDrawer() {
   document.body.style.overflow = '';
 }
 
+/* ── 스크림 상세 드로어 · 신청 모달 · 채팅 ── */
+let _scrimDrawerId = null;
+/** 목업: 로그인 유저의 내 클랜 내 역할. member면 신청한 스크림 수정 UI 숨김 */
+const MOCK_USER_CLAN_ROLE = 'officer'; /* 'member' | 'officer' | 'leader' */
+/** 목업: 현재 클랜명. 타 클랜 모집글에서 「채팅방 열기」 시 스레드 키(모집측 채팅방 행)와 일치시킴 */
+const MOCK_MY_CLAN_NAME = 'Phoenix Rising';
+let _scrimApplyEditId = null;
+function scrimCanEditAsOfficer(s) {
+  if (!s || !s.mine) return false;
+  if (s.status !== '모집 중') return false;
+  return MOCK_USER_CLAN_ROLE === 'officer' || MOCK_USER_CLAN_ROLE === 'leader';
+}
+function scrimSaModeFromScrimMode(mode) {
+  const m = String(mode || '');
+  if (m.includes('혼합')) return '혼합';
+  if (m.includes('5v5') && m.includes('6v6')) return '혼합';
+  if (m.includes('6v6')) return '6v6';
+  return '5v5';
+}
+/** 저장된 슬라이더 값 없을 때 tierMin/Max로 대략 복원 */
+function scrimApplyRankFallback(s) {
+  if (Number.isFinite(s.applyRankLo) && Number.isFinite(s.applyRankHi)) {
+    return { lo: s.applyRankLo, hi: s.applyRankHi };
+  }
+  const tMin = Math.min(s.tierMin ?? 0, s.tierMax ?? 7);
+  const tMax = Math.max(s.tierMin ?? 0, s.tierMax ?? 7);
+  const maxR = SCRIM_APPLY_RANKS.length - 1;
+  return {
+    lo: Math.min(tMin * 5, maxR),
+    hi: Math.min(tMax * 5 + 4, maxR),
+  };
+}
+/** 모집 카드·드로어: 세부 티어(다이아 4 ~ 다이아 1 등, SCRIM_APPLY_RANKS 기준) */
+function scrimTierDetailLabel(s) {
+  if (!s) return '';
+  const maxR = SCRIM_APPLY_RANKS.length - 1;
+  const { lo: rawLo, hi: rawHi } = scrimApplyRankFallback(s);
+  const lo = Math.max(0, Math.min(Math.min(rawLo, rawHi), maxR));
+  const hi = Math.max(0, Math.min(Math.max(rawLo, rawHi), maxR));
+  const a = SCRIM_APPLY_RANKS[lo];
+  const b = SCRIM_APPLY_RANKS[hi];
+  if (!a || !b) return String(s.tier || '');
+  if (a === b) return a;
+  return `${a} ~ ${b}`;
+}
+/** 모드는 단일 값만 표시 (5v5~6v6 등 레거시 문자열은 하나로 정규화) */
+function scrimModeDisplaySingle(s) {
+  const m = String(s?.mode || '').trim();
+  if (m.includes('~')) {
+    const left = m.split('~')[0].trim();
+    if (/6\s*v\s*6/i.test(left) || left.includes('6v6')) return '6v6';
+    if (/5\s*v\s*5/i.test(left) || left.includes('5v5')) return '5v5';
+    const right = m.split('~')[1]?.trim() || '';
+    if (/6\s*v\s*6/i.test(right) || right.includes('6v6')) return '6v6';
+    if (/5\s*v\s*5/i.test(right) || right.includes('5v5')) return '5v5';
+  }
+  if (m.includes('혼합')) return '혼합';
+  if (/6\s*v\s*6/i.test(m) || m.includes('6v6')) return '6v6';
+  if (/5\s*v\s*5/i.test(m) || m.includes('5v5')) return '5v5';
+  const sa = scrimSaModeFromScrimMode(m);
+  if (sa === '혼합') return '6v6';
+  return sa;
+}
+function renderScrimDrawerFooter(s) {
+  const el = document.getElementById('sdFooter');
+  if (!el) return;
+  if (s.mine) {
+    el.innerHTML = '';
+    return;
+  }
+  const encMe = scrimThreadParamEnc(MOCK_MY_CLAN_NAME);
+  if (s.status === '모집 완료') {
+    if (s.vsOpponent === MOCK_MY_CLAN_NAME) {
+      el.innerHTML = `<button type="button" class="btn btn-primary w-full" style="padding:13px;font-size:15px" onclick="openScrimChatWithOpponentAttr(${s.id}, '${encMe}')">💬 채팅방 열기</button>`;
+    } else {
+      el.innerHTML =
+        '<div style="font-size:12px;color:var(--text-muted);text-align:center;line-height:1.5">이 모집은 다른 클랜과 성사되었습니다.</div>';
+    }
+    return;
+  }
+  el.innerHTML = `<button type="button" class="btn btn-primary w-full" style="padding:13px;font-size:15px" onclick="openScrimChatWithOpponentAttr(${s.id}, '${encMe}')">💬 채팅방 열기</button>`;
+}
+function openScrimEditModal(id) {
+  if (id == null) return;
+  const s = SCRIMS.find(x => x.id === id);
+  if (!s || !scrimCanEditAsOfficer(s)) {
+    alert('신청한 클랜의 운영진·클랜장만 이 모집을 수정할 수 있습니다.');
+    return;
+  }
+  _scrimApplyEditId = id;
+  const t = scrimComputeStart(s);
+  document.getElementById('saDate').value = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+  document.getElementById('saTime').value = `${String(s.hour).padStart(2, '0')}:${String(s.minute ?? 0).padStart(2, '0')}`;
+  const saMode = scrimSaModeFromScrimMode(s.mode);
+  document.querySelectorAll('#saMode .lfg-chip').forEach(c => c.classList.toggle('on', c.dataset.saMode === saMode));
+  const { lo, hi } = scrimApplyRankFallback(s);
+  document.getElementById('saRankLo').value = String(Math.min(lo, hi));
+  document.getElementById('saRankHi').value = String(Math.max(lo, hi));
+  document.getElementById('saRankLo').style.zIndex = '2';
+  document.getElementById('saRankHi').style.zIndex = '3';
+  updateSaRankLabel();
+  document.getElementById('saNote').value = s.desc || '';
+  document.getElementById('scrimApplyModalTitle').textContent = '스크림 모집 수정';
+  document.getElementById('scrimApplyModalSub').textContent = '신청 클랜 운영진·클랜장만 수정할 수 있습니다.';
+  document.getElementById('scrimApplySubmitBtn').textContent = '저장';
+  document.getElementById('scrimApplyModal').style.display = 'flex';
+  closeScrimDrawer();
+}
+function openScrimDrawer(id) {
+  const s = SCRIMS.find(x => x.id === id);
+  if (!s) return;
+  _scrimDrawerId = id;
+  const hostBg = s.bg || 'var(--bg-overlay)';
+  const avWrap = document.getElementById('sdAvatars');
+  const nameEl = document.getElementById('sdName');
+  const vsSec = document.getElementById('sdVsSection');
+  if (s.status === '모집 완료' && s.vsOpponent) {
+    const opp = scrimOpponentAvatar(s);
+    avWrap.className = 'scrim-duo-avatars scrim-drawer-duo';
+    avWrap.innerHTML = `
+      <div class="scrim-duo-face" style="background:${hostBg}">${s.icon}</div>
+      <div class="scrim-duo-face" style="background:${opp.bg}">${opp.icon}</div>`;
+    nameEl.classList.add('scrim-vs-match');
+    nameEl.innerHTML = `${s.name}<span class="scrim-vs-x">vs</span>${s.vsOpponent}`;
+    vsSec.style.display = 'none';
+  } else {
+    avWrap.className = '';
+    avWrap.innerHTML = `<div style="width:56px;height:56px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;border:1px solid var(--border);background:${hostBg}">${s.icon}</div>`;
+    nameEl.classList.remove('scrim-vs-match');
+    nameEl.textContent = s.name;
+    vsSec.style.display = 'none';
+  }
+  document.getElementById('sdMeta').innerHTML = `
+    <span class="badge ${s.status === '모집 중' ? 'badge-success' : 'badge-muted'}">${s.status}</span>`;
+  const tierLine = escHtml(scrimTierDetailLabel(s));
+  const modeSingle = escHtml(scrimModeDisplaySingle(s));
+  document.getElementById('sdDesc').textContent = s.desc;
+  document.getElementById('sdSchedule').innerHTML = `
+    <div class="scrim-drawer-schedule-stack">
+      <div class="scrim-drawer-datetime">
+        <span class="scrim-drawer-datetime-k">정식 일시</span>
+        <span class="scrim-drawer-datetime-v">${escHtml(scrimKoreanDateTimeLine(s))}</span>
+      </div>
+      <div class="scrim-drawer-datetime">
+        <span class="scrim-drawer-datetime-k">모드</span>
+        <span class="scrim-drawer-datetime-v">${modeSingle}</span>
+      </div>
+      <div class="scrim-drawer-datetime">
+        <span class="scrim-drawer-datetime-k">티어</span>
+        <span class="scrim-drawer-datetime-v scrim-drawer-datetime-v--tier">${tierLine}</span>
+      </div>
+    </div>`;
+  const editBtn = document.getElementById('sdEditBtn');
+  if (editBtn) editBtn.style.display = scrimCanEditAsOfficer(s) ? 'flex' : 'none';
+  renderScrimNegotiationSection(s);
+  renderScrimDrawerFooter(s);
+  document.getElementById('scrimDrawerOverlay').classList.add('open');
+  document.getElementById('scrimDrawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeScrimDrawer() {
+  document.getElementById('scrimDrawerOverlay').classList.remove('open');
+  document.getElementById('scrimDrawer').classList.remove('open');
+  document.body.style.overflow = '';
+  _scrimDrawerId = null;
+}
+/** 스크림 채팅방: 경기 시작 시각 + 6시간 후 자동 종료 */
+function scrimChatSessionExpiresAt(s) {
+  return new Date(scrimComputeStart(s).getTime() + 6 * 60 * 60 * 1000);
+}
+/** 채팅방 안내용 짧은 시각 (예: 3/23 03:00) */
+function formatScrimChatSessionEndShort(d) {
+  const mo = d.getMonth() + 1;
+  const day = d.getDate();
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${mo}/${day} ${hh}:${mm}`;
+}
+/** 분 단위만 표시 (초 단위 갱신 없이 간단히) */
+function formatScrimChatRemainRough(ms) {
+  if (ms <= 0) return '';
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  if (h > 0 && m > 0) return `약 ${h}시간 ${m}분`;
+  if (h > 0) return `약 ${h}시간`;
+  if (m > 0) return `약 ${m}분`;
+  return '1분 미만';
+}
+let _scrimChatId = null;
+/** 현재 열린 채팅이 어떤 상대 클랜과의 1:1 채팅방인지 (모집글 단위가 아님) */
+let _scrimChatOpponentName = null;
+let _scrimChatInterval = null;
+/** 스크림 id별 양측 운영진 참가 확정 여부 */
+const scrimJoinState = {};
+/** 채팅·참가 확정 버튼: 상대 클랜 표시명 (성사 전에는 opponentClanName, 성사 후 vsOpponent) */
+function scrimGuestClanName(s) {
+  if (s.vsOpponent) return s.vsOpponent;
+  if (s.opponentClanName) return s.opponentClanName;
+  return 'Blue Storm';
+}
+/** 모집 1건에 대해 동시에 열릴 수 있는 1:1 채팅방(상대 클랜별) */
+function scrimNegotiationThreads(s) {
+  if (!s) return [];
+  if (s.status === '모집 완료' && s.vsOpponent) {
+    return [{ opponentClanName: s.vsOpponent, status: '성사' }];
+  }
+  if (Array.isArray(s.negotiationThreads) && s.negotiationThreads.length > 0) {
+    return s.negotiationThreads.map(t => ({
+      opponentClanName: t.opponentClanName || t.name,
+      status: t.status || '진행 중'
+    }));
+  }
+  const o = s.opponentClanName;
+  if (o) return [{ opponentClanName: o, status: '진행 중' }];
+  return [{ opponentClanName: 'Blue Storm', status: '진행 중' }];
+}
+function scrimSessionJoinKey(scrimId, opponentName) {
+  return `${scrimId}@${String(opponentName)}`;
+}
+function scrimActiveOpponentInChat(s) {
+  if (_scrimChatOpponentName) return _scrimChatOpponentName;
+  const th = scrimNegotiationThreads(s);
+  return th[0]?.opponentClanName || scrimGuestClanName(s);
+}
+/** 목업: 채팅방에서 내 클랜이 모집측(host)인지 문의측(guest)인지 */
+function scrimViewerRoleInChat(s) {
+  if (!s) return null;
+  const opp = scrimActiveOpponentInChat(s);
+  if (MOCK_MY_CLAN_NAME === s.name) return 'host';
+  if (MOCK_MY_CLAN_NAME === opp) return 'guest';
+  return null;
+}
+function renderScrimNegotiationSection(s) {
+  const wrap = document.getElementById('sdNegotiationWrap');
+  const host = document.getElementById('sdNegotiation');
+  if (!host) return;
+  if (!s.mine) {
+    if (wrap) wrap.style.display = 'none';
+    host.innerHTML = '';
+    return;
+  }
+  if (wrap) wrap.style.display = '';
+  const threads = scrimNegotiationThreads(s);
+  const rowBtn = opp => {
+    const enc = scrimThreadParamEnc(opp);
+    return `<button type="button" class="sd-neg-open" onclick="openScrimChatWithOpponentAttr(${s.id}, '${enc}')">열기</button>`;
+  };
+  if (s.status === '모집 완료') {
+    host.innerHTML = `
+      <div class="promo-drawer-section-title">채팅방</div>
+      <div style="font-size:11px;color:var(--text-muted);margin:-6px 0 10px;line-height:1.45">확정된 상대와의 1:1 채팅 기록입니다.</div>
+      <div class="sd-neg-list">${threads.map(t => {
+        return `<div class="sd-neg-row">
+          <span class="sd-neg-name">${escHtml(t.opponentClanName)}</span>
+          <span class="sd-neg-badge">${escHtml(t.status || '')}</span>
+          ${rowBtn(t.opponentClanName)}
+        </div>`;
+      }).join('')}</div>`;
+    return;
+  }
+  host.innerHTML = `
+    <div class="promo-drawer-section-title">채팅방 <span style="font-weight:700;color:var(--text-muted)">${threads.length}</span></div>
+    <div style="font-size:11px;color:var(--text-muted);margin:-6px 0 10px;line-height:1.45">문의한 상대 클랜마다 <strong>별도 1:1 방</strong>이 열립니다. 성사는 <strong>한 채팅방에서만</strong> 확정되며, 그때 나머지 채팅방은 마감됩니다.</div>
+    <div class="sd-neg-list">${threads.map(t => {
+      return `<div class="sd-neg-row">
+        <span class="sd-neg-name">${escHtml(t.opponentClanName)}</span>
+        <span class="sd-neg-st">${escHtml(t.status || '진행 중')}</span>
+        ${rowBtn(t.opponentClanName)}
+      </div>`;
+    }).join('')}</div>`;
+}
+function escHtml(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+/** 아바타 한 글자 (이모지 아이콘은 그대로 1자) */
+function scrimClanAvatarChar(name) {
+  const t = String(name || '?').trim();
+  return t ? [...t][0] : '?';
+}
+/** 목업 대화: 좌=상대 클랜, 우=모집 클랜 (참가 확정 버튼과 동일한 이름) */
+function renderScrimChatMockThread(s) {
+  const host = s.name;
+  const guest = scrimActiveOpponentInChat(s);
+  const el = document.getElementById('scrimChatMockBody');
+  if (!el) return;
+  const h = escHtml(host);
+  const g = escHtml(guest);
+  const ga = escHtml(scrimClanAvatarChar(guest));
+  const ha = escHtml(scrimClanAvatarChar(host));
+  el.innerHTML = `
+    <div style="display:flex;gap:8px;align-items:flex-start">
+      <div class="avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#0ea5e9,#06b6d4)">${ga}</div>
+      <div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">${g} · 운영진</div>
+        <div style="background:var(--bg-overlay);border-radius:0 var(--radius-md) var(--radius-md) var(--radius-md);padding:8px 12px;font-size:13px">안녕하세요. 이번 주 토요일 21시 일정으로 검토 부탁드립니다.</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:flex-start;justify-content:flex-end">
+      <div style="text-align:right">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">${h} · 운영진</div>
+        <div style="background:var(--brand-primary);border-radius:var(--radius-md) 0 var(--radius-md) var(--radius-md);padding:8px 12px;font-size:13px;color:white">네, 맵은 제어점 위주로 진행하면 어떨까요?</div>
+      </div>
+      <div class="avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#7c3aed,#6366f1)">${ha}</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:flex-start">
+      <div class="avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#0ea5e9,#06b6d4)">${ga}</div>
+      <div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">${g} · 운영진</div>
+        <div style="background:var(--bg-overlay);border-radius:0 var(--radius-md) var(--radius-md) var(--radius-md);padding:8px 12px;font-size:13px">좋습니다. 오아시스 → 일리오스 → 부산 순으로 제안드립니다.</div>
+      </div>
+    </div>`;
+}
+function clearScrimChatSessionTimer() {
+  if (_scrimChatInterval != null) {
+    clearInterval(_scrimChatInterval);
+    _scrimChatInterval = null;
+  }
+}
+function closeScrimChatModal() {
+  clearScrimChatSessionTimer();
+  document.getElementById('scrimChatModal').style.display = 'none';
+  _scrimChatId = null;
+  _scrimChatOpponentName = null;
+}
+function renderScrimChatJoinUI(s) {
+  const el = document.getElementById('scrimChatJoinSection');
+  if (!el || !s) return;
+  const end = scrimChatSessionExpiresAt(s);
+  const expired = Date.now() >= end.getTime();
+  const guestLabel = scrimActiveOpponentInChat(s);
+  const joinKey = scrimSessionJoinKey(s.id, guestLabel);
+  if (!scrimJoinState[joinKey]) scrimJoinState[joinKey] = { host: false, guest: false };
+  const st = scrimJoinState[joinKey];
+  if (s.status === '모집 완료') {
+    const g = escHtml(guestLabel);
+    el.innerHTML = `
+      <div class="scrim-join-rows">
+        <div class="scrim-join-row">
+          <span class="scrim-join-status on" aria-hidden="true">✓</span>
+          <span class="scrim-join-name">${escHtml(s.name)}</span>
+          <span class="scrim-join-done-label">확정</span>
+        </div>
+        <div class="scrim-join-row">
+          <span class="scrim-join-status on" aria-hidden="true">✓</span>
+          <span class="scrim-join-name">${g}</span>
+          <span class="scrim-join-done-label">확정</span>
+        </div>
+      </div>
+      <div class="scrim-join-hint scrim-join-hint--below">이미 성사된 스크림입니다.</div>`;
+    return;
+  }
+  if (expired) {
+    el.innerHTML = `<div class="scrim-join-hint">채팅방이 만료되어 확정할 수 없습니다.</div>`;
+    return;
+  }
+  const hn = escHtml(s.name);
+  const gn = escHtml(guestLabel);
+  const viewer = scrimViewerRoleInChat(s);
+  const hostAction = st.host
+    ? '<span class="scrim-join-done-label">확정</span>'
+    : viewer === 'host'
+      ? '<button type="button" class="scrim-join-confirm" onclick="confirmScrimParticipation(\'host\')">확정</button>'
+      : '<span class="scrim-join-wait">상대 확정 대기</span>';
+  const guestAction = st.guest
+    ? '<span class="scrim-join-done-label">확정</span>'
+    : viewer === 'guest'
+      ? '<button type="button" class="scrim-join-confirm" onclick="confirmScrimParticipation(\'guest\')">확정</button>'
+      : '<span class="scrim-join-wait">상대 확정 대기</span>';
+  const hint =
+    viewer == null
+      ? '목업: 현재 클랜명이 이 방의 모집측·문의측과 일치하지 않아 확정 버튼을 숨깁니다.'
+      : '상호 확정이 완료된 이후 스크림이 성사됩니다.';
+  el.innerHTML = `
+    <div class="scrim-join-rows">
+      <div class="scrim-join-row">
+        <span class="scrim-join-status${st.host ? ' on' : ''}" aria-hidden="true">${st.host ? '✓' : ''}</span>
+        <span class="scrim-join-name">${hn}</span>
+        ${hostAction}
+      </div>
+      <div class="scrim-join-row">
+        <span class="scrim-join-status${st.guest ? ' on' : ''}" aria-hidden="true">${st.guest ? '✓' : ''}</span>
+        <span class="scrim-join-name">${gn}</span>
+        ${guestAction}
+      </div>
+    </div>
+    <div class="scrim-join-hint scrim-join-hint--below">${hint}</div>`;
+}
+function confirmScrimParticipation(side) {
+  const id = _scrimChatId;
+  if (id == null) return;
+  const s = SCRIMS.find(x => x.id === id);
+  if (!s || s.status === '모집 완료') return;
+  if (Date.now() >= scrimChatSessionExpiresAt(s).getTime()) return;
+  const role = scrimViewerRoleInChat(s);
+  if (side === 'host' && role !== 'host') return;
+  if (side === 'guest' && role !== 'guest') return;
+  if (role == null) return;
+  const opp = scrimActiveOpponentInChat(s);
+  const joinKey = scrimSessionJoinKey(s.id, opp);
+  if (!scrimJoinState[joinKey]) scrimJoinState[joinKey] = { host: false, guest: false };
+  if (side === 'host') scrimJoinState[joinKey].host = true;
+  else scrimJoinState[joinKey].guest = true;
+  const st = scrimJoinState[joinKey];
+  if (st.host && st.guest) {
+    s.status = '모집 완료';
+    if (!s.vsOpponent) s.vsOpponent = opp;
+    scrimSelectedDateKey = null;
+    renderScrims();
+    alert('양측 운영진 참가가 확정되어 스크림이 성사되었습니다. 모집 목록에 모집 완료로 반영됩니다.');
+  }
+  renderScrimChatJoinUI(s);
+  if (_scrimChatId === s.id) renderScrimChatMockThread(s);
+}
+function startScrimChatSessionTimer(s) {
+  clearScrimChatSessionTimer();
+  const tick = () => {
+    const end = scrimChatSessionExpiresAt(s);
+    const remain = end - Date.now();
+    const el = document.getElementById('scrimChatSessionLine');
+    if (el) {
+      if (remain <= 0) el.textContent = '채팅방이 종료되었습니다.';
+      else {
+        const rough = formatScrimChatRemainRough(remain);
+        el.textContent = `${formatScrimChatSessionEndShort(end)}까지 자동 종료 · ${rough} 남음`;
+      }
+    }
+    if (remain <= 0) {
+      clearScrimChatSessionTimer();
+      renderScrimChatJoinUI(s);
+      closeScrimChatModal();
+      alert('채팅방이 종료되었습니다. (경기 시작 시각으로부터 6시간 경과)');
+    }
+  };
+  tick();
+  _scrimChatInterval = setInterval(tick, 1000);
+}
+/** HTML onclick용: 인코딩된 상대 클랜명 (속성 안에 큰따옴표 JSON 넣어 깨지는 문제 방지) */
+function scrimThreadParamEnc(name) {
+  return encodeURIComponent(String(name ?? ''));
+}
+function openScrimChatWithOpponentAttr(scrimId, enc) {
+  let decoded = '';
+  try {
+    decoded = decodeURIComponent(enc || '');
+  } catch (e) {
+    decoded = '';
+  }
+  openScrimChatWithOpponent(scrimId, decoded);
+}
+/** 상대 클랜을 지정해 1:1 채팅방 오픈 (채팅방별 상태·채팅 분리) */
+function openScrimChatWithOpponent(scrimId, opponentClanName) {
+  const s = SCRIMS.find(x => x.id === scrimId);
+  if (!s) return;
+  openScrimChatSession(s, opponentClanName);
+}
+function openScrimChatSession(s, opponentClanName) {
+  if (!s) return;
+  _scrimChatId = s.id;
+  _scrimChatOpponentName = opponentClanName || scrimGuestClanName(s);
+  const opp = _scrimChatOpponentName;
+  let title = `${s.name} ↔ ${opp}`;
+  if (s.status === '모집 완료' && s.vsOpponent) title = `${s.name} vs ${s.vsOpponent}`;
+  document.getElementById('scrimChatTitle').textContent = title;
+  document.getElementById('scrimChatSubtitle').textContent =
+    '이 방은 선택한 상대 클랜 운영진과만 보이는 1:1 채팅방입니다.';
+  document.getElementById('scrimChatSessionWrap').style.display = '';
+  startScrimChatSessionTimer(s);
+  renderScrimChatJoinUI(s);
+  renderScrimChatMockThread(s);
+  document.getElementById('scrimChatModal').style.display = 'flex';
+  closeScrimDrawer();
+}
+function openScrimChatFromDrawer() {
+  const id = _scrimDrawerId;
+  const s = id != null ? SCRIMS.find(x => x.id === id) : null;
+  if (!s) return;
+  if (s.mine) {
+    const threads = scrimNegotiationThreads(s);
+    if (s.status === '모집 중' && threads.length > 1) {
+      alert('채팅방 목록에서 상대 클랜 옆 「열기」를 눌러 주세요.');
+      return;
+    }
+    const opp = threads[0]?.opponentClanName || scrimGuestClanName(s);
+    openScrimChatSession(s, opp);
+    return;
+  }
+  openScrimChatWithOpponent(s.id, MOCK_MY_CLAN_NAME);
+}
+function selScrimApplyChip(groupId, el) {
+  document.querySelectorAll(`#${groupId} .lfg-chip`).forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+}
+function updateSaRankLabel() {
+  const loEl = document.getElementById('saRankLo');
+  const hiEl = document.getElementById('saRankHi');
+  const lab = document.getElementById('saRankLabel');
+  const fill = document.getElementById('saRankFill');
+  if (!loEl || !hiEl || !lab) return;
+  const lo = Math.min(+loEl.value, +hiEl.value);
+  const hi = Math.max(+loEl.value, +hiEl.value);
+  lab.textContent = `${SCRIM_APPLY_RANKS[lo]} — ${SCRIM_APPLY_RANKS[hi]}`;
+  if (fill) {
+    const max = SCRIM_APPLY_RANKS.length - 1;
+    const pL = max > 0 ? (lo / max) * 100 : 0;
+    const pR = max > 0 ? (hi / max) * 100 : 100;
+    fill.style.left = `${pL}%`;
+    fill.style.width = `${Math.max(0, pR - pL)}%`;
+  }
+}
+function syncSaRankRange(which) {
+  const loEl = document.getElementById('saRankLo');
+  const hiEl = document.getElementById('saRankHi');
+  if (!loEl || !hiEl) return;
+  let lo = +loEl.value;
+  let hi = +hiEl.value;
+  if (lo > hi) {
+    if (which === 'lo') hiEl.value = String(lo);
+    else loEl.value = String(hi);
+  }
+  loEl.style.zIndex = which === 'lo' ? '4' : '2';
+  hiEl.style.zIndex = which === 'hi' ? '4' : '3';
+  updateSaRankLabel();
+}
+function openScrimApplyModal() {
+  _scrimApplyEditId = null;
+  const d = new Date();
+  document.getElementById('saDate').value =
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  document.getElementById('saTime').value = '21:00';
+  document.getElementById('saNote').value = '';
+  document.getElementById('saRankLo').value = '0';
+  document.getElementById('saRankHi').value = String(SCRIM_APPLY_RANKS.length - 1);
+  document.querySelectorAll('#saMode .lfg-chip').forEach(c => c.classList.toggle('on', c.dataset.saMode === '5v5'));
+  document.getElementById('saRankLo').style.zIndex = '2';
+  document.getElementById('saRankHi').style.zIndex = '3';
+  updateSaRankLabel();
+  document.getElementById('scrimApplyModalTitle').textContent = '스크림 신청';
+  document.getElementById('scrimApplyModalSub').textContent = '운영진 이상 · 필수 항목을 입력해 주세요';
+  document.getElementById('scrimApplySubmitBtn').textContent = '신청하기';
+  document.getElementById('scrimApplyModal').style.display = 'flex';
+}
+function closeScrimApplyModal() {
+  _scrimApplyEditId = null;
+  document.getElementById('scrimApplyModal').style.display = 'none';
+}
+/** 슬라이더 단계 → 필터용 tierMin/tierMax (SCRIM_TIER_RANKS 인덱스) */
+function scrimTierIdxFromApplyRankIdx(idx) {
+  const lab = SCRIM_APPLY_RANKS[idx];
+  if (lab === '프로') return 7;
+  if (lab.startsWith('브론즈')) return 0;
+  if (lab.startsWith('실버')) return 1;
+  if (lab.startsWith('골드')) return 2;
+  if (lab.startsWith('플래티넘')) return 3;
+  if (lab.startsWith('다이아')) return 4;
+  if (lab.startsWith('마스터')) return 5;
+  if (lab.startsWith('그랜드마스터')) return 6;
+  if (lab.startsWith('챌린저')) return 6;
+  return 0;
+}
+function submitScrimApply() {
+  const date = document.getElementById('saDate').value;
+  const time = document.getElementById('saTime').value;
+  const lo = Math.min(+document.getElementById('saRankLo').value, +document.getElementById('saRankHi').value);
+  const hi = Math.max(+document.getElementById('saRankLo').value, +document.getElementById('saRankHi').value);
+  const tierRange = `${SCRIM_APPLY_RANKS[lo]} ~ ${SCRIM_APPLY_RANKS[hi]}`;
+  if (!date || !time) {
+    alert('필수 항목(희망 날짜, 시각)을 입력해 주세요.');
+    return;
+  }
+  const [th, tm] = time.split(':').map(Number);
+  const pick = new Date(date + 'T12:00:00');
+  const today0 = new Date();
+  today0.setHours(0, 0, 0, 0);
+  pick.setHours(0, 0, 0, 0);
+  let dayOffset = Math.round((pick - today0) / 86400000);
+  if (dayOffset < 0) dayOffset = 0;
+  const tiLo = scrimTierIdxFromApplyRankIdx(lo);
+  const tiHi = scrimTierIdxFromApplyRankIdx(hi);
+  const mode = document.querySelector('#saMode .lfg-chip.on')?.getAttribute('data-sa-mode') || '5v5';
+  const note = document.getElementById('saNote').value.trim();
+  const dowPick = SCRIM_DOW[pick.getDay()];
+  const md = `${pick.getMonth() + 1}/${pick.getDate()} (${dowPick})`;
+  const editId = _scrimApplyEditId;
+  if (editId != null) {
+    const s = SCRIMS.find(x => x.id === editId);
+    if (!s || !scrimCanEditAsOfficer(s)) {
+      alert('수정 권한이 없거나 이미 성사된 모집입니다.');
+      return;
+    }
+    s.dayOffset = dayOffset;
+    s.hour = th;
+    s.minute = tm || 0;
+    s.date = md;
+    s.time = `${String(th).padStart(2, '0')}:${String(tm || 0).padStart(2, '0')}`;
+    s.tier = tierRange;
+    s.tierMin = Math.min(tiLo, tiHi);
+    s.tierMax = Math.max(tiLo, tiHi);
+    s.mode = mode;
+    s.desc = note || s.desc;
+    s.applyRankLo = lo;
+    s.applyRankHi = hi;
+    closeScrimApplyModal();
+    scrimSelectedDateKey = scrimDateKeyFromDate(scrimComputeStart(s));
+    renderScrims();
+    return;
+  }
+  const nextId = SCRIMS.reduce((m, s) => Math.max(m, s.id), 0) + 1;
+  const newScrim = {
+    id: nextId,
+    icon: '🔥',
+    name: 'Phoenix Rising',
+    bg: 'linear-gradient(135deg,#7c3aed,#3b82f6)',
+    members: 24,
+    type: '경쟁·친목',
+    status: '모집 중',
+    date: md,
+    time: `${String(th).padStart(2, '0')}:${String(tm || 0).padStart(2, '0')}`,
+    tier: tierRange,
+    tierMin: Math.min(tiLo, tiHi),
+    tierMax: Math.max(tiLo, tiHi),
+    mode,
+    dayOffset,
+    hour: th,
+    minute: tm || 0,
+    desc: note || '스크림 신청으로 등록한 모집입니다. 비슷한 실력대 클랜 환영합니다.',
+    opponentClanName: 'Blue Storm',
+    applyRankLo: lo,
+    applyRankHi: hi,
+    mine: true
+  };
+  SCRIMS.push(newScrim);
+  closeScrimApplyModal();
+  scrimSelectedDateKey = scrimDateKeyFromDate(scrimComputeStart(newScrim));
+  navTo('scrim');
+  renderScrims();
+}
+
 let _joinClanName = '';
 function openJoinModal() {
   _joinClanName = document.getElementById('pdName')?.textContent || '클랜';
@@ -1814,7 +3774,30 @@ function submitJoin() {
   alert('가입 신청이 완료되었습니다!\n클랜장의 승인을 기다려 주세요.');
 }
 
-function openScrimChat() { document.getElementById('scrimChatModal').style.display = 'flex'; }
+function openScrimChat() {
+  if (_scrimChatId != null) {
+    const s = SCRIMS.find(x => x.id === _scrimChatId);
+    if (s) {
+      openScrimChatSession(s, _scrimChatOpponentName || scrimGuestClanName(s));
+      return;
+    }
+  }
+  if (_scrimDrawerId == null) {
+    _scrimChatOpponentName = null;
+    document.getElementById('scrimChatTitle').textContent = '스크림 채팅';
+    document.getElementById('scrimChatSubtitle').textContent =
+      '스크림 카드를 열고 상세에서 「채팅방 열기」를 눌러 양측 운영진 1:1 방으로 들어갈 수 있습니다.';
+    document.getElementById('scrimChatSessionWrap').style.display = 'none';
+    document.getElementById('scrimChatJoinSection').innerHTML =
+      '<div style="font-size:12px;color:var(--text-muted)">진행 중인 스크림을 선택한 뒤 채팅을 열어 주세요.</div>';
+    const mockBody = document.getElementById('scrimChatMockBody');
+    if (mockBody) mockBody.innerHTML = '';
+    clearScrimChatSessionTimer();
+    document.getElementById('scrimChatModal').style.display = 'flex';
+    return;
+  }
+  openScrimChatFromDrawer();
+}
 
 /* ── 초기화 ── */
 renderLfg();
@@ -1823,6 +3806,9 @@ renderScrims();
 renderHomePromos();
 renderPromos();
 renderRanking();
+renderRankingIntraLeaders();
+renderRankingHourChart();
+renderRankingDowChart();
 </script>
 <div id="badgeTip">
   <div id="badgeTipTitle" class="cbi-tip-title"></div>

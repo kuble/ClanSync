@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ClanSync — Mockup Hub</title>
+<link rel="stylesheet" href="styles/main.css">
+</head>
+<body class="hub-shell">
+
+<nav class="hub-nav">
+  <div class="hub-logo">⚡ ClanSync</div>
+
+  <div class="hub-group-label">랜딩 · 인증</div>
+  <a href="#" onclick="return go(this,'pages/index.html')" class="active">랜딩 페이지</a>
+  <a href="#" onclick="return go(this,'pages/sign-in.html')">로그인</a>
+  <a href="#" onclick="return go(this,'pages/sign-up.html')">회원가입</a>
+
+  <div class="hub-group-label">게임</div>
+  <a href="#" onclick="return go(this,'pages/games.html')">게임 선택</a>
+  <a href="#" onclick="return go(this,'pages/game-auth.html')">계정 연동</a>
+  <a href="#" onclick="return go(this,'pages/main-game.html')">게임 메인</a>
+
+  <div class="hub-group-label">클랜</div>
+  <a href="#" onclick="return go(this,'pages/clan-auth.html')">클랜 인증</a>
+  <a href="#" onclick="return go(this,'pages/main-clan.html')">클랜 메인</a>
+</nav>
+
+<main class="hub-main">
+  <div class="hub-urlbar">
+    <span class="hub-urlbar-label">경로</span>
+    <span class="hub-urlbar-path" id="current-url">pages/index.html</span>
+  </div>
+  <iframe id="frame" class="hub-frame" src="pages/index.html"></iframe>
+</main>
+
+<script>
+  function go(el, path) {
+    document.querySelectorAll('.hub-nav a').forEach(a => a.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('frame').src = path;
+    document.getElementById('current-url').textContent = path;
+    return false;
+  }
+</script>
+</body>
+</html>
