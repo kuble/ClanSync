@@ -798,6 +798,22 @@
   font-size: 13px;
 }
 .preview-row:last-child { border-bottom: none; }
+/* 홈 · 같이 할 사람: 행 클릭 시 LFG 드로어 (목록 페이지와 동일) */
+.preview-row.home-lfg-preview-item {
+  cursor: pointer;
+  user-select: none;
+  border-radius: var(--radius-sm);
+  padding: 10px 8px;
+  margin: 0 -8px;
+  transition: background 0.15s;
+}
+.preview-row.home-lfg-preview-item:hover {
+  background: var(--surface-hover);
+}
+.preview-row.home-lfg-preview-item .lfg-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
 
 /* ── 필터 바 ── */
 .filter-bar {
@@ -2173,19 +2189,18 @@ function renderHomeLfg() {
     el.innerHTML = '<div class="empty-state" style="padding:12px 0"><div class="empty-state-icon">🔍</div><div class="empty-state-text">모집 중인 파티가 없습니다</div></div>';
     return;
   }
-  el.innerHTML = lfgPosts.slice(0,4).map(p => `
-    <div class="preview-row">
-      <div class="online-dot ${p.online?'g':'y'}"></div>
-      <div class="avatar" style="width:28px;height:28px;font-size:11px;background:${p.bg};flex-shrink:0">${p.name[0]}</div>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:600">${p.name} <span style="font-size:11px;color:var(--text-muted);font-weight:400">· ${p.clan}</span></div>
-        <div class="lfg-tags" style="margin-top:3px">
-          <span class="lfg-tag lfg-tag-mode">${p.mode}</span>
-          <span class="lfg-tag">${p.slots}</span>
-          <span class="lfg-tag">${p.tier}</span>
-        </div>
+  el.innerHTML = lfgPosts.slice(0, 4).map(p => `
+    <div class="preview-row home-lfg-preview-item" role="button" tabindex="0" onclick="openLfgDrawer(${p.id})"
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openLfgDrawer(${p.id})}">
+      <div class="lfg-avatar-wrap">
+        <div class="avatar" style="width:28px;height:28px;font-size:11px;background:${p.bg}">${p.name[0]}</div>
+        <div class="online-dot ${p.online ? 'g' : 'y'}" style="position:absolute;bottom:0;right:0;width:7px;height:7px;border:1.5px solid var(--bg-elevated)"></div>
       </div>
-      <button class="btn btn-primary btn-sm" onclick="navTo('lfg')" style="font-size:11px;flex-shrink:0">참여 →</button>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600">${p.name}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${p.mode} · ${p.format}</div>
+      </div>
+      <span style="font-size:16px;color:var(--text-muted);flex-shrink:0;line-height:1" aria-hidden="true">›</span>
     </div>`).join('');
 }
 
