@@ -31,8 +31,14 @@
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
-/* 클랜 목록 그리드 */
-.promo-grid { display: grid; grid-template-columns: 1fr; grid-auto-rows: 175px; gap: 12px; }
+/* 클랜 목록 그리드 (main-game 클랜 홍보와 동일: 폭에 따라 1~2열) */
+.promo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  grid-auto-rows: 175px;
+  gap: 12px;
+}
+.promo-grid > .promo-card { min-width: 0; }
 .promo-card {
   background: var(--bg-elevated); border: 1px solid var(--border);
   border-radius: var(--radius-lg); padding: 0; transition: border-color 0.15s; overflow: hidden;
@@ -676,7 +682,12 @@ textarea.input { resize: vertical; min-height: 80px; }
         <div class="form-row">
           <div class="form-group">
             <label class="label">클랜명 <span style="color:var(--danger)">*</span></label>
-            <input class="input" type="text" placeholder="최대 30자" maxlength="30">
+            <input class="input" id="clanCreateNameInput" type="text" placeholder="예: Phoenix Rising" maxlength="24"
+                   aria-describedby="clanNameCountHint" oninput="updateClanNameCount(this)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;gap:8px">
+              <span id="clanNameCountHint" style="font-size:11px;color:var(--text-muted)">목록·카드에 표시되므로 짧을수록 보기 좋아요</span>
+              <span id="clanNameCount" style="font-size:11px;color:var(--text-muted);font-variant-numeric:tabular-nums">0 / 24</span>
+            </div>
           </div>
         </div>
 
@@ -1289,8 +1300,24 @@ function submitJoin() {
   document.getElementById('pendingClanName').textContent = window._joinClanName;
   pv.style.display = 'flex';
 }
+const CLAN_NAME_MAX = 24;
+function updateClanNameCount(input) {
+  const n = document.getElementById('clanNameCount');
+  if (n && input) n.textContent = `${input.value.length} / ${CLAN_NAME_MAX}`;
+}
 function handleCreateClan(e) {
   e.preventDefault();
+  const nameEl = document.getElementById('clanCreateNameInput');
+  const raw = (nameEl && nameEl.value) ? nameEl.value.trim() : '';
+  if (!raw) {
+    alert('클랜명을 입력해 주세요.');
+    if (nameEl) nameEl.focus();
+    return;
+  }
+  if (raw.length > CLAN_NAME_MAX) {
+    alert(`클랜명은 ${CLAN_NAME_MAX}자 이하로 입력해 주세요.`);
+    return;
+  }
   window.location.href = 'main-clan.html';
 }
 function clampMembers(input) {
@@ -1358,6 +1385,11 @@ function updateTagHint() {
 }
 
 function filterClans(q) { /* 목업: 실제 필터 없음 */ }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('clanCreateNameInput');
+  if (el) updateClanNameCount(el);
+});
 
 </script>
 </body>

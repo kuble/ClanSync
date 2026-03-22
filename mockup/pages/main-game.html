@@ -47,17 +47,12 @@
 .d-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
 .d-big   { font-size: 36px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
 .d-sub   { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
+/* 카드 최소 폭 기준: 좁아지면 자동 1열 (이름·태그 잘림 전에 열 수 줄임) */
 .home-promo-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   grid-auto-rows: 145px;
   gap: 10px;
-}
-@media (max-width: 1000px) {
-  .home-promo-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 560px) {
-  .home-promo-grid { grid-template-columns: 1fr; }
 }
 
 /* ── LFG ── */
@@ -96,14 +91,19 @@
 .lfg-tag-time { color: #60a5fa; border-color: rgba(96,165,250,0.3); }
 
 /* ── LFG 카드 그리드 ── */
-.lfg-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.lfg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 12px;
+}
 .lfg-card {
   background: var(--bg-elevated); border: 1px solid var(--border);
   border-radius: var(--radius-lg); display: flex; flex-direction: column;
   cursor: pointer; transition: border-color .15s, transform .1s;
 }
 .lfg-card:hover { border-color: rgba(124,58,237,0.5); transform: translateY(-1px); }
-.lfg-card-body { flex: 1; display: flex; gap: 12px; padding: 16px 16px 12px; align-items: flex-start; }
+.lfg-grid > .lfg-card { min-width: 0; }
+.lfg-card-body { flex: 1; display: flex; gap: 12px; padding: 16px 16px 12px; align-items: flex-start; min-width: 0; }
 .lfg-card-footer { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 40px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); }
 
 /* ── 인라인 필터 패널 (LFG·스크림·홍보 공용) ── */
@@ -541,13 +541,20 @@
 }
 
 /* ── 클랜 홍보 ── */
-.promo-grid { display: grid; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 175px; gap: 12px; }
+.promo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  grid-auto-rows: 175px;
+  gap: 12px;
+}
 .promo-card {
   background: var(--bg-elevated); border: 1px solid var(--border);
   border-radius: var(--radius-lg); padding: 0; transition: border-color 0.15s; overflow: hidden;
   display: flex; flex-direction: column;
 }
 .promo-card:hover { border-color: var(--border-focus); cursor: pointer; }
+.promo-grid > .promo-card,
+.home-promo-grid > .promo-card { min-width: 0; }
 .promo-card.pinned {}
 
 /* ── 순위 ── */
