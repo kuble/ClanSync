@@ -403,22 +403,27 @@ body.app-sidebar-drawer-open .mobile-menu-icon::after {
   body.app-sidebar-drawer-open .sidebar {
     transform: translateX(0);
   }
-  .page-with-sidebar {
-    margin-left: 0;
-    padding: 16px;
-  }
   .navbar {
     padding-left: 12px;
     padding-right: 16px;
   }
 }
 
-/* 페이지 레이아웃 */
+/* 페이지 레이아웃 — margin-left·padding은 뷰포트별로 분리 (항상 뒤에 오는 단일 규칙이 덮어쓰지 않게 함) */
 .page-with-sidebar {
-  margin-left: 200px;
   margin-top: 60px;
-  padding: 28px;
   min-height: calc(100vh - 60px);
+}
+@media (min-width: 769px) {
+  .page-with-sidebar {
+    margin-left: 200px;
+    padding: 28px;
+  }
+}
+@media (max-width: 768px) {
+  .page-with-sidebar {
+    padding: 16px;
+  }
 }
 .page-centered {
   margin-top: 60px;
