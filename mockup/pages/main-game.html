@@ -47,13 +47,6 @@
 .d-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
 .d-big   { font-size: 36px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
 .d-sub   { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
-/* 홈 대시보드 블록 한 줄 설명 */
-.home-block-sub {
-  font-size: 12px;
-  color: var(--text-secondary);
-  line-height: 1.5;
-  margin: 0 0 12px 0;
-}
 .home-promo-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1238,7 +1231,6 @@
           <span>📢 클랜 홍보</span>
           <span id="home-promo-meta" style="font-size:12px;color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:0">—</span>
         </div>
-        <p class="home-block-sub" id="home-promo-sub">등록된 클랜 모집 글을 요약해 보여줍니다.</p>
         <div id="homePromoGrid" class="home-promo-grid"></div>
         <button class="btn btn-secondary btn-sm" style="margin-top:14px;width:100%" onclick="navTo('promo')">+ 클랜 홍보 전체 보기</button>
       </div>
@@ -1246,7 +1238,6 @@
       <!-- 2행: 스크림 모집 (전폭) -->
       <div class="d-card" style="grid-column:1/-1">
         <div class="d-label" style="margin-bottom:6px">⚔️ 스크림 모집 중</div>
-        <p class="home-block-sub" id="home-scrim-sub">클랜 간 대전 모집 요약</p>
         <div id="home-scrim-preview"></div>
         <button class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%" onclick="navTo('scrim')">+ 스크림 모집 전체 보기</button>
       </div>
@@ -1254,7 +1245,6 @@
       <!-- 3행 왼쪽: 같이 할 사람 -->
       <div class="d-card">
         <div class="d-label" style="margin-bottom:6px">🔍 같이 할 사람</div>
-        <p class="home-block-sub" id="home-lfg-sub">—</p>
         <div class="preview-list" id="home-lfg-preview"></div>
         <button class="btn btn-secondary btn-sm" style="margin-top:12px;width:100%" onclick="navTo('lfg')">+ 같이 할 사람 전체 보기</button>
       </div>
@@ -1262,7 +1252,6 @@
       <!-- 3행 오른쪽: 이달의 클랜 순위 -->
       <div class="d-card">
         <div class="d-label" style="margin-bottom:6px">🏆 이달의 클랜 순위</div>
-        <p class="home-block-sub" id="home-ranking-sub">매월 1일 초기화 · 활동(내전 참여) 기준</p>
         <div id="home-ranking-preview"></div>
         <button class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%" onclick="navTo('ranking')">+ 클랜 순위 전체 보기</button>
       </div>
@@ -2165,8 +2154,6 @@ function renderHomePromos() {
 
 function renderHomeLfg() {
   const el = document.getElementById('home-lfg-preview');
-  const sub = document.getElementById('home-lfg-sub');
-  if (sub) sub.textContent = `듀오·파티 모집 ${lfgPosts.length}건 · 아래는 최신 순 일부`;
   if (!el) return;
   if (!lfgPosts.length) {
     el.innerHTML = '<div class="empty-state" style="padding:12px 0"><div class="empty-state-icon">🔍</div><div class="empty-state-text">모집 중인 파티가 없습니다</div></div>';
@@ -2211,10 +2198,8 @@ let SCRIMS = [
 ];
 function renderHomeScrims() {
   const el = document.getElementById('home-scrim-preview');
-  const sub = document.getElementById('home-scrim-sub');
   if (!el) return;
   const open = SCRIMS.filter(s => s.status === '모집 중');
-  if (sub) sub.textContent = `클랜 간 대전 모집 · 모집 중 ${open.length}건`;
   if (!open.length) {
     el.innerHTML =
       '<div class="empty-state" style="padding:12px 0 4px"><div class="empty-state-icon">⚔️</div><div class="empty-state-text">모집 중인 스크림이 없습니다</div></div>';
@@ -2787,8 +2772,6 @@ const RANKING = [
 ];
 function renderHomeRanking() {
   const el = document.getElementById('home-ranking-preview');
-  const sub = document.getElementById('home-ranking-sub');
-  if (sub) sub.textContent = '매월 1일 초기화 · 활동(내전 참여) 기준';
   if (!el) return;
   const top3 = RANKING.filter(r => r.rank <= 3);
   const mine = RANKING.find(r => r.mine);
