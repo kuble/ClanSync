@@ -799,10 +799,6 @@
 }
 .preview-row:last-child { border-bottom: none; }
 
-/* ── 자동 매칭 버튼 ── */
-.match-btn { width:100%;padding:12px;background:var(--gradient-brand);border:none;border-radius:var(--radius-md);color:white;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity 0.2s;margin-bottom:10px; }
-.match-btn:hover { opacity: 0.9; }
-
 /* ── 필터 바 ── */
 .filter-bar {
   display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
@@ -1247,35 +1243,12 @@
         <button class="btn btn-secondary btn-sm" style="margin-top:14px;width:100%" onclick="navTo('promo')">+ 클랜 홍보 전체 보기</button>
       </div>
 
-      <!-- 2행 왼쪽: 스크림 모집 -->
-      <div class="d-card">
+      <!-- 2행: 스크림 모집 (전폭) -->
+      <div class="d-card" style="grid-column:1/-1">
         <div class="d-label" style="margin-bottom:6px">⚔️ 스크림 모집 중</div>
         <p class="home-block-sub" id="home-scrim-sub">클랜 간 대전 모집 요약</p>
         <div id="home-scrim-preview"></div>
         <button class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%" onclick="navTo('scrim')">+ 스크림 모집 전체 보기</button>
-      </div>
-
-      <!-- 2행 오른쪽: 스크림 자동 매칭 -->
-      <div class="d-card">
-        <div class="d-label">
-          ⚡ 스크림 자동 매칭
-          <span class="badge badge-brand" style="font-size:10px">운영진+</span>
-        </div>
-        <p class="home-block-sub">목록에서 상대를 직접 고르지 않고, 조건에 맞는 클랜을 시스템이 연결합니다 (스크림 탭의 카드 목록과는 다른 흐름).</p>
-        <div class="form-group" style="margin:0 0 8px">
-          <label class="label" style="font-size:11px">희망 날짜</label>
-          <input class="input" type="date" value="2026-03-22" style="font-size:13px">
-        </div>
-        <div class="form-group" style="margin:0 0 12px">
-          <label class="label" style="font-size:11px">희망 시간대</label>
-          <select class="input" style="font-size:13px">
-            <option>19:00 이후</option>
-            <option selected>21:00 이후</option>
-            <option>주말 종일</option>
-          </select>
-        </div>
-        <button class="match-btn" onclick="alert('자동 매칭 시작 (목업)')">🎯 자동 매칭 시작</button>
-        <div style="font-size:11px;text-align:center;color:var(--text-muted)">현재 대기 클랜 12팀</div>
       </div>
 
       <!-- 3행 왼쪽: 같이 할 사람 -->
