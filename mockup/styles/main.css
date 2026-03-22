@@ -306,6 +306,113 @@ a { color: inherit; text-decoration: none; }
   background: rgba(167, 139, 250, 0.14);
 }
 
+/* 모바일: 햄버거 + 왼쪽 사이드 드로어 (게임 메인·클랜 메인 공통) */
+.navbar-start {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.mobile-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.mobile-menu-btn:hover {
+  background: var(--surface-hover);
+}
+.mobile-menu-icon {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text-primary);
+  border-radius: 1px;
+  position: relative;
+  transition: background 0.15s;
+}
+.mobile-menu-icon::before,
+.mobile-menu-icon::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 20px;
+  height: 2px;
+  background: var(--text-primary);
+  border-radius: 1px;
+  transition: transform 0.2s, top 0.2s;
+}
+.mobile-menu-icon::before {
+  top: -6px;
+}
+.mobile-menu-icon::after {
+  top: 6px;
+}
+body.app-sidebar-drawer-open .mobile-menu-icon {
+  background: transparent;
+}
+body.app-sidebar-drawer-open .mobile-menu-icon::before {
+  top: 0;
+  transform: rotate(45deg);
+}
+body.app-sidebar-drawer-open .mobile-menu-icon::after {
+  top: 0;
+  transform: rotate(-45deg);
+}
+.sidebar-drawer-overlay {
+  display: none;
+}
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: flex;
+  }
+  .sidebar-drawer-overlay {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 60px;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 205;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  body.app-sidebar-drawer-open .sidebar-drawer-overlay {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    z-index: 210;
+    width: min(288px, 88vw);
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.4);
+    min-height: calc(100vh - 60px);
+  }
+  body.app-sidebar-drawer-open .sidebar {
+    transform: translateX(0);
+  }
+  .page-with-sidebar {
+    margin-left: 0;
+    padding: 16px;
+  }
+  .navbar {
+    padding-left: 12px;
+    padding-right: 16px;
+  }
+}
+
 /* 페이지 레이아웃 */
 .page-with-sidebar {
   margin-left: 200px;

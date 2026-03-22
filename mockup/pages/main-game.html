@@ -1141,7 +1141,12 @@
 <body>
 
 <nav class="navbar">
-  <a href="games.html"><span class="navbar-brand">⚡ ClanSync</span></a>
+  <div class="navbar-start">
+    <button type="button" class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleSidebarDrawer()" aria-label="메뉴 열기" aria-expanded="false" aria-controls="app-sidebar">
+      <span class="mobile-menu-icon" aria-hidden="true"></span>
+    </button>
+    <a href="games.html"><span class="navbar-brand">⚡ ClanSync</span></a>
+  </div>
   <div class="navbar-nav" style="gap:12px">
     <span style="font-size:13px;color:var(--text-secondary)">🎮 오버워치 2</span>
     <a href="main-clan.html"><button class="btn btn-secondary btn-sm">내 클랜 →</button></a>
@@ -1185,8 +1190,10 @@
   </div>
 </nav>
 
+<div class="sidebar-drawer-overlay" id="sidebarDrawerOverlay" onclick="closeSidebarDrawer()" aria-hidden="true"></div>
+
 <!-- 사이드바 -->
-<aside class="sidebar">
+<aside class="sidebar" id="app-sidebar">
   <div class="game-header">
     <div class="game-icon">🎮</div>
     <div class="game-name">오버워치 2</div>

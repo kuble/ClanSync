@@ -84,3 +84,56 @@ function setLang(el, code) {
   el.classList.add('active');
   // 목업: 실제 언어 변경 없음
 }
+
+// ── 모바일 사이드 드로어 (768px 이하) ──
+const SIDEBAR_DRAWER_MQ = window.matchMedia('(max-width: 768px)');
+
+function isSidebarDrawerMode() {
+  return SIDEBAR_DRAWER_MQ.matches;
+}
+
+function toggleSidebarDrawer() {
+  if (!isSidebarDrawerMode()) return;
+  const open = document.body.classList.toggle('app-sidebar-drawer-open');
+  syncSidebarDrawerAria(open);
+  document.body.style.overflow = open ? 'hidden' : '';
+}
+
+function closeSidebarDrawer() {
+  if (!document.body.classList.contains('app-sidebar-drawer-open')) return;
+  document.body.classList.remove('app-sidebar-drawer-open');
+  syncSidebarDrawerAria(false);
+  document.body.style.overflow = '';
+}
+
+function syncSidebarDrawerAria(open) {
+  const btn = document.getElementById('mobileMenuBtn');
+  if (!btn) return;
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  btn.setAttribute('aria-label', open ? '메뉴 닫기' : '메뉴 열기');
+}
+
+function onSidebarDrawerResize() {
+  if (window.innerWidth > 768) {
+    closeSidebarDrawer();
+  }
+}
+
+window.addEventListener('resize', onSidebarDrawerResize);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeSidebarDrawer();
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (!document.body.classList.contains('app-sidebar-drawer-open')) return;
+  if (!isSidebarDrawerMode()) return;
+  if (e.target.closest('.mobile-menu-btn')) return;
+  const side = e.target.closest('.sidebar');
+  if (!side) return;
+  if (e.target.closest('a, .sidebar-item, button')) {
+    closeSidebarDrawer();
+  }
+});
