@@ -31,10 +31,10 @@
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
-/* 클랜 목록 그리드 (main-game 클랜 홍보와 동일: 폭에 따라 1~2열) */
+/* 클랜 목록 그리드 (최소 1열 · 최대 2열) */
 .promo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, max(320px, calc((100% - 12px) / 2))), 1fr));
   grid-auto-rows: 175px;
   gap: 12px;
 }

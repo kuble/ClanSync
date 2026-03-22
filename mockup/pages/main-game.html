@@ -47,10 +47,10 @@
 .d-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
 .d-big   { font-size: 36px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
 .d-sub   { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
-/* 카드 최소 폭 기준: 좁아지면 자동 1열 (이름·태그 잘림 전에 열 수 줄임) */
+/* 홈 클랜 홍보: 최소 1열 · 최대 2열 (넓어도 3열 안 나옴) */
 .home-promo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, max(300px, calc((100% - 10px) / 2))), 1fr));
   grid-auto-rows: 145px;
   gap: 10px;
 }
@@ -90,10 +90,10 @@
 .lfg-tag-mode { color: #a78bfa; border-color: rgba(124,58,237,0.3); }
 .lfg-tag-time { color: #60a5fa; border-color: rgba(96,165,250,0.3); }
 
-/* ── LFG 카드 그리드 ── */
+/* ── LFG 카드 그리드 (최소 1열 · 최대 2열) ── */
 .lfg-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, max(320px, calc((100% - 12px) / 2))), 1fr));
   gap: 12px;
 }
 .lfg-card {
@@ -540,10 +540,10 @@
   .scrim-cal-badge { font-size: 8px; }
 }
 
-/* ── 클랜 홍보 ── */
+/* ── 클랜 홍보 (최소 1열 · 최대 2열) ── */
 .promo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, max(320px, calc((100% - 12px) / 2))), 1fr));
   grid-auto-rows: 175px;
   gap: 12px;
 }
