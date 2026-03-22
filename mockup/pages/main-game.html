@@ -41,6 +41,59 @@
   .dash-grid { grid-template-columns: 1fr; }
 }
 .d-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 20px; }
+/* 홈 3행: 같이 할 사람 · 이달의 클랜 순위 — 동일 열 높이, 헤더 2줄, 하단 버튼 정렬 */
+.dash-grid > .d-card.d-card-dash-pair {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  height: 100%;
+  align-self: stretch;
+}
+.home-dash-head {
+  flex-shrink: 0;
+}
+.home-dash-head .d-label {
+  margin-bottom: 4px;
+}
+.home-dash-sub {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+.home-dash-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.home-dash-list .preview-list,
+.home-dash-list #home-ranking-preview {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.d-card-dash-pair > .btn {
+  flex-shrink: 0;
+  width: 100%;
+}
+.d-card-dash-pair .preview-row,
+.d-card-dash-pair .rank-row {
+  min-height: 52px;
+  padding: 10px 0;
+  box-sizing: border-box;
+}
+.d-card-dash-pair .preview-row.home-lfg-preview-item {
+  margin: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+.d-card-dash-pair .rank-row .avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 11px;
+}
 .d-card-sm   { grid-column: span 1; }
 .d-card-md   { grid-column: span 2; }
 .d-card-full { grid-column: span 3; }
@@ -560,6 +613,16 @@
 /* ── 순위 ── */
 .rank-row { display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px; }
 .rank-row:last-child { border-bottom: none; }
+.rank-row.rank-row--mine {
+  margin-top: 4px;
+  padding: 10px 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+}
+.rank-row.rank-row--mine:last-child {
+  border-bottom: 1px solid rgba(124, 58, 237, 0.2);
+}
 .rank-num { width:22px;font-size:12px;font-weight:700;color:var(--text-muted);text-align:center;flex-shrink:0; }
 .rank-num.top1 { color:#f59e0b; } .rank-num.top2 { color:#9ca3af; } .rank-num.top3 { color:#cd7c2e; }
 
@@ -1273,18 +1336,27 @@
       </div>
 
       <!-- 3행 왼쪽: 같이 할 사람 -->
-      <div class="d-card">
-        <div class="d-label" style="margin-bottom:6px">🔍 같이 할 사람</div>
-        <div class="preview-list" id="home-lfg-preview"></div>
-        <button class="btn btn-secondary btn-sm" style="margin-top:12px;width:100%" onclick="navTo('lfg')">+ 같이 할 사람 전체 보기</button>
+      <div class="d-card d-card-dash-pair">
+        <div class="home-dash-head">
+          <div class="d-label">🔍 같이 할 사람</div>
+          <p class="home-dash-sub">최근 등록 순</p>
+        </div>
+        <div class="home-dash-list">
+          <div class="preview-list" id="home-lfg-preview"></div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="navTo('lfg')">+ 같이 할 사람 전체 보기</button>
       </div>
 
       <!-- 3행 오른쪽: 이달의 클랜 순위 -->
-      <div class="d-card">
-        <div class="d-label" style="margin-bottom:6px">🏆 이달의 클랜 순위</div>
-        <p id="home-ranking-topic" class="home-ranking-topic" style="font-size:12px;color:var(--text-secondary);line-height:1.45;margin:0 0 10px 0">이번 달 내전 경기 수</p>
-        <div id="home-ranking-preview"></div>
-        <button class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%" onclick="navTo('ranking')">+ 클랜 순위 전체 보기</button>
+      <div class="d-card d-card-dash-pair">
+        <div class="home-dash-head">
+          <div class="d-label">🏆 이달의 클랜 순위</div>
+          <p id="home-ranking-topic" class="home-dash-sub">이번 달 내전 경기 수</p>
+        </div>
+        <div class="home-dash-list">
+          <div id="home-ranking-preview"></div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="navTo('ranking')">+ 클랜 순위 전체 보기</button>
       </div>
 
     </div>
@@ -2842,16 +2914,16 @@ function renderHomeRanking() {
       const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉';
       return `<div class="rank-row">
       <div class="rank-num ${cls}">${pos}</div>
-      <div class="avatar" style="width:24px;height:24px;font-size:10px;background:${r.bg || 'var(--bg-overlay)'}">${escHtml(String(r.icon))}</div>
+      <div class="avatar" style="background:${r.bg || 'var(--bg-overlay)'}">${escHtml(String(r.icon))}</div>
       <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${escHtml(r.name)}</div></div>
       <div style="font-size:13px">${medal}</div>
     </div>`;
     })
     .join('');
   if (mine && minePos > 3) {
-    html += `<div class="rank-row" style="background:rgba(124,58,237,0.08);border-radius:var(--radius-sm);padding:8px;border:1px solid rgba(124,58,237,0.2);margin-top:4px">
+    html += `<div class="rank-row rank-row--mine">
       <div class="rank-num" style="color:var(--brand-primary)">${minePos}</div>
-      <div class="avatar" style="width:24px;height:24px;font-size:10px;background:${mine.bg || 'var(--bg-overlay)'}">${escHtml(String(mine.icon))}</div>
+      <div class="avatar" style="background:${mine.bg || 'var(--bg-overlay)'}">${escHtml(String(mine.icon))}</div>
       <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${escHtml(mine.name)} <span style="font-size:11px;color:var(--text-muted)">(내 클랜)</span></div></div>
       <div style="font-size:12px;color:var(--success)">${mine.trend || ''}</div>
     </div>`;
