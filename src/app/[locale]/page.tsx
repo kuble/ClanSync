@@ -1,7 +1,3 @@
-import Link from "next/link";
-
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -15,8 +11,7 @@ interface LocaleHomeProps {
 }
 
 export default async function LocaleHome({ params }: LocaleHomeProps) {
-  const { locale } = await params;
-  const demoClan = `/${locale}/games/overwatch/clan/demo`;
+  await params;
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-16">
@@ -29,19 +24,24 @@ export default async function LocaleHome({ params }: LocaleHomeProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>MainClan 쉘 (개발용)</CardTitle>
+          <CardTitle>Phase 3 — 정적 목업</CardTitle>
           <CardDescription>
-            현재 클랜 영역은 목업 데이터만 사용합니다. Supabase는 목업 이후에
-            연동합니다.
+            클랜 메인·서브 화면은 Next가 아니라 저장소{" "}
+            <code className="text-xs">mockup/</code> 와{" "}
+            <code className="text-xs">mockup/_hub.html</code> 에서만
+            진행합니다. Next 앱의 클랜 라우트는 혼동 방지를 위해 제거했습니다.
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-wrap gap-2">
-          <Link
-            href={demoClan}
-            className={cn(buttonVariants({ variant: "default" }))}
-          >
-            데모 클랜 열기
-          </Link>
+        <CardContent className="text-muted-foreground space-y-2 text-sm">
+          <p>
+            허브에서 iframe으로 클랜 목업을 열려면{" "}
+            <code className="text-xs">mockup/_hub.html</code> 파일을 브라우저로
+            여세요.
+          </p>
+          <p>
+            단일 파일 목업:{" "}
+            <code className="text-xs">mockup/pages/main-clan.html</code>
+          </p>
         </CardContent>
       </Card>
     </main>
