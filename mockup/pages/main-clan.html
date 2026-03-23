@@ -259,6 +259,357 @@
   margin-bottom: 6px;
 }
 .mock-balance-slot-muted { color: var(--text-muted); font-weight: 500; }
+/* 밸런스 편집기 — 플레이어 풀 · VS 보드 · 워크플로 탭 */
+.mock-balance-wf-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.mock-balance-wf-tab {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-overlay);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-sans);
+}
+.mock-balance-wf-tab:hover {
+  color: var(--text-primary);
+  border-color: var(--border-hover);
+}
+.mock-balance-wf-tab.mock-tab-active {
+  border-color: rgba(124, 58, 237, 0.55);
+  background: rgba(124, 58, 237, 0.14);
+  color: #e9d5ff;
+}
+.mock-balance-wf-panel[hidden] {
+  display: none !important;
+}
+.mock-balance-layout {
+  display: grid;
+  grid-template-columns: minmax(200px, 260px) 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 960px) {
+  .mock-balance-layout {
+    grid-template-columns: 1fr;
+  }
+}
+.mock-balance-pool-col {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--bg-elevated);
+  padding: 12px;
+  max-height: 620px;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+}
+.mock-balance-pool-head {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.mock-balance-pool-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.mock-balance-pool-filters input,
+.mock-balance-pool-filters select {
+  width: 100%;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-overlay);
+  color: inherit;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+.mock-balance-pool-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 100px;
+  padding: 2px;
+  align-content: start;
+}
+.mock-balance-pool-chip {
+  font-size: 11px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-overlay);
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: inherit;
+  color: inherit;
+}
+.mock-balance-pool-chip:hover {
+  border-color: rgba(124, 58, 237, 0.45);
+}
+.mock-balance-pool-chip[data-on-roster="true"] {
+  opacity: 0.42;
+  cursor: default;
+  pointer-events: none;
+}
+.mock-balance-pool-chip[hidden] {
+  display: none !important;
+}
+.mock-balance-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+.mock-balance-meta-row .mock-balance-meta-label {
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-right: 4px;
+}
+.mock-balance-map-pick-btn {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  background: rgba(56, 189, 248, 0.1);
+  color: #7dd3fc;
+  cursor: pointer;
+  font-family: inherit;
+}
+.mock-balance-map-pick-btn:hover:not(:disabled) {
+  border-color: rgba(56, 189, 248, 0.65);
+  background: rgba(56, 189, 248, 0.16);
+}
+.mock-balance-map-pick-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.mock-balance-vs-head {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+.mock-balance-vs-head .mock-balance-crown {
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.35;
+}
+.mock-balance-vs-head .mock-balance-crown.is-winner {
+  opacity: 1;
+}
+.mock-balance-vs-mid {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+.mock-balance-vs-board--scores-off .mock-balance-slot-extras {
+  display: none;
+}
+.mock-balance-vs-row {
+  display: grid;
+  grid-template-columns: 1fr 40px 1fr;
+  gap: 8px;
+  align-items: stretch;
+  margin-bottom: 8px;
+}
+.mock-balance-nameplate {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 2px solid;
+  text-align: center;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+.mock-balance-nameplate--blue {
+  border-color: rgba(56, 189, 248, 0.65);
+  background: rgba(56, 189, 248, 0.09);
+  color: #bae6fd;
+}
+.mock-balance-nameplate--red {
+  border-color: rgba(251, 113, 133, 0.65);
+  background: rgba(251, 113, 133, 0.09);
+  color: #fecdd3;
+}
+.mock-balance-slot-extras {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  line-height: 1.3;
+}
+.mock-balance-role-ic {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  font-size: 15px;
+  line-height: 1;
+}
+.mock-balance-strength {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.mock-balance-strength-vals {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.mock-balance-strength-vals span:first-child {
+  color: #7dd3fc;
+}
+.mock-balance-strength-vals span:last-child {
+  color: #fb7185;
+}
+.mock-balance-strength-bar {
+  height: 10px;
+  border-radius: 99px;
+  background: var(--bg-overlay);
+  display: flex;
+  overflow: hidden;
+}
+.mock-balance-strength-a {
+  width: 35%;
+  background: linear-gradient(90deg, #38bdf8, #6366f1);
+}
+.mock-balance-strength-b {
+  flex: 1;
+  background: linear-gradient(90deg, #fb7185, #b91c1c);
+}
+.mock-balance-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 14px;
+}
+.mock-balance-team-tags {
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.mock-balance-map-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  max-height: min(52vh, 400px);
+  overflow-y: auto;
+  padding: 4px 2px 8px;
+}
+.mock-balance-map-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-overlay);
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  text-align: center;
+}
+.mock-balance-map-cell:hover {
+  border-color: rgba(124, 58, 237, 0.45);
+}
+.mock-balance-map-thumb {
+  height: 48px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(124, 58, 237, 0.2));
+  border: 1px solid var(--border);
+}
+.mock-balance-map-cell span {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.mock-banpick-mock {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 700px) {
+  .mock-banpick-mock {
+    grid-template-columns: 1fr;
+  }
+}
+.mock-banpick-col {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 12px;
+  background: var(--bg-overlay);
+}
+.mock-banpick-col h4 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.mock-predict-mock {
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: var(--radius-xl);
+  padding: 14px;
+  background: rgba(245, 158, 11, 0.06);
+}
+.mock-predict-mock .mock-predict-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 10px;
+}
+.mock-predict-mock input[type="number"] {
+  width: 88px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: inherit;
+  font-family: inherit;
+}
 .mock-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .mock-table th, .mock-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
 .mock-table th { color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
@@ -1266,7 +1617,7 @@ body.mock-role-member .mock-member-only { display: block !important; }
   <!-- ── 밸런스메이커 뷰 (PRD §6.1) — 5v5 탱1·딜2·힐2 고정, 6v6 미지원 목업 ── -->
   <div id="view-balance" class="clan-view">
     <div class="mock-page-title">밸런스메이커 <span class="mock-pro-inline">PRO 구간 표시 통일</span></div>
-    <p class="mock-page-desc">내전 로스터 편집 목업. <strong>5v5</strong>만 제공하며 역할은 <strong>탱 1 · 딜 2 · 힐 2</strong> 고정입니다. 6v6는 지원하지 않습니다. 맵/영웅 밴은 토글만 두고 규칙·슬롯 수는 이후 확정합니다.</p>
+    <p class="mock-page-desc">운영진이 출전 명단·포지션을 잡는 <strong>편집기</strong> 목업입니다. <strong>5v5 · 탱1 딜2 힐2</strong> 고정. 맵은 맵 밴 OFF일 때만 직접 선택(모달). 아래 탭으로 배치 확정 후 참가자(밴픽/5v5)·관전자(승부예측) 화면을 전환해 볼 수 있습니다.</p>
     <div class="mock-toolbar">
       <button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업: 새 경기 (draft)')">+ 새 경기</button>
       <button type="button" class="btn btn-sm" style="opacity:0.55;cursor:not-allowed" disabled title="PRO">팀 자동 밸런싱 <span class="mock-pro-inline" style="margin-left:4px">PRO</span></button>
@@ -1280,52 +1631,214 @@ body.mock-role-member .mock-member-only { display: block !important; }
     </div>
     <div data-balance-match-panel="m1" class="d-card d-card-full" style="margin-bottom:16px">
       <div class="d-card-label">3/22 토요 내전 <span class="badge badge-brand" style="font-size:10px">작성중</span></div>
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">맵: 서킷 로얄 · 모드: 제어</div>
-      <div class="mock-balance-mode-bar" role="group" aria-label="밸런스 경기 옵션">
-        <span class="mock-balance-format-pill">5v5 · 탱1 딜2 힐2</span>
-        <div class="mock-balance-toggle-group">
-          <button type="button" class="mock-toggle-btn" id="mock-balance-toggle-map-ban" role="switch" aria-checked="false" aria-label="맵 밴 사용" onclick="return window.mockBalanceToggleMapBan(this)">맵 밴</button>
-          <button type="button" class="mock-toggle-btn" id="mock-balance-toggle-hero-ban" role="switch" aria-checked="false" aria-label="영웅 밴 사용" onclick="return window.mockBalanceToggleHeroBan(this)">영웅 밴</button>
-        </div>
+      <p class="mock-modal-hint" style="margin:6px 0 14px">시나리오 미리보기: 실제 구현에서는 배치 확정 시 역할에 따라 리다이렉트됩니다.</p>
+      <div class="mock-balance-wf-tabs" role="tablist" aria-label="밸런스 화면 단계">
+        <button type="button" class="mock-balance-wf-tab mock-tab-active" data-balance-wf-tab data-balance-wf-id="edit" onclick="return window.mockBalanceSetWorkflow(this,'edit')">① 편집 중</button>
+        <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="banpick" onclick="return window.mockBalanceSetWorkflow(this,'banpick')">② 참가자 · 맵/영웅 밴픽</button>
+        <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="lineup" onclick="return window.mockBalanceSetWorkflow(this,'lineup')">③ 참가자 · 5vs5</button>
+        <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="spectator" onclick="return window.mockBalanceSetWorkflow(this,'spectator')">④ 관전자 · 승부예측</button>
       </div>
-      <p id="mock-balance-ban-hint" class="mock-modal-hint" style="margin-bottom:12px">맵 밴·영웅 밴을 켜면 밴 슬롯이 표시됩니다. (슬롯 개수·적용 규칙은 이후 확정)</p>
-      <div class="mock-balance-ban-wrap">
-        <div id="mock-balance-map-ban-block" class="mock-balance-ban-block" hidden>
-          <div class="mock-balance-ban-label">맵 밴 <span class="mock-pro-inline">PRO</span></div>
-          <div class="mock-ban-grid">
-            <div class="mock-ban-slot">맵 밴 1</div><div class="mock-ban-slot">맵 밴 2</div>
+
+      <div id="mock-balance-wf-edit" data-balance-wf-panel="edit" class="mock-balance-wf-panel">
+        <div class="mock-balance-mode-bar" role="group" aria-label="밸런스 경기 옵션">
+          <span class="mock-balance-format-pill">5v5 · 탱1 딜2 힐2</span>
+          <div class="mock-balance-toggle-group">
+            <button type="button" class="mock-toggle-btn" id="mock-balance-toggle-map-ban" role="switch" aria-checked="false" aria-label="맵 밴 사용" onclick="return window.mockBalanceToggleMapBan(this)">맵 밴</button>
+            <button type="button" class="mock-toggle-btn" id="mock-balance-toggle-hero-ban" role="switch" aria-checked="false" aria-label="영웅 밴 사용" onclick="return window.mockBalanceToggleHeroBan(this)">영웅 밴</button>
           </div>
         </div>
-        <div id="mock-balance-hero-ban-block" class="mock-balance-ban-block" hidden>
-          <div class="mock-balance-ban-label">영웅 밴 <span class="mock-pro-inline">PRO</span></div>
-          <div class="mock-ban-grid">
-            <div class="mock-ban-slot">영웅 밴 A</div><div class="mock-ban-slot">영웅 밴 B</div>
+        <p id="mock-balance-ban-hint" class="mock-modal-hint" style="margin-bottom:12px">맵 밴·영웅 밴을 켜면 밴 슬롯이 표시됩니다. (슬롯 개수·적용 규칙은 이후 확정)</p>
+        <p id="mock-balance-map-ban-map-hint" class="mock-modal-hint" style="margin-bottom:12px" hidden>맵 밴 <strong>ON</strong> — 최종 맵은 ② 밴픽 단계에서 결정됩니다. 직접 맵 선택은 비활성화됩니다.</p>
+        <div class="mock-balance-ban-wrap">
+          <div id="mock-balance-map-ban-block" class="mock-balance-ban-block" hidden>
+            <div class="mock-balance-ban-label">맵 밴 <span class="mock-pro-inline">PRO</span></div>
+            <div class="mock-ban-grid">
+              <div class="mock-ban-slot">맵 밴 1</div><div class="mock-ban-slot">맵 밴 2</div>
+            </div>
+          </div>
+          <div id="mock-balance-hero-ban-block" class="mock-balance-ban-block" hidden>
+            <div class="mock-balance-ban-label">영웅 밴 <span class="mock-pro-inline">PRO</span></div>
+            <div class="mock-ban-grid">
+              <div class="mock-ban-slot">영웅 밴 A</div><div class="mock-ban-slot">영웅 밴 B</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mock-balance-layout">
+          <aside class="mock-balance-pool-col" aria-label="클랜원 풀">
+            <div class="mock-balance-pool-head">플레이어 선택 <span style="font-size:11px;font-weight:500;color:var(--text-muted)">(목업: 클릭은 알림)</span></div>
+            <div class="mock-balance-pool-filters">
+              <input type="search" id="mock-balance-pool-search" placeholder="닉네임 검색" autocomplete="off" oninput="window.mockBalancePoolFilter(this)" aria-label="플레이어 검색" />
+              <select id="mock-balance-pool-sort" title="정렬" aria-label="정렬">
+                <option>최근 참여 순</option>
+                <option>닉네임 순</option>
+                <option>자동 점수 순</option>
+              </select>
+            </div>
+            <div class="mock-balance-pool-grid" id="mock-balance-pool-grid">
+              <button type="button" class="mock-balance-pool-chip" data-name="하지" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">하지</button>
+              <button type="button" class="mock-balance-pool-chip" data-name="gon" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">GON</button>
+              <button type="button" class="mock-balance-pool-chip" data-name="dorae" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">DORAE</button>
+              <button type="button" class="mock-balance-pool-chip" data-name="edward" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">애드워드애릭</button>
+              <button type="button" class="mock-balance-pool-chip" data-name="abel" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">ABEL</button>
+              <button type="button" class="mock-balance-pool-chip" data-name="naneun" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">나는우리팀믿어</button>
+              <button type="button" class="mock-balance-pool-chip" data-name="nyang" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">냥이의비행</button>
+              <button type="button" class="mock-balance-pool-chip" data-name="tooji" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">TOOJI</button>
+              <button type="button" class="mock-balance-pool-chip" data-name="sori" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">소리</button>
+              <button type="button" class="mock-balance-pool-chip" data-name="ddung" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">뚱인데요</button>
+              <button type="button" class="mock-balance-pool-chip" data-name="ajae" onclick="return window.mockBalancePoolChipClick(this)">아재</button>
+              <button type="button" class="mock-balance-pool-chip" data-name="kri" onclick="return window.mockBalancePoolChipClick(this)">크리</button>
+              <button type="button" class="mock-balance-pool-chip" data-name="emilia" onclick="return window.mockBalancePoolChipClick(this)">EMILIA</button>
+              <button type="button" class="mock-balance-pool-chip" data-name="roniel" onclick="return window.mockBalancePoolChipClick(this)">RONIEL</button>
+            </div>
+          </aside>
+          <div class="mock-balance-main-col">
+            <div class="mock-balance-meta-row">
+              <span><span class="mock-balance-meta-label">날짜</span><input type="date" id="mock-balance-match-date" value="2026-03-22" style="padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-overlay);color:inherit;font-family:inherit;font-size:12px" /></span>
+              <span><span class="mock-balance-meta-label">맵</span><button type="button" class="mock-balance-map-pick-btn" id="mock-balance-map-pick-btn" onclick="return window.mockBalanceOpenMapModal()"><span id="mock-balance-map-label">서킷 로얄</span></button><span id="mock-balance-map-mode" style="color:var(--text-muted);margin-left:6px">· 제어</span></span>
+            </div>
+
+            <div class="mock-balance-vs-head" aria-hidden="true">
+              <span>블루 팀</span>
+              <span class="mock-balance-vs-mid">VS</span>
+              <span>레드 팀</span>
+            </div>
+            <div id="mock-balance-vs-board" class="mock-balance-vs-board">
+              <div class="mock-balance-vs-row">
+                <div class="mock-balance-nameplate mock-balance-nameplate--blue">하지<div class="mock-balance-slot-extras"><span class="mock-balance-mic" title="마이크">🎙️</span><span>2.5점</span><span>0승 0패</span><span class="badge badge-muted" style="font-size:9px">탱 숙련</span></div></div>
+                <div class="mock-balance-role-ic" title="딜">⚔</div>
+                <div class="mock-balance-nameplate mock-balance-nameplate--red">나는우리팀믿어<div class="mock-balance-slot-extras"><span class="mock-balance-mic" title="마이크 없음">🔇</span><span>-1.0점</span><span>0승 3패</span><span class="badge badge-muted" style="font-size:9px">3연패</span></div></div>
+              </div>
+              <div class="mock-balance-vs-row">
+                <div class="mock-balance-nameplate mock-balance-nameplate--blue">GON<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>0.5점</span><span>1승 2패</span></div></div>
+                <div class="mock-balance-role-ic" title="딜">⚔</div>
+                <div class="mock-balance-nameplate mock-balance-nameplate--red">냥이의비행<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>1.2점</span><span>4승 0패</span></div></div>
+              </div>
+              <div class="mock-balance-vs-row">
+                <div class="mock-balance-nameplate mock-balance-nameplate--blue">DORAE<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🔇</span><span>-0.5점</span><span>0승 0패</span></div></div>
+                <div class="mock-balance-role-ic" title="탱">🛡</div>
+                <div class="mock-balance-nameplate mock-balance-nameplate--red">TOOJI<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>1.8점</span><span>3승 1패</span></div></div>
+              </div>
+              <div class="mock-balance-vs-row">
+                <div class="mock-balance-nameplate mock-balance-nameplate--blue">애드워드애릭<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>0.2점</span><span>1승 1패</span></div></div>
+                <div class="mock-balance-role-ic" title="힐">✚</div>
+                <div class="mock-balance-nameplate mock-balance-nameplate--red">소리<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>0.8점</span><span>2승 2패</span></div></div>
+              </div>
+              <div class="mock-balance-vs-row">
+                <div class="mock-balance-nameplate mock-balance-nameplate--blue">ABEL<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🔇</span><span>-0.7점</span><span>0승 3패</span></div></div>
+                <div class="mock-balance-role-ic" title="힐">✚</div>
+                <div class="mock-balance-nameplate mock-balance-nameplate--red">뚱인데요<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>0.4점</span><span>1승 0패</span></div></div>
+              </div>
+            </div>
+
+            <label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12px;color:var(--text-muted);cursor:pointer">
+              <input type="checkbox" id="mock-balance-show-scores" checked onchange="window.mockBalanceToggleScores(this)" />
+              점수·전적·태그 표시 (배치 완료 후 기본 ON)
+            </label>
+
+            <div class="mock-balance-strength">
+              <div class="mock-balance-strength-label">플레이어 자동점수 합 (팀 밸런스 감각용 목업)</div>
+              <div class="mock-balance-strength-vals"><span>블루 1.75</span><span>레드 3.25</span></div>
+              <div class="mock-balance-strength-bar" aria-hidden="true"><div class="mock-balance-strength-a"></div><div class="mock-balance-strength-b"></div></div>
+            </div>
+
+            <div class="mock-balance-team-tags">팀 단위 특이 태그(자동): <span class="badge badge-muted" style="font-size:10px">탱 라인 승률 열세</span> <span class="badge badge-muted" style="font-size:10px">레드 딜 평균 자동점↑</span></div>
+
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+              <div style="font-size:12px;font-weight:600;margin-bottom:4px">자동점수 기반 승률 예측 <span class="mock-pro-inline">PRO</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px"><span>블루 52%</span><span>레드 48%</span></div>
+              <div class="mock-pred-bar"><div class="mock-pred-a"></div><div class="mock-pred-b"></div></div>
+            </div>
+
+            <div class="mock-balance-actions">
+              <button type="button" class="btn btn-sm" onclick="return window.mockBalancePlacementDone()">배치 완료</button>
+              <button type="button" class="btn btn-secondary btn-sm" style="opacity:0.55;cursor:not-allowed" disabled title="PRO">디스코드 시작 알림 <span class="mock-pro-inline" style="margin-left:4px">PRO</span></button>
+              <span style="font-size:11px;color:var(--text-muted)">확정 후 참가/비참가 분기는 상단 ②③④ 탭으로 목업 확인</span>
+            </div>
           </div>
         </div>
       </div>
-      <div class="mock-two-col" style="margin-top:16px">
-        <div class="mock-roster">
-          <div class="mock-roster-head">블루 팀 (5인)</div>
-          <div class="mock-roster-row"><span style="font-weight:600">IronWall <span style="color:var(--text-muted);font-weight:400">#1122</span></span><span class="mock-tag mock-tag-tank">탱</span><span style="margin-left:auto;font-size:12px;color:var(--text-muted)">수동 1.2 · 자동 0.8</span></div>
-          <div class="mock-roster-row"><span style="font-weight:600">Pulse <span style="color:var(--text-muted);font-weight:400">#3344</span></span><span class="mock-tag mock-tag-dps">딜</span><span style="margin-left:auto;font-size:12px;color:var(--text-muted)">수동 0.5 · 자동 1.1</span></div>
-          <div class="mock-roster-row"><span style="font-weight:600">Blink <span style="color:var(--text-muted);font-weight:400">#3355</span></span><span class="mock-tag mock-tag-dps">딜</span><span style="margin-left:auto;font-size:12px;color:var(--text-muted)">수동 0.3 · 자동 0.9</span></div>
-          <div class="mock-roster-row"><span style="font-weight:600">Mender <span style="color:var(--text-muted);font-weight:400">#7788</span></span><span class="mock-tag mock-tag-sup">힐</span><span style="margin-left:auto;font-size:12px;color:var(--text-muted)">수동 0.9 · 자동 1.0</span></div>
-          <div class="mock-roster-row"><span style="font-weight:600">Sage <span style="color:var(--text-muted);font-weight:400">#7799</span></span><span class="mock-tag mock-tag-sup">힐</span><span style="margin-left:auto;font-size:12px;color:var(--text-muted)">수동 0.4 · 자동 0.7</span></div>
-        </div>
-        <div class="mock-roster">
-          <div class="mock-roster-head">레드 팀 (5인)</div>
-          <div class="mock-roster-row"><span style="font-weight:600">Anchor <span style="color:var(--text-muted);font-weight:400">#2211</span></span><span class="mock-tag mock-tag-tank">탱</span><span style="margin-left:auto;font-size:12px;color:var(--text-muted)">수동 0.7 · 자동 0.9</span></div>
-          <div class="mock-roster-row"><span style="font-weight:600">Spark <span style="color:var(--text-muted);font-weight:400">#4433</span></span><span class="mock-tag mock-tag-dps">딜</span><span style="margin-left:auto;font-size:12px;color:var(--text-muted)">수동 1.0 · 자동 0.4</span></div>
-          <div class="mock-roster-row"><span style="font-weight:600">Fuse <span style="color:var(--text-muted);font-weight:400">#4466</span></span><span class="mock-tag mock-tag-dps">딜</span><span style="margin-left:auto;font-size:12px;color:var(--text-muted)">수동 0.6 · 자동 0.5</span></div>
-          <div class="mock-roster-row"><span style="font-weight:600">Bloom <span style="color:var(--text-muted);font-weight:400">#8877</span></span><span class="mock-tag mock-tag-sup">힐</span><span style="margin-left:auto;font-size:12px;color:var(--text-muted)">수동 -0.2 · 자동 0.3</span></div>
-          <div class="mock-roster-row"><span style="font-weight:600">Tide <span style="color:var(--text-muted);font-weight:400">#8800</span></span><span class="mock-tag mock-tag-sup">힐</span><span style="margin-left:auto;font-size:12px;color:var(--text-muted)">수동 0.2 · 자동 0.6</span></div>
+
+      <div id="mock-balance-wf-banpick" data-balance-wf-panel="banpick" class="mock-balance-wf-panel" hidden>
+        <p class="mock-modal-hint" style="margin-bottom:12px">맵 또는 영웅 밴픽이 켜진 경기에서 <strong>참가자</strong>에게 보이는 단계(오버워치식 번갈아 선택 목업).</p>
+        <div class="mock-banpick-mock">
+          <div class="mock-banpick-col">
+            <h4 style="color:#7dd3fc">블루 진영</h4>
+            <p style="font-size:12px;color:var(--text-muted);margin:0 0 8px">맵 밴 차례 · 남은 시간 <strong>0:28</strong></p>
+            <div class="mock-ban-grid">
+              <div class="mock-ban-slot">밴 후보 A</div><div class="mock-ban-slot">밴 후보 B</div>
+            </div>
+            <p style="font-size:11px;color:var(--text-muted);margin:10px 0 0">영웅 밴 슬롯은 토글 시 표시</p>
+          </div>
+          <div class="mock-banpick-col">
+            <h4 style="color:#fb7185">레드 진영</h4>
+            <p style="font-size:12px;color:var(--text-muted);margin:0 0 8px">대기 중 · 상대 밴 이후 픽</p>
+            <div class="mock-ban-grid">
+              <div class="mock-ban-slot">픽 대기</div><div class="mock-ban-slot">픽 대기</div>
+            </div>
+          </div>
         </div>
       </div>
-      <div style="margin-top:12px;font-size:11px;color:var(--text-muted)">특이 태그(자동 생성 목업): <span class="badge badge-muted" style="font-size:10px">탱 불균형</span> <span class="badge badge-muted" style="font-size:10px">힐 시너지↑</span></div>
-      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
-        <div style="font-size:12px;font-weight:600;margin-bottom:4px">승률 예측 <span class="mock-pro-inline">PRO · 파리뮤추엘 목업</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px"><span>블루 52%</span><span>레드 48%</span></div>
-        <div class="mock-pred-bar"><div class="mock-pred-a"></div><div class="mock-pred-b"></div></div>
+
+      <div id="mock-balance-wf-lineup" data-balance-wf-panel="lineup" class="mock-balance-wf-panel" hidden>
+        <p class="mock-modal-hint" style="margin-bottom:12px">맵·영웅 밴이 <strong>모두 OFF</strong>일 때 참가자에게 보이는 고정 5vs5 화면(읽기 전용).</p>
+        <div class="mock-balance-vs-head">
+          <span><span class="mock-balance-crown is-winner" title="우세(목업)">👑</span><br />블루 팀</span>
+          <span class="mock-balance-vs-mid">VS</span>
+          <span><span class="mock-balance-crown" title=" ">👑</span><br />레드 팀</span>
+        </div>
+        <div class="mock-balance-vs-board mock-balance-vs-board--scores-off" id="mock-balance-lineup-board" aria-label="5vs5 라인업">
+          <div class="mock-balance-vs-row">
+            <div class="mock-balance-nameplate mock-balance-nameplate--blue">하지</div>
+            <div class="mock-balance-role-ic" title="딜">⚔</div>
+            <div class="mock-balance-nameplate mock-balance-nameplate--red">나는우리팀믿어</div>
+          </div>
+          <div class="mock-balance-vs-row">
+            <div class="mock-balance-nameplate mock-balance-nameplate--blue">GON</div>
+            <div class="mock-balance-role-ic" title="딜">⚔</div>
+            <div class="mock-balance-nameplate mock-balance-nameplate--red">냥이의비행</div>
+          </div>
+          <div class="mock-balance-vs-row">
+            <div class="mock-balance-nameplate mock-balance-nameplate--blue">DORAE</div>
+            <div class="mock-balance-role-ic" title="탱">🛡</div>
+            <div class="mock-balance-nameplate mock-balance-nameplate--red">TOOJI</div>
+          </div>
+          <div class="mock-balance-vs-row">
+            <div class="mock-balance-nameplate mock-balance-nameplate--blue">애드워드애릭</div>
+            <div class="mock-balance-role-ic" title="힐">✚</div>
+            <div class="mock-balance-nameplate mock-balance-nameplate--red">소리</div>
+          </div>
+          <div class="mock-balance-vs-row">
+            <div class="mock-balance-nameplate mock-balance-nameplate--blue">ABEL</div>
+            <div class="mock-balance-role-ic" title="힐">✚</div>
+            <div class="mock-balance-nameplate mock-balance-nameplate--red">뚱인데요</div>
+          </div>
+        </div>
+        <p style="font-size:11px;color:var(--text-muted);margin-top:12px">맵: <strong id="mock-balance-lineup-map">서킷 로얄</strong> · 서버 시간 연동 시「20xx/xx/xx — 몇 시 시작」표시</p>
+      </div>
+
+      <div id="mock-balance-wf-spectator" data-balance-wf-panel="spectator" class="mock-balance-wf-panel" hidden>
+        <p class="mock-modal-hint" style="margin-bottom:12px">이번 경기에 <strong>출전하지 않은</strong> 구성원 화면. 마감·배당·파리뮤추엘 정산은 PRO.</p>
+        <div class="mock-predict-mock">
+          <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center">
+            <strong style="font-size:13px">승부예측 <span class="mock-pro-inline">PRO</span></strong>
+            <span style="font-size:12px;color:#fb7185;font-variant-numeric:tabular-nums" id="mock-balance-predict-ttl">마감까지 04:32</span>
+          </div>
+          <p style="font-size:12px;color:var(--text-muted);margin:8px 0 0">실시간 합계 기준 예상 배당(목업)</p>
+          <div style="display:flex;gap:16px;margin-top:8px;font-size:13px;font-weight:700">
+            <span style="color:#7dd3fc">블루 1.85배</span>
+            <span style="color:#fb7185">레드 2.10배</span>
+          </div>
+          <div class="mock-predict-row">
+            <label style="font-size:12px;color:var(--text-muted)">선택</label>
+            <button type="button" class="btn btn-secondary btn-sm">블루 승</button>
+            <button type="button" class="btn btn-secondary btn-sm">레드 승</button>
+            <label style="font-size:12px;color:var(--text-muted);margin-left:8px">클랜코인</label>
+            <input type="number" min="0" max="500" value="50" readonly title="상한 목업" />
+            <button type="button" class="btn btn-sm" onclick="alert('목업: PRO 예측 제출')">예측하기</button>
+          </div>
+          <p style="font-size:11px;color:var(--text-muted);margin:12px 0 0">경기 종료 후 운영진 결과 입력 → 파리뮤추엘 지급 · 내역·재정산은 기록 탭 연동(설계).</p>
+        </div>
       </div>
     </div>
     <div data-balance-match-panel="m2" class="d-card d-card-full" style="margin-bottom:16px;display:none">
@@ -1598,6 +2111,57 @@ body.mock-role-member .mock-member-only { display: block !important; }
       <div class="mock-modal-actions">
         <button type="button" class="btn btn-secondary btn-sm" onclick="window.mockStatsHofCloseSettingsModal()">취소</button>
         <button type="button" class="btn btn-sm" onclick="window.mockStatsHofSaveSettingsModal()">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 밸런스: 맵 선택 모달 (맵 밴 OFF일 때만 열기) -->
+  <div id="mock-balance-map-modal" class="mock-modal-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="mock-balance-map-modal-title" onclick="if(event.target===this)window.mockBalanceCloseMapModal()">
+    <div class="mock-modal-card" style="max-width:520px;width:calc(100% - 32px);max-height:90vh;overflow:hidden;display:flex;flex-direction:column" onclick="event.stopPropagation()">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <button type="button" class="btn btn-secondary btn-sm" style="padding:4px 10px" onclick="return window.mockBalanceCloseMapModal()" aria-label="닫기">←</button>
+        <h3 id="mock-balance-map-modal-title" style="margin:0;font-size:16px">전장을 선택하세요</h3>
+      </div>
+      <div class="mock-modal-field" style="margin-bottom:10px">
+        <input type="search" id="mock-balance-map-search" placeholder="맵 이름" autocomplete="off" aria-label="맵 검색" oninput="window.mockBalanceMapGridFilter(this)" style="width:100%;padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-overlay);color:inherit;font-family:inherit;font-size:13px;box-sizing:border-box" />
+      </div>
+      <div class="mock-modal-field" style="margin-bottom:8px">
+        <select id="mock-balance-map-filter" style="width:100%;padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-overlay);color:inherit;font-family:inherit;font-size:12px;box-sizing:border-box" aria-label="맵 유형">
+          <option>전체</option>
+          <option>쟁탈</option>
+          <option>호위</option>
+          <option>점령</option>
+          <option>밀기</option>
+        </select>
+      </div>
+      <div class="mock-balance-map-grid" id="mock-balance-map-grid">
+        <button type="button" class="mock-balance-map-cell" data-map-name="하나오카" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>하나오카</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="아누비스 왕좌" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>아누비스 왕좌</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="남극 반도" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>남극 반도</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="부산" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>부산</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="일리오스" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>일리오스</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="리장 타워" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>리장 타워</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="네팔" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>네팔</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="오아시스" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>오아시스</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="사모아" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>사모아</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="서킷 로얄" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>서킷 로얄</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="도라도" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>도라도</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="하바나" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>하바나</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="정크타운" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>정크타운</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="리알토" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>리알토</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="66번 국도" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>66번 국도</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="샴발라 수도원" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>샴발라 수도원</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="감시 기지: 지브롤터" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>감시 기지: 지브롤터</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="뉴 정크 시티" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>뉴 정크 시티</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="수라바사" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>수라바사</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="블리자드 월드" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>블리자드 월드</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="아이헨발데" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>아이헨발데</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="할리우드" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>할리우드</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="킹스 로우" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>킹스 로우</span></button>
+        <button type="button" class="mock-balance-map-cell" data-map-name="미드타운" onclick="return window.mockBalancePickMap(this)"><div class="mock-balance-map-thumb" aria-hidden="true"></div><span>미드타운</span></button>
+      </div>
+      <div class="mock-modal-actions" style="margin-top:12px;flex-shrink:0">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockBalanceCloseMapModal()">닫기</button>
       </div>
     </div>
   </div>

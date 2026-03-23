@@ -106,6 +106,11 @@
       modal.setAttribute("aria-hidden", "true");
     }
     applyRoleBodyClass();
+    try {
+      if (document.getElementById("mock-balance-map-pick-btn")) {
+        mockBalanceSyncBanHint();
+      }
+    } catch (eBalance) {}
     /* 구성원이 경기 기록 패널만 열린 상태면 요약으로 되돌림 */
     if (window.mockClanCurrentRole() === "member") {
       var ap = document.getElementById("stats-panel-archive");
@@ -164,14 +169,32 @@
     });
   };
 
+  function mockBalanceSyncMapPickBtn() {
+    var mapBan = document.getElementById("mock-balance-toggle-map-ban");
+    var btn = document.getElementById("mock-balance-map-pick-btn");
+    if (!btn) return;
+    var on = mapBan && mapBan.getAttribute("aria-checked") === "true";
+    btn.disabled = !!on;
+    if (on) {
+      btn.setAttribute("title", "맵 밴 ON — 최종 맵은 밴픽 단계에서 결정됩니다.");
+    } else {
+      btn.removeAttribute("title");
+    }
+  }
+
   function mockBalanceSyncBanHint() {
     var mapBtn = document.getElementById("mock-balance-toggle-map-ban");
     var heroBtn = document.getElementById("mock-balance-toggle-hero-ban");
     var hint = document.getElementById("mock-balance-ban-hint");
+    var mapBanHint = document.getElementById("mock-balance-map-ban-map-hint");
     if (!hint) return;
     var mapOn = mapBtn && mapBtn.getAttribute("aria-checked") === "true";
     var heroOn = heroBtn && heroBtn.getAttribute("aria-checked") === "true";
     hint.hidden = mapOn || heroOn;
+    if (mapBanHint) {
+      mapBanHint.hidden = !mapOn;
+    }
+    mockBalanceSyncMapPickBtn();
   }
 
   /** 맵 밴 토글 — 슬롯·규칙은 추후 확정, 표시만 */
@@ -196,6 +219,98 @@
     if (block) block.hidden = !on;
     mockBalanceSyncBanHint();
     return false;
+  };
+
+  /** 밸런스: 워크플로 탭(편집 / 밴픽 / 5v5 / 관전자 예측) */
+  window.mockBalanceSetWorkflow = function (btn, id) {
+    document.querySelectorAll("[data-balance-wf-tab]").forEach(function (b) {
+      b.classList.toggle("mock-tab-active", b === btn);
+    });
+    document.querySelectorAll("[data-balance-wf-panel]").forEach(function (p) {
+      var pid = p.getAttribute("data-balance-wf-panel");
+      p.hidden = pid !== id;
+    });
+    return false;
+  };
+
+  window.mockBalancePlacementDone = function () {
+    var tab = document.querySelector('[data-balance-wf-id="lineup"]');
+    if (tab) {
+      window.mockBalanceSetWorkflow(tab, "lineup");
+    }
+    window.alert(
+      "목업: 배치가 확정되었습니다. 실제 서비스에서는 참가 여부·밴픽 옵션에 따라 ② 밴픽 / ③ 5vs5 / ④ 승부예측 화면으로 나뉩니다.",
+    );
+    return false;
+  };
+
+  window.mockBalanceOpenMapModal = function () {
+    var btn = document.getElementById("mock-balance-map-pick-btn");
+    if (btn && btn.disabled) {
+      window.alert(
+        "목업: 맵 밴이 켜져 있어 직접 맵 선택을 쓸 수 없습니다. ② 밴픽 단계에서 맵이 결정됩니다.",
+      );
+      return false;
+    }
+    var m = document.getElementById("mock-balance-map-modal");
+    if (m) {
+      m.removeAttribute("hidden");
+      m.setAttribute("aria-hidden", "false");
+    }
+    return false;
+  };
+
+  window.mockBalanceCloseMapModal = function () {
+    var m = document.getElementById("mock-balance-map-modal");
+    if (m) {
+      m.setAttribute("hidden", "");
+      m.setAttribute("aria-hidden", "true");
+    }
+    return false;
+  };
+
+  window.mockBalancePickMap = function (cell) {
+    if (!cell) return false;
+    var name = cell.getAttribute("data-map-name") || (cell.textContent || "").trim();
+    var label = document.getElementById("mock-balance-map-label");
+    if (label) label.textContent = name;
+    var lineupMap = document.getElementById("mock-balance-lineup-map");
+    if (lineupMap) lineupMap.textContent = name;
+    window.mockBalanceCloseMapModal();
+    return false;
+  };
+
+  window.mockBalanceMapGridFilter = function (input) {
+    var q = (input && input.value ? input.value : "").trim().toLowerCase();
+    document.querySelectorAll("#mock-balance-map-grid .mock-balance-map-cell").forEach(function (c) {
+      var n = (c.getAttribute("data-map-name") || "").toLowerCase();
+      c.hidden = !!(q && n.indexOf(q) === -1);
+    });
+  };
+
+  window.mockBalancePoolFilter = function (input) {
+    var q = (input && input.value ? input.value : "").trim().toLowerCase();
+    document.querySelectorAll(".mock-balance-pool-chip").forEach(function (c) {
+      var n = (c.getAttribute("data-name") || "").toLowerCase();
+      var t = (c.textContent || "").trim().toLowerCase();
+      c.hidden = !!(q && n.indexOf(q) === -1 && t.indexOf(q) === -1);
+    });
+  };
+
+  window.mockBalancePoolChipClick = function (btn) {
+    if (!btn || btn.getAttribute("data-on-roster") === "true") return false;
+    window.alert(
+      "목업: 슬롯에 올리는 동작(드래그·탭)은 구현 단계에서 연결합니다. (" +
+        (btn.textContent || "").trim() +
+        ")",
+    );
+    return false;
+  };
+
+  window.mockBalanceToggleScores = function (cb) {
+    var board = document.getElementById("mock-balance-vs-board");
+    if (!board || !cb) return;
+    board.classList.toggle("mock-balance-vs-board--scores-off", !cb.checked);
   };
 
   /** 배너「내전 시작」— 구성원이면 안내 */
