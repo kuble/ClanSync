@@ -753,40 +753,17 @@ body.mock-role-member .mock-member-only { display: block !important; }
   <!-- ── 통계 뷰 — docs/01-plan/clan-stats-plan.md §9 · clan-mock.js mockStats* ── -->
   <div id="view-stats" class="clan-view">
     <div class="mock-page-title">클랜 통계</div>
-    <p class="mock-page-desc">
-      이 화면의 1차 주제는 <strong>클랜</strong>입니다. 내전·스크림·이벤트 경기를 한 클랜에 묶어
-      <strong>경기 수·승률·아카이브·맵 분해</strong>를 봅니다. 개인 메달·상세 전적은 클랜 관리 흐름과 구분합니다.
-    </p>
-
-    <div class="mock-tab-row" aria-label="기간 필터">
-      <span style="font-size:11px;color:var(--text-muted);margin-right:4px">기간</span>
-      <button type="button" class="mock-tab mock-tab-active" data-stats-period="30d" onclick="return mockStatsPickPeriod(this,'30d')">최근 30일</button>
-      <button type="button" class="mock-tab" data-stats-period="90d" onclick="return mockStatsPickPeriod(this,'90d')">90일</button>
-      <button type="button" class="mock-tab" data-stats-period="all" onclick="return mockStatsPickPeriod(this,'all')">전체</button>
-    </div>
-    <div class="mock-tab-row" aria-label="경기 유형 필터">
-      <span style="font-size:11px;color:var(--text-muted);margin-right:4px">유형</span>
-      <button type="button" class="mock-tab mock-tab-active" data-stats-type="all" onclick="return mockStatsPickType(this,'all')">전체</button>
-      <button type="button" class="mock-tab" data-stats-type="intra" onclick="return mockStatsPickType(this,'intra')">내전</button>
-      <button type="button" class="mock-tab" data-stats-type="scrim" onclick="return mockStatsPickType(this,'scrim')">스크림</button>
-    </div>
-    <p class="mock-stats-footnote" style="margin-bottom:12px">
-      무료 플랜은 경기 기록 1년 보관(PRD) — 실서비스에서는 구독에 맞춰 조회 범위가 잘립니다. (목업 샘플은 고정 날짜 기준)
-    </p>
 
     <div class="ranking-tabs" role="tablist" aria-label="통계 구역">
       <button type="button" class="ranking-tab on" role="tab" aria-selected="true" id="statsTabSummary" data-stats-section-tab="summary" onclick="return mockStatsSetSection(this,'summary')">요약</button>
       <button type="button" class="ranking-tab" role="tab" aria-selected="false" id="statsTabArchive" data-stats-section-tab="archive" onclick="return mockStatsSetSection(this,'archive')">경기 기록</button>
       <button type="button" class="ranking-tab" role="tab" aria-selected="false" id="statsTabRankmap" data-stats-section-tab="rankmap" onclick="return mockStatsSetSection(this,'rankmap')">순위·맵</button>
     </div>
-    <p class="mock-stats-footnote" style="margin-bottom:16px;margin-top:0">
-      위 기간·유형 필터는 모든 탭에 동일하게 적용됩니다.
-    </p>
 
     <div id="stats-panel-summary" class="ranking-panel" role="tabpanel" aria-labelledby="statsTabSummary">
       <div class="mock-kpi-row">
         <div class="mock-kpi">
-          <div class="mock-kpi-label">경기 수 (필터 적용)</div>
+          <div class="mock-kpi-label">경기 수</div>
           <div class="mock-kpi-val" id="mock-stats-kpi-total">0</div>
           <div style="font-size:12px;color:var(--text-muted)" id="mock-stats-kpi-split">내전 0 · 스크림 0</div>
         </div>
@@ -806,7 +783,7 @@ body.mock-role-member .mock-member-only { display: block !important; }
     <div id="stats-panel-archive" class="ranking-panel" role="tabpanel" aria-labelledby="statsTabArchive" hidden>
       <div class="d-card d-card-full" style="margin-bottom:16px">
         <div class="d-card-label">경기 아카이브</div>
-        <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">클랜에 기록된 경기 — 상단 필터와 동일 범위</p>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">클랜에 기록된 경기 목록 (목업)</p>
         <div style="overflow-x:auto">
           <table class="mock-table">
             <thead><tr><th>일자</th><th>유형</th><th>맵</th><th>결과</th></tr></thead>
@@ -838,7 +815,7 @@ body.mock-role-member .mock-member-only { display: block !important; }
         </div>
         <div class="d-card d-card-full">
           <div class="d-card-label">맵·모드별 클랜 승률</div>
-          <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">필터가 적용된 경기만 집계 · 상위 표시</p>
+          <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">목업 샘플 경기 기준 집계 · 상위 표시</p>
           <div id="mock-stats-map-wrap"></div>
         </div>
       </div>

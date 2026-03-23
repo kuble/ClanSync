@@ -166,11 +166,7 @@
     window.clanGo("balance", link);
   };
 
-  /* ── 클랜 통계 (클랜 단위 집계 · clan-stats-plan §9) ── */
-  window.__mockStatsState = { period: "30d", type: "all" };
-
-  var CLAN_STATS_ANCHOR = new Date("2026-03-23T12:00:00.000Z");
-  var CLAN_STATS_MS_DAY = 86400000;
+  /* ── 클랜 통계 (클랜 단위 집계 · clan-stats-plan §9) — 목업 전체 샘플 고정 집계 ── */
   /** @type {{ at: string, type: string, map: string, mapType: string, won: boolean, score: string }[]} */
   var CLAN_STATS_MATCHES = [
     { at: "2026-03-22T18:00:00.000Z", type: "intra", map: "서킷 로얄", mapType: "클래시", won: true, score: "3-2" },
@@ -196,19 +192,7 @@
   ];
 
   function mockStatsFiltered() {
-    var st = window.__mockStatsState;
-    var days =
-      st.period === "90d" ? 90 : st.period === "all" ? null : 30;
-    var start =
-      days === null
-        ? null
-        : new Date(CLAN_STATS_ANCHOR.getTime() - days * CLAN_STATS_MS_DAY);
-    return CLAN_STATS_MATCHES.filter(function (m) {
-      var d = new Date(m.at);
-      if (start && d < start) return false;
-      if (st.type === "all") return true;
-      return m.type === st.type;
-    });
+    return CLAN_STATS_MATCHES.slice();
   }
 
   function mockStatsTypeLabel(t) {
@@ -246,24 +230,6 @@
         b.setAttribute("aria-selected", on ? "true" : "false");
       });
     }
-    return false;
-  };
-
-  window.mockStatsPickPeriod = function (btn, v) {
-    window.__mockStatsState.period = v;
-    document.querySelectorAll("[data-stats-period]").forEach(function (b) {
-      b.classList.toggle("mock-tab-active", b.getAttribute("data-stats-period") === v);
-    });
-    window.mockStatsRender();
-    return false;
-  };
-
-  window.mockStatsPickType = function (btn, v) {
-    window.__mockStatsState.type = v;
-    document.querySelectorAll("[data-stats-type]").forEach(function (b) {
-      b.classList.toggle("mock-tab-active", b.getAttribute("data-stats-type") === v);
-    });
-    window.mockStatsRender();
     return false;
   };
 
