@@ -229,15 +229,23 @@
     return d.getMonth() + 1 + "/" + d.getDate() + " (" + w + ")";
   }
 
-  /** 상단 탭: 요약 / 경기 기록 / 순위·맵 */
+  /** 상단 탭: 요약 / 경기 기록 / 순위·맵 — main-game 클랜 순위 탭과 동일 패턴(hidden + .on) */
   window.mockStatsSetSection = function (btn, name) {
-    document.querySelectorAll("[data-stats-section-tab]").forEach(function (b) {
-      b.classList.toggle("mock-tab-active", b === btn);
-    });
-    document.querySelectorAll("[data-stats-section-panel]").forEach(function (p) {
-      p.style.display =
-        p.getAttribute("data-stats-section-panel") === name ? "" : "none";
-    });
+    var summary = document.getElementById("stats-panel-summary");
+    var archive = document.getElementById("stats-panel-archive");
+    var rankmap = document.getElementById("stats-panel-rankmap");
+    if (!summary) return false;
+    summary.hidden = name !== "summary";
+    if (archive) archive.hidden = name !== "archive";
+    if (rankmap) rankmap.hidden = name !== "rankmap";
+    var root = document.getElementById("view-stats");
+    if (root) {
+      root.querySelectorAll("[data-stats-section-tab]").forEach(function (b) {
+        var on = b.getAttribute("data-stats-section-tab") === name;
+        b.classList.toggle("on", on);
+        b.setAttribute("aria-selected", on ? "true" : "false");
+      });
+    }
     return false;
   };
 

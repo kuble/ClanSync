@@ -214,6 +214,35 @@
 .mock-stats-map-bar { height: 6px; border-radius: 99px; background: var(--bg-overlay); overflow: hidden; }
 .mock-stats-map-bar > i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--brand-primary), #7c3aed); font-style: normal; }
 .mock-stats-footnote { font-size: 11px; color: var(--text-muted); margin-top: 10px; line-height: 1.45; }
+
+/* 클랜 통계 · 상단 탭 — main-game.html 클랜 순위(.ranking-tabs)와 동일 패턴 */
+#view-stats .ranking-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+#view-stats .ranking-tab {
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: color 0.15s, border-color 0.15s;
+  font-family: var(--font-sans);
+}
+#view-stats .ranking-tab:hover { color: var(--text-primary); }
+#view-stats .ranking-tab.on {
+  color: #c4b5fd;
+  border-bottom-color: #7c3aed;
+}
+#view-stats .ranking-panel[hidden] { display: none !important; }
 .mock-store-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 @media (max-width: 900px) { .mock-store-grid { grid-template-columns: 1fr; } }
 .mock-store-card { border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 14px; background: var(--bg-elevated); display: flex; flex-direction: column; gap: 8px; }
@@ -745,17 +774,16 @@ body.mock-role-member .mock-member-only { display: block !important; }
       무료 플랜은 경기 기록 1년 보관(PRD) — 실서비스에서는 구독에 맞춰 조회 범위가 잘립니다. (목업 샘플은 고정 날짜 기준)
     </p>
 
-    <div class="mock-tab-row" role="tablist" aria-label="통계 구역" style="margin-bottom:4px;padding-bottom:10px;border-bottom:1px solid var(--border)">
-      <span style="font-size:11px;color:var(--text-muted);margin-right:8px;align-self:center">보기</span>
-      <button type="button" class="mock-tab mock-tab-active" data-stats-section-tab onclick="return mockStatsSetSection(this,'summary')">요약</button>
-      <button type="button" class="mock-tab" data-stats-section-tab onclick="return mockStatsSetSection(this,'archive')">경기 기록</button>
-      <button type="button" class="mock-tab" data-stats-section-tab onclick="return mockStatsSetSection(this,'rankmap')">순위·맵</button>
+    <div class="ranking-tabs" role="tablist" aria-label="통계 구역">
+      <button type="button" class="ranking-tab on" role="tab" aria-selected="true" id="statsTabSummary" data-stats-section-tab="summary" onclick="return mockStatsSetSection(this,'summary')">요약</button>
+      <button type="button" class="ranking-tab" role="tab" aria-selected="false" id="statsTabArchive" data-stats-section-tab="archive" onclick="return mockStatsSetSection(this,'archive')">경기 기록</button>
+      <button type="button" class="ranking-tab" role="tab" aria-selected="false" id="statsTabRankmap" data-stats-section-tab="rankmap" onclick="return mockStatsSetSection(this,'rankmap')">순위·맵</button>
     </div>
     <p class="mock-stats-footnote" style="margin-bottom:16px;margin-top:0">
       위 기간·유형 필터는 모든 탭에 동일하게 적용됩니다.
     </p>
 
-    <div data-stats-section-panel="summary">
+    <div id="stats-panel-summary" class="ranking-panel" role="tabpanel" aria-labelledby="statsTabSummary">
       <div class="mock-kpi-row">
         <div class="mock-kpi">
           <div class="mock-kpi-label">경기 수 (필터 적용)</div>
@@ -775,7 +803,7 @@ body.mock-role-member .mock-member-only { display: block !important; }
       </div>
     </div>
 
-    <div data-stats-section-panel="archive" style="display:none">
+    <div id="stats-panel-archive" class="ranking-panel" role="tabpanel" aria-labelledby="statsTabArchive" hidden>
       <div class="d-card d-card-full" style="margin-bottom:16px">
         <div class="d-card-label">경기 아카이브</div>
         <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">클랜에 기록된 경기 — 상단 필터와 동일 범위</p>
@@ -788,7 +816,7 @@ body.mock-role-member .mock-member-only { display: block !important; }
       </div>
     </div>
 
-    <div data-stats-section-panel="rankmap" style="display:none">
+    <div id="stats-panel-rankmap" class="ranking-panel" role="tabpanel" aria-labelledby="statsTabRankmap" hidden>
       <div class="mock-two-col" style="margin-bottom:16px">
         <div class="d-card d-card-full">
           <div class="d-card-label">참여율 순위</div>
