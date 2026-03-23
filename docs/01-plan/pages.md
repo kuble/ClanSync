@@ -12,9 +12,9 @@
 /games/[gameSlug]/clan     → ClanAuth (클랜 가입/생성)
 /games/[gameSlug]/clan/[clanId]         → MainClan
 /games/[gameSlug]/clan/[clanId]/balance → 밸런스메이커
-/games/[gameSlug]/clan/[clanId]/stats   → 클랜 통계
+/games/[gameSlug]/clan/[clanId]/stats   → 클랜 통계(구성원: 요약·맵 / 운영진+: 경기 기록에 개인 승률 순위)
 /games/[gameSlug]/clan/[clanId]/events  → 클랜 이벤트
-/games/[gameSlug]/clan/[clanId]/manage  → 클랜 관리
+/games/[gameSlug]/clan/[clanId]/manage  → 클랜 관리(구성원별 개인 통계·승패 등)
 /games/[gameSlug]/clan/[clanId]/store   → 클랜 스토어
 /games/[gameSlug]                       → MainGame (커뮤니티)
 /games/[gameSlug]/board/[postId]        → 게시글 상세

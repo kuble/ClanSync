@@ -103,7 +103,7 @@ ClanMember ──< CoinTransaction
 | map_id | uuid FK → maps | null = 미지정 |
 | match_type | enum('intra','scrim','event') | 내전/스크림/이벤트 |
 | status | enum('draft','active','finished') | |
-| played_at | timestamptz | 경기 시각 |
+| played_at | timestamptz | 경기 시각(절대시각). 일간 통계·아카이브는 KST 기준 **당일 06:00~익일 06:00** 을 한 집계일로 보며, 필요 시 `(played_at AT TIME ZONE 'Asia/Seoul')` 로부터 도출한 `date`를 쿼리/생성컬럼으로 사용 |
 | created_by | uuid FK → users | 생성한 운영진 |
 | created_at | timestamptz | |
 

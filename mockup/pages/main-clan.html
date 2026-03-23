@@ -208,12 +208,458 @@
 .mock-kpi { padding: 16px; border-radius: var(--radius-xl); border: 1px solid var(--border); background: var(--bg-elevated); }
 .mock-kpi-label { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-bottom: 8px; }
 .mock-kpi-val { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
-/* 클랜 통계: 맵 승률 막대 */
+/* 클랜 통계: 맵·모드별 경기 수 막대(상대 스케일) */
 .mock-stats-map-row { margin-bottom: 14px; }
 .mock-stats-map-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; margin-bottom: 4px; }
 .mock-stats-map-bar { height: 6px; border-radius: 99px; background: var(--bg-overlay); overflow: hidden; }
 .mock-stats-map-bar > i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--brand-primary), #7c3aed); font-style: normal; }
 .mock-stats-footnote { font-size: 11px; color: var(--text-muted); margin-top: 10px; line-height: 1.45; }
+
+/* 클랜 통계 · 경기 기록(일자별 B/R 카드) */
+.mock-stats-archive-day { margin-bottom: 28px; }
+.mock-stats-archive-day:last-child { margin-bottom: 0; }
+.mock-stats-archive-day-title { font-size: 15px; font-weight: 800; margin: 0 0 6px; letter-spacing: -0.02em; }
+.mock-stats-archive-day-meta { font-size: 12px; color: var(--text-muted); margin: 0 0 14px; }
+.mock-stats-match-grid { display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch; }
+.mock-stats-archive-cal-wrap {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--bg-overlay);
+}
+.mock-stats-archive-cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.mock-stats-archive-cal-head strong { font-size: 14px; font-weight: 800; }
+.mock-stats-archive-cal-nav {
+  display: flex;
+  gap: 6px;
+}
+.mock-stats-archive-cal-nav button {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.mock-stats-archive-cal-nav button:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+.mock-stats-archive-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+  font-size: 11px;
+}
+.mock-stats-archive-cal-grid--week .mock-stats-archive-cal-cell {
+  aspect-ratio: unset;
+  max-height: none;
+  min-height: 42px;
+}
+.mock-stats-archive-cal-dow { color: var(--text-muted); font-weight: 600; padding: 4px 0 6px; }
+.mock-stats-archive-cal-cell {
+  aspect-ratio: 1;
+  max-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: default;
+  padding: 0;
+}
+.mock-stats-archive-cal-cell--muted { opacity: 0.35; pointer-events: none; }
+.mock-stats-archive-cal-cell--has {
+  color: var(--text-primary);
+  cursor: pointer;
+  border-color: var(--border);
+  background: var(--bg-elevated);
+}
+.mock-stats-archive-cal-cell--has:hover { border-color: var(--brand-primary); color: var(--brand-secondary); }
+.mock-stats-archive-cal-cell--selected {
+  border-color: var(--brand-primary) !important;
+  background: rgba(124, 58, 237, 0.18);
+  color: var(--text-primary);
+}
+.mock-stats-archive-cal-cell--dot::after {
+  content: "";
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 99px;
+  background: #2dd4bf;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.mock-stats-archive-cal-cell { position: relative; }
+.mock-stats-archive-day-selected {
+  font-size: 15px;
+  font-weight: 800;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+/* 캘린더 아래 · 2열 위 날짜(왼쪽 정렬) */
+.mock-stats-archive-day-heading {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0;
+  padding: 4px 0 8px;
+  text-align: left;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.mock-stats-archive-day-heading[hidden] {
+  display: none !important;
+}
+.mock-stats-archive-day-meta { font-size: 12px; color: var(--text-muted); margin: 0 0 12px; }
+.mock-stats-archive-record-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.mock-stats-archive-record-body--empty {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.mock-stats-archive-record-body:not(.mock-stats-archive-record-body--empty)
+  .mock-stats-archive-slider-row {
+  flex: 1;
+  min-height: 0;
+}
+.mock-stats-archive-slider-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+.mock-stats-archive-slider-btn {
+  flex: 0 0 36px;
+  min-height: 120px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  align-self: center;
+}
+.mock-stats-archive-slider-btn:hover { border-color: var(--brand-primary); color: var(--brand-secondary); }
+.mock-stats-archive-slider-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.mock-stats-archive-slider {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  padding: 4px 0;
+  flex: 1;
+  min-width: 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.mock-stats-archive-slider::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+/* 한 뷰포트에 카드 1장만(옆 카드 잘림 없음) */
+.mock-stats-archive-slider .mock-stats-match-card {
+  flex: 0 0 100%;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  box-sizing: border-box;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+.mock-stats-match-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--bg-elevated);
+  padding: 12px 14px;
+  flex: 1 1 320px;
+  max-width: 520px;
+  min-width: 0;
+}
+.mock-stats-match-card--scrim { border-style: dashed; opacity: 0.95; }
+.mock-stats-match-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+.mock-stats-match-card-head strong { font-weight: 700; color: var(--text-primary); }
+/* 경기 카드 로스터: 블루 필 | 역할 아이콘 | 레드 필 (행 단위) */
+.mock-stats-match-teams--roster { display: block; min-width: 0; }
+.mock-stats-roster-top {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+}
+.mock-stats-roster-crown-slot {
+  text-align: center;
+  font-size: 18px;
+  line-height: 1.2;
+  min-height: 22px;
+}
+.mock-stats-roster-top-mid {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+}
+.mock-stats-roster-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mock-stats-roster-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px 18px;
+  align-items: stretch;
+}
+.mock-stats-roster-cell { min-width: 0; display: flex; align-items: stretch; }
+.mock-stats-roster-cell--blue { justify-content: stretch; }
+.mock-stats-roster-cell--red { justify-content: stretch; }
+.mock-stats-pill {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 12px;
+  border-radius: 10px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.35;
+}
+.mock-stats-pill--blue {
+  background: rgba(56, 189, 248, 0.12);
+  color: #7dd3fc;
+  border: 1px solid rgba(56, 189, 248, 0.28);
+}
+.mock-stats-pill--red {
+  background: rgba(251, 113, 133, 0.1);
+  color: #fda4af;
+  border: 1px solid rgba(251, 113, 133, 0.28);
+}
+.mock-stats-roster-role {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  flex-shrink: 0;
+  align-self: center;
+  color: var(--text-muted);
+}
+.mock-stats-role-ico {
+  width: 26px;
+  height: 26px;
+  display: block;
+}
+.mock-stats-role-ico--dps { opacity: 0.95; }
+
+/* 경기 기록: 캘린더 → 날짜(가운데) → 좌·우 동일 높이 */
+.mock-stats-archive-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.mock-stats-archive-cal-host {
+  width: 100%;
+  min-width: 0;
+}
+.mock-stats-archive-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.mock-stats-archive-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: 20px;
+  align-items: stretch;
+}
+/* 승률 순위(aside)와 동일 외곽 박스 → 그리드 행에서 높이 맞춤 */
+.mock-stats-archive-record {
+  min-width: 0;
+  min-height: 0;
+  order: 1;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--bg-elevated);
+  padding: 14px 14px 12px;
+  overflow: hidden;
+}
+.mock-stats-archive-record-label {
+  font-size: 14px;
+  font-weight: 800;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+@media (max-width: 1024px) {
+  .mock-stats-archive-layout { grid-template-columns: 1fr; }
+}
+.mock-stats-archive-rank {
+  position: sticky;
+  top: 12px;
+  order: 2;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--bg-elevated);
+  padding: 14px 14px 12px;
+  overflow: hidden;
+}
+.mock-stats-winrate-title {
+  font-size: 14px;
+  font-weight: 800;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+  flex-shrink: 0;
+}
+.mock-stats-winrate-scroll {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  margin-top: 2px;
+}
+.mock-stats-winrate-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.mock-stats-winrate-table thead th {
+  background: rgba(0, 0, 0, 0.72);
+  color: #f8fafc;
+  padding: 10px 8px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 11px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.mock-stats-winrate-table thead th.mock-stats-wr-th--sort {
+  padding: 6px 4px;
+  vertical-align: middle;
+}
+.mock-stats-wr-sort {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  width: 100%;
+  margin: 0;
+  padding: 6px 4px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: right;
+  white-space: nowrap;
+}
+.mock-stats-wr-sort:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+.mock-stats-wr-sort--active {
+  color: #a5b4fc;
+}
+.mock-stats-winrate-table tbody td {
+  padding: 9px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.mock-stats-winrate-table tbody tr.mock-stats-wr-row--top {
+  background: rgba(13, 148, 136, 0.22);
+}
+.mock-stats-winrate-table tbody tr.mock-stats-wr-row--alt {
+  background: rgba(127, 29, 29, 0.12);
+}
+.mock-stats-winrate-table tbody td:last-child {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.mock-stats-hof-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 20px;
+  margin-bottom: 16px;
+}
+.mock-stats-hof-toolbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.mock-stats-hof-select {
+  min-width: 128px;
+  padding: 8px 10px;
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+.mock-stats-hof-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+@media (max-width: 900px) {
+  .mock-stats-hof-split {
+    grid-template-columns: 1fr;
+  }
+}
+.mock-stats-hof-card .mock-stats-winrate-scroll {
+  max-height: 300px;
+}
 
 /* 클랜 통계 · 상단 탭 — main-game.html 클랜 순위(.ranking-tabs)와 동일 패턴 */
 #view-stats .ranking-tabs {
@@ -291,18 +737,67 @@ body.mock-role-member .mock-member-only { display: block !important; }
   visibility: visible;
 }
 .mock-modal-card {
-  width: 100%; max-width: 420px; border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: min(420px, calc(100vw - 40px));
+  min-width: 0;
+  flex: 0 1 auto;
+  border-radius: var(--radius-xl);
   border: 1px solid var(--border); background: var(--bg-elevated); padding: 20px;
   box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  overflow-x: hidden;
 }
 .mock-modal-card h3 { margin: 0 0 12px; font-size: 16px; }
-.mock-modal-field { margin-bottom: 12px; }
-.mock-modal-field label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+.mock-modal-field { margin-bottom: 12px; min-width: 0; }
+/* 필드 제목만 — 라디오 그룹 안의 label 은 제외(직계 자식만) */
+.mock-modal-field > label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
 .mock-modal-field input, .mock-modal-field select {
   width: 100%; padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border);
   background: var(--bg-overlay); color: var(--text-primary); font-size: 13px; font-family: var(--font-sans);
 }
 .mock-modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.mock-modal-card--hof {
+  max-width: min(480px, calc(100vw - 40px));
+  min-width: 0;
+}
+/* 라디오 행: flex 대신 grid(두 번째 열 minmax 0)로 캡션 폭 고정 — 글자 세로 쌓임 방지 */
+.mock-modal-radios {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 6px;
+  width: 100%;
+  min-width: 0;
+}
+.mock-modal-radios label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  line-height: 1.5;
+}
+.mock-modal-radios input[type="radio"] {
+  margin-top: 3px;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+.mock-modal-radio-caption {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: keep-all;
+}
+.mock-stats-hof-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  flex-wrap: wrap; margin-bottom: 12px;
+}
+.mock-stats-hof-head .d-card-label { margin-bottom: 0; }
 
 </style>
 </head>
@@ -506,9 +1001,9 @@ body.mock-role-member .mock-member-only { display: block !important; }
 
     <!-- ── Zone 1: 지난달 MVP ── -->
 
-    <!-- 승률 MVP -->
+    <!-- 활동 MVP (내전은 팀 승만 집계 · 클랜 단일 승률 없음) -->
     <div class="d-card d-card-sm">
-      <div class="d-card-label">지난달 승률 MVP 🏆</div>
+      <div class="d-card-label">지난달 활동 MVP 🏆</div>
       <div style="display:flex;align-items:center;gap:14px;margin-top:4px">
         <div class="avatar avatar-xl" style="background:linear-gradient(135deg,#f59e0b,#ef4444);flex-shrink:0">이</div>
         <div>
@@ -756,8 +1251,9 @@ body.mock-role-member .mock-member-only { display: block !important; }
 
     <div class="ranking-tabs" role="tablist" aria-label="통계 구역">
       <button type="button" class="ranking-tab on" role="tab" aria-selected="true" id="statsTabSummary" data-stats-section-tab="summary" onclick="return mockStatsSetSection(this,'summary')">요약</button>
-      <button type="button" class="ranking-tab" role="tab" aria-selected="false" id="statsTabArchive" data-stats-section-tab="archive" onclick="return mockStatsSetSection(this,'archive')">경기 기록</button>
-      <button type="button" class="ranking-tab" role="tab" aria-selected="false" id="statsTabRankmap" data-stats-section-tab="rankmap" onclick="return mockStatsSetSection(this,'rankmap')">순위·맵</button>
+      <button type="button" class="ranking-tab" role="tab" aria-selected="false" id="statsTabHof" data-stats-section-tab="hof" onclick="return mockStatsSetSection(this,'hof')">명예의 전당</button>
+      <button type="button" class="ranking-tab mock-officer-only" role="tab" aria-selected="false" id="statsTabArchive" data-stats-section-tab="archive" onclick="return mockStatsSetSection(this,'archive')">경기 기록</button>
+      <button type="button" class="ranking-tab" role="tab" aria-selected="false" id="statsTabRankmap" data-stats-section-tab="rankmap" onclick="return mockStatsSetSection(this,'rankmap')">맵·클랜 활동</button>
     </div>
 
     <div id="stats-panel-summary" class="ranking-panel" role="tabpanel" aria-labelledby="statsTabSummary">
@@ -778,36 +1274,30 @@ body.mock-role-member .mock-member-only { display: block !important; }
           <div style="font-size:12px;color:var(--text-muted)">클랜 생성일 (목업)</div>
         </div>
       </div>
-      <p style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.04em;text-transform:uppercase;margin:20px 0 10px">함께 보면 좋은 지표</p>
-      <div class="mock-kpi-row">
-        <div class="mock-kpi">
-          <div class="mock-kpi-label">최근 5경기 흐름</div>
-          <div class="mock-kpi-val" style="font-size:22px;letter-spacing:0.12em;font-family:ui-monospace,monospace" id="mock-stats-kpi-streak">—</div>
-          <div style="font-size:12px;color:var(--text-muted)" id="mock-stats-kpi-streak-sub">시간순 최신 기준</div>
+    </div>
+
+    <div id="stats-panel-hof" class="ranking-panel" role="tabpanel" aria-labelledby="statsTabHof" hidden>
+      <div class="d-card d-card-full" style="margin-bottom:16px">
+        <div class="mock-stats-hof-head">
+          <div class="d-card-label">명예의 전당</div>
+          <button type="button" class="btn btn-secondary btn-sm mock-officer-only" id="mockStatsHofSettingsBtn" onclick="return window.mockStatsHofOpenSettingsModal()">설정</button>
         </div>
-        <div class="mock-kpi">
-          <div class="mock-kpi-label">누적 승률</div>
-          <div class="mock-kpi-val" id="mock-stats-kpi-winrate">—</div>
-          <div style="font-size:12px;color:var(--text-muted)" id="mock-stats-kpi-record">기록된 경기 전체</div>
-        </div>
-        <div class="mock-kpi">
-          <div class="mock-kpi-label">다가오는 일정</div>
-          <div class="mock-kpi-val" style="font-size:18px;line-height:1.25">금요 정기 내전</div>
-          <div style="font-size:12px;color:var(--text-muted);margin-top:4px">목업 고정 · 약 5일 후</div>
-          <button type="button" class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="var a=document.querySelector('a.clan-nav[href=\'#events\']');window.clanGo('events',a)">일정 탭으로 이동</button>
-        </div>
+        <div id="mock-stats-hof-root"></div>
       </div>
     </div>
 
-    <div id="stats-panel-archive" class="ranking-panel" role="tabpanel" aria-labelledby="statsTabArchive" hidden>
+    <div id="stats-panel-archive" class="ranking-panel mock-officer-only" role="tabpanel" aria-labelledby="statsTabArchive" hidden>
       <div class="d-card d-card-full" style="margin-bottom:16px">
-        <div class="d-card-label">경기 아카이브</div>
-        <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">클랜에 기록된 경기 목록 (목업)</p>
-        <div style="overflow-x:auto">
-          <table class="mock-table">
-            <thead><tr><th>일자</th><th>유형</th><th>맵</th><th>결과</th></tr></thead>
-            <tbody id="mock-stats-archive-tbody"></tbody>
-          </table>
+        <div class="d-card-label">경기 기록 <span class="badge badge-muted" style="font-size:10px;margin-left:6px">클랜장·운영진</span></div>
+        <div class="mock-stats-archive-page">
+          <div class="mock-stats-archive-cal-host" id="mock-stats-archive-cal-root"></div>
+          <div class="mock-stats-archive-main">
+            <h2 class="mock-stats-archive-day-heading" id="mock-stats-archive-day-heading" hidden></h2>
+            <div class="mock-stats-archive-layout">
+              <div class="mock-stats-archive-record" id="mock-stats-archive-slider-root"></div>
+              <aside class="mock-stats-archive-rank" id="mock-stats-archive-winrate" aria-label="승률 순위"></aside>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -815,35 +1305,17 @@ body.mock-role-member .mock-member-only { display: block !important; }
     <div id="stats-panel-rankmap" class="ranking-panel" role="tabpanel" aria-labelledby="statsTabRankmap" hidden>
       <div class="mock-two-col" style="margin-bottom:16px">
         <div class="d-card d-card-full">
-          <div class="d-card-label">참여율 순위</div>
-          <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">클랜 경기 데이터 기준 · 아래 표는 목업 고정(실연동 시 선택 기간에 맞춰 집계)</p>
-          <table class="mock-table">
-            <thead><tr><th>#</th><th>닉네임</th><th style="text-align:right">출전</th><th style="text-align:right">참여율</th></tr></thead>
-            <tbody>
-              <tr><td>1</td><td>IronWall</td><td style="text-align:right">18</td><td style="text-align:right;font-weight:700">94%</td></tr>
-              <tr><td>2</td><td>Mender</td><td style="text-align:right">17</td><td style="text-align:right;font-weight:700">89%</td></tr>
-              <tr><td>3</td><td>Pulse</td><td style="text-align:right">16</td><td style="text-align:right;font-weight:700">86%</td></tr>
-              <tr><td>4</td><td>Violet</td><td style="text-align:right">14</td><td style="text-align:right;font-weight:700">78%</td></tr>
-              <tr><td>5</td><td>Anchor</td><td style="text-align:right">12</td><td style="text-align:right;font-weight:700">71%</td></tr>
-              <tr><td>6</td><td>Bloom</td><td style="text-align:right">9</td><td style="text-align:right;font-weight:700">65%</td></tr>
-              <tr><td>7</td><td>Rift</td><td style="text-align:right">6</td><td style="text-align:right;font-weight:700">52%</td></tr>
-              <tr><td>8</td><td>NovaKid <span style="color:var(--text-muted);font-weight:400">*</span></td><td style="text-align:right">3</td><td style="text-align:right;font-weight:700">38%</td></tr>
-            </tbody>
-          </table>
-          <p class="mock-stats-footnote">* 출전 5경기 미만은 순위 참고용이며 정책에 따라 표에서 제외할 수 있습니다.</p>
+          <div class="d-card-label">내전 팀 승 (클랜 누적)</div>
+          <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px"><strong>클랜 단위</strong>만 표시합니다. 구성원 개인의 승·패·순위는 <strong>클랜 관리</strong>의 구성원 상세에서 제공 예정입니다.</p>
+          <div id="mock-stats-clan-br-panel"></div>
+          <p class="mock-stats-footnote" style="margin-top:12px">내전 경기만 집계합니다. 스크림·이벤트는 제외(목업 기준).</p>
         </div>
         <div class="d-card d-card-full">
-          <div class="d-card-label">맵·모드별 클랜 승률</div>
-          <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">목업 샘플 경기 기준 집계 · 상위 표시</p>
+          <div class="d-card-label">맵·모드별 경기 수</div>
+          <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">막대=진행 횟수 · 내전만 B/R 팀승 보조 · 스크림은 건수만(승률 없음)</p>
           <div id="mock-stats-map-wrap"></div>
         </div>
       </div>
-    </div>
-
-    <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px;border-color:rgba(124,58,237,0.35)">
-      <div class="d-card-label">운영진</div>
-      <p style="font-size:13px;color:var(--text-muted);margin:0 0 10px">경기 생성·결과 입력은 밸런스메이커에서 진행합니다. 통계는 종료된 경기를 반영합니다(실연동 예정).</p>
-      <button type="button" class="btn btn-sm" onclick="var a=document.querySelector('a.clan-nav[href=\'#balance\']');window.clanGo('balance',a)">밸런스메이커로 이동</button>
     </div>
   </div>
 
@@ -971,6 +1443,51 @@ body.mock-role-member .mock-member-only { display: block !important; }
       <div class="mock-modal-actions">
         <button type="button" class="btn btn-secondary btn-sm" onclick="mockEventCloseModal()">취소</button>
         <button type="button" class="btn btn-sm" onclick="alert('목업 저장'); mockEventCloseModal();">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 명예의 전당 · 구성원 공개 범위 설정 (목업) -->
+  <div id="mock-hof-settings-modal" class="mock-modal-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="mock-hof-settings-title" onclick="if(event.target===this)window.mockStatsHofCloseSettingsModal()">
+    <div class="mock-modal-card mock-modal-card--hof" onclick="event.stopPropagation()">
+      <h3 id="mock-hof-settings-title">명예의 전당 — 구성원 공개 설정</h3>
+      <div class="mock-modal-field">
+        <label for="mhof-wr-top">승률 순위 공개 (구성원)</label>
+        <select id="mhof-wr-top">
+          <option value="3">상위 3위까지</option>
+          <option value="5">상위 5위까지</option>
+          <option value="10">상위 10위까지</option>
+          <option value="20">상위 20위까지</option>
+          <option value="0">전체 공개</option>
+        </select>
+      </div>
+      <div class="mock-modal-field">
+        <label for="mhof-part-top">참여율 순위 공개 (구성원)</label>
+        <select id="mhof-part-top">
+          <option value="3">상위 3위까지</option>
+          <option value="5">상위 5위까지</option>
+          <option value="10">상위 10위까지</option>
+          <option value="20">상위 20위까지</option>
+          <option value="0">전체 공개</option>
+        </select>
+      </div>
+      <div class="mock-modal-field">
+        <label for="mhof-month-reveal">월별 순위 공개 시점 (구성원)</label>
+        <select id="mhof-month-reveal">
+          <option value="always">상시 공개</option>
+          <option value="monthly_1st_prev">매월 1일 순위 공개</option>
+        </select>
+      </div>
+      <div class="mock-modal-field">
+        <label for="mhof-year-reveal">연도별 순위 공개 시점 (구성원)</label>
+        <select id="mhof-year-reveal">
+          <option value="always">상시 공개</option>
+          <option value="year_jan1_prev">매년 1월 1일 순위 공개</option>
+        </select>
+      </div>
+      <div class="mock-modal-actions">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="window.mockStatsHofCloseSettingsModal()">취소</button>
+        <button type="button" class="btn btn-sm" onclick="window.mockStatsHofSaveSettingsModal()">저장</button>
       </div>
     </div>
   </div>
