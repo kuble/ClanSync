@@ -1694,9 +1694,10 @@ body.mock-role-member .mock-member-only { display: block !important; }
           </aside>
           <div class="mock-balance-main-col">
             <div class="mock-balance-meta-row">
-              <span><span class="mock-balance-meta-label">날짜</span><input type="date" id="mock-balance-match-date" value="2026-03-22" style="padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-overlay);color:inherit;font-family:inherit;font-size:12px" /></span>
+              <span><span class="mock-balance-meta-label">집계일</span><input type="date" id="mock-balance-match-date" value="2026-03-22" title="목업: 실제 앱에서는 API가 내려주는 집계일을 표시" aria-describedby="mock-balance-ledger-date-hint" style="padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-overlay);color:inherit;font-family:inherit;font-size:12px" /></span>
               <span><span class="mock-balance-meta-label">맵</span><button type="button" class="mock-balance-map-pick-btn" id="mock-balance-map-pick-btn" onclick="return window.mockBalanceOpenMapModal()"><span id="mock-balance-map-label">서킷 로얄</span></button><span id="mock-balance-map-mode" style="color:var(--text-muted);margin-left:6px">· 제어</span></span>
             </div>
+            <p id="mock-balance-ledger-date-hint" class="mock-modal-hint" style="margin:-4px 0 12px;font-size:11px;line-height:1.45"><strong>당일 정의(KST)</strong>: 해당 일자의 <strong>06:00</strong>부터 <strong>다음 날 06:00</strong> 직전까지를 같은 집계일로 봅니다. 자정 넘긴 새벽 경기도 같은 날로 묶입니다. <strong>표시 일자·아카이브 귀속은 백엔드/API에서 처리</strong>하고, 클라이언트는 응답값만 씁니다.</p>
 
             <div class="mock-balance-vs-head" aria-hidden="true">
               <span>블루 팀</span>

@@ -103,7 +103,7 @@ ClanMember ──< CoinTransaction
 | map_id | uuid FK → maps | null = 미지정 |
 | match_type | enum('intra','scrim','event') | 내전/스크림/이벤트 |
 | status | enum('draft','active','finished') | |
-| played_at | timestamptz | 경기 시각(절대시각). 일간 통계·아카이브는 KST 기준 **당일 06:00~익일 06:00** 을 한 집계일로 보며, 필요 시 `(played_at AT TIME ZONE 'Asia/Seoul')` 로부터 도출한 `date`를 쿼리/생성컬럼으로 사용 |
+| played_at | timestamptz | 경기 시각(절대시각). **집계일**: KST 기준 **당일 06:00 ~ 익일 06:00(미포함)** 을 하나의 «당일»로 본다(새벽 내전도 전날 집계일에 붙을 수 있음). 일간 통계·아카이브·밸런스 화면의 날짜 라벨은 이 규칙으로 **백엔드/API가 도출**한 값을 쓰고, 클라이언트는 **자정 기준으로 날짜를 재계산하지 않는다**. 구현: `(played_at AT TIME ZONE 'Asia/Seoul')` 기반 함수 또는 생성 컬럼 `ledger_date` 등 |
 | created_by | uuid FK → users | 생성한 운영진 |
 | created_at | timestamptz | |
 
