@@ -181,6 +181,94 @@
 .pro-overlay::after { content: ''; position: absolute; inset: 0; background: rgba(10,10,15,0.72); border-radius: var(--radius-xl); pointer-events: none; }
 .pro-overlay-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2; pointer-events: none; }
 
+/* ── 클랜 하위 뷰(밸런스·통계 등) 목업 ── */
+.clan-view { display: none; }
+.clan-view.is-active { display: block; }
+.mock-page-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; }
+.mock-page-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; max-width: 640px; line-height: 1.5; }
+.mock-toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.mock-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 900px) { .mock-two-col { grid-template-columns: 1fr; } }
+.mock-roster { border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--bg-elevated); overflow: hidden; }
+.mock-roster-head { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.mock-roster-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.mock-roster-row:last-child { border-bottom: none; }
+.mock-tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--border); }
+.mock-tag-tank { color: #7dd3fc; border-color: rgba(56,189,248,0.35); background: rgba(56,189,248,0.08); }
+.mock-tag-dps { color: #fda4af; border-color: rgba(251,113,133,0.35); background: rgba(251,113,133,0.08); }
+.mock-tag-sup { color: #6ee7b7; border-color: rgba(52,211,153,0.35); background: rgba(52,211,153,0.08); }
+.mock-pred-bar { height: 8px; border-radius: 99px; background: var(--bg-overlay); overflow: hidden; display: flex; margin-top: 8px; }
+.mock-pred-a { width: 52%; background: linear-gradient(90deg, #38bdf8, #6366f1); }
+.mock-pred-b { flex: 1; background: linear-gradient(90deg, #fb7185, #f43f5e); opacity: 0.85; }
+.mock-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.mock-table th, .mock-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+.mock-table th { color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+.mock-kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+@media (max-width: 768px) { .mock-kpi-row { grid-template-columns: 1fr; } }
+.mock-kpi { padding: 16px; border-radius: var(--radius-xl); border: 1px solid var(--border); background: var(--bg-elevated); }
+.mock-kpi-label { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-bottom: 8px; }
+.mock-kpi-val { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
+.mock-store-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 900px) { .mock-store-grid { grid-template-columns: 1fr; } }
+.mock-store-card { border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 14px; background: var(--bg-elevated); display: flex; flex-direction: column; gap: 8px; }
+.mock-store-card.pro { position: relative; opacity: 0.75; }
+.mock-store-card.pro::after { content: 'PRO'; position: absolute; top: 10px; right: 10px; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: rgba(245,158,11,0.2); color: #fcd34d; }
+
+/* ── 플랜 반영: 탭·모달 (목업 권한은 _hub 사이드바) ── */
+.mock-tab-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; align-items: center; }
+.mock-tab {
+  font-size: 12px; padding: 6px 12px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--bg-overlay); color: var(--text-muted);
+  cursor: pointer; font-family: var(--font-sans);
+}
+.mock-tab:hover { color: var(--text-primary); }
+.mock-tab.mock-tab-active {
+  border-color: rgba(124,58,237,0.5); background: rgba(124,58,237,0.12); color: #c4b5fd; font-weight: 600;
+}
+.mock-pro-inline {
+  font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 99px;
+  background: rgba(245,158,11,0.18); color: #fcd34d; border: 1px solid rgba(245,158,11,0.35);
+  vertical-align: middle; margin-left: 6px;
+}
+.mock-ban-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.mock-ban-slot {
+  min-width: 72px; min-height: 36px; border-radius: var(--radius-sm);
+  border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--text-muted);
+}
+.mock-heatmap { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; max-width: 420px; margin-top: 10px; }
+.mock-heatmap-cell { aspect-ratio: 1; border-radius: 4px; background: var(--bg-overlay); border: 1px solid var(--border); font-size: 9px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
+.mock-heatmap-cell.on { background: rgba(124,58,237,0.25); border-color: rgba(124,58,237,0.4); color: #e9d5ff; }
+.mock-member-only { display: none; }
+body.mock-role-member .mock-officer-only { display: none !important; }
+body.mock-role-member .mock-member-only { display: block !important; }
+.mock-modal-overlay {
+  position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.65);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+/* [hidden] 기본 스타일보다 .mock-modal-overlay 가 이기면 모달이 항상 보임 → 명시적으로 숨김 */
+.mock-modal-overlay[hidden] {
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden;
+}
+.mock-modal-overlay:not([hidden]) {
+  visibility: visible;
+}
+.mock-modal-card {
+  width: 100%; max-width: 420px; border-radius: var(--radius-xl);
+  border: 1px solid var(--border); background: var(--bg-elevated); padding: 20px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+.mock-modal-card h3 { margin: 0 0 12px; font-size: 16px; }
+.mock-modal-field { margin-bottom: 12px; }
+.mock-modal-field label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+.mock-modal-field input, .mock-modal-field select {
+  width: 100%; padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: var(--bg-overlay); color: var(--text-primary); font-size: 13px; font-family: var(--font-sans);
+}
+.mock-modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
 </style>
 </head>
 <body>
@@ -255,19 +343,19 @@
     <div class="clan-name">Phoenix Rising</div>
     <div class="clan-role" style="display:flex;align-items:center;gap:5px">
       <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--clan-color)"></span>
-      클랜장
+      <span id="mock-clan-role-label">클랜장</span>
     </div>
   </div>
 
   <div class="sidebar-section-title">메뉴</div>
-  <a href="main-clan.html"><div class="sidebar-item active">🏠 대시보드</div></a>
-  <a href="balance.html"><div class="sidebar-item">⚖️ 밸런스메이커</div></a>
-  <a href="stats.html"><div class="sidebar-item">📊 클랜 통계</div></a>
-  <a href="#"><div class="sidebar-item">🗓️ 이벤트</div></a>
-  <a href="#"><div class="sidebar-item">👥 클랜 관리</div></a>
+  <a href="#dash" class="clan-nav" onclick="return clanGo('dash', this)"><div class="sidebar-item active">🏠 대시보드</div></a>
+  <a href="#balance" class="clan-nav" data-officer-nav onclick="return clanGo('balance', this)"><div class="sidebar-item">⚖️ 밸런스메이커</div></a>
+  <a href="#stats" class="clan-nav" onclick="return clanGo('stats', this)"><div class="sidebar-item">📊 클랜 통계</div></a>
+  <a href="#events" class="clan-nav" onclick="return clanGo('events', this)"><div class="sidebar-item">🗓️ 이벤트</div></a>
+  <a href="#manage" class="clan-nav" data-officer-nav onclick="return clanGo('manage', this)"><div class="sidebar-item">👥 클랜 관리</div></a>
 
   <div class="sidebar-section-title" style="margin-top:8px">기타</div>
-  <a href="#"><div class="sidebar-item">🛒 클랜 스토어</div></a>
+  <a href="#store" class="clan-nav" onclick="return clanGo('store', this)"><div class="sidebar-item">🛒 클랜 스토어</div></a>
   <a href="main-game.html"><div class="sidebar-item">🌐 커뮤니티</div></a>
 
   <!-- Premium 배너 -->
@@ -283,7 +371,7 @@
 <!-- 메인 콘텐츠 -->
 <main class="page-with-sidebar">
 
-  <!-- ── 클랜 배너 ── -->
+  <!-- ── 클랜 배너 (공통) ── -->
   <div class="clan-banner" style="margin-bottom:20px">
     <div class="clan-banner-pattern"></div>
     <div class="clan-banner-overlay">
@@ -299,13 +387,26 @@
         </div>
       </div>
       <div class="clan-banner-actions">
-        <a href="balance.html"><button class="clan-banner-edit" style="background:rgba(124,58,237,0.5);border-color:rgba(124,58,237,0.6);color:white">⚖️ 내전 시작</button></a>
+        <button type="button" class="clan-banner-edit" style="background:rgba(124,58,237,0.5);border-color:rgba(124,58,237,0.6);color:white;cursor:pointer;font-family:inherit" onclick="clanBannerBalanceClick()">⚖️ 내전 시작</button>
         <button class="clan-banner-edit" onclick="alert('배너 편집 (운영진 전용)')">✏️ 배너 편집</button>
       </div>
     </div>
   </div>
 
+  <!-- ── 대시보드 뷰 ── -->
+  <div id="view-dash" class="clan-view is-active">
   <div class="dashboard-grid">
+
+    <!-- 커뮤니티 진입 (플랜 4.1) -->
+    <div class="d-card d-card-full" style="background:linear-gradient(135deg, rgba(124,58,237,0.12), rgba(59,130,246,0.08));border-color:rgba(124,58,237,0.25)">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px">
+        <div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:4px">🌐 게임 커뮤니티</div>
+          <div style="font-size:12px;color:var(--text-muted);max-width:480px">홍보글·스크림 신청·순위표는 MainGame에서 확인합니다. (@pages.md)</div>
+        </div>
+        <a href="main-game.html"><button type="button" class="btn btn-sm" style="background:var(--clan-gradient);color:white;border:none">커뮤니티로 이동 →</button></a>
+      </div>
+    </div>
 
     <!-- ── 공지사항 ── -->
     <div class="d-card d-card-md" style="border-color:rgba(124,58,237,0.3)">
@@ -416,6 +517,20 @@
       </div>
     </div>
 
+    <!-- 최근 경기 요약 (플랜 4.1) -->
+    <div class="d-card d-card-md">
+      <div class="d-card-label">최근 경기</div>
+      <div class="activity-row"><span class="activity-date">3/22 (토)</span><span class="activity-map">서킷 로얄</span><span class="activity-type">내전 · 승 3-2</span></div>
+      <div class="activity-row"><span class="activity-date">3/20 (목)</span><span class="activity-map">파라이소</span><span class="activity-type">스크림 · 패 2-3</span></div>
+      <div style="margin-top:10px;font-size:11px;color:var(--text-muted)">상세 기록·편집은 밸런스/통계 플로우 (PRD §6.1~6.2)</div>
+    </div>
+
+    <!-- 빈 상태 예시 (플랜 P1) -->
+    <div class="d-card d-card-sm" style="opacity:0.85;border-style:dashed">
+      <div class="d-card-label">빈 상태 예시</div>
+      <div style="font-size:13px;color:var(--text-muted);text-align:center;padding:12px 8px">이번 주 확정된 일정이 없습니다.<br><span style="font-size:11px">(데이터 없을 때 카드 카피 샘플)</span></div>
+    </div>
+
     <!-- ── Zone 2: 다가오는 일정 + 내 참여 ── -->
 
     <!-- 다가오는 일정 -->
@@ -521,7 +636,7 @@
     <div class="d-card d-card-sm">
       <div class="d-card-label">
         활성 클랜원
-        <a href="#" style="font-size:12px;color:var(--brand-secondary);font-weight:400;text-transform:none;letter-spacing:0">관리 →</a>
+        <a href="#manage" onclick="return clanGo('manage', document.querySelector('a.clan-nav[href=\'#manage\']'))" style="font-size:12px;color:var(--brand-secondary);font-weight:400;text-transform:none;letter-spacing:0">관리 →</a>
       </div>
       <div class="member-row">
         <div class="avatar" style="width:28px;height:28px;font-size:11px">김</div>
@@ -544,8 +659,258 @@
     </div>
 
   </div>
+  </div>
+
+  <!-- ── 밸런스메이커 뷰 (PRD §6.1) ── -->
+  <div id="view-balance" class="clan-view">
+    <div class="mock-page-title">밸런스메이커 <span class="mock-pro-inline">PRO 구간 표시 통일</span></div>
+    <p class="mock-page-desc">경기 단위 구성 · 수동/자동 점수 · 승률 예측 UI 목업. 정적 HTML만 (_hub).</p>
+    <div class="mock-toolbar">
+      <button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업: 새 경기 (draft)')">+ 새 경기</button>
+      <button type="button" class="btn btn-sm" style="opacity:0.55;cursor:not-allowed" disabled title="PRO">팀 자동 밸런싱 <span class="mock-pro-inline" style="margin-left:4px">PRO</span></button>
+      <button type="button" class="btn btn-sm" style="opacity:0.55;cursor:not-allowed" disabled title="PRO">OCR 닉 입력 <span class="mock-pro-inline" style="margin-left:4px">PRO</span></button>
+    </div>
+    <div class="mock-tab-row">
+      <span style="font-size:11px;color:var(--text-muted);margin-right:6px">경기 선택</span>
+      <button type="button" class="mock-tab mock-tab-active" data-balance-match-tab onclick="mockBalanceSetMatch(this,'m1')">3/22 내전 <span class="badge badge-brand" style="font-size:9px;margin-left:4px">draft</span></button>
+      <button type="button" class="mock-tab" data-balance-match-tab onclick="mockBalanceSetMatch(this,'m2')">3/20 스크림</button>
+      <button type="button" class="mock-tab" data-balance-match-tab onclick="mockBalanceSetMatch(this,'m3')">3/18 내전</button>
+    </div>
+    <div data-balance-match-panel="m1" class="d-card d-card-full" style="margin-bottom:16px">
+      <div class="d-card-label">3/22 토요 내전 <span class="badge badge-brand" style="font-size:10px">작성중</span></div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">맵: 서킷 로얄 · 모드: 제어</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">맵/영웅 밴픽 <span class="mock-pro-inline">PRO</span></div>
+      <div class="mock-ban-grid">
+        <div class="mock-ban-slot">맵 밴 1</div><div class="mock-ban-slot">맵 밴 2</div>
+        <div class="mock-ban-slot">영웅 밴 A</div><div class="mock-ban-slot">영웅 밴 B</div>
+      </div>
+      <div class="mock-two-col" style="margin-top:16px">
+        <div class="mock-roster">
+          <div class="mock-roster-head">A팀 (5인)</div>
+          <div class="mock-roster-row"><span style="font-weight:600">IronWall <span style="color:var(--text-muted);font-weight:400">#1122</span></span><span class="mock-tag mock-tag-tank">탱</span><span style="margin-left:auto;font-size:12px;color:var(--text-muted)">수동 1.2 · 자동 0.8</span></div>
+          <div class="mock-roster-row"><span style="font-weight:600">Pulse <span style="color:var(--text-muted);font-weight:400">#3344</span></span><span class="mock-tag mock-tag-dps">딜</span><span style="margin-left:auto;font-size:12px;color:var(--text-muted)">수동 0.5 · 자동 1.1</span></div>
+          <div class="mock-roster-row"><span style="font-weight:600">Mender <span style="color:var(--text-muted);font-weight:400">#7788</span></span><span class="mock-tag mock-tag-sup">힐</span><span style="margin-left:auto;font-size:12px;color:var(--text-muted)">수동 0.9 · 자동 1.0</span></div>
+        </div>
+        <div class="mock-roster">
+          <div class="mock-roster-head">B팀 (5인)</div>
+          <div class="mock-roster-row"><span style="font-weight:600">Anchor <span style="color:var(--text-muted);font-weight:400">#2211</span></span><span class="mock-tag mock-tag-tank">탱</span><span style="margin-left:auto;font-size:12px;color:var(--text-muted)">수동 0.7 · 자동 0.9</span></div>
+          <div class="mock-roster-row"><span style="font-weight:600">Spark <span style="color:var(--text-muted);font-weight:400">#4433</span></span><span class="mock-tag mock-tag-dps">딜</span><span style="margin-left:auto;font-size:12px;color:var(--text-muted)">수동 1.0 · 자동 0.4</span></div>
+          <div class="mock-roster-row"><span style="font-weight:600">Bloom <span style="color:var(--text-muted);font-weight:400">#8877</span></span><span class="mock-tag mock-tag-sup">힐</span><span style="margin-left:auto;font-size:12px;color:var(--text-muted)">수동 -0.2 · 자동 0.3</span></div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:11px;color:var(--text-muted)">특이 태그(자동 생성 목업): <span class="badge badge-muted" style="font-size:10px">탱 불균형</span> <span class="badge badge-muted" style="font-size:10px">힐 시너지↑</span></div>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;font-weight:600;margin-bottom:4px">승률 예측 <span class="mock-pro-inline">PRO · 파리뮤추엘 목업</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px"><span>A팀 52%</span><span>B팀 48%</span></div>
+        <div class="mock-pred-bar"><div class="mock-pred-a"></div><div class="mock-pred-b"></div></div>
+      </div>
+    </div>
+    <div data-balance-match-panel="m2" class="d-card d-card-full" style="margin-bottom:16px;display:none">
+      <div class="d-card-label">3/20 스크림 vs Nova <span class="badge badge-success" style="font-size:10px">종료</span></div>
+      <p style="font-size:13px;color:var(--text-muted)">종료된 경기 — 통계 탭으로 집계 전달 (플랜).</p>
+    </div>
+    <div data-balance-match-panel="m3" class="d-card d-card-full" style="margin-bottom:16px;display:none">
+      <div class="d-card-label">3/18 화요 내전 <span class="badge badge-success" style="font-size:10px">종료</span></div>
+      <p style="font-size:13px;color:var(--text-muted)">요약만 표시하는 패턴 예시.</p>
+    </div>
+  </div>
+
+  <!-- ── 통계 뷰 (PRD §6.2) ── -->
+  <div id="view-stats" class="clan-view">
+    <div class="mock-page-title">클랜 통계</div>
+    <p class="mock-page-desc">기간 필터 UI · KPI · 역할 승률 · 최근 경기 · 출석 히트맵(간이) · 시너지(운영진). 민감 지표 최소화 원칙 반영 전제.</p>
+    <div class="mock-tab-row">
+      <span style="font-size:11px;color:var(--text-muted);margin-right:6px">기간 (목업)</span>
+      <button type="button" class="mock-tab mock-tab-active" data-stats-period onclick="mockStatsSetPeriod(this,'7')">최근 7경기</button>
+      <button type="button" class="mock-tab" data-stats-period onclick="mockStatsSetPeriod(this,'30')">30일</button>
+      <button type="button" class="mock-tab" data-stats-period onclick="mockStatsSetPeriod(this,'all')">전체</button>
+    </div>
+    <div class="mock-kpi-row">
+      <div class="mock-kpi"><div class="mock-kpi-label">최근 30일 경기</div><div class="mock-kpi-val">24</div><div style="font-size:12px;color:var(--text-muted)">내전 18 · 스크림 6</div></div>
+      <div class="mock-kpi"><div class="mock-kpi-label">기간 승률</div><div class="mock-kpi-val">58%</div><div style="font-size:12px;color:var(--text-muted)">지난 달 대비 +4%</div></div>
+      <div class="mock-kpi"><div class="mock-kpi-label">평균 출석률</div><div class="mock-kpi-val">82%</div><div style="font-size:12px;color:var(--text-muted)">신청 대비 실참</div></div>
+    </div>
+    <div data-stats-period-panel="7" class="d-card d-card-full" style="margin-bottom:16px">
+      <div class="d-card-label">역할별 승률 · 최근 7경기 가중 (목업)</div>
+      <div style="margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>탱커</span><span style="color:var(--text-muted)">62%</span></div><div style="height:6px;background:var(--bg-overlay);border-radius:99px"><div style="width:62%;height:100%;border-radius:99px;background:var(--gradient-brand)"></div></div></div>
+      <div style="margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>딜러</span><span style="color:var(--text-muted)">55%</span></div><div style="height:6px;background:var(--bg-overlay);border-radius:99px"><div style="width:55%;height:100%;border-radius:99px;background:var(--gradient-brand)"></div></div></div>
+      <div style="margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>힐러</span><span style="color:var(--text-muted)">60%</span></div><div style="height:6px;background:var(--bg-overlay);border-radius:99px"><div style="width:60%;height:100%;border-radius:99px;background:var(--gradient-brand)"></div></div></div>
+    </div>
+    <div data-stats-period-panel="30" class="d-card d-card-full" style="margin-bottom:16px;display:none">
+      <div class="d-card-label">30일 집계 패널 (목업)</div>
+      <p style="font-size:13px;color:var(--text-muted)">동일 레이아웃에 다른 숫자만 바꾸는 식으로 구현 예정.</p>
+    </div>
+    <div data-stats-period-panel="all" class="d-card d-card-full" style="margin-bottom:16px;display:none">
+      <div class="d-card-label">전체 기간</div>
+      <p style="font-size:13px;color:var(--text-muted)">무료 1년 보관 등 정책 문구는 PRD·스키마 확정 후 삽입.</p>
+    </div>
+    <div class="d-card d-card-full" style="margin-bottom:16px">
+      <div class="d-card-label">출석 패턴 히트맵 (목업 그리드)</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">행: 시간대 · 열: 요일 (샘플)</div>
+      <div class="mock-heatmap">
+        <div class="mock-heatmap-cell">월</div><div class="mock-heatmap-cell">화</div><div class="mock-heatmap-cell">수</div><div class="mock-heatmap-cell">목</div><div class="mock-heatmap-cell">금</div><div class="mock-heatmap-cell">토</div><div class="mock-heatmap-cell">일</div>
+        <div class="mock-heatmap-cell on">●</div><div class="mock-heatmap-cell"></div><div class="mock-heatmap-cell"></div><div class="mock-heatmap-cell on">●</div><div class="mock-heatmap-cell"></div><div class="mock-heatmap-cell on">●</div><div class="mock-heatmap-cell on">●</div>
+        <div class="mock-heatmap-cell"></div><div class="mock-heatmap-cell on">●</div><div class="mock-heatmap-cell"></div><div class="mock-heatmap-cell"></div><div class="mock-heatmap-cell on">●</div><div class="mock-heatmap-cell"></div><div class="mock-heatmap-cell"></div>
+      </div>
+    </div>
+    <div class="d-card d-card-full" style="margin-bottom:16px">
+      <div class="d-card-label">최근 경기 <span class="mock-officer-only" style="font-size:11px;font-weight:400;color:var(--text-muted)">· 운영진 편집</span></div>
+      <table class="mock-table">
+        <thead><tr><th>일자</th><th>유형</th><th>맵</th><th>결과</th></tr></thead>
+        <tbody>
+          <tr><td>3/22</td><td><span class="badge badge-brand" style="font-size:10px">내전</span></td><td style="color:var(--text-muted)">서킷 로얄</td><td><span style="color:#34d399;font-weight:700">승</span> 3-2</td></tr>
+          <tr><td>3/20</td><td><span class="badge badge-success" style="font-size:10px">스크림</span></td><td style="color:var(--text-muted)">파라이소</td><td><span style="color:#fb7185;font-weight:700">패</span> 2-3</td></tr>
+          <tr><td>3/18</td><td><span class="badge badge-brand" style="font-size:10px">내전</span></td><td style="color:var(--text-muted)">뉴정크시티</td><td><span style="color:#34d399;font-weight:700">승</span> 3-1</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="mock-member-only d-card d-card-full" style="margin-bottom:16px;border-color:rgba(245,158,11,0.25)">
+      <div class="d-card-label">구성원 안내</div>
+      <p style="font-size:13px;color:var(--text-muted);margin:0">시너지·세부 출석 등은 운영진 정책에 따라 제한될 수 있습니다. (플랜 §3)</p>
+    </div>
+    <div class="mock-officer-only d-card d-card-full">
+      <div class="d-card-label">시너지 스냅샷 <span style="font-size:11px;font-weight:400;color:var(--text-muted)">A+B 조합 승률</span></div>
+      <table class="mock-table">
+        <thead><tr><th>조합</th><th style="text-align:right">함께한 경기</th><th style="text-align:right">승률</th></tr></thead>
+        <tbody>
+          <tr><td>IronWall + Mender</td><td style="text-align:right">12</td><td style="text-align:right;font-weight:600">67%</td></tr>
+          <tr><td>Pulse + Violet</td><td style="text-align:right">9</td><td style="text-align:right;font-weight:600">44%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── 이벤트 뷰 (PRD §6.3) ── -->
+  <div id="view-events" class="clan-view">
+    <div class="mock-page-title">클랜 이벤트</div>
+    <p class="mock-page-desc">목록 / 캘린더 전환 · 일정 등록 모달 목업 · PRO 대진표 버튼(비활성).</p>
+    <div class="mock-toolbar">
+      <button type="button" class="btn btn-sm mock-officer-only" onclick="mockEventOpenModal()">+ 일정 등록</button>
+      <button type="button" class="btn btn-sm" style="opacity:0.5;cursor:not-allowed" disabled title="PRO">대진표 생성기 <span class="mock-pro-inline" style="margin-left:4px">PRO</span></button>
+    </div>
+    <div class="mock-tab-row">
+      <button type="button" class="mock-tab mock-tab-active" data-events-subtab onclick="mockEventsSetTab(this,'list')">목록</button>
+      <button type="button" class="mock-tab" data-events-subtab onclick="mockEventsSetTab(this,'cal')">캘린더</button>
+    </div>
+    <div data-events-panel="list" class="dashboard-grid" style="grid-template-columns:1fr">
+      <div class="d-card d-card-full">
+        <div class="event-item"><div class="event-date"><div class="event-date-day">28</div><div class="event-date-month">03월</div></div><div class="event-info"><div class="event-name">금요 정기 내전</div><div class="event-time">21:00 · 디스코드 #내전</div></div><span class="badge badge-brand" style="font-size:11px">내전</span></div>
+        <div class="event-item"><div class="event-date"><div class="event-date-day">30</div><div class="event-date-month">03월</div></div><div class="event-info"><div class="event-name">스크림 vs Nova</div><div class="event-time">20:00 · 인게임</div></div><span class="badge badge-success" style="font-size:11px">스크림</span></div>
+        <div class="event-item"><div class="event-date"><div class="event-date-day">05</div><div class="event-date-month">04월</div></div><div class="event-info"><div class="event-name">시즌 맞이 이벤트전</div><div class="event-time">19:30 · 랜덤 드래프트</div></div><span class="badge badge-pro" style="font-size:11px">이벤트</span></div>
+      </div>
+    </div>
+    <div data-events-panel="cal" style="display:none">
+      <div class="d-card d-card-full">
+        <div class="d-card-label">2026년 3월</div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:11px;color:var(--text-muted);margin-bottom:6px">
+          <span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:12px">
+          <span style="padding:8px 0;border-radius:6px">1</span><span style="padding:8px 0">2</span><span style="padding:8px 0">3</span><span style="padding:8px 0">4</span><span style="padding:8px 0;background:rgba(124,58,237,0.15);border-radius:6px">5</span><span style="padding:8px 0">6</span><span style="padding:8px 0">7</span>
+          <span style="padding:8px 0">…</span><span style="padding:8px 0">22</span><span style="padding:8px 0">…</span><span style="padding:8px 0">28</span><span style="padding:8px 0">30</span>
+        </div>
+        <p style="font-size:11px;color:var(--text-muted);margin-top:12px;margin-bottom:0">알림(카카오/디스코드)은 연동 후. 캘린더는 목업 그리드만.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 관리 뷰 (PRD §6.4) ── -->
+  <div id="view-manage" class="clan-view">
+    <div class="mock-page-title">클랜 관리</div>
+    <p class="mock-page-desc">가입 승인 · 구성원 테이블(참여일·기부) · 샘플 멤버 상세 · 구독 안내(클랜장).</p>
+    <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px;border-color:rgba(245,158,11,0.25)">
+      <div class="d-card-label">구독 · 결제 (목업)</div>
+      <p style="font-size:13px;color:var(--text-muted);margin:0 0 10px">클랜장만 변경. Free → PRO 업그레이드 플로우는 별도 화면으로 뺄지 여기 탭으로 둘지 미결.</p>
+      <button type="button" class="btn btn-sm" style="background:var(--pro-gradient);color:white;border:none" onclick="alert('목업: 결제/업그레이드')">Premium 관리</button>
+    </div>
+    <div class="d-card d-card-full" style="margin-bottom:16px">
+      <div class="d-card-label">클랜 프로필 요약</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+        <span class="badge badge-muted" style="font-size:10px">경쟁</span>
+        <span class="badge badge-muted" style="font-size:10px">성인</span>
+        <span class="badge badge-muted" style="font-size:10px">마이크 필수</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted)">연령 20대+ · 디스코드 <span style="color:var(--brand-secondary)">discord.gg/phoenix-mock</span></div>
+    </div>
+    <div class="d-card d-card-full" style="margin-bottom:16px">
+      <div class="d-card-label">가입 요청 <span class="badge badge-muted" style="font-size:10px">2</span></div>
+      <table class="mock-table">
+        <thead><tr><th>닉네임</th><th>게임 ID</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>신청자A</td><td style="color:var(--text-muted)">Player#0001</td><td style="text-align:right"><button type="button" class="btn btn-sm" style="margin-right:6px" onclick="alert('목업 승인')">승인</button><button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업 거절')">거절</button></td></tr>
+          <tr><td>신청자B</td><td style="color:var(--text-muted)">Rookie#7777</td><td style="text-align:right"><button type="button" class="btn btn-sm" style="margin-right:6px" onclick="alert('목업 승인')">승인</button><button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업 거절')">거절</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="d-card d-card-full" style="margin-bottom:16px">
+      <div class="d-card-label">구성원</div>
+      <div style="overflow-x:auto">
+      <table class="mock-table">
+        <thead><tr><th>닉네임</th><th>게임 ID</th><th>역할</th><th>가입일</th><th>최근 참여</th><th style="text-align:right">클랜 기부</th></tr></thead>
+        <tbody>
+          <tr><td>김클랜</td><td style="color:var(--text-muted)">Kim#1000</td><td><span class="badge badge-brand" style="font-size:10px">leader</span></td><td style="color:var(--text-muted)">2025.01.15</td><td style="color:var(--text-muted)">3/22</td><td style="text-align:right;color:var(--text-muted)">1,200</td></tr>
+          <tr><td>이프로</td><td style="color:var(--text-muted)">Pro#2000</td><td><span class="badge badge-muted" style="font-size:10px">officer</span></td><td style="color:var(--text-muted)">2025.02.01</td><td style="color:var(--text-muted)">3/20</td><td style="text-align:right;color:var(--text-muted)">400</td></tr>
+          <tr><td>박힐러</td><td style="color:var(--text-muted)">Heal#3000</td><td><span class="badge" style="font-size:10px">member</span></td><td style="color:var(--text-muted)">2025.06.10</td><td style="color:var(--text-muted)">3/18</td><td style="text-align:right;color:var(--text-muted)">0</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+    <div class="d-card d-card-full">
+      <div class="d-card-label">멤버 상세 샘플 · 김클랜</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:12px">
+        <div><span style="color:var(--text-muted)">탱 수동/자동</span><br><strong>1.0 / 0.8</strong></div>
+        <div><span style="color:var(--text-muted)">딜 수동/자동</span><br><strong>— / —</strong></div>
+        <div><span style="color:var(--text-muted)">힐 수동/자동</span><br><strong>0.5 / 0.6</strong></div>
+        <div><span style="color:var(--text-muted)">시너지 (목업)</span><br><strong>+ Mender 67%</strong></div>
+      </div>
+      <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px">
+        <span class="badge badge-brand" style="font-size:10px">맵장인</span>
+        <span class="badge badge-muted" style="font-size:10px">개근왕 후보</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 스토어 뷰 (PRD §6.5) ── -->
+  <div id="view-store" class="clan-view">
+    <div class="mock-page-title">클랜 스토어</div>
+    <p class="mock-page-desc">클랜 풀·개인 풀 분리 · 탭 전환 · 코인 표기는 천 단위 콤마 목업. 현금 거래 없음.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px;font-size:13px">
+      <div class="d-card-sm" style="padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-md)">클랜 풀 <strong class="coin-amount" style="font-size:18px;margin-left:8px">15,400</strong></div>
+      <div class="d-card-sm" style="padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-md)">내 코인 <strong class="coin-amount" style="font-size:18px;margin-left:8px">3,200</strong></div>
+    </div>
+    <div class="mock-tab-row">
+      <button type="button" class="mock-tab mock-tab-active" data-store-tab onclick="mockStoreSetTab(this,'clan')">클랜 꾸미기</button>
+      <button type="button" class="mock-tab" data-store-tab onclick="mockStoreSetTab(this,'personal')">개인 꾸미기</button>
+    </div>
+    <div data-store-panel="clan" class="mock-store-grid">
+      <div class="mock-store-card"><strong>배너 그라데이션 팩</strong><span style="font-size:12px;color:var(--text-muted)">클랜 홈 배너 스타일 3종</span><span class="coin-amount" style="font-size:16px">1,200</span><button type="button" class="btn btn-secondary btn-sm" style="margin-top:auto;align-self:flex-start" onclick="alert('목업 구매')">구매</button></div>
+      <div class="mock-store-card"><strong>홍보글 상단 고정 7일</strong><span style="font-size:12px;color:var(--text-muted)">커뮤니티 노출 부스트</span><span class="coin-amount" style="font-size:16px">800</span><button type="button" class="btn btn-secondary btn-sm" style="margin-top:auto;align-self:flex-start" onclick="alert('목업 구매')">구매</button></div>
+      <div class="mock-store-card pro"><strong>배지 애니메이션</strong><span style="font-size:12px;color:var(--text-muted)">글로우 효과</span><span class="coin-amount" style="font-size:16px">2,000</span><button type="button" class="btn btn-sm" style="margin-top:auto;align-self:flex-start;opacity:0.5" disabled>PRO</button></div>
+    </div>
+    <div data-store-panel="personal" class="mock-store-grid" style="display:none">
+      <div class="mock-store-card"><strong>닉네임 컬러 틴트</strong><span style="font-size:12px;color:var(--text-muted)">게임별 독립 적용</span><span class="coin-amount" style="font-size:16px">400</span><button type="button" class="btn btn-secondary btn-sm" style="margin-top:auto;align-self:flex-start" onclick="alert('목업 구매')">구매</button></div>
+      <div class="mock-store-card"><strong>프로필 테두리 세트</strong><span style="font-size:12px;color:var(--text-muted)">시즌 한정 프레임</span><span class="coin-amount" style="font-size:16px">600</span><button type="button" class="btn btn-secondary btn-sm" style="margin-top:auto;align-self:flex-start" onclick="alert('목업 구매')">구매</button></div>
+      <div class="mock-store-card pro"><strong>승부예측 코인 보너스</strong><span style="font-size:12px;color:var(--text-muted)">PRO 연동 목업</span><span class="coin-amount" style="font-size:16px">1,500</span><button type="button" class="btn btn-sm" style="margin-top:auto;align-self:flex-start;opacity:0.5" disabled>PRO</button></div>
+    </div>
+  </div>
+
+  <!-- 일정 등록 모달 (이벤트 뷰) -->
+  <div id="mock-event-modal" class="mock-modal-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="mock-event-modal-title" onclick="if(event.target===this)mockEventCloseModal()">
+    <div class="mock-modal-card" onclick="event.stopPropagation()">
+      <h3 id="mock-event-modal-title">일정 등록 (목업)</h3>
+      <div class="mock-modal-field"><label for="mev-title">제목</label><input id="mev-title" type="text" placeholder="예: 정기 내전" /></div>
+      <div class="mock-modal-field"><label for="mev-type">유형</label><select id="mev-type"><option>내전</option><option>스크림</option><option>이벤트</option></select></div>
+      <div class="mock-modal-field"><label for="mev-when">일시</label><input id="mev-when" type="text" placeholder="2026-03-28 21:00" /></div>
+      <div class="mock-modal-actions">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="mockEventCloseModal()">취소</button>
+        <button type="button" class="btn btn-sm" onclick="alert('목업 저장'); mockEventCloseModal();">저장</button>
+      </div>
+    </div>
+  </div>
+
 </main>
 
+<script src="../scripts/clan-mock.js"></script>
 <script src="../scripts/app.js"></script>
 </body>
 </html>
