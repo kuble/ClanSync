@@ -763,19 +763,38 @@ body.mock-role-member .mock-member-only { display: block !important; }
     <div id="stats-panel-summary" class="ranking-panel" role="tabpanel" aria-labelledby="statsTabSummary">
       <div class="mock-kpi-row">
         <div class="mock-kpi">
-          <div class="mock-kpi-label">경기 수</div>
+          <div class="mock-kpi-label">전체 경기 수</div>
           <div class="mock-kpi-val" id="mock-stats-kpi-total">0</div>
           <div style="font-size:12px;color:var(--text-muted)" id="mock-stats-kpi-split">내전 0 · 스크림 0</div>
         </div>
         <div class="mock-kpi">
-          <div class="mock-kpi-label">승률</div>
-          <div class="mock-kpi-val" id="mock-stats-kpi-winrate">—</div>
-          <div style="font-size:12px;color:var(--text-muted)" id="mock-stats-kpi-record">0승 0패</div>
+          <div class="mock-kpi-label">구성원</div>
+          <div class="mock-kpi-val" id="mock-stats-kpi-members">—</div>
+          <div style="font-size:12px;color:var(--text-muted)">현재 클랜 소속 인원</div>
         </div>
         <div class="mock-kpi">
-          <div class="mock-kpi-label">내전 비중</div>
-          <div class="mock-kpi-val" id="mock-stats-kpi-intra-pct">—</div>
-          <div style="font-size:12px;color:var(--text-muted)">전체 경기 대비 내전 비율</div>
+          <div class="mock-kpi-label">클랜 설립일</div>
+          <div class="mock-kpi-val" style="font-size:20px;line-height:1.2" id="mock-stats-kpi-founded">—</div>
+          <div style="font-size:12px;color:var(--text-muted)">클랜 생성일 (목업)</div>
+        </div>
+      </div>
+      <p style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.04em;text-transform:uppercase;margin:20px 0 10px">함께 보면 좋은 지표</p>
+      <div class="mock-kpi-row">
+        <div class="mock-kpi">
+          <div class="mock-kpi-label">최근 5경기 흐름</div>
+          <div class="mock-kpi-val" style="font-size:22px;letter-spacing:0.12em;font-family:ui-monospace,monospace" id="mock-stats-kpi-streak">—</div>
+          <div style="font-size:12px;color:var(--text-muted)" id="mock-stats-kpi-streak-sub">시간순 최신 기준</div>
+        </div>
+        <div class="mock-kpi">
+          <div class="mock-kpi-label">누적 승률</div>
+          <div class="mock-kpi-val" id="mock-stats-kpi-winrate">—</div>
+          <div style="font-size:12px;color:var(--text-muted)" id="mock-stats-kpi-record">기록된 경기 전체</div>
+        </div>
+        <div class="mock-kpi">
+          <div class="mock-kpi-label">다가오는 일정</div>
+          <div class="mock-kpi-val" style="font-size:18px;line-height:1.25">금요 정기 내전</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px">목업 고정 · 약 5일 후</div>
+          <button type="button" class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="var a=document.querySelector('a.clan-nav[href=\'#events\']');window.clanGo('events',a)">일정 탭으로 이동</button>
         </div>
       </div>
     </div>

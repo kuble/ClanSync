@@ -195,6 +195,52 @@
     return CLAN_STATS_MATCHES.slice();
   }
 
+  /** 요약 탭: 구성원 수·설립일 (실연동 시 clans / clan_members) */
+  var CLAN_STATS_CLAN_META = {
+    memberCount: 28,
+    foundedAt: "2024-06-12T00:00:00.000Z",
+  };
+
+  function mockStatsFormatFoundedLong(iso) {
+    var d = new Date(iso);
+    var wk = ["일", "월", "화", "수", "목", "금", "토"][d.getDay()];
+    return (
+      d.getFullYear() +
+      "년 " +
+      (d.getMonth() + 1) +
+      "월 " +
+      d.getDate() +
+      "일 (" +
+      wk +
+      ")"
+    );
+  }
+
+  /** 최신 경기부터 최대 5건 W/L (흥미용 목업) */
+  function mockStatsLastFiveStreak(list) {
+    var sorted = list.slice().sort(function (a, b) {
+      return new Date(b.at) - new Date(a.at);
+    });
+    var five = sorted.slice(0, 5);
+    if (five.length === 0) {
+      return { html: "—", sub: "기록 없음" };
+    }
+    var w = 0;
+    var l = 0;
+    var parts = five.map(function (m) {
+      if (m.won) {
+        w++;
+        return '<span style="color:#34d399;font-weight:800">W</span>';
+      }
+      l++;
+      return '<span style="color:#fb7185;font-weight:800">L</span>';
+    });
+    return {
+      html: parts.join(" "),
+      sub: w + "승 " + l + "패 · 최신 경기부터",
+    };
+  }
+
   function mockStatsTypeLabel(t) {
     if (t === "intra") return "내전";
     if (t === "scrim") return "스크림";
@@ -248,24 +294,32 @@
     });
     var losses = n - wins;
     var wr = n === 0 ? null : Math.round((wins / n) * 1000) / 10;
-    var intraPct =
-      n === 0 ? null : Math.round((intra / n) * 1000) / 10;
 
     var elTotal = document.getElementById("mock-stats-kpi-total");
     var elSplit = document.getElementById("mock-stats-kpi-split");
+    var elMembers = document.getElementById("mock-stats-kpi-members");
+    var elFounded = document.getElementById("mock-stats-kpi-founded");
     var elWr = document.getElementById("mock-stats-kpi-winrate");
     var elRec = document.getElementById("mock-stats-kpi-record");
-    var elIntraPct = document.getElementById("mock-stats-kpi-intra-pct");
+    var elStreak = document.getElementById("mock-stats-kpi-streak");
+    var elStreakSub = document.getElementById("mock-stats-kpi-streak-sub");
+
     if (elTotal) elTotal.textContent = String(n);
     if (elSplit) {
       elSplit.textContent =
-        "내전 " + intra + " · 스크림 " + scrim + " · 이벤트 " + ev;
+        "내전 " + intra + " · 스크림 " + scrim + (ev ? " · 이벤트 " + ev : "");
+    }
+    if (elMembers) elMembers.textContent = String(CLAN_STATS_CLAN_META.memberCount);
+    if (elFounded) {
+      elFounded.textContent = mockStatsFormatFoundedLong(
+        CLAN_STATS_CLAN_META.foundedAt,
+      );
     }
     if (elWr) elWr.textContent = wr === null ? "—" : wr + "%";
-    if (elRec) elRec.textContent = wins + "승 " + losses + "패";
-    if (elIntraPct) {
-      elIntraPct.textContent = intraPct === null ? "—" : intraPct + "%";
-    }
+    if (elRec) elRec.textContent = wins + "승 " + losses + "패 (전체)";
+    var streak = mockStatsLastFiveStreak(list);
+    if (elStreak) elStreak.innerHTML = streak.html;
+    if (elStreakSub) elStreakSub.textContent = streak.sub;
 
     var tb = document.getElementById("mock-stats-archive-tbody");
     if (tb) {
