@@ -202,7 +202,6 @@
     if (!btn) return false;
     var on = btn.getAttribute("aria-checked") !== "true";
     btn.setAttribute("aria-checked", on ? "true" : "false");
-    btn.classList.toggle("mock-toggle-btn--on", on);
     var block = document.getElementById("mock-balance-map-ban-block");
     if (block) block.hidden = !on;
     mockBalanceSyncBanHint();
@@ -214,7 +213,6 @@
     if (!btn) return false;
     var on = btn.getAttribute("aria-checked") !== "true";
     btn.setAttribute("aria-checked", on ? "true" : "false");
-    btn.classList.toggle("mock-toggle-btn--on", on);
     var block = document.getElementById("mock-balance-hero-ban-block");
     if (block) block.hidden = !on;
     mockBalanceSyncBanHint();
