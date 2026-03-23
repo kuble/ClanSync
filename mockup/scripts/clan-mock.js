@@ -164,6 +164,40 @@
     });
   };
 
+  function mockBalanceSyncBanHint() {
+    var mapBtn = document.getElementById("mock-balance-toggle-map-ban");
+    var heroBtn = document.getElementById("mock-balance-toggle-hero-ban");
+    var hint = document.getElementById("mock-balance-ban-hint");
+    if (!hint) return;
+    var mapOn = mapBtn && mapBtn.getAttribute("aria-checked") === "true";
+    var heroOn = heroBtn && heroBtn.getAttribute("aria-checked") === "true";
+    hint.hidden = mapOn || heroOn;
+  }
+
+  /** 맵 밴 토글 — 슬롯·규칙은 추후 확정, 표시만 */
+  window.mockBalanceToggleMapBan = function (btn) {
+    if (!btn) return false;
+    var on = btn.getAttribute("aria-checked") !== "true";
+    btn.setAttribute("aria-checked", on ? "true" : "false");
+    btn.classList.toggle("mock-toggle-btn--on", on);
+    var block = document.getElementById("mock-balance-map-ban-block");
+    if (block) block.hidden = !on;
+    mockBalanceSyncBanHint();
+    return false;
+  };
+
+  /** 영웅 밴 토글 — 슬롯·규칙은 추후 확정, 표시만 */
+  window.mockBalanceToggleHeroBan = function (btn) {
+    if (!btn) return false;
+    var on = btn.getAttribute("aria-checked") !== "true";
+    btn.setAttribute("aria-checked", on ? "true" : "false");
+    btn.classList.toggle("mock-toggle-btn--on", on);
+    var block = document.getElementById("mock-balance-hero-ban-block");
+    if (block) block.hidden = !on;
+    mockBalanceSyncBanHint();
+    return false;
+  };
+
   /** 배너「내전 시작」— 구성원이면 안내 */
   window.clanBannerBalanceClick = function () {
     if (window.mockClanCurrentRole() === "member") {
