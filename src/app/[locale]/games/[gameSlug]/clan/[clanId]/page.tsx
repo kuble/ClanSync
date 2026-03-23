@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { getClanStatsDashboardSummary } from "@/lib/clan/clan-stats-mock";
 import { loadClanLayoutContext } from "@/lib/clan/load-clan-layout";
 import { clanBasePath } from "@/lib/clan/paths";
 import { isOfficerRole } from "@/lib/clan/types";
@@ -22,12 +23,17 @@ export default async function ClanDashboardPage({
   const ctx = await loadClanLayoutContext(locale, gameSlug, clanId);
   const base = clanBasePath(locale, gameSlug, clanId);
   const officer = isOfficerRole(ctx.membership.role);
+  const statSum = getClanStatsDashboardSummary();
+  const statDesc =
+    statSum.winRatePct === null
+      ? "최근 30일 경기 없음"
+      : `최근 30일 ${statSum.games}경기 · ${statSum.record} · 승률 ${statSum.winRatePct}%`;
 
   const cards = [
     {
       href: `${base}/stats`,
-      title: "통계 요약",
-      desc: "승률·최근 경기 추이 (구현 예정)",
+      title: "클랜 통계",
+      desc: `${statDesc} — 아카이브·순위·맵별 승률`,
       show: true,
     },
     {
@@ -55,8 +61,8 @@ export default async function ClanDashboardPage({
       <section>
         <h2 className="mb-3 text-lg font-semibold">대시보드</h2>
         <p className="text-muted-foreground mb-4 text-sm">
-          최근 경기·핵심 지표는 추후 Supabase 집계와 연동합니다. 지금은 섹션별
-          플레이스홀더 페이지로 라우팅을 맞춰 두었습니다.
+          통계 탭은 클랜 단위 목업 집계를 표시합니다. 나머지 섹션은 연동 전
+          플레이스홀더입니다.
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
           {cards.map((c) => (
