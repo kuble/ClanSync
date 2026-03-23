@@ -1080,6 +1080,75 @@
       });
   }
 
+  /** 명예의 전당 등재: 집계 기간 총 경기 수 기준점(이하·동일 → 비율, 초과 → 절대 최소 출전) */
+  function mockStatsHofSanitizeVolumeBreakpoint(n) {
+    n = parseInt(n, 10);
+    if (isNaN(n) || n < 1) return 100;
+    if (n > 5000) return 5000;
+    return n;
+  }
+
+  function mockStatsHofSanitizeParticipationPct(n) {
+    n = parseInt(n, 10);
+    if (isNaN(n) || n < 1) return 30;
+    if (n > 100) return 100;
+    return n;
+  }
+
+  function mockStatsHofSanitizeMinPlayedAbsolute(n) {
+    n = parseInt(n, 10);
+    if (isNaN(n) || n < 1) return 30;
+    if (n > 2000) return 2000;
+    return n;
+  }
+
+  function mockStatsHofMinPlayedToQualify(totalMatches, vis) {
+    if (totalMatches <= 0) return 0;
+    var bp = vis.hofVolumeBreakpoint;
+    var pct = vis.hofMinParticipationPct;
+    var abs = vis.hofMinPlayedAbsolute;
+    if (totalMatches <= bp) {
+      return Math.max(1, Math.ceil((totalMatches * pct) / 100));
+    }
+    return Math.max(1, abs);
+  }
+
+  function mockStatsHofEligibilityFootnote(totalMatches, minPlayed, vis) {
+    if (totalMatches <= 0 || minPlayed <= 0) return null;
+    var bp = vis.hofVolumeBreakpoint;
+    var pct = vis.hofMinParticipationPct;
+    var abs = vis.hofMinPlayedAbsolute;
+    return (
+      "등재 최소 출전: 이번 집계 기간 " +
+      minPlayed +
+      "경 이상. (규칙: 기간 총 내전 T≤" +
+      bp +
+      "이면 T의 " +
+      pct +
+      "% 이상 올림, T>" +
+      bp +
+      "이면 " +
+      abs +
+      "경 이상 · 현재 T=" +
+      totalMatches +
+      ")"
+    );
+  }
+
+  function mockStatsHofFilterWinrateRowsMinPlayed(rows, minPlayed) {
+    if (minPlayed <= 0) return rows;
+    return rows.filter(function (r) {
+      return r.w + r.d + r.l >= minPlayed;
+    });
+  }
+
+  function mockStatsHofFilterPartRowsMinPlayed(rows, minPlayed) {
+    if (minPlayed <= 0) return rows;
+    return rows.filter(function (r) {
+      return r.played >= minPlayed;
+    });
+  }
+
   var MOCK_STATS_HOF_VIS_KEY = "clansync-mock-hof-visibility";
 
   function mockStatsHofVisibilityDefaults() {
@@ -1088,6 +1157,9 @@
       participationRankLimit: 10,
       monthReveal: "always",
       yearReveal: "always",
+      hofVolumeBreakpoint: 100,
+      hofMinParticipationPct: 30,
+      hofMinPlayedAbsolute: 30,
     };
   }
 
@@ -1122,6 +1194,15 @@
         }
         d.yearReveal =
           o.yearReveal === "year_jan1_prev" ? "year_jan1_prev" : "always";
+        d.hofVolumeBreakpoint = mockStatsHofSanitizeVolumeBreakpoint(
+          o.hofVolumeBreakpoint,
+        );
+        d.hofMinParticipationPct = mockStatsHofSanitizeParticipationPct(
+          o.hofMinParticipationPct,
+        );
+        d.hofMinPlayedAbsolute = mockStatsHofSanitizeMinPlayedAbsolute(
+          o.hofMinPlayedAbsolute,
+        );
       }
     } catch (e) {}
     return d;
@@ -1140,7 +1221,13 @@
   /** 구성원일 때 승률 표 행·상한 안내(전달 월 데이터는 빌드 단계에서 rows에 반영) */
   function mockStatsHofWinrateTableDisplay(rows, vis) {
     if (!mockStatsHofMemberViewing()) {
-      return { rows: rows, limitNote: null, rollNote: null };
+      return {
+        rows: rows,
+        limitNote: null,
+        rollNote: null,
+        eligibilityNote: null,
+        noEligibleRows: false,
+      };
     }
     var lim = vis.winRateRankLimit;
     if (lim > 0 && rows.length > lim) {
@@ -1149,14 +1236,28 @@
         limitNote:
           "구성원에게는 상위 " + lim + "위까지만 공개됩니다 (클랜 설정).",
         rollNote: null,
+        eligibilityNote: null,
+        noEligibleRows: false,
       };
     }
-    return { rows: rows, limitNote: null, rollNote: null };
+    return {
+      rows: rows,
+      limitNote: null,
+      rollNote: null,
+      eligibilityNote: null,
+      noEligibleRows: false,
+    };
   }
 
   function mockStatsHofParticipationDisplay(rows, vis) {
     if (!mockStatsHofMemberViewing()) {
-      return { rows: rows, limitNote: null, rollNote: null };
+      return {
+        rows: rows,
+        limitNote: null,
+        rollNote: null,
+        eligibilityNote: null,
+        noEligibleRows: false,
+      };
     }
     var lim = vis.participationRankLimit;
     if (lim > 0 && rows.length > lim) {
@@ -1167,9 +1268,17 @@
           lim +
           "위까지만 공개됩니다 (클랜 설정).",
         rollNote: null,
+        eligibilityNote: null,
+        noEligibleRows: false,
       };
     }
-    return { rows: rows, limitNote: null, rollNote: null };
+    return {
+      rows: rows,
+      limitNote: null,
+      rollNote: null,
+      eligibilityNote: null,
+      noEligibleRows: false,
+    };
   }
 
   window.mockStatsHofOpenSettingsModal = function () {
@@ -1191,6 +1300,12 @@
       selYearRev.value =
         v.yearReveal === "year_jan1_prev" ? "year_jan1_prev" : "always";
     }
+    var inpBp = document.getElementById("mhof-hof-bp");
+    var inpPct = document.getElementById("mhof-hof-pct");
+    var inpAbs = document.getElementById("mhof-hof-abs");
+    if (inpBp) inpBp.value = String(v.hofVolumeBreakpoint);
+    if (inpPct) inpPct.value = String(v.hofMinParticipationPct);
+    if (inpAbs) inpAbs.value = String(v.hofMinPlayedAbsolute);
     m.removeAttribute("hidden");
     m.setAttribute("aria-hidden", "false");
     return false;
@@ -1221,11 +1336,26 @@
     var pr = selPart
       ? mockStatsHofSanitizeLimit(parseInt(selPart.value, 10))
       : 10;
+    var inpBp = document.getElementById("mhof-hof-bp");
+    var inpPct = document.getElementById("mhof-hof-pct");
+    var inpAbs = document.getElementById("mhof-hof-abs");
+    var hofBp = inpBp
+      ? mockStatsHofSanitizeVolumeBreakpoint(inpBp.value)
+      : mockStatsHofVisibilityDefaults().hofVolumeBreakpoint;
+    var hofPct = inpPct
+      ? mockStatsHofSanitizeParticipationPct(inpPct.value)
+      : mockStatsHofVisibilityDefaults().hofMinParticipationPct;
+    var hofAbs = inpAbs
+      ? mockStatsHofSanitizeMinPlayedAbsolute(inpAbs.value)
+      : mockStatsHofVisibilityDefaults().hofMinPlayedAbsolute;
     mockStatsHofVisibilitySet({
       winRateRankLimit: wr,
       participationRankLimit: pr,
       monthReveal: monthRev,
       yearReveal: yearRev,
+      hofVolumeBreakpoint: hofBp,
+      hofMinParticipationPct: hofPct,
+      hofMinPlayedAbsolute: hofAbs,
     });
     window.mockStatsHofCloseSettingsModal();
     if (typeof window.mockStatsRender === "function") window.mockStatsRender();
@@ -1234,12 +1364,29 @@
   function mockStatsHofWinrateTableHtml(title, rows, tableDisplay) {
     tableDisplay = tableDisplay || {};
     if (!rows.length) {
+      var emptyMsg = tableDisplay.noEligibleRows
+        ? "등재 기준(최소 출전 경기 수)을 충족한 구성원이 없습니다."
+        : "해당 기간에 내전 기록이 없습니다.";
+      var eligEmpty = tableDisplay.eligibilityNote
+        ? '<p class="mock-stats-footnote" style="margin-top:10px;margin-bottom:0">' +
+          mockStatsEscapeHtml(tableDisplay.eligibilityNote) +
+          "</p>"
+        : "";
       return (
         '<div class="d-card d-card-full mock-stats-hof-card">' +
         '<div class="d-card-label">' +
         mockStatsEscapeHtml(title) +
         "</div>" +
-        '<p style="font-size:13px;color:var(--text-muted);margin:0">해당 기간에 내전 기록이 없습니다.</p></div>'
+        '<p style="font-size:13px;color:var(--text-muted);margin:0">' +
+        mockStatsEscapeHtml(emptyMsg) +
+        "</p>" +
+        eligEmpty +
+        (tableDisplay.rollNote
+          ? '<p class="mock-stats-footnote" style="margin-top:8px;margin-bottom:0">' +
+            mockStatsEscapeHtml(tableDisplay.rollNote) +
+            "</p>"
+          : "") +
+        "</div>"
       );
     }
     var body = rows
@@ -1281,6 +1428,11 @@
         mockStatsEscapeHtml(tableDisplay.rollNote) +
         "</p>"
       : "";
+    var eligFoot = tableDisplay.eligibilityNote
+      ? '<p class="mock-stats-footnote" style="margin-top:8px;margin-bottom:0">' +
+        mockStatsEscapeHtml(tableDisplay.eligibilityNote) +
+        "</p>"
+      : "";
     return (
       '<div class="d-card d-card-full mock-stats-hof-card">' +
       '<div class="d-card-label">' +
@@ -1298,6 +1450,7 @@
       body +
       "</tbody></table></div>" +
       limitFoot +
+      eligFoot +
       rollFoot +
       "</div>"
     );
@@ -1324,10 +1477,27 @@
       );
     }
     if (!dispRows.length) {
+      var partEmptyMsg = partDisplay.noEligibleRows
+        ? "등재 기준(최소 출전 경기 수)을 충족한 구성원이 없습니다."
+        : "로스터 데이터가 없어 참여율을 표시할 수 없습니다.";
+      var eligPart = partDisplay.eligibilityNote
+        ? '<p class="mock-stats-footnote" style="margin-top:10px;margin-bottom:0">' +
+          mockStatsEscapeHtml(partDisplay.eligibilityNote) +
+          "</p>"
+        : "";
       return (
         '<div class="d-card d-card-full">' +
         '<div class="d-card-label">내전 경기 참여율</div>' +
-        '<p style="font-size:13px;color:var(--text-muted);margin:0">로스터 데이터가 없어 참여율을 표시할 수 없습니다.</p></div>'
+        '<p style="font-size:13px;color:var(--text-muted);margin:0">' +
+        mockStatsEscapeHtml(partEmptyMsg) +
+        "</p>" +
+        eligPart +
+        (partDisplay.rollNote
+          ? '<p class="mock-stats-footnote" style="margin-top:8px;margin-bottom:0">' +
+            mockStatsEscapeHtml(partDisplay.rollNote) +
+            "</p>"
+          : "") +
+        "</div>"
       );
     }
     var body = dispRows
@@ -1360,6 +1530,11 @@
         mockStatsEscapeHtml(partDisplay.rollNote) +
         "</p>"
       : "";
+    var eligFootPart = partDisplay.eligibilityNote
+      ? '<p class="mock-stats-footnote" style="margin-top:8px;margin-bottom:0">' +
+        mockStatsEscapeHtml(partDisplay.eligibilityNote) +
+        "</p>"
+      : "";
     return (
       '<div class="d-card d-card-full">' +
       '<div class="d-card-label">내전 경기 참여율</div>' +
@@ -1376,6 +1551,7 @@
       mockStatsEscapeHtml(periodFootnote) +
       "</p>" +
       limitFoot +
+      eligFootPart +
       rollFootPart +
       "</div>"
     );
@@ -1423,13 +1599,27 @@
       var yAsc = yIntraAgg.slice().sort(function (a, b) {
         return new Date(a.at) - new Date(b.at);
       });
-      var rowsY = mockStatsLeaderboardRowsFromMatches(yAsc);
-      var partY = mockStatsHofParticipationRowsForMatches(yIntraAgg);
+      var minY = mockStatsHofMinPlayedToQualify(yIntraAgg.length, visY);
+      var rowsYAll = mockStatsLeaderboardRowsFromMatches(yAsc);
+      var partYAll = mockStatsHofParticipationRowsForMatches(yIntraAgg);
+      var rowsY = mockStatsHofFilterWinrateRowsMinPlayed(rowsYAll, minY);
+      var partY = mockStatsHofFilterPartRowsMinPlayed(partYAll, minY);
+      var eligY = mockStatsHofEligibilityFootnote(yIntraAgg.length, minY, visY);
       var wrDispY = mockStatsHofWinrateTableDisplay(rowsY, visY);
       var partDispY = mockStatsHofParticipationDisplay(partY, visY);
       var rollY = mockStatsHofYearRollNote(visY, yAgg, st.year);
       wrDispY.rollNote = rollY;
+      wrDispY.eligibilityNote = eligY;
+      wrDispY.noEligibleRows =
+        yIntraAgg.length > 0 &&
+        rowsY.length === 0 &&
+        rowsYAll.length > 0;
       partDispY.rollNote = rollY;
+      partDispY.eligibilityNote = eligY;
+      partDispY.noEligibleRows =
+        yIntraAgg.length > 0 &&
+        partY.length === 0 &&
+        partYAll.length > 0;
       return (
         subBar +
         '<div class="mock-stats-hof-toolbar">' +
@@ -1485,13 +1675,23 @@
     var mAscWr = mIntraAgg.slice().sort(function (a, b) {
       return new Date(a.at) - new Date(b.at);
     });
-    var rowsM = mockStatsLeaderboardRowsFromMatches(mAscWr);
-    var partM = mockStatsHofParticipationRowsForMatches(mIntraAgg);
+    var minM = mockStatsHofMinPlayedToQualify(mIntraAgg.length, visM);
+    var rowsMAll = mockStatsLeaderboardRowsFromMatches(mAscWr);
+    var partMAll = mockStatsHofParticipationRowsForMatches(mIntraAgg);
+    var rowsM = mockStatsHofFilterWinrateRowsMinPlayed(rowsMAll, minM);
+    var partM = mockStatsHofFilterPartRowsMinPlayed(partMAll, minM);
+    var eligM = mockStatsHofEligibilityFootnote(mIntraAgg.length, minM, visM);
     var wrDispM = mockStatsHofWinrateTableDisplay(rowsM, visM);
     var partDispM = mockStatsHofParticipationDisplay(partM, visM);
     var rollM = mockStatsHofMonthRollNote(visM, mKeyAgg, st.monthKey);
     wrDispM.rollNote = rollM;
+    wrDispM.eligibilityNote = eligM;
+    wrDispM.noEligibleRows =
+      mIntraAgg.length > 0 && rowsM.length === 0 && rowsMAll.length > 0;
     partDispM.rollNote = rollM;
+    partDispM.eligibilityNote = eligM;
+    partDispM.noEligibleRows =
+      mIntraAgg.length > 0 && partM.length === 0 && partMAll.length > 0;
     var titleM = mockStatsHofMonthLabel(mKeyAgg) + " 내전 승률 순위";
     return (
       subBar +

@@ -563,18 +563,19 @@
   border-collapse: collapse;
   font-size: 12px;
 }
+/* sticky 헤더는 불투명 배경 필수 — 반투명이면 스크롤 시 tbody 행이 비쳐 보임 */
 .mock-stats-winrate-table thead th {
-  background: rgba(0, 0, 0, 0.72);
-  color: #f8fafc;
+  background: var(--bg-overlay);
+  color: var(--text-primary);
   padding: 10px 8px;
   text-align: left;
   font-weight: 700;
   font-size: 11px;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 2px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 1;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 0 var(--border-subtle);
 }
 .mock-stats-winrate-table thead th.mock-stats-wr-th--sort {
   padding: 6px 4px;
@@ -756,8 +757,14 @@ body.mock-role-member .mock-member-only { display: block !important; }
 }
 .mock-modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
 .mock-modal-card--hof {
-  max-width: min(480px, calc(100vw - 40px));
+  max-width: min(520px, calc(100vw - 40px));
   min-width: 0;
+}
+.mock-modal-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 6px 0 0;
+  line-height: 1.45;
 }
 /* 라디오 행: flex 대신 grid(두 번째 열 minmax 0)로 캡션 폭 고정 — 글자 세로 쌓임 방지 */
 .mock-modal-radios {
@@ -1484,6 +1491,23 @@ body.mock-role-member .mock-member-only { display: block !important; }
           <option value="always">상시 공개</option>
           <option value="year_jan1_prev">매년 1월 1일 순위 공개</option>
         </select>
+      </div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0 12px" aria-hidden="true" />
+      <p style="margin:0 0 10px;font-size:12px;font-weight:700;color:var(--text-secondary)">등재 기준 — 최소 출전 경기 수 (클랜별)</p>
+      <div class="mock-modal-field">
+        <label for="mhof-hof-bp">집계 기간 총 경기 수 기준점</label>
+        <input type="number" id="mhof-hof-bp" min="1" max="5000" step="1" value="100" inputmode="numeric" />
+        <p class="mock-modal-hint">이 값 이하(동일 포함)이면 비율 규칙, 초과하면 아래「절대 최소 출전」규칙을 씁니다. (예: 100)</p>
+      </div>
+      <div class="mock-modal-field">
+        <label for="mhof-hof-pct">기준점 이하일 때 — 최소 참여 비율 (%)</label>
+        <input type="number" id="mhof-hof-pct" min="1" max="100" step="1" value="30" inputmode="numeric" />
+        <p class="mock-modal-hint">집계 기간 내 내전 총 경기 수 × 이 비율을 올림한 값 이상 출전 시 등재. (예: 30%)</p>
+      </div>
+      <div class="mock-modal-field">
+        <label for="mhof-hof-abs">기준점 초과일 때 — 절대 최소 출전 (경기 수)</label>
+        <input type="number" id="mhof-hof-abs" min="1" max="2000" step="1" value="30" inputmode="numeric" />
+        <p class="mock-modal-hint">총 경기 수가 기준점을 넘는 달·연도에는 이 경기 수 이상 출전한 구성원만 등재. (예: 30경)</p>
       </div>
       <div class="mock-modal-actions">
         <button type="button" class="btn btn-secondary btn-sm" onclick="window.mockStatsHofCloseSettingsModal()">취소</button>
