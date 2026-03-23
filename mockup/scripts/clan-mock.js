@@ -81,6 +81,10 @@
       }
     } catch (e) {}
 
+    if (view === "stats" && typeof window.mockStatsRender === "function") {
+      window.mockStatsRender();
+    }
+
     return false;
   };
 
@@ -160,5 +164,201 @@
     }
     var link = document.querySelector('a.clan-nav[href="#balance"]');
     window.clanGo("balance", link);
+  };
+
+  /* ── 클랜 통계 (클랜 단위 집계 · clan-stats-plan §9) ── */
+  window.__mockStatsState = { period: "30d", type: "all" };
+
+  var CLAN_STATS_ANCHOR = new Date("2026-03-23T12:00:00.000Z");
+  var CLAN_STATS_MS_DAY = 86400000;
+  /** @type {{ at: string, type: string, map: string, mapType: string, won: boolean, score: string }[]} */
+  var CLAN_STATS_MATCHES = [
+    { at: "2026-03-22T18:00:00.000Z", type: "intra", map: "서킷 로얄", mapType: "클래시", won: true, score: "3-2" },
+    { at: "2026-03-20T19:30:00.000Z", type: "scrim", map: "파라이소", mapType: "호위", won: false, score: "2-3" },
+    { at: "2026-03-18T21:00:00.000Z", type: "intra", map: "뉴 정크 시티", mapType: "제어", won: true, score: "3-1" },
+    { at: "2026-03-15T20:00:00.000Z", type: "intra", map: "부산", mapType: "밀기", won: true, score: "3-0" },
+    { at: "2026-03-12T21:00:00.000Z", type: "scrim", map: "서킷 로얄", mapType: "클래시", won: true, score: "3-1" },
+    { at: "2026-03-08T20:00:00.000Z", type: "intra", map: "엔터테인먼트", mapType: "돌격", won: false, score: "1-3" },
+    { at: "2026-03-05T21:30:00.000Z", type: "event", map: "감시 기지: 지브롤터", mapType: "제어", won: true, score: "2-0" },
+    { at: "2026-03-01T19:00:00.000Z", type: "intra", map: "할리우드", mapType: "호위", won: true, score: "3-2" },
+    { at: "2026-02-25T20:00:00.000Z", type: "scrim", map: "스리아", mapType: "돌격", won: false, score: "2-3" },
+    { at: "2026-02-20T21:00:00.000Z", type: "intra", map: "부산", mapType: "밀기", won: true, score: "3-1" },
+    { at: "2026-02-14T18:00:00.000Z", type: "intra", map: "뉴 정크 시티", mapType: "제어", won: false, score: "1-3" },
+    { at: "2026-02-08T20:00:00.000Z", type: "scrim", map: "파라이소", mapType: "호위", won: true, score: "3-2" },
+    { at: "2026-02-01T21:00:00.000Z", type: "intra", map: "서킷 로얄", mapType: "클래시", won: true, score: "3-0" },
+    { at: "2026-01-28T19:30:00.000Z", type: "intra", map: "엔터테인먼트", mapType: "돌격", won: true, score: "3-2" },
+    { at: "2026-01-20T20:00:00.000Z", type: "scrim", map: "할리우드", mapType: "호위", won: false, score: "1-3" },
+    { at: "2026-01-12T21:00:00.000Z", type: "intra", map: "스리아", mapType: "돌격", won: true, score: "3-1" },
+    { at: "2026-01-05T18:00:00.000Z", type: "intra", map: "부산", mapType: "밀기", won: true, score: "3-2" },
+    { at: "2025-12-22T20:00:00.000Z", type: "event", map: "감시 기지: 지브롤터", mapType: "제어", won: true, score: "2-1" },
+    { at: "2025-12-10T19:00:00.000Z", type: "scrim", map: "뉴 정크 시티", mapType: "제어", won: false, score: "0-3" },
+    { at: "2025-11-28T21:00:00.000Z", type: "intra", map: "파라이소", mapType: "호위", won: true, score: "3-2" },
+  ];
+
+  function mockStatsFiltered() {
+    var st = window.__mockStatsState;
+    var days =
+      st.period === "90d" ? 90 : st.period === "all" ? null : 30;
+    var start =
+      days === null
+        ? null
+        : new Date(CLAN_STATS_ANCHOR.getTime() - days * CLAN_STATS_MS_DAY);
+    return CLAN_STATS_MATCHES.filter(function (m) {
+      var d = new Date(m.at);
+      if (start && d < start) return false;
+      if (st.type === "all") return true;
+      return m.type === st.type;
+    });
+  }
+
+  function mockStatsTypeLabel(t) {
+    if (t === "intra") return "내전";
+    if (t === "scrim") return "스크림";
+    return "이벤트";
+  }
+
+  function mockStatsTypeBadgeClass(t) {
+    if (t === "intra") return "badge badge-brand";
+    if (t === "scrim") return "badge badge-success";
+    return "badge badge-pro";
+  }
+
+  function mockStatsFormatDate(iso) {
+    var d = new Date(iso);
+    var w = ["일", "월", "화", "수", "목", "금", "토"][d.getDay()];
+    return d.getMonth() + 1 + "/" + d.getDate() + " (" + w + ")";
+  }
+
+  window.mockStatsPickPeriod = function (btn, v) {
+    window.__mockStatsState.period = v;
+    document.querySelectorAll("[data-stats-period]").forEach(function (b) {
+      b.classList.toggle("mock-tab-active", b.getAttribute("data-stats-period") === v);
+    });
+    window.mockStatsRender();
+    return false;
+  };
+
+  window.mockStatsPickType = function (btn, v) {
+    window.__mockStatsState.type = v;
+    document.querySelectorAll("[data-stats-type]").forEach(function (b) {
+      b.classList.toggle("mock-tab-active", b.getAttribute("data-stats-type") === v);
+    });
+    window.mockStatsRender();
+    return false;
+  };
+
+  window.mockStatsRender = function () {
+    var list = mockStatsFiltered();
+    var n = list.length;
+    var wins = 0;
+    var intra = 0;
+    var scrim = 0;
+    var ev = 0;
+    list.forEach(function (m) {
+      if (m.won) wins++;
+      if (m.type === "intra") intra++;
+      else if (m.type === "scrim") scrim++;
+      else ev++;
+    });
+    var losses = n - wins;
+    var wr = n === 0 ? null : Math.round((wins / n) * 1000) / 10;
+    var intraPct =
+      n === 0 ? null : Math.round((intra / n) * 1000) / 10;
+
+    var elTotal = document.getElementById("mock-stats-kpi-total");
+    var elSplit = document.getElementById("mock-stats-kpi-split");
+    var elWr = document.getElementById("mock-stats-kpi-winrate");
+    var elRec = document.getElementById("mock-stats-kpi-record");
+    var elIntraPct = document.getElementById("mock-stats-kpi-intra-pct");
+    if (elTotal) elTotal.textContent = String(n);
+    if (elSplit) {
+      elSplit.textContent =
+        "내전 " + intra + " · 스크림 " + scrim + " · 이벤트 " + ev;
+    }
+    if (elWr) elWr.textContent = wr === null ? "—" : wr + "%";
+    if (elRec) elRec.textContent = wins + "승 " + losses + "패";
+    if (elIntraPct) {
+      elIntraPct.textContent = intraPct === null ? "—" : intraPct + "%";
+    }
+
+    var tb = document.getElementById("mock-stats-archive-tbody");
+    if (tb) {
+      if (n === 0) {
+        tb.innerHTML =
+          '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">이 조건에 해당하는 경기가 없습니다.</td></tr>';
+      } else {
+        var sorted = list.slice().sort(function (a, b) {
+          return new Date(b.at) - new Date(a.at);
+        });
+        tb.innerHTML = sorted
+          .map(function (m) {
+            var wl = m.won ? "승" : "패";
+            var wc = m.won ? "#34d399" : "#fb7185";
+            return (
+              "<tr><td style=\"color:var(--text-muted)\">" +
+              mockStatsFormatDate(m.at) +
+              '</td><td><span class="' +
+              mockStatsTypeBadgeClass(m.type) +
+              '" style="font-size:10px">' +
+              mockStatsTypeLabel(m.type) +
+              "</span></td><td>" +
+              m.map +
+              '</td><td><span style="color:' +
+              wc +
+              ';font-weight:700">' +
+              wl +
+              "</span> <span style=\"color:var(--text-muted);font-size:12px\">" +
+              m.score +
+              "</span></td></tr>"
+            );
+          })
+          .join("");
+      }
+    }
+
+    var mapWrap = document.getElementById("mock-stats-map-wrap");
+    if (mapWrap) {
+      var agg = {};
+      list.forEach(function (m) {
+        var k = m.map + "\t" + m.mapType;
+        if (!agg[k]) agg[k] = { map: m.map, mapType: m.mapType, g: 0, w: 0 };
+        agg[k].g++;
+        if (m.won) agg[k].w++;
+      });
+      var rows = Object.keys(agg)
+        .map(function (k) {
+          return agg[k];
+        })
+        .sort(function (a, b) {
+          return b.g - a.g;
+        })
+        .slice(0, 8);
+      if (rows.length === 0) {
+        mapWrap.innerHTML =
+          '<p style="font-size:13px;color:var(--text-muted);margin:0">집계할 경기가 없습니다.</p>';
+      } else {
+        mapWrap.innerHTML = rows
+          .map(function (r) {
+            var pct = r.g === 0 ? 0 : Math.round((r.w / r.g) * 1000) / 10;
+            var barW = pct;
+            return (
+              '<div class="mock-stats-map-row">' +
+              '<div class="mock-stats-map-meta"><span><strong>' +
+              r.map +
+              '</strong> <span style="color:var(--text-muted);font-weight:400">· ' +
+              r.mapType +
+              '</span></span><span style="color:var(--text-muted);white-space:nowrap">' +
+              r.g +
+              "경기 · 승률 " +
+              pct +
+              "%</span></div>" +
+              '<div class="mock-stats-map-bar"><i style="width:' +
+              barW +
+              '%"></i></div></div>'
+            );
+          })
+          .join("");
+      }
+    }
   };
 })();

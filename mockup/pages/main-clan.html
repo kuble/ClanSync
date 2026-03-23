@@ -208,6 +208,12 @@
 .mock-kpi { padding: 16px; border-radius: var(--radius-xl); border: 1px solid var(--border); background: var(--bg-elevated); }
 .mock-kpi-label { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-bottom: 8px; }
 .mock-kpi-val { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
+/* 클랜 통계: 맵 승률 막대 */
+.mock-stats-map-row { margin-bottom: 14px; }
+.mock-stats-map-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; margin-bottom: 4px; }
+.mock-stats-map-bar { height: 6px; border-radius: 99px; background: var(--bg-overlay); overflow: hidden; }
+.mock-stats-map-bar > i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--brand-primary), #7c3aed); font-style: normal; }
+.mock-stats-footnote { font-size: 11px; color: var(--text-muted); margin-top: 10px; line-height: 1.45; }
 .mock-store-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 @media (max-width: 900px) { .mock-store-grid { grid-template-columns: 1fr; } }
 .mock-store-card { border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 14px; background: var(--bg-elevated); display: flex; flex-direction: column; gap: 8px; }
@@ -715,19 +721,89 @@ body.mock-role-member .mock-member-only { display: block !important; }
     </div>
   </div>
 
-  <!-- ── 통계 뷰: 클랜 단위 재기획 — docs/01-plan/clan-stats-plan.md ── -->
+  <!-- ── 통계 뷰 — docs/01-plan/clan-stats-plan.md §9 · clan-mock.js mockStats* ── -->
   <div id="view-stats" class="clan-view">
     <div class="mock-page-title">클랜 통계</div>
-    <p class="mock-page-desc">집계 단위를 <strong>클랜</strong>(경기 아카이브·클랜 승률·클랜 경기 기준 순위)로 다시 잡는 중입니다. 이전 목업(KPI·역할 막대·시너지 닉네임 중심)은 제거했습니다.</p>
+    <p class="mock-page-desc">
+      이 화면의 1차 주제는 <strong>클랜</strong>입니다. 내전·스크림·이벤트 경기를 한 클랜에 묶어
+      <strong>경기 수·승률·아카이브·맵 분해</strong>를 봅니다. 개인 메달·상세 전적은 클랜 관리 흐름과 구분합니다.
+    </p>
+
+    <div class="mock-tab-row" aria-label="기간 필터">
+      <span style="font-size:11px;color:var(--text-muted);margin-right:4px">기간</span>
+      <button type="button" class="mock-tab mock-tab-active" data-stats-period="30d" onclick="return mockStatsPickPeriod(this,'30d')">최근 30일</button>
+      <button type="button" class="mock-tab" data-stats-period="90d" onclick="return mockStatsPickPeriod(this,'90d')">90일</button>
+      <button type="button" class="mock-tab" data-stats-period="all" onclick="return mockStatsPickPeriod(this,'all')">전체</button>
+    </div>
+    <div class="mock-tab-row" aria-label="경기 유형 필터">
+      <span style="font-size:11px;color:var(--text-muted);margin-right:4px">유형</span>
+      <button type="button" class="mock-tab mock-tab-active" data-stats-type="all" onclick="return mockStatsPickType(this,'all')">전체</button>
+      <button type="button" class="mock-tab" data-stats-type="intra" onclick="return mockStatsPickType(this,'intra')">내전</button>
+      <button type="button" class="mock-tab" data-stats-type="scrim" onclick="return mockStatsPickType(this,'scrim')">스크림</button>
+    </div>
+    <p class="mock-stats-footnote" style="margin-bottom:16px">
+      무료 플랜은 경기 기록 1년 보관(PRD) — 실서비스에서는 구독에 맞춰 조회 범위가 잘립니다. (목업 샘플은 고정 날짜 기준)
+    </p>
+
+    <div class="mock-kpi-row">
+      <div class="mock-kpi">
+        <div class="mock-kpi-label">경기 수 (필터 적용)</div>
+        <div class="mock-kpi-val" id="mock-stats-kpi-total">0</div>
+        <div style="font-size:12px;color:var(--text-muted)" id="mock-stats-kpi-split">내전 0 · 스크림 0</div>
+      </div>
+      <div class="mock-kpi">
+        <div class="mock-kpi-label">승률</div>
+        <div class="mock-kpi-val" id="mock-stats-kpi-winrate">—</div>
+        <div style="font-size:12px;color:var(--text-muted)" id="mock-stats-kpi-record">0승 0패</div>
+      </div>
+      <div class="mock-kpi">
+        <div class="mock-kpi-label">내전 비중</div>
+        <div class="mock-kpi-val" id="mock-stats-kpi-intra-pct">—</div>
+        <div style="font-size:12px;color:var(--text-muted)">전체 경기 대비 내전 비율</div>
+      </div>
+    </div>
+
     <div class="d-card d-card-full" style="margin-bottom:16px">
-      <div class="d-card-label">준비 중</div>
-      <p style="font-size:13px;color:var(--text-muted);margin:0 0 10px 0">플랜 확정 후 블록 순서대로 목업을 채웁니다.</p>
-      <ul style="margin:0;padding-left:18px;font-size:13px;color:var(--text-muted);line-height:1.55">
-        <li>클랜 요약 — 총 경기 수, 내전/스크림 비율, 기간별 승패·승률</li>
-        <li>경기 아카이브 — 클랜 소속 경기 목록·필터</li>
-        <li>순위표 — 참여율·승률 등 (클랜 경기 데이터 기준, 정의 별도)</li>
-        <li>맵/모드별 클랜 승률, 추세 — 민감 지표는 운영진 정책</li>
-      </ul>
+      <div class="d-card-label">경기 아카이브</div>
+      <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">클랜에 기록된 경기 — 위 필터와 동일 범위</p>
+      <div style="overflow-x:auto">
+        <table class="mock-table">
+          <thead><tr><th>일자</th><th>유형</th><th>맵</th><th>결과</th></tr></thead>
+          <tbody id="mock-stats-archive-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mock-two-col" style="margin-bottom:16px">
+      <div class="d-card d-card-full">
+        <div class="d-card-label">참여율 순위</div>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">클랜 경기 데이터 기준 · 아래 표는 목업 고정(실연동 시 선택 기간에 맞춰 집계)</p>
+        <table class="mock-table">
+          <thead><tr><th>#</th><th>닉네임</th><th style="text-align:right">출전</th><th style="text-align:right">참여율</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>IronWall</td><td style="text-align:right">18</td><td style="text-align:right;font-weight:700">94%</td></tr>
+            <tr><td>2</td><td>Mender</td><td style="text-align:right">17</td><td style="text-align:right;font-weight:700">89%</td></tr>
+            <tr><td>3</td><td>Pulse</td><td style="text-align:right">16</td><td style="text-align:right;font-weight:700">86%</td></tr>
+            <tr><td>4</td><td>Violet</td><td style="text-align:right">14</td><td style="text-align:right;font-weight:700">78%</td></tr>
+            <tr><td>5</td><td>Anchor</td><td style="text-align:right">12</td><td style="text-align:right;font-weight:700">71%</td></tr>
+            <tr><td>6</td><td>Bloom</td><td style="text-align:right">9</td><td style="text-align:right;font-weight:700">65%</td></tr>
+            <tr><td>7</td><td>Rift</td><td style="text-align:right">6</td><td style="text-align:right;font-weight:700">52%</td></tr>
+            <tr><td>8</td><td>NovaKid <span style="color:var(--text-muted);font-weight:400">*</span></td><td style="text-align:right">3</td><td style="text-align:right;font-weight:700">38%</td></tr>
+          </tbody>
+        </table>
+        <p class="mock-stats-footnote">* 출전 5경기 미만은 순위 참고용이며 정책에 따라 표에서 제외할 수 있습니다.</p>
+      </div>
+      <div class="d-card d-card-full">
+        <div class="d-card-label">맵·모드별 클랜 승률</div>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">필터가 적용된 경기만 집계 · 상위 표시</p>
+        <div id="mock-stats-map-wrap"></div>
+      </div>
+    </div>
+
+    <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px;border-color:rgba(124,58,237,0.35)">
+      <div class="d-card-label">운영진</div>
+      <p style="font-size:13px;color:var(--text-muted);margin:0 0 10px">경기 생성·결과 입력은 밸런스메이커에서 진행합니다. 통계는 종료된 경기를 반영합니다(실연동 예정).</p>
+      <button type="button" class="btn btn-sm" onclick="var a=document.querySelector('a.clan-nav[href=\'#balance\']');window.clanGo('balance',a)">밸런스메이커로 이동</button>
     </div>
   </div>
 
