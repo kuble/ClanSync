@@ -4,6 +4,47 @@
 <meta charset="UTF-8">
 <title>ClanSync — Mockup Hub</title>
 <link rel="stylesheet" href="styles/main.css">
+<style>
+.hub-mock-role {
+  padding: 4px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.hub-mock-role-hint {
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--text-muted, #71717a);
+  padding: 0 2px;
+}
+.hub-mock-role-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hub-mock-role-btn {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border);
+  background: var(--bg-overlay, rgba(255,255,255,0.04));
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-sans, system-ui, sans-serif);
+  text-align: left;
+  transition: color 0.1s, background 0.1s, border-color 0.1s;
+}
+.hub-mock-role-btn:hover {
+  color: var(--text-primary);
+  border-color: rgba(124, 58, 237, 0.45);
+}
+.hub-mock-role-btn.active {
+  color: var(--text-primary);
+  border-left: 2px solid var(--accent-violet, #7c3aed);
+  padding-left: 8px;
+  background: var(--surface-active, rgba(124, 58, 237, 0.1));
+}
+</style>
 </head>
 <body class="hub-shell">
 
@@ -23,6 +64,16 @@
   <div class="hub-group-label">클랜</div>
   <a href="#" onclick="return go(this,'pages/clan-auth.html')">클랜 인증</a>
   <a href="#" onclick="return go(this,'pages/main-clan.html')">클랜 메인</a>
+
+  <div class="hub-group-label">목업 권한</div>
+  <div class="hub-mock-role">
+    <p class="hub-mock-role-hint">클랜 메인 iframe에 적용. 밸런스·관리는 운영진+.</p>
+    <div class="hub-mock-role-btns">
+      <button type="button" class="hub-mock-role-btn active" data-mock-role="leader" onclick="return hubSetMockRole(this,'leader')">클랜장</button>
+      <button type="button" class="hub-mock-role-btn" data-mock-role="officer" onclick="return hubSetMockRole(this,'officer')">운영진</button>
+      <button type="button" class="hub-mock-role-btn" data-mock-role="member" onclick="return hubSetMockRole(this,'member')">구성원</button>
+    </div>
+  </div>
 </nav>
 
 <main class="hub-main">
@@ -34,13 +85,61 @@
 </main>
 
 <script>
+  var MOCK_ROLE_STORAGE = "clansync-hub-mock-role";
+
+  function hubGetMockRole() {
+    try {
+      var r = sessionStorage.getItem(MOCK_ROLE_STORAGE) || "leader";
+      if (r === "member" || r === "officer" || r === "leader") return r;
+    } catch (e) {}
+    return "leader";
+  }
+
+  function hubClanMainSrc() {
+    return "pages/main-clan.html?role=" + encodeURIComponent(hubGetMockRole());
+  }
+
   function go(el, path) {
-    document.querySelectorAll('.hub-nav a').forEach(a => a.classList.remove('active'));
-    el.classList.add('active');
-    document.getElementById('frame').src = path;
-    document.getElementById('current-url').textContent = path;
+    document.querySelectorAll(".hub-nav a").forEach(function (a) {
+      a.classList.remove("active");
+    });
+    el.classList.add("active");
+    var finalPath = path;
+    if (path === "pages/main-clan.html") {
+      finalPath = hubClanMainSrc();
+    }
+    document.getElementById("frame").src = finalPath;
+    document.getElementById("current-url").textContent = finalPath;
     return false;
   }
+
+  function hubSetMockRole(btn, role) {
+    try {
+      sessionStorage.setItem(MOCK_ROLE_STORAGE, role);
+    } catch (e) {}
+    document.querySelectorAll(".hub-mock-role-btn").forEach(function (b) {
+      b.classList.toggle("active", b === btn);
+    });
+    var frame = document.getElementById("frame");
+    var cur = document.getElementById("current-url").textContent || "";
+    if (cur.indexOf("main-clan.html") >= 0) {
+      var hash = "";
+      try {
+        hash = frame.contentWindow.location.hash || "";
+      } catch (err) {}
+      var next = hubClanMainSrc() + hash;
+      frame.src = next;
+      document.getElementById("current-url").textContent = next;
+    }
+    return false;
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var r = hubGetMockRole();
+    document.querySelectorAll(".hub-mock-role-btn").forEach(function (b) {
+      b.classList.toggle("active", b.getAttribute("data-mock-role") === r);
+    });
+  });
 </script>
 </body>
 </html>
