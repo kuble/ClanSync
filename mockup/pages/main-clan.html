@@ -741,62 +741,78 @@ body.mock-role-member .mock-member-only { display: block !important; }
       <button type="button" class="mock-tab" data-stats-type="intra" onclick="return mockStatsPickType(this,'intra')">내전</button>
       <button type="button" class="mock-tab" data-stats-type="scrim" onclick="return mockStatsPickType(this,'scrim')">스크림</button>
     </div>
-    <p class="mock-stats-footnote" style="margin-bottom:16px">
+    <p class="mock-stats-footnote" style="margin-bottom:12px">
       무료 플랜은 경기 기록 1년 보관(PRD) — 실서비스에서는 구독에 맞춰 조회 범위가 잘립니다. (목업 샘플은 고정 날짜 기준)
     </p>
 
-    <div class="mock-kpi-row">
-      <div class="mock-kpi">
-        <div class="mock-kpi-label">경기 수 (필터 적용)</div>
-        <div class="mock-kpi-val" id="mock-stats-kpi-total">0</div>
-        <div style="font-size:12px;color:var(--text-muted)" id="mock-stats-kpi-split">내전 0 · 스크림 0</div>
-      </div>
-      <div class="mock-kpi">
-        <div class="mock-kpi-label">승률</div>
-        <div class="mock-kpi-val" id="mock-stats-kpi-winrate">—</div>
-        <div style="font-size:12px;color:var(--text-muted)" id="mock-stats-kpi-record">0승 0패</div>
-      </div>
-      <div class="mock-kpi">
-        <div class="mock-kpi-label">내전 비중</div>
-        <div class="mock-kpi-val" id="mock-stats-kpi-intra-pct">—</div>
-        <div style="font-size:12px;color:var(--text-muted)">전체 경기 대비 내전 비율</div>
+    <div class="mock-tab-row" role="tablist" aria-label="통계 구역" style="margin-bottom:4px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+      <span style="font-size:11px;color:var(--text-muted);margin-right:8px;align-self:center">보기</span>
+      <button type="button" class="mock-tab mock-tab-active" data-stats-section-tab onclick="return mockStatsSetSection(this,'summary')">요약</button>
+      <button type="button" class="mock-tab" data-stats-section-tab onclick="return mockStatsSetSection(this,'archive')">경기 기록</button>
+      <button type="button" class="mock-tab" data-stats-section-tab onclick="return mockStatsSetSection(this,'rankmap')">순위·맵</button>
+    </div>
+    <p class="mock-stats-footnote" style="margin-bottom:16px;margin-top:0">
+      위 기간·유형 필터는 모든 탭에 동일하게 적용됩니다.
+    </p>
+
+    <div data-stats-section-panel="summary">
+      <div class="mock-kpi-row">
+        <div class="mock-kpi">
+          <div class="mock-kpi-label">경기 수 (필터 적용)</div>
+          <div class="mock-kpi-val" id="mock-stats-kpi-total">0</div>
+          <div style="font-size:12px;color:var(--text-muted)" id="mock-stats-kpi-split">내전 0 · 스크림 0</div>
+        </div>
+        <div class="mock-kpi">
+          <div class="mock-kpi-label">승률</div>
+          <div class="mock-kpi-val" id="mock-stats-kpi-winrate">—</div>
+          <div style="font-size:12px;color:var(--text-muted)" id="mock-stats-kpi-record">0승 0패</div>
+        </div>
+        <div class="mock-kpi">
+          <div class="mock-kpi-label">내전 비중</div>
+          <div class="mock-kpi-val" id="mock-stats-kpi-intra-pct">—</div>
+          <div style="font-size:12px;color:var(--text-muted)">전체 경기 대비 내전 비율</div>
+        </div>
       </div>
     </div>
 
-    <div class="d-card d-card-full" style="margin-bottom:16px">
-      <div class="d-card-label">경기 아카이브</div>
-      <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">클랜에 기록된 경기 — 위 필터와 동일 범위</p>
-      <div style="overflow-x:auto">
-        <table class="mock-table">
-          <thead><tr><th>일자</th><th>유형</th><th>맵</th><th>결과</th></tr></thead>
-          <tbody id="mock-stats-archive-tbody"></tbody>
-        </table>
+    <div data-stats-section-panel="archive" style="display:none">
+      <div class="d-card d-card-full" style="margin-bottom:16px">
+        <div class="d-card-label">경기 아카이브</div>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">클랜에 기록된 경기 — 상단 필터와 동일 범위</p>
+        <div style="overflow-x:auto">
+          <table class="mock-table">
+            <thead><tr><th>일자</th><th>유형</th><th>맵</th><th>결과</th></tr></thead>
+            <tbody id="mock-stats-archive-tbody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <div class="mock-two-col" style="margin-bottom:16px">
-      <div class="d-card d-card-full">
-        <div class="d-card-label">참여율 순위</div>
-        <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">클랜 경기 데이터 기준 · 아래 표는 목업 고정(실연동 시 선택 기간에 맞춰 집계)</p>
-        <table class="mock-table">
-          <thead><tr><th>#</th><th>닉네임</th><th style="text-align:right">출전</th><th style="text-align:right">참여율</th></tr></thead>
-          <tbody>
-            <tr><td>1</td><td>IronWall</td><td style="text-align:right">18</td><td style="text-align:right;font-weight:700">94%</td></tr>
-            <tr><td>2</td><td>Mender</td><td style="text-align:right">17</td><td style="text-align:right;font-weight:700">89%</td></tr>
-            <tr><td>3</td><td>Pulse</td><td style="text-align:right">16</td><td style="text-align:right;font-weight:700">86%</td></tr>
-            <tr><td>4</td><td>Violet</td><td style="text-align:right">14</td><td style="text-align:right;font-weight:700">78%</td></tr>
-            <tr><td>5</td><td>Anchor</td><td style="text-align:right">12</td><td style="text-align:right;font-weight:700">71%</td></tr>
-            <tr><td>6</td><td>Bloom</td><td style="text-align:right">9</td><td style="text-align:right;font-weight:700">65%</td></tr>
-            <tr><td>7</td><td>Rift</td><td style="text-align:right">6</td><td style="text-align:right;font-weight:700">52%</td></tr>
-            <tr><td>8</td><td>NovaKid <span style="color:var(--text-muted);font-weight:400">*</span></td><td style="text-align:right">3</td><td style="text-align:right;font-weight:700">38%</td></tr>
-          </tbody>
-        </table>
-        <p class="mock-stats-footnote">* 출전 5경기 미만은 순위 참고용이며 정책에 따라 표에서 제외할 수 있습니다.</p>
-      </div>
-      <div class="d-card d-card-full">
-        <div class="d-card-label">맵·모드별 클랜 승률</div>
-        <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">필터가 적용된 경기만 집계 · 상위 표시</p>
-        <div id="mock-stats-map-wrap"></div>
+    <div data-stats-section-panel="rankmap" style="display:none">
+      <div class="mock-two-col" style="margin-bottom:16px">
+        <div class="d-card d-card-full">
+          <div class="d-card-label">참여율 순위</div>
+          <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">클랜 경기 데이터 기준 · 아래 표는 목업 고정(실연동 시 선택 기간에 맞춰 집계)</p>
+          <table class="mock-table">
+            <thead><tr><th>#</th><th>닉네임</th><th style="text-align:right">출전</th><th style="text-align:right">참여율</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>IronWall</td><td style="text-align:right">18</td><td style="text-align:right;font-weight:700">94%</td></tr>
+              <tr><td>2</td><td>Mender</td><td style="text-align:right">17</td><td style="text-align:right;font-weight:700">89%</td></tr>
+              <tr><td>3</td><td>Pulse</td><td style="text-align:right">16</td><td style="text-align:right;font-weight:700">86%</td></tr>
+              <tr><td>4</td><td>Violet</td><td style="text-align:right">14</td><td style="text-align:right;font-weight:700">78%</td></tr>
+              <tr><td>5</td><td>Anchor</td><td style="text-align:right">12</td><td style="text-align:right;font-weight:700">71%</td></tr>
+              <tr><td>6</td><td>Bloom</td><td style="text-align:right">9</td><td style="text-align:right;font-weight:700">65%</td></tr>
+              <tr><td>7</td><td>Rift</td><td style="text-align:right">6</td><td style="text-align:right;font-weight:700">52%</td></tr>
+              <tr><td>8</td><td>NovaKid <span style="color:var(--text-muted);font-weight:400">*</span></td><td style="text-align:right">3</td><td style="text-align:right;font-weight:700">38%</td></tr>
+            </tbody>
+          </table>
+          <p class="mock-stats-footnote">* 출전 5경기 미만은 순위 참고용이며 정책에 따라 표에서 제외할 수 있습니다.</p>
+        </div>
+        <div class="d-card d-card-full">
+          <div class="d-card-label">맵·모드별 클랜 승률</div>
+          <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">필터가 적용된 경기만 집계 · 상위 표시</p>
+          <div id="mock-stats-map-wrap"></div>
+        </div>
       </div>
     </div>
 

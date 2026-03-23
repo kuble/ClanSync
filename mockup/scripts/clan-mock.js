@@ -229,6 +229,18 @@
     return d.getMonth() + 1 + "/" + d.getDate() + " (" + w + ")";
   }
 
+  /** 상단 탭: 요약 / 경기 기록 / 순위·맵 */
+  window.mockStatsSetSection = function (btn, name) {
+    document.querySelectorAll("[data-stats-section-tab]").forEach(function (b) {
+      b.classList.toggle("mock-tab-active", b === btn);
+    });
+    document.querySelectorAll("[data-stats-section-panel]").forEach(function (p) {
+      p.style.display =
+        p.getAttribute("data-stats-section-panel") === name ? "" : "none";
+    });
+    return false;
+  };
+
   window.mockStatsPickPeriod = function (btn, v) {
     window.__mockStatsState.period = v;
     document.querySelectorAll("[data-stats-period]").forEach(function (b) {
