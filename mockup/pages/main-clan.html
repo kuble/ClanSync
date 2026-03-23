@@ -651,14 +651,20 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  margin-bottom: 16px;
+  align-items: stretch;
+  margin-bottom: 0;
+}
+/* 상위 그리드용 .d-card-full(span 2)가 자식 2열 레이아웃을 망가뜨리지 않도록 */
+.mock-stats-hof-split > .d-card.d-card-full {
+  grid-column: auto;
+  min-width: 0;
 }
 @media (max-width: 900px) {
   .mock-stats-hof-split {
     grid-template-columns: 1fr;
   }
 }
-.mock-stats-hof-card .mock-stats-winrate-scroll {
+.mock-stats-hof-split .mock-stats-winrate-scroll {
   max-height: 300px;
 }
 

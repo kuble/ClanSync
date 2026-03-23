@@ -1627,12 +1627,12 @@
         '<select id="mock-stats-hof-year" class="mock-stats-hof-select" onchange="return window.mockStatsHofOnYear(this)">' +
         ySel +
         "</select></label></div>" +
+        '<div class="mock-stats-hof-split">' +
         mockStatsHofWinrateTableHtml(
           yAgg + "년 내전 승률 순위",
           wrDispY.rows,
           wrDispY,
         ) +
-        '<div style="margin-top:16px">' +
         mockStatsHofParticipationOneTableHtml(
           partY,
           yIntraAgg.length,
@@ -1700,8 +1700,8 @@
       '<select id="mock-stats-hof-month" class="mock-stats-hof-select" onchange="return window.mockStatsHofOnMonth(this)">' +
       mSel +
       "</select></label></div>" +
+      '<div class="mock-stats-hof-split">' +
       mockStatsHofWinrateTableHtml(titleM, wrDispM.rows, wrDispM) +
-      '<div style="margin-top:16px">' +
       mockStatsHofParticipationOneTableHtml(
         partM,
         mIntraAgg.length,
