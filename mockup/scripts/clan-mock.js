@@ -122,16 +122,6 @@
     }
   };
 
-  /* 통계: 기간 탭 목업 */
-  window.mockStatsSetPeriod = function (btn, name) {
-    document.querySelectorAll("[data-stats-period]").forEach(function (b) {
-      b.classList.toggle("mock-tab-active", b === btn);
-    });
-    document.querySelectorAll("[data-stats-period-panel]").forEach(function (p) {
-      p.style.display = p.getAttribute("data-stats-period-panel") === name ? "" : "none";
-    });
-  };
-
   /* 이벤트: 목록 / 캘린더 서브탭 */
   window.mockEventsSetTab = function (btn, name) {
     document.querySelectorAll("[data-events-subtab]").forEach(function (b) {
