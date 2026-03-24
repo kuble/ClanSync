@@ -944,12 +944,13 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   min-height: 0;
   overflow: hidden;
 }
-/* 점수 행: 닉 아래(좌열), 전적+마이크: 우측 트레이 하단 */
+/* 점수 행: 닉 아래(좌열) — 내용 왼쪽 정렬·필요 너비만(구성은 우열용 flex-end라 좌열에선 빈 여백이 커짐) */
 #mock-balance-vs-board .mock-balance-nameplate--rich .mock-balance-slot-left-col .mock-balance-slot-score-row--manual {
-  align-self: stretch;
-  width: 100%;
+  align-self: flex-start;
+  width: auto;
   max-width: 100%;
   box-sizing: border-box;
+  justify-content: flex-start;
 }
 #mock-balance-vs-board .mock-balance-slot-scores-col .mock-balance-slot-wlt-mic-row {
   justify-content: flex-end;
