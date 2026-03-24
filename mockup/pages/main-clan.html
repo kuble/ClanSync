@@ -209,6 +209,16 @@
 .mock-balance-map-meta-row .mock-balance-switch-row {
   flex-shrink: 0;
 }
+/* 맵 라벨·선택·모드 — 맵 밴 ON 시 [hidden], 인라인 display 없이 !important로 완전 비표시 */
+.mock-balance-map-pick-cluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mock-balance-map-pick-cluster[hidden] {
+  display: none !important;
+}
 .mock-balance-switch-label {
   font-size: 13px;
   font-weight: 600;
@@ -278,15 +288,6 @@
   flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 0;
-}
-.mock-balance-inline-hint {
-  margin-bottom: 8px;
-  min-height: 22px;
-  display: flex;
-  align-items: center;
-}
-.mock-balance-inline-hint[hidden] {
-  display: none !important;
 }
 .mock-balance-wf-tab {
   font-size: 11px;
@@ -1876,14 +1877,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
       </div>
 
       <div id="mock-balance-wf-edit" data-balance-wf-panel="edit" class="mock-balance-wf-panel">
-        <div id="mock-balance-ban-hint" class="mock-balance-inline-hint">
-          <button type="button" class="mock-help-tip" data-tip="맵 밴·영웅 밴을 켜면 ② 맵·영웅 밴픽 세션에서 슬롯을 사용합니다. 편집 단계에는 슬롯을 두지 않습니다. 슬롯 개수·규칙은 추후 확정됩니다." aria-label="맵·영웅 밴 도움말">?</button>
-        </div>
-
         <div class="mock-balance-layout">
           <div class="mock-balance-center-col">
             <div class="mock-balance-meta-row mock-balance-map-meta-row" role="group" aria-label="맵·밴 옵션">
-              <span id="mock-balance-map-pick-cluster" style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <span id="mock-balance-map-pick-cluster" class="mock-balance-map-pick-cluster">
                 <span class="mock-balance-meta-label">맵</span>
                 <button type="button" class="mock-balance-map-pick-btn" id="mock-balance-map-pick-btn" onclick="return window.mockBalanceOpenMapModal()"><span id="mock-balance-map-label">서킷 로얄</span></button>
                 <span id="mock-balance-map-mode" style="color:var(--text-muted)">· 제어</span>
@@ -1893,9 +1890,6 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                 <button type="button" class="mock-switch" id="mock-balance-toggle-map-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-map-ban" onclick="return window.mockBalanceToggleMapBan(this)">
                   <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
                 </button>
-                <span id="mock-balance-map-ban-map-hint" class="mock-balance-inline-hint" hidden>
-                  <button type="button" class="mock-help-tip" data-tip="맵 밴이 켜져 있어 이 단계에서는 맵 선택이 숨겨집니다. 최종 맵은 ② 맵·영웅 밴픽 세션에서 정합니다." aria-label="맵 밴 ON일 때 맵 선택 안내">?</button>
-                </span>
               </div>
               <div class="mock-balance-switch-row">
                 <span class="mock-balance-switch-label" id="mock-balance-lbl-hero-ban">영웅 밴</span>

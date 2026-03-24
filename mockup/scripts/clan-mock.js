@@ -125,7 +125,7 @@
     applyPlanBodyClass();
     try {
       if (document.getElementById("mock-balance-map-pick-btn")) {
-        mockBalanceSyncBanHint();
+        mockBalanceSyncMapPickCluster();
       }
     } catch (eBalance) {}
     /* 구성원이 경기 기록 패널만 열린 상태면 요약으로 되돌림 */
@@ -192,28 +192,12 @@
     }
   }
 
-  function mockBalanceSyncBanHint() {
-    var mapBtn = document.getElementById("mock-balance-toggle-map-ban");
-    var heroBtn = document.getElementById("mock-balance-toggle-hero-ban");
-    var hint = document.getElementById("mock-balance-ban-hint");
-    var mapBanHint = document.getElementById("mock-balance-map-ban-map-hint");
-    var mapOn = mapBtn && mapBtn.getAttribute("aria-checked") === "true";
-    var heroOn = heroBtn && heroBtn.getAttribute("aria-checked") === "true";
-    if (hint) {
-      hint.hidden = mapOn || heroOn;
-    }
-    if (mapBanHint) {
-      mapBanHint.hidden = !mapOn;
-    }
-    mockBalanceSyncMapPickCluster();
-  }
-
   /** 맵 밴 토글 — 슬롯은 ② 밴픽 세션에서만 사용 */
   window.mockBalanceToggleMapBan = function (btn) {
     if (!btn) return false;
     var on = btn.getAttribute("aria-checked") !== "true";
     btn.setAttribute("aria-checked", on ? "true" : "false");
-    mockBalanceSyncBanHint();
+    mockBalanceSyncMapPickCluster();
     return false;
   };
 
@@ -222,7 +206,6 @@
     if (!btn) return false;
     var on = btn.getAttribute("aria-checked") !== "true";
     btn.setAttribute("aria-checked", on ? "true" : "false");
-    mockBalanceSyncBanHint();
     return false;
   };
 
