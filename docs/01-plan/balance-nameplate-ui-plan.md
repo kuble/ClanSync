@@ -18,8 +18,9 @@
 
 ## 2. 레이아웃 · 정보 우선순위 (공간 부족 시)
 
-- **닉네임·오늘 전적·Manual·A(자동)** 는 슬롯 **왼쪽 본문 열**에 둔다. **A는 M(Manual) 입력 바로 아래** 한 줄로 둔다.  
-- **특이사항 태그**는 본문 **오른쪽 세로 레일**에 위에서 아래로 쌓는다.
+- **닉네임·오늘 전적**은 본문 **왼쪽**에 두고, **2줄 행** 오른쪽에는 **태그 레일 | M·A 점수 열**을 둔다.  
+- **M·A**는 **동일한 행 박스 스타일**(`.mock-balance-slot-score-row`), **세로로 쌓고 열 안에서는 우측 정렬**한다. **A는 M 바로 아래** 줄.  
+- **특이사항 태그**는 **M·A 열 바로 왼쪽**에 세로로 쌓는다(같은 `.mock-balance-slot-line2-tray` 안).
 
 본문 **2줄** 안에서 좁아지면 **아래 순으로 잘라낸다**(마지막부터 숨김).
 
@@ -80,11 +81,14 @@
 ## 6. 마크업 구조 (목업)
 
 - `.mock-balance-nameplate--rich` — 편집 보드 전용.
-- `.mock-balance-nameplate-rich-inner` — 가로 flex: **본문 | 태그 레일**(태그는 오른쪽).
-- `.mock-balance-slot-body` — 왼쪽: 닉 + 2줄 메타.
-- `.mock-balance-slot-tags.mock-balance-slot-tags-rail` — 오른쪽 세로 태그 스택 (`aria-label="상태 태그"`).
+- `.mock-balance-nameplate-rich-inner` — 현재 목업은 **본문(`slot-body`)만** 자식으로 둔다.
+- `.mock-balance-slot-body` — 닉 + 2줄 메타.
+- `.mock-balance-slot-line2` — 가로: **전적(유동 폭)** + `.mock-balance-slot-line2-tray`.
+- `.mock-balance-slot-line2-tray` — 가로: **태그 레일** → **점수 열**(슬롯 오른쪽에 붙음).
+- `.mock-balance-slot-tags.mock-balance-slot-tags-rail` — 태그 세로 스택, 점수 열 쪽으로 정렬 (`aria-label="상태 태그"`).
+- `.mock-balance-slot-scores-col` — `M`·`A` 각각 `.mock-balance-slot-score-row`(동일 보더·배경), 열은 `stretch`로 행 너비를 맞추고 행 안은 우측 정렬(`justify-content: flex-end`).
+- `.mock-balance-slot-a-value` — A 숫자만 갱신(목업 JS), 라벨은 `.mock-balance-slot-score-label`.
 - `.mock-balance-slot-nick` — 닉네임.
-- `.mock-balance-slot-line2` — 전적 + `.mock-balance-slot-scores-col`(세로: `M` 입력 → `.mock-balance-slot-a-wrap`의 **`A` + 숫자**). **태그는 여기 넣지 않는다.**
 - 참가자 **5vs5** 읽기 전용 보드는 기존처럼 **닉만** 두고, `--scores-off`로 메타·태그 레일을 숨긴다.
 
 ---
