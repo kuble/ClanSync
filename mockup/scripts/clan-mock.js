@@ -232,6 +232,13 @@
     return false;
   };
 
+  window.mockBalancePremiumSettingsClick = function () {
+    window.alert(
+      "목업: Premium·밸런스 연동 설정(디스코드·OCR 등)은 구현 단계에서 연결합니다.",
+    );
+    return false;
+  };
+
   window.mockBalanceOpenMapModal = function () {
     var mapBan = document.getElementById("mock-balance-toggle-map-ban");
     if (mapBan && mapBan.getAttribute("aria-checked") === "true") {
