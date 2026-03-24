@@ -841,7 +841,8 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
 }
 .mock-balance-vs-row {
   display: grid;
-  grid-template-columns: 1fr 40px 1fr;
+  /* 좌·우 슬롯 열 너비 동일, 콘텐츠가 그리드를 밀어내지 않도록 minmax(0,1fr) */
+  grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr);
   gap: 8px;
   align-items: stretch;
   margin-bottom: 8px;
@@ -872,6 +873,21 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   border-width: 1px;
   border-style: solid;
 }
+/* 편집 VS 보드: 모든 rich 슬롯 가로·세로 동일 (닉·태그 길이와 무관) */
+#mock-balance-vs-board .mock-balance-nameplate--rich {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 5.875rem;
+  min-height: 5.875rem;
+  max-height: 5.875rem;
+  overflow: hidden;
+}
+#mock-balance-vs-board .mock-balance-nameplate-rich-inner {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
 .mock-balance-nameplate-rich-inner {
   display: flex;
   flex-direction: row;
@@ -893,6 +909,26 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   min-height: 0;
   text-align: right;
 }
+#mock-balance-vs-board .mock-balance-slot-tags.mock-balance-slot-tags-rail {
+  max-width: 100%;
+  overflow: hidden;
+}
+#mock-balance-vs-board .mock-balance-tag {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* ③ 5vs5 라인업: 단순 이름표도 같은 열 너비·고정 높이 */
+#mock-balance-lineup-board .mock-balance-nameplate {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  overflow: hidden;
+}
 /* 오른쪽 열: 위 태그 · 아래 점수 (세로 스택·우측 정렬) */
 .mock-balance-nameplate--rich .mock-balance-slot-line2-tray {
   flex-direction: column;
@@ -901,6 +937,12 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   align-self: stretch;
   gap: 8px;
   flex-shrink: 0;
+}
+#mock-balance-vs-board .mock-balance-nameplate--rich .mock-balance-slot-line2-tray {
+  min-width: 0;
+  max-width: 42%;
+  min-height: 0;
+  overflow: hidden;
 }
 .mock-balance-slot-line2-tray {
   display: flex;
@@ -921,6 +963,11 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   align-items: stretch;
   gap: 14px;
 }
+#mock-balance-vs-board .mock-balance-nameplate--rich .mock-balance-slot-body {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
 .mock-balance-slot-left-col {
   flex: 1;
   min-width: 0;
@@ -929,6 +976,10 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   align-items: flex-start;
   justify-content: center;
   gap: 3px;
+}
+#mock-balance-vs-board .mock-balance-nameplate--rich .mock-balance-slot-left-col {
+  min-width: 0;
+  overflow: hidden;
 }
 .mock-balance-slot-wlt-mic-row {
   display: flex;
@@ -1087,6 +1138,13 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
     -1px 0 rgba(34, 211, 238, 0.9),
     1px 0 rgba(244, 114, 182, 0.82);
   letter-spacing: -0.02em;
+}
+#mock-balance-vs-board .mock-balance-nameplate--rich .mock-balance-slot-nick {
+  display: block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .mock-balance-nameplate--red.mock-balance-nameplate--rich .mock-balance-slot-nick {
   text-shadow:
