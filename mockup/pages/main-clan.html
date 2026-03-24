@@ -489,13 +489,25 @@
 }
 .mock-balance-pool-filters {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 10px;
+}
+.mock-balance-pool-filters input[type="search"] {
+  flex: 1;
+  min-width: 120px;
+  width: 0;
+}
+.mock-balance-pool-filters select {
+  flex: 0 0 auto;
+  min-width: 8.5rem;
+  width: auto;
+  max-width: 100%;
 }
 .mock-balance-pool-filters input,
 .mock-balance-pool-filters select {
-  width: 100%;
   font-size: 12px;
   padding: 6px 8px;
   border-radius: var(--radius-sm);
