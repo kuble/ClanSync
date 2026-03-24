@@ -292,7 +292,14 @@
     };
   }
 
-  /** 목업: 전적 숫자로 태그 규칙 시뮬(실서버는 스냅샷). 최대 2개. */
+  /** 태그 문구 → 목업 톤(good/bad/neutral). 서버는 tone 필드로 내려줄 수 있음. */
+  function mockBalanceTagToneFromLabel(t) {
+    if (t.indexOf("연승") !== -1) return "good";
+    if (t.indexOf("연패") !== -1 || t === "슬럼프") return "bad";
+    return "neutral";
+  }
+
+  /** 목업: 전적 숫자로 태그 규칙 시뮬(실서버는 스냅샷). 최대 2개. 왼쪽 세로 레일에 색 구분 클래스 부여. */
   function mockBalanceRecomputeTagsForBoard(board) {
     board.querySelectorAll(".mock-balance-nameplate--rich[data-slot-id]").forEach(function (plate) {
       var wrap = plate.querySelector(".mock-balance-slot-tags");
@@ -317,7 +324,10 @@
       wrap.innerHTML = parts
         .slice(0, 2)
         .map(function (t) {
-          return '<span class="badge badge-muted mock-balance-tag">' + t + "</span>";
+          var tone = mockBalanceTagToneFromLabel(t);
+          return (
+            '<span class="mock-balance-tag mock-balance-tag--' + tone + '">' + t + "</span>"
+          );
         })
         .join("");
     });
