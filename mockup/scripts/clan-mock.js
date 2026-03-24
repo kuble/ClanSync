@@ -131,6 +131,9 @@
         window.mockBalanceApplyRoleWeightsToUI();
       }
       var vsBoardInit = document.getElementById("mock-balance-vs-board");
+      if (vsBoardInit && typeof window.mockBalanceApplySlotOptsToBoard === "function") {
+        window.mockBalanceApplySlotOptsToBoard();
+      }
       if (
         vsBoardInit &&
         typeof mockBalanceRecomputeTagsForBoard === "function" &&
@@ -208,6 +211,86 @@
       { s: 0.8, r: "heal" },
       { s: 0.4, r: "heal" },
     ],
+  };
+
+  var MOCK_BALANCE_SLOT_OPTS_KEY = "clansync_mock_balance_slot_opts";
+
+  function mockBalanceDefaultSlotOpts() {
+    return { wlt: true, m: true, a: true, tags: true, mic: false };
+  }
+
+  function mockBalanceLoadSlotOpts() {
+    var d = mockBalanceDefaultSlotOpts();
+    try {
+      var raw = localStorage.getItem(MOCK_BALANCE_SLOT_OPTS_KEY);
+      if (!raw) return d;
+      var o = JSON.parse(raw);
+      if (!o || typeof o !== "object") return d;
+      return {
+        wlt: o.wlt !== false,
+        m: o.m !== false,
+        a: o.a !== false,
+        tags: o.tags !== false,
+        mic: o.mic === true,
+      };
+    } catch (eSo) {
+      return d;
+    }
+  }
+
+  function mockBalanceReadSlotOptsFromModal() {
+    var ids = {
+      wlt: "mock-balance-slotopt-wlt",
+      m: "mock-balance-slotopt-m",
+      a: "mock-balance-slotopt-a",
+      tags: "mock-balance-slotopt-tags",
+      mic: "mock-balance-slotopt-mic",
+    };
+    var out = {};
+    var k;
+    for (k in ids) {
+      if (!Object.prototype.hasOwnProperty.call(ids, k)) continue;
+      var b = document.getElementById(ids[k]);
+      out[k] = !!(b && b.getAttribute("aria-checked") === "true");
+    }
+    return out;
+  }
+
+  function mockBalanceSyncSlotOptModalFromStorage() {
+    var v = mockBalanceLoadSlotOpts();
+    var ids = {
+      wlt: "mock-balance-slotopt-wlt",
+      m: "mock-balance-slotopt-m",
+      a: "mock-balance-slotopt-a",
+      tags: "mock-balance-slotopt-tags",
+      mic: "mock-balance-slotopt-mic",
+    };
+    var k;
+    for (k in ids) {
+      if (!Object.prototype.hasOwnProperty.call(ids, k)) continue;
+      var btn = document.getElementById(ids[k]);
+      if (btn) btn.setAttribute("aria-checked", v[k] ? "true" : "false");
+    }
+  }
+
+  /** 편집 VS 보드: 설정에 따른 슬롯 항목 표시/숨김 */
+  window.mockBalanceApplySlotOptsToBoard = function () {
+    var board = document.getElementById("mock-balance-vs-board");
+    if (!board) return;
+    var v = mockBalanceLoadSlotOpts();
+    board.classList.toggle("mock-balance-slotopt--hide-wlt", !v.wlt);
+    board.classList.toggle("mock-balance-slotopt--hide-m", !v.m);
+    board.classList.toggle("mock-balance-slotopt--hide-a", !v.a);
+    board.classList.toggle("mock-balance-slotopt--hide-tags", !v.tags);
+    board.classList.toggle("mock-balance-slotopt--hide-mic", !v.mic);
+  };
+
+  /** 설정 모달 슬롯 표시 스위치 토글 */
+  window.mockBalanceToggleSlotOpt = function (btn) {
+    if (!btn) return false;
+    var on = btn.getAttribute("aria-checked") !== "true";
+    btn.setAttribute("aria-checked", on ? "true" : "false");
+    return false;
   };
 
   function mockBalanceParseRoleWeight(id, fallback) {
@@ -423,6 +506,7 @@
   window.mockBalancePremiumSettingsClick = function () {
     var m = document.getElementById("mock-balance-settings-modal");
     if (m) {
+      mockBalanceSyncSlotOptModalFromStorage();
       m.removeAttribute("hidden");
       m.setAttribute("aria-hidden", "false");
     }
@@ -445,6 +529,10 @@
       if (el) el.value = String(v);
     });
     window.mockBalanceApplyRoleWeightsToUI();
+    try {
+      localStorage.setItem(MOCK_BALANCE_SLOT_OPTS_KEY, JSON.stringify(mockBalanceReadSlotOptsFromModal()));
+    } catch (eSlotSave) {}
+    window.mockBalanceApplySlotOptsToBoard();
     return window.mockBalanceCloseSettingsModal();
   };
 

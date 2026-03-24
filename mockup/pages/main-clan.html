@@ -862,6 +862,28 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   flex-direction: column;
   align-items: stretch;
 }
+.mock-balance-slot-nick-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+.mock-balance-slot-nick-row .mock-balance-slot-nick {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+.mock-balance-slot-mic {
+  flex-shrink: 0;
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0.88;
+  display: inline-block;
+}
+#mock-balance-vs-board.mock-balance-slotopt--hide-mic .mock-balance-slot-mic {
+  display: none !important;
+}
 .mock-balance-slot-nick {
   font-size: 14px;
   font-weight: 800;
@@ -869,6 +891,19 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   letter-spacing: -0.02em;
   width: 100%;
   color: inherit;
+}
+/* 설정: 슬롯 표시 옵션 — VS 보드에 클래스로 반영 */
+#mock-balance-vs-board.mock-balance-slotopt--hide-wlt .mock-balance-slot-wlt {
+  display: none !important;
+}
+#mock-balance-vs-board.mock-balance-slotopt--hide-m .mock-balance-slot-score-row:not(.mock-hide-on-free) {
+  display: none !important;
+}
+#mock-balance-vs-board.mock-balance-slotopt--hide-a .mock-balance-slot-score-row.mock-hide-on-free {
+  display: none !important;
+}
+#mock-balance-vs-board.mock-balance-slotopt--hide-tags .mock-balance-slot-tags-rail {
+  display: none !important;
 }
 .mock-balance-slot-line2 {
   display: flex;
@@ -2317,7 +2352,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                     <div class="mock-balance-nameplate mock-balance-nameplate--blue mock-balance-nameplate--rich" data-slot-id="b0">
                       <div class="mock-balance-nameplate-rich-inner">
                         <div class="mock-balance-slot-body">
-                          <span class="mock-balance-slot-nick">하지</span>
+                          <div class="mock-balance-slot-nick-row">
+                            <span class="mock-balance-slot-nick">하지</span>
+                            <span class="mock-balance-slot-mic" title="마이크 사용(목업)" aria-label="마이크 사용">🎤</span>
+                          </div>
                           <div class="mock-balance-slot-line2">
                             <span class="mock-balance-slot-wlt" title="오늘 집계일(KST) 기준 전적"><span class="mock-balance-wlt-n">2</span>승 <span class="mock-balance-wlt-n">1</span>무 <span class="mock-balance-wlt-n">0</span>패</span>
                             <div class="mock-balance-slot-line2-tray">
@@ -2337,7 +2375,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                     <div class="mock-balance-nameplate mock-balance-nameplate--red mock-balance-nameplate--rich" data-slot-id="r0">
                       <div class="mock-balance-nameplate-rich-inner">
                         <div class="mock-balance-slot-body">
-                          <span class="mock-balance-slot-nick">나는우리팀믿어</span>
+                          <div class="mock-balance-slot-nick-row">
+                            <span class="mock-balance-slot-nick">나는우리팀믿어</span>
+                            <span class="mock-balance-slot-mic" title="마이크 사용(목업)" aria-label="마이크 사용">🎤</span>
+                          </div>
                           <div class="mock-balance-slot-line2">
                             <span class="mock-balance-slot-wlt" title="오늘 집계일(KST) 기준 전적"><span class="mock-balance-wlt-n">0</span>승 <span class="mock-balance-wlt-n">0</span>무 <span class="mock-balance-wlt-n">3</span>패</span>
                             <div class="mock-balance-slot-line2-tray">
@@ -2359,7 +2400,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                     <div class="mock-balance-nameplate mock-balance-nameplate--blue mock-balance-nameplate--rich" data-slot-id="b1">
                       <div class="mock-balance-nameplate-rich-inner">
                         <div class="mock-balance-slot-body">
-                          <span class="mock-balance-slot-nick">GON</span>
+                          <div class="mock-balance-slot-nick-row">
+                            <span class="mock-balance-slot-nick">GON</span>
+                            <span class="mock-balance-slot-mic" title="마이크 사용(목업)" aria-label="마이크 사용">🎤</span>
+                          </div>
                           <div class="mock-balance-slot-line2">
                             <span class="mock-balance-slot-wlt"><span class="mock-balance-wlt-n">1</span>승 <span class="mock-balance-wlt-n">0</span>무 <span class="mock-balance-wlt-n">2</span>패</span>
                             <div class="mock-balance-slot-line2-tray">
@@ -2377,7 +2421,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                     <div class="mock-balance-nameplate mock-balance-nameplate--red mock-balance-nameplate--rich" data-slot-id="r1">
                       <div class="mock-balance-nameplate-rich-inner">
                         <div class="mock-balance-slot-body">
-                          <span class="mock-balance-slot-nick">냥이의비행</span>
+                          <div class="mock-balance-slot-nick-row">
+                            <span class="mock-balance-slot-nick">냥이의비행</span>
+                            <span class="mock-balance-slot-mic" title="마이크 사용(목업)" aria-label="마이크 사용">🎤</span>
+                          </div>
                           <div class="mock-balance-slot-line2">
                             <span class="mock-balance-slot-wlt"><span class="mock-balance-wlt-n">4</span>승 <span class="mock-balance-wlt-n">0</span>무 <span class="mock-balance-wlt-n">0</span>패</span>
                             <div class="mock-balance-slot-line2-tray">
@@ -2398,7 +2445,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                     <div class="mock-balance-nameplate mock-balance-nameplate--blue mock-balance-nameplate--rich" data-slot-id="b2">
                       <div class="mock-balance-nameplate-rich-inner">
                         <div class="mock-balance-slot-body">
-                          <span class="mock-balance-slot-nick">DORAE</span>
+                          <div class="mock-balance-slot-nick-row">
+                            <span class="mock-balance-slot-nick">DORAE</span>
+                            <span class="mock-balance-slot-mic" title="마이크 사용(목업)" aria-label="마이크 사용">🎤</span>
+                          </div>
                           <div class="mock-balance-slot-line2">
                             <span class="mock-balance-slot-wlt"><span class="mock-balance-wlt-n">0</span>승 <span class="mock-balance-wlt-n">0</span>무 <span class="mock-balance-wlt-n">0</span>패</span>
                             <div class="mock-balance-slot-line2-tray">
@@ -2416,7 +2466,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                     <div class="mock-balance-nameplate mock-balance-nameplate--red mock-balance-nameplate--rich" data-slot-id="r2">
                       <div class="mock-balance-nameplate-rich-inner">
                         <div class="mock-balance-slot-body">
-                          <span class="mock-balance-slot-nick">TOOJI</span>
+                          <div class="mock-balance-slot-nick-row">
+                            <span class="mock-balance-slot-nick">TOOJI</span>
+                            <span class="mock-balance-slot-mic" title="마이크 사용(목업)" aria-label="마이크 사용">🎤</span>
+                          </div>
                           <div class="mock-balance-slot-line2">
                             <span class="mock-balance-slot-wlt"><span class="mock-balance-wlt-n">3</span>승 <span class="mock-balance-wlt-n">1</span>무 <span class="mock-balance-wlt-n">0</span>패</span>
                             <div class="mock-balance-slot-line2-tray">
@@ -2437,7 +2490,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                     <div class="mock-balance-nameplate mock-balance-nameplate--blue mock-balance-nameplate--rich" data-slot-id="b3">
                       <div class="mock-balance-nameplate-rich-inner">
                         <div class="mock-balance-slot-body">
-                          <span class="mock-balance-slot-nick">애드워드애릭</span>
+                          <div class="mock-balance-slot-nick-row">
+                            <span class="mock-balance-slot-nick">애드워드애릭</span>
+                            <span class="mock-balance-slot-mic" title="마이크 사용(목업)" aria-label="마이크 사용">🎤</span>
+                          </div>
                           <div class="mock-balance-slot-line2">
                             <span class="mock-balance-slot-wlt"><span class="mock-balance-wlt-n">1</span>승 <span class="mock-balance-wlt-n">1</span>무 <span class="mock-balance-wlt-n">0</span>패</span>
                             <div class="mock-balance-slot-line2-tray">
@@ -2455,7 +2511,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                     <div class="mock-balance-nameplate mock-balance-nameplate--red mock-balance-nameplate--rich" data-slot-id="r3">
                       <div class="mock-balance-nameplate-rich-inner">
                         <div class="mock-balance-slot-body">
-                          <span class="mock-balance-slot-nick">소리</span>
+                          <div class="mock-balance-slot-nick-row">
+                            <span class="mock-balance-slot-nick">소리</span>
+                            <span class="mock-balance-slot-mic" title="마이크 사용(목업)" aria-label="마이크 사용">🎤</span>
+                          </div>
                           <div class="mock-balance-slot-line2">
                             <span class="mock-balance-slot-wlt"><span class="mock-balance-wlt-n">2</span>승 <span class="mock-balance-wlt-n">2</span>무 <span class="mock-balance-wlt-n">0</span>패</span>
                             <div class="mock-balance-slot-line2-tray">
@@ -2474,7 +2533,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                     <div class="mock-balance-nameplate mock-balance-nameplate--blue mock-balance-nameplate--rich" data-slot-id="b4">
                       <div class="mock-balance-nameplate-rich-inner">
                         <div class="mock-balance-slot-body">
-                          <span class="mock-balance-slot-nick">ABEL</span>
+                          <div class="mock-balance-slot-nick-row">
+                            <span class="mock-balance-slot-nick">ABEL</span>
+                            <span class="mock-balance-slot-mic" title="마이크 사용(목업)" aria-label="마이크 사용">🎤</span>
+                          </div>
                           <div class="mock-balance-slot-line2">
                             <span class="mock-balance-slot-wlt"><span class="mock-balance-wlt-n">0</span>승 <span class="mock-balance-wlt-n">0</span>무 <span class="mock-balance-wlt-n">3</span>패</span>
                             <div class="mock-balance-slot-line2-tray">
@@ -2495,7 +2557,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                     <div class="mock-balance-nameplate mock-balance-nameplate--red mock-balance-nameplate--rich" data-slot-id="r4">
                       <div class="mock-balance-nameplate-rich-inner">
                         <div class="mock-balance-slot-body">
-                          <span class="mock-balance-slot-nick">뚱인데요</span>
+                          <div class="mock-balance-slot-nick-row">
+                            <span class="mock-balance-slot-nick">뚱인데요</span>
+                            <span class="mock-balance-slot-mic" title="마이크 사용(목업)" aria-label="마이크 사용">🎤</span>
+                          </div>
                           <div class="mock-balance-slot-line2">
                             <span class="mock-balance-slot-wlt"><span class="mock-balance-wlt-n">1</span>승 <span class="mock-balance-wlt-n">0</span>무 <span class="mock-balance-wlt-n">0</span>패</span>
                             <div class="mock-balance-slot-line2-tray">
@@ -2970,6 +3035,41 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
         <div class="mock-balance-switch-row">
           <span class="mock-balance-switch-label" id="mock-balance-lbl-hero-ban">영웅 밴</span>
           <button type="button" class="mock-switch" id="mock-balance-toggle-hero-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-hero-ban" onclick="return window.mockBalanceToggleHeroBan(this)">
+            <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="mock-balance-settings-section">
+        <p class="mock-balance-settings-section-title">슬롯 표시</p>
+        <p class="mock-modal-hint" style="margin:0 0 12px">켜면 편집 VS 보드 슬롯에 해당 정보를 표시합니다. <strong>저장</strong> 시 반영되며 목업은 브라우저에 기억합니다. Free 플랜에서는 A 점수는 플랜 정책으로 숨겨질 수 있습니다.</p>
+        <div class="mock-balance-switch-row" style="margin-bottom:10px">
+          <span class="mock-balance-switch-label" id="mock-balance-lbl-slotopt-wlt">오늘 게임 전적</span>
+          <button type="button" class="mock-switch" id="mock-balance-slotopt-wlt" role="switch" aria-checked="true" aria-labelledby="mock-balance-lbl-slotopt-wlt" onclick="return window.mockBalanceToggleSlotOpt(this)">
+            <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
+          </button>
+        </div>
+        <div class="mock-balance-switch-row" style="margin-bottom:10px">
+          <span class="mock-balance-switch-label" id="mock-balance-lbl-slotopt-m">M (수동) 점수</span>
+          <button type="button" class="mock-switch" id="mock-balance-slotopt-m" role="switch" aria-checked="true" aria-labelledby="mock-balance-lbl-slotopt-m" onclick="return window.mockBalanceToggleSlotOpt(this)">
+            <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
+          </button>
+        </div>
+        <div class="mock-balance-switch-row" style="margin-bottom:10px">
+          <span class="mock-balance-switch-label" id="mock-balance-lbl-slotopt-a">A (AI) 점수</span>
+          <button type="button" class="mock-switch" id="mock-balance-slotopt-a" role="switch" aria-checked="true" aria-labelledby="mock-balance-lbl-slotopt-a" onclick="return window.mockBalanceToggleSlotOpt(this)">
+            <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
+          </button>
+        </div>
+        <div class="mock-balance-switch-row" style="margin-bottom:10px">
+          <span class="mock-balance-switch-label" id="mock-balance-lbl-slotopt-tags">태그</span>
+          <button type="button" class="mock-switch" id="mock-balance-slotopt-tags" role="switch" aria-checked="true" aria-labelledby="mock-balance-lbl-slotopt-tags" onclick="return window.mockBalanceToggleSlotOpt(this)">
+            <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
+          </button>
+        </div>
+        <div class="mock-balance-switch-row">
+          <span class="mock-balance-switch-label" id="mock-balance-lbl-slotopt-mic">마이크 사용 여부</span>
+          <button type="button" class="mock-switch" id="mock-balance-slotopt-mic" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-slotopt-mic" onclick="return window.mockBalanceToggleSlotOpt(this)">
             <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
           </button>
         </div>
