@@ -156,6 +156,10 @@
       if (typeof mockBalanceAttachVsBoardInteractions === "function") {
         mockBalanceAttachVsBoardInteractions();
       }
+      if (vsBoardInit && typeof mockBalanceApplyRoleScoresToAllFilledSlots === "function") {
+        mockBalanceApplyRoleScoresToAllFilledSlots();
+        mockBalanceSyncMockScoresFromDom();
+      }
     } catch (eBalance) {}
     /* 구성원이 경기 기록 패널만 열린 상태면 요약으로 되돌림 */
     if (window.mockClanCurrentRole() === "member") {
@@ -228,31 +232,122 @@
     ],
   };
 
-  /** 풀 칩 data-name → 목업 전적·점수·태그 (슬롯 채우기용) */
+  /** 풀 칩 data-name → 목업 전적·역할별 M점수·태그 (행: 딜·딜·탱·힐·힐) */
   var MOCK_BALANCE_PLAYER_PRESETS = {
-    하지: { w: 2, t: 1, l: 0, score: "2.5", tags: [{ cls: "neutral", text: "딜 라인" }] },
-    crystal: { w: 1, t: 0, l: 2, score: "0.5", tags: [{ cls: "blue-streak", text: "3연승" }] },
-    dorae: { w: 0, t: 0, l: 0, score: "-0.5", tags: [] },
-    edward: { w: 3, t: 1, l: 0, score: "3.0", tags: [{ cls: "blue-streak", text: "3연승" }] },
-    abel: { w: 0, t: 0, l: 3, score: "-2.0", tags: [
-      { cls: "bad", text: "3연패" },
-      { cls: "bad", text: "슬럼프" },
-    ] },
-    cafemocha: { w: 1, t: 0, l: 3, score: "2.5", tags: [
-      { cls: "bad", text: "3연패" },
-      { cls: "bad", text: "슬럼프" },
-    ] },
-    nyang: { w: 4, t: 0, l: 0, score: "1.2", tags: [{ cls: "good", text: "4연승" }] },
-    sura: { w: 3, t: 1, l: 0, score: "1.8", tags: [{ cls: "bad", text: "슬럼프" }] },
-    sori: { w: 2, t: 2, l: 0, score: "4.0", tags: [] },
-    ddung: { w: 1, t: 0, l: 0, score: "0.4", tags: [] },
-    ajae: { w: 0, t: 0, l: 0, score: "0", tags: [] },
-    kri: { w: 0, t: 0, l: 0, score: "0", tags: [] },
-    emilia: { w: 0, t: 0, l: 0, score: "0", tags: [] },
-    roniel: { w: 0, t: 0, l: 0, score: "0", tags: [] },
+    하지: {
+      w: 2,
+      t: 1,
+      l: 0,
+      scores: { dps: "2.5", tank: "1.0", heal: "0.6" },
+      tags: [{ cls: "neutral", text: "딜 라인" }],
+    },
+    crystal: {
+      w: 1,
+      t: 0,
+      l: 2,
+      scores: { dps: "0.5", tank: "-0.4", heal: "0.1" },
+      tags: [{ cls: "blue-streak", text: "3연승" }],
+    },
+    dorae: { w: 0, t: 0, l: 0, scores: { dps: "-0.5", tank: "0.8", heal: "-0.2" }, tags: [] },
+    edward: {
+      w: 3,
+      t: 1,
+      l: 0,
+      scores: { dps: "3.0", tank: "1.5", heal: "2.2" },
+      tags: [{ cls: "blue-streak", text: "3연승" }],
+    },
+    abel: {
+      w: 0,
+      t: 0,
+      l: 3,
+      scores: { dps: "-2.0", tank: "0.3", heal: "-1.0" },
+      tags: [
+        { cls: "bad", text: "3연패" },
+        { cls: "bad", text: "슬럼프" },
+      ],
+    },
+    cafemocha: {
+      w: 1,
+      t: 0,
+      l: 3,
+      scores: { dps: "2.5", tank: "1.8", heal: "0.4" },
+      tags: [
+        { cls: "bad", text: "3연패" },
+        { cls: "bad", text: "슬럼프" },
+      ],
+    },
+    nyang: {
+      w: 4,
+      t: 0,
+      l: 0,
+      scores: { dps: "1.2", tank: "0.5", heal: "0.9" },
+      tags: [{ cls: "good", text: "4연승" }],
+    },
+    sura: {
+      w: 3,
+      t: 1,
+      l: 0,
+      scores: { dps: "1.8", tank: "2.2", heal: "1.0" },
+      tags: [{ cls: "bad", text: "슬럼프" }],
+    },
+    sori: { w: 2, t: 2, l: 0, scores: { dps: "4.0", tank: "2.5", heal: "3.5" }, tags: [] },
+    ddung: { w: 1, t: 0, l: 0, scores: { dps: "0.4", tank: "0.6", heal: "0.5" }, tags: [] },
+    ajae: { w: 0, t: 0, l: 0, scores: { dps: "0", tank: "0", heal: "0" }, tags: [] },
+    kri: { w: 0, t: 0, l: 0, scores: { dps: "0", tank: "0", heal: "0" }, tags: [] },
+    emilia: { w: 0, t: 0, l: 0, scores: { dps: "0", tank: "0", heal: "0" }, tags: [] },
+    roniel: { w: 0, t: 0, l: 0, scores: { dps: "0", tank: "0", heal: "0" }, tags: [] },
   };
 
   var MOCK_BALANCE_SLOT_FILL_ORDER = ["b0", "b1", "b2", "b3", "b4", "r0", "r1", "r2", "r3", "r4"];
+
+  /** 행 인덱스 0~4 → VS 고정 포지션 (탱1·딜2·힐2) */
+  var MOCK_BALANCE_ROW_ROLES = ["dps", "dps", "tank", "heal", "heal"];
+
+  function mockBalanceRoleForRowIndex(rowIdx) {
+    return MOCK_BALANCE_ROW_ROLES[rowIdx] || "dps";
+  }
+
+  function mockBalanceRowIndexFromSlotId(slotId) {
+    if (!slotId || slotId.length < 2) return 0;
+    var n = parseInt(slotId.slice(1), 10);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function mockBalanceScoreFromPreset(pr, role) {
+    if (!pr) return "0";
+    if (pr.scores && pr.scores[role] != null && String(pr.scores[role]).length) {
+      return String(pr.scores[role]);
+    }
+    if (pr.score != null) return String(pr.score);
+    return "0";
+  }
+
+  /** 슬롯 행(딜/탱/힐)에 맞는 프리셋 M점수를 입력칸에 반영 */
+  function mockBalanceApplyRoleScoreToPlate(plate) {
+    if (!plate || plate.getAttribute("data-empty") === "true") return;
+    var slug = plate.getAttribute("data-pool-slug");
+    if (!slug) return;
+    var sid = plate.getAttribute("data-slot-id") || "";
+    var rowIdx = mockBalanceRowIndexFromSlotId(sid);
+    var role = mockBalanceRoleForRowIndex(rowIdx);
+    var pr = MOCK_BALANCE_PLAYER_PRESETS[slug];
+    var sc = mockBalanceScoreFromPreset(pr, role);
+    var inp = plate.querySelector(".mock-balance-manual-input");
+    var nickEl = plate.querySelector(".mock-balance-slot-nick");
+    if (inp) {
+      inp.value = sc;
+      var nm = nickEl ? (nickEl.textContent || "").trim() : "";
+      inp.setAttribute("aria-label", (nm || "플레이어") + " Manual 점수");
+    }
+  }
+
+  function mockBalanceApplyRoleScoresToAllFilledSlots() {
+    var board = document.getElementById("mock-balance-vs-board");
+    if (!board) return;
+    board.querySelectorAll(".mock-balance-nameplate--rich[data-slot-id]").forEach(function (p) {
+      mockBalanceApplyRoleScoreToPlate(p);
+    });
+  }
 
   function mockBalanceTagClassFromPresetCls(cls) {
     if (cls === "blue-streak") return "mock-balance-tag mock-balance-tag--blue-streak";
@@ -360,7 +455,13 @@
   }
 
   function mockBalanceFillSlotFromPreset(plate, slug, displayName) {
-    var pr = MOCK_BALANCE_PLAYER_PRESETS[slug] || { w: 0, t: 0, l: 0, score: "0", tags: [] };
+    var pr = MOCK_BALANCE_PLAYER_PRESETS[slug] || {
+      w: 0,
+      t: 0,
+      l: 0,
+      scores: { dps: "0", tank: "0", heal: "0" },
+      tags: [],
+    };
     mockBalanceWriteSlotPayload(plate, {
       empty: false,
       slug: slug,
@@ -368,12 +469,14 @@
       w: pr.w,
       t: pr.t,
       l: pr.l,
-      score: String(pr.score),
+      score: "0",
       tagsHtml: mockBalancePresetTagsHtml(pr.tags),
     });
+    mockBalanceApplyRoleScoreToPlate(plate);
   }
 
   function mockBalanceRefreshAfterSlotChange() {
+    mockBalanceApplyRoleScoresToAllFilledSlots();
     mockBalanceSyncMockScoresFromDom();
     if (typeof window.mockBalanceApplyRoleWeightsToUI === "function") {
       window.mockBalanceApplyRoleWeightsToUI();
@@ -574,13 +677,20 @@
 
   var MOCK_BALANCE_MANUAL_SCORE_MODE_KEY = "mockBalanceManualScoreMode";
 
-  /** 참고 패널: 슬롯 첫 점수 행 라벨 M ↔ A 표기 (목업, localStorage 유지) */
+  /** 참고 패널: 슬롯 첫 점수 행 라벨 M ↔ A 표기 (Premium만, Free는 M 고정·저장 안 함) */
   window.mockBalanceSetManualScoreMode = function (mode) {
     var board = document.getElementById("mock-balance-vs-board");
     var m = mode === "a" ? "a" : "m";
-    try {
-      localStorage.setItem(MOCK_BALANCE_MANUAL_SCORE_MODE_KEY, m);
-    } catch (e) {}
+    var isPremium =
+      typeof window.mockClanCurrentPlan !== "function" || window.mockClanCurrentPlan() === "premium";
+    if (!isPremium) {
+      m = "m";
+    }
+    if (isPremium) {
+      try {
+        localStorage.setItem(MOCK_BALANCE_MANUAL_SCORE_MODE_KEY, m);
+      } catch (e) {}
+    }
     if (board) {
       board.classList.toggle("mock-balance-vs-board--manual-score-a", m === "a");
     }
@@ -592,6 +702,10 @@
   };
 
   window.mockBalanceApplyManualScoreModeFromStorage = function () {
+    if (typeof window.mockClanCurrentPlan === "function" && window.mockClanCurrentPlan() !== "premium") {
+      window.mockBalanceSetManualScoreMode("m");
+      return;
+    }
     var m = "m";
     try {
       var s = localStorage.getItem(MOCK_BALANCE_MANUAL_SCORE_MODE_KEY);
