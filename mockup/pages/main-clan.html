@@ -198,18 +198,8 @@
 .mock-tag-dps { color: #fda4af; border-color: rgba(251,113,133,0.35); background: rgba(251,113,133,0.08); }
 .mock-tag-sup { color: #6ee7b7; border-color: rgba(52,211,153,0.35); background: rgba(52,211,153,0.08); }
 .mock-pred-bar { height: 8px; border-radius: 99px; background: var(--bg-overlay); overflow: hidden; display: flex; margin-top: 8px; }
-/* 좌 레드 · 우 블루 (VS 보드와 동일) */
-.mock-pred-b {
-  flex: 48 1 0%;
-  min-width: 3px;
-  background: linear-gradient(90deg, #fb7185, #f43f5e);
-  opacity: 0.85;
-}
-.mock-pred-a {
-  flex: 52 1 0%;
-  min-width: 3px;
-  background: linear-gradient(90deg, #38bdf8, #6366f1);
-}
+.mock-pred-a { width: 52%; background: linear-gradient(90deg, #38bdf8, #6366f1); }
+.mock-pred-b { flex: 1; background: linear-gradient(90deg, #fb7185, #f43f5e); opacity: 0.85; }
 /* 밸런스: 맵/영웅 밴 — 플랫 iOS형 스위치 */
 .mock-balance-switch-row {
   display: flex;
@@ -857,16 +847,6 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   align-items: stretch;
   margin-bottom: 8px;
 }
-/* 블루팀 좌우 반전: 레드(좌) · 역할 · 블루(우) — DOM 순서는 유지 */
-.mock-balance-vs-row .mock-balance-nameplate--red {
-  grid-column: 1;
-}
-.mock-balance-vs-row .mock-balance-role-ic {
-  grid-column: 2;
-}
-.mock-balance-vs-row .mock-balance-nameplate--blue {
-  grid-column: 3;
-}
 .mock-balance-nameplate {
   font-size: 12px;
   font-weight: 600;
@@ -1323,10 +1303,10 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   margin-bottom: 6px;
 }
 .mock-balance-strength-vals span:first-child {
-  color: #fb7185;
+  color: #7dd3fc;
 }
 .mock-balance-strength-vals span:last-child {
-  color: #7dd3fc;
+  color: #fb7185;
 }
 .mock-balance-strength-bar {
   height: 10px;
@@ -1423,20 +1403,9 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
-/* 밴픽: VS 보드와 동일하게 레드(좌) · 블루(우) */
-.mock-banpick-mock .mock-banpick-col:first-child {
-  grid-column: 2;
-}
-.mock-banpick-mock .mock-banpick-col:last-child {
-  grid-column: 1;
-}
 @media (max-width: 700px) {
   .mock-banpick-mock {
     grid-template-columns: 1fr;
-  }
-  .mock-banpick-mock .mock-banpick-col:first-child,
-  .mock-banpick-mock .mock-banpick-col:last-child {
-    grid-column: auto;
   }
 }
 .mock-banpick-col {
@@ -2540,9 +2509,9 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
 
                 <div class="mock-balance-vs-column">
                   <div class="mock-balance-vs-head" aria-hidden="true">
-                    <span>레드 팀</span>
-                    <span class="mock-balance-vs-mid">VS</span>
                     <span>블루 팀</span>
+                    <span class="mock-balance-vs-mid">VS</span>
+                    <span>레드 팀</span>
                   </div>
                   <div id="mock-balance-vs-board" class="mock-balance-vs-board">
                   <div class="mock-balance-vs-row">
@@ -2785,16 +2754,16 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                     </div>
                     <div class="mock-balance-strength">
                       <div class="mock-balance-strength-label">플레이어 자동점수 합 (역할 가중치 반영 · 팀 밸런스 감각용)</div>
-                      <div class="mock-balance-strength-vals"><span id="mock-balance-strength-red">레드 3.20</span><span id="mock-balance-strength-blue">블루 2.00</span></div>
-                      <div class="mock-balance-strength-bar" aria-hidden="true"><div id="mock-balance-strength-bar-b" class="mock-balance-strength-b"></div><div id="mock-balance-strength-bar-a" class="mock-balance-strength-a"></div></div>
+                      <div class="mock-balance-strength-vals"><span id="mock-balance-strength-blue">블루 2.00</span><span id="mock-balance-strength-red">레드 3.20</span></div>
+                      <div class="mock-balance-strength-bar" aria-hidden="true"><div id="mock-balance-strength-bar-a" class="mock-balance-strength-a"></div><div id="mock-balance-strength-bar-b" class="mock-balance-strength-b"></div></div>
                     </div>
                     <div class="mock-balance-pred-block mock-hide-on-free">
                       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;font-weight:600;margin-bottom:4px">
                         자동점수 기반 승률 예측
                         <button type="button" class="mock-help-tip" data-tip="Premium 클랜에서 제공하는 참고 지표입니다. 팀 자동점수 합을 바탕으로 한 승률 추정(목업)이며, 실제 배당·예측 마감은 별도 정책을 따릅니다." aria-label="승률 예측 도움말">?</button>
                       </div>
-                      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px"><span>레드 48%</span><span>블루 52%</span></div>
-                      <div class="mock-pred-bar"><div class="mock-pred-b"></div><div class="mock-pred-a"></div></div>
+                      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px"><span>블루 52%</span><span>레드 48%</span></div>
+                      <div class="mock-pred-bar"><div class="mock-pred-a"></div><div class="mock-pred-b"></div></div>
                     </div>
                   </div>
                 </aside>
@@ -2876,9 +2845,9 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
           <button type="button" class="mock-help-tip" data-tip="맵·영웅 밴이 모두 꺼져 있을 때 참가자에게 보이는 고정 라인업(읽기 전용)입니다." aria-label="참가자 5vs5 도움말">?</button>
         </div>
         <div class="mock-balance-vs-head">
-          <span><span class="mock-balance-crown" title=" ">👑</span><br />레드 팀</span>
-          <span class="mock-balance-vs-mid">VS</span>
           <span><span class="mock-balance-crown is-winner" title="우세(목업)">👑</span><br />블루 팀</span>
+          <span class="mock-balance-vs-mid">VS</span>
+          <span><span class="mock-balance-crown" title=" ">👑</span><br />레드 팀</span>
         </div>
         <div class="mock-balance-vs-board mock-balance-vs-board--scores-off" id="mock-balance-lineup-board" aria-label="5vs5 라인업">
           <div class="mock-balance-vs-row">
