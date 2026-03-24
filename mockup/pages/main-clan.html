@@ -304,27 +304,38 @@
   display: none !important;
 }
 .mock-balance-layout {
-  display: grid;
-  grid-template-columns: 1fr minmax(220px, 270px);
-  gap: 16px;
-  align-items: start;
-}
-@media (max-width: 960px) {
-  .mock-balance-layout {
-    grid-template-columns: 1fr;
-  }
+  display: block;
 }
 .mock-balance-center-col {
   min-width: 0;
 }
+/* 팀 보드와 참고 패널 높이 맞춤(플렉스 stretch) */
+.mock-balance-board-ref-row {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  align-items: stretch;
+  margin: 0 0 12px;
+}
+.mock-balance-vs-column {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
 .mock-balance-ref-sidebar {
+  flex: 0 0 min(270px, 34%);
+  width: min(270px, 34%);
+  max-width: 270px;
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   background: var(--bg-overlay);
   padding: 12px 14px;
   font-size: 12px;
-  position: sticky;
-  top: 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  box-sizing: border-box;
 }
 .mock-balance-ref-head {
   font-size: 11px;
@@ -333,12 +344,46 @@
   text-transform: uppercase;
   color: var(--text-muted);
   margin-bottom: 6px;
+  flex-shrink: 0;
 }
 .mock-balance-ref-hint {
   font-size: 10px;
   line-height: 1.45;
   color: var(--text-muted);
-  margin: 0 0 12px;
+  margin: 0 0 10px;
+  flex-shrink: 0;
+}
+.mock-balance-ref-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+@media (max-width: 960px) {
+  .mock-balance-board-ref-row {
+    flex-direction: column;
+  }
+  .mock-balance-ref-sidebar {
+    flex: none;
+    width: 100%;
+    max-width: none;
+    min-height: 180px;
+  }
+}
+.mock-balance-pool-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.mock-balance-pool-head-row .mock-balance-pool-head {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 0;
 }
 .mock-balance-toolbar-balance {
   display: flex;
@@ -361,21 +406,6 @@
   flex-wrap: wrap;
   gap: 2px 0;
   line-height: 1.5;
-}
-.mock-balance-feature-line strong {
-  color: #86efac;
-  font-weight: 700;
-}
-.mock-plan-pill {
-  font-size: 10px;
-  font-weight: 800;
-  padding: 2px 7px;
-  border-radius: 99px;
-  background: rgba(113, 113, 122, 0.25);
-  color: var(--text-muted);
-  border: 1px solid var(--border);
-  margin-left: 4px;
-  vertical-align: middle;
 }
 .mock-help-tip {
   display: inline-flex;
@@ -447,15 +477,6 @@
 }
 .mock-balance-pool-col--below .mock-balance-pool-grid {
   grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
-}
-@media (max-width: 960px) {
-  .mock-balance-ref-sidebar {
-    position: static;
-    order: 3;
-  }
-  .mock-balance-center-col {
-    order: 1;
-  }
 }
 .mock-balance-pool-head {
   font-size: 13px;
@@ -1308,9 +1329,11 @@
 .mock-member-only { display: none; }
 body.mock-role-member .mock-officer-only { display: none !important; }
 body.mock-role-member .mock-member-only { display: block !important; }
-/* 목업 플랜(_hub) — 밸런스 PRO 기능 문구 전환 */
-body.mock-plan-premium .mock-balance-toolbar-free-only { display: none !important; }
-body.mock-plan-free .mock-balance-toolbar-premium-only { display: none !important; }
+/* 목업 플랜(_hub) — Premium 전용 블록은 Free에서 숨김 */
+body.mock-plan-free .mock-balance-toolbar-premium-only,
+body.mock-plan-free .mock-hide-on-free { display: none !important; }
+body.mock-plan-premium .mock-balance-free-note { display: none !important; }
+body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-size: 12px; color: var(--text-muted); line-height: 1.5; }
 .mock-modal-overlay {
   position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.65);
   display: flex; align-items: center; justify-content: center; padding: 20px;
@@ -1787,37 +1810,26 @@ body.mock-plan-free .mock-balance-toolbar-premium-only { display: none !importan
 
   <!-- ── 밸런스메이커 뷰 (PRD §6.1) — 5v5 탱1·딜2·힐2 고정, 6v6 미지원 목업 ── -->
   <div id="view-balance" class="clan-view">
-    <div class="mock-page-title">밸런스메이커 <span class="mock-pro-inline">PRO 구간 표시 통일</span></div>
-    <p class="mock-page-desc">운영진이 출전 명단·포지션을 잡는 <strong>편집기</strong> 목업입니다. <strong>5v5 · 탱1 딜2 힐2</strong> 고정. 맵은 맵 밴 OFF일 때만 직접 선택(모달). 아래 탭으로 배치 확정 후 참가자(밴픽/5v5)·관전자(승부예측) 화면을 전환해 볼 수 있습니다.</p>
-    <div class="mock-toolbar mock-balance-toolbar-balance">
-      <div class="mock-balance-toolbar-premium mock-balance-toolbar-premium-only">
+    <div class="mock-page-title">밸런스메이커</div>
+    <p class="mock-page-desc">운영진이 출전 명단·포지션을 잡는 <strong>편집기</strong> 목업입니다. <strong>5v5 · 탱1 딜2 힐2</strong> 고정. 맵은 맵 밴 OFF일 때만 직접 선택(모달). 상단 단계 탭으로 배치 확정 후 참가자(밴픽/5v5)·관전자(승부예측) 화면을 전환해 볼 수 있습니다.</p>
+    <div class="mock-toolbar mock-balance-toolbar-balance mock-balance-toolbar-premium-only">
+      <div class="mock-balance-toolbar-premium">
         <span class="mock-balance-feature-line">
-          팀 자동 밸런싱 <strong>[활성화]</strong>
-          <button type="button" class="mock-help-tip" data-tip="클랜원 자동 점수와 포지션(탱·딜·힐)을 반영해 블루·레드 진영을 자동으로 나눕니다. 운영진은 결과를 수동으로 조정할 수 있습니다." aria-label="팀 자동 밸런싱 기능 설명">?</button>
+          팀 자동 밸런싱
+          <button type="button" class="mock-help-tip" data-tip="Premium 클랜 기능입니다. 클랜원 자동 점수와 포지션(탱·딜·힐)을 반영해 블루·레드 진영을 자동으로 나눕니다. 운영진은 결과를 수동으로 조정할 수 있습니다." aria-label="팀 자동 밸런싱 설명">?</button>
         </span>
         <span class="mock-balance-feature-line">
-          OCR 닉 입력 <strong>[활성화]</strong>
-          <button type="button" class="mock-help-tip" data-tip="내전·스크림 결과 화면 스크린샷에서 닉네임을 인식해 출전 명단 입력을 돕습니다. (Premium)" aria-label="OCR 닉 입력 기능 설명">?</button>
-        </span>
-      </div>
-      <div class="mock-balance-toolbar-premium mock-balance-toolbar-free-only">
-        <span class="mock-balance-feature-line">
-          팀 자동 밸런싱 <span class="mock-plan-pill">Premium</span>
-          <button type="button" class="mock-help-tip" data-tip="Premium 클랜에서 사용할 수 있습니다. 자동 점수·포지션을 기준으로 양 팀을 자동 배치합니다." aria-label="팀 자동 밸런싱 Premium 안내">?</button>
+          OCR 닉 입력
+          <button type="button" class="mock-help-tip" data-tip="Premium 클랜 기능입니다. 내전·스크림 결과 화면 스크린샷에서 닉네임을 인식해 출전 명단 입력을 돕습니다." aria-label="OCR 닉 입력 설명">?</button>
         </span>
         <span class="mock-balance-feature-line">
-          OCR 닉 입력 <span class="mock-plan-pill">Premium</span>
-          <button type="button" class="mock-help-tip" data-tip="Premium 클랜에서 사용할 수 있습니다. 스크린샷에서 닉네임을 읽어 명단 입력 시간을 줄입니다." aria-label="OCR Premium 안내">?</button>
+          디스코드 시작 알림 <span style="font-size:11px;color:var(--text-muted);font-weight:500">(자동)</span>
+          <button type="button" class="mock-help-tip" data-tip="Premium 클랜 기능입니다. 배치 완료를 확정하면 연동된 디스코드 채널에 경기 시작 안내가 자동으로 발송됩니다. 별도 버튼 없이 확정 시점에 동작합니다." aria-label="디스코드 시작 알림 설명">?</button>
         </span>
       </div>
     </div>
-    <div class="mock-tab-row">
-      <button type="button" class="mock-tab mock-tab-active" data-balance-match-tab onclick="mockBalanceSetMatch(this,'m1')">3/22 내전 <span class="badge badge-brand" style="font-size:9px;margin-left:4px">draft</span></button>
-      <button type="button" class="mock-tab" data-balance-match-tab onclick="mockBalanceSetMatch(this,'m2')">3/20 스크림</button>
-      <button type="button" class="mock-tab" data-balance-match-tab onclick="mockBalanceSetMatch(this,'m3')">3/18 내전</button>
-    </div>
-    <div data-balance-match-panel="m1" class="d-card d-card-full" style="margin-bottom:16px">
-      <div class="d-card-label">3/22 토요 내전 <span class="badge badge-brand" style="font-size:10px">작성중</span></div>
+    <div class="d-card d-card-full" style="margin-bottom:16px">
+      <div class="d-card-label">밸런스 편집</div>
       <p class="mock-modal-hint" style="margin:6px 0 14px">시나리오 미리보기: 실제 구현에서는 배치 확정 시 역할에 따라 리다이렉트됩니다.</p>
       <div class="mock-balance-wf-tabs" role="tablist" aria-label="밸런스 화면 단계">
         <button type="button" class="mock-balance-wf-tab mock-tab-active" data-balance-wf-tab data-balance-wf-id="edit" onclick="return window.mockBalanceSetWorkflow(this,'edit')">① 편집 중</button>
@@ -1833,14 +1845,12 @@ body.mock-plan-free .mock-balance-toolbar-premium-only { display: none !importan
             <button type="button" class="mock-switch" id="mock-balance-toggle-map-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-map-ban" onclick="return window.mockBalanceToggleMapBan(this)">
               <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
             </button>
-            <span class="mock-pro-inline">PRO</span>
           </div>
           <div class="mock-balance-switch-row">
             <span class="mock-balance-switch-label" id="mock-balance-lbl-hero-ban">영웅 밴</span>
             <button type="button" class="mock-switch" id="mock-balance-toggle-hero-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-hero-ban" onclick="return window.mockBalanceToggleHeroBan(this)">
               <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
             </button>
-            <span class="mock-pro-inline">PRO</span>
           </div>
         </div>
         <p id="mock-balance-ban-hint" class="mock-modal-hint" style="margin-bottom:12px">맵 밴·영웅 밴을 켜면 밴 슬롯이 표시됩니다. (슬롯 개수·적용 규칙은 이후 확정)</p>
@@ -1868,46 +1878,74 @@ body.mock-plan-free .mock-balance-toolbar-premium-only { display: none !importan
             </div>
             <p id="mock-balance-ledger-date-hint" class="mock-modal-hint" style="margin:-4px 0 12px;font-size:11px;line-height:1.45"><strong>당일 정의(KST)</strong>: 해당 일자의 <strong>06:00</strong>부터 <strong>다음 날 06:00</strong> 직전까지를 같은 집계일로 봅니다. 자정 넘긴 새벽 경기도 같은 날로 묶입니다. <strong>표시 일자·아카이브 귀속은 백엔드/API에서 처리</strong>하고, 클라이언트는 응답값만 씁니다.</p>
 
-            <div class="mock-balance-vs-head" aria-hidden="true">
-              <span>블루 팀</span>
-              <span class="mock-balance-vs-mid">VS</span>
-              <span>레드 팀</span>
-            </div>
-            <div id="mock-balance-vs-board" class="mock-balance-vs-board">
-              <div class="mock-balance-vs-row">
-                <div class="mock-balance-nameplate mock-balance-nameplate--blue">하지<div class="mock-balance-slot-extras"><span class="mock-balance-mic" title="마이크">🎙️</span><span>2.5점</span><span>0승 0패</span><span class="badge badge-muted" style="font-size:9px">탱 숙련</span></div></div>
-                <div class="mock-balance-role-ic" title="딜">⚔</div>
-                <div class="mock-balance-nameplate mock-balance-nameplate--red">나는우리팀믿어<div class="mock-balance-slot-extras"><span class="mock-balance-mic" title="마이크 없음">🔇</span><span>-1.0점</span><span>0승 3패</span><span class="badge badge-muted" style="font-size:9px">3연패</span></div></div>
+            <div class="mock-balance-board-ref-row">
+              <div class="mock-balance-vs-column">
+                <div class="mock-balance-vs-head" aria-hidden="true">
+                  <span>블루 팀</span>
+                  <span class="mock-balance-vs-mid">VS</span>
+                  <span>레드 팀</span>
+                </div>
+                <div id="mock-balance-vs-board" class="mock-balance-vs-board">
+                  <div class="mock-balance-vs-row">
+                    <div class="mock-balance-nameplate mock-balance-nameplate--blue">하지<div class="mock-balance-slot-extras"><span class="mock-balance-mic" title="마이크">🎙️</span><span>2.5점</span><span>0승 0패</span><span class="badge badge-muted" style="font-size:9px">탱 숙련</span></div></div>
+                    <div class="mock-balance-role-ic" title="딜">⚔</div>
+                    <div class="mock-balance-nameplate mock-balance-nameplate--red">나는우리팀믿어<div class="mock-balance-slot-extras"><span class="mock-balance-mic" title="마이크 없음">🔇</span><span>-1.0점</span><span>0승 3패</span><span class="badge badge-muted" style="font-size:9px">3연패</span></div></div>
+                  </div>
+                  <div class="mock-balance-vs-row">
+                    <div class="mock-balance-nameplate mock-balance-nameplate--blue">GON<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>0.5점</span><span>1승 2패</span></div></div>
+                    <div class="mock-balance-role-ic" title="딜">⚔</div>
+                    <div class="mock-balance-nameplate mock-balance-nameplate--red">냥이의비행<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>1.2점</span><span>4승 0패</span></div></div>
+                  </div>
+                  <div class="mock-balance-vs-row">
+                    <div class="mock-balance-nameplate mock-balance-nameplate--blue">DORAE<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🔇</span><span>-0.5점</span><span>0승 0패</span></div></div>
+                    <div class="mock-balance-role-ic" title="탱">🛡</div>
+                    <div class="mock-balance-nameplate mock-balance-nameplate--red">TOOJI<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>1.8점</span><span>3승 1패</span></div></div>
+                  </div>
+                  <div class="mock-balance-vs-row">
+                    <div class="mock-balance-nameplate mock-balance-nameplate--blue">애드워드애릭<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>0.2점</span><span>1승 1패</span></div></div>
+                    <div class="mock-balance-role-ic" title="힐">✚</div>
+                    <div class="mock-balance-nameplate mock-balance-nameplate--red">소리<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>0.8점</span><span>2승 2패</span></div></div>
+                  </div>
+                  <div class="mock-balance-vs-row">
+                    <div class="mock-balance-nameplate mock-balance-nameplate--blue">ABEL<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🔇</span><span>-0.7점</span><span>0승 3패</span></div></div>
+                    <div class="mock-balance-role-ic" title="힐">✚</div>
+                    <div class="mock-balance-nameplate mock-balance-nameplate--red">뚱인데요<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>0.4점</span><span>1승 0패</span></div></div>
+                  </div>
+                </div>
               </div>
-              <div class="mock-balance-vs-row">
-                <div class="mock-balance-nameplate mock-balance-nameplate--blue">GON<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>0.5점</span><span>1승 2패</span></div></div>
-                <div class="mock-balance-role-ic" title="딜">⚔</div>
-                <div class="mock-balance-nameplate mock-balance-nameplate--red">냥이의비행<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>1.2점</span><span>4승 0패</span></div></div>
-              </div>
-              <div class="mock-balance-vs-row">
-                <div class="mock-balance-nameplate mock-balance-nameplate--blue">DORAE<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🔇</span><span>-0.5점</span><span>0승 0패</span></div></div>
-                <div class="mock-balance-role-ic" title="탱">🛡</div>
-                <div class="mock-balance-nameplate mock-balance-nameplate--red">TOOJI<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>1.8점</span><span>3승 1패</span></div></div>
-              </div>
-              <div class="mock-balance-vs-row">
-                <div class="mock-balance-nameplate mock-balance-nameplate--blue">애드워드애릭<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>0.2점</span><span>1승 1패</span></div></div>
-                <div class="mock-balance-role-ic" title="힐">✚</div>
-                <div class="mock-balance-nameplate mock-balance-nameplate--red">소리<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>0.8점</span><span>2승 2패</span></div></div>
-              </div>
-              <div class="mock-balance-vs-row">
-                <div class="mock-balance-nameplate mock-balance-nameplate--blue">ABEL<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🔇</span><span>-0.7점</span><span>0승 3패</span></div></div>
-                <div class="mock-balance-role-ic" title="힐">✚</div>
-                <div class="mock-balance-nameplate mock-balance-nameplate--red">뚱인데요<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>0.4점</span><span>1승 0패</span></div></div>
-              </div>
+
+              <aside class="mock-balance-ref-sidebar" aria-label="참고 지표">
+                <div class="mock-balance-ref-head">참고</div>
+                <p class="mock-balance-ref-hint">자동 점수·예측은 배치 판단 보조용 목업입니다. 실제 수치·노출 여부는 API·플랜 정책을 따릅니다.</p>
+                <div class="mock-balance-ref-scroll">
+                  <div class="mock-balance-strength">
+                    <div class="mock-balance-strength-label">플레이어 자동점수 합 (팀 밸런스 감각용)</div>
+                    <div class="mock-balance-strength-vals"><span>블루 1.75</span><span>레드 3.25</span></div>
+                    <div class="mock-balance-strength-bar" aria-hidden="true"><div class="mock-balance-strength-a"></div><div class="mock-balance-strength-b"></div></div>
+                  </div>
+                  <div class="mock-balance-team-tags">팀 단위 특이 태그(자동): <span class="badge badge-muted" style="font-size:10px">탱 라인 승률 열세</span> <span class="badge badge-muted" style="font-size:10px">레드 딜 평균 자동점↑</span></div>
+                  <div class="mock-balance-pred-block mock-hide-on-free">
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;font-weight:600;margin-bottom:4px">
+                      자동점수 기반 승률 예측
+                      <button type="button" class="mock-help-tip" data-tip="Premium 클랜에서 제공하는 참고 지표입니다. 팀 자동점수 합을 바탕으로 한 승률 추정(목업)이며, 실제 배당·예측 마감은 별도 정책을 따릅니다." aria-label="승률 예측 설명">?</button>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px"><span>블루 52%</span><span>레드 48%</span></div>
+                    <div class="mock-pred-bar"><div class="mock-pred-a"></div><div class="mock-pred-b"></div></div>
+                  </div>
+                </div>
+              </aside>
             </div>
 
-            <label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12px;color:var(--text-muted);cursor:pointer">
+            <label style="display:flex;align-items:center;gap:8px;margin-top:4px;font-size:12px;color:var(--text-muted);cursor:pointer">
               <input type="checkbox" id="mock-balance-show-scores" checked onchange="window.mockBalanceToggleScores(this)" />
               점수·전적·태그 표시 (배치 완료 후 기본 ON)
             </label>
 
             <aside class="mock-balance-pool-col mock-balance-pool-col--below" aria-label="클랜원 풀">
-              <div class="mock-balance-pool-head">플레이어 선택 <span style="font-size:11px;font-weight:500;color:var(--text-muted)">(목업: 클릭은 알림)</span></div>
+              <div class="mock-balance-pool-head-row">
+                <div class="mock-balance-pool-head">플레이어 선택 <span style="font-size:11px;font-weight:500;color:var(--text-muted)">(목업: 클릭은 알림)</span></div>
+                <button type="button" class="btn btn-sm" onclick="return window.mockBalancePlacementDone()">배치 완료</button>
+              </div>
               <div class="mock-balance-pool-filters">
                 <input type="search" id="mock-balance-pool-search" placeholder="닉네임 검색" autocomplete="off" oninput="window.mockBalancePoolFilter(this)" aria-label="플레이어 검색" />
                 <select id="mock-balance-pool-sort" title="정렬" aria-label="정렬">
@@ -1934,28 +1972,8 @@ body.mock-plan-free .mock-balance-toolbar-premium-only { display: none !importan
               </div>
             </aside>
 
-            <div class="mock-balance-actions">
-              <button type="button" class="btn btn-sm" onclick="return window.mockBalancePlacementDone()">배치 완료</button>
-              <button type="button" class="btn btn-secondary btn-sm" style="opacity:0.55;cursor:not-allowed" disabled title="PRO">디스코드 시작 알림 <span class="mock-pro-inline" style="margin-left:4px">PRO</span></button>
-              <span style="font-size:11px;color:var(--text-muted)">확정 후 참가/비참가 분기는 상단 ②③④ 탭으로 목업 확인</span>
-            </div>
+            <p class="mock-modal-hint" style="margin:10px 0 0;font-size:11px;line-height:1.45">확정 후 참가/비참가 분기는 상단 ②③④ 탭으로 목업 확인합니다.</p>
           </div>
-
-          <aside class="mock-balance-ref-sidebar" aria-label="참고 지표">
-            <div class="mock-balance-ref-head">참고</div>
-            <p class="mock-balance-ref-hint">자동 점수·예측은 배치 판단 보조용 목업입니다. 실제 수치·노출 여부는 API·플랜 정책을 따릅니다.</p>
-            <div class="mock-balance-strength">
-              <div class="mock-balance-strength-label">플레이어 자동점수 합 (팀 밸런스 감각용)</div>
-              <div class="mock-balance-strength-vals"><span>블루 1.75</span><span>레드 3.25</span></div>
-              <div class="mock-balance-strength-bar" aria-hidden="true"><div class="mock-balance-strength-a"></div><div class="mock-balance-strength-b"></div></div>
-            </div>
-            <div class="mock-balance-team-tags">팀 단위 특이 태그(자동): <span class="badge badge-muted" style="font-size:10px">탱 라인 승률 열세</span> <span class="badge badge-muted" style="font-size:10px">레드 딜 평균 자동점↑</span></div>
-            <div class="mock-balance-pred-block">
-              <div style="font-size:12px;font-weight:600;margin-bottom:4px">자동점수 기반 승률 예측 <span class="mock-pro-inline">PRO</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px"><span>블루 52%</span><span>레드 48%</span></div>
-              <div class="mock-pred-bar"><div class="mock-pred-a"></div><div class="mock-pred-b"></div></div>
-            </div>
-          </aside>
         </div>
       </div>
 
@@ -2018,10 +2036,14 @@ body.mock-plan-free .mock-balance-toolbar-premium-only { display: none !importan
       </div>
 
       <div id="mock-balance-wf-spectator" data-balance-wf-panel="spectator" class="mock-balance-wf-panel" hidden>
-        <p class="mock-modal-hint" style="margin-bottom:12px">이번 경기에 <strong>출전하지 않은</strong> 구성원 화면. 마감·배당·파리뮤추엘 정산은 PRO.</p>
-        <div class="mock-predict-mock">
+        <p class="mock-modal-hint" style="margin-bottom:12px">이번 경기에 <strong>출전하지 않은</strong> 구성원 화면입니다.</p>
+        <p class="mock-balance-free-note mock-modal-hint" style="margin-bottom:12px">승부 예측·배당·파리뮤추엘 정산 목업은 허브에서 <strong>Premium 플랜</strong>을 선택한 뒤 이 탭을 다시 열어 확인하세요.</p>
+        <div class="mock-predict-mock mock-hide-on-free">
           <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center">
-            <strong style="font-size:13px">승부예측 <span class="mock-pro-inline">PRO</span></strong>
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <strong style="font-size:13px">승부 예측</strong>
+              <button type="button" class="mock-help-tip" data-tip="Premium 클랜 기능입니다. 비출전 구성원이 블루/레드 승을 예측하고 클랜코인을 걸 수 있습니다. 마감 시각·배당·파리뮤추엘 정산은 서버 정책을 따릅니다." aria-label="승부 예측 설명">?</button>
+            </div>
             <span style="font-size:12px;color:#fb7185;font-variant-numeric:tabular-nums" id="mock-balance-predict-ttl">마감까지 04:32</span>
           </div>
           <p style="font-size:12px;color:var(--text-muted);margin:8px 0 0">실시간 합계 기준 예상 배당(목업)</p>
@@ -2035,19 +2057,11 @@ body.mock-plan-free .mock-balance-toolbar-premium-only { display: none !importan
             <button type="button" class="btn btn-secondary btn-sm">레드 승</button>
             <label style="font-size:12px;color:var(--text-muted);margin-left:8px">클랜코인</label>
             <input type="number" min="0" max="500" value="50" readonly title="상한 목업" />
-            <button type="button" class="btn btn-sm" onclick="alert('목업: PRO 예측 제출')">예측하기</button>
+            <button type="button" class="btn btn-sm" onclick="alert('목업: 예측 제출')">예측하기</button>
           </div>
           <p style="font-size:11px;color:var(--text-muted);margin:12px 0 0">경기 종료 후 운영진 결과 입력 → 파리뮤추엘 지급 · 내역·재정산은 기록 탭 연동(설계).</p>
         </div>
       </div>
-    </div>
-    <div data-balance-match-panel="m2" class="d-card d-card-full" style="margin-bottom:16px;display:none">
-      <div class="d-card-label">3/20 스크림 vs Nova <span class="badge badge-success" style="font-size:10px">종료</span></div>
-      <p style="font-size:13px;color:var(--text-muted)">종료된 경기 — 통계 탭으로 집계 전달 (플랜).</p>
-    </div>
-    <div data-balance-match-panel="m3" class="d-card d-card-full" style="margin-bottom:16px;display:none">
-      <div class="d-card-label">3/18 화요 내전 <span class="badge badge-success" style="font-size:10px">종료</span></div>
-      <p style="font-size:13px;color:var(--text-muted)">요약만 표시하는 패턴 예시.</p>
     </div>
   </div>
 

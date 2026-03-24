@@ -176,14 +176,9 @@
     });
   };
 
-  /* 밸런스: 경기 탭 목업 */
-  window.mockBalanceSetMatch = function (btn, id) {
-    document.querySelectorAll("[data-balance-match-tab]").forEach(function (b) {
-      b.classList.toggle("mock-tab-active", b === btn);
-    });
-    document.querySelectorAll("[data-balance-match-panel]").forEach(function (p) {
-      p.style.display = p.getAttribute("data-balance-match-panel") === id ? "" : "none";
-    });
+  /* 밸런스: 구 경기 탭 목업(제거됨) — 호출 잔존 시 무해 */
+  window.mockBalanceSetMatch = function () {
+    return false;
   };
 
   function mockBalanceSyncMapPickBtn() {
