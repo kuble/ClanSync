@@ -437,27 +437,37 @@
     min-height: 7rem;
   }
 }
-.mock-balance-toolbar-balance {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 12px 20px;
-  margin-bottom: 16px;
+/* OCR 스크린샷 — 배치 확정 카드 바로 위 */
+.mock-balance-ocr-card {
+  flex-shrink: 0;
+  width: 100%;
 }
-.mock-balance-toolbar-premium {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px 22px;
+.mock-balance-ocr-open-btn {
+  width: 100%;
+  justify-content: center;
   font-size: 12px;
-  color: var(--text-secondary);
-  align-items: center;
+  font-weight: 600;
+  padding: 8px 12px;
 }
-.mock-balance-feature-line {
-  display: inline-flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 2px 0;
+.mock-balance-ocr-paste-zone {
+  min-height: 72px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border);
+  background: var(--bg-overlay);
+  color: var(--text-muted);
+  font-size: 12px;
   line-height: 1.5;
+  text-align: center;
+  cursor: default;
+  outline: none;
+}
+.mock-balance-ocr-paste-zone:focus-visible {
+  border-color: rgba(56, 189, 248, 0.55);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+.mock-balance-ocr-preview-wrap {
+  margin-top: 12px;
 }
 /* 도움말: 원형 ? + data-tip 툴팁 */
 .mock-help-tip {
@@ -1508,7 +1518,6 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
 body.mock-role-member .mock-officer-only { display: none !important; }
 body.mock-role-member .mock-member-only { display: block !important; }
 /* 목업 플랜(_hub) — Premium 전용 블록은 Free에서 숨김 */
-body.mock-plan-free .mock-balance-toolbar-premium-only,
 body.mock-plan-free .mock-hide-on-free { display: none !important; }
 body.mock-plan-premium .mock-balance-free-note { display: none !important; }
 body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-size: 12px; color: var(--text-muted); line-height: 1.5; }
@@ -1992,22 +2001,6 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
       <div class="mock-page-title">밸런스메이커</div>
       <button type="button" class="mock-help-tip" data-tip="운영진이 출전 명단·포지션을 잡는 편집기입니다. 5v5 · 탱1·딜2·힐2 고정. 맵은 맵 밴 OFF일 때만 직접 선택(모달)합니다. 단계 탭으로 배치 확정 이후 참가자·관전 화면을 미리 볼 수 있습니다. 상세: docs/01-plan/balance-maker-ui-notes.md" aria-label="밸런스메이커 도움말">?</button>
     </div>
-    <div class="mock-toolbar mock-balance-toolbar-balance mock-balance-toolbar-premium-only">
-      <div class="mock-balance-toolbar-premium">
-        <span class="mock-balance-feature-line">
-          팀 자동 밸런싱
-          <button type="button" class="mock-help-tip" data-tip="Premium 클랜 기능입니다. 클랜원 자동 점수와 포지션(탱·딜·힐)을 반영해 블루·레드 진영을 자동으로 나눕니다. 운영진은 결과를 수동으로 조정할 수 있습니다." aria-label="팀 자동 밸런싱 도움말">?</button>
-        </span>
-        <span class="mock-balance-feature-line">
-          OCR 닉 입력
-          <button type="button" class="mock-help-tip" data-tip="Premium 클랜 기능입니다. 내전·스크림 결과 화면 스크린샷에서 닉네임을 인식해 출전 명단 입력을 돕습니다." aria-label="OCR 닉 입력 도움말">?</button>
-        </span>
-        <span class="mock-balance-feature-line">
-          디스코드 시작 알림 <span style="font-size:11px;color:var(--text-muted);font-weight:500">(자동)</span>
-          <button type="button" class="mock-help-tip" data-tip="Premium 클랜 기능입니다. 배치 완료를 확정하면 연동된 디스코드 채널에 경기 시작 안내가 자동으로 발송됩니다. 별도 버튼 없이 확정 시점에 동작합니다." aria-label="디스코드 시작 알림 도움말">?</button>
-        </span>
-      </div>
-    </div>
     <div class="d-card d-card-full" style="margin-bottom:16px">
       <div class="d-card-label mock-balance-edit-d-card-label">
         <span class="mock-balance-edit-label-start">
@@ -2130,6 +2123,9 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                     </div>
                   </div>
                 </aside>
+                <div class="mock-balance-ocr-card">
+                  <button type="button" class="btn btn-secondary mock-balance-ocr-open-btn" onclick="return window.mockBalanceOpenOcrModal()">OCR 스크린샷</button>
+                </div>
                 <div class="mock-balance-placement-card" aria-label="배치 확정">
                   <div class="mock-balance-ref-head">
                     <span>배치 확정</span>
@@ -2538,6 +2534,33 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
       <div class="mock-modal-actions">
         <button type="button" class="btn btn-secondary btn-sm" onclick="window.mockStatsHofCloseSettingsModal()">취소</button>
         <button type="button" class="btn btn-sm" onclick="window.mockStatsHofSaveSettingsModal()">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 밸런스: OCR 스크린샷 모달 (파일 선택 + 붙여넣기) -->
+  <div id="mock-balance-ocr-modal" class="mock-modal-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="mock-balance-ocr-modal-title" onclick="if(event.target===this)window.mockBalanceCloseOcrModal()">
+    <div class="mock-modal-card" style="max-width:480px;width:calc(100% - 32px);box-sizing:border-box" onclick="event.stopPropagation()">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px">
+        <h3 id="mock-balance-ocr-modal-title" style="margin:0;font-size:16px;line-height:1.3">OCR 스크린샷</h3>
+        <button type="button" class="btn btn-secondary btn-sm" style="flex-shrink:0" onclick="return window.mockBalanceCloseOcrModal()" aria-label="닫기">닫기</button>
+      </div>
+      <p style="margin:0 0 12px;font-size:12px;color:var(--text-muted);line-height:1.55">내전·스크림 <strong style="color:var(--text-secondary)">결과 화면</strong>을 캡처한 뒤, 이 창이 열린 상태에서 <strong style="color:var(--text-secondary)">Ctrl+V</strong>로 바로 붙여넣거나, 이미지 파일을 선택하세요.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockBalanceOcrTriggerFile()">파일 선택</button>
+        <span style="font-size:11px;color:var(--text-muted)">PNG · JPG 등</span>
+      </div>
+      <input type="file" id="mock-balance-ocr-file" accept="image/*" hidden onchange="window.mockBalanceOcrFilePicked(this)" />
+      <div id="mock-balance-ocr-paste-focus" class="mock-balance-ocr-paste-zone" tabindex="0" role="region" aria-label="스크린샷 붙여넣기: 이 영역을 선택한 뒤 Ctrl+V">
+        이 박스를 한 번 누른 뒤 <strong>Ctrl+V</strong> — 캡처 직후 붙여넣기 가능
+      </div>
+      <div id="mock-balance-ocr-preview-wrap" class="mock-balance-ocr-preview-wrap" hidden>
+        <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em">미리보기</p>
+        <img id="mock-balance-ocr-preview" alt="선택·붙여넣은 스크린샷" style="display:block;max-width:100%;max-height:220px;border-radius:var(--radius-sm);border:1px solid var(--border);object-fit:contain;background:var(--bg-overlay)" />
+      </div>
+      <div class="mock-modal-actions" style="margin-top:14px">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockBalanceCloseOcrModal()">취소</button>
+        <button type="button" class="btn btn-sm" onclick="return window.mockBalanceOcrRunMock()">닉 인식 실행 (목업)</button>
       </div>
     </div>
   </div>

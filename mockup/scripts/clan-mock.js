@@ -264,6 +264,105 @@
     return false;
   };
 
+  function mockBalanceOcrResetPreview() {
+    var img = document.getElementById("mock-balance-ocr-preview");
+    var wrap = document.getElementById("mock-balance-ocr-preview-wrap");
+    var fin = document.getElementById("mock-balance-ocr-file");
+    if (img && img._revUrl) {
+      try {
+        URL.revokeObjectURL(img._revUrl);
+      } catch (eRev) {}
+      img._revUrl = null;
+    }
+    if (img) img.removeAttribute("src");
+    if (wrap) wrap.hidden = true;
+    if (fin) fin.value = "";
+  }
+
+  function mockBalanceOcrShowPreviewFromFile(file) {
+    if (!file || !file.type || file.type.indexOf("image") !== 0) {
+      window.alert("목업: 이미지 파일만 사용할 수 있습니다.");
+      return;
+    }
+    var img = document.getElementById("mock-balance-ocr-preview");
+    var wrap = document.getElementById("mock-balance-ocr-preview-wrap");
+    if (!img || !wrap) return;
+    mockBalanceOcrResetPreview();
+    var url = URL.createObjectURL(file);
+    img._revUrl = url;
+    img.src = url;
+    wrap.hidden = false;
+  }
+
+  window.mockBalanceOpenOcrModal = function () {
+    mockBalanceOcrResetPreview();
+    var m = document.getElementById("mock-balance-ocr-modal");
+    if (m) {
+      m.removeAttribute("hidden");
+      m.setAttribute("aria-hidden", "false");
+      var z = document.getElementById("mock-balance-ocr-paste-focus");
+      if (z) {
+        setTimeout(function () {
+          try {
+            z.focus();
+          } catch (eF) {}
+        }, 80);
+      }
+    }
+    return false;
+  };
+
+  window.mockBalanceCloseOcrModal = function () {
+    mockBalanceOcrResetPreview();
+    var m = document.getElementById("mock-balance-ocr-modal");
+    if (m) {
+      m.setAttribute("hidden", "");
+      m.setAttribute("aria-hidden", "true");
+    }
+    return false;
+  };
+
+  window.mockBalanceOcrTriggerFile = function () {
+    var i = document.getElementById("mock-balance-ocr-file");
+    if (i) i.click();
+    return false;
+  };
+
+  window.mockBalanceOcrFilePicked = function (input) {
+    var f = input && input.files && input.files[0];
+    if (f) mockBalanceOcrShowPreviewFromFile(f);
+  };
+
+  window.mockBalanceOcrRunMock = function () {
+    var wrap = document.getElementById("mock-balance-ocr-preview-wrap");
+    if (!wrap || wrap.hidden) {
+      window.alert("목업: 먼저 이미지를 붙여넣거나 파일을 선택하세요.");
+      return false;
+    }
+    window.alert(
+      "목업: OCR로 닉네임을 추출해 명단에 반영합니다. 실제 엔진·API 연동은 구현 단계에서 연결합니다.",
+    );
+    return false;
+  };
+
+  document.addEventListener("paste", function (e) {
+    var m = document.getElementById("mock-balance-ocr-modal");
+    if (!m || m.hasAttribute("hidden")) return;
+    var items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    var i;
+    for (i = 0; i < items.length; i++) {
+      if (items[i].type && items[i].type.indexOf("image/") === 0) {
+        var f = items[i].getAsFile();
+        if (f) {
+          mockBalanceOcrShowPreviewFromFile(f);
+          e.preventDefault();
+        }
+        break;
+      }
+    }
+  });
+
   window.mockBalancePickMap = function (cell) {
     if (!cell) return false;
     var name = cell.getAttribute("data-map-name") || (cell.textContent || "").trim();
