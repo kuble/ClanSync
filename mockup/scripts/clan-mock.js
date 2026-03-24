@@ -260,7 +260,7 @@
     }
   };
 
-  /** 편집 보드 AI 표시 기준값(목업). 갱신 시 맵·시퀀스로 소폭 보정만 한다. */
+  /** 편집 보드 A점수 표시 기준값(목업). 갱신 시 맵·시퀀스로 소폭 보정만 한다. */
   var MOCK_BALANCE_AI_BASE = {
     b0: 2.14,
     b1: 0.48,
@@ -334,7 +334,7 @@
   }
 
   /**
-   * Premium 전용: AI 숫자·태그 목업 갱신. ~85ms 비동기 + 짧은 refreshing 클래스.
+   * Premium 전용: A점수 숫자·태그 목업 갱신. ~85ms 비동기 + 짧은 refreshing 클래스.
    * Free는 즉시 반환(노출 없음).
    */
   window.mockBalanceRefreshAiSnapshotMock = function () {
@@ -355,11 +355,11 @@
           : 0;
       var nudge = (_mockBalanceAiRefreshSeq % 5) * 0.008;
       Object.keys(MOCK_BALANCE_AI_BASE).forEach(function (id) {
-        var el = board.querySelector('.mock-balance-slot-ai[data-slot-id="' + id + '"]');
+        var el = board.querySelector('.mock-balance-slot-a-value[data-slot-id="' + id + '"]');
         if (!el) return;
         var base = MOCK_BALANCE_AI_BASE[id];
         var v = base + mapBump + nudge;
-        el.textContent = "AI " + v.toFixed(2);
+        el.textContent = v.toFixed(2);
       });
       mockBalanceRecomputeTagsForBoard(board);
       board.classList.remove("mock-balance-ai-refreshing");
