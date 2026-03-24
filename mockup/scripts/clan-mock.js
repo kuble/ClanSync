@@ -134,6 +134,9 @@
       if (vsBoardInit && typeof window.mockBalanceApplySlotOptsToBoard === "function") {
         window.mockBalanceApplySlotOptsToBoard();
       }
+      if (vsBoardInit && typeof window.mockBalanceApplyManualScoreModeFromStorage === "function") {
+        window.mockBalanceApplyManualScoreModeFromStorage();
+      }
       if (
         vsBoardInit &&
         typeof mockBalanceRecomputeTagsForBoard === "function" &&
@@ -283,6 +286,34 @@
     board.classList.toggle("mock-balance-slotopt--hide-a", !v.a);
     board.classList.toggle("mock-balance-slotopt--hide-tags", !v.tags);
     board.classList.toggle("mock-balance-slotopt--hide-mic", !v.mic);
+  };
+
+  var MOCK_BALANCE_MANUAL_SCORE_MODE_KEY = "mockBalanceManualScoreMode";
+
+  /** 참고 패널: 슬롯 수동 점수 라벨 M ↔ I (목업, localStorage 유지) */
+  window.mockBalanceSetManualScoreMode = function (mode) {
+    var board = document.getElementById("mock-balance-vs-board");
+    var m = mode === "i" ? "i" : "m";
+    try {
+      localStorage.setItem(MOCK_BALANCE_MANUAL_SCORE_MODE_KEY, m);
+    } catch (e) {}
+    if (board) {
+      board.classList.toggle("mock-balance-vs-board--manual-score-i", m === "i");
+    }
+    var btnM = document.getElementById("mock-balance-manual-score-m");
+    var btnI = document.getElementById("mock-balance-manual-score-i");
+    if (btnM) btnM.setAttribute("aria-pressed", m === "m" ? "true" : "false");
+    if (btnI) btnI.setAttribute("aria-pressed", m === "i" ? "true" : "false");
+    return false;
+  };
+
+  window.mockBalanceApplyManualScoreModeFromStorage = function () {
+    var m = "m";
+    try {
+      var s = localStorage.getItem(MOCK_BALANCE_MANUAL_SCORE_MODE_KEY);
+      if (s === "i" || s === "m") m = s;
+    } catch (e) {}
+    window.mockBalanceSetManualScoreMode(m);
   };
 
   /** 설정 모달 슬롯 표시 스위치 토글 */
