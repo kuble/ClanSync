@@ -188,7 +188,7 @@
     var on = mapBan && mapBan.getAttribute("aria-checked") === "true";
     btn.disabled = !!on;
     if (on) {
-      btn.setAttribute("title", "맵 밴 ON — 최종 맵은 밴픽 단계에서 결정됩니다.");
+      btn.setAttribute("title", "맵 밴 ON — 최종 맵은 맵·영웅 밴픽 세션에서 정합니다.");
     } else {
       btn.removeAttribute("title");
     }
@@ -258,7 +258,7 @@
     var btn = document.getElementById("mock-balance-map-pick-btn");
     if (btn && btn.disabled) {
       window.alert(
-        "목업: 맵 밴이 켜져 있어 직접 맵 선택을 쓸 수 없습니다. ② 밴픽 단계에서 맵이 결정됩니다.",
+        "목업: 맵 밴이 켜져 있어 직접 맵 선택을 쓸 수 없습니다. 맵·영웅 밴픽 세션에서 맵이 정해집니다.",
       );
       return false;
     }

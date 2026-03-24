@@ -200,23 +200,14 @@
 .mock-pred-bar { height: 8px; border-radius: 99px; background: var(--bg-overlay); overflow: hidden; display: flex; margin-top: 8px; }
 .mock-pred-a { width: 52%; background: linear-gradient(90deg, #38bdf8, #6366f1); }
 .mock-pred-b { flex: 1; background: linear-gradient(90deg, #fb7185, #f43f5e); opacity: 0.85; }
-/* 밸런스: 포맷·밴 토글(규칙은 추후 확정, UI만) */
-.mock-balance-mode-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 16px 24px;
-  margin-bottom: 14px;
-  padding: 12px 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-  background: var(--bg-overlay);
-}
-/* 밸런스: 맵/영웅 밴 — 플랫 iOS형 스위치(그라데이션·테두리 없음) */
+/* 밸런스: 맵/영웅 밴 — 플랫 iOS형 스위치 */
 .mock-balance-switch-row {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+.mock-balance-map-meta-row .mock-balance-switch-row {
+  flex-shrink: 0;
 }
 .mock-balance-switch-label {
   font-size: 13px;
@@ -388,7 +379,7 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
 }
 .mock-balance-ref-rail .mock-balance-ref-sidebar {
   min-height: 11rem;
@@ -406,13 +397,14 @@
   gap: 6px;
   flex-wrap: wrap;
 }
-.mock-balance-ref-scroll {
+/* 참고 본문: 스크롤/슬라이드 없이 고정 나열 */
+.mock-balance-ref-body {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  overflow: visible;
 }
 @media (max-width: 960px) {
   .mock-balance-board-ref-row {
@@ -424,8 +416,7 @@
     max-width: none;
   }
   .mock-balance-ref-rail .mock-balance-ref-sidebar {
-    min-height: 10rem;
-    max-height: 22rem;
+    min-height: 8rem;
   }
 }
 .mock-balance-toolbar-balance {
@@ -726,11 +717,6 @@
   padding-top: 0;
   border-top: none;
 }
-.mock-balance-ref-sidebar .mock-balance-team-tags {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-}
 .mock-balance-ref-sidebar .mock-balance-pred-block {
   margin-top: 12px;
   padding-top: 12px;
@@ -770,11 +756,6 @@
   gap: 8px;
   align-items: center;
   margin-top: 14px;
-}
-.mock-balance-team-tags {
-  margin-top: 10px;
-  font-size: 11px;
-  color: var(--text-muted);
 }
 .mock-balance-map-grid {
   display: grid;
@@ -1904,25 +1885,11 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
       </div>
 
       <div id="mock-balance-wf-edit" data-balance-wf-panel="edit" class="mock-balance-wf-panel">
-        <div class="mock-balance-mode-bar" role="group" aria-label="밸런스 경기 옵션">
-          <div class="mock-balance-switch-row">
-            <span class="mock-balance-switch-label" id="mock-balance-lbl-map-ban">맵 밴</span>
-            <button type="button" class="mock-switch" id="mock-balance-toggle-map-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-map-ban" onclick="return window.mockBalanceToggleMapBan(this)">
-              <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
-            </button>
-          </div>
-          <div class="mock-balance-switch-row">
-            <span class="mock-balance-switch-label" id="mock-balance-lbl-hero-ban">영웅 밴</span>
-            <button type="button" class="mock-switch" id="mock-balance-toggle-hero-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-hero-ban" onclick="return window.mockBalanceToggleHeroBan(this)">
-              <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
-            </button>
-          </div>
-        </div>
         <div id="mock-balance-ban-hint" class="mock-balance-inline-hint">
           <button type="button" class="mock-help-tip" data-tip="맵 밴 또는 영웅 밴을 켜면 밴 슬롯이 표시됩니다. 슬롯 개수·적용 규칙은 추후 확정됩니다." aria-label="맵·영웅 밴 도움말">?</button>
         </div>
         <div id="mock-balance-map-ban-map-hint" class="mock-balance-inline-hint" hidden>
-          <button type="button" class="mock-help-tip" data-tip="맵 밴이 켜져 있습니다. 최종 맵은 ② 밴픽 단계에서 결정되며, 이 단계에서는 직접 맵 선택을 사용할 수 없습니다." aria-label="맵 밴 ON일 때 맵 선택 도움말">?</button>
+          <button type="button" class="mock-help-tip" data-tip="맵 밴이 켜져 있습니다. 최종 맵은 맵·영웅 밴픽 세션에서 정하며, 이 배치 단계에서는 맵 선택을 사용할 수 없습니다." aria-label="맵 밴 ON일 때 맵 선택 도움말">?</button>
         </div>
         <div class="mock-balance-ban-wrap">
           <div id="mock-balance-map-ban-block" class="mock-balance-ban-block" hidden>
@@ -1941,13 +1908,24 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
 
         <div class="mock-balance-layout">
           <div class="mock-balance-center-col">
-            <div class="mock-balance-meta-row">
-              <span style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap">
-                <span class="mock-balance-meta-label">집계일</span>
-                <button type="button" class="mock-help-tip" data-tip="당일 정의(KST): 해당 일자 06:00~다음 날 06:00 직전을 한 집계일로 봅니다. 자정을 넘긴 새벽 경기도 같은 집계일에 묶입니다. 표시 일자·아카이브 귀속은 API에서 처리하고 클라이언트는 응답값만 사용합니다. 목업 날짜는 실제로는 API 집계일을 표시한다고 가정합니다." aria-label="집계일 도움말">?</button>
-                <input type="date" id="mock-balance-match-date" value="2026-03-22" title="집계일" style="padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-overlay);color:inherit;font-family:inherit;font-size:12px" />
+            <div class="mock-balance-meta-row mock-balance-map-meta-row" role="group" aria-label="맵·밴 옵션">
+              <span style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span class="mock-balance-meta-label">맵</span>
+                <button type="button" class="mock-balance-map-pick-btn" id="mock-balance-map-pick-btn" onclick="return window.mockBalanceOpenMapModal()"><span id="mock-balance-map-label">서킷 로얄</span></button>
+                <span id="mock-balance-map-mode" style="color:var(--text-muted)">· 제어</span>
               </span>
-              <span><span class="mock-balance-meta-label">맵</span><button type="button" class="mock-balance-map-pick-btn" id="mock-balance-map-pick-btn" onclick="return window.mockBalanceOpenMapModal()"><span id="mock-balance-map-label">서킷 로얄</span></button><span id="mock-balance-map-mode" style="color:var(--text-muted);margin-left:6px">· 제어</span></span>
+              <div class="mock-balance-switch-row">
+                <span class="mock-balance-switch-label" id="mock-balance-lbl-map-ban">맵 밴</span>
+                <button type="button" class="mock-switch" id="mock-balance-toggle-map-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-map-ban" onclick="return window.mockBalanceToggleMapBan(this)">
+                  <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
+                </button>
+              </div>
+              <div class="mock-balance-switch-row">
+                <span class="mock-balance-switch-label" id="mock-balance-lbl-hero-ban">영웅 밴</span>
+                <button type="button" class="mock-switch" id="mock-balance-toggle-hero-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-hero-ban" onclick="return window.mockBalanceToggleHeroBan(this)">
+                  <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
+                </button>
+              </div>
             </div>
 
             <div class="mock-balance-board-ref-row">
@@ -1992,13 +1970,12 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                     <span>참고</span>
                     <button type="button" class="mock-help-tip" data-tip="자동 점수·승률 예측 등은 배치 판단 보조용입니다. 실제 수치·노출 여부는 API·구독(플랜) 정책을 따릅니다." aria-label="참고 패널 도움말">?</button>
                   </div>
-                  <div class="mock-balance-ref-scroll">
+                  <div class="mock-balance-ref-body">
                     <div class="mock-balance-strength">
                       <div class="mock-balance-strength-label">플레이어 자동점수 합 (팀 밸런스 감각용)</div>
                       <div class="mock-balance-strength-vals"><span>블루 1.75</span><span>레드 3.25</span></div>
                       <div class="mock-balance-strength-bar" aria-hidden="true"><div class="mock-balance-strength-a"></div><div class="mock-balance-strength-b"></div></div>
                     </div>
-                    <div class="mock-balance-team-tags">팀 단위 특이 태그(자동): <span class="badge badge-muted" style="font-size:10px">탱 라인 승률 열세</span> <span class="badge badge-muted" style="font-size:10px">레드 딜 평균 자동점↑</span></div>
                     <div class="mock-balance-pred-block mock-hide-on-free">
                       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;font-weight:600;margin-bottom:4px">
                         자동점수 기반 승률 예측
