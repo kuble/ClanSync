@@ -323,18 +323,28 @@
   display: flex;
   flex-direction: column;
 }
-.mock-balance-vs-placement {
-  margin-top: 14px;
-  width: 100%;
+/* 참고 패널 + 배치 완료를 한 열로 묶음 */
+.mock-balance-ref-rail {
+  flex: 0 0 min(270px, 34%);
+  width: min(270px, 34%);
+  max-width: 270px;
+  min-width: 0;
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  gap: 12px;
+  align-items: stretch;
+  align-self: stretch;
+  min-height: 0;
+  box-sizing: border-box;
+}
+.mock-balance-vs-placement {
+  flex-shrink: 0;
+  width: 100%;
 }
 .mock-balance-vs-placement .btn {
-  width: auto;
-  min-width: 9.75rem;
-  max-width: 100%;
+  width: 100%;
   min-height: 40px;
-  padding: 10px 22px;
+  padding: 10px 18px;
   font-size: 13px;
   font-weight: 700;
   border-radius: var(--radius-md);
@@ -342,18 +352,20 @@
   justify-content: center;
 }
 .mock-balance-ref-sidebar {
-  flex: 0 0 min(270px, 34%);
-  width: min(270px, 34%);
-  max-width: 270px;
+  flex: 1 1 auto;
+  min-height: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   background: var(--bg-overlay);
-  padding: 12px 14px;
+  padding: 11px 13px;
   font-size: 12px;
   display: flex;
   flex-direction: column;
-  min-height: 0;
   box-sizing: border-box;
+  overflow: hidden;
+}
+.mock-balance-ref-rail .mock-balance-ref-sidebar {
+  min-height: 11rem;
 }
 .mock-balance-ref-head {
   font-size: 11px;
@@ -368,7 +380,7 @@
   font-size: 10px;
   line-height: 1.45;
   color: var(--text-muted);
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   flex-shrink: 0;
 }
 .mock-balance-ref-scroll {
@@ -377,17 +389,20 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 @media (max-width: 960px) {
   .mock-balance-board-ref-row {
     flex-direction: column;
   }
-  .mock-balance-ref-sidebar {
+  .mock-balance-ref-rail {
     flex: none;
     width: 100%;
     max-width: none;
-    min-height: 180px;
+  }
+  .mock-balance-ref-rail .mock-balance-ref-sidebar {
+    min-height: 10rem;
+    max-height: 22rem;
   }
 }
 .mock-balance-toolbar-balance {
@@ -476,8 +491,8 @@
   min-height: 200px;
 }
 .mock-balance-pool-col--below {
-  max-height: 260px;
-  margin-top: 14px;
+  max-height: 288px;
+  margin-top: 12px;
   min-height: 0;
 }
 .mock-balance-pool-col--below .mock-balance-pool-grid {
@@ -1929,31 +1944,33 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                     <div class="mock-balance-nameplate mock-balance-nameplate--red">뚱인데요<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>0.4점</span><span>1승 0패</span></div></div>
                   </div>
                 </div>
+              </div>
+
+              <div class="mock-balance-ref-rail">
+                <aside class="mock-balance-ref-sidebar" aria-label="참고 지표">
+                  <div class="mock-balance-ref-head">참고</div>
+                  <p class="mock-balance-ref-hint">자동 점수·예측은 배치 판단 보조용 목업입니다. 실제 수치·노출 여부는 API·플랜 정책을 따릅니다.</p>
+                  <div class="mock-balance-ref-scroll">
+                    <div class="mock-balance-strength">
+                      <div class="mock-balance-strength-label">플레이어 자동점수 합 (팀 밸런스 감각용)</div>
+                      <div class="mock-balance-strength-vals"><span>블루 1.75</span><span>레드 3.25</span></div>
+                      <div class="mock-balance-strength-bar" aria-hidden="true"><div class="mock-balance-strength-a"></div><div class="mock-balance-strength-b"></div></div>
+                    </div>
+                    <div class="mock-balance-team-tags">팀 단위 특이 태그(자동): <span class="badge badge-muted" style="font-size:10px">탱 라인 승률 열세</span> <span class="badge badge-muted" style="font-size:10px">레드 딜 평균 자동점↑</span></div>
+                    <div class="mock-balance-pred-block mock-hide-on-free">
+                      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;font-weight:600;margin-bottom:4px">
+                        자동점수 기반 승률 예측
+                        <button type="button" class="mock-help-tip" data-tip="Premium 클랜에서 제공하는 참고 지표입니다. 팀 자동점수 합을 바탕으로 한 승률 추정(목업)이며, 실제 배당·예측 마감은 별도 정책을 따릅니다." aria-label="승률 예측 설명">?</button>
+                      </div>
+                      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px"><span>블루 52%</span><span>레드 48%</span></div>
+                      <div class="mock-pred-bar"><div class="mock-pred-a"></div><div class="mock-pred-b"></div></div>
+                    </div>
+                  </div>
+                </aside>
                 <div class="mock-balance-vs-placement">
                   <button type="button" class="btn btn-primary" onclick="return window.mockBalancePlacementDone()">배치 완료</button>
                 </div>
               </div>
-
-              <aside class="mock-balance-ref-sidebar" aria-label="참고 지표">
-                <div class="mock-balance-ref-head">참고</div>
-                <p class="mock-balance-ref-hint">자동 점수·예측은 배치 판단 보조용 목업입니다. 실제 수치·노출 여부는 API·플랜 정책을 따릅니다.</p>
-                <div class="mock-balance-ref-scroll">
-                  <div class="mock-balance-strength">
-                    <div class="mock-balance-strength-label">플레이어 자동점수 합 (팀 밸런스 감각용)</div>
-                    <div class="mock-balance-strength-vals"><span>블루 1.75</span><span>레드 3.25</span></div>
-                    <div class="mock-balance-strength-bar" aria-hidden="true"><div class="mock-balance-strength-a"></div><div class="mock-balance-strength-b"></div></div>
-                  </div>
-                  <div class="mock-balance-team-tags">팀 단위 특이 태그(자동): <span class="badge badge-muted" style="font-size:10px">탱 라인 승률 열세</span> <span class="badge badge-muted" style="font-size:10px">레드 딜 평균 자동점↑</span></div>
-                  <div class="mock-balance-pred-block mock-hide-on-free">
-                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;font-weight:600;margin-bottom:4px">
-                      자동점수 기반 승률 예측
-                      <button type="button" class="mock-help-tip" data-tip="Premium 클랜에서 제공하는 참고 지표입니다. 팀 자동점수 합을 바탕으로 한 승률 추정(목업)이며, 실제 배당·예측 마감은 별도 정책을 따릅니다." aria-label="승률 예측 설명">?</button>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px"><span>블루 52%</span><span>레드 48%</span></div>
-                    <div class="mock-pred-bar"><div class="mock-pred-a"></div><div class="mock-pred-b"></div></div>
-                  </div>
-                </div>
-              </aside>
             </div>
 
             <aside class="mock-balance-pool-col mock-balance-pool-col--below" aria-label="클랜원 풀">
