@@ -206,15 +206,21 @@
   align-items: center;
   gap: 10px;
 }
+.mock-balance-map-meta-row {
+  width: 100%;
+  box-sizing: border-box;
+  justify-content: flex-start;
+}
 .mock-balance-map-meta-row .mock-balance-switch-row {
   flex-shrink: 0;
 }
-/* 맵 라벨·선택·모드 — 맵 밴 ON 시 [hidden], 인라인 display 없이 !important로 완전 비표시 */
+/* 맵 라벨·선택·모드 — 동일 행 오른쪽 끝(맵 밴 ON 시 [hidden]) */
 .mock-balance-map-pick-cluster {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  margin-left: auto;
 }
 .mock-balance-map-pick-cluster[hidden] {
   display: none !important;
@@ -1880,11 +1886,6 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
         <div class="mock-balance-layout">
           <div class="mock-balance-center-col">
             <div class="mock-balance-meta-row mock-balance-map-meta-row" role="group" aria-label="맵·밴 옵션">
-              <span id="mock-balance-map-pick-cluster" class="mock-balance-map-pick-cluster">
-                <span class="mock-balance-meta-label">맵</span>
-                <button type="button" class="mock-balance-map-pick-btn" id="mock-balance-map-pick-btn" onclick="return window.mockBalanceOpenMapModal()"><span id="mock-balance-map-label">서킷 로얄</span></button>
-                <span id="mock-balance-map-mode" style="color:var(--text-muted)">· 제어</span>
-              </span>
               <div class="mock-balance-switch-row">
                 <span class="mock-balance-switch-label" id="mock-balance-lbl-map-ban">맵 밴</span>
                 <button type="button" class="mock-switch" id="mock-balance-toggle-map-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-map-ban" onclick="return window.mockBalanceToggleMapBan(this)">
@@ -1897,6 +1898,11 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                   <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
                 </button>
               </div>
+              <span id="mock-balance-map-pick-cluster" class="mock-balance-map-pick-cluster">
+                <span class="mock-balance-meta-label">맵</span>
+                <button type="button" class="mock-balance-map-pick-btn" id="mock-balance-map-pick-btn" onclick="return window.mockBalanceOpenMapModal()"><span id="mock-balance-map-label">서킷 로얄</span></button>
+                <span id="mock-balance-map-mode" style="color:var(--text-muted)">· 제어</span>
+              </span>
             </div>
 
             <div class="mock-balance-board-ref-row">
