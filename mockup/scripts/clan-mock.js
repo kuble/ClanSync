@@ -249,7 +249,7 @@
       window.mockBalanceSetWorkflow(tab, "lineup");
     }
     window.alert(
-      "목업: 배치가 확정되었습니다. 실제 서비스에서는 참가 여부·밴픽 옵션에 따라 ② 밴픽 / ③ 5vs5 / ④ 승부예측 화면으로 나뉩니다.",
+      "목업: 배치가 확정되었습니다. 실제 플로우는 docs/01-plan/balance-maker-ui-notes.md 참고.",
     );
     return false;
   };

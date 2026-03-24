@@ -274,11 +274,37 @@
 }
 .mock-balance-slot-muted { color: var(--text-muted); font-weight: 500; }
 /* 밸런스 편집기 — 플레이어 풀 · VS 보드 · 워크플로 탭 */
+.mock-balance-view-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.mock-balance-view-head .mock-page-title {
+  margin-bottom: 0;
+}
+.mock-balance-wf-tabs-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
 .mock-balance-wf-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 14px;
+  margin-bottom: 0;
+}
+.mock-balance-inline-hint {
+  margin-bottom: 8px;
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+}
+.mock-balance-inline-hint[hidden] {
+  display: none !important;
 }
 .mock-balance-wf-tab {
   font-size: 11px;
@@ -375,13 +401,10 @@
   color: var(--text-muted);
   margin-bottom: 6px;
   flex-shrink: 0;
-}
-.mock-balance-ref-hint {
-  font-size: 10px;
-  line-height: 1.45;
-  color: var(--text-muted);
-  margin: 0 0 8px;
-  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 .mock-balance-ref-scroll {
   flex: 1;
@@ -427,6 +450,7 @@
   gap: 2px 0;
   line-height: 1.5;
 }
+/* 도움말: 원형 ? + data-tip 툴팁 */
 .mock-help-tip {
   display: inline-flex;
   align-items: center;
@@ -1842,32 +1866,41 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
 
   <!-- ── 밸런스메이커 뷰 (PRD §6.1) — 5v5 탱1·딜2·힐2 고정, 6v6 미지원 목업 ── -->
   <div id="view-balance" class="clan-view">
-    <div class="mock-page-title">밸런스메이커</div>
-    <p class="mock-page-desc">운영진이 출전 명단·포지션을 잡는 <strong>편집기</strong> 목업입니다. <strong>5v5 · 탱1 딜2 힐2</strong> 고정. 맵은 맵 밴 OFF일 때만 직접 선택(모달). 상단 단계 탭으로 배치 확정 후 참가자(밴픽/5v5)·관전자(승부예측) 화면을 전환해 볼 수 있습니다.</p>
+    <div class="mock-balance-view-head">
+      <div class="mock-page-title">밸런스메이커</div>
+      <button type="button" class="mock-help-tip" data-tip="운영진이 출전 명단·포지션을 잡는 편집기입니다. 5v5 · 탱1·딜2·힐2 고정. 맵은 맵 밴 OFF일 때만 직접 선택(모달)합니다. 단계 탭으로 배치 확정 이후 참가자·관전 화면을 미리 볼 수 있습니다. 상세: docs/01-plan/balance-maker-ui-notes.md" aria-label="밸런스메이커 도움말">?</button>
+    </div>
     <div class="mock-toolbar mock-balance-toolbar-balance mock-balance-toolbar-premium-only">
       <div class="mock-balance-toolbar-premium">
         <span class="mock-balance-feature-line">
           팀 자동 밸런싱
-          <button type="button" class="mock-help-tip" data-tip="Premium 클랜 기능입니다. 클랜원 자동 점수와 포지션(탱·딜·힐)을 반영해 블루·레드 진영을 자동으로 나눕니다. 운영진은 결과를 수동으로 조정할 수 있습니다." aria-label="팀 자동 밸런싱 설명">?</button>
+          <button type="button" class="mock-help-tip" data-tip="Premium 클랜 기능입니다. 클랜원 자동 점수와 포지션(탱·딜·힐)을 반영해 블루·레드 진영을 자동으로 나눕니다. 운영진은 결과를 수동으로 조정할 수 있습니다." aria-label="팀 자동 밸런싱 도움말">?</button>
         </span>
         <span class="mock-balance-feature-line">
           OCR 닉 입력
-          <button type="button" class="mock-help-tip" data-tip="Premium 클랜 기능입니다. 내전·스크림 결과 화면 스크린샷에서 닉네임을 인식해 출전 명단 입력을 돕습니다." aria-label="OCR 닉 입력 설명">?</button>
+          <button type="button" class="mock-help-tip" data-tip="Premium 클랜 기능입니다. 내전·스크림 결과 화면 스크린샷에서 닉네임을 인식해 출전 명단 입력을 돕습니다." aria-label="OCR 닉 입력 도움말">?</button>
         </span>
         <span class="mock-balance-feature-line">
           디스코드 시작 알림 <span style="font-size:11px;color:var(--text-muted);font-weight:500">(자동)</span>
-          <button type="button" class="mock-help-tip" data-tip="Premium 클랜 기능입니다. 배치 완료를 확정하면 연동된 디스코드 채널에 경기 시작 안내가 자동으로 발송됩니다. 별도 버튼 없이 확정 시점에 동작합니다." aria-label="디스코드 시작 알림 설명">?</button>
+          <button type="button" class="mock-help-tip" data-tip="Premium 클랜 기능입니다. 배치 완료를 확정하면 연동된 디스코드 채널에 경기 시작 안내가 자동으로 발송됩니다. 별도 버튼 없이 확정 시점에 동작합니다." aria-label="디스코드 시작 알림 도움말">?</button>
         </span>
       </div>
     </div>
     <div class="d-card d-card-full" style="margin-bottom:16px">
-      <div class="d-card-label">밸런스 편집</div>
-      <p class="mock-modal-hint" style="margin:6px 0 14px">시나리오 미리보기: 실제 구현에서는 배치 확정 시 역할에 따라 리다이렉트됩니다.</p>
-      <div class="mock-balance-wf-tabs" role="tablist" aria-label="밸런스 화면 단계">
-        <button type="button" class="mock-balance-wf-tab mock-tab-active" data-balance-wf-tab data-balance-wf-id="edit" onclick="return window.mockBalanceSetWorkflow(this,'edit')">① 편집 중</button>
-        <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="banpick" onclick="return window.mockBalanceSetWorkflow(this,'banpick')">② 참가자 · 맵/영웅 밴픽</button>
-        <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="lineup" onclick="return window.mockBalanceSetWorkflow(this,'lineup')">③ 참가자 · 5vs5</button>
-        <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="spectator" onclick="return window.mockBalanceSetWorkflow(this,'spectator')">④ 관전자 · 승부예측</button>
+      <div class="d-card-label">
+        <span style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span>밸런스 편집</span>
+          <button type="button" class="mock-help-tip" data-tip="목업은 시나리오 미리보기입니다. 실제 구현에서는 배치 확정 시 참가·밴픽 옵션·역할에 따라 ② 밴픽 / ③ 5vs5 / ④ 관전 등으로 분기·리다이렉트할 수 있습니다." aria-label="밸런스 편집 도움말">?</button>
+        </span>
+      </div>
+      <div class="mock-balance-wf-tabs-wrap">
+        <div class="mock-balance-wf-tabs" role="tablist" aria-label="밸런스 화면 단계">
+          <button type="button" class="mock-balance-wf-tab mock-tab-active" data-balance-wf-tab data-balance-wf-id="edit" onclick="return window.mockBalanceSetWorkflow(this,'edit')">① 편집 중</button>
+          <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="banpick" onclick="return window.mockBalanceSetWorkflow(this,'banpick')">② 참가자 · 맵/영웅 밴픽</button>
+          <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="lineup" onclick="return window.mockBalanceSetWorkflow(this,'lineup')">③ 참가자 · 5vs5</button>
+          <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="spectator" onclick="return window.mockBalanceSetWorkflow(this,'spectator')">④ 관전자 · 승부예측</button>
+        </div>
+        <button type="button" class="mock-help-tip" data-tip="단계 탭으로 화면만 전환합니다. 배치 확정 후 참가자(밴픽·5vs5)·비출전(승부 예측) 플로우는 기획 문서 balance-maker-ui-notes.md를 참고하세요." aria-label="단계 탭 도움말">?</button>
       </div>
 
       <div id="mock-balance-wf-edit" data-balance-wf-panel="edit" class="mock-balance-wf-panel">
@@ -1885,8 +1918,12 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
             </button>
           </div>
         </div>
-        <p id="mock-balance-ban-hint" class="mock-modal-hint" style="margin-bottom:12px">맵 밴·영웅 밴을 켜면 밴 슬롯이 표시됩니다. (슬롯 개수·적용 규칙은 이후 확정)</p>
-        <p id="mock-balance-map-ban-map-hint" class="mock-modal-hint" style="margin-bottom:12px" hidden>맵 밴 <strong>ON</strong> — 최종 맵은 ② 밴픽 단계에서 결정됩니다. 직접 맵 선택은 비활성화됩니다.</p>
+        <div id="mock-balance-ban-hint" class="mock-balance-inline-hint">
+          <button type="button" class="mock-help-tip" data-tip="맵 밴 또는 영웅 밴을 켜면 밴 슬롯이 표시됩니다. 슬롯 개수·적용 규칙은 추후 확정됩니다." aria-label="맵·영웅 밴 도움말">?</button>
+        </div>
+        <div id="mock-balance-map-ban-map-hint" class="mock-balance-inline-hint" hidden>
+          <button type="button" class="mock-help-tip" data-tip="맵 밴이 켜져 있습니다. 최종 맵은 ② 밴픽 단계에서 결정되며, 이 단계에서는 직접 맵 선택을 사용할 수 없습니다." aria-label="맵 밴 ON일 때 맵 선택 도움말">?</button>
+        </div>
         <div class="mock-balance-ban-wrap">
           <div id="mock-balance-map-ban-block" class="mock-balance-ban-block" hidden>
             <div class="mock-balance-ban-label">맵 밴 슬롯</div>
@@ -1905,10 +1942,13 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
         <div class="mock-balance-layout">
           <div class="mock-balance-center-col">
             <div class="mock-balance-meta-row">
-              <span><span class="mock-balance-meta-label">집계일</span><input type="date" id="mock-balance-match-date" value="2026-03-22" title="목업: 실제 앱에서는 API가 내려주는 집계일을 표시" aria-describedby="mock-balance-ledger-date-hint" style="padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-overlay);color:inherit;font-family:inherit;font-size:12px" /></span>
+              <span style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap">
+                <span class="mock-balance-meta-label">집계일</span>
+                <button type="button" class="mock-help-tip" data-tip="당일 정의(KST): 해당 일자 06:00~다음 날 06:00 직전을 한 집계일로 봅니다. 자정을 넘긴 새벽 경기도 같은 집계일에 묶입니다. 표시 일자·아카이브 귀속은 API에서 처리하고 클라이언트는 응답값만 사용합니다. 목업 날짜는 실제로는 API 집계일을 표시한다고 가정합니다." aria-label="집계일 도움말">?</button>
+                <input type="date" id="mock-balance-match-date" value="2026-03-22" title="집계일" style="padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-overlay);color:inherit;font-family:inherit;font-size:12px" />
+              </span>
               <span><span class="mock-balance-meta-label">맵</span><button type="button" class="mock-balance-map-pick-btn" id="mock-balance-map-pick-btn" onclick="return window.mockBalanceOpenMapModal()"><span id="mock-balance-map-label">서킷 로얄</span></button><span id="mock-balance-map-mode" style="color:var(--text-muted);margin-left:6px">· 제어</span></span>
             </div>
-            <p id="mock-balance-ledger-date-hint" class="mock-modal-hint" style="margin:-4px 0 12px;font-size:11px;line-height:1.45"><strong>당일 정의(KST)</strong>: 해당 일자의 <strong>06:00</strong>부터 <strong>다음 날 06:00</strong> 직전까지를 같은 집계일로 봅니다. 자정 넘긴 새벽 경기도 같은 날로 묶입니다. <strong>표시 일자·아카이브 귀속은 백엔드/API에서 처리</strong>하고, 클라이언트는 응답값만 씁니다.</p>
 
             <div class="mock-balance-board-ref-row">
               <div class="mock-balance-vs-column">
@@ -1948,8 +1988,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
 
               <div class="mock-balance-ref-rail">
                 <aside class="mock-balance-ref-sidebar" aria-label="참고 지표">
-                  <div class="mock-balance-ref-head">참고</div>
-                  <p class="mock-balance-ref-hint">자동 점수·예측은 배치 판단 보조용 목업입니다. 실제 수치·노출 여부는 API·플랜 정책을 따릅니다.</p>
+                  <div class="mock-balance-ref-head">
+                    <span>참고</span>
+                    <button type="button" class="mock-help-tip" data-tip="자동 점수·승률 예측 등은 배치 판단 보조용입니다. 실제 수치·노출 여부는 API·구독(플랜) 정책을 따릅니다." aria-label="참고 패널 도움말">?</button>
+                  </div>
                   <div class="mock-balance-ref-scroll">
                     <div class="mock-balance-strength">
                       <div class="mock-balance-strength-label">플레이어 자동점수 합 (팀 밸런스 감각용)</div>
@@ -1960,7 +2002,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                     <div class="mock-balance-pred-block mock-hide-on-free">
                       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;font-weight:600;margin-bottom:4px">
                         자동점수 기반 승률 예측
-                        <button type="button" class="mock-help-tip" data-tip="Premium 클랜에서 제공하는 참고 지표입니다. 팀 자동점수 합을 바탕으로 한 승률 추정(목업)이며, 실제 배당·예측 마감은 별도 정책을 따릅니다." aria-label="승률 예측 설명">?</button>
+                        <button type="button" class="mock-help-tip" data-tip="Premium 클랜에서 제공하는 참고 지표입니다. 팀 자동점수 합을 바탕으로 한 승률 추정(목업)이며, 실제 배당·예측 마감은 별도 정책을 따릅니다." aria-label="승률 예측 도움말">?</button>
                       </div>
                       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px"><span>블루 52%</span><span>레드 48%</span></div>
                       <div class="mock-pred-bar"><div class="mock-pred-a"></div><div class="mock-pred-b"></div></div>
@@ -1974,7 +2016,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
             </div>
 
             <aside class="mock-balance-pool-col mock-balance-pool-col--below" aria-label="클랜원 풀">
-              <div class="mock-balance-pool-head">플레이어 선택 <span style="font-size:11px;font-weight:500;color:var(--text-muted)">(목업: 클릭은 알림)</span></div>
+              <div class="mock-balance-pool-head" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                <span>플레이어 선택</span>
+                <button type="button" class="mock-help-tip" data-tip="목업에서 칩 클릭 시 안내만 표시합니다. 슬롯에 올리는 동작(드래그·탭)은 구현 단계에서 연결합니다." aria-label="플레이어 선택 도움말">?</button>
+              </div>
               <div class="mock-balance-pool-filters">
                 <input type="search" id="mock-balance-pool-search" placeholder="닉네임 검색" autocomplete="off" oninput="window.mockBalancePoolFilter(this)" aria-label="플레이어 검색" />
                 <select id="mock-balance-pool-sort" title="정렬" aria-label="정렬">
@@ -2001,13 +2046,15 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
               </div>
             </aside>
 
-            <p class="mock-modal-hint" style="margin:10px 0 0;font-size:11px;line-height:1.45">확정 후 참가/비참가 분기는 상단 ②③④ 탭으로 목업 확인합니다.</p>
           </div>
         </div>
       </div>
 
       <div id="mock-balance-wf-banpick" data-balance-wf-panel="banpick" class="mock-balance-wf-panel" hidden>
-        <p class="mock-modal-hint" style="margin-bottom:12px">맵 또는 영웅 밴픽이 켜진 경기에서 <strong>참가자</strong>에게 보이는 단계(오버워치식 번갈아 선택 목업).</p>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <span style="font-size:13px;font-weight:600;color:var(--text-secondary)">참가자 밴픽</span>
+          <button type="button" class="mock-help-tip" data-tip="맵 또는 영웅 밴픽이 켜진 경기에서 참가자에게 보이는 단계입니다. 진영별로 번갈아 밴·픽하는 흐름 목업입니다." aria-label="참가자 밴픽 도움말">?</button>
+        </div>
         <div class="mock-banpick-mock">
           <div class="mock-banpick-col">
             <h4 style="color:#7dd3fc">블루 진영</h4>
@@ -2028,7 +2075,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
       </div>
 
       <div id="mock-balance-wf-lineup" data-balance-wf-panel="lineup" class="mock-balance-wf-panel" hidden>
-        <p class="mock-modal-hint" style="margin-bottom:12px">맵·영웅 밴이 <strong>모두 OFF</strong>일 때 참가자에게 보이는 고정 5vs5 화면(읽기 전용).</p>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <span style="font-size:13px;font-weight:600;color:var(--text-secondary)">참가자 5vs5</span>
+          <button type="button" class="mock-help-tip" data-tip="맵·영웅 밴이 모두 꺼져 있을 때 참가자에게 보이는 고정 라인업(읽기 전용)입니다." aria-label="참가자 5vs5 도움말">?</button>
+        </div>
         <div class="mock-balance-vs-head">
           <span><span class="mock-balance-crown is-winner" title="우세(목업)">👑</span><br />블루 팀</span>
           <span class="mock-balance-vs-mid">VS</span>
@@ -2061,17 +2111,26 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
             <div class="mock-balance-nameplate mock-balance-nameplate--red">뚱인데요</div>
           </div>
         </div>
-        <p style="font-size:11px;color:var(--text-muted);margin-top:12px">맵: <strong id="mock-balance-lineup-map">서킷 로얄</strong> · 서버 시간 연동 시「20xx/xx/xx — 몇 시 시작」표시</p>
+        <p style="font-size:11px;color:var(--text-muted);margin-top:12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          맵: <strong id="mock-balance-lineup-map">서킷 로얄</strong>
+          <button type="button" class="mock-help-tip" data-tip="서버 시간·경기 시작 시각과 연동하면 날짜·시각 표시 형식을 맞출 수 있습니다(구현 시)." aria-label="라인업 맵·시각 표시 도움말">?</button>
+        </p>
       </div>
 
       <div id="mock-balance-wf-spectator" data-balance-wf-panel="spectator" class="mock-balance-wf-panel" hidden>
-        <p class="mock-modal-hint" style="margin-bottom:12px">이번 경기에 <strong>출전하지 않은</strong> 구성원 화면입니다.</p>
-        <p class="mock-balance-free-note mock-modal-hint" style="margin-bottom:12px">승부 예측·배당·파리뮤추엘 정산 목업은 허브에서 <strong>Premium 플랜</strong>을 선택한 뒤 이 탭을 다시 열어 확인하세요.</p>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <span style="font-size:13px;font-weight:600;color:var(--text-secondary)">비출전 구성원</span>
+          <button type="button" class="mock-help-tip" data-tip="이번 경기에 출전하지 않은 구성원에게 보이는 화면입니다. 승부 예측·배당·파리뮤추엘 등은 Premium 범위입니다." aria-label="관전·비출전 화면 도움말">?</button>
+        </div>
+        <p class="mock-balance-free-note mock-modal-hint" style="margin:0 0 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--text-muted)">
+          <span>Premium UI는 허브에서 플랜 전환 후 확인</span>
+          <button type="button" class="mock-help-tip" data-tip="목업 허브(_hub.html) 사이드바에서 Premium 플랜을 선택한 뒤 이 탭을 다시 열면 승부 예측·배당 블록이 표시됩니다." aria-label="Premium 목업 전환 도움말">?</button>
+        </p>
         <div class="mock-predict-mock mock-hide-on-free">
           <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center">
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
               <strong style="font-size:13px">승부 예측</strong>
-              <button type="button" class="mock-help-tip" data-tip="Premium 클랜 기능입니다. 비출전 구성원이 블루/레드 승을 예측하고 클랜코인을 걸 수 있습니다. 마감 시각·배당·파리뮤추엘 정산은 서버 정책을 따릅니다." aria-label="승부 예측 설명">?</button>
+              <button type="button" class="mock-help-tip" data-tip="Premium 클랜 기능입니다. 비출전 구성원이 블루/레드 승을 예측하고 클랜코인을 걸 수 있습니다. 마감 시각·배당·파리뮤추엘 정산은 서버 정책을 따릅니다." aria-label="승부 예측 도움말">?</button>
             </div>
             <span style="font-size:12px;color:#fb7185;font-variant-numeric:tabular-nums" id="mock-balance-predict-ttl">마감까지 04:32</span>
           </div>
