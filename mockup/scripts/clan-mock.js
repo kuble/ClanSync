@@ -130,6 +130,14 @@
       if (document.getElementById("mock-balance-weight-tank")) {
         window.mockBalanceApplyRoleWeightsToUI();
       }
+      var vsBoardInit = document.getElementById("mock-balance-vs-board");
+      if (
+        vsBoardInit &&
+        typeof mockBalanceRecomputeTagsForBoard === "function" &&
+        window.mockClanCurrentPlan() === "premium"
+      ) {
+        mockBalanceRecomputeTagsForBoard(vsBoardInit);
+      }
     } catch (eBalance) {}
     /* 구성원이 경기 기록 패널만 열린 상태면 요약으로 되돌림 */
     if (window.mockClanCurrentRole() === "member") {
@@ -252,6 +260,102 @@
     }
   };
 
+  /** 편집 보드 AI 표시 기준값(목업). 갱신 시 맵·시퀀스로 소폭 보정만 한다. */
+  var MOCK_BALANCE_AI_BASE = {
+    b0: 2.14,
+    b1: 0.48,
+    b2: -0.41,
+    b3: 0.18,
+    b4: -0.65,
+    r0: -0.92,
+    r1: 1.35,
+    r2: 1.62,
+    r3: 0.76,
+    r4: 0.38,
+  };
+  var _mockBalanceAiRefreshSeq = 0;
+
+  function mockBalanceMapBanIsOn() {
+    var b = document.getElementById("mock-balance-toggle-map-ban");
+    return !!(b && b.getAttribute("aria-checked") === "true");
+  }
+
+  function mockBalanceParseWltFromPlate(plate) {
+    var nums = plate.querySelectorAll(".mock-balance-slot-wlt .mock-balance-wlt-n");
+    if (nums.length < 3) {
+      return { w: 0, t: 0, l: 0 };
+    }
+    return {
+      w: parseInt(nums[0].textContent, 10) || 0,
+      t: parseInt(nums[1].textContent, 10) || 0,
+      l: parseInt(nums[2].textContent, 10) || 0,
+    };
+  }
+
+  /** 목업: 전적 숫자로 태그 규칙 시뮬(실서버는 스냅샷). 최대 2개. */
+  function mockBalanceRecomputeTagsForBoard(board) {
+    board.querySelectorAll(".mock-balance-nameplate--rich[data-slot-id]").forEach(function (plate) {
+      var wrap = plate.querySelector(".mock-balance-slot-tags");
+      if (!wrap) return;
+      var o = mockBalanceParseWltFromPlate(plate);
+      var total = o.w + o.t + o.l;
+      var rate = total > 0 ? o.w / total : 0;
+      var parts = [];
+      if (total === 0) {
+        wrap.innerHTML = "";
+        return;
+      }
+      if (o.w === 0 && o.t === 0 && o.l >= 3) {
+        parts.push(String(o.l) + "연패");
+      }
+      if (total >= 3 && rate <= 0.35) {
+        parts.push("슬럼프");
+      }
+      if (o.l === 0 && o.t === 0 && o.w >= 3) {
+        parts.push(String(o.w) + "연승");
+      }
+      wrap.innerHTML = parts
+        .slice(0, 2)
+        .map(function (t) {
+          return '<span class="badge badge-muted mock-balance-tag">' + t + "</span>";
+        })
+        .join("");
+    });
+  }
+
+  /**
+   * Premium 전용: AI 숫자·태그 목업 갱신. ~85ms 비동기 + 짧은 refreshing 클래스.
+   * Free는 즉시 반환(노출 없음).
+   */
+  window.mockBalanceRefreshAiSnapshotMock = function () {
+    var board = document.getElementById("mock-balance-vs-board");
+    if (!board) return;
+    if (typeof window.mockClanCurrentPlan === "function" && window.mockClanCurrentPlan() !== "premium") {
+      return;
+    }
+    _mockBalanceAiRefreshSeq++;
+    board.classList.add("mock-balance-ai-refreshing");
+    window.setTimeout(function () {
+      var mapLabel = "";
+      var lbl = document.getElementById("mock-balance-map-label");
+      if (lbl) mapLabel = (lbl.textContent || "").trim();
+      var mapBump =
+        !mockBalanceMapBanIsOn() && mapLabel
+          ? ((mapLabel.length % 7) + 1) * 0.015
+          : 0;
+      var nudge = (_mockBalanceAiRefreshSeq % 5) * 0.008;
+      Object.keys(MOCK_BALANCE_AI_BASE).forEach(function (id) {
+        var el = board.querySelector('.mock-balance-slot-ai[data-slot-id="' + id + '"]');
+        if (!el) return;
+        var base = MOCK_BALANCE_AI_BASE[id];
+        var v = base + mapBump + nudge;
+        el.textContent = "AI " + v.toFixed(2);
+      });
+      mockBalanceRecomputeTagsForBoard(board);
+      board.classList.remove("mock-balance-ai-refreshing");
+    }, 85);
+  };
+
   /** 맵 밴 ON이면 맵 라벨·선택 버튼·모드 문구를 숨김(밴픽 세션에서 맵 확정) */
   function mockBalanceSyncMapPickCluster() {
     var mapBan = document.getElementById("mock-balance-toggle-map-ban");
@@ -293,6 +397,9 @@
   };
 
   window.mockBalancePlacementDone = function () {
+    if (typeof window.mockBalanceRefreshAiSnapshotMock === "function") {
+      window.mockBalanceRefreshAiSnapshotMock();
+    }
     var tab = document.querySelector('[data-balance-wf-id="lineup"]');
     if (tab) {
       window.mockBalanceSetWorkflow(tab, "lineup");
@@ -463,6 +570,11 @@
     var lineupMap = document.getElementById("mock-balance-lineup-map");
     if (lineupMap) lineupMap.textContent = name;
     window.mockBalanceCloseMapModal();
+    var mapBan = document.getElementById("mock-balance-toggle-map-ban");
+    var banOn = mapBan && mapBan.getAttribute("aria-checked") === "true";
+    if (!banOn && typeof window.mockBalanceRefreshAiSnapshotMock === "function") {
+      window.mockBalanceRefreshAiSnapshotMock();
+    }
     return false;
   };
 
