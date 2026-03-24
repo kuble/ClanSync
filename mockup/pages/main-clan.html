@@ -772,10 +772,9 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
 .mock-balance-pool-chip:hover {
   border-color: rgba(124, 58, 237, 0.45);
 }
+/* 배치된 플레이어는 목록에서 제외(검색으로도 노출하지 않음 — mockBalancePoolFilter) */
 .mock-balance-pool-chip[data-on-roster="true"] {
-  opacity: 0.42;
-  cursor: default;
-  pointer-events: none;
+  display: none !important;
 }
 .mock-balance-pool-chip[hidden] {
   display: none !important;
@@ -2932,16 +2931,16 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                 </select>
               </div>
               <div class="mock-balance-pool-grid" id="mock-balance-pool-grid">
-                <button type="button" class="mock-balance-pool-chip" data-name="하지" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">하지</button>
-                <button type="button" class="mock-balance-pool-chip" data-name="crystal" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">크리스탈</button>
-                <button type="button" class="mock-balance-pool-chip" data-name="dorae" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">DORAE</button>
-                <button type="button" class="mock-balance-pool-chip" data-name="edward" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">애드워드애릭</button>
-                <button type="button" class="mock-balance-pool-chip" data-name="abel" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">ABEL</button>
-                <button type="button" class="mock-balance-pool-chip" data-name="cafemocha" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">카페못간카페모카</button>
-                <button type="button" class="mock-balance-pool-chip" data-name="nyang" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">냥이의비행</button>
-                <button type="button" class="mock-balance-pool-chip" data-name="sura" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">수라</button>
-                <button type="button" class="mock-balance-pool-chip" data-name="sori" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">소리</button>
-                <button type="button" class="mock-balance-pool-chip" data-name="ddung" data-on-roster="true" onclick="return window.mockBalancePoolChipClick(this)">뚱인데요</button>
+                <button type="button" class="mock-balance-pool-chip" data-name="하지" onclick="return window.mockBalancePoolChipClick(this)">하지</button>
+                <button type="button" class="mock-balance-pool-chip" data-name="crystal" onclick="return window.mockBalancePoolChipClick(this)">크리스탈</button>
+                <button type="button" class="mock-balance-pool-chip" data-name="dorae" onclick="return window.mockBalancePoolChipClick(this)">DORAE</button>
+                <button type="button" class="mock-balance-pool-chip" data-name="edward" onclick="return window.mockBalancePoolChipClick(this)">애드워드애릭</button>
+                <button type="button" class="mock-balance-pool-chip" data-name="abel" onclick="return window.mockBalancePoolChipClick(this)">ABEL</button>
+                <button type="button" class="mock-balance-pool-chip" data-name="cafemocha" onclick="return window.mockBalancePoolChipClick(this)">카페못간카페모카</button>
+                <button type="button" class="mock-balance-pool-chip" data-name="nyang" onclick="return window.mockBalancePoolChipClick(this)">냥이의비행</button>
+                <button type="button" class="mock-balance-pool-chip" data-name="sura" onclick="return window.mockBalancePoolChipClick(this)">수라</button>
+                <button type="button" class="mock-balance-pool-chip" data-name="sori" onclick="return window.mockBalancePoolChipClick(this)">소리</button>
+                <button type="button" class="mock-balance-pool-chip" data-name="ddung" onclick="return window.mockBalancePoolChipClick(this)">뚱인데요</button>
                 <button type="button" class="mock-balance-pool-chip" data-name="ajae" onclick="return window.mockBalancePoolChipClick(this)">아재</button>
                 <button type="button" class="mock-balance-pool-chip" data-name="kri" onclick="return window.mockBalancePoolChipClick(this)">크리</button>
                 <button type="button" class="mock-balance-pool-chip" data-name="emilia" onclick="return window.mockBalancePoolChipClick(this)">EMILIA</button>

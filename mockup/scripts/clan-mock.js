@@ -144,6 +144,9 @@
       ) {
         mockBalanceRecomputeTagsForBoard(vsBoardInit);
       }
+      if (typeof window.mockBalancePoolSyncFromVsBoard === "function") {
+        window.mockBalancePoolSyncFromVsBoard();
+      }
     } catch (eBalance) {}
     /* 구성원이 경기 기록 패널만 열린 상태면 요약으로 되돌림 */
     if (window.mockClanCurrentRole() === "member") {
@@ -687,12 +690,33 @@
     });
   };
 
+  /** VS 보드 슬롯 닉네임과 풀 칩의 data-on-roster 동기화 후 검색 필터 재적용 */
+  window.mockBalancePoolSyncFromVsBoard = function () {
+    var board = document.getElementById("mock-balance-vs-board");
+    if (!board) return;
+    var rosterNames = new Set();
+    board.querySelectorAll(".mock-balance-slot-nick").forEach(function (el) {
+      var s = (el.textContent || "").trim();
+      if (s) rosterNames.add(s);
+    });
+    document.querySelectorAll(".mock-balance-pool-chip").forEach(function (c) {
+      var label = (c.textContent || "").trim();
+      c.setAttribute("data-on-roster", rosterNames.has(label) ? "true" : "false");
+    });
+    var search = document.getElementById("mock-balance-pool-search");
+    if (search) {
+      window.mockBalancePoolFilter(search);
+    }
+  };
+
   window.mockBalancePoolFilter = function (input) {
     var q = (input && input.value ? input.value : "").trim().toLowerCase();
     document.querySelectorAll(".mock-balance-pool-chip").forEach(function (c) {
+      var onRoster = c.getAttribute("data-on-roster") === "true";
       var n = (c.getAttribute("data-name") || "").toLowerCase();
       var t = (c.textContent || "").trim().toLowerCase();
-      c.hidden = !!(q && n.indexOf(q) === -1 && t.indexOf(q) === -1);
+      var noSearchMatch = !!(q && n.indexOf(q) === -1 && t.indexOf(q) === -1);
+      c.hidden = onRoster || noSearchMatch;
     });
   };
 
