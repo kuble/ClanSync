@@ -324,12 +324,22 @@
   flex-direction: column;
 }
 .mock-balance-vs-placement {
-  margin-top: 12px;
+  margin-top: 14px;
   width: 100%;
+  display: flex;
+  justify-content: flex-end;
 }
 .mock-balance-vs-placement .btn {
-  width: 100%;
+  width: auto;
+  min-width: 9.75rem;
+  max-width: 100%;
+  min-height: 40px;
+  padding: 10px 22px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: var(--radius-md);
   box-sizing: border-box;
+  justify-content: center;
 }
 .mock-balance-ref-sidebar {
   flex: 0 0 min(270px, 34%);
@@ -1920,7 +1930,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                   </div>
                 </div>
                 <div class="mock-balance-vs-placement">
-                  <button type="button" class="btn btn-sm" onclick="return window.mockBalancePlacementDone()">배치 완료</button>
+                  <button type="button" class="btn btn-primary" onclick="return window.mockBalancePlacementDone()">배치 완료</button>
                 </div>
               </div>
 
