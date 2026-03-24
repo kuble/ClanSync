@@ -18,8 +18,8 @@
 
 ## 2. 레이아웃 · 정보 우선순위 (공간 부족 시)
 
-- **특이사항 태그**는 슬롯 **왼쪽 세로 레일**에 위에서 아래로 쌓는다.  
-- **닉네임·오늘 전적·Manual·AI**는 태그 오른쪽 **본문 열**에 둔다.
+- **닉네임·오늘 전적·Manual·AI**는 슬롯 **왼쪽 본문 열**에 둔다.  
+- **특이사항 태그**는 본문 **오른쪽 세로 레일**에 위에서 아래로 쌓는다.
 
 본문 **2줄** 안에서 좁아지면 **아래 순으로 잘라낸다**(마지막부터 숨김).
 
@@ -80,9 +80,9 @@
 ## 6. 마크업 구조 (목업)
 
 - `.mock-balance-nameplate--rich` — 편집 보드 전용.
-- `.mock-balance-nameplate-rich-inner` — 가로 flex: **태그 레일 | 본문**.
-- `.mock-balance-slot-tags.mock-balance-slot-tags-rail` — 왼쪽 세로 태그 스택 (`aria-label="상태 태그"`).
-- `.mock-balance-slot-body` — 오른쪽: 닉 + 2줄 메타.
+- `.mock-balance-nameplate-rich-inner` — 가로 flex: **본문 | 태그 레일**(태그는 오른쪽).
+- `.mock-balance-slot-body` — 왼쪽: 닉 + 2줄 메타.
+- `.mock-balance-slot-tags.mock-balance-slot-tags-rail` — 오른쪽 세로 태그 스택 (`aria-label="상태 태그"`).
 - `.mock-balance-slot-nick` — 닉네임.
 - `.mock-balance-slot-line2` — 전적, M, AI(프리미엄). **태그는 여기 넣지 않는다.**
 - 참가자 **5vs5** 읽기 전용 보드는 기존처럼 **닉만** 두고, `--scores-off`로 메타·태그 레일을 숨긴다.

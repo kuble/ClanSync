@@ -829,7 +829,7 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
 .mock-balance-nameplate-rich-inner {
   display: flex;
   flex-direction: row;
-  align-items: stretch;
+  align-items: flex-start;
   gap: 8px;
   width: 100%;
   flex: 1;
@@ -840,10 +840,11 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   flex-direction: column;
   gap: 4px;
   flex-shrink: 0;
-  align-items: stretch;
+  align-items: flex-end;
   justify-content: flex-start;
   max-width: 4.75rem;
   padding-top: 1px;
+  text-align: right;
 }
 .mock-balance-slot-body {
   flex: 1;
@@ -2252,9 +2253,6 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                   <div class="mock-balance-vs-row">
                     <div class="mock-balance-nameplate mock-balance-nameplate--blue mock-balance-nameplate--rich" data-slot-id="b0">
                       <div class="mock-balance-nameplate-rich-inner">
-                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그">
-                          <span class="mock-balance-tag mock-balance-tag--neutral">딜 라인</span>
-                        </div>
                         <div class="mock-balance-slot-body">
                           <span class="mock-balance-slot-nick">하지</span>
                           <div class="mock-balance-slot-line2">
@@ -2263,15 +2261,14 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                             <span class="mock-balance-slot-ai mock-hide-on-free" data-slot-id="b0" title="AI 추정(배치·맵 확정 시 갱신)">AI 2.14</span>
                           </div>
                         </div>
+                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그">
+                          <span class="mock-balance-tag mock-balance-tag--neutral">딜 라인</span>
+                        </div>
                       </div>
                     </div>
                     <div class="mock-balance-role-ic" title="딜">⚔</div>
                     <div class="mock-balance-nameplate mock-balance-nameplate--red mock-balance-nameplate--rich" data-slot-id="r0">
                       <div class="mock-balance-nameplate-rich-inner">
-                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그">
-                          <span class="mock-balance-tag mock-balance-tag--bad">3연패</span>
-                          <span class="mock-balance-tag mock-balance-tag--bad">슬럼프</span>
-                        </div>
                         <div class="mock-balance-slot-body">
                           <span class="mock-balance-slot-nick">나는우리팀믿어</span>
                           <div class="mock-balance-slot-line2">
@@ -2280,13 +2277,16 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                             <span class="mock-balance-slot-ai mock-hide-on-free" data-slot-id="r0" title="AI 추정(배치·맵 확정 시 갱신)">AI -0.92</span>
                           </div>
                         </div>
+                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그">
+                          <span class="mock-balance-tag mock-balance-tag--bad">3연패</span>
+                          <span class="mock-balance-tag mock-balance-tag--bad">슬럼프</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                   <div class="mock-balance-vs-row">
                     <div class="mock-balance-nameplate mock-balance-nameplate--blue mock-balance-nameplate--rich" data-slot-id="b1">
                       <div class="mock-balance-nameplate-rich-inner">
-                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그"></div>
                         <div class="mock-balance-slot-body">
                           <span class="mock-balance-slot-nick">GON</span>
                           <div class="mock-balance-slot-line2">
@@ -2295,14 +2295,12 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                             <span class="mock-balance-slot-ai mock-hide-on-free" data-slot-id="b1">AI 0.48</span>
                           </div>
                         </div>
+                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그"></div>
                       </div>
                     </div>
                     <div class="mock-balance-role-ic" title="딜">⚔</div>
                     <div class="mock-balance-nameplate mock-balance-nameplate--red mock-balance-nameplate--rich" data-slot-id="r1">
                       <div class="mock-balance-nameplate-rich-inner">
-                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그">
-                          <span class="mock-balance-tag mock-balance-tag--good">4연승</span>
-                        </div>
                         <div class="mock-balance-slot-body">
                           <span class="mock-balance-slot-nick">냥이의비행</span>
                           <div class="mock-balance-slot-line2">
@@ -2311,13 +2309,15 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                             <span class="mock-balance-slot-ai mock-hide-on-free" data-slot-id="r1">AI 1.35</span>
                           </div>
                         </div>
+                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그">
+                          <span class="mock-balance-tag mock-balance-tag--good">4연승</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                   <div class="mock-balance-vs-row">
                     <div class="mock-balance-nameplate mock-balance-nameplate--blue mock-balance-nameplate--rich" data-slot-id="b2">
                       <div class="mock-balance-nameplate-rich-inner">
-                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그"></div>
                         <div class="mock-balance-slot-body">
                           <span class="mock-balance-slot-nick">DORAE</span>
                           <div class="mock-balance-slot-line2">
@@ -2326,14 +2326,12 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                             <span class="mock-balance-slot-ai mock-hide-on-free" data-slot-id="b2">AI -0.41</span>
                           </div>
                         </div>
+                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그"></div>
                       </div>
                     </div>
                     <div class="mock-balance-role-ic" title="탱">🛡</div>
                     <div class="mock-balance-nameplate mock-balance-nameplate--red mock-balance-nameplate--rich" data-slot-id="r2">
                       <div class="mock-balance-nameplate-rich-inner">
-                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그">
-                          <span class="mock-balance-tag mock-balance-tag--bad">슬럼프</span>
-                        </div>
                         <div class="mock-balance-slot-body">
                           <span class="mock-balance-slot-nick">TOOJI</span>
                           <div class="mock-balance-slot-line2">
@@ -2342,13 +2340,15 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                             <span class="mock-balance-slot-ai mock-hide-on-free" data-slot-id="r2">AI 1.62</span>
                           </div>
                         </div>
+                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그">
+                          <span class="mock-balance-tag mock-balance-tag--bad">슬럼프</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                   <div class="mock-balance-vs-row">
                     <div class="mock-balance-nameplate mock-balance-nameplate--blue mock-balance-nameplate--rich" data-slot-id="b3">
                       <div class="mock-balance-nameplate-rich-inner">
-                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그"></div>
                         <div class="mock-balance-slot-body">
                           <span class="mock-balance-slot-nick">애드워드애릭</span>
                           <div class="mock-balance-slot-line2">
@@ -2357,12 +2357,12 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                             <span class="mock-balance-slot-ai mock-hide-on-free" data-slot-id="b3">AI 0.18</span>
                           </div>
                         </div>
+                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그"></div>
                       </div>
                     </div>
                     <div class="mock-balance-role-ic" title="힐">✚</div>
                     <div class="mock-balance-nameplate mock-balance-nameplate--red mock-balance-nameplate--rich" data-slot-id="r3">
                       <div class="mock-balance-nameplate-rich-inner">
-                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그"></div>
                         <div class="mock-balance-slot-body">
                           <span class="mock-balance-slot-nick">소리</span>
                           <div class="mock-balance-slot-line2">
@@ -2371,16 +2371,13 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                             <span class="mock-balance-slot-ai mock-hide-on-free" data-slot-id="r3">AI 0.76</span>
                           </div>
                         </div>
+                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그"></div>
                       </div>
                     </div>
                   </div>
                   <div class="mock-balance-vs-row">
                     <div class="mock-balance-nameplate mock-balance-nameplate--blue mock-balance-nameplate--rich" data-slot-id="b4">
                       <div class="mock-balance-nameplate-rich-inner">
-                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그">
-                          <span class="mock-balance-tag mock-balance-tag--bad">3연패</span>
-                          <span class="mock-balance-tag mock-balance-tag--bad">슬럼프</span>
-                        </div>
                         <div class="mock-balance-slot-body">
                           <span class="mock-balance-slot-nick">ABEL</span>
                           <div class="mock-balance-slot-line2">
@@ -2389,12 +2386,15 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                             <span class="mock-balance-slot-ai mock-hide-on-free" data-slot-id="b4">AI -0.65</span>
                           </div>
                         </div>
+                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그">
+                          <span class="mock-balance-tag mock-balance-tag--bad">3연패</span>
+                          <span class="mock-balance-tag mock-balance-tag--bad">슬럼프</span>
+                        </div>
                       </div>
                     </div>
                     <div class="mock-balance-role-ic" title="힐">✚</div>
                     <div class="mock-balance-nameplate mock-balance-nameplate--red mock-balance-nameplate--rich" data-slot-id="r4">
                       <div class="mock-balance-nameplate-rich-inner">
-                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그"></div>
                         <div class="mock-balance-slot-body">
                           <span class="mock-balance-slot-nick">뚱인데요</span>
                           <div class="mock-balance-slot-line2">
@@ -2403,6 +2403,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                             <span class="mock-balance-slot-ai mock-hide-on-free" data-slot-id="r4">AI 0.38</span>
                           </div>
                         </div>
+                        <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그"></div>
                       </div>
                     </div>
                   </div>

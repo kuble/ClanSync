@@ -299,7 +299,7 @@
     return "neutral";
   }
 
-  /** 목업: 전적 숫자로 태그 규칙 시뮬(실서버는 스냅샷). 최대 2개. 왼쪽 세로 레일에 색 구분 클래스 부여. */
+  /** 목업: 전적 숫자로 태그 규칙 시뮬(실서버는 스냅샷). 최대 2개. 오른쪽 세로 레일에 색 구분 클래스 부여. */
   function mockBalanceRecomputeTagsForBoard(board) {
     board.querySelectorAll(".mock-balance-nameplate--rich[data-slot-id]").forEach(function (plate) {
       var wrap = plate.querySelector(".mock-balance-slot-tags");
