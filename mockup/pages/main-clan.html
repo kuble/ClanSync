@@ -513,6 +513,94 @@
 .mock-help-tip:focus-visible::after {
   opacity: 1;
 }
+/* 밸런스 편집 카드 헤더: 제목(좌) + Premium 태그(우) */
+.mock-balance-edit-d-card-label {
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.mock-balance-edit-label-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+  flex: 1;
+}
+/* Premium 플랜 배지 — 호버 시 기능 요약 툴팁 */
+.mock-premium-plan-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: help;
+  font-family: inherit;
+  line-height: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, opacity 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.mock-premium-plan-tag:focus-visible {
+  outline: 2px solid rgba(245, 158, 11, 0.55);
+  outline-offset: 2px;
+}
+.mock-premium-plan-tag::after {
+  content: attr(data-tip);
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  left: auto;
+  transform: none;
+  width: min(320px, 86vw);
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: left;
+  white-space: normal;
+  text-transform: none;
+  letter-spacing: normal;
+  z-index: 60;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+}
+.mock-premium-plan-tag:hover::after,
+.mock-premium-plan-tag:focus-visible::after {
+  opacity: 1;
+}
+/* Free: 비활성·잠금 느낌 */
+body.mock-plan-free .mock-premium-plan-tag {
+  color: var(--text-muted);
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  opacity: 0.72;
+  box-shadow: none;
+}
+/* Premium: 활성·강조 */
+body.mock-plan-premium .mock-premium-plan-tag {
+  color: #fde68a;
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.22), rgba(234, 88, 12, 0.14));
+  border: 1px solid rgba(251, 191, 36, 0.55);
+  opacity: 1;
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.12), 0 2px 10px rgba(245, 158, 11, 0.12);
+}
+body.mock-plan-premium .mock-premium-plan-tag:hover {
+  border-color: rgba(252, 211, 77, 0.75);
+  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.2), 0 4px 14px rgba(245, 158, 11, 0.18);
+}
 .mock-balance-pool-col {
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
@@ -1886,11 +1974,19 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
       </div>
     </div>
     <div class="d-card d-card-full" style="margin-bottom:16px">
-      <div class="d-card-label">
-        <span style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div class="d-card-label mock-balance-edit-d-card-label">
+        <span class="mock-balance-edit-label-start">
           <span>밸런스 편집</span>
           <button type="button" class="mock-help-tip" data-tip="목업은 시나리오 미리보기입니다. 실제 구현에서는 배치 확정 시 참가·밴픽 옵션·역할에 따라 ② 밴픽 / ③ 5vs5 / ④ 관전 등으로 분기·리다이렉트할 수 있습니다." aria-label="밸런스 편집 도움말">?</button>
         </span>
+        <button
+          type="button"
+          class="mock-premium-plan-tag"
+          data-tip="Premium 클랜에서 이용할 수 있는 기능입니다. · 팀 자동 밸런싱: 자동 점수·포지션(탱·딜·힐)을 반영해 블루·레드 진영을 자동 분배합니다. 운영진은 수동으로 조정할 수 있습니다. · OCR 닉 입력: 내전·스크림 결과 화면 스크린샷에서 닉네임을 인식해 출전 명단 입력을 돕습니다. · 디스코드 시작 알림(자동): 배치 확정 시 연동 디스코드 채널에 경기 시작 안내가 자동으로 발송됩니다."
+          aria-label="Premium 클랜 기능 안내: 팀 자동 밸런싱, OCR 닉 입력, 디스코드 시작 알림"
+        >
+          Premium
+        </button>
       </div>
       <div class="mock-balance-wf-tabs-wrap">
         <div class="mock-balance-wf-tabs" role="tablist" aria-label="밸런스 화면 단계">
