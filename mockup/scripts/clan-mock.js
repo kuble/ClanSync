@@ -317,12 +317,6 @@
     return false;
   };
 
-  window.mockBalanceToggleScores = function (cb) {
-    var board = document.getElementById("mock-balance-vs-board");
-    if (!board || !cb) return;
-    board.classList.toggle("mock-balance-vs-board--scores-off", !cb.checked);
-  };
-
   /** 배너「내전 시작」— 구성원이면 안내 */
   window.clanBannerBalanceClick = function () {
     if (window.mockClanCurrentRole() === "member") {

@@ -323,6 +323,14 @@
   display: flex;
   flex-direction: column;
 }
+.mock-balance-vs-placement {
+  margin-top: 12px;
+  width: 100%;
+}
+.mock-balance-vs-placement .btn {
+  width: 100%;
+  box-sizing: border-box;
+}
 .mock-balance-ref-sidebar {
   flex: 0 0 min(270px, 34%);
   width: min(270px, 34%);
@@ -371,19 +379,6 @@
     max-width: none;
     min-height: 180px;
   }
-}
-.mock-balance-pool-head-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 8px;
-  flex-wrap: wrap;
-}
-.mock-balance-pool-head-row .mock-balance-pool-head {
-  margin-bottom: 0;
-  flex: 1;
-  min-width: 0;
 }
 .mock-balance-toolbar-balance {
   display: flex;
@@ -1924,6 +1919,9 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                     <div class="mock-balance-nameplate mock-balance-nameplate--red">뚱인데요<div class="mock-balance-slot-extras"><span class="mock-balance-mic">🎙️</span><span>0.4점</span><span>1승 0패</span></div></div>
                   </div>
                 </div>
+                <div class="mock-balance-vs-placement">
+                  <button type="button" class="btn btn-sm" onclick="return window.mockBalancePlacementDone()">배치 완료</button>
+                </div>
               </div>
 
               <aside class="mock-balance-ref-sidebar" aria-label="참고 지표">
@@ -1948,16 +1946,8 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
               </aside>
             </div>
 
-            <label style="display:flex;align-items:center;gap:8px;margin-top:4px;font-size:12px;color:var(--text-muted);cursor:pointer">
-              <input type="checkbox" id="mock-balance-show-scores" checked onchange="window.mockBalanceToggleScores(this)" />
-              점수·전적·태그 표시 (배치 완료 후 기본 ON)
-            </label>
-
             <aside class="mock-balance-pool-col mock-balance-pool-col--below" aria-label="클랜원 풀">
-              <div class="mock-balance-pool-head-row">
-                <div class="mock-balance-pool-head">플레이어 선택 <span style="font-size:11px;font-weight:500;color:var(--text-muted)">(목업: 클릭은 알림)</span></div>
-                <button type="button" class="btn btn-sm" onclick="return window.mockBalancePlacementDone()">배치 완료</button>
-              </div>
+              <div class="mock-balance-pool-head">플레이어 선택 <span style="font-size:11px;font-weight:500;color:var(--text-muted)">(목업: 클릭은 알림)</span></div>
               <div class="mock-balance-pool-filters">
                 <input type="search" id="mock-balance-pool-search" placeholder="닉네임 검색" autocomplete="off" oninput="window.mockBalancePoolFilter(this)" aria-label="플레이어 검색" />
                 <select id="mock-balance-pool-sort" title="정렬" aria-label="정렬">
