@@ -322,7 +322,7 @@
     return "0";
   }
 
-  /** 슬롯 행(딜/탱/힐)에 맞는 프리셋 M점수를 입력칸에 반영 */
+  /** 슬롯 행(딜/탱/힐)에 맞는 프리셋 M점수를 표시 영역에 반영 */
   function mockBalanceApplyRoleScoreToPlate(plate) {
     if (!plate || plate.getAttribute("data-empty") === "true") return;
     var slug = plate.getAttribute("data-pool-slug");
@@ -332,12 +332,12 @@
     var role = mockBalanceRoleForRowIndex(rowIdx);
     var pr = MOCK_BALANCE_PLAYER_PRESETS[slug];
     var sc = mockBalanceScoreFromPreset(pr, role);
-    var inp = plate.querySelector(".mock-balance-manual-input");
+    var scoreEl = plate.querySelector(".mock-balance-manual-score");
     var nickEl = plate.querySelector(".mock-balance-slot-nick");
-    if (inp) {
-      inp.value = sc;
+    if (scoreEl) {
+      scoreEl.textContent = sc;
       var nm = nickEl ? (nickEl.textContent || "").trim() : "";
-      inp.setAttribute("aria-label", (nm || "플레이어") + " Manual 점수");
+      scoreEl.setAttribute("aria-label", (nm || "플레이어") + " M 점수");
     }
   }
 
@@ -363,17 +363,17 @@
       .join("");
   }
 
-  /** VS 보드 Manual 입력값으로 MOCK_BALANCE_SCORE_SLOTS 갱신 (참고 패널 합계용) */
+  /** VS 보드에 표시된 M 점수로 MOCK_BALANCE_SCORE_SLOTS 갱신 (참고 패널 합계용) */
   function mockBalanceSyncMockScoresFromDom() {
     var board = document.getElementById("mock-balance-vs-board");
     if (!board) return;
     var roles = ["dps", "dps", "tank", "heal", "heal"];
     var ti;
     for (ti = 0; ti < 5; ti++) {
-      var pb = board.querySelector('[data-slot-id="b' + ti + '"] .mock-balance-manual-input');
-      var pr = board.querySelector('[data-slot-id="r' + ti + '"] .mock-balance-manual-input');
-      var sb = pb ? parseFloat(String(pb.value).trim()) : 0;
-      var sr = pr ? parseFloat(String(pr.value).trim()) : 0;
+      var pb = board.querySelector('[data-slot-id="b' + ti + '"] .mock-balance-manual-score');
+      var pr = board.querySelector('[data-slot-id="r' + ti + '"] .mock-balance-manual-score');
+      var sb = pb ? parseFloat(String(pb.textContent).trim()) : 0;
+      var sr = pr ? parseFloat(String(pr.textContent).trim()) : 0;
       if (isNaN(sb)) sb = 0;
       if (isNaN(sr)) sr = 0;
       MOCK_BALANCE_SCORE_SLOTS.blue[ti] = { s: sb, r: roles[ti] };
@@ -385,7 +385,7 @@
     var empty = plate.getAttribute("data-empty") === "true";
     var nickEl = plate.querySelector(".mock-balance-slot-nick");
     var nums = plate.querySelectorAll(".mock-balance-slot-wlt .mock-balance-wlt-n");
-    var inp = plate.querySelector(".mock-balance-manual-input");
+    var scoreEl = plate.querySelector(".mock-balance-manual-score");
     var tags = plate.querySelector(".mock-balance-slot-tags-rail");
     var display = nickEl ? (nickEl.textContent || "").trim() : "";
     return {
@@ -395,7 +395,7 @@
       w: empty || nums.length < 3 ? 0 : parseInt(nums[0].textContent, 10) || 0,
       t: empty || nums.length < 3 ? 0 : parseInt(nums[1].textContent, 10) || 0,
       l: empty || nums.length < 3 ? 0 : parseInt(nums[2].textContent, 10) || 0,
-      score: inp ? String(inp.value) : "0",
+      score: scoreEl ? String(scoreEl.textContent).trim() : "0",
       tagsHtml: tags ? tags.innerHTML : "",
     };
   }
@@ -403,7 +403,7 @@
   function mockBalanceClearSlotPlate(plate) {
     var nickEl = plate.querySelector(".mock-balance-slot-nick");
     var nums = plate.querySelectorAll(".mock-balance-slot-wlt .mock-balance-wlt-n");
-    var inp = plate.querySelector(".mock-balance-manual-input");
+    var scoreEl = plate.querySelector(".mock-balance-manual-score");
     var tags = plate.querySelector(".mock-balance-slot-tags-rail");
     if (nickEl) {
       nickEl.textContent = "—";
@@ -414,9 +414,9 @@
       nums[1].textContent = "0";
       nums[2].textContent = "0";
     }
-    if (inp) {
-      inp.value = "0";
-      inp.setAttribute("aria-label", "빈 슬롯 Manual 점수");
+    if (scoreEl) {
+      scoreEl.textContent = "0";
+      scoreEl.setAttribute("aria-label", "빈 슬롯 M 점수");
     }
     if (tags) tags.innerHTML = "";
     plate.setAttribute("data-empty", "true");
@@ -432,7 +432,7 @@
     }
     var nickEl = plate.querySelector(".mock-balance-slot-nick");
     var nums = plate.querySelectorAll(".mock-balance-slot-wlt .mock-balance-wlt-n");
-    var inp = plate.querySelector(".mock-balance-manual-input");
+    var scoreEl = plate.querySelector(".mock-balance-manual-score");
     var tags = plate.querySelector(".mock-balance-slot-tags-rail");
     plate.setAttribute("data-empty", "false");
     plate.setAttribute("data-pool-slug", p.slug || "");
@@ -447,9 +447,9 @@
       nums[1].textContent = String(p.t);
       nums[2].textContent = String(p.l);
     }
-    if (inp) {
-      inp.value = p.score;
-      inp.setAttribute("aria-label", p.display + " Manual 점수");
+    if (scoreEl) {
+      scoreEl.textContent = String(p.score);
+      scoreEl.setAttribute("aria-label", p.display + " M 점수");
     }
     if (tags) tags.innerHTML = p.tagsHtml || "";
   }
@@ -506,7 +506,7 @@
       _mockBalanceSuppressNextBoardClick = false;
       return;
     }
-    if (e.target.closest(".mock-balance-manual-input") || e.target.closest(".mock-balance-slot-manual-cell")) {
+    if (e.target.closest(".mock-balance-manual-score") || e.target.closest(".mock-balance-slot-manual-cell")) {
       return;
     }
     var plate = e.target.closest(".mock-balance-nameplate--rich");
