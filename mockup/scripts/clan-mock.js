@@ -219,7 +219,7 @@
   var MOCK_BALANCE_SLOT_OPTS_KEY = "clansync_mock_balance_slot_opts";
 
   function mockBalanceDefaultSlotOpts() {
-    return { wlt: true, m: true, a: true, tags: true, mic: false };
+    return { wlt: true, m: true, tags: true, mic: false };
   }
 
   function mockBalanceLoadSlotOpts() {
@@ -232,7 +232,6 @@
       return {
         wlt: o.wlt !== false,
         m: o.m !== false,
-        a: o.a !== false,
         tags: o.tags !== false,
         mic: o.mic === true,
       };
@@ -245,7 +244,6 @@
     var ids = {
       wlt: "mock-balance-slotopt-wlt",
       m: "mock-balance-slotopt-m",
-      a: "mock-balance-slotopt-a",
       tags: "mock-balance-slotopt-tags",
       mic: "mock-balance-slotopt-mic",
     };
@@ -264,7 +262,6 @@
     var ids = {
       wlt: "mock-balance-slotopt-wlt",
       m: "mock-balance-slotopt-m",
-      a: "mock-balance-slotopt-a",
       tags: "mock-balance-slotopt-tags",
       mic: "mock-balance-slotopt-mic",
     };
@@ -283,7 +280,6 @@
     var v = mockBalanceLoadSlotOpts();
     board.classList.toggle("mock-balance-slotopt--hide-wlt", !v.wlt);
     board.classList.toggle("mock-balance-slotopt--hide-m", !v.m);
-    board.classList.toggle("mock-balance-slotopt--hide-a", !v.a);
     board.classList.toggle("mock-balance-slotopt--hide-tags", !v.tags);
     board.classList.toggle("mock-balance-slotopt--hide-mic", !v.mic);
   };
@@ -376,19 +372,6 @@
     }
   };
 
-  /** 편집 보드 A(자동 추정) 표시 기준값(목업). 갱신 시 맵·시퀀스로 소폭 보정만 한다. */
-  var MOCK_BALANCE_AI_BASE = {
-    b0: 2.14,
-    b1: 0.48,
-    b2: -0.41,
-    b3: 0.18,
-    b4: -0.65,
-    r0: -0.92,
-    r1: 1.35,
-    r2: 1.62,
-    r3: 0.76,
-    r4: 0.38,
-  };
   var _mockBalanceAiRefreshSeq = 0;
 
   function mockBalanceMapBanIsOn() {
@@ -452,8 +435,8 @@
   }
 
   /**
-   * Premium 전용: A 숫자·태그 목업 갱신. ~85ms 비동기 + 짧은 refreshing 클래스.
-   * Free는 즉시 반환(노출 없음).
+   * Premium 전용: 태그 목업 갱신. ~85ms 비동기 + 짧은 refreshing 클래스.
+   * (슬롯 A 숫자 행은 M/A 토글로 통합되어 제거됨.)
    */
   window.mockBalanceRefreshAiSnapshotMock = function () {
     var board = document.getElementById("mock-balance-vs-board");
@@ -464,21 +447,6 @@
     _mockBalanceAiRefreshSeq++;
     board.classList.add("mock-balance-ai-refreshing");
     window.setTimeout(function () {
-      var mapLabel = "";
-      var lbl = document.getElementById("mock-balance-map-label");
-      if (lbl) mapLabel = (lbl.textContent || "").trim();
-      var mapBump =
-        !mockBalanceMapBanIsOn() && mapLabel
-          ? ((mapLabel.length % 7) + 1) * 0.015
-          : 0;
-      var nudge = (_mockBalanceAiRefreshSeq % 5) * 0.008;
-      Object.keys(MOCK_BALANCE_AI_BASE).forEach(function (id) {
-        var el = board.querySelector('.mock-balance-slot-a-value[data-slot-id="' + id + '"]');
-        if (!el) return;
-        var base = MOCK_BALANCE_AI_BASE[id];
-        var v = base + mapBump + nudge;
-        el.textContent = v.toFixed(2);
-      });
       mockBalanceRecomputeTagsForBoard(board);
       board.classList.remove("mock-balance-ai-refreshing");
     }, 85);
