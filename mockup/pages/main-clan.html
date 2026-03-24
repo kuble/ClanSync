@@ -818,14 +818,15 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   justify-content: center;
   gap: 3px;
 }
-/* 편집 보드: 좌(닉·전적+마이크) | 우(태그·M/A) — 레퍼런스 슬롯 카드 */
+/* 편집 보드 rich 슬롯 — 레퍼런스 PNG(#1a1d23 카드·시안 1px 테두리·10px 라운드) */
 .mock-balance-nameplate--rich {
   align-items: stretch;
   justify-content: flex-start;
   text-align: left;
-  min-height: 64px;
-  padding: 11px 13px 11px;
-  background: rgba(15, 22, 32, 0.96);
+  min-height: 58px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #1a1d23;
   border-width: 1px;
   border-style: solid;
 }
@@ -841,21 +842,21 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
 .mock-balance-slot-tags.mock-balance-slot-tags-rail {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
   flex-shrink: 0;
-  align-items: flex-end;
+  align-items: stretch;
   justify-content: center;
   align-self: center;
-  max-width: 5rem;
-  min-height: 2.5rem;
-  text-align: right;
+  max-width: 4.5rem;
+  min-height: 0;
+  text-align: center;
 }
 /* 오른쪽: 태그 레일 | M·A 열 (본문 flex 행의 우측) */
 .mock-balance-slot-line2-tray {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
 }
 .mock-balance-slot-body {
@@ -868,7 +869,7 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
 .mock-balance-nameplate--rich .mock-balance-slot-body {
   flex-direction: row;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 .mock-balance-slot-left-col {
   flex: 1;
@@ -876,7 +877,7 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 5px;
+  gap: 4px;
 }
 .mock-balance-slot-wlt-mic-row {
   display: flex;
@@ -893,11 +894,12 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
 }
 .mock-balance-slot-mic {
   flex-shrink: 0;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1;
-  opacity: 0.72;
+  opacity: 0.9;
   display: inline-block;
-  filter: saturate(0.85) hue-rotate(260deg);
+  /* 레퍼: 보라 톤 마이크 */
+  filter: saturate(0.75) hue-rotate(268deg) brightness(0.95);
 }
 #mock-balance-vs-board.mock-balance-slotopt--hide-mic .mock-balance-slot-mic {
   display: none !important;
@@ -929,7 +931,7 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   flex-direction: column;
   align-items: stretch;
   justify-content: center;
-  gap: 5px;
+  gap: 4px;
   flex-shrink: 0;
 }
 /* M·A 동일 그리드(행 높이·패딩), 내부 우측 정렬 — 색은 Manual / Auto 로 구분 */
@@ -939,21 +941,22 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
-  padding: 4px 8px;
-  min-height: 1.65rem;
+  padding: 3px 8px;
+  min-height: 1.55rem;
   border-radius: 6px;
   border: 1px solid var(--border);
-  background: rgba(15, 23, 42, 0.88);
+  /* 레퍼: 카드(#1a1d23)보다 한 톤 밝은 다크 그레이 */
+  background: #262a32;
   box-sizing: border-box;
-  min-width: 5.5rem;
+  min-width: 5.25rem;
 }
-/* M: 골드 테두리·라벨, 값은 흰색 */
+/* M: 얇은 골드 테두리·골드 M·값 흰색 */
 .mock-balance-slot-score-row:not(.mock-hide-on-free) {
-  border-color: rgba(251, 191, 36, 0.88);
-  background: rgba(15, 23, 42, 0.92);
+  border-color: #d4a843;
+  background: #262a32;
 }
 .mock-balance-slot-score-row:not(.mock-hide-on-free) .mock-balance-slot-score-label {
-  color: #fbbf24;
+  color: #e8c547;
 }
 .mock-balance-slot-score-row:not(.mock-hide-on-free) .mock-balance-manual-input {
   color: #ffffff;
@@ -964,13 +967,13 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
 .mock-balance-slot-score-row:not(.mock-hide-on-free) .mock-balance-manual-input:focus {
   outline-color: rgba(251, 191, 36, 0.65);
 }
-/* A: 보라 테두리·라벨, 값 흰색 */
+/* A: 얇은 인디고·보라 라벨·값 흰색 */
 .mock-balance-slot-score-row.mock-hide-on-free {
-  border-color: rgba(139, 92, 246, 0.78);
-  background: rgba(15, 23, 42, 0.92);
+  border-color: #7c6ae8;
+  background: #262a32;
 }
 .mock-balance-slot-score-row.mock-hide-on-free .mock-balance-slot-score-label {
-  color: #a78bfa;
+  color: #9b8af5;
 }
 .mock-balance-slot-score-row.mock-hide-on-free .mock-balance-slot-a-value {
   color: #ffffff;
@@ -1003,9 +1006,9 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   white-space: nowrap;
 }
 .mock-balance-wlt-suf {
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 600;
-  color: rgba(148, 163, 184, 0.95);
+  color: rgba(163, 174, 190, 0.55);
   margin-left: 1px;
 }
 .mock-balance-wlt-n {
@@ -1013,28 +1016,30 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
+/* 레퍼: 승=중간 블루, 무=라이트 시안, 패=코랄/머트 오렌지 */
 .mock-balance-wlt-n--win {
-  color: #60a5fa;
+  color: #4f8fff;
 }
 .mock-balance-wlt-n--draw {
-  color: #22d3ee;
+  color: #7fe8ff;
 }
 .mock-balance-wlt-n--loss {
-  color: #fb923c;
+  color: #e8936a;
 }
 .mock-balance-nameplate--rich .mock-balance-slot-nick {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 800;
-  color: #f8fafc;
+  color: #ffffff;
+  /* 레퍼: 좌 시안·우 골드 크로마 프린지 */
   text-shadow:
-    -1px 0 rgba(56, 189, 248, 0.5),
-    1px 0 rgba(251, 191, 36, 0.42);
-  letter-spacing: -0.03em;
+    -1px 0 rgba(34, 211, 238, 0.95),
+    1px 0 rgba(234, 179, 8, 0.88);
+  letter-spacing: -0.02em;
 }
 .mock-balance-nameplate--red.mock-balance-nameplate--rich .mock-balance-slot-nick {
   text-shadow:
-    -1px 0 rgba(251, 113, 133, 0.55),
-    1px 0 rgba(56, 189, 248, 0.38);
+    -1px 0 rgba(251, 113, 133, 0.75),
+    1px 0 rgba(34, 211, 238, 0.55);
 }
 .mock-balance-manual-input {
   width: 2.75rem;
@@ -1054,37 +1059,35 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   outline-offset: 0;
 }
 .mock-balance-tag {
-  font-size: 8px !important;
-  padding: 3px 5px !important;
+  font-size: 7px !important;
+  padding: 3px 7px !important;
   font-weight: 700 !important;
-  line-height: 1.2 !important;
-  border-radius: var(--radius-sm) !important;
+  line-height: 1.25 !important;
+  border-radius: 999px !important;
   text-align: center;
   border: 1px solid transparent;
   letter-spacing: -0.02em;
 }
 .mock-balance-tag--good {
-  border-radius: 999px !important;
   background: rgba(34, 197, 94, 0.22);
   color: #bbf7d0;
   border-color: rgba(34, 197, 94, 0.5);
 }
+/* 레퍼: 어두운 적갈 배경 + 연한 핑크 테두리·텍스트(알약 2개 동일 톤) */
 .mock-balance-tag--bad {
-  border-radius: 999px !important;
-  background: rgba(220, 38, 38, 0.92);
-  color: #fef2f2;
-  border-color: rgba(248, 113, 113, 0.35);
+  background: #3d2529;
+  color: #fca5a5;
+  border-color: rgba(252, 165, 165, 0.65);
 }
 .mock-balance-slot-tags-rail .mock-balance-tag--bad + .mock-balance-tag--bad {
-  background: rgba(127, 29, 29, 0.88);
-  color: #fecaca;
-  border-color: rgba(185, 28, 28, 0.5);
+  background: #352124;
+  color: #fdb4b4;
+  border-color: rgba(252, 165, 165, 0.5);
 }
 .mock-balance-tag--neutral {
-  border-radius: 999px !important;
-  background: var(--bg-overlay);
-  color: var(--text-muted);
-  border-color: var(--border);
+  background: rgba(42, 48, 58, 0.9);
+  color: rgba(148, 163, 184, 0.9);
+  border-color: rgba(100, 116, 139, 0.45);
 }
 .mock-balance-vs-board--scores-off .mock-balance-nameplate--rich .mock-balance-slot-wlt-mic-row,
 .mock-balance-vs-board--scores-off .mock-balance-nameplate--rich .mock-balance-slot-line2-tray {
@@ -1133,16 +1136,17 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   color: #fecdd3;
 }
 .mock-balance-nameplate--blue.mock-balance-nameplate--rich {
-  background: rgba(15, 22, 32, 0.96);
+  background: #1a1d23;
   border-width: 1px;
-  border-color: rgba(56, 189, 248, 0.78);
-  color: #e2e8f0;
+  /* 레퍼: 얇은 라이트 시안 외곽선 */
+  border-color: #4ebfff;
+  color: #e8eaef;
 }
 .mock-balance-nameplate--red.mock-balance-nameplate--rich {
-  background: rgba(15, 22, 32, 0.96);
+  background: #1a1d23;
   border-width: 1px;
-  border-color: rgba(251, 113, 133, 0.78);
-  color: #e2e8f0;
+  border-color: rgba(251, 113, 133, 0.82);
+  color: #e8eaef;
 }
 .mock-balance-slot-extras {
   font-size: 10px;
@@ -2547,7 +2551,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                     </div>
                   </div>
                   <div class="mock-balance-vs-row">
-                    <div class="mock-balance-nameplate mock-balance-nameplate--blue mock-balance-nameplate--rich" data-slot-id="b3">
+                    <div class="mock-balance-nameplate mock-balance-nameplate--blue mock-balance-nameplate--rich" data-slot-id="b3" data-mock-skip-tag-recompute="1">
                       <div class="mock-balance-nameplate-rich-inner">
                         <div class="mock-balance-slot-body">
                           <div class="mock-balance-slot-left-col">
@@ -2558,7 +2562,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                             </div>
                           </div>
                           <div class="mock-balance-slot-line2-tray">
-                            <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그"></div>
+                            <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그">
+                              <span class="mock-balance-tag mock-balance-tag--bad">3연패</span>
+                              <span class="mock-balance-tag mock-balance-tag--bad">슬럼프</span>
+                            </div>
                             <div class="mock-balance-slot-scores-col">
                               <span class="mock-balance-slot-score-row" title="운영진 Manual (Free·Premium)"><span class="mock-balance-slot-score-label">M</span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="0.2" aria-label="애드워드애릭 Manual 점수" /></span>
                               <span class="mock-balance-slot-score-row mock-hide-on-free" title="A (자동 추정, 배치·맵 확정 시 갱신)"><span class="mock-balance-slot-score-label">A</span><span class="mock-balance-slot-a-value" data-slot-id="b3">0.18</span></span>

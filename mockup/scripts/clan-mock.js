@@ -385,6 +385,8 @@
   /** 목업: 전적 숫자로 태그 규칙 시뮬(실서버는 스냅샷). 최대 2개. 오른쪽 세로 레일에 색 구분 클래스 부여. */
   function mockBalanceRecomputeTagsForBoard(board) {
     board.querySelectorAll(".mock-balance-nameplate--rich[data-slot-id]").forEach(function (plate) {
+      /* 레퍼런스 목업 슬롯: HTML 태그를 전적 규칙으로 덮어쓰지 않음 */
+      if (plate.getAttribute("data-mock-skip-tag-recompute") === "1") return;
       var wrap = plate.querySelector(".mock-balance-slot-tags");
       if (!wrap) return;
       var o = mockBalanceParseWltFromPlate(plate);
