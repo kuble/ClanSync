@@ -127,6 +127,9 @@
       if (document.getElementById("mock-balance-map-pick-btn")) {
         mockBalanceSyncMapPickCluster();
       }
+      if (document.getElementById("mock-balance-weight-tank")) {
+        window.mockBalanceApplyRoleWeightsToUI();
+      }
     } catch (eBalance) {}
     /* 구성원이 경기 기록 패널만 열린 상태면 요약으로 되돌림 */
     if (window.mockClanCurrentRole() === "member") {
@@ -181,6 +184,74 @@
     return false;
   };
 
+  /** 편집 VS 보드(목업) 슬롯 — 역할별 가중 자동점수 합산용 */
+  var MOCK_BALANCE_SCORE_SLOTS = {
+    blue: [
+      { s: 2.5, r: "dps" },
+      { s: 0.5, r: "dps" },
+      { s: -0.5, r: "tank" },
+      { s: 0.2, r: "heal" },
+      { s: -0.7, r: "heal" },
+    ],
+    red: [
+      { s: -1.0, r: "dps" },
+      { s: 1.2, r: "dps" },
+      { s: 1.8, r: "tank" },
+      { s: 0.8, r: "heal" },
+      { s: 0.4, r: "heal" },
+    ],
+  };
+
+  function mockBalanceParseRoleWeight(id, fallback) {
+    var el = document.getElementById(id);
+    if (!el) return fallback;
+    var n = parseInt(String(el.value).trim(), 10);
+    if (isNaN(n) || n < 0) return fallback;
+    if (n > 200) return 200;
+    return n;
+  }
+
+  function mockBalanceWeightedSumForTeam(team, wt, wd, wh) {
+    var k = { tank: wt / 100, dps: wd / 100, heal: wh / 100 };
+    var slots = MOCK_BALANCE_SCORE_SLOTS[team];
+    if (!slots) return 0;
+    var sum = 0;
+    var i;
+    for (i = 0; i < slots.length; i++) {
+      sum += slots[i].s * k[slots[i].r];
+    }
+    return sum;
+  }
+
+  /** 설정 모달의 탱·딜·힐 %를 반영해 참고 패널 합계·막대 갱신 */
+  window.mockBalanceApplyRoleWeightsToUI = function () {
+    var wt = mockBalanceParseRoleWeight("mock-balance-weight-tank", 100);
+    var wd = mockBalanceParseRoleWeight("mock-balance-weight-dps", 100);
+    var wh = mockBalanceParseRoleWeight("mock-balance-weight-heal", 100);
+    var blue = mockBalanceWeightedSumForTeam("blue", wt, wd, wh);
+    var red = mockBalanceWeightedSumForTeam("red", wt, wd, wh);
+    var bTxt = document.getElementById("mock-balance-strength-blue");
+    var rTxt = document.getElementById("mock-balance-strength-red");
+    var barA = document.getElementById("mock-balance-strength-bar-a");
+    var barB = document.getElementById("mock-balance-strength-bar-b");
+    if (bTxt) bTxt.textContent = "블루 " + blue.toFixed(2);
+    if (rTxt) rTxt.textContent = "레드 " + red.toFixed(2);
+    if (barA && barB) {
+      var ab = Math.abs(blue);
+      var ar = Math.abs(red);
+      var sumAbs = ab + ar;
+      if (sumAbs < 1e-9) {
+        barA.style.flex = "1 1 0%";
+        barB.style.flex = "1 1 0%";
+      } else {
+        var pb = (ab / sumAbs) * 100;
+        var pr = (ar / sumAbs) * 100;
+        barA.style.flex = Math.max(pb, 1) + " 1 0%";
+        barB.style.flex = Math.max(pr, 1) + " 1 0%";
+      }
+    }
+  };
+
   /** 맵 밴 ON이면 맵 라벨·선택 버튼·모드 문구를 숨김(밴픽 세션에서 맵 확정) */
   function mockBalanceSyncMapPickCluster() {
     var mapBan = document.getElementById("mock-balance-toggle-map-ban");
@@ -233,10 +304,31 @@
   };
 
   window.mockBalancePremiumSettingsClick = function () {
-    window.alert(
-      "목업: Premium·밸런스 연동 설정(디스코드·OCR 등)은 구현 단계에서 연결합니다.",
-    );
+    var m = document.getElementById("mock-balance-settings-modal");
+    if (m) {
+      m.removeAttribute("hidden");
+      m.setAttribute("aria-hidden", "false");
+    }
     return false;
+  };
+
+  window.mockBalanceCloseSettingsModal = function () {
+    var m = document.getElementById("mock-balance-settings-modal");
+    if (m) {
+      m.setAttribute("hidden", "");
+      m.setAttribute("aria-hidden", "true");
+    }
+    return false;
+  };
+
+  window.mockBalanceSaveSettingsModal = function () {
+    ["mock-balance-weight-tank", "mock-balance-weight-dps", "mock-balance-weight-heal"].forEach(function (id) {
+      var v = mockBalanceParseRoleWeight(id, 100);
+      var el = document.getElementById(id);
+      if (el) el.value = String(v);
+    });
+    window.mockBalanceApplyRoleWeightsToUI();
+    return window.mockBalanceCloseSettingsModal();
   };
 
   window.mockBalanceOpenMapModal = function () {

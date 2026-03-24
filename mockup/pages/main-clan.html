@@ -894,12 +894,44 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   overflow: hidden;
 }
 .mock-balance-strength-a {
-  width: 35%;
+  flex: 1.75;
+  min-width: 3px;
   background: linear-gradient(90deg, #38bdf8, #6366f1);
+  transition: flex-grow 0.2s ease;
 }
 .mock-balance-strength-b {
-  flex: 1;
+  flex: 3.25;
+  min-width: 3px;
   background: linear-gradient(90deg, #fb7185, #b91c1c);
+  transition: flex-grow 0.2s ease;
+}
+.mock-balance-settings-section-title {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.mock-balance-settings-section {
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.mock-balance-settings-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.mock-balance-settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 420px) {
+  .mock-balance-settings-grid {
+    grid-template-columns: 1fr;
+  }
 }
 .mock-balance-actions {
   display: flex;
@@ -2045,19 +2077,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
           <div class="mock-balance-center-col">
             <div class="mock-balance-edit-workspace">
               <div class="mock-balance-edit-main-col">
-                <div class="mock-balance-meta-row mock-balance-map-meta-row" role="group" aria-label="맵·밴 옵션">
-                  <div class="mock-balance-switch-row">
-                    <span class="mock-balance-switch-label" id="mock-balance-lbl-map-ban">맵 밴</span>
-                    <button type="button" class="mock-switch" id="mock-balance-toggle-map-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-map-ban" onclick="return window.mockBalanceToggleMapBan(this)">
-                      <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
-                    </button>
-                  </div>
-                  <div class="mock-balance-switch-row">
-                    <span class="mock-balance-switch-label" id="mock-balance-lbl-hero-ban">영웅 밴</span>
-                    <button type="button" class="mock-switch" id="mock-balance-toggle-hero-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-hero-ban" onclick="return window.mockBalanceToggleHeroBan(this)">
-                      <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
-                    </button>
-                  </div>
+                <div class="mock-balance-meta-row mock-balance-map-meta-row" role="group" aria-label="맵 선택">
                   <span id="mock-balance-map-pick-cluster" class="mock-balance-map-pick-cluster">
                     <span class="mock-balance-meta-label">맵</span>
                     <button type="button" class="mock-balance-map-pick-btn" id="mock-balance-map-pick-btn" onclick="return window.mockBalanceOpenMapModal()"><span id="mock-balance-map-label">서킷 로얄</span></button>
@@ -2109,9 +2129,9 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                   </div>
                   <div class="mock-balance-ref-body">
                     <div class="mock-balance-strength">
-                      <div class="mock-balance-strength-label">플레이어 자동점수 합 (팀 밸런스 감각용)</div>
-                      <div class="mock-balance-strength-vals"><span>블루 1.75</span><span>레드 3.25</span></div>
-                      <div class="mock-balance-strength-bar" aria-hidden="true"><div class="mock-balance-strength-a"></div><div class="mock-balance-strength-b"></div></div>
+                      <div class="mock-balance-strength-label">플레이어 자동점수 합 (역할 가중치 반영 · 팀 밸런스 감각용)</div>
+                      <div class="mock-balance-strength-vals"><span id="mock-balance-strength-blue">블루 2.00</span><span id="mock-balance-strength-red">레드 3.20</span></div>
+                      <div class="mock-balance-strength-bar" aria-hidden="true"><div id="mock-balance-strength-bar-a" class="mock-balance-strength-a"></div><div id="mock-balance-strength-bar-b" class="mock-balance-strength-b"></div></div>
                     </div>
                     <div class="mock-balance-pred-block mock-hide-on-free">
                       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;font-weight:600;margin-bottom:4px">
@@ -2534,6 +2554,57 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
       <div class="mock-modal-actions">
         <button type="button" class="btn btn-secondary btn-sm" onclick="window.mockStatsHofCloseSettingsModal()">취소</button>
         <button type="button" class="btn btn-sm" onclick="window.mockStatsHofSaveSettingsModal()">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 밸런스: 설정 (맵·영웅 밴 + 역할 가중치) -->
+  <div id="mock-balance-settings-modal" class="mock-modal-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="mock-balance-settings-modal-title" onclick="if(event.target===this)window.mockBalanceCloseSettingsModal()">
+    <div class="mock-modal-card" style="max-width:440px;width:calc(100% - 32px);box-sizing:border-box" onclick="event.stopPropagation()">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px">
+        <h3 id="mock-balance-settings-modal-title" style="margin:0;font-size:16px;line-height:1.3">밸런스 설정</h3>
+        <button type="button" class="btn btn-secondary btn-sm" style="flex-shrink:0" onclick="return window.mockBalanceCloseSettingsModal()" aria-label="닫기">닫기</button>
+      </div>
+
+      <div class="mock-balance-settings-section">
+        <p class="mock-balance-settings-section-title">경기 옵션</p>
+        <div class="mock-balance-switch-row" style="margin-bottom:12px">
+          <span class="mock-balance-switch-label" id="mock-balance-lbl-map-ban">맵 밴</span>
+          <button type="button" class="mock-switch" id="mock-balance-toggle-map-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-map-ban" onclick="return window.mockBalanceToggleMapBan(this)">
+            <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
+          </button>
+        </div>
+        <div class="mock-balance-switch-row">
+          <span class="mock-balance-switch-label" id="mock-balance-lbl-hero-ban">영웅 밴</span>
+          <button type="button" class="mock-switch" id="mock-balance-toggle-hero-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-hero-ban" onclick="return window.mockBalanceToggleHeroBan(this)">
+            <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="mock-balance-settings-section">
+        <p class="mock-balance-settings-section-title">역할 가중치 (%)</p>
+        <p class="mock-modal-hint" style="margin:0 0 12px">팀 자동점수 합 = Σ(슬롯 자동점수 × 해당 포지션 가중% ÷ 100). 100이면 전액 반영, 50이면 절반만 반영됩니다.</p>
+        <div class="mock-balance-settings-grid">
+          <div class="mock-modal-field" style="margin-bottom:0">
+            <label for="mock-balance-weight-tank">탱</label>
+            <input type="number" id="mock-balance-weight-tank" min="0" max="200" step="1" value="100" inputmode="numeric" />
+          </div>
+          <div class="mock-modal-field" style="margin-bottom:0">
+            <label for="mock-balance-weight-dps">딜</label>
+            <input type="number" id="mock-balance-weight-dps" min="0" max="200" step="1" value="100" inputmode="numeric" />
+          </div>
+          <div class="mock-modal-field" style="margin-bottom:0">
+            <label for="mock-balance-weight-heal">힐</label>
+            <input type="number" id="mock-balance-weight-heal" min="0" max="200" step="1" value="100" inputmode="numeric" />
+          </div>
+        </div>
+        <p id="mock-balance-weight-hint" class="mock-modal-hint" style="margin:10px 0 0">저장하면 참고 패널의 블루·레드 합계와 막대가 갱신됩니다.</p>
+      </div>
+
+      <div class="mock-modal-actions" style="margin-top:16px">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockBalanceCloseSettingsModal()">취소</button>
+        <button type="button" class="btn btn-sm" onclick="return window.mockBalanceSaveSettingsModal()">저장</button>
       </div>
     </div>
   </div>
