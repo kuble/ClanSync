@@ -75,6 +75,9 @@
 - MainGame으로 이동 버튼
 - 탭: 밸런스메이커 / 통계 / 이벤트 / 관리 / 스토어
 
+### 밸런스메이커 (클랜 내 `/balance`, 운영진+)
+- 편집·맵/밴·팀 보드·플랜별 기능. **화면 카피·도움말 본문·스펙 메모**: [balance-maker-ui-notes.md](./balance-maker-ui-notes.md)
+
 ### MainGame (/games/[gameSlug])
 - 클랜 홍보 게시판
 - 스크림 신청 게시판
