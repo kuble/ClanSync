@@ -290,20 +290,20 @@
 
   var MOCK_BALANCE_MANUAL_SCORE_MODE_KEY = "mockBalanceManualScoreMode";
 
-  /** 참고 패널: 슬롯 수동 점수 라벨 M ↔ I (목업, localStorage 유지) */
+  /** 참고 패널: 슬롯 첫 점수 행 라벨 M ↔ A 표기 (목업, localStorage 유지) */
   window.mockBalanceSetManualScoreMode = function (mode) {
     var board = document.getElementById("mock-balance-vs-board");
-    var m = mode === "i" ? "i" : "m";
+    var m = mode === "a" ? "a" : "m";
     try {
       localStorage.setItem(MOCK_BALANCE_MANUAL_SCORE_MODE_KEY, m);
     } catch (e) {}
     if (board) {
-      board.classList.toggle("mock-balance-vs-board--manual-score-i", m === "i");
+      board.classList.toggle("mock-balance-vs-board--manual-score-a", m === "a");
     }
     var btnM = document.getElementById("mock-balance-manual-score-m");
-    var btnI = document.getElementById("mock-balance-manual-score-i");
+    var btnA = document.getElementById("mock-balance-manual-score-a");
     if (btnM) btnM.setAttribute("aria-pressed", m === "m" ? "true" : "false");
-    if (btnI) btnI.setAttribute("aria-pressed", m === "i" ? "true" : "false");
+    if (btnA) btnA.setAttribute("aria-pressed", m === "a" ? "true" : "false");
     return false;
   };
 
@@ -311,7 +311,9 @@
     var m = "m";
     try {
       var s = localStorage.getItem(MOCK_BALANCE_MANUAL_SCORE_MODE_KEY);
-      if (s === "i" || s === "m") m = s;
+      /* 예전 I 점수 토글 값 호환 */
+      if (s === "i") s = "a";
+      if (s === "a" || s === "m") m = s;
     } catch (e) {}
     window.mockBalanceSetManualScoreMode(m);
   };

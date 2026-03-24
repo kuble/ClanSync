@@ -425,23 +425,23 @@
   overflow: visible;
 }
 /* 참고: 슬롯 수동 점수 라벨 M ↔ I (목업) */
-.mock-balance-manual-mi-toggle {
+.mock-balance-manual-ma-toggle {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-.mock-balance-manual-mi-toggle > span:first-child {
+.mock-balance-manual-ma-toggle > span:first-child {
   font-size: 11px;
   font-weight: 600;
   color: var(--text-muted);
 }
-.mock-balance-manual-mi-segment {
+.mock-balance-manual-ma-segment {
   display: flex;
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid var(--border);
 }
-.mock-balance-manual-mi-segment button {
+.mock-balance-manual-ma-segment button {
   flex: 1;
   font-size: 11px;
   font-weight: 700;
@@ -452,18 +452,18 @@
   cursor: pointer;
   font-family: inherit;
 }
-.mock-balance-manual-mi-segment button:hover {
+.mock-balance-manual-ma-segment button:hover {
   color: var(--text-primary);
 }
-.mock-balance-manual-mi-segment button[aria-pressed="true"]#mock-balance-manual-score-m {
+.mock-balance-manual-ma-segment button[aria-pressed="true"]#mock-balance-manual-score-m {
   background: rgba(56, 189, 248, 0.18);
   color: #e0f2fe;
 }
-.mock-balance-manual-mi-segment button[aria-pressed="true"]#mock-balance-manual-score-i {
+.mock-balance-manual-ma-segment button[aria-pressed="true"]#mock-balance-manual-score-a {
   background: rgba(139, 92, 246, 0.22);
   color: #ede9fe;
 }
-.mock-balance-manual-mi-segment button[aria-pressed="false"] {
+.mock-balance-manual-ma-segment button[aria-pressed="false"] {
   opacity: 0.85;
 }
 @media (max-width: 960px) {
@@ -1023,24 +1023,24 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
 .mock-balance-slot-score-row:not(.mock-hide-on-free) .mock-balance-manual-input:focus {
   outline-color: rgba(251, 191, 36, 0.65);
 }
-/* 참고 패널에서 I 점수 선택 시 수동 행 → 인디고 테마 */
-#mock-balance-vs-board.mock-balance-vs-board--manual-score-i .mock-balance-slot-score-row--manual:not(.mock-hide-on-free) {
+/* 참고 패널에서 A 점수 선택 시 첫 점수 행 라벨·테마 → 인디고(표기만 전환, 입력은 동일) */
+#mock-balance-vs-board.mock-balance-vs-board--manual-score-a .mock-balance-slot-score-row--manual:not(.mock-hide-on-free) {
   border-color: #7c6ae8;
   background: #161920;
 }
-#mock-balance-vs-board.mock-balance-vs-board--manual-score-i .mock-balance-slot-score-row--manual:not(.mock-hide-on-free) .mock-balance-slot-score-label {
+#mock-balance-vs-board.mock-balance-vs-board--manual-score-a .mock-balance-slot-score-row--manual:not(.mock-hide-on-free) .mock-balance-slot-score-label {
   color: #9b8af5;
 }
-#mock-balance-vs-board.mock-balance-vs-board--manual-score-i .mock-balance-slot-score-row--manual:not(.mock-hide-on-free) .mock-balance-manual-input:focus {
+#mock-balance-vs-board.mock-balance-vs-board--manual-score-a .mock-balance-slot-score-row--manual:not(.mock-hide-on-free) .mock-balance-manual-input:focus {
   outline-color: rgba(139, 92, 246, 0.6);
 }
-.mock-balance-slot-manual-i {
+.mock-balance-slot-manual-a {
   display: none;
 }
-#mock-balance-vs-board.mock-balance-vs-board--manual-score-i .mock-balance-slot-manual-m {
+#mock-balance-vs-board.mock-balance-vs-board--manual-score-a .mock-balance-slot-manual-m {
   display: none;
 }
-#mock-balance-vs-board.mock-balance-vs-board--manual-score-i .mock-balance-slot-manual-i {
+#mock-balance-vs-board.mock-balance-vs-board--manual-score-a .mock-balance-slot-manual-a {
   display: inline;
 }
 /* A: 얇은 인디고·보라 라벨·값 흰색 */
@@ -2504,7 +2504,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                               <span class="mock-balance-tag mock-balance-tag--neutral">딜 라인</span>
                             </div>
                             <div class="mock-balance-slot-scores-col">
-                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/I 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-i">I</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="2.5" aria-label="하지 Manual 점수" /></span>
+                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/A 표기 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-a">A</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="2.5" aria-label="하지 Manual 점수" /></span>
                               <span class="mock-balance-slot-score-row mock-hide-on-free" title="A (자동 추정, 배치·맵 확정 시 갱신)"><span class="mock-balance-slot-score-label">A</span><span class="mock-balance-slot-a-value" data-slot-id="b0">2.14</span></span>
                             </div>
                           </div>
@@ -2528,7 +2528,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                               <span class="mock-balance-tag mock-balance-tag--bad">슬럼프</span>
                             </div>
                             <div class="mock-balance-slot-scores-col">
-                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/I 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-i">I</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="-1.0" aria-label="나는우리팀믿어 Manual 점수" /></span>
+                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/A 표기 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-a">A</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="-1.0" aria-label="나는우리팀믿어 Manual 점수" /></span>
                               <span class="mock-balance-slot-score-row mock-hide-on-free" title="A (자동 추정, 배치·맵 확정 시 갱신)"><span class="mock-balance-slot-score-label">A</span><span class="mock-balance-slot-a-value" data-slot-id="r0">-0.92</span></span>
                             </div>
                           </div>
@@ -2550,7 +2550,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                           <div class="mock-balance-slot-line2-tray">
                             <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그"></div>
                             <div class="mock-balance-slot-scores-col">
-                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/I 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-i">I</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="0.5" aria-label="GON Manual 점수" /></span>
+                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/A 표기 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-a">A</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="0.5" aria-label="GON Manual 점수" /></span>
                               <span class="mock-balance-slot-score-row mock-hide-on-free" title="A (자동 추정, 배치·맵 확정 시 갱신)"><span class="mock-balance-slot-score-label">A</span><span class="mock-balance-slot-a-value" data-slot-id="b1">0.48</span></span>
                             </div>
                           </div>
@@ -2573,7 +2573,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                               <span class="mock-balance-tag mock-balance-tag--good">4연승</span>
                             </div>
                             <div class="mock-balance-slot-scores-col">
-                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/I 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-i">I</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="1.2" aria-label="냥이의비행 Manual 점수" /></span>
+                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/A 표기 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-a">A</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="1.2" aria-label="냥이의비행 Manual 점수" /></span>
                               <span class="mock-balance-slot-score-row mock-hide-on-free" title="A (자동 추정, 배치·맵 확정 시 갱신)"><span class="mock-balance-slot-score-label">A</span><span class="mock-balance-slot-a-value" data-slot-id="r1">1.35</span></span>
                             </div>
                           </div>
@@ -2595,7 +2595,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                           <div class="mock-balance-slot-line2-tray">
                             <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그"></div>
                             <div class="mock-balance-slot-scores-col">
-                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/I 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-i">I</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="-0.5" aria-label="DORAE Manual 점수" /></span>
+                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/A 표기 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-a">A</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="-0.5" aria-label="DORAE Manual 점수" /></span>
                               <span class="mock-balance-slot-score-row mock-hide-on-free" title="A (자동 추정, 배치·맵 확정 시 갱신)"><span class="mock-balance-slot-score-label">A</span><span class="mock-balance-slot-a-value" data-slot-id="b2">-0.41</span></span>
                             </div>
                           </div>
@@ -2618,7 +2618,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                               <span class="mock-balance-tag mock-balance-tag--bad">슬럼프</span>
                             </div>
                             <div class="mock-balance-slot-scores-col">
-                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/I 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-i">I</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="1.8" aria-label="TOOJI Manual 점수" /></span>
+                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/A 표기 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-a">A</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="1.8" aria-label="TOOJI Manual 점수" /></span>
                               <span class="mock-balance-slot-score-row mock-hide-on-free" title="A (자동 추정, 배치·맵 확정 시 갱신)"><span class="mock-balance-slot-score-label">A</span><span class="mock-balance-slot-a-value" data-slot-id="r2">1.62</span></span>
                             </div>
                           </div>
@@ -2643,7 +2643,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                               <span class="mock-balance-tag mock-balance-tag--bad">슬럼프</span>
                             </div>
                             <div class="mock-balance-slot-scores-col">
-                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/I 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-i">I</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="0.2" aria-label="애드워드애릭 Manual 점수" /></span>
+                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/A 표기 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-a">A</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="0.2" aria-label="애드워드애릭 Manual 점수" /></span>
                               <span class="mock-balance-slot-score-row mock-hide-on-free" title="A (자동 추정, 배치·맵 확정 시 갱신)"><span class="mock-balance-slot-score-label">A</span><span class="mock-balance-slot-a-value" data-slot-id="b3">0.18</span></span>
                             </div>
                           </div>
@@ -2664,7 +2664,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                           <div class="mock-balance-slot-line2-tray">
                             <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그"></div>
                             <div class="mock-balance-slot-scores-col">
-                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/I 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-i">I</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="0.8" aria-label="소리 Manual 점수" /></span>
+                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/A 표기 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-a">A</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="0.8" aria-label="소리 Manual 점수" /></span>
                               <span class="mock-balance-slot-score-row mock-hide-on-free" title="A (자동 추정, 배치·맵 확정 시 갱신)"><span class="mock-balance-slot-score-label">A</span><span class="mock-balance-slot-a-value" data-slot-id="r3">0.76</span></span>
                             </div>
                           </div>
@@ -2689,7 +2689,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                               <span class="mock-balance-tag mock-balance-tag--bad">슬럼프</span>
                             </div>
                             <div class="mock-balance-slot-scores-col">
-                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/I 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-i">I</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="-0.7" aria-label="ABEL Manual 점수" /></span>
+                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/A 표기 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-a">A</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="-0.7" aria-label="ABEL Manual 점수" /></span>
                               <span class="mock-balance-slot-score-row mock-hide-on-free" title="A (자동 추정, 배치·맵 확정 시 갱신)"><span class="mock-balance-slot-score-label">A</span><span class="mock-balance-slot-a-value" data-slot-id="b4">-0.65</span></span>
                             </div>
                           </div>
@@ -2710,7 +2710,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                           <div class="mock-balance-slot-line2-tray">
                             <div class="mock-balance-slot-tags mock-balance-slot-tags-rail" aria-label="상태 태그"></div>
                             <div class="mock-balance-slot-scores-col">
-                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/I 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-i">I</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="0.4" aria-label="뚱인데요 Manual 점수" /></span>
+                              <span class="mock-balance-slot-score-row mock-balance-slot-score-row--manual" title="운영진 입력 점수 (참고 패널에서 M/A 표기 전환)"><span class="mock-balance-slot-score-label" aria-hidden="true"><span class="mock-balance-slot-manual-m">M</span><span class="mock-balance-slot-manual-a">A</span></span><input type="text" class="mock-balance-manual-input" inputmode="decimal" value="0.4" aria-label="뚱인데요 Manual 점수" /></span>
                               <span class="mock-balance-slot-score-row mock-hide-on-free" title="A (자동 추정, 배치·맵 확정 시 갱신)"><span class="mock-balance-slot-score-label">A</span><span class="mock-balance-slot-a-value" data-slot-id="r4">0.38</span></span>
                             </div>
                           </div>
@@ -2729,11 +2729,11 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                     <button type="button" class="mock-help-tip" data-tip="자동 점수·승률 예측 등은 배치 판단 보조용입니다. 실제 수치·노출 여부는 API·구독(플랜) 정책을 따릅니다." aria-label="참고 패널 도움말">?</button>
                   </div>
                   <div class="mock-balance-ref-body">
-                    <div class="mock-balance-manual-mi-toggle" role="group" aria-label="슬롯 수동 점수 표기">
+                    <div class="mock-balance-manual-ma-toggle" role="group" aria-label="슬롯 점수 M 또는 A 표기">
                       <span>슬롯 점수 라벨</span>
-                      <div class="mock-balance-manual-mi-segment">
+                      <div class="mock-balance-manual-ma-segment">
                         <button type="button" id="mock-balance-manual-score-m" class="mock-balance-manual-score-m-btn" aria-pressed="true" onclick="return window.mockBalanceSetManualScoreMode('m')">M 점수</button>
-                        <button type="button" id="mock-balance-manual-score-i" class="mock-balance-manual-score-i-btn" aria-pressed="false" onclick="return window.mockBalanceSetManualScoreMode('i')">I 점수</button>
+                        <button type="button" id="mock-balance-manual-score-a" class="mock-balance-manual-score-a-btn" aria-pressed="false" onclick="return window.mockBalanceSetManualScoreMode('a')">A 점수</button>
                       </div>
                     </div>
                     <div class="mock-balance-strength">
