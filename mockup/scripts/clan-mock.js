@@ -1,5 +1,5 @@
 /**
- * 클랜 메인 정적 목업 — 뷰 전환·권한 목업(?role=)·이벤트 모달
+ * 클랜 메인 정적 목업 — 뷰 전환·권한(?role=)·플랜(?plan=)·이벤트 모달
  * (app.js 와 분리해 전역 충돌 최소화)
  */
 (function () {
@@ -22,6 +22,22 @@
     } catch (e) {}
     return "leader";
   };
+
+  /** 목업 허브 `?plan=free|premium` — PRO·Premium UI 전환용 */
+  window.mockClanCurrentPlan = function () {
+    try {
+      var p = new URLSearchParams(window.location.search);
+      var pl = (p.get("plan") || "free").toLowerCase();
+      if (pl === "premium" || pl === "pro") return "premium";
+    } catch (e) {}
+    return "free";
+  };
+
+  function applyPlanBodyClass() {
+    var plan = window.mockClanCurrentPlan();
+    document.body.classList.remove("mock-plan-free", "mock-plan-premium");
+    document.body.classList.add(plan === "premium" ? "mock-plan-premium" : "mock-plan-free");
+  }
 
   function applyRoleBodyClass() {
     var role = window.mockClanCurrentRole();
@@ -106,6 +122,7 @@
       modal.setAttribute("aria-hidden", "true");
     }
     applyRoleBodyClass();
+    applyPlanBodyClass();
     try {
       if (document.getElementById("mock-balance-map-pick-btn")) {
         mockBalanceSyncBanHint();

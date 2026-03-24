@@ -44,6 +44,42 @@
   padding-left: 8px;
   background: var(--surface-active, rgba(124, 58, 237, 0.1));
 }
+.hub-mock-plan {
+  padding: 4px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid var(--border, rgba(255,255,255,0.08));
+  margin-top: 4px;
+  padding-top: 12px;
+}
+.hub-mock-plan-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hub-mock-plan-btn {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border);
+  background: var(--bg-overlay, rgba(255,255,255,0.04));
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-sans, system-ui, sans-serif);
+  text-align: left;
+  transition: color 0.1s, background 0.1s, border-color 0.1s;
+}
+.hub-mock-plan-btn:hover {
+  color: var(--text-primary);
+  border-color: rgba(245, 158, 11, 0.45);
+}
+.hub-mock-plan-btn.active {
+  color: var(--text-primary);
+  border-left: 2px solid rgba(245, 158, 11, 0.85);
+  padding-left: 8px;
+  background: rgba(245, 158, 11, 0.08);
+}
 </style>
 </head>
 <body class="hub-shell">
@@ -67,11 +103,18 @@
 
   <div class="hub-group-label">목업 권한</div>
   <div class="hub-mock-role">
-    <p class="hub-mock-role-hint">클랜 메인 iframe에 적용. 밸런스·관리는 운영진+.</p>
+    <p class="hub-mock-role-hint">클랜 내 역할 — 클랜 메인 iframe에 적용. 밸런스·관리는 운영진+.</p>
     <div class="hub-mock-role-btns">
       <button type="button" class="hub-mock-role-btn active" data-mock-role="leader" onclick="return hubSetMockRole(this,'leader')">클랜장</button>
       <button type="button" class="hub-mock-role-btn" data-mock-role="officer" onclick="return hubSetMockRole(this,'officer')">운영진</button>
       <button type="button" class="hub-mock-role-btn" data-mock-role="member" onclick="return hubSetMockRole(this,'member')">구성원</button>
+    </div>
+  </div>
+  <div class="hub-mock-plan">
+    <p class="hub-mock-role-hint">클랜 구독 플랜 — Free / Premium(PRO) 목업 전환. 밸런스 등 PRO 표시와 연동.</p>
+    <div class="hub-mock-plan-btns">
+      <button type="button" class="hub-mock-plan-btn active" data-mock-plan="free" onclick="return hubSetMockPlan(this,'free')">Free 플랜</button>
+      <button type="button" class="hub-mock-plan-btn" data-mock-plan="premium" onclick="return hubSetMockPlan(this,'premium')">Premium 플랜</button>
     </div>
   </div>
 </nav>
@@ -86,6 +129,7 @@
 
 <script>
   var MOCK_ROLE_STORAGE = "clansync-hub-mock-role";
+  var MOCK_PLAN_STORAGE = "clansync-hub-mock-plan";
 
   function hubGetMockRole() {
     try {
@@ -95,8 +139,21 @@
     return "leader";
   }
 
+  function hubGetMockPlan() {
+    try {
+      var pl = (sessionStorage.getItem(MOCK_PLAN_STORAGE) || "free").toLowerCase();
+      if (pl === "premium" || pl === "pro") return "premium";
+    } catch (e) {}
+    return "free";
+  }
+
   function hubClanMainSrc() {
-    return "pages/main-clan.html?role=" + encodeURIComponent(hubGetMockRole());
+    return (
+      "pages/main-clan.html?role=" +
+      encodeURIComponent(hubGetMockRole()) +
+      "&plan=" +
+      encodeURIComponent(hubGetMockPlan())
+    );
   }
 
   function go(el, path) {
@@ -113,6 +170,19 @@
     return false;
   }
 
+  function hubReloadClanMainFrame() {
+    var frame = document.getElementById("frame");
+    var cur = document.getElementById("current-url").textContent || "";
+    if (cur.indexOf("main-clan.html") < 0) return;
+    var hash = "";
+    try {
+      hash = frame.contentWindow.location.hash || "";
+    } catch (err) {}
+    var next = hubClanMainSrc() + hash;
+    frame.src = next;
+    document.getElementById("current-url").textContent = next;
+  }
+
   function hubSetMockRole(btn, role) {
     try {
       sessionStorage.setItem(MOCK_ROLE_STORAGE, role);
@@ -120,17 +190,19 @@
     document.querySelectorAll(".hub-mock-role-btn").forEach(function (b) {
       b.classList.toggle("active", b === btn);
     });
-    var frame = document.getElementById("frame");
-    var cur = document.getElementById("current-url").textContent || "";
-    if (cur.indexOf("main-clan.html") >= 0) {
-      var hash = "";
-      try {
-        hash = frame.contentWindow.location.hash || "";
-      } catch (err) {}
-      var next = hubClanMainSrc() + hash;
-      frame.src = next;
-      document.getElementById("current-url").textContent = next;
-    }
+    hubReloadClanMainFrame();
+    return false;
+  }
+
+  function hubSetMockPlan(btn, plan) {
+    var normalized = plan === "premium" || plan === "pro" ? "premium" : "free";
+    try {
+      sessionStorage.setItem(MOCK_PLAN_STORAGE, normalized);
+    } catch (e) {}
+    document.querySelectorAll(".hub-mock-plan-btn").forEach(function (b) {
+      b.classList.toggle("active", b === btn);
+    });
+    hubReloadClanMainFrame();
     return false;
   }
 
@@ -138,6 +210,10 @@
     var r = hubGetMockRole();
     document.querySelectorAll(".hub-mock-role-btn").forEach(function (b) {
       b.classList.toggle("active", b.getAttribute("data-mock-role") === r);
+    });
+    var pl = hubGetMockPlan();
+    document.querySelectorAll(".hub-mock-plan-btn").forEach(function (b) {
+      b.classList.toggle("active", b.getAttribute("data-mock-plan") === pl);
     });
   });
 </script>
