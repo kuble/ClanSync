@@ -181,16 +181,14 @@
     return false;
   };
 
-  function mockBalanceSyncMapPickBtn() {
+  /** 맵 밴 ON이면 맵 라벨·선택 버튼·모드 문구를 숨김(밴픽 세션에서 맵 확정) */
+  function mockBalanceSyncMapPickCluster() {
     var mapBan = document.getElementById("mock-balance-toggle-map-ban");
-    var btn = document.getElementById("mock-balance-map-pick-btn");
-    if (!btn) return;
+    var cluster = document.getElementById("mock-balance-map-pick-cluster");
     var on = mapBan && mapBan.getAttribute("aria-checked") === "true";
-    btn.disabled = !!on;
-    if (on) {
-      btn.setAttribute("title", "맵 밴 ON — 최종 맵은 맵·영웅 밴픽 세션에서 정합니다.");
-    } else {
-      btn.removeAttribute("title");
+    if (cluster) {
+      cluster.hidden = !!on;
+      cluster.setAttribute("aria-hidden", on ? "true" : "false");
     }
   }
 
@@ -199,34 +197,31 @@
     var heroBtn = document.getElementById("mock-balance-toggle-hero-ban");
     var hint = document.getElementById("mock-balance-ban-hint");
     var mapBanHint = document.getElementById("mock-balance-map-ban-map-hint");
-    if (!hint) return;
     var mapOn = mapBtn && mapBtn.getAttribute("aria-checked") === "true";
     var heroOn = heroBtn && heroBtn.getAttribute("aria-checked") === "true";
-    hint.hidden = mapOn || heroOn;
+    if (hint) {
+      hint.hidden = mapOn || heroOn;
+    }
     if (mapBanHint) {
       mapBanHint.hidden = !mapOn;
     }
-    mockBalanceSyncMapPickBtn();
+    mockBalanceSyncMapPickCluster();
   }
 
-  /** 맵 밴 토글 — 슬롯·규칙은 추후 확정, 표시만 */
+  /** 맵 밴 토글 — 슬롯은 ② 밴픽 세션에서만 사용 */
   window.mockBalanceToggleMapBan = function (btn) {
     if (!btn) return false;
     var on = btn.getAttribute("aria-checked") !== "true";
     btn.setAttribute("aria-checked", on ? "true" : "false");
-    var block = document.getElementById("mock-balance-map-ban-block");
-    if (block) block.hidden = !on;
     mockBalanceSyncBanHint();
     return false;
   };
 
-  /** 영웅 밴 토글 — 슬롯·규칙은 추후 확정, 표시만 */
+  /** 영웅 밴 토글 — 슬롯은 ② 밴픽 세션에서만 사용 */
   window.mockBalanceToggleHeroBan = function (btn) {
     if (!btn) return false;
     var on = btn.getAttribute("aria-checked") !== "true";
     btn.setAttribute("aria-checked", on ? "true" : "false");
-    var block = document.getElementById("mock-balance-hero-ban-block");
-    if (block) block.hidden = !on;
     mockBalanceSyncBanHint();
     return false;
   };
@@ -255,10 +250,10 @@
   };
 
   window.mockBalanceOpenMapModal = function () {
-    var btn = document.getElementById("mock-balance-map-pick-btn");
-    if (btn && btn.disabled) {
+    var mapBan = document.getElementById("mock-balance-toggle-map-ban");
+    if (mapBan && mapBan.getAttribute("aria-checked") === "true") {
       window.alert(
-        "목업: 맵 밴이 켜져 있어 직접 맵 선택을 쓸 수 없습니다. 맵·영웅 밴픽 세션에서 맵이 정해집니다.",
+        "목업: 맵 밴이 켜져 있어 이 단계에서는 맵 선택이 없습니다. ② 맵·영웅 밴픽 세션에서 맵이 정해집니다.",
       );
       return false;
     }

@@ -254,15 +254,6 @@
 .mock-switch[aria-checked="true"] .mock-switch-thumb {
   transform: translateX(18px);
 }
-.mock-balance-ban-wrap { margin-bottom: 12px; }
-.mock-balance-ban-block { margin-bottom: 10px; }
-.mock-balance-ban-block:last-child { margin-bottom: 0; }
-.mock-balance-ban-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted);
-  margin-bottom: 6px;
-}
 .mock-balance-slot-muted { color: var(--text-muted); font-weight: 500; }
 /* 밸런스 편집기 — 플레이어 풀 · VS 보드 · 워크플로 탭 */
 .mock-balance-view-head {
@@ -1886,30 +1877,13 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
 
       <div id="mock-balance-wf-edit" data-balance-wf-panel="edit" class="mock-balance-wf-panel">
         <div id="mock-balance-ban-hint" class="mock-balance-inline-hint">
-          <button type="button" class="mock-help-tip" data-tip="맵 밴 또는 영웅 밴을 켜면 밴 슬롯이 표시됩니다. 슬롯 개수·적용 규칙은 추후 확정됩니다." aria-label="맵·영웅 밴 도움말">?</button>
-        </div>
-        <div id="mock-balance-map-ban-map-hint" class="mock-balance-inline-hint" hidden>
-          <button type="button" class="mock-help-tip" data-tip="맵 밴이 켜져 있습니다. 최종 맵은 맵·영웅 밴픽 세션에서 정하며, 이 배치 단계에서는 맵 선택을 사용할 수 없습니다." aria-label="맵 밴 ON일 때 맵 선택 도움말">?</button>
-        </div>
-        <div class="mock-balance-ban-wrap">
-          <div id="mock-balance-map-ban-block" class="mock-balance-ban-block" hidden>
-            <div class="mock-balance-ban-label">맵 밴 슬롯</div>
-            <div class="mock-ban-grid">
-              <div class="mock-ban-slot">맵 밴 1</div><div class="mock-ban-slot">맵 밴 2</div>
-            </div>
-          </div>
-          <div id="mock-balance-hero-ban-block" class="mock-balance-ban-block" hidden>
-            <div class="mock-balance-ban-label">영웅 밴 슬롯</div>
-            <div class="mock-ban-grid">
-              <div class="mock-ban-slot">영웅 밴 A</div><div class="mock-ban-slot">영웅 밴 B</div>
-            </div>
-          </div>
+          <button type="button" class="mock-help-tip" data-tip="맵 밴·영웅 밴을 켜면 ② 맵·영웅 밴픽 세션에서 슬롯을 사용합니다. 편집 단계에는 슬롯을 두지 않습니다. 슬롯 개수·규칙은 추후 확정됩니다." aria-label="맵·영웅 밴 도움말">?</button>
         </div>
 
         <div class="mock-balance-layout">
           <div class="mock-balance-center-col">
             <div class="mock-balance-meta-row mock-balance-map-meta-row" role="group" aria-label="맵·밴 옵션">
-              <span style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <span id="mock-balance-map-pick-cluster" style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap">
                 <span class="mock-balance-meta-label">맵</span>
                 <button type="button" class="mock-balance-map-pick-btn" id="mock-balance-map-pick-btn" onclick="return window.mockBalanceOpenMapModal()"><span id="mock-balance-map-label">서킷 로얄</span></button>
                 <span id="mock-balance-map-mode" style="color:var(--text-muted)">· 제어</span>
@@ -1919,6 +1893,9 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                 <button type="button" class="mock-switch" id="mock-balance-toggle-map-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-map-ban" onclick="return window.mockBalanceToggleMapBan(this)">
                   <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
                 </button>
+                <span id="mock-balance-map-ban-map-hint" class="mock-balance-inline-hint" hidden>
+                  <button type="button" class="mock-help-tip" data-tip="맵 밴이 켜져 있어 이 단계에서는 맵 선택이 숨겨집니다. 최종 맵은 ② 맵·영웅 밴픽 세션에서 정합니다." aria-label="맵 밴 ON일 때 맵 선택 안내">?</button>
+                </span>
               </div>
               <div class="mock-balance-switch-row">
                 <span class="mock-balance-switch-label" id="mock-balance-lbl-hero-ban">영웅 밴</span>
