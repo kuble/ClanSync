@@ -159,6 +159,9 @@
       if (typeof mockBalanceAttachVsBoardInteractions === "function") {
         mockBalanceAttachVsBoardInteractions();
       }
+      if (typeof mockBalanceSyncPlacementDoneButton === "function") {
+        mockBalanceSyncPlacementDoneButton();
+      }
       if (vsBoardInit && typeof mockBalanceApplyRoleScoresToAllFilledSlots === "function") {
         mockBalanceApplyRoleScoresToAllFilledSlots();
         mockBalanceSyncMockScoresFromDom();
@@ -302,6 +305,33 @@
   };
 
   var MOCK_BALANCE_SLOT_FILL_ORDER = ["b0", "b1", "b2", "b3", "b4", "r0", "r1", "r2", "r3", "r4"];
+
+  function mockBalanceAllSlotsFilled() {
+    var board = document.getElementById("mock-balance-vs-board");
+    if (!board) {
+      return false;
+    }
+    var i;
+    for (i = 0; i < MOCK_BALANCE_SLOT_FILL_ORDER.length; i++) {
+      var sid = MOCK_BALANCE_SLOT_FILL_ORDER[i];
+      var plate = board.querySelector('[data-slot-id="' + sid + '"]');
+      if (!plate || plate.getAttribute("data-empty") === "true") {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function mockBalanceSyncPlacementDoneButton() {
+    var btn = document.getElementById("mock-balance-btn-placement-done");
+    if (!btn) {
+      return;
+    }
+    var ok = mockBalanceAllSlotsFilled();
+    btn.disabled = !ok;
+    btn.setAttribute("aria-disabled", ok ? "false" : "true");
+    btn.title = ok ? "" : "10명 슬롯이 모두 찼을 때만 배치를 완료할 수 있습니다.";
+  }
 
   /** 행 인덱스 0~4 → VS 고정 포지션 (탱1·딜2·힐2) */
   var MOCK_BALANCE_ROW_ROLES = ["dps", "dps", "tank", "heal", "heal"];
@@ -498,6 +528,7 @@
     ) {
       mockBalanceRecomputeTagsForBoard(board);
     }
+    mockBalanceSyncPlacementDoneButton();
   }
 
   var _mockBalanceDragSlotId = null;
@@ -1595,6 +1626,10 @@
   };
 
   window.mockBalancePlacementDone = function () {
+    if (!mockBalanceAllSlotsFilled()) {
+      window.alert("10명 슬롯이 모두 찼을 때만 배치를 완료할 수 있습니다.");
+      return false;
+    }
     var mapBanOn =
       document.getElementById("mock-balance-toggle-map-ban") &&
       document.getElementById("mock-balance-toggle-map-ban").getAttribute("aria-checked") === "true";

@@ -3132,7 +3132,17 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                     </select>
                     <p class="mock-modal-hint">이 분류에 해당하는 맵 중 3개가 밴픽 세션에 무작위로 나옵니다.</p>
                   </div>
-                  <button type="button" class="btn btn-primary" onclick="return window.mockBalancePlacementDone()">배치 완료</button>
+                  <button
+                    type="button"
+                    id="mock-balance-btn-placement-done"
+                    class="btn btn-primary"
+                    disabled
+                    aria-disabled="true"
+                    title="10명 슬롯이 모두 찼을 때만 배치를 완료할 수 있습니다."
+                    onclick="return window.mockBalancePlacementDone()"
+                  >
+                    배치 완료
+                  </button>
                 </div>
               </div>
             </div>
