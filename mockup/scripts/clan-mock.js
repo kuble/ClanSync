@@ -1142,7 +1142,318 @@
     if (typeof window.mockBalanceRefreshAiSnapshotMock === "function") {
       window.mockBalanceRefreshAiSnapshotMock();
     }
+    mockBalanceAfterMapVoteDone();
   }
+
+  function mockBalanceHeroBanIsOn() {
+    var b = document.getElementById("mock-balance-toggle-hero-ban");
+    return !!(b && b.getAttribute("aria-checked") === "true");
+  }
+
+  function mockBalanceGoToLineupAfterBanpick() {
+    var tab = document.querySelector('[data-balance-wf-id="lineup"]');
+    if (tab) {
+      window.mockBalanceSetWorkflow(tab, "lineup");
+    }
+  }
+
+  function mockBalanceClearLineupBansDisplay() {
+    var wrap = document.getElementById("mock-balance-lineup-bans-wrap");
+    var bansEl = document.getElementById("mock-balance-lineup-bans");
+    if (wrap) {
+      wrap.style.display = "none";
+    }
+    if (bansEl) {
+      bansEl.textContent = "—";
+    }
+  }
+
+  function mockBalanceAfterMapVoteDone() {
+    if (mockBalanceHeroBanIsOn()) {
+      window.mockBalanceStartHeroBanSession();
+    } else {
+      mockBalanceClearLineupBansDisplay();
+      mockBalanceGoToLineupAfterBanpick();
+    }
+  }
+
+  /** OW2 스타일: 영웅명 → 역할 (목업 풀) */
+  var MOCK_HERO_ROLES = {
+    라인하르트: "tank",
+    오리사: "tank",
+    윈스턴: "tank",
+    자리야: "tank",
+    트레이서: "dps",
+    "솔저: 76": "dps",
+    메이: "dps",
+    리퍼: "dps",
+    겐지: "dps",
+    루시우: "support",
+    키리코: "support",
+    메르시: "support",
+    아나: "support",
+  };
+
+  var _mockHeroBanTimerId = null;
+  var _mockHeroBanSecondsLeft = 20;
+  var _mockHeroBanTotals = {};
+  var _mockHeroBanOrder = [];
+  var _mockHeroBanEnded = true;
+  var _mockHeroBanSeq = 0;
+
+  function mockBalanceHeroBanSetTimerLabel(sec) {
+    var el = document.getElementById("mock-heroban-timer");
+    if (!el) {
+      return;
+    }
+    var s = Math.max(0, sec | 0);
+    el.textContent = "0:" + (s < 10 ? "0" : "") + s;
+  }
+
+  function mockBalanceHeroBanClearTimer() {
+    if (_mockHeroBanTimerId !== null) {
+      window.clearInterval(_mockHeroBanTimerId);
+      _mockHeroBanTimerId = null;
+    }
+  }
+
+  function mockBalanceHeroBanRefreshTotalsDisplay() {
+    var el = document.getElementById("mock-heroban-totals");
+    if (!el) {
+      return;
+    }
+    var keys = Object.keys(_mockHeroBanTotals);
+    if (keys.length === 0) {
+      el.textContent = "—";
+      return;
+    }
+    keys.sort(function (a, b) {
+      return (_mockHeroBanTotals[b] || 0) - (_mockHeroBanTotals[a] || 0) || a.localeCompare(b, "ko");
+    });
+    el.textContent = keys
+      .map(function (k) {
+        return k + " " + _mockHeroBanTotals[k] + "점";
+      })
+      .join(" · ");
+  }
+
+  function mockBalanceHeroBanUpdateChipStyles() {
+    document.querySelectorAll(".mock-heroban-chip").forEach(function (chip) {
+      chip.classList.remove(
+        "mock-heroban-chip--in-order",
+        "mock-heroban-chip--order-1",
+        "mock-heroban-chip--order-2",
+        "mock-heroban-chip--order-3",
+      );
+    });
+    _mockHeroBanOrder.forEach(function (name, idx) {
+      document.querySelectorAll('.mock-heroban-chip[data-hero-name="' + name + '"]').forEach(function (chip) {
+        chip.classList.add("mock-heroban-chip--in-order");
+        chip.classList.add("mock-heroban-chip--order-" + String(idx + 1));
+      });
+    });
+  }
+
+  function mockBalanceHeroBanUpdateOrderLabel() {
+    var el = document.getElementById("mock-heroban-order");
+    if (!el) {
+      return;
+    }
+    if (_mockHeroBanOrder.length === 0) {
+      el.textContent = "—";
+      return;
+    }
+    var w = [7, 5, 3];
+    el.textContent = _mockHeroBanOrder
+      .map(function (name, i) {
+        return String(i + 1) + "순(" + w[i] + "): " + name;
+      })
+      .join(" → ");
+  }
+
+  function mockBalanceHeroBanAddBallot(names) {
+    var weights = [7, 5, 3];
+    var i;
+    for (i = 0; i < 3; i++) {
+      var n = names[i];
+      if (!n) {
+        continue;
+      }
+      _mockHeroBanTotals[n] = (_mockHeroBanTotals[n] || 0) + weights[i];
+    }
+  }
+
+  function mockBalanceHeroBanPickThreeRandom(allNames) {
+    var copy = allNames.slice();
+    var i;
+    for (i = copy.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = copy[i];
+      copy[i] = copy[j];
+      copy[j] = t;
+    }
+    return copy.slice(0, 3);
+  }
+
+  /** 점수 순, 역할당 최대 2명, 전체 최대 4명 */
+  function mockBalanceHeroBanResolveBans(totals, roleMap) {
+    var entries = Object.keys(totals).map(function (name) {
+      return {
+        name: name,
+        score: totals[name] || 0,
+        role: roleMap[name] || "dps",
+      };
+    });
+    entries.sort(function (a, b) {
+      if (b.score !== a.score) {
+        return b.score - a.score;
+      }
+      return a.name.localeCompare(b.name, "ko");
+    });
+    var banned = [];
+    var roleCount = { tank: 0, dps: 0, support: 0 };
+    var maxPer = 2;
+    var maxTotal = 4;
+    var i;
+    for (i = 0; i < entries.length && banned.length < maxTotal; i++) {
+      var r = entries[i].role;
+      if (roleCount[r] >= maxPer) {
+        continue;
+      }
+      banned.push(entries[i].name);
+      roleCount[r]++;
+    }
+    return banned;
+  }
+
+  window.mockBalanceHeroBanPick = function (btn) {
+    if (!btn || _mockHeroBanEnded) {
+      return false;
+    }
+    var name = btn.getAttribute("data-hero-name") || "";
+    if (!name || _mockHeroBanOrder.length >= 3) {
+      return false;
+    }
+    if (_mockHeroBanOrder.indexOf(name) !== -1) {
+      return false;
+    }
+    _mockHeroBanOrder.push(name);
+    mockBalanceHeroBanUpdateOrderLabel();
+    mockBalanceHeroBanUpdateChipStyles();
+    return false;
+  };
+
+  window.mockBalanceHeroBanResetPick = function () {
+    if (_mockHeroBanEnded) {
+      return false;
+    }
+    _mockHeroBanOrder = [];
+    mockBalanceHeroBanUpdateOrderLabel();
+    mockBalanceHeroBanUpdateChipStyles();
+    return false;
+  };
+
+  window.mockBalanceHeroBanApplyBallot = function () {
+    if (_mockHeroBanEnded) {
+      return false;
+    }
+    if (_mockHeroBanOrder.length !== 3) {
+      window.alert("목업: 서로 다른 영웅 3명을 순서대로 선택한 뒤 반영하세요.");
+      return false;
+    }
+    mockBalanceHeroBanAddBallot(_mockHeroBanOrder.slice());
+    _mockHeroBanOrder = [];
+    mockBalanceHeroBanUpdateOrderLabel();
+    mockBalanceHeroBanUpdateChipStyles();
+    mockBalanceHeroBanRefreshTotalsDisplay();
+    return false;
+  };
+
+  window.mockBalanceHeroBanRandomSimulate = function () {
+    if (_mockHeroBanEnded) {
+      return false;
+    }
+    var all = Object.keys(MOCK_HERO_ROLES);
+    var b;
+    for (b = 0; b < 8; b++) {
+      mockBalanceHeroBanAddBallot(mockBalanceHeroBanPickThreeRandom(all));
+    }
+    mockBalanceHeroBanRefreshTotalsDisplay();
+    return false;
+  };
+
+  function mockBalanceHeroBanFinalize() {
+    mockBalanceHeroBanClearTimer();
+    _mockHeroBanEnded = true;
+    if (_mockHeroBanOrder.length === 3) {
+      mockBalanceHeroBanAddBallot(_mockHeroBanOrder.slice());
+      _mockHeroBanOrder = [];
+    }
+    mockBalanceHeroBanRefreshTotalsDisplay();
+    mockBalanceHeroBanUpdateOrderLabel();
+    mockBalanceHeroBanUpdateChipStyles();
+    var banned = mockBalanceHeroBanResolveBans(_mockHeroBanTotals, MOCK_HERO_ROLES);
+    var res = document.getElementById("mock-heroban-result");
+    if (res) {
+      res.hidden = false;
+      res.textContent =
+        "밴 확정: " +
+        (banned.length ? banned.join(", ") : "없음") +
+        " (최대 4명 · 역할당 최대 2명 · OW2식 가중 합산 목업)";
+    }
+    var hp = document.getElementById("mock-heroban-panel");
+    if (hp) {
+      hp.classList.add("mock-heroban-ended");
+    }
+    var wrap = document.getElementById("mock-balance-lineup-bans-wrap");
+    var bansEl = document.getElementById("mock-balance-lineup-bans");
+    if (banned.length && wrap && bansEl) {
+      bansEl.textContent = banned.join(", ");
+      wrap.style.display = "flex";
+    } else if (wrap) {
+      wrap.style.display = "none";
+    }
+    mockBalanceGoToLineupAfterBanpick();
+  }
+
+  window.mockBalanceStartHeroBanSession = function () {
+    _mockHeroBanSeq++;
+    var mySeq = _mockHeroBanSeq;
+    mockBalanceHeroBanClearTimer();
+    _mockHeroBanTotals = {};
+    _mockHeroBanOrder = [];
+    _mockHeroBanEnded = false;
+    _mockHeroBanSecondsLeft = 20;
+    mockBalanceHeroBanSetTimerLabel(_mockHeroBanSecondsLeft);
+    mockBalanceHeroBanRefreshTotalsDisplay();
+    mockBalanceHeroBanUpdateOrderLabel();
+    mockBalanceHeroBanUpdateChipStyles();
+    var res = document.getElementById("mock-heroban-result");
+    if (res) {
+      res.hidden = true;
+      res.textContent = "";
+    }
+    var hp = document.getElementById("mock-heroban-panel");
+    if (hp) {
+      hp.hidden = false;
+      hp.classList.remove("mock-heroban-ended");
+    }
+    try {
+      if (hp) {
+        hp.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+    } catch (eScroll) {}
+    _mockHeroBanTimerId = window.setInterval(function () {
+      if (mySeq !== _mockHeroBanSeq) {
+        return;
+      }
+      _mockHeroBanSecondsLeft--;
+      mockBalanceHeroBanSetTimerLabel(_mockHeroBanSecondsLeft);
+      if (_mockHeroBanSecondsLeft <= 0) {
+        mockBalanceHeroBanFinalize();
+      }
+    }, 1000);
+  };
 
   function mockBalanceFinalizeMapVote() {
     mockBalanceClearMapVoteTimer();
@@ -1161,6 +1472,12 @@
   /** 맵 밴 ON + 배치 완료 시 호출 */
   window.mockBalanceStartMapVoteSession = function () {
     _mockMapRouletteSeq++;
+    _mockHeroBanSeq++;
+    mockBalanceHeroBanClearTimer();
+    var hpHide = document.getElementById("mock-heroban-panel");
+    if (hpHide) {
+      hpHide.hidden = true;
+    }
     mockBalanceMapVoteClearRouletteHighlight();
     var hintPre = document.getElementById("mock-mapvote-roulette-hint");
     if (hintPre) {
@@ -1177,6 +1494,10 @@
     if (!pool || pool.length < 3) {
       window.alert("목업: 이 분류에 맵이 3개 미만입니다. 다른 분류를 선택하세요.");
       return;
+    }
+    var msec = document.getElementById("mock-mapvote-section");
+    if (msec) {
+      msec.hidden = false;
     }
     var labelEl = document.getElementById("mock-mapvote-pool-label");
     if (labelEl && sel) {
@@ -1277,6 +1598,7 @@
     var mapBanOn =
       document.getElementById("mock-balance-toggle-map-ban") &&
       document.getElementById("mock-balance-toggle-map-ban").getAttribute("aria-checked") === "true";
+    var heroBanOn = mockBalanceHeroBanIsOn();
     if (typeof window.mockBalanceRefreshAiSnapshotMock === "function") {
       window.mockBalanceRefreshAiSnapshotMock();
     }
@@ -1293,12 +1615,30 @@
       }
       return false;
     }
+    if (heroBanOn) {
+      var tabBpH = document.querySelector('[data-balance-wf-id="banpick"]');
+      if (tabBpH) {
+        window.mockBalanceSetWorkflow(tabBpH, "banpick");
+      }
+      var msec = document.getElementById("mock-mapvote-section");
+      if (msec) {
+        msec.hidden = true;
+      }
+      window.alert(
+        "목업: 맵 밴 OFF · 영웅 밴 ON — 배치 확정 후 영웅 밴픽(20초)만 진행합니다.\nOW2식 1·2·3순(7/5/3) 가중 합산 · 최대 4명 · 역할당 2명까지.",
+      );
+      if (typeof window.mockBalanceStartHeroBanSession === "function") {
+        window.mockBalanceStartHeroBanSession();
+      }
+      return false;
+    }
+    mockBalanceClearLineupBansDisplay();
     var tab = document.querySelector('[data-balance-wf-id="lineup"]');
     if (tab) {
       window.mockBalanceSetWorkflow(tab, "lineup");
     }
     window.alert(
-      "목업: 배치가 확정되었습니다. 맵 밴 OFF이므로 ③ 5vs5 탭으로 전환했습니다. 실제 플로우는 docs/01-plan/balance-maker-ui-notes.md 참고.",
+      "목업: 배치가 확정되었습니다. 맵·영웅 밴이 모두 꺼져 있어 ③ 5vs5로 전환했습니다. 실제 플로우는 docs/01-plan/balance-maker-ui-notes.md 참고.",
     );
     return false;
   };
@@ -1340,7 +1680,7 @@
     var mapBan = document.getElementById("mock-balance-toggle-map-ban");
     if (mapBan && mapBan.getAttribute("aria-checked") === "true") {
       window.alert(
-        "목업: 맵 밴이 켜져 있어 이 단계에서는 맵 선택이 없습니다. ② 맵·영웅 밴픽 세션에서 맵이 정해집니다.",
+        "목업: 맵 밴이 켜져 있어 이 단계에서는 맵 선택이 없습니다. ② 맵 밴픽 세션에서 맵이 정해집니다.",
       );
       return false;
     }

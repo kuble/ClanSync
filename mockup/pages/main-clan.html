@@ -1718,6 +1718,107 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
 .mock-mapvote-panel.mock-mapvote-ended .mock-mapvote-timer {
   color: var(--text-muted);
 }
+.mock-mapvote-section {
+  margin-bottom: 16px;
+}
+.mock-mapvote-section:last-child {
+  margin-bottom: 0;
+}
+.mock-heroban-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 14px;
+  background: var(--bg-overlay);
+}
+.mock-heroban-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.mock-heroban-timer {
+  font-size: 20px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #38bdf8;
+  letter-spacing: 0.04em;
+}
+.mock-heroban-panel.mock-heroban-ended .mock-heroban-timer {
+  color: var(--text-muted);
+}
+.mock-heroban-panel.mock-heroban-ended .mock-heroban-chips {
+  pointer-events: none;
+  opacity: 0.65;
+}
+.mock-heroban-role-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+@media (max-width: 720px) {
+  .mock-heroban-role-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.mock-heroban-role-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.mock-heroban-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.mock-heroban-chip {
+  font-size: 11px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  line-height: 1.2;
+}
+.mock-heroban-chip:hover {
+  border-color: rgba(56, 189, 248, 0.45);
+}
+.mock-heroban-chip.mock-heroban-chip--in-order {
+  border-color: rgba(56, 189, 248, 0.75);
+  background: rgba(56, 189, 248, 0.1);
+}
+.mock-heroban-chip.mock-heroban-chip--order-1 {
+  box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.5);
+}
+.mock-heroban-chip.mock-heroban-chip--order-2 {
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.55);
+}
+.mock-heroban-chip.mock-heroban-chip--order-3 {
+  box-shadow: inset 0 0 0 1px rgba(167, 139, 250, 0.45);
+}
+.mock-heroban-totals {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  max-height: 72px;
+  overflow: auto;
+}
+.mock-heroban-result {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  font-size: 13px;
+  line-height: 1.5;
+}
 .mock-predict-mock {
   border: 1px solid rgba(245, 158, 11, 0.35);
   border-radius: var(--radius-xl);
@@ -3073,9 +3174,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
 
       <div id="mock-balance-wf-banpick" data-balance-wf-panel="banpick" class="mock-balance-wf-panel" hidden>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-          <span style="font-size:13px;font-weight:600;color:var(--text-secondary)">참가자 · 맵 밴픽</span>
-          <button type="button" class="mock-help-tip" data-tip="맵 밴 ON: 배치 완료 후 15초 세션. 분류에 맞는 맵 3개 무작위 후보, 참가자는 A안(3개 중 1표). 종료 시 서버가 가중 랜덤으로 맵 1개를 정한 뒤, OW2 맵 투표처럼 룰렛이 멈추는 연출(목업). 동률·0표는 1:1:1. 영웅 밴은 추후. 문서: balance-maker-ui-notes.md" aria-label="맵 밴픽 도움말">?</button>
+          <span style="font-size:13px;font-weight:600;color:var(--text-secondary)">참가자 · 맵/영웅 밴픽</span>
+          <button type="button" class="mock-help-tip" data-tip="맵 밴: 15초·3맵·A안·룰렛 확정. 영웅 밴(ON 시): 맵 확정 직후 OW2식 1·2·3순(7/5/3)·최대 4명·역할당 2명까지. 맵만 OFF·영웅만 ON이면 배치 완료 후 영웅만. 문서: balance-maker-ui-notes.md" aria-label="맵·영웅 밴픽 도움말">?</button>
         </div>
+        <div id="mock-mapvote-section" class="mock-mapvote-section" hidden>
         <div id="mock-mapvote-panel" class="mock-mapvote-panel" aria-live="polite">
           <div class="mock-mapvote-head">
             <div>
@@ -3110,6 +3212,60 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
             </div>
           </div>
           <div id="mock-mapvote-result" class="mock-mapvote-result" hidden></div>
+        </div>
+        </div>
+
+        <div id="mock-heroban-panel" class="mock-heroban-panel" hidden>
+          <div class="mock-heroban-head">
+            <div>
+              <span style="font-size:12px;color:var(--text-muted)">영웅 밴 (OW2 경쟁전 스타일)</span>
+              <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-top:2px">1·2·3순위 밴 · 가중 7 / 5 / 3</div>
+            </div>
+            <div style="text-align:right">
+              <span style="font-size:11px;color:var(--text-muted);display:block">남은 시간</span>
+              <span id="mock-heroban-timer" class="mock-heroban-timer">0:20</span>
+            </div>
+          </div>
+          <p style="font-size:12px;color:var(--text-muted);margin:0 0 8px">서로 다른 영웅 3명을 <strong>순서대로</strong> 누르면 1·2·3순위가 됩니다. 「투표 반영」으로 한 명 분을 합산합니다. 종료 시 미반영 3명 선택이 있으면 자동 반영됩니다.</p>
+          <p style="font-size:12px;color:var(--text-secondary);margin:0 0 10px">현재 선택: <span id="mock-heroban-order">—</span></p>
+          <div class="mock-heroban-actions" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;align-items:center">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockBalanceHeroBanApplyBallot()">투표 반영</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockBalanceHeroBanResetPick()">선택 초기화</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockBalanceHeroBanRandomSimulate()">랜덤 투표 시뮬 (8명분)</button>
+          </div>
+          <div class="mock-heroban-role-grid" aria-label="밴 후보 영웅">
+            <div class="mock-heroban-role-col">
+              <span class="mock-heroban-role-label">탱</span>
+              <div class="mock-heroban-chips">
+                <button type="button" class="mock-heroban-chip" data-hero-name="라인하르트" data-hero-role="tank" onclick="return window.mockBalanceHeroBanPick(this)">라인하르트</button>
+                <button type="button" class="mock-heroban-chip" data-hero-name="오리사" data-hero-role="tank" onclick="return window.mockBalanceHeroBanPick(this)">오리사</button>
+                <button type="button" class="mock-heroban-chip" data-hero-name="윈스턴" data-hero-role="tank" onclick="return window.mockBalanceHeroBanPick(this)">윈스턴</button>
+                <button type="button" class="mock-heroban-chip" data-hero-name="자리야" data-hero-role="tank" onclick="return window.mockBalanceHeroBanPick(this)">자리야</button>
+              </div>
+            </div>
+            <div class="mock-heroban-role-col">
+              <span class="mock-heroban-role-label">공격</span>
+              <div class="mock-heroban-chips">
+                <button type="button" class="mock-heroban-chip" data-hero-name="트레이서" data-hero-role="dps" onclick="return window.mockBalanceHeroBanPick(this)">트레이서</button>
+                <button type="button" class="mock-heroban-chip" data-hero-name="솔저: 76" data-hero-role="dps" onclick="return window.mockBalanceHeroBanPick(this)">솔저: 76</button>
+                <button type="button" class="mock-heroban-chip" data-hero-name="메이" data-hero-role="dps" onclick="return window.mockBalanceHeroBanPick(this)">메이</button>
+                <button type="button" class="mock-heroban-chip" data-hero-name="리퍼" data-hero-role="dps" onclick="return window.mockBalanceHeroBanPick(this)">리퍼</button>
+                <button type="button" class="mock-heroban-chip" data-hero-name="겐지" data-hero-role="dps" onclick="return window.mockBalanceHeroBanPick(this)">겐지</button>
+              </div>
+            </div>
+            <div class="mock-heroban-role-col">
+              <span class="mock-heroban-role-label">지원</span>
+              <div class="mock-heroban-chips">
+                <button type="button" class="mock-heroban-chip" data-hero-name="루시우" data-hero-role="support" onclick="return window.mockBalanceHeroBanPick(this)">루시우</button>
+                <button type="button" class="mock-heroban-chip" data-hero-name="키리코" data-hero-role="support" onclick="return window.mockBalanceHeroBanPick(this)">키리코</button>
+                <button type="button" class="mock-heroban-chip" data-hero-name="메르시" data-hero-role="support" onclick="return window.mockBalanceHeroBanPick(this)">메르시</button>
+                <button type="button" class="mock-heroban-chip" data-hero-name="아나" data-hero-role="support" onclick="return window.mockBalanceHeroBanPick(this)">아나</button>
+              </div>
+            </div>
+          </div>
+          <p style="font-size:11px;color:var(--text-muted);margin:10px 0 6px">누적 점수 (목업)</p>
+          <div id="mock-heroban-totals" class="mock-heroban-totals" aria-live="polite">—</div>
+          <div id="mock-heroban-result" class="mock-heroban-result" hidden></div>
         </div>
       </div>
 
@@ -3153,6 +3309,9 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
         <p style="font-size:11px;color:var(--text-muted);margin-top:12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
           맵: <strong id="mock-balance-lineup-map">서킷 로얄</strong>
           <button type="button" class="mock-help-tip" data-tip="서버 시간·경기 시작 시각과 연동하면 날짜·시각 표시 형식을 맞출 수 있습니다(구현 시)." aria-label="라인업 맵·시각 표시 도움말">?</button>
+        </p>
+        <p id="mock-balance-lineup-bans-wrap" style="font-size:11px;color:var(--text-muted);margin-top:8px;display:none;align-items:center;gap:6px;flex-wrap:wrap">
+          밴 영웅: <strong id="mock-balance-lineup-bans">—</strong>
         </p>
       </div>
 
