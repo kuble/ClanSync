@@ -126,6 +126,9 @@
     try {
       if (document.getElementById("mock-balance-map-pick-btn")) {
         mockBalanceSyncMapPickCluster();
+        if (typeof mockBalanceSyncMapPoolRow === "function") {
+          mockBalanceSyncMapPoolRow();
+        }
       }
       var vsBoardInit = document.getElementById("mock-balance-vs-board");
       if (vsBoardInit) {
@@ -866,12 +869,269 @@
     }
   }
 
+  /** 맵 밴 ON일 때만 배치 카드에 맵 풀 분류 드롭다운 표시 */
+  function mockBalanceSyncMapPoolRow() {
+    var mapBan = document.getElementById("mock-balance-toggle-map-ban");
+    var row = document.getElementById("mock-balance-map-pool-row");
+    var on = mapBan && mapBan.getAttribute("aria-checked") === "true";
+    if (row) {
+      row.hidden = !on;
+    }
+  }
+
+  /**
+   * 목업: 분류별 맵 풀(실서버는 DB·게임별 동기).
+   * 각 분류는 최소 3개 이상.
+   */
+  var MOCK_BALANCE_MAP_POOLS = {
+    all: [
+      "하나오카",
+      "아누비스 왕좌",
+      "남극 반도",
+      "부산",
+      "일리오스",
+      "리장 타워",
+      "네팔",
+      "오아시스",
+      "사모아",
+      "서킷 로얄",
+      "도라도",
+      "하바나",
+      "정크타운",
+      "리알토",
+      "66번 국도",
+      "샴발라 수도원",
+      "감시 기지: 지브롤터",
+      "뉴 정크 시티",
+      "수라바사",
+      "블리자드 월드",
+      "아이헨발데",
+      "할리우드",
+      "킹스 로우",
+      "미드타운",
+    ],
+    clash: ["서킷 로얄", "일리오스", "네팔", "부산", "리장 타워", "오아시스", "사모아", "미드타운"],
+    escort: ["하나오카", "도라도", "하바나", "정크타운", "리알토", "66번 국도", "감시 기지: 지브롤터", "뉴 정크 시티", "수라바사", "아이헨발데"],
+    push: ["킹스 로우", "뉴 정크 시티", "수라바사", "아이헨발데", "블리자드 월드", "미드타운"],
+    hybrid: ["아누비스 왕좌", "남극 반도", "샴발라 수도원", "할리우드", "킹스 로우", "부산"],
+    flashpoint: ["서킷 로얄", "일리오스", "네팔", "미드타운", "오아시스", "사모아"],
+  };
+
+  /** 목업: 맵명 → 모드 라벨(표시용) */
+  var MOCK_BALANCE_MAP_MODE_LABEL = {
+    하나오카: "호위",
+    "아누비스 왕좌": "혼합",
+    "남극 반도": "혼합",
+    부산: "쟁탈",
+    일리오스: "쟁탈",
+    "리장 타워": "쟁탈",
+    네팔: "쟁탈",
+    오아시스: "쟁탈",
+    사모아: "쟁탈",
+    "서킷 로얄": "쟁탈",
+    도라도: "호위",
+    하바나: "호위",
+    정크타운: "호위",
+    리알토: "호위",
+    "66번 국도": "호위",
+    "샴발라 수도원": "혼합",
+    "감시 기지: 지브롤터": "호위",
+    "뉴 정크 시티": "호위",
+    수라바사: "호위",
+    "블리자드 월드": "밀기",
+    아이헨발데: "호위",
+    할리우드: "혼합",
+    "킹스 로우": "밀기",
+    미드타운: "플래시 포인트",
+  };
+
+  var _mockMapVoteTimerId = null;
+  var _mockMapVoteSecondsLeft = 15;
+  var _mockMapVoteCounts = [0, 0, 0];
+  var _mockMapVoteNames = ["", "", ""];
+  var _mockMapVoteEnded = true;
+
+  function mockBalanceShufflePickThree(pool) {
+    var copy = pool.slice();
+    var i;
+    for (i = copy.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = copy[i];
+      copy[i] = copy[j];
+      copy[j] = t;
+    }
+    return copy.slice(0, 3);
+  }
+
+  /** 동률(전부 동일 득표)이면 균등 1/3, 아니면 득표 가중 무작위 */
+  function mockBalanceWeightedMapPick(names, votes) {
+    var allEq = true;
+    var a;
+    for (a = 1; a < votes.length; a++) {
+      if (votes[a] !== votes[0]) {
+        allEq = false;
+        break;
+      }
+    }
+    if (allEq) {
+      return names[Math.floor(Math.random() * names.length)];
+    }
+    var sum = 0;
+    for (a = 0; a < votes.length; a++) {
+      sum += Math.max(0, votes[a]);
+    }
+    if (sum <= 0) {
+      return names[Math.floor(Math.random() * names.length)];
+    }
+    var r = Math.random() * sum;
+    var acc = 0;
+    for (a = 0; a < names.length; a++) {
+      acc += Math.max(0, votes[a]);
+      if (r < acc) {
+        return names[a];
+      }
+    }
+    return names[names.length - 1];
+  }
+
+  function mockBalanceClearMapVoteTimer() {
+    if (_mockMapVoteTimerId !== null) {
+      window.clearInterval(_mockMapVoteTimerId);
+      _mockMapVoteTimerId = null;
+    }
+  }
+
+  function mockBalanceMapVoteSetTimerLabel(sec) {
+    var el = document.getElementById("mock-mapvote-timer");
+    if (!el) return;
+    var s = Math.max(0, sec | 0);
+    el.textContent = "0:" + (s < 10 ? "0" : "") + s;
+  }
+
+  function mockBalanceFinalizeMapVote() {
+    mockBalanceClearMapVoteTimer();
+    _mockMapVoteEnded = true;
+    var winner = mockBalanceWeightedMapPick(_mockMapVoteNames, _mockMapVoteCounts);
+    var i;
+    for (i = 0; i < 3; i++) {
+      var btn = document.getElementById("mock-mapvote-btn-" + i);
+      if (btn) {
+        btn.disabled = true;
+      }
+      var card = document.querySelector('.mock-mapvote-card[data-mapvote-idx="' + i + '"]');
+      if (card) {
+        card.classList.toggle("mock-mapvote-card--picked", _mockMapVoteNames[i] === winner);
+      }
+    }
+    var res = document.getElementById("mock-mapvote-result");
+    if (res) {
+      res.hidden = false;
+      res.textContent =
+        "확정 맵: " +
+        winner +
+        " (득표 " +
+        _mockMapVoteCounts.join(" / ") +
+        " · 가중 랜덤 · 동률 시 1:1:1)";
+    }
+    var panel = document.getElementById("mock-mapvote-panel");
+    if (panel) {
+      panel.classList.add("mock-mapvote-ended");
+    }
+    mockBalanceMapVoteSetTimerLabel(0);
+    var label = document.getElementById("mock-balance-map-label");
+    if (label) {
+      label.textContent = winner;
+    }
+    var lineupMap = document.getElementById("mock-balance-lineup-map");
+    if (lineupMap) {
+      lineupMap.textContent = winner;
+    }
+    if (typeof window.mockBalanceRefreshAiSnapshotMock === "function") {
+      window.mockBalanceRefreshAiSnapshotMock();
+    }
+  }
+
+  /** 맵 밴 ON + 배치 완료 시 호출 */
+  window.mockBalanceStartMapVoteSession = function () {
+    var sel = document.getElementById("mock-balance-map-pool-category");
+    var key = (sel && sel.value) || "all";
+    var pool = MOCK_BALANCE_MAP_POOLS[key] || MOCK_BALANCE_MAP_POOLS.all;
+    if (!pool || pool.length < 3) {
+      window.alert("목업: 이 분류에 맵이 3개 미만입니다. 다른 분류를 선택하세요.");
+      return;
+    }
+    var labelEl = document.getElementById("mock-mapvote-pool-label");
+    if (labelEl && sel) {
+      labelEl.textContent = sel.options[sel.selectedIndex].text;
+    }
+    var three = mockBalanceShufflePickThree(pool);
+    _mockMapVoteNames = three;
+    _mockMapVoteCounts = [0, 0, 0];
+    _mockMapVoteEnded = false;
+    var res = document.getElementById("mock-mapvote-result");
+    if (res) {
+      res.hidden = true;
+      res.textContent = "";
+    }
+    var panel = document.getElementById("mock-mapvote-panel");
+    if (panel) {
+      panel.classList.remove("mock-mapvote-ended");
+    }
+    var j;
+    for (j = 0; j < 3; j++) {
+      var nm = document.getElementById("mock-mapvote-name-" + j);
+      var meta = document.getElementById("mock-mapvote-meta-" + j);
+      var vt = document.getElementById("mock-mapvote-votes-" + j);
+      var bt = document.getElementById("mock-mapvote-btn-" + j);
+      if (nm) {
+        nm.textContent = three[j];
+      }
+      if (meta) {
+        var mode = MOCK_BALANCE_MAP_MODE_LABEL[three[j]];
+        meta.textContent = mode ? "· " + mode : "";
+      }
+      if (vt) {
+        vt.textContent = "0";
+      }
+      if (bt) {
+        bt.disabled = false;
+      }
+      var card = document.querySelector('.mock-mapvote-card[data-mapvote-idx="' + j + '"]');
+      if (card) {
+        card.classList.remove("mock-mapvote-card--picked");
+      }
+    }
+    _mockMapVoteSecondsLeft = 15;
+    mockBalanceMapVoteSetTimerLabel(_mockMapVoteSecondsLeft);
+    mockBalanceClearMapVoteTimer();
+    _mockMapVoteTimerId = window.setInterval(function () {
+      _mockMapVoteSecondsLeft--;
+      mockBalanceMapVoteSetTimerLabel(_mockMapVoteSecondsLeft);
+      if (_mockMapVoteSecondsLeft <= 0) {
+        mockBalanceFinalizeMapVote();
+      }
+    }, 1000);
+  };
+
+  window.mockBalanceMapVoteClick = function (idx) {
+    if (_mockMapVoteEnded || idx < 0 || idx > 2) {
+      return false;
+    }
+    _mockMapVoteCounts[idx] = (_mockMapVoteCounts[idx] || 0) + 1;
+    var vt = document.getElementById("mock-mapvote-votes-" + idx);
+    if (vt) {
+      vt.textContent = String(_mockMapVoteCounts[idx]);
+    }
+    return false;
+  };
+
   /** 맵 밴 토글 — 슬롯은 ② 밴픽 세션에서만 사용 */
   window.mockBalanceToggleMapBan = function (btn) {
     if (!btn) return false;
     var on = btn.getAttribute("aria-checked") !== "true";
     btn.setAttribute("aria-checked", on ? "true" : "false");
     mockBalanceSyncMapPickCluster();
+    mockBalanceSyncMapPoolRow();
     return false;
   };
 
@@ -896,15 +1156,31 @@
   };
 
   window.mockBalancePlacementDone = function () {
+    var mapBanOn =
+      document.getElementById("mock-balance-toggle-map-ban") &&
+      document.getElementById("mock-balance-toggle-map-ban").getAttribute("aria-checked") === "true";
     if (typeof window.mockBalanceRefreshAiSnapshotMock === "function") {
       window.mockBalanceRefreshAiSnapshotMock();
+    }
+    if (mapBanOn) {
+      var tabBp = document.querySelector('[data-balance-wf-id="banpick"]');
+      if (tabBp) {
+        window.mockBalanceSetWorkflow(tabBp, "banpick");
+      }
+      window.alert(
+        "목업: 배치 확정 — 참가자에게 디스코드 알림이 발송됩니다.\n밴픽 세션 URL(예시): https://clansync.app/map-vote?session=mock-…\n실제 연동은 구현 단계에서 연결합니다.\n\n확인 후 15초 맵 밴픽 세션이 시작됩니다.",
+      );
+      if (typeof window.mockBalanceStartMapVoteSession === "function") {
+        window.mockBalanceStartMapVoteSession();
+      }
+      return false;
     }
     var tab = document.querySelector('[data-balance-wf-id="lineup"]');
     if (tab) {
       window.mockBalanceSetWorkflow(tab, "lineup");
     }
     window.alert(
-      "목업: 배치가 확정되었습니다. 실제 플로우는 docs/01-plan/balance-maker-ui-notes.md 참고.",
+      "목업: 배치가 확정되었습니다. 맵 밴 OFF이므로 ③ 5vs5 탭으로 전환했습니다. 실제 플로우는 docs/01-plan/balance-maker-ui-notes.md 참고.",
     );
     return false;
   };

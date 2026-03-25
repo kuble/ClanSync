@@ -1601,6 +1601,107 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   font-size: 12px;
   font-weight: 700;
 }
+.mock-balance-map-pool-row {
+  margin-bottom: 12px;
+}
+.mock-balance-map-pool-row label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.mock-balance-map-pool-row select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: inherit;
+  font-family: inherit;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+.mock-balance-map-pool-row .mock-modal-hint {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.mock-mapvote-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 14px;
+  background: var(--bg-overlay);
+}
+.mock-mapvote-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.mock-mapvote-timer {
+  font-size: 20px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #fbbf24;
+  letter-spacing: 0.04em;
+}
+.mock-mapvote-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+@media (max-width: 640px) {
+  .mock-mapvote-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.mock-mapvote-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 10px;
+  background: var(--bg-elevated);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 120px;
+}
+.mock-mapvote-card.mock-mapvote-card--picked {
+  border-color: rgba(124, 58, 237, 0.55);
+  box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.25);
+}
+.mock-mapvote-name {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.mock-mapvote-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.mock-mapvote-votes {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.mock-mapvote-card .btn-sm {
+  margin-top: auto;
+  font-size: 11px;
+  padding: 6px 8px;
+}
+.mock-mapvote-result {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  background: rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.mock-mapvote-panel.mock-mapvote-ended .mock-mapvote-timer {
+  color: var(--text-muted);
+}
 .mock-predict-mock {
   border: 1px solid rgba(245, 158, 11, 0.35);
   border-radius: var(--radius-xl);
@@ -2669,7 +2770,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
       <div class="mock-balance-wf-tabs-wrap">
         <div class="mock-balance-wf-tabs" role="tablist" aria-label="밸런스 화면 단계">
           <button type="button" class="mock-balance-wf-tab mock-tab-active" data-balance-wf-tab data-balance-wf-id="edit" onclick="return window.mockBalanceSetWorkflow(this,'edit')">① 편집 중</button>
-          <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="banpick" onclick="return window.mockBalanceSetWorkflow(this,'banpick')">② 참가자 · 맵/영웅 밴픽</button>
+          <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="banpick" onclick="return window.mockBalanceSetWorkflow(this,'banpick')">② 참가자 · 맵 밴픽</button>
           <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="lineup" onclick="return window.mockBalanceSetWorkflow(this,'lineup')">③ 참가자 · 5vs5</button>
           <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="spectator" onclick="return window.mockBalanceSetWorkflow(this,'spectator')">④ 관전자 · 승부예측</button>
         </div>
@@ -2900,7 +3001,19 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                 <div class="mock-balance-placement-card" aria-label="배치 확정">
                   <div class="mock-balance-ref-head">
                     <span>배치 확정</span>
-                    <button type="button" class="mock-help-tip" data-tip="배치를 확정하면 단계 탭(② 밴픽 등) 전환이 목업에서 가능합니다. 실제 분기·알림은 구현·기획 문서를 따릅니다." aria-label="배치 확정 도움말">?</button>
+                    <button type="button" class="mock-help-tip" data-tip="맵 밴 ON: 맵 풀 분류·배치 완료 후 ② 맵 밴픽(15초·3맵 투표)이 시작됩니다. 디스코드 알림·URL은 구현 시 연결. 상세: docs/01-plan/balance-maker-ui-notes.md" aria-label="배치 확정 도움말">?</button>
+                  </div>
+                  <div id="mock-balance-map-pool-row" class="mock-balance-map-pool-row" hidden>
+                    <label for="mock-balance-map-pool-category">맵 풀 분류 (맵 밴 ON)</label>
+                    <select id="mock-balance-map-pool-category" aria-label="맵 밴 시 후보를 뽑을 맵 분류">
+                      <option value="all">전체</option>
+                      <option value="clash">쟁탈</option>
+                      <option value="escort">호위</option>
+                      <option value="push">밀기</option>
+                      <option value="hybrid">혼합</option>
+                      <option value="flashpoint">플래시 포인트</option>
+                    </select>
+                    <p class="mock-modal-hint">이 분류에 해당하는 맵 중 3개가 밴픽 세션에 무작위로 나옵니다.</p>
                   </div>
                   <button type="button" class="btn btn-primary" onclick="return window.mockBalancePlacementDone()">배치 완료</button>
                 </div>
@@ -2944,25 +3057,42 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
 
       <div id="mock-balance-wf-banpick" data-balance-wf-panel="banpick" class="mock-balance-wf-panel" hidden>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-          <span style="font-size:13px;font-weight:600;color:var(--text-secondary)">참가자 밴픽</span>
-          <button type="button" class="mock-help-tip" data-tip="맵 또는 영웅 밴픽이 켜진 경기에서 참가자에게 보이는 단계입니다. 진영별로 번갈아 밴·픽하는 흐름 목업입니다." aria-label="참가자 밴픽 도움말">?</button>
+          <span style="font-size:13px;font-weight:600;color:var(--text-secondary)">참가자 · 맵 밴픽</span>
+          <button type="button" class="mock-help-tip" data-tip="맵 밴 ON: 배치 완료 후 15초 세션. 분류에 맞는 맵 3개 무작위 후보, 참가자는 A안(3개 중 1표). 종료 시 득표 가중 랜덤으로 맵 1개 확정. 동률·0표는 1:1:1로 균등. 영웅 밴은 추후. 문서: balance-maker-ui-notes.md" aria-label="맵 밴픽 도움말">?</button>
         </div>
-        <div class="mock-banpick-mock">
-          <div class="mock-banpick-col">
-            <h4 style="color:#7dd3fc">블루 진영</h4>
-            <p style="font-size:12px;color:var(--text-muted);margin:0 0 8px">맵 밴 차례 · 남은 시간 <strong>0:28</strong></p>
-            <div class="mock-ban-grid">
-              <div class="mock-ban-slot">밴 후보 A</div><div class="mock-ban-slot">밴 후보 B</div>
+        <div id="mock-mapvote-panel" class="mock-mapvote-panel" aria-live="polite">
+          <div class="mock-mapvote-head">
+            <div>
+              <span style="font-size:12px;color:var(--text-muted)">분류</span>
+              <div id="mock-mapvote-pool-label" style="font-size:13px;font-weight:600;color:var(--text-secondary)">—</div>
             </div>
-            <p style="font-size:11px;color:var(--text-muted);margin:10px 0 0">영웅 밴 슬롯은 토글 시 표시</p>
-          </div>
-          <div class="mock-banpick-col">
-            <h4 style="color:#fb7185">레드 진영</h4>
-            <p style="font-size:12px;color:var(--text-muted);margin:0 0 8px">대기 중 · 상대 밴 이후 픽</p>
-            <div class="mock-ban-grid">
-              <div class="mock-ban-slot">픽 대기</div><div class="mock-ban-slot">픽 대기</div>
+            <div style="text-align:right">
+              <span style="font-size:11px;color:var(--text-muted);display:block">남은 시간</span>
+              <span id="mock-mapvote-timer" class="mock-mapvote-timer">0:15</span>
             </div>
           </div>
+          <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">후보 3개 중 1표 (A안). 목업에서는 버튼을 여러 번 눌러 득표 수를 시뮬레이션합니다.</p>
+          <div class="mock-mapvote-grid" id="mock-mapvote-grid">
+            <div class="mock-mapvote-card" data-mapvote-idx="0">
+              <div class="mock-mapvote-name" id="mock-mapvote-name-0">—</div>
+              <div class="mock-mapvote-meta" id="mock-mapvote-meta-0"></div>
+              <div class="mock-mapvote-votes">득표 <strong id="mock-mapvote-votes-0">0</strong></div>
+              <button type="button" class="btn btn-secondary btn-sm" id="mock-mapvote-btn-0" onclick="return window.mockBalanceMapVoteClick(0)">이 맵에 투표</button>
+            </div>
+            <div class="mock-mapvote-card" data-mapvote-idx="1">
+              <div class="mock-mapvote-name" id="mock-mapvote-name-1">—</div>
+              <div class="mock-mapvote-meta" id="mock-mapvote-meta-1"></div>
+              <div class="mock-mapvote-votes">득표 <strong id="mock-mapvote-votes-1">0</strong></div>
+              <button type="button" class="btn btn-secondary btn-sm" id="mock-mapvote-btn-1" onclick="return window.mockBalanceMapVoteClick(1)">이 맵에 투표</button>
+            </div>
+            <div class="mock-mapvote-card" data-mapvote-idx="2">
+              <div class="mock-mapvote-name" id="mock-mapvote-name-2">—</div>
+              <div class="mock-mapvote-meta" id="mock-mapvote-meta-2"></div>
+              <div class="mock-mapvote-votes">득표 <strong id="mock-mapvote-votes-2">0</strong></div>
+              <button type="button" class="btn btn-secondary btn-sm" id="mock-mapvote-btn-2" onclick="return window.mockBalanceMapVoteClick(2)">이 맵에 투표</button>
+            </div>
+          </div>
+          <div id="mock-mapvote-result" class="mock-mapvote-result" hidden></div>
         </div>
       </div>
 
