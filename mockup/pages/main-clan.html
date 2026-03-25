@@ -3362,7 +3362,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
           <span style="font-size:13px;font-weight:600;color:var(--text-secondary)">경기 진행</span>
           <span class="mock-balance-live-badge" style="font-size:11px;padding:4px 10px;border-radius:99px;border:1px solid var(--border);background:var(--bg-overlay);color:var(--text-secondary)">진행 중</span>
-          <button type="button" class="mock-help-tip" data-tip="사전설정 완료 후 경기 중 화면입니다. 승부예측·예측 결과 표가 같은 화면에 있습니다. 타이머 없음. 운영진: 팀 버튼으로 왕관·무승부는 선택 해제 후 결과 입력. 확인 팝업에서 확인·Enter로 저장. 구성원은 결과 입력 UI 숨김." aria-label="경기 진행 도움말">?</button>
+          <button type="button" class="mock-help-tip" data-tip="사전설정 완료 후 경기 중 화면입니다. 승부예측·예측 결과 표가 같은 화면에 있습니다. 타이머 없음. 운영진: 팀 버튼으로 승자 왕관 선택. 왕관 없이 결과 입력 시 무승부. 확인 팝업에서 확인·Enter로 저장. 구성원은 결과 입력 UI 숨김." aria-label="경기 진행 도움말">?</button>
         </div>
 
         <div class="mock-balance-live-team-pick mock-officer-only" aria-label="승자 팀 선택">
@@ -3376,9 +3376,6 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
             <span>레드 팀</span>
           </button>
         </div>
-        <p style="font-size:11px;color:var(--text-muted);margin:8px 0 12px" class="mock-officer-only">
-          <button type="button" class="btn btn-secondary btn-sm" style="font-size:11px;padding:4px 10px" onclick="return window.mockBalanceLivePickTeam('clear')">승자 선택 해제(무승부로 제출)</button>
-        </p>
         <div class="mock-balance-live-vs-readonly mock-member-only" style="display:none">
           <span style="color:#7dd3fc">블루</span>
           <span style="color:var(--text-muted);margin:0 8px">VS</span>

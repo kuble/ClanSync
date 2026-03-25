@@ -737,65 +737,53 @@
     if (!body || !titleEl) {
       return false;
     }
-    var outcomeText = "";
-    if (_mockBalanceLiveWinner === "blue") {
-      outcomeText = "블루 팀 승으로 기록합니다.";
-      titleEl.textContent = "결과 확인 — 블루 승";
-    } else if (_mockBalanceLiveWinner === "red") {
-      outcomeText = "레드 팀 승으로 기록합니다.";
-      titleEl.textContent = "결과 확인 — 레드 승";
-    } else {
-      outcomeText = "승자 선택이 없어 무승부로 기록합니다.";
-      titleEl.textContent = "결과 확인 — 무승부";
-    }
     body.innerHTML = "";
-    var p0 = document.createElement("p");
-    p0.style.margin = "0 0 12px";
-    p0.style.fontSize = "13px";
-    p0.style.fontWeight = "600";
-    p0.textContent = outcomeText;
-    body.appendChild(p0);
-    var hB = document.createElement("p");
-    hB.style.margin = "0 0 4px";
-    hB.style.fontSize = "12px";
-    hB.style.fontWeight = "600";
-    hB.style.color = "#7dd3fc";
-    hB.textContent = "블루 팀 (5명)";
-    body.appendChild(hB);
-    var ulb = document.createElement("ul");
-    ulb.style.margin = "0 0 12px";
-    ulb.style.paddingLeft = "18px";
-    ulb.style.fontSize = "12px";
-    ulb.style.lineHeight = "1.55";
-    roster.blue.forEach(function (name, i) {
-      var li = document.createElement("li");
-      li.textContent = String(i + 1) + ". " + name;
-      ulb.appendChild(li);
-    });
-    body.appendChild(ulb);
-    var hR = document.createElement("p");
-    hR.style.margin = "0 0 4px";
-    hR.style.fontSize = "12px";
-    hR.style.fontWeight = "600";
-    hR.style.color = "#fb7185";
-    hR.textContent = "레드 팀 (5명)";
-    body.appendChild(hR);
-    var ulr = document.createElement("ul");
-    ulr.style.margin = "0 0 12px";
-    ulr.style.paddingLeft = "18px";
-    ulr.style.fontSize = "12px";
-    ulr.style.lineHeight = "1.55";
-    roster.red.forEach(function (name, i) {
-      var li = document.createElement("li");
-      li.textContent = String(i + 1) + ". " + name;
-      ulr.appendChild(li);
-    });
-    body.appendChild(ulr);
     var p1 = document.createElement("p");
     p1.style.margin = "0";
     p1.style.fontSize = "11px";
     p1.style.color = "var(--text-muted)";
-    p1.textContent = "위 내용이 맞으면 확인 또는 Enter로 저장합니다.";
+    if (_mockBalanceLiveWinner === "blue" || _mockBalanceLiveWinner === "red") {
+      var winSide = _mockBalanceLiveWinner;
+      var outcomeText =
+        winSide === "blue" ? "블루 팀 승으로 기록합니다." : "레드 팀 승으로 기록합니다.";
+      titleEl.textContent = winSide === "blue" ? "결과 확인 — 블루 승" : "결과 확인 — 레드 승";
+      var p0 = document.createElement("p");
+      p0.style.margin = "0 0 12px";
+      p0.style.fontSize = "13px";
+      p0.style.fontWeight = "600";
+      p0.textContent = outcomeText;
+      body.appendChild(p0);
+      var names = winSide === "blue" ? roster.blue : roster.red;
+      var hW = document.createElement("p");
+      hW.style.margin = "0 0 4px";
+      hW.style.fontSize = "12px";
+      hW.style.fontWeight = "600";
+      hW.style.color = winSide === "blue" ? "#7dd3fc" : "#fb7185";
+      hW.textContent = winSide === "blue" ? "블루 팀 (5명)" : "레드 팀 (5명)";
+      body.appendChild(hW);
+      var ul = document.createElement("ul");
+      ul.style.margin = "0 0 12px";
+      ul.style.paddingLeft = "18px";
+      ul.style.fontSize = "12px";
+      ul.style.lineHeight = "1.55";
+      names.forEach(function (name, i) {
+        var li = document.createElement("li");
+        li.textContent = String(i + 1) + ". " + name;
+        ul.appendChild(li);
+      });
+      body.appendChild(ul);
+      p1.textContent = "승자 팀 구성이 맞으면 확인 또는 Enter로 저장합니다.";
+    } else {
+      titleEl.textContent = "결과 확인 — 무승부";
+      var pDraw = document.createElement("p");
+      pDraw.style.margin = "0 0 8px";
+      pDraw.style.fontSize = "13px";
+      pDraw.style.fontWeight = "600";
+      pDraw.style.color = "var(--text-secondary)";
+      pDraw.textContent = "무승부로 저장합니다. 맞습니까?";
+      body.appendChild(pDraw);
+      p1.textContent = "맞으면 확인 또는 Enter로 저장합니다.";
+    }
     body.appendChild(p1);
     var modal = document.getElementById("mock-balance-result-confirm-modal");
     if (modal) {
