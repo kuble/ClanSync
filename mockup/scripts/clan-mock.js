@@ -641,6 +641,189 @@
     }
   };
 
+  var _mockBalanceLiveWinner = null;
+  var _mockBalanceResultModalKeyHandler = null;
+
+  function mockBalanceGetLineupRosterNicks() {
+    var lineup = document.getElementById("mock-balance-lineup-board");
+    var blue = [];
+    var red = [];
+    if (!lineup) {
+      return { blue: blue, red: red };
+    }
+    lineup.querySelectorAll(".mock-balance-vs-row").forEach(function (row) {
+      var bEl = row.querySelector(".mock-balance-nameplate--blue");
+      var rEl = row.querySelector(".mock-balance-nameplate--red");
+      var bt = bEl ? (bEl.textContent || "").trim() : "—";
+      var rt = rEl ? (rEl.textContent || "").trim() : "—";
+      blue.push(bt || "—");
+      red.push(rt || "—");
+    });
+    return { blue: blue, red: red };
+  }
+
+  function mockBalanceRenderLiveCrowns() {
+    var cb = document.getElementById("mock-balance-live-crown-blue");
+    var cr = document.getElementById("mock-balance-live-crown-red");
+    var bb = document.getElementById("mock-balance-live-pick-blue");
+    var rb = document.getElementById("mock-balance-live-pick-red");
+    if (cb) {
+      cb.classList.toggle("is-winner", _mockBalanceLiveWinner === "blue");
+    }
+    if (cr) {
+      cr.classList.toggle("is-winner", _mockBalanceLiveWinner === "red");
+    }
+    if (bb) {
+      bb.classList.toggle("mock-balance-live-team-btn--selected", _mockBalanceLiveWinner === "blue");
+    }
+    if (rb) {
+      rb.classList.toggle("mock-balance-live-team-btn--selected", _mockBalanceLiveWinner === "red");
+    }
+  }
+
+  window.mockBalanceLivePickTeam = function (side) {
+    if (side === "clear") {
+      _mockBalanceLiveWinner = null;
+    } else if (side === "blue") {
+      _mockBalanceLiveWinner = _mockBalanceLiveWinner === "blue" ? null : "blue";
+    } else if (side === "red") {
+      _mockBalanceLiveWinner = _mockBalanceLiveWinner === "red" ? null : "red";
+    }
+    mockBalanceRenderLiveCrowns();
+    return false;
+  };
+
+  window.mockBalanceGoLiveLineupTab = function () {
+    var t = document.querySelector('[data-balance-wf-id="lineup"]');
+    if (t) {
+      window.mockBalanceSetWorkflow(t, "lineup");
+    }
+    return false;
+  };
+
+  function mockBalanceCloseResultConfirmModal() {
+    var m = document.getElementById("mock-balance-result-confirm-modal");
+    if (m) {
+      m.setAttribute("hidden", "");
+      m.setAttribute("aria-hidden", "true");
+    }
+    if (_mockBalanceResultModalKeyHandler) {
+      document.removeEventListener("keydown", _mockBalanceResultModalKeyHandler);
+      _mockBalanceResultModalKeyHandler = null;
+    }
+  }
+
+  window.mockBalanceConfirmResultSave = function () {
+    mockBalanceCloseResultConfirmModal();
+    window.alert(
+      "목업: 결과가 DB에 저장되었습니다. 승부예측이 진행 중이었다면 배당·정산을 수행합니다(구현 시).",
+    );
+    return false;
+  };
+
+  window.mockBalanceCancelResultModal = function () {
+    mockBalanceCloseResultConfirmModal();
+    return false;
+  };
+
+  window.mockBalanceOpenResultConfirmModal = function () {
+    if (_mockBalanceResultModalKeyHandler) {
+      document.removeEventListener("keydown", _mockBalanceResultModalKeyHandler);
+      _mockBalanceResultModalKeyHandler = null;
+    }
+    var roster = mockBalanceGetLineupRosterNicks();
+    var body = document.getElementById("mock-balance-result-confirm-body");
+    var titleEl = document.getElementById("mock-balance-result-confirm-title");
+    if (!body || !titleEl) {
+      return false;
+    }
+    var outcomeText = "";
+    if (_mockBalanceLiveWinner === "blue") {
+      outcomeText = "블루 팀 승으로 기록합니다.";
+      titleEl.textContent = "결과 확인 — 블루 승";
+    } else if (_mockBalanceLiveWinner === "red") {
+      outcomeText = "레드 팀 승으로 기록합니다.";
+      titleEl.textContent = "결과 확인 — 레드 승";
+    } else {
+      outcomeText = "승자 선택이 없어 무승부로 기록합니다.";
+      titleEl.textContent = "결과 확인 — 무승부";
+    }
+    body.innerHTML = "";
+    var p0 = document.createElement("p");
+    p0.style.margin = "0 0 12px";
+    p0.style.fontSize = "13px";
+    p0.style.fontWeight = "600";
+    p0.textContent = outcomeText;
+    body.appendChild(p0);
+    var hB = document.createElement("p");
+    hB.style.margin = "0 0 4px";
+    hB.style.fontSize = "12px";
+    hB.style.fontWeight = "600";
+    hB.style.color = "#7dd3fc";
+    hB.textContent = "블루 팀 (5명)";
+    body.appendChild(hB);
+    var ulb = document.createElement("ul");
+    ulb.style.margin = "0 0 12px";
+    ulb.style.paddingLeft = "18px";
+    ulb.style.fontSize = "12px";
+    ulb.style.lineHeight = "1.55";
+    roster.blue.forEach(function (name, i) {
+      var li = document.createElement("li");
+      li.textContent = String(i + 1) + ". " + name;
+      ulb.appendChild(li);
+    });
+    body.appendChild(ulb);
+    var hR = document.createElement("p");
+    hR.style.margin = "0 0 4px";
+    hR.style.fontSize = "12px";
+    hR.style.fontWeight = "600";
+    hR.style.color = "#fb7185";
+    hR.textContent = "레드 팀 (5명)";
+    body.appendChild(hR);
+    var ulr = document.createElement("ul");
+    ulr.style.margin = "0 0 12px";
+    ulr.style.paddingLeft = "18px";
+    ulr.style.fontSize = "12px";
+    ulr.style.lineHeight = "1.55";
+    roster.red.forEach(function (name, i) {
+      var li = document.createElement("li");
+      li.textContent = String(i + 1) + ". " + name;
+      ulr.appendChild(li);
+    });
+    body.appendChild(ulr);
+    var p1 = document.createElement("p");
+    p1.style.margin = "0";
+    p1.style.fontSize = "11px";
+    p1.style.color = "var(--text-muted)";
+    p1.textContent = "위 내용이 맞으면 확인 또는 Enter로 저장합니다.";
+    body.appendChild(p1);
+    var modal = document.getElementById("mock-balance-result-confirm-modal");
+    if (modal) {
+      modal.removeAttribute("hidden");
+      modal.setAttribute("aria-hidden", "false");
+    }
+    var okBtn = document.getElementById("mock-balance-result-confirm-ok");
+    if (okBtn) {
+      window.setTimeout(function () {
+        try {
+          okBtn.focus();
+        } catch (eF) {}
+      }, 0);
+    }
+    _mockBalanceResultModalKeyHandler = function (e) {
+      var m = document.getElementById("mock-balance-result-confirm-modal");
+      if (!m || m.hasAttribute("hidden")) {
+        return;
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        window.mockBalanceConfirmResultSave();
+      }
+    };
+    document.addEventListener("keydown", _mockBalanceResultModalKeyHandler);
+    return false;
+  };
+
   var MOCK_BALANCE_SLOT_OPTS_KEY = "clansync_mock_balance_slot_opts";
 
   function mockBalanceDefaultSlotOpts() {
@@ -1622,6 +1805,12 @@
       var pid = p.getAttribute("data-balance-wf-panel");
       p.hidden = pid !== id;
     });
+    if (id === "lineup") {
+      if (typeof window.mockBalanceSyncLineupFromVsBoard === "function") {
+        window.mockBalanceSyncLineupFromVsBoard();
+      }
+      mockBalanceRenderLiveCrowns();
+    }
     return false;
   };
 

@@ -1841,6 +1841,85 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   color: inherit;
   font-family: inherit;
 }
+.mock-balance-live-team-pick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.mock-balance-live-team-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: inherit;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  min-width: 140px;
+  justify-content: center;
+}
+.mock-balance-live-team-btn--blue {
+  border-color: rgba(56, 189, 248, 0.35);
+  color: #7dd3fc;
+}
+.mock-balance-live-team-btn--red {
+  border-color: rgba(251, 113, 133, 0.35);
+  color: #fb7185;
+}
+.mock-balance-live-team-btn:hover {
+  filter: brightness(1.08);
+}
+.mock-balance-live-team-btn--selected.mock-balance-live-team-btn--blue {
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.55);
+  background: rgba(56, 189, 248, 0.1);
+}
+.mock-balance-live-team-btn--selected.mock-balance-live-team-btn--red {
+  box-shadow: 0 0 0 2px rgba(251, 113, 133, 0.55);
+  background: rgba(251, 113, 133, 0.1);
+}
+.mock-balance-live-team-btn .mock-balance-crown {
+  opacity: 0.28;
+  font-size: 18px;
+}
+.mock-balance-live-team-btn .mock-balance-crown.is-winner {
+  opacity: 1;
+}
+.mock-balance-live-vs-readonly {
+  text-align: center;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.mock-predict-results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-top: 10px;
+}
+.mock-predict-results-table th,
+.mock-predict-results-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.mock-predict-results-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.mock-predict-results-table td {
+  color: var(--text-secondary);
+}
 .mock-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .mock-table th, .mock-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
 .mock-table th { color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
@@ -2888,10 +2967,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
         <div class="mock-balance-wf-tabs" role="tablist" aria-label="밸런스 화면 단계">
           <button type="button" class="mock-balance-wf-tab mock-tab-active" data-balance-wf-tab data-balance-wf-id="edit" onclick="return window.mockBalanceSetWorkflow(this,'edit')">① 편집 중</button>
           <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="banpick" onclick="return window.mockBalanceSetWorkflow(this,'banpick')">② 참가자 · 맵 밴픽</button>
-          <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="lineup" onclick="return window.mockBalanceSetWorkflow(this,'lineup')">③ 참가자 · 5vs5</button>
-          <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="spectator" onclick="return window.mockBalanceSetWorkflow(this,'spectator')">④ 관전자 · 승부예측</button>
+          <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="lineup" onclick="return window.mockBalanceSetWorkflow(this,'lineup')">③ 경기 진행</button>
+          <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="spectator" hidden tabindex="-1" aria-hidden="true" onclick="return window.mockBalanceSetWorkflow(this,'spectator')">④ (통합됨)</button>
         </div>
-        <button type="button" class="mock-help-tip" data-tip="단계 탭으로 화면만 전환합니다. 배치 확정 후 참가자(밴픽·5vs5)·비출전(승부 예측) 플로우는 기획 문서 balance-maker-ui-notes.md를 참고하세요." aria-label="단계 탭 도움말">?</button>
+        <button type="button" class="mock-help-tip" data-tip="③ 경기 진행: 라인업·승부예측·예측 결과 표·운영진 결과 입력이 한 화면입니다. ④ 탭은 통합으로 숨김. balance-maker-ui-notes.md 참고." aria-label="단계 탭 도움말">?</button>
       </div>
 
       <div id="mock-balance-wf-edit" data-balance-wf-panel="edit" class="mock-balance-wf-panel">
@@ -3281,14 +3360,31 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
 
       <div id="mock-balance-wf-lineup" data-balance-wf-panel="lineup" class="mock-balance-wf-panel" hidden>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-          <span style="font-size:13px;font-weight:600;color:var(--text-secondary)">참가자 5vs5</span>
-          <button type="button" class="mock-help-tip" data-tip="맵·영웅 밴이 모두 꺼져 있을 때 참가자에게 보이는 고정 라인업(읽기 전용)입니다." aria-label="참가자 5vs5 도움말">?</button>
+          <span style="font-size:13px;font-weight:600;color:var(--text-secondary)">경기 진행</span>
+          <span class="mock-balance-live-badge" style="font-size:11px;padding:4px 10px;border-radius:99px;border:1px solid var(--border);background:var(--bg-overlay);color:var(--text-secondary)">진행 중</span>
+          <button type="button" class="mock-help-tip" data-tip="사전설정 완료 후 경기 중 화면입니다. 승부예측·예측 결과 표가 같은 화면에 있습니다. 타이머 없음. 운영진: 팀 버튼으로 왕관·무승부는 선택 해제 후 결과 입력. 확인 팝업에서 확인·Enter로 저장. 구성원은 결과 입력 UI 숨김." aria-label="경기 진행 도움말">?</button>
         </div>
-        <div class="mock-balance-vs-head">
-          <span><span class="mock-balance-crown is-winner" title="우세(목업)">👑</span><br />블루 팀</span>
+
+        <div class="mock-balance-live-team-pick mock-officer-only" aria-label="승자 팀 선택">
+          <button type="button" id="mock-balance-live-pick-blue" class="mock-balance-live-team-btn mock-balance-live-team-btn--blue" onclick="return window.mockBalanceLivePickTeam('blue')">
+            <span class="mock-balance-crown" id="mock-balance-live-crown-blue" aria-hidden="true">👑</span>
+            <span>블루 팀</span>
+          </button>
           <span class="mock-balance-vs-mid">VS</span>
-          <span><span class="mock-balance-crown" title=" ">👑</span><br />레드 팀</span>
+          <button type="button" id="mock-balance-live-pick-red" class="mock-balance-live-team-btn mock-balance-live-team-btn--red" onclick="return window.mockBalanceLivePickTeam('red')">
+            <span class="mock-balance-crown" id="mock-balance-live-crown-red" aria-hidden="true">👑</span>
+            <span>레드 팀</span>
+          </button>
         </div>
+        <p style="font-size:11px;color:var(--text-muted);margin:8px 0 12px" class="mock-officer-only">
+          <button type="button" class="btn btn-secondary btn-sm" style="font-size:11px;padding:4px 10px" onclick="return window.mockBalanceLivePickTeam('clear')">승자 선택 해제(무승부로 제출)</button>
+        </p>
+        <div class="mock-balance-live-vs-readonly mock-member-only" style="display:none">
+          <span style="color:#7dd3fc">블루</span>
+          <span style="color:var(--text-muted);margin:0 8px">VS</span>
+          <span style="color:#fb7185">레드</span>
+        </div>
+
         <div class="mock-balance-vs-board mock-balance-vs-board--scores-off" id="mock-balance-lineup-board" aria-label="5vs5 라인업">
           <div class="mock-balance-vs-row">
             <div class="mock-balance-nameplate mock-balance-nameplate--blue">—</div>
@@ -3323,27 +3419,19 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
         <p id="mock-balance-lineup-bans-wrap" style="font-size:11px;color:var(--text-muted);margin-top:8px;display:none;align-items:center;gap:6px;flex-wrap:wrap">
           밴 영웅: <strong id="mock-balance-lineup-bans">—</strong>
         </p>
-      </div>
 
-      <div id="mock-balance-wf-spectator" data-balance-wf-panel="spectator" class="mock-balance-wf-panel" hidden>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-          <span style="font-size:13px;font-weight:600;color:var(--text-secondary)">비출전 구성원</span>
-          <button type="button" class="mock-help-tip" data-tip="이번 경기에 출전하지 않은 구성원에게 보이는 화면입니다. 승부 예측·배당·파리뮤추엘 등은 Premium 범위입니다." aria-label="관전·비출전 화면 도움말">?</button>
+        <div class="mock-balance-live-officer mock-officer-only" style="margin-top:16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+          <button type="button" class="btn btn-primary" id="mock-balance-btn-result-submit" onclick="return window.mockBalanceOpenResultConfirmModal()">결과 입력</button>
+          <span style="font-size:11px;color:var(--text-muted)">왕관 없이 제출 시 무승부로 저장</span>
         </div>
-        <p class="mock-balance-free-note mock-modal-hint" style="margin:0 0 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--text-muted)">
-          <span>Premium UI는 허브에서 플랜 전환 후 확인</span>
-          <button type="button" class="mock-help-tip" data-tip="목업 허브(_hub.html) 사이드바에서 Premium 플랜을 선택한 뒤 이 탭을 다시 열면 승부 예측·배당 블록이 표시됩니다." aria-label="Premium 목업 전환 도움말">?</button>
-        </p>
-        <div class="mock-predict-mock mock-hide-on-free">
-          <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center">
-            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-              <strong style="font-size:13px">승부 예측</strong>
-              <button type="button" class="mock-help-tip" data-tip="Premium 클랜 기능입니다. 비출전 구성원이 블루/레드 승을 예측하고 클랜코인을 걸 수 있습니다. 마감 시각·배당·파리뮤추엘 정산은 서버 정책을 따릅니다." aria-label="승부 예측 도움말">?</button>
-            </div>
-            <span style="font-size:12px;color:#fb7185;font-variant-numeric:tabular-nums" id="mock-balance-predict-ttl">마감까지 04:32</span>
+
+        <div class="mock-balance-live-predict-wrap mock-hide-on-free" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            <strong style="font-size:13px">비출전 · 승부예측</strong>
+            <button type="button" class="mock-help-tip" data-tip="Premium. 비출전 구성원 참여. 타이머 없음(목업). 결과 입력 시 마감·정산(구현 시)." aria-label="승부 예측 도움말">?</button>
           </div>
-          <p style="font-size:12px;color:var(--text-muted);margin:8px 0 0">실시간 합계 기준 예상 배당(목업)</p>
-          <div style="display:flex;gap:16px;margin-top:8px;font-size:13px;font-weight:700">
+          <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">예상 배당(목업) — 경기 중에는 카운트다운 없이 표시만 합니다.</p>
+          <div style="display:flex;gap:16px;margin-top:4px;font-size:13px;font-weight:700">
             <span style="color:#7dd3fc">블루 1.85배</span>
             <span style="color:#fb7185">레드 2.10배</span>
           </div>
@@ -3355,8 +3443,48 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
             <input type="number" min="0" max="500" value="50" readonly title="상한 목업" />
             <button type="button" class="btn btn-sm" onclick="alert('목업: 예측 제출')">예측하기</button>
           </div>
-          <p style="font-size:11px;color:var(--text-muted);margin:12px 0 0">경기 종료 후 운영진 결과 입력 → 파리뮤추엘 지급 · 내역·재정산은 기록 탭 연동(설계).</p>
+          <p style="font-size:11px;font-weight:600;color:var(--text-secondary);margin:0 0 6px">예측 결과(목업)</p>
+          <table class="mock-predict-results-table" aria-label="승부예측 결과 표">
+            <thead>
+              <tr>
+                <th>닉네임</th>
+                <th>예측</th>
+                <th>코인</th>
+                <th>예상 결과</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>이프로</td><td>블루</td><td>50</td><td>정산 대기</td></tr>
+              <tr><td>냥이의비행</td><td>레드</td><td>30</td><td>정산 대기</td></tr>
+              <tr><td>아재</td><td>블루</td><td>100</td><td>정산 대기</td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:11px;color:var(--text-muted);margin:12px 0 0">운영진 결과 입력 후 배당·파리뮤추엘 지급 · 내역은 기록 탭 연동(구현 시).</p>
         </div>
+        <p class="mock-balance-free-note mock-modal-hint" style="margin:16px 0 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--text-muted)">
+          <span>Premium UI는 허브에서 플랜 전환 후 확인</span>
+          <button type="button" class="mock-help-tip" data-tip="목업 허브(_hub.html)에서 Premium 선택 시 승부예측 블록이 표시됩니다." aria-label="Premium 목업 전환 도움말">?</button>
+        </p>
+      </div>
+
+      <div id="mock-balance-wf-spectator" data-balance-wf-panel="spectator" class="mock-balance-wf-panel" hidden>
+        <p class="mock-modal-hint" style="margin:0 0 12px;font-size:13px">승부예측·예측 결과는 <strong>③ 경기 진행</strong> 탭에 통합되었습니다.</p>
+        <button type="button" class="btn btn-sm" onclick="return window.mockBalanceGoLiveLineupTab()">③ 경기 진행으로 이동</button>
+      </div>
+    </div>
+
+    <div id="mock-balance-result-confirm-modal" class="mock-modal-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="mock-balance-result-confirm-title" onclick="if(event.target===this)window.mockBalanceCancelResultModal()">
+      <div class="mock-modal-card" style="max-width:440px;width:calc(100% - 32px);box-sizing:border-box" onclick="event.stopPropagation()">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px">
+          <h3 id="mock-balance-result-confirm-title" style="margin:0;font-size:16px;line-height:1.3">결과 확인</h3>
+          <button type="button" class="btn btn-secondary btn-sm" style="flex-shrink:0" onclick="return window.mockBalanceCancelResultModal()" aria-label="닫기">닫기</button>
+        </div>
+        <div id="mock-balance-result-confirm-body" style="font-size:13px;line-height:1.55;color:var(--text-secondary)"></div>
+        <div class="mock-modal-actions" style="margin-top:16px">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockBalanceCancelResultModal()">취소</button>
+          <button type="button" class="btn btn-sm" id="mock-balance-result-confirm-ok" onclick="return window.mockBalanceConfirmResultSave()">확인</button>
+        </div>
+        <p style="font-size:11px;color:var(--text-muted);margin:10px 0 0">Enter 키로도 확인할 수 있습니다.</p>
       </div>
     </div>
   </div>
