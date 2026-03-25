@@ -950,6 +950,8 @@
   var _mockMapVoteCounts = [0, 0, 0];
   var _mockMapVoteNames = ["", "", ""];
   var _mockMapVoteEnded = true;
+  /** 룰렛 연출 세대 — 새 세션 시 증가해 이전 타임아웃 무효화 */
+  var _mockMapRouletteSeq = 0;
 
   function mockBalanceShufflePickThree(pool) {
     var copy = pool.slice();
@@ -1008,16 +1010,111 @@
     el.textContent = "0:" + (s < 10 ? "0" : "") + s;
   }
 
-  function mockBalanceFinalizeMapVote() {
-    mockBalanceClearMapVoteTimer();
-    _mockMapVoteEnded = true;
-    var winner = mockBalanceWeightedMapPick(_mockMapVoteNames, _mockMapVoteCounts);
+  function mockBalanceMapVoteClearRouletteHighlight() {
     var i;
     for (i = 0; i < 3; i++) {
-      var btn = document.getElementById("mock-mapvote-btn-" + i);
-      if (btn) {
-        btn.disabled = true;
+      var card = document.querySelector('.mock-mapvote-card[data-mapvote-idx="' + i + '"]');
+      if (card) {
+        card.classList.remove("mock-mapvote-card--roulette-active");
       }
+    }
+  }
+
+  /**
+   * OW2 스타일: 룰렛이 세 맵을 순환하다 득표가 많은 쪽에 더 머무는 느낌(가중 랜덤 인덱스).
+   * 0표 동률이면 max(득표,1)로 균등에 가깝게.
+   */
+  function mockBalanceMapVoteRouletteWeightedIndex(votes) {
+    var w0 = Math.max(votes[0] || 0, 1);
+    var w1 = Math.max(votes[1] || 0, 1);
+    var w2 = Math.max(votes[2] || 0, 1);
+    var sum = w0 + w1 + w2;
+    var r = Math.random() * sum;
+    var acc = 0;
+    acc += w0;
+    if (r < acc) {
+      return 0;
+    }
+    acc += w1;
+    if (r < acc) {
+      return 1;
+    }
+    return 2;
+  }
+
+  /**
+   * OW2 맵 투표: roll-through 룰렛 연출 후 이미 결정된 winner에 정지.
+   * (실제 게임은 가중 랜덤과 동기화된 시각 효과 — 목업은 서버 결과 winner를 애니메이션으로 보여줌.)
+   */
+  function mockBalancePlayMapRouletteReveal(winner, votes, names) {
+    _mockMapRouletteSeq++;
+    var mySeq = _mockMapRouletteSeq;
+    var winnerIdx = names.indexOf(winner);
+    if (winnerIdx < 0) {
+      winnerIdx = 0;
+    }
+    var maxTicks = 22;
+    var tick = 0;
+
+    var hint = document.getElementById("mock-mapvote-roulette-hint");
+    if (hint) {
+      hint.style.display = "block";
+      hint.textContent = "맵 확정 중… (세 후보를 순환하는 룰렛 연출 · OW2 맵 투표와 유사)";
+    }
+    var panel = document.getElementById("mock-mapvote-panel");
+    if (panel) {
+      panel.classList.add("mock-mapvote-panel--roulette");
+    }
+
+    function step() {
+      if (mySeq !== _mockMapRouletteSeq) {
+        return;
+      }
+      mockBalanceMapVoteClearRouletteHighlight();
+      if (tick >= maxTicks) {
+        mockBalanceMapVoteRevealDone(winner);
+        return;
+      }
+      var idx;
+      if (tick < 9) {
+        idx = tick % 3;
+      } else if (tick < maxTicks - 4) {
+        idx = mockBalanceMapVoteRouletteWeightedIndex(votes);
+      } else {
+        idx = winnerIdx;
+      }
+      var card = document.querySelector('.mock-mapvote-card[data-mapvote-idx="' + idx + '"]');
+      if (card) {
+        card.classList.add("mock-mapvote-card--roulette-active");
+      }
+      tick++;
+      var delay;
+      if (tick <= 9) {
+        delay = 62;
+      } else if (tick <= 17) {
+        delay = 95 + (tick - 9) * 22;
+      } else {
+        delay = 320 + (tick - 18) * 130;
+      }
+      window.setTimeout(step, Math.min(delay, 720));
+    }
+    step();
+  }
+
+  function mockBalanceMapVoteRevealDone(winner) {
+    var hintDone = document.getElementById("mock-mapvote-roulette-hint");
+    if (hintDone) {
+      hintDone.style.display = "none";
+      hintDone.textContent = "";
+    }
+    var panel = document.getElementById("mock-mapvote-panel");
+    if (panel) {
+      panel.classList.remove("mock-mapvote-panel--roulette");
+      panel.classList.add("mock-mapvote-ended");
+    }
+    mockBalanceMapVoteClearRouletteHighlight();
+    var i;
+    for (i = 0; i < 3; i++) {
       var card = document.querySelector('.mock-mapvote-card[data-mapvote-idx="' + i + '"]');
       if (card) {
         card.classList.toggle("mock-mapvote-card--picked", _mockMapVoteNames[i] === winner);
@@ -1031,11 +1128,7 @@
         winner +
         " (득표 " +
         _mockMapVoteCounts.join(" / ") +
-        " · 가중 랜덤 · 동률 시 1:1:1)";
-    }
-    var panel = document.getElementById("mock-mapvote-panel");
-    if (panel) {
-      panel.classList.add("mock-mapvote-ended");
+        " · 가중 랜덤 · 동률 시 1:1:1 · 룰렛 연출은 OW2 맵 투표 roll-through 스타일 목업)";
     }
     mockBalanceMapVoteSetTimerLabel(0);
     var label = document.getElementById("mock-balance-map-label");
@@ -1051,8 +1144,33 @@
     }
   }
 
+  function mockBalanceFinalizeMapVote() {
+    mockBalanceClearMapVoteTimer();
+    _mockMapVoteEnded = true;
+    var winner = mockBalanceWeightedMapPick(_mockMapVoteNames, _mockMapVoteCounts);
+    var i;
+    for (i = 0; i < 3; i++) {
+      var btn = document.getElementById("mock-mapvote-btn-" + i);
+      if (btn) {
+        btn.disabled = true;
+      }
+    }
+    mockBalancePlayMapRouletteReveal(winner, _mockMapVoteCounts, _mockMapVoteNames);
+  }
+
   /** 맵 밴 ON + 배치 완료 시 호출 */
   window.mockBalanceStartMapVoteSession = function () {
+    _mockMapRouletteSeq++;
+    mockBalanceMapVoteClearRouletteHighlight();
+    var hintPre = document.getElementById("mock-mapvote-roulette-hint");
+    if (hintPre) {
+      hintPre.style.display = "none";
+      hintPre.textContent = "";
+    }
+    var panelPre = document.getElementById("mock-mapvote-panel");
+    if (panelPre) {
+      panelPre.classList.remove("mock-mapvote-panel--roulette");
+    }
     var sel = document.getElementById("mock-balance-map-pool-category");
     var key = (sel && sel.value) || "all";
     var pool = MOCK_BALANCE_MAP_POOLS[key] || MOCK_BALANCE_MAP_POOLS.all;

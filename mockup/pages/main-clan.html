@@ -1672,6 +1672,22 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   border-color: rgba(124, 58, 237, 0.55);
   box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.25);
 }
+/* OW2 맵 투표 룰렛 연출: 순환 하이라이트 */
+.mock-mapvote-card.mock-mapvote-card--roulette-active {
+  border-color: rgba(251, 191, 36, 0.85);
+  box-shadow:
+    0 0 0 2px rgba(251, 191, 36, 0.45),
+    0 4px 24px rgba(251, 191, 36, 0.18);
+  transform: scale(1.03);
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+  z-index: 1;
+}
+.mock-mapvote-panel.mock-mapvote-panel--roulette .mock-mapvote-timer {
+  color: var(--text-muted);
+}
+.mock-mapvote-panel.mock-mapvote-panel--roulette .mock-mapvote-grid {
+  pointer-events: none;
+}
 .mock-mapvote-name {
   font-size: 13px;
   font-weight: 700;
@@ -3058,7 +3074,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
       <div id="mock-balance-wf-banpick" data-balance-wf-panel="banpick" class="mock-balance-wf-panel" hidden>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
           <span style="font-size:13px;font-weight:600;color:var(--text-secondary)">참가자 · 맵 밴픽</span>
-          <button type="button" class="mock-help-tip" data-tip="맵 밴 ON: 배치 완료 후 15초 세션. 분류에 맞는 맵 3개 무작위 후보, 참가자는 A안(3개 중 1표). 종료 시 득표 가중 랜덤으로 맵 1개 확정. 동률·0표는 1:1:1로 균등. 영웅 밴은 추후. 문서: balance-maker-ui-notes.md" aria-label="맵 밴픽 도움말">?</button>
+          <button type="button" class="mock-help-tip" data-tip="맵 밴 ON: 배치 완료 후 15초 세션. 분류에 맞는 맵 3개 무작위 후보, 참가자는 A안(3개 중 1표). 종료 시 서버가 가중 랜덤으로 맵 1개를 정한 뒤, OW2 맵 투표처럼 룰렛이 멈추는 연출(목업). 동률·0표는 1:1:1. 영웅 밴은 추후. 문서: balance-maker-ui-notes.md" aria-label="맵 밴픽 도움말">?</button>
         </div>
         <div id="mock-mapvote-panel" class="mock-mapvote-panel" aria-live="polite">
           <div class="mock-mapvote-head">
@@ -3072,6 +3088,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
             </div>
           </div>
           <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">후보 3개 중 1표 (A안). 목업에서는 버튼을 여러 번 눌러 득표 수를 시뮬레이션합니다.</p>
+          <p id="mock-mapvote-roulette-hint" class="mock-modal-hint" style="margin:0 0 10px;display:none;font-size:12px;color:#fbbf24;font-weight:600" aria-live="assertive"></p>
           <div class="mock-mapvote-grid" id="mock-mapvote-grid">
             <div class="mock-mapvote-card" data-mapvote-idx="0">
               <div class="mock-mapvote-name" id="mock-mapvote-name-0">—</div>
