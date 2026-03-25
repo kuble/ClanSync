@@ -1920,6 +1920,45 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
 .mock-predict-results-table td {
   color: var(--text-secondary);
 }
+/* 경기 진행: 승부예측 실시간 우세(코인 비중 막대) */
+.mock-predict-live-meter {
+  margin: 12px 0 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+}
+.mock-predict-live-bar-track {
+  display: flex;
+  height: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-overlay);
+  gap: 2px;
+}
+.mock-predict-live-bar-blue {
+  min-width: 0;
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+  transition: width 0.4s ease;
+  border-radius: 2px 0 0 2px;
+}
+.mock-predict-live-bar-red {
+  min-width: 0;
+  background: linear-gradient(90deg, #e11d48, #fb7185);
+  transition: width 0.4s ease;
+  border-radius: 0 2px 2px 0;
+}
+.mock-predict-live-stat-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.mock-predict-live-stat-blue { color: #7dd3fc; font-weight: 600; }
+.mock-predict-live-stat-red { color: #fb7185; font-weight: 600; text-align: right; }
 .mock-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .mock-table th, .mock-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
 .mock-table th { color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
@@ -3425,12 +3464,30 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
         <div class="mock-balance-live-predict-wrap mock-hide-on-free" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
             <strong style="font-size:13px">비출전 · 승부예측</strong>
-            <button type="button" class="mock-help-tip" data-tip="Premium. 비출전 구성원 참여. 타이머 없음(목업). 결과 입력 시 마감·정산(구현 시)." aria-label="승부 예측 도움말">?</button>
+            <button type="button" class="mock-help-tip" data-tip="Premium. 비출전 구성원 참여. 타이머 없음(목업). 아래 표의 예측을 코인·인원으로 집계해 실시간 우세 막대로 표시합니다(목업은 주기적으로 흔들림). 결과 입력 시 마감·정산(구현 시)." aria-label="승부 예측 도움말">?</button>
           </div>
           <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">예상 배당(목업) — 경기 중에는 카운트다운 없이 표시만 합니다.</p>
           <div style="display:flex;gap:16px;margin-top:4px;font-size:13px;font-weight:700">
             <span style="color:#7dd3fc">블루 1.85배</span>
             <span style="color:#fb7185">레드 2.10배</span>
+          </div>
+          <div class="mock-predict-live-meter" id="mock-balance-predict-live-meter" aria-live="polite">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;margin-bottom:6px">
+              <span style="font-size:11px;font-weight:700;color:var(--text-secondary)">실시간 우세</span>
+              <span id="mock-balance-predict-live-updated" style="font-size:10px;color:var(--text-muted)">—</span>
+            </div>
+            <p id="mock-balance-predict-live-lean" style="font-size:12px;font-weight:600;margin:0 0 8px;color:var(--text-secondary)">집계 중…</p>
+            <div class="mock-predict-live-bar-track" role="img" aria-label="예측 코인 비중">
+              <div class="mock-predict-live-bar-blue" id="mock-balance-predict-bar-blue" style="width:50%"></div>
+              <div class="mock-predict-live-bar-red" id="mock-balance-predict-bar-red" style="width:50%"></div>
+            </div>
+            <div class="mock-predict-live-stat-row">
+              <span class="mock-predict-live-stat-blue" id="mock-balance-predict-stat-blue">블루 —</span>
+              <span class="mock-predict-live-stat-red" id="mock-balance-predict-stat-red">레드 —</span>
+            </div>
+            <p style="font-size:10px;color:var(--text-muted);margin:6px 0 0;line-height:1.45">
+              인원 비율: <span id="mock-balance-predict-live-headcount">—</span>
+            </p>
           </div>
           <div class="mock-predict-row">
             <label style="font-size:12px;color:var(--text-muted)">선택</label>
@@ -3450,10 +3507,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                 <th>예상 결과</th>
               </tr>
             </thead>
-            <tbody>
-              <tr><td>이프로</td><td>블루</td><td>50</td><td>정산 대기</td></tr>
-              <tr><td>냥이의비행</td><td>레드</td><td>30</td><td>정산 대기</td></tr>
-              <tr><td>아재</td><td>블루</td><td>100</td><td>정산 대기</td></tr>
+            <tbody id="mock-balance-predict-tbody">
+              <tr data-mock-predict-side="blue" data-mock-coins="50"><td>이프로</td><td>블루</td><td>50</td><td>정산 대기</td></tr>
+              <tr data-mock-predict-side="red" data-mock-coins="30"><td>냥이의비행</td><td>레드</td><td>30</td><td>정산 대기</td></tr>
+              <tr data-mock-predict-side="blue" data-mock-coins="100"><td>아재</td><td>블루</td><td>100</td><td>정산 대기</td></tr>
             </tbody>
           </table>
           <p style="font-size:11px;color:var(--text-muted);margin:12px 0 0">운영진 결과 입력 후 배당·파리뮤추엘 지급 · 내역은 기록 탭 연동(구현 시).</p>
