@@ -265,6 +265,9 @@
       if (typeof window.mockBracketSeedOrderRender === "function") {
         window.mockBracketSeedOrderRender();
       }
+      if (typeof window.mockBracketSelectTeamCard === "function") {
+        window.mockBracketSelectTeamCard(1);
+      }
       var fmtEl = document.getElementById("mock-bracket-format");
       if (fmtEl && typeof window.mockBracketFormatHintSync === "function") {
         window.mockBracketFormatHintSync(fmtEl);
@@ -339,13 +342,10 @@
     for (var i = 1; i <= 4; i++) {
       var el = document.getElementById("mock-bracket-team-wrap-" + i);
       if (el) el.style.display = i <= cap ? "" : "none";
-      var lab = document.getElementById("mock-bracket-active-label-" + i);
-      if (lab) lab.style.display = i <= cap ? "" : "none";
     }
-    var rad = document.querySelector('input[name="mock-bracket-active-team"]:checked');
-    if (rad && parseInt(rad.value, 10) > cap) {
-      var first = document.querySelector('input[name="mock-bracket-active-team"][value="1"]');
-      if (first) first.checked = true;
+    var act = window.mockBracketActiveTeam;
+    if (act != null && act > cap && typeof window.mockBracketSelectTeamCard === "function") {
+      window.mockBracketSelectTeamCard(1);
     }
     var o = window.mockBracketSeedOrderState;
     if (!o) o = window.mockBracketSeedOrderState = [0, 1, 2, 3];
@@ -366,20 +366,22 @@
     hint.className = "mock-bracket-roster-hint";
     hint.style.fontSize = "11px";
     hint.style.color = "var(--text-muted)";
-    hint.textContent = "팀 선택 후 칩으로 멤버 추가";
+    hint.textContent = "팀 카드 선택 후 아래 플레이어 풀에서 추가";
     roster.appendChild(hint);
   }
 
   /**
-   * 대진표: 공용 풀 칩 — 라디오로 고른 팀 로스터에 반영.
+   * 대진표: 공용 풀 칩 — 선택된 팀 카드( mockBracketActiveTeam ) 로스터에 반영.
    * 같은 팀에서 재클릭 시 제거. 다른 팀에 있으면 이쪽으로 이동(한 사람 1팀).
    */
   window.mockBracketPoolChipClick = function (btn) {
     var name = btn.getAttribute("data-name") || (btn.textContent || "").trim();
     if (!name) return false;
-    var rad = document.querySelector('input[name="mock-bracket-active-team"]:checked');
-    var teamIdx = rad ? parseInt(rad.value, 10) : 1;
-    if (teamIdx < 1 || teamIdx > 4) teamIdx = 1;
+    var teamIdx = window.mockBracketActiveTeam;
+    if (teamIdx == null || teamIdx < 1) teamIdx = 1;
+    var capEl = document.getElementById("mock-bracket-team-count");
+    var cap = Math.min(parseInt(capEl && capEl.value, 10) || 4, 4);
+    if (teamIdx > cap) teamIdx = 1;
 
     var roster = document.getElementById("mock-bracket-roster-" + teamIdx);
     if (!roster) return false;
@@ -563,6 +565,33 @@
 
   window.mockBracketGetTeamName = mockBracketGetTeamName;
 
+  /** 플레이어 풀 상단: 현재 멤버가 들어갈 팀 이름 표시 */
+  window.mockBracketPoolTargetLabelSync = function () {
+    var t = window.mockBracketActiveTeam || 1;
+    var line = document.getElementById("mock-bracket-pool-target-name");
+    if (!line) return;
+    line.textContent = mockBracketGetTeamName(t - 1);
+  };
+
+  /** 팀 카드 클릭 — 이후 풀 칩이 이 팀 로스터로 감 */
+  window.mockBracketSelectTeamCard = function (teamIdx) {
+    var capEl = document.getElementById("mock-bracket-team-count");
+    var cap = Math.min(parseInt(capEl && capEl.value, 10) || 4, 4);
+    if (teamIdx < 1 || teamIdx > cap) return false;
+    window.mockBracketActiveTeam = teamIdx;
+    var i;
+    for (i = 1; i <= 4; i++) {
+      var w = document.getElementById("mock-bracket-team-wrap-" + i);
+      if (!w) continue;
+      var on = i === teamIdx;
+      w.classList.toggle("mock-bracket-team-card-selected", on);
+      w.setAttribute("aria-pressed", on ? "true" : "false");
+      w.setAttribute("aria-label", on ? "팀 " + i + " 선택됨, 멤버 추가 대상" : "팀 " + i + " 선택");
+    }
+    window.mockBracketPoolTargetLabelSync();
+    return false;
+  };
+
   /** 마법사: 다음 단계 패널 표시 */
   window.mockBracketWizardGo = function (stepNum) {
     var el = document.getElementById("mock-bracket-wizard-step-" + stepNum);
@@ -715,6 +744,9 @@
     }
 
     mockBracketSeedApplyDragState();
+    if (typeof window.mockBracketPoolTargetLabelSync === "function") {
+      window.mockBracketPoolTargetLabelSync();
+    }
     var s4 = document.getElementById("mock-bracket-wizard-step-4");
     if (s4 && !s4.hidden && typeof window.mockBracketLiveSync === "function") {
       window.mockBracketLiveSync();
