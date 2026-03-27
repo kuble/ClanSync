@@ -301,6 +301,51 @@
     }
   };
 
+  /** 대진표: 참가 팀 수(목업은 최대 4팀 카드) */
+  window.mockBracketSetTeamCount = function (sel) {
+    var n = parseInt(sel.value, 10) || 4;
+    if (n > 4) {
+      alert("목업은 최대 4팀 카드만 표시합니다. 8·16팀은 동일 UI 패턴으로 확장됩니다.");
+    }
+    var cap = Math.min(n, 4);
+    for (var i = 1; i <= 4; i++) {
+      var el = document.getElementById("mock-bracket-team-wrap-" + i);
+      if (el) el.style.display = i <= cap ? "" : "none";
+    }
+  };
+
+  /** 대진표: 밸런스메이커와 동일 칩 — 클릭 시 팀 로스터에 추가·재클릭 시 제거 */
+  window.mockBracketPoolChipClick = function (btn, teamIdx) {
+    var name = btn.getAttribute("data-name") || (btn.textContent || "").trim();
+    if (!name) return false;
+    var roster = document.getElementById("mock-bracket-roster-" + teamIdx);
+    if (!roster) return false;
+    var existing = null;
+    roster.querySelectorAll("[data-bracket-pname]").forEach(function (el) {
+      if (el.getAttribute("data-bracket-pname") === name) existing = el;
+    });
+    if (existing) {
+      existing.remove();
+      if (!roster.querySelector(".mock-tag")) {
+        var hint = document.createElement("span");
+        hint.className = "mock-bracket-roster-hint";
+        hint.style.fontSize = "11px";
+        hint.style.color = "var(--text-muted)";
+        hint.textContent = "칩을 눌러 팀에 포함(재클릭 시 제거)";
+        roster.appendChild(hint);
+      }
+      return false;
+    }
+    var hintEl = roster.querySelector(".mock-bracket-roster-hint");
+    if (hintEl) hintEl.remove();
+    var tag = document.createElement("span");
+    tag.className = "mock-tag";
+    tag.setAttribute("data-bracket-pname", name);
+    tag.textContent = btn.textContent.trim() || name;
+    roster.appendChild(tag);
+    return false;
+  };
+
   /* 스토어: 클랜 / 개인 */
   window.mockStoreSetTab = function (btn, name) {
     document.querySelectorAll("[data-store-tab]").forEach(function (b) {

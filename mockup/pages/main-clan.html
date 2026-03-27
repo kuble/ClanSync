@@ -360,6 +360,122 @@
   color: var(--text-muted);
   margin-bottom: 6px;
 }
+.mock-bracket-wizard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.mock-bracket-step {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--bg-elevated);
+  padding: 14px 16px;
+}
+.mock-bracket-step-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.mock-bracket-step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 99px;
+  background: rgba(124, 58, 237, 0.18);
+  color: #c4b5fd;
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.mock-bracket-step-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.mock-bracket-step-desc {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.mock-bracket-team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+.mock-bracket-team-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0;
+  overflow: hidden;
+  background: var(--bg-overlay);
+}
+.mock-bracket-team-name {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.mock-bracket-team-name label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.mock-bracket-team-name input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: 13px;
+}
+.mock-bracket-pool-in-team.mock-balance-pool-col {
+  max-height: 260px;
+  min-height: 140px;
+  border: none;
+  border-radius: 0;
+  margin: 0;
+}
+.mock-bracket-pool-in-team .mock-balance-pool-grid {
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+}
+.mock-bracket-team-roster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  min-height: 28px;
+  padding: 8px 12px 10px;
+  border-top: 1px dashed var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.mock-bracket-team-roster:not(:empty) {
+  color: inherit;
+}
+.mock-bracket-live-match {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin-bottom: 10px;
+  background: var(--bg-overlay);
+}
+.mock-bracket-live-match:last-child {
+  margin-bottom: 0;
+}
+.mock-bracket-live-match-title {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+}
 
 /* ── 이벤트: 투표(목업) ── */
 .mock-poll-card {
@@ -4175,11 +4291,11 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
   <!-- ── 이벤트 뷰 (PRD §6.3) ── -->
   <div id="view-events" class="clan-view">
     <div class="mock-page-title">클랜 이벤트</div>
-    <p class="mock-page-desc">상단 탭으로 캘린더·대진표·투표를 전환합니다. · 일정 반복 · 스크림 자동 반영 · 대진표/고급 투표는 PRO 연동 목업.</p>
+    <p class="mock-page-desc">상단 탭으로 캘린더·대진표·투표를 전환합니다. · 일정 반복 · 스크림 자동 반영 · 대진표는 밸런스메이커와 동일한 플레이어 선택 UI를 사용합니다.</p>
     <p class="mock-events-sync-hint">스크림·매칭에서 일정이 <strong>확정</strong>되면 해당 스크림이 클랜 이벤트에 <strong>자동 등록</strong>됩니다(취소·변경 시 동기화). 수동으로 같은 일정을 다시 입력할 필요가 없습니다.</p>
     <div class="mock-tab-row" role="tablist" aria-label="클랜 이벤트 하위 탭">
       <button type="button" class="mock-tab mock-tab-active" role="tab" aria-selected="true" data-events-subtab onclick="mockEventsSetTab(this,'cal')">캘린더</button>
-      <button type="button" class="mock-tab" role="tab" aria-selected="false" data-events-subtab onclick="mockEventsSetTab(this,'bracket')">대진표 생성기 <span class="mock-pro-inline" style="margin-left:4px;font-size:10px">PRO</span></button>
+      <button type="button" class="mock-tab" role="tab" aria-selected="false" data-events-subtab onclick="mockEventsSetTab(this,'bracket')">대진표 생성기</button>
       <button type="button" class="mock-tab" role="tab" aria-selected="false" data-events-subtab onclick="mockEventsSetTab(this,'poll')">투표</button>
     </div>
     <div data-events-panel="cal">
@@ -4281,42 +4397,229 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
     </div>
 
     <div data-events-panel="bracket" style="display:none">
-      <p class="mock-page-desc" style="margin-bottom:14px">싱글/더블 엘리미네이션·리그전 형식 선택 후 참가자 목록으로 대진표를 생성합니다(목업). 실서비스는 PRO 클랜에서 저장·공유됩니다.</p>
-      <div class="mock-bracket-controls mock-officer-only">
-        <div class="mock-modal-field"><label for="mock-bracket-format">대회 형식</label><select id="mock-bracket-format"><option>싱글 엘리미네이션</option><option>더블 엘리미네이션</option><option>라운드 로빈 (리그)</option></select></div>
-        <div class="mock-modal-field"><label for="mock-bracket-seed">시드</label><select id="mock-bracket-seed"><option>랜덤</option><option>MMR 순</option><option>수동 배치</option></select></div>
-        <button type="button" class="btn btn-sm" onclick="alert('목업: 설정으로 대진표를 다시 그립니다.')">대진표 생성</button>
-        <button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업: 이미지 또는 링크로 내보냅니다.')">내보내기</button>
-      </div>
-      <div class="d-card d-card-full" style="margin-bottom:12px">
-        <div class="d-card-label">샘플 대진 · 시즌 맞이 4강 (목업)</div>
-        <div class="mock-bracket-wrap">
-          <div class="mock-bracket-flow">
-            <div class="mock-bracket-round">
-              <div class="mock-bracket-match">
-                <div class="mock-bracket-slot mock-bracket-slot--win"><span>김클랜</span><span class="badge badge-muted" style="font-size:9px">승</span></div>
-                <div class="mock-bracket-slot"><span>박힐러</span></div>
-              </div>
-              <div class="mock-bracket-match">
-                <div class="mock-bracket-slot mock-bracket-slot--win"><span>이프로</span><span class="badge badge-muted" style="font-size:9px">승</span></div>
-                <div class="mock-bracket-slot"><span>최새심</span></div>
-              </div>
+      <p class="mock-page-desc" style="margin-bottom:14px">아래 순서로 진행합니다. 플레이어 칩은 밸런스메이커와 동일한 <strong>클랜원 풀</strong>·동작(칩 클릭으로 팀에 합류·재클릭 시 제거)을 씁니다.</p>
+      <div class="mock-bracket-wizard">
+        <div class="mock-bracket-step">
+          <div class="mock-bracket-step-head">
+            <span class="mock-bracket-step-num">1</span>
+            <div>
+              <h3 class="mock-bracket-step-title">참가 팀 수</h3>
+              <p class="mock-bracket-step-desc">토너먼트에 참가할 팀 개수를 고릅니다. 목업은 최대 4팀 카드만 표시합니다(8·16팀은 동일 패턴으로 확장).</p>
             </div>
-            <span class="mock-bracket-arrow" aria-hidden="true">→</span>
-            <div class="mock-bracket-round">
-              <div class="mock-bracket-match">
-                <div class="mock-bracket-slot"><span>김클랜</span></div>
-                <div class="mock-bracket-slot"><span>이프로</span></div>
-              </div>
+          </div>
+          <div class="mock-modal-field" style="margin-bottom:0">
+            <label for="mock-bracket-team-count">팀 수</label>
+            <select id="mock-bracket-team-count" onchange="window.mockBracketSetTeamCount(this)">
+              <option value="2">2팀</option>
+              <option value="4" selected>4팀</option>
+              <option value="8">8팀</option>
+              <option value="16">16팀</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mock-bracket-step">
+          <div class="mock-bracket-step-head">
+            <span class="mock-bracket-step-num">2</span>
+            <div>
+              <h3 class="mock-bracket-step-title">팀 이름·플레이어 선택</h3>
+              <p class="mock-bracket-step-desc">각 팀의 이름을 입력하고, 밸런스메이커와 같은 플레이어 칩 그룹에서 멤버를 선택합니다.</p>
             </div>
-            <span class="mock-bracket-arrow" aria-hidden="true">→</span>
-            <div class="mock-bracket-champ">
-              <div class="mock-bracket-champ-label">결승 대기</div>
-              <div style="font-size:14px;font-weight:700">우승자 미정</div>
+          </div>
+          <div class="mock-bracket-team-grid">
+            <div id="mock-bracket-team-wrap-1" class="mock-bracket-team-card">
+              <div class="mock-bracket-team-name"><label for="mock-bracket-name-1">팀 1</label><input id="mock-bracket-name-1" type="text" placeholder="예: 블루 스쿼드" value="시드 1" /></div>
+              <aside class="mock-balance-pool-col mock-bracket-pool-in-team" aria-label="플레이어 선택 · 팀 1">
+                <div class="mock-balance-pool-head"><span>플레이어 선택</span><button type="button" class="mock-help-tip" data-tip="밸런스메이커와 동일: 칩을 누르면 아래 팀 로스터에 추가·제거됩니다." aria-label="플레이어 선택 도움말">?</button></div>
+                <div class="mock-balance-pool-filters">
+                  <input type="search" placeholder="닉네임 검색" autocomplete="off" aria-label="검색(목업)" />
+                  <select title="정렬" aria-label="정렬"><option>최근 참여 순</option><option>닉네임 순</option></select>
+                </div>
+                <div class="mock-balance-pool-grid">
+                  <button type="button" class="mock-balance-pool-chip" data-name="하지" onclick="return window.mockBracketPoolChipClick(this,1)">하지</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="crystal" onclick="return window.mockBracketPoolChipClick(this,1)">크리스탈</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="dorae" onclick="return window.mockBracketPoolChipClick(this,1)">DORAE</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="edward" onclick="return window.mockBracketPoolChipClick(this,1)">애드워드애릭</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="abel" onclick="return window.mockBracketPoolChipClick(this,1)">ABEL</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="sori" onclick="return window.mockBracketPoolChipClick(this,1)">소리</button>
+                </div>
+                <div class="mock-bracket-team-roster" id="mock-bracket-roster-1"><span class="mock-bracket-roster-hint" style="font-size:11px;color:var(--text-muted)">칩을 눌러 팀에 포함(재클릭 시 제거)</span></div>
+              </aside>
+            </div>
+            <div id="mock-bracket-team-wrap-2" class="mock-bracket-team-card">
+              <div class="mock-bracket-team-name"><label for="mock-bracket-name-2">팀 2</label><input id="mock-bracket-name-2" type="text" placeholder="예: 레드 스쿼드" value="시드 2" /></div>
+              <aside class="mock-balance-pool-col mock-bracket-pool-in-team" aria-label="플레이어 선택 · 팀 2">
+                <div class="mock-balance-pool-head"><span>플레이어 선택</span><button type="button" class="mock-help-tip" data-tip="밸런스메이커와 동일한 클랜원 풀입니다." aria-label="플레이어 선택 도움말">?</button></div>
+                <div class="mock-balance-pool-filters">
+                  <input type="search" placeholder="닉네임 검색" autocomplete="off" aria-label="검색(목업)" />
+                  <select title="정렬" aria-label="정렬"><option>최근 참여 순</option><option>닉네임 순</option></select>
+                </div>
+                <div class="mock-balance-pool-grid">
+                  <button type="button" class="mock-balance-pool-chip" data-name="하지" onclick="return window.mockBracketPoolChipClick(this,2)">하지</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="crystal" onclick="return window.mockBracketPoolChipClick(this,2)">크리스탈</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="dorae" onclick="return window.mockBracketPoolChipClick(this,2)">DORAE</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="edward" onclick="return window.mockBracketPoolChipClick(this,2)">애드워드애릭</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="abel" onclick="return window.mockBracketPoolChipClick(this,2)">ABEL</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="sori" onclick="return window.mockBracketPoolChipClick(this,2)">소리</button>
+                </div>
+                <div class="mock-bracket-team-roster" id="mock-bracket-roster-2"><span class="mock-bracket-roster-hint" style="font-size:11px;color:var(--text-muted)">칩을 눌러 팀에 포함(재클릭 시 제거)</span></div>
+              </aside>
+            </div>
+            <div id="mock-bracket-team-wrap-3" class="mock-bracket-team-card">
+              <div class="mock-bracket-team-name"><label for="mock-bracket-name-3">팀 3</label><input id="mock-bracket-name-3" type="text" placeholder="팀 이름" value="시드 3" /></div>
+              <aside class="mock-balance-pool-col mock-bracket-pool-in-team" aria-label="플레이어 선택 · 팀 3">
+                <div class="mock-balance-pool-head"><span>플레이어 선택</span><button type="button" class="mock-help-tip" data-tip="밸런스메이커와 동일한 클랜원 풀입니다." aria-label="플레이어 선택 도움말">?</button></div>
+                <div class="mock-balance-pool-filters">
+                  <input type="search" placeholder="닉네임 검색" autocomplete="off" aria-label="검색(목업)" />
+                  <select title="정렬" aria-label="정렬"><option>최근 참여 순</option><option>닉네임 순</option></select>
+                </div>
+                <div class="mock-balance-pool-grid">
+                  <button type="button" class="mock-balance-pool-chip" data-name="하지" onclick="return window.mockBracketPoolChipClick(this,3)">하지</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="crystal" onclick="return window.mockBracketPoolChipClick(this,3)">크리스탈</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="dorae" onclick="return window.mockBracketPoolChipClick(this,3)">DORAE</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="edward" onclick="return window.mockBracketPoolChipClick(this,3)">애드워드애릭</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="abel" onclick="return window.mockBracketPoolChipClick(this,3)">ABEL</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="sori" onclick="return window.mockBracketPoolChipClick(this,3)">소리</button>
+                </div>
+                <div class="mock-bracket-team-roster" id="mock-bracket-roster-3"><span class="mock-bracket-roster-hint" style="font-size:11px;color:var(--text-muted)">칩을 눌러 팀에 포함(재클릭 시 제거)</span></div>
+              </aside>
+            </div>
+            <div id="mock-bracket-team-wrap-4" class="mock-bracket-team-card">
+              <div class="mock-bracket-team-name"><label for="mock-bracket-name-4">팀 4</label><input id="mock-bracket-name-4" type="text" placeholder="팀 이름" value="시드 4" /></div>
+              <aside class="mock-balance-pool-col mock-bracket-pool-in-team" aria-label="플레이어 선택 · 팀 4">
+                <div class="mock-balance-pool-head"><span>플레이어 선택</span><button type="button" class="mock-help-tip" data-tip="밸런스메이커와 동일한 클랜원 풀입니다." aria-label="플레이어 선택 도움말">?</button></div>
+                <div class="mock-balance-pool-filters">
+                  <input type="search" placeholder="닉네임 검색" autocomplete="off" aria-label="검색(목업)" />
+                  <select title="정렬" aria-label="정렬"><option>최근 참여 순</option><option>닉네임 순</option></select>
+                </div>
+                <div class="mock-balance-pool-grid">
+                  <button type="button" class="mock-balance-pool-chip" data-name="하지" onclick="return window.mockBracketPoolChipClick(this,4)">하지</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="crystal" onclick="return window.mockBracketPoolChipClick(this,4)">크리스탈</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="dorae" onclick="return window.mockBracketPoolChipClick(this,4)">DORAE</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="edward" onclick="return window.mockBracketPoolChipClick(this,4)">애드워드애릭</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="abel" onclick="return window.mockBracketPoolChipClick(this,4)">ABEL</button>
+                  <button type="button" class="mock-balance-pool-chip" data-name="sori" onclick="return window.mockBracketPoolChipClick(this,4)">소리</button>
+                </div>
+                <div class="mock-bracket-team-roster" id="mock-bracket-roster-4"><span class="mock-bracket-roster-hint" style="font-size:11px;color:var(--text-muted)">칩을 눌러 팀에 포함(재클릭 시 제거)</span></div>
+              </aside>
             </div>
           </div>
         </div>
-        <p style="font-size:11px;color:var(--text-muted);margin:0">더블 엘리 패자조·리그 순위표는 형식 선택 후 같은 영역에 확장됩니다(목업).</p>
+
+        <div class="mock-bracket-step">
+          <div class="mock-bracket-step-head">
+            <span class="mock-bracket-step-num">3</span>
+            <div>
+              <h3 class="mock-bracket-step-title">대회 형식</h3>
+              <p class="mock-bracket-step-desc">팀 구성이 끝난 뒤 싱글/더블 엘리·리그 등 형식을 선택합니다.</p>
+            </div>
+          </div>
+          <div class="mock-bracket-controls" style="margin-bottom:0">
+            <div class="mock-modal-field"><label for="mock-bracket-format">대회 형식</label><select id="mock-bracket-format"><option>싱글 엘리미네이션</option><option>더블 엘리미네이션</option><option>라운드 로빈 (리그)</option></select></div>
+            <div class="mock-modal-field"><label for="mock-bracket-seed">시드 방식</label><select id="mock-bracket-seed"><option>랜덤</option><option>MMR 순</option><option>수동 배치</option></select></div>
+          </div>
+        </div>
+
+        <div class="mock-bracket-step">
+          <div class="mock-bracket-step-head">
+            <span class="mock-bracket-step-num">4</span>
+            <div>
+              <h3 class="mock-bracket-step-title">대진 수동 조정</h3>
+              <p class="mock-bracket-step-desc">자동 배치된 대진 위치를 바꿉니다. 적용 후 5단계에서 미리보기가 갱신됩니다(목업).</p>
+            </div>
+          </div>
+          <div class="mock-modal-field" style="margin-bottom:8px">
+            <label for="mock-bracket-swap">시드 스왑</label>
+            <select id="mock-bracket-swap"><option>변경 없음</option><option>1번 시드 ↔ 4번 시드</option><option>2번 ↔ 3번</option><option>전체 순서 랜덤 셔플</option></select>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업: 대진 위치가 조정되었습니다.')">적용</button>
+        </div>
+
+        <div class="mock-bracket-step">
+          <div class="mock-bracket-step-head">
+            <span class="mock-bracket-step-num">5</span>
+            <div>
+              <h3 class="mock-bracket-step-title">대진표 생성</h3>
+              <p class="mock-bracket-step-desc">설정을 반영해 대진표를 그립니다. 내보내기(이미지·링크)는 목업입니다.</p>
+            </div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+            <button type="button" class="btn btn-sm" onclick="alert('목업: 대진표가 생성되었습니다. 아래 미리보기·경기 결과 입력이 활성화됩니다.')">대진표 생성</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업: 이미지 또는 공유 링크로 내보냅니다.')">내보내기</button>
+          </div>
+          <div class="d-card d-card-full" style="margin-bottom:0">
+            <div class="d-card-label">대진 미리보기 (4강)</div>
+            <div class="mock-bracket-wrap">
+              <div class="mock-bracket-flow">
+                <div class="mock-bracket-round">
+                  <div class="mock-bracket-match">
+                    <div class="mock-bracket-slot"><span>시드 1</span></div>
+                    <div class="mock-bracket-slot"><span>시드 4</span></div>
+                  </div>
+                  <div class="mock-bracket-match">
+                    <div class="mock-bracket-slot"><span>시드 2</span></div>
+                    <div class="mock-bracket-slot"><span>시드 3</span></div>
+                  </div>
+                </div>
+                <span class="mock-bracket-arrow" aria-hidden="true">→</span>
+                <div class="mock-bracket-round">
+                  <div class="mock-bracket-match">
+                    <div class="mock-bracket-slot"><span>준결승</span></div>
+                    <div class="mock-bracket-slot"><span>준결승</span></div>
+                  </div>
+                </div>
+                <span class="mock-bracket-arrow" aria-hidden="true">→</span>
+                <div class="mock-bracket-champ">
+                  <div class="mock-bracket-champ-label">결승</div>
+                  <div style="font-size:14px;font-weight:700">우승 팀 미정</div>
+                </div>
+              </div>
+            </div>
+            <p style="font-size:11px;color:var(--text-muted);margin:10px 0 0">더블 엘리 패자조·리그 순위표는 형식에 따라 동일 영역에 확장(목업).</p>
+          </div>
+        </div>
+
+        <div class="mock-bracket-step">
+          <div class="mock-bracket-step-head">
+            <span class="mock-bracket-step-num">6</span>
+            <div>
+              <h3 class="mock-bracket-step-title">경기 종료 시 승리 팀 선택</h3>
+              <p class="mock-bracket-step-desc">각 경기가 끝날 때마다 승자를 기록해 다음 라운드로 진행합니다(밸런스 경기 진행의 승자 선택과 유사).</p>
+            </div>
+          </div>
+          <div class="mock-bracket-live-match">
+            <div class="mock-bracket-live-match-title">준결승 1 · 시드 1 vs 시드 4</div>
+            <div class="mock-modal-field" style="margin-bottom:0">
+              <label for="mock-bracket-win-m1">승리 팀</label>
+              <select id="mock-bracket-win-m1">
+                <option value="">— 선택 —</option>
+                <option>시드 1</option>
+                <option>시드 4</option>
+              </select>
+            </div>
+          </div>
+          <div class="mock-bracket-live-match">
+            <div class="mock-bracket-live-match-title">준결승 2 · 시드 2 vs 시드 3</div>
+            <div class="mock-modal-field" style="margin-bottom:0">
+              <label for="mock-bracket-win-m2">승리 팀</label>
+              <select id="mock-bracket-win-m2">
+                <option value="">— 선택 —</option>
+                <option>시드 2</option>
+                <option>시드 3</option>
+              </select>
+            </div>
+          </div>
+          <div class="mock-bracket-live-match">
+            <div class="mock-bracket-live-match-title">결승</div>
+            <div class="mock-modal-field" style="margin-bottom:0">
+              <label for="mock-bracket-win-final">승리 팀</label>
+              <select id="mock-bracket-win-final" disabled title="준결승 결과 입력 후(목업)">
+                <option value="">— 준결승 후 선택 —</option>
+              </select>
+            </div>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업: 승자가 기록되었습니다.')">결과 저장</button>
+        </div>
       </div>
     </div>
 
