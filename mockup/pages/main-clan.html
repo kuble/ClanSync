@@ -2021,13 +2021,20 @@ aside.mock-balance-live-sidebar.mock-balance-live-predict-wrap .mock-balance-pre
   font-size: 13px;
   box-sizing: border-box;
 }
-aside.mock-balance-live-sidebar.mock-balance-live-predict-wrap .mock-balance-predict-odds {
+.mock-balance-predict-zone-head {
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  font-size: 13px;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+.mock-balance-predict-updated {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+aside.mock-balance-live-sidebar.mock-balance-live-predict-wrap .mock-balance-predict-act-zone .mock-predict-live-odds-row {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 12px;
   font-weight: 700;
-  margin-bottom: 10px;
 }
 .mock-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .mock-table th, .mock-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
@@ -3540,13 +3547,13 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
           <strong style="font-size:13px;display:block;margin-bottom:8px">비출전 · 승부예측</strong>
 
           <div class="mock-balance-predict-act-zone">
-            <div class="mock-balance-predict-odds">
-              <span style="color:#7dd3fc">블루 1.85</span>
-              <span style="color:#fb7185">레드 2.10</span>
+            <div class="mock-balance-predict-zone-head">
+              <span id="mock-balance-predict-live-updated" class="mock-balance-predict-updated">—</span>
             </div>
             <div class="mock-predict-live-meter" id="mock-balance-predict-live-meter" aria-live="polite">
-              <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
-                <span id="mock-balance-predict-live-updated" style="font-size:10px;color:var(--text-muted)">—</span>
+              <div class="mock-predict-live-stat-row mock-predict-live-odds-row">
+                <span class="mock-predict-live-stat-blue">블루 1.85</span>
+                <span class="mock-predict-live-stat-red">레드 2.10</span>
               </div>
               <div class="mock-predict-live-bar-track" role="img" aria-label="예측 코인 비중">
                 <div class="mock-predict-live-bar-blue" id="mock-balance-predict-bar-blue" style="width:50%"></div>
