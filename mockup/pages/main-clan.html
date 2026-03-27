@@ -797,8 +797,11 @@
   opacity: 0.65;
   pointer-events: none;
 }
-.mep-notify-schedule {
+.mep-notify-repeat-field {
   margin-bottom: 12px;
+}
+.mep-notify-schedule {
+  margin-bottom: 0;
 }
 .mep-notify-row--weekly .mock-modal-field:last-child {
   margin-bottom: 0;
@@ -5110,6 +5113,15 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
         </div>
         <fieldset id="mep-notify-fields" class="mock-modal-field" hidden disabled>
           <legend class="sr-only">투표 알림 세부 설정</legend>
+          <div class="mock-modal-field mep-notify-repeat-field">
+            <label for="mep-notify-repeat">투표 알림 반복</label>
+            <select id="mep-notify-repeat" onchange="mockEventPollNotifyRepeatChange()">
+              <option value="none">없음 (한 번만)</option>
+              <option value="daily">매일 같은 시각</option>
+              <option value="weekly">매주 같은 요일·시각</option>
+              <option value="until-deadline">마감 전까지 매일</option>
+            </select>
+          </div>
           <div id="mep-notify-schedule" class="mep-notify-schedule">
             <div id="mep-notify-row-none" class="mock-modal-field mep-notify-row" data-mep-repeat="none">
               <label for="mep-notify-at">투표 알림 일시</label>
@@ -5144,15 +5156,6 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
               <input id="mep-notify-time-until" type="time" />
               <p class="mock-modal-hint">마감 전까지 매일 위 시각에 알림합니다(목업).</p>
             </div>
-          </div>
-          <div class="mock-modal-field" style="margin-bottom:0">
-            <label for="mep-notify-repeat">투표 알림 반복</label>
-            <select id="mep-notify-repeat" onchange="mockEventPollNotifyRepeatChange()">
-              <option value="none">없음 (한 번만)</option>
-              <option value="daily">매일 같은 시각</option>
-              <option value="weekly">매주 같은 요일·시각</option>
-              <option value="until-deadline">마감 전까지 매일</option>
-            </select>
           </div>
         </fieldset>
         <div class="mock-modal-field" style="margin-bottom:0">
