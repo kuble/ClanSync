@@ -3382,12 +3382,15 @@
     return y + "-" + mockStatsPad2(month0 + 1) + "-" + mockStatsPad2(day);
   }
 
-  /** 경기 시각 표시: 저장값은 ISO(UTC)이나, UI는 집계와 동일하게 Asia/Seoul 24h로 표기 */
-  function mockStatsFormatTimeInStatsTz(iso) {
+  /** 경기 일시 표시: 저장값은 ISO(UTC)이나, UI는 집계와 동일하게 Asia/Seoul YYYY-MM-DD HH:mm */
+  function mockStatsFormatDateTimeInStatsTz(iso) {
     var d = new Date(iso);
     if (isNaN(d.getTime())) return "—";
     var fmt = new Intl.DateTimeFormat("en-US", {
       timeZone: MOCK_STATS_STATS_TZ,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
       hour: "2-digit",
       minute: "2-digit",
       hourCycle: "h23",
@@ -3396,10 +3399,26 @@
     fmt.formatToParts(d).forEach(function (p) {
       if (p.type !== "literal") parts[p.type] = p.value;
     });
-    if (parts.hour != null && parts.minute != null) {
-      return parts.hour + ":" + parts.minute;
+    if (
+      parts.year &&
+      parts.month &&
+      parts.day &&
+      parts.hour != null &&
+      parts.minute != null
+    ) {
+      return (
+        parts.year +
+        "-" +
+        parts.month +
+        "-" +
+        parts.day +
+        " " +
+        parts.hour +
+        ":" +
+        parts.minute
+      );
     }
-    return mockStatsPad2(d.getUTCHours()) + ":" + mockStatsPad2(d.getUTCMinutes());
+    return "—";
   }
 
   /** 행 중앙 역할 아이콘 (딜=탄환 열 · 탱=방패 · 힐=십자) */
@@ -3479,7 +3498,7 @@
       mockStatsEscapeHtml(m.mapType) +
       "</span>" +
       '<span style="color:var(--text-muted);font-size:11px;margin-left:4px">' +
-      mockStatsFormatTimeInStatsTz(m.at) +
+      mockStatsFormatDateTimeInStatsTz(m.at) +
       " KST</span>" +
       "</div>" +
       '<div class="mock-stats-match-teams mock-stats-match-teams--roster">' +
