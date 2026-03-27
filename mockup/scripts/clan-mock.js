@@ -194,6 +194,20 @@
     }
     applyRoleBodyClass();
     applyPlanBodyClass();
+    try {
+      if (
+        typeof localStorage !== "undefined" &&
+        !localStorage.getItem(MOCK_SUBSCRIBE_STORAGE_KEY)
+      ) {
+        localStorage.setItem(
+          MOCK_SUBSCRIBE_STORAGE_KEY,
+          JSON.stringify(mockManageSubscribeDefaultState()),
+        );
+      }
+    } catch (eSeed) {}
+    if (typeof window.mockManageMembersInit === "function") {
+      window.mockManageMembersInit();
+    }
     if (typeof window.mockApplyBalanceSessionGate === "function") {
       window.mockApplyBalanceSessionGate();
     }
@@ -5795,5 +5809,407 @@
       mockStatsHofClampMonthKey(intraList);
       elHof.innerHTML = mockStatsHofBuildRootHtml(intraList);
     }
+  };
+
+  /** 클랜 관리 — 구독(localStorage) · 구성원 검색/페이지네이션 · 개인 기록 상세 */
+  var MOCK_SUBSCRIBE_STORAGE_KEY = "clansync-mock-subscribe-v1";
+  var __mockManageMembersState = { page: 1, pageSize: 5, search: "" };
+  var __mockManageMemberDetailId = null;
+
+  var MOCK_MANAGE_MEMBERS = [
+    { id: "kim", nick: "김클랜", gameId: "Kim#1000", role: "leader", joined: "2025.01.15", last: "3/22", donation: "1,200", record: null },
+    { id: "pro", nick: "이프로", gameId: "Pro#2000", role: "officer", joined: "2025.02.01", last: "3/20", donation: "400", record: null },
+    { id: "heal", nick: "박힐러", gameId: "Heal#3000", role: "member", joined: "2025.06.10", last: "3/18", donation: "0", record: null },
+    {
+      id: "abel",
+      nick: "ABEL",
+      gameId: "ABEL#0001",
+      role: "member",
+      joined: "2025.06.10",
+      last: "3/24",
+      donation: "320",
+      record: {
+        clanMember: true,
+        briefing: false,
+        subAccount: "",
+        firstIntra: "2025년 06월 10일",
+        lastIntra: "2026년 03월 24일",
+        maps: [
+          { map: "네팔 (Nepal)", w: 1, d: 0, l: 3, rd: 4, pct: 25 },
+          { map: "눔바니 (Numbani)", w: 0, d: 0, l: 1, rd: 1, pct: 0 },
+          { map: "도라도 (Dorado)", w: 1, d: 0, l: 1, rd: 2, pct: 50 },
+        ],
+        roles: [
+          { code: "D (딜)", w: 4, d: 0, l: 12, rd: 16, pct: 25 },
+          { code: "T (탱)", w: 2, d: 0, l: 3, rd: 5, pct: 40 },
+          { code: "H (힐)", w: 1, d: 0, l: 2, rd: 3, pct: 33 },
+        ],
+        synergy: [
+          { name: "김정태", rd: 33, pct: 48 },
+          { name: "PICTURE", rd: 19, pct: 26 },
+          { name: "냥이의비행", rd: 14, pct: 36 },
+          { name: "라인히터", rd: 11, pct: 45 },
+        ],
+      },
+    },
+    { id: "m1", nick: "냥이의비행", gameId: "Cat#4400", role: "member", joined: "2025.03.01", last: "3/21", donation: "50", record: null },
+    { id: "m2", nick: "아재", gameId: "Ajae#5500", role: "member", joined: "2025.04.12", last: "3/19", donation: "0", record: null },
+    { id: "m3", nick: "초보만", gameId: "Rookie#6600", role: "member", joined: "2025.07.20", last: "3/17", donation: "100", record: null },
+    { id: "m4", nick: "라인히터", gameId: "Line#7700", role: "member", joined: "2025.08.05", last: "3/16", donation: "0", record: null },
+    { id: "m5", nick: "메르시메인", gameId: "Mercy#8800", role: "member", joined: "2025.09.01", last: "3/15", donation: "200", record: null },
+    { id: "m6", nick: "솔져장인", gameId: "Soldier#9900", role: "member", joined: "2025.10.10", last: "3/14", donation: "0", record: null },
+    { id: "m7", nick: "윈스턴킹", gameId: "Winston#1010", role: "member", joined: "2025.11.01", last: "3/12", donation: "80", record: null },
+    { id: "m8", nick: "나노블레이드", gameId: "Nano#2020", role: "member", joined: "2026.01.05", last: "3/10", donation: "0", record: null },
+  ];
+
+  function mockManageSubscribeDefaultState() {
+    return {
+      payments: [
+        {
+          at: "2025-06-01T10:00:00",
+          amount: "₩9,900",
+          method: "카드",
+          status: "완료",
+        },
+        {
+          at: "2025-07-01T10:00:00",
+          amount: "₩9,900",
+          method: "카드",
+          status: "완료",
+        },
+      ],
+    };
+  }
+
+  function mockManageSubscribeLoadState() {
+    try {
+      var raw = localStorage.getItem(MOCK_SUBSCRIBE_STORAGE_KEY);
+      if (raw) {
+        var o = JSON.parse(raw);
+        if (o && Array.isArray(o.payments)) return o;
+      }
+    } catch (e) {}
+    return mockManageSubscribeDefaultState();
+  }
+
+  function mockManageSubscribeSaveState(st) {
+    try {
+      localStorage.setItem(MOCK_SUBSCRIBE_STORAGE_KEY, JSON.stringify(st));
+    } catch (e) {}
+  }
+
+  function mockManageSubscribeFormatAt(iso) {
+    try {
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return iso;
+      return d.toLocaleString("ko-KR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (e) {
+      return iso;
+    }
+  }
+
+  window.mockManageSubscribeOpen = function () {
+    var modal = document.getElementById("mock-manage-subscribe-modal");
+    var sum = document.getElementById("mock-manage-subscribe-plan-summary");
+    var tb = document.getElementById("mock-manage-subscribe-payments-tbody");
+    if (!modal || !sum || !tb) return false;
+    var plan =
+      typeof window.mockClanCurrentPlan === "function"
+        ? window.mockClanCurrentPlan()
+        : "free";
+    var isPrem = plan === "premium";
+    sum.innerHTML =
+      "<div><strong>현재 플랜</strong> · " +
+      (isPrem
+        ? '<span style="color:#fcd34d">Premium</span> — AI 밸런스·승부예측·OCR 등 전체 기능'
+        : '<span>Free</span> — 기본 통계·밸런스(일부 제한)') +
+      "</div>" +
+      (isPrem
+        ? '<div style="margin-top:8px"><strong>다음 결제 예정</strong> · 목업 기준 매월 1일 · ₩9,900 (VAT 포함 가능)</div>'
+        : '<div style="margin-top:8px;color:var(--text-muted)">Free 플랜입니다. Premium 전환 시 아래 결제 기록에 새 항목이 쌓이도록 목업할 수 있습니다.</div>');
+    var st = mockManageSubscribeLoadState();
+    tb.innerHTML = st.payments
+      .map(function (p) {
+        return (
+          "<tr><td>" +
+          mockManageSubscribeFormatAt(p.at) +
+          "</td><td style=\"text-align:right\">" +
+          (p.amount || "—") +
+          "</td><td>" +
+          (p.method || "—") +
+          "</td><td>" +
+          (p.status || "—") +
+          "</td></tr>"
+        );
+      })
+      .join("");
+    modal.removeAttribute("hidden");
+    modal.setAttribute("aria-hidden", "false");
+    return false;
+  };
+
+  window.mockManageSubscribeClose = function () {
+    var modal = document.getElementById("mock-manage-subscribe-modal");
+    if (modal) {
+      modal.setAttribute("hidden", "");
+      modal.setAttribute("aria-hidden", "true");
+    }
+    return false;
+  };
+
+  window.mockManageSubscribeAddMockPayment = function () {
+    var st = mockManageSubscribeLoadState();
+    st.payments = st.payments || [];
+    var now = new Date().toISOString();
+    st.payments.unshift({
+      at: now,
+      amount: "₩9,900",
+      method: "카드",
+      status: "완료",
+    });
+    mockManageSubscribeSaveState(st);
+    var tb = document.getElementById("mock-manage-subscribe-payments-tbody");
+    if (tb) {
+      tb.innerHTML =
+        st.payments
+          .map(function (p) {
+            return (
+              "<tr><td>" +
+              mockManageSubscribeFormatAt(p.at) +
+              "</td><td style=\"text-align:right\">" +
+              (p.amount || "—") +
+              "</td><td>" +
+              (p.method || "—") +
+              "</td><td>" +
+              (p.status || "—") +
+              "</td></tr>"
+            );
+          })
+          .join("");
+    }
+    return false;
+  };
+
+  function mockManageMembersFilterList() {
+    var q = (__mockManageMembersState.search || "").trim().toLowerCase();
+    return MOCK_MANAGE_MEMBERS.filter(function (m) {
+      if (!q) return true;
+      return (
+        (m.nick && m.nick.toLowerCase().indexOf(q) !== -1) ||
+        (m.gameId && m.gameId.toLowerCase().indexOf(q) !== -1)
+      );
+    });
+  }
+
+  function mockManageMembersRoleBadge(role) {
+    if (role === "leader") {
+      return '<span class="badge badge-brand" style="font-size:10px">leader</span>';
+    }
+    if (role === "officer") {
+      return '<span class="badge badge-muted" style="font-size:10px">officer</span>';
+    }
+    return '<span class="badge" style="font-size:10px">member</span>';
+  }
+
+  window.mockManageMembersRender = function () {
+    var tbody = document.getElementById("mock-manage-members-tbody");
+    var pager = document.getElementById("mock-manage-members-pager");
+    var cnt = document.getElementById("mock-manage-members-count");
+    if (!tbody) return;
+    var list = mockManageMembersFilterList();
+    var ps = __mockManageMembersState.pageSize || 5;
+    var total = list.length;
+    var pages = Math.max(1, Math.ceil(total / ps));
+    if (__mockManageMembersState.page > pages) __mockManageMembersState.page = pages;
+    var p = __mockManageMembersState.page;
+    var start = (p - 1) * ps;
+    var slice = list.slice(start, start + ps);
+    tbody.innerHTML = slice
+      .map(function (m) {
+        return (
+          '<tr class="mock-manage-member-row" tabindex="0" data-member-id="' +
+          m.id +
+          '" onclick="return window.mockManageMemberDetailOpen(\'' +
+          m.id +
+          '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();window.mockManageMemberDetailOpen(\'' +
+          m.id +
+          '\')}">' +
+          "<td>" +
+          m.nick +
+          "</td><td style=\"color:var(--text-muted)\">" +
+          m.gameId +
+          "</td><td>" +
+          mockManageMembersRoleBadge(m.role) +
+          "</td><td style=\"color:var(--text-muted)\">" +
+          m.joined +
+          "</td><td style=\"color:var(--text-muted)\">" +
+          m.last +
+          '</td><td style="text-align:right;color:var(--text-muted)">' +
+          m.donation +
+          "</td></tr>"
+        );
+      })
+      .join("");
+    if (cnt) cnt.textContent = "총 " + total + "명 · " + p + " / " + pages + " 페이지";
+    if (pager) {
+      pager.innerHTML =
+        '<button type="button" class="btn btn-secondary btn-sm" ' +
+        (p <= 1 ? "disabled" : "") +
+        ' onclick="return window.mockManageMembersPage(' +
+        (p - 1) +
+        ')">이전</button><span>페이지 ' +
+        p +
+        " / " +
+        pages +
+        '</span><button type="button" class="btn btn-secondary btn-sm" ' +
+        (p >= pages ? "disabled" : "") +
+        ' onclick="return window.mockManageMembersPage(' +
+        (p + 1) +
+        ')">다음</button>';
+    }
+  };
+
+  window.mockManageMembersPage = function (next) {
+    var list = mockManageMembersFilterList();
+    var ps = __mockManageMembersState.pageSize || 5;
+    var pages = Math.max(1, Math.ceil(list.length / ps));
+    if (next < 1 || next > pages) return false;
+    __mockManageMembersState.page = next;
+    window.mockManageMembersRender();
+    return false;
+  };
+
+  window.mockManageMembersOnSearch = function (el) {
+    __mockManageMembersState.search = el ? el.value : "";
+    __mockManageMembersState.page = 1;
+    window.mockManageMembersRender();
+  };
+
+  window.mockManageMembersInit = function () {
+    var inp = document.getElementById("mock-manage-members-search");
+    if (inp) __mockManageMembersState.search = inp.value || "";
+    __mockManageMembersState.page = 1;
+    window.mockManageMembersRender();
+  };
+
+  function mockManageMemberFind(id) {
+    return MOCK_MANAGE_MEMBERS.find(function (m) {
+      return m.id === id;
+    });
+  }
+
+  window.mockManageMemberDetailOpen = function (id) {
+    var m = mockManageMemberFind(id);
+    if (!m) return false;
+    __mockManageMemberDetailId = id;
+    var modal = document.getElementById("mock-manage-member-detail-modal");
+    var badge = document.getElementById("mock-mmgr-detail-nick-badge");
+    var clanCb = document.getElementById("mock-mmgr-detail-clan");
+    var briefCb = document.getElementById("mock-mmgr-detail-brief");
+    var sub = document.getElementById("mock-mmgr-detail-sub");
+    var first = document.getElementById("mock-mmgr-detail-first");
+    var last = document.getElementById("mock-mmgr-detail-last");
+    var mapTb = document.getElementById("mock-mmgr-detail-map-tbody");
+    var roleTb = document.getElementById("mock-mmgr-detail-role-tbody");
+    var synTb = document.getElementById("mock-mmgr-detail-syn-tbody");
+    if (badge) badge.textContent = m.nick;
+    if (clanCb) clanCb.checked = !!(m.record && m.record.clanMember);
+    if (briefCb) briefCb.checked = !!(m.record && m.record.briefing);
+    if (sub) sub.textContent = (m.record && m.record.subAccount) || "—";
+    if (first) first.textContent = (m.record && m.record.firstIntra) || "—";
+    if (last) last.textContent = (m.record && m.record.lastIntra) || "—";
+    if (m.record && m.record.maps && mapTb) {
+      mapTb.innerHTML = m.record.maps
+        .map(function (r) {
+          return (
+            "<tr><td>" +
+            r.map +
+            '</td><td style="text-align:right">' +
+            r.w +
+            '</td><td style="text-align:right">' +
+            r.d +
+            '</td><td style="text-align:right">' +
+            r.l +
+            '</td><td style="text-align:right">' +
+            r.rd +
+            '</td><td style="text-align:right">' +
+            r.pct +
+            "%</td></tr>"
+          );
+        })
+        .join("");
+    } else if (mapTb) {
+      mapTb.innerHTML =
+        '<tr><td colspan="6" style="color:var(--text-muted);text-align:center">목업 개인 기록이 없습니다.</td></tr>';
+    }
+    if (m.record && m.record.roles && roleTb) {
+      roleTb.innerHTML = m.record.roles
+        .map(function (r) {
+          return (
+            "<tr><td>" +
+            r.code +
+            '</td><td style="text-align:right">' +
+            r.w +
+            '</td><td style="text-align:right">' +
+            r.d +
+            '</td><td style="text-align:right">' +
+            r.l +
+            '</td><td style="text-align:right">' +
+            r.rd +
+            '</td><td style="text-align:right">' +
+            r.pct +
+            "%</td></tr>"
+          );
+        })
+        .join("");
+    } else if (roleTb) {
+      roleTb.innerHTML =
+        '<tr><td colspan="6" style="color:var(--text-muted);text-align:center">목업 개인 기록이 없습니다.</td></tr>';
+    }
+    if (m.record && m.record.synergy && synTb) {
+      synTb.innerHTML = m.record.synergy
+        .map(function (r) {
+          return (
+            "<tr><td>" +
+            r.name +
+            '</td><td style="text-align:right">' +
+            r.rd +
+            '</td><td style="text-align:right">' +
+            r.pct +
+            "%</td></tr>"
+          );
+        })
+        .join("");
+    } else if (synTb) {
+      synTb.innerHTML =
+        '<tr><td colspan="3" style="color:var(--text-muted);text-align:center">목업 시너지 데이터가 없습니다.</td></tr>';
+    }
+    if (modal) {
+      modal.removeAttribute("hidden");
+      modal.setAttribute("aria-hidden", "false");
+    }
+    return false;
+  };
+
+  window.mockManageMemberDetailClose = function () {
+    var modal = document.getElementById("mock-manage-member-detail-modal");
+    if (modal) {
+      modal.setAttribute("hidden", "");
+      modal.setAttribute("aria-hidden", "true");
+    }
+    __mockManageMemberDetailId = null;
+    return false;
+  };
+
+  window.mockManageMemberDetailRefreshPeriod = function () {
+    var id = __mockManageMemberDetailId;
+    if (id) window.mockManageMemberDetailOpen(id);
+    return false;
   };
 })();
