@@ -12,7 +12,8 @@
     store: "view-store",
   };
 
-  var OFFICER_VIEWS = { balance: true, manage: true };
+  /** 구성원도 밸런스 메뉴 진입 가능(세션 대기/실시간 합류). 운영진+ 전용은 관리만 */
+  var OFFICER_VIEWS = { manage: true };
 
   window.mockClanCurrentRole = function () {
     try {
@@ -33,11 +34,56 @@
     return "free";
   };
 
-  /** 목업 허브 `_hub.html` 전용: `?hubDebug=1` 이면 구성원도 밸런스·관리 화면 진입 가능(미리보기) */
+  /** 목업 허브 `_hub.html` 전용: `?hubDebug=1` 이면 구성원도 관리 화면 진입 가능(미리보기) */
   window.mockClanHubDebug = function () {
     try {
       return new URLSearchParams(window.location.search).get("hubDebug") === "1";
     } catch (e) {}
+    return false;
+  };
+
+  /**
+   * 구성원: 밸런스 세션 미시작 → body.mock-balance-no-session(대기 카드).
+   * `?balanceSession=1` 또는 sessionStorage clansync-mock-balance-session=1 이면 라이브 UI.
+   */
+  window.mockApplyBalanceSessionGate = function () {
+    var role = window.mockClanCurrentRole();
+    document.body.classList.remove("mock-balance-no-session", "mock-balance-session-active");
+    if (role !== "member") {
+      document.body.classList.add("mock-balance-session-active");
+      return;
+    }
+    try {
+      var p = new URLSearchParams(window.location.search);
+      if (p.get("balanceSession") === "1") {
+        document.body.classList.add("mock-balance-session-active");
+        return;
+      }
+      if (sessionStorage.getItem("clansync-mock-balance-session") === "1") {
+        document.body.classList.add("mock-balance-session-active");
+        return;
+      }
+    } catch (e) {}
+    document.body.classList.add("mock-balance-no-session");
+  };
+
+  window.mockBalanceMemberMockSessionStart = function () {
+    try {
+      sessionStorage.setItem("clansync-mock-balance-session", "1");
+    } catch (e) {}
+    document.body.classList.remove("mock-balance-no-session");
+    document.body.classList.add("mock-balance-session-active");
+    return false;
+  };
+
+  window.mockBalanceMemberMockSessionReset = function () {
+    try {
+      sessionStorage.removeItem("clansync-mock-balance-session");
+    } catch (e) {}
+    if (window.mockClanCurrentRole() === "member") {
+      document.body.classList.add("mock-balance-no-session");
+      document.body.classList.remove("mock-balance-session-active");
+    }
     return false;
   };
 
@@ -88,7 +134,7 @@
     var role = window.mockClanCurrentRole();
     if (role === "member" && OFFICER_VIEWS[view]) {
       if (!window.mockClanHubDebug || !window.mockClanHubDebug()) {
-        window.alert("목업: 구성원은 이 영역에 접근할 수 없습니다. (운영진+ 전용)");
+        window.alert("목업: 클랜 관리는 운영진 이상만 이용할 수 있습니다.");
         return false;
       }
     }
@@ -148,6 +194,9 @@
     }
     applyRoleBodyClass();
     applyPlanBodyClass();
+    if (typeof window.mockApplyBalanceSessionGate === "function") {
+      window.mockApplyBalanceSessionGate();
+    }
     var hubDbgBanner = document.getElementById("mock-hub-debug-banner");
     if (hubDbgBanner && window.mockClanHubDebug && window.mockClanHubDebug()) {
       hubDbgBanner.removeAttribute("hidden");

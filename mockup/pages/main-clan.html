@@ -2664,6 +2664,11 @@ aside.mock-balance-live-sidebar.mock-balance-live-predict-wrap .mock-balance-pre
 .mock-member-only { display: none; }
 body.mock-role-member .mock-officer-only { display: none !important; }
 body.mock-role-member .mock-member-only { display: block !important; }
+/* 구성원: 밸런스 세션 미시작 시 대기 카드만 (clan-mock.js mock-balance-no-session) */
+.mock-balance-member-waiting { display: none; }
+body.mock-role-member.mock-balance-no-session .mock-balance-member-waiting { display: block; }
+body.mock-role-member.mock-balance-no-session .mock-balance-session-root { display: none !important; }
+body:not(.mock-role-member) .mock-balance-member-waiting { display: none !important; }
 /* 목업 플랜(_hub) — Premium 전용 블록은 Free에서 숨김 */
 body.mock-plan-free .mock-hide-on-free { display: none !important; }
 body.mock-plan-premium .mock-balance-free-note { display: none !important; }
@@ -2845,7 +2850,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
 
   <div class="sidebar-section-title">메뉴</div>
   <a href="#dash" class="clan-nav" onclick="return clanGo('dash', this)"><div class="sidebar-item active">🏠 대시보드</div></a>
-  <a href="#balance" class="clan-nav" data-officer-nav onclick="return clanGo('balance', this)"><div class="sidebar-item">⚖️ 밸런스메이커</div></a>
+  <a href="#balance" class="clan-nav" onclick="return clanGo('balance', this)"><div class="sidebar-item">⚖️ 밸런스메이커</div></a>
   <a href="#stats" class="clan-nav" onclick="return clanGo('stats', this)"><div class="sidebar-item">📊 클랜 통계</div></a>
   <a href="#events" class="clan-nav" onclick="return clanGo('events', this)"><div class="sidebar-item">🗓️ 이벤트</div></a>
   <a href="#manage" class="clan-nav" data-officer-nav onclick="return clanGo('manage', this)"><div class="sidebar-item">👥 클랜 관리</div></a>
@@ -3159,6 +3164,18 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
 
   <!-- ── 밸런스메이커 뷰 (PRD §6.1) — 5v5 탱1·딜2·힐2 고정, 6v6 미지원 목업 ── -->
   <div id="view-balance" class="clan-view">
+    <div class="mock-balance-member-waiting" aria-live="polite">
+      <div class="d-card d-card-full" style="margin-bottom:16px">
+        <div style="text-align:center;padding:28px 20px">
+          <div style="font-size:40px;margin-bottom:12px" aria-hidden="true">⏳</div>
+          <p style="font-size:16px;font-weight:600;color:var(--text-primary);margin:0 0 8px">경기를 준비 중입니다</p>
+          <p style="font-size:13px;color:var(--text-muted);margin:0 0 16px;line-height:1.55">밸런스장이 세션을 시작하면 이 화면이 자동으로 갱신되며, 실시간으로 팀 배치·밴픽·경기 진행에 합류합니다.</p>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockBalanceMemberMockSessionStart()" style="margin-right:8px">목업: 세션 시작됨</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="return window.mockBalanceMemberMockSessionReset()">대기로 되돌리기</button>
+        </div>
+      </div>
+    </div>
+    <div class="mock-balance-session-root">
     <div class="mock-balance-view-head">
       <div class="mock-page-title">밸런스메이커</div>
       <button type="button" class="mock-help-tip" data-tip="운영진이 출전 명단·포지션을 잡는 편집기입니다. 5v5 · 탱1·딜2·힐2 고정. 세션을 연 사람(밸런스장)만 ① 편집; 타 운영진은 구성원과 같은 실시간 화면입니다. 맵은 맵 밴 OFF일 때만 직접 선택(모달). 단계 탭으로 배치 확정 이후 밴픽·경기 진행을 미리 볼 수 있습니다. 상세: docs/01-plan/balance-maker-ui-notes.md §세션 플로우" aria-label="밸런스메이커 도움말">?</button>
@@ -3776,6 +3793,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
         </div>
         <p style="font-size:11px;color:var(--text-muted);margin:10px 0 0">Enter 키로도 확인할 수 있습니다.</p>
       </div>
+    </div>
     </div>
   </div>
 
