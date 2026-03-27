@@ -677,13 +677,97 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+.ranking-clan-toolbar .ranking-toolbar-label {
+  flex-shrink: 0;
+}
+.ranking-clan-sort-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ranking-clan-sort-select {
+  font-size: 13px;
+  padding: 6px 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+@media (max-width: 420px) {
+  .ranking-clan-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .ranking-clan-sort-select {
+    min-width: 0;
+  }
 }
 .ranking-toolbar-label {
   font-size: 11px;
   font-weight: 700;
   color: var(--text-muted);
   letter-spacing: 0.05em;
+}
+/* 클랜 순위 표 첫 행(헤더): 지표 열 라벨이 한 줄로 읽히도록 */
+.ranking-clan-table-head {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) minmax(132px, 1.15fr) 72px;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--bg-overlay);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  align-items: center;
+}
+.ranking-clan-table-head > div:nth-child(3) {
+  text-align: right;
+  white-space: nowrap;
+  min-width: 0;
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.ranking-clan-table-head > div:nth-child(4) {
+  text-align: right;
+}
+.ranking-clan-table-row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) minmax(132px, 1.15fr) 72px;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+.ranking-clan-table-row > div:nth-child(3) {
+  text-align: right;
+  min-width: 0;
+}
+.ranking-clan-table-row > div:nth-child(4) {
+  text-align: right;
+  min-width: 0;
+}
+@media (max-width: 360px) {
+  .ranking-clan-table-head,
+  .ranking-clan-table-row {
+    grid-template-columns: 32px minmax(0, 1fr) minmax(108px, 1fr) 64px;
+    gap: 6px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .ranking-clan-table-head > div:nth-child(3) {
+    white-space: normal;
+    word-break: keep-all;
+    line-height: 1.35;
+    font-size: 10px;
+  }
 }
 .ranking-my-clan-bar {
   display: flex;
@@ -1538,12 +1622,14 @@
     <div id="ranking-panel-clan" class="ranking-panel" role="tabpanel" aria-labelledby="rankingTabClan">
       <div class="ranking-clan-toolbar">
         <span class="ranking-toolbar-label" id="rankingSortLabel">정렬 기준</span>
-        <select id="rankingSort" class="input" style="font-size:13px;padding:6px 12px;width:auto;min-width:200px" onchange="setRankingSort(this.value)" aria-labelledby="rankingSortLabel">
+        <div class="ranking-clan-sort-wrap">
+        <select id="rankingSort" class="input ranking-clan-sort-select" onchange="setRankingSort(this.value)" aria-labelledby="rankingSortLabel">
           <option value="activity" selected>이번달 내전 경기수</option>
           <option value="monthScrims">이번달 스크림 횟수</option>
           <option value="activeRatio">이번달 활성 유저 비율</option>
           <option value="total">누적 경기수</option>
         </select>
+        </div>
       </div>
 
       <div class="ranking-my-clan-bar" id="ranking-my-clan-bar">
@@ -1560,8 +1646,8 @@
       </div>
 
       <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden">
-        <div style="display:grid;grid-template-columns:40px 1fr 88px 80px;padding:10px 16px;background:var(--bg-overlay);font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;gap:8px">
-          <div>#</div><div>클랜</div><div style="text-align:right" id="ranking-metric-head">이번달 내전 경기수</div><div style="text-align:right">클랜원</div>
+        <div class="ranking-clan-table-head">
+          <div>#</div><div>클랜</div><div id="ranking-metric-head">이번달 내전 경기수</div><div style="text-align:right">클랜원</div>
         </div>
         <div id="ranking-list"></div>
       </div>
@@ -2969,7 +3055,7 @@ function renderRanking() {
     const numHtml = medal || String(pos);
     const topCls = pos <= 3 ? ` top${pos}` : '';
     return `
-    <div style="display:grid;grid-template-columns:40px 1fr 88px 80px;padding:12px 16px;border-bottom:1px solid var(--border);align-items:center;gap:8px;${r.mine?'background:rgba(124,58,237,0.06)':''}">
+    <div class="ranking-clan-table-row"${r.mine ? ' style="background:rgba(124,58,237,0.06)"' : ''}>
       <div class="rank-num${topCls}">${numHtml}</div>
       <div style="display:flex;align-items:center;gap:8px">
         <div class="avatar" style="width:28px;height:28px;font-size:12px;${r.bg?'background:'+r.bg:''}">${r.icon}</div>
