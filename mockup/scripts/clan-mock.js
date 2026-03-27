@@ -849,7 +849,7 @@
     if (!lineup || lineup.hidden) return;
     el.classList.remove("mock-balance-predict-vote-timer--muted", "mock-balance-predict-vote-timer--ended");
     if (!_mockPredictVoteDeadlineMs) {
-      el.textContent = "—";
+      el.textContent = "마감까지 —";
       el.classList.add("mock-balance-predict-vote-timer--muted");
       return;
     }
@@ -867,7 +867,7 @@
     var pad2 = function (n) {
       return n < 10 ? "0" + n : String(n);
     };
-    el.textContent = mm + ":" + pad2(ss);
+    el.textContent = "마감까지 " + mm + ":" + pad2(ss);
   }
 
   function mockBalancePredictApplyTablePagination() {

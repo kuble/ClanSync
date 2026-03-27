@@ -2108,15 +2108,10 @@ aside.mock-balance-live-sidebar.mock-balance-live-predict-wrap .mock-balance-pre
 }
 .mock-balance-predict-zone-head {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
-}
-.mock-balance-predict-timer-label {
-  font-size: 10px;
-  color: var(--text-muted);
-  font-weight: 600;
 }
 .mock-balance-predict-vote-timer {
   font-size: 13px;
@@ -3581,7 +3576,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
           <span style="font-size:13px;font-weight:600;color:var(--text-secondary)">경기 진행</span>
           <span class="mock-balance-live-badge" style="font-size:11px;padding:4px 10px;border-radius:99px;border:1px solid var(--border);background:var(--bg-overlay);color:var(--text-secondary)">진행 중</span>
-          <button type="button" class="mock-help-tip" data-tip="사전설정 완료 후 경기 중 화면입니다. 승부예측은 배치 완료 후 설정된 시간(분) 동안만 투표 가능하며, 우측에 남은 시간이 타이머로 표시됩니다. 운영진: 팀 버튼으로 승자 왕관 선택. 왕관 없이 결과 입력 시 무승부. 확인 팝업에서 확인·Enter로 저장. 구성원은 결과 입력 UI 숨김." aria-label="경기 진행 도움말">?</button>
+          <button type="button" class="mock-help-tip" data-tip="사전설정 완료 후 경기 중 화면입니다. 승부예측은 배치 완료 후 설정된 시간(분) 동안만 투표 가능하며, 우측에 마감까지 남은 시간이 표시됩니다. 운영진: 팀 버튼으로 승자 왕관 선택. 왕관 없이 결과 입력 시 무승부. 확인 팝업에서 확인·Enter로 저장. 구성원은 결과 입력 UI 숨김." aria-label="경기 진행 도움말">?</button>
         </div>
 
         <div class="mock-balance-live-layout">
@@ -3651,8 +3646,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
 
           <div class="mock-balance-predict-act-zone" id="mock-balance-predict-act-zone">
             <div class="mock-balance-predict-zone-head">
-              <span class="mock-balance-predict-timer-label">남은 시간</span>
-              <span id="mock-balance-predict-vote-deadline" class="mock-balance-predict-vote-timer mock-balance-predict-vote-timer--muted">—</span>
+              <span id="mock-balance-predict-vote-deadline" class="mock-balance-predict-vote-timer mock-balance-predict-vote-timer--muted">마감까지 —</span>
             </div>
             <div class="mock-predict-live-meter" id="mock-balance-predict-live-meter" aria-live="polite">
               <div class="mock-predict-live-stat-row mock-predict-live-odds-row">
