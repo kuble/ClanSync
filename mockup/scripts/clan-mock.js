@@ -454,7 +454,21 @@
         });
         sorted.slice(0, 5).forEach(function (post) {
           var pin = document.createElement("div");
-          pin.className = "notice-pin";
+          pin.className = "notice-pin dash-notice-pin--clickable";
+          pin.setAttribute("role", "button");
+          pin.setAttribute("tabindex", "0");
+          pin.setAttribute("aria-label", (post.title || "공지") + " 전체 보기");
+          (function (pid) {
+            pin.onclick = function () {
+              window.mockDashOpenNoticeReadModal(pid);
+            };
+            pin.onkeydown = function (ev) {
+              if (ev.key === "Enter" || ev.key === " ") {
+                ev.preventDefault();
+                window.mockDashOpenNoticeReadModal(pid);
+              }
+            };
+          })(post.id);
           var icon = document.createElement("div");
           icon.className = "notice-pin-icon";
           icon.textContent = "🔔";
@@ -494,8 +508,88 @@
       } catch (eR) {
         rulesEl.textContent = "규칙을 불러오지 못했습니다.";
       }
+      rulesEl.onclick = function () {
+        if (typeof window.mockDashOpenRulesReadModal === "function") {
+          window.mockDashOpenRulesReadModal();
+        }
+      };
+      rulesEl.onkeydown = function (ev) {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          if (typeof window.mockDashOpenRulesReadModal === "function") {
+            window.mockDashOpenRulesReadModal();
+          }
+        }
+      };
     }
   }
+
+  window.mockDashNoticeReadModalClose = function () {
+    var modal = document.getElementById("mock-dash-notice-read-modal");
+    if (modal) {
+      modal.setAttribute("hidden", "");
+      modal.setAttribute("aria-hidden", "true");
+    }
+    return false;
+  };
+
+  window.mockDashOpenNoticeReadModal = function (postId) {
+    if (!postId) return false;
+    var posts = mockClanNoticePostsGetAll();
+    var post = null;
+    for (var i = 0; i < posts.length; i++) {
+      if (posts[i].id === postId) {
+        post = posts[i];
+        break;
+      }
+    }
+    var modal = document.getElementById("mock-dash-notice-read-modal");
+    var titleEl = document.getElementById("mock-dash-notice-read-title");
+    var metaEl = document.getElementById("mock-dash-notice-read-meta");
+    var bodyEl = document.getElementById("mock-dash-notice-read-body");
+    if (!modal || !titleEl || !bodyEl) return false;
+    if (!post) {
+      titleEl.textContent = "공지를 찾을 수 없습니다";
+      if (metaEl) metaEl.textContent = "";
+      bodyEl.textContent = "";
+    } else {
+      titleEl.textContent = post.title || "(제목 없음)";
+      var d = post.updatedAt || post.createdAt || "";
+      try {
+        if (metaEl) metaEl.textContent = d ? "게시: " + new Date(d).toLocaleString("ko-KR") : "";
+      } catch (eM) {
+        if (metaEl) metaEl.textContent = "";
+      }
+      bodyEl.textContent = post.body || "";
+    }
+    modal.removeAttribute("hidden");
+    modal.setAttribute("aria-hidden", "false");
+    return false;
+  };
+
+  window.mockDashRulesReadModalClose = function () {
+    var modal = document.getElementById("mock-dash-rules-read-modal");
+    if (modal) {
+      modal.setAttribute("hidden", "");
+      modal.setAttribute("aria-hidden", "true");
+    }
+    return false;
+  };
+
+  window.mockDashOpenRulesReadModal = function () {
+    var modal = document.getElementById("mock-dash-rules-read-modal");
+    var bodyEl = document.getElementById("mock-dash-rules-read-body");
+    if (!modal || !bodyEl) return false;
+    var t = "";
+    try {
+      var rv = localStorage.getItem(MOCK_CLAN_RULES_KEY);
+      t = rv != null ? String(rv).trim() : "";
+    } catch (eR2) {}
+    bodyEl.textContent = t || "아직 등록된 규칙이 없습니다.";
+    modal.removeAttribute("hidden");
+    modal.setAttribute("aria-hidden", "false");
+    return false;
+  };
 
   window.mockClanNoticePostModalOpen = function (id) {
     var modal = document.getElementById("mock-clan-notice-post-modal");

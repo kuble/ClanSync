@@ -123,6 +123,28 @@
 .notice-pin-body { flex: 1; }
 .notice-pin-title { font-weight: 600; margin-bottom: 2px; }
 .notice-pin-time { font-size: 11px; color: var(--text-muted); }
+.dash-notice-pin--clickable {
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: background 0.15s ease;
+}
+.dash-notice-pin--clickable:hover { background: rgba(124, 58, 237, 0.08); }
+.dash-notice-pin--clickable:focus-visible {
+  outline: 2px solid var(--brand-secondary);
+  outline-offset: 2px;
+}
+#dash-rules-body.dash-rules-hit {
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+  padding: 6px 8px;
+  margin: -6px -8px;
+}
+#dash-rules-body.dash-rules-hit:hover { background: rgba(124, 58, 237, 0.08); }
+#dash-rules-body.dash-rules-hit:focus-visible {
+  outline: 2px solid var(--brand-secondary);
+  outline-offset: 2px;
+}
 
 /* ── Bento 대시보드 그리드 (3열 · 대시보드 전용 스팬) ── */
 .dashboard-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
@@ -3924,7 +3946,7 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
     <div class="d-card d-card-md dash-span-2" style="border-color:rgba(124,58,237,0.3)">
       <div class="d-card-label">
         📌 클랜 공지사항
-        <a href="#manage" class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 10px;text-decoration:none" onclick="return clanGo('manage', document.querySelector('a.clan-nav[href=\'#manage\']'))">공지 관리</a>
+        <a href="#manage" class="btn btn-secondary btn-sm mock-officer-only" style="font-size:11px;padding:3px 10px;text-decoration:none" onclick="return clanGo('manage', document.querySelector('a.clan-nav[href=\'#manage\']'))">공지 관리</a>
       </div>
       <div id="dash-notice-posts" style="max-height:280px;overflow-y:auto"></div>
     </div>
@@ -3932,9 +3954,9 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
     <div class="d-card d-card-sm">
       <div class="d-card-label">
         📋 클랜 규칙
-        <a href="#manage" class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 10px;text-decoration:none" onclick="return clanGo('manage', document.querySelector('a.clan-nav[href=\'#manage\']'))">✏️ 편집</a>
+        <a href="#manage" class="btn btn-secondary btn-sm mock-officer-only" style="font-size:11px;padding:3px 10px;text-decoration:none" onclick="return clanGo('manage', document.querySelector('a.clan-nav[href=\'#manage\']'))">✏️ 편집</a>
       </div>
-      <div id="dash-rules-body" style="font-size:13px;color:var(--text-secondary);white-space:pre-wrap;max-height:220px;overflow-y:auto;line-height:1.55"></div>
+      <div id="dash-rules-body" class="dash-rules-hit" style="font-size:13px;color:var(--text-secondary);white-space:pre-wrap;max-height:220px;overflow-y:auto;line-height:1.55" role="button" tabindex="0" aria-label="클랜 규칙 전체 보기"></div>
     </div>
 
     <!-- 2행: 다가오는 일정 2칸 | 배지 1칸 -->
@@ -6441,6 +6463,29 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
         <span style="flex:1"></span>
         <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockClanNoticePostModalClose()">취소</button>
         <button type="button" class="btn btn-sm" onclick="return window.mockClanNoticePostModalSave()">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 대시보드: 공지 읽기(전용 모달) -->
+  <div id="mock-dash-notice-read-modal" class="mock-modal-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="mock-dash-notice-read-title" aria-modal="true" onclick="if(event.target===this)window.mockDashNoticeReadModalClose()">
+    <div class="mock-modal-card" style="max-width:560px;width:calc(100% - 32px);box-sizing:border-box;max-height:min(85vh,640px);display:flex;flex-direction:column" onclick="event.stopPropagation()">
+      <h3 id="mock-dash-notice-read-title" style="margin:0 0 8px;font-size:17px">제목</h3>
+      <p id="mock-dash-notice-read-meta" style="margin:0 0 14px;font-size:12px;color:var(--text-muted)"></p>
+      <div id="mock-dash-notice-read-body" style="flex:1;overflow:auto;font-size:14px;line-height:1.6;color:var(--text-secondary);white-space:pre-wrap;min-height:80px"></div>
+      <div class="mock-modal-actions" style="margin-top:16px">
+        <button type="button" class="btn btn-sm" onclick="return window.mockDashNoticeReadModalClose()">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 대시보드: 클랜 규칙 읽기(전용 모달) -->
+  <div id="mock-dash-rules-read-modal" class="mock-modal-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="mock-dash-rules-read-title" aria-modal="true" onclick="if(event.target===this)window.mockDashRulesReadModalClose()">
+    <div class="mock-modal-card" style="max-width:560px;width:calc(100% - 32px);box-sizing:border-box;max-height:min(85vh,640px);display:flex;flex-direction:column" onclick="event.stopPropagation()">
+      <h3 id="mock-dash-rules-read-title" style="margin:0 0 14px;font-size:17px">클랜 규칙</h3>
+      <div id="mock-dash-rules-read-body" style="flex:1;overflow:auto;font-size:14px;line-height:1.6;color:var(--text-secondary);white-space:pre-wrap;min-height:80px"></div>
+      <div class="mock-modal-actions" style="margin-top:16px">
+        <button type="button" class="btn btn-sm" onclick="return window.mockDashRulesReadModalClose()">닫기</button>
       </div>
     </div>
   </div>
