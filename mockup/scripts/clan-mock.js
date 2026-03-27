@@ -254,6 +254,16 @@
         window.mockStatsSetSection(sb, "summary");
       }
     }
+    try {
+      var seedEl = document.getElementById("mock-bracket-seed");
+      if (seedEl && typeof window.mockBracketSeedSync === "function") {
+        window.mockBracketSeedSync(seedEl);
+      }
+      var fmtEl = document.getElementById("mock-bracket-format");
+      if (fmtEl && typeof window.mockBracketFormatHintSync === "function") {
+        window.mockBracketFormatHintSync(fmtEl);
+      }
+    } catch (eBracketHint) {}
     syncFromHash();
   });
   window.addEventListener("hashchange", syncFromHash);
@@ -375,6 +385,37 @@
     tag.textContent = btn.textContent.trim() || name;
     roster.appendChild(tag);
     return false;
+  };
+
+  /** 대진표: 시드 방식 — 2단계 힌트와 연동 */
+  window.mockBracketSeedSync = function (sel) {
+    var hint = document.getElementById("mock-bracket-seed-hint");
+    if (!hint || !sel) return;
+    var v = sel.value;
+    if (v === "manual") {
+      hint.textContent =
+        "팀 카드 순서·이름이 그대로 시드가 됩니다. 아래에서 팀명·멤버를 직접 배치합니다.";
+    } else if (v === "random") {
+      hint.textContent =
+        "대진 시드 순서는 무작위로 섞입니다. 팀 로스터 구성은 그대로 두고, 대진표 생성 시 반영됩니다(목업).";
+    } else if (v === "mmr") {
+      hint.textContent =
+        "팀별 멤버 MMR 합을 기준으로 시드 순위가 정해집니다. 팀 로스터를 먼저 채운 뒤 대진표 생성에 반영됩니다(목업).";
+    }
+  };
+
+  /** 대진표: 1단계 대회 형식 — 미리보기 하단 문구와 연동 */
+  window.mockBracketFormatHintSync = function (sel) {
+    var foot = document.getElementById("mock-bracket-format-footnote");
+    if (!foot || !sel) return;
+    var v = sel.value;
+    if (v === "single") {
+      foot.textContent = "싱글 엘리: 패자 탈락. 더블·리그는 형식에 따라 동일 영역에 확장(목업).";
+    } else if (v === "double") {
+      foot.textContent = "더블 엘리: 패자조·승자조가 같은 영역에 확장됩니다(목업).";
+    } else if (v === "rr") {
+      foot.textContent = "라운드 로빈: 순위표·대진이 리그 형식으로 표시됩니다(목업).";
+    }
   };
 
   /* 스토어: 클랜 / 개인 */

@@ -4432,18 +4432,28 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
           <div class="mock-bracket-step-head">
             <span class="mock-bracket-step-num">1</span>
             <div>
-              <h3 class="mock-bracket-step-title">참가 팀 수</h3>
-              <p class="mock-bracket-step-desc">토너먼트에 참가할 팀 개수를 고릅니다. 목업은 최대 4팀 카드만 표시합니다(8·16팀은 동일 패턴으로 확장).</p>
+              <h3 class="mock-bracket-step-title">참가 팀 수·대회 형식</h3>
+              <p class="mock-bracket-step-desc">토너먼트 규모와 싱글/더블 엘리·리그 등 형식을 정합니다. 목업은 최대 4팀 카드만 표시합니다(8·16팀은 동일 패턴으로 확장).</p>
             </div>
           </div>
-          <div class="mock-modal-field" style="margin-bottom:0">
-            <label for="mock-bracket-team-count">팀 수</label>
-            <select id="mock-bracket-team-count" onchange="window.mockBracketSetTeamCount(this)">
-              <option value="2">2팀</option>
-              <option value="4" selected>4팀</option>
-              <option value="8">8팀</option>
-              <option value="16">16팀</option>
-            </select>
+          <div class="mock-bracket-controls" style="margin-bottom:0">
+            <div class="mock-modal-field">
+              <label for="mock-bracket-team-count">팀 수</label>
+              <select id="mock-bracket-team-count" onchange="window.mockBracketSetTeamCount(this)">
+                <option value="2">2팀</option>
+                <option value="4" selected>4팀</option>
+                <option value="8">8팀</option>
+                <option value="16">16팀</option>
+              </select>
+            </div>
+            <div class="mock-modal-field">
+              <label for="mock-bracket-format">대회 형식</label>
+              <select id="mock-bracket-format" onchange="window.mockBracketFormatHintSync(this)">
+                <option value="single">싱글 엘리미네이션</option>
+                <option value="double">더블 엘리미네이션</option>
+                <option value="rr">라운드 로빈 (리그)</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -4452,9 +4462,18 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
             <span class="mock-bracket-step-num">2</span>
             <div>
               <h3 class="mock-bracket-step-title">팀 이름·플레이어 선택</h3>
-              <p class="mock-bracket-step-desc">팀 이름을 입력합니다. <strong>멤버를 넣을 팀</strong>을 고른 뒤 공용 플레이어 풀(밸런스메이커와 동일 UI)에서 칩을 누르면 아래 해당 팀 로스터에 반영됩니다. 한 사람은 한 팀에만 속하며, 다른 팀에 넣으면 이전 팀에서 빠집니다.</p>
+              <p class="mock-bracket-step-desc">팀 이름을 입력합니다. <strong>시드 방식</strong>에 따라 시드가 정해지는 규칙이 달라집니다(아래 연동 문구 참고). <strong>멤버를 넣을 팀</strong>을 고른 뒤 공용 플레이어 풀(밸런스메이커와 동일 UI)에서 칩을 누르면 해당 팀 로스터에 반영됩니다. 한 사람은 한 팀에만 속하며, 다른 팀에 넣으면 이전 팀에서 빠집니다.</p>
             </div>
           </div>
+          <div class="mock-modal-field" style="margin-bottom:0">
+            <label for="mock-bracket-seed">시드 방식</label>
+            <select id="mock-bracket-seed" onchange="window.mockBracketSeedSync(this)" aria-describedby="mock-bracket-seed-hint">
+              <option value="manual" selected>수동 배치</option>
+              <option value="random">랜덤</option>
+              <option value="mmr">MMR 순</option>
+            </select>
+          </div>
+          <p id="mock-bracket-seed-hint" class="mock-modal-hint" style="margin:8px 0 14px;font-size:12px;line-height:1.5;color:var(--text-muted)">팀 카드 순서·이름이 그대로 시드가 됩니다. 아래에서 팀명·멤버를 직접 배치합니다.</p>
           <div class="mock-bracket-active-team-row" role="radiogroup" aria-label="멤버를 넣을 팀">
             <span>멤버를 넣을 팀</span>
             <label id="mock-bracket-active-label-1"><input type="radio" name="mock-bracket-active-team" value="1" checked /> 팀 1</label>
@@ -4501,22 +4520,8 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
           <div class="mock-bracket-step-head">
             <span class="mock-bracket-step-num">3</span>
             <div>
-              <h3 class="mock-bracket-step-title">대회 형식</h3>
-              <p class="mock-bracket-step-desc">팀 구성이 끝난 뒤 싱글/더블 엘리·리그 등 형식을 선택합니다.</p>
-            </div>
-          </div>
-          <div class="mock-bracket-controls" style="margin-bottom:0">
-            <div class="mock-modal-field"><label for="mock-bracket-format">대회 형식</label><select id="mock-bracket-format"><option>싱글 엘리미네이션</option><option>더블 엘리미네이션</option><option>라운드 로빈 (리그)</option></select></div>
-            <div class="mock-modal-field"><label for="mock-bracket-seed">시드 방식</label><select id="mock-bracket-seed"><option>랜덤</option><option>MMR 순</option><option>수동 배치</option></select></div>
-          </div>
-        </div>
-
-        <div class="mock-bracket-step">
-          <div class="mock-bracket-step-head">
-            <span class="mock-bracket-step-num">4</span>
-            <div>
               <h3 class="mock-bracket-step-title">대진 수동 조정</h3>
-              <p class="mock-bracket-step-desc">자동 배치된 대진 위치를 바꿉니다. 적용 후 5단계에서 미리보기가 갱신됩니다(목업).</p>
+              <p class="mock-bracket-step-desc">자동 배치된 대진 위치를 바꿉니다. 적용 후 대진표 생성 단계에서 미리보기가 갱신됩니다(목업).</p>
             </div>
           </div>
           <div class="mock-modal-field" style="margin-bottom:8px">
@@ -4528,7 +4533,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
 
         <div class="mock-bracket-step">
           <div class="mock-bracket-step-head">
-            <span class="mock-bracket-step-num">5</span>
+            <span class="mock-bracket-step-num">4</span>
             <div>
               <h3 class="mock-bracket-step-title">대진표 생성</h3>
               <p class="mock-bracket-step-desc">설정을 반영해 대진표를 그립니다. 내보내기(이미지·링크)는 목업입니다.</p>
@@ -4566,13 +4571,13 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                 </div>
               </div>
             </div>
-            <p style="font-size:11px;color:var(--text-muted);margin:10px 0 0">더블 엘리 패자조·리그 순위표는 형식에 따라 동일 영역에 확장(목업).</p>
+            <p id="mock-bracket-format-footnote" style="font-size:11px;color:var(--text-muted);margin:10px 0 0">싱글 엘리: 패자 탈락. 더블·리그는 형식에 따라 동일 영역에 확장(목업).</p>
           </div>
         </div>
 
         <div class="mock-bracket-step">
           <div class="mock-bracket-step-head">
-            <span class="mock-bracket-step-num">6</span>
+            <span class="mock-bracket-step-num">5</span>
             <div>
               <h3 class="mock-bracket-step-title">경기 종료 시 승리 팀 선택</h3>
               <p class="mock-bracket-step-desc">각 경기가 끝날 때마다 승자를 기록해 다음 라운드로 진행합니다(밸런스 경기 진행의 승자 선택과 유사).</p>
