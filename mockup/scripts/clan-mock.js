@@ -3765,6 +3765,28 @@
     mockStatsArchiveNormalizeSelection(intra);
   }
 
+  /**
+   * 추가·삽입·삭제 후 캘린더가 예전 주/날짜에 고정되면 새 경기가 안 보이고 승률도 안 바뀜 → 최신 내전 날짜로 스냅
+   */
+  function mockStatsArchiveSnapToLatestIntraDay(intra) {
+    if (!intra || intra.length === 0) {
+      window.__mockStatsArchiveCal = null;
+      window.__mockStatsArchiveAsOfAt = null;
+      return;
+    }
+    var sorted = intra.slice().sort(function (a, b) {
+      return new Date(b.at) - new Date(a.at);
+    });
+    var keyLatest = mockStatsDayKey(sorted[0].at);
+    if (!window.__mockStatsArchiveCal) {
+      window.__mockStatsArchiveCal = {};
+    }
+    window.__mockStatsArchiveCal.weekStartUtcMs =
+      mockStatsUtcMondayMsFromDayKey(keyLatest);
+    window.__mockStatsArchiveCal.selectedKey = keyLatest;
+    window.__mockStatsArchiveAsOfAt = null;
+  }
+
   /** 상단: 주간 캘린더만 */
   function mockStatsArchiveBuildCalHtml(intra) {
     var cal = window.__mockStatsArchiveCal;
@@ -3858,7 +3880,7 @@
       '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsLeaderIntraInsert()">삽입</button>' +
       '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsLeaderIntraEdit()">수정</button>' +
       '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsLeaderIntraDelete()">삭제</button>' +
-      '<span class="mock-stats-archive-leader-hint">승률 순위는 카드로 선택한 경기 <strong>시점까지</strong> 누적 집계됩니다. 편집은 선택 경기 기준(목업).</span>' +
+      '<span class="mock-stats-archive-leader-hint">승률 순위: 카드를 클릭해 그 경기 <strong>시점까지</strong> 누적 집계(히스토리). 추가·삽입·삭제 후에는 최신 내전이 있는 날짜로 캘린더가 맞춰집니다(목업).</span>' +
       "</div>"
     );
   }
@@ -3955,8 +3977,18 @@
     window.mockStatsRender();
   };
 
+  function mockStatsLeaderGuardOrAlert() {
+    if (window.mockClanCurrentRole() !== "leader") {
+      window.alert(
+        "목업: 경기 추가·삽입·수정·삭제는 클랜장만 가능합니다. URL에 ?role=leader 를 넣거나 허브에서 역할을 클랜장으로 바꿔 주세요.",
+      );
+      return false;
+    }
+    return true;
+  }
+
   window.mockStatsLeaderIntraAdd = function () {
-    if (window.mockClanCurrentRole() !== "leader") return false;
+    if (!mockStatsLeaderGuardOrAlert()) return false;
     CLAN_STATS_MATCHES.unshift({
       at: new Date().toISOString(),
       type: "intra",
@@ -3966,14 +3998,18 @@
       score: "3-0",
     });
     mockStatsFillRosters(CLAN_STATS_MATCHES);
-    window.__mockStatsArchiveAsOfAt = null;
+    mockStatsArchiveSnapToLatestIntraDay(
+      CLAN_STATS_MATCHES.filter(function (m) {
+        return m.type === "intra";
+      }),
+    );
     window.mockStatsRender();
-    window.alert("목업: 내전 경기를 추가했습니다.");
+    window.alert("목업: 내전 경기를 추가했습니다. 캘린더가 해당 경기 날짜(주)로 맞춰졌습니다.");
     return false;
   };
 
   window.mockStatsLeaderIntraInsert = function () {
-    if (window.mockClanCurrentRole() !== "leader") return false;
+    if (!mockStatsLeaderGuardOrAlert()) return false;
     var at = window.__mockStatsArchiveAsOfAt;
     if (!at) {
       window.alert("목업: 먼저 카드를 선택해 주세요.");
@@ -3995,14 +4031,18 @@
       score: "2-3",
     });
     mockStatsFillRosters(CLAN_STATS_MATCHES);
-    window.__mockStatsArchiveAsOfAt = null;
+    mockStatsArchiveSnapToLatestIntraDay(
+      CLAN_STATS_MATCHES.filter(function (m) {
+        return m.type === "intra";
+      }),
+    );
     window.mockStatsRender();
-    window.alert("목업: 선택한 경기 다음 위치에 삽입했습니다.");
+    window.alert("목업: 선택한 경기 다음 위치에 삽입했습니다. 캘린더가 최신 내전 날짜로 맞춰졌습니다.");
     return false;
   };
 
   window.mockStatsLeaderIntraEdit = function () {
-    if (window.mockClanCurrentRole() !== "leader") return false;
+    if (!mockStatsLeaderGuardOrAlert()) return false;
     var at = window.__mockStatsArchiveAsOfAt;
     if (!at) {
       window.alert("목업: 먼저 카드를 선택해 주세요.");
@@ -4028,7 +4068,7 @@
   };
 
   window.mockStatsLeaderIntraDelete = function () {
-    if (window.mockClanCurrentRole() !== "leader") return false;
+    if (!mockStatsLeaderGuardOrAlert()) return false;
     var at = window.__mockStatsArchiveAsOfAt;
     if (!at) {
       window.alert("목업: 먼저 카드를 선택해 주세요.");
@@ -4041,7 +4081,11 @@
     if (!window.confirm("목업: 이 경기를 삭제할까요?")) return false;
     CLAN_STATS_MATCHES.splice(idx, 1);
     mockStatsFillRosters(CLAN_STATS_MATCHES);
-    window.__mockStatsArchiveAsOfAt = null;
+    mockStatsArchiveSnapToLatestIntraDay(
+      CLAN_STATS_MATCHES.filter(function (m) {
+        return m.type === "intra";
+      }),
+    );
     window.mockStatsRender();
     return false;
   };
