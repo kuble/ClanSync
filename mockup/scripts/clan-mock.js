@@ -922,7 +922,10 @@
     var lineup = document.getElementById("mock-balance-wf-lineup");
     if (!lineup || lineup.hidden) return;
     if (window.mockClanCurrentPlan && window.mockClanCurrentPlan() !== "premium") return;
-    var open = _mockPredictVoteDeadlineMs && Date.now() < _mockPredictVoteDeadlineMs;
+    /* 배치 완료 전에는 마감 시각이 없음 → 비활성화하지 않음(목업 탐색). 마감 시각이 있고 지난 경우만 잠금 */
+    var voteClosed =
+      _mockPredictVoteDeadlineMs && Date.now() >= _mockPredictVoteDeadlineMs;
+    var open = !voteClosed;
     document.querySelectorAll(".mock-balance-predict-vote-btn").forEach(function (b) {
       b.disabled = !open;
     });
