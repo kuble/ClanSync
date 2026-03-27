@@ -328,14 +328,17 @@
 .mock-balance-edit-workspace {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   gap: 16px;
   align-items: stretch;
+  align-content: flex-start;
   margin: 0 0 12px;
   min-width: 0;
 }
 .mock-balance-edit-main-col {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
+  order: 1;
   display: flex;
   flex-direction: column;
 }
@@ -352,6 +355,7 @@
   width: min(270px, 34%);
   max-width: 270px;
   min-width: 0;
+  order: 2;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -469,8 +473,19 @@
 @media (max-width: 960px) {
   .mock-balance-edit-workspace {
     flex-direction: column;
+    flex-wrap: nowrap;
+  }
+  .mock-balance-edit-main-col {
+    flex: none;
+    width: 100%;
+  }
+  .mock-balance-pool-col--below {
+    order: 2;
+    flex: none;
+    width: 100%;
   }
   .mock-balance-ref-rail {
+    order: 3;
     flex: none;
     width: 100%;
     max-width: none;
@@ -699,8 +714,11 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   min-height: 200px;
 }
 .mock-balance-pool-col--below {
+  flex: 1 1 100%;
+  min-width: 0;
+  order: 3;
   max-height: 288px;
-  margin-top: 12px;
+  margin-top: 0;
   min-height: 0;
 }
 .mock-balance-pool-col--below .mock-balance-pool-grid {
@@ -3507,7 +3525,6 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                   </button>
                 </div>
               </div>
-            </div>
 
             <aside class="mock-balance-pool-col mock-balance-pool-col--below" aria-label="클랜원 풀">
               <div class="mock-balance-pool-head" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
@@ -3539,6 +3556,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                 <button type="button" class="mock-balance-pool-chip" data-name="roniel" onclick="return window.mockBalancePoolChipClick(this)">RONIEL</button>
               </div>
             </aside>
+            </div>
 
           </div>
         </div>
