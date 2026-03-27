@@ -663,57 +663,22 @@
   margin-bottom: 8px;
   color: var(--text-secondary);
 }
-.mock-bracket-seed-order-panel {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  background: var(--bg-overlay);
-  padding: 12px 14px;
-  margin-bottom: 14px;
-}
-.mock-bracket-seed-order-title {
-  font-size: 12px;
-  font-weight: 700;
-  margin: 0 0 10px;
-  color: var(--text-secondary);
-}
-.mock-bracket-seed-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-  cursor: default;
-  border-radius: var(--radius-md);
-  transition: background 0.15s ease, box-shadow 0.15s ease;
-}
-.mock-bracket-seed-row:last-child {
-  border-bottom: none;
-}
-.mock-bracket-seed-rank {
-  width: 56px;
-  flex-shrink: 0;
-  color: var(--text-muted);
-  font-size: 11px;
-  font-weight: 600;
-}
-.mock-bracket-seed-name {
-  flex: 1;
-  min-width: 0;
-  font-weight: 600;
-}
-.mock-bracket-seed-order-panel[data-seed-manual="1"] .mock-bracket-seed-row {
+/* 대진 미리보기: 수동 시드 — 슬롯 드래그·클릭 (mock-bracket-board[data-seed-manual]) */
+.mock-bracket-board[data-seed-manual="1"] .mock-bracket-teamline--seed-slot {
   cursor: grab;
 }
-.mock-bracket-seed-order-panel[data-seed-manual="1"] .mock-bracket-seed-row:active {
+.mock-bracket-board[data-seed-manual="1"] .mock-bracket-teamline--seed-slot:active {
   cursor: grabbing;
 }
-.mock-bracket-seed-row.mock-bracket-seed-row-selected {
-  background: rgba(124, 58, 237, 0.14);
-  box-shadow: inset 0 0 0 1px rgba(167, 139, 250, 0.45);
+.mock-bracket-teamline--seed-slot.mock-bracket-seed-slot-selected {
+  box-shadow: inset 0 0 0 1px rgba(232, 212, 139, 0.65);
+  background: rgba(201, 162, 39, 0.12);
 }
-.mock-bracket-seed-row.mock-bracket-seed-dragging {
+.mock-bracket-teamline--seed-slot.mock-bracket-seed-slot-dragging {
   opacity: 0.55;
+}
+.mock-bracket-board[data-seed-manual="0"] .mock-bracket-teamline--seed-slot {
+  cursor: default;
 }
 .mock-bracket-step-foot {
   margin-top: 12px;
@@ -4731,7 +4696,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
             <span class="mock-bracket-step-num">3</span>
             <div>
               <h3 class="mock-bracket-step-title">대진표 생성</h3>
-              <p class="mock-bracket-step-desc">시드 방식을 고르고, 수동 배치일 때는 <strong>시드 순서</strong>를 행 드래그·클릭 이동·↑↓로 바꿉니다. 팀 이름은 2단계 입력값과 실시간 연동됩니다. <strong>대진표 생성</strong>을 누르면 다음 단계(경기 결과)가 열립니다(목업).</p>
+              <p class="mock-bracket-step-desc">시드 방식을 고릅니다. 수동 배치일 때는 <strong>아래 대진 미리보기</strong>의 1라운드(쿼터) 팀 칸을 드래그하거나, 칸을 한 번 누른 뒤 다른 칸을 누르면 두 순위가 맞바뀝니다. 팀 이름은 2단계 입력과 실시간 연동됩니다. <strong>대진표 생성</strong>을 누르면 다음 단계(경기 결과)가 열립니다(목업).</p>
             </div>
           </div>
           <div class="mock-modal-field" style="margin-bottom:0">
@@ -4742,35 +4707,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
               <option value="mmr">MMR 순</option>
             </select>
           </div>
-          <p id="mock-bracket-seed-hint" class="mock-modal-hint" style="margin:8px 0 14px;font-size:12px;line-height:1.5;color:var(--text-muted)">아래 시드 순서에서 ↑↓로 직접 바꿉니다. 팀 이름은 2단계 카드와 동일합니다.</p>
-          <div id="mock-bracket-seed-order-panel" class="mock-bracket-seed-order-panel" aria-label="시드 순서 직접 조정" data-seed-manual="1" role="list">
-            <div class="mock-bracket-seed-order-title">시드 순서 직접 조정</div>
-            <p id="mock-bracket-seed-interact-hint" class="mock-modal-hint" style="margin:-4px 0 10px;font-size:11px;line-height:1.45;color:var(--text-muted)">수동 배치: 행을 드래그하거나, 행을 한 번 눌러 선택한 뒤 이동할 순위 행을 누르면 그 자리로 옮깁니다. ↑↓ 버튼도 사용할 수 있습니다.</p>
-            <div id="mock-bracket-seed-row-0" class="mock-bracket-seed-row" data-seed-row="0" role="listitem">
-              <span class="mock-bracket-seed-rank">1순위</span>
-              <span id="mock-bracket-seed-label-0" class="mock-bracket-seed-name">파란 팀</span>
-              <button type="button" class="btn btn-secondary btn-sm mock-bracket-seed-swap-btn" onclick="return window.mockBracketSeedRowUp(0)" aria-label="위로">↑</button>
-              <button type="button" class="btn btn-secondary btn-sm mock-bracket-seed-swap-btn" onclick="return window.mockBracketSeedRowDown(0)" aria-label="아래로">↓</button>
-            </div>
-            <div id="mock-bracket-seed-row-1" class="mock-bracket-seed-row" data-seed-row="1" role="listitem">
-              <span class="mock-bracket-seed-rank">2순위</span>
-              <span id="mock-bracket-seed-label-1" class="mock-bracket-seed-name">빨간 팀</span>
-              <button type="button" class="btn btn-secondary btn-sm mock-bracket-seed-swap-btn" onclick="return window.mockBracketSeedRowUp(1)" aria-label="위로">↑</button>
-              <button type="button" class="btn btn-secondary btn-sm mock-bracket-seed-swap-btn" onclick="return window.mockBracketSeedRowDown(1)" aria-label="아래로">↓</button>
-            </div>
-            <div id="mock-bracket-seed-row-2" class="mock-bracket-seed-row" data-seed-row="2" role="listitem">
-              <span class="mock-bracket-seed-rank">3순위</span>
-              <span id="mock-bracket-seed-label-2" class="mock-bracket-seed-name">초록 팀</span>
-              <button type="button" class="btn btn-secondary btn-sm mock-bracket-seed-swap-btn" onclick="return window.mockBracketSeedRowUp(2)" aria-label="위로">↑</button>
-              <button type="button" class="btn btn-secondary btn-sm mock-bracket-seed-swap-btn" onclick="return window.mockBracketSeedRowDown(2)" aria-label="아래로">↓</button>
-            </div>
-            <div id="mock-bracket-seed-row-3" class="mock-bracket-seed-row" data-seed-row="3" role="listitem">
-              <span class="mock-bracket-seed-rank">4순위</span>
-              <span id="mock-bracket-seed-label-3" class="mock-bracket-seed-name">노랑 팀</span>
-              <button type="button" class="btn btn-secondary btn-sm mock-bracket-seed-swap-btn" onclick="return window.mockBracketSeedRowUp(3)" aria-label="위로">↑</button>
-              <button type="button" class="btn btn-secondary btn-sm mock-bracket-seed-swap-btn" onclick="return window.mockBracketSeedRowDown(3)" aria-label="아래로">↓</button>
-            </div>
-          </div>
+          <p id="mock-bracket-seed-hint" class="mock-modal-hint" style="margin:8px 0 14px;font-size:12px;line-height:1.5;color:var(--text-muted)">수동 배치: 아래 대진 미리보기 1라운드 팀 칸에서 드래그하거나, 한 칸을 누른 뒤 다른 칸을 눌러 순위를 맞바꿉니다.</p>
           <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
             <button type="button" class="btn btn-sm" onclick="if(window.mockBracketGenerateClick)window.mockBracketGenerateClick()">대진표 생성</button>
             <button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업: 이미지 또는 공유 링크로 내보냅니다.')">내보내기</button>
@@ -4792,11 +4729,11 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                         <span class="mock-bracket-match__game">Game 1</span>
                         <span class="mock-bracket-match__date">목업</span>
                       </div>
-                      <div class="mock-bracket-teamline">
+                      <div id="mock-bracket-seed-slot-qfa" class="mock-bracket-teamline mock-bracket-teamline--seed-slot" data-seed-o-idx="0">
                         <span class="mock-bracket-teamlogo" aria-hidden="true"></span>
                         <span id="mock-bracket-prev-qf-a" class="mock-bracket-teamname">파란 팀</span>
                       </div>
-                      <div class="mock-bracket-teamline">
+                      <div id="mock-bracket-seed-slot-qfb" class="mock-bracket-teamline mock-bracket-teamline--seed-slot" data-seed-o-idx="3">
                         <span class="mock-bracket-teamlogo" aria-hidden="true"></span>
                         <span id="mock-bracket-prev-qf-b" class="mock-bracket-teamname">노랑 팀</span>
                       </div>
@@ -4806,11 +4743,11 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                         <span class="mock-bracket-match__game">Game 2</span>
                         <span class="mock-bracket-match__date">목업</span>
                       </div>
-                      <div class="mock-bracket-teamline">
+                      <div id="mock-bracket-seed-slot-qfc" class="mock-bracket-teamline mock-bracket-teamline--seed-slot" data-seed-o-idx="1">
                         <span class="mock-bracket-teamlogo" aria-hidden="true"></span>
                         <span id="mock-bracket-prev-qf-c" class="mock-bracket-teamname">빨간 팀</span>
                       </div>
-                      <div class="mock-bracket-teamline">
+                      <div id="mock-bracket-seed-slot-qfd" class="mock-bracket-teamline mock-bracket-teamline--seed-slot" data-seed-o-idx="2">
                         <span class="mock-bracket-teamlogo" aria-hidden="true"></span>
                         <span id="mock-bracket-prev-qf-d" class="mock-bracket-teamname">초록 팀</span>
                       </div>

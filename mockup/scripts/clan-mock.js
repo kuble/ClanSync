@@ -255,8 +255,8 @@
       }
     }
     try {
-      if (typeof mockBracketAttachSeedInteractions === "function") {
-        mockBracketAttachSeedInteractions();
+      if (typeof mockBracketAttachPreviewInteractions === "function") {
+        mockBracketAttachPreviewInteractions();
       }
       var seedEl = document.getElementById("mock-bracket-seed");
       if (seedEl && typeof window.mockBracketSeedSync === "function") {
@@ -304,8 +304,8 @@
       p.style.display = p.getAttribute("data-events-panel") === name ? "" : "none";
     });
     if (name === "bracket") {
-      if (typeof mockBracketAttachSeedInteractions === "function") {
-        mockBracketAttachSeedInteractions();
+      if (typeof mockBracketAttachPreviewInteractions === "function") {
+        mockBracketAttachPreviewInteractions();
       }
       var seedEl = document.getElementById("mock-bracket-seed");
       if (seedEl && typeof window.mockBracketSeedSync === "function") {
@@ -417,138 +417,137 @@
     return false;
   };
 
-  /** 대진표: 시드 방식 — 대진표 생성 단계 힌트·↑↓ 버튼 활성 */
+  /** 대진표: 시드 방식 — 힌트 + 미리보기 슬롯 드래그 가능 여부 */
   window.mockBracketSeedSync = function (sel) {
     var hint = document.getElementById("mock-bracket-seed-hint");
     if (!sel) return;
     var v = sel.value;
-    var manual = v === "manual";
     if (hint) {
       if (v === "manual") {
         hint.textContent =
-          "아래 시드 순서를 조정합니다. 팀 이름은 2단계 입력과 동일하게 반영됩니다. 드래그·클릭 이동·↑↓를 쓸 수 있습니다.";
+          "수동 배치: 아래 대진 미리보기 1라운드 팀 칸에서 드래그하거나, 한 칸을 누른 뒤 다른 칸을 눌러 순위를 맞바꿉니다.";
       } else if (v === "random") {
         hint.textContent =
-          "「대진표 생성」 클릭 시 시드 순서를 무작위로 섞습니다. 수동 배치로 바꾸면 드래그·클릭·↑↓로 조정할 수 있습니다(목업).";
+          "「대진표 생성」 클릭 시 시드 순서를 무작위로 섞습니다. 수동 배치에서는 미리보기 칸으로 대진을 바꿀 수 있습니다(목업).";
       } else if (v === "mmr") {
         hint.textContent =
           "팀별 멤버 MMR 합으로 순위가 정해집니다. 대진표 생성 시 반영됩니다(목업).";
       }
     }
-    document.querySelectorAll(".mock-bracket-seed-swap-btn").forEach(function (b) {
-      b.disabled = !manual;
-      b.style.opacity = manual ? "1" : "0.45";
-    });
-    if (typeof mockBracketSeedApplyDragState === "function") {
-      mockBracketSeedApplyDragState();
+    if (typeof mockBracketPreviewApplyInteractState === "function") {
+      mockBracketPreviewApplyInteractState();
     }
   };
 
-  function mockBracketSeedApplyDragState() {
-    var sel = document.getElementById("mock-bracket-seed");
-    var manual = sel && sel.value === "manual";
-    var panel = document.getElementById("mock-bracket-seed-order-panel");
-    if (panel) panel.setAttribute("data-seed-manual", manual ? "1" : "0");
-    var ih = document.getElementById("mock-bracket-seed-interact-hint");
-    if (ih) ih.style.display = manual ? "" : "none";
-    var capEl = document.getElementById("mock-bracket-team-count");
-    var cap = Math.min(parseInt(capEl && capEl.value, 10) || 4, 4);
-    var r;
-    for (r = 0; r < 4; r++) {
-      var row = document.getElementById("mock-bracket-seed-row-" + r);
-      if (!row) continue;
-      row.draggable = manual && r < cap;
-    }
-  }
-
-  function mockBracketSeedClearSelection() {
-    window.mockBracketSeedSelectedRow = null;
-    document.querySelectorAll(".mock-bracket-seed-row-selected").forEach(function (el) {
-      el.classList.remove("mock-bracket-seed-row-selected");
+  function mockBracketPreviewClearSelection() {
+    window.mockBracketPreviewSelectedOIdx = null;
+    document.querySelectorAll(".mock-bracket-seed-slot-selected").forEach(function (el) {
+      el.classList.remove("mock-bracket-seed-slot-selected");
     });
   }
 
-  window.mockBracketSeedMoveTo = function (fromIdx, toIdx) {
+  /** 시드 배열 o에서 순위 두 칸 맞바꿈 (미리보기 슬롯 연동) */
+  window.mockBracketSeedSwapOIndices = function (ia, ib) {
     var o = window.mockBracketSeedOrderState;
-    if (!o || fromIdx === toIdx || fromIdx < 0 || toIdx < 0 || fromIdx >= o.length || toIdx >= o.length) {
-      return;
-    }
-    o.splice(toIdx, 0, o.splice(fromIdx, 1)[0]);
+    if (!o || ia === ib || ia < 0 || ib < 0 || ia >= o.length || ib >= o.length) return;
+    var t = o[ia];
+    o[ia] = o[ib];
+    o[ib] = t;
     if (typeof window.mockBracketSeedOrderRender === "function") {
       window.mockBracketSeedOrderRender();
     }
-    mockBracketSeedClearSelection();
   };
 
-  function mockBracketAttachSeedInteractions() {
-    var panel = document.getElementById("mock-bracket-seed-order-panel");
-    if (!panel || panel.getAttribute("data-seed-interact-init") === "1") return;
-    panel.setAttribute("data-seed-interact-init", "1");
+  function mockBracketPreviewApplyInteractState() {
+    var sel = document.getElementById("mock-bracket-seed");
+    var manual = sel && sel.value === "manual";
+    var board = document.querySelector(".mock-bracket-board");
+    if (board) board.setAttribute("data-seed-manual", manual ? "1" : "0");
+    document.querySelectorAll(".mock-bracket-teamline--seed-slot").forEach(function (line) {
+      line.draggable = manual;
+    });
+  }
 
-    panel.addEventListener("click", function (e) {
-      if (e.target.closest("button.mock-bracket-seed-swap-btn")) return;
-      var row = e.target.closest(".mock-bracket-seed-row");
-      if (!row || row.style.display === "none") return;
+  function mockBracketUpdateSeedSlotIndices(cap) {
+    var sfa = document.getElementById("mock-bracket-seed-slot-qfa");
+    var sfb = document.getElementById("mock-bracket-seed-slot-qfb");
+    var sfc = document.getElementById("mock-bracket-seed-slot-qfc");
+    var sfd = document.getElementById("mock-bracket-seed-slot-qfd");
+    if (cap === 2) {
+      if (sfa) sfa.setAttribute("data-seed-o-idx", "0");
+      if (sfb) sfb.setAttribute("data-seed-o-idx", "1");
+    } else {
+      if (sfa) sfa.setAttribute("data-seed-o-idx", "0");
+      if (sfb) sfb.setAttribute("data-seed-o-idx", "3");
+      if (sfc) sfc.setAttribute("data-seed-o-idx", "1");
+      if (sfd) sfd.setAttribute("data-seed-o-idx", "2");
+    }
+  }
+
+  function mockBracketAttachPreviewInteractions() {
+    var board = document.querySelector(".mock-bracket-board");
+    if (!board || board.getAttribute("data-preview-interact-init") === "1") return;
+    board.setAttribute("data-preview-interact-init", "1");
+
+    board.addEventListener("click", function (e) {
+      var line = e.target.closest(".mock-bracket-teamline--seed-slot");
+      if (!line) return;
       var sEl = document.getElementById("mock-bracket-seed");
       if (!sEl || sEl.value !== "manual") return;
-      var r = parseInt(row.getAttribute("data-seed-row"), 10);
-      if (isNaN(r)) return;
-      var capEl = document.getElementById("mock-bracket-team-count");
-      var cap = Math.min(parseInt(capEl && capEl.value, 10) || 4, 4);
-      if (r >= cap) return;
+      var oi = parseInt(line.getAttribute("data-seed-o-idx"), 10);
+      if (isNaN(oi)) return;
+      var o = window.mockBracketSeedOrderState;
+      if (!o || oi < 0 || oi >= o.length) return;
 
-      var prev = window.mockBracketSeedSelectedRow;
+      var prev = window.mockBracketPreviewSelectedOIdx;
       if (prev === null || prev === undefined) {
-        window.mockBracketSeedSelectedRow = r;
-        row.classList.add("mock-bracket-seed-row-selected");
+        window.mockBracketPreviewSelectedOIdx = oi;
+        line.classList.add("mock-bracket-seed-slot-selected");
         return;
       }
-      if (prev === r) {
-        mockBracketSeedClearSelection();
+      if (prev === oi) {
+        mockBracketPreviewClearSelection();
         return;
       }
-      mockBracketSeedClearSelection();
-      window.mockBracketSeedMoveTo(prev, r);
+      mockBracketPreviewClearSelection();
+      window.mockBracketSeedSwapOIndices(prev, oi);
     });
 
-    panel.addEventListener("dragstart", function (e) {
-      var row = e.target.closest(".mock-bracket-seed-row");
-      if (!row) return;
+    board.addEventListener("dragstart", function (e) {
+      var line = e.target.closest(".mock-bracket-teamline--seed-slot");
+      if (!line) return;
       var sEl = document.getElementById("mock-bracket-seed");
-      if (!sEl || sEl.value !== "manual" || !row.draggable) {
+      if (!sEl || sEl.value !== "manual" || !line.draggable) {
         e.preventDefault();
         return;
       }
-      var from = parseInt(row.getAttribute("data-seed-row"), 10);
-      row.classList.add("mock-bracket-seed-dragging");
+      var oi = parseInt(line.getAttribute("data-seed-o-idx"), 10);
+      line.classList.add("mock-bracket-seed-slot-dragging");
       try {
-        e.dataTransfer.setData("text/plain", String(from));
+        e.dataTransfer.setData("text/plain", String(oi));
         e.dataTransfer.effectAllowed = "move";
       } catch (err) {}
     });
 
-    panel.addEventListener("dragend", function (e) {
-      var row = e.target.closest(".mock-bracket-seed-row");
-      if (row) row.classList.remove("mock-bracket-seed-dragging");
+    board.addEventListener("dragend", function (e) {
+      var line = e.target.closest(".mock-bracket-teamline--seed-slot");
+      if (line) line.classList.remove("mock-bracket-seed-slot-dragging");
     });
 
-    panel.addEventListener("dragover", function (e) {
+    board.addEventListener("dragover", function (e) {
       var sEl = document.getElementById("mock-bracket-seed");
       if (sEl && sEl.value === "manual") e.preventDefault();
     });
 
-    panel.addEventListener("drop", function (e) {
+    board.addEventListener("drop", function (e) {
       e.preventDefault();
-      var row = e.target.closest(".mock-bracket-seed-row");
-      if (!row) return;
+      var line = e.target.closest(".mock-bracket-teamline--seed-slot");
+      if (!line) return;
       var from = parseInt(e.dataTransfer.getData("text/plain"), 10);
-      var to = parseInt(row.getAttribute("data-seed-row"), 10);
+      var to = parseInt(line.getAttribute("data-seed-o-idx"), 10);
       if (isNaN(from) || isNaN(to)) return;
-      var capEl = document.getElementById("mock-bracket-team-count");
-      var cap = Math.min(parseInt(capEl && capEl.value, 10) || 4, 4);
-      if (from >= cap || to >= cap) return;
-      mockBracketSeedClearSelection();
-      window.mockBracketSeedMoveTo(from, to);
+      mockBracketPreviewClearSelection();
+      window.mockBracketSeedSwapOIndices(from, to);
     });
   }
 
@@ -704,8 +703,10 @@
     }
   };
 
-  /** 시드 순서 행·대진 미리보기와 2단계 팀명 연동 */
+  /** 대진 미리보기·2단계 팀명 연동 (시드 순서는 o 배열) */
   window.mockBracketSeedOrderRender = function () {
+    mockBracketPreviewClearSelection();
+
     var capEl = document.getElementById("mock-bracket-team-count");
     var cap = Math.min(parseInt(capEl && capEl.value, 10) || 4, 4);
     if (cap < 2) cap = 2;
@@ -714,13 +715,7 @@
     while (o.length < cap) o.push(o.length);
     while (o.length > cap) o.pop();
 
-    var r;
-    for (r = 0; r < 4; r++) {
-      var row = document.getElementById("mock-bracket-seed-row-" + r);
-      if (row) row.style.display = r < cap ? "" : "none";
-      var lab = document.getElementById("mock-bracket-seed-label-" + r);
-      if (lab && r < o.length) lab.textContent = mockBracketGetTeamName(o[r]);
-    }
+    mockBracketUpdateSeedSlotIndices(cap);
 
     var m2 = document.getElementById("mock-bracket-prev-m2-wrap");
     var modeLab = document.getElementById("mock-bracket-prev-mode-label");
@@ -746,7 +741,7 @@
       if (qd) qd.textContent = mockBracketGetTeamName(o[2]);
     }
 
-    mockBracketSeedApplyDragState();
+    mockBracketPreviewApplyInteractState();
     if (typeof window.mockBracketPoolTargetLabelSync === "function") {
       window.mockBracketPoolTargetLabelSync();
     }
@@ -754,28 +749,6 @@
     if (s4 && !s4.hidden && typeof window.mockBracketLiveSync === "function") {
       window.mockBracketLiveSync();
     }
-  };
-
-  window.mockBracketSeedRowUp = function (rowIdx) {
-    mockBracketSeedClearSelection();
-    var o = window.mockBracketSeedOrderState;
-    if (!o || rowIdx <= 0 || rowIdx >= o.length) return false;
-    var t = o[rowIdx];
-    o[rowIdx] = o[rowIdx - 1];
-    o[rowIdx - 1] = t;
-    window.mockBracketSeedOrderRender();
-    return false;
-  };
-
-  window.mockBracketSeedRowDown = function (rowIdx) {
-    mockBracketSeedClearSelection();
-    var o = window.mockBracketSeedOrderState;
-    if (!o || rowIdx < 0 || rowIdx >= o.length - 1) return false;
-    var t = o[rowIdx];
-    o[rowIdx] = o[rowIdx + 1];
-    o[rowIdx + 1] = t;
-    window.mockBracketSeedOrderRender();
-    return false;
   };
 
   window.mockBracketGenerateClick = function () {
