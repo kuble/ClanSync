@@ -3514,6 +3514,54 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
 }
 .mock-manage-record-meta { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px 16px; font-size: 12px; margin-bottom: 14px; }
 .mock-manage-record-meta label { display: flex; align-items: center; gap: 8px; color: var(--text-muted); cursor: default; }
+.mock-mmgr-name-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-bottom: 12px; }
+.mock-mmgr-medals { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.mock-mmgr-medal {
+  font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 99px;
+  background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fcd34d;
+}
+.mock-manage-record-groups { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+.mock-manage-record-group {
+  border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px 14px; background: var(--bg-overlay);
+}
+.mock-manage-record-group-title {
+  font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px;
+}
+.mock-mmgr-field { display: flex; flex-direction: column; gap: 6px; }
+.mock-mmgr-field > span:first-child,
+.mock-mmgr-field > label { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+.mock-mmgr-field-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: end;
+}
+@media (max-width: 560px) {
+  .mock-mmgr-field-row { grid-template-columns: 1fr; }
+}
+.mock-mmgr-field select,
+.mock-mmgr-field input[type="text"] {
+  padding: 8px 10px; border-radius: var(--radius-md); border: 1px solid var(--border);
+  background: var(--bg-elevated); color: var(--foreground); font-size: 13px; font-family: inherit;
+}
+.mock-mmgr-brief-seg { display: inline-flex; border-radius: var(--radius-md); border: 1px solid var(--border); overflow: hidden; }
+.mock-mmgr-seg-btn {
+  padding: 8px 18px; font-size: 12px; font-weight: 600; border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-family: inherit;
+}
+.mock-mmgr-seg-btn:hover { color: var(--foreground); }
+.mock-mmgr-seg-btn.mock-mmgr-seg-active { background: var(--brand-primary); color: #fff; }
+.mock-mmgr-group-dates { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 560px) {
+  .mock-mmgr-group-dates { grid-template-columns: 1fr; }
+}
+.mock-mmgr-date-val { font-size: 14px; font-weight: 700; color: var(--foreground); margin-top: 4px; }
+.mock-mmgr-mscore-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 640px) {
+  .mock-mmgr-mscore-grid { grid-template-columns: 1fr; }
+}
+.mock-mmgr-mscore-grid label { display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: var(--text-muted); font-weight: 600; }
+.mock-mmgr-mscore-grid input[type="number"] {
+  padding: 8px 10px; border-radius: var(--radius-md); border: 1px solid var(--border);
+  background: var(--bg-elevated); color: var(--foreground); font-size: 14px; width: 100%; box-sizing: border-box; font-variant-numeric: tabular-nums;
+}
+.mock-mmgr-mscore-hint { font-size: 11px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.45; }
 .mock-manage-record-grid {
   display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
 }
@@ -6354,15 +6402,67 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
           <h2 id="mock-mmgr-detail-title" class="mock-manage-record-title">개인 기록 <span aria-hidden="true" style="opacity:0.5;font-size:16px">✎</span></h2>
         </div>
       </div>
-      <div style="margin-bottom:12px">
+      <div class="mock-mmgr-name-row">
         <span id="mock-mmgr-detail-nick-badge" class="mock-manage-record-badge">—</span>
+        <span id="mock-mmgr-detail-medals" class="mock-mmgr-medals" aria-label="칭호·메달"></span>
       </div>
-      <div class="mock-manage-record-meta">
-        <label><input type="checkbox" id="mock-mmgr-detail-clan" disabled /> 클랜원 여부</label>
-        <label><input type="checkbox" id="mock-mmgr-detail-brief" disabled /> 브리핑 여부</label>
-        <div><span style="color:var(--text-muted)">부계 이름</span><br><strong id="mock-mmgr-detail-sub">—</strong></div>
-        <div><span style="color:var(--text-muted)">첫 내전 참가일</span><br><strong id="mock-mmgr-detail-first">—</strong></div>
-        <div><span style="color:var(--text-muted)">마지막 내전 참가일</span><br><strong id="mock-mmgr-detail-last">—</strong></div>
+      <div class="mock-manage-record-groups">
+        <div class="mock-manage-record-group">
+          <div class="mock-manage-record-group-title">클랜 역할 · 브리핑</div>
+          <div class="mock-mmgr-field-row">
+            <div class="mock-mmgr-field">
+              <label for="mock-mmgr-detail-clan-role">클랜 역할</label>
+              <select id="mock-mmgr-detail-clan-role" aria-label="클랜 역할" onchange="return window.mockMmgrOnClanRoleChange(this)">
+                <option value="leader">클랜장</option>
+                <option value="officer">운영진</option>
+                <option value="member">구성원</option>
+                <option value="external">외부인</option>
+              </select>
+            </div>
+            <div class="mock-mmgr-field">
+              <span id="mock-mmgr-brief-label">브리핑</span>
+              <div class="mock-mmgr-brief-seg" role="group" aria-labelledby="mock-mmgr-brief-label">
+                <button type="button" class="mock-mmgr-seg-btn" id="mock-mmgr-brief-on" data-brief-on="1" onclick="return window.mockMmgrBriefSet(true)">ON</button>
+                <button type="button" class="mock-mmgr-seg-btn" id="mock-mmgr-brief-off" data-brief-on="0" onclick="return window.mockMmgrBriefSet(false)">OFF</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mock-manage-record-group">
+          <div class="mock-manage-record-group-title">부계정</div>
+          <div class="mock-mmgr-field">
+            <label for="mock-mmgr-detail-sub-input">부계 이름</label>
+            <input type="text" id="mock-mmgr-detail-sub-input" placeholder="없으면 비워두기" autocomplete="off" onblur="return window.mockMmgrOnSubBlur(this)" onchange="return window.mockMmgrOnSubBlur(this)" />
+          </div>
+        </div>
+        <div class="mock-manage-record-group">
+          <div class="mock-manage-record-group-title">내전 참가 일정</div>
+          <div class="mock-mmgr-group-dates">
+            <div>
+              <span style="font-size:11px;color:var(--text-muted);font-weight:600">첫 내전 참가일</span>
+              <div id="mock-mmgr-detail-first" class="mock-mmgr-date-val">—</div>
+            </div>
+            <div>
+              <span style="font-size:11px;color:var(--text-muted);font-weight:600">마지막 내전 참가일</span>
+              <div id="mock-mmgr-detail-last" class="mock-mmgr-date-val">—</div>
+            </div>
+          </div>
+        </div>
+        <div class="mock-manage-record-group">
+          <div class="mock-manage-record-group-title">역할별 M점수 (수동)</div>
+          <div class="mock-mmgr-mscore-grid">
+            <label>탱 (M)
+              <input type="number" step="0.1" min="0" max="99" id="mock-mmgr-mscore-tank" onchange="return window.mockMmgrOnMScoreChange()" onblur="return window.mockMmgrOnMScoreChange()" />
+            </label>
+            <label>딜 (M)
+              <input type="number" step="0.1" min="0" max="99" id="mock-mmgr-mscore-dps" onchange="return window.mockMmgrOnMScoreChange()" onblur="return window.mockMmgrOnMScoreChange()" />
+            </label>
+            <label>힐 (M)
+              <input type="number" step="0.1" min="0" max="99" id="mock-mmgr-mscore-heal" onchange="return window.mockMmgrOnMScoreChange()" onblur="return window.mockMmgrOnMScoreChange()" />
+            </label>
+          </div>
+          <p class="mock-mmgr-mscore-hint">수동 점수는 목업에서 <strong>localStorage</strong>에 저장됩니다. 밸런스 메이커 연동 전까지 동일 기기에서 유지됩니다.</p>
+        </div>
       </div>
       <div style="min-height:48px;margin-bottom:12px;border:1px dashed var(--border);border-radius:var(--radius-md);padding:10px;font-size:12px;color:var(--text-muted)" id="mock-mmgr-detail-notes" aria-label="메모 영역(목업)">
         메모·비고가 들어갈 영역입니다(목업).

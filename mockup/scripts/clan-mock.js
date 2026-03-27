@@ -5813,13 +5813,47 @@
 
   /** 클랜 관리 — 구독(localStorage) · 구성원 검색/페이지네이션 · 개인 기록 상세 */
   var MOCK_SUBSCRIBE_STORAGE_KEY = "clansync-mock-subscribe-v1";
+  var MOCK_MMEMBER_OVERRIDES_KEY = "clansync-mock-mmgr-member-overrides-v1";
   var __mockManageMembersState = { page: 1, pageSize: 5, search: "" };
   var __mockManageMemberDetailId = null;
 
   var MOCK_MANAGE_MEMBERS = [
-    { id: "kim", nick: "김클랜", gameId: "Kim#1000", role: "leader", joined: "2025.01.15", last: "3/22", donation: "1,200", record: null },
-    { id: "pro", nick: "이프로", gameId: "Pro#2000", role: "officer", joined: "2025.02.01", last: "3/20", donation: "400", record: null },
-    { id: "heal", nick: "박힐러", gameId: "Heal#3000", role: "member", joined: "2025.06.10", last: "3/18", donation: "0", record: null },
+    {
+      id: "kim",
+      nick: "김클랜",
+      gameId: "Kim#1000",
+      role: "leader",
+      joined: "2025.01.15",
+      last: "3/22",
+      donation: "1,200",
+      medals: ["창단 멤버"],
+      mScores: { tank: 1.1, dps: 0.9, heal: 0.7 },
+      record: null,
+    },
+    {
+      id: "pro",
+      nick: "이프로",
+      gameId: "Pro#2000",
+      role: "officer",
+      joined: "2025.02.01",
+      last: "3/20",
+      donation: "400",
+      medals: ["밸런스장"],
+      mScores: { tank: 0.9, dps: 1.2, heal: 0.5 },
+      record: null,
+    },
+    {
+      id: "heal",
+      nick: "박힐러",
+      gameId: "Heal#3000",
+      role: "member",
+      joined: "2025.06.10",
+      last: "3/18",
+      donation: "0",
+      medals: ["개근왕 후보"],
+      mScores: { tank: 0.4, dps: 0.3, heal: 1.0 },
+      record: null,
+    },
     {
       id: "abel",
       nick: "ABEL",
@@ -5828,8 +5862,9 @@
       joined: "2025.06.10",
       last: "3/24",
       donation: "320",
+      medals: ["맵장인", "예측왕"],
+      mScores: { tank: 1.0, dps: 0.85, heal: 0.62 },
       record: {
-        clanMember: true,
         briefing: false,
         subAccount: "",
         firstIntra: "2025년 06월 10일",
@@ -5852,14 +5887,102 @@
         ],
       },
     },
-    { id: "m1", nick: "냥이의비행", gameId: "Cat#4400", role: "member", joined: "2025.03.01", last: "3/21", donation: "50", record: null },
-    { id: "m2", nick: "아재", gameId: "Ajae#5500", role: "member", joined: "2025.04.12", last: "3/19", donation: "0", record: null },
-    { id: "m3", nick: "초보만", gameId: "Rookie#6600", role: "member", joined: "2025.07.20", last: "3/17", donation: "100", record: null },
-    { id: "m4", nick: "라인히터", gameId: "Line#7700", role: "member", joined: "2025.08.05", last: "3/16", donation: "0", record: null },
-    { id: "m5", nick: "메르시메인", gameId: "Mercy#8800", role: "member", joined: "2025.09.01", last: "3/15", donation: "200", record: null },
-    { id: "m6", nick: "솔져장인", gameId: "Soldier#9900", role: "member", joined: "2025.10.10", last: "3/14", donation: "0", record: null },
-    { id: "m7", nick: "윈스턴킹", gameId: "Winston#1010", role: "member", joined: "2025.11.01", last: "3/12", donation: "80", record: null },
-    { id: "m8", nick: "나노블레이드", gameId: "Nano#2020", role: "member", joined: "2026.01.05", last: "3/10", donation: "0", record: null },
+    {
+      id: "m1",
+      nick: "냥이의비행",
+      gameId: "Cat#4400",
+      role: "member",
+      joined: "2025.03.01",
+      last: "3/21",
+      donation: "50",
+      medals: [],
+      mScores: { tank: 0.8, dps: 0.9, heal: 0.4 },
+      record: null,
+    },
+    {
+      id: "m2",
+      nick: "아재",
+      gameId: "Ajae#5500",
+      role: "member",
+      joined: "2025.04.12",
+      last: "3/19",
+      donation: "0",
+      medals: ["분위기 메이커"],
+      mScores: { tank: 0.7, dps: 0.75, heal: 0.6 },
+      record: null,
+    },
+    {
+      id: "m3",
+      nick: "초보만",
+      gameId: "Rookie#6600",
+      role: "member",
+      joined: "2025.07.20",
+      last: "3/17",
+      donation: "100",
+      medals: [],
+      mScores: { tank: 0.5, dps: 0.5, heal: 0.5 },
+      record: null,
+    },
+    {
+      id: "m4",
+      nick: "라인히터",
+      gameId: "Line#7700",
+      role: "member",
+      joined: "2025.08.05",
+      last: "3/16",
+      donation: "0",
+      medals: ["딜견"],
+      mScores: { tank: 0.3, dps: 1.1, heal: 0.2 },
+      record: null,
+    },
+    {
+      id: "m5",
+      nick: "메르시메인",
+      gameId: "Mercy#8800",
+      role: "member",
+      joined: "2025.09.01",
+      last: "3/15",
+      donation: "200",
+      medals: ["힐 딜러"],
+      mScores: { tank: 0.4, dps: 0.4, heal: 1.05 },
+      record: null,
+    },
+    {
+      id: "m6",
+      nick: "솔져장인",
+      gameId: "Soldier#9900",
+      role: "member",
+      joined: "2025.10.10",
+      last: "3/14",
+      donation: "0",
+      medals: [],
+      mScores: { tank: 0.8, dps: 0.95, heal: 0.35 },
+      record: null,
+    },
+    {
+      id: "m7",
+      nick: "윈스턴킹",
+      gameId: "Winston#1010",
+      role: "member",
+      joined: "2025.11.01",
+      last: "3/12",
+      donation: "80",
+      medals: ["돌진"],
+      mScores: { tank: 1.15, dps: 0.4, heal: 0.3 },
+      record: null,
+    },
+    {
+      id: "m8",
+      nick: "나노블레이드",
+      gameId: "Nano#2020",
+      role: "member",
+      joined: "2026.01.05",
+      last: "3/10",
+      donation: "0",
+      medals: ["신입"],
+      mScores: { tank: 0.55, dps: 0.88, heal: 0.42 },
+      record: null,
+    },
   ];
 
   function mockManageSubscribeDefaultState() {
@@ -6104,26 +6227,159 @@
     });
   }
 
+  function mockMmgrRoleToClanSelect(role) {
+    if (role === "leader") return "leader";
+    if (role === "officer") return "officer";
+    return "member";
+  }
+
+  function mockMmgrLoadOverrides(id) {
+    try {
+      var raw = localStorage.getItem(MOCK_MMEMBER_OVERRIDES_KEY);
+      if (raw) {
+        var o = JSON.parse(raw);
+        if (o && o[id]) return o[id];
+      }
+    } catch (e) {}
+    return {};
+  }
+
+  function mockMmgrSavePatch(id, patch) {
+    var all = {};
+    try {
+      var raw = localStorage.getItem(MOCK_MMEMBER_OVERRIDES_KEY);
+      if (raw) all = JSON.parse(raw) || {};
+    } catch (e) {}
+    if (!all[id]) all[id] = {};
+    Object.assign(all[id], patch);
+    try {
+      localStorage.setItem(MOCK_MMEMBER_OVERRIDES_KEY, JSON.stringify(all));
+    } catch (e) {}
+  }
+
+  function mockMmgrEscapeHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function mockMmgrApplyBriefButtons(on) {
+    var onBtn = document.getElementById("mock-mmgr-brief-on");
+    var offBtn = document.getElementById("mock-mmgr-brief-off");
+    if (onBtn) onBtn.classList.toggle("mock-mmgr-seg-active", on);
+    if (offBtn) offBtn.classList.toggle("mock-mmgr-seg-active", !on);
+  }
+
+  window.mockMmgrBriefSet = function (on) {
+    var id = __mockManageMemberDetailId;
+    if (!id) return false;
+    mockMmgrSavePatch(id, { briefingOn: !!on });
+    mockMmgrApplyBriefButtons(!!on);
+    return false;
+  };
+
+  window.mockMmgrOnClanRoleChange = function (sel) {
+    var id = __mockManageMemberDetailId;
+    if (!id || !sel) return false;
+    mockMmgrSavePatch(id, { clanRole: sel.value });
+    return false;
+  };
+
+  window.mockMmgrOnSubBlur = function (inp) {
+    var id = __mockManageMemberDetailId;
+    if (!id || !inp) return false;
+    mockMmgrSavePatch(id, { subAccount: inp.value });
+    return false;
+  };
+
+  window.mockMmgrOnMScoreChange = function () {
+    var id = __mockManageMemberDetailId;
+    if (!id) return false;
+    var tank = document.getElementById("mock-mmgr-mscore-tank");
+    var dps = document.getElementById("mock-mmgr-mscore-dps");
+    var heal = document.getElementById("mock-mmgr-mscore-heal");
+    function parseM(el) {
+      if (!el || el.value === "") return null;
+      var n = parseFloat(el.value, 10);
+      return isNaN(n) ? null : n;
+    }
+    mockMmgrSavePatch(id, {
+      mScores: {
+        tank: parseM(tank),
+        dps: parseM(dps),
+        heal: parseM(heal),
+      },
+    });
+    return false;
+  };
+
   window.mockManageMemberDetailOpen = function (id) {
     var m = mockManageMemberFind(id);
     if (!m) return false;
     __mockManageMemberDetailId = id;
+    var ov = mockMmgrLoadOverrides(id);
     var modal = document.getElementById("mock-manage-member-detail-modal");
     var badge = document.getElementById("mock-mmgr-detail-nick-badge");
-    var clanCb = document.getElementById("mock-mmgr-detail-clan");
-    var briefCb = document.getElementById("mock-mmgr-detail-brief");
-    var sub = document.getElementById("mock-mmgr-detail-sub");
+    var medWrap = document.getElementById("mock-mmgr-detail-medals");
+    var clanSel = document.getElementById("mock-mmgr-detail-clan-role");
+    var subIn = document.getElementById("mock-mmgr-detail-sub-input");
     var first = document.getElementById("mock-mmgr-detail-first");
     var last = document.getElementById("mock-mmgr-detail-last");
+    var tankIn = document.getElementById("mock-mmgr-mscore-tank");
+    var dpsIn = document.getElementById("mock-mmgr-mscore-dps");
+    var healIn = document.getElementById("mock-mmgr-mscore-heal");
     var mapTb = document.getElementById("mock-mmgr-detail-map-tbody");
     var roleTb = document.getElementById("mock-mmgr-detail-role-tbody");
     var synTb = document.getElementById("mock-mmgr-detail-syn-tbody");
     if (badge) badge.textContent = m.nick;
-    if (clanCb) clanCb.checked = !!(m.record && m.record.clanMember);
-    if (briefCb) briefCb.checked = !!(m.record && m.record.briefing);
-    if (sub) sub.textContent = (m.record && m.record.subAccount) || "—";
+
+    var medals = ov.medals;
+    if (!medals || !medals.length) {
+      medals = m.medals || (m.record && m.record.medals) || [];
+    }
+    if (medWrap) {
+      medWrap.innerHTML = medals.length
+        ? medals
+            .map(function (t) {
+              return (
+                '<span class="mock-mmgr-medal">' + mockMmgrEscapeHtml(t) + "</span>"
+              );
+            })
+            .join("")
+        : '<span style="font-size:11px;color:var(--text-muted)">부여된 칭호 없음</span>';
+    }
+
+    if (clanSel) {
+      clanSel.value =
+        ov.clanRole || mockMmgrRoleToClanSelect(m.role);
+    }
+
+    var briefingOn = Object.prototype.hasOwnProperty.call(ov, "briefingOn")
+      ? !!ov.briefingOn
+      : !!(m.record && m.record.briefing);
+    mockMmgrApplyBriefButtons(briefingOn);
+
+    if (subIn) {
+      subIn.value = Object.prototype.hasOwnProperty.call(ov, "subAccount")
+        ? ov.subAccount
+        : (m.record && m.record.subAccount) || "";
+    }
+
     if (first) first.textContent = (m.record && m.record.firstIntra) || "—";
     if (last) last.textContent = (m.record && m.record.lastIntra) || "—";
+
+    var baseM = m.mScores || (m.record && m.record.mScores) || {};
+    var mOv = ov.mScores || {};
+    function pickM(k) {
+      if (mOv[k] !== undefined && mOv[k] !== null) return mOv[k];
+      if (baseM[k] !== undefined && baseM[k] !== null) return baseM[k];
+      return "";
+    }
+    if (tankIn) tankIn.value = pickM("tank") === "" ? "" : String(pickM("tank"));
+    if (dpsIn) dpsIn.value = pickM("dps") === "" ? "" : String(pickM("dps"));
+    if (healIn) healIn.value = pickM("heal") === "" ? "" : String(pickM("heal"));
     if (m.record && m.record.maps && mapTb) {
       mapTb.innerHTML = m.record.maps
         .map(function (r) {
