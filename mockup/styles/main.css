@@ -746,3 +746,9 @@ body.app-sidebar-drawer-open .mobile-menu-icon::after {
   border: none;
   background: var(--bg-base);
 }
+
+/* 시간 입력: 24시간제 표기 힌트(lang). 숫자 폭 정렬 */
+input[type="time"][lang="ko-KR"],
+input[type="datetime-local"][lang="ko-KR"] {
+  font-variant-numeric: tabular-nums;
+}

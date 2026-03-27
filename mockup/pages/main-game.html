@@ -1936,8 +1936,8 @@
         <input type="date" class="input" id="saDate" style="font-size:13px">
       </div>
       <div>
-        <label class="label" style="margin-bottom:6px">희망 시작 시각 <span style="color:var(--danger)">*</span></label>
-        <input type="time" class="input" id="saTime" style="font-size:13px" value="21:00">
+        <label class="label" style="margin-bottom:6px">희망 시작 시각 (24시간제) <span style="color:var(--danger)">*</span></label>
+        <input type="time" class="input" id="saTime" style="font-size:13px" value="21:00" lang="ko-KR" title="24시간제 (00:00–23:59)">
       </div>
     </div>
     <div>
@@ -3818,7 +3818,7 @@ function submitScrimApply() {
   const hi = Math.max(+document.getElementById('saRankLo').value, +document.getElementById('saRankHi').value);
   const tierRange = `${SCRIM_APPLY_RANKS[lo]} ~ ${SCRIM_APPLY_RANKS[hi]}`;
   if (!date || !time) {
-    alert('필수 항목(희망 날짜, 시각)을 입력해 주세요.');
+    alert('필수 항목(희망 날짜, 시각·24시간제)을 입력해 주세요.');
     return;
   }
   const [th, tm] = time.split(':').map(Number);

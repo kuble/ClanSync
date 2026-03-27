@@ -4784,8 +4784,8 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
           <input id="msm-date" type="date" />
         </div>
         <div class="mock-modal-field">
-          <label for="msm-time">시각 (로컬)</label>
-          <input id="msm-time" type="time" step="60" />
+          <label for="msm-time">시각 · 24시간제 (로컬)</label>
+          <input id="msm-time" type="time" step="60" lang="ko-KR" title="24시간제 (00:00–23:59)" />
         </div>
       </div>
       <div class="mock-stats-mm-winner-row">
@@ -5370,7 +5370,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
       <h3 id="mock-event-modal-title">일정 등록 (목업)</h3>
       <div class="mock-modal-field"><label for="mev-title">제목</label><input id="mev-title" type="text" placeholder="예: 정기 내전" /></div>
       <div class="mock-modal-field"><label for="mev-type">유형</label><select id="mev-type"><option>내전</option><option>스크림</option><option>이벤트</option></select></div>
-      <div class="mock-modal-field"><label for="mev-when">일시</label><input id="mev-when" type="text" placeholder="2026-03-27 21:00" /></div>
+      <div class="mock-modal-field"><label for="mev-when">일시 (24시간제)</label><input id="mev-when" type="text" placeholder="2026-03-27 21:00 (YYYY-MM-DD HH:mm)" title="24시간제, 예: 21:00" /></div>
       <div class="mock-modal-field"><label for="mev-repeat">반복</label><select id="mev-repeat">
         <option>없음 (일회)</option>
         <option>매주 같은 요일·시간 (정기 내전 등)</option>
@@ -5401,7 +5401,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
         <button type="button" class="btn btn-secondary btn-sm" style="margin-top:2px" onclick="return mockEventPollAddOption()">선택지 추가</button>
         <p style="font-size:11px;color:var(--text-muted);margin:6px 0 0;line-height:1.45">한 칸에 하나씩 입력하고 「선택지 추가」로 입력란을 늘립니다(목업).</p>
       </div>
-      <div class="mock-modal-field"><label for="mep-deadline">마감 일시</label><input id="mep-deadline" type="text" placeholder="2026-03-26 23:59" /></div>
+      <div class="mock-modal-field"><label for="mep-deadline">마감 일시 (24시간제)</label><input id="mep-deadline" type="text" placeholder="2026-03-26 23:59 (YYYY-MM-DD HH:mm)" title="24시간제, 예: 23:59" /></div>
       <div class="mock-poll-form-settings">
         <div class="mock-modal-field" style="margin-bottom:0">
           <label for="mep-anon"><input id="mep-anon" type="checkbox" /> 익명 투표 (닉네임 비공개)</label>
@@ -5425,12 +5425,12 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
           </div>
           <div id="mep-notify-schedule" class="mep-notify-schedule">
             <div id="mep-notify-row-none" class="mock-modal-field mep-notify-row" data-mep-repeat="none">
-              <label for="mep-notify-at">투표 알림 일시</label>
-              <input id="mep-notify-at" type="datetime-local" />
+              <label for="mep-notify-at">투표 알림 일시 (24시간제)</label>
+              <input id="mep-notify-at" type="datetime-local" lang="ko-KR" title="24시간제 날짜·시각 (로컬)" />
             </div>
             <div id="mep-notify-row-daily" class="mock-modal-field mep-notify-row" data-mep-repeat="daily" hidden>
-              <label for="mep-notify-time-daily">알림 시각</label>
-              <input id="mep-notify-time-daily" type="time" />
+              <label for="mep-notify-time-daily">알림 시각 (24시간제)</label>
+              <input id="mep-notify-time-daily" type="time" lang="ko-KR" title="24시간제 (00:00–23:59)" />
               <p class="mock-modal-hint">매일 같은 시각에 알림합니다(목업).</p>
             </div>
             <div id="mep-notify-row-weekly" class="mep-notify-row mep-notify-row--weekly" data-mep-repeat="weekly" hidden>
@@ -5447,14 +5447,14 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                 </select>
               </div>
               <div class="mock-modal-field" style="margin-bottom:0">
-                <label for="mep-notify-time-weekly">시각</label>
-                <input id="mep-notify-time-weekly" type="time" />
+                <label for="mep-notify-time-weekly">시각 (24시간제)</label>
+                <input id="mep-notify-time-weekly" type="time" lang="ko-KR" title="24시간제 (00:00–23:59)" />
               </div>
               <p class="mock-modal-hint" style="margin-top:6px">매주 같은 요일·시각에 알림합니다(목업).</p>
             </div>
             <div id="mep-notify-row-until" class="mock-modal-field mep-notify-row" data-mep-repeat="until-deadline" hidden>
-              <label for="mep-notify-time-until">알림 시각</label>
-              <input id="mep-notify-time-until" type="time" />
+              <label for="mep-notify-time-until">알림 시각 (24시간제)</label>
+              <input id="mep-notify-time-until" type="time" lang="ko-KR" title="24시간제 (00:00–23:59)" />
               <p class="mock-modal-hint">마감 전까지 매일 위 시각에 알림합니다(목업).</p>
             </div>
           </div>
