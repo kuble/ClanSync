@@ -748,6 +748,50 @@
   margin-top: 12px;
   align-items: center;
 }
+.mock-poll-form-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.mock-poll-form-option-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mock-poll-form-option-row .mep-option-input {
+  flex: 1;
+  min-width: 0;
+}
+.mock-poll-form-option-row .mep-option-remove {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+.mock-poll-form-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mock-poll-form-settings > .mock-modal-field > label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 400;
+}
+#mep-notify-fields {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-overlay);
+  min-width: 0;
+}
+#mep-notify-fields[disabled] {
+  opacity: 0.65;
+  pointer-events: none;
+}
 
 /* ── 활동 일지 ── */
 .activity-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
@@ -3347,6 +3391,22 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
   max-width: min(520px, calc(100vw - 40px));
   min-width: 0;
 }
+.mock-modal-card--poll-form {
+  max-width: min(480px, calc(100vw - 40px));
+  max-height: min(90vh, 760px);
+  overflow-y: auto;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 .mock-modal-hint {
   font-size: 11px;
   color: var(--text-muted);
@@ -5003,16 +5063,54 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
 
   <!-- 투표 만들기 모달 (이벤트 뷰) -->
   <div id="mock-event-poll-modal" class="mock-modal-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="mock-event-poll-modal-title" onclick="if(event.target===this)mockEventPollCloseModal()">
-    <div class="mock-modal-card" onclick="event.stopPropagation()">
+    <div class="mock-modal-card mock-modal-card--poll-form" onclick="event.stopPropagation()">
       <h3 id="mock-event-poll-modal-title">투표 만들기 (목업)</h3>
       <div class="mock-modal-field"><label for="mep-title">제목</label><input id="mep-title" type="text" placeholder="예: 다음 정기 내전 맵" /></div>
-      <div class="mock-modal-field"><label for="mep-options">선택지</label><textarea id="mep-options" rows="4" placeholder="한 줄에 하나씩 입력&#10;뉴 정크시티&#10;서킷 로얄"></textarea></div>
+      <div class="mock-modal-field">
+        <label id="mep-options-label">선택지</label>
+        <div id="mep-options-list" class="mock-poll-form-options" role="group" aria-labelledby="mep-options-label">
+          <div class="mock-poll-form-option-row" data-mep-option-row>
+            <input type="text" class="mep-option-input" placeholder="선택지를 입력한 뒤 아래 버튼으로 추가" aria-label="선택지 1" />
+          </div>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" style="margin-top:2px" onclick="return mockEventPollAddOption()">선택지 추가</button>
+        <p style="font-size:11px;color:var(--text-muted);margin:6px 0 0;line-height:1.45">한 칸에 하나씩 입력하고 「선택지 추가」로 입력란을 늘립니다(목업).</p>
+      </div>
       <div class="mock-modal-field"><label for="mep-deadline">마감 일시</label><input id="mep-deadline" type="text" placeholder="2026-03-26 23:59" /></div>
-      <div class="mock-modal-field"><label for="mep-anon" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400"><input id="mep-anon" type="checkbox" /> 익명 투표 (닉네임 비공개)</label></div>
-      <p style="font-size:11px;color:var(--text-muted);margin:0;line-height:1.45">PRO: 투표 알림(디스코드)·중복 방지·가중치는 연동 후(목업).</p>
+      <div class="mock-poll-form-settings">
+        <div class="mock-modal-field" style="margin-bottom:0">
+          <label for="mep-anon"><input id="mep-anon" type="checkbox" /> 익명 투표 (닉네임 비공개)</label>
+        </div>
+        <div class="mock-modal-field" style="margin-bottom:0">
+          <label for="mep-multi"><input id="mep-multi" type="checkbox" /> 다중 선택 허용 (복수 선택지 투표)</label>
+        </div>
+        <div class="mock-modal-field" style="margin-bottom:0">
+          <label for="mep-notify"><input id="mep-notify" type="checkbox" onchange="mockEventPollNotifyToggle(this)" /> 투표 알림 (디스코드 등 · 연동 시)</label>
+        </div>
+        <fieldset id="mep-notify-fields" class="mock-modal-field" hidden disabled>
+          <legend class="sr-only">투표 알림 세부 설정</legend>
+          <div class="mock-modal-field" style="margin-bottom:8px">
+            <label for="mep-notify-at">투표 알림 일시</label>
+            <input id="mep-notify-at" type="datetime-local" />
+          </div>
+          <div class="mock-modal-field" style="margin-bottom:0">
+            <label for="mep-notify-repeat">투표 알림 반복</label>
+            <select id="mep-notify-repeat">
+              <option value="none">없음 (한 번만)</option>
+              <option value="daily">매일 같은 시각</option>
+              <option value="weekly">매주 같은 요일·시각</option>
+              <option value="until-deadline">마감 전까지 매일</option>
+            </select>
+          </div>
+        </fieldset>
+        <div class="mock-modal-field" style="margin-bottom:0">
+          <label for="mep-announce"><input id="mep-announce" type="checkbox" /> 클랜 공지사항에 함께 표시</label>
+        </div>
+      </div>
+      <p style="font-size:11px;color:var(--text-muted);margin:0;line-height:1.45">PRO: 알림 실제 발송·중복 방지·가중치는 구현 단계에서 연동합니다(목업).</p>
       <div class="mock-modal-actions">
         <button type="button" class="btn btn-secondary btn-sm" onclick="mockEventPollCloseModal()">취소</button>
-        <button type="button" class="btn btn-sm" onclick="alert('목업: 투표가 게시되었습니다.'); mockEventPollCloseModal();">게시</button>
+        <button type="button" class="btn btn-sm" onclick="return mockEventPollSubmit()">게시</button>
       </div>
     </div>
   </div>

@@ -317,9 +317,136 @@
     }
   };
 
+  function mockEventPollOptionRowCount() {
+    var list = document.getElementById("mep-options-list");
+    return list ? list.querySelectorAll("[data-mep-option-row]").length : 0;
+  }
+
+  function mockEventPollSyncOptionRemoveButtons() {
+    var list = document.getElementById("mep-options-list");
+    if (!list) return;
+    var rows = list.querySelectorAll("[data-mep-option-row]");
+    rows.forEach(function (row) {
+      var rm = row.querySelector(".mep-option-remove");
+      if (rows.length > 1) {
+        if (!rm) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "btn btn-secondary btn-sm mep-option-remove";
+          b.textContent = "삭제";
+          b.setAttribute("aria-label", "이 선택지 입력란 삭제");
+          b.onclick = function () {
+            window.mockEventPollRemoveOptionRow(row);
+          };
+          row.appendChild(b);
+        }
+      } else if (rm) {
+        rm.remove();
+      }
+    });
+  }
+
+  /** 투표 만들기: 선택지 입력란 추가 (목업) */
+  window.mockEventPollAddOption = function () {
+    var list = document.getElementById("mep-options-list");
+    if (!list) return false;
+    var n = mockEventPollOptionRowCount() + 1;
+    var row = document.createElement("div");
+    row.className = "mock-poll-form-option-row";
+    row.setAttribute("data-mep-option-row", "");
+    var inp = document.createElement("input");
+    inp.type = "text";
+    inp.className = "mep-option-input";
+    inp.placeholder = "선택지 " + n;
+    inp.setAttribute("aria-label", "선택지 " + n);
+    row.appendChild(inp);
+    list.appendChild(row);
+    mockEventPollSyncOptionRemoveButtons();
+    inp.focus();
+    return false;
+  };
+
+  window.mockEventPollRemoveOptionRow = function (row) {
+    var list = document.getElementById("mep-options-list");
+    if (!list || !row) return;
+    if (mockEventPollOptionRowCount() <= 1) return;
+    row.remove();
+    mockEventPollSyncOptionRemoveButtons();
+  };
+
+  /** 투표 알림 켜면 일시·반복 필드 표시 */
+  window.mockEventPollNotifyToggle = function (cb) {
+    var wrap = document.getElementById("mep-notify-fields");
+    if (!wrap) return;
+    var on = !!(cb && cb.checked);
+    wrap.hidden = !on;
+    wrap.disabled = !on;
+  };
+
+  window.mockEventPollResetForm = function () {
+    var title = document.getElementById("mep-title");
+    if (title) title.value = "";
+    var dl = document.getElementById("mep-deadline");
+    if (dl) dl.value = "";
+    var list = document.getElementById("mep-options-list");
+    if (list) {
+      list.innerHTML =
+        '<div class="mock-poll-form-option-row" data-mep-option-row>' +
+        '<input type="text" class="mep-option-input" placeholder="선택지를 입력한 뒤 아래 버튼으로 추가" aria-label="선택지 1" />' +
+        "</div>";
+    }
+    mockEventPollSyncOptionRemoveButtons();
+    var anon = document.getElementById("mep-anon");
+    if (anon) anon.checked = false;
+    var multi = document.getElementById("mep-multi");
+    if (multi) multi.checked = false;
+    var notify = document.getElementById("mep-notify");
+    if (notify) {
+      notify.checked = false;
+      window.mockEventPollNotifyToggle(notify);
+    }
+    var nat = document.getElementById("mep-notify-at");
+    if (nat) nat.value = "";
+    var nrep = document.getElementById("mep-notify-repeat");
+    if (nrep) nrep.selectedIndex = 0;
+    var ann = document.getElementById("mep-announce");
+    if (ann) ann.checked = false;
+  };
+
+  window.mockEventPollSubmit = function () {
+    var lines = [];
+    document.querySelectorAll("#mep-options-list .mep-option-input").forEach(function (inp) {
+      var t = (inp.value || "").trim();
+      if (t) lines.push(t);
+    });
+    var titleEl = document.getElementById("mep-title");
+    var title = titleEl ? (titleEl.value || "").trim() : "";
+    if (!title) {
+      alert("목업: 제목을 입력해 주세요.");
+      return false;
+    }
+    if (lines.length < 1) {
+      alert("목업: 선택지를 하나 이상 입력해 주세요.");
+      return false;
+    }
+    var bits = ["선택지 " + lines.length + "개"];
+    var a = document.getElementById("mep-anon");
+    if (a && a.checked) bits.push("익명");
+    var mu = document.getElementById("mep-multi");
+    if (mu && mu.checked) bits.push("다중선택");
+    var n = document.getElementById("mep-notify");
+    if (n && n.checked) bits.push("알림");
+    var an = document.getElementById("mep-announce");
+    if (an && an.checked) bits.push("공지");
+    alert("목업: 투표가 게시되었습니다.\n(" + bits.join(" · ") + ")");
+    window.mockEventPollCloseModal();
+    return false;
+  };
+
   window.mockEventPollOpenModal = function () {
     var m = document.getElementById("mock-event-poll-modal");
     if (m) {
+      window.mockEventPollResetForm();
       m.removeAttribute("hidden");
       m.setAttribute("aria-hidden", "false");
     }
