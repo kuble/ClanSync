@@ -93,7 +93,9 @@
   var MOCK_SIDEBAR_NOTIFY_KEY = "clansync-mock-sidebar-notify-v1";
   var MOCK_CLAN_BANNER_IMG_KEY = "clansync-mock-clan-banner-image";
   var MOCK_CLAN_ICON_IMG_KEY = "clansync-mock-clan-icon-image";
+  /** 레거시 단일 공지 텍스트 — 첫 로드 시 게시글 배열로 이관 */
   var MOCK_CLAN_NOTICE_KEY = "clansync-mock-clan-notice";
+  var MOCK_CLAN_NOTICE_POSTS_KEY = "clansync-mock-clan-notice-posts-v1";
   var MOCK_CLAN_RULES_KEY = "clansync-mock-clan-rules";
 
   var __mockClanImageKind = "banner";
@@ -278,23 +280,276 @@
     return false;
   };
 
-  window.mockClanManageLoadNoticeRules = function () {
-    var n = document.getElementById("mock-manage-clan-notice");
+  function mockClanNoticePostsMigrate() {
+    try {
+      var raw = localStorage.getItem(MOCK_CLAN_NOTICE_POSTS_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) return;
+      }
+    } catch (e) {}
+    try {
+      var legacy = localStorage.getItem(MOCK_CLAN_NOTICE_KEY);
+      if (legacy && String(legacy).trim()) {
+        var now = new Date().toISOString();
+        var one = {
+          id: "migrated-" + Date.now(),
+          title: "이전 공지",
+          body: String(legacy),
+          createdAt: now,
+          updatedAt: now,
+        };
+        localStorage.setItem(MOCK_CLAN_NOTICE_POSTS_KEY, JSON.stringify([one]));
+      }
+    } catch (e) {}
+  }
+
+  function mockClanNoticePostsGetAll() {
+    mockClanNoticePostsMigrate();
+    try {
+      var raw = localStorage.getItem(MOCK_CLAN_NOTICE_POSTS_KEY);
+      if (raw) {
+        var arr = JSON.parse(raw);
+        if (Array.isArray(arr)) return arr;
+      }
+    } catch (e) {}
+    return [];
+  }
+
+  function mockClanNoticePostsSetAll(posts) {
+    localStorage.setItem(MOCK_CLAN_NOTICE_POSTS_KEY, JSON.stringify(posts));
+  }
+
+  window.mockClanNoticePostsRender = function () {
+    var container = document.getElementById("mock-manage-notice-posts-list");
+    if (!container) return;
+    var posts = mockClanNoticePostsGetAll();
+    container.innerHTML = "";
+    if (!posts.length) {
+      var empty = document.createElement("p");
+      empty.className = "mock-manage-posts-empty";
+      empty.textContent = "등록된 공지가 없습니다. 「공지 작성」으로 추가하세요.";
+      container.appendChild(empty);
+      return;
+    }
+    var sorted = posts.slice().sort(function (a, b) {
+      var tb = (b.updatedAt || b.createdAt || "").toString();
+      var ta = (a.updatedAt || a.createdAt || "").toString();
+      return tb.localeCompare(ta);
+    });
+    sorted.forEach(function (post) {
+      var card = document.createElement("article");
+      card.className = "mock-manage-post-card";
+      card.setAttribute("data-post-id", post.id);
+      var head = document.createElement("div");
+      head.className = "mock-manage-post-card-head";
+      var h4 = document.createElement("h4");
+      h4.textContent = post.title || "(제목 없음)";
+      var meta = document.createElement("span");
+      meta.className = "mock-manage-post-meta";
+      var d = post.updatedAt || post.createdAt || "";
+      try {
+        meta.textContent = d ? new Date(d).toLocaleString("ko-KR") : "";
+      } catch (e2) {
+        meta.textContent = "";
+      }
+      head.appendChild(h4);
+      head.appendChild(meta);
+      var bodyEl = document.createElement("p");
+      bodyEl.className = "mock-manage-post-body";
+      var bodyText = post.body || "";
+      bodyEl.textContent = bodyText.length > 220 ? bodyText.slice(0, 220) + "…" : bodyText;
+      var actions = document.createElement("div");
+      actions.className = "mock-manage-post-actions";
+      var btnEdit = document.createElement("button");
+      btnEdit.type = "button";
+      btnEdit.className = "btn btn-secondary btn-sm";
+      btnEdit.textContent = "편집";
+      (function (pid) {
+        btnEdit.onclick = function () {
+          window.mockClanNoticePostModalOpen(pid);
+        };
+      })(post.id);
+      var btnDel = document.createElement("button");
+      btnDel.type = "button";
+      btnDel.className = "btn btn-secondary btn-sm";
+      btnDel.textContent = "삭제";
+      (function (pid) {
+        btnDel.onclick = function () {
+          window.mockClanNoticePostDelete(pid);
+        };
+      })(post.id);
+      actions.appendChild(btnEdit);
+      actions.appendChild(btnDel);
+      card.appendChild(head);
+      card.appendChild(bodyEl);
+      card.appendChild(actions);
+      container.appendChild(card);
+    });
+  };
+
+  window.mockClanNoticePostModalOpen = function (id) {
+    var modal = document.getElementById("mock-clan-notice-post-modal");
+    var titleEl = document.getElementById("mock-clan-notice-post-modal-title");
+    var idInput = document.getElementById("mnp-id");
+    var titleInput = document.getElementById("mnp-title");
+    var bodyInput = document.getElementById("mnp-body");
+    var delBtn = document.getElementById("mnp-delete-btn");
+    if (!modal || !titleInput || !bodyInput || !idInput) return false;
+    if (id) {
+      var posts = mockClanNoticePostsGetAll();
+      var post = null;
+      for (var i = 0; i < posts.length; i++) {
+        if (posts[i].id === id) {
+          post = posts[i];
+          break;
+        }
+      }
+      if (!post) return false;
+      idInput.value = post.id;
+      titleInput.value = post.title || "";
+      bodyInput.value = post.body || "";
+      if (titleEl) titleEl.textContent = "공지 편집";
+      if (delBtn) delBtn.removeAttribute("hidden");
+    } else {
+      idInput.value = "";
+      titleInput.value = "";
+      bodyInput.value = "";
+      if (titleEl) titleEl.textContent = "공지 작성";
+      if (delBtn) delBtn.setAttribute("hidden", "");
+    }
+    modal.removeAttribute("hidden");
+    modal.setAttribute("aria-hidden", "false");
+    window.setTimeout(function () {
+      titleInput.focus();
+    }, 0);
+    return false;
+  };
+
+  window.mockClanNoticePostModalClose = function () {
+    var modal = document.getElementById("mock-clan-notice-post-modal");
+    if (modal) {
+      modal.setAttribute("hidden", "");
+      modal.setAttribute("aria-hidden", "true");
+    }
+    return false;
+  };
+
+  window.mockClanNoticePostModalSave = function () {
+    var idInput = document.getElementById("mnp-id");
+    var titleInput = document.getElementById("mnp-title");
+    var bodyInput = document.getElementById("mnp-body");
+    if (!titleInput || !bodyInput) return false;
+    var title = (titleInput.value || "").trim();
+    var body = (bodyInput.value || "").trim();
+    if (!title) {
+      window.alert("제목을 입력하세요.");
+      return false;
+    }
+    var posts = mockClanNoticePostsGetAll();
+    var now = new Date().toISOString();
+    var id = idInput && idInput.value;
+    if (id) {
+      posts = posts.map(function (p) {
+        if (p.id !== id) return p;
+        return {
+          id: p.id,
+          title: title,
+          body: body,
+          createdAt: p.createdAt || now,
+          updatedAt: now,
+        };
+      });
+    } else {
+      var newId = "p-" + Date.now() + "-" + Math.random().toString(36).slice(2, 9);
+      posts.push({
+        id: newId,
+        title: title,
+        body: body,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+    try {
+      mockClanNoticePostsSetAll(posts);
+    } catch (e) {
+      window.alert("저장에 실패했습니다.");
+      return false;
+    }
+    window.mockClanNoticePostsRender();
+    window.mockClanNoticePostModalClose();
+    return false;
+  };
+
+  window.mockClanNoticePostDelete = function (postId) {
+    if (!postId || !window.confirm("이 공지를 삭제할까요?")) return false;
+    var posts = mockClanNoticePostsGetAll().filter(function (p) {
+      return p.id !== postId;
+    });
+    try {
+      mockClanNoticePostsSetAll(posts);
+    } catch (e) {
+      window.alert("삭제에 실패했습니다.");
+      return false;
+    }
+    window.mockClanNoticePostsRender();
+    return false;
+  };
+
+  window.mockClanNoticePostDeleteFromModal = function () {
+    var idInput = document.getElementById("mnp-id");
+    var id = idInput && idInput.value;
+    if (!id) return false;
+    if (!window.confirm("이 공지를 삭제할까요?")) return false;
+    var posts = mockClanNoticePostsGetAll().filter(function (p) {
+      return p.id !== id;
+    });
+    try {
+      mockClanNoticePostsSetAll(posts);
+    } catch (e) {
+      window.alert("삭제에 실패했습니다.");
+      return false;
+    }
+    window.mockClanNoticePostsRender();
+    window.mockClanNoticePostModalClose();
+    return false;
+  };
+
+  window.mockManageSetTab = function (btn, name) {
+    document.querySelectorAll("[data-manage-tab]").forEach(function (b) {
+      var on = b.getAttribute("data-manage-tab") === name;
+      b.classList.toggle("mock-tab-active", on);
+      b.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    document.querySelectorAll("[data-manage-panel]").forEach(function (p) {
+      var on = p.getAttribute("data-manage-panel") === name;
+      if (on) {
+        p.removeAttribute("hidden");
+        p.style.display = "";
+      } else {
+        p.setAttribute("hidden", "");
+      }
+    });
+    return false;
+  };
+
+  window.mockManageInitTabState = function () {
+    var first = document.querySelector('[data-manage-tab="overview"]');
+    if (first) window.mockManageSetTab(first, "overview");
+  };
+
+  window.mockClanManageLoadRules = function () {
     var r = document.getElementById("mock-manage-clan-rules");
     try {
-      var nv = localStorage.getItem(MOCK_CLAN_NOTICE_KEY);
       var rv = localStorage.getItem(MOCK_CLAN_RULES_KEY);
-      if (n && nv != null) n.value = nv;
       if (r && rv != null) r.value = rv;
     } catch (e) {}
   };
 
-  window.mockClanManageSaveNoticeRules = function () {
-    var n = document.getElementById("mock-manage-clan-notice");
+  window.mockClanManageSaveRules = function () {
     var r = document.getElementById("mock-manage-clan-rules");
-    var saved = document.getElementById("mock-manage-clan-notice-saved");
+    var saved = document.getElementById("mock-manage-clan-rules-saved");
     try {
-      if (n) localStorage.setItem(MOCK_CLAN_NOTICE_KEY, n.value);
       if (r) localStorage.setItem(MOCK_CLAN_RULES_KEY, r.value);
     } catch (e) {
       window.alert("저장에 실패했습니다.");
@@ -423,11 +678,22 @@
       imgModal.setAttribute("hidden", "");
       imgModal.setAttribute("aria-hidden", "true");
     }
+    var noticePostModal = document.getElementById("mock-clan-notice-post-modal");
+    if (noticePostModal) {
+      noticePostModal.setAttribute("hidden", "");
+      noticePostModal.setAttribute("aria-hidden", "true");
+    }
     if (typeof window.mockClanApplyStoredImages === "function") {
       window.mockClanApplyStoredImages();
     }
-    if (typeof window.mockClanManageLoadNoticeRules === "function") {
-      window.mockClanManageLoadNoticeRules();
+    if (typeof window.mockClanManageLoadRules === "function") {
+      window.mockClanManageLoadRules();
+    }
+    if (typeof window.mockClanNoticePostsRender === "function") {
+      window.mockClanNoticePostsRender();
+    }
+    if (typeof window.mockManageInitTabState === "function") {
+      window.mockManageInitTabState();
     }
     if (typeof window.mockSidebarNotifyRefresh === "function") {
       window.mockSidebarNotifyRefresh();

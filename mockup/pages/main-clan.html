@@ -3563,6 +3563,20 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
   max-width: 100%; max-height: 160px; border-radius: var(--radius-md); border: 1px solid var(--border);
   object-fit: contain; background: var(--bg-overlay);
 }
+/* 클랜 관리 상단 탭 */
+.mock-manage-tab-row { margin-bottom: 18px; }
+.mock-manage-panel[hidden] { display: none !important; }
+.mock-manage-notice-posts { display: flex; flex-direction: column; gap: 12px; }
+.mock-manage-post-card {
+  border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px;
+  background: var(--bg-overlay); text-align: left;
+}
+.mock-manage-post-card-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.mock-manage-post-card-head h4 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+.mock-manage-post-meta { font-size: 11px; color: var(--text-muted); }
+.mock-manage-post-body { font-size: 13px; line-height: 1.55; color: var(--text-secondary); white-space: pre-wrap; margin: 0 0 12px; max-height: 120px; overflow: hidden; }
+.mock-manage-post-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.mock-manage-posts-empty { font-size: 13px; color: var(--text-muted); margin: 0; padding: 16px; border: 1px dashed var(--border); border-radius: var(--radius-md); text-align: center; }
 .mock-mmgr-brief-seg { display: inline-flex; border-radius: var(--radius-md); border: 1px solid var(--border); overflow: hidden; }
 .mock-mmgr-seg-btn {
   padding: 8px 18px; font-size: 12px; font-weight: 600; border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-family: inherit;
@@ -5922,66 +5936,99 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
   <!-- ── 관리 뷰 (PRD §6.4) ── -->
   <div id="view-manage" class="clan-view">
     <div class="mock-page-title">클랜 관리</div>
-    <p class="mock-page-desc">가입 승인 · 구성원 테이블(참여일·기부) · 샘플 멤버 상세 · 구독 안내(클랜장).</p>
-    <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px;border-color:rgba(124,58,237,0.25)">
-      <div class="d-card-label">클랜 브랜딩</div>
-      <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px">배너·사이드바 클랜 아이콘 이미지를 적용합니다. <strong>운영진 이상</strong>만 표시(목업).</p>
-      <div style="display:flex;flex-wrap:wrap;gap:8px">
-        <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockClanImageModalOpen('banner')">배너 이미지 편집</button>
-        <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockClanImageModalOpen('icon')">클랜 아이콘 편집</button>
+    <p class="mock-page-desc">상단 탭으로 구역을 나눕니다. 공지는 게시글 단위로 편집·삭제하고, 규칙은 한 블록으로 유지합니다(목업).</p>
+
+    <div class="mock-tab-row mock-manage-tab-row" role="tablist" aria-label="클랜 관리 상단 탭">
+      <button type="button" class="mock-tab mock-tab-active mock-manage-tab" data-manage-tab="overview" role="tab" aria-selected="true" onclick="return window.mockManageSetTab(this,'overview')">개요</button>
+      <button type="button" class="mock-tab mock-manage-tab mock-officer-only" data-manage-tab="branding" role="tab" aria-selected="false" onclick="return window.mockManageSetTab(this,'branding')">브랜딩</button>
+      <button type="button" class="mock-tab mock-manage-tab mock-officer-only" data-manage-tab="notices" role="tab" aria-selected="false" onclick="return window.mockManageSetTab(this,'notices')">공지</button>
+      <button type="button" class="mock-tab mock-manage-tab mock-officer-only" data-manage-tab="rules" role="tab" aria-selected="false" onclick="return window.mockManageSetTab(this,'rules')">규칙</button>
+      <button type="button" class="mock-tab mock-manage-tab mock-officer-only" data-manage-tab="subscribe" role="tab" aria-selected="false" onclick="return window.mockManageSetTab(this,'subscribe')">구독</button>
+      <button type="button" class="mock-tab mock-manage-tab" data-manage-tab="members" role="tab" aria-selected="false" onclick="return window.mockManageSetTab(this,'members')">가입·구성원</button>
+    </div>
+
+    <div data-manage-panel="overview" class="mock-manage-panel">
+      <div class="d-card d-card-full" style="margin-bottom:16px">
+        <div class="d-card-label">클랜 프로필 요약</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+          <span class="badge badge-muted" style="font-size:10px">경쟁</span>
+          <span class="badge badge-muted" style="font-size:10px">성인</span>
+          <span class="badge badge-muted" style="font-size:10px">마이크 필수</span>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted)">연령 20대+ · 디스코드 <span style="color:var(--brand-secondary)">discord.gg/phoenix-mock</span></div>
       </div>
     </div>
-    <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px">
-      <div class="d-card-label">클랜 공지 · 규칙</div>
-      <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">대시보드 등에 노출할 문구를 작성합니다. 브라우저에 저장됩니다(목업).</p>
-      <label for="mock-manage-clan-notice" style="font-size:11px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px">클랜 공지사항</label>
-      <textarea id="mock-manage-clan-notice" class="mock-manage-clan-textarea" rows="4" placeholder="예: 이번 주 정기 내전 일정 안내…" aria-label="클랜 공지사항"></textarea>
-      <label for="mock-manage-clan-rules" style="font-size:11px;font-weight:600;color:var(--text-muted);display:block;margin:12px 0 6px">클랜 규칙</label>
-      <textarea id="mock-manage-clan-rules" class="mock-manage-clan-textarea" rows="6" placeholder="예: 비매너 3회 시 퇴출…" aria-label="클랜 규칙"></textarea>
-      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" class="btn btn-sm" onclick="return window.mockClanManageSaveNoticeRules()">저장</button>
-        <span style="font-size:11px;color:var(--text-muted);align-self:center" id="mock-manage-clan-notice-saved" hidden>저장됨</span>
+
+    <div data-manage-panel="branding" class="mock-manage-panel mock-officer-only" hidden>
+      <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px;border-color:rgba(124,58,237,0.25)">
+        <div class="d-card-label">클랜 브랜딩</div>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px">배너·사이드바 클랜 아이콘 이미지를 적용합니다. <strong>운영진 이상</strong>만 표시(목업).</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockClanImageModalOpen('banner')">배너 이미지 편집</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockClanImageModalOpen('icon')">클랜 아이콘 편집</button>
+        </div>
       </div>
     </div>
-    <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px;border-color:rgba(245,158,11,0.25)">
-      <div class="d-card-label">구독 · 결제 (목업)</div>
-      <p class="mock-clan-subscribe-hint-free" style="font-size:13px;color:var(--text-muted);margin:0 0 10px">클랜장만 변경. Free → PRO 업그레이드 플로우는 별도 화면으로 뺄지 여기 탭으로 둘지 미결.</p>
-      <p class="mock-clan-subscribe-hint-premium" style="font-size:13px;color:var(--text-muted);margin:0 0 10px">클랜장만 변경. 구독 상태·결제·영수증은 아래에서 관리합니다(목업).</p>
-      <button type="button" class="btn btn-sm" style="background:var(--pro-gradient);color:white;border:none" onclick="return window.mockManageSubscribeOpen()">구독 관리</button>
-    </div>
-    <div class="d-card d-card-full" style="margin-bottom:16px">
-      <div class="d-card-label">클랜 프로필 요약</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
-        <span class="badge badge-muted" style="font-size:10px">경쟁</span>
-        <span class="badge badge-muted" style="font-size:10px">성인</span>
-        <span class="badge badge-muted" style="font-size:10px">마이크 필수</span>
+
+    <div data-manage-panel="notices" class="mock-manage-panel mock-officer-only" hidden>
+      <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px">
+        <div class="d-card-label">클랜 공지 (게시글)</div>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px;line-height:1.5">실제 서비스에서는 게시글·피드와 동일한 모델로 연동됩니다. 목업에서는 브라우저에 JSON으로 저장합니다.</p>
+        <div class="mock-toolbar" style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+          <button type="button" class="btn btn-sm" onclick="return window.mockClanNoticePostModalOpen(null)">+ 공지 작성</button>
+        </div>
+        <div id="mock-manage-notice-posts-list" class="mock-manage-notice-posts" aria-live="polite"></div>
       </div>
-      <div style="font-size:12px;color:var(--text-muted)">연령 20대+ · 디스코드 <span style="color:var(--brand-secondary)">discord.gg/phoenix-mock</span></div>
     </div>
-    <div class="d-card d-card-full" style="margin-bottom:16px">
-      <div class="d-card-label">가입 요청 <span class="badge badge-muted" style="font-size:10px">2</span></div>
-      <table class="mock-table">
-        <thead><tr><th>닉네임</th><th>게임 ID</th><th></th></tr></thead>
-        <tbody>
-          <tr><td>신청자A</td><td style="color:var(--text-muted)">Player#0001</td><td style="text-align:right"><button type="button" class="btn btn-sm" style="margin-right:6px" onclick="alert('목업 승인')">승인</button><button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업 거절')">거절</button></td></tr>
-          <tr><td>신청자B</td><td style="color:var(--text-muted)">Rookie#7777</td><td style="text-align:right"><button type="button" class="btn btn-sm" style="margin-right:6px" onclick="alert('목업 승인')">승인</button><button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업 거절')">거절</button></td></tr>
-        </tbody>
-      </table>
+
+    <div data-manage-panel="rules" class="mock-manage-panel mock-officer-only" hidden>
+      <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px">
+        <div class="d-card-label">클랜 규칙</div>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">한 블록으로 관리합니다. 대시보드·가입 안내 등에 노출할 수 있습니다(목업).</p>
+        <label for="mock-manage-clan-rules" class="sr-only">클랜 규칙</label>
+        <textarea id="mock-manage-clan-rules" class="mock-manage-clan-textarea" rows="8" placeholder="예: 비매너 3회 시 퇴출…" aria-label="클랜 규칙"></textarea>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button type="button" class="btn btn-sm" onclick="return window.mockClanManageSaveRules()">저장</button>
+          <span style="font-size:11px;color:var(--text-muted)" id="mock-manage-clan-rules-saved" hidden>저장됨</span>
+        </div>
+      </div>
     </div>
-    <div class="d-card d-card-full" style="margin-bottom:16px">
-      <div class="d-card-label">구성원</div>
-      <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px">행을 클릭하면 <strong>개인 기록</strong> 상세(맵·역할·시너지)를 엽니다. 검색·페이지네이션은 목업입니다.</p>
-      <div class="mock-manage-members-toolbar">
-        <input type="search" id="mock-manage-members-search" placeholder="닉네임·게임 ID 검색" autocomplete="off" aria-label="구성원 검색" oninput="window.mockManageMembersOnSearch(this)" />
-        <span id="mock-manage-members-count" style="font-size:12px;color:var(--text-muted)"></span>
+
+    <div data-manage-panel="subscribe" class="mock-manage-panel mock-officer-only" hidden>
+      <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px;border-color:rgba(245,158,11,0.25)">
+        <div class="d-card-label">구독 · 결제 (목업)</div>
+        <p class="mock-clan-subscribe-hint-free" style="font-size:13px;color:var(--text-muted);margin:0 0 10px">클랜장만 변경. Free → PRO 업그레이드 플로우는 별도 화면으로 뺄지 여기 탭으로 둘지 미결.</p>
+        <p class="mock-clan-subscribe-hint-premium" style="font-size:13px;color:var(--text-muted);margin:0 0 10px">클랜장만 변경. 구독 상태·결제·영수증은 아래에서 관리합니다(목업).</p>
+        <button type="button" class="btn btn-sm" style="background:var(--pro-gradient);color:white;border:none" onclick="return window.mockManageSubscribeOpen()">구독 관리</button>
       </div>
-      <div style="overflow-x:auto">
-      <table class="mock-table">
-        <thead><tr><th>닉네임</th><th>게임 ID</th><th>역할</th><th>가입일</th><th>최근 참여</th><th style="text-align:right">클랜 기부</th></tr></thead>
-        <tbody id="mock-manage-members-tbody"></tbody>
-      </table>
+    </div>
+
+    <div data-manage-panel="members" class="mock-manage-panel" hidden>
+      <div class="d-card d-card-full" style="margin-bottom:16px">
+        <div class="d-card-label">가입 요청 <span class="badge badge-muted" style="font-size:10px">2</span></div>
+        <table class="mock-table">
+          <thead><tr><th>닉네임</th><th>게임 ID</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>신청자A</td><td style="color:var(--text-muted)">Player#0001</td><td style="text-align:right"><button type="button" class="btn btn-sm" style="margin-right:6px" onclick="alert('목업 승인')">승인</button><button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업 거절')">거절</button></td></tr>
+            <tr><td>신청자B</td><td style="color:var(--text-muted)">Rookie#7777</td><td style="text-align:right"><button type="button" class="btn btn-sm" style="margin-right:6px" onclick="alert('목업 승인')">승인</button><button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업 거절')">거절</button></td></tr>
+          </tbody>
+        </table>
       </div>
-      <div class="mock-manage-pager" id="mock-manage-members-pager" aria-label="구성원 검색 결과 페이지"></div>
+      <div class="d-card d-card-full" style="margin-bottom:16px">
+        <div class="d-card-label">구성원</div>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px">행을 클릭하면 <strong>개인 기록</strong> 상세(맵·역할·시너지)를 엽니다. 검색·페이지네이션은 목업입니다.</p>
+        <div class="mock-manage-members-toolbar">
+          <input type="search" id="mock-manage-members-search" placeholder="닉네임·게임 ID 검색" autocomplete="off" aria-label="구성원 검색" oninput="window.mockManageMembersOnSearch(this)" />
+          <span id="mock-manage-members-count" style="font-size:12px;color:var(--text-muted)"></span>
+        </div>
+        <div style="overflow-x:auto">
+        <table class="mock-table">
+          <thead><tr><th>닉네임</th><th>게임 ID</th><th>역할</th><th>가입일</th><th>최근 참여</th><th style="text-align:right">클랜 기부</th></tr></thead>
+          <tbody id="mock-manage-members-tbody"></tbody>
+        </table>
+        </div>
+        <div class="mock-manage-pager" id="mock-manage-members-pager" aria-label="구성원 검색 결과 페이지"></div>
+      </div>
     </div>
   </div>
 
@@ -6585,6 +6632,28 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
       <div class="mock-modal-actions" style="margin-top:16px">
         <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockClanImageModalClose()">취소</button>
         <button type="button" class="btn btn-sm" onclick="return window.mockClanImageModalApply()">적용</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 클랜 공지 게시글 작성·편집 -->
+  <div id="mock-clan-notice-post-modal" class="mock-modal-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="mock-clan-notice-post-modal-title" onclick="if(event.target===this)window.mockClanNoticePostModalClose()">
+    <div class="mock-modal-card" style="max-width:520px;width:calc(100% - 32px);box-sizing:border-box" onclick="event.stopPropagation()">
+      <h3 id="mock-clan-notice-post-modal-title" style="margin:0 0 12px;font-size:17px">공지 작성</h3>
+      <input type="hidden" id="mnp-id" value="" />
+      <div class="mock-modal-field">
+        <label for="mnp-title">제목</label>
+        <input type="text" id="mnp-title" placeholder="공지 제목" maxlength="200" />
+      </div>
+      <div class="mock-modal-field">
+        <label for="mnp-body">본문</label>
+        <textarea id="mnp-body" class="mock-manage-clan-textarea" style="min-height:160px" rows="8" placeholder="내용을 입력하세요."></textarea>
+      </div>
+      <div class="mock-modal-actions" style="margin-top:16px;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <button type="button" class="btn btn-secondary btn-sm" id="mnp-delete-btn" hidden onclick="return window.mockClanNoticePostDeleteFromModal()">삭제</button>
+        <span style="flex:1"></span>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockClanNoticePostModalClose()">취소</button>
+        <button type="button" class="btn btn-sm" onclick="return window.mockClanNoticePostModalSave()">저장</button>
       </div>
     </div>
   </div>
