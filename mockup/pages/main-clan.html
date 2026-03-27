@@ -3146,6 +3146,39 @@ aside.mock-balance-live-sidebar.mock-balance-live-predict-wrap .mock-balance-pre
   padding: 14px 14px 12px;
   overflow: hidden;
 }
+.mock-stats-archive-leader-toolbar {
+  display: none;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+body.mock-role-leader .mock-stats-archive-leader-toolbar {
+  display: flex;
+}
+.mock-stats-archive-leader-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 0;
+  flex: 1;
+  min-width: 160px;
+  line-height: 1.4;
+}
+.mock-stats-match-card[data-mock-at] {
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, outline-color 0.15s ease;
+}
+.mock-stats-match-card--selected {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.35);
+}
+.mock-stats-winrate-asof {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: -4px 0 10px;
+  line-height: 1.45;
+}
 .mock-stats-archive-record-label {
   font-size: 14px;
   font-weight: 800;

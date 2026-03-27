@@ -3374,8 +3374,8 @@
     );
   }
 
-  /** 경기 기록 탭: 내전 카드만(스크림·이벤트 미표시) */
-  function mockStatsIntraMatchCardHtml(m, cardIdx) {
+  /** 경기 기록 탭: 내전 카드만(스크림·이벤트 미표시) · selectedAt 일치 시 강조 */
+  function mockStatsIntraMatchCardHtml(m, cardIdx, selectedAt) {
     var winB = m.winner === "blue";
     var winR = m.winner === "red";
     var br = m.blueRoster || [];
@@ -3405,8 +3405,16 @@
     var dispId = mockStatsEscapeHtml(
       m.displayId != null ? m.displayId : "#" + cardIdx,
     );
+    var cardCls = "mock-stats-match-card";
+    if (selectedAt && m.at === selectedAt) {
+      cardCls += " mock-stats-match-card--selected";
+    }
     return (
-      '<article class="mock-stats-match-card">' +
+      '<article class="' +
+      cardCls +
+      '" data-mock-at="' +
+      mockStatsEscapeHtml(m.at) +
+      '" onclick="return window.mockStatsArchiveSelectAsOfFromCard(this)">' +
       '<div class="mock-stats-match-card-head">' +
       "<strong>" +
       mockStatsEscapeHtml(m.map) +
@@ -3563,6 +3571,11 @@
     if (!st) {
       return '<div class="mock-stats-winrate-title">승률 순위</div>';
     }
+    var asOfHtml = st.asOfNote
+      ? '<p class="mock-stats-winrate-asof">' +
+        mockStatsEscapeHtml(st.asOfNote) +
+        "</p>"
+      : "";
     var dateLabel = st.dateLabel;
     var sorted = mockStatsWinrateSortedCopy(st);
     var cnt = st.rows.length;
@@ -3609,6 +3622,7 @@
     }
     return (
       '<div class="mock-stats-winrate-title">승률 순위</div>' +
+      asOfHtml +
       '<div class="mock-stats-winrate-scroll">' +
       '<table class="mock-stats-winrate-table">' +
       "<thead><tr>" +
@@ -3835,6 +3849,20 @@
     return '<div class="mock-stats-archive-record-label">경기 기록</div>';
   }
 
+  /** 클랜장만: 경기 추가·삽입·수정·삭제 */
+  function mockStatsArchiveLeaderToolbarHtml() {
+    if (window.mockClanCurrentRole() !== "leader") return "";
+    return (
+      '<div class="mock-stats-archive-leader-toolbar">' +
+      '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsLeaderIntraAdd()">추가</button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsLeaderIntraInsert()">삽입</button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsLeaderIntraEdit()">수정</button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsLeaderIntraDelete()">삭제</button>' +
+      '<span class="mock-stats-archive-leader-hint">승률 순위는 카드로 선택한 경기 <strong>시점까지</strong> 누적 집계됩니다. 편집은 선택 경기 기준(목업).</span>' +
+      "</div>"
+    );
+  }
+
   /** 하단 좌측: 선택일 경기 슬라이더(날짜 머리글은 별도 #mock-stats-archive-day-heading) */
   function mockStatsArchiveBuildRecordHtml(intra) {
     var cal = window.__mockStatsArchiveCal;
@@ -3842,6 +3870,7 @@
     if (intra.length === 0) {
       return (
         prefix +
+        mockStatsArchiveLeaderToolbarHtml() +
         mockStatsArchiveWrapRecordBody(
           '<p class="mock-stats-footnote" style="margin:0">이 조건에서 내전 기록이 없습니다.</p>',
           true,
@@ -3858,21 +3887,24 @@
     if (arr.length === 0) {
       return (
         prefix +
+        mockStatsArchiveLeaderToolbarHtml() +
         mockStatsArchiveWrapRecordBody(
           '<p class="mock-stats-footnote" style="margin:0">선택한 날짜에 내전이 없습니다.</p>',
           true,
         )
       );
     }
+    var selAt = window.__mockStatsArchiveAsOfAt;
     return (
       prefix +
+      mockStatsArchiveLeaderToolbarHtml() +
       mockStatsArchiveWrapRecordBody(
       '<div class="mock-stats-archive-slider-row">' +
         '<button type="button" class="mock-stats-archive-slider-btn" aria-label="이전 경기" onclick="return window.mockStatsArchiveSliderStep(-1)">‹</button>' +
         '<div id="mock-stats-archive-slider" class="mock-stats-archive-slider" tabindex="0">' +
         arr
           .map(function (m, idx) {
-            return mockStatsIntraMatchCardHtml(m, idx);
+            return mockStatsIntraMatchCardHtml(m, idx, selAt);
           })
           .join("") +
         "</div>" +
@@ -3888,6 +3920,7 @@
     window.__mockStatsArchiveCal.selectedKey = key;
     window.__mockStatsArchiveCal.weekStartUtcMs =
       mockStatsUtcMondayMsFromDayKey(key);
+    window.__mockStatsArchiveAsOfAt = null;
     window.mockStatsRender();
     return false;
   };
@@ -3905,6 +3938,110 @@
     }
     c.weekStartUtcMs += delta * 7 * 86400000;
     c.selectedKey = null;
+    window.__mockStatsArchiveAsOfAt = null;
+    window.mockStatsRender();
+    return false;
+  };
+
+  /** 카드 클릭: 해당 경기 시점까지 누적 승률 순위(히스토리) */
+  window.mockStatsArchiveSelectAsOfFromCard = function (el) {
+    var at = el && el.getAttribute("data-mock-at");
+    if (at) window.mockStatsArchiveSelectAsOf(at);
+    return false;
+  };
+
+  window.mockStatsArchiveSelectAsOf = function (isoAt) {
+    window.__mockStatsArchiveAsOfAt = isoAt;
+    window.mockStatsRender();
+  };
+
+  window.mockStatsLeaderIntraAdd = function () {
+    if (window.mockClanCurrentRole() !== "leader") return false;
+    CLAN_STATS_MATCHES.unshift({
+      at: new Date().toISOString(),
+      type: "intra",
+      map: "뉴 정크 시티",
+      mapType: "제어",
+      winner: "blue",
+      score: "3-0",
+    });
+    mockStatsFillRosters(CLAN_STATS_MATCHES);
+    window.__mockStatsArchiveAsOfAt = null;
+    window.mockStatsRender();
+    window.alert("목업: 내전 경기를 추가했습니다.");
+    return false;
+  };
+
+  window.mockStatsLeaderIntraInsert = function () {
+    if (window.mockClanCurrentRole() !== "leader") return false;
+    var at = window.__mockStatsArchiveAsOfAt;
+    if (!at) {
+      window.alert("목업: 먼저 카드를 선택해 주세요.");
+      return false;
+    }
+    var idx = CLAN_STATS_MATCHES.findIndex(function (m) {
+      return m.at === at;
+    });
+    if (idx < 0) {
+      window.alert("목업: 경기를 찾을 수 없습니다.");
+      return false;
+    }
+    CLAN_STATS_MATCHES.splice(idx + 1, 0, {
+      at: new Date().toISOString(),
+      type: "intra",
+      map: "할리우드",
+      mapType: "호위",
+      winner: "red",
+      score: "2-3",
+    });
+    mockStatsFillRosters(CLAN_STATS_MATCHES);
+    window.__mockStatsArchiveAsOfAt = null;
+    window.mockStatsRender();
+    window.alert("목업: 선택한 경기 다음 위치에 삽입했습니다.");
+    return false;
+  };
+
+  window.mockStatsLeaderIntraEdit = function () {
+    if (window.mockClanCurrentRole() !== "leader") return false;
+    var at = window.__mockStatsArchiveAsOfAt;
+    if (!at) {
+      window.alert("목업: 먼저 카드를 선택해 주세요.");
+      return false;
+    }
+    var m = CLAN_STATS_MATCHES.find(function (x) {
+      return x.at === at;
+    });
+    if (!m || m.type !== "intra") {
+      window.alert("목업: 내전만 수정할 수 있습니다.");
+      return false;
+    }
+    var map = window.prompt("맵 이름", m.map);
+    if (map === null) return false;
+    if (map) m.map = map;
+    var w = window.prompt("승자: blue 또는 red", m.winner);
+    if (w === null) return false;
+    if (w === "blue" || w === "red") m.winner = w;
+    mockStatsFillRosters(CLAN_STATS_MATCHES);
+    window.mockStatsRender();
+    window.alert("목업: 반영했습니다.");
+    return false;
+  };
+
+  window.mockStatsLeaderIntraDelete = function () {
+    if (window.mockClanCurrentRole() !== "leader") return false;
+    var at = window.__mockStatsArchiveAsOfAt;
+    if (!at) {
+      window.alert("목업: 먼저 카드를 선택해 주세요.");
+      return false;
+    }
+    var idx = CLAN_STATS_MATCHES.findIndex(function (m) {
+      return m.at === at;
+    });
+    if (idx < 0) return false;
+    if (!window.confirm("목업: 이 경기를 삭제할까요?")) return false;
+    CLAN_STATS_MATCHES.splice(idx, 1);
+    mockStatsFillRosters(CLAN_STATS_MATCHES);
+    window.__mockStatsArchiveAsOfAt = null;
     window.mockStatsRender();
     return false;
   };
@@ -4871,6 +5008,11 @@
           elDayHeading.setAttribute("hidden", "");
         }
       }
+      var intraAsc = intraList
+        .slice()
+        .sort(function (a, b) {
+          return new Date(a.at) - new Date(b.at);
+        });
       var dayMatches = [];
       var dateLbl = "";
       if (calSt && calSt.selectedKey) {
@@ -4879,11 +5021,46 @@
           return mockStatsDayKey(m.at) === calSt.selectedKey;
         });
       }
+      var selMatch = null;
+      var selAt = window.__mockStatsArchiveAsOfAt;
+      if (dayMatches.length) {
+        if (selAt) {
+          selMatch = intraAsc.find(function (m) {
+            return (
+              m.at === selAt &&
+              mockStatsDayKey(m.at) === calSt.selectedKey
+            );
+          });
+        }
+        if (!selMatch) {
+          selMatch = dayMatches
+            .slice()
+            .sort(function (a, b) {
+              return new Date(b.at) - new Date(a.at);
+            })[0];
+          window.__mockStatsArchiveAsOfAt = selMatch ? selMatch.at : null;
+        }
+      } else {
+        window.__mockStatsArchiveAsOfAt = null;
+      }
+      var prefix = [];
+      if (selMatch) {
+        var ix = intraAsc.indexOf(selMatch);
+        if (ix >= 0) prefix = intraAsc.slice(0, ix + 1);
+      }
+      var asOfNote = "";
+      if (selMatch && selMatch.displayId != null) {
+        asOfNote =
+          "전체 내전 시간순 · " +
+          String(selMatch.displayId) +
+          "번째 경기까지 반영된 승률(히스토리)";
+      }
       window.__mockStatsWinrateState = {
-        rows: mockStatsLeaderboardRowsFromDay(dayMatches),
+        rows: mockStatsLeaderboardRowsFromMatches(prefix),
         sortKey: "wrNum",
         sortDir: "desc",
         dateLabel: dateLbl,
+        asOfNote: asOfNote,
       };
       if (elWrAside) elWrAside.innerHTML = mockStatsWinrateBuildAsideHtml();
     } else {
