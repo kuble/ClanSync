@@ -916,7 +916,7 @@
   transform: translateX(18px);
 }
 .mock-balance-slot-muted { color: var(--text-muted); font-weight: 500; }
-/* 밸런스 편집기 — 플레이어 풀 · VS 보드 · 워크플로 탭 */
+/* 밸런스 편집기 — 플레이어 풀 · VS 보드 · 워크플로 탭(스타일은 main.css) */
 .mock-balance-view-head {
   display: flex;
   align-items: center;
@@ -926,42 +926,6 @@
 }
 .mock-balance-view-head .mock-page-title {
   margin-bottom: 0;
-}
-.mock-balance-wf-tabs-wrap {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-.mock-balance-wf-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 0;
-}
-.mock-balance-wf-tab {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 6px 10px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--bg-overlay);
-  color: var(--text-muted);
-  cursor: pointer;
-  font-family: var(--font-sans);
-}
-.mock-balance-wf-tab:hover {
-  color: var(--text-primary);
-  border-color: var(--border-hover);
-}
-.mock-balance-wf-tab.mock-tab-active {
-  border-color: rgba(124, 58, 237, 0.55);
-  background: rgba(124, 58, 237, 0.14);
-  color: #e9d5ff;
-}
-.mock-balance-wf-panel[hidden] {
-  display: none !important;
 }
 .mock-balance-layout {
   display: block;
@@ -2190,37 +2154,7 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   margin-bottom: 0;
   padding-bottom: 0;
 }
-.mock-balance-settings-tabs-wrap {
-  margin-bottom: 14px;
-  border-bottom: 1px solid var(--border);
-}
-.mock-balance-settings-tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: -1px;
-}
-.mock-balance-settings-tab {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 8px 12px;
-  border: none;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-family: var(--font-sans);
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-}
-.mock-balance-settings-tab:hover {
-  color: var(--text-secondary);
-}
-.mock-balance-settings-tab.mock-tab-active {
-  color: var(--text-primary);
-  border-bottom-color: rgba(124, 58, 237, 0.85);
-}
-.mock-balance-settings-panel[hidden] {
-  display: none !important;
-}
+/* 밸런스 설정 모달 탭 → main.css .mock-balance-settings-* */
 .mock-balance-settings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -3413,51 +3347,14 @@ body.mock-role-leader .mock-stats-archive-leader-toolbar {
   max-height: 300px;
 }
 
-/* 클랜 통계 · 상단 탭 — main-game.html 클랜 순위(.ranking-tabs)와 동일 패턴 */
-#view-stats .ranking-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--border);
-}
-#view-stats .ranking-tab {
-  padding: 10px 16px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted);
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  cursor: pointer;
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-  transition: color 0.15s, border-color 0.15s;
-  font-family: var(--font-sans);
-}
-#view-stats .ranking-tab:hover { color: var(--text-primary); }
-#view-stats .ranking-tab.on {
-  color: #c4b5fd;
-  border-bottom-color: #7c3aed;
-}
-#view-stats .ranking-panel[hidden] { display: none !important; }
+/* 클랜 통계 상단 탭(.ranking-tabs) → mockup/styles/main.css */
 .mock-store-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 @media (max-width: 900px) { .mock-store-grid { grid-template-columns: 1fr; } }
 .mock-store-card { border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 14px; background: var(--bg-elevated); display: flex; flex-direction: column; gap: 8px; }
 .mock-store-card.pro { position: relative; opacity: 0.75; }
 .mock-store-card.pro::after { content: 'PRO'; position: absolute; top: 10px; right: 10px; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: rgba(245,158,11,0.2); color: #fcd34d; }
 
-/* ── 플랜 반영: 탭·모달 (목업 권한은 _hub 사이드바) ── */
-.mock-tab-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; align-items: center; }
-.mock-tab {
-  font-size: 12px; padding: 6px 12px; border-radius: var(--radius-sm);
-  border: 1px solid var(--border); background: var(--bg-overlay); color: var(--text-muted);
-  cursor: pointer; font-family: var(--font-sans);
-}
-.mock-tab:hover { color: var(--text-primary); }
-.mock-tab.mock-tab-active {
-  border-color: rgba(124,58,237,0.5); background: rgba(124,58,237,0.12); color: #c4b5fd; font-weight: 600;
-}
+/* mock-tab-row / .mock-tab → mockup/styles/main.css 상단 탭 통일 */
 .mock-pro-inline {
   font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 99px;
   background: rgba(245,158,11,0.18); color: #fcd34d; border: 1px solid rgba(245,158,11,0.35);

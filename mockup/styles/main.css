@@ -64,6 +64,13 @@
   /* 네비/사이드 활성 칩 (Hub) */
   --surface-active: rgba(167, 139, 250, 0.08);
   --surface-hover: rgba(255, 255, 255, 0.04);
+
+  /* 상단 탭 통일 (언더라인 · 다크 바) */
+  --mock-tab-track-border: rgba(255, 255, 255, 0.08);
+  --mock-tab-text-idle: #888888;
+  --mock-tab-text-hover: #e4e4e7;
+  --mock-tab-text-active: #ffffff;
+  --mock-tab-indicator: #8b5cf6;
 }
 
 /* ── 리셋 ── */
@@ -497,27 +504,189 @@ body.app-sidebar-drawer-open .mobile-menu-icon::after {
 .avatar-lg { width: 48px; height: 48px; font-size: 18px; }
 .avatar-xl { width: 64px; height: 64px; font-size: 24px; }
 
-/* 탭 */
+/* 탭 (공통 페이지 상단 탭과 동일 토큰) */
 .tabs {
   display: flex;
-  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
   gap: 0;
   margin-bottom: 24px;
+  border-bottom: 1px solid var(--mock-tab-track-border);
 }
 .tab {
+  position: relative;
   padding: 10px 20px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--mock-tab-text-idle);
   cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: all 0.15s;
+  border: none;
+  background: transparent;
+  margin-bottom: -1px;
+  font-family: var(--font-sans);
+  transition: color 0.15s ease;
+}
+.tab:hover { color: var(--mock-tab-text-hover); }
+.tab.active {
+  color: var(--mock-tab-text-active);
+  font-weight: 600;
+}
+.tab.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--mock-tab-indicator);
+  border-radius: 1px 1px 0 0;
+}
+
+/* ── 상단 탭 통일: mock-tab-row · ranking-tabs (main-clan / main-game) ── */
+.mock-tab-row,
+.ranking-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0;
+  margin-bottom: 16px;
+  padding: 0;
+  border-bottom: 1px solid var(--mock-tab-track-border);
+  background: transparent;
+}
+.mock-tab,
+.ranking-tab {
+  position: relative;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 16px;
+  margin-bottom: -1px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--mock-tab-text-idle);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: color 0.15s ease;
+}
+.mock-tab:hover,
+.ranking-tab:hover {
+  color: var(--mock-tab-text-hover);
+}
+.mock-tab.mock-tab-active,
+.ranking-tab.on {
+  color: var(--mock-tab-text-active);
+  font-weight: 600;
+}
+.mock-tab.mock-tab-active::after,
+.ranking-tab.on::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--mock-tab-indicator);
+  border-radius: 1px 1px 0 0;
+}
+.ranking-panel[hidden] {
+  display: none !important;
+}
+
+/* 밸런스 편집기 — 워크플로 탭 (main-clan) */
+.mock-balance-wf-tabs-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.mock-balance-wf-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 0;
+  border-bottom: 1px solid var(--mock-tab-track-border);
+}
+.mock-balance-wf-tab {
+  position: relative;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 14px;
+  margin-bottom: -1px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--mock-tab-text-idle);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: color 0.15s ease;
+}
+.mock-balance-wf-tab:hover {
+  color: var(--mock-tab-text-hover);
+}
+.mock-balance-wf-tab.mock-tab-active {
+  color: var(--mock-tab-text-active);
+  font-weight: 600;
+}
+.mock-balance-wf-tab.mock-tab-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--mock-tab-indicator);
+  border-radius: 1px 1px 0 0;
+}
+.mock-balance-wf-panel[hidden] {
+  display: none !important;
+}
+
+/* 밸런스 설정 모달 탭 */
+.mock-balance-settings-tabs-wrap {
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--mock-tab-track-border);
+}
+.mock-balance-settings-tabs {
+  display: flex;
+  gap: 0;
   margin-bottom: -1px;
 }
-.tab:hover { color: var(--text-primary); }
-.tab.active {
-  color: var(--text-primary);
-  border-bottom-color: var(--accent-violet);
+.mock-balance-settings-tab {
+  position: relative;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 16px;
+  margin-bottom: -1px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--mock-tab-text-idle);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: color 0.15s ease;
+}
+.mock-balance-settings-tab:hover {
+  color: var(--mock-tab-text-hover);
+}
+.mock-balance-settings-tab.mock-tab-active {
+  color: var(--mock-tab-text-active);
+  font-weight: 600;
+}
+.mock-balance-settings-tab.mock-tab-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--mock-tab-indicator);
+  border-radius: 1px 1px 0 0;
+}
+.mock-balance-settings-panel[hidden] {
+  display: none !important;
 }
 
 /* Premium 배지 인라인 */
