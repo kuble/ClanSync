@@ -162,6 +162,132 @@
 .event-name { font-weight: 600; font-size: 14px; }
 .event-time { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
+/* ── 클랜 이벤트: 월간 캘린더 + 하단 그리드 ── */
+.mock-events-month-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.mock-events-month-label {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.mock-events-cal {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--bg-elevated);
+  padding: 12px;
+  margin-bottom: 20px;
+}
+.mock-events-cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: center;
+}
+.mock-events-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.mock-events-cal-cell {
+  min-height: 52px;
+  padding: 5px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  font-size: 12px;
+  color: var(--text);
+  text-align: left;
+  position: relative;
+  box-sizing: border-box;
+}
+.mock-events-cal-cell--muted {
+  opacity: 0.45;
+  background: var(--bg-overlay);
+}
+.mock-events-cal-cell--has {
+  border-color: rgba(124, 58, 237, 0.4);
+  background: rgba(124, 58, 237, 0.07);
+}
+.mock-events-cal-daynum {
+  font-weight: 700;
+  line-height: 1.2;
+}
+.mock-events-cal-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 4px;
+  align-items: center;
+}
+.mock-events-cal-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 99px;
+  flex-shrink: 0;
+}
+.mock-events-cal-dot--internal { background: #7c3aed; }
+.mock-events-cal-dot--scrim { background: #10b981; }
+.mock-events-cal-dot--event { background: #f59e0b; }
+.mock-events-sync-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-overlay);
+  line-height: 1.55;
+}
+.mock-events-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 10px;
+  color: var(--text-muted);
+}
+.mock-events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+.mock-events-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--bg-elevated);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 118px;
+}
+.mock-events-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.mock-events-card-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.mock-events-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
 /* ── 활동 일지 ── */
 .activity-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
 .activity-row:last-child { border-bottom: none; }
@@ -3925,33 +4051,102 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
   <!-- ── 이벤트 뷰 (PRD §6.3) ── -->
   <div id="view-events" class="clan-view">
     <div class="mock-page-title">클랜 이벤트</div>
-    <p class="mock-page-desc">목록 / 캘린더 전환 · 일정 등록 모달 목업 · PRO 대진표 버튼(비활성).</p>
+    <p class="mock-page-desc">월간 캘린더로 한 달을 한눈에 보고, 하단 그리드에서 일정 카드를 확인합니다. · 일정 등록 시 반복 규칙 · 스크림·매칭 확정 시 자동 반영(기획) · PRO 대진표(비활성).</p>
+    <p class="mock-events-sync-hint">스크림·매칭에서 일정이 <strong>확정</strong>되면 해당 스크림이 클랜 이벤트에 <strong>자동 등록</strong>됩니다(취소·변경 시 동기화). 수동으로 같은 일정을 다시 입력할 필요가 없습니다.</p>
     <div class="mock-toolbar">
       <button type="button" class="btn btn-sm mock-officer-only" onclick="mockEventOpenModal()">+ 일정 등록</button>
       <button type="button" class="btn btn-sm" style="opacity:0.5;cursor:not-allowed" disabled title="PRO">대진표 생성기 <span class="mock-pro-inline" style="margin-left:4px">PRO</span></button>
     </div>
-    <div class="mock-tab-row">
-      <button type="button" class="mock-tab mock-tab-active" data-events-subtab onclick="mockEventsSetTab(this,'list')">목록</button>
-      <button type="button" class="mock-tab" data-events-subtab onclick="mockEventsSetTab(this,'cal')">캘린더</button>
+    <div class="mock-events-month-bar">
+      <button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업: 이전 달')" aria-label="이전 달">‹</button>
+      <span class="mock-events-month-label">2026년 3월</span>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업: 다음 달')" aria-label="다음 달">›</button>
     </div>
-    <div data-events-panel="list" class="dashboard-grid" style="grid-template-columns:1fr">
-      <div class="d-card d-card-full">
-        <div class="event-item"><div class="event-date"><div class="event-date-day">28</div><div class="event-date-month">03월</div></div><div class="event-info"><div class="event-name">금요 정기 내전</div><div class="event-time">21:00 · 디스코드 #내전</div></div><span class="badge badge-brand" style="font-size:11px">내전</span></div>
-        <div class="event-item"><div class="event-date"><div class="event-date-day">30</div><div class="event-date-month">03월</div></div><div class="event-info"><div class="event-name">스크림 vs Nova</div><div class="event-time">20:00 · 인게임</div></div><span class="badge badge-success" style="font-size:11px">스크림</span></div>
-        <div class="event-item"><div class="event-date"><div class="event-date-day">05</div><div class="event-date-month">04월</div></div><div class="event-info"><div class="event-name">시즌 맞이 이벤트전</div><div class="event-time">19:30 · 랜덤 드래프트</div></div><span class="badge badge-pro" style="font-size:11px">이벤트</span></div>
+    <div class="mock-events-cal" aria-label="2026년 3월 월간 캘린더">
+      <div class="mock-events-cal-weekdays">
+        <span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span>
       </div>
+      <div class="mock-events-cal-grid">
+        <!-- 1주: 2/23–3/1 (2026년 3월, 월 시작 월요일 기준) -->
+        <div class="mock-events-cal-cell mock-events-cal-cell--muted"><span class="mock-events-cal-daynum">23</span></div>
+        <div class="mock-events-cal-cell mock-events-cal-cell--muted"><span class="mock-events-cal-daynum">24</span></div>
+        <div class="mock-events-cal-cell mock-events-cal-cell--muted"><span class="mock-events-cal-daynum">25</span></div>
+        <div class="mock-events-cal-cell mock-events-cal-cell--muted"><span class="mock-events-cal-daynum">26</span></div>
+        <div class="mock-events-cal-cell mock-events-cal-cell--muted"><span class="mock-events-cal-daynum">27</span></div>
+        <div class="mock-events-cal-cell mock-events-cal-cell--muted"><span class="mock-events-cal-daynum">28</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">1</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">2</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">3</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">4</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">5</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">6</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">7</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">8</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">9</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">10</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">11</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">12</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">13</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">14</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">15</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">16</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">17</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">18</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">19</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">20</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">21</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">22</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">23</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">24</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">25</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">26</span></div>
+        <div class="mock-events-cal-cell mock-events-cal-cell--has"><span class="mock-events-cal-daynum">27</span><div class="mock-events-cal-dots" title="정기 내전"><span class="mock-events-cal-dot mock-events-cal-dot--internal"></span></div></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">28</span></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">29</span></div>
+        <div class="mock-events-cal-cell mock-events-cal-cell--has"><span class="mock-events-cal-daynum">30</span><div class="mock-events-cal-dots" title="스크림 vs Nova"><span class="mock-events-cal-dot mock-events-cal-dot--scrim"></span></div></div>
+        <div class="mock-events-cal-cell"><span class="mock-events-cal-daynum">31</span></div>
+        <div class="mock-events-cal-cell mock-events-cal-cell--muted"><span class="mock-events-cal-daynum">1</span></div>
+        <div class="mock-events-cal-cell mock-events-cal-cell--muted"><span class="mock-events-cal-daynum">2</span></div>
+        <div class="mock-events-cal-cell mock-events-cal-cell--muted"><span class="mock-events-cal-daynum">3</span></div>
+        <div class="mock-events-cal-cell mock-events-cal-cell--muted"><span class="mock-events-cal-daynum">4</span></div>
+        <div class="mock-events-cal-cell mock-events-cal-cell--muted mock-events-cal-cell--has"><span class="mock-events-cal-daynum">5</span><div class="mock-events-cal-dots" title="시즌 맞이 이벤트전"><span class="mock-events-cal-dot mock-events-cal-dot--event"></span></div></div>
+      </div>
+      <p style="font-size:11px;color:var(--text-muted);margin:0 0 10px">점 색: 보라=내전 · 초록=스크림 · 주황=이벤트. 알림(카카오/디스코드)은 연동 후.</p>
     </div>
-    <div data-events-panel="cal" style="display:none">
-      <div class="d-card d-card-full">
-        <div class="d-card-label">2026년 3월</div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:11px;color:var(--text-muted);margin-bottom:6px">
-          <span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span>
+    <div class="mock-events-section-title">이번 달 일정</div>
+    <div class="mock-events-grid">
+      <div class="mock-events-card">
+        <div class="mock-events-card-top">
+          <div class="event-date" style="margin:0"><div class="event-date-day">27</div><div class="event-date-month">03월</div></div>
+          <span class="badge badge-brand" style="font-size:11px">내전</span>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:12px">
-          <span style="padding:8px 0;border-radius:6px">1</span><span style="padding:8px 0">2</span><span style="padding:8px 0">3</span><span style="padding:8px 0">4</span><span style="padding:8px 0;background:rgba(124,58,237,0.15);border-radius:6px">5</span><span style="padding:8px 0">6</span><span style="padding:8px 0">7</span>
-          <span style="padding:8px 0">…</span><span style="padding:8px 0">22</span><span style="padding:8px 0">…</span><span style="padding:8px 0">28</span><span style="padding:8px 0">30</span>
+        <div class="event-name">정기 내전</div>
+        <div class="mock-events-card-meta">금요일 21:00 · 디스코드 #내전</div>
+        <div class="mock-events-card-badges">
+          <span class="badge badge-muted" style="font-size:10px">반복 · 매주 금</span>
         </div>
-        <p style="font-size:11px;color:var(--text-muted);margin-top:12px;margin-bottom:0">알림(카카오/디스코드)은 연동 후. 캘린더는 목업 그리드만.</p>
+      </div>
+      <div class="mock-events-card">
+        <div class="mock-events-card-top">
+          <div class="event-date" style="margin:0"><div class="event-date-day">30</div><div class="event-date-month">03월</div></div>
+          <span class="badge badge-success" style="font-size:11px">스크림</span>
+        </div>
+        <div class="event-name">스크림 vs Nova</div>
+        <div class="mock-events-card-meta">월요일 20:00 · 인게임</div>
+        <div class="mock-events-card-badges">
+          <span class="badge badge-muted" style="font-size:10px">스크림 자동 등록</span>
+        </div>
+      </div>
+      <div class="mock-events-card">
+        <div class="mock-events-card-top">
+          <div class="event-date" style="margin:0"><div class="event-date-day">05</div><div class="event-date-month">04월</div></div>
+          <span class="badge badge-pro" style="font-size:11px">이벤트</span>
+        </div>
+        <div class="event-name">시즌 맞이 이벤트전</div>
+        <div class="mock-events-card-meta">일요일 19:30 · 랜덤 드래프트</div>
+        <div class="mock-events-card-badges">
+          <span class="badge badge-muted" style="font-size:10px">일회성</span>
+        </div>
       </div>
     </div>
   </div>
@@ -4042,7 +4237,15 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
       <h3 id="mock-event-modal-title">일정 등록 (목업)</h3>
       <div class="mock-modal-field"><label for="mev-title">제목</label><input id="mev-title" type="text" placeholder="예: 정기 내전" /></div>
       <div class="mock-modal-field"><label for="mev-type">유형</label><select id="mev-type"><option>내전</option><option>스크림</option><option>이벤트</option></select></div>
-      <div class="mock-modal-field"><label for="mev-when">일시</label><input id="mev-when" type="text" placeholder="2026-03-28 21:00" /></div>
+      <div class="mock-modal-field"><label for="mev-when">일시</label><input id="mev-when" type="text" placeholder="2026-03-27 21:00" /></div>
+      <div class="mock-modal-field"><label for="mev-repeat">반복</label><select id="mev-repeat">
+        <option>없음 (일회)</option>
+        <option>매주 같은 요일·시간 (정기 내전 등)</option>
+        <option>매월 같은 날짜</option>
+        <option>격주 같은 요일</option>
+      </select></div>
+      <div class="mock-modal-field"><label for="mev-place">장소·채널</label><input id="mev-place" type="text" placeholder="예: 디스코드 #내전 · 인게임 초대" /></div>
+      <p style="font-size:11px;color:var(--text-muted);margin:0;line-height:1.45">스크림 일정은 매칭 확정 시 자동으로 등록되므로, 여기서는 내전·이벤트·수동 스크림만 입력합니다(목업).</p>
       <div class="mock-modal-actions">
         <button type="button" class="btn btn-secondary btn-sm" onclick="mockEventCloseModal()">취소</button>
         <button type="button" class="btn btn-sm" onclick="alert('목업 저장'); mockEventCloseModal();">저장</button>
