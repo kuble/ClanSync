@@ -3183,7 +3183,7 @@
   };
 
   /* ── 클랜 통계 (clan-stats-plan) — 내전=블루/레드 팀승 · 스크림=승패 미집계 · 이벤트=팀승 목업 ── */
-  /** @type {{ at: string, type: string, map: string, mapType: string, winner: 'blue'|'red'|null }[]} */
+  /** @type {{ at: string, type: string, map: string, mapType: string, winner: 'blue'|'red'|null }[]} — intra 무승부는 null, 스크림 미정도 null */
   var CLAN_STATS_MATCHES = [
     { at: "2026-03-22T18:00:00.000Z", type: "intra", map: "서킷 로얄", mapType: "클래시", winner: "blue" },
     { at: "2026-03-22T14:00:00.000Z", type: "intra", map: "할리우드", mapType: "호위", winner: "red" },
@@ -4426,15 +4426,26 @@
   window.mockStatsMmSetWinner = function (side) {
     var blue = document.getElementById("msm-win-blue");
     var red = document.getElementById("msm-win-red");
+    var draw = document.getElementById("msm-win-draw");
     var btnB = document.getElementById("msm-btn-win-blue");
     var btnR = document.getElementById("msm-btn-win-red");
+    var btnD = document.getElementById("msm-btn-win-draw");
+    function clearOn() {
+      if (btnB) btnB.classList.remove("mock-stats-mm-win--on");
+      if (btnR) btnR.classList.remove("mock-stats-mm-win--on");
+      if (btnD) btnD.classList.remove("mock-stats-mm-win--on");
+    }
     if (side === "red") {
       if (red) red.checked = true;
-      if (btnB) btnB.classList.remove("mock-stats-mm-win--on");
+      clearOn();
       if (btnR) btnR.classList.add("mock-stats-mm-win--on");
+    } else if (side === "draw") {
+      if (draw) draw.checked = true;
+      clearOn();
+      if (btnD) btnD.classList.add("mock-stats-mm-win--on");
     } else {
       if (blue) blue.checked = true;
-      if (btnR) btnR.classList.remove("mock-stats-mm-win--on");
+      clearOn();
       if (btnB) btnB.classList.add("mock-stats-mm-win--on");
     }
     return false;
@@ -4522,7 +4533,9 @@
     document.getElementById("msm-time").value = parts.time;
     mockStatsMatchModalEnsureOption(document.getElementById("msm-map"), m.map);
     mockStatsMatchModalSyncMapTypeLabel(m.mapType);
-    mockStatsMmSetWinner(m.winner === "red" ? "red" : "blue");
+    if (m.winner === "red") mockStatsMmSetWinner("red");
+    else if (m.winner === "blue") mockStatsMmSetWinner("blue");
+    else mockStatsMmSetWinner("draw");
     var br = m.blueRoster || [];
     var rr = m.redRoster || [];
     var j;
@@ -4648,7 +4661,12 @@
     var map = document.getElementById("msm-map").value;
     var mapType = mockStatsMapTypeForMap(map);
     var wEl = document.querySelector('input[name="msm-winner"]:checked');
-    var winner = wEl && wEl.value === "red" ? "red" : "blue";
+    var winner =
+      wEl && wEl.value === "red"
+        ? "red"
+        : wEl && wEl.value === "draw"
+          ? null
+          : "blue";
     var rosters = mockStatsMatchModalReadSlotNicks();
     var bNames = rosters.bNames;
     var rNames = rosters.rNames;
@@ -4670,8 +4688,12 @@
       map +
       " / " +
       mapType +
-      "\n승리: " +
-      (winner === "blue" ? "블루" : "레드") +
+      "\n승패: " +
+      (winner === "blue"
+        ? "블루 승"
+        : winner === "red"
+          ? "레드 승"
+          : "무승부") +
       "\n블루: " +
       bNames.join(", ") +
       "\n레드: " +

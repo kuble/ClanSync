@@ -4789,13 +4789,15 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
         </div>
       </div>
       <div class="mock-stats-mm-winner-row">
-        <span>승리 팀</span>
+        <span>팀 승패</span>
         <div class="mock-stats-mm-winner-btns">
           <button type="button" id="msm-btn-win-blue" class="btn btn-secondary btn-sm mock-stats-mm-win--on" onclick="return window.mockStatsMmSetWinner('blue')">블루 승</button>
           <button type="button" id="msm-btn-win-red" class="btn btn-secondary btn-sm" onclick="return window.mockStatsMmSetWinner('red')">레드 승</button>
+          <button type="button" id="msm-btn-win-draw" class="btn btn-secondary btn-sm" onclick="return window.mockStatsMmSetWinner('draw')">무승부</button>
         </div>
         <input type="radio" name="msm-winner" id="msm-win-blue" value="blue" checked tabindex="-1" aria-hidden="true" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" />
         <input type="radio" name="msm-winner" id="msm-win-red" value="red" tabindex="-1" aria-hidden="true" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" />
+        <input type="radio" name="msm-winner" id="msm-win-draw" value="draw" tabindex="-1" aria-hidden="true" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" />
       </div>
       <div class="mock-stats-mm-layout">
         <div class="mock-balance-meta-row mock-balance-map-meta-row" role="group" aria-label="맵·모드">
