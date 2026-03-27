@@ -856,10 +856,6 @@
     var bN = base.bN;
     var rN = base.rN;
     var totalC = bC + rC;
-    var pctB =
-      totalC > 0 ? Math.round((bC / totalC) * 1000) / 10 : totalC === 0 && bN + rN === 0 ? 0 : 50;
-    var pctR =
-      totalC > 0 ? Math.round((rC / totalC) * 1000) / 10 : totalC === 0 && bN + rN === 0 ? 0 : 50;
     var wB = totalC > 0 ? (bC / totalC) * 100 : bN + rN === 0 ? 50 : 50;
     var wR = totalC > 0 ? (rC / totalC) * 100 : bN + rN === 0 ? 50 : 50;
     var barB = document.getElementById("mock-balance-predict-bar-blue");
@@ -868,46 +864,13 @@
       barB.style.width = wB + "%";
       barR.style.width = wR + "%";
     }
-    var lean = document.getElementById("mock-balance-predict-live-lean");
-    if (lean) {
-      if (totalC === 0 && bN + rN === 0) {
-        lean.textContent = "아직 예측이 없습니다.";
-      } else if (totalC === 0) {
-        lean.textContent = "코인 집계 없음 · 인원만 표시";
-      } else if (bC > rC) {
-        lean.textContent = "코인 기준 블루 우세 (" + pctB + "%)";
-      } else if (rC > bC) {
-        lean.textContent = "코인 기준 레드 우세 (" + pctR + "%)";
-      } else {
-        lean.textContent = "코인 기준 동률 (" + pctB + "%)";
-      }
-    }
-    var totalN = bN + rN;
-    var hnB = totalN > 0 ? Math.round((bN / totalN) * 1000) / 10 : 0;
-    var hnR = totalN > 0 ? Math.round((rN / totalN) * 1000) / 10 : 0;
-    var hc = document.getElementById("mock-balance-predict-live-headcount");
-    if (hc) {
-      if (totalN === 0) {
-        hc.textContent = "—";
-      } else if (bN > rN) {
-        hc.textContent =
-          "블루 " + hnB + "% · " + bN + "명 vs 레드 " + hnR + "% · " + rN + "명 (인원 우세: 블루)";
-      } else if (rN > bN) {
-        hc.textContent =
-          "블루 " + hnB + "% · " + bN + "명 vs 레드 " + hnR + "% · " + rN + "명 (인원 우세: 레드)";
-      } else {
-        hc.textContent = "블루 " + bN + "명 vs 레드 " + rN + "명 (인원 동률)";
-      }
-    }
     var statB = document.getElementById("mock-balance-predict-stat-blue");
     var statR = document.getElementById("mock-balance-predict-stat-red");
     if (statB) {
-      statB.textContent =
-        "블루 " + bC + "코인" + (totalC > 0 ? " · " + pctB + "%" : "") + " · " + bN + "명";
+      statB.textContent = "블루 " + bC + "코인 · " + bN + "명";
     }
     if (statR) {
-      statR.textContent =
-        "레드 " + rC + "코인" + (totalC > 0 ? " · " + pctR + "%" : "") + " · " + rN + "명";
+      statR.textContent = "레드 " + rC + "코인 · " + rN + "명";
     }
     var up = document.getElementById("mock-balance-predict-live-updated");
     if (up) {
