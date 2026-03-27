@@ -374,6 +374,20 @@
     mockEventPollSyncOptionRemoveButtons();
   };
 
+  /** 반복 유형에 맞춰 일시 입력란(날짜+시간 / 시각만 / 요일+시각) 전환 */
+  window.mockEventPollNotifyRepeatChange = function () {
+    var sel = document.getElementById("mep-notify-repeat");
+    var v = sel ? sel.value : "none";
+    document.querySelectorAll("#mep-notify-schedule .mep-notify-row").forEach(function (row) {
+      var match = row.getAttribute("data-mep-repeat");
+      if (match === v) {
+        row.removeAttribute("hidden");
+      } else {
+        row.setAttribute("hidden", "");
+      }
+    });
+  };
+
   /** 투표 알림 켜면 일시·반복 필드 표시 */
   window.mockEventPollNotifyToggle = function (cb) {
     var wrap = document.getElementById("mep-notify-fields");
@@ -381,6 +395,9 @@
     var on = !!(cb && cb.checked);
     wrap.hidden = !on;
     wrap.disabled = !on;
+    if (on) {
+      window.mockEventPollNotifyRepeatChange();
+    }
   };
 
   window.mockEventPollResetForm = function () {
@@ -407,8 +424,17 @@
     }
     var nat = document.getElementById("mep-notify-at");
     if (nat) nat.value = "";
+    var tDaily = document.getElementById("mep-notify-time-daily");
+    if (tDaily) tDaily.value = "";
+    var tWeekly = document.getElementById("mep-notify-time-weekly");
+    if (tWeekly) tWeekly.value = "";
+    var tUntil = document.getElementById("mep-notify-time-until");
+    if (tUntil) tUntil.value = "";
+    var wday = document.getElementById("mep-notify-weekday");
+    if (wday) wday.selectedIndex = 0;
     var nrep = document.getElementById("mep-notify-repeat");
     if (nrep) nrep.selectedIndex = 0;
+    window.mockEventPollNotifyRepeatChange();
     var ann = document.getElementById("mep-announce");
     if (ann) ann.checked = false;
   };
