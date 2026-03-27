@@ -1959,6 +1959,39 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
 }
 .mock-predict-live-stat-blue { color: #7dd3fc; font-weight: 600; }
 .mock-predict-live-stat-red { color: #fb7185; font-weight: 600; text-align: right; }
+/* 경기 진행: 본문(라인업·결과) + 우측 비출전·승부예측 */
+.mock-balance-live-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+.mock-balance-live-main {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+aside.mock-balance-live-sidebar.mock-balance-live-predict-wrap {
+  flex: 0 1 320px;
+  min-width: 260px;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 14px 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--bg-overlay);
+}
+aside.mock-balance-live-sidebar.mock-balance-live-predict-wrap .mock-predict-results-table th,
+aside.mock-balance-live-sidebar.mock-balance-live-predict-wrap .mock-predict-results-table td {
+  padding: 6px 8px;
+}
+aside.mock-balance-live-sidebar.mock-balance-live-predict-wrap .mock-predict-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+}
 .mock-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .mock-table th, .mock-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
 .mock-table th { color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
@@ -3404,6 +3437,9 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
           <button type="button" class="mock-help-tip" data-tip="사전설정 완료 후 경기 중 화면입니다. 승부예측·예측 결과 표가 같은 화면에 있습니다. 타이머 없음. 운영진: 팀 버튼으로 승자 왕관 선택. 왕관 없이 결과 입력 시 무승부. 확인 팝업에서 확인·Enter로 저장. 구성원은 결과 입력 UI 숨김." aria-label="경기 진행 도움말">?</button>
         </div>
 
+        <div class="mock-balance-live-layout">
+        <div class="mock-balance-live-main">
+
         <div class="mock-balance-live-team-pick mock-officer-only" aria-label="승자 팀 선택">
           <button type="button" id="mock-balance-live-pick-blue" class="mock-balance-live-team-btn mock-balance-live-team-btn--blue" onclick="return window.mockBalanceLivePickTeam('blue')">
             <span class="mock-balance-crown" id="mock-balance-live-crown-blue" aria-hidden="true">👑</span>
@@ -3461,7 +3497,9 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
           <span style="font-size:11px;color:var(--text-muted)">왕관 없이 제출 시 무승부로 저장</span>
         </div>
 
-        <div class="mock-balance-live-predict-wrap mock-hide-on-free" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+        </div>
+
+        <aside class="mock-balance-live-sidebar mock-balance-live-predict-wrap mock-hide-on-free" aria-label="비출전 · 승부예측">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
             <strong style="font-size:13px">비출전 · 승부예측</strong>
             <button type="button" class="mock-help-tip" data-tip="Premium. 비출전 구성원 참여. 타이머 없음(목업). 아래 표의 예측을 코인·인원으로 집계해 실시간 우세 막대로 표시합니다(목업은 주기적으로 흔들림). 결과 입력 시 마감·정산(구현 시)." aria-label="승부 예측 도움말">?</button>
@@ -3514,7 +3552,9 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
             </tbody>
           </table>
           <p style="font-size:11px;color:var(--text-muted);margin:12px 0 0">운영진 결과 입력 후 배당·파리뮤추엘 지급 · 내역은 기록 탭 연동(구현 시).</p>
+        </aside>
         </div>
+
         <p class="mock-balance-free-note mock-modal-hint" style="margin:16px 0 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--text-muted)">
           <span>Premium UI는 허브에서 플랜 전환 후 확인</span>
           <button type="button" class="mock-help-tip" data-tip="목업 허브(_hub.html)에서 Premium 선택 시 승부예측 블록이 표시됩니다." aria-label="Premium 목업 전환 도움말">?</button>
