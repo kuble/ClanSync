@@ -3207,6 +3207,8 @@
     { at: "2025-12-10T19:00:00.000Z", type: "scrim", map: "뉴 정크 시티", mapType: "제어", winner: null },
     { at: "2025-11-28T21:00:00.000Z", type: "intra", map: "파라이소", mapType: "호위", winner: "blue" },
   ];
+  /** 시드 경기 개수 — 표시 ID 최댓값(8620+)이 추가 시 하나씩 올라가도록 기준 */
+  var MOCK_STATS_INITIAL_MATCH_COUNT = CLAN_STATS_MATCHES.length;
 
   function mockStatsEscapeHtml(s) {
     return String(s)
@@ -3271,7 +3273,10 @@
       m.redRoster = roles.map(function (r, j) {
         return { n: nr[(or + j) % nr.length], r: r };
       });
-      m.displayId = String(8620 - i);
+      /* 최신(i=0)이 항상 8620이 되지 않도록: 경기 추가분만큼 최댓값 상승 */
+      m.displayId = String(
+        8620 + (arr.length - MOCK_STATS_INITIAL_MATCH_COUNT) - i,
+      );
     });
   }
   mockStatsSortMatchesDescending();
