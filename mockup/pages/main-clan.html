@@ -5936,12 +5936,11 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
   <!-- ── 관리 뷰 (PRD §6.4) ── -->
   <div id="view-manage" class="clan-view">
     <div class="mock-page-title">클랜 관리</div>
-    <p class="mock-page-desc">상단 탭으로 구역을 나눕니다. 공지는 게시글 단위로 편집·삭제하고, 규칙은 한 블록으로 유지합니다(목업).</p>
+    <p class="mock-page-desc">상단 탭으로 구역을 나눕니다. 공지 게시글은 개요에서 관리하고, 규칙은 한 블록으로 유지합니다(목업).</p>
 
     <div class="mock-tab-row mock-manage-tab-row" role="tablist" aria-label="클랜 관리 상단 탭">
       <button type="button" class="mock-tab mock-tab-active mock-manage-tab" data-manage-tab="overview" role="tab" aria-selected="true" onclick="return window.mockManageSetTab(this,'overview')">개요</button>
       <button type="button" class="mock-tab mock-manage-tab mock-officer-only" data-manage-tab="branding" role="tab" aria-selected="false" onclick="return window.mockManageSetTab(this,'branding')">브랜딩</button>
-      <button type="button" class="mock-tab mock-manage-tab mock-officer-only" data-manage-tab="notices" role="tab" aria-selected="false" onclick="return window.mockManageSetTab(this,'notices')">공지</button>
       <button type="button" class="mock-tab mock-manage-tab mock-officer-only" data-manage-tab="rules" role="tab" aria-selected="false" onclick="return window.mockManageSetTab(this,'rules')">규칙</button>
       <button type="button" class="mock-tab mock-manage-tab mock-officer-only" data-manage-tab="subscribe" role="tab" aria-selected="false" onclick="return window.mockManageSetTab(this,'subscribe')">구독</button>
       <button type="button" class="mock-tab mock-manage-tab" data-manage-tab="members" role="tab" aria-selected="false" onclick="return window.mockManageSetTab(this,'members')">가입·구성원</button>
@@ -5957,6 +5956,14 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
         </div>
         <div style="font-size:12px;color:var(--text-muted)">연령 20대+ · 디스코드 <span style="color:var(--brand-secondary)">discord.gg/phoenix-mock</span></div>
       </div>
+      <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px">
+        <div class="d-card-label">클랜 공지 (게시글)</div>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px;line-height:1.5">실제 서비스에서는 게시글·피드와 동일한 모델로 연동됩니다. 목업에서는 브라우저에 JSON으로 저장합니다.</p>
+        <div class="mock-toolbar" style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+          <button type="button" class="btn btn-sm" onclick="return window.mockClanNoticePostModalOpen(null)">+ 공지 작성</button>
+        </div>
+        <div id="mock-manage-notice-posts-list" class="mock-manage-notice-posts" aria-live="polite"></div>
+      </div>
     </div>
 
     <div data-manage-panel="branding" class="mock-manage-panel mock-officer-only" hidden>
@@ -5967,17 +5974,6 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
           <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockClanImageModalOpen('banner')">배너 이미지 편집</button>
           <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockClanImageModalOpen('icon')">클랜 아이콘 편집</button>
         </div>
-      </div>
-    </div>
-
-    <div data-manage-panel="notices" class="mock-manage-panel mock-officer-only" hidden>
-      <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px">
-        <div class="d-card-label">클랜 공지 (게시글)</div>
-        <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px;line-height:1.5">실제 서비스에서는 게시글·피드와 동일한 모델로 연동됩니다. 목업에서는 브라우저에 JSON으로 저장합니다.</p>
-        <div class="mock-toolbar" style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-          <button type="button" class="btn btn-sm" onclick="return window.mockClanNoticePostModalOpen(null)">+ 공지 작성</button>
-        </div>
-        <div id="mock-manage-notice-posts-list" class="mock-manage-notice-posts" aria-live="polite"></div>
       </div>
     </div>
 
