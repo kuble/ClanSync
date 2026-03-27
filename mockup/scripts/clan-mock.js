@@ -911,6 +911,41 @@
     if (el) el.value = String(mockBalanceGetPredictVoteMinutes());
   }
 
+  var MOCK_BALANCE_MAP_BAN_DEADLINE_SEC_KEY = "clansync_mock_balance_map_ban_deadline_sec";
+  var MOCK_BALANCE_HERO_BAN_DEADLINE_SEC_KEY = "clansync_mock_balance_hero_ban_deadline_sec";
+
+  function mockBalanceGetMapBanDeadlineSeconds() {
+    try {
+      var v = parseInt(localStorage.getItem(MOCK_BALANCE_MAP_BAN_DEADLINE_SEC_KEY), 10);
+      if (isFinite(v) && v >= 5 && v <= 600) return v;
+    } catch (eMapSec) {}
+    return 15;
+  }
+
+  function mockBalanceGetHeroBanDeadlineSeconds() {
+    try {
+      var v = parseInt(localStorage.getItem(MOCK_BALANCE_HERO_BAN_DEADLINE_SEC_KEY), 10);
+      if (isFinite(v) && v >= 5 && v <= 600) return v;
+    } catch (eHeroSec) {}
+    return 20;
+  }
+
+  function mockBalanceSyncBanDeadlinesToModal() {
+    var mEl = document.getElementById("mock-balance-map-ban-deadline-seconds");
+    if (mEl) mEl.value = String(mockBalanceGetMapBanDeadlineSeconds());
+    var hEl = document.getElementById("mock-balance-hero-ban-deadline-seconds");
+    if (hEl) hEl.value = String(mockBalanceGetHeroBanDeadlineSeconds());
+  }
+
+  function mockBalanceSyncBanDeadlineRowsVisibility() {
+    var mapBtn = document.getElementById("mock-balance-toggle-map-ban");
+    var mapWrap = document.getElementById("mock-balance-map-ban-deadline-wrap");
+    if (mapWrap) mapWrap.hidden = !(mapBtn && mapBtn.getAttribute("aria-checked") === "true");
+    var heroBtn = document.getElementById("mock-balance-toggle-hero-ban");
+    var heroWrap = document.getElementById("mock-balance-hero-ban-deadline-wrap");
+    if (heroWrap) heroWrap.hidden = !(heroBtn && heroBtn.getAttribute("aria-checked") === "true");
+  }
+
   var MOCK_BALANCE_PREDICT_TABLE_PAGE_SIZE = 5;
   var _mockPredictTablePage = 0;
 
@@ -1942,7 +1977,7 @@
     _mockHeroBanTotals = {};
     _mockHeroBanOrder = [];
     _mockHeroBanEnded = false;
-    _mockHeroBanSecondsLeft = 20;
+    _mockHeroBanSecondsLeft = mockBalanceGetHeroBanDeadlineSeconds();
     mockBalanceHeroBanSetTimerLabel(_mockHeroBanSecondsLeft);
     mockBalanceHeroBanRefreshTotalsDisplay();
     mockBalanceHeroBanUpdateOrderLabel();
@@ -2059,7 +2094,7 @@
         card.classList.remove("mock-mapvote-card--picked");
       }
     }
-    _mockMapVoteSecondsLeft = 15;
+    _mockMapVoteSecondsLeft = mockBalanceGetMapBanDeadlineSeconds();
     mockBalanceMapVoteSetTimerLabel(_mockMapVoteSecondsLeft);
     mockBalanceClearMapVoteTimer();
     _mockMapVoteTimerId = window.setInterval(function () {
@@ -2090,6 +2125,7 @@
     btn.setAttribute("aria-checked", on ? "true" : "false");
     mockBalanceSyncMapPickCluster();
     mockBalanceSyncMapPoolRow();
+    mockBalanceSyncBanDeadlineRowsVisibility();
     return false;
   };
 
@@ -2098,6 +2134,7 @@
     if (!btn) return false;
     var on = btn.getAttribute("aria-checked") !== "true";
     btn.setAttribute("aria-checked", on ? "true" : "false");
+    mockBalanceSyncBanDeadlineRowsVisibility();
     return false;
   };
 
@@ -2141,8 +2178,11 @@
       if (tabBp) {
         window.mockBalanceSetWorkflow(tabBp, "banpick");
       }
+      var mapBanSec = mockBalanceGetMapBanDeadlineSeconds();
       window.alert(
-        "목업: 배치 확정 — 참가자에게 디스코드 알림이 발송됩니다.\n밴픽 세션 URL(예시): https://clansync.app/map-vote?session=mock-…\n실제 연동은 구현 단계에서 연결합니다.\n\n확인 후 15초 맵 밴픽 세션이 시작됩니다.",
+        "목업: 배치 확정 — 참가자에게 디스코드 알림이 발송됩니다.\n밴픽 세션 URL(예시): https://clansync.app/map-vote?session=mock-…\n실제 연동은 구현 단계에서 연결합니다.\n\n확인 후 " +
+          mapBanSec +
+          "초 맵 밴픽 세션이 시작됩니다.",
       );
       if (typeof window.mockBalanceStartMapVoteSession === "function") {
         window.mockBalanceStartMapVoteSession();
@@ -2159,8 +2199,11 @@
       if (msec) {
         msec.hidden = true;
       }
+      var heroBanSec = mockBalanceGetHeroBanDeadlineSeconds();
       window.alert(
-        "목업: 맵 밴 OFF · 영웅 밴 ON — 배치 확정 후 영웅 밴픽(20초)만 진행합니다.\nOW2식 1·2·3순(7/5/3) 가중 합산 · 최대 4명 · 역할당 2명까지.",
+        "목업: 맵 밴 OFF · 영웅 밴 ON — 배치 확정 후 영웅 밴픽(" +
+          heroBanSec +
+          "초)만 진행합니다.\nOW2식 1·2·3순(7/5/3) 가중 합산 · 최대 4명 · 역할당 2명까지.",
       );
       if (typeof window.mockBalanceStartHeroBanSession === "function") {
         window.mockBalanceStartHeroBanSession();
@@ -2193,6 +2236,10 @@
     btnP.setAttribute("aria-selected", isGen ? "false" : "true");
     btnG.classList.toggle("mock-tab-active", isGen);
     btnP.classList.toggle("mock-tab-active", !isGen);
+    if (!isGen) {
+      mockBalanceSyncBanDeadlinesToModal();
+      mockBalanceSyncBanDeadlineRowsVisibility();
+    }
     return false;
   };
 
@@ -2201,6 +2248,8 @@
     if (m) {
       mockBalanceSyncSlotOptModalFromStorage();
       mockBalanceSyncPredictVoteMinutesToModal();
+      mockBalanceSyncBanDeadlinesToModal();
+      mockBalanceSyncBanDeadlineRowsVisibility();
       m.removeAttribute("hidden");
       m.setAttribute("aria-hidden", "false");
       var btnG = document.getElementById("mock-balance-settings-tabbtn-general");
@@ -2238,6 +2287,26 @@
         try {
           localStorage.setItem(MOCK_BALANCE_PREDICT_VOTE_MINUTES_KEY, String(mv));
         } catch (eMvSave) {}
+      }
+      var mapSecEl = document.getElementById("mock-balance-map-ban-deadline-seconds");
+      if (mapSecEl) {
+        var ms = parseInt(mapSecEl.value, 10);
+        if (!isFinite(ms) || ms < 5) ms = 5;
+        if (ms > 600) ms = 600;
+        mapSecEl.value = String(ms);
+        try {
+          localStorage.setItem(MOCK_BALANCE_MAP_BAN_DEADLINE_SEC_KEY, String(ms));
+        } catch (eMapSecSave) {}
+      }
+      var heroSecEl = document.getElementById("mock-balance-hero-ban-deadline-seconds");
+      if (heroSecEl) {
+        var hs = parseInt(heroSecEl.value, 10);
+        if (!isFinite(hs) || hs < 5) hs = 5;
+        if (hs > 600) hs = 600;
+        heroSecEl.value = String(hs);
+        try {
+          localStorage.setItem(MOCK_BALANCE_HERO_BAN_DEADLINE_SEC_KEY, String(hs));
+        } catch (eHeroSecSave) {}
       }
     }
     window.mockBalanceApplySlotOptsToBoard();

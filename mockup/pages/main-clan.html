@@ -4190,11 +4190,35 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
             <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
           </button>
         </div>
-        <div class="mock-balance-switch-row">
+        <div id="mock-balance-map-ban-deadline-wrap" class="mock-modal-field mock-balance-ban-deadline-field" style="margin:0 0 12px" hidden>
+          <label for="mock-balance-map-ban-deadline-seconds">밴 마감 시간 (초)</label>
+          <input
+            type="number"
+            id="mock-balance-map-ban-deadline-seconds"
+            min="5"
+            max="600"
+            step="1"
+            value="15"
+            inputmode="numeric"
+          />
+        </div>
+        <div class="mock-balance-switch-row" style="margin-bottom:12px">
           <span class="mock-balance-switch-label" id="mock-balance-lbl-hero-ban">영웅 밴</span>
           <button type="button" class="mock-switch" id="mock-balance-toggle-hero-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-hero-ban" onclick="return window.mockBalanceToggleHeroBan(this)">
             <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
           </button>
+        </div>
+        <div id="mock-balance-hero-ban-deadline-wrap" class="mock-modal-field mock-balance-ban-deadline-field" style="margin:0" hidden>
+          <label for="mock-balance-hero-ban-deadline-seconds">밴 마감 시간 (초)</label>
+          <input
+            type="number"
+            id="mock-balance-hero-ban-deadline-seconds"
+            min="5"
+            max="600"
+            step="1"
+            value="20"
+            inputmode="numeric"
+          />
         </div>
       </div>
 
