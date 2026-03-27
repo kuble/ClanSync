@@ -3910,7 +3910,6 @@
     return (
       '<div class="mock-stats-archive-leader-toolbar">' +
       '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsMatchModalOpen(\'add\')">추가</button>' +
-      '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsMatchModalOpen(\'insert\')">삽입</button>' +
       '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsMatchModalOpen(\'edit\')">수정</button>' +
       '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsLeaderIntraDelete()">삭제</button>' +
       '<span class="mock-stats-archive-leader-hint">승률 순위: 카드를 클릭해 그 경기 <strong>시점까지</strong> 누적 집계(히스토리). 추가·삽입·삭제 후에는 최신 내전이 있는 날짜로 캘린더가 맞춰집니다(목업).</span>' +
@@ -4094,6 +4093,61 @@
     sel.value = value;
   }
 
+  /** 경기 모달 플레이어 풀(중복 제거) */
+  function mockStatsMmPoolNamesUnique() {
+    var seen = {};
+    var out = [];
+    function add(n) {
+      if (!n || seen[n]) return;
+      seen[n] = true;
+      out.push(n);
+    }
+    MOCK_STATS_POOL_BLUE.forEach(add);
+    MOCK_STATS_POOL_RED.forEach(add);
+    [
+      "하지",
+      "크리스탈",
+      "DORAE",
+      "ABEL",
+      "카페못간카페모카",
+      "냥이의비행",
+      "수라",
+    ].forEach(add);
+    return out;
+  }
+
+  function mockStatsMatchModalBuildPoolGrid() {
+    var grid = document.getElementById("msm-pool-grid");
+    if (!grid) return;
+    var names = mockStatsMmPoolNamesUnique();
+    grid.innerHTML = "";
+    names.forEach(function (name, order) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "mock-balance-pool-chip";
+      btn.setAttribute("data-name", name);
+      btn.setAttribute("data-order", String(order));
+      btn.textContent = name;
+      btn.onclick = function () {
+        return window.mockStatsMmChipClick(btn);
+      };
+      grid.appendChild(btn);
+    });
+    var sortEl = document.getElementById("msm-pool-sort");
+    if (sortEl) sortEl.value = "recent";
+    var searchEl = document.getElementById("msm-pool-search");
+    if (searchEl) searchEl.value = "";
+  }
+
+  function mockStatsMmSetSlotNick(side, idx, name) {
+    var el = document.getElementById("msm-nick-" + side + idx);
+    if (!el) return;
+    var t = name && String(name).trim() !== "" ? String(name).trim() : "—";
+    el.textContent = t;
+    if (t === "—") el.classList.add("mock-stats-mm-nick--empty");
+    else el.classList.remove("mock-stats-mm-nick--empty");
+  }
+
   function mockStatsMatchModalFillSelects() {
     var sm = document.getElementById("msm-map");
     var st = document.getElementById("msm-maptype");
@@ -4112,37 +4166,117 @@
       o.textContent = name;
       st.appendChild(o);
     });
-    var k;
-    for (k = 0; k < 5; k++) {
-      var elb = document.getElementById("msm-b" + k);
-      var elr = document.getElementById("msm-r" + k);
-      if (!elb || !elr) continue;
-      elb.innerHTML = "";
-      elr.innerHTML = "";
-      MOCK_STATS_POOL_BLUE.forEach(function (n) {
-        var o = document.createElement("option");
-        o.value = n;
-        o.textContent = n;
-        elb.appendChild(o);
-      });
-      MOCK_STATS_POOL_RED.forEach(function (n) {
-        var o = document.createElement("option");
-        o.value = n;
-        o.textContent = n;
-        elr.appendChild(o);
-      });
-    }
+    mockStatsMatchModalBuildPoolGrid();
   }
 
   function mockStatsMatchModalSetDefaultRosters() {
     var k;
     for (k = 0; k < 5; k++) {
-      var elb = document.getElementById("msm-b" + k);
-      var elr = document.getElementById("msm-r" + k);
-      if (elb) elb.value = MOCK_STATS_POOL_BLUE[k];
-      if (elr) elr.value = MOCK_STATS_POOL_RED[k];
+      mockStatsMmSetSlotNick("b", k, MOCK_STATS_POOL_BLUE[k]);
+      mockStatsMmSetSlotNick("r", k, MOCK_STATS_POOL_RED[k]);
     }
   }
+
+  window.mockStatsMmSetWinner = function (side) {
+    var blue = document.getElementById("msm-win-blue");
+    var red = document.getElementById("msm-win-red");
+    var btnB = document.getElementById("msm-btn-win-blue");
+    var btnR = document.getElementById("msm-btn-win-red");
+    if (side === "red") {
+      if (red) red.checked = true;
+      if (btnB) btnB.classList.remove("mock-stats-mm-win--on");
+      if (btnR) btnR.classList.add("mock-stats-mm-win--on");
+    } else {
+      if (blue) blue.checked = true;
+      if (btnR) btnR.classList.remove("mock-stats-mm-win--on");
+      if (btnB) btnB.classList.add("mock-stats-mm-win--on");
+    }
+    return false;
+  };
+
+  window.mockStatsMmChipClick = function (btn) {
+    var grid = document.getElementById("msm-pool-grid");
+    if (grid) {
+      Array.prototype.forEach.call(
+        grid.querySelectorAll(".mock-balance-pool-chip"),
+        function (b) {
+          b.classList.remove("mock-stats-mm-chip-picked");
+        },
+      );
+    }
+    if (btn) btn.classList.add("mock-stats-mm-chip-picked");
+    window.__msmPendingNick = btn
+      ? btn.getAttribute("data-name") || (btn.textContent || "").trim()
+      : null;
+    return false;
+  };
+
+  window.mockStatsMmSlotClick = function (side, idx) {
+    var el = document.getElementById("msm-nick-" + side + idx);
+    if (!el) return false;
+    var nick = window.__msmPendingNick;
+    if (nick) {
+      el.textContent = nick;
+      el.classList.remove("mock-stats-mm-nick--empty");
+      var grid = document.getElementById("msm-pool-grid");
+      if (grid) {
+        Array.prototype.forEach.call(
+          grid.querySelectorAll(".mock-balance-pool-chip"),
+          function (b) {
+            b.classList.remove("mock-stats-mm-chip-picked");
+          },
+        );
+      }
+      window.__msmPendingNick = null;
+    } else {
+      el.textContent = "—";
+      el.classList.add("mock-stats-mm-nick--empty");
+    }
+    return false;
+  };
+
+  window.mockStatsMmPoolFilter = function (inp) {
+    var q = (inp && inp.value ? inp.value : "").trim().toLowerCase();
+    var grid = document.getElementById("msm-pool-grid");
+    if (!grid) return;
+    Array.prototype.forEach.call(
+      grid.querySelectorAll(".mock-balance-pool-chip"),
+      function (btn) {
+        var n = (btn.getAttribute("data-name") || "").toLowerCase();
+        var t = (btn.textContent || "").trim().toLowerCase();
+        var show = !q || n.indexOf(q) >= 0 || t.indexOf(q) >= 0;
+        btn.style.display = show ? "" : "none";
+      },
+    );
+  };
+
+  window.mockStatsMmPoolSort = function (sel) {
+    var grid = document.getElementById("msm-pool-grid");
+    if (!grid || !sel) return false;
+    var chips = Array.prototype.slice.call(
+      grid.querySelectorAll(".mock-balance-pool-chip"),
+    );
+    var v = sel.value;
+    var sorted = chips.slice();
+    if (v === "name") {
+      sorted.sort(function (a, b) {
+        var na = (a.getAttribute("data-name") || "").toLowerCase();
+        var nb = (b.getAttribute("data-name") || "").toLowerCase();
+        return na.localeCompare(nb, "ko");
+      });
+    } else {
+      sorted.sort(function (a, b) {
+        return (
+          parseInt(a.getAttribute("data-order") || "0", 10) -
+          parseInt(b.getAttribute("data-order") || "0", 10)
+        );
+      });
+    }
+    sorted.forEach(function (c) {
+      grid.appendChild(c);
+    });
+    return false;
+  };
 
   function mockStatsMatchModalPopulateChronoSelect(mode) {
     var sel = document.getElementById("msm-chrono-pos");
@@ -4173,12 +4307,6 @@
       sel.appendChild(opt);
     }
     var defaultPos = len + 1;
-    if (mode === "insert" && window.__mockStatsArchiveAsOfAt) {
-      var k = intraAsc.findIndex(function (x) {
-        return x.at === window.__mockStatsArchiveAsOfAt;
-      });
-      if (k >= 0) defaultPos = k + 2;
-    }
     sel.value = String(defaultPos);
   }
 
@@ -4192,27 +4320,56 @@
       m.mapType,
     );
     document.getElementById("msm-score").value = m.score || "3-2";
-    if (m.winner === "red") {
-      document.getElementById("msm-win-red").checked = true;
-    } else {
-      document.getElementById("msm-win-blue").checked = true;
-    }
+    mockStatsMmSetWinner(m.winner === "red" ? "red" : "blue");
     var br = m.blueRoster || [];
     var rr = m.redRoster || [];
     var j;
     for (j = 0; j < 5; j++) {
-      var elb = document.getElementById("msm-b" + j);
-      var elr = document.getElementById("msm-r" + j);
-      if (elb && br[j] && br[j].n) {
-        mockStatsMatchModalEnsureOption(elb, br[j].n);
-      }
-      if (elr && rr[j] && rr[j].n) {
-        mockStatsMatchModalEnsureOption(elr, rr[j].n);
-      }
+      mockStatsMmSetSlotNick(
+        "b",
+        j,
+        br[j] && br[j].n ? br[j].n : "—",
+      );
+      mockStatsMmSetSlotNick(
+        "r",
+        j,
+        rr[j] && rr[j].n ? rr[j].n : "—",
+      );
     }
   }
 
+  function mockStatsMatchModalReadSlotNicks() {
+    var bNames = [];
+    var rNames = [];
+    var i;
+    for (i = 0; i < 5; i++) {
+      var eb = document.getElementById("msm-nick-b" + i);
+      var er = document.getElementById("msm-nick-r" + i);
+      bNames.push(
+        eb && (eb.textContent || "").trim() !== "—"
+          ? (eb.textContent || "").trim()
+          : "",
+      );
+      rNames.push(
+        er && (er.textContent || "").trim() !== "—"
+          ? (er.textContent || "").trim()
+          : "",
+      );
+    }
+    return { bNames: bNames, rNames: rNames };
+  }
+
   window.mockStatsMatchModalClose = function () {
+    window.__msmPendingNick = null;
+    var grid = document.getElementById("msm-pool-grid");
+    if (grid) {
+      Array.prototype.forEach.call(
+        grid.querySelectorAll(".mock-balance-pool-chip"),
+        function (b) {
+          b.classList.remove("mock-stats-mm-chip-picked");
+        },
+      );
+    }
     var modal = document.getElementById("mock-stats-match-modal");
     if (!modal) return;
     modal.setAttribute("hidden", "");
@@ -4221,7 +4378,7 @@
 
   window.mockStatsMatchModalOpen = function (mode) {
     if (!mockStatsLeaderGuardOrAlert()) return false;
-    if (mode === "insert" || mode === "edit") {
+    if (mode === "edit") {
       if (!window.__mockStatsArchiveAsOfAt) {
         window.alert("목업: 먼저 카드를 선택해 주세요.");
         return false;
@@ -4239,12 +4396,11 @@
     } else {
       chronoWrap.removeAttribute("hidden");
       hint.textContent =
-        mode === "insert"
-          ? "선택한 카드 경기 다음에 넣는 것이 기본 순번입니다. 날짜·시각·순번은 바꿀 수 있습니다."
-          : "새 내전을 등록합니다. 순번은 전체 내전 시간순 기준입니다.";
+        "새 내전을 등록합니다. 순번은 전체 내전 시간순 기준입니다.";
     }
     mockStatsMatchModalFillSelects();
     mockStatsMatchModalPopulateChronoSelect(mode);
+    window.__msmPendingNick = null;
     if (mode === "edit") {
       var mEdit = CLAN_STATS_MATCHES.find(function (x) {
         return x.at === window.__mockStatsArchiveAsOfAt;
@@ -4262,15 +4418,11 @@
       document.getElementById("msm-date").value = parts.date;
       document.getElementById("msm-time").value = parts.time;
       document.getElementById("msm-score").value = "3-2";
-      document.getElementById("msm-win-blue").checked = true;
+      mockStatsMmSetWinner("blue");
       mockStatsMatchModalSetDefaultRosters();
     }
     document.getElementById("msm-title").textContent =
-      mode === "edit"
-        ? "내전 경기 수정"
-        : mode === "insert"
-          ? "내전 경기 삽입"
-          : "내전 경기 추가";
+      mode === "edit" ? "내전 경기 수정" : "내전 경기 추가";
     modal.removeAttribute("hidden");
     modal.setAttribute("aria-hidden", "false");
     return false;
@@ -4295,12 +4447,17 @@
     var score = document.getElementById("msm-score").value.trim() || "—";
     var wEl = document.querySelector('input[name="msm-winner"]:checked');
     var winner = wEl && wEl.value === "red" ? "red" : "blue";
-    var bNames = [];
-    var rNames = [];
+    var rosters = mockStatsMatchModalReadSlotNicks();
+    var bNames = rosters.bNames;
+    var rNames = rosters.rNames;
     var i;
     for (i = 0; i < 5; i++) {
-      bNames.push(document.getElementById("msm-b" + i).value);
-      rNames.push(document.getElementById("msm-r" + i).value);
+      if (!bNames[i] || !rNames[i]) {
+        window.alert(
+          "목업: 블루·레드 각 5슬롯에 닉네임을 모두 채워 주세요. (칩 선택 후 슬롯 클릭)",
+        );
+        return false;
+      }
     }
     var summary =
       "날짜·시각: " +
@@ -4331,7 +4488,7 @@
     if (!window.confirm("목업: 아래 내용으로 반영할까요?\n\n" + summary)) {
       return false;
     }
-    if (mode === "add" || mode === "insert") {
+    if (mode === "add") {
       var newMatch = {
         at: iso,
         type: "intra",
@@ -4341,7 +4498,7 @@
         score: score,
       };
       if (!mockStatsIntraInsertAtChronoPos(newMatch, pos)) {
-        window.alert("목업: 삽입 위치를 적용할 수 없습니다.");
+        window.alert("목업: 등록 순번을 적용할 수 없습니다.");
         return false;
       }
       mockStatsFillRosters(CLAN_STATS_MATCHES);
@@ -4379,10 +4536,6 @@
 
   window.mockStatsLeaderIntraAdd = function () {
     return window.mockStatsMatchModalOpen("add");
-  };
-
-  window.mockStatsLeaderIntraInsert = function () {
-    return window.mockStatsMatchModalOpen("insert");
   };
 
   window.mockStatsLeaderIntraEdit = function () {
