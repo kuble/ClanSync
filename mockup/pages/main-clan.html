@@ -3594,6 +3594,13 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
   outline: 2px solid var(--brand-primary) !important;
   box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.4);
 }
+#mock-stats-match-modal .mock-balance-pool-grid .mock-balance-pool-chip:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  pointer-events: none;
+  outline: none !important;
+  box-shadow: none !important;
+}
 #mock-stats-match-modal .mock-balance-map-pick-btn {
   font: inherit;
   cursor: pointer;
@@ -4881,7 +4888,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
             <span>플레이어 선택</span>
             <button type="button" class="mock-help-tip" data-tip="칩을 한 번 선택한 뒤, 위 슬롯을 클릭하면 닉네임이 들어갑니다. 슬롯만 클릭하면 비웁니다." aria-label="플레이어 선택 도움말">?</button>
           </div>
-          <p class="mock-modal-hint" style="margin:0 0 8px;font-size:11px">칩 선택 → 슬롯 클릭으로 배치 · 슬롯만 클릭 시 비움</p>
+          <p class="mock-modal-hint" style="margin:0 0 8px;font-size:11px">칩 선택 → 슬롯 클릭으로 배치 · 슬롯만 클릭 시 비움 · 이미 슬롯에 있는 플레이어는 풀에서 비활성화됩니다</p>
           <div class="mock-balance-pool-filters">
             <input type="search" id="msm-pool-search" placeholder="닉네임 검색" autocomplete="off" oninput="window.mockStatsMmPoolFilter(this)" aria-label="플레이어 검색" />
             <select id="msm-pool-sort" title="정렬" aria-label="정렬" onchange="window.mockStatsMmPoolSort(this)">

@@ -4137,6 +4137,45 @@
     if (sortEl) sortEl.value = "recent";
     var searchEl = document.getElementById("msm-pool-search");
     if (searchEl) searchEl.value = "";
+    mockStatsMmSyncPoolChipsDisabled();
+  }
+
+  /** 슬롯에 올라간 닉(표시 문자열) 집합 — 풀 칩 비활성화에 사용 */
+  function mockStatsMmGetAssignedNicks() {
+    var assigned = {};
+    var sides = ["b", "r"];
+    var si, sj;
+    for (si = 0; si < sides.length; si++) {
+      for (sj = 0; sj < 5; sj++) {
+        var el = document.getElementById("msm-nick-" + sides[si] + sj);
+        if (!el) continue;
+        var t = (el.textContent || "").trim();
+        if (t && t !== "—") assigned[t] = true;
+      }
+    }
+    return assigned;
+  }
+
+  function mockStatsMmSyncPoolChipsDisabled() {
+    var grid = document.getElementById("msm-pool-grid");
+    if (!grid) return;
+    var assigned = mockStatsMmGetAssignedNicks();
+    Array.prototype.forEach.call(
+      grid.querySelectorAll(".mock-balance-pool-chip"),
+      function (btn) {
+        var dn = (btn.getAttribute("data-name") || "").trim();
+        var lab = (btn.textContent || "").trim();
+        var taken =
+          (dn !== "" && assigned[dn]) || (lab !== "" && assigned[lab]);
+        btn.disabled = !!taken;
+        if (taken) btn.classList.remove("mock-stats-mm-chip-picked");
+      },
+    );
+    var pn = window.__msmPendingNick;
+    if (pn != null && String(pn).trim() !== "") {
+      var p = String(pn).trim();
+      if (assigned[p]) window.__msmPendingNick = null;
+    }
   }
 
   function mockStatsMmSetSlotNick(side, idx, name) {
@@ -4146,6 +4185,7 @@
     el.textContent = t;
     if (t === "—") el.classList.add("mock-stats-mm-nick--empty");
     else el.classList.remove("mock-stats-mm-nick--empty");
+    mockStatsMmSyncPoolChipsDisabled();
   }
 
   function mockStatsMatchModalSyncMapTypeLabel(mapTypeFallback) {
@@ -4207,6 +4247,7 @@
   };
 
   window.mockStatsMmChipClick = function (btn) {
+    if (btn && btn.disabled) return false;
     var grid = document.getElementById("msm-pool-grid");
     if (grid) {
       Array.prototype.forEach.call(
@@ -4244,6 +4285,7 @@
       el.textContent = "—";
       el.classList.add("mock-stats-mm-nick--empty");
     }
+    mockStatsMmSyncPoolChipsDisabled();
     return false;
   };
 
