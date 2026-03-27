@@ -1,5 +1,5 @@
 /**
- * 클랜 메인 정적 목업 — 뷰 전환·권한(?role=)·플랜(?plan=)·이벤트 모달
+ * 클랜 메인 정적 목업 — 뷰 전환·권한(?role=)·플랜(URL ?plan= 또는 구독 localStorage)·이벤트 모달
  * (app.js 와 분리해 전역 충돌 최소화)
  */
 (function () {
@@ -15,6 +15,21 @@
   /** 구성원도 밸런스 메뉴 진입 가능(세션 대기/실시간 합류). 운영진+ 전용은 관리만 */
   var OFFICER_VIEWS = { manage: true };
 
+  /** 클랜 관리 구독 목업 — 플랜은 밸런스 Premium UI·body.mock-plan-* 와 동기 */
+  var MOCK_SUBSCRIBE_STORAGE_KEY = "clansync-mock-subscribe-v1";
+
+  function mockSubscribeStorageGetEffectivePlan() {
+    try {
+      var raw = localStorage.getItem(MOCK_SUBSCRIBE_STORAGE_KEY);
+      if (!raw) return null;
+      var o = JSON.parse(raw);
+      if (!o || typeof o !== "object") return null;
+      if (o.plan === "premium" || o.plan === "free") return o.plan;
+      if (Array.isArray(o.payments) && o.payments.length > 0) return "premium";
+    } catch (e) {}
+    return null;
+  }
+
   window.mockClanCurrentRole = function () {
     try {
       var p = new URLSearchParams(window.location.search);
@@ -24,13 +39,21 @@
     return "leader";
   };
 
-  /** 목업 허브 `?plan=free|premium` — PRO·Premium UI 전환용 */
+  /**
+   * 목업 플랜: URL `?plan=free|premium|pro` 가 있으면 최우선(허브·스크린샷용).
+   * 없으면 localStorage 구독 상태(`clansync-mock-subscribe-v1`.plan 또는 결제 기록) 사용.
+   */
   window.mockClanCurrentPlan = function () {
     try {
       var p = new URLSearchParams(window.location.search);
-      var pl = (p.get("plan") || "free").toLowerCase();
-      if (pl === "premium" || pl === "pro") return "premium";
+      if (p.has("plan")) {
+        var pl = (p.get("plan") || "free").toLowerCase();
+        if (pl === "premium" || pl === "pro") return "premium";
+        return "free";
+      }
     } catch (e) {}
+    var stored = mockSubscribeStorageGetEffectivePlan();
+    if (stored === "premium" || stored === "free") return stored;
     return "free";
   };
 
@@ -908,8 +931,6 @@
     if (typeof window.mockSidebarNotifyRefresh === "function") {
       window.mockSidebarNotifyRefresh();
     }
-    applyRoleBodyClass();
-    applyPlanBodyClass();
     try {
       if (
         typeof localStorage !== "undefined" &&
@@ -921,6 +942,8 @@
         );
       }
     } catch (eSeed) {}
+    applyRoleBodyClass();
+    applyPlanBodyClass();
     if (typeof window.mockManageMembersInit === "function") {
       window.mockManageMembersInit();
     }
@@ -6537,7 +6560,6 @@
   };
 
   /** 클랜 관리 — 구독(localStorage) · 구성원 검색/페이지네이션 · 개인 기록 상세 */
-  var MOCK_SUBSCRIBE_STORAGE_KEY = "clansync-mock-subscribe-v1";
   var MOCK_MMEMBER_OVERRIDES_KEY = "clansync-mock-mmgr-member-overrides-v1";
   var __mockManageMembersState = { page: 1, pageSize: 5, search: "" };
   var __mockManageMemberDetailId = null;
@@ -6713,6 +6735,7 @@
 
   function mockManageSubscribeDefaultState() {
     return {
+      plan: "premium",
       payments: [
         {
           at: "2025-06-01T10:00:00",
@@ -6735,7 +6758,15 @@
       var raw = localStorage.getItem(MOCK_SUBSCRIBE_STORAGE_KEY);
       if (raw) {
         var o = JSON.parse(raw);
-        if (o && Array.isArray(o.payments)) return o;
+        if (o && Array.isArray(o.payments)) {
+          if (o.plan !== "premium" && o.plan !== "free") {
+            o.plan = o.payments.length > 0 ? "premium" : "free";
+            try {
+              localStorage.setItem(MOCK_SUBSCRIBE_STORAGE_KEY, JSON.stringify(o));
+            } catch (eMig) {}
+          }
+          return o;
+        }
       }
     } catch (e) {}
     return mockManageSubscribeDefaultState();
@@ -6746,6 +6777,19 @@
       localStorage.setItem(MOCK_SUBSCRIBE_STORAGE_KEY, JSON.stringify(st));
     } catch (e) {}
   }
+
+  /** 목업: 구독 플랜만 전환(URL ?plan= 없을 때 밸런스·대시보드 Premium UI 반영) */
+  window.mockManageSubscribeSetPlan = function (plan) {
+    var p = plan === "premium" ? "premium" : "free";
+    var st = mockManageSubscribeLoadState();
+    st.plan = p;
+    mockManageSubscribeSaveState(st);
+    applyPlanBodyClass();
+    if (typeof window.mockManageSubscribeRender === "function") {
+      window.mockManageSubscribeRender();
+    }
+    return false;
+  };
 
   function mockManageSubscribeFormatAt(iso) {
     try {
@@ -6824,6 +6868,7 @@
   window.mockManageSubscribeAddMockPayment = function () {
     var st = mockManageSubscribeLoadState();
     st.payments = st.payments || [];
+    st.plan = "premium";
     var now = new Date().toISOString();
     st.payments.unshift({
       at: now,
@@ -6832,6 +6877,7 @@
       status: "완료",
     });
     mockManageSubscribeSaveState(st);
+    applyPlanBodyClass();
     var tb = document.getElementById("mock-manage-subscribe-payments-tbody");
     if (tb) {
       tb.innerHTML =

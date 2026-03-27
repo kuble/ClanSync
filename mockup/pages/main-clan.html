@@ -5856,8 +5856,11 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
           </table>
         </div>
         <p style="font-size:11px;color:var(--text-muted);margin:12px 0 0;line-height:1.45">결제 목록은 브라우저 <strong>localStorage</strong>에 저장됩니다(목업). 실제 결제 연동 전까지 동일 기기에서 유지됩니다.</p>
-        <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:8px">
+        <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
           <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockManageSubscribeAddMockPayment()">목업 결제 1건 추가</button>
+          <span style="font-size:11px;color:var(--text-muted);margin:0 4px">플랜 전환(목업)</span>
+          <button type="button" class="btn btn-sm" style="background:var(--pro-gradient);color:#fff;border:none" onclick="return window.mockManageSubscribeSetPlan('premium')">Premium</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockManageSubscribeSetPlan('free')">Free</button>
         </div>
       </div>
       <p class="mock-member-only" style="font-size:13px;color:var(--text-muted);margin:0">구독·결제는 운영진 이상만 이용할 수 있습니다(목업).</p>
