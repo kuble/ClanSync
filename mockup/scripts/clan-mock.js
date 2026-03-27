@@ -274,14 +274,31 @@
     }
   };
 
-  /* 이벤트: 목록 / 캘린더 서브탭 */
+  /* 이벤트: 캘린더 / 대진표 / 투표 */
   window.mockEventsSetTab = function (btn, name) {
     document.querySelectorAll("[data-events-subtab]").forEach(function (b) {
-      b.classList.toggle("mock-tab-active", b === btn);
+      var on = b === btn;
+      b.classList.toggle("mock-tab-active", on);
+      b.setAttribute("aria-selected", on ? "true" : "false");
     });
     document.querySelectorAll("[data-events-panel]").forEach(function (p) {
       p.style.display = p.getAttribute("data-events-panel") === name ? "" : "none";
     });
+  };
+
+  window.mockEventPollOpenModal = function () {
+    var m = document.getElementById("mock-event-poll-modal");
+    if (m) {
+      m.removeAttribute("hidden");
+      m.setAttribute("aria-hidden", "false");
+    }
+  };
+  window.mockEventPollCloseModal = function () {
+    var m = document.getElementById("mock-event-poll-modal");
+    if (m) {
+      m.setAttribute("hidden", "");
+      m.setAttribute("aria-hidden", "true");
+    }
   };
 
   /* 스토어: 클랜 / 개인 */

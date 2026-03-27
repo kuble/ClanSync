@@ -288,6 +288,130 @@
   padding-top: 4px;
 }
 
+/* ── 이벤트: 대진표(목업) ── */
+.mock-bracket-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+.mock-bracket-controls .mock-modal-field {
+  margin-bottom: 0;
+  min-width: 140px;
+}
+.mock-bracket-wrap {
+  overflow-x: auto;
+  padding: 8px 0 16px;
+  -webkit-overflow-scrolling: touch;
+}
+.mock-bracket-flow {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+  min-width: min-content;
+}
+.mock-bracket-round {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 16px;
+}
+.mock-bracket-match {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  min-width: 148px;
+  overflow: hidden;
+}
+.mock-bracket-slot {
+  padding: 8px 10px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+.mock-bracket-slot:last-child {
+  border-bottom: none;
+}
+.mock-bracket-slot--win {
+  background: rgba(124, 58, 237, 0.12);
+  font-weight: 600;
+}
+.mock-bracket-arrow {
+  align-self: center;
+  color: var(--text-muted);
+  font-size: 18px;
+  padding: 0 4px;
+}
+.mock-bracket-champ {
+  border: 1px solid rgba(124, 58, 237, 0.45);
+  border-radius: var(--radius-xl);
+  padding: 14px 16px;
+  text-align: center;
+  background: rgba(124, 58, 237, 0.08);
+  min-width: 160px;
+  align-self: center;
+}
+.mock-bracket-champ-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+/* ── 이벤트: 투표(목업) ── */
+.mock-poll-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--bg-elevated);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+.mock-poll-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+.mock-poll-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.mock-poll-option {
+  margin-bottom: 10px;
+}
+.mock-poll-option:last-child {
+  margin-bottom: 0;
+}
+.mock-poll-option-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  margin-bottom: 4px;
+  gap: 8px;
+}
+.mock-poll-bar {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--bg-overlay);
+  overflow: hidden;
+}
+.mock-poll-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #7c3aed, #6366f1);
+}
+.mock-poll-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  align-items: center;
+}
+
 /* ── 활동 일지 ── */
 .activity-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
 .activity-row:last-child { border-bottom: none; }
@@ -4051,11 +4175,16 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
   <!-- ── 이벤트 뷰 (PRD §6.3) ── -->
   <div id="view-events" class="clan-view">
     <div class="mock-page-title">클랜 이벤트</div>
-    <p class="mock-page-desc">월간 캘린더로 한 달을 한눈에 보고, 하단 그리드에서 일정 카드를 확인합니다. · 일정 등록 시 반복 규칙 · 스크림·매칭 확정 시 자동 반영(기획) · PRO 대진표(비활성).</p>
+    <p class="mock-page-desc">상단 탭으로 캘린더·대진표·투표를 전환합니다. · 일정 반복 · 스크림 자동 반영 · 대진표/고급 투표는 PRO 연동 목업.</p>
     <p class="mock-events-sync-hint">스크림·매칭에서 일정이 <strong>확정</strong>되면 해당 스크림이 클랜 이벤트에 <strong>자동 등록</strong>됩니다(취소·변경 시 동기화). 수동으로 같은 일정을 다시 입력할 필요가 없습니다.</p>
+    <div class="mock-tab-row" role="tablist" aria-label="클랜 이벤트 하위 탭">
+      <button type="button" class="mock-tab mock-tab-active" role="tab" aria-selected="true" data-events-subtab onclick="mockEventsSetTab(this,'cal')">캘린더</button>
+      <button type="button" class="mock-tab" role="tab" aria-selected="false" data-events-subtab onclick="mockEventsSetTab(this,'bracket')">대진표 생성기 <span class="mock-pro-inline" style="margin-left:4px;font-size:10px">PRO</span></button>
+      <button type="button" class="mock-tab" role="tab" aria-selected="false" data-events-subtab onclick="mockEventsSetTab(this,'poll')">투표</button>
+    </div>
+    <div data-events-panel="cal">
     <div class="mock-toolbar">
       <button type="button" class="btn btn-sm mock-officer-only" onclick="mockEventOpenModal()">+ 일정 등록</button>
-      <button type="button" class="btn btn-sm" style="opacity:0.5;cursor:not-allowed" disabled title="PRO">대진표 생성기 <span class="mock-pro-inline" style="margin-left:4px">PRO</span></button>
     </div>
     <div class="mock-events-month-bar">
       <button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업: 이전 달')" aria-label="이전 달">‹</button>
@@ -4147,6 +4276,89 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
         <div class="mock-events-card-badges">
           <span class="badge badge-muted" style="font-size:10px">일회성</span>
         </div>
+      </div>
+    </div>
+    </div>
+
+    <div data-events-panel="bracket" style="display:none">
+      <p class="mock-page-desc" style="margin-bottom:14px">싱글/더블 엘리미네이션·리그전 형식 선택 후 참가자 목록으로 대진표를 생성합니다(목업). 실서비스는 PRO 클랜에서 저장·공유됩니다.</p>
+      <div class="mock-bracket-controls mock-officer-only">
+        <div class="mock-modal-field"><label for="mock-bracket-format">대회 형식</label><select id="mock-bracket-format"><option>싱글 엘리미네이션</option><option>더블 엘리미네이션</option><option>라운드 로빈 (리그)</option></select></div>
+        <div class="mock-modal-field"><label for="mock-bracket-seed">시드</label><select id="mock-bracket-seed"><option>랜덤</option><option>MMR 순</option><option>수동 배치</option></select></div>
+        <button type="button" class="btn btn-sm" onclick="alert('목업: 설정으로 대진표를 다시 그립니다.')">대진표 생성</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업: 이미지 또는 링크로 내보냅니다.')">내보내기</button>
+      </div>
+      <div class="d-card d-card-full" style="margin-bottom:12px">
+        <div class="d-card-label">샘플 대진 · 시즌 맞이 4강 (목업)</div>
+        <div class="mock-bracket-wrap">
+          <div class="mock-bracket-flow">
+            <div class="mock-bracket-round">
+              <div class="mock-bracket-match">
+                <div class="mock-bracket-slot mock-bracket-slot--win"><span>김클랜</span><span class="badge badge-muted" style="font-size:9px">승</span></div>
+                <div class="mock-bracket-slot"><span>박힐러</span></div>
+              </div>
+              <div class="mock-bracket-match">
+                <div class="mock-bracket-slot mock-bracket-slot--win"><span>이프로</span><span class="badge badge-muted" style="font-size:9px">승</span></div>
+                <div class="mock-bracket-slot"><span>최새심</span></div>
+              </div>
+            </div>
+            <span class="mock-bracket-arrow" aria-hidden="true">→</span>
+            <div class="mock-bracket-round">
+              <div class="mock-bracket-match">
+                <div class="mock-bracket-slot"><span>김클랜</span></div>
+                <div class="mock-bracket-slot"><span>이프로</span></div>
+              </div>
+            </div>
+            <span class="mock-bracket-arrow" aria-hidden="true">→</span>
+            <div class="mock-bracket-champ">
+              <div class="mock-bracket-champ-label">결승 대기</div>
+              <div style="font-size:14px;font-weight:700">우승자 미정</div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:11px;color:var(--text-muted);margin:0">더블 엘리 패자조·리그 순위표는 형식 선택 후 같은 영역에 확장됩니다(목업).</p>
+      </div>
+    </div>
+
+    <div data-events-panel="poll" style="display:none">
+      <p class="mock-page-desc" style="margin-bottom:14px">클랜 내 투표를 만들고 참여율·마감 시각을 관리합니다. 운영진만 생성·종료(목업).</p>
+      <div class="mock-toolbar mock-officer-only">
+        <button type="button" class="btn btn-sm" onclick="mockEventPollOpenModal()">+ 투표 만들기</button>
+      </div>
+      <div class="mock-poll-card">
+        <div class="mock-poll-title">다음 정기 내전 맵 후보 (목업)</div>
+        <div class="mock-poll-meta">마감 2026-03-26 23:59 · 참여 18/24명 · 익명 아님</div>
+        <div class="mock-poll-option">
+          <div class="mock-poll-option-top"><span>뉴 정크시티</span><span style="color:var(--text-muted)">42%</span></div>
+          <div class="mock-poll-bar"><div class="mock-poll-bar-fill" style="width:42%"></div></div>
+        </div>
+        <div class="mock-poll-option">
+          <div class="mock-poll-option-top"><span>서킷 로얄</span><span style="color:var(--text-muted)">33%</span></div>
+          <div class="mock-poll-bar"><div class="mock-poll-bar-fill" style="width:33%"></div></div>
+        </div>
+        <div class="mock-poll-option">
+          <div class="mock-poll-option-top"><span>파라이소</span><span style="color:var(--text-muted)">25%</span></div>
+          <div class="mock-poll-bar"><div class="mock-poll-bar-fill" style="width:25%"></div></div>
+        </div>
+        <div class="mock-poll-actions">
+          <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="mock-poll-map" checked /> 뉴 정크시티</label>
+          <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="mock-poll-map" /> 서킷 로얄</label>
+          <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="mock-poll-map" /> 파라이소</label>
+          <button type="button" class="btn btn-sm" onclick="alert('목업: 투표가 반영되었습니다.')">투표하기</button>
+        </div>
+      </div>
+      <div class="mock-poll-card" style="opacity:0.88">
+        <div class="mock-poll-title">지난 투표 · 이벤트 시간대 (종료)</div>
+        <div class="mock-poll-meta">종료 2026-03-10 · 최다 득표: 금 21:00</div>
+        <div class="mock-poll-option">
+          <div class="mock-poll-option-top"><span>금 21:00</span><span style="color:var(--text-muted)">58%</span></div>
+          <div class="mock-poll-bar"><div class="mock-poll-bar-fill" style="width:58%;opacity:0.7"></div></div>
+        </div>
+        <div class="mock-poll-option">
+          <div class="mock-poll-option-top"><span>토 20:00</span><span style="color:var(--text-muted)">42%</span></div>
+          <div class="mock-poll-bar"><div class="mock-poll-bar-fill" style="width:42%;opacity:0.7"></div></div>
+        </div>
+        <p style="font-size:11px;color:var(--text-muted);margin:8px 0 0">종료된 투표는 결과만 표시됩니다.</p>
       </div>
     </div>
   </div>
@@ -4249,6 +4461,22 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
       <div class="mock-modal-actions">
         <button type="button" class="btn btn-secondary btn-sm" onclick="mockEventCloseModal()">취소</button>
         <button type="button" class="btn btn-sm" onclick="alert('목업 저장'); mockEventCloseModal();">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 투표 만들기 모달 (이벤트 뷰) -->
+  <div id="mock-event-poll-modal" class="mock-modal-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="mock-event-poll-modal-title" onclick="if(event.target===this)mockEventPollCloseModal()">
+    <div class="mock-modal-card" onclick="event.stopPropagation()">
+      <h3 id="mock-event-poll-modal-title">투표 만들기 (목업)</h3>
+      <div class="mock-modal-field"><label for="mep-title">제목</label><input id="mep-title" type="text" placeholder="예: 다음 정기 내전 맵" /></div>
+      <div class="mock-modal-field"><label for="mep-options">선택지</label><textarea id="mep-options" rows="4" placeholder="한 줄에 하나씩 입력&#10;뉴 정크시티&#10;서킷 로얄"></textarea></div>
+      <div class="mock-modal-field"><label for="mep-deadline">마감 일시</label><input id="mep-deadline" type="text" placeholder="2026-03-26 23:59" /></div>
+      <div class="mock-modal-field"><label for="mep-anon" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400"><input id="mep-anon" type="checkbox" /> 익명 투표 (닉네임 비공개)</label></div>
+      <p style="font-size:11px;color:var(--text-muted);margin:0;line-height:1.45">PRO: 투표 알림(디스코드)·중복 방지·가중치는 연동 후(목업).</p>
+      <div class="mock-modal-actions">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="mockEventPollCloseModal()">취소</button>
+        <button type="button" class="btn btn-sm" onclick="alert('목업: 투표가 게시되었습니다.'); mockEventPollCloseModal();">게시</button>
       </div>
     </div>
   </div>
