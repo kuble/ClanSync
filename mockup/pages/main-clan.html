@@ -3146,13 +3146,14 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
   <div id="view-balance" class="clan-view">
     <div class="mock-balance-view-head">
       <div class="mock-page-title">밸런스메이커</div>
-      <button type="button" class="mock-help-tip" data-tip="운영진이 출전 명단·포지션을 잡는 편집기입니다. 5v5 · 탱1·딜2·힐2 고정. 맵은 맵 밴 OFF일 때만 직접 선택(모달)합니다. 단계 탭으로 배치 확정 이후 참가자·관전 화면을 미리 볼 수 있습니다. 상세: docs/01-plan/balance-maker-ui-notes.md" aria-label="밸런스메이커 도움말">?</button>
+      <button type="button" class="mock-help-tip" data-tip="운영진이 출전 명단·포지션을 잡는 편집기입니다. 5v5 · 탱1·딜2·힐2 고정. 세션을 연 사람(밸런스장)만 ① 편집; 타 운영진은 구성원과 같은 실시간 화면입니다. 맵은 맵 밴 OFF일 때만 직접 선택(모달). 단계 탭으로 배치 확정 이후 밴픽·경기 진행을 미리 볼 수 있습니다. 상세: docs/01-plan/balance-maker-ui-notes.md §세션 플로우" aria-label="밸런스메이커 도움말">?</button>
     </div>
+    <p class="mock-modal-hint" style="margin:-4px 0 14px;font-size:12px;line-height:1.5;color:var(--text-muted)">밸런스장 1명 편집 · 동기 관전 · 배치 완료 후 밴(ON 시) → <strong style="color:var(--text-secondary)">경기 시작 = 밴 종료 직후</strong>에 승부예측 마감 타이머</p>
     <div class="d-card d-card-full" style="margin-bottom:16px">
       <div class="d-card-label mock-balance-edit-d-card-label">
         <span class="mock-balance-edit-label-start">
           <span>밸런스 편집</span>
-          <button type="button" class="mock-help-tip" data-tip="목업은 시나리오 미리보기입니다. 실제 구현에서는 배치 확정 시 참가·밴픽 옵션·역할에 따라 ② 밴픽 / ③ 5vs5 / ④ 관전 등으로 분기·리다이렉트할 수 있습니다." aria-label="밸런스 편집 도움말">?</button>
+          <button type="button" class="mock-help-tip" data-tip="목업은 시나리오 미리보기입니다. 실제로는 배치 완료 시 ② 밴픽(옵션)·③ 경기 진행으로 분기합니다. 밴이 있으면 배치 완료 직후 밴픽 화면으로 리디렉션됩니다." aria-label="밸런스 편집 도움말">?</button>
         </span>
         <div class="mock-balance-premium-trailing">
           <button
@@ -3161,8 +3162,8 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
             data-tip="Premium 전용
 • 자동 팀 밸런스
 • OCR 닉 입력
-• 디스코드 시작 알림"
-            aria-label="Premium 기능 요약: 자동 팀 밸런스, OCR 닉, 디스코드 알림"
+• 디스코드 알림(선택, 웹이 본 경로)"
+            aria-label="Premium 기능 요약: 자동 팀 밸런스, OCR 닉, 디스코드 알림 선택"
           >
             Premium
           </button>
@@ -3184,7 +3185,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
           <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="lineup" onclick="return window.mockBalanceSetWorkflow(this,'lineup')">③ 경기 진행</button>
           <button type="button" class="mock-balance-wf-tab" data-balance-wf-tab data-balance-wf-id="spectator" hidden tabindex="-1" aria-hidden="true" onclick="return window.mockBalanceSetWorkflow(this,'spectator')">④ (통합됨)</button>
         </div>
-        <button type="button" class="mock-help-tip" data-tip="③ 경기 진행: 라인업·승부예측·예측 결과 표·운영진 결과 입력이 한 화면입니다. ④ 탭은 통합으로 숨김. balance-maker-ui-notes.md 참고." aria-label="단계 탭 도움말">?</button>
+        <button type="button" class="mock-help-tip" data-tip="② 밴픽: 참가자 투표(비참가자는 실시간 관전 가능). ③ 경기 진행: 라인업·승부예측·결과 입력. 예측 마감 타이머는 경기 시작(밴 종료 직후)부터. ④ 탭은 ③에 통합되어 숨김." aria-label="단계 탭 도움말">?</button>
       </div>
 
       <div id="mock-balance-wf-edit" data-balance-wf-panel="edit" class="mock-balance-wf-panel">
@@ -3411,7 +3412,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                 <div class="mock-balance-placement-card" aria-label="배치 확정">
                   <div class="mock-balance-ref-head">
                     <span>배치 확정</span>
-                    <button type="button" class="mock-help-tip" data-tip="맵 밴 ON: 맵 풀 분류·배치 완료 후 ② 맵 밴픽(15초·3맵 투표)이 시작됩니다. 디스코드 알림·URL은 구현 시 연결. 상세: docs/01-plan/balance-maker-ui-notes.md" aria-label="배치 확정 도움말">?</button>
+                    <button type="button" class="mock-help-tip" data-tip="맵 밴 ON: 맵 풀 분류·배치 완료 후 웹에서 ② 맵 밴픽(15초·3맵). 밸런스장·참가자는 밴픽 화면으로 리디렉션. 디스코드 알림은 Premium 선택. 상세: balance-maker-ui-notes.md" aria-label="배치 확정 도움말">?</button>
                   </div>
                   <div id="mock-balance-map-pool-row" class="mock-balance-map-pool-row" hidden>
                     <label for="mock-balance-map-pool-category">맵 풀 분류 (맵 밴 ON)</label>
@@ -3478,7 +3479,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
       <div id="mock-balance-wf-banpick" data-balance-wf-panel="banpick" class="mock-balance-wf-panel" hidden>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
           <span style="font-size:13px;font-weight:600;color:var(--text-secondary)">참가자 · 맵/영웅 밴픽</span>
-          <button type="button" class="mock-help-tip" data-tip="맵 밴: 15초·3맵·A안·룰렛 확정. 영웅 밴(ON 시): 맵 확정 직후 OW2식 1·2·3순(7/5/3)·최대 4명·역할당 2명까지. 맵만 OFF·영웅만 ON이면 배치 완료 후 영웅만. 문서: balance-maker-ui-notes.md" aria-label="맵·영웅 밴픽 도움말">?</button>
+          <button type="button" class="mock-help-tip" data-tip="맵 밴: 15초·3맵·A안·룰렛 확정. 영웅 밴(ON 시): 맵 확정 직후 OW2식 1·2·3순(7/5/3)·최대 4명·역할당 2명까지. 비참가 구성원도 동일 세션에서 실시간 밴픽 관전 가능. 문서: balance-maker-ui-notes.md" aria-label="맵·영웅 밴픽 도움말">?</button>
         </div>
         <div id="mock-mapvote-section" class="mock-mapvote-section" hidden>
         <div id="mock-mapvote-panel" class="mock-mapvote-panel" aria-live="polite">
@@ -3576,7 +3577,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
           <span style="font-size:13px;font-weight:600;color:var(--text-secondary)">경기 진행</span>
           <span class="mock-balance-live-badge" style="font-size:11px;padding:4px 10px;border-radius:99px;border:1px solid var(--border);background:var(--bg-overlay);color:var(--text-secondary)">진행 중</span>
-          <button type="button" class="mock-help-tip" data-tip="사전설정 완료 후 경기 중 화면입니다. 승부예측은 배치 완료 후 설정된 시간(분) 동안만 투표 가능하며, 우측에 마감까지 남은 시간이 표시됩니다. 운영진: 팀 버튼으로 승자 왕관 선택. 왕관 없이 결과 입력 시 무승부. 확인 팝업에서 확인·Enter로 저장. 구성원은 결과 입력 UI 숨김." aria-label="경기 진행 도움말">?</button>
+          <button type="button" class="mock-help-tip" data-tip="경기 시작(밴 종료 직후, 밴 없으면 배치 완료 직후)부터 승부예측 마감 타이머가 돌아갑니다. 우측에 마감까지 남은 시간 표시. 운영진(밸런스장): 팀 왕관·결과 입력. 동점·무효·재경기 시 해당 판 예측 무효. 오입력은 클랜 관리 내전 히스토리(예정)에서 정정. 구성원은 결과 입력 UI 숨김." aria-label="경기 진행 도움말">?</button>
         </div>
 
         <div class="mock-balance-live-layout">
