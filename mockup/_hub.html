@@ -168,31 +168,31 @@
   outline: 2px solid rgba(124, 58, 237, 0.65);
   outline-offset: 2px;
 }
-.hub-help-tip::after {
-  content: attr(data-tip);
-  position: absolute;
-  left: 0;
-  top: calc(100% + 8px);
-  width: min(288px, calc(100vw - 48px));
-  padding: 8px 10px;
+/* 사이드바 overflow 때문에 ::after 대신 #hub-tooltip-flyout (fixed) 사용 */
+.hub-tooltip-flyout {
+  position: fixed;
+  z-index: 99999;
+  box-sizing: border-box;
+  max-width: min(320px, calc(100vw - 16px));
+  max-height: min(72vh, 520px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 10px 12px;
   border-radius: var(--radius-sm, 6px);
   border: 1px solid var(--border, rgba(255,255,255,0.12));
   background: var(--bg-elevated, #18181b);
   color: var(--text-secondary, #a1a1aa);
   font-size: 11px;
   font-weight: 400;
-  line-height: 1.45;
+  line-height: 1.5;
   text-align: left;
   white-space: pre-line;
-  z-index: 80;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.12s ease;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  -webkit-overflow-scrolling: touch;
+  pointer-events: auto;
 }
-.hub-help-tip:hover::after,
-.hub-help-tip:focus-visible::after {
-  opacity: 1;
+.hub-tooltip-flyout[hidden] {
+  display: none !important;
 }
 .hub-debug-flow summary .hub-debug-summary-row {
   display: inline-flex;
@@ -287,6 +287,8 @@
   </div>
   <iframe id="frame" class="hub-frame" src="pages/index.html"></iframe>
 </main>
+
+<div id="hub-tooltip-flyout" class="hub-tooltip-flyout" hidden role="tooltip"></div>
 
 <script>
   var MOCK_ROLE_STORAGE = "clansync-hub-mock-role";
@@ -435,6 +437,93 @@
     document.querySelectorAll(".hub-mock-plan-btn").forEach(function (b) {
       b.classList.toggle("active", b.getAttribute("data-mock-plan") === pl);
     });
+
+    /* 허브 도움말: .hub-nav overflow로 ::after 가 잘리므로 fixed 레이어 + 내부 스크롤 */
+    (function hubTooltipFlyoutInit() {
+      var fly = document.getElementById("hub-tooltip-flyout");
+      if (!fly) return;
+      var hideTimer = null;
+
+      function hubTooltipHide() {
+        if (hideTimer) {
+          clearTimeout(hideTimer);
+          hideTimer = null;
+        }
+        fly.setAttribute("hidden", "");
+        fly.textContent = "";
+      }
+
+      function hubTooltipShow(btn) {
+        if (hideTimer) {
+          clearTimeout(hideTimer);
+          hideTimer = null;
+        }
+        var tip = btn.getAttribute("data-tip") || "";
+        fly.textContent = tip;
+        fly.removeAttribute("hidden");
+        fly.style.visibility = "hidden";
+        var m = 8;
+        var maxW = Math.min(320, window.innerWidth - 2 * m);
+        fly.style.maxWidth = maxW + "px";
+        var maxH = Math.min(0.72 * window.innerHeight, 520);
+        fly.style.maxHeight = maxH + "px";
+        var rect = btn.getBoundingClientRect();
+        var fw = fly.offsetWidth;
+        var fh = fly.offsetHeight;
+        var left = rect.left;
+        if (left + fw > window.innerWidth - m) {
+          left = window.innerWidth - fw - m;
+        }
+        if (left < m) left = m;
+        var gap = 8;
+        var top = rect.bottom + gap;
+        if (top + fh > window.innerHeight - m) {
+          top = rect.top - fh - gap;
+        }
+        if (top < m) top = m;
+        fly.style.left = left + "px";
+        fly.style.top = top + "px";
+        fly.style.visibility = "visible";
+      }
+
+      function scheduleHide() {
+        hideTimer = setTimeout(hubTooltipHide, 140);
+      }
+
+      function cancelHide() {
+        if (hideTimer) {
+          clearTimeout(hideTimer);
+          hideTimer = null;
+        }
+      }
+
+      document.querySelectorAll(".hub-help-tip").forEach(function (btn) {
+        btn.addEventListener("mouseenter", function () {
+          cancelHide();
+          hubTooltipShow(btn);
+        });
+        btn.addEventListener("mouseleave", function (e) {
+          if (e.relatedTarget && fly.contains(e.relatedTarget)) return;
+          scheduleHide();
+        });
+        btn.addEventListener("focus", function () {
+          hubTooltipShow(btn);
+        });
+        btn.addEventListener("blur", function () {
+          scheduleHide();
+        });
+      });
+
+      fly.addEventListener("mouseenter", cancelHide);
+      fly.addEventListener("mouseleave", scheduleHide);
+
+      var nav = document.querySelector(".hub-nav");
+      if (nav) nav.addEventListener("scroll", hubTooltipHide, true);
+      window.addEventListener("resize", hubTooltipHide);
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") hubTooltipHide();
+      });
+    })();
   });
 </script>
 </body>
