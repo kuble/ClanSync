@@ -515,11 +515,19 @@
 }
 .mock-bracket-board__footnote {
   margin: 0;
-  padding: 10px 16px 14px;
+  padding: 10px 16px 8px;
   font-size: 10px;
   line-height: 1.45;
   color: var(--ocs-muted);
   border-top: 1px solid var(--ocs-line);
+  background: rgba(0, 0, 0, 0.25);
+}
+.mock-bracket-board__actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 16px 16px;
   background: rgba(0, 0, 0, 0.25);
 }
 /* 구 스타일 호환(다른 블록에서 참조 시) */
@@ -4708,10 +4716,6 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
             </select>
           </div>
           <p id="mock-bracket-seed-hint" class="mock-modal-hint" style="margin:8px 0 14px;font-size:12px;line-height:1.5;color:var(--text-muted)">수동 배치: 아래 대진 미리보기 1라운드 팀 칸에서 드래그하거나, 한 칸을 누른 뒤 다른 칸을 눌러 순위를 맞바꿉니다.</p>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
-            <button type="button" class="btn btn-sm" onclick="if(window.mockBracketGenerateClick)window.mockBracketGenerateClick()">대진표 생성</button>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업: 이미지 또는 공유 링크로 내보냅니다.')">내보내기</button>
-          </div>
           <div class="d-card d-card-full" style="margin-bottom:0;padding:0;border:none;background:transparent;box-shadow:none">
             <div class="mock-bracket-board" aria-label="대진 미리보기">
               <header class="mock-bracket-board__head">
@@ -4800,6 +4804,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                 </div>
               </div>
               <p id="mock-bracket-format-footnote" class="mock-bracket-board__footnote">싱글 엘리: 패자 탈락. 더블·리그는 형식에 따라 동일 영역에 확장(목업).</p>
+              <div class="mock-bracket-board__actions">
+                <button type="button" class="btn btn-sm" onclick="if(window.mockBracketGenerateClick)window.mockBracketGenerateClick()">대진표 생성</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업: 이미지 또는 공유 링크로 내보냅니다.')">내보내기</button>
+              </div>
             </div>
           </div>
         </div>
