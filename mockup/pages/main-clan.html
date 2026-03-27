@@ -3486,6 +3486,13 @@ body.mock-plan-free .mock-balance-settings-free-hint { display: block; }
 body.mock-plan-free .mock-hide-on-free { display: none !important; }
 body.mock-plan-premium .mock-balance-free-note { display: none !important; }
 body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+/* Premium 플랜: 업그레이드 유도 배너·오버레이 제거, 구독 카드는 Free 전용 안내만 숨김 */
+body.mock-plan-premium .mock-premium-upgrade-promo { display: none !important; }
+body.mock-plan-premium .mock-dash-premium-mvp-card.pro-overlay::after { display: none !important; }
+body.mock-plan-premium .mock-dash-premium-mvp-card .pro-overlay-label { display: none !important; }
+body.mock-plan-premium .mock-dash-premium-mvp-blur { opacity: 1 !important; filter: none !important; }
+body.mock-plan-premium .mock-clan-subscribe-hint-free { display: none !important; }
+body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important; }
 .mock-modal-overlay {
   position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.65);
   display: flex; align-items: center; justify-content: center; padding: 20px;
@@ -3843,12 +3850,12 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
   <a href="#store" class="clan-nav" onclick="return clanGo('store', this)"><div class="sidebar-item">🛒 클랜 스토어</div></a>
   <a href="main-game.html"><div class="sidebar-item">🌐 커뮤니티</div></a>
 
-  <!-- Premium 배너 -->
-  <div style="margin-top:auto; padding-top:16px;">
+  <!-- Premium 업그레이드 유도 (Free 목업만 표시 · mock-plan-premium에서 숨김) -->
+  <div class="mock-premium-upgrade-promo" style="margin-top:auto; padding-top:16px;">
     <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:var(--radius-md);padding:14px">
       <div style="font-size:13px;font-weight:700;color:#fcd34d;margin-bottom:4px">👑 Premium으로 업그레이드</div>
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">AI 밸런싱, 승부예측, OCR 등 강력한 기능</div>
-      <button class="btn btn-sm" style="width:100%;background:var(--pro-gradient);color:white;border:none">업그레이드</button>
+      <button type="button" class="btn btn-sm" style="width:100%;background:var(--pro-gradient);color:white;border:none">업그레이드</button>
     </div>
   </div>
 </aside>
@@ -3982,10 +3989,10 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
       </div>
     </div>
 
-    <!-- 승부예측 MVP (Premium 잠금) -->
-    <div class="d-card d-card-sm pro-overlay">
+    <!-- 승부예측 MVP (Free: 잠금 오버레이 · Premium: 본문만 표시) -->
+    <div class="d-card d-card-sm pro-overlay mock-dash-premium-mvp-card">
       <div class="d-card-label">지난달 승부예측 MVP 🔮</div>
-      <div style="opacity:0.25;filter:blur(2px);margin-top:4px">
+      <div class="mock-dash-premium-mvp-blur" style="opacity:0.25;filter:blur(2px);margin-top:4px">
         <div style="display:flex;align-items:center;gap:14px">
           <div class="avatar avatar-xl" style="background:linear-gradient(135deg,#7c3aed,#3b82f6)">김</div>
           <div>
@@ -3998,7 +4005,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
       <div class="pro-overlay-label">
         <div style="font-size:24px;margin-bottom:6px">👑</div>
         <div style="font-weight:700;color:#fcd34d;font-size:13px;text-align:center">Premium 전용</div>
-        <button class="btn btn-sm" style="background:var(--pro-gradient);color:white;border:none;margin-top:8px;pointer-events:all">업그레이드</button>
+        <button type="button" class="btn btn-sm" style="background:var(--pro-gradient);color:white;border:none;margin-top:8px;pointer-events:all">업그레이드</button>
       </div>
     </div>
 
@@ -5816,7 +5823,8 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
     <p class="mock-page-desc">가입 승인 · 구성원 테이블(참여일·기부) · 샘플 멤버 상세 · 구독 안내(클랜장).</p>
     <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px;border-color:rgba(245,158,11,0.25)">
       <div class="d-card-label">구독 · 결제 (목업)</div>
-      <p style="font-size:13px;color:var(--text-muted);margin:0 0 10px">클랜장만 변경. Free → PRO 업그레이드 플로우는 별도 화면으로 뺄지 여기 탭으로 둘지 미결.</p>
+      <p class="mock-clan-subscribe-hint-free" style="font-size:13px;color:var(--text-muted);margin:0 0 10px">클랜장만 변경. Free → PRO 업그레이드 플로우는 별도 화면으로 뺄지 여기 탭으로 둘지 미결.</p>
+      <p class="mock-clan-subscribe-hint-premium" style="font-size:13px;color:var(--text-muted);margin:0 0 10px">클랜장만 변경. 구독 상태·결제·영수증은 아래에서 관리합니다(목업).</p>
       <button type="button" class="btn btn-sm" style="background:var(--pro-gradient);color:white;border:none" onclick="alert('목업: 결제/업그레이드')">Premium 관리</button>
     </div>
     <div class="d-card d-card-full" style="margin-bottom:16px">
