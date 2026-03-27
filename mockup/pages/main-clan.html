@@ -2845,7 +2845,13 @@ aside.mock-balance-live-sidebar.mock-balance-live-predict-wrap .mock-balance-pre
 .mock-stats-app-usage-table { font-variant-numeric: tabular-nums; }
 .mock-stats-app-usage-table th[scope="row"] { font-weight: 600; color: var(--foreground); }
 /* 내전 순 참여 인원(고유 멤버) 막대 그래프 */
-.mock-stats-intra-part-card .mock-tab-row { margin-bottom: 16px; }
+.mock-stats-intra-part-card .mock-tab-row,
+.mock-stats-intra-match-card .mock-tab-row,
+.mock-stats-map-usage-card .mock-tab-row { margin-bottom: 16px; }
+.mock-stats-map-usage-table th,
+.mock-stats-map-usage-table td { text-align: right; }
+.mock-stats-map-usage-table th:first-child,
+.mock-stats-map-usage-table td:first-child { text-align: left; }
 .mock-stats-intra-chart {
   --mock-intra-chart-h: 200px;
   border: 1px solid var(--border);
@@ -5069,6 +5075,221 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
             </div>
           </div>
           <p class="mock-stats-footnote" style="margin-top:12px;margin-bottom:0">2026년은 진행 중이라 연말 확정치보다 낮게 보일 수 있습니다.</p>
+        </div>
+      </div>
+
+      <div class="d-card d-card-full mock-stats-intra-match-card" style="margin-bottom:16px">
+        <div class="d-card-label">내전 경기 횟수</div>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px">클랜이 등록한 <strong>내전</strong> 경기만 집계합니다(스크림·이벤트 제외). 목업입니다.</p>
+        <div class="mock-tab-row" role="tablist" aria-label="내전 경기 횟수 기간">
+          <button type="button" class="mock-tab mock-tab-active" role="tab" aria-selected="true" data-intra-match-tab onclick="return window.mockStatsIntraMatchSetTab(this,'month')">월간</button>
+          <button type="button" class="mock-tab" role="tab" aria-selected="false" data-intra-match-tab onclick="return window.mockStatsIntraMatchSetTab(this,'year')">연간</button>
+        </div>
+        <div data-intra-match-panel="month" id="mock-stats-intra-match-month">
+          <p style="font-size:11px;color:var(--text-muted);margin:0 0 10px">기준: <strong>2026년</strong> · 월별 내전 경기 수</p>
+          <div class="mock-stats-intra-chart-scroll" style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+          <div class="mock-stats-intra-chart" role="img" aria-label="2026년 월별 내전 경기 횟수 막대 그래프" style="min-width:520px">
+            <div class="mock-stats-intra-chart-inner">
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">14</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar" style="height:77.8%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">1월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">12</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar" style="height:66.7%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">2월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">18</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar" style="height:100%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">3월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">—</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar mock-stats-intra-bar--muted" style="height:8%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">4월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">—</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar mock-stats-intra-bar--muted" style="height:8%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">5월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">—</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar mock-stats-intra-bar--muted" style="height:8%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">6월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">—</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar mock-stats-intra-bar--muted" style="height:8%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">7월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">—</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar mock-stats-intra-bar--muted" style="height:8%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">8월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">—</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar mock-stats-intra-bar--muted" style="height:8%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">9월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">—</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar mock-stats-intra-bar--muted" style="height:8%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">10월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">—</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar mock-stats-intra-bar--muted" style="height:8%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">11월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">—</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar mock-stats-intra-bar--muted" style="height:8%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">12월</span>
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+        <div data-intra-match-panel="year" id="mock-stats-intra-match-year" hidden>
+          <p style="font-size:11px;color:var(--text-muted);margin:0 0 10px">연도별 · 해당 연도에 끝난(또는 등록된) <strong>내전</strong> 총 경기 수</p>
+          <div class="mock-stats-intra-chart" role="img" aria-label="연도별 내전 경기 횟수 막대 그래프">
+            <div class="mock-stats-intra-chart-inner" style="max-width:420px;margin:0 auto;gap:16px">
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">142</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar" style="height:84.5%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">2024</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">168</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar" style="height:100%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">2025</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">44</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar" style="height:26.2%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">2026</span>
+              </div>
+            </div>
+          </div>
+          <p class="mock-stats-footnote" style="margin-top:12px;margin-bottom:0">2026년은 연초·분기만 반영된 목업입니다.</p>
+        </div>
+      </div>
+
+      <div class="d-card d-card-full mock-stats-map-usage-card" style="margin-bottom:16px">
+        <div class="d-card-label">맵 이용률</div>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px">해당 기간 <strong>내전</strong>에서 선택된 맵 기준 비중(동일 맵 재경기 포함). 합계 100%에 가깝게 표시합니다.</p>
+        <div class="mock-tab-row" role="tablist" aria-label="맵 이용률 기간">
+          <button type="button" class="mock-tab mock-tab-active" role="tab" aria-selected="true" data-map-usage-tab onclick="return window.mockStatsMapUsageSetTab(this,'month')">월간</button>
+          <button type="button" class="mock-tab" role="tab" aria-selected="false" data-map-usage-tab onclick="return window.mockStatsMapUsageSetTab(this,'year')">연간</button>
+        </div>
+        <div data-map-usage-panel="month" id="mock-stats-map-usage-month">
+          <p style="font-size:11px;color:var(--text-muted);margin:0 0 10px">기준: <strong>2026년 3월</strong> · 내전 맵별 비중</p>
+          <div style="overflow-x:auto">
+            <table class="mock-table mock-stats-map-usage-table mock-stats-app-usage-table" aria-label="2026년 3월 맵 이용률">
+              <thead>
+                <tr>
+                  <th scope="col">맵</th>
+                  <th scope="col">이용률</th>
+                  <th scope="col">경기 수</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">에스페란사</th><td>22%</td><td>4</td></tr>
+                <tr><th scope="row">뉴 정크시티</th><td>17%</td><td>3</td></tr>
+                <tr><th scope="row">콜로세오</th><td>17%</td><td>3</td></tr>
+                <tr><th scope="row">서킷 로얄</th><td>17%</td><td>3</td></tr>
+                <tr><th scope="row">할로우</th><td>11%</td><td>2</td></tr>
+                <tr><th scope="row">기타</th><td>16%</td><td>3</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div data-map-usage-panel="year" id="mock-stats-map-usage-year" hidden>
+          <p style="font-size:11px;color:var(--text-muted);margin:0 0 10px">기준: <strong>2025년 전체</strong> · 내전 맵별 비중</p>
+          <div style="overflow-x:auto">
+            <table class="mock-table mock-stats-map-usage-table mock-stats-app-usage-table" aria-label="2025년 맵 이용률">
+              <thead>
+                <tr>
+                  <th scope="col">맵</th>
+                  <th scope="col">이용률</th>
+                  <th scope="col">경기 수</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">에스페란사</th><td>21%</td><td>35</td></tr>
+                <tr><th scope="row">뉴 정크시티</th><td>18%</td><td>30</td></tr>
+                <tr><th scope="row">콜로세오</th><td>16%</td><td>27</td></tr>
+                <tr><th scope="row">서킷 로얄</th><td>15%</td><td>25</td></tr>
+                <tr><th scope="row">할로우</th><td>12%</td><td>20</td></tr>
+                <tr><th scope="row">기타</th><td>18%</td><td>31</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="mock-stats-footnote" style="margin-top:12px;margin-bottom:0">「기타」는 샘플 수가 적은 맵을 묶은 목업 구간입니다.</p>
         </div>
       </div>
     </div>

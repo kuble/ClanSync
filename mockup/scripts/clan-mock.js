@@ -5664,6 +5664,38 @@
     return false;
   };
 
+  /** 앱 이용 탭 · 내전 경기 횟수: 월간 / 연간 그래프 전환 */
+  window.mockStatsIntraMatchSetTab = function (btn, name) {
+    var isYear = name === "year";
+    document.querySelectorAll("[data-intra-match-tab]").forEach(function (b) {
+      var on = b === btn;
+      b.classList.toggle("mock-tab-active", on);
+      b.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    document.querySelectorAll("[data-intra-match-panel]").forEach(function (p) {
+      var match = p.getAttribute("data-intra-match-panel") === (isYear ? "year" : "month");
+      if (match) p.removeAttribute("hidden");
+      else p.setAttribute("hidden", "");
+    });
+    return false;
+  };
+
+  /** 앱 이용 탭 · 맵 이용률: 월간 / 연간 표 전환 */
+  window.mockStatsMapUsageSetTab = function (btn, name) {
+    var isYear = name === "year";
+    document.querySelectorAll("[data-map-usage-tab]").forEach(function (b) {
+      var on = b === btn;
+      b.classList.toggle("mock-tab-active", on);
+      b.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    document.querySelectorAll("[data-map-usage-panel]").forEach(function (p) {
+      var match = p.getAttribute("data-map-usage-panel") === (isYear ? "year" : "month");
+      if (match) p.removeAttribute("hidden");
+      else p.setAttribute("hidden", "");
+    });
+    return false;
+  };
+
   window.mockStatsRender = function () {
     var list = mockStatsFiltered();
     var n = list.length;
