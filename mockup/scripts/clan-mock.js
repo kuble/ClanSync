@@ -3248,6 +3248,13 @@
     return t != null ? t : "제어";
   }
 
+  /** 경기 시각(at) 기준 최신이 앞 — 목록·슬라이더·내부 배열 일관 */
+  function mockStatsSortMatchesDescending() {
+    CLAN_STATS_MATCHES.sort(function (a, b) {
+      return new Date(b.at) - new Date(a.at);
+    });
+  }
+
   /** 내전·이벤트에 5인 로스터·표시용 ID 부여(목업) */
   function mockStatsFillRosters(arr) {
     var nb = MOCK_STATS_POOL_BLUE;
@@ -3267,6 +3274,7 @@
       m.displayId = String(8620 - i);
     });
   }
+  mockStatsSortMatchesDescending();
   mockStatsFillRosters(CLAN_STATS_MATCHES);
 
   function mockStatsFiltered() {
@@ -4181,14 +4189,6 @@
     return true;
   }
 
-  function mockStatsIntraSortedAsc() {
-    return CLAN_STATS_MATCHES.filter(function (m) {
-      return m.type === "intra";
-    }).sort(function (a, b) {
-      return new Date(a.at) - new Date(b.at);
-    });
-  }
-
   function mockStatsMatchModalLocalPartsFromIso(iso) {
     var d = new Date(iso);
     return {
@@ -4206,28 +4206,6 @@
     var d = new Date(dateStr + "T" + timeStr + ":00");
     if (isNaN(d.getTime())) return null;
     return d.toISOString();
-  }
-
-  function mockStatsIntraInsertAtChronoPos(newMatch, pos) {
-    var intraAsc = mockStatsIntraSortedAsc();
-    var len = intraAsc.length;
-    if (len === 0) {
-      CLAN_STATS_MATCHES.push(newMatch);
-      return true;
-    }
-    if (pos < 1 || pos > len + 1) return false;
-    if (pos === 1) {
-      var first = intraAsc[0];
-      var idx0 = CLAN_STATS_MATCHES.indexOf(first);
-      if (idx0 < 0) return false;
-      CLAN_STATS_MATCHES.splice(idx0, 0, newMatch);
-    } else {
-      var after = intraAsc[pos - 2];
-      var idx = CLAN_STATS_MATCHES.indexOf(after);
-      if (idx < 0) return false;
-      CLAN_STATS_MATCHES.splice(idx + 1, 0, newMatch);
-    }
-    return true;
   }
 
   function mockStatsPatchRostersFromForm(m, bNames, rNames) {
@@ -4299,10 +4277,10 @@
     if (sortEl) sortEl.value = "recent";
     var searchEl = document.getElementById("msm-pool-search");
     if (searchEl) searchEl.value = "";
-    mockStatsMmSyncPoolChipsDisabled();
+    mockStatsMmApplyPoolChipVisibility();
   }
 
-  /** 슬롯에 올라간 닉(표시 문자열) 집합 — 풀 칩 비활성화에 사용 */
+  /** 슬롯에 올라간 닉(표시 문자열) 집합 — 풀 칩 숨김에 사용 */
   function mockStatsMmGetAssignedNicks() {
     var assigned = {};
     var sides = ["b", "r"];
@@ -4318,10 +4296,15 @@
     return assigned;
   }
 
-  function mockStatsMmSyncPoolChipsDisabled() {
+  /** 배치된 닉은 풀에서 숨김 + 검색어와 함께 필터 */
+  function mockStatsMmApplyPoolChipVisibility() {
     var grid = document.getElementById("msm-pool-grid");
     if (!grid) return;
     var assigned = mockStatsMmGetAssignedNicks();
+    var searchEl = document.getElementById("msm-pool-search");
+    var q = (searchEl && searchEl.value ? searchEl.value : "")
+      .trim()
+      .toLowerCase();
     Array.prototype.forEach.call(
       grid.querySelectorAll(".mock-balance-pool-chip"),
       function (btn) {
@@ -4329,8 +4312,18 @@
         var lab = (btn.textContent || "").trim();
         var taken =
           (dn !== "" && assigned[dn]) || (lab !== "" && assigned[lab]);
-        btn.disabled = !!taken;
-        if (taken) btn.classList.remove("mock-stats-mm-chip-picked");
+        if (taken) {
+          btn.hidden = true;
+          btn.classList.remove("mock-stats-mm-chip-picked");
+          return;
+        }
+        if (q) {
+          var n = dn.toLowerCase();
+          var t = lab.toLowerCase();
+          btn.hidden = !(n.indexOf(q) >= 0 || t.indexOf(q) >= 0);
+        } else {
+          btn.hidden = false;
+        }
       },
     );
     var pn = window.__msmPendingNick;
@@ -4347,7 +4340,7 @@
     el.textContent = t;
     if (t === "—") el.classList.add("mock-stats-mm-nick--empty");
     else el.classList.remove("mock-stats-mm-nick--empty");
-    mockStatsMmSyncPoolChipsDisabled();
+    mockStatsMmApplyPoolChipVisibility();
   }
 
   function mockStatsMatchModalSyncMapTypeLabel(mapTypeFallback) {
@@ -4409,7 +4402,7 @@
   };
 
   window.mockStatsMmChipClick = function (btn) {
-    if (btn && btn.disabled) return false;
+    if (btn && btn.hidden) return false;
     var grid = document.getElementById("msm-pool-grid");
     if (grid) {
       Array.prototype.forEach.call(
@@ -4447,23 +4440,12 @@
       el.textContent = "—";
       el.classList.add("mock-stats-mm-nick--empty");
     }
-    mockStatsMmSyncPoolChipsDisabled();
+    mockStatsMmApplyPoolChipVisibility();
     return false;
   };
 
-  window.mockStatsMmPoolFilter = function (inp) {
-    var q = (inp && inp.value ? inp.value : "").trim().toLowerCase();
-    var grid = document.getElementById("msm-pool-grid");
-    if (!grid) return;
-    Array.prototype.forEach.call(
-      grid.querySelectorAll(".mock-balance-pool-chip"),
-      function (btn) {
-        var n = (btn.getAttribute("data-name") || "").toLowerCase();
-        var t = (btn.textContent || "").trim().toLowerCase();
-        var show = !q || n.indexOf(q) >= 0 || t.indexOf(q) >= 0;
-        btn.style.display = show ? "" : "none";
-      },
-    );
+  window.mockStatsMmPoolFilter = function () {
+    mockStatsMmApplyPoolChipVisibility();
   };
 
   window.mockStatsMmPoolSort = function (sel) {
@@ -4491,40 +4473,9 @@
     sorted.forEach(function (c) {
       grid.appendChild(c);
     });
+    mockStatsMmApplyPoolChipVisibility();
     return false;
   };
-
-  function mockStatsMatchModalPopulateChronoSelect(mode) {
-    var sel = document.getElementById("msm-chrono-pos");
-    if (!sel) return;
-    var intraAsc = mockStatsIntraSortedAsc();
-    var len = intraAsc.length;
-    sel.innerHTML = "";
-    var i;
-    for (i = 1; i <= len + 1; i++) {
-      var opt = document.createElement("option");
-      opt.value = String(i);
-      var lbl;
-      if (i === 1) {
-        lbl = "1번째 — 전체 내전 중 가장 이른 시각 앞(맨 앞)";
-      } else if (i === len + 1) {
-        lbl =
-          String(len + 1) +
-          "번째 — 맨 마지막(최신 시각 다음에 등록)";
-      } else {
-        var prev = intraAsc[i - 2];
-        lbl =
-          String(i) +
-          "번째 — [" +
-          (prev.displayId || "?") +
-          "번째 경기] 다음에 삽입";
-      }
-      opt.textContent = lbl;
-      sel.appendChild(opt);
-    }
-    var defaultPos = len + 1;
-    sel.value = String(defaultPos);
-  }
 
   function mockStatsMatchModalFillFromMatch(m) {
     var parts = mockStatsMatchModalLocalPartsFromIso(m.at);
@@ -4605,19 +4556,15 @@
     var modal = document.getElementById("mock-stats-match-modal");
     if (!modal) return false;
     document.getElementById("msm-mode").value = mode;
-    var chronoWrap = document.getElementById("msm-chrono-wrap");
     var hint = document.getElementById("msm-mode-hint");
     if (mode === "edit") {
-      chronoWrap.setAttribute("hidden", "");
       hint.textContent =
         "선택한 경기 수정 · 확인을 누르면 요약 후 한 번 더 확인합니다.";
     } else {
-      chronoWrap.removeAttribute("hidden");
       hint.textContent =
-        "새 내전을 등록합니다. 순번은 전체 내전 시간순 기준입니다.";
+        "새 내전을 등록합니다. 저장 후 경기 목록은 시각 기준 최신순으로 정렬됩니다(목업).";
     }
     mockStatsMatchModalFillSelects();
-    mockStatsMatchModalPopulateChronoSelect(mode);
     window.__msmPendingNick = null;
     if (mode === "edit") {
       var mEdit = CLAN_STATS_MATCHES.find(function (x) {
@@ -4690,15 +4637,6 @@
       bNames.join(", ") +
       "\n레드: " +
       rNames.join(", ");
-    var pos = 0;
-    if (mode !== "edit") {
-      pos = parseInt(document.getElementById("msm-chrono-pos").value, 10);
-      if (isNaN(pos) || pos < 1) {
-        window.alert("목업: 순번을 선택해 주세요.");
-        return false;
-      }
-      summary += "\n시간순 순번: " + pos + "번째로 등록";
-    }
     if (!window.confirm("목업: 아래 내용으로 반영할까요?\n\n" + summary)) {
       return false;
     }
@@ -4710,10 +4648,8 @@
         mapType: mapType,
         winner: winner,
       };
-      if (!mockStatsIntraInsertAtChronoPos(newMatch, pos)) {
-        window.alert("목업: 등록 순번을 적용할 수 없습니다.");
-        return false;
-      }
+      CLAN_STATS_MATCHES.push(newMatch);
+      mockStatsSortMatchesDescending();
       mockStatsFillRosters(CLAN_STATS_MATCHES);
       var mNew = CLAN_STATS_MATCHES.find(function (x) {
         return x.at === iso;
@@ -4732,6 +4668,7 @@
       m.map = map;
       m.mapType = mapType;
       m.winner = winner;
+      mockStatsSortMatchesDescending();
       mockStatsFillRosters(CLAN_STATS_MATCHES);
       mockStatsPatchRostersFromForm(m, bNames, rNames);
     }
@@ -4772,6 +4709,7 @@
     if (idx < 0) return false;
     if (!window.confirm("목업: 이 경기를 삭제할까요?")) return false;
     CLAN_STATS_MATCHES.splice(idx, 1);
+    mockStatsSortMatchesDescending();
     mockStatsFillRosters(CLAN_STATS_MATCHES);
     mockStatsArchiveSnapToLatestIntraDay(
       CLAN_STATS_MATCHES.filter(function (m) {
