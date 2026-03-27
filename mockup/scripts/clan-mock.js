@@ -3407,7 +3407,7 @@
     );
   }
 
-  /** 경기 기록 탭: 내전 카드만(스크림·이벤트 미표시) · selectedAt 일치 시 강조 */
+  /** 경기 기록 탭: 내전 카드만(스크림·이벤트 미표시) · selectedAt=슬라이드 포커스(히스토리 기준) */
   function mockStatsIntraMatchCardHtml(m, cardIdx, selectedAt) {
     var winB = m.winner === "blue";
     var winR = m.winner === "red";
@@ -3904,7 +3904,7 @@
     return '<div class="mock-stats-archive-record-label">경기 기록</div>';
   }
 
-  /** 클랜장만: 경기 추가·삽입·수정·삭제 */
+  /** 클랜장만: 경기 추가·수정·삭제 */
   function mockStatsArchiveLeaderToolbarHtml() {
     if (window.mockClanCurrentRole() !== "leader") return "";
     return (
@@ -3912,9 +3912,163 @@
       '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsMatchModalOpen(\'add\')">추가</button>' +
       '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsMatchModalOpen(\'edit\')">수정</button>' +
       '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsLeaderIntraDelete()">삭제</button>' +
-      '<span class="mock-stats-archive-leader-hint">승률 순위: 카드를 클릭해 그 경기 <strong>시점까지</strong> 누적 집계(히스토리). 추가·삽입·삭제 후에는 최신 내전이 있는 날짜로 캘린더가 맞춰집니다(목업).</span>' +
+      '<span class="mock-stats-archive-leader-hint">승률 순위: 슬라이드에 보이는 경기 <strong>시점까지</strong> 누적 집계(히스토리). 카드 클릭 시 해당 경기로 슬라이드가 이동합니다. 추가·삭제 후에는 최신 내전이 있는 날짜로 캘린더가 맞춰집니다(목업).</span>' +
       "</div>"
     );
+  }
+
+  function mockStatsArchiveResolveSelMatchForDay(calSt, intraAsc, dayMatches, selAt) {
+    var selMatch = null;
+    if (dayMatches.length) {
+      if (selAt) {
+        selMatch = intraAsc.find(function (m) {
+          return (
+            m.at === selAt &&
+            mockStatsDayKey(m.at) === calSt.selectedKey
+          );
+        });
+      }
+      if (!selMatch) {
+        selMatch = dayMatches
+          .slice()
+          .sort(function (a, b) {
+            return new Date(b.at) - new Date(a.at);
+          })[0];
+        window.__mockStatsArchiveAsOfAt = selMatch ? selMatch.at : null;
+      }
+    } else {
+      window.__mockStatsArchiveAsOfAt = null;
+    }
+    return selMatch;
+  }
+
+  function mockStatsArchiveApplyWinrateState(selMatch, intraAsc, dateLbl) {
+    var prefix = [];
+    if (selMatch) {
+      var ix = intraAsc.indexOf(selMatch);
+      if (ix >= 0) prefix = intraAsc.slice(0, ix + 1);
+    }
+    var asOfNote = "";
+    if (selMatch && selMatch.displayId != null) {
+      asOfNote =
+        "전체 내전 시간순 · " +
+        String(selMatch.displayId) +
+        "번째 경기까지 반영된 승률(히스토리)";
+    }
+    window.__mockStatsWinrateState = {
+      rows: mockStatsLeaderboardRowsFromMatches(prefix),
+      sortKey: "wrNum",
+      sortDir: "desc",
+      dateLabel: dateLbl,
+      asOfNote: asOfNote,
+    };
+    var elWrAside = document.getElementById("mock-stats-archive-winrate");
+    if (elWrAside) elWrAside.innerHTML = mockStatsWinrateBuildAsideHtml();
+  }
+
+  function mockStatsArchiveReadVisibleSliderAt() {
+    var slider = document.getElementById("mock-stats-archive-slider");
+    if (!slider) return null;
+    var cards = slider.querySelectorAll(".mock-stats-match-card");
+    if (!cards.length) return null;
+    var w = slider.clientWidth;
+    if (!w) return null;
+    var idx = Math.round(slider.scrollLeft / w);
+    if (idx < 0) idx = 0;
+    if (idx >= cards.length) idx = cards.length - 1;
+    var at = cards[idx].getAttribute("data-mock-at");
+    return at || null;
+  }
+
+  function mockStatsArchiveApplyCardSelectionUi(at) {
+    var slider = document.getElementById("mock-stats-archive-slider");
+    if (!slider) return;
+    var cards = slider.querySelectorAll(".mock-stats-match-card");
+    Array.prototype.forEach.call(cards, function (c) {
+      var cardAt = c.getAttribute("data-mock-at");
+      if (at && cardAt === at) {
+        c.classList.add("mock-stats-match-card--selected");
+      } else {
+        c.classList.remove("mock-stats-match-card--selected");
+      }
+    });
+  }
+
+  function mockStatsArchiveSyncAsOfFromSlider() {
+    var at = mockStatsArchiveReadVisibleSliderAt();
+    if (!at) return;
+    if (at === window.__mockStatsArchiveAsOfAt) {
+      mockStatsArchiveApplyCardSelectionUi(at);
+      return;
+    }
+    window.__mockStatsArchiveAsOfAt = at;
+    var list = mockStatsFiltered();
+    var intraList = list.filter(function (m) {
+      return m.type === "intra";
+    });
+    var calSt = window.__mockStatsArchiveCal;
+    var intraAsc = intraList
+      .slice()
+      .sort(function (a, b) {
+        return new Date(a.at) - new Date(b.at);
+      });
+    var selMatch = intraAsc.find(function (m) {
+      return m.at === at;
+    });
+    var dateLbl = "";
+    if (calSt && calSt.selectedKey) {
+      dateLbl = mockStatsFormatDayHeadingFromKey(calSt.selectedKey);
+    }
+    mockStatsArchiveApplyWinrateState(selMatch, intraAsc, dateLbl);
+    mockStatsArchiveApplyCardSelectionUi(at);
+  }
+
+  function mockStatsArchiveEnsureSliderScroll() {
+    var el = document.getElementById("mock-stats-archive-slider");
+    if (!el) return;
+    var at = window.__mockStatsArchiveAsOfAt;
+    var cards = el.querySelectorAll(".mock-stats-match-card");
+    if (!cards.length) return;
+    var w = el.clientWidth;
+    if (!w) return;
+    var idx = 0;
+    if (at) {
+      var i;
+      for (i = 0; i < cards.length; i++) {
+        if (cards[i].getAttribute("data-mock-at") === at) {
+          idx = i;
+          break;
+        }
+      }
+    }
+    el.scrollLeft = idx * w;
+  }
+
+  function mockStatsArchiveBindSliderScroll() {
+    var el = document.getElementById("mock-stats-archive-slider");
+    if (!el) return;
+    if (window.__mockStatsArchiveSliderScrollHandler) {
+      el.removeEventListener(
+        "scroll",
+        window.__mockStatsArchiveSliderScrollHandler,
+      );
+    }
+    var t = null;
+    window.__mockStatsArchiveSliderScrollHandler = function () {
+      if (t) clearTimeout(t);
+      t = setTimeout(function () {
+        t = null;
+        mockStatsArchiveSyncAsOfFromSlider();
+      }, 60);
+    };
+    el.addEventListener(
+      "scroll",
+      window.__mockStatsArchiveSliderScrollHandler,
+      { passive: true },
+    );
+    requestAnimationFrame(function () {
+      mockStatsArchiveSyncAsOfFromSlider();
+    });
   }
 
   /** 하단 좌측: 선택일 경기 슬라이더(날짜 머리글은 별도 #mock-stats-archive-day-heading) */
@@ -3997,16 +4151,24 @@
     return false;
   };
 
-  /** 카드 클릭: 해당 경기 시점까지 누적 승률 순위(히스토리) */
+  /** 카드 클릭: 해당 경기로 슬라이드 이동 → 스크롤 동기화로 히스토리·강조 반영 */
   window.mockStatsArchiveSelectAsOfFromCard = function (el) {
     var at = el && el.getAttribute("data-mock-at");
-    if (at) window.mockStatsArchiveSelectAsOf(at);
+    if (!at) return false;
+    var slider = document.getElementById("mock-stats-archive-slider");
+    if (!slider) return false;
+    var cards = slider.querySelectorAll(".mock-stats-match-card");
+    var i;
+    for (i = 0; i < cards.length; i++) {
+      if (cards[i].getAttribute("data-mock-at") === at) {
+        slider.scrollTo({
+          left: i * slider.clientWidth,
+          behavior: "smooth",
+        });
+        break;
+      }
+    }
     return false;
-  };
-
-  window.mockStatsArchiveSelectAsOf = function (isoAt) {
-    window.__mockStatsArchiveAsOfAt = isoAt;
-    window.mockStatsRender();
   };
 
   function mockStatsLeaderGuardOrAlert() {
@@ -4429,10 +4591,16 @@
   window.mockStatsMatchModalOpen = function (mode) {
     if (!mockStatsLeaderGuardOrAlert()) return false;
     if (mode === "edit") {
-      if (!window.__mockStatsArchiveAsOfAt) {
-        window.alert("목업: 먼저 카드를 선택해 주세요.");
+      var atEdit =
+        mockStatsArchiveReadVisibleSliderAt() ||
+        window.__mockStatsArchiveAsOfAt;
+      if (!atEdit) {
+        window.alert(
+          "목업: 캘린더에서 날짜를 고르고, 슬라이드에 보이는 내전을 수정합니다.",
+        );
         return false;
       }
+      window.__mockStatsArchiveAsOfAt = atEdit;
     }
     var modal = document.getElementById("mock-stats-match-modal");
     if (!modal) return false;
@@ -4588,11 +4756,16 @@
 
   window.mockStatsLeaderIntraDelete = function () {
     if (!mockStatsLeaderGuardOrAlert()) return false;
-    var at = window.__mockStatsArchiveAsOfAt;
+    var at =
+      mockStatsArchiveReadVisibleSliderAt() ||
+      window.__mockStatsArchiveAsOfAt;
     if (!at) {
-      window.alert("목업: 먼저 카드를 선택해 주세요.");
+      window.alert(
+        "목업: 캘린더에서 날짜를 고르고, 슬라이드에 보이는 내전을 삭제합니다.",
+      );
       return false;
     }
+    window.__mockStatsArchiveAsOfAt = at;
     var idx = CLAN_STATS_MATCHES.findIndex(function (m) {
       return m.at === at;
     });
@@ -5557,20 +5730,7 @@
     });
     if (window.mockClanCurrentRole() !== "member") {
       mockStatsArchivePrepareState(intraList);
-      if (elCal) elCal.innerHTML = mockStatsArchiveBuildCalHtml(intraList);
-      if (elRec) elRec.innerHTML = mockStatsArchiveBuildRecordHtml(intraList);
       var calSt = window.__mockStatsArchiveCal;
-      if (elDayHeading) {
-        if (calSt && calSt.selectedKey) {
-          elDayHeading.textContent = mockStatsFormatDayHeadingFromKey(
-            calSt.selectedKey,
-          );
-          elDayHeading.removeAttribute("hidden");
-        } else {
-          elDayHeading.textContent = "";
-          elDayHeading.setAttribute("hidden", "");
-        }
-      }
       var intraAsc = intraList
         .slice()
         .sort(function (a, b) {
@@ -5584,48 +5744,35 @@
           return mockStatsDayKey(m.at) === calSt.selectedKey;
         });
       }
-      var selMatch = null;
-      var selAt = window.__mockStatsArchiveAsOfAt;
-      if (dayMatches.length) {
-        if (selAt) {
-          selMatch = intraAsc.find(function (m) {
-            return (
-              m.at === selAt &&
-              mockStatsDayKey(m.at) === calSt.selectedKey
-            );
-          });
+      mockStatsArchiveResolveSelMatchForDay(
+        calSt,
+        intraAsc,
+        dayMatches,
+        window.__mockStatsArchiveAsOfAt,
+      );
+      if (elCal) elCal.innerHTML = mockStatsArchiveBuildCalHtml(intraList);
+      if (elRec) elRec.innerHTML = mockStatsArchiveBuildRecordHtml(intraList);
+      if (elDayHeading) {
+        if (calSt && calSt.selectedKey) {
+          elDayHeading.textContent = mockStatsFormatDayHeadingFromKey(
+            calSt.selectedKey,
+          );
+          elDayHeading.removeAttribute("hidden");
+        } else {
+          elDayHeading.textContent = "";
+          elDayHeading.setAttribute("hidden", "");
         }
-        if (!selMatch) {
-          selMatch = dayMatches
-            .slice()
-            .sort(function (a, b) {
-              return new Date(b.at) - new Date(a.at);
-            })[0];
-          window.__mockStatsArchiveAsOfAt = selMatch ? selMatch.at : null;
-        }
-      } else {
-        window.__mockStatsArchiveAsOfAt = null;
       }
-      var prefix = [];
-      if (selMatch) {
-        var ix = intraAsc.indexOf(selMatch);
-        if (ix >= 0) prefix = intraAsc.slice(0, ix + 1);
+      var selMatch = intraAsc.find(function (m) {
+        return m.at === window.__mockStatsArchiveAsOfAt;
+      });
+      mockStatsArchiveApplyWinrateState(selMatch, intraAsc, dateLbl);
+      if (elRec) {
+        requestAnimationFrame(function () {
+          mockStatsArchiveEnsureSliderScroll();
+          mockStatsArchiveBindSliderScroll();
+        });
       }
-      var asOfNote = "";
-      if (selMatch && selMatch.displayId != null) {
-        asOfNote =
-          "전체 내전 시간순 · " +
-          String(selMatch.displayId) +
-          "번째 경기까지 반영된 승률(히스토리)";
-      }
-      window.__mockStatsWinrateState = {
-        rows: mockStatsLeaderboardRowsFromMatches(prefix),
-        sortKey: "wrNum",
-        sortDir: "desc",
-        dateLabel: dateLbl,
-        asOfNote: asOfNote,
-      };
-      if (elWrAside) elWrAside.innerHTML = mockStatsWinrateBuildAsideHtml();
     } else {
       window.__mockStatsWinrateState = null;
       if (elCal) elCal.innerHTML = "";
