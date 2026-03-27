@@ -5648,6 +5648,22 @@
     return false;
   };
 
+  /** 앱 이용 탭 · 내전 순 참여 인원: 월간 / 연간 그래프 전환 */
+  window.mockStatsIntraPartSetTab = function (btn, name) {
+    var isYear = name === "year";
+    document.querySelectorAll("[data-intra-part-tab]").forEach(function (b) {
+      var on = b === btn;
+      b.classList.toggle("mock-tab-active", on);
+      b.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    document.querySelectorAll("[data-intra-part-panel]").forEach(function (p) {
+      var match = p.getAttribute("data-intra-part-panel") === (isYear ? "year" : "month");
+      if (match) p.removeAttribute("hidden");
+      else p.setAttribute("hidden", "");
+    });
+    return false;
+  };
+
   window.mockStatsRender = function () {
     var list = mockStatsFiltered();
     var n = list.length;

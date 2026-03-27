@@ -2844,6 +2844,82 @@ aside.mock-balance-live-sidebar.mock-balance-live-predict-wrap .mock-balance-pre
 .mock-stats-footnote { font-size: 11px; color: var(--text-muted); margin-top: 10px; line-height: 1.45; }
 .mock-stats-app-usage-table { font-variant-numeric: tabular-nums; }
 .mock-stats-app-usage-table th[scope="row"] { font-weight: 600; color: var(--foreground); }
+/* 내전 순 참여 인원(고유 멤버) 막대 그래프 */
+.mock-stats-intra-part-card .mock-tab-row { margin-bottom: 16px; }
+.mock-stats-intra-chart {
+  --mock-intra-chart-h: 200px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-overlay);
+  padding: 16px 12px 12px;
+}
+.mock-stats-intra-chart-inner {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 4px;
+  min-height: var(--mock-intra-chart-h);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.mock-stats-intra-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  height: var(--mock-intra-chart-h);
+  justify-content: flex-end;
+}
+.mock-stats-intra-bar-stack {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 0;
+  gap: 6px;
+}
+.mock-stats-intra-val {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+.mock-stats-intra-bar-wrap {
+  flex: 1;
+  width: 100%;
+  max-width: 36px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+}
+.mock-stats-intra-bar {
+  display: block;
+  width: 100%;
+  border-radius: 6px 6px 2px 2px;
+  background: linear-gradient(180deg, var(--brand-primary), #6366f1);
+  min-height: 4px;
+  flex: 0 0 auto;
+  transition: opacity 0.15s ease;
+}
+.mock-stats-intra-bar--muted {
+  background: var(--border);
+  opacity: 0.55;
+}
+.mock-stats-intra-lbl {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
 
 /* 클랜 통계 · 경기 기록(일자별 B/R 카드) */
 .mock-stats-archive-day { margin-bottom: 28px; }
@@ -4833,6 +4909,167 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
           </table>
         </div>
         <p class="mock-stats-footnote" style="margin-top:12px;margin-bottom:0">미래 월은 집계 전(—). 운영진은 필요 시 CSV 내보내기·기간 필터를 둘 수 있음(기획).</p>
+      </div>
+
+      <div class="d-card d-card-full mock-stats-intra-part-card" style="margin-bottom:16px">
+        <div class="d-card-label">내전 순 참여 인원</div>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px">해당 기간에 내전 로스터에 <strong>1회 이상</strong> 포함된 <strong>서로 다른 멤버</strong> 수(동일 달·동일 연도 내 중복 경기는 1명으로 집계). 목업 수치입니다.</p>
+        <div class="mock-tab-row" role="tablist" aria-label="내전 순 참여 인원 기간">
+          <button type="button" class="mock-tab mock-tab-active" role="tab" aria-selected="true" data-intra-part-tab onclick="return window.mockStatsIntraPartSetTab(this,'month')">월간</button>
+          <button type="button" class="mock-tab" role="tab" aria-selected="false" data-intra-part-tab onclick="return window.mockStatsIntraPartSetTab(this,'year')">연간</button>
+        </div>
+        <div data-intra-part-panel="month" id="mock-stats-intra-part-month">
+          <p style="font-size:11px;color:var(--text-muted);margin:0 0 10px">기준: <strong>2026년</strong> · 월별 고유 참여 멤버 수</p>
+          <div class="mock-stats-intra-chart-scroll" style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+          <div class="mock-stats-intra-chart" role="img" aria-label="2026년 월별 내전 순 참여 인원 막대 그래프" style="min-width:520px">
+            <div class="mock-stats-intra-chart-inner">
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">22</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar" style="height:91.7%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">1월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">20</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar" style="height:83.3%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">2월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">24</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar" style="height:100%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">3월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">—</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar mock-stats-intra-bar--muted" style="height:8%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">4월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">—</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar mock-stats-intra-bar--muted" style="height:8%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">5월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">—</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar mock-stats-intra-bar--muted" style="height:8%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">6월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">—</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar mock-stats-intra-bar--muted" style="height:8%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">7월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">—</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar mock-stats-intra-bar--muted" style="height:8%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">8월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">—</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar mock-stats-intra-bar--muted" style="height:8%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">9월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">—</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar mock-stats-intra-bar--muted" style="height:8%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">10월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">—</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar mock-stats-intra-bar--muted" style="height:8%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">11월</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">—</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar mock-stats-intra-bar--muted" style="height:8%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">12월</span>
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+        <div data-intra-part-panel="year" id="mock-stats-intra-part-year" hidden>
+          <p style="font-size:11px;color:var(--text-muted);margin:0 0 10px">연도별 · 해당 연도에 내전에 <strong>한 번이라도</strong> 참여한 고유 멤버 수</p>
+          <div class="mock-stats-intra-chart" role="img" aria-label="연도별 내전 순 참여 인원 막대 그래프">
+            <div class="mock-stats-intra-chart-inner" style="max-width:420px;margin:0 auto;gap:16px">
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">38</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar" style="height:84.4%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">2024</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">45</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar" style="height:100%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">2025</span>
+              </div>
+              <div class="mock-stats-intra-col">
+                <div class="mock-stats-intra-bar-stack">
+                  <span class="mock-stats-intra-val">27</span>
+                  <div class="mock-stats-intra-bar-wrap">
+                    <span class="mock-stats-intra-bar" style="height:60%"></span>
+                  </div>
+                </div>
+                <span class="mock-stats-intra-lbl">2026</span>
+              </div>
+            </div>
+          </div>
+          <p class="mock-stats-footnote" style="margin-top:12px;margin-bottom:0">2026년은 진행 중이라 연말 확정치보다 낮게 보일 수 있습니다.</p>
+        </div>
       </div>
     </div>
   </div>
