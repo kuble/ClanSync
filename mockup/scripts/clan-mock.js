@@ -5619,7 +5619,7 @@
     return false;
   };
 
-  /** 상단 탭: 요약 / 경기 기록(운영진+) / 명예의 전당 / 맵·클랜 활동 — main-game 클랜 순위 탭과 동일 패턴(hidden + .on) */
+  /** 상단 탭: 요약 / 경기 기록(운영진+) / 명예의 전당 / 앱 이용(연·월 표는 정적 HTML) — main-game 클랜 순위 탭과 동일 패턴(hidden + .on) */
   window.mockStatsSetSection = function (btn, name) {
     if (name === "archive" && window.mockClanCurrentRole() === "member") {
       var sumBtn = document.getElementById("statsTabSummary");
@@ -5675,49 +5675,6 @@
       elFounded.textContent = mockStatsFormatFoundedLong(
         CLAN_STATS_CLAN_META.foundedAt,
       );
-    }
-
-    var blueN = 0;
-    var redN = 0;
-    list.forEach(function (m) {
-      if (m.type !== "intra") return;
-      if (m.winner === "blue") blueN++;
-      else if (m.winner === "red") redN++;
-    });
-    var elBr = document.getElementById("mock-stats-clan-br-panel");
-    if (elBr) {
-      var intraTotal = blueN + redN;
-      if (intraTotal === 0) {
-        elBr.innerHTML =
-          '<p style="font-size:13px;color:var(--text-muted);margin:0">내전 기록이 없습니다.</p>';
-      } else {
-        var pctB = Math.round((blueN / intraTotal) * 1000) / 10;
-        var pctR = Math.round((redN / intraTotal) * 1000) / 10;
-        elBr.innerHTML =
-          '<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">' +
-          '<div><div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:4px">블루 승</div>' +
-          '<div style="font-size:32px;font-weight:800;color:#38bdf8;line-height:1">' +
-          blueN +
-          "</div>" +
-          '<div style="font-size:12px;color:var(--text-muted)">' +
-          pctB +
-          "%</div></div>" +
-          '<div><div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:4px">레드 승</div>' +
-          '<div style="font-size:32px;font-weight:800;color:#fb7185;line-height:1">' +
-          redN +
-          "</div>" +
-          '<div style="font-size:12px;color:var(--text-muted)">' +
-          pctR +
-          "%</div></div>" +
-          '<div style="font-size:12px;color:var(--text-muted);align-self:center;max-width:220px">내전 ' +
-          intraTotal +
-          "경기 중 팀 승 분포 (클랜 대외 전적 아님)</div></div>" +
-          '<div style="display:flex;height:12px;border-radius:99px;overflow:hidden;background:var(--bg-overlay)">' +
-          '<div style="width:' +
-          pctB +
-          '%;min-width:0;background:linear-gradient(90deg,#38bdf8,#6366f1)"></div>' +
-          '<div style="flex:1;min-width:0;background:linear-gradient(90deg,#fb7185,#f43f5e);opacity:0.9"></div></div>';
-      }
     }
 
     var elCal = document.getElementById("mock-stats-archive-cal-root");
@@ -5781,72 +5738,6 @@
         elDayHeading.setAttribute("hidden", "");
       }
       if (elWrAside) elWrAside.innerHTML = "";
-    }
-
-    var mapWrap = document.getElementById("mock-stats-map-wrap");
-    if (mapWrap) {
-      var agg = {};
-      list.forEach(function (m) {
-        var k = m.map + "\t" + m.mapType;
-        if (!agg[k]) {
-          agg[k] = {
-            map: m.map,
-            mapType: m.mapType,
-            g: 0,
-            blue: 0,
-            red: 0,
-            scrim: 0,
-            event: 0,
-          };
-        }
-        agg[k].g++;
-        if (m.type === "intra") {
-          if (m.winner === "blue") agg[k].blue++;
-          else if (m.winner === "red") agg[k].red++;
-        } else if (m.type === "scrim") agg[k].scrim++;
-        else if (m.type === "event") agg[k].event++;
-      });
-      var rows = Object.keys(agg)
-        .map(function (k) {
-          return agg[k];
-        })
-        .sort(function (a, b) {
-          return b.g - a.g;
-        })
-        .slice(0, 8);
-      if (rows.length === 0) {
-        mapWrap.innerHTML =
-          '<p style="font-size:13px;color:var(--text-muted);margin:0">집계할 경기가 없습니다.</p>';
-      } else {
-        var maxG = 1;
-        rows.forEach(function (r) {
-          if (r.g > maxG) maxG = r.g;
-        });
-        mapWrap.innerHTML = rows
-          .map(function (r) {
-            var metaParts = [r.g + "경기"];
-            if (r.blue + r.red > 0) {
-              metaParts.push("내전 B" + r.blue + "/R" + r.red);
-            }
-            if (r.scrim) metaParts.push("스크림 " + r.scrim);
-            if (r.event) metaParts.push("이벤트 " + r.event);
-            var barW = Math.round((r.g / maxG) * 1000) / 10;
-            return (
-              '<div class="mock-stats-map-row">' +
-              '<div class="mock-stats-map-meta"><span><strong>' +
-              r.map +
-              '</strong> <span style="color:var(--text-muted);font-weight:400">· ' +
-              r.mapType +
-              '</span></span><span style="color:var(--text-muted);white-space:nowrap">' +
-              metaParts.join(" · ") +
-              "</span></div>" +
-              '<div class="mock-stats-map-bar"><i style="width:' +
-              barW +
-              '%"></i></div></div>'
-            );
-          })
-          .join("");
-      }
     }
 
     var elHof = document.getElementById("mock-stats-hof-root");

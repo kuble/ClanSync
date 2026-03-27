@@ -2842,6 +2842,8 @@ aside.mock-balance-live-sidebar.mock-balance-live-predict-wrap .mock-balance-pre
 .mock-stats-map-bar { height: 6px; border-radius: 99px; background: var(--bg-overlay); overflow: hidden; }
 .mock-stats-map-bar > i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--brand-primary), #7c3aed); font-style: normal; }
 .mock-stats-footnote { font-size: 11px; color: var(--text-muted); margin-top: 10px; line-height: 1.45; }
+.mock-stats-app-usage-table { font-variant-numeric: tabular-nums; }
+.mock-stats-app-usage-table th[scope="row"] { font-weight: 600; color: var(--foreground); }
 
 /* 클랜 통계 · 경기 기록(일자별 B/R 카드) */
 .mock-stats-archive-day { margin-bottom: 28px; }
@@ -4705,7 +4707,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
       <button type="button" class="ranking-tab on" role="tab" aria-selected="true" id="statsTabSummary" data-stats-section-tab="summary" onclick="return mockStatsSetSection(this,'summary')">요약</button>
       <button type="button" class="ranking-tab" role="tab" aria-selected="false" id="statsTabHof" data-stats-section-tab="hof" onclick="return mockStatsSetSection(this,'hof')">명예의 전당</button>
       <button type="button" class="ranking-tab mock-officer-only" role="tab" aria-selected="false" id="statsTabArchive" data-stats-section-tab="archive" onclick="return mockStatsSetSection(this,'archive')">경기 기록</button>
-      <button type="button" class="ranking-tab" role="tab" aria-selected="false" id="statsTabRankmap" data-stats-section-tab="rankmap" onclick="return mockStatsSetSection(this,'rankmap')">맵·클랜 활동</button>
+      <button type="button" class="ranking-tab" role="tab" aria-selected="false" id="statsTabRankmap" data-stats-section-tab="rankmap" onclick="return mockStatsSetSection(this,'rankmap')">앱 이용</button>
     </div>
 
     <div id="stats-panel-summary" class="ranking-panel" role="tabpanel" aria-labelledby="statsTabSummary">
@@ -4755,18 +4757,82 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
     </div>
 
     <div id="stats-panel-rankmap" class="ranking-panel" role="tabpanel" aria-labelledby="statsTabRankmap" hidden>
-      <div class="mock-two-col" style="margin-bottom:16px">
-        <div class="d-card d-card-full">
-          <div class="d-card-label">내전 팀 승 (클랜 누적)</div>
-          <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px"><strong>클랜 단위</strong>만 표시합니다. 구성원 개인의 승·패·순위는 <strong>클랜 관리</strong>의 구성원 상세에서 제공 예정입니다.</p>
-          <div id="mock-stats-clan-br-panel"></div>
-          <p class="mock-stats-footnote" style="margin-top:12px">내전 경기만 집계합니다. 스크림·이벤트는 제외(목업 기준).</p>
+      <div class="d-card d-card-full" style="margin-bottom:16px">
+        <div class="d-card-label">클랜 단위 · 연도별·월별 앱 이용 횟수</div>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px">멤버가 ClanSync 웹앱에 접속·활동한 횟수를 <strong>클랜 합산</strong>으로 집계합니다(세션·페이지뷰 등 정의는 구현 시 확정). 아래 수치는 목업입니다.</p>
+        <div style="overflow-x:auto">
+          <table class="mock-table mock-stats-app-usage-table" aria-label="연도별 월별 앱 이용 횟수">
+            <thead>
+              <tr>
+                <th scope="col">연도</th>
+                <th scope="col" style="text-align:right">1월</th>
+                <th scope="col" style="text-align:right">2월</th>
+                <th scope="col" style="text-align:right">3월</th>
+                <th scope="col" style="text-align:right">4월</th>
+                <th scope="col" style="text-align:right">5월</th>
+                <th scope="col" style="text-align:right">6월</th>
+                <th scope="col" style="text-align:right">7월</th>
+                <th scope="col" style="text-align:right">8월</th>
+                <th scope="col" style="text-align:right">9월</th>
+                <th scope="col" style="text-align:right">10월</th>
+                <th scope="col" style="text-align:right">11월</th>
+                <th scope="col" style="text-align:right">12월</th>
+                <th scope="col" style="text-align:right">연간 합계</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">2024</th>
+                <td style="text-align:right">412</td>
+                <td style="text-align:right">438</td>
+                <td style="text-align:right">501</td>
+                <td style="text-align:right">489</td>
+                <td style="text-align:right">520</td>
+                <td style="text-align:right">556</td>
+                <td style="text-align:right">602</td>
+                <td style="text-align:right">588</td>
+                <td style="text-align:right">571</td>
+                <td style="text-align:right">615</td>
+                <td style="text-align:right">640</td>
+                <td style="text-align:right">698</td>
+                <td style="text-align:right;font-weight:600">6,630</td>
+              </tr>
+              <tr>
+                <th scope="row">2025</th>
+                <td style="text-align:right">712</td>
+                <td style="text-align:right">688</td>
+                <td style="text-align:right">745</td>
+                <td style="text-align:right">721</td>
+                <td style="text-align:right">760</td>
+                <td style="text-align:right">802</td>
+                <td style="text-align:right">834</td>
+                <td style="text-align:right">818</td>
+                <td style="text-align:right">795</td>
+                <td style="text-align:right">842</td>
+                <td style="text-align:right">871</td>
+                <td style="text-align:right">905</td>
+                <td style="text-align:right;font-weight:600">9,493</td>
+              </tr>
+              <tr>
+                <th scope="row">2026</th>
+                <td style="text-align:right">928</td>
+                <td style="text-align:right">901</td>
+                <td style="text-align:right">956</td>
+                <td style="text-align:right;color:var(--text-muted)">—</td>
+                <td style="text-align:right;color:var(--text-muted)">—</td>
+                <td style="text-align:right;color:var(--text-muted)">—</td>
+                <td style="text-align:right;color:var(--text-muted)">—</td>
+                <td style="text-align:right;color:var(--text-muted)">—</td>
+                <td style="text-align:right;color:var(--text-muted)">—</td>
+                <td style="text-align:right;color:var(--text-muted)">—</td>
+                <td style="text-align:right;color:var(--text-muted)">—</td>
+                <td style="text-align:right;color:var(--text-muted)">—</td>
+                <td style="text-align:right;font-weight:600">2,785</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div class="d-card d-card-full">
-          <div class="d-card-label">맵·모드별 경기 수</div>
-          <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">막대=진행 횟수 · 내전만 B/R 팀승 보조 · 스크림은 건수만(승률 없음)</p>
-          <div id="mock-stats-map-wrap"></div>
-        </div>
+        <p class="mock-stats-footnote" style="margin-top:12px;margin-bottom:0">미래 월은 집계 전(—). 운영진은 필요 시 CSV 내보내기·기간 필터를 둘 수 있음(기획).</p>
       </div>
     </div>
   </div>
