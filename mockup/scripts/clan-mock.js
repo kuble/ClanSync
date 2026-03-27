@@ -172,6 +172,7 @@
         mockBalanceApplyRoleScoresToAllFilledSlots();
         mockBalanceSyncMockScoresFromDom();
       }
+      mockBalancePredictApplyTablePagination();
     } catch (eBalance) {}
     /* 구성원이 경기 기록 패널만 열린 상태면 요약으로 되돌림 */
     if (window.mockClanCurrentRole() === "member") {
@@ -838,27 +839,84 @@
     if (el) el.value = String(mockBalanceGetPredictVoteMinutes());
   }
 
+  var MOCK_BALANCE_PREDICT_TABLE_PAGE_SIZE = 5;
+  var _mockPredictTablePage = 0;
+
   function mockBalancePredictRenderVoteDeadline() {
     var el = document.getElementById("mock-balance-predict-vote-deadline");
     if (!el) return;
     var lineup = document.getElementById("mock-balance-wf-lineup");
     if (!lineup || lineup.hidden) return;
+    el.classList.remove("mock-balance-predict-vote-timer--muted", "mock-balance-predict-vote-timer--ended");
     if (!_mockPredictVoteDeadlineMs) {
-      el.textContent = "투표 마감 —";
+      el.textContent = "—";
+      el.classList.add("mock-balance-predict-vote-timer--muted");
       return;
     }
     var end = _mockPredictVoteDeadlineMs;
-    if (Date.now() >= end) {
-      el.textContent = "투표 마감됨";
+    var now = Date.now();
+    if (now >= end) {
+      el.textContent = "마감됨";
+      el.classList.add("mock-balance-predict-vote-timer--ended");
       return;
     }
-    var pad = function (n) {
+    var left = end - now;
+    var totalSec = Math.max(0, Math.floor(left / 1000));
+    var mm = Math.floor(totalSec / 60);
+    var ss = totalSec % 60;
+    var pad2 = function (n) {
       return n < 10 ? "0" + n : String(n);
     };
-    var endDate = new Date(end);
-    el.textContent =
-      "투표 마감 " + pad(endDate.getHours()) + ":" + pad(endDate.getMinutes()) + ":" + pad(endDate.getSeconds());
+    el.textContent = mm + ":" + pad2(ss);
   }
+
+  function mockBalancePredictApplyTablePagination() {
+    var tb = document.getElementById("mock-balance-predict-tbody");
+    var pager = document.getElementById("mock-balance-predict-pager");
+    if (!tb || !pager) return;
+    var rows = tb.querySelectorAll("tr[data-mock-predict-side]");
+    var n = rows.length;
+    var pageSize = MOCK_BALANCE_PREDICT_TABLE_PAGE_SIZE;
+    var totalPages = Math.max(1, Math.ceil(n / pageSize));
+    if (n <= pageSize) {
+      pager.hidden = true;
+      rows.forEach(function (tr) {
+        tr.style.display = "";
+      });
+      return;
+    }
+    pager.hidden = false;
+    if (_mockPredictTablePage >= totalPages) {
+      _mockPredictTablePage = totalPages - 1;
+    }
+    if (_mockPredictTablePage < 0) {
+      _mockPredictTablePage = 0;
+    }
+    var start = _mockPredictTablePage * pageSize;
+    rows.forEach(function (tr, i) {
+      tr.style.display = i >= start && i < start + pageSize ? "" : "none";
+    });
+    var label = document.getElementById("mock-balance-predict-pager-label");
+    if (label) {
+      label.textContent = _mockPredictTablePage + 1 + " / " + totalPages;
+    }
+    var prev = document.getElementById("mock-balance-predict-pager-prev");
+    var next = document.getElementById("mock-balance-predict-pager-next");
+    if (prev) prev.disabled = _mockPredictTablePage <= 0;
+    if (next) next.disabled = _mockPredictTablePage >= totalPages - 1;
+  }
+
+  window.mockBalancePredictPagerPrev = function () {
+    _mockPredictTablePage--;
+    mockBalancePredictApplyTablePagination();
+    return false;
+  };
+
+  window.mockBalancePredictPagerNext = function () {
+    _mockPredictTablePage++;
+    mockBalancePredictApplyTablePagination();
+    return false;
+  };
 
   function mockBalancePredictSyncVoteUiState() {
     var lineup = document.getElementById("mock-balance-wf-lineup");
@@ -868,7 +926,8 @@
     document.querySelectorAll(".mock-balance-predict-vote-btn").forEach(function (b) {
       b.disabled = !open;
     });
-    var inp = document.querySelector(".mock-balance-predict-vote-input");
+    var inp = document.getElementById("mock-balance-predict-coin-input");
+    if (!inp) inp = document.querySelector(".mock-balance-predict-vote-input");
     if (inp) inp.disabled = !open;
   }
 
@@ -1981,6 +2040,8 @@
         window.mockBalanceSyncLineupFromVsBoard();
       }
       mockBalanceRenderLiveCrowns();
+      _mockPredictTablePage = 0;
+      mockBalancePredictApplyTablePagination();
       mockBalancePredictRenderVoteDeadline();
       mockBalancePredictSyncVoteUiState();
       mockBalancePredictRenderLiveMeter();

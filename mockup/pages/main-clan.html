@@ -2000,14 +2000,84 @@ aside.mock-balance-live-sidebar.mock-balance-live-predict-wrap .mock-predict-res
 aside.mock-balance-live-sidebar.mock-balance-live-predict-wrap .mock-predict-results-table td {
   padding: 6px 8px;
 }
-aside.mock-balance-live-sidebar.mock-balance-live-predict-wrap .mock-predict-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
+/* 승부예측 제출 블록 (팀 선택 + 코인 + 제출) */
+.mock-balance-predict-submit-stack {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mock-balance-predict-submit-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.mock-balance-predict-team-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.mock-balance-predict-team-row .mock-balance-predict-vote-btn--team {
+  min-height: 40px;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  border-width: 2px;
+}
+.mock-balance-predict-team-row .mock-balance-predict-vote-btn--blue {
+  border-color: rgba(56, 189, 248, 0.45);
+  background: rgba(56, 189, 248, 0.12);
+  color: #7dd3fc;
+}
+.mock-balance-predict-team-row .mock-balance-predict-vote-btn--red {
+  border-color: rgba(251, 113, 133, 0.45);
+  background: rgba(251, 113, 133, 0.1);
+  color: #fb7185;
+}
+.mock-balance-predict-team-row .mock-balance-predict-vote-btn--team:disabled {
+  opacity: 0.45;
+}
+.mock-balance-predict-coin-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.mock-balance-predict-coin-row label {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.mock-balance-predict-submit-primary {
+  width: 100%;
+  justify-content: center;
+  min-height: 40px;
+  font-weight: 700;
+}
+.mock-balance-predict-table-wrap {
+  margin-top: 12px;
+}
+.mock-balance-predict-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.mock-balance-predict-pager-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 52px;
+  text-align: center;
+}
+.mock-balance-predict-pager .btn {
+  min-width: 64px;
 }
 /* 비출전·승부예측: 예측 행위 구역(배당·집계·제출) 단색 배경 */
 .mock-balance-predict-act-zone {
@@ -2038,12 +2108,30 @@ aside.mock-balance-live-sidebar.mock-balance-live-predict-wrap .mock-balance-pre
 }
 .mock-balance-predict-zone-head {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 8px;
 }
-.mock-balance-predict-updated {
+.mock-balance-predict-timer-label {
   font-size: 10px;
   color: var(--text-muted);
+  font-weight: 600;
+}
+.mock-balance-predict-vote-timer {
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #fbbf24;
+  letter-spacing: 0.02em;
+}
+.mock-balance-predict-vote-timer.mock-balance-predict-vote-timer--muted {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.mock-balance-predict-vote-timer.mock-balance-predict-vote-timer--ended {
+  color: var(--text-muted);
+  font-weight: 700;
 }
 aside.mock-balance-live-sidebar.mock-balance-live-predict-wrap .mock-balance-predict-act-zone .mock-predict-live-odds-row {
   margin-top: 0;
@@ -3493,7 +3581,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
           <span style="font-size:13px;font-weight:600;color:var(--text-secondary)">경기 진행</span>
           <span class="mock-balance-live-badge" style="font-size:11px;padding:4px 10px;border-radius:99px;border:1px solid var(--border);background:var(--bg-overlay);color:var(--text-secondary)">진행 중</span>
-          <button type="button" class="mock-help-tip" data-tip="사전설정 완료 후 경기 중 화면입니다. 승부예측은 배치 완료 후 설정된 시간(분) 동안만 투표 가능하며, 우측에 투표 마감 시각이 표시됩니다. 운영진: 팀 버튼으로 승자 왕관 선택. 왕관 없이 결과 입력 시 무승부. 확인 팝업에서 확인·Enter로 저장. 구성원은 결과 입력 UI 숨김." aria-label="경기 진행 도움말">?</button>
+          <button type="button" class="mock-help-tip" data-tip="사전설정 완료 후 경기 중 화면입니다. 승부예측은 배치 완료 후 설정된 시간(분) 동안만 투표 가능하며, 우측에 남은 시간이 타이머로 표시됩니다. 운영진: 팀 버튼으로 승자 왕관 선택. 왕관 없이 결과 입력 시 무승부. 확인 팝업에서 확인·Enter로 저장. 구성원은 결과 입력 UI 숨김." aria-label="경기 진행 도움말">?</button>
         </div>
 
         <div class="mock-balance-live-layout">
@@ -3563,7 +3651,8 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
 
           <div class="mock-balance-predict-act-zone" id="mock-balance-predict-act-zone">
             <div class="mock-balance-predict-zone-head">
-              <span id="mock-balance-predict-vote-deadline" class="mock-balance-predict-updated">투표 마감 —</span>
+              <span class="mock-balance-predict-timer-label">남은 시간</span>
+              <span id="mock-balance-predict-vote-deadline" class="mock-balance-predict-vote-timer mock-balance-predict-vote-timer--muted">—</span>
             </div>
             <div class="mock-predict-live-meter" id="mock-balance-predict-live-meter" aria-live="polite">
               <div class="mock-predict-live-stat-row mock-predict-live-odds-row">
@@ -3583,40 +3672,71 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                 <span class="mock-predict-live-stat-red" id="mock-balance-predict-stat-red">레드 —</span>
               </div>
             </div>
-            <div class="mock-predict-row">
-              <button type="button" class="btn btn-secondary btn-sm mock-balance-predict-vote-btn">블루 승</button>
-              <button type="button" class="btn btn-secondary btn-sm mock-balance-predict-vote-btn">레드 승</button>
-              <input
-                type="number"
-                class="mock-balance-predict-vote-input"
-                min="0"
-                max="500"
-                value="50"
-                readonly
-                title="상한 목업"
-                aria-label="클랜코인"
-              />
-              <button type="button" class="btn btn-sm mock-balance-predict-vote-btn" id="mock-balance-predict-submit-vote" onclick="alert('목업: 예측 제출')">
+            <div class="mock-balance-predict-submit-stack">
+              <span class="mock-balance-predict-submit-title">내 예측</span>
+              <div class="mock-balance-predict-team-row" role="group" aria-label="승리 팀 예측">
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm mock-balance-predict-vote-btn mock-balance-predict-vote-btn--team mock-balance-predict-vote-btn--blue"
+                >
+                  블루 승
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm mock-balance-predict-vote-btn mock-balance-predict-vote-btn--team mock-balance-predict-vote-btn--red"
+                >
+                  레드 승
+                </button>
+              </div>
+              <div class="mock-balance-predict-coin-row">
+                <label for="mock-balance-predict-coin-input">걸 코인</label>
+                <input
+                  id="mock-balance-predict-coin-input"
+                  type="number"
+                  class="mock-balance-predict-vote-input"
+                  min="0"
+                  max="500"
+                  value="50"
+                  readonly
+                  title="상한 목업"
+                />
+              </div>
+              <button
+                type="button"
+                class="btn btn-sm mock-balance-predict-vote-btn mock-balance-predict-submit-primary"
+                id="mock-balance-predict-submit-vote"
+                onclick="alert('목업: 예측 제출')"
+              >
                 예측하기
               </button>
             </div>
           </div>
 
-          <table class="mock-predict-results-table" aria-label="승부예측 참여" style="margin-top:12px">
-            <thead>
-              <tr>
-                <th>닉네임</th>
-                <th>예측</th>
-                <th>코인</th>
-                <th>정산</th>
-              </tr>
-            </thead>
-            <tbody id="mock-balance-predict-tbody">
-              <tr data-mock-predict-side="blue" data-mock-coins="50"><td>이프로</td><td>블루</td><td>50</td><td>대기</td></tr>
-              <tr data-mock-predict-side="red" data-mock-coins="30"><td>냥이의비행</td><td>레드</td><td>30</td><td>대기</td></tr>
-              <tr data-mock-predict-side="blue" data-mock-coins="100"><td>아재</td><td>블루</td><td>100</td><td>대기</td></tr>
-            </tbody>
-          </table>
+          <div class="mock-balance-predict-table-wrap">
+            <table class="mock-predict-results-table" aria-label="승부예측 참여">
+              <thead>
+                <tr>
+                  <th>닉네임</th>
+                  <th>예측</th>
+                  <th>코인</th>
+                  <th>정산</th>
+                </tr>
+              </thead>
+              <tbody id="mock-balance-predict-tbody">
+                <tr data-mock-predict-side="blue" data-mock-coins="50"><td>이프로</td><td>블루</td><td>50</td><td>대기</td></tr>
+                <tr data-mock-predict-side="red" data-mock-coins="30"><td>냥이의비행</td><td>레드</td><td>30</td><td>대기</td></tr>
+                <tr data-mock-predict-side="blue" data-mock-coins="100"><td>아재</td><td>블루</td><td>100</td><td>대기</td></tr>
+                <tr data-mock-predict-side="red" data-mock-coins="20"><td>초보만</td><td>레드</td><td>20</td><td>대기</td></tr>
+                <tr data-mock-predict-side="blue" data-mock-coins="40"><td>라인히터</td><td>블루</td><td>40</td><td>대기</td></tr>
+                <tr data-mock-predict-side="red" data-mock-coins="60"><td>메르시메인</td><td>레드</td><td>60</td><td>대기</td></tr>
+              </tbody>
+            </table>
+            <div id="mock-balance-predict-pager" class="mock-balance-predict-pager" hidden>
+              <button type="button" class="btn btn-secondary btn-sm" id="mock-balance-predict-pager-prev" onclick="return window.mockBalancePredictPagerPrev()">이전</button>
+              <span id="mock-balance-predict-pager-label" class="mock-balance-predict-pager-label">1 / 1</span>
+              <button type="button" class="btn btn-secondary btn-sm" id="mock-balance-predict-pager-next" onclick="return window.mockBalancePredictPagerNext()">다음</button>
+            </div>
+          </div>
         </aside>
         </div>
 
