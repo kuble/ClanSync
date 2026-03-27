@@ -4792,10 +4792,6 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
           <label for="msm-time">시각 (로컬)</label>
           <input id="msm-time" type="time" step="60" />
         </div>
-        <div class="mock-modal-field">
-          <label for="msm-score">스코어 (표시)</label>
-          <input id="msm-score" type="text" placeholder="예: 3-2" />
-        </div>
       </div>
       <div class="mock-stats-mm-winner-row">
         <span>승리 팀</span>
@@ -4812,7 +4808,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
             <span class="mock-balance-meta-label">맵</span>
             <select id="msm-map" class="mock-balance-map-pick-btn" aria-label="맵 선택"></select>
           </span>
-          <span class="mock-balance-switch-label" style="color:var(--text-muted)">· <select id="msm-maptype" class="mock-balance-map-pick-btn" style="max-width:min(140px,28vw)" aria-label="모드"></select></span>
+          <span class="mock-balance-switch-label" style="color:var(--text-muted)">· <span id="msm-maptype-display" class="mock-stats-mm-maptype-readonly" title="맵 메타(목업)에서 결정되는 모드">제어</span></span>
         </div>
         <div class="mock-stats-mm-vs-wrap">
           <div class="mock-balance-vs-column">

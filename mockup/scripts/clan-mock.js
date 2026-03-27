@@ -3183,29 +3183,29 @@
   };
 
   /* ── 클랜 통계 (clan-stats-plan) — 내전=블루/레드 팀승 · 스크림=승패 미집계 · 이벤트=팀승 목업 ── */
-  /** @type {{ at: string, type: string, map: string, mapType: string, winner: 'blue'|'red'|null, score: string }[]} */
+  /** @type {{ at: string, type: string, map: string, mapType: string, winner: 'blue'|'red'|null }[]} */
   var CLAN_STATS_MATCHES = [
-    { at: "2026-03-22T18:00:00.000Z", type: "intra", map: "서킷 로얄", mapType: "클래시", winner: "blue", score: "3-2" },
-    { at: "2026-03-22T14:00:00.000Z", type: "intra", map: "할리우드", mapType: "호위", winner: "red", score: "2-3" },
-    { at: "2026-03-20T19:30:00.000Z", type: "scrim", map: "파라이소", mapType: "호위", winner: null, score: "—" },
-    { at: "2026-03-18T21:00:00.000Z", type: "intra", map: "뉴 정크 시티", mapType: "제어", winner: "blue", score: "3-1" },
-    { at: "2026-03-15T20:00:00.000Z", type: "intra", map: "부산", mapType: "밀기", winner: "blue", score: "3-0" },
-    { at: "2026-03-12T21:00:00.000Z", type: "scrim", map: "서킷 로얄", mapType: "클래시", winner: null, score: "—" },
-    { at: "2026-03-08T20:00:00.000Z", type: "intra", map: "엔터테인먼트", mapType: "돌격", winner: "red", score: "1-3" },
-    { at: "2026-03-05T21:30:00.000Z", type: "event", map: "감시 기지: 지브롤터", mapType: "제어", winner: "blue", score: "2-0" },
-    { at: "2026-03-01T19:00:00.000Z", type: "intra", map: "할리우드", mapType: "호위", winner: "blue", score: "3-2" },
-    { at: "2026-02-25T20:00:00.000Z", type: "scrim", map: "스리아", mapType: "돌격", winner: null, score: "—" },
-    { at: "2026-02-20T21:00:00.000Z", type: "intra", map: "부산", mapType: "밀기", winner: "blue", score: "3-1" },
-    { at: "2026-02-14T18:00:00.000Z", type: "intra", map: "뉴 정크 시티", mapType: "제어", winner: "red", score: "1-3" },
-    { at: "2026-02-08T20:00:00.000Z", type: "scrim", map: "파라이소", mapType: "호위", winner: null, score: "—" },
-    { at: "2026-02-01T21:00:00.000Z", type: "intra", map: "서킷 로얄", mapType: "클래시", winner: "blue", score: "3-0" },
-    { at: "2026-01-28T19:30:00.000Z", type: "intra", map: "엔터테인먼트", mapType: "돌격", winner: "blue", score: "3-2" },
-    { at: "2026-01-20T20:00:00.000Z", type: "scrim", map: "할리우드", mapType: "호위", winner: null, score: "—" },
-    { at: "2026-01-12T21:00:00.000Z", type: "intra", map: "스리아", mapType: "돌격", winner: "blue", score: "3-1" },
-    { at: "2026-01-05T18:00:00.000Z", type: "intra", map: "부산", mapType: "밀기", winner: "blue", score: "3-2" },
-    { at: "2025-12-22T20:00:00.000Z", type: "event", map: "감시 기지: 지브롤터", mapType: "제어", winner: "blue", score: "2-1" },
-    { at: "2025-12-10T19:00:00.000Z", type: "scrim", map: "뉴 정크 시티", mapType: "제어", winner: null, score: "—" },
-    { at: "2025-11-28T21:00:00.000Z", type: "intra", map: "파라이소", mapType: "호위", winner: "blue", score: "3-2" },
+    { at: "2026-03-22T18:00:00.000Z", type: "intra", map: "서킷 로얄", mapType: "클래시", winner: "blue" },
+    { at: "2026-03-22T14:00:00.000Z", type: "intra", map: "할리우드", mapType: "호위", winner: "red" },
+    { at: "2026-03-20T19:30:00.000Z", type: "scrim", map: "파라이소", mapType: "호위", winner: null },
+    { at: "2026-03-18T21:00:00.000Z", type: "intra", map: "뉴 정크 시티", mapType: "제어", winner: "blue" },
+    { at: "2026-03-15T20:00:00.000Z", type: "intra", map: "부산", mapType: "밀기", winner: "blue" },
+    { at: "2026-03-12T21:00:00.000Z", type: "scrim", map: "서킷 로얄", mapType: "클래시", winner: null },
+    { at: "2026-03-08T20:00:00.000Z", type: "intra", map: "엔터테인먼트", mapType: "돌격", winner: "red" },
+    { at: "2026-03-05T21:30:00.000Z", type: "event", map: "감시 기지: 지브롤터", mapType: "제어", winner: "blue" },
+    { at: "2026-03-01T19:00:00.000Z", type: "intra", map: "할리우드", mapType: "호위", winner: "blue" },
+    { at: "2026-02-25T20:00:00.000Z", type: "scrim", map: "스리아", mapType: "돌격", winner: null },
+    { at: "2026-02-20T21:00:00.000Z", type: "intra", map: "부산", mapType: "밀기", winner: "blue" },
+    { at: "2026-02-14T18:00:00.000Z", type: "intra", map: "뉴 정크 시티", mapType: "제어", winner: "red" },
+    { at: "2026-02-08T20:00:00.000Z", type: "scrim", map: "파라이소", mapType: "호위", winner: null },
+    { at: "2026-02-01T21:00:00.000Z", type: "intra", map: "서킷 로얄", mapType: "클래시", winner: "blue" },
+    { at: "2026-01-28T19:30:00.000Z", type: "intra", map: "엔터테인먼트", mapType: "돌격", winner: "blue" },
+    { at: "2026-01-20T20:00:00.000Z", type: "scrim", map: "할리우드", mapType: "호위", winner: null },
+    { at: "2026-01-12T21:00:00.000Z", type: "intra", map: "스리아", mapType: "돌격", winner: "blue" },
+    { at: "2026-01-05T18:00:00.000Z", type: "intra", map: "부산", mapType: "밀기", winner: "blue" },
+    { at: "2025-12-22T20:00:00.000Z", type: "event", map: "감시 기지: 지브롤터", mapType: "제어", winner: "blue" },
+    { at: "2025-12-10T19:00:00.000Z", type: "scrim", map: "뉴 정크 시티", mapType: "제어", winner: null },
+    { at: "2025-11-28T21:00:00.000Z", type: "intra", map: "파라이소", mapType: "호위", winner: "blue" },
   ];
 
   function mockStatsEscapeHtml(s) {
@@ -3230,23 +3230,23 @@
     "Spark",
     "Safeguard",
   ];
-  var MOCK_STATS_MAP_OPTIONS = [
-    "서킷 로얄",
-    "할리우드",
-    "뉴 정크 시티",
-    "부산",
-    "엔터테인먼트",
-    "파라이소",
-    "스리아",
-    "감시 기지: 지브롤터",
-  ];
-  var MOCK_STATS_MAPTYPE_OPTIONS = [
-    "클래시",
-    "호위",
-    "제어",
-    "밀기",
-    "돌격",
-  ];
+  /** 맵 이름 → 게임 모드(호위·제어 등). 실서비스에서는 맵 마스터 데이터에서 조회 */
+  var MOCK_STATS_MAP_META = {
+    "서킷 로얄": "클래시",
+    할리우드: "호위",
+    "뉴 정크 시티": "제어",
+    부산: "밀기",
+    엔터테인먼트: "돌격",
+    파라이소: "호위",
+    스리아: "돌격",
+    "감시 기지: 지브롤터": "제어",
+  };
+  var MOCK_STATS_MAP_OPTIONS = Object.keys(MOCK_STATS_MAP_META);
+
+  function mockStatsMapTypeForMap(mapName) {
+    var t = MOCK_STATS_MAP_META[mapName];
+    return t != null ? t : "제어";
+  }
 
   /** 내전·이벤트에 5인 로스터·표시용 ID 부여(목업) */
   function mockStatsFillRosters(arr) {
@@ -4148,10 +4148,25 @@
     else el.classList.remove("mock-stats-mm-nick--empty");
   }
 
+  function mockStatsMatchModalSyncMapTypeLabel(mapTypeFallback) {
+    var sm = document.getElementById("msm-map");
+    var el = document.getElementById("msm-maptype-display");
+    if (!el) return;
+    var mapName = sm && sm.value ? sm.value : "";
+    if (mapName && MOCK_STATS_MAP_META[mapName] != null) {
+      el.textContent = MOCK_STATS_MAP_META[mapName];
+      return;
+    }
+    if (mapTypeFallback != null && String(mapTypeFallback).trim() !== "") {
+      el.textContent = String(mapTypeFallback).trim();
+      return;
+    }
+    el.textContent = mockStatsMapTypeForMap(mapName);
+  }
+
   function mockStatsMatchModalFillSelects() {
     var sm = document.getElementById("msm-map");
-    var st = document.getElementById("msm-maptype");
-    if (!sm || !st) return;
+    if (!sm) return;
     sm.innerHTML = "";
     MOCK_STATS_MAP_OPTIONS.forEach(function (name) {
       var o = document.createElement("option");
@@ -4159,13 +4174,10 @@
       o.textContent = name;
       sm.appendChild(o);
     });
-    st.innerHTML = "";
-    MOCK_STATS_MAPTYPE_OPTIONS.forEach(function (name) {
-      var o = document.createElement("option");
-      o.value = name;
-      o.textContent = name;
-      st.appendChild(o);
-    });
+    sm.onchange = function () {
+      mockStatsMatchModalSyncMapTypeLabel();
+    };
+    mockStatsMatchModalSyncMapTypeLabel();
     mockStatsMatchModalBuildPoolGrid();
   }
 
@@ -4315,11 +4327,7 @@
     document.getElementById("msm-date").value = parts.date;
     document.getElementById("msm-time").value = parts.time;
     mockStatsMatchModalEnsureOption(document.getElementById("msm-map"), m.map);
-    mockStatsMatchModalEnsureOption(
-      document.getElementById("msm-maptype"),
-      m.mapType,
-    );
-    document.getElementById("msm-score").value = m.score || "3-2";
+    mockStatsMatchModalSyncMapTypeLabel(m.mapType);
     mockStatsMmSetWinner(m.winner === "red" ? "red" : "blue");
     var br = m.blueRoster || [];
     var rr = m.redRoster || [];
@@ -4417,7 +4425,6 @@
       var parts = mockStatsMatchModalLocalPartsFromIso(now.toISOString());
       document.getElementById("msm-date").value = parts.date;
       document.getElementById("msm-time").value = parts.time;
-      document.getElementById("msm-score").value = "3-2";
       mockStatsMmSetWinner("blue");
       mockStatsMatchModalSetDefaultRosters();
     }
@@ -4443,8 +4450,7 @@
       return false;
     }
     var map = document.getElementById("msm-map").value;
-    var mapType = document.getElementById("msm-maptype").value;
-    var score = document.getElementById("msm-score").value.trim() || "—";
+    var mapType = mockStatsMapTypeForMap(map);
     var wEl = document.querySelector('input[name="msm-winner"]:checked');
     var winner = wEl && wEl.value === "red" ? "red" : "blue";
     var rosters = mockStatsMatchModalReadSlotNicks();
@@ -4468,8 +4474,6 @@
       map +
       " / " +
       mapType +
-      "\n스코어: " +
-      score +
       "\n승리: " +
       (winner === "blue" ? "블루" : "레드") +
       "\n블루: " +
@@ -4495,7 +4499,6 @@
         map: map,
         mapType: mapType,
         winner: winner,
-        score: score,
       };
       if (!mockStatsIntraInsertAtChronoPos(newMatch, pos)) {
         window.alert("목업: 등록 순번을 적용할 수 없습니다.");
@@ -4519,7 +4522,6 @@
       m.map = map;
       m.mapType = mapType;
       m.winner = winner;
-      m.score = score;
       mockStatsFillRosters(CLAN_STATS_MATCHES);
       mockStatsPatchRostersFromForm(m, bNames, rNames);
     }
