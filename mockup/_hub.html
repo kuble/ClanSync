@@ -80,62 +80,6 @@
   padding-left: 8px;
   background: rgba(245, 158, 11, 0.08);
 }
-.hub-debug-flow {
-  padding: 8px 16px 14px;
-  border-top: 1px solid var(--border, rgba(255,255,255,0.08));
-  margin-top: 4px;
-}
-.hub-debug-flow summary {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-secondary, #a1a1aa);
-  cursor: pointer;
-  list-style: none;
-  padding: 4px 0;
-}
-.hub-debug-flow summary::-webkit-details-marker { display: none; }
-.hub-debug-flow summary::before {
-  content: "▸ ";
-  opacity: 0.7;
-}
-.hub-debug-flow[open] summary::before {
-  content: "▾ ";
-}
-.hub-debug-jump {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 10px;
-}
-.hub-debug-jump-label {
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text-muted, #71717a);
-  margin-top: 4px;
-}
-.hub-debug-jump-btn {
-  font-size: 11px;
-  padding: 5px 8px;
-  border-radius: var(--radius-sm, 6px);
-  border: 1px solid rgba(124, 58, 237, 0.35);
-  background: rgba(124, 58, 237, 0.08);
-  color: var(--text-secondary, #a1a1aa);
-  cursor: pointer;
-  font-family: var(--font-sans, system-ui, sans-serif);
-  text-align: left;
-  transition: color 0.1s, background 0.1s;
-}
-.hub-debug-jump-btn:hover {
-  color: var(--text-primary);
-  background: rgba(124, 58, 237, 0.14);
-}
-.hub-debug-jump-btn small {
-  display: block;
-  font-size: 9px;
-  opacity: 0.75;
-  margin-top: 2px;
-}
 .hub-group-label--row {
   display: flex;
   align-items: center;
@@ -194,11 +138,6 @@
 .hub-tooltip-flyout[hidden] {
   display: none !important;
 }
-.hub-debug-flow summary .hub-debug-summary-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
 </style>
 </head>
 <body class="hub-shell">
@@ -241,43 +180,6 @@
       <button type="button" class="hub-mock-plan-btn" data-mock-plan="premium" onclick="return hubSetMockPlan(this,'premium')">Premium 플랜</button>
     </div>
   </div>
-
-  <details class="hub-debug-flow" id="hubDebugBalance" open>
-    <summary>
-      <span class="hub-debug-summary-row">
-        디버그 · 밸런스 세션 플로우
-        <button type="button" class="hub-help-tip" data-tip="A 밸런스장 = 세션을 연 운영진 1명. B = 그 외 운영진·구성원(동일 관전 동기화). 목업에서는 클랜장·운영진 모두 편집 UI(실제 구현 시 A만 ① 편집).
-
-순서:
-1) 세션 생성 (A가 밸런스 메이커 시작)
-2) ① 배치 — A 편집 / B 실시간 경기 보드
-3) 배치 완료 → 밴 ON이면 ② 밴픽 화면으로 리디렉션
-4) ② 밴픽 — 참가자 투표 · 비참가 B는 실시간 관전
-5) 경기 시작 = 밴 종료 직후 (밴 없으면 배치 완료 직후)
-6) ③ 경기 진행 — 예측 마감 타이머 · 결과 입력
-7) 동점·무효·재경기 → 해당 판 예측 무효
-8) 사후 정정 → 클랜 관리 · 내전 히스토리(예정)
-
-단계별 화면:
-· ① 배치 — A: 편집 UI / B: 경기 진행 동기(읽기)
-· ② 밴픽 — A: 밴픽 UI(참가 시) / B: 참가 밴픽 또는 비참가 실시간 관전
-· ③ 경기·예측 — A: 왕관·결과 입력 / B: 비참가 승부예측(Premium)
-
-문서: docs/01-plan/balance-maker-ui-notes.md §세션 플로우" aria-label="밸런스 세션 플로우 도움말" onclick="event.preventDefault(); event.stopPropagation();">?</button>
-      </span>
-    </summary>
-    <div class="hub-debug-jump-label hub-group-label--row" style="margin-top:8px">
-      밸런스 탭 바로가기
-      <button type="button" class="hub-help-tip" data-tip="클랜장·운영진: 편집·결과 입력 목업. 운영진은 목업상 편집 동일, 기획상 B=관전.
-구성원: URL에 hubDebug=1을 붙여 밸런스 진입(실제 권한과 다름). Premium 조합은 승부예측 블록 확인용." aria-label="바로가기 버튼 설명" onclick="event.preventDefault(); event.stopPropagation();">?</button>
-    </div>
-    <div class="hub-debug-jump">
-      <button type="button" class="hub-debug-jump-btn" onclick="return hubDebugOpenClanBalance('leader', false)">클랜장 → #balance</button>
-      <button type="button" class="hub-debug-jump-btn" onclick="return hubDebugOpenClanBalance('officer', false)">운영진 → #balance</button>
-      <button type="button" class="hub-debug-jump-btn" onclick="return hubDebugOpenClanBalance('member', true)">구성원 → #balance</button>
-      <button type="button" class="hub-debug-jump-btn" onclick="return hubDebugOpenClanBalancePremiumMember()">구성원 + Premium → #balance</button>
-    </div>
-  </details>
 </nav>
 
 <main class="hub-main">
@@ -318,63 +220,6 @@
       "role=" + encodeURIComponent(role) + "&plan=" + encodeURIComponent(plan);
     if (opts.hubDebug) q += "&hubDebug=1";
     return "pages/main-clan.html?" + q;
-  }
-
-  function hubSyncRolePlanButtonsFromStorage() {
-    var r = hubGetMockRole();
-    document.querySelectorAll(".hub-mock-role-btn").forEach(function (b) {
-      b.classList.toggle("active", b.getAttribute("data-mock-role") === r);
-    });
-    var pl = hubGetMockPlan();
-    document.querySelectorAll(".hub-mock-plan-btn").forEach(function (b) {
-      b.classList.toggle("active", b.getAttribute("data-mock-plan") === pl);
-    });
-  }
-
-  /** 디버그: 역할·옵션 적용 후 클랜 메인 + #balance */
-  function hubDebugOpenClanBalance(role, useHubDebug) {
-    try {
-      sessionStorage.setItem(MOCK_ROLE_STORAGE, role);
-    } catch (e) {}
-    hubSyncRolePlanButtonsFromStorage();
-    var u = hubClanMainSrc({ hubDebug: !!useHubDebug });
-    document.getElementById("frame").src = u + "#balance";
-    document.getElementById("current-url").textContent = u + "#balance";
-    document.querySelectorAll(".hub-nav a").forEach(function (a) {
-      a.classList.remove("active");
-    });
-    var clanA = Array.prototype.find.call(
-      document.querySelectorAll(".hub-nav a"),
-      function (x) {
-        var oc = x.getAttribute("onclick") || "";
-        return oc.indexOf("main-clan.html") >= 0;
-      }
-    );
-    if (clanA) clanA.classList.add("active");
-    return false;
-  }
-
-  function hubDebugOpenClanBalancePremiumMember() {
-    try {
-      sessionStorage.setItem(MOCK_ROLE_STORAGE, "member");
-      sessionStorage.setItem(MOCK_PLAN_STORAGE, "premium");
-    } catch (e) {}
-    hubSyncRolePlanButtonsFromStorage();
-    var u = hubClanMainSrc({ hubDebug: true });
-    document.getElementById("frame").src = u + "#balance";
-    document.getElementById("current-url").textContent = u + "#balance";
-    document.querySelectorAll(".hub-nav a").forEach(function (a) {
-      a.classList.remove("active");
-    });
-    var clanA = Array.prototype.find.call(
-      document.querySelectorAll(".hub-nav a"),
-      function (x) {
-        var oc = x.getAttribute("onclick") || "";
-        return oc.indexOf("main-clan.html") >= 0;
-      }
-    );
-    if (clanA) clanA.classList.add("active");
-    return false;
   }
 
   function go(el, path) {
