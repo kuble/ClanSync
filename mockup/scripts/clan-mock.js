@@ -524,6 +524,9 @@
         p.setAttribute("hidden", "");
       }
     });
+    if (name === "subscribe" && typeof window.mockManageSubscribeRender === "function") {
+      window.mockManageSubscribeRender();
+    }
     return false;
   };
 
@@ -6547,11 +6550,10 @@
     }
   }
 
-  window.mockManageSubscribeOpen = function () {
-    var modal = document.getElementById("mock-manage-subscribe-modal");
+  window.mockManageSubscribeRender = function () {
     var sum = document.getElementById("mock-manage-subscribe-plan-summary");
     var tb = document.getElementById("mock-manage-subscribe-payments-tbody");
-    if (!modal || !sum || !tb) return false;
+    if (!sum || !tb) return false;
     var plan =
       typeof window.mockClanCurrentPlan === "function"
         ? window.mockClanCurrentPlan()
@@ -6582,17 +6584,27 @@
         );
       })
       .join("");
-    modal.removeAttribute("hidden");
-    modal.setAttribute("aria-hidden", "false");
+    return false;
+  };
+
+  /** 외부에서 클랜 관리·구독결제 탭으로 전환 (모달 대신 본문) */
+  window.mockManageSubscribeOpen = function () {
+    var manageLink = document.querySelector('a.clan-nav[href="#manage"]');
+    if (manageLink && typeof window.clanGo === "function") {
+      window.clanGo("manage", manageLink);
+    }
+    window.setTimeout(function () {
+      var tabBtn = document.querySelector('[data-manage-tab="subscribe"]');
+      if (tabBtn) {
+        window.mockManageSetTab(tabBtn, "subscribe");
+      } else if (typeof window.mockManageSubscribeRender === "function") {
+        window.mockManageSubscribeRender();
+      }
+    }, 0);
     return false;
   };
 
   window.mockManageSubscribeClose = function () {
-    var modal = document.getElementById("mock-manage-subscribe-modal");
-    if (modal) {
-      modal.setAttribute("hidden", "");
-      modal.setAttribute("aria-hidden", "true");
-    }
     return false;
   };
 

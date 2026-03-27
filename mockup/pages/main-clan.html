@@ -5926,10 +5926,21 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
 
     <div data-manage-panel="subscribe" class="mock-manage-panel" hidden>
       <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px;border-color:rgba(245,158,11,0.25)">
-        <div class="d-card-label">구독 · 결제 (목업)</div>
+        <h2 id="mock-manage-subscribe-title" class="d-card-label" style="margin:0 0 12px;font-size:15px;font-weight:700">구독 · 결제</h2>
         <p class="mock-clan-subscribe-hint-free" style="font-size:13px;color:var(--text-muted);margin:0 0 10px">클랜장만 변경. Free → PRO 업그레이드 플로우는 별도 화면으로 뺄지 여기 탭으로 둘지 미결.</p>
         <p class="mock-clan-subscribe-hint-premium" style="font-size:13px;color:var(--text-muted);margin:0 0 10px">클랜장만 변경. 구독 상태·결제·영수증은 아래에서 관리합니다(목업).</p>
-        <button type="button" class="btn btn-sm" style="background:var(--pro-gradient);color:white;border:none" onclick="return window.mockManageSubscribeOpen()">구독 관리</button>
+        <div id="mock-manage-subscribe-plan-summary" style="font-size:13px;line-height:1.55;color:var(--text-secondary);margin-bottom:4px"></div>
+        <div class="d-card-label" style="margin-top:18px;margin-bottom:8px">결제 기록</div>
+        <div style="overflow-x:auto;max-height:280px;overflow-y:auto">
+          <table class="mock-table" aria-label="결제 기록">
+            <thead><tr><th>일시</th><th style="text-align:right">금액</th><th>수단</th><th>상태</th></tr></thead>
+            <tbody id="mock-manage-subscribe-payments-tbody"></tbody>
+          </table>
+        </div>
+        <p style="font-size:11px;color:var(--text-muted);margin:12px 0 0;line-height:1.45">결제 목록은 브라우저 <strong>localStorage</strong>에 저장됩니다(목업). 실제 결제 연동 전까지 동일 기기에서 유지됩니다.</p>
+        <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:8px">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockManageSubscribeAddMockPayment()">목업 결제 1건 추가</button>
+        </div>
       </div>
       <p class="mock-member-only" style="font-size:13px;color:var(--text-muted);margin:0">구독·결제는 운영진 이상만 이용할 수 있습니다(목업).</p>
     </div>
@@ -6357,29 +6368,6 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
       </div>
       <div class="mock-modal-actions" style="margin-top:12px;flex-shrink:0">
         <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockBalanceCloseMapModal()">닫기</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 클랜 관리: 구독 관리 (플랜·결제 기록, localStorage) -->
-  <div id="mock-manage-subscribe-modal" class="mock-modal-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="mock-manage-subscribe-title" onclick="if(event.target===this)window.mockManageSubscribeClose()">
-    <div class="mock-modal-card" style="max-width:560px;width:calc(100% - 32px);box-sizing:border-box" onclick="event.stopPropagation()">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px">
-        <h3 id="mock-manage-subscribe-title" style="margin:0;font-size:18px">구독 관리</h3>
-        <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockManageSubscribeClose()">닫기</button>
-      </div>
-      <div id="mock-manage-subscribe-plan-summary" style="font-size:13px;line-height:1.55;color:var(--text-secondary)"></div>
-      <div class="d-card-label" style="margin-top:18px;margin-bottom:8px">결제 기록</div>
-      <div style="overflow-x:auto;max-height:240px;overflow-y:auto">
-        <table class="mock-table" aria-label="결제 기록">
-          <thead><tr><th>일시</th><th style="text-align:right">금액</th><th>수단</th><th>상태</th></tr></thead>
-          <tbody id="mock-manage-subscribe-payments-tbody"></tbody>
-        </table>
-      </div>
-      <p style="font-size:11px;color:var(--text-muted);margin:12px 0 0;line-height:1.45">결제 목록은 브라우저 <strong>localStorage</strong>에 저장됩니다(목업). 실제 결제 연동 전까지 동일 기기에서 유지됩니다.</p>
-      <div class="mock-modal-actions" style="margin-top:16px">
-        <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockManageSubscribeAddMockPayment()">목업 결제 1건 추가</button>
-        <button type="button" class="btn btn-sm" onclick="return window.mockManageSubscribeClose()">확인</button>
       </div>
     </div>
   </div>
