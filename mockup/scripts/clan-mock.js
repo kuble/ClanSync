@@ -96,6 +96,12 @@
   var MOCK_CLAN_NOTICE_KEY = "clansync-mock-clan-notice";
   var MOCK_CLAN_NOTICE_POSTS_KEY = "clansync-mock-clan-notice-posts-v1";
   var MOCK_CLAN_RULES_KEY = "clansync-mock-clan-rules";
+  /** 목업 기본 클랜 규칙(저장소가 비어 있을 때만 주입) */
+  var MOCK_CLAN_RULES_DEFAULT_TEXT =
+    "1. 정기 내전은 월 6경기 이상 참여를 권장합니다. 미달 시 순위 집계에서 제외됩니다.\n" +
+    "2. 경기 중 비매너 언행은 경고 3회 누적 시 자동 퇴출 처리됩니다.\n" +
+    "3. 가입 후 2주 이내 첫 내전 참여를 완료해야 정식 멤버로 승인됩니다.\n" +
+    "4. 장기 미접속(30일 이상) 시 사전 공지 없으면 비활성 처리될 수 있습니다.";
 
   var __mockClanImageKind = "banner";
   var __mockClanImagePendingDataUrl = null;
@@ -296,6 +302,47 @@
         localStorage.setItem(MOCK_CLAN_NOTICE_POSTS_KEY, JSON.stringify([one]));
       }
     } catch (e) {}
+  }
+
+  /** localStorage에 공지·규칙이 없을 때만 임시 목업 데이터를 넣는다(사용자 저장분은 덮어쓰지 않음). */
+  function mockClanSeedNoticeRulesDefaultsIfEmpty() {
+    mockClanNoticePostsMigrate();
+    try {
+      var rawP = localStorage.getItem(MOCK_CLAN_NOTICE_POSTS_KEY);
+      var emptyPosts = true;
+      if (rawP) {
+        var arr = JSON.parse(rawP);
+        if (Array.isArray(arr) && arr.length) emptyPosts = false;
+      }
+      if (emptyPosts) {
+        var t0 = new Date().toISOString();
+        localStorage.setItem(
+          MOCK_CLAN_NOTICE_POSTS_KEY,
+          JSON.stringify([
+            {
+              id: "mock-seed-notice-1",
+              title: "3월 정기 내전 일정 안내",
+              body: "3/22(토) 21:00 정기 내전이 예정되어 있습니다. 참여 가능 여부를 Discord에 미리 알려주세요.",
+              createdAt: t0,
+              updatedAt: t0,
+            },
+            {
+              id: "mock-seed-notice-2",
+              title: "비매너 행위 경고 규정 업데이트",
+              body: "3회 경고 시 자동 퇴출로 규정이 강화되었습니다. 클랜 규칙을 다시 한번 확인해주세요.",
+              createdAt: t0,
+              updatedAt: t0,
+            },
+          ]),
+        );
+      }
+    } catch (eSeedP) {}
+    try {
+      var rawR = localStorage.getItem(MOCK_CLAN_RULES_KEY);
+      if (rawR == null || !String(rawR).trim()) {
+        localStorage.setItem(MOCK_CLAN_RULES_KEY, MOCK_CLAN_RULES_DEFAULT_TEXT);
+      }
+    } catch (eSeedR) {}
   }
 
   function mockClanNoticePostsGetAll() {
@@ -733,6 +780,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", function () {
+    mockClanSeedNoticeRulesDefaultsIfEmpty();
     /* 일정 모달: 초기에는 반드시 닫힘 (CSS·hidden 동기화) */
     var modal = document.getElementById("mock-event-modal");
     if (modal) {
