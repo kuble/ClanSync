@@ -33,6 +33,14 @@
     return "free";
   };
 
+  /** 목업 허브 `_hub.html` 전용: `?hubDebug=1` 이면 구성원도 밸런스·관리 화면 진입 가능(미리보기) */
+  window.mockClanHubDebug = function () {
+    try {
+      return new URLSearchParams(window.location.search).get("hubDebug") === "1";
+    } catch (e) {}
+    return false;
+  };
+
   function applyPlanBodyClass() {
     var plan = window.mockClanCurrentPlan();
     document.body.classList.remove("mock-plan-free", "mock-plan-premium");
@@ -54,10 +62,17 @@
 
     document.querySelectorAll("[data-officer-nav]").forEach(function (a) {
       if (role === "member") {
-        a.style.opacity = "0.45";
-        a.style.pointerEvents = "none";
-        a.setAttribute("aria-disabled", "true");
-        a.title = "운영진 이상만 이용 (목업)";
+        if (window.mockClanHubDebug && window.mockClanHubDebug()) {
+          a.style.opacity = "";
+          a.style.pointerEvents = "";
+          a.removeAttribute("aria-disabled");
+          a.title = "허브 디버그: 구성원 미리보기";
+        } else {
+          a.style.opacity = "0.45";
+          a.style.pointerEvents = "none";
+          a.setAttribute("aria-disabled", "true");
+          a.title = "운영진 이상만 이용 (목업)";
+        }
       } else {
         a.style.opacity = "";
         a.style.pointerEvents = "";
@@ -72,8 +87,10 @@
 
     var role = window.mockClanCurrentRole();
     if (role === "member" && OFFICER_VIEWS[view]) {
-      window.alert("목업: 구성원은 이 영역에 접근할 수 없습니다. (운영진+ 전용)");
-      return false;
+      if (!window.mockClanHubDebug || !window.mockClanHubDebug()) {
+        window.alert("목업: 구성원은 이 영역에 접근할 수 없습니다. (운영진+ 전용)");
+        return false;
+      }
     }
 
     document.querySelectorAll(".clan-view").forEach(function (el) {
@@ -114,7 +131,9 @@
     var h = (location.hash || "").replace(/^#/, "");
     var v = CLAN_VIEW_MAP[h] ? h : "dash";
     if (window.mockClanCurrentRole() === "member" && OFFICER_VIEWS[v]) {
-      v = "dash";
+      if (!window.mockClanHubDebug || !window.mockClanHubDebug()) {
+        v = "dash";
+      }
     }
     var link = document.querySelector('a.clan-nav[href="#' + v + '"]');
     window.clanGo(v, link || document.querySelector("a.clan-nav"));
@@ -129,6 +148,10 @@
     }
     applyRoleBodyClass();
     applyPlanBodyClass();
+    var hubDbgBanner = document.getElementById("mock-hub-debug-banner");
+    if (hubDbgBanner && window.mockClanHubDebug && window.mockClanHubDebug()) {
+      hubDbgBanner.removeAttribute("hidden");
+    }
     try {
       if (document.getElementById("mock-balance-map-pick-btn")) {
         mockBalanceSyncMapPickCluster();

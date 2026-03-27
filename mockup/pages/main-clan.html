@@ -2750,9 +2750,24 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
 }
 .mock-stats-hof-head .d-card-label { margin-bottom: 0; }
 
+/* 목업 허브 디버그: ?hubDebug=1 */
+.mock-hub-debug-banner {
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 6px 14px;
+  background: rgba(245, 158, 11, 0.12);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.35);
+  color: var(--text-secondary, #a1a1aa);
+}
+.mock-hub-debug-banner strong { color: #fcd34d; font-weight: 600; }
+
 </style>
 </head>
 <body>
+
+<div id="mock-hub-debug-banner" class="mock-hub-debug-banner" hidden role="status">
+  <strong>허브 디버그</strong> — <code style="font-size:10px;opacity:0.9">hubDebug=1</code> · 구성원 역할로도 밸런스·관리 화면을 미리 볼 수 있습니다(실제 권한과 다름).
+</div>
 
 <!-- 네비게이션 -->
 <nav class="navbar">
