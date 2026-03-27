@@ -3493,6 +3493,35 @@ body.mock-plan-premium .mock-dash-premium-mvp-card .pro-overlay-label { display:
 body.mock-plan-premium .mock-dash-premium-mvp-blur { opacity: 1 !important; filter: none !important; }
 body.mock-plan-premium .mock-clan-subscribe-hint-free { display: none !important; }
 body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important; }
+/* 클랜 관리 탭 · 사이드 알림 · 공지 게시글(목업) */
+.sidebar-item.sidebar-item--notify { position: relative; padding-right: 18px; }
+.sidebar-notify-dot {
+  position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; border-radius: 50%;
+  background: #ef4444; box-shadow: 0 0 0 2px var(--bg-elevated, #12121a);
+}
+.sidebar-notify-dot[hidden] { display: none !important; }
+.mock-manage-tab-row { margin-bottom: 18px; }
+.mock-manage-panel[hidden] { display: none !important; }
+.mock-manage-notice-posts { display: flex; flex-direction: column; gap: 12px; }
+.mock-manage-post-card {
+  border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px;
+  background: var(--bg-overlay); text-align: left;
+}
+.mock-manage-post-card-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.mock-manage-post-card-head h4 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+.mock-manage-post-meta { font-size: 11px; color: var(--text-muted); }
+.mock-manage-post-body { font-size: 13px; line-height: 1.55; color: var(--text-secondary); white-space: pre-wrap; margin: 0 0 12px; max-height: 120px; overflow: hidden; }
+.mock-manage-post-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.mock-manage-posts-empty { font-size: 13px; color: var(--text-muted); margin: 0; padding: 16px; border: 1px dashed var(--border); border-radius: var(--radius-md); text-align: center; }
+.mock-manage-clan-textarea {
+  width: 100%; min-height: 88px; padding: 10px 12px; border-radius: var(--radius-md);
+  border: 1px solid var(--border); background: var(--bg-elevated); color: var(--foreground);
+  font-size: 13px; line-height: 1.5; font-family: inherit; resize: vertical; box-sizing: border-box;
+}
+.mock-clan-img-preview {
+  max-width: 100%; max-height: 160px; border-radius: var(--radius-md); border: 1px solid var(--border);
+  object-fit: contain; background: var(--bg-overlay);
+}
 /* 클랜 관리 · 구성원 상세(개인 기록) */
 .mock-manage-members-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
 .mock-manage-members-toolbar input[type="search"] {
@@ -3547,36 +3576,6 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
 }
 .mock-mmgr-sub-display.mock-mmgr-sub-display--empty { color: var(--text-muted); font-weight: 500; }
 .mock-mmgr-sub-hint { font-size: 11px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.45; }
-/* 사이드바 · 새 이벤트 / 밸런스 세션 알림 점 */
-.sidebar-item.sidebar-item--notify { position: relative; padding-right: 18px; }
-.sidebar-notify-dot {
-  position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; border-radius: 50%;
-  background: #ef4444; box-shadow: 0 0 0 2px var(--bg-elevated, #12121a);
-}
-.sidebar-notify-dot[hidden] { display: none !important; }
-.mock-manage-clan-textarea {
-  width: 100%; min-height: 88px; padding: 10px 12px; border-radius: var(--radius-md);
-  border: 1px solid var(--border); background: var(--bg-elevated); color: var(--foreground);
-  font-size: 13px; line-height: 1.5; font-family: inherit; resize: vertical; box-sizing: border-box;
-}
-.mock-clan-img-preview {
-  max-width: 100%; max-height: 160px; border-radius: var(--radius-md); border: 1px solid var(--border);
-  object-fit: contain; background: var(--bg-overlay);
-}
-/* 클랜 관리 상단 탭 */
-.mock-manage-tab-row { margin-bottom: 18px; }
-.mock-manage-panel[hidden] { display: none !important; }
-.mock-manage-notice-posts { display: flex; flex-direction: column; gap: 12px; }
-.mock-manage-post-card {
-  border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px;
-  background: var(--bg-overlay); text-align: left;
-}
-.mock-manage-post-card-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
-.mock-manage-post-card-head h4 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
-.mock-manage-post-meta { font-size: 11px; color: var(--text-muted); }
-.mock-manage-post-body { font-size: 13px; line-height: 1.55; color: var(--text-secondary); white-space: pre-wrap; margin: 0 0 12px; max-height: 120px; overflow: hidden; }
-.mock-manage-post-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.mock-manage-posts-empty { font-size: 13px; color: var(--text-muted); margin: 0; padding: 16px; border: 1px dashed var(--border); border-radius: var(--radius-md); text-align: center; }
 .mock-mmgr-brief-seg { display: inline-flex; border-radius: var(--radius-md); border: 1px solid var(--border); overflow: hidden; }
 .mock-mmgr-seg-btn {
   padding: 8px 18px; font-size: 12px; font-weight: 600; border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-family: inherit;
@@ -3958,9 +3957,9 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
 
   <div class="sidebar-section-title">메뉴</div>
   <a href="#dash" class="clan-nav" onclick="return clanGo('dash', this)"><div class="sidebar-item active">🏠 대시보드</div></a>
-  <a href="#balance" class="clan-nav" onclick="return clanGo('balance', this)"><div class="sidebar-item sidebar-item--notify" data-sidebar-notify-target="balance">⚖️ 밸런스메이커<span class="sidebar-notify-dot" id="sidebar-notify-balance" hidden aria-hidden="true"></span></div></a>
+  <a href="#balance" class="clan-nav" onclick="return clanGo('balance', this)"><div class="sidebar-item sidebar-item--notify">⚖️ 밸런스메이커<span class="sidebar-notify-dot" id="sidebar-notify-balance" hidden aria-hidden="true"></span></div></a>
   <a href="#stats" class="clan-nav" onclick="return clanGo('stats', this)"><div class="sidebar-item">📊 클랜 통계</div></a>
-  <a href="#events" class="clan-nav" onclick="return clanGo('events', this)"><div class="sidebar-item sidebar-item--notify" data-sidebar-notify-target="events">🗓️ 이벤트<span class="sidebar-notify-dot" id="sidebar-notify-events" hidden aria-hidden="true"></span></div></a>
+  <a href="#events" class="clan-nav" onclick="return clanGo('events', this)"><div class="sidebar-item sidebar-item--notify">🗓️ 이벤트<span class="sidebar-notify-dot" id="sidebar-notify-events" hidden aria-hidden="true"></span></div></a>
   <a href="#manage" class="clan-nav" data-officer-nav onclick="return clanGo('manage', this)"><div class="sidebar-item">👥 클랜 관리</div></a>
 
   <div class="sidebar-section-title" style="margin-top:8px">기타</div>
@@ -5936,26 +5935,49 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
   <!-- ── 관리 뷰 (PRD §6.4) ── -->
   <div id="view-manage" class="clan-view">
     <div class="mock-page-title">클랜 관리</div>
-    <p class="mock-page-desc">상단 탭으로 구역을 나눕니다. 공지 게시글은 개요에서 관리하고, 규칙은 한 블록으로 유지합니다(목업).</p>
+    <p class="mock-page-desc">개요 · 구성원 관리 · 구독결제로 구분합니다. 공지는 게시글, 규칙은 한 블록으로 유지합니다(목업).</p>
 
     <div class="mock-tab-row mock-manage-tab-row" role="tablist" aria-label="클랜 관리 상단 탭">
       <button type="button" class="mock-tab mock-tab-active mock-manage-tab" data-manage-tab="overview" role="tab" aria-selected="true" onclick="return window.mockManageSetTab(this,'overview')">개요</button>
-      <button type="button" class="mock-tab mock-manage-tab mock-officer-only" data-manage-tab="branding" role="tab" aria-selected="false" onclick="return window.mockManageSetTab(this,'branding')">브랜딩</button>
-      <button type="button" class="mock-tab mock-manage-tab mock-officer-only" data-manage-tab="rules" role="tab" aria-selected="false" onclick="return window.mockManageSetTab(this,'rules')">규칙</button>
-      <button type="button" class="mock-tab mock-manage-tab mock-officer-only" data-manage-tab="subscribe" role="tab" aria-selected="false" onclick="return window.mockManageSetTab(this,'subscribe')">구독</button>
-      <button type="button" class="mock-tab mock-manage-tab" data-manage-tab="members" role="tab" aria-selected="false" onclick="return window.mockManageSetTab(this,'members')">가입·구성원</button>
+      <button type="button" class="mock-tab mock-manage-tab" data-manage-tab="members" role="tab" aria-selected="false" onclick="return window.mockManageSetTab(this,'members')">구성원 관리</button>
+      <button type="button" class="mock-tab mock-manage-tab" data-manage-tab="subscribe" role="tab" aria-selected="false" onclick="return window.mockManageSetTab(this,'subscribe')">구독결제</button>
     </div>
 
     <div data-manage-panel="overview" class="mock-manage-panel">
       <div class="d-card d-card-full" style="margin-bottom:16px">
         <div class="d-card-label">클랜 프로필 요약</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
           <span class="badge badge-muted" style="font-size:10px">경쟁</span>
           <span class="badge badge-muted" style="font-size:10px">성인</span>
           <span class="badge badge-muted" style="font-size:10px">마이크 필수</span>
         </div>
-        <div style="font-size:12px;color:var(--text-muted)">연령 20대+ · 디스코드 <span style="color:var(--brand-secondary)">discord.gg/phoenix-mock</span></div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">연령 20대+ · 클랜 공개 방</div>
+        <div style="display:grid;gap:10px;margin-bottom:14px;font-size:13px">
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+            <span style="font-size:11px;color:var(--text-muted);width:80px;flex-shrink:0">디스코드</span>
+            <a href="https://discord.gg/phoenix-mock" target="_blank" rel="noopener noreferrer" style="color:var(--brand-secondary);word-break:break-all">discord.gg/phoenix-mock</a>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+            <span style="font-size:11px;color:var(--text-muted);width:80px;flex-shrink:0">오픈카카오톡</span>
+            <a href="#" onclick="alert('목업: 오픈채팅 링크');return false" style="color:var(--brand-secondary)">open.kakao.com/… (목업)</a>
+          </div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:12px;border-radius:var(--radius-md);border:1px solid var(--border);background:var(--bg-overlay)">
+          <span style="font-size:12px;color:var(--text-muted)">클랜 코인 현황</span>
+          <strong class="coin-amount" style="font-size:18px">15,400</strong>
+          <span style="font-size:11px;color:var(--text-muted)">· 스토어·이벤트와 연동</span>
+        </div>
       </div>
+
+      <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px;border-color:rgba(124,58,237,0.25)">
+        <div class="d-card-label">배너 · 클랜 아이콘</div>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px">상단 배너와 사이드바 로고 이미지를 적용합니다. <strong>운영진 이상</strong>만 표시(목업).</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockClanImageModalOpen('banner')">배너 이미지 편집</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockClanImageModalOpen('icon')">클랜 아이콘 편집</button>
+        </div>
+      </div>
+
       <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px">
         <div class="d-card-label">클랜 공지 (게시글)</div>
         <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px;line-height:1.5">실제 서비스에서는 게시글·피드와 동일한 모델로 연동됩니다. 목업에서는 브라우저에 JSON으로 저장합니다.</p>
@@ -5964,20 +5986,7 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
         </div>
         <div id="mock-manage-notice-posts-list" class="mock-manage-notice-posts" aria-live="polite"></div>
       </div>
-    </div>
 
-    <div data-manage-panel="branding" class="mock-manage-panel mock-officer-only" hidden>
-      <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px;border-color:rgba(124,58,237,0.25)">
-        <div class="d-card-label">클랜 브랜딩</div>
-        <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px">배너·사이드바 클랜 아이콘 이미지를 적용합니다. <strong>운영진 이상</strong>만 표시(목업).</p>
-        <div style="display:flex;flex-wrap:wrap;gap:8px">
-          <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockClanImageModalOpen('banner')">배너 이미지 편집</button>
-          <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockClanImageModalOpen('icon')">클랜 아이콘 편집</button>
-        </div>
-      </div>
-    </div>
-
-    <div data-manage-panel="rules" class="mock-manage-panel mock-officer-only" hidden>
       <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px">
         <div class="d-card-label">클랜 규칙</div>
         <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">한 블록으로 관리합니다. 대시보드·가입 안내 등에 노출할 수 있습니다(목업).</p>
@@ -5987,15 +5996,6 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
           <button type="button" class="btn btn-sm" onclick="return window.mockClanManageSaveRules()">저장</button>
           <span style="font-size:11px;color:var(--text-muted)" id="mock-manage-clan-rules-saved" hidden>저장됨</span>
         </div>
-      </div>
-    </div>
-
-    <div data-manage-panel="subscribe" class="mock-manage-panel mock-officer-only" hidden>
-      <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px;border-color:rgba(245,158,11,0.25)">
-        <div class="d-card-label">구독 · 결제 (목업)</div>
-        <p class="mock-clan-subscribe-hint-free" style="font-size:13px;color:var(--text-muted);margin:0 0 10px">클랜장만 변경. Free → PRO 업그레이드 플로우는 별도 화면으로 뺄지 여기 탭으로 둘지 미결.</p>
-        <p class="mock-clan-subscribe-hint-premium" style="font-size:13px;color:var(--text-muted);margin:0 0 10px">클랜장만 변경. 구독 상태·결제·영수증은 아래에서 관리합니다(목업).</p>
-        <button type="button" class="btn btn-sm" style="background:var(--pro-gradient);color:white;border:none" onclick="return window.mockManageSubscribeOpen()">구독 관리</button>
       </div>
     </div>
 
@@ -6025,6 +6025,16 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
         </div>
         <div class="mock-manage-pager" id="mock-manage-members-pager" aria-label="구성원 검색 결과 페이지"></div>
       </div>
+    </div>
+
+    <div data-manage-panel="subscribe" class="mock-manage-panel" hidden>
+      <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px;border-color:rgba(245,158,11,0.25)">
+        <div class="d-card-label">구독 · 결제 (목업)</div>
+        <p class="mock-clan-subscribe-hint-free" style="font-size:13px;color:var(--text-muted);margin:0 0 10px">클랜장만 변경. Free → PRO 업그레이드 플로우는 별도 화면으로 뺄지 여기 탭으로 둘지 미결.</p>
+        <p class="mock-clan-subscribe-hint-premium" style="font-size:13px;color:var(--text-muted);margin:0 0 10px">클랜장만 변경. 구독 상태·결제·영수증은 아래에서 관리합니다(목업).</p>
+        <button type="button" class="btn btn-sm" style="background:var(--pro-gradient);color:white;border:none" onclick="return window.mockManageSubscribeOpen()">구독 관리</button>
+      </div>
+      <p class="mock-member-only" style="font-size:13px;color:var(--text-muted);margin:0">구독·결제는 운영진 이상만 이용할 수 있습니다(목업).</p>
     </div>
   </div>
 

@@ -93,7 +93,6 @@
   var MOCK_SIDEBAR_NOTIFY_KEY = "clansync-mock-sidebar-notify-v1";
   var MOCK_CLAN_BANNER_IMG_KEY = "clansync-mock-clan-banner-image";
   var MOCK_CLAN_ICON_IMG_KEY = "clansync-mock-clan-icon-image";
-  /** 레거시 단일 공지 텍스트 — 첫 로드 시 게시글 배열로 이관 */
   var MOCK_CLAN_NOTICE_KEY = "clansync-mock-clan-notice";
   var MOCK_CLAN_NOTICE_POSTS_KEY = "clansync-mock-clan-notice-posts-v1";
   var MOCK_CLAN_RULES_KEY = "clansync-mock-clan-rules";
@@ -106,10 +105,7 @@
       var raw = localStorage.getItem(MOCK_SIDEBAR_NOTIFY_KEY);
       if (raw) {
         var o = JSON.parse(raw);
-        return {
-          balance: !!o.balance,
-          events: !!o.events,
-        };
+        return { balance: !!o.balance, events: !!o.events };
       }
     } catch (e) {}
     return { balance: false, events: false };
@@ -117,9 +113,7 @@
 
   window.mockSidebarNotifySet = function (kind, on) {
     var st = mockSidebarNotifyReadState();
-    if (kind === "balance" || kind === "events") {
-      st[kind] = !!on;
-    }
+    if (kind === "balance" || kind === "events") st[kind] = !!on;
     try {
       localStorage.setItem(MOCK_SIDEBAR_NOTIFY_KEY, JSON.stringify(st));
     } catch (e) {}
