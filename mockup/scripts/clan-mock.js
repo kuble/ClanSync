@@ -729,6 +729,9 @@
     var qc = document.getElementById("mock-bracket-prev-qf-c");
     var qd = document.getElementById("mock-bracket-prev-qf-d");
 
+    var board = document.querySelector(".mock-bracket-board");
+    if (board) board.classList.toggle("mock-bracket-board--twoteam", cap === 2);
+
     if (cap === 2) {
       if (m2) m2.style.display = "none";
       if (modeLab) modeLab.textContent = "(2팀 · 단판)";
