@@ -704,7 +704,7 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   min-height: 0;
 }
 .mock-balance-pool-col--below .mock-balance-pool-grid {
-  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
 }
 .mock-balance-pool-head {
   font-size: 13px;
@@ -748,7 +748,7 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
 .mock-balance-pool-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  gap: 8px;
   overflow-y: auto;
   flex: 1;
   min-height: 100px;
@@ -756,8 +756,11 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   align-content: start;
 }
 .mock-balance-pool-chip {
-  font-size: 11px;
-  padding: 6px 8px;
+  font-size: 12px;
+  line-height: 1.35;
+  padding: 8px 12px;
+  min-height: 36px;
+  box-sizing: border-box;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--bg-overlay);
