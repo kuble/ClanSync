@@ -2074,15 +2074,17 @@
     try {
       localStorage.setItem(MOCK_BALANCE_SLOT_OPTS_KEY, JSON.stringify(mockBalanceReadSlotOptsFromModal()));
     } catch (eSlotSave) {}
-    var mvEl = document.getElementById("mock-balance-predict-vote-minutes");
-    if (mvEl) {
-      var mv = parseInt(mvEl.value, 10);
-      if (!isFinite(mv) || mv < 1) mv = 5;
-      if (mv > 120) mv = 120;
-      mvEl.value = String(mv);
-      try {
-        localStorage.setItem(MOCK_BALANCE_PREDICT_VOTE_MINUTES_KEY, String(mv));
-      } catch (eMvSave) {}
+    if (typeof window.mockClanCurrentPlan === "function" && window.mockClanCurrentPlan() === "premium") {
+      var mvEl = document.getElementById("mock-balance-predict-vote-minutes");
+      if (mvEl) {
+        var mv = parseInt(mvEl.value, 10);
+        if (!isFinite(mv) || mv < 1) mv = 5;
+        if (mv > 120) mv = 120;
+        mvEl.value = String(mv);
+        try {
+          localStorage.setItem(MOCK_BALANCE_PREDICT_VOTE_MINUTES_KEY, String(mv));
+        } catch (eMvSave) {}
+      }
     }
     window.mockBalanceApplySlotOptsToBoard();
     return window.mockBalanceCloseSettingsModal();
