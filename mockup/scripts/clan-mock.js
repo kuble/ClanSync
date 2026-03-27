@@ -432,9 +432,13 @@
 
   window.mockBracketSeedOrderState = [0, 1, 2, 3];
 
+  var MOCK_BRACKET_DEFAULT_TEAM_NAMES = ["파란 팀", "빨간 팀", "초록 팀", "노랑 팀"];
+
   function mockBracketGetTeamName(teamIdx0) {
     var inp = document.getElementById("mock-bracket-name-" + (teamIdx0 + 1));
-    return inp && inp.value && inp.value.trim() ? inp.value.trim() : "시드 " + (teamIdx0 + 1);
+    if (inp && inp.value && inp.value.trim()) return inp.value.trim();
+    var fallback = MOCK_BRACKET_DEFAULT_TEAM_NAMES[teamIdx0];
+    return fallback != null ? fallback : "팀 " + (teamIdx0 + 1);
   }
 
   /** 시드 순서 행·대진 미리보기와 2단계 팀명 연동 */
