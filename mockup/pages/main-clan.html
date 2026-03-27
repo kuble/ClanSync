@@ -3547,6 +3547,22 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
 }
 .mock-mmgr-sub-display.mock-mmgr-sub-display--empty { color: var(--text-muted); font-weight: 500; }
 .mock-mmgr-sub-hint { font-size: 11px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.45; }
+/* 사이드바 · 새 이벤트 / 밸런스 세션 알림 점 */
+.sidebar-item.sidebar-item--notify { position: relative; padding-right: 18px; }
+.sidebar-notify-dot {
+  position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; border-radius: 50%;
+  background: #ef4444; box-shadow: 0 0 0 2px var(--bg-elevated, #12121a);
+}
+.sidebar-notify-dot[hidden] { display: none !important; }
+.mock-manage-clan-textarea {
+  width: 100%; min-height: 88px; padding: 10px 12px; border-radius: var(--radius-md);
+  border: 1px solid var(--border); background: var(--bg-elevated); color: var(--foreground);
+  font-size: 13px; line-height: 1.5; font-family: inherit; resize: vertical; box-sizing: border-box;
+}
+.mock-clan-img-preview {
+  max-width: 100%; max-height: 160px; border-radius: var(--radius-md); border: 1px solid var(--border);
+  object-fit: contain; background: var(--bg-overlay);
+}
 .mock-mmgr-brief-seg { display: inline-flex; border-radius: var(--radius-md); border: 1px solid var(--border); overflow: hidden; }
 .mock-mmgr-seg-btn {
   padding: 8px 18px; font-size: 12px; font-weight: 600; border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-family: inherit;
@@ -3918,7 +3934,7 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
 <!-- 사이드바 -->
 <aside class="sidebar" id="app-sidebar">
   <div class="clan-header">
-    <div class="clan-logo" style="background:var(--clan-gradient)">🔥</div>
+    <div class="clan-logo" id="mock-clan-sidebar-logo" style="background:var(--clan-gradient)">🔥</div>
     <div class="clan-name">Phoenix Rising</div>
     <div class="clan-role" style="display:flex;align-items:center;gap:5px">
       <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--clan-color)"></span>
@@ -3928,9 +3944,9 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
 
   <div class="sidebar-section-title">메뉴</div>
   <a href="#dash" class="clan-nav" onclick="return clanGo('dash', this)"><div class="sidebar-item active">🏠 대시보드</div></a>
-  <a href="#balance" class="clan-nav" onclick="return clanGo('balance', this)"><div class="sidebar-item">⚖️ 밸런스메이커</div></a>
+  <a href="#balance" class="clan-nav" onclick="return clanGo('balance', this)"><div class="sidebar-item sidebar-item--notify" data-sidebar-notify-target="balance">⚖️ 밸런스메이커<span class="sidebar-notify-dot" id="sidebar-notify-balance" hidden aria-hidden="true"></span></div></a>
   <a href="#stats" class="clan-nav" onclick="return clanGo('stats', this)"><div class="sidebar-item">📊 클랜 통계</div></a>
-  <a href="#events" class="clan-nav" onclick="return clanGo('events', this)"><div class="sidebar-item">🗓️ 이벤트</div></a>
+  <a href="#events" class="clan-nav" onclick="return clanGo('events', this)"><div class="sidebar-item sidebar-item--notify" data-sidebar-notify-target="events">🗓️ 이벤트<span class="sidebar-notify-dot" id="sidebar-notify-events" hidden aria-hidden="true"></span></div></a>
   <a href="#manage" class="clan-nav" data-officer-nav onclick="return clanGo('manage', this)"><div class="sidebar-item">👥 클랜 관리</div></a>
 
   <div class="sidebar-section-title" style="margin-top:8px">기타</div>
@@ -3951,10 +3967,10 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
 <main class="page-with-sidebar">
 
   <!-- ── 클랜 배너 (공통) ── -->
-  <div class="clan-banner" style="margin-bottom:20px">
+  <div class="clan-banner" id="mock-clan-banner-root" style="margin-bottom:20px">
     <div class="clan-banner-pattern"></div>
     <div class="clan-banner-overlay">
-      <div class="clan-banner-logo">🔥</div>
+      <div class="clan-banner-logo" id="mock-clan-banner-logo-emoji">🔥</div>
       <div class="clan-banner-info">
         <div class="clan-banner-name">Phoenix Rising</div>
         <div class="clan-banner-meta">
@@ -3967,7 +3983,6 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
       </div>
       <div class="clan-banner-actions">
         <button type="button" class="clan-banner-edit" style="background:rgba(124,58,237,0.5);border-color:rgba(124,58,237,0.6);color:white;cursor:pointer;font-family:inherit" onclick="clanBannerBalanceClick()">⚖️ 내전 시작</button>
-        <button class="clan-banner-edit" onclick="alert('배너 편집 (운영진 전용)')">✏️ 배너 편집</button>
       </div>
     </div>
   </div>
@@ -5908,6 +5923,26 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
   <div id="view-manage" class="clan-view">
     <div class="mock-page-title">클랜 관리</div>
     <p class="mock-page-desc">가입 승인 · 구성원 테이블(참여일·기부) · 샘플 멤버 상세 · 구독 안내(클랜장).</p>
+    <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px;border-color:rgba(124,58,237,0.25)">
+      <div class="d-card-label">클랜 브랜딩</div>
+      <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px">배너·사이드바 클랜 아이콘 이미지를 적용합니다. <strong>운영진 이상</strong>만 표시(목업).</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockClanImageModalOpen('banner')">배너 이미지 편집</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockClanImageModalOpen('icon')">클랜 아이콘 편집</button>
+      </div>
+    </div>
+    <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px">
+      <div class="d-card-label">클랜 공지 · 규칙</div>
+      <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">대시보드 등에 노출할 문구를 작성합니다. 브라우저에 저장됩니다(목업).</p>
+      <label for="mock-manage-clan-notice" style="font-size:11px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px">클랜 공지사항</label>
+      <textarea id="mock-manage-clan-notice" class="mock-manage-clan-textarea" rows="4" placeholder="예: 이번 주 정기 내전 일정 안내…" aria-label="클랜 공지사항"></textarea>
+      <label for="mock-manage-clan-rules" style="font-size:11px;font-weight:600;color:var(--text-muted);display:block;margin:12px 0 6px">클랜 규칙</label>
+      <textarea id="mock-manage-clan-rules" class="mock-manage-clan-textarea" rows="6" placeholder="예: 비매너 3회 시 퇴출…" aria-label="클랜 규칙"></textarea>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn btn-sm" onclick="return window.mockClanManageSaveNoticeRules()">저장</button>
+        <span style="font-size:11px;color:var(--text-muted);align-self:center" id="mock-manage-clan-notice-saved" hidden>저장됨</span>
+      </div>
+    </div>
     <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px;border-color:rgba(245,158,11,0.25)">
       <div class="d-card-label">구독 · 결제 (목업)</div>
       <p class="mock-clan-subscribe-hint-free" style="font-size:13px;color:var(--text-muted);margin:0 0 10px">클랜장만 변경. Free → PRO 업그레이드 플로우는 별도 화면으로 뺄지 여기 탭으로 둘지 미결.</p>
@@ -5991,7 +6026,7 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
       <p style="font-size:11px;color:var(--text-muted);margin:0;line-height:1.45">스크림 일정은 매칭 확정 시 자동으로 등록되므로, 여기서는 내전·이벤트·수동 스크림만 입력합니다(목업).</p>
       <div class="mock-modal-actions">
         <button type="button" class="btn btn-secondary btn-sm" onclick="mockEventCloseModal()">취소</button>
-        <button type="button" class="btn btn-sm" onclick="alert('목업 저장'); mockEventCloseModal();">저장</button>
+        <button type="button" class="btn btn-sm" onclick="return window.mockEventSaveMock()">저장</button>
       </div>
     </div>
   </div>
@@ -6531,6 +6566,25 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
             </table>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 클랜 관리: 배너·아이콘 이미지 적용 -->
+  <div id="mock-clan-image-modal" class="mock-modal-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="mock-clan-image-modal-title" onclick="if(event.target===this)window.mockClanImageModalClose()">
+    <div class="mock-modal-card" style="max-width:480px;width:calc(100% - 32px);box-sizing:border-box" onclick="event.stopPropagation()">
+      <h3 id="mock-clan-image-modal-title" style="margin:0 0 12px;font-size:17px">이미지 적용</h3>
+      <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px;line-height:1.45" id="mock-clan-image-modal-hint"></p>
+      <div class="mock-modal-field">
+        <label for="mock-clan-image-file">이미지 파일</label>
+        <input type="file" id="mock-clan-image-file" accept="image/*" onchange="return window.mockClanImageFileChange(this)" />
+      </div>
+      <div style="margin-top:12px;min-height:40px">
+        <img id="mock-clan-image-preview" class="mock-clan-img-preview" alt="미리보기" hidden />
+      </div>
+      <div class="mock-modal-actions" style="margin-top:16px">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockClanImageModalClose()">취소</button>
+        <button type="button" class="btn btn-sm" onclick="return window.mockClanImageModalApply()">적용</button>
       </div>
     </div>
   </div>

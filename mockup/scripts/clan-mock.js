@@ -73,6 +73,9 @@
     } catch (e) {}
     document.body.classList.remove("mock-balance-no-session");
     document.body.classList.add("mock-balance-session-active");
+    if (typeof window.mockSidebarNotifySet === "function") {
+      window.mockSidebarNotifySet("balance", true);
+    }
     return false;
   };
 
@@ -83,6 +86,225 @@
     if (window.mockClanCurrentRole() === "member") {
       document.body.classList.add("mock-balance-no-session");
       document.body.classList.remove("mock-balance-session-active");
+    }
+    return false;
+  };
+
+  var MOCK_SIDEBAR_NOTIFY_KEY = "clansync-mock-sidebar-notify-v1";
+  var MOCK_CLAN_BANNER_IMG_KEY = "clansync-mock-clan-banner-image";
+  var MOCK_CLAN_ICON_IMG_KEY = "clansync-mock-clan-icon-image";
+  var MOCK_CLAN_NOTICE_KEY = "clansync-mock-clan-notice";
+  var MOCK_CLAN_RULES_KEY = "clansync-mock-clan-rules";
+
+  var __mockClanImageKind = "banner";
+  var __mockClanImagePendingDataUrl = null;
+
+  function mockSidebarNotifyReadState() {
+    try {
+      var raw = localStorage.getItem(MOCK_SIDEBAR_NOTIFY_KEY);
+      if (raw) {
+        var o = JSON.parse(raw);
+        return {
+          balance: !!o.balance,
+          events: !!o.events,
+        };
+      }
+    } catch (e) {}
+    return { balance: false, events: false };
+  }
+
+  window.mockSidebarNotifySet = function (kind, on) {
+    var st = mockSidebarNotifyReadState();
+    if (kind === "balance" || kind === "events") {
+      st[kind] = !!on;
+    }
+    try {
+      localStorage.setItem(MOCK_SIDEBAR_NOTIFY_KEY, JSON.stringify(st));
+    } catch (e) {}
+    window.mockSidebarNotifyRefresh();
+  };
+
+  window.mockSidebarNotifyRefresh = function () {
+    var st = mockSidebarNotifyReadState();
+    var b = document.getElementById("sidebar-notify-balance");
+    var ev = document.getElementById("sidebar-notify-events");
+    if (b) {
+      if (st.balance) b.removeAttribute("hidden");
+      else b.setAttribute("hidden", "");
+      b.setAttribute("aria-hidden", st.balance ? "false" : "true");
+    }
+    if (ev) {
+      if (st.events) ev.removeAttribute("hidden");
+      else ev.setAttribute("hidden", "");
+      ev.setAttribute("aria-hidden", st.events ? "false" : "true");
+    }
+  };
+
+  window.mockSidebarNotifyClearView = function (view) {
+    if (view === "balance") window.mockSidebarNotifySet("balance", false);
+    if (view === "events") window.mockSidebarNotifySet("events", false);
+  };
+
+  window.mockClanApplyStoredImages = function () {
+    var bannerData = null;
+    var iconData = null;
+    try {
+      bannerData = localStorage.getItem(MOCK_CLAN_BANNER_IMG_KEY);
+    } catch (e) {}
+    try {
+      iconData = localStorage.getItem(MOCK_CLAN_ICON_IMG_KEY);
+    } catch (e) {}
+
+    var bannerRoot = document.getElementById("mock-clan-banner-root");
+    if (bannerRoot) {
+      if (bannerData) {
+        bannerRoot.style.backgroundImage =
+          "linear-gradient(120deg, rgba(10,10,18,0.88), rgba(30,20,50,0.85)), url(" +
+          JSON.stringify(bannerData) +
+          ")";
+        bannerRoot.style.backgroundSize = "cover";
+        bannerRoot.style.backgroundPosition = "center";
+      } else {
+        bannerRoot.style.backgroundImage = "";
+        bannerRoot.style.backgroundSize = "";
+        bannerRoot.style.backgroundPosition = "";
+      }
+    }
+
+    var sidebarLogo = document.getElementById("mock-clan-sidebar-logo");
+    if (sidebarLogo) {
+      sidebarLogo.innerHTML = "";
+      if (iconData) {
+        var im = document.createElement("img");
+        im.src = iconData;
+        im.alt = "";
+        im.style.cssText =
+          "width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block";
+        sidebarLogo.appendChild(im);
+      } else {
+        sidebarLogo.textContent = "🔥";
+      }
+    }
+
+    var bannerEmoji = document.getElementById("mock-clan-banner-logo-emoji");
+    if (bannerEmoji) {
+      bannerEmoji.innerHTML = "";
+      if (iconData) {
+        var im2 = document.createElement("img");
+        im2.src = iconData;
+        im2.alt = "";
+        im2.style.cssText =
+          "width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block";
+        bannerEmoji.appendChild(im2);
+      } else {
+        bannerEmoji.textContent = "🔥";
+      }
+    }
+  };
+
+  window.mockClanImageModalOpen = function (kind) {
+    __mockClanImageKind = kind === "icon" ? "icon" : "banner";
+    __mockClanImagePendingDataUrl = null;
+    var modal = document.getElementById("mock-clan-image-modal");
+    var hint = document.getElementById("mock-clan-image-modal-hint");
+    var title = document.getElementById("mock-clan-image-modal-title");
+    var file = document.getElementById("mock-clan-image-file");
+    var preview = document.getElementById("mock-clan-image-preview");
+    if (title) {
+      title.textContent =
+        __mockClanImageKind === "banner" ? "배너 이미지 적용" : "클랜 아이콘 편집";
+    }
+    if (hint) {
+      hint.textContent =
+        __mockClanImageKind === "banner"
+          ? "배너 영역에 표시될 이미지를 선택합니다. (목업·로컬 저장)"
+          : "사이드바·배너 로고에 표시됩니다. (목업·로컬 저장)";
+    }
+    if (file) file.value = "";
+    if (preview) {
+      preview.setAttribute("hidden", "");
+      preview.removeAttribute("src");
+    }
+    if (modal) {
+      modal.removeAttribute("hidden");
+      modal.setAttribute("aria-hidden", "false");
+    }
+    return false;
+  };
+
+  window.mockClanImageModalClose = function () {
+    var modal = document.getElementById("mock-clan-image-modal");
+    if (modal) {
+      modal.setAttribute("hidden", "");
+      modal.setAttribute("aria-hidden", "true");
+    }
+    return false;
+  };
+
+  window.mockClanImageFileChange = function (input) {
+    var f = input.files && input.files[0];
+    if (!f) return false;
+    var reader = new FileReader();
+    reader.onload = function () {
+      __mockClanImagePendingDataUrl = reader.result;
+      var preview = document.getElementById("mock-clan-image-preview");
+      if (preview && reader.result) {
+        preview.src = reader.result;
+        preview.removeAttribute("hidden");
+      }
+    };
+    reader.readAsDataURL(f);
+    return false;
+  };
+
+  window.mockClanImageModalApply = function () {
+    var dataUrl = __mockClanImagePendingDataUrl;
+    if (!dataUrl) {
+      window.alert("먼저 이미지 파일을 선택하세요.");
+      return false;
+    }
+    try {
+      if (__mockClanImageKind === "banner") {
+        localStorage.setItem(MOCK_CLAN_BANNER_IMG_KEY, dataUrl);
+      } else {
+        localStorage.setItem(MOCK_CLAN_ICON_IMG_KEY, dataUrl);
+      }
+    } catch (e) {
+      window.alert("저장에 실패했습니다.");
+      return false;
+    }
+    window.mockClanApplyStoredImages();
+    window.mockClanImageModalClose();
+    return false;
+  };
+
+  window.mockClanManageLoadNoticeRules = function () {
+    var n = document.getElementById("mock-manage-clan-notice");
+    var r = document.getElementById("mock-manage-clan-rules");
+    try {
+      var nv = localStorage.getItem(MOCK_CLAN_NOTICE_KEY);
+      var rv = localStorage.getItem(MOCK_CLAN_RULES_KEY);
+      if (n && nv != null) n.value = nv;
+      if (r && rv != null) r.value = rv;
+    } catch (e) {}
+  };
+
+  window.mockClanManageSaveNoticeRules = function () {
+    var n = document.getElementById("mock-manage-clan-notice");
+    var r = document.getElementById("mock-manage-clan-rules");
+    var saved = document.getElementById("mock-manage-clan-notice-saved");
+    try {
+      if (n) localStorage.setItem(MOCK_CLAN_NOTICE_KEY, n.value);
+      if (r) localStorage.setItem(MOCK_CLAN_RULES_KEY, r.value);
+    } catch (e) {
+      window.alert("저장에 실패했습니다.");
+      return false;
+    }
+    if (saved) {
+      saved.removeAttribute("hidden");
+      window.setTimeout(function () {
+        saved.setAttribute("hidden", "");
+      }, 2000);
     }
     return false;
   };
@@ -170,6 +392,10 @@
       window.mockBalancePredictLiveStop();
     }
 
+    if (typeof window.mockSidebarNotifyClearView === "function") {
+      window.mockSidebarNotifyClearView(view);
+    }
+
     return false;
   };
 
@@ -191,6 +417,20 @@
     if (modal) {
       modal.setAttribute("hidden", "");
       modal.setAttribute("aria-hidden", "true");
+    }
+    var imgModal = document.getElementById("mock-clan-image-modal");
+    if (imgModal) {
+      imgModal.setAttribute("hidden", "");
+      imgModal.setAttribute("aria-hidden", "true");
+    }
+    if (typeof window.mockClanApplyStoredImages === "function") {
+      window.mockClanApplyStoredImages();
+    }
+    if (typeof window.mockClanManageLoadNoticeRules === "function") {
+      window.mockClanManageLoadNoticeRules();
+    }
+    if (typeof window.mockSidebarNotifyRefresh === "function") {
+      window.mockSidebarNotifyRefresh();
     }
     applyRoleBodyClass();
     applyPlanBodyClass();
@@ -305,6 +545,15 @@
       m.setAttribute("hidden", "");
       m.setAttribute("aria-hidden", "true");
     }
+  };
+
+  window.mockEventSaveMock = function () {
+    window.alert("목업: 일정이 등록되었습니다.");
+    window.mockEventCloseModal();
+    if (typeof window.mockSidebarNotifySet === "function") {
+      window.mockSidebarNotifySet("events", true);
+    }
+    return false;
   };
 
   /* 이벤트: 캘린더 / 대진표 / 투표 */
