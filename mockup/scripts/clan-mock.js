@@ -2180,6 +2180,22 @@
     return false;
   };
 
+  window.mockBalanceSettingsSetTab = function (btn, which) {
+    var gen = document.getElementById("mock-balance-settings-panel-general");
+    var prem = document.getElementById("mock-balance-settings-panel-premium");
+    var btnG = document.getElementById("mock-balance-settings-tabbtn-general");
+    var btnP = document.getElementById("mock-balance-settings-tabbtn-premium");
+    if (!gen || !prem || !btnG || !btnP) return false;
+    var isGen = which === "general";
+    gen.hidden = !isGen;
+    prem.hidden = isGen;
+    btnG.setAttribute("aria-selected", isGen ? "true" : "false");
+    btnP.setAttribute("aria-selected", isGen ? "false" : "true");
+    btnG.classList.toggle("mock-tab-active", isGen);
+    btnP.classList.toggle("mock-tab-active", !isGen);
+    return false;
+  };
+
   window.mockBalancePremiumSettingsClick = function () {
     var m = document.getElementById("mock-balance-settings-modal");
     if (m) {
@@ -2187,6 +2203,8 @@
       mockBalanceSyncPredictVoteMinutesToModal();
       m.removeAttribute("hidden");
       m.setAttribute("aria-hidden", "false");
+      var btnG = document.getElementById("mock-balance-settings-tabbtn-general");
+      if (btnG) window.mockBalanceSettingsSetTab(btnG, "general");
     }
     return false;
   };

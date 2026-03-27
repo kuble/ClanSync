@@ -1522,10 +1522,41 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
   padding-bottom: 16px;
   border-bottom: 1px solid var(--border);
 }
-.mock-balance-settings-section:last-of-type {
+.mock-balance-settings-panel .mock-balance-settings-section:last-of-type {
   border-bottom: none;
   margin-bottom: 0;
   padding-bottom: 0;
+}
+.mock-balance-settings-tabs-wrap {
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.mock-balance-settings-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: -1px;
+}
+.mock-balance-settings-tab {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+.mock-balance-settings-tab:hover {
+  color: var(--text-secondary);
+}
+.mock-balance-settings-tab.mock-tab-active {
+  color: var(--text-primary);
+  border-bottom-color: rgba(124, 58, 237, 0.85);
+}
+.mock-balance-settings-panel[hidden] {
+  display: none !important;
 }
 .mock-balance-settings-grid {
   display: grid;
@@ -2669,6 +2700,8 @@ body.mock-role-member .mock-member-only { display: block !important; }
 body.mock-role-member.mock-balance-no-session .mock-balance-member-waiting { display: block; }
 body.mock-role-member.mock-balance-no-session .mock-balance-session-root { display: none !important; }
 body:not(.mock-role-member) .mock-balance-member-waiting { display: none !important; }
+.mock-balance-settings-free-hint { display: none; }
+body.mock-plan-free .mock-balance-settings-free-hint { display: block; }
 /* 목업 플랜(_hub) — Premium 전용 블록은 Free에서 숨김 */
 body.mock-plan-free .mock-hide-on-free { display: none !important; }
 body.mock-plan-premium .mock-balance-free-note { display: none !important; }
@@ -4061,7 +4094,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
     </div>
   </div>
 
-  <!-- 밸런스: 설정 (맵·영웅 밴 + 역할 가중치) -->
+  <!-- 밸런스: 설정 — 탭: 일반(슬롯·가중치) / Premium(맵·영웅 밴·승부예측) -->
   <div id="mock-balance-settings-modal" class="mock-modal-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="mock-balance-settings-modal-title" onclick="if(event.target===this)window.mockBalanceCloseSettingsModal()">
     <div class="mock-modal-card" style="max-width:440px;width:calc(100% - 32px);box-sizing:border-box" onclick="event.stopPropagation()">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px">
@@ -4069,41 +4102,34 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
         <button type="button" class="btn btn-secondary btn-sm" style="flex-shrink:0" onclick="return window.mockBalanceCloseSettingsModal()" aria-label="닫기">닫기</button>
       </div>
 
-      <div class="mock-balance-settings-section mock-hide-on-free">
-        <p class="mock-balance-settings-section-title">경기 옵션</p>
-        <div class="mock-balance-switch-row" style="margin-bottom:12px">
-          <span class="mock-balance-switch-label" id="mock-balance-lbl-map-ban">맵 밴</span>
-          <button type="button" class="mock-switch" id="mock-balance-toggle-map-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-map-ban" onclick="return window.mockBalanceToggleMapBan(this)">
-            <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
+      <div class="mock-balance-settings-tabs-wrap">
+        <div class="mock-balance-settings-tabs" role="tablist" aria-label="밸런스 설정 탭">
+          <button
+            type="button"
+            role="tab"
+            id="mock-balance-settings-tabbtn-general"
+            class="mock-balance-settings-tab mock-tab-active"
+            aria-selected="true"
+            aria-controls="mock-balance-settings-panel-general"
+            onclick="return window.mockBalanceSettingsSetTab(this,'general')"
+          >
+            일반 설정
           </button>
-        </div>
-        <div class="mock-balance-switch-row">
-          <span class="mock-balance-switch-label" id="mock-balance-lbl-hero-ban">영웅 밴</span>
-          <button type="button" class="mock-switch" id="mock-balance-toggle-hero-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-hero-ban" onclick="return window.mockBalanceToggleHeroBan(this)">
-            <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
+          <button
+            type="button"
+            role="tab"
+            id="mock-balance-settings-tabbtn-premium"
+            class="mock-balance-settings-tab"
+            aria-selected="false"
+            aria-controls="mock-balance-settings-panel-premium"
+            onclick="return window.mockBalanceSettingsSetTab(this,'premium')"
+          >
+            Premium 설정
           </button>
         </div>
       </div>
 
-      <div class="mock-balance-settings-section mock-hide-on-free">
-        <p class="mock-balance-settings-section-title">승부예측 (PRO)</p>
-        <p class="mock-modal-hint" style="margin:0 0 12px">
-          <strong>배치 완료</strong> 시점부터 아래 분 동안만 투표할 수 있습니다. 저장하면 목업이 브라우저에 기억합니다.
-        </p>
-        <div class="mock-modal-field" style="margin-bottom:0">
-          <label for="mock-balance-predict-vote-minutes">투표 가능 시간 (분)</label>
-          <input
-            type="number"
-            id="mock-balance-predict-vote-minutes"
-            min="1"
-            max="120"
-            step="1"
-            value="5"
-            inputmode="numeric"
-          />
-        </div>
-      </div>
-
+      <div id="mock-balance-settings-panel-general" class="mock-balance-settings-panel" role="tabpanel" aria-labelledby="mock-balance-settings-tabbtn-general">
       <div class="mock-balance-settings-section">
         <p class="mock-balance-settings-section-title">슬롯 표시</p>
         <p class="mock-modal-hint" style="margin:0 0 12px">켜면 편집 VS 보드 슬롯에 해당 정보를 표시합니다. <strong>저장</strong> 시 반영되며 목업은 브라우저에 기억합니다. M/A 라벨은 참고 패널 토글로 바꿀 수 있습니다.</p>
@@ -4151,6 +4177,45 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
           </div>
         </div>
         <p id="mock-balance-weight-hint" class="mock-modal-hint" style="margin:10px 0 0">저장하면 참고 패널의 블루·레드 합계와 막대가 갱신됩니다.</p>
+      </div>
+      </div>
+
+      <div id="mock-balance-settings-panel-premium" class="mock-balance-settings-panel" role="tabpanel" aria-labelledby="mock-balance-settings-tabbtn-premium" hidden>
+      <p class="mock-modal-hint mock-balance-settings-free-hint" style="margin:0 0 14px;font-size:12px;line-height:1.5">Free 플랜 목업에서는 맵·영웅 밴과 승부예측 옵션이 아래에 표시되지 않습니다. 허브에서 Premium으로 전환해 확인하세요.</p>
+      <div class="mock-balance-settings-section mock-hide-on-free">
+        <p class="mock-balance-settings-section-title">경기 옵션</p>
+        <div class="mock-balance-switch-row" style="margin-bottom:12px">
+          <span class="mock-balance-switch-label" id="mock-balance-lbl-map-ban">맵 밴</span>
+          <button type="button" class="mock-switch" id="mock-balance-toggle-map-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-map-ban" onclick="return window.mockBalanceToggleMapBan(this)">
+            <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
+          </button>
+        </div>
+        <div class="mock-balance-switch-row">
+          <span class="mock-balance-switch-label" id="mock-balance-lbl-hero-ban">영웅 밴</span>
+          <button type="button" class="mock-switch" id="mock-balance-toggle-hero-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-hero-ban" onclick="return window.mockBalanceToggleHeroBan(this)">
+            <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="mock-balance-settings-section mock-hide-on-free">
+        <p class="mock-balance-settings-section-title">승부예측 (PRO)</p>
+        <p class="mock-modal-hint" style="margin:0 0 12px">
+          <strong>배치 완료</strong> 시점부터 아래 분 동안만 투표할 수 있습니다. 저장하면 목업이 브라우저에 기억합니다.
+        </p>
+        <div class="mock-modal-field" style="margin-bottom:0">
+          <label for="mock-balance-predict-vote-minutes">투표 가능 시간 (분)</label>
+          <input
+            type="number"
+            id="mock-balance-predict-vote-minutes"
+            min="1"
+            max="120"
+            step="1"
+            value="5"
+            inputmode="numeric"
+          />
+        </div>
+      </div>
       </div>
 
       <div class="mock-modal-actions" style="margin-top:16px">
