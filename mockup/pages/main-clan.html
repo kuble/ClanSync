@@ -3493,7 +3493,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
           <span style="font-size:13px;font-weight:600;color:var(--text-secondary)">경기 진행</span>
           <span class="mock-balance-live-badge" style="font-size:11px;padding:4px 10px;border-radius:99px;border:1px solid var(--border);background:var(--bg-overlay);color:var(--text-secondary)">진행 중</span>
-          <button type="button" class="mock-help-tip" data-tip="사전설정 완료 후 경기 중 화면입니다. 승부예측·예측 결과 표가 같은 화면에 있습니다. 타이머 없음. 운영진: 팀 버튼으로 승자 왕관 선택. 왕관 없이 결과 입력 시 무승부. 확인 팝업에서 확인·Enter로 저장. 구성원은 결과 입력 UI 숨김." aria-label="경기 진행 도움말">?</button>
+          <button type="button" class="mock-help-tip" data-tip="사전설정 완료 후 경기 중 화면입니다. 승부예측은 배치 완료 후 설정된 시간(분) 동안만 투표 가능하며, 우측에 투표 마감 시각이 표시됩니다. 운영진: 팀 버튼으로 승자 왕관 선택. 왕관 없이 결과 입력 시 무승부. 확인 팝업에서 확인·Enter로 저장. 구성원은 결과 입력 UI 숨김." aria-label="경기 진행 도움말">?</button>
         </div>
 
         <div class="mock-balance-live-layout">
@@ -3561,9 +3561,9 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
         <aside class="mock-balance-live-sidebar mock-balance-live-predict-wrap mock-hide-on-free" aria-label="비출전 · 승부예측">
           <strong style="font-size:13px;display:block;margin-bottom:8px">비출전 · 승부예측</strong>
 
-          <div class="mock-balance-predict-act-zone">
+          <div class="mock-balance-predict-act-zone" id="mock-balance-predict-act-zone">
             <div class="mock-balance-predict-zone-head">
-              <span id="mock-balance-predict-live-updated" class="mock-balance-predict-updated">—</span>
+              <span id="mock-balance-predict-vote-deadline" class="mock-balance-predict-updated">투표 마감 —</span>
             </div>
             <div class="mock-predict-live-meter" id="mock-balance-predict-live-meter" aria-live="polite">
               <div class="mock-predict-live-stat-row mock-predict-live-odds-row">
@@ -3584,10 +3584,21 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
               </div>
             </div>
             <div class="mock-predict-row">
-              <button type="button" class="btn btn-secondary btn-sm">블루 승</button>
-              <button type="button" class="btn btn-secondary btn-sm">레드 승</button>
-              <input type="number" min="0" max="500" value="50" readonly title="상한 목업" aria-label="클랜코인" />
-              <button type="button" class="btn btn-sm" onclick="alert('목업: 예측 제출')">예측하기</button>
+              <button type="button" class="btn btn-secondary btn-sm mock-balance-predict-vote-btn">블루 승</button>
+              <button type="button" class="btn btn-secondary btn-sm mock-balance-predict-vote-btn">레드 승</button>
+              <input
+                type="number"
+                class="mock-balance-predict-vote-input"
+                min="0"
+                max="500"
+                value="50"
+                readonly
+                title="상한 목업"
+                aria-label="클랜코인"
+              />
+              <button type="button" class="btn btn-sm mock-balance-predict-vote-btn" id="mock-balance-predict-submit-vote" onclick="alert('목업: 예측 제출')">
+                예측하기
+              </button>
             </div>
           </div>
 
@@ -3922,6 +3933,25 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
           <button type="button" class="mock-switch" id="mock-balance-toggle-hero-ban" role="switch" aria-checked="false" aria-labelledby="mock-balance-lbl-hero-ban" onclick="return window.mockBalanceToggleHeroBan(this)">
             <span class="mock-switch-track"><span class="mock-switch-thumb"></span></span>
           </button>
+        </div>
+      </div>
+
+      <div class="mock-balance-settings-section">
+        <p class="mock-balance-settings-section-title">승부예측 (PRO)</p>
+        <p class="mock-modal-hint" style="margin:0 0 12px">
+          <strong>배치 완료</strong> 시점부터 아래 분 동안만 투표할 수 있습니다. 저장하면 목업이 브라우저에 기억합니다.
+        </p>
+        <div class="mock-modal-field" style="margin-bottom:0">
+          <label for="mock-balance-predict-vote-minutes">투표 가능 시간 (분)</label>
+          <input
+            type="number"
+            id="mock-balance-predict-vote-minutes"
+            min="1"
+            max="120"
+            step="1"
+            value="5"
+            inputmode="numeric"
+          />
         </div>
       </div>
 

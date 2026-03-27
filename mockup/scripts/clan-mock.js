@@ -821,6 +821,73 @@
   /** 승부예측: 예측 결과 표 행 → 코인·인원 집계 + 실시간 우세 미터(목업) */
   var _mockBalancePredictLiveTimer = null;
   var _mockBalancePredictLiveSim = { b: 0, r: 0 };
+  var MOCK_BALANCE_PREDICT_VOTE_MINUTES_KEY = "clansync_mock_balance_predict_vote_minutes";
+  var _mockPredictVoteDeadlineMs = null;
+  var _mockPredictVoteDeadlineTickerId = null;
+
+  function mockBalanceGetPredictVoteMinutes() {
+    try {
+      var v = parseInt(localStorage.getItem(MOCK_BALANCE_PREDICT_VOTE_MINUTES_KEY), 10);
+      if (isFinite(v) && v >= 1 && v <= 120) return v;
+    } catch (eMins) {}
+    return 5;
+  }
+
+  function mockBalanceSyncPredictVoteMinutesToModal() {
+    var el = document.getElementById("mock-balance-predict-vote-minutes");
+    if (el) el.value = String(mockBalanceGetPredictVoteMinutes());
+  }
+
+  function mockBalancePredictRenderVoteDeadline() {
+    var el = document.getElementById("mock-balance-predict-vote-deadline");
+    if (!el) return;
+    var lineup = document.getElementById("mock-balance-wf-lineup");
+    if (!lineup || lineup.hidden) return;
+    if (!_mockPredictVoteDeadlineMs) {
+      el.textContent = "투표 마감 —";
+      return;
+    }
+    var end = _mockPredictVoteDeadlineMs;
+    if (Date.now() >= end) {
+      el.textContent = "투표 마감됨";
+      return;
+    }
+    var pad = function (n) {
+      return n < 10 ? "0" + n : String(n);
+    };
+    var endDate = new Date(end);
+    el.textContent =
+      "투표 마감 " + pad(endDate.getHours()) + ":" + pad(endDate.getMinutes()) + ":" + pad(endDate.getSeconds());
+  }
+
+  function mockBalancePredictSyncVoteUiState() {
+    var lineup = document.getElementById("mock-balance-wf-lineup");
+    if (!lineup || lineup.hidden) return;
+    if (window.mockClanCurrentPlan && window.mockClanCurrentPlan() !== "premium") return;
+    var open = _mockPredictVoteDeadlineMs && Date.now() < _mockPredictVoteDeadlineMs;
+    document.querySelectorAll(".mock-balance-predict-vote-btn").forEach(function (b) {
+      b.disabled = !open;
+    });
+    var inp = document.querySelector(".mock-balance-predict-vote-input");
+    if (inp) inp.disabled = !open;
+  }
+
+  function mockBalancePredictEnsureVoteDeadlineTicker() {
+    if (_mockPredictVoteDeadlineTickerId) return;
+    _mockPredictVoteDeadlineTickerId = window.setInterval(function () {
+      mockBalancePredictRenderVoteDeadline();
+      mockBalancePredictSyncVoteUiState();
+    }, 1000);
+  }
+
+  /** 배치 완료 시점부터 설정된 분만큼 승부예측 투표 가능(목업) */
+  function mockBalanceStartPredictVoteWindow() {
+    var mins = mockBalanceGetPredictVoteMinutes();
+    _mockPredictVoteDeadlineMs = Date.now() + mins * 60 * 1000;
+    mockBalancePredictEnsureVoteDeadlineTicker();
+    mockBalancePredictRenderVoteDeadline();
+    mockBalancePredictSyncVoteUiState();
+  }
 
   function mockBalancePredictParseTableBase() {
     var tb = document.getElementById("mock-balance-predict-tbody");
@@ -882,15 +949,6 @@
     if (statR) {
       statR.textContent = "레드 " + rC + "코인 · " + rN + "명";
     }
-    var up = document.getElementById("mock-balance-predict-live-updated");
-    if (up) {
-      var d = new Date();
-      var pad = function (n) {
-        return n < 10 ? "0" + n : String(n);
-      };
-      up.textContent =
-        "갱신 " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
-    }
   }
 
   function mockBalancePredictLiveTick() {
@@ -900,6 +958,9 @@
       return;
     }
     if (window.mockClanCurrentPlan && window.mockClanCurrentPlan() !== "premium") {
+      return;
+    }
+    if (_mockPredictVoteDeadlineMs && Date.now() >= _mockPredictVoteDeadlineMs) {
       return;
     }
     if (Math.random() < 0.52) {
@@ -1920,6 +1981,8 @@
         window.mockBalanceSyncLineupFromVsBoard();
       }
       mockBalanceRenderLiveCrowns();
+      mockBalancePredictRenderVoteDeadline();
+      mockBalancePredictSyncVoteUiState();
       mockBalancePredictRenderLiveMeter();
     }
     return false;
@@ -1948,6 +2011,7 @@
       if (typeof window.mockBalanceStartMapVoteSession === "function") {
         window.mockBalanceStartMapVoteSession();
       }
+      mockBalanceStartPredictVoteWindow();
       return false;
     }
     if (heroBanOn) {
@@ -1965,9 +2029,11 @@
       if (typeof window.mockBalanceStartHeroBanSession === "function") {
         window.mockBalanceStartHeroBanSession();
       }
+      mockBalanceStartPredictVoteWindow();
       return false;
     }
     mockBalanceClearLineupBansDisplay();
+    mockBalanceStartPredictVoteWindow();
     var tab = document.querySelector('[data-balance-wf-id="lineup"]');
     if (tab) {
       window.mockBalanceSetWorkflow(tab, "lineup");
@@ -1982,6 +2048,7 @@
     var m = document.getElementById("mock-balance-settings-modal");
     if (m) {
       mockBalanceSyncSlotOptModalFromStorage();
+      mockBalanceSyncPredictVoteMinutesToModal();
       m.removeAttribute("hidden");
       m.setAttribute("aria-hidden", "false");
     }
@@ -2007,6 +2074,16 @@
     try {
       localStorage.setItem(MOCK_BALANCE_SLOT_OPTS_KEY, JSON.stringify(mockBalanceReadSlotOptsFromModal()));
     } catch (eSlotSave) {}
+    var mvEl = document.getElementById("mock-balance-predict-vote-minutes");
+    if (mvEl) {
+      var mv = parseInt(mvEl.value, 10);
+      if (!isFinite(mv) || mv < 1) mv = 5;
+      if (mv > 120) mv = 120;
+      mvEl.value = String(mv);
+      try {
+        localStorage.setItem(MOCK_BALANCE_PREDICT_VOTE_MINUTES_KEY, String(mv));
+      } catch (eMvSave) {}
+    }
     window.mockBalanceApplySlotOptsToBoard();
     return window.mockBalanceCloseSettingsModal();
   };
