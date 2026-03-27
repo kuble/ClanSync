@@ -316,7 +316,10 @@
 
   window.mockClanNoticePostsRender = function () {
     var container = document.getElementById("mock-manage-notice-posts-list");
-    if (!container) return;
+    if (!container) {
+      mockDashDashboardHydrate();
+      return;
+    }
     var posts = mockClanNoticePostsGetAll();
     container.innerHTML = "";
     if (!posts.length) {
@@ -324,6 +327,7 @@
       empty.className = "mock-manage-posts-empty";
       empty.textContent = "등록된 공지가 없습니다. 「공지 작성」으로 추가하세요.";
       container.appendChild(empty);
+      mockDashDashboardHydrate();
       return;
     }
     var sorted = posts.slice().sort(function (a, b) {
@@ -380,7 +384,71 @@
       card.appendChild(actions);
       container.appendChild(card);
     });
+    mockDashDashboardHydrate();
   };
+
+  /** 대시보드(#view-dash): 공지 목록·클랜 규칙 미리보기 (localStorage 연동) */
+  function mockDashDashboardHydrate() {
+    var noticeHost = document.getElementById("dash-notice-posts");
+    if (noticeHost) {
+      var posts = mockClanNoticePostsGetAll();
+      noticeHost.innerHTML = "";
+      if (!posts.length) {
+        var empty = document.createElement("p");
+        empty.className = "dash-notice-empty";
+        empty.style.cssText = "font-size:13px;color:var(--text-muted);margin:0";
+        empty.textContent = "등록된 공지가 없습니다. 클랜 관리에서 공지를 작성하세요.";
+        noticeHost.appendChild(empty);
+      } else {
+        var sorted = posts.slice().sort(function (a, b) {
+          var tb = (b.updatedAt || b.createdAt || "").toString();
+          var ta = (a.updatedAt || a.createdAt || "").toString();
+          return tb.localeCompare(ta);
+        });
+        sorted.slice(0, 5).forEach(function (post) {
+          var pin = document.createElement("div");
+          pin.className = "notice-pin";
+          var icon = document.createElement("div");
+          icon.className = "notice-pin-icon";
+          icon.textContent = "🔔";
+          var body = document.createElement("div");
+          body.className = "notice-pin-body";
+          var title = document.createElement("div");
+          title.className = "notice-pin-title";
+          title.textContent = post.title || "(제목 없음)";
+          var snippet = document.createElement("div");
+          snippet.style.cssText = "font-size:12px;color:var(--text-secondary);margin-bottom:3px";
+          var bodyText = post.body || "";
+          snippet.textContent =
+            bodyText.length > 160 ? bodyText.slice(0, 160) + "…" : bodyText;
+          var time = document.createElement("div");
+          time.className = "notice-pin-time";
+          var d = post.updatedAt || post.createdAt || "";
+          try {
+            time.textContent = d ? new Date(d).toLocaleString("ko-KR") : "";
+          } catch (eT) {
+            time.textContent = "";
+          }
+          body.appendChild(title);
+          body.appendChild(snippet);
+          body.appendChild(time);
+          pin.appendChild(icon);
+          pin.appendChild(body);
+          noticeHost.appendChild(pin);
+        });
+      }
+    }
+    var rulesEl = document.getElementById("dash-rules-body");
+    if (rulesEl) {
+      try {
+        var rv = localStorage.getItem(MOCK_CLAN_RULES_KEY);
+        var t = rv != null ? String(rv).trim() : "";
+        rulesEl.textContent = t || "아직 등록된 규칙이 없습니다. 클랜 관리에서 규칙을 등록하세요.";
+      } catch (eR) {
+        rulesEl.textContent = "규칙을 불러오지 못했습니다.";
+      }
+    }
+  }
 
   window.mockClanNoticePostModalOpen = function (id) {
     var modal = document.getElementById("mock-clan-notice-post-modal");
@@ -558,6 +626,7 @@
         saved.setAttribute("hidden", "");
       }, 2000);
     }
+    mockDashDashboardHydrate();
     return false;
   };
 
@@ -688,6 +757,8 @@
     }
     if (typeof window.mockClanNoticePostsRender === "function") {
       window.mockClanNoticePostsRender();
+    } else {
+      mockDashDashboardHydrate();
     }
     if (typeof window.mockManageInitTabState === "function") {
       window.mockManageInitTabState();
