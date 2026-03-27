@@ -864,6 +864,16 @@
       barB.style.width = wB + "%";
       barR.style.width = wR + "%";
     }
+    var rb = Math.round(wB);
+    var rr = 100 - rb;
+    var pctElB = document.getElementById("mock-balance-predict-pct-blue");
+    var pctElR = document.getElementById("mock-balance-predict-pct-red");
+    if (pctElB) {
+      pctElB.textContent = rb + "%";
+    }
+    if (pctElR) {
+      pctElR.textContent = rr + "%";
+    }
     var statB = document.getElementById("mock-balance-predict-stat-blue");
     var statR = document.getElementById("mock-balance-predict-stat-red");
     if (statB) {

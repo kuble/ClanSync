@@ -1930,23 +1930,38 @@ body.mock-plan-premium .mock-premium-plan-tag:hover {
 }
 .mock-predict-live-bar-track {
   display: flex;
-  height: 12px;
+  height: 22px;
   border-radius: 8px;
   overflow: hidden;
   background: var(--bg-overlay);
   gap: 2px;
 }
-.mock-predict-live-bar-blue {
+.mock-predict-live-bar-blue,
+.mock-predict-live-bar-red {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-width: 0;
-  background: linear-gradient(90deg, #0284c7, #38bdf8);
+  overflow: hidden;
   transition: width 0.4s ease;
+}
+.mock-predict-live-bar-blue {
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
   border-radius: 2px 0 0 2px;
 }
 .mock-predict-live-bar-red {
-  min-width: 0;
   background: linear-gradient(90deg, #e11d48, #fb7185);
-  transition: width 0.4s ease;
   border-radius: 0 2px 2px 0;
+}
+.mock-predict-live-bar-pct {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.96);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  pointer-events: none;
+  line-height: 1;
 }
 .mock-predict-live-stat-row {
   display: flex;
@@ -3556,8 +3571,12 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
                 <span class="mock-predict-live-stat-red">레드 2.10</span>
               </div>
               <div class="mock-predict-live-bar-track" role="img" aria-label="예측 코인 비중">
-                <div class="mock-predict-live-bar-blue" id="mock-balance-predict-bar-blue" style="width:50%"></div>
-                <div class="mock-predict-live-bar-red" id="mock-balance-predict-bar-red" style="width:50%"></div>
+                <div class="mock-predict-live-bar-blue" id="mock-balance-predict-bar-blue" style="width:50%">
+                  <span class="mock-predict-live-bar-pct" id="mock-balance-predict-pct-blue">50%</span>
+                </div>
+                <div class="mock-predict-live-bar-red" id="mock-balance-predict-bar-red" style="width:50%">
+                  <span class="mock-predict-live-bar-pct" id="mock-balance-predict-pct-red">50%</span>
+                </div>
               </div>
               <div class="mock-predict-live-stat-row">
                 <span class="mock-predict-live-stat-blue" id="mock-balance-predict-stat-blue">블루 —</span>
