@@ -5840,6 +5840,7 @@
       donation: "400",
       medals: ["밸런스장"],
       mScores: { tank: 0.9, dps: 1.2, heal: 0.5 },
+      profileSubAccount: "ProAlt#2222",
       record: null,
     },
     {
@@ -6287,13 +6288,6 @@
     return false;
   };
 
-  window.mockMmgrOnSubBlur = function (inp) {
-    var id = __mockManageMemberDetailId;
-    if (!id || !inp) return false;
-    mockMmgrSavePatch(id, { subAccount: inp.value });
-    return false;
-  };
-
   window.mockMmgrOnMScoreChange = function () {
     var id = __mockManageMemberDetailId;
     if (!id) return false;
@@ -6324,7 +6318,7 @@
     var badge = document.getElementById("mock-mmgr-detail-nick-badge");
     var medWrap = document.getElementById("mock-mmgr-detail-medals");
     var clanSel = document.getElementById("mock-mmgr-detail-clan-role");
-    var subIn = document.getElementById("mock-mmgr-detail-sub-input");
+    var subDisp = document.getElementById("mock-mmgr-detail-sub-display");
     var first = document.getElementById("mock-mmgr-detail-first");
     var last = document.getElementById("mock-mmgr-detail-last");
     var tankIn = document.getElementById("mock-mmgr-mscore-tank");
@@ -6361,10 +6355,13 @@
       : !!(m.record && m.record.briefing);
     mockMmgrApplyBriefButtons(briefingOn);
 
-    if (subIn) {
-      subIn.value = Object.prototype.hasOwnProperty.call(ov, "subAccount")
-        ? ov.subAccount
-        : (m.record && m.record.subAccount) || "";
+    if (subDisp) {
+      var subRaw =
+        (typeof m.profileSubAccount === "string" && m.profileSubAccount.trim()) ||
+        (m.record && typeof m.record.subAccount === "string" && m.record.subAccount.trim()) ||
+        "";
+      subDisp.textContent = subRaw ? subRaw : "없음";
+      subDisp.classList.toggle("mock-mmgr-sub-display--empty", !subRaw);
     }
 
     if (first) first.textContent = (m.record && m.record.firstIntra) || "—";

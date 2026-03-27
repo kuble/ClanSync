@@ -3541,6 +3541,12 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
   padding: 8px 10px; border-radius: var(--radius-md); border: 1px solid var(--border);
   background: var(--bg-elevated); color: var(--foreground); font-size: 13px; font-family: inherit;
 }
+.mock-mmgr-sub-display {
+  font-size: 14px; font-weight: 600; padding: 10px 12px; border-radius: var(--radius-md);
+  border: 1px solid var(--border); background: var(--bg-elevated); color: var(--foreground);
+}
+.mock-mmgr-sub-display.mock-mmgr-sub-display--empty { color: var(--text-muted); font-weight: 500; }
+.mock-mmgr-sub-hint { font-size: 11px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.45; }
 .mock-mmgr-brief-seg { display: inline-flex; border-radius: var(--radius-md); border: 1px solid var(--border); overflow: hidden; }
 .mock-mmgr-seg-btn {
   padding: 8px 18px; font-size: 12px; font-weight: 600; border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-family: inherit;
@@ -6430,9 +6436,10 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
         </div>
         <div class="mock-manage-record-group">
           <div class="mock-manage-record-group-title">부계정</div>
+          <p class="mock-mmgr-sub-hint">플레이어가 <strong>본인 프로필</strong>에서만 설정합니다. 클랜장·운영진은 여기서 <strong>조회만</strong> 가능합니다(기획).</p>
           <div class="mock-mmgr-field">
-            <label for="mock-mmgr-detail-sub-input">부계 이름</label>
-            <input type="text" id="mock-mmgr-detail-sub-input" placeholder="없으면 비워두기" autocomplete="off" onblur="return window.mockMmgrOnSubBlur(this)" onchange="return window.mockMmgrOnSubBlur(this)" />
+            <span style="font-size:11px;color:var(--text-muted);font-weight:600">연결된 부계 (표시)</span>
+            <div id="mock-mmgr-detail-sub-display" class="mock-mmgr-sub-display mock-mmgr-sub-display--empty" aria-live="polite">—</div>
           </div>
         </div>
         <div class="mock-manage-record-group">
