@@ -3215,10 +3215,43 @@
       .replace(/"/g, "&quot;");
   }
 
+  /** 밸런스 메이커·경기 기록 모달 공통 풀 (목업) */
+  var MOCK_STATS_POOL_BLUE = [
+    "IronWall",
+    "Mender",
+    "Pulse",
+    "Violet",
+    "Anchor",
+  ];
+  var MOCK_STATS_POOL_RED = [
+    "Bloom",
+    "Rift",
+    "NovaKid",
+    "Spark",
+    "Safeguard",
+  ];
+  var MOCK_STATS_MAP_OPTIONS = [
+    "서킷 로얄",
+    "할리우드",
+    "뉴 정크 시티",
+    "부산",
+    "엔터테인먼트",
+    "파라이소",
+    "스리아",
+    "감시 기지: 지브롤터",
+  ];
+  var MOCK_STATS_MAPTYPE_OPTIONS = [
+    "클래시",
+    "호위",
+    "제어",
+    "밀기",
+    "돌격",
+  ];
+
   /** 내전·이벤트에 5인 로스터·표시용 ID 부여(목업) */
   function mockStatsFillRosters(arr) {
-    var nb = ["IronWall", "Mender", "Pulse", "Violet", "Anchor"];
-    var nr = ["Bloom", "Rift", "NovaKid", "Spark", "Safeguard"];
+    var nb = MOCK_STATS_POOL_BLUE;
+    var nr = MOCK_STATS_POOL_RED;
     /* 슬롯 순서: 탱 · 딜 · 딜 · 힐 · 힐 (경기 기록 카드 UI) */
     var roles = ["tank", "dps", "dps", "sup", "sup"];
     arr.forEach(function (m, i) {
@@ -3876,9 +3909,9 @@
     if (window.mockClanCurrentRole() !== "leader") return "";
     return (
       '<div class="mock-stats-archive-leader-toolbar">' +
-      '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsLeaderIntraAdd()">추가</button>' +
-      '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsLeaderIntraInsert()">삽입</button>' +
-      '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsLeaderIntraEdit()">수정</button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsMatchModalOpen(\'add\')">추가</button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsMatchModalOpen(\'insert\')">삽입</button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsMatchModalOpen(\'edit\')">수정</button>' +
       '<button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockStatsLeaderIntraDelete()">삭제</button>' +
       '<span class="mock-stats-archive-leader-hint">승률 순위: 카드를 클릭해 그 경기 <strong>시점까지</strong> 누적 집계(히스토리). 추가·삽입·삭제 후에는 최신 내전이 있는 날짜로 캘린더가 맞춰집니다(목업).</span>' +
       "</div>"
@@ -3987,84 +4020,373 @@
     return true;
   }
 
-  window.mockStatsLeaderIntraAdd = function () {
-    if (!mockStatsLeaderGuardOrAlert()) return false;
-    CLAN_STATS_MATCHES.unshift({
-      at: new Date().toISOString(),
-      type: "intra",
-      map: "뉴 정크 시티",
-      mapType: "제어",
-      winner: "blue",
-      score: "3-0",
+  function mockStatsIntraSortedAsc() {
+    return CLAN_STATS_MATCHES.filter(function (m) {
+      return m.type === "intra";
+    }).sort(function (a, b) {
+      return new Date(a.at) - new Date(b.at);
     });
-    mockStatsFillRosters(CLAN_STATS_MATCHES);
+  }
+
+  function mockStatsMatchModalLocalPartsFromIso(iso) {
+    var d = new Date(iso);
+    return {
+      date:
+        d.getFullYear() +
+        "-" +
+        mockStatsPad2(d.getMonth() + 1) +
+        "-" +
+        mockStatsPad2(d.getDate()),
+      time: mockStatsPad2(d.getHours()) + ":" + mockStatsPad2(d.getMinutes()),
+    };
+  }
+
+  function mockStatsMatchModalLocalToIso(dateStr, timeStr) {
+    var d = new Date(dateStr + "T" + timeStr + ":00");
+    if (isNaN(d.getTime())) return null;
+    return d.toISOString();
+  }
+
+  function mockStatsIntraInsertAtChronoPos(newMatch, pos) {
+    var intraAsc = mockStatsIntraSortedAsc();
+    var len = intraAsc.length;
+    if (len === 0) {
+      CLAN_STATS_MATCHES.push(newMatch);
+      return true;
+    }
+    if (pos < 1 || pos > len + 1) return false;
+    if (pos === 1) {
+      var first = intraAsc[0];
+      var idx0 = CLAN_STATS_MATCHES.indexOf(first);
+      if (idx0 < 0) return false;
+      CLAN_STATS_MATCHES.splice(idx0, 0, newMatch);
+    } else {
+      var after = intraAsc[pos - 2];
+      var idx = CLAN_STATS_MATCHES.indexOf(after);
+      if (idx < 0) return false;
+      CLAN_STATS_MATCHES.splice(idx + 1, 0, newMatch);
+    }
+    return true;
+  }
+
+  function mockStatsPatchRostersFromForm(m, bNames, rNames) {
+    var roles = ["tank", "dps", "dps", "sup", "sup"];
+    m.blueRoster = roles.map(function (r, j) {
+      return { n: bNames[j], r: r };
+    });
+    m.redRoster = roles.map(function (r, j) {
+      return { n: rNames[j], r: r };
+    });
+  }
+
+  function mockStatsMatchModalEnsureOption(sel, value) {
+    if (!sel || value == null || value === "") return;
+    var ok = false;
+    Array.prototype.forEach.call(sel.options, function (o) {
+      if (o.value === value) ok = true;
+    });
+    if (!ok) {
+      var o = document.createElement("option");
+      o.value = value;
+      o.textContent = value;
+      sel.appendChild(o);
+    }
+    sel.value = value;
+  }
+
+  function mockStatsMatchModalFillSelects() {
+    var sm = document.getElementById("msm-map");
+    var st = document.getElementById("msm-maptype");
+    if (!sm || !st) return;
+    sm.innerHTML = "";
+    MOCK_STATS_MAP_OPTIONS.forEach(function (name) {
+      var o = document.createElement("option");
+      o.value = name;
+      o.textContent = name;
+      sm.appendChild(o);
+    });
+    st.innerHTML = "";
+    MOCK_STATS_MAPTYPE_OPTIONS.forEach(function (name) {
+      var o = document.createElement("option");
+      o.value = name;
+      o.textContent = name;
+      st.appendChild(o);
+    });
+    var k;
+    for (k = 0; k < 5; k++) {
+      var elb = document.getElementById("msm-b" + k);
+      var elr = document.getElementById("msm-r" + k);
+      if (!elb || !elr) continue;
+      elb.innerHTML = "";
+      elr.innerHTML = "";
+      MOCK_STATS_POOL_BLUE.forEach(function (n) {
+        var o = document.createElement("option");
+        o.value = n;
+        o.textContent = n;
+        elb.appendChild(o);
+      });
+      MOCK_STATS_POOL_RED.forEach(function (n) {
+        var o = document.createElement("option");
+        o.value = n;
+        o.textContent = n;
+        elr.appendChild(o);
+      });
+    }
+  }
+
+  function mockStatsMatchModalSetDefaultRosters() {
+    var k;
+    for (k = 0; k < 5; k++) {
+      var elb = document.getElementById("msm-b" + k);
+      var elr = document.getElementById("msm-r" + k);
+      if (elb) elb.value = MOCK_STATS_POOL_BLUE[k];
+      if (elr) elr.value = MOCK_STATS_POOL_RED[k];
+    }
+  }
+
+  function mockStatsMatchModalPopulateChronoSelect(mode) {
+    var sel = document.getElementById("msm-chrono-pos");
+    if (!sel) return;
+    var intraAsc = mockStatsIntraSortedAsc();
+    var len = intraAsc.length;
+    sel.innerHTML = "";
+    var i;
+    for (i = 1; i <= len + 1; i++) {
+      var opt = document.createElement("option");
+      opt.value = String(i);
+      var lbl;
+      if (i === 1) {
+        lbl = "1번째 — 전체 내전 중 가장 이른 시각 앞(맨 앞)";
+      } else if (i === len + 1) {
+        lbl =
+          String(len + 1) +
+          "번째 — 맨 마지막(최신 시각 다음에 등록)";
+      } else {
+        var prev = intraAsc[i - 2];
+        lbl =
+          String(i) +
+          "번째 — [" +
+          (prev.displayId || "?") +
+          "번째 경기] 다음에 삽입";
+      }
+      opt.textContent = lbl;
+      sel.appendChild(opt);
+    }
+    var defaultPos = len + 1;
+    if (mode === "insert" && window.__mockStatsArchiveAsOfAt) {
+      var k = intraAsc.findIndex(function (x) {
+        return x.at === window.__mockStatsArchiveAsOfAt;
+      });
+      if (k >= 0) defaultPos = k + 2;
+    }
+    sel.value = String(defaultPos);
+  }
+
+  function mockStatsMatchModalFillFromMatch(m) {
+    var parts = mockStatsMatchModalLocalPartsFromIso(m.at);
+    document.getElementById("msm-date").value = parts.date;
+    document.getElementById("msm-time").value = parts.time;
+    mockStatsMatchModalEnsureOption(document.getElementById("msm-map"), m.map);
+    mockStatsMatchModalEnsureOption(
+      document.getElementById("msm-maptype"),
+      m.mapType,
+    );
+    document.getElementById("msm-score").value = m.score || "3-2";
+    if (m.winner === "red") {
+      document.getElementById("msm-win-red").checked = true;
+    } else {
+      document.getElementById("msm-win-blue").checked = true;
+    }
+    var br = m.blueRoster || [];
+    var rr = m.redRoster || [];
+    var j;
+    for (j = 0; j < 5; j++) {
+      var elb = document.getElementById("msm-b" + j);
+      var elr = document.getElementById("msm-r" + j);
+      if (elb && br[j] && br[j].n) {
+        mockStatsMatchModalEnsureOption(elb, br[j].n);
+      }
+      if (elr && rr[j] && rr[j].n) {
+        mockStatsMatchModalEnsureOption(elr, rr[j].n);
+      }
+    }
+  }
+
+  window.mockStatsMatchModalClose = function () {
+    var modal = document.getElementById("mock-stats-match-modal");
+    if (!modal) return;
+    modal.setAttribute("hidden", "");
+    modal.setAttribute("aria-hidden", "true");
+  };
+
+  window.mockStatsMatchModalOpen = function (mode) {
+    if (!mockStatsLeaderGuardOrAlert()) return false;
+    if (mode === "insert" || mode === "edit") {
+      if (!window.__mockStatsArchiveAsOfAt) {
+        window.alert("목업: 먼저 카드를 선택해 주세요.");
+        return false;
+      }
+    }
+    var modal = document.getElementById("mock-stats-match-modal");
+    if (!modal) return false;
+    document.getElementById("msm-mode").value = mode;
+    var chronoWrap = document.getElementById("msm-chrono-wrap");
+    var hint = document.getElementById("msm-mode-hint");
+    if (mode === "edit") {
+      chronoWrap.setAttribute("hidden", "");
+      hint.textContent =
+        "선택한 경기 수정 · 확인을 누르면 요약 후 한 번 더 확인합니다.";
+    } else {
+      chronoWrap.removeAttribute("hidden");
+      hint.textContent =
+        mode === "insert"
+          ? "선택한 카드 경기 다음에 넣는 것이 기본 순번입니다. 날짜·시각·순번은 바꿀 수 있습니다."
+          : "새 내전을 등록합니다. 순번은 전체 내전 시간순 기준입니다.";
+    }
+    mockStatsMatchModalFillSelects();
+    mockStatsMatchModalPopulateChronoSelect(mode);
+    if (mode === "edit") {
+      var mEdit = CLAN_STATS_MATCHES.find(function (x) {
+        return x.at === window.__mockStatsArchiveAsOfAt;
+      });
+      if (!mEdit || mEdit.type !== "intra") {
+        window.alert("목업: 내전만 수정할 수 있습니다.");
+        return false;
+      }
+      document.getElementById("msm-edit-at").value = mEdit.at;
+      mockStatsMatchModalFillFromMatch(mEdit);
+    } else {
+      document.getElementById("msm-edit-at").value = "";
+      var now = new Date();
+      var parts = mockStatsMatchModalLocalPartsFromIso(now.toISOString());
+      document.getElementById("msm-date").value = parts.date;
+      document.getElementById("msm-time").value = parts.time;
+      document.getElementById("msm-score").value = "3-2";
+      document.getElementById("msm-win-blue").checked = true;
+      mockStatsMatchModalSetDefaultRosters();
+    }
+    document.getElementById("msm-title").textContent =
+      mode === "edit"
+        ? "내전 경기 수정"
+        : mode === "insert"
+          ? "내전 경기 삽입"
+          : "내전 경기 추가";
+    modal.removeAttribute("hidden");
+    modal.setAttribute("aria-hidden", "false");
+    return false;
+  };
+
+  window.mockStatsMatchModalSubmit = function () {
+    if (!mockStatsLeaderGuardOrAlert()) return false;
+    var mode = document.getElementById("msm-mode").value;
+    var dateStr = document.getElementById("msm-date").value;
+    var timeStr = document.getElementById("msm-time").value;
+    if (!dateStr || !timeStr) {
+      window.alert("목업: 날짜와 시각을 입력해 주세요.");
+      return false;
+    }
+    var iso = mockStatsMatchModalLocalToIso(dateStr, timeStr);
+    if (!iso) {
+      window.alert("목업: 날짜·시각이 올바르지 않습니다.");
+      return false;
+    }
+    var map = document.getElementById("msm-map").value;
+    var mapType = document.getElementById("msm-maptype").value;
+    var score = document.getElementById("msm-score").value.trim() || "—";
+    var wEl = document.querySelector('input[name="msm-winner"]:checked');
+    var winner = wEl && wEl.value === "red" ? "red" : "blue";
+    var bNames = [];
+    var rNames = [];
+    var i;
+    for (i = 0; i < 5; i++) {
+      bNames.push(document.getElementById("msm-b" + i).value);
+      rNames.push(document.getElementById("msm-r" + i).value);
+    }
+    var summary =
+      "날짜·시각: " +
+      dateStr +
+      " " +
+      timeStr +
+      "\n맵 / 모드: " +
+      map +
+      " / " +
+      mapType +
+      "\n스코어: " +
+      score +
+      "\n승리: " +
+      (winner === "blue" ? "블루" : "레드") +
+      "\n블루: " +
+      bNames.join(", ") +
+      "\n레드: " +
+      rNames.join(", ");
+    var pos = 0;
+    if (mode !== "edit") {
+      pos = parseInt(document.getElementById("msm-chrono-pos").value, 10);
+      if (isNaN(pos) || pos < 1) {
+        window.alert("목업: 순번을 선택해 주세요.");
+        return false;
+      }
+      summary += "\n시간순 순번: " + pos + "번째로 등록";
+    }
+    if (!window.confirm("목업: 아래 내용으로 반영할까요?\n\n" + summary)) {
+      return false;
+    }
+    if (mode === "add" || mode === "insert") {
+      var newMatch = {
+        at: iso,
+        type: "intra",
+        map: map,
+        mapType: mapType,
+        winner: winner,
+        score: score,
+      };
+      if (!mockStatsIntraInsertAtChronoPos(newMatch, pos)) {
+        window.alert("목업: 삽입 위치를 적용할 수 없습니다.");
+        return false;
+      }
+      mockStatsFillRosters(CLAN_STATS_MATCHES);
+      var mNew = CLAN_STATS_MATCHES.find(function (x) {
+        return x.at === iso;
+      });
+      if (mNew) mockStatsPatchRostersFromForm(mNew, bNames, rNames);
+    } else {
+      var origAt = document.getElementById("msm-edit-at").value;
+      var m = CLAN_STATS_MATCHES.find(function (x) {
+        return x.at === origAt;
+      });
+      if (!m) {
+        window.alert("목업: 경기를 찾을 수 없습니다.");
+        return false;
+      }
+      m.at = iso;
+      m.map = map;
+      m.mapType = mapType;
+      m.winner = winner;
+      m.score = score;
+      mockStatsFillRosters(CLAN_STATS_MATCHES);
+      mockStatsPatchRostersFromForm(m, bNames, rNames);
+    }
     mockStatsArchiveSnapToLatestIntraDay(
       CLAN_STATS_MATCHES.filter(function (m) {
         return m.type === "intra";
       }),
     );
-    window.mockStatsRender();
-    window.alert("목업: 내전 경기를 추가했습니다. 캘린더가 해당 경기 날짜(주)로 맞춰졌습니다.");
-    return false;
-  };
-
-  window.mockStatsLeaderIntraInsert = function () {
-    if (!mockStatsLeaderGuardOrAlert()) return false;
-    var at = window.__mockStatsArchiveAsOfAt;
-    if (!at) {
-      window.alert("목업: 먼저 카드를 선택해 주세요.");
-      return false;
-    }
-    var idx = CLAN_STATS_MATCHES.findIndex(function (m) {
-      return m.at === at;
-    });
-    if (idx < 0) {
-      window.alert("목업: 경기를 찾을 수 없습니다.");
-      return false;
-    }
-    CLAN_STATS_MATCHES.splice(idx + 1, 0, {
-      at: new Date().toISOString(),
-      type: "intra",
-      map: "할리우드",
-      mapType: "호위",
-      winner: "red",
-      score: "2-3",
-    });
-    mockStatsFillRosters(CLAN_STATS_MATCHES);
-    mockStatsArchiveSnapToLatestIntraDay(
-      CLAN_STATS_MATCHES.filter(function (m) {
-        return m.type === "intra";
-      }),
-    );
-    window.mockStatsRender();
-    window.alert("목업: 선택한 경기 다음 위치에 삽입했습니다. 캘린더가 최신 내전 날짜로 맞춰졌습니다.");
-    return false;
-  };
-
-  window.mockStatsLeaderIntraEdit = function () {
-    if (!mockStatsLeaderGuardOrAlert()) return false;
-    var at = window.__mockStatsArchiveAsOfAt;
-    if (!at) {
-      window.alert("목업: 먼저 카드를 선택해 주세요.");
-      return false;
-    }
-    var m = CLAN_STATS_MATCHES.find(function (x) {
-      return x.at === at;
-    });
-    if (!m || m.type !== "intra") {
-      window.alert("목업: 내전만 수정할 수 있습니다.");
-      return false;
-    }
-    var map = window.prompt("맵 이름", m.map);
-    if (map === null) return false;
-    if (map) m.map = map;
-    var w = window.prompt("승자: blue 또는 red", m.winner);
-    if (w === null) return false;
-    if (w === "blue" || w === "red") m.winner = w;
-    mockStatsFillRosters(CLAN_STATS_MATCHES);
+    window.mockStatsMatchModalClose();
     window.mockStatsRender();
     window.alert("목업: 반영했습니다.");
     return false;
+  };
+
+  window.mockStatsLeaderIntraAdd = function () {
+    return window.mockStatsMatchModalOpen("add");
+  };
+
+  window.mockStatsLeaderIntraInsert = function () {
+    return window.mockStatsMatchModalOpen("insert");
+  };
+
+  window.mockStatsLeaderIntraEdit = function () {
+    return window.mockStatsMatchModalOpen("edit");
   };
 
   window.mockStatsLeaderIntraDelete = function () {

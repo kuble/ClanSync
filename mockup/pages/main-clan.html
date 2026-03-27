@@ -3453,6 +3453,61 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
   max-height: min(90vh, 760px);
   overflow-y: auto;
 }
+.mock-modal-card--stats-match {
+  max-width: min(560px, calc(100vw - 40px));
+  max-height: min(92vh, 820px);
+  overflow-y: auto;
+}
+.mock-stats-match-modal-rosters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 4px;
+}
+@media (max-width: 520px) {
+  .mock-stats-match-modal-rosters {
+    grid-template-columns: 1fr;
+  }
+}
+.mock-stats-match-modal-side {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  background: var(--bg-overlay);
+}
+.mock-stats-match-modal-side-title {
+  font-size: 11px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--text-muted);
+}
+.mock-stats-match-modal-slot {
+  margin-bottom: 8px;
+}
+.mock-stats-match-modal-slot:last-child {
+  margin-bottom: 0;
+}
+.mock-stats-match-modal-slot label {
+  display: block;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+.mock-stats-match-modal-winner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  margin-top: 4px;
+}
+.mock-stats-match-modal-winner label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
 .sr-only {
   position: absolute;
   width: 1px;
@@ -4622,6 +4677,73 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
           <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px">막대=진행 횟수 · 내전만 B/R 팀승 보조 · 스크림은 건수만(승률 없음)</p>
           <div id="mock-stats-map-wrap"></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 경기 기록 편집 모달 (통계 · 클랜장만) -->
+  <div id="mock-stats-match-modal" class="mock-modal-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="msm-title" onclick="if(event.target===this)window.mockStatsMatchModalClose()">
+    <div class="mock-modal-card mock-modal-card--stats-match" onclick="event.stopPropagation()">
+      <h3 id="msm-title">내전 경기</h3>
+      <input type="hidden" id="msm-mode" value="add" />
+      <input type="hidden" id="msm-edit-at" value="" />
+      <p id="msm-mode-hint" class="mock-modal-hint" style="margin-top:-4px;margin-bottom:10px"></p>
+      <div class="mock-modal-field" id="msm-chrono-wrap">
+        <label for="msm-chrono-pos">전체 내전 시간순 · 몇 번째로 등록할지</label>
+        <select id="msm-chrono-pos"></select>
+        <p class="mock-modal-hint" style="margin-top:6px">1번째=가장 오래된 시각보다 앞. 숫자가 클수록 최신 쪽에 가깝게 반영됩니다(목업).</p>
+      </div>
+      <div class="mock-modal-field">
+        <label for="msm-date">날짜</label>
+        <input id="msm-date" type="date" />
+      </div>
+      <div class="mock-modal-field">
+        <label for="msm-time">시각 (로컬)</label>
+        <input id="msm-time" type="time" step="60" />
+      </div>
+      <div class="mock-modal-field">
+        <label for="msm-map">맵</label>
+        <select id="msm-map"></select>
+      </div>
+      <div class="mock-modal-field">
+        <label for="msm-maptype">모드</label>
+        <select id="msm-maptype"></select>
+      </div>
+      <div class="mock-modal-field">
+        <label for="msm-score">스코어 (표시)</label>
+        <input id="msm-score" type="text" placeholder="예: 3-2" />
+      </div>
+      <div class="mock-modal-field">
+        <span class="mock-modal-field" style="display:block;margin-bottom:6px;font-size:11px;color:var(--text-muted)">승리 팀</span>
+        <div class="mock-stats-match-modal-winner">
+          <label for="msm-win-blue"><input type="radio" name="msm-winner" id="msm-win-blue" value="blue" checked /> 블루</label>
+          <label for="msm-win-red"><input type="radio" name="msm-winner" id="msm-win-red" value="red" /> 레드</label>
+        </div>
+      </div>
+      <div class="mock-modal-field" style="margin-bottom:8px">
+        <span style="font-size:11px;color:var(--text-muted);font-weight:600">로스터 (밸런스 메이커와 동일 슬롯: 탱·딜·딜·힐·힐)</span>
+        <div class="mock-stats-match-modal-rosters">
+          <div class="mock-stats-match-modal-side">
+            <div class="mock-stats-match-modal-side-title">블루</div>
+            <div class="mock-stats-match-modal-slot"><label for="msm-b0">탱</label><select id="msm-b0"></select></div>
+            <div class="mock-stats-match-modal-slot"><label for="msm-b1">딜</label><select id="msm-b1"></select></div>
+            <div class="mock-stats-match-modal-slot"><label for="msm-b2">딜</label><select id="msm-b2"></select></div>
+            <div class="mock-stats-match-modal-slot"><label for="msm-b3">힐</label><select id="msm-b3"></select></div>
+            <div class="mock-stats-match-modal-slot"><label for="msm-b4">힐</label><select id="msm-b4"></select></div>
+          </div>
+          <div class="mock-stats-match-modal-side">
+            <div class="mock-stats-match-modal-side-title">레드</div>
+            <div class="mock-stats-match-modal-slot"><label for="msm-r0">탱</label><select id="msm-r0"></select></div>
+            <div class="mock-stats-match-modal-slot"><label for="msm-r1">딜</label><select id="msm-r1"></select></div>
+            <div class="mock-stats-match-modal-slot"><label for="msm-r2">딜</label><select id="msm-r2"></select></div>
+            <div class="mock-stats-match-modal-slot"><label for="msm-r3">힐</label><select id="msm-r3"></select></div>
+            <div class="mock-stats-match-modal-slot"><label for="msm-r4">힐</label><select id="msm-r4"></select></div>
+          </div>
+        </div>
+      </div>
+      <div class="mock-modal-actions">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="window.mockStatsMatchModalClose()">취소</button>
+        <button type="button" class="btn btn-sm" onclick="return window.mockStatsMatchModalSubmit()">확인</button>
       </div>
     </div>
   </div>
