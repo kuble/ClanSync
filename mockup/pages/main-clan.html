@@ -436,15 +436,44 @@
   color: var(--text);
   font-size: 13px;
 }
-.mock-bracket-pool-in-team.mock-balance-pool-col {
+.mock-bracket-pool-shared.mock-balance-pool-col {
   max-height: 260px;
   min-height: 140px;
-  border: none;
-  border-radius: 0;
-  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 14px;
 }
-.mock-bracket-pool-in-team .mock-balance-pool-grid {
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+.mock-bracket-pool-shared .mock-balance-pool-grid {
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+}
+.mock-bracket-active-team-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.mock-bracket-active-team-row > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  width: 100%;
+}
+.mock-bracket-active-team-row label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-overlay);
+}
+.mock-bracket-active-team-row label:has(input:checked) {
+  border-color: rgba(124, 58, 237, 0.45);
+  background: rgba(124, 58, 237, 0.1);
 }
 .mock-bracket-team-roster {
   display: flex;
@@ -4423,85 +4452,47 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
             <span class="mock-bracket-step-num">2</span>
             <div>
               <h3 class="mock-bracket-step-title">팀 이름·플레이어 선택</h3>
-              <p class="mock-bracket-step-desc">각 팀의 이름을 입력하고, 밸런스메이커와 같은 플레이어 칩 그룹에서 멤버를 선택합니다.</p>
+              <p class="mock-bracket-step-desc">팀 이름을 입력합니다. <strong>멤버를 넣을 팀</strong>을 고른 뒤 공용 플레이어 풀(밸런스메이커와 동일 UI)에서 칩을 누르면 아래 해당 팀 로스터에 반영됩니다. 한 사람은 한 팀에만 속하며, 다른 팀에 넣으면 이전 팀에서 빠집니다.</p>
             </div>
           </div>
+          <div class="mock-bracket-active-team-row" role="radiogroup" aria-label="멤버를 넣을 팀">
+            <span>멤버를 넣을 팀</span>
+            <label id="mock-bracket-active-label-1"><input type="radio" name="mock-bracket-active-team" value="1" checked /> 팀 1</label>
+            <label id="mock-bracket-active-label-2"><input type="radio" name="mock-bracket-active-team" value="2" /> 팀 2</label>
+            <label id="mock-bracket-active-label-3"><input type="radio" name="mock-bracket-active-team" value="3" /> 팀 3</label>
+            <label id="mock-bracket-active-label-4"><input type="radio" name="mock-bracket-active-team" value="4" /> 팀 4</label>
+          </div>
+          <aside class="mock-balance-pool-col mock-bracket-pool-shared" aria-label="플레이어 선택 (공용)">
+            <div class="mock-balance-pool-head"><span>플레이어 선택</span><button type="button" class="mock-help-tip" data-tip="밸런스메이커와 동일한 클랜원 풀입니다. 선택한 팀에 칩을 누르면 로스터에 들어갑니다. 같은 칩을 다시 누르면(해당 인원이 이미 이 팀에 있을 때) 제거됩니다." aria-label="플레이어 선택 도움말">?</button></div>
+            <div class="mock-balance-pool-filters">
+              <input type="search" placeholder="닉네임 검색" autocomplete="off" aria-label="검색(목업)" />
+              <select title="정렬" aria-label="정렬"><option>최근 참여 순</option><option>닉네임 순</option></select>
+            </div>
+            <div class="mock-balance-pool-grid">
+              <button type="button" class="mock-balance-pool-chip" data-name="하지" onclick="return window.mockBracketPoolChipClick(this)">하지</button>
+              <button type="button" class="mock-balance-pool-chip" data-name="crystal" onclick="return window.mockBracketPoolChipClick(this)">크리스탈</button>
+              <button type="button" class="mock-balance-pool-chip" data-name="dorae" onclick="return window.mockBracketPoolChipClick(this)">DORAE</button>
+              <button type="button" class="mock-balance-pool-chip" data-name="edward" onclick="return window.mockBracketPoolChipClick(this)">애드워드애릭</button>
+              <button type="button" class="mock-balance-pool-chip" data-name="abel" onclick="return window.mockBracketPoolChipClick(this)">ABEL</button>
+              <button type="button" class="mock-balance-pool-chip" data-name="sori" onclick="return window.mockBracketPoolChipClick(this)">소리</button>
+            </div>
+          </aside>
           <div class="mock-bracket-team-grid">
             <div id="mock-bracket-team-wrap-1" class="mock-bracket-team-card">
               <div class="mock-bracket-team-name"><label for="mock-bracket-name-1">팀 1</label><input id="mock-bracket-name-1" type="text" placeholder="예: 블루 스쿼드" value="시드 1" /></div>
-              <aside class="mock-balance-pool-col mock-bracket-pool-in-team" aria-label="플레이어 선택 · 팀 1">
-                <div class="mock-balance-pool-head"><span>플레이어 선택</span><button type="button" class="mock-help-tip" data-tip="밸런스메이커와 동일: 칩을 누르면 아래 팀 로스터에 추가·제거됩니다." aria-label="플레이어 선택 도움말">?</button></div>
-                <div class="mock-balance-pool-filters">
-                  <input type="search" placeholder="닉네임 검색" autocomplete="off" aria-label="검색(목업)" />
-                  <select title="정렬" aria-label="정렬"><option>최근 참여 순</option><option>닉네임 순</option></select>
-                </div>
-                <div class="mock-balance-pool-grid">
-                  <button type="button" class="mock-balance-pool-chip" data-name="하지" onclick="return window.mockBracketPoolChipClick(this,1)">하지</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="crystal" onclick="return window.mockBracketPoolChipClick(this,1)">크리스탈</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="dorae" onclick="return window.mockBracketPoolChipClick(this,1)">DORAE</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="edward" onclick="return window.mockBracketPoolChipClick(this,1)">애드워드애릭</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="abel" onclick="return window.mockBracketPoolChipClick(this,1)">ABEL</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="sori" onclick="return window.mockBracketPoolChipClick(this,1)">소리</button>
-                </div>
-                <div class="mock-bracket-team-roster" id="mock-bracket-roster-1"><span class="mock-bracket-roster-hint" style="font-size:11px;color:var(--text-muted)">칩을 눌러 팀에 포함(재클릭 시 제거)</span></div>
-              </aside>
+              <div class="mock-bracket-team-roster" id="mock-bracket-roster-1"><span class="mock-bracket-roster-hint" style="font-size:11px;color:var(--text-muted)">팀 선택 후 칩으로 멤버 추가</span></div>
             </div>
             <div id="mock-bracket-team-wrap-2" class="mock-bracket-team-card">
               <div class="mock-bracket-team-name"><label for="mock-bracket-name-2">팀 2</label><input id="mock-bracket-name-2" type="text" placeholder="예: 레드 스쿼드" value="시드 2" /></div>
-              <aside class="mock-balance-pool-col mock-bracket-pool-in-team" aria-label="플레이어 선택 · 팀 2">
-                <div class="mock-balance-pool-head"><span>플레이어 선택</span><button type="button" class="mock-help-tip" data-tip="밸런스메이커와 동일한 클랜원 풀입니다." aria-label="플레이어 선택 도움말">?</button></div>
-                <div class="mock-balance-pool-filters">
-                  <input type="search" placeholder="닉네임 검색" autocomplete="off" aria-label="검색(목업)" />
-                  <select title="정렬" aria-label="정렬"><option>최근 참여 순</option><option>닉네임 순</option></select>
-                </div>
-                <div class="mock-balance-pool-grid">
-                  <button type="button" class="mock-balance-pool-chip" data-name="하지" onclick="return window.mockBracketPoolChipClick(this,2)">하지</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="crystal" onclick="return window.mockBracketPoolChipClick(this,2)">크리스탈</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="dorae" onclick="return window.mockBracketPoolChipClick(this,2)">DORAE</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="edward" onclick="return window.mockBracketPoolChipClick(this,2)">애드워드애릭</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="abel" onclick="return window.mockBracketPoolChipClick(this,2)">ABEL</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="sori" onclick="return window.mockBracketPoolChipClick(this,2)">소리</button>
-                </div>
-                <div class="mock-bracket-team-roster" id="mock-bracket-roster-2"><span class="mock-bracket-roster-hint" style="font-size:11px;color:var(--text-muted)">칩을 눌러 팀에 포함(재클릭 시 제거)</span></div>
-              </aside>
+              <div class="mock-bracket-team-roster" id="mock-bracket-roster-2"><span class="mock-bracket-roster-hint" style="font-size:11px;color:var(--text-muted)">팀 선택 후 칩으로 멤버 추가</span></div>
             </div>
             <div id="mock-bracket-team-wrap-3" class="mock-bracket-team-card">
               <div class="mock-bracket-team-name"><label for="mock-bracket-name-3">팀 3</label><input id="mock-bracket-name-3" type="text" placeholder="팀 이름" value="시드 3" /></div>
-              <aside class="mock-balance-pool-col mock-bracket-pool-in-team" aria-label="플레이어 선택 · 팀 3">
-                <div class="mock-balance-pool-head"><span>플레이어 선택</span><button type="button" class="mock-help-tip" data-tip="밸런스메이커와 동일한 클랜원 풀입니다." aria-label="플레이어 선택 도움말">?</button></div>
-                <div class="mock-balance-pool-filters">
-                  <input type="search" placeholder="닉네임 검색" autocomplete="off" aria-label="검색(목업)" />
-                  <select title="정렬" aria-label="정렬"><option>최근 참여 순</option><option>닉네임 순</option></select>
-                </div>
-                <div class="mock-balance-pool-grid">
-                  <button type="button" class="mock-balance-pool-chip" data-name="하지" onclick="return window.mockBracketPoolChipClick(this,3)">하지</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="crystal" onclick="return window.mockBracketPoolChipClick(this,3)">크리스탈</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="dorae" onclick="return window.mockBracketPoolChipClick(this,3)">DORAE</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="edward" onclick="return window.mockBracketPoolChipClick(this,3)">애드워드애릭</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="abel" onclick="return window.mockBracketPoolChipClick(this,3)">ABEL</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="sori" onclick="return window.mockBracketPoolChipClick(this,3)">소리</button>
-                </div>
-                <div class="mock-bracket-team-roster" id="mock-bracket-roster-3"><span class="mock-bracket-roster-hint" style="font-size:11px;color:var(--text-muted)">칩을 눌러 팀에 포함(재클릭 시 제거)</span></div>
-              </aside>
+              <div class="mock-bracket-team-roster" id="mock-bracket-roster-3"><span class="mock-bracket-roster-hint" style="font-size:11px;color:var(--text-muted)">팀 선택 후 칩으로 멤버 추가</span></div>
             </div>
             <div id="mock-bracket-team-wrap-4" class="mock-bracket-team-card">
               <div class="mock-bracket-team-name"><label for="mock-bracket-name-4">팀 4</label><input id="mock-bracket-name-4" type="text" placeholder="팀 이름" value="시드 4" /></div>
-              <aside class="mock-balance-pool-col mock-bracket-pool-in-team" aria-label="플레이어 선택 · 팀 4">
-                <div class="mock-balance-pool-head"><span>플레이어 선택</span><button type="button" class="mock-help-tip" data-tip="밸런스메이커와 동일한 클랜원 풀입니다." aria-label="플레이어 선택 도움말">?</button></div>
-                <div class="mock-balance-pool-filters">
-                  <input type="search" placeholder="닉네임 검색" autocomplete="off" aria-label="검색(목업)" />
-                  <select title="정렬" aria-label="정렬"><option>최근 참여 순</option><option>닉네임 순</option></select>
-                </div>
-                <div class="mock-balance-pool-grid">
-                  <button type="button" class="mock-balance-pool-chip" data-name="하지" onclick="return window.mockBracketPoolChipClick(this,4)">하지</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="crystal" onclick="return window.mockBracketPoolChipClick(this,4)">크리스탈</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="dorae" onclick="return window.mockBracketPoolChipClick(this,4)">DORAE</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="edward" onclick="return window.mockBracketPoolChipClick(this,4)">애드워드애릭</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="abel" onclick="return window.mockBracketPoolChipClick(this,4)">ABEL</button>
-                  <button type="button" class="mock-balance-pool-chip" data-name="sori" onclick="return window.mockBracketPoolChipClick(this,4)">소리</button>
-                </div>
-                <div class="mock-bracket-team-roster" id="mock-bracket-roster-4"><span class="mock-bracket-roster-hint" style="font-size:11px;color:var(--text-muted)">칩을 눌러 팀에 포함(재클릭 시 제거)</span></div>
-              </aside>
+              <div class="mock-bracket-team-roster" id="mock-bracket-roster-4"><span class="mock-bracket-roster-hint" style="font-size:11px;color:var(--text-muted)">팀 선택 후 칩으로 멤버 추가</span></div>
             </div>
           </div>
         </div>

@@ -311,31 +311,62 @@
     for (var i = 1; i <= 4; i++) {
       var el = document.getElementById("mock-bracket-team-wrap-" + i);
       if (el) el.style.display = i <= cap ? "" : "none";
+      var lab = document.getElementById("mock-bracket-active-label-" + i);
+      if (lab) lab.style.display = i <= cap ? "" : "none";
+    }
+    var rad = document.querySelector('input[name="mock-bracket-active-team"]:checked');
+    if (rad && parseInt(rad.value, 10) > cap) {
+      var first = document.querySelector('input[name="mock-bracket-active-team"][value="1"]');
+      if (first) first.checked = true;
     }
   };
 
-  /** 대진표: 밸런스메이커와 동일 칩 — 클릭 시 팀 로스터에 추가·재클릭 시 제거 */
-  window.mockBracketPoolChipClick = function (btn, teamIdx) {
+  function mockBracketEnsureRosterHint(roster) {
+    if (!roster || roster.querySelector(".mock-tag")) return;
+    if (roster.querySelector(".mock-bracket-roster-hint")) return;
+    var hint = document.createElement("span");
+    hint.className = "mock-bracket-roster-hint";
+    hint.style.fontSize = "11px";
+    hint.style.color = "var(--text-muted)";
+    hint.textContent = "팀 선택 후 칩으로 멤버 추가";
+    roster.appendChild(hint);
+  }
+
+  /**
+   * 대진표: 공용 풀 칩 — 라디오로 고른 팀 로스터에 반영.
+   * 같은 팀에서 재클릭 시 제거. 다른 팀에 있으면 이쪽으로 이동(한 사람 1팀).
+   */
+  window.mockBracketPoolChipClick = function (btn) {
     var name = btn.getAttribute("data-name") || (btn.textContent || "").trim();
     if (!name) return false;
+    var rad = document.querySelector('input[name="mock-bracket-active-team"]:checked');
+    var teamIdx = rad ? parseInt(rad.value, 10) : 1;
+    if (teamIdx < 1 || teamIdx > 4) teamIdx = 1;
+
     var roster = document.getElementById("mock-bracket-roster-" + teamIdx);
     if (!roster) return false;
-    var existing = null;
+
+    var inActive = null;
     roster.querySelectorAll("[data-bracket-pname]").forEach(function (el) {
-      if (el.getAttribute("data-bracket-pname") === name) existing = el;
+      if (el.getAttribute("data-bracket-pname") === name) inActive = el;
     });
-    if (existing) {
-      existing.remove();
-      if (!roster.querySelector(".mock-tag")) {
-        var hint = document.createElement("span");
-        hint.className = "mock-bracket-roster-hint";
-        hint.style.fontSize = "11px";
-        hint.style.color = "var(--text-muted)";
-        hint.textContent = "칩을 눌러 팀에 포함(재클릭 시 제거)";
-        roster.appendChild(hint);
-      }
+    if (inActive) {
+      inActive.remove();
+      mockBracketEnsureRosterHint(roster);
       return false;
     }
+
+    var t;
+    for (t = 1; t <= 4; t++) {
+      if (t === teamIdx) continue;
+      var r = document.getElementById("mock-bracket-roster-" + t);
+      if (!r) continue;
+      r.querySelectorAll("[data-bracket-pname]").forEach(function (el) {
+        if (el.getAttribute("data-bracket-pname") === name) el.remove();
+      });
+      mockBracketEnsureRosterHint(r);
+    }
+
     var hintEl = roster.querySelector(".mock-bracket-roster-hint");
     if (hintEl) hintEl.remove();
     var tag = document.createElement("span");
