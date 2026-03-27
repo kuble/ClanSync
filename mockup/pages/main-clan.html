@@ -505,6 +505,42 @@
   margin-bottom: 8px;
   color: var(--text-secondary);
 }
+.mock-bracket-seed-order-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--bg-overlay);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+.mock-bracket-seed-order-title {
+  font-size: 12px;
+  font-weight: 700;
+  margin: 0 0 10px;
+  color: var(--text-secondary);
+}
+.mock-bracket-seed-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.mock-bracket-seed-row:last-child {
+  border-bottom: none;
+}
+.mock-bracket-seed-rank {
+  width: 56px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+.mock-bracket-seed-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
 
 /* ── 이벤트: 투표(목업) ── */
 .mock-poll-card {
@@ -4462,18 +4498,9 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
             <span class="mock-bracket-step-num">2</span>
             <div>
               <h3 class="mock-bracket-step-title">팀 이름·플레이어 선택</h3>
-              <p class="mock-bracket-step-desc">팀 이름을 입력합니다. <strong>시드 방식</strong>에 따라 시드가 정해지는 규칙이 달라집니다(아래 연동 문구 참고). <strong>멤버를 넣을 팀</strong>을 고른 뒤 공용 플레이어 풀(밸런스메이커와 동일 UI)에서 칩을 누르면 해당 팀 로스터에 반영됩니다. 한 사람은 한 팀에만 속하며, 다른 팀에 넣으면 이전 팀에서 빠집니다.</p>
+              <p class="mock-bracket-step-desc">팀 이름을 입력합니다. 시드 규칙·순서는 <strong>대진표 생성</strong> 단계에서 설정합니다. <strong>멤버를 넣을 팀</strong>을 고른 뒤 공용 플레이어 풀(밸런스메이커와 동일 UI)에서 칩을 누르면 해당 팀 로스터에 반영됩니다. 한 사람은 한 팀에만 속하며, 다른 팀에 넣으면 이전 팀에서 빠집니다.</p>
             </div>
           </div>
-          <div class="mock-modal-field" style="margin-bottom:0">
-            <label for="mock-bracket-seed">시드 방식</label>
-            <select id="mock-bracket-seed" onchange="window.mockBracketSeedSync(this)" aria-describedby="mock-bracket-seed-hint">
-              <option value="manual" selected>수동 배치</option>
-              <option value="random">랜덤</option>
-              <option value="mmr">MMR 순</option>
-            </select>
-          </div>
-          <p id="mock-bracket-seed-hint" class="mock-modal-hint" style="margin:8px 0 14px;font-size:12px;line-height:1.5;color:var(--text-muted)">팀 카드 순서·이름이 그대로 시드가 됩니다. 아래에서 팀명·멤버를 직접 배치합니다.</p>
           <div class="mock-bracket-active-team-row" role="radiogroup" aria-label="멤버를 넣을 팀">
             <span>멤버를 넣을 팀</span>
             <label id="mock-bracket-active-label-1"><input type="radio" name="mock-bracket-active-team" value="1" checked /> 팀 1</label>
@@ -4498,19 +4525,19 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
           </aside>
           <div class="mock-bracket-team-grid">
             <div id="mock-bracket-team-wrap-1" class="mock-bracket-team-card">
-              <div class="mock-bracket-team-name"><label for="mock-bracket-name-1">팀 1</label><input id="mock-bracket-name-1" type="text" placeholder="예: 블루 스쿼드" value="시드 1" /></div>
+              <div class="mock-bracket-team-name"><label for="mock-bracket-name-1">팀 1</label><input id="mock-bracket-name-1" type="text" placeholder="예: 블루 스쿼드" value="시드 1" oninput="if(window.mockBracketSeedOrderRender)window.mockBracketSeedOrderRender()" /></div>
               <div class="mock-bracket-team-roster" id="mock-bracket-roster-1"><span class="mock-bracket-roster-hint" style="font-size:11px;color:var(--text-muted)">팀 선택 후 칩으로 멤버 추가</span></div>
             </div>
             <div id="mock-bracket-team-wrap-2" class="mock-bracket-team-card">
-              <div class="mock-bracket-team-name"><label for="mock-bracket-name-2">팀 2</label><input id="mock-bracket-name-2" type="text" placeholder="예: 레드 스쿼드" value="시드 2" /></div>
+              <div class="mock-bracket-team-name"><label for="mock-bracket-name-2">팀 2</label><input id="mock-bracket-name-2" type="text" placeholder="예: 레드 스쿼드" value="시드 2" oninput="if(window.mockBracketSeedOrderRender)window.mockBracketSeedOrderRender()" /></div>
               <div class="mock-bracket-team-roster" id="mock-bracket-roster-2"><span class="mock-bracket-roster-hint" style="font-size:11px;color:var(--text-muted)">팀 선택 후 칩으로 멤버 추가</span></div>
             </div>
             <div id="mock-bracket-team-wrap-3" class="mock-bracket-team-card">
-              <div class="mock-bracket-team-name"><label for="mock-bracket-name-3">팀 3</label><input id="mock-bracket-name-3" type="text" placeholder="팀 이름" value="시드 3" /></div>
+              <div class="mock-bracket-team-name"><label for="mock-bracket-name-3">팀 3</label><input id="mock-bracket-name-3" type="text" placeholder="팀 이름" value="시드 3" oninput="if(window.mockBracketSeedOrderRender)window.mockBracketSeedOrderRender()" /></div>
               <div class="mock-bracket-team-roster" id="mock-bracket-roster-3"><span class="mock-bracket-roster-hint" style="font-size:11px;color:var(--text-muted)">팀 선택 후 칩으로 멤버 추가</span></div>
             </div>
             <div id="mock-bracket-team-wrap-4" class="mock-bracket-team-card">
-              <div class="mock-bracket-team-name"><label for="mock-bracket-name-4">팀 4</label><input id="mock-bracket-name-4" type="text" placeholder="팀 이름" value="시드 4" /></div>
+              <div class="mock-bracket-team-name"><label for="mock-bracket-name-4">팀 4</label><input id="mock-bracket-name-4" type="text" placeholder="팀 이름" value="시드 4" oninput="if(window.mockBracketSeedOrderRender)window.mockBracketSeedOrderRender()" /></div>
               <div class="mock-bracket-team-roster" id="mock-bracket-roster-4"><span class="mock-bracket-roster-hint" style="font-size:11px;color:var(--text-muted)">팀 선택 후 칩으로 멤버 추가</span></div>
             </div>
           </div>
@@ -4520,54 +4547,75 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
           <div class="mock-bracket-step-head">
             <span class="mock-bracket-step-num">3</span>
             <div>
-              <h3 class="mock-bracket-step-title">대진 수동 조정</h3>
-              <p class="mock-bracket-step-desc">자동 배치된 대진 위치를 바꿉니다. 적용 후 대진표 생성 단계에서 미리보기가 갱신됩니다(목업).</p>
+              <h3 class="mock-bracket-step-title">대진표 생성</h3>
+              <p class="mock-bracket-step-desc">시드 방식을 고르고, 수동 배치일 때는 <strong>시드 순서</strong>를 ↑↓로 바꿉니다. 팀 이름은 2단계 입력값과 실시간 연동됩니다. 이후 대진표를 생성·내보냅니다(목업).</p>
             </div>
           </div>
-          <div class="mock-modal-field" style="margin-bottom:8px">
-            <label for="mock-bracket-swap">시드 스왑</label>
-            <select id="mock-bracket-swap"><option>변경 없음</option><option>1번 시드 ↔ 4번 시드</option><option>2번 ↔ 3번</option><option>전체 순서 랜덤 셔플</option></select>
+          <div class="mock-modal-field" style="margin-bottom:0">
+            <label for="mock-bracket-seed">시드 방식</label>
+            <select id="mock-bracket-seed" onchange="window.mockBracketSeedSync(this)" aria-describedby="mock-bracket-seed-hint">
+              <option value="manual" selected>수동 배치</option>
+              <option value="random">랜덤</option>
+              <option value="mmr">MMR 순</option>
+            </select>
           </div>
-          <button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업: 대진 위치가 조정되었습니다.')">적용</button>
-        </div>
-
-        <div class="mock-bracket-step">
-          <div class="mock-bracket-step-head">
-            <span class="mock-bracket-step-num">4</span>
-            <div>
-              <h3 class="mock-bracket-step-title">대진표 생성</h3>
-              <p class="mock-bracket-step-desc">설정을 반영해 대진표를 그립니다. 내보내기(이미지·링크)는 목업입니다.</p>
+          <p id="mock-bracket-seed-hint" class="mock-modal-hint" style="margin:8px 0 14px;font-size:12px;line-height:1.5;color:var(--text-muted)">아래 시드 순서에서 ↑↓로 직접 바꿉니다. 팀 이름은 2단계 카드와 동일합니다.</p>
+          <div class="mock-bracket-seed-order-panel" aria-label="시드 순서 직접 조정">
+            <div class="mock-bracket-seed-order-title">시드 순서 직접 조정</div>
+            <div id="mock-bracket-seed-row-0" class="mock-bracket-seed-row">
+              <span class="mock-bracket-seed-rank">1순위</span>
+              <span id="mock-bracket-seed-label-0" class="mock-bracket-seed-name">시드 1</span>
+              <button type="button" class="btn btn-secondary btn-sm mock-bracket-seed-swap-btn" onclick="return window.mockBracketSeedRowUp(0)" aria-label="위로">↑</button>
+              <button type="button" class="btn btn-secondary btn-sm mock-bracket-seed-swap-btn" onclick="return window.mockBracketSeedRowDown(0)" aria-label="아래로">↓</button>
+            </div>
+            <div id="mock-bracket-seed-row-1" class="mock-bracket-seed-row">
+              <span class="mock-bracket-seed-rank">2순위</span>
+              <span id="mock-bracket-seed-label-1" class="mock-bracket-seed-name">시드 2</span>
+              <button type="button" class="btn btn-secondary btn-sm mock-bracket-seed-swap-btn" onclick="return window.mockBracketSeedRowUp(1)" aria-label="위로">↑</button>
+              <button type="button" class="btn btn-secondary btn-sm mock-bracket-seed-swap-btn" onclick="return window.mockBracketSeedRowDown(1)" aria-label="아래로">↓</button>
+            </div>
+            <div id="mock-bracket-seed-row-2" class="mock-bracket-seed-row">
+              <span class="mock-bracket-seed-rank">3순위</span>
+              <span id="mock-bracket-seed-label-2" class="mock-bracket-seed-name">시드 3</span>
+              <button type="button" class="btn btn-secondary btn-sm mock-bracket-seed-swap-btn" onclick="return window.mockBracketSeedRowUp(2)" aria-label="위로">↑</button>
+              <button type="button" class="btn btn-secondary btn-sm mock-bracket-seed-swap-btn" onclick="return window.mockBracketSeedRowDown(2)" aria-label="아래로">↓</button>
+            </div>
+            <div id="mock-bracket-seed-row-3" class="mock-bracket-seed-row">
+              <span class="mock-bracket-seed-rank">4순위</span>
+              <span id="mock-bracket-seed-label-3" class="mock-bracket-seed-name">시드 4</span>
+              <button type="button" class="btn btn-secondary btn-sm mock-bracket-seed-swap-btn" onclick="return window.mockBracketSeedRowUp(3)" aria-label="위로">↑</button>
+              <button type="button" class="btn btn-secondary btn-sm mock-bracket-seed-swap-btn" onclick="return window.mockBracketSeedRowDown(3)" aria-label="아래로">↓</button>
             </div>
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
-            <button type="button" class="btn btn-sm" onclick="alert('목업: 대진표가 생성되었습니다. 아래 미리보기·경기 결과 입력이 활성화됩니다.')">대진표 생성</button>
+            <button type="button" class="btn btn-sm" onclick="if(window.mockBracketGenerateClick)window.mockBracketGenerateClick()">대진표 생성</button>
             <button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업: 이미지 또는 공유 링크로 내보냅니다.')">내보내기</button>
           </div>
           <div class="d-card d-card-full" style="margin-bottom:0">
-            <div class="d-card-label">대진 미리보기 (4강)</div>
+            <div class="d-card-label">대진 미리보기 <span id="mock-bracket-prev-mode-label" style="font-weight:600;color:var(--text-muted)">(4강)</span></div>
             <div class="mock-bracket-wrap">
               <div class="mock-bracket-flow">
                 <div class="mock-bracket-round">
-                  <div class="mock-bracket-match">
-                    <div class="mock-bracket-slot"><span>시드 1</span></div>
-                    <div class="mock-bracket-slot"><span>시드 4</span></div>
+                  <div id="mock-bracket-prev-m1" class="mock-bracket-match">
+                    <div class="mock-bracket-slot"><span id="mock-bracket-prev-qf-a">시드 1</span></div>
+                    <div class="mock-bracket-slot"><span id="mock-bracket-prev-qf-b">시드 4</span></div>
                   </div>
-                  <div class="mock-bracket-match">
-                    <div class="mock-bracket-slot"><span>시드 2</span></div>
-                    <div class="mock-bracket-slot"><span>시드 3</span></div>
+                  <div id="mock-bracket-prev-m2-wrap" class="mock-bracket-match">
+                    <div class="mock-bracket-slot"><span id="mock-bracket-prev-qf-c">시드 2</span></div>
+                    <div class="mock-bracket-slot"><span id="mock-bracket-prev-qf-d">시드 3</span></div>
                   </div>
                 </div>
                 <span class="mock-bracket-arrow" aria-hidden="true">→</span>
                 <div class="mock-bracket-round">
                   <div class="mock-bracket-match">
-                    <div class="mock-bracket-slot"><span>준결승</span></div>
-                    <div class="mock-bracket-slot"><span>준결승</span></div>
+                    <div class="mock-bracket-slot"><span id="mock-bracket-prev-sf-a">준결승</span></div>
+                    <div class="mock-bracket-slot"><span id="mock-bracket-prev-sf-b">준결승</span></div>
                   </div>
                 </div>
                 <span class="mock-bracket-arrow" aria-hidden="true">→</span>
                 <div class="mock-bracket-champ">
                   <div class="mock-bracket-champ-label">결승</div>
-                  <div style="font-size:14px;font-weight:700">우승 팀 미정</div>
+                  <div id="mock-bracket-prev-champ" style="font-size:14px;font-weight:700">우승 팀 미정</div>
                 </div>
               </div>
             </div>
@@ -4577,7 +4625,7 @@ body.mock-plan-free .mock-balance-free-note { display: block; margin: 0; font-si
 
         <div class="mock-bracket-step">
           <div class="mock-bracket-step-head">
-            <span class="mock-bracket-step-num">5</span>
+            <span class="mock-bracket-step-num">4</span>
             <div>
               <h3 class="mock-bracket-step-title">경기 종료 시 승리 팀 선택</h3>
               <p class="mock-bracket-step-desc">각 경기가 끝날 때마다 승자를 기록해 다음 라운드로 진행합니다(밸런스 경기 진행의 승자 선택과 유사).</p>

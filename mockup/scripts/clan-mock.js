@@ -259,6 +259,9 @@
       if (seedEl && typeof window.mockBracketSeedSync === "function") {
         window.mockBracketSeedSync(seedEl);
       }
+      if (typeof window.mockBracketSeedOrderRender === "function") {
+        window.mockBracketSeedOrderRender();
+      }
       var fmtEl = document.getElementById("mock-bracket-format");
       if (fmtEl && typeof window.mockBracketFormatHintSync === "function") {
         window.mockBracketFormatHintSync(fmtEl);
@@ -294,6 +297,15 @@
     document.querySelectorAll("[data-events-panel]").forEach(function (p) {
       p.style.display = p.getAttribute("data-events-panel") === name ? "" : "none";
     });
+    if (name === "bracket") {
+      var seedEl = document.getElementById("mock-bracket-seed");
+      if (seedEl && typeof window.mockBracketSeedSync === "function") {
+        window.mockBracketSeedSync(seedEl);
+      }
+      if (typeof window.mockBracketSeedOrderRender === "function") {
+        window.mockBracketSeedOrderRender();
+      }
+    }
   };
 
   window.mockEventPollOpenModal = function () {
@@ -328,6 +340,13 @@
     if (rad && parseInt(rad.value, 10) > cap) {
       var first = document.querySelector('input[name="mock-bracket-active-team"][value="1"]');
       if (first) first.checked = true;
+    }
+    var o = window.mockBracketSeedOrderState;
+    if (!o) o = window.mockBracketSeedOrderState = [0, 1, 2, 3];
+    while (o.length < cap) o.push(o.length);
+    while (o.length > cap) o.pop();
+    if (typeof window.mockBracketSeedOrderRender === "function") {
+      window.mockBracketSeedOrderRender();
     }
   };
 
@@ -387,21 +406,112 @@
     return false;
   };
 
-  /** 대진표: 시드 방식 — 2단계 힌트와 연동 */
+  /** 대진표: 시드 방식 — 대진표 생성 단계 힌트·↑↓ 버튼 활성 */
   window.mockBracketSeedSync = function (sel) {
     var hint = document.getElementById("mock-bracket-seed-hint");
-    if (!hint || !sel) return;
+    if (!sel) return;
     var v = sel.value;
-    if (v === "manual") {
-      hint.textContent =
-        "팀 카드 순서·이름이 그대로 시드가 됩니다. 아래에서 팀명·멤버를 직접 배치합니다.";
-    } else if (v === "random") {
-      hint.textContent =
-        "대진 시드 순서는 무작위로 섞입니다. 팀 로스터 구성은 그대로 두고, 대진표 생성 시 반영됩니다(목업).";
-    } else if (v === "mmr") {
-      hint.textContent =
-        "팀별 멤버 MMR 합을 기준으로 시드 순위가 정해집니다. 팀 로스터를 먼저 채운 뒤 대진표 생성에 반영됩니다(목업).";
+    var manual = v === "manual";
+    if (hint) {
+      if (v === "manual") {
+        hint.textContent =
+          "아래 시드 순서에서 ↑↓로 직접 바꿉니다. 팀 이름은 2단계 입력과 동일하게 반영됩니다.";
+      } else if (v === "random") {
+        hint.textContent =
+          "「대진표 생성」 클릭 시 시드 순서를 무작위로 섞습니다. 수동 배치로 바꾸면 ↑↓로 조정할 수 있습니다(목업).";
+      } else if (v === "mmr") {
+        hint.textContent =
+          "팀별 멤버 MMR 합으로 순위가 정해집니다. 대진표 생성 시 반영됩니다(목업).";
+      }
     }
+    document.querySelectorAll(".mock-bracket-seed-swap-btn").forEach(function (b) {
+      b.disabled = !manual;
+      b.style.opacity = manual ? "1" : "0.45";
+    });
+  };
+
+  window.mockBracketSeedOrderState = [0, 1, 2, 3];
+
+  function mockBracketGetTeamName(teamIdx0) {
+    var inp = document.getElementById("mock-bracket-name-" + (teamIdx0 + 1));
+    return inp && inp.value && inp.value.trim() ? inp.value.trim() : "시드 " + (teamIdx0 + 1);
+  }
+
+  /** 시드 순서 행·대진 미리보기와 2단계 팀명 연동 */
+  window.mockBracketSeedOrderRender = function () {
+    var capEl = document.getElementById("mock-bracket-team-count");
+    var cap = Math.min(parseInt(capEl && capEl.value, 10) || 4, 4);
+    if (cap < 2) cap = 2;
+    var o = window.mockBracketSeedOrderState;
+    if (!o || !o.length) o = window.mockBracketSeedOrderState = [0, 1, 2, 3];
+    while (o.length < cap) o.push(o.length);
+    while (o.length > cap) o.pop();
+
+    var r;
+    for (r = 0; r < 4; r++) {
+      var row = document.getElementById("mock-bracket-seed-row-" + r);
+      if (row) row.style.display = r < cap ? "" : "none";
+      var lab = document.getElementById("mock-bracket-seed-label-" + r);
+      if (lab && r < o.length) lab.textContent = mockBracketGetTeamName(o[r]);
+    }
+
+    var m2 = document.getElementById("mock-bracket-prev-m2-wrap");
+    var modeLab = document.getElementById("mock-bracket-prev-mode-label");
+    var qa = document.getElementById("mock-bracket-prev-qf-a");
+    var qb = document.getElementById("mock-bracket-prev-qf-b");
+    var qc = document.getElementById("mock-bracket-prev-qf-c");
+    var qd = document.getElementById("mock-bracket-prev-qf-d");
+
+    if (cap === 2) {
+      if (m2) m2.style.display = "none";
+      if (modeLab) modeLab.textContent = "(2팀 · 단판)";
+      if (qa) qa.textContent = mockBracketGetTeamName(o[0]);
+      if (qb) qb.textContent = mockBracketGetTeamName(o[1]);
+    } else {
+      if (m2) m2.style.display = "";
+      if (modeLab) modeLab.textContent = "(4강)";
+      if (qa) qa.textContent = mockBracketGetTeamName(o[0]);
+      if (qb) qb.textContent = mockBracketGetTeamName(o[3]);
+      if (qc) qc.textContent = mockBracketGetTeamName(o[1]);
+      if (qd) qd.textContent = mockBracketGetTeamName(o[2]);
+    }
+  };
+
+  window.mockBracketSeedRowUp = function (rowIdx) {
+    var o = window.mockBracketSeedOrderState;
+    if (!o || rowIdx <= 0 || rowIdx >= o.length) return false;
+    var t = o[rowIdx];
+    o[rowIdx] = o[rowIdx - 1];
+    o[rowIdx - 1] = t;
+    window.mockBracketSeedOrderRender();
+    return false;
+  };
+
+  window.mockBracketSeedRowDown = function (rowIdx) {
+    var o = window.mockBracketSeedOrderState;
+    if (!o || rowIdx < 0 || rowIdx >= o.length - 1) return false;
+    var t = o[rowIdx];
+    o[rowIdx] = o[rowIdx + 1];
+    o[rowIdx + 1] = t;
+    window.mockBracketSeedOrderRender();
+    return false;
+  };
+
+  window.mockBracketGenerateClick = function () {
+    var sel = document.getElementById("mock-bracket-seed");
+    if (sel && sel.value === "random") {
+      var o = window.mockBracketSeedOrderState;
+      var cap = o.length;
+      var i;
+      for (i = cap - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = o[i];
+        o[i] = o[j];
+        o[j] = tmp;
+      }
+      window.mockBracketSeedOrderRender();
+    }
+    alert("목업: 대진표가 생성되었습니다. 아래 미리보기·경기 결과 입력이 활성화됩니다.");
   };
 
   /** 대진표: 1단계 대회 형식 — 미리보기 하단 문구와 연동 */
