@@ -12,7 +12,7 @@
 /games/[gameSlug]/clan     → ClanAuth (클랜 가입/생성)
 /games/[gameSlug]/clan/[clanId]         → MainClan
 /games/[gameSlug]/clan/[clanId]/balance → 밸런스메이커
-/games/[gameSlug]/clan/[clanId]/stats   → 클랜 통계(구성원: 요약·맵 / 운영진+: 경기 기록에 개인 승률 순위)
+/games/[gameSlug]/clan/[clanId]/stats   → 클랜 통계(탭·권한: [clan-stats-plan.md](./clan-stats-plan.md))
 /games/[gameSlug]/clan/[clanId]/events  → 클랜 이벤트
 /games/[gameSlug]/clan/[clanId]/manage  → 클랜 관리(구성원별 개인 통계·승패 등)
 /games/[gameSlug]/clan/[clanId]/store   → 클랜 스토어
@@ -79,10 +79,19 @@
 - 편집·맵/밴·팀 보드·플랜별 기능. **화면 카피·도움말 본문·스펙 메모**: [balance-maker-ui-notes.md](./balance-maker-ui-notes.md)
 - **세션**: 밸런스장 1명만 배치 편집, 나머지는 실시간 관전 동기화 → 배치 완료 후 밴(ON 시) → **경기 시작 = 밴 종료 직후**에 승부예측 마감 타이머. 디스코드는 선택 보조.
 
+### 클랜 통계 (`/stats`, MainClan 탭)
+- 요약·명예의 전당·앱 이용(맵·활동)·경기 기록(운영진+) 등 — **전체 스펙**: [clan-stats-plan.md](./clan-stats-plan.md)
+
 ### 클랜 이벤트 (`/games/[gameSlug]/clan/[clanId]/events`, MainClan 탭)
 - **월간 캘린더**(현재 월·요일 그리드, 일자별 일정 점/하이라이트) + 하단 **이번 달 일정 그리드**(카드: 유형 배지·시간·장소·반복/자동출처 표기).
 - 일정 등록: 유형, 일시, **반복**(없음 / 매주 / 매월 / 격주 등 목업), 장소·채널. 스크림은 매칭 확정 시 **자동 등록**되어 별도 입력 없이 노출(목업 안내 카피).
 - Premium: 대진표 생성기(비활성·업셀 목업 가능).
+
+### 클랜 관리 (`/manage`, MainClan 탭 · 운영진+)
+- 개요(프로필·공지·규칙·코인 요약·배너 편집) · 구성원 관리(가입 요청·테이블·개인 상세) · 구독결제(클랜장 중심 목업). 정적 목업: `view-manage`, 사이드바 `mock-officer-only`.
+
+### 클랜 스토어 (`/store`, MainClan 탭)
+- 클랜/개인 코인 풀 · 클랜 꾸미기·개인 꾸미기 탭 · Premium 잠금 카드 · 꾸미기는 **서비스 프리셋만**(업로드 없음).
 
 ### MainGame (/games/[gameSlug])
 - 클랜 홍보 게시판

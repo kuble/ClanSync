@@ -48,7 +48,7 @@
 - [x] 이벤트(캘린더·그리드·대진표 등) 목업 존재
 - [x] 관리 탭(구성원·구독 등) 목업 존재
 - [x] 스토어 Premium 잠금·코인 표현 목업 존재
-- [ ] `pages.md` / PRD / clan-main-static-mockup-plan 대비 통일·폴리시 점검
+- [x] `pages.md` / PRD / clan-main-static-mockup-plan 대비 통일·폴리시 점검 (§4.3–4.6 갱신, 대진표 Premium 게이트·탭 배지)
 
 ### S07 MainGame 커뮤니티
 - [x] `mockup/pages/main-game.html` 골격
@@ -79,6 +79,11 @@
 ## 세션 로그 (날짜순 · 한 세션 = 한 블록)
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
+
+### 2026-03-28 — S06 이벤트·관리·스토어 문서·목업 정합
+- [x] `pages.md`에 통계·관리·스토어 섹션 추가, `clan-main-static-mockup-plan.md` §4.3–4.6 목업 ID·권한 반영
+- [x] 이벤트 대진표: Premium 탭 배지 + Free 플랜 시 본문 숨김(`mock-hide-on-free`)·안내 문구
+- [x] `slice-06` 수용 기준·진행도·요약표
 
 ### 2026-03-28 — S05 클랜 통계 문서·목업 정합
 - [x] `clan-stats-plan.md` §5·§9 재작성: 탭 4개(요약·명예의 전당·경기 기록·앱 이용)·권한·HoF vs 경기 기록 구분
@@ -126,7 +131,7 @@
 | S03 | 완료 | 미완 |
 | S04 | 완료 | 완료 |
 | S05 | 완료 | 완료 |
-| S06 | 완료 | 미완 |
+| S06 | 완료 | 완료 |
 | S07 | 부분 | 미완 |
 | S08 | 부분 | 미완 |
 
@@ -139,8 +144,8 @@
 다음 세션 권장 프롬프트 (복사용):
 
 ```
-@docs/01-plan/FEATURE_INDEX.md @docs/01-plan/slices/slice-06-events-manage-store.md @docs/01-plan/pages.md @docs/01-plan/clan-main-static-mockup-plan.md @docs/IMPLEMENTATION_PROGRESS.md 참고해서
-이벤트·관리·스토어 목업(`main-clan.html` 해당 뷰·`clan-mock.js`)을 `pages.md`·PRD·clan-main-static-mockup-plan과 통일·폴리시 점검한다.
+@docs/01-plan/FEATURE_INDEX.md @docs/01-plan/clan-main-static-mockup-plan.md @docs/IMPLEMENTATION_PROGRESS.md 참고해서
+MainClan 쉘(`main-clan.html` 사이드바·탭·플랜 경계)을 clan-main-static-mockup-plan §3·§4와 맞추고, 탭별 콘텐츠·Premium 시각 통일을 점검한다.
 
 완료 후 `docs/IMPLEMENTATION_PROGRESS.md` 체크박스·요약표·세션 로그를 갱신해줘.
 ```

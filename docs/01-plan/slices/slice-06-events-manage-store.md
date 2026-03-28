@@ -13,11 +13,13 @@
 
 ## 수용 기준
 
-- [ ] 스토어 카드에 Free/Premium 잠금이 시각적으로 구분
+- [x] 스토어 카드에 Free/Premium 잠금이 시각적으로 구분 (`pro` 카드·disabled `Premium` 버튼)
+- [x] 이벤트 **대진표 생성기**가 PRD Premium 전용임을 탭·Free 플랜 안내로 구분
 
 ## 목업
 
-- `mockup/pages/main-clan.html` — 이벤트 / 관리 / 스토어 탭
+- `mockup/pages/main-clan.html` — `view-events` · `view-manage` · `view-store`
+- 정적 목업 IA·권한: [clan-main-static-mockup-plan.md](../clan-main-static-mockup-plan.md) §4.4–4.6
 
 ## 스키마
 
