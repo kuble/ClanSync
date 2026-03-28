@@ -266,7 +266,10 @@ function mockBadgeCaseTab(el, tabId) {
   });
 }
 
-/** 목업: 게임별 네임카드에 올릴 뱃지 id 배열(최대 5) */
+/** 밸런스 슬롯·프로필 네임카드 공통: 표시 뱃지 상한(목업) */
+const MOCK_BADGE_NAMEPLATE_MAX = 5;
+
+/** 목업: 게임별 네임카드에 올릴 뱃지 id 배열(최대 MOCK_BADGE_NAMEPLATE_MAX) */
 function mockBadgeCaseGetPicks() {
   if (!window.__mockBadgeCasePicks) {
     window.__mockBadgeCasePicks = { ow: [], val: [] };
@@ -297,8 +300,8 @@ function mockBadgeCaseTogglePick(btn) {
   const idx = arr.indexOf(id);
   if (idx >= 0) {
     arr.splice(idx, 1);
-  } else if (arr.length >= 5) {
-    alert('네임카드에는 최대 5개까지 표시할 수 있습니다.');
+  } else if (arr.length >= MOCK_BADGE_NAMEPLATE_MAX) {
+    alert(`네임카드에는 최대 ${MOCK_BADGE_NAMEPLATE_MAX}개까지 표시할 수 있습니다.`);
     return;
   } else {
     arr.push(id);
@@ -320,7 +323,7 @@ function mockBadgeCaseApplyPicksUI(game) {
   const ol = variant.querySelector('[data-badge-pick-list]');
   if (!ol) return;
   ol.innerHTML = '';
-  for (let i = 0; i < 5; i += 1) {
+  for (let i = 0; i < MOCK_BADGE_NAMEPLATE_MAX; i += 1) {
     const bid = picks[i];
     const li = document.createElement('li');
     if (bid) {
