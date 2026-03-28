@@ -99,3 +99,4 @@
 - 스크림 자동 매칭 버튼 (운영진+)
 - 클랜 순위표
 - 스크림 평판 (클랜장 전용)
+- **정적 목업** (`mockup/pages/main-game.html`): 사이드바 `navTo`로 홈·LFG·스크림·홍보·순위 전환; LFG·스크림·홍보는 공통 `lfg-filter-panel` 패턴·초기화(↺); 홍보는 활성 필터 태그·`promoDrawer`·가입 `openJoinModal`; 티어·배지는 BACKLOG 에셋 전까지 플레이스홀더(`.mock-main-game-asset-hint`).

@@ -30,6 +30,8 @@
 - [ ] 클랜 배지 — `BADGE_DEFS`, `clanBadgesHtml()`
 - [ ] 게임 사이드바 썸네일
 
+목업 상단 `.mock-main-game-asset-hint`로 플레이스홀더 안내 표시(에셋 들어가기 전까지 유지).
+
 ---
 
 ## 문서 메타

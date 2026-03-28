@@ -52,8 +52,8 @@
 
 ### S07 MainGame 커뮤니티
 - [x] `mockup/pages/main-game.html` 골격
-- [ ] 홍보·LFG·필터 등 핵심 플로우 점검
-- [ ] BACKLOG: 티어/배지 에셋 교체 전까지 플레이스홀더 유지 표시
+- [x] 홍보·LFG·스크림·필터·`navTo` 핵심 플로우 점검 (`resetLfgFilters` 선택자 수정, `pages.md` 목업 한 줄)
+- [x] BACKLOG: 티어/배지 에셋 전 플레이스홀더 안내(`.mock-main-game-asset-hint`·BACKLOG.md 상호 참조)
 
 ### S08 프로필 · 꾸미기
 - [x] `profile.html` · partials · `app.js` 연동 존재
@@ -79,6 +79,10 @@
 ## 세션 로그 (날짜순 · 한 세션 = 한 블록)
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
+
+### 2026-03-28 — S07 MainGame 홍보·LFG·필터·플레이스홀더
+- [x] `main-game.html`: LFG 필터 초기화 `#sec-lfg .lfg-filter-panel` 수정, `navTo`/에셋 BACKLOG 주석, `.mock-main-game-asset-hint` 안내
+- [x] `pages.md` MainGame 목업 요약, `BACKLOG.md`·`slice-07` 수용 기준, 진행도·요약표 S07 **완료**
 
 ### 2026-03-28 — S03 MainClan 쉘 문서·플랜 경계 정합
 - [x] `clan-main-static-mockup-plan.md` §2.1 해시·뷰 매핑, §3 권한·§3.1 플랜·§8 현재 네비 정책 반영
@@ -136,7 +140,7 @@
 | S04 | 완료 | 완료 |
 | S05 | 완료 | 완료 |
 | S06 | 완료 | 완료 |
-| S07 | 부분 | 미완 |
+| S07 | 완료 | 완료 |
 | S08 | 부분 | 미완 |
 
 위 체크리스트를 갱신할 때 본 표의 **완료 / 부분 / 미완**도 맞춘다.
@@ -149,7 +153,7 @@
 
 ```
 @docs/01-plan/FEATURE_INDEX.md @docs/01-plan/pages.md @docs/IMPLEMENTATION_PROGRESS.md 참고해서
-S07 MainGame(`mockup/pages/main-game.html`) 홍보·LFG·필터 핵심 플로우를 점검하고, BACKLOG 티어/배지 플레이스홀더 표시를 정리한다.
+S08 프로필·꾸미기(`profile.html`·partials)와 밸런스 슬롯·뱃지 정책 일치를 점검한다.
 
 완료 후 `docs/IMPLEMENTATION_PROGRESS.md` 체크박스·요약표·세션 로그를 갱신해줘.
 ```

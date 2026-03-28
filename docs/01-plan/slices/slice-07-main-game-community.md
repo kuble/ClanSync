@@ -7,7 +7,7 @@
 
 ## 수용 기준
 
-- [ ] 홍보 카드·필터·드로어가 목업에서 동작 경로가 명확 (JS 함수명은 목업 주석 참고)
+- [x] 홍보 카드·필터(`setPromoGroupFilter`·`togglePromoSpecial`·`resetPromoFiltersAll`)·드로어(`openPromoDrawer`/`closePromoDrawer`)·가입(`openJoinModal`) 동작 경로가 목업에서 명확; LFG·스크림 필터는 `lfg-filter-panel`·`resetLfgFilters`(선택자 `#sec-lfg`)·`navTo` 주석 참고
 
 ## 목업
 
