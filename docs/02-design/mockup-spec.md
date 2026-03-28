@@ -1,7 +1,8 @@
 # ClanSync 목업 명세서 (Phase 3)
 
 > 작성일: 2026-03-20  
-> 상태: 완료 → Phase 4 API 설계로 이동
+> 상태: 목업·디자인 토큰 기준서 (유지)  
+> 기획·슬라이스 맵: [../README.md](../README.md) · [../01-plan/FEATURE_INDEX.md](../01-plan/FEATURE_INDEX.md)
 
 ---
 
@@ -53,7 +54,7 @@ mockup/
 | 브랜드 1 | `--brand-primary` | `#7c3aed` |
 | 브랜드 2 | `--brand-secondary` | `#3b82f6` |
 | 브랜드 그라디언트 | `--gradient-brand` | `135deg, #7c3aed → #3b82f6` |
-| Premium 골드 | `--pro-gold` | `#f59e0b` |
+| Premium 골드 (코드 변수명 `pro-gold`) | `--pro-gold` | `#f59e0b` |
 | 성공 / 위험 | `--success` / `--danger` | 유지 |
 | 텍스트 주·보조·뮤트·그룹 | `--text-primary` 등 | Hub 스케일 |
 

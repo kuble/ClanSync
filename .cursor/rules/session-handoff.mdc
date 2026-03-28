@@ -17,7 +17,7 @@ alwaysApply: true
 
 ```
 --- 다음 세션 시작 메시지 ---
-@docs/01-plan/PRD.md @[관련파일] 참고해서
+@docs/01-plan/FEATURE_INDEX.md @docs/01-plan/slices/slice-XX-*.md @[관련 목업/코드] 참고해서
 [다음 작업 내용]을 진행하자.
 
 현재 상태:
@@ -26,14 +26,16 @@ alwaysApply: true
 ---
 ```
 
+(토큰 절약: `PRD.md` 전체 대신 **해당 슬라이스 한 개**를 우선 참조.)
+
 ## 예시
 
-Phase 2 완료 후:
+슬라이스 S04 작업 시:
 ```
-@docs/01-plan/PRD.md @CONVENTIONS.md 참고해서
-Phase 3 목업 개발을 시작하자.
+@docs/01-plan/FEATURE_INDEX.md @docs/01-plan/slices/slice-04-balance-maker.md 참고해서
+밸런스 탭 목업 [구체 항목]을 진행하자.
 
 현재 상태:
-- 완료: Phase 1(스키마), Phase 2(컨벤션)
-- 다음: Landing, 로그인, GameSelect, MainClan 목업 HTML 작성
+- 완료: 문서 슬라이스 분리·동결
+- 다음: 밸런스 세션 플로우 목업 조정
 ```

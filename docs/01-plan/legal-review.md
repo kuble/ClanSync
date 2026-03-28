@@ -20,7 +20,7 @@
 - 공식 API 외 비공식 크롤링은 ToS 위반 가능성 있음
 - 참고: https://develop.battle.net/documentation
 
-### 2. OCR 기능 (PRO)
+### 2. OCR 기능 (Premium)
 - 게임 화면 캡처 후 닉네임 인식
 - 게임사 ToS에서 화면 캡처 자동화 프로그램 허용 여부 확인 필요
 - 오버워치: Blizzard ToS §2 — 자동화 도구 제한 조항 검토 필요
