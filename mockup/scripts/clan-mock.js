@@ -6448,7 +6448,7 @@
     return false;
   };
 
-  /** 상단 탭: 요약 / 경기 기록(운영진+) / 명예의 전당 / 앱 이용(연·월 표는 정적 HTML) — main-game 클랜 순위 탭과 동일 패턴(hidden + .on) */
+  /** 상단 탭: 요약 / 명예의 전당 / 경기 기록(운영진+) / 앱 이용 — main-game 클랜 순위 탭과 동일 패턴(hidden + .on) */
   window.mockStatsSetSection = function (btn, name) {
     if (name === "archive" && window.mockClanCurrentRole() === "member") {
       var sumBtn = document.getElementById("statsTabSummary");
