@@ -1715,7 +1715,50 @@
     }
   };
 
-  /* 스토어: 클랜 / 개인 */
+  /* 스토어: 클랜 / 개인 · 잔액 풀 강조 · 개인 탭 게임 필터 */
+  window.mockStoreSetGameFilter = function (btn, key) {
+    var row = document.getElementById("mock-store-game-filter");
+    if (key == null && btn && btn.getAttribute) {
+      key = btn.getAttribute("data-store-game-chip") || "all";
+    }
+    key = key || "all";
+    if (row) {
+      row.querySelectorAll("[data-store-game-chip]").forEach(function (chipEl) {
+        var on = chipEl.getAttribute("data-store-game-chip") === key;
+        chipEl.classList.toggle("mock-profile-game-chip--active", on);
+        chipEl.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+    }
+    document.querySelectorAll("[data-store-panel='personal'] [data-store-item-game]").forEach(function (card) {
+      var g = card.getAttribute("data-store-item-game");
+      var show = key === "all" || key === g || g === "all";
+      card.style.display = show ? "" : "none";
+    });
+  };
+
+  window.mockStorePurchaseMock = function (btn) {
+    var card = btn && btn.closest ? btn.closest(".mock-store-card") : null;
+    var title = "";
+    if (card) {
+      title = card.getAttribute("data-store-title") || "";
+      if (!title) {
+        var strong = card.querySelector("strong");
+        title = strong ? strong.textContent.trim() : "";
+      }
+    }
+    var toast = document.getElementById("mock-store-toast");
+    if (toast) {
+      toast.textContent = "구매 완료(목업): " + (title || "항목");
+      toast.hidden = false;
+      toast.classList.add("mock-store-toast--show");
+      if (window._mockStoreToastTimer) clearTimeout(window._mockStoreToastTimer);
+      window._mockStoreToastTimer = setTimeout(function () {
+        toast.classList.remove("mock-store-toast--show");
+        toast.hidden = true;
+      }, 2600);
+    }
+  };
+
   window.mockStoreSetTab = function (btn, name) {
     document.querySelectorAll("[data-store-tab]").forEach(function (b) {
       b.classList.toggle("mock-tab-active", b === btn);
@@ -1723,6 +1766,15 @@
     document.querySelectorAll("[data-store-panel]").forEach(function (p) {
       p.style.display = p.getAttribute("data-store-panel") === name ? "" : "none";
     });
+    var bal = document.querySelector("[data-store-balance-row]");
+    if (bal) {
+      bal.setAttribute("data-active-pool", name === "clan" ? "clan" : "personal");
+    }
+    if (name === "personal") {
+      var activeChip = document.querySelector("#mock-store-game-filter [data-store-game-chip].mock-profile-game-chip--active");
+      var k = activeChip ? activeChip.getAttribute("data-store-game-chip") || "all" : "all";
+      window.mockStoreSetGameFilter(null, k);
+    }
   };
 
   /* 밸런스: 구 경기 탭 목업(제거됨) — 호출 잔존 시 무해 */
