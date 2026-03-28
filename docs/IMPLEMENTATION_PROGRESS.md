@@ -32,7 +32,7 @@
 ### S03 MainClan 쉘 (허브 · 탭 · 플랜/권한 목업)
 - [x] `mockup/_hub.html` (역할 · Free/Premium)
 - [x] `mockup/pages/main-clan.html` · `mockup/scripts/clan-mock.js` 골격
-- [ ] 탭별 콘텐츠·플랜 경계 시각적 통일 (clan-main-static-mockup-plan 반영 여부)
+- [x] 탭별 콘텐츠·플랜 경계 시각적 통일 (`clan-main-static-mockup-plan` §2.1·§3·§4, `mock-hide-on-free`·프로모·배지 패턴 점검)
 
 ### S04 밸런스메이커
 - [x] 밸런스 서브뷰·설정 목업 존재
@@ -79,6 +79,10 @@
 ## 세션 로그 (날짜순 · 한 세션 = 한 블록)
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
+
+### 2026-03-28 — S03 MainClan 쉘 문서·플랜 경계 정합
+- [x] `clan-main-static-mockup-plan.md` §2.1 해시·뷰 매핑, §3 권한·§3.1 플랜·§8 현재 네비 정책 반영
+- [x] `slice-03` 수용 기준 완료, 진행도·요약표 S03 폴리시 열 **완료**
 
 ### 2026-03-28 — S06 이벤트·관리·스토어 문서·목업 정합
 - [x] `pages.md`에 통계·관리·스토어 섹션 추가, `clan-main-static-mockup-plan.md` §4.3–4.6 목업 ID·권한 반영
@@ -128,7 +132,7 @@
 | S00 | 완료 | 진행 중 |
 | S01 | 완료 | 미완 |
 | S02 | 완료 | 미완 |
-| S03 | 완료 | 미완 |
+| S03 | 완료 | 완료 |
 | S04 | 완료 | 완료 |
 | S05 | 완료 | 완료 |
 | S06 | 완료 | 완료 |
@@ -144,8 +148,8 @@
 다음 세션 권장 프롬프트 (복사용):
 
 ```
-@docs/01-plan/FEATURE_INDEX.md @docs/01-plan/clan-main-static-mockup-plan.md @docs/IMPLEMENTATION_PROGRESS.md 참고해서
-MainClan 쉘(`main-clan.html` 사이드바·탭·플랜 경계)을 clan-main-static-mockup-plan §3·§4와 맞추고, 탭별 콘텐츠·Premium 시각 통일을 점검한다.
+@docs/01-plan/FEATURE_INDEX.md @docs/01-plan/pages.md @docs/IMPLEMENTATION_PROGRESS.md 참고해서
+S07 MainGame(`mockup/pages/main-game.html`) 홍보·LFG·필터 핵심 플로우를 점검하고, BACKLOG 티어/배지 플레이스홀더 표시를 정리한다.
 
 완료 후 `docs/IMPLEMENTATION_PROGRESS.md` 체크박스·요약표·세션 로그를 갱신해줘.
 ```

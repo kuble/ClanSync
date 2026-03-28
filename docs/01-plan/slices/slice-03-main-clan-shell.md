@@ -8,8 +8,8 @@
 
 ## 수용 기준
 
-- [ ] `_hub.html`에서 iframe으로 `main-clan.html` 로드 시 플랜·권한이 `sessionStorage` / `?role=` 와 맞물림
-- [ ] Premium 전용 블록은 Free에서 숨김 + 도움말 안내 (정책)
+- [x] `_hub.html`에서 iframe으로 `main-clan.html` 로드 시 플랜·권한이 `sessionStorage` / `?role=`·`?plan=` 와 맞물림 (`hubBuildMainClanUrl` → `applyRoleBodyClass` / `applyPlanBodyClass`)
+- [x] Premium 전용 블록은 Free에서 숨김(`mock-hide-on-free`) + 안내(`mock-balance-free-note` 등) — §3.1·밸런스·이벤트·스토어 패턴 통일
 
 ## 목업
 
