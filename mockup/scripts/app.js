@@ -27,9 +27,11 @@ window.addEventListener('scroll', () => {
 
 // 페이드인 초기화
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.fade-in').forEach(el => {
+  document.querySelectorAll('.fade-in').forEach((el) => {
     el.style.opacity = '1';
   });
+  mockNameplateApplyPreview('ow2');
+  mockNameplateApplyPreview('val');
 });
 
 // 모달 외부 클릭 닫기
@@ -124,6 +126,11 @@ window.addEventListener('resize', onSidebarDrawerResize);
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeSidebarDrawer();
+    const npm = document.getElementById('mock-nameplate-case-modal');
+    if (npm && !npm.hasAttribute('hidden')) {
+      mockNameplateCaseModalClose();
+      return;
+    }
     const bcm = document.getElementById('mock-badge-case-modal');
     if (bcm && !bcm.hasAttribute('hidden')) {
       mockBadgeCaseModalClose();
@@ -377,7 +384,207 @@ function mockBadgeCaseModalClose() {
   m.setAttribute('hidden', '');
   m.setAttribute('aria-hidden', 'true');
   const ppm = document.getElementById('mock-player-profile-modal');
-  if (!ppm || ppm.hasAttribute('hidden')) {
+  const npm = document.getElementById('mock-nameplate-case-modal');
+  const keepScrollLock =
+    (ppm && !ppm.hasAttribute('hidden')) || (npm && !npm.hasAttribute('hidden'));
+  if (!keepScrollLock) {
+    document.body.style.overflow = '';
+  }
+}
+
+// ── 네임카드 · 밸런스 슬롯 꾸미기 (partial 주입) ──
+const MOCK_NAMEPLATE_META = {
+  ow2: {
+    emblem: { 'ow2-e1': '🏆', 'ow2-e2': '⚔️', 'ow2-e3': '🛡️' },
+    namebar: { 'ow2-nb1': '', 'ow2-nb2': 'mock-profile-np-namebar--gold', 'ow2-nb3': 'mock-profile-np-namebar--cyan' },
+    sub: {
+      'ow2-s1': { ico: '🔔', text: '시즌 칭호 · 뉴비 · 프레임: 녹색 러너' },
+      'ow2-s2': { ico: '⭐', text: '플레이스먼트 · 다이아 목표' },
+      'ow2-s3': { ico: '🏅', text: '클랜 내전 MVP' },
+    },
+    frame: { 'ow2-f1': '', 'ow2-f2': 'mock-profile-np-preview--ow-f2', 'ow2-f3': 'mock-profile-np-preview--ow-f3' },
+  },
+  val: {
+    emblem: { 'val-e1': '🎯', 'val-e2': '💀', 'val-e3': '✨' },
+    namebar: {
+      'val-nb1': '',
+      'val-nb2': 'mock-profile-np-namebar--val-neon',
+      'val-nb3': 'mock-profile-np-namebar--val-dark',
+    },
+    sub: {
+      'val-s1': { ico: '✦', text: '타격대 · 붉은 테두리 프레임' },
+      'val-s2': { ico: '💣', text: '스파이크 캐리 · 레디언트 도전' },
+      'val-s3': { ico: '🎮', text: '듀오 큐 · 페이드 메인' },
+    },
+    frame: { 'val-f1': '', 'val-f2': 'mock-profile-np-preview--val-f2', 'val-f3': 'mock-profile-np-preview--val-f3' },
+  },
+};
+
+function mockNameplateGetState() {
+  if (!window.__mockNameplateState) {
+    window.__mockNameplateState = {
+      ow2: { emblem: 'ow2-e1', namebar: 'ow2-nb1', sub: 'ow2-s1', frame: 'ow2-f1' },
+      val: { emblem: 'val-e1', namebar: 'val-nb1', sub: 'val-s1', frame: 'val-f1' },
+    };
+  }
+  return window.__mockNameplateState;
+}
+
+function stripNameplateNamebarClasses(el, game) {
+  const all =
+    game === 'ow2'
+      ? ['mock-profile-np-namebar--gold', 'mock-profile-np-namebar--cyan']
+      : ['mock-profile-np-namebar--val-neon', 'mock-profile-np-namebar--val-dark'];
+  all.forEach((c) => el.classList.remove(c));
+}
+
+function stripNameplateFrameClasses(preview, game) {
+  const all =
+    game === 'ow2'
+      ? ['mock-profile-np-preview--ow-f2', 'mock-profile-np-preview--ow-f3']
+      : ['mock-profile-np-preview--val-f2', 'mock-profile-np-preview--val-f3'];
+  all.forEach((c) => preview.classList.remove(c));
+}
+
+function mockNameplateApplyPreview(game) {
+  const st = mockNameplateGetState()[game];
+  if (!st) return;
+  const meta = MOCK_NAMEPLATE_META[game];
+  if (!meta) return;
+  document.querySelectorAll(`[data-nameplate-preview="${game}"]`).forEach((preview) => {
+    const em = preview.querySelector('.mock-profile-np-emblem');
+    if (em && meta.emblem[st.emblem]) em.textContent = meta.emblem[st.emblem];
+    const nb = preview.querySelector('.mock-profile-np-namebar');
+    if (nb) {
+      stripNameplateNamebarClasses(nb, game);
+      const cls = meta.namebar[st.namebar];
+      if (cls) nb.classList.add(cls);
+    }
+    const sub = preview.querySelector('.mock-profile-np-sub');
+    if (sub && meta.sub[st.sub]) {
+      const { ico, text } = meta.sub[st.sub];
+      sub.innerHTML = `<span class="mock-profile-np-sub-ico">${ico}</span> ${text}`;
+    }
+    stripNameplateFrameClasses(preview, game);
+    const fc = meta.frame[st.frame];
+    if (fc) preview.classList.add(fc);
+  });
+}
+
+function mockNameplateCaseModalInject() {
+  if (document.getElementById('mock-nameplate-case-modal')) {
+    return Promise.resolve();
+  }
+  const sc = document.querySelector('script[src*="app.js"]');
+  if (!sc || !sc.src) {
+    return Promise.reject(new Error('app.js src not found'));
+  }
+  const url = new URL('../partials/nameplate-case-modal.html', sc.src);
+  return fetch(url)
+    .then((r) => {
+      if (!r.ok) throw new Error(String(r.status));
+      return r.text();
+    })
+    .then((html) => {
+      document.body.insertAdjacentHTML('beforeend', html);
+    });
+}
+
+function mockNameplateCaseTab(el, tabId) {
+  const variant = el.closest('.mock-nameplate-case-variant');
+  if (!variant) return;
+  variant.querySelectorAll('[data-np-tab]').forEach((btn) => {
+    const on = btn.getAttribute('data-np-tab') === tabId;
+    btn.classList.toggle('mock-profile-tab--active', on);
+    btn.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  variant.querySelectorAll('[data-np-panel]').forEach((panel) => {
+    const show = panel.getAttribute('data-np-panel') === tabId;
+    if (show) panel.removeAttribute('hidden');
+    else panel.setAttribute('hidden', '');
+  });
+}
+
+function mockNameplateCaseSyncModalUI(game) {
+  const st = mockNameplateGetState()[game];
+  if (!st) return;
+  const root = document.getElementById('mock-nameplate-case-modal');
+  if (!root) return;
+  const variant = root.querySelector(`[data-nameplate-case-for="${game}"]`);
+  if (!variant) return;
+  variant.querySelectorAll('[data-np-opt]').forEach((btn) => {
+    const cat = btn.getAttribute('data-np-cat');
+    const opt = btn.getAttribute('data-np-opt');
+    const on = st[cat] === opt;
+    btn.classList.toggle('mock-nameplate-case-opt--on', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+
+function mockNameplateCaseSelect(btn) {
+  const game = btn.getAttribute('data-game');
+  const cat = btn.getAttribute('data-np-cat');
+  const opt = btn.getAttribute('data-np-opt');
+  if (!game || !cat || !opt) return;
+  const st = mockNameplateGetState();
+  if (!st[game]) st[game] = {};
+  st[game][cat] = opt;
+  mockNameplateApplyPreview(game);
+  mockNameplateCaseSyncModalUI(game);
+}
+
+function mockNameplateCaseModalApplyGame(gameKey) {
+  const root = document.getElementById('mock-nameplate-case-modal');
+  if (!root) return;
+  const titles = {
+    ow2: '오버워치 2 · 네임카드',
+    val: '발로란트 · 네임카드',
+  };
+  const t = root.querySelector('#mock-nameplate-case-title');
+  if (t) t.textContent = titles[gameKey] || '네임카드 · 밸런스 슬롯';
+  root.querySelectorAll('[data-nameplate-case-for]').forEach((el) => {
+    const match = el.getAttribute('data-nameplate-case-for') === gameKey;
+    if (match) el.removeAttribute('hidden');
+    else el.setAttribute('hidden', '');
+  });
+  mockNameplateApplyPreview(gameKey);
+  mockNameplateCaseSyncModalUI(gameKey);
+  const variant = root.querySelector(`[data-nameplate-case-for="${gameKey}"]`);
+  if (variant) {
+    const firstBtn = variant.querySelector('[data-np-tab]');
+    if (firstBtn) {
+      const tid = firstBtn.getAttribute('data-np-tab');
+      mockNameplateCaseTab(firstBtn, tid);
+    }
+  }
+}
+
+function mockNameplateCaseModalOpen(gameKey) {
+  const key = gameKey === 'val' ? 'val' : 'ow2';
+  mockNameplateCaseModalInject()
+    .then(() => {
+      mockNameplateCaseModalApplyGame(key);
+      const m = document.getElementById('mock-nameplate-case-modal');
+      if (!m) return;
+      m.removeAttribute('hidden');
+      m.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    })
+    .catch(() => {
+      alert('목업: 네임카드 꾸미기 UI를 불러오지 못했습니다.');
+    });
+}
+
+function mockNameplateCaseModalClose() {
+  const m = document.getElementById('mock-nameplate-case-modal');
+  if (!m) return;
+  m.setAttribute('hidden', '');
+  m.setAttribute('aria-hidden', 'true');
+  const ppm = document.getElementById('mock-player-profile-modal');
+  const bcm = document.getElementById('mock-badge-case-modal');
+  const keepScrollLock =
+    (ppm && !ppm.hasAttribute('hidden')) || (bcm && !bcm.hasAttribute('hidden'));
+  if (!keepScrollLock) {
     document.body.style.overflow = '';
   }
 }
@@ -390,3 +597,8 @@ window.mockBadgeCaseModalOpen = mockBadgeCaseModalOpen;
 window.mockBadgeCaseModalClose = mockBadgeCaseModalClose;
 window.mockBadgeCaseTab = mockBadgeCaseTab;
 window.mockBadgeCaseTogglePick = mockBadgeCaseTogglePick;
+window.mockNameplateCaseModalOpen = mockNameplateCaseModalOpen;
+window.mockNameplateCaseModalClose = mockNameplateCaseModalClose;
+window.mockNameplateCaseTab = mockNameplateCaseTab;
+window.mockNameplateCaseSelect = mockNameplateCaseSelect;
+window.mockNameplateApplyPreview = mockNameplateApplyPreview;

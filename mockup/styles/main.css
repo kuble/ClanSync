@@ -1168,6 +1168,204 @@ input[type="datetime-local"][lang="ko-KR"] {
   margin: 0;
   font-size: 11px;
 }
+.mock-profile-nameplate-label-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.mock-profile-nameplate-label-row .mock-profile-bundle-section-label {
+  margin-bottom: 0;
+}
+
+/* 네임카드 꾸미기 모달 (뱃지 케이스보다 위) */
+.mock-modal-overlay--nameplate-case {
+  z-index: 315;
+}
+.mock-modal-card--nameplate-case {
+  max-width: min(520px, calc(100vw - 40px));
+  max-height: min(88vh, 900px);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 18px 20px 16px;
+  overflow: hidden;
+}
+.mock-nameplate-case-variant[hidden] {
+  display: none !important;
+}
+.mock-modal-card--nameplate-case .mock-badge-case-tabrow {
+  margin-left: -20px;
+  margin-right: -20px;
+  margin-bottom: 12px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.mock-nameplate-case-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-bottom: 8px;
+}
+.mock-nameplate-case-head h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.mock-nameplate-case-body {
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-bottom: 8px;
+}
+.mock-nameplate-case-panel-desc {
+  margin: 0 0 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.mock-nameplate-case-opt-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.mock-nameplate-case-opt-grid--wide {
+  grid-template-columns: 1fr;
+}
+.mock-nameplate-case-opt {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 72px;
+  padding: 10px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-overlay);
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+.mock-nameplate-case-opt--text {
+  align-items: flex-start;
+  min-height: auto;
+  padding: 10px 12px;
+}
+.mock-nameplate-case-opt:hover {
+  border-color: rgba(167, 139, 250, 0.45);
+  background: rgba(124, 58, 237, 0.08);
+}
+.mock-nameplate-case-opt--on {
+  border-color: rgba(34, 197, 94, 0.55);
+  background: rgba(34, 197, 94, 0.1);
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2);
+}
+.mock-nameplate-case-opt-ico {
+  font-size: 26px;
+  line-height: 1;
+}
+.mock-nameplate-case-opt-lbl {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.3;
+}
+.mock-nameplate-case-opt--text .mock-nameplate-case-opt-lbl {
+  text-align: left;
+  width: 100%;
+  color: var(--text-secondary);
+}
+.mock-nameplate-case-opt-check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 0.15s, transform 0.15s;
+}
+.mock-nameplate-case-opt--on .mock-nameplate-case-opt-check {
+  opacity: 1;
+  transform: scale(1);
+}
+.mock-nameplate-case-foot {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+/* OW 이름바 변형 */
+.mock-profile-np-namebar.mock-profile-np-namebar--gold {
+  background: linear-gradient(90deg, rgba(234, 179, 8, 0.42), rgba(234, 179, 8, 0.12));
+  border-color: rgba(234, 179, 8, 0.5);
+}
+.mock-profile-np-namebar.mock-profile-np-namebar--gold .mock-profile-np-v {
+  background: #eab308;
+  color: #1a1500;
+}
+.mock-profile-np-namebar.mock-profile-np-namebar--cyan {
+  background: linear-gradient(90deg, rgba(34, 211, 238, 0.35), rgba(34, 211, 238, 0.1));
+  border-color: rgba(34, 211, 238, 0.45);
+}
+.mock-profile-np-namebar.mock-profile-np-namebar--cyan .mock-profile-np-v {
+  background: #22d3ee;
+  color: #0c1a1e;
+}
+
+/* VAL 이름바 변형 */
+.mock-profile-np-namebar.mock-profile-np-namebar--val-neon {
+  background: linear-gradient(90deg, rgba(244, 114, 182, 0.4), rgba(244, 114, 182, 0.12));
+  border-color: rgba(244, 114, 182, 0.55);
+}
+.mock-profile-np-namebar.mock-profile-np-namebar--val-neon .mock-profile-np-v--val {
+  background: #f472b6;
+  color: #1a0510;
+}
+.mock-profile-np-namebar.mock-profile-np-namebar--val-dark {
+  background: linear-gradient(90deg, rgba(55, 65, 81, 0.85), rgba(30, 30, 40, 0.5));
+  border-color: rgba(148, 163, 184, 0.35);
+}
+.mock-profile-np-namebar.mock-profile-np-namebar--val-dark .mock-profile-np-v--val {
+  background: #64748b;
+  color: #f8fafc;
+}
+
+/* OW / VAL 프레임(미리보기 루트) */
+.mock-profile-nameplate-preview.mock-profile-np--ow.mock-profile-np-preview--ow-f2 {
+  background: linear-gradient(90deg, #1a3d52 0%, #12121a 40%, #12121a 100%);
+  border-color: rgba(34, 211, 238, 0.25);
+}
+.mock-profile-nameplate-preview.mock-profile-np--ow.mock-profile-np-preview--ow-f3 {
+  background: #14141c;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.mock-profile-nameplate-preview.mock-profile-np--val.mock-profile-np-preview--val-f2 {
+  background: linear-gradient(90deg, #2d1a4a 0%, #12121a 40%, #12121a 100%);
+  border-color: rgba(167, 139, 250, 0.35);
+}
+.mock-profile-nameplate-preview.mock-profile-np--val.mock-profile-np-preview--val-f3 {
+  background: linear-gradient(90deg, #0f0f14 0%, #12121a 45%, #12121a 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
 
 /* 뱃지 케이스 모달: 프로필 모달 위 레이어 */
 .mock-modal-overlay--badge-case {
