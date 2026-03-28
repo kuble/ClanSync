@@ -124,6 +124,11 @@ window.addEventListener('resize', onSidebarDrawerResize);
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeSidebarDrawer();
+    const bcm = document.getElementById('mock-badge-case-modal');
+    if (bcm && !bcm.hasAttribute('hidden')) {
+      mockBadgeCaseModalClose();
+      return;
+    }
     const ppm = document.getElementById('mock-player-profile-modal');
     if (ppm && !ppm.hasAttribute('hidden')) {
       mockPlayerProfileModalClose();
@@ -219,7 +224,72 @@ function mockPlayerProfileGameSelect(el, gameKey) {
   });
 }
 
+// ── 뱃지 케이스 모달 (게임별 partial 주입) ──
+function mockBadgeCaseModalInject() {
+  if (document.getElementById('mock-badge-case-modal')) {
+    return Promise.resolve();
+  }
+  const sc = document.querySelector('script[src*="app.js"]');
+  if (!sc || !sc.src) {
+    return Promise.reject(new Error('app.js src not found'));
+  }
+  const url = new URL('../partials/badge-case-modal.html', sc.src);
+  return fetch(url)
+    .then((r) => {
+      if (!r.ok) throw new Error(String(r.status));
+      return r.text();
+    })
+    .then((html) => {
+      document.body.insertAdjacentHTML('beforeend', html);
+    });
+}
+
+function mockBadgeCaseModalApplyGame(gameKey) {
+  const root = document.getElementById('mock-badge-case-modal');
+  if (!root) return;
+  const titles = {
+    ow2: '오버워치 2 뱃지 케이스',
+    val: '발로란트 뱃지 케이스',
+  };
+  const t = root.querySelector('#mock-badge-case-title');
+  if (t) t.textContent = titles[gameKey] || '뱃지 케이스';
+  root.querySelectorAll('[data-badge-case-for]').forEach((el) => {
+    const match = el.getAttribute('data-badge-case-for') === gameKey;
+    if (match) el.removeAttribute('hidden');
+    else el.setAttribute('hidden', '');
+  });
+}
+
+function mockBadgeCaseModalOpen(gameKey) {
+  const key = gameKey === 'val' ? 'val' : 'ow2';
+  mockBadgeCaseModalInject()
+    .then(() => {
+      mockBadgeCaseModalApplyGame(key);
+      const m = document.getElementById('mock-badge-case-modal');
+      if (!m) return;
+      m.removeAttribute('hidden');
+      m.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    })
+    .catch(() => {
+      alert('목업: 뱃지 케이스 UI를 불러오지 못했습니다.');
+    });
+}
+
+function mockBadgeCaseModalClose() {
+  const m = document.getElementById('mock-badge-case-modal');
+  if (!m) return;
+  m.setAttribute('hidden', '');
+  m.setAttribute('aria-hidden', 'true');
+  const ppm = document.getElementById('mock-player-profile-modal');
+  if (!ppm || ppm.hasAttribute('hidden')) {
+    document.body.style.overflow = '';
+  }
+}
+
 window.mockPlayerProfileModalOpen = mockPlayerProfileModalOpen;
 window.mockPlayerProfileModalClose = mockPlayerProfileModalClose;
 window.mockPlayerProfileTab = mockPlayerProfileTab;
 window.mockPlayerProfileGameSelect = mockPlayerProfileGameSelect;
+window.mockBadgeCaseModalOpen = mockBadgeCaseModalOpen;
+window.mockBadgeCaseModalClose = mockBadgeCaseModalClose;
