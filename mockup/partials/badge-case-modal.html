@@ -6,64 +6,82 @@
     </div>
 
     <div data-badge-case-for="ow2" class="mock-badge-case-variant">
-      <p class="mock-modal-hint mock-badge-case-lead">오버워치 2에서 획득한 뱃지를 카테고리별로 모아 봅니다. 네임카드·밸런스 슬롯에는 <strong>최대 5개</strong>까지 표시할 수 있으며, <strong>앞쪽 순서</strong>가 먼저 보입니다. 좁은 화면에서는 뒤쪽 슬롯부터 잘립니다.</p>
+      <p class="mock-modal-hint mock-badge-case-lead">프로필에서 선택한 <strong>오버워치 2</strong> 뱃지만 표시됩니다. 케이스는 <strong>상단 탭</strong>으로 구분합니다. 네임카드·밸런스에는 최대 5개, 앞쪽이 우선이며 좁은 화면에서는 뒤쪽부터 잘립니다.</p>
+
+      <div class="mock-badge-case-tab-row" role="tablist" aria-label="뱃지 케이스 구분">
+        <button type="button" class="mock-badge-case-tab mock-badge-case-tab--active" role="tab" aria-selected="true" data-bc-tab="battle" onclick="mockBadgeCaseTab(this,'battle')">전투·승률</button>
+        <button type="button" class="mock-badge-case-tab" role="tab" aria-selected="false" data-bc-tab="join" onclick="mockBadgeCaseTab(this,'join')">참여·활동</button>
+        <button type="button" class="mock-badge-case-tab" role="tab" aria-selected="false" data-bc-tab="event" onclick="mockBadgeCaseTab(this,'event')">이벤트·시즌</button>
+        <button type="button" class="mock-badge-case-tab" role="tab" aria-selected="false" data-bc-tab="clan" onclick="mockBadgeCaseTab(this,'clan')">클랜·스크림</button>
+        <button type="button" class="mock-badge-case-tab" role="tab" aria-selected="false" data-bc-tab="sync" onclick="mockBadgeCaseTab(this,'sync')">ClanSync</button>
+      </div>
 
       <div class="mock-badge-case-body" tabindex="-1">
-        <section class="mock-badge-case-section" aria-labelledby="bc-ow-1">
-          <h4 id="bc-ow-1" class="mock-badge-case-section-title">전투 · 승률</h4>
-          <p class="mock-badge-case-section-desc">승률 VIP, 블루/레드 MVP, 연승, 티어 달성 등</p>
-          <div class="mock-badge-case-grid" role="list">
-            <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="승률 VIP">🏅</span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="블루 MVP">💙</span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="연승 x5">🔥</span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-          </div>
-        </section>
+        <div class="mock-badge-case-panel" data-bc-panel="battle" role="tabpanel">
+          <section class="mock-badge-case-section" aria-labelledby="bc-ow-battle">
+            <h4 id="bc-ow-battle" class="mock-badge-case-section-title">전투 · 승률</h4>
+            <p class="mock-badge-case-section-desc">승률 VIP, 블루/레드 MVP, 연승, 티어 달성 등</p>
+            <div class="mock-badge-case-grid" role="list">
+              <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="승률 VIP">🏅</span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="블루 MVP">💙</span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="연승 x5">🔥</span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+            </div>
+          </section>
+        </div>
 
-        <section class="mock-badge-case-section" aria-labelledby="bc-ow-2">
-          <h4 id="bc-ow-2" class="mock-badge-case-section-title">참여 · 활동</h4>
-          <p class="mock-badge-case-section-desc">참여율 VIP, 개근, 출석 스트릭</p>
-          <div class="mock-badge-case-grid" role="list">
-            <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="참여율 VIP">⭐</span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="30일 개근">📅</span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-          </div>
-        </section>
+        <div class="mock-badge-case-panel" data-bc-panel="join" role="tabpanel" hidden>
+          <section class="mock-badge-case-section" aria-labelledby="bc-ow-join">
+            <h4 id="bc-ow-join" class="mock-badge-case-section-title">참여 · 활동</h4>
+            <p class="mock-badge-case-section-desc">참여율 VIP, 개근, 출석 스트릭</p>
+            <div class="mock-badge-case-grid" role="list">
+              <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="참여율 VIP">⭐</span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="30일 개근">📅</span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+            </div>
+          </section>
+        </div>
 
-        <section class="mock-badge-case-section" aria-labelledby="bc-ow-3">
-          <h4 id="bc-ow-3" class="mock-badge-case-section-title">이벤트 · 시즌</h4>
-          <p class="mock-badge-case-section-desc">시즌 참가, 한정 이벤트 클리어</p>
-          <div class="mock-badge-case-grid" role="list">
-            <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="시즌 참가">🎪</span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-          </div>
-        </section>
+        <div class="mock-badge-case-panel" data-bc-panel="event" role="tabpanel" hidden>
+          <section class="mock-badge-case-section" aria-labelledby="bc-ow-event">
+            <h4 id="bc-ow-event" class="mock-badge-case-section-title">이벤트 · 시즌</h4>
+            <p class="mock-badge-case-section-desc">시즌 참가, 한정 이벤트 클리어</p>
+            <div class="mock-badge-case-grid" role="list">
+              <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="시즌 참가">🎪</span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+            </div>
+          </section>
+        </div>
 
-        <section class="mock-badge-case-section" aria-labelledby="bc-ow-4">
-          <h4 id="bc-ow-4" class="mock-badge-case-section-title">클랜 · 스크림</h4>
-          <p class="mock-badge-case-section-desc">스크림 완료, 클랜 기여, 내전 호스트</p>
-          <div class="mock-badge-case-grid" role="list">
-            <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="스크림 50회">⚔️</span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="클랜 기여">🛡️</span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-          </div>
-        </section>
+        <div class="mock-badge-case-panel" data-bc-panel="clan" role="tabpanel" hidden>
+          <section class="mock-badge-case-section" aria-labelledby="bc-ow-clan">
+            <h4 id="bc-ow-clan" class="mock-badge-case-section-title">클랜 · 스크림</h4>
+            <p class="mock-badge-case-section-desc">스크림 완료, 클랜 기여, 내전 호스트</p>
+            <div class="mock-badge-case-grid" role="list">
+              <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="스크림 50회">⚔️</span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="클랜 기여">🛡️</span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+            </div>
+          </section>
+        </div>
 
-        <section class="mock-badge-case-section" aria-labelledby="bc-ow-5">
-          <h4 id="bc-ow-5" class="mock-badge-case-section-title">ClanSync · 한정</h4>
-          <p class="mock-badge-case-section-desc">앱 이벤트, 베타·얼리 참여, 프로모션</p>
-          <div class="mock-badge-case-grid" role="list">
-            <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="ClanSync 베타">✦</span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-          </div>
-        </section>
+        <div class="mock-badge-case-panel" data-bc-panel="sync" role="tabpanel" hidden>
+          <section class="mock-badge-case-section" aria-labelledby="bc-ow-sync">
+            <h4 id="bc-ow-sync" class="mock-badge-case-section-title">ClanSync · 한정</h4>
+            <p class="mock-badge-case-section-desc">앱 이벤트, 베타·얼리 참여, 프로모션</p>
+            <div class="mock-badge-case-grid" role="list">
+              <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="ClanSync 베타">✦</span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+            </div>
+          </section>
+        </div>
       </div>
 
       <div class="mock-badge-case-footer-block">
@@ -80,64 +98,82 @@
     </div>
 
     <div data-badge-case-for="val" class="mock-badge-case-variant" hidden>
-      <p class="mock-modal-hint mock-badge-case-lead">발로란트에서 획득한 뱃지입니다. 카테고리 구조는 OW2와 같고, <strong>획득 조건·아이콘은 게임별로 별도</strong>입니다. 표시 규칙(최대 5개·앞쪽 우선·좁은 화면에서 뒤부터 숨김)은 동일합니다.</p>
+      <p class="mock-modal-hint mock-badge-case-lead">프로필에서 선택한 <strong>발로란트</strong> 뱃지만 표시됩니다. 케이스는 <strong>상단 탭</strong>으로 구분합니다. 네임카드·밸런스에는 최대 5개, 앞쪽이 우선이며 좁은 화면에서는 뒤쪽부터 잘립니다.</p>
+
+      <div class="mock-badge-case-tab-row" role="tablist" aria-label="뱃지 케이스 구분">
+        <button type="button" class="mock-badge-case-tab mock-badge-case-tab--active" role="tab" aria-selected="true" data-bc-tab="battle" onclick="mockBadgeCaseTab(this,'battle')">전투·승률</button>
+        <button type="button" class="mock-badge-case-tab" role="tab" aria-selected="false" data-bc-tab="join" onclick="mockBadgeCaseTab(this,'join')">참여·활동</button>
+        <button type="button" class="mock-badge-case-tab" role="tab" aria-selected="false" data-bc-tab="event" onclick="mockBadgeCaseTab(this,'event')">이벤트·액트</button>
+        <button type="button" class="mock-badge-case-tab" role="tab" aria-selected="false" data-bc-tab="clan" onclick="mockBadgeCaseTab(this,'clan')">클랜·스크림</button>
+        <button type="button" class="mock-badge-case-tab" role="tab" aria-selected="false" data-bc-tab="sync" onclick="mockBadgeCaseTab(this,'sync')">ClanSync</button>
+      </div>
 
       <div class="mock-badge-case-body" tabindex="-1">
-        <section class="mock-badge-case-section" aria-labelledby="bc-val-1">
-          <h4 id="bc-val-1" class="mock-badge-case-section-title">전투 · 승률</h4>
-          <p class="mock-badge-case-section-desc">에이스, 클러치, ACS·K/D 마일스톤, 헤드샷 비율 등</p>
-          <div class="mock-badge-case-grid" role="list">
-            <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="에이스 헌터">💀</span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="클러치">🎯</span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="불멸 시즌">✨</span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-          </div>
-        </section>
+        <div class="mock-badge-case-panel" data-bc-panel="battle" role="tabpanel">
+          <section class="mock-badge-case-section" aria-labelledby="bc-val-battle">
+            <h4 id="bc-val-battle" class="mock-badge-case-section-title">전투 · 승률</h4>
+            <p class="mock-badge-case-section-desc">에이스, 클러치, ACS·K/D 마일스톤, 헤드샷 비율 등</p>
+            <div class="mock-badge-case-grid" role="list">
+              <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="에이스 헌터">💀</span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="클러치">🎯</span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="불멸 시즌">✨</span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+            </div>
+          </section>
+        </div>
 
-        <section class="mock-badge-case-section" aria-labelledby="bc-val-2">
-          <h4 id="bc-val-2" class="mock-badge-case-section-title">참여 · 활동</h4>
-          <p class="mock-badge-case-section-desc">참여율 VIP, 액트 출석, 데일리 큐 스트릭</p>
-          <div class="mock-badge-case-grid" role="list">
-            <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="참여율 VIP">⭐</span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-          </div>
-        </section>
+        <div class="mock-badge-case-panel" data-bc-panel="join" role="tabpanel" hidden>
+          <section class="mock-badge-case-section" aria-labelledby="bc-val-join">
+            <h4 id="bc-val-join" class="mock-badge-case-section-title">참여 · 활동</h4>
+            <p class="mock-badge-case-section-desc">참여율 VIP, 액트 출석, 데일리 큐 스트릭</p>
+            <div class="mock-badge-case-grid" role="list">
+              <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="참여율 VIP">⭐</span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+            </div>
+          </section>
+        </div>
 
-        <section class="mock-badge-case-section" aria-labelledby="bc-val-3">
-          <h4 id="bc-val-3" class="mock-badge-case-section-title">이벤트 · 액트</h4>
-          <p class="mock-badge-case-section-desc">액트 챌린지, 콜라보·한정 모드 클리어</p>
-          <div class="mock-badge-case-grid" role="list">
-            <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="액트 참가">🎪</span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-          </div>
-        </section>
+        <div class="mock-badge-case-panel" data-bc-panel="event" role="tabpanel" hidden>
+          <section class="mock-badge-case-section" aria-labelledby="bc-val-event">
+            <h4 id="bc-val-event" class="mock-badge-case-section-title">이벤트 · 액트</h4>
+            <p class="mock-badge-case-section-desc">액트 챌린지, 콜라보·한정 모드 클리어</p>
+            <div class="mock-badge-case-grid" role="list">
+              <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="액트 참가">🎪</span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+            </div>
+          </section>
+        </div>
 
-        <section class="mock-badge-case-section" aria-labelledby="bc-val-4">
-          <h4 id="bc-val-4" class="mock-badge-case-section-title">클랜 · 스크림</h4>
-          <p class="mock-badge-case-section-desc">스크림·내전 완료, 스파이크 플랜트 마스터 등</p>
-          <div class="mock-badge-case-grid" role="list">
-            <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="스파이크 마스터">💣</span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="클랜 기여">🛡️</span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-          </div>
-        </section>
+        <div class="mock-badge-case-panel" data-bc-panel="clan" role="tabpanel" hidden>
+          <section class="mock-badge-case-section" aria-labelledby="bc-val-clan">
+            <h4 id="bc-val-clan" class="mock-badge-case-section-title">클랜 · 스크림</h4>
+            <p class="mock-badge-case-section-desc">스크림·내전 완료, 스파이크 플랜트 마스터 등</p>
+            <div class="mock-badge-case-grid" role="list">
+              <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="스파이크 마스터">💣</span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="클랜 기여">🛡️</span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+            </div>
+          </section>
+        </div>
 
-        <section class="mock-badge-case-section" aria-labelledby="bc-val-5">
-          <h4 id="bc-val-5" class="mock-badge-case-section-title">ClanSync · 한정</h4>
-          <p class="mock-badge-case-section-desc">앱 이벤트, 베타·얼리 참여, 프로모션</p>
-          <div class="mock-badge-case-grid" role="list">
-            <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="ClanSync 베타">✦</span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-            <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
-          </div>
-        </section>
+        <div class="mock-badge-case-panel" data-bc-panel="sync" role="tabpanel" hidden>
+          <section class="mock-badge-case-section" aria-labelledby="bc-val-sync">
+            <h4 id="bc-val-sync" class="mock-badge-case-section-title">ClanSync · 한정</h4>
+            <p class="mock-badge-case-section-desc">앱 이벤트, 베타·얼리 참여, 프로모션</p>
+            <div class="mock-badge-case-grid" role="list">
+              <span class="mock-badge-case-slot mock-badge-case-slot--earned" role="listitem" title="ClanSync 베타">✦</span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+              <span class="mock-badge-case-slot mock-badge-case-slot--empty" role="listitem" aria-label="미획득"></span>
+            </div>
+          </section>
+        </div>
       </div>
 
       <div class="mock-badge-case-footer-block">

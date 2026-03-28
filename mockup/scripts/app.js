@@ -244,6 +244,21 @@ function mockBadgeCaseModalInject() {
     });
 }
 
+function mockBadgeCaseTab(el, tabId) {
+  const variant = el.closest('.mock-badge-case-variant');
+  if (!variant) return;
+  variant.querySelectorAll('[data-bc-tab]').forEach((btn) => {
+    const on = btn.getAttribute('data-bc-tab') === tabId;
+    btn.classList.toggle('mock-badge-case-tab--active', on);
+    btn.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  variant.querySelectorAll('[data-bc-panel]').forEach((panel) => {
+    const show = panel.getAttribute('data-bc-panel') === tabId;
+    if (show) panel.removeAttribute('hidden');
+    else panel.setAttribute('hidden', '');
+  });
+}
+
 function mockBadgeCaseModalApplyGame(gameKey) {
   const root = document.getElementById('mock-badge-case-modal');
   if (!root) return;
@@ -258,6 +273,14 @@ function mockBadgeCaseModalApplyGame(gameKey) {
     if (match) el.removeAttribute('hidden');
     else el.setAttribute('hidden', '');
   });
+  const variant = root.querySelector(`[data-badge-case-for="${gameKey}"]`);
+  if (variant) {
+    const firstBtn = variant.querySelector('[data-bc-tab]');
+    if (firstBtn) {
+      const tid = firstBtn.getAttribute('data-bc-tab');
+      mockBadgeCaseTab(firstBtn, tid);
+    }
+  }
 }
 
 function mockBadgeCaseModalOpen(gameKey) {
@@ -293,3 +316,4 @@ window.mockPlayerProfileTab = mockPlayerProfileTab;
 window.mockPlayerProfileGameSelect = mockPlayerProfileGameSelect;
 window.mockBadgeCaseModalOpen = mockBadgeCaseModalOpen;
 window.mockBadgeCaseModalClose = mockBadgeCaseModalClose;
+window.mockBadgeCaseTab = mockBadgeCaseTab;
