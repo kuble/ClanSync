@@ -7,6 +7,7 @@
 /sign-in                   → 로그인
 /sign-up                   → 회원가입
 
+/profile                   → 플레이어 프로필·꾸미기 (로그인 필요 · 게임 단위 경로 밖)
 /games                     → Main_GameSelect (로그인 필요)
 /games/[gameSlug]/auth     → GameAuth (게임 인증)
 /games/[gameSlug]/clan     → ClanAuth (클랜 가입/생성)
@@ -17,7 +18,7 @@
 /games/[gameSlug]/clan/[clanId]/manage  → 클랜 관리(구성원별 개인 통계·승패 등)
 /games/[gameSlug]/clan/[clanId]/store   → 클랜 스토어
 /games/[gameSlug]                       → MainGame (커뮤니티)
-/games/[gameSlug]/board/[postId]        → 게시글 상세
+/games/[gameSlug]/board/[postId]        → 게시글 상세 (목업 HTML 미작성 · Phase 2+)
 ```
 
 ## 인증/권한 미들웨어 흐름
@@ -26,11 +27,35 @@
 요청
  ├─ 비로그인 → / (Landing)으로 리다이렉트
  ├─ 로그인됨
- │   ├─ 게임 인증 없음 → /games/[gameSlug]/auth
- │   ├─ 클랜 미가입 → /games/[gameSlug]/clan
- │   └─ 클랜 가입 → MainClan or MainGame
- └─ 클랜 권한 부족 → 403
+ │   ├─ /profile (및 전역 계정·꾸미기) → 세션만으로 허용 (게임 OAuth·클랜 소속 불필요)
+ │   ├─ /games/[slug]/... 게임 이하
+ │   │   ├─ 게임 인증 없음 → /games/[gameSlug]/auth
+ │   │   ├─ 클랜 미가입 → /games/[gameSlug]/clan
+ │   │   └─ 클랜 가입됨 → 요청 경로 허용 (기본 진입·딥링크는 MainClan 홈 또는 MainGame — 제품 내비에 따름)
+ └─ 클랜 권한 부족(관리·밸런스 편집 등) → 403
 ```
+
+**메모**: 클랜 가입 후 **첫 화면**은 제품 설정에 따름(대개 **클랜 홈** `.../clan/[clanId]`). **MainGame** `.../games/[slug]`는 커뮤니티·홍보·LFG 등으로 별도 진입.
+
+---
+
+## 정적 목업 HTML ↔ 제품 경로 (Phase 1)
+
+S01 쉘·온보딩·전역 프로필은 아래 파일이 **단일 목업**으로 대응한다. `main-clan`·`main-game` 등은 해시·탭으로 하위 경로를 흉내 낸다([clan-main-static-mockup-plan.md](./clan-main-static-mockup-plan.md) §2.1).
+
+| 제품 경로(개념) | 목업 파일 |
+|-----------------|-----------|
+| `/` | `mockup/pages/index.html` |
+| `/sign-in`, `/sign-up` | `sign-in.html`, `sign-up.html` |
+| `/games` | `games.html` |
+| `/games/.../auth` | `game-auth.html` |
+| `/games/.../clan` | `clan-auth.html` |
+| `/profile` | `profile.html` |
+| `/games/.../clan/[id]` 및 하위 탭·해시 | `main-clan.html` + `clan-mock.js` |
+| `/games/[slug]`(커뮤니티) | `main-game.html` |
+| `/games/.../board/[postId]` | _(목업 없음)_ |
+
+---
 
 ## 페이지별 핵심 컴포넌트
 
@@ -93,7 +118,7 @@
 ### 클랜 스토어 (`/store`, MainClan 탭)
 - 클랜/개인 코인 풀 · 클랜 꾸미기·개인 꾸미기 탭 · Premium 잠금 카드 · 꾸미기는 **서비스 프리셋만**(업로드 없음).
 
-### 플레이어 프로필 · 꾸미기 (전역 /games 내 등)
+### 플레이어 프로필 · 꾸미기 (`/profile`)
 - `mockup/pages/profile.html` + partials(`player-profile-modal`·`badge-case-modal`·`nameplate-case-modal`) + `app.js`: **게임별** 네임카드 미리보기·뱃지 케이스(표시 **최대 5개**·게임 키별 상태). 네임플레이트는 **프리셋만** — 밸런스 경기 화면과 동일 정책(`balance-maker-ui-notes.md` §참가자 네임플레이트).
 
 ### MainGame (/games/[gameSlug])

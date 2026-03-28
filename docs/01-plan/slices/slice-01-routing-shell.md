@@ -11,8 +11,8 @@
 
 ## 수용 기준 (체크리스트)
 
-- [ ] 라우트와 목업 HTML 파일명 대응이 `pages.md`와 일치
-- [ ] 로그인 후 게임 미선택 / 미인증 / 클랜 미가입 분기가 문서와 동일
+- [x] 라우트와 목업 HTML 대응 — `pages.md` **정적 목업 HTML ↔ 제품 경로** 표 + 라우팅 맵 (`/profile`·게시글 상세 미작성 명시)
+- [x] 미들웨어: `/profile`은 세션만·`/games/...`는 게임 인증→클랜 가입 순 — `pages.md` 다이어그램·메모
 
 ## 목업
 
@@ -22,6 +22,8 @@
 | `mockup/pages/sign-in.html` |
 | `mockup/pages/sign-up.html` |
 | `mockup/pages/games.html` |
+
+전역 프로필은 S08·`profile.html` — 라우트는 `pages.md` `/profile`.
 
 ## 스키마 (참고)
 

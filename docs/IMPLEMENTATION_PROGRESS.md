@@ -22,7 +22,7 @@
 - [x] `mockup/pages/index.html` 랜딩
 - [x] `mockup/pages/sign-in.html` · `sign-up.html`
 - [x] `mockup/pages/games.html`
-- [ ] 라우트·미들웨어 흐름이 `pages.md`와 불일치 없는지 최종 점검
+- [x] 라우트·미들웨어 흐름 `pages.md` 반영 (`/profile`·게시판 상세 목업 없음·Phase 1 대응표)
 
 ### S02 게임·클랜 온보딩
 - [x] `mockup/pages/game-auth.html`
@@ -79,6 +79,9 @@
 ## 세션 로그 (날짜순 · 한 세션 = 한 블록)
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
+
+### 2026-03-28 — S01 라우트·미들웨어 `pages.md` 정합
+- [x] 라우팅 맵에 `/profile`·게시글 상세(목업 미작성) 명시, 미들웨어에 프로필·게임 하위 분리, Phase 1 목업 대응표·`slice-01` 수용 기준
 
 ### 2026-03-28 — mockup-spec 정합 (공통 목업)
 - [x] `mockup-spec.md`: 트리(`_hub`·`profile`·`clan-mock`·`partials`)·MainGame 레이아웃·Premium 목업 클래스·MainClan 탭·Profile·MainGame 필터/플레이스홀더·`data/` 메모
@@ -141,7 +144,7 @@
 | 슬라이스 | 목업 1차 | 폴리시·문서 정합 |
 |----------|:--------:|:----------------:|
 | S00 | 완료 | 진행 중 |
-| S01 | 완료 | 미완 |
+| S01 | 완료 | 완료 |
 | S02 | 완료 | 미완 |
 | S03 | 완료 | 완료 |
 | S04 | 완료 | 완료 |
@@ -160,7 +163,7 @@
 
 ```
 @docs/01-plan/pages.md @docs/IMPLEMENTATION_PROGRESS.md 참고해서
-S01 라우트·미들웨어 흐름을 `pages.md`와 대조해 최종 점검하고, 불일치·미결을 문서에 반영한다.
+S02 게임·클랜 온보딩(`game-auth`·`clan-auth`)을 미들웨어·온보딩 문서와 대조해 최종 점검한다.
 
 완료 후 `docs/IMPLEMENTATION_PROGRESS.md` 체크박스·요약표·세션 로그를 갱신해줘.
 ```
