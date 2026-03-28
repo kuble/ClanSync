@@ -9,7 +9,7 @@
 
 ## 수용 기준
 
-- [ ] `balance-maker-ui-notes.md` 의 세션 순서와 모순 없음
+- [x] `balance-maker-ui-notes.md` 의 세션 순서와 모순 없음
 - [ ] `balance-nameplate-ui-plan.md` 의 M/A·슬롯 규칙 반영
 
 ## 심층 문서 (여기만 열 것)

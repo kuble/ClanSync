@@ -36,8 +36,8 @@
 
 ### S04 밸런스메이커
 - [x] 밸런스 서브뷰·설정 목업 존재
-- [ ] `balance-maker-ui-notes.md` 대비 누락 카피/플로우
-- [ ] Premium 전용(승부예측·밴 등) 목업과 허브 연동 확인
+- [x] `balance-maker-ui-notes.md` 대비 누락 카피/플로우 (`main-clan.html` data-tip·워크플로 탭·허브 `?plan=` 연동과 동기화)
+- [x] Premium 전용(승부예측·밴 등) 목업과 허브 연동 확인 (`_hub.html` → `?plan=` · `mockClanCurrentPlan` · `mock-hide-on-free`)
 
 ### S05 클랜 통계
 - [x] 통계 뷰·요약·경기 기록·명예의 전당·`mockStats*` 목업 존재 (`main-clan.html`, `clan-mock.js`)
@@ -80,6 +80,11 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-03-28 — S04 밸런스 문서·목업 정합
+- [x] `balance-maker-ui-notes.md`에 워크플로 탭 라벨·허브 `?plan=`·`mockClanCurrentPlan` 설명 보강
+- [x] `main-clan.html` 밸런스 도움말 `data-tip`에서 § 제거(프로젝트 UI 가이드)
+- [x] S04 진행도·`slice-04` 수용 기준(문서 순서) 반영
+
 ### 2026-03-28 — /todo 동기화 (재실행)
 - `FEATURE_INDEX`·`BACKLOG`·`mockup/pages/*.html`·`clan-mock.js`·`app.js` 경로 대조
 - S04 `balance-maker-ui-notes`·S05 `clan-stats-plan`·S01 `pages.md` 등 **폴리시·정합** 미완 항목 재확인 (체크리스트 변경 없음)
@@ -115,7 +120,7 @@
 | S01 | 완료 | 미완 |
 | S02 | 완료 | 미완 |
 | S03 | 완료 | 미완 |
-| S04 | 부분 | 미완 |
+| S04 | 완료 | 완료 |
 | S05 | 완료 | 미완 |
 | S06 | 완료 | 미완 |
 | S07 | 부분 | 미완 |
@@ -130,8 +135,8 @@
 다음 세션 권장 프롬프트 (복사용):
 
 ```
-@docs/01-plan/FEATURE_INDEX.md @docs/01-plan/slices/slice-04-balance-maker.md @docs/01-plan/balance-maker-ui-notes.md @docs/IMPLEMENTATION_PROGRESS.md 참고해서
-balance-maker-ui-notes.md와 목업(`main-clan.html` 밸런스 뷰·`clan-mock.js`)의 누락 카피·단계 플로우·data-tip을 맞추고, S04 체크리스트의 Premium 전용(승부예측·밴 등)·허브 `?plan=` 연동을 문서와 대조해 완료 여부를 판정한다.
+@docs/01-plan/FEATURE_INDEX.md @docs/01-plan/slices/slice-05-clan-stats.md @docs/01-plan/clan-stats-plan.md @docs/IMPLEMENTATION_PROGRESS.md 참고해서
+clan-stats-plan.md와 목업(`main-clan.html` 통계 뷰·`clan-mock.js` mockStats*)의 탭·권한별 노출·카피를 맞추고, 구성원 vs 운영진 열람 분리 표현을 점검한다.
 
 완료 후 `docs/IMPLEMENTATION_PROGRESS.md` 체크박스·요약표·세션 로그를 갱신해줘.
 ```
