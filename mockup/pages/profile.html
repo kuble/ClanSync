@@ -59,24 +59,24 @@
         <p class="mock-modal-hint" style="margin:0 0 10px;font-size:12px"><strong>상단에서 게임을 선택</strong>하면 해당 타이틀의 <strong>네임카드</strong> · <strong>계정·본계/부계</strong> · <strong>클랜</strong>을 한 화면에 봅니다.</p>
 
         <div class="mock-profile-game-chip-row mock-profile-game-chip-row--pergame" role="tablist" aria-label="게임 선택">
-          <button type="button" class="mock-profile-game-chip mock-profile-game-chip--active" data-profile-game-chip="ow2" aria-pressed="true" onclick="mockPlayerProfileGameSelect(this,'ow2')">오버워치 2</button>
+          <button type="button" class="mock-profile-game-chip mock-profile-game-chip--active" data-profile-game-chip="ow" aria-pressed="true" onclick="mockPlayerProfileGameSelect(this,'ow')">오버워치</button>
           <button type="button" class="mock-profile-game-chip" data-profile-game-chip="val" aria-pressed="false" onclick="mockPlayerProfileGameSelect(this,'val')">발로란트</button>
           <button type="button" class="mock-profile-game-chip mock-profile-game-chip--disabled" disabled title="목업">LoL (준비중)</button>
           <button type="button" class="mock-profile-game-chip" data-profile-game-chip="extra" aria-pressed="false" onclick="mockPlayerProfileGameSelect(this,'extra')">기타</button>
         </div>
 
-        <div data-profile-game-panel="ow2" class="mock-profile-game-panel-surface">
+        <div data-profile-game-panel="ow" class="mock-profile-game-panel-surface">
         <section class="mock-profile-game-bundle" aria-labelledby="pg-ow-title">
           <div class="mock-profile-game-bundle-head">
-            <h2 id="pg-ow-title" class="mock-profile-game-bundle-title">오버워치 2</h2>
+            <h2 id="pg-ow-title" class="mock-profile-game-bundle-title">오버워치</h2>
             <span class="mock-profile-pill">Battle.net</span>
           </div>
 
           <div class="mock-profile-nameplate-label-row">
             <p class="mock-profile-bundle-section-label">네임카드 · 밸런스 슬롯 미리보기</p>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="mockNameplateCaseModalOpen('ow2')">꾸미기</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="mockNameplateCaseModalOpen('ow')">꾸미기</button>
           </div>
-          <div class="mock-profile-nameplate-preview mock-profile-np--ow" data-nameplate-preview="ow2" aria-hidden="true">
+          <div class="mock-profile-nameplate-preview mock-profile-np--ow" data-nameplate-preview="ow" aria-hidden="true">
             <div class="mock-profile-np-left">
               <span class="mock-profile-np-emblem" aria-hidden="true">🏆</span>
             </div>
@@ -92,7 +92,7 @@
 
           <p class="mock-profile-bundle-section-label">네임카드·밸런스에 표시할 뱃지 (최대 5개 · 앞쪽이 우선)</p>
           <div class="mock-profile-badge-strip-wrap" aria-label="대표 뱃지 미리보기">
-            <div class="mock-profile-badge-strip" data-mock-badge-game="ow2">
+            <div class="mock-profile-badge-strip" data-mock-badge-game="ow">
               <span class="mock-profile-badge-strip-slot" data-order="1" title="승률 VIP">🏅</span>
               <span class="mock-profile-badge-strip-slot" data-order="2" title="참여율 VIP">⭐</span>
               <span class="mock-profile-badge-strip-slot" data-order="3" title="연승 x5">🔥</span>
@@ -101,7 +101,7 @@
             </div>
           </div>
           <div class="mock-profile-badge-actions">
-            <button type="button" class="btn btn-secondary btn-sm" onclick="mockBadgeCaseModalOpen('ow2')">뱃지 케이스</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="mockBadgeCaseModalOpen('ow')">뱃지 케이스</button>
             <span class="mock-modal-hint mock-profile-badge-hint">획득 뱃지를 확인하고 표시 순서를 정합니다.</span>
           </div>
 
@@ -198,7 +198,7 @@
           </div>
           <div class="mock-profile-badge-actions">
             <button type="button" class="btn btn-secondary btn-sm" onclick="mockBadgeCaseModalOpen('val')">뱃지 케이스</button>
-            <span class="mock-modal-hint mock-profile-badge-hint">이 게임 전용 뱃지입니다. OW2와 별도로 표시 목록을 둡니다.</span>
+            <span class="mock-modal-hint mock-profile-badge-hint">이 게임 전용 뱃지입니다. OW와 별도로 표시 목록을 둡니다.</span>
           </div>
 
           <p class="mock-profile-bundle-section-label">계정 인증 · 본계 / 부계</p>

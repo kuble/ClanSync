@@ -1,10 +1,10 @@
 {
   "games": [
     {
-      "id": "ow2",
+      "id": "ow",
       "slug": "overwatch",
       "name_ko": "????",
-      "name_en": "Overwatch 2",
+      "name_en": "Overwatch",
       "is_active": true,
       "thumbnail_emoji": "??"
     },

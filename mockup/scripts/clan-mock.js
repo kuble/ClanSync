@@ -3006,7 +3006,7 @@
   }
 
   /**
-   * OW2 스타일: 룰렛이 세 맵을 순환하다 득표가 많은 쪽에 더 머무는 느낌(가중 랜덤 인덱스).
+   * OW 스타일: 룰렛이 세 맵을 순환하다 득표가 많은 쪽에 더 머무는 느낌(가중 랜덤 인덱스).
    * 0표 동률이면 max(득표,1)로 균등에 가깝게.
    */
   function mockBalanceMapVoteRouletteWeightedIndex(votes) {
@@ -3028,7 +3028,7 @@
   }
 
   /**
-   * OW2 맵 투표: roll-through 룰렛 연출 후 이미 결정된 winner에 정지.
+   * OW 맵 투표: roll-through 룰렛 연출 후 이미 결정된 winner에 정지.
    * (실제 게임은 가중 랜덤과 동기화된 시각 효과 — 목업은 서버 결과 winner를 애니메이션으로 보여줌.)
    */
   function mockBalancePlayMapRouletteReveal(winner, votes, names) {
@@ -3044,7 +3044,7 @@
     var hint = document.getElementById("mock-mapvote-roulette-hint");
     if (hint) {
       hint.style.display = "block";
-      hint.textContent = "맵 확정 중… (세 후보를 순환하는 룰렛 연출 · OW2 맵 투표와 유사)";
+      hint.textContent = "맵 확정 중… (세 후보를 순환하는 룰렛 연출 · OW 맵 투표와 유사)";
     }
     var panel = document.getElementById("mock-mapvote-panel");
     if (panel) {
@@ -3113,7 +3113,7 @@
         winner +
         " (득표 " +
         _mockMapVoteCounts.join(" / ") +
-        " · 가중 랜덤 · 동률 시 1:1:1 · 룰렛 연출은 OW2 맵 투표 roll-through 스타일 목업)";
+        " · 가중 랜덤 · 동률 시 1:1:1 · 룰렛 연출은 OW 맵 투표 roll-through 스타일 목업)";
     }
     mockBalanceMapVoteSetTimerLabel(0);
     var label = document.getElementById("mock-balance-map-label");
@@ -3162,7 +3162,7 @@
     }
   }
 
-  /** OW2 스타일: 영웅명 → 역할 (목업 풀) */
+  /** OW 스타일: 영웅명 → 역할 (목업 풀) */
   var MOCK_HERO_ROLES = {
     라인하르트: "tank",
     오리사: "tank",
@@ -3384,7 +3384,7 @@
       res.textContent =
         "밴 확정: " +
         (banned.length ? banned.join(", ") : "없음") +
-        " (최대 4명 · 역할당 최대 2명 · OW2식 가중 합산 목업)";
+        " (최대 4명 · 역할당 최대 2명 · OW식 가중 합산 목업)";
     }
     var hp = document.getElementById("mock-heroban-panel");
     if (hp) {
@@ -3634,7 +3634,7 @@
       window.alert(
         "목업: 맵 밴 OFF · 영웅 밴 ON — 배치 확정 후 영웅 밴픽(" +
           heroBanSec +
-          "초)만 진행합니다.\nOW2식 1·2·3순(7/5/3) 가중 합산 · 최대 4명 · 역할당 2명까지.",
+          "초)만 진행합니다.\nOW식 1·2·3순(7/5/3) 가중 합산 · 최대 4명 · 역할당 2명까지.",
       );
       if (typeof window.mockBalanceStartHeroBanSession === "function") {
         window.mockBalanceStartHeroBanSession();

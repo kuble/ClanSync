@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ClanSync — 오버워치 2 커뮤니티</title>
+<title>ClanSync — 오버워치 커뮤니티</title>
 <link rel="stylesheet" href="../styles/main.css">
 <style>
 
@@ -1292,7 +1292,7 @@
     <a href="games.html"><span class="navbar-brand">⚡ ClanSync</span></a>
   </div>
   <div class="navbar-nav" style="gap:12px">
-    <span style="font-size:13px;color:var(--text-secondary)">🎮 오버워치 2</span>
+    <span style="font-size:13px;color:var(--text-secondary)">🎮 오버워치</span>
     <a href="main-clan.html"><button class="btn btn-secondary btn-sm">내 클랜 →</button></a>
     <div class="profile-menu" id="profileMenu">
       <button class="profile-btn" onclick="toggleProfileMenu()">
@@ -1340,7 +1340,7 @@
 <aside class="sidebar" id="app-sidebar">
   <div class="game-header">
     <div class="game-icon">🎮</div>
-    <div class="game-name">오버워치 2</div>
+    <div class="game-name">오버워치</div>
     <div class="game-sub">커뮤니티</div>
   </div>
 
@@ -1369,7 +1369,7 @@
   <div id="sec-home">
     <div class="section-head" style="margin-bottom:20px">
       <div>
-        <div class="section-title">🏠 오버워치 2 커뮤니티</div>
+        <div class="section-title">🏠 오버워치 커뮤니티</div>
         <div class="section-sub">클랜 모집·파티·스크림·순위를 한 화면에서 빠르게 훑어보세요</div>
       </div>
     </div>
@@ -2345,7 +2345,7 @@ function renderHomeLfg() {
 ════════════════════════════════════════ */
 let scrimFilter = { status: '전체', tiers: [] };
 let scrimSelectedDateKey = null;
-/* OW2 티어 랭크 (필터 칩 순서와 동일). tierMin~tierMax: 모집에 포함되는 구간 */
+/* OW 티어 랭크 (필터 칩 순서와 동일). tierMin~tierMax: 모집에 포함되는 구간 */
 const SCRIM_TIER_RANKS = ['브론즈', '실버', '골드', '플래티넘', '다이아', '마스터', '그랜드마스터', '프로'];
 /* dayOffset: 오늘 0시 기준 일 수, hour/minute: 시작 시각 (목업 캘린더 정렬용) */
 let SCRIMS = [
@@ -2383,7 +2383,7 @@ function renderHomeScrims() {
     .join('');
 }
 const SCRIM_DOW = ['일','월','화','수','목','금','토'];
-/** OW2 경쟁전식 티어 슬라이더: 브론즈 5~1 … 그랜드마스터 5~1 → 챌린저 5~1 → 프로 (총 41단계, 인덱스 0~40) */
+/** OW 경쟁전식 티어 슬라이더: 브론즈 5~1 … 그랜드마스터 5~1 → 챌린저 5~1 → 프로 (총 41단계, 인덱스 0~40) */
 const SCRIM_APPLY_RANKS = (() => {
   const tiers = ['브론즈', '실버', '골드', '플래티넘', '다이아', '마스터', '그랜드마스터'];
   const list = [];

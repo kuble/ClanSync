@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.fade-in').forEach((el) => {
     el.style.opacity = '1';
   });
-  mockNameplateApplyPreview('ow2');
+  mockNameplateApplyPreview('ow');
   mockNameplateApplyPreview('val');
 });
 
@@ -269,7 +269,7 @@ function mockBadgeCaseTab(el, tabId) {
 /** 목업: 게임별 네임카드에 올릴 뱃지 id 배열(최대 5) */
 function mockBadgeCaseGetPicks() {
   if (!window.__mockBadgeCasePicks) {
-    window.__mockBadgeCasePicks = { ow2: [], val: [] };
+    window.__mockBadgeCasePicks = { ow: [], val: [] };
   }
   return window.__mockBadgeCasePicks;
 }
@@ -280,8 +280,8 @@ function mockBadgeCaseInitDefaultPicks(gameKey) {
   if (!window.__mockBadgeCasePicksSeeded) window.__mockBadgeCasePicksSeeded = {};
   if (window.__mockBadgeCasePicksSeeded[gameKey]) return;
   window.__mockBadgeCasePicksSeeded[gameKey] = true;
-  if (gameKey === 'ow2') {
-    picks.ow2 = ['ow-battle-1', 'ow-join-1', 'ow-battle-3', 'ow-clan-1', 'ow-sync-1'];
+  if (gameKey === 'ow') {
+    picks.ow = ['ow-battle-1', 'ow-join-1', 'ow-battle-3', 'ow-clan-1', 'ow-sync-1'];
   } else if (gameKey === 'val') {
     picks.val = ['val-battle-1', 'val-battle-2', 'val-battle-3', 'val-clan-1', 'val-sync-1'];
   }
@@ -340,7 +340,7 @@ function mockBadgeCaseModalApplyGame(gameKey) {
   const root = document.getElementById('mock-badge-case-modal');
   if (!root) return;
   const titles = {
-    ow2: '오버워치 2 뱃지 케이스',
+    ow: '오버워치 뱃지 케이스',
     val: '발로란트 뱃지 케이스',
   };
   const t = root.querySelector('#mock-badge-case-title');
@@ -363,7 +363,7 @@ function mockBadgeCaseModalApplyGame(gameKey) {
 }
 
 function mockBadgeCaseModalOpen(gameKey) {
-  const key = gameKey === 'val' ? 'val' : 'ow2';
+  const key = gameKey === 'val' ? 'val' : 'ow';
   mockBadgeCaseModalInject()
     .then(() => {
       mockBadgeCaseModalApplyGame(key);
@@ -394,15 +394,15 @@ function mockBadgeCaseModalClose() {
 
 // ── 네임카드 · 밸런스 슬롯 꾸미기 (partial 주입) ──
 const MOCK_NAMEPLATE_META = {
-  ow2: {
-    emblem: { 'ow2-e1': '🏆', 'ow2-e2': '⚔️', 'ow2-e3': '🛡️' },
-    namebar: { 'ow2-nb1': '', 'ow2-nb2': 'mock-profile-np-namebar--gold', 'ow2-nb3': 'mock-profile-np-namebar--cyan' },
+  ow: {
+    emblem: { 'ow-e1': '🏆', 'ow-e2': '⚔️', 'ow-e3': '🛡️' },
+    namebar: { 'ow-nb1': '', 'ow-nb2': 'mock-profile-np-namebar--gold', 'ow-nb3': 'mock-profile-np-namebar--cyan' },
     sub: {
-      'ow2-s1': { ico: '🔔', text: '시즌 칭호 · 뉴비 · 프레임: 녹색 러너' },
-      'ow2-s2': { ico: '⭐', text: '플레이스먼트 · 다이아 목표' },
-      'ow2-s3': { ico: '🏅', text: '클랜 내전 MVP' },
+      'ow-s1': { ico: '🔔', text: '시즌 칭호 · 뉴비 · 프레임: 녹색 러너' },
+      'ow-s2': { ico: '⭐', text: '플레이스먼트 · 다이아 목표' },
+      'ow-s3': { ico: '🏅', text: '클랜 내전 MVP' },
     },
-    frame: { 'ow2-f1': '', 'ow2-f2': 'mock-profile-np-preview--ow-f2', 'ow2-f3': 'mock-profile-np-preview--ow-f3' },
+    frame: { 'ow-f1': '', 'ow-f2': 'mock-profile-np-preview--ow-f2', 'ow-f3': 'mock-profile-np-preview--ow-f3' },
   },
   val: {
     emblem: { 'val-e1': '🎯', 'val-e2': '💀', 'val-e3': '✨' },
@@ -423,7 +423,7 @@ const MOCK_NAMEPLATE_META = {
 function mockNameplateGetState() {
   if (!window.__mockNameplateState) {
     window.__mockNameplateState = {
-      ow2: { emblem: 'ow2-e1', namebar: 'ow2-nb1', sub: 'ow2-s1', frame: 'ow2-f1' },
+      ow: { emblem: 'ow-e1', namebar: 'ow-nb1', sub: 'ow-s1', frame: 'ow-f1' },
       val: { emblem: 'val-e1', namebar: 'val-nb1', sub: 'val-s1', frame: 'val-f1' },
     };
   }
@@ -432,7 +432,7 @@ function mockNameplateGetState() {
 
 function stripNameplateNamebarClasses(el, game) {
   const all =
-    game === 'ow2'
+    game === 'ow'
       ? ['mock-profile-np-namebar--gold', 'mock-profile-np-namebar--cyan']
       : ['mock-profile-np-namebar--val-neon', 'mock-profile-np-namebar--val-dark'];
   all.forEach((c) => el.classList.remove(c));
@@ -440,7 +440,7 @@ function stripNameplateNamebarClasses(el, game) {
 
 function stripNameplateFrameClasses(preview, game) {
   const all =
-    game === 'ow2'
+    game === 'ow'
       ? ['mock-profile-np-preview--ow-f2', 'mock-profile-np-preview--ow-f3']
       : ['mock-profile-np-preview--val-f2', 'mock-profile-np-preview--val-f3'];
   all.forEach((c) => preview.classList.remove(c));
@@ -537,7 +537,7 @@ function mockNameplateCaseModalApplyGame(gameKey) {
   const root = document.getElementById('mock-nameplate-case-modal');
   if (!root) return;
   const titles = {
-    ow2: '오버워치 2 · 네임카드',
+    ow: '오버워치 · 네임카드',
     val: '발로란트 · 네임카드',
   };
   const t = root.querySelector('#mock-nameplate-case-title');
@@ -560,7 +560,7 @@ function mockNameplateCaseModalApplyGame(gameKey) {
 }
 
 function mockNameplateCaseModalOpen(gameKey) {
-  const key = gameKey === 'val' ? 'val' : 'ow2';
+  const key = gameKey === 'val' ? 'val' : 'ow';
   mockNameplateCaseModalInject()
     .then(() => {
       mockNameplateCaseModalApplyGame(key);
