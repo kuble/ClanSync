@@ -1225,6 +1225,33 @@ input[type="datetime-local"][lang="ko-KR"] {
   gap: 8px;
   margin-bottom: 14px;
 }
+.mock-profile-game-chip-row--pergame {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 10px 0 12px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--bg-elevated) 72%, rgba(18, 18, 26, 0));
+}
+.mock-modal-card--player-profile .mock-profile-game-chip-row--pergame {
+  margin-left: -4px;
+  margin-right: -4px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.mock-profile-page-card .mock-profile-game-chip-row--pergame {
+  margin-left: -8px;
+  margin-right: -8px;
+  padding-left: 10px;
+  padding-right: 10px;
+  border-radius: var(--radius-sm);
+}
+.mock-profile-game-panel-surface {
+  min-height: 80px;
+}
 .mock-profile-game-chip {
   padding: 8px 14px;
   border-radius: 99px;

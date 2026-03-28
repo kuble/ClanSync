@@ -39,8 +39,16 @@
       </div>
 
       <div data-profile-panel="games" class="mock-profile-panel mock-profile-panel--pergame" hidden>
-        <p class="mock-modal-hint" style="margin:0 0 14px;font-size:12px">타이틀마다 <strong>네임카드</strong> · <strong>계정 인증·본계/부계</strong> · <strong>클랜</strong>을 한 블록으로 묶었습니다. 아래로 스크롤하면 다른 게임을 이어서 볼 수 있습니다.</p>
+        <p class="mock-modal-hint" style="margin:0 0 10px;font-size:12px"><strong>상단에서 게임을 선택</strong>하면 해당 타이틀의 <strong>네임카드</strong> · <strong>계정·본계/부계</strong> · <strong>클랜</strong>을 한 화면에 봅니다.</p>
 
+        <div class="mock-profile-game-chip-row mock-profile-game-chip-row--pergame" role="tablist" aria-label="게임 선택">
+          <button type="button" class="mock-profile-game-chip mock-profile-game-chip--active" data-profile-game-chip="ow2" aria-pressed="true" onclick="mockPlayerProfileGameSelect(this,'ow2')">오버워치 2</button>
+          <button type="button" class="mock-profile-game-chip" data-profile-game-chip="val" aria-pressed="false" onclick="mockPlayerProfileGameSelect(this,'val')">발로란트</button>
+          <button type="button" class="mock-profile-game-chip mock-profile-game-chip--disabled" disabled title="목업">LoL (준비중)</button>
+          <button type="button" class="mock-profile-game-chip" data-profile-game-chip="extra" aria-pressed="false" onclick="mockPlayerProfileGameSelect(this,'extra')">기타</button>
+        </div>
+
+        <div data-profile-game-panel="ow2" class="mock-profile-game-panel-surface">
         <section class="mock-profile-game-bundle" aria-labelledby="mock-pg-ow-title">
           <div class="mock-profile-game-bundle-head">
             <h4 id="mock-pg-ow-title" class="mock-profile-game-bundle-title">오버워치 2</h4>
@@ -94,7 +102,9 @@
             </ul>
           </div>
         </section>
+        </div>
 
+        <div data-profile-game-panel="val" class="mock-profile-game-panel-surface" hidden>
         <section class="mock-profile-game-bundle" aria-labelledby="mock-pg-val-title">
           <div class="mock-profile-game-bundle-head">
             <h4 id="mock-pg-val-title" class="mock-profile-game-bundle-title">발로란트</h4>
@@ -145,12 +155,16 @@
             <p class="mock-modal-hint" style="margin:0;font-size:12px">이 게임 기준 대기 중인 신청 없음(목업).</p>
           </div>
         </section>
+        </div>
 
-        <div class="mock-profile-global-platform-note">
-          <p class="mock-profile-bundle-section-label" style="margin-top:4px">기타 플랫폼 (게임 미매칭)</p>
+        <div data-profile-game-panel="extra" class="mock-profile-game-panel-surface" hidden>
+        <div class="mock-profile-global-platform-note" style="margin:0;border:none;padding:0">
+          <p class="mock-profile-bundle-section-label" style="margin-top:0">기타 플랫폼 (게임 미매칭)</p>
+          <p class="mock-modal-hint" style="margin:0 0 10px;font-size:12px">ClanSync에 타이틀이 아직 없거나, 스팀 등만 연동한 경우입니다.</p>
           <ul class="mock-profile-platform-list">
             <li><span class="mock-profile-pill">Steam</span> <em style="color:var(--text-muted);font-size:12px">미연동</em> <button type="button" class="btn btn-secondary btn-sm" style="margin-left:auto;padding:2px 8px;font-size:11px" onclick="alert('목업')">연동</button></li>
           </ul>
+        </div>
         </div>
       </div>
     </div>
