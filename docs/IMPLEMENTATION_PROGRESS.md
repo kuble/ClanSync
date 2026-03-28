@@ -80,6 +80,11 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-03-28 — /todo 동기화 (재실행)
+- `FEATURE_INDEX`·`BACKLOG`·`mockup/pages/*.html`·`clan-mock.js`·`app.js` 경로 대조
+- S04 `balance-maker-ui-notes`·S05 `clan-stats-plan`·S01 `pages.md` 등 **폴리시·정합** 미완 항목 재확인 (체크리스트 변경 없음)
+- 빠른 요약표·다음 세션 권장 프롬프트 갱신
+
 ### 2026-03-28 — /todo 커맨드로 진행도 동기화
 - [x] S05·S06 목업 존재 여부 재확인 후 체크·요약표 반영
 - [x] `.cursor/commands/todo.md` 추가 (재실행 시 동일 절차)
@@ -126,7 +131,7 @@
 
 ```
 @docs/01-plan/FEATURE_INDEX.md @docs/01-plan/slices/slice-04-balance-maker.md @docs/01-plan/balance-maker-ui-notes.md @docs/IMPLEMENTATION_PROGRESS.md 참고해서
-balance-maker-ui-notes.md와 목업(main-clan 밸런스 뷰·clan-mock.js)의 누락 카피·플로우·도움말을 맞추고, Premium 전용 블록과 허브 플랜 전환 연동을 점검한다.
+balance-maker-ui-notes.md와 목업(`main-clan.html` 밸런스 뷰·`clan-mock.js`)의 누락 카피·단계 플로우·data-tip을 맞추고, S04 체크리스트의 Premium 전용(승부예측·밴 등)·허브 `?plan=` 연동을 문서와 대조해 완료 여부를 판정한다.
 
-완료 후 docs/IMPLEMENTATION_PROGRESS.md 체크박스·요약표·세션 로그를 갱신해줘.
+완료 후 `docs/IMPLEMENTATION_PROGRESS.md` 체크박스·요약표·세션 로그를 갱신해줘.
 ```
