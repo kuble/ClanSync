@@ -249,7 +249,7 @@ function mockBadgeCaseTab(el, tabId) {
   if (!variant) return;
   variant.querySelectorAll('[data-bc-tab]').forEach((btn) => {
     const on = btn.getAttribute('data-bc-tab') === tabId;
-    btn.classList.toggle('mock-badge-case-tab--active', on);
+    btn.classList.toggle('mock-profile-tab--active', on);
     btn.setAttribute('aria-selected', on ? 'true' : 'false');
   });
   variant.querySelectorAll('[data-bc-panel]').forEach((panel) => {
@@ -257,6 +257,76 @@ function mockBadgeCaseTab(el, tabId) {
     if (show) panel.removeAttribute('hidden');
     else panel.setAttribute('hidden', '');
   });
+}
+
+/** 목업: 게임별 네임카드에 올릴 뱃지 id 배열(최대 5) */
+function mockBadgeCaseGetPicks() {
+  if (!window.__mockBadgeCasePicks) {
+    window.__mockBadgeCasePicks = { ow2: [], val: [] };
+  }
+  return window.__mockBadgeCasePicks;
+}
+
+function mockBadgeCaseInitDefaultPicks(gameKey) {
+  const picks = mockBadgeCaseGetPicks();
+  if (!picks[gameKey]) picks[gameKey] = [];
+  if (!window.__mockBadgeCasePicksSeeded) window.__mockBadgeCasePicksSeeded = {};
+  if (window.__mockBadgeCasePicksSeeded[gameKey]) return;
+  window.__mockBadgeCasePicksSeeded[gameKey] = true;
+  if (gameKey === 'ow2') {
+    picks.ow2 = ['ow-battle-1', 'ow-join-1', 'ow-battle-3', 'ow-clan-1', 'ow-sync-1'];
+  } else if (gameKey === 'val') {
+    picks.val = ['val-battle-1', 'val-battle-2', 'val-battle-3', 'val-clan-1', 'val-sync-1'];
+  }
+}
+
+function mockBadgeCaseTogglePick(btn) {
+  const id = btn.getAttribute('data-badge-id');
+  const game = btn.getAttribute('data-game');
+  if (!id || !game) return;
+  const picks = mockBadgeCaseGetPicks();
+  if (!picks[game]) picks[game] = [];
+  const arr = picks[game];
+  const idx = arr.indexOf(id);
+  if (idx >= 0) {
+    arr.splice(idx, 1);
+  } else if (arr.length >= 5) {
+    alert('네임카드에는 최대 5개까지 표시할 수 있습니다.');
+    return;
+  } else {
+    arr.push(id);
+  }
+  mockBadgeCaseApplyPicksUI(game);
+}
+
+function mockBadgeCaseApplyPicksUI(game) {
+  const root = document.getElementById('mock-badge-case-modal');
+  if (!root) return;
+  const variant = root.querySelector(`[data-badge-case-for="${game}"]`);
+  if (!variant) return;
+  const picks = mockBadgeCaseGetPicks()[game] || [];
+  variant.querySelectorAll('[data-badge-id]').forEach((b) => {
+    const on = picks.includes(b.getAttribute('data-badge-id'));
+    b.classList.toggle('mock-badge-case-slot--pick', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  const ol = variant.querySelector('[data-badge-pick-list]');
+  if (!ol) return;
+  ol.innerHTML = '';
+  for (let i = 0; i < 5; i += 1) {
+    const bid = picks[i];
+    const li = document.createElement('li');
+    if (bid) {
+      const el = variant.querySelector(`[data-badge-id="${bid}"]`);
+      const ico = el ? el.getAttribute('data-badge-ico') : '·';
+      const name = el ? el.getAttribute('data-badge-name') : '';
+      li.innerHTML = `<span class="mock-badge-case-pick-ord">${i + 1}</span> <span class="mock-badge-case-pick-ico">${ico}</span> <span class="mock-badge-case-pick-name">${name}</span>`;
+    } else {
+      li.className = 'mock-badge-case-pick-row--empty';
+      li.innerHTML = `<span class="mock-badge-case-pick-ord">${i + 1}</span> <span class="mock-badge-case-pick-empty">비어 있음</span>`;
+    }
+    ol.appendChild(li);
+  }
 }
 
 function mockBadgeCaseModalApplyGame(gameKey) {
@@ -273,6 +343,8 @@ function mockBadgeCaseModalApplyGame(gameKey) {
     if (match) el.removeAttribute('hidden');
     else el.setAttribute('hidden', '');
   });
+  mockBadgeCaseInitDefaultPicks(gameKey);
+  mockBadgeCaseApplyPicksUI(gameKey);
   const variant = root.querySelector(`[data-badge-case-for="${gameKey}"]`);
   if (variant) {
     const firstBtn = variant.querySelector('[data-bc-tab]');
@@ -317,3 +389,4 @@ window.mockPlayerProfileGameSelect = mockPlayerProfileGameSelect;
 window.mockBadgeCaseModalOpen = mockBadgeCaseModalOpen;
 window.mockBadgeCaseModalClose = mockBadgeCaseModalClose;
 window.mockBadgeCaseTab = mockBadgeCaseTab;
+window.mockBadgeCaseTogglePick = mockBadgeCaseTogglePick;
