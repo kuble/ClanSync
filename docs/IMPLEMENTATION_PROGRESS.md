@@ -80,6 +80,10 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-03-28 — 랜딩·온보딩 미결 BACKLOG 대조
+- [x] `BACKLOG.md`: PRD·`pages.md`와 항목 매칭·랜딩/온보딩 표·경제·통계 그룹 분리
+- [x] `pages.md` Landing 캐치프라이즈 → BACKLOG 단일 참조
+
 ### 2026-03-28 — S02 게임·클랜 온보딩 문서 정합
 - [x] `pages.md`: GameAuth·ClanAuth 목업 동작·온보딩 순서(1→4)·BACKLOG 링크, `slice-02` 수용 기준
 
@@ -165,8 +169,8 @@
 다음 세션 권장 프롬프트 (복사용):
 
 ```
-@docs/IMPLEMENTATION_PROGRESS.md @docs/01-plan/BACKLOG.md 참고해서
-랜딩·온보딩 관련 미결(캐치프라이즈·가짜 클랜 검증 등)을 `pages.md`·PRD와 대조하고 BACKLOG에만 정리한다.
+@docs/IMPLEMENTATION_PROGRESS.md 참고해서
+Phase 2(`src/`·Supabase) 착수 시 본 문서에 Phase 2 체크리스트 섹션을 추가하고, `pages.md` 라우트와 대응 관계를 한 표로 정리한다.
 
-완료 후 `docs/IMPLEMENTATION_PROGRESS.md` 세션 로그를 남긴다(체크리스트 변경은 선택).
+완료 후 세션 로그를 남긴다.
 ```
