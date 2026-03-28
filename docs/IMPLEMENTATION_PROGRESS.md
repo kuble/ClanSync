@@ -27,7 +27,7 @@
 ### S02 게임·클랜 온보딩
 - [x] `mockup/pages/game-auth.html`
 - [x] `mockup/pages/clan-auth.html`
-- [ ] 온보딩 플로우 UX 문서 대비 최종 점검
+- [x] 온보딩 플로우·미들웨어 대응 `pages.md` 반영 (GameAuth/ClanAuth 목업 동작·온보딩 순서·`slice-02`)
 
 ### S03 MainClan 쉘 (허브 · 탭 · 플랜/권한 목업)
 - [x] `mockup/_hub.html` (역할 · Free/Premium)
@@ -79,6 +79,9 @@
 ## 세션 로그 (날짜순 · 한 세션 = 한 블록)
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
+
+### 2026-03-28 — S02 게임·클랜 온보딩 문서 정합
+- [x] `pages.md`: GameAuth·ClanAuth 목업 동작·온보딩 순서(1→4)·BACKLOG 링크, `slice-02` 수용 기준
 
 ### 2026-03-28 — S01 라우트·미들웨어 `pages.md` 정합
 - [x] 라우팅 맵에 `/profile`·게시글 상세(목업 미작성) 명시, 미들웨어에 프로필·게임 하위 분리, Phase 1 목업 대응표·`slice-01` 수용 기준
@@ -145,7 +148,7 @@
 |----------|:--------:|:----------------:|
 | S00 | 완료 | 진행 중 |
 | S01 | 완료 | 완료 |
-| S02 | 완료 | 미완 |
+| S02 | 완료 | 완료 |
 | S03 | 완료 | 완료 |
 | S04 | 완료 | 완료 |
 | S05 | 완료 | 완료 |
@@ -162,8 +165,8 @@
 다음 세션 권장 프롬프트 (복사용):
 
 ```
-@docs/01-plan/pages.md @docs/IMPLEMENTATION_PROGRESS.md 참고해서
-S02 게임·클랜 온보딩(`game-auth`·`clan-auth`)을 미들웨어·온보딩 문서와 대조해 최종 점검한다.
+@docs/IMPLEMENTATION_PROGRESS.md @docs/01-plan/BACKLOG.md 참고해서
+랜딩·온보딩 관련 미결(캐치프라이즈·가짜 클랜 검증 등)을 `pages.md`·PRD와 대조하고 BACKLOG에만 정리한다.
 
-완료 후 `docs/IMPLEMENTATION_PROGRESS.md` 체크박스·요약표·세션 로그를 갱신해줘.
+완료 후 `docs/IMPLEMENTATION_PROGRESS.md` 세션 로그를 남긴다(체크리스트 변경은 선택).
 ```

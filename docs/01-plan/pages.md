@@ -87,13 +87,24 @@ S01 쉘·온보딩·전역 프로필은 아래 파일이 **단일 목업**으로
 
 ### GameAuth (/games/[gameSlug]/auth)
 - 게임별 인증 방식 (오버워치: 배틀넷 API)
+- **목업** (`game-auth.html`): 상단 스텝(게임 선택 → 계정 연동 → 클랜 입장). `handleBattleNetAuth()` — 버튼 **연동 중…** 비활성 → 약 1.5초 후 `clan-auth.html`로 이동(연동 완료 가정). `#authError`는 실패·재시도 UI(데모에서 수동 표시 가능). 수동 배틀태그·관리자 검토 등 **추가 시나리오**는 [mockup-spec §Game Auth](../02-design/mockup-spec.md) 검토 항목이며, 현재 HTML은 OAuth 시뮬레이션 위주다.
 
 ### ClanAuth (/games/[gameSlug]/clan)
 - 클랜 가입 탭: 검색, 추천, 홍보글 열람
   - 선택 후 → 가입 대기 상태 (운영진 승인 후 입장)
 - 클랜 생성 탭:
   - 태그, 연령대, 성별 정책, 설명, 규칙, 디스코드, 카카오 링크
-  - 가짜 클랜 검증 절차 (논의 필요)
+  - 가짜 클랜 검증 절차 (논의 필요) — [BACKLOG.md](./BACKLOG.md)
+- **목업** (`clan-auth.html`): 탭 **클랜 가입** / **클랜 생성**(`switchTab`). 가입 탭 — 검색·필터·추천·홍보 카드·드로어·`가입 신청` 모달·**가입 대기** 화면. 생성 탭 — 태그·정책·링크 필드·경고 문구. 미들웨어상 **게임 인증 완료 후** 이 화면으로 진입(`pages.md` 다이어그램).
+
+### 온보딩 순서 (미들웨어 대응)
+
+1. `/games` — 타이틀 선택  
+2. `/games/[gameSlug]/auth` — 게임 계정 연동 (목업: `game-auth.html`)  
+3. `/games/[gameSlug]/clan` — 클랜 가입 또는 생성 (목업: `clan-auth.html`)  
+4. `/games/[gameSlug]/clan/[clanId]` — 클랜 홈 (목업: `main-clan.html`)
+
+`/profile`은 위 순서와 독립(세션만). 게임·클랜 라우트는 로그인 + (2)~(3) 조건을 만족해야 함.
 
 ### MainClan (/games/[gameSlug]/clan/[clanId])
 - 클랜 대시보드 (최근 경기, 통계 요약)
