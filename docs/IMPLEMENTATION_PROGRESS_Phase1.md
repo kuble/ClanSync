@@ -1,6 +1,6 @@
 # Phase 1 — 정적 목업 (`mockup/`, `_hub.html`)
 
-> **허브**: [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md) — 세션 로그·다음 프롬프트는 허브에만 둔다.  
+> **허브**: [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md) — 다음 프롬프트는 허브. **세션 로그**: [IMPLEMENTATION_PROGRESS_SESSION_LOG.md](./IMPLEMENTATION_PROGRESS_SESSION_LOG.md)  
 > **규칙**: 구현·목업 작업이 끝난 세션에서는 아래 **체크박스**를 갱신한다 (`[ ]` → `[x]`). 빠른 요약표도 함께 맞춘다.
 
 | 항목 | 값 |

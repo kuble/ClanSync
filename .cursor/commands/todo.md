@@ -6,7 +6,8 @@
 
 ### 1. 참조 문서 읽기
 
-- `docs/IMPLEMENTATION_PROGRESS.md` (세션 로그·허브)
+- `docs/IMPLEMENTATION_PROGRESS.md` (허브 — 짧게)
+- `docs/IMPLEMENTATION_PROGRESS_SESSION_LOG.md` (세션 로그 갱신 시에만)
 - `docs/IMPLEMENTATION_PROGRESS_Phase1.md` (Phase 1 체크·요약표) — Phase 2 착수 시 `IMPLEMENTATION_PROGRESS_Phase2.md` 병행
 - `docs/01-plan/FEATURE_INDEX.md`, `docs/01-plan/BACKLOG.md`
 - 필요 시 `docs/01-plan/slices/slice-*.md`, `docs/01-plan/pages.md`
@@ -19,7 +20,8 @@
 
 ### 3. 진행도 문서 수정
 
-- **허브** `IMPLEMENTATION_PROGRESS.md`: **마지막 갱신** 날짜, **세션 로그** 맨 위에 블록 추가.
+- **허브** `IMPLEMENTATION_PROGRESS.md`: **마지막 갱신** 날짜.
+- **세션 로그** `IMPLEMENTATION_PROGRESS_SESSION_LOG.md`: 맨 위에 블록 추가 (히스토리 전용).
 - **Phase 1** `IMPLEMENTATION_PROGRESS_Phase1.md`: 체크리스트 `[ ]` / `[x]`, **빠른 요약표**를 체크와 일치.
 - Phase 2 작업 시 `IMPLEMENTATION_PROGRESS_Phase2.md`를 동일 방식으로 갱신.
 
@@ -37,7 +39,7 @@
 @docs/01-plan/FEATURE_INDEX.md @docs/01-plan/slices/slice-XX-....md @docs/IMPLEMENTATION_PROGRESS.md @docs/IMPLEMENTATION_PROGRESS_Phase1.md 참고해서
 (구체 과제 한 문장: 예) balance-maker-ui-notes.md와 목업의 누락 카피·플로우를 맞춘다.
 
-완료 후 `docs/IMPLEMENTATION_PROGRESS.md` 세션 로그·`IMPLEMENTATION_PROGRESS_Phase1.md`(또는 해당 페이즈) 체크·요약표를 갱신해줘.
+완료 후 `docs/IMPLEMENTATION_PROGRESS_SESSION_LOG.md` 세션 로그·`IMPLEMENTATION_PROGRESS_Phase1.md`(또는 해당 페이즈) 체크·요약표를 갱신해줘.
 ---
 ```
 

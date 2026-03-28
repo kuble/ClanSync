@@ -11,7 +11,7 @@ alwaysApply: true
 > 문서 맵(토큰 절약): @docs/README.md
 > 기획 요약·동결: @docs/01-plan/PRD.md
 > 슬라이스 목록: @docs/01-plan/FEATURE_INDEX.md
-> 구현 진행도: @docs/IMPLEMENTATION_PROGRESS.md (허브·세션 로그) · @docs/IMPLEMENTATION_PROGRESS_Phase1.md (Phase 1 체크)
+> 구현 진행도: @docs/IMPLEMENTATION_PROGRESS.md (허브) · @docs/IMPLEMENTATION_PROGRESS_Phase1.md (Phase 1 체크) · 세션 히스토리는 @docs/IMPLEMENTATION_PROGRESS_SESSION_LOG.md
 > 데이터 스키마: @docs/01-plan/schema.md
 > 페이지 구조: @docs/01-plan/pages.md
 

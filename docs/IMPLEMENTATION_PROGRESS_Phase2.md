@@ -1,6 +1,6 @@
 # Phase 2 — 앱 · API (`src/` · Supabase)
 
-> **허브**: [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md) — 세션 로그는 허브에만 둔다.  
+> **허브**: [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md) — **세션 로그**: [IMPLEMENTATION_PROGRESS_SESSION_LOG.md](./IMPLEMENTATION_PROGRESS_SESSION_LOG.md)  
 > **상태**: 미착수. 착수 시 아래 체크리스트·라우트 표를 채운다.
 
 | 항목 | 값 |
