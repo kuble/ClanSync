@@ -124,6 +124,10 @@ window.addEventListener('resize', onSidebarDrawerResize);
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeSidebarDrawer();
+    const ppm = document.getElementById('mock-player-profile-modal');
+    if (ppm && !ppm.hasAttribute('hidden')) {
+      mockPlayerProfileModalClose();
+    }
   }
 });
 
@@ -137,3 +141,68 @@ document.addEventListener('click', (e) => {
     closeSidebarDrawer();
   }
 });
+
+// ── 플레이어 프로필 모달 (partials 주입) ──
+function mockPlayerProfileModalInject() {
+  if (document.getElementById('mock-player-profile-modal')) {
+    return Promise.resolve();
+  }
+  const sc = document.querySelector('script[src*="app.js"]');
+  if (!sc || !sc.src) {
+    return Promise.reject(new Error('app.js src not found'));
+  }
+  const url = new URL('../partials/player-profile-modal.html', sc.src);
+  return fetch(url)
+    .then((r) => {
+      if (!r.ok) throw new Error(String(r.status));
+      return r.text();
+    })
+    .then((html) => {
+      document.body.insertAdjacentHTML('beforeend', html);
+    });
+}
+
+function mockPlayerProfileModalOpen() {
+  mockPlayerProfileModalInject()
+    .then(() => {
+      const d = document.getElementById('profileDropdown');
+      const b = document.querySelector('.profile-btn');
+      if (d) d.classList.remove('open');
+      if (b) b.classList.remove('open');
+      const m = document.getElementById('mock-player-profile-modal');
+      if (!m) return;
+      m.removeAttribute('hidden');
+      m.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    })
+    .catch(() => {
+      window.location.href = 'profile.html';
+    });
+}
+
+function mockPlayerProfileModalClose() {
+  const m = document.getElementById('mock-player-profile-modal');
+  if (!m) return;
+  m.setAttribute('hidden', '');
+  m.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+function mockPlayerProfileTab(el, name) {
+  const root = el.closest('.mock-player-profile-root');
+  if (!root) return;
+  root.querySelectorAll('[data-profile-tab]').forEach((t) => {
+    const on = t.getAttribute('data-profile-tab') === name;
+    t.classList.toggle('mock-profile-tab--active', on);
+    t.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  root.querySelectorAll('[data-profile-panel]').forEach((p) => {
+    const show = p.getAttribute('data-profile-panel') === name;
+    if (show) p.removeAttribute('hidden');
+    else p.setAttribute('hidden', '');
+  });
+}
+
+window.mockPlayerProfileModalOpen = mockPlayerProfileModalOpen;
+window.mockPlayerProfileModalClose = mockPlayerProfileModalClose;
+window.mockPlayerProfileTab = mockPlayerProfileTab;

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>플레이어 프로필 — ClanSync</title>
+<link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="games.html"><span class="navbar-brand">⚡ ClanSync</span></a>
+  <div class="navbar-nav" style="gap:12px">
+    <a href="main-game.html"><button class="btn btn-ghost btn-sm" type="button">🌐 커뮤니티</button></a>
+    <a href="main-clan.html"><button class="btn btn-ghost btn-sm" type="button">🏠 내 클랜</button></a>
+  </div>
+</nav>
+
+<main class="mock-profile-page">
+  <h1 class="mock-profile-page-title">플레이어 프로필</h1>
+  <p class="mock-profile-page-desc">모달과 동일한 정보를 페이지 단위로 봅니다(목업). 꾸미기는 <strong>사측 에셋만</strong> — 업로드 없음.</p>
+
+  <div class="mock-profile-page-card mock-player-profile-root">
+    <div class="mock-profile-nameplate-preview" aria-hidden="true">
+      <div class="mock-profile-np-left">
+        <span class="mock-profile-np-emblem" aria-hidden="true">🏆</span>
+      </div>
+      <div class="mock-profile-np-main">
+        <div class="mock-profile-np-namebar">
+          <span class="mock-profile-np-v">V</span>
+          <span class="mock-profile-np-nick">김클랜</span>
+        </div>
+        <div class="mock-profile-np-sub"><span class="mock-profile-np-sub-ico">🔔</span> 뉴비</div>
+      </div>
+      <div class="mock-profile-np-flourish" aria-hidden="true"></div>
+    </div>
+
+    <div class="mock-profile-identity-row">
+      <div>
+        <div class="mock-profile-label">배틀태그</div>
+        <div class="mock-profile-value">PlayerName#12345</div>
+      </div>
+      <div>
+        <div class="mock-profile-label">선택 게임</div>
+        <div class="mock-profile-value">오버워치 2</div>
+      </div>
+      <div>
+        <div class="mock-profile-label">개인 풀 코인</div>
+        <div class="mock-profile-value mock-profile-coin">3,200</div>
+      </div>
+    </div>
+
+    <div class="mock-profile-tab-row" role="tablist">
+      <button type="button" class="mock-profile-tab mock-profile-tab--active" role="tab" aria-selected="true" data-profile-tab="overview" onclick="mockPlayerProfileTab(this,'overview')">개요</button>
+      <button type="button" class="mock-profile-tab" role="tab" aria-selected="false" data-profile-tab="clan" onclick="mockPlayerProfileTab(this,'clan')">클랜</button>
+      <button type="button" class="mock-profile-tab" role="tab" aria-selected="false" data-profile-tab="link" onclick="mockPlayerProfileTab(this,'link')">연동</button>
+    </div>
+
+    <div class="mock-profile-panels">
+      <div data-profile-panel="overview" class="mock-profile-panel">
+        <div class="mock-profile-actions-inline">
+          <a href="main-clan.html#store" class="btn btn-secondary btn-sm">클랜 스토어 (개인 꾸미기)</a>
+          <span class="mock-modal-hint" style="margin:0;font-size:11px;align-self:center">이벤트·월간 보상으로 해금 예정</span>
+        </div>
+      </div>
+      <div data-profile-panel="clan" class="mock-profile-panel" hidden>
+        <div class="mock-profile-label" style="margin-bottom:8px">내 클랜</div>
+        <ul class="mock-profile-clan-list">
+          <li><strong>Phoenix Rising</strong> <span class="mock-profile-pill">오버워치 2</span> <span class="mock-profile-pill mock-profile-pill--role">클랜장</span></li>
+        </ul>
+        <div class="mock-profile-label" style="margin:14px 0 8px">가입 신청 대기</div>
+        <ul class="mock-profile-clan-list mock-profile-clan-list--pending">
+          <li><span>Thunder Squad</span> <em>심사 대기</em></li>
+          <li><span>Running**</span> <em>심사 대기</em></li>
+        </ul>
+      </div>
+      <div data-profile-panel="link" class="mock-profile-panel" hidden>
+        <div class="mock-profile-link-row">
+          <div>
+            <div class="mock-profile-label">Battle.net</div>
+            <div class="mock-profile-value">연동됨 · PlayerName#12345</div>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업: 연동 관리는 구현 단계에서 연결합니다.')">연동 관리</button>
+        </div>
+        <p class="mock-modal-hint" style="margin:12px 0 0;font-size:11px">미연동 시 게임 내 전적·인증 연계가 제한될 수 있습니다.</p>
+      </div>
+    </div>
+  </div>
+
+  <p class="mock-player-profile-legal" style="margin-top:8px">
+    <a href="../index.html">이용약관</a>
+    ·
+    <a href="../index.html">개인정보처리방침</a>
+    <span class="mock-modal-hint" style="display:inline;margin:0">(목업 링크)</span>
+  </p>
+</main>
+
+<script src="../scripts/app.js"></script>
+</body>
+</html>
