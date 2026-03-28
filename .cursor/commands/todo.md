@@ -1,12 +1,13 @@
 # todo
 
-`docs/IMPLEMENTATION_PROGRESS.md`를 **문서·목업과 대조**해 갱신하고, **다음 세션에 쓸 프롬프트**를 사용자에게 출력한다.
+`docs/IMPLEMENTATION_PROGRESS.md`(허브)와 **현재 페이즈** 문서(`IMPLEMENTATION_PROGRESS_Phase1.md` 등)를 **문서·목업과 대조**해 갱신하고, **다음 세션에 쓸 프롬프트**를 사용자에게 출력한다.
 
 ## 실행 순서
 
 ### 1. 참조 문서 읽기
 
-- `docs/IMPLEMENTATION_PROGRESS.md` (현재 체크 상태)
+- `docs/IMPLEMENTATION_PROGRESS.md` (세션 로그·허브)
+- `docs/IMPLEMENTATION_PROGRESS_Phase1.md` (Phase 1 체크·요약표) — Phase 2 착수 시 `IMPLEMENTATION_PROGRESS_Phase2.md` 병행
 - `docs/01-plan/FEATURE_INDEX.md`, `docs/01-plan/BACKLOG.md`
 - 필요 시 `docs/01-plan/slices/slice-*.md`, `docs/01-plan/pages.md`
 
@@ -16,12 +17,11 @@
 - HTML/CSS에 해당 뷰(통계·이벤트·스토어 등)가 **골격 이상**이면 목업 1차 항목은 `[x]`로 둘 수 있다.
 - **문서 정합·폴리시** 항목은 코드만으로 완료 판단하지 않고, `clan-stats-plan.md`·`balance-maker-ui-notes.md` 등과 대조해 누락이 없으면 `[x]`, 남으면 `[ ]`.
 
-### 3. `IMPLEMENTATION_PROGRESS.md` 수정
+### 3. 진행도 문서 수정
 
-- **마지막 갱신** 날짜를 오늘(사용자 타임존 기준)로 바꾼다.
-- 체크리스트: 확인 결과에 맞게 `[ ]` / `[x]` 갱신.
-- **빠른 요약표**의 「목업 1차」「폴리시·문서 정합」을 체크리스트와 일치시킨다.
-- **세션 로그** 맨 위에 블록 추가: `### YYYY-MM-DD — /todo 커맨드로 진행도 동기화` + 완료한 갱신 요약 불릿.
+- **허브** `IMPLEMENTATION_PROGRESS.md`: **마지막 갱신** 날짜, **세션 로그** 맨 위에 블록 추가.
+- **Phase 1** `IMPLEMENTATION_PROGRESS_Phase1.md`: 체크리스트 `[ ]` / `[x]`, **빠른 요약표**를 체크와 일치.
+- Phase 2 작업 시 `IMPLEMENTATION_PROGRESS_Phase2.md`를 동일 방식으로 갱신.
 
 ### 4. 「다음 세션 권장 프롬프트」 블록 갱신
 
@@ -34,10 +34,10 @@
 다음 세션 권장 프롬프트 (복사용):
 
 ---
-@docs/01-plan/FEATURE_INDEX.md @docs/01-plan/slices/slice-XX-....md @docs/IMPLEMENTATION_PROGRESS.md 참고해서
+@docs/01-plan/FEATURE_INDEX.md @docs/01-plan/slices/slice-XX-....md @docs/IMPLEMENTATION_PROGRESS.md @docs/IMPLEMENTATION_PROGRESS_Phase1.md 참고해서
 (구체 과제 한 문장: 예) balance-maker-ui-notes.md와 목업의 누락 카피·플로우를 맞춘다.
 
-완료 후 `docs/IMPLEMENTATION_PROGRESS.md` 체크박스·요약표·세션 로그를 갱신해줘.
+완료 후 `docs/IMPLEMENTATION_PROGRESS.md` 세션 로그·`IMPLEMENTATION_PROGRESS_Phase1.md`(또는 해당 페이즈) 체크·요약표를 갱신해줘.
 ---
 ```
 
@@ -49,4 +49,4 @@
 ## 주의
 
 - `.bkit/` 등 로컬 전용 파일은 커밋하지 않는다.
-- 나노 커밋: 본 커맨드로 `docs/IMPLEMENTATION_PROGRESS.md`만 바뀌면 `docs:` 또는 `chore:` 로 한 번 커밋한다.
+- 나노 커밋: 진행도 관련 `docs/IMPLEMENTATION_PROGRESS*.md`만 바뀌면 `docs:` 또는 `chore:` 로 한 번 커밋한다.

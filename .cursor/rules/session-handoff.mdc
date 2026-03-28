@@ -28,7 +28,7 @@ alwaysApply: true
 
 (토큰 절약: `PRD.md` 전체 대신 **해당 슬라이스 한 개**를 우선 참조.)
 
-세션 종료 시 `@docs/IMPLEMENTATION_PROGRESS.md` 체크박스·세션 로그·요약표를 갱신했다고 한 줄 넣을 것.
+세션 종료 시 `@docs/IMPLEMENTATION_PROGRESS.md` **세션 로그**와 `@docs/IMPLEMENTATION_PROGRESS_Phase1.md`(또는 해당 페이즈) **체크·요약표**를 갱신했다고 한 줄 넣을 것.
 
 ## 예시
 
