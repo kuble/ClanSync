@@ -41,8 +41,8 @@
 
 ### S05 클랜 통계
 - [x] 통계 뷰·요약·경기 기록·명예의 전당·`mockStats*` 목업 존재 (`main-clan.html`, `clan-mock.js`)
-- [ ] `clan-stats-plan.md` 대비 탭·권한별 화면·카피 최종 정합
-- [ ] 구성원 vs 운영진 열람 분리 표현 점검
+- [x] `clan-stats-plan.md` 대비 탭·권한별 화면·카피 최종 정합 (§5·§9.0·`앱 이용`/`rankmap` 패널, MVP 문구)
+- [x] 구성원 vs 운영진 열람 분리 표현 점검 (경기 기록 `mock-officer-only`·`mockStatsSetSection` 가드, HoF vs 아카이브 구분)
 
 ### S06 이벤트 · 관리 · 스토어
 - [x] 이벤트(캘린더·그리드·대진표 등) 목업 존재
@@ -79,6 +79,10 @@
 ## 세션 로그 (날짜순 · 한 세션 = 한 블록)
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
+
+### 2026-03-28 — S05 클랜 통계 문서·목업 정합
+- [x] `clan-stats-plan.md` §5·§9 재작성: 탭 4개(요약·명예의 전당·경기 기록·앱 이용)·권한·HoF vs 경기 기록 구분
+- [x] `slice-05` 수용 기준 반영, `main-clan.html`/`clan-mock.js` 주석 정리
 
 ### 2026-03-28 — S04 밸런스 문서·목업 정합
 - [x] `balance-maker-ui-notes.md`에 워크플로 탭 라벨·허브 `?plan=`·`mockClanCurrentPlan` 설명 보강
@@ -121,7 +125,7 @@
 | S02 | 완료 | 미완 |
 | S03 | 완료 | 미완 |
 | S04 | 완료 | 완료 |
-| S05 | 완료 | 미완 |
+| S05 | 완료 | 완료 |
 | S06 | 완료 | 미완 |
 | S07 | 부분 | 미완 |
 | S08 | 부분 | 미완 |
@@ -135,8 +139,8 @@
 다음 세션 권장 프롬프트 (복사용):
 
 ```
-@docs/01-plan/FEATURE_INDEX.md @docs/01-plan/slices/slice-05-clan-stats.md @docs/01-plan/clan-stats-plan.md @docs/IMPLEMENTATION_PROGRESS.md 참고해서
-clan-stats-plan.md와 목업(`main-clan.html` 통계 뷰·`clan-mock.js` mockStats*)의 탭·권한별 노출·카피를 맞추고, 구성원 vs 운영진 열람 분리 표현을 점검한다.
+@docs/01-plan/FEATURE_INDEX.md @docs/01-plan/slices/slice-06-events-manage-store.md @docs/01-plan/pages.md @docs/01-plan/clan-main-static-mockup-plan.md @docs/IMPLEMENTATION_PROGRESS.md 참고해서
+이벤트·관리·스토어 목업(`main-clan.html` 해당 뷰·`clan-mock.js`)을 `pages.md`·PRD·clan-main-static-mockup-plan과 통일·폴리시 점검한다.
 
 완료 후 `docs/IMPLEMENTATION_PROGRESS.md` 체크박스·요약표·세션 로그를 갱신해줘.
 ```

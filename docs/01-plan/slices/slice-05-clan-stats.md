@@ -8,7 +8,7 @@
 
 ## 수용 기준
 
-- [ ] `clan-stats-plan.md` 와 열람 권한 분리 설명이 일치
+- [x] `clan-stats-plan.md` 와 열람 권한 분리 설명이 일치
 
 ## 심층 문서
 
