@@ -3382,7 +3382,7 @@ body.mock-role-leader .mock-stats-archive-leader-toolbar {
 @media (max-width: 900px) { .mock-store-grid { grid-template-columns: 1fr; } }
 .mock-store-card { border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 14px; background: var(--bg-elevated); display: flex; flex-direction: column; gap: 8px; }
 .mock-store-card.pro { position: relative; opacity: 0.75; }
-.mock-store-card.pro::after { content: 'PRO'; position: absolute; top: 10px; right: 10px; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: rgba(245,158,11,0.2); color: #fcd34d; }
+.mock-store-card.pro::after { content: 'Premium'; position: absolute; top: 10px; right: 10px; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: rgba(245,158,11,0.2); color: #fcd34d; }
 .mock-store-balance-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; align-items: stretch; }
 .mock-store-balance-pill {
   padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--border);
@@ -5888,7 +5888,7 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
     <div data-manage-panel="subscribe" class="mock-manage-panel" hidden>
       <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px;border-color:rgba(245,158,11,0.25)">
         <h2 id="mock-manage-subscribe-title" class="d-card-label" style="margin:0 0 12px;font-size:15px;font-weight:700">구독 · 결제</h2>
-        <p class="mock-clan-subscribe-hint-free" style="font-size:13px;color:var(--text-muted);margin:0 0 10px">클랜장만 변경. Free → PRO 업그레이드 플로우는 별도 화면으로 뺄지 여기 탭으로 둘지 미결.</p>
+        <p class="mock-clan-subscribe-hint-free" style="font-size:13px;color:var(--text-muted);margin:0 0 10px">클랜장만 변경. Free → Premium 업그레이드 플로우는 별도 화면으로 뺄지 여기 탭으로 둘지 미결.</p>
         <p class="mock-clan-subscribe-hint-premium" style="font-size:13px;color:var(--text-muted);margin:0 0 10px">클랜장만 변경. 구독 상태·결제·영수증은 아래에서 관리합니다(목업).</p>
         <div id="mock-manage-subscribe-plan-summary" style="font-size:13px;line-height:1.55;color:var(--text-secondary);margin-bottom:4px"></div>
         <div class="d-card-label" style="margin-top:18px;margin-bottom:8px">결제 기록</div>
@@ -5941,11 +5941,11 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
           <button type="button" class="btn btn-secondary btn-sm" style="margin-top:auto;align-self:flex-start" onclick="mockStorePurchaseMock(this)">구매</button>
         </div>
         <div class="mock-store-card pro" data-store-title="클랜 태그 글로우">
-          <div class="mock-store-card-tags"><span class="mock-store-tag mock-store-tag--clan">[클랜]</span><span class="mock-store-tag">PRO</span></div>
+          <div class="mock-store-card-tags"><span class="mock-store-tag mock-store-tag--clan">[클랜]</span><span class="mock-store-tag">Premium</span></div>
           <strong>클랜 태그 글로우</strong>
           <span style="font-size:12px;color:var(--text-muted)">글로우 효과(서비스 에셋)</span>
           <span class="coin-amount" style="font-size:16px">2,000</span>
-          <button type="button" class="btn btn-sm" style="margin-top:auto;align-self:flex-start;opacity:0.5" disabled>PRO</button>
+          <button type="button" class="btn btn-sm" style="margin-top:auto;align-self:flex-start;opacity:0.5" disabled>Premium</button>
         </div>
       </div>
     </div>
@@ -5983,11 +5983,11 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
           <button type="button" class="btn btn-secondary btn-sm" style="margin-top:auto;align-self:flex-start" onclick="mockStorePurchaseMock(this)">구매</button>
         </div>
         <div class="mock-store-card pro" data-store-item-game="all" data-store-title="승부예측 코인 보너스">
-          <div class="mock-store-card-tags"><span class="mock-store-tag">[개인]</span><span class="mock-store-tag">PRO</span><span class="mock-store-tag">profile_deco</span></div>
+          <div class="mock-store-card-tags"><span class="mock-store-tag">[개인]</span><span class="mock-store-tag">Premium</span><span class="mock-store-tag">profile_deco</span></div>
           <strong>승부예측 코인 보너스</strong>
-          <span style="font-size:12px;color:var(--text-muted)">PRO 연동 목업</span>
+          <span style="font-size:12px;color:var(--text-muted)">Premium 연동 목업</span>
           <span class="coin-amount" style="font-size:16px">1,500</span>
-          <button type="button" class="btn btn-sm" style="margin-top:auto;align-self:flex-start;opacity:0.5" disabled>PRO</button>
+          <button type="button" class="btn btn-sm" style="margin-top:auto;align-self:flex-start;opacity:0.5" disabled>Premium</button>
         </div>
       </div>
     </div>
@@ -6093,7 +6093,7 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
           <label for="mep-announce"><input id="mep-announce" type="checkbox" /> 클랜 공지사항에 함께 표시</label>
         </div>
       </div>
-      <p style="font-size:11px;color:var(--text-muted);margin:0;line-height:1.45">PRO: 알림 실제 발송·중복 방지·가중치는 구현 단계에서 연동합니다(목업).</p>
+      <p style="font-size:11px;color:var(--text-muted);margin:0;line-height:1.45">Premium: 알림 실제 발송·중복 방지·가중치는 구현 단계에서 연동합니다(목업).</p>
       <div class="mock-modal-actions">
         <button type="button" class="btn btn-secondary btn-sm" onclick="mockEventPollCloseModal()">취소</button>
         <button type="button" class="btn btn-sm" onclick="return mockEventPollSubmit()">게시</button>
@@ -6292,7 +6292,7 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
       </div>
 
       <div class="mock-balance-settings-section mock-hide-on-free">
-        <p class="mock-balance-settings-section-title">승부예측 (PRO)</p>
+        <p class="mock-balance-settings-section-title">승부예측 (Premium)</p>
         <p class="mock-modal-hint" style="margin:0 0 12px">
           <strong>배치 완료</strong> 시점부터 아래 분 동안만 투표할 수 있습니다. 저장하면 목업이 브라우저에 기억합니다.
         </p>

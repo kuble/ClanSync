@@ -8,7 +8,9 @@ alwaysApply: true
 멀티 게임 클랜 관리 웹서비스. 내전/스크림 승률·참여율 아카이빙 플랫폼.
 초기 타겟: 오버워치 → 점진적 게임 확장.
 
-> 상세 기획: @docs/01-plan/PRD.md
+> 문서 맵(토큰 절약): @docs/README.md
+> 기획 요약·동결: @docs/01-plan/PRD.md
+> 슬라이스 목록: @docs/01-plan/FEATURE_INDEX.md
 > 데이터 스키마: @docs/01-plan/schema.md
 > 페이지 구조: @docs/01-plan/pages.md
 
@@ -33,14 +35,15 @@ src/
     features/       # 기능별 컴포넌트 (balance/, stats/, clan/ 등)
   lib/              # supabase 클라이언트, 유틸리티
   types/            # TypeScript 타입 (schema 기반)
-docs/01-plan/       # PRD, 스키마, 페이지 구조 문서
+docs/README.md      # 문서 맵·세션 절차
+docs/01-plan/       # PRD, FEATURE_INDEX, slices/, BACKLOG, 스키마, pages
 ```
 
 ## 권한 체계
 클랜장(leader) > 운영진(officer) > 구성원(member)
 
 ## 구독 티어
-Free / PRO — PRO 전용: 승부예측, 팀 자동밸런싱, OCR, 대진표, 디스코드 연동
+Free / Premium — Premium 전용: 승부예측, 팀 자동밸런싱, OCR, 대진표, 디스코드 연동
 
 ## 핵심 원칙
 - Server Component 우선, 필요한 경우만 'use client'
