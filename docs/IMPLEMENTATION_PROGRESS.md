@@ -62,7 +62,7 @@
 ### 공통 목업
 - [x] `mockup/styles/main.css` 토큰·공통 컴포넌트
 - [x] `mockup/scripts/app.js` 공통 인터랙션
-- [ ] `docs/02-design/mockup-spec.md` 대비 누락 스타일/패턴 정리
+- [x] `docs/02-design/mockup-spec.md` 구조·레이아웃·Premium 목업명·MainClan/Profile/MainGame 검토 항목 갱신
 
 ---
 
@@ -79,6 +79,10 @@
 ## 세션 로그 (날짜순 · 한 세션 = 한 블록)
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
+
+### 2026-03-28 — mockup-spec 정합 (공통 목업)
+- [x] `mockup-spec.md`: 트리(`_hub`·`profile`·`clan-mock`·`partials`)·MainGame 레이아웃·Premium 목업 클래스·MainClan 탭·Profile·MainGame 필터/플레이스홀더·`data/` 메모
+- [x] **공통 목업** `mockup-spec` 대비 항목 완료 (S00은 Phase 2 섹션 추가 시까지 표상 **진행 중** 유지)
 
 ### 2026-03-28 — S08 프로필·꾸미기 ↔ 밸런스 정책 정합
 - [x] `MOCK_BADGE_NAMEPLATE_MAX`·프로필 상단 안내·`nameplate-case-modal` 푸터, `balance-maker-ui-notes`·`pages.md`·`slice-08` 갱신
@@ -155,8 +159,8 @@
 다음 세션 권장 프롬프트 (복사용):
 
 ```
-@docs/02-design/mockup-spec.md @docs/IMPLEMENTATION_PROGRESS.md 참고해서
-공통 목업 스타일·패턴이 mockup-spec과 맞는지 누락 항목을 정리한다.
+@docs/01-plan/pages.md @docs/IMPLEMENTATION_PROGRESS.md 참고해서
+S01 라우트·미들웨어 흐름을 `pages.md`와 대조해 최종 점검하고, 불일치·미결을 문서에 반영한다.
 
 완료 후 `docs/IMPLEMENTATION_PROGRESS.md` 체크박스·요약표·세션 로그를 갱신해줘.
 ```

@@ -1,6 +1,6 @@
 # ClanSync 목업 명세서 (Phase 3)
 
-> 작성일: 2026-03-20  
+> 작성일: 2026-03-20 · 최종 갱신: 2026-03-28  
 > 상태: 목업·디자인 토큰 기준서 (유지)  
 > 기획·슬라이스 맵: [../README.md](../README.md) · [../01-plan/FEATURE_INDEX.md](../01-plan/FEATURE_INDEX.md)
 
@@ -10,6 +10,7 @@
 
 ```
 mockup/
+├── _hub.html               → Mockup Hub (iframe·`?role=`·`?plan=`·sessionStorage)
 ├── pages/
 │   ├── index.html          → Landing Page (/)
 │   ├── sign-in.html        → 로그인 (/sign-in)
@@ -17,16 +18,35 @@ mockup/
 │   ├── games.html          → 게임 선택 (/games)
 │   ├── game-auth.html      → 게임 인증 (/games/[gameSlug]/auth)
 │   ├── clan-auth.html      → 클랜 가입/생성 (/games/[gameSlug]/clan)
-│   ├── main-clan.html      → MainClan 대시보드 (/games/[gameSlug]/clan/[clanId])
+│   ├── profile.html        → 플레이어 프로필·꾸미기 (전역)
+│   ├── main-clan.html      → MainClan 셸 + 탭 뷰 (밸런스·통계·이벤트·관리·스토어)
 │   └── main-game.html      → MainGame 커뮤니티 (/games/[gameSlug])
+├── partials/               → 프로필 모달 조각 (app.js fetch 주입)
+│   ├── badge-case-modal.html
+│   ├── nameplate-case-modal.html
+│   └── player-profile-modal.html
 ├── styles/
 │   └── main.css            → 디자인 토큰 + 공통 컴포넌트
 ├── scripts/
-│   └── app.js              → 공통 인터랙션
+│   ├── app.js              → 공통 인터랙션 (프로필·모달)
+│   └── clan-mock.js        → main-clan 전용 (뷰 전환·밸런스·통계 등)
 └── data/
-    ├── games.json
+    ├── games.json          → API 스키마 참고용 (일부 화면은 인라인 더미)
     └── clan.json
 ```
+
+---
+
+## 스펙 대비 목업 구현 메모 (2026-03)
+
+| 구분 | 내용 |
+|------|------|
+| **일치** | `_hub.html`·전 페이지가 `styles/main.css` 팔레트 공유; `:root` 토큰(`--bg-base` 등)·버튼·카드·역할 색상은 본 문서 표와 동일 계열. |
+| **레이아웃** | **MainGame**은 본문 초안에 «메인 + 오른쪽 위젯»으로 적혀 있었으나, **현재 목업은 좌측 사이드바 + 메인**이며 `navTo`로 섹션만 전환한다. 아래 레이아웃 표를 따른다. |
+| **Premium 잠금** | Next 매핑 표의 `.pro-overlay` 개념은 목업에서 **`mock-hide-on-free`**(숨김) + 필요 시 **`mock-balance-free-note`**(안내) 조합으로 통일(밸런스·이벤트 대진표·스토어 등). `body.mock-plan-free` / `mock-plan-premium`. |
+| **data/*.json** | 파일은 유지하나 **모든 페이지가 fetch하지는 않음** — Phase 4·구현 시 샘플 페이로드로 쓰면 된다. |
+
+---
 
 ---
 
@@ -76,8 +96,9 @@ mockup/
 | Sign In/Up | 좌우 분할 (2단) |
 | Games | 3열 카드 그리드 |
 | GameAuth/ClanAuth | 중앙 1열 (max 560/720px) |
-| MainClan | 사이드바 + 메인 (Bento Grid 3열) |
-| MainGame | 메인 + 오른쪽 위젯 사이드 (2열) |
+| MainClan | 사이드바 + 메인 (대시보드 Bento 등 — 단일 HTML 내 해시·`clanGo` 뷰 전환) |
+| MainGame | **좌측** 사이드바 + 메인 (홈·LFG·스크림·홍보·순위 — `navTo` 섹션 전환; 우측 위젯 전용 컬럼 없음) |
+| Profile | 전역 페이지 `profile.html` — 요약 / 게임별 탭 + partial 모달 |
 
 ---
 
@@ -100,7 +121,7 @@ mockup/
 | `.map-row` | `components/features/stats/MapRow.tsx` | `map`, `winRate` |
 | `.winrate-ring` | `components/features/stats/WinrateRing.tsx` | `rate`, `wins`, `losses` |
 | `.bento-grid` | `components/features/dashboard/BentoGrid.tsx` | `children` |
-| `.pro-overlay` | `components/features/ProLock.tsx` | `feature`, `children` |
+| `.pro-overlay` (개념) | `components/features/ProLock.tsx` | 목업: `mock-hide-on-free` + 안내 문구·`body.mock-plan-*` |
 
 ---
 
@@ -135,7 +156,7 @@ mockup/
 - [x] Premium 잠금 오버레이 (승부예측)
 - [x] 클랜 코인 현황
 - [x] 스토어: 꾸미기 정책(사측 에셋만·업로드 불가) 안내 문구
-- [ ] 밸런스메이커, 통계 상세, 이벤트, 관리 페이지 → Phase 6에서 구현
+- [x] 밸런스메이커·통계·이벤트·관리 — `main-clan.html` + `clan-mock.js` 탭/뷰 목업 (제품 URL 분리는 Phase 2·`pages.md` 참고)
 
 ### MainGame
 - [x] 홍보/스크림 탭 전환
@@ -144,6 +165,12 @@ mockup/
 - [x] 자동 매칭 UI (운영진 전용)
 - [x] 클랜 순위 위젯
 - [x] 스크림 평판 위젯 (클랜장 전용)
+- [x] LFG·스크림·홍보 **인라인 필터**(`lfg-filter-panel`)·홈 대시보드 미리보기
+- [x] 티어·클랜 배지 **에셋 교체 전** 플레이스홀더 안내(`.mock-main-game-asset-hint` · [BACKLOG](../01-plan/BACKLOG.md))
+
+### Profile (플레이어 프로필 · 꾸미기)
+- [x] `profile.html` + `partials/*` + `app.js` — 게임 칩·네임카드 미리보기·뱃지 케이스(게임별 최대 5)
+- [x] 네임플레이트 **프리셋만**(업로드 없음) — 밸런스 문서 `balance-maker-ui-notes` §참가자 네임플레이트와 동일 정책
 
 ---
 
