@@ -26,6 +26,7 @@
 4. 미결·후속 아이디어는 [01-plan/BACKLOG.md](./01-plan/BACKLOG.md)에만 적고, 슬라이스 본문에는 **스코프 밖**으로 표시한다.
 5. 목업 수정 시: 슬라이스의「목업」절에 적힌 경로만 연다.
 6. 작업이 끝나면 [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)의 체크박스·세션 로그·요약표를 갱신한다.
+7. 진행도만 동기화하고 다음 프롬프트를 받으려면 Cursor에서 **`/todo`** 커맨드 실행 → [.cursor/commands/todo.md](../.cursor/commands/todo.md) 절차.
 
 ---
 
