@@ -72,29 +72,43 @@
 
           <p class="mock-profile-bundle-section-label">계정 인증 · 본계 / 부계</p>
           <div class="mock-profile-bundle-account">
-            <div class="mock-profile-bundle-row">
-              <span class="mock-profile-label" style="margin:0">플랫폼 연동</span>
-              <span class="mock-profile-value" style="font-size:12px;font-weight:600;color:#4ade80">인증됨</span>
+            <p class="mock-profile-platform-line">
+              <span class="mock-profile-label" style="margin:0">플랫폼</span>
+              <span class="mock-profile-pill">Battle.net</span>
+              <span class="mock-profile-platform-dot" aria-hidden="true">·</span>
+              <span class="mock-profile-platform-ok">연동됨</span>
+            </p>
+            <div class="mock-profile-id-table-wrap">
+              <table class="mock-profile-id-table">
+                <thead>
+                  <tr>
+                    <th scope="col" class="mock-profile-id-table-col-type">구분</th>
+                    <th scope="col" class="mock-profile-id-table-col-id">게임 ID</th>
+                    <th scope="col" class="mock-profile-id-table-col-status">인증</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">본계</th>
+                    <td class="mock-profile-id-cell-id"><span class="mock-profile-id-nowrap">PlayerName#12345</span></td>
+                    <td class="mock-profile-id-cell-status"><span class="mock-profile-id-status-tag mock-profile-id-status-tag--primary">대표</span></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">부계</th>
+                    <td class="mock-profile-id-cell-id"><span class="mock-profile-id-nowrap">SubPlayer#18764</span></td>
+                    <td class="mock-profile-id-cell-status">
+                      <div class="verified-badge" role="img" aria-label="Battle.net 인증됨">✓
+                        <div class="vb-tooltip">
+                          <div class="vb-title">✦ Battle.net 인증</div>
+                          <div class="vb-desc">이 배틀태그는 Battle.net 연동으로 확인되었습니다.</div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <div class="mock-profile-bundle-row">
-              <span class="mock-profile-label" style="margin:0">본계 (대표 ID)</span>
-              <span class="mock-profile-value" style="font-size:13px">PlayerName#12345</span>
-            </div>
-            <div class="mock-profile-bundle-sub">
-              <span class="mock-profile-label" style="margin:0 0 6px;display:block">부계 · 서브 ID</span>
-              <ul class="mock-profile-bundle-alt-list">
-                <li>
-                  <span class="mock-profile-alt-id">SubPlayer#18764</span>
-                  <div class="verified-badge" role="img" aria-label="Battle.net 인증됨">✓
-                    <div class="vb-tooltip">
-                      <div class="vb-title">✦ Battle.net 인증</div>
-                      <div class="vb-desc">이 배틀태그는 Battle.net 연동으로 확인되었습니다.</div>
-                    </div>
-                  </div>
-                </li>
-              </ul>
-              <button type="button" class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="alert('목업: 이 게임용 부계정 추가')">부계정 추가</button>
-            </div>
+            <button type="button" class="btn btn-secondary btn-sm mock-profile-alt-add-btn" onclick="alert('목업: 이 게임용 부계정 추가')">부계정 추가</button>
           </div>
 
           <p class="mock-profile-bundle-section-label">클랜</p>
@@ -136,24 +150,36 @@
 
           <p class="mock-profile-bundle-section-label">계정 인증 · 본계 / 부계</p>
           <div class="mock-profile-bundle-account">
-            <div class="mock-profile-bundle-row">
-              <span class="mock-profile-label" style="margin:0">플랫폼 연동</span>
-              <span class="mock-profile-value" style="font-size:12px;font-weight:600;color:#4ade80">인증됨</span>
+            <p class="mock-profile-platform-line">
+              <span class="mock-profile-label" style="margin:0">플랫폼</span>
+              <span class="mock-profile-pill">Riot</span>
+              <span class="mock-profile-platform-dot" aria-hidden="true">·</span>
+              <span class="mock-profile-platform-ok">연동됨</span>
+            </p>
+            <div class="mock-profile-id-table-wrap">
+              <table class="mock-profile-id-table">
+                <thead>
+                  <tr>
+                    <th scope="col" class="mock-profile-id-table-col-type">구분</th>
+                    <th scope="col" class="mock-profile-id-table-col-id">게임 ID</th>
+                    <th scope="col" class="mock-profile-id-table-col-status">인증</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">본계</th>
+                    <td class="mock-profile-id-cell-id"><span class="mock-profile-id-nowrap">KimClan#KR1</span></td>
+                    <td class="mock-profile-id-cell-status"><span class="mock-profile-id-status-tag mock-profile-id-status-tag--primary">대표</span></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">부계</th>
+                    <td class="mock-profile-id-cell-id"><span class="mock-profile-id-nowrap">KimAlt#222</span></td>
+                    <td class="mock-profile-id-cell-status"><span class="mock-profile-alt-pending-badge mock-profile-alt-pending-badge--table">심사 대기</span></td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <div class="mock-profile-bundle-row">
-              <span class="mock-profile-label" style="margin:0">본계 (대표 ID)</span>
-              <span class="mock-profile-value" style="font-size:13px">KimClan#KR1</span>
-            </div>
-            <div class="mock-profile-bundle-sub">
-              <span class="mock-profile-label" style="margin:0 0 6px;display:block">부계 · 서브 ID</span>
-              <ul class="mock-profile-bundle-alt-list">
-                <li>
-                  <span class="mock-profile-alt-id">KimAlt#222</span>
-                  <span class="mock-profile-alt-pending-badge">심사 대기</span>
-                </li>
-              </ul>
-              <button type="button" class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="alert('목업: 이 게임용 부계정 추가')">부계정 추가</button>
-            </div>
+            <button type="button" class="btn btn-secondary btn-sm mock-profile-alt-add-btn" onclick="alert('목업: 이 게임용 부계정 추가')">부계정 추가</button>
           </div>
 
           <p class="mock-profile-bundle-section-label">클랜</p>

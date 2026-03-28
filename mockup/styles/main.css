@@ -1168,51 +1168,99 @@ input[type="datetime-local"][lang="ko-KR"] {
   background: var(--bg-elevated);
   margin-bottom: 12px;
 }
-.mock-profile-bundle-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-.mock-profile-bundle-row:last-of-type {
-  margin-bottom: 0;
-}
-.mock-profile-bundle-sub {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed var(--border);
-}
-.mock-profile-bundle-alt-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  font-size: 12px;
-}
-.mock-profile-bundle-alt-list li:first-child {
-  padding-top: 0;
-}
-.mock-profile-bundle-alt-list li {
-  padding: 8px 0;
+.mock-profile-platform-line {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: nowrap;
-  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  font-size: 12px;
+  margin: 0 0 12px;
+  line-height: 1.4;
 }
-.mock-profile-bundle-alt-list li:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
+.mock-profile-platform-dot {
+  color: var(--text-muted);
+  user-select: none;
 }
-.mock-profile-alt-id {
+.mock-profile-platform-ok {
+  font-weight: 700;
+  color: #4ade80;
+  font-size: 12px;
+}
+.mock-profile-id-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-overlay);
+}
+.mock-profile-id-table {
+  width: 100%;
+  min-width: 280px;
+  border-collapse: collapse;
   font-size: 13px;
+}
+.mock-profile-id-table thead th {
+  text-align: left;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.12);
+  font-weight: 700;
+}
+.mock-profile-id-table .mock-profile-id-table-col-status {
+  text-align: center;
+  width: 88px;
+}
+.mock-profile-id-table tbody th[scope='row'] {
+  width: 56px;
+  max-width: 72px;
+  text-align: left;
+  font-weight: 700;
+  color: var(--text-secondary);
+  padding: 10px 6px 10px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  font-size: 12px;
+}
+.mock-profile-id-table tbody td {
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.mock-profile-id-table tbody tr:last-child th,
+.mock-profile-id-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.mock-profile-id-cell-id {
+  padding: 10px 8px;
+}
+.mock-profile-id-cell-status {
+  padding: 8px 10px;
+  text-align: center;
+}
+.mock-profile-id-cell-status .verified-badge {
+  margin: 0 auto;
+}
+.mock-profile-id-nowrap {
+  font-variant-numeric: tabular-nums;
   font-weight: 600;
   color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
   word-break: break-all;
-  min-width: 0;
-  flex: 1;
+}
+.mock-profile-id-status-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 99px;
+}
+.mock-profile-id-status-tag--primary {
+  background: rgba(124, 58, 237, 0.15);
+  border: 1px solid rgba(124, 58, 237, 0.35);
+  color: #a78bfa;
 }
 .mock-profile-alt-pending-badge {
   flex-shrink: 0;
@@ -1223,6 +1271,12 @@ input[type="datetime-local"][lang="ko-KR"] {
   background: rgba(245, 158, 11, 0.12);
   border: 1px solid rgba(245, 158, 11, 0.35);
   color: #fbbf24;
+}
+.mock-profile-alt-pending-badge--table {
+  display: inline-block;
+}
+.mock-profile-alt-add-btn {
+  margin-top: 2px;
 }
 
 /* 클랜 홍보 Premium 인증 배지와 동일 패턴 (프로필 부계정 인증에 재사용) */
