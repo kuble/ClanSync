@@ -5,6 +5,9 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-03-28 — Phase 2 권장 프롬프트: schema·허브 갱신·과제 한 문장
+- [x] `IMPLEMENTATION_PROGRESS.md` Phase 2 블록: `schema.md` 포함, 완료 시 허브 마지막 갱신·Phase2·세션 로그 명시
+
 ### 2026-03-28 — Phase 1 권장 프롬프트: 슬라이스 `@` 경로 정리
 - [x] `slice-XX-*.md` 대신 `slice-NN-....md`로 실제 파일명 치환 안내 + 체크·요약표 **진행 중**·BACKLOG 명시
 

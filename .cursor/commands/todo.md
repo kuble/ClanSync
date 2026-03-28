@@ -31,7 +31,7 @@
 
 1. **우선순위**: `IMPLEMENTATION_PROGRESS_Phase1.md`(또는 Phase 2)에서 아직 `[ ]`인 항목 중 **의존성이 적고 기획과의 갭이 큰 것**을 고른다.
 2. **Phase 1** 첫 번째 코드 블록: `slice-NN-....md`를 실제 슬라이스 파일명으로 바꿔 `@`에 넣고, 구체 과제·세션 로그 문구를 채운다. 형식은 `IMPLEMENTATION_PROGRESS.md` 하단 **지금 단계(Phase 1)** 와 동일.
-3. 다음 작업이 Phase 2면 **두 번째 코드 블록**(`Phase 2 착수 시`)을 구체 과제로 맞춘다.
+3. 다음 작업이 Phase 2면 **두 번째 코드 블록**(`Phase 2 착수 시`)을 구체 과제로 맞춘다. 형식은 `IMPLEMENTATION_PROGRESS.md` 하단과 동일(`Phase2`·`pages`·`schema`·선택 `slice-NN`).
 
 ### 5. 채팅 응답
 
