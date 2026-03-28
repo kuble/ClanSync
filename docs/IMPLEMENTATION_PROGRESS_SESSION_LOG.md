@@ -5,6 +5,11 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-03-28 — Phase 1 종료 선언 · Phase 2 문서 정리
+- [x] `IMPLEMENTATION_PROGRESS_Phase1.md`: 종료(2026-03-28)·S00 Phase 2 항목을 Phase2 문서로 이관·요약표 S00 완료
+- [x] `IMPLEMENTATION_PROGRESS_Phase2.md`: 참조표·종료조건·체크 A~E·슬라이스 매핑·`pages.md` 전 경로+MainClan 하위·메모
+- [x] 허브·`FEATURE_INDEX`·`README`·`project-context`·`todo`·`session-handoff`: 현재 단계 Phase 2
+
 ### 2026-03-28 — Phase 2 권장 프롬프트: schema·허브 갱신·과제 한 문장
 - [x] `IMPLEMENTATION_PROGRESS.md` Phase 2 블록: `schema.md` 포함, 완료 시 허브 마지막 갱신·Phase2·세션 로그 명시
 

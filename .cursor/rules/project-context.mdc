@@ -11,13 +11,13 @@ alwaysApply: true
 > 문서 맵(토큰 절약): @docs/README.md
 > 기획 요약·동결: @docs/01-plan/PRD.md
 > 슬라이스 목록: @docs/01-plan/FEATURE_INDEX.md
-> 구현 진행도: @docs/IMPLEMENTATION_PROGRESS.md (허브) · @docs/IMPLEMENTATION_PROGRESS_Phase1.md (Phase 1 체크) · 세션 히스토리는 @docs/IMPLEMENTATION_PROGRESS_SESSION_LOG.md
+> 구현 진행도: @docs/IMPLEMENTATION_PROGRESS.md (허브) · @docs/IMPLEMENTATION_PROGRESS_Phase2.md (Phase 2) · Phase 1 종료 요약은 @docs/IMPLEMENTATION_PROGRESS_Phase1.md · 세션 히스토리는 @docs/IMPLEMENTATION_PROGRESS_SESSION_LOG.md
 > 데이터 스키마: @docs/01-plan/schema.md
 > 페이지 구조: @docs/01-plan/pages.md
 
 ## 현재 작업 범위
-- **지금 단계에서는 `mockup/` 정적 목업과 `_hub.html`만 수정·확장**한다.
-- Next.js `src/` 앱 코드는 **별도 요청이 있을 때까지** 건드리지 않는다.
+- **Phase 2**: Next.js `src/` · Supabase · `schema.md` / `pages.md` 정합. 구현 우선.
+- **목업** (`mockup/`, `_hub.html`): Phase 1 종료 상태. **카피·기획 동기화**가 필요할 때만 수정하고, 변경은 슬라이스·`pages.md`와 맞춘다.
 
 ## 기술 스택
 - **Frontend**: Next.js 15 App Router, TypeScript, Tailwind CSS

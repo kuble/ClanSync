@@ -1,11 +1,11 @@
 # Phase 1 — 정적 목업 (`mockup/`, `_hub.html`)
 
-> **허브**: [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md) — 다음 프롬프트는 허브. **세션 로그**: [IMPLEMENTATION_PROGRESS_SESSION_LOG.md](./IMPLEMENTATION_PROGRESS_SESSION_LOG.md)  
-> **규칙**: 구현·목업 작업이 끝난 세션에서는 아래 **체크박스**를 갱신한다 (`[ ]` → `[x]`). 빠른 요약표도 함께 맞춘다.
+> **상태: 종료** (2026-03-28) — 유지보수·카피 수정 시에만 본 체크를 갱신한다.  
+> **허브**: [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md) · **세션 로그**: [IMPLEMENTATION_PROGRESS_SESSION_LOG.md](./IMPLEMENTATION_PROGRESS_SESSION_LOG.md) · **Phase 2**: [IMPLEMENTATION_PROGRESS_Phase2.md](./IMPLEMENTATION_PROGRESS_Phase2.md)
 
 | 항목 | 값 |
 |------|-----|
-| **단계** | Phase 1 — 정적 목업 |
+| **단계** | Phase 1 — 정적 목업 (완료) |
 | **마지막 갱신** | 2026-03-28 |
 
 ---
@@ -13,7 +13,7 @@
 ## S00 규약·문서
 
 - [x] Free / Premium 용어·문서 맵(`docs/README.md`)·슬라이스(`FEATURE_INDEX`, `slices/`)
-- [ ] Phase 2 착수 시 [IMPLEMENTATION_PROGRESS_Phase2.md](./IMPLEMENTATION_PROGRESS_Phase2.md) 체크리스트·라우트 표를 채운다
+- [x] Phase 2 구현·라우트 표는 [IMPLEMENTATION_PROGRESS_Phase2.md](./IMPLEMENTATION_PROGRESS_Phase2.md)에서 진행 (Phase 1 범위 밖 항목 이관)
 
 ## S01 라우팅·쉘 (랜딩 · 로그인 · 가입 · 게임 선택)
 
@@ -76,7 +76,7 @@
 
 | 슬라이스 | 목업 1차 | 폴리시·문서 정합 |
 |----------|:--------:|:----------------:|
-| S00 | 완료 | 진행 중 |
+| S00 | 완료 | 완료 |
 | S01 | 완료 | 완료 |
 | S02 | 완료 | 완료 |
 | S03 | 완료 | 완료 |
