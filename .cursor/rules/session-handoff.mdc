@@ -28,6 +28,8 @@ alwaysApply: true
 
 (토큰 절약: `PRD.md` 전체 대신 **해당 슬라이스 한 개**를 우선 참조.)
 
+세션 종료 시 `@docs/IMPLEMENTATION_PROGRESS.md` 체크박스·세션 로그·요약표를 갱신했다고 한 줄 넣을 것.
+
 ## 예시
 
 슬라이스 S04 작업 시:
