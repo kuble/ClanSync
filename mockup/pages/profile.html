@@ -18,71 +18,146 @@
 
 <main class="mock-profile-page">
   <h1 class="mock-profile-page-title">플레이어 프로필</h1>
-  <p class="mock-profile-page-desc">모달과 동일한 정보를 페이지 단위로 봅니다(목업). 꾸미기는 <strong>사측 에셋만</strong> — 업로드 없음.</p>
+  <p class="mock-profile-page-desc">모달과 동일한 구조입니다. <strong>공통 닉네임</strong>과 <strong>게임별 네임카드</strong>를 구분하고, <strong>본계·부계정</strong>을 계정 탭에서 다룹니다(목업).</p>
 
   <div class="mock-profile-page-card mock-player-profile-root">
-    <div class="mock-profile-nameplate-preview" aria-hidden="true">
-      <div class="mock-profile-np-left">
-        <span class="mock-profile-np-emblem" aria-hidden="true">🏆</span>
-      </div>
-      <div class="mock-profile-np-main">
-        <div class="mock-profile-np-namebar">
-          <span class="mock-profile-np-v">V</span>
-          <span class="mock-profile-np-nick">김클랜</span>
-        </div>
-        <div class="mock-profile-np-sub"><span class="mock-profile-np-sub-ico">🔔</span> 뉴비</div>
-      </div>
-      <div class="mock-profile-np-flourish" aria-hidden="true"></div>
-    </div>
+    <p class="mock-modal-hint mock-player-profile-lead" style="margin-top:0">ClanSync <strong>공통 닉네임</strong>은 모든 게임에서 동일하게 쓰이고, <strong>네임카드·프레임·게임 ID</strong>는 <strong>게임마다</strong> 따로 저장·표시됩니다. 꾸미기 에셋은 사측 제공만.</p>
 
-    <div class="mock-profile-identity-row">
-      <div>
-        <div class="mock-profile-label">배틀태그</div>
-        <div class="mock-profile-value">PlayerName#12345</div>
-      </div>
-      <div>
-        <div class="mock-profile-label">선택 게임</div>
-        <div class="mock-profile-value">오버워치 2</div>
-      </div>
-      <div>
-        <div class="mock-profile-label">개인 풀 코인</div>
-        <div class="mock-profile-value mock-profile-coin">3,200</div>
-      </div>
-    </div>
-
-    <div class="mock-profile-tab-row" role="tablist">
-      <button type="button" class="mock-profile-tab mock-profile-tab--active" role="tab" aria-selected="true" data-profile-tab="overview" onclick="mockPlayerProfileTab(this,'overview')">개요</button>
+    <div class="mock-profile-tab-row mock-profile-tab-row--top" role="tablist">
+      <button type="button" class="mock-profile-tab mock-profile-tab--active" role="tab" aria-selected="true" data-profile-tab="summary" onclick="mockPlayerProfileTab(this,'summary')">요약</button>
+      <button type="button" class="mock-profile-tab" role="tab" aria-selected="false" data-profile-tab="games" onclick="mockPlayerProfileTab(this,'games')">게임·네임카드</button>
       <button type="button" class="mock-profile-tab" role="tab" aria-selected="false" data-profile-tab="clan" onclick="mockPlayerProfileTab(this,'clan')">클랜</button>
-      <button type="button" class="mock-profile-tab" role="tab" aria-selected="false" data-profile-tab="link" onclick="mockPlayerProfileTab(this,'link')">연동</button>
+      <button type="button" class="mock-profile-tab" role="tab" aria-selected="false" data-profile-tab="accounts" onclick="mockPlayerProfileTab(this,'accounts')">계정</button>
     </div>
 
     <div class="mock-profile-panels">
-      <div data-profile-panel="overview" class="mock-profile-panel">
-        <div class="mock-profile-actions-inline">
+      <div data-profile-panel="summary" class="mock-profile-panel">
+        <div class="mock-profile-summary-hero">
+          <div class="mock-profile-summary-avatar" aria-hidden="true">김</div>
+          <div class="mock-profile-summary-meta">
+            <div class="mock-profile-label">ClanSync 표시 이름 (전 게임 공통)</div>
+            <div class="mock-profile-value mock-profile-summary-nick">김클랜</div>
+            <div class="mock-profile-label" style="margin-top:10px">로그인</div>
+            <div class="mock-profile-value" style="font-weight:500;font-size:12px">kim•••@example.com</div>
+          </div>
+        </div>
+        <div class="mock-profile-identity-row mock-profile-identity-row--summary">
+          <div>
+            <div class="mock-profile-label">개인 풀 코인 (합계)</div>
+            <div class="mock-profile-value mock-profile-coin">3,200</div>
+          </div>
+          <div>
+            <div class="mock-profile-label">연동된 게임</div>
+            <div class="mock-profile-value">2 / 4</div>
+          </div>
+        </div>
+        <div class="mock-profile-actions-inline" style="margin-top:4px">
           <a href="main-clan.html#store" class="btn btn-secondary btn-sm">클랜 스토어 (개인 꾸미기)</a>
-          <span class="mock-modal-hint" style="margin:0;font-size:11px;align-self:center">이벤트·월간 보상으로 해금 예정</span>
+          <span class="mock-modal-hint" style="margin:0;font-size:11px;align-self:center">게임별 아이템은 각 게임 탭에서 미리보기</span>
         </div>
       </div>
+
+      <div data-profile-panel="games" class="mock-profile-panel" hidden>
+        <p class="mock-modal-hint" style="margin:0 0 12px;font-size:12px">게임을 선택하면 해당 타이틀에서의 <strong>네임카드·칭호·프레임</strong>만 바뀝니다(밸런스 화면에도 동일).</p>
+        <div class="mock-profile-game-chip-row" role="tablist" aria-label="게임 선택">
+          <button type="button" class="mock-profile-game-chip mock-profile-game-chip--active" data-profile-game-chip="ow2" aria-pressed="true" onclick="mockPlayerProfileGameSelect(this,'ow2')">오버워치 2</button>
+          <button type="button" class="mock-profile-game-chip" data-profile-game-chip="val" aria-pressed="false" onclick="mockPlayerProfileGameSelect(this,'val')">발로란트</button>
+          <button type="button" class="mock-profile-game-chip mock-profile-game-chip--disabled" disabled title="목업">LoL (준비중)</button>
+        </div>
+
+        <div data-profile-game-panel="ow2" class="mock-profile-game-detail">
+          <div class="mock-profile-nameplate-preview mock-profile-np--ow" aria-hidden="true">
+            <div class="mock-profile-np-left">
+              <span class="mock-profile-np-emblem" aria-hidden="true">🏆</span>
+            </div>
+            <div class="mock-profile-np-main">
+              <div class="mock-profile-np-namebar">
+                <span class="mock-profile-np-v">V</span>
+                <span class="mock-profile-np-nick">김클랜</span>
+              </div>
+              <div class="mock-profile-np-sub"><span class="mock-profile-np-sub-ico">🔔</span> 시즌 칭호 · 뉴비</div>
+            </div>
+            <div class="mock-profile-np-flourish" aria-hidden="true"></div>
+          </div>
+          <dl class="mock-profile-game-dl">
+            <dt>게임 내 ID</dt><dd>PlayerName#12345 <span class="mock-profile-pill">Battle.net</span></dd>
+            <dt>장착 프레임</dt><dd>시즌 한정 · 녹색 러너</dd>
+            <dt>비고</dt><dd>이 게임 클랜 <strong>Phoenix Rising</strong> 에서 밸런스 슬롯에 반영</dd>
+          </dl>
+        </div>
+
+        <div data-profile-game-panel="val" class="mock-profile-game-detail" hidden>
+          <div class="mock-profile-nameplate-preview mock-profile-np--val" aria-hidden="true">
+            <div class="mock-profile-np-left mock-profile-np-left--val">
+              <span class="mock-profile-np-emblem" aria-hidden="true">🎯</span>
+            </div>
+            <div class="mock-profile-np-main">
+              <div class="mock-profile-np-namebar mock-profile-np-namebar--val">
+                <span class="mock-profile-np-v mock-profile-np-v--val">V</span>
+                <span class="mock-profile-np-nick">김클랜</span>
+              </div>
+              <div class="mock-profile-np-sub mock-profile-np-sub--val"><span class="mock-profile-np-sub-ico">✦</span> 타격대 · 아이언 느낌 목업</div>
+            </div>
+            <div class="mock-profile-np-flourish mock-profile-np-flourish--val" aria-hidden="true"></div>
+          </div>
+          <dl class="mock-profile-game-dl">
+            <dt>게임 내 ID</dt><dd>KimClan#KR1 <span class="mock-profile-pill">Riot</span></dd>
+            <dt>장착 프레임</dt><dd>요원 테마 · 붉은 테두리</dd>
+            <dt>비고</dt><dd>발로란트 클랜 가입 시 별도 슬롯 스타일 적용 예정</dd>
+          </dl>
+        </div>
+      </div>
+
       <div data-profile-panel="clan" class="mock-profile-panel" hidden>
-        <div class="mock-profile-label" style="margin-bottom:8px">내 클랜</div>
+        <p class="mock-modal-hint" style="margin:0 0 12px;font-size:12px">게임마다 다른 클랜에 소속될 수 있습니다. 가입 신청 대기는 PRD 기준으로 표시합니다.</p>
+        <div class="mock-profile-label" style="margin-bottom:8px">소속 클랜</div>
         <ul class="mock-profile-clan-list">
           <li><strong>Phoenix Rising</strong> <span class="mock-profile-pill">오버워치 2</span> <span class="mock-profile-pill mock-profile-pill--role">클랜장</span></li>
+          <li><strong>Ascent Line</strong> <span class="mock-profile-pill">발로란트</span> <span class="mock-profile-pill mock-profile-pill--role">구성원</span></li>
         </ul>
-        <div class="mock-profile-label" style="margin:14px 0 8px">가입 신청 대기</div>
+        <div class="mock-profile-label" style="margin:14px 0 8px">가입 신청 대기 <span class="mock-profile-pill">PRD</span></div>
         <ul class="mock-profile-clan-list mock-profile-clan-list--pending">
-          <li><span>Thunder Squad</span> <em>심사 대기</em></li>
-          <li><span>Running**</span> <em>심사 대기</em></li>
+          <li><span>Thunder Squad</span> <span class="mock-profile-pill">OW2</span> <em>심사 대기</em></li>
+          <li><span>Running**</span> <span class="mock-profile-pill">OW2</span> <em>심사 대기</em></li>
         </ul>
       </div>
-      <div data-profile-panel="link" class="mock-profile-panel" hidden>
-        <div class="mock-profile-link-row">
-          <div>
-            <div class="mock-profile-label">Battle.net</div>
-            <div class="mock-profile-value">연동됨 · PlayerName#12345</div>
-          </div>
-          <button type="button" class="btn btn-secondary btn-sm" onclick="alert('목업: 연동 관리는 구현 단계에서 연결합니다.')">연동 관리</button>
+
+      <div data-profile-panel="accounts" class="mock-profile-panel" hidden>
+        <div class="mock-profile-label" style="margin-bottom:8px">본계정 (ClanSync 로그인)</div>
+        <div class="mock-profile-account-card">
+          <div class="mock-profile-value" style="margin-bottom:4px">kim•••@example.com</div>
+          <div class="mock-modal-hint" style="margin:0;font-size:11px">비밀번호·2단계 등은 구현 단계에서 연결</div>
         </div>
-        <p class="mock-modal-hint" style="margin:12px 0 0;font-size:11px">미연동 시 게임 내 전적·인증 연계가 제한될 수 있습니다.</p>
+        <div class="mock-profile-label" style="margin:14px 0 8px">게임 플랫폼 연동</div>
+        <ul class="mock-profile-platform-list">
+          <li><span class="mock-profile-pill">Battle.net</span> 연동됨 · PlayerName#12345 <button type="button" class="btn btn-ghost btn-sm" style="margin-left:auto;padding:2px 8px;font-size:11px" onclick="alert('목업')">관리</button></li>
+          <li><span class="mock-profile-pill">Riot</span> 연동됨 · KimClan#KR1 <button type="button" class="btn btn-ghost btn-sm" style="margin-left:auto;padding:2px 8px;font-size:11px" onclick="alert('목업')">관리</button></li>
+          <li><span class="mock-profile-pill">Steam</span> <em style="color:var(--text-muted);font-size:12px">미연동</em> <button type="button" class="btn btn-secondary btn-sm" style="margin-left:auto;padding:2px 8px;font-size:11px" onclick="alert('목업')">연동</button></li>
+        </ul>
+        <div class="mock-profile-label" style="margin:14px 0 8px">부계정 · 서브 ID</div>
+        <p class="mock-modal-hint" style="margin:0 0 10px;font-size:11px">통계·밸런스 정확도를 위해 본계정 외 플레이 계정을 등록할 수 있습니다(목업).</p>
+        <table class="mock-profile-alt-table">
+          <thead>
+            <tr>
+              <th>표시 이름</th>
+              <th>게임 / 플랫폼</th>
+              <th>상태</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>김클랜_서브</td>
+              <td>OW2 · Battle.net</td>
+              <td><span class="mock-profile-pill">검증됨</span></td>
+            </tr>
+            <tr>
+              <td>KimAlt#222</td>
+              <td>발로란트 · Riot</td>
+              <td><span class="mock-profile-pill">대기</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <button type="button" class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="alert('목업: 부계정 추가 마법사')">부계정 추가</button>
       </div>
     </div>
   </div>

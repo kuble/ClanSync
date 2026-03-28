@@ -203,6 +203,23 @@ function mockPlayerProfileTab(el, name) {
   });
 }
 
+function mockPlayerProfileGameSelect(el, gameKey) {
+  const root = el.closest('.mock-player-profile-root');
+  if (!root) return;
+  root.querySelectorAll('[data-profile-game-chip]').forEach((c) => {
+    if (c.disabled) return;
+    const on = c.getAttribute('data-profile-game-chip') === gameKey;
+    c.classList.toggle('mock-profile-game-chip--active', on);
+    c.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  root.querySelectorAll('[data-profile-game-panel]').forEach((p) => {
+    const show = p.getAttribute('data-profile-game-panel') === gameKey;
+    if (show) p.removeAttribute('hidden');
+    else p.setAttribute('hidden', '');
+  });
+}
+
 window.mockPlayerProfileModalOpen = mockPlayerProfileModalOpen;
 window.mockPlayerProfileModalClose = mockPlayerProfileModalClose;
 window.mockPlayerProfileTab = mockPlayerProfileTab;
+window.mockPlayerProfileGameSelect = mockPlayerProfileGameSelect;
