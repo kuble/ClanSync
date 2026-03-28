@@ -114,6 +114,18 @@
   };
 
   var MOCK_SIDEBAR_NOTIFY_KEY = "clansync-mock-sidebar-notify-v1";
+  /** 목업: 사이드바 알림 점을 항상 표시(디버그). 끄려면 false 또는 URL `?sidebarNotifyDebug=0` */
+  var MOCK_SIDEBAR_NOTIFY_DEBUG = true;
+
+  function mockSidebarNotifyDebugActive() {
+    try {
+      var q = new URLSearchParams(window.location.search);
+      var p = q.get("sidebarNotifyDebug");
+      if (p === "0" || p === "false") return false;
+      if (p === "1" || p === "true") return true;
+    } catch (e) {}
+    return MOCK_SIDEBAR_NOTIFY_DEBUG;
+  }
   var MOCK_CLAN_BANNER_IMG_KEY = "clansync-mock-clan-banner-image";
   var MOCK_CLAN_ICON_IMG_KEY = "clansync-mock-clan-icon-image";
   var MOCK_CLAN_NOTICE_KEY = "clansync-mock-clan-notice";
@@ -151,17 +163,20 @@
 
   window.mockSidebarNotifyRefresh = function () {
     var st = mockSidebarNotifyReadState();
+    var dbg = mockSidebarNotifyDebugActive();
+    var showBalance = dbg || st.balance;
+    var showEvents = dbg || st.events;
     var b = document.getElementById("sidebar-notify-balance");
     var ev = document.getElementById("sidebar-notify-events");
     if (b) {
-      if (st.balance) b.removeAttribute("hidden");
+      if (showBalance) b.removeAttribute("hidden");
       else b.setAttribute("hidden", "");
-      b.setAttribute("aria-hidden", st.balance ? "false" : "true");
+      b.setAttribute("aria-hidden", showBalance ? "false" : "true");
     }
     if (ev) {
-      if (st.events) ev.removeAttribute("hidden");
+      if (showEvents) ev.removeAttribute("hidden");
       else ev.setAttribute("hidden", "");
-      ev.setAttribute("aria-hidden", st.events ? "false" : "true");
+      ev.setAttribute("aria-hidden", showEvents ? "false" : "true");
     }
   };
 
