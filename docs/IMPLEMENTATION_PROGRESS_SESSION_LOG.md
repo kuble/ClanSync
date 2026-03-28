@@ -5,6 +5,9 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-03-28 — Phase 1 권장 프롬프트: 슬라이스 `@` 경로 정리
+- [x] `slice-XX-*.md` 대신 `slice-NN-....md`로 실제 파일명 치환 안내 + 체크·요약표 **진행 중**·BACKLOG 명시
+
 ### 2026-03-28 — 허브 권장 프롬프트 정합 (Phase 1 기본 + Phase 2 보조)
 - [x] `IMPLEMENTATION_PROGRESS.md` 다음 세션 블록: Phase 1 복사용을 기본으로 두고, Phase 2 착수용은 두 번째 블록으로 분리
 - [x] `.cursor/commands/todo.md` §4 절차를 위 형식에 맞게 정리

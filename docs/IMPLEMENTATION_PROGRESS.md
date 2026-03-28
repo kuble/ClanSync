@@ -28,9 +28,11 @@
 
 **지금 단계(Phase 1)** — 복사용:
 
+`FEATURE_INDEX`에서 슬라이스 ID 하나를 고른 뒤, 아래 `slice-NN-....md`만 실제 파일명으로 바꿔 `@`에 붙인다.
+
 ```
-@docs/01-plan/FEATURE_INDEX.md @docs/IMPLEMENTATION_PROGRESS_Phase1.md @docs/01-plan/slices/slice-XX-*.md 참고해서
-Phase 1에서 체크 [ ]인 항목·해당 슬라이스 목업/문서를 (구체 과제 한 문장).
+@docs/01-plan/FEATURE_INDEX.md @docs/IMPLEMENTATION_PROGRESS_Phase1.md @docs/01-plan/slices/slice-NN-....md 참고해서
+Phase 1 체크 `[ ]`·요약표 **진행 중** 행·BACKLOG 연계 중 (구체 과제 한 문장).
 
 완료 후 `docs/IMPLEMENTATION_PROGRESS_SESSION_LOG.md` 세션 로그·`IMPLEMENTATION_PROGRESS_Phase1.md` 체크·요약표를 갱신한다.
 ```
