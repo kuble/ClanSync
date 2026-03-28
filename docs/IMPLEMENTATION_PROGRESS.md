@@ -57,7 +57,7 @@
 
 ### S08 프로필 · 꾸미기
 - [x] `profile.html` · partials · `app.js` 연동 존재
-- [ ] 뱃지/네임플레이트 목업과 밸런스 슬롯 정책 일치 확인
+- [x] 뱃지/네임플레이트 목업과 밸런스 슬롯 정책 일치 (`MOCK_BADGE_NAMEPLATE_MAX`, `balance-maker-ui-notes`·`pages.md` 반영)
 
 ### 공통 목업
 - [x] `mockup/styles/main.css` 토큰·공통 컴포넌트
@@ -79,6 +79,9 @@
 ## 세션 로그 (날짜순 · 한 세션 = 한 블록)
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
+
+### 2026-03-28 — S08 프로필·꾸미기 ↔ 밸런스 정책 정합
+- [x] `MOCK_BADGE_NAMEPLATE_MAX`·프로필 상단 안내·`nameplate-case-modal` 푸터, `balance-maker-ui-notes`·`pages.md`·`slice-08` 갱신
 
 ### 2026-03-28 — S07 MainGame 홍보·LFG·필터·플레이스홀더
 - [x] `main-game.html`: LFG 필터 초기화 `#sec-lfg .lfg-filter-panel` 수정, `navTo`/에셋 BACKLOG 주석, `.mock-main-game-asset-hint` 안내
@@ -141,7 +144,7 @@
 | S05 | 완료 | 완료 |
 | S06 | 완료 | 완료 |
 | S07 | 완료 | 완료 |
-| S08 | 부분 | 미완 |
+| S08 | 완료 | 완료 |
 
 위 체크리스트를 갱신할 때 본 표의 **완료 / 부분 / 미완**도 맞춘다.
 
@@ -152,8 +155,8 @@
 다음 세션 권장 프롬프트 (복사용):
 
 ```
-@docs/01-plan/FEATURE_INDEX.md @docs/01-plan/pages.md @docs/IMPLEMENTATION_PROGRESS.md 참고해서
-S08 프로필·꾸미기(`profile.html`·partials)와 밸런스 슬롯·뱃지 정책 일치를 점검한다.
+@docs/02-design/mockup-spec.md @docs/IMPLEMENTATION_PROGRESS.md 참고해서
+공통 목업 스타일·패턴이 mockup-spec과 맞는지 누락 항목을 정리한다.
 
 완료 후 `docs/IMPLEMENTATION_PROGRESS.md` 체크박스·요약표·세션 로그를 갱신해줘.
 ```

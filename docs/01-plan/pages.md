@@ -93,6 +93,9 @@
 ### 클랜 스토어 (`/store`, MainClan 탭)
 - 클랜/개인 코인 풀 · 클랜 꾸미기·개인 꾸미기 탭 · Premium 잠금 카드 · 꾸미기는 **서비스 프리셋만**(업로드 없음).
 
+### 플레이어 프로필 · 꾸미기 (전역 /games 내 등)
+- `mockup/pages/profile.html` + partials(`player-profile-modal`·`badge-case-modal`·`nameplate-case-modal`) + `app.js`: **게임별** 네임카드 미리보기·뱃지 케이스(표시 **최대 5개**·게임 키별 상태). 네임플레이트는 **프리셋만** — 밸런스 경기 화면과 동일 정책(`balance-maker-ui-notes.md` §참가자 네임플레이트).
+
 ### MainGame (/games/[gameSlug])
 - 클랜 홍보 게시판
 - 스크림 신청 게시판
