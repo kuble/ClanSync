@@ -1,6 +1,7 @@
 # 기능 슬라이스 인덱스
 
-> 구현·목업 작업 시 **이 표에서 슬라이스 하나만** 골라 `docs/01-plan/slices/slice-XX-*.md`를 연다.
+> 구현·목업 작업 시 **이 표에서 슬라이스 하나만** 골라 `docs/01-plan/slices/slice-XX-*.md`를 연다.  
+> 진행도·세션 체크리스트: [../IMPLEMENTATION_PROGRESS.md](../IMPLEMENTATION_PROGRESS.md)
 
 | ID | 슬라이스 | 한 줄 | 상세 문서 |
 |----|----------|-------|-----------|
