@@ -26,11 +26,20 @@
 
 ## 다음 세션 권장 프롬프트 (/todo 갱신 시 덮어씀)
 
-다음 세션 권장 프롬프트 (복사용):
+**지금 단계(Phase 1)** — 복사용:
+
+```
+@docs/01-plan/FEATURE_INDEX.md @docs/IMPLEMENTATION_PROGRESS_Phase1.md @docs/01-plan/slices/slice-XX-*.md 참고해서
+Phase 1에서 체크 [ ]인 항목·해당 슬라이스 목업/문서를 (구체 과제 한 문장).
+
+완료 후 `docs/IMPLEMENTATION_PROGRESS_SESSION_LOG.md` 세션 로그·`IMPLEMENTATION_PROGRESS_Phase1.md` 체크·요약표를 갱신한다.
+```
+
+**Phase 2 착수 시** — 복사용:
 
 ```
 @docs/IMPLEMENTATION_PROGRESS.md @docs/IMPLEMENTATION_PROGRESS_Phase2.md @docs/01-plan/pages.md 참고해서
-Phase 2 착수 시 `IMPLEMENTATION_PROGRESS_Phase2.md` 체크리스트·라우트 대응표를 채운다.
+`IMPLEMENTATION_PROGRESS_Phase2.md` 체크리스트·라우트 대응표를 채운다.
 
 완료 후 `docs/IMPLEMENTATION_PROGRESS_SESSION_LOG.md`에 세션 로그를 남긴다.
 ```

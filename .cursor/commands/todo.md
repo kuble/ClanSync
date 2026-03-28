@@ -27,21 +27,11 @@
 
 ### 4. 「다음 세션 권장 프롬프트」 블록 갱신
 
-파일 하단의 `## 다음 세션 권장 프롬프트` 아래 내용을 **매번 덮어쓴다**:
+`IMPLEMENTATION_PROGRESS.md` 하단 `## 다음 세션 권장 프롬프트`를 갱신한다. **첫 번째 블록(Phase 1)** 을 우선 덮어쓴다. Phase 2 작업이 다음 우선순위면 **두 번째 블록**도 구체 과제로 맞춘다.
 
-1. **우선순위**: 체크리스트에서 아직 `[ ]`인 항목 중, **의존성이 적고 기획 문서와의 갭이 큰 것**을 1순위로 고른다. (보통 S04 밸런스 문서 정합, S01~S03 최종 점검, S05/S06 폴리시 등)
-2. 아래 형식으로 **한 블록**을 채운다 (사용자가 복사해 다음 채팅에 붙여넣을 수 있게).
-
-```markdown
-다음 세션 권장 프롬프트 (복사용):
-
----
-@docs/01-plan/FEATURE_INDEX.md @docs/01-plan/slices/slice-XX-....md @docs/IMPLEMENTATION_PROGRESS.md @docs/IMPLEMENTATION_PROGRESS_Phase1.md 참고해서
-(구체 과제 한 문장: 예) balance-maker-ui-notes.md와 목업의 누락 카피·플로우를 맞춘다.
-
-완료 후 `docs/IMPLEMENTATION_PROGRESS_SESSION_LOG.md` 세션 로그·`IMPLEMENTATION_PROGRESS_Phase1.md`(또는 해당 페이즈) 체크·요약표를 갱신해줘.
----
-```
+1. **우선순위**: `IMPLEMENTATION_PROGRESS_Phase1.md`(또는 Phase 2)에서 아직 `[ ]`인 항목 중 **의존성이 적고 기획과의 갭이 큰 것**을 고른다.
+2. **Phase 1** 첫 번째 코드 블록: `slice-XX-*.md` 경로·구체 과제 한 문장·세션 로그 문구를 채운다. 형식은 `IMPLEMENTATION_PROGRESS.md` 하단 **지금 단계(Phase 1)** 와 동일.
+3. 다음 작업이 Phase 2면 **두 번째 코드 블록**(`Phase 2 착수 시`)을 구체 과제로 맞춘다.
 
 ### 5. 채팅 응답
 
