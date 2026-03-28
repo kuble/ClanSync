@@ -234,6 +234,8 @@ ClanMember ──< CoinTransaction
 | price_coins | int | 코인 가격 |
 | asset_url | varchar | |
 
+**꾸미기(`profile_deco` 등):** `asset_url`은 **서비스가 호스팅하는 정적 에셋**만 가리킨다. **사용자 업로드 이미지를 저장하는 용도는 사용하지 않는다**(프로필·밸런스 네임플레이트는 전부 사측 제공 프리셋 — PRD 「꾸미기 에셋 정책」).
+
 ### purchases
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
