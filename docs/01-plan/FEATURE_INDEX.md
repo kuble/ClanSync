@@ -1,7 +1,7 @@
 # 기능 슬라이스 인덱스
 
 > 구현·목업 작업 시 **이 표에서 슬라이스 하나만** 골라 `docs/01-plan/slices/slice-XX-*.md`를 연다.  
-> 진행도: [허브](../IMPLEMENTATION_PROGRESS.md) · Phase 2 [체크·라우트](../IMPLEMENTATION_PROGRESS_Phase2.md) · Phase 1 [요약(종료)](../IMPLEMENTATION_PROGRESS_Phase1.md) · [세션 로그](../IMPLEMENTATION_PROGRESS_SESSION_LOG.md)
+> 진행도: [허브](../TODO.md) · Phase 2 [체크·라우트](../TODO_Phase2.md) · Phase 1 [요약(종료)](../TODO_Phase1.md) · [세션 로그](../TODO_LOG.md)
 
 | ID | 슬라이스 | 한 줄 | 상세 문서 |
 |----|----------|-------|-----------|

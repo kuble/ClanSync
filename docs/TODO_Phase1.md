@@ -1,7 +1,7 @@
 # Phase 1 — 정적 목업 (`mockup/`, `_hub.html`)
 
 > **상태: 종료** (2026-03-28) — 유지보수·카피 수정 시에만 본 체크를 갱신한다.  
-> **허브**: [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md) · **세션 로그**: [IMPLEMENTATION_PROGRESS_SESSION_LOG.md](./IMPLEMENTATION_PROGRESS_SESSION_LOG.md) · **Phase 2**: [IMPLEMENTATION_PROGRESS_Phase2.md](./IMPLEMENTATION_PROGRESS_Phase2.md)
+> **허브**: [TODO.md](./TODO.md) · **세션 로그**: [TODO_LOG.md](./TODO_LOG.md) · **Phase 2**: [TODO_Phase2.md](./TODO_Phase2.md)
 
 | 항목 | 값 |
 |------|-----|
@@ -13,7 +13,7 @@
 ## S00 규약·문서
 
 - [x] Free / Premium 용어·문서 맵(`docs/README.md`)·슬라이스(`FEATURE_INDEX`, `slices/`)
-- [x] Phase 2 구현·라우트 표는 [IMPLEMENTATION_PROGRESS_Phase2.md](./IMPLEMENTATION_PROGRESS_Phase2.md)에서 진행 (Phase 1 범위 밖 항목 이관)
+- [x] Phase 2 구현·라우트 표는 [TODO_Phase2.md](./TODO_Phase2.md)에서 진행 (Phase 1 범위 밖 항목 이관)
 
 ## S01 라우팅·쉘 (랜딩 · 로그인 · 가입 · 게임 선택)
 

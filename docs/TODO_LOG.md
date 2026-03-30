@@ -1,30 +1,30 @@
 # 구현 진행도 — 세션 로그
 
-> **허브**: [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md) — 상태·페이즈 링크·다음 프롬프트는 허브만 보면 된다.  
-> **이 파일**: 히스토리만 쌓이므로 **일상 참조 시 `@IMPLEMENTATION_PROGRESS.md`만** 쓰고, 세션 종료·감사 시에만 이 파일을 연다.
+> **허브**: [TODO.md](./TODO.md) — 상태·페이즈 링크·다음 프롬프트는 허브만 보면 된다.  
+> **이 파일**: 히스토리만 쌓이므로 **일상 참조 시 `@TODO.md`만** 쓰고, 세션 종료·감사 시에만 이 파일을 연다.
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
 ### 2026-03-28 — Phase 1 종료 선언 · Phase 2 문서 정리
-- [x] `IMPLEMENTATION_PROGRESS_Phase1.md`: 종료(2026-03-28)·S00 Phase 2 항목을 Phase2 문서로 이관·요약표 S00 완료
-- [x] `IMPLEMENTATION_PROGRESS_Phase2.md`: 참조표·종료조건·체크 A~E·슬라이스 매핑·`pages.md` 전 경로+MainClan 하위·메모
+- [x] `TODO_Phase1.md`: 종료(2026-03-28)·S00 Phase 2 항목을 Phase2 문서로 이관·요약표 S00 완료
+- [x] `TODO_Phase2.md`: 참조표·종료조건·체크 A~E·슬라이스 매핑·`pages.md` 전 경로+MainClan 하위·메모
 - [x] 허브·`FEATURE_INDEX`·`README`·`project-context`·`todo`·`session-handoff`: 현재 단계 Phase 2
 
 ### 2026-03-28 — Phase 2 권장 프롬프트: schema·허브 갱신·과제 한 문장
-- [x] `IMPLEMENTATION_PROGRESS.md` Phase 2 블록: `schema.md` 포함, 완료 시 허브 마지막 갱신·Phase2·세션 로그 명시
+- [x] `TODO.md` Phase 2 블록: `schema.md` 포함, 완료 시 허브 마지막 갱신·Phase2·세션 로그 명시
 
 ### 2026-03-28 — Phase 1 권장 프롬프트: 슬라이스 `@` 경로 정리
 - [x] `slice-XX-*.md` 대신 `slice-NN-....md`로 실제 파일명 치환 안내 + 체크·요약표 **진행 중**·BACKLOG 명시
 
 ### 2026-03-28 — 허브 권장 프롬프트 정합 (Phase 1 기본 + Phase 2 보조)
-- [x] `IMPLEMENTATION_PROGRESS.md` 다음 세션 블록: Phase 1 복사용을 기본으로 두고, Phase 2 착수용은 두 번째 블록으로 분리
+- [x] `TODO.md` 다음 세션 블록: Phase 1 복사용을 기본으로 두고, Phase 2 착수용은 두 번째 블록으로 분리
 - [x] `.cursor/commands/todo.md` §4 절차를 위 형식에 맞게 정리
 
 ### 2026-03-28 — 세션 로그 파일 분리
-- [x] `IMPLEMENTATION_PROGRESS_SESSION_LOG.md` 신설, `IMPLEMENTATION_PROGRESS.md`에서 히스토리 제거(토큰 절약)
+- [x] `TODO_LOG.md` 신설, `TODO.md`에서 히스토리 제거(토큰 절약)
 
 ### 2026-03-28 — 진행도 문서 페이즈 분리
-- [x] `IMPLEMENTATION_PROGRESS_Phase1.md`·`IMPLEMENTATION_PROGRESS_Phase2.md` 신설, 본 파일은 허브·세션 로그 전용
+- [x] `TODO_Phase1.md`·`TODO_Phase2.md` 신설, 본 파일은 허브·세션 로그 전용
 
 ### 2026-03-28 — 랜딩·온보딩 미결 BACKLOG 대조
 - [x] `BACKLOG.md`: PRD·`pages.md`와 항목 매칭·랜딩/온보딩 표·경제·통계 그룹 분리
@@ -78,7 +78,7 @@
 ### 2026-03-28 — 문서·용어·슬라이스 정리
 - [x] PRD 동결·`FEATURE_INDEX`·`slices/`·`BACKLOG` 정리
 - [x] Free/Premium 용어 통일 (규칙·목업)
-- [x] 본 진행도 문서(`IMPLEMENTATION_PROGRESS.md`) 신설
+- [x] 본 진행도 문서(`TODO.md`) 신설
 
 ---
 
