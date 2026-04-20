@@ -3,52 +3,39 @@ description: ClanSync 프로젝트 컨텍스트 및 핵심 원칙
 alwaysApply: true
 ---
 
-# ClanSync 프로젝트
+# ClanSync
 
-멀티 게임 클랜 관리 웹서비스. 내전/스크림 승률·참여율 아카이빙 플랫폼.
-초기 타겟: 오버워치 → 점진적 게임 확장.
+멀티 게임 클랜 관리 웹서비스. 내전/스크림 승률·참여율 아카이빙. 초기 타겟 오버워치.
 
-> 문서 맵(토큰 절약): @docs/README.md
-> 기획 요약·동결: @docs/01-plan/PRD.md
-> 슬라이스 목록: @docs/01-plan/FEATURE_INDEX.md
-> 구현 진행도: @docs/IMPLEMENTATION_PROGRESS.md (허브) · @docs/IMPLEMENTATION_PROGRESS_Phase2.md (Phase 2) · Phase 1 종료 요약은 @docs/IMPLEMENTATION_PROGRESS_Phase1.md · 세션 히스토리는 @docs/IMPLEMENTATION_PROGRESS_SESSION_LOG.md
-> 데이터 스키마: @docs/01-plan/schema.md
-> 페이지 구조: @docs/01-plan/pages.md
+## 현재 단계
+- **Phase 1 (목업)**: `mockup/`, `_hub.html` — 카피·기획 동기화 시에만 수정.
+- **Phase 2 (구현)**: Next.js `src/` + Supabase. 아직 시작 전.
 
-## 현재 작업 범위
-- **Phase 2**: Next.js `src/` · Supabase · `schema.md` / `pages.md` 정합. 구현 우선.
-- **목업** (`mockup/`, `_hub.html`): Phase 1 종료 상태. **카피·기획 동기화**가 필요할 때만 수정하고, 변경은 슬라이스·`pages.md`와 맞춘다.
+## 스택
+Next.js 15 App Router · TypeScript · Tailwind · shadcn/ui (new-york, dark) · Supabase (mxkrfnzlgaxzdzcjbfkg) · Vercel (team: clansync) · 한/영/일 (next-intl 예정).
 
-## 기술 스택
-- **Frontend**: Next.js 15 App Router, TypeScript, Tailwind CSS
-- **UI**: shadcn/ui (new-york 스타일, 다크 모드 기본)
-- **Backend**: Supabase (DB + Auth + Storage) — project: mxkrfnzlgaxzdzcjbfkg
-- **배포**: Vercel (team: clansync)
-- **다국어**: 한국어/영어/일본어 (next-intl 예정)
-
-## 폴더 구조
-```
-src/
-  app/
-    [locale]/       # 다국어 라우팅
-  components/
-    ui/             # shadcn/ui 기본 컴포넌트
-    features/       # 기능별 컴포넌트 (balance/, stats/, clan/ 등)
-  lib/              # supabase 클라이언트, 유틸리티
-  types/            # TypeScript 타입 (schema 기반)
-docs/README.md      # 문서 맵·세션 절차
-docs/01-plan/       # PRD, FEATURE_INDEX, slices/, BACKLOG, 스키마, pages
-```
-
-## 권한 체계
-클랜장(leader) > 운영진(officer) > 구성원(member)
-
-## 구독 티어
-Free / Premium — Premium 전용: 승부예측, 팀 자동밸런싱, OCR, 대진표, 디스코드 연동
+## 권한·플랜
+- 권한: leader > officer > member
+- 플랜: free / premium (premium 전용: 승부예측, 자동밸런싱, OCR, 대진표, 디스코드 연동)
 
 ## 핵심 원칙
-- Server Component 우선, 필요한 경우만 'use client'
+- Server Component 우선, 필요할 때만 `'use client'`
 - 변수명 영어, 주석 한국어
-- Supabase RLS 모든 테이블 적용 필수
-- 토큰 최소화: 작업 단위를 작게 쪼개고 @파일 참조 활용
-- 나노 단위 Git 커밋/푸시
+- Supabase RLS 모든 테이블 필수
+- 나노 단위 git 커밋 (`git-nano-commit.mdc` 참조)
+- 토큰 절약: 작업을 작게 쪼개고 필요한 문서만 그때그때 읽는다
+
+## 문서 맵 (요청 시 읽기)
+> 자동 첨부 X — 필요할 때만 Read 도구로 가져온다.
+
+- `docs/README.md` — 전체 문서 맵·세션 절차
+- `docs/01-plan/PRD.md` — 기획 동결본
+- `docs/01-plan/FEATURE_INDEX.md` — 슬라이스 목록
+- `docs/01-plan/pages.md` — 페이지·라우트·가드 한눈에
+- `docs/01-plan/pages/` — 페이지별 상세 (스펙 레벨)
+- `docs/01-plan/schema.md` — 데이터 스키마
+- `docs/01-plan/glossary.md` — 게임개발자 친화 용어 사전
+- `docs/01-plan/decisions.md` — 미결 정책 인덱스 (D-XXX-NN)
+- `docs/01-plan/gating-matrix.md` — 권한·플랜 게이팅 매트릭스
+- `docs/01-plan/BACKLOG.md` — 잔여 백로그
+- `docs/TODO.md` (허브) · `docs/TODO_Phase1.md` · `docs/TODO_LOG.md`
