@@ -31,6 +31,11 @@
 - [x] `docs/01-plan/gating-matrix.md`
   - §6 이벤트: D-EVENTS-01~05 DECIDED 각주 + manual/scrim_auto 편집 권한 분리 + 대진표 개최·결과 입력 Premium+운영진+ + 카카오 옵트인 설정 행 추가.
 - [x] `docs/TODO.md` 마지막 갱신에 D-EVENTS-01~05 추가.
+- [x] **목업 UI 셸 동기화** (`mockup/pages/main-clan.html` · `mockup/scripts/clan-mock.js`):
+  - 캘린더 범례 D-EVENTS-03 채널·슬롯·quiet hours 카피 보강.
+  - 일정 등록 모달에 D-EVENTS-02 반복 종료 3모드 라디오(never/count 1~52/until) + 인스턴스 52 초과 경고 + 저장 전 검증 게이트.
+  - 투표 모달 D-EVENTS-04 반복×마감 하한 고정 안내 + 실시간 인라인 경고(매일 48h · 매주 14d · 마감 전까지 매일 24h · 상한 60d) + 게시 전 게이트.
+  - 일정 모달 하단 카피에 D-EVENTS-01 스크림 자동 등록 = 읽기 전용 명시.
 - **남은 OPEN 8건**: LFG/RANK/SCRIM 4 (D-LFG-01 · D-RANK-01 · D-SCRIM-01 · D-SCRIM-02) · STATS 4 (D-STATS-01~04). → 다음 세션 권장: MAINGAME 묶음(SCRIM은 D-EVENTS-01 상태 머신과 연계), 그 다음 STATS.
 
 ---
