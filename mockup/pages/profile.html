@@ -18,11 +18,8 @@
 
 <main class="mock-profile-page">
   <h1 class="mock-profile-page-title">플레이어 프로필</h1>
-  <p class="mock-profile-page-desc">모달과 동일합니다. <strong>게임별</strong>에서 타이틀마다 네임카드·계정·클랜을 한 블록으로 봅니다(목업).</p>
-  <p class="mock-modal-hint" style="margin:0 0 18px;max-width:720px">밸런스 경기 화면과 동일 정책: 네임카드 꾸미기는 <strong>서비스 프리셋만</strong>(이미지 업로드 없음). 뱃지는 <strong>등록 게임마다</strong> 표시 목록을 따로 두며 <strong>최대 5개</strong>·앞쪽이 우선입니다.</p>
 
   <div class="mock-profile-page-card mock-player-profile-root">
-    <p class="mock-modal-hint mock-player-profile-lead" style="margin-top:0">ClanSync <strong>공통 닉네임</strong>은 전역이며, <strong>게임별</strong> 탭에서 타이틀마다 네임카드·플랫폼 인증·본계/부계·클랜을 한 번에 봅니다.</p>
 
     <div class="mock-profile-tab-row mock-profile-tab-row--top" role="tablist">
       <button type="button" class="mock-profile-tab mock-profile-tab--active" role="tab" aria-selected="true" data-profile-tab="summary" onclick="mockPlayerProfileTab(this,'summary')">요약</button>
@@ -52,12 +49,10 @@
         </div>
         <div class="mock-profile-actions-inline" style="margin-top:4px">
           <a href="main-clan.html#store" class="btn btn-secondary btn-sm">클랜 스토어 (개인 꾸미기)</a>
-          <span class="mock-modal-hint" style="margin:0;font-size:11px;align-self:center">네임카드·프레임은 <strong>게임별</strong> 탭에서 확인</span>
         </div>
       </div>
 
       <div data-profile-panel="games" class="mock-profile-panel mock-profile-panel--pergame" hidden>
-        <p class="mock-modal-hint" style="margin:0 0 10px;font-size:12px"><strong>상단에서 게임을 선택</strong>하면 해당 타이틀의 <strong>네임카드</strong> · <strong>계정·본계/부계</strong> · <strong>클랜</strong>을 한 화면에 봅니다.</p>
 
         <div class="mock-profile-game-chip-row mock-profile-game-chip-row--pergame" role="tablist" aria-label="게임 선택">
           <button type="button" class="mock-profile-game-chip mock-profile-game-chip--active" data-profile-game-chip="ow" aria-pressed="true" onclick="mockPlayerProfileGameSelect(this,'ow')">오버워치</button>
@@ -103,7 +98,6 @@
           </div>
           <div class="mock-profile-badge-actions">
             <button type="button" class="btn btn-secondary btn-sm" onclick="mockBadgeCaseModalOpen('ow')">뱃지 케이스</button>
-            <span class="mock-modal-hint mock-profile-badge-hint">획득 뱃지를 확인하고 표시 순서를 정합니다.</span>
           </div>
 
           <p class="mock-profile-bundle-section-label">계정 인증 · 본계 / 부계</p>
@@ -199,7 +193,6 @@
           </div>
           <div class="mock-profile-badge-actions">
             <button type="button" class="btn btn-secondary btn-sm" onclick="mockBadgeCaseModalOpen('val')">뱃지 케이스</button>
-            <span class="mock-modal-hint mock-profile-badge-hint">이 게임 전용 뱃지입니다. OW와 별도로 표시 목록을 둡니다.</span>
           </div>
 
           <p class="mock-profile-bundle-section-label">계정 인증 · 본계 / 부계</p>
@@ -243,7 +236,7 @@
               <li><strong>Ascent Line</strong> <span class="mock-profile-pill mock-profile-pill--role">구성원</span></li>
             </ul>
             <div class="mock-profile-label" style="margin:12px 0 6px">가입 신청 대기</div>
-            <p class="mock-modal-hint" style="margin:0;font-size:12px">이 게임 기준 대기 중인 신청 없음(목업).</p>
+            <p style="margin:0;font-size:12px;color:var(--text-muted)">없음</p>
           </div>
         </section>
         </div>
@@ -251,7 +244,6 @@
         <div data-profile-game-panel="extra" class="mock-profile-game-panel-surface" hidden>
         <div class="mock-profile-global-platform-note" style="margin:0;border:none;padding:0">
           <p class="mock-profile-bundle-section-label" style="margin-top:0">기타 플랫폼 (게임 미매칭)</p>
-          <p class="mock-modal-hint" style="margin:0 0 10px;font-size:12px">ClanSync에 타이틀이 아직 없거나, 스팀 등만 연동한 경우입니다.</p>
           <ul class="mock-profile-platform-list">
             <li><span class="mock-profile-pill">Steam</span> <em style="color:var(--text-muted);font-size:12px">미연동</em> <button type="button" class="btn btn-secondary btn-sm" style="margin-left:auto;padding:2px 8px;font-size:11px" onclick="alert('목업')">연동</button></li>
           </ul>
@@ -265,7 +257,6 @@
     <a href="../index.html">이용약관</a>
     ·
     <a href="../index.html">개인정보처리방침</a>
-    <span class="mock-modal-hint" style="display:inline;margin:0">(목업 링크)</span>
   </p>
 </main>
 
