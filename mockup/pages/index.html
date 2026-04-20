@@ -707,9 +707,9 @@ body * {
     </div>
     <div class="landing-user">
       <div class="landing-lang" aria-label="언어 선택">
-        <button type="button" class="active">KR</button>
-        <button type="button">EN</button>
-        <button type="button">JP</button>
+        <button type="button" class="active" data-lang="ko" onclick="landingSetLangMock(this)">KR</button>
+        <button type="button" data-lang="en" onclick="landingSetLangMock(this)" title="English 지원은 Phase 3+에 추가됩니다 (D-LANDING-02)">EN</button>
+        <button type="button" data-lang="ja" onclick="landingSetLangMock(this)" title="日本語 지원은 Phase 3+에 추가됩니다 (D-LANDING-02)">JP</button>
       </div>
       <a href="sign-in.html"><button class="btn btn-ghost btn-sm">로그인</button></a>
       <a href="sign-up.html"><button class="btn btn-mint btn-sm">가입하기</button></a>
@@ -927,12 +927,49 @@ body * {
   </div>
 </section>
 <footer>
-  <div style="display:flex;justify-content:center;gap:24px;margin-bottom:16px;flex-wrap:wrap"><a href="#">이용약관</a><a href="#">개인정보처리방침</a><a href="#">게임사 API ToS</a><a href="#">문의하기</a></div>
+  <div style="display:flex;justify-content:center;gap:24px;margin-bottom:16px;flex-wrap:wrap">
+    <a href="#" data-footer-link="/terms" title="Phase 2+에 /terms 정적 MDX 페이지로 구현 (D-LANDING-03)">이용약관</a>
+    <a href="#" data-footer-link="/privacy" title="Phase 2+에 /privacy 정적 MDX 페이지로 구현 (D-LANDING-03)">개인정보처리방침</a>
+    <a href="#" data-footer-link="/api-tos" title="Phase 2+에 /api-tos 정적 MDX 페이지로 구현 (D-LANDING-03)">게임사 API ToS</a>
+    <a href="#" data-footer-link="/contact" title="Phase 2+에 /contact 내부 폼으로 구현, 제출은 contact_requests 테이블 INSERT (D-LANDING-03)">문의하기</a>
+  </div>
   <div>© 2026 ClanSync. All rights reserved.</div>
   <div style="margin-top:8px;font-size:12px;color:var(--text-muted)">ClanSync는 Blizzard Entertainment와 공식 제휴 관계가 아닙니다.</div>
 </footer>
 <script src="../scripts/app.js"></script>
 <script>
+// D-LANDING-04: 실서비스에서는 서버 컴포넌트에서 cookies()로 세션 확인 후 redirect("/games")
+// 목업은 세션이 없으므로 ?simulate=logged_in 쿼리로 시뮬레이션
+(() => {
+  const params = new URLSearchParams(window.location.search);
+  const simulate = params.get("simulate");
+  const fromLogo = params.get("from") === "logo";
+  const hasAnchor = !!window.location.hash;
+  if (simulate === "logged_in" && !fromLogo && !hasAnchor) {
+    window.location.replace("games.html");
+  }
+})();
+
+// D-LANDING-02: EN/JP 클릭 시 "준비 중" 토스트 (Phase 3+ 실제 활성)
+window.landingSetLangMock = function (btn) {
+  const lang = btn && btn.getAttribute ? btn.getAttribute("data-lang") : "";
+  const buttons = document.querySelectorAll(".landing-lang button");
+  buttons.forEach((b) => b.classList.remove("active"));
+  if (btn && btn.classList) btn.classList.add("active");
+  if (lang === "ko") return;
+  const msg = lang === "en"
+    ? "English 지원은 준비 중입니다 (Phase 3+)"
+    : "日本語 지원은 준비 중입니다 (Phase 3+)";
+  const existing = document.getElementById("landing-lang-toast");
+  if (existing) existing.remove();
+  const toast = document.createElement("div");
+  toast.id = "landing-lang-toast";
+  toast.textContent = msg;
+  toast.style.cssText = "position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(18,22,29,0.96);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:9999;border:1px solid rgba(255,255,255,0.1);box-shadow:0 6px 20px rgba(0,0,0,0.35)";
+  document.body.appendChild(toast);
+  setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 3000);
+};
+
 (() => {
   let previewSlideIndex = 0;
   let previewSlideTimer = null;

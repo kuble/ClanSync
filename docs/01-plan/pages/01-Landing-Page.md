@@ -1,15 +1,23 @@
 ﻿# 01 Landing Page · 랜딩
 
+> **D-LANDING-01** (DECIDED 2026-04-20, 잠정) — 현재 헤드라인 유지. Phase 2+ 재검토 포인트. [decisions.md §D-LANDING-01](../decisions.md#d-landing-01--랜딩-캐치프라이즈-최종-문구-잠정).  
+> **D-LANDING-02** (DECIDED 2026-04-20) — Phase 1/2는 KR 전용. EN/JP 버튼은 시각 + "준비 중" 토스트. 실제 i18n은 Phase 3+. [§D-LANDING-02](../decisions.md#d-landing-02--다국어-활성-시점과-범위).  
+> **D-LANDING-03** (DECIDED 2026-04-20) — 약관 3종 정적 MDX + `/contact`는 내부 폼(`contact_requests` 테이블). [§D-LANDING-03](../decisions.md#d-landing-03--약관개인정보api-tos문의-페이지-구현-방식).  
+> **D-LANDING-04** (DECIDED 2026-04-20) — 로그인된 사용자의 `/` 진입은 **`/games` 자동 리다이렉트**(`?from=logo` · 앵커 포함은 건너뜀). [§D-LANDING-04](../decisions.md#d-landing-04--로그인된-사용자의-랜딩-진입-처리).
+
 ## 한 줄 요약
 서비스를 처음 접하는 비로그인 사용자에게 ClanSync가 무엇인지 보여주고 로그인/가입으로 유도하는 첫 화면.
 
 ## 누가 / 언제 본다
-- 누구나. 로그인 여부 무관.
-- 외부 링크·검색·홍보를 통한 첫 진입점.
+- **비로그인 사용자** — 외부 링크·검색·홍보를 통한 첫 진입점.
+- 로그인된 사용자는 **`/games` 로 자동 리다이렉트**(D-LANDING-04). 단, 로고 클릭(`?from=logo`) 또는 내부 앵커(`#features`·`#games`·`#pricing`) 포함 진입은 예외(의도적 재방문 존중).
 
 ## 화면 진입 조건
 - 잠금 없음. 누구나 진입 가능.
-- 이미 로그인된 사용자가 들어와도 별도 자동 이동 없음 (목업 기준). 운영 시 자동 이동 여부는 D-LANDING-04로 신설 가능.
+- **로그인 세션 가드** (D-LANDING-04):
+  - 비로그인 → 랜딩 그대로 렌더.
+  - 로그인 + 쿼리/해시 없음 → 서버 컴포넌트에서 `redirect("/games")`(SSR 리다이렉트, 랜딩 히어로 깜빡임 없음).
+  - 로그인 + `?from=logo` 또는 `#section` 포함 → 랜딩 그대로 렌더.
 
 ## 사용자 흐름
 1. 진입 → 상단 nav + Hero에서 가치 제안 확인
@@ -61,7 +69,7 @@
 | 요소 | 위치 | 동작 |
 |------|------|------|
 | 로고 (좌상단) | Navbar | `/` 새로고침 (자기 자신) |
-| KR / EN / JP | Navbar | 시각적 active만. 실제 다국어 전환 없음 (D-LANDING-02) |
+| KR / EN / JP | Navbar | Phase 1/2: 시각적 active만. EN/JP 클릭 시 **"English/日本語 지원은 준비 중입니다"** 토스트(3s, D-LANDING-02). Phase 3+에 EN → JP 순서로 실제 활성화 |
 | 로그인 (우상단) | Navbar | `/sign-in`으로 이동 |
 | 가입하기 (우상단) | Navbar | `/sign-up`으로 이동 |
 | Hero CTA "로그인" | Hero | `/sign-in` |
@@ -70,7 +78,7 @@
 | 기능 카드 | features | 호버 시 설명 패널. 클릭 액션 없음 |
 | 게임 타일 | games | 클릭 액션 없음 (정보 표시) |
 | 요금제 CTA (없음) | pricing | 별도 CTA 없음. 본문 텍스트만 |
-| 푸터 링크 | Footer | 모두 `href="#"` 자리표시자 (D-LANDING-03) |
+| 푸터 링크 | Footer | Phase 1은 `href="#"` 자리표시자 + `title` 툴팁("Phase 2+ 구현"). Phase 2+ 목적지 — `/terms`·`/privacy`·`/api-tos`(정적 MDX) · `/contact`(내부 폼, `contact_requests` 테이블 INSERT) (D-LANDING-03) |
 
 ## 상태별 화면
 
@@ -88,18 +96,21 @@
 
 ## 데이터·연동
 - 정적 카피 중심. 서버 호출 없음.
-- 다국어 전환은 향후 i18n 도입 시 추가 (D-LANDING-02).
+- **세션 가드**(D-LANDING-04): 페이지 컴포넌트(Server Component)에서 `cookies()` 로 세션 확인 후 조건부 `redirect("/games")`. 미들웨어 레벨에서는 처리하지 않는다(크롤러·OG 카드 이미지 생성·SEO 회피).
+- **다국어**(D-LANDING-02): Phase 1/2는 `lang="ko"` 고정. `users.language` enum 컬럼은 스키마에 남기되 Phase 3+까지 DEFAULT `'ko'`·변경 UI 없음.
+- **푸터 링크**(D-LANDING-03): Phase 2+에 `/terms`·`/privacy`·`/api-tos` 정적 MDX + `/contact` 폼(→ `contact_requests` 테이블). 스팸 방지(Captcha·rate limit·honeypot) 필수.
 
 ## 목업과 실제 구현의 차이
-- 목업의 푸터 링크는 모두 자리표시자. 실제 페이지가 필요함.
+- 목업 푸터 링크는 `href="#"` 유지 + `title` 툴팁으로 "Phase 2+ 구현" 안내(D-LANDING-03).
+- 목업에서는 세션이 없으므로 `?simulate=logged_in` 쿼리 진입 시 `games.html`로 `location.replace` 시뮬레이션(D-LANDING-04).
 - "1.2K ACTIVE CLANS" 같은 숫자는 카피용. 실제 구현 시 서버에서 값을 내려받을지(라이브 카운터) vs 정적 카피로 둘지 결정.
-- 다국어 버튼은 시각적 active만 토글. 실제 i18n 미연결.
+- 다국어 버튼은 시각적 active만 토글 + EN/JP 클릭 시 "준비 중" 토스트(D-LANDING-02).
 
 ## 결정 필요
-- D-LANDING-01 캐치프라이즈 최종 문구
-- D-LANDING-02 다국어(KR/EN/JP) 활성 시점·범위
-- D-LANDING-03 약관·개인정보·문의 링크의 실제 페이지
-- D-LANDING-04 (신설 검토) 이미 로그인된 사용자 진입 시 자동 이동 여부
+- ~~D-LANDING-01 캐치프라이즈 최종 문구~~ — **DECIDED (잠정) 2026-04-20**. Phase 2+ 재검토.
+- ~~D-LANDING-02 다국어(KR/EN/JP) 활성 시점·범위~~ — **DECIDED 2026-04-20**. Phase 1/2 KR 전용.
+- ~~D-LANDING-03 약관·개인정보·문의 링크의 실제 페이지~~ — **DECIDED 2026-04-20**. 약관 정적 MDX + `/contact` 내부 폼.
+- ~~D-LANDING-04 이미 로그인된 사용자 진입 시 자동 이동 여부~~ — **DECIDED 2026-04-20**. `/games` 자동 리다이렉트(쿼리·앵커 예외).
 
 ## 구현 참고 (개발자용)
 
