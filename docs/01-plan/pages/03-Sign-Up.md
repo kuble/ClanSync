@@ -42,11 +42,13 @@
   ── 이메일 ──────────────────────
   ── 닉네임 ───────────────────  (2~12자)
         에러 슬롯: 사용 불가 닉네임 안내 (예: admin)
-  ── 출생 연도 [select] ──  (현재-10) ~ 1950
+  ── 출생 연도 [select] ──  (현재-10) ~ 1950  (D-AUTH-03: 만 10세 미만 차단)
   ── 성별 [세그먼트] ─────  남 · 여 · 비공개
   ── 비밀번호 [눈 토글] ──
         강도 바 · 라벨: 약함 / 보통 / 강함
-        규칙 안내: 영문+숫자+특수문자 8자 이상
+        규칙 안내: "영문+숫자+특수문자, 8~72자" (D-AUTH-03 strong 강제)
+  ── 만 14세 미만 안내 캡션 ──
+        "만 14세 미만은 가입 시 법정대리인 동의가 필요합니다. (서비스 오픈 시 추가 절차 안내)"
 
   [✔ 이용약관 및 개인정보처리방침에 동의합니다 (필수)]
 
@@ -65,11 +67,12 @@
 | 이메일 | 형식 검사 + 중복 검사 (서버 응답으로 확인) |
 | 닉네임 | 2~12자. 한글·영문·숫자 허용. `admin` 등 차단 목록은 D-CLAN/D-AUTH 정책으로 정리 |
 | 닉네임 inline 검사 | 입력 중 차단어 감지 시 빨간 테두리 + 안내 ("이 닉네임은 사용할 수 없습니다") |
-| 출생 연도 | select. (현재-10)년 ~ 1950년. 만 10세 미만 가입 차단으로 읽힘 (D-AUTH-03) |
+| 출생 연도 | select. (현재-10)년 ~ 1950년. **D-AUTH-03**: 만 10세 미만 가입 차단 유지. 만 14세 미만 선택 시 하단 안내 캡션 자동 노출(Phase 1 카피만, 실제 보호자 동의 UI는 Phase 2+). |
 | 성별 | 세그먼트: 남 / 여 / 비공개. 첫 항목에 `required` |
-| 비밀번호 | 정책: 영문+숫자+특수문자 8자 이상. 강도 바 0~3 표시 (제출 시 강제 정책은 D-AUTH-03) |
+| 비밀번호 | **D-AUTH-03 strong 강제**: 영문(대/소) + 숫자 + 특수문자 **모두 필수**, **8~72자**. 강도 바 0~3 표시 + 제출 시점 정규식 검증(`/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9])[\S]{8,72}$/`). strong 미만이면 submit 차단 + inline 에러. 서버 재검증 필수. |
 | 눈 아이콘 | 비밀번호 보이기/숨기기 토글 |
 | 약관 체크 | 미체크 시 제출 차단 (HTML5 `required`) |
+| 만 14세 미만 안내 | 출생연도가 `currentYear - 14` 초과일 때 동적 노출. Phase 1은 안내만, 가입은 허용. Phase 2+ 법정대리인 동의 UI 도입 지점(`users.minor_guardian_consent_at`). |
 | 가입하기 | 폼 제출 → 성공 시 `/games` |
 | ← 뒤로 | `/` (랜딩) |
 | 로그인 링크 | `/sign-in` |
@@ -91,31 +94,34 @@
 
 ## 데이터·연동
 - Supabase Auth로 계정 생성 (이메일+비밀번호).
-- 성공 직후 사용자 프로필(닉네임·출생연도·성별)을 `users` 테이블에 저장.
-- 가입 후 자동 로그인 처리 (출입증 발급).
+- 성공 직후 사용자 프로필(닉네임·이메일·출생연도·성별·언어)을 `users` 테이블에 저장 (D-AUTH-03).
+- 가입 후 자동 로그인 처리 — 기본 체크박스 값은 OFF(24h refresh token), 명시 체크 시 ON(30일) (D-AUTH-07).
+- 만 14세 미만 가입자의 `users.minor_guardian_consent_at`은 Phase 1에선 NULL. Phase 2+ 보호자 동의 UI 완성 시 채움.
 
 ## 목업과 실제 구현의 차이
 - 목업은 형식 검사·중복 검사 없이 무조건 `/games`로 이동.
-- 비밀번호 정책은 placeholder로만 안내. 제출 시 길이/조합 강제 없음.
-- `password-confirm` 요소를 참조하는 `checkPwdMatch` 함수가 있지만 폼에 해당 필드가 없어 데드 코드 — 운영 시 비번 확인 필드를 둘지 결정.
-- 약관 링크 `href="#"` 자리표시자.
+- 비밀번호 정책은 placeholder로만 안내하던 것을 **`handleSignUp`에서 정규식 검증**으로 보강(D-AUTH-03 strong). 서버 재검증은 Phase 2.
+- `password-confirm` 요소를 참조하는 `checkPwdMatch` 함수가 있지만 폼에 해당 필드가 없어 데드 코드 — Phase 2에서 비번 확인 필드 도입 시 복구.
+- 만 14세 미만 안내 캡션은 출생연도 변경 시 동적으로 토글(`#signup-minor-notice`).
+- 약관 링크 `href="#"` 자리표시자 (D-LANDING-03).
 
 ## 결정 필요
-- D-AUTH-03 비밀번호 정책 클라이언트 강제 시점, 만 10세 룰의 의미·확정
-- D-AUTH-01 가입 직후 라우팅 (게임 선택 vs 게임 인증)
-- (신설 검토) 비밀번호 확인 필드 도입 여부
-- (신설 검토) 닉네임 차단어 목록·중복 검사 규칙
+- ~~D-AUTH-03 비밀번호 정책 클라이언트 강제 시점, 만 10세 룰의 의미·확정~~ → [DECIDED: strong 강제·만 10세 유지·14세 미만 동의 UI Phase 2+](../decisions.md#d-auth-03--비밀번호-정책과-최저-가입-연령)
+- ~~D-AUTH-01 가입 직후 라우팅 (게임 선택 vs 게임 인증)~~ → [DECIDED: 게임 선택(`/games`) 고정, 매트릭스 #1](../decisions.md#d-auth-01--게임-인증--클랜-소속-라우팅-매트릭스)
+- (신설 검토) 비밀번호 확인 필드 도입 여부 — Phase 2 UI 개편 시 결정
+- (신설 검토) 닉네임 차단어 목록·중복 검사 규칙 — Phase 2 구현 시 결정
 
 ## 구현 참고 (개발자용)
 
 - 목업 파일: `mockup/pages/sign-up.html`
-- 핵심 함수: `handleSignUp(e)` (검증 없이 이동), `togglePwd`, 강도 계산은 인라인
-- 데드 코드: `checkPwdMatch` (대상 필드 없음)
+- 핵심 함수: `handleSignUp(e)` (D-AUTH-03 strong 정규식 검증 포함), `togglePwd`, `validatePasswordStrong(v)`, 강도 계산은 인라인
+- 데드 코드: `checkPwdMatch` (대상 필드 없음, Phase 2에서 복구 검토)
 - 출생 연도 select 초기화: `populateYears` — `(currentYear-10)` ~ `1950`
+- 만 14세 미만 안내 캡션 토글: `#signup-minor-notice`, `updateMinorNotice(year)` — `year > currentYear - 14` 일 때 노출
 - 닉네임 차단어: 인라인 분기 `if (val === 'admin')`
 
 ## 연관 문서
 - [pages.md](../pages.md)
 - [slices/slice-01-routing-shell.md](../slices/slice-01-routing-shell.md)
 - [schema.md](../schema.md) (`users`)
-- [decisions.md](../decisions.md) (D-AUTH-01, D-AUTH-03)
+- [decisions.md](../decisions.md) §[D-AUTH-01](../decisions.md#d-auth-01--게임-인증--클랜-소속-라우팅-매트릭스) · [D-AUTH-03](../decisions.md#d-auth-03--비밀번호-정책과-최저-가입-연령)
