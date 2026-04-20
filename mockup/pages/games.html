@@ -27,7 +27,8 @@
 .search-box input {
   width: 100%;
   padding: 9px 14px 9px 36px;
-  background: var(--bg-elevated);
+  background: unset;
+  background-color: unset;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
@@ -39,6 +40,20 @@
 .search-box .search-icon {
   position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
   color: var(--text-muted); font-size: 16px; pointer-events: none;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.search-box .search-icon svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .games-grid {
@@ -47,21 +62,22 @@
   gap: 20px;
 }
 .game-card {
-  background: var(--bg-elevated);
+  background-color: transparent;
+  background-image: none;
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
   position: relative;
 }
 .game-card:hover {
-  border-color: rgba(124, 58, 237, 0.4);
-  transform: translateY(-3px);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+  border-color: rgba(167, 139, 250, 0.22);
+  background: color-mix(in srgb, var(--bg-elevated) 90%, #ffffff 10%);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
 }
 .game-card.inactive { opacity: 0.5; cursor: not-allowed; }
-.game-card.inactive:hover { transform: none; box-shadow: none; border-color: var(--border); }
+.game-card.inactive:hover { box-shadow: none; border-color: var(--border); background: var(--bg-elevated); }
 
 .game-thumbnail {
   width: 100%;
@@ -73,34 +89,69 @@
   position: relative;
   overflow: hidden;
 }
-.game-thumb-ow { background: linear-gradient(135deg, #1e3a5f 0%, #0a1628 100%); }
-.game-thumb-valo { background: linear-gradient(135deg, #3d0000 0%, #1a0000 100%); }
-.game-thumb-lol { background: linear-gradient(135deg, #2d1b00 0%, #0f0800 100%); }
-.game-thumb-pubg { background: linear-gradient(135deg, #1a2a1a 0%, #0a0f0a 100%); }
+.game-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.game-thumbnail.game-thumb-ow {
+  background-image: none;
+  background-clip: unset;
+  -webkit-background-clip: unset;
+  color: rgba(228, 228, 231, 1);
+  border-bottom: 1px solid var(--border);
+}
+.game-thumb-valo {
+  background: unset;
+  background-color: unset;
+  background-image: none;
+  border-bottom: 1px solid var(--border);
+}
+.game-thumb-lol {
+  background: unset;
+  background-color: unset;
+  background-image: none;
+  border-bottom: 1px solid var(--border);
+}
+.game-thumb-pubg {
+  background-color: unset;
+  background: unset;
+  background-image: none;
+  border-bottom: 1px solid var(--border);
+}
 .game-thumb-more { background: var(--bg-overlay); }
 
 .game-status-badge {
   position: absolute;
   top: 10px;
   right: 10px;
-  padding: 3px 10px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
   border-radius: 99px;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .status-active { background: rgba(34,197,94,0.2); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
 .status-soon { background: rgba(90,90,114,0.4); color: var(--text-muted); border: 1px solid var(--border); }
 
 .game-verified-badge {
   position: absolute;
-  top: 10px;
-  left: 10px;
   background: rgba(59,130,246,0.25);
   border: 1px solid rgba(59,130,246,0.4);
   border-radius: 99px;
-  font-size: 11px;
+  font-size: 14px;
   color: #93c5fd;
-  padding: 3px 10px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .game-body {
@@ -115,6 +166,8 @@
   color: var(--text-secondary);
 }
 .game-clan-dot { width: 6px; height: 6px; background: var(--success); border-radius: 50%; }
+.game-clan-dot-danger { background: #ef4444; }
+.game-clan-dot-muted { background: #71717a; }
 .game-footer {
   display: flex;
   align-items: center;
@@ -133,61 +186,116 @@
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
-  background: var(--bg-elevated);
+  background: unset;
+  background-color: unset;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 14px;
 }
 .profile-btn:hover { border-color: var(--border-hover); }
+.navbar {
+  padding: 0;
+}
+.games-navbar-inner {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.games-navbar-inner .navbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #f4f4f5;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.games-navbar-inner .navbar-brand-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #34d399, #10b981);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #062819;
+}
+.games-navbar-inner .navbar-brand-mark svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 32;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 </style>
 </head>
 <body>
 
 <nav class="navbar">
-  <a href="index.html"><span class="navbar-brand">⚡ ClanSync</span></a>
-  <div class="navbar-nav">
-    <div class="profile-menu" id="profileMenu">
-      <button class="profile-btn" onclick="toggleProfileMenu()">
-        <div class="avatar" style="width:28px;height:28px;font-size:12px">김</div>
-        <span class="profile-btn-arrow">▼</span>
-      </button>
-      <div class="profile-dropdown" id="profileDropdown">
-        <div class="pd-header">
-          <div class="avatar" style="width:40px;height:40px;font-size:16px">김</div>
-          <div>
-            <div style="font-weight:700;font-size:14px">김테스트</div>
-            <div style="font-size:12px;color:var(--text-muted)">kim@example.com</div>
+  <div class="games-navbar-inner">
+    <a href="index.html">
+      <span class="navbar-brand">
+        <span class="navbar-brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 512 512">
+            <path d="M434.8 137.65 285.44 69.55c-16.19-7.4-42.69-7.4-58.88 0L77.3 137.65c-17.6 8-17.6 21.09 0 29.09l148 67.5c16.89 7.7 44.69 7.7 61.58 0l148-67.5c17.52-8 17.52-21.1-.08-29.09Z"></path>
+            <path d="m160 308.52-82.7 37.11c-17.6 8-17.6 21.1 0 29.1l148 67.5c16.89 7.69 44.69 7.69 61.58 0l148-67.5c17.6-8 17.6-21.1 0-29.1l-79.94-38.47"></path>
+            <path d="m160 204.48-82.8 37.16c-17.6 8-17.6 21.1 0 29.1l148 67.49c16.89 7.7 44.69 7.7 61.58 0l148-67.49c17.7-8 17.7-21.1.1-29.1L352 204.48"></path>
+          </svg>
+        </span>
+        <span>ClanSync</span>
+      </span>
+    </a>
+    <div class="navbar-nav">
+      <div class="profile-menu" id="profileMenu">
+        <button class="profile-btn" onclick="toggleProfileMenu()">
+          <div class="avatar" style="width:28px;height:28px;font-size:12px">김</div>
+          <span class="profile-btn-arrow">▼</span>
+        </button>
+        <div class="profile-dropdown" id="profileDropdown">
+          <div class="pd-header">
+            <div class="avatar" style="width:40px;height:40px;font-size:16px">김</div>
+            <div>
+              <div style="font-weight:700;font-size:14px">김테스트</div>
+              <div style="font-size:12px;color:var(--text-muted)">kim@example.com</div>
+            </div>
           </div>
-        </div>
-        <div class="pd-divider"></div>
-        <div class="pd-item" role="button" tabindex="0" onclick="mockPlayerProfileModalOpen()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();mockPlayerProfileModalOpen();}">
-          <span class="pd-item-icon">👤</span><span>마이페이지</span><span class="pd-item-arrow">›</span>
-        </div>
-        <div class="pd-item pd-coins">
-          <span class="pd-item-icon">🪙</span>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:500;color:var(--text-primary)">코인</div>
-            <div style="font-size:11px;color:var(--text-muted)">보유 <span class="pd-coin-value">1,240</span></div>
+          <div class="pd-divider"></div>
+          <div class="pd-item" role="button" tabindex="0" onclick="mockPlayerProfileModalOpen()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();mockPlayerProfileModalOpen();}">
+            <span class="pd-item-icon">👤</span><span>마이페이지</span><span class="pd-item-arrow">›</span>
           </div>
-        </div>
-        <div class="pd-divider"></div>
-        <div class="pd-item" onclick="toggleTheme()">
-          <span class="pd-item-icon" id="themeIcon">🌙</span>
-          <span style="flex:1">다크 모드</span>
-          <div class="toggle on" id="themeToggle"></div>
-        </div>
-        <div class="pd-item" style="cursor:default">
-          <span class="pd-item-icon">🌐</span><span style="flex:1">언어</span>
-          <div class="lang-tabs">
-            <button class="lang-tab active" onclick="setLang(this,'ko')">한국어</button>
-            <button class="lang-tab" onclick="setLang(this,'en')">EN</button>
-            <button class="lang-tab" onclick="setLang(this,'ja')">日本語</button>
+          <div class="pd-item pd-coins">
+            <span class="pd-item-icon">🪙</span>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:500;color:var(--text-primary)">코인</div>
+              <div style="font-size:11px;color:var(--text-muted)">보유 <span class="pd-coin-value">1,240</span></div>
+            </div>
           </div>
-        </div>
-        <div class="pd-divider"></div>
-        <div class="pd-item pd-logout" onclick="window.location.href='sign-in.html'">
-          <span class="pd-item-icon">🚪</span><span>로그아웃</span>
+          <div class="pd-divider"></div>
+          <div class="pd-item" onclick="toggleTheme()">
+            <span class="pd-item-icon" id="themeIcon">🌙</span>
+            <span style="flex:1">다크 모드</span>
+            <div class="toggle on" id="themeToggle"></div>
+          </div>
+          <div class="pd-item" style="cursor:default">
+            <span class="pd-item-icon">🌐</span><span style="flex:1">언어</span>
+            <div class="lang-tabs">
+              <button class="lang-tab active" onclick="setLang(this,'ko')">한국어</button>
+              <button class="lang-tab" onclick="setLang(this,'en')">EN</button>
+              <button class="lang-tab" onclick="setLang(this,'ja')">日本語</button>
+            </div>
+          </div>
+          <div class="pd-divider"></div>
+          <div class="pd-item pd-logout" onclick="window.location.href='sign-in.html'">
+            <span class="pd-item-icon">🚪</span><span>로그아웃</span>
+          </div>
         </div>
       </div>
     </div>
@@ -201,7 +309,12 @@
       <div class="page-desc">플레이할 게임을 선택하세요.</div>
     </div>
     <div class="search-box">
-      <span class="search-icon">🔍</span>
+      <span class="search-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="M20 20l-3.5-3.5"></path>
+        </svg>
+      </span>
       <input type="text" placeholder="게임 검색" oninput="filterGames(this.value)">
     </div>
   </div>
@@ -210,9 +323,7 @@
 
     <div class="game-card" onclick="window.location.href='main-clan.html'">
       <div class="game-thumbnail game-thumb-ow">
-        <span>🎮</span>
-        <span class="game-status-badge status-active">서비스 중</span>
-        <span class="game-verified-badge">연동됨</span>
+        <span class="game-logo">🎮</span>
       </div>
       <div class="game-body">
         <div class="game-name">오버워치</div>
@@ -221,75 +332,59 @@
           <span>Phoenix Rising 클랜 가입됨</span>
         </div>
       </div>
-      <div class="game-footer">
-        <span>마지막 접속 28일 전</span>
-        <span style="color:var(--brand-secondary); font-weight:600">바로 가기</span>
-      </div>
     </div>
 
     <div class="game-card" onclick="window.location.href='game-auth.html?game=valorant'">
       <div class="game-thumbnail game-thumb-valo">
-        <span>🎯</span>
-        <span class="game-status-badge status-active">서비스 중</span>
+        <span class="game-logo">🎯</span>
       </div>
       <div class="game-body">
         <div class="game-name">발로란트</div>
-        <div class="game-clan-info" style="color:var(--warning)">
-          <span>⚠</span>
-          <span>계정 연동이 필요합니다</span>
+        <div class="game-clan-info">
+          <div class="game-clan-dot game-clan-dot-danger"></div>
+          <span>계정 미연동</span>
         </div>
-      </div>
-      <div class="game-footer">
-        <span>라이엇 연동 후 이용</span>
-        <span style="color:var(--warning); font-weight:600">연동하기</span>
       </div>
     </div>
 
-    <div class="game-card inactive">
+    <div class="game-card">
       <div class="game-thumbnail game-thumb-lol">
-        <span>⚔️</span>
-        <span class="game-status-badge status-soon">준비 중</span>
+        <span class="game-logo">⚔️</span>
       </div>
       <div class="game-body">
         <div class="game-name">리그 오브 레전드</div>
         <div class="game-clan-info">
+          <div class="game-clan-dot game-clan-dot-muted"></div>
           <span>출시 예정</span>
         </div>
       </div>
-      <div class="game-footer">
-        <span>오픈 예정 2026 Q3</span>
-      </div>
     </div>
 
-    <div class="game-card inactive">
+    <div class="game-card">
       <div class="game-thumbnail game-thumb-pubg">
-        <span>🪖</span>
-        <span class="game-status-badge status-soon">준비 중</span>
+        <span class="game-logo">🪖</span>
       </div>
       <div class="game-body">
         <div class="game-name">PUBG BATTLEGROUNDS</div>
         <div class="game-clan-info">
+          <div class="game-clan-dot game-clan-dot-muted"></div>
           <span>출시 예정</span>
         </div>
       </div>
-      <div class="game-footer">
-        <span>오픈 예정 2026 Q4</span>
-      </div>
     </div>
 
-    <div class="game-card" style="border-style:dashed; cursor:default">
+    <div class="game-card">
       <div class="game-thumbnail game-thumb-more">
         <div style="text-align:center">
           <div style="font-size:32px; margin-bottom:8px">+</div>
-          <div style="font-size:12px; color:var(--text-muted)">곧 추가 예정</div>
+          <div style="font-size:12px">곧 추가 예정</div>
         </div>
       </div>
       <div class="game-body">
-        <div class="game-name" style="color:var(--text-muted)">다른 게임</div>
-        <div class="game-clan-info">요청하시면 검토합니다</div>
-      </div>
-      <div class="game-footer">
-        <a href="#" style="color:var(--brand-secondary); font-size:12px">게임 요청하기</a>
+        <div class="game-name">다른 게임</div>
+        <div class="game-clan-info">
+          <span>요청하시면 검토합니다</span>
+        </div>
       </div>
     </div>
 

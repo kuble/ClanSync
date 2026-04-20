@@ -6,6 +6,9 @@
 <title>ClanSync — 회원가입</title>
 <link rel="stylesheet" href="../styles/main.css">
 <style>
+body {
+  background-color: var(--bg-base);
+}
 .auth-container { display: flex; min-height: 100vh; }
 .auth-left {
   flex: 1;
@@ -21,31 +24,47 @@
 }
 .auth-left-bg {
   position: absolute; inset: 0;
-  background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(59,130,246,0.18) 0%, transparent 70%);
+  background: none;
   pointer-events: none;
 }
-.benefits-list { list-style: none; margin-top: 40px; display: flex; flex-direction: column; gap: 16px; max-width: 300px; }
-.benefit-item {
-  display: flex; align-items: flex-start; gap: 12px;
-  font-size: 14px; color: var(--text-secondary);
+.auth-left-review {
+  position: relative;
+  max-width: 360px;
+  color: var(--text-primary);
 }
-.benefit-icon {
-  width: 32px; height: 32px;
-  background: rgba(124, 58, 237, 0.15);
-  border-radius: var(--radius-sm);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px;
-  flex-shrink: 0;
-  margin-top: 1px;
+.auth-left-review-text {
+  font-size: 28px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  margin-bottom: 20px;
 }
-.benefit-text strong { display: block; color: var(--text-primary); font-size: 14px; margin-bottom: 2px; }
+.auth-left-review-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.auth-left-review-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #052218;
+  font-weight: 800;
+}
 
 .auth-right {
-  width: 500px;
+  width: 640px;
+  order: -1;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 60px 56px;
+  padding: 60px 88px;
   overflow-y: auto;
 }
 .auth-title { font-size: 26px; font-weight: 800; margin-bottom: 8px; }
@@ -79,10 +98,10 @@
 .terms-row input[type="checkbox"] {
   width: 16px; height: 16px;
   margin-top: 2px;
-  accent-color: var(--brand-primary);
+  accent-color: #34d399;
   cursor: pointer;
 }
-.terms-row a { color: var(--brand-secondary); }
+.terms-row a { color: #34d399; }
 
 .gender-opt {
   display: flex;
@@ -96,8 +115,8 @@
 }
 .gender-opt input { display: none; }
 .gender-opt:has(input:checked) {
-  background: rgba(124,58,237,0.15);
-  color: #a78bfa;
+  background: rgba(52, 211, 153, 0.14);
+  color: #34d399;
   font-weight: 600;
 }
 .gender-opt:not(:has(input:checked)):hover {
@@ -106,11 +125,77 @@
 }
 
 .back-btn {
-  position: absolute; top: 20px; left: 20px;
-  display: flex; align-items: center; gap: 6px;
-  font-size: 13px; color: var(--text-secondary); cursor: pointer;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: opacity 0.15s;
 }
-.back-btn:hover { color: var(--text-primary); }
+.back-btn:hover { opacity: 0.92; }
+.back-btn-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #052218;
+}
+.back-btn-mark svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 32;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.pwd-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+}
+.pwd-toggle-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.auth-right .btn-primary {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  color: #052218;
+  box-shadow: none;
+}
+.auth-right .btn-primary:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
 
 @media (max-width: 768px) {
   .auth-left { display: none; }
@@ -123,44 +208,26 @@
 
   <div class="auth-left">
     <div class="auth-left-bg"></div>
-    <div style="position:relative">
-      <div style="font-size:32px; font-weight:800; background:var(--gradient-brand); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:8px;">ClanSync</div>
-      <div style="font-size:16px; color:var(--text-secondary); margin-bottom:4px;">클랜 운영에 필요한 도구를 한곳에</div>
-      <ul class="benefits-list">
-        <li class="benefit-item">
-          <div class="benefit-icon">📊</div>
-          <div class="benefit-text">
-            <strong>클랜 통계와 성적 한눈에</strong>
-            승률, 참여율, 히어로 기록까지
-          </div>
-        </li>
-        <li class="benefit-item">
-          <div class="benefit-icon">🎯</div>
-          <div class="benefit-text">
-            <strong>내전·스크림 매치 기록</strong>
-            과거 대전 결과를 언제든 조회
-          </div>
-        </li>
-        <li class="benefit-item">
-          <div class="benefit-icon">👥</div>
-          <div class="benefit-text">
-            <strong>클랜원 관리</strong>
-            역할, 티어, 포지션을 한곳에서
-          </div>
-        </li>
-        <li class="benefit-item">
-          <div class="benefit-icon">🔗</div>
-          <div class="benefit-text">
-            <strong>Battle.net 연동</strong>
-            오버워치 계정과 안전하게 연결
-          </div>
-        </li>
-      </ul>
+    <div class="auth-left-review">
+      <p class="auth-left-review-text">가입하고 나서 클랜 모집부터 스크림 기록까지 훨씬 빠르게 정리할 수 있었어요.</p>
+      <div class="auth-left-review-author">
+        <span class="auth-left-review-avatar">M</span>
+        <span>MINT Squad · 운영진</span>
+      </div>
     </div>
   </div>
 
   <div class="auth-right" style="position:relative">
-    <a href="index.html" class="back-btn">← 랜딩으로</a>
+    <a href="index.html" class="back-btn">
+      <span class="back-btn-mark" aria-hidden="true">
+        <svg viewBox="0 0 512 512">
+          <path d="M434.8 137.65 285.44 69.55c-16.19-7.4-42.69-7.4-58.88 0L77.3 137.65c-17.6 8-17.6 21.09 0 29.09l148 67.5c16.89 7.7 44.69 7.7 61.58 0l148-67.5c17.52-8 17.52-21.1-.08-29.09Z"></path>
+          <path d="m160 308.52-82.7 37.11c-17.6 8-17.6 21.1 0 29.1l148 67.5c16.89 7.69 44.69 7.69 61.58 0l148-67.5c17.6-8 17.6-21.1 0-29.1l-79.94-38.47"></path>
+          <path d="m160 204.48-82.8 37.16c-17.6 8-17.6 21.1 0 29.1l148 67.49c16.89 7.7 44.69 7.7 61.58 0l148-67.49c17.7-8 17.7-21.1.1-29.1L352 204.48"></path>
+        </svg>
+      </span>
+      <span>ClanSync</span>
+    </a>
 
     <div style="margin-bottom: 28px">
       <div class="auth-title">ClanSync에 오신 걸 환영해요</div>
@@ -169,28 +236,26 @@
 
     <form onsubmit="handleSignUp(event)">
       <div class="form-group">
-        <label class="label">이메일 <span style="color:var(--danger)">*</span></label>
+        <label class="label">이메일</label>
         <input class="input" type="email" id="email" placeholder="your@email.com">
       </div>
 
       <div class="form-group">
-        <label class="label">닉네임 <span style="color:var(--danger)">*</span></label>
+        <label class="label">닉네임</label>
         <input class="input" type="text" id="nickname" placeholder="2~12자 (영문·한글·숫자)" maxlength="12"
                oninput="checkNickname(this)">
-        <div class="input-hint">다른 유저에게 보이는 이름입니다 (최대 12자)</div>
         <div class="input-error" id="nickname-err">이 닉네임은 사용할 수 없습니다</div>
       </div>
 
       <div style="display:flex;gap:12px">
         <div class="form-group" style="flex:1">
-          <label class="label">출생 연도 <span style="color:var(--danger)">*</span></label>
+          <label class="label">출생 연도</label>
           <select class="input" id="birthYear" required>
             <option value="" disabled selected>선택</option>
           </select>
-          <div class="input-hint">서비스 이용 자격 확인에 사용됩니다</div>
         </div>
         <div class="form-group" style="flex:1">
-          <label class="label">성별 <span style="color:var(--danger)">*</span></label>
+          <label class="label">성별</label>
           <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;height:44px">
             <label class="gender-opt" style="flex:1">
               <input type="radio" name="gender" value="male" required>
@@ -205,16 +270,20 @@
               <span>비공개</span>
             </label>
           </div>
-          <div class="input-hint">통계 목적이며 언제든 변경 가능합니다</div>
         </div>
       </div>
 
       <div class="form-group">
-        <label class="label">비밀번호 <span style="color:var(--danger)">*</span></label>
+        <label class="label">비밀번호</label>
         <div style="position:relative">
           <input class="input" type="password" id="password" placeholder="영문+숫자+특수문자 8자 이상"
                  oninput="checkPwdStrength(this.value)" style="padding-right:42px">
-          <button type="button" onclick="togglePwd(this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px">보기</button>
+          <button type="button" class="pwd-toggle-btn" onclick="togglePwd(this)" aria-label="비밀번호 보기" title="비밀번호 보기">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
         </div>
         <div class="pwd-strength" id="pwd-strength" style="display:none">
           <div class="pwd-strength-bar"><div class="pwd-strength-fill" id="pwd-fill" style="width:0%;background:var(--danger)"></div></div>
@@ -222,13 +291,6 @@
           <div class="pwd-strength-bar"><div class="pwd-strength-fill" id="pwd-fill3" style="width:0%;background:var(--success)"></div></div>
           <span class="pwd-strength-label" id="pwd-label">약함</span>
         </div>
-      </div>
-
-      <div class="form-group">
-        <label class="label">비밀번호 확인 <span style="color:var(--danger)">*</span></label>
-        <input class="input" type="password" id="password-confirm" placeholder="비밀번호를 다시 입력하세요"
-               oninput="checkPwdMatch()">
-        <div class="input-error" id="pwd-match-err">비밀번호가 일치하지 않습니다</div>
       </div>
 
       <div class="terms-row">
@@ -244,7 +306,7 @@
     </form>
 
     <div style="text-align:center; font-size:13px; color:var(--text-secondary); margin-top:20px">
-      이미 계정이 있으신가요? <a href="sign-in.html" style="color:var(--brand-secondary)">로그인</a>
+      이미 계정이 있으신가요? <a href="sign-in.html" style="color:#34d399">로그인</a>
     </div>
   </div>
 </div>
@@ -268,8 +330,16 @@ function handleSignUp(e) {
 }
 function togglePwd(btn) {
   const input = btn.previousElementSibling;
-  if (input.type === 'password') { input.type = 'text'; btn.textContent = '숨기기'; }
-  else { input.type = 'password'; btn.textContent = '보기'; }
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.setAttribute('aria-label', '비밀번호 숨기기');
+    btn.setAttribute('title', '비밀번호 숨기기');
+  }
+  else {
+    input.type = 'password';
+    btn.setAttribute('aria-label', '비밀번호 보기');
+    btn.setAttribute('title', '비밀번호 보기');
+  }
 }
 function checkNickname(input) {
   const err = document.getElementById('nickname-err');

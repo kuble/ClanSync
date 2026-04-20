@@ -31,9 +31,51 @@
 .step-dot.done { background: var(--success); border-color: var(--success); color: white; }
 .step-line { flex: 1; height: 1px; background: var(--border); }
 .step-line.done { background: var(--success); }
+.navbar {
+  padding: 0;
+}
+.games-navbar-inner {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.games-navbar-inner .navbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #f4f4f5;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.games-navbar-inner .navbar-brand-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #34d399, #10b981);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #062819;
+}
+.games-navbar-inner .navbar-brand-mark svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 32;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
 .auth-card {
-  background: var(--bg-elevated);
+  background: unset;
+  background-color: unset;
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   padding: 32px;
@@ -97,50 +139,63 @@
 <body>
 
 <nav class="navbar">
-  <a href="games.html"><span class="navbar-brand">⚡ ClanSync</span></a>
-  <div class="navbar-nav">
-    <a href="games.html"><button class="btn btn-ghost btn-sm">← 게임 선택</button></a>
-    <div class="profile-menu" id="profileMenu">
-      <button class="profile-btn" onclick="toggleProfileMenu()">
-        <div class="avatar" style="width:28px;height:28px;font-size:12px">김</div>
-        <span class="profile-btn-arrow">▼</span>
-      </button>
-      <div class="profile-dropdown" id="profileDropdown">
-        <div class="pd-header">
-          <div class="avatar" style="width:40px;height:40px;font-size:16px">김</div>
-          <div>
-            <div style="font-weight:700;font-size:14px">김테스트</div>
-            <div style="font-size:12px;color:var(--text-muted)">kim@example.com</div>
+  <div class="games-navbar-inner">
+    <a href="index.html">
+      <span class="navbar-brand">
+        <span class="navbar-brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 512 512">
+            <path d="M434.8 137.65 285.44 69.55c-16.19-7.4-42.69-7.4-58.88 0L77.3 137.65c-17.6 8-17.6 21.09 0 29.09l148 67.5c16.89 7.7 44.69 7.7 61.58 0l148-67.5c17.52-8 17.52-21.1-.08-29.09Z"></path>
+            <path d="m160 308.52-82.7 37.11c-17.6 8-17.6 21.1 0 29.1l148 67.5c16.89 7.69 44.69 7.69 61.58 0l148-67.5c17.6-8 17.6-21.1 0-29.1l-79.94-38.47"></path>
+            <path d="m160 204.48-82.8 37.16c-17.6 8-17.6 21.1 0 29.1l148 67.49c16.89 7.7 44.69 7.7 61.58 0l148-67.49c17.7-8 17.7-21.1.1-29.1L352 204.48"></path>
+          </svg>
+        </span>
+        <span>ClanSync</span>
+      </span>
+    </a>
+    <div class="navbar-nav">
+      <a href="games.html"><button class="btn btn-ghost btn-sm">← 게임 선택</button></a>
+      <div class="profile-menu" id="profileMenu">
+        <button class="profile-btn" onclick="toggleProfileMenu()">
+          <div class="avatar" style="width:28px;height:28px;font-size:12px">김</div>
+          <span class="profile-btn-arrow">▼</span>
+        </button>
+        <div class="profile-dropdown" id="profileDropdown">
+          <div class="pd-header">
+            <div class="avatar" style="width:40px;height:40px;font-size:16px">김</div>
+            <div>
+              <div style="font-weight:700;font-size:14px">김테스트</div>
+              <div style="font-size:12px;color:var(--text-muted)">kim@example.com</div>
+            </div>
           </div>
-        </div>
-        <div class="pd-divider"></div>
-        <div class="pd-item" role="button" tabindex="0" onclick="mockPlayerProfileModalOpen()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();mockPlayerProfileModalOpen();}">
-          <span class="pd-item-icon">👤</span><span>마이페이지</span><span class="pd-item-arrow">›</span>
-        </div>
-        <div class="pd-item pd-coins">
-          <span class="pd-item-icon">🪙</span>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:500;color:var(--text-primary)">코인</div>
-            <div style="font-size:11px;color:var(--text-muted)">보유 <span class="pd-coin-value">1,240</span></div>
+          <div class="pd-divider"></div>
+          <div class="pd-item" role="button" tabindex="0" onclick="mockPlayerProfileModalOpen()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();mockPlayerProfileModalOpen();}">
+            <span class="pd-item-icon">👤</span><span>마이페이지</span><span class="pd-item-arrow">›</span>
           </div>
-        </div>
-        <div class="pd-divider"></div>
-        <div class="pd-item" onclick="toggleTheme()">
-          <span class="pd-item-icon" id="themeIcon">🌙</span>
-          <span style="flex:1">다크 모드</span>
-          <div class="toggle on" id="themeToggle"></div>
-        </div>
-        <div class="pd-item" style="cursor:default">
-          <span class="pd-item-icon">🌐</span><span style="flex:1">언어</span>
-          <div class="lang-tabs">
-            <button class="lang-tab active" onclick="setLang(this,'ko')">한국어</button>
-            <button class="lang-tab" onclick="setLang(this,'en')">EN</button>
-            <button class="lang-tab" onclick="setLang(this,'ja')">日本語</button>
+          <div class="pd-item pd-coins">
+            <span class="pd-item-icon">🪙</span>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:500;color:var(--text-primary)">코인</div>
+              <div style="font-size:11px;color:var(--text-muted)">보유 <span class="pd-coin-value">1,240</span></div>
+            </div>
           </div>
-        </div>
-        <div class="pd-divider"></div>
-        <div class="pd-item pd-logout" onclick="window.location.href='sign-in.html'">
-          <span class="pd-item-icon">🚪</span><span>로그아웃</span>
+          <div class="pd-divider"></div>
+          <div class="pd-item" onclick="toggleTheme()">
+            <span class="pd-item-icon" id="themeIcon">🌙</span>
+            <span style="flex:1">다크 모드</span>
+            <div class="toggle on" id="themeToggle"></div>
+          </div>
+          <div class="pd-item" style="cursor:default">
+            <span class="pd-item-icon">🌐</span><span style="flex:1">언어</span>
+            <div class="lang-tabs">
+              <button class="lang-tab active" onclick="setLang(this,'ko')">한국어</button>
+              <button class="lang-tab" onclick="setLang(this,'en')">EN</button>
+              <button class="lang-tab" onclick="setLang(this,'ja')">日本語</button>
+            </div>
+          </div>
+          <div class="pd-divider"></div>
+          <div class="pd-item pd-logout" onclick="window.location.href='sign-in.html'">
+            <span class="pd-item-icon">🚪</span><span>로그아웃</span>
+          </div>
         </div>
       </div>
     </div>
@@ -193,15 +248,11 @@
     </div>
 
     <div class="info-box">
-      연동은 읽기 전용 권한이며, 비밀번호는 저장하지 않습니다.<br>
-      클랜장은 별도 초대로 운영진 권한을 부여할 수 있습니다.
+      연동은 읽기 전용 권한이며, 비밀번호는 저장하지 않습니다.
     </div>
 
   </div>
 
-  <div style="text-align:center; margin-top:20px">
-    <a href="clan-auth.html" style="font-size:13px; color:var(--text-muted)">이미 클랜 코드가 있나요? (클랜 바로 입장)</a>
-  </div>
 </div>
 
 <script src="../scripts/app.js"></script>

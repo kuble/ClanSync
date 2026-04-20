@@ -6,6 +6,9 @@
 <title>ClanSync — 로그인</title>
 <link rel="stylesheet" href="../styles/main.css">
 <style>
+body {
+  background-color: var(--bg-base);
+}
 .auth-container {
   display: flex;
   min-height: 100vh;
@@ -24,13 +27,13 @@
 }
 .auth-left-bg {
   position: absolute; inset: 0;
-  background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(124,58,237,0.18) 0%, transparent 70%);
+  background: none;
   pointer-events: none;
 }
 .auth-left-brand {
   font-size: 32px;
   font-weight: 800;
-  background: var(--gradient-brand);
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 12px;
@@ -57,15 +60,52 @@
   padding: 16px;
   text-align: center;
 }
-.auth-stat-num { font-size: 20px; font-weight: 700; background: var(--gradient-brand); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.auth-stat-num { font-size: 20px; font-weight: 700; background: linear-gradient(135deg, #34d399 0%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .auth-stat-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.auth-left-review {
+  position: relative;
+  max-width: 360px;
+  color: var(--text-primary);
+}
+.auth-left-review-quote {
+  font-size: 31px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.12);
+  margin-bottom: 12px;
+}
+.auth-left-review-text {
+  font-size: 28px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+.auth-left-review-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.auth-left-review-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #052218;
+  font-weight: 800;
+}
 
 .auth-right {
-  width: 480px;
+  width: 640px;
+  order: -1;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 60px 56px;
+  padding: 60px 88px;
 }
 .auth-title { font-size: 26px; font-weight: 800; margin-bottom: 8px; }
 .auth-subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 32px; }
@@ -101,7 +141,7 @@
   cursor: pointer;
   transition: background 0.2s;
 }
-.toggle.on { background: var(--brand-primary); border-color: var(--brand-primary); }
+.toggle.on { background: #34d399; border-color: #34d399; }
 .toggle::after {
   content: '';
   position: absolute;
@@ -113,7 +153,7 @@
 }
 .toggle.on::after { transform: translateX(16px); }
 
-.forgot-link { font-size: 13px; color: var(--brand-secondary); cursor: pointer; }
+.forgot-link { font-size: 13px; color: #34d399; cursor: pointer; }
 .forgot-link:hover { text-decoration: underline; }
 
 .divider-text {
@@ -147,11 +187,21 @@
   transition: all 0.15s;
   margin-bottom: 10px;
 }
-.social-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.social-btn:hover { border-color: rgba(52, 211, 153, 0.45); color: var(--text-primary); }
 
 .auth-footer { text-align: center; font-size: 13px; color: var(--text-secondary); margin-top: 24px; }
-.auth-footer a { color: var(--brand-secondary); }
+.auth-footer a { color: #34d399; }
 .auth-footer a:hover { text-decoration: underline; }
+
+.auth-right .btn-primary {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  color: #052218;
+  box-shadow: none;
+}
+.auth-right .btn-primary:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
 
 @media (max-width: 768px) {
   .auth-left { display: none; }
@@ -162,14 +212,69 @@
   position: absolute;
   top: 20px;
   left: 20px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--text-secondary);
+  gap: 10px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
   cursor: pointer;
+  transition: opacity 0.15s;
 }
-.back-btn:hover { color: var(--text-primary); }
+.back-btn:hover {
+  opacity: 0.92;
+}
+.back-btn-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #052218;
+  font-size: 18px;
+  font-weight: 800;
+}
+.back-btn-mark svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 32;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.pwd-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+}
+.pwd-toggle-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 </style>
 </head>
 <body>
@@ -177,32 +282,26 @@
 
   <div class="auth-left">
     <div class="auth-left-bg"></div>
-    <div style="position:relative">
-      <div class="auth-left-brand">ClanSync</div>
-      <div class="auth-left-tagline">클랜의 성적을 기록하고<br>내전과 스크림으로 함께 성장하세요</div>
-      <div class="auth-left-stats">
-        <div class="auth-stat-card">
-          <div class="auth-stat-num">3,200+</div>
-          <div class="auth-stat-label">활성 클랜</div>
-        </div>
-        <div class="auth-stat-card">
-          <div class="auth-stat-num">98K+</div>
-          <div class="auth-stat-label">누적 매치</div>
-        </div>
-        <div class="auth-stat-card">
-          <div class="auth-stat-num">12K+</div>
-          <div class="auth-stat-label">클랜원</div>
-        </div>
-        <div class="auth-stat-card">
-          <div class="auth-stat-num">94%</div>
-          <div class="auth-stat-label">평균 만족도</div>
-        </div>
+    <div class="auth-left-review">
+      <p class="auth-left-review-text">클랜 운영이 훨씬 쉬워졌어요. 일정, 기록, 매칭까지 한 번에 정리됩니다.</p>
+      <div class="auth-left-review-author">
+        <span class="auth-left-review-avatar">K</span>
+        <span>KR Pheonix · 클랜장</span>
       </div>
     </div>
   </div>
 
   <div class="auth-right">
-    <a href="index.html" class="back-btn">← 랜딩으로</a>
+    <a href="index.html" class="back-btn">
+      <span class="back-btn-mark" aria-hidden="true">
+        <svg viewBox="0 0 512 512">
+          <path d="M434.8 137.65 285.44 69.55c-16.19-7.4-42.69-7.4-58.88 0L77.3 137.65c-17.6 8-17.6 21.09 0 29.09l148 67.5c16.89 7.7 44.69 7.7 61.58 0l148-67.5c17.52-8 17.52-21.1-.08-29.09Z"></path>
+          <path d="m160 308.52-82.7 37.11c-17.6 8-17.6 21.1 0 29.1l148 67.5c16.89 7.69 44.69 7.69 61.58 0l148-67.5c17.6-8 17.6-21.1 0-29.1l-79.94-38.47"></path>
+          <path d="m160 204.48-82.8 37.16c-17.6 8-17.6 21.1 0 29.1l148 67.49c16.89 7.7 44.69 7.7 61.58 0l148-67.49c17.7-8 17.7-21.1.1-29.1L352 204.48"></path>
+        </svg>
+      </span>
+      <span>ClanSync</span>
+    </a>
 
     <div style="margin-bottom: 32px">
       <div class="auth-title">다시 오신 걸 환영해요!</div>
@@ -218,7 +317,12 @@
         <label class="label">비밀번호</label>
         <div style="position:relative">
           <input class="input" type="password" placeholder="비밀번호를 입력하세요" id="password" style="padding-right:42px">
-          <button type="button" onclick="togglePwd(this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px">보기</button>
+          <button type="button" class="pwd-toggle-btn" onclick="togglePwd(this)" aria-label="비밀번호 보기" title="비밀번호 보기">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -263,10 +367,12 @@ function togglePwd(btn) {
   const input = btn.previousElementSibling;
   if (input.type === 'password') {
     input.type = 'text';
-    btn.textContent = '숨기기';
+    btn.setAttribute('aria-label', '비밀번호 숨기기');
+    btn.setAttribute('title', '비밀번호 숨기기');
   } else {
     input.type = 'password';
-    btn.textContent = '보기';
+    btn.setAttribute('aria-label', '비밀번호 보기');
+    btn.setAttribute('title', '비밀번호 보기');
   }
 }
 </script>
