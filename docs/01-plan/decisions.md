@@ -18,11 +18,11 @@
 |------|------|------|------------------|
 | D-AUTH-01 | DECIDED (2026-04-20) | 게임 인증 + 클랜 소속 상태에 따른 라우팅 룰 | 6칸 매트릭스 확정. 아래 [DECIDED §D-AUTH-01](#d-auth-01--게임-인증--클랜-소속-라우팅-매트릭스) 참고. 영향: `pages.md`, `pages/04~06`, `games.html`, `game-auth.html` |
 | D-AUTH-02 | DECIDED (2026-04-20) | 게임별 OAuth 분기. 발로란트/LoL 진입 시 `game-auth` 화면 분기 | 게임 슬러그 → 제공자 매핑 표 확정. 아래 [DECIDED §D-AUTH-02](#d-auth-02--게임별-oauth-제공자-매핑) 참고 |
-| D-AUTH-03 | OPEN | 비밀번호 정책 클라이언트 강제 시점, 만 10세 룰의 의미 | 목업 출생연도 select 상한이 `현재-10`이라 만 10세 미만 가입 불가로 읽힘 |
-| D-AUTH-04 | OPEN | 비밀번호 찾기 플로우 (메일 발송 → 재설정 화면) | 목업 `sign-in.html`에 링크만 있고 동작 없음 |
-| D-AUTH-05 | OPEN | Discord OAuth 권한 범위 (식별만? 길드 정보 읽기?) | 목업 버튼만 존재 |
-| D-AUTH-06 | OPEN | 로그인 실패 잠금 정책 (몇 회 실패 시 몇 분 잠금) | 목업에는 없음 |
-| D-AUTH-07 | OPEN | 자동 로그인 토글의 출입증 유지 기간 | 목업은 시각 토글만 |
+| D-AUTH-03 | DECIDED (2026-04-20) | 비밀번호 정책 클라이언트 강제 시점, 만 10세 룰의 의미 | 비번 **strong 강제**(영+숫+특, 8~72자). 출생연도 `currentYear-10` 상한 **유지**(만 10세 미만 차단). 만 14세 미만은 법정대리인 동의 UI 필요 — Phase 2+ 이관. [§D-AUTH-03](#d-auth-03--비밀번호-정책과-최저-가입-연령) |
+| D-AUTH-04 | DECIDED (2026-04-20) | 비밀번호 찾기 플로우 (메일 발송 → 재설정 화면) | Supabase 재설정 메일 + 토큰 **1시간** 유효. rate limit 60초/24h 5회. 이메일 존재 여부 노출 금지(중립 카피). [§D-AUTH-04](#d-auth-04--비밀번호-찾기-플로우) |
+| D-AUTH-05 | DECIDED (2026-04-20) | Discord OAuth 권한 범위 (식별만? 길드 정보 읽기?) | scope **`identify email`** 만. 클랜↔Discord 연동(알림·역할 동기화 등)은 **별도 Bot OAuth**로 분리(D-EVENTS-03). [§D-AUTH-05](#d-auth-05--discord-oauth-scope) |
+| D-AUTH-06 | DECIDED (2026-04-20) | 로그인 실패 잠금 정책 (몇 회 실패 시 몇 분 잠금) | **IP+email 5회 연속 실패 → 15분 잠금**. 성공 시 리셋. 감사 테이블 `auth_failed_logins` 신설. [§D-AUTH-06](#d-auth-06--로그인-실패-잠금-정책) |
+| D-AUTH-07 | DECIDED (2026-04-20) | 자동 로그인 토글의 출입증 유지 기간 | **OFF 24h · ON 30d**(슬라이딩 연장). 비번 변경·로그아웃·정지 시 전 세션 즉시 무효화. [§D-AUTH-07](#d-auth-07--자동-로그인-유지-기간) |
 
 ## 클랜 · 가입 (CLAN)
 
@@ -67,9 +67,9 @@
 
 | 코드 | 상태 | 항목 | 메모 |
 |------|------|------|------|
-| D-STORE-01 | OPEN | 클랜 코인·개인 코인의 적립/차감 트리거 매트릭스 (밸런스 결과 / 승부예측 / 이벤트 / 출석 등) | 목업은 잔액 정적 표시, 차감 없음 |
-| D-STORE-02 | OPEN | Premium 잠금 카드의 업그레이드 안내 동선 | 목업은 비활성 버튼만 |
-| D-STORE-03 | OPEN | 구매 후 환불·되돌리기 정책 | 미정의 |
+| D-STORE-01 | DECIDED (2026-04-20) | 클랜 코인·개인 코인의 적립/차감 트리거 매트릭스 | 개인 풀·클랜 풀 **이전 금지**. 개인 적립: 내전 출전/승리/MVP·출석·이벤트·승부예측. 개인 차감: 개인 꾸미기·store 뱃지. 클랜 적립: 스크림 완료·대진표·신규 가입자(월 상한 500)·Premium 월 보너스. 클랜 차감: 클랜 꾸미기·홍보 상단 고정·대진표 개최. 멱등성 키 필수, `coin_transactions` INSERT-only. [§D-STORE-01](#d-store-01--코인-적립차감-트리거-매트릭스) |
+| D-STORE-02 | DECIDED (2026-04-20) | Premium 잠금 카드의 업그레이드 안내 동선 | Premium 카드 클릭 → **플랜 비교 모달 + "클랜장에게 문의하세요" 카피**(요청 플로우·알림 없음). leader/officer는 모달에서 `#subscription` 탭 이동 CTA 추가. member는 정보 표시만. [§D-STORE-02](#d-store-02--premium-잠금-카드의-업그레이드-안내-동선) |
+| D-STORE-03 | DECIDED (2026-04-20) | 구매 후 환불·되돌리기 정책 | **환불 없음 원칙** + 시스템 오류 자동 롤백 + **운영자 재량 정정**(반대 부호 `coin_transactions` + `correction_of`). 자기 계정 정정 금지, 감사 로그 필수, 월 정정 리포트. `purchases.voided_at`·`voided_by`·`void_reason` 추가. [§D-STORE-03](#d-store-03--환불되돌리기-정책) |
 
 ## 메인 게임 허브 (MAINGAME)
 
@@ -84,18 +84,19 @@
 
 | 코드 | 상태 | 항목 | 메모 |
 |------|------|------|------|
-| D-PROFILE-01 | OPEN | 프로필에서 고른 네임플레이트가 BalanceMaker 매치 슬롯에 전파되는 규약 (공통 셀렉터/이벤트) | 목업은 `data-nameplate-preview` 셀렉터 외에 동기화 없음 |
-| D-PROFILE-02 | OPEN | "가입 신청 대기 목록" 데이터 출처·취소 액션 | BACKLOG에서 이전. 목업 정적 |
-| D-PROFILE-03 | OPEN | 뱃지 케이스 ↔ 프로필 스트립 동기화 (모달에서 고른 5개가 메인 카드에 반영) | 목업은 모달 내부에서만 변화 |
-| D-PROFILE-04 | OPEN | 뱃지 해금 출처 (스토어 / 업적 / 이벤트) 정의 | 목업은 카테고리 탭만 |
+| D-PROFILE-01 | DECIDED (2026-04-20) | 프로필에서 고른 네임플레이트가 BalanceMaker 매치 슬롯에 전파되는 규약 (공통 셀렉터/이벤트) | 셀렉터 `[data-nameplate-preview="{game}"]` + 본인 구독용 `[data-nameplate-self]`. 저장 `localStorage` `clansync-mock-nameplate-state-v1`, 이벤트 `clansync:nameplate:changed`. 같은 탭 내부만 즉시 반영. [§D-PROFILE-01](#d-profile-01--네임플레이트-동기화-규약) |
+| D-PROFILE-02 | DECIDED (2026-04-20) | "가입 신청 대기 목록" 데이터 출처·취소 액션 | `clan_join_requests` (D-CLAN-02)에서 본인 `status IN ('pending','approved','rejected')` 필터. pending 항시 노출, approved/rejected는 **7일 후 자동 숨김**. pending 일 때만 "취소" 가능. [§D-PROFILE-02](#d-profile-02--가입-신청-대기-목록-데이터-출처) |
+| D-PROFILE-03 | DECIDED (2026-04-20) | 뱃지 케이스 ↔ 프로필 스트립 동기화 (모달에서 고른 5개가 메인 카드에 반영) | **compact** 픽(5슬롯, dense-from-front · 해제 시 뒤 항목 앞으로 shift). 셀렉터 `[data-badge-strip="{game}"]` + `[data-badge-strip-slot="{i}"]`, 본인 구독 `[data-badge-strip-self]`. 저장 `localStorage` `clansync-mock-badge-picks-v1`, 이벤트 `clansync:badge:picks:changed`. [§D-PROFILE-03](#d-profile-03--뱃지-케이스--프로필-스트립-동기화) |
+| D-PROFILE-04 | DECIDED (2026-04-20) | 뱃지 해금 출처 (스토어 / 업적 / 이벤트) 정의 | `badges.unlock_source enum('achievement','event','store')` + `unlock_condition jsonb` + `linked_id uuid NULL`. store 구매는 **개인 코인만**(클랜 코인 불가). 카테고리 × 출처는 독립 축. [§D-PROFILE-04](#d-profile-04--뱃지-해금-출처) |
 
 ## 랜딩 · 마케팅 (LANDING)
 
 | 코드 | 상태 | 항목 | 메모 |
 |------|------|------|------|
-| D-LANDING-01 | OPEN | 랜딩 캐치프라이즈 최종 문구 | BACKLOG에서 이전 |
-| D-LANDING-02 | OPEN | 다국어(KR/EN/JP) 활성 시점 | 목업 버튼만 |
-| D-LANDING-03 | OPEN | 약관·개인정보·문의 링크 실제 페이지 | 목업 `href="#"` |
+| D-LANDING-01 | DECIDED (2026-04-20, 잠정) | 랜딩 캐치프라이즈 최종 문구 | **현재 헤드라인 유지**(`Archive Your History, Stay in Sync` + "추억을 기록하고 클랜을 체계적으로 관리하세요."). Phase 2+ 구현 완료 후 **재검토 포인트**로 남김. [§D-LANDING-01](#d-landing-01--랜딩-캐치프라이즈-최종-문구-잠정) |
+| D-LANDING-02 | DECIDED (2026-04-20) | 다국어(KR/EN/JP) 활성 시점·범위 | Phase 1은 **KR 전용**. EN/JP 버튼은 시각적 토글 + 클릭 시 **"준비 중" 안내 토스트**. 실제 i18n 도입은 **Phase 3+** (우선순위 EN → JP). [§D-LANDING-02](#d-landing-02--다국어-활성-시점과-범위) |
+| D-LANDING-03 | DECIDED (2026-04-20) | 약관·개인정보·게임사 API ToS·문의 실제 페이지 | 약관 3종(`/terms`·`/privacy`·`/api-tos`)은 **정적 MDX**. 문의만 **내부 폼** `/contact` → `contact_requests` 테이블 INSERT. Captcha·rate limit 의무. Phase 2+ 관리자 콘솔에서 열람·답변. [§D-LANDING-03](#d-landing-03--약관개인정보api-tos문의-페이지-구현-방식) |
+| D-LANDING-04 | DECIDED (2026-04-20) | 로그인된 사용자의 랜딩 진입 처리 | **`/games` 자동 리다이렉트** (SPA `history.replaceState`, 뒤로가기 시 `/` 재방문 방지). 단, `?from=logo` 또는 `#` 앵커 포함 진입은 **리다이렉트 건너뜀**(의도적 재방문 존중). [§D-LANDING-04](#d-landing-04--로그인된-사용자의-랜딩-진입-처리) |
 
 ## 통계 · 명예의 전당 (STATS)
 
@@ -110,10 +111,10 @@
 
 | 코드 | 상태 | 항목 | 메모 |
 |------|------|------|------|
-| D-ECON-01 | OPEN | 클랜 코인 구체적 수치 (지급량, 가격) | BACKLOG에서 이전 |
-| D-ECON-02 | OPEN | 운영진 부정 코인 세탁 방지 정책 | BACKLOG에서 이전 |
-| D-ECON-03 | OPEN | 클랜 순위표 민감 지표 포함 여부 | BACKLOG에서 이전 |
-| D-ECON-04 | OPEN | 특이사항 태그 세부 기준 | BACKLOG에서 이전 |
+| D-ECON-01 | DECIDED (2026-04-20) | 클랜 코인 구체적 수치 (지급량, 가격) | Phase 1 베이스라인 확정. 개인 일일 적립 상한 **200**(이벤트 제외), 클랜 일일 적립 상한 **2,000**. 내전 출전 +10 / 승리 +20 / MVP +30, 스크림 완료 +100, 대진표 우승 +1,000, 가격 목록은 §D-ECON-01 표. 운영 전 A/B 튜닝 예정. [§D-ECON-01](#d-econ-01--코인-수치-베이스라인) |
+| D-ECON-02 | DECIDED (2026-04-20) | 운영진 부정 코인 세탁 방지 정책 | ① 풀 간 이전 완전 금지. ② `coin_transactions` INSERT-only(RLS로 UPDATE/DELETE 차단). ③ 1회 500 이상 클랜 풀 지출은 **2-man rule**(Phase 2+). ④ 클랜장 교체 후 **72h 지출 동결**. ⑤ 의심 패턴 자동 flag + 일시 동결(Phase 2+). ⑥ `purchases.pool_source`·`approved_by` 기록. [§D-ECON-02](#d-econ-02--코인-세탁-방지-정책) |
+| D-ECON-03 | DECIDED (2026-04-20) | 클랜 순위표 민감 지표 포함 여부 | **외부 공개 순위표에서 경쟁 지표 전면 제외**(승률·K/D·MVP 수 등). 공개 지표는 활동성·규모·매너 점수·이벤트 참여만. 경쟁 지표는 **운영진+ 내부 화면**(클랜 관리·HoF)에만. [§D-ECON-03](#d-econ-03--클랜-순위표-민감-지표-노출-범위) |
+| D-ECON-04 | DECIDED (2026-04-20) | 특이사항 태그 세부 기준 | **자동 산정 전용**(수동 태깅 없음). Phase 1 초기 카탈로그 13종(`streak_lose_3/4/5`·`streak_win_3/5`·`slump`·`hot_streak`·`map_expert`·`map_rookie`·`mvp_hot`·`no_show`·`no_show_repeat`·`new_clan_week`). 본 클랜 내전만 집계, 경기 종료 시·일일 배치 재계산. tone `good/bad/neutral`. [§D-ECON-04](#d-econ-04--특이사항-태그-카탈로그) |
 
 ---
 
@@ -186,6 +187,218 @@
 **Riot RSO 결정 근거 (참고)**
 
 - LoL과 발로란트는 Riot 계정 단일 SSO. 따라서 한 사용자가 이미 발로란트 인증을 마쳤다면 LoL 출시 후 같은 OAuth 토큰을 재사용해 자동 연동 가능 (Phase 2+ 최적화 후보).
+
+### D-AUTH-03 — 비밀번호 정책과 최저 가입 연령
+
+- **결정일**: 2026-04-20
+- **요지**: 비밀번호는 **strong 정책(영문+숫자+특수문자, 8~72자)**을 제출 시점에 강제한다. 출생연도 `currentYear - 10` 상한은 **유지**(만 10세 미만 가입 차단). 만 14세 미만은 한국 개인정보보호법상 법정대리인 동의가 필요하므로 **동의 플로우는 Phase 2+**로 이관하고, Phase 1에서는 안내 카피만 노출한다.
+
+**비밀번호 정책**
+
+| 구분 | 규칙 |
+|------|------|
+| 길이 | **최소 8자 / 최대 72자** (bcrypt 한도) |
+| 구성 | 영문 대/소문자 1자 이상 + 숫자 1자 이상 + 특수문자 1자 이상 **모두 필수** |
+| 강도 바 | `weak / medium / strong` 3단계. strong 미만은 제출 버튼 비활성 + inline 에러 |
+| 클라이언트 강제 | 제출 시점(`handleSignUp`) 통과 검사, 실패 시 폼 전송 자체 차단 |
+| 서버 재검증 | 동일 정규식을 Supabase `handle_new_user` 트리거/Edge Function에서 재검증 (클라이언트 우회 차단) |
+| 비밀번호 확인 필드 | Phase 1 목업은 단일 필드 유지. Phase 2 도입 시 `checkPwdMatch` 데드 코드 복구 |
+
+사용 정규식 (참고):
+
+```
+/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9])[A-Za-z\d\S]{8,72}$/
+```
+
+**최저 가입 연령 (만 10세 유지)**
+
+- 출생연도 select: 상한 `currentYear - 10`, 하한 1950년 (`populateYears` 기존 구현 유지).
+- 이유: 게임 서비스 특성상 초등 고학년 이상 유저 수용 필요. 만 14세 미만 유저는 소수지만 허용한다.
+- **만 14세 미만 가입자에 대한 법정대리인 동의 UI는 Phase 2+에서 추가한다.** Phase 1 범위:
+  - 가입 폼 하단 안내 문구 한 줄: "만 14세 미만은 가입 시 법정대리인 동의가 필요합니다. (서비스 오픈 시 추가 절차 안내)"
+  - 실제 동의 체크박스·보호자 이메일 입력 UI는 Phase 1 범위 밖. 스키마에만 `users.minor_guardian_consent_at timestamptz NULL` 컬럼을 미리 두어 Phase 2+ 흡수 지점을 만든다.
+
+**스키마 영향**
+
+- `schema.md` `users` 테이블에 `birth_year int`, `gender enum('male','female','undisclosed')`, `password_updated_at timestamptz`, `minor_guardian_consent_at timestamptz NULL` 컬럼 추가.
+- Phase 1 목업은 `birth_year`/`gender`를 session storage 수준으로만 저장(실DB 미연결).
+
+**영향 문서·파일**
+
+- `pages/03-Sign-Up.md` — 비번 규칙·강도 바 임계·연령 안내 카피 갱신, "결정 필요" 삭선.
+- `mockup/pages/sign-up.html` — `handleSignUp`에 strong 정규식 검증 추가, 강도 계산 정확도 보정, 14세 미만 안내 카피 문구 삽입.
+- `schema.md` — users 컬럼 4개 추가.
+
+### D-AUTH-04 — 비밀번호 찾기 플로우
+
+- **결정일**: 2026-04-20
+- **요지**: Supabase Auth의 재설정 메일 템플릿을 사용한다. 이메일 존재 여부를 응답으로 노출하지 않고, 재설정 토큰은 **1시간** 유효 + 발송 rate limit을 강제한다.
+
+**플로우**
+
+```
+/sign-in "비밀번호 찾기" 링크
+        │
+        ▼
+/auth/forgot-password  (이메일 1칸)
+        │
+  "재설정 메일 보내기" 클릭
+        │
+        ▼
+서버 — 이메일 존재 여부 무관하게 항상 중립 응답
+  "가입된 이메일이면 재설정 메일을 보냈어요. 메일함을 확인해 주세요."
+        │
+        ▼
+(이메일 수신)
+        │  재설정 링크 클릭
+        ▼
+/auth/reset-password?token=...
+  - 새 비밀번호 입력 (strong 정책)
+  - 새 비밀번호 확인 입력 (일치 검사)
+        │
+  "비밀번호 변경" 클릭
+        │
+        ▼
+성공 → "비밀번호를 변경했어요. 다시 로그인해 주세요." → /sign-in
+실패 → 토큰 만료·사용됨·잘못됨 분기별 안내
+```
+
+**정책 수치**
+
+| 항목 | 값 |
+|------|-----|
+| 재설정 토큰 유효기간 | **1시간** |
+| 같은 이메일 재발송 간격 | 60초 |
+| 같은 이메일 24시간 발송 한도 | **5회** |
+| 같은 IP 24시간 발송 한도 | 10회 (abuse 방지) |
+| 토큰 1회용 | 사용 즉시 invalidate |
+| 성공 후 처리 | 해당 사용자의 **모든 활성 세션 무효화** (자동 로그아웃) |
+
+**UI 카피 원칙**
+
+- 이메일 존재 여부를 응답에 노출하지 않는다(account enumeration 방지).
+- 발송 한도 초과 시: "너무 많이 요청하셨어요. 잠시 후 다시 시도해 주세요." — 남은 시간은 노출하지 않음.
+
+**스키마 영향**
+
+- `password_resets` 테이블 신설 (id·user_id·token_hash·expires_at·used_at·ip·user_agent). 실제 저장 값은 토큰 **해시**이며 평문 토큰은 이메일에만 포함.
+- Supabase 내장 테이블을 사용하는 경우 애플리케이션 레벨에서는 rate limit만 별도 관리.
+
+**영향 문서·파일**
+
+- `pages/02-Sign-In.md` — 비번 찾기 링크 동작 상세화, D-AUTH-04 삭선.
+- (신규) `pages/02a-Forgot-Password.md` 또는 `02-Sign-In.md` 하위 섹션으로 재설정 2화면을 문서화.
+- `mockup/pages/sign-in.html` — `.forgot-link`에 onClick alert로 D-AUTH-04 요지(메일 발송·1시간 유효) 안내 시뮬레이션.
+
+### D-AUTH-05 — Discord OAuth scope
+
+- **결정일**: 2026-04-20
+- **요지**: Discord는 **서드파티 로그인 용도로만** 사용한다. scope는 **`identify email`** 로 한정. 클랜 운영·알림을 위한 **Discord 연동은 별도 Bot OAuth**로 분리해 Phase 2+ (`D-EVENTS-03`) 결정에서 다룬다.
+
+**Phase 1 scope**
+
+| scope | 사용 여부 | 비고 |
+|-------|:---:|-----|
+| `identify` | O | Discord 사용자 ID·아바타·글로벌 이름 |
+| `email` | O | 기존 ClanSync 계정과의 매칭 키 |
+| `guilds` | X | 사용자의 디스코드 길드 목록 — 요청하지 않음 |
+| `guilds.join` | X | 봇 초대 — Phase 2+ Bot OAuth로 분리 |
+| `gdm.join` / `rpc` / `voice` | X | 사용 안 함 |
+
+**매칭 규칙**
+
+- Discord 로그인 성공 시 받은 email과 `users.email`이 일치하고 `email_verified=true` 라면 **기존 계정에 Discord ID 병합**.
+- email이 미검증이거나 불일치면 **신규 계정 플로우**로 진입 — 닉네임·출생연도·성별 등 필수 필드는 추가 입력 화면에서 수집(Phase 2에서 구현, Phase 1 목업은 `alert()`로 플로우만 설명).
+- Discord 이메일 변경 시 자동 재매칭은 하지 않는다(보안상 수동 처리).
+
+**UI 카피**
+
+- 동의 화면 진입 전 안내: "ClanSync는 Discord 계정의 식별 정보와 이메일만 사용합니다. 디스코드 서버·메시지에는 접근하지 않습니다."
+- 클랜↔Discord 알림 연동이 나중에 추가되더라도 **로그인 scope는 확장하지 않음** — 별도 Bot OAuth로 독립 동의.
+
+**영향 문서·파일**
+
+- `pages/02-Sign-In.md` — Discord 버튼 동작·scope 주석, D-AUTH-05 삭선.
+- `mockup/pages/sign-in.html` — Discord 버튼 onClick에 scope 안내 alert 시뮬레이션.
+
+### D-AUTH-06 — 로그인 실패 잠금 정책
+
+- **결정일**: 2026-04-20
+- **요지**: **IP+email 조합 기준 5회 연속 실패 → 15분 잠금**. 성공 로그인 시 카운터 리셋. 감사·분석 용도로 별도 테이블에 실패 이력을 저장한다.
+
+**정책**
+
+| 항목 | 값 |
+|------|-----|
+| 기준 키 | `(email, ip)` 조합 |
+| 잠금 임계 | **5회 연속 실패** (성공 시 카운터 리셋) |
+| 잠금 시간 | **15분** |
+| 잠금 중 시도 | 카운트 증가 **없음**. 응답은 동일한 "잠시 후 다시 시도해 주세요." (이메일 존재 여부 비노출) |
+| 로그 보존 | 90일 (감사·보안 분석 후 자동 삭제) |
+| 수동 해제 | 관리자 전용 엔드포인트 — Phase 2+ |
+
+**응답 차이 숨김**
+
+- 잠금 여부·남은 시간·실패 횟수는 응답·UI에 **절대 노출하지 않는다** (account enumeration + brute force 타이밍 공격 방지).
+- 폼 상단 안내 카피는 "이메일 또는 비밀번호가 올바르지 않거나, 잠시 후 다시 시도해 주세요." 와 같이 두 케이스를 하나로 묶는다.
+
+**스키마 영향 — `auth_failed_logins` 신설**
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| email | citext | 시도된 이메일 (가입 유무 무관) |
+| ip | inet | 요청 IP |
+| user_agent | text | |
+| reason | enum(`invalid_password`,`unknown_email`,`locked`,`oauth_denied`) | 실패 사유 |
+| attempted_at | timestamptz DEFAULT now() | |
+
+**인덱스**: `(email, ip, attempted_at DESC)` + `(attempted_at)` (TTL 삭제용).
+
+**영향 문서·파일**
+
+- `pages/02-Sign-In.md` "상태별 화면" 표의 "반복 실패 잠금" 행 갱신, D-AUTH-06 삭선.
+- `schema.md` `auth_failed_logins` 테이블 섹션 신설.
+- `mockup/pages/sign-in.html` — `.error-msg` 슬롯 활성화 + 5회 이상 시 잠금 카피 시뮬레이션 스크립트.
+
+### D-AUTH-07 — 자동 로그인 유지 기간
+
+- **결정일**: 2026-04-20
+- **요지**: 자동 로그인 체크 해제 시 **24시간**, 체크 시 **30일** refresh token을 발급한다. 활동 감지 시 슬라이딩 연장. 보안 이벤트 시 전 세션 즉시 무효화.
+
+**정책**
+
+| 상태 | refresh token 유효기간 | access token 유효기간 | 슬라이딩 연장 |
+|------|:---:|:---:|:---:|
+| 자동 로그인 **OFF** | 24시간 | 1시간 | 활동 있을 때만(연장 상한 = 24h) |
+| 자동 로그인 **ON** | **30일** | 1시간 | 활동 감지 시 마지막 사용 시각 기준 30일 재설정 |
+
+**즉시 무효화 트리거**
+
+- 비밀번호 변경·재설정 성공 (D-AUTH-04 연동) → 해당 사용자 모든 세션 revoke
+- 명시적 "모든 기기에서 로그아웃" 버튼 클릭 (Phase 2+ 계정 설정 화면)
+- 계정 정지·탈퇴
+- 로그인 실패 잠금(D-AUTH-06) 중에는 신규 세션 발급 금지
+
+**`users.auto_login` 컬럼 의미**
+
+- 해당 사용자의 **기본 체크박스 상태** 저장 (다음 로그인 화면에서 자동 체크 여부).
+- 실제 세션 TTL은 **로그인 시 전송된 체크박스 상태**로 결정 — DB 값보다 요청 페이로드가 우선.
+
+**UI 안내**
+
+- 체크박스 옆 tooltip/title: "체크 시 약 30일간 자동 로그인이 유지돼요. 공용 PC에서는 해제해 주세요."
+- 체크 해제 시: 기본 24시간 유지 — 사용자에게는 별도 안내 없음(현재 UX 유지).
+
+**스키마 영향**
+
+- Supabase Auth 세션 테이블에 저장되므로 별도 스키마 변경 없음. 다만 `users.auto_login`은 "마지막 선택값"으로 계속 사용.
+- 필요 시 `auth_sessions` 뷰로 마지막 활동 시각·기기·IP를 노출하는 Phase 2+ 계정 관리 화면 고려.
+
+**영향 문서·파일**
+
+- `pages/02-Sign-In.md` 자동 로그인 토글 규칙 행 갱신, D-AUTH-07 삭선.
+- `mockup/pages/sign-in.html` 토글 버튼에 tooltip·title 추가, 내부 alert로 "30일 유지" 안내 시뮬레이션.
 
 ### D-CLAN-01 — 클랜 목록 검색·필터·페이지네이션 분담
 
@@ -675,3 +888,729 @@ function selectSingleChip(el, group) {
 
 - `clans.banner_url text`, `clans.icon_url text` — 변환본 public URL (기존 컬럼 있다면 재사용).
 - `clans.banner_original_key text`, `clans.icon_original_key text` — Storage 원본 키 (private).
+
+### D-PROFILE-01 — 네임플레이트 동기화 규약
+
+- **결정일**: 2026-04-20
+- **요지**: 프로필의 네임플레이트 선택은 4카테고리(emblem/namebar/sub/frame)를 게임별로 저장한다. 목업은 `localStorage`로 영속화하고 **CustomEvent**로 같은 탭 내부 구독자에게 즉시 전파한다. 다른 탭에는 즉시 반영하지 않는다(새 탭 진입 시 localStorage 재로드). BalanceMaker·MainClan에서는 본인 슬롯만 실시간 반영되고, 타 플레이어의 네임플레이트는 Phase 2+ 서버 전파(Supabase Realtime 또는 폴링)로 처리한다.
+
+**공통 규약**
+
+| 항목 | 값 |
+|------|-----|
+| 상태 저장 키 | `localStorage["clansync-mock-nameplate-state-v1"]` |
+| 상태 구조 | `{ ow: { emblem, namebar, sub, frame }, val: { emblem, namebar, sub, frame } }` |
+| 프리뷰 셀렉터 | `[data-nameplate-preview="{game}"]` (기존 유지) |
+| 본인 구독 셀렉터 | 위 셀렉터에 **부가로** `data-nameplate-self` 속성 추가. BalanceMaker·MainClan 본인 행·슬롯에 부여 |
+| 변경 이벤트 | `window.dispatchEvent(new CustomEvent('clansync:nameplate:changed', { detail: { game, state } }))` |
+| 구독 방법 | `window.addEventListener('clansync:nameplate:changed', (e) => { if (e.detail.game === myGame) rerender(); })` |
+| 초기 동기화 | 페이지 로드 시 `mockNameplateRestoreFromStorage()` 호출 → `[data-nameplate-preview][data-nameplate-self]`에 적용 |
+
+**스키마 영향 (운영)**
+
+- `user_nameplate_selections` 신설: `(user_id, game_id, category, option_id)` + `UNIQUE(user_id, game_id, category)`. RLS: 본인만 SELECT/UPDATE.
+- `nameplate_options` (카탈로그): `(id, game_id, category, name, icon_class, unlock_source, linked_id)` — 보유 판정용.
+- `user_nameplate_inventory`: `(user_id, game_id, option_id)` — 사용자가 보유한 옵션.
+
+**적용 범위**
+
+- [profile.html](../../mockup/pages/profile.html) 네임카드 미리보기: `[data-nameplate-preview="ow"]`, `[data-nameplate-preview="val"]`.
+- [main-clan.html](../../mockup/pages/main-clan.html) 구성원 카드 본인 행: 기존 프리뷰에 `data-nameplate-self` 추가.
+- [BalanceMaker](./pages/09-BalanceMaker.md) 매치 슬롯: 본인 슬롯(`data-nameplate-self`)만 로컬 상태 구독. 다른 슬롯은 서버 데이터.
+- 플레이어 모달([player-profile-modal](../../mockup/partials/player-profile-modal.html))에서 본인 ID일 때만 로컬 상태 적용.
+
+**연관 문서**
+
+- [pages/14-Profile-Customization.md §데이터·연동](./pages/14-Profile-Customization.md#데이터연동)
+- [pages/09-BalanceMaker.md §데이터·연동](./pages/09-BalanceMaker.md)
+- [schema.md §user_nameplate_selections](./schema.md)
+
+### D-PROFILE-02 — 가입 신청 대기 목록 데이터 출처
+
+- **결정일**: 2026-04-20
+- **요지**: 프로필 "가입 신청 대기 목록"은 D-CLAN-02에서 확정한 `clan_join_requests` 테이블을 단일 소스로 사용한다. **pending**은 항상 노출, **approved/rejected**는 사용자에게 결과를 알리기 위해 7일간 노출 후 자동 숨김. **canceled/expired**는 목록에 나타나지 않는다(감사 기록만 유지). 취소 액션은 pending 일 때만 가능하다.
+
+**데이터 쿼리 (개념)**
+
+```
+SELECT r.id, c.name AS clan_name, c.game_id, r.status, r.created_at, r.resolved_at
+FROM clan_join_requests r
+JOIN clans c ON c.id = r.clan_id
+WHERE r.user_id = auth.uid()
+  AND (
+    r.status = 'pending'
+    OR (
+      r.status IN ('approved','rejected')
+      AND r.resolved_at > now() - interval '7 days'
+    )
+  )
+ORDER BY r.created_at DESC;
+```
+
+**UI 동작**
+
+| 상태 | 뱃지 | 액션 |
+|------|------|------|
+| pending | "심사 대기" (주황) | [취소] 버튼 활성 |
+| approved | "승인됨" (녹색) | [클랜으로 이동] (7일간) |
+| rejected | "거절됨" (회색) | 액션 없음 (7일 후 자동 숨김) |
+
+**취소 액션**
+
+- 버튼 클릭 → confirm 다이얼로그 → `UPDATE clan_join_requests SET status='canceled', resolved_by='self', resolved_at=now() WHERE id=? AND user_id=auth.uid() AND status='pending'`.
+- D-CLAN-02 상태 머신과 동일 — pending에서만 canceled로 전이 가능.
+- 성공 시 즉시 행 제거 (7일 유지 대상은 approved/rejected만).
+
+**제약**
+
+- D-CLAN-02에 따라 **게임당 단일 pending 신청**. pending 행은 최대 게임 수만큼.
+- 재신청은 24시간 쿨다운 존재 (D-CLAN-02).
+
+**연관 문서**
+
+- [pages/14-Profile-Customization.md §가입 신청 대기 목록](./pages/14-Profile-Customization.md#가입-신청-대기-목록-d-profile-02)
+- [decisions.md §D-CLAN-02](#d-clan-02--클랜-가입-신청-플로우)
+
+### D-PROFILE-03 — 뱃지 케이스 ↔ 프로필 스트립 동기화
+
+- **결정일**: 2026-04-20
+- **요지**: 뱃지 픽은 **고정 길이 5 · compact(dense-from-front)** 배열로 관리한다. 앞에서부터 순서대로 채우고, 뱃지를 해제하면 **뒷 항목이 앞으로 shift**되어 빈 슬롯이 항상 뒤쪽에 몰린다. 픽 변경은 `localStorage` 저장 + CustomEvent dispatch로 프로필 스트립 + MainClan 본인 행 + BalanceMaker 본인 슬롯에 즉시 반영된다.
+
+> 초기안은 sparse(slot_index 고정·중간 null 허용)였으나, 2026-04-20 검토에서 UX 혼란(빈 슬롯이 중간에 생겨 사용자가 재배치를 강제로 의식해야 함)을 이유로 **compact로 정정**했다. 실제 스트립은 앞쪽이 우선 노출되므로 "앞쪽 = 중요한 뱃지"라는 사용자 직관과도 일치한다.
+
+**공통 규약**
+
+| 항목 | 값 |
+|------|-----|
+| 상태 저장 키 | `localStorage["clansync-mock-badge-picks-v1"]` |
+| 상태 구조 | `{ ow: [id, id, id, id, id], val: [...] }` — 항상 길이 5, **앞쪽부터 연속**으로 채우고 남는 뒤쪽은 `null` |
+| 불변식 | 배열 중간에 `null`이 나오면 비정규 상태. 다음 저장·로드 시 자동으로 compact 정규화 |
+| 스트립 컨테이너 셀렉터 | `[data-badge-strip="{game}"]` |
+| 스트립 슬롯 셀렉터 | `[data-badge-strip-slot="{0..4}"]` |
+| 본인 구독 셀렉터 | 컨테이너에 `data-badge-strip-self` 속성 추가 |
+| 변경 이벤트 | `window.dispatchEvent(new CustomEvent('clansync:badge:picks:changed', { detail: { game, picks } }))` |
+
+**Compact 규칙**
+
+- **추가**: 현재 채워진 개수(= 첫 `null` 인덱스) 위치에 append. 5개가 다 차 있으면 alert + 차단.
+- **해제**: 해당 slot의 뱃지를 제거하고 **그 뒤 슬롯들을 한 칸씩 앞으로 shift**. 마지막 슬롯은 `null`.
+- **표시**: 앞쪽부터 아이콘이 연속 노출되고 남는 슬롯은 "비어 있음" placeholder(프로필 스트립에서는 회색/반투명).
+- **운영 매핑**: `user_badge_picks(user_id, game_id, slot_index, badge_id)` + `UNIQUE(user_id, game_id, slot_index)`. 해제·추가 시 서버는 해당 사용자·게임의 slot_index를 **0..(n-1)로 재할당**하는 UPSERT를 수행한다(트랜잭션 권장). `badge_id IS NULL` 행은 만들지 않는다 — 대신 slot_index가 채워진 개수보다 크면 해당 행을 DELETE.
+
+**적용 범위**
+
+- [profile.html](../../mockup/pages/profile.html) 네임카드 뱃지 스트립.
+- [main-clan.html](../../mockup/pages/main-clan.html) 구성원 카드 본인 행의 뱃지 스트립.
+- [BalanceMaker](./pages/09-BalanceMaker.md) 본인 매치 슬롯의 뱃지 표시.
+- [player-profile-modal](../../mockup/partials/player-profile-modal.html) 본인 미리보기.
+
+**목업 구현 변경**
+
+- `mockup/scripts/app.js`의 `mockBadgeCaseTogglePick`:
+  - 이미 픽된 id → `arr[i..end-1] = arr[i+1..end]` 좌측 shift + 마지막 슬롯 null.
+  - 빈 슬롯 있음 → 가장 앞의 null 위치에 append.
+  - 꽉 참 → alert 차단.
+- `mockBadgeEnsureCompactArray()`가 저장/복원 시 중간 null·중복을 자동 정규화.
+- 픽 변경 직후 `clansync:badge:picks:changed` dispatch + localStorage 저장.
+- 외부 스트립(`[data-badge-strip]`)은 이벤트 구독으로 `mockBadgeApplyToStrips(game)` 호출.
+
+**연관 문서**
+
+- [pages/14-Profile-Customization.md §모달 1 — 뱃지 케이스](./pages/14-Profile-Customization.md#모달-1--뱃지-케이스-mock-badge-case-modal)
+- [decisions.md §D-PROFILE-04](#d-profile-04--뱃지-해금-출처) (해금 출처 정의)
+- [schema.md §user_badge_picks](./schema.md)
+
+### D-PROFILE-04 — 뱃지 해금 출처
+
+- **결정일**: 2026-04-20
+- **요지**: 뱃지 해금 출처는 `achievement` / `event` / `store` 세 가지 enum으로 분류한다. 카테고리(전투·승률 / 참여·활동 / 이벤트·시즌 / 클랜·스크림 / ClanSync)와는 **독립 축**이며, 한 카테고리 안에 출처가 다른 뱃지가 혼재해도 된다. store 구매는 **개인 코인만** 사용 가능하며, 클랜 코인으로는 뱃지를 구매할 수 없다(클랜 코인은 클랜 단위 혜택·스크림 옵션용).
+
+**스키마**
+
+```
+badges (
+  id          uuid PK,
+  game_id     text NOT NULL,       -- 'ow','val'
+  category    text NOT NULL,       -- 'battle','participation','event','clan','clansync'
+  code        text UNIQUE NOT NULL,-- e.g. 'ow-battle-1'
+  name        text NOT NULL,
+  description text NOT NULL,
+  icon        text NOT NULL,       -- emoji 또는 아이콘 클래스
+  unlock_source enum('achievement','event','store') NOT NULL,
+  unlock_condition jsonb NOT NULL, -- 출처별 구조 다름 (아래)
+  linked_id   uuid NULL,           -- event_id · store_item_id
+  is_active   boolean DEFAULT true,
+  created_at  timestamptz DEFAULT now()
+)
+
+user_badge_unlocks (
+  user_id     uuid FK → users,
+  badge_id    uuid FK → badges,
+  unlocked_at timestamptz DEFAULT now(),
+  PRIMARY KEY (user_id, badge_id)
+)
+```
+
+**unlock_condition 구조**
+
+| unlock_source | unlock_condition 예시 | 해금 트리거 |
+|---------------|------------------------|-------------|
+| `achievement` | `{ "metric": "scrim_wins", "threshold": 10, "game_id": "ow" }` | 통계 집계 크론/트리거에서 임계치 도달 시 INSERT `user_badge_unlocks` |
+| `event` | `{ "event_code": "spring-cup-2026", "participation": "complete" }` | 이벤트 완료 시점에 서버에서 INSERT (이벤트 기간 외 획득 불가) |
+| `store` | `{ "coin_type": "personal", "price": 500 }` | 스토어 구매 플로우에서 INSERT + 개인 코인 차감 |
+
+**store 구매 규칙**
+
+- `coin_type = 'personal'` 고정 (클랜 코인 불가).
+- 구매 직후 `user_badge_unlocks` INSERT + `user_coin_ledger` 차감 (개인 풀).
+- 환불 없음. 구매 즉시 영구 해금.
+- 스토어 노출은 D-STORE-01(스토어 구성)에서 확정.
+
+**잠금 UI 카피 (뱃지 케이스 모달 툴팁)**
+
+| unlock_source | 카피 템플릿 |
+|---------------|--------------|
+| `achievement` | "진행도 **{current}/{threshold}** — {metric_label} 달성 시 자동 해금" |
+| `event` | "**{event_name}** 기간 한정 (~{end_date})" |
+| `store` | "스토어에서 **{price} 개인 코인**으로 해금 가능" |
+
+**연관 문서**
+
+- [pages/14-Profile-Customization.md §모달 1 — 뱃지 케이스](./pages/14-Profile-Customization.md#모달-1--뱃지-케이스-mock-badge-case-modal)
+- [pages/13-Clan-Store.md](./pages/13-Clan-Store.md) (store 출처 뱃지의 구매 진입점)
+- [decisions.md §D-STORE-01](#d-store-01--코인-적립차감-트리거-매트릭스) · [§D-ECON-01](#d-econ-01--코인-수치-베이스라인) · [§D-ECON-02](#d-econ-02--코인-세탁-방지-정책)
+
+---
+
+### D-STORE-01 — 코인 적립/차감 트리거 매트릭스
+
+- **결정일**: 2026-04-20
+- **요지**: 클랜 풀(`clan`)과 개인 풀(`personal`) 두 계정을 분리하고, 각 풀은 **정해진 트리거로만** 유입/유출된다. 두 풀 사이의 **이전 API는 만들지 않는다**(D-ECON-02 세탁 방지의 근거). 모든 거래는 `coin_transactions`에 **INSERT-only**로 기록하고, 멱등성 키로 중복 지급·중복 차감을 차단한다.
+
+**개인 풀 (personal)**
+
+| 방향 | 트리거 | 참조 | 멱등성 키 | 비고 |
+|------|--------|------|-----------|------|
+| 적립 | 내전 출전 | `match_players` | `(match_id, user_id, 'enter')` | 매치 종료 확정 시 일괄 지급 |
+| 적립 | 내전 승리 | `match_results` | `(match_id, user_id, 'win')` | 출전 보너스와 **별도** |
+| 적립 | 내전 MVP | `match_results` | `(match_id, user_id, 'mvp')` | 매치당 최대 1명 |
+| 적립 | 일일 출석 | `user_attendance` | `(user_id, date)` | 1회/일 |
+| 적립 | 7일 연속 출석 | `user_attendance.streak` | `(user_id, streak_week_start)` | 주 1회, 최초 7일 도달 시 |
+| 적립 | 이벤트 미션 완료 | `event_rewards` (Phase 2+) | `(event_id, user_id, mission_key)` | 금액은 이벤트별 |
+| 적립 | 승부예측 적중 | `predictions` (Phase 2+) | `(prediction_id)` | 배당 반영 |
+| 차감 | 개인 꾸미기 구매 | `purchases(pool_source='personal')` | `(purchase_id)` | 네임카드·네임플레이트·뱃지 테두리 등 |
+| 차감 | store 뱃지 구매 | `user_badge_unlocks(unlock_source='store')` (D-PROFILE-04) | `(user_id, badge_id)` | **개인 코인만**, 클랜 코인 불가 |
+
+**클랜 풀 (clan)**
+
+| 방향 | 트리거 | 참조 | 멱등성 키 | 비고 |
+|------|--------|------|-----------|------|
+| 적립 | 스크림 완료 | `scrim_rooms.status='closed'` | `(scrim_room_id, clan_id)` | 양쪽 클랜 모두 지급 |
+| 적립 | 대진표 참가 | `tournament_entries` (Phase 2+) | `(tournament_id, clan_id, 'entry')` | 대회당 1회 |
+| 적립 | 대진표 우승 | `tournament_results` | `(tournament_id, clan_id, 'winner')` | 순위별 차등은 Phase 2+ |
+| 적립 | 신규 가입자 | `clan_members.joined_at` | `(clan_id, member_id)` | **월 상한 500** (인위적 가입자 방지) |
+| 적립 | Premium 월간 보너스 | `subscriptions` | `(clan_id, yyyymm)` | 월 1회, Premium 플랜 한정 |
+| 차감 | 클랜 꾸미기 구매 | `purchases(pool_source='clan')` | `(purchase_id)` | 배너·아이콘·태그 글로우 등 |
+| 차감 | 홍보글 상단 고정 | `board_posts.is_pinned=true` | `(post_id, pin_start_at)` | 기간성 — 연장 시 새 트랜잭션 |
+| 차감 | 대진표 개최 비용 | `tournaments.hosted_by` | `(tournament_id, 'host')` | 개최 확정 시 선차감, 취소 시 반대 트랜잭션 |
+
+**불변식**
+
+- 개인 풀 ↔ 클랜 풀 **이전 API 없음**. UI에서 이전 버튼도 제공하지 않는다.
+- 클랜 풀 지출은 **운영진+ 권한**으로 제한(일반 구성원은 `#view-store` 클랜 꾸미기 탭의 구매 버튼이 비활성).
+- `coin_transactions`는 **INSERT-only** — RLS로 UPDATE/DELETE 차단. 정정은 반대 부호 트랜잭션으로만.
+- 차감 트랜잭션은 `CHECK (balance_after >= 0)` — 잔액 부족 시 실패. **음수 잔액 불가**.
+- 멱등성 키는 `coin_transactions (reference_type, reference_id, sub_key)` 유니크로 강제(재시도/중복 웹훅에도 안전).
+
+**연관 문서**
+
+- [pages/13-Clan-Store.md](./pages/13-Clan-Store.md)
+- [schema.md `coin_transactions`·`store_items`·`purchases`](./schema.md#coin_transactions)
+- [decisions.md §D-ECON-01](#d-econ-01--코인-수치-베이스라인) · [§D-ECON-02](#d-econ-02--코인-세탁-방지-정책) · [§D-PROFILE-04](#d-profile-04--뱃지-해금-출처)
+
+---
+
+### D-ECON-01 — 코인 수치 베이스라인
+
+- **결정일**: 2026-04-20
+- **요지**: Phase 1 베이스라인 수치 확정. **현금 환산 없는 순환 경제**. 평균 활동 사용자가 월간 적립으로 꾸미기 1~2개를 살 수 있는 수준을 목표로 한다. 운영 오픈 전 실 데이터로 A/B 튜닝 예정이며, 수치는 `config` 테이블(Phase 2+)로 외부화해 코드 변경 없이 조정할 수 있게 한다.
+
+**개인 풀 적립**
+
+| 트리거 | 금액 | 상한 |
+|--------|------:|------|
+| 내전 출전 | +10 | — |
+| 내전 승리 | +20 | — |
+| 내전 MVP | +30 | — |
+| 일일 출석 | +5 | 1회/일 |
+| 7일 연속 출석 보너스 | +30 | 주 1회 |
+| 이벤트 미션 | +50 ~ +200 | 이벤트별 |
+| 승부예측 적중 (Phase 2+) | 배당 가변 | — |
+| **일일 개인 적립 상한** | **200** | **24h 롤링**, 이벤트 제외 |
+
+**개인 풀 차감 (가격)**
+
+| 아이템 | 가격 |
+|--------|------:|
+| 네임카드 테마 팩 | 400 |
+| 뱃지 슬롯 테두리 | 600 |
+| 네임플레이트 서브 라인 팩 | 500 |
+| store 뱃지 (일반) | 500 |
+| store 뱃지 (레어) | 1,200 |
+| 승부예측 코인 보너스 (Premium 전용) | 1,500 |
+
+**클랜 풀 적립**
+
+| 트리거 | 금액 | 상한 |
+|--------|------:|------|
+| 스크림 완료 (양측) | +100 | — |
+| 대진표 참가 | +200 | 대회당 1회 |
+| 대진표 우승 | +1,000 | — |
+| 신규 가입자 | +50 / 명 | **월 500** (인위적 가입 방지) |
+| Premium 월간 보너스 | +500 | 월 1회 |
+| **일일 클랜 적립 상한** | **2,000** | **24h 롤링** |
+
+**클랜 풀 차감 (가격)**
+
+| 아이템 | 가격 |
+|--------|------:|
+| 클랜 홈 배너 스타일 팩 | 1,200 |
+| 홍보글 상단 고정 7일 | 800 |
+| 클랜 태그 글로우 (Premium) | 2,000 |
+| 대진표 개최 | 500 |
+
+**운영 메모**
+
+- 모든 수치는 `game_config` (Phase 2+)에 키-값으로 저장. 코드에 하드코딩 금지.
+- 상한 초과 적립은 **조용히 드롭**(로그에만 기록). 사용자에게는 "오늘의 적립 상한에 도달했습니다" 토스트.
+- 환율 없음. 100 코인 = 100 코인. 현금/현물 연결 금지(PRD 「현금 거래 없음」 원칙).
+
+**연관 문서**
+
+- [pages/13-Clan-Store.md](./pages/13-Clan-Store.md) (가격 표와 동기화)
+- [decisions.md §D-STORE-01](#d-store-01--코인-적립차감-트리거-매트릭스)
+
+---
+
+### D-ECON-02 — 코인 세탁 방지 정책
+
+- **결정일**: 2026-04-20
+- **요지**: 클랜 운영진이 클랜 풀 코인을 개인 이익으로 유용하거나, 허위 가입자·자기거래로 코인을 생성·이전하지 못하게 **구조적으로 차단**한다. 핵심은 "풀 간 이전 API 부재 + 감사 로그 불변성 + 권한 분리 + 시간 지연"의 4단 방어.
+
+**1) 풀 간 이전 완전 금지**
+
+- 클랜 풀 → 개인 풀, 개인 풀 → 클랜 풀 **API를 구현하지 않는다**. 이전 엔드포인트 자체가 존재하지 않으므로 권한 상승 공격도 불가능.
+- 클랜 풀 소비처는 **정해진 카탈로그 항목**(클랜 꾸미기·상단 고정·대진표 개최)으로만. 새 소비처는 문서화된 리뷰 절차 후 추가.
+
+**2) `coin_transactions` 불변성**
+
+- INSERT-only. `coin_transactions` 테이블에 대한 UPDATE/DELETE는 **RLS로 전면 차단**(서비스 롤도 불가).
+- 정정이 필요하면 반대 부호 트랜잭션을 **새로** 기록. 원거래·정정거래를 `correction_of uuid NULL` 컬럼으로 연결해 감사 추적.
+
+**3) 2-man rule (Phase 2+)**
+
+- 1회 **500 이상**의 클랜 풀 지출은 클랜장·부클랜장 **2명 중 1명이 추가 승인**해야 확정. 단독 지출 불가.
+- Phase 1 목업은 정책 안내 카피만(실제 지출 처리는 Phase 2+).
+
+**4) 클랜장 교체 에스크로**
+
+- 클랜장 소유권 이전 후 **72시간** 클랜 풀 **지출 동결**. 적립은 정상 작동.
+- 인수자가 악의적으로 교체 직후 잔액을 약탈하는 시나리오 차단.
+
+**5) 의심 패턴 자동 flag (Phase 2+)**
+
+- 24h 내 전일 평균 대비 **3σ 이상** 지출 → 자동 flag + 운영자 알림 + 일시 지출 동결.
+- 신규 가입자 보너스가 집중 발생한 직후 대량 지출 → flag.
+- 같은 IP/디바이스에서 가입 후 즉시 탈퇴-재가입 반복(가입 보너스 farming) → flag + 보너스 무효화.
+
+**6) 감사 필드**
+
+- `purchases.pool_source enum('clan','personal')` 로 구매 시 소비 풀 명시.
+- `purchases.approved_by uuid NULL` — 클랜 풀 지출 시 승인자 user_id.
+- `coin_transactions.correction_of uuid NULL` — 정정 거래 링크.
+- `coin_transactions.created_by uuid NULL` — 지출·지급을 실행한 주체(자동 적립은 NULL, 수동 지출은 user_id).
+
+**RLS 요약**
+
+- `coin_transactions` — SELECT: 본인 + 클랜 운영진(클랜 지출 한정). INSERT: 서비스 롤만(서버 검증 후). UPDATE/DELETE: **전면 차단**.
+- `purchases` — SELECT: 본인 + 클랜 운영진(클랜 풀 구매 한정). INSERT: 서비스 롤만.
+
+**연관 문서**
+
+- [decisions.md §D-STORE-01](#d-store-01--코인-적립차감-트리거-매트릭스) · [§D-ECON-01](#d-econ-01--코인-수치-베이스라인)
+- [schema.md `coin_transactions`·`purchases`](./schema.md#coin_transactions)
+
+---
+
+### D-STORE-02 — Premium 잠금 카드의 업그레이드 안내 동선
+
+- **결정일**: 2026-04-20
+- **요지**: Free 플랜 클랜에서 Premium 전용 스토어 카드·기능을 클릭하면 **플랜 비교 모달**을 연다. 모달은 역할에 관계없이 동일한 정보(플랜별 혜택 비교 + "이 항목은 클랜이 Premium 플랜일 때 이용할 수 있습니다" 안내)를 보여주고, **업그레이드 요청·알림 플로우는 구현하지 않는다**. leader/officer에게는 보조 CTA로 "구독·결제 탭으로 이동" 버튼을 추가 노출한다.
+
+**역할별 CTA 매트릭스**
+
+| 역할 | 주 CTA | 보조 CTA | 카피 |
+|------|--------|----------|------|
+| leader | "플랜 비교 보기" + "구독·결제 탭으로 이동" | — | "Premium 플랜으로 업그레이드해 이 기능을 이용하세요" |
+| officer | "플랜 비교 보기" + "구독·결제 탭으로 이동"(열람 전용) | — | "Premium 전용 항목입니다. 플랜 변경은 클랜장이 진행합니다" |
+| member | "플랜 비교 보기" (모달 내 표만) | — | "Premium 전용 항목입니다. 클랜장에게 문의하세요" |
+
+**플랜 비교 모달 내용 (Phase 1 카피)**
+
+- Free vs Premium 핵심 차이 요약표(자동 밸런스·A 점수·맵 밴·디스코드 알림·대진표·승부예측·태그 글로우 등).
+- 가격은 운영 정책(별도 결정).
+- 모달 하단 "자세한 내용은 플랜 비교 문서를 참고하세요" 링크 (Phase 2+).
+
+**의도적으로 하지 않는 것**
+
+- 업그레이드 **요청 알림**(leader 수신 알림) — Phase 2+ `clan_notifications` 인프라가 잡히면 재검토.
+- member → leader **직접 DM·채팅** 링크 — D-SHELL 영역. 스토어 모달 범위 밖.
+- Premium 가격 표기 — 과금 정책 별도 결정.
+- 모달에서 **결제 즉시 시작** — `#subscription` 탭 경유 원칙 고수(D-MANAGE-01).
+
+**목업**
+
+- `.mock-store-card.pro` 비활성 버튼 그대로 유지. 클릭 시 `mockStorePremiumInfoModalOpen()` 로 플랜 비교 모달 오픈.
+- 모달 내부는 Free/Premium 비교표 고정 HTML + 역할별 CTA 분기(`body.mock-role-leader` / `.mock-role-officer` 클래스로 스위칭).
+
+**연관 문서**
+
+- [pages/13-Clan-Store.md §Free / Premium 분기](./pages/13-Clan-Store.md#free--premium-분기)
+- [decisions.md §D-MANAGE-01](#d-manage-01--구독결제-탭-접근-권한) (구독·결제 탭 권한)
+- [gating-matrix.md](./gating-matrix.md) §8 (스토어 권한)
+
+---
+
+### D-STORE-03 — 환불·되돌리기 정책
+
+- **결정일**: 2026-04-20
+- **요지**: 모든 스토어 구매는 **환불 없음, 구매 즉시 영구 적용**이 원칙(D-PROFILE-04 store 뱃지 정책과 정합). 단, ① **시스템 오류 자동 롤백**과 ② **운영자 재량 정정**의 두 가지 예외 경로만 허용한다. 사용자 주도의 환불 UI·셀프 취소 버튼은 제공하지 않는다. 모든 정정은 `coin_transactions`에 **반대 부호 거래로만** 기록되며 `correction_of`로 원거래와 연결해 **감사 추적 가능**해야 한다.
+
+**예외 1 — 시스템 오류 자동 롤백**
+
+| 오류 유형 | 처리 |
+|-----------|------|
+| 구매 트랜잭션 중 서버 장애로 코인 차감 후 `purchases` INSERT 실패 | 트랜잭션 롤백 후 **자동 보상 거래** INSERT (`correction_of` 연결) |
+| 멱등성 키 중복 검출(재시도·중복 웹훅) | 중복 거래 INSERT 차단. 이미 성립한 거래만 남김 |
+| 가격표 오표기로 `store_items.price_coins` 와 UI 표기가 달랐던 구매 | 운영자가 오표기 확인 후 **차액 환급** 거래(정정 유형 `price_correction`) |
+
+- 자동 롤백은 서비스 롤(서버)만 실행. `correction_of`·`reason='system_rollback'`으로 기록.
+
+**예외 2 — 운영자 재량 정정**
+
+- 적용 대상 시나리오: 계정 탈취 증명·아이템 기능 결함·정책 위반 구매 확인·재해 보상.
+- **적용 불가 시나리오**: "실수로 구매했다"·"마음이 바뀌었다"·"친구가 대신 샀다" 등 **사용자 귀책**. 정책 카피로 일관 거절.
+
+**운영자 정정 필수 원칙**
+
+1. 모든 정정은 `coin_transactions` INSERT-only로만 기록. `purchases`는 삭제하지 않고 `voided_at` 타임스탬프·`voided_by user_id`·`void_reason text` 필드로 무효화 표시(`purchases` 행은 감사용으로 영구 보존).
+2. **자기 계정 정정 금지** — 운영자 본인(또는 본인 소속 클랜)의 거래는 정정 불가(이해 상충). `created_by = voided_by` 검증 서버에서 차단.
+3. **정정 사유 기록 필수** — `void_reason` NOT NULL. 빈 값으로는 INSERT 불가.
+4. **월 정정 리포트** — 운영자 투명성. 클랜 외부에는 비공개이되, 월별 정정 건수·사유 집계를 `admin_audit_reports`에 자동 생성(Phase 2+).
+5. **구매자 알림** — 정정 성립 시 구매자에게 메일·인앱 알림으로 사유 고지.
+
+**환불 스키마 영향**
+
+- `purchases`에 `voided_at timestamptz NULL`, `voided_by uuid FK → users NULL`, `void_reason text NULL` 추가.
+- `coin_transactions.reason` 에 `refund_void`·`system_rollback`·`price_correction` 추가.
+- `correction_of`로 원거래 ↔ 정정거래 1:1 연결. 한 원거래는 유효한 정정거래를 최대 1건만 가질 수 있다(트리거 또는 서비스 레이어 검증).
+
+**UI · 카피**
+
+- 구매 확인 다이얼로그: "구매 후 **환불은 지원되지 않습니다**. 계속하시겠습니까?"
+- 스토어 정책 박스(목업 `mock-store-policy-sep`): "환불·되돌리기는 제공하지 않습니다. 시스템 오류와 운영자 판정 예외만 정정합니다(D-STORE-03)."
+- 운영자 정정 툴은 Phase 2+ 관리자 콘솔에만 노출. 일반 사용자 UI에 환불 버튼 없음.
+
+**법적 고지**
+
+- `legal-review.md` "환불 정책 명시 필수" 항목은 본 결정을 **이용 약관 §꾸미기·코인 조항**에 반영함으로써 충족. 현금 거래 없음 원칙과 함께 기재.
+
+**연관 문서**
+
+- [pages/13-Clan-Store.md](./pages/13-Clan-Store.md)
+- [schema.md `purchases`·`coin_transactions`](./schema.md#purchases)
+- [decisions.md §D-PROFILE-04](#d-profile-04--뱃지-해금-출처) (store 뱃지 환불 불가 원칙) · [§D-ECON-02](#d-econ-02--코인-세탁-방지-정책) (`correction_of` 감사 구조)
+- [non-page/legal-review.md](./non-page/legal-review.md)
+
+---
+
+### D-ECON-03 — 클랜 순위표 민감 지표 노출 범위
+
+- **결정일**: 2026-04-20
+- **요지**: **외부 공개 클랜 순위표**에서 승률·K/D·MVP 수 등 **경쟁 지표를 전면 제외**한다. 친목·즐겜·빡겜·프로 등 다양한 지향(`clans.style`)을 허용하는 서비스 정책과 정합하며, 경쟁 지표로 인해 친목 지향 클랜이 위축되거나 허수 기록 욕구가 생기는 것을 구조적으로 방지한다. 경쟁 지표는 **해당 클랜의 운영진+ 내부 화면**(클랜 관리·명예의 전당·내전 히스토리)에서만 열람 가능하다.
+
+**지표 노출 매트릭스**
+
+| 지표 | 외부 순위표 | 클랜 상세 프로필(외부 열람) | 클랜 관리(운영진+) | 비고 |
+|------|:---:|:---:|:---:|------|
+| 클랜 인원 수 | ✓ | ✓ | ✓ | 규모 |
+| 최근 30일 활동 멤버 비율 | ✓ | ✓ | ✓ | 활동성 대표 |
+| 스크림 완료 건수 (최근 90일) | ✓ | ✓ | ✓ | 활동성 |
+| 스크림 매너 평균 (`scrim_ratings.manner_score`) | ✓ | ✓ | ✓ | 평판 |
+| 이벤트 참여 횟수 (최근 90일) | ✓ | ✓ | ✓ | 참여성 |
+| 클랜 태그·지향·티어 범위 | ✓ | ✓ | ✓ | 소개성 |
+| **내전 경기 수** | ✗ | ○ (클랜 자체 설정으로 공개 가능) | ✓ | D-STATS-03 측정 단위 결정 후 재검토 |
+| **내전 승률** | ✗ | ✗ | ✓ | 경쟁 지표 — 외부 비공개 |
+| **개인 승률·MVP 랭킹** | ✗ | ✗ | ✓ | 개인 단위 민감 |
+| **K/D·전투 지표** | ✗ | ✗ | ✓ | 경쟁 지표 |
+| **HoF 기록** | ✗ | ○ (클랜장 공개 토글 시) | ✓ | D-STATS-01 권한 결정과 연동 |
+
+- `○` = 클랜 설정으로 토글 가능. 기본값 비공개.
+- `✗` 지표는 **API 응답 자체에 포함하지 않는다**(서버 레벨 필터링). 클라이언트 토글 감춤이 아님.
+
+**정렬 기준 (공개 순위표)**
+
+- 기본: **활동 스코어** = 활동 멤버 비율 × 스크림 완료 건수 × 매너 평균을 정규화한 복합 지수.
+- 보조 정렬: 규모(인원수 내림차순), 신생(생성일 오름차순), 매너 점수.
+- **"인기" 정렬은 제거**(D-RANK-01 관련) — 조회수 필드 없음·외부 경쟁 유인 최소화.
+
+**제외 대상 확장**
+
+- `clans.moderation_status IN ('warned','hidden','deleted')` 클랜은 순위표에서 **완전 제외**(D-CLAN-03과 연동).
+- `clans.lifecycle_status='dormant'` 클랜도 제외. `stale`은 표시하되 말미 정렬.
+
+**내부 화면 규칙**
+
+- 클랜 관리·HoF·내전 히스토리는 **해당 클랜 구성원에게만** 경쟁 지표 공개.
+- 단, `clan_settings.expose_competitive_metrics boolean DEFAULT false`(Phase 2+) 토글을 두어 클랜장이 자기 클랜의 경쟁 지표를 **클랜 상세 프로필(외부)** 에 선택적으로 공개할 수 있다. 기본값은 비공개.
+- 토글 ON/OFF 이력은 감사 로그에 기록.
+
+**연관 문서**
+
+- [schema.md 「클랜 순위·통계 지표」](./schema.md#클랜-순위통계-지표-승률-등-경쟁-지표-제외)
+- [slices/slice-05-clan-stats.md](./slices/slice-05-clan-stats.md)
+- [decisions.md §D-RANK-01](#) (OPEN — "인기" 정렬 기준) · [§D-STATS-01~04](#) (OPEN)
+- [pages/10-Clan-Rank.md](./pages/10-Clan-Rank.md) (해당 파일 있을 경우)
+
+---
+
+### D-ECON-04 — 특이사항 태그 카탈로그
+
+- **결정일**: 2026-04-20
+- **요지**: BalanceMaker 슬롯 등에 붙는 **특이사항 태그**는 **서버 자동 산정**으로만 부여한다. 사용자 수동 태깅·운영자 수동 태깅 모두 허용하지 않는다(악용·담합 방지). Phase 1 초기 카탈로그로 **13종 태그**를 확정하고, 집계 창·갱신 시점·해제 조건·노출 우선순위를 문서화한다. 추가 태그는 결정 블록 갱신과 함께 도입한다.
+
+**집계 범위**
+
+- 집계 대상: **본 클랜 내전**(`matches` + `match_players`, `match_type='intra'`)만. 외부 랭크·스크림·대진표 경기는 집계하지 않는다.
+- 집계 기준 시각: `matches.played_at`(KST).
+- "최근 N경기"는 해당 유저의 **본 클랜 내전 참여 이력** 역순 N건.
+
+**Phase 1 태그 카탈로그**
+
+| 코드 | 톤 | 트리거 규칙 | 해제 조건 | 최대 동시 표시 |
+|------|-----|-------------|-----------|---------------|
+| `streak_lose_3` | bad | 최근 3경기 연속 패배 | 1승 발생 | ✓ |
+| `streak_lose_4` | bad | 최근 4경기 연속 패배 | 1승 발생 | ✓ (`_3` 덮어쓰기) |
+| `streak_lose_5` | bad | 최근 5경기 연속 패배 | 1승 발생 | ✓ (`_4` 덮어쓰기) |
+| `streak_win_3` | good | 최근 3경기 연속 승리 | 1패 발생 | ✓ |
+| `streak_win_5` | good | 최근 5경기 연속 승리 | 1패 발생 | ✓ (`_3` 덮어쓰기) |
+| `slump` | bad | 최근 10경기 이상 참여 & 승률 < 30% | 10경기 이동창 승률 ≥ 40% | ✓ |
+| `hot_streak` | good | 최근 10경기 이상 참여 & 승률 > 70% | 10경기 이동창 승률 ≤ 60% | ✓ |
+| `map_expert` | good | 해당 맵 5경기 이상 & 해당 맵 승률 > 60% | 해당 맵 재계산 값 하락 | 맵별 1개 |
+| `map_rookie` | neutral | 해당 맵 본 클랜 첫 경기 | 해당 맵 1경기 완료 | 맵별 1개 |
+| `mvp_hot` | good | 최근 5경기 중 MVP 2회 이상 | 다음 MVP 스냅샷에서 조건 미충족 | ✓ |
+| `no_show` | bad | 최근 30일 내 노쇼(`balance_session_absences` 등) 1회 | 30일 경과 | ✓ |
+| `no_show_repeat` | bad | 최근 90일 내 노쇼 2회 이상 | 90일 경과 | ✓ (`no_show` 덮어쓰기) |
+| `new_clan_week` | neutral | 클랜 가입 7일 이내 | 가입 후 7일 경과 | ✓ |
+
+**상호 배타 규칙** (같은 범주 내 상위 태그가 하위 태그를 덮는다)
+
+- `streak_lose_5` > `streak_lose_4` > `streak_lose_3` — 더 긴 연패만 표시.
+- `streak_win_5` > `streak_win_3` — 동일.
+- `no_show_repeat` > `no_show` — 누적이 우선.
+
+**노출 규칙**
+
+- BalanceMaker 슬롯 라인 2(`mock-balance-slot-line2-tray`)에 세로로 쌓는다.
+- **최대 3개**까지 표시. 초과 시 우선순위 `bad > neutral > good` 순.
+- 본 클랜 내전에서만 노출. 다른 화면(플레이어 프로필 카드·클랜 관리 리스트 등)에는 **노출하지 않는다**(경기 컨텍스트 전용).
+
+**갱신 시점**
+
+1. **경기 결과 입력 시** — 해당 경기 참여자 전원의 태그를 재계산(`matches.ended_at` 업데이트 트리거).
+2. **밸런스 세션 생성 시** — 해당 클랜 전 구성원 스냅샷 재계산(BalanceMaker A 점수 갱신과 같은 흐름).
+3. **일일 배치** — KST 06:00에 30일·90일 창 기준 태그(`no_show`·`new_clan_week` 경계) 일괄 재계산.
+
+**스냅샷 저장**
+
+- `match_tags (user_id, clan_id, code, tone, computed_at, expires_at NULL)` 테이블에 **현재 유효 태그**만 저장(이력 불필요). `(user_id, clan_id, code) UNIQUE`.
+- `computed_at` 은 최근 재계산 시각, `expires_at` 은 시간 기반 해제가 있는 태그(`no_show` 등)의 만료.
+- 서버는 태그 반영 UI 쿼리에서 `expires_at > now() OR expires_at IS NULL` 만 조회.
+
+**악용 방지 (Phase 2+ 검토)**
+
+- 같은 두 플레이어 조합이 반복 경기를 올려 `streak_lose` 고정으로 만드는 시나리오 → 같은 상대와의 24h 내 반복 경기에 가중치 0.5 적용 검토.
+- 동일 클랜 내 담합(특정 유저에게 `streak_lose`를 강제) 감지 → 의심 패턴 flag(D-ECON-02 감지 체계와 통합).
+
+**수동 태깅 관련**
+
+- 사용자·운영자 **수동 태깅 불가**. UI에 태그 추가·삭제 버튼을 만들지 않는다.
+- 신고·이의제기는 별도 경로(운영자 콘솔)에서만 처리하며, 그 결과는 원본 집계 데이터(`matches`·`match_players`·노쇼 기록)를 정정함으로써 태그에 반영된다.
+
+**연관 문서**
+
+- [pages/09-BalanceMaker.md §특이사항 태그](./pages/09-BalanceMaker.md#특이사항-태그)
+- [schema.md `matches`·`match_players`](./schema.md#matches) (신설 `match_tags` 테이블)
+- [decisions.md §D-ECON-02](#d-econ-02--코인-세탁-방지-정책) (악용 감지 체계 공유)
+
+---
+
+### D-LANDING-01 — 랜딩 캐치프라이즈 최종 문구 (잠정)
+
+- **결정일**: 2026-04-20 (잠정 채택)
+- **요지**: 현재 목업 헤드라인을 **Phase 1 잠정 안**으로 그대로 채택한다. 서비스 구현이 완료되고 실 사용자 피드백이 확보되는 **Phase 2+ 시점에 재검토**한다. 카피는 브랜드·마케팅·법적 고지의 교차 영향이 있어 구현 완성도와 함께 재평가해야 변경 실효가 크다.
+
+**채택된 문구 (Phase 1)**
+
+- **H1 타이틀**: `Archive Your History, Stay in Sync`
+- **부제**: "추억을 기록하고 클랜을 체계적으로 관리하세요."
+
+**재검토 트리거** (Phase 2+)
+
+- Phase 2 베타 테스트 종료 시점에 사용자 조사(5-Second Test·First-Impression Test) 수행.
+- 한글 우선 문구 도입 여부 재검토(현재는 영어 타이틀 + 한글 부제 하이브리드).
+- 기능 키워드(내전·스크림·밸런싱·통계)를 타이틀 또는 부제에 포함시킬지 결정.
+- 다국어 지원(D-LANDING-02) 도입 시점과 맞춰 EN/JP 카피 동시 수립.
+
+**Phase 1 변경 규칙**
+
+- 목업·랜딩 카피는 이 결정이 정한 현재 문구를 **변경하지 않는다**. 캐러셀·섹션 부제·CTA 버튼 등 기타 랜딩 카피도 Phase 1 동안은 고정. 변경이 필요하면 이 결정을 **재오픈**하는 별도 PR로만 진행.
+
+**연관 문서**
+
+- [pages/01-Landing-Page.md](./pages/01-Landing-Page.md)
+- [BACKLOG.md](./BACKLOG.md) (이미 이관 완료 기록)
+
+---
+
+### D-LANDING-02 — 다국어 활성 시점과 범위
+
+- **결정일**: 2026-04-20
+- **요지**: Phase 1·Phase 2 동안 서비스 전체 UI는 **KR 전용**으로 운영한다. 랜딩의 `KR / EN / JP` 버튼은 **시각적 토글**로만 남기고 클릭 시 **"준비 중(Coming soon)" 안내 토스트**를 띄운다. 실제 i18n 도입은 **Phase 3+** 에 우선순위 **EN → JP** 로 진행한다.
+
+**Phase 단계별 범위**
+
+| Phase | KR | EN | JP |
+|-------|:---:|:---:|:---:|
+| Phase 1 (목업·정적) | ✓ (실제) | 시각 토글만 + "준비 중" 안내 | 동일 |
+| Phase 2 (Next.js·베타) | ✓ (실제) | 시각 토글만 + "준비 중" 안내 | 동일 |
+| Phase 3 (글로벌 확장) | ✓ | ✓ (도입) | 시각 토글만 |
+| Phase 4+ | ✓ | ✓ | ✓ (도입) |
+
+**구현 원칙**
+
+- 랜딩의 KR/EN/JP 버튼은 `aria-pressed`·시각 active 상태만 유지. 클릭 시 **토스트 1회**(3s) — "English/日本語 지원은 준비 중입니다".
+- 버튼을 완전히 제거하지 않는 이유: ① 향후 i18n 확장 의지 표명 ② 레이아웃 공간 확보 ③ 글로벌 사용자에게 "한국어만 지원" 신호 제공.
+- HTML `lang` 속성은 `lang="ko"` 고정(Phase 2까지).
+- 서버 API 응답·이메일·알림은 모두 KR 전용. `users.language` enum 컬럼은 스키마에 남기지만(Phase 3+ 대비) Phase 1·2에서는 DEFAULT `'ko'`·변경 UI 없음.
+
+**Phase 3 도입 시 필요 작업 (체크리스트 · 이 결정에 속함)**
+
+- 카피 번역 — 랜딩·가입/로그인·에러 메시지·이메일·약관 전체.
+- 날짜·숫자·통화 로케일 — 코인 표기·KST 시각 표기 등.
+- 브랜드 용어 번역 기준 — 내전·스크림·밸런싱 등 고유 용어 번역 여부(영어권은 `Intra-Clan / Scrim / Balance`로 차용어 검토).
+- 문의(`/contact`) 폼 다국어 라벨·에러 메시지.
+
+**연관 문서**
+
+- [pages/01-Landing-Page.md](./pages/01-Landing-Page.md)
+- [schema.md `users.language`](./schema.md#users-supabase-auth-연동)
+- [pages/04-Main_GameSelect.md](./pages/04-Main_GameSelect.md) (다른 페이지 언어 버튼 처리도 동일 규칙 적용)
+
+---
+
+### D-LANDING-03 — 약관·개인정보·API ToS·문의 페이지 구현 방식
+
+- **결정일**: 2026-04-20
+- **요지**: 약관 3종(`/terms` · `/privacy` · `/api-tos`)은 **정적 MDX/Markdown 라우트**로 구현하고, **`/contact`만 내부 폼**으로 구현해 제출 시 `contact_requests` 테이블에 INSERT 한다. 운영자 관리자 콘솔(Phase 2+)에서 열람·답변·상태 관리한다. 스팸 방지 레이어(Captcha·rate limit·honeypot) 필수.
+
+**라우트·구현 매트릭스**
+
+| 라우트 | 구현 방식 | 내용·갱신 | 인증 |
+|--------|-----------|-----------|------|
+| `/terms` | MDX 정적 | 이용약관. 변경 시 버전 스냅샷(`terms_versions` Phase 2+) | Anonymous |
+| `/privacy` | MDX 정적 | 개인정보처리방침. 법적 변경 이력 필수 | Anonymous |
+| `/api-tos` | MDX 정적 | 게임사 API 이용 고지(Blizzard·Riot 등 브랜드 고지) | Anonymous |
+| `/contact` | **Next.js 라우트 + Server Action** | 제목·본문·이메일·유형(select) 입력 폼 → INSERT. 제출 후 성공 페이지로 이동 | Anonymous OK(비로그인 문의 허용) + 로그인 시 `user_id` 자동 연결 |
+
+**`/contact` 폼 스펙 (Phase 2+)**
+
+- 필수 입력: 이메일·문의 유형(`account`·`payment`·`bug`·`policy`·`other`)·제목(최대 120자)·본문(최대 4000자).
+- 선택 입력: 관련 클랜(로그인 시 자동 매칭 + 수동 선택)·첨부(Phase 3+).
+- 스팸 방지:
+  - Turnstile 또는 reCAPTCHA v3 검증(Server Action 내부).
+  - IP + 이메일당 **하루 5회** rate limit(`contact_rate_limits` 테이블 또는 Redis).
+  - Honeypot 숨김 필드(봇 자동 제출 감지).
+  - Profanity·URL 슬램 필터 최소 1단.
+- 제출 완료 시 이메일 자동 발송(`/contact/thanks` 페이지 리디렉트 + 접수 확인 메일).
+
+**`contact_requests` 테이블** (schema.md 반영)
+
+- `id uuid PK`, `user_id uuid FK NULL`, `email citext NOT NULL`, `category enum NOT NULL`, `title varchar(120)`, `body text NOT NULL`, `clan_id uuid FK NULL`, `status enum('open','in_progress','resolved','spam','deleted') DEFAULT 'open'`, `assigned_to uuid FK NULL`, `created_at timestamptz`, `resolved_at timestamptz NULL`, `ip_hash bytea NULL`, `user_agent text NULL`.
+- RLS: INSERT는 Anonymous + 서비스 롤(rate limit 검증 후). SELECT·UPDATE·DELETE는 운영자 role만.
+
+**약관 버전 관리 (Phase 2+ · 메모)**
+
+- `terms_versions(version, effective_from, published_at, source_commit)` 테이블로 약관 개정 이력 관리 예정.
+- 사용자 동의 로그는 `user_terms_agreements(user_id, version, agreed_at)` 로 가입·재동의 시점 추적.
+- Phase 1 목업은 링크만 유지하고 실제 페이지는 만들지 않는다.
+
+**목업 처리**
+
+- 푸터 4개 링크는 계속 `href="#"` 유지. **`title` 툴팁**으로 "실제 페이지는 Phase 2+ 구현" 안내.
+- `onclick` 으로 alert 띄우지 않고 단순 앵커 이동만(스크롤 위로 올라감) — 시각적 소음 최소화.
+
+**연관 문서**
+
+- [pages/01-Landing-Page.md](./pages/01-Landing-Page.md) (푸터)
+- [pages/03-Sign-Up.md](./pages/03-Sign-Up.md) (약관 동의 체크박스)
+- [schema.md `contact_requests`](./schema.md#contact_requests)
+- [non-page/legal-review.md](./non-page/legal-review.md)
+
+---
+
+### D-LANDING-04 — 로그인된 사용자의 랜딩 진입 처리
+
+- **결정일**: 2026-04-20
+- **요지**: 이미 로그인된 사용자가 랜딩(`/`)에 진입하면 **`/games` 로 자동 리다이렉트**한다. `history.replaceState` 를 사용해 **뒤로가기가 `/` 을 재방문하지 않도록** 한다. 단, **로고 클릭(`?from=logo`) 또는 내부 앵커(`#features`·`#games`·`#pricing`) 포함 진입**은 "의도적 재방문"으로 간주하고 리다이렉트를 건너뛴다.
+
+**리다이렉트 판정 플로우 (클라이언트 가드)**
+
+```
+/ 진입
+  ├─ 로그인 여부 확인 (세션 쿠키 / JWT)
+  │   · 비로그인 → 랜딩 그대로 렌더
+  │   · 로그인됨 ↓
+  ├─ query/hash 확인
+  │   · ?from=logo     → 랜딩 그대로 렌더 (로고 클릭 재방문 의도)
+  │   · #features 등   → 랜딩 그대로 렌더 (섹션 탐색 의도)
+  │   · 그 외          ↓
+  └─ history.replaceState("/games") → `/games` 로 이동
+```
+
+**구현 포인트**
+
+- 리다이렉트는 **클라이언트 측**에서 수행 (Next.js App Router의 `useEffect` + `router.replace`). SSR·미들웨어에서 처리하지 않는다(캐시·SEO·크롤러 영향 회피).
+- `router.replace` 대신 `window.history.replaceState` + `router.push`? → Next.js 표준 API인 `router.replace` 사용. 히스토리 스택에서 `/`는 남지 않는다.
+- 로그 아웃 직후의 `/` 진입은 세션 쿠키가 이미 지워져 있으므로 자동으로 비로그인 플로우로 진입 — 추가 처리 불필요.
+- 크롤러·OG 크롤링·SEO: 익명 요청은 항상 랜딩 원본을 받는다. 로그인 사용자만 클라이언트 가드로 우회.
+
+**로고 클릭 처리 (페이지 간 공통 규칙)**
+
+- 상단 navbar 로고(모든 페이지 공통)는 **로그인 사용자의 경우 `/games`** 로, **비로그인의 경우 `/`** 로 이동한다. 이 라우팅은 shell 헤더에서 처리(D-SHELL 영역 참조).
+- "로그인 사용자가 `/`를 꼭 다시 보고 싶은" 희귀 케이스는 **로고 링크에 `?from=logo` 를 붙이는 방식은 사용하지 않는다** — 이 쿼리는 "내가 직접 주소창에 `/`를 쳤거나 외부 링크로 왔을 때 랜딩을 보겠다"는 수동 탈출구로만 남긴다.
+
+**UX 안전장치**
+
+- 리다이렉트 지연은 **100ms 이내**로 체감되지 않아야 한다. `useEffect` 첫 페인트 전에 가드가 실행되어 랜딩 히어로가 깜빡이지 않도록 **router.replace 호출을 첫 paint 이전**에 실행하거나, 서버 컴포넌트에서 `cookies()` 로 세션 확인 후 `redirect("/games")` 수행(권장 — SSR 리다이렉트가 깜빡임 없음).
+- **예외**: 미들웨어 레벨에서 `/` → `/games` 리다이렉트를 하면 크롤러·OG 카드 이미지 생성·소셜 공유 미리보기에 영향. 반드시 **페이지 컴포넌트 내부**에서 세션 읽고 조건부 `redirect` 해야 한다.
+
+**목업 처리 (Phase 1)**
+
+- 목업 `index.html`에 실제 세션이 없으므로 시뮬레이션용 스위치만 추가: 상단에 `<!-- D-LANDING-04: 실서비스에서는 로그인 세션 확인 후 /games 자동 리다이렉트 -->` 주석 + `?simulate=logged_in` 쿼리 시 `games.html`로 `location.replace`.
+
+**연관 문서**
+
+- [pages/01-Landing-Page.md](./pages/01-Landing-Page.md)
+- [pages/04-Main_GameSelect.md](./pages/04-Main_GameSelect.md) (리다이렉트 목적지)
+- [decisions.md §D-SHELL 계열](#) (shell 로고 라우팅 — 별도 결정 OPEN)
