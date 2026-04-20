@@ -201,6 +201,34 @@ body {
   .auth-left { display: none; }
   .auth-right { width: 100%; padding: 40px 24px; }
 }
+
+.error-msg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: #f87171;
+  margin-bottom: 18px;
+}
+.error-msg[hidden] { display: none; }
+.info-msg {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  line-height: 1.5;
+  color: #fbbf24;
+  margin-top: 8px;
+}
+.info-msg[hidden] { display: none; }
 </style>
 </head>
 <body>
@@ -235,6 +263,10 @@ body {
     </div>
 
     <form onsubmit="handleSignUp(event)">
+      <!-- D-AUTH-03: 제출 검증 실패 시 폼 상단 통합 에러 슬롯 -->
+      <div class="error-msg" id="signup-error-slot" hidden aria-live="polite">
+        <span id="signup-error-text"></span>
+      </div>
       <div class="form-group">
         <label class="label">이메일</label>
         <input class="input" type="email" id="email" placeholder="your@email.com">
@@ -250,7 +282,7 @@ body {
       <div style="display:flex;gap:12px">
         <div class="form-group" style="flex:1">
           <label class="label">출생 연도</label>
-          <select class="input" id="birthYear" required>
+          <select class="input" id="birthYear" required onchange="updateMinorNotice(this.value)">
             <option value="" disabled selected>선택</option>
           </select>
         </div>
@@ -273,10 +305,15 @@ body {
         </div>
       </div>
 
+      <!-- D-AUTH-03: 만 14세 미만 안내 캡션 (Phase 2+ 법정대리인 동의 UI 도입 지점) -->
+      <div class="info-msg" id="signup-minor-notice" hidden>
+        <span>만 14세 미만은 가입 시 법정대리인 동의가 필요합니다. (서비스 오픈 시 추가 절차 안내)</span>
+      </div>
+
       <div class="form-group">
         <label class="label">비밀번호</label>
         <div style="position:relative">
-          <input class="input" type="password" id="password" placeholder="영문+숫자+특수문자 8자 이상"
+          <input class="input" type="password" id="password" placeholder="영문+숫자+특수문자, 8~72자"
                  oninput="checkPwdStrength(this.value)" style="padding-right:42px">
           <button type="button" class="pwd-toggle-btn" onclick="togglePwd(this)" aria-label="비밀번호 보기" title="비밀번호 보기">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -291,6 +328,7 @@ body {
           <div class="pwd-strength-bar"><div class="pwd-strength-fill" id="pwd-fill3" style="width:0%;background:var(--success)"></div></div>
           <span class="pwd-strength-label" id="pwd-label">약함</span>
         </div>
+        <div class="input-hint">영문 + 숫자 + 특수문자를 모두 포함한 8자 이상이어야 해요. (D-AUTH-03)</div>
       </div>
 
       <div class="terms-row">
@@ -324,9 +362,58 @@ body {
   }
 })();
 
+// D-AUTH-03: strong 정규식 — 영문+숫자+특수문자, 8~72자
+var SIGNUP_PWD_STRONG_RE = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9])[\S]{8,72}$/;
+
+function validatePasswordStrong(v) { return SIGNUP_PWD_STRONG_RE.test(v); }
+
+function signupShowError(msg) {
+  var slot = document.getElementById('signup-error-slot');
+  var text = document.getElementById('signup-error-text');
+  if (!slot || !text) return;
+  text.textContent = msg;
+  slot.hidden = false;
+  slot.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function signupClearError() {
+  var slot = document.getElementById('signup-error-slot');
+  if (slot) slot.hidden = true;
+}
+
 function handleSignUp(e) {
   e.preventDefault();
+  signupClearError();
+  var email = (document.getElementById('email').value || '').trim();
+  var nickname = (document.getElementById('nickname').value || '').trim();
+  var birthYear = document.getElementById('birthYear').value;
+  var gender = document.querySelector('input[name="gender"]:checked');
+  var pwd = document.getElementById('password').value || '';
+  var terms = document.getElementById('terms').checked;
+
+  if (!email)    { signupShowError('이메일을 입력해 주세요.'); return; }
+  if (!nickname || nickname.length < 2) { signupShowError('닉네임은 2자 이상이어야 해요.'); return; }
+  if (nickname === 'admin') { signupShowError('이 닉네임은 사용할 수 없습니다.'); return; }
+  if (!birthYear) { signupShowError('출생 연도를 선택해 주세요.'); return; }
+  if (!gender)   { signupShowError('성별을 선택해 주세요.'); return; }
+  // D-AUTH-03: strong 정책 강제
+  if (!validatePasswordStrong(pwd)) {
+    signupShowError('비밀번호는 영문·숫자·특수문자를 모두 포함한 8자 이상이어야 해요.');
+    return;
+  }
+  if (!terms) { signupShowError('약관에 동의해 주세요.'); return; }
+
+  // 만 14세 미만은 Phase 1에서는 안내만. 실제 법정대리인 동의 UI는 Phase 2+.
   window.location.href = 'games.html';
+}
+
+// D-AUTH-03: 만 14세 미만 안내 캡션 토글
+function updateMinorNotice(yearStr) {
+  var notice = document.getElementById('signup-minor-notice');
+  if (!notice) return;
+  var y = parseInt(yearStr, 10);
+  if (!y) { notice.hidden = true; return; }
+  var currentYear = new Date().getFullYear();
+  notice.hidden = !(y > currentYear - 14);
 }
 function togglePwd(btn) {
   const input = btn.previousElementSibling;
