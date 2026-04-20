@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClanSync — 디자인 프리셋 스튜디오</title>
+<link rel="stylesheet" href="../styles/main.css">
+<style>
+body {
+  margin: 0;
+  padding: 24px;
+  background: var(--bg-base);
+}
+.preset-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: block;
+  transition: padding-left 0.2s ease;
+}
+body:not(.preset-drawer-closed) .preset-page {
+  padding-left: 356px;
+}
+.preset-panel {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  width: min(340px, calc(100vw - 32px));
+  height: calc(100vh - 32px);
+  overflow-y: auto;
+  z-index: 40;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
+  padding: 14px;
+  transform: translateX(0);
+  transition: transform 0.2s ease;
+}
+body.preset-drawer-closed .preset-panel {
+  transform: translateX(calc(-100% - 24px));
+}
+.preset-drawer-toggle {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 50;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+body:not(.preset-drawer-closed) .preset-drawer-toggle {
+  left: min(372px, calc(100vw - 56px));
+}
+.preset-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.preset-sub {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+.preset-focus {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  padding: 7px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-overlay);
+}
+.preset-focus strong {
+  color: var(--text-primary);
+}
+.preset-row[hidden] {
+  display: none !important;
+}
+.preview-clickable {
+  cursor: pointer;
+}
+.preview-clickable.is-target-comp {
+  outline: none;
+}
+.preset-mode {
+  display: block;
+  margin-bottom: 12px;
+}
+.preset-mode-btn {
+  width: 100%;
+  justify-content: center;
+  gap: 6px;
+}
+.preset-mode-btn.active {
+  border-color: rgba(124, 58, 237, 0.5);
+  background: rgba(124, 58, 237, 0.14);
+  color: var(--text-primary);
+}
+.preset-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.preset-row label {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.preset-row input[type="color"] {
+  width: 38px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  padding: 1px;
+}
+.btn.btn-primary {
+  background: var(--brand-primary);
+  box-shadow: none;
+}
+.preset-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.preset-view-btn.active {
+  border-color: rgba(124, 58, 237, 0.5);
+  background: rgba(124, 58, 237, 0.14);
+  color: var(--text-primary);
+}
+.preset-quick {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.preset-quick-title {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.preset-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+.preset-preview {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  padding: 18px;
+  margin-left: 0;
+}
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.preview-card {
+  min-height: 130px;
+}
+.preview-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.preview-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.chip {
+  border: 1px solid var(--border);
+  background: var(--bg-overlay);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.mock-line {
+  height: 1px;
+  background: var(--border);
+  margin: 8px 0;
+}
+.mock-switch {
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  position: relative;
+}
+.mock-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+.mock-switch.on {
+  background: rgba(34, 197, 94, 0.18);
+  border-color: rgba(34, 197, 94, 0.45);
+}
+.mock-switch.on::after {
+  left: 18px;
+  background: #22c55e;
+}
+.mock-alert {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+.mock-alert.success { background: rgba(34, 197, 94, 0.1); color: #4ade80; border-color: rgba(34, 197, 94, 0.35); }
+.mock-alert.warn { background: rgba(245, 158, 11, 0.1); color: #fbbf24; border-color: rgba(245, 158, 11, 0.35); }
+.mock-alert.error { background: rgba(239, 68, 68, 0.1); color: #f87171; border-color: rgba(239, 68, 68, 0.35); }
+.mock-mini-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.mock-mini-table th,
+.mock-mini-table td {
+  border: 1px solid var(--border);
+  padding: 6px 8px;
+  text-align: left;
+}
+.mock-mini-table th { color: var(--text-secondary); background: var(--bg-overlay); }
+.mock-skeleton {
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--bg-overlay) 0%, rgba(255,255,255,0.09) 50%, var(--bg-overlay) 100%);
+}
+.mock-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mock-timeline-item {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 8px;
+  align-items: start;
+  font-size: 12px;
+}
+.mock-dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+}
+.mock-match-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+.mock-stepper {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.mock-stepper .on { color: var(--text-primary); font-weight: 700; }
+@media (max-width: 980px) {
+  body:not(.preset-drawer-closed) .preset-page {
+    padding-left: 0;
+  }
+  .preview-grid {
+    grid-template-columns: 1fr;
+  }
+  .preset-panel {
+    width: min(320px, calc(100vw - 24px));
+    left: 12px;
+    top: 12px;
+    height: calc(100vh - 24px);
+  }
+  .preset-drawer-toggle {
+    top: 12px;
+    left: 12px;
+  }
+  body:not(.preset-drawer-closed) .preset-drawer-toggle {
+    left: min(340px, calc(100vw - 52px));
+  }
+}
+</style>
+</head>
+<body>
+  <button id="preset-drawer-toggle" class="preset-drawer-toggle" type="button" aria-label="프리셋 패널 열기">☰</button>
+  <div class="preset-page">
+    <aside class="preset-panel">
+      <div class="preset-title">컴포넌트 디자인 프리셋</div>
+      <p class="preset-sub">토큰을 바꾸면 오른쪽 미리보기에 즉시 반영됩니다.</p>
+      <div id="preset-focus" class="preset-focus">현재 보기: <strong>전체</strong></div>
+      <div class="preset-mode">
+        <button id="mode-toggle" class="btn btn-secondary btn-sm preset-mode-btn" type="button" onclick="toggleMode()">🌙 다크 버전</button>
+      </div>
+
+      <div class="preset-row" data-components="all,card,section-title"><label for="bg-base">배경 기본 `--bg-base`</label><input id="bg-base" type="color"></div>
+      <div class="preset-row" data-components="all,card"><label for="bg-surface">배경 표면 `--bg-surface`</label><input id="bg-surface" type="color"></div>
+      <div class="preset-row" data-components="all,card"><label for="bg-elevated">배경 카드 `--bg-elevated`</label><input id="bg-elevated" type="color"></div>
+      <div class="preset-row" data-components="all,btn-secondary,chip,input"><label for="bg-overlay">배경 입력 `--bg-overlay`</label><input id="bg-overlay" type="color"></div>
+      <div class="preset-row" data-components="all,card,btn-secondary,input,chip,badge-premium,badge-success,badge-danger,tab"><label for="border">테두리 `--border`</label><input id="border" type="color"></div>
+      <div class="preset-row" data-components="all,section-title,btn-primary,btn-secondary,tab-active,input,card-text"><label for="text-primary">본문 `--text-primary`</label><input id="text-primary" type="color"></div>
+      <div class="preset-row" data-components="all,btn-ghost,label,chip,card-text"><label for="text-secondary">보조 `--text-secondary`</label><input id="text-secondary" type="color"></div>
+      <div class="preset-row" data-components="all,btn-ghost,card-desc,tab"><label for="text-muted">뮤트 `--text-muted`</label><input id="text-muted" type="color"></div>
+      <div class="preset-row" data-components="all,btn-primary"><label for="brand-primary">브랜드 `--brand-primary`</label><input id="brand-primary" type="color"></div>
+      <div class="preset-row" data-components="all,btn-primary"><label for="accent-violet">활성 강조 `--accent-violet`</label><input id="accent-violet" type="color"></div>
+      <div class="preset-row" data-components="all,tab-active"><label for="mock-tab-indicator">탭 인디케이터</label><input id="mock-tab-indicator" type="color"></div>
+      <div class="preset-row" data-components="all,badge-premium,pro-lock"><label for="pro-gold">Premium 골드 `--pro-gold`</label><input id="pro-gold" type="color"></div>
+
+      <div class="preset-actions">
+        <button id="preset-dashboard" class="btn btn-secondary btn-sm preset-view-btn" type="button" onclick="applyViewPreset('dashboard')">대쉬보드</button>
+        <button id="preset-landing" class="btn btn-secondary btn-sm preset-view-btn" type="button" onclick="applyViewPreset('landing')">랜딩</button>
+        <button class="btn btn-secondary btn-sm" type="button" onclick="resetPreset()">초기화</button>
+        <button class="btn btn-primary btn-sm" type="button" onclick="copyPreset()">JSON 복사</button>
+      </div>
+      <div class="preset-quick">
+        <div class="preset-quick-title">빠른 프리셋</div>
+        <div class="preset-quick-grid">
+          <button class="btn btn-secondary btn-sm" type="button" onclick="applyQuickPreset(1)">1</button>
+          <button class="btn btn-secondary btn-sm" type="button" onclick="applyQuickPreset(2)">2</button>
+          <button class="btn btn-secondary btn-sm" type="button" onclick="applyQuickPreset(3)">3</button>
+          <button class="btn btn-secondary btn-sm" type="button" onclick="applyQuickPreset(4)">4</button>
+          <button class="btn btn-secondary btn-sm" type="button" onclick="applyQuickPreset(5)">5</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="preset-preview">
+      <div class="preview-grid">
+        <section class="card preview-card preview-clickable" data-component-key="card" data-component-label="카드 배경">
+          <div class="preview-section-title preview-clickable" data-component-key="section-title" data-component-label="섹션 타이틀">버튼</div>
+          <div class="preview-stack">
+            <button class="btn btn-primary btn-sm preview-clickable" data-component-key="btn-primary" data-component-label="버튼 Primary" type="button">Primary</button>
+            <button class="btn btn-secondary btn-sm preview-clickable" data-component-key="btn-secondary" data-component-label="버튼 Secondary" type="button">Secondary</button>
+            <button class="btn btn-ghost btn-sm preview-clickable" data-component-key="btn-ghost" data-component-label="버튼 Ghost" type="button">Ghost</button>
+          </div>
+        </section>
+        <section class="card preview-card preview-clickable" data-component-key="card" data-component-label="카드 배경">
+          <div class="preview-section-title preview-clickable" data-component-key="section-title" data-component-label="섹션 타이틀">배지</div>
+          <div class="preview-stack">
+            <span class="badge badge-pro preview-clickable" data-component-key="badge-premium" data-component-label="배지 Premium">Premium</span>
+            <span class="badge badge-success preview-clickable" data-component-key="badge-success" data-component-label="배지 Success">Success</span>
+            <span class="badge badge-danger preview-clickable" data-component-key="badge-danger" data-component-label="배지 Danger">Danger</span>
+          </div>
+        </section>
+        <section class="card preview-card preview-clickable" data-component-key="card" data-component-label="카드 배경">
+          <div class="preview-section-title preview-clickable" data-component-key="section-title" data-component-label="섹션 타이틀">폼</div>
+          <label class="label preview-clickable" data-component-key="label" data-component-label="폼 라벨" for="sample-input">닉네임</label>
+          <input id="sample-input" class="input preview-clickable" data-component-key="input" data-component-label="Input" placeholder="닉네임을 입력하세요">
+          <div style="margin-top:10px" class="tabs">
+            <button class="tab active preview-clickable" data-component-key="tab-active" data-component-label="탭 활성" type="button">요약</button>
+            <button class="tab preview-clickable" data-component-key="tab" data-component-label="탭 비활성" type="button">통계</button>
+            <button class="tab preview-clickable" data-component-key="tab" data-component-label="탭 비활성" type="button">이벤트</button>
+          </div>
+        </section>
+        <section class="card preview-card preview-clickable" data-component-key="card" data-component-label="카드 배경">
+          <div class="preview-section-title preview-clickable" data-component-key="section-title" data-component-label="섹션 타이틀">Select / Dropdown</div>
+          <div class="preview-stack">
+            <select class="input preview-clickable" data-component-key="input" data-component-label="Select" style="max-width:180px;height:34px;padding:4px 10px;">
+              <option>오버워치</option><option>발로란트</option><option>레인보우식스</option>
+            </select>
+            <button class="btn btn-secondary btn-sm preview-clickable" data-component-key="btn-secondary" data-component-label="Dropdown Trigger" type="button">옵션 열기 ▾</button>
+          </div>
+        </section>
+        <section class="card preview-card preview-clickable" data-component-key="card" data-component-label="카드 배경">
+          <div class="preview-section-title preview-clickable" data-component-key="section-title" data-component-label="섹션 타이틀">Textarea</div>
+          <textarea class="input preview-clickable" data-component-key="input" data-component-label="Textarea" rows="4" style="resize:none;">내전 공지: 오늘 22시 밸런스 진행합니다.</textarea>
+        </section>
+        <section class="card preview-card preview-clickable" data-component-key="card" data-component-label="카드 배경">
+          <div class="preview-section-title preview-clickable" data-component-key="section-title" data-component-label="섹션 타이틀">Checkbox / Radio / Switch</div>
+          <div class="preview-stack">
+            <label class="preview-clickable" data-component-key="label" data-component-label="Checkbox" style="font-size:12px;"><input type="checkbox" checked> 체크박스</label>
+            <label class="preview-clickable" data-component-key="label" data-component-label="Radio" style="font-size:12px;"><input type="radio" name="r2" checked> 라디오</label>
+            <span class="mock-switch on preview-clickable" data-component-key="chip" data-component-label="Switch"></span>
+          </div>
+        </section>
+        <section class="card preview-card preview-clickable" data-component-key="card" data-component-label="카드 배경">
+          <div class="preview-section-title preview-clickable" data-component-key="section-title" data-component-label="섹션 타이틀">Modal / Dialog</div>
+          <div class="preview-clickable" data-component-key="card-text" data-component-label="Dialog Surface" style="border:1px solid var(--border);border-radius:10px;padding:10px;background:var(--bg-overlay);">
+            <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:6px;">클랜 삭제 확인</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">이 작업은 되돌릴 수 없습니다.</div>
+            <div class="preview-stack"><button class="btn btn-secondary btn-sm preview-clickable" data-component-key="btn-secondary" data-component-label="Dialog Cancel">취소</button><button class="btn btn-primary btn-sm preview-clickable" data-component-key="btn-primary" data-component-label="Dialog Confirm">삭제</button></div>
+          </div>
+        </section>
+        <section class="card preview-card preview-clickable" data-component-key="card" data-component-label="카드 배경">
+          <div class="preview-section-title preview-clickable" data-component-key="section-title" data-component-label="섹션 타이틀">Toast / Snackbar</div>
+          <div class="preview-stack" style="flex-direction:column;align-items:stretch;">
+            <div class="mock-alert success preview-clickable" data-component-key="badge-success" data-component-label="Toast Success">저장 완료되었습니다.</div>
+            <div class="mock-alert error preview-clickable" data-component-key="badge-danger" data-component-label="Toast Error">네트워크 오류가 발생했습니다.</div>
+          </div>
+        </section>
+        <section class="card preview-card preview-clickable" data-component-key="card" data-component-label="카드 배경">
+          <div class="preview-section-title preview-clickable" data-component-key="section-title" data-component-label="섹션 타이틀">Tooltip</div>
+          <div class="preview-stack">
+            <button class="btn btn-ghost btn-sm preview-clickable" data-component-key="tab" data-component-label="Tooltip Trigger" type="button">도움말 (?)</button>
+            <span class="preview-clickable" data-component-key="card-desc" data-component-label="Tooltip Surface" style="font-size:11px;border:1px solid var(--border);background:var(--bg-overlay);padding:6px 8px;border-radius:8px;">최대 5개까지 선택할 수 있습니다.</span>
+          </div>
+        </section>
+        <section class="card preview-card preview-clickable" data-component-key="card" data-component-label="카드 배경">
+          <div class="preview-section-title preview-clickable" data-component-key="section-title" data-component-label="섹션 타이틀">Table (헤더/행/호버/정렬)</div>
+          <table class="mock-mini-table preview-clickable" data-component-key="card-text" data-component-label="Table">
+            <thead><tr><th>멤버 ↑</th><th>역할</th></tr></thead>
+            <tbody>
+              <tr><td>Neo</td><td>Leader</td></tr>
+              <tr style="background:var(--bg-overlay);"><td>Luna</td><td>Member (hover)</td></tr>
+            </tbody>
+          </table>
+        </section>
+        <section class="card preview-card preview-clickable" data-component-key="card" data-component-label="카드 배경">
+          <div class="preview-section-title preview-clickable" data-component-key="section-title" data-component-label="섹션 타이틀">Pagination</div>
+          <div class="preview-stack">
+            <button class="btn btn-secondary btn-sm preview-clickable" data-component-key="btn-secondary" data-component-label="Pagination">이전</button>
+            <span class="chip preview-clickable" data-component-key="chip" data-component-label="Page Chip">1 / 12</span>
+            <button class="btn btn-secondary btn-sm preview-clickable" data-component-key="btn-secondary" data-component-label="Pagination">다음</button>
+          </div>
+        </section>
+        <section class="card preview-card preview-clickable" data-component-key="card" data-component-label="카드 배경">
+          <div class="preview-section-title preview-clickable" data-component-key="section-title" data-component-label="섹션 타이틀">Empty State (아이콘+문구+CTA)</div>
+          <div class="preview-clickable" data-component-key="card-desc" data-component-label="Empty State" style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">📭 아직 게시글이 없습니다. 첫 글을 작성해보세요.</div>
+          <button class="btn btn-primary btn-sm preview-clickable" data-component-key="btn-primary" data-component-label="Empty CTA" type="button">첫 게시글 작성</button>
+        </section>
+        <section class="card preview-card preview-clickable" data-component-key="card" data-component-label="카드 배경">
+          <div class="preview-section-title preview-clickable" data-component-key="section-title" data-component-label="섹션 타이틀">Skeleton (로딩 상태)</div>
+          <div class="mock-skeleton preview-clickable" data-component-key="chip" data-component-label="Skeleton"></div>
+          <div class="mock-skeleton preview-clickable" data-component-key="chip" data-component-label="Skeleton" style="margin-top:6px;width:80%;"></div>
+          <div class="mock-skeleton preview-clickable" data-component-key="chip" data-component-label="Skeleton" style="margin-top:6px;width:60%;"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+<script>
+  (function applyThemeFromHubSession() {
+    try {
+      var scope = (sessionStorage.getItem("clansync-hub-theme-scope") || "dashboard").toLowerCase();
+      var mode = (sessionStorage.getItem("clansync-hub-theme-mode") || "dark").toLowerCase();
+      if (scope !== "landing" && scope !== "dashboard") scope = "dashboard";
+      if (mode !== "light" && mode !== "dark") mode = "dark";
+      document.body.setAttribute("data-theme-scope", scope);
+      document.body.setAttribute("data-theme-mode", mode);
+    } catch (e) {}
+  })();
+
+  const MODE_STORAGE_KEY = "clansync-design-preset-mode";
+  const PRESET_VIEW_STORAGE_KEY = "clansync-design-preset-view";
+  const TOKENS = [
+    "bg-base",
+    "bg-surface",
+    "bg-elevated",
+    "bg-overlay",
+    "border",
+    "text-primary",
+    "text-secondary",
+    "text-muted",
+    "brand-primary",
+    "accent-violet",
+    "mock-tab-indicator",
+    "pro-gold",
+  ];
+
+  const PRESETS = {
+    hubDark: {
+      "bg-base": "#0c0d0e",
+      "bg-surface": "#141515",
+      "bg-elevated": "#1e1f1f",
+      "bg-overlay": "#0c0d0e",
+      border: "#161818",
+      "text-primary": "#f3f4f6",
+      "text-secondary": "#c7ccd1",
+      "text-muted": "#8e969e",
+      "brand-primary": "#183927",
+      "accent-violet": "#46af75",
+      "mock-tab-indicator": "#ffffff",
+      "pro-gold": "#d9a441",
+      "mock-tab-track-border": "rgba(255, 255, 255, 0.08)",
+      "mock-tab-text-idle": "#888888",
+      "mock-tab-text-hover": "#e4e4e7",
+      "mock-tab-text-active": "#ffffff",
+    },
+    landingMint: {
+      "bg-base": "#080808",
+      "bg-surface": "#090909",
+      "bg-elevated": "#141419",
+      "bg-overlay": "#1b1b20",
+      border: "#2a2a2f",
+      "text-primary": "#e4e4e7",
+      "text-secondary": "#a1a1aa",
+      "text-muted": "#71717a",
+      "brand-primary": "#34d399",
+      "accent-violet": "#34d399",
+      "mock-tab-indicator": "#34d399",
+      "pro-gold": "#f59e0b",
+      "mock-tab-track-border": "rgba(255, 255, 255, 0.1)",
+      "mock-tab-text-idle": "#8f96a0",
+      "mock-tab-text-hover": "#e4e4e7",
+      "mock-tab-text-active": "#ffffff",
+    },
+    lightBase: {
+      "bg-base": "#f4f7f6",
+      "bg-surface": "#eef3f1",
+      "bg-elevated": "#ffffff",
+      "bg-overlay": "#e8efec",
+      border: "#d5dfda",
+      "text-primary": "#0f1720",
+      "text-secondary": "#334155",
+      "text-muted": "#70808d",
+      "brand-primary": "#2b8a57",
+      "accent-violet": "#46af75",
+      "mock-tab-indicator": "#2b8a57",
+      "pro-gold": "#d97706",
+      "mock-tab-track-border": "rgba(15, 23, 32, 0.18)",
+      "mock-tab-text-idle": "#70808d",
+      "mock-tab-text-hover": "#334155",
+      "mock-tab-text-active": "#0f1720",
+    },
+  };
+  const QUICK_PRESETS = {
+    1: {
+      "bg-base": "#0b0f10",
+      "bg-surface": "#111415",
+      "bg-elevated": "#161a1b",
+      "bg-overlay": "#1b2022",
+      border: "#252c2f",
+      "text-primary": "#f3f4f6",
+      "text-secondary": "#c7ccd1",
+      "text-muted": "#8e969e",
+      "brand-primary": "#3ecf8e",
+      "accent-violet": "#2fbf71",
+      "mock-tab-indicator": "#3ecf8e",
+      "pro-gold": "#d9a441",
+    },
+    2: { "brand-primary": "#2563eb", "accent-violet": "#3b82f6", "mock-tab-indicator": "#3b82f6" },
+    3: { "brand-primary": "#0891b2", "accent-violet": "#06b6d4", "mock-tab-indicator": "#06b6d4" },
+    4: { "brand-primary": "#16a34a", "accent-violet": "#22c55e", "mock-tab-indicator": "#22c55e" },
+    5: { "brand-primary": "#db2777", "accent-violet": "#ec4899", "mock-tab-indicator": "#ec4899" },
+  };
+  let currentMode = "dark";
+  let activeComponent = "all";
+  let currentPresetView = "dashboard";
+
+  function presetStorageKey(mode) {
+    return `clansync-design-preset-playground-${mode}`;
+  }
+
+  function getComputedToken(token) {
+    return getComputedStyle(document.documentElement)
+      .getPropertyValue(`--${token}`)
+      .trim();
+  }
+
+  function normalizeHex(raw) {
+    if (!raw) return "#000000";
+    if (/^#[0-9a-fA-F]{6}$/.test(raw)) return raw;
+    if (/^#[0-9a-fA-F]{3}$/.test(raw)) {
+      const p = raw.slice(1);
+      return `#${p[0]}${p[0]}${p[1]}${p[1]}${p[2]}${p[2]}`;
+    }
+    const m = raw.match(/rgb\s*\((\d+),\s*(\d+),\s*(\d+)\)/i);
+    if (m) {
+      const toHex = (n) => Number(n).toString(16).padStart(2, "0");
+      return `#${toHex(m[1])}${toHex(m[2])}${toHex(m[3])}`;
+    }
+    return "#000000";
+  }
+
+  function syncInputsFromCss() {
+    TOKENS.forEach((token) => {
+      const input = document.getElementById(token);
+      if (!input) return;
+      input.value = normalizeHex(getComputedToken(token));
+    });
+  }
+
+  function currentPreset() {
+    const result = {};
+    TOKENS.forEach((token) => {
+      result[token] = document.getElementById(token).value;
+    });
+    return result;
+  }
+
+  function applyPreset(name) {
+    const preset = PRESETS[name];
+    if (!preset) return;
+    Object.keys(preset).forEach((token) => {
+      if (!preset[token]) return;
+      document.documentElement.style.setProperty(`--${token}`, preset[token]);
+    });
+    syncInputsFromCss();
+    persistPreset();
+  }
+
+  function resolvePresetName(view, mode) {
+    if (view === "landing") {
+      return mode === "light" ? "lightBase" : "landingMint";
+    }
+    return mode === "light" ? "lightBase" : "hubDark";
+  }
+
+  function syncPresetViewButtons() {
+    const dashboardBtn = document.getElementById("preset-dashboard");
+    const landingBtn = document.getElementById("preset-landing");
+    if (!dashboardBtn || !landingBtn) return;
+    dashboardBtn.classList.toggle("active", currentPresetView === "dashboard");
+    landingBtn.classList.toggle("active", currentPresetView === "landing");
+  }
+
+  function applyViewPreset(view) {
+    currentPresetView = view === "landing" ? "landing" : "dashboard";
+    try {
+      localStorage.setItem(PRESET_VIEW_STORAGE_KEY, currentPresetView);
+    } catch (e) {}
+    const presetName = resolvePresetName(currentPresetView, currentMode);
+    applyPreset(presetName);
+    syncPresetViewButtons();
+  }
+
+  function persistPreset() {
+    try {
+      localStorage.setItem(presetStorageKey(currentMode), JSON.stringify(currentPreset()));
+    } catch (e) {}
+  }
+
+  function restorePresetByMode(mode) {
+    try {
+      const raw = localStorage.getItem(presetStorageKey(mode));
+      if (!raw) return false;
+      const parsed = JSON.parse(raw);
+      TOKENS.forEach((token) => {
+        if (parsed[token]) {
+          document.documentElement.style.setProperty(`--${token}`, parsed[token]);
+        }
+      });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function syncModeButtons() {
+    const toggleBtn = document.getElementById("mode-toggle");
+    if (!toggleBtn) return;
+    if (currentMode === "dark") {
+      toggleBtn.classList.add("active");
+      toggleBtn.textContent = "🌙 다크 버전";
+      return;
+    }
+    toggleBtn.classList.remove("active");
+    toggleBtn.textContent = "☀️ 라이트 버전";
+  }
+
+  function toggleMode() {
+    setMode(currentMode === "dark" ? "light" : "dark");
+  }
+
+  function syncDrawerButton() {
+    const btn = document.getElementById("preset-drawer-toggle");
+    if (!btn) return;
+    const closed = document.body.classList.contains("preset-drawer-closed");
+    btn.textContent = "☰";
+    btn.setAttribute("aria-label", closed ? "프리셋 패널 열기" : "프리셋 패널 닫기");
+  }
+
+  function openDrawer() {
+    document.body.classList.remove("preset-drawer-closed");
+    syncDrawerButton();
+  }
+
+  function closeDrawer() {
+    document.body.classList.add("preset-drawer-closed");
+    syncDrawerButton();
+  }
+
+  function setMode(mode) {
+    currentMode = mode === "light" ? "light" : "dark";
+    try {
+      localStorage.setItem(MODE_STORAGE_KEY, currentMode);
+    } catch (e) {}
+    document.documentElement.removeAttribute("style");
+    const presetName = resolvePresetName(currentPresetView, currentMode);
+    applyPreset(presetName);
+    syncInputsFromCss();
+    syncModeButtons();
+    syncPresetViewButtons();
+  }
+
+  function resetPreset() {
+    document.documentElement.removeAttribute("style");
+    applyModeBase(currentMode);
+    try {
+      localStorage.removeItem(presetStorageKey(currentMode));
+    } catch (e) {}
+    syncInputsFromCss();
+    persistPreset();
+  }
+
+  function copyPreset() {
+    const data = JSON.stringify(currentPreset(), null, 2);
+    navigator.clipboard.writeText(data).then(
+      () => alert("현재 프리셋 JSON을 복사했습니다."),
+      () => alert("클립보드 복사에 실패했습니다.")
+    );
+  }
+
+  function applyQuickPreset(id) {
+    const patch = QUICK_PRESETS[id];
+    if (!patch) return;
+    Object.keys(patch).forEach((token) => {
+      document.documentElement.style.setProperty(`--${token}`, patch[token]);
+    });
+    syncInputsFromCss();
+    persistPreset();
+  }
+
+  function setActiveComponent(componentKey, componentLabel) {
+    activeComponent = componentKey || "all";
+    const focus = document.getElementById("preset-focus");
+    const label = componentLabel || "전체";
+    focus.innerHTML = `현재 보기: <strong>${label}</strong>`;
+
+    document.querySelectorAll(".preset-row").forEach((row) => {
+      const components = (row.getAttribute("data-components") || "").split(",");
+      const isVisible = activeComponent === "all" || components.includes(activeComponent);
+      row.hidden = !isVisible;
+    });
+
+    document.querySelectorAll(".preview-clickable").forEach((el) => {
+      const match = el.getAttribute("data-component-key") === activeComponent;
+      el.classList.toggle("is-target-comp", activeComponent !== "all" && match);
+    });
+  }
+
+  TOKENS.forEach((token) => {
+    const input = document.getElementById(token);
+    input.addEventListener("input", () => {
+      document.documentElement.style.setProperty(`--${token}`, input.value);
+      persistPreset();
+    });
+  });
+
+  document.querySelector(".preset-preview").addEventListener("click", (e) => {
+    const target = e.target.closest("[data-component-key]");
+    if (!target) return;
+    const key = target.getAttribute("data-component-key") || "all";
+    const label = target.getAttribute("data-component-label") || "전체";
+    setActiveComponent(key, label);
+  });
+
+  document.getElementById("preset-focus").addEventListener("click", () => {
+    setActiveComponent("all", "전체");
+  });
+
+  (function initModeAndPreset() {
+    try {
+      const storedMode = localStorage.getItem(MODE_STORAGE_KEY);
+      if (storedMode === "light" || storedMode === "dark") {
+        currentMode = storedMode;
+      }
+    } catch (e) {}
+    try {
+      const storedView = localStorage.getItem(PRESET_VIEW_STORAGE_KEY);
+      if (storedView === "dashboard" || storedView === "landing") {
+        currentPresetView = storedView;
+      }
+    } catch (e) {}
+    setMode(currentMode);
+    applyViewPreset(currentPresetView);
+    setActiveComponent("all", "전체");
+    closeDrawer();
+    syncDrawerButton();
+
+    const toggle = document.getElementById("preset-drawer-toggle");
+    const panel = document.querySelector(".preset-panel");
+    let closeTimer = null;
+
+    function clearCloseTimer() {
+      if (!closeTimer) return;
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+
+    function scheduleClose() {
+      clearCloseTimer();
+      closeTimer = setTimeout(closeDrawer, 120);
+    }
+
+    if (toggle && panel) {
+      toggle.addEventListener("mouseenter", () => {
+        clearCloseTimer();
+        openDrawer();
+      });
+      toggle.addEventListener("mouseleave", scheduleClose);
+      panel.addEventListener("mouseenter", () => {
+        clearCloseTimer();
+        openDrawer();
+      });
+      panel.addEventListener("mouseleave", scheduleClose);
+    }
+  })();
+</script>
+</body>
+</html>

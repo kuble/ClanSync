@@ -80,6 +80,37 @@
   padding-left: 8px;
   background: rgba(245, 158, 11, 0.08);
 }
+.hub-mock-theme {
+  padding: 4px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid var(--border, rgba(255,255,255,0.08));
+  margin-top: 4px;
+  padding-top: 12px;
+}
+.hub-mock-theme-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hub-mock-theme-btn {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border);
+  background: var(--bg-overlay, rgba(255,255,255,0.04));
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-sans, system-ui, sans-serif);
+  text-align: left;
+}
+.hub-mock-theme-btn.active {
+  color: var(--text-primary);
+  border-left: 2px solid var(--accent-violet, #46af75);
+  padding-left: 8px;
+  background: var(--surface-active, rgba(70, 175, 117, 0.12));
+}
 .hub-group-label--row {
   display: flex;
   align-items: center;
@@ -146,7 +177,7 @@
   <div class="hub-logo">⚡ ClanSync</div>
 
   <div class="hub-group-label">랜딩 · 인증</div>
-  <a href="#" onclick="return go(this,'pages/index.html')" class="active">랜딩 페이지</a>
+  <a href="#" onclick="return go(this,'pages/index.html')">랜딩 페이지</a>
   <a href="#" onclick="return go(this,'pages/sign-in.html')">로그인</a>
   <a href="#" onclick="return go(this,'pages/sign-up.html')">회원가입</a>
 
@@ -158,6 +189,10 @@
   <div class="hub-group-label">클랜</div>
   <a href="#" onclick="return go(this,'pages/clan-auth.html')">클랜 인증</a>
   <a href="#" onclick="return go(this,'pages/main-clan.html')">클랜 메인</a>
+
+  <div class="hub-group-label">디자인</div>
+  <a href="#" onclick="return go(this,'pages/design-presets.html')">프리셋 스튜디오</a>
+  <a href="#" onclick="return go(this,'pages/component-studio.html')">컴포넌트 스튜디오</a>
 
   <div class="hub-group-label hub-group-label--row">
     목업 권한
@@ -180,6 +215,25 @@
       <button type="button" class="hub-mock-plan-btn" data-mock-plan="premium" onclick="return hubSetMockPlan(this,'premium')">Premium 플랜</button>
     </div>
   </div>
+
+<div class="hub-group-label hub-group-label--row" style="margin-top:4px">
+  테마 스코프
+</div>
+<div class="hub-mock-theme">
+  <div class="hub-mock-theme-btns">
+    <button type="button" class="hub-mock-theme-btn active" data-theme-scope="dashboard" onclick="return hubSetThemeScope(this,'dashboard')">Dashboard</button>
+    <button type="button" class="hub-mock-theme-btn" data-theme-scope="landing" onclick="return hubSetThemeScope(this,'landing')">Landing</button>
+  </div>
+</div>
+<div class="hub-group-label hub-group-label--row" style="margin-top:4px">
+  테마 모드
+</div>
+<div class="hub-mock-theme">
+  <div class="hub-mock-theme-btns">
+    <button type="button" class="hub-mock-theme-btn active" data-theme-mode="dark" onclick="return hubSetThemeMode(this,'dark')">Dark</button>
+    <button type="button" class="hub-mock-theme-btn" data-theme-mode="light" onclick="return hubSetThemeMode(this,'light')">Light</button>
+  </div>
+</div>
 </nav>
 
 <main class="hub-main">
@@ -195,6 +249,8 @@
 <script>
   var MOCK_ROLE_STORAGE = "clansync-hub-mock-role";
   var MOCK_PLAN_STORAGE = "clansync-hub-mock-plan";
+  var MOCK_THEME_SCOPE_STORAGE = "clansync-hub-theme-scope";
+  var MOCK_THEME_MODE_STORAGE = "clansync-hub-theme-mode";
 
   function hubGetMockRole() {
     try {
@@ -210,6 +266,30 @@
       if (pl === "premium" || pl === "pro") return "premium";
     } catch (e) {}
     return "free";
+  }
+
+  function hubGetThemeScope() {
+    try {
+      var s = (sessionStorage.getItem(MOCK_THEME_SCOPE_STORAGE) || "dashboard").toLowerCase();
+      if (s === "landing") return "landing";
+    } catch (e) {}
+    return "dashboard";
+  }
+
+  function hubGetThemeMode() {
+    try {
+      var m = (sessionStorage.getItem(MOCK_THEME_MODE_STORAGE) || "dark").toLowerCase();
+      if (m === "light") return "light";
+    } catch (e) {}
+    return "dark";
+  }
+
+  function hubApplyThemeToFrame() {
+    var frame = document.getElementById("frame");
+    if (!frame || !frame.contentDocument || !frame.contentDocument.body) return;
+    var body = frame.contentDocument.body;
+    body.setAttribute("data-theme-scope", hubGetThemeScope());
+    body.setAttribute("data-theme-mode", hubGetThemeMode());
   }
 
   function hubClanMainSrc(opts) {
@@ -273,6 +353,30 @@
     return false;
   }
 
+  function hubSetThemeScope(btn, scope) {
+    var normalized = scope === "landing" ? "landing" : "dashboard";
+    try {
+      sessionStorage.setItem(MOCK_THEME_SCOPE_STORAGE, normalized);
+    } catch (e) {}
+    document.querySelectorAll(".hub-mock-theme-btn[data-theme-scope]").forEach(function (b) {
+      b.classList.toggle("active", b === btn);
+    });
+    hubApplyThemeToFrame();
+    return false;
+  }
+
+  function hubSetThemeMode(btn, mode) {
+    var normalized = mode === "light" ? "light" : "dark";
+    try {
+      sessionStorage.setItem(MOCK_THEME_MODE_STORAGE, normalized);
+    } catch (e) {}
+    document.querySelectorAll(".hub-mock-theme-btn[data-theme-mode]").forEach(function (b) {
+      b.classList.toggle("active", b === btn);
+    });
+    hubApplyThemeToFrame();
+    return false;
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     var r = hubGetMockRole();
     document.querySelectorAll(".hub-mock-role-btn").forEach(function (b) {
@@ -282,6 +386,20 @@
     document.querySelectorAll(".hub-mock-plan-btn").forEach(function (b) {
       b.classList.toggle("active", b.getAttribute("data-mock-plan") === pl);
     });
+    var themeScope = hubGetThemeScope();
+    document.querySelectorAll(".hub-mock-theme-btn[data-theme-scope]").forEach(function (b) {
+      b.classList.toggle("active", b.getAttribute("data-theme-scope") === themeScope);
+    });
+    var themeMode = hubGetThemeMode();
+    document.querySelectorAll(".hub-mock-theme-btn[data-theme-mode]").forEach(function (b) {
+      b.classList.toggle("active", b.getAttribute("data-theme-mode") === themeMode);
+    });
+
+    var frame = document.getElementById("frame");
+    if (frame) {
+      frame.addEventListener("load", hubApplyThemeToFrame);
+      hubApplyThemeToFrame();
+    }
 
     /* 허브 도움말: .hub-nav overflow로 ::after 가 잘리므로 fixed 레이어 + 내부 스크롤 */
     (function hubTooltipFlyoutInit() {

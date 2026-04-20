@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClanSync — 컴포넌트 스튜디오</title>
+<link rel="stylesheet" href="../styles/main.css">
+<style>
+body {
+  margin: 0;
+  background: var(--bg-base);
+  color: var(--text-primary);
+}
+.studio-shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+.studio-nav {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  border-right: 1px solid var(--border);
+  background: var(--bg-surface);
+  padding: 20px 16px;
+}
+.studio-nav h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+.studio-nav a {
+  display: block;
+  margin: 4px 0;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 8px 10px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+.studio-nav a:hover {
+  border-color: var(--border);
+  color: var(--text-primary);
+  background: var(--bg-overlay);
+}
+.studio-main {
+  padding: 24px;
+}
+.studio-header {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-surface);
+  padding: 20px;
+  margin-bottom: 18px;
+}
+.studio-title {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+.studio-desc {
+  margin: 0 0 14px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.studio-controls {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(5, minmax(100px, 1fr));
+  gap: 10px;
+}
+.studio-input,
+.studio-select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 10px;
+  background: var(--bg-overlay);
+  color: var(--text-primary);
+}
+.studio-section {
+  margin-bottom: 18px;
+}
+.section-title {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+.section-sub {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.studio-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.component-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-surface);
+  padding: 14px;
+}
+.component-card h4 {
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+.component-card p {
+  margin: 0 0 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.preview-box {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-overlay);
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.preview-title {
+  margin: 0 0 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.preview-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.preview-tab {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  cursor: pointer;
+}
+.preview-tab.active {
+  border-color: var(--accent-violet);
+  color: var(--accent-violet);
+}
+.preview-pane { display: none; }
+.preview-pane.active { display: block; }
+.preview-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.p-btn {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+}
+.p-btn.active {
+  border-color: var(--accent-violet);
+  color: var(--accent-violet);
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border);
+}
+.dot.active { background: var(--accent-violet); }
+.tab-line {
+  padding: 4px 2px;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.tab-line.active {
+  border-bottom-color: var(--mock-tab-indicator);
+  color: var(--text-primary);
+}
+.pill {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.pill.active {
+  border-color: var(--accent-violet);
+  color: var(--accent-violet);
+}
+.field {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+}
+.field.error { border-color: var(--danger); color: var(--danger); }
+.field.success { border-color: var(--success); color: var(--success); }
+.badge {
+  border-radius: 999px;
+  padding: 3px 7px;
+  font-size: 11px;
+  border: 1px solid var(--border);
+}
+.badge.role { color: var(--role-tank); border-color: var(--role-tank); }
+.badge.plan { color: var(--pro-gold); border-color: var(--pro-gold); }
+.banner {
+  border: 1px solid var(--pro-gold);
+  border-radius: 8px;
+  padding: 7px 8px;
+  font-size: 11px;
+  color: var(--pro-gold);
+  background: color-mix(in srgb, var(--pro-gold) 12%, transparent);
+}
+.mini-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.mini-table th,
+.mini-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 4px 2px;
+  text-align: left;
+  color: var(--text-secondary);
+}
+.mini-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  width: 120px;
+  background: var(--bg-surface);
+  font-size: 11px;
+}
+.fake-modal {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px;
+  max-width: 220px;
+  background: var(--bg-surface);
+}
+.ring {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 5px solid var(--border);
+  border-top-color: var(--accent-violet);
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  color: var(--accent-violet);
+}
+.bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+  min-width: 150px;
+}
+.bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent-violet);
+}
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.chip {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--bg-overlay);
+}
+.list {
+  margin: 0;
+  padding-left: 16px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.list li { margin: 4px 0; }
+.guide-panel {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  background: var(--bg-surface);
+}
+@media (max-width: 1024px) {
+  .studio-shell { grid-template-columns: 1fr; }
+  .studio-nav {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .studio-controls { grid-template-columns: 1fr 1fr; }
+  .studio-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+  <div class="studio-shell">
+    <aside class="studio-nav">
+      <h2>카테고리</h2>
+      <a href="#navigation">Navigation</a>
+      <a href="#inputs">Inputs & Forms</a>
+      <a href="#feedback">Feedback & Status</a>
+      <a href="#display">Data Display</a>
+      <a href="#overlay">Overlay</a>
+      <a href="#charts">Charts & Metrics</a>
+      <a href="#domain">Domain Blocks</a>
+    </aside>
+
+    <main class="studio-main">
+      <header class="studio-header">
+        <h1 class="studio-title">컴포넌트 스튜디오</h1>
+        <p class="studio-desc">바리에이션, 상태, 권한, 플랜 차이를 한 화면에서 비교하는 카탈로그 페이지</p>
+        <div class="studio-controls">
+          <input class="studio-input" type="search" placeholder="컴포넌트 검색 (예: pagination, modal)">
+          <select class="studio-select"><option>카테고리: 전체</option></select>
+          <select class="studio-select"><option>권한: member</option></select>
+          <select class="studio-select"><option>플랜: Free</option></select>
+          <select class="studio-select"><option>뷰: Grid</option></select>
+          <select class="studio-select"><option>디바이스: Desktop</option></select>
+        </div>
+      </header>
+
+      <section id="navigation" class="studio-section">
+        <h3 class="section-title">Navigation</h3>
+        <p class="section-sub">탐색 컴포넌트의 밀도/피드백/모바일 대응 비교</p>
+        <div class="studio-grid">
+          <article class="component-card">
+            <h4>Pagination</h4>
+            <p>게시판, 통계 기록, 멤버 리스트 등 페이지 분할에 사용</p>
+            <div class="preview-box" data-preview-group="pagination">
+              <div class="preview-tabs">
+                <button class="preview-tab active" data-preview-target="pagination" data-preview-variation="number">숫자형</button>
+                <button class="preview-tab" data-preview-target="pagination" data-preview-variation="dot">도트형</button>
+              </div>
+              <div class="preview-pane active" data-preview-pane="pagination:number">
+                <div class="preview-row">
+                <button class="p-btn">이전</button>
+                <button class="p-btn">1</button>
+                <button class="p-btn active">2</button>
+                <button class="p-btn">3</button>
+                <button class="p-btn">다음</button>
+              </div>
+              </div>
+              <div class="preview-pane" data-preview-pane="pagination:dot">
+                <div class="preview-row">
+                <span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span>
+              </div>
+              </div>
+            </div>
+            <div class="meta-row"><span class="chip">MVP</span><span class="chip">Used In: MainGame</span><span class="chip">Used In: ClanStats</span></div>
+            <ul class="list">
+              <li>Variations: 숫자형 / 도트형 / 이전·다음 / 더보기</li>
+              <li>States: default / hover / active / disabled</li>
+              <li>Context: Desktop / Mobile compact</li>
+            </ul>
+          </article>
+          <article class="component-card">
+            <h4>Tabs</h4>
+            <p>MainClan 및 MainGame의 상위 전환 패턴</p>
+            <div class="preview-box" data-preview-group="tabs">
+              <div class="preview-tabs">
+                <button class="preview-tab active" data-preview-target="tabs" data-preview-variation="underline">밑줄형</button>
+                <button class="preview-tab" data-preview-target="tabs" data-preview-variation="segment">세그먼트형</button>
+              </div>
+              <div class="preview-pane active" data-preview-pane="tabs:underline">
+                <div class="preview-row">
+                <span class="tab-line active">홈</span>
+                <span class="tab-line">통계</span>
+                <span class="tab-line">이벤트</span>
+              </div>
+              </div>
+              <div class="preview-pane" data-preview-pane="tabs:segment">
+                <div class="preview-row">
+                <span class="pill active">LFG</span>
+                <span class="pill">스크림</span>
+                <span class="pill">홍보</span>
+              </div>
+              </div>
+            </div>
+            <div class="meta-row"><span class="chip">MVP</span><span class="chip">권한 영향 있음</span></div>
+            <ul class="list">
+              <li>Variations: underline / segmented / icon+label / scroll</li>
+              <li>States: active / inactive / locked / loading</li>
+              <li>Context: leader·officer·member / Free·Premium</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="inputs" class="studio-section">
+        <h3 class="section-title">Inputs & Forms</h3>
+        <p class="section-sub">입력 검증과 오류 표현 기준을 통일</p>
+        <div class="studio-grid">
+          <article class="component-card">
+            <h4>Input & Search</h4>
+            <p>인증, 클랜 생성, 필터링 폼의 기준 컴포넌트</p>
+            <div class="preview-box" data-preview-group="input">
+              <div class="preview-tabs">
+                <button class="preview-tab active" data-preview-target="input" data-preview-variation="default">Default</button>
+                <button class="preview-tab" data-preview-target="input" data-preview-variation="error">Error</button>
+                <button class="preview-tab" data-preview-target="input" data-preview-variation="success">Success</button>
+              </div>
+              <div class="preview-pane active" data-preview-pane="input:default">
+                <div class="preview-row"><div class="field">검색어 입력...</div></div>
+              </div>
+              <div class="preview-pane" data-preview-pane="input:error">
+                <div class="preview-row"><div class="field error">이미 사용 중인 태그</div></div>
+              </div>
+              <div class="preview-pane" data-preview-pane="input:success">
+                <div class="preview-row"><div class="field success">사용 가능한 닉네임</div></div>
+              </div>
+            </div>
+            <div class="meta-row"><span class="chip">MVP</span><span class="chip">Used In: SignIn/SignUp</span></div>
+            <ul class="list">
+              <li>Variations: text / search / password / with helper</li>
+              <li>States: default / focus / error / success / disabled</li>
+              <li>Context: inline filter / form layout</li>
+            </ul>
+          </article>
+          <article class="component-card">
+            <h4>Select / Toggle / Checkbox</h4>
+            <p>정책 설정, 필터 선택, 반복 옵션 입력에 사용</p>
+            <div class="preview-box" data-preview-group="select">
+              <div class="preview-tabs">
+                <button class="preview-tab active" data-preview-target="select" data-preview-variation="single">단일 선택</button>
+                <button class="preview-tab" data-preview-target="select" data-preview-variation="toggle">토글</button>
+                <button class="preview-tab" data-preview-target="select" data-preview-variation="check">체크</button>
+              </div>
+              <div class="preview-pane active" data-preview-pane="select:single">
+                <div class="preview-row"><button class="p-btn">주간 반복 ▾</button></div>
+              </div>
+              <div class="preview-pane" data-preview-pane="select:toggle">
+                <div class="preview-row"><button class="p-btn active">공개</button><button class="p-btn">비공개</button></div>
+              </div>
+              <div class="preview-pane" data-preview-pane="select:check">
+                <div class="preview-row">
+                <button class="p-btn">주간 반복 ▾</button>
+                <label style="font-size:12px;color:var(--text-secondary);"><input type="checkbox" checked> 알림 받기</label>
+              </div>
+              </div>
+            </div>
+            <div class="meta-row"><span class="chip">권장</span><span class="chip">Used In: ClanEvents</span></div>
+            <ul class="list">
+              <li>Variations: single-select / multi-select / switch / radio</li>
+              <li>States: default / checked / disabled / error</li>
+              <li>Context: 설정 페이지 / 모달 폼</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="feedback" class="studio-section">
+        <h3 class="section-title">Feedback & Status</h3>
+        <p class="section-sub">상태 전달 우선순위(배지 → 배너 → 토스트)</p>
+        <div class="studio-grid">
+          <article class="component-card">
+            <h4>Badge / Tag</h4>
+            <p>역할, 상태, 플랜 배지를 일관된 톤으로 제공</p>
+            <div class="preview-box" data-preview-group="badge">
+              <div class="preview-tabs">
+                <button class="preview-tab active" data-preview-target="badge" data-preview-variation="role">Role</button>
+                <button class="preview-tab" data-preview-target="badge" data-preview-variation="status">Status</button>
+                <button class="preview-tab" data-preview-target="badge" data-preview-variation="plan">Plan</button>
+              </div>
+              <div class="preview-pane active" data-preview-pane="badge:role">
+                <div class="preview-row"><span class="badge role">leader</span><span class="badge role">officer</span></div>
+              </div>
+              <div class="preview-pane" data-preview-pane="badge:status">
+                <div class="preview-row"><span class="badge">진행중</span><span class="badge">대기</span></div>
+              </div>
+              <div class="preview-pane" data-preview-pane="badge:plan">
+                <div class="preview-row"><span class="badge">Free</span><span class="badge plan">Premium</span></div>
+              </div>
+            </div>
+            <div class="meta-row"><span class="chip">MVP</span><span class="chip">leader/officer/member</span></div>
+            <ul class="list">
+              <li>Variations: role / status / plan / info</li>
+              <li>States: solid / soft / outlined</li>
+              <li>Context: 카드 헤더 / 리스트 행 / 모달</li>
+            </ul>
+          </article>
+          <article class="component-card">
+            <h4>Empty / Alert / Toast</h4>
+            <p>데이터 없음, 권한 부족, 성공/실패 메시지 분리</p>
+            <div class="preview-box" data-preview-group="feedback">
+              <div class="preview-tabs">
+                <button class="preview-tab active" data-preview-target="feedback" data-preview-variation="empty">Empty</button>
+                <button class="preview-tab" data-preview-target="feedback" data-preview-variation="alert">Alert</button>
+              </div>
+              <div class="preview-pane active" data-preview-pane="feedback:empty">
+                <div class="preview-row">
+                <div class="mini-card">데이터가 없습니다</div>
+                </div>
+              </div>
+              <div class="preview-pane" data-preview-pane="feedback:alert">
+                <div class="preview-row">
+                <div class="banner">Premium 기능입니다. 업그레이드 후 이용 가능</div>
+              </div>
+              </div>
+            </div>
+            <div class="meta-row"><span class="chip">MVP</span><span class="chip">플랜 분기 포함</span></div>
+            <ul class="list">
+              <li>Variations: empty / 403 / premium-lock / success/error toast</li>
+              <li>States: visible / dismissed / retry</li>
+              <li>Context: 페이지 본문 / 상단 배너 / 우하단 토스트</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="display" class="studio-section">
+        <h3 class="section-title">Data Display</h3>
+        <p class="section-sub">밀도 높은 데이터와 카드형 정보를 분리 운영</p>
+        <div class="studio-grid">
+          <article class="component-card">
+            <h4>Table</h4>
+            <p>관리·통계에서 정렬/필터/액션 패턴 통일</p>
+            <div class="preview-box" data-preview-group="table">
+              <div class="preview-tabs">
+                <button class="preview-tab active" data-preview-target="table" data-preview-variation="basic">Basic</button>
+                <button class="preview-tab" data-preview-target="table" data-preview-variation="selected">Selected</button>
+              </div>
+              <div class="preview-pane active" data-preview-pane="table:basic">
+              <table class="mini-table">
+                <thead><tr><th>맴버</th><th>승률</th><th>상태</th></tr></thead>
+                <tbody>
+                  <tr><td>Rin</td><td>62%</td><td>활성</td></tr>
+                  <tr><td>Ari</td><td>58%</td><td>대기</td></tr>
+                </tbody>
+              </table>
+              </div>
+              <div class="preview-pane" data-preview-pane="table:selected">
+                <table class="mini-table">
+                  <thead><tr><th>맴버</th><th>승률</th><th>상태</th></tr></thead>
+                  <tbody>
+                    <tr style="background:rgba(52,211,153,0.08);"><td>Rin</td><td>62%</td><td>선택됨</td></tr>
+                    <tr><td>Ari</td><td>58%</td><td>대기</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="meta-row"><span class="chip">MVP</span><span class="chip">Used In: ClanManage</span></div>
+            <ul class="list">
+              <li>Variations: basic / sortable / action-menu</li>
+              <li>States: loading / empty / selected / disabled row</li>
+              <li>Context: 운영진 전용 뷰</li>
+            </ul>
+          </article>
+          <article class="component-card">
+            <h4>Card Grid / List Item</h4>
+            <p>게임 카드, 클랜 카드, 게시글 카드, 일정 리스트 아이템</p>
+            <div class="preview-box" data-preview-group="card">
+              <div class="preview-tabs">
+                <button class="preview-tab active" data-preview-target="card" data-preview-variation="default">Default</button>
+                <button class="preview-tab" data-preview-target="card" data-preview-variation="featured">Featured</button>
+              </div>
+              <div class="preview-pane active" data-preview-pane="card:default">
+                <div class="preview-row">
+                <div class="mini-card">[OW2] 스크림 모집<br><span style="color:var(--text-muted)">20:00 시작</span></div>
+                <div class="mini-card">[VAL] 클랜 홍보<br><span style="color:var(--text-muted)">신규 모집 중</span></div>
+              </div>
+              </div>
+              <div class="preview-pane" data-preview-pane="card:featured">
+                <div class="preview-row">
+                  <div class="mini-card" style="border-color:var(--accent-violet);width:180px;">[PIN] 주간 대회 공지<br><span style="color:var(--accent-violet);">추천 게시글</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="meta-row"><span class="chip">MVP</span><span class="chip">Used In: Games/MainGame</span></div>
+            <ul class="list">
+              <li>Variations: compact / default / featured</li>
+              <li>States: pinned / locked / hover / selected</li>
+              <li>Context: 1열~3열 반응형</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="overlay" class="studio-section">
+        <h3 class="section-title">Overlay</h3>
+        <p class="section-sub">확인/입력/상세보기 목적별 레이어 분리</p>
+        <div class="studio-grid">
+          <article class="component-card">
+            <h4>Modal</h4>
+            <p>가입 신청, 프로필 꾸미기, 확인 다이얼로그</p>
+            <div class="preview-box" data-preview-group="modal">
+              <div class="preview-tabs">
+                <button class="preview-tab active" data-preview-target="modal" data-preview-variation="confirm">Confirm</button>
+                <button class="preview-tab" data-preview-target="modal" data-preview-variation="form">Form</button>
+              </div>
+              <div class="preview-pane active" data-preview-pane="modal:confirm">
+                <div class="fake-modal">
+                  <div style="font-size:12px;margin-bottom:8px;">가입 신청을 보낼까요?</div>
+                  <div class="preview-row">
+                    <button class="p-btn">취소</button>
+                    <button class="p-btn active">확인</button>
+                  </div>
+                </div>
+              </div>
+              <div class="preview-pane" data-preview-pane="modal:form">
+                <div class="fake-modal">
+                  <div class="field" style="margin-bottom:6px;">클랜 태그 입력</div>
+                  <button class="p-btn active">저장</button>
+                </div>
+              </div>
+            </div>
+            <div class="meta-row"><span class="chip">MVP</span><span class="chip">Used In: Profile/ClanAuth</span></div>
+            <ul class="list">
+              <li>Variations: confirm / form / showcase</li>
+              <li>States: open / submit-loading / success / error</li>
+              <li>Context: desktop center / mobile full-sheet</li>
+            </ul>
+          </article>
+          <article class="component-card">
+            <h4>Drawer / Tooltip</h4>
+            <p>홍보 상세, 필터 패널, 보조 설명 표시</p>
+            <div class="preview-box" data-preview-group="drawer">
+              <div class="preview-tabs">
+                <button class="preview-tab active" data-preview-target="drawer" data-preview-variation="drawer">Drawer</button>
+                <button class="preview-tab" data-preview-target="drawer" data-preview-variation="tooltip">Tooltip</button>
+              </div>
+              <div class="preview-pane active" data-preview-pane="drawer:drawer">
+                <div class="preview-row">
+                <div class="mini-card" style="width:160px;">우측 드로어<br><span style="color:var(--text-muted)">홍보 상세 내용</span></div>
+                </div>
+              </div>
+              <div class="preview-pane" data-preview-pane="drawer:tooltip">
+                <div class="preview-row">
+                <span class="chip">툴팁: 운영진만 편집 가능</span>
+              </div>
+              </div>
+            </div>
+            <div class="meta-row"><span class="chip">권장</span><span class="chip">Used In: MainGame</span></div>
+            <ul class="list">
+              <li>Variations: side drawer / bottom sheet / tooltip</li>
+              <li>States: open / collapsed / pinned</li>
+              <li>Context: 모바일 우선 인터랙션</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="charts" class="studio-section">
+        <h3 class="section-title">Charts & Metrics</h3>
+        <p class="section-sub">숫자 KPI와 경기 지표를 동시에 표현</p>
+        <div class="studio-grid">
+          <article class="component-card">
+            <h4>Winrate Ring</h4>
+            <p>승률 표현의 브랜드 대표 컴포넌트</p>
+            <div class="preview-box" data-preview-group="ring">
+              <div class="preview-tabs">
+                <button class="preview-tab active" data-preview-target="ring" data-preview-variation="single">Single</button>
+                <button class="preview-tab" data-preview-target="ring" data-preview-variation="mini">Mini</button>
+              </div>
+              <div class="preview-pane active" data-preview-pane="ring:single">
+                <div class="preview-row">
+                <div class="ring">62%</div>
+                </div>
+              </div>
+              <div class="preview-pane" data-preview-pane="ring:mini">
+                <div class="preview-row">
+                <div class="ring" style="width:36px;height:36px;border-width:4px;">48%</div>
+              </div>
+              </div>
+            </div>
+            <div class="meta-row"><span class="chip">MVP</span><span class="chip">Used In: MainClan/Stats</span></div>
+            <ul class="list">
+              <li>Variations: single ring / dual ring / mini ring</li>
+              <li>States: 0% / normal / high confidence</li>
+              <li>Context: 카드 헤더 / 통계 요약</li>
+            </ul>
+          </article>
+          <article class="component-card">
+            <h4>Progress / Role Distribution</h4>
+            <p>맵 승률, 역할 분포, 참여율 추이 표시</p>
+            <div class="preview-box" data-preview-group="progress">
+              <div class="preview-tabs">
+                <button class="preview-tab active" data-preview-target="progress" data-preview-variation="single">Single</button>
+                <button class="preview-tab" data-preview-target="progress" data-preview-variation="stacked">Stacked</button>
+              </div>
+              <div class="preview-pane active" data-preview-pane="progress:single">
+                <div class="preview-row">
+                  <span style="font-size:11px;color:var(--text-secondary);">탱커</span>
+                  <div class="bar"><span style="width:35%;"></span></div>
+                </div>
+              </div>
+              <div class="preview-pane" data-preview-pane="progress:stacked">
+                <div class="preview-row">
+                  <span style="font-size:11px;color:var(--text-secondary);">DPS</span>
+                  <div class="bar"><span style="width:45%;"></span></div>
+                </div>
+              </div>
+            </div>
+            <div class="meta-row"><span class="chip">권장</span><span class="chip">데이터 시각화</span></div>
+            <ul class="list">
+              <li>Variations: horizontal bar / stacked bar / sparkline</li>
+              <li>States: normal / threshold-warning / no-data</li>
+              <li>Context: 통계 섹션 / 요약 카드</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="domain" class="studio-section">
+        <h3 class="section-title">Domain Blocks (ClanSync 전용)</h3>
+        <p class="section-sub">일반 UI가 아닌 도메인 단위의 재사용 블록</p>
+        <div class="studio-grid">
+          <article class="component-card">
+            <h4>Match Result Row / Map Winrate Row</h4>
+            <p>경기 결과/맵별 승률을 한 줄 요약으로 표준화</p>
+            <div class="preview-box" data-preview-group="matchrow">
+              <div class="preview-tabs">
+                <button class="preview-tab active" data-preview-target="matchrow" data-preview-variation="match">MatchRow</button>
+                <button class="preview-tab" data-preview-target="matchrow" data-preview-variation="map">MapRow</button>
+              </div>
+              <div class="preview-pane active" data-preview-pane="matchrow:match">
+                <div class="preview-row">
+                <div class="mini-card" style="width:220px;">King's Row · 3:1 승리</div>
+                </div>
+              </div>
+              <div class="preview-pane" data-preview-pane="matchrow:map">
+                <div class="preview-row">
+                <div class="mini-card" style="width:220px;">Havana · 승률 58% (7W-5L)</div>
+              </div>
+              </div>
+            </div>
+            <div class="meta-row"><span class="chip">Domain</span><span class="chip">Used In: ClanStats</span></div>
+            <ul class="list">
+              <li>Variations: compact / detailed</li>
+              <li>States: win / lose / draw / pending</li>
+              <li>Context: 테이블형 / 카드형</li>
+            </ul>
+          </article>
+          <article class="component-card">
+            <h4>Balance Team Slot / Scrim Request Card / Clan Rank Widget / Coin Summary</h4>
+            <p>밸런스, 스크림, 순위, 코인 정보를 묶어 표시</p>
+            <div class="preview-box" data-preview-group="domain">
+              <div class="preview-tabs">
+                <button class="preview-tab active" data-preview-target="domain" data-preview-variation="balance">BalanceSlot</button>
+                <button class="preview-tab" data-preview-target="domain" data-preview-variation="scrim">ScrimCard</button>
+                <button class="preview-tab" data-preview-target="domain" data-preview-variation="rank">Rank/Coin</button>
+              </div>
+              <div class="preview-pane active" data-preview-pane="domain:balance">
+                <div class="preview-row"><div class="mini-card">팀 A 슬롯(빈자리)</div></div>
+              </div>
+              <div class="preview-pane" data-preview-pane="domain:scrim">
+                <div class="preview-row"><div class="mini-card">스크림 요청 #204</div></div>
+              </div>
+              <div class="preview-pane" data-preview-pane="domain:rank">
+                <div class="preview-row">
+                  <div class="mini-card">클랜 순위 #12</div>
+                  <div class="mini-card">코인 12,450</div>
+                </div>
+              </div>
+            </div>
+            <div class="meta-row"><span class="chip">Domain</span><span class="chip">권한/플랜 분기</span></div>
+            <ul class="list">
+              <li>Variations: editable / readonly / premium-locked</li>
+              <li>States: empty-slot / assigned / closed / locked</li>
+              <li>Context: leader·officer 중심 제어</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="guide-panel">
+        <h3 class="section-title">컴포넌트 카드 표준 포맷</h3>
+        <ul class="list">
+          <li>필수: 컴포넌트명, 용도, Variations, States, Context, Used In, Do/Don't</li>
+          <li>신규 컴포넌트는 최소 variation 3개 + state 4개 + context 2개 이상 등록</li>
+          <li>실서비스 미사용 항목은 experimental 라벨 부착 후 근거 페이지를 함께 기록</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+  <script>
+    (function applyThemeFromHubSession() {
+      try {
+        var scope = (sessionStorage.getItem("clansync-hub-theme-scope") || "dashboard").toLowerCase();
+        var mode = (sessionStorage.getItem("clansync-hub-theme-mode") || "dark").toLowerCase();
+        if (scope !== "landing" && scope !== "dashboard") scope = "dashboard";
+        if (mode !== "light" && mode !== "dark") mode = "dark";
+        document.body.setAttribute("data-theme-scope", scope);
+        document.body.setAttribute("data-theme-mode", mode);
+      } catch (e) {}
+    })();
+
+    document.querySelectorAll(".preview-tab").forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        var group = tab.getAttribute("data-preview-target");
+        var variation = tab.getAttribute("data-preview-variation");
+        if (!group || !variation) return;
+
+        document.querySelectorAll('.preview-tab[data-preview-target="' + group + '"]').forEach(function (item) {
+          item.classList.remove("active");
+        });
+        tab.classList.add("active");
+
+        document.querySelectorAll('[data-preview-pane^="' + group + ':"]').forEach(function (pane) {
+          pane.classList.remove("active");
+        });
+        var activePane = document.querySelector('[data-preview-pane="' + group + ":" + variation + '"]');
+        if (activePane) activePane.classList.add("active");
+      });
+    });
+  </script>
+</body>
+</html>
