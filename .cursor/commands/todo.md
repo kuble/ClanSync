@@ -20,7 +20,7 @@
 
 **목업 유지보수 (Phase 1)**  
 - `mockup/`·슬라이스「목업」절 경로가 실제로 있는지 확인한다.  
-- **문서 정합**은 `clan-stats-plan.md`·`balance-maker-ui-notes.md` 등과 대조한다.
+- **문서 정합**은 `pages/10-Clan-Stats.md`·`pages/09-BalanceMaker.md` 등과 대조한다.
 
 ### 3. 진행도 문서 수정
 
