@@ -5605,7 +5605,7 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
         <div class="mock-events-cal-cell mock-events-cal-cell--muted"><span class="mock-events-cal-daynum">4</span></div>
         <div class="mock-events-cal-cell mock-events-cal-cell--muted mock-events-cal-cell--has"><span class="mock-events-cal-daynum">5</span><div class="mock-events-cal-dots" title="시즌 맞이 이벤트전"><span class="mock-events-cal-dot mock-events-cal-dot--event"></span></div></div>
       </div>
-      <p style="font-size:11px;color:var(--text-muted);margin:0 0 10px">점 색: 보라=내전 · 초록=스크림 · 주황=이벤트. 알림(카카오/디스코드)은 연동 후.</p>
+      <p style="font-size:11px;color:var(--text-muted);margin:0 0 10px">점 색: 보라=내전 · 초록=스크림 · 주황=이벤트. 알림은 Premium 전용으로 <strong>Discord</strong>(연동 시 기본 ON) · <strong>카카오 알림톡</strong>(기본 OFF · 옵트인 · 번호 인증) · <strong>in-app</strong>(항상). 슬롯 T-24h · T-1h · T-10min · T+0. 00~07시는 카카오 연기.</p>
     </div>
     <div class="mock-events-section-title">이번 달 일정</div>
     <div class="mock-events-grid">
@@ -6225,14 +6225,30 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
       <div class="mock-modal-field"><label for="mev-title">제목</label><input id="mev-title" type="text" placeholder="예: 정기 내전" /></div>
       <div class="mock-modal-field"><label for="mev-type">유형</label><select id="mev-type"><option>내전</option><option>스크림</option><option>이벤트</option></select></div>
       <div class="mock-modal-field"><label for="mev-when">일시 (24시간제)</label><input id="mev-when" type="text" placeholder="2026-03-27 21:00 (YYYY-MM-DD HH:mm)" title="24시간제, 예: 21:00" /></div>
-      <div class="mock-modal-field"><label for="mev-repeat">반복</label><select id="mev-repeat">
-        <option>없음 (일회)</option>
-        <option>매주 같은 요일·시간 (정기 내전 등)</option>
-        <option>매월 같은 날짜</option>
-        <option>격주 같은 요일</option>
+      <div class="mock-modal-field"><label for="mev-repeat">반복</label><select id="mev-repeat" onchange="mockEventRepeatChange&&mockEventRepeatChange(this)">
+        <option value="none">없음 (일회)</option>
+        <option value="weekly">매주 같은 요일·시간 (정기 내전 등)</option>
+        <option value="monthly">매월 같은 날짜</option>
+        <option value="biweekly">격주 같은 요일</option>
       </select></div>
+      <fieldset id="mev-repeat-end-fields" class="mock-modal-field" hidden>
+        <legend class="sr-only">반복 종료 조건</legend>
+        <label style="display:block;font-size:12px;color:var(--text-muted);margin-bottom:6px">종료 조건 (D-EVENTS-02)</label>
+        <div class="mock-modal-field" style="margin-bottom:6px">
+          <label><input type="radio" name="mev-repeat-end" value="never" checked onchange="mockEventRepeatEndChange&&mockEventRepeatEndChange(this)"> 종료일 없음 <span style="font-size:11px;color:var(--text-muted)">(약 1년 후 자동 만료 · 52회 hard stop)</span></label>
+        </div>
+        <div class="mock-modal-field" style="margin-bottom:6px">
+          <label><input type="radio" name="mev-repeat-end" value="count" onchange="mockEventRepeatEndChange&&mockEventRepeatEndChange(this)"> N회 반복</label>
+          <input id="mev-repeat-end-count" type="number" min="1" max="52" placeholder="1~52" style="width:120px;margin-left:8px" disabled />
+        </div>
+        <div class="mock-modal-field" style="margin-bottom:0">
+          <label><input type="radio" name="mev-repeat-end" value="until" onchange="mockEventRepeatEndChange&&mockEventRepeatEndChange(this)"> 날짜까지 반복</label>
+          <input id="mev-repeat-end-at" type="date" style="margin-left:8px" disabled />
+        </div>
+        <p id="mev-repeat-end-warn" class="mock-modal-hint" style="font-size:11px;color:var(--state-warn,#c78a00);margin:6px 0 0;line-height:1.45" hidden>반복 인스턴스가 52개를 초과할 수 없습니다. 횟수 또는 종료일을 조정해 주세요.</p>
+      </fieldset>
       <div class="mock-modal-field"><label for="mev-place">장소·채널</label><input id="mev-place" type="text" placeholder="예: 디스코드 #내전 · 인게임 초대" /></div>
-      <p style="font-size:11px;color:var(--text-muted);margin:0;line-height:1.45">스크림 일정은 매칭 확정 시 자동으로 등록되므로, 여기서는 내전·이벤트·수동 스크림만 입력합니다(목업).</p>
+      <p style="font-size:11px;color:var(--text-muted);margin:0;line-height:1.45">스크림 일정은 매칭 확정 시 자동 등록됩니다(<strong>읽기 전용 · D-EVENTS-01</strong>). 여기서는 내전·이벤트·수동 스크림만 입력합니다(목업).</p>
       <div class="mock-modal-actions">
         <button type="button" class="btn btn-secondary btn-sm" onclick="mockEventCloseModal()">취소</button>
         <button type="button" class="btn btn-sm" onclick="return window.mockEventSaveMock()">저장</button>
@@ -6276,6 +6292,8 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
               <option value="weekly">매주 같은 요일·시각</option>
               <option value="until-deadline">마감 전까지 매일</option>
             </select>
+            <p class="mock-modal-hint" style="font-size:11px;color:var(--text-muted);margin:6px 0 0;line-height:1.45">D-EVENTS-04: <strong>매일</strong>은 마감까지 ≥ 48h · <strong>매주</strong>는 ≥ 14일 · <strong>마감 전까지 매일</strong>은 ≥ 24h 여유가 필요합니다. 위반 시 운영에서 게시가 거부됩니다. 상한 60일 초과 시 경고.</p>
+            <p id="mep-notify-warn" class="mock-modal-hint" style="font-size:11px;color:var(--state-danger,#d44);margin:4px 0 0;line-height:1.45;display:none"></p>
           </div>
           <div id="mep-notify-schedule" class="mep-notify-schedule">
             <div id="mep-notify-row-none" class="mock-modal-field mep-notify-row" data-mep-repeat="none">

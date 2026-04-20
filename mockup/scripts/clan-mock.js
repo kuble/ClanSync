@@ -1378,7 +1378,66 @@
     }
   };
 
+  /* D-EVENTS-02: 반복 종료 조건 필드 토글 */
+  window.mockEventRepeatChange = function (selectEl) {
+    var fields = document.getElementById("mev-repeat-end-fields");
+    if (!fields) return;
+    var repeat = selectEl && selectEl.value ? selectEl.value : "none";
+    if (repeat === "none") {
+      fields.setAttribute("hidden", "");
+    } else {
+      fields.removeAttribute("hidden");
+    }
+    mockEventRepeatEndValidate();
+  };
+  window.mockEventRepeatEndChange = function (radio) {
+    var countInput = document.getElementById("mev-repeat-end-count");
+    var atInput = document.getElementById("mev-repeat-end-at");
+    var mode = radio && radio.value;
+    if (countInput) countInput.disabled = mode !== "count";
+    if (atInput) atInput.disabled = mode !== "until";
+    mockEventRepeatEndValidate();
+  };
+  function mockEventRepeatEndValidate() {
+    var warn = document.getElementById("mev-repeat-end-warn");
+    if (!warn) return;
+    var countInput = document.getElementById("mev-repeat-end-count");
+    var mode = document.querySelector('input[name="mev-repeat-end"]:checked');
+    var overflow = false;
+    if (mode && mode.value === "count" && countInput && countInput.value) {
+      var n = parseInt(countInput.value, 10);
+      if (!isNaN(n) && (n < 1 || n > 52)) overflow = true;
+    }
+    if (overflow) warn.removeAttribute("hidden");
+    else warn.setAttribute("hidden", "");
+  }
+  document.addEventListener("input", function (e) {
+    if (e.target && (e.target.id === "mev-repeat-end-count" || e.target.id === "mev-repeat-end-at")) {
+      mockEventRepeatEndValidate();
+    }
+  });
+
   window.mockEventSaveMock = function () {
+    var repeat = (document.getElementById("mev-repeat") || {}).value || "none";
+    if (repeat !== "none") {
+      var mode = document.querySelector('input[name="mev-repeat-end"]:checked');
+      if (!mode) {
+        window.alert("반복 종료 조건을 선택해 주세요 (D-EVENTS-02).");
+        return false;
+      }
+      if (mode.value === "count") {
+        var cn = parseInt((document.getElementById("mev-repeat-end-count") || {}).value, 10);
+        if (isNaN(cn) || cn < 1 || cn > 52) {
+          window.alert("반복 횟수는 1~52 사이여야 합니다 (D-EVENTS-02 인스턴스 상한 52).");
+          return false;
+        }
+      } else if (mode.value === "until") {
+        if (!(document.getElementById("mev-repeat-end-at") || {}).value) {
+          window.alert("종료 날짜를 선택해 주세요.");
+          return false;
+        }
+      }
+    }
     window.alert("목업: 일정이 등록되었습니다.");
     window.mockEventCloseModal();
     if (typeof window.mockSidebarNotifySet === "function") {
@@ -1480,7 +1539,55 @@
         row.setAttribute("hidden", "");
       }
     });
+    mockEventPollValidateDeadline();
   };
+
+  /* D-EVENTS-04: 반복×마감 하한 일관성 인라인 검증 */
+  function mockEventPollValidateDeadline() {
+    var warn = document.getElementById("mep-notify-warn");
+    if (!warn) return { ok: true };
+    var dl = document.getElementById("mep-deadline");
+    var repeatSel = document.getElementById("mep-notify-repeat");
+    var notifyCb = document.getElementById("mep-notify");
+    var notifyOn = !!(notifyCb && notifyCb.checked);
+    var raw = dl ? (dl.value || "").trim() : "";
+    warn.style.display = "none";
+    warn.textContent = "";
+    if (!notifyOn || !raw) return { ok: true };
+    // "YYYY-MM-DD HH:mm" 또는 "YYYY-MM-DDTHH:mm" 허용
+    var norm = raw.replace(" ", "T");
+    var deadline = new Date(norm);
+    if (isNaN(deadline.getTime())) return { ok: true };
+    var now = new Date();
+    var diffH = (deadline.getTime() - now.getTime()) / 36e5;
+    var repeat = repeatSel ? repeatSel.value : "none";
+    var msg = "";
+    if (diffH < 1) {
+      msg = "마감은 지금보다 최소 1시간 이후여야 합니다.";
+    } else if (repeat === "daily" && diffH < 48) {
+      msg = "48시간 이내 마감에는 '매일' 반복 알림을 사용할 수 없습니다. '한 번' 또는 '마감 전까지 매일'을 선택하세요.";
+    } else if (repeat === "weekly" && diffH < 14 * 24) {
+      msg = "14일 이내 마감에는 '매주' 반복 알림을 사용할 수 없습니다.";
+    } else if (repeat === "until-deadline" && diffH < 24) {
+      msg = "24시간 이내 마감에는 '마감 전까지 매일'을 사용할 수 없습니다. '한 번'을 권장합니다.";
+    } else if (diffH > 60 * 24) {
+      msg = "마감이 60일 이상 남았습니다. 반복 알림이 과도할 수 있습니다(경고).";
+      warn.style.color = "var(--state-warn, #c78a00)";
+      warn.style.display = "block";
+      warn.textContent = "D-EVENTS-04: " + msg;
+      return { ok: true, warning: true };
+    }
+    if (msg) {
+      warn.style.color = "var(--state-danger, #d44)";
+      warn.style.display = "block";
+      warn.textContent = "D-EVENTS-04: " + msg;
+      return { ok: false, message: msg };
+    }
+    return { ok: true };
+  }
+  document.addEventListener("input", function (e) {
+    if (e.target && e.target.id === "mep-deadline") mockEventPollValidateDeadline();
+  });
 
   /** 투표 알림 켜면 일시·반복 필드 표시 */
   window.mockEventPollNotifyToggle = function (cb) {
@@ -1547,6 +1654,11 @@
     }
     if (lines.length < 1) {
       alert("목업: 선택지를 하나 이상 입력해 주세요.");
+      return false;
+    }
+    var v = mockEventPollValidateDeadline();
+    if (v && v.ok === false) {
+      alert("D-EVENTS-04 위반: " + v.message);
       return false;
     }
     var bits = ["선택지 " + lines.length + "개"];
