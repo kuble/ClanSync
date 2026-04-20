@@ -48,11 +48,11 @@
 
 | 코드 | 상태 | 항목 | 메모 |
 |------|------|------|------|
-| D-EVENTS-01 | OPEN | 스크림 확정 → 클랜 이벤트 자동 생성 트리거·중복·취소 동기화 규칙 | 목업은 안내 카피만 있고 매칭 로직 없음 |
-| D-EVENTS-02 | OPEN | 일정 반복 종료 조건 (횟수 / 종료일) | 목업은 반복 종류만 4가지 (`없음/매주/매월/격주`), 종료 조건 없음 |
-| D-EVENTS-03 | OPEN | 일정 알림 채널 (카카오/디스코드) 발송 시점·실패 시 재시도 | 목업 캘린더 범례에 "알림은 연동 후" 명시 |
-| D-EVENTS-04 | OPEN | 투표 알림 반복(`마감 전까지 매일`) ↔ 마감일과의 일관성 검증 | 목업은 미검증 |
-| D-EVENTS-05 | OPEN | 대진표(Bracket) 결과의 클랜 통계·코인 반영 여부 | Premium 기능, 결과 활용 미정의 |
+| D-EVENTS-01 | DECIDED (2026-04-20) | 스크림 확정 → 클랜 이벤트 자동 생성 트리거·중복·취소 동기화 규칙 | `scrim_rooms.status='confirmed'` 전환 시 **양쪽 클랜 각각**에 `clan_events` 자동 INSERT. 멱등 키 `(clan_id, scrim_id)`. `source='scrim_auto'` 이벤트는 **읽기 전용**(시간·장소·제목 수정은 스크림 본체에서만). 스크림 취소 → 양쪽 이벤트 `cancelled_at` 세팅(행 삭제 금지). [§D-EVENTS-01](#d-events-01--스크림-확정--클랜-이벤트-자동-생성동기화) |
+| D-EVENTS-02 | DECIDED (2026-04-20) | 일정 반복 종료 조건 (횟수 / 종료일) | 3모드 `repeat_end_kind enum('never','count','until')`. `never`는 **서버가 12개월 hard stop**. `count`는 1~52. `until`은 `repeat_end_at` 날짜. 인스턴스 수 상한 **52개**. 템플릿 1행 + 지연 인스턴스 + `clan_event_exceptions`로 개별 수정·취소. [§D-EVENTS-02](#d-events-02--일정-반복-종료-조건) |
+| D-EVENTS-03 | DECIDED (2026-04-20) | 일정 알림 채널 (카카오/디스코드) 발송 시점·실패 시 재시도 | Premium 전용 Discord + 카카오 알림톡, Free는 in-app만. **카카오 기본 OFF**(옵트인), Discord 연동 시 ON. 발송 슬롯 T-24h·T-1h·T-10min·T+0. 재시도 지수 백오프 5회(1m→5m→30m→2h→6h) 후 DLQ. Quiet hours 00~07 KST 카카오 연기. 중복 방지 `(event_id, kind, scheduled_at, channel)` UNIQUE. [§D-EVENTS-03](#d-events-03--일정투표-알림-채널정책) |
+| D-EVENTS-04 | DECIDED (2026-04-20) | 투표 알림 반복(`마감 전까지 매일`) ↔ 마감일과의 일관성 검증 | 반복 모드별 마감 하한: **매일 ≥ +48h**, **매주 ≥ +14d**, **마감 전까지 매일 ≥ +24h** (24h 미만 에러). 상한 60d(초과 경고). 투표 생성 시 Server Action이 전체 발송 스케줄을 `notification_log` 예약 INSERT, 마감 도달 시 잔여 예약 자동 취소. [§D-EVENTS-04](#d-events-04--투표-알림과-마감일-일관성-검증) |
+| D-EVENTS-05 | DECIDED (2026-04-20) | 대진표(Bracket) 결과의 클랜 통계·코인 반영 여부 | **대진표 = 클랜 내 이벤트**(클랜 간 토너먼트는 기획 없음). 통계는 **별도 섹션**("대진표" 탭)으로 정기 내전(`match_type='intra'`)과 완전 분리. HoF·외부 순위표 반영 X(D-ECON-03 유지). 참여율·매너 점수는 내전과 동일 가중치 가산. **코인은 D-ECON-01 확정값만**(개최 500 차감·참가 +200·우승 +1,000, 전부 클랜 풀). 개인 풀 보상·MVP 자동 산정 **없음**. [§D-EVENTS-05](#d-events-05--대진표-결과의-통계코인-반영) |
 
 ## 클랜 관리 (MANAGE)
 
@@ -1750,3 +1750,294 @@ user_badge_unlocks (
 - [pages/01-Landing-Page.md](./pages/01-Landing-Page.md)
 - [pages/04-Main_GameSelect.md](./pages/04-Main_GameSelect.md) (리다이렉트 목적지)
 - [decisions.md §D-SHELL 계열](#) (shell 로고 라우팅 — 별도 결정 OPEN)
+
+### D-EVENTS-01 — 스크림 확정 → 클랜 이벤트 자동 생성·동기화
+
+- **결정일**: 2026-04-20
+- **요지**: 스크림이 양측 운영진 합의로 확정되면 **양쪽 클랜의 `clan_events`에 각각 1행** 자동 INSERT. 해당 이벤트는 **스크림에서 파생된 뷰**이므로 **읽기 전용**, 시간·장소·제목 수정은 스크림 본체에서만. 취소·시간 변경 시 양쪽 이벤트가 자동 동기화.
+
+**트리거 (Phase 2+ 서버 구현)**
+
+| 스크림 상태 전이 | 이벤트 측 동작 | 멱등 키 |
+|-------------------|---------------|---------|
+| `matched` → `confirmed` (최초 확정) | 양쪽 클랜에 각각 INSERT (`source='scrim_auto'`, `scrim_id`, `kind='scrim'`) | `(clan_id, scrim_id)` UNIQUE → 중복 INSERT 시 no-op |
+| `confirmed` 상태에서 `scheduled_at` 변경 | 양쪽 이벤트 `start_at` UPDATE | — |
+| `confirmed` 상태에서 `place`·`title` 변경 | 양쪽 이벤트 해당 필드 UPDATE | — |
+| `confirmed` → `cancelled` | 양쪽 이벤트 `cancelled_at = now()` 세팅(**행 삭제 금지**) | — |
+| `cancelled` → `confirmed` (재확정) | 양쪽 이벤트 `cancelled_at = NULL` 복원 | — |
+| `confirmed` → `finished` (경기 종료) | 양쪽 이벤트 `finished_at` 세팅, 알림 스케줄 중단 | — |
+
+**구현 레이어 (2중 방어)**
+
+1. **Server Action** (주 경로): 스크림 확정 버튼·취소 버튼 Action이 트랜잭션 내에서 `scrim_rooms` UPDATE + 양쪽 `clan_events` UPSERT를 함께 실행.
+2. **PostgreSQL 트리거** (안전망): `scrim_rooms` AFTER UPDATE OF status 트리거가 같은 로직 수행. Server Action 누락·직접 SQL 수정 대비. 트리거 내부에서 멱등 키로 중복 INSERT 방지.
+3. 트리거·Server Action이 동시에 실행되어도 `ON CONFLICT DO NOTHING`·`UPDATE ... WHERE cancelled_at IS DISTINCT FROM ...`로 no-op 보장.
+
+**읽기 전용 정책**
+
+- `source='scrim_auto'` 이벤트의 수동 편집 UI는 숨김 + 읽기 전용 모달.
+- 일정 카드 하단 배지 **"스크림에서 자동 등록"** + "스크림 상세 열기" 링크(`/games/[g]/#scrim` · `scrimDrawer` open).
+- 이벤트 행 삭제 버튼 없음 — 스크림 취소만이 유일한 "제거" 경로(취소 후에도 행은 남고 `cancelled_at` 배지로 표시).
+- 수동 등록 이벤트(`source='manual'`)는 제약 없음(기존 동작 유지).
+
+**취소 표시 규칙**
+
+- 캘린더 셀 점: 회색 dim + 취소선 스타일(`mock-events-cal-dot--cancelled` 신설 예정).
+- 일정 카드: 제목 취소선 + 우상단 "취소됨" 라벨.
+- 알림 스케줄: D-EVENTS-03에 따라 `cancelled_at` 세팅 순간 **미발송 예약 알림 전부 취소**(이미 보낸 건은 별도 취소 알림 1회 발송 — Discord·카카오 재사용).
+
+**Phase 2+ 스키마 영향 (요지)**
+
+- `clan_events` 확장 필드: `kind`·`source`·`scrim_id`·`cancelled_at`·`finished_at` (상세는 `schema.md`).
+- `scrim_rooms.status` enum 확장: 현재 `'open'/'closed'` → `'draft'/'matched'/'confirmed'/'cancelled'/'finished'`(D-SCRIM-01~02에서 세부 전이 재논의).
+- UNIQUE `(clan_id, scrim_id) WHERE scrim_id IS NOT NULL`.
+- 트리거 함수 `clan_events_sync_from_scrim()` — `schema.md` 트리거 절 신설 예정.
+
+**Phase 1 목업 (변경 없음)**
+
+- 목업 `#view-events` 캘린더는 정적 마크업. "자동 등록" 카피는 이미 존재. 실제 동기화 로직은 Phase 2+에서 구현.
+- 스크림 모달(`#scrimApplyModal`·`#scrimChatModal`)의 "확정" 버튼은 현재 alert만. Phase 1 범위 유지.
+
+### D-EVENTS-02 — 일정 반복 종료 조건
+
+- **결정일**: 2026-04-20
+- **요지**: 반복(`weekly`/`biweekly`/`monthly`) 선택 시 종료 조건을 **3모드**로 제공한다. `never`(무한)는 허용하되 **서버가 12개월 hard stop**, `count`는 1~52회, `until`은 특정 날짜. 생성 인스턴스 수는 모드 무관 **상한 52개**. 저장 전략은 **템플릿 1행 + 지연 인스턴스 생성 + 예외 테이블**.
+
+**종료 조건 모드**
+
+| 모드 | UI 카피 | 저장 필드 | 서버 보정 |
+|------|---------|-----------|-----------|
+| `never` | "종료일 없음 (약 1년 후 자동 만료)" | `repeat_end_kind='never'` · 기타 NULL | 52번째 인스턴스 이후 **자동 중단** + 클랜장에게 "반복 일정이 만료되었습니다. 연장하려면 새로 등록해 주세요" in-app 알림 |
+| `count` | "N회 반복" (1~52) | `repeat_end_kind='count'` · `repeat_end_count int` | `CHECK (repeat_end_count BETWEEN 1 AND 52)` |
+| `until` | "YYYY-MM-DD까지 반복" | `repeat_end_kind='until'` · `repeat_end_at timestamptz` | 52개 넘으면 등록 시 에러(프론트 1차 + 서버 최종) |
+
+**스키마 제약 (요지)**
+
+```
+CHECK (
+  (repeat = 'none' AND repeat_end_kind IS NULL
+    AND repeat_end_count IS NULL AND repeat_end_at IS NULL)
+  OR (repeat != 'none' AND repeat_end_kind IS NOT NULL)
+)
+CHECK (
+  (repeat_end_kind = 'count' AND repeat_end_count IS NOT NULL AND repeat_end_at IS NULL)
+  OR (repeat_end_kind = 'until' AND repeat_end_at IS NOT NULL AND repeat_end_count IS NULL)
+  OR (repeat_end_kind = 'never' AND repeat_end_count IS NULL AND repeat_end_at IS NULL)
+  OR repeat_end_kind IS NULL
+)
+```
+
+**인스턴스 생성 전략 — 템플릿 + 지연**
+
+- DB에는 **템플릿 행 1개**(`clan_events`)만 저장. 반복 인스턴스를 물리적으로 INSERT하지 않음.
+- 캘린더 조회 시 서버가 **요청 윈도우**(예: 가시 월 범위)만큼 가상 인스턴스를 **on-the-fly 계산**. 계산 결과에 `instance_idx`·`instance_start_at`·`template_id` 부여.
+- **RSVP·수정·취소 등 개별 인스턴스 액션**은 별도 테이블 `clan_event_exceptions (template_id, instance_idx, override_start_at, override_place, cancelled_at, ...)` 에 저장. 템플릿 + 예외로 합성해 최종 표시.
+- 과거 인스턴스는 자동 hidden(뷰 쿼리에서 `instance_start_at < now() - 30d` 숨김), 영구 삭제 금지(기록 보존).
+
+**편집·삭제 UX**
+
+| 액션 | 영향 범위 |
+|------|----------|
+| **이 일정만 수정** | `clan_event_exceptions` 해당 인스턴스 행에만 override 저장 |
+| **이번과 이후 모두 수정** | 새 템플릿 INSERT(다음 인스턴스부터) + 기존 템플릿 `repeat_end_at = 직전 인스턴스` 설정 |
+| **전체 수정** | 템플릿 행 UPDATE (모든 인스턴스 재계산) |
+| **이 일정만 취소** | `clan_event_exceptions.cancelled_at` 세팅 |
+| **전체 취소** | 템플릿 `cancelled_at` 세팅 (예외 불필요) |
+
+**`never` hard stop 세부**
+
+- 52번째 인스턴스 종료 후 서버 cron이 `repeat_end_kind='never'` + 실인스턴스 52개 도달 템플릿을 감지 → `repeat_end_kind='count'`·`repeat_end_count=52`로 자동 전환.
+- in-app 알림 1회 + 이메일 알림(옵션).
+- 재등록 시 새 템플릿으로 처리(기존과 분리). 이력은 그대로 보존.
+
+**UI 규칙**
+
+- 일정 모달 "반복" select가 `none` 아닐 때 "종료 조건" 그룹 노출.
+- 라디오 3개(`never`/`count`/`until`) + 조건부 필드(`count` → 숫자 input, `until` → datepicker).
+- "52회 넘으면 등록 불가" 인라인 에러는 **실시간**(입력값 변경 즉시 계산).
+- 목업은 현재 `mock-event-modal`에 반복 select만 있음. Phase 1 범위 유지(변경 없음).
+
+### D-EVENTS-03 — 일정·투표 알림 채널·정책
+
+- **결정일**: 2026-04-20
+- **요지**: 알림 채널은 **Discord (연동 시 기본 ON)**, **카카오 알림톡 (기본 OFF · 옵트인)**, **in-app (항상 ON)** 3종. Free 플랜은 in-app만. 발송은 일정 기준 **T-24h · T-1h · T-10min · T+0** 4개 슬롯(일정 성격에 따라 일부 스킵). 실패는 **지수 백오프 5회**. quiet hours(00~07 KST) 카카오 자동 연기. 모든 스케줄은 `notification_log` 테이블에서 단일 출처로 관리.
+
+**채널 · 플랜 매트릭스**
+
+| 채널 | Free | Premium | 기본값(Premium) | 비고 |
+|------|:----:|:-------:|----------------|------|
+| in-app (브라우저 알림 센터·navbar 벨) | ✓ | ✓ | ON (강제) | 비로그인 시 무시 |
+| Discord (DM 또는 클랜 채널) | ✗ | ✓ | **ON** (연동 있을 때만) | OAuth `identify email` 외 Bot OAuth 별도(D-AUTH-05) |
+| 카카오 알림톡 | ✗ | ✓ | **OFF** | 사용자가 알림 설정에서 명시적 ON 시 발송 · 번호 인증 필요 |
+
+**발송 슬롯 (일정 기준)**
+
+| 슬롯 | 트리거 | 스킵 조건 | 채널 |
+|------|--------|-----------|------|
+| T-24h | 시작 24시간 전 | 일정이 24h 이내 등록 시 스킵 | in-app · Discord · 카카오(ON 시) |
+| T-1h | 시작 1시간 전 | — | in-app · Discord · 카카오(ON 시) |
+| T-10min | 시작 10분 전 | — | in-app · Discord |
+| T+0 | 시작 순간 | 일정 옵션에서 체크 시에만 | in-app |
+
+**투표 발송 슬롯** (D-EVENTS-04 규칙도 함께 적용)
+
+| 반복 모드 | 발송 스케줄 |
+|-----------|-------------|
+| `없음(한 번)` | 생성 즉시 1회 |
+| `매일` | 매일 09:00 KST · 마감 도달 시 종료 |
+| `매주` | 생성 요일 매주 09:00 KST · 마감 도달 시 종료 |
+| `마감 전까지 매일` | 마감 24h 전부터 매일 09:00 KST + 마감 1h 전 마지막 긴급 경고 |
+
+- 발송 시각 사용자 설정 가능(기본 09:00). `notification_preferences.digest_hour`.
+
+**실패 재시도 (지수 백오프)**
+
+- 1회차 실패 → 1분 후 재시도 → 5분 → 30분 → 2시간 → 6시간. 총 5회.
+- 5회 실패 시 **DLQ**(dead letter queue) 이관 + 운영자 대시보드 알림.
+- Discord rate limit **429** 수신 시 `Retry-After` 헤더 준수(백오프 무시).
+- 카카오 알림톡 실패는 당사자에게 in-app 폴백 메시지 1회 자동 발송.
+- 재시도 카운트는 `notification_log.attempt_count`에 기록. 모든 시도 타임스탬프는 `notification_attempts` child 테이블(Phase 2+ 운영 로그).
+
+**중복 방지**
+
+- UNIQUE `(event_id, slot_kind, scheduled_at, channel, recipient_user_id)`.
+- 재시도는 행 추가가 아닌 `attempt_count++` · `last_error` UPDATE.
+- 멱등 전송: Discord·카카오 페이로드에 `dedup_key = hash(notification_log.id)` 포함, 공급자 측 중복 수신 감지.
+
+**Quiet Hours (카카오 전용)**
+
+- 기본 **00:00~07:00 KST** 자동 연기 → 07:00에 일괄 발송.
+- 사용자 설정에서 범위 조정 가능(`notification_preferences.quiet_start`·`quiet_end`).
+- Discord·in-app은 제약 없음(사용자가 직접 음소거 책임).
+- 긴급 슬롯 T-10min은 quiet hours 무시(스크림 시작 임박 등 손실 치명적).
+
+**사용자 옵트 구조 (`notification_preferences` 테이블)**
+
+```
+user_id pk
+channel_discord bool default true   -- 연동 있을 때만 의미
+channel_kakao bool default false    -- D-EVENTS-03 기본 OFF
+channel_inapp bool default true     -- 항상 true (UI에서 토글 숨김)
+kakao_verified_phone text null      -- 카카오 알림톡 수신 전 필수
+quiet_start time default '00:00'
+quiet_end time default '07:00'
+digest_hour smallint default 9      -- 투표 매일 발송 시각
+per_event_kind jsonb                -- {"scrim":true,"intra":true,"event":true,"poll":true}
+updated_at timestamptz
+```
+
+**연관 문서 업데이트 대상**
+
+- `schema.md` — `notification_preferences`·`notification_log` 테이블 신설.
+- `pages/11-Clan-Events.md` — 알림 채널·Quiet hours 행 추가.
+- `pages/14-Profile-Customization.md` — 프로필 "알림 설정" 섹션에서 카카오·Discord 토글 노출(Phase 2+).
+- D-AUTH-05(Discord OAuth) 스코프가 이 결정의 전제. 알림 발송용 Bot OAuth는 별도 권한 플로우.
+
+### D-EVENTS-04 — 투표 알림과 마감일 일관성 검증
+
+- **결정일**: 2026-04-20
+- **요지**: 반복 알림 모드별로 **최소 마감 리드타임**을 강제한다. 위반 시 등록 에러. 프론트 1차 검증 + 서버 Server Action 최종 검증의 이중 게이트. 생성 시점에 전체 발송 스케줄을 `notification_log`에 예약 INSERT하고, 마감 도달 시 잔여 예약을 **자동 취소**.
+
+**검증 매트릭스**
+
+| 알림 반복 | 마감 **하한** | 마감 **상한** | 위반 시 |
+|-----------|:------------:|:------------:|--------|
+| `없음(한 번)` | 지금 + 1시간 | 지금 + 180d | 미만 에러 / 초과 경고 |
+| `매일` | 지금 + **48h** | 지금 + 60d | 미만 에러 ("48시간 이내 마감은 '한 번' 또는 '마감 전까지 매일' 사용") |
+| `매주` | 지금 + **14d** | 지금 + 180d | 미만 에러 |
+| `마감 전까지 매일` | 지금 + **24h** | 지금 + 60d | 미만 에러 · 초과 경고 |
+
+**에러 카피 (UI)**
+
+- "48시간 이내 마감에는 '매일' 반복 알림을 사용할 수 없습니다. '한 번' 또는 '마감 전까지 매일'을 선택해 주세요."
+- "14일 이내 마감에는 '매주' 반복 알림을 사용할 수 없습니다."
+- "24시간 이내 마감에는 '마감 전까지 매일'을 사용할 수 없습니다. '한 번' 알림을 권장합니다."
+- 60일 초과 경고: "마감이 60일 이상 떨어진 투표입니다. 반복 알림이 과도할 수 있습니다. 계속 진행하시겠어요?"
+
+**생성 플로우 (Server Action)**
+
+1. 프론트 `mockEventPollSubmit` (Phase 2 버전)이 서버 Action 호출.
+2. Action이 검증 매트릭스 실행 → 실패 시 `{ok:false, field:'deadline', message}` 반환.
+3. 통과 시 `clan_polls` INSERT + 발송 슬롯 계산 결과 전부를 `notification_log`에 `status='scheduled'`로 INSERT.
+4. 마감 도달 시 DB 트리거가 `UPDATE notification_log SET status='cancelled' WHERE poll_id=? AND status='scheduled'`.
+5. 수동 조기 종료도 동일 로직.
+
+**발송 시각 계산 예시** (기준 시각 = 지금, 반복 = `마감 전까지 매일`, 마감 = 지금 + 72h)
+
+- 24h 전부터 매일 09:00: 마감 직전 24h 윈도우 내 09:00 시점이 1~2개 포함 → 2회 예약.
+- 마감 1h 전 긴급: 1회 예약 (`slot_kind='poll_deadline_1h'`).
+- 생성 즉시: 1회 예약 (`slot_kind='poll_created'`).
+- 총 4회 발송 예약.
+
+**중복·충돌 처리**
+
+- 사용자가 투표 **수정**(마감 연장 등)하면 기존 예약 전부 `status='cancelled'`로 UPDATE + 재계산 결과를 새로 INSERT. 멱등 키로 중복 예약 방지.
+- 사용자가 **이미 투표** 했어도 알림은 받음(동료 미투표 독촉 목적). 수신 거부는 `notification_preferences.per_event_kind.poll=false`.
+
+**테스트 가이드 (Phase 2+)**
+
+- 경계값: 마감 = 지금 + 48h 0분 0초 (`매일` 허용). 지금 + 47h 59m 59s → 에러.
+- 하한값 정확도: `clock_skew_ms < 5000` 기준 허용 오차.
+- 타임존: 모든 검증은 **서버 시각(UTC) 기준 + KST 변환**. 사용자 입력 `datetime-local`은 클라이언트 타임존 → 서버에서 KST 정규화.
+
+### D-EVENTS-05 — 대진표 결과의 통계·코인 반영
+
+- **결정일**: 2026-04-20
+- **요지**: **대진표는 클랜 내 이벤트** 전용(클랜 간 토너먼트는 기획 범위 밖). 통계는 정기 내전(`match_type='intra'`)과 **완전 분리된 "대진표" 섹션**으로 표시. **코인은 D-ECON-01 확정값**(개최 500·참가 +200·우승 +1,000, 전부 **클랜 풀**)만. 개인 풀 보상·MVP 자동 산정 **없음**. 참여율·매너 점수는 내전과 동일 가중치로 가산.
+
+**통계 반영 매트릭스**
+
+| 지표 | 정기 내전(`intra`) | 대진표(`bracket`) | 비고 |
+|------|:-----------------:|:-----------------:|------|
+| 클랜 평균 승률 · K/D | ✓ | ✗ (별도 섹션) | 외부 순위표 반영 = 내전만 (D-ECON-03 유지) |
+| 참여율 (개인·클랜) | ✓ | ✓ (동일 가중치) | 한 경기 1포인트 |
+| 매너 점수 | ✓ | ✓ (동일 가중치) | no-show·불량 행동은 내전과 동일 감점 |
+| MVP 자동 태그 (D-ECON-04) | ✓ | ✗ | `mvp_hot`·`slump` 등은 내전 13종만. 대진표는 태그 시스템 미적용 |
+| HoF 후보 집계 | ✓ | ✗ | HoF는 내전 기준 |
+| 대진표 전용 통계 | — | ✓ | "우승 횟수"·"최다 참가" 등 독립 지표 |
+
+**노출 위치**
+
+| 화면 | 대진표 결과 표시 |
+|------|------------------|
+| 외부 공개 클랜 순위표 | **제외** (D-ECON-03 경쟁 지표 비노출 원칙 유지) |
+| 클랜 통계(`#stats`) | **별도 탭 "대진표"** 신설. 내전 탭과 UI 분리. 우승 횟수·참가 횟수·최근 대진표 5건 |
+| 클랜 관리(`#manage`) | 대진표 아카이브: 전체 이력 · 개설자 · 참가자 · 시상 결과 |
+| MainClan 대시보드 | 다가오는 대진표 1~2건 카드(시작 임박 시) |
+
+**코인 · 경제 (D-ECON-01 재확인)**
+
+| 트리거 | 금액 | 풀 | 멱등 키 |
+|--------|:----:|:--:|--------|
+| 대진표 개최 확정 | **-500** | 클랜 | `(tournament_id, 'host')` |
+| 대진표 개최 취소 | **+500** | 클랜 | `(tournament_id, 'refund_host')` · 우승 확정 전에만 |
+| 대진표 참가 등록 완료 | **+200** | 클랜 | `(tournament_id, clan_id, 'entry')` · 본 클랜 내 이벤트이므로 실질적으로 **대회당 1회**만 |
+| 대진표 우승 팀 확정 | **+1,000** | 클랜 | `(tournament_id, clan_id, 'winner')` |
+| **개인 풀 보상** | — | — | **없음** (D-ECON-01 미정의 = 미지급) |
+| **MVP 자동 산정** | — | — | **없음** (D-ECON-04 13종 태그는 내전 전용) |
+
+**"우승 클랜 = 개최 클랜"인 이유**
+
+- 대진표는 한 클랜 내부 토너먼트이므로 `tournaments.host_clan_id`와 `tournament_results.winner_clan_id`가 **항상 동일**.
+- 코인은 우승 팀 개인에게 분배되지 않고 **클랜 풀에 귀속**. 팀 단위 보상은 운영진이 수동으로 스토어 구매·명예 뱃지 지급 등으로 변환 가능(D-STORE-01 클랜 풀 소비 매트릭스).
+
+**스키마 핵심 (Phase 2+)**
+
+- `tournaments` — 개최 · 참가자 · 상태.
+- `tournament_teams` — 팀(본 클랜 구성원들의 집합).
+- `tournament_matches` — 라운드별 개별 경기 결과.
+- `tournament_results` — 최종 우승·준우승(코인 지급 트리거).
+- 상세는 `schema.md` 토너먼트 절 신설 예정.
+
+**Phase 1 목업 (변경 없음)**
+
+- `#view-events` 탭 2 "대진표 생성기(Premium)"는 UI 셸만. 4단계 마법사는 시각 전용.
+- 결과 저장·통계 반영은 Phase 2+에서 구현.
+
+**연관 문서**
+
+- [D-ECON-01](#d-econ-01--코인-수치-베이스라인) — 코인 수치 출처
+- [D-ECON-03](#d-econ-03--클랜-순위표-민감-지표-노출-범위) — 외부 순위표 비노출 근거
+- [D-ECON-04](#d-econ-04--특이사항-태그-카탈로그) — 대진표 태그 미적용 근거
+- [pages/10-Clan-Stats.md](./pages/10-Clan-Stats.md) — 대진표 별도 탭 설계(Phase 2+)
+- [pages/11-Clan-Events.md §탭 2](./pages/11-Clan-Events.md) — 대진표 마법사 UI
