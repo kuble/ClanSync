@@ -167,8 +167,25 @@
 - 내 모집 + 모집 중 + 역할이 운영진/클랜장일 때만 "편집" 버튼 활성 (`scrimCanEditAsOfficer`).
 - 양측 운영진이 채팅에서 "확정"을 누르면 alert + 모집 완료로 전환.
 
+### 상태 머신 (D-EVENTS-01 DECIDED)
+
+```
+draft ──► matched ──► confirmed ──► finished
+   │          │            │
+   └──────────┴────────────┴──► cancelled
+                         │
+                  (cancelled → confirmed 재확정 허용)
+```
+
+- `scrim_rooms.status` enum: `'draft'|'matched'|'confirmed'|'cancelled'|'finished'` (Phase 2+).
+- `confirmed` 전환 시점에 **양쪽 클랜의 `clan_events`에 자동 INSERT** (`source='scrim_auto'`, 멱등 키 `(clan_id, scrim_id)`).
+- 시간·장소·제목 수정은 **스크림 본체에서만** 가능 — 자동 생성된 이벤트는 읽기 전용. 양쪽 이벤트로 동기화.
+- 취소 시 양쪽 이벤트 `cancelled_at` 세팅 (행 삭제 금지), 재확정 시 복원.
+- Server Action (주 경로) + PG 트리거 `clan_events_sync_from_scrim()` (안전망) 2중 방어.
+- 상세 → [decisions.md §D-EVENTS-01](../decisions.md#d-events-01--스크림-확정--클랜-이벤트-자동-생성동기화), [11-Clan-Events.md §스크림 연동](./11-Clan-Events.md).
+
 ### 자동 매칭
-- 별도 "자동 매칭 모달" 없음. 채팅방의 "경기 시작 +6시간 후 자동 종료" 타이머만 존재.
+- 별도 "자동 매칭 모달" 없음. 채팅방의 "경기 시작 +6시간 후 자동 종료" 타이머만 존재 (D-SCRIM-01에서 최종 정책 확정 예정).
 - 운영 시 자동 매칭 버튼 도입 여부 결정 필요.
 
 ### 결정 필요
