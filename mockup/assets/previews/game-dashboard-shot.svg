@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10121a"/>
+      <stop offset="100%" stop-color="#18212d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="600" fill="url(#bg2)"/>
+  <rect x="24" y="24" width="180" height="552" rx="16" fill="#11151f" stroke="#334153"/>
+  <rect x="240" y="24" width="936" height="72" rx="16" fill="#192534" stroke="#334153"/>
+  <rect x="240" y="116" width="468" height="224" rx="16" fill="#192534" stroke="#334153"/>
+  <rect x="724" y="116" width="452" height="224" rx="16" fill="#192534" stroke="#334153"/>
+  <rect x="240" y="356" width="936" height="220" rx="16" fill="#192534" stroke="#334153"/>
+
+  <rect x="266" y="148" width="206" height="80" rx="12" fill="#111a2b" stroke="#334153"/>
+  <rect x="488" y="148" width="206" height="80" rx="12" fill="#111a2b" stroke="#334153"/>
+  <rect x="266" y="240" width="206" height="80" rx="12" fill="#111a2b" stroke="#334153"/>
+  <rect x="488" y="240" width="206" height="80" rx="12" fill="#111a2b" stroke="#334153"/>
+
+  <polyline points="750,310 790,240 830,250 870,190 910,205 950,150 990,170 1030,130 1070,145 1110,120 1150,138" fill="none" stroke="#a78bfa" stroke-width="6"/>
+  <polyline points="266,520 340,500 414,512 488,486 562,500 636,472 710,488 784,456 858,480 932,450 1006,470 1080,430 1154,455" fill="none" stroke="#2dd4bf" stroke-width="6"/>
+
+  <text x="60" y="70" fill="#94a3b8" font-family="Arial, sans-serif" font-size="20" font-weight="700">GAME DASHBOARD</text>
+  <text x="266" y="138" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="20" font-weight="700">Core KPIs</text>
+  <text x="748" y="138" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="20" font-weight="700">Peak Activity</text>
+  <text x="266" y="388" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="20" font-weight="700">Visitor Trend</text>
+</svg>

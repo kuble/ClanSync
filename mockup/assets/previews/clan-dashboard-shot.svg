@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f1020"/>
+      <stop offset="100%" stop-color="#171a2e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="600" fill="url(#bg)"/>
+  <rect x="24" y="24" width="180" height="552" rx="16" fill="#121724" stroke="#2d3348"/>
+  <rect x="240" y="24" width="936" height="72" rx="16" fill="#1a2033" stroke="#2d3348"/>
+  <rect x="240" y="116" width="620" height="188" rx="16" fill="#1a2033" stroke="#2d3348"/>
+  <rect x="876" y="116" width="300" height="188" rx="16" fill="#1a2033" stroke="#2d3348"/>
+  <rect x="240" y="320" width="620" height="256" rx="16" fill="#1a2033" stroke="#2d3348"/>
+  <rect x="876" y="320" width="300" height="120" rx="16" fill="#1a2033" stroke="#2d3348"/>
+  <rect x="876" y="456" width="300" height="120" rx="16" fill="#1a2033" stroke="#2d3348"/>
+
+  <rect x="268" y="156" width="132" height="124" rx="12" fill="#11192b" stroke="#2d3348"/>
+  <rect x="414" y="156" width="132" height="124" rx="12" fill="#11192b" stroke="#2d3348"/>
+  <rect x="560" y="156" width="132" height="124" rx="12" fill="#11192b" stroke="#2d3348"/>
+  <rect x="706" y="156" width="132" height="124" rx="12" fill="#11192b" stroke="#2d3348"/>
+
+  <polyline points="900,400 940,372 980,390 1020,340 1060,356 1100,330 1140,350" fill="none" stroke="#5eead4" stroke-width="6"/>
+  <polyline points="900,520 940,530 980,496 1020,500 1060,488 1100,510 1140,482" fill="none" stroke="#f472b6" stroke-width="6"/>
+
+  <text x="60" y="70" fill="#a5b4fc" font-family="Arial, sans-serif" font-size="20" font-weight="700">CLAN DASHBOARD</text>
+  <text x="268" y="142" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="22" font-weight="700">Today's Sales</text>
+  <text x="268" y="348" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="20" font-weight="700">Top Products</text>
+</svg>
