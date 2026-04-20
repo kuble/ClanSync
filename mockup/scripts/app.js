@@ -49,14 +49,39 @@
   });
 })();
 
-// 페이드인 초기화
+// 페이드인 초기화 + D-PROFILE-01·03 외부 동기화 바인딩
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.fade-in').forEach((el) => {
     el.style.opacity = '1';
   });
+  mockNameplateGetState();
+  mockBadgeCaseGetPicks();
   mockNameplateApplyPreview('ow');
   mockNameplateApplyPreview('val');
+  mockBadgeApplyToStrips('ow');
+  mockBadgeApplyToStrips('val');
+  mockBindExternalProfileSync();
 });
+
+/**
+ * D-PROFILE-01·03: 외부 페이지(MainClan·BalanceMaker·profile 등) 구독 바인딩.
+ * 같은 탭 내부에서 발생하는 변경 이벤트를 수신해 프리뷰/스트립 DOM을 다시 반영한다.
+ * 다른 탭/창은 새로 진입할 때 localStorage에서 재로드(별도 바인딩 없음).
+ */
+function mockBindExternalProfileSync() {
+  if (window.__mockProfileSyncBound) return;
+  window.__mockProfileSyncBound = true;
+  window.addEventListener(MOCK_NAMEPLATE_CHANGE_EVENT, (e) => {
+    const game = e && e.detail && e.detail.game;
+    if (!game) return;
+    mockNameplateApplyPreview(game);
+  });
+  window.addEventListener(MOCK_BADGE_CHANGE_EVENT, (e) => {
+    const game = e && e.detail && e.detail.game;
+    if (!game) return;
+    mockBadgeApplyToStrips(game);
+  });
+}
 
 // 모달 외부 클릭 닫기
 document.addEventListener('click', (e) => {
@@ -293,44 +318,149 @@ function mockBadgeCaseTab(el, tabId) {
 /** 밸런스 슬롯·프로필 네임카드 공통: 표시 뱃지 상한(목업) */
 const MOCK_BADGE_NAMEPLATE_MAX = 5;
 
-/** 목업: 게임별 네임카드에 올릴 뱃지 id 배열(최대 MOCK_BADGE_NAMEPLATE_MAX) */
+/** D-PROFILE-01·03 영속·이벤트 규약 */
+const MOCK_BADGE_PICKS_STORAGE_KEY = 'clansync-mock-badge-picks-v1';
+const MOCK_NAMEPLATE_STATE_STORAGE_KEY = 'clansync-mock-nameplate-state-v1';
+const MOCK_BADGE_CHANGE_EVENT = 'clansync:badge:picks:changed';
+const MOCK_NAMEPLATE_CHANGE_EVENT = 'clansync:nameplate:changed';
+
+/** 외부 스트립 렌더용 뱃지 메타 — badge-case-modal partial이 주입되기 전에도 사용 가능 */
+const MOCK_BADGE_META = {
+  'ow-battle-1': { ico: '🏅', name: '승률 VIP' },
+  'ow-battle-2': { ico: '💙', name: '블루 MVP' },
+  'ow-battle-3': { ico: '🔥', name: '연승 x5' },
+  'ow-join-1':   { ico: '⭐', name: '참여율 VIP' },
+  'ow-join-2':   { ico: '📅', name: '30일 개근' },
+  'ow-event-1':  { ico: '🎪', name: '시즌 참가' },
+  'ow-clan-1':   { ico: '⚔️', name: '스크림 50회' },
+  'ow-clan-2':   { ico: '🛡️', name: '클랜 기여' },
+  'ow-sync-1':   { ico: '✦',  name: 'ClanSync 베타' },
+  'val-battle-1': { ico: '💀', name: '에이스 헌터' },
+  'val-battle-2': { ico: '🎯', name: '클러치' },
+  'val-battle-3': { ico: '✨', name: '불멸 시즌' },
+  'val-join-1':   { ico: '⭐', name: '참여율 VIP' },
+  'val-event-1':  { ico: '🎪', name: '액트 참가' },
+  'val-clan-1':   { ico: '💣', name: '스파이크 마스터' },
+  'val-clan-2':   { ico: '🛡️', name: '클랜 기여' },
+  'val-sync-1':   { ico: '✦',  name: 'ClanSync 베타' },
+};
+
+/**
+ * compact 픽 배열 보장 (D-PROFILE-03 — 2026-04-20 정정본, dense-from-front).
+ * - 길이는 항상 MOCK_BADGE_NAMEPLATE_MAX(5).
+ * - 앞에서부터 연속해서 채우고, 빈 슬롯은 반드시 뒤쪽에 몰려 있다(중간 null 금지).
+ * - 잘못된 입력(중간 null, 중복 id)이 들어오면 compact 으로 정규화.
+ */
+function mockBadgeEnsureCompactArray(arr) {
+  const raw = Array.isArray(arr) ? arr : [];
+  const seen = new Set();
+  const filled = [];
+  raw.forEach((v) => {
+    if (typeof v !== 'string' || !v) return;
+    if (seen.has(v)) return;
+    if (filled.length >= MOCK_BADGE_NAMEPLATE_MAX) return;
+    seen.add(v);
+    filled.push(v);
+  });
+  while (filled.length < MOCK_BADGE_NAMEPLATE_MAX) filled.push(null);
+  return filled;
+}
+
+/** D-PROFILE-03: localStorage에서 뱃지 픽 복원 (실패 시 {}) */
+function mockBadgeRestoreFromStorage() {
+  try {
+    const raw = localStorage.getItem(MOCK_BADGE_PICKS_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function mockBadgeSaveToStorage(picks) {
+  try {
+    localStorage.setItem(MOCK_BADGE_PICKS_STORAGE_KEY, JSON.stringify(picks));
+  } catch (e) {
+    /* quota/private mode 무시 */
+  }
+}
+
+function mockBadgeDispatchChange(game) {
+  const picks = mockBadgeCaseGetPicks()[game] || [];
+  try {
+    window.dispatchEvent(
+      new CustomEvent(MOCK_BADGE_CHANGE_EVENT, {
+        detail: { game, picks: picks.slice() },
+      })
+    );
+  } catch (e) {
+    /* 구형 브라우저 fallback 불필요 */
+  }
+}
+
+/** 목업: 게임별 네임카드에 올릴 뱃지 id 배열(compact, 고정 길이 5·빈 슬롯은 항상 뒤쪽) */
 function mockBadgeCaseGetPicks() {
   if (!window.__mockBadgeCasePicks) {
-    window.__mockBadgeCasePicks = { ow: [], val: [] };
+    const restored = mockBadgeRestoreFromStorage();
+    window.__mockBadgeCasePicks = {
+      ow: mockBadgeEnsureCompactArray(restored.ow),
+      val: mockBadgeEnsureCompactArray(restored.val),
+    };
+    window.__mockBadgeCasePicksHydrated = !!(restored.ow || restored.val);
   }
   return window.__mockBadgeCasePicks;
 }
 
 function mockBadgeCaseInitDefaultPicks(gameKey) {
   const picks = mockBadgeCaseGetPicks();
-  if (!picks[gameKey]) picks[gameKey] = [];
+  if (!picks[gameKey]) picks[gameKey] = mockBadgeEnsureCompactArray([]);
   if (!window.__mockBadgeCasePicksSeeded) window.__mockBadgeCasePicksSeeded = {};
   if (window.__mockBadgeCasePicksSeeded[gameKey]) return;
   window.__mockBadgeCasePicksSeeded[gameKey] = true;
+  if (window.__mockBadgeCasePicksHydrated) return;
   if (gameKey === 'ow') {
-    picks.ow = ['ow-battle-1', 'ow-join-1', 'ow-battle-3', 'ow-clan-1', 'ow-sync-1'];
+    picks.ow = mockBadgeEnsureCompactArray([
+      'ow-battle-1', 'ow-join-1', 'ow-battle-3', 'ow-clan-1', 'ow-sync-1',
+    ]);
   } else if (gameKey === 'val') {
-    picks.val = ['val-battle-1', 'val-battle-2', 'val-battle-3', 'val-clan-1', 'val-sync-1'];
+    picks.val = mockBadgeEnsureCompactArray([
+      'val-battle-1', 'val-battle-2', 'val-battle-3', 'val-clan-1', 'val-sync-1',
+    ]);
   }
 }
 
+/**
+ * D-PROFILE-03 (2026-04-20 정정): compact 토글 (dense-from-front).
+ * - 이미 픽된 id → 해당 슬롯을 제거하고 뒷 항목을 앞으로 shift, 마지막 슬롯은 null.
+ * - 없고 빈 슬롯 있음 → 가장 앞의 빈 슬롯(=현재 채워진 개수 위치)에 append.
+ * - 없고 모두 채워짐 → alert + 차단.
+ */
 function mockBadgeCaseTogglePick(btn) {
   const id = btn.getAttribute('data-badge-id');
   const game = btn.getAttribute('data-game');
   if (!id || !game) return;
   const picks = mockBadgeCaseGetPicks();
-  if (!picks[game]) picks[game] = [];
+  if (!picks[game]) picks[game] = mockBadgeEnsureCompactArray([]);
   const arr = picks[game];
-  const idx = arr.indexOf(id);
-  if (idx >= 0) {
-    arr.splice(idx, 1);
-  } else if (arr.length >= MOCK_BADGE_NAMEPLATE_MAX) {
-    alert(`네임카드에는 최대 ${MOCK_BADGE_NAMEPLATE_MAX}개까지 표시할 수 있습니다.`);
-    return;
+  const existingIdx = arr.indexOf(id);
+  if (existingIdx >= 0) {
+    for (let i = existingIdx; i < MOCK_BADGE_NAMEPLATE_MAX - 1; i += 1) {
+      arr[i] = arr[i + 1];
+    }
+    arr[MOCK_BADGE_NAMEPLATE_MAX - 1] = null;
   } else {
-    arr.push(id);
+    const emptyIdx = arr.indexOf(null);
+    if (emptyIdx < 0) {
+      alert(`네임카드에는 최대 ${MOCK_BADGE_NAMEPLATE_MAX}개까지 표시할 수 있습니다.`);
+      return;
+    }
+    arr[emptyIdx] = id;
   }
   mockBadgeCaseApplyPicksUI(game);
+  mockBadgeApplyToStrips(game);
+  mockBadgeSaveToStorage(picks);
+  mockBadgeDispatchChange(game);
 }
 
 function mockBadgeCaseApplyPicksUI(game) {
@@ -339,8 +469,9 @@ function mockBadgeCaseApplyPicksUI(game) {
   const variant = root.querySelector(`[data-badge-case-for="${game}"]`);
   if (!variant) return;
   const picks = mockBadgeCaseGetPicks()[game] || [];
+  const pickedIds = new Set(picks.filter((id) => !!id));
   variant.querySelectorAll('[data-badge-id]').forEach((b) => {
-    const on = picks.includes(b.getAttribute('data-badge-id'));
+    const on = pickedIds.has(b.getAttribute('data-badge-id'));
     b.classList.toggle('mock-badge-case-slot--pick', on);
     b.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
@@ -352,8 +483,9 @@ function mockBadgeCaseApplyPicksUI(game) {
     const li = document.createElement('li');
     if (bid) {
       const el = variant.querySelector(`[data-badge-id="${bid}"]`);
-      const ico = el ? el.getAttribute('data-badge-ico') : '·';
-      const name = el ? el.getAttribute('data-badge-name') : '';
+      const meta = MOCK_BADGE_META[bid] || {};
+      const ico = el ? el.getAttribute('data-badge-ico') : meta.ico || '·';
+      const name = el ? el.getAttribute('data-badge-name') : meta.name || '';
       li.innerHTML = `<span class="mock-badge-case-pick-ord">${i + 1}</span> <span class="mock-badge-case-pick-ico">${ico}</span> <span class="mock-badge-case-pick-name">${name}</span>`;
     } else {
       li.className = 'mock-badge-case-pick-row--empty';
@@ -361,6 +493,34 @@ function mockBadgeCaseApplyPicksUI(game) {
     }
     ol.appendChild(li);
   }
+}
+
+/**
+ * D-PROFILE-03: 외부 스트립([data-badge-strip]) 슬롯 동기화.
+ * 컨테이너 내부에 [data-badge-strip-slot="0..4"] 엘리먼트가 준비되어 있어야 하며,
+ * 빈 슬롯은 '.mock-badge-strip-slot--empty' 클래스로 표시된다.
+ */
+function mockBadgeApplyToStrips(game) {
+  const picks = mockBadgeCaseGetPicks()[game] || [];
+  document.querySelectorAll(`[data-badge-strip="${game}"]`).forEach((strip) => {
+    for (let i = 0; i < MOCK_BADGE_NAMEPLATE_MAX; i += 1) {
+      const slot = strip.querySelector(`[data-badge-strip-slot="${i}"]`);
+      if (!slot) continue;
+      const bid = picks[i];
+      if (bid) {
+        const meta = MOCK_BADGE_META[bid] || {};
+        slot.classList.remove('mock-badge-strip-slot--empty');
+        slot.setAttribute('data-badge-id', bid);
+        slot.setAttribute('title', meta.name || bid);
+        slot.textContent = meta.ico || '·';
+      } else {
+        slot.classList.add('mock-badge-strip-slot--empty');
+        slot.removeAttribute('data-badge-id');
+        slot.removeAttribute('title');
+        slot.textContent = '';
+      }
+    }
+  });
 }
 
 function mockBadgeCaseModalApplyGame(gameKey) {
@@ -447,12 +607,54 @@ const MOCK_NAMEPLATE_META = {
   },
 };
 
+/** D-PROFILE-01: localStorage 복원 (실패 시 null) */
+function mockNameplateRestoreFromStorage() {
+  try {
+    const raw = localStorage.getItem(MOCK_NAMEPLATE_STATE_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function mockNameplateSaveToStorage(state) {
+  try {
+    localStorage.setItem(MOCK_NAMEPLATE_STATE_STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    /* 무시 */
+  }
+}
+
+function mockNameplateDispatchChange(game) {
+  const state = mockNameplateGetState()[game];
+  try {
+    window.dispatchEvent(
+      new CustomEvent(MOCK_NAMEPLATE_CHANGE_EVENT, {
+        detail: { game, state: { ...state } },
+      })
+    );
+  } catch (e) {
+    /* 무시 */
+  }
+}
+
 function mockNameplateGetState() {
   if (!window.__mockNameplateState) {
-    window.__mockNameplateState = {
+    const restored = mockNameplateRestoreFromStorage();
+    const defaults = {
       ow: { emblem: 'ow-e1', namebar: 'ow-nb1', sub: 'ow-s1', frame: 'ow-f1' },
       val: { emblem: 'val-e1', namebar: 'val-nb1', sub: 'val-s1', frame: 'val-f1' },
     };
+    if (restored && typeof restored === 'object') {
+      window.__mockNameplateState = {
+        ow: { ...defaults.ow, ...(restored.ow || {}) },
+        val: { ...defaults.val, ...(restored.val || {}) },
+      };
+    } else {
+      window.__mockNameplateState = defaults;
+    }
   }
   return window.__mockNameplateState;
 }
@@ -558,6 +760,8 @@ function mockNameplateCaseSelect(btn) {
   st[game][cat] = opt;
   mockNameplateApplyPreview(game);
   mockNameplateCaseSyncModalUI(game);
+  mockNameplateSaveToStorage(st);
+  mockNameplateDispatchChange(game);
 }
 
 function mockNameplateCaseModalApplyGame(gameKey) {
@@ -629,3 +833,7 @@ window.mockNameplateCaseModalClose = mockNameplateCaseModalClose;
 window.mockNameplateCaseTab = mockNameplateCaseTab;
 window.mockNameplateCaseSelect = mockNameplateCaseSelect;
 window.mockNameplateApplyPreview = mockNameplateApplyPreview;
+window.mockBadgeApplyToStrips = mockBadgeApplyToStrips;
+window.mockBadgeCaseGetPicks = mockBadgeCaseGetPicks;
+window.mockNameplateGetState = mockNameplateGetState;
+window.mockBindExternalProfileSync = mockBindExternalProfileSync;
