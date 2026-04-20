@@ -167,6 +167,16 @@
     window.mockSidebarNotifyRefresh();
   };
 
+  /**
+   * D-SHELL-03 — 사이드바 알림 점 운영 트리거 규칙
+   *   #dash    : 없음 (허브 뷰 중복 방지)
+   *   #balance : 내가 속한 진행 중 내전 세션 수. 정보성 → #balance 진입 시 자동 clear.
+   *              (Phase 1 목업: localStorage boolean state로 근사, DEBUG 플래그로 강제 표시 가능)
+   *   #events  : (24h 내 RSVP 미응답 일정 수) + (진행 중 투표 미응답 수). 정보성 → #events 진입 시 자동 clear.
+   *              (Phase 1 목업: 실데이터 없음, 디버그 표시 또는 이벤트 등록 후 일시 켜짐)
+   *   #manage  : 가입 요청 pending 수 + 신규 휴면 진입 미처리 수 (D-CLAN-02·07). 행동성 → 실제 처리로만 clear.
+   *   #stats / #store : 없음 (조회형).
+   */
   window.mockSidebarNotifyRefresh = function () {
     var st = mockSidebarNotifyReadState();
     var dbg = mockSidebarNotifyDebugActive();
@@ -183,6 +193,25 @@
       if (showEvents) ev.removeAttribute("hidden");
       else ev.setAttribute("hidden", "");
       ev.setAttribute("aria-hidden", showEvents ? "false" : "true");
+    }
+    var m = document.getElementById("sidebar-notify-manage");
+    if (m) {
+      var reqCount = 0;
+      var reqTbody = document.getElementById("mock-manage-requests-tbody");
+      if (reqTbody) reqCount = reqTbody.querySelectorAll("tr").length;
+      var newDormant = 0;
+      if (typeof mockManageMembersStats === "function") {
+        try {
+          var s = mockManageMembersStats();
+          newDormant = (s && s.newDormant) || 0;
+        } catch (e) {}
+      }
+      var manageCount = reqCount + newDormant;
+      var showManage = dbg || manageCount > 0;
+      m.textContent = dbg && manageCount === 0 ? "N" : String(manageCount);
+      if (showManage) m.removeAttribute("hidden");
+      else m.setAttribute("hidden", "");
+      m.setAttribute("aria-hidden", showManage ? "false" : "true");
     }
   };
 
@@ -248,14 +277,74 @@
     }
   };
 
+  // D-MANAGE-04 업로드 제약 상수
+  var MOCK_CLAN_MEDIA_MIME_ALLOWED = ["image/jpeg", "image/png", "image/webp"];
+  var MOCK_CLAN_MEDIA_LIMITS = {
+    banner: {
+      maxBytes: 3 * 1024 * 1024, // 3 MB
+      maxLabel: "3 MB",
+      ratio: "4:1",
+      recommendedPx: "1600×400",
+      minPx: "1200×300",
+    },
+    icon: {
+      maxBytes: 2 * 1024 * 1024, // 2 MB
+      maxLabel: "2 MB",
+      ratio: "1:1",
+      recommendedPx: "512×512",
+      minPx: "256×256",
+    },
+  };
+
+  window.mockClanImageValidate = function (file, kind) {
+    if (!file) return { ok: false, error: "파일이 선택되지 않았습니다." };
+    var limit = MOCK_CLAN_MEDIA_LIMITS[kind === "icon" ? "icon" : "banner"];
+    if (MOCK_CLAN_MEDIA_MIME_ALLOWED.indexOf(file.type) === -1) {
+      return {
+        ok: false,
+        error:
+          "허용되지 않는 형식입니다. (" +
+          (file.type || "알 수 없음") +
+          ") · JPEG · PNG · WebP만 가능합니다.",
+      };
+    }
+    if (file.size > limit.maxBytes) {
+      var mb = (file.size / (1024 * 1024)).toFixed(2);
+      return {
+        ok: false,
+        error:
+          "용량이 " +
+          limit.maxLabel +
+          " 를 초과했습니다. (현재 " +
+          mb +
+          " MB) · 리사이즈 후 다시 업로드하세요.",
+      };
+    }
+    return { ok: true };
+  };
+
+  function mockClanImageSetError(msg) {
+    var el = document.getElementById("mock-clan-image-modal-error");
+    if (!el) return;
+    if (msg) {
+      el.textContent = msg;
+      el.removeAttribute("hidden");
+    } else {
+      el.textContent = "";
+      el.setAttribute("hidden", "");
+    }
+  }
+
   window.mockClanImageModalOpen = function (kind) {
     __mockClanImageKind = kind === "icon" ? "icon" : "banner";
     __mockClanImagePendingDataUrl = null;
     var modal = document.getElementById("mock-clan-image-modal");
     var hint = document.getElementById("mock-clan-image-modal-hint");
+    var spec = document.getElementById("mock-clan-image-modal-spec");
     var title = document.getElementById("mock-clan-image-modal-title");
     var file = document.getElementById("mock-clan-image-file");
     var preview = document.getElementById("mock-clan-image-preview");
+    var limit = MOCK_CLAN_MEDIA_LIMITS[__mockClanImageKind];
     if (title) {
       title.textContent =
         __mockClanImageKind === "banner" ? "배너 이미지 적용" : "클랜 아이콘 편집";
@@ -266,6 +355,19 @@
           ? "배너 영역에 표시될 이미지를 선택합니다. (목업·로컬 저장)"
           : "사이드바·배너 로고에 표시됩니다. (목업·로컬 저장)";
     }
+    if (spec && limit) {
+      spec.innerHTML =
+        "형식: <strong>JPEG · PNG · WebP</strong> · 최대 <strong>" +
+        limit.maxLabel +
+        "</strong> · 비율 <strong>" +
+        limit.ratio +
+        "</strong> · 권장 " +
+        limit.recommendedPx +
+        " (최소 " +
+        limit.minPx +
+        ") · 정적 이미지만 (D-MANAGE-04)";
+    }
+    mockClanImageSetError("");
     if (file) file.value = "";
     if (preview) {
       preview.setAttribute("hidden", "");
@@ -290,6 +392,19 @@
   window.mockClanImageFileChange = function (input) {
     var f = input.files && input.files[0];
     if (!f) return false;
+    var check = window.mockClanImageValidate(f, __mockClanImageKind);
+    if (!check.ok) {
+      mockClanImageSetError(check.error);
+      __mockClanImagePendingDataUrl = null;
+      input.value = "";
+      var preview0 = document.getElementById("mock-clan-image-preview");
+      if (preview0) {
+        preview0.setAttribute("hidden", "");
+        preview0.removeAttribute("src");
+      }
+      return false;
+    }
+    mockClanImageSetError("");
     var reader = new FileReader();
     reader.onload = function () {
       __mockClanImagePendingDataUrl = reader.result;
@@ -780,6 +895,15 @@
     if (name === "subscribe" && typeof window.mockManageSubscribeRender === "function") {
       window.mockManageSubscribeRender();
     }
+    if (name === "members" && typeof window.mockManageMembersRender === "function") {
+      window.mockManageMembersRender();
+    }
+    if (name === "requests" && typeof window.mockManageRequestsRender === "function") {
+      window.mockManageRequestsRender();
+    }
+    if (name === "overview" && typeof window.mockClanSettingsSyncUi === "function") {
+      window.mockClanSettingsSyncUi();
+    }
     return false;
   };
 
@@ -813,6 +937,181 @@
     }
     mockDashDashboardHydrate();
     return false;
+  };
+
+  /*
+   * ── 클랜 운영 권한 설정 (D-MANAGE-02 / D-MANAGE-03) ───────────────────
+   * localStorage 키 하나에 JSON으로 저장. leader만 쓰기 가능.
+   *
+   *   allowOfficerEditMscore: boolean (기본 false) — M점수 편집 officer 허용 여부
+   *   altAccountsVisibility : 'officers' | 'clan_members' (기본 'officers')
+   *
+   * 영향 화면:
+   *  - 개요 탭 "운영 권한 설정" 카드 (본인 입력/표시)
+   *  - 구성원 개인 상세 모달의 M점수 입력 disabled/enabled
+   *  - 구성원 개인 상세 모달의 부계정 공개 범위 라벨 (mock-mmgr-detail-sub-visibility-label)
+   */
+  var MOCK_CLAN_SETTINGS_KEY = "clansync-mock-clan-settings-v1";
+  var MOCK_CLAN_SETTINGS_DEFAULT = {
+    allowOfficerEditMscore: false,
+    altAccountsVisibility: "officers",
+  };
+
+  window.mockClanSettingsGet = function () {
+    try {
+      var raw = localStorage.getItem(MOCK_CLAN_SETTINGS_KEY);
+      if (!raw) return Object.assign({}, MOCK_CLAN_SETTINGS_DEFAULT);
+      var parsed = JSON.parse(raw);
+      return {
+        allowOfficerEditMscore:
+          parsed && parsed.allowOfficerEditMscore === true,
+        altAccountsVisibility:
+          parsed && parsed.altAccountsVisibility === "clan_members"
+            ? "clan_members"
+            : "officers",
+      };
+    } catch (e) {
+      return Object.assign({}, MOCK_CLAN_SETTINGS_DEFAULT);
+    }
+  };
+
+  window.mockClanSettingsSet = function (partial) {
+    var cur = window.mockClanSettingsGet();
+    var next = Object.assign({}, cur, partial || {});
+    try {
+      localStorage.setItem(MOCK_CLAN_SETTINGS_KEY, JSON.stringify(next));
+    } catch (e) {}
+    window.mockClanSettingsSyncUi();
+    return next;
+  };
+
+  window.mockClanSettingsSyncUi = function () {
+    var s = window.mockClanSettingsGet();
+    var role = window.mockClanCurrentRole();
+    var isLeader = role === "leader";
+
+    // 토글 1: M점수 편집 officer 허용
+    var mscoreCbx = document.getElementById("mock-clan-setting-officer-mscore");
+    if (mscoreCbx) {
+      mscoreCbx.checked = !!s.allowOfficerEditMscore;
+      mscoreCbx.disabled = !isLeader;
+    }
+
+    // 라디오: 부계정 공개 범위
+    var radios = document.querySelectorAll(
+      'input[name="mock-clan-setting-alt-visibility"]',
+    );
+    Array.prototype.forEach.call(radios, function (r) {
+      r.checked = r.value === s.altAccountsVisibility;
+      r.disabled = !isLeader;
+    });
+
+    // leader 전용 disabled 안내 캡션 표시
+    var card = document.getElementById("mock-manage-clan-settings-card");
+    if (card) {
+      var notes = card.querySelectorAll(".mock-leader-only-disabled-note");
+      Array.prototype.forEach.call(notes, function (n) {
+        if (isLeader) n.setAttribute("hidden", "");
+        else n.removeAttribute("hidden");
+      });
+    }
+
+    // 개인 상세 모달의 부계정 공개 범위 라벨 동기화
+    var subLabel = document.getElementById(
+      "mock-mmgr-detail-sub-visibility-label",
+    );
+    if (subLabel) {
+      subLabel.textContent =
+        s.altAccountsVisibility === "clan_members" ? "클랜 전체" : "운영진만";
+    }
+
+    // 개인 상세 모달이 열려 있을 때 M점수 입력 게이팅도 재적용
+    window.mockMmgrSyncMscoreGate();
+  };
+
+  window.mockClanSettingsOnToggleMscore = function (cbx) {
+    if (!cbx) return false;
+    var role = window.mockClanCurrentRole();
+    if (role !== "leader") {
+      cbx.checked = !cbx.checked; // rollback
+      window.alert("클랜장만 변경할 수 있습니다.");
+      return false;
+    }
+    var next = cbx.checked;
+    if (next) {
+      if (
+        !window.confirm(
+          "운영진도 M점수를 즉시 편집할 수 있게 됩니다. 감사 로그에 변경 이력이 기록됩니다.\n계속하시겠습니까?",
+        )
+      ) {
+        cbx.checked = false;
+        return false;
+      }
+    }
+    window.mockClanSettingsSet({ allowOfficerEditMscore: !!next });
+    return false;
+  };
+
+  window.mockClanSettingsOnAltVisibility = function (radio) {
+    if (!radio || !radio.checked) return false;
+    var role = window.mockClanCurrentRole();
+    if (role !== "leader") {
+      window.mockClanSettingsSyncUi(); // 원복
+      window.alert("클랜장만 변경할 수 있습니다.");
+      return false;
+    }
+    var val = radio.value === "clan_members" ? "clan_members" : "officers";
+    if (val === "clan_members") {
+      if (
+        !window.confirm(
+          "모든 구성원이 서로의 부계정을 볼 수 있게 됩니다.\n계속하시겠습니까?",
+        )
+      ) {
+        window.mockClanSettingsSyncUi();
+        return false;
+      }
+    }
+    window.mockClanSettingsSet({ altAccountsVisibility: val });
+    return false;
+  };
+
+  /**
+   * M점수 입력 게이팅 (개인 상세 모달이 열려 있을 때만 동작):
+   *   leader: 항상 편집 가능
+   *   officer: clanSettings.allowOfficerEditMscore === true 일 때만 편집 가능
+   *   member: 비허용
+   */
+  window.mockMmgrSyncMscoreGate = function () {
+    var modal = document.getElementById("mock-manage-member-detail-modal");
+    if (!modal || modal.hasAttribute("hidden")) return;
+    var role = window.mockClanCurrentRole();
+    var s = window.mockClanSettingsGet();
+    var canEdit =
+      role === "leader" || (role === "officer" && !!s.allowOfficerEditMscore);
+    var ids = [
+      "mock-mmgr-mscore-tank",
+      "mock-mmgr-mscore-dps",
+      "mock-mmgr-mscore-heal",
+    ];
+    ids.forEach(function (id) {
+      var input = document.getElementById(id);
+      if (!input) return;
+      input.disabled = !canEdit;
+      input.title = canEdit
+        ? ""
+        : role === "officer"
+          ? "M점수 편집이 운영진에게 허용되지 않았습니다. 개요 탭의 '운영 권한 설정'에서 클랜장이 허용할 수 있습니다."
+          : "M점수 편집은 운영진 이상만 가능합니다.";
+    });
+    // 역할 select: leader만 변경 가능
+    var roleSelect = document.getElementById("mock-mmgr-detail-clan-role");
+    if (roleSelect) {
+      roleSelect.disabled = role !== "leader";
+      roleSelect.title =
+        role !== "leader"
+          ? "역할 변경은 클랜장만 수행할 수 있습니다 (D-MANAGE-02)."
+          : "";
+    }
   };
 
   function applyPlanBodyClass() {
@@ -854,6 +1153,11 @@
         a.removeAttribute("title");
       }
     });
+
+    // D-MANAGE-01/02/04 · 역할이 바뀌면 운영 권한 설정 카드·개인 상세 모달 게이팅을 재적용
+    try {
+      window.mockClanSettingsSyncUi();
+    } catch (e) {}
   }
 
   window.clanGo = function (view, anchorEl) {
@@ -971,6 +1275,9 @@
     applyPlanBodyClass();
     if (typeof window.mockManageMembersInit === "function") {
       window.mockManageMembersInit();
+    }
+    if (typeof window.mockManageRequestsRender === "function") {
+      window.mockManageRequestsRender();
     }
     if (typeof window.mockApplyBalanceSessionGate === "function") {
       window.mockApplyBalanceSessionGate();
@@ -6657,10 +6964,115 @@
     }
   };
 
-  /** 클랜 관리 — 구독(localStorage) · 구성원 검색/페이지네이션 · 개인 기록 상세 */
+  /** 클랜 관리 — 구독(localStorage) · 구성원 검색/페이지네이션 · 개인 기록 상세 · 활성도 분류(D-CLAN-07) */
   var MOCK_MMEMBER_OVERRIDES_KEY = "clansync-mock-mmgr-member-overrides-v1";
-  var __mockManageMembersState = { page: 1, pageSize: 5, search: "" };
+  /** D-CLAN-07: 체크박스로 일괄 강퇴된(=status='left') 휴면 멤버 id 집합 */
+  var MOCK_KICKED_DORMANT_KEY = "clansync-mock-manage-kicked-dormant-v1";
+  /** D-CLAN-07: 신규 휴면 진입 알림 배너 닫기 여부 (세션 단위) */
+  var MOCK_DORMANT_BANNER_KEY = "clansync-mock-manage-dormant-banner-dismissed-v1";
+  /** D-CLAN-07: 활성 <30d / 비활성 30~60d / 휴면 60d+ */
+  var MOCK_ACTIVITY_THRESHOLD_INACTIVE = 30;
+  var MOCK_ACTIVITY_THRESHOLD_DORMANT = 60;
+  /** D-CLAN-07: 클랜 인원 한도 (D-CLAN-06 Free·Premium 동일 200, 이 목업 클랜은 30명) */
+  var MOCK_CLAN_MAX_MEMBERS = 30;
+  var __mockManageMembersState = {
+    page: 1,
+    pageSize: 5,
+    search: "",
+    /** D-CLAN-07: 활성/비활성 테이블 필터 (all/active/inactive) */
+    activityFilter: "all",
+    /** D-CLAN-07: 휴면 섹션 접힘 여부 */
+    dormantCollapsed: true,
+    /** D-CLAN-07: 휴면 섹션 페이지 */
+    dormantPage: 1,
+    /** D-CLAN-07: 휴면 섹션 선택된 멤버 id 집합 */
+    dormantSelected: Object.create(null),
+  };
   var __mockManageMemberDetailId = null;
+
+  function mockClassifyActivity(daysSince) {
+    var d = Number(daysSince);
+    if (!(d >= 0)) return "active";
+    if (d < MOCK_ACTIVITY_THRESHOLD_INACTIVE) return "active";
+    if (d < MOCK_ACTIVITY_THRESHOLD_DORMANT) return "inactive";
+    return "dormant";
+  }
+
+  /** D-CLAN-07: 활성도 배지 SVG (ui-ic · stroke 기반 · currentColor 상속) */
+  var MOCK_ACTIVITY_ICON = {
+    active:
+      '<span class="ui-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="m8 12 3 3 5-6"></path></svg></span>',
+    inactive:
+      '<span class="ui-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>',
+    dormant:
+      '<span class="ui-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></span>',
+  };
+
+  function mockActivityBadgeHtml(activity) {
+    if (activity === "active") {
+      return (
+        '<span class="mock-activity-badge mock-activity-active" title="최근 30일 내 활동">' +
+        MOCK_ACTIVITY_ICON.active +
+        " 활성</span>"
+      );
+    }
+    if (activity === "inactive") {
+      return (
+        '<span class="mock-activity-badge mock-activity-inactive" title="30~60일 무활동">' +
+        MOCK_ACTIVITY_ICON.inactive +
+        " 비활성</span>"
+      );
+    }
+    return (
+      '<span class="mock-activity-badge mock-activity-dormant" title="60일+ 무활동">' +
+      MOCK_ACTIVITY_ICON.dormant +
+      " 휴면</span>"
+    );
+  }
+
+  function mockLoadKickedDormant() {
+    try {
+      var raw = localStorage.getItem(MOCK_KICKED_DORMANT_KEY);
+      if (raw) {
+        var arr = JSON.parse(raw);
+        if (Array.isArray(arr)) return arr;
+      }
+    } catch (e) {}
+    return [];
+  }
+
+  function mockSaveKickedDormant(arr) {
+    try {
+      localStorage.setItem(MOCK_KICKED_DORMANT_KEY, JSON.stringify(arr));
+    } catch (e) {}
+  }
+
+  function mockIsKickedDormant(id) {
+    return mockLoadKickedDormant().indexOf(id) !== -1;
+  }
+
+  function mockAddKickedDormant(ids) {
+    var cur = mockLoadKickedDormant();
+    for (var i = 0; i < ids.length; i++) {
+      if (cur.indexOf(ids[i]) === -1) cur.push(ids[i]);
+    }
+    mockSaveKickedDormant(cur);
+  }
+
+  function mockIsDormantBannerDismissed() {
+    try {
+      return sessionStorage.getItem(MOCK_DORMANT_BANNER_KEY) === "1";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function mockSetDormantBannerDismissed(v) {
+    try {
+      if (v) sessionStorage.setItem(MOCK_DORMANT_BANNER_KEY, "1");
+      else sessionStorage.removeItem(MOCK_DORMANT_BANNER_KEY);
+    } catch (e) {}
+  }
 
   var MOCK_MANAGE_MEMBERS = [
     {
@@ -6669,7 +7081,8 @@
       gameId: "Kim#1000",
       role: "leader",
       joined: "2025.01.15",
-      last: "3/22",
+      last: "4/19",
+      daysSince: 1,
       donation: "1,200",
       medals: ["창단 멤버"],
       mScores: { tank: 1.1, dps: 0.9, heal: 0.7 },
@@ -6681,7 +7094,8 @@
       gameId: "Pro#2000",
       role: "officer",
       joined: "2025.02.01",
-      last: "3/20",
+      last: "4/16",
+      daysSince: 4,
       donation: "400",
       medals: ["밸런스장"],
       mScores: { tank: 0.9, dps: 1.2, heal: 0.5 },
@@ -6694,7 +7108,8 @@
       gameId: "Heal#3000",
       role: "member",
       joined: "2025.06.10",
-      last: "3/18",
+      last: "4/07",
+      daysSince: 13,
       donation: "0",
       medals: ["개근왕 후보"],
       mScores: { tank: 0.4, dps: 0.3, heal: 1.0 },
@@ -6706,7 +7121,8 @@
       gameId: "ABEL#0001",
       role: "member",
       joined: "2025.06.10",
-      last: "3/24",
+      last: "4/15",
+      daysSince: 5,
       donation: "320",
       medals: ["맵장인", "예측왕"],
       mScores: { tank: 1.0, dps: 0.85, heal: 0.62 },
@@ -6739,7 +7155,8 @@
       gameId: "Cat#4400",
       role: "member",
       joined: "2025.03.01",
-      last: "3/21",
+      last: "4/12",
+      daysSince: 8,
       donation: "50",
       medals: [],
       mScores: { tank: 0.8, dps: 0.9, heal: 0.4 },
@@ -6751,7 +7168,8 @@
       gameId: "Ajae#5500",
       role: "member",
       joined: "2025.04.12",
-      last: "3/19",
+      last: "3/16",
+      daysSince: 35,
       donation: "0",
       medals: ["분위기 메이커"],
       mScores: { tank: 0.7, dps: 0.75, heal: 0.6 },
@@ -6763,7 +7181,8 @@
       gameId: "Rookie#6600",
       role: "member",
       joined: "2025.07.20",
-      last: "3/17",
+      last: "3/14",
+      daysSince: 37,
       donation: "100",
       medals: [],
       mScores: { tank: 0.5, dps: 0.5, heal: 0.5 },
@@ -6775,7 +7194,8 @@
       gameId: "Line#7700",
       role: "member",
       joined: "2025.08.05",
-      last: "3/16",
+      last: "3/05",
+      daysSince: 46,
       donation: "0",
       medals: ["딜견"],
       mScores: { tank: 0.3, dps: 1.1, heal: 0.2 },
@@ -6787,7 +7207,8 @@
       gameId: "Mercy#8800",
       role: "member",
       joined: "2025.09.01",
-      last: "3/15",
+      last: "2/28",
+      daysSince: 51,
       donation: "200",
       medals: ["힐 딜러"],
       mScores: { tank: 0.4, dps: 0.4, heal: 1.05 },
@@ -6799,11 +7220,13 @@
       gameId: "Soldier#9900",
       role: "member",
       joined: "2025.10.10",
-      last: "3/14",
+      last: "2/13",
+      daysSince: 66,
       donation: "0",
       medals: [],
       mScores: { tank: 0.8, dps: 0.95, heal: 0.35 },
       record: null,
+      dormantNewlyEntered: true,
     },
     {
       id: "m7",
@@ -6811,7 +7234,8 @@
       gameId: "Winston#1010",
       role: "member",
       joined: "2025.11.01",
-      last: "3/12",
+      last: "1/30",
+      daysSince: 80,
       donation: "80",
       medals: ["돌진"],
       mScores: { tank: 1.15, dps: 0.4, heal: 0.3 },
@@ -6823,7 +7247,8 @@
       gameId: "Nano#2020",
       role: "member",
       joined: "2026.01.05",
-      last: "3/10",
+      last: "12/20",
+      daysSince: 121,
       donation: "0",
       medals: ["신입"],
       mScores: { tank: 0.55, dps: 0.88, heal: 0.42 },
@@ -6998,9 +7423,35 @@
     return false;
   };
 
+  /** D-CLAN-07: 강퇴되지 않은 모든 현역 멤버 (활성/비활성/휴면 모두 포함). 검색·활성도 필터 미적용. */
+  function mockManageMembersAllLiving() {
+    return MOCK_MANAGE_MEMBERS.filter(function (m) {
+      return !mockIsKickedDormant(m.id);
+    });
+  }
+
+  /** 활성 + 비활성 테이블용 목록 (검색 + activityFilter 반영). 휴면은 여기서 제외. */
   function mockManageMembersFilterList() {
     var q = (__mockManageMembersState.search || "").trim().toLowerCase();
-    return MOCK_MANAGE_MEMBERS.filter(function (m) {
+    var f = __mockManageMembersState.activityFilter || "all";
+    return mockManageMembersAllLiving().filter(function (m) {
+      var activity = mockClassifyActivity(m.daysSince);
+      if (activity === "dormant") return false;
+      if (f === "active" && activity !== "active") return false;
+      if (f === "inactive" && activity !== "inactive") return false;
+      if (!q) return true;
+      return (
+        (m.nick && m.nick.toLowerCase().indexOf(q) !== -1) ||
+        (m.gameId && m.gameId.toLowerCase().indexOf(q) !== -1)
+      );
+    });
+  }
+
+  /** 휴면 섹션용 목록 (검색 반영). activityFilter 무관. */
+  function mockManageMembersDormantList() {
+    var q = (__mockManageMembersState.search || "").trim().toLowerCase();
+    return mockManageMembersAllLiving().filter(function (m) {
+      if (mockClassifyActivity(m.daysSince) !== "dormant") return false;
       if (!q) return true;
       return (
         (m.nick && m.nick.toLowerCase().indexOf(q) !== -1) ||
@@ -7019,7 +7470,96 @@
     return '<span class="badge" style="font-size:10px">member</span>';
   }
 
-  window.mockManageMembersRender = function () {
+  /** D-CLAN-07: 활성·비활성·휴면 카운트 + 인원 한도·신규 휴면 진입 수 집계 */
+  function mockManageMembersStats() {
+    var living = mockManageMembersAllLiving();
+    var active = 0;
+    var inactive = 0;
+    var dormant = 0;
+    var newDormant = 0;
+    for (var i = 0; i < living.length; i++) {
+      var a = mockClassifyActivity(living[i].daysSince);
+      if (a === "active") active++;
+      else if (a === "inactive") inactive++;
+      else {
+        dormant++;
+        if (living[i].dormantNewlyEntered) newDormant++;
+      }
+    }
+    return {
+      active: active,
+      inactive: inactive,
+      dormant: dormant,
+      newDormant: newDormant,
+      capUsed: active + inactive,
+      capMax: MOCK_CLAN_MAX_MEMBERS,
+    };
+  }
+
+  /** 인원(users) 아이콘 — 사이드바 "클랜 관리"와 동일 모양 */
+  var MOCK_ICON_USERS =
+    '<span class="ui-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"></circle><circle cx="17" cy="9" r="2.5"></circle><path d="M3.5 20a5.5 5.5 0 0 1 11 0"></path><path d="M14 20a4 4 0 0 1 7.5-1.8"></path></svg></span>';
+  /** 경고 삼각 아이콘 — 신규 휴면 진입 알림 */
+  var MOCK_ICON_ALERT =
+    '<span class="ui-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 2 21h20L12 3z"></path><path d="M12 10v5"></path><circle cx="12" cy="18" r="0.6" fill="currentColor" stroke="none"></circle></svg></span>';
+
+  /** D-CLAN-07: 상단 요약 배너 렌더 */
+  function mockManageMembersRenderSummary() {
+    var el = document.getElementById("mock-manage-members-summary");
+    if (!el) return;
+    var s = mockManageMembersStats();
+    var capPct = Math.min(100, Math.round((s.capUsed / s.capMax) * 100));
+    var bannerHtml = "";
+    if (s.newDormant > 0 && !mockIsDormantBannerDismissed()) {
+      bannerHtml =
+        '<div class="mock-manage-dormant-alert" role="status" aria-live="polite">' +
+        '<span class="mock-manage-dormant-alert-icon">' +
+        MOCK_ICON_ALERT +
+        "</span>" +
+        '<span class="mock-manage-dormant-alert-text">최근 7일간 <strong>' +
+        s.newDormant +
+        '명</strong>이 새로 휴면으로 분류됐습니다. 아래 휴면 섹션에서 확인 후 정리하세요.</span>' +
+        '<button type="button" class="mock-manage-dormant-alert-close" aria-label="알림 닫기" onclick="return window.mockManageMembersDismissDormantAlert()">×</button>' +
+        "</div>";
+    }
+    el.innerHTML =
+      bannerHtml +
+      '<div class="mock-manage-summary-grid">' +
+      '<div class="mock-manage-summary-pill mock-activity-active"><span class="mock-manage-summary-label">' +
+      MOCK_ACTIVITY_ICON.active +
+      ' 활성</span><strong>' +
+      s.active +
+      '</strong><span class="mock-manage-summary-hint">&lt; 30일</span></div>' +
+      '<div class="mock-manage-summary-pill mock-activity-inactive"><span class="mock-manage-summary-label">' +
+      MOCK_ACTIVITY_ICON.inactive +
+      ' 비활성</span><strong>' +
+      s.inactive +
+      '</strong><span class="mock-manage-summary-hint">30~60일</span></div>' +
+      '<div class="mock-manage-summary-pill mock-activity-dormant"><span class="mock-manage-summary-label">' +
+      MOCK_ACTIVITY_ICON.dormant +
+      ' 휴면</span><strong>' +
+      s.dormant +
+      '</strong><span class="mock-manage-summary-hint">60일+ · 인원 미포함</span></div>' +
+      '<div class="mock-manage-summary-pill mock-manage-summary-cap"><span class="mock-manage-summary-label">' +
+      MOCK_ICON_USERS +
+      ' 인원 한도</span><strong>' +
+      s.capUsed +
+      " / " +
+      s.capMax +
+      '</strong><span class="mock-manage-summary-hint">' +
+      capPct +
+      "% · 휴면 제외(D-CLAN-07)</span></div>" +
+      "</div>";
+  }
+
+  window.mockManageMembersDismissDormantAlert = function () {
+    mockSetDormantBannerDismissed(true);
+    mockManageMembersRenderSummary();
+    return false;
+  };
+
+  /** 활성·비활성 테이블 렌더 */
+  function mockManageMembersRenderActive() {
     var tbody = document.getElementById("mock-manage-members-tbody");
     var pager = document.getElementById("mock-manage-members-pager");
     var cnt = document.getElementById("mock-manage-members-count");
@@ -7029,35 +7569,46 @@
     var total = list.length;
     var pages = Math.max(1, Math.ceil(total / ps));
     if (__mockManageMembersState.page > pages) __mockManageMembersState.page = pages;
+    if (__mockManageMembersState.page < 1) __mockManageMembersState.page = 1;
     var p = __mockManageMembersState.page;
     var start = (p - 1) * ps;
     var slice = list.slice(start, start + ps);
-    tbody.innerHTML = slice
-      .map(function (m) {
-        return (
-          '<tr class="mock-manage-member-row" tabindex="0" data-member-id="' +
-          m.id +
-          '" onclick="return window.mockManageMemberDetailOpen(\'' +
-          m.id +
-          '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();window.mockManageMemberDetailOpen(\'' +
-          m.id +
-          '\')}">' +
-          "<td>" +
-          m.nick +
-          "</td><td style=\"color:var(--text-muted)\">" +
-          m.gameId +
-          "</td><td>" +
-          mockManageMembersRoleBadge(m.role) +
-          "</td><td style=\"color:var(--text-muted)\">" +
-          m.joined +
-          "</td><td style=\"color:var(--text-muted)\">" +
-          m.last +
-          '</td><td style="text-align:right;color:var(--text-muted)">' +
-          m.donation +
-          "</td></tr>"
-        );
-      })
-      .join("");
+    if (slice.length === 0) {
+      tbody.innerHTML =
+        '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:18px 8px;font-size:12px">조건에 맞는 구성원이 없습니다.</td></tr>';
+    } else {
+      tbody.innerHTML = slice
+        .map(function (m) {
+          var activity = mockClassifyActivity(m.daysSince);
+          return (
+            '<tr class="mock-manage-member-row" tabindex="0" data-member-id="' +
+            m.id +
+            '" onclick="return window.mockManageMemberDetailOpen(\'' +
+            m.id +
+            '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();window.mockManageMemberDetailOpen(\'' +
+            m.id +
+            '\')}">' +
+            "<td>" +
+            mockActivityBadgeHtml(activity) +
+            "</td><td>" +
+            m.nick +
+            '</td><td style="color:var(--text-muted)">' +
+            m.gameId +
+            "</td><td>" +
+            mockManageMembersRoleBadge(m.role) +
+            '</td><td style="color:var(--text-muted)">' +
+            m.joined +
+            '</td><td style="color:var(--text-muted)">' +
+            m.last +
+            " <span style=\"font-size:10px;opacity:0.6\">(" +
+            m.daysSince +
+            "d)</span></td><td style=\"text-align:right;color:var(--text-muted)\">" +
+            m.donation +
+            "</td></tr>"
+          );
+        })
+        .join("");
+    }
     if (cnt) cnt.textContent = "총 " + total + "명 · " + p + " / " + pages + " 페이지";
     if (pager) {
       pager.innerHTML =
@@ -7075,6 +7626,113 @@
         (p + 1) +
         ')">다음</button>';
     }
+  }
+
+  /** 휴면 섹션 렌더 */
+  function mockManageMembersRenderDormant() {
+    var sec = document.getElementById("mock-manage-dormant-section");
+    var cnt = document.getElementById("mock-manage-dormant-count");
+    var body = document.getElementById("mock-manage-dormant-body");
+    var tbody = document.getElementById("mock-manage-dormant-tbody");
+    var pager = document.getElementById("mock-manage-dormant-pager");
+    var selCountEl = document.getElementById("mock-manage-dormant-selected-count");
+    var selectAll = document.getElementById("mock-manage-dormant-select-all");
+    var kickBtn = document.getElementById("mock-manage-dormant-kick-btn");
+    var toggle = document.getElementById("mock-manage-dormant-toggle");
+    if (!sec || !tbody) return;
+    var list = mockManageMembersDormantList();
+    if (cnt) cnt.textContent = list.length;
+    if (body) body.hidden = !!__mockManageMembersState.dormantCollapsed;
+    if (toggle) toggle.setAttribute("aria-expanded", __mockManageMembersState.dormantCollapsed ? "false" : "true");
+    var ps = __mockManageMembersState.pageSize || 5;
+    var pages = Math.max(1, Math.ceil(list.length / ps));
+    if (__mockManageMembersState.dormantPage > pages) __mockManageMembersState.dormantPage = pages;
+    if (__mockManageMembersState.dormantPage < 1) __mockManageMembersState.dormantPage = 1;
+    var p = __mockManageMembersState.dormantPage;
+    var start = (p - 1) * ps;
+    var slice = list.slice(start, start + ps);
+    /** 휴면이 한 명도 없으면 섹션 자체를 옅게 표시 */
+    sec.classList.toggle("mock-manage-dormant-empty", list.length === 0);
+    if (slice.length === 0) {
+      tbody.innerHTML =
+        '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:16px 8px;font-size:12px">휴면 구성원이 없습니다.</td></tr>';
+    } else {
+      tbody.innerHTML = slice
+        .map(function (m) {
+          var checked = !!__mockManageMembersState.dormantSelected[m.id];
+          return (
+            '<tr class="mock-manage-dormant-row" data-member-id="' +
+            m.id +
+            '">' +
+            '<td style="width:32px"><input type="checkbox" aria-label="' +
+            m.nick +
+            ' 선택" ' +
+            (checked ? "checked" : "") +
+            ' onchange="return window.mockManageMembersToggleDormant(\'' +
+            m.id +
+            '\', this.checked)" /></td>' +
+            "<td>" +
+            m.nick +
+            '</td><td style="color:var(--text-muted)">' +
+            m.gameId +
+            "</td><td>" +
+            mockManageMembersRoleBadge(m.role) +
+            '</td><td style="color:var(--text-muted)">' +
+            m.joined +
+            '</td><td style="color:var(--text-muted)">' +
+            m.last +
+            ' <span style="font-size:10px;opacity:0.6">(' +
+            m.daysSince +
+            "d)</span></td>" +
+            '<td style="text-align:right"><button type="button" class="btn btn-secondary btn-sm" onclick="return window.mockManageMemberDetailOpen(\'' +
+            m.id +
+            '\')">상세</button></td></tr>'
+          );
+        })
+        .join("");
+    }
+    /** 현재 페이지의 휴면 id 목록 */
+    var pageIds = slice.map(function (m) {
+      return m.id;
+    });
+    /** 현재 페이지 내에서 선택된 수 */
+    var pageSelected = pageIds.filter(function (id) {
+      return __mockManageMembersState.dormantSelected[id];
+    });
+    if (selectAll) {
+      selectAll.checked = pageIds.length > 0 && pageSelected.length === pageIds.length;
+      selectAll.indeterminate = pageSelected.length > 0 && pageSelected.length < pageIds.length;
+      selectAll.disabled = pageIds.length === 0;
+    }
+    /** 선택 수 = 전체 휴면 목록 기준이 아니라 현재 페이지 체크박스 스코프 */
+    var selCount = pageSelected.length;
+    if (selCountEl) selCountEl.textContent = selCount;
+    if (kickBtn) kickBtn.disabled = selCount === 0;
+    if (pager) {
+      pager.innerHTML =
+        '<button type="button" class="btn btn-secondary btn-sm" ' +
+        (p <= 1 ? "disabled" : "") +
+        ' onclick="return window.mockManageMembersDormantPage(' +
+        (p - 1) +
+        ')">이전</button><span>페이지 ' +
+        p +
+        " / " +
+        pages +
+        '</span><button type="button" class="btn btn-secondary btn-sm" ' +
+        (p >= pages ? "disabled" : "") +
+        ' onclick="return window.mockManageMembersDormantPage(' +
+        (p + 1) +
+        ')">다음</button>';
+    }
+  }
+
+  window.mockManageMembersRender = function () {
+    mockManageMembersRenderSummary();
+    mockManageMembersRenderActive();
+    mockManageMembersRenderDormant();
+    if (typeof window.mockSidebarNotifyRefresh === "function") {
+      window.mockSidebarNotifyRefresh();
+    }
   };
 
   window.mockManageMembersPage = function (next) {
@@ -7090,14 +7748,133 @@
   window.mockManageMembersOnSearch = function (el) {
     __mockManageMembersState.search = el ? el.value : "";
     __mockManageMembersState.page = 1;
+    __mockManageMembersState.dormantPage = 1;
     window.mockManageMembersRender();
+  };
+
+  window.mockManageMembersOnActivityFilter = function (el) {
+    var v = el ? el.value : "all";
+    if (v !== "all" && v !== "active" && v !== "inactive") v = "all";
+    __mockManageMembersState.activityFilter = v;
+    __mockManageMembersState.page = 1;
+    window.mockManageMembersRender();
+    return false;
+  };
+
+  window.mockManageMembersToggleDormantSection = function () {
+    __mockManageMembersState.dormantCollapsed = !__mockManageMembersState.dormantCollapsed;
+    mockManageMembersRenderDormant();
+    return false;
+  };
+
+  window.mockManageMembersDormantPage = function (next) {
+    var list = mockManageMembersDormantList();
+    var ps = __mockManageMembersState.pageSize || 5;
+    var pages = Math.max(1, Math.ceil(list.length / ps));
+    if (next < 1 || next > pages) return false;
+    __mockManageMembersState.dormantPage = next;
+    mockManageMembersRenderDormant();
+    return false;
+  };
+
+  window.mockManageMembersToggleDormant = function (id, checked) {
+    if (!id) return false;
+    if (checked) {
+      __mockManageMembersState.dormantSelected[id] = true;
+    } else {
+      delete __mockManageMembersState.dormantSelected[id];
+    }
+    mockManageMembersRenderDormant();
+    return true;
+  };
+
+  window.mockManageMembersSelectAllDormantPage = function (el) {
+    var list = mockManageMembersDormantList();
+    var ps = __mockManageMembersState.pageSize || 5;
+    var p = __mockManageMembersState.dormantPage;
+    var start = (p - 1) * ps;
+    var slice = list.slice(start, start + ps);
+    var checked = el ? !!el.checked : true;
+    for (var i = 0; i < slice.length; i++) {
+      if (checked) __mockManageMembersState.dormantSelected[slice[i].id] = true;
+      else delete __mockManageMembersState.dormantSelected[slice[i].id];
+    }
+    mockManageMembersRenderDormant();
+    return true;
+  };
+
+  window.mockManageMembersBulkKickDormant = function () {
+    /** 현재 페이지에서 체크된 휴면 멤버만 강퇴 (D-CLAN-07: 일괄 범위는 현재 페이지 기준) */
+    var list = mockManageMembersDormantList();
+    var ps = __mockManageMembersState.pageSize || 5;
+    var p = __mockManageMembersState.dormantPage;
+    var start = (p - 1) * ps;
+    var slice = list.slice(start, start + ps);
+    var ids = [];
+    for (var i = 0; i < slice.length; i++) {
+      if (__mockManageMembersState.dormantSelected[slice[i].id]) ids.push(slice[i].id);
+    }
+    if (ids.length === 0) {
+      alert("강퇴할 휴면 멤버를 먼저 선택하세요.");
+      return false;
+    }
+    var ok = confirm(
+      "선택한 휴면 멤버 " +
+        ids.length +
+        "명을 클랜에서 탈퇴시킵니다.\n(목업이므로 이 브라우저에서만 반영됩니다)"
+    );
+    if (!ok) return false;
+    mockAddKickedDormant(ids);
+    for (var j = 0; j < ids.length; j++) {
+      delete __mockManageMembersState.dormantSelected[ids[j]];
+    }
+    window.mockManageMembersRender();
+    return false;
+  };
+
+  /** 목업 한정: 강퇴 기록 초기화 (디버그 편의) */
+  window.mockManageMembersResetKickedDormant = function () {
+    mockSaveKickedDormant([]);
+    mockSetDormantBannerDismissed(false);
+    window.mockManageMembersRender();
+    return false;
   };
 
   window.mockManageMembersInit = function () {
     var inp = document.getElementById("mock-manage-members-search");
     if (inp) __mockManageMembersState.search = inp.value || "";
+    var fil = document.getElementById("mock-manage-members-activity-filter");
+    if (fil) __mockManageMembersState.activityFilter = fil.value || "all";
     __mockManageMembersState.page = 1;
+    __mockManageMembersState.dormantPage = 1;
     window.mockManageMembersRender();
+  };
+
+  /**
+   * 가입 요청 탭(requests) 렌더 — 목업 상태에서는 정적 `<tr>` 개수를 기준으로
+   * 탭 뱃지와 카드 헤더 배지의 카운트를 동기화한다. 실제 구현에서는
+   * `clan_join_requests` 쿼리 결과로 대체된다 (D-CLAN-02).
+   */
+  window.mockManageRequestsRender = function () {
+    var tbody = document.getElementById("mock-manage-requests-tbody");
+    var tabBadge = document.getElementById("mock-manage-requests-badge");
+    var cardBadge = document.getElementById("mock-manage-requests-count");
+    var n = tbody ? tbody.querySelectorAll("tr").length : 0;
+    var txt = String(n);
+    [tabBadge, cardBadge].forEach(function (el) {
+      if (!el) return;
+      el.textContent = txt;
+      if (n > 0) {
+        el.removeAttribute("hidden");
+        el.setAttribute("aria-hidden", "false");
+      } else {
+        el.setAttribute("hidden", "");
+        el.setAttribute("aria-hidden", "true");
+      }
+    });
+    if (typeof window.mockSidebarNotifyRefresh === "function") {
+      window.mockSidebarNotifyRefresh();
+    }
   };
 
   function mockManageMemberFind(id) {
@@ -7162,6 +7939,13 @@
   window.mockMmgrOnClanRoleChange = function (sel) {
     var id = __mockManageMemberDetailId;
     if (!id || !sel) return false;
+    // D-MANAGE-02 · 역할 변경은 leader 전용
+    var role = window.mockClanCurrentRole();
+    if (role !== "leader") {
+      window.alert("역할 변경은 클랜장만 수행할 수 있습니다 (D-MANAGE-02).");
+      window.mockMmgrSyncMscoreGate();
+      return false;
+    }
     mockMmgrSavePatch(id, { clanRole: sel.value });
     return false;
   };
@@ -7169,6 +7953,21 @@
   window.mockMmgrOnMScoreChange = function () {
     var id = __mockManageMemberDetailId;
     if (!id) return false;
+    // D-MANAGE-02 · M점수 편집은 leader 기본 / clanSettings.allowOfficerEditMscore 시 officer 허용
+    var role = window.mockClanCurrentRole();
+    var settings = window.mockClanSettingsGet();
+    var canEdit =
+      role === "leader" ||
+      (role === "officer" && !!settings.allowOfficerEditMscore);
+    if (!canEdit) {
+      window.alert(
+        role === "officer"
+          ? "M점수 편집이 운영진에게 허용되지 않았습니다. 클랜장이 개요 탭의 '운영 권한 설정'에서 허용할 수 있습니다."
+          : "M점수 편집은 운영진 이상만 가능합니다.",
+      );
+      window.mockMmgrSyncMscoreGate();
+      return false;
+    }
     var tank = document.getElementById("mock-mmgr-mscore-tank");
     var dps = document.getElementById("mock-mmgr-mscore-dps");
     var heal = document.getElementById("mock-mmgr-mscore-heal");
@@ -7325,6 +8124,10 @@
       modal.removeAttribute("hidden");
       modal.setAttribute("aria-hidden", "false");
     }
+    // D-MANAGE-02 · 역할·M점수 게이팅, 부계정 공개 범위 라벨 동기화
+    try {
+      window.mockClanSettingsSyncUi();
+    } catch (e) {}
     return false;
   };
 
