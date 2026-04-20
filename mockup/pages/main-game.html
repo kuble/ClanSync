@@ -6,6 +6,23 @@
 <title>ClanSync — 오버워치 커뮤니티</title>
 <link rel="stylesheet" href="../styles/main.css">
 <style>
+.ui-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+}
+.ui-ic svg {
+  width: 1em;
+  height: 1em;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
 /* ── 게임 헤더 (사이드바 상단) ── */
 .game-header {
@@ -46,13 +63,23 @@
   font-size: 13px; font-weight: 600; color: #a78bfa;
 }
 .my-clan-badge:hover { background: rgba(124,58,237,0.16); }
+.nav-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
 /* ── 대시보드 그리드 ── */
 .dash-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 @media (max-width: 900px) {
   .dash-grid { grid-template-columns: 1fr; }
 }
-.d-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 20px; }
+.d-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 20px; box-shadow: var(--shadow-card); }
 /* 홈 3행: 같이 할 사람 · 이달의 클랜 순위 — 동일 열 높이, 헤더 2줄, 하단 버튼 정렬 */
 .dash-grid > .d-card.d-card-dash-pair {
   display: flex;
@@ -110,6 +137,13 @@
 .d-card-md   { grid-column: span 2; }
 .d-card-full { grid-column: span 3; }
 .d-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+.d-label-left {
+  justify-content: flex-start;
+  gap: 8px;
+}
+.d-label-left .ui-ic {
+  font-size: 1.2em;
+}
 .d-big   { font-size: 36px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
 .d-sub   { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
 /* 홈 클랜 홍보: 최소 1열 · 최대 2열 (넓어도 3열 안 나옴) */
@@ -198,6 +232,7 @@
 .scrim-card {
   background: var(--bg-elevated); border: 1px solid var(--border);
   border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 10px; transition: all 0.15s;
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 /* 목록형: 좌측 프로필 스트립 = 카드 전체 높이, 왼쪽 모서리만 카드 radius와 일치 */
 .scrim-card--media {
@@ -241,11 +276,11 @@
   font-size: 22px;
 }
 .scrim-card:hover { border-color: rgba(59,130,246,0.4); }
-.scrim-card--interactive:hover { border-color: rgba(124, 58, 237, 0.45); box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.12); }
-.scrim-card--interactive:focus { outline: 2px solid rgba(124, 58, 237, 0.45); outline-offset: 2px; }
+.scrim-card--interactive:hover { border-color: rgba(70, 175, 117, 0.5); box-shadow: 0 0 0 1px rgba(70, 175, 117, 0.15), 0 8px 22px rgba(0, 0, 0, 0.28); }
+.scrim-card--interactive:focus { outline: 2px solid rgba(70, 175, 117, 0.55); outline-offset: 2px; }
 /* 스크림 신청 티어: 단일 트랙 + 이중 썸 · 집 모양(수직 벽 오각형) 핸들 */
 .sa-rank-label-main {
-  text-align: center; font-size: 14px; font-weight: 700; color: #a78bfa;
+  text-align: center; font-size: 14px; font-weight: 700; color: var(--brand-secondary);
   line-height: 1.4; padding: 10px 12px; background: var(--bg-surface);
   border: 1px solid var(--border); border-radius: var(--radius-md);
 }
@@ -277,7 +312,7 @@
   height: var(--sa-track-h);
   width: 0;
   left: 0;
-  background: linear-gradient(90deg, #6d28d9, #7c3aed);
+  background: linear-gradient(90deg, var(--brand-primary), var(--brand-secondary));
   border-radius: 99px;
   pointer-events: none;
   z-index: 1;
@@ -304,7 +339,7 @@
   height: var(--sa-thumb-h);
   border: none;
   border-radius: 0;
-  background: #a78bfa;
+  background: var(--brand-secondary);
   clip-path: polygon(50% 0%, 100% 38%, 100% 100%, 0 100%, 0 38%);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
   cursor: grab;
@@ -320,7 +355,7 @@
   height: var(--sa-thumb-h);
   border: none;
   border-radius: 0;
-  background: #a78bfa;
+  background: var(--brand-secondary);
   clip-path: polygon(50% 0%, 100% 38%, 100% 100%, 0 100%, 0 38%);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
   cursor: grab;
@@ -346,7 +381,7 @@
   margin: 6px 0 8px; line-height: 1.35; letter-spacing: -0.01em;
 }
 .scrim-vs-match .scrim-vs-x {
-  background: linear-gradient(135deg, #a78bfa, #60a5fa);
+  background: linear-gradient(135deg, var(--brand-secondary), #60a5fa);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -443,15 +478,15 @@
   font-weight: 600;
   padding: 5px 14px;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(124, 58, 237, 0.45);
+  border: 1px solid rgba(70, 175, 117, 0.45);
   background: transparent;
-  color: #c4b5fd;
+  color: #86efac;
   cursor: pointer;
   transition: background 0.12s, border-color 0.12s;
 }
 .scrim-join-confirm:hover {
-  background: rgba(124, 58, 237, 0.12);
-  border-color: rgba(167, 139, 250, 0.65);
+  background: rgba(70, 175, 117, 0.12);
+  border-color: rgba(70, 175, 117, 0.65);
 }
 .scrim-join-confirm:disabled {
   opacity: 0.45;
@@ -511,8 +546,8 @@
   transition: border-color 0.15s, background 0.15s;
 }
 .sd-neg-row:hover {
-  border-color: rgba(124, 58, 237, 0.25);
-  background: rgba(124, 58, 237, 0.05);
+  border-color: rgba(70, 175, 117, 0.25);
+  background: rgba(70, 175, 117, 0.05);
 }
 .sd-neg-name {
   flex: 1;
@@ -536,13 +571,13 @@
   font-weight: 600;
   padding: 4px 10px;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(124, 58, 237, 0.4);
+  border: 1px solid rgba(70, 175, 117, 0.4);
   background: transparent;
-  color: #c4b5fd;
+  color: #86efac;
   cursor: pointer;
 }
 .sd-neg-open:hover {
-  background: rgba(124, 58, 237, 0.1);
+  background: rgba(70, 175, 117, 0.1);
 }
 
 /* ── 스크림 2주 캘린더 ── */
@@ -563,10 +598,10 @@
   background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md);
   cursor: pointer; transition: border-color .15s, background .15s;
 }
-.scrim-up-row:hover { border-color: rgba(124, 58, 237, 0.35); background: rgba(124, 58, 237, 0.06); }
+.scrim-up-row:hover { border-color: rgba(70, 175, 117, 0.35); background: rgba(70, 175, 117, 0.06); }
 .scrim-up-maincol { flex: 1; min-width: 0; }
 .scrim-up-datetime {
-  font-size: 12px; font-weight: 700; color: #a78bfa; letter-spacing: 0.02em;
+  font-size: 12px; font-weight: 700; color: var(--brand-secondary); letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums; margin-bottom: 4px; line-height: 1.35;
 }
 .scrim-up-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -586,11 +621,11 @@
   cursor: pointer; transition: border-color .15s, box-shadow .15s, background .15s;
   display: flex; flex-direction: column; align-items: stretch; gap: 4px;
 }
-.scrim-cal-cell:hover { border-color: rgba(167, 139, 250, 0.35); }
+.scrim-cal-cell:hover { border-color: rgba(70, 175, 117, 0.35); }
 .scrim-cal-cell.past { opacity: 0.5; cursor: default; }
 .scrim-cal-cell.past:hover { border-color: var(--border); }
-.scrim-cal-cell.today { box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.45); border-color: rgba(124, 58, 237, 0.35); }
-.scrim-cal-cell.selected { background: rgba(124, 58, 237, 0.12); border-color: rgba(124, 58, 237, 0.55); }
+.scrim-cal-cell.today { box-shadow: 0 0 0 1px rgba(70, 175, 117, 0.45); border-color: rgba(70, 175, 117, 0.35); }
+.scrim-cal-cell.selected { background: rgba(70, 175, 117, 0.12); border-color: rgba(70, 175, 117, 0.55); }
 .scrim-cal-dnum { font-size: 15px; font-weight: 700; line-height: 1.2; }
 .scrim-cal-dow { font-size: 10px; color: var(--text-muted); font-weight: 600; margin-top: -1px; }
 .scrim-cal-badges { display: flex; flex-wrap: wrap; gap: 3px; margin-top: auto; }
@@ -614,7 +649,7 @@
 }
 .promo-card {
   background: var(--bg-elevated); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 0; transition: border-color 0.15s; overflow: hidden;
+  border-radius: var(--radius-lg); padding: 0; transition: border-color 0.15s; overflow: hidden; box-shadow: var(--shadow-card);
   display: flex; flex-direction: column;
 }
 .promo-card:hover { border-color: var(--border-focus); cursor: pointer; }
@@ -629,11 +664,11 @@
   margin-top: 4px;
   padding: 10px 8px;
   border-radius: var(--radius-sm);
-  background: rgba(124, 58, 237, 0.08);
-  border: 1px solid rgba(124, 58, 237, 0.2);
+  background: rgba(70, 175, 117, 0.08);
+  border: 1px solid rgba(70, 175, 117, 0.2);
 }
 .rank-row.rank-row--mine:last-child {
-  border-bottom: 1px solid rgba(124, 58, 237, 0.2);
+  border-bottom: 1px solid rgba(70, 175, 117, 0.2);
 }
 .rank-num { width:22px;font-size:12px;font-weight:700;color:var(--text-muted);text-align:center;flex-shrink:0; }
 .rank-num.top1 { color:#f59e0b; } .rank-num.top2 { color:#9ca3af; } .rank-num.top3 { color:#cd7c2e; }
@@ -811,7 +846,7 @@
 .ranking-peak-summary {
   font-size: 14px;
   font-weight: 700;
-  color: #c4b5fd;
+  color: var(--brand-secondary);
   margin-top: 10px;
   line-height: 1.35;
 }
@@ -964,6 +999,68 @@
 }
 .filter-chip.on { background: rgba(124,58,237,0.18); border-color: rgba(124,58,237,0.5); color: #c4b5fd; font-weight: 600; }
 .filter-chip:hover:not(.on) { border-color: rgba(124,58,237,0.4); color: var(--text-primary); }
+/* 스크림 모집 섹션 토글 칩은 초록 포인트 */
+#sec-scrim .filter-chip.on {
+  background: rgba(70, 175, 117, 0.18);
+  border-color: rgba(70, 175, 117, 0.5);
+  color: #86efac;
+}
+#sec-scrim .filter-chip:hover:not(.on) {
+  border-color: rgba(70, 175, 117, 0.4);
+}
+/* 같이 할 사람 섹션 포인트 컬러 */
+#sec-lfg .filter-chip.on {
+  background: rgba(70, 175, 117, 0.18);
+  border-color: rgba(70, 175, 117, 0.5);
+  color: #86efac;
+}
+#sec-lfg .filter-chip.active {
+  background: rgba(70, 175, 117, 0.18);
+  border-color: rgba(70, 175, 117, 0.5);
+  color: #86efac;
+}
+#sec-lfg .filter-chip:hover:not(.on) {
+  border-color: rgba(70, 175, 117, 0.4);
+}
+#sec-lfg .lfg-post:hover,
+#sec-lfg .lfg-card:hover {
+  border-color: rgba(70, 175, 117, 0.4);
+}
+#sec-lfg .lfg-tag-mode {
+  color: #86efac;
+  border-color: rgba(70, 175, 117, 0.35);
+}
+/* 클랜 순위 섹션 포인트 컬러 */
+#sec-ranking .rank-row.rank-row--mine {
+  background: rgba(70, 175, 117, 0.08);
+  border-color: rgba(70, 175, 117, 0.2);
+}
+#sec-ranking .ranking-my-clan-bar {
+  background: rgba(70, 175, 117, 0.08);
+  border-color: rgba(70, 175, 117, 0.22);
+}
+#sec-ranking #ranking-my-clan-rank {
+  color: var(--brand-secondary) !important;
+}
+#sec-ranking #ranking-my-clan-avatar {
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary)) !important;
+  box-shadow: 0 0 0 1px rgba(70, 175, 117, 0.25);
+}
+#sec-ranking .rank-row.rank-row--mine:last-child {
+  border-bottom: 1px solid rgba(70, 175, 117, 0.2);
+}
+#sec-ranking .ranking-peak-card {
+  border-color: rgba(70, 175, 117, 0.22);
+}
+#sec-ranking .ranking-hour-bar,
+#sec-ranking .ranking-dow-bar {
+  background: linear-gradient(180deg, rgba(70, 175, 117, 0.55), rgba(70, 175, 117, 0.12));
+}
+#sec-ranking .ranking-hour-bar.is-peak,
+#sec-ranking .ranking-dow-bar.is-peak {
+  background: linear-gradient(180deg, #86efac, var(--brand-primary));
+  box-shadow: 0 0 12px rgba(70, 175, 117, 0.45);
+}
 .filter-divider { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
 .filter-sort { margin-left: auto; }
 .filter-sort select { font-size: 12px; padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-overlay); color: var(--text-secondary); cursor: pointer; }
@@ -1294,54 +1391,29 @@
 
 </style>
 </head>
-<body>
+<body class="app-sidebar-collapsible">
 
 <nav class="navbar">
   <div class="navbar-start">
     <button type="button" class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleSidebarDrawer()" aria-label="메뉴 열기" aria-expanded="false" aria-controls="app-sidebar">
       <span class="mobile-menu-icon" aria-hidden="true"></span>
     </button>
-    <a href="games.html"><span class="navbar-brand">⚡ ClanSync</span></a>
-  </div>
-  <div class="navbar-nav" style="gap:12px">
-    <span style="font-size:13px;color:var(--text-secondary)">🎮 오버워치</span>
-    <a href="main-clan.html"><button class="btn btn-secondary btn-sm">내 클랜 →</button></a>
-    <div class="profile-menu" id="profileMenu">
-      <button class="profile-btn" onclick="toggleProfileMenu()">
-        <div class="avatar" style="width:28px;height:28px;font-size:12px">김</div>
-        <span class="profile-btn-arrow">▾</span>
-      </button>
-      <div class="profile-dropdown" id="profileDropdown">
-        <div class="pd-header">
-          <div class="avatar" style="width:40px;height:40px;font-size:16px">김</div>
-          <div>
-            <div style="font-weight:700;font-size:14px">김클랜</div>
-            <div style="font-size:12px;color:var(--text-muted)">kim@example.com</div>
-          </div>
-        </div>
-        <div class="pd-divider"></div>
-        <div class="pd-item" role="button" tabindex="0" onclick="mockPlayerProfileModalOpen()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();mockPlayerProfileModalOpen();}">
-          <span class="pd-item-icon">👤</span><span>플레이어 프로필</span><span class="pd-item-arrow">›</span>
-        </div>
-        <div class="pd-divider"></div>
-        <div class="pd-item" onclick="toggleTheme()">
-          <span class="pd-item-icon" id="themeIcon">🌙</span>
-          <span style="flex:1">다크 모드</span>
-          <div class="toggle on" id="themeToggle"></div>
-        </div>
-        <div class="pd-item" style="cursor:default">
-          <span class="pd-item-icon">🌐</span><span style="flex:1">언어</span>
-          <div class="lang-tabs">
-            <button class="lang-tab active" onclick="setLang(this,'ko')">한국어</button>
-            <button class="lang-tab" onclick="setLang(this,'en')">EN</button>
-            <button class="lang-tab" onclick="setLang(this,'ja')">日本語</button>
-          </div>
-        </div>
-        <div class="pd-divider"></div>
-        <div class="pd-item pd-logout" onclick="window.location.href='sign-in.html'">
-          <span class="pd-item-icon">🚪</span><span>로그아웃</span>
-        </div>
-      </div>
+    <a href="games.html" style="text-decoration:none" aria-label="게임 선택 페이지로 이동">
+      <span class="navbar-brand">
+        <span class="navbar-brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 512 512">
+            <path d="M434.8 137.65 285.44 69.55c-16.19-7.4-42.69-7.4-58.88 0L77.3 137.65c-17.6 8-17.6 21.09 0 29.09l148 67.5c16.89 7.7 44.69 7.7 61.58 0l148-67.5c17.52-8 17.52-21.1-.08-29.09Z"></path>
+            <path d="m160 308.52-82.7 37.11c-17.6 8-17.6 21.1 0 29.1l148 67.5c16.89 7.69 44.69 7.69 61.58 0l148-67.5c17.6-8 17.6-21.1 0-29.1l-79.94-38.47"></path>
+            <path d="m160 204.48-82.8 37.16c-17.6 8-17.6 21.1 0 29.1l148 67.49c16.89 7.7 44.69 7.7 61.58 0l148-67.49c17.7-8 17.7-21.1.1-29.1L352 204.48"></path>
+          </svg>
+        </span>
+      </span>
+    </a>
+    <div class="navbar-crumbs" aria-label="현재 컨텍스트">
+      <span class="navbar-crumb-sep">/</span>
+      <a href="main-game.html" class="navbar-crumb-link" aria-label="게임 메인 페이지로 이동">
+        <span class="navbar-crumb current">Overwatch</span>
+      </a>
     </div>
   </div>
 </nav>
@@ -1350,39 +1422,44 @@
 
 <!-- 사이드바 -->
 <aside class="sidebar" id="app-sidebar">
-  <div class="game-header">
-    <div class="game-icon">🎮</div>
-    <div class="game-name">오버워치</div>
-    <div class="game-sub">커뮤니티</div>
+  <div class="sidebar-divider" aria-hidden="true"></div>
+  <div class="sidebar-item active" id="nav-home" onclick="navTo('home')">
+    <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5.5 9.5V21h13V9.5"></path></svg>
+    <span class="sidebar-item-label">홈</span>
   </div>
-
-  <div class="sidebar-section-title">커뮤니티</div>
-  <div class="sidebar-item active" id="nav-home"     onclick="navTo('home')">🏠 홈</div>
-  <div class="sidebar-item"        id="nav-promo"    onclick="navTo('promo')">📢 클랜 홍보</div>
-  <div class="sidebar-item"        id="nav-scrim"    onclick="navTo('scrim')">⚔️ 스크림 모집</div>
-  <div class="sidebar-item"        id="nav-lfg"      onclick="navTo('lfg')">🔍 같이 할 사람</div>
-  <div class="sidebar-item"        id="nav-ranking"  onclick="navTo('ranking')">🏆 클랜 순위</div>
-
-  <div class="sidebar-section-title" style="margin-top:8px">내 클랜</div>
-  <a href="main-clan.html" style="text-decoration:none">
-    <div class="my-clan-badge">
-      <span>🔥</span>Phoenix Rising
-    </div>
-  </a>
+  <div class="sidebar-item" id="nav-promo" onclick="navTo('promo')">
+    <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11v2"></path><path d="M5 9.5 14.5 6v12L5 14.5z"></path><path d="M14.5 9.5a4 4 0 0 1 0 5"></path></svg>
+    <span class="sidebar-item-label">클랜 홍보</span>
+  </div>
+  <div class="sidebar-item" id="nav-scrim" onclick="navTo('scrim')">
+    <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3s3 3 3 6a3 3 0 0 1-6 0c0-2 3-6 3-6z"></path><path d="M12 10c4 2 6 4 6 7a6 6 0 1 1-12 0c0-3 2-5 6-7z"></path></svg>
+    <span class="sidebar-item-label">스크림 모집</span>
+  </div>
+  <div class="sidebar-item" id="nav-lfg" onclick="navTo('lfg')">
+    <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="m20 20-3.5-3.5"></path></svg>
+    <span class="sidebar-item-label">같이 할 사람</span>
+  </div>
+  <div class="sidebar-item" id="nav-ranking" onclick="navTo('ranking')">
+    <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10"></path><path d="M10 20V4"></path><path d="M16 20v-7"></path><path d="M22 20V8"></path></svg>
+    <span class="sidebar-item-label">클랜 순위</span>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-divider sidebar-divider-spaced" aria-hidden="true"></div>
+    <a href="main-clan.html"><div class="sidebar-item"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5.5 9.5V21h13V9.5"></path></svg><span class="sidebar-item-label">클랜 페이지</span></div></a>
+    <a href="profile.html"><div class="sidebar-item"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20a7 7 0 0 1 14 0"></path></svg><span class="sidebar-item-label">프로필</span></div></a>
+  </div>
 
 </aside>
 
 <!-- 메인 콘텐츠 -->
 <div class="page-with-sidebar">
-  <p class="mock-main-game-asset-hint" role="note">목업: 티어 아이콘·클랜 배지는 에셋 확정 전 플레이스홀더입니다. (docs/01-plan/BACKLOG.md · 에셋 교체)</p>
-
   <!-- ══════════════════════════════
        섹션 0: 홈 (대시보드)
   ══════════════════════════════ -->
   <div id="sec-home">
     <div class="section-head" style="margin-bottom:20px">
       <div>
-        <div class="section-title">🏠 오버워치 커뮤니티</div>
+        <div class="section-title"><span class="ui-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5.5 9.5V21h13V9.5"></path></svg></span> 오버워치 커뮤니티</div>
         <div class="section-sub">클랜 모집·파티·스크림·순위를 한 화면에서 빠르게 훑어보세요</div>
       </div>
     </div>
@@ -1392,7 +1469,7 @@
       <!-- 1행: 클랜 홍보 (전체 너비) -->
       <div class="d-card" style="grid-column:1/-1">
         <div class="d-label" style="margin-bottom:10px;align-items:flex-start;flex-wrap:wrap;gap:8px">
-          <span>📢 클랜 홍보</span>
+          <span><span class="ui-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 11v2"></path><path d="M5 9.5 14.5 6v12L5 14.5z"></path><path d="M14.5 9.5a4 4 0 0 1 0 5"></path></svg></span> 클랜 홍보</span>
           <span id="home-promo-meta" style="font-size:12px;color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:0">—</span>
         </div>
         <div id="homePromoGrid" class="home-promo-grid"></div>
@@ -1401,7 +1478,7 @@
 
       <!-- 2행: 스크림 모집 (전폭) -->
       <div class="d-card" style="grid-column:1/-1">
-        <div class="d-label" style="margin-bottom:6px">⚔️ 스크림 모집 중</div>
+        <div class="d-label d-label-left" style="margin-bottom:6px"><span class="ui-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3s3 3 3 6a3 3 0 0 1-6 0c0-2 3-6 3-6z"></path><path d="M12 10c4 2 6 4 6 7a6 6 0 1 1-12 0c0-3 2-5 6-7z"></path></svg></span> 스크림 모집 중</div>
         <div id="home-scrim-preview"></div>
         <button class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%" onclick="navTo('scrim')">+ 스크림 모집 전체 보기</button>
       </div>
@@ -1409,7 +1486,7 @@
       <!-- 3행 왼쪽: 같이 할 사람 -->
       <div class="d-card d-card-dash-pair">
         <div class="home-dash-head">
-          <div class="d-label">🔍 같이 할 사람</div>
+          <div class="d-label d-label-left"><span class="ui-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"></circle><path d="m20 20-3.5-3.5"></path></svg></span> 같이 할 사람</div>
           <p class="home-dash-sub">최근 등록 순</p>
         </div>
         <div class="home-dash-list">
@@ -1421,7 +1498,7 @@
       <!-- 3행 오른쪽: 이달의 클랜 순위 -->
       <div class="d-card d-card-dash-pair">
         <div class="home-dash-head">
-          <div class="d-label">🏆 이달의 클랜 순위</div>
+          <div class="d-label d-label-left"><span class="ui-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V10"></path><path d="M10 20V4"></path><path d="M16 20v-7"></path><path d="M22 20V8"></path></svg></span> 이달의 클랜 순위</div>
           <p id="home-ranking-topic" class="home-dash-sub">이번 달 내전 경기 수</p>
         </div>
         <div class="home-dash-list">
@@ -1439,7 +1516,7 @@
   <div id="sec-lfg" style="display:none">
     <div class="section-head">
       <div>
-        <div class="section-title">🔍 같이 할 사람</div>
+        <div class="section-title"><span class="ui-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"></circle><path d="m20 20-3.5-3.5"></path></svg></span> 같이 할 사람</div>
         <div class="section-sub" id="lfg-count-label">파티를 구하는 플레이어들</div>
       </div>
       <button class="btn btn-primary btn-sm" onclick="openLfgPostModal()">+ 모집 올리기</button>
@@ -1502,7 +1579,7 @@
   <div id="sec-scrim" style="display:none">
     <div class="section-head">
       <div>
-        <div class="section-title">⚔️ 스크림 모집</div>
+        <div class="section-title"><span class="ui-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3s3 3 3 6a3 3 0 0 1-6 0c0-2 3-6 3-6z"></path><path d="M12 10c4 2 6 4 6 7a6 6 0 1 1-12 0c0-3 2-5 6-7z"></path></svg></span> 스크림 모집</div>
         <div class="section-sub" id="scrim-count-label">스크림 상대를 구하는 클랜 목록</div>
       </div>
       <button class="btn btn-primary btn-sm" onclick="openScrimApplyModal()">+ 스크림 신청</button>
@@ -1555,10 +1632,10 @@
   <div id="sec-promo" style="display:none">
     <div class="section-head">
       <div>
-        <div class="section-title">📢 클랜 홍보</div>
+        <div class="section-title"><span class="ui-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 11v2"></path><path d="M5 9.5 14.5 6v12L5 14.5z"></path><path d="M14.5 9.5a4 4 0 0 1 0 5"></path></svg></span> 클랜 홍보</div>
         <div class="section-sub" id="promo-count-label">클랜원을 모집 중인 클랜들</div>
       </div>
-      <a href="clan-auth.html"><button class="btn btn-secondary btn-sm">🔍 클랜 찾기</button></a>
+      <a href="clan-auth.html"><button class="btn btn-secondary btn-sm"><span class="ui-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"></circle><path d="m20 20-3.5-3.5"></path></svg></span> 클랜 찾기</button></a>
     </div>
 
     <!-- 클랜 홍보 필터 -->
@@ -1620,7 +1697,7 @@
   <div id="sec-ranking" style="display:none">
     <div class="section-head" style="margin-bottom:12px">
       <div>
-        <div class="section-title">🏆 랭킹</div>
+        <div class="section-title"><span class="ui-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V10"></path><path d="M10 20V4"></path><path d="M16 20v-7"></path><path d="M22 20V8"></path></svg></span> 클랜 순위</div>
         <div class="section-sub">매월 1일 초기화</div>
       </div>
     </div>
@@ -1668,7 +1745,6 @@
 
     <!-- 탭: 개인 랭킹 -->
     <div id="ranking-panel-person" class="ranking-panel" role="tabpanel" aria-labelledby="rankingTabPerson" hidden>
-      <p class="ranking-panel-intro">이번 달 기준, 게임 내 전체 클랜을 통틀어 <strong>내전 참여 횟수</strong>가 많은 순입니다. (목업 데이터)</p>
       <div class="ranking-intra-table">
         <div class="ri-head">
           <div>#</div>
@@ -1682,27 +1758,21 @@
 
     <!-- 탭: 인사이트 -->
     <div id="ranking-panel-insight" class="ranking-panel" role="tabpanel" aria-labelledby="rankingTabInsight" hidden>
-      <p class="ranking-panel-intro">승률 등 경쟁 지표가 아닌, <strong>활동 패턴</strong> 위주의 요약입니다.</p>
       <div class="ranking-peak-card" style="margin-bottom:0">
         <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px">주간 통계 · 내전</div>
         <div style="font-size:14px;font-weight:700;color:var(--text-primary)">시간대별 내전 진행 건수 (0~23시, KST)</div>
         <div class="ranking-peak-summary" id="rankingPeakHourLine">—</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;line-height:1.45" id="rankingPeakHourSub">3/16 – 3/22 · 입력된 내전 기록 기준 · 총 <span id="rankingHourTotal">0</span>건 (목업)</div>
         <div class="ranking-hour-chart-wrap">
           <div id="ranking-hour-chart" class="ranking-hour-chart" role="img" aria-label="시간대별 내전 건수 막대 그래프"></div>
         </div>
-        <p class="ranking-hour-legend">막대 높이 = 해당 시각에 시작한 내전 건수. 가장 높은 막대가 피크 시간대입니다.</p>
       </div>
       <div class="ranking-peak-card" style="margin-top:16px;margin-bottom:0">
         <div style="font-size:14px;font-weight:700;color:var(--text-primary)">요일별 내전 진행 건수 (월~일, KST)</div>
         <div class="ranking-peak-summary" id="rankingPeakDowLine">—</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;line-height:1.45" id="rankingPeakDowSub">3/16 – 3/22 · 입력된 내전 기록 기준 · 총 <span id="rankingDowTotal">0</span>건 (목업)</div>
         <div class="ranking-dow-chart-wrap">
           <div id="ranking-dow-chart" class="ranking-dow-chart" role="img" aria-label="요일별 내전 건수 막대 그래프"></div>
         </div>
-        <p class="ranking-hour-legend">막대 높이 = 해당 요일에 시작한 내전 건수. 가장 높은 막대가 가장 활발한 요일입니다.</p>
       </div>
-      <div class="ranking-insight-placeholder">추가 인사이트(예: 상대 클랜 다양도, 월간 스크림 매칭 수 등)는 연동 후 이 영역에 표시할 수 있습니다.</div>
     </div>
   </div>
 
@@ -2593,7 +2663,6 @@ function renderScrims() {
     calEl.innerHTML = `
       <div class="scrim-cal-head">
         <div class="scrim-cal-range">${scrimFmtRangeLabel(rangeStart, rangeEnd)}</div>
-        <div class="scrim-cal-hint">날짜를 눌러 그날의 모집을 시간순으로 볼 수 있습니다</div>
       </div>
       <div class="scrim-cal-grid">
         ${windowKeys.map(k => {
@@ -2997,7 +3066,7 @@ function renderHomeRanking() {
     .join('');
   if (mine && minePos > 3) {
     html += `<div class="rank-row rank-row--mine">
-      <div class="rank-num" style="color:var(--brand-primary)">${minePos}</div>
+      <div class="rank-num" style="color:var(--brand-secondary)">${minePos}</div>
       <div class="avatar" style="background:${mine.bg || 'var(--bg-overlay)'}">${escHtml(String(mine.icon))}</div>
       <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${escHtml(mine.name)} <span style="font-size:11px;color:var(--text-muted)">(내 클랜)</span></div></div>
       <div style="font-size:12px;color:var(--success)">${mine.trend || ''}</div>
@@ -3070,7 +3139,7 @@ function renderRanking() {
     const numHtml = medal || String(pos);
     const topCls = pos <= 3 ? ` top${pos}` : '';
     return `
-    <div class="ranking-clan-table-row"${r.mine ? ' style="background:rgba(124,58,237,0.06)"' : ''}>
+    <div class="ranking-clan-table-row"${r.mine ? ' style="background:rgba(70,175,117,0.08);border-color:rgba(70,175,117,0.22)"' : ''}>
       <div class="rank-num${topCls}">${numHtml}</div>
       <div style="display:flex;align-items:center;gap:8px">
         <div class="avatar" style="width:28px;height:28px;font-size:12px;${r.bg?'background:'+r.bg:''}">${r.icon}</div>
@@ -3122,7 +3191,7 @@ function updateRankingMyClanBar(sortedList) {
       subEl.textContent = '지난달 10위';
     } else {
       trendEl.textContent = '현재 정렬';
-      trendEl.style.color = '#a78bfa';
+      trendEl.style.color = 'var(--brand-secondary)';
       subEl.textContent = '지표마다 순위가 달라집니다';
     }
   }
@@ -3675,11 +3744,11 @@ function renderScrimChatJoinUI(s) {
           <span class="scrim-join-done-label">확정</span>
         </div>
       </div>
-      <div class="scrim-join-hint scrim-join-hint--below">이미 성사된 스크림입니다.</div>`;
+      `;
     return;
   }
   if (expired) {
-    el.innerHTML = `<div class="scrim-join-hint">채팅방이 만료되어 확정할 수 없습니다.</div>`;
+    el.innerHTML = ``;
     return;
   }
   const hn = escHtml(s.name);
@@ -3695,10 +3764,6 @@ function renderScrimChatJoinUI(s) {
     : viewer === 'guest'
       ? '<button type="button" class="scrim-join-confirm" onclick="confirmScrimParticipation(\'guest\')">확정</button>'
       : '<span class="scrim-join-wait">상대 확정 대기</span>';
-  const hint =
-    viewer == null
-      ? '목업: 현재 클랜명이 이 방의 모집측·문의측과 일치하지 않아 확정 버튼을 숨깁니다.'
-      : '상호 확정이 완료된 이후 스크림이 성사됩니다.';
   el.innerHTML = `
     <div class="scrim-join-rows">
       <div class="scrim-join-row">
@@ -3711,8 +3776,7 @@ function renderScrimChatJoinUI(s) {
         <span class="scrim-join-name">${gn}</span>
         ${guestAction}
       </div>
-    </div>
-    <div class="scrim-join-hint scrim-join-hint--below">${hint}</div>`;
+    </div>`;
 }
 function confirmScrimParticipation(side) {
   const id = _scrimChatId;

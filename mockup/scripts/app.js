@@ -3,6 +3,41 @@
  * 네비게이션 액티브 상태, 공통 인터랙션 처리
  */
 
+// ── 테마 스코프/모드 적용 (Hub sessionStorage + URL 쿼리 우선) ──
+(function applyMockThemeFromContext() {
+  const THEME_SCOPE_KEY = "clansync-hub-theme-scope";
+  const THEME_MODE_KEY = "clansync-hub-theme-mode";
+  const currentFile = location.pathname.split('/').pop() || 'index.html';
+  const landingFiles = new Set(['index.html', 'sign-in.html', 'sign-up.html']);
+  const fallbackScope = landingFiles.has(currentFile) ? 'landing' : 'dashboard';
+  const params = new URLSearchParams(location.search);
+
+  const paramScope = (params.get('themeScope') || '').toLowerCase();
+  const paramMode = (params.get('themeMode') || '').toLowerCase();
+
+  let scope = (paramScope === 'landing' || paramScope === 'dashboard') ? paramScope : '';
+  let mode = (paramMode === 'light' || paramMode === 'dark') ? paramMode : '';
+
+  if (!scope) {
+    try {
+      const storedScope = (sessionStorage.getItem(THEME_SCOPE_KEY) || '').toLowerCase();
+      if (storedScope === 'landing' || storedScope === 'dashboard') scope = storedScope;
+    } catch (e) {}
+  }
+  if (!mode) {
+    try {
+      const storedMode = (sessionStorage.getItem(THEME_MODE_KEY) || '').toLowerCase();
+      if (storedMode === 'light' || storedMode === 'dark') mode = storedMode;
+    } catch (e) {}
+  }
+
+  scope = scope || fallbackScope;
+  mode = mode || 'dark';
+
+  document.body.setAttribute('data-theme-scope', scope);
+  document.body.setAttribute('data-theme-mode', mode);
+})();
+
 // 현재 페이지 파일명으로 nav 액티브 처리
 (function markActiveNav() {
   const currentFile = location.pathname.split('/').pop() || 'index.html';
@@ -13,17 +48,6 @@
     }
   });
 })();
-
-// 스크롤 시 네비게이션 배경 강화
-window.addEventListener('scroll', () => {
-  const navbar = document.querySelector('.navbar');
-  if (!navbar) return;
-  if (window.scrollY > 20) {
-    navbar.style.background = 'rgba(10, 10, 15, 0.97)';
-  } else {
-    navbar.style.background = 'rgba(10, 10, 15, 0.85)';
-  }
-});
 
 // 페이드인 초기화
 document.addEventListener('DOMContentLoaded', () => {

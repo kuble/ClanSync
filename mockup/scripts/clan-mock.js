@@ -11,6 +11,12 @@
     manage: "view-manage",
     store: "view-store",
   };
+  var CLAN_BANNER_HIDE_VIEWS = {
+    balance: true,
+    stats: true,
+    events: true,
+    manage: true,
+  };
 
   /** 구성원도 밸런스 메뉴 진입 가능(세션 대기/실시간 합류). 운영진+ 전용은 관리만 */
   var OFFICER_VIEWS = { manage: true };
@@ -870,6 +876,10 @@
     if (anchorEl) {
       var item = anchorEl.querySelector(".sidebar-item");
       if (item) item.classList.add("active");
+    }
+    var bannerEl = document.getElementById("mock-clan-banner-root");
+    if (bannerEl) {
+      bannerEl.hidden = !!CLAN_BANNER_HIDE_VIEWS[view];
     }
 
     try {
@@ -2717,6 +2727,12 @@
 
   var MOCK_BALANCE_MANUAL_SCORE_MODE_KEY = "mockBalanceManualScoreMode";
 
+  function mockBalanceUpdateStrengthLabel(mode) {
+    var label = document.getElementById("mock-balance-strength-label");
+    if (!label) return;
+    label.textContent = mode === "a" ? "A점수 차이" : "M점수 차이";
+  }
+
   /** 참고 패널: 슬롯 첫 점수 행 라벨 M ↔ A 표기 (Premium만, Free는 M 고정·저장 안 함) */
   window.mockBalanceSetManualScoreMode = function (mode) {
     var board = document.getElementById("mock-balance-vs-board");
@@ -2738,7 +2754,22 @@
     var btnA = document.getElementById("mock-balance-manual-score-a");
     if (btnM) btnM.setAttribute("aria-pressed", m === "m" ? "true" : "false");
     if (btnA) btnA.setAttribute("aria-pressed", m === "a" ? "true" : "false");
+    var switchBtn = document.getElementById("mock-balance-manual-score-switch");
+    if (switchBtn) {
+      switchBtn.setAttribute("aria-checked", m === "a" ? "true" : "false");
+      switchBtn.setAttribute("data-mode", m);
+      switchBtn.setAttribute("aria-label", m === "a" ? "A 점수 모드 (켜짐)" : "M 점수 모드 (켜짐)");
+      switchBtn.setAttribute("title", "클릭하여 M/A 점수 전환");
+    }
+    mockBalanceUpdateStrengthLabel(m);
     return false;
+  };
+
+  window.mockBalanceToggleManualScoreMode = function () {
+    var switchBtn = document.getElementById("mock-balance-manual-score-switch");
+    var curr = switchBtn && switchBtn.getAttribute("data-mode") === "a" ? "a" : "m";
+    var next = curr === "a" ? "m" : "a";
+    return window.mockBalanceSetManualScoreMode(next);
   };
 
   window.mockBalanceApplyManualScoreModeFromStorage = function () {
@@ -2796,8 +2827,8 @@
     var rTxt = document.getElementById("mock-balance-strength-red");
     var barA = document.getElementById("mock-balance-strength-bar-a");
     var barB = document.getElementById("mock-balance-strength-bar-b");
-    if (bTxt) bTxt.textContent = "블루 " + blue.toFixed(2);
-    if (rTxt) rTxt.textContent = "레드 " + red.toFixed(2);
+    if (bTxt) bTxt.textContent = blue.toFixed(2);
+    if (rTxt) rTxt.textContent = red.toFixed(2);
     if (barA && barB) {
       var ab = Math.abs(blue);
       var ar = Math.abs(red);
@@ -3701,7 +3732,7 @@
       window.mockBalanceSetWorkflow(tab, "lineup");
     }
     window.alert(
-      "목업: 배치가 확정되었습니다. 맵·영웅 밴이 모두 꺼져 있어 ③ 5vs5로 전환했습니다. 실제 플로우는 docs/01-plan/balance-maker-ui-notes.md 참고.",
+      "목업: 배치가 확정되었습니다. 맵·영웅 밴이 모두 꺼져 있어 ③ 5vs5로 전환했습니다. 실제 플로우는 docs/01-plan/pages/09-BalanceMaker.md 참고.",
     );
     return false;
   };
@@ -4011,7 +4042,7 @@
     window.clanGo("balance", link);
   };
 
-  /* ── 클랜 통계 (clan-stats-plan) — 내전=블루/레드 팀승 · 스크림=승패 미집계 · 이벤트=팀승 목업 ── */
+  /* ── 클랜 통계 (pages/10-Clan-Stats.md) — 내전=블루/레드 팀승 · 스크림=승패 미집계 · 이벤트=팀승 목업 ── */
   /** @type {{ at: string, type: string, map: string, mapType: string, winner: 'blue'|'red'|null }[]} — intra 무승부는 null, 스크림 미정도 null */
   var CLAN_STATS_MATCHES = [
     { at: "2026-03-22T18:00:00.000Z", type: "intra", map: "서킷 로얄", mapType: "클래시", winner: "blue" },

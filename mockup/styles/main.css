@@ -4,36 +4,35 @@
    디자인 토큰 → src/app/globals.css 에 그대로 이식 예정
    ============================================= */
 
+/* 기본값: dashboard-dark */
 :root {
-  /* 색상 팔레트 (Hub 기준: bg #0f0f11 / 패널 #18181b / 테두리 #2a2a2e) */
-  --bg-base: #0f0f11;
-  --bg-surface: #18181b;
-  --bg-elevated: #1c1c21;
-  --bg-overlay: #27272a;
+  --bg-base: #0c0d0e;
+  --bg-surface: #141515;
+  --bg-elevated: #1e1f1f;
+  --bg-overlay: var(--bg-surface);
 
-  --border: #2a2a2e;
+  --border: #161818;
   --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-hover: rgba(167, 139, 250, 0.35);
+  --border-hover: rgba(70, 175, 117, 0.45);
 
-  --text-primary: #e4e4e7;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
+  --text-primary: #f3f4f6;
+  --text-secondary: #c7ccd1;
+  --text-muted: #8e969e;
   /* 섹션/그룹 라벨 (Hub .group-label) */
-  --text-group: #52525b;
+  --text-group: #6b7280;
 
-  /* 브랜드: 보라 악센트 + 파랑 보조 */
-  --brand-primary: #7c3aed;
-  --brand-secondary: #3b82f6;
-  --brand-accent: #06b6d4;
-  --accent-violet: #a78bfa;
+  --brand-primary: #183927;
+  --brand-secondary: #46af75;
+  --brand-accent: #46af75;
+  --accent-violet: #46af75;
 
-  --gradient-brand: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
-  --gradient-hero: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(124, 58, 237, 0.22) 0%, transparent 60%),
-                   radial-gradient(ellipse 60% 40% at 80% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+  --gradient-brand: linear-gradient(135deg, #183927 0%, #46af75 100%);
+  --gradient-hero: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(24, 57, 39, 0.32) 0%, transparent 60%),
+                   radial-gradient(ellipse 60% 40% at 80% 50%, rgba(70, 175, 117, 0.16) 0%, transparent 50%);
 
   /* Premium 전용 색상 */
-  --pro-gold: #f59e0b;
-  --pro-gradient: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+  --pro-gold: #d9a441;
+  --pro-gradient: linear-gradient(135deg, #d9a441 0%, #b56f1e 100%);
 
   /* 상태 색상 */
   --success: #22c55e;
@@ -59,18 +58,67 @@
   /* 그림자 */
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.45);
   --shadow-elevated: 0 12px 40px rgba(0, 0, 0, 0.55);
-  --shadow-brand: 0 0 20px rgba(124, 58, 237, 0.28);
+  --shadow-brand: 0 0 20px rgba(70, 175, 117, 0.28);
 
   /* 네비/사이드 활성 칩 (Hub) */
-  --surface-active: rgba(167, 139, 250, 0.08);
+  --surface-active: rgba(70, 175, 117, 0.12);
   --surface-hover: rgba(255, 255, 255, 0.04);
 
   /* 상단 탭 통일 (언더라인 · 다크 바) */
   --mock-tab-track-border: rgba(255, 255, 255, 0.08);
-  --mock-tab-text-idle: #888888;
+  --mock-tab-text-idle: #8e969e;
   --mock-tab-text-hover: #e4e4e7;
   --mock-tab-text-active: #ffffff;
-  --mock-tab-indicator: #8b5cf6;
+  --mock-tab-indicator: #ffffff;
+}
+
+body[data-theme-scope="dashboard"][data-theme-mode="light"],
+body[data-theme-scope="landing"][data-theme-mode="light"] {
+  --bg-base: #f4f7f6;
+  --bg-surface: #eef3f1;
+  --bg-elevated: #ffffff;
+  --bg-overlay: var(--bg-surface);
+  --border: #d5dfda;
+  --text-primary: #0f1720;
+  --text-secondary: #334155;
+  --text-muted: #70808d;
+  --text-group: #5d6b75;
+  --brand-primary: #2b8a57;
+  --brand-secondary: #46af75;
+  --brand-accent: #46af75;
+  --accent-violet: #46af75;
+  --gradient-brand: linear-gradient(135deg, #2b8a57 0%, #46af75 100%);
+  --pro-gold: #d97706;
+  --mock-tab-track-border: rgba(15, 23, 32, 0.18);
+  --mock-tab-text-idle: #70808d;
+  --mock-tab-text-hover: #334155;
+  --mock-tab-text-active: #0f1720;
+  --mock-tab-indicator: #2b8a57;
+  --surface-active: rgba(70, 175, 117, 0.12);
+  --surface-hover: rgba(15, 23, 32, 0.04);
+}
+
+body[data-theme-scope="landing"][data-theme-mode="dark"] {
+  --bg-base: #080808;
+  --bg-surface: #090909;
+  --bg-elevated: #141419;
+  --bg-overlay: var(--bg-surface);
+  --border: #2a2a2f;
+  --text-primary: #e4e4e7;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --text-group: #52525b;
+  --brand-primary: #34d399;
+  --brand-secondary: #34d399;
+  --brand-accent: #34d399;
+  --accent-violet: #34d399;
+  --gradient-brand: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  --pro-gold: #f59e0b;
+  --mock-tab-track-border: rgba(255, 255, 255, 0.1);
+  --mock-tab-text-idle: #8f96a0;
+  --mock-tab-text-hover: #e4e4e7;
+  --mock-tab-text-active: #ffffff;
+  --mock-tab-indicator: #34d399;
 }
 
 /* ── 리셋 ── */
@@ -158,7 +206,7 @@ a { color: inherit; text-decoration: none; }
   font-size: 12px;
   font-weight: 600;
 }
-.badge-brand { background: rgba(124, 58, 237, 0.15); color: var(--accent-violet); border: 1px solid rgba(124, 58, 237, 0.28); }
+.badge-brand { background: rgba(70, 175, 117, 0.15); color: var(--accent-violet); border: 1px solid rgba(70, 175, 117, 0.28); }
 .badge-pro { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
 .badge-success { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
 .badge-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
@@ -203,8 +251,8 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   padding: 0 24px;
   background: var(--bg-surface);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 .navbar-brand {
   font-size: 15px;
@@ -213,6 +261,63 @@ a { color: inherit; text-decoration: none; }
   color: var(--accent-violet);
   background: none;
   -webkit-text-fill-color: unset;
+}
+.navbar-start .navbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #f4f4f5;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.navbar-start .navbar-brand-mark {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #34d399, #10b981);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #062819;
+}
+.navbar-start .navbar-brand-mark svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 32;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.navbar-crumbs {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 10px;
+  min-width: 0;
+}
+.navbar-crumb-link {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+.navbar-crumb {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+.navbar-crumb.current {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.navbar-crumb-link:hover .navbar-crumb {
+  color: var(--text-primary);
+}
+.navbar-crumb-sep {
+  color: var(--text-muted);
+  font-size: 12px;
 }
 .navbar-nav {
   display: flex;
@@ -257,7 +362,8 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   gap: 8px;
   margin: 0;
-  padding: 8px 16px;
+  padding: 11px 16px;
+  min-height: 42px;
   border-radius: 0;
   font-size: 13px;
   font-weight: 400;
@@ -278,6 +384,11 @@ a { color: inherit; text-decoration: none; }
   background: var(--surface-active);
   border-left-color: var(--accent-violet);
 }
+.sidebar .nav-icon {
+  color: var(--text-primary);
+  stroke: currentColor;
+  fill: none;
+}
 .sidebar-section-title {
   font-size: 10px;
   font-weight: 600;
@@ -285,6 +396,17 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: 0.08em;
   color: var(--text-group);
   padding: 10px 16px 4px;
+}
+.sidebar-divider {
+  height: 1px;
+  margin: 10px 16px 12px;
+  background: var(--border);
+}
+.sidebar-divider.sidebar-divider-spaced {
+  margin-top: 18px;
+}
+.sidebar-bottom {
+  margin-top: auto;
 }
 
 /* 사이드바 상단 게임/클랜 헤더 (Hub 로고 영역과 동일 구분선) */
@@ -382,6 +504,14 @@ body.app-sidebar-drawer-open .mobile-menu-icon::after {
   .mobile-menu-btn {
     display: flex;
   }
+  /* 모바일에서는 아이콘을 텍스트 크기(1em) 기준으로 축소 */
+  .sidebar .nav-icon {
+    width: 13px;
+    height: 13px;
+  }
+  .d-label-left .ui-ic {
+    font-size: 1em;
+  }
   .sidebar-drawer-overlay {
     display: block;
     position: fixed;
@@ -403,9 +533,10 @@ body.app-sidebar-drawer-open .mobile-menu-icon::after {
     transform: translateX(-100%);
     transition: transform 0.22s ease;
     z-index: 210;
-    width: min(288px, 88vw);
+    width: min(248px, 76vw);
+    max-width: 248px;
     box-shadow: 8px 0 32px rgba(0, 0, 0, 0.4);
-    min-height: calc(100vh - 60px);
+    height: calc(100vh - 60px);
   }
   body.app-sidebar-drawer-open .sidebar {
     transform: translateX(0);
@@ -420,16 +551,81 @@ body.app-sidebar-drawer-open .mobile-menu-icon::after {
 .page-with-sidebar {
   margin-top: 60px;
   min-height: calc(100vh - 60px);
+  background: var(--bg-surface);
+  color: var(--text-primary);
 }
 @media (min-width: 769px) {
   .page-with-sidebar {
     margin-left: 200px;
     padding: 28px;
+    box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.12);
   }
 }
 @media (max-width: 768px) {
   .page-with-sidebar {
     padding: 16px;
+  }
+}
+
+/* 데스크톱: Supabase 스타일 호버 확장 사이드바 */
+@media (min-width: 769px) {
+  body.app-sidebar-collapsible .sidebar {
+    width: 64px;
+    overflow-x: hidden;
+    transition: width 0.2s ease, box-shadow 0.2s ease;
+    z-index: 180;
+  }
+  body.app-sidebar-collapsible .sidebar:hover {
+    width: 220px;
+    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.35);
+  }
+  body.app-sidebar-collapsible .page-with-sidebar {
+    margin-left: 64px;
+  }
+  body.app-sidebar-collapsible .sidebar .sidebar-section-title {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+    transition: opacity 0.15s ease;
+  }
+  body.app-sidebar-collapsible .sidebar:hover .sidebar-section-title {
+    opacity: 1;
+    max-height: 40px;
+    padding-top: 10px;
+    padding-bottom: 4px;
+  }
+  body.app-sidebar-collapsible .sidebar .sidebar-item {
+    white-space: nowrap;
+    justify-content: center;
+    gap: 0;
+  }
+  body.app-sidebar-collapsible .sidebar .sidebar-item .sidebar-item-label {
+    display: none;
+  }
+  body.app-sidebar-collapsible .sidebar .sidebar-item .sidebar-item-icon {
+    font-size: 15px;
+    line-height: 1;
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  body.app-sidebar-collapsible .sidebar .sidebar-item .nav-icon {
+    margin: 0;
+    width: 16px;
+    height: 16px;
+  }
+  body.app-sidebar-collapsible .sidebar:hover .sidebar-item {
+    justify-content: flex-start;
+    gap: 8px;
+  }
+  body.app-sidebar-collapsible .sidebar:hover .sidebar-item .sidebar-item-label {
+    display: inline;
+  }
+  body.app-sidebar-collapsible .sidebar:hover .sidebar-item .nav-icon {
+    width: 15px;
+    height: 15px;
   }
 }
 .page-centered {
@@ -2125,4 +2321,28 @@ input[type="datetime-local"][lang="ko-KR"] {
   background: var(--bg-elevated);
   padding: 20px;
   margin-bottom: 16px;
+}
+
+/* 문서 이전 완료: 목업 내 설명/가이드 문구 비노출 */
+.mock-modal-hint,
+.mock-page-desc,
+.mock-help-tip,
+.mock-events-sync-hint,
+.mock-main-game-asset-hint,
+.ranking-panel-intro,
+.scrim-cal-hint,
+.scrim-join-hint,
+.mock-bracket-step-desc,
+.mock-bracket-roster-hint,
+.mock-stats-footnote,
+.mock-clan-subscribe-hint-free,
+.mock-clan-subscribe-hint-premium,
+#clanNameCountHint,
+#tagSelectHint,
+#rankingPeakHourSub,
+#rankingPeakDowSub,
+#msm-mode-hint,
+#mock-bracket-pool-target-line,
+#mock-bracket-seed-hint {
+  display: none !important;
 }
