@@ -2063,6 +2063,15 @@
         title = strong ? strong.textContent.trim() : "";
       }
     }
+    // D-STORE-03: 구매 후 환불은 지원되지 않음을 사전 고지(목업)
+    var ok = window.confirm(
+      "[" + (title || "항목") + "]\n\n" +
+      "구매 후 환불은 지원되지 않습니다(D-STORE-03).\n" +
+      "· 시스템 오류는 자동 롤백됩니다.\n" +
+      "· 그 외 정정은 운영자 재량입니다(계정 탈취·아이템 결함 등).\n\n" +
+      "계속하시겠습니까?"
+    );
+    if (!ok) return;
     var toast = document.getElementById("mock-store-toast");
     if (toast) {
       toast.textContent = "구매 완료(목업): " + (title || "항목");
@@ -2074,6 +2083,42 @@
         toast.hidden = true;
       }, 2600);
     }
+  };
+
+  // D-STORE-02: Free 플랜 클랜의 Premium 카드 클릭 시 안내.
+  // 역할별 카피는 body.mock-role-* 클래스 기준으로 분기(목업 역할 전환 시뮬).
+  window.mockStorePremiumInfoMock = function (btn) {
+    var card = btn && btn.closest ? btn.closest(".mock-store-card") : null;
+    var title = "";
+    if (card) {
+      title = card.getAttribute("data-store-title") || "";
+      if (!title) {
+        var strong = card.querySelector("strong");
+        title = strong ? strong.textContent.trim() : "";
+      }
+    }
+    var body = document.body;
+    var isLeader = body && body.classList.contains("mock-role-leader");
+    var isOfficer = body && body.classList.contains("mock-role-officer");
+    var lines = [
+      "[" + (title || "Premium 전용 항목") + "]",
+      "",
+      "이 항목은 클랜이 Premium 플랜일 때 이용할 수 있습니다.",
+      "",
+      "[플랜 비교 요약]",
+      "· 자동 팀 밸런스 / A 점수 / 맵 밴 / 디스코드 알림",
+      "· 대진표 / 승부예측 / 클랜 태그 글로우",
+      ""
+    ];
+    if (isLeader) {
+      lines.push("클랜장님 — 구독·결제 탭에서 Premium으로 업그레이드할 수 있습니다.");
+    } else if (isOfficer) {
+      lines.push("운영진 — 구독·결제 탭에서 플랜 내용을 열람할 수 있습니다. 플랜 변경은 클랜장만 가능합니다.");
+    } else {
+      lines.push("Premium 전용 항목입니다. 클랜장에게 문의하세요.");
+    }
+    lines.push("", "(D-STORE-02 목업)");
+    alert(lines.join("\n"));
   };
 
   window.mockStoreSetTab = function (btn, name) {
