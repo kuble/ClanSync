@@ -32,18 +32,18 @@
 
 - [x] `mockup/_hub.html` (역할 · Free/Premium)
 - [x] `mockup/pages/main-clan.html` · `mockup/scripts/clan-mock.js` 골격
-- [x] 탭별 콘텐츠·플랜 경계 시각적 통일 (`clan-main-static-mockup-plan` §2.1·§3·§4, `mock-hide-on-free`·프로모·배지 패턴 점검)
+- [x] 탭별 콘텐츠·플랜 경계 시각적 통일 (`non-page/clan-main-static-mockup-plan` §2.1·§3·§4, `mock-hide-on-free`·프로모·배지 패턴 점검)
 
 ## S04 밸런스메이커
 
 - [x] 밸런스 서브뷰·설정 목업 존재
-- [x] `balance-maker-ui-notes.md` 대비 누락 카피/플로우 (`main-clan.html` data-tip·워크플로 탭·허브 `?plan=` 연동과 동기화)
+- [x] `pages/09-BalanceMaker.md` 대비 누락 카피/플로우 (`main-clan.html` data-tip·워크플로 탭·허브 `?plan=` 연동과 동기화)
 - [x] Premium 전용(승부예측·밴 등) 목업과 허브 연동 확인 (`_hub.html` → `?plan=` · `mockClanCurrentPlan` · `mock-hide-on-free`)
 
 ## S05 클랜 통계
 
 - [x] 통계 뷰·요약·경기 기록·명예의 전당·`mockStats*` 목업 존재 (`main-clan.html`, `clan-mock.js`)
-- [x] `clan-stats-plan.md` 대비 탭·권한별 화면·카피 최종 정합 (§5·§9.0·`앱 이용`/`rankmap` 패널, MVP 문구)
+- [x] `pages/10-Clan-Stats.md` 대비 탭·권한별 화면·카피 최종 정합 (§5·§9.0·`앱 이용`/`rankmap` 패널, MVP 문구)
 - [x] 구성원 vs 운영진 열람 분리 표현 점검 (경기 기록 `mock-officer-only`·`mockStatsSetSection` 가드, HoF vs 아카이브 구분)
 
 ## S06 이벤트 · 관리 · 스토어
@@ -51,7 +51,7 @@
 - [x] 이벤트(캘린더·그리드·대진표 등) 목업 존재
 - [x] 관리 탭(구성원·구독 등) 목업 존재
 - [x] 스토어 Premium 잠금·코인 표현 목업 존재
-- [x] `pages.md` / PRD / clan-main-static-mockup-plan 대비 통일·폴리시 점검 (§4.3–4.6 갱신, 대진표 Premium 게이트·탭 배지)
+- [x] `pages.md` / PRD / non-page/clan-main-static-mockup-plan 대비 통일·폴리시 점검 (§4.3–4.6 갱신, 대진표 Premium 게이트·탭 배지)
 
 ## S07 MainGame 커뮤니티
 
@@ -62,7 +62,7 @@
 ## S08 프로필 · 꾸미기
 
 - [x] `profile.html` · partials · `app.js` 연동 존재
-- [x] 뱃지/네임플레이트 목업과 밸런스 슬롯 정책 일치 (`MOCK_BADGE_NAMEPLATE_MAX`, `balance-maker-ui-notes`·`pages.md` 반영)
+- [x] 뱃지/네임플레이트 목업과 밸런스 슬롯 정책 일치 (`MOCK_BADGE_NAMEPLATE_MAX`, `pages/09-BalanceMaker.md`·`pages.md` 반영)
 
 ## 공통 목업
 

@@ -19,7 +19,7 @@
 ## 목업
 
 - `mockup/pages/main-clan.html` — `view-events` · `view-manage` · `view-store`
-- 정적 목업 IA·권한: [clan-main-static-mockup-plan.md](../clan-main-static-mockup-plan.md) §4.4–4.6
+- 정적 목업 IA·권한: [non-page/clan-main-static-mockup-plan.md](../non-page/clan-main-static-mockup-plan.md) §4.4–4.6
 
 ## 스키마
 

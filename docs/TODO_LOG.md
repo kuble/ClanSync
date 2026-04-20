@@ -41,33 +41,33 @@
 - [x] **공통 목업** `mockup-spec` 대비 항목 완료 (S00은 Phase 2 섹션 추가 시까지 표상 **진행 중** 유지)
 
 ### 2026-03-28 — S08 프로필·꾸미기 ↔ 밸런스 정책 정합
-- [x] `MOCK_BADGE_NAMEPLATE_MAX`·프로필 상단 안내·`nameplate-case-modal` 푸터, `balance-maker-ui-notes`·`pages.md`·`slice-08` 갱신
+- [x] `MOCK_BADGE_NAMEPLATE_MAX`·프로필 상단 안내·`nameplate-case-modal` 푸터, `pages/09-BalanceMaker.md`·`pages.md`·`slice-08` 갱신
 
 ### 2026-03-28 — S07 MainGame 홍보·LFG·필터·플레이스홀더
 - [x] `main-game.html`: LFG 필터 초기화 `#sec-lfg .lfg-filter-panel` 수정, `navTo`/에셋 BACKLOG 주석, `.mock-main-game-asset-hint` 안내
 - [x] `pages.md` MainGame 목업 요약, `BACKLOG.md`·`slice-07` 수용 기준, 진행도·요약표 S07 **완료**
 
 ### 2026-03-28 — S03 MainClan 쉘 문서·플랜 경계 정합
-- [x] `clan-main-static-mockup-plan.md` §2.1 해시·뷰 매핑, §3 권한·§3.1 플랜·§8 현재 네비 정책 반영
+- [x] `non-page/clan-main-static-mockup-plan.md` §2.1 해시·뷰 매핑, §3 권한·§3.1 플랜·§8 현재 네비 정책 반영
 - [x] `slice-03` 수용 기준 완료, 진행도·요약표 S03 폴리시 열 **완료**
 
 ### 2026-03-28 — S06 이벤트·관리·스토어 문서·목업 정합
-- [x] `pages.md`에 통계·관리·스토어 섹션 추가, `clan-main-static-mockup-plan.md` §4.3–4.6 목업 ID·권한 반영
+- [x] `pages.md`에 통계·관리·스토어 섹션 추가, `non-page/clan-main-static-mockup-plan.md` §4.3–4.6 목업 ID·권한 반영
 - [x] 이벤트 대진표: Premium 탭 배지 + Free 플랜 시 본문 숨김(`mock-hide-on-free`)·안내 문구
 - [x] `slice-06` 수용 기준·진행도·요약표
 
 ### 2026-03-28 — S05 클랜 통계 문서·목업 정합
-- [x] `clan-stats-plan.md` §5·§9 재작성: 탭 4개(요약·명예의 전당·경기 기록·앱 이용)·권한·HoF vs 경기 기록 구분
+- [x] `pages/10-Clan-Stats.md` §5·§9 재작성: 탭 4개(요약·명예의 전당·경기 기록·앱 이용)·권한·HoF vs 경기 기록 구분
 - [x] `slice-05` 수용 기준 반영, `main-clan.html`/`clan-mock.js` 주석 정리
 
 ### 2026-03-28 — S04 밸런스 문서·목업 정합
-- [x] `balance-maker-ui-notes.md`에 워크플로 탭 라벨·허브 `?plan=`·`mockClanCurrentPlan` 설명 보강
+- [x] `pages/09-BalanceMaker.md`에 워크플로 탭 라벨·허브 `?plan=`·`mockClanCurrentPlan` 설명 보강
 - [x] `main-clan.html` 밸런스 도움말 `data-tip`에서 § 제거(프로젝트 UI 가이드)
 - [x] S04 진행도·`slice-04` 수용 기준(문서 순서) 반영
 
 ### 2026-03-28 — /todo 동기화 (재실행)
 - `FEATURE_INDEX`·`BACKLOG`·`mockup/pages/*.html`·`clan-mock.js`·`app.js` 경로 대조
-- S04 `balance-maker-ui-notes`·S05 `clan-stats-plan`·S01 `pages.md` 등 **폴리시·정합** 미완 항목 재확인 (체크리스트 변경 없음)
+- S04 `pages/09-BalanceMaker.md`·S05 `pages/10-Clan-Stats.md`·S01 `pages.md` 등 **폴리시·정합** 미완 항목 재확인 (체크리스트 변경 없음)
 - 빠른 요약표·다음 세션 권장 프롬프트 갱신
 
 ### 2026-03-28 — /todo 커맨드로 진행도 동기화

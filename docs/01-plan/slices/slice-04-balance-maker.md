@@ -9,13 +9,12 @@
 
 ## 수용 기준
 
-- [x] `balance-maker-ui-notes.md` 의 세션 순서와 모순 없음
-- [ ] `balance-nameplate-ui-plan.md` 의 M/A·슬롯 규칙 반영
+- [x] `pages/09-BalanceMaker.md` 의 세션 순서와 모순 없음
+- [x] `pages/09-BalanceMaker.md` 의 M/A·슬롯 규칙 반영
 
 ## 심층 문서 (여기만 열 것)
 
-- [../balance-maker-ui-notes.md](../balance-maker-ui-notes.md)
-- [../balance-nameplate-ui-plan.md](../balance-nameplate-ui-plan.md)
+- [../pages/09-BalanceMaker.md](../pages/09-BalanceMaker.md)
 
 ## 목업
 

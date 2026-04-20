@@ -21,4 +21,4 @@
 
 ## 참고
 
-- [../clan-main-static-mockup-plan.md](../clan-main-static-mockup-plan.md) — 정적 목업 반영 메모
+- [../non-page/clan-main-static-mockup-plan.md](../non-page/clan-main-static-mockup-plan.md) — 정적 목업 반영 메모

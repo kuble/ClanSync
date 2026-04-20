@@ -53,7 +53,7 @@
 
 **구현 메모 (관리 메뉴)**  
 - **클랜 관리**만 구성원에게 막음: 사이드바 링크는 `.mock-officer-only`로 숨김 + `data-officer-nav`에 구성원일 때 `opacity`·`pointer-events`·`title` 처리; `clanGo('manage')`는 `OFFICER_VIEWS` 가드로 alert. `?hubDebug=1`이면 미리보기 허용.  
-- **밸런스메이커**는 구성원도 사이드바에서 진입(세션 대기 플로우). PRD 「밸런스 = 운영진+ 전용」과 병행해 문서화됨([balance-maker-ui-notes.md](./balance-maker-ui-notes.md)).
+- **밸런스메이커**는 구성원도 사이드바에서 진입(세션 대기 플로우). PRD 「밸런스 = 운영진+ 전용」과 병행해 문서화됨([pages/09-BalanceMaker.md](../pages/09-BalanceMaker.md)).
 
 ### 3.1 플랜(Free / Premium) 목업
 
@@ -85,7 +85,7 @@
 
 ### 4.3 클랜 통계
 
-- 집계 단위는 **클랜만**(경기 아카이브·유형별 건수·맵·모드별 진행 횟수·**클랜 누적** 내전 B/R 팀 승 비중 등). **구성원 개인 상세·드릴다운은 클랜 관리(§6.4)** 와 구분. 상세·탭 4개·권한: **@docs/01-plan/clan-stats-plan.md** §9.0.
+- 집계 단위는 **클랜만**(경기 아카이브·유형별 건수·맵·모드별 진행 횟수·**클랜 누적** 내전 B/R 팀 승 비중 등). **구성원 개인 상세·드릴다운은 클랜 관리(§6.4)** 와 구분. 상세·탭 4개·권한: [pages/10-Clan-Stats.md](../pages/10-Clan-Stats.md).
 - **구현**: `view-stats` + `clan-mock.js` (`mockStats*`). 목업 `?role=member` 시 **경기 기록** 탭만 숨김.
 
 ### 4.4 클랜 이벤트

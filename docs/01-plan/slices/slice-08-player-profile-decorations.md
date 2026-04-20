@@ -9,7 +9,7 @@
 ## 수용 기준
 
 - [x] 장착 뱃지 최대 개수(5)·게임별 `mockBadgeCaseGetPicks()` 목업이 `profile.html`·뱃지 케이스·`app.js` `MOCK_BADGE_NAMEPLATE_MAX`와 일치
-- [x] 사용자 이미지 업로드로 네임플레이트 대체 **없음** — `nameplate-case-modal` 하단·`balance-maker-ui-notes` §참가자 네임플레이트·프로필 상단 안내와 정합
+- [x] 사용자 이미지 업로드로 네임플레이트 대체 **없음** — `nameplate-case-modal` 하단·`docs/01-plan/pages/09-BalanceMaker.md` §참가자 네임플레이트·프로필 상단 안내와 정합
 
 ## 목업
 

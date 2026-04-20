@@ -8,11 +8,11 @@
 
 ## 수용 기준
 
-- [x] `clan-stats-plan.md` 와 열람 권한 분리 설명이 일치
+- [x] `pages/10-Clan-Stats.md` 와 열람 권한 분리 설명이 일치
 
 ## 심층 문서
 
-- [../clan-stats-plan.md](../clan-stats-plan.md)
+- [../pages/10-Clan-Stats.md](../pages/10-Clan-Stats.md)
 
 ## 목업
 

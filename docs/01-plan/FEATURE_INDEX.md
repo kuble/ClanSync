@@ -17,8 +17,8 @@
 
 ### 심층 참고 (슬라이스에서만 `@`한다)
 
-- 밸런스 UI 카피·플로우: [balance-maker-ui-notes.md](./balance-maker-ui-notes.md)
-- 밸런스 M/A 점수·슬롯: [balance-nameplate-ui-plan.md](./balance-nameplate-ui-plan.md)
-- 클랜 메인 정적 목업 계획: [clan-main-static-mockup-plan.md](./clan-main-static-mockup-plan.md)
-- 통계 탭 상세: [clan-stats-plan.md](./clan-stats-plan.md)
-- 법무: [legal-review.md](./legal-review.md)
+- 밸런스 UI 카피·플로우: [pages/09-BalanceMaker.md](./pages/09-BalanceMaker.md)
+- 밸런스 M/A 점수·슬롯: [pages/09-BalanceMaker.md](./pages/09-BalanceMaker.md)
+- 클랜 메인 정적 목업 계획: [non-page/clan-main-static-mockup-plan.md](./non-page/clan-main-static-mockup-plan.md)
+- 통계 탭 상세: [pages/10-Clan-Stats.md](./pages/10-Clan-Stats.md)
+- 법무: [non-page/legal-review.md](./non-page/legal-review.md)

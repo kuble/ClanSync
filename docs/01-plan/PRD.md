@@ -18,7 +18,7 @@
 
 - 토큰 최소화: 작업 시 **FEATURE_INDEX + 해당 슬라이스 한 개**를 우선 참조
 - 보안 최우선 (RLS, 인증, 입력 검증)
-- 법적 검토: [legal-review.md](./legal-review.md)
+- 법적 검토: [non-page/legal-review.md](./non-page/legal-review.md)
 - 나노 단위 Git 커밋
 - **구현 단위**: 한 번에 전부가 아니라 **슬라이스 단위**로 나눈다 ([../README.md](../README.md) 세션 절차)
 
@@ -95,8 +95,8 @@
 
 ### 모듈별 한 줄 (참고)
 
-- **밸런스**: KST 집계일, 밸런스장 단독 배치 → 밴 → 경기 시작; Premium은 자동밸런스·OCR·밴픽·승부예측 등 ([balance-maker-ui-notes.md](./balance-maker-ui-notes.md))
-- **통계**: 구성원 vs 운영진 열람 분리 ([clan-stats-plan.md](./clan-stats-plan.md))
+- **밸런스**: KST 집계일, 밸런스장 단독 배치 → 밴 → 경기 시작; Premium은 자동밸런스·OCR·밴픽·승부예측 등 ([pages/09-BalanceMaker.md](./pages/09-BalanceMaker.md))
+- **통계**: 구성원 vs 운영진 열람 분리 ([pages/10-Clan-Stats.md](./pages/10-Clan-Stats.md))
 - **이벤트**: 캘린더+그리드, 반복, 스크림 자동 반영(문서상); Premium: 대진표 등
 - **관리·스토어**: 구성원·메달·내전 히스토리(예정); 스토어는 프리셋 에셋
 - **MainGame**: 홍보·스크림·매칭·순위/평판(권한)

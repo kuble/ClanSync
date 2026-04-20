@@ -1,6 +1,6 @@
 # ClanSync 목업 명세서 (Phase 3)
 
-> 작성일: 2026-03-20 · 최종 갱신: 2026-03-28  
+> 작성일: 2026-03-20 · 최종 갱신: 2026-04-01  
 > 상태: 목업·디자인 토큰 기준서 (유지)  
 > 기획·슬라이스 맵: [../README.md](../README.md) · [../01-plan/FEATURE_INDEX.md](../01-plan/FEATURE_INDEX.md)
 
@@ -20,7 +20,9 @@ mockup/
 │   ├── clan-auth.html      → 클랜 가입/생성 (/games/[gameSlug]/clan)
 │   ├── profile.html        → 플레이어 프로필·꾸미기 (전역)
 │   ├── main-clan.html      → MainClan 셸 + 탭 뷰 (밸런스·통계·이벤트·관리·스토어)
-│   └── main-game.html      → MainGame 커뮤니티 (/games/[gameSlug])
+│   ├── main-game.html      → MainGame 커뮤니티 (/games/[gameSlug])
+│   ├── design-presets.html → 디자인 프리셋 스튜디오 (토큰 실시간 편집·컴포넌트 미리보기)
+│   └── component-studio.html → 컴포넌트 스튜디오 (주제별 바리에이션 카탈로그)
 ├── partials/               → 프로필 모달 조각 (app.js fetch 주입)
 │   ├── badge-case-modal.html
 │   ├── nameplate-case-modal.html
@@ -52,31 +54,32 @@ mockup/
 
 ## 디자인 시스템 결정사항
 
-### 디자인 컨셉 (Mockup Hub 기준)
-목업 전역은 **`mockup/_hub.html` 좌측 네비**와 같은 언어를 쓴다.
+### 디자인 컨셉 (테마 모드 기준 · 2026-04-01 업데이트)
+디자인 토큰은 본 문서에 장문으로 유지하지 않고, 단일 기준서에서 관리한다.
 
-- **베이스**: 다크 Zinc (`#0f0f11`), 패널·상단바 `#18181b`, 실선 테두리 `#2a2a2e`
-- **악센트**: 라벨/로고/활성 강조 `#a78bfa`, 주 액션은 기존 보라→파랑 그라디언트 버튼 유지
-- **타이포**: 본문 `#e4e4e7` → 보조 `#a1a1aa` → 뮤트 `#71717a` → **그룹 라벨** `#52525b` (섹션·사이드바 구분)
-- **인터랙션**: 호버 `rgba(255,255,255,0.04)`, 선택/활성 `rgba(167,139,250,0.08)` + 왼쪽 보라 바(사이드·탭 등)
+- 상세 토큰 문서: [theme-modes.md](./theme-modes.md)
+- 모드 구성
+  - Dashboard Dark Mode
+  - Dashboard Light Mode
+  - Landing Dark Mode
+  - Landing Light Mode (Dashboard Light 토큰 공유)
+- 적용 원칙
+  - 목업/컴포넌트는 모드를 먼저 확정 후 토큰 적용
+  - CSS 변수 매핑 우선, 하드코딩 최소화
+  - 모드별 대비/가독성은 `theme-modes.md` 기준으로 회귀 점검
 
-토큰은 전부 `mockup/styles/main.css` `:root`에 정의. **`_hub.html`도 `main.css`를 링크**해 Hub와 앱 목업이 동일 팔레트를 공유한다.
-
-### 색상 팔레트 (CSS 변수)
-| 용도 | 변수 | 대표값 |
-|------|------|--------|
-| 배경 기본 | `--bg-base` | `#0f0f11` |
-| 배경 표면 (네비·사이드·드롭다운) | `--bg-surface` | `#18181b` |
-| 배경 카드 | `--bg-elevated` | `#1c1c21` |
-| 배경 입력/칩 | `--bg-overlay` | `#27272a` |
-| 테두리 | `--border` | `#2a2a2e` |
-| 악센트 바이올렛 | `--accent-violet` | `#a78bfa` |
-| 브랜드 1 | `--brand-primary` | `#7c3aed` |
-| 브랜드 2 | `--brand-secondary` | `#3b82f6` |
-| 브랜드 그라디언트 | `--gradient-brand` | `135deg, #7c3aed → #3b82f6` |
-| Premium 골드 (코드 변수명 `pro-gold`) | `--pro-gold` | `#f59e0b` |
-| 성공 / 위험 | `--success` / `--danger` | 유지 |
-| 텍스트 주·보조·뮤트·그룹 | `--text-primary` 등 | Hub 스케일 |
+### 테마 적용 방식 (Hub 연동)
+- Hub(`mockup/_hub.html`)에서 아래 상태를 관리한다.
+  - 권한: `leader/officer/member`
+  - 플랜: `free/premium`
+  - 테마 스코프: `dashboard/landing`
+  - 테마 모드: `dark/light`
+- 페이지 반영 규칙
+  - 공통 페이지(`../scripts/app.js` 로드 페이지): `body[data-theme-scope][data-theme-mode]`를 자동 적용
+  - 디자인 보조 페이지(`design-presets.html`, `component-studio.html`): Hub sessionStorage를 읽어 동일 속성을 적용
+- 실제 스타일 기준
+  - `mockup/styles/main.css`의 `:root`는 Dashboard Dark 기본값
+  - `body[data-theme-scope][data-theme-mode]` 조합으로 Light/Landing 변형 토큰 오버라이드
 
 ### 역할 색상
 | 역할 | 색상 |
@@ -170,9 +173,7 @@ mockup/
 
 ### Profile (플레이어 프로필 · 꾸미기)
 - [x] `profile.html` + `partials/*` + `app.js` — 게임 칩·네임카드 미리보기·뱃지 케이스(게임별 최대 5)
-- [x] 네임플레이트 **프리셋만**(업로드 없음) — 밸런스 문서 `balance-maker-ui-notes` §참가자 네임플레이트와 동일 정책
-
----
+- [x] 네임플레이트 **프리셋만**(업로드 없음) — 밸런스 문서 `docs/01-plan/pages/09-BalanceMaker.md` §참가자 네임플레이트와 동일 정책
 
 ## Phase 4 연계 API 설계 힌트
 
