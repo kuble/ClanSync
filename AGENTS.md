@@ -6,7 +6,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # 나노 커밋 (절대 잊지 말 것)
 
-`.cursor/rules/git-nano-commit.mdc` 는 `alwaysApply: true`. 구현·수정으로 파일이 바뀌면 **의미 단위마다 즉시** `git commit`. 세션 끝까지 미커밋을 쌓아두지 않는다. 사용자가 "커밋해"라고 말하지 않아도 자동 수행. 푸시는 명시 요청 시에만.
+`.cursor/rules/git-nano-commit.mdc` 는 `alwaysApply: true`. **한 번의 사용자 질의에 대한 응답 턴**에서 저장소에 변경이 생기면, **그 턴 안에서** 의미 단위별로 `git add`·`git commit`까지 끝낸다. “세션 종료 시에만 정리” 금지. 한 턴에 주제가 여러 개면 **커밋도 나눈다**. 변경이 없는 턴(읽기·설명만)은 커밋 없음. 사용자가 "커밋해"라고 말하지 않아도 자동 수행. 푸시는 명시 요청 시에만.
 
 # 응답 스타일 (토큰 절약)
 
