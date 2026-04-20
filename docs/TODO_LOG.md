@@ -5,6 +5,25 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-20 — D-SHELL-01 · D-SHELL-02 결정 닫기 (셸 반응형·쿼리 우회)
+- [x] **정책 확정**
+  - D-SHELL-01: 중단점 **768px** 고정. 데스크톱 ≥769px = hover 확장 사이드바(기본 64px → 220px, 본문 `margin-left` 64px 고정으로 hover가 본문을 밀지 않음). 모바일 ≤768px = 햄버거 → 좌측 드로어(`min(248px, 76vw)` · `max-width 248px` · 높이 `calc(100vh-60px)` · 오버레이 `rgba(0,0,0,0.55)`). **닫기 트리거 4종**(오버레이 클릭·Esc·내부 `a`/`.sidebar-item`/`button` 클릭·리사이즈 769px+). `#mobileMenuBtn[aria-expanded]`·`[aria-label]` 동기화 + 오픈 시 `body.overflow:hidden` 스크롤락. 알림 점은 sidebar-item 아이콘 우상단 기준으로 데스크톱·모바일 동일 위치, 햄버거 자체 총합 dot 없음(중복 방지). Phase 2+ focus trap·최초 포커스·Esc 후 트리거 복귀 이관.
+  - D-SHELL-02: 운영 단일 출처 = **서버 세션 + DB RLS**. **6종 쿼리 정화 대상** — `role`·`plan`·`hubDebug`·`simulate`·`sidebarNotifyDebug`·`balanceSession`. 권한 계열(role/plan/simulate)은 **조건 없이 항상 제거 + 302**. 디버그 계열(hubDebug/sidebarNotifyDebug/balanceSession)은 `NEXT_PUBLIC_DEBUG_QUERY=1` **AND** `session.user.is_admin` 동시 충족에만 해석, 그 외 제거. 미들웨어가 정화된 URL로 redirect한 뒤 권한·플랜을 **서버 헤더**(`x-clansync-role`·`x-clansync-plan`)로 주입하면 서버 컴포넌트가 이 헤더만 신뢰. RLS는 2중 방어(UI 우회해도 API/Action 403). 디버그 쿼리 사용 시 `audit_debug_queries` 테이블(`user_id`·`path`·`query_json`·`ip_hash`·`user_agent`·`created_at`) 감사 기록(Phase 2+ 신설). 클라이언트에서도 6종 키 직접 읽기 금지(ESLint·리뷰 체크리스트). `mockup/` 디렉터리는 Phase 2 빌드에서 `app/`·`public/` 제외, staging 공개 시에도 `noindex`.
+- [x] `docs/01-plan/decisions.md`
+  - 표 2행(D-SHELL-01 / D-SHELL-02) OPEN → DECIDED + 요약 풍부화.
+  - 하단 상세 블록 2개 신규(§D-SHELL-01 중단점 표·데스크톱/모바일 사양·닫기 트리거 4종·접근성·알림 점 배치·Phase 1 매핑 · §D-SHELL-02 쿼리 6종 매트릭스·미들웨어 처리 순서·허용 조건·클라이언트 2중 방어·RLS 2중 방어·`/mockup/*` 처리·`audit_debug_queries` 스키마).
+  - §D-SHELL-03 하단 "모바일 드로어 알림 점 배치" 항목을 D-SHELL-01에서 확정된 내용으로 재작성(참조 루프 제거).
+- [x] `docs/01-plan/pages/07-MainClan.md`
+  - 상단에 D-SHELL-01·D-SHELL-02 DECIDED 블록쿼트 2개 추가.
+  - §결정 필요에서 D-SHELL-01·D-SHELL-02 삭선 + decisions.md 링크 연결.
+- [x] `docs/01-plan/gating-matrix.md`
+  - 부록 B 하단 각주를 "D-SHELL-02 DECIDED — 6종 쿼리 정화·디버그 조건·감사 기록" 본문으로 재작성.
+- **남은 OPEN** (셸 영역 Phase 1 범위에서 완료):
+  - 셸 영역: 없음(D-SHELL-01/02/03 전부 DECIDED).
+  - 전체 남은 OPEN 13건: EVENTS 5 · LFG/RANK/SCRIM 4 · STATS 4.
+
+---
+
 ### 2026-04-20 — D-LANDING-01~04 결정 닫기 (랜딩 4건)
 - [x] **정책 확정**
   - D-LANDING-01: **잠정 채택**. 현재 헤드라인(`Archive Your History, Stay in Sync` + "추억을 기록하고 클랜을 체계적으로 관리하세요.") 유지. Phase 2+ 구현 완료·사용자 피드백 확보 후 재검토(5-Second / First-Impression Test). Phase 1 동안 랜딩 카피 변경 금지.
