@@ -73,12 +73,16 @@
 - 픽 순서대로 네임카드 스트립의 슬롯 5개에 채움 (앞쪽 우선).
 - 게임별로 픽이 분리됨 (OW에서 픽한 5개 / VAL에서 픽한 5개 따로).
 
-### 스트립 동기화
-- 모달의 픽 변경 → 프로필 카드 스트립 + 메인 클랜 네임카드 + 밸런스 슬롯 네임카드까지 반영 (D-PROFILE-03).
+### 스트립 동기화 (D-PROFILE-03 — DECIDED)
+- **compact 5슬롯** (dense-from-front). 앞쪽부터 연속해서 채우고, 해제 시 **뒷 항목이 앞으로 shift**되어 빈 슬롯은 항상 뒤쪽에 몰린다.
+- 모달의 픽 변경 → `localStorage["clansync-mock-badge-picks-v1"]` 저장 + `window.dispatchEvent(new CustomEvent('clansync:badge:picks:changed', { detail: { game, picks } }))`.
+- 구독자(프로필 카드 스트립 + 메인 클랜 구성원 본인 행 + BalanceMaker 본인 슬롯)는 `[data-badge-strip="{game}"][data-badge-strip-self]` 컨테이너에서 이벤트를 수신해 `[data-badge-strip-slot="0..4"]`를 다시 렌더.
+- 운영 시 `user_badge_picks(user_id, game_id, slot_index, badge_id)` UPSERT + **해제·재배치 시 slot_index를 0..(n-1)로 재할당**(트랜잭션) + RLS(같은 클랜 구성원 SELECT 공개).
+- [decisions.md §D-PROFILE-03](../decisions.md#d-profile-03--뱃지-케이스--프로필-스트립-동기화) 참조.
 
 ### 권한·구독
 - 모든 로그인 사용자 동일.
-- 잠금 뱃지 해금 출처(스토어/이벤트/업적)는 D-PROFILE-04.
+- 잠금 뱃지 해금 출처는 D-PROFILE-04에서 `achievement` / `event` / `store` 3종으로 확정. store는 **개인 코인만** 사용 가능.
 
 ## 모달 2 — 네임플레이트 케이스 (`#mock-nameplate-case-modal`)
 
@@ -94,25 +98,43 @@
 - 상단 탭: 엠블럼 / 이름바 / 서브 / 프레임
 - 각 탭: 옵션 그리드. 한 탭 안에서는 단일 선택.
 
-### 적용 범위
+### 적용 범위 (D-PROFILE-01 — DECIDED)
 - 선택 즉시 프로필 미리보기 반영.
-- 메인 클랜 화면의 네임카드, 밸런스 슬롯에도 동기화 (D-PROFILE-01에서 셀렉터·이벤트 규약 확정).
+- `localStorage["clansync-mock-nameplate-state-v1"]` 저장 + `window.dispatchEvent(new CustomEvent('clansync:nameplate:changed', { detail: { game, state } }))`.
+- 구독자(메인 클랜 구성원 본인 행 네임카드 + BalanceMaker 본인 매치 슬롯)는 `[data-nameplate-preview="{game}"][data-nameplate-self]` 요소에서 이벤트 수신 → `mockNameplateApplyPreview(game)` 재호출.
+- **같은 탭 내부만 즉시 반영** — 다른 탭/창은 새 진입·새로고침 시 localStorage에서 재로드.
+- [decisions.md §D-PROFILE-01](../decisions.md#d-profile-01--네임플레이트-동기화-규약) 참조.
 
 ### 권한·구독
-- 모든 로그인 사용자 동일. 보유 옵션은 사용자별로 다름.
+- 모든 로그인 사용자 동일. 보유 옵션은 사용자별로 다름 — 운영 시 `user_nameplate_inventory` 기반으로 모달 옵션 disable 처리.
 
-## 가입 신청 대기 목록 (D-PROFILE-02)
+## 가입 신청 대기 목록 (D-PROFILE-02 — DECIDED)
+
+### 데이터 출처
+- 단일 소스: `clan_join_requests` (D-CLAN-02).
+- 필터: `user_id = me AND (status='pending' OR (status IN ('approved','rejected') AND resolved_at > now() - interval '7 days'))`.
+- 정렬: `created_at DESC`.
+- **canceled / expired 는 목록에 노출하지 않는다** (감사 로그에만 남음).
 
 ### 카드/표
 | 컬럼 | 설명 |
 |------|------|
-| 클랜명 | 신청한 클랜 |
-| 게임 | 어떤 게임의 클랜인지 |
-| 신청일 | 신청 접수 일시 |
-| 상태 | 대기 / 승인 / 거절 |
-| 액션 | 대기 중일 때 "취소" 가능 |
+| 클랜명 | 신청한 클랜 (클릭 시 클랜 소개) |
+| 게임 | 어떤 게임의 클랜인지 (`ow`/`val`) |
+| 신청일 | `created_at` 기준 |
+| 상태 | pending → "심사 대기" · approved → "승인됨" · rejected → "거절됨" |
+| 액션 | pending: **[취소]** 버튼 · approved: "[클랜으로 이동]" · rejected: 액션 없음 |
 
-데이터 출처·취소 액션은 D-PROFILE-02에서 확정.
+### 취소 액션
+- pending 일 때만 활성. 클릭 → confirm 다이얼로그("신청을 취소하시겠어요?") → `UPDATE clan_join_requests SET status='canceled', resolved_by='self', resolved_at=now() WHERE id=? AND user_id=auth.uid() AND status='pending'`.
+- D-CLAN-02 상태 머신과 동일(pending에서만 canceled로 전이).
+- 성공 시 즉시 행 제거.
+
+### 제약
+- 게임당 pending 신청은 **1건** (D-CLAN-02). pending 행은 최대 등록 게임 수만큼.
+- 재신청은 **24시간 쿨다운** (D-CLAN-02).
+
+[decisions.md §D-PROFILE-02](../decisions.md#d-profile-02--가입-신청-대기-목록-데이터-출처)
 
 ## 게임별 탭 — 부계정 (D-MANAGE-03)
 
@@ -173,33 +195,49 @@
 - `ow` (오버워치), `val` (발로란트) 등.
 - 사용자가 인증한 게임만 탭으로 노출.
 
-### 뱃지 픽 (게임별)
-- 키 예: `mockBadgeCaseGetPicks(game)` → string[] (최대 5).
-- 운영 시 사용자 테이블에 `(user_id, game, badge_id, slot_index)` 또는 동등.
+### 뱃지 픽 (게임별, D-PROFILE-03)
+- 목업: `mockBadgeCaseGetPicks()` → `{ ow: [id, id, …, null, null], val: [...] }` — **compact(dense-from-front)**, 길이 5, 빈 슬롯은 반드시 뒤쪽.
+- 영속: `localStorage["clansync-mock-badge-picks-v1"]`. `mockBadgeEnsureCompactArray()`가 로드·저장 시 중간 null·중복을 자동 정규화.
+- 이벤트: `clansync:badge:picks:changed` (`detail: { game, picks }`).
+- 운영: `user_badge_picks(user_id, game_id, slot_index, badge_id)` + `UNIQUE(user_id, game_id, slot_index)`. 해제·재배치 시 slot_index 재할당(트랜잭션), 빈 슬롯에 해당하는 행은 DELETE.
 
-### 네임플레이트 옵션 (게임별)
-- 카테고리 4종(emblem/namebar/sub/frame) × 옵션 ID.
-- 운영 시 사용자별 보유 옵션 + 현재 선택을 저장.
+### 뱃지 카탈로그·해금 (D-PROFILE-04)
+- `badges(game_id, category, unlock_source, unlock_condition jsonb, linked_id)`.
+- `user_badge_unlocks(user_id, badge_id)` — 해금 이력. 해금은 영구(환불 없음).
+- store 출처 뱃지는 `unlock_condition.coin_type = 'personal'` 고정 — 개인 코인만.
+- 잠금 뱃지 툴팁은 `unlock_source`에 따라 다른 카피 (achievement "진행도 x/y" · event "{end_date}까지" · store "{price} 개인 코인").
+
+### 네임플레이트 옵션 (게임별, D-PROFILE-01)
+- 카테고리 4종(`emblem`/`namebar`/`sub`/`frame`) × 옵션 ID.
+- 영속: `localStorage["clansync-mock-nameplate-state-v1"]`.
+- 이벤트: `clansync:nameplate:changed` (`detail: { game, state }`).
+- 운영: `nameplate_options` 카탈로그 + `user_nameplate_inventory` 보유 + `user_nameplate_selections` 현재 선택.
 
 ### 메타 매핑
 - 네임플레이트 옵션 → 미리보기 라벨/아이콘 매핑은 `MOCK_NAMEPLATE_META`.
 
-### 동기화 셀렉터
-- `data-nameplate-preview` 등 셀렉터로 외부 화면(메인 클랜·밸런스)이 같은 데이터를 구독.
-- D-PROFILE-01에서 공통 이벤트·셀렉터 규약 확정.
+### 동기화 셀렉터 (D-PROFILE-01·03)
+| 용도 | 셀렉터 | 비고 |
+|------|--------|------|
+| 네임플레이트 프리뷰 | `[data-nameplate-preview="{game}"]` | 기존. 전체 구독자 |
+| 본인 네임플레이트 구독 | `[data-nameplate-preview="{game}"][data-nameplate-self]` | MainClan 본인 행·BalanceMaker 본인 슬롯에만 부여 |
+| 뱃지 스트립 컨테이너 | `[data-badge-strip="{game}"]` | 신규 |
+| 뱃지 스트립 슬롯 | `[data-badge-strip-slot="{0..4}"]` | compact, 앞쪽부터 연속 채움 — 빈 슬롯은 뒤쪽 |
+| 본인 뱃지 구독 | `[data-badge-strip="{game}"][data-badge-strip-self]` | 본인 구독자만 |
 
 ## 목업과 실제 구현의 차이
-- 픽·옵션은 클라이언트에서 계산만. 영속 저장은 일부 `localStorage`.
-- 잠금 뱃지의 해금 조건 툴팁이 일부 비어 있음 (D-PROFILE-04).
-- "가입 신청 대기 목록"은 마크업도 정적 — D-PROFILE-02에서 데이터 출처 결정.
+- 픽·옵션은 클라이언트에서 계산 + `localStorage` 영속. 새 탭/창에는 즉시 전파되지 않음(D-PROFILE-01 `self_only`).
+- 잠금 뱃지의 `unlock_source`별 툴팁 카피는 Phase 2+에서 실제 진행도·이벤트 기간·가격으로 채워짐. 목업은 정적 문구.
+- "가입 신청 대기 목록"은 목업에서 `clan_join_requests` 시뮬레이션(버튼·상태 뱃지 동작만). 운영 시 D-CLAN-02의 상태 머신 직결.
 - 메인 클랜·밸런스 슬롯의 네임플레이트는 "프리셋만" 정책을 따라야 함 (BalanceMaker 문서와 일치).
+- 네임플레이트·뱃지 동기화: 같은 탭 내부만 즉시 반영. BroadcastChannel/storage 이벤트는 도입하지 않음.
 
 ## 결정 필요
-- D-PROFILE-01 프로필 ↔ 메인 클랜 ↔ 밸런스 슬롯의 네임플레이트 동기화 셀렉터·이벤트 규약
-- D-PROFILE-02 가입 신청 대기 목록의 데이터 출처·취소 액션
-- D-PROFILE-03 뱃지 케이스 픽 ↔ 메인 카드 스트립 동기화
-- D-PROFILE-04 뱃지 해금 출처 (스토어 / 업적 / 이벤트) 정의
-- ~~D-MANAGE-03 부계정 공개 범위~~ (DECIDED 2026-04-20 — 클랜 설정 토글, 기본 `officers`. 프로필 추가 시 고지·동의 체크박스 필수)
+- ~~D-PROFILE-01 프로필 ↔ 메인 클랜 ↔ 밸런스 슬롯의 네임플레이트 동기화 셀렉터·이벤트 규약~~ (DECIDED 2026-04-20 — `[data-nameplate-preview]` + `data-nameplate-self` + `clansync:nameplate:changed`. [§D-PROFILE-01](../decisions.md#d-profile-01--네임플레이트-동기화-규약))
+- ~~D-PROFILE-02 가입 신청 대기 목록의 데이터 출처·취소 액션~~ (DECIDED 2026-04-20 — `clan_join_requests` 단일 소스, 7일 자동 숨김, pending만 취소 가능. [§D-PROFILE-02](../decisions.md#d-profile-02--가입-신청-대기-목록-데이터-출처))
+- ~~D-PROFILE-03 뱃지 케이스 픽 ↔ 메인 카드 스트립 동기화~~ (DECIDED 2026-04-20 — **compact** 5슬롯(dense-from-front), `[data-badge-strip]` + `clansync:badge:picks:changed`. [§D-PROFILE-03](../decisions.md#d-profile-03--뱃지-케이스--프로필-스트립-동기화))
+- ~~D-PROFILE-04 뱃지 해금 출처 (스토어 / 업적 / 이벤트) 정의~~ (DECIDED 2026-04-20 — `unlock_source enum`·store는 개인 코인만. [§D-PROFILE-04](../decisions.md#d-profile-04--뱃지-해금-출처))
+- ~~D-MANAGE-03 부계정 공개 범위~~ (DECIDED — 클랜 설정 토글, 기본 `officers`. 프로필 추가 시 고지·동의 체크박스 필수)
 
 ## 구현 참고 (개발자용)
 
@@ -209,11 +247,14 @@
   - `mockup/partials/nameplate-case-modal.html`
   - `mockup/partials/player-profile-modal.html` (글로벌 미리보기 모달)
 - 핵심 함수 (`mockup/scripts/app.js`):
-  - 뱃지: `mockBadgeCaseModalOpen(game)`, `mockBadgeCaseModalClose`, `mockBadgeCaseTab`, `mockBadgeCaseTogglePick`, `mockBadgeCaseGetPicks(game)`
-  - 네임플레이트: `mockNameplateCaseModalOpen(game)`, `mockNameplateCaseTab`, `mockNameplateCaseSelect`
+  - 뱃지: `mockBadgeCaseModalOpen(game)`, `mockBadgeCaseModalClose`, `mockBadgeCaseTab`, `mockBadgeCaseTogglePick`, `mockBadgeCaseGetPicks()`
+  - 네임플레이트: `mockNameplateCaseModalOpen(game)`, `mockNameplateCaseTab`, `mockNameplateCaseSelect`, `mockNameplateGetState()`, `mockNameplateApplyPreview(game)`
+  - **영속화·외부 구독**: `mockBadgeRestoreFromStorage()`, `mockBadgeSaveToStorage()`, `mockBadgeDispatchChange(game)`, `mockNameplateRestoreFromStorage()`, `mockNameplateSaveToStorage()`, `mockNameplateDispatchChange(game)`, `mockBindExternalProfileSync()` (MainClan·BalanceMaker 페이지 로드 시 구독 바인딩)
   - 프로필 모달: `mockPlayerProfileModalOpen()` — partial fetch 실패 시 `/profile`로 이동
 - 상수: `MOCK_BADGE_NAMEPLATE_MAX = 5`, `MOCK_NAMEPLATE_META`
-- 네임플레이트 외부 동기화 셀렉터: `data-nameplate-preview` (현재는 단순 셀렉터, D-PROFILE-01에서 확장)
+- localStorage 키: `clansync-mock-nameplate-state-v1`, `clansync-mock-badge-picks-v1`
+- 커스텀 이벤트: `clansync:nameplate:changed`, `clansync:badge:picks:changed`
+- 동기화 셀렉터: `[data-nameplate-preview]`, `[data-nameplate-self]`, `[data-badge-strip]`, `[data-badge-strip-slot]`, `[data-badge-strip-self]`
 
 ## 연관 문서
 - [pages.md](../pages.md)
