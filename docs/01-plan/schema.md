@@ -11,6 +11,12 @@ User ──< UserGameProfile >── Game
 User ──< ClanMember >── Clan
 User ──< ClanJoinRequest >── Clan         -- 가입 신청 (D-CLAN-02)
 User ──< ClanReport >── Clan              -- 신고 (D-CLAN-03)
+User ──< AuthFailedLogin                  -- 로그인 실패 감사 (D-AUTH-06, email FK 없음·citext 문자열)
+User ──< PasswordReset                    -- 비밀번호 재설정 토큰 (D-AUTH-04)
+User ──< UserNameplateSelection >── NameplateOption  -- 네임플레이트 선택 (D-PROFILE-01)
+User ──< UserNameplateInventory  >── NameplateOption -- 사용자 보유 옵션 (D-PROFILE-01)
+User ──< UserBadgePick >── Badge          -- 뱃지 스트립 픽 (D-PROFILE-03, slot 0..4)
+User ──< UserBadgeUnlock >── Badge        -- 해금된 뱃지 (D-PROFILE-04)
 Clan ──< Match ──< MatchPlayer
 Match ──< MatchResult
 Clan ──< ClanEvent
@@ -26,15 +32,84 @@ ClanMember ──< CoinTransaction
 ## 테이블 정의
 
 ### users (Supabase Auth 연동)
+> **D-AUTH-03** (DECIDED 2026-04-20) — 비밀번호 strong 정책·최저 가입 연령(만 10세)·만 14세 미만 보호자 동의(Phase 2+). [decisions.md §D-AUTH-03](./decisions.md#d-auth-03--비밀번호-정책과-최저-가입-연령).  
+> **D-AUTH-07** (DECIDED 2026-04-20) — `auto_login` 은 사용자 **기본 체크박스 값**. 실제 세션 TTL은 로그인 요청 페이로드 기준(OFF 24h / ON 30d). [§D-AUTH-07](./decisions.md#d-auth-07--자동-로그인-유지-기간).
+> **D-STORE-01 / D-ECON-01** (DECIDED 2026-04-20) — `coin_balance`는 **개인 풀** 잔액 캐시. Ground truth는 `coin_transactions(pool_type='personal')` 원장 합계. [decisions.md §D-STORE-01](./decisions.md#d-store-01--코인-적립차감-트리거-매트릭스).
+
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | id | uuid PK | auth.users 연동 |
 | nickname | varchar(20) UNIQUE NOT NULL | 닉네임 |
-| email | varchar UNIQUE NOT NULL | 이메일 |
+| email | citext UNIQUE NOT NULL | 이메일 (대소문자 무시 매칭) |
 | language | enum('ko','en','ja') | 언어 설정 |
-| auto_login | boolean DEFAULT false | 자동 로그인 |
+| birth_year | int NOT NULL | 출생연도(가입 폼). 상한 `currentYear-10`, 하한 1950 (D-AUTH-03) |
+| gender | enum('male','female','undisclosed') NOT NULL | 성별 세그먼트 (D-AUTH-03) |
+| auto_login | boolean DEFAULT false | 자동 로그인 **기본 선택값** (D-AUTH-07) |
+| password_updated_at | timestamptz | 마지막 비밀번호 변경 시각 (재설정 성공 시 갱신, 세션 전체 revoke 트리거) |
+| minor_guardian_consent_at | timestamptz NULL | 만 14세 미만 가입자의 법정대리인 동의 시각. Phase 2+ UI 도입 전까지 NULL (D-AUTH-03) |
+| discord_user_id | varchar(32) UNIQUE NULL | Discord 연동 ID (`identify` scope, D-AUTH-05) |
+| discord_linked_at | timestamptz NULL | Discord 최초 연동 시각 (D-AUTH-05) |
+| **coin_balance** | int NOT NULL DEFAULT 0 CHECK (coin_balance >= 0) | **개인 풀** 잔액 캐시 (D-STORE-01). 원장(`coin_transactions`) 합계로 정기 리컨실. 음수 불가 |
 | created_at | timestamptz | 가입일 |
 | updated_at | timestamptz | 수정일 |
+
+**제약·RLS 메모**
+
+- 가입 시점에 `birth_year`가 `currentYear - 14` 초과(=만 14세 미만)면 `minor_guardian_consent_at` 입력 UI가 Phase 2+에서 선행되어야 한다. Phase 1 범위에서는 안내 카피만 노출하고 가입 자체는 허용.
+- `discord_user_id`는 UNIQUE — 한 디스코드 계정이 여러 ClanSync 계정과 연결 불가. 재연결 시 기존 연결 해제 필요.
+- 서버는 비밀번호 제출 시 클라이언트와 동일한 정규식으로 재검증한다(D-AUTH-03).
+
+
+### auth_failed_logins (로그인 실패 감사)
+> **D-AUTH-06** (DECIDED 2026-04-20) — IP+email 5회 연속 실패 → 15분 잠금. 성공 시 카운터 리셋. [decisions.md §D-AUTH-06](./decisions.md#d-auth-06--로그인-실패-잠금-정책).
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| email | citext NOT NULL | 시도된 이메일 (가입 유무 무관, user_id FK 아님) |
+| ip | inet NOT NULL | 요청 IP |
+| user_agent | text | |
+| reason | enum('invalid_password','unknown_email','locked','oauth_denied') | 실패 사유 |
+| attempted_at | timestamptz NOT NULL DEFAULT now() | |
+
+**인덱스·정책**
+
+- `CREATE INDEX ON auth_failed_logins (email, ip, attempted_at DESC)` — 잠금 판정 쿼리용.
+- `CREATE INDEX ON auth_failed_logins (attempted_at)` — 90일 TTL 배치 삭제용.
+- 90일 경과 이력은 주기적으로 삭제(Supabase cron 또는 `pg_cron`).
+- RLS: 일반 사용자 SELECT 금지. 관리자 role에만 공개.
+- 잠금 판정 쿼리 (개념):
+  ```
+  SELECT count(*) FROM auth_failed_logins
+  WHERE email = $1 AND ip = $2
+    AND attempted_at > (
+      SELECT COALESCE(max(attempted_at), '-infinity')
+      FROM auth_successful_logins WHERE email = $1 AND ip = $2
+    )
+    AND attempted_at > now() - interval '15 minutes';
+  ```
+
+### password_resets (비밀번호 재설정 토큰)
+> **D-AUTH-04** (DECIDED 2026-04-20) — 토큰 1시간 유효, 1회용, 성공 시 전 세션 revoke. [decisions.md §D-AUTH-04](./decisions.md#d-auth-04--비밀번호-찾기-플로우).
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| user_id | uuid FK → users | 재설정 대상 사용자 |
+| token_hash | text NOT NULL | 토큰의 SHA-256 해시(평문은 메일에만) |
+| expires_at | timestamptz NOT NULL | 발급 + 1시간 |
+| used_at | timestamptz NULL | 사용 즉시 기록 → 재사용 차단 |
+| requested_ip | inet | 발급 요청 IP |
+| user_agent | text | |
+| created_at | timestamptz NOT NULL DEFAULT now() | |
+
+**제약·rate limit·RLS 메모**
+
+- `UNIQUE(token_hash)`.
+- 같은 `user_id`에 대해 60초 내 재발급 차단(애플리케이션 레벨). 24시간 5회 한도.
+- 토큰 검증 순서: `used_at IS NULL` · `expires_at > now()` 모두 성립 시에만 유효.
+- 재설정 성공 직후 해당 사용자의 모든 `auth.sessions`를 revoke + `users.password_updated_at = now()`.
+- RLS: 본인조차 SELECT 불가 — 서버 Edge Function 경유만.
 
 ### games
 | 컬럼 | 타입 | 설명 |
@@ -106,6 +181,8 @@ ClanMember ──< CoinTransaction
 | **moderation_status** | enum('clean','reported','warned','hidden','deleted') DEFAULT 'clean' | **D-CLAN-03**: 정책 위반 단계별 제재. `reported`는 사용자 미노출(운영진 큐), `warned`부터 가입 신청 차단, `hidden`은 모든 화면 제외 |
 | **last_activity_at** | timestamptz | **D-CLAN-03**: 멤버 누구라도 활동 시 갱신. 휴면 진입 판정용 (모든 멤버의 활동이 60일+ 전이면 휴면). `MAX(clan_members.last_activity_at)` 캐시 |
 | is_active | boolean DEFAULT true GENERATED ALWAYS AS (lifecycle_status = 'active' AND moderation_status NOT IN ('hidden','deleted')) STORED | 사용자 화면 노출 가능 여부의 도출 컬럼 (편의용) |
+| **coin_balance** | int NOT NULL DEFAULT 0 CHECK (coin_balance >= 0) | **클랜 풀** 잔액 캐시 (D-STORE-01). 원장(`coin_transactions` WHERE `pool_type='clan'`) 합계로 정기 리컨실. 음수 불가 |
+| **ownership_transferred_at** | timestamptz NULL | **D-ECON-02** 클랜장 소유권 이전 시각. 이후 72h 동안 클랜 풀 **지출 동결**(에스크로) |
 | created_at | timestamptz | |
 
 **자유 태그 검증 룰** (Phase 1)
@@ -304,6 +381,29 @@ ClanMember ──< CoinTransaction
 | recorded_by | uuid FK → users | 운영진 |
 | recorded_at | timestamptz | |
 
+### match_tags (특이사항 태그 스냅샷)
+> **D-ECON-04** (DECIDED 2026-04-20) — 자동 산정 태그의 **현재 유효 스냅샷**. 이력은 저장하지 않는다(경기 컨텍스트 전용 · 과거 태그 트래킹 불필요). [decisions.md §D-ECON-04](./decisions.md#d-econ-04--특이사항-태그-카탈로그).
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| user_id | uuid FK → users | |
+| clan_id | uuid FK → clans | 본 클랜 내전 기준으로만 부여되므로 clan_id 스코프 |
+| code | text NOT NULL | 태그 코드 (`streak_lose_3`·`slump`·`no_show` 등 D-ECON-04 카탈로그 13종) |
+| tone | enum('good','bad','neutral') NOT NULL | BalanceMaker UI 톤 분기 |
+| map_id | uuid FK → maps NULL | 맵별 태그(`map_expert`·`map_rookie`)에만 값 있음 |
+| computed_at | timestamptz NOT NULL DEFAULT now() | 최근 재계산 시각 |
+| expires_at | timestamptz NULL | 시간 기반 해제(`no_show` 30d, `no_show_repeat` 90d, `new_clan_week` 7d). 조건 기반 해제(승률·연승 등)는 NULL |
+| PRIMARY KEY | (user_id, clan_id, code, COALESCE(map_id, '00000000-0000-0000-0000-000000000000'::uuid)) | |
+
+**제약·인덱스·RLS**
+
+- `CHECK ((code LIKE 'map\_%' AND map_id IS NOT NULL) OR (code NOT LIKE 'map\_%' AND map_id IS NULL))` — 맵 태그만 map_id 요구.
+- `CREATE INDEX ON match_tags (clan_id, user_id)` — BalanceMaker 슬롯 렌더 쿼리용.
+- `CREATE INDEX ON match_tags (expires_at) WHERE expires_at IS NOT NULL` — 만료 배치 스캔용.
+- 서버는 UI 쿼리에서 `expires_at IS NULL OR expires_at > now()` 만 조회.
+- **갱신 주체**: 서비스 롤만. 경기 결과 입력 시·밸런스 세션 생성 시·일일 배치(KST 06:00)에서 UPSERT·DELETE.
+- RLS: SELECT는 같은 클랜 구성원(경기 슬롯 렌더용). INSERT/UPDATE/DELETE 전면 차단(서비스 롤만).
+
 ### maps
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
@@ -345,16 +445,156 @@ ClanMember ──< CoinTransaction
 | season | varchar | 'YYYY-MM' |
 | awarded_at | timestamptz | |
 
-### coin_transactions
+### nameplate_options (카탈로그)
+> **D-PROFILE-01** (DECIDED 2026-04-20) — 네임플레이트 옵션 카탈로그. 프리셋만. [decisions.md §D-PROFILE-01](./decisions.md#d-profile-01--네임플레이트-동기화-규약).
+
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | id | uuid PK | |
-| clan_id | uuid FK → clans | |
-| user_id | uuid FK → users | null = 클랜 풀 거래 |
-| pool_type | enum('clan','personal') | |
-| amount | int NOT NULL | 양수=지급, 음수=차감 |
-| reason | varchar | 지급/차감 사유 |
-| created_at | timestamptz | |
+| game_id | text NOT NULL | 'ow','val' |
+| category | enum(`emblem`,`namebar`,`sub`,`frame`) NOT NULL | 4카테고리 |
+| code | text UNIQUE NOT NULL | 예: `ow-e1`, `val-nb2` (목업 key와 동일) |
+| name_ko | text NOT NULL | |
+| name_en | text | |
+| icon_class | text | 미리보기용 CSS 클래스 또는 아이콘 문자 |
+| unlock_source | enum(`default`,`event`,`store`,`achievement`) NOT NULL DEFAULT 'default' | 보유 판정용 |
+| linked_id | uuid NULL | event/store 출처 연결 |
+| is_active | boolean DEFAULT true | |
+
+### user_nameplate_inventory (보유 옵션)
+> **D-PROFILE-01** — 사용자가 보유한 네임플레이트 옵션. `default` 소스는 기본 보유로 간주하므로 별도 행 불필요.
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| user_id | uuid FK → users | |
+| option_id | uuid FK → nameplate_options | |
+| acquired_at | timestamptz DEFAULT now() | |
+| PRIMARY KEY | (user_id, option_id) | |
+
+- RLS: 본인만 SELECT. 서버 Edge Function이 INSERT(이벤트 보상·스토어 구매 시).
+
+### user_nameplate_selections (현재 선택)
+> **D-PROFILE-01** — 게임×카테고리별 **단일** 선택. 목업은 localStorage, 운영은 이 테이블.
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| user_id | uuid FK → users | |
+| game_id | text NOT NULL | |
+| category | enum(`emblem`,`namebar`,`sub`,`frame`) NOT NULL | |
+| option_id | uuid FK → nameplate_options | |
+| updated_at | timestamptz DEFAULT now() | |
+| PRIMARY KEY | (user_id, game_id, category) | |
+
+**제약·RLS 메모**
+
+- UPDATE 시 서버가 `user_nameplate_inventory` 또는 기본 옵션인지 재검증(보유하지 않은 옵션 선택 차단).
+- RLS: SELECT는 본인 + 같은 클랜 구성원 공개(클랜 내 네임카드 표시용). UPDATE/DELETE는 본인만.
+- 실시간 전파: Phase 2+에서 Supabase Realtime 구독 또는 BalanceMaker 매치 진입 시 일괄 로드.
+
+### badges (뱃지 카탈로그)
+> **D-PROFILE-04** (DECIDED 2026-04-20) — 뱃지 해금 출처 3분류. [decisions.md §D-PROFILE-04](./decisions.md#d-profile-04--뱃지-해금-출처).
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| game_id | text NOT NULL | 'ow','val' |
+| category | enum(`battle`,`participation`,`event`,`clan`,`clansync`) NOT NULL | 카테고리 (UI 탭 매핑) |
+| code | text UNIQUE NOT NULL | 예: `ow-battle-1` |
+| name_ko | text NOT NULL | |
+| name_en | text | |
+| description | text NOT NULL | |
+| icon | text NOT NULL | emoji 또는 아이콘 클래스 |
+| unlock_source | enum(`achievement`,`event`,`store`) NOT NULL | |
+| unlock_condition | jsonb NOT NULL | 출처별 구조 (§D-PROFILE-04) |
+| linked_id | uuid NULL | event_id 또는 store_item_id |
+| is_active | boolean DEFAULT true | |
+| created_at | timestamptz DEFAULT now() | |
+
+**제약**
+
+- `CHECK (unlock_source = 'store' ⇒ (unlock_condition->>'coin_type') = 'personal')` — store 뱃지는 개인 코인만 (D-PROFILE-04).
+- 인덱스: `(game_id, category)` — 뱃지 케이스 카테고리 조회.
+
+### user_badge_unlocks (해금 이력)
+> **D-PROFILE-04** — 해금된 뱃지 기록. 해금은 영구(환불/소멸 없음).
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| user_id | uuid FK → users | |
+| badge_id | uuid FK → badges | |
+| unlocked_at | timestamptz DEFAULT now() | |
+| source_detail | jsonb NULL | 해금 시점 스냅샷 (이벤트 회차·구매 내역 등) |
+| PRIMARY KEY | (user_id, badge_id) | |
+
+### user_badge_picks (스트립 픽, 최대 5)
+> **D-PROFILE-03** (DECIDED 2026-04-20) — compact 픽(dense-from-front, slot_index 0..n-1). 해제 시 뒷 슬롯을 앞으로 shift. [decisions.md §D-PROFILE-03](./decisions.md#d-profile-03--뱃지-케이스--프로필-스트립-동기화).
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| user_id | uuid FK → users | |
+| game_id | text NOT NULL | |
+| slot_index | int NOT NULL | 0..4 — **앞에서부터 연속**으로 사용. 중간 구멍 없음 |
+| badge_id | uuid FK → badges NOT NULL | 빈 슬롯은 행을 만들지 않는다 |
+| updated_at | timestamptz DEFAULT now() | |
+| PRIMARY KEY | (user_id, game_id, slot_index) | |
+
+**제약·RLS 메모**
+
+- `CHECK (slot_index BETWEEN 0 AND 4)`.
+- 해제/재배치 시 서버는 트랜잭션으로 **slot_index를 0..(n-1)로 재할당**한다(이후 불필요한 뒤쪽 행은 DELETE). 예: slot 1 해제 → slot 2·3 을 1·2로 UPDATE, 기존 slot 3 DELETE.
+- UPSERT 시 서버가 `user_badge_unlocks` 보유 확인(해금되지 않은 뱃지 픽 차단).
+- RLS: SELECT는 본인 + 같은 클랜 구성원 공개(스트립 렌더용). UPDATE/DELETE는 본인만.
+- 조회 순서: `ORDER BY slot_index ASC`. 클라이언트는 n개 아이콘 + (5-n)개 빈 placeholder를 렌더.
+
+### coin_transactions
+> **D-STORE-01 / D-ECON-01 / D-ECON-02** (DECIDED 2026-04-20) — INSERT-only 원장. 풀 간 이전 불가, 멱등성 키로 중복 차단, 정정은 반대 부호 거래로만. [decisions.md §D-STORE-01](./decisions.md#d-store-01--코인-적립차감-트리거-매트릭스) · [§D-ECON-02](./decisions.md#d-econ-02--코인-세탁-방지-정책).
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| clan_id | uuid FK → clans NULL | 개인 풀 거래는 NULL |
+| user_id | uuid FK → users NULL | 클랜 풀 자동 적립/차감은 NULL, 수동 지출은 실행자 |
+| pool_type | enum('clan','personal') NOT NULL | 풀 식별. `(pool_type='personal' ⇒ user_id IS NOT NULL)`, `(pool_type='clan' ⇒ clan_id IS NOT NULL)` |
+| amount | int NOT NULL CHECK (amount <> 0) | 양수=지급, 음수=차감 |
+| reason | varchar NOT NULL | 사유 코드 (예: `match_enter`·`match_win`·`attendance_daily`·`purchase_profile_deco`·`board_pin_7d`·`tournament_host`). D-STORE-01 매트릭스의 키 그대로 사용 |
+| reference_type | varchar NOT NULL | 멱등성 키 구성 — `'match' \| 'scrim_room' \| 'event' \| 'purchase' \| 'badge_unlock' \| 'attendance' \| 'tournament' \| 'subscription' \| 'correction'` |
+| reference_id | uuid NOT NULL | 참조 엔티티 id (출석은 user_id, 정정은 원거래 id) |
+| sub_key | varchar NOT NULL DEFAULT '' | 참조 엔티티 내 세부 구분 (`enter`·`win`·`mvp`·`streak_w1` 등). 같은 match에서 출전·승리·MVP를 각각 지급하기 위해 필요 |
+| balance_after | int NOT NULL CHECK (balance_after >= 0) | 해당 풀의 거래 직후 잔액 스냅샷. 감사·리컨실용. 음수 불가(차감 시 검증) |
+| correction_of | uuid FK → coin_transactions NULL | 이 거래가 다른 거래를 정정/취소하는 경우 원거래 id |
+| created_by | uuid FK → users NULL | 수동 지출의 실행 주체. 자동 적립은 NULL |
+| created_at | timestamptz NOT NULL DEFAULT now() | |
+
+**제약·인덱스·RLS**
+
+- `UNIQUE (pool_type, reference_type, reference_id, sub_key)` — **멱등성 키**. 같은 이벤트의 중복 지급/차감 차단.
+- `CHECK (pool_type='personal' AND user_id IS NOT NULL) OR (pool_type='clan' AND clan_id IS NOT NULL)`.
+- `CREATE INDEX ON coin_transactions (user_id, pool_type, created_at DESC)` — 개인 거래 내역 UI.
+- `CREATE INDEX ON coin_transactions (clan_id, pool_type, created_at DESC)` — 클랜 풀 감사.
+- `CREATE INDEX ON coin_transactions (reference_type, reference_id)` — 이벤트 역참조.
+- RLS:
+  - SELECT: `pool_type='personal'`은 본인만. `pool_type='clan'`은 해당 클랜 운영진+.
+  - INSERT: **서비스 롤만**(서버 검증 후).
+  - UPDATE/DELETE: **전면 차단** (`USING (false)`). D-ECON-02 불변성 근거.
+- 일일 상한(개인 200 / 클랜 2,000) 검증은 서비스 레이어에서 적립 시도 시점에 24h 롤링 합계로 판정. 초과분은 INSERT 하지 않고 조용히 드롭(별도 `coin_cap_drops` 로그 권장, Phase 2+).
+
+### user_attendance (일일 출석)
+> **D-STORE-01 / D-ECON-01** (DECIDED 2026-04-20) — 출석 적립의 멱등성·연속 보너스 관리. [decisions.md §D-STORE-01](./decisions.md#d-store-01--코인-적립차감-트리거-매트릭스).
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| user_id | uuid FK → users | |
+| date | date NOT NULL | 출석 일자 (`timezone('Asia/Seoul', now())::date` 기준) |
+| checked_at | timestamptz NOT NULL DEFAULT now() | |
+| streak | int NOT NULL DEFAULT 1 | 연속 출석 일 수 (D-1 연속이면 +1, 끊기면 1로 리셋) |
+| streak_reward_claimed | boolean NOT NULL DEFAULT false | 7일 연속 보너스 지급 여부 (같은 streak 구간 내 중복 지급 차단) |
+| PRIMARY KEY | (user_id, date) | 하루 1회만 출석 |
+
+**제약·RLS**
+
+- `coin_transactions (reference_type='attendance', reference_id=user_id, sub_key='daily'||date)` 로 매핑해 중복 적립 차단.
+- 연속 보너스는 `sub_key='streak_7_'||date` 로 주 1회 보장.
+- RLS: SELECT 본인. INSERT 서비스 롤만.
 
 ### board_posts (게시판 - 홍보/스크림 신청 공용)
 | 컬럼 | 타입 | 설명 |
@@ -401,32 +641,80 @@ ClanMember ──< CoinTransaction
 | comment | text | |
 
 ### store_items
+> **D-STORE-01 / D-ECON-01** (DECIDED 2026-04-20) — `item_type` 과 `pool_source` 는 1:1 매핑(`clan_deco`⇒`clan`, `profile_deco`⇒`personal`). Premium 카드는 `is_premium_only=true`. [decisions.md §D-STORE-01](./decisions.md#d-store-01--코인-적립차감-트리거-매트릭스).
+
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | id | uuid PK | |
-| item_type | enum('clan_deco','profile_deco') | |
-| game_id | uuid FK → games | null = 게임 공통 |
-| name_ko | varchar | |
-| price_coins | int | 코인 가격 |
-| asset_url | varchar | |
+| item_type | enum('clan_deco','profile_deco') NOT NULL | |
+| pool_source | enum('clan','personal') NOT NULL | 구매 시 차감되는 풀. `clan_deco⇒clan`, `profile_deco⇒personal` 고정 |
+| game_id | uuid FK → games NULL | null = 게임 공통 |
+| name_ko | varchar NOT NULL | |
+| price_coins | int NOT NULL CHECK (price_coins > 0) | 코인 가격 |
+| asset_url | varchar | 서비스 호스팅 정적 에셋 경로 (사용자 업로드 금지) |
+| is_premium_only | boolean NOT NULL DEFAULT false | Premium 플랜 전용 카드 — Free는 비활성 표시 |
+| is_active | boolean NOT NULL DEFAULT true | 판매 중단 시 false (기존 보유자는 계속 사용) |
+| released_at | timestamptz NOT NULL DEFAULT now() | 진열 시각 |
 
-**꾸미기(`profile_deco` 등):** `asset_url`은 **서비스가 호스팅하는 정적 에셋**만 가리킨다. **사용자 업로드 이미지를 저장하는 용도는 사용하지 않는다**(프로필·밸런스 네임플레이트는 전부 사측 제공 프리셋 — PRD 「꾸미기 에셋 정책」).
+**제약**
+
+- `CHECK ((item_type='clan_deco' AND pool_source='clan') OR (item_type='profile_deco' AND pool_source='personal'))` — 개인↔클랜 풀 이전 경로 차단.
+- `asset_url`은 **서비스가 호스팅하는 정적 에셋**만 가리킨다. **사용자 업로드 이미지를 저장하는 용도는 사용하지 않는다**(프로필·밸런스 네임플레이트는 전부 사측 제공 프리셋 — PRD 「꾸미기 에셋 정책」).
 
 ### purchases
+> **D-STORE-01 / D-ECON-02** (DECIDED 2026-04-20) — `pool_source` 와 `approved_by` 로 클랜 풀 지출 감사. [decisions.md §D-ECON-02](./decisions.md#d-econ-02--코인-세탁-방지-정책).  
+> **D-STORE-03** (DECIDED 2026-04-20) — 환불 없음 원칙 + 시스템 오류 자동 롤백 + 운영자 재량 정정. `voided_at`·`voided_by`·`void_reason` 으로 무효화 표시(행 삭제는 금지). [decisions.md §D-STORE-03](./decisions.md#d-store-03--환불되돌리기-정책).
+
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | id | uuid PK | |
-| user_id | uuid FK → users | |
-| clan_id | uuid FK → clans | null = 개인 구매 |
+| user_id | uuid FK → users NOT NULL | 구매 실행자 (개인 구매자 또는 클랜 풀 지출 실행 운영진) |
+| clan_id | uuid FK → clans NULL | 클랜 풀 구매 시 대상 클랜, 개인 구매는 NULL |
 | item_id | uuid FK → store_items | |
-| purchased_at | timestamptz | |
+| pool_source | enum('clan','personal') NOT NULL | 어느 풀에서 차감했는지 (store_items.pool_source 와 동일해야 함) |
+| price_coins | int NOT NULL | 구매 시점 가격 스냅샷 (`store_items.price_coins` 변동 대비) |
+| coin_transaction_id | uuid FK → coin_transactions UNIQUE | 이 구매로 생성된 차감 거래 |
+| approved_by | uuid FK → users NULL | **D-ECON-02** 클랜 풀 1회 500 이상 지출 시 추가 승인자 (Phase 2+). Phase 1은 항상 NULL |
+| **voided_at** | timestamptz NULL | **D-STORE-03** 무효화(정정) 시각. NULL = 정상 구매 |
+| **voided_by** | uuid FK → users NULL | **D-STORE-03** 무효 처리한 운영자. `voided_by = user_id` 인 행은 INSERT 금지(자기 계정 정정 차단) |
+| **void_reason** | text NULL | **D-STORE-03** 무효 사유(`system_rollback`·`price_correction`·`account_takeover`·`item_defect`·`policy_violation`). `voided_at IS NOT NULL` 이면 NOT NULL |
+| purchased_at | timestamptz NOT NULL DEFAULT now() | |
+
+**제약·RLS**
+
+- `CHECK ((pool_source='clan' AND clan_id IS NOT NULL) OR (pool_source='personal' AND clan_id IS NULL))`.
+- `CHECK (pool_source = (SELECT pool_source FROM store_items WHERE id = item_id))` (또는 트리거로).
+- `CHECK ((voided_at IS NULL AND voided_by IS NULL AND void_reason IS NULL) OR (voided_at IS NOT NULL AND voided_by IS NOT NULL AND void_reason IS NOT NULL))` — 무효화 필드는 all-or-nothing (D-STORE-03).
+- `CHECK (voided_by IS NULL OR voided_by <> user_id)` — 운영자 자기 계정 정정 차단 (D-STORE-03).
+- 무효 처리 시 **반드시 반대 부호 `coin_transactions` 행**을 `correction_of=coin_transaction_id` 로 INSERT(서비스 레이어 트랜잭션 강제). 한 구매당 유효 정정 거래는 **최대 1건**.
+- RLS:
+  - SELECT: 본인 개인 구매 + 운영진+가 자기 클랜의 클랜 풀 구매 + 운영자(관리자 role)는 전체.
+  - INSERT: **서비스 롤만**(서버가 잔액 검증·coin_transactions INSERT·에스크로 체크·2-man rule 검증을 한 트랜잭션으로 수행).
+  - UPDATE: `voided_at`·`voided_by`·`void_reason` 세 컬럼만 서비스 롤이 1회 UPDATE 가능(정상→무효 전이). 무효→정상 복구 UPDATE 금지(정정의 정정은 새 트랜잭션으로).
+  - DELETE: **전면 차단**.
 
 ---
 
 ## 클랜 순위·통계 지표 (승률 등 경쟁 지표 제외)
 
+> **D-ECON-03** (DECIDED 2026-04-20) — 외부 공개 순위표에서 경쟁 지표(승률·K/D·MVP 수 등) 전면 제외. 공개 지표는 활동성·규모·매너·이벤트 참여만. 경쟁 지표는 **운영진+ 내부 화면**(클랜 관리·HoF·내전 히스토리)에만. [decisions.md §D-ECON-03](./decisions.md#d-econ-03--클랜-순위표-민감-지표-노출-범위).
+
 아래 지표는 `matches` + `match_players` + `clan_members`로 집계한다.  
 **경기 시각**은 `matches.played_at`(timestamptz) 기준이며, UI·랭킹 집계 시 **표시 타임존**(예: KST)을 정해 시간대별 히스토그램에 사용한다.
+
+### 노출 정책 (D-ECON-03)
+
+| 지표군 | 외부 순위표 | 클랜 상세(외부 열람) | 클랜 관리(운영진+) |
+|--------|:---:|:---:|:---:|
+| 활동성(활성 비율·스크림 건수) | ✓ | ✓ | ✓ |
+| 규모(인원수) · 매너(스크림 평점) · 이벤트 참여 | ✓ | ✓ | ✓ |
+| 내전 경기 수 | ✗ | ○ (클랜 설정 토글) | ✓ |
+| 내전 승률 · 개인 승률 · MVP 랭킹 · K/D | ✗ | ✗ | ✓ |
+| HoF 기록 | ✗ | ○ (클랜장 공개 토글) | ✓ |
+
+- `✗` 지표는 **API 응답 자체에 포함하지 않는다**(서버 레벨 필터링).
+- `○` 지표는 `clan_settings.expose_competitive_metrics boolean DEFAULT false`(Phase 2+)로 제어.
+- `clans.moderation_status IN ('warned','hidden','deleted')` 또는 `lifecycle_status='dormant'` 클랜은 외부 순위표 완전 제외.
 
 ### 1) 이번달 활성 유저 비율 (%)
 
@@ -494,3 +782,49 @@ ClanMember ──< CoinTransaction
 `UNIQUE(game_id, user_id, year_month)`
 
 인덱스 권장: `matches (clan_id, played_at, match_type)`, `matches (game_id, played_at, match_type)`, `match_players (user_id, match_id)`.
+
+---
+
+## 문의 (Contact)
+
+### contact_requests
+> **D-LANDING-03** (DECIDED 2026-04-20) — `/contact` 폼 제출 저장소. Anonymous 제출 허용(`user_id` NULL 가능), 제출 시 `ip_hash` · rate limit · Captcha 검증은 서비스 레이어에서 수행. 운영자 관리자 콘솔(Phase 2+)에서 열람·답변. [decisions.md §D-LANDING-03](./decisions.md#d-landing-03--약관개인정보api-tos문의-페이지-구현-방식).
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| user_id | uuid FK → users NULL | 로그인 상태에서 제출 시 자동 연결. 비로그인은 NULL |
+| email | citext NOT NULL | 답변 수신 이메일 |
+| category | enum('account','payment','bug','policy','other') NOT NULL | 문의 유형 |
+| title | varchar(120) NOT NULL | 최대 120자 |
+| body | text NOT NULL | 최대 4000자(CHECK 권장) |
+| clan_id | uuid FK → clans NULL | 관련 클랜(선택). 로그인 사용자는 소속 클랜에서 자동 추론 |
+| status | enum('open','in_progress','resolved','spam','deleted') DEFAULT 'open' | 처리 상태 |
+| assigned_to | uuid FK → users NULL | 담당 운영자 |
+| ip_hash | bytea NULL | SHA-256(ip + salt). rate limit·악성 추적용, 원본 IP 비저장(개인정보 최소화) |
+| user_agent | text NULL | 봇·기기 식별용 |
+| created_at | timestamptz NOT NULL DEFAULT now() | |
+| resolved_at | timestamptz NULL | `status='resolved'` 전이 시 기록 |
+
+**제약·인덱스·RLS**
+
+- `CHECK (char_length(title) <= 120)` · `CHECK (char_length(body) BETWEEN 1 AND 4000)`.
+- `CREATE INDEX ON contact_requests (status, created_at DESC)` — 관리자 콘솔 큐 조회.
+- `CREATE INDEX ON contact_requests (email, created_at DESC)` — rate limit 조회.
+- RLS:
+  - INSERT: **서비스 롤만**(Server Action이 Captcha + rate limit 검증 후 INSERT). Anonymous·일반 사용자 직접 INSERT 차단.
+  - SELECT: 본인 제출(`user_id = auth.uid()`) + 운영자 role.
+  - UPDATE: 운영자 role만(`status`·`assigned_to`·`resolved_at` 변경).
+  - DELETE: 차단. `status='deleted'` 로 soft delete만.
+
+### contact_rate_limits (Phase 2+ 메모)
+> rate limit 체크용 경량 테이블. Redis 사용 가능하면 Redis 우선, 아니면 이 테이블로 fallback.
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| key | text PK | `email:<hash>` 또는 `ip:<hash>` |
+| hits | int NOT NULL DEFAULT 0 | 24h 슬라이딩 카운트 |
+| first_hit_at | timestamptz NOT NULL | 24h 윈도우 시작 |
+| last_hit_at | timestamptz NOT NULL | |
+
+- INSERT: 서비스 롤만. 정책: 이메일당 24h 5회·IP당 24h 20회 초과 시 제출 거절.
