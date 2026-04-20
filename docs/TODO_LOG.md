@@ -5,7 +5,12 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
-### 2026-03-28 — Phase 1 종료 선언 · Phase 2 문서 정리
+### 2026-04-20 — 토큰 절약 메타 정비 + 아이콘 팩 git 정리 + 목업 보완 피드백
+- [x] 아이콘: `heroicons` 서브모듈 deinit/제거, `.gitmodules` 정리. ionicons + heroicons 둘 다 `<pack>/in-use/` 화이트리스트 패턴(`.gitignore`)으로 전환. 풀팩은 디스크 보존, README 4장으로 정책 안내.
+- [x] 룰 슬림화: `project-context.mdc`의 `@docs/...` 9개 자동 첨부 제거(평문 경로화) + stale `IMPLEMENTATION_PROGRESS_*.md` 4건 제거. `session-handoff`/`git-nano-commit` 압축. `AGENTS.md`에 응답 스타일 8개 항목 추가(선언/재진술/회고/추측 읽기 금지 등).
+- [x] `/todo` 커맨드: 없는 `TODO_Phase2.md` 직접 참조 → "현재 페이즈 진행도"로 일반화.
+- [x] 목업 보완 피드백 카탈로그화: A(즉시 코드 보완 가능 7건), B(결정 필요 8건), C(에셋 교체 3건), D(구조적 한계). `decisions.md` OPEN 38건 기준. 다음 세션 후보 3개로 좁힘.
+
 - [x] `TODO_Phase1.md`: 종료(2026-03-28)·S00 Phase 2 항목을 Phase2 문서로 이관·요약표 S00 완료
 - [x] `TODO_Phase2.md`: 참조표·종료조건·체크 A~E·슬라이스 매핑·`pages.md` 전 경로+MainClan 하위·메모
 - [x] 허브·`FEATURE_INDEX`·`README`·`project-context`·`todo`·`session-handoff`: 현재 단계 Phase 2
