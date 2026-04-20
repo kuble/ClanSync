@@ -5,6 +5,36 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-20 — D-EVENTS-01~05 결정 닫기 (이벤트·반복·알림·투표·대진표)
+- [x] **정책 확정 (5건)**
+  - **D-EVENTS-01 스크림 → 클랜 이벤트 자동 생성·동기화**: `scrim_rooms.status='matched' → 'confirmed'` 전환 시 양쪽 클랜 `clan_events`에 **각각 1행 자동 INSERT** (`source='scrim_auto'`, `kind='scrim'`). 멱등 키 UNIQUE `(clan_id, scrim_id) WHERE scrim_id IS NOT NULL`. `source='scrim_auto'` 행은 **읽기 전용** — 시간·장소·제목 수정은 스크림 본체에서만, 양쪽 이벤트로 동기화. 취소 시 양쪽 `cancelled_at` 세팅(행 삭제 금지), 재확정 시 `cancelled_at=NULL` 복원. 구현 이중화: Server Action (주 경로) + PG 트리거 `clan_events_sync_from_scrim()` (안전망). 일정 카드에 "스크림에서 자동 등록" 배지 + 스크림 상세 링크.
+  - **D-EVENTS-02 반복 일정 종료 조건**: 3모드 `repeat_end_kind enum('never','count','until')`. `never` = 서버 12개월 hard stop(52번째 인스턴스 도달 시 자동 `count=52` 전환 + in-app 알림). `count` = 1~52 CHECK 제약. `until` = `repeat_end_at` 날짜. 인스턴스 상한 모드 무관 **52개**. 저장 전략 = **템플릿 1행 + 지연 인스턴스 + `clan_event_exceptions`**(개별 인스턴스 override·취소). 편집 UX: `이 일정만` / `이번과 이후 모두` / `전체`. 과거 인스턴스는 30d 이후 뷰에서 hidden, 영구 삭제 금지.
+  - **D-EVENTS-03 알림 채널·발송 정책**: 채널 3종 — Discord(연동 시 기본 ON), **카카오 알림톡(기본 OFF 옵트인·번호 인증 필수)**, in-app(항상 ON). Free는 in-app만, Premium에서 Discord·카카오. 슬롯 **T-24h · T-1h · T-10min · T+0** (일정 성격·옵션으로 스킵). 실패 = **지수 백오프 5회**(1m→5m→30m→2h→6h) 후 DLQ. Discord 429는 `Retry-After` 준수. 카카오 실패 시 in-app 폴백 1회. **Quiet hours 00~07 KST**는 카카오 연기(T-10min 제외). 중복 방지 UNIQUE `(event_id, slot_kind, scheduled_at, channel, recipient_user_id)`. 공급자 측 dedup_key 포함.
+  - **D-EVENTS-04 투표 알림×마감일 일관성 검증**: 반복 모드별 **마감 하한** — `매일 ≥ +48h`, `매주 ≥ +14d`, `마감 전까지 매일 ≥ +24h`. 상한 공통 **60d**(초과 경고 모달). 프론트 1차 인라인 + Server Action 최종 게이트. 생성 통과 시 전체 발송 스케줄을 `notification_log`에 `status='scheduled'`로 일괄 예약 INSERT. 마감 도달·수동 조기 종료 시 트리거가 잔여 `scheduled` 행을 `cancelled`로 UPDATE. 투표 수정 시 전체 예약 cancel → 재계산.
+  - **D-EVENTS-05 대진표 통계·코인 반영**: 대진표 = **클랜 내 이벤트 전용**(클랜 간 토너먼트는 기획 범위 밖, `host_clan_id = winner_clan_id` 불변식). 통계는 **별도 "대진표" 탭**으로 정기 내전(`match_type='intra'`)과 완전 분리 — 외부 순위표·HoF·MVP 자동 태그(D-ECON-04 13종)에 **미반영**. 참여율·매너 점수는 내전과 동일 가중치 가산. **코인은 D-ECON-01 확정값만**: 개최 -500 / 참가 +200 / 우승 +1,000 (전부 **클랜 풀**). 개인 풀 보상·MVP 자동 산정 **없음**. 팀 단위 보상은 운영진이 스토어 구매·명예 뱃지로 수동 변환.
+- [x] `docs/01-plan/decisions.md`
+  - 표 5행(D-EVENTS-01~05) OPEN → DECIDED + 요약 풍부화.
+  - 하단 상세 블록 5개 신규 — 트리거 매트릭스·상태 전이·검증 매트릭스·채널·플랜 매트릭스·슬롯·재시도·quiet hours·결과 활용·코인 트리거·통계 분리 기준 포함.
+- [x] `docs/01-plan/schema.md`
+  - **`clan_events` 전면 재작성**: `event_type → kind` 재명명, `place`·`source`·`scrim_id`·`cancelled_at`·`finished_at` 신설. 반복 필드 `repeat`·`repeat_end_kind`·`repeat_end_count`·`repeat_end_at` + CHECK 제약. 멱등 UNIQUE + `scrim_auto` UPDATE 제한 + 트리거 명세.
+  - **`scrim_rooms` 확장**: status enum을 `draft|matched|confirmed|cancelled|finished`로 확장. `confirmed_at`·`cancelled_at`·`finished_at`·`scheduled_at`·`mode`·`tier_min/max`·`memo`·`place`·`title`·`created_by` 추가. 상태 전이 다이어그램.
+  - **신설 테이블 12개**: `clan_event_exceptions`·`event_rsvps`·`clan_polls`·`poll_options`·`poll_votes`·`bracket_tournaments`·`bracket_teams`·`bracket_team_members`·`bracket_matches`·`bracket_results`·`notification_preferences`·`notification_log`. 각 RLS·제약·멱등 키 명시.
+- [x] `docs/01-plan/pages/11-Clan-Events.md`
+  - 상단 D-EVENTS-01~05 DECIDED 블록쿼트 5개 추가.
+  - 일정 모달에 반복 종료 3모드 표 + 알림 옵션 토글 표 추가.
+  - 대진표 섹션: 클랜 내 이벤트 명시, 통계 반영 매트릭스, 코인 표(D-ECON-01 확정값 + 개인 보상·MVP 자동 산정 없음 명시).
+  - 투표 검증: 반복×마감 하한 매트릭스 + 60d 상한 경고 + notification_log 예약/취소 흐름.
+  - 데이터·연동: 반복 필드·source/scrim_id·cancelled_at/finished_at 명시, 스크림 연동 이중화(Server Action+트리거), 대진표 5테이블 스키마 연동.
+  - §결정 필요 5건 전부 삭선 + §decisions 앵커 링크.
+- [x] `docs/01-plan/pages/08-MainGame.md`
+  - 스크림 탭: 상태 머신 다이어그램 + `confirmed` 전환 시 양쪽 클랜 `clan_events` 자동 INSERT 규칙, 읽기 전용, 2중 방어 구현 명시.
+- [x] `docs/01-plan/gating-matrix.md`
+  - §6 이벤트: D-EVENTS-01~05 DECIDED 각주 + manual/scrim_auto 편집 권한 분리 + 대진표 개최·결과 입력 Premium+운영진+ + 카카오 옵트인 설정 행 추가.
+- [x] `docs/TODO.md` 마지막 갱신에 D-EVENTS-01~05 추가.
+- **남은 OPEN 8건**: LFG/RANK/SCRIM 4 (D-LFG-01 · D-RANK-01 · D-SCRIM-01 · D-SCRIM-02) · STATS 4 (D-STATS-01~04). → 다음 세션 권장: MAINGAME 묶음(SCRIM은 D-EVENTS-01 상태 머신과 연계), 그 다음 STATS.
+
+---
+
 ### 2026-04-20 — D-SHELL-01 · D-SHELL-02 결정 닫기 (셸 반응형·쿼리 우회)
 - [x] **정책 확정**
   - D-SHELL-01: 중단점 **768px** 고정. 데스크톱 ≥769px = hover 확장 사이드바(기본 64px → 220px, 본문 `margin-left` 64px 고정으로 hover가 본문을 밀지 않음). 모바일 ≤768px = 햄버거 → 좌측 드로어(`min(248px, 76vw)` · `max-width 248px` · 높이 `calc(100vh-60px)` · 오버레이 `rgba(0,0,0,0.55)`). **닫기 트리거 4종**(오버레이 클릭·Esc·내부 `a`/`.sidebar-item`/`button` 클릭·리사이즈 769px+). `#mobileMenuBtn[aria-expanded]`·`[aria-label]` 동기화 + 오픈 시 `body.overflow:hidden` 스크롤락. 알림 점은 sidebar-item 아이콘 우상단 기준으로 데스크톱·모바일 동일 위치, 햄버거 자체 총합 dot 없음(중복 방지). Phase 2+ focus trap·최초 포커스·Esc 후 트리거 복귀 이관.
