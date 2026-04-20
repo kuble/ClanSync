@@ -44,5 +44,16 @@ next-env.d.ts
 .bkit/snapshots/
 .bkit/state/
 
-# vendor icon pack (not referenced from mockup; kept on disk for future use)
-mockup/assets/icons/ionicons.designerpack/
+# vendor icon packs — full pack lives on disk for future use, but git only tracks
+# the icons we copy into each pack's `in-use/` subfolder (whitelist).
+# To use an icon: copy the SVG into `<pack>/in-use/...` and commit it.
+# NOTE: use `/*` (not `/`) so the directory itself is not ignored — otherwise
+# negation patterns inside it cannot re-include anything.
+mockup/assets/icons/ionicons.designerpack/*
+!mockup/assets/icons/ionicons.designerpack/in-use/
+!mockup/assets/icons/ionicons.designerpack/in-use/**
+!mockup/assets/icons/ionicons.designerpack/README.in-use.md
+mockup/assets/icons/heroicons/*
+!mockup/assets/icons/heroicons/in-use/
+!mockup/assets/icons/heroicons/in-use/**
+!mockup/assets/icons/heroicons/README.in-use.md
