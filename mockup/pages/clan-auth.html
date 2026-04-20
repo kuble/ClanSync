@@ -702,10 +702,11 @@ textarea.input { resize: vertical; min-height: 80px; }
                   <div class="filter-chip special" data-group="tier" data-val="gold"    onclick="toggleSpecial(this)">🥇 골드</div>
                   <div class="filter-chip special" data-group="tier" data-val="plat"    onclick="toggleSpecial(this)">💠 플래티넘</div>
                 </div>
-                <div style="display:flex;gap:5px">
-                  <div class="filter-chip special" data-group="tier" data-val="diamond" onclick="toggleSpecial(this)">💎 다이아몬드</div>
-                  <div class="filter-chip special" data-group="tier" data-val="master"  onclick="toggleSpecial(this)">🔮 마스터</div>
-                  <div class="filter-chip special" data-group="tier" data-val="gm"      onclick="toggleSpecial(this)">👑 그랜드마스터</div>
+                <div style="display:flex;gap:5px;flex-wrap:wrap">
+                  <div class="filter-chip special" data-group="tier" data-val="diamond"    onclick="toggleSpecial(this)">💎 다이아몬드</div>
+                  <div class="filter-chip special" data-group="tier" data-val="master"     onclick="toggleSpecial(this)">🔮 마스터</div>
+                  <div class="filter-chip special" data-group="tier" data-val="gm"         onclick="toggleSpecial(this)">👑 그랜드마스터</div>
+                  <div class="filter-chip special" data-group="tier" data-val="challenger" onclick="toggleSpecial(this)">🏆 챌린저</div>
                 </div>
               </div>
             </div>
@@ -719,7 +720,7 @@ textarea.input { resize: vertical; min-height: 80px; }
             <!-- 팝오버 하단 -->
             <div class="filter-popover-footer">
               <span class="filter-reset" onclick="resetFilters()">초기화</span>
-              <button class="filter-apply-btn" onclick="toggleFilterPopover()">적용</button>
+              <button class="filter-apply-btn" onclick="applyFilters();toggleFilterPopover()">적용</button>
             </div>
           </div>
         </div>
@@ -766,7 +767,17 @@ textarea.input { resize: vertical; min-height: 80px; }
                      style="flex:1" oninput="clampMembers(this)">
               <span style="font-size:13px;color:var(--text-secondary);white-space:nowrap">명</span>
             </div>
-            <div style="font-size:11px;color:var(--text-muted);margin-top:5px">2~200명 사이로 입력</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:5px">권장 30~50명 (내전 1~2팀 운영 기준). 60일+ 무활동 멤버는 자동으로 휴면 분류되어 인원에서 제외됩니다.</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="label">가입 가능 출생연도 <span style="font-size:12px;color:var(--text-muted)">(선택)</span></label>
+            <select class="input" id="minBirthYear">
+              <option value="">무관 (전연령)</option>
+            </select>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:5px">선택한 연도 또는 그 이전 출생자만 가입 가능</div>
           </div>
         </div>
 
@@ -808,9 +819,10 @@ textarea.input { resize: vertical; min-height: 80px; }
                   <div class="create-chip" data-group="cTier" data-val="plat"    onclick="toggleCreateChip(this)">💠 플래티넘</div>
                 </div>
                 <div style="display:flex;gap:6px;flex-wrap:wrap">
-                  <div class="create-chip" data-group="cTier" data-val="diamond" onclick="toggleCreateChip(this)">💎 다이아몬드</div>
-                  <div class="create-chip" data-group="cTier" data-val="master"  onclick="toggleCreateChip(this)">🔮 마스터</div>
-                  <div class="create-chip" data-group="cTier" data-val="gm"      onclick="toggleCreateChip(this)">👑 그랜드마스터</div>
+                  <div class="create-chip" data-group="cTier" data-val="diamond"    onclick="toggleCreateChip(this)">💎 다이아몬드</div>
+                  <div class="create-chip" data-group="cTier" data-val="master"     onclick="toggleCreateChip(this)">🔮 마스터</div>
+                  <div class="create-chip" data-group="cTier" data-val="gm"         onclick="toggleCreateChip(this)">👑 그랜드마스터</div>
+                  <div class="create-chip" data-group="cTier" data-val="challenger" onclick="toggleCreateChip(this)">🏆 챌린저</div>
                 </div>
               </div>
             </div>
@@ -821,6 +833,13 @@ textarea.input { resize: vertical; min-height: 80px; }
               <div class="trait-divider-v" style="margin-top:3px"></div>
               <div style="flex:1">
                 <div id="presetTagArea" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"></div>
+                <div id="customTagArea" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"></div>
+                <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+                  <input class="input" type="text" id="customTagInput" placeholder="태그 직접 추가 (1~12자)" maxlength="12"
+                         style="flex:1;padding:6px 10px;font-size:13px"
+                         onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomTag();}">
+                  <button type="button" class="btn btn-secondary" onclick="addCustomTag()" style="padding:6px 14px;font-size:13px">+ 추가</button>
+                </div>
                 <div style="font-size:11px;color:var(--text-muted)" id="tagSelectHint">0 / 5개 선택됨</div>
               </div>
             </div>
@@ -838,8 +857,10 @@ textarea.input { resize: vertical; min-height: 80px; }
           </div>
         </div>
 
-        <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:var(--radius-sm);padding:12px 16px;font-size:13px;color:#fcd34d;margin-bottom:20px">
-          ⚠️ 클랜 생성 시 클랜장 권한이 부여됩니다. 가짜 클랜 생성 시 서비스 이용이 제한될 수 있습니다.
+        <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:var(--radius-sm);padding:12px 16px;font-size:13px;color:#fcd34d;margin-bottom:20px;line-height:1.6">
+          ⚠️ 클랜 생성 시 클랜장 권한이 부여됩니다.<br>
+          정책 위반 클랜은 신고·운영진 검토를 거쳐 단계별 제재(경고 → 비공개 → 삭제 → 계정 정지) 대상이 될 수 있으며,
+          일정 기간 활동이 없으면 자동으로 휴면(60일) → 삭제(추가 90일) 처리됩니다.
         </div>
 
         <button type="submit" class="btn btn-primary w-full" style="padding:13px">
@@ -919,7 +940,7 @@ textarea.input { resize: vertical; min-height: 80px; }
 </div>
 
 <!-- 가입 대기 상태 -->
-<div id="pendingView" style="display:none;position:fixed;inset:0;background:var(--bg-base);z-index:300;display:none;align-items:center;justify-content:center">
+<div id="pendingView" style="display:none;position:fixed;inset:0;background:var(--bg-base);z-index:300;align-items:center;justify-content:center">
   <div class="pending-card" style="max-width:400px;width:calc(100%-40px)">
     <div style="font-size:48px;margin-bottom:16px">⏳</div>
     <div style="font-size:22px;font-weight:800;margin-bottom:8px">가입 신청 완료!</div>
@@ -927,7 +948,11 @@ textarea.input { resize: vertical; min-height: 80px; }
       <strong id="pendingClanName">Phoenix Rising</strong> 클랜에 가입 신청했습니다.<br>
       클랜장의 승인 후 클랜에 참여됩니다.
     </div>
-    <a href="games.html"><button class="btn btn-secondary w-full">게임 목록으로</button></a>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <a href="games.html"><button class="btn btn-secondary w-full">게임 목록으로</button></a>
+      <button type="button" class="btn w-full" style="background:transparent;border:1px solid var(--border);color:var(--text-muted)"
+              onclick="cancelPendingApplication()">신청 취소</button>
+    </div>
   </div>
 </div>
 
@@ -972,7 +997,7 @@ const FILTER_LABELS = {
   recruit: { all: null, open: '모집 중', soon: '모집 예정', closed: '모집 완료' },
   style:   { all: null, social: '친목', tryhard: '빡겜', casual: '즐겜', pro: '프로' },
   pos:     { tank: '🛡 탱커', dps: '⚔️ 딜러', support: '💚 힐러' },
-  tier:    { bronze: '🥉 브론즈', silver: '🥈 실버', gold: '🥇 골드', plat: '💠 플래티넘', diamond: '💎 다이아몬드', master: '🔮 마스터', gm: '👑 그랜드마스터' },
+  tier:    { bronze: '🥉 브론즈', silver: '🥈 실버', gold: '🥇 골드', plat: '💠 플래티넘', diamond: '💎 다이아몬드', master: '🔮 마스터', gm: '👑 그랜드마스터', challenger: '🏆 챌린저' },
   etc:     { new: '🌱 신생 클랜', discord: '💬 Discord 있음' }
 };
 
@@ -1130,16 +1155,27 @@ const CLANS = {
     desc: '10대 신생 클랜 🌧\n\n학생 위주 즐겜 클랜입니다. 아직 인원이 적어 같이 성장할 멤버를 찾고 있어요. 부담 없이 지원해주세요!',
     rules: '1. 욕설·비매너 금지\n2. 활동 강요 없음',
   },
+  ghost: {
+    name: 'Ghost Clan (휴면 시연)', icon: '👻', bg: 'linear-gradient(135deg,#475569,#1e293b)',
+    now: 5, max: 30, pinned: false, days: 95,
+    recruit: 'open', style: 'casual', positions: ['dps'], tiers: ['silver','gold'],
+    discord: false, discordUrl: null, isNew: false, createdAt: '2025.10',
+    badges: [],
+    title: '[휴면 클랜 시연용 — 목록에서 제외됨]',
+    desc: 'D-CLAN-03 시연용 데이터: 마지막 활동 95일 전. lifecycle_status="dormant"이므로 사용자 화면에 노출되지 않음.',
+    rules: '',
+    lifecycle_status: 'dormant',
+  },
 };
 
-const CLAN_KEYS = ['phoenix','bluestorm','casual','nightwatch','ironwall','solarflare','raindrop'];
+const CLAN_KEYS = ['phoenix','bluestorm','casual','nightwatch','ironwall','solarflare','raindrop','ghost'];
 
-const TIER_ORDER = ['bronze','silver','gold','plat','diamond','master','gm'];
+const TIER_ORDER = ['bronze','silver','gold','plat','diamond','master','gm','challenger'];
 const PROMO_FILTER_LABELS = {
   recruit: { all:'전체', open:'모집 중', soon:'모집 예정', closed:'모집 완료' },
   style:   { all:'전체', social:'친목', tryhard:'빡겜', casual:'즐겜', pro:'프로' },
   pos:     { tank:'탱커', dps:'딜러', support:'힐러' },
-  tier:    { bronze:'브론즈', silver:'실버', gold:'골드', plat:'플래티넘', diamond:'다이아몬드', master:'마스터', gm:'그랜드마스터' },
+  tier:    { bronze:'브론즈', silver:'실버', gold:'골드', plat:'플래티넘', diamond:'다이아몬드', master:'마스터', gm:'그랜드마스터', challenger:'챌린저' },
 };
 
 const BADGE_DEFS = {
@@ -1209,14 +1245,52 @@ function clanTagsHtml(c) {
 }
 const PAGE_SIZE = 5;
 let currentPage = 1;
+let currentSearchQuery = '';
+
+function getFilteredClanKeys() {
+  const q = (currentSearchQuery || '').trim().toLowerCase();
+  return CLAN_KEYS.filter(key => {
+    const c = CLANS[key];
+    const lifecycle = c.lifecycle_status || 'active';
+    const moderation = c.moderation_status || 'clean';
+    if (lifecycle === 'dormant' || lifecycle === 'deleted') return false;
+    if (moderation === 'hidden' || moderation === 'deleted') return false;
+    if (q) {
+      const hay = `${c.name} ${c.title || ''} ${c.desc || ''}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    if (filterState.recruit !== 'all' && c.recruit !== filterState.recruit) return false;
+    if (filterState.style !== 'all' && c.style !== filterState.style) return false;
+    if (filterState.pos.length > 0 && !filterState.pos.some(p => c.positions.includes(p))) return false;
+    if (filterState.tier.length > 0 && !filterState.tier.some(t => c.tiers.includes(t))) return false;
+    if (filterState.etc.includes('new') && !c.isNew) return false;
+    if (filterState.etc.includes('discord') && !c.discord) return false;
+    return true;
+  });
+}
 
 function renderClanList() {
-  const total = CLAN_KEYS.length;
-  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const filteredKeys = getFilteredClanKeys();
+  const total = filteredKeys.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;
   const start = (currentPage - 1) * PAGE_SIZE;
-  const pageKeys = CLAN_KEYS.slice(start, start + PAGE_SIZE);
+  const pageKeys = filteredKeys.slice(start, start + PAGE_SIZE);
 
-  document.getElementById('clanCount').textContent = `총 ${total}개 클랜`;
+  document.getElementById('clanCount').textContent = total === 0
+    ? '조건에 맞는 클랜이 없습니다'
+    : `총 ${total}개 클랜${(currentSearchQuery || filterState.recruit !== 'all' || filterState.style !== 'all' || filterState.pos.length || filterState.tier.length || filterState.etc.length) ? ' (필터 적용)' : ''}`;
+
+  if (pageKeys.length === 0) {
+    document.getElementById('clanList').innerHTML = `
+      <div style="text-align:center;padding:48px 16px;color:var(--text-muted)">
+        <div style="font-size:36px;margin-bottom:12px">🔍</div>
+        <div style="font-size:14px;margin-bottom:8px">검색·필터 조건에 맞는 클랜이 없습니다</div>
+        <button class="btn" style="background:transparent;border:1px solid var(--border);color:var(--text-secondary);font-size:12px;padding:6px 14px" onclick="resetFilters();document.querySelector('.clan-search-input').value='';currentSearchQuery='';renderClanList();">필터·검색 초기화</button>
+      </div>`;
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
 
   const list = document.getElementById('clanList');
   list.innerHTML = `<div class="promo-grid">${pageKeys.map(key => {
@@ -1247,6 +1321,11 @@ function renderClanList() {
   renderPagination(totalPages);
 }
 
+function applyFilters() {
+  currentPage = 1;
+  renderClanList();
+}
+
 function renderPagination(totalPages) {
   const pg = document.getElementById('pagination');
   if (totalPages <= 1) { pg.innerHTML = ''; return; }
@@ -1265,15 +1344,12 @@ function renderPagination(totalPages) {
 }
 
 function goPage(page) {
-  const totalPages = Math.ceil(CLAN_KEYS.length / PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(getFilteredClanKeys().length / PAGE_SIZE));
   if (page < 1 || page > totalPages) return;
   currentPage = page;
   renderClanList();
   document.getElementById('clanList').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
-
-// 초기 렌더
-renderClanList();
 
 let _drawerClanKey = null;
 
@@ -1335,13 +1411,62 @@ function closeClanDrawer() {
   document.body.style.overflow = '';
 }
 
+/* ── D-AUTH-01 매트릭스 #5 + D-CLAN-02 (단일 신청) 흡수 ── */
+const CLAN_APPLY_KEY = 'clansync_clan_apply';
+const CLAN_DRAFT_KEY = 'clansync_create_clan_draft';
+
+function getQueryParam(name) {
+  return new URL(window.location.href).searchParams.get(name);
+}
+
+function readApplyState() {
+  try {
+    const raw = sessionStorage.getItem(CLAN_APPLY_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function writeApplyState(payload) {
+  sessionStorage.setItem(CLAN_APPLY_KEY, JSON.stringify(payload));
+}
+
+function clearApplyState() {
+  sessionStorage.removeItem(CLAN_APPLY_KEY);
+}
+
+function applyClanAuthBootstrap() {
+  /* ?game= : 시연용. 실제 라우트에선 /games/[slug]/clan에서 슬러그가 그대로 옴 */
+  const game = getQueryParam('game') || 'overwatch';
+  window._currentGameSlug = game;
+
+  /* ?pending=1 또는 sessionStorage에 신청 정보가 있으면 pendingView 자동 노출 (D-AUTH-01 매트릭스 #5) */
+  const wantPending = getQueryParam('pending') === '1';
+  let state = readApplyState();
+  if (wantPending && !state) {
+    state = { clanKey: 'phoenix', clanName: 'Phoenix Rising', gameSlug: game, appliedAt: new Date().toISOString() };
+    writeApplyState(state);
+  }
+  if (state && state.gameSlug === game) {
+    document.getElementById('pendingClanName').textContent = state.clanName;
+    document.getElementById('pendingView').style.display = 'flex';
+  }
+}
+
 function openJoinFromDrawer() {
   const c = CLANS[_drawerClanKey];
+  /* 단일 신청 검증 (D-CLAN-02) */
+  const existing = readApplyState();
+  if (existing && existing.clanKey !== _drawerClanKey) {
+    const ok = confirm(`현재 '${existing.clanName}' 가입 신청 중입니다.\n취소하고 '${c.name}'에 새로 신청할까요?`);
+    if (!ok) return;
+    clearApplyState();
+  }
   closeClanDrawer();
   const modal = document.getElementById('joinModal');
   document.getElementById('modalClanName').textContent = c.name + ' 가입 신청';
   modal.style.display = 'flex';
   window._joinClanName = c.name;
+  window._joinClanKey  = _drawerClanKey;
 }
 
 function showJoinModal(en, ko) {
@@ -1355,9 +1480,22 @@ function closeModal() {
 }
 function submitJoin() {
   closeModal();
-  const pv = document.getElementById('pendingView');
-  document.getElementById('pendingClanName').textContent = window._joinClanName;
-  pv.style.display = 'flex';
+  /* Phase 1: sessionStorage에 신청 행 시뮬레이션 (D-CLAN-02) */
+  const payload = {
+    clanKey: window._joinClanKey || null,
+    clanName: window._joinClanName,
+    gameSlug: window._currentGameSlug || 'overwatch',
+    appliedAt: new Date().toISOString(),
+  };
+  writeApplyState(payload);
+  document.getElementById('pendingClanName').textContent = payload.clanName;
+  document.getElementById('pendingView').style.display = 'flex';
+}
+
+function cancelPendingApplication() {
+  if (!confirm('가입 신청을 취소할까요? (다른 클랜에 새로 신청할 수 있습니다)')) return;
+  clearApplyState();
+  document.getElementById('pendingView').style.display = 'none';
 }
 const CLAN_NAME_MAX = 24;
 function updateClanNameCount(input) {
@@ -1377,7 +1515,35 @@ function handleCreateClan(e) {
     alert(`클랜명은 ${CLAN_NAME_MAX}자 이하로 입력해 주세요.`);
     return;
   }
-  window.location.href = 'main-clan.html';
+
+  /* D-CLAN-04: 폼 전체 payload 수집 */
+  const styleEl = document.querySelector('.create-chip[data-group="cStyle"].active');
+  const tierEls = document.querySelectorAll('.create-chip[data-group="cTier"].active');
+  const minBirthYearEl = document.getElementById('minBirthYear');
+  const minBirthYearVal = minBirthYearEl && minBirthYearEl.value ? parseInt(minBirthYearEl.value, 10) : null;
+  const allTags = [...selectedTags, ...customTags];
+  const form = e.target;
+
+  const payload = {
+    name: raw,
+    style: styleEl ? styleEl.dataset.val : null,
+    tier_range: Array.from(tierEls).map(el => el.dataset.val),
+    tags: allTags,
+    min_birth_year: Number.isInteger(minBirthYearVal) ? minBirthYearVal : null,
+    gender_policy: form.querySelector('select') ? form.querySelector('select').value : 'all',
+    max_members: parseInt(document.getElementById('maxMembers').value, 10) || 30,
+    description: form.querySelectorAll('textarea')[0]?.value.trim() || null,
+    rules: form.querySelectorAll('textarea')[1]?.value.trim() || null,
+    discord_url: form.querySelector('input[type="url"]')?.value.trim() || null,
+    kakao_url: form.querySelectorAll('input[type="url"]')[1]?.value.trim() || null,
+    game_slug: window._currentGameSlug || 'overwatch',
+    created_at: new Date().toISOString(),
+  };
+
+  try { sessionStorage.setItem(CLAN_DRAFT_KEY, JSON.stringify(payload)); } catch {}
+  console.log('[D-CLAN-04] handleCreateClan payload:', payload);
+
+  window.location.href = `main-clan.html?game=${encodeURIComponent(payload.game_slug)}&clan=just-created`;
 }
 function clampMembers(input) {
   const v = parseInt(input.value);
@@ -1385,11 +1551,11 @@ function clampMembers(input) {
   if (v > 200) input.value = 200;
 }
 
-/* 단일 선택 (지향) */
+/* D-CLAN-05: 단일 선택 (지향) — 같은 칩 재클릭 시 해제 허용 */
 function selectSingleChip(el, group) {
+  const wasActive = el.classList.contains('active');
   document.querySelectorAll(`.create-chip[data-group="${group}"]`).forEach(c => c.classList.remove('active'));
-  el.classList.toggle('active', !el.classList.contains('active'));
-  // 이미 active였던 걸 다시 누르면 선택 해제
+  if (!wasActive) el.classList.add('active');
 }
 
 /* 복수 선택 (티어) */
@@ -1439,11 +1605,81 @@ function togglePresetTag(el, tag) {
 }
 
 function updateTagHint() {
+  const used = selectedTags.size + customTags.length;
   document.getElementById('tagSelectHint').textContent =
-    `${selectedTags.size} / ${MAX_TAGS}개 선택됨`;
+    `${used} / ${MAX_TAGS}개 선택됨`;
 }
 
-function filterClans(q) { /* 목업: 실제 필터 없음 */ }
+/* D-CLAN-04: 자유 태그 입력 */
+let customTags = [];
+function validateCustomTag(text) {
+  if (!text || text.length < 1) return '태그를 입력해 주세요.';
+  if (text.length > 12) return '태그는 12자 이하로 입력해 주세요.';
+  if (!/^[가-힣A-Za-z0-9 ]+$/.test(text)) return '한글·영문·숫자·공백만 사용할 수 있습니다.';
+  if (selectedTags.has(text) || customTags.includes(text)) return '이미 추가된 태그입니다.';
+  return null;
+}
+function addCustomTag() {
+  const input = document.getElementById('customTagInput');
+  const text = (input.value || '').trim();
+  const err = validateCustomTag(text);
+  if (err) {
+    const hint = document.getElementById('tagSelectHint');
+    hint.textContent = err;
+    hint.style.color = 'var(--danger)';
+    setTimeout(() => { hint.style.color = ''; updateTagHint(); }, 1800);
+    return;
+  }
+  if (selectedTags.size + customTags.length >= MAX_TAGS) {
+    const hint = document.getElementById('tagSelectHint');
+    hint.textContent = `최대 ${MAX_TAGS}개까지 선택할 수 있습니다`;
+    hint.style.color = 'var(--danger)';
+    setTimeout(() => { hint.style.color = ''; updateTagHint(); }, 1500);
+    return;
+  }
+  customTags.push(text);
+  input.value = '';
+  renderCustomTags();
+  updateTagHint();
+}
+function removeCustomTag(text) {
+  customTags = customTags.filter(t => t !== text);
+  renderCustomTags();
+  updateTagHint();
+}
+function renderCustomTags() {
+  const area = document.getElementById('customTagArea');
+  if (!area) return;
+  area.innerHTML = customTags.map(t => `
+    <div class="create-chip active" style="display:inline-flex;align-items:center;gap:6px;cursor:default">
+      <span>${t}</span>
+      <span style="cursor:pointer;opacity:0.7" onclick="removeCustomTag('${t.replace(/'/g, "\\'")}')">✕</span>
+    </div>`).join('');
+}
+
+/* D-CLAN-04: 출생연도 select 채우기 — 1970 ~ (현재년도 - 10) */
+(function populateBirthYearOptions() {
+  const sel = document.getElementById('minBirthYear');
+  if (!sel) return;
+  const maxYear = new Date().getFullYear() - 10;
+  for (let y = maxYear; y >= 1970; y--) {
+    const opt = document.createElement('option');
+    opt.value = String(y);
+    opt.textContent = `${y}년생부터`;
+    sel.appendChild(opt);
+  }
+})();
+
+/* D-CLAN-01: 클라이언트 검색 (Phase 1) */
+function filterClans(q) {
+  currentSearchQuery = q || '';
+  currentPage = 1;
+  renderClanList();
+}
+
+/* 진입 시 D-AUTH-01 매트릭스 #5 흡수 + 초기 렌더 */
+applyClanAuthBootstrap();
+renderClanList();
 
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('clanCreateNameInput');

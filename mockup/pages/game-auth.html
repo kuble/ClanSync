@@ -215,10 +215,18 @@
     <div style="font-size:12px">클랜 입장</div>
   </div>
 
+  <div id="reauthBanner" style="display:none;
+       background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3);
+       border-radius:var(--radius-sm); padding:12px 16px; margin-bottom:16px;
+       font-size:13px; color:#fcd34d; line-height:1.6;">
+    ⚠ 기존 인증이 만료되어 다시 연결이 필요합니다.
+    <span style="color:var(--text-muted)">연결을 마치면 원래 보던 클랜 화면으로 돌아갑니다.</span>
+  </div>
+
   <div class="auth-card">
-    <div class="game-icon-large">🎮</div>
-    <div class="auth-title">오버워치 계정 연동</div>
-    <div class="auth-desc">
+    <div class="game-icon-large" id="gameIconLarge">🎮</div>
+    <div class="auth-title" id="authTitle">오버워치 계정 연동</div>
+    <div class="auth-desc" id="authDesc">
       Battle.net 계정으로 본인을 확인합니다.<br>
       연동 후 클랜 대시보드로 이동합니다.
     </div>
@@ -227,8 +235,8 @@
       <div class="verify-method-header">
         <div class="verify-method-icon">🔐</div>
         <div>
-          <div class="verify-method-name">Battle.net OAuth</div>
-          <div class="verify-method-desc">블리자드 공식 로그인으로 안전하게 연결</div>
+          <div class="verify-method-name" id="providerName">Battle.net OAuth</div>
+          <div class="verify-method-desc" id="providerDesc">블리자드 공식 로그인으로 안전하게 연결</div>
         </div>
       </div>
       <button class="btn btn-primary w-full" id="bnetBtn" onclick="handleBattleNetAuth()">
@@ -240,14 +248,14 @@
          background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25);
          border-radius:var(--radius-sm); padding:14px 16px; margin-top:12px;
          font-size:13px; color:#fca5a5; line-height:1.6;">
-      Battle.net 연동에 실패했습니다.<br>
+      <span id="authErrorMsg">연동에 실패했습니다.</span><br>
       <span style="color:var(--text-muted)">팝업이 차단되었는지 확인하거나, 잠시 후 다시 시도해 주세요.</span>
       <div style="margin-top:10px">
         <button class="btn btn-secondary btn-sm" onclick="retryAuth()">다시 시도</button>
       </div>
     </div>
 
-    <div class="info-box">
+    <div class="info-box" id="authInfoBox">
       연동은 읽기 전용 권한이며, 비밀번호는 저장하지 않습니다.
     </div>
 
@@ -257,20 +265,116 @@
 
 <script src="../scripts/app.js"></script>
 <script>
+/**
+ * D-AUTH-02 게임별 OAuth 매핑 (DECIDED 2026-04-20)
+ * docs/01-plan/decisions.md#d-auth-02--게임별-oauth-제공자-매핑
+ */
+const GAME_AUTH_PROVIDERS = {
+  overwatch: {
+    title: '오버워치 계정 연동',
+    icon: '🎮',
+    desc: 'Battle.net 계정으로 본인을 확인합니다.<br>연동 후 클랜 대시보드로 이동합니다.',
+    providerName: 'Battle.net OAuth',
+    providerDesc: '블리자드 공식 로그인으로 안전하게 연결',
+    cta: 'Battle.net으로 계속하기',
+    enabled: true,
+  },
+  valorant: {
+    title: '발로란트 계정 연동',
+    icon: '🎯',
+    desc: 'Riot 계정으로 본인을 확인합니다.<br>연동 후 클랜 대시보드로 이동합니다.',
+    providerName: 'Riot Sign-On (RSO)',
+    providerDesc: 'Riot Games 공식 로그인으로 안전하게 연결',
+    cta: 'Riot 계정으로 계속하기',
+    enabled: true,
+  },
+  lol: {
+    title: '리그 오브 레전드 계정 연동',
+    icon: '⚔️',
+    desc: '곧 추가 예정입니다.<br>준비가 끝나면 안내드릴게요.',
+    providerName: 'Riot Sign-On (RSO)',
+    providerDesc: '출시 후 활성화됩니다',
+    cta: '출시 예정',
+    enabled: false,
+  },
+  pubg: {
+    title: 'PUBG 계정 연동',
+    icon: '🪖',
+    desc: '곧 추가 예정입니다.<br>준비가 끝나면 안내드릴게요.',
+    providerName: 'Krafton 계정 (예정)',
+    providerDesc: '출시 후 활성화됩니다',
+    cta: '출시 예정',
+    enabled: false,
+  },
+  __fallback__: {
+    title: '지원하지 않는 게임',
+    icon: '❓',
+    desc: '지원하지 않는 게임 슬러그입니다.<br>게임 선택 화면으로 돌아가 주세요.',
+    providerName: '— —',
+    providerDesc: '연동 가능한 제공자가 없습니다',
+    cta: '← 게임 선택으로',
+    enabled: false,
+    fallback: true,
+  },
+};
+
+function getGameSlug() {
+  const params = new URLSearchParams(window.location.search);
+  return (params.get('game') || 'overwatch').toLowerCase();
+}
+
+function applyGameAuthConfig() {
+  const slug = getGameSlug();
+  const cfg = GAME_AUTH_PROVIDERS[slug] || GAME_AUTH_PROVIDERS.__fallback__;
+
+  document.title = `ClanSync — ${cfg.title}`;
+  document.getElementById('gameIconLarge').textContent = cfg.icon;
+  document.getElementById('authTitle').textContent = cfg.title;
+  document.getElementById('authDesc').innerHTML = cfg.desc;
+  document.getElementById('providerName').textContent = cfg.providerName;
+  document.getElementById('providerDesc').textContent = cfg.providerDesc;
+  document.getElementById('authErrorMsg').textContent = `${cfg.providerName} 연동에 실패했습니다.`;
+
+  const btn = document.getElementById('bnetBtn');
+  btn.textContent = cfg.cta;
+  btn.disabled = !cfg.enabled;
+  if (!cfg.enabled) {
+    btn.onclick = cfg.fallback
+      ? () => { window.location.href = 'games.html'; }
+      : null;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('reauth') === '1' && cfg.enabled) {
+    document.getElementById('reauthBanner').style.display = '';
+  }
+}
+
 function handleBattleNetAuth() {
   const btn = document.getElementById('bnetBtn');
+  if (btn.disabled) return;
+  const original = btn.textContent;
   btn.textContent = '연동 중…';
   btn.disabled = true;
   setTimeout(() => {
-    window.location.href = 'clan-auth.html';
+    const params = new URLSearchParams(window.location.search);
+    const game = (params.get('game') || 'overwatch').toLowerCase();
+    const next = new URLSearchParams({ game });
+    window.location.href = `clan-auth.html?${next.toString()}`;
   }, 1500);
+  btn.dataset.original = original;
 }
+
 function retryAuth() {
   document.getElementById('authError').style.display = 'none';
   const btn = document.getElementById('bnetBtn');
-  btn.textContent = 'Battle.net으로 계속하기';
-  btn.disabled = false;
+  const slug = getGameSlug();
+  const cfg = GAME_AUTH_PROVIDERS[slug] || GAME_AUTH_PROVIDERS.__fallback__;
+  btn.textContent = cfg.cta;
+  btn.disabled = !cfg.enabled;
 }
+
+applyGameAuthConfig();
 </script>
 </body>
 </html>

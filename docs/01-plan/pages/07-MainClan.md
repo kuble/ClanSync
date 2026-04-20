@@ -60,17 +60,21 @@
 
 ### 사이드바 항목
 
-| 항목 | 해시 | 권한 | 알림 점 |
-|------|------|------|---------|
-| 대시보드 | `#dash` | 전원 | — |
-| 밸런스메이커 | `#balance` | 전원 (구성원은 관전 + "내전 시작" 차단) | `#sidebar-notify-balance` |
-| 클랜 통계 | `#stats` | 전원 (구성원은 일부 탭 차단) | — |
-| 이벤트 | `#events` | 전원 (구성원은 등록 불가) | `#sidebar-notify-events` |
-| 클랜 관리 | `#manage` | **운영진+ 전용** | — |
-| 클랜 스토어 | `#store` | 전원 | — |
+| 항목 | 해시 | 권한 | 알림 점 (운영 트리거 — D-SHELL-03) |
+|------|------|------|-----------------------------------|
+| 대시보드 | `#dash` | 전원 | — (허브 뷰라 중복 방지, 본문 카드가 이미 알림 요약 역할) |
+| 밸런스메이커 | `#balance` | 전원 (구성원은 관전 + "내전 시작" 차단) | `#sidebar-notify-balance` — **진행 중 내전 세션 수**. 뷰 진입 시 자동 clear |
+| 클랜 통계 | `#stats` | 전원 (구성원은 일부 탭 차단) | — (조회형) |
+| 이벤트 | `#events` | 전원 (구성원은 등록 불가) | `#sidebar-notify-events` — **24h 내 RSVP 미응답 일정 + 진행 중 투표 미응답** 합. 뷰 진입 시 자동 clear |
+| 클랜 관리 | `#manage` | **운영진+ 전용** | `#sidebar-notify-manage` — **가입 요청 pending + 신규 휴면 진입 미처리** 합(D-CLAN-02·07). **실제 처리로만 감소** |
+| 클랜 스토어 | `#store` | 전원 | — (신규 쿠폰·아이템은 `#events`로 흡수) |
 | ─── 하단 ─── | | | |
 | 커뮤니티 (메인 게임) | `/games/[g]` | 전원 | — |
 | 프로필 | `/profile` | 전원 | — |
+
+> **알림 점 성격 구분**
+> - **정보성**(`#balance`, `#events`): "봤다 = 확인"로 간주 → 뷰 진입 시 자동 clear. 조건이 아직 참이면 다음 refresh에 다시 뜬다.
+> - **행동성**(`#manage`): 뷰 진입해도 clear되지 않음. 실제 처리(승인/거절/강퇴/휴면 배너 닫기)로 카운트가 0이 되어야 사라진다.
 
 ### 클랜 배너 표시 규칙
 
@@ -137,7 +141,7 @@
 | 공지 0건 | "등록된 공지가 없습니다. 클랜 관리에서 공지를 작성하세요." |
 | 규칙 미등록 | "아직 등록된 규칙이 없습니다. 클랜 관리에서 규칙을 등록하세요." |
 | 규칙 로드 실패 | "규칙을 불러오지 못했습니다." |
-| 알림 점 | 디버그 모드(`MOCK_SIDEBAR_NOTIFY_DEBUG = true` 또는 `?sidebarNotifyDebug=1`)일 때 표시. 운영 트리거는 D-SHELL-03 |
+| 알림 점 | **운영 트리거는 D-SHELL-03 — 위 "사이드바 항목" 표 참조**. 목업은 실데이터가 부족하므로 기본적으로 `MOCK_SIDEBAR_NOTIFY_DEBUG = true`(또는 `?sidebarNotifyDebug=1`)로 강제 표시하며, `#manage`는 실데이터(가입 요청·휴면 진입)로 자동 집계 |
 | 구성원의 #manage 직접 진입 | alert 후 차단. `?hubDebug=1`이면 예외 |
 
 ## 권한·구독에 따른 차이
@@ -172,7 +176,7 @@
 ## 결정 필요
 - D-SHELL-01 사이드바 hover 확장의 모바일 대응 일관성
 - D-SHELL-02 `?role=` `?plan=` 쿼리 우회 차단 (서버 권한 단일 출처)
-- D-SHELL-03 사이드바 알림 점의 운영 트리거 규칙
+- ~~D-SHELL-03 사이드바 알림 점의 운영 트리거 규칙~~ → **DECIDED (2026-04-20)**. [decisions.md §D-SHELL-03](../decisions.md#d-shell-03--사이드바-알림-점-트리거-규칙) 참고
 - (대시보드) 다가오는 일정의 동적 채움 정책 — 며칠 이내 / 최대 N건
 
 ## 구현 참고 (개발자용)
@@ -188,7 +192,7 @@
   - 우선순위: `?role=` / `?plan=` → sessionStorage(`clansync-hub-mock-role`, `clansync-hub-mock-plan`) → localStorage(`clansync-mock-subscribe-v1`)
   - body 클래스: `mock-role-leader|officer|member`, `mock-plan-free|premium`
 - 게이팅 클래스: `mock-officer-only`, `mock-member-only`, `mock-hide-on-free`, `mock-plan-premium`, `mock-plan-free`
-- 알림 점: `#sidebar-notify-balance`, `#sidebar-notify-events`, `mockSidebarNotifyRefresh()`, `mockSidebarNotifyClearView(view)`
+- 알림 점: `#sidebar-notify-balance`, `#sidebar-notify-events`, `#sidebar-notify-manage`, `mockSidebarNotifyRefresh()`, `mockSidebarNotifyClearView(view)` — D-SHELL-03 규칙 구현. `manage`는 데이터 기반 자동 집계이므로 `mockSidebarNotifyClearView('manage')` 케이스 **없음**(행동성)
 - 공지·규칙 저장 키: `MOCK_CLAN_NOTICE_POSTS_KEY`, `MOCK_CLAN_RULES_KEY`, `MOCK_CLAN_RULES_DEFAULT_TEXT`
 - 디버그 배너: `#mock-hub-debug-banner` (`?hubDebug=1`)
 

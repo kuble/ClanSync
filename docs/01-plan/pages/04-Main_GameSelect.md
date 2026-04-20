@@ -12,15 +12,18 @@
 
 ## 사용자 흐름
 
-게임 카드의 "상태"에 따라 클릭 후 행선지가 다르다 (D-AUTH-01에서 일관 정책 확정 예정).
+게임 카드 클릭 후 행선지는 **(게임 인증) × (클랜 소속)** 6칸 매트릭스로 결정된다 (D-AUTH-01 · DECIDED 2026-04-20). 자세한 표는 [pages.md §라우팅 매트릭스](../pages.md#게임-인증--클랜-소속-라우팅-매트릭스-d-auth-01--decided-2026-04-20) 또는 [decisions.md §D-AUTH-01](../decisions.md#d-auth-01--게임-인증--클랜-소속-라우팅-매트릭스).
 
 ```
-[게임 카드 클릭]
+[게임 카드 클릭]  ── routeFromGameCard(card) ──►
    │
-   ├─ 인증 O · 클랜 소속 O ──► 클랜 메인 (/games/[g]/clan/[c])
-   ├─ 인증 O · 클랜 소속 X ──► 클랜 가입/생성 (/games/[g]/clan)
-   ├─ 인증 X                ──► 게임 인증 (/games/[g]/auth)
-   └─ 출시 예정 / 추가 예정 ──► 비활성 (안내만)
+   ├─ #1 인증 ✗ · clan=none    ──► /games/[g]/auth
+   ├─ #2 인증 ✗ · clan=pending ──► /games/[g]/auth   (인증 복구 후 #5로 자연 이동)
+   ├─ #3 인증 ✗ · clan=member  ──► /games/[g]/auth?reauth=1
+   ├─ #4 인증 ✓ · clan=none    ──► /games/[g]/clan
+   ├─ #5 인증 ✓ · clan=pending ──► /games/[g]/clan   (pendingView 자동 노출)
+   ├─ #6 인증 ✓ · clan=member  ──► /games/[g]/clan/[clanId]
+   └─ 출시 예정 / 추가 예정     ──► 비활성 (안내만)
 ```
 
 부가:
@@ -69,8 +72,7 @@
 | 요소 | 동작 |
 |------|------|
 | 게임 검색 입력 | 카드 이름 부분 일치로 표시/숨김. 결과 0건일 때 빈 상태 안내 (운영 시 추가, D-검색 결과 안내) |
-| 게임 카드 (Overwatch) | 위 흐름 매트릭스에 따라 라우팅. 목업은 바로 `main-clan.html` |
-| 게임 카드 (Valorant) | `game-auth?game=valorant` |
+| 게임 카드 (활성) | `routeFromGameCard(card)` — 카드 `data-auth`·`data-clan-status`·`data-clan-id`를 읽어 D-AUTH-01 매트릭스대로 분기. 목업 OW 카드는 `data-auth=true · clan-status=member`(매트릭스 #6) → `main-clan.html`. 발로란트 카드는 `data-auth=false · clan-status=none`(매트릭스 #1) → `game-auth.html?game=valorant` |
 | 게임 카드 (LoL / PUBG) | 비활성. 클릭 무반응 |
 | + 다른 게임 카드 | 비활성. 안내만 |
 | 마이페이지 | 플레이어 프로필 모달 |
@@ -84,7 +86,7 @@
 |------|------|
 | 첫 진입 | 카드 그리드 즉시 표시 (정적) |
 | 검색 결과 0건 | 빈 상태 안내 ("검색 결과가 없습니다") — 목업에는 미구현 |
-| 카드 상태 점 | 초록(소속 O) / 빨강(인증 X) / 회색(예정) — 카피 동기화 필요 |
+| 카드 상태 점 | 매트릭스 6칸 + 비활성 1칸 = 7가지: 초록(#6) / 파랑(#4·#5) / 빨강(#1·#2) / 노랑(#3) / 회색(예정). 라벨 카피는 [decisions.md §D-AUTH-01](../decisions.md#d-auth-01--게임-인증--클랜-소속-라우팅-매트릭스) 표 |
 | 모달 fetch 실패 | `/profile`로 자동 이동 |
 | 로그아웃 진행 중 | 별도 표시 없음 (즉시 이동) |
 
@@ -98,12 +100,12 @@
 - 활성 클랜이 있으면 클랜명을 카드 라벨로 표시.
 
 ## 목업과 실제 구현의 차이
-- 목업은 OW 카드 클릭 시 인증 단계를 건너뛰고 바로 클랜 메인으로 이동 → 실제로는 위 흐름 매트릭스에 따라 분기 (D-AUTH-01).
+- 목업 카드는 D-AUTH-01 매트릭스를 `data-*` 속성으로 시뮬레이션. 실제로는 서버 컨텍스트에서 `(auth_status, clan_status)`를 받아 같은 매트릭스로 분기.
 - 목업은 카드 라벨이 정적. 실제로는 사용자별 상태에 따라 동적으로 채움.
 - 검색 결과 0건 안내 미구현.
 
 ## 결정 필요
-- D-AUTH-01 게임 인증·클랜 소속 상태에 따른 라우팅 매트릭스 확정
+- ~~D-AUTH-01 게임 인증·클랜 소속 상태에 따른 라우팅 매트릭스~~ → DECIDED 2026-04-20 ([decisions.md](../decisions.md#d-auth-01--게임-인증--클랜-소속-라우팅-매트릭스))
 - (신설 검토) 검색 결과 0건 화면 카피
 - (신설 검토) 게임 카드 정렬 규칙 (출시순? 활동 클랜수? 사용자 활동순?)
 
@@ -112,7 +114,7 @@
 - 목업 파일: `mockup/pages/games.html`
 - 카드 컨테이너: `#gamesGrid`
 - 검색 핸들러: `filterGames(input)` — `.game-name` 부분 일치
-- 카드 클릭: 인라인 `onclick`. OW → `main-clan.html`, VAL → `game-auth.html?game=valorant`
+- 카드 클릭 라우터: `routeFromGameCard(card)` — `data-game / data-auth / data-clan-status / data-clan-id / data-clan-name`을 읽어 D-AUTH-01 매트릭스 6칸으로 분기. `data-disabled="true"`(출시 예정)는 무반응.
 - 프로필 모달: `mockPlayerProfileModalOpen()` (`app.js`) — partial fetch, 실패 시 `profile.html` 이동
 - 프로필 메뉴 토글: `toggleProfileMenu()` → `#profileDropdown.open`
 

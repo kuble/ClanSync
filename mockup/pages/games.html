@@ -167,6 +167,8 @@
 }
 .game-clan-dot { width: 6px; height: 6px; background: var(--success); border-radius: 50%; }
 .game-clan-dot-danger { background: #ef4444; }
+.game-clan-dot-warning { background: #f59e0b; }
+.game-clan-dot-info { background: #3b82f6; }
 .game-clan-dot-muted { background: #71717a; }
 .game-footer {
   display: flex;
@@ -321,7 +323,24 @@
 
   <div class="games-grid" id="gamesGrid">
 
-    <div class="game-card" onclick="window.location.href='main-clan.html'">
+    <!--
+      D-AUTH-01 라우팅 매트릭스 (DECIDED 2026-04-20)
+      카드 data-* 로 (game-auth × clan-status) 6칸을 시뮬레이션. 라우터: routeFromGameCard().
+      - data-game           : overwatch | valorant | lol | pubg
+      - data-auth           : true | false
+      - data-clan-status    : none | pending | member
+      - data-clan-id        : (클랜 ID, member·pending 일 때)
+      - data-clan-name      : (라벨용 표시명)
+      - data-disabled       : true (출시 예정 — 클릭 무반응)
+    -->
+
+    <div class="game-card"
+         data-game="overwatch"
+         data-auth="true"
+         data-clan-status="member"
+         data-clan-id="phoenix"
+         data-clan-name="Phoenix Rising"
+         onclick="routeFromGameCard(this)">
       <div class="game-thumbnail game-thumb-ow">
         <span class="game-logo">🎮</span>
       </div>
@@ -329,12 +348,16 @@
         <div class="game-name">오버워치</div>
         <div class="game-clan-info">
           <div class="game-clan-dot"></div>
-          <span>Phoenix Rising 클랜 가입됨</span>
+          <span>Phoenix Rising 가입됨</span>
         </div>
       </div>
     </div>
 
-    <div class="game-card" onclick="window.location.href='game-auth.html?game=valorant'">
+    <div class="game-card"
+         data-game="valorant"
+         data-auth="false"
+         data-clan-status="none"
+         onclick="routeFromGameCard(this)">
       <div class="game-thumbnail game-thumb-valo">
         <span class="game-logo">🎯</span>
       </div>
@@ -347,7 +370,9 @@
       </div>
     </div>
 
-    <div class="game-card">
+    <div class="game-card"
+         data-game="lol"
+         data-disabled="true">
       <div class="game-thumbnail game-thumb-lol">
         <span class="game-logo">⚔️</span>
       </div>
@@ -360,7 +385,9 @@
       </div>
     </div>
 
-    <div class="game-card">
+    <div class="game-card"
+         data-game="pubg"
+         data-disabled="true">
       <div class="game-thumbnail game-thumb-pubg">
         <span class="game-logo">🪖</span>
       </div>
@@ -373,7 +400,7 @@
       </div>
     </div>
 
-    <div class="game-card">
+    <div class="game-card" data-disabled="true">
       <div class="game-thumbnail game-thumb-more">
         <div style="text-align:center">
           <div style="font-size:32px; margin-bottom:8px">+</div>
@@ -400,6 +427,47 @@ function filterGames(query) {
     const name = card.querySelector('.game-name')?.textContent.toLowerCase() || '';
     card.style.display = (!q || name.includes(q)) ? '' : 'none';
   });
+}
+
+/**
+ * D-AUTH-01 라우팅 매트릭스 (DECIDED 2026-04-20)
+ * docs/01-plan/decisions.md#d-auth-01--게임-인증--클랜-소속-라우팅-매트릭스
+ *
+ * | # | auth  | clan     | result                              |
+ * |---|-------|----------|-------------------------------------|
+ * | 1 | false | none     | game-auth.html?game=<g>             |
+ * | 2 | false | pending  | game-auth.html?game=<g>             |
+ * | 3 | false | member   | game-auth.html?game=<g>&reauth=1    |
+ * | 4 | true  | none     | clan-auth.html?game=<g>             |
+ * | 5 | true  | pending  | clan-auth.html?game=<g>&pending=1   |
+ * | 6 | true  | member   | main-clan.html?game=<g>&clan=<id>   |
+ *
+ * 운영 단계에서는 ?game= 쿼리가 [gameSlug] 패스 파라미터로 대체된다.
+ */
+function routeFromGameCard(card) {
+  if (!card || card.dataset.disabled === 'true') return;
+
+  const game = card.dataset.game || 'overwatch';
+  const auth = card.dataset.auth === 'true';
+  const clanStatus = card.dataset.clanStatus || 'none';
+  const clanId = card.dataset.clanId || '';
+
+  const q = new URLSearchParams({ game });
+
+  if (!auth) {
+    if (clanStatus === 'member') q.set('reauth', '1');
+    window.location.href = `game-auth.html?${q.toString()}`;
+    return;
+  }
+
+  if (clanStatus === 'member' && clanId) {
+    q.set('clan', clanId);
+    window.location.href = `main-clan.html?${q.toString()}`;
+    return;
+  }
+
+  if (clanStatus === 'pending') q.set('pending', '1');
+  window.location.href = `clan-auth.html?${q.toString()}`;
 }
 </script>
 </body>

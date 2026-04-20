@@ -25,17 +25,35 @@
 
 ```
 요청
- ├─ 비로그인 → / (Landing)으로 리다이렉트
+ ├─ 비로그인 → /sign-in?next=<원래 경로>
  ├─ 로그인됨
  │   ├─ /profile (및 전역 계정·꾸미기) → 세션만으로 허용 (게임 OAuth·클랜 소속 불필요)
- │   ├─ /games/[slug]/... 게임 이하
- │   │   ├─ 게임 인증 없음 → /games/[gameSlug]/auth
- │   │   ├─ 클랜 미가입 → /games/[gameSlug]/clan
- │   │   └─ 클랜 가입됨 → 요청 경로 허용 (기본 진입·딥링크는 MainClan 홈 또는 MainGame — 제품 내비에 따름)
+ │   ├─ /games/[slug]/... 게임 이하 (D-AUTH-01)
+ │   │   ├─ 게임 인증 없음 → /games/[gameSlug]/auth?next=<원래 경로>
+ │   │   ├─ 클랜 소속 = none    → /games/[gameSlug]/clan
+ │   │   ├─ 클랜 소속 = pending → /games/[gameSlug]/clan (가입 탭 + pendingView 자동)
+ │   │   └─ 클랜 소속 = member  → 요청 경로 허용
+ │   │                            (.../auth · .../clan 직진입 시 .../clan/[clanId]로 정정)
+ │   └─ /games/[slug] (MainGame 커뮤니티)는 클랜 소속 가드 면제 — 게임 인증만 필요
  └─ 클랜 권한 부족(관리·밸런스 편집 등) → 403
 ```
 
 **메모**: 클랜 가입 후 **첫 화면**은 제품 설정에 따름(대개 **클랜 홈** `.../clan/[clanId]`). **MainGame** `.../games/[slug]`는 커뮤니티·홍보·LFG 등으로 별도 진입.
+
+### 게임 인증 × 클랜 소속 라우팅 매트릭스 (D-AUTH-01 · DECIDED 2026-04-20)
+
+게임 카드 클릭 또는 `/games/[gameSlug]/...` 직접 진입 시, (`auth_status`, `clan_status`) 쌍으로 결과가 결정된다. 전체 결정 명세는 [decisions.md §D-AUTH-01](./decisions.md#d-auth-01--게임-인증--클랜-소속-라우팅-매트릭스).
+
+| # | 게임 인증 | 클랜 소속 | 카드 점·라벨 | 결과 라우트 |
+|---|----------|-----------|-------------|------------|
+| 1 | ✗ | none | 빨강 ● 계정 미연동 | `/games/[g]/auth` |
+| 2 | ✗ | pending | 빨강 ● 계정 미연동 · 신청 보류 | `/games/[g]/auth` |
+| 3 | ✗ | member | 노랑 ● 계정 재연동 필요 | `/games/[g]/auth?reauth=1` |
+| 4 | ✓ | none | 파랑 ● 클랜 찾는 중 | `/games/[g]/clan` |
+| 5 | ✓ | pending | 파랑 ● <클랜명> 가입 신청 중 | `/games/[g]/clan` (pendingView) |
+| 6 | ✓ | member | 초록 ● <클랜명> 가입됨 | `/games/[g]/clan/[clanId]` |
+
+목업은 카드 `data-game / data-auth / data-clan-status / data-clan-id / data-clan-name` 속성으로 6칸을 표현하고, 단일 라우터 함수 `routeFromGameCard(card)`가 위 표를 평가한다 (`mockup/pages/games.html`).
 
 > 용어가 낯설면 [glossary.md](./glossary.md). 권한·플랜 표는 [gating-matrix.md](./gating-matrix.md). 미결 항목 코드는 [decisions.md](./decisions.md).
 
@@ -52,9 +70,9 @@
 | 01 | [01-Landing-Page.md](./pages/01-Landing-Page.md) | `/` | 없음 (게스트 허용). 로그인 상태면 CTA 라벨·동작만 변경 | — | `?role=`, `?plan=`, `?game=` (테스트 어시스트) | 없음 |
 | 02 | [02-Sign-In.md](./pages/02-Sign-In.md) | `/sign-in` | 이미 로그인 → `/games`로 이동 | — | `localStorage.clansync_remember_email` (옵션) | 비밀번호 찾기 (D-AUTH-02) |
 | 03 | [03-Sign-Up.md](./pages/03-Sign-Up.md) | `/sign-up` | 이미 로그인 → `/games` | — | — | 약관 (D-AUTH-03) |
-| 04 | [04-Main_GameSelect.md](./pages/04-Main_GameSelect.md) | `/games` | 비로그인 → `/sign-in` | — | `sessionStorage.clansync_pending_game` (선택한 게임) | 프로필 모달 (`#playerProfileModal`) |
-| 05 | [05-GameAuth.md](./pages/05-GameAuth.md) | `/games/[gameSlug]/auth` | 1) 비로그인 → `/sign-in` · 2) 이미 게임 인증됨 → `.../clan` 또는 `.../clan/[id]` | — | `sessionStorage.clansync_oauth_state` (CSRF) — 실서비스 | 인증 진행 안내 |
-| 06 | [06-ClanAuth.md](./pages/06-ClanAuth.md) | `/games/[gameSlug]/clan` | 1) 비로그인 → `/sign-in` · 2) 게임 인증 없음 → `.../auth` · 3) 이미 클랜 가입 → `.../clan/[clanId]` | — | `sessionStorage.clansync_pending_clan_apply` (선택한 클랜 ID), `clansync_clan_apply_status` | 가입 신청 모달, 클랜 상세 드로어 |
+| 04 | [04-Main_GameSelect.md](./pages/04-Main_GameSelect.md) | `/games` | 비로그인 → `/sign-in` | — | `sessionStorage.clansync_pending_game` (선택한 게임). 카드 `data-auth`·`data-clan-status`로 D-AUTH-01 매트릭스 시뮬레이션 | 프로필 모달 (`#playerProfileModal`) |
+| 05 | [05-GameAuth.md](./pages/05-GameAuth.md) | `/games/[gameSlug]/auth` | 1) 비로그인 → `/sign-in?next=...` · 2) 이미 게임 인증 + 클랜 `member` → `.../clan/[clanId]` · 3) 이미 게임 인증 + `none/pending` → `.../clan` (단, `?reauth=1`이면 인증 화면 유지 = D-AUTH-01 #3) | — | `sessionStorage.clansync_oauth_state` (CSRF) — 실서비스. 쿼리 `?game=`(목업) → `[gameSlug]`(운영) | 인증 진행 안내, `?reauth=1` 안내 배지 |
+| 06 | [06-ClanAuth.md](./pages/06-ClanAuth.md) | `/games/[gameSlug]/clan` | 1) 비로그인 → `/sign-in?next=...` · 2) 게임 인증 없음 → `.../auth?next=...` · 3) 클랜 `member` → `.../clan/[clanId]` · 4) 클랜 `pending` → 진입 허용 + `pendingView` 자동 노출 | — | `sessionStorage.clansync_pending_clan_apply` (선택한 클랜 ID), `clansync_clan_apply_status` | 가입 신청 모달, 클랜 상세 드로어, `pendingView` |
 | 07 | [07-MainClan.md](./pages/07-MainClan.md) | `/games/[gameSlug]/clan/[clanId]` | 1) 비로그인 → `/sign-in` · 2) 게임 인증 없음 → `.../auth` · 3) 클랜 미가입 → `.../clan` · 4) 다른 클랜 ID → 본인 클랜으로 정정 | 사이드바 메뉴별 `mock-officer-only`, `mock-hide-on-free` | URL 해시(`#dashboard`, `#balance` 등), `sessionStorage.clansync_sidebar_collapsed` | 알림 드로어, 채팅 패널 |
 | 09 | [09-BalanceMaker.md](./pages/09-BalanceMaker.md) | `/games/[gameSlug]/clan/[clanId]/balance` | 07 가드 + (편집은 운영진+) | 편집: officer+, 관전: member 가능. 일부 옵션(맵 풀 확장 등): premium | `sessionStorage.clansync_balance_session_*` (목업 세션 상태) | 결과 입력, 맵·밴 모달 |
 | 10 | [10-Clan-Stats.md](./pages/10-Clan-Stats.md) | `/games/[gameSlug]/clan/[clanId]/stats` | 07 가드 + (경기 기록 탭은 officer+) | "경기 기록" 탭: officer+. 그 외: 전원 | URL 해시 `#stats` + 탭 쿼리(가능) | HoF 설정 모달 |
