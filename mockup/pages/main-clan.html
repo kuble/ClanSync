@@ -6138,9 +6138,11 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
     <p class="mock-page-desc">클랜 풀·개인 풀 분리 · 탭마다 사용 코인이 다릅니다 · 천 단위 콤마 목업. 현금 거래 없음.</p>
     <p class="mock-store-policy-note" style="font-size:12px;color:var(--text-muted);margin:-8px 0 0;line-height:1.5;padding:10px 12px;border:1px dashed var(--border);border-radius:var(--radius-md);background:var(--bg-overlay)"><strong style="color:var(--text-secondary)">꾸미기 정책(기획)</strong> · 프로필·밸런스 <strong>네임카드</strong> 등 개인 꾸미기는 <strong>서비스 제공 에셋(스토어·이벤트 등)</strong>만 사용합니다. <strong>이미지 업로드</strong>로 꾸미는 기능은 제공하지 않습니다.</p>
     <p class="mock-store-policy-sep"><strong style="color:var(--text-secondary)">클랜 관리와 분리</strong> · <strong>클랜 배너·클랜 아이콘</strong> 업로드·교체는 <strong>클랜 관리</strong> 메뉴 정책을 따릅니다. 스토어에서 구매하는 꾸미기 항목과는 별개입니다.</p>
+    <p class="mock-store-policy-sep" style="font-size:12px;color:var(--text-muted);margin:0;line-height:1.5;padding:10px 12px;border:1px dashed var(--border);border-radius:var(--radius-md);background:var(--bg-overlay)"><strong style="color:var(--text-secondary)">코인 풀 정책(D-STORE-01 · D-ECON-02)</strong> · 클랜 풀과 개인 풀은 <strong>서로 이전할 수 없습니다</strong>. 각 풀은 정해진 트리거로만 적립되고 정해진 카탈로그로만 소비됩니다. 클랜 풀 지출은 <strong>운영진+ 전용</strong>이며, 1회 500 이상 지출은 <strong>2-man rule</strong>로 추가 승인이 필요합니다(Phase 2+). 클랜장 교체 후 <strong>72시간</strong>은 클랜 풀 지출이 동결됩니다.</p>
+    <p class="mock-store-policy-sep" style="font-size:12px;color:var(--text-muted);margin:0;line-height:1.5;padding:10px 12px;border:1px dashed var(--border);border-radius:var(--radius-md);background:var(--bg-overlay)"><strong style="color:var(--text-secondary)">환불 정책(D-STORE-03)</strong> · 구매 후 <strong>환불은 지원되지 않습니다</strong>. 단, <strong>시스템 오류</strong>는 자동 롤백되고, <strong>계정 탈취·아이템 결함</strong> 등 특수 사례는 운영자 재량으로 정정됩니다. 운영자 정정은 반대 부호 거래로 기록되며(감사 로그 필수), 운영자 본인 계정 정정은 금지됩니다.</p>
     <div class="mock-store-balance-row" data-store-balance-row data-active-pool="clan">
-      <div class="mock-store-balance-pill" data-pool="clan">클랜 풀 <strong class="coin-amount">15,400</strong></div>
-      <div class="mock-store-balance-pill" data-pool="personal">개인 풀 <strong class="coin-amount">3,200</strong></div>
+      <div class="mock-store-balance-pill" data-pool="clan" title="클랜 활동 보상으로 적립 · 클랜 꾸미기·홍보 고정·대진표 개최에만 사용 (D-STORE-01)">클랜 풀 <strong class="coin-amount">15,400</strong></div>
+      <div class="mock-store-balance-pill" data-pool="personal" title="내전·출석·이벤트로 적립 · 개인 꾸미기와 store 뱃지에만 사용 (D-STORE-01)">개인 풀 <strong class="coin-amount">3,200</strong></div>
     </div>
     <div class="mock-tab-row">
       <button type="button" class="mock-tab mock-tab-active" data-store-tab onclick="mockStoreSetTab(this,'clan')">클랜 꾸미기</button>
@@ -6167,7 +6169,7 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
           <strong>클랜 태그 글로우</strong>
           <span style="font-size:12px;color:var(--text-muted)">글로우 효과(서비스 에셋)</span>
           <span class="coin-amount" style="font-size:16px">2,000</span>
-          <button type="button" class="btn btn-sm" style="margin-top:auto;align-self:flex-start;opacity:0.5" disabled>Premium</button>
+          <button type="button" class="btn btn-sm" style="margin-top:auto;align-self:flex-start;opacity:0.65" onclick="mockStorePremiumInfoMock(this)" title="Premium 플랜 전용 항목입니다 (D-STORE-02)">Premium 안내</button>
         </div>
       </div>
     </div>
@@ -6209,7 +6211,7 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
           <strong>승부예측 코인 보너스</strong>
           <span style="font-size:12px;color:var(--text-muted)">Premium 연동 목업</span>
           <span class="coin-amount" style="font-size:16px">1,500</span>
-          <button type="button" class="btn btn-sm" style="margin-top:auto;align-self:flex-start;opacity:0.5" disabled>Premium</button>
+          <button type="button" class="btn btn-sm" style="margin-top:auto;align-self:flex-start;opacity:0.65" onclick="mockStorePremiumInfoMock(this)" title="Premium 플랜 전용 항목입니다 (D-STORE-02)">Premium 안내</button>
         </div>
       </div>
     </div>
