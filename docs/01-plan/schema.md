@@ -609,25 +609,167 @@ ClanMember ──< CoinTransaction
 | created_by | uuid FK → users | |
 | created_at | timestamptz | |
 
-### clan_events (일정)
+### clan_events (일정 템플릿)
+> **D-EVENTS-01 · D-EVENTS-02** (DECIDED 2026-04-20) — 반복 일정은 **템플릿 1행 + 예외 테이블**. `source='scrim_auto'` 이벤트는 스크림에서 자동 파생된 **읽기 전용** 행으로, 시간·장소·제목 변경은 `scrim_rooms`에서만 가능. 상세는 [decisions.md §D-EVENTS-01](./decisions.md#d-events-01--스크림-확정--클랜-이벤트-자동-생성동기화) · [§D-EVENTS-02](./decisions.md#d-events-02--일정-반복-종료-조건).
+
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | id | uuid PK | |
-| clan_id | uuid FK → clans | |
-| title | varchar | |
-| event_type | enum('intra','scrim','event') | |
-| scheduled_at | timestamptz | |
-| created_by | uuid FK → users | |
+| clan_id | uuid FK → clans NOT NULL | |
+| title | varchar NOT NULL | 1~120자 |
+| kind | enum('intra','scrim','event') NOT NULL | 기존 `event_type` 재명명 |
+| start_at | timestamptz NOT NULL | 첫 인스턴스 시작 시각 (KST 정규화) |
+| place | varchar NULL | 장소·채널 메모 |
+| repeat | enum('none','weekly','biweekly','monthly') NOT NULL DEFAULT 'none' | |
+| repeat_end_kind | enum('never','count','until') NULL | `repeat='none'`이면 NULL |
+| repeat_end_count | int NULL CHECK (repeat_end_count BETWEEN 1 AND 52) | D-EVENTS-02 인스턴스 상한 52 |
+| repeat_end_at | timestamptz NULL | `until` 모드 전용 |
+| source | enum('manual','scrim_auto') NOT NULL DEFAULT 'manual' | |
+| scrim_id | uuid FK → scrim_rooms NULL | `source='scrim_auto'`일 때 원본 스크림 |
+| created_by | uuid FK → users NOT NULL | |
+| cancelled_at | timestamptz NULL | 전체 취소 시각 (인스턴스 전체). 행 삭제 금지 |
+| finished_at | timestamptz NULL | 경기 종료 시각 (스크림 자동 이벤트가 `finished` 상태일 때) |
+| created_at | timestamptz NOT NULL DEFAULT now() | |
+
+**제약·RLS**
+
+- `CHECK ((repeat = 'none' AND repeat_end_kind IS NULL AND repeat_end_count IS NULL AND repeat_end_at IS NULL) OR (repeat != 'none' AND repeat_end_kind IS NOT NULL))` (D-EVENTS-02).
+- `CHECK ((repeat_end_kind = 'count' AND repeat_end_count IS NOT NULL AND repeat_end_at IS NULL) OR (repeat_end_kind = 'until' AND repeat_end_at IS NOT NULL AND repeat_end_count IS NULL) OR (repeat_end_kind IN ('never', NULL)))`.
+- `CHECK ((source = 'scrim_auto' AND scrim_id IS NOT NULL) OR (source = 'manual' AND scrim_id IS NULL))` (D-EVENTS-01).
+- UNIQUE `(clan_id, scrim_id) WHERE scrim_id IS NOT NULL` — 한 스크림은 한 클랜에 1행만 자동 등록 (멱등 키, D-EVENTS-01).
+- `source='scrim_auto'` 행의 UPDATE는 서비스 롤만 (`title`·`start_at`·`place`·`cancelled_at`·`finished_at` 만 허용). 다른 필드·DELETE는 차단.
+- RLS: SELECT = 해당 클랜 구성원. INSERT/UPDATE/DELETE = 운영진+ (manual 한정), `scrim_auto`는 서비스 롤만.
+- 트리거 `clan_events_sync_from_scrim()`: `scrim_rooms` AFTER UPDATE OF status 시 `source='scrim_auto'` 행을 UPSERT (D-EVENTS-01).
+
+### clan_event_exceptions (반복 일정 개별 인스턴스 예외)
+> **D-EVENTS-02** (DECIDED 2026-04-20) — 템플릿(`clan_events`) + 지연 인스턴스 방식에서 "이 일정만 수정·취소"를 처리. 상세 [§D-EVENTS-02](./decisions.md#d-events-02--일정-반복-종료-조건).
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| template_id | uuid FK → clan_events NOT NULL | |
+| instance_idx | int NOT NULL | 0-based 반복 인덱스 (0 = 첫 인스턴스) |
+| original_start_at | timestamptz NOT NULL | 반복 규칙으로 계산된 원래 시각(중복 감지용) |
+| override_start_at | timestamptz NULL | 시간 override (NULL = 원래 시각 유지) |
+| override_place | varchar NULL | 장소 override |
+| override_title | varchar NULL | 제목 override |
+| cancelled_at | timestamptz NULL | 이 인스턴스만 취소 |
+| created_by | uuid FK → users NOT NULL | |
+| created_at | timestamptz NOT NULL DEFAULT now() | |
+
+**제약**
+
+- UNIQUE `(template_id, instance_idx)`.
+- RLS: SELECT = 클랜 구성원, INSERT/UPDATE = 운영진+, DELETE 차단.
+
+### event_rsvps (일정 참석 응답)
+> **D-SHELL-03 · D-EVENTS-03** — 사이드바 알림 점 "24h 내 RSVP 미응답" 집계 + 알림 대상자 계산에 사용.
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| event_id | uuid FK → clan_events NOT NULL | 템플릿 ID (반복 시 인스턴스 구분은 `instance_idx`) |
+| instance_idx | int NOT NULL DEFAULT 0 | 반복 없을 때 0. 반복 시 해당 회차 |
+| user_id | uuid FK → users NOT NULL | |
+| status | enum('going','maybe','not_going') NOT NULL | |
+| responded_at | timestamptz NOT NULL DEFAULT now() | |
+
+**제약**
+
+- PK `(event_id, instance_idx, user_id)`.
+- RLS: SELECT = 클랜 구성원, INSERT/UPDATE = 본인, DELETE 차단.
+
+### clan_polls (클랜 투표)
+> **D-EVENTS-03 · D-EVENTS-04** (DECIDED 2026-04-20) — 알림 반복·마감일 일관성은 Server Action에서 검증. 상세 [§D-EVENTS-04](./decisions.md#d-events-04--투표-알림과-마감일-일관성-검증).
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| clan_id | uuid FK → clans NOT NULL | |
+| title | varchar NOT NULL | 1~120자 |
+| anonymous | boolean NOT NULL DEFAULT false | 닉네임 비공개 여부 |
+| multiple_choice | boolean NOT NULL DEFAULT false | 복수 선택지 투표 허용 |
+| deadline_at | timestamptz NOT NULL | 투표 마감 |
+| notify_repeat | enum('none','once','daily','weekly','until_deadline_daily') NOT NULL DEFAULT 'none' | D-EVENTS-04 검증 대상 |
+| notify_hour | smallint NOT NULL DEFAULT 9 CHECK (notify_hour BETWEEN 0 AND 23) | 매일/매주 발송 시각 (KST) |
+| post_to_notice | boolean NOT NULL DEFAULT false | 클랜 공지에 동시 게시 |
+| closed_at | timestamptz NULL | 수동·자동 종료 시각 |
+| created_by | uuid FK → users NOT NULL | 운영진+ |
+| created_at | timestamptz NOT NULL DEFAULT now() | |
+
+**제약**
+
+- `CHECK (deadline_at > created_at)`.
+- Server Action 검증 (D-EVENTS-04): `notify_repeat='daily'` → `deadline_at >= created_at + 48h`, `'weekly'` → `+14d`, `'until_deadline_daily'` → `+24h`.
+- RLS: SELECT = 클랜 구성원, INSERT = 운영진+, UPDATE = 운영진+ (`closed_at`·`deadline_at` 등), DELETE 차단.
+
+### poll_options (투표 선택지)
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| poll_id | uuid FK → clan_polls NOT NULL | |
+| label | varchar NOT NULL | 1~80자 |
+| sort_order | smallint NOT NULL | UI 순서 |
+
+**제약**
+
+- UNIQUE `(poll_id, sort_order)`.
+- 투표 생성 후 선택지 삭제 금지(결과 스냅샷 보존). 수정은 투표 0건일 때만.
+
+### poll_votes (투표 응답)
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| poll_id | uuid FK → clan_polls NOT NULL | |
+| option_id | uuid FK → poll_options NOT NULL | |
+| user_id | uuid FK → users NOT NULL | `clan_polls.anonymous=true`여도 감사·중복 방지 목적으로 저장. 표시 시에만 마스킹 |
+| voted_at | timestamptz NOT NULL DEFAULT now() | |
+
+**제약**
+
+- PK `(poll_id, option_id, user_id)`.
+- `multiple_choice=false`인 투표는 `(poll_id, user_id)`가 최대 1행 — 트리거 또는 중복 투표 시 기존 행 교체(UPSERT).
+- RLS: SELECT = 익명 투표면 집계 함수만 허용, 공개 투표면 클랜 구성원 전체. INSERT = 본인, 마감 전까지. DELETE 차단.
 
 ### scrim_rooms (스크림 채팅방)
+> **D-EVENTS-01 · D-SCRIM-01·02** (관련 — D-SCRIM은 OPEN) — 상태 머신 확장. 확정 시점에 `clan_events`로 자동 파생 (D-EVENTS-01).
+
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | id | uuid PK | |
-| clan_a_id | uuid FK → clans | |
-| clan_b_id | uuid FK → clans | |
-| status | enum('open','closed') | 스크림 종료 시 closed |
-| created_at | timestamptz | |
-| closed_at | timestamptz | |
+| clan_a_id | uuid FK → clans NOT NULL | 개설 클랜 |
+| clan_b_id | uuid FK → clans NULL | 매칭 전에는 NULL |
+| title | varchar NULL | "A vs B" 또는 모집글 제목 |
+| scheduled_at | timestamptz NOT NULL | 경기 시작 일시 |
+| mode | varchar NULL | `5v5` / `6v6` / `mixed` 등 |
+| tier_min | smallint NULL | 티어 하한 |
+| tier_max | smallint NULL | 티어 상한 |
+| memo | text NULL | 모집 메모 |
+| place | varchar NULL | 장소·채널 |
+| status | enum('draft','matched','confirmed','cancelled','finished') NOT NULL DEFAULT 'draft' | `draft`=모집 중, `matched`=상대 배정, `confirmed`=양측 확정(D-EVENTS-01 자동 이벤트 트리거), `cancelled`=취소, `finished`=경기 종료 |
+| confirmed_at | timestamptz NULL | `status='confirmed'` 전환 시각 |
+| cancelled_at | timestamptz NULL | 취소 시각 |
+| finished_at | timestamptz NULL | 경기 종료 시각 |
+| created_by | uuid FK → users NOT NULL | |
+| created_at | timestamptz NOT NULL DEFAULT now() | |
+| closed_at | timestamptz NULL | 채팅방 아카이브 시각 (D-SCRIM-01에서 정책 확정 예정 — 현재 목업은 시작 +6h) |
+
+**제약**
+
+- `CHECK (status != 'confirmed' OR (clan_b_id IS NOT NULL AND confirmed_at IS NOT NULL))`.
+- `CHECK (status != 'cancelled' OR cancelled_at IS NOT NULL)`.
+- `CHECK (status != 'finished' OR finished_at IS NOT NULL)`.
+- 트리거 (D-EVENTS-01): `AFTER UPDATE OF status` → `clan_events_sync_from_scrim(NEW)` 호출.
+
+**상태 전이**
+
+```
+draft ──► matched ──► confirmed ──► finished
+   │          │            │
+   └──────────┴────────────┴──► cancelled
+                         │
+                  (cancelled → confirmed 재확정 허용 — D-EVENTS-01)
+```
 
 ### scrim_ratings (평판)
 | 컬럼 | 타입 | 설명 |
@@ -639,6 +781,141 @@ ClanMember ──< CoinTransaction
 | manner_score | smallint | 1~5 |
 | no_show | boolean DEFAULT false | |
 | comment | text | |
+
+### bracket_tournaments (대진표 · 클랜 내 이벤트)
+> **D-EVENTS-05 · D-ECON-01** (DECIDED 2026-04-20) — 대진표는 **클랜 내 이벤트 전용**(클랜 간 토너먼트 없음). `host_clan_id = winner_clan_id`가 항상 성립. 상세 [§D-EVENTS-05](./decisions.md#d-events-05--대진표-결과의-통계코인-반영).
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| host_clan_id | uuid FK → clans NOT NULL | 개최 클랜 (Premium 플랜 필수) |
+| title | varchar NOT NULL | 대회명 |
+| format | enum('single_elim','double_elim','round_robin') NOT NULL | |
+| team_count | smallint NOT NULL CHECK (team_count IN (2,4,8,16)) | |
+| status | enum('draft','in_progress','finished','cancelled') NOT NULL DEFAULT 'draft' | |
+| started_at | timestamptz NULL | 첫 경기 시작 |
+| finished_at | timestamptz NULL | 최종 결과 확정 |
+| cancelled_at | timestamptz NULL | 취소(우승 확정 전에만 가능 · 코인 환불 트리거) |
+| host_coin_transaction_id | uuid FK → coin_transactions NULL | 개최 -500 차감 거래 |
+| winner_coin_transaction_id | uuid FK → coin_transactions NULL | 우승 +1,000 적립 거래 |
+| entry_coin_transaction_id | uuid FK → coin_transactions NULL | 참가 +200 적립 거래 |
+| created_by | uuid FK → users NOT NULL | 운영진+ |
+| created_at | timestamptz NOT NULL DEFAULT now() | |
+
+**제약**
+
+- 개최 시 클랜 플랜 = `premium` 검증 (D-EVENTS-05).
+- `cancelled`는 `winner_coin_transaction_id IS NULL`일 때만 허용.
+
+### bracket_teams (대진표 팀 · 한 클랜 내부 파티션)
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| tournament_id | uuid FK → bracket_tournaments NOT NULL | |
+| name | varchar NOT NULL | |
+| seed | smallint NOT NULL | 시드 |
+| eliminated_at | timestamptz NULL | 탈락 시점 |
+
+**제약**
+
+- UNIQUE `(tournament_id, seed)`.
+- UNIQUE `(tournament_id, name)`.
+
+### bracket_team_members (팀 · 선수 — 본 클랜 구성원만)
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| team_id | uuid FK → bracket_teams NOT NULL | |
+| user_id | uuid FK → users NOT NULL | |
+| role | varchar NULL | 포지션 메모 |
+
+**제약**
+
+- PK `(team_id, user_id)`.
+- UNIQUE `(user_id, (SELECT tournament_id FROM bracket_teams WHERE id = team_id))` — 같은 대회 내 두 팀 중복 등록 금지 (트리거로 강제).
+- `user_id`는 `clan_members` 중 `tournament.host_clan_id`와 일치해야 함.
+
+### bracket_matches (라운드별 경기)
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| tournament_id | uuid FK → bracket_tournaments NOT NULL | |
+| round | smallint NOT NULL | 1, 2, … |
+| slot | smallint NOT NULL | 라운드 내 경기 순서 |
+| team_a_id | uuid FK → bracket_teams NULL | 미확정 시 NULL |
+| team_b_id | uuid FK → bracket_teams NULL | |
+| winner_team_id | uuid FK → bracket_teams NULL | 결과 입력 후 세팅 |
+| played_at | timestamptz NULL | |
+
+**제약**
+
+- UNIQUE `(tournament_id, round, slot)`.
+- `CHECK (winner_team_id IS NULL OR winner_team_id IN (team_a_id, team_b_id))`.
+
+### bracket_results (최종 순위 스냅샷)
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| tournament_id | uuid FK → bracket_tournaments NOT NULL | |
+| rank | smallint NOT NULL | 1·2·3 등 |
+| team_id | uuid FK → bracket_teams NOT NULL | |
+
+**제약**
+
+- PK `(tournament_id, rank)`.
+- `rank=1`의 팀이 `bracket_tournaments.winner_coin_transaction_id` 트리거 조건.
+
+### notification_preferences (알림 설정)
+> **D-EVENTS-03** (DECIDED 2026-04-20) — 카카오 기본 OFF (옵트인). Discord 연동 시 ON. Quiet hours 00~07 KST 카카오 연기. 상세 [§D-EVENTS-03](./decisions.md#d-events-03--일정투표-알림-채널정책).
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| user_id | uuid PK FK → users | 1:1 |
+| channel_inapp | boolean NOT NULL DEFAULT true | 항상 true (UI 토글 숨김) |
+| channel_discord | boolean NOT NULL DEFAULT true | Discord 연동 없으면 무시 |
+| channel_kakao | boolean NOT NULL DEFAULT false | **옵트인** |
+| kakao_verified_phone | text NULL | 알림톡 수신 전 필수 |
+| quiet_start | time NOT NULL DEFAULT '00:00' | 카카오 전용 연기 시작 |
+| quiet_end | time NOT NULL DEFAULT '07:00' | 카카오 전용 연기 종료 |
+| digest_hour | smallint NOT NULL DEFAULT 9 CHECK (digest_hour BETWEEN 0 AND 23) | 매일·매주 발송 시각(KST) |
+| per_event_kind | jsonb NOT NULL DEFAULT '{"scrim":true,"intra":true,"event":true,"poll":true}'::jsonb | 유형별 on/off |
+| updated_at | timestamptz NOT NULL DEFAULT now() | |
+
+**제약·RLS**
+
+- SELECT/UPDATE: 본인만.
+- INSERT: 회원가입 트리거에서 자동 기본값 INSERT.
+
+### notification_log (알림 예약·발송 로그)
+> **D-EVENTS-03 · D-EVENTS-04** (DECIDED 2026-04-20) — 예약/발송/실패의 단일 출처. 중복 방지 UNIQUE `(event_id, slot_kind, scheduled_at, channel, recipient_user_id)`.
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| event_id | uuid FK → clan_events NULL | 일정 알림 대상 |
+| instance_idx | int NULL | 반복 회차 |
+| poll_id | uuid FK → clan_polls NULL | 투표 알림 대상 |
+| slot_kind | enum('event_t_minus_24h','event_t_minus_1h','event_t_minus_10min','event_t_0','poll_created','poll_daily','poll_weekly','poll_deadline_window','poll_deadline_1h','event_cancelled') NOT NULL | |
+| channel | enum('inapp','discord','kakao') NOT NULL | |
+| recipient_user_id | uuid FK → users NOT NULL | |
+| scheduled_at | timestamptz NOT NULL | 계획 발송 시각(quiet hours 보정 전) |
+| effective_at | timestamptz NULL | 실제 발송 시각(quiet hours·retry 후) |
+| status | enum('scheduled','sent','failed','cancelled','dlq') NOT NULL DEFAULT 'scheduled' | |
+| attempt_count | smallint NOT NULL DEFAULT 0 | 재시도 횟수(최대 5) |
+| last_error | text NULL | 마지막 실패 메시지 |
+| dedup_key | text NOT NULL | `hash(id)` — 공급자 측 중복 수신 감지용 |
+| created_at | timestamptz NOT NULL DEFAULT now() | |
+| updated_at | timestamptz NOT NULL DEFAULT now() | |
+
+**제약·RLS**
+
+- `CHECK ((event_id IS NOT NULL) <> (poll_id IS NOT NULL))` — 둘 중 정확히 하나만.
+- UNIQUE `(event_id, instance_idx, slot_kind, channel, recipient_user_id) WHERE event_id IS NOT NULL`.
+- UNIQUE `(poll_id, slot_kind, scheduled_at, channel, recipient_user_id) WHERE poll_id IS NOT NULL`.
+- RLS: INSERT/UPDATE/DELETE 서비스 롤만. SELECT는 본인 행 + 운영자(관리자).
+- 관련 이벤트/투표 `cancelled` 시 트리거가 `status='scheduled'` 행을 전부 `cancelled`로 UPDATE (D-EVENTS-04).
 
 ### store_items
 > **D-STORE-01 / D-ECON-01** (DECIDED 2026-04-20) — `item_type` 과 `pool_source` 는 1:1 매핑(`clan_deco`⇒`clan`, `profile_deco`⇒`personal`). Premium 카드는 `is_premium_only=true`. [decisions.md §D-STORE-01](./decisions.md#d-store-01--코인-적립차감-트리거-매트릭스).
