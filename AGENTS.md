@@ -4,6 +4,10 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
+# 나노 커밋 (절대 잊지 말 것)
+
+`.cursor/rules/git-nano-commit.mdc` 는 `alwaysApply: true`. 구현·수정으로 파일이 바뀌면 **의미 단위마다 즉시** `git commit`. 세션 끝까지 미커밋을 쌓아두지 않는다. 사용자가 "커밋해"라고 말하지 않아도 자동 수행. 푸시는 명시 요청 시에만.
+
 # 응답 스타일 (토큰 절약)
 
 매 턴 다음을 지킨다:
