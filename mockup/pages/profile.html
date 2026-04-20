@@ -72,7 +72,7 @@
             <p class="mock-profile-bundle-section-label">네임카드 · 밸런스 슬롯 미리보기</p>
             <button type="button" class="btn btn-secondary btn-sm" onclick="mockNameplateCaseModalOpen('ow')">꾸미기</button>
           </div>
-          <div class="mock-profile-nameplate-preview mock-profile-np--ow" data-nameplate-preview="ow" aria-hidden="true">
+          <div class="mock-profile-nameplate-preview mock-profile-np--ow" data-nameplate-preview="ow" data-nameplate-self aria-hidden="true">
             <div class="mock-profile-np-left">
               <span class="mock-profile-np-emblem" aria-hidden="true">🏆</span>
             </div>
@@ -88,12 +88,12 @@
 
           <p class="mock-profile-bundle-section-label">네임카드·밸런스에 표시할 뱃지 (최대 5개 · 앞쪽이 우선)</p>
           <div class="mock-profile-badge-strip-wrap" aria-label="대표 뱃지 미리보기">
-            <div class="mock-profile-badge-strip" data-mock-badge-game="ow">
-              <span class="mock-profile-badge-strip-slot" data-order="1" title="승률 VIP">🏅</span>
-              <span class="mock-profile-badge-strip-slot" data-order="2" title="참여율 VIP">⭐</span>
-              <span class="mock-profile-badge-strip-slot" data-order="3" title="연승 x5">🔥</span>
-              <span class="mock-profile-badge-strip-slot" data-order="4" title="스크림 50회">⚔️</span>
-              <span class="mock-profile-badge-strip-slot" data-order="5" title="ClanSync 베타">✦</span>
+            <div class="mock-profile-badge-strip" data-mock-badge-game="ow" data-badge-strip="ow" data-badge-strip-self>
+              <span class="mock-profile-badge-strip-slot" data-order="1" data-badge-strip-slot="0" title="승률 VIP">🏅</span>
+              <span class="mock-profile-badge-strip-slot" data-order="2" data-badge-strip-slot="1" title="참여율 VIP">⭐</span>
+              <span class="mock-profile-badge-strip-slot" data-order="3" data-badge-strip-slot="2" title="연승 x5">🔥</span>
+              <span class="mock-profile-badge-strip-slot" data-order="4" data-badge-strip-slot="3" title="스크림 50회">⚔️</span>
+              <span class="mock-profile-badge-strip-slot" data-order="5" data-badge-strip-slot="4" title="ClanSync 베타">✦</span>
             </div>
           </div>
           <div class="mock-profile-badge-actions">
@@ -147,11 +147,20 @@
             <ul class="mock-profile-clan-list" style="margin-bottom:0">
               <li><strong>Phoenix Rising</strong> <span class="mock-profile-pill mock-profile-pill--role">클랜장</span></li>
             </ul>
-            <div class="mock-profile-label" style="margin:12px 0 6px">가입 신청 대기</div>
-            <ul class="mock-profile-clan-list mock-profile-clan-list--pending" style="margin:0">
-              <li><span>Thunder Squad</span> <em>심사 대기</em></li>
-              <li><span>Running**</span> <em>심사 대기</em></li>
+            <div class="mock-profile-label" style="margin:12px 0 6px">가입 신청 대기 <span style="font-size:11px;color:var(--text-muted);font-weight:normal">(D-PROFILE-02)</span></div>
+            <ul class="mock-profile-clan-list mock-profile-clan-list--pending" data-mock-pending-list="ow" style="margin:0">
+              <li data-mock-join-request="jr-ow-1">
+                <span>Thunder Squad</span>
+                <em class="mock-profile-pending-badge" data-pending-status="pending">심사 대기</em>
+                <button type="button" class="mock-profile-pending-cancel" onclick="mockProfileCancelJoinRequest('jr-ow-1','Thunder Squad')">취소</button>
+              </li>
+              <li data-mock-join-request="jr-ow-2">
+                <span>Running**</span>
+                <em class="mock-profile-pending-badge" data-pending-status="pending">심사 대기</em>
+                <button type="button" class="mock-profile-pending-cancel" onclick="mockProfileCancelJoinRequest('jr-ow-2','Running**')">취소</button>
+              </li>
             </ul>
+            <p class="mock-profile-pending-empty" data-mock-pending-empty="ow" hidden style="margin:0;font-size:12px;color:var(--text-muted)">대기 중인 신청이 없습니다.</p>
           </div>
         </section>
         </div>
@@ -167,7 +176,7 @@
             <p class="mock-profile-bundle-section-label">네임카드 · 밸런스 슬롯 미리보기</p>
             <button type="button" class="btn btn-secondary btn-sm" onclick="mockNameplateCaseModalOpen('val')">꾸미기</button>
           </div>
-          <div class="mock-profile-nameplate-preview mock-profile-np--val" data-nameplate-preview="val" aria-hidden="true">
+          <div class="mock-profile-nameplate-preview mock-profile-np--val" data-nameplate-preview="val" data-nameplate-self aria-hidden="true">
             <div class="mock-profile-np-left mock-profile-np-left--val">
               <span class="mock-profile-np-emblem" aria-hidden="true">🎯</span>
             </div>
@@ -183,12 +192,12 @@
 
           <p class="mock-profile-bundle-section-label">네임카드·밸런스에 표시할 뱃지 (최대 5개 · 앞쪽이 우선)</p>
           <div class="mock-profile-badge-strip-wrap" aria-label="대표 뱃지 미리보기">
-            <div class="mock-profile-badge-strip" data-mock-badge-game="val">
-              <span class="mock-profile-badge-strip-slot" data-order="1" title="에이스 헌터">💀</span>
-              <span class="mock-profile-badge-strip-slot" data-order="2" title="클러치">🎯</span>
-              <span class="mock-profile-badge-strip-slot" data-order="3" title="불멸 시즌">✨</span>
-              <span class="mock-profile-badge-strip-slot" data-order="4" title="스파이크 마스터">💣</span>
-              <span class="mock-profile-badge-strip-slot" data-order="5" title="ClanSync 베타">✦</span>
+            <div class="mock-profile-badge-strip" data-mock-badge-game="val" data-badge-strip="val" data-badge-strip-self>
+              <span class="mock-profile-badge-strip-slot" data-order="1" data-badge-strip-slot="0" title="에이스 헌터">💀</span>
+              <span class="mock-profile-badge-strip-slot" data-order="2" data-badge-strip-slot="1" title="클러치">🎯</span>
+              <span class="mock-profile-badge-strip-slot" data-order="3" data-badge-strip-slot="2" title="불멸 시즌">✨</span>
+              <span class="mock-profile-badge-strip-slot" data-order="4" data-badge-strip-slot="3" title="스파이크 마스터">💣</span>
+              <span class="mock-profile-badge-strip-slot" data-order="5" data-badge-strip-slot="4" title="ClanSync 베타">✦</span>
             </div>
           </div>
           <div class="mock-profile-badge-actions">
@@ -235,8 +244,9 @@
             <ul class="mock-profile-clan-list" style="margin-bottom:0">
               <li><strong>Ascent Line</strong> <span class="mock-profile-pill mock-profile-pill--role">구성원</span></li>
             </ul>
-            <div class="mock-profile-label" style="margin:12px 0 6px">가입 신청 대기</div>
-            <p style="margin:0;font-size:12px;color:var(--text-muted)">없음</p>
+            <div class="mock-profile-label" style="margin:12px 0 6px">가입 신청 대기 <span style="font-size:11px;color:var(--text-muted);font-weight:normal">(D-PROFILE-02)</span></div>
+            <ul class="mock-profile-clan-list mock-profile-clan-list--pending" data-mock-pending-list="val" style="margin:0" hidden></ul>
+            <p class="mock-profile-pending-empty" data-mock-pending-empty="val" style="margin:0;font-size:12px;color:var(--text-muted)">대기 중인 신청이 없습니다.</p>
           </div>
         </section>
         </div>
@@ -260,6 +270,119 @@
   </p>
 </main>
 
+<style>
+  /* D-PROFILE-02 시뮬레이션 스타일 */
+  .mock-profile-clan-list--pending li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+  }
+  .mock-profile-pending-badge {
+    font-style: normal;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(255, 152, 0, 0.12);
+    color: #ff9800;
+    border: 1px solid rgba(255, 152, 0, 0.25);
+  }
+  .mock-profile-pending-badge[data-pending-status="approved"] {
+    background: rgba(76, 175, 80, 0.12);
+    color: #4caf50;
+    border-color: rgba(76, 175, 80, 0.25);
+  }
+  .mock-profile-pending-badge[data-pending-status="rejected"] {
+    background: rgba(158, 158, 158, 0.12);
+    color: #9e9e9e;
+    border-color: rgba(158, 158, 158, 0.25);
+  }
+  .mock-profile-pending-cancel {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid var(--border-color, rgba(255,255,255,0.15));
+    color: var(--text-muted, #8a8f98);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .mock-profile-pending-cancel:hover {
+    color: #ff5a5a;
+    border-color: rgba(255, 90, 90, 0.4);
+  }
+  .mock-badge-strip-slot--empty {
+    opacity: 0.25;
+    filter: grayscale(1);
+  }
+</style>
 <script src="../scripts/app.js"></script>
+<script>
+  // D-PROFILE-02 — 가입 신청 대기 목록 시뮬레이션
+  // 운영: clan_join_requests 에서 user_id=me AND status IN ('pending','approved','rejected' 7일 이내) 조회.
+  // 목업은 sessionStorage 로 취소된 요청 ID를 기록해 페이지 재진입 시 복원.
+  var MOCK_PROFILE_CANCELED_KEY = 'clansync-mock-profile-canceled-v1';
+
+  function mockProfileReadCanceled() {
+    try {
+      var raw = sessionStorage.getItem(MOCK_PROFILE_CANCELED_KEY);
+      var parsed = raw ? JSON.parse(raw) : null;
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function mockProfileWriteCanceled(list) {
+    try {
+      sessionStorage.setItem(MOCK_PROFILE_CANCELED_KEY, JSON.stringify(list));
+    } catch (e) {
+      /* 무시 */
+    }
+  }
+
+  function mockProfileUpdateEmptyState(gameKey) {
+    var list = document.querySelector('[data-mock-pending-list="' + gameKey + '"]');
+    var empty = document.querySelector('[data-mock-pending-empty="' + gameKey + '"]');
+    if (!list || !empty) return;
+    var remaining = list.querySelectorAll('li[data-mock-join-request]').length;
+    if (remaining === 0) {
+      list.setAttribute('hidden', '');
+      empty.removeAttribute('hidden');
+    } else {
+      list.removeAttribute('hidden');
+      empty.setAttribute('hidden', '');
+    }
+  }
+
+  function mockProfileCancelJoinRequest(requestId, clanName) {
+    if (!requestId) return;
+    var label = clanName ? ('\u300c' + clanName + '\u300d') : '이 신청';
+    if (!confirm(label + ' 가입 신청을 취소하시겠어요?')) return;
+    var li = document.querySelector('li[data-mock-join-request="' + requestId + '"]');
+    if (!li) return;
+    var list = li.closest('[data-mock-pending-list]');
+    var gameKey = list ? list.getAttribute('data-mock-pending-list') : '';
+    var canceled = mockProfileReadCanceled();
+    if (canceled.indexOf(requestId) < 0) {
+      canceled.push(requestId);
+      mockProfileWriteCanceled(canceled);
+    }
+    li.remove();
+    mockProfileUpdateEmptyState(gameKey);
+  }
+
+  // 재진입 시 취소된 신청 DOM에서 제거
+  document.addEventListener('DOMContentLoaded', function () {
+    var canceled = mockProfileReadCanceled();
+    canceled.forEach(function (id) {
+      var li = document.querySelector('li[data-mock-join-request="' + id + '"]');
+      if (li) li.remove();
+    });
+    ['ow', 'val'].forEach(mockProfileUpdateEmptyState);
+  });
+
+  window.mockProfileCancelJoinRequest = mockProfileCancelJoinRequest;
+</script>
 </body>
 </html>
