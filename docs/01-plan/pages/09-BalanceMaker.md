@@ -204,10 +204,34 @@ Premium 전용
 
 ### 특이사항 태그
 
-- 규칙은 **서버/배치 스냅샷**에서 결정하고 UI는 배지만 담당한다.
-- 예시: `3연패`, `4연패`, `슬럼프`, `맵 숙련`.
+> **D-ECON-04** (DECIDED 2026-04-20) — 자동 산정 전용(수동 태깅 없음). Phase 1 카탈로그 13종. 본 클랜 내전(`match_type='intra'`)만 집계. [decisions.md §D-ECON-04](../decisions.md#d-econ-04--특이사항-태그-카탈로그).
+
+- 규칙은 **서버/배치 스냅샷**에서 결정하고 UI는 배지만 담당한다. 사용자·운영자 수동 태깅은 허용하지 않는다.
+- 스냅샷 저장소: `match_tags(user_id, clan_id, code, tone, map_id, computed_at, expires_at)` — 현재 유효 태그만 저장(이력 없음).
+- 갱신 시점: ① 경기 결과 입력 시(참여자 전원 재계산) ② 밸런스 세션 생성 시(클랜 전원 스냅샷) ③ 일일 배치(KST 06:00 · 시간 기반 태그 만료).
+
+**Phase 1 카탈로그 (13종)**
+
+| 코드 | 톤 | 조건 | 해제 |
+|------|-----|------|------|
+| `streak_lose_3/4/5` | bad | 최근 3·4·5경기 연속 패배 | 1승 발생 (긴 연패가 짧은 연패를 덮어쓰기) |
+| `streak_win_3/5` | good | 최근 3·5경기 연속 승리 | 1패 발생 |
+| `slump` | bad | 최근 10경기+ 승률 < 30% | 10경기 승률 ≥ 40% |
+| `hot_streak` | good | 최근 10경기+ 승률 > 70% | 10경기 승률 ≤ 60% |
+| `map_expert` | good | 해당 맵 5경기+ & 승률 > 60% | 재계산 하락 (맵별 1개) |
+| `map_rookie` | neutral | 해당 맵 본 클랜 첫 경기 | 해당 맵 1경기 완료 |
+| `mvp_hot` | good | 최근 5경기 중 MVP 2회+ | 조건 미충족 |
+| `no_show` | bad | 최근 30일 노쇼 1회+ | 30일 경과 (`expires_at`) |
+| `no_show_repeat` | bad | 최근 90일 노쇼 2회+ | 90일 경과 (`no_show` 덮어쓰기) |
+| `new_clan_week` | neutral | 클랜 가입 7일 이내 | 7일 경과 |
+
 - 톤 클래스: `.mock-balance-tag--good`, `.mock-balance-tag--bad`, `.mock-balance-tag--neutral`.
 - 실구현은 API에 `tone: good | bad | neutral`를 내려주는 방식을 권장한다.
+
+**노출 규칙**
+
+- 슬롯당 **최대 3개**. 초과 시 우선순위 `bad > neutral > good`.
+- BalanceMaker 경기 컨텍스트 전용 — 플레이어 프로필·클랜 관리 리스트에는 **표시하지 않는다**.
 
 ### A(자동 추정) 갱신 타이밍
 
