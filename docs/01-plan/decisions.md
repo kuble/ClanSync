@@ -40,8 +40,8 @@
 
 | 코드 | 상태 | 항목 | 메모 |
 |------|------|------|------|
-| D-SHELL-01 | OPEN | 사이드바 hover 확장 동작의 모바일 대응 (모바일은 드로어 패턴) | 데스크톱은 64px → hover 220px |
-| D-SHELL-02 | OPEN | `?role=` `?plan=` 쿼리 우회 가능 여부 (목업·디버그 전용 vs 운영 차단) | 보안·치팅 영향 |
+| D-SHELL-01 | DECIDED (2026-04-20) | 사이드바 hover 확장 동작의 모바일 대응 (모바일은 드로어 패턴) | 중단점 **768px** 고정. 데스크톱 ≥769px = hover 확장(기본 64px → 220px, 본문 margin-left 64px 고정). 모바일 ≤768px = 햄버거 → 좌측 드로어(`min(248px, 76vw)`). 닫기 트리거 4종(오버레이·Esc·내부 항목 클릭·리사이즈 769+). `aria-expanded`·`aria-label` 동기화, 오픈 시 body 스크롤락. Phase 2+에서 focus trap 추가. [§D-SHELL-01](#d-shell-01--사이드바-반응형-패턴-데스크톱-hover--모바일-드로어) |
+| D-SHELL-02 | DECIDED (2026-04-20) | `?role=` `?plan=` 쿼리 우회 가능 여부 (목업·디버그 전용 vs 운영 차단) | 운영 단일 출처는 **서버 세션 + DB RLS**. `?role=`·`?plan=`·`?hubDebug=1`·`?simulate=logged_in`·`?sidebarNotifyDebug=*`·`?balanceSession=*` 6종은 **미들웨어가 정화**(제거 후 302 redirect). 디버그 계열은 `NEXT_PUBLIC_DEBUG_QUERY=1` **+ admin 세션** 동시 충족에만 해석, 사용 시 `audit_debug_queries` 감사 기록. `/mockup/*`는 운영 빌드에서 제외. [§D-SHELL-02](#d-shell-02--권한디버그-쿼리-우회-차단-정책) |
 | D-SHELL-03 | DECIDED (2026-04-20) | 사이드바 알림 점 트리거 규칙 | `#dash` 알림 점 없음(허브 중복 방지). `#balance` = 진행 중 내전 세션 수. `#events` = 24h 내 RSVP 미응답 + 진행 중 투표 미응답. `#manage` = 가입 요청 pending + 신규 휴면 진입(D-CLAN-02·07). balance/events는 뷰 진입 시 자동 clear, manage는 데이터로만 clear. [§D-SHELL-03](#d-shell-03--사이드바-알림-점-트리거-규칙) |
 
 ## 이벤트 · 일정 (EVENTS)
@@ -715,6 +715,142 @@ function selectSingleChip(el, group) {
 - `clan_members` 테이블에 `last_activity_at timestamptz` 컬럼 신설 (기존 `last_participated_at`은 매치 참여 트래킹용으로 유지).
 - 인덱스 권장: `clan_members (clan_id, last_activity_at)` — 활성도 그룹별 카운트 쿼리 최적화.
 
+### D-SHELL-01 — 사이드바 반응형 패턴 (데스크톱 hover · 모바일 드로어)
+
+- **결정일**: 2026-04-20
+- **요지**: 뷰포트 폭 **768px**을 경계로 완전히 다른 두 패턴을 쓴다. 데스크톱은 **hover 확장**(64px ↔ 220px), 모바일은 **좌측 드로어**. 본문은 항상 "접힘 기준 64px" 마진을 유지해 hover 확장이 본문을 밀지 않는다.
+
+**중단점**
+
+- **데스크톱**: `min-width: 769px` — hover 확장 사이드바
+- **모바일**: `max-width: 768px` — 햄버거 드로어
+- JS·CSS 동일 경계. 중간 상태(타블렛 예외) 없음.
+
+**데스크톱 사양 (≥769px)**
+
+| 항목 | 값 | 메모 |
+|------|-----|------|
+| 기본 폭 | 64px | 아이콘만, 섹션 타이틀 hidden |
+| hover 폭 | 220px | 라벨 노출 + 섹션 타이틀 노출 |
+| 전환 | `width 0.2s ease` | CSS transition |
+| 본문 margin-left | **64px (고정)** | hover 확장이 본문을 밀지 않음 |
+| 그림자 (hover 시) | `8px 0 24px rgba(0,0,0,0.35)` | 접힘 상태는 그림자 없음 |
+| 알림 점 배치 | 아이콘 우상단 4x4px 원형 pill, `box-shadow` 2px 외곽 | 확장 시에도 같은 위치 |
+
+**모바일 사양 (≤768px)**
+
+| 항목 | 값 | 메모 |
+|------|-----|------|
+| 트리거 | `#mobileMenuBtn` 햄버거 (navbar 좌측) | `display:flex` 활성 |
+| 드로어 폭 | `min(248px, 76vw)` / `max-width: 248px` | 화면 좁을수록 76vw 우선 |
+| 드로어 높이 | `calc(100vh - 60px)` (navbar 제외) | |
+| 위치 | 좌측 슬라이드 (`transform: translateX(-100%)` → `translateX(0)`) | `transition 0.22s ease` |
+| 오버레이 | 반투명 검정 `rgba(0,0,0,0.55)` | z-index 205, 드로어 z-index 210 |
+| 본문 padding | 16px | 데스크톱은 28px |
+| 사이드바 아이콘 크기 | 13×13 | 데스크톱 16×16 |
+
+**드로어 닫기 트리거 (4종)**
+
+1. **오버레이 클릭**: 백그라운드 dim 영역 클릭.
+2. **Esc 키**: 전역 `keydown` 리스너가 최우선으로 드로어 닫기 호출.
+3. **내부 항목 클릭**: `.sidebar` 내부 `a`·`.sidebar-item`·`button` 클릭 시 자동 닫힘 (뷰 전환 후 드로어 잔존 방지).
+4. **리사이즈로 769px+ 진입**: `resize` 이벤트가 데스크톱 폭 감지 시 `closeSidebarDrawer()` 강제 호출 (회전·창 크기 변경 대응).
+
+**접근성**
+
+- `#mobileMenuBtn[aria-expanded]`·`[aria-label]`을 `syncSidebarDrawerAria(open)`로 토글 (`"메뉴 열기"` ↔ `"메뉴 닫기"`).
+- 드로어 오픈 시 `body.style.overflow = 'hidden'`으로 뒤쪽 스크롤 잠금, 닫을 때 복원.
+- **Phase 2+ 이관**: ① focus trap(드로어 열리면 `Tab`이 드로어 내부를 순환) ② 드로어 열 때 첫 포커스를 닫기 힌트/첫 메뉴로 이동 ③ Esc 닫기 후 트리거 버튼(햄버거)으로 포커스 복귀.
+
+**알림 점 (D-SHELL-03 재확인)**
+
+- 모바일 드로어에서도 **아이콘 기준 상대 위치**(sidebar-item 내부 anchor)로 동일하게 배치. 숫자/점 크기·색 동일.
+- 드로어가 닫혀 있을 때 햄버거 자체에 **미확인 총합 보조 dot** 노출은 하지 않음(중복 방지 원칙 — D-SHELL-03 본문과 동일). 드로어를 연 뒤 개별 항목에서 확인.
+- 데스크톱 hover 확장 중에는 라벨 옆으로 alignment 변동 없음(항상 아이콘 우상단).
+
+**Phase 1 목업 구현 매핑**
+
+| 개념 | 파일·심볼 |
+|------|-----------|
+| 중단점 상수 | `SIDEBAR_DRAWER_MQ = window.matchMedia('(max-width: 768px)')` (`mockup/scripts/app.js`) |
+| 토글·닫기·리사이즈 | `toggleSidebarDrawer()`·`closeSidebarDrawer()`·`onSidebarDrawerResize()` (`app.js`) |
+| CSS | `mockup/styles/main.css` §모바일 드로어(438~548) · §데스크톱 hover(571~630) |
+| body 클래스 | `app-sidebar-collapsible` (데스크톱 확장 활성) · `app-sidebar-drawer-open` (모바일 오픈 상태) |
+| Esc·클릭 핸들러 | `app.js` 175~204 |
+
+**결정 제외 (별도 이슈)**
+
+- 사이드바 **순서·추가 항목**은 `pages/07-MainClan.md §사이드바 항목` 표가 단일 출처. 이 결정은 **반응형 레이아웃**에 한정.
+- 알림 점의 운영 트리거는 D-SHELL-03.
+- 데스크톱에서 hover 대신 **클릭 핀 고정** 옵션(사용자가 사이드바 펼친 채 고정)은 Phase 2+ 사용자 설정으로 재검토. Phase 1 범위 아님.
+
+### D-SHELL-02 — 권한·디버그 쿼리 우회 차단 정책
+
+- **결정일**: 2026-04-20
+- **요지**: 운영에서 **권한·플랜은 서버 세션과 DB(+RLS)를 단일 출처**로 한다. 목업에서 사용하는 6종 쿼리(`?role=`·`?plan=`·`?hubDebug=1`·`?simulate=logged_in`·`?sidebarNotifyDebug=*`·`?balanceSession=*`)는 **운영 빌드에서 무시**하고 미들웨어가 **URL에서 정화**한다. 링크 공유·북마크에 잔존해 다른 사용자에게 디버그 UI가 보이는 사태를 원천 차단.
+
+**정화 대상 쿼리 (6종)**
+
+| 키 | 목업 용도 | 운영 처리 |
+|----|-----------|-----------|
+| `role` | `leader`/`officer`/`member` 강제 | **제거 + 302 redirect**. 서버가 `session.role_in_clan`·DB 조회로 결정 |
+| `plan` | `free`/`premium`/`pro` 강제 | **제거 + 302 redirect**. 서버가 `clans.plan` 조회로 결정 |
+| `hubDebug` | 구성원이 관리 화면 미리보기 | 운영 기본 **제거**. `NEXT_PUBLIC_DEBUG_QUERY=1` **AND** admin 세션일 때만 해석 |
+| `simulate` | 랜딩 로그인 시뮬 (D-LANDING-04) | 운영 **제거**. Phase 1 목업 전용, Phase 2+에서는 코드 삭제 |
+| `sidebarNotifyDebug` | 알림 점 강제 표시 | 운영 기본 **제거**. 디버그 조건 동일 |
+| `balanceSession` | 구성원 밸런스 라이브 UI 미리보기 | 운영 기본 **제거**. 디버그 조건 동일 |
+
+**미들웨어 처리 순서** (Phase 2+ `src/middleware.ts`)
+
+1. 요청 URL 파싱 → 위 6종 키 존재 여부 확인.
+2. 하나라도 있으면:
+   - 디버그 계열(`hubDebug`·`sidebarNotifyDebug`·`balanceSession`): `NEXT_PUBLIC_DEBUG_QUERY !== '1'` OR 세션 admin 아님 → 제거.
+   - 권한 계열(`role`·`plan`·`simulate`): 조건 없이 **항상 제거**.
+3. 정화된 URL로 **302 redirect**. 루프 방지: redirect 후에는 6종 키가 전부 사라진 상태.
+4. 권한·플랜 컨텍스트는 **미들웨어가 별도 조회**해 `x-clansync-role`·`x-clansync-plan` 요청 헤더로 주입. 서버 컴포넌트는 이 헤더만 신뢰.
+
+**디버그 쿼리 허용 조건 (동시 충족)**
+
+- `process.env.NEXT_PUBLIC_DEBUG_QUERY === '1'` — 빌드 타임 환경 변수.
+- `session.user.is_admin === true` — DB 세션 기반 플랫폼 운영자 플래그.
+- 둘 중 하나라도 거짓이면 쿼리는 **제거 대상**이며 UI에도 반영되지 않음.
+- 디버그 쿼리 실사용 시 `audit_debug_queries` 테이블에 INSERT(Phase 2+): `user_id`·`path`·`query_json`·`created_at`·`ip_hash`.
+
+**클라이언트 방어 (이중 안전망)**
+
+- 서버에서 정화됐어도 SPA 네비게이션·History API 조작으로 URL에 임의 키가 섞일 수 있으므로, **클라이언트 진입점에서도 6종 키를 무시**한다.
+- 구현 가이드: `useSearchParams()`로 이들 키를 직접 읽는 코드 금지. 필요 시 `getDebugFlags()` 공용 유틸을 통해 위 "허용 조건"을 통과할 때만 값 반환.
+- ESLint 룰 또는 코드 리뷰 체크리스트로 강제. 목업 `mockup/scripts/clan-mock.js`의 `mockClanCurrentRole()`·`mockClanCurrentPlan()` 패턴은 **Phase 2에서 사용 금지** — 서버 컨텍스트만 신뢰.
+
+**RLS 2중 방어**
+
+- UI 레이어에서 `role=leader` 쿼리를 우회해 leader 버튼을 렌더해도, Server Action·API 호출 시 Supabase RLS가 `auth.uid()` 기준 실제 권한으로 403 반환.
+- 따라서 **데이터 무결성은 RLS로 보장**, **UI 혼란 방지는 미들웨어 쿼리 정화로 보장**. 두 층은 독립적.
+
+**`/mockup/*` 경로 처리**
+
+- Phase 2 Next.js 빌드에서 `mockup/` 디렉터리는 **`app/` 트리 밖**이므로 라우트로 노출되지 않음. `public/` 복사 대상에서도 제외.
+- **Staging 이하 환경에서만** `/mockup/index.html` 공개 배포 여부는 Phase 2+ 결정(기본: 비공개). 공개하더라도 `robots.txt`·`noindex` 메타 필수.
+- Phase 1 목업 현재 구동은 `npx http-server mockup -p 8788` 로컬 전용으로 지속(운영 도메인과 분리).
+
+**감사·모니터링**
+
+- `audit_debug_queries` 테이블 스키마(Phase 2+ `schema.md`에 추가 예정):
+  - PK `id uuid`, `user_id uuid` NULL 허용(비로그인), `path text`, `query_json jsonb`, `ip_hash text`, `user_agent text`, `created_at timestamptz default now()`.
+  - RLS: INSERT는 서비스 롤만, SELECT는 admin만.
+- 운영자 대시보드(Phase 2+): 30일 내 디버그 쿼리 사용 건수·상위 path 리스트. 과도한 사용 감지 시 환경 변수 off.
+
+**Phase 1 목업 영역 (변경 없음)**
+
+- 목업은 현재 규칙을 그대로 유지한다. `?role=`·`?plan=`·`?hubDebug=1` 등은 허브·스크린샷·QA 미리보기 목적으로 **유효**. `_hub.html`의 `hubClanMainSrc()` 쿼리 조립 로직도 유지.
+- 본 결정은 **Phase 2 운영 빌드의 미들웨어·환경 변수·감사**에 대한 선언. Phase 1 목업 코드 변경 없음.
+
+**연관 문서**
+
+- [07-MainClan.md §목업과 실제 구현의 차이](./pages/07-MainClan.md#목업과-실제-구현의-차이)
+- [gating-matrix.md 부록 B](./gating-matrix.md)
+- Phase 2 미들웨어 스펙은 `slice-01` 신설 시 본 결정을 인용.
+
 ### D-SHELL-03 — 사이드바 알림 점 트리거 규칙
 
 - **결정일**: 2026-04-20
@@ -757,7 +893,7 @@ function selectSingleChip(el, group) {
 
 - **"매치 결과 카드" 개념은 도입하지 않는다.** 경기 종료 후 결과 열람은 별도 카드/리스트가 아닌 **결과 입력 완료 시점의 결과 팝업 1회**로 처리한다 — 승부예측이 활성화된 세션에서 밸런스장이 결과 입력으로 승자 팀을 확정하면, 비출전 예측 참여자에게 승리 팀·내 예측 적중 여부·배당받은 클랜코인을 모달/토스트로 즉시 노출하고 끝낸다. 따라서 "매치 결과 미확인" 기반 알림 트리거는 구조적으로 존재하지 않으며, 추후에도 이 트리거는 부활하지 않는다(사후 정정은 클랜 관리의 내전 히스토리에서 별도 다룬다). 상세 흐름은 [09-BalanceMaker.md "경기 종료 · 결과 팝업"](./pages/09-BalanceMaker.md) 참고.
 - **대시보드 알림 점** 재고는 당분간 없음. 대시보드 본문에 "가입 요청 요약" "다가오는 일정" 등 카드가 이미 알림 역할을 수행하므로 사이드바 점을 두면 중복.
-- **모바일 드로어 상태의 알림 점 배치**는 D-SHELL-01(hover 확장의 모바일 대응)에서 함께 정리.
+- **모바일 드로어 상태의 알림 점 배치**: D-SHELL-01에서 확정 — 드로어 내부에서도 sidebar-item 아이콘 우상단 기준(데스크톱과 동일 위치), 햄버거 자체에 미확인 총합 dot은 **두지 않음**(중복 방지). 상세는 [§D-SHELL-01 "알림 점" 절](#d-shell-01--사이드바-반응형-패턴-데스크톱-hover--모바일-드로어).
 
 ### D-MANAGE-01 — 구독결제 탭 접근 권한
 

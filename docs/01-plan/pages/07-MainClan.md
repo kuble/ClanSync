@@ -1,5 +1,9 @@
 # 07 MainClan · 클랜 메인 (셸 + 대시보드)
 
+> **D-SHELL-01 DECIDED (2026-04-20)** — 중단점 **768px** 고정. 데스크톱 ≥769px = hover 확장(기본 64px → 220px, 본문 margin-left 64px 고정). 모바일 ≤768px = 햄버거 → 좌측 드로어(`min(248px, 76vw)`). 닫기 트리거 4종(오버레이 · Esc · 내부 항목 클릭 · 769px+ 리사이즈). `aria-expanded`·`aria-label`·body 스크롤락 동기화. Phase 2+에서 focus trap·트리거 포커스 복귀 추가. → [decisions.md §D-SHELL-01](../decisions.md#d-shell-01--사이드바-반응형-패턴-데스크톱-hover--모바일-드로어)
+>
+> **D-SHELL-02 DECIDED (2026-04-20)** — 운영 단일 출처는 **서버 세션 + DB RLS**. `?role=`·`?plan=`·`?hubDebug=1`·`?simulate=logged_in`·`?sidebarNotifyDebug=*`·`?balanceSession=*` 6종은 미들웨어가 **정화 + 302 redirect**. 디버그 계열은 `NEXT_PUBLIC_DEBUG_QUERY=1` **AND** admin 세션에서만 해석, 사용 시 `audit_debug_queries` 기록. `/mockup/*`는 운영 빌드에서 제외. → [decisions.md §D-SHELL-02](../decisions.md#d-shell-02--권한디버그-쿼리-우회-차단-정책)
+
 ## 한 줄 요약
 하나의 클랜을 활동 단위로 묶은 메인 허브. 좌측 사이드바로 대시보드 / 밸런스메이커 / 통계 / 이벤트 / 관리 / 스토어를 갈아끼우는 "셸"이고, 첫 화면은 대시보드.
 
@@ -174,8 +178,8 @@
 - "관리" 링크의 `#mock-clan-role-label` 같은 데드 슬롯이 일부 존재.
 
 ## 결정 필요
-- D-SHELL-01 사이드바 hover 확장의 모바일 대응 일관성
-- D-SHELL-02 `?role=` `?plan=` 쿼리 우회 차단 (서버 권한 단일 출처)
+- ~~D-SHELL-01 사이드바 hover 확장의 모바일 대응 일관성~~ → **DECIDED (2026-04-20)**. [decisions.md §D-SHELL-01](../decisions.md#d-shell-01--사이드바-반응형-패턴-데스크톱-hover--모바일-드로어) 참고
+- ~~D-SHELL-02 `?role=` `?plan=` 쿼리 우회 차단 (서버 권한 단일 출처)~~ → **DECIDED (2026-04-20)**. [decisions.md §D-SHELL-02](../decisions.md#d-shell-02--권한디버그-쿼리-우회-차단-정책) 참고
 - ~~D-SHELL-03 사이드바 알림 점의 운영 트리거 규칙~~ → **DECIDED (2026-04-20)**. [decisions.md §D-SHELL-03](../decisions.md#d-shell-03--사이드바-알림-점-트리거-규칙) 참고
 - (대시보드) 다가오는 일정의 동적 채움 정책 — 며칠 이내 / 최대 N건
 

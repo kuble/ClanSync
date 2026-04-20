@@ -165,4 +165,4 @@
 - 본문 클래스 적용: `mockup/pages/main-clan.html` 인라인 스크립트 + `clan-mock.js` `applyRoleBodyClass`, `applyPlanBodyClass`
 - 디버그 우회: `?hubDebug=1` (구성원이 관리 메뉴 클릭 가능, 시각적 디밍 해제)
 
-> 목업은 클라이언트에서만 게이팅한다. 운영 구현 시에는 **반드시 서버 미들웨어/RLS로 동일 규칙을 강제**해야 한다 → D-SHELL-02.
+> 목업은 클라이언트에서만 게이팅한다. 운영 구현 시에는 **반드시 서버 미들웨어/RLS로 동일 규칙을 강제**해야 한다 → **D-SHELL-02 DECIDED (2026-04-20)**: `?role=`·`?plan=`·`?hubDebug=1`·`?simulate=logged_in`·`?sidebarNotifyDebug=*`·`?balanceSession=*` 6종은 미들웨어에서 정화(제거 + 302 redirect), 디버그 계열은 `NEXT_PUBLIC_DEBUG_QUERY=1` AND admin 세션에서만 해석, `audit_debug_queries` 감사 기록. 상세는 [decisions.md §D-SHELL-02](./decisions.md#d-shell-02--권한디버그-쿼리-우회-차단-정책).
