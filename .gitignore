@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# bkit — tool-managed local state (PDCA snapshots, memory)
+.bkit/snapshots/
+.bkit/state/
+
+# vendor icon pack (not referenced from mockup; kept on disk for future use)
+mockup/assets/icons/ionicons.designerpack/
