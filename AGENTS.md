@@ -8,6 +8,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 `.cursor/rules/git-nano-commit.mdc` 는 `alwaysApply: true`. **한 번의 사용자 질의에 대한 응답 턴**에서 저장소에 변경이 생기면, **그 턴 안에서** 의미 단위별로 `git add`·`git commit`까지 끝낸다. “세션 종료 시에만 정리” 금지. 한 턴에 주제가 여러 개면 **커밋도 나눈다**. 변경이 없는 턴(읽기·설명만)은 커밋 없음. 사용자가 "커밋해"라고 말하지 않아도 자동 수행. 푸시는 명시 요청 시에만.
 
+# 자동 실행 (터미널)
+
+에이전트가 이 저장소에서 **직접 실행 가능한** 명령(`db:push`, `types:gen`, `build`, `eslint src` 등)은 사용자에게 미루지 않고 진행한다. 상세: `.cursor/rules/agent-auto-tasks.mdc`. 스키마 변경 후 타입 동기화는 **`npm run db:sync`** 로 한 번에 할 수 있다.
+
 # 응답 스타일 (토큰 절약)
 
 매 턴 다음을 지킨다:

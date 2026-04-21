@@ -1,0 +1,16 @@
+---
+description: 터미널에서 에이전트가 직접 할 수 있는 검증·동기화는 묻지 말고 실행
+alwaysApply: true
+---
+
+# 자동 실행 (에이전트)
+
+사용자에게 “직접 실행해 주세요”로 넘기기 전에, **이 저장소 안에서 터미널로 할 수 있으면 에이전트가 실행**한다.
+
+- **Supabase 스키마/마이그레이션**을 적용하거나 `supabase/migrations/`·DB 스키마를 바꾼 뒤: `npm run db:push`(필요 시) → **`npm run types:gen`** 까지 같은 턴에서 진행. 한 번에 묶을 때는 **`npm run db:sync`** 사용.
+- **`types:gen`** 이 `Unauthorized` 면 Access Token 만료 가능 — `.env.local` 의 `SUPABASE_ACCESS_TOKEN` 갱신 또는 `npx supabase login` 후 재시도.
+- **`src/` 타입스크립트·TSX**를 의미 있게 수정한 뒤: 시간이 허락하면 **`npx eslint src`** (전체가 부담이면 변경 파일 위주).
+- **구현 마무리·커밋 전**: **`npm run build`**로 빌드 통과 확인(사용자가 금지하지 않은 한).
+- **시드/픽스처 스크립트**를 바꾼 뒤: `npm run db:seed` 가 안전할 때만 검증 실행(원격/운영 DB에는 사용자 확인 후).
+
+원칙: 비밀값은 채팅에 출력하지 않는다. 푸시·Vercel 배포는 **명시 요청 시에만**.

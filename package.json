@@ -11,6 +11,7 @@
     "db:push": "node scripts/with-dotenv-local.mjs db push",
     "db:link": "node scripts/supabase-link.mjs",
     "types:gen": "supabase gen types typescript --linked --schema public > src/lib/supabase/database.types.ts",
+    "db:sync": "npm run db:push && npm run types:gen",
     "db:seed": "node scripts/seed-fixtures.mjs"
   },
   "dependencies": {
