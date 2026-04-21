@@ -3,7 +3,7 @@
 > **페이즈별 체크리스트**는 아래 문서로 나눈다. 세션 종료 시 **[세션 로그](./TODO_LOG.md)** 맨 위에 블록을 추가하고, 해당 페이즈 문서의 체크·요약표를 갱신한다.  
 > **/todo 커맨드**: `.cursor/commands/todo.md` 절차로 문서·목업과 동기화한다.
 
-> **지금 라이브**: (아직 없음 — Phase 1 목업만) · **다음 라이브**: M2 완료 시 `/` · `/sign-in` · `/sign-up` · `/games` · 체감 로드맵 → [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md)
+> **지금 라이브**: (아직 라우트 없음 — Phase 2 M1 인프라 골격만) · **다음 라이브**: M2 완료 시 `/` · `/sign-in` · `/sign-up` · `/games` · 체감 로드맵 → [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md)
 
 ## 페이즈별 문서
 
@@ -22,21 +22,21 @@
 |------|-----|
 | **현재 단계** | Phase 2 — Next.js `src/` · Supabase · RLS (마스터 플랜 M0~M8) |
 | **이전 단계** | Phase 1 — 정적 목업 (`mockup/`) **종료** (2026-03-28) |
-| **마지막 갱신** | 2026-04-21 — **Phase 2 마스터 플랜 M0 착지**: `src/app/[locale]/` 제거·랜딩 스텁·[TODO_Phase2.md](./TODO_Phase2.md) 본문에 M0~M8 로드맵·공통 게이트·마일스톤 체크리스트·라우트 대응표 반영. 다음 세션 = **M1 인프라**(Supabase 헬퍼·`0001_init` 마이그레이션·`middleware.ts` 골격). 직전: Phase 1 감사 후속 묶음. |
+| **마지막 갱신** | 2026-04-21 — **Phase 2 M1 인프라 베이스라인 착지**: `@supabase/ssr`·`@supabase/supabase-js` 도입 · `src/lib/supabase/{server,client,middleware}.ts` 헬퍼 · `supabase/migrations/0001_init.sql`(`users`·`games`·`user_game_profiles`·`clans`·`clan_members` + RLS + `set_updated_at()` 트리거) · 루트 `middleware.ts`(세션 refresh + **D-SHELL-02** 디버그 쿼리 드롭) · `.env.example` 템플릿 · `db:reset`·`db:push`·`types:gen` scripts. 다음 세션 = **M2 S01 인증 쉘**(`/`·`/sign-in`·`/sign-up`·`/games` + D-AUTH-03/06/07 + D-AUTH-01 6칸). 직전: Phase 2 체감 로드맵(`PHASE2_EXPERIENCE.md`) + UX 게이트 3 + M1 Vercel preview 항목. |
 
 ---
 
 ## 다음 세션 권장 프롬프트 (/todo 갱신 시 덮어씀)
 
-**지금 단계(Phase 2 · 다음은 M1 인프라)** — 복사용:
+**지금 단계(Phase 2 · 다음은 M2 S01 인증 쉘)** — 복사용:
 
 슬라이스 단위로 나눌 때는 `slice-NN-....md` 한 파일을 `@`에 추가한다.
 
 ```
-@docs/TODO_Phase2.md @docs/01-plan/pages.md @docs/01-plan/schema.md 참고해서
-Phase 2 M1 인프라: Supabase 헬퍼(`src/lib/supabase/{server,client,middleware}.ts`) + `supabase/migrations/0001_init.sql`(users·user_game_profiles·games·clans·clan_members + 기본 RLS) + `middleware.ts` 골격(세션 refresh + D-SHELL-02 쿼리 정화) + `.env.local`/`.env.example` 템플릿 + `db:*` scripts.
+@docs/TODO_Phase2.md @docs/01-plan/pages.md @docs/01-plan/slices/slice-01-rooting-shell.md 참고해서
+Phase 2 M2 S01 인증 쉘: `/` 랜딩(D-LANDING-04 CTA 분기) + `/sign-in`(D-AUTH-06 잠금 · D-AUTH-07 자동 로그인) + `/sign-up`(D-AUTH-03 strong 정책·연령·약관) + `/games` 카드(D-AUTH-01 6칸 매트릭스 + `routeFromGameCard`). `middleware.ts` 비로그인 리다이렉트 체인 확장.
 
-완료 후 `docs/TODO.md` 마지막 갱신·`docs/TODO_LOG.md` 세션 로그·`docs/TODO_Phase2.md` M1 체크리스트·라우트 표를 갱신한다.
+완료 후 공통 게이트 5개(수용 기준·가드 체인·RLS 테스트·라우트 표 갱신·세션 로그) 모두 만족시키고 허브를 갱신한다.
 ```
 
 **M2 이후 슬라이스 착수 시** — 복사용:

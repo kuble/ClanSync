@@ -7,7 +7,7 @@
 | 항목 | 값 |
 |------|-----|
 | **단계** | Phase 2 — 앱 구현 |
-| **마지막 갱신** | 2026-04-21 — 마스터 플랜(M0~M8) 착지, `[locale]` 세그먼트 제거 |
+| **마지막 갱신** | 2026-04-21 — M1 인프라 베이스라인 착지 (Supabase 헬퍼·`0001_init`·`middleware.ts`·`.env.example`·`db:*` scripts) |
 
 ## 전제 (Q&A 확정)
 
@@ -18,8 +18,8 @@
 
 | 마일스톤 | 슬라이스 | 핵심 산출물 | 선행 | 상태 |
 |----------|----------|-------------|------|------|
-| **M0** 기반 정비 | — | `[locale]` 제거 · 랜딩 스텁 · 본 로드맵 문서화 | — | 진행 중 |
-| **M1** 인프라 | — | Supabase 헬퍼 · `supabase/migrations/0001_init` · `middleware.ts` 골격 · ENV · `db:*` scripts | M0 | 대기 |
+| **M0** 기반 정비 | — | `[locale]` 제거 · 랜딩 스텁 · 본 로드맵 문서화 | — | 완료 |
+| **M1** 인프라 | — | Supabase 헬퍼 · `supabase/migrations/0001_init` · `middleware.ts` 골격 · ENV · `db:*` scripts | M0 | 완료 (Vercel preview 제외) |
 | **M2** 인증 쉘 | **S01** | `/` · `/sign-in` · `/sign-up` · `/games` + D-AUTH-01 매트릭스 + D-AUTH-03/06/07 | M1 | 대기 |
 | **M3** 온보딩 | **S02** | `/games/[g]/auth` (OAuth D-AUTH-02/05) · `/games/[g]/clan` (D-CLAN-01/02/04) + RLS 1차 | M2 | 대기 |
 | **M4** MainClan 쉘 | **S03** | `/games/[g]/clan/[id]` 레이아웃·사이드바(D-SHELL-01/02/03)·`hasPermission()`(D-PERM-01)·플랜 토글 | M3 | 대기 |
@@ -80,13 +80,13 @@ flowchart TD
 
 ### M1 — 인프라 베이스라인
 
-- [ ] `@supabase/ssr` + `@supabase/supabase-js` 도입
-- [ ] `src/lib/supabase/{server,client,middleware}.ts` 헬퍼
-- [ ] `supabase/migrations/0001_init.sql` — `users`·`user_game_profiles`·`games`·`clans`·`clan_members` + 기본 RLS
-- [ ] `middleware.ts` 골격 (세션 refresh + **D-SHELL-02** 쿼리 정화: `?role=`·`?plan=`·`?game=` 프로덕션 드롭)
-- [ ] `.env.local` / `.env.example` 템플릿 + `next.config.ts` 서버 전용 ENV 분리
-- [ ] `package.json` scripts: `db:reset` · `db:push` · `types:gen`
-- [ ] **Vercel preview URL 자동 발급** — `vercel link` + GitHub 연동 + Preview/Production 환경 변수 분리. 이후 마일스톤부터는 PR당 preview URL을 [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md) 데모 시나리오 공유에 사용.
+- [x] `@supabase/ssr` + `@supabase/supabase-js` 도입
+- [x] `src/lib/supabase/{server,client,middleware}.ts` 헬퍼
+- [x] `supabase/migrations/0001_init.sql` — `users`·`user_game_profiles`·`games`·`clans`·`clan_members` + 기본 RLS
+- [x] `middleware.ts` 골격 (세션 refresh + **D-SHELL-02** 쿼리 정화: `?role=`·`?plan=`·`?game=` 프로덕션 드롭)
+- [x] `.env.local` / `.env.example` 템플릿 (`next.config.ts` 서버 전용 ENV 분리는 M2 이후 서버 액션 도입 시 `env` 블록 or `serverRuntimeConfig` 로 확장)
+- [x] `package.json` scripts: `db:reset` · `db:push` · `types:gen`
+- [ ] **Vercel preview URL 자동 발급** — `vercel link` + GitHub 연동 + Preview/Production 환경 변수 분리. 이후 마일스톤부터는 PR당 preview URL을 [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md) 데모 시나리오 공유에 사용. _(수동 단계 · M2 착수 전 완료 예정)_
 
 ### M2 — S01 라우팅·쉘 (수직 슬라이스 첫 완주)
 
@@ -155,5 +155,20 @@ flowchart TD
 | — | `/games/[gameSlug]` 스크림 탭 | `main-game.html#scrim` | **Phase 2+** | 보류 |
 | — | `/games/[gameSlug]/board/[postId]` | _(목업 없음)_ | **Phase 2+** | 보류 |
 | 14 | `/profile` | `profile.html` | M5 | — |
+| — | `middleware.ts` (전역) | _(해당 없음)_ | M1 | **골격 완료** (세션 refresh + D-SHELL-02 쿼리 드롭) |
 
 Phase 1 정적 목업(`mockup/`)은 참조용으로 유지; 운영 빌드에서는 제외 정책(**D-SHELL-02**)을 따른다.
+
+## M1 인프라 베이스라인 — 산출물 지도
+
+| 영역 | 파일 | 비고 |
+|------|------|------|
+| Supabase 헬퍼 (브라우저) | `src/lib/supabase/client.ts` | `createBrowserClient` 래퍼 |
+| Supabase 헬퍼 (서버) | `src/lib/supabase/server.ts` | `cookies()` 기반 `createServerClient`, Server Component 쓰기 실패 무시 |
+| Supabase 헬퍼 (미들웨어) | `src/lib/supabase/middleware.ts` | `updateSession()` — 세션 refresh + D-SHELL-02 쿼리 정화 |
+| 루트 미들웨어 | `middleware.ts` | `_next` · 정적 자산 · favicon 제외 matcher |
+| 마이그레이션 | `supabase/migrations/0001_init.sql` | 5 테이블 + enum · RLS · `set_updated_at()` 트리거. 후속 `0002+` 는 슬라이스별 확장 |
+| ENV 템플릿 | `.env.example` | 로컬·Vercel Preview/Production 공통 키 |
+| npm scripts | `package.json` | `db:reset` · `db:push` · `types:gen` (Supabase CLI 필요) |
+
+> 0001_init 가 다루는 테이블은 `users`·`games`·`user_game_profiles`·`clans`·`clan_members` 5개 + 공용 enum·인덱스·updated_at 트리거. 나머지 테이블(`clan_join_requests`·`clan_settings`·`clan_reports`·`user_nameplate_*`·`user_badge_*`·`coin_transactions`·`matches`·`notifications*`·`web_push_subscriptions`·`user_privacy_overrides` 등)은 마일스톤 진행에 맞춰 `0002+` 마이그레이션으로 확장한다.

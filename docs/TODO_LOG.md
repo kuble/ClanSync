@@ -5,6 +5,28 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-21 — Phase 2 M1 인프라 베이스라인 착지
+
+- [x] **Supabase 클라이언트 3종** (`src/lib/supabase/`) — `@supabase/ssr` 기반.
+  - `client.ts` — 브라우저용 `createBrowserClient` 래퍼. 세션 쿠키는 SSR 쿠키와 공유.
+  - `server.ts` — `cookies()` 기반 `createServerClient`. Server Component 의 쓰기 실패는 `try/catch` 로 흡수(갱신 책임은 미들웨어에 위임).
+  - `middleware.ts` — `updateSession(request)` 유틸. 세션 refresh + D-SHELL-02 디버그 쿼리 정화(`?role=`·`?plan=`·`?game=`) 를 프로덕션 빌드에서 원천 차단(`NODE_ENV==='production'` 에서만 리다이렉트).
+- [x] **루트 미들웨어 `middleware.ts`** — 최소 골격. `matcher` 는 `_next/static`·`_next/image`·`favicon.ico`·정적 이미지/폰트 확장자 제외. 비로그인 리다이렉트·게임 인증/클랜 소속 매트릭스는 M2/M3 에서 덧붙인다.
+- [x] **`supabase/migrations/0001_init.sql`** — 5 테이블 초기 세트:
+  - `users` (D-AUTH-03/07, D-STORE-01 `coin_balance` 캐시 포함) — `auth.users` FK + RLS 본인 SELECT/UPDATE. 닉네임·이메일·`discord_user_id` UNIQUE.
+  - `games` — 공개 SELECT.
+  - `user_game_profiles` — `UNIQUE(user_id, game_id)`, 본인 전권 RLS. 같은 클랜 운영진+ SELECT 확장은 M3 로 이관.
+  - `clans` — D-CLAN-04/06 (name 24자, max_members 2~200 CHECK), `lifecycle_status`/`moderation_status` enum, `coin_balance`·`ownership_transferred_at` 포함. 공개 SELECT + 필터는 서버 쿼리 책임.
+  - `clan_members` — `UNIQUE(clan_id, user_id)` + `last_activity_at` 인덱스(D-CLAN-07). 본인 SELECT + 같은 클랜 active 멤버 SELECT.
+  - 공용 `set_updated_at()` 트리거 4개.
+  - INSERT/UPDATE/DELETE 가 민감한 경로(`clans`·`clan_members`·`user_game_profiles` 의 교차 편집)는 전부 Service Role + 서버 액션에서 수행하도록 RLS 를 보수적으로 시작.
+- [x] **ENV 정리** — `.env.example` 신설(강제 add). 로컬·Vercel Preview/Production 공통 키: `NEXT_PUBLIC_SUPABASE_URL`·`NEXT_PUBLIC_SUPABASE_ANON_KEY`·`NEXT_PUBLIC_SITE_URL`·`SUPABASE_SERVICE_ROLE_KEY`·`QA_SEED_PASSWORD`·`E2E_TEST_EMAIL`·`E2E_TEST_PASSWORD`.
+- [x] **`package.json` scripts** — `db:reset` / `db:push` / `types:gen` (로컬 `supabase` CLI 전제). `types:gen` 은 `src/lib/supabase/database.types.ts` 로 출력.
+- [x] **검증** — `.next/` 정리 후 `npx tsc --noEmit` · `npx eslint src middleware.ts` 모두 통과.
+- [x] **문서 갱신** — [TODO_Phase2.md](./TODO_Phase2.md) M1 체크리스트 7개 중 6개 체크(Vercel preview 는 수동 단계로 보류), 라우트 대응표 말미에 **「M1 인프라 산출물 지도」** 표 신설(7개 파일·역할 명시), `middleware.ts` 전역 행 추가. [TODO.md](./TODO.md) 마지막 갱신·라이브 배너·다음 세션 권장 프롬프트(M2 S01 인증 쉘로 교체).
+- **Nano-commit 5개 (본 세션)**: `chore(deps): add @supabase/ssr + supabase-js and db:* scripts` / `feat(lib/supabase): server/client/middleware helpers (@supabase/ssr)` / `feat(middleware): session refresh + D-SHELL-02 debug query drop` / `feat(db): 0001_init migration — users/games/clans/clan_members + RLS` / `chore(env): add .env.example template for local + Vercel` + (문서) `docs: TODO_Phase2 M1 baseline landed + hub + session log`.
+- **다음 세션 목표**: **M2 S01 수직 슬라이스** — 비로그인 → 회원가입 → 로그인 → `/games` 카드 클릭스루(D-AUTH-01 6칸) 완주. 미들웨어에 `/sign-in` 리다이렉트 체인 + 이미 로그인 시 `/games` 역방향 체인 추가. `users`·`user_game_profiles`·`clan_members` seed 픽스처 포함.
+
 ### 2026-04-21 — Phase 2 체감 로드맵 분리 + 운영 게이트 확장
 
 - [x] **문제 제기**: "마일스톤대로 진행했을 때 내가 명확히 무엇이 바뀌고 있는지 체감이 어렵다. 초반 백엔드 구간에 UI/UX 감이 안 잡힌다." — 체감 장치 필요.
