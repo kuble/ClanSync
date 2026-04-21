@@ -918,7 +918,7 @@ draft ──► matched ──► confirmed ──► finished
 - UPDATE(`status`, `resolved_*`, `reject_reason`): `correct_match_records` 권한 보유자(`accepted`/`rejected`만), cron 서비스 롤(`expired`만).
 - DELETE 차단(soft).
 
-**알림 슬롯 (D-EVENTS-03 재사용 + D-NOTIF-01 후속)**
+**알림 슬롯 (D-NOTIF-01 통합 센터 DECIDED 2026-04-21 · AFTER INSERT/UPDATE 트리거가 `notifications` 행 자동 생성)**
 
 | 슬롯 | 트리거 | 채널 | 수신자 |
 |------|--------|------|--------|
@@ -1164,6 +1164,169 @@ GROUP BY 1, 2;
 - UNIQUE `(poll_id, slot_kind, scheduled_at, channel, recipient_user_id) WHERE poll_id IS NOT NULL`.
 - RLS: INSERT/UPDATE/DELETE 서비스 롤만. SELECT는 본인 행 + 운영자(관리자).
 - 관련 이벤트/투표 `cancelled` 시 트리거가 `status='scheduled'` 행을 전부 `cancelled`로 UPDATE (D-EVENTS-04).
+- **D-NOTIF-01 연동**: `channel='inapp' AND status='sent'`로 UPDATE될 때 AFTER UPDATE 트리거가 `notifications`에 대응 행 INSERT(아래 §notifications 참고). `notification_log`는 발송 레이어 그대로 유지 — 피드 레이어(`notifications`)와 책임 분리.
+
+### notifications (in-app 알림 피드 · D-NOTIF-01)
+> **D-NOTIF-01** (DECIDED 2026-04-21) — 운영·개인 결과·일정 알림을 수신자 관점 단일 피드로 통합. 네비게이션바 상단 벨 아이콘 + 드로워의 데이터 소스. `notification_log`(발송 레이어)와 분리되며 FK로 연결. 상세 [§D-NOTIF-01](./decisions.md#d-notif-01--in-app-알림-센터-통합-도입).
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| recipient_user_id | uuid NOT NULL FK → users ON DELETE CASCADE | 수신자 본인 |
+| clan_id | uuid NULL FK → clans ON DELETE CASCADE | 클랜 컨텍스트 알림만. 게임 공통·계정 알림은 NULL |
+| kind | text NOT NULL | 슬롯 키 카탈로그(아래 표). enum 대신 text로 두어 슬롯 추가 유연. CHECK로 카탈로그 제한 가능 |
+| source_table | text NOT NULL | 원본 테이블 이름: `clan_join_requests` / `match_record_correction_requests` / `scrim_room_confirmations` / `scrim_rooms` / `lfg_applications` / `clan_members` / `notification_log` 등 |
+| source_id | uuid NOT NULL | 원본 행 PK (soft FK — 물리 FK 없음. 원본 삭제돼도 피드 보존, RLS로 접근성 재확인) |
+| payload | jsonb NOT NULL DEFAULT `'{}'::jsonb` | 렌더용 스냅샷 (요청자 닉네임·경기 라벨·일정 제목 등). 원본 row 변경/삭제 시에도 피드 문구 보존 |
+| read_at | timestamptz NULL | NULL = unread. 드로워 열람 시 또는 "원본 열기" 클릭 시 `now()` |
+| created_at | timestamptz NOT NULL DEFAULT now() | |
+
+**슬롯 키 카탈로그 (Phase 1 초안, D-NOTIF-01 §연관 슬롯)**
+
+| kind | source_table | 수신자 결정 규칙 | 소스 결정 |
+|------|--------------|-----------------|----------|
+| `join_request_submitted` | `clan_join_requests` | `approve_join_requests` 권한자 전원 | D-CLAN-02 |
+| `join_request_accepted` / `join_request_rejected` | `clan_join_requests` | `user_id` (신청자 본인) | D-CLAN-02 |
+| `match_correction_requested` | `match_record_correction_requests` | `correct_match_records` 권한자 전원 | D-STATS-02 |
+| `match_correction_accepted` / `match_correction_rejected` / `match_correction_expired` | `match_record_correction_requests` | `requester_user_id` | D-STATS-02 |
+| `scrim_one_side_confirmed` | `scrim_room_confirmations` | 상대 클랜의 `confirm_scrim` 권한자 | D-SCRIM-02 |
+| `scrim_both_confirmed` / `scrim_invalidated` / `scrim_cancelled` | `scrim_rooms` | 양측 운영진 + 참가 확정 멤버 | D-SCRIM-02 |
+| `scrim_chat_closing_soon` / `scrim_chat_closed` | `scrim_rooms` | 채팅방 참가자 전원 | D-SCRIM-01 |
+| `lfg_applied` | `lfg_applications` | 모집 post 소유자 | D-LFG-01 |
+| `lfg_accepted` / `lfg_rejected` / `lfg_expired` | `lfg_applications` | `applicant_user_id` | D-LFG-01 |
+| `member_became_dormant` | `clan_members` | `read_members` 또는 `manage_members` 권한자 | D-CLAN-07 |
+| `event_reminder` | `notification_log` | `notification_log.recipient_user_id` | D-EVENTS-03 (in-app 채널 전용) |
+
+**제약·인덱스**
+
+```sql
+CREATE TABLE notifications (
+  id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  recipient_user_id  uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  clan_id            uuid NULL REFERENCES clans(id) ON DELETE CASCADE,
+  kind               text NOT NULL,
+  source_table       text NOT NULL,
+  source_id          uuid NOT NULL,
+  payload            jsonb NOT NULL DEFAULT '{}'::jsonb,
+  read_at            timestamptz NULL,
+  created_at         timestamptz NOT NULL DEFAULT now()
+);
+
+-- 미열람 피드 조회 (벨 배지 카운트 + 드로워 1페이지)
+CREATE INDEX notifications_unread
+  ON notifications (recipient_user_id, created_at DESC)
+  WHERE read_at IS NULL;
+
+-- 전체 피드 최근순
+CREATE INDEX notifications_by_recipient
+  ON notifications (recipient_user_id, created_at DESC);
+
+-- 원본 역조회 (운영진이 "이 행의 모든 관련 알림 보기"에 사용, Phase 2+)
+CREATE INDEX notifications_by_source
+  ON notifications (source_table, source_id);
+```
+
+**RLS**
+
+- SELECT: `recipient_user_id = auth.uid()` (본인만).
+- INSERT: 서비스 롤·DB 트리거 경유만 (애플리케이션 직접 INSERT 금지 — 수신자 계산 누락·권한 우회 방지).
+- UPDATE: 본인이 `read_at = now()`로만 (다른 컬럼 UPDATE 전면 차단). 드로워 오픈 시 RPC 하나로 일괄 처리.
+- DELETE: **금지** (GC는 서비스 롤 cron만).
+
+**트리거 라우팅 (D-NOTIF-01 M1 모델 핵심)**
+
+```sql
+-- 예: 정정 요청 상태 전환 → 요청자에게 결과 알림
+CREATE OR REPLACE FUNCTION notify_match_correction_resolved()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.status IN ('accepted', 'rejected', 'expired') AND OLD.status = 'pending' THEN
+    INSERT INTO notifications (recipient_user_id, clan_id, kind, source_table, source_id, payload)
+    VALUES (
+      NEW.requester_user_id,
+      NEW.clan_id,
+      'match_correction_' || NEW.status,
+      'match_record_correction_requests',
+      NEW.id,
+      jsonb_build_object(
+        'match_label', (SELECT label FROM matches WHERE id = NEW.match_id),
+        'reviewer_nickname', (SELECT nickname FROM users WHERE id = NEW.reviewed_by),
+        'resolved_at', NEW.resolved_at
+      )
+    );
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_match_correction_on_resolve
+AFTER UPDATE OF status ON match_record_correction_requests
+FOR EACH ROW EXECUTE FUNCTION notify_match_correction_resolved();
+
+-- 예: 일정 in-app 알림 발송 완료 → 피드에 기록
+CREATE OR REPLACE FUNCTION sync_inapp_log_to_feed()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.channel = 'inapp' AND NEW.status = 'sent' AND (OLD.status IS DISTINCT FROM 'sent') THEN
+    INSERT INTO notifications (recipient_user_id, clan_id, kind, source_table, source_id, payload)
+    VALUES (
+      NEW.recipient_user_id,
+      (SELECT clan_id FROM clan_events WHERE id = NEW.event_id),
+      'event_reminder',
+      'notification_log',
+      NEW.id,
+      jsonb_build_object(
+        'slot_kind', NEW.slot_kind,
+        'event_id', NEW.event_id,
+        'poll_id', NEW.poll_id,
+        'scheduled_at', NEW.scheduled_at
+      )
+    );
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_notification_log_to_feed
+AFTER UPDATE OF status ON notification_log
+FOR EACH ROW EXECUTE FUNCTION sync_inapp_log_to_feed();
+```
+
+**읽음·GC**
+
+- 드로워 열람 RPC (예시):
+  ```sql
+  CREATE OR REPLACE FUNCTION mark_notifications_read(before_ts timestamptz)
+  RETURNS int AS $$
+  WITH updated AS (
+    UPDATE notifications
+    SET read_at = now()
+    WHERE recipient_user_id = auth.uid()
+      AND read_at IS NULL
+      AND created_at <= before_ts
+    RETURNING 1
+  )
+  SELECT COUNT(*)::int FROM updated;
+  $$ LANGUAGE sql SECURITY INVOKER;
+  ```
+- GC cron (매일 새벽 1회):
+  ```sql
+  DELETE FROM notifications
+  WHERE read_at IS NOT NULL
+    AND read_at < now() - interval '7 days';
+  ```
+- 미열람(`read_at IS NULL`)은 GC 대상 아님 — 오래된 미읽음도 영구 보존.
+
+**왜 `source_id`를 soft FK(물리 FK 없음)로 두는가**
+
+- 11개 소스 테이블 각각에 FK를 두면 `source_table` enum과 분기 관리 부담 큼.
+- 원본 행이 삭제돼도 알림 본문은 `payload` 스냅샷으로 보존되어야 함 — FK CASCADE 금지.
+- 대신 `notifications_by_source` 인덱스로 역조회는 빠름. "원본 열기" 클릭 시 `source_table` 분기해 조회, RLS가 접근성 재확인.
+
+**Phase 1 목업 영향**
+
+- 실제 테이블은 Phase 2+. Phase 1은 `sessionStorage` 스토어(`clansync-mock-notifications-v1`)로 흉내낸다.
+- 벨 배지 카운트·드로워 UI·읽음 상태만 시연. 소스 링크 이동은 placeholder alert.
 
 ### store_items
 > **D-STORE-01 / D-ECON-01** (DECIDED 2026-04-20) — `item_type` 과 `pool_source` 는 1:1 매핑(`clan_deco`⇒`clan`, `profile_deco`⇒`personal`). Premium 카드는 `is_premium_only=true`. [decisions.md §D-STORE-01](./decisions.md#d-store-01--코인-적립차감-트리거-매트릭스).
