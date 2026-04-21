@@ -69,6 +69,12 @@
 |------|------|------|------|
 | D-PERM-01 | DECIDED (2026-04-21) | 클랜 권한 매트릭스 모델 도입 (Discord 스타일 하이브리드) | **6 카테고리 × 21 권한 키** (재무·계정 / 멤버 관리 / 평판·통계 / 경기 운영 / 홍보·자원 / **개인 정보**). 잠긴 권한 5개(leader 고정), 토글 가능 권한 16개. 저장: `clan_settings.permissions jsonb`. Phase 1 = 카탈로그·스키마·목업 const만. Phase 2+ = 매트릭스 UI 구현. 기존 D-MANAGE-01/02/03·D-EVENTS-01·D-SCRIM-02·D-STATS-01/02/04 결정 흡수. [§D-PERM-01](#d-perm-01--클랜-권한-매트릭스-모델-도입) |
 
+## 프라이버시 (PRIV)
+
+| 코드 | 상태 | 항목 | 메모 |
+|------|------|------|------|
+| D-PRIV-01 | DECIDED (2026-04-21) | 개인 단위 프라이버시 오버라이드 (클랜 단위 기본 정책 위에 본인이 더 닫는 옵션) | **프리셋 α — 보수적** : ① 방향 **닫기만**(restrict-only, 열기 불가) ② 대상 **통계 5개 키**(`view_monthly_stats`·`view_yearly_stats`·`view_synergy_winrate`·`view_map_winrate`·`view_mscore`) — **부계정(`view_alt_accounts`) 제외** ③ **단일 스위치**(켜면 같은 클랜 member에게 숨김, leader·officer는 항상 열람) ④ 저장 = **클랜별 독립** 신규 테이블 `user_privacy_overrides(user_id, clan_id, key, hidden)`. 범위 = **R3** (결정·스키마 + 목업 D-PERM-01 안내 박스에 예고 카피 1줄만). 프로필 오버라이드 UI·유효 정책 계산 함수 `has_user_stat_access()` 실구현은 **Phase 2+ 이관**. [§D-PRIV-01](#d-priv-01--개인-단위-프라이버시-오버라이드-프리셋-α) |
+
 ## 스토어 · 코인 (STORE)
 
 | 코드 | 상태 | 항목 | 메모 |
@@ -2429,7 +2435,7 @@ CREATE UNIQUE INDEX lfg_app_one_active_per_user
 | 5 | 홍보·자원 | 외부 노출·자산 지출 | 2 | 0 |
 | 6 | **개인 정보** | 본인 데이터 공개 범위 (클랜 단위 기본 정책) | 6 | 0 |
 
-> **카테고리 6 "개인 정보"는 본질이 다름**: 다른 카테고리가 "행위자가 무엇을 할 수 있는가"라면, 개인 정보는 "내 데이터를 누구에게 공개할 것인가"의 **클랜 단위 기본값**. 개인이 본인 프로필에서 더 닫는 옵션은 **Phase 2+ 후속 결정 D-PRIV-01 후보**로 보류.
+> **카테고리 6 "개인 정보"는 본질이 다름**: 다른 카테고리가 "행위자가 무엇을 할 수 있는가"라면, 개인 정보는 "내 데이터를 누구에게 공개할 것인가"의 **클랜 단위 기본값**. 개인이 본인 프로필에서 더 닫는 옵션은 **[D-PRIV-01](#d-priv-01--개인-단위-프라이버시-오버라이드-프리셋-α) DECIDED 2026-04-21** (프리셋 α · restrict-only · 통계 5키 · 단일 스위치 · 클랜별 독립 · Phase 2+ UI 구현).
 
 **권한 키 카탈로그 (전체)**
 
@@ -2552,7 +2558,7 @@ $$;
 2. `has_clan_permission()` SQL 함수 + RLS 정책 21개 권한 키별 적용
 3. 기존 `clan_settings.allow_officer_edit_mscore`·`alt_accounts_visibility` 컬럼을 `permissions` jsonb로 마이그레이션 후 deprecated
 4. 카탈로그 추가 시 부재 키 = default 적용이라 마이그레이션 불필요 (jsonb 유연성)
-5. D-PRIV-01 (개인 단위 프라이버시 오버라이드) 후속 결정
+5. ~~D-PRIV-01 (개인 단위 프라이버시 오버라이드) 후속 결정~~ → **DECIDED 2026-04-21** (프리셋 α, Phase 2+ 실구현). [§D-PRIV-01](#d-priv-01--개인-단위-프라이버시-오버라이드-프리셋-α)
 
 ---
 
@@ -3121,3 +3127,196 @@ notifications INSERT (D-NOTIF-01 트리거 결과)
 
 - [D-NOTIF-01](#d-notif-01--in-app-알림-센터-통합-도입) · [D-NOTIF-02](#d-notif-02--브라우저-서비스워커-웹-푸시-도입-정책-프리셋-α) — 재참여·이탈 방지 대체 수단
 - [D-EVENTS-03](#d-events-03--일정투표-알림-채널정책) — 외부 채널(카카오·Discord)도 Premium 게이팅, 다이제스트 없음으로 정책 일관
+
+---
+
+### D-PRIV-01 — 개인 단위 프라이버시 오버라이드 (프리셋 α)
+
+- **결정일**: 2026-04-21 (사용자 컨펌)
+- **상태**: DECIDED — 프리셋 α (보수적) · 범위 R3 (결정·스키마 + 목업 예고 카피 1줄)
+- **요지**: D-PERM-01 "개인 정보" 카테고리의 6개 권한 키는 **클랜 단위 기본값**이다. 여기에 **개인이 본인 프로필에서 더 닫을 수 있는 오버라이드 레이어**를 추가한다. 열기는 불가(restrict-only). 대상은 **통계 5개 키**로 한정(부계정 제외). leader·officer에게는 항상 열람 가능(운영 책임 보장). 저장은 **클랜별 독립**.
+
+**4 설계 축 × 프리셋 비교**
+
+| 축 | α (선택) | β | γ | δ |
+|---|---|---|---|---|
+| 방향 | **닫기만** | 닫기만 | 닫기만 | — |
+| 대상 키 | **통계 5개** | 통계 5개 | 통계 5개 | — |
+| 역할별 세분 | **단일 스위치** | member/officer 2단 | 단일 스위치 | — |
+| 저장 범위 | **클랜별** | 클랜별 | 전역 프로필 | 도입 보류 |
+
+**β·γ·δ 탈락 근거**
+
+| 탈락 | 근거 |
+|------|------|
+| **β (역할별 세분)** | officer 숨김 허용 시 **경기 사후 정정(D-STATS-02)·M점수 편집(D-MANAGE-02)·HoF 설정(D-STATS-01) 운영 마비**. 운영진은 본인 기록 기반 수동 정정·평판 조정이 업무 — 숨기면 책임 수행 불가. α의 단일 스위치(leader·officer 항상 열람 보장)가 운영 안정성과 개인 의사의 균형점 |
+| **γ (전역 프로필)** | 클랜마다 문화·친밀도 다름. A 클랜에서는 친해서 공개해도 되지만 B 클랜에서는 낯설어 숨기고 싶은 상황이 표준. 전역 설정 시 해상도 손실(가장 보수적인 클랜 기준으로 전체 설정) + 다중 클랜 가입자의 주 유인 약화 |
+| **δ (DROPPED)** | 2020년대 이후 앱의 **프라이버시 감수성이 기본 요구사항**. 특히 M점수 같은 민감 지표는 "수치가 낮아서 부끄럽다"는 감정이 실존 — 개인 오버라이드 없으면 낮은 M점수 멤버의 클랜 이탈 요인으로 작용 |
+
+**열기 불가(restrict-only) 근거**
+
+| # | 근거 |
+|---|------|
+| 1 | 클랜장이 "M점수 공개 안 해도 됨"으로 보수 설정한 맥락을 개인이 밀어붙여 공개하면 **다른 멤버에게 암묵적 압력**(쟤도 공개했는데 너는?). 클랜 문화 붕괴. |
+| 2 | 오버라이드 방향이 단방향이면 UI 단순화(체크박스 1개). 양방향은 "기본 X · 내가 열기 · 내가 닫기" 3상태 멘탈 모델로 복잡 |
+| 3 | Phase 2+ 양방향 필요성이 검증되면 `hidden boolean` → `visibility_override enum('inherit','hide','show')`로 확장 용이. jsonb·enum 확장 둘 다 비파괴 |
+
+**부계정(`view_alt_accounts`) 제외 근거**
+
+| # | 근거 |
+|---|------|
+| 1 | **부정행위 은폐 경로**: 한 사람이 여러 계정으로 시너지 평가·로스터 밸런싱·HoF 경쟁 왜곡. 본인이 부계정을 숨기면 운영진 조사 불가 |
+| 2 | D-PERM-01 default가 이미 `["leader", "officer", "member"]`(모두 공개) — 같은 클랜원끼리는 서로 부계정 인지가 **커뮤니티 신뢰 기반**. 개인 재량으로 숨기는 건 신뢰 훼손 |
+| 3 | 법적 이슈 아님(게임 ID는 공개 식별자). 프라이버시 감수성이 민감 지표(M점수·승률) 대비 낮음 |
+
+**스토리지 형태**
+
+```sql
+CREATE TABLE user_privacy_overrides (
+  user_id  uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  clan_id  uuid NOT NULL REFERENCES clans(id) ON DELETE CASCADE,
+  key      text NOT NULL CHECK (key IN (
+    'view_monthly_stats',
+    'view_yearly_stats',
+    'view_synergy_winrate',
+    'view_map_winrate',
+    'view_mscore'
+  )),
+  hidden   boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, clan_id, key)
+);
+
+-- 예: 철수가 Phoenix Rising 클랜에서 본인 M점수·시너지 승률만 숨김
+-- user_id=철수 · clan_id=phoenix · key='view_mscore'         · hidden=true
+-- user_id=철수 · clan_id=phoenix · key='view_synergy_winrate'· hidden=true
+-- (월간·연간 전적·맵별 승률은 행 부재 = default 적용 = 클랜 설정 따름)
+```
+
+- **부재 행 = 오버라이드 없음 = 클랜 설정 따름**. Phase 2+에 UI에서 토글 ON/OFF 시 INSERT/DELETE (또는 UPSERT with `hidden=true/false`).
+- `hidden=false` 행은 "명시적으로 닫지 않음"이라 의미가 부재 행과 동일 — Phase 2+ UI 구현 시 기본은 INSERT on true / DELETE on false 전략. `hidden=false` 저장은 향후 enum 확장 대비(양방향 오버라이드 도입 시 'show' 값 이식).
+- PK `(user_id, clan_id, key)` = 같은 조합 중복 방지. `ON DELETE CASCADE`로 사용자/클랜 삭제 시 자동 정리.
+
+**유효 정책 계산 함수 (Phase 2+)**
+
+```sql
+CREATE OR REPLACE FUNCTION has_user_stat_access(
+  p_viewer_id  uuid,   -- 데이터를 보려는 사람
+  p_target_id  uuid,   -- 데이터의 주인
+  p_clan_id    uuid,   -- 맥락이 되는 클랜
+  p_key        text    -- 통계 키 (view_monthly_stats 등)
+)
+RETURNS boolean LANGUAGE plpgsql STABLE AS $$
+DECLARE
+  v_viewer_role text;
+  v_target_hidden boolean;
+BEGIN
+  -- 1. 본인은 항상 자기 데이터 열람
+  IF p_viewer_id = p_target_id THEN RETURN true; END IF;
+
+  -- 2. viewer의 해당 클랜 내 역할
+  SELECT role INTO v_viewer_role FROM clan_members
+   WHERE clan_id = p_clan_id AND user_id = p_viewer_id AND status = 'active';
+  IF v_viewer_role IS NULL THEN RETURN false; END IF;
+
+  -- 3. leader·officer는 항상 열람 가능 (운영 책임)
+  IF v_viewer_role IN ('leader', 'officer') THEN
+    RETURN has_clan_permission(p_clan_id, p_viewer_id, p_key);
+  END IF;
+
+  -- 4. member viewer: target의 개인 오버라이드 확인
+  SELECT hidden INTO v_target_hidden FROM user_privacy_overrides
+   WHERE user_id = p_target_id AND clan_id = p_clan_id AND key = p_key;
+  IF v_target_hidden IS TRUE THEN RETURN false; END IF;
+
+  -- 5. 오버라이드 없음: 클랜 단위 권한 매트릭스로 위임
+  RETURN has_clan_permission(p_clan_id, p_viewer_id, p_key);
+END;
+$$;
+```
+
+- 단계 3 = leader·officer는 **개인 오버라이드를 우회**. `has_clan_permission`만 통과하면 열람.
+- 단계 4 = member viewer만 개인 오버라이드의 영향을 받음.
+- `has_clan_permission`은 D-PERM-01 §D-PERM-01에서 정의한 함수. 둘이 2단 연쇄.
+
+**적용 범위 (통계 5개 키)**
+
+| 권한 키 | 적용 화면 (Phase 2+) |
+|---------|---------------------|
+| `view_monthly_stats` | `#view-stats` 월간 탭·개인 프로필 카드 월간 영역 |
+| `view_yearly_stats` | `#view-stats` 연간 탭·개인 프로필 카드 연간 영역 |
+| `view_synergy_winrate` | BalanceMaker 팀 구성 시 "시너지 좋음/나쁨" 표시·시너지 매트릭스 |
+| `view_map_winrate` | 맵별 승률 카드·BalanceMaker 맵 추천 |
+| `view_mscore` | 팀 슬롯 M점수 뱃지·개인 프로필 M점수 표시·시너지 계산 |
+
+- 숨김 시 대체 표시: **"비공개"** 뱃지 (점수 자리에 회색 `--` + 툴팁 "본인 프라이버시 설정 — 클랜 member 열람 제한").
+- leader·officer 화면에서는 항상 정상 수치 + 작은 🔒 아이콘 ("member에게는 비공개" 표시) — 본인이 숨긴 걸 운영진이 알 수 있음.
+
+**RLS 정책 (Phase 2+)**
+
+```sql
+ALTER TABLE user_privacy_overrides ENABLE ROW LEVEL SECURITY;
+
+-- 본인은 자기 행 모두 접근
+CREATE POLICY priv_self_all ON user_privacy_overrides
+  FOR ALL USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+-- 같은 클랜 leader·officer는 읽기만 (운영 가시성 · 🔒 아이콘 표시용)
+CREATE POLICY priv_clan_officer_read ON user_privacy_overrides
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM clan_members cm
+       WHERE cm.clan_id = user_privacy_overrides.clan_id
+         AND cm.user_id = auth.uid()
+         AND cm.status = 'active'
+         AND cm.role IN ('leader', 'officer')
+    )
+  );
+
+-- 일반 member는 자기 행 외에는 접근 불가 (본인 row는 priv_self_all로 커버)
+-- 통계 화면에서 다른 사람의 오버라이드 여부를 직접 조회하지 않고 has_user_stat_access() 함수로만 체크
+```
+
+**D-PERM-01 "개인 정보" 카테고리와의 관계**
+
+- 클랜 단위 기본값은 그대로 유지. 6개 권한 키 중 **통계 5개**에만 오버라이드 레이어가 덧씌워짐.
+- **부계정**(`view_alt_accounts`)은 오버라이드 대상 아님 — 부정행위 은폐 차단.
+- 클랜장이 `view_mscore` 기본을 `✗ member`로 바꿔도 오버라이드는 유지(어차피 숨겨져 있으니 실질적 no-op). 반대로 `✓ member`로 열어도 오버라이드가 우선 = 여전히 해당 개인만 숨김.
+- 오버라이드는 **클랜별 독립**. 클랜 A에서 숨겨도 클랜 B에서는 공개 가능(같은 user_id, 다른 clan_id로 두 행 저장).
+
+**Phase 1 목업 영향 (R3 범위)**
+
+- **프로필 페이지에 실제 오버라이드 UI 추가 안 함** — Phase 2+ 이관.
+- 목업 `main-clan.html` "운영 권한 설정" 카드의 **D-PERM-01 흡수 안내 박스**에 **예고 카피 1줄 추가**:
+  > "Phase 2+ 매트릭스 UI와 함께 **개인 단위 프라이버시 오버라이드(D-PRIV-01)** — 본인이 통계 5개 키를 클랜 member에게만 숨길 수 있는 토글이 프로필 페이지에 제공됩니다."
+- CSS 클래스 `.mock-privacy-override-hint` — Phase 2+ 실제 오버라이드 UI 교체 지점 검색 키.
+- `clan-mock.js`의 `CLAN_PERMISSION_CATALOG` "개인 정보" 카테고리 `note` 갱신: "D-PRIV-01(후속) 보류" → "D-PRIV-01 DECIDED 2026-04-21 (α · restrict-only · 통계 5키 · 단일 스위치 · 클랜별 독립 · Phase 2+ UI)".
+
+**Phase 2+ 전환 규약**
+
+| 단계 | 내용 |
+|------|------|
+| 1 | `user_privacy_overrides` 테이블 + RLS 3정책 + PK 제약 실제 적용 |
+| 2 | `has_user_stat_access()` 함수 배포 · 단위 테스트 (본인·leader·officer·member · 오버라이드 유/무 8조합) |
+| 3 | 통계·프로필 화면 데이터 쿼리를 `has_user_stat_access()` 통과 행만 표시하도록 변경 (SELECT에 JOIN 형태로 필터) |
+| 4 | 프로필 페이지 "프라이버시 설정" 섹션 신설 — 가입한 클랜별 탭 + 통계 5개 토글. 저장 시 UPSERT on `hidden=true` / DELETE on `hidden=false` |
+| 5 | leader·officer 화면에 🔒 아이콘 + 툴팁 ("이 멤버는 member에게 본인 M점수를 숨김") 표시 |
+| 6 | 클랜 탈퇴 시 자동 CASCADE 삭제 확인 (테스트 케이스 포함) |
+| 7 | 문서 갱신: `10-Clan-Stats.md`·`08-Profile.md`에 오버라이드 상호작용 반영 |
+
+**후속 결정 후보 (조건부)**
+
+- **D-PRIV-01b** (OPEN, 조건부) — 양방향 오버라이드 재검토. 클랜 기본이 `✗ member`여도 개인이 `show`로 열 수 있도록 확장. 운영 6개월 후 "개인이 열고 싶어 한다"는 수요가 명확히 확인되면 `hidden boolean` → `visibility_override enum('inherit','hide','show')`로 확장.
+- **D-PRIV-02** (OPEN) — 부계정(`view_alt_accounts`) 오버라이드 재검토. 부정행위 은폐 리스크 vs 개인 의사 수용의 균형점 재평가. 예: "같은 클랜 member에게도 부계정을 숨김"이 허용되더라도 leader·officer에게는 항상 공개 유지.
+- **D-PRIV-03** (OPEN, Phase 2+) — 비클랜 맥락(클랜 탈퇴 후·외부 프로필 열람)의 프라이버시 정책. 현재 D-ECON-03(외부 노출 차단)으로 대부분 커버되지만, "이전 클랜의 내 기록" 열람권 정책은 별도 검토 필요.
+
+**연관**
+
+- [D-PERM-01](#d-perm-01--클랜-권한-매트릭스-모델-도입) — 개인 정보 카테고리 6키 중 5키에 오버라이드 레이어 덧씌움
+- [D-MANAGE-03](#d-manage-03--부계정-조회-정책과-공개-범위-토글) — 부계정은 오버라이드 제외(부정행위 은폐 차단)
+- [D-STATS-02](#d-stats-02--경기-사후-정정-요청-모달과-이력-보존) · [D-MANAGE-02](#d-manage-02--구성원-개인-상세-편집-권한과-m점수-토글) · [D-STATS-01](#d-stats-01--hof-설정-권한-d-perm-01-흡수) — leader·officer는 운영 책임상 항상 열람
+- [D-ECON-03](#d-econ-03--클랜-순위표-민감-지표-노출-범위) — 외부 노출 금지 정책과 정합(개인 오버라이드는 클랜 내부 member 대상)
+- [schema.md](./schema.md) — `user_privacy_overrides` 테이블 신설, `has_user_stat_access()` 함수 정의
+- [pages/07-MainClan.md](./pages/07-MainClan.md) — "운영 권한 설정" 카드 예고 카피
