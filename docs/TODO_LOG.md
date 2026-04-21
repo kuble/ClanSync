@@ -5,6 +5,51 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-21 — D-PRIV-01 종결 (개인 단위 프라이버시 오버라이드 프리셋 α · 범위 R3)
+
+- [x] **결정 컨펌 절차 준수** (`.cursor/rules/decision-confirm.mdc`):
+  - **4 설계 축 × 프리셋 제시**: 방향(닫기만/양방향)·대상 키(통계 5/6)·역할별 세분(단일/2단)·저장 범위(클랜별/전역) → 조합 α/β/γ/δ 비교표 + β·γ·δ 탈락 근거(β officer 숨김 시 운영 마비·γ 클랜마다 분위기 달라 해상도 손실·δ 프라이버시 감수성 미충족).
+  - **범위 R1~R4**: R1 프로필 전면 구현 / R2 결정·스키마만 / R3 결정·스키마 + D-PERM-01 카드 예고 카피 1줄 / R4 프로필 예고 섹션 — 추천 R3.
+  - 사용자 선택 = **α + R3**.
+- [x] **D-PRIV-01 — 개인 단위 프라이버시 오버라이드 (프리셋 α)** (DECIDED 2026-04-21, 사용자 컨펌)
+  - **프리셋 α**: restrict-only · 통계 5개 키(`view_monthly_stats`·`view_yearly_stats`·`view_synergy_winrate`·`view_map_winrate`·`view_mscore`) · 단일 스위치(켜면 같은 클랜 member 대상 숨김, leader·officer는 항상 열람 — 운영 책임) · 클랜별 독립 저장.
+  - **부계정(`view_alt_accounts`) 제외 근거**: ① 한 사람이 여러 계정으로 시너지·로스터 왜곡하는 부정행위 은폐 경로 ② D-PERM-01 default ✓/✓/✓로 같은 클랜원끼리의 커뮤니티 신뢰 기반 ③ 법적 이슈 아님(공개 식별자).
+  - **열기 불가(restrict-only) 근거**: ① 개인이 밀어붙여 공개 시 다른 멤버에게 암묵적 압력 ② 단방향이면 UI 체크박스 1개로 끝 ③ 필요 시 `hidden boolean` → `visibility_override enum` 비파괴 확장 가능.
+  - **스키마**: `user_privacy_overrides(user_id, clan_id, key, hidden, created_at, updated_at)` 신설. PK `(user_id, clan_id, key)`. CHECK 제약으로 key 5종 화이트리스트. ON DELETE CASCADE 양쪽 FK. 부분 인덱스 `idx_user_privacy_overrides_lookup (user_id, clan_id) WHERE hidden=true`.
+  - **RLS 3정책**: (1) `priv_self_all` — 본인 FOR ALL (2) `priv_clan_officer_read` — 같은 클랜 leader·officer FOR SELECT (🔒 아이콘 표시용) (3) member는 타인 행 직접 조회 경로 없음 (`has_user_stat_access()` 함수로만 게이팅).
+  - **유효 정책 계산 함수** `has_user_stat_access(viewer_id, target_id, clan_id, key)` — 5단계: 본인 체크 → viewer 역할 → leader·officer 통과(D-PERM-01만 위임) → member는 target 오버라이드 우선 확인 → 오버라이드 없으면 `has_clan_permission()` 위임.
+  - **적용 5개 화면**: `#view-stats` 월간/연간 탭·BalanceMaker 시너지 표시·맵별 승률 카드·팀 슬롯 M점수 뱃지·개인 프로필 M점수. 숨김 시 "비공개" 뱃지(회색 `--` + 툴팁). leader·officer 화면에는 정상 수치 + 🔒 아이콘(member에게 숨김 표시).
+  - **범위 R3**: Phase 1 목업 = D-PERM-01 안내 박스 내부 예고 카피 1줄(`.mock-privacy-override-hint`). 실제 오버라이드 UI·함수·화면 적용은 Phase 2+ 이관.
+  - **Phase 2+ 전환 규약 7단계**: (1) 테이블·RLS 배포 → (2) 함수 배포 + 단위 테스트 8조합 → (3) 통계·프로필 쿼리에 `has_user_stat_access()` 필터 적용 → (4) 프로필 "프라이버시 설정" 섹션(클랜별 탭 + 5키 토글) → (5) leader·officer 🔒 아이콘 표시 → (6) 클랜 탈퇴 CASCADE 검증 → (7) `10-Clan-Stats.md`·`08-Profile.md` 문서 갱신.
+- [x] `docs/01-plan/decisions.md`
+  - 헤더 표에 **"프라이버시 (PRIV)" 신규 섹션 신설** — "권한 (PERM)" 다음. D-PRIV-01 DECIDED 행 추가.
+  - §D-PERM-01 카테고리 6 "개인 정보" 블록쿼트: "Phase 2+ 후속 결정 D-PRIV-01 후보로 보류" → "D-PRIV-01 DECIDED 2026-04-21" 로 갱신.
+  - §D-PERM-01 Phase 2+ 백로그 5번 취소선 + DECIDED 링크 추가.
+  - 본문 말미에 **§D-PRIV-01 상세 블록 신설** — 4 설계 축 × α/β/γ/δ 비교표, β/γ/δ 탈락 근거, restrict-only 근거 3건, 부계정 제외 근거 3건, 스토리지 형태 SQL, `has_user_stat_access()` 5단계 함수, 적용 5개 화면 표, RLS 3정책, D-PERM-01 관계, Phase 1 목업 영향(R3), Phase 2+ 전환 규약 7단계, 후속 결정 후보 D-PRIV-01b(양방향)·D-PRIV-02(부계정)·D-PRIV-03(비클랜 맥락).
+- [x] `docs/01-plan/schema.md`
+  - **`user_privacy_overrides` 테이블 신설** (§web_push_subscriptions 직후, §store_items 앞) — 컬럼 6종·PK·CHECK·부분 인덱스·RLS 3정책·`has_user_stat_access()` 함수 5단계·UPSERT/DELETE 패턴.
+- [x] `docs/01-plan/pages/07-MainClan.md`
+  - §결정 필요: D-PRIV-01 라인을 "후속 후보 OPEN" → "DECIDED 2026-04-21 (프리셋 α, 범위 R3)" 로 갱신.
+  - 신규 후속 후보 3건 등재: **D-PRIV-01b**(양방향 재검토, 조건부)·**D-PRIV-02**(부계정 오버라이드 재검토)·**D-PRIV-03**(비클랜 맥락, Phase 2+).
+  - §구현 참고: D-PRIV-01 예고 카피 위치·클래스·교체 지점 라인 추가 (`.mock-privacy-override-hint`).
+- [x] `mockup/pages/main-clan.html`
+  - **CSS 신설**: `.mock-privacy-override-hint`(상단 점선 보더로 D-PERM-01 안내 박스와 분리, margin-top 8px, 기존 박스 스타일 상속), `.mock-privacy-override-hint__tag`(보라 칩).
+  - **D-PERM-01 안내 박스 확장**: `#mock-manage-clan-settings-card` 카드의 D-PERM-01 흡수 안내 박스 내부 하단에 D-PRIV-01 예고 카피 1줄 — `aria-hidden="true"`로 보조 디바이스 읽기 제외. 본문 = "Phase 2+ 매트릭스 UI와 함께 개인 단위 프라이버시 오버라이드도 프로필 페이지에 제공됩니다 — 본인이 통계 5개 키를 같은 클랜 member에게만 숨길 수 있는 토글. leader·officer는 항상 열람(운영 책임). 부계정은 대상 제외(부정행위 은폐 차단)."
+- [x] `mockup/scripts/clan-mock.js`
+  - `CLAN_PERMISSION_CATALOG` "개인 정보" 카테고리에 **D-PRIV-01 주석 블록 신설** — 6 포인트(클랜 단위 기본값·오버라이드 대상 5키·방향 restrict-only·저장 테이블·Phase 1 목업 위치·Phase 2+ 이관 항목) 명시.
+  - `note` 문구 갱신: "D-PRIV-01(후속) 보류" → "D-PRIV-01 DECIDED 2026-04-21 (α · restrict-only · 통계 5키 · 단일 스위치 · 클랜별 독립 · Phase 2+ UI)".
+  - JS 로직 무변경(예고 카피는 inert) — 기존 `mockClanHasPermission`, `CLAN_PERMISSION_BY_KEY` 그대로.
+- [x] **신규 후속 후보 식별**:
+  - **D-PRIV-01b** (OPEN, 조건부) — 양방향 오버라이드 재검토. 운영 6개월 후 "개인이 열고 싶어 한다"는 수요 확인 시 `hidden boolean` → `visibility_override enum('inherit','hide','show')` 확장.
+  - **D-PRIV-02** (OPEN) — 부계정(`view_alt_accounts`) 오버라이드 재검토. 부정행위 은폐 리스크 vs 개인 의사 수용 균형점 재평가.
+  - **D-PRIV-03** (OPEN, Phase 2+) — 비클랜 맥락(클랜 탈퇴 후·외부 프로필 열람)의 프라이버시 정책. D-ECON-03 외부 노출 차단과 구분.
+- [x] **Phase 1 결정 사이클 실질 마감**:
+  - 남은 OPEN 후보는 전부 **Phase 2+ 이관**(D-NOTIF-02b 공급자·D-EMAIL-01 거래 메일·D-PRIV-03 비클랜 맥락) 또는 **조건부 재오픈**(D-NOTIF-02c Free 하이브리드·D-NOTIF-03b 다이제스트·D-PRIV-01b 양방향·D-PRIV-02 부계정) 성격 — Phase 1 목업 범위에서는 더 추가 결정할 항목 없음.
+- [x] **결과**: D-PERM-01 "개인 정보" 카테고리의 **개인 레이어가 닫힘**. 클랜 단위 기본값(21 권한 키 중 6) + 개인 오버라이드(통계 5키 restrict-only)로 **2단 프라이버시 모델 완성**. 운영 책임(leader·officer 항상 열람) + 부정행위 차단(부계정 제외) + 클랜별 독립성(문화 차이 수용) 3축 균형. 목업 침습 = CSS 1 블록 + HTML 1 블록(안내 박스 내부 4줄) + JS 주석 6줄 + `note` 1줄 갱신 — **최소 침습 달성**.
+- [x] **분할 커밋**: `docs(plan): decide D-PRIV-01 — personal privacy override preset α (restrict-only, stat keys)` → `docs(plan): schema — user_privacy_overrides table + has_user_stat_access function` → `feat(mockup): D-PRIV-01 R3 preview copy in D-PERM-01 settings card` → `docs(todo): log D-PRIV-01 close session + mark Phase 1 decisions cycle complete`.
+
+---
+
 ### 2026-04-21 — D-NOTIF-03 종결 (이메일 다이제스트 DROPPED)
 
 - [x] **결정 컨펌 절차 준수** (`.cursor/rules/decision-confirm.mdc`):
