@@ -246,7 +246,7 @@ H1 "클랜 통계"
 
 ## 연관 문서
 - [pages.md](../pages.md)
-- [slices/slice-05-stats-hof.md](../slices/slice-05-stats-hof.md)
+- [slices/slice-05-clan-stats.md](../slices/slice-05-clan-stats.md)
 - [schema.md](../schema.md) (`matches`, `match_players`, `match_results`)
 - [07-MainClan.md](./07-MainClan.md) (셸 + MVP 카드의 통계 출처)
 - [09-BalanceMaker.md](./09-BalanceMaker.md) (경기 결과 입력의 출처)
