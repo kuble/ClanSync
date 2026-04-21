@@ -940,7 +940,286 @@
   };
 
   /*
+   * ── D-PERM-01 권한 매트릭스 카탈로그 (DECIDED 2026-04-21) ────────────
+   * 6 카테고리 × 21 권한 키. Phase 1 = 카탈로그 const만, Phase 2+에 매트릭스 UI 구현.
+   * 잠긴 권한 5개(`locked: true`)는 leader 고정 — 토글 불가. 기존 D-MANAGE-02/03 토글
+   * 시스템(아래 MOCK_CLAN_SETTINGS_*)은 호환 유지하며 Phase 2+에 permissions jsonb로 마이그레이션.
+   *
+   * 흡수 매핑:
+   *   manage_subscription      ← D-MANAGE-01
+   *   delegate_leader/kick_officer/bulk_kick_dormant/kick_member/approve_join_requests/edit_mscore
+   *                            ← D-MANAGE-02
+   *   view_alt_accounts        ← D-MANAGE-03 (기본값 officer→member 확장)
+   *   manage_clan_events       ← D-EVENTS-01
+   *   confirm_scrim            ← D-SCRIM-02
+   *   set_hof_rules            ← D-STATS-01
+   *   correct_match_records, view_match_records ← D-STATS-02
+   *   export_csv               ← D-STATS-04
+   */
+  var CLAN_PERMISSION_CATALOG = [
+    {
+      category: "재무·계정",
+      keys: [
+        { key: "manage_subscription", label: "결제·플랜 변경", default: ["leader"], locked: true, source: "D-MANAGE-01" },
+        { key: "delegate_leader",     label: "클랜장 위임",     default: ["leader"], locked: true, source: "D-MANAGE-02" },
+      ],
+    },
+    {
+      category: "멤버 관리",
+      keys: [
+        { key: "kick_officer",          label: "운영진 강퇴",         default: ["leader"], locked: true, source: "D-MANAGE-02" },
+        { key: "bulk_kick_dormant",     label: "휴면 일괄 강퇴",      default: ["leader"], locked: true, source: "D-MANAGE-02" },
+        { key: "kick_member",           label: "일반 멤버 강퇴",      default: ["leader", "officer"], locked: false, source: "D-MANAGE-02" },
+        { key: "approve_join_requests", label: "가입 신청 승인/거절", default: ["leader", "officer"], locked: false, source: "D-MANAGE-02" },
+      ],
+    },
+    {
+      category: "평판·통계",
+      keys: [
+        { key: "edit_mscore",            label: "M점수 편집",         default: ["leader"],            locked: false, toggleHint: "officer 허용", source: "D-MANAGE-02" },
+        { key: "set_hof_rules",          label: "HoF 설정 모달",      default: ["leader"],            locked: false, toggleHint: "officer 허용", source: "D-STATS-01" },
+        { key: "view_match_records",     label: "경기 기록 열람",     default: ["leader", "officer"], locked: false, toggleHint: "member 허용",  source: "D-STATS-02" },
+        { key: "correct_match_records",  label: "경기 사후 정정",     default: ["leader"],            locked: false, toggleHint: "officer 허용", source: "D-STATS-02" },
+        { key: "export_csv",             label: "CSV 내보내기",       default: ["leader"],            locked: false, toggleHint: "officer 허용", source: "D-STATS-04" },
+      ],
+    },
+    {
+      category: "경기 운영",
+      keys: [
+        { key: "manage_clan_events", label: "이벤트 편집/삭제",     default: ["leader", "officer"], locked: false, source: "D-EVENTS-01" },
+        { key: "confirm_scrim",      label: "스크림 양측 확정",     default: ["leader", "officer"], locked: true,  source: "D-SCRIM-02" },
+      ],
+    },
+    {
+      category: "홍보·자원",
+      keys: [
+        { key: "manage_promo",     label: "클랜 홍보 글 작성/수정", default: ["leader", "officer"], locked: false },
+        { key: "manage_clan_pool", label: "클랜 풀 지출",           default: ["leader", "officer"], locked: false },
+      ],
+    },
+    {
+      category: "개인 정보",
+      note: "본인 데이터를 누구에게 공개할지의 클랜 단위 기본 정책. 개인 단위 오버라이드는 D-PRIV-01(후속) 보류.",
+      keys: [
+        { key: "view_alt_accounts",     label: "부계정 조회",         default: ["leader", "officer", "member"], locked: false, source: "D-MANAGE-03" },
+        { key: "view_monthly_stats",    label: "월간 전적 공개",      default: ["leader", "officer"],           locked: false, toggleHint: "member 허용" },
+        { key: "view_yearly_stats",     label: "연간 전적 공개",      default: ["leader", "officer"],           locked: false, toggleHint: "member 허용" },
+        { key: "view_synergy_winrate",  label: "시너지 승률 공개",    default: ["leader", "officer"],           locked: false, toggleHint: "member 허용" },
+        { key: "view_map_winrate",      label: "맵별 승률 공개",      default: ["leader", "officer"],           locked: false, toggleHint: "member 허용" },
+        { key: "view_mscore",           label: "M점수 공개",          default: ["leader", "officer"],           locked: false, toggleHint: "member 허용" },
+      ],
+    },
+  ];
+
+  // 평탄화 lookup (key → meta) — has-permission 체크용
+  var CLAN_PERMISSION_BY_KEY = (function () {
+    var out = {};
+    CLAN_PERMISSION_CATALOG.forEach(function (cat) {
+      cat.keys.forEach(function (k) {
+        out[k.key] = Object.assign({ category: cat.category }, k);
+      });
+    });
+    return out;
+  })();
+
+  /**
+   * D-PERM-01 권한 체크 (Phase 1 시뮬레이션).
+   * Phase 2+에는 has_clan_permission(clan_id, user_id, perm) SQL 함수로 교체.
+   * @param {string} role  현재 사용자 역할 'leader'|'officer'|'member'
+   * @param {string} permKey  CLAN_PERMISSION_CATALOG의 권한 키
+   * @returns {boolean}
+   */
+  window.mockClanHasPermission = function (role, permKey) {
+    var meta = CLAN_PERMISSION_BY_KEY[permKey];
+    if (!meta) return false;
+    // 잠긴 권한은 항상 default 강제 (jsonb 우회 방지의 코드 가드)
+    if (meta.locked) return meta.default.indexOf(role) >= 0;
+    // 일반 권한: Phase 1은 default만 사용 (permissions jsonb 토글 시뮬은 Phase 2+).
+    // 단, 기존 MOCK_CLAN_SETTINGS_KEY의 토글 2건은 매핑해서 반영.
+    var legacy = window.mockClanSettingsGet ? window.mockClanSettingsGet() : null;
+    if (legacy) {
+      if (permKey === "edit_mscore" && legacy.allowOfficerEditMscore) {
+        return ["leader", "officer"].indexOf(role) >= 0;
+      }
+      if (permKey === "view_alt_accounts" && legacy.altAccountsVisibility === "officers") {
+        return ["leader", "officer"].indexOf(role) >= 0;
+      }
+    }
+    return meta.default.indexOf(role) >= 0;
+  };
+
+  // 디버깅·문서 링크용
+  window.CLAN_PERMISSION_CATALOG = CLAN_PERMISSION_CATALOG;
+  window.CLAN_PERMISSION_BY_KEY = CLAN_PERMISSION_BY_KEY;
+
+  /*
+   * ── 경기 사후 정정 요청 (D-STATS-02 DECIDED 2026-04-21) ───────────────
+   * `view_match_records` 보유자가 정정 요청 모달로 제출 → sessionStorage에 누적.
+   * 운영진(`correct_match_records` 보유자)이 처리할 때까지 'pending'.
+   * Phase 1은 in-memory 시뮬레이션 — Phase 2+에 match_record_correction_requests 테이블로 이관.
+   *
+   * 같은 match_id에 active 1건 가드(부분 UNIQUE 인덱스 시뮬). 7일 만료는 Phase 2+ cron.
+   */
+  var MOCK_MATCH_CORRECTION_KEY = "clansync-mock-match-correction-requests-v1";
+
+  window.mockMatchCorrectionList = function () {
+    try {
+      var raw = sessionStorage.getItem(MOCK_MATCH_CORRECTION_KEY);
+      if (!raw) return [];
+      var parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  };
+
+  window.mockMatchCorrectionHasActive = function (matchId) {
+    return window.mockMatchCorrectionList().some(function (r) {
+      return r.match_id === matchId && r.status === "pending";
+    });
+  };
+
+  window.mockMatchCorrectionSubmit = function (payload) {
+    if (!payload || !payload.match_id) {
+      return { ok: false, reason: "match_id 누락" };
+    }
+    if (!payload.reason || !payload.reason.trim()) {
+      return { ok: false, reason: "사유는 필수입니다" };
+    }
+    if (payload.reason.length > 500) {
+      return { ok: false, reason: "사유는 500자 이내로 작성해 주세요" };
+    }
+    if (window.mockMatchCorrectionHasActive(payload.match_id)) {
+      return { ok: false, reason: "이미 처리 대기 중인 요청이 있습니다" };
+    }
+    var list = window.mockMatchCorrectionList();
+    var row = {
+      id: "mcr-" + Date.now().toString(36),
+      match_id: payload.match_id,
+      requester_id: payload.requester_id || "self",
+      proposed_result: payload.proposed_result || null,
+      proposed_roster: payload.proposed_roster || null,
+      proposed_map: payload.proposed_map || null,
+      reason: payload.reason.trim(),
+      status: "pending",
+      created_at: new Date().toISOString(),
+      resolved_at: null,
+      resolved_by: null,
+      reject_reason: null,
+    };
+    list.push(row);
+    try {
+      sessionStorage.setItem(MOCK_MATCH_CORRECTION_KEY, JSON.stringify(list));
+    } catch (e) {}
+    return { ok: true, request: row };
+  };
+
+  /**
+   * 정정 요청 모달 열기 — 경기 카드의 "정정 요청" 버튼에서 호출.
+   * @param {string} matchId
+   * @param {string} matchLabel  헤더에 표시할 사람용 라벨 (예: "2026-04-15 19:30 / 소환사의 협곡")
+   */
+  window.mockMatchCorrectionOpenModal = function (matchId, matchLabel) {
+    var modal = document.getElementById("mock-match-correction-request-modal");
+    if (!modal) return false;
+
+    if (window.mockMatchCorrectionHasActive(matchId)) {
+      alert("이 경기에는 이미 처리 대기 중인 정정 요청이 있습니다. 운영진의 처리 후 다시 요청해 주세요.");
+      return false;
+    }
+
+    var target = document.getElementById("mock-match-correction-target");
+    if (target) target.textContent = matchLabel || matchId || "경기";
+
+    ["mock-match-correction-result", "mock-match-correction-map"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+    ["mock-match-correction-roster", "mock-match-correction-reason"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+    var count = document.getElementById("mock-match-correction-reason-count");
+    if (count) count.textContent = "500";
+
+    modal.dataset.matchId = matchId;
+    modal.removeAttribute("hidden");
+    modal.setAttribute("aria-hidden", "false");
+
+    var reason = document.getElementById("mock-match-correction-reason");
+    if (reason) {
+      reason.oninput = function () {
+        var c = document.getElementById("mock-match-correction-reason-count");
+        if (c) c.textContent = String(500 - reason.value.length);
+      };
+      setTimeout(function () {
+        reason.focus();
+      }, 50);
+    }
+    return false;
+  };
+
+  window.mockMatchCorrectionCloseModal = function () {
+    var modal = document.getElementById("mock-match-correction-request-modal");
+    if (!modal) return false;
+    modal.setAttribute("hidden", "");
+    modal.setAttribute("aria-hidden", "true");
+    delete modal.dataset.matchId;
+    return false;
+  };
+
+  window.mockMatchCorrectionSubmitFromModal = function () {
+    var modal = document.getElementById("mock-match-correction-request-modal");
+    if (!modal) return false;
+    var matchId = modal.dataset.matchId;
+    var get = function (id) {
+      var el = document.getElementById(id);
+      return el ? el.value : "";
+    };
+    var result = window.mockMatchCorrectionSubmit({
+      match_id: matchId,
+      proposed_result: get("mock-match-correction-result") || null,
+      proposed_map: get("mock-match-correction-map") || null,
+      proposed_roster: get("mock-match-correction-roster")
+        ? { note: get("mock-match-correction-roster") }
+        : null,
+      reason: get("mock-match-correction-reason"),
+    });
+    if (!result.ok) {
+      alert(result.reason);
+      return false;
+    }
+    alert("정정 요청을 운영진에게 보냈습니다. 처리 결과는 알림으로 안내됩니다.");
+    window.mockMatchCorrectionCloseModal();
+    return false;
+  };
+
+  window.mockMatchCorrectionResolve = function (id, action, opts) {
+    var list = window.mockMatchCorrectionList();
+    var found = false;
+    var next = list.map(function (r) {
+      if (r.id !== id) return r;
+      found = true;
+      return Object.assign({}, r, {
+        status: action === "accept" ? "accepted" : "rejected",
+        resolved_at: new Date().toISOString(),
+        resolved_by: (opts && opts.resolved_by) || "self",
+        reject_reason: action === "reject" ? (opts && opts.reject_reason) || "" : null,
+      });
+    });
+    if (!found) return { ok: false, reason: "요청을 찾을 수 없습니다" };
+    try {
+      sessionStorage.setItem(MOCK_MATCH_CORRECTION_KEY, JSON.stringify(next));
+    } catch (e) {}
+    return { ok: true };
+  };
+
+  /*
    * ── 클랜 운영 권한 설정 (D-MANAGE-02 / D-MANAGE-03) ───────────────────
+   * [DEPRECATED 노트: D-PERM-01 흡수됨 — Phase 2+에 permissions jsonb로 마이그레이션]
+   * Phase 1 호환성을 위해 기존 토글 시스템 그대로 유지. mockClanHasPermission()이
+   * 이 값을 우선 참조해 edit_mscore·view_alt_accounts에 반영.
+   *
    * localStorage 키 하나에 JSON으로 저장. leader만 쓰기 가능.
    *
    *   allowOfficerEditMscore: boolean (기본 false) — M점수 편집 officer 허용 여부

@@ -6357,7 +6357,10 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
 
       <div class="d-card d-card-full mock-officer-only" style="margin-bottom:16px;border-color:rgba(168,85,247,0.25)" id="mock-manage-clan-settings-card">
         <div class="d-card-label">운영 권한 설정</div>
-        <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px;line-height:1.55">운영진이 수행할 수 있는 범위를 조정합니다. 변경은 <strong>클랜장만</strong> 가능합니다 (D-MANAGE-02 / D-MANAGE-03).</p>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px;line-height:1.55">운영진이 수행할 수 있는 범위를 조정합니다. 변경은 <strong>클랜장만</strong> 가능합니다 (D-MANAGE-02 / D-MANAGE-03).</p>
+        <div style="margin:0 0 14px;padding:10px 12px;border:1px dashed rgba(168,85,247,0.45);border-radius:var(--radius-md);background:rgba(168,85,247,0.08);font-size:11px;color:var(--text-muted);line-height:1.55">
+          <strong style="color:#c084fc">D-PERM-01 흡수 (2026-04-21)</strong> · 아래 두 토글은 <strong>전체 권한 매트릭스(6 카테고리 × 21 권한 키)</strong>의 일부로 일반화되었습니다. Phase 2+에 디스코드식 매트릭스 UI로 전면 확장됩니다 — 잠긴 권한 5개(결제·위임·운영진 강퇴·휴면 일괄 강퇴·스크림 확정)는 클랜장 고정. 카탈로그 전체는 <code>decisions.md §D-PERM-01</code> 참조.
+        </div>
 
         <div style="display:grid;gap:14px">
           <div style="padding:12px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg-overlay)">
@@ -6858,6 +6861,67 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
       <div class="mock-modal-actions">
         <button type="button" class="btn btn-secondary btn-sm" onclick="window.mockStatsHofCloseSettingsModal()">취소</button>
         <button type="button" class="btn btn-sm" onclick="window.mockStatsHofSaveSettingsModal()">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!--
+    경기 사후 정정 요청 모달 (D-STATS-02 DECIDED 2026-04-21)
+    - `view_match_records` 권한 보유자가 잘못된 경기 기록 발견 시 운영진에게 정정 요청
+    - 운영진은 알림 → 요청 상세에서 "직접 정정"으로 수동 적용 (자동 적용 X)
+    - 같은 경기에 active 요청 1건만 (clan-mock.js의 mockMatchCorrectionHasActive 가드)
+    - 7일 미처리 시 자동 expire (Phase 2+ cron)
+  -->
+  <div id="mock-match-correction-request-modal" class="mock-modal-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="mock-match-correction-request-title" onclick="if(event.target===this)window.mockMatchCorrectionCloseModal()">
+    <div class="mock-modal-card" style="max-width:480px;width:calc(100% - 32px);box-sizing:border-box" onclick="event.stopPropagation()">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px">
+        <div style="flex:1">
+          <h3 id="mock-match-correction-request-title" style="margin:0 0 4px;font-size:16px;line-height:1.3">경기 기록 정정 요청</h3>
+          <p style="margin:0;font-size:11px;color:var(--text-muted);line-height:1.5">잘못된 경기 기록을 발견했나요? 운영진에게 정정을 요청합니다. 요청은 운영진이 수동으로 검토·적용하며, 자동 변경되지 않습니다.</p>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" style="flex-shrink:0" onclick="return window.mockMatchCorrectionCloseModal()" aria-label="닫기">닫기</button>
+      </div>
+
+      <div style="padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg-overlay);margin-bottom:14px">
+        <p style="margin:0;font-size:11px;color:var(--text-muted);line-height:1.5">대상 경기: <strong id="mock-match-correction-target" style="color:var(--foreground)">—</strong></p>
+      </div>
+
+      <div class="mock-modal-field">
+        <label for="mock-match-correction-result">결과 (선택)</label>
+        <select id="mock-match-correction-result">
+          <option value="">변경 없음</option>
+          <option value="blue_win">블루팀 승</option>
+          <option value="red_win">레드팀 승</option>
+        </select>
+      </div>
+
+      <div class="mock-modal-field">
+        <label for="mock-match-correction-map">맵 (선택)</label>
+        <select id="mock-match-correction-map">
+          <option value="">변경 없음</option>
+          <option value="summoners_rift">소환사의 협곡</option>
+          <option value="howling_abyss">칼바람 나락</option>
+        </select>
+      </div>
+
+      <div class="mock-modal-field">
+        <label for="mock-match-correction-roster">로스터 변경 사항 (선택, 자유 기술)</label>
+        <textarea id="mock-match-correction-roster" rows="2" placeholder="예: 블루팀 정글 자리에 'PlayerA' 대신 'PlayerB'가 실제 출전" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg-elevated);color:var(--foreground);font-size:12px;font-family:inherit;resize:vertical"></textarea>
+      </div>
+
+      <div class="mock-modal-field">
+        <label for="mock-match-correction-reason">사유 <span style="color:#ef4444">*</span></label>
+        <textarea id="mock-match-correction-reason" rows="3" placeholder="정정이 필요한 구체적인 사유를 입력해 주세요 (필수, 최대 500자)" maxlength="500" required style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg-elevated);color:var(--foreground);font-size:12px;font-family:inherit;resize:vertical"></textarea>
+        <p class="mock-modal-hint">남은 글자: <span id="mock-match-correction-reason-count">500</span></p>
+      </div>
+
+      <div style="padding:8px 10px;border:1px dashed var(--border);border-radius:var(--radius-md);background:var(--bg-overlay);margin:0 0 14px;font-size:10px;color:var(--text-muted);line-height:1.5">
+        같은 경기에 처리 대기 중인 요청이 이미 있다면 새 요청은 받아들여지지 않습니다. 7일 내 미처리 시 자동 만료되며, 만료 후 다시 요청할 수 있습니다.
+      </div>
+
+      <div class="mock-modal-actions">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="window.mockMatchCorrectionCloseModal()">취소</button>
+        <button type="button" class="btn btn-sm" onclick="window.mockMatchCorrectionSubmitFromModal()">정정 요청 보내기</button>
       </div>
     </div>
   </div>
