@@ -610,7 +610,7 @@ ClanMember ──< CoinTransaction
 | created_at | timestamptz | |
 
 ### clan_events (일정 템플릿)
-> **D-EVENTS-01 · D-EVENTS-02** (DECIDED 2026-04-20) — 반복 일정은 **템플릿 1행 + 예외 테이블**. `source='scrim_auto'` 이벤트는 스크림에서 자동 파생된 **읽기 전용** 행으로, 시간·장소·제목 변경은 `scrim_rooms`에서만 가능. 상세는 [decisions.md §D-EVENTS-01](./decisions.md#d-events-01--스크림-확정--클랜-이벤트-자동-생성동기화) · [§D-EVENTS-02](./decisions.md#d-events-02--일정-반복-종료-조건).
+> **D-EVENTS-01 (DECIDED 2026-04-20) · D-EVENTS-02 Revised (2026-04-21)** — 반복 일정은 **템플릿 1행 + 예외 테이블**. `source='scrim_auto'` 이벤트는 스크림에서 자동 파생된 **읽기 전용** 행. D-EVENTS-02는 2026-04-21에 **종료 조건·52회 hard stop을 폐지**하고 `weekly`는 월~일 다중 요일 + 시각, `monthly`는 day-of-month + 시각 기반으로 단순화됨. 상세 [§D-EVENTS-01](./decisions.md#d-events-01--스크림-확정--클랜-이벤트-자동-생성동기화) · [§D-EVENTS-02 Revised](./decisions.md#d-events-02-revised--일정-반복-요일시각-기반-무기한--2026-04-21).
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
@@ -620,10 +620,9 @@ ClanMember ──< CoinTransaction
 | kind | enum('intra','scrim','event') NOT NULL | 기존 `event_type` 재명명 |
 | start_at | timestamptz NOT NULL | 첫 인스턴스 시작 시각 (KST 정규화) |
 | place | varchar NULL | 장소·채널 메모 |
-| repeat | enum('none','weekly','biweekly','monthly') NOT NULL DEFAULT 'none' | |
-| repeat_end_kind | enum('never','count','until') NULL | `repeat='none'`이면 NULL |
-| repeat_end_count | int NULL CHECK (repeat_end_count BETWEEN 1 AND 52) | D-EVENTS-02 인스턴스 상한 52 |
-| repeat_end_at | timestamptz NULL | `until` 모드 전용 |
+| repeat | enum('none','weekly','monthly') NOT NULL DEFAULT 'none' | D-EVENTS-02 Revised — `daily`·`biweekly` 제거 |
+| repeat_weekdays | smallint[] NULL | `repeat='weekly'` 필수 · ISO 요일(1=월..7=일) 1~7 원소, ≥1개. 그 외 NULL |
+| repeat_time | time NULL | `repeat IN ('weekly','monthly')` 필수 · `HH:mm:ss` (KST 해석). 그 외 NULL |
 | source | enum('manual','scrim_auto') NOT NULL DEFAULT 'manual' | |
 | scrim_id | uuid FK → scrim_rooms NULL | `source='scrim_auto'`일 때 원본 스크림 |
 | created_by | uuid FK → users NOT NULL | |
@@ -631,10 +630,13 @@ ClanMember ──< CoinTransaction
 | finished_at | timestamptz NULL | 경기 종료 시각 (스크림 자동 이벤트가 `finished` 상태일 때) |
 | created_at | timestamptz NOT NULL DEFAULT now() | |
 
+**DROPPED (D-EVENTS-02 Revised 2026-04-21)** — 다음 3컬럼은 Original 결정(2026-04-20)의 잔재로, Revised 결정에서 **제거**:
+`repeat_end_kind enum('never','count','until')` · `repeat_end_count int` · `repeat_end_at timestamptz` 및 관련 CHECK 제약. 52회 hard stop 로직·cron `never → count` 자동 전환도 폐기.
+
 **제약·RLS**
 
-- `CHECK ((repeat = 'none' AND repeat_end_kind IS NULL AND repeat_end_count IS NULL AND repeat_end_at IS NULL) OR (repeat != 'none' AND repeat_end_kind IS NOT NULL))` (D-EVENTS-02).
-- `CHECK ((repeat_end_kind = 'count' AND repeat_end_count IS NOT NULL AND repeat_end_at IS NULL) OR (repeat_end_kind = 'until' AND repeat_end_at IS NOT NULL AND repeat_end_count IS NULL) OR (repeat_end_kind IN ('never', NULL)))`.
+- `CHECK ((repeat = 'none' AND repeat_weekdays IS NULL AND repeat_time IS NULL) OR (repeat = 'weekly' AND repeat_weekdays IS NOT NULL AND array_length(repeat_weekdays, 1) >= 1 AND repeat_time IS NOT NULL) OR (repeat = 'monthly' AND repeat_weekdays IS NULL AND repeat_time IS NOT NULL))` (D-EVENTS-02 Revised).
+- `CHECK (repeat_weekdays IS NULL OR repeat_weekdays <@ ARRAY[1,2,3,4,5,6,7]::smallint[])` — 요일 값 범위.
 - `CHECK ((source = 'scrim_auto' AND scrim_id IS NOT NULL) OR (source = 'manual' AND scrim_id IS NULL))` (D-EVENTS-01).
 - UNIQUE `(clan_id, scrim_id) WHERE scrim_id IS NOT NULL` — 한 스크림은 한 클랜에 1행만 자동 등록 (멱등 키, D-EVENTS-01).
 - `source='scrim_auto'` 행의 UPDATE는 서비스 롤만 (`title`·`start_at`·`place`·`cancelled_at`·`finished_at` 만 허용). 다른 필드·DELETE는 차단.
@@ -642,7 +644,7 @@ ClanMember ──< CoinTransaction
 - 트리거 `clan_events_sync_from_scrim()`: `scrim_rooms` AFTER UPDATE OF status 시 `source='scrim_auto'` 행을 UPSERT (D-EVENTS-01).
 
 ### clan_event_exceptions (반복 일정 개별 인스턴스 예외)
-> **D-EVENTS-02** (DECIDED 2026-04-20) — 템플릿(`clan_events`) + 지연 인스턴스 방식에서 "이 일정만 수정·취소"를 처리. 상세 [§D-EVENTS-02](./decisions.md#d-events-02--일정-반복-종료-조건).
+> **D-EVENTS-02 Revised** (2026-04-21) — 템플릿(`clan_events`) + 지연 인스턴스 방식에서 "이 일정만 수정·취소"를 처리. 종료 조건 폐지로 인스턴스 상한 제약은 없으나, `instance_idx`는 여전히 반복 규칙(`repeat_weekdays` · `repeat_time`)을 시작일 이후 순서대로 센 값. 상세 [§D-EVENTS-02 Revised](./decisions.md#d-events-02-revised--일정-반복-요일시각-기반-무기한--2026-04-21).
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|

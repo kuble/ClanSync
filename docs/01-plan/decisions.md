@@ -48,8 +48,8 @@
 
 | 코드 | 상태 | 항목 | 메모 |
 |------|------|------|------|
-| D-EVENTS-01 | DECIDED (2026-04-20) | 스크림 확정 → 클랜 이벤트 자동 생성 트리거·중복·취소 동기화 규칙 | `scrim_rooms.status='confirmed'` 전환 시 **양쪽 클랜 각각**에 `clan_events` 자동 INSERT. 멱등 키 `(clan_id, scrim_id)`. `source='scrim_auto'` 이벤트는 **읽기 전용**(시간·장소·제목 수정은 스크림 본체에서만). 스크림 취소 → 양쪽 이벤트 `cancelled_at` 세팅(행 삭제 금지). [§D-EVENTS-01](#d-events-01--스크림-확정--클랜-이벤트-자동-생성동기화) |
-| D-EVENTS-02 | DECIDED (2026-04-20) | 일정 반복 종료 조건 (횟수 / 종료일) | 3모드 `repeat_end_kind enum('never','count','until')`. `never`는 **서버가 12개월 hard stop**. `count`는 1~52. `until`은 `repeat_end_at` 날짜. 인스턴스 수 상한 **52개**. 템플릿 1행 + 지연 인스턴스 + `clan_event_exceptions`로 개별 수정·취소. [§D-EVENTS-02](#d-events-02--일정-반복-종료-조건) |
+| D-EVENTS-01 | DECIDED (2026-04-20) · Supplemented (2026-04-21) | 스크림 확정 → 클랜 이벤트 자동 생성 + 수동 등록 유형 제한 + RSVP 범위 + 권한 분기 | `scrim_rooms.status='confirmed'` 전환 시 **양쪽 클랜 각각**에 `clan_events` 자동 INSERT. `source='scrim_auto'` 이벤트는 **읽기 전용**. **수동 등록은 내전·이벤트 2종만**(스크림 제외). **RSVP("참가")는 스크림 전용 단일 토글**. **참가자 명단(인게임 닉네임)과 편집·삭제·"스크림 상세 열기" 버튼은 운영진+ 전용**. [§D-EVENTS-01](#d-events-01--스크림-확정--클랜-이벤트-자동-생성동기화) · [§Supplemental](#d-events-01-supplemental--유형-수동-제한--rsvp-범위--권한-분기--2026-04-21) |
+| D-EVENTS-02 | REVISED (2026-04-21) | 일정 반복 — 요일·시각만, 종료 조건·상한 폐지 | 반복은 `weekly`(월~일 다중 체크박스 + `HH:mm`) · `monthly`(시작일의 day-of-month + `HH:mm`) · `none` 3종뿐. **종료 조건(count/until/never) 3모드 및 52회 hard stop 전면 폐지** — 편집(반복=none 저장) 또는 삭제로만 종료. [§D-EVENTS-02 Revised](#d-events-02-revised--일정-반복-요일시각-기반-무기한--2026-04-21) |
 | D-EVENTS-03 | DECIDED (2026-04-20) | 일정 알림 채널 (카카오/디스코드) 발송 시점·실패 시 재시도 | Premium 전용 Discord + 카카오 알림톡, Free는 in-app만. **카카오 기본 OFF**(옵트인), Discord 연동 시 ON. 발송 슬롯 T-24h·T-1h·T-10min·T+0. 재시도 지수 백오프 5회(1m→5m→30m→2h→6h) 후 DLQ. Quiet hours 00~07 KST 카카오 연기. 중복 방지 `(event_id, kind, scheduled_at, channel)` UNIQUE. [§D-EVENTS-03](#d-events-03--일정투표-알림-채널정책) |
 | D-EVENTS-04 | DECIDED (2026-04-20) | 투표 알림 반복(`마감 전까지 매일`) ↔ 마감일과의 일관성 검증 | 반복 모드별 마감 하한: **매일 ≥ +48h**, **매주 ≥ +14d**, **마감 전까지 매일 ≥ +24h** (24h 미만 에러). 상한 60d(초과 경고). 투표 생성 시 Server Action이 전체 발송 스케줄을 `notification_log` 예약 INSERT, 마감 도달 시 잔여 예약 자동 취소. [§D-EVENTS-04](#d-events-04--투표-알림과-마감일-일관성-검증) |
 | D-EVENTS-05 | DECIDED (2026-04-20) | 대진표(Bracket) 결과의 클랜 통계·코인 반영 여부 | **대진표 = 클랜 내 이벤트**(클랜 간 토너먼트는 기획 없음). 통계는 **별도 섹션**("대진표" 탭)으로 정기 내전(`match_type='intra'`)과 완전 분리. HoF·외부 순위표 반영 X(D-ECON-03 유지). 참여율·매너 점수는 내전과 동일 가중치 가산. **코인은 D-ECON-01 확정값만**(개최 500 차감·참가 +200·우승 +1,000, 전부 클랜 풀). 개인 풀 보상·MVP 자동 산정 **없음**. [§D-EVENTS-05](#d-events-05--대진표-결과의-통계코인-반영) |
@@ -1798,7 +1798,116 @@ user_badge_unlocks (
 - 목업 `#view-events` 캘린더는 정적 마크업. "자동 등록" 카피는 이미 존재. 실제 동기화 로직은 Phase 2+에서 구현.
 - 스크림 모달(`#scrimApplyModal`·`#scrimChatModal`)의 "확정" 버튼은 현재 alert만. Phase 1 범위 유지.
 
-### D-EVENTS-02 — 일정 반복 종료 조건
+### D-EVENTS-01 Supplemental — 유형 수동 제한 · RSVP 범위 · 권한 분기 · 2026-04-21
+
+- **결정일**: 2026-04-21 (원결정 §D-EVENTS-01을 **확장 · 대체하지 않음**)
+- **요지**: D-EVENTS-01의 "스크림=자동 등록/읽기 전용" 원칙이 굳어지면서, 주변 UX에서 세 가지 미정 지점이 드러났다 — (1) 일정 등록 모달에서 "스크림" 유형을 선택할 수 있는 잔재, (2) RSVP(`going/maybe/not_going`)가 모든 유형에 공용이라 내전·이벤트에도 표시되는 일관성 없음, (3) 참가자 명단·편집·삭제·"스크림 상세 열기" 버튼의 노출 권한이 정해지지 않음. 이 Supplemental은 세 지점을 확정한다.
+
+**정책**
+
+| 항목 | 정책 | 근거 |
+|------|------|------|
+| 수동 등록 가능 유형 | **내전 · 이벤트** 2종만 (`kind IN ('intra','event')`). "스크림" 유형 선택지 제거. | 스크림은 반드시 스크림 모집 게시판 경로를 거쳐 `source='scrim_auto'` 행으로만 생성. 수동 스크림을 허용하면 트리거·멱등 키·읽기 전용 정책이 동시에 깨진다. |
+| RSVP 범위 | **스크림(`kind='scrim'`) 전용**. 내전·이벤트는 RSVP 섹션 미노출. | 내전·이벤트는 "참석 응답" 개념이 실제 운영과 어긋남(내전=구성원 전원 대상·이벤트=임의 참여). RSVP는 스크림 참가 명단을 만드는 기능 전용. |
+| RSVP 값 | `enum('none','going')` 2상태. **단일 "참가" 버튼 토글** + 확인 팝업(`confirm`). 기존 `maybe`·`not_going`은 사용하지 않음. | 스크림은 출전 여부만 중요. 3상태는 운영진이 명단 파악할 때 혼동만 증가. |
+| 참가자 명단 노출 | **운영진+(officer + leader) 전용**. 일반 구성원 드로워에는 명단 섹션이 렌더되지 않음. 각 항목은 **인게임 닉네임** + (선택) 게임 태그. | 자기 닉네임이 어디에 노출되는지 구성원이 사전 인지할 수 있도록, 참가 확인 팝업에 "참가 명단에 인게임 닉네임이 노출됩니다"를 명시. |
+| "스크림 상세 열기" 버튼 | **운영진+ 전용**. 일반 구성원 드로워에는 이 버튼을 표시하지 않음(배지 "스크림에서 자동 등록"은 전원 노출). | 구성원이 스크림 상세에서 변경권이 없는 정보를 열람하는 UX가 불필요하다는 사용자 피드백. |
+| 편집·삭제 버튼 | **운영진+ 전용**. 일반 구성원에게는 `manual` 이벤트에서도 버튼 미노출. `scrim_auto` 이벤트에는 애초에 렌더하지 않음(D-EVENTS-01 원결정 유지). | 운영 권한과 캘린더 UI 권한 정렬. |
+
+**UI 매트릭스**
+
+| 드로워 요소 | 내전 드로워 (`kind='intra'`, `source='manual'`) | 이벤트 드로워 (`kind='event'`, `source='manual'`) | 스크림 드로워 (`kind='scrim'`, `source='scrim_auto'`) |
+|-------------|:--:|:--:|:--:|
+| "스크림에서 자동 등록" 배지 | 숨김 | 숨김 | **전원 노출** |
+| "스크림 상세 열기" 버튼 | 숨김 | 숨김 | **운영진+만** |
+| 본문 `<dl>` (시작·장소·반복·알림) | 전원 | 전원 | 전원 |
+| "참가" 단일 토글 버튼 | **숨김** | **숨김** | **전원** |
+| 참가자 명단(인게임 닉네임) | 숨김 | 숨김 | **운영진+만** |
+| 편집·삭제 버튼 | 운영진+만 | 운영진+만 | 숨김(스크림 본체에서만) |
+| "읽기 전용" 안내 문구 | 숨김 | 숨김 | 전원 |
+
+**참가 토글 UX 흐름**
+
+1. 드로워 열림 → 현재 `rsvp`가 `'going'`이면 버튼 라벨 `"참가 취소"` + 상단 배지 `"참가 중"`(녹색), 아니면 `"참가"` + `"미참가"`.
+2. 버튼 클릭 → `confirm("이 스크림에 참가하시겠습니까? 참가 명단에 인게임 닉네임이 노출됩니다.")` / 취소 시 `confirm("이 스크림 참가를 취소하시겠습니까?")`.
+3. OK → `ev.rsvp` 토글 → 버튼·배지·(운영진+가 열람 중이면) 명단 즉시 재렌더. 캘린더 슬롯 리스트에도 스크림이면 `참가 중` 배지 반영.
+
+**스키마 영향 (최소)**
+
+- `clan_events.kind` CHECK 수동 등록 시 `kind IN ('intra','event')` 강제 — Server Action 입력 스키마에 반영, DB에는 `CHECK (source = 'scrim_auto' OR kind IN ('intra','event'))` 추가 제안.
+- `event_rsvps.response` 사용 범위: `event_id`가 `kind='scrim'`인 행에 한해서만 INSERT 허용(RLS/Trigger). Free 여부와 무관.
+- `event_rsvps.response` 값 실제 사용: `'going'`만. `'maybe'`·`'not_going'` enum은 후방호환으로 남기되 UI에서는 쓰지 않음.
+
+**Phase 1 목업 반영 (이 결정과 함께 커밋)**
+
+- `mockup/pages/main-clan.html` — 일정 등록 모달 `#mev-type`에서 `<option>스크림</option>` 제거. 드로워의 "스크림 상세 열기"·편집/삭제 버튼에 `.mock-officer-only` 적용. RSVP 3버튼을 단일 `#mock-event-drawer-rsvp-btn`으로 교체하고 섹션 자체를 `hidden`(JS가 `kind='scrim'`일 때만 노출). 참가자 명단 섹션 `#mock-event-drawer-attendees`(`.mock-officer-only`) 신설.
+- `mockup/scripts/clan-mock.js` — `mockEventDrawerRsvp` 3상태 로직 제거, `mockEventDrawerRsvpToggle` 단일 토글 + `confirm()`. `__mockEventDrawerRenderAttendees`가 `MOCK_EVENTS[*].attendees`에서 인게임 닉네임 렌더 + 참가 중이면 "나" 태그를 상단에 삽입. 슬롯 리스트 배지는 "참가 중"만 노출.
+- 기존 `mockEventDrawerRsvp(value)` 시그니처는 단일 토글로 포워딩(임시 호환).
+
+### D-EVENTS-02 Revised — 일정 반복: 요일·시각 기반 무기한 · 2026-04-21
+
+- **결정일**: 2026-04-21 (2026-04-20 원결정을 **대체**. 원문은 아래 §D-EVENTS-02 Original에 보존)
+- **요지**: 반복 모드를 `none` / `weekly` / `monthly` 3종으로 단순화한다. `weekly`는 **월~일 중 하나 이상의 요일 + 동일 시각(`HH:mm`)**. `monthly`는 **시작일의 day-of-month + 동일 시각**. `daily`·`biweekly`는 제거(쓰임이 겹치거나 희소). **종료 조건(count/until/never) 3모드 및 52회 인스턴스 hard stop을 전면 폐지** — 반복은 **편집(반복=`none`으로 저장) 또는 삭제 전까지 무기한**으로 계속된다.
+
+**변경 요약 (Original → Revised)**
+
+| 항목 | Original (2026-04-20) | Revised (2026-04-21) |
+|------|---|---|
+| 반복 모드 | `none`/`weekly`/`biweekly`/`monthly` | `none`/`weekly`/`monthly` (`daily`·`biweekly` 제거) |
+| 주간 반복 요일 지정 | 시작 일시의 요일 1개만 상속 | **월~일 체크박스 다중 선택**(≥1) + 동일 시각 |
+| 월간 반복 날짜 지정 | 시작 일시의 day-of-month 1개 | 동일 (단, 시각 입력 UI 명시화) |
+| 종료 조건 | `never`/`count(1-52)`/`until` 3모드 라디오 | **없음** (컬럼·UI 전체 제거) |
+| 인스턴스 상한 | 52개 hard stop + `never` 자동 count 전환 | **없음** (lazy 계산이라 DB 비용 0) |
+| 편집·삭제 UX | 이 일정만 / 이후 모두 / 전체 + `clan_event_exceptions` | 동일 — `clan_event_exceptions`는 유지 |
+
+**반복 데이터 모델 (Revised)**
+
+| 필드 | 타입 | 제약 | 비고 |
+|------|------|------|------|
+| `repeat` | `enum('none','weekly','monthly')` | NOT NULL · 기본 `none` | `daily`·`biweekly` 없음 |
+| `repeat_weekdays` | `smallint[]` | `repeat='weekly'` 시 길이 ≥ 1, 모든 원소 1~7(ISO 월=1) · 그 외 NULL | 예: `{1,3,5}` = 매주 월·수·금 |
+| `repeat_time` | `time` | `repeat IN ('weekly','monthly')` 시 NOT NULL · 그 외 NULL | `HH:mm:ss` (KST 해석) |
+
+**DROP되는 컬럼** (원결정의 스키마 중): `repeat_end_kind` · `repeat_end_count` · `repeat_end_at` · 관련 CHECK 제약 전부.
+
+**인스턴스 생성 전략 — 템플릿 + 지연 (Revised)**
+
+- DB는 템플릿 1행만 저장 (`repeat` + `repeat_weekdays` + `repeat_time`).
+- 캘린더 조회 시 요청 윈도우(예: 가시 월)만큼 가상 인스턴스를 on-the-fly 계산.
+  - `weekly`: 템플릿 `start_at` ≤ 윈도우 범위에서 `weekdays × 주` 조합.
+  - `monthly`: 시작일의 day-of-month를 월마다 적용. 해당 일자가 없는 달(예: 2월 30일)은 **skip**(실시간 계산 특성상 자연 처리).
+- 종료 조건이 없으므로 윈도우 계산 상한은 **클라이언트 조회 범위**로 자연 제한됨(서버는 멀리 앞 범위 요청 시 최대 365일 등 UX 범위 제약만 건다).
+- 실제 상한이 필요한 경우(예: 연도 이동) 클라이언트가 범위 파라미터로 통제.
+
+**편집·삭제 UX (유지)**
+
+| 액션 | 영향 범위 |
+|------|----------|
+| 이 일정만 수정 | `clan_event_exceptions`에 해당 인스턴스 override 저장 |
+| 이번과 이후 모두 수정 | 새 템플릿 INSERT + 기존 템플릿을 해당 시점부터 **종료** (→ `repeat='none'`으로 갱신하고 종료 시점 이후 인스턴스 차단 플래그 필요 시 `cancelled_at` 활용) |
+| 전체 수정 | 템플릿 행 UPDATE |
+| 이 일정만 취소 | `clan_event_exceptions.cancelled_at` 세팅 |
+| 전체 취소·삭제 | 템플릿 `cancelled_at` 세팅 또는 행 삭제 |
+
+**UI 규칙 (일정 모달 · 목업 반영됨)**
+
+- 반복 select = `없음 (일회)` / `매주 · 요일·시각 지정` / `매월 · 시작일의 일자 · 시각 지정` 3개만.
+- `weekly` 선택 시 **월~일 체크박스 7개** 그룹(선택된 요일 모두 동일 시각 반복) + `<input type="time">` 노출. 저장 시 체크된 요일이 0개면 인라인 에러.
+- `monthly` 선택 시 **시각 `<input type="time">`**만 노출 + "시작일의 일자를 매월 반복" 안내.
+- 종료 조건 fieldset·`never/count/until` 라디오·52회 경고 모두 **제거**.
+- 모든 반복 모드에 "편집·삭제 전까지 계속 반복됩니다" 안내 명시.
+
+**영향 범위 업데이트**
+
+- `docs/01-plan/schema.md` — `clan_events`에서 `repeat_end_kind`·`repeat_end_count`·`repeat_end_at` 컬럼 삭제, `repeat_weekdays smallint[]`·`repeat_time time` 추가. `repeat` enum에서 `daily`·`biweekly` 제거.
+- `docs/01-plan/pages/11-Clan-Events.md` — 일정 모달 반복 섹션·종료 조건 섹션·인스턴스 상한 언급 삭제·교체.
+- `mockup/pages/main-clan.html` · `mockup/scripts/clan-mock.js` — 이 결정으로 이미 반영.
+
+---
+
+### D-EVENTS-02 Original — 일정 반복 종료 조건 (SUPERSEDED 2026-04-21)
+
+> 이 블록은 이력 보존용. 최신 정책은 위 §D-EVENTS-02 Revised 참조.
 
 - **결정일**: 2026-04-20
 - **요지**: 반복(`weekly`/`biweekly`/`monthly`) 선택 시 종료 조건을 **3모드**로 제공한다. `never`(무한)는 허용하되 **서버가 12개월 hard stop**, `count`는 1~52회, `until`은 특정 날짜. 생성 인스턴스 수는 모드 무관 **상한 52개**. 저장 전략은 **템플릿 1행 + 지연 인스턴스 생성 + 예외 테이블**.
