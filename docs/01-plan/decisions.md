@@ -127,6 +127,7 @@
 | 코드 | 상태 | 항목 | 메모 |
 |------|------|------|------|
 | D-NOTIF-01 | DECIDED (2026-04-21) | 운영·개인·일정 알림을 통합하는 in-app 알림 센터 도입 | **프리셋 α(디스코드식 통합 센터)** — 네비게이션바 상단 **벨 아이콘 + 드로워**. 범위 = **운영 + 개인 결과 + D-EVENTS-03 일정 알림 전체 통합**. 저장 = **M1 분리 + FK**: `notification_log`(기존 발송 레이어 유지) + `notifications`(신설 피드 레이어). 일정 in-app 발송 시 AFTER UPDATE 트리거로 `notifications` INSERT, 운영·개인 알림은 소스 테이블(`clan_join_requests`·`match_record_correction_requests`·`scrim_room_confirmations`·`lfg_applications` 등) **DB 트리거로 자동 INSERT**. 2상태(unread/read), 읽은 후 **7일 자동 GC**. D-SHELL-03 사이드바 메뉴별 점은 **병존**(척도 다름). D-PERM-01 권한 키 신설 없음(수신자 계산은 소스 RLS). [§D-NOTIF-01](#d-notif-01--in-app-알림-센터-통합-도입) |
+| D-NOTIF-02 | DECIDED (2026-04-21) | 브라우저 ServiceWorker 웹 푸시 도입 여부·과금 게이팅·권한 프롬프트 타이밍 | **프리셋 α (보수적 도입)** — **Premium 전용**(D-EVENTS-03 카카오·Discord 과금 경계 정합), **4 카테고리 독립 토글**(운영·개인·일정·채팅), 권한 요청은 **벨 드로워 최초 열 때 맥락형 배너**, **서버 quiet hours 00~07 KST 준수**(07시 일괄). 스키마 신설: `web_push_subscriptions`(user_id·endpoint·p256dh·auth·user_agent·created_at·revoked_at, soft delete). `notification_log.channel` 카탈로그에 `web_push` 추가. **권한 키 신설 없음**(개인 구독은 본인 선택). 범위 = **R3** (결정·스키마 + 벨 드로워 최상단 inert 예고 배너 1줄만). 실구현(VAPID·ServiceWorker·서버 워커·구독 관리 UI)은 **Phase 2+ 이관** — 공급자 선택은 후속 D-NOTIF-02b. [§D-NOTIF-02](#d-notif-02--브라우저-서비스워커-웹-푸시-도입-정책-프리셋-α) |
 
 ---
 
@@ -2921,7 +2922,7 @@ notifications (신설)
 2. 10+ 소스 테이블에 AFTER UPDATE/INSERT 트리거 설치(순차 슬라이스).
 3. `notification_log.channel='in_app' AND status='sent'` 전환 트리거.
 4. 네비게이션바 벨 컴포넌트 + 드로워 UI(D-SHELL-03 메뉴 점과 충돌 없는 배치).
-5. **후속 결정 후보 D-NOTIF-02** — 브라우저 푸시(ServiceWorker) 도입 여부·QoS.
+5. **후속 결정 D-NOTIF-02** — 브라우저 푸시(ServiceWorker) 도입 여부·QoS. **DECIDED 2026-04-21** (프리셋 α, Premium 전용, Phase 2+ 실구현). [§D-NOTIF-02](#d-notif-02--브라우저-서비스워커-웹-푸시-도입-정책-프리셋-α)
 6. **후속 결정 후보 D-NOTIF-03** — 이메일 다이제스트(일간/주간 요약) 여부.
 
 **연관**
@@ -2932,3 +2933,140 @@ notifications (신설)
 - [D-CLAN-02](#d-clan-02--가입-신청-상태-머신과-중복정책) · [D-STATS-02](#d-stats-02--경기-사후-정정-요청-모달과-이력-보존) · [D-SCRIM-01](#d-scrim-01--스크림-채팅방-자동-종료-정책) · [D-SCRIM-02](#d-scrim-02--스크림-양측-확정-동시성-2-phase-commit) · [D-LFG-01](#d-lfg-01--lfg-신청-상태-ui와-수락-플로우) · [D-CLAN-07](#d-clan-07--클랜-멤버-활성도-분류와-휴면-멤버-처리) — 알림 슬롯 소스
 - [schema.md](./schema.md) — `notifications` 신설
 - [pages/07-MainClan.md](./pages/07-MainClan.md) — 네비게이션바 벨·드로워 진입점
+
+---
+
+### D-NOTIF-02 — 브라우저 서비스워커 웹 푸시 도입 정책 (프리셋 α)
+
+- **결정일**: 2026-04-21 (사용자 컨펌)
+- **요지**: D-NOTIF-01의 in-app 피드를 **OS 레벨 브라우저 푸시**로 확장한다. Web Push API + ServiceWorker + VAPID 기반. **Premium 전용**으로 두어 D-EVENTS-03(카카오·Discord)의 유료 알림 채널 경계와 정합. **Phase 1은 결정·스키마·목업 예고 배너만** — 실제 VAPID 키·워커·구독 관리 UI는 Phase 2+ (후속 D-NOTIF-02b에서 공급자 선정).
+
+**프리셋 비교 (사용자 컨펌 내역 기록용)**
+
+| 축 | α (**✓ 선택**) | β | γ | δ |
+|---|---|---|---|---|
+| 과금 게이팅 | **Premium 전용** | Free 포함 전체 | Free = 본인 관련 운영/개인 결과만, Premium = 전체 | 도입 보류 / DROPPED |
+| 카테고리 구독 | 4 카테고리 독립 토글 (운영·개인·일정·채팅) | 4 카테고리 | Free=2, Premium=4 | — |
+| 권한 프롬프트 | **벨 드로워 최초 열 때 맥락형 배너** | 동일 | α + 중요 이벤트 첫 수신 시 재안내 | — |
+| 조용 시간 | **서버 quiet hours 00~07 KST 준수**(07시 일괄) | 미적용 (디바이스 DnD 위임) | 서버 quiet hours 준수 | — |
+| 업셀 카피 | Free 드로워에 "브라우저 알림은 Premium 전용" 배너 | 없음 | Free에 "더 많은 카테고리는 Premium" | — |
+| 선택 여부 | **✓** | — | — | — |
+
+**β/γ/δ 탈락 근거**
+
+- **β** (Free 전면 허용): VAPID·웹 푸시 인프라가 사실상 무료여서 기술적으로 가능하지만, **D-EVENTS-03의 "외부 채널 = Premium" 원칙**을 깨뜨린다. 장기적으로 카카오알림톡·Discord 게이팅의 근거가 약해지고 Premium 차별화 훼손.
+- **γ** (Free 중요 알림만 하이브리드): 정책상 자연스럽지만 `kind × plan` 매트릭스가 **11 kind × 2 plan = 22 조합**으로 복잡. 테스트·QA 비용 증가. 추후 D-NOTIF-02c로 분리 검토 가능.
+- **δ** (도입 보류): in-app만으로도 탭을 열어둔 사용자는 커버. 하지만 모바일 사용자·탭 닫은 사용자의 재참여 경로가 0이 되어 참여율 저하 위험.
+
+**범위 R3 (Phase 1 반영 규모) — 근거**
+
+- **R1** (전면 목업 스텁, 알림 설정 페이지 신설): Phase 1 슬라이스 S09(알림 설정)가 아직 정의되어 있지 않아 오버엔지니어링.
+- **R2** (결정·스키마만): 의사결정이 UI에 드러나지 않아 세션 간 컨텍스트 소실 위험.
+- **R3 (**선택**)**: R2 + **벨 드로워 최상단에 inert 예고 배너 1줄**(`"🔔 브라우저 알림은 Premium 전용 · Phase 2+ 예정 (D-NOTIF-02)"`). 구현 5분, Phase 2+ 실제 권한 배너로 교체 지점 명확.
+
+**스키마 (Phase 1 추가)**
+
+- `web_push_subscriptions` 테이블 신설:
+
+  | 컬럼 | 타입 | 설명 |
+  |------|------|------|
+  | id | uuid PK | |
+  | user_id | uuid NOT NULL FK → users ON DELETE CASCADE | |
+  | endpoint | text NOT NULL | Push Service URL (FCM·APNs Web·Mozilla autopush 등) |
+  | p256dh | text NOT NULL | 클라 공개 키(base64url) |
+  | auth | text NOT NULL | 클라 auth 시크릿(base64url) |
+  | user_agent | text NULL | 구독 시 User-Agent (디바이스 식별용) |
+  | created_at | timestamptz NOT NULL DEFAULT now() | |
+  | revoked_at | timestamptz NULL | soft delete — 재구독 시 새 행 INSERT(히스토리 보존) |
+
+  UNIQUE `(user_id, endpoint) WHERE revoked_at IS NULL` — 동일 디바이스 중복 구독 방지 (revoked는 히스토리로 남음).
+  한 사용자 **N 디바이스 허용** (PC·모바일 브라우저 각각).
+
+- `notification_log.channel` 카탈로그 확장:
+  | 값 | 설명 | 과금 |
+  |----|------|------|
+  | `in_app` | D-NOTIF-01 피드 sync 대상 | Free·Premium 공통 |
+  | `discord` | Bot 발송 | Premium |
+  | `kakao` | 알림톡 | Premium (옵트인) |
+  | **`web_push`** *(신설)* | ServiceWorker push | **Premium** |
+
+- **재시도 정책**: D-EVENTS-03 지수 백오프 5회(1m→5m→30m→2h→6h) 동일. 410 Gone(구독 폐기) 응답 시 즉시 DLQ 없이 `web_push_subscriptions.revoked_at = now()` 업데이트하고 재시도 중단.
+
+**발송 플로우 (Phase 2+ 구현 시)**
+
+```
+notifications INSERT (D-NOTIF-01 트리거 결과)
+  │
+  ├─ recipient의 users.plan = 'premium' 인가?
+  │    ├─ 예 → web_push_subscriptions 활성 행 조회
+  │    │       ├─ 각 디바이스별 notification_log INSERT
+  │    │       │   (channel='web_push', status='queued', scheduled_at=now())
+  │    │       └─ quiet hours 00~07 KST 이면 scheduled_at = 07:00 KST로 지연
+  │    └─ 아니오 → 스킵 (notifications 피드에만 남음)
+  └─ 사용자의 카테고리 구독 off 인가?
+       └─ 예 → 스킵
+```
+
+**권한 프롬프트 타이밍 (UX)**
+
+- **첫 로그인 즉시 요청 금지** (거절률 60%+ 데이터 기반). `Notification.requestPermission()` 호출 시점:
+  1. 사용자가 네비 상단 벨 아이콘을 **처음 클릭**한 순간, 드로워 최상단에 **맥락형 배너** 노출:
+     ```
+     🔔 브라우저 알림을 받으시겠어요?
+        새 가입 요청·스크림 확정 등을 앱 밖에서도 바로 알 수 있습니다.
+        [알림 켜기]  [나중에]
+     ```
+  2. "알림 켜기" 클릭 시에만 `Notification.requestPermission()` 호출.
+  3. 거절 시 7일간 배너 재표시 금지. 이후에도 앞서와 동일 배너 + "브라우저 설정에서 허용해야 재노출 가능" 보조 카피.
+- **Free 사용자**: 배너 대신 Premium 업셀 문구 (`"브라우저 알림은 Premium 전용입니다. [플랜 비교]"`) — Phase 2+.
+
+**카테고리 구독 토글 (Phase 2+ UI)**
+
+- 사용자 설정 `/settings/notifications` (신설 예정, 슬라이스 S09 후보):
+  - 운영/관리: 기본 ON
+  - 개인 결과: 기본 ON
+  - 일정: 기본 ON
+  - 채팅(멘션): 기본 OFF (소음 방지)
+- 저장 위치: `users.web_push_prefs jsonb` 또는 `web_push_subscriptions.prefs jsonb` — Phase 2+ 결정.
+
+**조용 시간 (Quiet Hours)**
+
+- **서버 측 00~07 KST 준수** — D-EVENTS-03 카카오알림톡과 동일 정책. 그 시간대 발생 알림은 07:00 KST로 `scheduled_at` 지연.
+- 예외: **본인이 직접 트리거한 이벤트**(예: 내가 제출한 정정 요청 결과)는 조용 시간에도 즉시 발송 — 본인 요청 응답이므로.
+- 디바이스 OS DnD는 **별개 레이어**로 존중 — 서버가 07시에 발송해도 OS가 차단하면 그건 사용자의 OS 설정 책임.
+
+**권한 (D-PERM-01 연관)**
+
+- **권한 키 신설 없음**. 개인 구독은 본인 선택이므로 D-PERM-01 매트릭스와 독립.
+- RLS: `web_push_subscriptions`는 본인 행만 SELECT/INSERT/UPDATE 가능. DELETE는 cron(410 Gone 정리) 전용.
+
+**Phase 1 목업 영향 (R3)**
+
+- 벨 드로워 최상단(제목 바로 아래)에 **inert 예고 배너 1줄**:
+  ```
+  🔔 브라우저 알림은 Premium 전용 · Phase 2+ 예정 (D-NOTIF-02)
+  ```
+- 클릭 핸들러 없음(inert), Phase 2+에서 "알림 켜기" 버튼으로 교체.
+- CSS 클래스 `.mock-notifications-push-hint`로 분리 — Phase 2+ 삭제 시 검색 용이.
+
+**Phase 2+ 작업 백로그 (슬라이스 제안)**
+
+1. VAPID 키 쌍 생성·환경 변수 등록 (`VAPID_PUBLIC_KEY`·`VAPID_PRIVATE_KEY`).
+2. `web_push_subscriptions` 테이블 + RLS.
+3. `/settings/notifications` 페이지 신설 + 카테고리 토글 UI.
+4. `public/sw.js` ServiceWorker 등록 + `push`·`notificationclick` 이벤트 핸들러.
+5. 드로워 맥락형 배너 → 실제 `Notification.requestPermission()` 연동.
+6. 서버 워커: `notifications` INSERT → web_push 발송 (`web-push` npm 패키지 또는 Supabase Edge Function).
+7. Quiet hours 지연 로직 (scheduled_at 계산).
+8. 410 Gone 응답 시 `revoked_at` 업데이트 트리거.
+9. 관리 대시보드: 디바이스 구독 목록 (사용자 본인 프로필에서 "이 디바이스에서 로그아웃" 유사).
+10. **후속 결정 D-NOTIF-02b** — web_push 공급자 / SDK 선택 (web-push npm 패키지 · Firebase Cloud Messaging · OneSignal 등).
+11. **후속 결정 D-NOTIF-02c** — γ 하이브리드(Free 중요 알림 허용) 재검토 (운영 데이터 6개월 누적 후).
+
+**연관**
+
+- [D-NOTIF-01](#d-notif-01--in-app-알림-센터-통합-도입) — 피드 소스, web_push는 추가 채널
+- [D-EVENTS-03](#d-events-03--일정투표-알림-채널정책) — 외부 채널 과금 경계·재시도 정책 재사용, quiet hours 정합
+- [D-PERM-01](#d-perm-01--클랜-권한-매트릭스-모델-도입) — 권한 키 신설 없음
+- [schema.md](./schema.md) — `web_push_subscriptions` 신설, `notification_log.channel` 카탈로그 확장
+- [pages/07-MainClan.md](./pages/07-MainClan.md) — 벨 드로워 예고 배너 (R3)
