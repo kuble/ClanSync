@@ -20,7 +20,7 @@
 |------|-----|
 | **현재 단계** | Phase 2 — Next.js `src/` · Supabase · RLS |
 | **이전 단계** | Phase 1 — 정적 목업 (`mockup/`) **종료** (2026-03-28) |
-| **마지막 갱신** | 2026-04-21 (D-STATS-03 종결 — "앱 이용 횟수" = **활동일(person-day, DAU 합산)**. 자기 클랜 라우트 첫 페이지뷰 트리거, DAY UNIQUE로 새벽 새로고침·prefetch 스팸 자동 차단. `clan_daily_member_activity` 테이블 + `clan_monthly_activity`·`clan_yearly_activity` MV(영역 1·2 동시 산출). 외부 노출 D-ECON-03 차단 유지. 통계 카드 카피·문서·schema 동기화. 직전 묶음: STATS·PERM — D-PERM-01 권한 매트릭스 + D-STATS-01/02/04 흡수.) |
+| **마지막 갱신** | 2026-04-21 (D-NOTIF-01 종결 — **in-app 알림 센터 통합**(프리셋 α, 디스코드식). 네비게이션바 상단 **벨 아이콘 + 드로워** 신설, 운영/개인 결과/일정 알림 전체를 한 피드로 통합. M1 저장 모델 = `notification_log`(기존 발송 레이어 유지) + `notifications`(신설 피드 레이어) + FK 연결. 소스 테이블·`notification_log`(in-app sent) AFTER UPDATE/INSERT **DB 트리거로 자동 INSERT**. 2상태 읽음(unread/read) + 읽은 후 **7일 GC**. D-SHELL-03 사이드바 메뉴 점과 **병존**(척도 다름). D-PERM-01 권한 키 신설 없음. 후속 후보: D-NOTIF-02(푸시)·D-NOTIF-03(이메일 다이제스트)·D-PRIV-01(개인 프라이버시 오버라이드). 직전 묶음: D-STATS-03 — "앱 이용 횟수" = 활동일(person-day).) |
 
 ---
 

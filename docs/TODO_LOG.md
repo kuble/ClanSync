@@ -5,6 +5,57 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-21 — D-NOTIF-01 종결 (in-app 알림 센터 통합, 디스코드식 벨+드로워)
+
+- [x] **결정 컨펌 절차 준수** (`.cursor/rules/decision-confirm.mdc`):
+  - **1차 묶음 컨펌**: 프리셋 4종(α 디스코드식 통합 / β 관리 메뉴 확장 / γ no-op / δ α+푸시) + 범위 미세조정(운영만/운영+개인/일정까지 통합) + 사이드바 점 병존 여부 + 읽음 GC 주기 → 사용자 선택 = **α + 전체 통합 + 병존 + 7일 GC**.
+  - **2차 구조 컨펌**: `notification_log`(기존, D-EVENTS-03/04) ↔ 신설 `notifications`의 연결 모델 M1/M2/M3 3옵션 + 개인 결과 알림 동기화(트리거/RPC/하이브리드) 2옵션 제시 → 사용자 선택 = **M1 분리+FK** / **DB 트리거 자동 INSERT**.
+  - **중간 용어 정의 질문 응대**: 사용자가 "개인 결과 알림이 뭔지 정확히 설명해줘" 요청 → 수신자 관점 3분류(운영/개인 결과/일정) 매트릭스로 전량 예시 제시 후 질문 재제기.
+- [x] **D-NOTIF-01 — in-app 알림 센터 통합 도입** (DECIDED 2026-04-21, 사용자 컨펌)
+  - **프리셋 α**: 네비게이션바 상단 벨 아이콘 + 우측 슬라이드 드로워. 디스코드·Slack 스타일 통합 피드.
+  - **범위**: 운영 알림(가입·정정 요청·스크림 확정·LFG 신청·휴면) + 개인 결과 알림(내 요청의 수락/거절/만료) + D-EVENTS-03 일정 in-app 알림 **전체**.
+  - **저장 = M1 분리 + FK**: `notification_log`(기존 발송 레이어 그대로 유지 — D-EVENTS-03/04 비파괴) + `notifications`(신설 피드 레이어). 일정은 `notification_log.channel='inapp' AND status='sent'` AFTER UPDATE 트리거로 `notifications` 자동 생성, 운영·개인은 소스 테이블 AFTER INSERT/UPDATE 트리거로 자동 생성.
+  - **M2/M3 탈락 근거**: M2(log 확장 흡수)는 기술 레이어와 UI 레이어 혼재 + 기존 UNIQUE 제약 운영 알림에 부적합. M3(log deprecate)는 D-EVENTS-03/04 DECIDED를 뒤집어 번복 비용 과다.
+  - **읽음 2상태 + 7일 GC**: 드로워 열면 표시 항목 일괄 read, "원본 열기" 클릭 시 read + 딥링크. 읽은 후 7일 경과분 cron 삭제. 미읽음(`read_at IS NULL`)은 영구 보존.
+  - **권한 키 신설 없음**: 수신자 계산은 소스 트리거에서 권한 체크 이후에 이뤄지므로 `notifications`는 RLS `recipient_user_id = auth.uid()`만 두면 충분.
+  - **사이드바 병존**: D-SHELL-03 메뉴별 점(`#sidebar-notify-balance/events/manage`)은 **집계 척도가 달라** 그대로 유지. 벨 = "내 피드에 새 소식", 메뉴 점 = "이 화면에 해야 할 일".
+  - **payload 스냅샷**: 생성 시점의 요청자 닉네임·경기 라벨 등을 `jsonb`에 보존해 원본 삭제 시에도 피드 문구 유지.
+- [x] `docs/01-plan/decisions.md`
+  - 헤더 표에 **"통신 · 알림 (NOTIF)" 섹션 신설** + D-NOTIF-01 행(DECIDED 2026-04-21) 추가.
+  - 본문 말미에 §D-NOTIF-01 상세 블록 신설 — 수신자 관점 3분류 표, 프리셋 4종 비교 표(α 선택 기록), M1/M2/M3 저장 모델 트레이드오프, 트리거 매핑(11개 소스 테이블 × kind), 읽음·GC·payload 설계, 권한 키 미신설 근거, Phase 2+ 백로그(후속 결정 D-NOTIF-02/03 식별).
+  - §D-STATS-02 본문의 "D-NOTIF-01 후속 결정" 표현을 "D-NOTIF-01 통합 센터, DECIDED 2026-04-21"로 갱신 (2곳).
+- [x] `docs/01-plan/schema.md`
+  - **`notifications` 테이블 신설**: `recipient_user_id`·`clan_id NULL`·`kind`·`source_table`·`source_id`·`payload jsonb`·`read_at`·`created_at`. soft FK(물리 FK 없음, RLS 재확인 전략). 인덱스 3개(unread 부분 인덱스, 전체 피드, source 역조회).
+  - **슬롯 키 카탈로그 11종** 매트릭스 — join_request·match_correction·scrim·lfg·member_dormant·event_reminder + 수신자 결정 규칙 + 소스 결정 코드.
+  - **트리거 라우팅 예시 SQL 2종**: 정정 요청 상태 전환 → 요청자 알림 / in-app log sent → 피드 sync.
+  - **RLS·GC RPC**: `mark_notifications_read(before_ts)` / 7일 GC cron.
+  - `notification_log` 섹션에 "D-NOTIF-01 연동" 주석 한 줄 추가(기존 UNIQUE·재시도 정책 비파괴).
+  - `match_record_correction_requests`의 "알림 슬롯" 캡션을 "D-EVENTS-03 재사용 + D-NOTIF-01 후속" → "D-NOTIF-01 통합 센터 DECIDED 2026-04-21"로 확정.
+- [x] `docs/01-plan/pages/07-MainClan.md`
+  - 상단 결정 요약에 D-NOTIF-01 DECIDED 블록쿼트 한 줄 추가.
+  - **§네비게이션바 상단 알림 벨 (D-NOTIF-01)** 섹션 신설 — ASCII 레이아웃 다이어그램, 벨 배지 산식, 드로워 동작 표(열람 시 일괄 read·원본 열기·모두 읽음·Esc/외부 클릭·무한 스크롤 후속), 카테고리 뱃지 4종 매핑(운영/개인/일정/채팅).
+  - §구현 참고(개발자용)에 `#mock-navbar-notify-bell`·`#mock-notifications-drawer`·`mockNotificationsStore` 등 식별자 추가.
+  - §결정 필요에 D-NOTIF-01 DECIDED + 후속 후보 D-NOTIF-02(ServiceWorker 푸시)·D-NOTIF-03(이메일 다이제스트) OPEN 등재.
+- [x] `docs/01-plan/pages/10-Clan-Stats.md`
+  - 정정 요청 제출·처리 플로우 문구를 트리거 용어로 정돈(`AFTER INSERT/UPDATE 트리거 → notifications kind=...` 피드 생성).
+  - §결정 현황 D-NOTIF-01 라인을 "OPEN 후속" → "DECIDED 2026-04-21, decisions.md 링크"로 갱신.
+- [x] `mockup/pages/main-clan.html`
+  - **CSS 신설**(`<style>` 말미): `.navbar-end`·`.mock-navbar-notify-bell`·`.mock-navbar-notify-badge`(빨간 #ef4444 원형, 99+ 지원)·`.mock-notifications-drawer`·오버레이·아이템(unread 보라 틴트, 카테고리 dot 4색 orange/green/blue/gray)·접근성 키프레임.
+  - **네비게이션바 우측 `.navbar-end` 신설**: 벨 버튼(`#mock-navbar-notify-bell` + `#mock-navbar-notify-badge`), SVG 벨 아이콘, `aria-expanded`·`aria-controls`.
+  - **드로워 마크업**(`#mock-notifications-drawer` + overlay): 제목·D-NOTIF-01 뱃지·모두 읽음/닫기 버튼·빈 상태 문구.
+- [x] `mockup/scripts/clan-mock.js`
+  - **D-NOTIF-01 구역 신설**(정정 요청 헬퍼와 클랜 설정 사이): `MOCK_NOTIFICATIONS_KEY = 'clansync-mock-notifications-v1'` + 시드 5건(운영 2·개인 1·일정 1·채팅 1, 읽음 상태 섞음).
+  - 스토어: `window.mockNotificationsStore = { list, unreadCount, markRead, markAllRead }`.
+  - UI 헬퍼: `mockNotificationsRefreshBadge()`(미열람 수 → 벨 배지 0/99+ 처리), `mockNotificationsRenderBody()`(아이템 재생성, 카테고리 dot + 텍스트 + 메타 + "원본 열기").
+  - 공개 API: `mockNotificationsOpenDrawer()`(애니메이션 열기 + 600ms 후 표시 항목 일괄 read), `mockNotificationsCloseDrawer()`(220ms 애니메이션 후 hidden), `mockNotificationsMarkAllRead()`, `mockNotificationsOpenSource(id)`(read + Phase 1 플레이스홀더 alert).
+  - **DOMContentLoaded 시 배지 동기화** + **Esc 키 전역 핸들러**로 드로워 닫기.
+- [x] **후속 결정 후보 식별**:
+  - **D-NOTIF-02** (OPEN) — 브라우저 ServiceWorker 푸시 도입 여부·QoS·구독 UI.
+  - **D-NOTIF-03** (OPEN) — 이메일 다이제스트(일간/주간 요약) 여부·파이프라인.
+  - **D-PRIV-01** (OPEN) — 개인 단위 프라이버시 오버라이드(클랜 단위 개인 정보 정책 위에 본인이 더 닫는 옵션). D-NOTIF-01과 별개로 진행 가능.
+- [x] **결과**: 운영·개인 결과·일정 in-app 알림이 단일 피드로 통합됨. D-STATS-02·D-SCRIM-01/02·D-LFG-01·D-CLAN-02/07·D-EVENTS-03의 알림 슬롯이 전부 `notifications` 테이블로 수렴. Phase 2+ 구현 순서: 테이블·RLS → 11개 소스 트리거 순차 설치 → 네비 벨 컴포넌트 → notification_log→feed 트리거 → GC cron.
+- [x] **분할 커밋**: `docs(plan): decide D-NOTIF-01 — unified in-app notifications center (preset α, trigger-driven M1)` → `docs(plan): add notifications table + trigger routing to schema` → `docs(plan): wire 07-MainClan bell/drawer + cross-ref 10-Clan-Stats` → `feat(mockup): D-NOTIF-01 navbar bell + notifications drawer placeholder` → `docs(todo): log D-NOTIF-01 close session`.
+
 ### 2026-04-21 — D-STATS-03 종결 ("앱 이용 횟수" = 활동일/person-day)
 
 - [x] **결정 컨펌 절차 준수** (`.cursor/rules/decision-confirm.mdc`): 4개 옵션(A 활동일 / B 의미 있는 액션 / C 페이지뷰 / D 세션) + 권장안 A + 미세 후속질문 3건(트리거·컨텍스트·열람 권한)을 사용자에게 동시 제시 → 컨펌 후 진행.
