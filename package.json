@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "db:reset": "supabase db reset",
-    "db:push": "supabase db push",
+    "db:push": "node scripts/with-dotenv-local.mjs db push",
+    "db:link": "node scripts/supabase-link.mjs",
     "types:gen": "supabase gen types typescript --linked --schema public > src/lib/supabase/database.types.ts",
     "db:seed": "node scripts/seed-fixtures.mjs"
   },
@@ -35,6 +36,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.0",
+    "supabase": "^2.93.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
