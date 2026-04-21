@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button-variants";
+import { cn } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -8,35 +11,52 @@ import {
 
 export default function RootPage() {
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-16">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">ClanSync</h1>
-        <p className="text-muted-foreground mt-2 text-sm">
+    <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-20">
+      <div className="space-y-2 text-center sm:text-left">
+        <h1 className="text-4xl font-semibold tracking-tight">ClanSync</h1>
+        <p className="text-muted-foreground text-lg">
           멀티 게임 클랜 관리 · 내전/스크림 기록
         </p>
       </div>
 
+      <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+        <Link
+          href="/sign-up"
+          className={cn(
+            buttonVariants({ size: "lg" }),
+            "inline-flex w-full min-w-[200px] justify-center sm:w-auto",
+          )}
+        >
+          시작하기
+        </Link>
+        <Link
+          href="/sign-in"
+          className={cn(
+            buttonVariants({ size: "lg", variant: "outline" }),
+            "inline-flex w-full min-w-[200px] justify-center sm:w-auto",
+          )}
+        >
+          로그인
+        </Link>
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle>Phase 2 — 구현 준비 중</CardTitle>
+          <CardTitle>Phase 2 — M2 인증 쉘</CardTitle>
           <CardDescription>
-            Phase 1 정적 목업은 <code className="text-xs">mockup/_hub.html</code>
-            에서 확인할 수 있습니다. Phase 2는{" "}
-            <code className="text-xs">docs/TODO_Phase2.md</code> 로드맵(M0~M8)에
-            따라 <code className="text-xs">src/</code> 라우트를 채워 나갑니다.
+            회원가입·로그인 후 게임 선택 화면으로 이동합니다. 목업은{" "}
+            <code className="text-xs">mockup/_hub.html</code>, 설계는{" "}
+            <code className="text-xs">docs/TODO_Phase2.md</code> 를 참고하세요.
           </CardDescription>
         </CardHeader>
         <CardContent className="text-muted-foreground space-y-2 text-sm">
           <p>
-            단일 출처:{" "}
-            <code className="text-xs">docs/01-plan/pages.md</code>(라우팅) ·{" "}
-            <code className="text-xs">schema.md</code>(DB) ·{" "}
-            <code className="text-xs">decisions.md</code>(결정).
-          </p>
-          <p>
-            Phase 1 목업 허브:{" "}
-            <code className="text-xs">mockup/_hub.html</code> (브라우저로 직접
-            열기).
+            로그인된 상태에서 이 페이지를 열면{" "}
+            <Link href="/games" className="text-primary underline-offset-4 hover:underline">
+              /games
+            </Link>
+            로 이동합니다 (<span className="whitespace-nowrap">D-LANDING-04</span>
+            , 단 <code className="text-xs">?from=logo</code> 예외).
           </p>
         </CardContent>
       </Card>
