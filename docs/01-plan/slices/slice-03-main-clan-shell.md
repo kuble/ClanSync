@@ -1,5 +1,11 @@
 # S03 — MainClan 쉘 (대시보드·탭·허브)
 
+## 결정 참조
+
+- 반응형 사이드바·디버그 쿼리 차단·메뉴별 알림 점: **[D-SHELL-01](../decisions.md#d-shell-01--사이드바-반응형-패턴-데스크톱-hover--모바일-드로어)** · **[D-SHELL-02](../decisions.md#d-shell-02--권한디버그-쿼리-우회-차단-정책)** · **[D-SHELL-03](../decisions.md#d-shell-03--사이드바-알림-점-트리거-규칙)**.
+- in-app 알림 센터·웹 푸시 예고: **[D-NOTIF-01](../decisions.md#d-notif-01--in-app-알림-센터-통합-도입)** · **[D-NOTIF-02](../decisions.md#d-notif-02--브라우저-서비스워커-웹-푸시-도입-정책-프리셋-α)** (범위 R3).
+- 개인 프라이버시 오버라이드(프리셋 α, R3 목업 예고): **[D-PRIV-01](../decisions.md#d-priv-01--개인-단위-프라이버시-오버라이드-프리셋-α)** — 권한 기본값 매트릭스는 **[D-PERM-01](../decisions.md#d-perm-01--클랜-권한-매트릭스-모델-도입)**.
+
 ## 스코프
 
 - 클랜 홈 `/games/[gameSlug]/clan/[clanId]` 레이아웃

@@ -1,5 +1,10 @@
 # S04 — 밸런스메이커
 
+## 결정 참조
+
+- 네임플레이트·경기 슬롯 동기화 **[D-PROFILE-01](../decisions.md#d-profile-01--네임플레이트-동기화-규약)** · Premium 잠금 동선 **[D-STORE-02](../decisions.md#d-store-02--premium-잠금-카드의-업그레이드-안내-동선)** · 스크림 확정 후 이벤트 자동 생성 **[D-EVENTS-01](../decisions.md#d-events-01--스크림-확정--클랜-이벤트-자동-생성동기화)**.
+- 운영 권한·세션 내 액션은 전역 매트릭스 **[D-PERM-01](../decisions.md#d-perm-01--클랜-권한-매트릭스-모델-도입)** 와 정합. 세부 카피·플로우는 [pages/09-BalanceMaker.md](../pages/09-BalanceMaker.md) 단일 출처.
+
 ## 스코프
 
 - 집계일(KST 06:00 기준), 밸런스장 단독 배치 편집, 배치 완료 → 밴픽 → 경기 시작

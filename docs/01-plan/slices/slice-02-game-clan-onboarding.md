@@ -1,5 +1,10 @@
 # S02 — 게임·클랜 온보딩
 
+## 결정 참조
+
+- 게임 인증·클랜 소속에 따른 진입 분기 **[D-AUTH-01](../decisions.md#d-auth-01--게임-인증--클랜-소속-라우팅-매트릭스)** · OAuth 제공자 매핑 **[D-AUTH-02](../decisions.md#d-auth-02--게임별-oauth-제공자-매핑)**.
+- 클랜 검색·가입 신청 상태·만들기 폼·활성도: **[D-CLAN-01](../decisions.md#d-clan-01--클랜-목록-검색필터페이지네이션-분담)** · **[D-CLAN-02](../decisions.md#d-clan-02--가입-신청-상태-머신과-중복정책)** · **[D-CLAN-04](../decisions.md#d-clan-04--클랜-만들기-폼-payload-스키마-정합)** · **[D-CLAN-07](../decisions.md#d-clan-07--클랜-멤버-활성도-분류와-휴면-멤버-처리)** (라이프사이클 D-CLAN-03 등은 동일 표 참조).
+
 ## 스코프
 
 - 게임별 인증 (`/games/[gameSlug]/auth`)

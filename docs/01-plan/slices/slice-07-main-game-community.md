@@ -1,5 +1,10 @@
 # S07 — MainGame 커뮤니티
 
+## 결정 참조
+
+- LFG 신청·수락 UI **[D-LFG-01](../decisions.md#d-lfg-01--lfg-신청-상태-ui와-수락-플로우)** · 홍보 정렬(인기 폐기) **[D-RANK-01](../decisions.md#d-rank-01--클랜-홍보-인기-정렬-폐기)**.
+- 스크림 채팅 종료·양측 확정: **[D-SCRIM-01](../decisions.md#d-scrim-01--스크림-채팅방-자동-종료-정책)** · **[D-SCRIM-02](../decisions.md#d-scrim-02--스크림-양측-확정-동시성-2-phase-commit)** (권한 키 `confirm_scrim`, **[D-PERM-01](../decisions.md#d-perm-01--클랜-권한-매트릭스-모델-도입)**).
+
 ## 스코프
 
 - 게임 단위 커뮤니티 `/games/[gameSlug]`

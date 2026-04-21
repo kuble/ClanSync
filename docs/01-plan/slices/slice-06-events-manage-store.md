@@ -1,5 +1,11 @@
 # S06 — 이벤트·관리·스토어
 
+## 결정 참조
+
+- 일정·투표·대진표·알림: **[D-EVENTS-01](../decisions.md#d-events-01--스크림-확정--클랜-이벤트-자동-생성동기화)** ~ **[D-EVENTS-05](../decisions.md#d-events-05--대진표-결과의-통계코인-반영)** (반복·알림 채널 D-EVENTS-02·03·04는 동일 표).
+- 관리 탭(구독·구성원·부계정·배너): **[D-MANAGE-01](../decisions.md#d-manage-01--구독결제-탭-접근-권한)** ~ **[D-MANAGE-04](../decisions.md#d-manage-04--클랜-배너아이콘-업로드-제약)** → 흡수 **[D-PERM-01](../decisions.md#d-perm-01--클랜-권한-매트릭스-모델-도입)**.
+- 코인·스토어·환불: **[D-STORE-01](../decisions.md#d-store-01--코인-적립차감-트리거-매트릭스)** · **[D-STORE-02](../decisions.md#d-store-02--premium-잠금-카드의-업그레이드-안내-동선)** · **[D-STORE-03](../decisions.md#d-store-03--환불되돌리기-정책)**.
+
 ## 스코프
 
 - **이벤트**: 월간 캘린더 + 일정 그리드, 반복 규칙, 스크림 확정 시 자동 반영(문서상)

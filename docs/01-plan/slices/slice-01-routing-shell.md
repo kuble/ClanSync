@@ -1,5 +1,10 @@
 # S01 — 라우팅·쉘 (랜딩·인증·게임 선택)
 
+## 결정 참조
+
+- 로그인 상태 랜딩 처리 **[D-LANDING-04](../decisions.md#d-landing-04--로그인된-사용자의-랜딩-진입-처리)** · 게임/클랜 라우팅 매트릭스 **[D-AUTH-01](../decisions.md#d-auth-01--게임-인증--클랜-소속-라우팅-매트릭스)** · 게임별 OAuth **[D-AUTH-02](../decisions.md#d-auth-02--게임별-oauth-제공자-매핑)**.
+- 비밀번호·연령·Discord scope·로그인 잠금·자동 로그인 유지: **[D-AUTH-03](../decisions.md#d-auth-03--비밀번호-정책과-최저-가입-연령)** · **[D-AUTH-05](../decisions.md#d-auth-05--discord-oauth-scope)** · **[D-AUTH-06](../decisions.md#d-auth-06--로그인-실패-잠금-정책)** · **[D-AUTH-07](../decisions.md#d-auth-07--자동-로그인-유지-기간)** (찾기·재설정은 D-AUTH-04).
+
 ## 스코프
 
 - 비로그인 랜딩, `/sign-in`, `/sign-up`, `/games` (게임 선택)
