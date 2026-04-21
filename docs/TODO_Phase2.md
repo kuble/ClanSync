@@ -1,7 +1,8 @@
 # Phase 2 — Next.js `src/` · Supabase · RLS
 
 > **허브**: [TODO.md](./TODO.md) · **Phase 1(종료)**: [TODO_Phase1.md](./TODO_Phase1.md) · **세션 로그**: [TODO_LOG.md](./TODO_LOG.md)  
-> **단일 출처**: [pages.md](./01-plan/pages.md) (라우트) · [schema.md](./01-plan/schema.md) (DB) · [FEATURE_INDEX.md](./01-plan/FEATURE_INDEX.md) (슬라이스)
+> **단일 출처**: [pages.md](./01-plan/pages.md) (라우트) · [schema.md](./01-plan/schema.md) (DB) · [FEATURE_INDEX.md](./01-plan/FEATURE_INDEX.md) (슬라이스)  
+> **체감 로드맵(사람용)**: [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md) — 마일스톤 별명·30초 데모 시나리오·라이브 상태 표. **에이전트는 시연/리뷰/릴리즈 시점에만 열면 된다**(실구현 시 필수 아님).
 
 | 항목 | 값 |
 |------|-----|
@@ -49,13 +50,25 @@ flowchart TD
 
 ## 마일스톤 공통 완료 기준 (Gate)
 
-매 마일스톤마다 아래 5개를 전부 만족해야 다음으로 넘어간다.
+매 마일스톤마다 아래 **기술 게이트 5 + UI/UX 게이트 3**을 전부 만족해야 다음으로 넘어간다.
+
+### 기술 게이트 (5)
 
 1. 해당 슬라이스의 **수용 기준 체크박스 전부 ✓**([FEATURE_INDEX.md](./01-plan/FEATURE_INDEX.md) 링크 참조).
 2. [pages.md §페이지별 가드 체인 표](./01-plan/pages.md)의 대응 경로가 `middleware.ts`·Server Component 가드에서 **전부 통과**.
 3. RLS 정책이 **leader / officer / member / guest** 4역할에서 최소 1 케이스씩 테스트 통과 (`supabase db test` 혹은 Playwright).
 4. 본 문서의 **체크리스트·라우트 대응표 갱신**.
 5. Nano-commit([.cursor/rules/git-nano-commit.mdc](../.cursor/rules/git-nano-commit.mdc)) 준수 + 세션 로그([TODO_LOG.md](./TODO_LOG.md)) 블록 추가.
+
+### UI/UX 게이트 (3)
+
+마일스톤에 UI 변경이 전혀 없는 경우(예: M1 인프라만)만 면제. 그 외 전부 필수.
+
+6. **키보드 온리** — 마우스 없이 해당 마일스톤의 핵심 플로우 완주 가능(탭·엔터·스페이스).
+7. **반응형 3폭** — 375 / 768 / 1280 px에서 레이아웃 깨짐·가로 스크롤 없음.
+8. **로딩·에러·빈 상태** — 각 신규 화면에 세 상태 디자인이 전부 존재(빈 리스트 안내·실패 메시지·스켈레톤 또는 스피너).
+
+> 집중 폴리시 구간(M5 프로필 · M8 종료 감사) 메모 및 각 마일스톤 30초 데모 시나리오는 [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md).
 
 ## 체크리스트 (마일스톤별 상세)
 
@@ -73,6 +86,7 @@ flowchart TD
 - [ ] `middleware.ts` 골격 (세션 refresh + **D-SHELL-02** 쿼리 정화: `?role=`·`?plan=`·`?game=` 프로덕션 드롭)
 - [ ] `.env.local` / `.env.example` 템플릿 + `next.config.ts` 서버 전용 ENV 분리
 - [ ] `package.json` scripts: `db:reset` · `db:push` · `types:gen`
+- [ ] **Vercel preview URL 자동 발급** — `vercel link` + GitHub 연동 + Preview/Production 환경 변수 분리. 이후 마일스톤부터는 PR당 preview URL을 [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md) 데모 시나리오 공유에 사용.
 
 ### M2 — S01 라우팅·쉘 (수직 슬라이스 첫 완주)
 
