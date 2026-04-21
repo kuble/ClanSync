@@ -1215,6 +1215,295 @@
   };
 
   /*
+   * ── D-NOTIF-01 통합 in-app 알림 센터 (DECIDED 2026-04-21) ─────────────
+   * 운영·개인 결과·일정 알림을 한 피드로 모은다. 네비게이션바 상단 벨 아이콘
+   * + 우측 드로워 UI의 데이터 소스.
+   *
+   * Phase 1은 sessionStorage 플레이스홀더 — 실제 트리거·RLS·GC는 Phase 2+.
+   * schema.md §notifications / decisions.md §D-NOTIF-01 참고.
+   *
+   * 저장 스키마(row):
+   *   {
+   *     id, kind, source_table, source_id,
+   *     category: 'ops' | 'personal' | 'schedule' | 'chat',
+   *     text, meta_text, created_at, read_at (null | ISO)
+   *   }
+   */
+  var MOCK_NOTIFICATIONS_KEY = "clansync-mock-notifications-v1";
+  var MOCK_NOTIFICATIONS_CATEGORY_LABEL = {
+    ops: "운영",
+    personal: "개인",
+    schedule: "일정",
+    chat: "채팅",
+  };
+  var MOCK_NOTIFICATIONS_SEED = [
+    {
+      id: "seed-notif-1",
+      kind: "match_correction_requested",
+      source_table: "match_record_correction_requests",
+      source_id: "seed-req-1",
+      category: "ops",
+      text: "민수가 4/15 내전 경기 기록 정정을 요청했습니다.",
+      meta_text: "5분 전",
+      created_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+      read_at: null,
+    },
+    {
+      id: "seed-notif-2",
+      kind: "join_request_submitted",
+      source_table: "clan_join_requests",
+      source_id: "seed-join-1",
+      category: "ops",
+      text: "새 가입 신청 — NewPlayer_99 (DPS/힐러 선호).",
+      meta_text: "22분 전",
+      created_at: new Date(Date.now() - 22 * 60 * 1000).toISOString(),
+      read_at: null,
+    },
+    {
+      id: "seed-notif-3",
+      kind: "lfg_accepted",
+      source_table: "lfg_applications",
+      source_id: "seed-lfg-1",
+      category: "personal",
+      text: "Blue Storm 스크림 신청이 수락되었습니다.",
+      meta_text: "1시간 전",
+      created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+      read_at: null,
+    },
+    {
+      id: "seed-notif-4",
+      kind: "event_reminder",
+      source_table: "notification_log",
+      source_id: "seed-log-1",
+      category: "schedule",
+      text: "정기 내전이 1시간 후 시작합니다.",
+      meta_text: "방금",
+      created_at: new Date(Date.now() - 30 * 1000).toISOString(),
+      read_at: null,
+    },
+    {
+      id: "seed-notif-5",
+      kind: "scrim_chat_closing_soon",
+      source_table: "scrim_rooms",
+      source_id: "seed-scrim-1",
+      category: "chat",
+      text: "Shadow Wolves 스크림 채팅방이 1시간 후 자동 종료됩니다.",
+      meta_text: "어제",
+      created_at: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString(),
+      read_at: new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString(),
+    },
+  ];
+
+  function mockNotificationsLoad() {
+    try {
+      var raw = sessionStorage.getItem(MOCK_NOTIFICATIONS_KEY);
+      if (!raw) {
+        sessionStorage.setItem(
+          MOCK_NOTIFICATIONS_KEY,
+          JSON.stringify(MOCK_NOTIFICATIONS_SEED)
+        );
+        return MOCK_NOTIFICATIONS_SEED.slice();
+      }
+      var parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return MOCK_NOTIFICATIONS_SEED.slice();
+    }
+  }
+
+  function mockNotificationsSave(list) {
+    try {
+      sessionStorage.setItem(MOCK_NOTIFICATIONS_KEY, JSON.stringify(list));
+    } catch (e) {}
+  }
+
+  window.mockNotificationsStore = {
+    list: function () {
+      return mockNotificationsLoad().slice().sort(function (a, b) {
+        return (b.created_at || "").localeCompare(a.created_at || "");
+      });
+    },
+    unreadCount: function () {
+      return mockNotificationsLoad().filter(function (n) {
+        return !n.read_at;
+      }).length;
+    },
+    markRead: function (id) {
+      var list = mockNotificationsLoad();
+      var next = list.map(function (n) {
+        if (n.id !== id || n.read_at) return n;
+        return Object.assign({}, n, { read_at: new Date().toISOString() });
+      });
+      mockNotificationsSave(next);
+    },
+    markAllRead: function () {
+      var now = new Date().toISOString();
+      var next = mockNotificationsLoad().map(function (n) {
+        if (n.read_at) return n;
+        return Object.assign({}, n, { read_at: now });
+      });
+      mockNotificationsSave(next);
+    },
+  };
+
+  function mockNotificationsRefreshBadge() {
+    var badge = document.getElementById("mock-navbar-notify-badge");
+    if (!badge) return;
+    var n = window.mockNotificationsStore.unreadCount();
+    if (n <= 0) {
+      badge.textContent = "0";
+      badge.hidden = true;
+      badge.setAttribute("aria-hidden", "true");
+    } else {
+      badge.textContent = n > 99 ? "99+" : String(n);
+      badge.hidden = false;
+      badge.setAttribute("aria-hidden", "false");
+    }
+  }
+
+  function mockNotificationsRenderBody() {
+    var body = document.getElementById("mock-notifications-drawer-body");
+    var empty = document.getElementById("mock-notifications-drawer-empty");
+    if (!body) return;
+    var list = window.mockNotificationsStore.list();
+    Array.prototype.slice
+      .call(body.querySelectorAll(".mock-notification-item"))
+      .forEach(function (el) {
+        el.parentNode.removeChild(el);
+      });
+    if (list.length === 0) {
+      if (empty) empty.hidden = false;
+      return;
+    }
+    if (empty) empty.hidden = true;
+    list.forEach(function (n) {
+      var row = document.createElement("div");
+      row.className =
+        "mock-notification-item " +
+        (n.read_at ? "mock-notification-item--read" : "mock-notification-item--unread");
+      row.setAttribute("data-notif-id", n.id);
+      row.onclick = function () {
+        window.mockNotificationsOpenSource(n.id);
+      };
+
+      var dot = document.createElement("span");
+      dot.className =
+        "mock-notification-item__dot mock-notification-item__dot--" + (n.category || "ops");
+      dot.setAttribute("aria-hidden", "true");
+
+      var bodyEl = document.createElement("div");
+      bodyEl.className = "mock-notification-item__body";
+
+      var text = document.createElement("div");
+      text.className = "mock-notification-item__text";
+      text.textContent = n.text || n.kind;
+
+      var meta = document.createElement("div");
+      meta.className = "mock-notification-item__meta";
+      var kindBadge = document.createElement("span");
+      kindBadge.className = "mock-notification-item__kind-badge";
+      kindBadge.textContent = MOCK_NOTIFICATIONS_CATEGORY_LABEL[n.category] || "기타";
+      meta.appendChild(kindBadge);
+      var timeSpan = document.createElement("span");
+      timeSpan.textContent = n.meta_text || "";
+      meta.appendChild(timeSpan);
+      var openBtn = document.createElement("button");
+      openBtn.type = "button";
+      openBtn.className = "mock-notification-item__open";
+      openBtn.textContent = "원본 열기";
+      openBtn.onclick = function (ev) {
+        ev.stopPropagation();
+        window.mockNotificationsOpenSource(n.id);
+      };
+      meta.appendChild(openBtn);
+
+      bodyEl.appendChild(text);
+      bodyEl.appendChild(meta);
+      row.appendChild(dot);
+      row.appendChild(bodyEl);
+      body.appendChild(row);
+    });
+  }
+
+  window.mockNotificationsOpenDrawer = function () {
+    var drawer = document.getElementById("mock-notifications-drawer");
+    var overlay = document.getElementById("mock-notifications-drawer-overlay");
+    var bell = document.getElementById("mock-navbar-notify-bell");
+    if (!drawer) return false;
+    mockNotificationsRenderBody();
+    drawer.hidden = false;
+    drawer.setAttribute("aria-hidden", "false");
+    if (overlay) {
+      overlay.hidden = false;
+      overlay.setAttribute("aria-hidden", "false");
+    }
+    if (bell) bell.setAttribute("aria-expanded", "true");
+    // transform 애니메이션을 트리거하기 위해 다음 프레임에 is-open 추가
+    requestAnimationFrame(function () {
+      drawer.classList.add("is-open");
+      if (overlay) overlay.classList.add("is-open");
+    });
+    // 드로워 열람 시: 현재 표시된 미열람을 자동 read 처리 (D-NOTIF-01 동작)
+    setTimeout(function () {
+      var before = window.mockNotificationsStore.unreadCount();
+      window.mockNotificationsStore.markAllRead();
+      if (before > 0) {
+        mockNotificationsRefreshBadge();
+      }
+    }, 600);
+    return false;
+  };
+
+  window.mockNotificationsCloseDrawer = function () {
+    var drawer = document.getElementById("mock-notifications-drawer");
+    var overlay = document.getElementById("mock-notifications-drawer-overlay");
+    var bell = document.getElementById("mock-navbar-notify-bell");
+    if (!drawer) return false;
+    drawer.classList.remove("is-open");
+    if (overlay) overlay.classList.remove("is-open");
+    if (bell) bell.setAttribute("aria-expanded", "false");
+    setTimeout(function () {
+      drawer.hidden = true;
+      drawer.setAttribute("aria-hidden", "true");
+      if (overlay) {
+        overlay.hidden = true;
+        overlay.setAttribute("aria-hidden", "true");
+      }
+    }, 220);
+    return false;
+  };
+
+  window.mockNotificationsMarkAllRead = function () {
+    window.mockNotificationsStore.markAllRead();
+    mockNotificationsRefreshBadge();
+    mockNotificationsRenderBody();
+  };
+
+  window.mockNotificationsOpenSource = function (id) {
+    window.mockNotificationsStore.markRead(id);
+    mockNotificationsRefreshBadge();
+    mockNotificationsRenderBody();
+    // Phase 1 목업: 실제 딥링크는 Phase 2+. 지금은 안내 alert.
+    alert("원본으로 이동 (Phase 2+에 source_table/source_id 딥링크 구현).");
+  };
+
+  window.mockNotificationsRefresh = function () {
+    mockNotificationsRefreshBadge();
+  };
+
+  // 페이지 로드 시 배지 동기화 + Esc 닫기
+  document.addEventListener("DOMContentLoaded", function () {
+    mockNotificationsRefreshBadge();
+  });
+  document.addEventListener("keydown", function (ev) {
+    if (ev.key !== "Escape") return;
+    var drawer = document.getElementById("mock-notifications-drawer");
+    if (drawer && !drawer.hidden) {
+      window.mockNotificationsCloseDrawer();
+    }
+  });
+
+  /*
    * ── 클랜 운영 권한 설정 (D-MANAGE-02 / D-MANAGE-03) ───────────────────
    * [DEPRECATED 노트: D-PERM-01 흡수됨 — Phase 2+에 permissions jsonb로 마이그레이션]
    * Phase 1 호환성을 위해 기존 토글 시스템 그대로 유지. mockClanHasPermission()이
