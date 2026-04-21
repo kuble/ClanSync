@@ -5,6 +5,36 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-21 — MAINGAME 4건 종결 (D-SCRIM-01·02 + D-LFG-01 + D-RANK-01)
+
+- [x] **현황 파악**: `08-MainGame.md`, `decisions.md` MAINGAME 표(4건 OPEN), `schema.md` §scrim_rooms, `mockup/pages/main-game.html` LFG/promo/scrim 영역(`submitLfgApply`, `setPromoSort`, `scrimChatSessionExpiresAt`, `scrimJoinState`, `submitScrimApply`).
+- [x] **정책 확정** — `docs/01-plan/decisions.md` 4개 신규 섹션 추가, 표 4행 모두 DECIDED 갱신.
+  - **D-SCRIM-01 — 스크림 채팅방 자동 종료**: 상태별 종료 시점 매트릭스 — `draft`=별도 종료 없음(모집 만료), `matched`/`confirmed`=`scheduled_at + 6h`, `cancelled`=`cancelled_at + 1h`, `finished`=`finished_at + 24h`. 종료 = `scrim_messages` INSERT 차단(RLS) + 클라이언트 읽기 전용. 운영진 수동 종료(`closed_by`) 가능, 24h 내 양측 합의 시 reopen(Phase 2+). 알림: `closed_at - 1h` in-app 1회 + 종료 시 in-app 1회. 클라이언트 가드 + 서버 cron(5분) 2중 방어.
+  - **D-SCRIM-02 — 양측 확정 2-phase commit**: `scrim_room_confirmations(scrim_room_id, side)` UNIQUE — 양쪽 행 존재 시 트리거 `scrim_rooms_promote_to_confirmed()`가 `status='confirmed'` UPDATE. 일정 변경(`scheduled_at`/`mode`/`tier_*`/`place`) 시 트리거 `scrim_rooms_invalidate_confirmations()`가 confirmation 전부 DELETE + `status='matched'` + `confirmed_at=NULL`. 한쪽 확정 후 `scheduled_at - 1h` 타임아웃 시 cron이 `cancelled` 자동 전이. 알림 슬롯 5종(one_side_confirmed/both_confirmed/invalidated/timeout/cancelled). 동시 확정·취소는 PG 행 잠금으로 직렬화.
+  - **D-LFG-01 — 신청 상태 UI**: `lfg_applications.status enum('applied','accepted','rejected','canceled','expired')`. 부분 UNIQUE `(post_id, applicant_user_id) WHERE status='applied'` — 동일 사용자 동시 active 신청 차단(거절·취소·만료 후 재신청은 새 행). 신청자: 카드 "신청됨/수락됨/거절됨" 배지 + 드로어 상태 카피 + 헤더 "내 신청 N건" pill. 모집자: 카드 "신청자 N명" 카운트 + 드로어 신청자 목록(닉/티어/포지션/마이크 + 수락/거절). `accepted` 카운트 ≥ `lfg_posts.slots` 도달 시 트리거 `lfg_posts_auto_fill()`이 `status='filled'` + 잔여 `applied`를 `expired`로. 알림 in-app 전용(Phase 1 범위).
+  - **D-RANK-01 — "인기" 정렬 폐기**: `setPromoSort` 옵션 `newest`/`space` 2종만. 사유: ① `views` 필드 부재 → 도입 시 외부 경쟁 유인 (D-ECON-03 모순), ② 가입 신청 자체가 인기 측정, ③ 현행 코드 `b.views - a.views` NaN 버그. Phase 2+ 후보: **활성도** (`clans.activity_pct_30d` desc — D-CLAN-07 의존), **여유 있음** (`(max-now)` desc).
+- [x] `docs/01-plan/schema.md`
+  - `scrim_rooms` 확장 — `closed_by uuid FK→users NULL`·`closed_reason enum('auto_timeout','manual','cancelled','finished') NULL` 추가. CHECK `(closed_at IS NULL) = (closed_reason IS NULL)`. 인덱스 2개 추가(cron 후보 가속). 트리거 `scrim_rooms_invalidate_confirmations` 명시. 상태 전이도 "matched ← confirmed (일정 변경 자동 무효화)" 화살표 추가.
+  - `scrim_room_confirmations` 신설 — `(scrim_room_id, side enum('host','guest'))` UNIQUE + `confirmed_by`/`confirmed_at`. 트리거 `scrim_rooms_promote_to_confirmed`(AFTER INSERT) + DELETE 정책(invalidate/cancelled 트리거 전용, 운영자 수동 차단) + RLS(본인 클랜 운영진+만 INSERT).
+  - `lfg_posts` 신설 — `game_id`/`creator_user_id`/`mode`/`format`/`slots`/`tiers[]`/`positions[]`/`mic_required`/`start_time_hour`/`expires_at`/`description`/`status enum('open','filled','expired','canceled')`. 트리거 `lfg_posts_auto_fill()`로 자동 마감 처리. 인덱스 2개(활성 모집·내 모집).
+  - `lfg_applications` 신설 — `post_id`/`applicant_user_id`/`status`/`tier`/`role`/`mic_available`/`message(≤200)`/`created_at`/`resolved_at`/`resolved_by`. 부분 UNIQUE 인덱스 `lfg_app_one_active_per_user`. 인덱스 2개(모집자 목록·본인 신청 목록). RLS 분기(신청자 본인·모집자만 SELECT).
+- [x] `docs/01-plan/pages/08-MainGame.md`
+  - **정렬** 섹션을 D-RANK-01 DECIDED로 재작성 — 옵션 2종 + Phase 2+ 후보 2종 + decisions.md 링크.
+  - **LFG 신청 상태 UI** 섹션 신설 — 5상태 × 신청자 카드/드로어/모집자 카드 매트릭스 + 부분 UNIQUE 근거 + decisions.md/schema.md 링크.
+  - **채팅방 자동 종료 매트릭스** (D-SCRIM-01) 섹션 신설 — 5상태별 종료 시점·카피 + 운영자 수동 종료/재개 + 알림.
+  - **양측 확정 2-phase commit** (D-SCRIM-02) 섹션 신설 — 트리거 흐름 + 일정 변경 자동 무효화 + 타임아웃 + 동시성 보장(행 잠금).
+  - "결정 필요" → "결정 현황"으로 변경, 4건 모두 DECIDED 표기.
+  - "목업과 실제 구현의 차이" 섹션도 4건 DECIDED 결정에 맞춰 재작성.
+- [x] `mockup/pages/main-game.html`
+  - **D-RANK-01**: `setPromoSort`에서 `'popular'` 분기 한 줄 삭제(`if (promoSort === 'popular') ...`).
+  - **D-LFG-01**: sessionStorage `clansync-mock-lfg-apps-v1` (`postId → {status, at}`) 시뮬레이션 도입. 헬퍼 `lfgAppsRead/Write/Get/Set/Delete/Count`, `LFG_STATUS_BADGE`(applied 파랑/accepted 초록/rejected 회색) 신설. `lfgCard()`에 본인 상태 배지 자동 노출. `openLfgDrawer` 푸터를 상태별 4분기로 재작성: applied → 상태 카피 + "신청 취소", accepted/rejected → 결과 카피, none → 기존 "참여 신청하기 →". `openLfgApplyModal(name, postId)` 시그니처 확장 + 중복 신청 차단 가드. `submitLfgApply` → `lfgAppSet(postId, 'applied')` + 카드 재렌더. `cancelLfgApply(postId)` 신설(confirm 후 sessionStorage 제거).
+  - **D-SCRIM-01**: 채팅 모달 부제 카피에 종료 매트릭스 한 줄("경기 시작 +6시간 / 취소 +1시간 / 종료 +24시간") 추가.
+  - **D-SCRIM-02**: `scrimInvalidateConfirmations(s)` 헬퍼 신설 — 해당 스크림에 매달린 모든 `scrimJoinState` 키 리셋 + `status='모집 완료'`였으면 `'모집 중'` 복귀 + `vsOpponent=null` + 채팅 UI 재렌더. `submitScrimApply` 편집 분기에서 `prevSig`/`nextSig` 비교(dayOffset/hour/minute/mode/tierMin/tierMax) → 변경 시 invalidate + 안내 alert("일정·모드·티어 중 하나가 변경되어 양측 확정이 자동 무효화되었습니다 ...").
+- [x] **결과**: MAINGAME 4건 모두 DECIDED. 남은 OPEN = STATS 4건(D-STATS-01~04).
+- [x] **분할 커밋**: `docs(plan): close D-SCRIM-01·02 + D-LFG-01 + D-RANK-01` → `feat(mockup): MAINGAME 4건 목업 동기화 (D-LFG/RANK/SCRIM)` → `docs(todo): log MAINGAME 4건 종결 세션`.
+
+---
+
 ### 2026-04-21 — D-EVENTS-01 Supplemental (모달 유형 제한 + 스크림 전용 RSVP 단일 토글 + 운영진+ 전용 참가 명단·버튼)
 
 - [x] **문제 인식** (사용자 피드백): ① 일정 등록 모달 `유형` select에 "스크림"이 남아 있어 D-EVENTS-01(스크림=자동 등록·읽기 전용)과 모순. ② 드로워 RSVP 3버튼(`going/maybe/not_going`)이 내전·이벤트에도 표시돼 "참석 응답"이 맥락 없이 보임. ③ 참석자 명단·편집·삭제·"스크림 상세 열기" 버튼이 일반 구성원에게도 노출되어 권한 경계가 불명확.

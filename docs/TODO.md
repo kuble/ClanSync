@@ -20,7 +20,7 @@
 |------|-----|
 | **현재 단계** | Phase 2 — Next.js `src/` · Supabase · RLS |
 | **이전 단계** | Phase 1 — 정적 목업 (`mockup/`) **종료** (2026-03-28) |
-| **마지막 갱신** | 2026-04-21 (D-EVENTS-01 Supplemental — 모달 `유형`에서 스크림 제거, 드로워 RSVP를 스크림 전용 단일 "참가" 토글로 교체(확인 팝업), 참가자 명단(인게임 닉네임) 및 "스크림 상세 열기"·편집·삭제 버튼을 **운영진+ 전용**으로 분리) |
+| **마지막 갱신** | 2026-04-21 (MAINGAME 4건 종결 — D-SCRIM-01 채팅방 자동 종료 매트릭스, D-SCRIM-02 양측 확정 2-phase commit + 일정 변경 시 confirmation 자동 무효화, D-LFG-01 신청 5상태 enum + 본인/모집자 화면 UI, D-RANK-01 "인기" 정렬 폐기. schema.md에 `scrim_room_confirmations` · `lfg_posts` · `lfg_applications` 신설, 목업도 동기화) |
 
 ---
 
