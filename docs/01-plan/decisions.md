@@ -122,6 +122,12 @@
 | D-ECON-03 | DECIDED (2026-04-20) | 클랜 순위표 민감 지표 포함 여부 | **외부 공개 순위표에서 경쟁 지표 전면 제외**(승률·K/D·MVP 수 등). 공개 지표는 활동성·규모·매너 점수·이벤트 참여만. 경쟁 지표는 **운영진+ 내부 화면**(클랜 관리·HoF)에만. [§D-ECON-03](#d-econ-03--클랜-순위표-민감-지표-노출-범위) |
 | D-ECON-04 | DECIDED (2026-04-20) | 특이사항 태그 세부 기준 | **자동 산정 전용**(수동 태깅 없음). Phase 1 초기 카탈로그 13종(`streak_lose_3/4/5`·`streak_win_3/5`·`slump`·`hot_streak`·`map_expert`·`map_rookie`·`mvp_hot`·`no_show`·`no_show_repeat`·`new_clan_week`). 본 클랜 내전만 집계, 경기 종료 시·일일 배치 재계산. tone `good/bad/neutral`. [§D-ECON-04](#d-econ-04--특이사항-태그-카탈로그) |
 
+## 통신 · 알림 (NOTIF)
+
+| 코드 | 상태 | 항목 | 메모 |
+|------|------|------|------|
+| D-NOTIF-01 | DECIDED (2026-04-21) | 운영·개인·일정 알림을 통합하는 in-app 알림 센터 도입 | **프리셋 α(디스코드식 통합 센터)** — 네비게이션바 상단 **벨 아이콘 + 드로워**. 범위 = **운영 + 개인 결과 + D-EVENTS-03 일정 알림 전체 통합**. 저장 = **M1 분리 + FK**: `notification_log`(기존 발송 레이어 유지) + `notifications`(신설 피드 레이어). 일정 in-app 발송 시 AFTER UPDATE 트리거로 `notifications` INSERT, 운영·개인 알림은 소스 테이블(`clan_join_requests`·`match_record_correction_requests`·`scrim_room_confirmations`·`lfg_applications` 등) **DB 트리거로 자동 INSERT**. 2상태(unread/read), 읽은 후 **7일 자동 GC**. D-SHELL-03 사이드바 메뉴별 점은 **병존**(척도 다름). D-PERM-01 권한 키 신설 없음(수신자 계산은 소스 RLS). [§D-NOTIF-01](#d-notif-01--in-app-알림-센터-통합-도입) |
+
 ---
 
 ## 결정 완료 (DECIDED)
@@ -2583,7 +2589,7 @@ $$;
    - **로스터** (블루·레드 멤버 수정, optional)
    - **맵** (드롭다운, optional)
    - **자유 사유** (필수, max 500자)
-3. 제출 → `match_record_correction_requests` INSERT → 운영진(권한 `correct_match_records` 보유자) 전원에게 in-app 알림 (D-NOTIF-01 후속 결정에서 통합 처리)
+3. 제출 → `match_record_correction_requests` INSERT → AFTER INSERT 트리거가 `correct_match_records` 권한 보유자 전원의 `notifications`에 `kind='match_correction_requested'` 피드 생성 (D-NOTIF-01 통합 센터, DECIDED 2026-04-21)
 4. 운영진이 알림에서 진입 → 요청 상세 모달 → "정정 적용" 클릭 시 운영진이 직접 새 값 입력 → 저장 → `match_record_history` INSERT + 요청 행 `status='accepted'`
 5. 운영진이 "반려" 클릭 시 → 요청 행 `status='rejected'` + 반려 사유 → 요청자에게 알림
 6. **자동 적용 X** — 요청은 단순히 운영진을 호출하는 신호이며, 실제 데이터 변경은 운영진의 손을 거친다.
@@ -2652,7 +2658,7 @@ CREATE INDEX match_history_by_match ON match_record_history (match_id, changed_a
 - `mockup/pages/main-clan.html`에 `#mock-match-correction-request-modal` 신설 (입력 폼 + 미리보기).
 - `mockup/scripts/clan-mock.js`에 sessionStorage `clansync-mock-match-correction-requests-v1` 헬퍼 (요청 누적·상태 변경 시뮬레이션).
 - 경기 카드에 "정정 요청" 버튼 추가 — `view_match_records` 권한자(현 목업은 운영진+) 노출. 멤버 노출은 `mock-officer-only` 가드 유지.
-- 운영진 측 "요청 처리" UI는 D-NOTIF-01(알림 센터) 결정 후 일관 통합. Phase 1 임시는 alert 안내로 처리 가능 — 단 모달 자체는 본 결정으로 추가.
+- 운영진 측 "요청 처리" UI는 D-NOTIF-01(알림 센터, DECIDED 2026-04-21) 통합 피드 드로워를 통해 일관 진입. Phase 1 목업은 네비 벨 드로워 → 경기 카드 alert로 이동하는 플레이스홀더.
 
 **연관 문서**
 
@@ -2796,3 +2802,133 @@ GROUP BY 1, 2;
   - HoF 등재자 명단 → CSV (외부 공개 토글과 별개로 클랜 내부 사용)
 - **목업 영향**: 카피 변경 없음. `pages/10-Clan-Stats.md §탭 4` 각주 "운영진은 필요 시 CSV 내보내기·기간 필터를 둘 수 있음(기획)"은 그대로 유지하되 D-PERM-01·D-STATS-04 링크 추가.
 - **연관**: [D-PERM-01](#d-perm-01--클랜-권한-매트릭스-모델-도입) · [pages/10-Clan-Stats.md §탭 4](./pages/10-Clan-Stats.md)
+
+---
+
+### D-NOTIF-01 — in-app 알림 센터 통합 도입
+
+- **결정일**: 2026-04-21 (사용자 컨펌)
+- **요지**: 지금까지 각 결정(D-CLAN-02·D-STATS-02·D-SCRIM-01/02·D-LFG-01·D-CLAN-07 등)이 정의한 개별 in-app 알림 슬롯과 D-EVENTS-03 일정 알림을 **단일 피드**로 통합한다. 네비게이션바 상단에 **벨 아이콘 + 드로워**(디스코드식)를 두고, 모든 수신 알림이 이 한 곳에 모인다. D-SHELL-03 사이드바 메뉴별 점(예: `#manage` pending 가입 요청 수)은 **집계 척도가 달라** 병존 유지한다.
+
+**수신자 관점 3분류**
+
+| 분류 | 성격 | 예시 | 이 결정 이전 문제 |
+|------|------|------|------------------|
+| 운영/관리 알림 | 나는 **처리 주체** (누군가가 결정을 요구) | 가입 신청 접수, 정정 요청 접수, 상대 클랜 스크림 확정, LFG 신청 접수, 멤버 휴면 진입 | 각 탭 배지·cron 이메일로 산재. 드로워·피드 없음 |
+| 개인 결과 알림 | 나는 **요청자** (내가 제출한 것의 결과) | 내 가입 신청 승인/거절, 내 정정 요청 수락/거절/만료, 내 LFG 신청 수락/거절, 스크림 양측 확정·무효화 통보, 스크림 채팅 1시간 전 종료 안내 | 재진입한 화면에서만 확인 가능. 센터 없음 |
+| 일정 알림 | 시간 경과 | "내전 24h 후 시작", "투표 마감 1h" | D-EVENTS-03 채널(Discord/카카오)은 잘 흐르지만 **in-app** 경로만 앱 내에서 다시 보기 어려움 |
+
+**프리셋 비교 (사용자 컨펌 내역 기록용)**
+
+| 프리셋 | UI 진입점 | 범위 | 저장 | 선택 여부 |
+|--------|----------|------|------|----------|
+| α | 네비 상단 **벨 + 드로워** | 운영 + 개인 + 일정 전체 통합 | `notification_log` + `notifications` 분리 | **✓ 선택** |
+| β | "클랜 관리" 메뉴 확장만 | 운영진만 | `notifications` 단일 | |
+| γ | 통합 안 함 (no-op) | — | 변경 없음 | |
+| δ | α + 브라우저 ServiceWorker 푸시 | α와 동일 | α와 동일 | (Phase 2+ 후속 결정 후보) |
+
+**저장 모델 — M1 (분리 + FK)**
+
+두 테이블은 **책임이 다르므로 분리 유지**한다.
+
+| 테이블 | 책임 | 기존 여부 |
+|--------|------|----------|
+| `notification_log` | 언제 어느 채널로 예약·발송·실패·재시도했는가(기술/발송 레이어). `event_id`·`slot_kind`·`channel`·`recipient_user_id`·`scheduled_at`·`status`·`retry_count`·`dlq_reason` | 기존 (D-EVENTS-03/04) |
+| `notifications` | 수신자의 in-app 피드 — `recipient_user_id`·`kind`·`source_table`·`source_id`·`payload jsonb`·`read_at`·`created_at` (UI/수신자 레이어) | **신설** |
+
+**관계**
+
+```
+notification_log (기존, D-EVENTS-03/04)
+  ├── channel='in_app' AND status='sent'로 전환
+  │       └─→ AFTER UPDATE 트리거 → INSERT INTO notifications
+  │           (source_table='notification_log', source_id=log.id, kind='event_reminder', ...)
+  └── channel='discord' / 'kakao' 예약 → notifications 미반영 (외부 채널만)
+
+notifications (신설)
+  ├── 일정 알림  → source_table='notification_log'
+  ├── 운영 알림  → source_table='clan_join_requests'
+  │                             / 'match_record_correction_requests'
+  │                             / 'scrim_room_confirmations'
+  │                             / 'lfg_applications' 등
+  └── 개인 결과 알림 → 소스 테이블 AFTER UPDATE 트리거로 직접 INSERT
+```
+
+**왜 M1인가 (M2·M3 탈락 사유)**
+
+- **M2** (`notification_log` 확장 흡수): 기술 레이어(재시도·DLQ)와 UI 레이어(읽음)를 섞으면 기존 UNIQUE(`event_id`, `slot_kind`, `scheduled_at`, `channel`, `recipient_user_id`) 제약이 운영 알림에 맞지 않음. D-EVENTS-03/04 본문·스키마를 대규모 재작업해야 함.
+- **M3** (`notification_log` deprecate): 재시도·DLQ·예약 취소 로직 재설계 비용 과다. 이미 DECIDED인 D-EVENTS-03/04를 뒤집는 셈이라 번복 비용 큼.
+
+**개인/운영 알림 동기화 = DB 트리거**
+
+- 각 소스 테이블의 상태 변화(예: `match_record_correction_requests.status` `pending → accepted`)에 AFTER UPDATE 트리거를 건다.
+- 트리거가 `notifications`에 행을 INSERT — 수신자·kind·source_table·source_id·payload(스냅샷) 채워넣는다.
+- 장점: **알림 누락 불가**(애플리케이션 코드에서 빼먹어도 DB 레벨에서 보장), 트랜잭션 내 원자성.
+- 예시 트리거 매핑:
+
+| 소스 테이블 | 트리거 조건 | `kind` | 수신자 |
+|------------|-------------|--------|--------|
+| `clan_join_requests` | INSERT | `join_request_submitted` | `approve_join_requests` 권한자(클랜 운영진) |
+| `clan_join_requests` | AFTER UPDATE status → accepted/rejected | `join_request_{accepted,rejected}` | 신청자 본인 |
+| `match_record_correction_requests` | INSERT | `match_correction_requested` | `correct_match_records` 권한자 |
+| `match_record_correction_requests` | AFTER UPDATE status → accepted/rejected/expired | `match_correction_{accepted,rejected,expired}` | 요청자 본인 |
+| `scrim_room_confirmations` | INSERT (한쪽 확정) | `scrim_one_side_confirmed` | 상대 클랜의 `confirm_scrim` 권한자 |
+| `scrim_rooms` | AFTER UPDATE status → confirmed/invalidated/cancelled | `scrim_{both_confirmed,invalidated,cancelled}` | 양측 운영진·관여 멤버 |
+| `scrim_rooms` | cron: scheduled_at - 1h with status='confirmed' | `scrim_chat_closing_soon` | 참가자 (D-SCRIM-01) |
+| `lfg_applications` | INSERT | `lfg_applied` | 모집자 |
+| `lfg_applications` | AFTER UPDATE status → accepted/rejected/expired | `lfg_{accepted,rejected,expired}` | 신청자 본인 |
+| `clan_members` | AFTER UPDATE activity_status → 'dormant' (D-CLAN-07) | `member_became_dormant` | 운영진 |
+| `notification_log` | AFTER UPDATE status → sent, channel='in_app' | `event_reminder` (slot_kind 포함) | `recipient_user_id` |
+
+**읽음·GC 동작**
+
+| 동작 | 결과 |
+|------|------|
+| 드로워 열기 | 표시된 항목 일괄 `read_at = now()` |
+| "원본 열기" 클릭 | 해당 항목 read + `source_table`·`source_id` 조회해 딥링크로 이동 |
+| 개별 dismiss 버튼 | **없음** (단순성 우선) |
+| 자동 GC | 읽은 후 **7일** 경과분 cron으로 삭제 (`read_at < now() - interval '7 days'`) |
+| 미열람 유지 | `read_at IS NULL`인 행은 GC 대상 아님 — 아무리 오래돼도 보존 |
+
+**payload 설계**
+
+- 알림 생성 시점의 스냅샷을 `payload jsonb`에 넣는다. 예: `{"requester_nickname":"철수","match_label":"2026-04-15 19:30 / 소환사의 협곡"}`.
+- 이유: 원본 row가 삭제/수정돼도 피드 문구가 "알 수 없는 신청"이 되지 않도록. UI 렌더 시 payload만 쓰고 source 테이블 join을 피한다(피드 조회 성능).
+- 원본 열기는 source_table·source_id로 재조회 — 해당 시점에 RLS로 접근성 재확인.
+
+**사이드바(D-SHELL-03)와의 병존**
+
+- 사이드바 각 메뉴의 알림 점(`#sidebar-notify-balance/events/manage`)은 **해당 메뉴 고유 집계**(진행 중 세션 수·24h 내 미응답·pending 가입 등). 이 집계는 `notifications` 미열람 수와 **일치시키지 않는다**.
+- 벨 배지는 `SELECT COUNT(*) FROM notifications WHERE recipient_user_id = ? AND read_at IS NULL`.
+- 둘 다 의미가 다르다: 메뉴 점 = "이 화면에 해야 할 일이 있다", 벨 = "내 피드에 새 소식이 있다".
+- 예: 가입 신청 1건이 오면 사이드바 `#manage` 점 +1, 벨 +1. 운영진이 가입 요청 화면에 들어가 처리하면 `#manage` 점은 데이터 기반으로 자연히 -1, 벨은 드로워를 열면 -1.
+
+**권한 (D-PERM-01 연관)**
+
+- **권한 키 신설 없음**. `notifications` 행의 수신자(`recipient_user_id`)는 소스 트리거에서 계산될 때 이미 권한 체크가 끝난 상태다(예: `join_request_submitted`는 `approve_join_requests` 권한자에게만 보냄).
+- 따라서 RLS는 단순: `SELECT WHERE recipient_user_id = auth.uid()`. 그 외 사용자는 절대 못 읽음.
+
+**Phase 1 목업 영향**
+
+- 목업은 **단발성 alert/토스트**가 아니라 **네비게이션바 상단 벨 아이콘 + 드로워 오버레이**로 구조를 가시화한다.
+- 더미 알림 3~5건(정정 요청, LFG 수락, 일정 리마인더 등) 시딩해 스크롤·읽음 처리 동작 시연.
+- 저장은 `sessionStorage` 플레이스홀더 (`clansync-mock-notifications-v1`). Phase 2+에 Supabase `notifications` 테이블로 교체.
+- 사이드바 기존 알림 점은 **그대로** — 벨과 별개 집계임을 UI상 분명히 유지.
+
+**Phase 2+ 작업 백로그**
+
+1. `notifications` 테이블 + RLS + GC cron 구현.
+2. 10+ 소스 테이블에 AFTER UPDATE/INSERT 트리거 설치(순차 슬라이스).
+3. `notification_log.channel='in_app' AND status='sent'` 전환 트리거.
+4. 네비게이션바 벨 컴포넌트 + 드로워 UI(D-SHELL-03 메뉴 점과 충돌 없는 배치).
+5. **후속 결정 후보 D-NOTIF-02** — 브라우저 푸시(ServiceWorker) 도입 여부·QoS.
+6. **후속 결정 후보 D-NOTIF-03** — 이메일 다이제스트(일간/주간 요약) 여부.
+
+**연관**
+
+- [D-EVENTS-03](#d-events-03--일정투표-알림-채널정책) · [D-EVENTS-04](#d-events-04--투표-알림과-마감일-일관성-검증) — `notification_log` 기존 스키마 비파괴
+- [D-SHELL-03](#d-shell-03--사이드바-알림-점-트리거-규칙) — 사이드바 메뉴 점과 병존
+- [D-PERM-01](#d-perm-01--클랜-권한-매트릭스-모델-도입) — 권한 키 신설 없음, 수신자 계산은 소스 RLS
+- [D-CLAN-02](#d-clan-02--가입-신청-상태-머신과-중복정책) · [D-STATS-02](#d-stats-02--경기-사후-정정-요청-모달과-이력-보존) · [D-SCRIM-01](#d-scrim-01--스크림-채팅방-자동-종료-정책) · [D-SCRIM-02](#d-scrim-02--스크림-양측-확정-동시성-2-phase-commit) · [D-LFG-01](#d-lfg-01--lfg-신청-상태-ui와-수락-플로우) · [D-CLAN-07](#d-clan-07--클랜-멤버-활성도-분류와-휴면-멤버-처리) — 알림 슬롯 소스
+- [schema.md](./schema.md) — `notifications` 신설
+- [pages/07-MainClan.md](./pages/07-MainClan.md) — 네비게이션바 벨·드로워 진입점
