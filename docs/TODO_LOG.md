@@ -5,6 +5,31 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-21 — D-STATS-03 종결 ("앱 이용 횟수" = 활동일/person-day)
+
+- [x] **결정 컨펌 절차 준수** (`.cursor/rules/decision-confirm.mdc`): 4개 옵션(A 활동일 / B 의미 있는 액션 / C 페이지뷰 / D 세션) + 권장안 A + 미세 후속질문 3건(트리거·컨텍스트·열람 권한)을 사용자에게 동시 제시 → 컨펌 후 진행.
+- [x] **D-STATS-03 — "앱 이용 횟수" = 활동일(person-day)** (DECIDED 2026-04-21, 사용자 컨펌)
+  - 컨펌 결과: 단위 = **A 활동일(DAU 합산)** / 트리거 = **첫 페이지뷰**(가벼움 우선) / 컨텍스트 = **자기 클랜 페이지 진입 시에만** / 열람 = **멤버 전체**.
+  - 정의: 멤버가 자기 클랜 라우트(`/clan/[clan_id]/...`)에 첫 페이지뷰를 기록한 날 = 1. DAY UNIQUE로 새벽 새로고침·매크로·prefetch 자동 차단. 클랜 `timezone`(없으면 `Asia/Seoul`) 자정 경계.
+  - 근거: ① 영역 1(누적 활동일=도달) ↔ 영역 2(distinct 멤버=참여) ↔ 영역 3(내전 경기=결과) 3축 보완 ② D-ECON-03 부합(외부 가공 어려운 내부 척도) ③ 페이지뷰·세션 옵션의 노이즈/임의성 회피 ④ 의미 있는 액션 옵션의 가중치 정의 부담 회피.
+  - 노이즈 가드: HTTP `Sec-Fetch-Dest=prefetch` / `Purpose=prefetch` 헤더 + 봇 User-Agent + 비인증 요청은 RPC 호출 자체를 스킵.
+- [x] `docs/01-plan/decisions.md`
+  - 헤더 표 D-STATS-03 OPEN → DECIDED + 요약 갱신.
+  - 본문에 D-STATS-03 결정 블록 신설 — 핵심 정의 표, 옵션 비교 사유, 트리거 선택 근거, 스토리지·RLS·집계 MV(`clan_monthly_activity`·`clan_yearly_activity`), 카운트 컨텍스트 라우트 정의, Phase 2+ 백로그.
+- [x] `docs/01-plan/schema.md`
+  - `clan_daily_member_activity (clan_id, user_id, activity_date)` PK 신설 — INSERT-only, 멱등 RPC `record_clan_activity()`, RLS(SELECT=같은 클랜 멤버, INSERT=RPC 경유만, UPDATE/DELETE 차단), `(clan_id, activity_date DESC)` 인덱스. MV 2개(월간/연간) 명세.
+  - 영역 1·2 동시 산출 = 같은 MV 한 줄(`person_days` + `active_members`) → 일관성 강화. 연간 distinct는 합산 불가라 별도 MV 필수임을 명시.
+- [x] `docs/01-plan/pages/10-Clan-Stats.md`
+  - §탭 4 §영역 1을 D-STATS-03 정의로 재작성 — 활동일 의미·라우트 정의·노이즈 가드·외부 노출 차단.
+  - §탭 4 §결정 현황 + §앱 이용 출처 + 페이지 하단 §결정 현황 + §연관 문서 모두 D-STATS-03 DECIDED로 갱신, schema 신설 테이블 링크 추가.
+- [x] `mockup/pages/main-clan.html`
+  - "클랜 단위 · 연도별·월별 앱 이용 횟수" 카드(`#view-stats > rankmap`) 카피 갱신 — `D-STATS-03` 배지 + "활동일(person-day)" 정의 + 라우트 컨텍스트 + 외부 노출 차단 안내. 정적 표 자체는 그대로(Phase 2+에 실제 집계 연결).
+- [x] **결과**: STATS 4건 모두 DECIDED. 남은 "앱 이용" 관련 OPEN 없음. 다음 후보 = D-NOTIF-01(운영 알림 센터), D-PRIV-01(개인 단위 프라이버시 오버라이드).
+- [x] **참고**: D-ECON-03 외부 노출 표의 "내전 경기 수" 행 메모("D-STATS-03 측정 단위 결정 후 재검토")는 영역 1이 아닌 영역 3 노출 정책 영역이라 본 결정과 직접 관련 없음 — 컨펌 외 영역 손대지 않음.
+- [x] **분할 커밋**: `docs(plan): close D-STATS-03 — app usage = person-day (DAU)` → `feat(mockup): D-STATS-03 person-day copy on app-usage card` → `docs(todo): log D-STATS-03 close session`.
+
+---
+
 ### 2026-04-21 — STATS·PERM 묶음 (D-PERM-01 매트릭스 신설 + D-STATS-01/02/04 흡수)
 
 - [x] **메타 결정 — 결정 컨펌 룰 도입**: 사용자 요청 "결정이 필요한 사항은 항상 나에게 컨펌 받도록 기억해줘" → `.cursor/rules/decision-confirm.mdc`(`alwaysApply: true`) 신설. "옵션 2~4개 제시 → 권장안 명시 → 컨펌 대기 → 반영" 절차 + 예외(타이포·사용자 명시 일임 등) 정리.

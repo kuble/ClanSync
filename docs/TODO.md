@@ -20,7 +20,7 @@
 |------|-----|
 | **현재 단계** | Phase 2 — Next.js `src/` · Supabase · RLS |
 | **이전 단계** | Phase 1 — 정적 목업 (`mockup/`) **종료** (2026-03-28) |
-| **마지막 갱신** | 2026-04-21 (STATS·PERM 묶음 — **D-PERM-01 클랜 권한 매트릭스 모델** 신설(6 카테고리 × 21 권한 키, `clan_settings.permissions jsonb`로 D-MANAGE-01/02/03·D-EVENTS-01·D-SCRIM-02·D-STATS-01/02/04 흡수), D-STATS-02 경기 사후 정정 요청 모달 + `match_record_correction_requests` · `match_record_history` 테이블 신설, D-STATS-01·04 권한 매트릭스 흡수. 클랜 운영 권한 카드에 D-PERM-01 안내 카피, 정정 요청 모달 UI + sessionStorage 헬퍼) |
+| **마지막 갱신** | 2026-04-21 (D-STATS-03 종결 — "앱 이용 횟수" = **활동일(person-day, DAU 합산)**. 자기 클랜 라우트 첫 페이지뷰 트리거, DAY UNIQUE로 새벽 새로고침·prefetch 스팸 자동 차단. `clan_daily_member_activity` 테이블 + `clan_monthly_activity`·`clan_yearly_activity` MV(영역 1·2 동시 산출). 외부 노출 D-ECON-03 차단 유지. 통계 카드 카피·문서·schema 동기화. 직전 묶음: STATS·PERM — D-PERM-01 권한 매트릭스 + D-STATS-01/02/04 흡수.) |
 
 ---
 
