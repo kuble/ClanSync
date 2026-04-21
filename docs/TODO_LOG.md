@@ -5,6 +5,22 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-21 — Phase 2 마스터 플랜 착지 (M0 기반 정비)
+
+- [x] **전제 확정 Q&A** (plan 모드 2 질문):
+  - **Q1 (로케일)** → `src/app/[locale]/` 세그먼트 **제거**. `pages.md` 라우팅 맵(`/sign-in`·`/games/[gameSlug]/...`)을 1:1로 따른다. 다국어는 Phase 2+ 별건(`next-intl` 등) 검토.
+  - **Q2 (범위)** → 종료선 = **S00~S06, S08 전체 + S07 경량 4탭**(홈·클랜 홍보·LFG·클랜 순위). 스크림 채팅(D-SCRIM-01/02)·게시판 상세(`/games/[g]/board/[postId]`)·승부예측 정산·서비스워커 푸시·다국어는 Phase 2+ 이관.
+- [x] **코드 변경** — `src/app/[locale]/{layout,page}.tsx` 삭제 + `src/app/page.tsx`의 `redirect("/ko")` 제거 후 Phase 2 로드맵 안내 스텁으로 교체. `html lang="ko"`는 유지(단일 로케일). `npx eslint src`로 회귀 없음 확인.
+- [x] **`docs/TODO_Phase2.md`** 본문에 마스터 플랜 착지:
+  - **마일스톤 표** M0~M8 — 슬라이스 매핑(S00~S08)·핵심 산출물·선행 관계·상태. Mermaid flowchart로 의존 시각화.
+  - **공통 게이트 5개** — 수용 기준 체크 / pages.md 가드 체인 통과 / RLS 4역할 테스트 / 라우트 대응표 갱신 / nano-commit + 세션 로그.
+  - **마일스톤별 체크리스트** — M0(기반), M1(인프라 Supabase 헬퍼·0001_init·middleware 골격·env·db scripts), M2(S01 4라우트·D-AUTH-03/06/07·D-AUTH-01 6칸), M3(S02 OAuth·D-CLAN-01/02/04·RLS 1차), M4(S03 사이드바·hasPermission·플랜 토글·탭 스텁), M5(S08 프로필 D-PROFILE-01~04 병렬), M6a/b/c(통계·이벤트·관리·스토어·밸런스), M7(S07 경량 4탭, 스크림 안내만), M8(Phase 2 감사 + Phase 2+ 이관).
+  - **라우트 대응표 15행** — `/` · `/sign-in` · `/sign-up` · `/games` · `/games/[g]/auth` · `/games/[g]/clan` · `/games/[g]/clan/[id]` · 5개 탭 · `/games/[g]` · 스크림 탭/`board` 상세(Phase 2+ 보류 명시) · `/profile`. 각 행에 목업 파일·담당 마일스톤·상태 표기.
+- [x] **허브 갱신** — [TODO.md](./TODO.md) 현재 단계 문구(`마스터 플랜 M0~M8`)·마지막 갱신 + 권장 프롬프트 2종 갱신(**지금 = M1 인프라**, **M2 이후 슬라이스 착수**). [TODO_Phase2.md](./TODO_Phase2.md) M0 첫 2개 체크(`[locale]` 제거·로드맵 문서화) 완료로 표기.
+- [x] **Nano-commit 3개** — `chore(src): drop [locale] segment, land Phase 2 stub` / `docs: TODO_Phase2 master plan (M0-M8 roadmap)` / `docs: hub prompts and TODO last-updated` ([.cursor/rules/git-nano-commit.mdc](../.cursor/rules/git-nano-commit.mdc)).
+- **다음 세션 목표**: **M1 인프라** — `@supabase/ssr` 도입 · `src/lib/supabase/{server,client,middleware}.ts` · `supabase/migrations/0001_init.sql` · `middleware.ts` 골격 · `.env.local`/`.env.example` · `db:reset/push/gen` scripts. 완료 후 M2 S01 수직 슬라이스(회원가입→로그인→`/games` 클릭스루) 진입.
+- 참조 플랜 파일: `.cursor/plans/phase_2_master_plan_*.plan.md`.
+
 ### 2026-04-21 — D-PRIV-01 종결 (개인 단위 프라이버시 오버라이드 프리셋 α · 범위 R3)
 
 - [x] **결정 컨펌 절차 준수** (`.cursor/rules/decision-confirm.mdc`):

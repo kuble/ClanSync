@@ -18,23 +18,32 @@
 
 | 항목 | 값 |
 |------|-----|
-| **현재 단계** | Phase 2 — Next.js `src/` · Supabase · RLS |
+| **현재 단계** | Phase 2 — Next.js `src/` · Supabase · RLS (마스터 플랜 M0~M8) |
 | **이전 단계** | Phase 1 — 정적 목업 (`mockup/`) **종료** (2026-03-28) |
-| **마지막 갱신** | 2026-04-21 — **Phase 1 감사 후속**([AUDIT-Phase1-2026-04-21.md](./AUDIT-Phase1-2026-04-21.md)) 묶음 완료: `TODO_Phase2.md` 신설·페이지 DECIDED 정합·슬라이스 결정 참조·D-LFG-01 목업 pill·문서/목업 메타·스키마 교차 링크. 직전: D-PRIV-01 종결(R3). |
+| **마지막 갱신** | 2026-04-21 — **Phase 2 마스터 플랜 M0 착지**: `src/app/[locale]/` 제거·랜딩 스텁·[TODO_Phase2.md](./TODO_Phase2.md) 본문에 M0~M8 로드맵·공통 게이트·마일스톤 체크리스트·라우트 대응표 반영. 다음 세션 = **M1 인프라**(Supabase 헬퍼·`0001_init` 마이그레이션·`middleware.ts` 골격). 직전: Phase 1 감사 후속 묶음. |
 
 ---
 
 ## 다음 세션 권장 프롬프트 (/todo 갱신 시 덮어씀)
 
-**지금 단계(Phase 2)** — 복사용:
+**지금 단계(Phase 2 · 다음은 M1 인프라)** — 복사용:
 
 슬라이스 단위로 나눌 때는 `slice-NN-....md` 한 파일을 `@`에 추가한다.
 
 ```
 @docs/TODO_Phase2.md @docs/01-plan/pages.md @docs/01-plan/schema.md 참고해서
-Phase 2: 체크리스트·라우트 대응표 중 (구체 과제 한 문장 — 예: 라우트 스텁 한 묶음·RLS 초안·미들웨어).
+Phase 2 M1 인프라: Supabase 헬퍼(`src/lib/supabase/{server,client,middleware}.ts`) + `supabase/migrations/0001_init.sql`(users·user_game_profiles·games·clans·clan_members + 기본 RLS) + `middleware.ts` 골격(세션 refresh + D-SHELL-02 쿼리 정화) + `.env.local`/`.env.example` 템플릿 + `db:*` scripts.
 
-완료 후 `docs/TODO.md` 마지막 갱신·`docs/TODO_LOG.md` 세션 로그·`docs/TODO_Phase2.md` 체크·라우트 표를 갱신한다.
+완료 후 `docs/TODO.md` 마지막 갱신·`docs/TODO_LOG.md` 세션 로그·`docs/TODO_Phase2.md` M1 체크리스트·라우트 표를 갱신한다.
+```
+
+**M2 이후 슬라이스 착수 시** — 복사용:
+
+```
+@docs/TODO_Phase2.md @docs/01-plan/pages.md @docs/01-plan/slices/slice-NN-....md 참고해서
+Phase 2 M?: (슬라이스 수용 기준 중 한 묶음 한 문장).
+
+완료 후 공통 게이트 5개(수용 기준·가드 체인·RLS 테스트·라우트 표 갱신·세션 로그) 모두 만족시키고 허브를 갱신한다.
 ```
 
 **목업만 수정·동기화할 때 (Phase 1 유지보수)** — 복사용:
