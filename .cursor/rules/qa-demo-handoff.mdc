@@ -1,0 +1,47 @@
+---
+description: UI·기능 마일스톤마다 시연 절차·직접 재현 가이드를 QA_시나리오.md에 누적
+alwaysApply: true
+---
+
+# QA · 시연 · 직접 재현 (ClanSync)
+
+사용자는 코드 수정을 최소화하고, **에이전트가 바꾼 화면·동작을 스스로 따라 해 보며 검수**할 수 있어야 한다.
+
+## 언제 갱신하는가
+
+다음에 해당하면 **같은 턴 안에** `docs/QA_시나리오.md`를 갱신한다 (커밋은 `git-nano-commit.mdc`).
+
+- 새 라우트·주요 UI·인증/권한/가드 동작을 **처음** 넣었거나 의미 있게 바꾼 때
+- Phase 2 **마일스톤(M2, M3, …) 게이트**를 닫는 작업을 마쳤을 때
+- 사용자가 “직접 해보게 절차 달라”고 요청했을 때
+
+**생략 가능**: 순수 리팩터, 문서만, 의존성 버전만 — UI/기능 체감 변화가 없을 때.
+
+## `docs/QA_시나리오.md`에 넣을 섹션 형식 (템플릿)
+
+마일스톤 또는 날짜 단위로 `##` 섹션을 **위에 추가** (최신이 위).
+
+각 섹션에 반드시 포함:
+
+1. **한 줄 요약** — 무엇을 검증하는지
+2. **환경** — `localhost:3000` / Vercel Preview URL(있으면) / 필요한 브랜치명
+3. **사전 조건** — 시드 계정·ENV·마이그레이션 여부 → [debug-and-fixtures.md](../docs/01-plan/debug-and-fixtures.md) · [D-DEV-01](../docs/01-plan/decisions.md#d-dev-01--로컬staging-픽스처--디버그-계층) 참조
+4. **절차** — 번호 목록 (URL → 클릭 → 입력 → 기대 화면/문구)
+5. **기대 결과** — 체크박스 2~5개
+6. **깨졌을 때** — 브라우저 콘솔, Network 탭, Supabase Auth/로그, `middleware` 여부 등 **한두 줄 힌트**
+
+## 대화 안에서의 시연
+
+- 응답 본문에 **절차 요약을 복붙 가능한 형태**로 짧게 반복해도 된다. 단, **단일 출처는 `docs/QA_시나리오.md`** — 다음 세션·PR 리뷰에서 찾을 수 있게 한다.
+- Preview URL이 있으면 **전체 URL 문자열**을 적는다 (줄임 금지).
+
+## 운영·보안 (D-SHELL-02 / D-DEV-01)
+
+- 시나리오에 **URL 쿼리로 권한·인증 우회**하는 방법을 적지 않는다. 재현은 **실제 로그인·시드 계정** 기준.
+- 플랫폼 admin 전용 디버그는 결정 문서와 동일 조건에서만 언급.
+
+## 연관 문서
+
+- [collaboration-workflow.mdc](./collaboration-workflow.mdc) — main 반영 전 사용자 컨펌
+- [debug-and-fixtures.md](../../docs/01-plan/debug-and-fixtures.md)
+- [PHASE2_EXPERIENCE.md](../docs/PHASE2_EXPERIENCE.md) — 사람용 데모 아이디어 (에이전트는 필요 시만 참조)

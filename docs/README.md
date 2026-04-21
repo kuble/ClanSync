@@ -46,6 +46,7 @@
 | `docs/TODO_LOG.md` | 세션 로그 (히스토리; 토큰 절약용 분리) |
 | `docs/TODO_Phase1.md` | Phase 1 슬라이스 체크·요약표 |
 | `docs/TODO_Phase2.md` | Phase 2 체크·라우트 표 |
+| `docs/QA_시나리오.md` | **시연·직접 재현 절차** (마일스톤마다 누적). 규칙: `.cursor/rules/qa-demo-handoff.mdc` |
 | `docs/02-design/` | 목업·디자인 시스템 |
 
 ---

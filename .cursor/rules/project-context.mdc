@@ -24,6 +24,7 @@ Next.js 15 App Router · TypeScript · Tailwind · shadcn/ui (new-york, dark) ·
 - Supabase RLS 모든 테이블 필수
 - 나노 단위 git 커밋 (`git-nano-commit.mdc` 참조)
 - 협업·`main` 반영: 브랜치·푸시는 에이전트 설계, **`main` 머지/PR 완료 전 사용자 컨펌 필수** (`collaboration-workflow.mdc`)
+- 시연·직접 재현: 마일스톤·UI 변경 시 `docs/QA_시나리오.md` 섹션 추가 (`qa-demo-handoff.mdc`)
 - 토큰 절약: 작업을 작게 쪼개고 필요한 문서만 그때그때 읽는다
 
 ## 문서 맵 (요청 시 읽기)

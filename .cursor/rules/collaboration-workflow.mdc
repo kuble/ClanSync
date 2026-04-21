@@ -21,3 +21,4 @@ alwaysApply: true
 ## 사용자 역할 (기대치)
 
 - 기능·범위·우선순위 설명, 화면·동작 확인, **main 반영 여부 최종 승인**.
+- UI·기능 검수용 **절차·시나리오 누적**: `docs/QA_시나리오.md` + [qa-demo-handoff.mdc](./qa-demo-handoff.mdc).
