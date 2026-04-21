@@ -12,7 +12,7 @@
 - [x] **미들웨어** — `updateSession()` 이 `{ response, user }` 반환. D-LANDING-04(`/→/games`, `?from=logo` 예외) · `/games/**` 비로그인→`/sign-in?next=` · 로그인 상태의 `/sign-in`·`/sign-up`→`/games`. 리다이렉트 시 `mergeCookies`로 세션 쿠키 유지.
 - [x] **UI** — `src/app/page.tsx` 랜딩 CTA · `sign-in/`·`sign-up/`(`useFormState`) · `games/page.tsx` + `GameCardGrid` · `games/[gameSlug]/{auth,clan,clan/[clanId]}` 스텁.
 - [x] **라우팅** — `src/lib/routing/game-card-router.ts`(`buildGameCardHref`).
-- [x] **기타** — `button-variants.ts` 분리(서버에서 `buttonVariants` 호출 가능) · `scripts/seed-fixtures.mjs` + `package.json` `db:seed` · `.env.example` E2E 이메일 기본값.
+- [x] **기타** — `button-variants.ts` 분리(서버에서 `buttonVariants` 호출 가능) · `scripts/seed-fixtures.mjs` + `package.json` `db:seed` · `.env.example` 시드용 `QA_SEED_PASSWORD`.
 - [x] **검증** — `npm run build` 통과 · `npx eslint src` 통과.
 - [x] **문서** — [TODO_Phase2.md](./TODO_Phase2.md) M2·라우트 표·산출물 지도 · [TODO.md](./TODO.md) · [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md) 라이브 4행 🟩.
 - **다음**: **M3** — OAuth 게임 인증 · 클랜 온보딩 · RLS(가입 요청). 스텁 페이지 교체.
@@ -32,7 +32,7 @@
   - `clan_members` — `UNIQUE(clan_id, user_id)` + `last_activity_at` 인덱스(D-CLAN-07). 본인 SELECT + 같은 클랜 active 멤버 SELECT.
   - 공용 `set_updated_at()` 트리거 4개.
   - INSERT/UPDATE/DELETE 가 민감한 경로(`clans`·`clan_members`·`user_game_profiles` 의 교차 편집)는 전부 Service Role + 서버 액션에서 수행하도록 RLS 를 보수적으로 시작.
-- [x] **ENV 정리** — `.env.example` 신설(강제 add). 로컬·Vercel Preview/Production 공통 키: `NEXT_PUBLIC_SUPABASE_URL`·`NEXT_PUBLIC_SUPABASE_ANON_KEY`·`NEXT_PUBLIC_SITE_URL`·`SUPABASE_SERVICE_ROLE_KEY`·`QA_SEED_PASSWORD`·`E2E_TEST_EMAIL`·`E2E_TEST_PASSWORD`.
+- [x] **ENV 정리** — `.env.example` 신설(강제 add). 로컬·Vercel Preview/Production 공통 키: `NEXT_PUBLIC_SUPABASE_URL`·`NEXT_PUBLIC_SUPABASE_ANON_KEY`·`NEXT_PUBLIC_SITE_URL`·`SUPABASE_SERVICE_ROLE_KEY`·`QA_SEED_PASSWORD` 등. (후속: E2E 전용 키는 템플릿에서 제거, 시드·QA만 유지.)
 - [x] **`package.json` scripts** — `db:reset` / `db:push` / `types:gen` (로컬 `supabase` CLI 전제). `types:gen` 은 `src/lib/supabase/database.types.ts` 로 출력.
 - [x] **검증** — `.next/` 정리 후 `npx tsc --noEmit` · `npx eslint src middleware.ts` 모두 통과.
 - [x] **문서 갱신** — [TODO_Phase2.md](./TODO_Phase2.md) M1 체크리스트 7개 중 6개 체크(Vercel preview 는 수동 단계로 보류), 라우트 대응표 말미에 **「M1 인프라 산출물 지도」** 표 신설(7개 파일·역할 명시), `middleware.ts` 전역 행 추가. [TODO.md](./TODO.md) 마지막 갱신·라이브 배너·다음 세션 권장 프롬프트(M2 S01 인증 쉘로 교체).

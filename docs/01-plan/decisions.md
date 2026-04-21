@@ -902,7 +902,7 @@ function selectSingleChip(el, group) {
 
 **연관 문서**
 
-- [debug-and-fixtures.md](./debug-and-fixtures.md) — 계정 표·디렉터리 배치·E2E 동기화
+- [debug-and-fixtures.md](./debug-and-fixtures.md) — 계정 표·디렉터리 배치·시드·QA
 - [§D-SHELL-02](#d-shell-02--권한디버그-쿼리-우회-차단-정책)
 
 ### D-SHELL-03 — 사이드바 알림 점 트리거 규칙
