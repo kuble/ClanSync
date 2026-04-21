@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="ClanSync 클랜 메인 목업: 대시보드·밸런스·통계·이벤트·관리·스토어 탭 정적 시연.">
 <title>ClanSync — Phoenix Rising</title>
 <link rel="stylesheet" href="../styles/main.css">
 <style>
@@ -7167,7 +7168,7 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
     - 같은 경기에 active 요청 1건만 (clan-mock.js의 mockMatchCorrectionHasActive 가드)
     - 7일 미처리 시 자동 expire (Phase 2+ cron)
   -->
-  <div id="mock-match-correction-request-modal" class="mock-modal-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="mock-match-correction-request-title" onclick="if(event.target===this)window.mockMatchCorrectionCloseModal()">
+  <div id="mock-match-correction-request-modal" class="mock-modal-overlay" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="mock-match-correction-request-title" onclick="if(event.target===this)window.mockMatchCorrectionCloseModal()">
     <div class="mock-modal-card" style="max-width:480px;width:calc(100% - 32px);box-sizing:border-box" onclick="event.stopPropagation()">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px">
         <div style="flex:1">
