@@ -5,6 +5,48 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-21 — STATS·PERM 묶음 (D-PERM-01 매트릭스 신설 + D-STATS-01/02/04 흡수)
+
+- [x] **메타 결정 — 결정 컨펌 룰 도입**: 사용자 요청 "결정이 필요한 사항은 항상 나에게 컨펌 받도록 기억해줘" → `.cursor/rules/decision-confirm.mdc`(`alwaysApply: true`) 신설. "옵션 2~4개 제시 → 권장안 명시 → 컨펌 대기 → 반영" 절차 + 예외(타이포·사용자 명시 일임 등) 정리.
+- [x] **D-PERM-01 — 클랜 권한 매트릭스 모델 도입** (DECIDED 2026-04-21, 사용자 컨펌)
+  - 사용자 제안: "디스코드처럼 굵직한 권한을 클랜장/운영진/구성원 기준으로 클랜이 직접 정하도록" → 결정마다 토글 1개씩 추가하던 패턴을 권한 매트릭스로 일반화.
+  - 6 카테고리 × 21 권한 키: ① 재무·계정(2, 둘 다 잠김) ② 멤버 관리(4, 2 잠김) ③ 평판·통계(5) ④ 경기 운영(2, 1 잠김) ⑤ 홍보·자원(2) ⑥ **개인 정보(6, 사용자 추가 요청)**.
+  - 잠긴 권한 5개 (leader 고정, 토글 불가): `manage_subscription` · `delegate_leader` · `kick_officer` · `bulk_kick_dormant` · `confirm_scrim`(D-SCRIM-02 트리거가 양측 운영진 가정).
+  - 사용자 추가 요청 반영: ⓐ "개인 정보" 카테고리 신설 + 부계정/월간/연간/시너지/맵별/M점수 공개 6개 키. ⓑ `correct_match_records`·`export_csv`는 member 옵션 → **officer 옵션**으로 변경. ⓒ 평판·통계에 `view_match_records` 추가. ⓓ `view_alt_accounts` 기본값을 운영진+에서 **`["leader","officer","member"]`로 확장** (D-MANAGE-03 default 변경).
+  - 저장: `clan_settings.permissions jsonb DEFAULT '{}'` 단일 컬럼. 부재 키 = 코드 상수 default 적용 → 카탈로그 추가 시 마이그레이션 불필요. 잠긴 키는 SQL `has_clan_permission()` + 코드 상수 이중 가드.
+  - **흡수 매핑**: D-MANAGE-01 → `manage_subscription`, D-MANAGE-02 → 6키, D-MANAGE-03 → `view_alt_accounts`(default 확장), D-EVENTS-01 → `manage_clan_events`, D-SCRIM-02 → `confirm_scrim`, D-STATS-01 → `set_hof_rules`, D-STATS-02 → `correct_match_records`+`view_match_records`, D-STATS-04 → `export_csv`.
+  - 기존 결정 본문은 비파괴 — 헤더 표 메모에만 "→ D-PERM-01 흡수" 1줄.
+- [x] **D-STATS-01 — HoF 설정 권한** (D-PERM-01 흡수): 권한 키 `set_hof_rules`. 기본 leader만, 클랜이 토글로 officer 허용 가능. 외부 공개 토글(`expose_hof`)은 leader 전용 별도.
+- [x] **D-STATS-02 — 경기 사후 정정 요청 모달 + 이력 보존** (DECIDED 2026-04-21)
+  - 권한 분리: `view_match_records`(열람·요청) vs `correct_match_records`(직접 정정). 요청자는 모달로 결과/맵/로스터/사유 제출, **운영진이 수동 검토·적용** — 자동 적용 X.
+  - `match_record_correction_requests` 테이블 신설: 5상태(`pending`/`accepted`/`rejected`/`expired`), 부분 UNIQUE `(match_id) WHERE status='pending'` — 같은 경기 active 1건 가드, 7일 미처리 자동 expire(Phase 2+ cron).
+  - `match_record_history` 테이블 신설 (INSERT-only): 모든 정정의 before/after 영구 보존, `source ∈ {direct, request}`. HoF·통계 재집계 시 reverse-replay로 시점 통계 재현 가능.
+  - 알림 슬롯 4종(D-EVENTS-03 채널 정책 재사용): `match_correction_{requested, accepted, rejected, expired}`.
+- [x] **D-STATS-04 — CSV 내보내기** (D-PERM-01 흡수): 권한 키 `export_csv`(기본 leader, officer 토글). 실제 CSV 생성·기간 필터 UI는 Phase 2+ 보류 — Phase 1은 권한 카탈로그 등록만.
+- [x] `docs/01-plan/decisions.md`
+  - 헤더 표 갱신: 신설 `## 권한 (PERM)` 섹션 + D-PERM-01 행. D-MANAGE-01/02/03·D-EVENTS-01·D-SCRIM-02·D-STATS-01/02/04 메모에 "→ D-PERM-01 흡수" 추가.
+  - 본문에 D-PERM-01 결정 블록 신설(권한 키 카탈로그 표·잠금 사유 표·jsonb 형태·RLS 가드 함수·Phase 1 목업 매핑·흡수 매핑·Phase 2+ 백로그). D-STATS-01/02/04 결정 블록 추가.
+- [x] `docs/01-plan/schema.md`
+  - `clan_settings`에 `permissions jsonb NOT NULL DEFAULT '{}'::jsonb` 추가. 기존 `allow_officer_edit_mscore`·`alt_accounts_visibility`는 DEPRECATED 표기(Phase 2+에 jsonb로 마이그레이션 후 컬럼 DROP 예정, 호환 유지). `view_alt_accounts` default를 멤버까지 확장한 마이그레이션 매핑 명시.
+  - `match_record_correction_requests`·`match_record_history` 테이블 신설(컬럼·제약·RLS·인덱스·알림 슬롯).
+- [x] `docs/01-plan/pages/10-Clan-Stats.md`
+  - HoF "설정" 모달에 D-STATS-01/D-PERM-01 권한 키(`set_hof_rules`) 명시.
+  - 탭 3 "경기 기록"을 `view_match_records`/`correct_match_records` 권한으로 재기술 + 정정 요청 모달 흐름(요청자/운영진) 신설 + 직접 정정 흐름 + `match_record_history` INSERT 트리거 설명.
+  - 탭 4 CSV 각주에 `export_csv` 권한 키 + Phase 2+ UI 보류 안내.
+  - 권한 표를 D-PERM-01 권한 키 컬럼 추가 형태로 재작성. "결정 필요" → "결정 현황"으로 갱신.
+- [x] `mockup/scripts/clan-mock.js`
+  - **CLAN_PERMISSION_CATALOG** 상수(6 카테고리 × 21 키, default·locked·toggleHint·source 메타) + `CLAN_PERMISSION_BY_KEY` 평탄화 lookup + `mockClanHasPermission(role, permKey)` 시뮬레이션 함수 신설. 잠긴 키는 default 강제, 일반 키는 기존 `MOCK_CLAN_SETTINGS_KEY` 토글 우선 참조(edit_mscore·view_alt_accounts).
+  - **정정 요청 sessionStorage 헬퍼**: `mockMatchCorrectionList/HasActive/Submit/Resolve` + 모달 핸들러 `mockMatchCorrectionOpenModal/CloseModal/SubmitFromModal`. 같은 경기 active 1건 가드 + 사유 필수·500자 제한.
+  - 기존 D-MANAGE-02/03 토글 시스템은 호환 유지 + DEPRECATED 주석으로 D-PERM-01 흡수 사실 명시.
+- [x] `mockup/pages/main-clan.html`
+  - 개요 탭 "운영 권한 설정" 카드(`#mock-manage-clan-settings-card`)에 D-PERM-01 안내 카피(파란선 박스, "전체 권한 매트릭스 일반화 + Phase 2+ 매트릭스 UI 확장 예정") 추가.
+  - HoF 설정 모달 다음에 `#mock-match-correction-request-modal` 신설 — 결과/맵 셀렉트 + 로스터 자유 텍스트 + 사유 필수(500자 카운터) + 가드 안내 박스.
+- [x] **추가 결정 후보 식별** (사용자 컨펌 필요, 다음 묶음): **D-NOTIF-01** 운영 알림 센터(가입 신청·정정 요청·스크림 변동·LFG 신청 통합 in-app 드로워), **D-PRIV-01** 개인 단위 프라이버시 오버라이드(클랜 단위 개인 정보 정책 위에 본인이 더 닫는 옵션).
+- [x] **결과**: PERM 1건 + STATS 3건(01/02/04) DECIDED. 남은 OPEN = D-STATS-03("앱 이용" 측정 단위), D-NOTIF-01(신규), D-PRIV-01(신규).
+- [x] **분할 커밋**: `docs(plan): introduce D-PERM-01 permission matrix + close D-STATS-01·02·04` → `feat(mockup): D-PERM-01 catalog const + match correction request modal` → `docs(todo): log STATS·PERM bundle session`.
+
+---
+
 ### 2026-04-21 — MAINGAME 4건 종결 (D-SCRIM-01·02 + D-LFG-01 + D-RANK-01)
 
 - [x] **현황 파악**: `08-MainGame.md`, `decisions.md` MAINGAME 표(4건 OPEN), `schema.md` §scrim_rooms, `mockup/pages/main-game.html` LFG/promo/scrim 영역(`submitLfgApply`, `setPromoSort`, `scrimChatSessionExpiresAt`, `scrimJoinState`, `submitScrimApply`).

@@ -20,7 +20,7 @@
 |------|-----|
 | **현재 단계** | Phase 2 — Next.js `src/` · Supabase · RLS |
 | **이전 단계** | Phase 1 — 정적 목업 (`mockup/`) **종료** (2026-03-28) |
-| **마지막 갱신** | 2026-04-21 (MAINGAME 4건 종결 — D-SCRIM-01 채팅방 자동 종료 매트릭스, D-SCRIM-02 양측 확정 2-phase commit + 일정 변경 시 confirmation 자동 무효화, D-LFG-01 신청 5상태 enum + 본인/모집자 화면 UI, D-RANK-01 "인기" 정렬 폐기. schema.md에 `scrim_room_confirmations` · `lfg_posts` · `lfg_applications` 신설, 목업도 동기화) |
+| **마지막 갱신** | 2026-04-21 (STATS·PERM 묶음 — **D-PERM-01 클랜 권한 매트릭스 모델** 신설(6 카테고리 × 21 권한 키, `clan_settings.permissions jsonb`로 D-MANAGE-01/02/03·D-EVENTS-01·D-SCRIM-02·D-STATS-01/02/04 흡수), D-STATS-02 경기 사후 정정 요청 모달 + `match_record_correction_requests` · `match_record_history` 테이블 신설, D-STATS-01·04 권한 매트릭스 흡수. 클랜 운영 권한 카드에 D-PERM-01 안내 카피, 정정 요청 모달 UI + sessionStorage 헬퍼) |
 
 ---
 
