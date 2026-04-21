@@ -44,6 +44,12 @@
 | D-SHELL-02 | DECIDED (2026-04-20) | `?role=` `?plan=` 쿼리 우회 가능 여부 (목업·디버그 전용 vs 운영 차단) | 운영 단일 출처는 **서버 세션 + DB RLS**. `?role=`·`?plan=`·`?hubDebug=1`·`?simulate=logged_in`·`?sidebarNotifyDebug=*`·`?balanceSession=*` 6종은 **미들웨어가 정화**(제거 후 302 redirect). 디버그 계열은 `NEXT_PUBLIC_DEBUG_QUERY=1` **+ admin 세션** 동시 충족에만 해석, 사용 시 `audit_debug_queries` 감사 기록. `/mockup/*`는 운영 빌드에서 제외. [§D-SHELL-02](#d-shell-02--권한디버그-쿼리-우회-차단-정책) |
 | D-SHELL-03 | DECIDED (2026-04-20) | 사이드바 알림 점 트리거 규칙 | `#dash` 알림 점 없음(허브 중복 방지). `#balance` = 진행 중 내전 세션 수. `#events` = 24h 내 RSVP 미응답 + 진행 중 투표 미응답. `#manage` = 가입 요청 pending + 신규 휴면 진입(D-CLAN-02·07). balance/events는 뷰 진입 시 자동 clear, manage는 데이터로만 clear. [§D-SHELL-03](#d-shell-03--사이드바-알림-점-트리거-규칙) |
 
+## 개발 · 픽스처 (DEV)
+
+| 코드 | 상태 | 항목 | 메모 / 영향 문서 |
+|------|------|------|------------------|
+| D-DEV-01 | DECIDED (2026-04-21) | 로컬/staging 픽스처·디버그 계층 — 복수 계정·양 클랜·시드 구조 | 운영·Preview 기본 빌드에서 URL로 권한·인증 위조 금지는 **D-SHELL-02** 유지. 재현용 데이터는 **시드 레이어**(Auth Admin API + public 테이블)로 주입. Production 시드·우회 금지. 상세: [debug-and-fixtures.md](./debug-and-fixtures.md). [§D-DEV-01](#d-dev-01--로컬staging-픽스처--디버그-계층) |
+
 ## 이벤트 · 일정 (EVENTS)
 
 | 코드 | 상태 | 항목 | 메모 |
@@ -870,6 +876,34 @@ function selectSingleChip(el, group) {
 - [07-MainClan.md §목업과 실제 구현의 차이](./pages/07-MainClan.md#목업과-실제-구현의-차이)
 - [gating-matrix.md 부록 B](./gating-matrix.md)
 - Phase 2 미들웨어 스펙은 `slice-01` 신설 시 본 결정을 인용.
+
+### D-DEV-01 — 로컬/staging 픽스처 · 디버그 계층
+
+- **결정일**: 2026-04-21
+- **요지**: 디버깅·시연은 **실제 Supabase 세션 + RLS**를 통과하는 **픽스처 계정·클랜·멤버십 시드**로 재현한다. “인증 없이 받은 척”은 **Production에서 허용하지 않는다.** URL 쿼리(`?role=` 등)로의 권한 위조는 **D-SHELL-02**대로 운영·Preview에서 정화한다.
+
+**계층**
+
+- **로컬**: 시드 스크립트(`scripts/seed-fixtures.*`, Service Role) + `QA_SEED_PASSWORD` 등. 선택적 개발 전용 ENV는 `NODE_ENV === 'development'` 에서만 해석 가능.
+- **Preview**: **운영과 동일한 로그인 경로**를 기본으로 하고, DB는 **staging Supabase** 권장(운영 DB 오염 방지).
+- **Production**: 시드·인증 우회·디버그 쿼리 기본 허용 없음.
+
+**픽스처 최소 세트** (확장 규격은 [debug-and-fixtures.md](./debug-and-fixtures.md))
+
+- 게임 카탈로그 1행 이상(1차 타겟 슬러그).
+- 사용자: 클랜 A용 leader·officer·member, 클랜 B용 동일, 무소속 1명, (선택) 플랫폼 admin 1명(D-SHELL-02 디버그 쿼리 해석).
+- 클랜: **최소 2개(A/B)** — 양 클랜 스크림·채팅·교차 RLS 검증용.
+- `user_game_profiles` / `clan_members` 조합으로 **D-AUTH-01** 6칸 시나리오를 시드로 재현.
+
+**구현 순서**
+
+- 마이그레이션과 시드 **파일 분리**. `npm run db:seed`(가칭)는 로컬·CI staging만.
+- 첫 인증 구현(M2)에서는 **실제 로그인 + 소수 시드 계정**을 우선하고, `AUTH_DEV_BYPASS` 류는 필요 시 별도 보안·감사 조건을 달아 후속 도입.
+
+**연관 문서**
+
+- [debug-and-fixtures.md](./debug-and-fixtures.md) — 계정 표·디렉터리 배치·E2E 동기화
+- [§D-SHELL-02](#d-shell-02--권한디버그-쿼리-우회-차단-정책)
 
 ### D-SHELL-03 — 사이드바 알림 점 트리거 규칙
 

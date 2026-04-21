@@ -37,3 +37,7 @@
 ## 밖에 둠
 
 - 실제 Next.js `middleware.ts` 구현은 `src/` 요청 시 별도 슬라이스로 쪼갠다.
+
+## 개발·QA (참고)
+
+- 로컬/staging **픽스처 계정·양 클랜 시드·디버그 계층**: [../debug-and-fixtures.md](../debug-and-fixtures.md) · 결정 **[D-DEV-01](../decisions.md#d-dev-01--로컬staging-픽스처--디버그-계층)**. URL로 인증/권한 위조는 **D-SHELL-02**로 운영·Preview에서 차단; 재현은 **실제 로그인 + 시드 DB**를 우선한다.
