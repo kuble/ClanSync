@@ -75,10 +75,10 @@
 
 | 코드 | 상태 | 항목 | 메모 |
 |------|------|------|------|
-| D-LFG-01 | OPEN | LFG 신청 후 상태(applied/accepted/canceled) UI · 본인 화면 표시 | 목업은 `submitLfgApply`가 alert만 |
-| D-RANK-01 | OPEN | 클랜 홍보 정렬의 "인기" 기준 (조회수 필드 부재) | 목업 `setPromoSort('popular')` 호출 시 NaN 위험 |
-| D-SCRIM-01 | OPEN | 스크림 채팅 자동 종료 시점(목업: 시작 +6h)의 운영 정책 확정 | |
-| D-SCRIM-02 | OPEN | 스크림 양측 운영진 확정 동시성 처리 (한쪽만 확정한 상태에서 일정 변경) | 목업은 alert만 |
+| D-LFG-01 | DECIDED (2026-04-21) | LFG 신청 후 상태(applied/accepted/canceled) UI · 본인 화면 표시 | 상태 enum 5종(`applied`/`accepted`/`rejected`/`canceled`/`expired`). 신청자 카드에 "신청됨" 배지 + 헤더 "내 신청 N건" pill, 모집자 카드에 "신청자 N명" + 수락/거절. 중복 신청 금지(부분 UNIQUE). `lfg_applications` 테이블 신설. [§D-LFG-01](#d-lfg-01--lfg-신청-상태-ui와-수락-플로우) |
+| D-RANK-01 | DECIDED (2026-04-21) | 클랜 홍보 정렬의 "인기" 기준 (조회수 필드 부재) | **"인기" 정렬 폐기**. 외부 경쟁 유인 차단(D-ECON-03 정합) + 가입 신청 자체가 인기 측정. `setPromoSort` 옵션은 `newest` / `space` 2종만. Phase 2+에 `activity_pct_30d` 추가 시 "활성도" 정렬 도입 후보. [§D-RANK-01](#d-rank-01--클랜-홍보-인기-정렬-폐기) |
+| D-SCRIM-01 | DECIDED (2026-04-21) | 스크림 채팅 자동 종료 시점(목업: 시작 +6h)의 운영 정책 확정 | 상태별 종료 시점 분기: `confirmed`/`matched`=`scheduled_at + 6h`, `cancelled`=`cancelled_at + 1h`, `finished`=`finished_at + 24h`, `draft`=모집글 만료 시. 종료 = 메시지 INSERT 차단(RLS) + 읽기 전용. 운영진 수동 닫기 가능. T-1h in-app 알림. [§D-SCRIM-01](#d-scrim-01--스크림-채팅방-자동-종료-정책) |
+| D-SCRIM-02 | DECIDED (2026-04-21) | 스크림 양측 운영진 확정 동시성 처리 (한쪽만 확정한 상태에서 일정 변경) | **2-phase commit**: `scrim_room_confirmations`(`scrim_room_id`, `side`) UNIQUE. 양쪽 행 존재 시 트리거가 `scrim_rooms.status='confirmed'` UPDATE. 일정·장소·모드 변경 시 **모든 confirmation 자동 무효화** → 재확정 필요. 한쪽 확정 후 `scheduled_at - 1h` 타임아웃 시 `cancelled` 자동 전환. [§D-SCRIM-02](#d-scrim-02--스크림-양측-확정-동시성-2-phase-commit) |
 
 ## 프로필 · 꾸미기 (PROFILE)
 
@@ -1498,7 +1498,7 @@ user_badge_unlocks (
 
 - 기본: **활동 스코어** = 활동 멤버 비율 × 스크림 완료 건수 × 매너 평균을 정규화한 복합 지수.
 - 보조 정렬: 규모(인원수 내림차순), 신생(생성일 오름차순), 매너 점수.
-- **"인기" 정렬은 제거**(D-RANK-01 관련) — 조회수 필드 없음·외부 경쟁 유인 최소화.
+- **"인기" 정렬은 제거**(D-RANK-01 DECIDED 2026-04-21) — 조회수 필드 없음·외부 경쟁 유인 최소화. 상세 [§D-RANK-01](#d-rank-01--클랜-홍보-인기-정렬-폐기).
 
 **제외 대상 확장**
 
@@ -1515,7 +1515,7 @@ user_badge_unlocks (
 
 - [schema.md 「클랜 순위·통계 지표」](./schema.md#클랜-순위통계-지표-승률-등-경쟁-지표-제외)
 - [slices/slice-05-clan-stats.md](./slices/slice-05-clan-stats.md)
-- [decisions.md §D-RANK-01](#) (OPEN — "인기" 정렬 기준) · [§D-STATS-01~04](#) (OPEN)
+- [decisions.md §D-RANK-01](#d-rank-01--클랜-홍보-인기-정렬-폐기) (DECIDED 2026-04-21) · [§D-STATS-01~04](#) (OPEN)
 - [pages/10-Clan-Rank.md](./pages/10-Clan-Rank.md) (해당 파일 있을 경우)
 
 ---
@@ -1789,7 +1789,7 @@ user_badge_unlocks (
 **Phase 2+ 스키마 영향 (요지)**
 
 - `clan_events` 확장 필드: `kind`·`source`·`scrim_id`·`cancelled_at`·`finished_at` (상세는 `schema.md`).
-- `scrim_rooms.status` enum 확장: 현재 `'open'/'closed'` → `'draft'/'matched'/'confirmed'/'cancelled'/'finished'`(D-SCRIM-01~02에서 세부 전이 재논의).
+- `scrim_rooms.status` enum 확장: 현재 `'open'/'closed'` → `'draft'/'matched'/'confirmed'/'cancelled'/'finished'`. 세부 전이·동시성·채팅 종료는 [§D-SCRIM-01](#d-scrim-01--스크림-채팅방-자동-종료-정책) · [§D-SCRIM-02](#d-scrim-02--스크림-양측-확정-동시성-2-phase-commit)에서 확정 (2026-04-21).
 - UNIQUE `(clan_id, scrim_id) WHERE scrim_id IS NOT NULL`.
 - 트리거 함수 `clan_events_sync_from_scrim()` — `schema.md` 트리거 절 신설 예정.
 
@@ -2150,3 +2150,247 @@ updated_at timestamptz
 - [D-ECON-04](#d-econ-04--특이사항-태그-카탈로그) — 대진표 태그 미적용 근거
 - [pages/10-Clan-Stats.md](./pages/10-Clan-Stats.md) — 대진표 별도 탭 설계(Phase 2+)
 - [pages/11-Clan-Events.md §탭 2](./pages/11-Clan-Events.md) — 대진표 마법사 UI
+
+---
+
+### D-SCRIM-01 — 스크림 채팅방 자동 종료 정책
+
+- **결정일**: 2026-04-21
+- **요지**: 스크림 모집 글 단위로 열리는 채팅방(상대 클랜과의 1:1 협상방)을 **상태별로 다른 시점에 자동 종료**한다. 종료 = 신규 메시지 INSERT 차단(RLS) + 클라이언트는 읽기 전용 표시. 상태 행은 보존(아카이브). 운영진은 수동 종료·재개 가능. 종료 1시간 전 in-app 알림.
+
+**상태별 종료 시점 매트릭스**
+
+| `scrim_rooms.status` | 자동 종료 시점 (`closed_at`) | 종료 사유 카피 | 비고 |
+|----------------------|------------------------------|----------------|------|
+| `draft` (모집 중·매칭 전) | 별도 자동 종료 없음 | — | 모집 글 자체가 만료(`expires_at`)되면 함께 닫힘 |
+| `matched` (한쪽만 확정 또는 협상 중) | `scheduled_at + 6h` | "경기 시작 시각으로부터 6시간 경과" | 협상 후속 시간 보장. D-SCRIM-02 타임아웃과 별도 |
+| `confirmed` (양측 확정) | `scheduled_at + 6h` | "경기 시작 시각으로부터 6시간 경과" | 경기 진행·평판 입력·정리 시간 포함 |
+| `cancelled` | `cancelled_at + 1h` | "스크림이 취소되었습니다" | 후속 정리·사과 메시지용 짧은 윈도우 |
+| `finished` | `finished_at + 24h` | "경기 결과 정리 마감" | 평판·MVP 정정 윈도우 |
+
+**구현 레이어**
+
+1. **클라이언트 가드**: `scrimChatSessionExpiresAt(s)`가 위 매트릭스로 계산 → 채팅 모달 진입 시·1초 인터벌로 비교. 종료 시점 도달 시 모달 자동 닫고 `closed_at` 안내.
+2. **서버 cron** (Phase 2+): 5분 간격으로 `scrim_rooms WHERE closed_at IS NULL AND <매트릭스 조건>` 검색 → `UPDATE closed_at = now()`. 함께 알림 발송 큐에 종료 안내 1회 enqueue.
+3. **RLS**: `scrim_messages` INSERT 정책에 `WHERE NOT EXISTS (SELECT 1 FROM scrim_rooms WHERE id = NEW.scrim_room_id AND closed_at IS NOT NULL)` 추가.
+
+**알림 슬롯 (D-EVENTS-03 채널 정책 재사용)**
+
+| 슬롯 | 발송 | 채널 | 비고 |
+|------|------|------|------|
+| `scrim_chat_close_t-1h` | `closed_at - 1h` | in-app | 양측 운영진·참가자 전원 |
+| `scrim_chat_closed` | `closed_at` 도달 시 | in-app | 1회. Discord·카카오 미사용(소음 방지) |
+
+**운영자 수동 제어**
+
+- **수동 종료**: `confirmed` 또는 `matched` 상태에서 양측 운영진 누구나 가능. `closed_at = now()` + `closed_by`(감사 필드) 기록.
+- **재개(reopen)**: 종료 후 24h 이내, 양측 운영진 모두 동의(2-man) 시 가능. `closed_at = NULL` 복원. Phase 2+ 기능 — Phase 1 목업은 미지원.
+
+**스키마 영향 (Phase 2+)**
+
+- `scrim_rooms.closed_at timestamptz NULL` (이미 신설됨, schema.md §scrim_rooms).
+- `scrim_rooms.closed_by uuid FK → users NULL` (수동 종료 시).
+- `scrim_rooms.closed_reason enum('auto_timeout','manual','cancelled','finished')` (NULL = 미종료).
+- 인덱스: `(closed_at) WHERE closed_at IS NULL AND status IN ('matched','confirmed')` — cron 후보 조회 가속.
+
+**Phase 1 목업 매핑**
+
+- 현행 `scrimChatSessionExpiresAt(s) = scheduled_at + 6h`는 `confirmed`·`matched`만 가정한 단순화 — 정합성 양호. `cancelled`·`finished` 상태는 목업 데이터에 없어서 영향 없음.
+- 채팅 종료 alert 카피 "채팅방이 종료되었습니다. (경기 시작 시각으로부터 6시간 경과)"는 본 결정의 `confirmed`/`matched` 케이스 카피와 일치.
+- 운영진 수동 종료·재개 UI는 Phase 1 비포함(상단 카피로만 안내).
+
+**연관 문서**
+
+- [D-EVENTS-01](#d-events-01--스크림-확정--클랜-이벤트-자동-생성동기화) — `confirmed` 전이 시 `clan_events` 자동 동기화
+- [D-SCRIM-02](#d-scrim-02--스크림-양측-확정-동시성-2-phase-commit) — 양측 확정·일정 변경 시 confirmation 무효화
+- [schema.md §scrim_rooms](./schema.md#scrim_rooms-스크림-채팅방)
+- [pages/08-MainGame.md §탭 4](./pages/08-MainGame.md)
+
+---
+
+### D-SCRIM-02 — 스크림 양측 확정 동시성 (2-phase commit)
+
+- **결정일**: 2026-04-21
+- **요지**: 스크림 확정은 **양측 운영진이 각자 1회씩 "확정"을 누르는 2단계** 모델로 처리한다. 신설 테이블 `scrim_room_confirmations`에 `(scrim_room_id, side)` UNIQUE 행으로 누적되며, 양쪽 행이 모두 존재하는 순간 트리거가 `scrim_rooms.status='confirmed'` + `confirmed_at=now()`로 전이한다. **일정·장소·모드를 한쪽이 변경하면 모든 confirmation을 자동 무효화** → 양측 모두 재확정 필요. 한쪽 확정 후 `scheduled_at - 1h`까지 다른 쪽이 확정하지 않으면 자동 `cancelled` 전이 + 양측 알림.
+
+**확정 상태 표현**
+
+| 상태 | `scrim_rooms.status` | `scrim_room_confirmations` |
+|------|---------------------|----------------------------|
+| 협상 중 (양쪽 모두 미확정) | `matched` | 0행 |
+| 한쪽만 확정 | `matched` | 1행 (`side IN ('host','guest')`) |
+| 양쪽 확정 | `confirmed` | 2행 (`host` + `guest`) |
+| 일정 변경 직후 | `matched` | **0행** (트리거가 전부 DELETE) |
+| 취소 | `cancelled` | 모두 DELETE |
+
+**동시성 보장**
+
+- `scrim_room_confirmations`에 UNIQUE `(scrim_room_id, side)` — 같은 쪽 운영진이 동시에 여러 번 눌러도 1행만 INSERT.
+- 양측이 동시(밀리초 차이)에 확정 → PG 트랜잭션 + `scrim_rooms` 행 잠금(`SELECT ... FOR UPDATE`)으로 직렬화. 두 트랜잭션이 모두 commit되면 트리거가 단 1회만 `status='confirmed'` UPDATE 실행.
+- 트리거 `scrim_rooms_promote_to_confirmed()` — `AFTER INSERT ON scrim_room_confirmations`로 양쪽 행 존재 확인 후 `status='matched'` → `'confirmed'` 전이. 이미 `confirmed`면 no-op.
+
+**일정 변경 → 자동 무효화**
+
+- 변경 대상 컬럼: `scheduled_at`, `mode`, `tier_min`, `tier_max`, `place`, `title`(목록 표시용 변경 제외).
+- `scrim_rooms` `BEFORE UPDATE` 트리거 `scrim_rooms_invalidate_confirmations()`: 위 컬럼이 실제로 변경됐으면 `DELETE FROM scrim_room_confirmations WHERE scrim_room_id = NEW.id` + `NEW.status = 'matched'` + `NEW.confirmed_at = NULL`. D-EVENTS-01 자동 동기화는 `confirmed` 전이 시점에만 발화하므로, 무효화 → 재확정 흐름에서도 멱등.
+- **변경자 본인은 자신의 confirmation 자동 재INSERT 없음** — 변경자가 다시 "확정" 눌러서 재확정 사이클을 시작해야 함(상대 측 확인 의무 부각). UI 카피로 명시: "일정을 변경하셨습니다. 양측 모두 다시 확정해 주세요."
+
+**타임아웃 정책**
+
+- 한쪽 확정(=`scrim_room_confirmations` 1행) 후 다른 쪽이 `scheduled_at - 1h`까지 확정하지 않으면 cron이 `status='cancelled'` + `cancelled_at=now()` 전이 + 양측 in-app 알림 + Discord(연동 시).
+- 이후 동일 시각으로 재확정 원하면 D-EVENTS-01 `cancelled → confirmed` 재확정 경로 사용.
+
+**취소 동시성**
+
+- 한쪽 운영진이 취소 시 즉시 `status='cancelled'` + `cancelled_at=now()` + 양측 알림. confirmation 행 모두 DELETE.
+- 양측 동시 취소 → 트랜잭션 잠금으로 1회만 `cancelled_at` 기록.
+- 취소 후 재확정은 D-EVENTS-01 표준 경로(어느 쪽이든 다시 "확정" 누르면 `cancelled → matched`로 복원, confirmation 새로 누적).
+
+**알림 슬롯 (D-EVENTS-03 채널 정책 재사용)**
+
+| 슬롯 | 트리거 | 채널 | 수신자 |
+|------|--------|------|--------|
+| `scrim_one_side_confirmed` | 1행 INSERT | in-app + Discord | **반대 측** 운영진 |
+| `scrim_both_confirmed` | `status='confirmed'` 전이 | in-app + Discord | **양측** 운영진·참가자 (`clan_events` 자동 동기화 직후) |
+| `scrim_invalidated` | confirmation 자동 무효화 | in-app | **양측** 운영진 (변경 사실 + "재확정 필요") |
+| `scrim_one_side_timeout` | cron `cancelled` 전이 | in-app + Discord | **양측** 운영진 |
+| `scrim_cancelled` | `status='cancelled'` 전이 | in-app + Discord | **양측** 운영진·참가자 |
+
+**스키마 영향 (Phase 2+)**
+
+- 신설 `scrim_room_confirmations` 테이블 — 컬럼 `id`/`scrim_room_id`/`side enum('host','guest')`/`confirmed_by uuid FK→users`/`confirmed_at timestamptz DEFAULT now()`. UNIQUE `(scrim_room_id, side)`. RLS = INSERT 본인 클랜 운영진+, DELETE 서비스 롤(트리거 전용).
+- `scrim_rooms` 트리거 2개 신설(promote · invalidate). 기존 `clan_events_sync_from_scrim`(D-EVENTS-01)은 그대로 — `status` 변화 감지로 idempotent.
+- 인덱스: `scrim_room_confirmations(scrim_room_id)` (PK가 BIGINT면 자동 — UUID라면 명시적 추가).
+
+**Phase 1 목업 매핑**
+
+- 현행 `scrimJoinState[joinKey] = { host: false, guest: false }` 메모리 객체가 `scrim_room_confirmations` 2행을 시뮬레이션 — 양쪽 토글 시 `scrim_rooms.status='모집 완료'`(=`confirmed`)로 승격하는 흐름 일치.
+- 일정 변경 시 confirmation 자동 무효화는 **본 결정과 함께 추가**: `openScrimEditModal` 또는 `submitScrimApply`(편집 모드)에서 변경 컬럼이 실제로 바뀌면 `scrimJoinState[joinKey] = { host: false, guest: false }` 리셋 + alert "일정을 변경하셨습니다. 양측 모두 다시 확정해 주세요."
+- 한쪽 확정 후 타임아웃 시뮬레이션은 Phase 1 비포함(시간 의존 코드 추가 비용 대비 가치 낮음).
+- "재확정 사이클 시작 책임" 카피는 채팅 모달 안내 줄에 한 줄 추가.
+
+**연관 문서**
+
+- [D-SCRIM-01](#d-scrim-01--스크림-채팅방-자동-종료-정책) — 채팅방 종료 정책
+- [D-EVENTS-01](#d-events-01--스크림-확정--클랜-이벤트-자동-생성동기화) — `confirmed` 전이 시 자동 이벤트 동기화
+- [schema.md §scrim_rooms](./schema.md#scrim_rooms-스크림-채팅방) · §scrim_room_confirmations (신설)
+- [pages/08-MainGame.md §탭 4 — 상태 머신](./pages/08-MainGame.md)
+
+---
+
+### D-LFG-01 — LFG 신청 상태 UI와 수락 플로우
+
+- **결정일**: 2026-04-21
+- **요지**: LFG(같이 할 사람) 모집 글에 대한 신청은 5상태 enum(`applied`/`accepted`/`rejected`/`canceled`/`expired`)으로 추적한다. 신청자·모집자 양쪽 화면에 상태가 즉시 반영되며, **한 모집 글당 같은 사용자는 동시에 1건만 active 신청** 가능(부분 UNIQUE 인덱스). 모집 글의 `slots`만큼 `accepted`가 누적되면 모집 자동 마감(`status='filled'`). 알림은 in-app 전용(Phase 1 범위).
+
+**상태 enum 정의**
+
+| 값 | 의미 | 전이 |
+|----|------|------|
+| `applied` | 신청 접수, 모집자 확인 대기 | → `accepted` (모집자) / `rejected` (모집자) / `canceled` (신청자) / `expired` (cron) |
+| `accepted` | 모집자가 수락 | 종결 상태 |
+| `rejected` | 모집자가 거절 | 종결 상태 (신청자 재신청 가능 — 새 행) |
+| `canceled` | 신청자가 본인 신청 취소 | 종결 상태 (재신청 가능) |
+| `expired` | 모집 글 만료 시 미확정 신청 일괄 자동 전환 | 종결 상태 |
+
+**부분 UNIQUE 인덱스 (중복 신청 방지)**
+
+```sql
+CREATE UNIQUE INDEX lfg_app_one_active_per_user
+  ON lfg_applications (post_id, applicant_user_id)
+  WHERE status = 'applied';
+```
+
+- `accepted`/`rejected`/`canceled`/`expired` 상태에서는 같은 (post, user) 조합으로 새 행 INSERT 가능 → 거절 후 재신청·취소 후 재신청 자연 지원.
+- `applied`가 1건이라도 있으면 동일 사용자 추가 신청 차단(서버 422 에러).
+
+**신청자 화면 UI**
+
+| 위치 | 표시 |
+|------|------|
+| LFG 카드(타인 모집) | 본인이 `applied` 상태면 우상단 **"신청됨"** 배지(파랑). `accepted`면 **"수락됨"** 배지(초록), `rejected`면 **"거절됨"** 배지(회색·24h 후 미표시) |
+| LFG 드로어 | 헤더 아래 상태 줄 — `applied`: "참여 신청 접수됨 · 모집자 응답 대기 중"(+ 취소 버튼) / `accepted`: "수락되었습니다! 모집자에게 직접 연락해 주세요." / `rejected`: "이번에는 거절되었습니다." |
+| 헤더 우측 | "내 신청 N건" pill — 클릭 시 `#lfgApplicationsModal` 신청 내역 모달 |
+| in-app 알림 | 모집자가 수락/거절 시 1회 |
+
+**모집자 화면 UI**
+
+| 위치 | 표시 |
+|------|------|
+| LFG 카드(내 모집) | 우상단 "신청자 N명" 카운트 배지(N>0일 때만) |
+| LFG 드로어 | 본문에 "신청자 목록" 섹션 — 닉/티어/포지션/마이크 + 수락/거절 버튼 (드로어 내에서 즉시 처리) |
+| in-app 알림 | 신청 INSERT 시 1회 ("새 신청 도착") |
+
+**수락 → 자동 마감 규칙**
+
+- 모집 글 `lfg_posts.slots`(예: 2명 모집) ≤ `accepted` 카운트 도달 시 트리거가 `lfg_posts.status='filled'` + 잔여 `applied` 신청 일괄 `expired` 전환 + 신청자에게 in-app 알림.
+- 모집자가 수동으로 모집 종료 시에도 동일 처리.
+
+**만료 처리 (cron · 5분 간격)**
+
+- `lfg_posts.expires_at < now()` AND `status='open'` → `status='expired'` UPDATE + 모든 `applied` 신청을 `expired`로.
+- 신청자에게 알림 1회 ("모집이 마감되어 신청이 자동 만료되었습니다").
+
+**스키마 영향 (Phase 2+)**
+
+- 신설 `lfg_posts` 테이블 (현재 schema.md에 없음 — community_posts 와 별도) — 컬럼 `id`/`game_id`/`creator_user_id`/`mode`/`format`/`slots`/`tiers text[]`/`positions text[]`/`mic_required`/`start_time int`/`expires_at`/`desc`/`status enum('open','filled','expired','canceled')`/`created_at`.
+- 신설 `lfg_applications` 테이블 — 컬럼 `id`/`post_id FK→lfg_posts`/`applicant_user_id FK→users`/`status enum`/`tier`/`role`/`mic_required`/`message text`/`created_at`/`resolved_at`/`resolved_by FK→users NULL`.
+- RLS: SELECT = 신청자 본인 + 모집자. INSERT = 본인 신청, 게임 인증 통과. UPDATE(`status`) = 모집자(accept/reject) + 신청자 본인(`canceled`만). DELETE 차단(soft).
+- 위 부분 UNIQUE 인덱스 + `(post_id, status)` 보조 인덱스(목록 카운트 가속).
+
+**Phase 1 목업 매핑**
+
+- 본 결정과 함께 목업도 동기화: `submitLfgApply`가 alert만 띄우던 흐름을 sessionStorage `clansync-mock-lfg-apps-v1`(맵: `postId → {status, appliedAt}`)로 시뮬레이션. 카드/드로어 진입 시 본인 상태 배지 자동 렌더.
+- 모집자 측(내 모집) 신청자 목록도 sessionStorage `clansync-mock-lfg-applicants-v1`(맵: `postId → [{nick, status, tier, role}]`) 더미 데이터로 시연. 운영진+ 권한 게이팅은 D-CLAN-01 일관성을 위해 미적용(LFG는 개인 단위).
+- "수락 → 모집 자동 마감"은 시뮬레이션에서 `slots` 도달 시 `lfgPosts[*].status='filled'` 마킹 + 카드 흐림 처리.
+
+**연관 문서**
+
+- [pages/08-MainGame.md §탭 3 — LFG](./pages/08-MainGame.md)
+- [schema.md](./schema.md) — `lfg_posts` · `lfg_applications` 신설 (이 결정과 함께 추가)
+- [D-EVENTS-03](#d-events-03--이벤트-알림-채널과-발송-정책) — 알림 채널 (LFG는 in-app만 사용)
+
+---
+
+### D-RANK-01 — 클랜 홍보 "인기" 정렬 폐기
+
+- **결정일**: 2026-04-21
+- **요지**: 클랜 홍보 게시판(`#sec-promo`)의 정렬 옵션에서 **"인기" 정렬을 영구 제거**한다. 이유: (1) 조회수 필드(`views`) 부재 → 도입 시 외부 경쟁 유인 발생(D-ECON-03 외부 공개 경쟁 지표 차단 정책과 모순), (2) "사람 많이 보는 클랜" 신호는 가입 신청 자체로 이미 측정됨(별도 정렬 불필요), (3) 목업의 `setPromoSort('popular')` 호출 시 `b.views - a.views`가 NaN → 정렬 무력화 버그.
+
+**Phase 1 변경**
+
+| 위치 | 변경 |
+|------|------|
+| `setPromoSort` 분기 | `'popular'` 케이스 삭제 |
+| 정렬 select 옵션 (운영 시) | `newest`(최신) / `space`(여유 있음) 2종만 |
+| `PROMOS[*].views` 필드 | 미사용 컬럼으로 잔존 → 다음 정리 시 제거 검토 |
+| 페이지 문서 카피 | `popular` 언급 제거 |
+
+**대안 정렬 (Phase 2+ 도입 후보)**
+
+| 옵션 | 데이터 출처 | 근거 |
+|------|-------------|------|
+| **활성도** (`activity_pct_30d` desc) | `clans.last_activity_at` (D-CLAN-07) + 멤버 활동률 집계 | 죽은 클랜 회피, 외부 경쟁 유인 없음 |
+| **신규** (`days asc`) | `clans.created_at` | 기존 `newest`와 동등 — 카피 정리만 |
+| **여유 있음** (`(max - now) desc`) | `clans.member_count` 비교 | 모집 의지 표현 |
+
+- "활성도"는 D-ECON-03 매트릭스에서도 외부 노출 허용 지표(✓ 외부 순위표). 정합.
+- "최근 인원 변화" 등 가입 신청수를 직접 노출하는 정렬은 도입하지 않음(과열 방지).
+
+**근거: D-ECON-03 정합**
+
+- D-ECON-03(2026-04-20)에서 외부 공개 클랜 순위표는 활동성·규모·매너 점수·이벤트 참여만 노출하기로 결정.
+- "조회수" = 외부 경쟁 자극 지표에 가까움 → 추가하지 않는 편이 일관성 유지.
+- 가입 신청 자체(`clan_join_requests`)는 본인 + 클랜 운영진만 보이는 비공개 신호. 외부 경쟁 자극으로 이어지지 않음.
+
+**Phase 1 목업 매핑**
+
+- 본 결정과 함께 `setPromoSort`에서 `popular` 분기 한 줄(`if (promoSort === 'popular') list = [...list].sort((a,b) => b.views - a.views);`) 삭제.
+- 현재 HTML에 정렬 select UI 자체가 없음(코드만 존재) → UI 추가는 Phase 2+ 보류. 카피·페이지 문서에서 `popular` 언급 제거.
+- `PROMOS[*].views`는 데이터 정의에 포함되어 있지 않아 영향 없음.
+
+**연관 문서**
+
+- [pages/08-MainGame.md §탭 2 — 정렬](./pages/08-MainGame.md)
+- [D-ECON-03](#d-econ-03--클랜-순위표-민감-지표-노출-범위) — 외부 경쟁 지표 차단 원칙
+- [D-CLAN-07](#) — 활성도 측정의 데이터 출처(`last_activity_at`)

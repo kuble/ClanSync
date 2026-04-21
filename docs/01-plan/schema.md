@@ -734,7 +734,7 @@ ClanMember ──< CoinTransaction
 - RLS: SELECT = 익명 투표면 집계 함수만 허용, 공개 투표면 클랜 구성원 전체. INSERT = 본인, 마감 전까지. DELETE 차단.
 
 ### scrim_rooms (스크림 채팅방)
-> **D-EVENTS-01 · D-SCRIM-01·02** (관련 — D-SCRIM은 OPEN) — 상태 머신 확장. 확정 시점에 `clan_events`로 자동 파생 (D-EVENTS-01).
+> **D-EVENTS-01 · D-SCRIM-01 · D-SCRIM-02** (DECIDED — SCRIM은 2026-04-21) — 상태 머신 확장. 확정 시점에 `clan_events`로 자동 파생 (D-EVENTS-01). 채팅방 자동 종료(D-SCRIM-01)·양측 확정 2-phase commit(D-SCRIM-02).
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
@@ -748,30 +748,56 @@ ClanMember ──< CoinTransaction
 | tier_max | smallint NULL | 티어 상한 |
 | memo | text NULL | 모집 메모 |
 | place | varchar NULL | 장소·채널 |
-| status | enum('draft','matched','confirmed','cancelled','finished') NOT NULL DEFAULT 'draft' | `draft`=모집 중, `matched`=상대 배정, `confirmed`=양측 확정(D-EVENTS-01 자동 이벤트 트리거), `cancelled`=취소, `finished`=경기 종료 |
-| confirmed_at | timestamptz NULL | `status='confirmed'` 전환 시각 |
+| status | enum('draft','matched','confirmed','cancelled','finished') NOT NULL DEFAULT 'draft' | `draft`=모집 중, `matched`=상대 배정·협상 중(0~1쪽 확정), `confirmed`=양측 확정(D-EVENTS-01 자동 이벤트 트리거), `cancelled`=취소, `finished`=경기 종료 |
+| confirmed_at | timestamptz NULL | `status='confirmed'` 전환 시각. 일정 변경 시 트리거가 NULL 복원 |
 | cancelled_at | timestamptz NULL | 취소 시각 |
 | finished_at | timestamptz NULL | 경기 종료 시각 |
 | created_by | uuid FK → users NOT NULL | |
 | created_at | timestamptz NOT NULL DEFAULT now() | |
-| closed_at | timestamptz NULL | 채팅방 아카이브 시각 (D-SCRIM-01에서 정책 확정 예정 — 현재 목업은 시작 +6h) |
+| closed_at | timestamptz NULL | 채팅방 아카이브 시각. 상태별 시점 → D-SCRIM-01 매트릭스 |
+| closed_by | uuid FK → users NULL | 수동 종료 시 운영진. cron 자동 종료면 NULL |
+| closed_reason | enum('auto_timeout','manual','cancelled','finished') NULL | NULL = 미종료. D-SCRIM-01 |
 
 **제약**
 
 - `CHECK (status != 'confirmed' OR (clan_b_id IS NOT NULL AND confirmed_at IS NOT NULL))`.
 - `CHECK (status != 'cancelled' OR cancelled_at IS NOT NULL)`.
 - `CHECK (status != 'finished' OR finished_at IS NOT NULL)`.
+- `CHECK ((closed_at IS NULL) = (closed_reason IS NULL))` — 종료 시각·사유는 함께 세팅.
 - 트리거 (D-EVENTS-01): `AFTER UPDATE OF status` → `clan_events_sync_from_scrim(NEW)` 호출.
+- 트리거 (D-SCRIM-02): `BEFORE UPDATE` → `scrim_rooms_invalidate_confirmations()` — `scheduled_at`/`mode`/`tier_min`/`tier_max`/`place` 변경 감지 시 `scrim_room_confirmations` 전부 DELETE + `NEW.status='matched'` + `NEW.confirmed_at=NULL`.
+- 인덱스: `(closed_at) WHERE closed_at IS NULL AND status IN ('matched','confirmed')` — D-SCRIM-01 cron 후보 조회.
+- 인덱스: `(scheduled_at, status) WHERE status = 'matched'` — D-SCRIM-02 타임아웃 cron 후보 조회.
 
 **상태 전이**
 
 ```
 draft ──► matched ──► confirmed ──► finished
    │          │            │
+   │          │            └──► matched (일정 변경 시 자동 무효화 · D-SCRIM-02)
+   │          │
    └──────────┴────────────┴──► cancelled
                          │
                   (cancelled → confirmed 재확정 허용 — D-EVENTS-01)
 ```
+
+### scrim_room_confirmations (스크림 양측 확정 누적 · D-SCRIM-02)
+> **D-SCRIM-02** (DECIDED 2026-04-21) — 양측 운영진의 확정을 2-phase commit으로 누적. 양쪽 행 모두 존재 시 트리거가 `scrim_rooms.status='confirmed'` 전이.
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| scrim_room_id | uuid FK → scrim_rooms NOT NULL | |
+| side | enum('host','guest') NOT NULL | `host`=`clan_a_id` 측, `guest`=`clan_b_id` 측 |
+| confirmed_by | uuid FK → users NOT NULL | 운영진+ |
+| confirmed_at | timestamptz NOT NULL DEFAULT now() | |
+
+**제약**
+
+- UNIQUE `(scrim_room_id, side)` — 같은 측 중복 확정 방지(=동시 클릭 직렬화).
+- 트리거 `AFTER INSERT` → `scrim_rooms_promote_to_confirmed()`: 양쪽 행(`host` + `guest`) 존재 시 `UPDATE scrim_rooms SET status='confirmed', confirmed_at=now() WHERE id = NEW.scrim_room_id AND status='matched'` 실행. 이미 `confirmed`면 no-op.
+- DELETE 정책: 일정 변경 트리거(`scrim_rooms_invalidate_confirmations`) 또는 취소(`status='cancelled'` 전이) 시 일괄 삭제. 운영자 수동 DELETE 차단(서비스 롤 전용).
+- RLS: SELECT = 양쪽 클랜 구성원. INSERT = 본인 클랜 운영진+(`side='host'`이면 `clan_a_id` 운영진, `'guest'`면 `clan_b_id` 운영진). DELETE = 서비스 롤만.
 
 ### scrim_ratings (평판)
 | 컬럼 | 타입 | 설명 |
@@ -783,6 +809,61 @@ draft ──► matched ──► confirmed ──► finished
 | manner_score | smallint | 1~5 |
 | no_show | boolean DEFAULT false | |
 | comment | text | |
+
+### lfg_posts (같이 할 사람 모집 글 · D-LFG-01)
+> **D-LFG-01** (DECIDED 2026-04-21) — LFG 모집 글. 모집자가 게시, 신청은 별도 `lfg_applications`로 누적. `slots`만큼 `accepted` 도달 시 자동 마감.
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| game_id | uuid FK → games NOT NULL | |
+| creator_user_id | uuid FK → users NOT NULL | 모집자 |
+| mode | varchar NOT NULL | `경쟁전` / `빠른대전` / `아케이드` 등 게임별 enum |
+| format | varchar NOT NULL | `5vs5` / `6vs6` |
+| slots | smallint NOT NULL CHECK (slots BETWEEN 1 AND 11) | 모집 인원 |
+| tiers | text[] NOT NULL DEFAULT '{}' | 희망 티어 다중. 빈 배열 = 무관 |
+| positions | text[] NOT NULL DEFAULT '{}' | 희망 포지션 다중. 빈 배열 = 올포지 |
+| mic_required | boolean NOT NULL DEFAULT false | |
+| start_time_hour | smallint NOT NULL CHECK (start_time_hour BETWEEN 0 AND 23) | 시작 시각(시) |
+| expires_at | timestamptz NOT NULL | 모집 마감 시각 |
+| description | text NULL | 한마디 |
+| status | enum('open','filled','expired','canceled') NOT NULL DEFAULT 'open' | `open`=모집 중, `filled`=정원 충족, `expired`=시간 만료, `canceled`=모집자 취소 |
+| created_at | timestamptz NOT NULL DEFAULT now() | |
+
+**제약**
+
+- `CHECK (status != 'expired' OR expires_at <= now())`.
+- 인덱스: `(game_id, status, expires_at)` — 활성 모집 목록 가속.
+- 인덱스: `(creator_user_id, created_at DESC)` — "내 모집" 조회.
+- RLS: SELECT = 게임 인증 통과한 사용자 전원. INSERT = 본인. UPDATE(status) = 본인(`canceled`만) 또는 트리거(`filled`/`expired`). DELETE 차단(soft).
+- 트리거 `lfg_posts_auto_fill()`: `lfg_applications` AFTER UPDATE OF status → `accepted` 카운트 ≥ `slots`이면 `lfg_posts.status='filled'` + 잔여 `applied`를 `expired`로 전환.
+
+### lfg_applications (LFG 신청 · D-LFG-01)
+> **D-LFG-01** (DECIDED 2026-04-21) — 한 모집 글당 같은 사용자는 동시에 1건만 active 신청(부분 UNIQUE). 거절·취소·만료 후 재신청은 새 행 INSERT.
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK | |
+| post_id | uuid FK → lfg_posts NOT NULL | |
+| applicant_user_id | uuid FK → users NOT NULL | 신청자 |
+| status | enum('applied','accepted','rejected','canceled','expired') NOT NULL DEFAULT 'applied' | |
+| tier | varchar NULL | 신청 시점 신청자 티어 스냅샷 |
+| role | varchar NULL | 신청 포지션 |
+| mic_available | boolean NULL | 마이크 가용 여부 |
+| message | text NULL | 신청자 메모 (≤200자) |
+| created_at | timestamptz NOT NULL DEFAULT now() | |
+| resolved_at | timestamptz NULL | `accepted`/`rejected`/`canceled`/`expired` 전환 시각 |
+| resolved_by | uuid FK → users NULL | 모집자(accept/reject) 또는 본인(cancel). cron 만료 시 NULL |
+
+**제약**
+
+- 부분 UNIQUE 인덱스: `CREATE UNIQUE INDEX lfg_app_one_active_per_user ON lfg_applications (post_id, applicant_user_id) WHERE status = 'applied'` — 동일 사용자 동시 active 신청 차단.
+- `CHECK (status = 'applied' OR resolved_at IS NOT NULL)`.
+- `CHECK (LENGTH(COALESCE(message,'')) <= 200)`.
+- 인덱스: `(post_id, status)` — 모집자 측 신청자 목록·카운트 가속.
+- 인덱스: `(applicant_user_id, status, created_at DESC)` — 본인 "내 신청 N건" pill.
+- RLS: SELECT = 신청자 본인 + 모집 글 작성자. INSERT = 본인, 게임 인증 통과(post의 game_id와 일치). UPDATE(status) = 모집자(`accepted`/`rejected`만) 또는 본인(`canceled`만). DELETE 차단(soft).
+- 알림 (D-EVENTS-03 채널 정책 재사용): INSERT 시 모집자에게 in-app, `accepted`/`rejected` 전환 시 신청자에게 in-app, `expired` 일괄 전환 시 신청자에게 in-app 1회.
 
 ### bracket_tournaments (대진표 · 클랜 내 이벤트)
 > **D-EVENTS-05 · D-ECON-01** (DECIDED 2026-04-20) — 대진표는 **클랜 내 이벤트 전용**(클랜 간 토너먼트 없음). `host_clan_id = winner_clan_id`가 항상 성립. 상세 [§D-EVENTS-05](./decisions.md#d-events-05--대진표-결과의-통계코인-반영).

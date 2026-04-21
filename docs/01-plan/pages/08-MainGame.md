@@ -83,9 +83,11 @@
 - **가입 모달** `#joinModal`: 자기소개(선택) → "가입 신청 완료!" alert (목업).
   - 운영 시: `clan-auth`의 가입 모달과 동일한 컴포넌트·상태 머신 공유 (D-CLAN-02).
 
-### 정렬
-- 코드상 `setPromoSort('newest' | 'popular' | 'space')` 분기 존재하지만 **HTML에 정렬 UI 없음**.
-- `popular`은 데이터에 `views` 필드가 없어 NaN 위험 → D-RANK-01.
+### 정렬 (D-RANK-01 DECIDED 2026-04-21)
+- `setPromoSort('newest' | 'space')` 2종만. **"인기" 정렬 폐기** — 조회수 필드 부재 + 외부 경쟁 유인 차단(D-ECON-03 정합) + 가입 신청 자체가 인기 측정.
+- HTML 정렬 select UI는 Phase 2+에 추가. Phase 1은 현행대로 코드 분기만 존재.
+- Phase 2+ 후보: **활성도** (`clans.activity_pct_30d` desc — D-CLAN-07 의존), **여유 있음** (`(max-now)` desc).
+- 상세: [decisions.md §D-RANK-01](../decisions.md#d-rank-01--클랜-홍보-인기-정렬-폐기).
 
 ### Premium 표시
 - `pinned === true`인 클랜에 ✓ 뱃지 + 툴팁 ("✦ Premium 구독 클랜").
@@ -125,13 +127,26 @@
 - 카드 클릭 (타인) → `#lfgDrawer`
 - 카드 "취소" (내 모집) → 즉시 취소
 - 드로어 "참여 신청하기 →" → `#lfgApplyModal`
-- 모달 "참여 신청" → 신청 (목업은 alert만, 운영 시 상태 표시 D-LFG-01)
+- 모달 "참여 신청" → `lfg_applications` INSERT (`status='applied'`) → 본인 카드/드로어에 "신청됨" 배지 즉시 반영 (D-LFG-01).
+- 신청 후 본인 드로어/카드 → "신청 취소" 버튼 (`status='canceled'`).
+- 모집자 측 드로어 → 신청자 목록 섹션(닉/티어/포지션/마이크 + 수락/거절). 수락 시 `slots` 도달하면 자동 `filled`.
 
 ### 빈 상태
 - "조건에 맞는 파티가 없습니다" `.empty-state`
 
-### 결정 필요
-- D-LFG-01 신청 후 상태(applied/accepted/canceled) UI
+### 신청 상태 UI (D-LFG-01 DECIDED 2026-04-21)
+
+| 상태 | 신청자 카드 배지 | 신청자 드로어 카피 | 모집자 카드 |
+|------|-------------------|---------------------|--------------|
+| `applied` | "신청됨"(파랑) | "참여 신청 접수됨 · 모집자 응답 대기 중" + 취소 버튼 | "신청자 N명" 카운트 |
+| `accepted` | "수락됨"(초록) | "수락되었습니다! 모집자에게 직접 연락해 주세요." | 신청자 목록에서 "수락됨" 표시 |
+| `rejected` | "거절됨"(회색·24h 후 미표시) | "이번에는 거절되었습니다. 다른 모집을 찾아보세요." | 신청자 목록에서 "거절됨" 표시 |
+| `canceled` | (배지 미표시) | (드로어 진입 시 배지 없음) | 카운트 자동 감소 |
+| `expired` | (배지 미표시) + in-app 알림 1회 | "모집이 마감되어 신청이 자동 만료되었습니다." | 모집 글 자체가 `expired` 상태로 카드 흐림 처리 |
+
+- 헤더 우측 "내 신청 N건" pill — 클릭 시 `#lfgApplicationsModal` (Phase 2+).
+- **중복 신청 방지**: 본인이 `applied` 상태인 글은 "신청" 버튼이 비활성. `lfg_applications` 부분 UNIQUE 인덱스 `(post_id, applicant_user_id) WHERE status='applied'`.
+- 상세: [decisions.md §D-LFG-01](../decisions.md#d-lfg-01--lfg-신청-상태-ui와-수락-플로우), [schema.md §lfg_applications](../schema.md#lfg_applications-lfg-신청--d-lfg-01).
 
 ## 탭 4 — 스크림 (Scrim)
 
@@ -185,12 +200,38 @@ draft ──► matched ──► confirmed ──► finished
 - 상세 → [decisions.md §D-EVENTS-01](../decisions.md#d-events-01--스크림-확정--클랜-이벤트-자동-생성동기화), [11-Clan-Events.md §스크림 연동](./11-Clan-Events.md).
 
 ### 자동 매칭
-- 별도 "자동 매칭 모달" 없음. 채팅방의 "경기 시작 +6시간 후 자동 종료" 타이머만 존재 (D-SCRIM-01에서 최종 정책 확정 예정).
-- 운영 시 자동 매칭 버튼 도입 여부 결정 필요.
+- 별도 "자동 매칭 모달" 없음. 채팅방의 "경기 시작 +6시간 후 자동 종료" 타이머만 존재.
+- 운영 시 자동 매칭 버튼 도입 여부는 별도 결정 필요(현재 결정 코드 없음).
 
-### 결정 필요
-- D-SCRIM-01 채팅 자동 종료(+6h) 운영 정책
-- D-SCRIM-02 양측 확정 동시성 (한쪽만 확정한 상태에서 일정 변경)
+### 채팅방 자동 종료 매트릭스 (D-SCRIM-01 DECIDED 2026-04-21)
+
+| `scrim_rooms.status` | 자동 종료 시점 | 종료 사유 카피 |
+|----------------------|----------------|----------------|
+| `draft` (모집 중·매칭 전) | 별도 자동 종료 없음 | 모집 글 만료(`expires_at`) 시 함께 닫힘 |
+| `matched` (한쪽만 확정 또는 협상 중) | `scheduled_at + 6h` | "경기 시작 시각으로부터 6시간 경과" |
+| `confirmed` (양측 확정) | `scheduled_at + 6h` | "경기 시작 시각으로부터 6시간 경과" |
+| `cancelled` | `cancelled_at + 1h` | "스크림이 취소되었습니다" |
+| `finished` | `finished_at + 24h` | "경기 결과 정리 마감" |
+
+- **운영자 수동 종료**: `confirmed` 또는 `matched` 상태에서 양측 운영진 누구나 가능. `closed_by`·`closed_reason='manual'` 기록.
+- **재개(reopen)**: 종료 후 24h 이내, 양측 운영진 모두 동의 시(2-man) 가능. Phase 2+ 기능.
+- **알림**: `closed_at - 1h` 시점 in-app 1회 + 종료 시 in-app 1회. Discord 미사용(소음 방지).
+- 상세: [decisions.md §D-SCRIM-01](../decisions.md#d-scrim-01--스크림-채팅방-자동-종료-정책).
+
+### 양측 확정 2-phase commit (D-SCRIM-02 DECIDED 2026-04-21)
+
+```
+한쪽 확정 → scrim_room_confirmations(side='host' or 'guest') INSERT (status='matched' 유지)
+다른 쪽 확정 → 두 번째 행 INSERT → 트리거가 status='confirmed' UPDATE + confirmed_at=now()
+                                  → D-EVENTS-01: clan_events 양쪽 클랜에 자동 INSERT
+```
+
+- **일정·장소·모드 변경 → 자동 무효화**: `scheduled_at`/`mode`/`tier_min`/`tier_max`/`place` 중 하나라도 변경되면 트리거 `scrim_rooms_invalidate_confirmations()`가 모든 confirmation 행 DELETE + `status='matched'` + `confirmed_at=NULL`. 변경자 본인도 confirmation 미보유 상태로 시작 → 양측 모두 다시 "확정" 눌러야 함.
+- UI 안내 카피: "일정을 변경하셨습니다. 양측 모두 다시 확정해 주세요."
+- **타임아웃**: 한쪽만 확정한 상태에서 `scheduled_at - 1h`까지 다른 쪽이 확정 안 하면 cron이 `status='cancelled'` 자동 전이 + 양측 알림. 이후 재확정은 D-EVENTS-01의 `cancelled → confirmed` 경로 사용.
+- **취소 동시성**: 한쪽이 취소 시 즉시 `cancelled_at=now()` + 양측 알림 + confirmation 전부 DELETE. 양측 동시 취소 → 행 잠금으로 직렬화.
+- **race condition**: 양측 동시 확정 시 PG 트랜잭션 + `scrim_rooms` 행 잠금으로 직렬화. 트리거가 단 1회만 `confirmed` 전이 실행.
+- 상세: [decisions.md §D-SCRIM-02](../decisions.md#d-scrim-02--스크림-양측-확정-동시성-2-phase-commit), [schema.md §scrim_room_confirmations](../schema.md#scrim_room_confirmations-스크림-양측-확정-누적--d-scrim-02).
 
 ## 탭 5 — 클랜 순위 (Ranking)
 
@@ -254,18 +295,20 @@ draft ──► matched ──► confirmed ──► finished
 
 ## 목업과 실제 구현의 차이
 - 사이드바 메뉴 클릭은 페이지 내 섹션 전환만 (`navTo(id)`). 별도 라우트 없음 → 운영 시 URL 해시/라우트로 분리 권장.
-- LFG 신청은 alert만, 본인 화면에 "신청됨" 배지 없음 (D-LFG-01).
+- LFG 신청 상태(D-LFG-01)는 sessionStorage 기반 시뮬레이션. 운영 시 `lfg_applications` 테이블·실시간 알림으로 대체.
 - 스크림 채팅 입력은 비활성 (UI 셸만).
-- 홍보 정렬 UI 없음, `popular` 정렬은 `views` 필드 부재로 NaN (D-RANK-01).
+- 홍보 정렬 UI 없음(D-RANK-01에서 "인기" 폐기). 운영 시 `newest`/`space` 2종 select 추가.
+- 채팅방 자동 종료 매트릭스(D-SCRIM-01)는 목업이 `scheduled_at + 6h`만 시뮬레이션. `cancelled`/`finished` 분기는 Phase 2+에서 cron 도입.
+- 양측 확정 무효화(D-SCRIM-02)는 메모리 객체 `scrimJoinState` 리셋으로 시뮬레이션. 운영 시 `scrim_room_confirmations` 트리거가 처리.
 - `submitLfgPost`에서 `pmMic` 셀렉터를 역할 판별에 쓰는 부분은 버그로 보임 → 운영 시 수정.
 - 게임 허브 사이드바 하단 "프로필"은 페이지 이동만 함. 클랜 메인의 "프로필 모달"과 일관성 결정 필요.
 
-## 결정 필요
-- D-LFG-01 LFG 신청 후 상태 UI
-- D-RANK-01 홍보 인기 정렬의 기준 (`views` 등 필드 추가)
-- D-SCRIM-01 스크림 채팅 자동 종료 시점 운영 정책
-- D-SCRIM-02 양측 확정 동시성 처리
-- (신설 검토) "스크림 평판" 탭 도입 여부
+## 결정 현황
+- D-LFG-01 — DECIDED (2026-04-21) · 신청 5상태 enum + 본인/모집자 화면 UI + 자동 마감
+- D-RANK-01 — DECIDED (2026-04-21) · "인기" 정렬 폐기, `newest`/`space` 2종만
+- D-SCRIM-01 — DECIDED (2026-04-21) · 상태별 채팅방 종료 매트릭스 + 운영자 수동 제어
+- D-SCRIM-02 — DECIDED (2026-04-21) · 2-phase commit + 일정 변경 시 confirmation 자동 무효화
+- (신설 검토) "스크림 평판" 탭 도입 여부 — 별도 결정 코드 미할당
 
 ## 구현 참고 (개발자용)
 
