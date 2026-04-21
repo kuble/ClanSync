@@ -20,7 +20,7 @@
 |------|-----|
 | **현재 단계** | Phase 2 — Next.js `src/` · Supabase · RLS |
 | **이전 단계** | Phase 1 — 정적 목업 (`mockup/`) **종료** (2026-03-28) |
-| **마지막 갱신** | 2026-04-21 (D-NOTIF-02 종결 — **브라우저 ServiceWorker 푸시 프리셋 α** (Premium 전용·4 카테고리 독립 토글·맥락형 권한 프롬프트·서버 quiet hours 00~07 KST 준수). 범위 **R3** = 결정·스키마(`web_push_subscriptions` + `notification_log.channel='web_push'`)·목업 예고 배너 1줄까지만. 실구현(VAPID·ServiceWorker·권한 프롬프트·구독 관리 UI)은 Phase 2+ 이관 — 후속 후보 D-NOTIF-02b(공급자 선택)·D-NOTIF-02c(Free 하이브리드 재검토)·D-NOTIF-03(이메일 다이제스트)·D-PRIV-01(개인 프라이버시 오버라이드). 직전 묶음: D-NOTIF-01 — in-app 알림 센터 통합(프리셋 α, 디스코드식 벨+드로워, M1 저장, 7일 GC).) |
+| **마지막 갱신** | 2026-04-21 (D-NOTIF-03 종결 — **이메일 다이제스트 DROPPED**. 도입하지 않음. 이메일은 **거래 메일(비밀번호 재설정·가입 인증·필수 공지)로만** 사용. 재참여·이탈 방지는 in-app 피드(D-NOTIF-01)·브라우저 푸시(D-NOTIF-02)로 갈음. 스키마·목업 변경 **없음** — 문서 결정 기록만. 신규 후속 후보 **D-EMAIL-01**(거래 메일 공급자 선택, Phase 2+)·**D-NOTIF-03b**(다이제스트 재검토, 조건부). 남은 후속 후보 D-NOTIF-02b·D-NOTIF-02c·D-PRIV-01. 직전 묶음: D-NOTIF-02 — 브라우저 ServiceWorker 푸시 프리셋 α(Premium 전용·R3 범위).) |
 
 ---
 

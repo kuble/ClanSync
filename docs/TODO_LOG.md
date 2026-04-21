@@ -5,6 +5,39 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-21 — D-NOTIF-03 종결 (이메일 다이제스트 DROPPED)
+
+- [x] **결정 컨펌 절차 준수** (`.cursor/rules/decision-confirm.mdc`):
+  - **프리셋 묶음 컨펌**: α Premium 전용 주간 다이제스트 / β 전원 주간 / γ 하이브리드(Free 필수 공지 + Premium 주간) / **δ 도입 보류(DROPPED)**. 범위 R1~R4 병렬 제시.
+  - 사용자 1차 응답: "이게뭘 하는건지 모르겠는데?" → 어시스턴트가 **이메일 다이제스트 개념 재설명** (LinkedIn·Notion·GitHub 주간 요약 메일 예시, ClanSync 시뮬레이션 메일 샘플, in-app·브라우저 푸시와 차별점 3열 비교표 제공).
+  - 사용자 최종 선택 = **"필요 없어보여"** → **δ = DROPPED**.
+- [x] **D-NOTIF-03 — 이메일 다이제스트** (DROPPED 2026-04-21, 사용자 컨펌)
+  - **결론**: 도입하지 않음. 스키마·목업·워커·발송 공급자 계약 모두 **추진 중단**.
+  - **유지되는 것**: 거래 메일(비밀번호 재설정·가입 이메일 인증·필수 공지·약관 변경 고지)은 **별개 트랙으로 유지**. 사용자 옵트아웃 불가(필수 거래성).
+  - **DROPPED 근거**: (1) 재참여·이탈 방지는 D-NOTIF-01(in-app) + D-NOTIF-02(web push)로 충분. (2) 게임 커뮤니티 특성상 주간 메일 = 스팸 인식 리스크, 거래 메일 배달률 동반 저하 우려. (3) 정보통신망법 옵트인 관리·야간 광고 금지(21~08 KST)·1-Click Unsubscribe(RFC 8058)·Bounce/Complaint 파이프라인 등 법·운영 오버헤드. (4) 멤버 수 × 주간 발송 발송비 불확실, ROI 검증 전. (5) 운영 6~12개월 데이터 누적 후 재검토 여지 보존.
+  - **번복 조건** (D-NOTIF-03b 재오픈 트리거): 비활성·휴면 복귀율 측정값이 낮고(<5%) 경쟁사 다이제스트 복귀율 2배 이상 확보 사례 발견 / 클랜장 3개 이상 독립 소스에서 요구 제기 / 카카오·Discord·web_push 만으로 Premium 차별화 부족 수치 확인.
+  - **불변량 선언**: (a) `users` 테이블에 다이제스트 구독 컬럼 미리 추가하지 않음. (b) `notification_log.channel` enum에 `email_digest` 값 추가하지 않음. (c) 프로필·설정 페이지에 "이메일 알림 설정" 자리를 비워두지 않음 (재오픈 시점에 신설).
+- [x] `docs/01-plan/decisions.md`
+  - 헤더 표 "통신 · 알림 (NOTIF)" 섹션에 **D-NOTIF-03 DROPPED 행 추가** (2026-04-21).
+  - §D-NOTIF-01 Phase 2+ 백로그 6번 "후속 결정 후보 D-NOTIF-03" 라인을 취소선 + **"DROPPED 2026-04-21"** 로 갱신, §D-NOTIF-03 앵커 링크 첨부.
+  - 본문 말미에 **§D-NOTIF-03 — 이메일 다이제스트 (DROPPED) 블록 신설** — DROPPED 근거 5건 표, 번복 조건 3건, 유지되는 것(거래 메일·공급자는 D-EMAIL-01로 분리), 영향 정리(스키마·목업·페이지 모두 변경 없음), 후속 결정 후보 D-EMAIL-01(거래 메일 공급자)·D-NOTIF-03b(조건부 재오픈), 연관 링크.
+- [x] `docs/01-plan/pages/07-MainClan.md`
+  - §결정 현황: D-NOTIF-03 라인을 "후속 후보 OPEN" → **"DROPPED 2026-04-21"** 로 갱신.
+  - 신규 후속 후보 **D-EMAIL-01**(거래 메일 공급자, Phase 2+ OPEN)·**D-NOTIF-03b**(다이제스트 재검토, 조건부 OPEN) 등재.
+- [x] **변경 없음** (의도된 불변량 준수):
+  - `docs/01-plan/schema.md` — 변경 없음 (`email_digest` enum 값·구독 테이블 미추가).
+  - `mockup/pages/main-clan.html` · `mockup/scripts/clan-mock.js` — 변경 없음 (R3 예고 배너 신설 안 함).
+  - 기타 페이지 문서 — 변경 없음.
+- [x] **신규 후속 후보 식별**:
+  - **D-EMAIL-01** (OPEN, Phase 2+) — 거래 메일 공급자 선택 (Resend · AWS SES · SendGrid 등) 및 템플릿 정책. 다이제스트와 분리, Phase 2+ 거래 메일 구현 시점에 결정.
+  - **D-NOTIF-03b** (OPEN, 조건부) — 다이제스트 도입 재검토. 위 "번복 조건" 3건 중 최소 1건 충족 시에만 재오픈.
+- [x] **남은 후속 후보 요약**:
+  - D-NOTIF-02b(공급자 선택)·D-NOTIF-02c(Free 하이브리드 재검토)·D-PRIV-01(개인 프라이버시 오버라이드)·신규 D-EMAIL-01·D-NOTIF-03b.
+- [x] **결과**: **알림 3부작(D-NOTIF-01·02·03) 완주**. in-app 피드 도입 + 웹 푸시(Premium 전용) 도입 + 이메일 다이제스트 미도입으로 알림 채널 정책 **전체 정합 완료**. 유료 채널 정합성 유지(카카오·Discord·web_push = Premium). 이메일 트랙은 거래 메일 전용으로 축소되어 운영 복잡도 최소화 — **스키마 일체 변경 없이 결정만 기록**하여 Phase 2+ 재오픈 여지 보존.
+- [x] **분할 커밋**: `docs(plan): drop D-NOTIF-03 — email digest deemed unnecessary` → `docs(plan): cross-ref D-NOTIF-03 DROPPED in 07-MainClan + D-EMAIL-01/D-NOTIF-03b` → `docs(todo): log D-NOTIF-03 DROPPED session`.
+
+---
+
 ### 2026-04-21 — D-NOTIF-02 종결 (브라우저 ServiceWorker 푸시 프리셋 α · 범위 R3)
 
 - [x] **결정 컨펌 절차 준수** (`.cursor/rules/decision-confirm.mdc`):
