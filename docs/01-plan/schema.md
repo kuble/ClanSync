@@ -1146,7 +1146,7 @@ GROUP BY 1, 2;
 | instance_idx | int NULL | 반복 회차 |
 | poll_id | uuid FK → clan_polls NULL | 투표 알림 대상 |
 | slot_kind | enum('event_t_minus_24h','event_t_minus_1h','event_t_minus_10min','event_t_0','poll_created','poll_daily','poll_weekly','poll_deadline_window','poll_deadline_1h','event_cancelled') NOT NULL | |
-| channel | enum('inapp','discord','kakao') NOT NULL | |
+| channel | enum('inapp','discord','kakao','web_push') NOT NULL | `web_push` 추가: D-NOTIF-02 (DECIDED 2026-04-21, Premium 전용) |
 | recipient_user_id | uuid FK → users NOT NULL | |
 | scheduled_at | timestamptz NOT NULL | 계획 발송 시각(quiet hours 보정 전) |
 | effective_at | timestamptz NULL | 실제 발송 시각(quiet hours·retry 후) |
@@ -1165,6 +1165,7 @@ GROUP BY 1, 2;
 - RLS: INSERT/UPDATE/DELETE 서비스 롤만. SELECT는 본인 행 + 운영자(관리자).
 - 관련 이벤트/투표 `cancelled` 시 트리거가 `status='scheduled'` 행을 전부 `cancelled`로 UPDATE (D-EVENTS-04).
 - **D-NOTIF-01 연동**: `channel='inapp' AND status='sent'`로 UPDATE될 때 AFTER UPDATE 트리거가 `notifications`에 대응 행 INSERT(아래 §notifications 참고). `notification_log`는 발송 레이어 그대로 유지 — 피드 레이어(`notifications`)와 책임 분리.
+- **D-NOTIF-02 연동**: `channel='web_push'` 행은 `notifications` INSERT와 **병행** 생성(Phase 2+ 서버 워커). `users.plan='premium'` + 수신자 카테고리 구독 ON인 경우에만 INSERT. quiet hours 00~07 KST는 `scheduled_at=07:00 KST`로 지연. 410 Gone 응답 시 `web_push_subscriptions.revoked_at=now()` 업데이트 + 재시도 중단. 상세 [§D-NOTIF-02](./decisions.md#d-notif-02--브라우저-서비스워커-웹-푸시-도입-정책-프리셋-α).
 
 ### notifications (in-app 알림 피드 · D-NOTIF-01)
 > **D-NOTIF-01** (DECIDED 2026-04-21) — 운영·개인 결과·일정 알림을 수신자 관점 단일 피드로 통합. 네비게이션바 상단 벨 아이콘 + 드로워의 데이터 소스. `notification_log`(발송 레이어)와 분리되며 FK로 연결. 상세 [§D-NOTIF-01](./decisions.md#d-notif-01--in-app-알림-센터-통합-도입).
@@ -1327,6 +1328,59 @@ FOR EACH ROW EXECUTE FUNCTION sync_inapp_log_to_feed();
 
 - 실제 테이블은 Phase 2+. Phase 1은 `sessionStorage` 스토어(`clansync-mock-notifications-v1`)로 흉내낸다.
 - 벨 배지 카운트·드로워 UI·읽음 상태만 시연. 소스 링크 이동은 placeholder alert.
+
+### web_push_subscriptions (브라우저 푸시 구독 · D-NOTIF-02)
+> **D-NOTIF-02** (DECIDED 2026-04-21) — ServiceWorker + Web Push API 기반 브라우저 푸시 구독 저장소. **Premium 전용**으로 발송하지만 Free 사용자 구독 자체는 허용(과금 경계는 발송 시점에서 `users.plan` 체크). 한 사용자 N 디바이스 허용. 구독 해지는 soft(`revoked_at`) — 재구독 시 새 행 INSERT하여 히스토리 보존. 상세 [§D-NOTIF-02](./decisions.md#d-notif-02--브라우저-서비스워커-웹-푸시-도입-정책-프리셋-α).
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK DEFAULT gen_random_uuid() | |
+| user_id | uuid NOT NULL FK → users ON DELETE CASCADE | 구독 소유자 |
+| endpoint | text NOT NULL | Push Service URL (FCM·APNs Web·Mozilla autopush 등). Web Push API 반환값 |
+| p256dh | text NOT NULL | 클라 공개 키(base64url, ECDH P-256) — 페이로드 암호화용 |
+| auth | text NOT NULL | 클라 auth 시크릿(base64url, 16바이트) |
+| user_agent | text NULL | 구독 시 User-Agent. 관리 UI에서 "Chrome on Windows" 등으로 구분 표시 |
+| created_at | timestamptz NOT NULL DEFAULT now() | |
+| revoked_at | timestamptz NULL | soft delete. NULL = 활성 구독. 재구독 시 새 행 INSERT |
+
+**제약·RLS**
+
+- UNIQUE `(user_id, endpoint) WHERE revoked_at IS NULL` — 동일 디바이스 중복 활성 구독 방지. revoked 행은 히스토리로 남아 중복 허용.
+- 인덱스: `CREATE INDEX web_push_subscriptions_active ON web_push_subscriptions (user_id) WHERE revoked_at IS NULL;` — 발송 시 활성 구독 조회.
+- RLS:
+  - SELECT: `user_id = auth.uid()` (본인 디바이스 목록만).
+  - INSERT/UPDATE: `user_id = auth.uid()` (본인만 구독 등록·해지).
+  - DELETE: 서비스 롤 전용(410 Gone 정리 cron). 사용자 UI의 "이 디바이스 로그아웃"은 `revoked_at = now()` UPDATE로 처리.
+- 410 Gone 응답 자동 처리 트리거 예시 (서버 워커에서 발송 실패 시 호출):
+  ```sql
+  CREATE OR REPLACE FUNCTION revoke_web_push_subscription(sub_id uuid)
+  RETURNS void AS $$
+    UPDATE web_push_subscriptions
+    SET revoked_at = now()
+    WHERE id = sub_id AND revoked_at IS NULL;
+  $$ LANGUAGE sql SECURITY DEFINER;
+  ```
+
+**발송 플로우 연동 (Phase 2+)**
+
+```
+notifications INSERT (D-NOTIF-01 트리거)
+  └─ users.plan = 'premium' 이고 카테고리 구독 ON 이면
+       └─ SELECT * FROM web_push_subscriptions
+             WHERE user_id = recipient AND revoked_at IS NULL
+             └─ 각 활성 구독 행별 notification_log INSERT
+                 (channel='web_push', status='scheduled',
+                  scheduled_at = quiet hours 보정 후)
+             └─ 서버 워커가 status='scheduled'를 pull하여 web-push 패키지로 발송
+                 ├─ 성공 → status='sent', effective_at=now()
+                 ├─ 실패(410 Gone) → revoke_web_push_subscription(sub.id), status='failed'(DLQ 생략)
+                 └─ 기타 실패 → 지수 백오프 5회(D-EVENTS-03 동일) 후 DLQ
+```
+
+**Phase 1 목업 영향**
+
+- 목업에는 테이블 없음. 벨 드로워 상단에 **inert 예고 배너**(`"🔔 브라우저 알림은 Premium 전용 · Phase 2+ 예정"`) 한 줄만 (범위 R3).
+- VAPID 키·ServiceWorker 등록·권한 프롬프트 전부 Phase 2+ 구현.
 
 ### store_items
 > **D-STORE-01 / D-ECON-01** (DECIDED 2026-04-20) — `item_type` 과 `pool_source` 는 1:1 매핑(`clan_deco`⇒`clan`, `profile_deco`⇒`personal`). Premium 카드는 `is_premium_only=true`. [decisions.md §D-STORE-01](./decisions.md#d-store-01--코인-적립차감-트리거-매트릭스).
