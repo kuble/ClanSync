@@ -5,6 +5,18 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-21 — Phase 2 M2 S01 인증 쉘 (`/` · `/sign-in` · `/sign-up` · `/games`)
+
+- [x] **DB** — `supabase/migrations/0002_auth_login_and_seed_games.sql`: `auth_failed_logins`·`auth_login_lockouts`(D-AUTH-06)·`handle_new_user` 트리거(`auth.users`→`public.users`)·게임 4종(`overwatch`·`valorant`·`lol`·`pubg`) 시드.
+- [x] **서버** — `src/lib/supabase/service.ts`(서비스 롤) · `src/lib/auth/lockout.ts` · `src/app/actions/auth.ts` + `auth-action-client.ts`(D-AUTH-07 쿠키 maxAge 24h/30d) · `password-policy.ts`.
+- [x] **미들웨어** — `updateSession()` 이 `{ response, user }` 반환. D-LANDING-04(`/→/games`, `?from=logo` 예외) · `/games/**` 비로그인→`/sign-in?next=` · 로그인 상태의 `/sign-in`·`/sign-up`→`/games`. 리다이렉트 시 `mergeCookies`로 세션 쿠키 유지.
+- [x] **UI** — `src/app/page.tsx` 랜딩 CTA · `sign-in/`·`sign-up/`(`useFormState`) · `games/page.tsx` + `GameCardGrid` · `games/[gameSlug]/{auth,clan,clan/[clanId]}` 스텁.
+- [x] **라우팅** — `src/lib/routing/game-card-router.ts`(`buildGameCardHref`).
+- [x] **기타** — `button-variants.ts` 분리(서버에서 `buttonVariants` 호출 가능) · `scripts/seed-fixtures.mjs` + `package.json` `db:seed` · `.env.example` E2E 이메일 기본값.
+- [x] **검증** — `npm run build` 통과 · `npx eslint src` 통과.
+- [x] **문서** — [TODO_Phase2.md](./TODO_Phase2.md) M2·라우트 표·산출물 지도 · [TODO.md](./TODO.md) · [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md) 라이브 4행 🟩.
+- **다음**: **M3** — OAuth 게임 인증 · 클랜 온보딩 · RLS(가입 요청). 스텁 페이지 교체.
+
 ### 2026-04-21 — Phase 2 M1 인프라 베이스라인 착지
 
 - [x] **Supabase 클라이언트 3종** (`src/lib/supabase/`) — `@supabase/ssr` 기반.
