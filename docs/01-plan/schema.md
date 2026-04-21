@@ -1382,6 +1382,132 @@ notifications INSERT (D-NOTIF-01 트리거)
 - 목업에는 테이블 없음. 벨 드로워 상단에 **inert 예고 배너**(`"🔔 브라우저 알림은 Premium 전용 · Phase 2+ 예정"`) 한 줄만 (범위 R3).
 - VAPID 키·ServiceWorker 등록·권한 프롬프트 전부 Phase 2+ 구현.
 
+### user_privacy_overrides (개인 단위 프라이버시 오버라이드 · D-PRIV-01)
+> **D-PRIV-01** (DECIDED 2026-04-21) — 프리셋 α. D-PERM-01 "개인 정보" 카테고리의 **클랜 단위 기본값** 위에 **개인이 더 닫는 오버라이드 레이어**. restrict-only(열기 불가) · 통계 5개 키만 대상 · 단일 스위치(member에게만 숨김) · 클랜별 독립. [decisions.md §D-PRIV-01](./decisions.md#d-priv-01--개인-단위-프라이버시-오버라이드-프리셋-α).
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| user_id | uuid | PK·FK users(id) ON DELETE CASCADE — 오버라이드 주인 |
+| clan_id | uuid | PK·FK clans(id) ON DELETE CASCADE — 맥락 클랜 (클랜 탈퇴 시 자동 정리) |
+| key | text | PK·CHECK — 통계 5개 키 중 하나 (`view_monthly_stats` · `view_yearly_stats` · `view_synergy_winrate` · `view_map_winrate` · `view_mscore`) |
+| hidden | boolean | 기본 true — true면 해당 클랜 member 대상으로 숨김. false는 "명시적으로 닫지 않음"(부재 행과 동일 의미, Phase 2+ 양방향 확장 대비 보존) |
+| created_at | timestamptz | 기본 now() |
+| updated_at | timestamptz | 기본 now() |
+
+**제약·정책**
+
+- **PRIMARY KEY (user_id, clan_id, key)** — 같은 조합 중복 방지. 부재 행 = 오버라이드 없음 = 클랜 단위 기본값 그대로 따름.
+- **CHECK 제약**: `key IN ('view_monthly_stats','view_yearly_stats','view_synergy_winrate','view_map_winrate','view_mscore')` — 부계정(`view_alt_accounts`) 제외(부정행위 은폐 차단 근거, §D-PRIV-01).
+- **ON DELETE CASCADE** 양쪽 FK — 사용자 탈퇴·클랜 삭제 시 자동 정리.
+
+```sql
+CREATE TABLE user_privacy_overrides (
+  user_id  uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  clan_id  uuid NOT NULL REFERENCES clans(id) ON DELETE CASCADE,
+  key      text NOT NULL CHECK (key IN (
+    'view_monthly_stats',
+    'view_yearly_stats',
+    'view_synergy_winrate',
+    'view_map_winrate',
+    'view_mscore'
+  )),
+  hidden   boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, clan_id, key)
+);
+
+CREATE INDEX idx_user_privacy_overrides_lookup
+  ON user_privacy_overrides (user_id, clan_id)
+  WHERE hidden = true;
+```
+
+**RLS 정책** (Phase 2+)
+
+```sql
+ALTER TABLE user_privacy_overrides ENABLE ROW LEVEL SECURITY;
+
+-- 본인은 자기 행 전체 접근 (SELECT/INSERT/UPDATE/DELETE)
+CREATE POLICY priv_self_all ON user_privacy_overrides
+  FOR ALL USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+-- 같은 클랜 leader·officer는 읽기만 (🔒 아이콘 표시용, member의 숨김 여부 인지 가능)
+CREATE POLICY priv_clan_officer_read ON user_privacy_overrides
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM clan_members cm
+       WHERE cm.clan_id = user_privacy_overrides.clan_id
+         AND cm.user_id = auth.uid()
+         AND cm.status = 'active'
+         AND cm.role IN ('leader','officer')
+    )
+  );
+-- 일반 member는 자기 행 외 직접 조회 경로 없음 — 타인 통계 열람 시 has_user_stat_access() 함수로만 게이팅
+```
+
+**유효 정책 계산 함수** (Phase 2+)
+
+```sql
+CREATE OR REPLACE FUNCTION has_user_stat_access(
+  p_viewer_id uuid,   -- 데이터를 보려는 사람
+  p_target_id uuid,   -- 데이터의 주인
+  p_clan_id   uuid,   -- 맥락이 되는 클랜
+  p_key       text    -- 통계 키 (view_monthly_stats 등)
+)
+RETURNS boolean LANGUAGE plpgsql STABLE AS $$
+DECLARE
+  v_viewer_role text;
+  v_target_hidden boolean;
+BEGIN
+  -- 1) 본인은 항상 자기 데이터 열람
+  IF p_viewer_id = p_target_id THEN RETURN true; END IF;
+
+  -- 2) viewer의 해당 클랜 내 역할
+  SELECT role INTO v_viewer_role FROM clan_members
+   WHERE clan_id = p_clan_id AND user_id = p_viewer_id AND status = 'active';
+  IF v_viewer_role IS NULL THEN RETURN false; END IF;
+
+  -- 3) leader·officer는 개인 오버라이드를 우회 (운영 책임)
+  IF v_viewer_role IN ('leader','officer') THEN
+    RETURN has_clan_permission(p_clan_id, p_viewer_id, p_key);
+  END IF;
+
+  -- 4) member viewer: target의 개인 오버라이드 우선 확인
+  SELECT hidden INTO v_target_hidden
+    FROM user_privacy_overrides
+   WHERE user_id = p_target_id AND clan_id = p_clan_id AND key = p_key;
+  IF v_target_hidden IS TRUE THEN RETURN false; END IF;
+
+  -- 5) 오버라이드 없음: 클랜 단위 권한 매트릭스에 위임
+  RETURN has_clan_permission(p_clan_id, p_viewer_id, p_key);
+END;
+$$;
+```
+
+- 단계 3: leader·officer = D-STATS-02 경기 사후 정정·D-MANAGE-02 M점수 편집·D-STATS-01 HoF 설정 운영 책임상 항상 열람 보장.
+- 단계 4~5: member viewer만 개인 오버라이드의 영향을 받음. 오버라이드가 없으면 클랜 단위 `has_clan_permission()` 결과를 그대로 반환.
+
+**Phase 2+ UPSERT 패턴** (프로필 페이지 토글)
+
+```sql
+-- ON: 숨김 활성화
+INSERT INTO user_privacy_overrides (user_id, clan_id, key, hidden)
+VALUES (auth.uid(), :clan_id, :key, true)
+ON CONFLICT (user_id, clan_id, key)
+DO UPDATE SET hidden = true, updated_at = now();
+
+-- OFF: 숨김 해제 (행 삭제로 기본 상태 복귀)
+DELETE FROM user_privacy_overrides
+ WHERE user_id = auth.uid() AND clan_id = :clan_id AND key = :key;
+```
+
+**Phase 1 목업 영향**
+
+- 테이블 실제 생성 없음. `mockup/pages/main-clan.html` "운영 권한 설정" 카드의 D-PERM-01 안내 박스에 **예고 카피 1줄** 추가 (범위 R3).
+- CSS 클래스 `.mock-privacy-override-hint` — Phase 2+ 실제 오버라이드 UI 교체 지점 검색 키.
+- `clan-mock.js`의 `CLAN_PERMISSION_CATALOG` "개인 정보" 카테고리 `note` 갱신 (D-PRIV-01 DECIDED 상태 반영).
+
 ### store_items
 > **D-STORE-01 / D-ECON-01** (DECIDED 2026-04-20) — `item_type` 과 `pool_source` 는 1:1 매핑(`clan_deco`⇒`clan`, `profile_deco`⇒`personal`). Premium 카드는 `is_premium_only=true`. [decisions.md §D-STORE-01](./decisions.md#d-store-01--코인-적립차감-트리거-매트릭스).
 
