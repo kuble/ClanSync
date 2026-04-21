@@ -237,7 +237,7 @@
 - ~~D-PROFILE-02 가입 신청 대기 목록의 데이터 출처·취소 액션~~ (DECIDED 2026-04-20 — `clan_join_requests` 단일 소스, 7일 자동 숨김, pending만 취소 가능. [§D-PROFILE-02](../decisions.md#d-profile-02--가입-신청-대기-목록-데이터-출처))
 - ~~D-PROFILE-03 뱃지 케이스 픽 ↔ 메인 카드 스트립 동기화~~ (DECIDED 2026-04-20 — **compact** 5슬롯(dense-from-front), `[data-badge-strip]` + `clansync:badge:picks:changed`. [§D-PROFILE-03](../decisions.md#d-profile-03--뱃지-케이스--프로필-스트립-동기화))
 - ~~D-PROFILE-04 뱃지 해금 출처 (스토어 / 업적 / 이벤트) 정의~~ (DECIDED 2026-04-20 — `unlock_source enum`·store는 개인 코인만. [§D-PROFILE-04](../decisions.md#d-profile-04--뱃지-해금-출처))
-- ~~D-MANAGE-03 부계정 공개 범위~~ (DECIDED — 클랜 설정 토글, 기본 `officers`. 프로필 추가 시 고지·동의 체크박스 필수)
+- ~~D-MANAGE-03 부계정 공개 범위~~ — **D-PERM-01 흡수 (2026-04-21)** — 권한 키 `view_alt_accounts`(개인 정보 카테고리), **기본 ✓/✓/✓**(leader·officer·member). D-PRIV-01 프리셋 α는 통계 5키만 오버라이드 대상이며 **부계정(`view_alt_accounts`)은 제외**(운영·신뢰 근거는 [§D-PRIV-01](../decisions.md#d-priv-01--개인-단위-프라이버시-오버라이드-프리셋-α)). 프로필에 부계정 추가 시 고지·동의 체크박스는 기존과 동일.
 
 ## 구현 참고 (개발자용)
 
@@ -261,6 +261,6 @@
 - [slices/slice-08-player-profile-decorations.md](../slices/slice-08-player-profile-decorations.md)
 - [09-BalanceMaker.md](./09-BalanceMaker.md) (네임플레이트·뱃지를 경기 화면에 표시)
 - [13-Clan-Store.md](./13-Clan-Store.md) (꾸미기 아이템 구매 출처)
-- [decisions.md](../decisions.md) (D-PROFILE-01~04, D-MANAGE-03)
+- [decisions.md](../decisions.md) (D-PROFILE-01~04, D-MANAGE-03 → D-PERM-01 `view_alt_accounts`, D-PRIV-01)
 - [gating-matrix.md](../gating-matrix.md) §10
 - [BACKLOG.md](../BACKLOG.md) (가입 신청 대기 목록 → D-PROFILE-02로 흡수)

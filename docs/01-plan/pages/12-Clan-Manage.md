@@ -245,7 +245,7 @@ H1 "클랜 관리"
 - ~~D-MANAGE-02 개인 상세 편집 권한 + 휴면 일괄 강퇴~~ (DECIDED 2026-04-20 — 역할·officer강퇴·leader위임·휴면일괄강퇴는 leader 전용, M점수는 `allow_officer_edit_mscore` 토글)
 - ~~D-MANAGE-03 부계정 조회 정책~~ (DECIDED 2026-04-20 — `alt_accounts_visibility` 클랜 설정 토글, 기본 officers)
 - ~~D-MANAGE-04 배너·아이콘 업로드 제약~~ (DECIDED 2026-04-20 — 배너 3MB / 아이콘 2MB · JPEG/PNG/WebP · 정적만)
-- D-CLAN-02 가입 요청 상태 머신 (이 화면이 핵심 소비자)
+- ~~D-CLAN-02 가입 요청 상태 머신 (이 화면이 핵심 소비자)~~ — **DECIDED 2026-04-20** — [§D-CLAN-02](../decisions.md#d-clan-02--가입-신청-상태-머신과-중복정책) (`clan_join_requests`, 본 탭이 핵심 소비 화면)
 - ~~D-CLAN-07 활성도 분류 (목업 반영 완료)~~
 
 ## 구현 참고 (개발자용)
