@@ -5,6 +5,7 @@
 > **D-SHELL-02 DECIDED (2026-04-20)** — 운영 단일 출처는 **서버 세션 + DB RLS**. `?role=`·`?plan=`·`?hubDebug=1`·`?simulate=logged_in`·`?sidebarNotifyDebug=*`·`?balanceSession=*` 6종은 미들웨어가 **정화 + 302 redirect**. 디버그 계열은 `NEXT_PUBLIC_DEBUG_QUERY=1` **AND** admin 세션에서만 해석, 사용 시 `audit_debug_queries` 기록. `/mockup/*`는 운영 빌드에서 제외. → [decisions.md §D-SHELL-02](../decisions.md#d-shell-02--권한디버그-쿼리-우회-차단-정책)
 >
 > **D-NOTIF-01 DECIDED (2026-04-21)** — 네비게이션바 상단 **알림 벨 아이콘 + 드로워**(디스코드식) 신설. 운영·개인 결과·일정 알림 전체가 `notifications` 피드로 통합된다. 기존 D-SHELL-03 사이드바 메뉴별 점은 **집계 척도가 다르므로 병존**(메뉴 점 = "이 화면에 해야 할 일이 있다", 벨 = "내 피드에 새 소식이 있다"). → [decisions.md §D-NOTIF-01](../decisions.md#d-notif-01--in-app-알림-센터-통합-도입)
+> **D-NOTIF-02 DECIDED (2026-04-21)** — 브라우저 ServiceWorker 푸시 **프리셋 α (Premium 전용, 4 카테고리 독립 토글, 서버 quiet hours 00~07 KST 준수)**. **범위 R3** — Phase 1은 결정·스키마(`web_push_subscriptions` · `notification_log.channel='web_push'`)·목업 예고 배너 1줄까지만. 실구현(VAPID·ServiceWorker·권한 프롬프트·구독 관리 UI)은 Phase 2+. → [decisions.md §D-NOTIF-02](../decisions.md#d-notif-02--브라우저-서비스워커-웹-푸시-도입-정책-프리셋-α)
 
 ## 한 줄 요약
 하나의 클랜을 활동 단위로 묶은 메인 허브. 좌측 사이드바로 대시보드 / 밸런스메이커 / 통계 / 이벤트 / 관리 / 스토어를 갈아끼우는 "셸"이고, 첫 화면은 대시보드.
@@ -70,20 +71,23 @@
                                          ▲
                                          │ 클릭
                                          ▼
-   ┌ 알림 드로워 (우측 슬라이드) ────┐
-   │ 알림                        [X] │
-   │ ─────────────────────────────── │
-   │ 🟠 A가 가입을 신청했습니다       │
-   │    방금 · 운영 · 원본 열기       │
-   │ ─────────────────────────────── │
-   │ 🟢 정정 요청이 수락되었습니다    │
-   │    5분 전 · 개인 결과 · 원본 열기│
-   │ ─────────────────────────────── │
-   │ 🔵 정기 내전이 1시간 후 시작     │
-   │    55분 전 · 일정 · 원본 열기    │
-   │ ─────────────────────────────── │
-   │   [모두 읽음]      [닫기]       │
-   └────────────────────────────────┘
+   ┌ 알림 드로워 (우측 슬라이드) ─────┐
+   │ 알림                         [X] │
+   │ ──────────────────────────────── │
+   │ 🔔 브라우저 알림은 Premium 전용  │  ← D-NOTIF-02 예고 배너 (R3, inert)
+   │    · Phase 2+ 예정 (D-NOTIF-02)  │
+   │ ──────────────────────────────── │
+   │ 🟠 A가 가입을 신청했습니다        │
+   │    방금 · 운영 · 원본 열기        │
+   │ ──────────────────────────────── │
+   │ 🟢 정정 요청이 수락되었습니다     │
+   │    5분 전 · 개인 결과 · 원본 열기 │
+   │ ──────────────────────────────── │
+   │ 🔵 정기 내전이 1시간 후 시작      │
+   │    55분 전 · 일정 · 원본 열기     │
+   │ ──────────────────────────────── │
+   │   [모두 읽음]      [닫기]        │
+   └─────────────────────────────────┘
 ```
 
 **벨 배지 수치**
@@ -109,6 +113,19 @@
 - 🟢 **개인 결과** — `join_request_{accepted,rejected}`, `match_correction_{accepted,rejected,expired}`, `lfg_{accepted,rejected,expired}`, `scrim_both_confirmed`, `scrim_invalidated`
 - 🔵 **일정** — `event_reminder` (slot_kind별 T-24h/T-1h/T-10min/T+0)
 - ⚪ **채팅** — `scrim_chat_closing_soon`, `scrim_chat_closed`
+
+**브라우저 푸시 예고 배너 (D-NOTIF-02 · R3)**
+
+Phase 1 범위는 **예고 배너 한 줄**만. 드로워 최상단(제목 바로 아래, 첫 알림 항목 위)에 inert 배너를 둔다 — 클릭 핸들러·hover 효과·포커스 아웃라인 전부 제거.
+
+- 카피 (KR 고정, Phase 1): `🔔 브라우저 알림은 Premium 전용 · Phase 2+ 예정 (D-NOTIF-02)`
+- CSS 클래스: `.mock-notifications-push-hint` — Phase 2+에서 실제 **맥락형 권한 배너**(`[알림 켜기]` / `[나중에]` 버튼 포함)로 교체 시 **전용 클래스라 검색·제거 용이**.
+- 스타일 지침: 보라색 계열 얇은 틴트(`#1e1b4b` 배경), 흰색 텍스트 `#c7d2fe`, padding 12px, 알림 항목 배경과 구분되도록 테두리 상하(`border-top`/`border-bottom: 1px solid rgba(139,92,246,.3)`).
+- Phase 2+ 전환 규약:
+  1. Free 사용자 → 배너 "브라우저 알림은 Premium 전용입니다. [플랜 비교]" + 업셀 모달 연결.
+  2. Premium + 미구독 → "🔔 브라우저 알림을 받으시겠어요? / [알림 켜기] [나중에]" 맥락형 배너 + `Notification.requestPermission()` 호출.
+  3. Premium + 구독 완료 → 배너 숨김. "이 디바이스 로그아웃"은 `/settings/notifications`에서.
+  4. Premium + 거절 → 7일간 배너 재표시 금지 (`localStorage.web_push_dismiss_until`).
 
 ### 사이드바 동작
 - 데스크톱(≥769px): **기본 64px(접힘)** ← 마우스 올리면 220px로 펼쳐짐 (라벨·항목명 노출).
@@ -235,8 +252,10 @@
 - ~~D-SHELL-02 `?role=` `?plan=` 쿼리 우회 차단 (서버 권한 단일 출처)~~ → **DECIDED (2026-04-20)**. [decisions.md §D-SHELL-02](../decisions.md#d-shell-02--권한디버그-쿼리-우회-차단-정책) 참고
 - ~~D-SHELL-03 사이드바 알림 점의 운영 트리거 규칙~~ → **DECIDED (2026-04-20)**. [decisions.md §D-SHELL-03](../decisions.md#d-shell-03--사이드바-알림-점-트리거-규칙) 참고
 - ~~D-NOTIF-01 in-app 알림 센터 통합~~ → **DECIDED (2026-04-21)**. 네비게이션바 벨 + 드로워 + `notifications` 피드 테이블. [decisions.md §D-NOTIF-01](../decisions.md#d-notif-01--in-app-알림-센터-통합-도입) 참고
+- ~~D-NOTIF-02 브라우저 ServiceWorker 푸시~~ → **DECIDED (2026-04-21, 프리셋 α, 범위 R3)**. Premium 전용, 4 카테고리 독립 토글, 맥락형 권한 프롬프트, 서버 quiet hours 00~07 KST 준수. Phase 1은 벨 드로워 상단 inert 예고 배너 + `web_push_subscriptions` 스키마만. 실구현 Phase 2+. [decisions.md §D-NOTIF-02](../decisions.md#d-notif-02--브라우저-서비스워커-웹-푸시-도입-정책-프리셋-α) 참고
 - (대시보드) 다가오는 일정의 동적 채움 정책 — 며칠 이내 / 최대 N건
-- **D-NOTIF-02 (후속 후보, OPEN)** — 브라우저 ServiceWorker 푸시 도입 여부·QoS
+- **D-NOTIF-02b (후속 후보, OPEN)** — web_push 공급자·SDK 선택 (web-push npm 패키지 · Firebase Cloud Messaging · OneSignal 등)
+- **D-NOTIF-02c (후속 후보, OPEN)** — Free 하이브리드(중요 알림 허용) 재검토. 운영 6개월 데이터 누적 후
 - **D-NOTIF-03 (후속 후보, OPEN)** — 이메일 다이제스트(일간/주간 요약) 여부
 
 ## 구현 참고 (개발자용)
@@ -254,6 +273,7 @@
 - 게이팅 클래스: `mock-officer-only`, `mock-member-only`, `mock-hide-on-free`, `mock-plan-premium`, `mock-plan-free`
 - 알림 점: `#sidebar-notify-balance`, `#sidebar-notify-events`, `#sidebar-notify-manage`, `mockSidebarNotifyRefresh()`, `mockSidebarNotifyClearView(view)` — D-SHELL-03 규칙 구현. `manage`는 데이터 기반 자동 집계이므로 `mockSidebarNotifyClearView('manage')` 케이스 **없음**(행동성)
 - 알림 벨(D-NOTIF-01): `#mock-navbar-notify-bell`, `#mock-navbar-notify-badge`, `#mock-notifications-drawer`, `mockNotificationsStore`, `mockNotificationsOpenDrawer()`, `mockNotificationsCloseDrawer()`, `mockNotificationsMarkAllRead()`, `mockNotificationsOpenSource(id)`. 스토리지 키 `MOCK_NOTIFICATIONS_KEY = 'clansync-mock-notifications-v1'`. D-SHELL-03 사이드바 메뉴 점과 **독립 집계** (벨 = `notifications.read_at IS NULL` 수, 메뉴 점 = 각 메뉴 고유 척도)
+- 브라우저 푸시 예고 배너(D-NOTIF-02 · R3): 드로워 최상단 inert 배너 한 줄. 클래스 `.mock-notifications-push-hint`, Phase 2+ 교체 지점. 클릭 핸들러 없음, 순수 표시용
 - 공지·규칙 저장 키: `MOCK_CLAN_NOTICE_POSTS_KEY`, `MOCK_CLAN_RULES_KEY`, `MOCK_CLAN_RULES_DEFAULT_TEXT`
 - 디버그 배너: `#mock-hub-debug-banner` (`?hubDebug=1`)
 
