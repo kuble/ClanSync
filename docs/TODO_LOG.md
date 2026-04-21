@@ -5,6 +5,47 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-21 — D-NOTIF-02 종결 (브라우저 ServiceWorker 푸시 프리셋 α · 범위 R3)
+
+- [x] **결정 컨펌 절차 준수** (`.cursor/rules/decision-confirm.mdc`):
+  - **프리셋 묶음 컨펌**: α 보수적(Premium 전용·카테고리 독립 토글·맥락형 권한 프롬프트·서버 quiet hours) / β 공격적(Free 포함 전체) / γ Free 중요 알림만 하이브리드 / δ 도입 보류. **범위 R1(전면 목업 스텁) / R2(결정·스키마만) / R3(스키마 + 벨 드로워 상단 inert 예고 배너 1줄)** 2축으로 제시 → 사용자 선택 = **α + R3**.
+  - β 탈락 근거: D-EVENTS-03 외부 채널 과금 경계(카카오·Discord = Premium) 파괴. γ 탈락 근거: kind×plan 22조합 테스트 부담, 6개월 데이터 누적 후 D-NOTIF-02c로 재검토. δ 탈락 근거: 모바일·탭 닫은 사용자 재참여 경로 0.
+- [x] **D-NOTIF-02 — 브라우저 서비스워커 웹 푸시 도입 정책 (프리셋 α)** (DECIDED 2026-04-21, 사용자 컨펌)
+  - **프리셋 α**: Premium 전용. 4 카테고리 독립 토글(운영·개인·일정·채팅). 권한 요청은 벨 드로워 최초 열 때 맥락형 배너 → [알림 켜기] 클릭 시에만 `Notification.requestPermission()` 호출. 서버 quiet hours 00~07 KST 준수(07시 일괄). 본인이 직접 트리거한 이벤트(본인 정정 요청 결과 등)는 조용 시간에도 즉시 발송.
+  - **스키마**: `web_push_subscriptions(user_id, endpoint, p256dh, auth, user_agent, created_at, revoked_at)` 신설. soft delete(`revoked_at`), N 디바이스 허용, `UNIQUE (user_id, endpoint) WHERE revoked_at IS NULL`. `notification_log.channel` enum에 `web_push` 추가. 재시도 정책은 D-EVENTS-03 지수 백오프 5회 동일, 410 Gone 응답 시 즉시 `revoked_at = now()` 업데이트 + DLQ 생략.
+  - **권한 키 신설 없음**: 개인 구독은 본인 선택이라 D-PERM-01 매트릭스와 독립. RLS는 본인 행만 SELECT/INSERT/UPDATE, DELETE는 cron 전용.
+  - **범위 R3**: Phase 1 목업 = 벨 드로워 최상단에 inert 예고 배너 1줄(`"🔔 브라우저 알림은 Premium 전용 · Phase 2+ 예정 (D-NOTIF-02)"`). CSS 클래스 `.mock-notifications-push-hint` — Phase 2+ 실제 권한 배너 교체 지점 검색 키.
+  - **Phase 2+ 전환 규약**: (1) Free → Premium 업셀 배너 + 플랜 비교 모달. (2) Premium + 미구독 → 맥락형 권한 배너. (3) Premium + 구독 완료 → 배너 숨김. (4) 거절 시 7일간 배너 재표시 금지(`localStorage.web_push_dismiss_until`).
+- [x] `docs/01-plan/decisions.md`
+  - 헤더 표 "통신 · 알림 (NOTIF)" 섹션에 **D-NOTIF-02 행 추가** (DECIDED 2026-04-21).
+  - §D-NOTIF-01 Phase 2+ 백로그 5번을 "후속 결정 후보" → "DECIDED 2026-04-21 (프리셋 α, Phase 2+ 실구현)"로 갱신.
+  - 본문 말미에 **§D-NOTIF-02 상세 블록 신설** — 프리셋 α/β/γ/δ 비교표, β/γ/δ 탈락 근거, 범위 R1/R2/R3 비교 + R3 선택 근거, 스키마(테이블 정의·채널 카탈로그 확장·재시도 정책), 발송 플로우 의사코드, 권한 프롬프트 타이밍 UX, 카테고리 구독 토글 기본값, Quiet Hours 정책, Phase 1 목업 영향(R3), Phase 2+ 백로그 11단계 + 후속 결정 후보 D-NOTIF-02b(공급자 선택)·D-NOTIF-02c(Free 하이브리드 재검토).
+- [x] `docs/01-plan/schema.md`
+  - `notification_log.channel` enum 확장: `enum('inapp','discord','kakao','web_push')`. "D-NOTIF-02 연동" 비고 행 추가.
+  - **`web_push_subscriptions` 테이블 신설** (§notifications 직후, §store_items 앞): 컬럼 8종·UNIQUE 부분 인덱스·RLS 4정책·발송 플로우 의사코드·`revoke_web_push_subscription` 함수 예시.
+  - §notification_log "D-NOTIF-01 연동" 블록에 "D-NOTIF-02 연동" 문단 추가 — `web_push` 채널 행은 Premium 게이팅 + quiet hours 보정 + 410 Gone 처리 요약.
+- [x] `docs/01-plan/pages/07-MainClan.md`
+  - 상단 결정 요약에 **D-NOTIF-02 DECIDED 블록쿼트 한 줄 추가** (D-NOTIF-01 바로 아래).
+  - §네비게이션바 상단 알림 벨 ASCII 다이어그램에 **예고 배너 영역 추가** (제목 바로 아래, 첫 알림 위).
+  - **§브라우저 푸시 예고 배너 (D-NOTIF-02 · R3) 서브섹션 신설** — 카피·클래스·스타일 지침·Phase 2+ 전환 규약 4단계.
+  - §결정 현황: D-NOTIF-02 라인을 "후속 후보 OPEN" → "DECIDED 2026-04-21"로 갱신. 신규 후속 후보 **D-NOTIF-02b**(공급자 선택)·**D-NOTIF-02c**(Free 하이브리드 재검토) 등재.
+  - §구현 참고(개발자용)에 `.mock-notifications-push-hint` 라인 추가 — Phase 2+ 교체 지점 검색 키.
+- [x] `mockup/pages/main-clan.html`
+  - **CSS 신설**: `.mock-notifications-push-hint`(보라 틴트 배경 `rgba(76,29,149,0.25)`, 상하 테두리 `rgba(139,92,246,0.3)`), `.mock-notifications-push-hint__icon`(14px 아이콘), `.mock-notifications-push-hint__copy`, `.mock-notifications-push-hint__tag`(D-NOTIF-02 칩 — 보라 `#e9d5ff` 텍스트).
+  - **드로워 마크업 확장**: `<div class="mock-notifications-drawer__head">` 직후 `#mock-notifications-push-hint` DOM 삽입 — `aria-hidden="true"`·클릭 핸들러 없음·보조 디바이스 읽기 대상 제외. 배너 본문 = `🔔 브라우저 알림은 Premium 전용 · Phase 2+ 예정` + `<span class="mock-notifications-push-hint__tag">D-NOTIF-02</span>`.
+- [x] `mockup/scripts/clan-mock.js`
+  - D-NOTIF-01 구역 헤더 주석에 **"D-NOTIF-02 · R3 연계" 블록 신설** — 예고 배너는 순수 HTML/CSS(JS 상호작용 없음)임을 명시. Phase 2+ 교체 지점 지침(클래스 `.mock-notifications-push-hint`로 검색, `web_push_subscriptions` 구독 저장소 참조).
+  - JS 로직 무변경(배너는 inert) — sessionStorage·이벤트 리스너·렌더 함수 그대로.
+- [x] **후속 결정 후보 식별**:
+  - **D-NOTIF-02b** (OPEN) — web_push 공급자·SDK 선택 (web-push npm 패키지 · Firebase Cloud Messaging · OneSignal 등). Phase 2+ VAPID 설정 전 결정.
+  - **D-NOTIF-02c** (OPEN) — γ 하이브리드(Free 중요 알림 허용) 재검토. 운영 6개월 데이터 누적 후.
+  - **D-NOTIF-03** (OPEN) — 이메일 다이제스트 (일간/주간 요약).
+  - **D-PRIV-01** (OPEN) — 개인 단위 프라이버시 오버라이드.
+- [x] **결과**: D-NOTIF-01 직후 **외부 알림 채널 정책의 절반**이 닫힘. 유료 채널 3종(카카오·Discord·web_push) 모두 Premium 전용으로 정합. Phase 2+ 구현 순서(VAPID → 구독 테이블 → SW → 드로워 배너 교체 → 서버 워커 → 410 Gone 처리 → 카테고리 토글 UI) 백로그화. 목업 변경은 inert 배너 1줄 + CSS 1 블록 + 주석 1줄 — **최소 침습 달성**.
+- [x] **분할 커밋**: `docs(plan): decide D-NOTIF-02 — web push preset α (Premium-only, R3 scope)` → `docs(plan): schema — web_push_subscriptions + notification_log channel=web_push` → `docs(plan): wire 07-MainClan banner preview + follow-up candidates (D-NOTIF-02b/02c)` → `feat(mockup): D-NOTIF-02 R3 inert push-hint banner in drawer` → `docs(todo): log D-NOTIF-02 close session`.
+
+---
+
 ### 2026-04-21 — D-NOTIF-01 종결 (in-app 알림 센터 통합, 디스코드식 벨+드로워)
 
 - [x] **결정 컨펌 절차 준수** (`.cursor/rules/decision-confirm.mdc`):

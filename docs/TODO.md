@@ -20,7 +20,7 @@
 |------|-----|
 | **현재 단계** | Phase 2 — Next.js `src/` · Supabase · RLS |
 | **이전 단계** | Phase 1 — 정적 목업 (`mockup/`) **종료** (2026-03-28) |
-| **마지막 갱신** | 2026-04-21 (D-NOTIF-01 종결 — **in-app 알림 센터 통합**(프리셋 α, 디스코드식). 네비게이션바 상단 **벨 아이콘 + 드로워** 신설, 운영/개인 결과/일정 알림 전체를 한 피드로 통합. M1 저장 모델 = `notification_log`(기존 발송 레이어 유지) + `notifications`(신설 피드 레이어) + FK 연결. 소스 테이블·`notification_log`(in-app sent) AFTER UPDATE/INSERT **DB 트리거로 자동 INSERT**. 2상태 읽음(unread/read) + 읽은 후 **7일 GC**. D-SHELL-03 사이드바 메뉴 점과 **병존**(척도 다름). D-PERM-01 권한 키 신설 없음. 후속 후보: D-NOTIF-02(푸시)·D-NOTIF-03(이메일 다이제스트)·D-PRIV-01(개인 프라이버시 오버라이드). 직전 묶음: D-STATS-03 — "앱 이용 횟수" = 활동일(person-day).) |
+| **마지막 갱신** | 2026-04-21 (D-NOTIF-02 종결 — **브라우저 ServiceWorker 푸시 프리셋 α** (Premium 전용·4 카테고리 독립 토글·맥락형 권한 프롬프트·서버 quiet hours 00~07 KST 준수). 범위 **R3** = 결정·스키마(`web_push_subscriptions` + `notification_log.channel='web_push'`)·목업 예고 배너 1줄까지만. 실구현(VAPID·ServiceWorker·권한 프롬프트·구독 관리 UI)은 Phase 2+ 이관 — 후속 후보 D-NOTIF-02b(공급자 선택)·D-NOTIF-02c(Free 하이브리드 재검토)·D-NOTIF-03(이메일 다이제스트)·D-PRIV-01(개인 프라이버시 오버라이드). 직전 묶음: D-NOTIF-01 — in-app 알림 센터 통합(프리셋 α, 디스코드식 벨+드로워, M1 저장, 7일 GC).) |
 
 ---
 
