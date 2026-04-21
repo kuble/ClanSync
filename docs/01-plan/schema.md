@@ -112,6 +112,8 @@ ClanMember ──< CoinTransaction
 - RLS: 본인조차 SELECT 불가 — 서버 Edge Function 경유만.
 
 ### games
+> **D-AUTH-02** (DECIDED 2026-04-20) — 게임 슬러그·제공자 매핑과 연동되는 서비스 게임 카탈로그 행. [decisions.md §D-AUTH-02](./decisions.md#d-auth-02--게임별-oauth-제공자-매핑).
+
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | id | uuid PK | |
@@ -425,6 +427,8 @@ ClanMember ──< CoinTransaction
 - RLS: SELECT는 같은 클랜 구성원(경기 슬롯 렌더용). INSERT/UPDATE/DELETE 전면 차단(서비스 롤만).
 
 ### maps
+> 게임별 맵 메타 — 경기 기록·밸런스 입력 UI와 조인. 경기 사후 정정·맵 필드는 **[D-STATS-02](./decisions.md#d-stats-02--경기-사후-정정-요청-모달과-이력-보존)** 와 교차.
+
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | id | uuid PK | |
@@ -433,6 +437,8 @@ ClanMember ──< CoinTransaction
 | map_type | varchar | '제어','호위','돌격','밀기','충돌','집결' |
 
 ### player_scores (누적 점수 관리)
+> **D-MANAGE-02** → **[D-PERM-01](./decisions.md#d-perm-01--클랜-권한-매트릭스-모델-도입)** — M점수 편집은 권한 키 `edit_mscore`(클랜 토글)로 통제.
+
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | id | uuid PK | |
@@ -445,6 +451,8 @@ ClanMember ──< CoinTransaction
 | UNIQUE(clan_id, user_id, role) | | |
 
 ### medals (칭호)
+> 명예의 전당·업적 표시와 교차 — HoF 규칙·열람 권한은 **[D-STATS-01](./decisions.md#d-stats-01--hof-설정-권한-d-perm-01-흡수)** · 특이사항 태그 카탈로그 **[D-ECON-04](./decisions.md#d-econ-04--특이사항-태그-카탈로그)**.
+
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | id | uuid PK | |
@@ -617,6 +625,8 @@ ClanMember ──< CoinTransaction
 - RLS: SELECT 본인. INSERT 서비스 롤만.
 
 ### board_posts (게시판 - 홍보/스크림 신청 공용)
+> MainGame 홍보·스크림 흐름 — 정렬·노출은 **[D-RANK-01](./decisions.md#d-rank-01--클랜-홍보-인기-정렬-폐기)** · 스크림 확정·채팅은 **[D-SCRIM-01](./decisions.md#d-scrim-01--스크림-채팅방-자동-종료-정책)** · **[D-SCRIM-02](./decisions.md#d-scrim-02--스크림-양측-확정-동시성-2-phase-commit)**.
+
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | id | uuid PK | |

@@ -167,10 +167,6 @@ H1 "클랜 통계"
 - 클랜이 등록한 **내전**만 집계 (스크림·이벤트 제외).
 - 서브탭: 월간 / 연간.
 
-### 결정 현황
-- **D-STATS-03 (DECIDED 2026-04-21)** "앱 이용 횟수" = 활동일(person-day, DAU 합산) — `clan_daily_member_activity` 테이블, DAY UNIQUE, 자기 클랜 라우트 첫 페이지뷰 트리거
-- **D-STATS-04 (DECIDED 2026-04-21)** CSV 내보내기 → D-PERM-01 권한 키 `export_csv`로 흡수, 실제 UI는 Phase 2+ 보류
-
 ## 모달
 
 | 모달 | 트리거 | 비고 |

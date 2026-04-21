@@ -776,6 +776,16 @@
 
 ---
 
+### 2026-04-21 — Phase 1 감사 후속 (AUDIT-Phase1-2026-04-21)
+- [x] **C-1** `10-Clan-Stats.md` 슬라이스 링크 `slice-05-clan-stats.md`로 정정
+- [x] **C-2** `docs/TODO_Phase2.md` 신설 (허브·FEATURE_INDEX 등 기존 링크 복구)
+- [x] **M-2~M-4** `09-BalanceMaker` D-EVENTS-03 DECIDED 반영·OPEN 항목 Phase 2+ 라벨 · `12-Clan-Manage` D-CLAN-02 · `14-Profile` D-PERM-01/`view_alt_accounts`·D-PRIV-01 정합 · **m-7** BALANCE 별칭 문구
+- [x] **M-5** 슬라이스 S00~S08 `## 결정 참조` 블록 추가
+- [x] **M-1** `main-game.html` LFG 헤더 「내 신청 N건」pill · 모집자 카드/드로어 「신청자 N명」·`lfgAppCount` 연동 · **m-4** 미사용 `.ranking-insight-placeholder` CSS 제거
+- [x] **Minor 목업** `_hub.html` 프로필 링크 · 전 페이지 `<meta description>` · `#mock-match-correction-request-modal` `aria-modal="true"`
+- [x] **Minor 문서** `10-Clan-Stats` 결정 현황 중복 제거 · `schema.md` games/maps/player_scores/medals/board_posts D- 교차 링크 · **m-8/m-9** `slice-00` 역할 용어·`Phase 2+` 표기 규약
+- [x] `TODO.md`·`TODO_Phase1.md` 메타 갱신
+
 ### 템플릿 (복사 후 사용)
 
 ```

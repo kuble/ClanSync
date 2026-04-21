@@ -20,7 +20,7 @@
 |------|-----|
 | **현재 단계** | Phase 2 — Next.js `src/` · Supabase · RLS |
 | **이전 단계** | Phase 1 — 정적 목업 (`mockup/`) **종료** (2026-03-28) |
-| **마지막 갱신** | 2026-04-21 (D-PRIV-01 종결 — **개인 단위 프라이버시 오버라이드 프리셋 α + 범위 R3**. ① 방향 **닫기만**(restrict-only, 열기 불가) ② 대상 **통계 5개 키**(월간·연간 전적·시너지 승률·맵별 승률·M점수) — 부계정 제외(부정행위 은폐 차단) ③ **단일 스위치**(같은 클랜 member에게만 숨김, leader·officer는 항상 열람 — 운영 책임) ④ 저장 = **클랜별 독립** 신규 테이블 `user_privacy_overrides(user_id, clan_id, key, hidden)`. 범위 R3 = 결정·스키마(+ `has_user_stat_access()` 함수 시그니처) + 목업 D-PERM-01 안내 박스에 예고 카피 1줄만(`.mock-privacy-override-hint`). 실구현(프로필 "프라이버시 설정" 섹션)은 Phase 2+. 신규 후속 후보 **D-PRIV-01b**(양방향 재검토, 조건부)·**D-PRIV-02**(부계정 오버라이드 재검토)·**D-PRIV-03**(비클랜 맥락 프라이버시, Phase 2+). Phase 1 결정 사이클 실질 마감 — 남은 OPEN은 전부 Phase 2+ 이관·조건부 재오픈 성격. 직전 묶음: D-NOTIF-03 DROPPED(이메일 다이제스트 도입 보류).) |
+| **마지막 갱신** | 2026-04-21 — **Phase 1 감사 후속**([AUDIT-Phase1-2026-04-21.md](./AUDIT-Phase1-2026-04-21.md)) 묶음 완료: `TODO_Phase2.md` 신설·페이지 DECIDED 정합·슬라이스 결정 참조·D-LFG-01 목업 pill·문서/목업 메타·스키마 교차 링크. 직전: D-PRIV-01 종결(R3). |
 
 ---
 
