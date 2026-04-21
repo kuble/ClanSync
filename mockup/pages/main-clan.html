@@ -5358,8 +5358,8 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
 
     <div id="stats-panel-rankmap" class="ranking-panel" role="tabpanel" aria-labelledby="statsTabRankmap" hidden>
       <div class="d-card d-card-full" style="margin-bottom:16px">
-        <div class="d-card-label">클랜 단위 · 연도별·월별 앱 이용 횟수</div>
-        <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px">멤버가 ClanSync 웹앱에 접속·활동한 횟수를 <strong>클랜 합산</strong>으로 집계합니다(세션·페이지뷰 등 정의는 구현 시 확정). 아래 수치는 목업입니다.</p>
+        <div class="d-card-label">클랜 단위 · 연도별·월별 앱 이용 횟수 <span class="badge badge-muted" style="font-size:10px">D-STATS-03</span></div>
+        <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px;line-height:1.55">측정 단위는 <strong>활동일(person-day)</strong>입니다 — 멤버가 자기 클랜 페이지에 <strong>그날 처음 진입한 시점</strong>에 1회 카운트되며, 같은 날 추가 접속·새로고침은 카운트되지 않습니다(클랜 timezone 자정 경계). 메인 게임 허브·프로필·다른 클랜 탐색은 미반영. 외부 클랜에는 노출되지 않습니다(D-ECON-03). 아래 수치는 목업입니다.</p>
         <div style="overflow-x:auto">
           <table class="mock-table mock-stats-app-usage-table" aria-label="연도별 월별 앱 이용 횟수">
             <thead>
