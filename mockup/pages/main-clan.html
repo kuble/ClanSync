@@ -4556,6 +4556,43 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
   line-height: 1.6;
 }
 
+/* D-NOTIF-02 · R3 — 드로워 최상단 브라우저 푸시 예고 배너.
+   Phase 2+에서 실제 맥락형 권한 배너([알림 켜기]/[나중에])로 교체되는 지점. */
+.mock-notifications-push-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(76, 29, 149, 0.25);
+  border-top: 1px solid rgba(139, 92, 246, 0.3);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+  color: #c7d2fe;
+  font-size: 12px;
+  line-height: 1.5;
+  user-select: none;
+  cursor: default;
+}
+.mock-notifications-push-hint__icon {
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.mock-notifications-push-hint__copy {
+  flex: 1;
+  min-width: 0;
+}
+.mock-notifications-push-hint__tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: rgba(139, 92, 246, 0.25);
+  color: #e9d5ff;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
 .mock-notification-item {
   display: flex;
   gap: 10px;
@@ -4694,6 +4731,16 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
               aria-label="닫기"
               onclick="window.mockNotificationsCloseDrawer && window.mockNotificationsCloseDrawer()">닫기</button>
     </div>
+  </div>
+  <!-- D-NOTIF-02 · R3 — 브라우저 푸시 예고 배너 (inert, Phase 2+ 교체 지점) -->
+  <div class="mock-notifications-push-hint"
+       id="mock-notifications-push-hint"
+       aria-hidden="true">
+    <span class="mock-notifications-push-hint__icon" aria-hidden="true">🔔</span>
+    <span class="mock-notifications-push-hint__copy">
+      브라우저 알림은 Premium 전용 · Phase 2+ 예정
+      <span class="mock-notifications-push-hint__tag">D-NOTIF-02</span>
+    </span>
   </div>
   <div id="mock-notifications-drawer-body" class="mock-notifications-drawer__body">
     <div class="mock-notifications-drawer__empty" id="mock-notifications-drawer-empty" hidden>

@@ -1222,6 +1222,12 @@
    * Phase 1은 sessionStorage 플레이스홀더 — 실제 트리거·RLS·GC는 Phase 2+.
    * schema.md §notifications / decisions.md §D-NOTIF-01 참고.
    *
+   * ── D-NOTIF-02 · R3 연계 ──────────────────────────────────────────────
+   * 드로워 최상단(#mock-notifications-push-hint)에 브라우저 푸시 예고 배너가
+   * 있다(순수 HTML/CSS, JS 상호작용 없음). Phase 2+에서 맥락형 권한 배너
+   * ([알림 켜기]/[나중에])로 교체되는 지점 — 클래스 .mock-notifications-push-hint
+   * 로 검색해 교체. 실제 구독 저장은 `web_push_subscriptions`(schema.md).
+   *
    * 저장 스키마(row):
    *   {
    *     id, kind, source_table, source_id,
