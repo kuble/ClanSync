@@ -999,7 +999,14 @@
     },
     {
       category: "개인 정보",
-      note: "본인 데이터를 누구에게 공개할지의 클랜 단위 기본 정책. 개인 단위 오버라이드는 D-PRIV-01(후속) 보류.",
+      // D-PRIV-01 (DECIDED 2026-04-21 · 프리셋 α · 범위 R3):
+      //   · 아래 6키는 클랜 단위 기본값. 그 위에 개인 오버라이드 레이어가 덧씌워짐.
+      //   · 오버라이드 대상 = 통계 5키 (view_alt_accounts 제외 — 부정행위 은폐 차단).
+      //   · 방향 = restrict-only (닫기만). 대상 = 같은 클랜 member. leader·officer는 항상 열람.
+      //   · 저장 = user_privacy_overrides(user_id, clan_id, key, hidden) — 클랜별 독립.
+      //   · Phase 1 목업 = main-clan.html D-PERM-01 안내 박스 내 예고 카피 1줄 (.mock-privacy-override-hint).
+      //   · Phase 2+ = 프로필 페이지 "프라이버시 설정" 섹션 + has_user_stat_access() SQL 함수.
+      note: "본인 데이터를 누구에게 공개할지의 클랜 단위 기본 정책. D-PRIV-01 DECIDED 2026-04-21 (α · restrict-only · 통계 5키 · 단일 스위치 · 클랜별 독립 · Phase 2+ UI).",
       keys: [
         { key: "view_alt_accounts",     label: "부계정 조회",         default: ["leader", "officer", "member"], locked: false, source: "D-MANAGE-03" },
         { key: "view_monthly_stats",    label: "월간 전적 공개",      default: ["leader", "officer"],           locked: false, toggleHint: "member 허용" },

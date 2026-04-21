@@ -4593,6 +4593,28 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
   letter-spacing: 0.02em;
 }
 
+/* D-PRIV-01 · R3 — "운영 권한 설정" 카드 D-PERM-01 안내 박스 내부의 예고 카피.
+   Phase 2+에서 프로필 페이지 "프라이버시 설정" 섹션(통계 5키 토글)으로 교체되는 지점. */
+.mock-privacy-override-hint {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(168, 85, 247, 0.3);
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+.mock-privacy-override-hint__tag {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: rgba(168, 85, 247, 0.22);
+  color: #e9d5ff;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
 .mock-notification-item {
   display: flex;
   gap: 10px;
@@ -6630,6 +6652,9 @@ body.mock-plan-free .mock-clan-subscribe-hint-premium { display: none !important
         <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px;line-height:1.55">운영진이 수행할 수 있는 범위를 조정합니다. 변경은 <strong>클랜장만</strong> 가능합니다 (D-MANAGE-02 / D-MANAGE-03).</p>
         <div style="margin:0 0 14px;padding:10px 12px;border:1px dashed rgba(168,85,247,0.45);border-radius:var(--radius-md);background:rgba(168,85,247,0.08);font-size:11px;color:var(--text-muted);line-height:1.55">
           <strong style="color:#c084fc">D-PERM-01 흡수 (2026-04-21)</strong> · 아래 두 토글은 <strong>전체 권한 매트릭스(6 카테고리 × 21 권한 키)</strong>의 일부로 일반화되었습니다. Phase 2+에 디스코드식 매트릭스 UI로 전면 확장됩니다 — 잠긴 권한 5개(결제·위임·운영진 강퇴·휴면 일괄 강퇴·스크림 확정)는 클랜장 고정. 카탈로그 전체는 <code>decisions.md §D-PERM-01</code> 참조.
+          <div class="mock-privacy-override-hint" aria-hidden="true">
+            <span class="mock-privacy-override-hint__tag">D-PRIV-01</span>Phase 2+ 매트릭스 UI와 함께 <strong>개인 단위 프라이버시 오버라이드</strong>도 프로필 페이지에 제공됩니다 — 본인이 통계 5개 키(월간·연간 전적·시너지 승률·맵별 승률·M점수)를 같은 클랜 member에게만 숨길 수 있는 토글. leader·officer는 항상 열람(운영 책임). 부계정은 대상 제외(부정행위 은폐 차단). 상세 <code>decisions.md §D-PRIV-01</code>.
+          </div>
         </div>
 
         <div style="display:grid;gap:14px">
