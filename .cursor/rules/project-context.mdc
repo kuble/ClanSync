@@ -9,7 +9,7 @@ alwaysApply: true
 
 ## 현재 단계
 - **Phase 1 (목업)**: `mockup/`, `_hub.html` — 카피·기획 동기화 시에만 수정.
-- **Phase 2 (구현)**: Next.js `src/` + Supabase. 아직 시작 전.
+- **Phase 2 (구현)**: Next.js `src/` + Supabase + Vercel. M1 인프라 착지 후 M2(S01 인증 쉘) 진행 중.
 
 ## 스택
 Next.js 15 App Router · TypeScript · Tailwind · shadcn/ui (new-york, dark) · Supabase (mxkrfnzlgaxzdzcjbfkg) · Vercel (team: clansync) · 한/영/일 (next-intl 예정).

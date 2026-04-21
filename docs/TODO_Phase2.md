@@ -90,6 +90,7 @@ flowchart TD
 
 ### M2 — S01 라우팅·쉘 (수직 슬라이스 첫 완주)
 
+- [ ] **픽스처·디버그** — [debug-and-fixtures.md](./01-plan/debug-and-fixtures.md) · **D-DEV-01**: M2에서 실제 로그인 + 최소 시드(계정 1~2·게임 1)·`db:seed`(가칭) 스크립트 뼈대. URL “받은 척” 우회는 운영·Preview 금지(D-SHELL-02).
 - [ ] `/` 랜딩 — **D-LANDING-04** 로그인 상태 CTA 분기
 - [ ] `/sign-in` — 이메일/비번 + **D-AUTH-06** 잠금(10회/15분) + **D-AUTH-07** 자동 로그인(30일)
 - [ ] `/sign-up` — **D-AUTH-03** 비밀번호 ≥12자·연령·약관

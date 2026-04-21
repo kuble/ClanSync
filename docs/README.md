@@ -41,6 +41,7 @@
 | `docs/01-plan/FEATURE_INDEX.md` | 슬라이스 인덱스 (진입점) |
 | `docs/01-plan/slices/*.md` | 기능별 **실행 가능한** 명세 (한 파일 = 한 덩어리) |
 | `docs/01-plan/BACKLOG.md` | 미결 사항·에셋 교체·나중 반영 |
+| `docs/01-plan/debug-and-fixtures.md` | 로컬/staging **시드·픽스처·디버그 계층** (양 클랜·복수 계정). 결정: [decisions.md §D-DEV-01](./01-plan/decisions.md#d-dev-01--로컬staging-픽스처--디버그-계층) |
 | `docs/01-plan/*.md` (기타) | 도메인 심층 메모 (밸런스 UI 노트 등) — 슬라이스에서 `@`로 참조 |
 | `docs/TODO.md` | 허브 — 상태·다음 프롬프트 |
 | `docs/TODO_LOG.md` | 세션 로그 (히스토리; 토큰 절약용 분리) |
