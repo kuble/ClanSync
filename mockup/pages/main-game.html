@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="ClanSync 게임 허브 목업: 홍보·LFG·스크림·클랜 순위 등 커뮤니티 화면 정적 시연.">
 <title>ClanSync — 오버워치 커뮤니티</title>
 <link rel="stylesheet" href="../styles/main.css">
 <style>
@@ -188,6 +189,26 @@
 .lfg-tag { font-size: 11px; padding: 1px 7px; border-radius: 99px; background: var(--bg-base); border: 1px solid var(--border); color: var(--text-muted); }
 .lfg-tag-mode { color: #a78bfa; border-color: rgba(124,58,237,0.3); }
 .lfg-tag-time { color: #60a5fa; border-color: rgba(96,165,250,0.3); }
+.lfg-my-apps-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: rgba(59,130,246,.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59,130,246,.4);
+  white-space: nowrap;
+}
+.lfg-applicant-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: rgba(245,158,11,.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245,158,11,.4);
+  white-space: nowrap;
+}
 
 /* ── LFG 카드 그리드 (최소 1열 · 최대 2열) ── */
 .lfg-grid {
@@ -831,15 +852,6 @@
   color: var(--text-muted);
   line-height: 1.45;
   margin: 0 0 12px;
-}
-.ranking-insight-placeholder {
-  margin-top: 14px;
-  padding: 14px 16px;
-  border-radius: var(--radius-lg);
-  border: 1px dashed var(--border);
-  font-size: 12px;
-  color: var(--text-muted);
-  line-height: 1.5;
 }
 
 /* 인사이트 · 시간대별 내전 건수 (세로 막대) */
@@ -1517,7 +1529,10 @@
     <div class="section-head">
       <div>
         <div class="section-title"><span class="ui-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"></circle><path d="m20 20-3.5-3.5"></path></svg></span> 같이 할 사람</div>
-        <div class="section-sub" id="lfg-count-label">파티를 구하는 플레이어들</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px">
+          <div class="section-sub" id="lfg-count-label" style="margin:0">파티를 구하는 플레이어들</div>
+          <span id="lfg-header-my-apps-pill" class="lfg-my-apps-pill" hidden role="status" aria-live="polite" title="대기 중인 LFG 신청 (D-LFG-01)">내 신청 0건</span>
+        </div>
       </div>
       <button class="btn btn-primary btn-sm" onclick="openLfgPostModal()">+ 모집 올리기</button>
     </div>
@@ -1881,9 +1896,10 @@
       <div id="ldOnlineDot" class="online-dot g" style="position:absolute;bottom:1px;right:1px;width:10px;height:10px;border:2px solid var(--bg-base)"></div>
     </div>
     <div style="flex:1;min-width:0">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;flex-wrap:wrap">
         <div id="ldName" style="font-size:16px;font-weight:700"></div>
         <span id="ldRoleLabel" style="font-size:11px;padding:2px 7px;border-radius:99px;background:var(--bg-overlay);color:var(--text-secondary);border:1px solid var(--border)"></span>
+        <span id="ldApplicantPill" class="lfg-applicant-pill" style="display:none" role="status">신청자 0명</span>
       </div>
     </div>
     <button onclick="closeLfgDrawer()" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;line-height:1;padding:4px">✕</button>
@@ -2147,6 +2163,7 @@ function navTo(id) {
     document.getElementById('sec-'+s).style.display = s === id ? '' : 'none';
     document.getElementById('nav-'+s).classList.toggle('active', s === id);
   });
+  if (id === 'lfg') renderLfg();
 }
 
 /* ════════════════════════════════════════
@@ -2325,6 +2342,7 @@ function submitLfgPost() {
     id: lfgNextId++,
     name: '김클랜', clan: 'Phoenix Rising',
     bg: 'linear-gradient(135deg,#7c3aed,#3b82f6)', online: true, mine: true,
+    applicantCount: 0,
     mode:        getSelChip('pmMode')    || '경쟁전',
     format:      getSelChip('pmFormat') || '5vs5',
     slots:       1,
@@ -2362,6 +2380,8 @@ function closeLfgApplyModal() { document.getElementById('lfgApplyModal').style.d
 function submitLfgApply() {
   if (_lfgApplyTargetPostId != null) {
     lfgAppSet(_lfgApplyTargetPostId, 'applied');
+    const post = lfgPosts.find(x => x.id === _lfgApplyTargetPostId);
+    if (post) post.applicantCount = (post.applicantCount || 0) + 1;
   }
   closeLfgApplyModal();
   closeLfgDrawer();
@@ -2372,7 +2392,12 @@ function submitLfgApply() {
 function cancelLfgApply(postId) {
   if (postId == null) return;
   if (!confirm('참여 신청을 취소하시겠습니까?')) return;
+  const prev = lfgAppGet(postId);
   lfgAppDelete(postId);
+  if (prev && prev.status === 'applied') {
+    const post = lfgPosts.find(x => x.id === postId);
+    if (post && (post.applicantCount || 0) > 0) post.applicantCount--;
+  }
   closeLfgDrawer();
   renderLfg();
   renderHomeLfg();
@@ -2390,6 +2415,10 @@ function lfgCard(p) {
   const statusBadge = showBadge
     ? `<span class="lfg-app-badge" style="font-size:10px;padding:2px 7px;border-radius:99px;background:${showBadge.bg};color:${showBadge.fg};border:1px solid ${showBadge.ring};font-weight:700">${showBadge.label}</span>`
     : '';
+  const ac = p.applicantCount || 0;
+  const applicantBadge = p.mine
+    ? `<span class="lfg-applicant-pill" style="font-size:10px;padding:2px 7px">신청자 ${ac}명</span>`
+    : '';
   return `<div class="lfg-card" onclick="${p.mine ? '' : `openLfgDrawer(${p.id})`}" style="${p.mine?'cursor:default':''}">
     <div class="lfg-card-body">
       <!-- 왼쪽: 아바타 + 이름 + 소개 -->
@@ -2402,6 +2431,7 @@ function lfgCard(p) {
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
             <span style="font-size:13px;font-weight:700;white-space:nowrap">${p.name}${p.mine?' <span style="font-size:10px;color:var(--brand-primary);font-weight:500">(내 모집)</span>':''}</span>
             <span class="lfg-tag lfg-tag-mode" style="font-size:11px">${posLabel}</span>
+            ${applicantBadge}
             ${statusBadge}
           </div>
           <div style="font-size:12px;color:var(--text-secondary);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${p.desc || '소개가 없습니다.'}</div>
@@ -2432,6 +2462,16 @@ function renderLfg() {
     ? `<div class="lfg-grid">${slice.map(lfgCard).join('')}</div>`
     : `<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">조건에 맞는 파티가 없습니다</div></div>`;
   renderPagination('lfgPagination', lfgPage, filtered.length, LFG_PAGE, 'goLfgPage');
+  const pill = document.getElementById('lfg-header-my-apps-pill');
+  if (pill) {
+    const n = lfgAppCount();
+    if (n <= 0) {
+      pill.hidden = true;
+    } else {
+      pill.hidden = false;
+      pill.textContent = `내 신청 ${n}건`;
+    }
+  }
 }
 function renderHomePromos() {
   const list = PROMOS.slice(0, 6);
@@ -3429,6 +3469,16 @@ function openLfgDrawer(id) {
   document.getElementById('ldName').textContent = p.name;
   const roleLabel = (p.positions && p.positions.length) ? p.positions.join(' · ') : '올포지';
   document.getElementById('ldRoleLabel').textContent = roleLabel;
+  const appPill = document.getElementById('ldApplicantPill');
+  if (appPill) {
+    if (p.mine) {
+      const n = p.applicantCount || 0;
+      appPill.textContent = `신청자 ${n}명`;
+      appPill.style.display = '';
+    } else {
+      appPill.style.display = 'none';
+    }
+  }
 
   document.getElementById('ldMode').textContent = `${p.mode} · ${p.format}`;
   document.getElementById('ldTier').textContent = (p.tiers && p.tiers.length) ? p.tiers.join(' · ') : '무관';
