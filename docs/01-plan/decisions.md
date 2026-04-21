@@ -48,7 +48,7 @@
 
 | 코드 | 상태 | 항목 | 메모 |
 |------|------|------|------|
-| D-EVENTS-01 | DECIDED (2026-04-20) · Supplemented (2026-04-21) | 스크림 확정 → 클랜 이벤트 자동 생성 + 수동 등록 유형 제한 + RSVP 범위 + 권한 분기 | `scrim_rooms.status='confirmed'` 전환 시 **양쪽 클랜 각각**에 `clan_events` 자동 INSERT. `source='scrim_auto'` 이벤트는 **읽기 전용**. **수동 등록은 내전·이벤트 2종만**(스크림 제외). **RSVP("참가")는 스크림 전용 단일 토글**. **참가자 명단(인게임 닉네임)과 편집·삭제·"스크림 상세 열기" 버튼은 운영진+ 전용**. [§D-EVENTS-01](#d-events-01--스크림-확정--클랜-이벤트-자동-생성동기화) · [§Supplemental](#d-events-01-supplemental--유형-수동-제한--rsvp-범위--권한-분기--2026-04-21) |
+| D-EVENTS-01 | DECIDED (2026-04-20) · Supplemented (2026-04-21) → D-PERM-01 흡수 (2026-04-21) | 스크림 확정 → 클랜 이벤트 자동 생성 + 수동 등록 유형 제한 + RSVP 범위 + 권한 분기 | `scrim_rooms.status='confirmed'` 전환 시 **양쪽 클랜 각각**에 `clan_events` 자동 INSERT. `source='scrim_auto'` 이벤트는 **읽기 전용**. **수동 등록은 내전·이벤트 2종만**. **RSVP는 스크림 전용 단일 토글**. → 편집·삭제·참가 명단 권한은 권한 키 `manage_clan_events`(기본 운영진+, 토글 가능)로 일반화. [§D-EVENTS-01](#d-events-01--스크림-확정--클랜-이벤트-자동-생성동기화) · [§Supplemental](#d-events-01-supplemental--유형-수동-제한--rsvp-범위--권한-분기--2026-04-21) |
 | D-EVENTS-02 | REVISED (2026-04-21) | 일정 반복 — 요일·시각만, 종료 조건·상한 폐지 | 반복은 `weekly`(월~일 다중 체크박스 + `HH:mm`) · `monthly`(시작일의 day-of-month + `HH:mm`) · `none` 3종뿐. **종료 조건(count/until/never) 3모드 및 52회 hard stop 전면 폐지** — 편집(반복=none 저장) 또는 삭제로만 종료. [§D-EVENTS-02 Revised](#d-events-02-revised--일정-반복-요일시각-기반-무기한--2026-04-21) |
 | D-EVENTS-03 | DECIDED (2026-04-20) | 일정 알림 채널 (카카오/디스코드) 발송 시점·실패 시 재시도 | Premium 전용 Discord + 카카오 알림톡, Free는 in-app만. **카카오 기본 OFF**(옵트인), Discord 연동 시 ON. 발송 슬롯 T-24h·T-1h·T-10min·T+0. 재시도 지수 백오프 5회(1m→5m→30m→2h→6h) 후 DLQ. Quiet hours 00~07 KST 카카오 연기. 중복 방지 `(event_id, kind, scheduled_at, channel)` UNIQUE. [§D-EVENTS-03](#d-events-03--일정투표-알림-채널정책) |
 | D-EVENTS-04 | DECIDED (2026-04-20) | 투표 알림 반복(`마감 전까지 매일`) ↔ 마감일과의 일관성 검증 | 반복 모드별 마감 하한: **매일 ≥ +48h**, **매주 ≥ +14d**, **마감 전까지 매일 ≥ +24h** (24h 미만 에러). 상한 60d(초과 경고). 투표 생성 시 Server Action이 전체 발송 스케줄을 `notification_log` 예약 INSERT, 마감 도달 시 잔여 예약 자동 취소. [§D-EVENTS-04](#d-events-04--투표-알림과-마감일-일관성-검증) |
@@ -58,10 +58,16 @@
 
 | 코드 | 상태 | 항목 | 메모 |
 |------|------|------|------|
-| D-MANAGE-01 | DECIDED (2026-04-20) | 구독·결제 탭 접근 권한 | officer는 **열람**(금액·일시 포함). **플랜 변경·결제 수단·환불·영수증 상세·환불**은 leader 전용. [§D-MANAGE-01](#d-manage-01--구독결제-탭-접근-권한) |
-| D-MANAGE-02 | DECIDED (2026-04-20) | 구성원 개인 상세 편집 권한 + 휴면 일괄 강퇴 | 역할 변경·officer 강퇴·휴면 일괄 강퇴·leader 위임은 **leader 전용**. member 강퇴·가입 요청 승인/거절은 officer 허용. **M점수 편집**은 **클랜 설정 토글**(`allow_officer_edit_mscore`, 기본 false → leader만) 기반. [§D-MANAGE-02](#d-manage-02--구성원-개인-상세-편집-권한과-m점수-토글) |
-| D-MANAGE-03 | DECIDED (2026-04-20) | 부계정 조회 정책 | 자기신고 방식 유지. 조회 범위는 **클랜 설정 토글**(`alt_accounts_visibility`, 기본 `officers`). 추가 시 "클랜 소속 시 공개됨" 고지 필수. 증빙 API는 Phase 2+ 재검토, 문제 신고는 D-CLAN-03 흐름 흡수. [§D-MANAGE-03](#d-manage-03--부계정-조회-정책과-공개-범위-토글) |
+| D-MANAGE-01 | DECIDED (2026-04-20) → D-PERM-01 흡수 (2026-04-21) | 구독·결제 탭 접근 권한 | officer는 **열람**(금액·일시 포함). **플랜 변경·결제 수단·환불·영수증 상세·환불**은 leader 전용. → 권한 키 `manage_subscription`(잠김)으로 일반화. [§D-MANAGE-01](#d-manage-01--구독결제-탭-접근-권한) |
+| D-MANAGE-02 | DECIDED (2026-04-20) → D-PERM-01 흡수 (2026-04-21) | 구성원 개인 상세 편집 권한 + 휴면 일괄 강퇴 | 역할 변경·officer 강퇴·휴면 일괄 강퇴·leader 위임은 **leader 전용**. member 강퇴·가입 요청 승인/거절은 officer 허용. **M점수 편집**은 클랜 설정 토글. → 권한 키 `delegate_leader`/`kick_officer`/`bulk_kick_dormant`(잠김), `kick_member`/`approve_join_requests`/`edit_mscore`(토글)로 일반화. [§D-MANAGE-02](#d-manage-02--구성원-개인-상세-편집-권한과-m점수-토글) |
+| D-MANAGE-03 | DECIDED (2026-04-20) → D-PERM-01 흡수 (2026-04-21) | 부계정 조회 정책 | 자기신고 방식 유지. 조회 범위는 **클랜 설정 토글** → 권한 키 `view_alt_accounts`(개인 정보 카테고리, **기본 ✓/✓/✓**)로 일반화. 기본값이 운영진→멤버까지로 확장됨. [§D-MANAGE-03](#d-manage-03--부계정-조회-정책과-공개-범위-토글) |
 | D-MANAGE-04 | DECIDED (2026-04-20) | 클랜 배너·아이콘 업로드 제약 | 배너 **3MB** / 아이콘 **2MB**. MIME `image/jpeg·png·webp`. 애니메이션 불가. 서버 자동 리사이즈·썸네일. [§D-MANAGE-04](#d-manage-04--클랜-배너아이콘-업로드-제약) |
+
+## 권한 (PERM)
+
+| 코드 | 상태 | 항목 | 메모 |
+|------|------|------|------|
+| D-PERM-01 | DECIDED (2026-04-21) | 클랜 권한 매트릭스 모델 도입 (Discord 스타일 하이브리드) | **6 카테고리 × 21 권한 키** (재무·계정 / 멤버 관리 / 평판·통계 / 경기 운영 / 홍보·자원 / **개인 정보**). 잠긴 권한 5개(leader 고정), 토글 가능 권한 16개. 저장: `clan_settings.permissions jsonb`. Phase 1 = 카탈로그·스키마·목업 const만. Phase 2+ = 매트릭스 UI 구현. 기존 D-MANAGE-01/02/03·D-EVENTS-01·D-SCRIM-02·D-STATS-01/02/04 결정 흡수. [§D-PERM-01](#d-perm-01--클랜-권한-매트릭스-모델-도입) |
 
 ## 스토어 · 코인 (STORE)
 
@@ -78,7 +84,7 @@
 | D-LFG-01 | DECIDED (2026-04-21) | LFG 신청 후 상태(applied/accepted/canceled) UI · 본인 화면 표시 | 상태 enum 5종(`applied`/`accepted`/`rejected`/`canceled`/`expired`). 신청자 카드에 "신청됨" 배지 + 헤더 "내 신청 N건" pill, 모집자 카드에 "신청자 N명" + 수락/거절. 중복 신청 금지(부분 UNIQUE). `lfg_applications` 테이블 신설. [§D-LFG-01](#d-lfg-01--lfg-신청-상태-ui와-수락-플로우) |
 | D-RANK-01 | DECIDED (2026-04-21) | 클랜 홍보 정렬의 "인기" 기준 (조회수 필드 부재) | **"인기" 정렬 폐기**. 외부 경쟁 유인 차단(D-ECON-03 정합) + 가입 신청 자체가 인기 측정. `setPromoSort` 옵션은 `newest` / `space` 2종만. Phase 2+에 `activity_pct_30d` 추가 시 "활성도" 정렬 도입 후보. [§D-RANK-01](#d-rank-01--클랜-홍보-인기-정렬-폐기) |
 | D-SCRIM-01 | DECIDED (2026-04-21) | 스크림 채팅 자동 종료 시점(목업: 시작 +6h)의 운영 정책 확정 | 상태별 종료 시점 분기: `confirmed`/`matched`=`scheduled_at + 6h`, `cancelled`=`cancelled_at + 1h`, `finished`=`finished_at + 24h`, `draft`=모집글 만료 시. 종료 = 메시지 INSERT 차단(RLS) + 읽기 전용. 운영진 수동 닫기 가능. T-1h in-app 알림. [§D-SCRIM-01](#d-scrim-01--스크림-채팅방-자동-종료-정책) |
-| D-SCRIM-02 | DECIDED (2026-04-21) | 스크림 양측 운영진 확정 동시성 처리 (한쪽만 확정한 상태에서 일정 변경) | **2-phase commit**: `scrim_room_confirmations`(`scrim_room_id`, `side`) UNIQUE. 양쪽 행 존재 시 트리거가 `scrim_rooms.status='confirmed'` UPDATE. 일정·장소·모드 변경 시 **모든 confirmation 자동 무효화** → 재확정 필요. 한쪽 확정 후 `scheduled_at - 1h` 타임아웃 시 `cancelled` 자동 전환. [§D-SCRIM-02](#d-scrim-02--스크림-양측-확정-동시성-2-phase-commit) |
+| D-SCRIM-02 | DECIDED (2026-04-21) → D-PERM-01 흡수 (2026-04-21) | 스크림 양측 운영진 확정 동시성 처리 (한쪽만 확정한 상태에서 일정 변경) | **2-phase commit**: `scrim_room_confirmations`(`scrim_room_id`, `side`) UNIQUE. 양쪽 행 존재 시 트리거가 `scrim_rooms.status='confirmed'` UPDATE. → 권한 키 `confirm_scrim`(잠김, 운영진+ 고정)으로 일반화. [§D-SCRIM-02](#d-scrim-02--스크림-양측-확정-동시성-2-phase-commit) |
 
 ## 프로필 · 꾸미기 (PROFILE)
 
@@ -102,10 +108,10 @@
 
 | 코드 | 상태 | 항목 | 메모 |
 |------|------|------|------|
-| D-STATS-01 | OPEN | HoF 설정 권한 (운영진+ 전체 vs 클랜장 전용) | 목업은 운영진+로 노출 |
-| D-STATS-02 | OPEN | 경기 기록의 사후 정정 권한·이력 보존 정책 | 목업은 정정 UI 없음 |
+| D-STATS-01 | DECIDED (2026-04-21) → D-PERM-01 흡수 | HoF 설정 권한 (운영진+ 전체 vs 클랜장 전용) | 권한 키 `set_hof_rules`로 등록. 기본 leader만(✓/✗/✗), 클랜 토글로 officer 허용 가능. [§D-STATS-01](#d-stats-01--hof-설정-권한-d-perm-01-흡수) |
+| D-STATS-02 | DECIDED (2026-04-21) | 경기 기록의 사후 정정 권한·이력 보존 정책 | 직접 정정 권한은 `correct_match_records`(기본 leader, officer 허용 토글). 일반 멤버는 **정정 요청 모달**로 운영진에게 요청 (`view_match_records` 권한 보유자에 한함, 7일 만료, 결과/로스터/맵 + 자유 사유). 신설 테이블 `match_record_correction_requests` + `match_record_history`(before/after 자동 기록). 운영진 수동 정정 — 자동 적용 X. [§D-STATS-02](#d-stats-02--경기-사후-정정-요청-모달과-이력-보존) |
 | D-STATS-03 | OPEN | "앱 이용 횟수" 측정 단위 정의 (세션 / 페이지뷰 / 액션) | 목업 카피 "정의는 구현 시 확정" |
-| D-STATS-04 | OPEN | CSV 내보내기·기간 필터 도입 여부 | 목업 각주에만 언급 |
+| D-STATS-04 | DECIDED (2026-04-21) → D-PERM-01 흡수 | CSV 내보내기·기간 필터 도입 여부 | CSV 내보내기는 권한 키 `export_csv`(기본 leader, officer 허용 토글)로 등록. 실제 CSV 생성·기간 필터 UI 구현은 **Phase 2+** 보류 — Phase 1은 권한 카탈로그 등록만. [§D-STATS-04](#d-stats-04--csv-내보내기-d-perm-01-흡수--phase-2-구현-보류) |
 
 ## 경제 · 코인 (ECON)
 
@@ -2394,3 +2400,276 @@ CREATE UNIQUE INDEX lfg_app_one_active_per_user
 - [pages/08-MainGame.md §탭 2 — 정렬](./pages/08-MainGame.md)
 - [D-ECON-03](#d-econ-03--클랜-순위표-민감-지표-노출-범위) — 외부 경쟁 지표 차단 원칙
 - [D-CLAN-07](#) — 활성도 측정의 데이터 출처(`last_activity_at`)
+
+---
+
+### D-PERM-01 — 클랜 권한 매트릭스 모델 도입
+
+- **결정일**: 2026-04-21
+- **요지**: 클랜 단위 권한 처리를 **결정마다 토글 1개씩 추가**하는 방식에서 → **Discord 스타일 권한 매트릭스(하이브리드)** 로 일반화한다. "굵직한 권한"만 매트릭스에 등록하고 자잘한 액션 가드는 기존 패턴(`mock-officer-only`/`mock-leader-only` CSS 클래스)을 유지한다. 6개 카테고리 × 21개 권한 키. 저장은 `clan_settings.permissions jsonb` 단일 컬럼. **Phase 1 = 카탈로그·스키마·목업 const만**, **Phase 2+ = 매트릭스 UI 구현 + 기존 토글 마이그레이션**.
+
+**카테고리 구조**
+
+매트릭스 화면(Phase 2+)은 6개 카테고리로 그룹핑한다. 카테고리 이름·순서는 멘탈 모델 기준 — "찾고자 하는 권한이 어느 카테고리?" 즉답 가능하도록 기능 영역별 분리.
+
+| # | 카테고리 | 의미 | 권한 키 수 | 잠긴 키 |
+|---|----------|------|:---------:|:------:|
+| 1 | 재무·계정 | 결제·하이재킹 방지 | 2 | 2 |
+| 2 | 멤버 관리 | 입출 결정 | 4 | 2 |
+| 3 | 평판·통계 | 평판 지표·기록 | 5 | 0 |
+| 4 | 경기 운영 | 일정·매칭 | 2 | 1 |
+| 5 | 홍보·자원 | 외부 노출·자산 지출 | 2 | 0 |
+| 6 | **개인 정보** | 본인 데이터 공개 범위 (클랜 단위 기본 정책) | 6 | 0 |
+
+> **카테고리 6 "개인 정보"는 본질이 다름**: 다른 카테고리가 "행위자가 무엇을 할 수 있는가"라면, 개인 정보는 "내 데이터를 누구에게 공개할 것인가"의 **클랜 단위 기본값**. 개인이 본인 프로필에서 더 닫는 옵션은 **Phase 2+ 후속 결정 D-PRIV-01 후보**로 보류.
+
+**권한 키 카탈로그 (전체)**
+
+| 카테고리 | 권한 키 | 의미 | leader | officer | member | 토글? | 흡수 |
+|---------|--------|------|:------:|:------:|:------:|:----:|------|
+| 재무·계정 | `manage_subscription` | 결제·플랜 변경 | ✓ | ✗ | ✗ | 🔒 | D-MANAGE-01 |
+| 재무·계정 | `delegate_leader` | 클랜장 위임 | ✓ | ✗ | ✗ | 🔒 | D-MANAGE-02 |
+| 멤버 관리 | `kick_officer` | 운영진 강퇴 | ✓ | ✗ | ✗ | 🔒 | D-MANAGE-02 |
+| 멤버 관리 | `bulk_kick_dormant` | 휴면 일괄 강퇴 | ✓ | ✗ | ✗ | 🔒 | D-MANAGE-02 |
+| 멤버 관리 | `kick_member` | 일반 멤버 강퇴 | ✓ | ✓ | ✗ | ✓ | — |
+| 멤버 관리 | `approve_join_requests` | 가입 신청 승인/거절 | ✓ | ✓ | ✗ | ✓ | — |
+| 평판·통계 | `edit_mscore` | M점수 편집 | ✓ | ✗ | ✗ | ✓ (officer 허용) | D-MANAGE-02 |
+| 평판·통계 | `set_hof_rules` | HoF 설정 모달 | ✓ | ✗ | ✗ | ✓ (officer 허용) | **D-STATS-01** |
+| 평판·통계 | `view_match_records` | 경기 기록 열람 (캘린더·일별 슬라이더) | ✓ | ✓ | ✗ | ✓ (member 허용) | — |
+| 평판·통계 | `correct_match_records` | 경기 사후 정정 | ✓ | ✗ | ✗ | ✓ (officer 허용) | **D-STATS-02** |
+| 평판·통계 | `export_csv` | CSV 내보내기 | ✓ | ✗ | ✗ | ✓ (officer 허용) | **D-STATS-04** |
+| 경기 운영 | `manage_clan_events` | 이벤트 편집/삭제 | ✓ | ✓ | ✗ | ✓ | D-EVENTS-01 |
+| 경기 운영 | `confirm_scrim` | 스크림 양측 확정 | ✓ | ✓ | ✗ | 🔒 | D-SCRIM-02 |
+| 홍보·자원 | `manage_promo` | 클랜 홍보 글 작성/수정 | ✓ | ✓ | ✗ | ✓ | — |
+| 홍보·자원 | `manage_clan_pool` | 클랜 풀 지출 | ✓ | ✓ | ✗ | ✓ | — |
+| 개인 정보 | `view_alt_accounts` | 부계정 조회 | ✓ | ✓ | ✓ | ✓ | D-MANAGE-03 |
+| 개인 정보 | `view_monthly_stats` | 월간 전적 공개 | ✓ | ✓ | ✗ | ✓ (member 허용) | — |
+| 개인 정보 | `view_yearly_stats` | 연간 전적 공개 | ✓ | ✓ | ✗ | ✓ (member 허용) | — |
+| 개인 정보 | `view_synergy_winrate` | 시너지 승률 공개 | ✓ | ✓ | ✗ | ✓ (member 허용) | — |
+| 개인 정보 | `view_map_winrate` | 맵별 승률 공개 | ✓ | ✓ | ✗ | ✓ (member 허용) | — |
+| 개인 정보 | `view_mscore` | M점수 공개 | ✓ | ✓ | ✗ | ✓ (member 허용) | — |
+
+🔒 = 잠긴 권한 (leader 고정, 토글 불가). 보안·하이재킹 방지·재무 책임·트리거 정합성(`confirm_scrim`은 D-SCRIM-02 양측 운영진 가정과 결합) 사유.
+
+**잠긴 권한 5개 사유**
+
+| 권한 키 | 잠긴 이유 |
+|--------|----------|
+| `manage_subscription` | 클랜 명의 카드/환불 책임 — leader 고정 |
+| `delegate_leader` | 하이재킹 방지 — 본인만 위임 가능 |
+| `kick_officer` | officer 간 충돌·증식 방지 |
+| `bulk_kick_dormant` | 범위가 커서 leader 책임 |
+| `confirm_scrim` | D-SCRIM-02 트리거가 `side enum('host','guest')`로 양측 클랜 **운영진** 가정 — member 위임 시 트리거 정합성 깨짐 |
+
+**스토리지 형태**
+
+```sql
+ALTER TABLE clan_settings ADD COLUMN permissions jsonb NOT NULL DEFAULT '{}'::jsonb;
+
+-- 예: 기본값에서 officer가 M점수 편집 + member가 월간 전적 공개로 토글된 클랜
+-- {
+--   "edit_mscore":         ["leader", "officer"],
+--   "view_monthly_stats":  ["leader", "officer", "member"]
+-- }
+```
+
+- **부재 키 = 매트릭스 default 적용** (코드 상수 `CLAN_PERMISSION_DEFAULTS`). DB에는 변경된 키만 저장 → 카탈로그 추가 시 마이그레이션 불필요.
+- 잠긴 키는 jsonb에 저장돼도 코드 상수가 강제로 default를 덮어씀(이중 가드).
+- Phase 2+ 운영 부담 커지면 `clan_role_permissions(clan_id, role, permission_key, granted)` 정규화 테이블로 마이그레이션. jsonb → relational은 단순 변환.
+
+**RLS 가드 함수 (Phase 2+)**
+
+```sql
+CREATE OR REPLACE FUNCTION has_clan_permission(p_clan_id uuid, p_user_id uuid, p_perm text)
+RETURNS boolean LANGUAGE plpgsql STABLE AS $$
+DECLARE
+  v_role text;
+  v_allowed text[];
+BEGIN
+  -- 1. 사용자의 클랜 내 역할
+  SELECT role INTO v_role FROM clan_members
+   WHERE clan_id = p_clan_id AND user_id = p_user_id AND status = 'active';
+  IF v_role IS NULL THEN RETURN false; END IF;
+
+  -- 2. 잠긴 권한 (코드 상수와 동일하게 SQL에서도 강제)
+  IF p_perm IN ('manage_subscription','delegate_leader','kick_officer',
+                'bulk_kick_dormant') THEN
+    RETURN v_role = 'leader';
+  END IF;
+  IF p_perm = 'confirm_scrim' THEN
+    RETURN v_role IN ('leader', 'officer');
+  END IF;
+
+  -- 3. 일반 키 — clan_settings.permissions 우선, 없으면 default
+  SELECT permissions->p_perm INTO v_allowed FROM clan_settings WHERE clan_id = p_clan_id;
+  IF v_allowed IS NULL THEN v_allowed := default_permission_for(p_perm); END IF;
+  RETURN v_role = ANY(v_allowed);
+END;
+$$;
+```
+
+**Phase 1 목업 매핑**
+
+- **매트릭스 UI는 만들지 않음**. 기존 `mock-officer-only`·`mock-leader-only` CSS 가드 그대로 유지.
+- `mockup/scripts/clan-mock.js` 상단에 `CLAN_PERMISSION_CATALOG` 상수 추가 (카테고리·키·default·토글 가능 여부) — 코드로 매트릭스 진실 표현.
+- "운영 권한 설정" 카드 (`#mock-clan-overview`)에 안내 카피 1줄 추가: "Phase 2+에 권한 매트릭스로 전면 확장 예정 — 자세한 카탈로그는 `decisions.md §D-PERM-01` 참조."
+- 기존 `MOCK_CLAN_SETTINGS_KEY = "clansync-mock-clan-settings-v1"`는 그대로 유지 (M점수·부계정 토글 호환). `permissions` jsonb 시뮬레이션은 v2 키로 분리해 향후 마이그레이션 동선 마련.
+
+**기존 결정 흡수 매핑 (전체)**
+
+| 기존 결정 | 흡수 권한 키 | 본문 변경 |
+|----------|-------------|----------|
+| D-MANAGE-01 (구독·결제) | `manage_subscription` | 본문 유지, 헤더 표 메모만 갱신 |
+| D-MANAGE-02 (개인 상세 편집·휴면 강퇴·M점수) | `delegate_leader`, `kick_officer`, `bulk_kick_dormant`, `kick_member`, `approve_join_requests`, `edit_mscore` | 본문 유지 |
+| D-MANAGE-03 (부계정 조회) | `view_alt_accounts` (**기본값 변경: officer→member 확장**) | 본문 유지, 새 default 적용 |
+| D-EVENTS-01 (이벤트 권한 분기) | `manage_clan_events` | 본문 유지 |
+| D-SCRIM-02 (스크림 양측 확정) | `confirm_scrim` (잠김) | 본문 유지 |
+| D-STATS-01 (HoF 설정 권한) | `set_hof_rules` | 흡수형 결정 블록(이 결정 직후) |
+| D-STATS-02 (경기 사후 정정) | `correct_match_records` + `view_match_records` | 별도 결정 블록 (정정 요청 모달 + 이력) |
+| D-STATS-04 (CSV 내보내기) | `export_csv` | 흡수형 결정 블록 |
+
+→ 기존 결정 본문은 **건드리지 않음**(비파괴 처리). 헤더 표 메모에 "→ D-PERM-01 흡수" 노트만 1줄 추가됨.
+
+**연관 문서**
+
+- [D-MANAGE-01](#d-manage-01--구독결제-탭-접근-권한) · [D-MANAGE-02](#d-manage-02--구성원-개인-상세-편집-권한과-m점수-토글) · [D-MANAGE-03](#d-manage-03--부계정-조회-정책과-공개-범위-토글)
+- [D-EVENTS-01](#d-events-01--스크림-확정--클랜-이벤트-자동-생성동기화) · [D-SCRIM-02](#d-scrim-02--스크림-양측-확정-동시성-2-phase-commit)
+- [D-STATS-01](#d-stats-01--hof-설정-권한-d-perm-01-흡수) · [D-STATS-02](#d-stats-02--경기-사후-정정-요청-모달과-이력-보존) · [D-STATS-04](#d-stats-04--csv-내보내기-d-perm-01-흡수--phase-2-구현-보류)
+- [schema.md §clan_settings](./schema.md) — `permissions jsonb` 추가
+- [pages/10-Clan-Stats.md](./pages/10-Clan-Stats.md) — `set_hof_rules` · `view_match_records` · `correct_match_records` · `export_csv` 적용
+
+**Phase 2+ 작업 백로그**
+
+1. 매트릭스 UI 구현 (클랜 관리 → 권한 탭 신설)
+2. `has_clan_permission()` SQL 함수 + RLS 정책 21개 권한 키별 적용
+3. 기존 `clan_settings.allow_officer_edit_mscore`·`alt_accounts_visibility` 컬럼을 `permissions` jsonb로 마이그레이션 후 deprecated
+4. 카탈로그 추가 시 부재 키 = default 적용이라 마이그레이션 불필요 (jsonb 유연성)
+5. D-PRIV-01 (개인 단위 프라이버시 오버라이드) 후속 결정
+
+---
+
+### D-STATS-01 — HoF 설정 권한 (D-PERM-01 흡수)
+
+- **결정일**: 2026-04-21
+- **요지**: HoF 설정 모달 권한은 D-PERM-01 권한 매트릭스에 권한 키 `set_hof_rules`로 등록한다. **기본값 = leader만**(✓/✗/✗), 클랜 토글로 officer 허용 가능. 외부 공개 토글(`expose_hof`)은 D-MANAGE-03·기존 정책과 동일하게 leader 전용 유지.
+- **흡수 권한 키**: `set_hof_rules` (평판·통계 카테고리, 토글 가능)
+- **목업 영향**:
+  - 기존 `mock-officer-only` 클래스 유지 (현 목업은 운영진+ 노출). Phase 2+에서 `has_clan_permission(clan, user, 'set_hof_rules')`로 교체 시 default(leader)에 맞춰 자동으로 좁혀짐.
+  - `pages/10-Clan-Stats.md §HoF "설정" 모달` 섹션에 권한 키 명시 추가.
+- **연관**: [D-PERM-01](#d-perm-01--클랜-권한-매트릭스-모델-도입) · [D-ECON-03](#d-econ-03--클랜-순위표-민감-지표-노출-범위) (외부 공개 분리)
+
+---
+
+### D-STATS-02 — 경기 사후 정정 요청 모달과 이력 보존
+
+- **결정일**: 2026-04-21
+- **요지**: 경기 기록(승패·로스터·맵)이 잘못 입력된 경우, **운영진+가 직접 수정**(권한 키 `correct_match_records`, 기본 leader / officer 허용 토글)하거나, 일반 멤버가 **정정 요청 모달**을 통해 운영진에게 요청한다. 운영진이 모달에서 **수동으로 새 값을 입력·저장하는 시점에** `match_record_history`에 before/after 자동 INSERT — 정정 출처(직접/요청) 모두 동일 이력 테이블 사용.
+
+**권한 분리**
+
+| 액션 | 권한 키 | 기본값 | 토글 |
+|------|--------|--------|------|
+| 경기 기록 열람 (캘린더·슬라이더 진입) | `view_match_records` | ✓/✓/✗ | member 허용 |
+| 정정 요청 모달 열기 | (별도 키 없음 — `view_match_records` 보유자) | 동일 | 동일 |
+| 직접 정정 | `correct_match_records` | ✓/✗/✗ | officer 허용 |
+
+> **요청 모달은 별도 권한 키를 두지 않음**. "기록을 볼 수 있는 사람만 정정 요청 가능"이 자연스러움 — 보지 못하는 경기를 정정 요청할 수 없으므로. `view_match_records` 토글로 멤버에게 열어주면 멤버도 요청 가능.
+
+**정정 요청 모달 흐름**
+
+1. 사용자가 경기 카드에서 "정정 요청" 버튼 클릭 → `#mock-match-correction-request-modal` 오픈
+2. 입력 항목:
+   - **결과** (블루승/레드승, optional)
+   - **로스터** (블루·레드 멤버 수정, optional)
+   - **맵** (드롭다운, optional)
+   - **자유 사유** (필수, max 500자)
+3. 제출 → `match_record_correction_requests` INSERT → 운영진(권한 `correct_match_records` 보유자) 전원에게 in-app 알림 (D-NOTIF-01 후속 결정에서 통합 처리)
+4. 운영진이 알림에서 진입 → 요청 상세 모달 → "정정 적용" 클릭 시 운영진이 직접 새 값 입력 → 저장 → `match_record_history` INSERT + 요청 행 `status='accepted'`
+5. 운영진이 "반려" 클릭 시 → 요청 행 `status='rejected'` + 반려 사유 → 요청자에게 알림
+6. **자동 적용 X** — 요청은 단순히 운영진을 호출하는 신호이며, 실제 데이터 변경은 운영진의 손을 거친다.
+
+**중복 방지·만료**
+
+- 같은 경기에 active 요청 1건만(부분 UNIQUE 인덱스 `WHERE status='pending'`).
+- 7일 내 미처리 시 cron으로 자동 expire (`status='expired'`).
+- 거절·만료 후 같은 경기 재요청 가능.
+
+**`match_record_correction_requests` 테이블 (Phase 2+)**
+
+```sql
+CREATE TABLE match_record_correction_requests (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  match_id        uuid NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+  requester_id    uuid NOT NULL REFERENCES users(id),
+  proposed_result text,                    -- 'blue_win'/'red_win' or NULL
+  proposed_roster jsonb,                    -- {blue: [user_id...], red: [user_id...]} or NULL
+  proposed_map    text,
+  reason          text NOT NULL,            -- 자유 사유 (필수)
+  status          text NOT NULL DEFAULT 'pending'
+                  CHECK (status IN ('pending','accepted','rejected','expired')),
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  resolved_at     timestamptz,
+  resolved_by     uuid REFERENCES users(id),
+  reject_reason   text                       -- status='rejected' 시
+);
+
+CREATE UNIQUE INDEX match_correction_one_active_per_match
+  ON match_record_correction_requests (match_id)
+  WHERE status = 'pending';
+```
+
+**`match_record_history` 테이블 (Phase 2+)**
+
+```sql
+CREATE TABLE match_record_history (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  match_id    uuid NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+  changed_by  uuid NOT NULL REFERENCES users(id),
+  source      text NOT NULL CHECK (source IN ('direct','request')),
+  request_id  uuid REFERENCES match_record_correction_requests(id),  -- source='request' 시
+  before      jsonb NOT NULL,                                          -- {result, roster, map}
+  after       jsonb NOT NULL,
+  reason      text,                                                    -- 직접 정정 시 입력값
+  changed_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX match_history_by_match ON match_record_history (match_id, changed_at DESC);
+```
+
+- INSERT-only 테이블 (UPDATE/DELETE RLS 차단). HoF·통계 재집계 시 history를 reverse-replay 해 시점별 통계 재현 가능.
+
+**알림 슬롯 (D-EVENTS-03 채널 정책 재사용)**
+
+| 슬롯 | 트리거 | 채널 | 수신자 |
+|------|--------|------|--------|
+| `match_correction_requested` | 요청 INSERT | in-app | `correct_match_records` 권한 보유자 전원 |
+| `match_correction_accepted` | 운영진 적용 | in-app | 요청자 |
+| `match_correction_rejected` | 운영진 반려 | in-app | 요청자 (반려 사유 포함) |
+| `match_correction_expired` | cron 만료 | in-app | 요청자 |
+
+**Phase 1 목업 매핑**
+
+- `mockup/pages/main-clan.html`에 `#mock-match-correction-request-modal` 신설 (입력 폼 + 미리보기).
+- `mockup/scripts/clan-mock.js`에 sessionStorage `clansync-mock-match-correction-requests-v1` 헬퍼 (요청 누적·상태 변경 시뮬레이션).
+- 경기 카드에 "정정 요청" 버튼 추가 — `view_match_records` 권한자(현 목업은 운영진+) 노출. 멤버 노출은 `mock-officer-only` 가드 유지.
+- 운영진 측 "요청 처리" UI는 D-NOTIF-01(알림 센터) 결정 후 일관 통합. Phase 1 임시는 alert 안내로 처리 가능 — 단 모달 자체는 본 결정으로 추가.
+
+**연관 문서**
+
+- [D-PERM-01](#d-perm-01--클랜-권한-매트릭스-모델-도입) — 권한 키 `correct_match_records`, `view_match_records`
+- [pages/10-Clan-Stats.md §탭 3 — 경기 기록](./pages/10-Clan-Stats.md)
+- [schema.md](./schema.md) — `match_record_correction_requests` · `match_record_history` 신설
+
+---
+
+### D-STATS-04 — CSV 내보내기 (D-PERM-01 흡수 + Phase 2+ 구현 보류)
+
+- **결정일**: 2026-04-21
+- **요지**: CSV 내보내기 권한은 D-PERM-01에 권한 키 `export_csv`로 등록 (기본 leader, officer 허용 토글). 실제 CSV 생성·기간 필터 UI 구현은 **Phase 2+ 보류** — Phase 1은 권한 카탈로그 등록만.
+- **흡수 권한 키**: `export_csv` (평판·통계 카테고리)
+- **Phase 2+ 도입 시 범위 (예시)**:
+  - "앱 이용" 탭의 연/월 표 → CSV
+  - "경기 기록" 탭의 일자 범위 선택 → 경기 목록 CSV
+  - HoF 등재자 명단 → CSV (외부 공개 토글과 별개로 클랜 내부 사용)
+- **목업 영향**: 카피 변경 없음. `pages/10-Clan-Stats.md §탭 4` 각주 "운영진은 필요 시 CSV 내보내기·기간 필터를 둘 수 있음(기획)"은 그대로 유지하되 D-PERM-01·D-STATS-04 링크 추가.
+- **연관**: [D-PERM-01](#d-perm-01--클랜-권한-매트릭스-모델-도입) · [pages/10-Clan-Stats.md §탭 4](./pages/10-Clan-Stats.md)

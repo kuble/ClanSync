@@ -64,7 +64,9 @@ H1 "클랜 통계"
 
 ### "설정" 모달 (`#mock-hof-settings-modal`)
 
-운영진+가 구성원에게 보일 공개 범위·등재 기준을 조정.
+> **D-STATS-01 (DECIDED 2026-04-21) → D-PERM-01 흡수** — 권한 키 `set_hof_rules` (평판·통계 카테고리, 기본 leader만, 클랜 토글로 officer 허용 가능). 외부 공개 토글(`expose_hof`)은 별도 leader 전용 유지. [decisions.md §D-STATS-01](../decisions.md#d-stats-01--hof-설정-권한-d-perm-01-흡수) · [§D-PERM-01](../decisions.md#d-perm-01--클랜-권한-매트릭스-모델-도입).
+
+권한 보유자가 구성원에게 보일 공개 범위·등재 기준을 조정.
 
 | 항목 | 옵션 |
 |------|------|
@@ -81,12 +83,12 @@ H1 "클랜 통계"
 - 집계 기간 총 경기 수가 **기준점 이하**면 → "총 경기 수 × 비율 %"를 올림한 값 이상 출전 시 등재.
 - **기준점 초과**면 → "절대 최소 출전" 경기수 이상 출전 시 등재.
 
-### 권한
+### 권한 (D-PERM-01 흡수)
 - 열람: 전원.
-- "설정": 운영진+.
-- 클랜장 vs 운영진의 설정 권한 분리는 D-STATS-01 (신설 검토).
+- "설정": 권한 키 `set_hof_rules` 보유자. **기본 leader만**, 클랜이 매트릭스에서 officer 허용 토글 시 officer도 가능.
+- 외부 공개 토글(`expose_hof`): leader 전용 (잠긴 정책).
 
-## 탭 3 — 경기 기록 (Archive · 운영진+)
+## 탭 3 — 경기 기록 (Archive · `view_match_records` 권한)
 
 ### 영역
 - 캘린더 영역 (`#mock-stats-archive-cal-root`): 월간 캘린더, 경기 있는 일자 마커.
@@ -94,15 +96,50 @@ H1 "클랜 통계"
   - 본문 헤딩: "YYYY-MM-DD 경기 기록"
   - 좌측 슬라이더 (`#mock-stats-archive-slider-root`): 그날의 경기 카드 좌우 이동
     - 경기 카드: 블루/레드 라인업, 결과, 맵, 시간
+    - **"정정 요청" 버튼** (`view_match_records` 보유자 전원 노출)
+    - **"직접 정정" 버튼** (`correct_match_records` 보유자만 노출)
   - 우측 패널 (`#mock-stats-archive-winrate`): 그날의 승률 순위
-- 사후 정정 진입점 (D-STATS-02 검토): 잘못 입력된 경기 결과 수정.
 
-### 권한
-- 메뉴 자체가 운영진+ 전용.
-- 구성원이 직접 접근 시 자동으로 요약 탭 복귀.
+### 권한 (D-PERM-01 흡수)
+- **탭 진입**: 권한 키 `view_match_records` (기본 운영진+, 토글로 멤버 허용).
+- **직접 정정**: 권한 키 `correct_match_records` (기본 leader만, 토글로 officer 허용).
+- **정정 요청**: `view_match_records` 보유자 누구나 (별도 키 없음).
+- 권한 미보유자가 직접 접근 시 자동으로 요약 탭 복귀.
 
-### 결정 필요
-- D-STATS-02 사후 정정(결과·로스터·맵 수정)의 권한·이력 보존 정책
+### 정정 요청 모달 (`#mock-match-correction-request-modal` · D-STATS-02 DECIDED 2026-04-21)
+
+운영진이 직접 정정할 시간이 없거나, 권한이 없는 멤버(토글로 `view_match_records` 열린 경우)가 잘못된 경기 기록을 발견했을 때 사용하는 흐름.
+
+**요청자 흐름**
+
+1. 경기 카드 → "정정 요청" 클릭 → 모달 오픈
+2. 입력:
+   - **결과** (블루승/레드승, optional)
+   - **로스터** (블루·레드 멤버 수정, optional)
+   - **맵** (드롭다운, optional)
+   - **자유 사유** (필수, max 500자)
+3. 제출 → `match_record_correction_requests` INSERT → `correct_match_records` 권한 보유자 전원에게 in-app 알림(D-NOTIF-01 후속 결정)
+4. 같은 경기에 active 요청 1건만 가능(부분 UNIQUE) — 기존 요청 처리 전엔 추가 요청 차단
+5. 7일 내 미처리 시 자동 expire → 재요청 가능
+
+**운영진 처리 흐름**
+
+1. 알림 → 요청 상세 진입
+2. "정정 적용" 클릭 → 운영진이 새 값을 직접 입력 → 저장
+   - **자동 적용 X** — 요청 내용은 참고 자료, 실제 데이터 변경은 운영진 손을 거침
+   - 저장 시점에 `match_record_history` INSERT (before/after 자동 기록, `source='request'`, `request_id` 연결)
+3. "반려" 클릭 → 반려 사유 입력 → 요청자에게 알림
+
+**직접 정정 (권한 보유자)**
+
+- 경기 카드 → "직접 정정" 클릭 → 정정 모달(요청 모달과 다른 UI) → 새 값 입력 → 저장
+- `match_record_history` INSERT (`source='direct'`, `request_id=NULL`)
+
+### 이력 보존 (D-STATS-02 DECIDED 2026-04-21)
+
+- `match_record_history` 테이블 INSERT-only로 모든 정정의 before/after 영구 보존.
+- HoF 등재 재집계 시 history reverse-replay로 시점별 통계 재현 가능.
+- 같은 경기에 정정이 반복되면 운영 anomaly flag (Phase 2+).
 
 ## 탭 4 — 앱 이용 (Rankmap)
 
@@ -111,7 +148,7 @@ H1 "클랜 통계"
 ### 영역 1: 연도별 월별 앱 이용 횟수
 - 표: 연도(행) × 1~12월(열) + 연간 합계.
 - 미래 월은 `—` (집계 전).
-- 각주: "운영진은 필요 시 CSV 내보내기·기간 필터를 둘 수 있음(기획)."
+- 각주: "**CSV 내보내기**는 권한 키 `export_csv` 보유자만(D-PERM-01 흡수, 기본 leader, 토글로 officer 허용). 실제 CSV 생성·기간 필터 UI는 Phase 2+ 도입 — Phase 1은 권한 카탈로그 등록만." [decisions.md §D-STATS-04](../decisions.md#d-stats-04--csv-내보내기-d-perm-01-흡수--phase-2-구현-보류)
 
 ### 영역 2: 내전 순 참여 인원
 - 안내: 해당 기간에 내전 로스터에 1회 이상 포함된 **서로 다른** 멤버 수.
@@ -122,28 +159,33 @@ H1 "클랜 통계"
 - 클랜이 등록한 **내전**만 집계 (스크림·이벤트 제외).
 - 서브탭: 월간 / 연간.
 
-### 결정 필요
-- D-STATS-03 "앱 이용 횟수" 정의 (세션 / 페이지뷰 / 액션) 확정
-- D-STATS-04 CSV 내보내기·기간 필터 도입 여부
+### 결정 현황
+- **D-STATS-03 (OPEN)** "앱 이용 횟수" 정의 (세션 / 페이지뷰 / 액션) 확정 — 다음 묶음에서 처리
+- **D-STATS-04 (DECIDED 2026-04-21)** CSV 내보내기 → D-PERM-01 권한 키 `export_csv`로 흡수, 실제 UI는 Phase 2+ 보류
 
 ## 모달
 
 | 모달 | 트리거 | 비고 |
 |------|--------|------|
-| 명예의 전당 설정 | HoF 탭의 "설정" (운영진+) | 위 표 참조 |
+| 명예의 전당 설정 | HoF 탭의 "설정" (`set_hof_rules` 보유자) | 위 표 참조 |
 | 경기 카드 상세 (옵션) | 경기 카드 클릭 | 라인업·맵·결과·플레이어 KDA. 운영 시 정의 |
+| **정정 요청** (`#mock-match-correction-request-modal`) | 경기 카드 → "정정 요청" (`view_match_records` 보유자) | D-STATS-02 — 결과/로스터/맵 + 자유 사유, 7일 만료 |
+| **직접 정정** | 경기 카드 → "직접 정정" (`correct_match_records` 보유자) | 새 값 입력 → 저장 시 `match_record_history` 자동 INSERT |
 
 ## 권한·구독에 따른 차이
 
 자세한 표는 [gating-matrix.md](../gating-matrix.md) §5. 핵심:
 
-| 항목 | leader | officer | member | free | premium |
-|------|:------:|:-------:|:------:|:----:|:-------:|
-| 요약 | ✓ | ✓ | ✓ | — | — |
-| 명예의 전당 열람 | ✓ | ✓ | ✓ | — | — |
-| HoF "설정" | ✓ | ✓ | ✗ | — | — |
-| 경기 기록 | ✓ | ✓ | ✗ → 요약으로 강제 | — | — |
-| 앱 이용 | ✓ | ✓ | ✓ | — | — |
+| 항목 | leader | officer | member | 권한 키 (D-PERM-01) | free | premium |
+|------|:------:|:-------:|:------:|---------------------|:----:|:-------:|
+| 요약 | ✓ | ✓ | ✓ | — | — | — |
+| 명예의 전당 열람 | ✓ | ✓ | ✓ | — | — | — |
+| HoF "설정" | ✓ | ✗→토글 | ✗ | `set_hof_rules` (토글로 officer 허용) | — | — |
+| 경기 기록 열람 | ✓ | ✓ | ✗→토글 | `view_match_records` (토글로 member 허용) | — | — |
+| 경기 직접 정정 | ✓ | ✗→토글 | ✗ | `correct_match_records` (토글로 officer 허용) | — | — |
+| 경기 정정 요청 | ✓ | ✓ | ✗→토글 | `view_match_records` 보유자(별도 키 없음) | — | — |
+| 앱 이용 열람 | ✓ | ✓ | ✓ | — | — | — |
+| CSV 내보내기 | ✓ | ✗→토글 | ✗ | `export_csv` (토글로 officer 허용) · Phase 2+ UI | — | — |
 
 > Free / Premium 분기 없음 (현 목업 기준). 운영 시 Premium 한정 인사이트(예: 시간대 분석, 영웅별 시너지 차트)를 추가할 수 있음.
 
@@ -173,11 +215,13 @@ H1 "클랜 통계"
 - "앱 이용" 표·차트는 정적 마크업.
 - HoF 설정 모달은 입력만 받고 alert로 저장 처리.
 
-## 결정 필요
-- D-STATS-01 HoF 설정 권한 (운영진 vs 클랜장만)
-- D-STATS-02 경기 기록의 사후 정정 권한·이력 보존 정책
-- D-STATS-03 "앱 이용 횟수" 측정 단위 정의
-- D-STATS-04 CSV 내보내기·기간 필터 도입 여부
+## 결정 현황
+- **D-PERM-01 (DECIDED 2026-04-21)** 클랜 권한 매트릭스 모델 — 본 페이지의 모든 권한이 매트릭스에 흡수됨
+- **D-STATS-01 (DECIDED 2026-04-21)** HoF 설정 권한 → `set_hof_rules` 키
+- **D-STATS-02 (DECIDED 2026-04-21)** 경기 사후 정정 + 정정 요청 모달 + 이력 보존
+- **D-STATS-03 (OPEN)** "앱 이용 횟수" 측정 단위 — 다음 묶음에서 처리
+- **D-STATS-04 (DECIDED 2026-04-21)** CSV 내보내기 → `export_csv` 키 (Phase 2+ UI 보류)
+- **D-NOTIF-01 (OPEN, 후속)** 운영진 알림 센터 — 정정 요청 알림 통합 처리, 다음 묶음
 - (보강) Premium 한정 통계 카드 추가 여부
 
 ## 구현 참고 (개발자용)
@@ -197,5 +241,6 @@ H1 "클랜 통계"
 - [schema.md](../schema.md) (`matches`, `match_players`, `match_results`)
 - [07-MainClan.md](./07-MainClan.md) (셸 + MVP 카드의 통계 출처)
 - [09-BalanceMaker.md](./09-BalanceMaker.md) (경기 결과 입력의 출처)
-- [decisions.md](../decisions.md) (D-STATS-01~04)
+- [decisions.md §D-PERM-01](../decisions.md#d-perm-01--클랜-권한-매트릭스-모델-도입) · [§D-STATS-01](../decisions.md#d-stats-01--hof-설정-권한-d-perm-01-흡수) · [§D-STATS-02](../decisions.md#d-stats-02--경기-사후-정정-요청-모달과-이력-보존) · [§D-STATS-04](../decisions.md#d-stats-04--csv-내보내기-d-perm-01-흡수--phase-2-구현-보류)
+- [schema.md §clan_settings](../schema.md) (`permissions jsonb`) · `match_record_correction_requests` · `match_record_history`
 - [gating-matrix.md](../gating-matrix.md) §5

@@ -191,24 +191,44 @@ ClanMember ──< CoinTransaction
 - 합산 5개 한도 (PRESET_TAGS 추천 칩과 자유 태그가 같은 한도 공유)
 
 ### clan_settings (클랜별 운영 권한 토글)
-> **D-MANAGE-02 / D-MANAGE-03** (DECIDED 2026-04-20) — 운영진에게 허용할 액션 범위를 클랜 단위로 토글. [decisions.md §D-MANAGE-02](./decisions.md#d-manage-02--구성원-개인-상세-편집-권한과-m점수-토글), [§D-MANAGE-03](./decisions.md#d-manage-03--부계정-조회-정책과-공개-범위-토글).
+> **D-MANAGE-02 / D-MANAGE-03** (DECIDED 2026-04-20) → **D-PERM-01 흡수** (DECIDED 2026-04-21) — 클랜별 권한 토글이 **권한 매트릭스 모델**(`permissions jsonb`)로 일반화됨. 기존 boolean·text 컬럼은 Phase 2+에 jsonb로 마이그레이션 후 deprecated 예정. [decisions.md §D-PERM-01](./decisions.md#d-perm-01--클랜-권한-매트릭스-모델-도입).
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | clan_id | uuid PK FK → clans | 1:1 — 클랜 생성 시 DEFAULT 로우 자동 생성 |
-| **allow_officer_edit_mscore** | boolean NOT NULL DEFAULT **false** | `false`=M점수 편집은 leader만, `true`=officer도 편집 가능. leader만 변경 가능 |
-| **alt_accounts_visibility** | text NOT NULL DEFAULT **'officers'** CHECK (alt_accounts_visibility IN ('officers','clan_members')) | 같은 클랜 내 부계정 조회 범위. 기본 운영진+만, leader가 'clan_members'로 전환하면 모든 활성 구성원 공개 |
+| **permissions** | jsonb NOT NULL DEFAULT `'{}'::jsonb` | **D-PERM-01 권한 매트릭스**. 키 = 권한 키(`set_hof_rules` 등 21종), 값 = `text[]` 허용 역할 배열(예: `["leader","officer"]`). **부재 키는 코드 상수 `CLAN_PERMISSION_DEFAULTS` 적용** → 카탈로그 추가 시 마이그레이션 불필요. 잠긴 권한 5개(`manage_subscription`/`delegate_leader`/`kick_officer`/`bulk_kick_dormant`/`confirm_scrim`)는 jsonb에 들어가도 코드/SQL 가드가 default를 강제. |
+| ~~allow_officer_edit_mscore~~ | boolean NOT NULL DEFAULT **false** | **DEPRECATED** (D-PERM-01 흡수) — Phase 2+에 `permissions.edit_mscore` jsonb로 마이그레이션 후 컬럼 DROP. 그때까지 호환 컬럼으로 유지. |
+| ~~alt_accounts_visibility~~ | text NOT NULL DEFAULT **'officers'** CHECK (alt_accounts_visibility IN ('officers','clan_members')) | **DEPRECATED** (D-PERM-01 흡수) — Phase 2+에 `permissions.view_alt_accounts` jsonb로 마이그레이션 후 컬럼 DROP. **새 default = `["leader","officer","member"]`**(D-PERM-01에서 멤버까지 확장). 마이그레이션 시 기존 `'officers'` → `["leader","officer"]`, `'clan_members'` → `["leader","officer","member"]`. |
 | updated_at | timestamptz | |
 | updated_by | uuid FK → users NULL | 마지막 변경자 (감사용) |
+
+**`permissions` jsonb 형태**
+
+```json
+{
+  "edit_mscore":         ["leader", "officer"],
+  "view_alt_accounts":   ["leader", "officer", "member"],
+  "view_monthly_stats":  ["leader", "officer", "member"]
+}
+```
+
+- 부재 키 = 코드 상수 default 적용 → DB에는 클랜이 변경한 키만 저장.
+- 21개 권한 키 카탈로그·default·잠금 여부는 [decisions.md §D-PERM-01 §권한 키 카탈로그](./decisions.md#d-perm-01--클랜-권한-매트릭스-모델-도입) 참조.
+- 코드 상수: `CLAN_PERMISSION_CATALOG` (`mockup/scripts/clan-mock.js`, Phase 2+ 백엔드는 동일 상수를 SQL 함수 `default_permission_for(text)`로 표현).
 
 **RLS 메모**
 
 - SELECT: 같은 클랜 소속 모든 활성 멤버에게 허용 (UI에 현재 정책을 표시해야 하므로).
-- UPDATE: `role = 'leader'` 인 자기 클랜 멤버만 허용.
+- UPDATE: `role = 'leader'` 인 자기 클랜 멤버만 허용. **잠긴 권한 키에 대한 변경은 트리거에서 무시 + 경고**(코드 가드 우회 시도 방어).
+
+**가드 함수 (Phase 2+ — D-PERM-01)**
+
+- `has_clan_permission(clan_id uuid, user_id uuid, perm text) RETURNS boolean` — 모든 권한 체크 진입점. 잠긴 권한은 SQL 안에서 하드코딩 가드, 일반 권한은 `permissions` jsonb 우선 + 부재 시 default.
 
 **감사 로그**
 
 - 토글 변경은 `clan_member_audit_log`에 `action='clan_settings.update'`, `before`/`after` JSONB로 기록 (Phase 2 상세 설계).
+- D-PERM-01 잠긴 권한 변경 시도(코드 가드 우회)는 별도 `action='clan_settings.locked_permission_attempt'` 로 기록.
 
 ### clan_media (배너·아이콘 자산)
 > **D-MANAGE-04** (DECIDED 2026-04-20) — 업로드 제약·자동 변환 규칙. [decisions.md §D-MANAGE-04](./decisions.md#d-manage-04--클랜-배너아이콘-업로드-제약).
@@ -864,6 +884,81 @@ draft ──► matched ──► confirmed ──► finished
 - 인덱스: `(applicant_user_id, status, created_at DESC)` — 본인 "내 신청 N건" pill.
 - RLS: SELECT = 신청자 본인 + 모집 글 작성자. INSERT = 본인, 게임 인증 통과(post의 game_id와 일치). UPDATE(status) = 모집자(`accepted`/`rejected`만) 또는 본인(`canceled`만). DELETE 차단(soft).
 - 알림 (D-EVENTS-03 채널 정책 재사용): INSERT 시 모집자에게 in-app, `accepted`/`rejected` 전환 시 신청자에게 in-app, `expired` 일괄 전환 시 신청자에게 in-app 1회.
+
+### match_record_correction_requests (경기 사후 정정 요청 · D-STATS-02)
+> **D-STATS-02** (DECIDED 2026-04-21) — 경기 기록 오입력 시 정정 요청 모달의 누적 테이블. 운영진은 권한 키 `correct_match_records`(D-PERM-01) 보유자, 요청자는 `view_match_records` 권한 보유자. 운영진 수동 정정 — 자동 적용 X. [decisions.md §D-STATS-02](./decisions.md#d-stats-02--경기-사후-정정-요청-모달과-이력-보존).
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK DEFAULT gen_random_uuid() | |
+| match_id | uuid NOT NULL FK → matches ON DELETE CASCADE | |
+| requester_id | uuid NOT NULL FK → users | `view_match_records` 권한 보유자 |
+| proposed_result | text NULL | `'blue_win'`/`'red_win'` 또는 NULL(=결과 변경 없음) |
+| proposed_roster | jsonb NULL | `{blue: [user_id...], red: [user_id...]}` 또는 NULL |
+| proposed_map | text NULL | 맵 변경 제안 (드롭다운 값 1개) |
+| reason | text NOT NULL | 자유 사유 (max 500자, NOT EMPTY) |
+| status | text NOT NULL DEFAULT `'pending'` CHECK (status IN ('pending','accepted','rejected','expired')) | |
+| created_at | timestamptz NOT NULL DEFAULT now() | |
+| resolved_at | timestamptz NULL | |
+| resolved_by | uuid NULL FK → users | accepted/rejected 처리한 운영진 |
+| reject_reason | text NULL | `status='rejected'` 시 운영진 입력 |
+
+**제약**
+
+- 부분 UNIQUE 인덱스: `CREATE UNIQUE INDEX match_correction_one_active_per_match ON match_record_correction_requests (match_id) WHERE status = 'pending'` — 같은 경기 동시 active 요청 1건만.
+- `CHECK (LENGTH(reason) > 0 AND LENGTH(reason) <= 500)`.
+- `CHECK (status = 'pending' OR resolved_at IS NOT NULL)`.
+- 인덱스: `(status, created_at)` — cron 만료 스캔(7일 경과).
+- 인덱스: `(requester_id, status, created_at DESC)` — 요청자 본인 내역.
+
+**RLS**
+
+- SELECT: 요청자 본인 + `correct_match_records` 권한 보유자 + 같은 클랜 운영진+.
+- INSERT: 본인, `view_match_records` 권한 보유.
+- UPDATE(`status`, `resolved_*`, `reject_reason`): `correct_match_records` 권한 보유자(`accepted`/`rejected`만), cron 서비스 롤(`expired`만).
+- DELETE 차단(soft).
+
+**알림 슬롯 (D-EVENTS-03 재사용 + D-NOTIF-01 후속)**
+
+| 슬롯 | 트리거 | 채널 | 수신자 |
+|------|--------|------|--------|
+| `match_correction_requested` | INSERT | in-app | `correct_match_records` 권한 보유자 전원 |
+| `match_correction_accepted` | `status='accepted'` | in-app | 요청자 |
+| `match_correction_rejected` | `status='rejected'` | in-app | 요청자 (반려 사유 포함) |
+| `match_correction_expired` | cron `status='expired'` | in-app | 요청자 |
+
+### match_record_history (경기 기록 정정 이력 · D-STATS-02)
+> **D-STATS-02** (DECIDED 2026-04-21) — 경기 기록 변경의 before/after 영구 보존. 직접 정정·요청 승인 양쪽 모두 동일 테이블에 INSERT. INSERT-only(UPDATE/DELETE RLS 차단). HoF·통계 재집계 시 history reverse-replay로 시점별 통계 재현 가능.
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| id | uuid PK DEFAULT gen_random_uuid() | |
+| match_id | uuid NOT NULL FK → matches ON DELETE CASCADE | |
+| changed_by | uuid NOT NULL FK → users | `correct_match_records` 권한 보유자 |
+| source | text NOT NULL CHECK (source IN ('direct','request')) | `direct`=운영진 직접 정정, `request`=요청 승인 경유 |
+| request_id | uuid NULL FK → match_record_correction_requests | `source='request'` 시 필수, `direct` 시 NULL |
+| before | jsonb NOT NULL | `{result, roster, map}` 변경 전 스냅샷 |
+| after | jsonb NOT NULL | 변경 후 스냅샷 |
+| reason | text NULL | 직접 정정 시 운영진 입력. 요청 경유 시 요청 reason을 복사하지 않고 NULL(요청 본문은 `request_id`로 추적). |
+| changed_at | timestamptz NOT NULL DEFAULT now() | |
+
+**제약**
+
+- `CHECK ((source = 'request' AND request_id IS NOT NULL) OR (source = 'direct' AND request_id IS NULL))`.
+- `CHECK (before IS DISTINCT FROM after)` — 무의미한 history 차단.
+- 인덱스: `(match_id, changed_at DESC)` — 경기별 이력 타임라인.
+- 인덱스: `(changed_by, changed_at DESC)` — 운영진별 정정 활동 감사.
+
+**RLS**
+
+- SELECT: 같은 클랜 활성 멤버 (구성원도 자기 클랜 경기 변경 이력은 투명하게 열람).
+- INSERT: 트리거 전용 — `match_record_correction_requests` 승인 시점, 또는 운영진의 직접 정정 트랜잭션 내. 일반 INSERT 차단.
+- UPDATE/DELETE: 전면 차단(INSERT-only).
+
+**활용**
+
+- HoF 등재 재집계: `WHERE changed_at > <hof_snapshot_at>` 이력을 reverse-replay 해 정정 전 스냅샷 재현.
+- 분쟁 추적: 같은 경기에 정정이 반복되면 운영 알림(Phase 2+ anomaly detection 후보).
 
 ### bracket_tournaments (대진표 · 클랜 내 이벤트)
 > **D-EVENTS-05 · D-ECON-01** (DECIDED 2026-04-20) — 대진표는 **클랜 내 이벤트 전용**(클랜 간 토너먼트 없음). `host_clan_id = winner_clan_id`가 항상 성립. 상세 [§D-EVENTS-05](./decisions.md#d-events-05--대진표-결과의-통계코인-반영).
