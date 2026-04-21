@@ -5,6 +5,118 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-21 — D-EVENTS-01 Supplemental (모달 유형 제한 + 스크림 전용 RSVP 단일 토글 + 운영진+ 전용 참가 명단·버튼)
+
+- [x] **문제 인식** (사용자 피드백): ① 일정 등록 모달 `유형` select에 "스크림"이 남아 있어 D-EVENTS-01(스크림=자동 등록·읽기 전용)과 모순. ② 드로워 RSVP 3버튼(`going/maybe/not_going`)이 내전·이벤트에도 표시돼 "참석 응답"이 맥락 없이 보임. ③ 참석자 명단·편집·삭제·"스크림 상세 열기" 버튼이 일반 구성원에게도 노출되어 권한 경계가 불명확.
+- [x] **정책 확정** — `docs/01-plan/decisions.md` §D-EVENTS-01 Supplemental 신설
+  - 수동 등록 유형: **내전 · 이벤트 2종만** (스크림 제외).
+  - RSVP 범위: **`kind='scrim'` 전용**, 값 `enum('none','going')` 2상태, **단일 "참가" 토글 + `confirm()` 팝업**. `maybe`·`not_going`은 후방호환 enum으로만 남기고 UI에서 미사용.
+  - 권한 매트릭스: 참가 명단(인게임 닉네임)·"스크림 상세 열기"·편집·삭제 → **운영진+ 전용** (`.mock-officer-only`). "스크림 자동 등록" 배지·읽기 전용 안내 문구·참가 토글 버튼 자체는 전원 노출.
+  - 요약 표 D-EVENTS-01 행 상태를 `DECIDED (2026-04-20) · Supplemented (2026-04-21)`로 갱신.
+- [x] `mockup/pages/main-clan.html`
+  - 모달 `#mev-type`에서 `<option>스크림</option>` 제거, D-EVENTS-01 근거 주석 추가.
+  - 드로워 `#mock-event-drawer-source` 내부 "스크림 상세 열기" 버튼에 `.mock-officer-only` 적용. 배지는 전원 노출 유지.
+  - 기존 RSVP 3버튼 그룹 → `<section id="mock-event-drawer-rsvp" hidden>` 교체. 내부 단일 `#mock-event-drawer-rsvp-btn`(+ 상태 배지 `#mock-event-drawer-rsvp-state`) + 힌트 카피 + **참석자 명단 `#mock-event-drawer-attendees`** 섹션(`.mock-officer-only`): 헤더(라벨 + 인원수 배지) + 리스트 + 빈 상태 문구.
+  - 편집·삭제 영역 `#mock-event-drawer-manual-actions`에 `.mock-officer-only` 추가. 읽기 전용 안내 카피를 "수정은 스크림 상세에서만 가능합니다"로 명확화.
+  - 신규 CSS — `.mock-event-drawer-rsvp-head` flex 헤더, `#mock-event-drawer-rsvp-btn[data-state="going"]` 녹색 처리(✓ 프리픽스), `.mock-event-drawer-attendees` 섹션(상단 dashed 구분선, max-height 220 스크롤 리스트), `.att-nick / .att-game / .att-me` 스타일.
+- [x] `mockup/scripts/clan-mock.js`
+  - `MOCK_EVENTS` 스크림 엔트리에 `attendees: [{nickname, game}…]` 5명 더미 추가, `rsvp` 기본값 `'none'`으로 정리. 내전·이벤트 rsvp도 `'none'` 고정(주석으로 근거 명시). `MOCK_CURRENT_NICKNAME` 상수로 현재 사용자 닉네임 목업.
+  - `mockEventDrawerOpen`에서 `ev.kind==='scrim'` 분기 추가 — 스크림이면 RSVP 섹션 `hidden` 해제 + `__mockEventDrawerRenderRsvp(ev)` + `__mockEventDrawerRenderAttendees(ev)`, 아니면 섹션 전체 `hidden`.
+  - `__mockEventDrawerRenderRsvp`: `rsvp==='going'`이면 버튼 라벨 "참가 취소" + `data-state="going"`(녹색) + 배지 "참가 중"(success), 아니면 "참가" + "미참가"(muted).
+  - `__mockEventDrawerRenderAttendees`: 운영진+ 전용 섹션이지만 데이터는 항상 준비(CSS로만 숨김). `rsvp==='going'`이면 현재 사용자 닉네임을 목록 상단에 `me:true`로 삽입(이미 있으면 태깅만). 인원수 카운트 배지 실시간 갱신.
+  - `mockEventDrawerRsvp(value)` 3버튼 API 제거 → 신규 `mockEventDrawerRsvpToggle()`로 교체. 토글 시 `confirm()` — 참가 시 "참가 명단에 인게임 닉네임이 노출됩니다" 경고 포함, 취소 시 확인 질의. `ev.rsvp` 토글 후 RSVP/참석자/슬롯 리스트 즉시 재렌더. 구 API `mockEventDrawerRsvp(value)` 시그니처는 새 토글로 포워딩(임시 호환).
+  - `__mockEventsRenderDaySlots`의 RSVP 배지 — `kind==='scrim' && rsvp==='going'`에서만 "참가 중"(success) 표시. 그 외 배지 없음.
+- [x] `docs/01-plan/pages/11-Clan-Events.md`
+  - 상단 D-EVENTS-01 각주 요지를 Supplemental 반영(유형 제한·RSVP 범위·권한 분기)으로 재작성 + 양쪽 링크.
+  - "일정 상세 드로어" 섹션 재작성: 헤더 "스크림 상세 열기" 버튼 운영진+ 조건부, 참가 섹션 상세 설명(확인 메시지·참가 명단 운영진+ 전용), 푸터 편집·삭제 운영진+ 전용 명시.
+  - "일정 등록 모달" 표의 `유형` 행 → "내전·이벤트 2종만", `안내` 행 카피 업데이트.
+  - 슬롯 카드 설명 — RSVP 배지를 "스크림에서 참가 중일 때만" 노출로 정정.
+  - "권한" 섹션을 표 형식으로 확장(5개 UI 요소별 Role 노출 정책).
+  - `clan_events.kind` 행에 수동 등록 제한, `event_rsvps` 행에 스크림 전용·`going` 1종 실사용 명시.
+- [x] 검증 — `main-clan.html` · `clan-mock.js` · `decisions.md` · `11-Clan-Events.md` 모두 **No linter errors**. 기존 참조 없는 `mockEventDrawerRsvp('going')` 등 과거 핸들러 호출은 마크업에서 제거됨.
+- [x] 목업 확인 — 구성원 롤 `mock-role-member`로 전환 시 스크림 드로워에서 편집/삭제/스크림 상세 열기/참가 명단 모두 숨김, 참가 토글만 활성. 운영진(`mock-role-officer`)·클랜장(`mock-role-leader`)에서는 전부 노출. 내전·이벤트 드로워는 RSVP 섹션 자체가 렌더되지 않음.
+
+### 2026-04-21 — 일정 모달 UX 정리 (시각 단일화 + 날짜/시각 분리 + 동적 힌트)
+
+- [x] **문제 인식**: D-EVENTS-02 Revised 직후 모달을 점검하니 **시각 입력이 2곳**(`#mev-when`의 텍스트 `HH:mm` + 반복 fieldset 내부 `#mev-weekly-time`/`#mev-monthly-time`)에 존재해 논리 충돌. 또한 단일 `#mev-when` 텍스트 입력은 `YYYY-MM-DD HH:mm` 자유 입력이라 오타 위험. 반복=none일 때는 요일 영역이 숨지만 시각 필드가 반복 fieldset 안에 들어 있어 "반복 켜면 일시가 의미 불명해지는" 문제도 있었음.
+- [x] `mockup/pages/main-clan.html` 모달 재편
+  - `#mev-when` 텍스트 1개 → **`#mev-date`(`<input type="date">`) + `#mev-time`(`<input type="time">`)** 2열 그리드(`.mev-datetime-row`). 반응형 520px↓에서는 1열.
+  - 상시 힌트 `#mev-time-hint` 신설: "반복 일정에서도 모든 인스턴스는 이 시각에 시작합니다."
+  - 반복 select 옵션 카피를 **행동 서술형**으로 교체 — "없음 (일회성 · 위 날짜·시각에 한 번만)" / "매주 · 선택한 요일마다 위 시각에 반복" / "매월 · 시작 날짜의 일자에 위 시각으로 반복".
+  - `#mev-weekly-fields`에서 `#mev-weekly-time` **제거**. 요일 체크박스 그룹만 남기고 경고 힌트 `#mev-weekly-mismatch-hint`(hidden, JS 제어) 추가.
+  - `#mev-monthly-fields`에서 `#mev-monthly-time` **제거**. 동적 문구 컨테이너 `#mev-monthly-hint`로 대체("매월 **N일 HH:mm**에 반복됩니다").
+  - 신규 CSS `.mev-datetime-row` — grid 1.2fr / 1fr, `min-width:0` + `@media (max-width:520px)` 1열 전환.
+- [x] `mockup/scripts/clan-mock.js`
+  - 헬퍼 신설 — `__mockEventIsoWeekday(yyyyMmDd)`(JS `getDay` → ISO 월=1..일=7 변환), `__mockEventDayOfMonth`, `__mockEventRepeatMode`, `__MEV_WD_NAME`.
+  - 동적 힌트 — `__mockEventMonthlyHintRefresh()` "매월 **N일 HH:mm**에 반복됩니다" 갱신, `__mockEventWeeklyMismatchRefresh()` 시작 날짜 요일이 선택 요일에 없으면 경고 문구 채움/숨김.
+  - 이벤트 바인딩 — `mockEventRepeatChange`가 fieldset 토글 + 선택 모드별 힌트 재계산, `mockEventDateTimeChange`가 `#mev-time` onchange + 문서 전역 `change` 리스너(`#mev-date`)에서 힌트 재계산, `mockEventWeeklyDaysChange`가 요일 체크박스 onchange에서 경고 재계산.
+  - 검증 — `mockEventSaveMock`이 `#mev-date`/`#mev-time` 비어있으면 에러, `weekly`일 때 체크된 요일 ≥1 필수. 구 `#mev-weekly-time`/`#mev-monthly-time` 검증 로직은 삭제.
+  - 성공 메시지도 분기 — 반복=none은 "일정이 등록되었습니다", 반복≠none은 "반복 일정이 등록되었습니다. (편집·삭제 전까지 계속 · D-EVENTS-02 Revised)".
+  - `mockEventOpenModal` 개선 — 모달 열릴 때 `#mev-date`에 오늘 날짜, `#mev-time`에 기본값 `21:00` 세팅(비어있을 때만), 현재 반복 모드에 맞는 fieldset 토글·힌트 한 번 실행, 제목 input으로 자동 포커스.
+- [x] `docs/01-plan/pages/11-Clan-Events.md`
+  - 일정 등록 모달 필드 표 — "일시(text)" 행을 **"시작 날짜"** + **"시각(24시간제)"** 2행으로 분할. 반복 카피도 행동 서술형으로 갱신.
+  - "반복 상세 필드" 표 — **시각 컬럼 제거**, "안내" 컬럼 추가(weekly 경고 문구·monthly 동적 문구 명시). 시각은 상단 필드 하나만 사용함을 강조.
+- [ ] 다음 행선지 유지: **MAINGAME 4건 (D-LFG-01·D-RANK-01·D-SCRIM-01·02)** + **STATS 4건**.
+
+### 2026-04-21 — D-EVENTS-02 Revised · 반복 종료 조건·52회 hard stop 폐지 + 주간 반복 UI 교체
+
+- [x] **정책 변경 요지**: 2026-04-20에 closed한 D-EVENTS-02(종료 3모드 `never`/`count`/`until` + 52회 인스턴스 hard stop)를 **사용자 지시로 전면 폐기**. 새 정책은 "반복 = `none` / `weekly` / `monthly` 3종만, 편집·삭제 전까지 **무기한**". 주간 반복 UX도 "시작일 요일 자동 상속"에서 **월~일 다중 체크박스 + `<input type="time">`**으로 교체. `daily`·`biweekly`는 함께 제거(사용자 응답 q2 = "매주/매월만 유지").
+- [x] `mockup/pages/main-clan.html` — 일정 모달 교체
+  - 반복 select 옵션을 `없음(일회) / 매주 · 요일·시각 지정 / 매월 · 시작일의 일자 · 시각 지정` 3개로 축소.
+  - 기존 `<fieldset id="mev-repeat-end-fields">` (never/count/until 라디오 + 52회 경고) **통째로 제거**.
+  - 신설 `<fieldset id="mev-weekly-fields">` — 월~일 체크박스 7개(`name="mev-weekly-day"`, ISO `value="1..7"`) + `<input id="mev-weekly-time" type="time">` + "편집·삭제 전까지 계속 반복" 안내.
+  - 신설 `<fieldset id="mev-monthly-fields">` — 시각 `<input>`만. "시작 일시의 일자 기준, 해당 일자 없는 달은 skip" 안내.
+  - 반복 섹션 CSS — `.mev-weekly-days` 그리드(7열), 체크된 label은 보라 하이라이트(`:has(input:checked)`).
+- [x] `mockup/scripts/clan-mock.js`
+  - `window.mockEventRepeatChange` — 새 `weekly/monthly` fieldset 토글 로직으로 교체.
+  - 기존 `mockEventRepeatEndChange`/`mockEventRepeatEndValidate`/동적 input 리스너 **제거**.
+  - `window.mockEventSaveMock` — 52회 검증 삭제. 대신 weekly일 때 요일 ≥1 + 시각 검증, monthly일 때 시각 검증.
+  - `MOCK_EVENTS` 첫 항목 repeat 구조 갱신: `{ mode:'weekly', weekdays:[5], time:'21:00' }` (금요일 21:00). `endKind`·`endCount`·`index` 필드 전부 제거.
+  - `__mockEventsFormatRepeat` 재작성 — 포맷 예: "매주 월·수·금 21:00 · 편집·삭제 전까지 계속", "매월 15일 21:00 · 편집·삭제 전까지 계속".
+  - 슬롯 meta "반복 · 매주/매월" 표시에 monthly 분기 추가.
+- [x] `docs/01-plan/decisions.md`
+  - 요약 표 D-EVENTS-02 행 상태 `DECIDED (2026-04-20)` → **`REVISED (2026-04-21)`**, 설명·링크 앵커 모두 Revised로 교체.
+  - 본문에 새 섹션 `### D-EVENTS-02 Revised — 일정 반복: 요일·시각 기반 무기한 · 2026-04-21` 추가 — 변경 요약 표, 새 데이터 모델, DROPPED 컬럼 목록, 인스턴스 생성 전략(윈도우 기반 lazy), 편집·삭제 UX 유지 표, UI 규칙.
+  - 기존 섹션은 `### D-EVENTS-02 Original … (SUPERSEDED 2026-04-21)`으로 라벨링하고 원문 그대로 **보존** (이력 추적).
+- [x] `docs/01-plan/schema.md`
+  - `clan_events` 반복 컬럼 재설계: `repeat` enum에서 `daily`·`biweekly` 제거, `repeat_weekdays smallint[]` · `repeat_time time` 신설.
+  - `repeat_end_kind` · `repeat_end_count` · `repeat_end_at` + 관련 CHECK 제약 → **DROPPED** 명시 블록으로 기록.
+  - 새 CHECK 제약 — 모드별 필수/NULL 조건, `repeat_weekdays <@ ARRAY[1..7]`. `source/scrim_id` CHECK는 유지(D-EVENTS-01).
+  - `clan_event_exceptions` 헤더 주석도 Revised로 갱신(52회 상한 언급 제거).
+- [x] `docs/01-plan/pages/11-Clan-Events.md`
+  - 상단 D-EVENTS-02 한 줄 요약 → Revised로 재작성.
+  - 드로어 본문 `<dl>` 반복 예시 — "`매주 · 12회 중 3회차`" → "`매주 월·수·금 21:00 · 편집·삭제 전까지 계속`".
+  - 일정 모달 §반복 행·§종료 조건 섹션 → §반복 상세 필드 + §종료 조건 (POLICY REMOVED 2026-04-21)로 재구성.
+  - 데이터·연동 `clan_events` 필드 표 `repeat/repeat_end_*` → `repeat/repeat_weekdays/repeat_time`.
+  - 결정 필요 섹션 D-EVENTS-02 취소선 뒤에 Revised 링크 부기.
+- [x] `docs/TODO.md` 마지막 갱신 → `2026-04-21` + "D-EVENTS-02 Revised" 표기.
+- [ ] 다음 행선지: 여전히 **MAINGAME 4건(D-LFG-01·D-RANK-01·D-SCRIM-01·02)** + **STATS 4건** 미결. D-SCRIM-01·02가 드로어 "스크림 상세 열기" 라우팅 대상이라 자연 연결.
+
+### 2026-04-21 — 캘린더 UX 재설계 (날짜 클릭 → 슬롯 패널 → 일정 드로어)
+
+- [x] **정책 요지**: 캘린더 아래의 "이번 달 일정" 카드 그리드가 캘린더 점과 **정보 중복**이고 선택 개념이 없어, (a) 카드 그리드 삭제, (b) 월간 캘린더의 각 날짜 셀을 클릭 가능한 `role="gridcell"`로 바꾸고 `data-date="YYYY-MM-DD"` 부여, (c) 선택된 날짜 아래에 시간순 **슬롯 패널**을 렌더, (d) 슬롯 클릭 시 우측 **드로어**에서 상세 열람·RSVP·(manual일 때만) 편집/삭제를 제공하는 구조로 재설계. D-EVENTS-01 "스크림 자동 등록 = 읽기 전용" 규칙은 드로어 푸터에 분기되어 편집/삭제 버튼을 숨기고 "스크림 상세 열기"만 노출.
+- [x] `mockup/pages/main-clan.html`
+  - `.mock-events-cal-grid` 전 셀에 `data-date`·`role="gridcell"`·`tabindex="-1"` 부여, 기존 하드코딩 점(3/27·3/30·4/5)은 제거하고 JS가 `MOCK_EVENTS`에서 동적으로 점을 찍도록 위임. `aria-label`로 그리드 사용법 안내.
+  - `.mock-events-section-title "이번 달 일정"` + 3장짜리 `.mock-events-grid` **전체 삭제** → `<section class="mock-events-day-panel">`(제목 · 건수 칩 · `aria-live="polite"` 슬롯 리스트)로 교체. 빈 상태 안내 포함.
+  - 범례 문구 확장 — "날짜를 클릭하면 아래에 해당 날짜의 일정 슬롯이 표시되고, 슬롯을 클릭하면 우측 드로어에서 상세를 확인할 수 있습니다."
+  - **드로어 마크업 신설** `#mock-event-drawer-overlay` + `<aside id="mock-event-drawer" role="dialog">`: 헤더(유형 배지·×·제목·부제·(scrim_auto) 읽기 전용 배지+"스크림 상세 열기"), 본문(`<dl>` 시작·장소·반복·알림 + RSVP 3버튼 `aria-pressed` 토글), 푸터(manual = 편집/삭제, scrim_auto = 안내 문구).
+  - CSS 블록 신규 — `.mock-events-cal-cell[role="gridcell"]:hover/focus-visible`, `.mock-events-cal-cell--selected`, `.mock-events-day-panel/title/count/slots/empty`, `.mock-events-slot/time/body/title/meta/right`, `.mock-event-drawer-overlay/-drawer` (우측 슬라이드 인 `transform: translateX(100% → 0)`, z-index 180/181), 드로어 헤더·본문·RSVP·푸터 스타일.
+- [x] `mockup/scripts/clan-mock.js`
+  - 파일 말미(IIFE 내부)에 **이벤트 캘린더 섹션** 신설. 상수 `MOCK_EVENTS` 3건(정기 내전 반복·스크림 자동 등록·시즌 이벤트).
+  - 헬퍼 — `__mockEventsByDate` / `__mockEventsFormatDateKo` / `__mockEventsFormatWhen` / `__mockEventsFormatRepeat` / `__mockEventsFormatNotify`.
+  - 렌더 — `__mockEventsRenderDots`(셀 점 동기화), `__mockEventsRenderDaySlots(date)`(슬롯 리스트), `__mockEventsSelectDate(date, cell)`(셀 선택 상태 토글 + `aria-selected`/`tabindex`).
+  - 전역 — `window.mockEventDrawerOpen(id)` / `mockEventDrawerClose()` / `mockEventDrawerRsvp(value)` / `mockEventDrawerOpenScrim()` / `mockEventDrawerEdit()` / `mockEventDrawerDelete()`. scrim_auto 분기로 편집/삭제 숨김 + 읽기 전용 안내 표시.
+  - 초기화 — `__mockEventsInitCalendar`가 모든 셀에 click/keydown(Enter/Space) 바인딩, 최초 일정이 있는 날짜를 기본 선택. `DOMContentLoaded` 또는 즉시 실행. Esc 키로 드로어 닫기.
+- [x] `docs/01-plan/pages/11-Clan-Events.md`
+  - 사용자 흐름 ASCII — 캘린더 분기에 "날짜 클릭 → 슬롯 패널 → 드로어" 설명 3줄 추가, D-EVENTS-01 읽기 전용 링크 명시.
+  - 탭 1 §영역 — "셀 = 상호작용 가능한 gridcell" 항목 명시, 기존 "이번 달 일정" 항목 제거.
+  - §선택된 날짜 슬롯 패널 신설 — 레이아웃·정렬·빈 상태·기본 선택 규칙.
+  - §일정 상세 드로어 신설 — 크기·z-index·닫기 트리거·헤더·본문 dl·RSVP·푸터 분기(manual vs scrim_auto).
+- [x] `docs/TODO.md` 마지막 갱신 → `2026-04-21`.
+- [ ] 다음 행선지: 여전히 **MAINGAME 4건(D-LFG-01·D-RANK-01·D-SCRIM-01·02)** + **STATS 4건** 미결. D-SCRIM-01·02는 오늘 목업에 반영된 드로어 "스크림 상세 열기" 라우팅 대상이라 즉시 이어붙이기 적합.
+
+---
+
 ### 2026-04-20 — D-EVENTS-01~05 결정 닫기 (이벤트·반복·알림·투표·대진표)
 - [x] **정책 확정 (5건)**
   - **D-EVENTS-01 스크림 → 클랜 이벤트 자동 생성·동기화**: `scrim_rooms.status='matched' → 'confirmed'` 전환 시 양쪽 클랜 `clan_events`에 **각각 1행 자동 INSERT** (`source='scrim_auto'`, `kind='scrim'`). 멱등 키 UNIQUE `(clan_id, scrim_id) WHERE scrim_id IS NOT NULL`. `source='scrim_auto'` 행은 **읽기 전용** — 시간·장소·제목 수정은 스크림 본체에서만, 양쪽 이벤트로 동기화. 취소 시 양쪽 `cancelled_at` 세팅(행 삭제 금지), 재확정 시 `cancelled_at=NULL` 복원. 구현 이중화: Server Action (주 경로) + PG 트리거 `clan_events_sync_from_scrim()` (안전망). 일정 카드에 "스크림에서 자동 등록" 배지 + 스크림 상세 링크.
