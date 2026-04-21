@@ -3,6 +3,8 @@
 > **페이즈별 체크리스트**는 아래 문서로 나눈다. 세션 종료 시 **[세션 로그](./TODO_LOG.md)** 맨 위에 블록을 추가하고, 해당 페이즈 문서의 체크·요약표를 갱신한다.  
 > **/todo 커맨드**: `.cursor/commands/todo.md` 절차로 문서·목업과 동기화한다.
 
+> **지금 라이브**: (아직 없음 — Phase 1 목업만) · **다음 라이브**: M2 완료 시 `/` · `/sign-in` · `/sign-up` · `/games` · 체감 로드맵 → [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md)
+
 ## 페이즈별 문서
 
 | Phase | 문서 | 내용 |
