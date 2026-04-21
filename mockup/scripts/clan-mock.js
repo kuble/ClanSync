@@ -1365,10 +1365,25 @@
   /* 이벤트: 일정 등록 모달 */
   window.mockEventOpenModal = function () {
     var m = document.getElementById("mock-event-modal");
-    if (m) {
-      m.removeAttribute("hidden");
-      m.setAttribute("aria-hidden", "false");
+    if (!m) return;
+    var dateEl = document.getElementById("mev-date");
+    var timeEl = document.getElementById("mev-time");
+    if (dateEl && !dateEl.value) {
+      var today = new Date();
+      var yyyy = today.getFullYear();
+      var mm = String(today.getMonth() + 1).padStart(2, "0");
+      var dd = String(today.getDate()).padStart(2, "0");
+      dateEl.value = yyyy + "-" + mm + "-" + dd;
     }
+    if (timeEl && !timeEl.value) timeEl.value = "21:00";
+    var repeatEl = document.getElementById("mev-repeat");
+    if (repeatEl) window.mockEventRepeatChange(repeatEl);
+    m.removeAttribute("hidden");
+    m.setAttribute("aria-hidden", "false");
+    setTimeout(function () {
+      var focusTarget = document.getElementById("mev-title");
+      if (focusTarget && typeof focusTarget.focus === "function") focusTarget.focus();
+    }, 0);
   };
   window.mockEventCloseModal = function () {
     var m = document.getElementById("mock-event-modal");
@@ -1378,67 +1393,141 @@
     }
   };
 
-  /* D-EVENTS-02: 반복 종료 조건 필드 토글 */
-  window.mockEventRepeatChange = function (selectEl) {
-    var fields = document.getElementById("mev-repeat-end-fields");
-    if (!fields) return;
-    var repeat = selectEl && selectEl.value ? selectEl.value : "none";
-    if (repeat === "none") {
-      fields.setAttribute("hidden", "");
-    } else {
-      fields.removeAttribute("hidden");
-    }
-    mockEventRepeatEndValidate();
-  };
-  window.mockEventRepeatEndChange = function (radio) {
-    var countInput = document.getElementById("mev-repeat-end-count");
-    var atInput = document.getElementById("mev-repeat-end-at");
-    var mode = radio && radio.value;
-    if (countInput) countInput.disabled = mode !== "count";
-    if (atInput) atInput.disabled = mode !== "until";
-    mockEventRepeatEndValidate();
-  };
-  function mockEventRepeatEndValidate() {
-    var warn = document.getElementById("mev-repeat-end-warn");
-    if (!warn) return;
-    var countInput = document.getElementById("mev-repeat-end-count");
-    var mode = document.querySelector('input[name="mev-repeat-end"]:checked');
-    var overflow = false;
-    if (mode && mode.value === "count" && countInput && countInput.value) {
-      var n = parseInt(countInput.value, 10);
-      if (!isNaN(n) && (n < 1 || n > 52)) overflow = true;
-    }
-    if (overflow) warn.removeAttribute("hidden");
-    else warn.setAttribute("hidden", "");
+  /* D-EVENTS-02 Revised (2026-04-21): 반복 종료 조건(count/until/never) 및 52회 hard stop 폐지.
+     시각은 상단 #mev-time 한 곳에서만 받는다(반복 fieldset 내부 시각 필드 삭제).
+     - weekly: 월~일 다중 요일 체크박스 + 상단 공통 시각 (HH:mm)
+     - monthly: 시작 날짜의 day-of-month + 상단 공통 시각 (해당 일자 없는 달 skip) */
+  var __MEV_WD_NAME = ["", "월", "화", "수", "목", "금", "토", "일"];
+
+  function __mockEventRepeatMode() {
+    return (document.getElementById("mev-repeat") || {}).value || "none";
   }
-  document.addEventListener("input", function (e) {
-    if (e.target && (e.target.id === "mev-repeat-end-count" || e.target.id === "mev-repeat-end-at")) {
-      mockEventRepeatEndValidate();
+
+  function __mockEventIsoWeekday(yyyyMmDd) {
+    if (!yyyyMmDd) return null;
+    var d = new Date(yyyyMmDd + "T00:00:00");
+    if (isNaN(d.getTime())) return null;
+    // JS getDay(): 일=0..토=6 → ISO: 월=1..일=7
+    var wd = d.getDay();
+    return wd === 0 ? 7 : wd;
+  }
+
+  function __mockEventDayOfMonth(yyyyMmDd) {
+    if (!yyyyMmDd) return null;
+    var m = /-(\d{2})$/.exec(yyyyMmDd);
+    return m ? parseInt(m[1], 10) : null;
+  }
+
+  /* 매월 모드 안내 문구 동적 채움 */
+  function __mockEventMonthlyHintRefresh() {
+    var hint = document.getElementById("mev-monthly-hint");
+    if (!hint) return;
+    var date = (document.getElementById("mev-date") || {}).value;
+    var time = (document.getElementById("mev-time") || {}).value;
+    var dom = __mockEventDayOfMonth(date);
+    if (dom && time) {
+      hint.innerHTML =
+        "매월 <strong>" + dom + "일 " + time + "</strong>에 반복됩니다.";
+    } else if (dom) {
+      hint.innerHTML =
+        "매월 <strong>" + dom + "일</strong>에 <strong>위 시각</strong>으로 반복됩니다.";
+    } else {
+      hint.innerHTML =
+        "매월 <strong>시작 날짜의 일자</strong>에 <strong>위 시각</strong>으로 반복됩니다.";
+    }
+  }
+
+  /* 매주 모드: 시작 날짜 요일이 체크된 요일들에 포함되지 않을 때 경고 */
+  function __mockEventWeeklyMismatchRefresh() {
+    var box = document.getElementById("mev-weekly-mismatch-hint");
+    if (!box) return;
+    var mode = __mockEventRepeatMode();
+    if (mode !== "weekly") {
+      box.setAttribute("hidden", "");
+      return;
+    }
+    var date = (document.getElementById("mev-date") || {}).value;
+    var wd = __mockEventIsoWeekday(date);
+    if (!wd) {
+      box.setAttribute("hidden", "");
+      return;
+    }
+    var checked = Array.prototype.slice
+      .call(document.querySelectorAll('input[name="mev-weekly-day"]:checked'))
+      .map(function (el) { return parseInt(el.value, 10); });
+    if (!checked.length) {
+      box.setAttribute("hidden", "");
+      return;
+    }
+    if (checked.indexOf(wd) === -1) {
+      var names = checked.slice().sort().map(function (n) { return __MEV_WD_NAME[n]; }).join("·");
+      box.textContent =
+        "시작 날짜(" + __MEV_WD_NAME[wd] + "요일)는 선택한 요일(" + names +
+        ")에 없습니다. 시작 날짜 이후 가장 빠른 선택 요일부터 반복됩니다.";
+      box.removeAttribute("hidden");
+    } else {
+      box.setAttribute("hidden", "");
+    }
+  }
+
+  window.mockEventRepeatChange = function (selectEl) {
+    var weekly = document.getElementById("mev-weekly-fields");
+    var monthly = document.getElementById("mev-monthly-fields");
+    var repeat = (selectEl && selectEl.value) || "none";
+    if (weekly) {
+      if (repeat === "weekly") weekly.removeAttribute("hidden");
+      else weekly.setAttribute("hidden", "");
+    }
+    if (monthly) {
+      if (repeat === "monthly") monthly.removeAttribute("hidden");
+      else monthly.setAttribute("hidden", "");
+    }
+    if (repeat === "monthly") __mockEventMonthlyHintRefresh();
+    if (repeat === "weekly") __mockEventWeeklyMismatchRefresh();
+  };
+
+  /* 상단 날짜·시각 변경 → 매월 힌트/매주 경고 동기화 */
+  window.mockEventDateTimeChange = function () {
+    var mode = __mockEventRepeatMode();
+    if (mode === "monthly") __mockEventMonthlyHintRefresh();
+    if (mode === "weekly") __mockEventWeeklyMismatchRefresh();
+  };
+  document.addEventListener("change", function (e) {
+    if (!e.target) return;
+    if (e.target.id === "mev-date") {
+      window.mockEventDateTimeChange();
     }
   });
 
+  /* 요일 체크박스 변경 */
+  window.mockEventWeeklyDaysChange = function () {
+    __mockEventWeeklyMismatchRefresh();
+  };
+
   window.mockEventSaveMock = function () {
-    var repeat = (document.getElementById("mev-repeat") || {}).value || "none";
-    if (repeat !== "none") {
-      var mode = document.querySelector('input[name="mev-repeat-end"]:checked');
-      if (!mode) {
-        window.alert("반복 종료 조건을 선택해 주세요 (D-EVENTS-02).");
+    var date = (document.getElementById("mev-date") || {}).value;
+    var time = (document.getElementById("mev-time") || {}).value;
+    if (!date) {
+      window.alert("시작 날짜를 선택해 주세요.");
+      return false;
+    }
+    if (!time) {
+      window.alert("시작 시각(HH:mm)을 선택해 주세요.");
+      return false;
+    }
+    var repeat = __mockEventRepeatMode();
+    if (repeat === "weekly") {
+      var days = document.querySelectorAll('input[name="mev-weekly-day"]:checked');
+      if (!days.length) {
+        window.alert("반복할 요일을 하나 이상 선택해 주세요.");
         return false;
       }
-      if (mode.value === "count") {
-        var cn = parseInt((document.getElementById("mev-repeat-end-count") || {}).value, 10);
-        if (isNaN(cn) || cn < 1 || cn > 52) {
-          window.alert("반복 횟수는 1~52 사이여야 합니다 (D-EVENTS-02 인스턴스 상한 52).");
-          return false;
-        }
-      } else if (mode.value === "until") {
-        if (!(document.getElementById("mev-repeat-end-at") || {}).value) {
-          window.alert("종료 날짜를 선택해 주세요.");
-          return false;
-        }
-      }
     }
-    window.alert("목업: 일정이 등록되었습니다.");
+    var msg =
+      repeat === "none"
+        ? "목업: 일정이 등록되었습니다."
+        : "목업: 반복 일정이 등록되었습니다. (편집·삭제 전까지 계속 · D-EVENTS-02 Revised)";
+    window.alert(msg);
     window.mockEventCloseModal();
     if (typeof window.mockSidebarNotifySet === "function") {
       window.mockSidebarNotifySet("events", true);
@@ -8303,4 +8392,512 @@
     if (id) window.mockManageMemberDetailOpen(id);
     return false;
   };
+
+  /* ─────────────────────────────────────────────────────────────
+   * 이벤트 캘린더 — 날짜 클릭 → 슬롯 패널 → 드로어 (D-EVENTS-01·02·03)
+   * - "이번 달 일정" 카드 그리드는 제거됨. 선택된 날짜의 슬롯이 단일 출처.
+   * - 날짜 셀 data-date="YYYY-MM-DD"(KST). 점은 MOCK_EVENTS에서 동적 렌더.
+   * ──────────────────────────────────────────────────────────── */
+  var MOCK_EVENTS = [
+    {
+      id: "ev-intra-0327",
+      date: "2026-03-27",
+      time: "21:00",
+      durationMin: 120,
+      kind: "internal", // internal | scrim | event
+      kindLabel: "내전",
+      dotClass: "mock-events-cal-dot--internal",
+      title: "정기 내전",
+      place: "디스코드 #내전",
+      // D-EVENTS-02 Revised: weekly일 때 weekdays[](ISO 1=월..7=일)와 time. 종료 없음.
+      repeat: { mode: "weekly", weekdays: [5], time: "21:00" },
+      source: "manual",
+      rsvp: "none", // D-EVENTS-01 Supplemental: 내전·이벤트는 RSVP 없음
+      notify: ["in_app", "discord"],
+    },
+    {
+      id: "ev-scrim-0330",
+      date: "2026-03-30",
+      time: "20:00",
+      durationMin: 120,
+      kind: "scrim",
+      kindLabel: "스크림",
+      dotClass: "mock-events-cal-dot--scrim",
+      title: "스크림 vs Nova",
+      place: "인게임",
+      repeat: { mode: "none" },
+      source: "scrim_auto", // D-EVENTS-01: 읽기 전용
+      scrimId: "scrim-demo-nova",
+      // D-EVENTS-01 Supplemental: RSVP는 스크림 이벤트에서만, 'going' | 'none' 2상태.
+      rsvp: "none",
+      // 참석자 명단(인게임 닉네임)은 운영진+ 전용 섹션에 표시. me=true는 "내" 항목 표식(참가 토글 후 즉시 렌더용).
+      attendees: [
+        { nickname: "MercyMain", game: "OW" },
+        { nickname: "Jett_Gold", game: "VAL" },
+        { nickname: "탱커슈슈", game: "OW" },
+        { nickname: "Chovy_Fan01", game: "LoL" },
+        { nickname: "딜러정석", game: "OW" },
+      ],
+      notify: ["in_app", "discord"],
+    },
+    {
+      id: "ev-event-0405",
+      date: "2026-04-05",
+      time: "19:30",
+      durationMin: 150,
+      kind: "event",
+      kindLabel: "이벤트",
+      dotClass: "mock-events-cal-dot--event",
+      title: "시즌 맞이 이벤트전",
+      place: "랜덤 드래프트 · 디스코드 #이벤트",
+      repeat: { mode: "none" },
+      source: "manual",
+      rsvp: "none", // D-EVENTS-01 Supplemental: 내전·이벤트는 RSVP 없음(UI 미노출)
+      notify: ["in_app"],
+    },
+  ];
+
+  // 현재 로그인 구성원의 인게임 닉네임(목업). 실제는 `users.current` 등에서 가져옴.
+  var MOCK_CURRENT_NICKNAME = "나 (ClanSyncLeader)";
+
+  var __mockEventsSelectedDate = null;
+
+  function __mockEventsByDate(date) {
+    return MOCK_EVENTS.filter(function (ev) {
+      return ev.date === date;
+    }).sort(function (a, b) {
+      return a.time < b.time ? -1 : a.time > b.time ? 1 : 0;
+    });
+  }
+
+  function __mockEventsFormatDateKo(date) {
+    // "2026-03-27" → "3월 27일 (금)"
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date || "");
+    if (!m) return date || "";
+    var y = parseInt(m[1], 10);
+    var mo = parseInt(m[2], 10);
+    var d = parseInt(m[3], 10);
+    var dt = new Date(y, mo - 1, d);
+    var dow = ["일", "월", "화", "수", "목", "금", "토"][dt.getDay()];
+    return mo + "월 " + d + "일 (" + dow + ")";
+  }
+
+  function __mockEventsFormatWhen(ev) {
+    var end = "";
+    if (ev.durationMin) {
+      var hh = parseInt(ev.time.slice(0, 2), 10);
+      var mm = parseInt(ev.time.slice(3, 5), 10);
+      var total = hh * 60 + mm + ev.durationMin;
+      var eh = Math.floor((total / 60) % 24);
+      var em = total % 60;
+      end =
+        " ~ " +
+        (eh < 10 ? "0" + eh : eh) +
+        ":" +
+        (em < 10 ? "0" + em : em);
+    }
+    return __mockEventsFormatDateKo(ev.date) + " · " + ev.time + end;
+  }
+
+  function __mockEventsFormatRepeat(ev) {
+    // D-EVENTS-02 Revised: 반복은 weekly(요일 다중+시각) / monthly(일자+시각) / none 뿐.
+    // 편집·삭제 전까지 무기한이므로 종료 조건 표기 없음.
+    var r = ev.repeat || { mode: "none" };
+    if (!r || r.mode === "none") return "없음 (일회성)";
+    var WD = ["", "월", "화", "수", "목", "금", "토", "일"];
+    if (r.mode === "weekly") {
+      var days = (r.weekdays || []).slice().sort().map(function (d) { return WD[d] || d; }).join("·");
+      var t = r.time ? " " + r.time : "";
+      return "매주 " + (days || "-") + t + " · 편집·삭제 전까지 계속";
+    }
+    if (r.mode === "monthly") {
+      var m = /-(\d{2})$/.exec(ev.date || "");
+      var dom = m ? parseInt(m[1], 10) + "일" : "시작일";
+      var mt = r.time ? " " + r.time : "";
+      return "매월 " + dom + mt + " · 편집·삭제 전까지 계속";
+    }
+    return r.mode;
+  }
+
+  function __mockEventsFormatNotify(ev) {
+    var labels = { in_app: "in-app", discord: "Discord", kakao: "카카오(옵트인)" };
+    return (ev.notify || [])
+      .map(function (c) {
+        return labels[c] || c;
+      })
+      .join(" · ") || "없음";
+  }
+
+  function __mockEventsRenderDots() {
+    var grid = document.getElementById("mock-events-cal-grid");
+    if (!grid) return;
+    var cells = grid.querySelectorAll(".mock-events-cal-cell");
+    cells.forEach(function (cell) {
+      var existing = cell.querySelector(".mock-events-cal-dots");
+      if (existing) existing.remove();
+      cell.classList.remove("mock-events-cal-cell--has");
+      var d = cell.getAttribute("data-date");
+      if (!d) return;
+      var list = __mockEventsByDate(d);
+      if (!list.length) return;
+      cell.classList.add("mock-events-cal-cell--has");
+      var dots = document.createElement("div");
+      dots.className = "mock-events-cal-dots";
+      dots.title = list
+        .map(function (ev) {
+          return ev.time + " " + ev.title;
+        })
+        .join(" / ");
+      list.slice(0, 3).forEach(function (ev) {
+        var dot = document.createElement("span");
+        dot.className = "mock-events-cal-dot " + (ev.dotClass || "");
+        dots.appendChild(dot);
+      });
+      cell.appendChild(dots);
+    });
+  }
+
+  function __mockEventsRenderDaySlots(date) {
+    var container = document.getElementById("mock-events-day-slots");
+    var title = document.getElementById("mock-events-day-title");
+    var count = document.getElementById("mock-events-day-count");
+    if (!container || !title || !count) return;
+
+    if (!date) {
+      title.textContent = "날짜를 선택하세요";
+      count.textContent = "";
+      container.innerHTML =
+        '<p class="mock-events-day-empty">위 캘린더에서 날짜를 클릭하면 이 영역에 해당 날짜의 일정 슬롯이 표시됩니다.</p>';
+      return;
+    }
+
+    var list = __mockEventsByDate(date);
+    title.textContent = __mockEventsFormatDateKo(date) + " 일정";
+    count.textContent = list.length ? list.length + "건" : "0건";
+
+    if (!list.length) {
+      container.innerHTML =
+        '<p class="mock-events-day-empty">이 날짜에는 등록된 일정이 없습니다. 운영진+는 상단의 <strong>+ 일정 등록</strong> 버튼으로 추가할 수 있습니다.</p>';
+      return;
+    }
+
+    container.innerHTML = "";
+    list.forEach(function (ev) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "mock-events-slot";
+      btn.setAttribute("role", "listitem");
+      btn.setAttribute("data-event-id", ev.id);
+      btn.setAttribute("aria-label", ev.time + " " + ev.title);
+      btn.addEventListener("click", function () {
+        window.mockEventDrawerOpen(ev.id);
+      });
+
+      var time = document.createElement("div");
+      time.className = "mock-events-slot-time";
+      time.textContent = ev.time;
+
+      var body = document.createElement("div");
+      body.className = "mock-events-slot-body";
+      var titleEl = document.createElement("div");
+      titleEl.className = "mock-events-slot-title";
+      titleEl.textContent = ev.title;
+      var meta = document.createElement("div");
+      meta.className = "mock-events-slot-meta";
+      var metaParts = [ev.place];
+      if (ev.repeat && ev.repeat.mode !== "none") {
+        metaParts.push(
+          "반복 · " +
+            (ev.repeat.mode === "weekly"
+              ? "매주"
+              : ev.repeat.mode === "monthly"
+                ? "매월"
+                : ev.repeat.mode),
+        );
+      }
+      if (ev.source === "scrim_auto") metaParts.push("스크림 자동 등록");
+      meta.textContent = metaParts.filter(Boolean).join(" · ");
+      body.appendChild(titleEl);
+      body.appendChild(meta);
+
+      var right = document.createElement("div");
+      right.className = "mock-events-slot-right";
+      var kind = document.createElement("span");
+      var kindCls =
+        ev.kind === "internal"
+          ? "badge-brand"
+          : ev.kind === "scrim"
+          ? "badge-success"
+          : "badge-pro";
+      kind.className = "badge " + kindCls;
+      kind.style.fontSize = "11px";
+      kind.textContent = ev.kindLabel;
+      right.appendChild(kind);
+      // D-EVENTS-01 Supplemental: RSVP 배지는 스크림에서 참가 중일 때만 노출.
+      if (ev.kind === "scrim" && ev.rsvp === "going") {
+        var rsvp = document.createElement("span");
+        rsvp.className = "badge badge-success";
+        rsvp.style.fontSize = "10px";
+        rsvp.textContent = "참가 중";
+        right.appendChild(rsvp);
+      }
+
+      btn.appendChild(time);
+      btn.appendChild(body);
+      btn.appendChild(right);
+      container.appendChild(btn);
+    });
+  }
+
+  function __mockEventsSelectDate(date, cell) {
+    __mockEventsSelectedDate = date;
+    var grid = document.getElementById("mock-events-cal-grid");
+    if (grid) {
+      grid.querySelectorAll(".mock-events-cal-cell--selected").forEach(function (c) {
+        c.classList.remove("mock-events-cal-cell--selected");
+        c.setAttribute("aria-selected", "false");
+        c.setAttribute("tabindex", "-1");
+      });
+      var target = cell || grid.querySelector('[data-date="' + date + '"]');
+      if (target) {
+        target.classList.add("mock-events-cal-cell--selected");
+        target.setAttribute("aria-selected", "true");
+        target.setAttribute("tabindex", "0");
+      }
+    }
+    __mockEventsRenderDaySlots(date);
+  }
+
+  window.mockEventDrawerOpen = function (eventId) {
+    var ev = MOCK_EVENTS.find(function (e) {
+      return e.id === eventId;
+    });
+    if (!ev) return;
+    var drawer = document.getElementById("mock-event-drawer");
+    var overlay = document.getElementById("mock-event-drawer-overlay");
+    if (!drawer || !overlay) return;
+
+    drawer.setAttribute("data-event-id", ev.id);
+    var kindCls =
+      ev.kind === "internal"
+        ? "badge-brand"
+        : ev.kind === "scrim"
+        ? "badge-success"
+        : "badge-pro";
+    var kindEl = document.getElementById("mock-event-drawer-kind");
+    if (kindEl) {
+      kindEl.className = "badge " + kindCls;
+      kindEl.style.fontSize = "11px";
+      kindEl.textContent = ev.kindLabel;
+    }
+    var titleEl = document.getElementById("mock-event-drawer-title");
+    if (titleEl) titleEl.textContent = ev.title;
+    var subEl = document.getElementById("mock-event-drawer-sub");
+    if (subEl) subEl.textContent = __mockEventsFormatDateKo(ev.date);
+    var whenEl = document.getElementById("mock-event-drawer-when");
+    if (whenEl) whenEl.textContent = __mockEventsFormatWhen(ev);
+    var placeEl = document.getElementById("mock-event-drawer-place");
+    if (placeEl) placeEl.textContent = ev.place || "-";
+    var repeatEl = document.getElementById("mock-event-drawer-repeat");
+    if (repeatEl) repeatEl.textContent = __mockEventsFormatRepeat(ev);
+    var notifyEl = document.getElementById("mock-event-drawer-notify");
+    if (notifyEl) notifyEl.textContent = __mockEventsFormatNotify(ev);
+
+    // D-EVENTS-01: scrim_auto는 읽기 전용 — 편집/삭제 숨기고 배지 + 안내 노출
+    // D-EVENTS-01 Supplemental (2026-04-21):
+    //  · 편집/삭제는 운영진+ 전용 CSS (.mock-officer-only)로 이미 제어되지만, scrim_auto는 아예 렌더 안 함.
+    //  · 스크림 상세 열기 버튼도 운영진+ 전용 (마크업에 .mock-officer-only).
+    var srcBox = document.getElementById("mock-event-drawer-source");
+    var manualActs = document.getElementById("mock-event-drawer-manual-actions");
+    var readonlyNote = document.getElementById("mock-event-drawer-readonly-note");
+    if (ev.source === "scrim_auto") {
+      if (srcBox) srcBox.removeAttribute("hidden");
+      if (manualActs) manualActs.setAttribute("hidden", "");
+      if (readonlyNote) readonlyNote.removeAttribute("hidden");
+    } else {
+      if (srcBox) srcBox.setAttribute("hidden", "");
+      if (manualActs) manualActs.removeAttribute("hidden");
+      if (readonlyNote) readonlyNote.setAttribute("hidden", "");
+    }
+
+    // RSVP 섹션: 스크림(kind='scrim') 이벤트 전용. 내전·이벤트는 통째로 숨김.
+    var rsvpSection = document.getElementById("mock-event-drawer-rsvp");
+    if (rsvpSection) {
+      if (ev.kind === "scrim") {
+        rsvpSection.removeAttribute("hidden");
+        __mockEventDrawerRenderRsvp(ev);
+        __mockEventDrawerRenderAttendees(ev);
+      } else {
+        rsvpSection.setAttribute("hidden", "");
+      }
+    }
+
+    overlay.removeAttribute("hidden");
+    drawer.removeAttribute("hidden");
+    // 다음 프레임에 transform 적용 (슬라이드 인)
+    requestAnimationFrame(function () {
+      drawer.setAttribute("aria-hidden", "false");
+    });
+  };
+
+  /* 스크림 참가 버튼 · 상태 배지 동기화 (D-EVENTS-01 Supplemental) */
+  function __mockEventDrawerRenderRsvp(ev) {
+    var btn = document.getElementById("mock-event-drawer-rsvp-btn");
+    var state = document.getElementById("mock-event-drawer-rsvp-state");
+    var going = ev.rsvp === "going";
+    if (btn) {
+      btn.setAttribute("data-state", going ? "going" : "none");
+      btn.textContent = going ? "참가 취소" : "참가";
+      btn.className = going ? "btn btn-secondary btn-sm" : "btn btn-sm";
+      btn.setAttribute("aria-pressed", going ? "true" : "false");
+    }
+    if (state) {
+      state.textContent = going ? "참가 중" : "미참가";
+      state.className = "badge " + (going ? "badge-success" : "badge-muted");
+      state.style.fontSize = "11px";
+    }
+  }
+
+  /* 참석자 명단 렌더 (운영진+ 전용, 섹션은 CSS로 member 숨김) */
+  function __mockEventDrawerRenderAttendees(ev) {
+    var listEl = document.getElementById("mock-event-drawer-attendees-list");
+    var countEl = document.getElementById("mock-event-drawer-attendees-count");
+    var emptyEl = document.getElementById("mock-event-drawer-attendees-empty");
+    if (!listEl || !countEl || !emptyEl) return;
+    listEl.innerHTML = "";
+    var attendees = (ev.attendees || []).slice();
+    // 내(현재 사용자)가 참가 상태면 상단에 표식 추가
+    if (ev.rsvp === "going") {
+      var already = attendees.some(function (a) {
+        return a.nickname === MOCK_CURRENT_NICKNAME;
+      });
+      if (!already) {
+        attendees.unshift({ nickname: MOCK_CURRENT_NICKNAME, game: "-", me: true });
+      } else {
+        attendees = attendees.map(function (a) {
+          return a.nickname === MOCK_CURRENT_NICKNAME ? Object.assign({}, a, { me: true }) : a;
+        });
+      }
+    }
+    countEl.textContent = attendees.length + "명";
+    if (!attendees.length) {
+      emptyEl.removeAttribute("hidden");
+      return;
+    }
+    emptyEl.setAttribute("hidden", "");
+    attendees.forEach(function (a) {
+      var li = document.createElement("li");
+      var nick = document.createElement("span");
+      nick.className = "att-nick";
+      nick.textContent = a.nickname;
+      li.appendChild(nick);
+      if (a.game && a.game !== "-") {
+        var g = document.createElement("span");
+        g.className = "att-game";
+        g.textContent = "[" + a.game + "]";
+        li.appendChild(g);
+      }
+      if (a.me) {
+        var me = document.createElement("span");
+        me.className = "att-me";
+        me.textContent = "나";
+        li.appendChild(me);
+      }
+      listEl.appendChild(li);
+    });
+  }
+
+  window.mockEventDrawerClose = function () {
+    var drawer = document.getElementById("mock-event-drawer");
+    var overlay = document.getElementById("mock-event-drawer-overlay");
+    if (!drawer || !overlay) return;
+    drawer.setAttribute("aria-hidden", "true");
+    // transition 끝나고 hidden
+    setTimeout(function () {
+      drawer.setAttribute("hidden", "");
+      overlay.setAttribute("hidden", "");
+    }, 200);
+  };
+
+  /* D-EVENTS-01 Supplemental (2026-04-21): 스크림 참가 단일 토글
+     · 미참가(none) → "참가하시겠습니까?" confirm → going + 명단에 "나" 표식
+     · 참가중(going) → "참가를 취소하시겠습니까?" confirm → none + 명단에서 "나" 제거
+     · 내전·이벤트는 드로워 RSVP 섹션이 숨겨져 있어 이 함수는 호출되지 않음. */
+  window.mockEventDrawerRsvpToggle = function () {
+    var drawer = document.getElementById("mock-event-drawer");
+    if (!drawer) return;
+    var id = drawer.getAttribute("data-event-id");
+    var ev = MOCK_EVENTS.find(function (e) { return e.id === id; });
+    if (!ev || ev.kind !== "scrim") return;
+    var going = ev.rsvp === "going";
+    var msg = going
+      ? "이 스크림 참가를 취소하시겠습니까?"
+      : "이 스크림에 참가하시겠습니까?\n참가 명단에 인게임 닉네임이 노출됩니다.";
+    if (!window.confirm(msg)) return;
+    ev.rsvp = going ? "none" : "going";
+    __mockEventDrawerRenderRsvp(ev);
+    __mockEventDrawerRenderAttendees(ev);
+    if (__mockEventsSelectedDate === ev.date) {
+      __mockEventsRenderDaySlots(ev.date);
+    }
+  };
+
+  // 구 API(3버튼 `going|maybe|not_going`) 호환 — 단일 토글로 포워딩. 제거 대상.
+  window.mockEventDrawerRsvp = function (value) {
+    window.mockEventDrawerRsvpToggle();
+  };
+
+  window.mockEventDrawerOpenScrim = function () {
+    window.alert("목업: 스크림 상세 드로어로 이동합니다. (구현 시 메인 게임 허브 · 스크림 탭으로 라우팅)");
+  };
+  window.mockEventDrawerEdit = function () {
+    window.alert("목업: 일정 편집 모달을 엽니다.");
+  };
+  window.mockEventDrawerDelete = function () {
+    if (window.confirm("이 일정을 삭제할까요? (목업)")) {
+      window.mockEventDrawerClose();
+    }
+  };
+
+  function __mockEventsInitCalendar() {
+    var grid = document.getElementById("mock-events-cal-grid");
+    if (!grid) return;
+    __mockEventsRenderDots();
+
+    grid.querySelectorAll(".mock-events-cal-cell[data-date]").forEach(function (cell) {
+      cell.setAttribute("aria-selected", "false");
+      cell.addEventListener("click", function () {
+        __mockEventsSelectDate(cell.getAttribute("data-date"), cell);
+      });
+      cell.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          __mockEventsSelectDate(cell.getAttribute("data-date"), cell);
+        }
+      });
+    });
+
+    // 기본 선택: 가장 이른 일정이 있는 날짜, 없으면 아무것도 선택하지 않음
+    var first = MOCK_EVENTS.slice().sort(function (a, b) {
+      return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
+    })[0];
+    if (first) {
+      var target = grid.querySelector('[data-date="' + first.date + '"]');
+      if (target) __mockEventsSelectDate(first.date, target);
+    }
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    var drawer = document.getElementById("mock-event-drawer");
+    if (drawer && drawer.getAttribute("aria-hidden") === "false") {
+      window.mockEventDrawerClose();
+    }
+  });
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", __mockEventsInitCalendar);
+  } else {
+    __mockEventsInitCalendar();
+  }
 })();
