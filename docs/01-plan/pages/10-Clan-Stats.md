@@ -118,17 +118,18 @@ H1 "클랜 통계"
    - **로스터** (블루·레드 멤버 수정, optional)
    - **맵** (드롭다운, optional)
    - **자유 사유** (필수, max 500자)
-3. 제출 → `match_record_correction_requests` INSERT → `correct_match_records` 권한 보유자 전원에게 in-app 알림(D-NOTIF-01 후속 결정)
+3. 제출 → `match_record_correction_requests` INSERT → AFTER INSERT 트리거가 `correct_match_records` 권한 보유자 전원의 `notifications`에 `kind='match_correction_requested'` 피드 생성(D-NOTIF-01 통합 센터, DECIDED 2026-04-21)
 4. 같은 경기에 active 요청 1건만 가능(부분 UNIQUE) — 기존 요청 처리 전엔 추가 요청 차단
 5. 7일 내 미처리 시 자동 expire → 재요청 가능
 
 **운영진 처리 흐름**
 
-1. 알림 → 요청 상세 진입
+1. 네비게이션바 알림 벨(D-NOTIF-01) 또는 클랜 관리 메뉴에서 요청 상세 진입
 2. "정정 적용" 클릭 → 운영진이 새 값을 직접 입력 → 저장
    - **자동 적용 X** — 요청 내용은 참고 자료, 실제 데이터 변경은 운영진 손을 거침
    - 저장 시점에 `match_record_history` INSERT (before/after 자동 기록, `source='request'`, `request_id` 연결)
-3. "반려" 클릭 → 반려 사유 입력 → 요청자에게 알림
+   - `match_record_correction_requests.status = 'accepted'` UPDATE → AFTER UPDATE 트리거가 요청자 본인에게 `kind='match_correction_accepted'` 피드 생성(D-NOTIF-01)
+3. "반려" 클릭 → 반려 사유 입력 → `status='rejected'` UPDATE → 트리거가 요청자에게 `kind='match_correction_rejected'` 피드 생성(payload에 반려 사유 포함)
 
 **직접 정정 (권한 보유자)**
 
@@ -229,7 +230,7 @@ H1 "클랜 통계"
 - **D-STATS-02 (DECIDED 2026-04-21)** 경기 사후 정정 + 정정 요청 모달 + 이력 보존
 - **D-STATS-03 (DECIDED 2026-04-21)** "앱 이용 횟수" = 활동일(person-day) — `clan_daily_member_activity`
 - **D-STATS-04 (DECIDED 2026-04-21)** CSV 내보내기 → `export_csv` 키 (Phase 2+ UI 보류)
-- **D-NOTIF-01 (OPEN, 후속)** 운영진 알림 센터 — 정정 요청 알림 통합 처리, 다음 묶음
+- **D-NOTIF-01 (DECIDED 2026-04-21)** in-app 알림 센터 통합 — 정정 요청 접수/수락/거절/만료 4슬롯이 네비 벨 드로워로 집결 ([decisions.md §D-NOTIF-01](../decisions.md#d-notif-01--in-app-알림-센터-통합-도입))
 - (보강) Premium 한정 통계 카드 추가 여부
 
 ## 구현 참고 (개발자용)
