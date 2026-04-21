@@ -2200,6 +2200,45 @@ let lfgPosts = [
   { id:12, name:'윤아린',  clan:'없음',           bg:'linear-gradient(135deg,#06b6d4,#0ea5e9)', online:true,  mode:'빠른대전', format:'6vs6', slots:3, tiers:['골드'],           positions:['딜러','힐러'],   startTime:19, expires:3, micRequired:false, desc:'골드↑ 빠대 같이 할 사람! 부캐도 ok' },
 ], lfgNextId = 13;
 
+/* ─── D-LFG-01: 신청 상태 시뮬레이션 (sessionStorage) ──────
+   본인이 보낸 신청 상태(applied/accepted/rejected/canceled)를 sessionStorage에 보관.
+   페이지 새로고침 시까지 유지. 운영 시 lfg_applications 테이블로 대체.
+*/
+const LFG_APPS_KEY = 'clansync-mock-lfg-apps-v1';
+function lfgAppsRead() {
+  try {
+    const raw = sessionStorage.getItem(LFG_APPS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+function lfgAppsWrite(map) {
+  try { sessionStorage.setItem(LFG_APPS_KEY, JSON.stringify(map)); } catch {}
+}
+function lfgAppGet(postId) {
+  return lfgAppsRead()[String(postId)] || null;
+}
+function lfgAppSet(postId, status) {
+  const m = lfgAppsRead();
+  m[String(postId)] = { status, at: Date.now() };
+  lfgAppsWrite(m);
+}
+function lfgAppDelete(postId) {
+  const m = lfgAppsRead();
+  delete m[String(postId)];
+  lfgAppsWrite(m);
+}
+function lfgAppCount() {
+  const m = lfgAppsRead();
+  let n = 0;
+  Object.values(m).forEach(v => { if (v && v.status === 'applied') n++; });
+  return n;
+}
+const LFG_STATUS_BADGE = {
+  applied:  { label: '신청됨', bg: 'rgba(59,130,246,.18)', fg: '#60a5fa', ring: '#3b82f6' },
+  accepted: { label: '수락됨', bg: 'rgba(34,197,94,.18)',  fg: '#4ade80', ring: '#22c55e' },
+  rejected: { label: '거절됨', bg: 'rgba(148,163,184,.18)', fg: '#94a3b8', ring: '#64748b' },
+};
+
 /* ─── LFG 유틸 ─── */
 function selLfgChip(gid, el) {
   document.querySelectorAll(`#${gid} .lfg-chip`).forEach(c => c.classList.remove('on'));
@@ -2300,10 +2339,19 @@ function submitLfgPost() {
   lfgPage = 1; renderLfg(); renderHomeLfg();
 }
 
-/* ─── 참여 신청 모달 ─── */
+/* ─── 참여 신청 모달 (D-LFG-01) ─── */
 let _lfgApplyTargetName = '';
-function openLfgApplyModal(name) {
+let _lfgApplyTargetPostId = null;
+function openLfgApplyModal(name, postId) {
   _lfgApplyTargetName = name;
+  _lfgApplyTargetPostId = postId != null ? postId : null;
+  if (_lfgApplyTargetPostId != null) {
+    const existing = lfgAppGet(_lfgApplyTargetPostId);
+    if (existing && existing.status === 'applied') {
+      alert('이미 신청한 모집입니다. 드로어에서 신청 취소 후 다시 신청해 주세요. (D-LFG-01)');
+      return;
+    }
+  }
   document.getElementById('applyModalTitle').textContent = name + '님에게 참여 신청';
   ['apTier','apRole','apMic'].forEach(gid => {
     document.querySelectorAll(`#${gid} .lfg-chip`).forEach((c,i) => c.classList.toggle('on', i===0));
@@ -2312,9 +2360,22 @@ function openLfgApplyModal(name) {
 }
 function closeLfgApplyModal() { document.getElementById('lfgApplyModal').style.display = 'none'; }
 function submitLfgApply() {
+  if (_lfgApplyTargetPostId != null) {
+    lfgAppSet(_lfgApplyTargetPostId, 'applied');
+  }
   closeLfgApplyModal();
   closeLfgDrawer();
-  alert(`${_lfgApplyTargetName}님께 참여 신청이 완료되었습니다!`);
+  renderLfg();
+  renderHomeLfg();
+  alert(`${_lfgApplyTargetName}님께 참여 신청이 완료되었습니다! (상태: 신청됨)`);
+}
+function cancelLfgApply(postId) {
+  if (postId == null) return;
+  if (!confirm('참여 신청을 취소하시겠습니까?')) return;
+  lfgAppDelete(postId);
+  closeLfgDrawer();
+  renderLfg();
+  renderHomeLfg();
 }
 
 function removeLfg(id) { lfgPosts = lfgPosts.filter(p => p.id !== id); renderLfg(); renderHomeLfg(); }
@@ -2324,6 +2385,11 @@ function lfgCard(p) {
   const posLabel = (p.positions||[]).length ? p.positions.join(' · ') : '올포지';
   const tagRow   = (label, val) =>
     `<div class="promo-tag-row"><span class="promo-tag-label">${label}</span><span class="promo-tag">${val}</span></div>`;
+  const myApp = p.mine ? null : lfgAppGet(p.id);
+  const showBadge = myApp && LFG_STATUS_BADGE[myApp.status];
+  const statusBadge = showBadge
+    ? `<span class="lfg-app-badge" style="font-size:10px;padding:2px 7px;border-radius:99px;background:${showBadge.bg};color:${showBadge.fg};border:1px solid ${showBadge.ring};font-weight:700">${showBadge.label}</span>`
+    : '';
   return `<div class="lfg-card" onclick="${p.mine ? '' : `openLfgDrawer(${p.id})`}" style="${p.mine?'cursor:default':''}">
     <div class="lfg-card-body">
       <!-- 왼쪽: 아바타 + 이름 + 소개 -->
@@ -2336,6 +2402,7 @@ function lfgCard(p) {
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
             <span style="font-size:13px;font-weight:700;white-space:nowrap">${p.name}${p.mine?' <span style="font-size:10px;color:var(--brand-primary);font-weight:500">(내 모집)</span>':''}</span>
             <span class="lfg-tag lfg-tag-mode" style="font-size:11px">${posLabel}</span>
+            ${statusBadge}
           </div>
           <div style="font-size:12px;color:var(--text-secondary);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${p.desc || '소개가 없습니다.'}</div>
         </div>
@@ -2971,7 +3038,6 @@ function renderPromos() {
     return true;
   });
   if (promoSort === 'newest')  list = [...list].sort((a,b) => a.days - b.days);
-  if (promoSort === 'popular') list = [...list].sort((a,b) => b.views - a.views);
   if (promoSort === 'space')   list = [...list].sort((a,b) => (a.max-a.now) - (b.max-b.now));
   const pinned = list.filter(p => p.pinned), rest = list.filter(p => !p.pinned);
   list = [...pinned, ...rest];
@@ -3378,9 +3444,26 @@ function openLfgDrawer(id) {
     descWrap.style.display = 'none';
   }
 
-  document.getElementById('ldFooter').innerHTML = p.mine
-    ? `<button class="btn btn-secondary w-full" style="padding:13px;font-size:15px" onclick="removeLfg(${p.id});closeLfgDrawer()">모집 취소</button>`
-    : `<button class="btn btn-primary w-full" style="padding:13px;font-size:15px" onclick="openLfgApplyModal('${p.name}')">참여 신청하기 →</button>`;
+  let footerHtml;
+  if (p.mine) {
+    footerHtml = `<button class="btn btn-secondary w-full" style="padding:13px;font-size:15px" onclick="removeLfg(${p.id});closeLfgDrawer()">모집 취소</button>`;
+  } else {
+    const app = lfgAppGet(p.id);
+    if (app && app.status === 'applied') {
+      footerHtml = `
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:12px;color:#60a5fa;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.35);border-radius:var(--radius-md);padding:10px 12px;line-height:1.5">참여 신청 접수됨 · 모집자 응답 대기 중 (D-LFG-01)</div>
+          <button class="btn btn-secondary w-full" style="padding:13px;font-size:15px" onclick="cancelLfgApply(${p.id})">신청 취소</button>
+        </div>`;
+    } else if (app && app.status === 'accepted') {
+      footerHtml = `<div style="font-size:13px;color:#4ade80;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.35);border-radius:var(--radius-md);padding:13px;text-align:center;line-height:1.5">수락되었습니다! 모집자에게 직접 연락해 주세요.</div>`;
+    } else if (app && app.status === 'rejected') {
+      footerHtml = `<div style="font-size:13px;color:#94a3b8;background:rgba(148,163,184,.12);border:1px solid rgba(148,163,184,.35);border-radius:var(--radius-md);padding:13px;text-align:center;line-height:1.5">이번에는 거절되었습니다. 다른 모집을 찾아보세요.</div>`;
+    } else {
+      footerHtml = `<button class="btn btn-primary w-full" style="padding:13px;font-size:15px" onclick="openLfgApplyModal('${p.name}', ${p.id})">참여 신청하기 →</button>`;
+    }
+  }
+  document.getElementById('ldFooter').innerHTML = footerHtml;
 
   document.getElementById('lfgDrawerOverlay').classList.add('open');
   document.getElementById('lfgDrawer').classList.add('open');
@@ -3586,6 +3669,24 @@ let _scrimChatOpponentName = null;
 let _scrimChatInterval = null;
 /** 스크림 id별 양측 운영진 참가 확정 여부 */
 const scrimJoinState = {};
+/** D-SCRIM-02: 일정·모드·티어 변경 시 confirmation 자동 무효화 (해당 스크림에 매달린 모든 채팅방 join key 리셋) */
+function scrimInvalidateConfirmations(s, reason) {
+  if (!s) return false;
+  const prefix = `${s.id}@`;
+  let hadAny = false;
+  Object.keys(scrimJoinState).forEach(k => {
+    if (!k.startsWith(prefix)) return;
+    const st = scrimJoinState[k];
+    if (st && (st.host || st.guest)) hadAny = true;
+    scrimJoinState[k] = { host: false, guest: false };
+  });
+  if (s.status === '모집 완료') {
+    s.status = '모집 중';
+    s.vsOpponent = null;
+  }
+  if (_scrimChatId === s.id) renderScrimChatJoinUI(s);
+  return hadAny;
+}
 /** 채팅·참가 확정 버튼: 상대 클랜 표시명 (성사 전에는 opponentClanName, 성사 후 vsOpponent) */
 function scrimGuestClanName(s) {
   if (s.vsOpponent) return s.vsOpponent;
@@ -3855,7 +3956,7 @@ function openScrimChatSession(s, opponentClanName) {
   if (s.status === '모집 완료' && s.vsOpponent) title = `${s.name} vs ${s.vsOpponent}`;
   document.getElementById('scrimChatTitle').textContent = title;
   document.getElementById('scrimChatSubtitle').textContent =
-    '이 방은 선택한 상대 클랜 운영진과만 보이는 1:1 채팅방입니다.';
+    '이 방은 선택한 상대 클랜 운영진과만 보이는 1:1 채팅방입니다. · 채팅방은 경기 시작 +6시간(또는 취소 +1시간 / 종료 +24시간) 후 자동 닫힙니다. (D-SCRIM-01)';
   document.getElementById('scrimChatSessionWrap').style.display = '';
   startScrimChatSessionTimer(s);
   renderScrimChatJoinUI(s);
@@ -3980,6 +4081,8 @@ function submitScrimApply() {
       alert('수정 권한이 없거나 이미 성사된 모집입니다.');
       return;
     }
+    const prevSig = `${s.dayOffset}|${s.hour}|${s.minute ?? 0}|${s.mode}|${s.tierMin}|${s.tierMax}`;
+    const nextSig = `${dayOffset}|${th}|${tm || 0}|${mode}|${Math.min(tiLo, tiHi)}|${Math.max(tiLo, tiHi)}`;
     s.dayOffset = dayOffset;
     s.hour = th;
     s.minute = tm || 0;
@@ -3992,6 +4095,12 @@ function submitScrimApply() {
     s.desc = note || s.desc;
     s.applyRankLo = lo;
     s.applyRankHi = hi;
+    if (prevSig !== nextSig) {
+      const invalidated = scrimInvalidateConfirmations(s, 'edit');
+      if (invalidated) {
+        alert('일정·모드·티어 중 하나가 변경되어 양측 확정이 자동 무효화되었습니다.\n양측 운영진 모두 다시 “확정”을 눌러야 스크림이 성사됩니다. (D-SCRIM-02)');
+      }
+    }
     closeScrimApplyModal();
     scrimSelectedDateKey = scrimDateKeyFromDate(scrimComputeStart(s));
     renderScrims();
