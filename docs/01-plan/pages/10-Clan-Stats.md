@@ -146,8 +146,15 @@ H1 "클랜 통계"
 > 사이드바 라벨은 "앱 이용". 코드 식별자는 `rankmap` (역사적 명칭).
 
 ### 영역 1: 연도별 월별 앱 이용 횟수
+> **D-STATS-03 (DECIDED 2026-04-21)** — 측정 단위 = **활동일(person-day)**. 멤버가 자기 클랜 페이지(`/clan/[clan_id]/...`)에 첫 페이지뷰를 기록한 날 = 1. 같은 날 추가 접속·새로고침은 카운트되지 않음(DAY UNIQUE). 클랜 `timezone` 자정 경계. [decisions.md §D-STATS-03](../decisions.md#d-stats-03--앱-이용-횟수-측정-단위--활동일-person-day) · [schema.md §clan_daily_member_activity](../schema.md).
+
 - 표: 연도(행) × 1~12월(열) + 연간 합계.
+- 셀 값 = 그 달/연의 person-day 합 (예: "이번 달 240회 = 멤버들이 합쳐 240번의 활동일을 보냄").
+- 영역 2(distinct 멤버 수)와 짝을 이뤄 **도달 × 참여**의 두 면을 동시에 보여줌.
 - 미래 월은 `—` (집계 전).
+- 활동일 카운트 라우트: `/clan/[clan_id]`·`/clan/[clan_id]/manage`·`/clan/[clan_id]/stats`·`/clan/[clan_id]/events`·`/clan/[clan_id]/promo` 등 클랜 컨텍스트 라우트군. 메인 게임 허브·프로필·다른 클랜 탐색은 미반영.
+- 노이즈 가드: HTTP `Sec-Fetch-Dest=prefetch` / `Purpose=prefetch` 헤더 요청 + 봇 User-Agent + 비인증 요청 모두 카운트 제외.
+- 외부 노출: **금지** (D-ECON-03 — 다른 클랜·비멤버에게 노출하지 않음).
 - 각주: "**CSV 내보내기**는 권한 키 `export_csv` 보유자만(D-PERM-01 흡수, 기본 leader, 토글로 officer 허용). 실제 CSV 생성·기간 필터 UI는 Phase 2+ 도입 — Phase 1은 권한 카탈로그 등록만." [decisions.md §D-STATS-04](../decisions.md#d-stats-04--csv-내보내기-d-perm-01-흡수--phase-2-구현-보류)
 
 ### 영역 2: 내전 순 참여 인원
@@ -160,7 +167,7 @@ H1 "클랜 통계"
 - 서브탭: 월간 / 연간.
 
 ### 결정 현황
-- **D-STATS-03 (OPEN)** "앱 이용 횟수" 정의 (세션 / 페이지뷰 / 액션) 확정 — 다음 묶음에서 처리
+- **D-STATS-03 (DECIDED 2026-04-21)** "앱 이용 횟수" = 활동일(person-day, DAU 합산) — `clan_daily_member_activity` 테이블, DAY UNIQUE, 자기 클랜 라우트 첫 페이지뷰 트리거
 - **D-STATS-04 (DECIDED 2026-04-21)** CSV 내보내기 → D-PERM-01 권한 키 `export_csv`로 흡수, 실제 UI는 Phase 2+ 보류
 
 ## 모달
@@ -205,8 +212,9 @@ H1 "클랜 통계"
 - 일자 선택 시 그날의 경기 묶음 + 승률 순위 응답.
 
 ### 앱 이용 (rankmap)
-- 출처: 사용자 활동 로그 (정의 D-STATS-03).
-- 클랜 단위 합산.
+- 출처: `clan_daily_member_activity` (D-STATS-03 — 활동일/person-day, DAY UNIQUE, 자기 클랜 라우트 첫 페이지뷰 트리거).
+- 영역 1(person_days) · 영역 2(active_members) 동시 산출 = `clan_monthly_activity` MV.
+- 영역 3(내전 경기 수)은 `matches` 별도 집계.
 
 ## 목업과 실제 구현의 차이
 - 모든 수치는 정적 / `MOCK_*` 데이터 기반.
@@ -219,7 +227,7 @@ H1 "클랜 통계"
 - **D-PERM-01 (DECIDED 2026-04-21)** 클랜 권한 매트릭스 모델 — 본 페이지의 모든 권한이 매트릭스에 흡수됨
 - **D-STATS-01 (DECIDED 2026-04-21)** HoF 설정 권한 → `set_hof_rules` 키
 - **D-STATS-02 (DECIDED 2026-04-21)** 경기 사후 정정 + 정정 요청 모달 + 이력 보존
-- **D-STATS-03 (OPEN)** "앱 이용 횟수" 측정 단위 — 다음 묶음에서 처리
+- **D-STATS-03 (DECIDED 2026-04-21)** "앱 이용 횟수" = 활동일(person-day) — `clan_daily_member_activity`
 - **D-STATS-04 (DECIDED 2026-04-21)** CSV 내보내기 → `export_csv` 키 (Phase 2+ UI 보류)
 - **D-NOTIF-01 (OPEN, 후속)** 운영진 알림 센터 — 정정 요청 알림 통합 처리, 다음 묶음
 - (보강) Premium 한정 통계 카드 추가 여부
@@ -241,6 +249,6 @@ H1 "클랜 통계"
 - [schema.md](../schema.md) (`matches`, `match_players`, `match_results`)
 - [07-MainClan.md](./07-MainClan.md) (셸 + MVP 카드의 통계 출처)
 - [09-BalanceMaker.md](./09-BalanceMaker.md) (경기 결과 입력의 출처)
-- [decisions.md §D-PERM-01](../decisions.md#d-perm-01--클랜-권한-매트릭스-모델-도입) · [§D-STATS-01](../decisions.md#d-stats-01--hof-설정-권한-d-perm-01-흡수) · [§D-STATS-02](../decisions.md#d-stats-02--경기-사후-정정-요청-모달과-이력-보존) · [§D-STATS-04](../decisions.md#d-stats-04--csv-내보내기-d-perm-01-흡수--phase-2-구현-보류)
-- [schema.md §clan_settings](../schema.md) (`permissions jsonb`) · `match_record_correction_requests` · `match_record_history`
+- [decisions.md §D-PERM-01](../decisions.md#d-perm-01--클랜-권한-매트릭스-모델-도입) · [§D-STATS-01](../decisions.md#d-stats-01--hof-설정-권한-d-perm-01-흡수) · [§D-STATS-02](../decisions.md#d-stats-02--경기-사후-정정-요청-모달과-이력-보존) · [§D-STATS-03](../decisions.md#d-stats-03--앱-이용-횟수-측정-단위--활동일-person-day) · [§D-STATS-04](../decisions.md#d-stats-04--csv-내보내기-d-perm-01-흡수--phase-2-구현-보류)
+- [schema.md §clan_settings](../schema.md) (`permissions jsonb`) · `match_record_correction_requests` · `match_record_history` · `clan_daily_member_activity`
 - [gating-matrix.md](../gating-matrix.md) §5

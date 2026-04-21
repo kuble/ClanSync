@@ -110,7 +110,7 @@
 |------|------|------|------|
 | D-STATS-01 | DECIDED (2026-04-21) → D-PERM-01 흡수 | HoF 설정 권한 (운영진+ 전체 vs 클랜장 전용) | 권한 키 `set_hof_rules`로 등록. 기본 leader만(✓/✗/✗), 클랜 토글로 officer 허용 가능. [§D-STATS-01](#d-stats-01--hof-설정-권한-d-perm-01-흡수) |
 | D-STATS-02 | DECIDED (2026-04-21) | 경기 기록의 사후 정정 권한·이력 보존 정책 | 직접 정정 권한은 `correct_match_records`(기본 leader, officer 허용 토글). 일반 멤버는 **정정 요청 모달**로 운영진에게 요청 (`view_match_records` 권한 보유자에 한함, 7일 만료, 결과/로스터/맵 + 자유 사유). 신설 테이블 `match_record_correction_requests` + `match_record_history`(before/after 자동 기록). 운영진 수동 정정 — 자동 적용 X. [§D-STATS-02](#d-stats-02--경기-사후-정정-요청-모달과-이력-보존) |
-| D-STATS-03 | OPEN | "앱 이용 횟수" 측정 단위 정의 (세션 / 페이지뷰 / 액션) | 목업 카피 "정의는 구현 시 확정" |
+| D-STATS-03 | DECIDED (2026-04-21) | "앱 이용 횟수" 측정 단위 정의 (세션 / 페이지뷰 / 액션) | **활동일 (person-day, DAU 합산)** — 멤버가 자기 클랜 페이지에 첫 페이지뷰를 기록한 날 = 1. `clan_daily_member_activity(clan_id, user_id, activity_date)` UNIQUE. 영역 1(누적 활동일) ↔ 영역 2(distinct 멤버) ↔ 영역 3(내전 경기 수)이 도달·참여·결과 3축 보완. 열람: 멤버 전체. 외부 노출: D-ECON-03 차단 유지. [§D-STATS-03](#d-stats-03--앱-이용-횟수-측정-단위--활동일-person-day) |
 | D-STATS-04 | DECIDED (2026-04-21) → D-PERM-01 흡수 | CSV 내보내기·기간 필터 도입 여부 | CSV 내보내기는 권한 키 `export_csv`(기본 leader, officer 허용 토글)로 등록. 실제 CSV 생성·기간 필터 UI 구현은 **Phase 2+** 보류 — Phase 1은 권한 카탈로그 등록만. [§D-STATS-04](#d-stats-04--csv-내보내기-d-perm-01-흡수--phase-2-구현-보류) |
 
 ## 경제 · 코인 (ECON)
@@ -2659,6 +2659,129 @@ CREATE INDEX match_history_by_match ON match_record_history (match_id, changed_a
 - [D-PERM-01](#d-perm-01--클랜-권한-매트릭스-모델-도입) — 권한 키 `correct_match_records`, `view_match_records`
 - [pages/10-Clan-Stats.md §탭 3 — 경기 기록](./pages/10-Clan-Stats.md)
 - [schema.md](./schema.md) — `match_record_correction_requests` · `match_record_history` 신설
+
+---
+
+### D-STATS-03 — "앱 이용 횟수" 측정 단위 = 활동일 (person-day)
+
+- **결정일**: 2026-04-21 (사용자 컨펌)
+- **요지**: 탭 4 "앱 이용" §영역 1의 "연도×월 앱 이용 횟수"를 **활동일(person-day)** 로 정의한다. 멤버가 **자기 클랜 페이지에 첫 페이지뷰**를 기록한 날 = 1. 같은 날 추가 접속·새로고침은 카운트되지 않는다(DAY UNIQUE). 월 합계 = 그 달의 모든 멤버의 활동일 합.
+
+**핵심 정의 표**
+
+| 항목 | 값 |
+|------|-----|
+| **단위** | person-day (멤버 1명이 하루에 1번 활동 = 1) |
+| **트리거** | 자기 클랜 페이지(클랜 메인·관리·통계·이벤트 등 `/clan/[clan_id]/...` 라우트군)에서의 **첫 페이지뷰** |
+| **카운트 컨텍스트** | **자기 클랜 페이지 진입 시에만** 카운트. 다른 클랜 탐색·메인 게임 허브·프로필 등은 본 클랜 통계에 미반영 |
+| **시간대** | 클랜 `clans.timezone`(없으면 `Asia/Seoul`) 기준 자정 경계 |
+| **열람 권한** | 멤버 전체 (영역 2·3과 동일) |
+| **외부 노출** | D-ECON-03 차단 — 다른 클랜이 우리 클랜 활동일 수치를 보지 못함. 클랜 순위표·검색 등에 노출 금지 |
+
+**왜 활동일인가 (옵션 A 선택 사유)**
+
+1. **3개 영역의 자연스러운 보완**: 영역 1(누적 활동일=도달) ↔ 영역 2(distinct 멤버=참여) ↔ 영역 3(내전 경기 수=결과) — 3축이 한 화면에서 의미 있게 읽힌다.
+2. **DAY UNIQUE 가드** = 새벽 새로고침·매크로·프리페치 스팸을 자동 차단.
+3. **운영 지표로 직관적**: "이번 달 활동일 240회 / 활성 멤버 35명 / 내전 18경기" 한 줄로 클랜 건강도 파악 가능.
+4. **D-ECON-03(외부 경쟁 지표 차단) 부합**: person-day 합산은 외부 순위로 가공되기 어려운 **내부 운영 척도**.
+
+**선택되지 않은 옵션 (참고)**
+
+- 옵션 B (의미 있는 액션 카운트) — 액션 목록·가중치 정의가 끝없이 늘어남. 후속 카드(액션별 분석)로 별도 도입 가능.
+- 옵션 C (페이지뷰) — 새로고침·라우팅에 부풀려져 "활성도"가 아닌 "엔게이지먼트 노이즈"가 됨.
+- 옵션 D (세션) — 30분 임계값의 임의성, 다중 디바이스 분기 혼란.
+
+**트리거 = 첫 페이지뷰 (사용자 선택)**
+
+- **장점**: 가벼움. 별도 액션 정의·가중치 협의 불필요. 클라이언트에서 라우터 진입 시 바로 INSERT.
+- **노이즈 방어 (Phase 2+ 구현 시 필수)**:
+  - `robots.txt` 차단된 경로 + User-Agent 봇 필터.
+  - HTTP `Sec-Fetch-Dest=prefetch` / `Purpose=prefetch` 헤더 가진 요청 제외.
+  - 인증된 세션의 첫 GET만 (비인증·preflight 제외).
+  - 본인이 자기 클랜의 멤버일 것 (`clan_members WHERE status='active'` 검증).
+- **첫 의미 있는 인터랙션(옵션 b) 미선택 사유**: 클라이언트 액션 정의 부담 + "이게 왜 1?" 디버깅 비용. 노이즈는 헤더·인증 가드로 충분히 방어 가능하다는 판단.
+
+**스토리지 모델**
+
+```sql
+CREATE TABLE clan_daily_member_activity (
+  clan_id        uuid NOT NULL REFERENCES clans(id) ON DELETE CASCADE,
+  user_id        uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  activity_date  date NOT NULL,
+  first_seen_at  timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (clan_id, user_id, activity_date)
+);
+
+CREATE INDEX clan_dma_by_clan_date
+  ON clan_daily_member_activity (clan_id, activity_date DESC);
+```
+
+- INSERT-only (UPDATE/DELETE RLS 차단).
+- 멱등 INSERT: `INSERT ... ON CONFLICT (clan_id, user_id, activity_date) DO NOTHING` — 같은 날 중복 진입은 silently 무시.
+- 7일·30일 통계는 `WHERE activity_date >= now()::date - 7` 같은 윈도우 쿼리로 즉시 산출.
+
+**RLS**
+
+- SELECT: 같은 클랜 활성 멤버 전원 (영역 2·3과 동일 정책).
+- INSERT: 본인이 해당 클랜의 활성 멤버일 때만, `activity_date = current_date AT TIME ZONE clans.timezone`로 강제. 과거 날짜·미래 날짜·타 클랜 INSERT 차단.
+- UPDATE/DELETE: 전면 차단 (서비스 롤도 GC 외엔 만지지 않음).
+- 멤버가 클랜에서 탈퇴해도 기존 행 보존 — 과거 통계의 진실성 유지. 영구 삭제는 사용자 계정 삭제(GDPR)에서만.
+
+**집계 뷰 (Phase 2+)**
+
+```sql
+CREATE MATERIALIZED VIEW clan_monthly_activity AS
+SELECT
+  clan_id,
+  date_trunc('month', activity_date)::date AS month,
+  COUNT(*) AS person_days,
+  COUNT(DISTINCT user_id) AS active_members
+FROM clan_daily_member_activity
+GROUP BY 1, 2;
+
+-- 매일 새벽 1회 REFRESH (cron)
+```
+
+- 영역 1 표 = `person_days`, 영역 2 막대 = `active_members`. 같은 MV 한 줄로 두 영역이 동시 산출됨 — 일관성 강화.
+- 연간 집계 = 월간 집계의 SUM (활동일은 합산 가능, distinct 멤버는 별도 연도 윈도우 필요).
+
+**연도 vs 월 집계의 미묘한 점**
+
+- **활동일(영역 1)**: 월 person_day 합산이 곧 연간 합산. 합 가능.
+- **distinct 멤버(영역 2)**: 월 active_members의 단순 합 ≠ 연 active_members. 연간은 별도 `COUNT(DISTINCT user_id) WHERE activity_date BETWEEN ...`. → MV에 `clan_yearly_activity`도 별도 만들 것.
+
+**카운트 컨텍스트 = "자기 클랜 페이지 진입" 정의**
+
+- 포함 라우트 (Phase 2+ 확정): `/clan/[clan_id]`, `/clan/[clan_id]/manage`, `/clan/[clan_id]/stats`, `/clan/[clan_id]/events`, `/clan/[clan_id]/promo` 등 클랜 컨텍스트 파라미터를 가진 모든 라우트.
+- 제외: `/main-game` 허브, `/profile`, `/balance` 등 클랜 비종속 라우트, 공개 클랜 프로필 (다른 클랜 탐색).
+- 다중 클랜 멤버(향후 가능성): 각 클랜별로 독립 카운트. 멤버가 같은 날 두 클랜에 들어가면 두 클랜 모두 +1.
+
+**Phase 1 목업 영향**
+
+- 통계 카드 자체는 정적 마크업 유지(영역 1/2/3 모두 더미 숫자). 백엔드 집계 로직은 Phase 2+에서 구현.
+- §탭 4 영역 1 카피를 "정의는 구현 시 확정" → "**활동일(person-day): 자기 클랜 페이지 진입 시 1회/일 카운트**"로 갱신.
+- 사이드바·페이지 라벨 "앱 이용"은 그대로 유지 (코드 식별자 `rankmap`도 유지 — 역사적 명칭).
+
+**열람 권한과 D-PERM-01 관계**
+
+- 영역 1/2/3 모두 **모든 클랜 멤버 열람**. D-PERM-01 권한 키 신설 불필요 (별도 토글 없음).
+- 단, **CSV 내보내기**는 D-STATS-04 흡수의 `export_csv` 권한 키로 별도 가드 (Phase 2+ 구현 시).
+- 외부 클랜·비멤버에게는 노출 금지 (D-ECON-03).
+
+**Phase 2+ 작업 백로그**
+
+1. `clan_daily_member_activity` 테이블 + RLS + INSERT 멱등 RPC 구현.
+2. 클랜 라우트 진입 미들웨어/서버 컴포넌트에서 RPC 1회 호출 (인증·prefetch 헤더 가드 포함).
+3. `clan_monthly_activity` · `clan_yearly_activity` MV + cron 새벽 REFRESH.
+4. 통계 페이지에서 MV 조회 → 영역 1·2 동시 렌더.
+5. (옵션 B 후속) "의미 있는 액션" 카드 — 별도 결정 D-STATS-05 후보.
+
+**연관**
+
+- [pages/10-Clan-Stats.md §탭 4 — 앱 이용](./pages/10-Clan-Stats.md)
+- [D-ECON-03 클랜 순위표 민감 지표](#d-econ-03--클랜-순위표-민감-지표-노출-범위) — 외부 노출 차단 원칙
+- [D-PERM-01](#d-perm-01--클랜-권한-매트릭스-모델-도입) — 별도 권한 키 미신설(전원 열람), CSV는 `export_csv`(D-STATS-04)
+- [schema.md](./schema.md) — `clan_daily_member_activity` 신설
 
 ---
 

@@ -960,6 +960,76 @@ draft ──► matched ──► confirmed ──► finished
 - HoF 등재 재집계: `WHERE changed_at > <hof_snapshot_at>` 이력을 reverse-replay 해 정정 전 스냅샷 재현.
 - 분쟁 추적: 같은 경기에 정정이 반복되면 운영 알림(Phase 2+ anomaly detection 후보).
 
+### clan_daily_member_activity (클랜 활동일 · D-STATS-03)
+> **D-STATS-03** (DECIDED 2026-04-21) — 탭 4 "앱 이용" §영역 1의 측정 단위 = **활동일(person-day)**. 멤버가 자기 클랜 페이지에 첫 페이지뷰를 기록한 날 = 1행. DAY UNIQUE로 새벽 새로고침·매크로·prefetch 스팸 자동 차단. INSERT-only. [decisions.md §D-STATS-03](./decisions.md#d-stats-03--앱-이용-횟수-측정-단위--활동일-person-day).
+
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| clan_id | uuid NOT NULL FK → clans ON DELETE CASCADE | |
+| user_id | uuid NOT NULL FK → users ON DELETE CASCADE | |
+| activity_date | date NOT NULL | 클랜 `clans.timezone`(없으면 `Asia/Seoul`) 자정 경계 |
+| first_seen_at | timestamptz NOT NULL DEFAULT now() | 첫 페이지뷰 시각(분석용) |
+| **PK** | `(clan_id, user_id, activity_date)` | DAY UNIQUE |
+
+**INSERT 정책 (멱등 RPC, Phase 2+)**
+
+```sql
+-- record_clan_activity(clan_id, user_id) — 자기 클랜 라우트 진입 시 1회 호출
+INSERT INTO clan_daily_member_activity (clan_id, user_id, activity_date)
+SELECT $1, $2, (now() AT TIME ZONE COALESCE(c.timezone, 'Asia/Seoul'))::date
+FROM clans c WHERE c.id = $1
+ON CONFLICT (clan_id, user_id, activity_date) DO NOTHING;
+```
+
+**제약·인덱스**
+
+- INSERT 가드: 본인이 해당 클랜의 활성 멤버일 때만(`clan_members WHERE status='active'` 검증). 과거·미래 날짜 INSERT는 RPC가 `current_date`로 강제.
+- prefetch 가드: 호출자(서버 컴포넌트/미들웨어)에서 HTTP `Sec-Fetch-Dest=prefetch` 또는 `Purpose=prefetch` 헤더가 있으면 RPC 호출 자체를 스킵. 봇 User-Agent 필터도 동일 위치.
+- 인덱스: `(clan_id, activity_date DESC)` — 월간/연간 집계 가속.
+
+**RLS**
+
+- SELECT: 같은 클랜 활성 멤버 전원 (영역 2·3과 동일 정책).
+- INSERT: `record_clan_activity()` RPC 경유만. 직접 INSERT 차단(서비스 롤도 RPC 사용).
+- UPDATE/DELETE: 전면 차단(INSERT-only). 멤버 탈퇴 후에도 행 보존 → 과거 통계 진실성 유지. 사용자 계정 삭제(GDPR) 시에만 CASCADE.
+
+**집계 (Phase 2+ — Materialized View)**
+
+```sql
+CREATE MATERIALIZED VIEW clan_monthly_activity AS
+SELECT
+  clan_id,
+  date_trunc('month', activity_date)::date AS month,
+  COUNT(*)                  AS person_days,      -- 영역 1
+  COUNT(DISTINCT user_id)   AS active_members    -- 영역 2 (월간)
+FROM clan_daily_member_activity
+GROUP BY 1, 2;
+
+CREATE MATERIALIZED VIEW clan_yearly_activity AS
+SELECT
+  clan_id,
+  date_trunc('year', activity_date)::date AS year,
+  COUNT(*)                  AS person_days,
+  COUNT(DISTINCT user_id)   AS active_members    -- 연간 distinct는 월 합산 ≠ 연 합산이라 별도 MV 필수
+FROM clan_daily_member_activity
+GROUP BY 1, 2;
+```
+
+- cron 매일 새벽 1회 `REFRESH MATERIALIZED VIEW CONCURRENTLY ...`.
+- 영역 1(`person_days`) ↔ 영역 2(`active_members`) 동시 산출 → 두 영역 일관성 강화.
+- 영역 3(내전 경기 수)은 `matches` 테이블 별도 집계 (본 테이블과 무관).
+
+**카운트 컨텍스트**
+
+- 포함 라우트: `/clan/[clan_id]`, `/clan/[clan_id]/manage`, `/clan/[clan_id]/stats`, `/clan/[clan_id]/events`, `/clan/[clan_id]/promo` 등 **`clan_id` 파라미터를 가진 모든 라우트**.
+- 제외: `/main-game` 허브, `/profile`, `/balance`, 다른 클랜의 공개 프로필 등 클랜 비종속 라우트.
+- 다중 클랜 멤버: 클랜별 독립 카운트(같은 날 두 클랜에 들어가면 두 행 INSERT).
+
+**외부 노출 가드**
+
+- D-ECON-03 — 다른 클랜·비멤버에게 노출 금지. 클랜 순위표·검색·외부 페이지에 person_days 또는 active_members 노출 금지.
+- CSV 내보내기는 D-PERM-01 권한 키 `export_csv` 보유자만(D-STATS-04 흡수, Phase 2+ UI).
+
 ### bracket_tournaments (대진표 · 클랜 내 이벤트)
 > **D-EVENTS-05 · D-ECON-01** (DECIDED 2026-04-20) — 대진표는 **클랜 내 이벤트 전용**(클랜 간 토너먼트 없음). `host_clan_id = winner_clan_id`가 항상 성립. 상세 [§D-EVENTS-05](./decisions.md#d-events-05--대진표-결과의-통계코인-반영).
 
