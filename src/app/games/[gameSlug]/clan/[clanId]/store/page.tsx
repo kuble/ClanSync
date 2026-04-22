@@ -4,6 +4,7 @@ import {
   ClanStorePanels,
   type ClanStoreItemVM,
 } from "@/components/main-clan/clan-store-panels";
+import { ClanStoreCoinHistory } from "@/components/main-clan/clan-store-coin-history";
 import { MVP_STORE_SLUGS } from "@/lib/store/mvp-store-slugs";
 import { createClient } from "@/lib/supabase/server";
 
@@ -165,6 +166,16 @@ export default async function ClanStorePage({
           진열 중인 상품이 없습니다. 마이그레이션·시드를 확인해 주세요.
         </p>
       )}
+
+      {user ? (
+        <ClanStoreCoinHistory
+          clanId={clanId}
+          showClanPool={
+            ctx != null &&
+            (ctx.role === "leader" || ctx.role === "officer")
+          }
+        />
+      ) : null}
 
       <p className="text-muted-foreground text-xs">
         거래 내역은 <code className="text-xs">coin_transactions</code> 원장에
