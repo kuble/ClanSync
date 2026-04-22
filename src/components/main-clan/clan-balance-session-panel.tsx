@@ -14,16 +14,25 @@ import {
   type BalanceSessionActionResult,
 } from "@/app/actions/clan-balance-session";
 import {
-  ClanBalanceMatchResultPlaceholder,
   ClanBalancePredictionPlaceholder,
 } from "@/components/main-clan/clan-balance-match-live-placeholders";
 import { ClanBalanceHeroBanClient } from "@/components/main-clan/clan-balance-hero-ban-client";
+import {
+  ClanBalanceMatchOutcomeClient,
+  ClanBalancePredictionClient,
+} from "@/components/main-clan/clan-balance-prediction-outcome-client";
 import { ClanBalanceMaEditor } from "@/components/main-clan/clan-balance-ma-editor";
 import { ClanBalanceMapBanClient } from "@/components/main-clan/clan-balance-map-ban-client";
 import { ClanBalanceRosterBoard } from "@/components/main-clan/clan-balance-roster-board";
 import { ClanBalanceRosterEditor } from "@/components/main-clan/clan-balance-roster-editor";
 import { ClanBalanceSessionRealtime } from "@/components/main-clan/clan-balance-session-realtime";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   defaultMaForRoster,
   parseMaSnapshot,
@@ -37,6 +46,8 @@ import { cn } from "@/lib/utils";
 type BalanceSession = Database["public"]["Tables"]["balance_sessions"]["Row"];
 type MapVote = Database["public"]["Tables"]["balance_session_map_votes"]["Row"];
 type HeroVote = Database["public"]["Tables"]["balance_session_hero_votes"]["Row"];
+type BalancePrediction =
+  Database["public"]["Tables"]["balance_session_predictions"]["Row"];
 
 const PHASE_LABEL: Record<
   Database["public"]["Enums"]["balance_session_phase"],
@@ -57,6 +68,7 @@ export function ClanBalanceSessionPanel({
   session,
   votes,
   heroVotes,
+  balancePredictions,
   rosterPool,
   canEditMscore,
   planPremium,
@@ -69,6 +81,7 @@ export function ClanBalanceSessionPanel({
   session: BalanceSession | null;
   votes: MapVote[];
   heroVotes: HeroVote[];
+  balancePredictions: BalancePrediction[];
   rosterPool: readonly { user_id: string; nickname: string }[];
   canEditMscore: boolean;
   planPremium: boolean;
@@ -186,6 +199,14 @@ export function ClanBalanceSessionPanel({
   const maSyncKey = `${session.id}:${JSON.stringify(session.ma_snapshot)}`;
   const myHeroVote = heroVotes.find((v) => v.user_id === userId) ?? null;
   const heroBanSyncKey = `${session.id}:${JSON.stringify(heroVotes)}`;
+  const myPrediction =
+    balancePredictions.find((p) => p.user_id === userId) ?? null;
+  const myPickTeam: 1 | 2 | null =
+    myPrediction?.pick_team === 1
+      ? 1
+      : myPrediction?.pick_team === 2
+        ? 2
+        : null;
 
   return (
     <div className="space-y-6">
@@ -377,13 +398,58 @@ export function ClanBalanceSessionPanel({
               canManage && "md:grid-cols-2",
             )}
           >
-            <ClanBalancePredictionPlaceholder
-              planPremium={planPremium}
-              gameSlug={gameSlug}
-              clanId={clanId}
-              isRosterParticipant={isRosterParticipant}
-            />
-            {canManage ? <ClanBalanceMatchResultPlaceholder /> : null}
+            {!planPremium || isRosterParticipant ? (
+              <ClanBalancePredictionPlaceholder
+                planPremium={planPremium}
+                gameSlug={gameSlug}
+                clanId={clanId}
+                isRosterParticipant={isRosterParticipant}
+              />
+            ) : session.match_outcome === "pending" ? (
+              <ClanBalancePredictionClient
+                gameSlug={gameSlug}
+                clanId={clanId}
+                sessionId={session.id}
+                myPickTeam={myPickTeam}
+                predictionCount={balancePredictions.length}
+              />
+            ) : (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">승부예측</CardTitle>
+                  <CardDescription>
+                    {session.match_outcome === "void"
+                      ? "이번 판은 무효입니다. 예측은 적용되지 않습니다."
+                      : session.match_outcome === "team1"
+                        ? "결과 확정: 블루(팀1) 승. Premium 적중자에게 코인이 지급되었습니다."
+                        : "결과 확정: 레드(팀2) 승. Premium 적중자에게 코인이 지급되었습니다."}
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            )}
+            {canManage ? (
+              session.match_outcome === "pending" ? (
+                <ClanBalanceMatchOutcomeClient
+                  gameSlug={gameSlug}
+                  clanId={clanId}
+                  sessionId={session.id}
+                  disabled={false}
+                />
+              ) : (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">경기 결과</CardTitle>
+                    <CardDescription>
+                      {session.match_outcome === "void"
+                        ? "무효(재경기)로 확정됨."
+                        : session.match_outcome === "team1"
+                          ? "블루(팀1) 승으로 확정됨."
+                          : "레드(팀2) 승으로 확정됨."}
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              )
+            ) : null}
           </div>
           {canManage ? (
             <Button

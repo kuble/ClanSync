@@ -649,6 +649,91 @@ export async function updateBalanceMaSnapshotAction(
   return { ok: true };
 }
 
+type BalanceMatchOutcome = Database["public"]["Enums"]["balance_match_outcome"];
+
+export async function submitBalancePredictionAction(
+  gameSlug: string,
+  clanId: string,
+  sessionId: string,
+  pickTeam: 1 | 2,
+): Promise<BalanceSessionActionResult> {
+  if (pickTeam !== 1 && pickTeam !== 2) {
+    return { ok: false, error: "팀 선택이 올바르지 않습니다." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const { data: session, error: sessErr } = await supabase
+    .from("balance_sessions")
+    .select("phase, match_outcome, closed_at")
+    .eq("id", sessionId)
+    .eq("clan_id", clanId)
+    .maybeSingle();
+
+  if (sessErr || !session) {
+    return { ok: false, error: "세션을 찾을 수 없습니다." };
+  }
+  if (session.closed_at) {
+    return { ok: false, error: "이미 종료된 세션입니다." };
+  }
+  if (session.phase !== "match_live" || session.match_outcome !== "pending") {
+    return { ok: false, error: "지금은 예측을 받지 않습니다." };
+  }
+
+  const { error } = await supabase.from("balance_session_predictions").upsert(
+    {
+      session_id: sessionId,
+      user_id: user.id,
+      pick_team: pickTeam,
+    },
+    { onConflict: "session_id,user_id" },
+  );
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath(balancePath(gameSlug, clanId));
+  return { ok: true };
+}
+
+export async function setBalanceMatchOutcomeAction(
+  gameSlug: string,
+  clanId: string,
+  sessionId: string,
+  outcome: Exclude<BalanceMatchOutcome, "pending">,
+): Promise<BalanceSessionActionResult> {
+  if (outcome !== "team1" && outcome !== "team2" && outcome !== "void") {
+    return { ok: false, error: "결과 값이 올바르지 않습니다." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const { data, error } = await supabase.rpc("set_balance_match_outcome", {
+    p_session_id: sessionId,
+    p_outcome: outcome,
+  });
+
+  if (error) return { ok: false, error: error.message };
+
+  const payload = data as { ok?: boolean; error?: string } | null;
+  if (!payload?.ok) {
+    return {
+      ok: false,
+      error: payload?.error ?? "결과를 확정할 수 없습니다.",
+    };
+  }
+
+  revalidatePath(balancePath(gameSlug, clanId));
+  return { ok: true };
+}
+
 export async function closeBalanceSessionAction(
   gameSlug: string,
   clanId: string,

@@ -9,6 +9,8 @@ type RosterPoolRow =
   Database["public"]["Functions"]["list_balance_roster_pool"]["Returns"][number];
 type HeroVoteRow =
   Database["public"]["Tables"]["balance_session_hero_votes"]["Row"];
+type BalancePredictionRow =
+  Database["public"]["Tables"]["balance_session_predictions"]["Row"];
 
 export default async function BalancePage({
   params,
@@ -66,6 +68,15 @@ export default async function BalancePage({
     heroVotes = hv ?? [];
   }
 
+  let balancePredictions: BalancePredictionRow[] = [];
+  if (session?.phase === "match_live") {
+    const { data: bp } = await supabase
+      .from("balance_session_predictions")
+      .select("session_id, user_id, pick_team, created_at")
+      .eq("session_id", session.id);
+    balancePredictions = bp ?? [];
+  }
+
   const { data: rosterPoolRows } = await supabase.rpc("list_balance_roster_pool", {
     p_clan_id: clanId,
   });
@@ -89,8 +100,8 @@ export default async function BalancePage({
       <div>
         <h2 className="text-lg font-semibold tracking-tight">밸런스메이커</h2>
         <p className="text-muted-foreground mt-1 text-sm">
-          팀 편성·맵 밴·영웅 밴(오버워치)·경기 M/A·승부예측·결과 확정 UI를 한
-          흐름으로 묶는 탭입니다. 예측·코인 정산은 서버 연동 예정입니다.
+          팀 편성·맵/영웅 밴·경기 M/A·승부예측(Premium)·결과 확정까지 한 흐름입니다.
+          적중 보상은 MVP 기준 개인 코인 5입니다.
         </p>
         {ctx.plan === "free" ? (
           <p
@@ -113,6 +124,7 @@ export default async function BalancePage({
         session={session}
         votes={votes ?? []}
         heroVotes={heroVotes}
+        balancePredictions={balancePredictions}
         rosterPool={rosterPool}
         canEditMscore={canEditMscore}
         planPremium={planPremium}

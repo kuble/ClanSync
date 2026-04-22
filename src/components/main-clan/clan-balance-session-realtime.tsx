@@ -53,6 +53,16 @@ export function ClanBalanceSessionRealtime({
         },
         refresh,
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "balance_session_predictions",
+          filter: `session_id=eq.${sessionId}`,
+        },
+        refresh,
+      )
       .subscribe();
 
     return () => {
