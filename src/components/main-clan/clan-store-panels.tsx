@@ -57,7 +57,13 @@ export function ClanStorePanels({
         toast.error(r.error);
         return;
       }
-      toast.success("구매가 완료되었습니다.");
+      if (slug === "profile_entrance_fx") {
+        toast.success(
+          "구매가 완료되었습니다. /profile 에서 프레임을 선택해 주세요.",
+        );
+      } else {
+        toast.success("구매가 완료되었습니다.");
+      }
       router.refresh();
     });
   }
