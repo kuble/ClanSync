@@ -25,6 +25,8 @@ export default async function MainClanLayout({
     redirect(`/games/${gameSlug}/clan`);
   }
 
+  void (await supabase.rpc("record_clan_activity", { p_clan_id: clanId }));
+
   const showDevPlanToggle =
     process.env.NODE_ENV === "development" ||
     process.env.DEV_CLAN_PLAN_TOGGLE === "1";

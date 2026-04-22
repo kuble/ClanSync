@@ -139,6 +139,42 @@ export type Database = {
           },
         ]
       }
+      clan_daily_member_activity: {
+        Row: {
+          activity_date: string
+          clan_id: string
+          recorded_at: string
+          user_id: string
+        }
+        Insert: {
+          activity_date: string
+          clan_id: string
+          recorded_at?: string
+          user_id: string
+        }
+        Update: {
+          activity_date?: string
+          clan_id?: string
+          recorded_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_daily_member_activity_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_daily_member_activity_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_members: {
         Row: {
           clan_id: string
@@ -196,18 +232,24 @@ export type Database = {
       clan_settings: {
         Row: {
           clan_id: string
+          expose_hof: boolean
+          hof_config: Json
           permissions: Json
           updated_at: string
           updated_by: string | null
         }
         Insert: {
           clan_id: string
+          expose_hof?: boolean
+          hof_config?: Json
           permissions?: Json
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
           clan_id?: string
+          expose_hof?: boolean
+          hof_config?: Json
           permissions?: Json
           updated_at?: string
           updated_by?: string | null
@@ -396,6 +438,126 @@ export type Database = {
           },
         ]
       }
+      match_players: {
+        Row: {
+          id: string
+          match_id: string
+          team: number
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          match_id: string
+          team: number
+          user_id: string
+        }
+        Update: {
+          id?: string
+          match_id?: string
+          team?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_players_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_players_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_results: {
+        Row: {
+          match_id: string
+          recorded_at: string
+          winner_team: number | null
+        }
+        Insert: {
+          match_id: string
+          recorded_at?: string
+          winner_team?: number | null
+        }
+        Update: {
+          match_id?: string
+          recorded_at?: string
+          winner_team?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_results_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: true
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matches: {
+        Row: {
+          clan_id: string
+          created_at: string
+          created_by: string | null
+          game_id: string
+          id: string
+          map_label: string | null
+          match_type: Database["public"]["Enums"]["clan_match_type"]
+          played_at: string
+          status: Database["public"]["Enums"]["clan_match_status"]
+        }
+        Insert: {
+          clan_id: string
+          created_at?: string
+          created_by?: string | null
+          game_id: string
+          id?: string
+          map_label?: string | null
+          match_type?: Database["public"]["Enums"]["clan_match_type"]
+          played_at?: string
+          status?: Database["public"]["Enums"]["clan_match_status"]
+        }
+        Update: {
+          clan_id?: string
+          created_at?: string
+          created_by?: string | null
+          game_id?: string
+          id?: string
+          map_label?: string | null
+          match_type?: Database["public"]["Enums"]["clan_match_type"]
+          played_at?: string
+          status?: Database["public"]["Enums"]["clan_match_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           auto_login: boolean
@@ -452,7 +614,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      clan_peer_nicknames: {
+        Args: { p_clan_id: string }
+        Returns: { nickname: string; user_id: string }[]
+      }
+      record_clan_activity: {
+        Args: { p_clan_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       auth_failed_login_reason:
@@ -466,6 +635,8 @@ export type Database = {
         | "approved"
         | "rejected"
         | "canceled"
+      clan_match_status: "draft" | "active" | "finished"
+      clan_match_type: "intra" | "scrim" | "event"
       clan_subscription_tier: "free" | "premium"
       clan_lifecycle: "active" | "dormant" | "stale" | "deleted"
       clan_member_role: "leader" | "officer" | "member"
@@ -614,6 +785,8 @@ export const Constants = {
         "rejected",
         "canceled",
       ],
+      clan_match_status: ["draft", "active", "finished"],
+      clan_match_type: ["intra", "scrim", "event"],
       clan_subscription_tier: ["free", "premium"],
       clan_lifecycle: ["active", "dormant", "stale", "deleted"],
       clan_member_role: ["leader", "officer", "member"],
