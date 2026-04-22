@@ -412,6 +412,7 @@ export function ClanBalanceSessionPanel({
                 sessionId={session.id}
                 myPickTeam={myPickTeam}
                 predictionCount={balancePredictions.length}
+                deadlineIso={session.prediction_deadline_at}
               />
             ) : (
               <Card>

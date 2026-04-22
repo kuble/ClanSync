@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { computeBalancePredictionDeadlineIso } from "@/lib/balance/prediction-deadline";
 import { pickThreeMapCandidates } from "@/lib/balance/map-pools";
 import {
   defaultMaForRoster,
@@ -120,6 +121,7 @@ export async function startMapBanPhaseAction(
       phase: "map_ban",
       map_candidates: candidates,
       map_ban_deadline_at: deadline,
+      prediction_deadline_at: null,
     })
     .eq("id", sessionId)
     .eq("clan_id", clanId)
@@ -180,6 +182,10 @@ export async function skipMapBanToMatchLiveAction(
       map_candidates: null,
       map_ban_deadline_at: null,
       hero_ban_deadline_at: heroDeadline,
+      prediction_deadline_at:
+        nextPhase === "match_live"
+          ? computeBalancePredictionDeadlineIso()
+          : null,
     })
     .eq("id", sessionId)
     .eq("clan_id", clanId)
@@ -302,6 +308,10 @@ export async function resolveMapBanAction(
       resolved_map_label: resolved,
       map_ban_deadline_at: null,
       hero_ban_deadline_at: heroDeadline,
+      prediction_deadline_at:
+        nextPhase === "match_live"
+          ? computeBalancePredictionDeadlineIso()
+          : null,
     })
     .eq("id", sessionId)
     .eq("clan_id", clanId)
@@ -440,6 +450,7 @@ export async function resolveHeroBanAction(
       phase: "match_live",
       banned_heroes: banned,
       hero_ban_deadline_at: null,
+      prediction_deadline_at: computeBalancePredictionDeadlineIso(),
     })
     .eq("id", sessionId)
     .eq("clan_id", clanId)
@@ -477,6 +488,7 @@ export async function skipHeroBanPhaseAction(
       phase: "match_live",
       hero_ban_deadline_at: null,
       banned_heroes: null,
+      prediction_deadline_at: computeBalancePredictionDeadlineIso(),
     })
     .eq("id", sessionId)
     .eq("clan_id", clanId)
@@ -669,7 +681,7 @@ export async function submitBalancePredictionAction(
 
   const { data: session, error: sessErr } = await supabase
     .from("balance_sessions")
-    .select("phase, match_outcome, closed_at")
+    .select("phase, match_outcome, closed_at, prediction_deadline_at")
     .eq("id", sessionId)
     .eq("clan_id", clanId)
     .maybeSingle();
@@ -682,6 +694,12 @@ export async function submitBalancePredictionAction(
   }
   if (session.phase !== "match_live" || session.match_outcome !== "pending") {
     return { ok: false, error: "지금은 예측을 받지 않습니다." };
+  }
+  if (
+    session.prediction_deadline_at &&
+    new Date(session.prediction_deadline_at).getTime() <= Date.now()
+  ) {
+    return { ok: false, error: "예측 마감 시간이 지났습니다." };
   }
 
   const { error } = await supabase.from("balance_session_predictions").upsert(

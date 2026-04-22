@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
   setBalanceMatchOutcomeAction,
@@ -25,15 +25,35 @@ export function ClanBalancePredictionClient({
   sessionId,
   myPickTeam,
   predictionCount,
+  deadlineIso,
 }: {
   gameSlug: string;
   clanId: string;
   sessionId: string;
   myPickTeam: 1 | 2 | null;
   predictionCount: number;
+  deadlineIso: string | null;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
+  const [now, setNow] = useState(() => Date.now());
+
+  const deadlineMs = useMemo(
+    () => (deadlineIso ? new Date(deadlineIso).getTime() : null),
+    [deadlineIso],
+  );
+
+  useEffect(() => {
+    if (deadlineMs == null) return;
+    const t = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(t);
+  }, [deadlineMs]);
+
+  const remainSec =
+    deadlineMs == null
+      ? null
+      : Math.max(0, Math.ceil((deadlineMs - now) / 1000));
+  const expired = remainSec !== null && remainSec <= 0;
 
   function submit(pick: 1 | 2) {
     start(async () => {
@@ -60,26 +80,47 @@ export function ClanBalancePredictionClient({
           Premium · 비출전 멤버만 참여합니다. 적중 시 개인 코인{" "}
           <span className="text-foreground font-medium">5</span> (MVP 고정)은{" "}
           <strong className="text-foreground">클랜 코인 풀</strong>에서 차감됩니다.
-          현재 제출 {predictionCount}명. 마감 전에 다시 눌러 변경할 수 있습니다.
+          경기 진행 단계 진입 후{" "}
+          <span className="text-foreground font-medium">5분</span> 이내에만 제출·변경할
+          수 있습니다. 현재 제출 {predictionCount}명.
+          {remainSec != null ? (
+            <>
+              {" "}
+              남은 시간{" "}
+              <span className="font-medium tabular-nums text-foreground">
+                {expired ? "마감" : `${remainSec}s`}
+              </span>
+              .
+            </>
+          ) : (
+            <> 마감 시각이 없는 세션은 기존 정책(제한 없음)으로 동작합니다.</>
+          )}
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant={myPickTeam === 1 ? "default" : "outline"}
-          disabled={pending}
-          onClick={() => submit(1)}
-        >
-          블루(팀1) 승
-        </Button>
-        <Button
-          type="button"
-          variant={myPickTeam === 2 ? "default" : "outline"}
-          disabled={pending}
-          onClick={() => submit(2)}
-        >
-          레드(팀2) 승
-        </Button>
+      <CardContent className="space-y-3">
+        {expired ? (
+          <p className="text-muted-foreground text-sm">
+            예측 마감 시간이 지났습니다. 변경이 필요하면 운영진에게 문의하세요.
+          </p>
+        ) : null}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant={myPickTeam === 1 ? "default" : "outline"}
+            disabled={pending || expired}
+            onClick={() => submit(1)}
+          >
+            블루(팀1) 승
+          </Button>
+          <Button
+            type="button"
+            variant={myPickTeam === 2 ? "default" : "outline"}
+            disabled={pending || expired}
+            onClick={() => submit(2)}
+          >
+            레드(팀2) 승
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
