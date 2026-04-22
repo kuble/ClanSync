@@ -154,11 +154,52 @@ export type Database = {
           },
         ]
       }
+      balance_session_hero_votes: {
+        Row: {
+          pick_1: string
+          pick_2: string
+          pick_3: string
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          pick_1: string
+          pick_2: string
+          pick_3: string
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          pick_1?: string
+          pick_2?: string
+          pick_3?: string
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "balance_session_hero_votes_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "balance_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_session_hero_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       balance_sessions: {
         Row: {
+          banned_heroes: string[] | null
           clan_id: string
           closed_at: string | null
           game_id: string
+          hero_ban_deadline_at: string | null
           hero_ban_enabled: boolean
           host_user_id: string
           id: string
@@ -172,9 +213,11 @@ export type Database = {
           roster: Json
         }
         Insert: {
+          banned_heroes?: string[] | null
           clan_id: string
           closed_at?: string | null
           game_id: string
+          hero_ban_deadline_at?: string | null
           hero_ban_enabled?: boolean
           host_user_id: string
           id?: string
@@ -188,9 +231,11 @@ export type Database = {
           roster?: Json
         }
         Update: {
+          banned_heroes?: string[] | null
           clan_id?: string
           closed_at?: string | null
           game_id?: string
+          hero_ban_deadline_at?: string | null
           hero_ban_enabled?: boolean
           host_user_id?: string
           id?: string
