@@ -24,12 +24,33 @@ export default async function GamesPage() {
     .select("id, slug, name_ko, is_active")
     .order("slug");
 
-  if (gErr || !games?.length) {
+  if (gErr) {
+    return (
+      <main className="mx-auto w-full max-w-4xl px-4 py-16">
+        <p className="text-destructive text-sm font-medium">
+          게임 목록을 불러오지 못했습니다.
+        </p>
+        <p className="text-muted-foreground mt-2 text-sm">
+          배포 환경(Vercel 등)의{" "}
+          <code className="text-foreground text-xs">NEXT_PUBLIC_SUPABASE_URL</code>·
+          <code className="text-foreground text-xs">NEXT_PUBLIC_SUPABASE_ANON_KEY</code>
+          가 이 프로젝트와 일치하는지 확인해 주세요. 로컬과 다른 Supabase 프로젝트를
+          가리키면 API 오류가 납니다.
+        </p>
+        <p className="text-muted-foreground mt-2 font-mono text-xs break-all">
+          {gErr.message}
+        </p>
+      </main>
+    );
+  }
+
+  if (!games?.length) {
     return (
       <main className="mx-auto w-full max-w-4xl px-4 py-16">
         <p className="text-muted-foreground text-sm">
-          게임 목록을 불러오지 못했습니다. Supabase 연결과 마이그레이션을 확인해
-          주세요.
+          등록된 게임이 없습니다. DB에{" "}
+          <code className="text-foreground text-xs">0002_auth_login_and_seed_games.sql</code>{" "}
+          시드가 적용됐는지 확인해 주세요.
         </p>
       </main>
     );
