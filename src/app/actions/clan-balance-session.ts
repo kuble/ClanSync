@@ -3,6 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { pickThreeMapCandidates } from "@/lib/balance/map-pools";
 import {
+  defaultMaForRoster,
+  parseMaSnapshot,
+  validateMaSnapshot,
+  type MaSnapshot,
+} from "@/lib/balance/ma-snapshot";
+import {
   parseRoster,
   rosterAssignedUserIds,
   rosterHasDuplicateUsers,
@@ -399,6 +405,85 @@ export async function updateBalanceRosterAction(
     .eq("clan_id", clanId)
     .is("closed_at", null)
     .eq("phase", "editing");
+
+  if (updErr) return { ok: false, error: updErr.message };
+
+  revalidatePath(balancePath(gameSlug, clanId));
+  return { ok: true };
+}
+
+export async function updateBalanceMaSnapshotAction(
+  gameSlug: string,
+  clanId: string,
+  sessionId: string,
+  maJson: string,
+): Promise<BalanceSessionActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const canEdit = await hasClanPermission(
+    supabase,
+    user.id,
+    clanId,
+    "edit_mscore",
+  );
+  if (!canEdit) {
+    return { ok: false, error: "M점수를 편집할 권한이 없습니다." };
+  }
+
+  let partial: MaSnapshot;
+  try {
+    partial = parseMaSnapshot(JSON.parse(maJson) as unknown);
+  } catch {
+    return { ok: false, error: "점수 데이터 형식이 올바르지 않습니다." };
+  }
+
+  const { data: clan } = await supabase
+    .from("clans")
+    .select("subscription_tier")
+    .eq("id", clanId)
+    .maybeSingle();
+  const allowA = clan?.subscription_tier === "premium";
+
+  const { data: session, error: sessErr } = await supabase
+    .from("balance_sessions")
+    .select("phase, roster")
+    .eq("id", sessionId)
+    .eq("clan_id", clanId)
+    .is("closed_at", null)
+    .maybeSingle();
+
+  if (sessErr || !session) {
+    return { ok: false, error: "세션을 찾을 수 없습니다." };
+  }
+  if (session.phase !== "match_live") {
+    return {
+      ok: false,
+      error: "경기 진행 단계에서만 점수를 기록할 수 있습니다.",
+    };
+  }
+
+  const roster = parseRoster(session.roster);
+  let merged = defaultMaForRoster(roster, partial);
+  if (!allowA) {
+    merged = Object.fromEntries(
+      Object.entries(merged).map(([k, v]) => [k, { m: v.m, a: null }]),
+    );
+  }
+
+  const v = validateMaSnapshot(roster, merged, { allowA });
+  if (!v.ok) return { ok: false, error: v.error };
+
+  const { error: updErr } = await supabase
+    .from("balance_sessions")
+    .update({ ma_snapshot: merged as unknown as Json })
+    .eq("id", sessionId)
+    .eq("clan_id", clanId)
+    .is("closed_at", null)
+    .eq("phase", "match_live");
 
   if (updErr) return { ok: false, error: updErr.message };
 
