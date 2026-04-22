@@ -5,6 +5,17 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Phase 2 M6b S06 일부 (관리·이벤트 알림 스텁)
+
+- [x] **DB** — `0013_clan_settings_event_notify.sql` (`clan_settings.event_notify` jsonb).
+- [x] **액션** — `clan-manage-members.ts` (강퇴 `banned` · 클랜장 역할 승격/강등) · `clan-event-notify.ts` (웹훅 URL 저장, 클랜장만).
+- [x] **UI** — `manage/page.tsx` + `manage-members-table.tsx` · `clan-manage-subscription-panel.tsx` · `clan-event-notify-form.tsx` · `events/page.tsx`.
+- [x] **유틸** — `lib/clan/event-notify-settings.ts`.
+- [x] **기타** — `database.types` `event_notify` · `toggleClanPlanDevFormAction` revalidate `manage`·`store`.
+- [x] **문서** — `TODO_Phase2`·`TODO_LOG`.
+- [x] **검증** — `next build`.
+- **다음**: M6b 잔여(`coin_transactions`·구매 차감) · Discord 실 POST · M7 cron.
+
 ### 2026-04-22 — Phase 2 M7 S07 MainGame 커뮤니티 (경량)
 
 - [x] **DB** — `0011_main_game_community_m7.sql` (`board_posts`, `lfg_posts`, `lfg_applications` + RLS) · `0012_clan_active_member_count_rpc.sql`.
