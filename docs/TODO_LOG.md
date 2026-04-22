@@ -5,6 +5,11 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Fix: balance RLS 재귀 (함수 내부 RLS 잔존)
+
+- [x] **DB** — `0018_balance_rls_bypass_in_helpers.sql` (`SET row_security = off` · `is_member_of_balance_session`).
+- [x] **타입** — `database.types.ts` RPC.
+
 ### 2026-04-22 — Fix: balance_sessions RLS vs clan_members 재귀
 
 - [x] **DB** — `0017_balance_sessions_rls_no_recursion.sql` (`is_active_clan_member`·`is_clan_officer_plus`).

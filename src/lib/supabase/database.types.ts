@@ -1478,6 +1478,10 @@ export type Database = {
         Args: { p_clan_id: string }
         Returns: boolean
       }
+      is_member_of_balance_session: {
+        Args: { p_session_id: string }
+        Returns: boolean
+      }
       my_active_clan_for_game: {
         Args: { p_game_id: string }
         Returns: {
