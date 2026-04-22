@@ -5,6 +5,14 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Phase 2 M6c 5v5 roster 편집
+
+- [x] **DB** — `0019_balance_session_roster.sql` (`roster` jsonb · `list_balance_roster_pool`).
+- [x] **UX** — 편집 단계 에디터·저장 액션·맵밴/경기 단계 라인업 보드.
+- [x] **타입** — `database.types.ts`.
+- [x] **검증** — `next build`.
+- **다음**: 실시간 동기 · M/A.
+
 ### 2026-04-22 — Fix: balance RLS 재귀 (함수 내부 RLS 잔존)
 
 - [x] **DB** — `0018_balance_rls_bypass_in_helpers.sql` (`SET row_security = off` · `is_member_of_balance_session`).
