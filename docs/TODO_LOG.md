@@ -5,6 +5,14 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Phase 2 M6c 승부예측·결과 확정·코인 지급(MVP)
+
+- [x] **DB** — `0023_balance_predictions_settlement.sql` (`balance_match_outcome` · `balance_session_predictions` · `set_balance_match_outcome` · 로스터 헬퍼 · Realtime publication).
+- [x] **앱** — `submitBalancePredictionAction` · `setBalanceMatchOutcomeAction` · 예측/결과 클라이언트 · `match_live` 패널 분기.
+- [x] **타입** — `database.types.ts`.
+- [x] **검증** — `next build`.
+- **다음**: 파리뮤추엘·클랜 풀 차감·마감 타이머·이력/감사.
+
 ### 2026-04-22 — Phase 2 M6c 밴 투표 Realtime
 
 - [x] **DB** — `0022_balance_votes_realtime.sql` (`balance_session_map_votes` · `balance_session_hero_votes` → `supabase_realtime` 조건부).
