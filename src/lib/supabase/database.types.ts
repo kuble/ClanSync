@@ -1470,6 +1470,14 @@ export type Database = {
           user_id: string
         }[]
       }
+      is_active_clan_member: {
+        Args: { p_clan_id: string }
+        Returns: boolean
+      }
+      is_clan_officer_plus: {
+        Args: { p_clan_id: string }
+        Returns: boolean
+      }
       my_active_clan_for_game: {
         Args: { p_game_id: string }
         Returns: {

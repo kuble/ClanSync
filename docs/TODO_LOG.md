@@ -5,6 +5,11 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Fix: balance_sessions RLS vs clan_members 재귀
+
+- [x] **DB** — `0017_balance_sessions_rls_no_recursion.sql` (`is_active_clan_member`·`is_clan_officer_plus`).
+- [x] **타입** — `database.types.ts` RPC.
+
 ### 2026-04-22 — Phase 2 M6c 밸런스 세션·맵 밴 MVP
 
 - [x] **DB** — `0016_balance_sessions_mvp.sql` (편집→맵 밴→영웅 밴(플레이스홀더)→경기·종료, 맵 투표 테이블, RLS).
