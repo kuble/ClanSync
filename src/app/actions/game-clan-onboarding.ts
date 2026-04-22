@@ -382,6 +382,58 @@ export async function cancelClanJoinRequestAction(
   return { ok: true };
 }
 
+/** 프로필 등에서 신청 id로 pending 취소 (D-PROFILE-02). */
+export async function cancelJoinRequestByIdAction(
+  requestId: string,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const { data: row } = await supabase
+    .from("clan_join_requests")
+    .select("id, status, games(slug)")
+    .eq("id", requestId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!row || row.status !== "pending") {
+    return { ok: false, error: "취소할 수 있는 신청이 없습니다." };
+  }
+
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from("clan_join_requests")
+    .update({
+      status: "canceled",
+      resolved_at: now,
+      resolved_by: user.id,
+    })
+    .eq("id", requestId)
+    .eq("status", "pending");
+
+  if (error) return { ok: false, error: error.message };
+
+  const gRaw = row.games as { slug: string } | { slug: string }[] | null | undefined;
+  const gOne = Array.isArray(gRaw) ? gRaw[0] : gRaw;
+  const slug = gOne?.slug;
+  revalidatePath("/profile");
+  revalidatePath("/games");
+  if (slug) revalidatePath(`/games/${slug}/clan`);
+  return { ok: true };
+}
+
+export async function cancelJoinRequestByIdFormAction(
+  formData: FormData,
+): Promise<void> {
+  const id = String(formData.get("requestId") ?? "").trim();
+  if (!id) throw new Error("요청이 없습니다.");
+  const r = await cancelJoinRequestByIdAction(id);
+  if (!r.ok) throw new Error(r.error);
+}
+
 function revalidateJoinRequestResolution(gameSlug: string, clanId: string) {
   revalidatePath("/games");
   revalidatePath(`/games/${gameSlug}/clan`);

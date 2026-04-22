@@ -65,6 +65,62 @@ export type Database = {
         }
         Relationships: []
       }
+      badges: {
+        Row: {
+          category: Database["public"]["Enums"]["badge_strip_category"]
+          code: string
+          created_at: string
+          description: string
+          game_id: string
+          icon: string
+          id: string
+          is_active: boolean
+          linked_id: string | null
+          name_en: string | null
+          name_ko: string
+          unlock_condition: Json
+          unlock_source: Database["public"]["Enums"]["badge_unlock_kind"]
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["badge_strip_category"]
+          code: string
+          created_at?: string
+          description: string
+          game_id: string
+          icon: string
+          id?: string
+          is_active?: boolean
+          linked_id?: string | null
+          name_en?: string | null
+          name_ko: string
+          unlock_condition?: Json
+          unlock_source: Database["public"]["Enums"]["badge_unlock_kind"]
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["badge_strip_category"]
+          code?: string
+          created_at?: string
+          description?: string
+          game_id?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          linked_id?: string | null
+          name_en?: string | null
+          name_ko?: string
+          unlock_condition?: Json
+          unlock_source?: Database["public"]["Enums"]["badge_unlock_kind"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "badges_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_join_requests: {
         Row: {
           applied_at: string
@@ -450,6 +506,138 @@ export type Database = {
         }
         Relationships: []
       }
+      nameplate_options: {
+        Row: {
+          category: Database["public"]["Enums"]["nameplate_category"]
+          code: string
+          created_at: string
+          game_id: string
+          icon_class: string | null
+          id: string
+          is_active: boolean
+          linked_id: string | null
+          name_en: string | null
+          name_ko: string
+          unlock_source: Database["public"]["Enums"]["nameplate_unlock_source"]
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["nameplate_category"]
+          code: string
+          created_at?: string
+          game_id: string
+          icon_class?: string | null
+          id?: string
+          is_active?: boolean
+          linked_id?: string | null
+          name_en?: string | null
+          name_ko: string
+          unlock_source?: Database["public"]["Enums"]["nameplate_unlock_source"]
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["nameplate_category"]
+          code?: string
+          created_at?: string
+          game_id?: string
+          icon_class?: string | null
+          id?: string
+          is_active?: boolean
+          linked_id?: string | null
+          name_en?: string | null
+          name_ko?: string
+          unlock_source?: Database["public"]["Enums"]["nameplate_unlock_source"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nameplate_options_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_badge_picks: {
+        Row: {
+          badge_id: string
+          game_id: string
+          slot_index: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          game_id: string
+          slot_index: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          game_id?: string
+          slot_index?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badge_picks_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_badge_picks_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_badge_picks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_badge_unlocks: {
+        Row: {
+          badge_id: string
+          source_detail: Json | null
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          source_detail?: Json | null
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          source_detail?: Json | null
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badge_unlocks_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_badge_unlocks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_game_profiles: {
         Row: {
           created_at: string
@@ -491,6 +679,85 @@ export type Database = {
           },
           {
             foreignKeyName: "user_game_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_nameplate_inventory: {
+        Row: {
+          acquired_at: string
+          option_id: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          option_id: string
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          option_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_nameplate_inventory_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "nameplate_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_nameplate_inventory_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_nameplate_selections: {
+        Row: {
+          category: Database["public"]["Enums"]["nameplate_category"]
+          game_id: string
+          option_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["nameplate_category"]
+          game_id: string
+          option_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["nameplate_category"]
+          game_id?: string
+          option_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_nameplate_selections_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_nameplate_selections_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "nameplate_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_nameplate_selections_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -704,6 +971,13 @@ export type Database = {
         | "unknown_email"
         | "locked"
         | "oauth_denied"
+      badge_strip_category:
+        | "battle"
+        | "participation"
+        | "event"
+        | "clan"
+        | "clansync"
+      badge_unlock_kind: "achievement" | "event" | "store"
       clan_gender_policy: "all" | "male" | "female"
       clan_event_kind: "intra" | "scrim" | "event"
       clan_event_source: "manual" | "scrim_auto"
@@ -720,6 +994,12 @@ export type Database = {
       clan_member_status: "pending" | "active" | "left" | "banned"
       clan_moderation: "clean" | "reported" | "warned" | "hidden" | "deleted"
       clan_style: "social" | "casual" | "tryhard" | "pro"
+      nameplate_category: "emblem" | "namebar" | "sub" | "frame"
+      nameplate_unlock_source:
+        | "default"
+        | "event"
+        | "store"
+        | "achievement"
       user_gender: "male" | "female" | "undisclosed"
       user_language: "ko" | "en" | "ja"
     }
@@ -855,6 +1135,14 @@ export const Constants = {
         "locked",
         "oauth_denied",
       ],
+      badge_strip_category: [
+        "battle",
+        "participation",
+        "event",
+        "clan",
+        "clansync",
+      ],
+      badge_unlock_kind: ["achievement", "event", "store"],
       clan_gender_policy: ["all", "male", "female"],
       clan_event_kind: ["intra", "scrim", "event"],
       clan_event_source: ["manual", "scrim_auto"],
@@ -872,6 +1160,13 @@ export const Constants = {
       clan_member_status: ["pending", "active", "left", "banned"],
       clan_moderation: ["clean", "reported", "warned", "hidden", "deleted"],
       clan_style: ["social", "casual", "tryhard", "pro"],
+      nameplate_category: ["emblem", "namebar", "sub", "frame"],
+      nameplate_unlock_source: [
+        "default",
+        "event",
+        "store",
+        "achievement",
+      ],
       user_gender: ["male", "female", "undisclosed"],
       user_language: ["ko", "en", "ja"],
     },

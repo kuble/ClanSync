@@ -5,6 +5,16 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Phase 2 M5 S08 프로필 꾸미기 (일부)
+
+- [x] **DB** — `0010_profile_decorations_m5.sql`: 카탈로그·선택·뱃지 픽·RLS·트리거·OW/VAL 시드.
+- [x] **액션** — `profile-decorations.ts` · `cancelJoinRequestByIdAction` + form (`game-clan-onboarding.ts`).
+- [x] **UI** — `profile/page.tsx` · `profile-game-decorations.tsx` · `profile-join-requests.tsx` (D-PROFILE-01~03 이벤트 디스패치).
+- [x] **타입** — `database.types.ts` 신규 테이블·enum.
+- [x] **문서** — `TODO_Phase2`·`TODO_LOG`.
+- [x] **검증** — `next build`.
+- **다음**: M5 잔여(Realtime/탭 동기 고도화) · M6b · M7.
+
 ### 2026-04-22 — Phase 2 M6a S05 클랜 통계
 
 - [x] **DB** — `0005_clan_stats_m6a.sql`: `clan_daily_member_activity` + RLS · `record_clan_activity` · `clan_peer_nicknames` · `clan_settings.expose_hof`/`hof_config` · `matches`·`match_players`·`match_results`(최소).

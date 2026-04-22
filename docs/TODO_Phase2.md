@@ -7,7 +7,7 @@
 | 항목 | 값 |
 |------|-----|
 | **단계** | Phase 2 — 앱 구현 |
-| **마지막 갱신** | 2026-04-22 — **M6a S05 통계 본문** (`0005` 활동일·경기·HoF 컬럼 · `/stats` 요약·HoF·앱 이용·경기 기록 요약 · `record_clan_activity` 레이아웃) |
+| **마지막 갱신** | 2026-04-22 — **M5 S08 프로필 꾸미기** (`0010` 네임플레이트·뱃지 테이블 · `/profile` 편집 UI · D-PROFILE-02 가입 목록) |
 
 ## 전제 (Q&A 확정)
 
@@ -23,7 +23,7 @@
 | **M2** 인증 쉘 | **S01** | `/` · `/sign-in` · `/sign-up` · `/games` + D-AUTH-01 매트릭스 + D-AUTH-03/06/07 | M1 | 완료 |
 | **M3** 온보딩 | **S02** | `/games/[g]/auth` (OAuth D-AUTH-02/05) · `/games/[g]/clan` (D-CLAN-01/02/04) + RLS 1차 | M2 | 완료 |
 | **M4** MainClan 쉘 | **S03** | `/games/[g]/clan/[id]` 레이아웃·사이드바(D-SHELL-01/02/03)·`hasPermission()`(D-PERM-01)·플랜 토글 | M3 | 완료 |
-| **M5** 프로필 | **S08** | `/profile` 네임플레이트·뱃지 케이스 (D-PROFILE-01~04) | M2 (병렬 가능) | 대기 |
+| **M5** 프로필 | **S08** | `/profile` 네임플레이트·뱃지 케이스 (D-PROFILE-01~04) | M2 (병렬 가능) | 진행 중 |
 | **M6a** 통계 | **S05** | MainClan `/stats` 탭 · HoF (D-STATS-03/04) | M4 | 완료 |
 | **M6b** 이벤트·관리·스토어 | **S06** | `/events`(D-EVENTS-03) · `/manage`(D-CLAN-02 소비자·D-MANAGE-01~04) · `/store`(D-STORE-01/02·D-ECON-03) | M4 | 대기 |
 | **M6c** 밸런스 | **S04** | `/balance` 세션·밴픽·M/A 점수·슬롯 (정산 서버정책은 Phase 2+ placeholder) | M4 | 대기 |
@@ -114,9 +114,9 @@ flowchart TD
 
 ### M5 — S08 프로필·꾸미기 (M2 이후 병렬 가능)
 
-- [ ] `/profile` — 네임플레이트·뱃지 케이스 (**D-PROFILE-01~04**, 5슬롯 dense-from-front)
-- [ ] 스키마: `user_nameplate`·`user_badges`·`user_badge_picks`
-- [ ] `clansync:badge:picks:changed` 브로드캐스트 → 서버 컴포넌트 패턴 재설계
+- [x] `/profile` — 네임플레이트·뱃지 스트립 (**D-PROFILE-01~03**, 5슬롯 dense-from-front) · 가입 신청 목록 (**D-PROFILE-02**)
+- [x] 스키마: `nameplate_options` · `user_nameplate_inventory` · `user_nameplate_selections` · `badges` · `user_badge_unlocks` · `user_badge_picks` (`0010_profile_decorations_m5.sql`)
+- [ ] `clansync:badge:picks:changed` 실시간 탭 동기화 — 클라이언트 `CustomEvent`만 (BalanceMaker·서버 패턴 확장은 후속)
 
 ### M6 — MainClan 탭 묶음 (M4 이후, 권장 순서 a→b→c)
 
@@ -155,7 +155,7 @@ flowchart TD
 | 08 | `/games/[gameSlug]` | `main-game.html` (홈·홍보·LFG·순위) | M7 | live (스텁, M7에서 본 구현) |
 | — | `/games/[gameSlug]` 스크림 탭 | `main-game.html#scrim` | **Phase 2+** | 보류 |
 | — | `/games/[gameSlug]/board/[postId]` | _(목업 없음)_ | **Phase 2+** | 보류 |
-| 14 | `/profile` | `profile.html` | M5 | — |
+| 14 | `/profile` | `profile.html` | M5 | live (M5 본문) |
 | — | `middleware.ts` (전역) | _(해당 없음)_ | M1→M4 | 세션 refresh + D-SHELL-02 + **비로그인 `/games` 차단** · D-LANDING-04 · **D-AUTH-01** 게임 하위 경로 |
 
 Phase 1 정적 목업(`mockup/`)은 참조용으로 유지; 운영 빌드에서는 제외 정책(**D-SHELL-02**)을 따른다.
