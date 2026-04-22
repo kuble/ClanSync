@@ -165,6 +165,7 @@ export type Database = {
           map_ban_deadline_at: string | null
           map_ban_enabled: boolean
           map_candidates: string[] | null
+          ma_snapshot: Json
           opened_at: string
           phase: Database["public"]["Enums"]["balance_session_phase"]
           resolved_map_label: string | null
@@ -180,6 +181,7 @@ export type Database = {
           map_ban_deadline_at?: string | null
           map_ban_enabled?: boolean
           map_candidates?: string[] | null
+          ma_snapshot?: Json
           opened_at?: string
           phase?: Database["public"]["Enums"]["balance_session_phase"]
           resolved_map_label?: string | null
@@ -195,6 +197,7 @@ export type Database = {
           map_ban_deadline_at?: string | null
           map_ban_enabled?: boolean
           map_candidates?: string[] | null
+          ma_snapshot?: Json
           opened_at?: string
           phase?: Database["public"]["Enums"]["balance_session_phase"]
           resolved_map_label?: string | null
