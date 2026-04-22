@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import { GameCardGrid } from "@/components/games/game-card-grid";
 import type { ClanStatus, GameCardState } from "@/lib/routing/game-card-router";
-import { createClient } from "@/lib/supabase/server";
 import { signOutAction } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/server";
 
 const EMOJI: Record<string, string> = {
   overwatch: "🎮",
@@ -28,8 +28,8 @@ export default async function GamesPage() {
     return (
       <main className="mx-auto w-full max-w-4xl px-4 py-16">
         <p className="text-muted-foreground text-sm">
-          게임 목록을 불러오지 못했습니다. Supabase 연결과 `0002` 마이그레이션을
-          확인해 주세요.
+          게임 목록을 불러오지 못했습니다. Supabase 연결과 마이그레이션을 확인해
+          주세요.
         </p>
       </main>
     );
@@ -47,7 +47,8 @@ export default async function GamesPage() {
   const { data: memberships } = await supabase
     .from("clan_members")
     .select("clan_id, status")
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .eq("status", "active");
 
   const clanIds = [...new Set((memberships ?? []).map((m) => m.clan_id))];
   const { data: clanRows } =
@@ -62,42 +63,57 @@ export default async function GamesPage() {
     (clanRows ?? []).map((c) => [c.id, c] as const),
   );
 
-  const byGame = new Map<
+  const memberByGame = new Map<
     string,
-    { status: string; clanId: string; clanName: string }
+    { clanId: string; clanName: string }
   >();
 
   for (const m of memberships ?? []) {
-    if (m.status !== "active" && m.status !== "pending") continue;
     const c = clanById.get(m.clan_id as string);
     if (!c?.game_id) continue;
-    if (!byGame.has(c.game_id)) {
-      byGame.set(c.game_id, {
-        status: m.status as string,
+    if (!memberByGame.has(c.game_id)) {
+      memberByGame.set(c.game_id, {
         clanId: c.id,
         clanName: c.name,
       });
     }
   }
 
+  const { data: pendingRows } = await supabase
+    .from("clan_join_requests")
+    .select("game_id, clan_id, clans!inner(name)")
+    .eq("user_id", user.id)
+    .eq("status", "pending");
+
+  const pendingByGame = new Map<string, { clanId: string; clanName: string }>();
+  for (const row of pendingRows ?? []) {
+    const gid = row.game_id as string;
+    if (pendingByGame.has(gid)) continue;
+    const cn = row.clans as unknown as { name: string };
+    pendingByGame.set(gid, {
+      clanId: row.clan_id as string,
+      clanName: cn?.name ?? "",
+    });
+  }
+
   const cards: (GameCardState & { title: string; emoji: string })[] = games.map(
     (game) => {
       const auth = verified.get(game.id) ?? false;
-      const cm = byGame.get(game.id);
+      const mem = memberByGame.get(game.id);
+      const pend = pendingByGame.get(game.id);
+
       let clanStatus: ClanStatus = "none";
       let clanId: string | null = null;
       let clanName: string | null = null;
 
-      if (cm) {
-        if (cm.status === "pending") {
-          clanStatus = "pending";
-          clanId = cm.clanId;
-          clanName = cm.clanName;
-        } else if (cm.status === "active") {
-          clanStatus = "member";
-          clanId = cm.clanId;
-          clanName = cm.clanName;
-        }
+      if (mem) {
+        clanStatus = "member";
+        clanId = mem.clanId;
+        clanName = mem.clanName;
+      } else if (pend) {
+        clanStatus = "pending";
+        clanId = pend.clanId;
+        clanName = pend.clanName;
       }
 
       return {
