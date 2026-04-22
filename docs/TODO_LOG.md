@@ -5,6 +5,14 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Phase 2 M6b 스토어 배너 실연동
+
+- [x] **검증** — `clan_banner_slot` 구매 시에만 `clans.banner_url` 갱신 (`manage_clan_pool`).
+- [x] **액션** — `clan-banner-settings.ts` · `store-purchase-queries.ts`.
+- [x] **UI** — 관리 `ClanBannerSettingsForm` · 대시보드 배너 `<img>` · 스토어 안내 문구.
+- [x] **검증** — `next build`.
+- **다음**: 프로필 입장 효과(M5)·M6c.
+
 ### 2026-04-22 — Phase 2 M6b D-STORE-02 Premium 플랜 모달
 
 - [x] **UI** — `store-premium-plan-dialog.tsx` (Free/Premium 표·역할별 카피·운영진+ 구독 탭 이동).
