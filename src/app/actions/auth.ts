@@ -58,7 +58,7 @@ export async function signInAction(
     data: { user },
   } = await supabase.auth.getUser();
   if (user) {
-    const ensured = await ensurePublicUserProfile(user.id);
+    const ensured = await ensurePublicUserProfile(user.id, supabase);
     if (!ensured.ok) {
       return {
         error: `프로필을 준비하지 못했습니다. 잠시 후 다시 시도해 주세요. (${ensured.error})`,
@@ -129,7 +129,7 @@ export async function signUpAction(
   }
 
   if (signData.user) {
-    const ensured = await ensurePublicUserProfile(signData.user.id);
+    const ensured = await ensurePublicUserProfile(signData.user.id, supabase);
     if (!ensured.ok) {
       return {
         error: `가입은 되었으나 프로필 행을 만들지 못했습니다. 관리자에게 문의해 주세요. (${ensured.error})`,

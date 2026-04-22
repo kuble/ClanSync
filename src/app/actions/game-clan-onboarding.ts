@@ -51,7 +51,7 @@ export async function linkGameAccountDevAction(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
 
-  const ensured = await ensurePublicUserProfile(user.id);
+  const ensured = await ensurePublicUserProfile(user.id, supabase);
   if (!ensured.ok) {
     return { ok: false, error: ensured.error };
   }

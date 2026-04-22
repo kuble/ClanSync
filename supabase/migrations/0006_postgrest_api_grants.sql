@@ -6,7 +6,7 @@
 --
 -- 참고: 행 단위 접근은 계속 RLS가 제한한다. 본 마이그레이션은 역할별 객체 권한만 부여한다.
 
-GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
 
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
