@@ -161,13 +161,15 @@ export default async function ManagePage({
         </p>
       </div>
 
-      <ClanManageSubscriptionPanel
-        gameSlug={gameSlug}
-        clanId={clanId}
-        tierLabel={tierLabel}
-        showDevPlanToggle={showDevPlanToggle}
-        isLeader={isLeader}
-      />
+      <div id="subscription" className="scroll-mt-6">
+        <ClanManageSubscriptionPanel
+          gameSlug={gameSlug}
+          clanId={clanId}
+          tierLabel={tierLabel}
+          showDevPlanToggle={showDevPlanToggle}
+          isLeader={isLeader}
+        />
+      </div>
 
       <section className="space-y-3">
         <h3 className="text-sm font-medium tracking-tight">활동 멤버</h3>

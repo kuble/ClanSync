@@ -153,7 +153,13 @@ export default async function ClanStorePage({
       </div>
 
       {items.length > 0 ? (
-        <ClanStorePanels gameSlug={gameSlug} clanId={clanId} items={items} />
+        <ClanStorePanels
+          gameSlug={gameSlug}
+          clanId={clanId}
+          actorRole={ctx?.role ?? "member"}
+          planIsPremium={premium}
+          items={items}
+        />
       ) : (
         <p className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
           진열 중인 상품이 없습니다. 마이그레이션·시드를 확인해 주세요.

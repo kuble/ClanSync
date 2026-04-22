@@ -1,11 +1,14 @@
 "use client";
 
 import type { FormEvent } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
 import { purchaseStoreItemAction } from "@/app/actions/clan-store-purchase";
+import type { ClanMemberRole } from "@/lib/clan/permission-defaults";
 import type { MvpStoreSlug } from "@/lib/store/mvp-store-slugs";
+import { StorePremiumPlanDialog } from "@/components/main-clan/store-premium-plan-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,14 +33,19 @@ export type ClanStoreItemVM = {
 export function ClanStorePanels({
   gameSlug,
   clanId,
+  actorRole,
+  planIsPremium,
   items,
 }: {
   gameSlug: string;
   clanId: string;
+  actorRole: ClanMemberRole;
+  planIsPremium: boolean;
   items: ClanStoreItemVM[];
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
+  const [premiumOpen, setPremiumOpen] = useState(false);
 
   function onBuy(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -56,11 +64,18 @@ export function ClanStorePanels({
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
+      <StorePremiumPlanDialog
+        open={premiumOpen}
+        onOpenChange={setPremiumOpen}
+        actorRole={actorRole}
+        gameSlug={gameSlug}
+        clanId={clanId}
+      />
       {items.map((it) => (
         <Card
           key={it.slug}
           className={
-            it.is_premium_only && !it.canAttemptPurchase && !it.purchased
+            it.is_premium_only && !planIsPremium && !it.purchased
               ? "border-muted opacity-90"
               : ""
           }
@@ -90,6 +105,15 @@ export function ClanStorePanels({
             {it.purchased ? (
               <Button type="button" variant="secondary" disabled>
                 구매됨
+              </Button>
+            ) : it.is_premium_only && !planIsPremium ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={() => setPremiumOpen(true)}
+              >
+                플랜 비교 보기
               </Button>
             ) : (
               <form onSubmit={onBuy} className="w-full">
