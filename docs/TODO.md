@@ -3,7 +3,7 @@
 > **페이즈별 체크리스트**는 아래 문서로 나눈다. 세션 종료 시 **[세션 로그](./TODO_LOG.md)** 맨 위에 블록을 추가하고, 해당 페이즈 문서의 체크·요약표를 갱신한다.  
 > **/todo 커맨드**: `.cursor/commands/todo.md` 절차로 문서·목업과 동기화한다.
 
-> **지금 라이브**: `/` · `/sign-in` · `/sign-up` · `/games` (M2) · 체감 로드맵 → [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md) · **다음 라이브**: M3 — `/games/[g]/auth` · `/games/[g]/clan` 온보딩
+> **지금 라이브**: `/` · `/sign-in` · `/sign-up` · `/games` · `/games/[g]/auth` · `/games/[g]/clan` · `/games/[g]`(스텁) (M3) · 체감 로드맵 → [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md) · **다음 라이브**: M4 — MainClan 쉘 `.../clan/[id]`
 
 ## 페이즈별 문서
 
@@ -22,17 +22,17 @@
 |------|-----|
 | **현재 단계** | Phase 2 — Next.js `src/` · Supabase · RLS (마스터 플랜 M0~M8) |
 | **이전 단계** | Phase 1 — 정적 목업 (`mockup/`) **종료** (2026-03-28) |
-| **마지막 갱신** | 2026-04-21 — **M2 S01 인증 쉘 착지**: `0002` 마이그레이션(D-AUTH-06·게임 시드·`handle_new_user`) · `src/app/actions/auth.ts` 로그인/가입/로그아웃 · 루트 `middleware.ts` D-LANDING-04 + `/games` 비로그인 가드 · `src/lib/routing/game-card-router.ts` · `npm run db:seed` · 온보딩 스텁 3종. 다음 세션 = **M3 S02** — `/games/[g]/auth`(OAuth) · `/games/[g]/clan`(가입/생성) + RLS 1차. |
+| **마지막 갱신** | 2026-04-22 — **M3 S02 온보딩 착지**: `0003` `clan_join_requests` · D-AUTH-01 미들웨어 · 게임 연동 시뮬레이터(dev) · 클랜 목록/가입/생성. 다음 세션 = **M4 S03** — `.../clan/[id]` 레이아웃·사이드바. |
 
 ---
 
 ## 다음 세션 권장 프롬프트 (/todo 갱신 시 덮어씀)
 
-**지금 단계(Phase 2 · 다음은 M3 S02 온보딩)** — 복사용:
+**지금 단계(Phase 2 · 다음은 M4 S03 MainClan 쉘)** — 복사용:
 
 ```
-@docs/TODO_Phase2.md @docs/01-plan/pages.md @docs/01-plan/slices/slice-02-game-clan-onboarding.md 참고해서
-Phase 2 M3: `/games/[gameSlug]/auth`(D-AUTH-02/05) + `/games/[gameSlug]/clan`(D-CLAN-01/02/04) + RLS 1차. 가입 신청·승인 플로우.
+@docs/TODO_Phase2.md @docs/01-plan/pages.md @docs/01-plan/slices/slice-03-main-clan-shell.md 참고해서
+Phase 2 M4: `/games/[gameSlug]/clan/[clanId]` 레이아웃·사이드바(D-SHELL-01/02/03)·hasPermission·플랜 토글·탭 스텁.
 
 완료 후 공통 게이트(수용 기준·가드 체인·RLS 테스트·라우트 표 갱신·세션 로그)를 만족시키고 허브를 갱신한다.
 ```

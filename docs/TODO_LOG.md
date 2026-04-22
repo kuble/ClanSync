@@ -5,6 +5,20 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Phase 2 M3 S02 게임·클랜 온보딩
+
+- [x] **DB** — `supabase/migrations/0003_clan_join_requests.sql`: D-CLAN-02 테이블·부분 유니크·RLS(본인·운영진·INSERT 정합·취소 UPDATE).
+- [x] **타입** — `src/lib/supabase/database.types.ts` `clan_join_requests` + enum.
+- [x] **온보딩 로더** — `src/lib/onboarding/load-game-onboarding.ts` (D-AUTH-01 상태).
+- [x] **미들웨어** — `src/lib/supabase/middleware.ts` 세션 후 D-SHELL-02 정화 + `supabase` 반환 · `middleware.ts` D-AUTH-01 분기.
+- [x] **액션** — `src/app/actions/game-clan-onboarding.ts` (dev 게임 연동 시뮬 · 클랜 생성 서비스 롤 · 가입 신청·취소·교체).
+- [x] **UI** — `auth/page.tsx` · `clan/page.tsx` · `games/[gameSlug]/page.tsx`(MainGame 스텁) · 컴포넌트 `game-auth-connect` · `clan-join-list` · `clan-create-form`.
+- [x] **게임 선택** — `games/page.tsx` 가입 대기 = `clan_join_requests`.
+- [x] **ENV** — `.env.example` `DEV_GAME_LINK_SIMULATOR` 주석.
+- [x] **검증** — `npx tsc --noEmit` · `eslint` · `next build` 통과.
+- [x] **문서** — `TODO_Phase2.md` M3·라우트 표 · `TODO.md` · `TODO_LOG.md` · `project-context.mdc`.
+- **다음**: **M4** — MainClan 레이아웃·사이드바·탭 스텁.
+
 ### 2026-04-21 — Phase 2 M2 S01 인증 쉘 (`/` · `/sign-in` · `/sign-up` · `/games`)
 
 - [x] **DB** — `supabase/migrations/0002_auth_login_and_seed_games.sql`: `auth_failed_logins`·`auth_login_lockouts`(D-AUTH-06)·`handle_new_user` 트리거(`auth.users`→`public.users`)·게임 4종(`overwatch`·`valorant`·`lol`·`pubg`) 시드.
