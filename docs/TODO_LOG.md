@@ -5,6 +5,16 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Phase 2 M6b 스토어 원장 + Discord 일정 알림
+
+- [x] **DB** — `0014_store_coin_mvp.sql` (`coin_transactions`·`store_items`·`purchases`·RLS·`apply_store_purchase`·시드 슬러그 2종).
+- [x] **스토어** — `clan-store-purchase.ts` · `clan-store-panels.tsx` · `store/page.tsx` (`manage_clan_pool`·잔액·중복 구매 UI).
+- [x] **이벤트** — `createClanEventAction` 후 Discord 웹훅 POST (`NEXT_PUBLIC_SITE_URL` 링크, 실패 무시).
+- [x] **타입** — `database.types.ts` (gen).
+- [x] **문서** — `TODO_Phase2`·`TODO_LOG`.
+- [x] **검증** — `next build`.
+- **다음**: D-STORE-02 모달 · 구매 에셋 실적용 · M6c.
+
 ### 2026-04-22 — Phase 2 M6b S06 일부 (관리·이벤트 알림 스텁)
 
 - [x] **DB** — `0013_clan_settings_event_notify.sql` (`clan_settings.event_notify` jsonb).
