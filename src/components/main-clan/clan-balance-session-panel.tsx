@@ -13,6 +13,10 @@ import {
   startMapBanPhaseAction,
   type BalanceSessionActionResult,
 } from "@/app/actions/clan-balance-session";
+import {
+  ClanBalanceMatchResultPlaceholder,
+  ClanBalancePredictionPlaceholder,
+} from "@/components/main-clan/clan-balance-match-live-placeholders";
 import { ClanBalanceMaEditor } from "@/components/main-clan/clan-balance-ma-editor";
 import { ClanBalanceMapBanClient } from "@/components/main-clan/clan-balance-map-ban-client";
 import { ClanBalanceRosterBoard } from "@/components/main-clan/clan-balance-roster-board";
@@ -23,7 +27,7 @@ import {
   defaultMaForRoster,
   parseMaSnapshot,
 } from "@/lib/balance/ma-snapshot";
-import { parseRoster } from "@/lib/balance/roster-schema";
+import { parseRoster, rosterAssignedUserIds } from "@/lib/balance/roster-schema";
 import { tallyMapVotes } from "@/lib/balance/weighted-map-pick";
 import type { Database } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
@@ -37,8 +41,8 @@ const PHASE_LABEL: Record<
 > = {
   editing: "① 편집 중",
   map_ban: "② 맵 밴픽",
-  hero_ban: "③ 영웅 밴(준비 중)",
-  match_live: "④ 경기 진행",
+  hero_ban: "② 영웅 밴픽",
+  match_live: "③ 경기 진행",
 };
 
 export function ClanBalanceSessionPanel({
@@ -166,6 +170,9 @@ export function ClanBalanceSessionPanel({
       : null;
 
   const rosterData = parseRoster(session.roster);
+  const isRosterParticipant = new Set(rosterAssignedUserIds(rosterData)).has(
+    userId,
+  );
   const rosterEditorKey = `${session.id}:${JSON.stringify(session.roster)}`;
   const maForUi = defaultMaForRoster(
     rosterData,
@@ -269,7 +276,7 @@ export function ClanBalanceSessionPanel({
 
       {session.phase === "hero_ban" ? (
         <section className="rounded-lg border p-4">
-          <h3 className="text-sm font-medium tracking-tight">영웅 밴</h3>
+          <h3 className="text-sm font-medium tracking-tight">② 영웅 밴픽</h3>
           <div className="mt-2">
             <ClanBalanceRosterBoard roster={rosterData} pool={rosterPool} />
           </div>
@@ -296,7 +303,7 @@ export function ClanBalanceSessionPanel({
 
       {session.phase === "match_live" ? (
         <section className="rounded-lg border p-4">
-          <h3 className="text-sm font-medium tracking-tight">경기 진행</h3>
+          <h3 className="text-sm font-medium tracking-tight">③ 경기 진행</h3>
           <p className="mt-2 text-sm">
             {session.resolved_map_label ? (
               <>
@@ -307,7 +314,8 @@ export function ClanBalanceSessionPanel({
               </>
             ) : (
               <span className="text-muted-foreground">
-                맵 밴 없이 진입했습니다. 라인업·결과 입력은 후속(M6c)입니다.
+                맵 밴 없이 진입했습니다. 라인업·M/A·승부예측·결과 확정 UI는
+                아래에서 이어집니다.
               </span>
             )}
           </p>
@@ -330,6 +338,20 @@ export function ClanBalanceSessionPanel({
               planPremium={planPremium}
               syncKey={maSyncKey}
             />
+          </div>
+          <div
+            className={cn(
+              "mt-6 grid gap-4",
+              canManage && "md:grid-cols-2",
+            )}
+          >
+            <ClanBalancePredictionPlaceholder
+              planPremium={planPremium}
+              gameSlug={gameSlug}
+              clanId={clanId}
+              isRosterParticipant={isRosterParticipant}
+            />
+            {canManage ? <ClanBalanceMatchResultPlaceholder /> : null}
           </div>
           {canManage ? (
             <Button

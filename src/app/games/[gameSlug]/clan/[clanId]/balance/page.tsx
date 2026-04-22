@@ -78,8 +78,8 @@ export default async function BalancePage({
       <div>
         <h2 className="text-lg font-semibold tracking-tight">밸런스메이커</h2>
         <p className="text-muted-foreground mt-1 text-sm">
-          팀 편성·밴픽·경기 후 M/A 점수까지 한 흐름으로 묶는 탭입니다. 세션·맵
-          밴 MVP가 켜져 있습니다.
+          팀 편성·맵 밴·경기 단계 M/A·승부예측·결과 확정까지 한 흐름으로
+          묶는 탭입니다. 예측·정산·영웅 밴 투표는 단계적으로 연결 중입니다.
         </p>
         {ctx.plan === "free" ? (
           <p
