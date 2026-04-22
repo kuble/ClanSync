@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { ensurePublicUserProfile } from "@/lib/auth/ensure-public-user";
+import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 
@@ -378,6 +379,169 @@ export async function cancelClanJoinRequestAction(
 
   revalidatePath("/games");
   revalidatePath(`/games/${gameSlug}/clan`);
+  return { ok: true };
+}
+
+function revalidateJoinRequestResolution(gameSlug: string, clanId: string) {
+  revalidatePath("/games");
+  revalidatePath(`/games/${gameSlug}/clan`);
+  revalidatePath(`/games/${gameSlug}/clan/${clanId}`);
+  revalidatePath(`/games/${gameSlug}/clan/${clanId}/manage`);
+}
+
+export async function approveClanJoinRequestAction(
+  gameSlug: string,
+  clanId: string,
+  requestId: string,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const can = await hasClanPermission(
+    supabase,
+    user.id,
+    clanId,
+    "approve_join_requests",
+  );
+  if (!can) return { ok: false, error: "가입을 승인할 권한이 없습니다." };
+
+  const svc = createServiceRoleClient();
+  const { data: row } = await svc
+    .from("clan_join_requests")
+    .select("id, user_id, clan_id, status")
+    .eq("id", requestId)
+    .maybeSingle();
+
+  if (!row || row.clan_id !== clanId || row.status !== "pending") {
+    return { ok: false, error: "처리할 수 없는 신청입니다." };
+  }
+
+  const { data: dup } = await svc
+    .from("clan_members")
+    .select("id")
+    .eq("clan_id", clanId)
+    .eq("user_id", row.user_id)
+    .maybeSingle();
+  if (dup) {
+    await svc
+      .from("clan_join_requests")
+      .update({
+        status: "rejected",
+        resolved_at: new Date().toISOString(),
+        resolved_by: user.id,
+        reject_reason: "이미 클랜에 등록된 사용자입니다.",
+      })
+      .eq("id", requestId)
+      .eq("status", "pending");
+    revalidateJoinRequestResolution(gameSlug, clanId);
+    return { ok: false, error: "이미 클랜 멤버입니다." };
+  }
+
+  const { data: clan } = await svc
+    .from("clans")
+    .select("max_members")
+    .eq("id", clanId)
+    .maybeSingle();
+  const { count: activeCount } = await svc
+    .from("clan_members")
+    .select("*", { count: "exact", head: true })
+    .eq("clan_id", clanId)
+    .eq("status", "active");
+
+  const cap = clan?.max_members ?? 200;
+  if ((activeCount ?? 0) >= cap) {
+    return { ok: false, error: "클랜 정원이 찼습니다." };
+  }
+
+  const now = new Date().toISOString();
+  const { error: insErr } = await svc.from("clan_members").insert({
+    clan_id: clanId,
+    user_id: row.user_id,
+    role: "member",
+    status: "active",
+    joined_at: now,
+    last_activity_at: now,
+  });
+  if (insErr) {
+    if (insErr.code === "23505") {
+      return { ok: false, error: "이미 클랜 멤버입니다." };
+    }
+    return { ok: false, error: insErr.message };
+  }
+
+  const { error: updErr } = await svc
+    .from("clan_join_requests")
+    .update({
+      status: "approved",
+      resolved_at: now,
+      resolved_by: user.id,
+    })
+    .eq("id", requestId)
+    .eq("status", "pending");
+
+  if (updErr) {
+    await svc
+      .from("clan_members")
+      .delete()
+      .eq("clan_id", clanId)
+      .eq("user_id", row.user_id);
+    return { ok: false, error: updErr.message };
+  }
+
+  revalidateJoinRequestResolution(gameSlug, clanId);
+  return { ok: true };
+}
+
+export async function rejectClanJoinRequestAction(
+  gameSlug: string,
+  clanId: string,
+  requestId: string,
+  rejectReason: string,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const can = await hasClanPermission(
+    supabase,
+    user.id,
+    clanId,
+    "approve_join_requests",
+  );
+  if (!can) return { ok: false, error: "가입을 거절할 권한이 없습니다." };
+
+  const reason = rejectReason.trim().slice(0, 500);
+  const svc = createServiceRoleClient();
+  const { data: row } = await svc
+    .from("clan_join_requests")
+    .select("id, clan_id, status")
+    .eq("id", requestId)
+    .maybeSingle();
+
+  if (!row || row.clan_id !== clanId || row.status !== "pending") {
+    return { ok: false, error: "처리할 수 없는 신청입니다." };
+  }
+
+  const now = new Date().toISOString();
+  const { error } = await svc
+    .from("clan_join_requests")
+    .update({
+      status: "rejected",
+      resolved_at: now,
+      resolved_by: user.id,
+      reject_reason: reason || null,
+    })
+    .eq("id", requestId)
+    .eq("status", "pending");
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidateJoinRequestResolution(gameSlug, clanId);
   return { ok: true };
 }
 
