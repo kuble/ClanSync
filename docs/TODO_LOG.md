@@ -5,6 +5,15 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Phase 2 M6c 밸런스 세션·맵 밴 MVP
+
+- [x] **DB** — `0016_balance_sessions_mvp.sql` (편집→맵 밴→영웅 밴(플레이스홀더)→경기·종료, 맵 투표 테이블, RLS).
+- [x] **앱** — `clan-balance-session.ts` · `map-pools` · `weighted-map-pick` · `/balance` 패널·맵 밴 클라이언트.
+- [x] **타입** — `database.types.ts` (`balance_session_phase` 등).
+- [x] **문서** — `TODO_Phase2`·`TODO_LOG`.
+- [x] **검증** — `next build` (로컬 `db:push`는 배포 시 적용).
+- **다음**: M6c 배치 편집·M/A · M6b 잔여.
+
 ### 2026-04-22 — Phase 2 스토어 코인 내역 · M6c 밸런스 쉘
 
 - [x] **스토어** — `ClanStoreCoinHistory` (개인 최근 12건 · 리더/오피서 클랜 풀 12건) · `coin-reason-label.ts`.
