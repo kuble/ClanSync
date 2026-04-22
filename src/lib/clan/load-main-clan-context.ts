@@ -27,6 +27,7 @@ export async function loadMainClanContext(
   gameSlug: string,
   clanId: string,
 ): Promise<MainClanContext | null> {
+  void userId;
   const { data: clan, error } = await supabase
     .from("clans")
     .select("id, name, subscription_tier, games!inner(slug, name_ko)")
@@ -38,13 +39,10 @@ export async function loadMainClanContext(
   const game = clan.games as unknown as { slug: string; name_ko: string };
   if (game.slug !== gameSlug) return null;
 
-  const { data: member } = await supabase
-    .from("clan_members")
-    .select("role, status")
-    .eq("clan_id", clanId)
-    .eq("user_id", userId)
-    .maybeSingle();
-
+  const { data: memRows } = await supabase.rpc("select_my_clan_membership", {
+    p_clan_id: clanId,
+  });
+  const member = memRows?.[0];
   if (!member || member.status !== "active") return null;
 
   const role = member.role as ClanMemberRole;

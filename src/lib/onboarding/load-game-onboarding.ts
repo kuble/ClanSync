@@ -37,32 +37,19 @@ export async function loadGameOnboarding(
 
   const authVerified = ugp?.is_verified === true;
 
-  const { data: activeRows } = await supabase
-    .from("clan_members")
-    .select("clan_id")
-    .eq("user_id", userId)
-    .eq("status", "active");
-
-  const activeIds = [...new Set((activeRows ?? []).map((r) => r.clan_id))];
-  if (activeIds.length > 0) {
-    const { data: clan } = await supabase
-      .from("clans")
-      .select("id, name")
-      .eq("game_id", game.id)
-      .in("id", activeIds)
-      .limit(1)
-      .maybeSingle();
-
-    if (clan) {
-      return {
-        gameId: game.id,
-        slug: game.slug,
-        authVerified,
-        clanStatus: "member",
-        clanId: clan.id,
-        clanName: clan.name,
-      };
-    }
+  const { data: myClanRows } = await supabase.rpc("my_active_clan_for_game", {
+    p_game_id: game.id,
+  });
+  const myClan = myClanRows?.[0];
+  if (myClan?.clan_id) {
+    return {
+      gameId: game.id,
+      slug: game.slug,
+      authVerified,
+      clanStatus: "member",
+      clanId: myClan.clan_id,
+      clanName: myClan.clan_name,
+    };
   }
 
   const { data: pendingRow } = await supabase

@@ -618,9 +618,24 @@ export type Database = {
         Args: { p_clan_id: string }
         Returns: { nickname: string; user_id: string }[]
       }
+      my_active_clan_for_game: {
+        Args: { p_game_id: string }
+        Returns: { clan_id: string; clan_name: string }[]
+      }
+      my_active_clans_by_game: {
+        Args: Record<PropertyKey, never>
+        Returns: { game_id: string; clan_id: string; clan_name: string }[]
+      }
       record_clan_activity: {
         Args: { p_clan_id: string }
         Returns: undefined
+      }
+      select_my_clan_membership: {
+        Args: { p_clan_id: string }
+        Returns: {
+          role: Database["public"]["Enums"]["clan_member_role"]
+          status: Database["public"]["Enums"]["clan_member_status"]
+        }[]
       }
     }
     Enums: {

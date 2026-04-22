@@ -65,39 +65,20 @@ export default async function GamesPage() {
     (ugRows ?? []).map((r) => [r.game_id as string, r.is_verified === true]),
   );
 
-  const { data: memberships } = await supabase
-    .from("clan_members")
-    .select("clan_id, status")
-    .eq("user_id", user.id)
-    .eq("status", "active");
-
-  const clanIds = [...new Set((memberships ?? []).map((m) => m.clan_id))];
-  const { data: clanRows } =
-    clanIds.length > 0
-      ? await supabase
-          .from("clans")
-          .select("id, name, game_id")
-          .in("id", clanIds)
-      : { data: [] as { id: string; name: string; game_id: string }[] };
-
-  const clanById = new Map(
-    (clanRows ?? []).map((c) => [c.id, c] as const),
-  );
+  const { data: activeByGame } = await supabase.rpc("my_active_clans_by_game");
 
   const memberByGame = new Map<
     string,
     { clanId: string; clanName: string }
   >();
 
-  for (const m of memberships ?? []) {
-    const c = clanById.get(m.clan_id as string);
-    if (!c?.game_id) continue;
-    if (!memberByGame.has(c.game_id)) {
-      memberByGame.set(c.game_id, {
-        clanId: c.id,
-        clanName: c.name,
-      });
-    }
+  for (const row of activeByGame ?? []) {
+    const gid = row.game_id as string;
+    if (memberByGame.has(gid)) continue;
+    memberByGame.set(gid, {
+      clanId: row.clan_id as string,
+      clanName: row.clan_name as string,
+    });
   }
 
   const { data: pendingRows } = await supabase

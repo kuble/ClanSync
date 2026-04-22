@@ -276,14 +276,11 @@ export async function loadClanStatsPage(
 
   if (!clan) return null;
 
-  const roleRow = await supabase
-    .from("clan_members")
-    .select("role")
-    .eq("clan_id", clanId)
-    .eq("user_id", userId)
-    .eq("status", "active")
-    .maybeSingle();
-  const role = roleRow.data?.role;
+  const { data: memRpc } = await supabase.rpc("select_my_clan_membership", {
+    p_clan_id: clanId,
+  });
+  const role =
+    memRpc?.[0]?.status === "active" ? memRpc[0].role : undefined;
 
   const [
     setHofRules,

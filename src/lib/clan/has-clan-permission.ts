@@ -17,15 +17,12 @@ export async function hasClanPermission(
   clanId: string,
   perm: ClanPermissionKey,
 ): Promise<boolean> {
-  const { data: row } = await supabase
-    .from("clan_members")
-    .select("role")
-    .eq("clan_id", clanId)
-    .eq("user_id", userId)
-    .eq("status", "active")
-    .maybeSingle();
-
-  if (!row?.role) return false;
+  void userId;
+  const { data: rows } = await supabase.rpc("select_my_clan_membership", {
+    p_clan_id: clanId,
+  });
+  const row = rows?.[0];
+  if (!row || row.status !== "active" || !row.role) return false;
   const role = row.role as ClanMemberRole;
 
   if (LOCKED_LEADER_ONLY.has(perm)) return role === "leader";

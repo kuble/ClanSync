@@ -89,22 +89,20 @@ export async function saveClanHofConfigFormAction(
 
   resolveHofConfig(payload);
 
-  const { data: m } = await supabase
-    .from("clan_members")
-    .select("role")
-    .eq("clan_id", clanId)
-    .eq("user_id", user.id)
-    .eq("status", "active")
-    .maybeSingle();
+  const { data: mRows } = await supabase.rpc("select_my_clan_membership", {
+    p_clan_id: clanId,
+  });
+  const m = mRows?.[0];
 
   const exposeHof =
+    m?.status === "active" &&
     m?.role === "leader" &&
     (formData.get("expose_hof") === "on" ||
       formData.get("expose_hof") === "true");
 
   const svc = createServiceRoleClient();
   const updateBody =
-    m?.role === "leader"
+    m?.status === "active" && m?.role === "leader"
       ? {
           hof_config: payload,
           expose_hof: exposeHof,

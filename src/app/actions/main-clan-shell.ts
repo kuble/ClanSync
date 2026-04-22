@@ -28,15 +28,12 @@ export async function toggleClanPlanDevFormAction(
   } = await supabase.auth.getUser();
   if (!user) throw new Error("로그인이 필요합니다.");
 
-  const { data: m } = await supabase
-    .from("clan_members")
-    .select("role")
-    .eq("clan_id", clanId)
-    .eq("user_id", user.id)
-    .eq("status", "active")
-    .maybeSingle();
+  const { data: mRows } = await supabase.rpc("select_my_clan_membership", {
+    p_clan_id: clanId,
+  });
+  const m = mRows?.[0];
 
-  if (m?.role !== "leader") {
+  if (m?.status !== "active" || m?.role !== "leader") {
     throw new Error("클랜장만 플랜을 전환할 수 있습니다.");
   }
 
