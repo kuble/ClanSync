@@ -5,6 +5,18 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Phase 2 M6a S05 클랜 통계
+
+- [x] **DB** — `0005_clan_stats_m6a.sql`: `clan_daily_member_activity` + RLS · `record_clan_activity` · `clan_peer_nicknames` · `clan_settings.expose_hof`/`hof_config` · `matches`·`match_players`·`match_results`(최소).
+- [x] **로더** — `src/lib/clan/stats/*` KST·HoF 설정·`loadClanStatsPage`.
+- [x] **액션** — `clan-stats-hof.ts` (`set_hof_rules`·클랜장 `expose_hof`).
+- [x] **UI** — `clan-stats-view.tsx` · `stats/page.tsx` (요약·HoF·앱 이용·경기 일자).
+- [x] **활동 기록** — MainClan `layout.tsx` 에서 `record_clan_activity` RPC.
+- [x] **타입** — `database.types.ts` 갱신.
+- [x] **문서** — `TODO_Phase2`·`TODO`·`TODO_LOG`·`project-context`.
+- [x] **검증** — `next build`.
+- **다음**: M6b(S06) 또는 M5 `/profile`.
+
 ### 2026-04-22 — Phase 2 M4 S03 MainClan 쉘
 
 - [x] **DB** — `0004_main_clan_shell.sql`: `clans.subscription_tier` · `clan_settings`(permissions jsonb) · RLS · `clans` INSERT 시 settings 행.

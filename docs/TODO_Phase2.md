@@ -7,7 +7,7 @@
 | 항목 | 값 |
 |------|-----|
 | **단계** | Phase 2 — 앱 구현 |
-| **마지막 갱신** | 2026-04-22 — **M4 S03 MainClan 쉘 착지** (`0004` `clan_settings`·`subscription_tier` · D-SHELL-01 레일+드로어 · D-PERM-01 `hasClanPermission` · 탭 스텁 5종 · dev 플랜 토글) |
+| **마지막 갱신** | 2026-04-22 — **M6a S05 통계 본문** (`0005` 활동일·경기·HoF 컬럼 · `/stats` 요약·HoF·앱 이용·경기 기록 요약 · `record_clan_activity` 레이아웃) |
 
 ## 전제 (Q&A 확정)
 
@@ -24,7 +24,7 @@
 | **M3** 온보딩 | **S02** | `/games/[g]/auth` (OAuth D-AUTH-02/05) · `/games/[g]/clan` (D-CLAN-01/02/04) + RLS 1차 | M2 | 완료 |
 | **M4** MainClan 쉘 | **S03** | `/games/[g]/clan/[id]` 레이아웃·사이드바(D-SHELL-01/02/03)·`hasPermission()`(D-PERM-01)·플랜 토글 | M3 | 완료 |
 | **M5** 프로필 | **S08** | `/profile` 네임플레이트·뱃지 케이스 (D-PROFILE-01~04) | M2 (병렬 가능) | 대기 |
-| **M6a** 통계 | **S05** | MainClan `/stats` 탭 · HoF (D-STATS-03/04) | M4 | 대기 |
+| **M6a** 통계 | **S05** | MainClan `/stats` 탭 · HoF (D-STATS-03/04) | M4 | 완료 |
 | **M6b** 이벤트·관리·스토어 | **S06** | `/events`(D-EVENTS-03) · `/manage`(D-CLAN-02 소비자·D-MANAGE-01~04) · `/store`(D-STORE-01/02·D-ECON-03) | M4 | 대기 |
 | **M6c** 밸런스 | **S04** | `/balance` 세션·밴픽·M/A 점수·슬롯 (정산 서버정책은 Phase 2+ placeholder) | M4 | 대기 |
 | **M7** 커뮤니티 경량 | **S07** | `/games/[g]` 홈·홍보(D-RANK-01)·LFG(D-LFG-01)·순위. 스크림 탭은 "Phase 2+ 예정" 안내만 | M3 | 대기 |
@@ -120,7 +120,7 @@ flowchart TD
 
 ### M6 — MainClan 탭 묶음 (M4 이후, 권장 순서 a→b→c)
 
-- [ ] **M6a S05 클랜 통계** — HoF 모달 · **D-STATS-03/04**
+- [x] **M6a S05 클랜 통계** — 요약 KPI · HoF(설정 모달·등재 규칙·전체/월/연) · **D-STATS-03** 활동일 표·내전 막대 · **D-STATS-04** CSV 안내만 · 경기 기록 일자 목록(캘린더·정정은 M6b 후속)
 - [ ] **M6b S06 이벤트·관리·스토어** — **D-EVENTS-03** 디스코드 알림 · **D-MANAGE-01~04** · **D-STORE-01/02** · **D-ECON-03**
 - [ ] **M6c S04 밸런스메이커** — 세션·밴픽·M/A 점수. 승부예측 정산은 Phase 2+ placeholder UI만
 
@@ -148,7 +148,7 @@ flowchart TD
 | 06 | `/games/[gameSlug]/clan` | `clan-auth.html` | M3 | live |
 | 07 | `/games/[gameSlug]/clan/[clanId]` | `main-clan.html#dashboard` | M4 | live (쉘+대시보드 스텁) |
 | 09 | `/games/[gameSlug]/clan/[clanId]/balance` | `main-clan.html#balance` | M4→M6c | live (스텁) |
-| 10 | `/games/[gameSlug]/clan/[clanId]/stats` | `main-clan.html#stats` | M4→M6a | live (스텁) |
+| 10 | `/games/[gameSlug]/clan/[clanId]/stats` | `main-clan.html#stats` | M4→M6a | live (M6a 본문) |
 | 11 | `/games/[gameSlug]/clan/[clanId]/events` | `main-clan.html#events` | M4→M6b | live (스텁) |
 | 12 | `/games/[gameSlug]/clan/[clanId]/manage` | `main-clan.html#manage` | M4→M6b | live (스텁·officer+) |
 | 13 | `/games/[gameSlug]/clan/[clanId]/store` | `main-clan.html#store` | M4→M6b | live (스텁) |
