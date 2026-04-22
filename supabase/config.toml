@@ -216,6 +216,9 @@ enable_signup = true
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
+# Local `supabase start` uses this value. For hosted Supabase: Dashboard →
+# Authentication → Providers → Email → turn off "Confirm email", or run
+# `supabase link` then `supabase config push` so this file stays the source of truth.
 enable_confirmations = false
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = false
