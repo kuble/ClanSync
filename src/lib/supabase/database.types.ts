@@ -534,6 +534,83 @@ export type Database = {
           },
         ]
       }
+      coin_transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          clan_id: string | null
+          correction_of: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          pool_type: Database["public"]["Enums"]["coin_pool_type"]
+          reason: string
+          reference_id: string
+          reference_type: string
+          sub_key: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          clan_id?: string | null
+          correction_of?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          pool_type: Database["public"]["Enums"]["coin_pool_type"]
+          reason: string
+          reference_id: string
+          reference_type: string
+          sub_key?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          clan_id?: string | null
+          correction_of?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          pool_type?: Database["public"]["Enums"]["coin_pool_type"]
+          reason?: string
+          reference_id?: string
+          reference_type?: string
+          sub_key?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coin_transactions_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coin_transactions_correction_of_fkey"
+            columns: ["correction_of"]
+            isOneToOne: false
+            referencedRelation: "coin_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coin_transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coin_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       games: {
         Row: {
           created_at: string
@@ -867,6 +944,144 @@ export type Database = {
           },
         ]
       }
+      purchases: {
+        Row: {
+          approved_by: string | null
+          clan_id: string | null
+          coin_transaction_id: string
+          id: string
+          item_id: string
+          pool_source: Database["public"]["Enums"]["coin_pool_type"]
+          price_coins: number
+          purchased_at: string
+          user_id: string
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+        }
+        Insert: {
+          approved_by?: string | null
+          clan_id?: string | null
+          coin_transaction_id: string
+          id?: string
+          item_id: string
+          pool_source: Database["public"]["Enums"]["coin_pool_type"]
+          price_coins: number
+          purchased_at?: string
+          user_id: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Update: {
+          approved_by?: string | null
+          clan_id?: string | null
+          coin_transaction_id?: string
+          id?: string
+          item_id?: string
+          pool_source?: Database["public"]["Enums"]["coin_pool_type"]
+          price_coins?: number
+          purchased_at?: string
+          user_id?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchases_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_coin_transaction_id_fkey"
+            columns: ["coin_transaction_id"]
+            isOneToOne: true
+            referencedRelation: "coin_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "store_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_items: {
+        Row: {
+          asset_url: string | null
+          game_id: string | null
+          id: string
+          is_active: boolean
+          is_premium_only: boolean
+          item_type: Database["public"]["Enums"]["store_item_type"]
+          name_ko: string
+          pool_source: Database["public"]["Enums"]["coin_pool_type"]
+          price_coins: number
+          released_at: string
+          slug: string
+        }
+        Insert: {
+          asset_url?: string | null
+          game_id?: string | null
+          id?: string
+          is_active?: boolean
+          is_premium_only?: boolean
+          item_type: Database["public"]["Enums"]["store_item_type"]
+          name_ko: string
+          pool_source: Database["public"]["Enums"]["coin_pool_type"]
+          price_coins: number
+          released_at?: string
+          slug: string
+        }
+        Update: {
+          asset_url?: string | null
+          game_id?: string | null
+          id?: string
+          is_active?: boolean
+          is_premium_only?: boolean
+          item_type?: Database["public"]["Enums"]["store_item_type"]
+          name_ko?: string
+          pool_source?: Database["public"]["Enums"]["coin_pool_type"]
+          price_coins?: number
+          released_at?: string
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_items_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_badge_picks: {
         Row: {
           badge_id: string
@@ -1132,6 +1347,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_store_purchase: {
+        Args: {
+          p_actor_id: string
+          p_checkout_id: string
+          p_context_clan_id: string
+          p_item_slug: string
+        }
+        Returns: Json
+      }
       clan_active_member_counts: {
         Args: { p_clan_ids: string[] }
         Returns: {
@@ -1196,6 +1420,7 @@ export type Database = {
       clan_moderation: "clean" | "reported" | "warned" | "hidden" | "deleted"
       clan_style: "social" | "casual" | "tryhard" | "pro"
       clan_subscription_tier: "free" | "premium"
+      coin_pool_type: "clan" | "personal"
       lfg_application_status:
         | "applied"
         | "accepted"
@@ -1205,6 +1430,7 @@ export type Database = {
       lfg_post_status: "open" | "filled" | "expired" | "canceled"
       nameplate_category: "emblem" | "namebar" | "sub" | "frame"
       nameplate_unlock_source: "default" | "event" | "store" | "achievement"
+      store_item_type: "clan_deco" | "profile_deco"
       user_gender: "male" | "female" | "undisclosed"
       user_language: "ko" | "en" | "ja"
     }
@@ -1361,6 +1587,7 @@ export const Constants = {
       clan_moderation: ["clean", "reported", "warned", "hidden", "deleted"],
       clan_style: ["social", "casual", "tryhard", "pro"],
       clan_subscription_tier: ["free", "premium"],
+      coin_pool_type: ["clan", "personal"],
       lfg_application_status: [
         "applied",
         "accepted",
@@ -1371,6 +1598,7 @@ export const Constants = {
       lfg_post_status: ["open", "filled", "expired", "canceled"],
       nameplate_category: ["emblem", "namebar", "sub", "frame"],
       nameplate_unlock_source: ["default", "event", "store", "achievement"],
+      store_item_type: ["clan_deco", "profile_deco"],
       user_gender: ["male", "female", "undisclosed"],
       user_language: ["ko", "en", "ja"],
     },
