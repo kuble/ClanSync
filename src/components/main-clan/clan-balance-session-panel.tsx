@@ -13,10 +13,16 @@ import {
   startMapBanPhaseAction,
   type BalanceSessionActionResult,
 } from "@/app/actions/clan-balance-session";
+import { ClanBalanceMaEditor } from "@/components/main-clan/clan-balance-ma-editor";
 import { ClanBalanceMapBanClient } from "@/components/main-clan/clan-balance-map-ban-client";
 import { ClanBalanceRosterBoard } from "@/components/main-clan/clan-balance-roster-board";
 import { ClanBalanceRosterEditor } from "@/components/main-clan/clan-balance-roster-editor";
+import { ClanBalanceSessionRealtime } from "@/components/main-clan/clan-balance-session-realtime";
 import { Button } from "@/components/ui/button";
+import {
+  defaultMaForRoster,
+  parseMaSnapshot,
+} from "@/lib/balance/ma-snapshot";
 import { parseRoster } from "@/lib/balance/roster-schema";
 import { tallyMapVotes } from "@/lib/balance/weighted-map-pick";
 import type { Database } from "@/lib/supabase/database.types";
@@ -44,6 +50,8 @@ export function ClanBalanceSessionPanel({
   session,
   votes,
   rosterPool,
+  canEditMscore,
+  planPremium,
 }: {
   gameSlug: string;
   clanId: string;
@@ -53,6 +61,8 @@ export function ClanBalanceSessionPanel({
   session: BalanceSession | null;
   votes: MapVote[];
   rosterPool: readonly { user_id: string; nickname: string }[];
+  canEditMscore: boolean;
+  planPremium: boolean;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -157,9 +167,15 @@ export function ClanBalanceSessionPanel({
 
   const rosterData = parseRoster(session.roster);
   const rosterEditorKey = `${session.id}:${JSON.stringify(session.roster)}`;
+  const maForUi = defaultMaForRoster(
+    rosterData,
+    parseMaSnapshot(session.ma_snapshot),
+  );
+  const maSyncKey = `${session.id}:${JSON.stringify(session.ma_snapshot)}`;
 
   return (
     <div className="space-y-6">
+      <ClanBalanceSessionRealtime sessionId={session.id} />
       <div
         className={cn(
           "flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm",
@@ -298,6 +314,22 @@ export function ClanBalanceSessionPanel({
           <p className="text-muted-foreground mt-3 text-xs">라인업</p>
           <div className="mt-2">
             <ClanBalanceRosterBoard roster={rosterData} pool={rosterPool} />
+          </div>
+          <h4 className="text-muted-foreground mt-6 text-xs font-medium tracking-tight">
+            M / A 스냅샷
+          </h4>
+          <div className="mt-2">
+            <ClanBalanceMaEditor
+              gameSlug={gameSlug}
+              clanId={clanId}
+              sessionId={session.id}
+              roster={rosterData}
+              initialSnapshot={maForUi}
+              pool={[...rosterPool]}
+              canEdit={canEditMscore}
+              planPremium={planPremium}
+              syncKey={maSyncKey}
+            />
           </div>
           {canManage ? (
             <Button

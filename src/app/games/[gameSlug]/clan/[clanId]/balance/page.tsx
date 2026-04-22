@@ -33,6 +33,13 @@ export default async function BalancePage({
     clanId,
     "manage_clan_events",
   );
+  const canEditMscore = await hasClanPermission(
+    supabase,
+    user.id,
+    clanId,
+    "edit_mscore",
+  );
+  const planPremium = ctx.plan === "premium";
 
   const { data: session } = await supabase
     .from("balance_sessions")
@@ -95,6 +102,8 @@ export default async function BalancePage({
         session={session}
         votes={votes ?? []}
         rosterPool={rosterPool}
+        canEditMscore={canEditMscore}
+        planPremium={planPremium}
       />
     </div>
   );
