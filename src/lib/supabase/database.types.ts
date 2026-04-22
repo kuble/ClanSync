@@ -246,6 +246,7 @@ export type Database = {
           match_outcome: Database["public"]["Enums"]["balance_match_outcome"]
           opened_at: string
           phase: Database["public"]["Enums"]["balance_session_phase"]
+          prediction_deadline_at: string | null
           predictions_settled_at: string | null
           resolved_map_label: string | null
           roster: Json
@@ -266,6 +267,7 @@ export type Database = {
           match_outcome?: Database["public"]["Enums"]["balance_match_outcome"]
           opened_at?: string
           phase?: Database["public"]["Enums"]["balance_session_phase"]
+          prediction_deadline_at?: string | null
           predictions_settled_at?: string | null
           resolved_map_label?: string | null
           roster?: Json
@@ -286,6 +288,7 @@ export type Database = {
           match_outcome?: Database["public"]["Enums"]["balance_match_outcome"]
           opened_at?: string
           phase?: Database["public"]["Enums"]["balance_session_phase"]
+          prediction_deadline_at?: string | null
           predictions_settled_at?: string | null
           resolved_map_label?: string | null
           roster?: Json
