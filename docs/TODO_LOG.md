@@ -5,6 +5,14 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Phase 2 M6c 영웅 밴 투표(OW)
+
+- [x] **DB** — `0021_balance_hero_ban.sql` (`balance_session_hero_votes` · `hero_ban_deadline_at` · `banned_heroes`).
+- [x] **앱** — `ow-hero-ban.ts` · `submitHeroBanVoteAction` · `resolveHeroBanAction` · 맵 확정/건너뛰기 시 20s 데드라인 · `ClanBalanceHeroBanClient`.
+- [x] **타입** — `database.types.ts`.
+- [x] **검증** — `next build`.
+- **다음**: 승부예측·정산 서버 · 투표 실시간 구독(선택).
+
 ### 2026-04-22 — Phase 2 M6c 경기 단계 플레이스홀더 (승부예측·결과)
 
 - [x] **UX** — `match_live`에 `ClanBalancePredictionPlaceholder`·`ClanBalanceMatchResultPlaceholder`(운영진) · 출전자 예측 제외 카피 · Free Premium 안내 · 단계 라벨 ①~③ 정합.
