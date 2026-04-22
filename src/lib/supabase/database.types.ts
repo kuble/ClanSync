@@ -193,6 +193,42 @@ export type Database = {
           },
         ]
       }
+      balance_session_predictions: {
+        Row: {
+          created_at: string
+          pick_team: number
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          pick_team: number
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          pick_team?: number
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "balance_session_predictions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "balance_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_session_predictions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       balance_sessions: {
         Row: {
           banned_heroes: string[] | null
@@ -207,8 +243,10 @@ export type Database = {
           map_ban_enabled: boolean
           map_candidates: string[] | null
           ma_snapshot: Json
+          match_outcome: Database["public"]["Enums"]["balance_match_outcome"]
           opened_at: string
           phase: Database["public"]["Enums"]["balance_session_phase"]
+          predictions_settled_at: string | null
           resolved_map_label: string | null
           roster: Json
         }
@@ -225,8 +263,10 @@ export type Database = {
           map_ban_enabled?: boolean
           map_candidates?: string[] | null
           ma_snapshot?: Json
+          match_outcome?: Database["public"]["Enums"]["balance_match_outcome"]
           opened_at?: string
           phase?: Database["public"]["Enums"]["balance_session_phase"]
+          predictions_settled_at?: string | null
           resolved_map_label?: string | null
           roster?: Json
         }
@@ -243,8 +283,10 @@ export type Database = {
           map_ban_enabled?: boolean
           map_candidates?: string[] | null
           ma_snapshot?: Json
+          match_outcome?: Database["public"]["Enums"]["balance_match_outcome"]
           opened_at?: string
           phase?: Database["public"]["Enums"]["balance_session_phase"]
+          predictions_settled_at?: string | null
           resolved_map_label?: string | null
           roster?: Json
         }
@@ -1540,6 +1582,13 @@ export type Database = {
           user_id: string
         }[]
       }
+      set_balance_match_outcome: {
+        Args: {
+          p_outcome: Database["public"]["Enums"]["balance_match_outcome"]
+          p_session_id: string
+        }
+        Returns: Json
+      }
       my_active_clan_for_game: {
         Args: { p_game_id: string }
         Returns: {
@@ -1565,6 +1614,7 @@ export type Database = {
       }
     }
     Enums: {
+      balance_match_outcome: "pending" | "team1" | "team2" | "void"
       balance_session_phase:
         | "editing"
         | "map_ban"
@@ -1735,6 +1785,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      balance_match_outcome: ["pending", "team1", "team2", "void"],
       balance_session_phase: [
         "editing",
         "map_ban",
