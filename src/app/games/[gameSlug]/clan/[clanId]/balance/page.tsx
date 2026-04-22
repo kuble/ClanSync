@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 
 type RosterPoolRow =
   Database["public"]["Functions"]["list_balance_roster_pool"]["Returns"][number];
+type HeroVoteRow =
+  Database["public"]["Tables"]["balance_session_hero_votes"]["Row"];
 
 export default async function BalancePage({
   params,
@@ -55,6 +57,15 @@ export default async function BalancePage({
         .eq("session_id", session.id)
     : { data: [] as { session_id: string; user_id: string; choice_idx: number }[] };
 
+  let heroVotes: HeroVoteRow[] = [];
+  if (session?.phase === "hero_ban") {
+    const { data: hv } = await supabase
+      .from("balance_session_hero_votes")
+      .select("session_id, user_id, pick_1, pick_2, pick_3")
+      .eq("session_id", session.id);
+    heroVotes = hv ?? [];
+  }
+
   const { data: rosterPoolRows } = await supabase.rpc("list_balance_roster_pool", {
     p_clan_id: clanId,
   });
@@ -78,8 +89,8 @@ export default async function BalancePage({
       <div>
         <h2 className="text-lg font-semibold tracking-tight">밸런스메이커</h2>
         <p className="text-muted-foreground mt-1 text-sm">
-          팀 편성·맵 밴·경기 단계 M/A·승부예측·결과 확정까지 한 흐름으로
-          묶는 탭입니다. 예측·정산·영웅 밴 투표는 단계적으로 연결 중입니다.
+          팀 편성·맵 밴·영웅 밴(오버워치)·경기 M/A·승부예측·결과 확정 UI를 한
+          흐름으로 묶는 탭입니다. 예측·코인 정산은 서버 연동 예정입니다.
         </p>
         {ctx.plan === "free" ? (
           <p
@@ -101,6 +112,7 @@ export default async function BalancePage({
         hostNickname={hostNickname}
         session={session}
         votes={votes ?? []}
+        heroVotes={heroVotes}
         rosterPool={rosterPool}
         canEditMscore={canEditMscore}
         planPremium={planPremium}

@@ -17,6 +17,7 @@ import {
   ClanBalanceMatchResultPlaceholder,
   ClanBalancePredictionPlaceholder,
 } from "@/components/main-clan/clan-balance-match-live-placeholders";
+import { ClanBalanceHeroBanClient } from "@/components/main-clan/clan-balance-hero-ban-client";
 import { ClanBalanceMaEditor } from "@/components/main-clan/clan-balance-ma-editor";
 import { ClanBalanceMapBanClient } from "@/components/main-clan/clan-balance-map-ban-client";
 import { ClanBalanceRosterBoard } from "@/components/main-clan/clan-balance-roster-board";
@@ -27,6 +28,7 @@ import {
   defaultMaForRoster,
   parseMaSnapshot,
 } from "@/lib/balance/ma-snapshot";
+import { isOverwatchBalanceGame, owHeroLabel } from "@/lib/balance/ow-hero-ban";
 import { parseRoster, rosterAssignedUserIds } from "@/lib/balance/roster-schema";
 import { tallyMapVotes } from "@/lib/balance/weighted-map-pick";
 import type { Database } from "@/lib/supabase/database.types";
@@ -34,6 +36,7 @@ import { cn } from "@/lib/utils";
 
 type BalanceSession = Database["public"]["Tables"]["balance_sessions"]["Row"];
 type MapVote = Database["public"]["Tables"]["balance_session_map_votes"]["Row"];
+type HeroVote = Database["public"]["Tables"]["balance_session_hero_votes"]["Row"];
 
 const PHASE_LABEL: Record<
   Database["public"]["Enums"]["balance_session_phase"],
@@ -53,6 +56,7 @@ export function ClanBalanceSessionPanel({
   hostNickname,
   session,
   votes,
+  heroVotes,
   rosterPool,
   canEditMscore,
   planPremium,
@@ -64,6 +68,7 @@ export function ClanBalanceSessionPanel({
   hostNickname: string | null;
   session: BalanceSession | null;
   votes: MapVote[];
+  heroVotes: HeroVote[];
   rosterPool: readonly { user_id: string; nickname: string }[];
   canEditMscore: boolean;
   planPremium: boolean;
@@ -179,6 +184,8 @@ export function ClanBalanceSessionPanel({
     parseMaSnapshot(session.ma_snapshot),
   );
   const maSyncKey = `${session.id}:${JSON.stringify(session.ma_snapshot)}`;
+  const myHeroVote = heroVotes.find((v) => v.user_id === userId) ?? null;
+  const heroBanSyncKey = `${session.id}:${JSON.stringify(heroVotes)}`;
 
   return (
     <div className="space-y-6">
@@ -280,14 +287,31 @@ export function ClanBalanceSessionPanel({
           <div className="mt-2">
             <ClanBalanceRosterBoard roster={rosterData} pool={rosterPool} />
           </div>
-          <p className="text-muted-foreground mt-3 text-sm">
-            영웅 밴 투표 UI는 곧 연결됩니다. 지금은 운영진이 건너뛰고 경기 화면으로
-            이동할 수 있습니다.
-          </p>
+          {isOverwatchBalanceGame(gameSlug) ? (
+            <div className="mt-4">
+              <ClanBalanceHeroBanClient
+                gameSlug={gameSlug}
+                clanId={clanId}
+                sessionId={session.id}
+                deadlineIso={session.hero_ban_deadline_at}
+                myVote={myHeroVote}
+                allVotes={heroVotes}
+                canResolve={canManage}
+                isRosterParticipant={isRosterParticipant}
+                syncKey={heroBanSyncKey}
+              />
+            </div>
+          ) : (
+            <p className="text-muted-foreground mt-3 text-sm">
+              이 게임에서는 영웅 밴 풀이 아직 없습니다. 운영진이 건너뛰면 경기
+              화면으로 이동합니다.
+            </p>
+          )}
           {canManage ? (
             <Button
               type="button"
               className="mt-4"
+              variant="secondary"
               disabled={pending}
               onClick={() =>
                 runAction("경기 화면으로 이동했습니다.", () =>
@@ -319,6 +343,14 @@ export function ClanBalanceSessionPanel({
               </span>
             )}
           </p>
+          {session.banned_heroes && session.banned_heroes.length > 0 ? (
+            <p className="text-muted-foreground mt-2 text-sm">
+              밴 영웅:{" "}
+              <span className="text-foreground">
+                {session.banned_heroes.map((id) => owHeroLabel(id)).join(", ")}
+              </span>
+            </p>
+          ) : null}
           <p className="text-muted-foreground mt-3 text-xs">라인업</p>
           <div className="mt-2">
             <ClanBalanceRosterBoard roster={rosterData} pool={rosterPool} />

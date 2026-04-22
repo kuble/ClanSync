@@ -9,6 +9,12 @@ import {
   type MaSnapshot,
 } from "@/lib/balance/ma-snapshot";
 import {
+  isOverwatchBalanceGame,
+  isValidOwHeroId,
+  resolveBannedHeroesFromScores,
+  tallyHeroBanVotes,
+} from "@/lib/balance/ow-hero-ban";
+import {
   parseRoster,
   rosterAssignedUserIds,
   rosterHasDuplicateUsers,
@@ -162,6 +168,10 @@ export async function skipMapBanToMatchLiveAction(
   if (!session) return { ok: false, error: "세션을 찾을 수 없습니다." };
 
   const nextPhase: Phase = session.hero_ban_enabled ? "hero_ban" : "match_live";
+  const heroDeadline =
+    nextPhase === "hero_ban"
+      ? new Date(Date.now() + 20_000).toISOString()
+      : null;
 
   const { data: updated, error } = await supabase
     .from("balance_sessions")
@@ -169,6 +179,7 @@ export async function skipMapBanToMatchLiveAction(
       phase: nextPhase,
       map_candidates: null,
       map_ban_deadline_at: null,
+      hero_ban_deadline_at: heroDeadline,
     })
     .eq("id", sessionId)
     .eq("clan_id", clanId)
@@ -279,6 +290,10 @@ export async function resolveMapBanAction(
   const resolved = candidates[winIdx] ?? candidates[0];
 
   const nextPhase: Phase = session.hero_ban_enabled ? "hero_ban" : "match_live";
+  const heroDeadline =
+    nextPhase === "hero_ban"
+      ? new Date(Date.now() + 20_000).toISOString()
+      : null;
 
   const { error: updErr } = await supabase
     .from("balance_sessions")
@@ -286,11 +301,150 @@ export async function resolveMapBanAction(
       phase: nextPhase,
       resolved_map_label: resolved,
       map_ban_deadline_at: null,
+      hero_ban_deadline_at: heroDeadline,
     })
     .eq("id", sessionId)
     .eq("clan_id", clanId)
     .is("closed_at", null)
     .eq("phase", "map_ban");
+
+  if (updErr) return { ok: false, error: updErr.message };
+
+  revalidatePath(balancePath(gameSlug, clanId));
+  return { ok: true };
+}
+
+export async function submitHeroBanVoteAction(
+  gameSlug: string,
+  clanId: string,
+  sessionId: string,
+  pick1: string,
+  pick2: string,
+  pick3: string,
+): Promise<BalanceSessionActionResult> {
+  if (!isOverwatchBalanceGame(gameSlug)) {
+    return {
+      ok: false,
+      error: "이 게임에서는 영웅 밴 투표를 지원하지 않습니다.",
+    };
+  }
+
+  const a = pick1.trim();
+  const b = pick2.trim();
+  const c = pick3.trim();
+  if (new Set([a, b, c]).size !== 3) {
+    return { ok: false, error: "서로 다른 영웅 3명을 선택하세요." };
+  }
+  for (const p of [a, b, c]) {
+    if (!isValidOwHeroId(p)) {
+      return { ok: false, error: "알 수 없는 영웅입니다." };
+    }
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const { data: session, error: sessErr } = await supabase
+    .from("balance_sessions")
+    .select("phase, roster")
+    .eq("id", sessionId)
+    .eq("clan_id", clanId)
+    .is("closed_at", null)
+    .maybeSingle();
+
+  if (sessErr || !session) {
+    return { ok: false, error: "세션을 찾을 수 없습니다." };
+  }
+  if (session.phase !== "hero_ban") {
+    return { ok: false, error: "영웅 밴 단계가 아닙니다." };
+  }
+
+  const roster = parseRoster(session.roster);
+  const assigned = new Set(rosterAssignedUserIds(roster));
+  if (!assigned.has(user.id)) {
+    return {
+      ok: false,
+      error: "출전 라인업에 포함된 멤버만 투표할 수 있습니다.",
+    };
+  }
+
+  const { error } = await supabase.from("balance_session_hero_votes").upsert(
+    {
+      session_id: sessionId,
+      user_id: user.id,
+      pick_1: a,
+      pick_2: b,
+      pick_3: c,
+    },
+    { onConflict: "session_id,user_id" },
+  );
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath(balancePath(gameSlug, clanId));
+  return { ok: true };
+}
+
+export async function resolveHeroBanAction(
+  gameSlug: string,
+  clanId: string,
+  sessionId: string,
+): Promise<BalanceSessionActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const can = await hasClanPermission(
+    supabase,
+    user.id,
+    clanId,
+    "manage_clan_events",
+  );
+  if (!can) {
+    return { ok: false, error: "운영진만 영웅 밴을 확정할 수 있습니다." };
+  }
+
+  const { data: session, error: sessErr } = await supabase
+    .from("balance_sessions")
+    .select("phase")
+    .eq("id", sessionId)
+    .eq("clan_id", clanId)
+    .is("closed_at", null)
+    .maybeSingle();
+
+  if (sessErr || !session) {
+    return { ok: false, error: "세션을 찾을 수 없습니다." };
+  }
+  if (session.phase !== "hero_ban") {
+    return { ok: false, error: "영웅 밴 단계가 아닙니다." };
+  }
+
+  const { data: voteRows, error: voteErr } = await supabase
+    .from("balance_session_hero_votes")
+    .select("pick_1, pick_2, pick_3")
+    .eq("session_id", sessionId);
+
+  if (voteErr) return { ok: false, error: voteErr.message };
+
+  const scores = tallyHeroBanVotes(voteRows ?? []);
+  const banned = resolveBannedHeroesFromScores(scores);
+
+  const { error: updErr } = await supabase
+    .from("balance_sessions")
+    .update({
+      phase: "match_live",
+      banned_heroes: banned,
+      hero_ban_deadline_at: null,
+    })
+    .eq("id", sessionId)
+    .eq("clan_id", clanId)
+    .is("closed_at", null)
+    .eq("phase", "hero_ban");
 
   if (updErr) return { ok: false, error: updErr.message };
 
@@ -319,7 +473,11 @@ export async function skipHeroBanPhaseAction(
 
   const { data: updated, error } = await supabase
     .from("balance_sessions")
-    .update({ phase: "match_live" })
+    .update({
+      phase: "match_live",
+      hero_ban_deadline_at: null,
+      banned_heroes: null,
+    })
     .eq("id", sessionId)
     .eq("clan_id", clanId)
     .is("closed_at", null)
