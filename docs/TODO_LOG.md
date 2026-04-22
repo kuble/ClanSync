@@ -5,13 +5,19 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Phase 2 M6c 경기 단계 플레이스홀더 (승부예측·결과)
+
+- [x] **UX** — `match_live`에 `ClanBalancePredictionPlaceholder`·`ClanBalanceMatchResultPlaceholder`(운영진) · 출전자 예측 제외 카피 · Free Premium 안내 · 단계 라벨 ①~③ 정합.
+- [x] **검증** — `next build`.
+- **다음**: 승부예측·정산 DB 연동(Phase 2+) · 영웅 밴 투표 · M6b.
+
 ### 2026-04-22 — Phase 2 M6c M/A 스냅샷 · Realtime
 
 - [x] **DB** — `0020_balance_ma_snapshot_realtime.sql` (`ma_snapshot` jsonb · publication 조건부).
 - [x] **앱** — `updateBalanceMaSnapshotAction` · `ma-snapshot.ts` · `ClanBalanceMaEditor` · `ClanBalanceSessionRealtime` · `match_live` + `edit_mscore` · Premium만 A.
 - [x] **타입** — `database.types.ts`.
 - [x] **검증** — `next build`.
-- **다음**: M6c 잔여(승부예측 placeholder) · M6b.
+- **다음**: 승부예측·정산 연동 · 영웅 밴 · M6b.
 
 ### 2026-04-22 — Phase 2 M6c 5v5 roster 편집
 
