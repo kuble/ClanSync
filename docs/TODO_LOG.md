@@ -5,6 +5,14 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Phase 2 M6c M/A 스냅샷 · Realtime
+
+- [x] **DB** — `0020_balance_ma_snapshot_realtime.sql` (`ma_snapshot` jsonb · publication 조건부).
+- [x] **앱** — `updateBalanceMaSnapshotAction` · `ma-snapshot.ts` · `ClanBalanceMaEditor` · `ClanBalanceSessionRealtime` · `match_live` + `edit_mscore` · Premium만 A.
+- [x] **타입** — `database.types.ts`.
+- [x] **검증** — `next build`.
+- **다음**: M6c 잔여(승부예측 placeholder) · M6b.
+
 ### 2026-04-22 — Phase 2 M6c 5v5 roster 편집
 
 - [x] **DB** — `0019_balance_session_roster.sql` (`roster` jsonb · `list_balance_roster_pool`).
