@@ -5,6 +5,13 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Phase 2 M6c 승부예측 5분 마감
+
+- [x] **DB** — `0025_balance_prediction_deadline.sql` (`prediction_deadline_at` · 예측 RLS 마감 조건); `0026_balance_outcome_clear_prediction_deadline.sql` (결과 확정 시 마감 시각 초기화).
+- [x] **앱** — `match_live` 진입 시 마감 ISO 설정 · `submitBalancePredictionAction` 선검증 · 예측 카드 카운트다운·마감 후 버튼 비활성.
+- [x] **검증** — `next build`.
+- **다음**: 파리뮤추엘·이력.
+
 ### 2026-04-22 — Phase 2 M6c 예측 보상 클랜 풀 차감
 
 - [x] **DB** — `0024_balance_prediction_clan_debit.sql` (`set_balance_match_outcome`: 적중 N×5 클랜 차감·`balance_prediction_payout` 원장 → 개인 지급, `insufficient_clan_coins`).
