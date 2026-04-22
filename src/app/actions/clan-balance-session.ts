@@ -724,10 +724,12 @@ export async function setBalanceMatchOutcomeAction(
 
   const payload = data as { ok?: boolean; error?: string } | null;
   if (!payload?.ok) {
-    return {
-      ok: false,
-      error: payload?.error ?? "결과를 확정할 수 없습니다.",
-    };
+    const code = payload?.error;
+    const message =
+      code === "insufficient_clan_coins"
+        ? "클랜 코인이 부족합니다. 적중 보상(인원×5)만큼 풀을 채운 뒤 다시 확정해 주세요."
+        : (code ?? "결과를 확정할 수 없습니다.");
+    return { ok: false, error: message };
   }
 
   revalidatePath(balancePath(gameSlug, clanId));

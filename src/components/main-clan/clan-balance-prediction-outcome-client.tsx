@@ -58,7 +58,8 @@ export function ClanBalancePredictionClient({
         <CardTitle className="text-base">승부예측</CardTitle>
         <CardDescription>
           Premium · 비출전 멤버만 참여합니다. 적중 시 개인 코인{" "}
-          <span className="text-foreground font-medium">5</span> (MVP 고정).
+          <span className="text-foreground font-medium">5</span> (MVP 고정)은{" "}
+          <strong className="text-foreground">클랜 코인 풀</strong>에서 차감됩니다.
           현재 제출 {predictionCount}명. 마감 전에 다시 눌러 변경할 수 있습니다.
         </CardDescription>
       </CardHeader>
@@ -120,7 +121,8 @@ export function ClanBalanceMatchOutcomeClient({
       <CardHeader className="pb-2">
         <CardTitle className="text-base">경기 결과 확정</CardTitle>
         <CardDescription>
-          확정 시 예측이 마감되고, Premium 클랜은 적중자에게 코인이 지급됩니다.
+          확정 시 예측이 마감됩니다. Premium은 적중 인원×5만큼 클랜 풀을 먼저
+          차감한 뒤 개인에게 지급합니다. 풀이 부족하면 확정되지 않습니다.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-wrap gap-2">

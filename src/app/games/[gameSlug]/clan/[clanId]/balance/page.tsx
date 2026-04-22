@@ -101,7 +101,7 @@ export default async function BalancePage({
         <h2 className="text-lg font-semibold tracking-tight">밸런스메이커</h2>
         <p className="text-muted-foreground mt-1 text-sm">
           팀 편성·맵/영웅 밴·경기 M/A·승부예측(Premium)·결과 확정까지 한 흐름입니다.
-          적중 보상은 MVP 기준 개인 코인 5입니다.
+          적중 보상은 MVP 기준 인당 5코인이며, Premium 클랜 풀에서 합산 차감됩니다.
         </p>
         {ctx.plan === "free" ? (
           <p
