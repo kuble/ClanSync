@@ -2,10 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { pickThreeMapCandidates } from "@/lib/balance/map-pools";
+import {
+  parseRoster,
+  rosterAssignedUserIds,
+  rosterHasDuplicateUsers,
+  type BalanceRoster,
+} from "@/lib/balance/roster-schema";
 import { tallyMapVotes, weightedPickMapIndex } from "@/lib/balance/weighted-map-pick";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Database, Json } from "@/lib/supabase/database.types";
 
 type Phase = Database["public"]["Enums"]["balance_session_phase"];
 
@@ -319,6 +325,82 @@ export async function skipHeroBanPhaseAction(
   if (!updated) {
     return { ok: false, error: "영웅 밴 단계가 아닙니다." };
   }
+
+  revalidatePath(balancePath(gameSlug, clanId));
+  return { ok: true };
+}
+
+export async function updateBalanceRosterAction(
+  gameSlug: string,
+  clanId: string,
+  sessionId: string,
+  rosterJson: string,
+): Promise<BalanceSessionActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const can = await hasClanPermission(
+    supabase,
+    user.id,
+    clanId,
+    "manage_clan_events",
+  );
+  if (!can) return { ok: false, error: "운영진만 배치를 수정할 수 있습니다." };
+
+  let roster: BalanceRoster;
+  try {
+    roster = parseRoster(JSON.parse(rosterJson) as unknown);
+  } catch {
+    return { ok: false, error: "배치 데이터 형식이 올바르지 않습니다." };
+  }
+
+  if (rosterHasDuplicateUsers(roster)) {
+    return { ok: false, error: "같은 멤버를 두 슬롯에 둘 수 없습니다." };
+  }
+
+  const { data: pool, error: poolErr } = await supabase.rpc(
+    "list_balance_roster_pool",
+    { p_clan_id: clanId },
+  );
+  if (poolErr) return { ok: false, error: poolErr.message };
+
+  const poolRows = pool ?? [];
+  const allowed = new Set(
+    poolRows.map((r: { user_id: string }) => r.user_id),
+  );
+  for (const uid of rosterAssignedUserIds(roster)) {
+    if (!allowed.has(uid)) {
+      return { ok: false, error: "클랜 활동 멤버가 아닌 사용자가 포함되어 있습니다." };
+    }
+  }
+
+  const { data: session, error: sessErr } = await supabase
+    .from("balance_sessions")
+    .select("phase")
+    .eq("id", sessionId)
+    .eq("clan_id", clanId)
+    .is("closed_at", null)
+    .maybeSingle();
+
+  if (sessErr || !session) {
+    return { ok: false, error: "세션을 찾을 수 없습니다." };
+  }
+  if (session.phase !== "editing") {
+    return { ok: false, error: "편집 단계에서만 배치를 바꿀 수 있습니다." };
+  }
+
+  const { error: updErr } = await supabase
+    .from("balance_sessions")
+    .update({ roster: roster as unknown as Json })
+    .eq("id", sessionId)
+    .eq("clan_id", clanId)
+    .is("closed_at", null)
+    .eq("phase", "editing");
+
+  if (updErr) return { ok: false, error: updErr.message };
 
   revalidatePath(balancePath(gameSlug, clanId));
   return { ok: true };

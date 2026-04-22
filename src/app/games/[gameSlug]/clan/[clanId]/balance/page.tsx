@@ -2,7 +2,11 @@ import { ClanBalanceSessionPanel } from "@/components/main-clan/clan-balance-ses
 import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import { createClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
+
+type RosterPoolRow =
+  Database["public"]["Functions"]["list_balance_roster_pool"]["Returns"][number];
 
 export default async function BalancePage({
   params,
@@ -44,6 +48,14 @@ export default async function BalancePage({
         .eq("session_id", session.id)
     : { data: [] as { session_id: string; user_id: string; choice_idx: number }[] };
 
+  const { data: rosterPoolRows } = await supabase.rpc("list_balance_roster_pool", {
+    p_clan_id: clanId,
+  });
+  const rosterPool = (rosterPoolRows ?? []).map((r: RosterPoolRow) => ({
+    user_id: r.user_id,
+    nickname: r.nickname,
+  }));
+
   let hostNickname: string | null = null;
   if (session?.host_user_id) {
     const { data: hostRow } = await supabase
@@ -82,6 +94,7 @@ export default async function BalancePage({
         hostNickname={hostNickname}
         session={session}
         votes={votes ?? []}
+        rosterPool={rosterPool}
       />
     </div>
   );

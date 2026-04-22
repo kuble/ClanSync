@@ -168,6 +168,7 @@ export type Database = {
           opened_at: string
           phase: Database["public"]["Enums"]["balance_session_phase"]
           resolved_map_label: string | null
+          roster: Json
         }
         Insert: {
           clan_id: string
@@ -182,6 +183,7 @@ export type Database = {
           opened_at?: string
           phase?: Database["public"]["Enums"]["balance_session_phase"]
           resolved_map_label?: string | null
+          roster?: Json
         }
         Update: {
           clan_id?: string
@@ -196,6 +198,7 @@ export type Database = {
           opened_at?: string
           phase?: Database["public"]["Enums"]["balance_session_phase"]
           resolved_map_label?: string | null
+          roster?: Json
         }
         Relationships: [
           {
@@ -1481,6 +1484,13 @@ export type Database = {
       is_member_of_balance_session: {
         Args: { p_session_id: string }
         Returns: boolean
+      }
+      list_balance_roster_pool: {
+        Args: { p_clan_id: string }
+        Returns: {
+          nickname: string
+          user_id: string
+        }[]
       }
       my_active_clan_for_game: {
         Args: { p_game_id: string }

@@ -14,7 +14,10 @@ import {
   type BalanceSessionActionResult,
 } from "@/app/actions/clan-balance-session";
 import { ClanBalanceMapBanClient } from "@/components/main-clan/clan-balance-map-ban-client";
+import { ClanBalanceRosterBoard } from "@/components/main-clan/clan-balance-roster-board";
+import { ClanBalanceRosterEditor } from "@/components/main-clan/clan-balance-roster-editor";
 import { Button } from "@/components/ui/button";
+import { parseRoster } from "@/lib/balance/roster-schema";
 import { tallyMapVotes } from "@/lib/balance/weighted-map-pick";
 import type { Database } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
@@ -40,6 +43,7 @@ export function ClanBalanceSessionPanel({
   hostNickname,
   session,
   votes,
+  rosterPool,
 }: {
   gameSlug: string;
   clanId: string;
@@ -48,6 +52,7 @@ export function ClanBalanceSessionPanel({
   hostNickname: string | null;
   session: BalanceSession | null;
   votes: MapVote[];
+  rosterPool: readonly { user_id: string; nickname: string }[];
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -150,6 +155,9 @@ export function ClanBalanceSessionPanel({
         ])
       : null;
 
+  const rosterData = parseRoster(session.roster);
+  const rosterEditorKey = `${session.id}:${JSON.stringify(session.roster)}`;
+
   return (
     <div className="space-y-6">
       <div
@@ -167,11 +175,26 @@ export function ClanBalanceSessionPanel({
         <section className="rounded-lg border p-4">
           <h3 className="text-sm font-medium tracking-tight">① 편집 중</h3>
           <p className="text-muted-foreground mt-2 text-sm">
-            팀 배치 편집 UI는 후속 작업입니다. 여기서는 맵 밴·경기 단계만
-            진행합니다.
+            5v5(탱1·딜2·힐2 × 양팀) 슬롯에 활동 멤버를 배치합니다. 저장 후 맵
+            밴·경기 단계로 진행하세요.
           </p>
+          <div className="mt-4">
+            {canManage ? (
+              <ClanBalanceRosterEditor
+                key={rosterEditorKey}
+                gameSlug={gameSlug}
+                clanId={clanId}
+                sessionId={session.id}
+                initialRoster={rosterData}
+                pool={[...rosterPool]}
+                canEdit
+              />
+            ) : (
+              <ClanBalanceRosterBoard roster={rosterData} pool={rosterPool} />
+            )}
+          </div>
           {canManage ? (
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <div className="mt-6 flex flex-col gap-2 border-t pt-4 sm:flex-row sm:flex-wrap">
               {session.map_ban_enabled ? (
                 <Button
                   type="button"
@@ -209,7 +232,11 @@ export function ClanBalanceSessionPanel({
       {session.phase === "map_ban" && triple && session.map_ban_deadline_at ? (
         <section className="rounded-lg border p-4">
           <h3 className="text-sm font-medium tracking-tight">② 맵 밴픽</h3>
-          <div className="mt-3">
+          <p className="text-muted-foreground mt-2 text-xs">확정된 배치</p>
+          <div className="mt-2">
+            <ClanBalanceRosterBoard roster={rosterData} pool={rosterPool} />
+          </div>
+          <div className="mt-4">
             <ClanBalanceMapBanClient
               gameSlug={gameSlug}
               clanId={clanId}
@@ -227,7 +254,10 @@ export function ClanBalanceSessionPanel({
       {session.phase === "hero_ban" ? (
         <section className="rounded-lg border p-4">
           <h3 className="text-sm font-medium tracking-tight">영웅 밴</h3>
-          <p className="text-muted-foreground mt-2 text-sm">
+          <div className="mt-2">
+            <ClanBalanceRosterBoard roster={rosterData} pool={rosterPool} />
+          </div>
+          <p className="text-muted-foreground mt-3 text-sm">
             영웅 밴 투표 UI는 곧 연결됩니다. 지금은 운영진이 건너뛰고 경기 화면으로
             이동할 수 있습니다.
           </p>
@@ -265,6 +295,10 @@ export function ClanBalanceSessionPanel({
               </span>
             )}
           </p>
+          <p className="text-muted-foreground mt-3 text-xs">라인업</p>
+          <div className="mt-2">
+            <ClanBalanceRosterBoard roster={rosterData} pool={rosterPool} />
+          </div>
           {canManage ? (
             <Button
               type="button"
