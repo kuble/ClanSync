@@ -1,8 +1,11 @@
+import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
+import { ClanEventNotifyForm } from "@/components/main-clan/clan-event-notify-form";
 import { CreateClanEventForm } from "@/components/main-clan/create-clan-event-form";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
+import type { Json } from "@/lib/supabase/database.types";
 
 function kindLabel(kind: string): string {
   if (kind === "intra") return "내전";
@@ -36,7 +39,19 @@ export default async function ClanEventsPage({
         )
       : false;
 
+  const canEditEventNotify = ctx?.role === "leader";
+
   const svc = createServiceRoleClient();
+  const { data: settingsRow } = await svc
+    .from("clan_settings")
+    .select("event_notify")
+    .eq("clan_id", clanId)
+    .maybeSingle();
+
+  const notify = readClanEventNotifySettings(
+    settingsRow?.event_notify as Json | null,
+  );
+
   const { data: rows } = await svc
     .from("clan_events")
     .select("id, title, kind, start_at, place")
@@ -50,9 +65,19 @@ export default async function ClanEventsPage({
       <div>
         <h2 className="text-lg font-semibold tracking-tight">이벤트</h2>
         <p className="text-muted-foreground mt-1 text-sm">
-          단발 일정(M6b MVP). 반복·RSVP·알림은 후속에서 연결합니다.
+          단발 일정(M6b MVP). 반복·RSVP·실알림 전송은 후속에서 연결합니다.
         </p>
       </div>
+
+      {canManage ? (
+        <ClanEventNotifyForm
+          gameSlug={gameSlug}
+          clanId={clanId}
+          discordEnabled={notify.discord_enabled}
+          discordWebhookUrl={notify.discord_webhook_url}
+          canEdit={canEditEventNotify}
+        />
+      ) : null}
 
       {canManage ? (
         <CreateClanEventForm gameSlug={gameSlug} clanId={clanId} />

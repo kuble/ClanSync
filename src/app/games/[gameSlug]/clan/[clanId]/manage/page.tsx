@@ -1,7 +1,10 @@
 import { forbidden } from "next/navigation";
 import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
+import { ClanManageSubscriptionPanel } from "@/components/main-clan/clan-manage-subscription-panel";
 import { ManageJoinRequestsPanel } from "@/components/main-clan/manage-join-requests-panel";
+import type { ManageMemberRow } from "@/components/main-clan/manage-members-table";
+import { ManageMembersTable } from "@/components/main-clan/manage-members-table";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 
@@ -35,6 +38,21 @@ export default async function ManagePage({
           "approve_join_requests",
         )
       : false;
+
+  const canKickMemberPerm =
+    user != null
+      ? await hasClanPermission(supabase, user.id, clanId, "kick_member")
+      : false;
+  const canKickOfficerPerm =
+    user != null
+      ? await hasClanPermission(supabase, user.id, clanId, "kick_officer")
+      : false;
+
+  const actorRole = ctx?.role ?? "member";
+  const isLeader = actorRole === "leader";
+  const showDevPlanToggle =
+    process.env.NODE_ENV === "development" ||
+    process.env.DEV_CLAN_PLAN_TOGGLE === "1";
 
   let joinRequestRows: {
     id: string;
@@ -74,6 +92,15 @@ export default async function ManagePage({
     });
   }
 
+  const { data: clanTierRow } = await svc
+    .from("clans")
+    .select("subscription_tier")
+    .eq("id", clanId)
+    .maybeSingle();
+
+  const tierLabel =
+    clanTierRow?.subscription_tier === "premium" ? "Premium" : "Free";
+
   const { data: memberRows } = await svc
     .from("clan_members")
     .select("user_id, role, status, joined_at")
@@ -92,21 +119,55 @@ export default async function ManagePage({
     (memberProfiles ?? []).map((u) => [u.id, u] as const),
   );
 
-  function roleLabel(role: string): string {
-    if (role === "leader") return "클랜장";
-    if (role === "officer") return "운영진";
-    return "멤버";
-  }
+  const manageRows: ManageMemberRow[] = (memberRows ?? []).map((m) => {
+    const uid = m.user_id as string;
+    const p = profileById.get(uid);
+    const role = m.role as ManageMemberRow["role"];
+    const joinedLabel = m.joined_at
+      ? new Date(m.joined_at as string).toLocaleDateString("ko-KR")
+      : "—";
+
+    let canKick = false;
+    let canPromote = false;
+    let canDemote = false;
+
+    if (role === "leader") {
+      /* no actions */
+    } else if (role === "officer") {
+      canKick = canKickOfficerPerm;
+      canDemote = isLeader;
+    } else {
+      canKick = canKickMemberPerm;
+      canPromote = isLeader;
+    }
+
+    return {
+      userId: uid,
+      nickname: p?.nickname ?? "—",
+      email: p?.email ?? "",
+      role,
+      joinedLabel,
+      actions: { canKick, canPromote, canDemote },
+    };
+  });
 
   return (
     <div className="space-y-8">
       <div>
         <h2 className="text-lg font-semibold tracking-tight">클랜 관리</h2>
         <p className="text-muted-foreground mt-1 text-sm">
-          가입 신청·활동 멤버를 확인합니다. 강퇴·역할 변경·구독 탭은 후속에서
-          연결합니다.
+          가입 신청·활동 멤버·플랜을 다룹니다. 강퇴·역할 변경은 권한 매트릭스
+          (D-PERM-01)를 따릅니다.
         </p>
       </div>
+
+      <ClanManageSubscriptionPanel
+        gameSlug={gameSlug}
+        clanId={clanId}
+        tierLabel={tierLabel}
+        showDevPlanToggle={showDevPlanToggle}
+        isLeader={isLeader}
+      />
 
       <section className="space-y-3">
         <h3 className="text-sm font-medium tracking-tight">활동 멤버</h3>
@@ -115,40 +176,11 @@ export default async function ManagePage({
             멤버가 없습니다.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-lg border">
-            <table className="w-full min-w-[520px] text-left text-sm">
-              <thead className="bg-muted/50 text-muted-foreground border-b text-xs font-medium uppercase">
-                <tr>
-                  <th className="px-3 py-2">닉네임</th>
-                  <th className="px-3 py-2">이메일</th>
-                  <th className="px-3 py-2">역할</th>
-                  <th className="px-3 py-2">가입</th>
-                </tr>
-              </thead>
-              <tbody>
-                {memberRows.map((m) => {
-                  const p = profileById.get(m.user_id as string);
-                  const joined = m.joined_at
-                    ? new Date(m.joined_at as string).toLocaleDateString("ko-KR")
-                    : "—";
-                  return (
-                    <tr key={m.user_id as string} className="border-b last:border-0">
-                      <td className="px-3 py-2 font-medium">
-                        {p?.nickname ?? "—"}
-                      </td>
-                      <td className="text-muted-foreground px-3 py-2 text-xs">
-                        {p?.email ?? "—"}
-                      </td>
-                      <td className="px-3 py-2">{roleLabel(m.role as string)}</td>
-                      <td className="text-muted-foreground px-3 py-2 text-xs">
-                        {joined}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <ManageMembersTable
+            gameSlug={gameSlug}
+            clanId={clanId}
+            rows={manageRows}
+          />
         )}
       </section>
 

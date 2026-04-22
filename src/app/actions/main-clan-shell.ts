@@ -55,4 +55,6 @@ export async function toggleClanPlanDevFormAction(
   if (uErr) throw new Error(uErr.message);
 
   revalidatePath(`/games/${gameSlug}/clan/${clanId}`);
+  revalidatePath(`/games/${gameSlug}/clan/${clanId}/manage`);
+  revalidatePath(`/games/${gameSlug}/clan/${clanId}/store`);
 }
