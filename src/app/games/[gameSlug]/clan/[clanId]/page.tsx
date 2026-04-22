@@ -23,6 +23,14 @@ export default async function MainClanDashboardPage({
       ? await hasClanPermission(supabase, user.id, clanId, "approve_join_requests")
       : false;
 
+  const { data: clanRow } = await supabase
+    .from("clans")
+    .select("banner_url")
+    .eq("id", clanId)
+    .maybeSingle();
+
+  const bannerUrl = (clanRow?.banner_url as string | null) ?? null;
+
   return (
     <div className="space-y-6">
       <div>
@@ -31,6 +39,17 @@ export default async function MainClanDashboardPage({
           클랜 홈입니다. 왼쪽에서 탭을 선택하세요. (M6 이후 본문 확장)
         </p>
       </div>
+
+      {bannerUrl ? (
+        <div className="relative aspect-[3/1] w-full max-w-3xl overflow-hidden rounded-xl border bg-muted">
+          {/* eslint-disable-next-line @next/next/no-img-element -- 외부 https URL (스토어 배너) */}
+          <img
+            src={bannerUrl}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+        </div>
+      ) : null}
       <section className="bg-card rounded-xl border p-4 text-sm shadow-sm">
         <h3 className="font-medium">세션 요약</h3>
         <ul className="text-muted-foreground mt-2 list-inside list-disc space-y-1">

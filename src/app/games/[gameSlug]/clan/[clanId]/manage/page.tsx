@@ -1,10 +1,12 @@
 import { forbidden } from "next/navigation";
 import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
+import { ClanBannerSettingsForm } from "@/components/main-clan/clan-banner-settings-form";
 import { ClanManageSubscriptionPanel } from "@/components/main-clan/clan-manage-subscription-panel";
 import { ManageJoinRequestsPanel } from "@/components/main-clan/manage-join-requests-panel";
 import type { ManageMemberRow } from "@/components/main-clan/manage-members-table";
 import { ManageMembersTable } from "@/components/main-clan/manage-members-table";
+import { clanHasActivePurchaseForItemSlug } from "@/lib/store/store-purchase-queries";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 
@@ -54,6 +56,16 @@ export default async function ManagePage({
     process.env.NODE_ENV === "development" ||
     process.env.DEV_CLAN_PLAN_TOGGLE === "1";
 
+  const canManageClanPool =
+    user != null
+      ? await hasClanPermission(
+          supabase,
+          user.id,
+          clanId,
+          "manage_clan_pool",
+        )
+      : false;
+
   let joinRequestRows: {
     id: string;
     message: string;
@@ -63,6 +75,18 @@ export default async function ManagePage({
   }[] = [];
 
   const svc = createServiceRoleClient();
+
+  const hasBannerSlot = await clanHasActivePurchaseForItemSlug(
+    svc,
+    clanId,
+    "clan_banner_slot",
+  );
+
+  const { data: clanBannerRow } = await svc
+    .from("clans")
+    .select("banner_url")
+    .eq("id", clanId)
+    .maybeSingle();
 
   if (canApprove && user) {
     const { data: pendings } = await svc
@@ -170,6 +194,14 @@ export default async function ManagePage({
           isLeader={isLeader}
         />
       </div>
+
+      {hasBannerSlot && canManageClanPool ? (
+        <ClanBannerSettingsForm
+          gameSlug={gameSlug}
+          clanId={clanId}
+          initialBannerUrl={(clanBannerRow?.banner_url as string | null) ?? null}
+        />
+      ) : null}
 
       <section className="space-y-3">
         <h3 className="text-sm font-medium tracking-tight">활동 멤버</h3>

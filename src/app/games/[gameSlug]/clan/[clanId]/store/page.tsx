@@ -168,7 +168,9 @@ export default async function ClanStorePage({
 
       <p className="text-muted-foreground text-xs">
         거래 내역은 <code className="text-xs">coin_transactions</code> 원장에
-        기록됩니다. 에셋 실제 적용(배너·입장 효과)은 후속 UI와 연결합니다.
+        기록됩니다. 클랜 배너 슬롯 구매 후 URL은{" "}
+        <strong className="font-medium text-foreground">클랜 관리</strong> 탭에서
+        설정합니다. 프로필 입장 효과는 프로필 연동이 후속입니다.
       </p>
     </div>
   );
