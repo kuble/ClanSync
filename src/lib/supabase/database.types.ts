@@ -175,6 +175,66 @@ export type Database = {
           },
         ]
       }
+      clan_events: {
+        Row: {
+          id: string
+          clan_id: string
+          title: string
+          kind: Database["public"]["Enums"]["clan_event_kind"]
+          start_at: string
+          place: string | null
+          source: Database["public"]["Enums"]["clan_event_source"]
+          created_by: string
+          cancelled_at: string | null
+          finished_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          clan_id: string
+          title: string
+          kind?: Database["public"]["Enums"]["clan_event_kind"]
+          start_at: string
+          place?: string | null
+          source?: Database["public"]["Enums"]["clan_event_source"]
+          created_by: string
+          cancelled_at?: string | null
+          finished_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          clan_id?: string
+          title?: string
+          kind?: Database["public"]["Enums"]["clan_event_kind"]
+          start_at?: string
+          place?: string | null
+          source?: Database["public"]["Enums"]["clan_event_source"]
+          created_by?: string
+          cancelled_at?: string | null
+          finished_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_events_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_members: {
         Row: {
           clan_id: string
@@ -645,6 +705,8 @@ export type Database = {
         | "locked"
         | "oauth_denied"
       clan_gender_policy: "all" | "male" | "female"
+      clan_event_kind: "intra" | "scrim" | "event"
+      clan_event_source: "manual" | "scrim_auto"
       clan_join_request_status:
         | "pending"
         | "approved"
@@ -794,6 +856,8 @@ export const Constants = {
         "oauth_denied",
       ],
       clan_gender_policy: ["all", "male", "female"],
+      clan_event_kind: ["intra", "scrim", "event"],
+      clan_event_source: ["manual", "scrim_auto"],
       clan_join_request_status: [
         "pending",
         "approved",
