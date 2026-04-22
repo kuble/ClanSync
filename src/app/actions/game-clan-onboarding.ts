@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { ensurePublicUserProfile } from "@/lib/auth/ensure-public-user";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 
@@ -49,6 +50,11 @@ export async function linkGameAccountDevAction(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const ensured = await ensurePublicUserProfile(user.id);
+  if (!ensured.ok) {
+    return { ok: false, error: ensured.error };
+  }
 
   const { data: game, error: gErr } = await supabase
     .from("games")

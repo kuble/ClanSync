@@ -10,6 +10,7 @@ import {
   recordFailedPasswordAttempt,
   recordLockedAttempt,
 } from "@/lib/auth/lockout";
+import { ensurePublicUserProfile } from "@/lib/auth/ensure-public-user";
 import { isStrongPassword, passwordPolicyHint } from "@/lib/auth/password-policy";
 import { createAuthActionClient } from "@/lib/supabase/auth-action-client";
 
@@ -57,6 +58,12 @@ export async function signInAction(
     data: { user },
   } = await supabase.auth.getUser();
   if (user) {
+    const ensured = await ensurePublicUserProfile(user.id);
+    if (!ensured.ok) {
+      return {
+        error: `프로필을 준비하지 못했습니다. 잠시 후 다시 시도해 주세요. (${ensured.error})`,
+      };
+    }
     await supabase
       .from("users")
       .update({ auto_login: remember })
@@ -104,7 +111,7 @@ export async function signUpAction(
       ? gender
       : "undisclosed";
 
-  const { error } = await supabase.auth.signUp({
+  const { data: signData, error } = await supabase.auth.signUp({
     email: normalizeEmail(email),
     password,
     options: {
@@ -119,6 +126,15 @@ export async function signUpAction(
 
   if (error) {
     return { error: error.message };
+  }
+
+  if (signData.user) {
+    const ensured = await ensurePublicUserProfile(signData.user.id);
+    if (!ensured.ok) {
+      return {
+        error: `가입은 되었으나 프로필 행을 만들지 못했습니다. 관리자에게 문의해 주세요. (${ensured.error})`,
+      };
+    }
   }
 
   redirect("/games");
