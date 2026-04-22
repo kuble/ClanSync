@@ -121,6 +121,106 @@ export type Database = {
           },
         ]
       }
+      balance_session_map_votes: {
+        Row: {
+          choice_idx: number
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          choice_idx: number
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          choice_idx?: number
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "balance_session_map_votes_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "balance_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_session_map_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      balance_sessions: {
+        Row: {
+          clan_id: string
+          closed_at: string | null
+          game_id: string
+          hero_ban_enabled: boolean
+          host_user_id: string
+          id: string
+          map_ban_deadline_at: string | null
+          map_ban_enabled: boolean
+          map_candidates: string[] | null
+          opened_at: string
+          phase: Database["public"]["Enums"]["balance_session_phase"]
+          resolved_map_label: string | null
+        }
+        Insert: {
+          clan_id: string
+          closed_at?: string | null
+          game_id: string
+          hero_ban_enabled?: boolean
+          host_user_id: string
+          id?: string
+          map_ban_deadline_at?: string | null
+          map_ban_enabled?: boolean
+          map_candidates?: string[] | null
+          opened_at?: string
+          phase?: Database["public"]["Enums"]["balance_session_phase"]
+          resolved_map_label?: string | null
+        }
+        Update: {
+          clan_id?: string
+          closed_at?: string | null
+          game_id?: string
+          hero_ban_enabled?: boolean
+          host_user_id?: string
+          id?: string
+          map_ban_deadline_at?: string | null
+          map_ban_enabled?: boolean
+          map_candidates?: string[] | null
+          opened_at?: string
+          phase?: Database["public"]["Enums"]["balance_session_phase"]
+          resolved_map_label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "balance_sessions_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_sessions_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_sessions_host_user_id_fkey"
+            columns: ["host_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       board_posts: {
         Row: {
           clan_id: string
@@ -1395,6 +1495,11 @@ export type Database = {
       }
     }
     Enums: {
+      balance_session_phase:
+        | "editing"
+        | "map_ban"
+        | "hero_ban"
+        | "match_live"
       auth_failed_login_reason:
         | "invalid_password"
         | "unknown_email"
@@ -1560,6 +1665,12 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      balance_session_phase: [
+        "editing",
+        "map_ban",
+        "hero_ban",
+        "match_live",
+      ],
       auth_failed_login_reason: [
         "invalid_password",
         "unknown_email",
