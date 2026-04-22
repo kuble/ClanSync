@@ -9,10 +9,10 @@ alwaysApply: true
 - 구현·수정으로 코드·목업·문서·설정이 바뀌면 **의미 단위마다** 커밋한다(한 턴에 주제가 여러 개면 커밋도 분리).
 - 한 커밋에 여러 주제 섞지 않는다.
 - Conventional Commits: `feat`, `fix`, `docs`, `chore`, `style` 등.
-- 푸시는 별도 요청 시에만.
+- **푸시**: [collaboration-workflow.mdc](./collaboration-workflow.mdc)에 따라 작업 브랜치에 변경을 반영할 때 에이전트가 `git push`까지 수행한다(`main`에 비-머지 목적 푸시 포함). 사용자가 **푸시 보류**를 명시한 경우만 생략.
 
 ## 예외
-- 사용자가 **명시적으로 커밋 보류** 지시.
+- 사용자가 **명시적으로 커밋·푸시 보류** 지시.
 - `.bkit/` 등 도구 자동 갱신 파일은 제외 (`.gitignore` 따름).
 
 ## 미준수 시
