@@ -1,8 +1,11 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { GameCardGrid } from "@/components/games/game-card-grid";
 import type { ClanStatus, GameCardState } from "@/lib/routing/game-card-router";
 import { signOutAction } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
+import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
 
 const EMOJI: Record<string, string> = {
@@ -140,11 +143,19 @@ export default async function GamesPage() {
             플레이할 게임을 선택하세요.
           </p>
         </div>
-        <form action={signOutAction}>
-          <Button type="submit" variant="outline" size="sm">
-            로그아웃
-          </Button>
-        </form>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/profile"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            프로필
+          </Link>
+          <form action={signOutAction}>
+            <Button type="submit" variant="outline" size="sm">
+              로그아웃
+            </Button>
+          </form>
+        </div>
       </header>
 
       <GameCardGrid cards={cards} />

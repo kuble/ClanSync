@@ -225,6 +225,18 @@ export function MainClanShell({
             {ctx.plan === "premium" ? "Premium" : "Free"}
           </span>
           <Link
+            href={`/games/${encodeURIComponent(ctx.gameSlug)}`}
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            커뮤니티
+          </Link>
+          <Link
+            href="/profile"
+            className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+          >
+            프로필
+          </Link>
+          <Link
             href="/games"
             className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
           >

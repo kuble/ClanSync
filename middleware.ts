@@ -28,6 +28,13 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  if (path === "/profile" && !user) {
+    const signIn = new URL("/sign-in", request.url);
+    signIn.searchParams.set("next", "/profile");
+    const r = NextResponse.redirect(signIn);
+    return mergeCookies(response, r);
+  }
+
   if ((path === "/sign-in" || path === "/sign-up") && user) {
     const r = NextResponse.redirect(new URL("/games", request.url));
     return mergeCookies(response, r);
