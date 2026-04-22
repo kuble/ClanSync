@@ -5,6 +5,14 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Phase 2 M6b 프로필 입장 효과 → 네임플레이트
+
+- [x] **DB** — `0015_store_profile_entrance_nameplate.sql` (`nameplate_options` 스토어 frame 시드·`apply_store_purchase` 에 `user_nameplate_inventory` UPSERT).
+- [x] **UX** — 스토어 안내·구매 토스트(`/profile` 프레임 선택 안내).
+- [x] **타입** — `database.types.ts` (gen).
+- [x] **검증** — `db:push` · `next build`.
+- **다음**: M6c · 거래 내역 UI.
+
 ### 2026-04-22 — Phase 2 M6b 스토어 배너 실연동
 
 - [x] **검증** — `clan_banner_slot` 구매 시에만 `clans.banner_url` 갱신 (`manage_clan_pool`).
