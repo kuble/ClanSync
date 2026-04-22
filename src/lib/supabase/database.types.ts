@@ -406,6 +406,7 @@ export type Database = {
       clan_settings: {
         Row: {
           clan_id: string
+          event_notify: Json
           expose_hof: boolean
           hof_config: Json
           permissions: Json
@@ -414,6 +415,7 @@ export type Database = {
         }
         Insert: {
           clan_id: string
+          event_notify?: Json
           expose_hof?: boolean
           hof_config?: Json
           permissions?: Json
@@ -422,6 +424,7 @@ export type Database = {
         }
         Update: {
           clan_id?: string
+          event_notify?: Json
           expose_hof?: boolean
           hof_config?: Json
           permissions?: Json
