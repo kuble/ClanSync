@@ -5,6 +5,18 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Phase 2 M4 S03 MainClan 쉘
+
+- [x] **DB** — `0004_main_clan_shell.sql`: `clans.subscription_tier` · `clan_settings`(permissions jsonb) · RLS · `clans` INSERT 시 settings 행.
+- [x] **권한** — `permission-defaults.ts` · `has-clan-permission.ts`(D-PERM-01).
+- [x] **컨텍스트** — `load-main-clan-context.ts`(D-SHELL-03 manage 점).
+- [x] **UI** — `main-clan-shell.tsx`(레일+Sheet) · `clan/[clanId]/layout.tsx` · 대시보드 + 5탭 스텁 · `manage` 멤버 `forbidden()`.
+- [x] **액션** — `main-clan-shell.ts` 플랜 전환(dev).
+- [x] **타입** — `database.types.ts` 갱신.
+- [x] **문서** — `TODO_Phase2`·`TODO`·`TODO_LOG`·`project-context`·`.env.example`(`DEV_CLAN_PLAN_TOGGLE`).
+- [x] **검증** — `eslint` · `next build`.
+- **다음**: M6a~c 탭 본문 또는 M5 `/profile`.
+
 ### 2026-04-22 — Phase 2 M3 S02 게임·클랜 온보딩
 
 - [x] **DB** — `supabase/migrations/0003_clan_join_requests.sql`: D-CLAN-02 테이블·부분 유니크·RLS(본인·운영진·INSERT 정합·취소 UPDATE).
