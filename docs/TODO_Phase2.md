@@ -7,7 +7,7 @@
 | 항목 | 값 |
 |------|-----|
 | **단계** | Phase 2 — 앱 구현 |
-| **마지막 갱신** | 2026-04-22 — **M6b** (`0014` 스토어·`coin_transactions`·구매 RPC · 일정 등록 시 Discord POST) + 이전 항목 |
+| **마지막 갱신** | 2026-04-22 — **M6b** (스토어 원장·Discord·**D-STORE-02** 플랜 비교 모달·`#subscription` 앵커) |
 
 ## 전제 (Q&A 확정)
 
@@ -121,7 +121,7 @@ flowchart TD
 ### M6 — MainClan 탭 묶음 (M4 이후, 권장 순서 a→b→c)
 
 - [x] **M6a S05 클랜 통계** — 요약 KPI · HoF(설정 모달·등재 규칙·전체/월/연) · **D-STATS-03** 활동일 표·내전 막대 · **D-STATS-04** CSV 안내만 · 경기 기록 일자 목록(캘린더·정정은 M6b 후속)
-- [ ] **M6b S06 이벤트·관리·스토어** — **부분**: `0013`~`0014` · 관리·구독·**스토어 차감**(`apply_store_purchase`·MVP 카탈로그 2종)·**Discord 일정 알림 POST** · D-STORE-02 Premium 모달 동선·`purchases` 무효화 UI·에셋 실연동은 후속
+- [ ] **M6b S06 이벤트·관리·스토어** — **부분**: `0013`~`0014` · 관리·구독·스토어 차감·Discord POST·**D-STORE-02** 플랜 비교 모달·`/manage#subscription` · **잔여**: `purchases` 무효화·에셋 실연동·과금 카피 확정
 - [ ] **M6c S04 밸런스메이커** — 세션·밴픽·M/A 점수. 승부예측 정산은 Phase 2+ placeholder UI만
 
 ### M7 — S07 MainGame 커뮤니티 (경량판)

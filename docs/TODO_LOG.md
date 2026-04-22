@@ -5,6 +5,14 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Phase 2 M6b D-STORE-02 Premium 플랜 모달
+
+- [x] **UI** — `store-premium-plan-dialog.tsx` (Free/Premium 표·역할별 카피·운영진+ 구독 탭 이동).
+- [x] **스토어** — Premium 잠금 카드에 `플랜 비교 보기` → 모달; `clan-store-panels`에 `actorRole`·`planIsPremium` 전달.
+- [x] **관리** — `manage#subscription` 앵커 (`id="subscription"` + `scroll-mt`).
+- [x] **검증** — `next build`.
+- **다음**: 구매 에셋 반영 · M6c.
+
 ### 2026-04-22 — Phase 2 M6b 스토어 원장 + Discord 일정 알림
 
 - [x] **DB** — `0014_store_coin_mvp.sql` (`coin_transactions`·`store_items`·`purchases`·RLS·`apply_store_purchase`·시드 슬러그 2종).
