@@ -5,6 +5,17 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Phase 2 M7 S07 MainGame 커뮤니티 (경량)
+
+- [x] **DB** — `0011_main_game_community_m7.sql` (`board_posts`, `lfg_posts`, `lfg_applications` + RLS) · `0012_clan_active_member_count_rpc.sql`.
+- [x] **로더** — `src/lib/main-game/load-main-game-hub.ts` (D-RANK-01 정렬, LFG·신청자 묶음, 순위).
+- [x] **액션** — `main-game-community.ts` (홍보/LFG CRUD·수락·정원 마감).
+- [x] **UI** — `main-game-community-tabs.tsx` · `games/[gameSlug]/page.tsx` (`?promoSort=`).
+- [x] **타입** — `database.types.ts` (gen).
+- [x] **문서** — `TODO_Phase2`·`TODO_LOG`.
+- [x] **검증** — `next build`.
+- **다음**: M7 잔여(cron·알림) · M6b 본문 · M5 Realtime.
+
 ### 2026-04-22 — Phase 2 M5 S08 프로필 꾸미기 (일부)
 
 - [x] **DB** — `0010_profile_decorations_m5.sql`: 카탈로그·선택·뱃지 픽·RLS·트리거·OW/VAL 시드.

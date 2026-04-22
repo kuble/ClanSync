@@ -121,6 +121,64 @@ export type Database = {
           },
         ]
       }
+      board_posts: {
+        Row: {
+          clan_id: string
+          content: string
+          created_at: string
+          created_by: string
+          game_id: string
+          id: string
+          is_pinned: boolean
+          post_type: Database["public"]["Enums"]["board_post_type"]
+          title: string
+        }
+        Insert: {
+          clan_id: string
+          content?: string
+          created_at?: string
+          created_by: string
+          game_id: string
+          id?: string
+          is_pinned?: boolean
+          post_type?: Database["public"]["Enums"]["board_post_type"]
+          title: string
+        }
+        Update: {
+          clan_id?: string
+          content?: string
+          created_at?: string
+          created_by?: string
+          game_id?: string
+          id?: string
+          is_pinned?: boolean
+          post_type?: Database["public"]["Enums"]["board_post_type"]
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_posts_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "board_posts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "board_posts_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_daily_member_activity: {
         Row: {
           activity_date: string
@@ -505,6 +563,136 @@ export type Database = {
           thumbnail_url?: string | null
         }
         Relationships: []
+      }
+      lfg_applications: {
+        Row: {
+          applicant_user_id: string
+          created_at: string
+          id: string
+          message: string | null
+          mic_available: boolean | null
+          post_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          role: string | null
+          status: Database["public"]["Enums"]["lfg_application_status"]
+          tier: string | null
+        }
+        Insert: {
+          applicant_user_id: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          mic_available?: boolean | null
+          post_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          role?: string | null
+          status?: Database["public"]["Enums"]["lfg_application_status"]
+          tier?: string | null
+        }
+        Update: {
+          applicant_user_id?: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          mic_available?: boolean | null
+          post_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          role?: string | null
+          status?: Database["public"]["Enums"]["lfg_application_status"]
+          tier?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lfg_applications_applicant_user_id_fkey"
+            columns: ["applicant_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lfg_applications_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "lfg_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lfg_applications_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lfg_posts: {
+        Row: {
+          created_at: string
+          creator_user_id: string
+          description: string | null
+          expires_at: string
+          format: string
+          game_id: string
+          id: string
+          mic_required: boolean
+          mode: string
+          positions: string[]
+          slots: number
+          start_time_hour: number
+          status: Database["public"]["Enums"]["lfg_post_status"]
+          tiers: string[]
+        }
+        Insert: {
+          created_at?: string
+          creator_user_id: string
+          description?: string | null
+          expires_at: string
+          format: string
+          game_id: string
+          id?: string
+          mic_required?: boolean
+          mode: string
+          positions?: string[]
+          slots: number
+          start_time_hour: number
+          status?: Database["public"]["Enums"]["lfg_post_status"]
+          tiers?: string[]
+        }
+        Update: {
+          created_at?: string
+          creator_user_id?: string
+          description?: string | null
+          expires_at?: string
+          format?: string
+          game_id?: string
+          id?: string
+          mic_required?: boolean
+          mode?: string
+          positions?: string[]
+          slots?: number
+          start_time_hour?: number
+          status?: Database["public"]["Enums"]["lfg_post_status"]
+          tiers?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lfg_posts_creator_user_id_fkey"
+            columns: ["creator_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lfg_posts_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       match_players: {
         Row: {
@@ -941,6 +1129,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      clan_active_member_counts: {
+        Args: { p_clan_ids: string[] }
+        Returns: {
+          clan_id: string
+          n: number
+        }[]
+      }
       clan_peer_nicknames: {
         Args: { p_clan_id: string }
         Returns: {
@@ -985,6 +1180,7 @@ export type Database = {
         | "clan"
         | "clansync"
       badge_unlock_kind: "achievement" | "event" | "store"
+      board_post_type: "promotion" | "scrim"
       clan_event_kind: "intra" | "scrim" | "event"
       clan_event_source: "manual" | "scrim_auto"
       clan_gender_policy: "all" | "male" | "female"
@@ -997,6 +1193,13 @@ export type Database = {
       clan_moderation: "clean" | "reported" | "warned" | "hidden" | "deleted"
       clan_style: "social" | "casual" | "tryhard" | "pro"
       clan_subscription_tier: "free" | "premium"
+      lfg_application_status:
+        | "applied"
+        | "accepted"
+        | "rejected"
+        | "canceled"
+        | "expired"
+      lfg_post_status: "open" | "filled" | "expired" | "canceled"
       nameplate_category: "emblem" | "namebar" | "sub" | "frame"
       nameplate_unlock_source: "default" | "event" | "store" | "achievement"
       user_gender: "male" | "female" | "undisclosed"
@@ -1142,6 +1345,7 @@ export const Constants = {
         "clansync",
       ],
       badge_unlock_kind: ["achievement", "event", "store"],
+      board_post_type: ["promotion", "scrim"],
       clan_event_kind: ["intra", "scrim", "event"],
       clan_event_source: ["manual", "scrim_auto"],
       clan_gender_policy: ["all", "male", "female"],
@@ -1154,6 +1358,14 @@ export const Constants = {
       clan_moderation: ["clean", "reported", "warned", "hidden", "deleted"],
       clan_style: ["social", "casual", "tryhard", "pro"],
       clan_subscription_tier: ["free", "premium"],
+      lfg_application_status: [
+        "applied",
+        "accepted",
+        "rejected",
+        "canceled",
+        "expired",
+      ],
+      lfg_post_status: ["open", "filled", "expired", "canceled"],
       nameplate_category: ["emblem", "namebar", "sub", "frame"],
       nameplate_unlock_source: ["default", "event", "store", "achievement"],
       user_gender: ["male", "female", "undisclosed"],

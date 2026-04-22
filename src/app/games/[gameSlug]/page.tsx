@@ -1,20 +1,31 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { loadGameOnboarding } from "@/lib/onboarding/load-game-onboarding";
+import { MainGameCommunityTabs } from "@/components/main-game/main-game-community-tabs";
 import { buttonVariants } from "@/components/ui/button-variants";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createClient } from "@/lib/supabase/server";
+import {
+  loadClanRankPreview,
+  loadOpenLfgPosts,
+  loadPromotionFeed,
+  type PromoSort,
+} from "@/lib/main-game/load-main-game-hub";
+import { loadGameOnboarding } from "@/lib/onboarding/load-game-onboarding";
 import { cn } from "@/lib/utils";
 
 /**
- * MainGame 커뮤니티 허브 (M7 경량). 홍보·LFG·순위 본문은 후속.
+ * MainGame 커뮤니티 허브 (M7 경량) — 홍보·LFG·순위 실데이터.
  */
 export default async function MainGamePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ gameSlug: string }>;
+  searchParams: Promise<{ promoSort?: string }>;
 }) {
   const { gameSlug } = await params;
+  const sp = await searchParams;
+  const promoSort: PromoSort = sp.promoSort === "space" ? "space" : "newest";
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -26,11 +37,11 @@ export default async function MainGamePage({
 
   const { data: game } = await supabase
     .from("games")
-    .select("name_ko, slug, is_active")
+    .select("id, name_ko, slug, is_active")
     .eq("slug", gameSlug)
     .maybeSingle();
 
-  if (!game) redirect("/games");
+  if (!game?.id) redirect("/games");
 
   const base = `/games/${encodeURIComponent(gameSlug)}`;
 
@@ -54,6 +65,20 @@ export default async function MainGamePage({
       tone: "muted",
     };
   }
+
+  const clanHubHref =
+    state.clanStatus === "member" && state.clanId
+      ? `${base}/clan/${state.clanId}`
+      : `${base}/clan`;
+
+  const [promos, lfgBundle, rankClans] = await Promise.all([
+    loadPromotionFeed(supabase, game.id, promoSort),
+    loadOpenLfgPosts(supabase, game.id, user.id),
+    loadClanRankPreview(supabase, game.id),
+  ]);
+
+  const canPostPromo = state.clanStatus === "member" && !!state.clanId;
+  const canCreateLfg = state.authVerified;
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
@@ -94,54 +119,18 @@ export default async function MainGamePage({
         </Link>
       </section>
 
-      <Tabs defaultValue="home" className="w-full">
-        <TabsList variant="line" className="mb-6 w-full flex-wrap gap-1">
-          <TabsTrigger value="home">홈</TabsTrigger>
-          <TabsTrigger value="promo">홍보</TabsTrigger>
-          <TabsTrigger value="lfg">LFG</TabsTrigger>
-          <TabsTrigger value="rank">순위</TabsTrigger>
-          <TabsTrigger value="scrim">스크림</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="home" className="text-muted-foreground space-y-3 text-sm">
-          <p>
-            {game.name_ko} 커뮤니티 허브입니다. 클랜 일정·통계·스토어는{" "}
-            <Link href={clanSummary.href} className="text-primary underline-offset-4 hover:underline">
-              클랜 화면
-            </Link>
-            에서 이용할 수 있습니다.
-          </p>
-          <p>
-            홍보·모집·순위 보드는 M7 후속 슬라이스에서 실데이터로 연결합니다.
-          </p>
-        </TabsContent>
-
-        <TabsContent value="promo" className="text-muted-foreground space-y-2 text-sm">
-          <p>
-            클랜 홍보 노출(D-RANK-01) — 랭킹·배너 연동 전입니다.
-          </p>
-        </TabsContent>
-
-        <TabsContent value="lfg" className="text-muted-foreground space-y-2 text-sm">
-          <p>
-            루키 모집·파티 찾기(D-LFG-01) — 상태머신·신청 흐름은 후속
-            마일스톤에서 구현합니다.
-          </p>
-        </TabsContent>
-
-        <TabsContent value="rank" className="text-muted-foreground space-y-2 text-sm">
-          <p>
-            서버/클랜 순위 보드 — API·캐시 전략 확정 후 연결합니다.
-          </p>
-        </TabsContent>
-
-        <TabsContent value="scrim" className="text-muted-foreground space-y-2 text-sm">
-          <p>
-            스크림 채팅·양측 확정(D-SCRIM-01/02)은 Phase 2+ 범위입니다. 이
-            탭은 안내용입니다.
-          </p>
-        </TabsContent>
-      </Tabs>
+      <MainGameCommunityTabs
+        gameSlug={gameSlug}
+        promoSort={promoSort}
+        promos={promos}
+        lfgs={lfgBundle.posts}
+        applicantsByPost={lfgBundle.applicantsByPost}
+        rankClans={rankClans}
+        canPostPromo={canPostPromo}
+        canCreateLfg={canCreateLfg}
+        userId={user.id}
+        clanHubHref={clanHubHref}
+      />
 
       <Link
         href="/games"

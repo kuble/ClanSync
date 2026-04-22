@@ -7,7 +7,7 @@
 | 항목 | 값 |
 |------|-----|
 | **단계** | Phase 2 — 앱 구현 |
-| **마지막 갱신** | 2026-04-22 — **M5 S08 프로필 꾸미기** (`0010` 네임플레이트·뱃지 테이블 · `/profile` 편집 UI · D-PROFILE-02 가입 목록) |
+| **마지막 갱신** | 2026-04-22 — **M7 S07 MainGame 허브** (`0011`·`0012` 홍보·LFG·멤버 수 RPC · `/games/[g]` 탭 실데이터) |
 
 ## 전제 (Q&A 확정)
 
@@ -27,7 +27,7 @@
 | **M6a** 통계 | **S05** | MainClan `/stats` 탭 · HoF (D-STATS-03/04) | M4 | 완료 |
 | **M6b** 이벤트·관리·스토어 | **S06** | `/events`(D-EVENTS-03) · `/manage`(D-CLAN-02 소비자·D-MANAGE-01~04) · `/store`(D-STORE-01/02·D-ECON-03) | M4 | 대기 |
 | **M6c** 밸런스 | **S04** | `/balance` 세션·밴픽·M/A 점수·슬롯 (정산 서버정책은 Phase 2+ placeholder) | M4 | 대기 |
-| **M7** 커뮤니티 경량 | **S07** | `/games/[g]` 홈·홍보(D-RANK-01)·LFG(D-LFG-01)·순위. 스크림 탭은 "Phase 2+ 예정" 안내만 | M3 | 대기 |
+| **M7** 커뮤니티 경량 | **S07** | `/games/[g]` 홈·홍보(D-RANK-01)·LFG(D-LFG-01)·순위. 스크림 탭은 "Phase 2+ 예정" 안내만 | M3 | 진행 중 |
 | **M8** 종료 감사 | — | `AUDIT-Phase2-YYYY-MM-DD.md` · Phase 2+ 이관 목록 · 허브 갱신 | M5·M6a~c·M7 | 대기 |
 
 ```mermaid
@@ -126,9 +126,10 @@ flowchart TD
 
 ### M7 — S07 MainGame 커뮤니티 (경량판)
 
-- [ ] `/games/[g]` 홈·클랜 홍보(**D-RANK-01**)·LFG(**D-LFG-01** 상태머신)·클랜 순위
-- [ ] 스크림 탭은 "Phase 2+ 예정" 안내 화면만
-- [ ] `/games/[g]/board/[postId]`는 **라우트 미작성** (Phase 2+)
+- [x] `/games/[g]` — 홍보 `board_posts`(**D-RANK-01** newest/space) · LFG `lfg_posts`/`lfg_applications`(**D-LFG-01** MVP) · 클랜 순위 미리보기(`clan_active_member_counts` RPC)
+- [x] 스크림 탭 — "Phase 2+ 예정" 안내 유지
+- [ ] `/games/[g]/board/[postId]` — **라우트 미작성** (Phase 2+)
+- [ ] LFG 만료 cron·알림(D-EVENTS-03 in-app) — 후속
 
 ### M8 — Phase 2 종료 감사
 
@@ -152,7 +153,7 @@ flowchart TD
 | 11 | `/games/[gameSlug]/clan/[clanId]/events` | `main-clan.html#events` | M4→M6b | live (스텁) |
 | 12 | `/games/[gameSlug]/clan/[clanId]/manage` | `main-clan.html#manage` | M4→M6b | live (스텁·officer+) |
 | 13 | `/games/[gameSlug]/clan/[clanId]/store` | `main-clan.html#store` | M4→M6b | live (스텁) |
-| 08 | `/games/[gameSlug]` | `main-game.html` (홈·홍보·LFG·순위) | M7 | live (스텁, M7에서 본 구현) |
+| 08 | `/games/[gameSlug]` | `main-game.html` (홈·홍보·LFG·순위) | M7 | live (M7 본문) |
 | — | `/games/[gameSlug]` 스크림 탭 | `main-game.html#scrim` | **Phase 2+** | 보류 |
 | — | `/games/[gameSlug]/board/[postId]` | _(목업 없음)_ | **Phase 2+** | 보류 |
 | 14 | `/profile` | `profile.html` | M5 | live (M5 본문) |
