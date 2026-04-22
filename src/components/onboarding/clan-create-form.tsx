@@ -45,6 +45,7 @@ export function ClanCreateForm({ gameSlug }: { gameSlug: string }) {
         return;
       }
       toast.success("클랜을 만들었습니다.");
+      router.refresh();
       router.push(`/games/${gameSlug}/clan/${r.clanId}`);
     });
   }

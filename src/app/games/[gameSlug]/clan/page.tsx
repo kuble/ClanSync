@@ -33,6 +33,10 @@ export default async function ClanOnboardingPage({
   const state = await loadGameOnboarding(supabase, user.id, gameSlug);
   if (!state) redirect("/games");
 
+  if (state.clanStatus === "member" && state.clanId) {
+    redirect(`/games/${gameSlug}/clan/${state.clanId}`);
+  }
+
   const { data: game } = await supabase
     .from("games")
     .select("id, name_ko")
