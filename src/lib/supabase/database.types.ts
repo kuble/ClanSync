@@ -65,6 +65,80 @@ export type Database = {
         }
         Relationships: []
       }
+      clan_join_requests: {
+        Row: {
+          applied_at: string
+          clan_id: string
+          created_at: string
+          game_id: string
+          id: string
+          message: string
+          reject_reason: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["clan_join_request_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string
+          clan_id: string
+          created_at?: string
+          game_id: string
+          id?: string
+          message?: string
+          reject_reason?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["clan_join_request_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          applied_at?: string
+          clan_id?: string
+          created_at?: string
+          game_id?: string
+          id?: string
+          message?: string
+          reject_reason?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["clan_join_request_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_join_requests_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_join_requests_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_join_requests_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_join_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_members: {
         Row: {
           clan_id: string
@@ -348,6 +422,11 @@ export type Database = {
         | "locked"
         | "oauth_denied"
       clan_gender_policy: "all" | "male" | "female"
+      clan_join_request_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "canceled"
       clan_lifecycle: "active" | "dormant" | "stale" | "deleted"
       clan_member_role: "leader" | "officer" | "member"
       clan_member_status: "pending" | "active" | "left" | "banned"
@@ -489,6 +568,12 @@ export const Constants = {
         "oauth_denied",
       ],
       clan_gender_policy: ["all", "male", "female"],
+      clan_join_request_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "canceled",
+      ],
       clan_lifecycle: ["active", "dormant", "stale", "deleted"],
       clan_member_role: ["leader", "officer", "member"],
       clan_member_status: ["pending", "active", "left", "banned"],
