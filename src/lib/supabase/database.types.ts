@@ -193,6 +193,42 @@ export type Database = {
           },
         ]
       }
+      clan_settings: {
+        Row: {
+          clan_id: string
+          permissions: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          clan_id: string
+          permissions?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          clan_id?: string
+          permissions?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_settings_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: true
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clans: {
         Row: {
           banner_url: string | null
@@ -214,6 +250,7 @@ export type Database = {
           ownership_transferred_at: string | null
           rules: string | null
           style: Database["public"]["Enums"]["clan_style"] | null
+          subscription_tier: Database["public"]["Enums"]["clan_subscription_tier"]
           tags: string[]
           tier_range: string[]
           updated_at: string
@@ -238,6 +275,7 @@ export type Database = {
           ownership_transferred_at?: string | null
           rules?: string | null
           style?: Database["public"]["Enums"]["clan_style"] | null
+          subscription_tier?: Database["public"]["Enums"]["clan_subscription_tier"]
           tags?: string[]
           tier_range?: string[]
           updated_at?: string
@@ -262,6 +300,7 @@ export type Database = {
           ownership_transferred_at?: string | null
           rules?: string | null
           style?: Database["public"]["Enums"]["clan_style"] | null
+          subscription_tier?: Database["public"]["Enums"]["clan_subscription_tier"]
           tags?: string[]
           tier_range?: string[]
           updated_at?: string
@@ -427,6 +466,7 @@ export type Database = {
         | "approved"
         | "rejected"
         | "canceled"
+      clan_subscription_tier: "free" | "premium"
       clan_lifecycle: "active" | "dormant" | "stale" | "deleted"
       clan_member_role: "leader" | "officer" | "member"
       clan_member_status: "pending" | "active" | "left" | "banned"
@@ -574,6 +614,7 @@ export const Constants = {
         "rejected",
         "canceled",
       ],
+      clan_subscription_tier: ["free", "premium"],
       clan_lifecycle: ["active", "dormant", "stale", "deleted"],
       clan_member_role: ["leader", "officer", "member"],
       clan_member_status: ["pending", "active", "left", "banned"],
