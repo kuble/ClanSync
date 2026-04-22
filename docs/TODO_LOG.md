@@ -5,6 +5,14 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-22 — Phase 2 스토어 코인 내역 · M6c 밸런스 쉘
+
+- [x] **스토어** — `ClanStoreCoinHistory` (개인 최근 12건 · 리더/오피서 클랜 풀 12건) · `coin-reason-label.ts`.
+- [x] **밸런스** — `/balance` 세션 카드·비활성 `세션 열기` · 로그인 시 스토어 링크 안내.
+- [x] **문서** — `TODO_Phase2`·`TODO_LOG`.
+- [x] **검증** — `next build`.
+- **다음**: M6c 본문(세션 상태·밴픽) · M6b 잔여(무효화·카피).
+
 ### 2026-04-22 — Phase 2 M6b 프로필 입장 효과 → 네임플레이트
 
 - [x] **DB** — `0015_store_profile_entrance_nameplate.sql` (`nameplate_options` 스토어 frame 시드·`apply_store_purchase` 에 `user_nameplate_inventory` UPSERT).

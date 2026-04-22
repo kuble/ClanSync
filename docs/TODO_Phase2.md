@@ -7,7 +7,7 @@
 | 항목 | 값 |
 |------|-----|
 | **단계** | Phase 2 — 앱 구현 |
-| **마지막 갱신** | 2026-04-22 — **M6b** (스토어·Discord·D-STORE-02·배너·**입장 효과→네임플레이트 frame**) |
+| **마지막 갱신** | 2026-04-22 — **M6b** 스토어 `coin_transactions` 최근 내역 UI · **M6c** `/balance` 쉘(세션 비활성 CTA) |
 
 ## 전제 (Q&A 확정)
 
@@ -26,7 +26,7 @@
 | **M5** 프로필 | **S08** | `/profile` 네임플레이트·뱃지 케이스 (D-PROFILE-01~04) | M2 (병렬 가능) | 진행 중 |
 | **M6a** 통계 | **S05** | MainClan `/stats` 탭 · HoF (D-STATS-03/04) | M4 | 완료 |
 | **M6b** 이벤트·관리·스토어 | **S06** | `/events`(D-EVENTS-03) · `/manage`(D-CLAN-02 소비자·D-MANAGE-01~04) · `/store`(D-STORE-01/02·D-ECON-03) | M4 | 진행 중 |
-| **M6c** 밸런스 | **S04** | `/balance` 세션·밴픽·M/A 점수·슬롯 (정산 서버정책은 Phase 2+ placeholder) | M4 | 대기 |
+| **M6c** 밸런스 | **S04** | `/balance` 세션·밴픽·M/A 점수·슬롯 (정산 서버정책은 Phase 2+ placeholder) | M4 | 진행 중 |
 | **M7** 커뮤니티 경량 | **S07** | `/games/[g]` 홈·홍보(D-RANK-01)·LFG(D-LFG-01)·순위. 스크림 탭은 "Phase 2+ 예정" 안내만 | M3 | 진행 중 |
 | **M8** 종료 감사 | — | `AUDIT-Phase2-YYYY-MM-DD.md` · Phase 2+ 이관 목록 · 허브 갱신 | M5·M6a~c·M7 | 대기 |
 
@@ -121,8 +121,8 @@ flowchart TD
 ### M6 — MainClan 탭 묶음 (M4 이후, 권장 순서 a→b→c)
 
 - [x] **M6a S05 클랜 통계** — 요약 KPI · HoF(설정 모달·등재 규칙·전체/월/연) · **D-STATS-03** 활동일 표·내전 막대 · **D-STATS-04** CSV 안내만 · 경기 기록 일자 목록(캘린더·정정은 M6b 후속)
-- [ ] **M6b S06 이벤트·관리·스토어** — **부분**: `0013`~`0015` · 관리·구독·스토어·Discord·D-STORE-02·배너·**`profile_entrance_fx` → `user_nameplate_inventory`(게임=클랜 소속)** · **잔여**: `purchases` 무효화·과금 카피·시각 효과 고도화
-- [ ] **M6c S04 밸런스메이커** — 세션·밴픽·M/A 점수. 승부예측 정산은 Phase 2+ placeholder UI만
+- [ ] **M6b S06 이벤트·관리·스토어** — **부분**: `0013`~`0015` · 관리·구독·스토어·Discord·D-STORE-02·배너·**`profile_entrance_fx` → `user_nameplate_inventory`(게임=클랜 소속)** · 스토어 **개인·클랜 풀(운영진+)** `coin_transactions` 최근 내역 · **잔여**: `purchases` 무효화·과금 카피·시각 효과 고도화
+- [ ] **M6c S04 밸런스메이커** — **부분**: 세션 열기 비활성 쉘·스토어 코인 안내 · **잔여**: 세션·밴픽·M/A 점수·슬롯. 승부예측 정산은 Phase 2+ placeholder UI만
 
 ### M7 — S07 MainGame 커뮤니티 (경량판)
 
@@ -148,11 +148,11 @@ flowchart TD
 | 05 | `/games/[gameSlug]/auth` | `game-auth.html` | M3 | live |
 | 06 | `/games/[gameSlug]/clan` | `clan-auth.html` | M3 | live |
 | 07 | `/games/[gameSlug]/clan/[clanId]` | `main-clan.html#dashboard` | M4 | live (쉘+대시보드 스텁) |
-| 09 | `/games/[gameSlug]/clan/[clanId]/balance` | `main-clan.html#balance` | M4→M6c | live (스텁) |
+| 09 | `/games/[gameSlug]/clan/[clanId]/balance` | `main-clan.html#balance` | M4→M6c | live (M6c 쉘) |
 | 10 | `/games/[gameSlug]/clan/[clanId]/stats` | `main-clan.html#stats` | M4→M6a | live (M6a 본문) |
 | 11 | `/games/[gameSlug]/clan/[clanId]/events` | `main-clan.html#events` | M4→M6b | live (일정 + 웹훅 설정 MVP) |
 | 12 | `/games/[gameSlug]/clan/[clanId]/manage` | `main-clan.html#manage` | M4→M6b | live (멤버 강퇴·역할·가입·플랜 패널) |
-| 13 | `/games/[gameSlug]/clan/[clanId]/store` | `main-clan.html#store` | M4→M6b | live (MVP 구매·원장) |
+| 13 | `/games/[gameSlug]/clan/[clanId]/store` | `main-clan.html#store` | M4→M6b | live (MVP 구매·원장·거래 내역) |
 | 08 | `/games/[gameSlug]` | `main-game.html` (홈·홍보·LFG·순위) | M7 | live (M7 본문) |
 | — | `/games/[gameSlug]` 스크림 탭 | `main-game.html#scrim` | **Phase 2+** | 보류 |
 | — | `/games/[gameSlug]/board/[postId]` | _(목업 없음)_ | **Phase 2+** | 보류 |
