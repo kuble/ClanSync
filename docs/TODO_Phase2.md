@@ -7,7 +7,7 @@
 | 항목 | 값 |
 |------|-----|
 | **단계** | Phase 2 — 앱 구현 |
-| **마지막 갱신** | 2026-04-22 — **M6c** `0025`~`0026` 승부예측 **5분 마감** + 결과 확정 시 `prediction_deadline_at` 초기화 |
+| **마지막 갱신** | 2026-04-28 — **M6b `/events`** 캘린더·서브탭·수동 일정 편집·취소 · 스토어 D-STORE-02 카피 |
 
 ## 전제 (Q&A 확정)
 
@@ -25,7 +25,7 @@
 | **M4** MainClan 쉘 | **S03** | `/games/[g]/clan/[id]` 레이아웃·사이드바(D-SHELL-01/02/03)·`hasPermission()`(D-PERM-01)·플랜 토글 | M3 | 완료 |
 | **M5** 프로필 | **S08** | `/profile` 네임플레이트·뱃지 케이스 (D-PROFILE-01~04) | M2 (병렬 가능) | 진행 중 |
 | **M6a** 통계 | **S05** | MainClan `/stats` 탭 · HoF (D-STATS-03/04) | M4 | 완료 |
-| **M6b** 이벤트·관리·스토어 | **S06** | `/events`(D-EVENTS-03) · `/manage`(D-CLAN-02 소비자·D-MANAGE-01~04) · `/store`(D-STORE-01/02·D-ECON-03) | M4 | 진행 중 |
+| **M6b** 이벤트·관리·스토어 | **S06** | `/events`(D-EVENTS-03) · `/manage`(D-CLAN-02 소비자·D-MANAGE-01~04) · `/store`(D-STORE-01/02·D-ECON-03) | M4 | 진행 중 (이벤트 캘린더·탭·편집·취소 착지; 반복·RSVP·투표·대진표 저장은 후속) |
 | **M6c** 밸런스 | **S04** | `/balance` 세션·밴픽·M/A 점수·슬롯 (정산 서버정책은 Phase 2+ placeholder) | M4 | 진행 중 |
 | **M7** 커뮤니티 경량 | **S07** | `/games/[g]` 홈·홍보(D-RANK-01)·LFG(D-LFG-01)·순위. 스크림 탭은 "Phase 2+ 예정" 안내만 | M3 | 진행 중 |
 | **M8** 종료 감사 | — | `AUDIT-Phase2-YYYY-MM-DD.md` · Phase 2+ 이관 목록 · 허브 갱신 | M5·M6a~c·M7 | 대기 |
@@ -121,7 +121,7 @@ flowchart TD
 ### M6 — MainClan 탭 묶음 (M4 이후, 권장 순서 a→b→c)
 
 - [x] **M6a S05 클랜 통계** — 요약 KPI · HoF(설정 모달·등재 규칙·전체/월/연) · **D-STATS-03** 활동일 표·내전 막대 · **D-STATS-04** CSV 안내만 · 경기 기록 일자 목록(캘린더·정정은 M6b 후속)
-- [ ] **M6b S06 이벤트·관리·스토어** — **부분**: `0013`~`0015` · 관리·구독·스토어·Discord·D-STORE-02·배너·**`profile_entrance_fx` → `user_nameplate_inventory`(게임=클랜 소속)** · 스토어 **개인·클랜 풀(운영진+)** `coin_transactions` 최근 내역 · **잔여**: `purchases` 무효화·과금 카피·시각 효과 고도화
+- [ ] **M6b S06 이벤트·관리·스토어** — **부분**: `0013`~`0015` · `/events` **월간 캘린더·대진표 Premium 안내·투표 플레이스홀더·수동 일정 편집·취소(D-EVENTS-01)** · 관리·구독·Discord 웹훅 · 스토어 MVP · D-STORE-02 카피 · **`profile_entrance_fx`** · **잔여**: 반복·RSVP·투표 DB·대진표 영속화 · `purchases` 무효화·시각 효과 고도화
 - [ ] **M6c S04 밸런스메이커** — **부분**: `0016`~`0026` 세션·맵·영웅 밴·roster·M/A·Realtime·승부예측·**5분 마감**·결과·**클랜 풀 차감 후 개인 지급**·세션 종료 · **잔여**: 파리뮤추엘·다른 게임 영웅 풀·내전 히스토리 연동
 
 ### M7 — S07 MainGame 커뮤니티 (경량판)
@@ -150,7 +150,7 @@ flowchart TD
 | 07 | `/games/[gameSlug]/clan/[clanId]` | `main-clan.html#dashboard` | M4 | live (쉘+대시보드 스텁) |
 | 09 | `/games/[gameSlug]/clan/[clanId]/balance` | `main-clan.html#balance` | M4→M6c | live (세션·맵 밴 MVP) |
 | 10 | `/games/[gameSlug]/clan/[clanId]/stats` | `main-clan.html#stats` | M4→M6a | live (M6a 본문) |
-| 11 | `/games/[gameSlug]/clan/[clanId]/events` | `main-clan.html#events` | M4→M6b | live (일정 + 웹훅 설정 MVP) |
+| 11 | `/games/[gameSlug]/clan/[clanId]/events` | `main-clan.html#events` | M4→M6b | live (캘린더·서브탭·수동 일정 CRUD · Discord 웹훅 MVP) |
 | 12 | `/games/[gameSlug]/clan/[clanId]/manage` | `main-clan.html#manage` | M4→M6b | live (멤버 강퇴·역할·가입·플랜 패널) |
 | 13 | `/games/[gameSlug]/clan/[clanId]/store` | `main-clan.html#store` | M4→M6b | live (MVP 구매·원장·거래 내역) |
 | 08 | `/games/[gameSlug]` | `main-game.html` (홈·홍보·LFG·순위) | M7 | live (M7 본문) |

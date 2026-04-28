@@ -5,6 +5,14 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-28 — Phase 2 M6b 클랜 이벤트 캘린더·탭·일정 편집
+
+- [x] **앱** — `ClanEventsView` (캘린더 월 그리드 · 일정 상세 Sheet · 편집 Dialog · 취소) · `updateClanEventAction` · `cancelClanEventAction` · 수동 등록 유형 D-EVENTS-01 (내전·이벤트만).
+- [x] **스토어** — 랜딩 카피에 D-STORE-02 · D-STORE-03 명시.
+- [x] **문서** — `TODO.md` · `TODO_Phase2.md` · `QA_시나리오.md`.
+- [x] **검증** — `npm run build`.
+- **다음**: 반복 일정·RSVP·투표·대진표 영속화 또는 `purchases` 무효화 플로우.
+
 ### 2026-04-22 — Phase 2 M6c 승부예측 5분 마감
 
 - [x] **DB** — `0025_balance_prediction_deadline.sql` (`prediction_deadline_at` · 예측 RLS 마감 조건); `0026_balance_outcome_clear_prediction_deadline.sql` (결과 확정 시 마감 시각 초기화).

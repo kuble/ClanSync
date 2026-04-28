@@ -3,7 +3,7 @@
 > **페이즈별 체크리스트**는 아래 문서로 나눈다. 세션 종료 시 **[세션 로그](./TODO_LOG.md)** 맨 위에 블록을 추가하고, 해당 페이즈 문서의 체크·요약표를 갱신한다.  
 > **/todo 커맨드**: `.cursor/commands/todo.md` 절차로 문서·목업과 동기화한다.
 
-> **지금 라이브**: M6a — `.../clan/[clanId]/stats` 본문(HoF·활동일) · 쉘·나머지 탭 스텁 유지 · **다음**: M6b 이벤트·관리·스토어 또는 M5 프로필 · 체감 → [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md)
+> **지금 라이브**: M6b 진행 — `/events` 캘린더·서브탭(대진표 Premium 잠금·투표 안내)·수동 일정 편집·취소 · `/manage`·`/store` MVP 유지 · **다음**: M6b 잔여(반복·RSVP·투표 DB·대진표 저장) 또는 M5 배지 동기화 · 체감 → [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md)
 
 ## 페이즈별 문서
 
@@ -22,17 +22,17 @@
 |------|-----|
 | **현재 단계** | Phase 2 — Next.js `src/` · Supabase · RLS (마스터 플랜 M0~M8) |
 | **이전 단계** | Phase 1 — 정적 목업 (`mockup/`) **종료** (2026-03-28) |
-| **마지막 갱신** | 2026-04-22 — **M6a S05 통계**: `0005` · `record_clan_activity` · HoF·앱 이용 표 · 경기 일자 목록. 다음 = **M6b** 또는 **M5**. |
+| **마지막 갱신** | 2026-04-28 — **M6b `/events` 본문 확장**: 캘린더·탭·일정 수정·취소 · D-STORE-02 카피 보강. 다음 = **M6b 잔여** 또는 **M5**. |
 
 ---
 
 ## 다음 세션 권장 프롬프트 (/todo 갱신 시 덮어씀)
 
-**지금 단계(Phase 2 · 다음은 M6b 이벤트·관리·스토어 또는 M5 프로필)** — 복사용:
+**지금 단계(Phase 2 · M6b 잔여 또는 M5)** — 복사용:
 
 ```
-@docs/TODO_Phase2.md @docs/01-plan/pages/11-Clan-Events.md @docs/01-plan/slices/slice-06-events-manage-store.md 참고해서
-Phase 2 M6b: `/games/[g]/clan/[id]/events`·`manage`·`store` 본문(우선순위 한 줄로 지정).
+@docs/TODO_Phase2.md @docs/01-plan/pages/11-Clan-Events.md 참고해서
+Phase 2 M6b 잔여: 반복 일정·RSVP·투표 DB·대진표 저장 중 우선순위 한 줄 지정.
 
 완료 후 공통 게이트를 만족시키고 허브를 갱신한다.
 ```
