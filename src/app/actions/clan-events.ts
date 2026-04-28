@@ -11,11 +11,10 @@ export type CreateClanEventResult =
   | { ok: true }
   | { ok: false; error: string };
 
-const KINDS = new Set<Database["public"]["Enums"]["clan_event_kind"]>([
-  "intra",
-  "scrim",
-  "event",
-]);
+/** D-EVENTS-01: 수동 등록은 내전·이벤트만 (스크림은 확정 시 자동). */
+const MANUAL_CREATE_KINDS = new Set<
+  Database["public"]["Enums"]["clan_event_kind"]
+>(["intra", "event"]);
 
 function kindLabelKo(kind: Database["public"]["Enums"]["clan_event_kind"]): string {
   if (kind === "intra") return "내전";
@@ -98,7 +97,9 @@ export async function createClanEventAction(
   }
 
   const kindRaw = String(formData.get("kind") ?? "event");
-  const kind = KINDS.has(kindRaw as Database["public"]["Enums"]["clan_event_kind"])
+  const kind = MANUAL_CREATE_KINDS.has(
+    kindRaw as Database["public"]["Enums"]["clan_event_kind"],
+  )
     ? (kindRaw as Database["public"]["Enums"]["clan_event_kind"])
     : "event";
 
@@ -145,6 +146,160 @@ export async function createClanEventAction(
     startAt,
     place,
   });
+
+  revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);
+  return { ok: true };
+}
+
+export async function updateClanEventAction(
+  gameSlug: string,
+  clanId: string,
+  formData: FormData,
+): Promise<CreateClanEventResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const allowed = await hasClanPermission(
+    supabase,
+    user.id,
+    clanId,
+    "manage_clan_events",
+  );
+  if (!allowed) return { ok: false, error: "일정을 수정할 권한이 없습니다." };
+
+  const eventId = String(formData.get("event_id") ?? "").trim();
+  if (!eventId) return { ok: false, error: "일정을 찾을 수 없습니다." };
+
+  const title = String(formData.get("title") ?? "").trim();
+  if (title.length < 1 || title.length > 120) {
+    return { ok: false, error: "제목은 1~120자입니다." };
+  }
+
+  const kindRaw = String(formData.get("kind") ?? "event");
+  const kind = MANUAL_CREATE_KINDS.has(
+    kindRaw as Database["public"]["Enums"]["clan_event_kind"],
+  )
+    ? (kindRaw as Database["public"]["Enums"]["clan_event_kind"])
+    : "event";
+
+  const local = String(formData.get("start_at_local") ?? "");
+  let startIso = String(formData.get("start_at") ?? "").trim();
+  if (local) {
+    const d = new Date(local);
+    if (!Number.isNaN(d.getTime())) startIso = d.toISOString();
+  }
+  if (!startIso) return { ok: false, error: "시작 시각을 입력해 주세요." };
+  const startAt = new Date(startIso);
+  if (Number.isNaN(startAt.getTime())) {
+    return { ok: false, error: "시작 시각이 올바르지 않습니다." };
+  }
+
+  const placeRaw = String(formData.get("place") ?? "").trim();
+  const place = placeRaw ? placeRaw.slice(0, 500) : null;
+
+  const svc = createServiceRoleClient();
+  const { data: clanRow } = await svc
+    .from("clans")
+    .select("id, games!inner(slug)")
+    .eq("id", clanId)
+    .maybeSingle();
+
+  const g = clanRow?.games as unknown as { slug: string } | undefined;
+  if (!clanRow || g?.slug !== gameSlug) {
+    return { ok: false, error: "클랜을 찾을 수 없습니다." };
+  }
+
+  const { data: ev, error: selErr } = await svc
+    .from("clan_events")
+    .select("id, clan_id, source, cancelled_at")
+    .eq("id", eventId)
+    .maybeSingle();
+
+  if (selErr || !ev || ev.clan_id !== clanId) {
+    return { ok: false, error: "일정을 찾을 수 없습니다." };
+  }
+  if (ev.source !== "manual") {
+    return { ok: false, error: "자동 생성 일정은 여기서 수정할 수 없습니다." };
+  }
+  if (ev.cancelled_at != null) {
+    return { ok: false, error: "이미 취소된 일정입니다." };
+  }
+
+  const { error } = await svc
+    .from("clan_events")
+    .update({
+      title,
+      kind,
+      start_at: startAt.toISOString(),
+      place,
+    })
+    .eq("id", eventId)
+    .eq("clan_id", clanId);
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);
+  return { ok: true };
+}
+
+export async function cancelClanEventAction(
+  gameSlug: string,
+  clanId: string,
+  eventId: string,
+): Promise<CreateClanEventResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const allowed = await hasClanPermission(
+    supabase,
+    user.id,
+    clanId,
+    "manage_clan_events",
+  );
+  if (!allowed) return { ok: false, error: "일정을 취소할 권한이 없습니다." };
+
+  const svc = createServiceRoleClient();
+  const { data: clanRow } = await svc
+    .from("clans")
+    .select("id, games!inner(slug)")
+    .eq("id", clanId)
+    .maybeSingle();
+
+  const g = clanRow?.games as unknown as { slug: string } | undefined;
+  if (!clanRow || g?.slug !== gameSlug) {
+    return { ok: false, error: "클랜을 찾을 수 없습니다." };
+  }
+
+  const { data: ev } = await svc
+    .from("clan_events")
+    .select("id, clan_id, source, cancelled_at")
+    .eq("id", eventId)
+    .maybeSingle();
+
+  if (!ev || ev.clan_id !== clanId) {
+    return { ok: false, error: "일정을 찾을 수 없습니다." };
+  }
+  if (ev.source !== "manual") {
+    return { ok: false, error: "자동 생성 일정은 여기서 취소할 수 없습니다." };
+  }
+  if (ev.cancelled_at != null) {
+    return { ok: false, error: "이미 취소된 일정입니다." };
+  }
+
+  const { error } = await svc
+    .from("clan_events")
+    .update({ cancelled_at: new Date().toISOString() })
+    .eq("id", eventId)
+    .eq("clan_id", clanId)
+    .is("cancelled_at", null);
+
+  if (error) return { ok: false, error: error.message };
 
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);
   return { ok: true };

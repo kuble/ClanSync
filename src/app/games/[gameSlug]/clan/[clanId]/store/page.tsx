@@ -142,8 +142,9 @@ export default async function ClanStorePage({
       <div>
         <h2 className="text-lg font-semibold tracking-tight">스토어</h2>
         <p className="text-muted-foreground mt-1 text-sm">
-          코인으로 클랜·개인 꾸미기를 구매합니다. 환불은 제공하지 않습니다
-          (D-STORE-03).
+          코인으로 클랜·개인 꾸미기를 구매합니다. Premium 전용 카드는 클랜
+          플랜 업그레이드 후 구매할 수 있습니다 (D-STORE-02). 결제한 코인은
+          환불하지 않습니다 (D-STORE-03).
         </p>
         {user ? (
           <p className="mt-3 text-sm font-medium tabular-nums">

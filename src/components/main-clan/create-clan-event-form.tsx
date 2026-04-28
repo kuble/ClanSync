@@ -61,9 +61,11 @@ export function CreateClanEventForm({
           defaultValue="event"
         >
           <option value="intra">내전</option>
-          <option value="scrim">스크림</option>
           <option value="event">이벤트</option>
         </select>
+        <p className="text-muted-foreground text-xs">
+          스크림 일정은 매칭 확정 시 자동 등록됩니다 (D-EVENTS-01).
+        </p>
       </div>
       <div className="space-y-2">
         <Label htmlFor="evt-start">시작 (로컬 시각)</Label>
