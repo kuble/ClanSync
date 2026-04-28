@@ -5,6 +5,13 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-28 — Phase 2 M6b 잔여(4) 대진표 초안 영속화
+
+- [x] **DB** — `0030_bracket_tournaments_mvp.sql` (`bracket_format` · `bracket_status` · Premium 호스트 검증 트리거 · RLS).
+- [x] **앱** — `loadSerializedBracketTournaments` · `createBracketTournamentAction` · `deleteBracketTournamentDraftAction` · `ClanEventsBracketTab` · `events/page` 데이터 연결.
+- [x] **검증** — `npm run db:sync` · `npm run build`.
+- **다음**: D-EVENTS-04 알림 연동 · 팀·매치 마법사 · `purchases` 무효화 등.
+
 ### 2026-04-28 — Phase 2 M6b 잔여(3) 클랜 투표 MVP
 
 - [x] **DB** — `0029_clan_polls_mvp.sql` (`poll_notify_repeat` · 단일 선택 시 기존 표 교체 트리거).

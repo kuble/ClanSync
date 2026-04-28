@@ -3,7 +3,7 @@
 > **페이즈별 체크리스트**는 아래 문서로 나눈다. 세션 종료 시 **[세션 로그](./TODO_LOG.md)** 맨 위에 블록을 추가하고, 해당 페이즈 문서의 체크·요약표를 갱신한다.  
 > **/todo 커맨드**: `.cursor/commands/todo.md` 절차로 문서·목업과 동기화한다.
 
-> **지금 라이브**: M6b `/events` 반복·RSVP·**클랜 투표**(DB·득표 막대·운영진 종료) + **M5** 탭 동기화 · **다음**: M6b 잔여(대진표 저장·알림 스케줄·purchases 등) 또는 M6c 잔여 · 체감 → [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md)
+> **지금 라이브**: M6b `/events` 반복·RSVP·클랜 투표 + **대진표 초안 영속화**(`bracket_tournaments`·Premium) + **M5** 탭 동기화 · **다음**: M6b 잔여(D-EVENTS-04 알림·`purchases` 무효화 등) 또는 M6c 잔여 · 체감 → [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md)
 
 ## 페이즈별 문서
 
@@ -22,7 +22,7 @@
 |------|-----|
 | **현재 단계** | Phase 2 — Next.js `src/` · Supabase · RLS (마스터 플랜 M0~M8) |
 | **이전 단계** | Phase 1 — 정적 목업 (`mockup/`) **종료** (2026-03-28) |
-| **마지막 갱신** | 2026-04-28 — **M6b 잔여(3)** `0029` `clan_polls`·`poll_options`·`poll_votes` · 이벤트 탭 투표 생성·득표률 · 운영진 조기 종료. 다음 = **대진표 영속화·notification_log·purchases 무효화** 또는 **M6c 잔여**. |
+| **마지막 갱신** | 2026-04-28 — **M6b 잔여(4)** `0030` `bracket_tournaments` · Premium 클랜 대진표 초안 CRUD·`/events` 대진표 탭. 다음 = **D-EVENTS-04 알림·notification_log·purchases 무효화** 또는 **M6c 잔여**. |
 
 ---
 
