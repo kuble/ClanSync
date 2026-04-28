@@ -3,7 +3,7 @@
 > **페이즈별 체크리스트**는 아래 문서로 나눈다. 세션 종료 시 **[세션 로그](./TODO_LOG.md)** 맨 위에 블록을 추가하고, 해당 페이즈 문서의 체크·요약표를 갱신한다.  
 > **/todo 커맨드**: `.cursor/commands/todo.md` 절차로 문서·목업과 동기화한다.
 
-> **지금 라이브**: M6b `/events` 반복·RSVP·클랜 투표(**투표 알림 `notification_log` 예약·D-EVENTS-04 검증**) + **대진표 초안**·**M5** 탭 동기화 · **다음**: 알림 발송 워커·in-app 피드(D-NOTIF-01)·`purchases` 무효화 등 또는 M6c 잔여 · 체감 → [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md)
+> **지금 라이브**: M6b `/events`(캘린더·RSVP·투표·대진표 초안)·**`notifications` 피드 + Cron 발송 배치**(`dispatch_inapp_notification_batch`)·**M5** 탭 동기화 · **다음**: 네비 벨 UI·Discord 등 채널·`purchases` 무효화 또는 M6c 잔여 · 체감 → [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md)
 
 ## 페이즈별 문서
 
@@ -22,7 +22,7 @@
 |------|-----|
 | **현재 단계** | Phase 2 — Next.js `src/` · Supabase · RLS (마스터 플랜 M0~M8) |
 | **이전 단계** | Phase 1 — 정적 목업 (`mockup/`) **종료** (2026-03-28) |
-| **마지막 갱신** | 2026-04-28 — **M6b 잔여(5)** `0031` `notification_log` 투표 알림 예약·마감/종료 취소 · D-EVENTS-04 검증·스케줄. 다음 = **예약→발송 워커·벨 피드** · **`purchases` 무효화** 또는 **M6c 잔여**. |
+| **마지막 갱신** | 2026-04-28 — **M6b 잔여(6)** `0032` `notifications` · `dispatch_inapp_notification_batch` · `/api/cron/dispatch-notifications` · `vercel.json` 5분 Cron. 다음 = **벨 드로어 UI** · **`purchases` 무효화** 또는 **M6c 잔여**. |
 
 ---
 
