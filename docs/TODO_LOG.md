@@ -5,6 +5,13 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-28 — Phase 2 M6b 잔여(3) 클랜 투표 MVP
+
+- [x] **DB** — `0029_clan_polls_mvp.sql` (`poll_notify_repeat` · 단일 선택 시 기존 표 교체 트리거).
+- [x] **앱** — `createClanPollAction` · `voteClanPollAction` · `closeClanPollAction` · `loadSerializedClanPolls` · `ClanEventsPollsTab`.
+- [x] **검증** — `npm run db:sync` · `npm run build`.
+- **다음**: D-EVENTS-04 알림 연동 · 대진표 영속화 · `purchases` 무효화 등.
+
 ### 2026-04-28 — Phase 2 M6b 잔여(2) 스크림 RSVP
 
 - [x] **DB** — `0028_event_rsvps.sql` (`event_rsvp_status` · 트리거로 `kind=scrim`만 INSERT).
