@@ -5,6 +5,13 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-28 — Phase 2 M6b 잔여(2) 스크림 RSVP
+
+- [x] **DB** — `0028_event_rsvps.sql` (`event_rsvp_status` · 트리거로 `kind=scrim`만 INSERT).
+- [x] **앱** — `toggleClanEventRsvpAction` · `listClanEventRsvpAttendeesAction` · 회차 `instanceIdx`(Unix ms) · `ClanEventsView` 상세 시트·슬롯 배지 · 운영진 명단.
+- [x] **검증** — `npm run db:sync` · `npm run build`.
+- **다음**: 투표·대진표 DB · `purchases` 무효화 등 M6b 잔여.
+
 ### 2026-04-28 — Phase 2 M6b 잔여(1) 반복 일정
 
 - [x] **DB** — `0027_clan_events_repeat.sql` (`clan_event_repeat` · `repeat` / `repeat_weekdays` / `repeat_time`).

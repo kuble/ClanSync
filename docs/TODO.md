@@ -3,7 +3,7 @@
 > **페이즈별 체크리스트**는 아래 문서로 나눈다. 세션 종료 시 **[세션 로그](./TODO_LOG.md)** 맨 위에 블록을 추가하고, 해당 페이즈 문서의 체크·요약표를 갱신한다.  
 > **/todo 커맨드**: `.cursor/commands/todo.md` 절차로 문서·목업과 동기화한다.
 
-> **지금 라이브**: M6b `/events` 반복 일정 MVP(DB·펼침·폼) + **M5** 프로필 꾸미기 탭 동기화 · **다음**: M6b 잔여(RSVP·투표 DB·대진표 저장 등) 또는 M6c 잔여 · 체감 → [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md)
+> **지금 라이브**: M6b `/events` 반복 일정 + **스크림 RSVP**(DB·토글·운영진 명단) + **M5** 탭 동기화 · **다음**: M6b 잔여(투표 DB·대진표 저장 등) 또는 M6c 잔여 · 체감 → [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md)
 
 ## 페이즈별 문서
 
@@ -22,7 +22,7 @@
 |------|-----|
 | **현재 단계** | Phase 2 — Next.js `src/` · Supabase · RLS (마스터 플랜 M0~M8) |
 | **이전 단계** | Phase 1 — 정적 목업 (`mockup/`) **종료** (2026-03-28) |
-| **마지막 갱신** | 2026-04-28 — **M6b 잔여(1)** `0027` 반복 일정 · `expand-clan-event-occurrences` · 이벤트 페이지 select·폼 주차별 렌더. 다음 = **RSVP·투표 DB·대진표 저장** 또는 **M6c 잔여**. |
+| **마지막 갱신** | 2026-04-28 — **M6b 잔여(2)** `0028` `event_rsvps` · 스크림 회차별 참가 토글 · 운영진 명단(`user_game_profiles`). 다음 = **투표 DB·대진표 저장· purchases 무효화** 또는 **M6c 잔여**. |
 
 ---
 
@@ -32,7 +32,7 @@
 
 ```
 @docs/TODO_Phase2.md @docs/01-plan/pages/11-Clan-Events.md 참고해서
-Phase 2 M6b 잔여: RSVP·투표 DB·대진표 영속화 중 우선순위 한 줄 지정.
+Phase 2 M6b 잔여: 투표 DB·대진표 영속화·purchases 무효화 중 우선순위 한 줄 지정.
 
 완료 후 공통 게이트를 만족시키고 허브를 갱신한다.
 ```
