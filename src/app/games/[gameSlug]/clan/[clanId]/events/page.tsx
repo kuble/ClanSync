@@ -1,9 +1,7 @@
 import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
 import { ClanEventNotifyForm } from "@/components/main-clan/clan-event-notify-form";
-import {
-  ClanEventsView,
-  type SerializedClanEvent,
-} from "@/components/main-clan/clan-events-view";
+import { ClanEventsView } from "@/components/main-clan/clan-events-view";
+import type { SerializedClanEvent } from "@/lib/clan/expand-clan-event-occurrences";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { createServiceRoleClient } from "@/lib/supabase/service";
@@ -51,7 +49,9 @@ export default async function ClanEventsPage({
 
   const { data: rows } = await svc
     .from("clan_events")
-    .select("id, title, kind, start_at, place, source")
+    .select(
+      "id, title, kind, start_at, place, source, repeat, repeat_weekdays, repeat_time",
+    )
     .eq("clan_id", clanId)
     .is("cancelled_at", null)
     .order("start_at", { ascending: true })
@@ -64,6 +64,9 @@ export default async function ClanEventsPage({
     start_at: r.start_at as string,
     place: (r.place as string | null) ?? null,
     source: r.source as SerializedClanEvent["source"],
+    repeat: (r.repeat ?? "none") as SerializedClanEvent["repeat"],
+    repeat_weekdays: (r.repeat_weekdays as number[] | null) ?? null,
+    repeat_time: (r.repeat_time as string | null) ?? null,
   }));
 
   return (

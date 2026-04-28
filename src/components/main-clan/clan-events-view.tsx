@@ -29,23 +29,18 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type {
+  ClanEventOccurrenceVm,
+  SerializedClanEvent,
+} from "@/lib/clan/expand-clan-event-occurrences";
+import {
+  dateKeyLocalFromDate,
+  expandClanEventsForMonth,
+  repeatSummaryKo,
+} from "@/lib/clan/expand-clan-event-occurrences";
 import { cn } from "@/lib/utils";
 
-export type SerializedClanEvent = {
-  id: string;
-  title: string;
-  kind: "intra" | "scrim" | "event";
-  start_at: string;
-  place: string | null;
-  source: "manual" | "scrim_auto";
-};
-
-function dateKeyLocal(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
+const WD_EDIT_LABEL = ["월", "화", "수", "목", "금", "토", "일"];
 
 function isoToDatetimeLocal(iso: string): string {
   const d = new Date(iso);
@@ -90,30 +85,17 @@ function buildCalendarCells(
   return cells;
 }
 
-function eventsForDateKey(events: SerializedClanEvent[], key: string) {
-  return events
-    .filter((e) => dateKeyLocal(new Date(e.start_at)) === key)
-    .sort(
-      (a, b) =>
-        new Date(a.start_at).getTime() - new Date(b.start_at).getTime(),
-    );
-}
-
-function defaultSelectedKey(
-  events: SerializedClanEvent[],
-  year: number,
-  month: number,
-): string {
-  const today = new Date();
-  if (today.getFullYear() === year && today.getMonth() === month) {
-    return dateKeyLocal(today);
+function kindsOnDay(
+  dayKey: string,
+  occurrences: ClanEventOccurrenceVm[],
+): string[] {
+  const seen = new Set<string>();
+  const order = ["intra", "scrim", "event"];
+  for (const o of occurrences) {
+    if (dateKeyLocalFromDate(o.displayAt) !== dayKey) continue;
+    seen.add(o.template.kind);
   }
-  const inMonth = events
-    .map((e) => new Date(e.start_at))
-    .filter((d) => d.getFullYear() === year && d.getMonth() === month)
-    .sort((a, b) => a.getTime() - b.getTime());
-  if (inMonth.length > 0) return dateKeyLocal(inMonth[0]);
-  return dateKeyLocal(new Date(year, month, 1));
+  return order.filter((k) => seen.has(k));
 }
 
 export function ClanEventsView({
@@ -134,7 +116,7 @@ export function ClanEventsView({
   const now = new Date();
   const [cursor, setCursor] = useState({ y: now.getFullYear(), m: now.getMonth() });
   const [selectedKey, setSelectedKey] = useState(() =>
-    defaultSelectedKey(events, now.getFullYear(), now.getMonth()),
+    dateKeyLocalFromDate(new Date()),
   );
 
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -143,6 +125,22 @@ export function ClanEventsView({
   );
 
   const [editOpen, setEditOpen] = useState(false);
+  const [editRepeat, setEditRepeat] = useState<SerializedClanEvent["repeat"]>(
+    "none",
+  );
+
+  const occurrences = useMemo(
+    () => expandClanEventsForMonth(events, cursor.y, cursor.m),
+    [events, cursor.y, cursor.m],
+  );
+
+  const slotOccurrences = useMemo(
+    () =>
+      occurrences.filter(
+        (o) => dateKeyLocalFromDate(o.displayAt) === selectedKey,
+      ),
+    [occurrences, selectedKey],
+  );
 
   const cells = useMemo(
     () => buildCalendarCells(cursor.y, cursor.m),
@@ -156,11 +154,6 @@ export function ClanEventsView({
         month: "long",
       }),
     [cursor.y, cursor.m],
-  );
-
-  const slotEvents = useMemo(
-    () => eventsForDateKey(events, selectedKey),
-    [events, selectedKey],
   );
 
   const selectedDateTitle = useMemo(() => {
@@ -184,22 +177,12 @@ export function ClanEventsView({
     const dd = parts[2] ?? 1;
     const sel = new Date(yy, mm - 1, dd);
     if (sel.getFullYear() !== ny || sel.getMonth() !== nm) {
-      setSelectedKey(dateKeyLocal(new Date(ny, nm, 1)));
+      setSelectedKey(dateKeyLocalFromDate(new Date(ny, nm, 1)));
     }
   }
 
-  function kindsOnDay(dayKey: string): string[] {
-    const seen = new Set<string>();
-    const order = ["intra", "scrim", "event"];
-    for (const e of events) {
-      if (dateKeyLocal(new Date(e.start_at)) !== dayKey) continue;
-      seen.add(e.kind);
-    }
-    return order.filter((k) => seen.has(k));
-  }
-
-  function openDetail(ev: SerializedClanEvent) {
-    setActiveEvent(ev);
+  function openDetail(template: SerializedClanEvent) {
+    setActiveEvent(template);
     setSheetOpen(true);
   }
 
@@ -214,6 +197,7 @@ export function ClanEventsView({
         fd.set("start_at", d.toISOString());
       }
     }
+    fd.set("repeat", editRepeat);
     start(async () => {
       const r = await updateClanEventAction(gameSlug, clanId, fd);
       if (!r.ok) {
@@ -230,7 +214,11 @@ export function ClanEventsView({
 
   function onCancelEvent() {
     if (!activeEvent) return;
-    if (!confirm("이 일정을 취소할까요? 취소된 일정은 목록에서 사라집니다.")) {
+    if (
+      !confirm(
+        "이 일정 템플릿 전체를 취소할까요? 반복 일정의 모든 표시가 사라집니다.",
+      )
+    ) {
       return;
     }
     start(async () => {
@@ -268,7 +256,7 @@ export function ClanEventsView({
       <TabsContent value="calendar" className="space-y-8">
         <p className="text-muted-foreground text-sm">
           날짜를 선택하면 해당 날짜의 일정만 아래에 표시됩니다. 점 색: 보라=내전
-          · 초록=스크림 · 주황=이벤트.
+          · 초록=스크림 · 주황=이벤트. 반복 일정은 D-EVENTS-02 규칙으로 펼칩니다.
         </p>
 
         {canManageEvents ? (
@@ -316,9 +304,9 @@ export function ClanEventsView({
               </div>
             ))}
             {cells.map(({ date, inMonth }) => {
-              const key = dateKeyLocal(date);
+              const key = dateKeyLocalFromDate(date);
               const selected = key === selectedKey;
-              const kinds = kindsOnDay(key);
+              const kinds = kindsOnDay(key, occurrences);
               return (
                 <button
                   key={`${key}-${inMonth}-${date.getTime()}`}
@@ -353,10 +341,10 @@ export function ClanEventsView({
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h3 className="text-sm font-medium">{selectedDateTitle} 일정</h3>
             <span className="text-muted-foreground text-xs tabular-nums">
-              {slotEvents.length}건
+              {slotOccurrences.length}건
             </span>
           </div>
-          {!slotEvents.length ? (
+          {!slotOccurrences.length ? (
             <p className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
               이 날짜에는 등록된 일정이 없습니다.
               {canManageEvents
@@ -365,25 +353,30 @@ export function ClanEventsView({
             </p>
           ) : (
             <ul className="space-y-2" role="list">
-              {slotEvents.map((ev) => (
-                <li key={ev.id}>
+              {slotOccurrences.map((o) => (
+                <li key={o.key}>
                   <button
                     type="button"
-                    onClick={() => openDetail(ev)}
+                    onClick={() => openDetail(o.template)}
                     className="bg-card hover:bg-muted/40 w-full rounded-lg border px-4 py-3 text-left text-sm shadow-sm transition-colors"
                   >
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <span className="font-medium">{ev.title}</span>
+                      <span className="font-medium">{o.template.title}</span>
                       <span className="text-muted-foreground text-xs">
-                        {kindLabel(ev.kind)}
+                        {kindLabel(o.template.kind)}
                       </span>
                     </div>
                     <p className="text-muted-foreground mt-1 text-xs">
-                      {new Date(ev.start_at).toLocaleTimeString("ko-KR", {
+                      {o.displayAt.toLocaleTimeString("ko-KR", {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
-                      {ev.place ? ` · ${ev.place}` : ""}
+                      {o.template.place ? ` · ${o.template.place}` : ""}
+                      {o.template.repeat !== "none" ? (
+                        <span className="text-muted-foreground ml-2">
+                          · {repeatSummaryKo(o.template)}
+                        </span>
+                      ) : null}
                     </p>
                   </button>
                 </li>
@@ -440,6 +433,7 @@ export function ClanEventsView({
                   {kindLabel(activeEvent.kind)} · {activeEvent.title}
                 </SheetTitle>
                 <SheetDescription>
+                  기준 시작:{" "}
                   {new Date(activeEvent.start_at).toLocaleString("ko-KR", {
                     dateStyle: "medium",
                     timeStyle: "short",
@@ -447,6 +441,10 @@ export function ClanEventsView({
                 </SheetDescription>
               </SheetHeader>
               <dl className="grid gap-2 px-4 text-sm">
+                <div className="grid grid-cols-[6rem_1fr] gap-2">
+                  <dt className="text-muted-foreground">반복</dt>
+                  <dd>{repeatSummaryKo(activeEvent)}</dd>
+                </div>
                 <div className="grid grid-cols-[6rem_1fr] gap-2">
                   <dt className="text-muted-foreground">장소·메모</dt>
                   <dd>{activeEvent.place?.trim() || "—"}</dd>
@@ -468,6 +466,7 @@ export function ClanEventsView({
                       variant="secondary"
                       className="flex-1"
                       onClick={() => {
+                        setEditRepeat(activeEvent.repeat ?? "none");
                         setEditOpen(true);
                         setSheetOpen(false);
                       }}
@@ -529,17 +528,56 @@ export function ClanEventsView({
                   id="edit-kind"
                   name="kind"
                   className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm"
-                  defaultValue={activeEvent.kind === "scrim" ? "event" : activeEvent.kind}
+                  defaultValue={
+                    activeEvent.kind === "scrim" ? "event" : activeEvent.kind
+                  }
                 >
                   <option value="intra">내전</option>
                   <option value="event">이벤트</option>
                 </select>
-                <p className="text-muted-foreground text-xs">
-                  기존에 스크림으로 저장된 항목은 내전/이벤트로 바꿀 수
-                  있습니다. 향후 자동 일정과 합치면 스크림은 자동 생성만
-                  사용합니다.
-                </p>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-repeat">반복</Label>
+                <select
+                  id="edit-repeat"
+                  value={editRepeat}
+                  onChange={(ev) =>
+                    setEditRepeat(
+                      ev.target.value as SerializedClanEvent["repeat"],
+                    )
+                  }
+                  className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm"
+                >
+                  <option value="none">없음 (일회)</option>
+                  <option value="weekly">매주</option>
+                  <option value="monthly">매월</option>
+                </select>
+              </div>
+              {editRepeat === "weekly" ? (
+                <div className="space-y-2 rounded-lg border border-dashed p-3">
+                  <p className="text-muted-foreground text-xs font-medium">
+                    반복 요일
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    {[1, 2, 3, 4, 5, 6, 7].map((iso) => (
+                      <label
+                        key={iso}
+                        className="flex cursor-pointer items-center gap-1.5 text-xs"
+                      >
+                        <input
+                          type="checkbox"
+                          name="repeat_weekday"
+                          value={String(iso)}
+                          defaultChecked={activeEvent.repeat_weekdays?.includes(
+                            iso,
+                          )}
+                        />
+                        {WD_EDIT_LABEL[iso - 1]}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
               <div className="space-y-2">
                 <Label htmlFor="edit-start">시작 (로컬 시각)</Label>
                 <Input

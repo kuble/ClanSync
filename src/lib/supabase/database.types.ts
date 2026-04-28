@@ -121,39 +121,6 @@ export type Database = {
           },
         ]
       }
-      balance_session_map_votes: {
-        Row: {
-          choice_idx: number
-          session_id: string
-          user_id: string
-        }
-        Insert: {
-          choice_idx: number
-          session_id: string
-          user_id: string
-        }
-        Update: {
-          choice_idx?: number
-          session_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "balance_session_map_votes_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "balance_sessions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "balance_session_map_votes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       balance_session_hero_votes: {
         Row: {
           pick_1: string
@@ -186,6 +153,39 @@ export type Database = {
           },
           {
             foreignKeyName: "balance_session_hero_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      balance_session_map_votes: {
+        Row: {
+          choice_idx: number
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          choice_idx: number
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          choice_idx?: number
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "balance_session_map_votes_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "balance_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_session_map_votes_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -239,10 +239,10 @@ export type Database = {
           hero_ban_enabled: boolean
           host_user_id: string
           id: string
+          ma_snapshot: Json
           map_ban_deadline_at: string | null
           map_ban_enabled: boolean
           map_candidates: string[] | null
-          ma_snapshot: Json
           match_outcome: Database["public"]["Enums"]["balance_match_outcome"]
           opened_at: string
           phase: Database["public"]["Enums"]["balance_session_phase"]
@@ -260,10 +260,10 @@ export type Database = {
           hero_ban_enabled?: boolean
           host_user_id: string
           id?: string
+          ma_snapshot?: Json
           map_ban_deadline_at?: string | null
           map_ban_enabled?: boolean
           map_candidates?: string[] | null
-          ma_snapshot?: Json
           match_outcome?: Database["public"]["Enums"]["balance_match_outcome"]
           opened_at?: string
           phase?: Database["public"]["Enums"]["balance_session_phase"]
@@ -281,10 +281,10 @@ export type Database = {
           hero_ban_enabled?: boolean
           host_user_id?: string
           id?: string
+          ma_snapshot?: Json
           map_ban_deadline_at?: string | null
           map_ban_enabled?: boolean
           map_candidates?: string[] | null
-          ma_snapshot?: Json
           match_outcome?: Database["public"]["Enums"]["balance_match_outcome"]
           opened_at?: string
           phase?: Database["public"]["Enums"]["balance_session_phase"]
@@ -421,6 +421,9 @@ export type Database = {
           id: string
           kind: Database["public"]["Enums"]["clan_event_kind"]
           place: string | null
+          repeat: Database["public"]["Enums"]["clan_event_repeat"]
+          repeat_time: string | null
+          repeat_weekdays: number[] | null
           source: Database["public"]["Enums"]["clan_event_source"]
           start_at: string
           title: string
@@ -435,6 +438,9 @@ export type Database = {
           id?: string
           kind?: Database["public"]["Enums"]["clan_event_kind"]
           place?: string | null
+          repeat?: Database["public"]["Enums"]["clan_event_repeat"]
+          repeat_time?: string | null
+          repeat_weekdays?: number[] | null
           source?: Database["public"]["Enums"]["clan_event_source"]
           start_at: string
           title: string
@@ -449,6 +455,9 @@ export type Database = {
           id?: string
           kind?: Database["public"]["Enums"]["clan_event_kind"]
           place?: string | null
+          repeat?: Database["public"]["Enums"]["clan_event_repeat"]
+          repeat_time?: string | null
+          repeat_weekdays?: number[] | null
           source?: Database["public"]["Enums"]["clan_event_source"]
           start_at?: string
           title?: string
@@ -1552,6 +1561,10 @@ export type Database = {
         }
         Returns: Json
       }
+      balance_roster_contains_user: {
+        Args: { p_roster: Json; p_uid: string }
+        Returns: boolean
+      }
       clan_active_member_counts: {
         Args: { p_clan_ids: string[] }
         Returns: {
@@ -1566,14 +1579,8 @@ export type Database = {
           user_id: string
         }[]
       }
-      is_active_clan_member: {
-        Args: { p_clan_id: string }
-        Returns: boolean
-      }
-      is_clan_officer_plus: {
-        Args: { p_clan_id: string }
-        Returns: boolean
-      }
+      is_active_clan_member: { Args: { p_clan_id: string }; Returns: boolean }
+      is_clan_officer_plus: { Args: { p_clan_id: string }; Returns: boolean }
       is_member_of_balance_session: {
         Args: { p_session_id: string }
         Returns: boolean
@@ -1584,13 +1591,6 @@ export type Database = {
           nickname: string
           user_id: string
         }[]
-      }
-      set_balance_match_outcome: {
-        Args: {
-          p_outcome: Database["public"]["Enums"]["balance_match_outcome"]
-          p_session_id: string
-        }
-        Returns: Json
       }
       my_active_clan_for_game: {
         Args: { p_game_id: string }
@@ -1615,14 +1615,15 @@ export type Database = {
           status: Database["public"]["Enums"]["clan_member_status"]
         }[]
       }
+      set_balance_match_outcome: {
+        Args: {
+          p_outcome: Database["public"]["Enums"]["balance_match_outcome"]
+          p_session_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
-      balance_match_outcome: "pending" | "team1" | "team2" | "void"
-      balance_session_phase:
-        | "editing"
-        | "map_ban"
-        | "hero_ban"
-        | "match_live"
       auth_failed_login_reason:
         | "invalid_password"
         | "unknown_email"
@@ -1635,8 +1636,11 @@ export type Database = {
         | "clan"
         | "clansync"
       badge_unlock_kind: "achievement" | "event" | "store"
+      balance_match_outcome: "pending" | "team1" | "team2" | "void"
+      balance_session_phase: "editing" | "map_ban" | "hero_ban" | "match_live"
       board_post_type: "promotion" | "scrim"
       clan_event_kind: "intra" | "scrim" | "event"
+      clan_event_repeat: "none" | "weekly" | "monthly"
       clan_event_source: "manual" | "scrim_auto"
       clan_gender_policy: "all" | "male" | "female"
       clan_join_request_status: "pending" | "approved" | "rejected" | "canceled"
@@ -1788,13 +1792,6 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      balance_match_outcome: ["pending", "team1", "team2", "void"],
-      balance_session_phase: [
-        "editing",
-        "map_ban",
-        "hero_ban",
-        "match_live",
-      ],
       auth_failed_login_reason: [
         "invalid_password",
         "unknown_email",
@@ -1809,8 +1806,11 @@ export const Constants = {
         "clansync",
       ],
       badge_unlock_kind: ["achievement", "event", "store"],
+      balance_match_outcome: ["pending", "team1", "team2", "void"],
+      balance_session_phase: ["editing", "map_ban", "hero_ban", "match_live"],
       board_post_type: ["promotion", "scrim"],
       clan_event_kind: ["intra", "scrim", "event"],
+      clan_event_repeat: ["none", "weekly", "monthly"],
       clan_event_source: ["manual", "scrim_auto"],
       clan_gender_policy: ["all", "male", "female"],
       clan_join_request_status: ["pending", "approved", "rejected", "canceled"],

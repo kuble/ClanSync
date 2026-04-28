@@ -16,6 +16,60 @@ const MANUAL_CREATE_KINDS = new Set<
   Database["public"]["Enums"]["clan_event_kind"]
 >(["intra", "event"]);
 
+function pgTimeFromDate(d: Date): string {
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${hh}:${mm}:00`;
+}
+
+type ParsedRepeatFields = {
+  repeat: Database["public"]["Enums"]["clan_event_repeat"];
+  repeat_weekdays: number[] | null;
+  repeat_time: string | null;
+};
+
+function parseRepeatRule(
+  formData: FormData,
+  startAt: Date,
+): ParsedRepeatFields | { error: string } {
+  const raw = String(formData.get("repeat") ?? "none").trim();
+  if (raw !== "none" && raw !== "weekly" && raw !== "monthly") {
+    return { error: "반복 설정이 올바르지 않습니다." };
+  }
+
+  const pgTime = pgTimeFromDate(startAt);
+
+  if (raw === "none") {
+    return { repeat: "none", repeat_weekdays: null, repeat_time: null };
+  }
+
+  if (raw === "weekly") {
+    const vals = formData.getAll("repeat_weekday");
+    const set = new Set<number>();
+    for (const v of vals) {
+      const n = parseInt(String(v), 10);
+      if (n >= 1 && n <= 7) set.add(n);
+    }
+    const repeat_weekdays = [...set].sort((a, b) => a - b);
+    if (repeat_weekdays.length === 0) {
+      return {
+        error: "매주 반복일 때 요일을 하나 이상 선택해 주세요.",
+      };
+    }
+    return {
+      repeat: "weekly",
+      repeat_weekdays,
+      repeat_time: pgTime,
+    };
+  }
+
+  return {
+    repeat: "monthly",
+    repeat_weekdays: null,
+    repeat_time: pgTime,
+  };
+}
+
 function kindLabelKo(kind: Database["public"]["Enums"]["clan_event_kind"]): string {
   if (kind === "intra") return "내전";
   if (kind === "scrim") return "스크림";
@@ -113,6 +167,9 @@ export async function createClanEventAction(
   const placeRaw = String(formData.get("place") ?? "").trim();
   const place = placeRaw ? placeRaw.slice(0, 500) : null;
 
+  const parsedRepeat = parseRepeatRule(formData, startAt);
+  if ("error" in parsedRepeat) return { ok: false, error: parsedRepeat.error };
+
   const svc = createServiceRoleClient();
   const { data: clanRow } = await svc
     .from("clans")
@@ -133,6 +190,9 @@ export async function createClanEventAction(
     place,
     source: "manual",
     created_by: user.id,
+    repeat: parsedRepeat.repeat,
+    repeat_weekdays: parsedRepeat.repeat_weekdays,
+    repeat_time: parsedRepeat.repeat_time,
   });
 
   if (error) return { ok: false, error: error.message };
@@ -200,6 +260,9 @@ export async function updateClanEventAction(
   const placeRaw = String(formData.get("place") ?? "").trim();
   const place = placeRaw ? placeRaw.slice(0, 500) : null;
 
+  const parsedRepeat = parseRepeatRule(formData, startAt);
+  if ("error" in parsedRepeat) return { ok: false, error: parsedRepeat.error };
+
   const svc = createServiceRoleClient();
   const { data: clanRow } = await svc
     .from("clans")
@@ -235,6 +298,9 @@ export async function updateClanEventAction(
       kind,
       start_at: startAt.toISOString(),
       place,
+      repeat: parsedRepeat.repeat,
+      repeat_weekdays: parsedRepeat.repeat_weekdays,
+      repeat_time: parsedRepeat.repeat_time,
     })
     .eq("id", eventId)
     .eq("clan_id", clanId);

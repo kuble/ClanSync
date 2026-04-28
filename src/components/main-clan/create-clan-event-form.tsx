@@ -2,12 +2,13 @@
 
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { createClanEventAction } from "@/app/actions/clan-events";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+const WD_LABEL = ["월", "화", "수", "목", "금", "토", "일"];
 
 export function CreateClanEventForm({
   gameSlug,
@@ -18,6 +19,9 @@ export function CreateClanEventForm({
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
+  const [repeatMode, setRepeatMode] = useState<"none" | "weekly" | "monthly">(
+    "none",
+  );
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -30,6 +34,7 @@ export function CreateClanEventForm({
         fd.set("start_at", d.toISOString());
       }
     }
+    fd.set("repeat", repeatMode);
     start(async () => {
       const r = await createClanEventAction(gameSlug, clanId, fd);
       if (!r.ok) {
@@ -38,6 +43,7 @@ export function CreateClanEventForm({
       }
       toast.success("일정을 추가했습니다.");
       form.reset();
+      setRepeatMode("none");
       router.refresh();
     });
   }
@@ -67,6 +73,47 @@ export function CreateClanEventForm({
           스크림 일정은 매칭 확정 시 자동 등록됩니다 (D-EVENTS-01).
         </p>
       </div>
+      <div className="space-y-2">
+        <Label htmlFor="evt-repeat">반복</Label>
+        <select
+          id="evt-repeat"
+          value={repeatMode}
+          onChange={(ev) =>
+            setRepeatMode(ev.target.value as "none" | "weekly" | "monthly")
+          }
+          className="border-input bg-background h-9 w-full max-w-xs rounded-md border px-2 text-sm"
+        >
+          <option value="none">없음 (일회)</option>
+          <option value="weekly">매주</option>
+          <option value="monthly">매월 (시작 날짜의 일자)</option>
+        </select>
+        <p className="text-muted-foreground text-xs">
+          매주·매월 반복 시 시각은 아래 &quot;시작&quot; 필드 시각과 동일하게
+          적용됩니다 (D-EVENTS-02).
+        </p>
+      </div>
+      {repeatMode === "weekly" ? (
+        <div className="space-y-2 rounded-lg border border-dashed p-3">
+          <p className="text-muted-foreground text-xs font-medium">
+            반복 요일 (1개 이상)
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {[1, 2, 3, 4, 5, 6, 7].map((iso) => (
+              <label
+                key={iso}
+                className="flex cursor-pointer items-center gap-1.5 text-xs"
+              >
+                <input
+                  type="checkbox"
+                  name="repeat_weekday"
+                  value={String(iso)}
+                />
+                {WD_LABEL[iso - 1]}
+              </label>
+            ))}
+          </div>
+        </div>
+      ) : null}
       <div className="space-y-2">
         <Label htmlFor="evt-start">시작 (로컬 시각)</Label>
         <Input
