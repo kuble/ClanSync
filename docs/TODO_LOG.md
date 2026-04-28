@@ -5,6 +5,12 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-28 — Phase 2 M5 프로필 꾸미기 탭 동기화
+
+- [x] **앱** — `ProfileGameDecorations`: `clansync:badge:picks:changed` · `clansync:nameplate:changed` 시 `router.refresh()` · 활성 게임 탭 `sessionStorage` 유지 · 상수 `src/lib/profile-decoration-sync.ts`.
+- [x] **검증** — `npm run build`.
+- **다음**: M6b 반복·RSVP 등 또는 BalanceMaker와 이벤트 이름 공유(선택).
+
 ### 2026-04-28 — Phase 2 M6b 클랜 이벤트 캘린더·탭·일정 편집
 
 - [x] **앱** — `ClanEventsView` (캘린더 월 그리드 · 일정 상세 Sheet · 편집 Dialog · 취소) · `updateClanEventAction` · `cancelClanEventAction` · 수동 등록 유형 D-EVENTS-01 (내전·이벤트만).

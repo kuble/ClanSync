@@ -7,7 +7,7 @@
 | 항목 | 값 |
 |------|-----|
 | **단계** | Phase 2 — 앱 구현 |
-| **마지막 갱신** | 2026-04-28 — **M6b `/events`** 캘린더·서브탭·수동 일정 편집·취소 · 스토어 D-STORE-02 카피 |
+| **마지막 갱신** | 2026-04-28 — **M5** 프로필 뱃지·네임플레이트 저장 후 탭 동기화 (`router.refresh` + 세션 탭 유지) |
 
 ## 전제 (Q&A 확정)
 
@@ -116,7 +116,7 @@ flowchart TD
 
 - [x] `/profile` — 네임플레이트·뱃지 스트립 (**D-PROFILE-01~03**, 5슬롯 dense-from-front) · 가입 신청 목록 (**D-PROFILE-02**)
 - [x] 스키마: `nameplate_options` · `user_nameplate_inventory` · `user_nameplate_selections` · `badges` · `user_badge_unlocks` · `user_badge_picks` (`0010_profile_decorations_m5.sql`)
-- [ ] `clansync:badge:picks:changed` 실시간 탭 동기화 — 클라이언트 `CustomEvent`만 (BalanceMaker·서버 패턴 확장은 후속)
+- [x] `clansync:badge:picks:changed` · `clansync:nameplate:changed` 탭 동기화 — 리스너에서 `router.refresh()` · 활성 탭 `sessionStorage` 유지 (`profile-decoration-sync.ts`)
 
 ### M6 — MainClan 탭 묶음 (M4 이후, 권장 순서 a→b→c)
 
