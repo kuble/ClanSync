@@ -1341,6 +1341,82 @@ export type Database = {
           },
         ]
       }
+      notification_log: {
+        Row: {
+          attempt_count: number
+          channel: Database["public"]["Enums"]["notification_channel"]
+          created_at: string
+          dedup_key: string
+          effective_at: string | null
+          event_id: string | null
+          id: string
+          instance_idx: number | null
+          last_error: string | null
+          poll_id: string | null
+          recipient_user_id: string
+          scheduled_at: string
+          slot_kind: Database["public"]["Enums"]["notification_slot_kind"]
+          status: Database["public"]["Enums"]["notification_status"]
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          channel: Database["public"]["Enums"]["notification_channel"]
+          created_at?: string
+          dedup_key: string
+          effective_at?: string | null
+          event_id?: string | null
+          id?: string
+          instance_idx?: number | null
+          last_error?: string | null
+          poll_id?: string | null
+          recipient_user_id: string
+          scheduled_at: string
+          slot_kind: Database["public"]["Enums"]["notification_slot_kind"]
+          status?: Database["public"]["Enums"]["notification_status"]
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          channel?: Database["public"]["Enums"]["notification_channel"]
+          created_at?: string
+          dedup_key?: string
+          effective_at?: string | null
+          event_id?: string | null
+          id?: string
+          instance_idx?: number | null
+          last_error?: string | null
+          poll_id?: string | null
+          recipient_user_id?: string
+          scheduled_at?: string
+          slot_kind?: Database["public"]["Enums"]["notification_slot_kind"]
+          status?: Database["public"]["Enums"]["notification_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_log_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "clan_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_log_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "clan_polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_log_recipient_user_id_fkey"
+            columns: ["recipient_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       poll_options: {
         Row: {
           id: string
@@ -1856,6 +1932,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      maint_cancel_poll_notifications_past_deadline: {
+        Args: never
+        Returns: undefined
+      }
       my_active_clan_for_game: {
         Args: { p_game_id: string }
         Returns: {
@@ -1929,6 +2009,19 @@ export type Database = {
       lfg_post_status: "open" | "filled" | "expired" | "canceled"
       nameplate_category: "emblem" | "namebar" | "sub" | "frame"
       nameplate_unlock_source: "default" | "event" | "store" | "achievement"
+      notification_channel: "inapp" | "discord" | "kakao" | "web_push"
+      notification_slot_kind:
+        | "event_t_minus_24h"
+        | "event_t_minus_1h"
+        | "event_t_minus_10min"
+        | "event_t_0"
+        | "poll_created"
+        | "poll_daily"
+        | "poll_weekly"
+        | "poll_deadline_window"
+        | "poll_deadline_1h"
+        | "event_cancelled"
+      notification_status: "scheduled" | "sent" | "failed" | "cancelled" | "dlq"
       poll_notify_repeat:
         | "none"
         | "once"
@@ -2109,6 +2202,20 @@ export const Constants = {
       lfg_post_status: ["open", "filled", "expired", "canceled"],
       nameplate_category: ["emblem", "namebar", "sub", "frame"],
       nameplate_unlock_source: ["default", "event", "store", "achievement"],
+      notification_channel: ["inapp", "discord", "kakao", "web_push"],
+      notification_slot_kind: [
+        "event_t_minus_24h",
+        "event_t_minus_1h",
+        "event_t_minus_10min",
+        "event_t_0",
+        "poll_created",
+        "poll_daily",
+        "poll_weekly",
+        "poll_deadline_window",
+        "poll_deadline_1h",
+        "event_cancelled",
+      ],
+      notification_status: ["scheduled", "sent", "failed", "cancelled", "dlq"],
       poll_notify_repeat: [
         "none",
         "once",

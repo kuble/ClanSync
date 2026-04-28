@@ -5,6 +5,7 @@ import {
   clanEventRsvpKey,
   type SerializedClanEvent,
 } from "@/lib/clan/expand-clan-event-occurrences";
+import { cancelStalePollNotificationLogs } from "@/lib/clan/cancel-stale-poll-notifications";
 import { loadSerializedBracketTournaments } from "@/lib/clan/load-bracket-tournaments";
 import { loadSerializedClanPolls } from "@/lib/clan/load-clan-polls";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
@@ -19,6 +20,8 @@ export default async function ClanEventsPage({
   params: Promise<{ gameSlug: string; clanId: string }>;
 }) {
   const { gameSlug, clanId } = await params;
+  await cancelStalePollNotificationLogs();
+
   const supabase = await createClient();
   const {
     data: { user },

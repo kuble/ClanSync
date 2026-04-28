@@ -1,7 +1,14 @@
 "use server";
 
+import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
+import { buildPollNotificationSlots } from "@/lib/clan/poll-notification-schedule";
+import {
+  parsePollNotifyRepeat,
+  validatePollNotifyAgainstDeadline,
+  type PollNotifyRepeat,
+} from "@/lib/clan/poll-notify-validation";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 
@@ -59,6 +66,28 @@ export async function createClanPollAction(
   const anonymous = formData.get("anonymous") === "on";
   const multipleChoice = formData.get("multiple_choice") === "on";
 
+  const pollNotifyEnabled = formData.get("poll_notify_enabled") === "on";
+  const notifyHourRaw = parseInt(
+    String(formData.get("notify_hour") ?? "9"),
+    10,
+  );
+  const notifyHour = Number.isFinite(notifyHourRaw)
+    ? Math.min(23, Math.max(0, notifyHourRaw))
+    : 9;
+  let notifyRepeat: PollNotifyRepeat = parsePollNotifyRepeat(
+    String(formData.get("notify_repeat") ?? "none"),
+  );
+  if (!pollNotifyEnabled) {
+    notifyRepeat = "none";
+  }
+
+  const nowMs = Date.now();
+  const deadlineMs = deadlineAt.getTime();
+  const nv = validatePollNotifyAgainstDeadline(nowMs, deadlineMs, notifyRepeat);
+  if (!nv.ok) {
+    return { ok: false, error: nv.error };
+  }
+
   const svc = createServiceRoleClient();
   const { data: clanRow } = await svc
     .from("clans")
@@ -79,12 +108,12 @@ export async function createClanPollAction(
       anonymous,
       multiple_choice: multipleChoice,
       deadline_at: deadlineAt.toISOString(),
-      notify_repeat: "none",
-      notify_hour: 9,
+      notify_repeat: notifyRepeat,
+      notify_hour: notifyHour,
       post_to_notice: false,
       created_by: user.id,
     })
-    .select("id")
+    .select("id, created_at")
     .single();
 
   if (insPollErr || !pollRow?.id) {
@@ -92,6 +121,7 @@ export async function createClanPollAction(
   }
 
   const pollId = pollRow.id as string;
+  const createdAt = new Date(pollRow.created_at as string);
 
   const optionPayload = labels.map((label, i) => ({
     poll_id: pollId,
@@ -104,6 +134,66 @@ export async function createClanPollAction(
   if (optErr) {
     await svc.from("clan_polls").delete().eq("id", pollId);
     return { ok: false, error: optErr.message };
+  }
+
+  if (notifyRepeat !== "none") {
+    const slots = buildPollNotificationSlots(
+      createdAt,
+      deadlineAt,
+      notifyRepeat,
+      notifyHour,
+    );
+    const { data: memRows, error: memErr } = await svc
+      .from("clan_members")
+      .select("user_id")
+      .eq("clan_id", clanId)
+      .eq("status", "active");
+
+    if (memErr) {
+      await svc.from("clan_polls").delete().eq("id", pollId);
+      return { ok: false, error: memErr.message };
+    }
+
+    const userIds = (memRows ?? []).map((r) => r.user_id as string);
+    const logRows: {
+      poll_id: string;
+      slot_kind: string;
+      channel: "inapp";
+      recipient_user_id: string;
+      scheduled_at: string;
+      dedup_key: string;
+      status: "scheduled";
+    }[] = [];
+
+    for (const uid of userIds) {
+      for (const s of slots) {
+        const scheduledAt = s.scheduled_at.toISOString();
+        const dedup_key = createHash("sha256")
+          .update(
+            `${pollId}|${s.slot_kind}|${scheduledAt}|${uid}|inapp`,
+          )
+          .digest("hex");
+        logRows.push({
+          poll_id: pollId,
+          slot_kind: s.slot_kind,
+          channel: "inapp",
+          recipient_user_id: uid,
+          scheduled_at: scheduledAt,
+          dedup_key,
+          status: "scheduled",
+        });
+      }
+    }
+
+    const chunk = 400;
+    for (let i = 0; i < logRows.length; i += chunk) {
+      const slice = logRows.slice(i, i + chunk);
+      const { error: logErr } = await svc.from("notification_log").insert(slice);
+      if (logErr) {
+        await svc.from("clan_polls").delete().eq("id", pollId);
+        return { ok: false, error: logErr.message };
+      }
+    }
   }
 
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);

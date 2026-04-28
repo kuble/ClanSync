@@ -48,6 +48,7 @@ export function ClanEventsPollsTab({
   const [pending, start] = useTransition();
   const [createOpen, setCreateOpen] = useState(false);
   const [optionInputs, setOptionInputs] = useState(["", ""]);
+  const [pollNotifyEnabled, setPollNotifyEnabled] = useState(false);
 
   const { openPolls, closedPolls } = useMemo(() => {
     const open: SerializedClanPoll[] = [];
@@ -80,6 +81,7 @@ export function ClanEventsPollsTab({
       toast.success("투표를 만들었습니다.");
       setCreateOpen(false);
       setOptionInputs(["", ""]);
+      setPollNotifyEnabled(false);
       form.reset();
       router.refresh();
     });
@@ -123,8 +125,8 @@ export function ClanEventsPollsTab({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-muted-foreground text-sm">
-          진행 중 투표에 참여합니다. 알림 스케줄(D-EVENTS-04)은 후속에서
-          연결합니다.
+          진행 중 투표에 참여합니다. 알림 예약은 in-app 채널로 저장되며(D-EVENTS-04),
+          Discord·카카오 발송은 후속 워커에서 연결합니다.
         </p>
         {canManagePolls ? (
           <Button
@@ -163,6 +165,60 @@ export function ClanEventsPollsTab({
                 required
                 defaultValue={createDeadlineDefault}
               />
+            </div>
+            <div className="space-y-3 rounded-lg border border-dashed p-3">
+              <label className="flex cursor-pointer items-start gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  name="poll_notify_enabled"
+                  checked={pollNotifyEnabled}
+                  onChange={(e) => setPollNotifyEnabled(e.target.checked)}
+                  className="mt-0.5"
+                />
+                <span>
+                  클랜 활성 멤버에게 투표 알림 예약 (in-app 발송 레이어에 예약 저장)
+                </span>
+              </label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="poll-notify-repeat">알림 반복</Label>
+                  <select
+                    id="poll-notify-repeat"
+                    name="notify_repeat"
+                    disabled={!pollNotifyEnabled}
+                    className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm"
+                    defaultValue="none"
+                  >
+                    <option value="none">없음 (알림 끔)</option>
+                    <option value="once">한 번 (생성 알림·마감 1h 전 등)</option>
+                    <option value="daily">매일 (KST 정각)</option>
+                    <option value="weekly">매주 (KST 정각)</option>
+                    <option value="until_deadline_daily">
+                      마감 전 24h 윈도 · 매일
+                    </option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="poll-notify-hour">알림 시각 (KST 정각)</Label>
+                  <select
+                    id="poll-notify-hour"
+                    name="notify_hour"
+                    disabled={!pollNotifyEnabled}
+                    className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm"
+                    defaultValue="9"
+                  >
+                    {Array.from({ length: 24 }, (_, h) => (
+                      <option key={h} value={String(h)}>
+                        {String(h).padStart(2, "0")}:00
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <p className="text-muted-foreground text-xs leading-relaxed">
+                D-EVENTS-04: 매일은 마감까지 최소 48시간 · 매주는 14일 · 마감 전까지
+                매일은 24시간 · 마감이 60일 이상이면 과도할 수 있습니다.
+              </p>
             </div>
             <div className="flex flex-wrap gap-4">
               <label className="flex cursor-pointer items-center gap-2 text-sm">
