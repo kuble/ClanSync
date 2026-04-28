@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
@@ -8,6 +10,11 @@ import {
   saveNameplateSelectionAction,
   type NameplateCategory,
 } from "@/app/actions/profile-decorations";
+import {
+  CLANSYNC_BADGE_PICKS_CHANGED,
+  CLANSYNC_NAMEPLATE_CHANGED,
+  PROFILE_DECOR_TAB_STORAGE_KEY,
+} from "@/lib/profile-decoration-sync";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -95,6 +102,49 @@ export function ProfileGameDecorations({
   unlockedBadgeIds,
   picks,
 }: Props) {
+  const router = useRouter();
+  const defaultSlug = games[0]?.slug ?? "";
+  const [tabSlug, setTabSlug] = useState(defaultSlug);
+
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(PROFILE_DECOR_TAB_STORAGE_KEY);
+      if (saved && games.some((g) => g.slug === saved)) {
+        setTabSlug(saved);
+      }
+    } catch {
+      /* 세션 접근 불가 시 무시 */
+    }
+    // 초기 렌더의 games만 사용(마운트 1회 세션 탭 복원)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    function onDecorationSync() {
+      router.refresh();
+    }
+    window.addEventListener(CLANSYNC_BADGE_PICKS_CHANGED, onDecorationSync);
+    window.addEventListener(CLANSYNC_NAMEPLATE_CHANGED, onDecorationSync);
+    return () => {
+      window.removeEventListener(CLANSYNC_BADGE_PICKS_CHANGED, onDecorationSync);
+      window.removeEventListener(CLANSYNC_NAMEPLATE_CHANGED, onDecorationSync);
+    };
+  }, [router]);
+
+  function handleTabChange(next: string | number | null) {
+    const slug = typeof next === "string" ? next : String(next ?? "");
+    if (!slug) return;
+    setTabSlug(slug);
+    try {
+      sessionStorage.setItem(PROFILE_DECOR_TAB_STORAGE_KEY, slug);
+    } catch {
+      /* noop */
+    }
+  }
+
+  const effectiveSlug =
+    games.some((g) => g.slug === tabSlug) ? tabSlug : defaultSlug;
+
   const owned = useMemo(() => new Set(ownedOptionIds), [ownedOptionIds]);
   const unlocked = useMemo(
     () => new Set(unlockedBadgeIds),
@@ -129,15 +179,13 @@ export function ProfileGameDecorations({
         </h2>
         <p className="text-muted-foreground mt-2 text-sm">
           게임 계정을 연동하면 게임별 꾸미기를 설정할 수 있습니다.{" "}
-          <a href="/games" className="text-primary underline underline-offset-4">
+          <Link href="/games" className="text-primary underline underline-offset-4">
             게임 선택
-          </a>
+          </Link>
         </p>
       </section>
     );
   }
-
-  const defaultTab = games[0]!.slug;
 
   return (
     <section className="mt-10" aria-labelledby="deco-heading">
@@ -148,7 +196,11 @@ export function ProfileGameDecorations({
         D-PROFILE-01~04 · 연동된 게임별로 저장됩니다.
       </p>
 
-      <Tabs defaultValue={defaultTab} className="mt-4 w-full max-w-xl">
+      <Tabs
+        value={effectiveSlug}
+        onValueChange={handleTabChange}
+        className="mt-4 w-full max-w-xl"
+      >
         <TabsList
           variant="line"
           className="w-full flex-wrap justify-start gap-1"
@@ -162,6 +214,7 @@ export function ProfileGameDecorations({
         {games.map((g) => (
           <TabsContent key={g.slug} value={g.slug} className="mt-4">
             <GameDecorationPanel
+              key={`${g.slug}:${(picksByGame.get(g.gameId) ?? []).join("|")}`}
               game={g}
               nameplateOptions={nameplateOptions}
               owned={owned}
@@ -196,11 +249,6 @@ function GameDecorationPanel({
 }) {
   const [pending, start] = useTransition();
   const [pickState, setPickState] = useState<string[]>(initialPicks);
-
-  const pickSyncKey = initialPicks.join("|");
-  useEffect(() => {
-    setPickState(initialPicks);
-  }, [pickSyncKey, initialPicks]);
 
   const previewSelection = useMemo(() => {
     const out: Partial<Record<NameplateCategory, string>> = {
@@ -249,7 +297,7 @@ function GameDecorationPanel({
       toast.success("네임플레이트가 저장되었습니다.");
       if (typeof window !== "undefined") {
         window.dispatchEvent(
-          new CustomEvent("clansync:nameplate:changed", {
+          new CustomEvent(CLANSYNC_NAMEPLATE_CHANGED, {
             detail: { game: game.slug },
           }),
         );
@@ -283,7 +331,7 @@ function GameDecorationPanel({
       toast.success("뱃지 스트립을 저장했습니다.");
       if (typeof window !== "undefined") {
         window.dispatchEvent(
-          new CustomEvent("clansync:badge:picks:changed", {
+          new CustomEvent(CLANSYNC_BADGE_PICKS_CHANGED, {
             detail: { game: game.slug },
           }),
         );
