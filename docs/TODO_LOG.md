@@ -5,6 +5,13 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-28 — Phase 2 M6b 잔여(1) 반복 일정
+
+- [x] **DB** — `0027_clan_events_repeat.sql` (`clan_event_repeat` · `repeat` / `repeat_weekdays` / `repeat_time`).
+- [x] **앱** — `expand-clan-event-occurrences` (월 펼침·`repeatSummaryKo`) · `clan-events` 액션·폼 · `events/page` select 매핑 · 주간 요일 체크박스는 주간 모드에서만 마운트.
+- [x] **검증** — `npm run build`.
+- **다음**: RSVP·투표·대진표 영속화·`purchases` 무효화 등 M6b 잔여.
+
 ### 2026-04-28 — Phase 2 M5 프로필 꾸미기 탭 동기화
 
 - [x] **앱** — `ProfileGameDecorations`: `clansync:badge:picks:changed` · `clansync:nameplate:changed` 시 `router.refresh()` · 활성 게임 탭 `sessionStorage` 유지 · 상수 `src/lib/profile-decoration-sync.ts`.
