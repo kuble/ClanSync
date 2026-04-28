@@ -1,7 +1,10 @@
 import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
 import { ClanEventNotifyForm } from "@/components/main-clan/clan-event-notify-form";
 import { ClanEventsView } from "@/components/main-clan/clan-events-view";
-import type { SerializedClanEvent } from "@/lib/clan/expand-clan-event-occurrences";
+import {
+  clanEventRsvpKey,
+  type SerializedClanEvent,
+} from "@/lib/clan/expand-clan-event-occurrences";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { createServiceRoleClient } from "@/lib/supabase/service";
@@ -69,6 +72,20 @@ export default async function ClanEventsPage({
     repeat_time: (r.repeat_time as string | null) ?? null,
   }));
 
+  const eventIds = events.map((e) => e.id);
+  let myRsvpGoingKeys: string[] = [];
+  if (user && eventIds.length > 0) {
+    const { data: rsvpRows } = await svc
+      .from("event_rsvps")
+      .select("event_id, instance_idx")
+      .eq("user_id", user.id)
+      .eq("status", "going")
+      .in("event_id", eventIds);
+    myRsvpGoingKeys = (rsvpRows ?? []).map((r) =>
+      clanEventRsvpKey(r.event_id as string, Number(r.instance_idx)),
+    );
+  }
+
   return (
     <div className="space-y-8">
       <div>
@@ -96,6 +113,8 @@ export default async function ClanEventsPage({
         events={events}
         canManageEvents={canManage}
         planIsPremium={ctx?.plan === "premium"}
+        viewerUserId={user?.id ?? null}
+        myRsvpGoingKeys={myRsvpGoingKeys}
       />
     </div>
   );

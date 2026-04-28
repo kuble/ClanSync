@@ -6,6 +6,10 @@ import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/database.types";
+import {
+  isOccurrenceValidForTemplate,
+  type ClanEventRecord,
+} from "@/lib/clan/expand-clan-event-occurrences";
 
 export type CreateClanEventResult =
   | { ok: true }
@@ -67,6 +71,30 @@ function parseRepeatRule(
     repeat: "monthly",
     repeat_weekdays: null,
     repeat_time: pgTime,
+  };
+}
+
+function clanEventRowToRecord(row: {
+  id: string;
+  title: string;
+  kind: Database["public"]["Enums"]["clan_event_kind"];
+  start_at: string;
+  place: string | null;
+  source: Database["public"]["Enums"]["clan_event_source"];
+  repeat: Database["public"]["Enums"]["clan_event_repeat"] | null;
+  repeat_weekdays: number[] | null;
+  repeat_time: string | null;
+}): ClanEventRecord {
+  return {
+    id: row.id,
+    title: row.title,
+    kind: row.kind as ClanEventRecord["kind"],
+    start_at: row.start_at,
+    place: row.place,
+    source: row.source as ClanEventRecord["source"],
+    repeat: (row.repeat ?? "none") as ClanEventRecord["repeat"],
+    repeat_weekdays: row.repeat_weekdays,
+    repeat_time: row.repeat_time,
   };
 }
 
@@ -369,4 +397,210 @@ export async function cancelClanEventAction(
 
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);
   return { ok: true };
+}
+
+export async function toggleClanEventRsvpAction(
+  gameSlug: string,
+  clanId: string,
+  formData: FormData,
+): Promise<CreateClanEventResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const { data: memRows } = await supabase.rpc("select_my_clan_membership", {
+    p_clan_id: clanId,
+  });
+  const mem = memRows?.[0];
+  if (!mem || mem.status !== "active") {
+    return { ok: false, error: "클랜 구성원만 참가할 수 있습니다." };
+  }
+
+  const eventId = String(formData.get("event_id") ?? "").trim();
+  const rawIdx = String(formData.get("instance_idx") ?? "").trim();
+  const instanceIdx = Number(rawIdx);
+  if (!eventId || !Number.isFinite(instanceIdx)) {
+    return { ok: false, error: "요청이 올바르지 않습니다." };
+  }
+
+  const svc = createServiceRoleClient();
+  const { data: clanRow } = await svc
+    .from("clans")
+    .select("id, games!inner(slug)")
+    .eq("id", clanId)
+    .maybeSingle();
+
+  const g = clanRow?.games as unknown as { slug: string } | undefined;
+  if (!clanRow || g?.slug !== gameSlug) {
+    return { ok: false, error: "클랜을 찾을 수 없습니다." };
+  }
+
+  const { data: row, error: selErr } = await svc
+    .from("clan_events")
+    .select(
+      "id, clan_id, title, kind, start_at, place, source, cancelled_at, repeat, repeat_weekdays, repeat_time",
+    )
+    .eq("id", eventId)
+    .maybeSingle();
+
+  if (selErr || !row || row.clan_id !== clanId) {
+    return { ok: false, error: "일정을 찾을 수 없습니다." };
+  }
+  if (row.cancelled_at != null) {
+    return { ok: false, error: "취소된 일정입니다." };
+  }
+  if (row.kind !== "scrim") {
+    return { ok: false, error: "참가 응답은 스크림 일정만 가능합니다." };
+  }
+
+  const template = clanEventRowToRecord(row);
+  if (!isOccurrenceValidForTemplate(template, instanceIdx)) {
+    return { ok: false, error: "선택한 일정 회차가 올바르지 않습니다." };
+  }
+
+  const { data: existing } = await svc
+    .from("event_rsvps")
+    .select("status")
+    .eq("event_id", eventId)
+    .eq("instance_idx", instanceIdx)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (existing?.status === "going") {
+    const { error } = await svc
+      .from("event_rsvps")
+      .delete()
+      .eq("event_id", eventId)
+      .eq("instance_idx", instanceIdx)
+      .eq("user_id", user.id);
+    if (error) return { ok: false, error: error.message };
+  } else {
+    const { error } = await svc.from("event_rsvps").upsert(
+      {
+        event_id: eventId,
+        instance_idx: instanceIdx,
+        user_id: user.id,
+        status: "going",
+        responded_at: new Date().toISOString(),
+      },
+      { onConflict: "event_id,instance_idx,user_id" },
+    );
+    if (error) return { ok: false, error: error.message };
+  }
+
+  revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);
+  return { ok: true };
+}
+
+export async function listClanEventRsvpAttendeesAction(
+  gameSlug: string,
+  clanId: string,
+  eventId: string,
+  instanceIdx: number,
+): Promise<
+  | { ok: true; attendees: { userId: string; nickname: string }[] }
+  | { ok: false; error: string }
+> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const allowed = await hasClanPermission(
+    supabase,
+    user.id,
+    clanId,
+    "manage_clan_events",
+  );
+  if (!allowed) return { ok: false, error: "참가 명단은 운영진만 볼 수 있습니다." };
+
+  if (!Number.isFinite(instanceIdx)) {
+    return { ok: false, error: "요청이 올바르지 않습니다." };
+  }
+
+  const svc = createServiceRoleClient();
+  const { data: clanRow } = await svc
+    .from("clans")
+    .select("id, games!inner(slug)")
+    .eq("id", clanId)
+    .maybeSingle();
+
+  const cg = clanRow?.games as unknown as { slug: string } | undefined;
+  if (!clanRow || cg?.slug !== gameSlug) {
+    return { ok: false, error: "클랜을 찾을 수 없습니다." };
+  }
+
+  const { data: ev } = await svc
+    .from("clan_events")
+    .select("id, clan_id, kind")
+    .eq("id", eventId)
+    .maybeSingle();
+
+  if (!ev || ev.clan_id !== clanId || ev.kind !== "scrim") {
+    return { ok: false, error: "일정을 찾을 수 없습니다." };
+  }
+
+  const { data: templateRow } = await svc
+    .from("clan_events")
+    .select(
+      "id, title, kind, start_at, place, source, repeat, repeat_weekdays, repeat_time",
+    )
+    .eq("id", eventId)
+    .maybeSingle();
+
+  if (!templateRow) return { ok: false, error: "일정을 찾을 수 없습니다." };
+
+  const template = clanEventRowToRecord(templateRow);
+  if (!isOccurrenceValidForTemplate(template, instanceIdx)) {
+    return { ok: false, error: "선택한 일정 회차가 올바르지 않습니다." };
+  }
+
+  const { data: clanGame } = await svc
+    .from("clans")
+    .select("game_id")
+    .eq("id", clanId)
+    .maybeSingle();
+
+  const gameId = clanGame?.game_id as string | undefined;
+  if (!gameId) return { ok: false, error: "게임 정보를 찾을 수 없습니다." };
+
+  const { data: rsvpRows } = await svc
+    .from("event_rsvps")
+    .select("user_id")
+    .eq("event_id", eventId)
+    .eq("instance_idx", instanceIdx)
+    .eq("status", "going");
+
+  const ids = [...new Set((rsvpRows ?? []).map((r) => r.user_id as string))];
+  if (ids.length === 0) return { ok: true, attendees: [] };
+
+  const { data: profiles } = await svc
+    .from("user_game_profiles")
+    .select("user_id, nickname")
+    .eq("game_id", gameId)
+    .in("user_id", ids);
+
+  const { data: users } = await svc
+    .from("users")
+    .select("id, nickname")
+    .in("id", ids);
+
+  const profileNick = new Map(
+    (profiles ?? []).map((p) => [p.user_id as string, p.nickname as string]),
+  );
+  const userNick = new Map(
+    (users ?? []).map((u) => [u.id as string, u.nickname as string]),
+  );
+
+  const attendees = ids.map((uid) => ({
+    userId: uid,
+    nickname: profileNick.get(uid) ?? userNick.get(uid) ?? "알 수 없음",
+  }));
+
+  attendees.sort((a, b) => a.nickname.localeCompare(b.nickname, "ko"));
+
+  return { ok: true, attendees };
 }

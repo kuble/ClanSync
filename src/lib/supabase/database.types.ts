@@ -816,6 +816,45 @@ export type Database = {
           },
         ]
       }
+      event_rsvps: {
+        Row: {
+          event_id: string
+          instance_idx: number
+          responded_at: string
+          status: Database["public"]["Enums"]["event_rsvp_status"]
+          user_id: string
+        }
+        Insert: {
+          event_id: string
+          instance_idx?: number
+          responded_at?: string
+          status?: Database["public"]["Enums"]["event_rsvp_status"]
+          user_id: string
+        }
+        Update: {
+          event_id?: string
+          instance_idx?: number
+          responded_at?: string
+          status?: Database["public"]["Enums"]["event_rsvp_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "clan_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_rsvps_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       games: {
         Row: {
           created_at: string
@@ -1653,6 +1692,7 @@ export type Database = {
       clan_style: "social" | "casual" | "tryhard" | "pro"
       clan_subscription_tier: "free" | "premium"
       coin_pool_type: "clan" | "personal"
+      event_rsvp_status: "going" | "maybe" | "not_going"
       lfg_application_status:
         | "applied"
         | "accepted"
@@ -1823,6 +1863,7 @@ export const Constants = {
       clan_style: ["social", "casual", "tryhard", "pro"],
       clan_subscription_tier: ["free", "premium"],
       coin_pool_type: ["clan", "personal"],
+      event_rsvp_status: ["going", "maybe", "not_going"],
       lfg_application_status: [
         "applied",
         "accepted",

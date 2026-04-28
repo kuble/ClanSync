@@ -24,6 +24,8 @@ export type SerializedClanEvent = ClanEventRecord;
 
 export type ClanEventOccurrenceVm = {
   key: string;
+  /** RSVP·회차 구분 — 해당 일정 시작 시각의 Unix 밀리초 */
+  instanceIdx: number;
   template: ClanEventRecord;
   /** 해당 칸에 표시할 시작 시각 */
   displayAt: Date;
@@ -72,8 +74,10 @@ export function expandClanEventsForMonth(
       if (anchor.getFullYear() !== year || anchor.getMonth() !== monthIndex) {
         continue;
       }
+      const instanceIdx = anchor.getTime();
       out.push({
-        key: `${t.id}:${anchor.getTime()}`,
+        key: `${t.id}:${instanceIdx}`,
+        instanceIdx,
         template: t,
         displayAt: anchor,
       });
@@ -91,8 +95,10 @@ export function expandClanEventsForMonth(
         if (!wds.includes(iso)) continue;
         const occ = combineLocalDateAndPgTime(dt, rt);
         if (occ.getTime() < anchor.getTime()) continue;
+        const instanceIdx = occ.getTime();
         out.push({
-          key: `${t.id}:${occ.getTime()}`,
+          key: `${t.id}:${instanceIdx}`,
+          instanceIdx,
           template: t,
           displayAt: occ,
         });
@@ -108,8 +114,10 @@ export function expandClanEventsForMonth(
       if (cand.getMonth() !== monthIndex) continue;
       const occ = combineLocalDateAndPgTime(cand, rt);
       if (occ.getTime() < anchor.getTime()) continue;
+      const instanceIdx = occ.getTime();
       out.push({
-        key: `${t.id}:${occ.getTime()}`,
+        key: `${t.id}:${instanceIdx}`,
+        instanceIdx,
         template: t,
         displayAt: occ,
       });
@@ -118,6 +126,22 @@ export function expandClanEventsForMonth(
 
   out.sort((a, b) => a.displayAt.getTime() - b.displayAt.getTime());
   return out;
+}
+
+/** RSVP 리스트 키 `${eventId}:${instanceIdx}` 와 동일 규칙 */
+export function clanEventRsvpKey(eventId: string, instanceIdx: number): string {
+  return `${eventId}:${instanceIdx}`;
+}
+
+/** 서버 액션에서 회차 유효성 검증 */
+export function isOccurrenceValidForTemplate(
+  t: ClanEventRecord,
+  instanceIdxMs: number,
+): boolean {
+  const d = new Date(instanceIdxMs);
+  if (Number.isNaN(d.getTime())) return false;
+  const expanded = expandClanEventsForMonth([t], d.getFullYear(), d.getMonth());
+  return expanded.some((o) => o.instanceIdx === instanceIdxMs);
 }
 
 export function dateKeyLocalFromDate(d: Date): string {

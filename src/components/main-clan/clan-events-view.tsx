@@ -3,10 +3,12 @@
 import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
   cancelClanEventAction,
+  listClanEventRsvpAttendeesAction,
+  toggleClanEventRsvpAction,
   updateClanEventAction,
 } from "@/app/actions/clan-events";
 import { CreateClanEventForm } from "@/components/main-clan/create-clan-event-form";
@@ -34,6 +36,7 @@ import type {
   SerializedClanEvent,
 } from "@/lib/clan/expand-clan-event-occurrences";
 import {
+  clanEventRsvpKey,
   dateKeyLocalFromDate,
   expandClanEventsForMonth,
   repeatSummaryKo,
@@ -104,12 +107,16 @@ export function ClanEventsView({
   events,
   canManageEvents,
   planIsPremium,
+  viewerUserId,
+  myRsvpGoingKeys,
 }: {
   gameSlug: string;
   clanId: string;
   events: SerializedClanEvent[];
   canManageEvents: boolean;
   planIsPremium: boolean;
+  viewerUserId: string | null;
+  myRsvpGoingKeys: readonly string[];
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -120,9 +127,44 @@ export function ClanEventsView({
   );
 
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [activeEvent, setActiveEvent] = useState<SerializedClanEvent | null>(
-    null,
+  const [activeOccurrence, setActiveOccurrence] =
+    useState<ClanEventOccurrenceVm | null>(null);
+
+  const [rsvpAttendees, setRsvpAttendees] = useState<
+    { userId: string; nickname: string }[] | null
+  >(null);
+
+  const goingKeySet = useMemo(
+    () => new Set(myRsvpGoingKeys ?? []),
+    [myRsvpGoingKeys],
   );
+
+  useEffect(() => {
+    if (
+      !sheetOpen ||
+      !activeOccurrence ||
+      activeOccurrence.template.kind !== "scrim" ||
+      !canManageEvents
+    ) {
+      setRsvpAttendees(null);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const r = await listClanEventRsvpAttendeesAction(
+        gameSlug,
+        clanId,
+        activeOccurrence.template.id,
+        activeOccurrence.instanceIdx,
+      );
+      if (cancelled) return;
+      if (r.ok) setRsvpAttendees(r.attendees);
+      else setRsvpAttendees([]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [sheetOpen, activeOccurrence, canManageEvents, gameSlug, clanId]);
 
   const [editOpen, setEditOpen] = useState(false);
   const [editRepeat, setEditRepeat] = useState<SerializedClanEvent["repeat"]>(
@@ -181,9 +223,41 @@ export function ClanEventsView({
     }
   }
 
-  function openDetail(template: SerializedClanEvent) {
-    setActiveEvent(template);
+  function openDetail(occurrence: ClanEventOccurrenceVm) {
+    setActiveOccurrence(occurrence);
     setSheetOpen(true);
+  }
+
+  function onRsvpToggle() {
+    if (!activeOccurrence || activeOccurrence.template.kind !== "scrim") return;
+    if (!viewerUserId) {
+      toast.error("로그인이 필요합니다.");
+      return;
+    }
+    const k = clanEventRsvpKey(
+      activeOccurrence.template.id,
+      activeOccurrence.instanceIdx,
+    );
+    const going = goingKeySet.has(k);
+    const okJoin = confirm(
+      going
+        ? "이 스크림 참가를 취소하시겠습니까?"
+        : "이 스크림에 참가하시겠습니까? 참가 명단에 인게임 닉네임이 노출됩니다.",
+    );
+    if (!okJoin) return;
+
+    start(async () => {
+      const fd = new FormData();
+      fd.set("event_id", activeOccurrence.template.id);
+      fd.set("instance_idx", String(activeOccurrence.instanceIdx));
+      const r = await toggleClanEventRsvpAction(gameSlug, clanId, fd);
+      if (!r.ok) {
+        toast.error(r.error);
+        return;
+      }
+      toast.success(going ? "참가를 취소했습니다." : "참가했습니다.");
+      router.refresh();
+    });
   }
 
   function onEditSubmit(e: FormEvent<HTMLFormElement>) {
@@ -207,13 +281,13 @@ export function ClanEventsView({
       toast.success("일정을 수정했습니다.");
       setEditOpen(false);
       setSheetOpen(false);
-      setActiveEvent(null);
+      setActiveOccurrence(null);
       router.refresh();
     });
   }
 
   function onCancelEvent() {
-    if (!activeEvent) return;
+    if (!activeOccurrence) return;
     if (
       !confirm(
         "이 일정 템플릿 전체를 취소할까요? 반복 일정의 모든 표시가 사라집니다.",
@@ -225,7 +299,7 @@ export function ClanEventsView({
       const r = await cancelClanEventAction(
         gameSlug,
         clanId,
-        activeEvent.id,
+        activeOccurrence.template.id,
       );
       if (!r.ok) {
         toast.error(r.error);
@@ -233,7 +307,7 @@ export function ClanEventsView({
       }
       toast.success("일정을 취소했습니다.");
       setSheetOpen(false);
-      setActiveEvent(null);
+      setActiveOccurrence(null);
       router.refresh();
     });
   }
@@ -357,13 +431,23 @@ export function ClanEventsView({
                 <li key={o.key}>
                   <button
                     type="button"
-                    onClick={() => openDetail(o.template)}
+                    onClick={() => openDetail(o)}
                     className="bg-card hover:bg-muted/40 w-full rounded-lg border px-4 py-3 text-left text-sm shadow-sm transition-colors"
                   >
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
                       <span className="font-medium">{o.template.title}</span>
-                      <span className="text-muted-foreground text-xs">
-                        {kindLabel(o.template.kind)}
+                      <span className="flex flex-wrap items-center gap-2">
+                        {o.template.kind === "scrim" &&
+                        goingKeySet.has(
+                          clanEventRsvpKey(o.template.id, o.instanceIdx),
+                        ) ? (
+                          <span className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 rounded px-1.5 py-0.5 text-[10px] font-medium">
+                            참가 중
+                          </span>
+                        ) : null}
+                        <span className="text-muted-foreground text-xs">
+                          {kindLabel(o.template.kind)}
+                        </span>
                       </span>
                     </div>
                     <p className="text-muted-foreground mt-1 text-xs">
@@ -424,49 +508,172 @@ export function ClanEventsView({
         </p>
       </TabsContent>
 
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+      <Sheet
+        open={sheetOpen}
+        onOpenChange={(o) => {
+          setSheetOpen(o);
+          if (!o) setActiveOccurrence(null);
+        }}
+      >
         <SheetContent side="right" className="w-full max-w-[min(420px,92vw)]">
-          {activeEvent ? (
+          {activeOccurrence ? (
             <>
               <SheetHeader>
                 <SheetTitle className="pr-8">
-                  {kindLabel(activeEvent.kind)} · {activeEvent.title}
+                  {kindLabel(activeOccurrence.template.kind)} ·{" "}
+                  {activeOccurrence.template.title}
                 </SheetTitle>
                 <SheetDescription>
-                  기준 시작:{" "}
-                  {new Date(activeEvent.start_at).toLocaleString("ko-KR", {
+                  이 회차 시작:{" "}
+                  {activeOccurrence.displayAt.toLocaleString("ko-KR", {
                     dateStyle: "medium",
                     timeStyle: "short",
                   })}
+                  {activeOccurrence.template.repeat !== "none" ? (
+                    <span className="text-muted-foreground block text-xs">
+                      템플릿 기준일:{" "}
+                      {new Date(activeOccurrence.template.start_at).toLocaleString(
+                        "ko-KR",
+                        { dateStyle: "medium", timeStyle: "short" },
+                      )}
+                    </span>
+                  ) : null}
                 </SheetDescription>
               </SheetHeader>
               <dl className="grid gap-2 px-4 text-sm">
                 <div className="grid grid-cols-[6rem_1fr] gap-2">
                   <dt className="text-muted-foreground">반복</dt>
-                  <dd>{repeatSummaryKo(activeEvent)}</dd>
+                  <dd>{repeatSummaryKo(activeOccurrence.template)}</dd>
                 </div>
                 <div className="grid grid-cols-[6rem_1fr] gap-2">
                   <dt className="text-muted-foreground">장소·메모</dt>
-                  <dd>{activeEvent.place?.trim() || "—"}</dd>
+                  <dd>{activeOccurrence.template.place?.trim() || "—"}</dd>
                 </div>
                 <div className="grid grid-cols-[6rem_1fr] gap-2">
                   <dt className="text-muted-foreground">출처</dt>
                   <dd>
-                    {activeEvent.source === "manual"
+                    {activeOccurrence.template.source === "manual"
                       ? "수동 등록"
                       : "스크림 자동 등록 (D-EVENTS-01)"}
                   </dd>
                 </div>
               </dl>
+
+              {activeOccurrence.template.kind === "scrim" && viewerUserId ? (
+                <div className="space-y-3 border-t px-4 pt-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-muted-foreground text-xs font-medium">
+                      참가 (스크림 전용)
+                    </span>
+                    <span
+                      className={cn(
+                        "rounded px-2 py-0.5 text-xs font-medium",
+                        goingKeySet.has(
+                          clanEventRsvpKey(
+                            activeOccurrence.template.id,
+                            activeOccurrence.instanceIdx,
+                          ),
+                        )
+                          ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                          : "bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {goingKeySet.has(
+                        clanEventRsvpKey(
+                          activeOccurrence.template.id,
+                          activeOccurrence.instanceIdx,
+                        ),
+                      )
+                        ? "참가 중"
+                        : "미참가"}
+                    </span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant={
+                      goingKeySet.has(
+                        clanEventRsvpKey(
+                          activeOccurrence.template.id,
+                          activeOccurrence.instanceIdx,
+                        ),
+                      )
+                        ? "secondary"
+                        : "default"
+                    }
+                    className="w-full"
+                    disabled={pending}
+                    onClick={onRsvpToggle}
+                  >
+                    {goingKeySet.has(
+                      clanEventRsvpKey(
+                        activeOccurrence.template.id,
+                        activeOccurrence.instanceIdx,
+                      ),
+                    )
+                      ? "참가 취소"
+                      : "참가"}
+                  </Button>
+                </div>
+              ) : null}
+
+              {canManageEvents &&
+              activeOccurrence.template.kind === "scrim" &&
+              rsvpAttendees ? (
+                <div className="space-y-2 border-t px-4 pt-4">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <span className="text-muted-foreground text-xs font-medium">
+                      참가 명단 (운영진 전용)
+                    </span>
+                    <span className="text-muted-foreground tabular-nums text-xs">
+                      {rsvpAttendees.length}명
+                    </span>
+                  </div>
+                  {rsvpAttendees.length === 0 ? (
+                    <p className="text-muted-foreground text-xs">
+                      아직 참가한 사람이 없습니다.
+                    </p>
+                  ) : (
+                    <ul className="max-h-[220px] space-y-1 overflow-y-auto text-sm">
+                      {rsvpAttendees.map((a) => (
+                        <li key={a.userId} className="flex justify-between gap-2">
+                          <span>{a.nickname}</span>
+                          {viewerUserId && a.userId === viewerUserId ? (
+                            <span className="text-muted-foreground text-xs">
+                              나
+                            </span>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ) : null}
+
+              {canManageEvents &&
+              activeOccurrence.template.source === "scrim_auto" ? (
+                <div className="px-4 pt-2">
+                  <Link
+                    href={`/games/${gameSlug}`}
+                    className={cn(
+                      buttonVariants({ variant: "outline", size: "sm" }),
+                      "w-full sm:w-auto",
+                    )}
+                  >
+                    스크림 홈으로 (상세 연결 예정)
+                  </Link>
+                </div>
+              ) : null}
+
               <SheetFooter className="flex-col gap-2 sm:flex-col">
-                {canManageEvents && activeEvent.source === "manual" ? (
+                {canManageEvents &&
+                activeOccurrence.template.source === "manual" ? (
                   <div className="flex w-full flex-wrap gap-2">
                     <Button
                       type="button"
                       variant="secondary"
                       className="flex-1"
                       onClick={() => {
-                        setEditRepeat(activeEvent.repeat ?? "none");
+                        setEditRepeat(activeOccurrence.template.repeat ?? "none");
                         setEditOpen(true);
                         setSheetOpen(false);
                       }}
@@ -483,7 +690,7 @@ export function ClanEventsView({
                       일정 취소
                     </Button>
                   </div>
-                ) : activeEvent.source !== "manual" ? (
+                ) : activeOccurrence.template.source !== "manual" ? (
                   <p className="text-muted-foreground text-xs">
                     스크림 등 자동 생성 일정은 읽기 전용입니다.
                   </p>
@@ -502,16 +709,20 @@ export function ClanEventsView({
         open={editOpen}
         onOpenChange={(o) => {
           setEditOpen(o);
-          if (!o) setActiveEvent(null);
+          if (!o) setActiveOccurrence(null);
         }}
       >
-        {activeEvent ? (
+        {activeOccurrence ? (
           <DialogContent showCloseButton>
             <DialogHeader>
               <DialogTitle>일정 편집</DialogTitle>
             </DialogHeader>
             <form onSubmit={onEditSubmit} className="space-y-4">
-              <input type="hidden" name="event_id" value={activeEvent.id} />
+              <input
+                type="hidden"
+                name="event_id"
+                value={activeOccurrence.template.id}
+              />
               <div className="space-y-2">
                 <Label htmlFor="edit-title">제목</Label>
                 <Input
@@ -519,7 +730,7 @@ export function ClanEventsView({
                   name="title"
                   required
                   maxLength={120}
-                  defaultValue={activeEvent.title}
+                  defaultValue={activeOccurrence.template.title}
                 />
               </div>
               <div className="space-y-2">
@@ -529,7 +740,9 @@ export function ClanEventsView({
                   name="kind"
                   className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm"
                   defaultValue={
-                    activeEvent.kind === "scrim" ? "event" : activeEvent.kind
+                    activeOccurrence.template.kind === "scrim"
+                      ? "event"
+                      : activeOccurrence.template.kind
                   }
                 >
                   <option value="intra">내전</option>
@@ -568,7 +781,7 @@ export function ClanEventsView({
                           type="checkbox"
                           name="repeat_weekday"
                           value={String(iso)}
-                          defaultChecked={activeEvent.repeat_weekdays?.includes(
+                          defaultChecked={activeOccurrence.template.repeat_weekdays?.includes(
                             iso,
                           )}
                         />
@@ -585,7 +798,7 @@ export function ClanEventsView({
                   name="start_at_local"
                   type="datetime-local"
                   required
-                  defaultValue={isoToDatetimeLocal(activeEvent.start_at)}
+                  defaultValue={isoToDatetimeLocal(activeOccurrence.template.start_at)}
                 />
               </div>
               <div className="space-y-2">
@@ -594,7 +807,7 @@ export function ClanEventsView({
                   id="edit-place"
                   name="place"
                   maxLength={500}
-                  defaultValue={activeEvent.place ?? ""}
+                  defaultValue={activeOccurrence.template.place ?? ""}
                 />
               </div>
               <DialogFooter className="gap-2 sm:gap-2">
