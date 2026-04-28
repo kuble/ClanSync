@@ -11,6 +11,7 @@ import {
   toggleClanEventRsvpAction,
   updateClanEventAction,
 } from "@/app/actions/clan-events";
+import { ClanEventsBracketTab } from "@/components/main-clan/clan-events-bracket-tab";
 import { ClanEventsPollsTab } from "@/components/main-clan/clan-events-polls-tab";
 import { CreateClanEventForm } from "@/components/main-clan/create-clan-event-form";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -42,6 +43,7 @@ import {
   expandClanEventsForMonth,
   repeatSummaryKo,
 } from "@/lib/clan/expand-clan-event-occurrences";
+import type { SerializedBracketTournament } from "@/lib/clan/load-bracket-tournaments";
 import type { SerializedClanPoll } from "@/lib/clan/load-clan-polls";
 import { cn } from "@/lib/utils";
 
@@ -112,6 +114,7 @@ export function ClanEventsView({
   viewerUserId,
   myRsvpGoingKeys,
   polls,
+  bracketTournaments,
 }: {
   gameSlug: string;
   clanId: string;
@@ -121,6 +124,7 @@ export function ClanEventsView({
   viewerUserId: string | null;
   myRsvpGoingKeys: readonly string[];
   polls: SerializedClanPoll[];
+  bracketTournaments: SerializedBracketTournament[];
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -316,8 +320,6 @@ export function ClanEventsView({
     });
   }
 
-  const manageUrl = `/games/${gameSlug}/clan/${clanId}/manage#subscription`;
-
   return (
     <Tabs defaultValue="calendar" className="gap-6">
       <TabsList variant="line" className="w-full min-w-0 flex-wrap justify-start">
@@ -475,34 +477,13 @@ export function ClanEventsView({
       </TabsContent>
 
       <TabsContent value="bracket" className="space-y-4">
-        {!planIsPremium ? (
-          <div className="rounded-xl border border-dashed p-8 text-center">
-            <p className="text-foreground text-sm font-medium">
-              대진표 생성기는 Premium 플랜 전용입니다.
-            </p>
-            <p className="text-muted-foreground mt-2 text-sm">
-              클랜 플랜을 업그레이드하면 4단계 마법사로 토너먼트를 구성할 수
-              있습니다 (D-EVENTS-05 · 클랜 내 이벤트 전용).
-            </p>
-            <Link
-              href={manageUrl}
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "mt-4 inline-flex",
-              )}
-            >
-              플랜·구독 보기
-            </Link>
-          </div>
-        ) : (
-          <div className="rounded-xl border border-dashed p-8 text-center">
-            <p className="text-muted-foreground text-sm">
-              Premium에서 대진표 세부 생성·코인 연동은 이후 작업에서
-              연결됩니다. 운영진은 추후 마법사로 팀 구성·시드·결과 입력을
-              진행합니다.
-            </p>
-          </div>
-        )}
+        <ClanEventsBracketTab
+          gameSlug={gameSlug}
+          clanId={clanId}
+          tournaments={bracketTournaments}
+          canManageEvents={canManageEvents}
+          planIsPremium={planIsPremium}
+        />
       </TabsContent>
 
       <TabsContent value="polls" className="space-y-4">

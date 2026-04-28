@@ -375,6 +375,99 @@ export type Database = {
           },
         ]
       }
+      bracket_tournaments: {
+        Row: {
+          cancelled_at: string | null
+          created_at: string
+          created_by: string
+          entry_coin_transaction_id: string | null
+          finished_at: string | null
+          format: Database["public"]["Enums"]["bracket_format"]
+          host_clan_id: string
+          host_coin_transaction_id: string | null
+          id: string
+          snapshot: Json
+          started_at: string | null
+          status: Database["public"]["Enums"]["bracket_status"]
+          team_count: number
+          title: string
+          updated_at: string
+          winner_coin_transaction_id: string | null
+        }
+        Insert: {
+          cancelled_at?: string | null
+          created_at?: string
+          created_by: string
+          entry_coin_transaction_id?: string | null
+          finished_at?: string | null
+          format?: Database["public"]["Enums"]["bracket_format"]
+          host_clan_id: string
+          host_coin_transaction_id?: string | null
+          id?: string
+          snapshot?: Json
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["bracket_status"]
+          team_count: number
+          title: string
+          updated_at?: string
+          winner_coin_transaction_id?: string | null
+        }
+        Update: {
+          cancelled_at?: string | null
+          created_at?: string
+          created_by?: string
+          entry_coin_transaction_id?: string | null
+          finished_at?: string | null
+          format?: Database["public"]["Enums"]["bracket_format"]
+          host_clan_id?: string
+          host_coin_transaction_id?: string | null
+          id?: string
+          snapshot?: Json
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["bracket_status"]
+          team_count?: number
+          title?: string
+          updated_at?: string
+          winner_coin_transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bracket_tournaments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bracket_tournaments_entry_coin_transaction_id_fkey"
+            columns: ["entry_coin_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "coin_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bracket_tournaments_host_clan_id_fkey"
+            columns: ["host_clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bracket_tournaments_host_coin_transaction_id_fkey"
+            columns: ["host_coin_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "coin_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bracket_tournaments_winner_coin_transaction_id_fkey"
+            columns: ["winner_coin_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "coin_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_daily_member_activity: {
         Row: {
           activity_date: string
@@ -1810,6 +1903,8 @@ export type Database = {
       balance_match_outcome: "pending" | "team1" | "team2" | "void"
       balance_session_phase: "editing" | "map_ban" | "hero_ban" | "match_live"
       board_post_type: "promotion" | "scrim"
+      bracket_format: "single_elim" | "double_elim" | "round_robin"
+      bracket_status: "draft" | "in_progress" | "finished" | "cancelled"
       clan_event_kind: "intra" | "scrim" | "event"
       clan_event_repeat: "none" | "weekly" | "monthly"
       clan_event_source: "manual" | "scrim_auto"
@@ -1987,6 +2082,8 @@ export const Constants = {
       balance_match_outcome: ["pending", "team1", "team2", "void"],
       balance_session_phase: ["editing", "map_ban", "hero_ban", "match_live"],
       board_post_type: ["promotion", "scrim"],
+      bracket_format: ["single_elim", "double_elim", "round_robin"],
+      bracket_status: ["draft", "in_progress", "finished", "cancelled"],
       clan_event_kind: ["intra", "scrim", "event"],
       clan_event_repeat: ["none", "weekly", "monthly"],
       clan_event_source: ["manual", "scrim_auto"],

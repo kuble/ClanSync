@@ -5,6 +5,7 @@ import {
   clanEventRsvpKey,
   type SerializedClanEvent,
 } from "@/lib/clan/expand-clan-event-occurrences";
+import { loadSerializedBracketTournaments } from "@/lib/clan/load-bracket-tournaments";
 import { loadSerializedClanPolls } from "@/lib/clan/load-clan-polls";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
@@ -88,6 +89,7 @@ export default async function ClanEventsPage({
   }
 
   const polls = await loadSerializedClanPolls(clanId, user?.id ?? null);
+  const bracketTournaments = await loadSerializedBracketTournaments(clanId);
 
   return (
     <div className="space-y-8">
@@ -119,6 +121,7 @@ export default async function ClanEventsPage({
         viewerUserId={user?.id ?? null}
         myRsvpGoingKeys={myRsvpGoingKeys}
         polls={polls}
+        bracketTournaments={bracketTournaments}
       />
     </div>
   );
