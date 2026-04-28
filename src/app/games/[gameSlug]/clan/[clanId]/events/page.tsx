@@ -5,6 +5,7 @@ import {
   clanEventRsvpKey,
   type SerializedClanEvent,
 } from "@/lib/clan/expand-clan-event-occurrences";
+import { loadSerializedClanPolls } from "@/lib/clan/load-clan-polls";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { createServiceRoleClient } from "@/lib/supabase/service";
@@ -86,6 +87,8 @@ export default async function ClanEventsPage({
     );
   }
 
+  const polls = await loadSerializedClanPolls(clanId, user?.id ?? null);
+
   return (
     <div className="space-y-8">
       <div>
@@ -115,6 +118,7 @@ export default async function ClanEventsPage({
         planIsPremium={ctx?.plan === "premium"}
         viewerUserId={user?.id ?? null}
         myRsvpGoingKeys={myRsvpGoingKeys}
+        polls={polls}
       />
     </div>
   );

@@ -11,6 +11,7 @@ import {
   toggleClanEventRsvpAction,
   updateClanEventAction,
 } from "@/app/actions/clan-events";
+import { ClanEventsPollsTab } from "@/components/main-clan/clan-events-polls-tab";
 import { CreateClanEventForm } from "@/components/main-clan/create-clan-event-form";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -41,6 +42,7 @@ import {
   expandClanEventsForMonth,
   repeatSummaryKo,
 } from "@/lib/clan/expand-clan-event-occurrences";
+import type { SerializedClanPoll } from "@/lib/clan/load-clan-polls";
 import { cn } from "@/lib/utils";
 
 const WD_EDIT_LABEL = ["월", "화", "수", "목", "금", "토", "일"];
@@ -109,6 +111,7 @@ export function ClanEventsView({
   planIsPremium,
   viewerUserId,
   myRsvpGoingKeys,
+  polls,
 }: {
   gameSlug: string;
   clanId: string;
@@ -117,6 +120,7 @@ export function ClanEventsView({
   planIsPremium: boolean;
   viewerUserId: string | null;
   myRsvpGoingKeys: readonly string[];
+  polls: SerializedClanPoll[];
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -502,10 +506,13 @@ export function ClanEventsView({
       </TabsContent>
 
       <TabsContent value="polls" className="space-y-4">
-        <p className="text-muted-foreground rounded-lg border border-dashed p-8 text-center text-sm">
-          현재 진행 중인 투표가 없습니다. 투표 생성·알림 스케줄은 Phase 2
-          후속에서 clan_polls · notification_log 와 연결합니다.
-        </p>
+        <ClanEventsPollsTab
+          gameSlug={gameSlug}
+          clanId={clanId}
+          polls={polls}
+          canManagePolls={canManageEvents}
+          viewerUserId={viewerUserId}
+        />
       </TabsContent>
 
       <Sheet

@@ -608,6 +608,66 @@ export type Database = {
           },
         ]
       }
+      clan_polls: {
+        Row: {
+          anonymous: boolean
+          clan_id: string
+          closed_at: string | null
+          created_at: string
+          created_by: string
+          deadline_at: string
+          id: string
+          multiple_choice: boolean
+          notify_hour: number
+          notify_repeat: Database["public"]["Enums"]["poll_notify_repeat"]
+          post_to_notice: boolean
+          title: string
+        }
+        Insert: {
+          anonymous?: boolean
+          clan_id: string
+          closed_at?: string | null
+          created_at?: string
+          created_by: string
+          deadline_at: string
+          id?: string
+          multiple_choice?: boolean
+          notify_hour?: number
+          notify_repeat?: Database["public"]["Enums"]["poll_notify_repeat"]
+          post_to_notice?: boolean
+          title: string
+        }
+        Update: {
+          anonymous?: boolean
+          clan_id?: string
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string
+          deadline_at?: string
+          id?: string
+          multiple_choice?: boolean
+          notify_hour?: number
+          notify_repeat?: Database["public"]["Enums"]["poll_notify_repeat"]
+          post_to_notice?: boolean
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_polls_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_polls_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_settings: {
         Row: {
           clan_id: string
@@ -1188,6 +1248,78 @@ export type Database = {
           },
         ]
       }
+      poll_options: {
+        Row: {
+          id: string
+          label: string
+          poll_id: string
+          sort_order: number
+        }
+        Insert: {
+          id?: string
+          label: string
+          poll_id: string
+          sort_order: number
+        }
+        Update: {
+          id?: string
+          label?: string
+          poll_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_options_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "clan_polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      poll_votes: {
+        Row: {
+          option_id: string
+          poll_id: string
+          user_id: string
+          voted_at: string
+        }
+        Insert: {
+          option_id: string
+          poll_id: string
+          user_id: string
+          voted_at?: string
+        }
+        Update: {
+          option_id?: string
+          poll_id?: string
+          user_id?: string
+          voted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_votes_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "poll_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_votes_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "clan_polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       purchases: {
         Row: {
           approved_by: string | null
@@ -1702,6 +1834,12 @@ export type Database = {
       lfg_post_status: "open" | "filled" | "expired" | "canceled"
       nameplate_category: "emblem" | "namebar" | "sub" | "frame"
       nameplate_unlock_source: "default" | "event" | "store" | "achievement"
+      poll_notify_repeat:
+        | "none"
+        | "once"
+        | "daily"
+        | "weekly"
+        | "until_deadline_daily"
       store_item_type: "clan_deco" | "profile_deco"
       user_gender: "male" | "female" | "undisclosed"
       user_language: "ko" | "en" | "ja"
@@ -1874,6 +2012,13 @@ export const Constants = {
       lfg_post_status: ["open", "filled", "expired", "canceled"],
       nameplate_category: ["emblem", "namebar", "sub", "frame"],
       nameplate_unlock_source: ["default", "event", "store", "achievement"],
+      poll_notify_repeat: [
+        "none",
+        "once",
+        "daily",
+        "weekly",
+        "until_deadline_daily",
+      ],
       store_item_type: ["clan_deco", "profile_deco"],
       user_gender: ["male", "female", "undisclosed"],
       user_language: ["ko", "en", "ja"],
