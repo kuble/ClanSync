@@ -5,6 +5,13 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-04-28 — Phase 2 M6b 잔여(5) 투표 알림 notification_log (D-EVENTS-04)
+
+- [x] **DB** — `0031_notification_log_poll_mvp.sql` (`notification_slot_kind` · `notification_channel` · `notification_status` · `notification_log` · 종료 트리거 · 마감 후 일괄 취소 RPC).
+- [x] **앱** — `poll-notify-validation` · `poll-notification-schedule` · `createClanPollAction` 예약 INSERT · `/events` 로드 시 `maint_cancel_*` · 투표 만들기 폼 알림 옵션.
+- [x] **검증** — `npm run db:sync` · `npm run build`.
+- **다음**: `scheduled`→`sent` 발송 워커 · Discord/Kakao · in-app 피드(D-NOTIF-01) · `purchases` 무효화 등.
+
 ### 2026-04-28 — Phase 2 M6b 잔여(4) 대진표 초안 영속화
 
 - [x] **DB** — `0030_bracket_tournaments_mvp.sql` (`bracket_format` · `bracket_status` · Premium 호스트 검증 트리거 · RLS).
