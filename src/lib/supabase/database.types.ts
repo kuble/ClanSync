@@ -1417,6 +1417,57 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          clan_id: string | null
+          created_at: string
+          id: string
+          kind: string
+          payload: Json
+          read_at: string | null
+          recipient_user_id: string
+          source_id: string
+          source_table: string
+        }
+        Insert: {
+          clan_id?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          payload?: Json
+          read_at?: string | null
+          recipient_user_id: string
+          source_id: string
+          source_table: string
+        }
+        Update: {
+          clan_id?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          payload?: Json
+          read_at?: string | null
+          recipient_user_id?: string
+          source_id?: string
+          source_table?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_recipient_user_id_fkey"
+            columns: ["recipient_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       poll_options: {
         Row: {
           id: string
@@ -1918,6 +1969,10 @@ export type Database = {
           nickname: string
           user_id: string
         }[]
+      }
+      dispatch_inapp_notification_batch: {
+        Args: { p_limit?: number }
+        Returns: number
       }
       is_active_clan_member: { Args: { p_clan_id: string }; Returns: boolean }
       is_clan_officer_plus: { Args: { p_clan_id: string }; Returns: boolean }
