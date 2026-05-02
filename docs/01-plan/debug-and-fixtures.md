@@ -108,7 +108,7 @@ DB 마이그레이션(`*.sql`)과 **분리된** 시드 레이어에 둔다. 마�
 
 ## 5. QA · (향후 E2E)
 
-- Playwright 온보딩: `.env.local`에 `E2E_EMAIL`·`E2E_PASSWORD` — [`e2e/README.md`](../../e2e/README.md). 비밀번호는 픽스처 고정값(`qwer1234#`)과 동일.
+- Playwright: 계정·비번 기본값은 코드에서 `scripts/fixtures/qa-fixtures.mjs`를 읽음(`e2e/qa-fixture-credentials.ts`). `.env.local`의 `E2E_EMAIL`·`E2E_PASSWORD`는 온보딩용 **선택 오버라이드**(둘 다 있을 때만). 자세히는 [`e2e/README.md`](../../e2e/README.md).
 - GitHub Actions: staging URL + staging anon/service role secret로 `db:seed` 후 테스트 (Production 금지).
 
 ---

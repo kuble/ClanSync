@@ -5,6 +5,12 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-02 — Playwright 픽스처 계정 코드 주입
+
+- [x] **E2E** — `e2e/qa-fixture-credentials.ts`가 `qa-fixtures.mjs`를 import; `.env` 없이 전 시드 계정 로그인 가능. `E2E_EMAIL`·`E2E_PASSWORD`는 온보딩용 선택 오버라이드.
+- [x] **E2E** — `fixture-login.spec.ts`로 Member·Leader·Admin 로그인 스모크.
+- [x] **문서** — `e2e/README.md`, `debug-and-fixtures.md`, `check-e2e-env.mjs`.
+
 ### 2026-05-02 — QA 픽스처 네이밍·시드·Playwright 문서
 
 - [x] **시드** — `scripts/fixtures/qa-fixtures.mjs` 단일 출처: 이메일 `QA_[Role]_[nn]@clansync-qa.local`, 닉네임 동일, 비밀번호 `qwer1234#`, 클랜 `QA_01_Clan` + 리더 `QA_Leader_01`. `QA_SEED_PASSWORD` 의존 제거.

@@ -1,21 +1,17 @@
 import { test, expect } from "@playwright/test";
+import { credentialsForOnboarding } from "./qa-fixture-credentials";
 
 /**
- * Supabase에 존재하는 계정 + 오버워치 카드가 보이는 데이터가 필요함.
- * 기본: db:seed 후 QA_Member_01 + E2E_PASSWORD=qwer1234# (scripts/fixtures/qa-fixtures.mjs).
- * .env.local 등에만 설정: E2E_EMAIL, E2E_PASSWORD (커밋·채팅에 넣지 말 것)
+ * 계정: `credentialsForOnboarding()` → 기본 QA_Member_01 + 고정 비번(qa-fixtures.mjs).
+ * 선택: `E2E_EMAIL`·`E2E_PASSWORD` 둘 다 있으면 Member 자리만 덮어씀.
+ * 사전 조건: `npm run db:seed` 로 같은 규칙의 사용자가 Supabase에 있어야 함.
  */
-test.describe("온보딩 (E2E_EMAIL + E2E_PASSWORD)", () => {
+test.describe("온보딩 (QA 픽스처 Member)", () => {
   test("로그인 → 오버워치 → (필요 시) 게임 연동 시뮬 → 클랜 가입 보내기·토스트", async ({
     page,
   }, testInfo) => {
     test.setTimeout(90_000);
-    test.skip(
-      !process.env.E2E_EMAIL || !process.env.E2E_PASSWORD,
-      ".env.local 등에 E2E_EMAIL · E2E_PASSWORD 설정 후 실행 (e2e/README.md 참고).",
-    );
-    const email = process.env.E2E_EMAIL!.trim();
-    const password = process.env.E2E_PASSWORD!.trim();
+    const { email, password } = credentialsForOnboarding();
 
     await page.goto("/sign-in");
     await page.getByLabel("이메일").fill(email);
@@ -32,7 +28,7 @@ test.describe("온보딩 (E2E_EMAIL + E2E_PASSWORD)", () => {
       if (msg) {
         throw new Error(
           `[E2E] 로그인 실패: ${msg}\n` +
-            "→ E2E_EMAIL·E2E_PASSWORD가 맞는지, `.env.local`의 Supabase와 **같은 프로젝트**인지 확인하세요.",
+            "→ `npm run db:seed` 여부, qa-fixtures 이메일·비번, `.env.local`의 Supabase와 **같은 프로젝트**인지 확인하세요.",
         );
       }
       throw new Error(`[E2E] /games로 이동하지 않음 (현재: ${page.url()}).`);

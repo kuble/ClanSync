@@ -29,8 +29,8 @@ const skipWebServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER === "1";
  * 로컬: `npm run dev` 재사용(3000). 반영이 안 되면 dev 재시작.
  * CI: `npm run build` 후 `next start --port`(기본 3010).
  * 서버만 쓸 때: `PLAYWRIGHT_SKIP_WEBSERVER=1` + `PLAYWRIGHT_BASE_URL`.
- * 온보딩 스펙은 `E2E_EMAIL` + `E2E_PASSWORD` 필요 (.env.local — 커밋 금지).
- * 기본값은 `scripts/fixtures/qa-fixtures.mjs` · `e2e/README.md` 참고.
+ * QA 픽스처 로그인 기본값은 `e2e/qa-fixture-credentials.ts` → `scripts/fixtures/qa-fixtures.mjs`.
+ * 온보딩만 선택적으로 `E2E_EMAIL`·`E2E_PASSWORD`로 Member 계정 덮어쓰기 가능.
  */
 export default defineConfig({
   testDir: "./e2e",
