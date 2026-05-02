@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import {
   replacePendingJoinRequestAction,
@@ -42,7 +42,7 @@ export function ClanJoinList({
   const [selected, setSelected] = useState<ClanListRow | null>(null);
   const [message, setMessage] = useState("");
   const [blockName, setBlockName] = useState("");
-  const [pending, start] = useTransition();
+  const [busy, setBusy] = useState(false);
 
   function openApply(clan: ClanListRow) {
     setApplyingId((id) => (id === clan.id ? null : clan.id));
@@ -50,36 +50,40 @@ export function ClanJoinList({
     setMessage("");
   }
 
-  function runSubmit(replace: boolean) {
+  async function runSubmit(replace: boolean) {
     if (!selected) return;
-    start(async () => {
-      try {
-        const r = replace
-          ? await replacePendingJoinRequestAction(gameSlug, selected.id, message)
-          : await submitClanJoinRequestAction(gameSlug, selected.id, message);
-        if (r.ok) {
-          toast.success(
-            replace
-              ? "기존 신청을 취소하고 새로 신청했습니다."
-              : "가입 신청을 보냈습니다.",
-          );
-          setApplyingId(null);
-          setReplaceOpen(false);
-          // router.refresh 직후에는 토스트가 안 보이거나 순간 사라지는 경우가 있어 약간 늦춤
-          window.setTimeout(() => router.refresh(), 400);
-          return;
-        }
-        if (r.error.startsWith("PENDING_ELSEWHERE:")) {
-          setBlockName(r.error.slice("PENDING_ELSEWHERE:".length));
-          setReplaceOpen(true);
-          return;
-        }
-        toast.error(r.error);
-      } catch (e) {
-        console.error(e);
-        toast.error("처리 중 오류가 났습니다. 네트워크와 로그인 상태를 확인해 주세요.");
+    setBusy(true);
+    try {
+      const r = replace
+        ? await replacePendingJoinRequestAction(gameSlug, selected.id, message)
+        : await submitClanJoinRequestAction(gameSlug, selected.id, message);
+      if (r.ok) {
+        toast.success(
+          replace
+            ? "기존 신청을 취소하고 새로 신청했습니다."
+            : "가입 신청을 보냈습니다.",
+        );
+        setApplyingId(null);
+        setReplaceOpen(false);
+        /* useTransition 안의 async에서는 await 이후 업데이트가 누락되는 경우가 있어
+           여기선 일반 비동기 + 토스트를 잠깐 보이게 한 뒤 RSC 새로고침 */
+        window.setTimeout(() => router.refresh(), 1600);
+        return;
       }
-    });
+      if (r.error.startsWith("PENDING_ELSEWHERE:")) {
+        setBlockName(r.error.slice("PENDING_ELSEWHERE:".length));
+        setReplaceOpen(true);
+        return;
+      }
+      toast.error(r.error);
+    } catch (e) {
+      console.error(e);
+      toast.error(
+        "처리 중 오류가 났습니다. 네트워크와 로그인 상태를 확인해 주세요.",
+      );
+    } finally {
+      setBusy(false);
+    }
   }
 
   if (clans.length === 0) {
@@ -150,8 +154,8 @@ export function ClanJoinList({
                         type="button"
                         data-testid={`clan-join-send-${c.id}`}
                         className={cn(buttonVariants({ size: "sm" }))}
-                        disabled={pending}
-                        onClick={() => runSubmit(false)}
+                        disabled={busy}
+                        onClick={() => void runSubmit(false)}
                       >
                         보내기
                       </button>
@@ -159,7 +163,7 @@ export function ClanJoinList({
                         type="button"
                         size="sm"
                         variant="outline"
-                        disabled={pending}
+                        disabled={busy}
                         onClick={() => setApplyingId(null)}
                       >
                         취소
@@ -186,7 +190,11 @@ export function ClanJoinList({
             <Button type="button" variant="outline" onClick={() => setReplaceOpen(false)}>
               아니오
             </Button>
-            <Button type="button" disabled={pending} onClick={() => runSubmit(true)}>
+            <Button
+              type="button"
+              disabled={busy}
+              onClick={() => void runSubmit(true)}
+            >
               취소 후 새로 신청
             </Button>
           </DialogFooter>

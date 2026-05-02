@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import {
   approveClanJoinRequestAction,
@@ -29,53 +29,55 @@ export function ManageJoinRequestsPanel({
   rows: ManageJoinRequestRow[];
 }) {
   const router = useRouter();
-  const [pending, start] = useTransition();
+  const [busy, setBusy] = useState(false);
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
 
-  function approve(id: string) {
-    start(async () => {
-      try {
-        const r = await approveClanJoinRequestAction(gameSlug, clanId, id);
-        if (!r.ok) {
-          toast.error(r.error);
-          return;
-        }
-        toast.success("가입을 승인했습니다.");
-        window.setTimeout(() => router.refresh(), 400);
-      } catch (e) {
-        console.error(e);
-        toast.error(
-          "처리에 실패했습니다. 로컬이면 `.env.local`의 SUPABASE_SERVICE_ROLE_KEY 여부·네트워크를 확인해 주세요.",
-        );
+  async function approve(id: string) {
+    setBusy(true);
+    try {
+      const r = await approveClanJoinRequestAction(gameSlug, clanId, id);
+      if (!r.ok) {
+        toast.error(r.error);
+        return;
       }
-    });
+      toast.success("가입을 승인했습니다.");
+      window.setTimeout(() => router.refresh(), 1600);
+    } catch (e) {
+      console.error(e);
+      toast.error(
+        "처리에 실패했습니다. 로컬이면 `.env.local`의 SUPABASE_SERVICE_ROLE_KEY 여부·네트워크를 확인해 주세요.",
+      );
+    } finally {
+      setBusy(false);
+    }
   }
 
-  function submitReject(id: string) {
-    start(async () => {
-      try {
-        const r = await rejectClanJoinRequestAction(
-          gameSlug,
-          clanId,
-          id,
-          rejectReason,
-        );
-        if (!r.ok) {
-          toast.error(r.error);
-          return;
-        }
-        toast.success("신청을 거절했습니다.");
-        setRejectId(null);
-        setRejectReason("");
-        window.setTimeout(() => router.refresh(), 400);
-      } catch (e) {
-        console.error(e);
-        toast.error(
-          "처리에 실패했습니다. 로컬이면 `.env.local`의 SUPABASE_SERVICE_ROLE_KEY 여부·네트워크를 확인해 주세요.",
-        );
+  async function submitReject(id: string) {
+    setBusy(true);
+    try {
+      const r = await rejectClanJoinRequestAction(
+        gameSlug,
+        clanId,
+        id,
+        rejectReason,
+      );
+      if (!r.ok) {
+        toast.error(r.error);
+        return;
       }
-    });
+      toast.success("신청을 거절했습니다.");
+      setRejectId(null);
+      setRejectReason("");
+      window.setTimeout(() => router.refresh(), 1600);
+    } catch (e) {
+      console.error(e);
+      toast.error(
+        "처리에 실패했습니다. 로컬이면 `.env.local`의 SUPABASE_SERVICE_ROLE_KEY 여부·네트워크를 확인해 주세요.",
+      );
+    } finally {
+      setBusy(false);
+    }
   }
 
   if (rows.length === 0) {
@@ -118,8 +120,8 @@ export function ManageJoinRequestsPanel({
               <Button
                 type="button"
                 size="sm"
-                disabled={pending}
-                onClick={() => approve(row.id)}
+                disabled={busy}
+                onClick={() => void approve(row.id)}
               >
                 승인
               </Button>
@@ -127,7 +129,7 @@ export function ManageJoinRequestsPanel({
                 type="button"
                 size="sm"
                 variant="outline"
-                disabled={pending}
+                disabled={busy}
                 onClick={() =>
                   setRejectId((v) => (v === row.id ? null : row.id))
                 }
@@ -151,8 +153,8 @@ export function ManageJoinRequestsPanel({
                   type="button"
                   size="sm"
                   variant="destructive"
-                  disabled={pending}
-                  onClick={() => submitReject(row.id)}
+                  disabled={busy}
+                  onClick={() => void submitReject(row.id)}
                 >
                   거절 확정
                 </Button>
