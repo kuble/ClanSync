@@ -605,6 +605,7 @@ ClanMember ──< CoinTransaction
   - INSERT: **서비스 롤만**(서버 검증 후).
   - UPDATE/DELETE: **전면 차단** (`USING (false)`). D-ECON-02 불변성 근거.
 - 일일 상한(개인 200 / 클랜 2,000) 검증은 서비스 레이어에서 적립 시도 시점에 24h 롤링 합계로 판정. 초과분은 INSERT 하지 않고 조용히 드롭(별도 `coin_cap_drops` 로그 권장, Phase 2+).
+- **탈퇴(개발 단계, 마이그레이션 0034)**: `user_id` **ON DELETE CASCADE** — `public.users` 삭제 시 **개인 풀**(`pool_type='personal'`) 원장 행이 함께 삭제된다. **클랜 풀** 원장은 `user_id`가 NULL이라 유지. `correction_of` 참조는 **ON DELETE CASCADE**로 정정 행 처리 순서 문제를 피한다. 운영 단계에서 원장 보존 정책이 필요하면 FK를 재검토한다.
 
 ### user_attendance (일일 출석)
 > **D-STORE-01 / D-ECON-01** (DECIDED 2026-04-20) — 출석 적립의 멱등성·연속 보너스 관리. [decisions.md §D-STORE-01](./decisions.md#d-store-01--코인-적립차감-트리거-매트릭스).
@@ -1570,6 +1571,7 @@ DELETE FROM user_privacy_overrides
   - INSERT: **서비스 롤만**(서버가 잔액 검증·coin_transactions INSERT·에스크로 체크·2-man rule 검증을 한 트랜잭션으로 수행).
   - UPDATE: `voided_at`·`voided_by`·`void_reason` 세 컬럼만 서비스 롤이 1회 UPDATE 가능(정상→무효 전이). 무효→정상 복구 UPDATE 금지(정정의 정정은 새 트랜잭션으로).
   - DELETE: **전면 차단**.
+- **탈퇴(개발 단계, 마이그레이션 0034)**: `user_id`·`coin_transaction_id` **ON DELETE CASCADE** — 계정 삭제 시 해당 사용자의 구매 행과 연결된 원장 삭제 순서가 꼬이지 않도록 한다. 출시 전 감사·환불 정책에 맞게 조정할 수 있다.
 
 ---
 
