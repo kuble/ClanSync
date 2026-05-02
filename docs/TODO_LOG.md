@@ -5,6 +5,12 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-02 — Playwright E2E (`npm run test:e2e`)
+
+- [x] **설정** — `playwright.config.ts` · `e2e/smoke.spec.ts` · `e2e/onboarding.spec.ts` · `.env.local` 로드(`dotenv`) · `test:e2e` / `test:e2e:ui` · `.gitignore` 산출물.
+- [x] **검증** — `npm run test:e2e` · `npm run build`.
+- **참고** — 온보딩 스펙은 `E2E_EMAIL`·`E2E_PASSWORD` 없으면 skip. 로그인 스모크는 `CardTitle`이 heading이 아니어서 이메일 필드·버튼으로 검증.
+
 ### 2026-05-02 — Phase 2 D-NOTIF-01 MainClan 알림 벨·드로어
 
 - [x] **DB** — `0033_notifications_mark_read_rpcs.sql` (`mark_notification_reads` · `mark_notifications_read_all_for_clan`).
