@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ensurePublicUserProfile } from "@/lib/auth/ensure-public-user";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
-import { createServiceRoleClient } from "@/lib/supabase/service";
+import {
+  createServiceRoleClient,
+  tryCreateServiceRoleClient,
+} from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 
 const TIER_SET = new Set([
@@ -488,7 +491,10 @@ export async function approveClanJoinRequestAction(
   );
   if (!can) return { ok: false, error: "가입을 승인할 권한이 없습니다." };
 
-  const svc = createServiceRoleClient();
+  const svcWrap = tryCreateServiceRoleClient();
+  if (!svcWrap.ok) return svcWrap;
+  const svc = svcWrap.client;
+
   const { data: row } = await svc
     .from("clan_join_requests")
     .select("id, user_id, clan_id, status")
@@ -596,7 +602,10 @@ export async function rejectClanJoinRequestAction(
   if (!can) return { ok: false, error: "가입을 거절할 권한이 없습니다." };
 
   const reason = rejectReason.trim().slice(0, 500);
-  const svc = createServiceRoleClient();
+  const svcWrap = tryCreateServiceRoleClient();
+  if (!svcWrap.ok) return svcWrap;
+  const svc = svcWrap.client;
+
   const { data: row } = await svc
     .from("clan_join_requests")
     .select("id, clan_id, status")

@@ -8,7 +8,12 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme="dark"
-      className="toaster group"
+      position="top-center"
+      offset={72}
+      visibleToasts={5}
+      richColors
+      closeButton
+      className="toaster group z-[120]"
       icons={{
         success: (
           <CircleCheckIcon className="size-4" />
@@ -35,6 +40,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
         } as React.CSSProperties
       }
       toastOptions={{
+        duration: 4500,
         classNames: {
           toast: "cn-toast",
         },

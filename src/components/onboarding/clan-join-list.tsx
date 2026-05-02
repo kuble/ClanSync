@@ -21,6 +21,9 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
+const JOIN_TOAST_DURATION_MS = 4800;
+const JOIN_REFRESH_DELAY_MS = 2600;
+
 export type ClanListRow = {
   id: string;
   name: string;
@@ -53,33 +56,44 @@ export function ClanJoinList({
   async function runSubmit(replace: boolean) {
     if (!selected) return;
     setBusy(true);
+    const tid = toast.loading(
+      replace ? "신청을 옮기는 중…" : "가입 신청을 보내는 중…",
+    );
     try {
       const r = replace
         ? await replacePendingJoinRequestAction(gameSlug, selected.id, message)
         : await submitClanJoinRequestAction(gameSlug, selected.id, message);
+      toast.dismiss(tid);
       if (r.ok) {
         toast.success(
           replace
             ? "기존 신청을 취소하고 새로 신청했습니다."
             : "가입 신청을 보냈습니다.",
+          { duration: JOIN_TOAST_DURATION_MS },
         );
         setApplyingId(null);
         setReplaceOpen(false);
-        /* useTransition 안의 async에서는 await 이후 업데이트가 누락되는 경우가 있어
-           여기선 일반 비동기 + 토스트를 잠깐 보이게 한 뒤 RSC 새로고침 */
-        window.setTimeout(() => router.refresh(), 1600);
+        /* 토스트가 보인 뒤 RSC 새로고침 — 너무 빠른 refresh 가 시각 피드백을 삼킴 */
+        window.setTimeout(() => router.refresh(), JOIN_REFRESH_DELAY_MS);
         return;
       }
       if (r.error.startsWith("PENDING_ELSEWHERE:")) {
+        toast.message("다른 클랜에 신청 중입니다", {
+          description:
+            "아래 대화상자에서 기존 신청을 취소하고 새로 신청할 수 있습니다.",
+          duration: 5200,
+        });
         setBlockName(r.error.slice("PENDING_ELSEWHERE:".length));
         setReplaceOpen(true);
         return;
       }
-      toast.error(r.error);
+      toast.error(r.error, { duration: 6500 });
     } catch (e) {
+      toast.dismiss(tid);
       console.error(e);
       toast.error(
         "처리 중 오류가 났습니다. 네트워크와 로그인 상태를 확인해 주세요.",
+        { duration: 6500 },
       );
     } finally {
       setBusy(false);

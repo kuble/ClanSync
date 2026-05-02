@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+const MANAGE_TOAST_DURATION_MS = 4800;
+const MANAGE_REFRESH_DELAY_MS = 2600;
+
 export type ManageJoinRequestRow = {
   id: string;
   message: string;
@@ -35,18 +38,24 @@ export function ManageJoinRequestsPanel({
 
   async function approve(id: string) {
     setBusy(true);
+    const tid = toast.loading("가입 승인 처리 중…");
     try {
       const r = await approveClanJoinRequestAction(gameSlug, clanId, id);
+      toast.dismiss(tid);
       if (!r.ok) {
-        toast.error(r.error);
+        toast.error(r.error, { duration: 7000 });
         return;
       }
-      toast.success("가입을 승인했습니다.");
-      window.setTimeout(() => router.refresh(), 1600);
+      toast.success("가입을 승인했습니다.", {
+        duration: MANAGE_TOAST_DURATION_MS,
+      });
+      window.setTimeout(() => router.refresh(), MANAGE_REFRESH_DELAY_MS);
     } catch (e) {
+      toast.dismiss(tid);
       console.error(e);
       toast.error(
         "처리에 실패했습니다. 로컬이면 `.env.local`의 SUPABASE_SERVICE_ROLE_KEY 여부·네트워크를 확인해 주세요.",
+        { duration: 7000 },
       );
     } finally {
       setBusy(false);
@@ -55,6 +64,7 @@ export function ManageJoinRequestsPanel({
 
   async function submitReject(id: string) {
     setBusy(true);
+    const tid = toast.loading("거절 처리 중…");
     try {
       const r = await rejectClanJoinRequestAction(
         gameSlug,
@@ -62,18 +72,23 @@ export function ManageJoinRequestsPanel({
         id,
         rejectReason,
       );
+      toast.dismiss(tid);
       if (!r.ok) {
-        toast.error(r.error);
+        toast.error(r.error, { duration: 7000 });
         return;
       }
-      toast.success("신청을 거절했습니다.");
+      toast.success("신청을 거절했습니다.", {
+        duration: MANAGE_TOAST_DURATION_MS,
+      });
       setRejectId(null);
       setRejectReason("");
-      window.setTimeout(() => router.refresh(), 1600);
+      window.setTimeout(() => router.refresh(), MANAGE_REFRESH_DELAY_MS);
     } catch (e) {
+      toast.dismiss(tid);
       console.error(e);
       toast.error(
         "처리에 실패했습니다. 로컬이면 `.env.local`의 SUPABASE_SERVICE_ROLE_KEY 여부·네트워크를 확인해 주세요.",
+        { duration: 7000 },
       );
     } finally {
       setBusy(false);
@@ -121,6 +136,7 @@ export function ManageJoinRequestsPanel({
                 type="button"
                 size="sm"
                 disabled={busy}
+                data-testid={`manage-join-approve-${row.id}`}
                 onClick={() => void approve(row.id)}
               >
                 승인
