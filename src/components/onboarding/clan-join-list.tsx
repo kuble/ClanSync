@@ -9,6 +9,7 @@ import {
 } from "@/app/actions/game-clan-onboarding";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -18,6 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 export type ClanListRow = {
   id: string;
@@ -112,15 +114,20 @@ export function ClanJoinList({
                     정원 {c.max_members}
                   </span>
                 </div>
-                <Button
+                <button
                   type="button"
-                  size="sm"
-                  variant={applyingId === c.id ? "secondary" : "default"}
+                  data-testid={`clan-join-open-${c.id}`}
+                  className={cn(
+                    buttonVariants({
+                      variant: applyingId === c.id ? "secondary" : "default",
+                      size: "sm",
+                    }),
+                  )}
                   aria-expanded={applyingId === c.id}
                   onClick={() => openApply(c)}
                 >
                   {applyingId === c.id ? "신청 폼 닫기" : "가입 신청"}
-                </Button>
+                </button>
 
                 {applyingId === c.id ? (
                   <div className="border-border space-y-3 rounded-lg border bg-muted/30 p-3">
@@ -138,14 +145,15 @@ export function ClanJoinList({
                       maxLength={2000}
                     />
                     <div className="flex flex-wrap gap-2">
-                      <Button
+                      <button
                         type="button"
-                        size="sm"
+                        data-testid={`clan-join-send-${c.id}`}
+                        className={cn(buttonVariants({ size: "sm" }))}
                         disabled={pending}
                         onClick={() => runSubmit(false)}
                       >
                         보내기
-                      </Button>
+                      </button>
                       <Button
                         type="button"
                         size="sm"

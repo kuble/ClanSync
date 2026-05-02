@@ -63,9 +63,11 @@ test.describe("온보딩 (E2E_EMAIL + E2E_PASSWORD)", () => {
       timeout: 15_000,
     });
 
-    const applyBtn = page.getByRole("button", { name: "가입 신청" }).first();
-    const count = await applyBtn.count();
-    if (count === 0) {
+    // dev(Strict Mode)에서 리스트 마운트 직후 클릭하면 상태가 리셋될 수 있음
+    await page.waitForTimeout(800);
+
+    const openCount = await page.locator('[data-testid^="clan-join-open-"]').count();
+    if (openCount === 0) {
       testInfo.attach("note", {
         body: "표시할 클랜 카드가 없어 가입 패널 검증을 건너뜁니다.",
         contentType: "text/plain",
@@ -73,9 +75,12 @@ test.describe("온보딩 (E2E_EMAIL + E2E_PASSWORD)", () => {
       return;
     }
 
-    await applyBtn.click();
-    await expect(page.getByRole("button", { name: "보내기" })).toBeVisible({
-      timeout: 10_000,
+    const openBtn = page.locator('[data-testid^="clan-join-open-"]').first();
+    await expect(openBtn).toBeVisible({ timeout: 10_000 });
+    await openBtn.scrollIntoViewIfNeeded();
+    await openBtn.click();
+    await expect(page.locator('[data-testid^="clan-join-send-"]')).toBeVisible({
+      timeout: 15_000,
     });
   });
 });

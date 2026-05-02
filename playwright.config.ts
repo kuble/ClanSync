@@ -1,9 +1,21 @@
-import { config as loadEnv } from "dotenv";
 import { resolve } from "node:path";
 import { defineConfig, devices } from "@playwright/test";
+import { parseEnvFile } from "./scripts/parse-env-file.mjs";
 
-loadEnv({ path: resolve(process.cwd(), ".env") });
-loadEnv({ path: resolve(process.cwd(), ".env.local"), override: true });
+function applyPlaywrightEnvFiles(cwd: string = process.cwd()): void {
+  const envPath = resolve(cwd, ".env");
+  const localPath = resolve(cwd, ".env.local");
+  const fromEnv = parseEnvFile(envPath) as Record<string, string>;
+  const fromLocal = parseEnvFile(localPath) as Record<string, string>;
+  for (const [k, v] of Object.entries(fromEnv)) {
+    if (process.env[k] === undefined) process.env[k] = v;
+  }
+  for (const [k, v] of Object.entries(fromLocal)) {
+    process.env[k] = v;
+  }
+}
+
+applyPlaywrightEnvFiles();
 
 /**
  * 로컬: `npm run dev`가 이미 떠 있으면 재사용(reuseExistingServer).
