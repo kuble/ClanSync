@@ -5,6 +5,13 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-02 — 가입 토스트·승인/거절 피드백
+
+- [x] **UI** — `router.refresh` 직후 토스트가 씹히는 경우 완화(짧은 지연). `Toaster`를 `theme="dark"` 고정(ThemeProvider 부재 시).
+- [x] **관리** — 승인/거절 서버 액션 예외 시 try/catch + 토스트. 로컬 `SUPABASE_SERVICE_ROLE_KEY` 안내.
+- [x] **권한** — `approve_join_requests`를 `LOCKED_OFFICER_PLUS`에 넣어 `clan_settings` JSON 오류 시에도 leader/officer 처리 가능.
+- [x] **문서** — `docs/QA_시나리오.md`, `06-ClanAuth.md`, `12-Clan-Manage.md`.
+
 ### 2026-05-02 — 온보딩 가입 제출 E2E·dev vs CI
 
 - [x] **E2E** — `보내기` 클릭 후 `가입 신청을 보냈습니다.` 또는 `이미 이 클랜에 신청 중입니다.` 토스트 검증. 같은 카드의 `clan-join-send-{id}`로 locator 고정, `openApply` 토글 남발 제거.

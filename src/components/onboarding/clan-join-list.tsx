@@ -65,7 +65,8 @@ export function ClanJoinList({
           );
           setApplyingId(null);
           setReplaceOpen(false);
-          router.refresh();
+          // router.refresh 직후에는 토스트가 안 보이거나 순간 사라지는 경우가 있어 약간 늦춤
+          window.setTimeout(() => router.refresh(), 400);
           return;
         }
         if (r.error.startsWith("PENDING_ELSEWHERE:")) {

@@ -36,7 +36,10 @@ export const LOCKED_LEADER_ONLY = new Set<ClanPermissionKey>([
   "bulk_kick_dormant",
 ]);
 
-/** 운영진+ 고정. */
-export const LOCKED_OFFICER_PLUS = new Set<ClanPermissionKey>(["confirm_scrim"]);
+/** 운영진+ 고정. JSON 오류로 리더가 가입 처리를 못 하는 일 방지. */
+export const LOCKED_OFFICER_PLUS = new Set<ClanPermissionKey>([
+  "confirm_scrim",
+  "approve_join_requests",
+]);
 
 export type ClanMemberRole = "leader" | "officer" | "member";
