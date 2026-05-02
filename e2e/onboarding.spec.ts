@@ -7,7 +7,7 @@ import { test, expect } from "@playwright/test";
 test.describe("온보딩 (E2E_EMAIL + E2E_PASSWORD)", () => {
   test("로그인 → 오버워치 → (필요 시) 게임 연동 시뮬 → 클랜 온보딩에 보내기 버튼", async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.skip(
       !process.env.E2E_EMAIL || !process.env.E2E_PASSWORD,
       ".env.local 등에 E2E_EMAIL · E2E_PASSWORD 설정 후 실행 (e2e/README.md 참고).",
