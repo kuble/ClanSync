@@ -30,6 +30,7 @@ const skipWebServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER === "1";
  * CI: `npm run build` 후 `next start --port`(기본 3010).
  * 서버만 쓸 때: `PLAYWRIGHT_SKIP_WEBSERVER=1` + `PLAYWRIGHT_BASE_URL`.
  * 온보딩 스펙은 `E2E_EMAIL` + `E2E_PASSWORD` 필요 (.env.local — 커밋 금지).
+ * 기본값은 `scripts/fixtures/qa-fixtures.mjs` · `e2e/README.md` 참고.
  */
 export default defineConfig({
   testDir: "./e2e",

@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 
 /**
  * Supabase에 존재하는 계정 + 오버워치 카드가 보이는 데이터가 필요함.
+ * 기본: db:seed 후 QA_Member_01 + E2E_PASSWORD=qwer1234# (scripts/fixtures/qa-fixtures.mjs).
  * .env.local 등에만 설정: E2E_EMAIL, E2E_PASSWORD (커밋·채팅에 넣지 말 것)
  */
 test.describe("온보딩 (E2E_EMAIL + E2E_PASSWORD)", () => {
