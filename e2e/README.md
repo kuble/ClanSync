@@ -20,6 +20,8 @@ E2E_PASSWORD=<QA_SEED_PASSWORD와 동일>
 
 또는 본인 QA 계정. 변수가 없으면 해당 스펙은 **skip**되고, `smoke.spec.ts`만 검증됩니다.
 
+**로그인 실패 알림이 뜨면**: `E2E_*`가 `.env.local`의 Supabase(`NEXT_PUBLIC_SUPABASE_URL` 등)와 **같은 프로젝트에 있는 계정**인지, 비밀번호·이메일 오타·앞뒤 공백을 확인하세요.
+
 자세한 시드: [debug-and-fixtures.md](../docs/01-plan/debug-and-fixtures.md)
 
 ## 다른 URL

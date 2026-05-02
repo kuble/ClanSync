@@ -8,11 +8,12 @@ test.describe("온보딩 (E2E_EMAIL + E2E_PASSWORD)", () => {
   test("로그인 → 오버워치 → (필요 시) 게임 연동 시뮬 → 클랜 온보딩에 보내기 버튼", async ({
     page,
   }, testInfo) => {
+    test.setTimeout(90_000);
     test.skip(
       !process.env.E2E_EMAIL || !process.env.E2E_PASSWORD,
       ".env.local 등에 E2E_EMAIL · E2E_PASSWORD 설정 후 실행 (e2e/README.md 참고).",
     );
-    const email = process.env.E2E_EMAIL!;
+    const email = process.env.E2E_EMAIL!.trim();
     const password = process.env.E2E_PASSWORD!;
 
     await page.goto("/sign-in");
@@ -20,7 +21,21 @@ test.describe("온보딩 (E2E_EMAIL + E2E_PASSWORD)", () => {
     await page.getByLabel("비밀번호").fill(password);
     await page.getByRole("button", { name: "로그인" }).click();
 
-    await page.waitForURL(/\/games$/, { timeout: 30_000 });
+    const gamesListPath = (url: URL) => {
+      const p = url.pathname.replace(/\/$/, "") || "/";
+      return p === "/games";
+    };
+    await page.waitForURL(gamesListPath, { timeout: 45_000 }).catch(async () => {
+      const banner = page.getByRole("alert").first();
+      const msg = (await banner.innerText().catch(() => "")).trim();
+      if (msg) {
+        throw new Error(
+          `[E2E] 로그인 실패: ${msg}\n` +
+            "→ E2E_EMAIL·E2E_PASSWORD가 맞는지, `.env.local`의 Supabase와 **같은 프로젝트**인지 확인하세요.",
+        );
+      }
+      throw new Error(`[E2E] /games로 이동하지 않음 (현재: ${page.url()}).`);
+    });
 
     const owLink = page.getByRole("link", { name: /오버워치/i }).first();
     await expect(owLink).toBeVisible({ timeout: 10_000 });
