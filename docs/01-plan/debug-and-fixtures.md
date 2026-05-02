@@ -35,29 +35,38 @@ DB 마이그레이션(`*.sql`)과 **분리된** 시드 레이어에 둔다. 마�
 | **A. Admin API 시드 스크립트** (권장) | `auth.users` 생성 + `public.users` upsert 한 트랜잭션에 가깝게 처리 | Node 스크립트 `scripts/seed-fixtures.mjs` 등, `SUPABASE_SERVICE_ROLE_KEY` 필요 |
 | **B. SQL만** | 단순 | `auth.users` 직접 INSERT는 Supabase 버전별 제약 → 보통 A가 안전 |
 
-**권장 계정 네이밍** (이메일 로컬파트 — 예시, 실제 도메인은 `@example.com` 또는 프로젝트 전용 QA 도메인):
+**픽스처 계정·클랜 네이밍** (단일 출처: `scripts/fixtures/qa-fixtures.mjs`, 시드: `npm run db:seed`)
 
-| 이메일 (예시) | 용도 | 클랜 A | 클랜 B | 비고 |
-|---------------|------|--------|--------|------|
-| `fixture-leader-a@…` | 클랜장 | leader | — | A 길드 소유·운영 |
-| `fixture-officer-a@…` | 운영진 | officer | — | 권한 토글·가입 처리 시연 |
-| `fixture-member-a@…` | 일반 멤버 | member | — | 멤버 전용 가드 |
-| `fixture-leader-b@…` | 클랜장 | — | leader | B 길드 — **양 클랜 스크림·채팅** 시연 |
-| `fixture-officer-b@…` | 운영진 | — | officer | |
-| `fixture-member-b@…` | 일반 멤버 | — | member | |
-| `fixture-solo@…` | 무소속 | — | — | 온보딩·게임만 인증 등 |
-| `fixture-admin@…` | 플랫폼 운영자 | — | — | `users.is_admin = true` (또는 별도 `platform_admins` 테이블). D-SHELL-02 디버그 쿼리 해석용 |
+| 규칙 | 형식 | 예시 |
+|------|------|------|
+| 이메일 로컬파트 | `QA_[Role]_[numbering]` | `QA_Member_01` |
+| 도메인 | `@clansync-qa.local` | `QA_Member_01@clansync-qa.local` |
+| 닉네임 | 이메일 로컬파트와 동일 | `QA_Member_01` |
+| 비밀번호 | 고정 | `qwer1234#` (코드 상수 `FIXTURE_PASSWORD`) |
+| 클랜 표시 이름 | `QA_[numbering]_Clan` | `QA_01_Clan` |
 
-비밀번호는 **로컬·staging 공통**으로 `.env`의 `QA_SEED_PASSWORD` 한 가지를 쓰고, Production 시드는 실행하지 않는다.
+**현재 시드에 포함되는 계정** (`db:seed` 기준):
+
+| 이메일 | 닉네임 | 클랜 소속 | 비고 |
+|--------|--------|-----------|------|
+| `QA_Member_01@clansync-qa.local` | QA_Member_01 | 무소속 | Playwright 온보딩 기본 (`E2E_EMAIL`) |
+| `QA_Leader_01@clansync-qa.local` | QA_Leader_01 | **QA_01_Clan** 리더 | 가입 신청·승인 시연용 |
+| `QA_Admin_01@clansync-qa.local` | QA_Admin_01 | 무소속 | 이름 규칙 상 Admin 슬롯(향후 플랫폼 관리자 필드 연동 시 활용) |
+
+**향후 확장** (문서 목표 — 아직 시드 미포함): 클랜 B, officer/member 추가 행, `fixture-*` 구 이름과 병행 시 마이그레이션 후 시드 목록만 확장하면 된다.
+
+비밀번호는 **로컬·staging QA 픽스처만** 위 고정값을 쓴다. Production 시드는 실행하지 않는다.
 
 ### 2.3 클랜 — 최소 2개 (A / B)
 
-| 필드 | 클랜 A (Alpha) | 클랜 B (Beta) |
-|------|----------------|---------------|
-| `name` | `픽스처 알파` | `픽스처 베타` |
-| `slug`/식별 | `fixture-clan-alpha` (표시용 메모) / `id`는 UUID | 동일 |
-| `game_id` | 위 OW 행과 FK | 동일 |
-| 멤버 | leader-a, officer-a, member-a | leader-b, officer-b, member-b |
+**현재 시드**: 오버워치에 `QA_01_Clan` 1개 + 리더 `QA_Leader_01` 활성 멤버십.
+
+| 필드 | 클랜 A (시드됨) | 클랜 B (문서 목표·미시드) |
+|------|----------------|---------------------------|
+| `name` | `QA_01_Clan` | `QA_02_Clan` 등 |
+| `slug`/식별 | `id`는 UUID | 동일 |
+| `game_id` | `overwatch` 행 FK | 동일 |
+| 멤버 | `QA_Leader_01` = leader | 향후 leader-b, officer-b, member-b 시드 |
 
 **양 클랜 시연** (스크림·채팅·알림): leader-a 와 leader-b 가 각각 “우리 클랜” 컨텍스트로 로그인해 동시에 확인. 멤버 계정으로 교차 접근 시 RLS 차단이 나와야 정상.
 
@@ -65,8 +74,9 @@ DB 마이그레이션(`*.sql`)과 **분리된** 시드 레이어에 둔다. 마�
 
 시드 시 다음 조합을 **명시적으로** 만들어 두면 6칸 매트릭스 디버깅이 빨라진다.
 
-- `fixture-solo`: 특정 `game_id`에 대해 `user_game_profiles` 없음, `clan_members` 없음  
-- `fixture-member-a`: `user_game_profiles.is_verified = true`, `clan_members` active  
+- `QA_Member_01`: 특정 `game_id`에 대해 `user_game_profiles` 없음, `clan_members` 없음(온보딩·가입 신청 E2E)  
+- `QA_Leader_01`: `QA_01_Clan` 리더 · `clan_members` active  
+- (문서 목표) `fixture-member-a` 류: `user_game_profiles.is_verified = true`, `clan_members` active  
 - (선택) `fixture-pending-a`: 가입 `pending` 상태 — `clan_join_requests`는 후속 마이그레이션 후 시드
 
 ---
@@ -76,7 +86,7 @@ DB 마이그레이션(`*.sql`)과 **분리된** 시드 레이어에 둔다. 마�
 | 산출물 | 경로 (제안) | 설명 |
 |--------|-------------|------|
 | 시드 스크립트 | `scripts/seed-fixtures.ts` 또는 `.mjs` | Service Role로 Auth 생성 + public 테이블 insert |
-| 시드 데이터 정의 | `scripts/fixtures/manifest.json` 또는 스크립트 내 상수 | 클랜명·이메일·역할을 한곳에서 수정 |
+| 시드 데이터 정의 | `scripts/fixtures/qa-fixtures.mjs` | 클랜명·이메일·역할을 한곳에서 수정 |
 | npm script | `package.json` — `db:seed` | `tsx scripts/seed-fixtures.ts` 등 |
 | 문서 | 본 파일 | 계정 목록·비밀번호 정책·실행 순서 |
 
@@ -92,13 +102,13 @@ DB 마이그레이션(`*.sql`)과 **분리된** 시드 레이어에 둔다. 마�
 | `NEXT_PUBLIC_DEBUG_QUERY=1` + admin + D-SHELL-02 디버그 키 | 선택(기본 off) | 보통 off | 로컬만 on 가능 |
 | **환경변수 `AUTH_DEV_BYPASS`** (가칭) — 고정 UUID로 세션 주입 | **빌드에서 제거 또는 무시** | 사용 안 함 | 선택: `next dev` 전용, 코드 분기 `process.env.NODE_ENV === 'development'` |
 
-**권장**: 첫 구현에서는 **AUTH_DEV_BYPASS를 도입하지 않고**, `fixture-*` 계정으로 실제 `signInWithPassword` 까지 자동화(Playwright)하거나 수동 로그인으로 검증한다. 우회가 필요해지면 **별도 DECIDED** 로 감사·플래그·허용 IP를 붙인다.
+**권장**: 첫 구현에서는 **AUTH_DEV_BYPASS를 도입하지 않고**, `QA_*` 픽스처 계정으로 실제 `signInWithPassword` 까지 자동화(Playwright)하거나 수동 로그인으로 검증한다. 우회가 필요해지면 **별도 DECIDED** 로 감사·플래그·허용 IP를 붙인다.
 
 ---
 
 ## 5. QA · (향후 E2E)
 
-- `.env.example` 의 `QA_SEED_PASSWORD` 는 시드 스크립트와 동기화한다. Playwright 등 E2E를 붙이면 그때 전용 계정·ENV를 별도 정의한다.
+- Playwright 온보딩: `.env.local`에 `E2E_EMAIL`·`E2E_PASSWORD` — [`e2e/README.md`](../../e2e/README.md). 비밀번호는 픽스처 고정값(`qwer1234#`)과 동일.
 - GitHub Actions: staging URL + staging anon/service role secret로 `db:seed` 후 테스트 (Production 금지).
 
 ---

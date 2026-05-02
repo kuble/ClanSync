@@ -17,9 +17,11 @@ Playwright는 **로컬**에서 `npm run dev`(기본 **http://127.0.0.1:3000**)�
 `e2e/onboarding.spec.ts`는 Supabase에 실제로 있는 계정이 필요합니다. **`.env.local`에만** 넣으세요(커밋 금지).
 
 ```env
-E2E_EMAIL=fixture-solo@clansync-qa.local
-E2E_PASSWORD=<QA_SEED_PASSWORD와 동일>
+E2E_EMAIL=QA_Member_01@clansync-qa.local
+E2E_PASSWORD=qwer1234#
 ```
+
+(`npm run db:seed` 로 위 계정이 Supabase에 있어야 함. 비밀번호·이메일 규칙은 `scripts/fixtures/qa-fixtures.mjs` 단일 출처.)
 
 또는 본인 QA 계정. 변수가 없으면 해당 스펙은 **skip**되고, `smoke.spec.ts`만 검증됩니다.
 

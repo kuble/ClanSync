@@ -884,7 +884,7 @@ function selectSingleChip(el, group) {
 
 **계층**
 
-- **로컬**: 시드 스크립트(`scripts/seed-fixtures.*`, Service Role) + `QA_SEED_PASSWORD` 등. 선택적 개발 전용 ENV는 `NODE_ENV === 'development'` 에서만 해석 가능.
+- **로컬**: 시드 스크립트(`scripts/seed-fixtures.mjs` + `scripts/fixtures/qa-fixtures.mjs`, Service Role). QA 픽스처 비밀번호는 코드 상수로 고정([debug-and-fixtures.md](./debug-and-fixtures.md)). 선택적 개발 전용 ENV는 `NODE_ENV === 'development'` 에서만 해석 가능.
 - **Preview**: **운영과 동일한 로그인 경로**를 기본으로 하고, DB는 **staging Supabase** 권장(운영 DB 오염 방지).
 - **Production**: 시드·인증 우회·디버그 쿼리 기본 허용 없음.
 

@@ -5,6 +5,11 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-02 — QA 픽스처 네이밍·시드·Playwright 문서
+
+- [x] **시드** — `scripts/fixtures/qa-fixtures.mjs` 단일 출처: 이메일 `QA_[Role]_[nn]@clansync-qa.local`, 닉네임 동일, 비밀번호 `qwer1234#`, 클랜 `QA_01_Clan` + 리더 `QA_Leader_01`. `QA_SEED_PASSWORD` 의존 제거.
+- [x] **문서** — `debug-and-fixtures.md`, `e2e/README.md`, `decisions.md` D-DEV-01, `TODO_Phase2.md`, `playwright.config.ts` 주석.
+
 ### 2026-05-02 — 가입 패널 async 처리·온보딩 E2E 보강
 
 - [x] **UI** — `clan-join-list`, `manage-join-requests-panel`: 서버 액션을 `useTransition(async)` 대신 `busy` 상태 + 일반 async로 처리(토스트·상태 업데이트 누락 방지). `router.refresh()` 약 1.6초 후로 조정해 토스트 가시 시간 확보.
