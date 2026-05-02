@@ -7,6 +7,7 @@ import {
   type DecorationGame,
   type NameplateOptionRow,
 } from "@/components/profile/profile-game-decorations";
+import { ProfileDeleteAccountButton } from "@/components/profile/profile-delete-account-button";
 import { ProfileJoinRequests } from "@/components/profile/profile-join-requests";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
@@ -40,7 +41,9 @@ export default async function ProfilePage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/sign-in?next=/profile");
 
-  const weekAgo = new Date(Date.now() - 7 * 86400000);
+  // 요청 시각 기준 7일 전 필터 (Async Server Component; 시계 기준값)
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
 
   const [
     { data: row },
@@ -251,7 +254,7 @@ export default async function ProfilePage() {
 
       <ProfileJoinRequests rows={joinRequests} />
 
-      <div className="mt-8 flex flex-wrap gap-3">
+      <div className="mt-8 flex flex-wrap items-center gap-3">
         <Link
           href="/games"
           className={cn(buttonVariants({ variant: "default", size: "sm" }))}
@@ -263,6 +266,7 @@ export default async function ProfilePage() {
             로그아웃
           </Button>
         </form>
+        <ProfileDeleteAccountButton />
       </div>
     </main>
   );
