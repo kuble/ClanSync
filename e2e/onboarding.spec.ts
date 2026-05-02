@@ -14,7 +14,7 @@ test.describe("온보딩 (E2E_EMAIL + E2E_PASSWORD)", () => {
       ".env.local 등에 E2E_EMAIL · E2E_PASSWORD 설정 후 실행 (e2e/README.md 참고).",
     );
     const email = process.env.E2E_EMAIL!.trim();
-    const password = process.env.E2E_PASSWORD!;
+    const password = process.env.E2E_PASSWORD!.trim();
 
     await page.goto("/sign-in");
     await page.getByLabel("이메일").fill(email);
