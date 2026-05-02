@@ -5,6 +5,11 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-02 — Sonner DOM 진단 안내·마커
+
+- [x] **문서** — 토스트 없을 때 `[data-sonner-toaster]` 가 없을 수 있음을 QA에 명시.
+- [x] **UI** — `#clansync-toaster-mount-marker` 로 포털 마운트 여부만 상시 표시.
+
 ### 2026-05-02 — Sonner body 포털
 
 - [x] **UI** — `Toaster`를 `document.body`로 포털 + TooltipProvider와 형제 배치(z-index 극대). 레이아웃 안 fixed 가림 현상 완화.

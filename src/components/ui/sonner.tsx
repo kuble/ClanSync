@@ -19,47 +19,54 @@ const Toaster = ({ ...props }: ToasterProps) => {
   if (!mounted) return null
 
   return createPortal(
-    <Sonner
-      theme="dark"
-      position="top-center"
-      offset={72}
-      visibleToasts={5}
-      richColors
-      closeButton
-      className="toaster group z-[2147483646]"
-      icons={{
-        success: (
-          <CircleCheckIcon className="size-4" />
-        ),
-        info: (
-          <InfoIcon className="size-4" />
-        ),
-        warning: (
-          <TriangleAlertIcon className="size-4" />
-        ),
-        error: (
-          <OctagonXIcon className="size-4" />
-        ),
-        loading: (
-          <Loader2Icon className="size-4 animate-spin" />
-        ),
-      }}
-      style={
-        {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-          "--border-radius": "var(--radius)",
-        } as React.CSSProperties
-      }
-      toastOptions={{
-        duration: 4500,
-        classNames: {
-          toast: "cn-toast",
-        },
-      }}
-      {...props}
-    />,
+    <>
+      {/*
+        Sonner는 활성 토스트가 없으면 [data-sonner-toaster] 노드를 만들지 않음.
+        QA·디버그용으로 포털 마운트 여부만 항상 DOM에 남긴다.
+      */}
+      <span id="clansync-toaster-mount-marker" hidden aria-hidden />
+      <Sonner
+        theme="dark"
+        position="top-center"
+        offset={72}
+        visibleToasts={5}
+        richColors
+        closeButton
+        className="toaster group z-[2147483646]"
+        icons={{
+          success: (
+            <CircleCheckIcon className="size-4" />
+          ),
+          info: (
+            <InfoIcon className="size-4" />
+          ),
+          warning: (
+            <TriangleAlertIcon className="size-4" />
+          ),
+          error: (
+            <OctagonXIcon className="size-4" />
+          ),
+          loading: (
+            <Loader2Icon className="size-4 animate-spin" />
+          ),
+        }}
+        style={
+          {
+            "--normal-bg": "var(--popover)",
+            "--normal-text": "var(--popover-foreground)",
+            "--normal-border": "var(--border)",
+            "--border-radius": "var(--radius)",
+          } as React.CSSProperties
+        }
+        toastOptions={{
+          duration: 4500,
+          classNames: {
+            toast: "cn-toast",
+          },
+        }}
+        {...props}
+      />
+    </>,
     document.body,
   )
 }

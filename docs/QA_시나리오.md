@@ -80,7 +80,7 @@
 - [ ] 신청 후 성공(또는 중복/실패) 토스트가 상단 중앙에서 명확히 보인다(약 2~3초 뒤 목록이 새로고침될 수 있음).
 - [ ] 승인 또는 거절 확정 후 성공 토스트가 보이거나, 실패 시 빨간 토스트로 이유가 보인다.
 
-**깨졌을 때**: 브라우저 개발자 도구 Elements에서 `body` 직계 자식 근처에 `[data-sonner-toaster]` 가 생겼는지 본다(없으면 서버 액션·JS 오류 가능). 없으면 **목업 HTML이 아니라** 이 저장소 Next 앱(`npm run dev` / 배포 URL)인지·콘솔 에러인지 확인한다.
+**깨졌을 때**: 페이지 로드 후 `document.body` 안에 **`#clansync-toaster-mount-marker`** 가 있는지 본다(없으면 Next 클라이언트 번들·hydration 문제 또는 다른 호스트의 앱). **보내기 클릭 직후**에만 `[data-sonner-toaster]` 가 생길 수 있다 — Sonner는 토스트가 없을 때 그 속성 노드를 만들지 않는다. 콘솔 에러·Network(Server Actions)·목업 HTML 여부도 확인한다.
 
 ## 2026-05-02 — Phase 2 M6b MainClan in-app 알림 벨
 
