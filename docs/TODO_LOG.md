@@ -5,6 +5,12 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-02 — 온보딩 가입 제출 E2E·dev vs CI
+
+- [x] **E2E** — `보내기` 클릭 후 `가입 신청을 보냈습니다.` 또는 `이미 이 클랜에 신청 중입니다.` 토스트 검증. 같은 카드의 `clan-join-send-{id}`로 locator 고정, `openApply` 토글 남발 제거.
+- [x] **문서** — `e2e/README.md`: 전체 검증은 `CI=true`(next start) 권장, `next dev` Strict Mode 플레이크 안내.
+- **검증** — `CI=true npx playwright test e2e/onboarding.spec.ts` 통과.
+
 ### 2026-05-02 — 워크플로: 구현 후 Playwright + /start 보강
 
 - [x] **규칙** — `agent-auto-tasks.mdc`·`project-context.mdc`·`qa-demo-handoff.mdc`·`AGENTS.md`에 E2E 검증 절차.

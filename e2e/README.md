@@ -23,6 +23,8 @@ E2E_PASSWORD=<QA_SEED_PASSWORD와 동일>
 
 또는 본인 QA 계정. 변수가 없으면 해당 스펙은 **skip**되고, `smoke.spec.ts`만 검증됩니다.
 
+**가입 신청 보내기·토스트까지** 포함한 전체 검증은 **`CI=true npm run test:e2e`**(또는 `npx playwright test e2e/onboarding.spec.ts`에 동일)로 실행하는 것을 권장합니다. `next dev`만 쓰면 React Strict Mode 때문에 패널이 안 열린 것처럼 보이며 E2E가 실패할 수 있습니다. CI 경로는 `next start`(프로덕션)로 뜹니다.
+
 **로그인 실패 알림이 뜨면**: `E2E_*`가 `.env.local`의 Supabase(`NEXT_PUBLIC_SUPABASE_URL` 등)와 **같은 프로젝트에 있는 계정**인지, 비밀번호·이메일 오타·앞뒤 공백을 확인하세요.
 
 **브라우저 수동 로그인은 되는데 E2E만 실패**할 때: npm `dotenv`는 `E2E_PASSWORD=ab#cd`처럼 **따옴표 없이 `#`가 있으면 `#` 앞만** 읽습니다. 이제 Playwright는 프로젝트 공통 파서(`scripts/parse-env-file.mjs`)를 쓰므로 `#`가 포함돼도 전체가 유지됩니다. 그래도 의심되면 `npm run test:e2e:env-check`로 **비밀번호 글자 수**가 수동 입력과 같은지 비교하세요.

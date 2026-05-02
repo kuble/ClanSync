@@ -5,7 +5,7 @@ import { test, expect } from "@playwright/test";
  * .env.local 등에만 설정: E2E_EMAIL, E2E_PASSWORD (커밋·채팅에 넣지 말 것)
  */
 test.describe("온보딩 (E2E_EMAIL + E2E_PASSWORD)", () => {
-  test("로그인 → 오버워치 → (필요 시) 게임 연동 시뮬 → 클랜 온보딩에 보내기 버튼", async ({
+  test("로그인 → 오버워치 → (필요 시) 게임 연동 시뮬 → 클랜 가입 보내기·토스트", async ({
     page,
   }, testInfo) => {
     test.setTimeout(90_000);
@@ -75,16 +75,33 @@ test.describe("온보딩 (E2E_EMAIL + E2E_PASSWORD)", () => {
       return;
     }
 
+    // openApply는 토글: 연속 클릭으로 패널이 다시 닫히지 않게 한 번만 연다.
     const openBtn = page.locator('[data-testid^="clan-join-open-"]').first();
-    const send = page.locator('[data-testid^="clan-join-send-"]').first();
     await expect(openBtn).toBeVisible({ timeout: 10_000 });
-    await openBtn.scrollIntoViewIfNeeded();
+    const openTestId = await openBtn.getAttribute("data-testid");
+    const clanId = openTestId?.replace(/^clan-join-open-/, "") ?? "";
+    const send = page.locator(`[data-testid="clan-join-send-${clanId}"]`);
 
-    for (let i = 0; i < 8; i++) {
-      if (await send.isVisible().catch(() => false)) break;
-      await openBtn.click();
-      await page.waitForTimeout(350);
+    await openBtn.scrollIntoViewIfNeeded();
+    await openBtn.click();
+    await expect(send).toBeVisible({ timeout: 15_000 });
+
+    // 보내기 → 서버 액션·토스트까지 (성공 또는 동일 클랜 중복 신청 응답)
+    const replaceDialog = page.getByRole("dialog", {
+      name: /진행 중인 신청이 있습니다/,
+    });
+    try {
+      await replaceDialog.waitFor({ state: "visible", timeout: 2000 });
+      await page.getByRole("button", { name: "취소 후 새로 신청" }).click();
+    } catch {
+      /* 다이얼로그 없음 */
     }
-    await expect(send).toBeVisible({ timeout: 10_000 });
+
+    await send.click();
+    await expect(
+      page
+        .getByText("가입 신청을 보냈습니다.")
+        .or(page.getByText("이미 이 클랜에 신청 중입니다.")),
+    ).toBeVisible({ timeout: 25_000 });
   });
 });
