@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { ensurePublicUserProfile } from "@/lib/auth/ensure-public-user";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import { createServiceRoleClient } from "@/lib/supabase/service";
@@ -86,6 +87,33 @@ export async function linkGameAccountDevAction(
   revalidatePath(`/games/${gameSlug}/auth`);
   revalidatePath(`/games/${gameSlug}/clan`);
   return { ok: true };
+}
+
+export type LinkGameDevFormState = { error: string | null };
+
+/**
+ * 게임 연동 시뮬레이터 제출용 — 성공 시 `redirect()`로 이동(클라이언트 location.assign 대비 미들웨어·세션 정합).
+ */
+export async function linkGameAccountDevSubmitAction(
+  _prev: LinkGameDevFormState,
+  formData: FormData,
+): Promise<LinkGameDevFormState> {
+  const gameSlug = String(formData.get("gameSlug") ?? "").trim();
+  const nextRaw = formData.get("nextPath");
+  const nextPath =
+    typeof nextRaw === "string" &&
+    nextRaw.startsWith("/") &&
+    !nextRaw.startsWith("//")
+      ? nextRaw
+      : undefined;
+
+  const r = await linkGameAccountDevAction(gameSlug);
+  if (!r.ok) return { error: r.error };
+
+  const target =
+    nextPath ??
+    `/games/${encodeURIComponent(gameSlug)}/clan`;
+  redirect(target);
 }
 
 export type CreateClanResult =
