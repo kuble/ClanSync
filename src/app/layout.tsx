@@ -30,10 +30,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} dark h-full`}
     >
       <body className="min-h-full flex flex-col antialiased">
-        <TooltipProvider>
-          {children}
-          <Toaster />
-        </TooltipProvider>
+        <TooltipProvider>{children}</TooltipProvider>
+        {/* Tooltip 트리와 분리 + 클라이언트에서 document.body 포털 (sonner.tsx) */}
+        <Toaster />
       </body>
     </html>
   );
