@@ -16,10 +16,16 @@ import type { Json } from "@/lib/supabase/database.types";
 
 export default async function ClanEventsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ gameSlug: string; clanId: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
   const { gameSlug, clanId } = await params;
+  const sp = await searchParams;
+  const tab = sp.tab;
+  const initialTab: "calendar" | "bracket" | "polls" =
+    tab === "polls" || tab === "bracket" || tab === "calendar" ? tab : "calendar";
   await cancelStalePollNotificationLogs();
 
   const supabase = await createClient();
@@ -125,6 +131,7 @@ export default async function ClanEventsPage({
         myRsvpGoingKeys={myRsvpGoingKeys}
         polls={polls}
         bracketTournaments={bracketTournaments}
+        initialTab={initialTab}
       />
     </div>
   );

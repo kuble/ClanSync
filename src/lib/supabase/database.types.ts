@@ -1991,6 +1991,11 @@ export type Database = {
         Args: never
         Returns: undefined
       }
+      mark_notification_reads: { Args: { p_ids: string[] }; Returns: number }
+      mark_notifications_read_all_for_clan: {
+        Args: { p_clan_id: string }
+        Returns: number
+      }
       my_active_clan_for_game: {
         Args: { p_game_id: string }
         Returns: {

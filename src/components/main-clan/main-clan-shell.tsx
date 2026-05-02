@@ -23,6 +23,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { ClanInAppNotificationBell } from "@/components/main-clan/clan-inapp-notification-bell";
+import type { ClanInAppNotificationVM } from "@/lib/clan/load-clan-inapp-notifications";
 import type { MainClanContext } from "@/lib/clan/load-main-clan-context";
 
 type NavItem = {
@@ -137,10 +139,15 @@ function SidebarNavDrawer({
 export function MainClanShell({
   ctx,
   showDevPlanToggle,
+  inAppNotifications,
   children,
 }: {
   ctx: MainClanContext;
   showDevPlanToggle: boolean;
+  inAppNotifications: {
+    items: ClanInAppNotificationVM[];
+    unreadCount: number;
+  };
   children: React.ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -213,7 +220,13 @@ export function MainClanShell({
             <p className="text-muted-foreground hidden text-xs sm:block">{ctx.gameName}</p>
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          <ClanInAppNotificationBell
+            gameSlug={ctx.gameSlug}
+            clanId={ctx.clanId}
+            initialItems={inAppNotifications.items}
+            initialUnreadCount={inAppNotifications.unreadCount}
+          />
           <span
             className={cn(
               "rounded-full px-2 py-0.5 text-xs font-medium",

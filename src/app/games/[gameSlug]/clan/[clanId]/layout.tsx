@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { MainClanShell } from "@/components/main-clan/main-clan-shell";
+import { loadClanInAppNotifications } from "@/lib/clan/load-clan-inapp-notifications";
 import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { createClient } from "@/lib/supabase/server";
 
@@ -25,6 +26,11 @@ export default async function MainClanLayout({
     redirect(`/games/${gameSlug}/clan`);
   }
 
+  const inAppNotifications = await loadClanInAppNotifications(
+    supabase,
+    clanId,
+  );
+
   void (await supabase.rpc("record_clan_activity", { p_clan_id: clanId }));
 
   const showDevPlanToggle =
@@ -32,7 +38,11 @@ export default async function MainClanLayout({
     process.env.DEV_CLAN_PLAN_TOGGLE === "1";
 
   return (
-    <MainClanShell ctx={ctx} showDevPlanToggle={showDevPlanToggle}>
+    <MainClanShell
+      ctx={ctx}
+      showDevPlanToggle={showDevPlanToggle}
+      inAppNotifications={inAppNotifications}
+    >
       {children}
     </MainClanShell>
   );

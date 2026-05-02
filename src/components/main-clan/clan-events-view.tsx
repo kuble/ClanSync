@@ -115,6 +115,7 @@ export function ClanEventsView({
   myRsvpGoingKeys,
   polls,
   bracketTournaments,
+  initialTab = "calendar",
 }: {
   gameSlug: string;
   clanId: string;
@@ -125,6 +126,7 @@ export function ClanEventsView({
   myRsvpGoingKeys: readonly string[];
   polls: SerializedClanPoll[];
   bracketTournaments: SerializedBracketTournament[];
+  initialTab?: "calendar" | "bracket" | "polls";
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -321,7 +323,7 @@ export function ClanEventsView({
   }
 
   return (
-    <Tabs defaultValue="calendar" className="gap-6">
+    <Tabs defaultValue={initialTab} className="gap-6">
       <TabsList variant="line" className="w-full min-w-0 flex-wrap justify-start">
         <TabsTrigger value="calendar">캘린더</TabsTrigger>
         <TabsTrigger value="bracket">
