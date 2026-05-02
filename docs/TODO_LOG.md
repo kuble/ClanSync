@@ -5,6 +5,12 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-02 — E2E `.env` `#` 처리·온보딩 클릭
+
+- [x] **Playwright** — `scripts/parse-env-file.mjs`(값 속 `#` 유지) · `npm run test:e2e:env-check` · `e2e/README` 보강.
+- [x] **UI** — `ClanJoinList` 가입 신청/보내기 네이티브 `<button>` + `data-testid`, 온보딩 스펙 정합.
+- **참고** — 로컬에서 3000에 떠 있는 옛 `dev`를 Playwright가 재사용하면 변경 반영이 안 될 수 있음 → 재시작.
+
 ### 2026-05-02 — Playwright E2E (`npm run test:e2e`)
 
 - [x] **설정** — `playwright.config.ts` · `e2e/smoke.spec.ts` · `e2e/onboarding.spec.ts` · `.env.local` 로드(`dotenv`) · `test:e2e` / `test:e2e:ui` · `.gitignore` 산출물.
