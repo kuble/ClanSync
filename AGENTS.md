@@ -10,7 +10,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # 자동 실행 (터미널)
 
-에이전트가 이 저장소에서 **직접 실행 가능한** 명령(`db:push`, `types:gen`, `build`, `eslint src` 등)은 사용자에게 미루지 않고 진행한다. 상세: `.cursor/rules/agent-auto-tasks.mdc`. 스키마 변경 후 타입 동기화는 **`npm run db:sync`** 로 한 번에 할 수 있다.
+에이전트가 이 저장소에서 **직접 실행 가능한** 명령(`db:push`, `types:gen`, `build`, `eslint src`, **`npm run test:e2e`** 등)은 사용자에게 미루지 않고 진행한다. 상세: `.cursor/rules/agent-auto-tasks.mdc`. 스키마 변경 후 타입 동기화는 **`npm run db:sync`** 로 한 번에 할 수 있다. Phase 2 구현 턴 마무리 시 Playwright는 같은 파일을 따른다.
 
 # 응답 스타일 (토큰 절약)
 

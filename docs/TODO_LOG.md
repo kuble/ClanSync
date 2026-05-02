@@ -5,6 +5,12 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-02 — 워크플로: 구현 후 Playwright + /start 보강
+
+- [x] **규칙** — `agent-auto-tasks.mdc`·`project-context.mdc`·`qa-demo-handoff.mdc`·`AGENTS.md`에 E2E 검증 절차.
+- [x] **문서** — `docs/README.md` 세션 절차에 `test:e2e`.
+- [x] **커맨드** — `.cursor/commands/start.md`: LISTENING 필터, Next 단일 dev 잠금, Playwright 검증 단계.
+
 ### 2026-05-02 — Playwright CI vs 로컬 서버
 
 - [x] **설정** — 로컬은 3000 `dev` 재사용, `CI=true`일 때만 `build` + `next start`(3010). Next 16 단일 dev 잠금 회피.

@@ -29,7 +29,8 @@
 4. 미결·후속 아이디어는 [01-plan/BACKLOG.md](./01-plan/BACKLOG.md)에만 적고, 슬라이스 본문에는 **스코프 밖**으로 표시한다.
 5. 목업 수정 시: 슬라이스의「목업」절에 적힌 경로만 연다.
 6. 작업이 끝나면 [TODO_LOG.md](./TODO_LOG.md) 맨 위에 **세션 로그** 블록을 추가하고, [허브](./TODO.md)의 **마지막 갱신** 날짜를 고친 뒤, 해당 **페이즈** 문서([Phase2](./TODO_Phase2.md) 또는 목업 유지보수 시 [Phase1](./TODO_Phase1.md))의 체크·표를 갱신한다.
-7. 진행도만 동기화하고 다음 프롬프트를 받으려면 Cursor에서 **`/todo`** 커맨드 실행 → [.cursor/commands/todo.md](../.cursor/commands/todo.md) 절차.
+7. **Phase 2 (`src/`)** 에서 이번 슬라이스가 끝나면, 에이전트는 커밋 전 **`npm run test:e2e`** 로 Playwright 검증을 돌린다(3000 dev가 있으면 재사용). 시드 계정·옵션: [e2e/README.md](../e2e/README.md) · [debug-and-fixtures.md](./01-plan/debug-and-fixtures.md). UI/시나리오 누적은 [QA_시나리오.md](./QA_시나리오.md) 규칙을 따른다.
+8. 진행도만 동기화하고 다음 프롬프트를 받으려면 Cursor에서 **`/todo`** 커맨드 실행 → [.cursor/commands/todo.md](../.cursor/commands/todo.md) 절차.
 
 ---
 
