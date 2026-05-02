@@ -119,6 +119,43 @@ for (const acc of QA_SEED_ACCOUNTS) {
   userIds.push(id);
 }
 
+/**
+ * D-AUTH-01 — 게임 하위 라우트·MainClan 진입을 위해 픽스처 계정에 검증된 게임 프로필 부여 (QA 전용).
+ */
+async function ensureVerifiedGameProfiles(ids, gameSlug) {
+  const { data: game, error: gErr } = await supabase
+    .from("games")
+    .select("id")
+    .eq("slug", gameSlug)
+    .maybeSingle();
+
+  if (gErr || !game?.id) {
+    console.error(`[seed] game slug='${gameSlug}' 없음`);
+    process.exit(1);
+  }
+
+  for (const uid of ids) {
+    const suffix = uid.replace(/-/g, "").slice(0, 12);
+    const { error } = await supabase.from("user_game_profiles").upsert(
+      {
+        user_id: uid,
+        game_id: game.id,
+        game_uid: `qa_seed_${suffix}`,
+        is_verified: true,
+        verified_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id,game_id" },
+    );
+    if (error) {
+      console.error("[seed] user_game_profiles upsert 실패:", error.message);
+      process.exit(1);
+    }
+  }
+  console.log(`[seed] ${gameSlug} user_game_profiles (${ids.length}명)`);
+}
+
+await ensureVerifiedGameProfiles(userIds, "overwatch");
+
 for (const clanDef of QA_SEED_CLANS) {
   const { data: game, error: gErr } = await supabase
     .from("games")
