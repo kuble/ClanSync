@@ -76,11 +76,15 @@ test.describe("온보딩 (E2E_EMAIL + E2E_PASSWORD)", () => {
     }
 
     const openBtn = page.locator('[data-testid^="clan-join-open-"]').first();
+    const send = page.locator('[data-testid^="clan-join-send-"]').first();
     await expect(openBtn).toBeVisible({ timeout: 10_000 });
     await openBtn.scrollIntoViewIfNeeded();
-    await openBtn.click();
-    await expect(page.locator('[data-testid^="clan-join-send-"]')).toBeVisible({
-      timeout: 15_000,
-    });
+
+    for (let i = 0; i < 8; i++) {
+      if (await send.isVisible().catch(() => false)) break;
+      await openBtn.click();
+      await page.waitForTimeout(350);
+    }
+    await expect(send).toBeVisible({ timeout: 10_000 });
   });
 });

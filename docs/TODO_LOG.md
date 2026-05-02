@@ -5,6 +5,12 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-02 — Playwright CI vs 로컬 서버
+
+- [x] **설정** — 로컬은 3000 `dev` 재사용, `CI=true`일 때만 `build` + `next start`(3010). Next 16 단일 dev 잠금 회피.
+- [x] **온보딩** — `clan-join-send` 노출까지 클릭 재시도.
+- [x] **검증** — `CI=true npm run test:e2e` 2 passed.
+
 ### 2026-05-02 — E2E `.env` `#` 처리·온보딩 클릭
 
 - [x] **Playwright** — `scripts/parse-env-file.mjs`(값 속 `#` 유지) · `npm run test:e2e:env-check` · `e2e/README` 보강.

@@ -7,9 +7,10 @@
 npm run test:e2e
 ```
 
-`playwright.config.ts`가 **`npm run dev`를 자동 기동**합니다(포트 3000에 서버가 있으면 재사용).
+Playwright는 **로컬**에서 `npm run dev`(기본 **http://127.0.0.1:3000**)를 재사용합니다. (`reuseExistingServer`)  
+**CI**(`CI=true`)에서는 `npm run build` 후 `next start`(기본 포트 **3010**)로 띄워 같은 저장소에 dev가 두 개 생기지 않게 합니다.
 
-**이미 `npm run dev`를 켜 둔 상태**에서 E2E를 돌리면 그 프로세스를 그대로 씁니다. 방금 코드를 바꿨는데 온보딩 등이 이상하면 **dev 서버를 재시작**하거나, **끈 뒤** `npm run test:e2e`만 실행해 새 프로세스로 맞추세요.
+포트만 바꾸려면: `PLAYWRIGHT_DEV_PORT=3020` (Unix) / `$env:PLAYWRIGHT_DEV_PORT="3020"` (PowerShell).
 
 ## 온보딩 시나리오
 
@@ -30,6 +31,14 @@ E2E_PASSWORD=<QA_SEED_PASSWORD와 동일>
 
 ## 다른 URL
 
+이미 `npm run dev` 등으로 서버를 띄운 주소로만 검증할 때:
+
 ```powershell
-$env:PLAYWRIGHT_BASE_URL="http://127.0.0.1:3001"; npm run test:e2e
+$env:PLAYWRIGHT_SKIP_WEBSERVER="1"
+$env:PLAYWRIGHT_BASE_URL="http://127.0.0.1:3000"
+npm run test:e2e
 ```
+
+(`webServer` 자동 기동을 끄므로, 위 URL에 앱이 떠 있어야 합니다.)
+
+**CI에서만** 기본적으로 `next start`가 다른 포트(3010)를 씁니다. 로컬에서도 동일하게 맞추려면 `PLAYWRIGHT_DEV_PORT`를 통일하면 됩니다.
