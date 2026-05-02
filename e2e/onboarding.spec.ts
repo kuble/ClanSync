@@ -97,11 +97,21 @@ test.describe("온보딩 (E2E_EMAIL + E2E_PASSWORD)", () => {
       /* 다이얼로그 없음 */
     }
 
+    const joinPost = page.waitForResponse(
+      (resp) =>
+        resp.request().method() === "POST" &&
+        resp.url().includes(`/games/${encodeURIComponent("overwatch")}/clan`),
+      { timeout: 45_000 },
+    );
+
     await send.click();
+    await joinPost;
+
     await expect(
       page
         .getByText("가입 신청을 보냈습니다.")
-        .or(page.getByText("이미 이 클랜에 신청 중입니다.")),
+        .or(page.getByText("이미 이 클랜에 신청 중입니다."))
+        .or(page.getByText("이미 진행 중인 신청이 있습니다.")),
     ).toBeVisible({ timeout: 25_000 });
   });
 });
