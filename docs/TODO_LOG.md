@@ -5,6 +5,13 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-02 — UI 회귀 E2E·시드 게임 프로필
+
+- [x] **시드** — 픽스처 계정 전원 `user_game_profiles`(오버워치 verified) upsert → 리더 MainClan 미들웨어 진입 가능.
+- [x] **E2E** — `e2e/ui-regression.spec.ts`(MainClan 탭·헤더·알림·MainGame 탭·멤버 온보딩), `e2e/fixture-login-helper.ts`.
+- [x] **문서** — `QA_시나리오.md`, `debug-and-fixtures.md`, `e2e/README.md`.
+- **검증** — `CI=true npm run test:e2e`(10 tests) 통과.
+
 ### 2026-05-02 — Playwright 픽스처 계정 코드 주입
 
 - [x] **E2E** — `e2e/qa-fixture-credentials.ts`가 `qa-fixtures.mjs`를 import; `.env` 없이 전 시드 계정 로그인 가능. `E2E_EMAIL`·`E2E_PASSWORD`는 온보딩용 선택 오버라이드.

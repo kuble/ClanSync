@@ -18,6 +18,25 @@
 
 <!-- 새 시나리오는 이 구분선 위에 추가 (최신이 위) -->
 
+## 2026-05-02 — UI 회귀 (Playwright 자동)
+
+**한 줄 요약**: 문서상 **live** 로 표시된 MainClan 탭·헤더 링크·커뮤니티 탭·무소속 온보딩 헤더가 렌더되는지 자동 검증한다.
+
+**환경**: `http://127.0.0.1:3000` 또는 `CI=true npm run test:e2e`(기본 3010).
+
+**사전 조건**: **`npm run db:seed`** 로 픽스처 동기화(오버워치 `user_game_profiles` verified 포함). `.env.local` Supabase가 시드와 동일 프로젝트.
+
+**절차**:
+
+1. `npm run db:seed`
+2. `npx playwright test e2e/ui-regression.spec.ts` (또는 전체 `npm run test:e2e`)
+
+**기대 결과**:
+
+- [ ] UI 회귀 스펙이 통과한다(MainClan 6경로·헤더 링크·알림 시트·MainGame 탭·멤버 온보딩).
+
+**깨졌을 때**: 리더가 `/auth` 로만 가면 시드 재실행 후 `user_game_profiles` 확인.
+
 ## 2026-05-02 — 프로필 탈퇴 버튼
 
 **한 줄 요약**: `/profile` 하단에서 로그아웃 옆 **탈퇴**로 본인 계정 삭제가 시도되는지 확인한다.

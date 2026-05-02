@@ -74,7 +74,7 @@ DB 마이그레이션(`*.sql`)과 **분리된** 시드 레이어에 둔다. 마�
 
 시드 시 다음 조합을 **명시적으로** 만들어 두면 6칸 매트릭스 디버깅이 빨라진다.
 
-- `QA_Member_01`: 특정 `game_id`에 대해 `user_game_profiles` 없음, `clan_members` 없음(온보딩·가입 신청 E2E)  
+- `QA_Member_01`: 오버워치 `user_game_profiles` verified · `clan_members` 없음 — 클랜 목록·가입 신청 E2E  
 - `QA_Leader_01`: `QA_01_Clan` 리더 · `clan_members` active  
 - (문서 목표) `fixture-member-a` 류: `user_game_profiles.is_verified = true`, `clan_members` active  
 - (선택) `fixture-pending-a`: 가입 `pending` 상태 — `clan_join_requests`는 후속 마이그레이션 후 시드

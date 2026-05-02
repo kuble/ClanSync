@@ -18,6 +18,7 @@ Playwright는 **로컬**에서 `npm run dev`(기본 **http://127.0.0.1:3000**)�
 
 - **전 계정 로그인 스모크**: `e2e/fixture-login.spec.ts` (`npm run db:seed` 필요)
 - **온보딩 시나리오**: `e2e/onboarding.spec.ts` — 기본은 **QA_Member_01** + 고정 비번
+- **UI 회귀 (live 페이지·탭·링크)**: `e2e/ui-regression.spec.ts` — 리더 MainClan 전 탭·헤더·알림 벨·MainGame 탭·무소속 멤버 온보딩 헤더 (`db:seed` 필수)
 
 선택 — 다른 프로젝트·임시 계정으로만 온보딩을 돌리고 싶을 때 **둘 다** 설정:
 
