@@ -5,6 +5,13 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-02 — 가입 신청·리더 거절 토스트 재현성
+
+- [x] **UI** — Sonner `top-center`·z-index·기본 표시 시간; 가입 신청·승인·거절에 로딩 토스트·refresh 지연 조정.
+- [x] **액션** — `tryCreateServiceRoleClient()`로 승인/거절 시 서비스 키 누락을 throw 대신 `{ ok:false }`로 반환.
+- [x] **E2E** — `e2e/join-request-flow.spec.ts`(QA_01_Clan 신청 → 리더 거절 확정 → 토스트).
+- [x] **문서** — `QA_시나리오.md`, `06-ClanAuth.md`, `12-Clan-Manage.md`.
+
 ### 2026-05-02 — UI 회귀 E2E·시드 게임 프로필
 
 - [x] **시드** — 픽스처 계정 전원 `user_game_profiles`(오버워치 verified) upsert → 리더 MainClan 미들웨어 진입 가능.
