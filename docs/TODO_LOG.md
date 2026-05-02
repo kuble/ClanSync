@@ -5,6 +5,10 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-02 — Sonner body 포털
+
+- [x] **UI** — `Toaster`를 `document.body`로 포털 + TooltipProvider와 형제 배치(z-index 극대). 레이아웃 안 fixed 가림 현상 완화.
+
 ### 2026-05-02 — 가입 신청·리더 거절 토스트 재현성
 
 - [x] **UI** — Sonner `top-center`·z-index·기본 표시 시간; 가입 신청·승인·거절에 로딩 토스트·refresh 지연 조정.
