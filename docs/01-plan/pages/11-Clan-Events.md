@@ -20,6 +20,7 @@
 ## 화면 진입 조건
 - [07-MainClan.md](./07-MainClan.md)와 동일한 라우트 가드 (로그인 → 게임 인증 → 클랜 소속).
 - 사이드바 `#events` 또는 직접 해시 `/games/[g]/clan/[c]#events`.
+- **초기 탭**: 쿼리 `?tab=calendar` · `?tab=bracket` · `?tab=polls` (in-app 투표 알림 딥링크 등).
 
 ## 사용자 흐름
 

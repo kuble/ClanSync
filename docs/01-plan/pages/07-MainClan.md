@@ -95,6 +95,11 @@
 - `SELECT COUNT(*) FROM notifications WHERE recipient_user_id = auth.uid() AND read_at IS NULL` — 미열람 피드 개수.
 - 0이면 숫자 뱃지 숨김(벨 아이콘만 표시). 99+는 `99+`로 표기.
 
+**Phase 2 (MainClan Next.js) 구현 메모**
+
+- 벨 목록은 **현재 URL 클랜과 `notifications.clan_id`가 일치**하는 행만 표시한다(셸 컨텍스트 기준). 전역 허브는 후속.
+- 드로어를 열면 **그때까지 서버에서 내려준 목록 중 미읽음**에 대해 `mark_notification_reads` 일괄 호출 후 라우트 갱신. **모두 읽음**은 해당 클랜 미읽음 전체에 `mark_notifications_read_all_for_clan` (활성 멤버 검증).
+
 **드로워 동작**
 
 | 동작 | 결과 |

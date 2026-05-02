@@ -3,7 +3,7 @@
 > **페이즈별 체크리스트**는 아래 문서로 나눈다. 세션 종료 시 **[세션 로그](./TODO_LOG.md)** 맨 위에 블록을 추가하고, 해당 페이즈 문서의 체크·요약표를 갱신한다.  
 > **/todo 커맨드**: `.cursor/commands/todo.md` 절차로 문서·목업과 동기화한다.
 
-> **지금 라이브**: M6b `/events`(캘린더·RSVP·투표·대진표 초안)·**`notifications` 피드 + Cron 발송 배치**(`dispatch_inapp_notification_batch`)·**M5** 탭 동기화 · **다음**: 네비 벨 UI·Discord 등 채널·`purchases` 무효화 또는 M6c 잔여 · 체감 → [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md)
+> **지금 라이브**: M6b `/events`(캘린더·RSVP·투표·대진표 초안)·**`notifications` 피드 + Cron**·**MainClan 알림 벨·드로어**·M5 탭 동기화 · **다음**: Discord 등 채널·`purchases` 무효화 또는 M6c 잔여 · 체감 → [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md)
 
 ## 페이즈별 문서
 
@@ -22,17 +22,17 @@
 |------|-----|
 | **현재 단계** | Phase 2 — Next.js `src/` · Supabase · RLS (마스터 플랜 M0~M8) |
 | **이전 단계** | Phase 1 — 정적 목업 (`mockup/`) **종료** (2026-03-28) |
-| **마지막 갱신** | 2026-04-28 — **M6b 잔여(6)** `0032` `notifications` · `dispatch_inapp_notification_batch` · `/api/cron/dispatch-notifications` · `vercel.json` 5분 Cron. 다음 = **벨 드로어 UI** · **`purchases` 무효화** 또는 **M6c 잔여**. |
+| **마지막 갱신** | 2026-05-02 — **D-NOTIF-01** MainClan 벨·드로어(`notifications` 클랜 한정)·읽음 RPC. 다음 = **Discord/Kakao** · **`purchases` 무효화** · M6c 잔여. |
 
 ---
 
 ## 다음 세션 권장 프롬프트 (/todo 갱신 시 덮어씀)
 
-**지금 단계(Phase 2 · M6b 잔여 또는 M5)** — 복사용:
+**지금 단계(Phase 2 · M6b 잔여)** — 복사용:
 
 ```
-@docs/TODO_Phase2.md @docs/01-plan/pages/11-Clan-Events.md 참고해서
-Phase 2 M6b 잔여: 대진표 영속화·알림(notification_log)·purchases 무효화 중 우선순위 한 줄 지정.
+@docs/TODO_Phase2.md 참고해서
+Phase 2 M6b 잔여: Discord/Kakao 발송 · purchases 무효화 · M6c 중 우선순위 한 줄 지정.
 
 완료 후 공통 게이트를 만족시키고 허브를 갱신한다.
 ```

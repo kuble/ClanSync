@@ -7,7 +7,7 @@
 | 항목 | 값 |
 |------|-----|
 | **단계** | Phase 2 — 앱 구현 |
-| **마지막 갱신** | 2026-04-28 — **M6b 잔여(6)** `0032` 알림 피드·Cron 워커 (`scheduled`→`sent`) |
+| **마지막 갱신** | 2026-05-02 — **0033** 읽음 RPC · MainClan 벨·드로어(D-NOTIF-01) |
 
 ## 전제 (Q&A 확정)
 
@@ -25,7 +25,7 @@
 | **M4** MainClan 쉘 | **S03** | `/games/[g]/clan/[id]` 레이아웃·사이드바(D-SHELL-01/02/03)·`hasPermission()`(D-PERM-01)·플랜 토글 | M3 | 완료 |
 | **M5** 프로필 | **S08** | `/profile` 네임플레이트·뱃지 케이스 (D-PROFILE-01~04) | M2 (병렬 가능) | 진행 중 |
 | **M6a** 통계 | **S05** | MainClan `/stats` 탭 · HoF (D-STATS-03/04) | M4 | 완료 |
-| **M6b** 이벤트·관리·스토어 | **S06** | `/events`(D-EVENTS-03) · `/manage`(D-CLAN-02 소비자·D-MANAGE-01~04) · `/store`(D-STORE-01/02·D-ECON-03) | M4 | 진행 중 (캘린더·반복·RSVP·투표·대진표 초안·알림 예약·in-app 발송 배치; 벨 UI·타 채널·대진표 마법사·코인 등 후속) |
+| **M6b** 이벤트·관리·스토어 | **S06** | `/events`(D-EVENTS-03) · `/manage`(D-CLAN-02 소비자·D-MANAGE-01~04) · `/store`(D-STORE-01/02·D-ECON-03) | M4 | 진행 중 (캘린더·반복·RSVP·투표·대진표 초안·알림 예약·in-app 발송 배치·**MainClan 벨·드로어**; 타 채널·대진표 마법사·코인 등 후속) |
 | **M6c** 밸런스 | **S04** | `/balance` 세션·밴픽·M/A 점수·슬롯 (정산 서버정책은 Phase 2+ placeholder) | M4 | 진행 중 |
 | **M7** 커뮤니티 경량 | **S07** | `/games/[g]` 홈·홍보(D-RANK-01)·LFG(D-LFG-01)·순위. 스크림 탭은 "Phase 2+ 예정" 안내만 | M3 | 진행 중 |
 | **M8** 종료 감사 | — | `AUDIT-Phase2-YYYY-MM-DD.md` · Phase 2+ 이관 목록 · 허브 갱신 | M5·M6a~c·M7 | 대기 |
@@ -121,7 +121,7 @@ flowchart TD
 ### M6 — MainClan 탭 묶음 (M4 이후, 권장 순서 a→b→c)
 
 - [x] **M6a S05 클랜 통계** — 요약 KPI · HoF(설정 모달·등재 규칙·전체/월/연) · **D-STATS-03** 활동일 표·내전 막대 · **D-STATS-04** CSV 안내만 · 경기 기록 일자 목록(캘린더·정정은 M6b 후속)
-- [ ] **M6b S06 이벤트·관리·스토어** — **부분**: `0013`~`0015` · **`0027` 반복** · **`0028` RSVP** · **`0029` 클랜 투표** · **`0030` 대진표 초안(`bracket_tournaments`·snapshot)** · **`0031` `notification_log`(투표 예약·D-EVENTS-04)** · **`0032` `notifications`·in-app 발송 배치·Cron** · `/events` **월간 캘린더·대진표 탭·투표 탭·수동 일정 편집·취소·반복 펼침·스크림 참가(D-EVENTS-01)·운영진 명단** · 관리·구독·Discord 웹훅 · 스토어 MVP · D-STORE-02 카피 · **`profile_entrance_fx`** · **잔여**: 네비 벨 UI · 타 채널 발송 · 일정 알림 행 확장 · 팀·매치 마법사·코인 연동 · `purchases` 무효화·시각 효과 고도화
+- [ ] **M6b S06 이벤트·관리·스토어** — **부분**: `0013`~`0015` · **`0027` 반복** · **`0028` RSVP** · **`0029` 클랜 투표** · **`0030` 대진표 초안(`bracket_tournaments`·snapshot)** · **`0031` `notification_log`(투표 예약·D-EVENTS-04)** · **`0032` `notifications`·in-app 발송 배치·Cron** · **`0033` 읽음 RPC·MainClan 벨·드로어(D-NOTIF-01)** · `/events` **월간 캘린더·대진표 탭·투표 탭·수동 일정 편집·취소·반복 펼침·스크림 참가(D-EVENTS-01)·운영진 명단** · 관리·구독·Discord 웹훅 · 스토어 MVP · D-STORE-02 카피 · **`profile_entrance_fx`** · **잔여**: 타 채널 발송 · 일정 알림 행 확장 · 팀·매치 마법사·코인 연동 · `purchases` 무효화·시각 효과 고도화
 - [ ] **M6c S04 밸런스메이커** — **부분**: `0016`~`0026` 세션·맵·영웅 밴·roster·M/A·Realtime·승부예측·**5분 마감**·결과·**클랜 풀 차감 후 개인 지급**·세션 종료 · **잔여**: 파리뮤추엘·다른 게임 영웅 풀·내전 히스토리 연동
 
 ### M7 — S07 MainGame 커뮤니티 (경량판)

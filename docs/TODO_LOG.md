@@ -5,6 +5,13 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-02 — Phase 2 D-NOTIF-01 MainClan 알림 벨·드로어
+
+- [x] **DB** — `0033_notifications_mark_read_rpcs.sql` (`mark_notification_reads` · `mark_notifications_read_all_for_clan`).
+- [x] **앱** — `loadClanInAppNotifications` · `ClanInAppNotificationBell` · 레이아웃·쉘 연동 · `/events?tab=polls` 딥링크.
+- [x] **검증** — `npm run db:push` · `npm run types:gen` · `npm run build` · `docs/QA_시나리오.md` 섹션.
+- **다음**: Discord/Kakao 발송 · `purchases` 무효화 · M6c 잔여 등.
+
 ### 2026-04-28 — Phase 2 M6b 잔여(6) 알림 scheduled 발송 배치 + notifications 피드
 
 - [x] **DB** — `0032_notifications_feed_dispatch.sql` (`notifications` · RLS SELECT 본인 · `dispatch_inapp_notification_batch`).
