@@ -55,6 +55,9 @@ export default async function GameAuthPage({
           ctaLabel={cfg.ctaLabel}
           oauthReady={cfg.oauthReady}
           devSimulatorAvailable={devSimulator}
+          nextPath={
+            next && next.startsWith("/") && !next.startsWith("//") ? next : undefined
+          }
         />
         {!cfg.oauthReady ? (
           <p className="text-muted-foreground text-xs">이 게임은 아직 연동할 수 없습니다.</p>

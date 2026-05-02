@@ -11,6 +11,7 @@
 - 로그인 필요. 미로그인 시 `/sign-in?next=...`로 자동 이동.
 - 이미 인증 완료된 게임이면 자동으로 다음 단계로 보냄 (D-AUTH-01 매트릭스): 클랜 `member` → `.../clan/[clanId]`, `none/pending` → `.../clan`.
 - **예외**: 쿼리 `?reauth=1`이 붙어 들어오면 인증 완료된 사용자라도 화면 유지 (D-AUTH-01 #3 — 토큰 만료된 기존 멤버 재연동). 상단에 "기존 인증이 만료되어 다시 연결이 필요합니다" 안내 배지 노출.
+- **Phase 2 시뮬레이터**: `linkGameAccountDevAction` 성공 후 `router.refresh`+`push` 대신 **전체 페이지 이동**(`location.assign`)으로 다음 경로로 보낸다. 그렇지 않으면 미들웨어가 아직 `authVerified=false` 로 보고 `/auth` 로 되돌리는 경합이 날 수 있다. `?next=`(내부 경로)가 있으면 우선한다.
 
 ## 사용자 흐름
 
