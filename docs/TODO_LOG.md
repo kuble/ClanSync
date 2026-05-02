@@ -5,6 +5,12 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-02 — 가입 패널 async 처리·온보딩 E2E 보강
+
+- [x] **UI** — `clan-join-list`, `manage-join-requests-panel`: 서버 액션을 `useTransition(async)` 대신 `busy` 상태 + 일반 async로 처리(토스트·상태 업데이트 누락 방지). `router.refresh()` 약 1.6초 후로 조정해 토스트 가시 시간 확보.
+- [x] **E2E** — 오버워치 클랜 온보딩에서 `보내기` 후 `/games/overwatch/clan` POST 완료를 기다린 뒤 검증·`23505` 대응 문구 `"이미 진행 중인 신청이 있습니다."` 추가 허용.
+- **검증** — `CI=true npm run test:e2e` 통과.
+
 ### 2026-05-02 — 가입 토스트·승인/거절 피드백
 
 - [x] **UI** — `router.refresh` 직후 토스트가 씹히는 경우 완화(짧은 지연). `Toaster`를 `theme="dark"` 고정(ThemeProvider 부재 시).
