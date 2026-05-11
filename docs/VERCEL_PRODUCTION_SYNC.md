@@ -1,65 +1,102 @@
 # Vercel 프로덕션과 GitHub `main` 맞추기
 
-## 무엇이 깨져 있었는지 (결론)
+## 목표: 예전처럼 `main` 푸시만으로 배포
 
-| 구간 | 상태 |
+프로덕션은 **Vercel 프로젝트의 GitHub 연동**(대시보드에서 저장소 연결)이 정상일 때, **`VERCEL_TOKEN` 없이** 푸시 한 번으로 새 Deployment가 생깁니다.  
+이 레포의 GitHub Actions는 **그 연동이 다시 깨졌을 때**만 쓰는 **수동 백업**입니다(아래 참고).
+
+고정 식별자(비밀 아님):
+
+- 팀: **`team_UaVXQMdZ2aJQUkYHxU7iSzN3`** · slug **`clansync`**
+- 프로젝트: **`clan-sync`** · **`prj_UwqBACb65GoSqFfqPekMNe15Og8T`**
+- 저장소: **`kuble/ClanSync`** · 프로덕션 브랜치: **`main`**
+
+---
+
+## 네이티브 Git 연동 복구 (필수 절차)
+
+아래를 **위에서부터** 순서대로 적용합니다.
+
+### 1. Vercel에서 저장소·브랜치 확인
+
+1. [Vercel Dashboard](https://vercel.com/dashboard) → 팀 **ClanSync** → 프로젝트 **clan-sync**.
+2. **Settings** → **Git**.
+3. **Connected Git Repository**가 **`kuble/ClanSync`** 인지 확인.
+4. **Production Branch**가 **`main`** 인지 확인.
+5. 연결이 비어 있거나 다른 레포면 **Connect**로 `kuble/ClanSync`를 다시 연결하거나, **Disconnect** 후 같은 저장소로 다시 연결합니다.
+
+### 2. GitHub에서 Vercel 앱 권한 확인
+
+1. GitHub → [Settings → Applications → Installed GitHub Apps](https://github.com/settings/installations) → **Vercel**.
+2. **Configure** → **Repository access**에 **`kuble/ClanSync`**(또는 All repositories)가 포함되는지 확인합니다.
+3. 권한 갱신·재승인 요청이 있으면 승인합니다.
+
+(조직 레포라면 조직 **Settings → Third-party access**에서도 Vercel 접근이 막혀 있지 않은지 확인합니다.)
+
+### 3. 로컬 CLI에서 연결 시도(선택)
+
+프로젝트 루트에서 Vercel에 로그인한 뒤:
+
+```bash
+npx vercel link --scope clansync --project clan-sync
+npx vercel git connect
+```
+
+원격이 `origin`이 GitHub `kuble/ClanSync`인지(`git remote -v`) 먼저 확인합니다. 대시보드와 동기가 안 맞을 때 보조로 씁니다.
+
+### 4. 동작 확인
+
+`main`에 작은 커밋을 푸시하거나, Vercel **Deployments**에서 **Redeploy**로 확인합니다.  
+새 줄의 **Source**에 방금 푸시한 커밋이 보이면 복구된 것입니다.
+
+### `main`과 프로덕션 커밋이 여전히 어긋날 때
+
+1. GitHub `main` 최신 SHA와 Vercel 프로덕션 배포 **Source** SHA를 비교합니다.
+2. **Settings → Git**에 무시 스크립트(Ignored Build Step)나 빌드 스킵 규칙이 없는지 봅니다.
+3. 그래도 안 되면 아래 [보조: Actions로 수동 프로덕션 배포](#보조-actions로-수동-프로덕션-배포-cli)로 한 번 올린 뒤, Vercel 지원·감사 로그로 Git 이벤트 수신 여부를 확인합니다.
+
+---
+
+## 과거에 뭐가 깨졌는지 (참고)
+
+| 구간 | 관측 |
 |------|------|
-| GitHub **`kuble/ClanSync` `main`** | 최신 커밋이 계속 반영되는 정상 상태 |
-| Vercel **네이티브 Git 연동** (푸시 → 빌드) | **약 2026-04-28 이후 새 프로덕션 배포 줄이 만들어지지 않음**으로 관측됨 (웹훅 · 연결 문제 가설과 일치) |
-| Deploy Hook URL을 잘못된 **다른 프로젝트 prj_\*** 에 붙이면 | API는 `{ "job": ... }`로 성공해도 **지금 브라우저에서 여는 `clan-sync` Deployments 줄에는 안 뜸** |
+| GitHub **`kuble/ClanSync` `main`** | 커밋은 정상적으로 앞으로 감 |
+| Vercel **네이티브 Git 연동** | **약 2026-04-28 전후**부터 프로덕션 배포가 **최신 `main`을 따라가지 않음**으로 관측됨 (GitHub 앱 권한 · 프로젝트 연결 · 웹훅 쪽 점검 필요) |
+| 잘못된 Deploy Hook(`prj_` 불일치) | API는 성공해도 **이 프로젝트** Deployments 줄에는 안 보일 수 있음 |
 
-### `main`과 프로덕션 커밋이 어긋났는지 확인
-
-1. GitHub에서 `main` 최신 커밋 SHA 확인(또는 로컬 `git rev-parse origin/main`).
-2. Vercel → 팀 **ClanSync** → **clan-sync** → **Deployments** → 최신 Production의 **Source** 커밋 SHA.
-3. **SHA가 다르면** GitHub → **Actions** → **Deploy production (Vercel CLI)** 최근 실행 로그를 연 뒤, `VERCEL_TOKEN` 없음 `::error::`가 있는지 확인 → 아래 [한 번만 설정](#한-번만-설정)대로 시크릿을 넣고 **Re-run jobs** 하거나 `main`에 임의 커밋을 푸시.
-
-**원인 요약**: 네이티브 Git 웹훅이 끊기면 Vercel은 예전 커밋에 묶일 수 있습니다. 이 레포의 **대체 경로**는 `VERCEL_TOKEN`이 설정된 Actions뿐이라, 시크릿이 비어 있으면 프로덕션이 `main`을 따라가지 않습니다.
-
-이 레포는 **항상 같은 팀·같은 앱으로** 올리도록 GitHub Actions에 식별자를 박았습니다:
-
-- 조직(team): **`team_UaVXQMdZ2aJQUkYHxU7iSzN3`** · slug **`clansync`**
-- 프로젝트 **`clan-sync`**: **`prj_UwqBACb65GoSqFfqPekMNe15Og8T`** (비밀이 아닌 식별자)
+**원인 요약(일반론)**: 예전 “토큰 없이 됨”은 **대시보드에서 한 번 연결해 둔 Git 연동**이 알아서 이벤트를 받았기 때문입니다. 그 연결이 끊기면 푸시만으로는 Vercel이 새 빌드를 만들지 않습니다.
 
 ---
 
-## 권장: `VERCEL_TOKEN` 한 개로 자동 프로덕션 배포 (메인 경로)
+## 이중 배포 방지
 
-워크플로: **`.github/workflows/vercel-deploy-production.yml`**
-
-`main`에 **푸시될 때마다** (또는 Actions에서 **Run workflow**) Vercel CLI가 위 프로젝트로 **`vercel deploy --prod`** 를 실행합니다. **GitHub ↔ Vercel 웹후크와 무관하게** 새 배포 줄이 이 프로젝트에 생성됩니다.
-
-### 한 번만 설정
-
-1. [Vercel Account Tokens](https://vercel.com/account/tokens)에서 토큰 생성 (설명 예: `gh-actions-clansync`).
-2. GitHub `ClanSync` → **Settings** → **Secrets and variables** → **Actions**
-3. **New repository secret** → Name **`VERCEL_TOKEN`** → 값에 토큰 붙여넣기.
-4. `main`에 푸시하거나 Actions에서 **Deploy production (Vercel CLI)** 실행.
-5. Vercel 앱 페이지는 팀 **ClanSync**, 프로젝트 **clan-sync** 에서 Deployments 새 줄 확인.
-
-토큰이 없으면 해당 워크플로는 **의도적으로 실패**하여 “배포는 안 했는데 초록 체크”와 구분합니다.
+네이티브 Git이 정상이면 푸시마다 Vercel이 이미 빌드합니다.  
+그래서 **`.github/workflows/vercel-deploy-production.yml`은 `push`로는 실행하지 않고**, 필요할 때만 **Actions에서 수동 실행(`workflow_dispatch`)** 합니다.
 
 ---
 
-## 보조: Deploy Hook (수동·디버깅 전용)
+## 보조: Deploy Hook (수동·디버깅)
 
-워크플로: **Trigger Vercel production (deploy hook)** — **`workflow_dispatch` 만** 지원 (**`push`에서는 안 돔**, CLI 워크플로와 중복 빌드를 막음).
+워크플로: **Trigger Vercel production (deploy hook)** — **`workflow_dispatch` 만**.
 
-설정은 종전과 동일하되, 훅 URL 경로에 다음이 포함되는지 확인:
-
-`/deploy/prj_UwqBACb65GoSqFfqPekMNe15Og8T/`
-
-위 ID가 다른 토큰이면 다른 앱으로 빌드가 나갑니다. 워크플로 실행 시 패턴 불일치면 **경고**가 로그에 뜹니다.
+훅 URL에 **`/deploy/prj_UwqBACb65GoSqFfqPekMNe15Og8T/`** 가 포함되는지 확인합니다.
 
 ---
 
-## 나중에: 네이티브 깃 통합 고치기 (선택)
+## 보조: Actions로 수동 프로덕션 배포 (CLI)
 
-Vercel **Settings → Git**에서 `kuble/ClanSync` 재연결, Production Branch **`main`** , GitHub 쪽 Vercel 앱 권한 확인. 되살아나면 푸시만으로 중복 줄이 나올 수 있으므로, 그때 **CLI 워크플로의 `push` 트리거를 끄거나** 두 경로 중 하나만 쓸지 결정하면 됩니다.
+워크플로: **Deploy production (Vercel CLI)** — **`workflow_dispatch` 만** (자동 `push` 없음).
+
+1. [Vercel Account Tokens](https://vercel.com/account/tokens)에서 토큰 생성.
+2. GitHub **Settings → Secrets and variables → Actions**에 **`VERCEL_TOKEN`** 저장.
+3. **Actions** → **Deploy production (Vercel CLI)** → **Run workflow**.
+
+Git 연동이 고쳐진 뒤에는 이 워크플로를 **자동으로 돌리지 않는 것**을 권장합니다(위 워크플로 파일 참고).
 
 ---
 
 ## 보안
 
-- **`VERCEL_TOKEN`**: 패스워드급으로 취급. 유출 시 토큰 폐기·재발급.
-- **Deploy Hook URL**: URL만 있으면 빌드를 돌릴 수 있음. 도입 시 본 문서 한 절 참고해 운영.
+- **`VERCEL_TOKEN`**: 패스워드급. 유출 시 폐기·재발급.
+- **Deploy Hook URL**: URL만으로 빌드 트리거 가능.

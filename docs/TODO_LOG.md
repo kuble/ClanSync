@@ -5,6 +5,11 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-11 — 프로덕션: 네이티브 Git 푸시 우선, CLI는 수동만
+
+- [x] **CI** — `vercel-deploy-production.yml`: `workflow_dispatch`만(`push` 제거, 네이티브 Git과 이중 빌드 방지).
+- [x] **문서** — `VERCEL_PRODUCTION_SYNC.md`를 연동 복구 우선으로 재구성; `docs/README.md` 표 한 줄 동기화.
+
 ### 2026-05-11 — Vercel CLI 프로덕션 배포(고정 프로젝트)
 
 - [x] **CI** — `vercel-deploy-production.yml`: `VERCEL_TOKEN` + 고정 org/project로 `main` 푸시·dispatch 시 `vercel deploy --prod`.

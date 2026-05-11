@@ -49,7 +49,7 @@
 | `docs/TODO_Phase1.md` | Phase 1 슬라이스 체크·요약표 |
 | `docs/TODO_Phase2.md` | Phase 2 체크·라우트 표 |
 | `docs/QA_시나리오.md` | **시연·직접 재현 절차** (마일스톤마다 누적). 규칙: `.cursor/rules/qa-demo-handoff.mdc` |
-| `docs/VERCEL_PRODUCTION_SYNC.md` | Vercel·깃 줄 안 맞을 때 원인 및 **VERCEL_TOKEN** CLI 프로덕션 배포 |
+| `docs/VERCEL_PRODUCTION_SYNC.md` | **푸시만 배포**: Vercel Git 연동 복구 절차 · 줄 어긋남 점검 · 수동 CLI/훅 백업 |
 | `docs/02-design/` | 목업·디자인 시스템 |
 
 ---
