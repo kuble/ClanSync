@@ -517,6 +517,7 @@ export type Database = {
           repeat: Database["public"]["Enums"]["clan_event_repeat"]
           repeat_time: string | null
           repeat_weekdays: number[] | null
+          scrim_id: string | null
           source: Database["public"]["Enums"]["clan_event_source"]
           start_at: string
           title: string
@@ -534,6 +535,7 @@ export type Database = {
           repeat?: Database["public"]["Enums"]["clan_event_repeat"]
           repeat_time?: string | null
           repeat_weekdays?: number[] | null
+          scrim_id?: string | null
           source?: Database["public"]["Enums"]["clan_event_source"]
           start_at: string
           title: string
@@ -551,6 +553,7 @@ export type Database = {
           repeat?: Database["public"]["Enums"]["clan_event_repeat"]
           repeat_time?: string | null
           repeat_weekdays?: number[] | null
+          scrim_id?: string | null
           source?: Database["public"]["Enums"]["clan_event_source"]
           start_at?: string
           title?: string
@@ -569,6 +572,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_events_scrim_id_fkey"
+            columns: ["scrim_id"]
+            isOneToOne: false
+            referencedRelation: "scrim_rooms"
             referencedColumns: ["id"]
           },
         ]
@@ -1628,6 +1638,149 @@ export type Database = {
           },
         ]
       }
+      scrim_room_confirmations: {
+        Row: {
+          confirmed_at: string
+          confirmed_by: string
+          id: string
+          scrim_room_id: string
+          side: Database["public"]["Enums"]["scrim_confirm_side"]
+        }
+        Insert: {
+          confirmed_at?: string
+          confirmed_by: string
+          id?: string
+          scrim_room_id: string
+          side: Database["public"]["Enums"]["scrim_confirm_side"]
+        }
+        Update: {
+          confirmed_at?: string
+          confirmed_by?: string
+          id?: string
+          scrim_room_id?: string
+          side?: Database["public"]["Enums"]["scrim_confirm_side"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scrim_room_confirmations_confirmed_by_fkey"
+            columns: ["confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scrim_room_confirmations_scrim_room_id_fkey"
+            columns: ["scrim_room_id"]
+            isOneToOne: false
+            referencedRelation: "scrim_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scrim_rooms: {
+        Row: {
+          cancelled_at: string | null
+          clan_a_id: string
+          clan_b_id: string | null
+          closed_at: string | null
+          closed_by: string | null
+          closed_reason:
+            | Database["public"]["Enums"]["scrim_closed_reason"]
+            | null
+          confirmed_at: string | null
+          created_at: string
+          created_by: string
+          finished_at: string | null
+          id: string
+          memo: string | null
+          mode: string | null
+          place: string | null
+          scheduled_at: string
+          status: Database["public"]["Enums"]["scrim_room_status"]
+          tier_max: number | null
+          tier_min: number | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          clan_a_id: string
+          clan_b_id?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closed_reason?:
+            | Database["public"]["Enums"]["scrim_closed_reason"]
+            | null
+          confirmed_at?: string | null
+          created_at?: string
+          created_by: string
+          finished_at?: string | null
+          id?: string
+          memo?: string | null
+          mode?: string | null
+          place?: string | null
+          scheduled_at: string
+          status?: Database["public"]["Enums"]["scrim_room_status"]
+          tier_max?: number | null
+          tier_min?: number | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          clan_a_id?: string
+          clan_b_id?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closed_reason?:
+            | Database["public"]["Enums"]["scrim_closed_reason"]
+            | null
+          confirmed_at?: string | null
+          created_at?: string
+          created_by?: string
+          finished_at?: string | null
+          id?: string
+          memo?: string | null
+          mode?: string | null
+          place?: string | null
+          scheduled_at?: string
+          status?: Database["public"]["Enums"]["scrim_room_status"]
+          tier_max?: number | null
+          tier_min?: number | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scrim_rooms_clan_a_id_fkey"
+            columns: ["clan_a_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scrim_rooms_clan_b_id_fkey"
+            columns: ["clan_b_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scrim_rooms_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scrim_rooms_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_items: {
         Row: {
           asset_url: string | null
@@ -2142,6 +2295,14 @@ export type Database = {
         | "daily"
         | "weekly"
         | "until_deadline_daily"
+      scrim_closed_reason: "auto_timeout" | "manual" | "cancelled" | "finished"
+      scrim_confirm_side: "host" | "guest"
+      scrim_room_status:
+        | "draft"
+        | "matched"
+        | "confirmed"
+        | "cancelled"
+        | "finished"
       store_item_type: "clan_deco" | "profile_deco"
       user_gender: "male" | "female" | "undisclosed"
       user_language: "ko" | "en" | "ja"
@@ -2343,6 +2504,15 @@ export const Constants = {
         "daily",
         "weekly",
         "until_deadline_daily",
+      ],
+      scrim_closed_reason: ["auto_timeout", "manual", "cancelled", "finished"],
+      scrim_confirm_side: ["host", "guest"],
+      scrim_room_status: [
+        "draft",
+        "matched",
+        "confirmed",
+        "cancelled",
+        "finished",
       ],
       store_item_type: ["clan_deco", "profile_deco"],
       user_gender: ["male", "female", "undisclosed"],
