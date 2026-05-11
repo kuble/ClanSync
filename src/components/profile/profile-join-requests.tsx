@@ -22,10 +22,13 @@ function statusLabel(s: JoinRow["status"]): string {
 export function ProfileJoinRequests({
   rows,
   loadFailed = false,
+  loadErrorHint,
 }: {
   rows: JoinRow[];
   /** 신청 목록 서버 조회 오류 시 빈 목록과 헷갈리지 않게 안내 */
   loadFailed?: boolean;
+  /** 개발 빌드에서만 Supabase/PostgREST 메시지(민감 정보 없음) 디버깅용 */
+  loadErrorHint?: string;
 }) {
   if (loadFailed) {
     return (
@@ -39,6 +42,17 @@ export function ProfileJoinRequests({
         <p className="text-destructive mt-2 text-sm leading-relaxed">
           가입 신청 정보를 불러오지 못했습니다. 잠시 후 새로 고침하거나, 문제가 계속되면
           로그아웃 후 다시 로그인해 보세요.
+        </p>
+        {loadErrorHint ? (
+          <p className="text-muted-foreground mt-2 font-mono text-[11px] leading-relaxed break-all">
+            {loadErrorHint}
+          </p>
+        ) : null}
+        <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
+          여전히 실패하면 Supabase에 마이그레이션{" "}
+          <code className="text-[0.65rem]">0035_select_my_clan_join_requests_rpc</code> 가
+          적용됐는지 확인한 뒤 <code className="text-[0.65rem]">npm run db:push</code> 를 실행해
+          보세요.
         </p>
       </section>
     );

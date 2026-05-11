@@ -5,6 +5,11 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-11 — 프로필 가입 신청 RPC (`select_my_clan_join_requests`)
+
+- [x] **DB** — `0035_select_my_clan_join_requests_rpc.sql`: 본인 `clan_join_requests` 만 반환하는 `SECURITY DEFINER` RPC (`my_active_clan_for_game` 와 동일 패턴).
+- [x] **앱** — `/profile` 은 테이블 직접 `select` 대신 RPC 호출 · 실패 시 Dev 에서 Postgres/PostgREST 메시지·마이그레이션 안내.
+
 ### 2026-05-11 — ClanAuth 고정 블록·비활성 CTA·프로필 재검증
 
 - [x] **온보딩** — `pending` 시 `clans` 단건 조회 후 「신청 진행 중인 클랜」 블록 + 목록 중복 제거; 신청 완료 카드에 비활성 「가입 신청됨 · 대기 중」.

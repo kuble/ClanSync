@@ -2012,6 +2012,10 @@ export type Database = {
         }[]
       }
       record_clan_activity: { Args: { p_clan_id: string }; Returns: undefined }
+      select_my_clan_join_requests: {
+        Args: never
+        Returns: Database["public"]["Tables"]["clan_join_requests"]["Row"][]
+      }
       select_my_clan_membership: {
         Args: { p_clan_id: string }
         Returns: {

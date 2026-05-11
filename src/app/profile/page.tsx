@@ -36,6 +36,8 @@ type JoinRow = {
   games: { slug: string; name_ko: string } | null;
 };
 
+type ClanJoinRequestRow = Database["public"]["Tables"]["clan_join_requests"]["Row"];
+
 export default async function ProfilePage() {
   const supabase = await createClient();
   const {
@@ -80,15 +82,11 @@ export default async function ProfilePage() {
   ]);
 
   const {
-    data: rawJoinFlat,
+    data: joinRpcData,
     error: rawJoinFlatErr,
-  } = await supabase
-    .from("clan_join_requests")
-    .select(
-      "id, status, applied_at, resolved_at, reject_reason, message, clan_id, game_id",
-    )
-    .eq("user_id", user.id)
-    .order("applied_at", { ascending: false });
+  } = await supabase.rpc("select_my_clan_join_requests");
+
+  const rawJoinFlat: ClanJoinRequestRow[] | null = joinRpcData ?? null;
 
   const clanIdsForJoin = [
     ...new Set((rawJoinFlat ?? []).map((r) => r.clan_id).filter(Boolean)),
@@ -153,7 +151,7 @@ export default async function ProfilePage() {
     console.error("[profile] join games hydrate:", joinGamesRes.error.message);
   }
   if (rawJoinFlatErr) {
-    console.error("[profile] clan_join_requests:", rawJoinFlatErr.message);
+    console.error("[profile] select_my_clan_join_requests:", rawJoinFlatErr.message);
   }
 
   const joinRequestsFetchFailed = Boolean(rawJoinFlatErr);
@@ -322,6 +320,11 @@ export default async function ProfilePage() {
       <ProfileJoinRequests
         rows={joinRequests}
         loadFailed={joinRequestsFetchFailed}
+        loadErrorHint={
+          process.env.NODE_ENV === "development"
+            ? (rawJoinFlatErr?.message ?? undefined)
+            : undefined
+        }
       />
 
       <div className="mt-8 flex flex-wrap items-center gap-3">
