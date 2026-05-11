@@ -1978,6 +1978,10 @@ export type Database = {
         Args: { p_limit?: number }
         Returns: number
       }
+      expire_open_lfg_posts_batch: {
+        Args: { p_limit?: number }
+        Returns: number
+      }
       finalize_discord_notification_dispatch: {
         Args: { p_error: string; p_log_id: string; p_ok: boolean }
         Returns: undefined
