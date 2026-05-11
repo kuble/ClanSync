@@ -3,6 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
+import {
+  cancelScheduledClanEventNotifications,
+  insertClanEventInAppNotifications,
+} from "@/lib/clan/schedule-clan-event-inapp-notifications";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/database.types";
@@ -210,20 +214,44 @@ export async function createClanEventAction(
     return { ok: false, error: "클랜을 찾을 수 없습니다." };
   }
 
-  const { error } = await svc.from("clan_events").insert({
-    clan_id: clanId,
-    title,
-    kind,
-    start_at: startAt.toISOString(),
-    place,
-    source: "manual",
-    created_by: user.id,
-    repeat: parsedRepeat.repeat,
-    repeat_weekdays: parsedRepeat.repeat_weekdays,
-    repeat_time: parsedRepeat.repeat_time,
-  });
+  const { data: inserted, error } = await svc
+    .from("clan_events")
+    .insert({
+      clan_id: clanId,
+      title,
+      kind,
+      start_at: startAt.toISOString(),
+      place,
+      source: "manual",
+      created_by: user.id,
+      repeat: parsedRepeat.repeat,
+      repeat_weekdays: parsedRepeat.repeat_weekdays,
+      repeat_time: parsedRepeat.repeat_time,
+    })
+    .select("id")
+    .single();
 
-  if (error) return { ok: false, error: error.message };
+  if (error || !inserted?.id) {
+    return { ok: false, error: error?.message ?? "저장에 실패했습니다." };
+  }
+
+  const newEventId = inserted.id as string;
+
+  if (
+    parsedRepeat.repeat === "none" &&
+    startAt.getTime() > Date.now()
+  ) {
+    const sched = await insertClanEventInAppNotifications({
+      svc,
+      clanId,
+      eventId: newEventId,
+      startAt,
+    });
+    if (!sched.ok) {
+      await svc.from("clan_events").delete().eq("id", newEventId);
+      return { ok: false, error: sched.error };
+    }
+  }
 
   void notifyDiscordNewEvent({
     svc,
@@ -335,6 +363,23 @@ export async function updateClanEventAction(
 
   if (error) return { ok: false, error: error.message };
 
+  await cancelScheduledClanEventNotifications(svc, eventId);
+
+  if (
+    parsedRepeat.repeat === "none" &&
+    startAt.getTime() > Date.now()
+  ) {
+    const sched = await insertClanEventInAppNotifications({
+      svc,
+      clanId,
+      eventId,
+      startAt,
+    });
+    if (!sched.ok) {
+      return { ok: false, error: `일정은 저장됐지만 알림 예약에 실패했습니다. ${sched.error}` };
+    }
+  }
+
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);
   return { ok: true };
 }
@@ -394,6 +439,8 @@ export async function cancelClanEventAction(
     .is("cancelled_at", null);
 
   if (error) return { ok: false, error: error.message };
+
+  await cancelScheduledClanEventNotifications(svc, eventId);
 
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);
   return { ok: true };

@@ -71,6 +71,17 @@ function notificationTitle(
     return base(`${slotKindLabel(slot)} · ${title}`, null);
   }
 
+  if (kind === "event_reminder" && payload && typeof payload === "object") {
+    const p = payload as Record<string, unknown>;
+    const title =
+      typeof p.event_title === "string" && p.event_title.trim()
+        ? p.event_title
+        : "클랜 일정";
+    const slot =
+      typeof p.slot_kind === "string" ? p.slot_kind : undefined;
+    return base(`${slotKindLabel(slot)} · ${title}`, null);
+  }
+
   return base("알림", null);
 }
 
@@ -187,16 +198,18 @@ export function ClanInAppNotificationBell({
               {initialItems.map((row) => {
                 const { title } = notificationTitle(row.kind, row.payload);
                 const unread = row.read_at == null;
-                const ph =
+                const pollId =
                   row.payload &&
                   typeof row.payload === "object" &&
                   "poll_id" in row.payload
                     ? (row.payload as { poll_id?: string }).poll_id
                     : undefined;
                 const href =
-                  row.kind === "poll_reminder" && ph
+                  row.kind === "poll_reminder" && pollId
                     ? `${eventsBase}?tab=polls`
-                    : eventsBase;
+                    : row.kind === "event_reminder"
+                      ? `${eventsBase}?tab=calendar`
+                      : eventsBase;
 
                 return (
                   <li key={row.id} className="py-0.5">
