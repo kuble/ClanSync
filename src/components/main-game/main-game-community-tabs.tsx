@@ -16,8 +16,10 @@ import {
 } from "@/app/actions/main-game-community";
 import {
   attachGuestClanToScrimAction,
+  cancelScrimRoomAction,
   confirmScrimSideAction,
   createDraftScrimRoomAction,
+  updateScrimRoomDetailsAction,
 } from "@/app/actions/scrim-rooms";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -29,6 +31,7 @@ import type {
   PromoRow,
   PromoSort,
   RankClanRow,
+  ScrimGuestClanOption,
   ScrimRoomRowOut,
 } from "@/lib/main-game/load-main-game-hub";
 
@@ -40,6 +43,7 @@ type Props = {
   applicantsByPost: Record<string, LfgApplicantRow[]>;
   rankClans: RankClanRow[];
   scrimRooms: ScrimRoomRowOut[];
+  scrimGuestClans: ScrimGuestClanOption[];
   myClanId: string | null;
   canConfirmScrim: boolean;
   canPostPromo: boolean;
@@ -75,6 +79,12 @@ function scrimStatusLabel(status: ScrimRoomRowOut["status"]): string {
   }
 }
 
+function localDatetimeInputValue(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 export function MainGameCommunityTabs({
   gameSlug,
   promoSort,
@@ -83,6 +93,7 @@ export function MainGameCommunityTabs({
   applicantsByPost,
   rankClans,
   scrimRooms,
+  scrimGuestClans,
   myClanId,
   canConfirmScrim,
   canPostPromo,
@@ -119,8 +130,13 @@ export function MainGameCommunityTabs({
     {},
   );
 
+  const [editingScrimId, setEditingScrimId] = useState<string | null>(null);
+  const [editScrimTitle, setEditScrimTitle] = useState("");
+  const [editScrimPlace, setEditScrimPlace] = useState("");
+  const [editScrimWhen, setEditScrimWhen] = useState("");
+
   const guestCandidates = myClanId
-    ? rankClans.filter((c) => c.id !== myClanId)
+    ? scrimGuestClans.filter((c) => c.id !== myClanId)
     : [];
 
   function onPromoSortChange(next: PromoSort) {
@@ -703,6 +719,18 @@ export function MainGameCommunityTabs({
               const isHost = myClanId === room.clan_a_id;
               const isGuest =
                 room.clan_b_id != null && myClanId === room.clan_b_id;
+              const activeScrim =
+                room.status === "draft" ||
+                room.status === "matched" ||
+                room.status === "confirmed";
+              const showCancel =
+                canConfirmScrim &&
+                (isHost || isGuest) &&
+                activeScrim;
+              const showEditHost =
+                canConfirmScrim &&
+                isHost &&
+                activeScrim;
               const showAttach =
                 canConfirmScrim &&
                 isHost &&
@@ -721,6 +749,7 @@ export function MainGameCommunityTabs({
                 !room.guest_confirmed;
 
               const guestPick = guestPickByRoom[room.id] ?? "";
+              const isEditing = editingScrimId === room.id;
 
               return (
                 <li
@@ -754,6 +783,128 @@ export function MainGameCommunityTabs({
                       ? ` · 확정 시각 ${new Date(room.confirmed_at).toLocaleString("ko-KR")}`
                       : ""}
                   </p>
+
+                  {showEditHost || showCancel ? (
+                    <div className="mt-3 flex flex-wrap items-center gap-2 border-t pt-3">
+                      {showEditHost ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={pending}
+                          onClick={() => {
+                            if (editingScrimId === room.id) {
+                              setEditingScrimId(null);
+                            } else {
+                              setEditingScrimId(room.id);
+                              setEditScrimTitle(room.title ?? "");
+                              setEditScrimPlace(room.place ?? "");
+                              setEditScrimWhen(localDatetimeInputValue(room.scheduled_at));
+                            }
+                          }}
+                        >
+                          {isEditing ? "수정 닫기" : "일정·제목·장소 수정"}
+                        </Button>
+                      ) : null}
+                      {showCancel ? (
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          disabled={pending}
+                          onClick={() => {
+                            if (
+                              !window.confirm(
+                                "이 스크림을 취소할까요? 연동된 클랜 일정이 해제됩니다.",
+                              )
+                            ) {
+                              return;
+                            }
+                            start(async () => {
+                              const r = await cancelScrimRoomAction(
+                                gameSlug,
+                                room.id,
+                              );
+                              if (!r.ok) {
+                                toast.error(r.error);
+                                return;
+                              }
+                              toast.success("스크림을 취소했습니다.");
+                              setEditingScrimId((id) =>
+                                id === room.id ? null : id,
+                              );
+                              router.refresh();
+                            });
+                          }}
+                        >
+                          스크림 취소
+                        </Button>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  {showEditHost && isEditing ? (
+                    <form
+                      className="bg-muted/40 mt-3 space-y-2 rounded-lg border p-3"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (!myClanId) return;
+                        start(async () => {
+                          const r = await updateScrimRoomDetailsAction(
+                            gameSlug,
+                            room.clan_a_id,
+                            room.id,
+                            {
+                              title: editScrimTitle,
+                              place: editScrimPlace,
+                              scheduledAtIso: new Date(editScrimWhen).toISOString(),
+                            },
+                          );
+                          if (!r.ok) {
+                            toast.error(r.error);
+                            return;
+                          }
+                          toast.success(
+                            r.needReconfirm
+                              ? "일시·장소를 바꿔 확정을 다시 받아야 합니다."
+                              : "스크림 정보를 수정했습니다.",
+                          );
+                          setEditingScrimId(null);
+                          router.refresh();
+                        });
+                      }}
+                    >
+                      <p className="text-xs font-medium">수정 내용</p>
+                      <input
+                        className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
+                        placeholder="제목 (비우면 제목 없음)"
+                        value={editScrimTitle}
+                        disabled={pending}
+                        onChange={(e) => setEditScrimTitle(e.target.value)}
+                      />
+                      <label className="flex flex-col gap-1 text-xs">
+                        <span className="text-muted-foreground">일시 (로컬)</span>
+                        <input
+                          type="datetime-local"
+                          className="border-input bg-background rounded-md border px-2 py-1.5"
+                          value={editScrimWhen}
+                          disabled={pending}
+                          onChange={(e) => setEditScrimWhen(e.target.value)}
+                          required
+                        />
+                      </label>
+                      <input
+                        className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
+                        placeholder="장소 / 채널 (비우면 없음)"
+                        value={editScrimPlace}
+                        disabled={pending}
+                        onChange={(e) => setEditScrimPlace(e.target.value)}
+                      />
+                      <Button type="submit" size="sm" disabled={pending}>
+                        저장
+                      </Button>
+                    </form>
+                  ) : null}
 
                   {showAttach ? (
                     <div className="mt-3 flex flex-wrap items-end gap-2 border-t pt-3">
@@ -809,7 +960,7 @@ export function MainGameCommunityTabs({
                       </Button>
                       {!guestCandidates.length ? (
                         <span className="text-muted-foreground text-[11px]">
-                          순위 목록에 다른 클랜이 없습니다.
+                          이 게임에 선택할 다른 클랜이 없습니다.
                         </span>
                       ) : null}
                     </div>

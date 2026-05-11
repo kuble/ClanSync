@@ -7,6 +7,7 @@ import {
   loadClanRankPreview,
   loadOpenLfgPosts,
   loadPromotionFeed,
+  loadScrimGuestClanOptions,
   loadScrimRoomsForGame,
   type PromoSort,
 } from "@/lib/main-game/load-main-game-hub";
@@ -73,11 +74,12 @@ export default async function MainGamePage({
       ? `${base}/clan/${state.clanId}`
       : `${base}/clan`;
 
-  const [promos, lfgBundle, rankClans, scrimRooms] = await Promise.all([
+  const [promos, lfgBundle, rankClans, scrimRooms, scrimGuestClans] = await Promise.all([
     loadPromotionFeed(supabase, game.id, promoSort),
     loadOpenLfgPosts(supabase, game.id, user.id),
     loadClanRankPreview(supabase, game.id),
     loadScrimRoomsForGame(supabase, game.id),
+    loadScrimGuestClanOptions(supabase, game.id),
   ]);
 
   let canConfirmScrim = false;
@@ -142,6 +144,7 @@ export default async function MainGamePage({
         applicantsByPost={lfgBundle.applicantsByPost}
         rankClans={rankClans}
         scrimRooms={scrimRooms}
+        scrimGuestClans={scrimGuestClans}
         myClanId={myClanId}
         canConfirmScrim={canConfirmScrim}
         canPostPromo={canPostPromo}

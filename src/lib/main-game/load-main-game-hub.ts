@@ -260,6 +260,25 @@ export type ScrimRoomRowOut = {
   guest_confirmed: boolean;
 };
 
+/** 스크림 상대 지정용 — 같은 게임 클랜 전체(순위 미리보기보다 넓음). */
+export type ScrimGuestClanOption = { id: string; name: string };
+
+export async function loadScrimGuestClanOptions(
+  supabase: SupabaseClient<Database>,
+  gameId: string,
+  limit = 200,
+): Promise<ScrimGuestClanOption[]> {
+  const { data, error } = await supabase
+    .from("clans")
+    .select("id, name")
+    .eq("game_id", gameId)
+    .order("name", { ascending: true })
+    .limit(limit);
+
+  if (error) return [];
+  return (data ?? []).map((r) => ({ id: r.id, name: r.name }));
+}
+
 /** 같은 게임 클랜이 참여하는 스크림방 목록 (MainGame 스크림 탭). */
 export async function loadScrimRoomsForGame(
   supabase: SupabaseClient<Database>,
