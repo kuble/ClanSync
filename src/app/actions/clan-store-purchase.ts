@@ -146,6 +146,10 @@ function mapVoidRpcError(code: string): string {
       return "이미 무효 처리된 구매입니다.";
     case "not_clan_pool":
       return "클랜 풀 구매만 무효화할 수 있습니다.";
+    case "not_personal_pool":
+      return "개인 풀 구매만 무효화할 수 있습니다.";
+    case "buyer_not_clan_member":
+      return "구매자가 이 클랜의 활동 멤버가 아니면 무효화할 수 없습니다.";
     case "invalid_purchase":
       return "구매 데이터가 올바르지 않습니다.";
     case "void_self_forbidden":
@@ -208,6 +212,62 @@ export async function voidClanStorePurchaseAction(
 
   const { data: rpcRaw, error: rpcErr } = await svc.rpc("void_clan_store_purchase", {
     p_actor_id: user.id,
+    p_purchase_id: purchaseId,
+    p_reason: reason,
+  });
+
+  if (rpcErr) {
+    return { ok: false, error: rpcErr.message };
+  }
+
+  const parsed = parseVoidRpcPayload(rpcRaw);
+  if (!parsed.ok) {
+    return { ok: false, error: mapVoidRpcError(parsed.error ?? "unknown") };
+  }
+
+  revalidatePath(`/games/${gameSlug}/clan/${clanId}/store`);
+  revalidatePath(`/games/${gameSlug}/clan/${clanId}/manage`);
+  revalidatePath(`/games/${gameSlug}/clan/${clanId}`);
+  return { ok: true };
+}
+
+/** D-STORE-03 — 개인 풀 구매. 구매자 본인·일반 멤버 불가(RPC 검증). */
+export async function voidPersonalStorePurchaseAction(
+  gameSlug: string,
+  clanId: string,
+  purchaseId: string,
+  reason: string,
+): Promise<VoidClanStorePurchaseResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const allowed = await hasClanPermission(
+    supabase,
+    user.id,
+    clanId,
+    "manage_clan_pool",
+  );
+  if (!allowed) {
+    return { ok: false, error: "클랜 풀·스토어 운영 권한이 없습니다." };
+  }
+
+  const svc = createServiceRoleClient();
+  const { data: clanRow } = await svc
+    .from("clans")
+    .select("id, games!inner(slug)")
+    .eq("id", clanId)
+    .maybeSingle();
+  const g = clanRow?.games as unknown as { slug: string } | undefined;
+  if (!clanRow || g?.slug !== gameSlug) {
+    return { ok: false, error: "클랜을 찾을 수 없습니다." };
+  }
+
+  const { data: rpcRaw, error: rpcErr } = await svc.rpc("void_personal_store_purchase", {
+    p_actor_id: user.id,
+    p_context_clan_id: clanId,
     p_purchase_id: purchaseId,
     p_reason: reason,
   });

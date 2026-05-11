@@ -2061,6 +2061,15 @@ export type Database = {
         Args: { p_actor_id: string; p_purchase_id: string; p_reason: string }
         Returns: Json
       }
+      void_personal_store_purchase: {
+        Args: {
+          p_actor_id: string
+          p_context_clan_id: string
+          p_purchase_id: string
+          p_reason: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       auth_failed_login_reason:

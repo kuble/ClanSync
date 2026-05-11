@@ -4,7 +4,7 @@ import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import { ClanBannerSettingsForm } from "@/components/main-clan/clan-banner-settings-form";
 import {
   ClanManageStoreVoidPanel,
-  type ManageClanPurchaseRowVM,
+  type ManageStoreVoidRowVM,
 } from "@/components/main-clan/clan-manage-store-void-panel";
 import { ClanManageSubscriptionPanel } from "@/components/main-clan/clan-manage-subscription-panel";
 import { ManageJoinRequestsPanel } from "@/components/main-clan/manage-join-requests-panel";
@@ -72,9 +72,20 @@ export default async function ManagePage({
 
   const svc = createServiceRoleClient();
 
-  let manageVoidRows: ManageClanPurchaseRowVM[] = [];
+  let manageVoidClanRows: ManageStoreVoidRowVM[] = [];
+  let manageVoidPersonalRows: ManageStoreVoidRowVM[] = [];
 
   if (canManageClanPool && user) {
+    const { data: activeForVoid } = await svc
+      .from("clan_members")
+      .select("user_id")
+      .eq("clan_id", clanId)
+      .eq("status", "active");
+
+    const activeMemberIds = [
+      ...new Set((activeForVoid ?? []).map((r) => r.user_id as string)),
+    ];
+
     const { data: rawPurchases } = await svc
       .from("purchases")
       .select(
@@ -93,13 +104,14 @@ export default async function ManagePage({
 
     const buyerNick = new Map((buyers ?? []).map((b) => [b.id, b.nickname ?? "—"] as const));
 
-    manageVoidRows = (rawPurchases ?? []).map((p) => {
+    manageVoidClanRows = (rawPurchases ?? []).map((p) => {
       const uid = p.user_id as string;
       const items = p.store_items as unknown as { name_ko: string } | null;
       const at = p.purchased_at
         ? new Date(p.purchased_at as string).toLocaleString("ko-KR")
         : "—";
       return {
+        pool: "clan" as const,
         purchaseId: p.id as string,
         itemNameKo: items?.name_ko ?? "상품",
         buyerNickname: buyerNick.get(uid) ?? "—",
@@ -108,6 +120,48 @@ export default async function ManagePage({
         isBuyerSelf: uid === user.id,
       };
     });
+
+    if (activeMemberIds.length > 0) {
+      const { data: rawPersonal } = await svc
+        .from("purchases")
+        .select(
+          "id, price_coins, purchased_at, user_id, store_items(name_ko)",
+        )
+        .eq("pool_source", "personal")
+        .is("clan_id", null)
+        .is("voided_at", null)
+        .in("user_id", activeMemberIds)
+        .order("purchased_at", { ascending: false });
+
+      const personalBuyerIds = [
+        ...new Set((rawPersonal ?? []).map((p) => p.user_id as string)),
+      ];
+      const { data: personalBuyers } =
+        personalBuyerIds.length > 0
+          ? await svc.from("users").select("id, nickname").in("id", personalBuyerIds)
+          : { data: [] as { id: string; nickname: string }[] };
+
+      const personalBuyerNick = new Map(
+        (personalBuyers ?? []).map((b) => [b.id, b.nickname ?? "—"] as const),
+      );
+
+      manageVoidPersonalRows = (rawPersonal ?? []).map((p) => {
+        const uid = p.user_id as string;
+        const items = p.store_items as unknown as { name_ko: string } | null;
+        const at = p.purchased_at
+          ? new Date(p.purchased_at as string).toLocaleString("ko-KR")
+          : "—";
+        return {
+          pool: "personal" as const,
+          purchaseId: p.id as string,
+          itemNameKo: items?.name_ko ?? "상품",
+          buyerNickname: personalBuyerNick.get(uid) ?? "—",
+          priceCoins: p.price_coins as number,
+          purchasedAtLabel: at,
+          isBuyerSelf: uid === user.id,
+        };
+      });
+    }
   }
 
   let joinRequestRows: {
@@ -241,7 +295,8 @@ export default async function ManagePage({
         <ClanManageStoreVoidPanel
           gameSlug={gameSlug}
           clanId={clanId}
-          rows={manageVoidRows}
+          clanRows={manageVoidClanRows}
+          personalRows={manageVoidPersonalRows}
         />
       ) : null}
 
