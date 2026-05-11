@@ -2014,7 +2014,26 @@ export type Database = {
       record_clan_activity: { Args: { p_clan_id: string }; Returns: undefined }
       select_my_clan_join_requests: {
         Args: never
-        Returns: Database["public"]["Tables"]["clan_join_requests"]["Row"][]
+        Returns: {
+          applied_at: string
+          clan_id: string
+          created_at: string
+          game_id: string
+          id: string
+          message: string
+          reject_reason: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["clan_join_request_status"]
+          updated_at: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "clan_join_requests"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       select_my_clan_membership: {
         Args: { p_clan_id: string }
@@ -2028,6 +2047,10 @@ export type Database = {
           p_outcome: Database["public"]["Enums"]["balance_match_outcome"]
           p_session_id: string
         }
+        Returns: Json
+      }
+      void_clan_store_purchase: {
+        Args: { p_actor_id: string; p_purchase_id: string; p_reason: string }
         Returns: Json
       }
     }
