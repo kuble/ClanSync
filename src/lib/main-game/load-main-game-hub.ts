@@ -244,3 +244,122 @@ export async function loadClanRankPreview(
     last_activity_at: c.last_activity_at,
   }));
 }
+
+export type ScrimRoomRowOut = {
+  id: string;
+  clan_a_id: string;
+  clan_b_id: string | null;
+  clan_a_name: string;
+  clan_b_name: string | null;
+  title: string | null;
+  scheduled_at: string;
+  place: string | null;
+  status: Database["public"]["Enums"]["scrim_room_status"];
+  confirmed_at: string | null;
+  host_confirmed: boolean;
+  guest_confirmed: boolean;
+};
+
+/** 같은 게임 클랜이 참여하는 스크림방 목록 (MainGame 스크림 탭). */
+export async function loadScrimRoomsForGame(
+  supabase: SupabaseClient<Database>,
+  gameId: string,
+  limit = 48,
+): Promise<ScrimRoomRowOut[]> {
+  const { data: gameClans } = await supabase
+    .from("clans")
+    .select("id")
+    .eq("game_id", gameId);
+
+  const clanIds = [...new Set((gameClans ?? []).map((c) => c.id))];
+  if (!clanIds.length) return [];
+
+  const sel =
+    "id, clan_a_id, clan_b_id, title, scheduled_at, place, status, confirmed_at";
+
+  const [{ data: asHost }, { data: asGuest }] = await Promise.all([
+    supabase
+      .from("scrim_rooms")
+      .select(sel)
+      .in("clan_a_id", clanIds)
+      .order("scheduled_at", { ascending: true })
+      .limit(limit),
+    supabase
+      .from("scrim_rooms")
+      .select(sel)
+      .in("clan_b_id", clanIds)
+      .order("scheduled_at", { ascending: true })
+      .limit(limit),
+  ]);
+
+  const byId = new Map<
+    string,
+    {
+      id: string;
+      clan_a_id: string;
+      clan_b_id: string | null;
+      title: string | null;
+      scheduled_at: string;
+      place: string | null;
+      status: Database["public"]["Enums"]["scrim_room_status"];
+      confirmed_at: string | null;
+    }
+  >();
+
+  for (const r of [...(asHost ?? []), ...(asGuest ?? [])]) {
+    byId.set(r.id, r);
+  }
+
+  const rooms = [...byId.values()].sort(
+    (a, b) =>
+      new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime(),
+  );
+
+  if (!rooms.length) return [];
+
+  const roomIds = rooms.map((r) => r.id);
+  const { data: confRows } = await supabase
+    .from("scrim_room_confirmations")
+    .select("scrim_room_id, side")
+    .in("scrim_room_id", roomIds);
+
+  const confMap = new Map<string, { host: boolean; guest: boolean }>();
+  for (const row of confRows ?? []) {
+    const sid = row.scrim_room_id as string;
+    const cur = confMap.get(sid) ?? { host: false, guest: false };
+    if (row.side === "host") cur.host = true;
+    if (row.side === "guest") cur.guest = true;
+    confMap.set(sid, cur);
+  }
+
+  const nameIds = new Set<string>();
+  for (const r of rooms) {
+    nameIds.add(r.clan_a_id);
+    if (r.clan_b_id) nameIds.add(r.clan_b_id);
+  }
+
+  const { data: names } = await supabase
+    .from("clans")
+    .select("id, name")
+    .in("id", [...nameIds]);
+
+  const nameMap = new Map((names ?? []).map((n) => [n.id, n.name]));
+
+  return rooms.map((r) => {
+    const c = confMap.get(r.id) ?? { host: false, guest: false };
+    return {
+      id: r.id,
+      clan_a_id: r.clan_a_id,
+      clan_b_id: r.clan_b_id,
+      clan_a_name: nameMap.get(r.clan_a_id) ?? "클랜",
+      clan_b_name: r.clan_b_id ? nameMap.get(r.clan_b_id) ?? "클랜" : null,
+      title: r.title,
+      scheduled_at: r.scheduled_at,
+      place: r.place,
+      status: r.status,
+      confirmed_at: r.confirmed_at,
+      host_confirmed: c.host,
+      guest_confirmed: c.guest,
+    };
+  });
+}

@@ -81,7 +81,11 @@ test.describe("UI 회귀 — MainGame 커뮤니티 탭", () => {
     await expect(page.getByText(/활동 기준 미리보기/)).toBeVisible();
 
     await page.getByRole("tab", { name: "스크림" }).click();
-    await expect(page.getByText(/Phase 2\+ 범위입니다/)).toBeVisible();
+    const scrimTab = page.getByTestId("main-game-tab-scrim");
+    await expect(scrimTab).toBeVisible({ timeout: 10_000 });
+    await expect(
+      scrimTab.getByText(/같은 게임 소속 클랜 간 스크림 방/),
+    ).toBeVisible();
 
     await page.getByRole("tab", { name: "홈" }).click();
     await expect(page.getByText(/클랜 일정·통계·스토어는/)).toBeVisible();

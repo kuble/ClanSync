@@ -14,6 +14,11 @@ import {
   acceptLfgApplicationAction,
   rejectLfgApplicationAction,
 } from "@/app/actions/main-game-community";
+import {
+  attachGuestClanToScrimAction,
+  confirmScrimSideAction,
+  createDraftScrimRoomAction,
+} from "@/app/actions/scrim-rooms";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -24,6 +29,7 @@ import type {
   PromoRow,
   PromoSort,
   RankClanRow,
+  ScrimRoomRowOut,
 } from "@/lib/main-game/load-main-game-hub";
 
 type Props = {
@@ -33,6 +39,9 @@ type Props = {
   lfgs: LfgRowOut[];
   applicantsByPost: Record<string, LfgApplicantRow[]>;
   rankClans: RankClanRow[];
+  scrimRooms: ScrimRoomRowOut[];
+  myClanId: string | null;
+  canConfirmScrim: boolean;
   canPostPromo: boolean;
   canCreateLfg: boolean;
   userId: string;
@@ -49,6 +58,23 @@ function badgeForStatus(s: string | null): { label: string; className: string } 
   return null;
 }
 
+function scrimStatusLabel(status: ScrimRoomRowOut["status"]): string {
+  switch (status) {
+    case "draft":
+      return "모집 중";
+    case "matched":
+      return "상대 배정";
+    case "confirmed":
+      return "일정 확정";
+    case "cancelled":
+      return "취소";
+    case "finished":
+      return "종료";
+    default:
+      return status;
+  }
+}
+
 export function MainGameCommunityTabs({
   gameSlug,
   promoSort,
@@ -56,6 +82,9 @@ export function MainGameCommunityTabs({
   lfgs,
   applicantsByPost,
   rankClans,
+  scrimRooms,
+  myClanId,
+  canConfirmScrim,
   canPostPromo,
   canCreateLfg,
   userId,
@@ -82,6 +111,17 @@ export function MainGameCommunityTabs({
   const [lfgDesc, setLfgDesc] = useState("");
 
   const [applyMsg, setApplyMsg] = useState<Record<string, string>>({});
+
+  const [scrimTitle, setScrimTitle] = useState("");
+  const [scrimPlace, setScrimPlace] = useState("");
+  const [scrimWhen, setScrimWhen] = useState(defaultExp);
+  const [guestPickByRoom, setGuestPickByRoom] = useState<Record<string, string>>(
+    {},
+  );
+
+  const guestCandidates = myClanId
+    ? rankClans.filter((c) => c.id !== myClanId)
+    : [];
 
   function onPromoSortChange(next: PromoSort) {
     router.push(
@@ -121,6 +161,26 @@ export function MainGameCommunityTabs({
       }
       toast.success("LFG 모집을 등록했습니다.");
       setLfgDesc("");
+    });
+  }
+
+  function submitScrimDraft(e: React.FormEvent) {
+    e.preventDefault();
+    if (!myClanId) return;
+    start(async () => {
+      const r = await createDraftScrimRoomAction(gameSlug, myClanId, {
+        scheduledAtIso: new Date(scrimWhen).toISOString(),
+        title: scrimTitle.trim() || undefined,
+        place: scrimPlace.trim() || undefined,
+      });
+      if (!r.ok) {
+        toast.error(r.error);
+        return;
+      }
+      toast.success("스크림 방을 만들었습니다.");
+      setScrimTitle("");
+      setScrimPlace("");
+      router.refresh();
     });
   }
 
@@ -574,10 +634,245 @@ export function MainGameCommunityTabs({
         )}
       </TabsContent>
 
-      <TabsContent value="scrim" className="text-muted-foreground space-y-2 text-sm">
-        <p>
-          스크림 채팅·양측 확정(D-SCRIM-01/02)은 Phase 2+ 범위입니다.
+      <TabsContent
+        value="scrim"
+        data-testid="main-game-tab-scrim"
+        className="space-y-6 text-sm"
+      >
+        <p className="text-muted-foreground text-xs">
+          같은 게임 소속 클랜 간 스크림 방 — 모집 후 상대를 지정하고, 양측 운영진이 확정합니다.
         </p>
+
+        {!myClanId ? (
+          <p className="text-muted-foreground rounded-lg border border-dashed p-4 text-xs">
+            스크림은 클랜에 소속된 뒤 이용할 수 있습니다.{" "}
+            <Link href={`/games/${g}/clan`} className="text-primary underline-offset-4 hover:underline">
+              클랜 온보딩
+            </Link>
+          </p>
+        ) : null}
+
+        {myClanId && canConfirmScrim ? (
+          <form
+            onSubmit={submitScrimDraft}
+            className="bg-card space-y-3 rounded-xl border p-4 shadow-sm"
+          >
+            <p className="text-xs font-medium">스크림 방 개설 (모집 중)</p>
+            <input
+              className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
+              placeholder="제목 (선택)"
+              value={scrimTitle}
+              disabled={pending}
+              onChange={(e) => setScrimTitle(e.target.value)}
+            />
+            <label className="flex flex-col gap-1 text-xs">
+              <span className="text-muted-foreground">일시 (로컬)</span>
+              <input
+                type="datetime-local"
+                className="border-input bg-background rounded-md border px-2 py-1.5"
+                value={scrimWhen}
+                disabled={pending}
+                onChange={(e) => setScrimWhen(e.target.value)}
+                required
+              />
+            </label>
+            <input
+              className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
+              placeholder="장소 / 채널 (선택)"
+              value={scrimPlace}
+              disabled={pending}
+              onChange={(e) => setScrimPlace(e.target.value)}
+            />
+            <Button type="submit" size="sm" disabled={pending}>
+              방 만들기
+            </Button>
+          </form>
+        ) : myClanId && !canConfirmScrim ? (
+          <p className="text-muted-foreground rounded-lg border border-dashed p-4 text-xs">
+            스크림 개설·확정은 클랜에서 허용된 운영 역할만 할 수 있습니다.
+          </p>
+        ) : null}
+
+        {!scrimRooms.length ? (
+          <p className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
+            등록된 스크림이 없습니다.
+          </p>
+        ) : (
+          <ul className="space-y-4">
+            {scrimRooms.map((room) => {
+              const isHost = myClanId === room.clan_a_id;
+              const isGuest =
+                room.clan_b_id != null && myClanId === room.clan_b_id;
+              const showAttach =
+                canConfirmScrim &&
+                isHost &&
+                room.status === "draft" &&
+                room.clan_b_id == null;
+              const showConfirmHost =
+                canConfirmScrim &&
+                isHost &&
+                room.status === "matched" &&
+                room.clan_b_id != null &&
+                !room.host_confirmed;
+              const showConfirmGuest =
+                canConfirmScrim &&
+                isGuest &&
+                room.status === "matched" &&
+                !room.guest_confirmed;
+
+              const guestPick = guestPickByRoom[room.id] ?? "";
+
+              return (
+                <li
+                  key={room.id}
+                  className="bg-card rounded-xl border px-4 py-3 shadow-sm"
+                >
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <p className="font-medium">
+                      {room.title || "스크림"}
+                      <span className="text-muted-foreground ml-2 text-xs font-normal">
+                        {new Date(room.scheduled_at).toLocaleString("ko-KR")}
+                      </span>
+                    </p>
+                    <span className="bg-muted rounded-full px-2 py-0.5 text-[10px] font-medium">
+                      {scrimStatusLabel(room.status)}
+                    </span>
+                  </div>
+                  <p className="text-muted-foreground mt-1 text-xs">
+                    {room.clan_a_name}
+                    {room.clan_b_id
+                      ? ` ↔ ${room.clan_b_name ?? "상대"}`
+                      : " — 상대 미정"}
+                  </p>
+                  {room.place ? (
+                    <p className="text-muted-foreground mt-1 text-xs">{room.place}</p>
+                  ) : null}
+                  <p className="text-muted-foreground mt-2 text-[11px]">
+                    호스트 확정 {room.host_confirmed ? "완료" : "대기"} · 게스트
+                    확정 {room.guest_confirmed ? "완료" : "대기"}
+                    {room.confirmed_at
+                      ? ` · 확정 시각 ${new Date(room.confirmed_at).toLocaleString("ko-KR")}`
+                      : ""}
+                  </p>
+
+                  {showAttach ? (
+                    <div className="mt-3 flex flex-wrap items-end gap-2 border-t pt-3">
+                      <label className="flex flex-col gap-1 text-xs">
+                        <span className="text-muted-foreground">상대 클랜</span>
+                        <select
+                          className="border-input bg-background min-w-[180px] rounded-md border px-2 py-1.5"
+                          value={guestPick}
+                          disabled={pending || !guestCandidates.length}
+                          onChange={(e) =>
+                            setGuestPickByRoom((m) => ({
+                              ...m,
+                              [room.id]: e.target.value,
+                            }))
+                          }
+                        >
+                          <option value="">선택…</option>
+                          {guestCandidates.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <Button
+                        type="button"
+                        size="sm"
+                        disabled={pending || !guestPick || !myClanId}
+                        onClick={() => {
+                          if (!myClanId || !guestPick) return;
+                          start(async () => {
+                            const r = await attachGuestClanToScrimAction(
+                              gameSlug,
+                              myClanId,
+                              room.id,
+                              guestPick,
+                            );
+                            if (!r.ok) {
+                              toast.error(r.error);
+                              return;
+                            }
+                            toast.success("상대 클랜을 배정했습니다.");
+                            setGuestPickByRoom((m) => {
+                              const next = { ...m };
+                              delete next[room.id];
+                              return next;
+                            });
+                            router.refresh();
+                          });
+                        }}
+                      >
+                        상대 지정
+                      </Button>
+                      {!guestCandidates.length ? (
+                        <span className="text-muted-foreground text-[11px]">
+                          순위 목록에 다른 클랜이 없습니다.
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  {showConfirmHost ? (
+                    <div className="mt-3 border-t pt-3">
+                      <Button
+                        type="button"
+                        size="sm"
+                        disabled={pending}
+                        onClick={() => {
+                          start(async () => {
+                            const r = await confirmScrimSideAction(
+                              gameSlug,
+                              room.id,
+                              "host",
+                            );
+                            if (!r.ok) {
+                              toast.error(r.error);
+                              return;
+                            }
+                            toast.success("호스트 측 확정을 기록했습니다.");
+                            router.refresh();
+                          });
+                        }}
+                      >
+                        우리 측 확정 (호스트)
+                      </Button>
+                    </div>
+                  ) : null}
+
+                  {showConfirmGuest ? (
+                    <div className="mt-3 border-t pt-3">
+                      <Button
+                        type="button"
+                        size="sm"
+                        disabled={pending}
+                        onClick={() => {
+                          start(async () => {
+                            const r = await confirmScrimSideAction(
+                              gameSlug,
+                              room.id,
+                              "guest",
+                            );
+                            if (!r.ok) {
+                              toast.error(r.error);
+                              return;
+                            }
+                            toast.success("게스트 측 확정을 기록했습니다.");
+                            router.refresh();
+                          });
+                        }}
+                      >
+                        우리 측 확정 (게스트)
+                      </Button>
+                    </div>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </TabsContent>
     </Tabs>
   );

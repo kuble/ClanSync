@@ -7,9 +7,11 @@ import {
   loadClanRankPreview,
   loadOpenLfgPosts,
   loadPromotionFeed,
+  loadScrimRoomsForGame,
   type PromoSort,
 } from "@/lib/main-game/load-main-game-hub";
 import { loadGameOnboarding } from "@/lib/onboarding/load-game-onboarding";
+import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import { cn } from "@/lib/utils";
 
 /**
@@ -71,11 +73,24 @@ export default async function MainGamePage({
       ? `${base}/clan/${state.clanId}`
       : `${base}/clan`;
 
-  const [promos, lfgBundle, rankClans] = await Promise.all([
+  const [promos, lfgBundle, rankClans, scrimRooms] = await Promise.all([
     loadPromotionFeed(supabase, game.id, promoSort),
     loadOpenLfgPosts(supabase, game.id, user.id),
     loadClanRankPreview(supabase, game.id),
+    loadScrimRoomsForGame(supabase, game.id),
   ]);
+
+  let canConfirmScrim = false;
+  if (state.clanStatus === "member" && state.clanId) {
+    canConfirmScrim = await hasClanPermission(
+      supabase,
+      user.id,
+      state.clanId,
+      "confirm_scrim",
+    );
+  }
+
+  const myClanId = state.clanStatus === "member" ? state.clanId ?? null : null;
 
   const canPostPromo = state.clanStatus === "member" && !!state.clanId;
   const canCreateLfg = state.authVerified;
@@ -126,6 +141,9 @@ export default async function MainGamePage({
         lfgs={lfgBundle.posts}
         applicantsByPost={lfgBundle.applicantsByPost}
         rankClans={rankClans}
+        scrimRooms={scrimRooms}
+        myClanId={myClanId}
+        canConfirmScrim={canConfirmScrim}
         canPostPromo={canPostPromo}
         canCreateLfg={canCreateLfg}
         userId={user.id}
