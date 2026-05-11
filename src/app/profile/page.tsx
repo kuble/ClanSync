@@ -88,10 +88,6 @@ export default async function ProfilePage() {
     .eq("user_id", user.id)
     .order("applied_at", { ascending: false });
 
-  if (rawJoinFlatErr) {
-    console.error("[profile] clan_join_requests:", rawJoinFlatErr.message);
-  }
-
   const clanIdsForJoin = [
     ...new Set((rawJoinFlat ?? []).map((r) => r.clan_id).filter(Boolean)),
   ];
@@ -147,6 +143,18 @@ export default async function ProfilePage() {
     if (!r.resolved_at) return false;
     return new Date(r.resolved_at) >= weekAgo;
   });
+
+  if (joinClansRes.error) {
+    console.error("[profile] join clans hydrate:", joinClansRes.error.message);
+  }
+  if (joinGamesRes.error) {
+    console.error("[profile] join games hydrate:", joinGamesRes.error.message);
+  }
+  if (rawJoinFlatErr) {
+    console.error("[profile] clan_join_requests:", rawJoinFlatErr.message);
+  }
+
+  const joinRequestsFetchFailed = Boolean(rawJoinFlatErr);
   const linkedGames: DecorationGame[] = (ugpRows ?? [])
     .map((r) => {
       const gRaw = r.games as
@@ -224,7 +232,7 @@ export default async function ProfilePage() {
         </p>
       </header>
 
-      {pendingForBanner.length > 0 ? (
+      {pendingForBanner.length > 0 && !joinRequestsFetchFailed ? (
         <section
           className="bg-primary/10 border-primary/35 mb-8 rounded-xl border px-4 py-3 shadow-sm"
           aria-label="진행 중인 가입 신청 요약"
@@ -300,7 +308,10 @@ export default async function ProfilePage() {
         picks={pickRows}
       />
 
-      <ProfileJoinRequests rows={joinRequests} />
+      <ProfileJoinRequests
+        rows={joinRequests}
+        loadFailed={joinRequestsFetchFailed}
+      />
 
       <div className="mt-8 flex flex-wrap items-center gap-3">
         <Link

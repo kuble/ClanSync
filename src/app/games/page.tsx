@@ -84,20 +84,35 @@ export default async function GamesPage() {
     });
   }
 
-  const { data: pendingRows } = await supabase
+  const { data: pendingRowsBare } = await supabase
     .from("clan_join_requests")
-    .select("game_id, clan_id, clans!inner(name)")
+    .select("game_id, clan_id")
     .eq("user_id", user.id)
     .eq("status", "pending");
 
+  const pendingClanIds = [
+    ...new Set((pendingRowsBare ?? []).map((r) => r.clan_id).filter(Boolean)),
+  ];
+
+  let clanNamesById = new Map<string, string>();
+  if (pendingClanIds.length > 0) {
+    const { data: nameRows } = await supabase
+      .from("clans")
+      .select("id, name")
+      .in("id", pendingClanIds);
+    clanNamesById = new Map(
+      (nameRows ?? []).map((c) => [c.id as string, c.name as string]),
+    );
+  }
+
   const pendingByGame = new Map<string, { clanId: string; clanName: string }>();
-  for (const row of pendingRows ?? []) {
+  for (const row of pendingRowsBare ?? []) {
     const gid = row.game_id as string;
     if (pendingByGame.has(gid)) continue;
-    const cn = row.clans as unknown as { name: string };
+    const cid = row.clan_id as string;
     pendingByGame.set(gid, {
-      clanId: row.clan_id as string,
-      clanName: cn?.name ?? "",
+      clanId: cid,
+      clanName: clanNamesById.get(cid) ?? "",
     });
   }
 

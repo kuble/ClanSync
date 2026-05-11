@@ -294,17 +294,21 @@ export async function submitClanJoinRequestAction(
 
   const { data: existing } = await supabase
     .from("clan_join_requests")
-    .select("id, clan_id, clans!inner(name)")
+    .select("id, clan_id")
     .eq("user_id", user.id)
     .eq("game_id", game.id)
     .eq("status", "pending")
     .maybeSingle();
 
   if (existing && existing.clan_id !== clanId) {
-    const other = existing.clans as unknown as { name: string };
+    const { data: otherClan } = await supabase
+      .from("clans")
+      .select("name")
+      .eq("id", existing.clan_id)
+      .maybeSingle();
     return {
       ok: false,
-      error: `PENDING_ELSEWHERE:${other?.name ?? "다른 클랜"}`,
+      error: `PENDING_ELSEWHERE:${otherClan?.name ?? "다른 클랜"}`,
     };
   }
 

@@ -19,7 +19,31 @@ function statusLabel(s: JoinRow["status"]): string {
   return "취소됨";
 }
 
-export function ProfileJoinRequests({ rows }: { rows: JoinRow[] }) {
+export function ProfileJoinRequests({
+  rows,
+  loadFailed = false,
+}: {
+  rows: JoinRow[];
+  /** 신청 목록 서버 조회 오류 시 빈 목록과 헷갈리지 않게 안내 */
+  loadFailed?: boolean;
+}) {
+  if (loadFailed) {
+    return (
+      <section className="mt-10" aria-labelledby="join-requests-heading">
+        <h2
+          id="join-requests-heading"
+          className="text-lg font-semibold tracking-tight"
+        >
+          가입 신청
+        </h2>
+        <p className="text-destructive mt-2 text-sm leading-relaxed">
+          가입 신청 정보를 불러오지 못했습니다. 잠시 후 새로 고침하거나, 문제가 계속되면
+          로그아웃 후 다시 로그인해 보세요.
+        </p>
+      </section>
+    );
+  }
+
   if (rows.length === 0) {
     return (
       <section className="mt-10" aria-labelledby="join-requests-heading">

@@ -3,6 +3,14 @@ import type { Database } from "@/lib/supabase/database.types";
 
 export type ClanOnboardingStatus = "none" | "pending" | "member";
 
+/** 대기 중 가입 신청 — PostgREST `clans!inner` 임베드 없이 채워 RLS·조인 불일치로 행 소실되는 것 방지 */
+export type PendingJoinBrief = {
+  requestId: string;
+  clanId: string;
+  clanName: string | null;
+  message: string;
+};
+
 export type GameOnboardingState = {
   gameId: string;
   slug: string;
@@ -10,6 +18,8 @@ export type GameOnboardingState = {
   clanStatus: ClanOnboardingStatus;
   clanId: string | null;
   clanName: string | null;
+  /** `clanStatus === "pending"` 일 때 신청 행 세부(UI·캔슬 근거) */
+  pendingJoin: PendingJoinBrief | null;
 };
 
 /**
@@ -49,35 +59,66 @@ export async function loadGameOnboarding(
       clanStatus: "member",
       clanId: myClan.clan_id,
       clanName: myClan.clan_name,
+      pendingJoin: null,
     };
   }
 
-  const { data: pendingRow } = await supabase
+  /* embed 없음: 조인 결과 0건으로 신청 행 통째로 사라지는 케이스 방지 */
+  const { data: pendingRows, error: pendingErr } = await supabase
     .from("clan_join_requests")
-    .select("clan_id, clans!inner(name)")
+    .select("id, clan_id, message")
     .eq("user_id", userId)
     .eq("game_id", game.id)
     .eq("status", "pending")
-    .maybeSingle();
+    .order("applied_at", { ascending: false })
+    .limit(2);
 
-  if (pendingRow?.clan_id) {
-    const joined = pendingRow.clans as unknown as { name: string };
+  if (pendingErr) {
+    console.error("[loadGameOnboarding] pending join:", pendingErr.message);
+  }
+
+  const pendingRow = pendingRows?.[0];
+  if (!pendingRow?.clan_id) {
     return {
       gameId: game.id,
       slug: game.slug,
       authVerified,
-      clanStatus: "pending",
-      clanId: pendingRow.clan_id,
-      clanName: joined?.name ?? null,
+      clanStatus: "none",
+      clanId: null,
+      clanName: null,
+      pendingJoin: null,
     };
   }
+
+  if ((pendingRows?.length ?? 0) > 1) {
+    console.warn(
+      "[loadGameOnboarding] game",
+      game.id,
+      ": multiple pending joins for user — using latest",
+    );
+  }
+
+  const { data: clanRow } = await supabase
+    .from("clans")
+    .select("name")
+    .eq("id", pendingRow.clan_id)
+    .maybeSingle();
+
+  const clanName = clanRow?.name ?? null;
+  const brief: PendingJoinBrief = {
+    requestId: pendingRow.id,
+    clanId: pendingRow.clan_id,
+    clanName,
+    message: pendingRow.message ?? "",
+  };
 
   return {
     gameId: game.id,
     slug: game.slug,
     authVerified,
-    clanStatus: "none",
-    clanId: null,
-    clanName: null,
+    clanStatus: "pending",
+    clanId: pendingRow.clan_id,
+    clanName,
+    pendingJoin: brief,
   };
 }

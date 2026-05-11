@@ -45,18 +45,8 @@ export default async function ClanOnboardingPage({
 
   if (!game) redirect("/games");
 
-  const { data: pendingRow } = await supabase
-    .from("clan_join_requests")
-    .select("id, clan_id, message, clans!inner(name)")
-    .eq("user_id", user.id)
-    .eq("game_id", game.id)
-    .eq("status", "pending")
-    .maybeSingle();
-
-  const pendingClan =
-    pendingRow?.clans != null
-      ? (pendingRow.clans as unknown as { name: string })
-      : null;
+  const pendingBrief =
+    state.clanStatus === "pending" ? state.pendingJoin : null;
 
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
@@ -93,7 +83,7 @@ export default async function ClanOnboardingPage({
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">
           {game.name_ko} · 가입 또는 생성
         </h1>
-        {pendingRow && pendingClan ? (
+        {pendingBrief ? (
           <section
             className="border-primary/35 bg-muted/45 mt-6 space-y-3 rounded-xl border px-4 py-4 shadow-sm"
             aria-label="현재 신청 중인 클랜"
@@ -103,15 +93,15 @@ export default async function ClanOnboardingPage({
                 진행 중인 가입 신청
               </p>
               <p className="text-foreground mt-1 text-base font-semibold">
-                「{pendingClan.name}」 ({game.name_ko})
+                「{pendingBrief.clanName ?? "클랜"}」 ({game.name_ko})
               </p>
               <p className="text-muted-foreground mt-1 text-sm">
                 운영진 승인을 기다리는 중입니다. 프로필에도 같은 내용이 표시됩니다.
               </p>
             </div>
-            {pendingRow.message ? (
+            {pendingBrief.message ? (
               <p className="text-muted-foreground border-primary/35 border-l-2 py-1 pl-3 text-sm italic">
-                {pendingRow.message}
+                {pendingBrief.message}
               </p>
             ) : null}
             <form action={cancelBound}>
@@ -151,8 +141,10 @@ export default async function ClanOnboardingPage({
 
           <ClanJoinList
             gameSlug={gameSlug}
-            pendingClanId={pendingRow?.clan_id ?? null}
-            blockingClanName={pendingClan?.name ?? null}
+            pendingClanId={pendingBrief?.clanId ?? null}
+            blockingClanName={
+              pendingBrief ? (pendingBrief.clanName ?? "진행 중인 클랜") : null
+            }
             clans={(clanRows ?? []).map((c) => ({
               id: c.id,
               name: c.name,
