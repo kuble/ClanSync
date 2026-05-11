@@ -189,7 +189,7 @@ H1 "클랜 스토어"
 - Premium 잠금 카드: `.mock-store-card.pro` + 비활성 버튼
 - 정책 카피 영역: `.mock-store-policy-note`, `.mock-store-policy-sep`
 - 잔액 표시 클래스: `.coin-amount`
-- **D-STORE-03 (Phase 2)**: 사용자용 환불 UI 없음. **클랜 풀** 구매 오류 시 운영진이 클랜 **관리** 탭 「스토어 구매 정정」에서 무효화(`void_clan_store_purchase`). 구매 당사자 본인은 처리 불가.
+- **D-STORE-03 (Phase 2)**: 사용자용 환불 UI 없음. 운영진이 클랜 **관리** 탭에서 무효화한다 — **클랜 풀**(`void_clan_store_purchase`), **같은 클랜 활동 멤버의 개인 풀**(`void_personal_store_purchase`). UI는 「클랜 풀 구매 정정」「개인 풀 구매 정정」으로 구분된다. 구매 당사자 본인은 처리 불가.
 
 ## 연관 문서
 - [pages.md](../pages.md)

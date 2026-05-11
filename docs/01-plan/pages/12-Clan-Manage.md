@@ -161,9 +161,13 @@ H1 "클랜 관리"
 ## 스토어 구매 정정 (D-STORE-03 · Phase 2)
 
 - **위치**: `/games/[g]/clan/[id]/manage` 본문, 구독 카드 아래(또는 배너 설정 위). `manage_clan_pool` 권한이 있는 운영진에게만 노출된다.
-- **대상**: **클랜 풀**로 구매된 활성 구매(`purchases.pool_source=clan`, `voided_at` 없음) 목록. 개인 풀 구매는 이 경로에서 무효화하지 않는다.
-- **제약**: **구매 당사자(`purchases.user_id`)와 같은 계정**으로는 무효화할 수 없다. 다른 운영진이 사유(네 글자 이상)·확인 후 무효화한다.
-- **처리**: RPC `void_clan_store_purchase` — 클랜 코인 잔액 환급, `coin_transactions`에 `correction_of` 연결된 반대 부호 거래, `purchases`에 `voided_at`·`voided_by`·`void_reason` 기록. 상품이 `clan_banner_slot`이면 `clans.banner_url`을 비운다.
+- **구역 1 — 클랜 풀**
+  - **대상**: 이 클랜의 **클랜 풀**로 구매된 활성 구매(`purchases.pool_source=clan`, `clan_id` 일치, `voided_at` 없음).
+  - **처리**: RPC `void_clan_store_purchase` — 클랜 코인 잔액 환급, `coin_transactions`에 `correction_of` 연결된 반대 부호 거래, `purchases`에 무효 표시. 상품이 `clan_banner_slot`이면 `clans.banner_url`을 비운다.
+- **구역 2 — 개인 풀**
+  - **대상**: **이 클랜의 활동 멤버**가 산 **개인 풀** 활성 구매(`pool_source=personal`, `clan_id` NULL, `voided_at` 없음). 멤버가 여러 클랜에 속해 있어도 **해당 클랜 관리 화면**에서는 그 클랜 활동 멤버의 개인 구매만 목록에 나온다.
+  - **처리**: RPC `void_personal_store_purchase` — **구매자 `users.coin_balance`** 환급, `coin_transactions`(`pool_type=personal`, `correction_of`), `purchases` 무효. 구매자가 **해당 `p_context_clan_id`에서 활동 멤버**가 아니면 RPC가 거절한다. 상품이 `profile_entrance_fx`이면 스토어 출처 네임플레이트 frame(`pf_entrance_store:%`)에 대한 **선택·보유(`user_nameplate_selections`·`user_nameplate_inventory`)** 를 정리한다.
+- **공통 제약**: **구매 당사자(`purchases.user_id`)와 같은 계정**으로는 무효화할 수 없다. 다른 운영진이 사유(네 글자 이상)·확인 후 무효화한다.
 
 ## 탭 4 — 구독결제 (Subscribe)
 

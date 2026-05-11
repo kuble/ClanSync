@@ -5,6 +5,12 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-11 — D-STORE-03 개인 풀 스토어 구매 무효화
+
+- [x] **DB** — `0038_void_personal_store_purchase_rpc.sql`: `void_personal_store_purchase` (개인 잔액 환급·`correction_of`·`profile_entrance_fx` 시 네임플레이트·선택 정리·구매자 클랜 멤버 검증).
+- [x] **앱** — `voidPersonalStorePurchaseAction` · 관리 「개인 풀 구매 정정」·활동 멤버 개인 구매 목록.
+- [x] **문서** — `12-Clan-Manage.md` · `13-Clan-Store.md` · `QA_시나리오.md` · `TODO_Phase2.md`(잔여 표기).
+
 ### 2026-05-11 — 투표 알림 Discord 배치 + 알림 시트·MainGame 탭 안정화
 
 - [x] **DB** — `0037_discord_poll_notification_dispatch.sql`: `processing` · Discord claim/finalize RPC · poll 종료 시 스케줄 취소.
