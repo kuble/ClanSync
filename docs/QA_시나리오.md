@@ -18,6 +18,31 @@
 
 <!-- 새 시나리오는 이 구분선 위에 추가 (최신이 위) -->
 
+## 2026-05-11 — MainGame 스크림 탭 (개설·상대 지정·양측 확정)
+
+**한 줄 요약**: 게임 허브 **스크림** 탭에서 운영진이 방을 만들고 상대 클랜을 배정한 뒤, 양쪽에서 확정 버튼을 눌러 DB가 `confirmed`로 올라가는지 확인한다.
+
+**환경**: `http://127.0.0.1:3000` · [debug-and-fixtures.md](./01-plan/debug-and-fixtures.md) — 같은 게임에 **서로 다른 클랜 A·B** 와 각각 `confirm_scrim` 가능한 운영진 계정.
+
+**사전 조건**: DB **0041** 적용. 두 계정이 각각 클랜 A·B에 속해 있고, MainGame 온보딩을 마친 상태.
+
+**절차**:
+
+1. 계정 A로 `/games/{게임슬러그}` 접속 → **스크림** 탭.
+2. 일시·(선택) 제목·장소 입력 후 **방 만들기** — 목록에 `모집 중` 행이 생기는지 본다.
+3. **상대 클랜**에서 B를 고르고 **상대 지정** — 상태가 상대 배정(`matched`)으로 바뀌는지 본다.
+4. 계정 A로 **우리 측 확정 (호스트)** 클릭.
+5. 계정 B로 로그인해 같은 탭에서 **우리 측 확정 (게스트)** 클릭.
+6. (선택) Supabase에서 해당 `scrim_rooms`가 `confirmed`인지, `clan_events`에 `scrim_auto`가 양 클랜에 생겼는지 본다.
+
+**기대 결과**:
+
+- [ ] `confirm_scrim` 없는 일반 멤버는 개설 폼·상대 지정·확정 버튼을 쓰지 못한다(또는 액션 에러).
+- [ ] 같은 측에서 확정을 두 번 누르면 "이미 이 측에서 확정했습니다" 류 메시지가 난다.
+- [ ] 양측 확정 후 방 상태가 일정 확정으로 보이거나 DB상 `confirmed`이다.
+
+**깨졌을 때**: 브라우저 토스트·네트워크 · `scrim-rooms` Server Action · RLS `scrim_room_confirmations` · 서비스 롤 INSERT/UPDATE.
+
 ## 2026-05-11 — 스크림 확정 → 클랜 일정·in-app 예약 (0041, Supabase)
 
 **한 줄 요약**: `scrim_rooms`가 `confirmed`가 되면 양 클랜에 `scrim_auto` `clan_events`가 생기고, DB 트리거가 in-app reminder `notification_log`를 넣는지(및 취소 시 `cancelled` 처리되는지) 확인한다.

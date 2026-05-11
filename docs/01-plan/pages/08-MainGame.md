@@ -153,6 +153,14 @@
 ### 한 줄
 다른 클랜과 연습 경기를 잡는 일정 게시판. 일자별로 카드를 띄우고, 양쪽 운영진이 채팅에서 합의·확정.
 
+### Phase 2 앱 동작 (MainGame `/games/[gameSlug]` · 스크림 탭)
+
+- **목록**: 해당 게임에 소속된 클랜이 `scrim_rooms`의 호스트(`clan_a_id`) 또는 게스트(`clan_b_id`)로 참여 중인 방을 시간순으로 표시한다. 각 행에 제목·일시·장소(선택)·상대 클랜·`draft`/`matched`/… 상태·호스트/게스트 확정 여부를 보여 준다.
+- **개설**: 클랜에 소속되고 `confirm_scrim` 권한이 있는 멤버만 **제목(선택)·일시(필수)·장소(선택)** 로 `draft` 방을 생성한다. (INSERT는 서비스 롤 — `createDraftScrimRoomAction`.)
+- **상대 지정**: 호스트이며 `draft`·`clan_b_id` NULL일 때, **순위 탭과 동일 데이터**인 클랜 순위 미리보기 목록에서 자기 클랜을 제외한 클랜을 고르고 **상대 지정** → `matched` + `clan_b_id` (서비스 롤 — `attachGuestClanToScrimAction`).
+- **양측 확정**: `matched`이고 상대가 있을 때, 호스트/게스트 각각 `confirm_scrim` 권한자가 **우리 측 확정**을 누르면 `scrim_room_confirmations`에 해당 `side`가 쌓인다. 중복 확정은 한글 에러. (RLS — `confirmScrimSideAction`.) DB 트리거가 양측 확정 시 `confirmed` 승격 및 `clan_events` 동기화(0041).
+- **미구현(목업·후속)**: 일자별 캘린더 UI, 스크림 전용 채팅 모달, 티어 필터, 본문 편집 전용 화면 등은 기존 목업 스펙과 병행해 추후 확장.
+
 ### 필터
 | 항목 | 옵션 |
 |------|------|
