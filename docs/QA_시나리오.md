@@ -18,6 +18,29 @@
 
 <!-- 새 시나리오는 이 구분선 위에 추가 (최신이 위) -->
 
+## 2026-05-11 — 단발 일정 in-app 알림 (D-EVENTS-03 일부)
+
+**한 줄 요약**: `repeat=없음` 수동 일정을 **미래 시각**으로 저장하면 활동 멤버에게 `notification_log` 예약이 생기고, 시각이 되면 Cron이 알림 벨에 **`event_reminder`** 로 뜨는지 확인한다.
+
+**환경**: `http://127.0.0.1:3000` · 원격 DB **`0040`** (`dispatch_inapp_notification_batch` 확장) · `CRON_SECRET`로 `GET /api/cron/dispatch-notifications` 호출 가능.
+
+**사전 조건**: [debug-and-fixtures.md](./01-plan/debug-and-fixtures.md) — 클랜 운영진으로 **단발** 일정을 추가할 수 있음. 테스트용으로 시작 시각을 **11분~25시간 뒤** 등으로 잡으면 T-10m 등 슬롯이 1개 이상 잡힌다.
+
+**절차**:
+
+1. 이벤트 탭에서 **반복 없음** 일정을 등록하고 시작 시각을 위 범위로 둔다.
+2. Supabase `notification_log`에서 해당 `event_id`·`channel=inapp`·`status=scheduled` 행이 생겼는지 본다(슬롯 개수는 시각에 따라 다름).
+3. (선택) 행의 `scheduled_at`을 과거로 잠깐 바꾸거나 시간이 지난 뒤 `dispatch-notifications` Cron을 호출한다.
+4. MainClan 알림 벨에서 **일정 N시간 전(또는 10분 전 등) · 제목** 형태의 항목이 보이고, 탭 이동이 캘린더로 이어지는지 본다.
+5. 일정을 **취소**하면 남은 `scheduled` 행이 `cancelled`로 바뀌거나, Cron이 `cancelled` 처리하는지 확인한다.
+
+**기대 결과**:
+
+- [ ] 반복 일정(매주/매월)을 넣었을 때는 이 경로로 `event_id` 예약이 생기지 않는다(MVP).
+- [ ] 일정 수정 후에도 예약이 새 시각 기준으로 갱신된다.
+
+**깨졌을 때**: `insertClanEventInAppNotifications` · `dispatch_inapp_notification_batch` · `notifications.kind`.
+
 ## 2026-05-11 — Cron · LFG 모집 만료 정리 (`dispatch-notifications`)
 
 **한 줄 요약**: `GET /api/cron/dispatch-notifications` 응답에 **`lfg_expired`** 가 포함되고, `expires_at`이 지난 `open` LFG 글이 DB에서 `expired`로 바뀌는지 확인한다.

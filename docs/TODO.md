@@ -3,7 +3,7 @@
 > **페이즈별 체크리스트**는 아래 문서로 나눈다. 세션 종료 시 **[세션 로그](./TODO_LOG.md)** 맨 위에 블록을 추가하고, 해당 페이즈 문서의 체크·요약표를 갱신한다.  
 > **/todo 커맨드**: `.cursor/commands/todo.md` 절차로 문서·목업과 동기화한다.
 
-> **지금 라이브**: M6b `/events`·알림 Cron·스토어 무효화(클랜·개인 풀) · **LFG 만료 배치(0039·Cron 동선)** · **다음**: 일정 `notification_log` · 카카오 등 타 채널 · M6c 잔여 · [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md)
+> **지금 라이브**: M6b (단발 일정 **in-app T-24h~T+0 예약·0040**) · LFG 만료 Cron · 스토어 무효화 · **다음**: 반복 일정 알림 · 카카오 채널 · M6c · [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md)
 
 ## 페이즈별 문서
 
@@ -22,7 +22,7 @@
 |------|-----|
 | **현재 단계** | Phase 2 — Next.js `src/` · Supabase · RLS (마스터 플랜 M0~M8) |
 | **이전 단계** | Phase 1 — 정적 목업 (`mockup/`) **종료** (2026-03-28) |
-| **마지막 갱신** | 2026-05-11 — **0039** `expire_open_lfg_posts_batch` · Cron에서 LFG 만료 정리 (D-LFG-01) |
+| **마지막 갱신** | 2026-05-11 — **0040** 단발 일정 in-app 알림 예약·`event_reminder` (D-EVENTS-03 일부) |
 
 ---
 

@@ -7,7 +7,7 @@
 | 항목 | 값 |
 |------|-----|
 | **단계** | Phase 2 — 앱 구현 |
-| **마지막 갱신** | 2026-05-11 — **0039** `expire_open_lfg_posts_batch` · Cron에서 LFG 만료 정리 (D-LFG-01) |
+| **마지막 갱신** | 2026-05-11 — **0040** 단발 일정 in-app 알림 예약·`event_reminder` 발송(D-EVENTS-03 일부) |
 
 ## 전제 (Q&A 확정)
 
@@ -121,7 +121,7 @@ flowchart TD
 ### M6 — MainClan 탭 묶음 (M4 이후, 권장 순서 a→b→c)
 
 - [x] **M6a S05 클랜 통계** — 요약 KPI · HoF(설정 모달·등재 규칙·전체/월/연) · **D-STATS-03** 활동일 표·내전 막대 · **D-STATS-04** CSV 안내만 · 경기 기록 일자 목록(캘린더·정정은 M6b 후속)
-- [ ] **M6b S06 이벤트·관리·스토어** — **부분**: `0013`~`0015` · **`0027` 반복** · **`0028` RSVP** · **`0029` 클랜 투표** · **`0030` 대진표 초안(`bracket_tournaments`·snapshot)** · **`0031` `notification_log`(투표 예약·D-EVENTS-04)** · **`0032` `notifications`·in-app 발송 배치·Cron** · **`0033` 읽음 RPC·MainClan 벨·드로어(D-NOTIF-01)** · **`0037` 투표 알림 Discord 배치·`notification_log`** · **`0036` 클랜 풀 `purchases` 무효화** · **`0038` 개인 풀 `purchases` 무효화(D-STORE-03)** · `/events` **월간 캘린더·대진표 탭·투표 탭·수동 일정 편집·취소·반복 펼침·스크림 참가(D-EVENTS-01)·운영진 명단** · 관리·구독·Discord 웹훅 · 스토어 MVP · D-STORE-02 카피 · **`profile_entrance_fx`** · **잔여**: 타 채널 발송 · 일정 알림 행 확장 · 팀·매치 마법사·코인 연동 · 시각 효과 고도화
+- [ ] **M6b S06 이벤트·관리·스토어** — **부분**: `0013`~`0015` · **`0027` 반복** · **`0028` RSVP** · **`0029` 클랜 투표** · **`0030` 대진표 초안(`bracket_tournaments`·snapshot)** · **`0031` `notification_log`(투표 예약·D-EVENTS-04)** · **`0032` `notifications`·in-app 발송 배치·Cron** · **`0033` 읽음 RPC·MainClan 벨·드로어(D-NOTIF-01)** · **`0037` 투표 알림 Discord 배치** · **`0040` 단발 일정 in-app 예약·`event_reminder`** · **`0036`/`0038` 스토어 무효화(D-STORE-03)** · `/events` **월간 캘린더·대진표·투표·수동 일정·취소·반복 펼침·스크림 RSVP·운영진 명단** · 관리·Discord 웹훅 · 스토어 MVP · D-STORE-02 · **`profile_entrance_fx`** · **잔여**: 반복·scrim_auto 일정 알림 확장 · 타 채널(카카오 등) · 팀·매치 마법사·코인 연동 · 시각 효과 고도화
 - [ ] **M6c S04 밸런스메이커** — **부분**: `0016`~`0026` 세션·맵·영웅 밴·roster·M/A·Realtime·승부예측·**5분 마감**·결과·**클랜 풀 차감 후 개인 지급**·세션 종료 · **잔여**: 파리뮤추엘·다른 게임 영웅 풀·내전 히스토리 연동
 
 ### M7 — S07 MainGame 커뮤니티 (경량판)
@@ -184,7 +184,7 @@ Phase 1 정적 목업(`mockup/`)은 참조용으로 유지; 운영 빌드에서�
 | 마이그레이션 | `supabase/migrations/0032_notifications_feed_dispatch.sql` | D-NOTIF-01 `notifications` 피드 · `dispatch_inapp_notification_batch`(poll_reminder MVP) |
 | 마이그레이션 | `supabase/migrations/0036_void_clan_store_purchase_rpc.sql` | D-STORE-03 `void_clan_store_purchase`(클랜 풀만·코인 환급·배너 초기화) |
 | 마이그레이션 | `supabase/migrations/0038_void_personal_store_purchase_rpc.sql` | D-STORE-03 `void_personal_store_purchase`(개인 풀·구매자 환급·입장 효과 네임플레이트 정리) |
-| 마이그레이션 | `supabase/migrations/0039_expire_open_lfg_posts_batch.sql` | D-LFG-01 `expire_open_lfg_posts_batch`(만료 open 글·applied 신청 정리) |
+| 마이그레이션 | `supabase/migrations/0040_dispatch_inapp_event_reminders.sql` | `dispatch_inapp_notification_batch` — `event_reminder`(단발 일정) |
 | 마이그레이션 | `supabase/migrations/0014_store_coin_mvp.sql` | `coin_transactions`·`store_items`·`purchases`·`apply_store_purchase` (D-STORE-01 MVP) |
 | 마이그레이션 | `supabase/migrations/0015_store_profile_entrance_nameplate.sql` | 스토어 frame 카탈로그·`apply_store_purchase` 입장 효과 보유 부여 |
 | 마이그레이션 | `supabase/migrations/0016_balance_sessions_mvp.sql` | M6c `balance_sessions`·`balance_session_map_votes` + RLS (클랜당 미종료 1세션) |

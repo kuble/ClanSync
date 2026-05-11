@@ -5,6 +5,12 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-11 — 단발 일정 in-app 알림 예약 (D-EVENTS-03 일부, 0040)
+
+- [x] **DB** — `0040_dispatch_inapp_event_reminders.sql`: `dispatch_inapp_notification_batch` 가 `event_id` → `event_reminder` 피드 INSERT.
+- [x] **앱** — `buildEventReminderSlots` · `insertClanEventInAppNotifications` · `create/update/cancelClanEventAction` 연동(반복·scrim_auto 제외) · 알림 벨 카피·캘린더 딥링크.
+- [x] **문서** — `11-Clan-Events.md` · `QA_시나리오.md` · `TODO_Phase2.md`.
+
 ### 2026-05-11 — LFG 만료 배치 (0039 · Cron)
 
 - [x] **DB** — `0039_expire_open_lfg_posts_batch.sql`: `expire_open_lfg_posts_batch` (open·만료 시각 경과 → `expired`, `applied` 신청 정리).

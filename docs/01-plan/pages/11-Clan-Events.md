@@ -257,6 +257,12 @@ H1 "클랜 이벤트"
 - 구현 이중화: Server Action (주 경로) + `scrim_rooms` AFTER UPDATE OF status 트리거 `clan_events_sync_from_scrim()`.
 - `source='scrim_auto'` 행은 **읽기 전용**. 수동 편집 UI 숨김 + "스크림에서 자동 등록" 배지 + 스크림 상세 열기 링크.
 
+### 단발 일정 in-app 알림 예약 (D-EVENTS-03 · Phase 2 일부)
+- **대상**: `repeat = none` 인 **수동(`source=manual`)** 일정만. `start_at`이 미래이면 활동 멤버마다 `notification_log`(channel=`inapp`)에 **T-24h / T-1h / T-10min / T+0** 중 아직 도래하지 않은 슬롯만 `scheduled` INSERT.
+- **제외**: `weekly`·`monthly`·`scrim_auto` 는 이 경로에서 예약하지 않음(후속).
+- **수정·취소**: 일정 저장 시 기존 `scheduled` 예약을 취소한 뒤 조건이 맞으면 재예약. 취소(`cancelled_at`) 시에도 `scheduled` 예약을 취소.
+- **발송**: `dispatch_inapp_notification_batch`가 피드 `notifications.kind = event_reminder` 로 반영. 알림 벨 링크는 캘린더 탭(`?tab=calendar`).
+
 ### 대진표 (D-EVENTS-05 DECIDED — 클랜 내 이벤트 전용)
 - 스키마: `bracket_tournaments` · `bracket_teams` · `bracket_team_members` · `bracket_matches` · `bracket_results` (→ `schema.md`).
 - `host_clan_id = winner_clan_id` 불변식 (클랜 간 대회 없음).
