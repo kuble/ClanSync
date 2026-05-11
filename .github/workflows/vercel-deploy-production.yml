@@ -1,7 +1,9 @@
-# GitHub 네이티브 연동(푸시→Vercel)이 동작하지 않을 때 프로덕션 배포 고정 경로입니다.
+# 네이티브 Git 연동이 정상이면 main 푸시마다 Vercel이 알아서 빌드합니다.
+# 이 워크플로는 연동 복구 전·긴급용 수동 배포만 (push와 겹치면 이중 빌드됨).
 #
-# 레포 Secrets: VERCEL_TOKEN (필수) — https://vercel.com/account/tokens
-# 고정되는 대상(Vercel API로 확인된 ClanSync 조직·프로젝트, 비공개 비밀 아님):
+# 실행: GitHub Actions → Deploy production (Vercel CLI) → Run workflow
+# Secrets: VERCEL_TOKEN — https://vercel.com/account/tokens
+# 대상(Vercel에서 확인, 비밀 아님):
 #   • org  team_UaVXQMdZ2aJQUkYHxU7iSzN3  (slug: clansync)
 #   • app  prj_UwqBACb65GoSqFfqPekMNe15Og8T (이름: clan-sync)
 
@@ -9,9 +11,6 @@ name: Deploy production (Vercel CLI)
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
 
 # 기본 GITHUB_TOKEN 권한 최소화(checkout에 필요한 읽기만).
 permissions:
@@ -32,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Show triggering commit
+      - name: Show HEAD (manual run)
         run: |
           echo "::notice::GITHUB_SHA=${GITHUB_SHA}"
           git show -s --format='%h %s' "$GITHUB_SHA"
