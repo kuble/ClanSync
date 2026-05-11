@@ -36,6 +36,40 @@ function revalidateScrimSurfaces(
   }
 }
 
+const TIER_LO = 0;
+const TIER_HI = 5000;
+
+/** null,null = 미사용 · 둘 다 있어야 유효 */
+function parseTierPair(
+  minIn: number | null | undefined,
+  maxIn: number | null | undefined,
+):
+  | { ok: true; tier_min: number | null; tier_max: number | null }
+  | { ok: false; error: string } {
+  const minUnset = minIn === undefined || minIn === null;
+  const maxUnset = maxIn === undefined || maxIn === null;
+  if (minUnset && maxUnset) {
+    return { ok: true, tier_min: null, tier_max: null };
+  }
+  if (minUnset || maxUnset) {
+    return { ok: false, error: "티어 하한·상한을 함께 입력하거나 둘 다 비우세요." };
+  }
+  if (!Number.isInteger(minIn) || !Number.isInteger(maxIn)) {
+    return { ok: false, error: "티어는 정수만 입력할 수 있습니다." };
+  }
+  if (
+    minIn < TIER_LO ||
+    maxIn > TIER_HI ||
+    minIn > maxIn
+  ) {
+    return {
+      ok: false,
+      error: `티어는 ${TIER_LO}~${TIER_HI}이며 하한 ≤ 상한이어야 합니다.`,
+    };
+  }
+  return { ok: true, tier_min: minIn, tier_max: maxIn };
+}
+
 /** 개설 클랜 운영진+(`confirm_scrim`) — RLS가 INSERT를 막으므로 서비스 롤. */
 export async function createDraftScrimRoomAction(
   gameSlug: string,
@@ -44,6 +78,10 @@ export async function createDraftScrimRoomAction(
     scheduledAtIso: string;
     title?: string;
     place?: string;
+    mode?: string;
+    memo?: string;
+    tierMin?: number | null;
+    tierMax?: number | null;
   },
 ): Promise<ScrimRoomActionResult> {
   const supabase = await createClient();
@@ -84,6 +122,13 @@ export async function createDraftScrimRoomAction(
   const title = titleRaw ? titleRaw.slice(0, 200) : null;
   const placeRaw = (input.place ?? "").trim();
   const place = placeRaw ? placeRaw.slice(0, 500) : null;
+  const modeRaw = (input.mode ?? "").trim();
+  const mode = modeRaw ? modeRaw.slice(0, 32) : null;
+  const memoRaw = (input.memo ?? "").trim();
+  const memo = memoRaw ? memoRaw.slice(0, 5000) : null;
+
+  const tiers = parseTierPair(input.tierMin, input.tierMax);
+  if (!tiers.ok) return { ok: false, error: tiers.error };
 
   const svc = createServiceRoleClient();
   const { error } = await svc.from("scrim_rooms").insert({
@@ -91,6 +136,10 @@ export async function createDraftScrimRoomAction(
     scheduled_at: start.toISOString(),
     title,
     place,
+    mode,
+    tier_min: tiers.tier_min,
+    tier_max: tiers.tier_max,
+    memo,
     status: "draft",
     created_by: user.id,
   });
@@ -334,15 +383,19 @@ export async function cancelScrimRoomAction(
   return { ok: true };
 }
 
-/** 개설 클랜 운영진+ — 제목·일시·장소 수정. 확정 뒤 변경 시 확정이 무효화되면 `needReconfirm`. */
+/** 개설 클랜 운영진+ — 제목·일시·장소·모드·티어·메모 수정. D-SCRIM-02 무효화 필드(일시·장소·모드·티어) 변경 시 `needReconfirm`. */
 export async function updateScrimRoomDetailsAction(
   gameSlug: string,
   hostClanId: string,
   scrimRoomId: string,
   input: {
-    title?: string;
-    place?: string;
-    scheduledAtIso?: string;
+    title: string;
+    place: string;
+    scheduledAtIso: string;
+    mode: string;
+    memo: string;
+    tierMin: string;
+    tierMax: string;
   },
 ): Promise<ScrimRoomActionResult> {
   const supabase = await createClient();
@@ -374,21 +427,29 @@ export async function updateScrimRoomDetailsAction(
     return { ok: false, error: "이 게임 소속 클랜만 수정할 수 있습니다." };
   }
 
-  const titleProvided = input.title !== undefined;
-  const placeProvided = input.place !== undefined;
-  const timeProvided = input.scheduledAtIso !== undefined;
-
-  if (!titleProvided && !placeProvided && !timeProvided) {
-    return { ok: false, error: "변경할 항목을 입력하세요." };
+  const start = new Date(input.scheduledAtIso);
+  if (Number.isNaN(start.getTime())) {
+    return { ok: false, error: "일시가 올바르지 않습니다." };
   }
+  const scheduledAt = start.toISOString();
 
-  let scheduledAt: string | undefined;
-  if (timeProvided) {
-    const start = new Date(input.scheduledAtIso!);
-    if (Number.isNaN(start.getTime())) {
-      return { ok: false, error: "일시가 올바르지 않습니다." };
+  const minStr = input.tierMin.trim();
+  const maxStr = input.tierMax.trim();
+  let tierMinNum: number | null = null;
+  let tierMaxNum: number | null = null;
+  if (minStr !== "" || maxStr !== "") {
+    if (minStr === "" || maxStr === "") {
+      return { ok: false, error: "티어 하한·상한을 함께 입력하거나 둘 다 비우세요." };
     }
-    scheduledAt = start.toISOString();
+    tierMinNum = Number.parseInt(minStr, 10);
+    tierMaxNum = Number.parseInt(maxStr, 10);
+    if (!Number.isFinite(tierMinNum) || !Number.isFinite(tierMaxNum)) {
+      return { ok: false, error: "티어는 정수만 입력할 수 있습니다." };
+    }
+    const tiers = parseTierPair(tierMinNum, tierMaxNum);
+    if (!tiers.ok) return { ok: false, error: tiers.error };
+    tierMinNum = tiers.tier_min;
+    tierMaxNum = tiers.tier_max;
   }
 
   const svc = createServiceRoleClient();
@@ -402,7 +463,9 @@ export async function updateScrimRoomDetailsAction(
 
   const { data: room, error: roomErr } = await svc
     .from("scrim_rooms")
-    .select("clan_a_id, status, scheduled_at, place")
+    .select(
+      "clan_a_id, status, scheduled_at, place, mode, tier_min, tier_max, memo",
+    )
     .eq("id", scrimRoomId)
     .maybeSingle();
 
@@ -414,35 +477,36 @@ export async function updateScrimRoomDetailsAction(
     return { ok: false, error: "이 상태에서는 수정할 수 없습니다." };
   }
 
-  const patch: {
-    title?: string | null;
-    place?: string | null;
-    scheduled_at?: string;
-    updated_at: string;
-  } = { updated_at: new Date().toISOString() };
+  const titleRaw = input.title.trim();
+  const title = titleRaw ? titleRaw.slice(0, 200) : null;
+  const placeRaw = input.place.trim();
+  const place = placeRaw ? placeRaw.slice(0, 500) : null;
+  const modeRaw = input.mode.trim();
+  const mode = modeRaw ? modeRaw.slice(0, 32) : null;
+  const memoRaw = input.memo.trim();
+  const memo = memoRaw ? memoRaw.slice(0, 5000) : null;
 
-  if (titleProvided) {
-    const raw = input.title!.trim();
-    patch.title = raw ? raw.slice(0, 200) : null;
-  }
-  if (placeProvided) {
-    const raw = input.place!.trim();
-    patch.place = raw ? raw.slice(0, 500) : null;
-  }
-  if (scheduledAt !== undefined) {
-    patch.scheduled_at = scheduledAt;
-  }
+  const invalidateShape =
+    scheduledAt !== room.scheduled_at ||
+    place !== room.place ||
+    mode !== room.mode ||
+    tierMinNum !== room.tier_min ||
+    tierMaxNum !== room.tier_max;
 
-  const scheduleOrPlaceChanges =
-    (patch.scheduled_at !== undefined &&
-      patch.scheduled_at !== room.scheduled_at) ||
-    (patch.place !== undefined && patch.place !== room.place);
-
-  const needReconfirm = hadConfirmations && scheduleOrPlaceChanges;
+  const needReconfirm = hadConfirmations && invalidateShape;
 
   const { data: updated, error: upErr } = await svc
     .from("scrim_rooms")
-    .update(patch)
+    .update({
+      title,
+      place,
+      scheduled_at: scheduledAt,
+      mode,
+      tier_min: tierMinNum,
+      tier_max: tierMaxNum,
+      memo,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", scrimRoomId)
     .eq("clan_a_id", hostClanId)
     .in("status", ["draft", "matched", "confirmed"])

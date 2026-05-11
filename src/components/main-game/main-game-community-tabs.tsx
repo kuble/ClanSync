@@ -126,6 +126,10 @@ export function MainGameCommunityTabs({
   const [scrimTitle, setScrimTitle] = useState("");
   const [scrimPlace, setScrimPlace] = useState("");
   const [scrimWhen, setScrimWhen] = useState(defaultExp);
+  const [scrimMode, setScrimMode] = useState("5vs5");
+  const [scrimTierMin, setScrimTierMin] = useState("");
+  const [scrimTierMax, setScrimTierMax] = useState("");
+  const [scrimMemo, setScrimMemo] = useState("");
   const [guestPickByRoom, setGuestPickByRoom] = useState<Record<string, string>>(
     {},
   );
@@ -134,6 +138,10 @@ export function MainGameCommunityTabs({
   const [editScrimTitle, setEditScrimTitle] = useState("");
   const [editScrimPlace, setEditScrimPlace] = useState("");
   const [editScrimWhen, setEditScrimWhen] = useState("");
+  const [editScrimMode, setEditScrimMode] = useState("");
+  const [editScrimTierMin, setEditScrimTierMin] = useState("");
+  const [editScrimTierMax, setEditScrimTierMax] = useState("");
+  const [editScrimMemo, setEditScrimMemo] = useState("");
 
   const guestCandidates = myClanId
     ? scrimGuestClans.filter((c) => c.id !== myClanId)
@@ -184,10 +192,32 @@ export function MainGameCommunityTabs({
     e.preventDefault();
     if (!myClanId) return;
     start(async () => {
+      const t1 = scrimTierMin.trim();
+      const t2 = scrimTierMax.trim();
+      let tierMin: number | null | undefined;
+      let tierMax: number | null | undefined;
+      if (t1 || t2) {
+        if (!t1 || !t2) {
+          toast.error("티어 하한·상한을 함께 입력하거나 둘 다 비우세요.");
+          return;
+        }
+        const a = Number.parseInt(t1, 10);
+        const b = Number.parseInt(t2, 10);
+        if (!Number.isFinite(a) || !Number.isFinite(b)) {
+          toast.error("티어는 정수만 입력하세요.");
+          return;
+        }
+        tierMin = a;
+        tierMax = b;
+      }
       const r = await createDraftScrimRoomAction(gameSlug, myClanId, {
         scheduledAtIso: new Date(scrimWhen).toISOString(),
         title: scrimTitle.trim() || undefined,
         place: scrimPlace.trim() || undefined,
+        mode: scrimMode.trim() || undefined,
+        memo: scrimMemo.trim() || undefined,
+        tierMin,
+        tierMax,
       });
       if (!r.ok) {
         toast.error(r.error);
@@ -196,6 +226,10 @@ export function MainGameCommunityTabs({
       toast.success("스크림 방을 만들었습니다.");
       setScrimTitle("");
       setScrimPlace("");
+      setScrimMode("5vs5");
+      setScrimTierMin("");
+      setScrimTierMax("");
+      setScrimMemo("");
       router.refresh();
     });
   }
@@ -699,6 +733,50 @@ export function MainGameCommunityTabs({
               disabled={pending}
               onChange={(e) => setScrimPlace(e.target.value)}
             />
+            <label className="space-y-1 text-xs">
+              <span className="text-muted-foreground">모드 (선택, 예: 5vs5)</span>
+              <input
+                className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
+                value={scrimMode}
+                disabled={pending}
+                onChange={(e) => setScrimMode(e.target.value)}
+                maxLength={32}
+              />
+            </label>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <label className="space-y-1 text-xs">
+                <span className="text-muted-foreground">티어 하한 (선택)</span>
+                <input
+                  type="number"
+                  className="border-input bg-background w-full rounded-md border px-2 py-1.5"
+                  value={scrimTierMin}
+                  disabled={pending}
+                  onChange={(e) => setScrimTierMin(e.target.value)}
+                  min={0}
+                  max={5000}
+                />
+              </label>
+              <label className="space-y-1 text-xs">
+                <span className="text-muted-foreground">티어 상한 (선택)</span>
+                <input
+                  type="number"
+                  className="border-input bg-background w-full rounded-md border px-2 py-1.5"
+                  value={scrimTierMax}
+                  disabled={pending}
+                  onChange={(e) => setScrimTierMax(e.target.value)}
+                  min={0}
+                  max={5000}
+                />
+              </label>
+            </div>
+            <textarea
+              className="border-input bg-background min-h-[72px] w-full rounded-md border px-3 py-2 text-sm"
+              placeholder="메모 (선택)"
+              value={scrimMemo}
+              disabled={pending}
+              onChange={(e) => setScrimMemo(e.target.value)}
+              maxLength={5000}
+            />
             <Button type="submit" size="sm" disabled={pending}>
               방 만들기
             </Button>
@@ -776,6 +854,19 @@ export function MainGameCommunityTabs({
                   {room.place ? (
                     <p className="text-muted-foreground mt-1 text-xs">{room.place}</p>
                   ) : null}
+                  {room.mode ? (
+                    <p className="text-muted-foreground mt-1 text-xs">모드 {room.mode}</p>
+                  ) : null}
+                  {room.tier_min != null && room.tier_max != null ? (
+                    <p className="text-muted-foreground mt-1 text-xs">
+                      티어 범위 {room.tier_min}–{room.tier_max}
+                    </p>
+                  ) : null}
+                  {room.memo ? (
+                    <p className="text-muted-foreground mt-2 whitespace-pre-wrap text-xs">
+                      {room.memo}
+                    </p>
+                  ) : null}
                   <p className="text-muted-foreground mt-2 text-[11px]">
                     호스트 확정 {room.host_confirmed ? "완료" : "대기"} · 게스트
                     확정 {room.guest_confirmed ? "완료" : "대기"}
@@ -800,10 +891,18 @@ export function MainGameCommunityTabs({
                               setEditScrimTitle(room.title ?? "");
                               setEditScrimPlace(room.place ?? "");
                               setEditScrimWhen(localDatetimeInputValue(room.scheduled_at));
+                              setEditScrimMode(room.mode ?? "");
+                              setEditScrimTierMin(
+                                room.tier_min != null ? String(room.tier_min) : "",
+                              );
+                              setEditScrimTierMax(
+                                room.tier_max != null ? String(room.tier_max) : "",
+                              );
+                              setEditScrimMemo(room.memo ?? "");
                             }
                           }}
                         >
-                          {isEditing ? "수정 닫기" : "일정·제목·장소 수정"}
+                          {isEditing ? "수정 닫기" : "일정·조건 수정"}
                         </Button>
                       ) : null}
                       {showCancel ? (
@@ -858,6 +957,10 @@ export function MainGameCommunityTabs({
                               title: editScrimTitle,
                               place: editScrimPlace,
                               scheduledAtIso: new Date(editScrimWhen).toISOString(),
+                              mode: editScrimMode,
+                              memo: editScrimMemo,
+                              tierMin: editScrimTierMin,
+                              tierMax: editScrimTierMax,
                             },
                           );
                           if (!r.ok) {
@@ -866,7 +969,7 @@ export function MainGameCommunityTabs({
                           }
                           toast.success(
                             r.needReconfirm
-                              ? "일시·장소를 바꿔 확정을 다시 받아야 합니다."
+                              ? "일시·장소·모드·티어 범위를 바꿔 확정을 다시 받아야 합니다."
                               : "스크림 정보를 수정했습니다.",
                           );
                           setEditingScrimId(null);
@@ -899,6 +1002,50 @@ export function MainGameCommunityTabs({
                         value={editScrimPlace}
                         disabled={pending}
                         onChange={(e) => setEditScrimPlace(e.target.value)}
+                      />
+                      <label className="space-y-1 text-xs">
+                        <span className="text-muted-foreground">모드 (비우면 없음)</span>
+                        <input
+                          className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
+                          value={editScrimMode}
+                          disabled={pending}
+                          onChange={(e) => setEditScrimMode(e.target.value)}
+                          maxLength={32}
+                        />
+                      </label>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <label className="space-y-1 text-xs">
+                          <span className="text-muted-foreground">티어 하한</span>
+                          <input
+                            type="number"
+                            className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
+                            value={editScrimTierMin}
+                            disabled={pending}
+                            onChange={(e) => setEditScrimTierMin(e.target.value)}
+                            min={0}
+                            max={5000}
+                          />
+                        </label>
+                        <label className="space-y-1 text-xs">
+                          <span className="text-muted-foreground">티어 상한</span>
+                          <input
+                            type="number"
+                            className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
+                            value={editScrimTierMax}
+                            disabled={pending}
+                            onChange={(e) => setEditScrimTierMax(e.target.value)}
+                            min={0}
+                            max={5000}
+                          />
+                        </label>
+                      </div>
+                      <textarea
+                        className="border-input bg-background min-h-[64px] w-full rounded-md border px-2 py-1.5 text-xs"
+                        placeholder="메모 (비우면 없음)"
+                        value={editScrimMemo}
+                        disabled={pending}
+                        onChange={(e) => setEditScrimMemo(e.target.value)}
+                        maxLength={5000}
                       />
                       <Button type="submit" size="sm" disabled={pending}>
                         저장

@@ -254,6 +254,10 @@ export type ScrimRoomRowOut = {
   title: string | null;
   scheduled_at: string;
   place: string | null;
+  mode: string | null;
+  tier_min: number | null;
+  tier_max: number | null;
+  memo: string | null;
   status: Database["public"]["Enums"]["scrim_room_status"];
   confirmed_at: string | null;
   host_confirmed: boolean;
@@ -294,7 +298,7 @@ export async function loadScrimRoomsForGame(
   if (!clanIds.length) return [];
 
   const sel =
-    "id, clan_a_id, clan_b_id, title, scheduled_at, place, status, confirmed_at";
+    "id, clan_a_id, clan_b_id, title, scheduled_at, place, mode, tier_min, tier_max, memo, status, confirmed_at";
 
   const [{ data: asHost }, { data: asGuest }] = await Promise.all([
     supabase
@@ -320,6 +324,10 @@ export async function loadScrimRoomsForGame(
       title: string | null;
       scheduled_at: string;
       place: string | null;
+      mode: string | null;
+      tier_min: number | null;
+      tier_max: number | null;
+      memo: string | null;
       status: Database["public"]["Enums"]["scrim_room_status"];
       confirmed_at: string | null;
     }
@@ -375,6 +383,10 @@ export async function loadScrimRoomsForGame(
       title: r.title,
       scheduled_at: r.scheduled_at,
       place: r.place,
+      mode: r.mode,
+      tier_min: r.tier_min,
+      tier_max: r.tier_max,
+      memo: r.memo,
       status: r.status,
       confirmed_at: r.confirmed_at,
       host_confirmed: c.host,
