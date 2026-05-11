@@ -1,0 +1,51 @@
+# GitHub 네이티브 연동(푸시→Vercel)이 동작하지 않을 때 프로덕션 배포 고정 경로입니다.
+#
+# 레포 Secrets: VERCEL_TOKEN (필수) — https://vercel.com/account/tokens
+# 고정되는 대상(Vercel API로 확인된 ClanSync 조직·프로젝트, 비공개 비밀 아님):
+#   • org  team_UaVXQMdZ2aJQUkYHxU7iSzN3  (slug: clansync)
+#   • app  prj_UwqBACb65GoSqFfqPekMNe15Og8T (이름: clan-sync)
+
+name: Deploy production (Vercel CLI)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: vercel-prod-clan-sync
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: team_UaVXQMdZ2aJQUkYHxU7iSzN3
+      VERCEL_SCOPE: clansync
+      VERCEL_PROJECT_ID: prj_UwqBACb65GoSqFfqPekMNe15Og8T
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to clan-sync production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${VERCEL_TOKEN}" ]]; then
+            echo "::error::GitHub 레포 Secret VERCEL_TOKEN 이 없습니다. Vercel → Account → Tokens에서 발급해 Actions Secrets에 저장하세요. 안내 docs/VERCEL_PRODUCTION_SYNC.md"
+            exit 1
+          fi
+
+          mkdir -p .vercel
+          jq -nc --arg o "$VERCEL_ORG_ID" --arg p "$VERCEL_PROJECT_ID" \
+            '{"orgId": $o, "projectId": $p}' > .vercel/project.json
+
+          echo "::notice::clan-sync (prj_UwqBAC…) 프로덕션으로 원격 빌드·배포를 시작합니다…"
+          npx --yes vercel@latest deploy --prod \
+            --yes \
+            --token "$VERCEL_TOKEN" \
+            --scope "$VERCEL_SCOPE"
+          echo "::notice::완료. Vercel 팀 ClanSync 프로젝트 clan-sync Deployments를 확인하세요."

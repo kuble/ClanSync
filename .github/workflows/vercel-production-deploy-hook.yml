@@ -9,10 +9,10 @@
 
 name: Trigger Vercel production (deploy hook)
 
+# push 트리거는 제외: MAIN 워크플로(vercel-deploy-production.yml)와 이중 빌드·충돌 방지.
+# 수동 디버깅·백업용으로만 사용.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
 
 jobs:
   trigger:
@@ -34,6 +34,11 @@ jobs:
               exit 1
               ;;
           esac
+
+          HOOK_EXPECTED_PROJECT="prj_UwqBACb65GoSqFfqPekMNe15Og8T"
+          if ! printf '%s\n' "$VERCEL_DEPLOY_HOOK" | grep -q "/deploy/${HOOK_EXPECTED_PROJECT}/"; then
+            echo "::warning::Deploy Hook URL의 프로젝트 ID가 이 레포 표준 클라우드 앱(${HOOK_EXPECTED_PROJECT})과 다릅니다. 잘못된 프로젝트에 줄이 추가됩니다. 설정 → 같은 ID로 훅을 다시 만드세요."
+          fi
 
           echo "::notice::Deploy Hook 호출 중…"
           curl -fsS -X POST "$VERCEL_DEPLOY_HOOK" -o deploy-hook-response.json

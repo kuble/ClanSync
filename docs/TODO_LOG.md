@@ -5,10 +5,11 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
-### 2026-05-11 — Vercel 프로덕션 동기화(Deploy Hook + GitHub Actions)
+### 2026-05-11 — Vercel CLI 프로덕션 배포(고정 프로젝트)
 
-- [x] **CI** — `main` 푸시·수동 실행 시 레포 시크릿 `VERCEL_DEPLOY_HOOK`(Vercel Git → Deploy Hooks)으로 프로덕션 빌드 강제 트리거; 시크릿 없으면 스킵.
-- [x] **문서** — `docs/VERCEL_PRODUCTION_SYNC.md`, `docs/README.md` 표 링크.
+- [x] **CI** — `vercel-deploy-production.yml`: `VERCEL_TOKEN` + 고정 org/project로 `main` 푸시·dispatch 시 `vercel deploy --prod`.
+- [x] **CI** — Deploy Hook 워크플로는 `workflow_dispatch`만, 잘못된 프로젝트 훅 시 로그 경고.
+- [x] **문서** — `VERCEL_PRODUCTION_SYNC.md`, `README` 표 동기화.
 
 ### 2026-05-11 — 클랜 가입 UX(카드 · ClanAuth 헤더 · 프로필)
 
