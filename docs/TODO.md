@@ -32,7 +32,7 @@
 
 ```
 @docs/TODO_Phase2.md 참고해서
-Phase 2 M6b 잔여: 일정 `notification_log`·타 채널(카카오 등) · M6c 중 우선순위 한 줄 지정.
+Phase 2 M6b 잔여: 반복·scrim_auto 일정 알림 · 카카오 등 타 채널 · M6c 중 우선순위 한 줄 지정.
 
 완료 후 공통 게이트를 만족시키고 허브를 갱신한다.
 ```
