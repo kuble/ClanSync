@@ -158,6 +158,13 @@ H1 "클랜 관리"
 - **자동 탈퇴 없음**: 휴면 멤버는 시스템이 자동 강퇴하지 않는다. 클랜장이 섹션에서 체크박스로 선택해 일괄 정리한다.
 - **신규 휴면 진입 알림**: 최근 7일 내 휴면으로 새로 분류된 멤버가 있으면 요약 배너 상단에 경고 띠 표시. 닫으면 세션 내 재표시 금지.
 
+## 스토어 구매 정정 (D-STORE-03 · Phase 2)
+
+- **위치**: `/games/[g]/clan/[id]/manage` 본문, 구독 카드 아래(또는 배너 설정 위). `manage_clan_pool` 권한이 있는 운영진에게만 노출된다.
+- **대상**: **클랜 풀**로 구매된 활성 구매(`purchases.pool_source=clan`, `voided_at` 없음) 목록. 개인 풀 구매는 이 경로에서 무효화하지 않는다.
+- **제약**: **구매 당사자(`purchases.user_id`)와 같은 계정**으로는 무효화할 수 없다. 다른 운영진이 사유(네 글자 이상)·확인 후 무효화한다.
+- **처리**: RPC `void_clan_store_purchase` — 클랜 코인 잔액 환급, `coin_transactions`에 `correction_of` 연결된 반대 부호 거래, `purchases`에 `voided_at`·`voided_by`·`void_reason` 기록. 상품이 `clan_banner_slot`이면 `clans.banner_url`을 비운다.
+
 ## 탭 4 — 구독결제 (Subscribe)
 
 ### 영역

@@ -5,6 +5,12 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-11 — D-STORE-03 클랜 풀 스토어 구매 무효화
+
+- [x] **DB** — `0036_void_clan_store_purchase_rpc.sql`: `void_clan_store_purchase` (코인 환급·`correction_of`·배너 URL 초기화).
+- [x] **앱** — `voidClanStorePurchaseAction` · `ClanManageStoreVoidPanel` · `/manage` 에 활성 클랜 풀 구매 목록.
+- [x] **문서** — `12-Clan-Manage.md` · `13-Clan-Store.md` · `QA_시나리오.md` · TODO 허브/Phase2.
+
 ### 2026-05-11 — 가입 신청 플로 정리(공통 fetch·UI 슬림)
 
 - [x] **`fetchMyClanJoinRequests` / `filterPendingJoinsForGame`** — RPC 호출·게임별 pending 필터 단일화 (`loadGameOnboarding`, `/games`, `/profile`).
