@@ -23,8 +23,9 @@ jobs:
           VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
         run: |
           if [ -z "$VERCEL_DEPLOY_HOOK" ]; then
-            echo "::notice::Skipping: GitHub 레포에 Secret VERCEL_DEPLOY_HOOK 미설정. docs/VERCEL_PRODUCTION_SYNC.md 참고."
-            exit 0
+            echo "::error::VERCEL_DEPLOY_HOOK 시크릿이 비어 있습니다. Settings → Secrets and variables → Actions → Repository secrets 에 추가한 뒤 다시 실행하세요. 안내: docs/VERCEL_PRODUCTION_SYNC.md"
+            exit 1
           fi
-          resp=$(curl -fsS -X POST "$VERCEL_DEPLOY_HOOK" -w "\n%{http_code}")
-          printf '%s\n' "$resp"
+          echo "::notice::Deploy Hook 호출 중…"
+          curl -fsS -X POST "$VERCEL_DEPLOY_HOOK" -o deploy-hook-response.json
+          cat deploy-hook-response.json

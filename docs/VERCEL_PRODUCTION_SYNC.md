@@ -13,6 +13,8 @@
 5. **Actions** 탭에서 **Trigger Vercel production (deploy hook)** 워크플로 → **Run workflow** 로 한 번 실행  
    또는 `main`에 아무 빈 커밋이라도 푸시해서 자동 실행
 
+실행 결과는 **워크플로 단계 로그**를 확인하세요. 시크릿이 비었거나 호출 실패 시 **빨간 X**가 나도록 되어 있습니다(예전처럼 “아무 일도 안 했는데 초록 체크”와 구분).
+
 성공 후 Vercel **Deployments** 에 새 줄이 생기고, Production이 최신 커밋 해시와 맞는지 확인합니다.
 
 ## 깃 통합까지 복구하고 싶을 때
