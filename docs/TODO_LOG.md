@@ -10,7 +10,8 @@
 - [x] **UI** — `ClanJoinList`: `pendingClanId` 로 신청 대기 카드 처리; 같은 게임에 다른 클랜에 이미 신청했을 때 타 카드에 「이 클랜으로 신청 바꾸기」로 교체 다이얼로그 진입 (`blockingClanName`).
 - [x] **UI** — `/games/[g]/clan` 제목 아래 헤더에 진행 중 가입 신청 블록(클랜·게임·취소).
 - [x] **프로필** — 가입 신청 분리 조회 + `clans`/`games` 보강, 상단 요약 카드로 `pending` 가시화.
-- [x] **E2E** — `join-request-flow`(이미 펜딩이면 신청 취소 후 재시도): 이전 블록 참고.
+- [x] **조회** — `clans!inner` 제거 일괄: `loadGameOnboarding`(D-AUTH-01 pending)·`/games` 카드·`submitClanJoinRequestAction` 기존 대기 검사에서 임베드 행 소실 방지.
+- [x] **프로필** — 신청 목록 테이블 SELECT 실패 시 빈 상태와 오인 방지 안내(`loadFailed`).
 
 ### 2026-05-02 — Sonner DOM 진단 안내·마커
 
