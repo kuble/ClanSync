@@ -18,6 +18,49 @@
 
 <!-- 새 시나리오는 이 구분선 위에 추가 (최신이 위) -->
 
+## 2026-05-11 — 투표 알림 Discord 웹훅 배치(Cron)
+
+**한 줄 요약**: 클랜에 Discord 웹훅이 켜져 있을 때 투표 알림 슬롯이 `notification_log`에 쌓이고, **`/api/cron/dispatch-notifications`** 가 in-app 배치 후 Discord 배치를 돌려 웹훅으로 보내는지 확인한다.
+
+**환경**: `http://127.0.0.1:3000` · 원격 DB에 `0037` 마이그레이션 적용 · `.env.local`에 `CRON_SECRET`(선택: 수동 GET 호출 시 `Authorization: Bearer …`) · 클랜 설정에 Discord 웹훅 URL.
+
+**사전 조건**: [debug-and-fixtures.md](./01-plan/debug-and-fixtures.md) — 리더 등으로 로그인 가능 · `dispatch-notifications` 라우트가 Vercel Cron 또는 로컬에서 호출 가능.
+
+**절차**:
+
+1. 관리 또는 설정에서 **Discord 웹훅**을 저장한다.
+2. 이벤트 탭에서 **투표**를 만들 때 알림 옵션이 켜져 있으면, 생성 직후 `notification_log`에 `channel=discord` 행이 생기는지 Supabase에서 본다(또는 앱 로그).
+3. `GET /api/cron/dispatch-notifications` 에 `Authorization: Bearer <CRON_SECRET>` 을 붙여 호출한다(로컬·Preview 동일).
+4. 응답 JSON에 in-app 건수와 함께 **`discord`** / **`discord_note`** 필드가 기대대로인지 본다. Discord 방에 메시지가 도착하면 성공.
+
+**기대 결과**:
+
+- [ ] 웹훅이 없는 클랜에서는 Discord 행이 생기지 않거나 스킵된다.
+- [ ] Cron(또는 수동 호출) 후 `scheduled`/`processing` 디스코드 로그가 `sent`/`failed` 등으로 마무리된다.
+
+**깨졌을 때**: `claim_discord_poll_notification_batch` · `finalize_discord_notification_dispatch` · Edge 로그 · 웹훅 URL·429 응답.
+
+## 2026-05-11 — MainClan 알림 시트(벨) 읽음 시점
+
+**한 줄 요약**: 헤더 **알림** 버튼으로 우측 시트가 열리고, **닫을 때** 서버에 읽음이 반영되는지 확인한다(열려 있는 동안에는 DB 읽음이 안 바뀔 수 있음).
+
+**환경**: `http://127.0.0.1:3000` · 리더 픽스처로 MainClan 아무 탭 · 미읽음 알림이 1건 이상 있으면 확인이 쉬움.
+
+**사전 조건**: [debug-and-fixtures.md](./01-plan/debug-and-fixtures.md) · `0033` 등 알림 피드 마이그레이션 적용.
+
+**절차**:
+
+1. 클랜 허브에서 헤더 **알림**(벨)을 눌러 시트가 열리는지 본다.
+2. 시트를 **닫는다**(×·바깥 클릭·Escape). 필요하면 Supabase에서 해당 `notifications` 행의 `read_at`이 채워졌는지 본다.
+3. **모두 읽음**을 누른 뒤에도 목록·배지가 갱신되는지 확인한다.
+
+**기대 결과**:
+
+- [ ] 시트가 열리면 우측 패널에 「알림」 제목과 목록(또는 빈 안내)이 보인다.
+- [ ] 시트를 닫으면 미읽음 처리 RPC가 실행되고 새로고침 후 배지가 줄거나 사라진다.
+
+**깨졌을 때**: `mark_notification_reads` · `router.refresh` · Base UI Dialog 포털 · 브라우저 콘솔 오류.
+
 ## 2026-05-11 — 스토어 클랜 풀 구매 무효화 (관리 탭)
 
 **한 줄 요약**: 다른 운영진 계정으로 로그인해 **클랜 관리**에서 클랜 풀 스토어 구매를 무효화하면 코인이 돌아오고, 배너 슬롯이면 배너 URL이 비는지 확인한다.

@@ -121,7 +121,7 @@ flowchart TD
 ### M6 — MainClan 탭 묶음 (M4 이후, 권장 순서 a→b→c)
 
 - [x] **M6a S05 클랜 통계** — 요약 KPI · HoF(설정 모달·등재 규칙·전체/월/연) · **D-STATS-03** 활동일 표·내전 막대 · **D-STATS-04** CSV 안내만 · 경기 기록 일자 목록(캘린더·정정은 M6b 후속)
-- [ ] **M6b S06 이벤트·관리·스토어** — **부분**: `0013`~`0015` · **`0027` 반복** · **`0028` RSVP** · **`0029` 클랜 투표** · **`0030` 대진표 초안(`bracket_tournaments`·snapshot)** · **`0031` `notification_log`(투표 예약·D-EVENTS-04)** · **`0032` `notifications`·in-app 발송 배치·Cron** · **`0033` 읽음 RPC·MainClan 벨·드로어(D-NOTIF-01)** · **`0036` 클랜 풀 `purchases` 무효화 RPC·관리 UI(D-STORE-03)** · `/events` **월간 캘린더·대진표 탭·투표 탭·수동 일정 편집·취소·반복 펼침·스크림 참가(D-EVENTS-01)·운영진 명단** · 관리·구독·Discord 웹훅 · 스토어 MVP · D-STORE-02 카피 · **`profile_entrance_fx`** · **잔여**: 타 채널 발송 · 일정 알림 행 확장 · 팀·매치 마법사·코인 연동 · 개인 풀 구매 무효화 · 시각 효과 고도화
+- [ ] **M6b S06 이벤트·관리·스토어** — **부분**: `0013`~`0015` · **`0027` 반복** · **`0028` RSVP** · **`0029` 클랜 투표** · **`0030` 대진표 초안(`bracket_tournaments`·snapshot)** · **`0031` `notification_log`(투표 예약·D-EVENTS-04)** · **`0032` `notifications`·in-app 발송 배치·Cron** · **`0033` 읽음 RPC·MainClan 벨·드로어(D-NOTIF-01)** · **`0037` 투표 알림 Discord 배치·`notification_log`** · **`0036` 클랜 풀 `purchases` 무효화 RPC·관리 UI(D-STORE-03)** · `/events` **월간 캘린더·대진표 탭·투표 탭·수동 일정 편집·취소·반복 펼침·스크림 참가(D-EVENTS-01)·운영진 명단** · 관리·구독·Discord 웹훅 · 스토어 MVP · D-STORE-02 카피 · **`profile_entrance_fx`** · **잔여**: 타 채널 발송 · 일정 알림 행 확장 · 팀·매치 마법사·코인 연동 · 개인 풀 구매 무효화 · 시각 효과 고도화
 - [ ] **M6c S04 밸런스메이커** — **부분**: `0016`~`0026` 세션·맵·영웅 밴·roster·M/A·Realtime·승부예측·**5분 마감**·결과·**클랜 풀 차감 후 개인 지급**·세션 종료 · **잔여**: 파리뮤추엘·다른 게임 영웅 풀·내전 히스토리 연동
 
 ### M7 — S07 MainGame 커뮤니티 (경량판)

@@ -5,6 +5,13 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-11 — 투표 알림 Discord 배치 + 알림 시트·MainGame 탭 안정화
+
+- [x] **DB** — `0037_discord_poll_notification_dispatch.sql`: `processing` · Discord claim/finalize RPC · poll 종료 시 스케줄 취소.
+- [x] **앱** — `dispatch-discord-poll-notifications` · cron 라우트 Discord 분기 · `clan-polls`에서 웹훅 시 `notification_log` Discord 행 · 벨 시트 **비제어** + **닫을 때 읽음**(revalidate 충돌 방지) · `sheet` `role="dialog"` · MainGame 탭 `defaultValue` 비제어.
+- [x] **E2E** — `fixture-login` serial · `CI=true npm run test:e2e` 11/11.
+- [x] **문서** — `07-MainClan.md` · `QA_시나리오.md`(Discord·벨).
+
 ### 2026-05-11 — D-STORE-03 클랜 풀 스토어 구매 무효화
 
 - [x] **DB** — `0036_void_clan_store_purchase_rpc.sql`: `void_clan_store_purchase` (코인 환급·`correction_of`·배너 URL 초기화).
