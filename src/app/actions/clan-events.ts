@@ -237,20 +237,26 @@ export async function createClanEventAction(
 
   const newEventId = inserted.id as string;
 
-  if (
-    parsedRepeat.repeat === "none" &&
-    startAt.getTime() > Date.now()
-  ) {
-    const sched = await insertClanEventInAppNotifications({
-      svc,
-      clanId,
-      eventId: newEventId,
-      startAt,
-    });
-    if (!sched.ok) {
-      await svc.from("clan_events").delete().eq("id", newEventId);
-      return { ok: false, error: sched.error };
-    }
+  const template = clanEventRowToRecord({
+    id: newEventId,
+    title,
+    kind,
+    start_at: startAt.toISOString(),
+    place,
+    source: "manual",
+    repeat: parsedRepeat.repeat,
+    repeat_weekdays: parsedRepeat.repeat_weekdays,
+    repeat_time: parsedRepeat.repeat_time,
+  });
+
+  const sched = await insertClanEventInAppNotifications({
+    svc,
+    clanId,
+    template,
+  });
+  if (!sched.ok) {
+    await svc.from("clan_events").delete().eq("id", newEventId);
+    return { ok: false, error: sched.error };
   }
 
   void notifyDiscordNewEvent({
@@ -365,19 +371,28 @@ export async function updateClanEventAction(
 
   await cancelScheduledClanEventNotifications(svc, eventId);
 
-  if (
-    parsedRepeat.repeat === "none" &&
-    startAt.getTime() > Date.now()
-  ) {
-    const sched = await insertClanEventInAppNotifications({
-      svc,
-      clanId,
-      eventId,
-      startAt,
-    });
-    if (!sched.ok) {
-      return { ok: false, error: `일정은 저장됐지만 알림 예약에 실패했습니다. ${sched.error}` };
-    }
+  const template = clanEventRowToRecord({
+    id: eventId,
+    title,
+    kind,
+    start_at: startAt.toISOString(),
+    place,
+    source: "manual",
+    repeat: parsedRepeat.repeat,
+    repeat_weekdays: parsedRepeat.repeat_weekdays,
+    repeat_time: parsedRepeat.repeat_time,
+  });
+
+  const sched = await insertClanEventInAppNotifications({
+    svc,
+    clanId,
+    template,
+  });
+  if (!sched.ok) {
+    return {
+      ok: false,
+      error: `일정은 저장됐지만 알림 예약에 실패했습니다. ${sched.error}`,
+    };
   }
 
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);

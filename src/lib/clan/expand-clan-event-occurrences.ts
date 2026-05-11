@@ -128,6 +128,50 @@ export function expandClanEventsForMonth(
   return out;
 }
 
+/** 향후 in-app 알림 예약용: `now` 이후 시작하는 회차 `instanceIdx`(시작 시각 ms) 목록. */
+export function listUpcomingOccurrenceStarts(
+  t: ClanEventRecord,
+  now: Date,
+  options?: { maxOccurrences?: number; maxMonths?: number },
+): number[] {
+  const maxOcc = Math.max(1, Math.min(options?.maxOccurrences ?? 14, 40));
+  const maxMonths = Math.max(1, Math.min(options?.maxMonths ?? 6, 18));
+  const repeat = t.repeat ?? "none";
+
+  if (repeat === "none") {
+    const anchor = new Date(t.start_at);
+    if (Number.isNaN(anchor.getTime()) || anchor.getTime() <= now.getTime()) {
+      return [];
+    }
+    return [anchor.getTime()];
+  }
+
+  const seen = new Set<number>();
+  const starts: number[] = [];
+  let y = now.getFullYear();
+  let m = now.getMonth();
+
+  for (let i = 0; i < maxMonths && starts.length < maxOcc; i++) {
+    const occs = expandClanEventsForMonth([t], y, m);
+    for (const o of occs) {
+      const ms = o.instanceIdx;
+      if (ms <= now.getTime()) continue;
+      if (seen.has(ms)) continue;
+      seen.add(ms);
+      starts.push(ms);
+      if (starts.length >= maxOcc) break;
+    }
+    m += 1;
+    if (m > 11) {
+      m = 0;
+      y += 1;
+    }
+  }
+
+  starts.sort((a, b) => a - b);
+  return starts.slice(0, maxOcc);
+}
+
 /** RSVP 리스트 키 `${eventId}:${instanceIdx}` 와 동일 규칙 */
 export function clanEventRsvpKey(eventId: string, instanceIdx: number): string {
   return `${eventId}:${instanceIdx}`;
