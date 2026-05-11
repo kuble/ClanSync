@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   replacePendingJoinRequestAction,
@@ -37,6 +37,8 @@ export function ClanJoinList({
   clans,
   pendingClanId = null,
   blockingClanName = null,
+  /** 목록 페이지·검색 밖에 있어도 항상 위에 노출되는 신청 중 클랜(한 건). */
+  pinnedPendingClan = null,
 }: {
   gameSlug: string;
   clans: ClanListRow[];
@@ -44,6 +46,7 @@ export function ClanJoinList({
   pendingClanId?: string | null;
   /** pending 클랜 표시 이름(다른 카드에서 교체 신청 확인창 메시지용) */
   blockingClanName?: string | null;
+  pinnedPendingClan?: ClanListRow | null;
 }) {
   const router = useRouter();
   const [replaceOpen, setReplaceOpen] = useState(false);
@@ -118,7 +121,15 @@ export function ClanJoinList({
     }
   }
 
-  if (clans.length === 0) {
+  const displayClans = useMemo(
+    () =>
+      clans.filter(
+        (c) => !pinnedPendingClan || String(c.id) !== String(pinnedPendingClan.id),
+      ),
+    [clans, pinnedPendingClan],
+  );
+
+  if (displayClans.length === 0 && !pinnedPendingClan) {
     return (
       <p className="text-muted-foreground rounded-lg border border-dashed p-8 text-center text-sm">
         조건에 맞는 클랜이 없습니다. 검색어를 바꾸거나 클랜을 만들어 보세요.
@@ -128,8 +139,63 @@ export function ClanJoinList({
 
   return (
     <>
+      {pinnedPendingClan ? (
+        <section
+          aria-label="내가 신청한 클랜"
+          className="border-primary/30 bg-primary/5 mb-6 rounded-xl border px-4 py-3"
+          data-testid="clan-join-pinned-pending-section"
+        >
+          <p className="text-primary text-xs font-semibold tracking-wide uppercase">
+            신청 진행 중인 클랜
+          </p>
+          <p className="text-muted-foreground mt-1 text-xs">
+            아래 검색 결과에 이 클랜이 없어도 항상 여기서 상태를 확인할 수 있습니다.
+          </p>
+          <Card className="border-primary/35 mt-3">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-semibold">
+                {pinnedPendingClan.name}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {pinnedPendingClan.description ? (
+                <p className="text-muted-foreground line-clamp-2 text-sm">
+                  {pinnedPendingClan.description}
+                </p>
+              ) : null}
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline" data-testid="clan-join-pinned-pending-badge">
+                  신청 대기 중
+                </Badge>
+                {pinnedPendingClan.tags.slice(0, 5).map((t) => (
+                  <Badge key={t} variant="secondary">
+                    {t}
+                  </Badge>
+                ))}
+                <span className="text-muted-foreground text-xs">
+                  정원 {pinnedPendingClan.max_members}
+                </span>
+              </div>
+              <p className="text-muted-foreground text-xs leading-relaxed">
+                페이지 상단의 「진행 중인 가입 신청」에서 취소할 수 있습니다. 이 클랜에는 다시 신청하지
+                않습니다.
+              </p>
+              <Button type="button" variant="secondary" size="sm" disabled className="pointer-events-none">
+                가입 신청됨 · 대기 중
+              </Button>
+            </CardContent>
+          </Card>
+        </section>
+      ) : null}
+
+      {displayClans.length === 0 ? (
+        <p className="text-muted-foreground rounded-lg border border-dashed p-8 text-center text-sm">
+          검색 결과에 다른 클랜이 없습니다. 검색어나 페이지를 바꿔 보세요.
+          {pinnedPendingClan ? " (신청 중인 클랜은 위에 표시되어 있습니다.)" : ""}
+        </p>
+      ) : (
       <ul className="grid gap-4">
-        {clans.map((c) => {
+        {displayClans.map((c) => {
           const isPendingThisClan =
             pendingClanId != null && pendingClanId === c.id;
           const hasBlockingElsewhere =
@@ -163,10 +229,22 @@ export function ClanJoinList({
                   </span>
                 </div>
                 {isPendingThisClan ? (
-                  <p className="text-muted-foreground text-xs leading-relaxed">
-                    이 클랜에 가입 신청을 보낸 상태입니다. 위쪽 안내에서 메시지를 확인하거나
-                    신청을 취소할 수 있습니다.
-                  </p>
+                  <>
+                    <p className="text-muted-foreground text-xs leading-relaxed">
+                      이 클랜에 가입 신청을 보낸 상태입니다. 페이지 상단·「신청 진행 중인 클랜」에서
+                      취소할 수 있습니다.
+                    </p>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      disabled
+                      className="pointer-events-none"
+                      data-testid={`clan-join-applied-disabled-${c.id}`}
+                    >
+                      가입 신청됨 · 대기 중
+                    </Button>
+                  </>
                 ) : hasBlockingElsewhere ? (
                   <div className="space-y-2">
                     <p className="text-muted-foreground text-xs leading-relaxed">
@@ -249,6 +327,7 @@ export function ClanJoinList({
           );
         })}
       </ul>
+      )}
 
       <Dialog open={replaceOpen} onOpenChange={setReplaceOpen}>
         <DialogContent>

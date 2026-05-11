@@ -333,6 +333,7 @@ export async function submitClanJoinRequestAction(
 
   revalidatePath("/games");
   revalidatePath(`/games/${gameSlug}/clan`);
+  revalidatePath("/profile");
   return { ok: true };
 }
 
@@ -414,6 +415,7 @@ export async function cancelClanJoinRequestAction(
 
   revalidatePath("/games");
   revalidatePath(`/games/${gameSlug}/clan`);
+  revalidatePath("/profile");
   return { ok: true };
 }
 
@@ -474,6 +476,7 @@ function revalidateJoinRequestResolution(gameSlug: string, clanId: string) {
   revalidatePath(`/games/${gameSlug}/clan`);
   revalidatePath(`/games/${gameSlug}/clan/${clanId}`);
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/manage`);
+  revalidatePath("/profile");
 }
 
 export async function approveClanJoinRequestAction(

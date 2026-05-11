@@ -15,6 +15,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 type NameplateCategory = Database["public"]["Enums"]["nameplate_category"];
 
 function genderLabel(g: string): string {
@@ -230,6 +232,15 @@ export default async function ProfilePage() {
         <p className="text-muted-foreground mt-2 text-sm">
           계정 정보와 꾸미기·가입 신청 상태를 한곳에서 확인합니다.
         </p>
+        {process.env.NODE_ENV === "development" ? (
+          <p
+            className="text-muted-foreground mt-2 max-w-xl text-[11px] leading-relaxed"
+            data-testid="dev-profile-build-marker"
+          >
+            Dev 반영 확인: 신청 직후 목록이 비면 새로 고침(F5) 한 번 해 보세요. 이 안내 문구가
+            바뀌었다면 현재 빌드가 새 코드입니다.
+          </p>
+        ) : null}
       </header>
 
       {pendingForBanner.length > 0 && !joinRequestsFetchFailed ? (
