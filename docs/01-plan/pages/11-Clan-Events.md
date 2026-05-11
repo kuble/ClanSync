@@ -264,6 +264,10 @@ H1 "클랜 이벤트"
 - **수정·취소**: 일정 저장 시 기존 해당 `event_id`의 `scheduled` 예약을 취소한 뒤 위 규칙으로 재예약. 향후 도래 회차가 없으면 INSERT 없이 성공. 취소(`cancelled_at`) 시에도 `scheduled` 예약을 취소.
 - **발송**: `dispatch_inapp_notification_batch`가 피드 `notifications.kind = event_reminder` 로 반영. 알림 벨 링크는 캘린더 탭(`?tab=calendar`).
 
+### 수동 일정 Discord 웹훅 (MVP · `clan_settings.event_notify`)
+- **`discord_enabled` + 웹훅 URL**이 있을 때만: `createClanEventAction`·`updateClanEventAction`이 **in-app 예약까지 성공한 뒤** 비동기로 Incoming Webhook `POST` (타임아웃 8s). 실패해도 액션은 성공으로 유지.
+- **등록** 메시지 헤더: «클랜 일정 등록», **저장(수정)** 헤더: «클랜 일정 변경». 본문: 제목·유형·시작(로캘 포맷)·장소·이벤트 탭 링크.
+
 ### 대진표 (D-EVENTS-05 DECIDED — 클랜 내 이벤트 전용)
 - 스키마: `bracket_tournaments` · `bracket_teams` · `bracket_team_members` · `bracket_matches` · `bracket_results` (→ `schema.md`).
 - `host_clan_id = winner_clan_id` 불변식 (클랜 간 대회 없음).
