@@ -108,7 +108,7 @@ function kindLabelKo(kind: Database["public"]["Enums"]["clan_event_kind"]): stri
   return "이벤트";
 }
 
-async function notifyDiscordNewEvent(opts: {
+async function notifyDiscordManualClanEvent(opts: {
   svc: ReturnType<typeof createServiceRoleClient>;
   clanId: string;
   gameSlug: string;
@@ -116,6 +116,8 @@ async function notifyDiscordNewEvent(opts: {
   kind: Database["public"]["Enums"]["clan_event_kind"];
   startAt: Date;
   place: string | null;
+  /** 등록 vs 저장(수정) 카피 분기 */
+  change: "create" | "update";
 }): Promise<void> {
   const { data: s } = await opts.svc
     .from("clan_settings")
@@ -134,8 +136,13 @@ async function notifyDiscordNewEvent(opts: {
   const path = `/games/${opts.gameSlug}/clan/${opts.clanId}/events`;
   const link = base ? `${base.replace(/\/$/, "")}${path}` : path;
 
+  const headline =
+    opts.change === "create"
+      ? "📅 **클랜 일정 등록**"
+      : "📅 **클랜 일정 변경**";
+
   const lines = [
-    "📅 **클랜 일정 등록**",
+    headline,
     `**${opts.title}**`,
     `유형: ${kindLabelKo(opts.kind)}`,
     `시작: ${when}`,
@@ -154,7 +161,7 @@ async function notifyDiscordNewEvent(opts: {
       console.warn("Discord webhook non-OK", res.status);
     }
   } catch {
-    /* 웹훅 실패는 일정 등록 성공과 분리 */
+    /* 웹훅 실패는 일정 저장 성공과 분리 */
   }
 }
 
@@ -259,7 +266,7 @@ export async function createClanEventAction(
     return { ok: false, error: sched.error };
   }
 
-  void notifyDiscordNewEvent({
+  void notifyDiscordManualClanEvent({
     svc,
     clanId,
     gameSlug,
@@ -267,6 +274,7 @@ export async function createClanEventAction(
     kind,
     startAt,
     place,
+    change: "create",
   });
 
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);
@@ -394,6 +402,17 @@ export async function updateClanEventAction(
       error: `일정은 저장됐지만 알림 예약에 실패했습니다. ${sched.error}`,
     };
   }
+
+  void notifyDiscordManualClanEvent({
+    svc,
+    clanId,
+    gameSlug,
+    title,
+    kind,
+    startAt,
+    place,
+    change: "update",
+  });
 
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);
   return { ok: true };
