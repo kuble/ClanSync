@@ -52,9 +52,9 @@ test.describe("UI 회귀 — MainClan (QA 리더)", () => {
   test("알림 벨 시트 열림", async ({ page }) => {
     await gotoOverwatchLeaderClanBase(page);
     await page.getByRole("button", { name: /^알림/ }).click();
-    await expect(page.getByRole("heading", { name: "알림" })).toBeVisible({
-      timeout: 10_000,
-    });
+    const sheet = page.getByTestId("clansync-inapp-notification-sheet");
+    await expect(sheet).toBeVisible({ timeout: 10_000 });
+    await expect(sheet.getByText("알림", { exact: true })).toBeVisible();
   });
 });
 
@@ -69,7 +69,10 @@ test.describe("UI 회귀 — MainGame 커뮤니티 탭", () => {
     await expect(page.getByText(/클랜 일정·통계·스토어는/)).toBeVisible();
 
     await page.getByRole("tab", { name: "홍보" }).click();
-    await expect(page.getByRole("combobox")).toBeVisible();
+    await expect(page.getByTestId("main-game-tab-promo")).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(page.getByTestId("main-game-tab-promo").locator("select")).toBeVisible();
 
     await page.getByRole("tab", { name: "LFG" }).click();
     await expect(page.getByText("LFG 모집 등록")).toBeVisible();

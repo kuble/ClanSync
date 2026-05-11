@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
@@ -85,7 +86,6 @@ export function ClanInAppNotificationBell({
   initialUnreadCount: number;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [badgeHidden, setBadgeHidden] = useState(false);
 
@@ -95,29 +95,34 @@ export function ClanInAppNotificationBell({
 
   const eventsBase = `/games/${encodeURIComponent(gameSlug)}/clan/${clanId}/events`;
 
+  /** 열 때 revalidate(읽음 RPC)가 오픈 직후와 겹치면 Dialog 팝업이 뜨지 않을 수 있어, 읽음 처리는 닫을 때만 수행. */
   const onOpenChange = (next: boolean) => {
-    setOpen(next);
     if (next) {
       const unreadIds = initialItems
         .filter((i) => i.read_at == null)
         .map((i) => i.id);
-      if (unreadIds.length > 0) {
-        setBadgeHidden(true);
-        startTransition(() => {
-          void (async () => {
-            try {
-              await markInAppNotificationIdsReadAction(
-                gameSlug,
-                clanId,
-                unreadIds,
-              );
-            } finally {
-              router.refresh();
-            }
-          })();
-        });
-      }
+      if (unreadIds.length > 0) setBadgeHidden(true);
+      return;
     }
+    const unreadIds = initialItems
+      .filter((i) => i.read_at == null)
+      .map((i) => i.id);
+    if (unreadIds.length > 0) {
+      startTransition(() => {
+        void (async () => {
+          try {
+            await markInAppNotificationIdsReadAction(
+              gameSlug,
+              clanId,
+              unreadIds,
+            );
+          } catch {
+            /* 읽음 처리 실패는 배지·다음 새로고침에 맡김 */
+          }
+        })();
+      });
+    }
+    router.refresh();
   };
 
   const onMarkAll = () => {
@@ -138,7 +143,7 @@ export function ClanInAppNotificationBell({
   const badgeText = showBadge > 99 ? "99+" : String(showBadge);
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet onOpenChange={onOpenChange}>
       <SheetTrigger
         type="button"
         className={cn(
@@ -159,6 +164,7 @@ export function ClanInAppNotificationBell({
       </SheetTrigger>
       <SheetContent
         side="right"
+        data-testid="clansync-inapp-notification-sheet"
         className="flex w-[min(100vw-2rem,380px)] flex-col gap-0 p-0"
       >
         <SheetHeader className="border-border shrink-0 space-y-1 border-b px-4 py-3 text-left">
@@ -194,15 +200,17 @@ export function ClanInAppNotificationBell({
 
                 return (
                   <li key={row.id} className="py-0.5">
-                    <Link
-                      href={href}
-                      className={cn(
-                        "hover:bg-muted/60 block rounded-md px-2 py-2.5 transition-colors",
-                        unread && "bg-primary/5",
-                      )}
-                      onClick={() => {
-                        setOpen(false);
-                      }}
+                    <SheetClose
+                      nativeButton={false}
+                      render={
+                        <Link
+                          href={href}
+                          className={cn(
+                            "hover:bg-muted/60 block rounded-md px-2 py-2.5 transition-colors",
+                            unread && "bg-primary/5",
+                          )}
+                        />
+                      }
                     >
                       <p
                         className={cn(
@@ -219,7 +227,7 @@ export function ClanInAppNotificationBell({
                       <span className="text-primary mt-1 inline-block text-xs font-medium">
                         원본 보기 →
                       </span>
-                    </Link>
+                    </SheetClose>
                   </li>
                 );
               })}

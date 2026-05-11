@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import {
@@ -67,11 +67,11 @@ export function MainGameCommunityTabs({
   const [promoTitle, setPromoTitle] = useState("");
   const [promoBody, setPromoBody] = useState("");
 
-  const defaultExp = useMemo(() => {
+  const [defaultExp] = useState(() => {
     const d = new Date(Date.now() + 3 * 3600000);
     d.setMinutes(0, 0, 0);
     return d.toISOString().slice(0, 16);
-  }, []);
+  });
 
   const [lfgMode, setLfgMode] = useState("경쟁전");
   const [lfgFormat, setLfgFormat] = useState("5vs5");
@@ -166,7 +166,11 @@ export function MainGameCommunityTabs({
         </p>
       </TabsContent>
 
-      <TabsContent value="promo" className="space-y-6 text-sm">
+      <TabsContent
+        value="promo"
+        data-testid="main-game-tab-promo"
+        className="space-y-6 text-sm"
+      >
         <div className="flex flex-wrap items-center gap-3">
           <label className="text-muted-foreground text-xs">정렬</label>
           <select

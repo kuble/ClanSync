@@ -5,6 +5,7 @@ import { allSeededFixtureCredentials } from "./qa-fixture-credentials";
  * 시드된 모든 QA 계정으로 로그인 가능 여부 스모크 (규칙만 알면 접근 가능한지 검증).
  */
 test.describe("QA 픽스처 계정 로그인", () => {
+  test.describe.configure({ mode: "serial" });
   for (const acc of allSeededFixtureCredentials()) {
     test(`${acc.nickname} (@${acc.email.split("@")[1]})`, async ({ page }) => {
       await page.goto("/sign-in");
