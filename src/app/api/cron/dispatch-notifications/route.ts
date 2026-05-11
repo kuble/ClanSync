@@ -3,7 +3,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service";
 
 /**
  * `notification_log` 중 due 인 in-app 행을 처리해 `notifications` 피드에 넣고 sent 로 표시한다.
- * Vercel Cron 또는 수동 호출 시 `Authorization: Bearer <CRON_SECRET>` 필요.
+ * Vercel Cron(Hobby: 하루 1회) 또는 수동/외부 스케줄 호출 시 `Authorization: Bearer <CRON_SECRET>` 필요.
  */
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;

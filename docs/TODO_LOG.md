@@ -5,6 +5,12 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-11 — Vercel Hobby: Cron 일 1회 (배포 검증 오류 해소)
+
+- [x] **배포** — `vercel.json` `dispatch-notifications` cron을 `0 2 * * *`(UTC 매일 1회)로 변경해 Hobby 일일 제한 준수.
+- [x] **문서** — `VERCEL_PRODUCTION_SYNC.md`에 해당 오류 메시지·대안(Pro/외부 스케줄) 안내.
+- [x] **앱** — `dispatch-notifications` 라우트 주석을 Hobby 스케줄에 맞게 수정.
+
 ### 2026-05-11 — 프로덕션: 네이티브 Git 푸시 우선, CLI는 수동만
 
 - [x] **CI** — `vercel-deploy-production.yml`: `workflow_dispatch`만(`push` 제거, 네이티브 Git과 이중 빌드 방지).

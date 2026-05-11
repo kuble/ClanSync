@@ -96,6 +96,17 @@ Git 연동이 고쳐진 뒤에는 이 워크플로를 **자동으로 돌리지 �
 
 ---
 
+## Hobby 플랜과 Cron (배포 시 오류)
+
+**Hobby**는 Vercel Cron을 **하루에 한 번**만 허용합니다. `vercel.json`에 `*/5 * * * *`처럼 하루에 여러 번 도는 식이 있으면, 새 Deployment를 만들 때 다음과 같은 메시지로 **검증이 막힐 수 있습니다**.
+
+> Hobby accounts are limited to daily cron jobs…
+
+이 레포는 호환을 위해 **`/api/cron/dispatch-notifications`** 를 **매일 02:00 UTC** 한 번(`0 2 * * *`)만 호출하도록 맞춰 두었습니다.  
+예약 알림을 더 촘촘히 돌리려면 **Pro**로 올리거나, 같은 엔드포인트를 `Authorization: Bearer CRON_SECRET` 으로 **외부 스케줄러**(예: 다른 호스팅의 cron, GitHub Actions `schedule`)에서 주기적으로 호출하는 방식을 쓰면 됩니다.
+
+---
+
 ## 보안
 
 - **`VERCEL_TOKEN`**: 패스워드급. 유출 시 폐기·재발급.
