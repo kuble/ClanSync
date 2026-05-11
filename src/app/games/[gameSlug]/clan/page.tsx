@@ -144,6 +144,7 @@ export default async function ClanOnboardingPage({
 
           <ClanJoinList
             gameSlug={gameSlug}
+            pendingClanId={pendingRow?.clan_id ?? null}
             clans={(clanRows ?? []).map((c) => ({
               id: c.id,
               name: c.name,

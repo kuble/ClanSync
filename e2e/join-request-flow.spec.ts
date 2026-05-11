@@ -64,8 +64,17 @@ test.describe("가입 신청 · 리더 거절 토스트", () => {
         return;
       }
 
-      const openBtn = clanRow.locator('[data-testid^="clan-join-open-"]');
-      await openBtn.click();
+      let openBtn = clanRow.locator('[data-testid^="clan-join-open-"]');
+      if ((await openBtn.count()) === 0) {
+        const stuckPending = clanRow.locator('[data-testid^="clan-join-pending-"]');
+        if ((await stuckPending.count()) > 0) {
+          await memberPage.getByRole("button", { name: "신청 취소" }).click();
+          await memberPage.waitForTimeout(900);
+          openBtn = clanRow.locator('[data-testid^="clan-join-open-"]');
+        }
+      }
+      await expect(openBtn.first()).toBeVisible({ timeout: 12_000 });
+      await openBtn.first().click();
       const send = clanRow.locator('[data-testid^="clan-join-send-"]');
       await expect(send).toBeVisible({ timeout: 12_000 });
 

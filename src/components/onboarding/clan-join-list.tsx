@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   replacePendingJoinRequestAction,
@@ -35,9 +35,12 @@ export type ClanListRow = {
 export function ClanJoinList({
   gameSlug,
   clans,
+  pendingClanId = null,
 }: {
   gameSlug: string;
   clans: ClanListRow[];
+  /** 해당 게임에서 대기 중(pending)인 가입 신청의 클랜 id — 카드에 반영해 중복 신청 UI 방지 */
+  pendingClanId?: string | null;
 }) {
   const router = useRouter();
   const [replaceOpen, setReplaceOpen] = useState(false);
@@ -46,6 +49,18 @@ export function ClanJoinList({
   const [message, setMessage] = useState("");
   const [blockName, setBlockName] = useState("");
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (
+      pendingClanId != null &&
+      applyingId != null &&
+      pendingClanId === applyingId
+    ) {
+      setApplyingId(null);
+      setSelected(null);
+      setMessage("");
+    }
+  }, [pendingClanId, applyingId]);
 
   function openApply(clan: ClanListRow) {
     setApplyingId((id) => (id === clan.id ? null : clan.id));
@@ -111,7 +126,10 @@ export function ClanJoinList({
   return (
     <>
       <ul className="grid gap-4">
-        {clans.map((c) => (
+        {clans.map((c) => {
+          const isPendingThisClan =
+            pendingClanId != null && pendingClanId === c.id;
+          return (
           <li key={c.id}>
             <Card>
               <CardHeader className="pb-2">
@@ -124,6 +142,11 @@ export function ClanJoinList({
                   </p>
                 ) : null}
                 <div className="flex flex-wrap items-center gap-2">
+                  {isPendingThisClan ? (
+                    <Badge variant="outline" data-testid={`clan-join-pending-${c.id}`}>
+                      신청 대기 중
+                    </Badge>
+                  ) : null}
                   {c.tags.slice(0, 5).map((t) => (
                     <Badge key={t} variant="secondary">
                       {t}
@@ -133,6 +156,13 @@ export function ClanJoinList({
                     정원 {c.max_members}
                   </span>
                 </div>
+                {isPendingThisClan ? (
+                  <p className="text-muted-foreground text-xs leading-relaxed">
+                    이 클랜에 가입 신청을 보낸 상태입니다. 위쪽 배너에서 신청 메시지를
+                    확인하거나 취소할 수 있습니다.
+                  </p>
+                ) : (
+                <>
                 <button
                   type="button"
                   data-testid={`clan-join-open-${c.id}`}
@@ -185,10 +215,13 @@ export function ClanJoinList({
                     </div>
                   </div>
                 ) : null}
+                </>
+                )}
               </CardContent>
             </Card>
           </li>
-        ))}
+          );
+        })}
       </ul>
 
       <Dialog open={replaceOpen} onOpenChange={setReplaceOpen}>
