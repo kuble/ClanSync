@@ -13,6 +13,10 @@ on:
     branches:
       - main
 
+# 기본 GITHUB_TOKEN 권한 최소화(checkout에 필요한 읽기만).
+permissions:
+  contents: read
+
 concurrency:
   group: vercel-prod-clan-sync
   cancel-in-progress: true
@@ -27,6 +31,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Show triggering commit
+        run: |
+          echo "::notice::GITHUB_SHA=${GITHUB_SHA}"
+          git show -s --format='%h %s' "$GITHUB_SHA"
 
       - name: Deploy to clan-sync production
         env:
