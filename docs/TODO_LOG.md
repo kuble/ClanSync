@@ -5,10 +5,15 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-11 — 반복(weekly/monthly) 수동 일정 in-app 예약 확장
+
+- [x] **앱** — `listUpcomingOccurrenceStarts` · `insertClanEventInAppNotifications(template)` · `createClanEventAction` / `updateClanEventAction` 연동. `scrim_auto`는 수동 액션 경로 밖·변경 없음.
+- [x] **문서** — `11-Clan-Events.md` · `QA_시나리오.md` · 허브/Phase2 요약.
+
 ### 2026-05-11 — 단발 일정 in-app 알림 예약 (D-EVENTS-03 일부, 0040)
 
 - [x] **DB** — `0040_dispatch_inapp_event_reminders.sql`: `dispatch_inapp_notification_batch` 가 `event_id` → `event_reminder` 피드 INSERT.
-- [x] **앱** — `buildEventReminderSlots` · `insertClanEventInAppNotifications` · `create/update/cancelClanEventAction` 연동(반복·scrim_auto 제외) · 알림 벨 카피·캘린더 딥링크.
+- [x] **앱** — `buildEventReminderSlots` · `insertClanEventInAppNotifications`(당시 단발 전용) · `create/update/cancelClanEventAction` 연동(scrim_auto 제외) · 알림 벨 카피·캘린더 딥링크.
 - [x] **문서** — `11-Clan-Events.md` · `QA_시나리오.md` · `TODO_Phase2.md`.
 
 ### 2026-05-11 — LFG 만료 배치 (0039 · Cron)
