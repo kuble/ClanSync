@@ -26,6 +26,34 @@ jobs:
             echo "::error::VERCEL_DEPLOY_HOOK 시크릿이 비어 있습니다. Settings → Secrets and variables → Actions → Repository secrets 에 추가한 뒤 다시 실행하세요. 안내: docs/VERCEL_PRODUCTION_SYNC.md"
             exit 1
           fi
+          case "$VERCEL_DEPLOY_HOOK" in
+            https://api.vercel.com/v1/integrations/deploy/*)
+              ;;
+            *)
+              echo "::error::VERCEL_DEPLOY_HOOK URL 형식이 잘못되었습니다. Vercel → 프로젝트 → Settings → Git → Deploy Hooks 에서 받은 주소만 사용해야 합니다. 예: https://api.vercel.com/v1/integrations/deploy/prj_…/..."
+              exit 1
+              ;;
+          esac
+
           echo "::notice::Deploy Hook 호출 중…"
           curl -fsS -X POST "$VERCEL_DEPLOY_HOOK" -o deploy-hook-response.json
           cat deploy-hook-response.json
+          echo ""
+          python3 << 'PYEOF'
+          import json, sys
+
+          raw = open("deploy-hook-response.json", encoding="utf-8").read().strip()
+          if not raw:
+              print("::error::Vercel 응답이 비어 있습니다.", file=sys.stderr)
+              sys.exit(1)
+          try:
+              data = json.loads(raw)
+          except json.JSONDecodeError as e:
+              print(f"::error::JSON 파싱 실패(잘못된 URL 또는 HTML 응답일 수 있습니다): {e}", file=sys.stderr)
+              sys.exit(1)
+          job = data.get("job")
+          if not isinstance(job, dict) or not job.get("id"):
+              print(f"::error::Vercel 응답에 job이 없습니다(Deploy Hook 생성 직후 훅 URL이 또는 다른 페이지 URL을 넣었을 수 있습니다). 응답: {json.dumps(data)[:800]}", file=sys.stderr)
+              sys.exit(1)
+          print(f"OK: job.id={job.get('id')} state={job.get('state')}")
+          PYEOF
