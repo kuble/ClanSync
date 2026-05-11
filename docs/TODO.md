@@ -3,7 +3,7 @@
 > **페이즈별 체크리스트**는 아래 문서로 나눈다. 세션 종료 시 **[세션 로그](./TODO_LOG.md)** 맨 위에 블록을 추가하고, 해당 페이즈 문서의 체크·요약표를 갱신한다.  
 > **/todo 커맨드**: `.cursor/commands/todo.md` 절차로 문서·목업과 동기화한다.
 
-> **지금 라이브**: M6b (**0041** 스크림방·확정→`scrim_auto` 동기화·in-app 예약 트리거) · 수동 일정 in-app·Discord · LFG Cron · 스토어 무효화 · **다음**: 스크림 앱 UI·Server Action 주 경로 · 카카오 등 · M6c · [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md)
+> **지금 라이브**: M6b (**0041** 스크림방…) · 수동 일정… · **다음**: 스크림 UX 잔여(채팅·캘린더 뷰 등) · 카카오 등 · M6c · [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md)
 
 ## 페이즈별 문서
 
@@ -22,7 +22,7 @@
 |------|-----|
 | **현재 단계** | Phase 2 — Next.js `src/` · Supabase · RLS (마스터 플랜 M0~M8) |
 | **이전 단계** | Phase 1 — 정적 목업 (`mockup/`) **종료** (2026-03-28) |
-| **마지막 갱신** | 2026-05-11 — **0041** `scrim_rooms`·양측 확정·`scrim_auto`·in-app 예약(SQL) |
+| **마지막 갱신** | 2026-05-11 — MainGame 스크림 탭 취소·호스트 수정·게임 전체 클랜 상대 선택 |
 
 ---
 

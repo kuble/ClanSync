@@ -5,6 +5,11 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-11 — MainGame 스크림: 취소·호스트 수정·상대 목록(게임 전체 클랜)
+
+- [x] **앱** — `cancelScrimRoomAction` · `updateScrimRoomDetailsAction` · `loadScrimGuestClanOptions` · 스크림 탭 UI · `ScrimRoomActionResult.needReconfirm`.
+- [x] **문서** — `08-MainGame.md` · `QA_시나리오.md` · `TODO.md` · `TODO_Phase2.md` · 본 로그.
+
 ### 2026-05-11 — MainGame 스크림 탭 (개설·상대 지정·양측 확정 UI)
 
 - [x] **앱** — `loadScrimRoomsForGame` · `page.tsx` (`canConfirmScrim`, `myClanId`) · `MainGameCommunityTabs` 스크림 탭 · `scrim-rooms` 액션 연동. `attachGuestClanToScrimAction` `await` 구문 수정.
