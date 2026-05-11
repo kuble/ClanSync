@@ -49,6 +49,7 @@
 | `docs/TODO_Phase1.md` | Phase 1 슬라이스 체크·요약표 |
 | `docs/TODO_Phase2.md` | Phase 2 체크·라우트 표 |
 | `docs/QA_시나리오.md` | **시연·직접 재현 절차** (마일스톤마다 누적). 규칙: `.cursor/rules/qa-demo-handoff.mdc` |
+| `docs/VERCEL_PRODUCTION_SYNC.md` | 깃허브 `main`은 최신인데 Vercel 배포 줄이 안 늘 때(Deploy Hook + Actions) |
 | `docs/02-design/` | 목업·디자인 시스템 |
 
 ---

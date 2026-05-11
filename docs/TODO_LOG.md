@@ -5,6 +5,11 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-11 — Vercel 프로덕션 동기화(Deploy Hook + GitHub Actions)
+
+- [x] **CI** — `main` 푸시·수동 실행 시 레포 시크릿 `VERCEL_DEPLOY_HOOK`(Vercel Git → Deploy Hooks)으로 프로덕션 빌드 강제 트리거; 시크릿 없으면 스킵.
+- [x] **문서** — `docs/VERCEL_PRODUCTION_SYNC.md`, `docs/README.md` 표 링크.
+
 ### 2026-05-11 — 클랜 가입 UX(카드 · ClanAuth 헤더 · 프로필)
 
 - [x] **UI** — `ClanJoinList`: `pendingClanId` 로 신청 대기 카드 처리; 같은 게임에 다른 클랜에 이미 신청했을 때 타 카드에 「이 클랜으로 신청 바꾸기」로 교체 다이얼로그 진입 (`blockingClanName`).
