@@ -5,6 +5,12 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-11 — DB 0041 스크림방 + `scrim_auto` 동기화 + in-app 예약 트리거
+
+- [x] **DB** — `scrim_rooms` · `scrim_room_confirmations` · D-SCRIM-02 promote/invalidate · `clan_events.scrim_id` · `clan_events_apply_from_scrim_room` · `clan_events_reserve_scrm_inapp_notifications`.
+- [x] **타입** — `npm run types:gen`.
+- [x] **문서** — `11-Clan-Events.md` · `QA_시나리오.md` · TODO 허브/Phase2.
+
 ### 2026-05-11 — 수동 일정 Discord 웹훅(수정 시에도 전송)
 
 - [x] **앱** — `notifyDiscordManualClanEvent` (`create`/`update`) · `updateClanEventAction` 성공·in-app 재예약 후 비동기 전송.

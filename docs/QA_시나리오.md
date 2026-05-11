@@ -18,6 +18,29 @@
 
 <!-- 새 시나리오는 이 구분선 위에 추가 (최신이 위) -->
 
+## 2026-05-11 — 스크림 확정 → 클랜 일정·in-app 예약 (0041, Supabase)
+
+**한 줄 요약**: `scrim_rooms`가 `confirmed`가 되면 양 클랜에 `scrim_auto` `clan_events`가 생기고, DB 트리거가 in-app reminder `notification_log`를 넣는지(및 취소 시 `cancelled` 처리되는지) 확인한다.
+
+**환경**: 원격 DB **`0041`** 적용 · `service_role` 또는 Supabase SQL Editor.
+
+**사전 조건**: 서로 다른 `clans` A·B, `users` 최소 1명(스크림 생성자), `clan_members`에 A·B 활동 멤버 포함. `scrim_rooms`에 `clan_a_id=A`, `clan_b_id=B`, `status=matched`, `scheduled_at` 미래, `cancelled_at` NULL 행 1건.
+
+**절차**:
+
+1. `scrim_room_confirmations`에 같은 `scrim_room_id`로 `side=host`·`guest` 각각 한 행씩 INSERT(정책상 운영진+·해당 클랜).
+2. `scrim_rooms`가 `status=confirmed`로 바뀌었는지 확인한다.
+3. `clan_events`에서 `source=scrim_auto`·`scrim_id`가 해당 스크림인 행이 **클랜 A·B 각 1건**인지 본다.
+4. 각 `event_id`에 대해 `notification_log`(channel=inapp, status=scheduled)가 미래 `start_at` 기준으로 생겼는지 본다.
+5. 스크림을 취소 처리하거나 `status`를 `confirmed` 밖으로 바꾼 뒤 `clan_events.cancelled_at` 및 예약 취소 여부를 본다.
+
+**기대 결과**:
+
+- [ ] `UNIQUE (clan_id, scrim_id)`로 동일 스크림에 클랜당 1행만 유지된다.
+- [ ] 확정 무효화(일정 변경) 시 이벤트가 소프트 취소된다.
+
+**깨졌을 때**: 트리거 `clan_events_apply_from_scrim_room` · `scrim_rooms_promote_to_confirmed` · RLS `scrim_room_confirmations_insert`.
+
 ## 2026-05-11 — 수동 일정 Discord 웹훅(등록·수정)
 
 **한 줄 요약**: 클랜에 Discord 일정 알림 웹훅이 켜져 있을 때 **일정 등록**과 **일정 저장(수정)** 각각 직후 Discord 채널에 요약 메시지가 오는지 확인한다(헤더가 «등록»/«변경»으로 구분되는지).

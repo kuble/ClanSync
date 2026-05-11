@@ -243,25 +243,24 @@ H1 "클랜 이벤트"
 | `repeat_time` | `time` — `HH:mm:ss` (KST), `weekly`·`monthly`일 때 NOT NULL |
 | `place` | 장소·채널 |
 | `source` | `manual` / `scrim_auto` (D-EVENTS-01) |
-| `scrim_id` | `scrim_auto` 행의 원본 스크림 FK |
+| `scrim_id` | `scrim_auto` 행의 원본 `scrim_rooms` FK |
 | `cancelled_at` | 전체 취소 시각 (행 삭제 금지) |
 | `finished_at` | 경기 종료 시각 |
 | (관련) `clan_event_exceptions` | 템플릿별 개별 인스턴스 override·취소 |
 | (관련) `event_rsvps` | 참석 응답 — **`kind='scrim'` 이벤트 전용**. 실제 저장 값은 `response='going'` 1종 (D-EVENTS-01 Supplemental 2026-04-21). 사이드바 알림 점 집계는 스크림 미응답 기준. |
-| `scrim_id` | 자동 등록 시 원본 스크림 |
 
 ### 스크림 자동 등록
-- `scrim_rooms.status='confirmed'` 전환 시 양쪽 클랜 `clan_events`에 `source='scrim_auto'` 행 자동 INSERT (D-EVENTS-01).
-- 취소·시간·장소 변경은 양쪽 이벤트에 동기화. 재확정(`cancelled → confirmed`) 시 `cancelled_at=NULL` 복원.
-- 중복 방지 UNIQUE `(clan_id, scrim_id) WHERE scrim_id IS NOT NULL`.
-- 구현 이중화: Server Action (주 경로) + `scrim_rooms` AFTER UPDATE OF status 트리거 `clan_events_sync_from_scrim()`.
+- **DB (마이그레이션 `0041`)**: `scrim_rooms.status='confirmed'` 이고 `clan_b_id`·취소 조건이 맞을 때 `clan_events_apply_from_scrim_room()`이 양쪽 클랜 각각 `source='scrim_auto'`·`kind='scrim'` 행을 **UPSERT** (`UNIQUE (clan_id, scrim_id)`). `status`가 `confirmed`가 아니거나 스크림이 취소되면 기존 `scrim_auto` 행은 **소프트 취소**(`cancelled_at`).
+- **일정 핵심 변경**(일시·장소 등) 시 `scrim_rooms_invalidate_confirmations()`가 **양측 확정을 무효화**하고 `matched`로 내린 뒤(D-SCRIM-02), 위 동기화가 이벤트를 취소 처리한다.
+- 재확정 후 다시 `confirmed`이면 이벤트 `cancelled_at`이 NULL로 복구되는 UPSERT 경로를 탄다.
+- 스키마·RLS·확정 테이블: `scrim_rooms` · `scrim_room_confirmations`. 이후 **앱 Server Action** 주 경로를 두면 트리거와 이중화 가능(D-EVENTS-01).
 - `source='scrim_auto'` 행은 **읽기 전용**. 수동 편집 UI 숨김 + "스크림에서 자동 등록" 배지 + 스크림 상세 열기 링크.
 
 ### 수동 일정 in-app 알림 예약 (D-EVENTS-03 · Phase 2)
 - **대상**: **`source=manual`** 내전·이벤트 일정. `repeat` 가 `none` / `weekly` / `monthly` 일 때 모두, **앞으로 도래하는 회차**를 캘린더와 동일 규칙으로 펼쳐(현재 달부터 최대 6개월, 최대 14회) 각 회차 시작 시각 기준으로 활동 멤버마다 `notification_log`(channel=`inapp`)에 **T-24h / T-1h / T-10min / T+0** 중 아직 도래하지 않은 슬롯만 `scheduled` INSERT.
 - **`instance_idx`**: `repeat=none` 은 기존 고정값 `0`(단일). `weekly`/`monthly` 는 해당 회차 **시작 시각(ms)**.
-- **제외**: **`scrim_auto`** 는 수동 생성·수정 액션이 없으므로 이 Server Action 경로에서는 예약하지 않음(후속: 스크림 동기화 시 별도 정책).
-- **수정·취소**: 일정 저장 시 기존 해당 `event_id`의 `scheduled` 예약을 취소한 뒤 위 규칙으로 재예약. 향후 도래 회차가 없으면 INSERT 없이 성공. 취소(`cancelled_at`) 시에도 `scheduled` 예약을 취소.
+- **`source=scrim_auto`**: **DB 트리거** `clan_events_reserve_scrm_inapp_notifications` — `clan_events` INSERT/UPDATE(`start_at`,`cancelled_at`) 시 단발(`repeat=none`,`instance_idx=0`) 기준으로 T-24h~T+0 슬롯 예약·재예약(dedup 규칙은 앱 TS와 동일 문자열). `cancelled_at`이 있으면 해당 `event_id`의 `scheduled` in-app 행만 취소.
+- **수정·취소(수동)**: 일정 저장 시 기존 해당 `event_id`의 `scheduled` 예약을 취소한 뒤 위 규칙으로 재예약. 향후 도래 회차가 없으면 INSERT 없이 성공. 취소(`cancelled_at`) 시에도 `scheduled` 예약을 취소.
 - **발송**: `dispatch_inapp_notification_batch`가 피드 `notifications.kind = event_reminder` 로 반영. 알림 벨 링크는 캘린더 탭(`?tab=calendar`).
 
 ### 수동 일정 Discord 웹훅 (MVP · `clan_settings.event_notify`)
