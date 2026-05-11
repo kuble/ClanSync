@@ -5,6 +5,13 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-11 — ClanAuth 고정 블록·비활성 CTA·프로필 재검증
+
+- [x] **온보딩** — `pending` 시 `clans` 단건 조회 후 「신청 진행 중인 클랜」 블록 + 목록 중복 제거; 신청 완료 카드에 비활성 「가입 신청됨 · 대기 중」.
+- [x] **캐시** — `submit`/`cancel`/승인·거절 분기 `revalidatePath("/profile")` 보강, `/profile` 은 `dynamic = "force-dynamic"`.
+- [x] **Dev** — 클랜 온보딩·프로필에 `npm run dev` vs `next start` 안내 표식·`data-testid`.
+- [x] **문서** — `06-ClanAuth.md`·`14-Profile-Customization.md`·`QA_시나리오.md` 동기화.
+
 ### 2026-05-11 — Vercel Hobby: Cron 일 1회 (배포 검증 오류 해소)
 
 - [x] **배포** — `vercel.json` `dispatch-notifications` cron을 `0 2 * * *`(UTC 매일 1회)로 변경해 Hobby 일일 제한 준수.

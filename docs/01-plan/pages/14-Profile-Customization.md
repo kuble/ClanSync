@@ -120,6 +120,7 @@
 
 ### 데이터 출처
 - 단일 소스: `clan_join_requests` (D-CLAN-02).
+- **Phase 2 구현**: 라우트 `dynamic = "force-dynamic"`(로그인 세션별 최신 조회); 클랜 가입 신청·취소·운영진 승인/거절 후 `revalidatePath("/profile")` 로 서버 캐시를 무효화해 ClanAuth 직후에도 목록이 비지 않도록 한다.
 - 필터: `user_id = me AND (status='pending' OR (status IN ('approved','rejected') AND resolved_at > now() - interval '7 days'))`.
 - 정렬: `created_at DESC`.
 - **canceled / expired 는 목록에 노출하지 않는다** (감사 로그에만 남음).
