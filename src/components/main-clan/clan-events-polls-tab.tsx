@@ -125,8 +125,9 @@ export function ClanEventsPollsTab({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-muted-foreground text-sm">
-          진행 중 투표에 참여합니다. 알림 예약은 in-app 채널로 저장되며(D-EVENTS-04),
-          Discord·카카오 발송은 후속 워커에서 연결합니다.
+          진행 중 투표에 참여합니다. 알림 예약은 in-app으로 멤버별 저장되고, 클랜 일정
+          알림에서 Discord 웹훅을 켠 경우 동일 시각에 Discord 행도 예약됩니다(Cron이
+          `/api/cron/dispatch-notifications`에서 발송). 카카오 등은 후속입니다.
         </p>
         {canManagePolls ? (
           <Button

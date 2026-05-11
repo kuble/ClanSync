@@ -3,6 +3,7 @@
 import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
+import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
 import { buildPollNotificationSlots } from "@/lib/clan/poll-notification-schedule";
 import {
   parsePollNotifyRepeat,
@@ -154,11 +155,21 @@ export async function createClanPollAction(
       return { ok: false, error: memErr.message };
     }
 
+    const { data: settingsRow } = await svc
+      .from("clan_settings")
+      .select("event_notify")
+      .eq("clan_id", clanId)
+      .maybeSingle();
+    const evNotify = readClanEventNotifySettings(settingsRow?.event_notify ?? null);
+    const discordWebhookOk =
+      evNotify.discord_enabled &&
+      evNotify.discord_webhook_url.trim().startsWith("https://discord.com/api/webhooks/");
+
     const userIds = (memRows ?? []).map((r) => r.user_id as string);
     const logRows: {
       poll_id: string;
       slot_kind: string;
-      channel: "inapp";
+      channel: "inapp" | "discord";
       recipient_user_id: string;
       scheduled_at: string;
       dedup_key: string;
@@ -178,6 +189,26 @@ export async function createClanPollAction(
           slot_kind: s.slot_kind,
           channel: "inapp",
           recipient_user_id: uid,
+          scheduled_at: scheduledAt,
+          dedup_key,
+          status: "scheduled",
+        });
+      }
+    }
+
+    if (discordWebhookOk) {
+      for (const s of slots) {
+        const scheduledAt = s.scheduled_at.toISOString();
+        const dedup_key = createHash("sha256")
+          .update(
+            `${pollId}|${s.slot_kind}|${scheduledAt}|${user.id}|discord`,
+          )
+          .digest("hex");
+        logRows.push({
+          poll_id: pollId,
+          slot_kind: s.slot_kind,
+          channel: "discord",
+          recipient_user_id: user.id,
           scheduled_at: scheduledAt,
           dedup_key,
           status: "scheduled",

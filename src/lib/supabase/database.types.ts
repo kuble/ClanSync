@@ -1956,6 +1956,10 @@ export type Database = {
         Args: { p_roster: Json; p_uid: string }
         Returns: boolean
       }
+      claim_discord_poll_notification_batch: {
+        Args: { p_limit: number }
+        Returns: Json
+      }
       clan_active_member_counts: {
         Args: { p_clan_ids: string[] }
         Returns: {
@@ -1973,6 +1977,10 @@ export type Database = {
       dispatch_inapp_notification_batch: {
         Args: { p_limit?: number }
         Returns: number
+      }
+      finalize_discord_notification_dispatch: {
+        Args: { p_error: string; p_log_id: string; p_ok: boolean }
+        Returns: undefined
       }
       is_active_clan_member: { Args: { p_clan_id: string }; Returns: boolean }
       is_clan_officer_plus: { Args: { p_clan_id: string }; Returns: boolean }
@@ -2108,7 +2116,13 @@ export type Database = {
         | "poll_deadline_window"
         | "poll_deadline_1h"
         | "event_cancelled"
-      notification_status: "scheduled" | "sent" | "failed" | "cancelled" | "dlq"
+      notification_status:
+        | "scheduled"
+        | "sent"
+        | "failed"
+        | "cancelled"
+        | "dlq"
+        | "processing"
       poll_notify_repeat:
         | "none"
         | "once"
@@ -2302,7 +2316,14 @@ export const Constants = {
         "poll_deadline_1h",
         "event_cancelled",
       ],
-      notification_status: ["scheduled", "sent", "failed", "cancelled", "dlq"],
+      notification_status: [
+        "scheduled",
+        "sent",
+        "failed",
+        "cancelled",
+        "dlq",
+        "processing",
+      ],
       poll_notify_repeat: [
         "none",
         "once",

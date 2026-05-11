@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
+import { dispatchDiscordPollNotifications } from "@/lib/notifications/dispatch-discord-poll-notifications";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 
 /**
- * `notification_log` 중 due 인 in-app 행을 처리해 `notifications` 피드에 넣고 sent 로 표시한다.
+ * `notification_log` 중 due 인 in-app 행을 피드에 반영하고, Discord 투표 알림 웹훅을 발송한다.
  * Vercel Cron(Hobby: 하루 1회) 또는 수동/외부 스케줄 호출 시 `Authorization: Bearer <CRON_SECRET>` 필요.
  */
 export async function GET(request: Request) {
@@ -32,8 +33,23 @@ export async function GET(request: Request) {
   }
 
   const dispatched = typeof data === "number" ? data : Number(data);
+
+  let discord: { claimed: number; sent: number; failed: number } = {
+    claimed: 0,
+    sent: 0,
+    failed: 0,
+  };
+  let discord_note: string | null = null;
+  try {
+    discord = await dispatchDiscordPollNotifications(svc, 40);
+  } catch (e) {
+    discord_note = e instanceof Error ? e.message : "discord_dispatch_failed";
+  }
+
   return NextResponse.json({
     ok: true,
     dispatched,
+    discord,
+    discord_note,
   });
 }
