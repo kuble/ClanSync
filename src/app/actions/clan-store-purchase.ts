@@ -126,5 +126,103 @@ export async function purchaseStoreItemAction(
 
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/store`);
   revalidatePath(`/games/${gameSlug}/clan/${clanId}`);
+  revalidatePath(`/games/${gameSlug}/clan/${clanId}/manage`);
   return { ok: true, purchaseId: parsed.purchase_id };
+}
+
+export type VoidClanStorePurchaseResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+function mapVoidRpcError(code: string): string {
+  switch (code) {
+    case "invalid_args":
+      return "요청이 올바르지 않습니다.";
+    case "reason_too_short":
+      return "무효화 사유를 네 글자 이상 입력해 주세요.";
+    case "not_found":
+      return "구매 내역을 찾을 수 없습니다.";
+    case "already_voided":
+      return "이미 무효 처리된 구매입니다.";
+    case "not_clan_pool":
+      return "클랜 풀 구매만 무효화할 수 있습니다.";
+    case "invalid_purchase":
+      return "구매 데이터가 올바르지 않습니다.";
+    case "void_self_forbidden":
+      return "구매 당사자는 무효화할 수 없습니다. 다른 운영진에게 요청해 주세요.";
+    case "officer_required":
+      return "운영진만 무효화할 수 있습니다.";
+    case "ledger_missing":
+    case "invalid_ledger":
+      return "코인 원장을 확인할 수 없습니다. 관리자에게 문의해 주세요.";
+    case "duplicate_void":
+      return "이미 처리된 요청입니다. 새로고침 후 확인해 주세요.";
+    default:
+      return "무효화 처리에 실패했습니다.";
+  }
+}
+
+function parseVoidRpcPayload(raw: unknown): { ok: boolean; error?: string } {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    return { ok: false, error: "unknown" };
+  }
+  const o = raw as Record<string, unknown>;
+  if (o.ok === true) return { ok: true };
+  const error = typeof o.error === "string" ? o.error : undefined;
+  return { ok: false, error };
+}
+
+/** D-STORE-03 — 클랜 풀 구매만. 구매자 본인·일반 멤버 불가 (RPC 검증). */
+export async function voidClanStorePurchaseAction(
+  gameSlug: string,
+  clanId: string,
+  purchaseId: string,
+  reason: string,
+): Promise<VoidClanStorePurchaseResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const allowed = await hasClanPermission(
+    supabase,
+    user.id,
+    clanId,
+    "manage_clan_pool",
+  );
+  if (!allowed) {
+    return { ok: false, error: "클랜 풀·스토어 운영 권한이 없습니다." };
+  }
+
+  const svc = createServiceRoleClient();
+  const { data: clanRow } = await svc
+    .from("clans")
+    .select("id, games!inner(slug)")
+    .eq("id", clanId)
+    .maybeSingle();
+  const g = clanRow?.games as unknown as { slug: string } | undefined;
+  if (!clanRow || g?.slug !== gameSlug) {
+    return { ok: false, error: "클랜을 찾을 수 없습니다." };
+  }
+
+  const { data: rpcRaw, error: rpcErr } = await svc.rpc("void_clan_store_purchase", {
+    p_actor_id: user.id,
+    p_purchase_id: purchaseId,
+    p_reason: reason,
+  });
+
+  if (rpcErr) {
+    return { ok: false, error: rpcErr.message };
+  }
+
+  const parsed = parseVoidRpcPayload(rpcRaw);
+  if (!parsed.ok) {
+    return { ok: false, error: mapVoidRpcError(parsed.error ?? "unknown") };
+  }
+
+  revalidatePath(`/games/${gameSlug}/clan/${clanId}/store`);
+  revalidatePath(`/games/${gameSlug}/clan/${clanId}/manage`);
+  revalidatePath(`/games/${gameSlug}/clan/${clanId}`);
+  return { ok: true };
 }
