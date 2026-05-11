@@ -7,7 +7,7 @@
 | 항목 | 값 |
 |------|-----|
 | **단계** | Phase 2 — 앱 구현 |
-| **마지막 갱신** | 2026-05-11 — **0038** `void_personal_store_purchase` · 관리 탭 **개인 풀** 무효화 (D-STORE-03 확장) |
+| **마지막 갱신** | 2026-05-11 — **0039** `expire_open_lfg_posts_batch` · Cron에서 LFG 만료 정리 (D-LFG-01) |
 
 ## 전제 (Q&A 확정)
 
@@ -129,7 +129,7 @@ flowchart TD
 - [x] `/games/[g]` — 홍보 `board_posts`(**D-RANK-01** newest/space) · LFG `lfg_posts`/`lfg_applications`(**D-LFG-01** MVP) · 클랜 순위 미리보기(`clan_active_member_counts` RPC)
 - [x] 스크림 탭 — "Phase 2+ 예정" 안내 유지
 - [ ] `/games/[g]/board/[postId]` — **라우트 미작성** (Phase 2+)
-- [ ] LFG 만료 cron·알림(D-EVENTS-03 in-app) — 후속
+- [ ] LFG 만료 cron·알림(D-EVENTS-03 in-app) — **부분**: `0039` `expire_open_lfg_posts_batch` · `/api/cron/dispatch-notifications` 에서 호출 (일 1회 Cron과 동선 공유)
 
 ### M8 — Phase 2 종료 감사
 
@@ -184,6 +184,7 @@ Phase 1 정적 목업(`mockup/`)은 참조용으로 유지; 운영 빌드에서�
 | 마이그레이션 | `supabase/migrations/0032_notifications_feed_dispatch.sql` | D-NOTIF-01 `notifications` 피드 · `dispatch_inapp_notification_batch`(poll_reminder MVP) |
 | 마이그레이션 | `supabase/migrations/0036_void_clan_store_purchase_rpc.sql` | D-STORE-03 `void_clan_store_purchase`(클랜 풀만·코인 환급·배너 초기화) |
 | 마이그레이션 | `supabase/migrations/0038_void_personal_store_purchase_rpc.sql` | D-STORE-03 `void_personal_store_purchase`(개인 풀·구매자 환급·입장 효과 네임플레이트 정리) |
+| 마이그레이션 | `supabase/migrations/0039_expire_open_lfg_posts_batch.sql` | D-LFG-01 `expire_open_lfg_posts_batch`(만료 open 글·applied 신청 정리) |
 | 마이그레이션 | `supabase/migrations/0014_store_coin_mvp.sql` | `coin_transactions`·`store_items`·`purchases`·`apply_store_purchase` (D-STORE-01 MVP) |
 | 마이그레이션 | `supabase/migrations/0015_store_profile_entrance_nameplate.sql` | 스토어 frame 카탈로그·`apply_store_purchase` 입장 효과 보유 부여 |
 | 마이그레이션 | `supabase/migrations/0016_balance_sessions_mvp.sql` | M6c `balance_sessions`·`balance_session_map_votes` + RLS (클랜당 미종료 1세션) |

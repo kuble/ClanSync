@@ -5,6 +5,12 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-11 — LFG 만료 배치 (0039 · Cron)
+
+- [x] **DB** — `0039_expire_open_lfg_posts_batch.sql`: `expire_open_lfg_posts_batch` (open·만료 시각 경과 → `expired`, `applied` 신청 정리).
+- [x] **앱** — `/api/cron/dispatch-notifications` 에서 RPC 호출, 응답 `lfg_expired`·`lfg_note`.
+- [x] **문서** — `TODO.md` · `TODO_Phase2.md` · `QA_시나리오.md`.
+
 ### 2026-05-11 — D-STORE-03 개인 풀 스토어 구매 무효화
 
 - [x] **DB** — `0038_void_personal_store_purchase_rpc.sql`: `void_personal_store_purchase` (개인 잔액 환급·`correction_of`·`profile_entrance_fx` 시 네임플레이트·선택 정리·구매자 클랜 멤버 검증).

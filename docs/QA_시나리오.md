@@ -18,6 +18,27 @@
 
 <!-- 새 시나리오는 이 구분선 위에 추가 (최신이 위) -->
 
+## 2026-05-11 — Cron · LFG 모집 만료 정리 (`dispatch-notifications`)
+
+**한 줄 요약**: `GET /api/cron/dispatch-notifications` 응답에 **`lfg_expired`** 가 포함되고, `expires_at`이 지난 `open` LFG 글이 DB에서 `expired`로 바뀌는지 확인한다.
+
+**환경**: `http://127.0.0.1:3000`(또는 배포 URL) · 원격 DB **`0039`** 적용 · `.env.local`의 `CRON_SECRET`(8자 이상)과 동일한 값으로 `Authorization: Bearer …` 헤더.
+
+**사전 조건**: (선택) Supabase에서 `lfg_posts`에 `status=open` 이고 `expires_at <= now()` 인 테스트 행이 있으면 검증이 쉬움. 없으면 응답의 `lfg_expired`가 `0`인지만 확인.
+
+**절차**:
+
+1. `curl` 또는 브라우저 확장으로 `GET /api/cron/dispatch-notifications` + `Authorization: Bearer <CRON_SECRET>` 호출한다.
+2. JSON에 `ok`, `dispatched`, `discord`, **`lfg_expired`**, `lfg_note` 필드가 있는지 본다.
+3. 테스트 행을 썼다면 해당 `lfg_posts.status`가 `expired`이고, 대기 중이던 `lfg_applications`가 `expired`로 정리됐는지 Supabase에서 본다.
+
+**기대 결과**:
+
+- [ ] `lfg_note`가 null이거나(성공 시) 실패 시에만 에러 메시지가 든다.
+- [ ] 만료 대상이 있으면 `lfg_expired`가 0보다 크다.
+
+**깨졌을 때**: `expire_open_lfg_posts_batch` RPC · `CRON_SECRET` · 서비스 롤 ENV.
+
 ## 2026-05-11 — 스토어 개인 풀 구매 무효화 (관리 탭)
 
 **한 줄 요약**: 같은 클랜의 **다른 운영진**이 **관리**에서 **개인 풀** 스토어 구매를 무효화하면 구매자 **개인 코인**이 돌아오고, `profile_entrance_fx`이면 스토어 네임플레이트 보유·선택이 정리되는지 확인한다.
@@ -55,7 +76,7 @@
 1. 관리 또는 설정에서 **Discord 웹훅**을 저장한다.
 2. 이벤트 탭에서 **투표**를 만들 때 알림 옵션이 켜져 있으면, 생성 직후 `notification_log`에 `channel=discord` 행이 생기는지 Supabase에서 본다(또는 앱 로그).
 3. `GET /api/cron/dispatch-notifications` 에 `Authorization: Bearer <CRON_SECRET>` 을 붙여 호출한다(로컬·Preview 동일).
-4. 응답 JSON에 in-app 건수와 함께 **`discord`** / **`discord_note`** 필드가 기대대로인지 본다. Discord 방에 메시지가 도착하면 성공.
+4. 응답 JSON에 in-app 건수와 함께 **`discord`** / **`discord_note`** · **`lfg_expired`** / **`lfg_note`** 필드가 기대대로인지 본다. Discord 방에 메시지가 도착하면 성공.
 
 **기대 결과**:
 
