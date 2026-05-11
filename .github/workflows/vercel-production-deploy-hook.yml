@@ -1,0 +1,30 @@
+# Vercel 자동 빌드(깃허브 푸시 → webhook)가 끊긴 상태에서도
+# 저장소 최신(main) 코드로 프로덕션 빌드를 강제로 돌립니다.
+#
+# 준비: Vercel → clan-sync 프로젝트 → Settings → Git → Deploy Hooks
+#       이름 예: gh-main-sync, 브랜치: main → 발급 URL을
+#       GitHub 레포 Secrets 에 `VERCEL_DEPLOY_HOOK` 으로 등록
+#
+# 검증 없이 빌드를 트리거하므로 훅 URL은 패스워드처럼 취급할 것.
+
+name: Trigger Vercel production (deploy hook)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: POST deploy hook (main → production build)
+        env:
+          VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$VERCEL_DEPLOY_HOOK" ]; then
+            echo "::notice::Skipping: GitHub 레포에 Secret VERCEL_DEPLOY_HOOK 미설정. docs/VERCEL_PRODUCTION_SYNC.md 참고."
+            exit 0
+          fi
+          resp=$(curl -fsS -X POST "$VERCEL_DEPLOY_HOOK" -w "\n%{http_code}")
+          printf '%s\n' "$resp"
