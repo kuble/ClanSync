@@ -5,6 +5,11 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-11 — 스크림 모드·티어·메모 (`scrim_rooms` 컬럼 연동)
+
+- [x] **앱** — `loadScrimRoomsForGame` 확장 · `createDraftScrimRoomAction` · `updateScrimRoomDetailsAction`(무효화 필드 정합) · 스크림 탭 폼·카드 표시.
+- [x] **문서** — `08-MainGame.md` · `QA_시나리오.md` · `TODO.md` · 본 로그.
+
 ### 2026-05-11 — MainGame 스크림: 취소·호스트 수정·상대 목록(게임 전체 클랜)
 
 - [x] **앱** — `cancelScrimRoomAction` · `updateScrimRoomDetailsAction` · `loadScrimGuestClanOptions` · 스크림 탭 UI · `ScrimRoomActionResult.needReconfirm`.

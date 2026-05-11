@@ -155,13 +155,13 @@
 
 ### Phase 2 앱 동작 (MainGame `/games/[gameSlug]` · 스크림 탭)
 
-- **목록**: 해당 게임에 소속된 클랜이 `scrim_rooms`의 호스트(`clan_a_id`) 또는 게스트(`clan_b_id`)로 참여 중인 방을 시간순으로 표시한다. 각 행에 제목·일시·장소(선택)·상대 클랜·`draft`/`matched`/… 상태·호스트/게스트 확정 여부를 보여 준다.
-- **개설**: 클랜에 소속되고 `confirm_scrim` 권한이 있는 멤버만 **제목(선택)·일시(필수)·장소(선택)** 로 `draft` 방을 생성한다. (INSERT는 서비스 롤 — `createDraftScrimRoomAction`.)
+- **목록**: 해당 게임에 소속된 클랜이 `scrim_rooms`의 호스트(`clan_a_id`) 또는 게스트(`clan_b_id`)로 참여 중인 방을 시간순으로 표시한다. 각 행에 제목·일시·장소(선택)·모드·티어 범위·메모(선택)·상대 클랜·`draft`/`matched`/… 상태·호스트/게스트 확정 여부를 보여 준다.
+- **개설**: 클랜에 소속되고 `confirm_scrim` 권한이 있는 멤버만 **제목(선택)·일시(필수)·장소(선택)·모드(선택·`varchar(32)`)·티어 하한/상한(선택·함께 입력·0~5000 정수)·메모(선택)** 로 `draft` 방을 생성한다. (INSERT는 서비스 롤 — `createDraftScrimRoomAction`.)
 - **상대 지정**: 호스트이며 `draft`·`clan_b_id` NULL일 때, **같은 게임 소속 클랜 전체 목록**(이름순, `loadScrimGuestClanOptions`)에서 자기 클랜을 제외하고 고른 뒤 **상대 지정** → `matched` + `clan_b_id` (서비스 롤 — `attachGuestClanToScrimAction`).
 - **양측 확정**: `matched`이고 상대가 있을 때, 호스트/게스트 각각 `confirm_scrim` 권한자가 **우리 측 확정**을 누르면 `scrim_room_confirmations`에 해당 `side`가 쌓인다. 중복 확정은 한글 에러. (RLS — `confirmScrimSideAction`.) DB 트리거가 양측 확정 시 `confirmed` 승격 및 `clan_events` 동기화(0041).
-- **호스트 수정**: 개설 클랜 운영진이 **일정·제목·장소 수정** (`updateScrimRoomDetailsAction`, 서비스 롤). **일시·장소**가 바뀌고 기존에 확정(또는 한쪽 확정)이 있었다면 트리거 `scrim_rooms_invalidate_confirmations`가 확정 행을 삭제하고 `matched`로 되돌리므로, 앱은 다시 양측 확정이 필요함을 토스트한다. **제목만** 바꾸면 확정은 유지된다.
+- **호스트 수정**: 개설 클랜 운영진이 **일정·제목·장소·모드·티어·메모**를 수정한다 (`updateScrimRoomDetailsAction`). **일시·장소·모드·티어 범위**가 바뀌고 기존에 확정(또는 한쪽 확정)이 있었다면 트리거 `scrim_rooms_invalidate_confirmations`가 확정 행을 삭제하고 `matched`로 되돌리므로, 앱은 다시 양측 확정이 필요함을 토스트한다. **제목·메모만** 바꾸면 확정은 유지된다.
 - **취소**: 호스트 또는 (상대가 배정된 경우) 게스트 쪽 `confirm_scrim` 권한자가 **스크림 취소** (`cancelScrimRoomAction`). `draft`/`matched`/`confirmed`만 허용 → `cancelled`·`cancelled_at`. 이후 `clan_events_apply_from_scrim_room`가 `scrim_auto` 행을 소프트 취소한다.
-- **미구현(목업·후속)**: 일자별 캘린더 UI, 스크림 전용 채팅 모달, 티어 필터, 모드·티어 컬럼 편집 UI 등은 기존 목업 스펙과 병행해 추후 확장.
+- **미구현(목업·후속)**: 일자별 캘린더 UI, 스크림 전용 채팅 모달, 목업 수준 티어 **필터·칩 UI** 등은 추후 확장.
 
 ### 필터
 | 항목 | 옵션 |

@@ -7,7 +7,7 @@
 | 항목 | 값 |
 |------|-----|
 | **단계** | Phase 2 — 앱 구현 |
-| **마지막 갱신** | 2026-05-11 — MainGame 스크림 MVP(취소·수정·상대 목록) |
+| **마지막 갱신** | 2026-05-11 — 스크림 모드·티어·메모 UI |
 
 ## 전제 (Q&A 확정)
 
@@ -121,13 +121,13 @@ flowchart TD
 ### M6 — MainClan 탭 묶음 (M4 이후, 권장 순서 a→b→c)
 
 - [x] **M6a S05 클랜 통계** — 요약 KPI · HoF(설정 모달·등재 규칙·전체/월/연) · **D-STATS-03** 활동일 표·내전 막대 · **D-STATS-04** CSV 안내만 · 경기 기록 일자 목록(캘린더·정정은 M6b 후속)
-- [ ] **M6b S06 이벤트·관리·스토어** — **부분**: `0013`~`0015` · **`0027` 반복** · **`0028` RSVP** · **`0029` 클랜 투표** · **`0030` 대진표 초안(`bracket_tournaments`·snapshot)** · **`0031` `notification_log`(투표 예약·D-EVENTS-04)** · **`0032` `notifications`·in-app 발송 배치·Cron** · **`0033` 읽음 RPC·MainClan 벨·드로어(D-NOTIF-01)** · **`0037` 투표 알림 Discord 배치** · **`0040` 일정 in-app 예약·`event_reminder`(단발+반복 수동)** · **`0041` 스크림 확정→`scrim_auto`·SQL in-app 예약** · **`0036`/`0038` 스토어 무효화(D-STORE-03)** · `/events` **월간 캘린더·대진표·투표·수동 일정·취소·반복 펼침·스크림 RSVP·운영진 명단** · 관리·Discord 웹훅 · 스토어 MVP · D-STORE-02 · **`profile_entrance_fx`** · **잔여**: MainGame 스크림 채팅·캘린더 뷰·모드·티어 컬럼 편집 · 타 채널(카카오 등) · 팀·매치 마법사·코인 연동 · 시각 효과 고도화
+- [ ] **M6b S06 이벤트·관리·스토어** — **부분**: `0013`~`0015` · **`0027` 반복** · **`0028` RSVP** · **`0029` 클랜 투표** · **`0030` 대진표 초안(`bracket_tournaments`·snapshot)** · **`0031` `notification_log`(투표 예약·D-EVENTS-04)** · **`0032` `notifications`·in-app 발송 배치·Cron** · **`0033` 읽음 RPC·MainClan 벨·드로어(D-NOTIF-01)** · **`0037` 투표 알림 Discord 배치** · **`0040` 일정 in-app 예약·`event_reminder`(단발+반복 수동)** · **`0041` 스크림 확정→`scrim_auto`·SQL in-app 예약** · **`0036`/`0038` 스토어 무효화(D-STORE-03)** · `/events` **월간 캘린더·대진표·투표·수동 일정·취소·반복 펼침·스크림 RSVP·운영진 명단** · 관리·Discord 웹훅 · 스토어 MVP · D-STORE-02 · **`profile_entrance_fx`** · **잔여**: MainGame 스크림 **채팅·캘린더 뷰** · 타 채널(카카오 등) · 팀·매치 마법사·코인 연동 · 시각 효과 고도화
 - [ ] **M6c S04 밸런스메이커** — **부분**: `0016`~`0026` 세션·맵·영웅 밴·roster·M/A·Realtime·승부예측·**5분 마감**·결과·**클랜 풀 차감 후 개인 지급**·세션 종료 · **잔여**: 파리뮤추엘·다른 게임 영웅 풀·내전 히스토리 연동
 
 ### M7 — S07 MainGame 커뮤니티 (경량판)
 
 - [x] `/games/[g]` — 홍보 `board_posts`(**D-RANK-01** newest/space) · LFG `lfg_posts`/`lfg_applications`(**D-LFG-01** MVP) · 클랜 순위 미리보기(`clan_active_member_counts` RPC)
-- [x] 스크림 탭 — `scrim_rooms` 목록·개설·상대(게임 전체 클랜)·양측 확정·호스트 일정 수정·양측 취소(MVP)
+- [x] 스크림 탭 — `scrim_rooms` 목록·개설·상대(게임 전체 클랜)·양측 확정·호스트 일정 수정·양측 취소·**모드·티어·메모**(MVP)
 - [ ] `/games/[g]/board/[postId]` — **라우트 미작성** (Phase 2+)
 - [ ] LFG 만료 cron·알림(D-EVENTS-03 in-app) — **부분**: `0039` `expire_open_lfg_posts_batch` · `/api/cron/dispatch-notifications` 에서 호출 (일 1회 Cron과 동선 공유)
 
