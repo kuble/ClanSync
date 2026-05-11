@@ -1,9 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
+import {
+  fetchMyClanJoinRequests,
+  filterPendingJoinsForGame,
+} from "@/lib/clan/fetch-my-clan-join-requests";
 
 export type ClanOnboardingStatus = "none" | "pending" | "member";
 
-/** 대기 중 가입 신청 — PostgREST `clans!inner` 임베드 없이 채워 RLS·조인 불일치로 행 소실되는 것 방지 */
 export type PendingJoinBrief = {
   requestId: string;
   clanId: string;
@@ -63,28 +66,16 @@ export async function loadGameOnboarding(
     };
   }
 
-  /* 프로필(D-PROFILE-02)과 동일: 테이블 RLS 조합 회피 — SECURITY DEFINER RPC 후 game·status 로 필터 */
-  const { data: myJoinRows, error: joinErr } = await supabase.rpc(
-    "select_my_clan_join_requests",
-  );
+  const { data: myJoinRows, error: joinErr } =
+    await fetchMyClanJoinRequests(supabase);
 
   if (joinErr) {
     console.error("[loadGameOnboarding] select_my_clan_join_requests:", joinErr.message);
   }
 
-  const pendingForGame =
-    myJoinRows?.filter(
-      (r) =>
-        String(r.game_id) === String(game.id) &&
-        String(r.status) === "pending",
-    ) ?? [];
+  const pendingForGame = filterPendingJoinsForGame(myJoinRows, game.id);
 
-  pendingForGame.sort(
-    (a, b) => Date.parse(b.applied_at) - Date.parse(a.applied_at),
-  );
-
-  const pendingRows = pendingForGame.slice(0, 2);
-  const pendingRow = pendingRows[0];
+  const pendingRow = pendingForGame[0];
 
   if (!pendingRow?.clan_id) {
     return {

@@ -180,7 +180,7 @@ export function ClanJoinList({
                 페이지 상단의 「진행 중인 가입 신청」에서 취소할 수 있습니다. 이 클랜에는 다시 신청하지
                 않습니다.
               </p>
-              <Button type="button" variant="secondary" size="sm" disabled className="pointer-events-none">
+              <Button type="button" variant="secondary" size="sm" disabled>
                 가입 신청됨 · 대기 중
               </Button>
             </CardContent>
@@ -239,7 +239,6 @@ export function ClanJoinList({
                       variant="secondary"
                       size="sm"
                       disabled
-                      className="pointer-events-none"
                       data-testid={`clan-join-applied-disabled-${c.id}`}
                     >
                       가입 신청됨 · 대기 중

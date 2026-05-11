@@ -12,6 +12,7 @@ import { ProfileJoinRequests } from "@/components/profile/profile-join-requests"
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { createClient } from "@/lib/supabase/server";
+import { fetchMyClanJoinRequests } from "@/lib/clan/fetch-my-clan-join-requests";
 import type { Database } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
 
@@ -35,8 +36,6 @@ type JoinRow = {
   clans: { name: string } | null;
   games: { slug: string; name_ko: string } | null;
 };
-
-type ClanJoinRequestRow = Database["public"]["Tables"]["clan_join_requests"]["Row"];
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -81,12 +80,8 @@ export default async function ProfilePage() {
       .order("slot_index", { ascending: true }),
   ]);
 
-  const {
-    data: joinRpcData,
-    error: rawJoinFlatErr,
-  } = await supabase.rpc("select_my_clan_join_requests");
-
-  const rawJoinFlat: ClanJoinRequestRow[] | null = joinRpcData ?? null;
+  const { data: rawJoinFlat, error: rawJoinFlatErr } =
+    await fetchMyClanJoinRequests(supabase);
 
   const clanIdsForJoin = [
     ...new Set((rawJoinFlat ?? []).map((r) => r.clan_id).filter(Boolean)),
@@ -230,15 +225,6 @@ export default async function ProfilePage() {
         <p className="text-muted-foreground mt-2 text-sm">
           계정 정보와 꾸미기·가입 신청 상태를 한곳에서 확인합니다.
         </p>
-        {process.env.NODE_ENV === "development" ? (
-          <p
-            className="text-muted-foreground mt-2 max-w-xl text-[11px] leading-relaxed"
-            data-testid="dev-profile-build-marker"
-          >
-            Dev 반영 확인: 신청 직후 목록이 비면 새로 고침(F5) 한 번 해 보세요. 이 안내 문구가
-            바뀌었다면 현재 빌드가 새 코드입니다.
-          </p>
-        ) : null}
       </header>
 
       {pendingForBanner.length > 0 && !joinRequestsFetchFailed ? (
@@ -317,15 +303,7 @@ export default async function ProfilePage() {
         picks={pickRows}
       />
 
-      <ProfileJoinRequests
-        rows={joinRequests}
-        loadFailed={joinRequestsFetchFailed}
-        loadErrorHint={
-          process.env.NODE_ENV === "development"
-            ? (rawJoinFlatErr?.message ?? undefined)
-            : undefined
-        }
-      />
+      <ProfileJoinRequests rows={joinRequests} loadFailed={joinRequestsFetchFailed} />
 
       <div className="mt-8 flex flex-wrap items-center gap-3">
         <Link

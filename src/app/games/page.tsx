@@ -7,9 +7,7 @@ import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/database.types";
-
-type ClanJoinRequestRow = Database["public"]["Tables"]["clan_join_requests"]["Row"];
+import { fetchMyClanJoinRequests } from "@/lib/clan/fetch-my-clan-join-requests";
 
 const EMOJI: Record<string, string> = {
   overwatch: "🎮",
@@ -87,15 +85,12 @@ export default async function GamesPage() {
     });
   }
 
-  const { data: joinRpcData, error: pendingRpcErr } = await supabase.rpc(
-    "select_my_clan_join_requests",
-  );
+  const { data: myJoinRows, error: pendingRpcErr } =
+    await fetchMyClanJoinRequests(supabase);
 
   if (pendingRpcErr) {
     console.error("[games] select_my_clan_join_requests:", pendingRpcErr.message);
   }
-
-  const myJoinRows: ClanJoinRequestRow[] | null = joinRpcData ?? null;
 
   const pendingRowsBare =
     myJoinRows?.filter((r) => String(r.status) === "pending") ?? [];

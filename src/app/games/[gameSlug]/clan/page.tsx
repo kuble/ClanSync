@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cancelClanJoinRequestFormAction } from "@/app/actions/game-clan-onboarding";
 import { ClanCreateForm } from "@/components/onboarding/clan-create-form";
-import { ClanJoinList } from "@/components/onboarding/clan-join-list";
+import { ClanJoinList, type ClanListRow } from "@/components/onboarding/clan-join-list";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -48,13 +48,7 @@ export default async function ClanOnboardingPage({
   const pendingBrief =
     state.clanStatus === "pending" ? state.pendingJoin : null;
 
-  let pinnedPendingClan: {
-    id: string;
-    name: string;
-    description: string | null;
-    tags: string[];
-    max_members: number;
-  } | null = null;
+  let pinnedPendingClan: ClanListRow | null = null;
   if (pendingBrief?.clanId) {
     const { data: pinRow } = await supabase
       .from("clans")
@@ -107,18 +101,6 @@ export default async function ClanOnboardingPage({
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">
           {game.name_ko} · 가입 또는 생성
         </h1>
-        {process.env.NODE_ENV === "development" ? (
-          <p
-            className="text-muted-foreground mt-2 max-w-xl text-[11px] leading-relaxed"
-            data-testid="dev-clan-auth-build-marker"
-          >
-            Dev 반영 확인: 이 줄이 보이면 최근 코드가 빌드에 포함된 상태입니다. 편집 후 바로
-            확인하려면 <code className="text-[0.65rem]">npm run dev</code>(핫 리로드)를 쓰세요.{" "}
-            <code className="text-[0.65rem]">npm run build</code>
-            후 <code className="text-[0.65rem]">next start</code>만 쓰면 코드 바꿀 때마다 다시 빌드해야
-            합니다.
-          </p>
-        ) : null}
         {pendingBrief ? (
           <section
             className="border-primary/35 bg-muted/45 mt-6 space-y-3 rounded-xl border px-4 py-4 shadow-sm"
