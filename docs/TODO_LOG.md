@@ -5,6 +5,12 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-11 — 가입 신청 플로 정리(공통 fetch·UI 슬림)
+
+- [x] **`fetchMyClanJoinRequests` / `filterPendingJoinsForGame`** — RPC 호출·게임별 pending 필터 단일화 (`loadGameOnboarding`, `/games`, `/profile`).
+- [x] **UI** — Dev 배너·프로필 오류 시 마이그레이션 장문·`D-PROFILE-02` 소비자 면 문구 제거; 비활성 버튼의 불필요 `pointer-events-none` 제거.
+- [x] **문서** — `06-ClanAuth`·`14-Profile`·`QA_시나리오` 동기화.
+
 ### 2026-05-11 — 프로필 가입 신청 RPC (`select_my_clan_join_requests`)
 
 - [x] **DB** — `0035_select_my_clan_join_requests_rpc.sql`: 본인 `clan_join_requests` 만 반환하는 `SECURITY DEFINER` RPC (`my_active_clan_for_game` 와 동일 패턴).
