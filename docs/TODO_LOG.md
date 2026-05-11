@@ -8,7 +8,7 @@
 ### 2026-05-11 — 프로필 가입 신청 RPC (`select_my_clan_join_requests`)
 
 - [x] **DB** — `0035_select_my_clan_join_requests_rpc.sql`: 본인 `clan_join_requests` 만 반환하는 `SECURITY DEFINER` RPC (`my_active_clan_for_game` 와 동일 패턴).
-- [x] **앱** — `/profile` 은 테이블 직접 `select` 대신 RPC 호출 · 실패 시 Dev 에서 Postgres/PostgREST 메시지·마이그레이션 안내.
+- [x] **D-AUTH-01** — `loadGameOnboarding`、`/games` 게임 카드에서도 `pending` 판별을 `select_my_clan_join_requests` RPC 결과로 처리(테이블 직접 `select`와 동일 RLS 회피).
 
 ### 2026-05-11 — ClanAuth 고정 블록·비활성 CTA·프로필 재검증
 

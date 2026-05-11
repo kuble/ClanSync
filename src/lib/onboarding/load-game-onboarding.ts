@@ -63,21 +63,29 @@ export async function loadGameOnboarding(
     };
   }
 
-  /* embed 없음: 조인 결과 0건으로 신청 행 통째로 사라지는 케이스 방지 */
-  const { data: pendingRows, error: pendingErr } = await supabase
-    .from("clan_join_requests")
-    .select("id, clan_id, message")
-    .eq("user_id", userId)
-    .eq("game_id", game.id)
-    .eq("status", "pending")
-    .order("applied_at", { ascending: false })
-    .limit(2);
+  /* 프로필(D-PROFILE-02)과 동일: 테이블 RLS 조합 회피 — SECURITY DEFINER RPC 후 game·status 로 필터 */
+  const { data: myJoinRows, error: joinErr } = await supabase.rpc(
+    "select_my_clan_join_requests",
+  );
 
-  if (pendingErr) {
-    console.error("[loadGameOnboarding] pending join:", pendingErr.message);
+  if (joinErr) {
+    console.error("[loadGameOnboarding] select_my_clan_join_requests:", joinErr.message);
   }
 
-  const pendingRow = pendingRows?.[0];
+  const pendingForGame =
+    myJoinRows?.filter(
+      (r) =>
+        String(r.game_id) === String(game.id) &&
+        String(r.status) === "pending",
+    ) ?? [];
+
+  pendingForGame.sort(
+    (a, b) => Date.parse(b.applied_at) - Date.parse(a.applied_at),
+  );
+
+  const pendingRows = pendingForGame.slice(0, 2);
+  const pendingRow = pendingRows[0];
+
   if (!pendingRow?.clan_id) {
     return {
       gameId: game.id,
@@ -90,7 +98,7 @@ export async function loadGameOnboarding(
     };
   }
 
-  if ((pendingRows?.length ?? 0) > 1) {
+  if (pendingForGame.length > 1) {
     console.warn(
       "[loadGameOnboarding] game",
       game.id,
