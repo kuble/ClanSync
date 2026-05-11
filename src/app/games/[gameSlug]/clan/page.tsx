@@ -21,7 +21,7 @@ export default async function ClanOnboardingPage({
   searchParams: Promise<{ pending?: string; q?: string; page?: string }>;
 }) {
   const { gameSlug } = await params;
-  const { pending: pendingQs, q = "", page: pageStr } = await searchParams;
+  const { q = "", page: pageStr } = await searchParams;
   const page = Math.max(1, parseInt(pageStr ?? "1", 10) || 1);
 
   const supabase = await createClient();
@@ -58,8 +58,6 @@ export default async function ClanOnboardingPage({
       ? (pendingRow.clans as unknown as { name: string })
       : null;
 
-  const showPendingBanner = Boolean(pendingRow && (pendingQs === "1" || pendingRow));
-
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
   const term = q.trim();
@@ -95,26 +93,35 @@ export default async function ClanOnboardingPage({
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">
           {game.name_ko} · 가입 또는 생성
         </h1>
+        {pendingRow && pendingClan ? (
+          <section
+            className="border-primary/35 bg-muted/45 mt-6 space-y-3 rounded-xl border px-4 py-4 shadow-sm"
+            aria-label="현재 신청 중인 클랜"
+          >
+            <div>
+              <p className="text-primary text-xs font-semibold tracking-wide uppercase">
+                진행 중인 가입 신청
+              </p>
+              <p className="text-foreground mt-1 text-base font-semibold">
+                「{pendingClan.name}」 ({game.name_ko})
+              </p>
+              <p className="text-muted-foreground mt-1 text-sm">
+                운영진 승인을 기다리는 중입니다. 프로필에도 같은 내용이 표시됩니다.
+              </p>
+            </div>
+            {pendingRow.message ? (
+              <p className="text-muted-foreground border-primary/35 border-l-2 py-1 pl-3 text-sm italic">
+                {pendingRow.message}
+              </p>
+            ) : null}
+            <form action={cancelBound}>
+              <Button type="submit" variant="outline" size="sm">
+                신청 취소
+              </Button>
+            </form>
+          </section>
+        ) : null}
       </header>
-
-      {showPendingBanner && pendingRow && pendingClan ? (
-        <section className="border-border mb-8 rounded-xl border bg-card p-4 shadow-sm">
-          <h2 className="text-sm font-semibold">가입 신청 대기 중</h2>
-          <p className="text-muted-foreground mt-1 text-sm">
-            「{pendingClan.name}」 클랜에 신청했습니다. 운영진 승인을 기다려 주세요.
-          </p>
-          {pendingRow.message ? (
-            <p className="text-muted-foreground mt-2 border-l-2 pl-3 text-sm italic">
-              {pendingRow.message}
-            </p>
-          ) : null}
-          <form action={cancelBound} className="mt-4">
-            <Button type="submit" variant="outline" size="sm">
-              신청 취소
-            </Button>
-          </form>
-        </section>
-      ) : null}
 
       <Tabs defaultValue="join" className="w-full">
         <TabsList variant="line" className="mb-6 w-full max-w-md">
@@ -145,6 +152,7 @@ export default async function ClanOnboardingPage({
           <ClanJoinList
             gameSlug={gameSlug}
             pendingClanId={pendingRow?.clan_id ?? null}
+            blockingClanName={pendingClan?.name ?? null}
             clans={(clanRows ?? []).map((c) => ({
               id: c.id,
               name: c.name,

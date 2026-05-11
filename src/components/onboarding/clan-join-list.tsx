@@ -36,11 +36,14 @@ export function ClanJoinList({
   gameSlug,
   clans,
   pendingClanId = null,
+  blockingClanName = null,
 }: {
   gameSlug: string;
   clans: ClanListRow[];
   /** 해당 게임에서 대기 중(pending)인 가입 신청의 클랜 id — 카드에 반영해 중복 신청 UI 방지 */
   pendingClanId?: string | null;
+  /** pending 클랜 표시 이름(다른 카드에서 교체 신청 확인창 메시지용) */
+  blockingClanName?: string | null;
 }) {
   const router = useRouter();
   const [replaceOpen, setReplaceOpen] = useState(false);
@@ -129,6 +132,9 @@ export function ClanJoinList({
         {clans.map((c) => {
           const isPendingThisClan =
             pendingClanId != null && pendingClanId === c.id;
+          const hasBlockingElsewhere =
+            pendingClanId != null && !isPendingThisClan;
+          const blockingDisplayName = blockingClanName ?? "다른 클랜";
           return (
           <li key={c.id}>
             <Card>
@@ -158,63 +164,83 @@ export function ClanJoinList({
                 </div>
                 {isPendingThisClan ? (
                   <p className="text-muted-foreground text-xs leading-relaxed">
-                    이 클랜에 가입 신청을 보낸 상태입니다. 위쪽 배너에서 신청 메시지를
-                    확인하거나 취소할 수 있습니다.
+                    이 클랜에 가입 신청을 보낸 상태입니다. 위쪽 안내에서 메시지를 확인하거나
+                    신청을 취소할 수 있습니다.
                   </p>
+                ) : hasBlockingElsewhere ? (
+                  <div className="space-y-2">
+                    <p className="text-muted-foreground text-xs leading-relaxed">
+                      이미 「{blockingDisplayName}」에 신청한 상태입니다. 일반 가입 신청
+                      버튼은 두지 않으며, 다른 클랜으로 옮길 때만 아래를 사용하세요.
+                    </p>
+                    <button
+                      type="button"
+                      data-testid={`clan-join-switch-${c.id}`}
+                      className={cn(buttonVariants({ variant: "secondary", size: "sm" }))}
+                      onClick={() => {
+                        setSelected(c);
+                        setBlockName(blockingDisplayName);
+                        setReplaceOpen(true);
+                        setApplyingId(null);
+                      }}
+                    >
+                      이 클랜으로 신청 바꾸기
+                    </button>
+                  </div>
                 ) : (
                 <>
-                <button
-                  type="button"
-                  data-testid={`clan-join-open-${c.id}`}
-                  className={cn(
-                    buttonVariants({
-                      variant: applyingId === c.id ? "secondary" : "default",
-                      size: "sm",
-                    }),
-                  )}
-                  aria-expanded={applyingId === c.id}
-                  onClick={() => openApply(c)}
-                >
-                  {applyingId === c.id ? "신청 폼 닫기" : "가입 신청"}
-                </button>
+                  <button
+                    type="button"
+                    data-testid={`clan-join-open-${c.id}`}
+                    className={cn(
+                      buttonVariants({
+                        variant: applyingId === c.id ? "secondary" : "default",
+                        size: "sm",
+                      }),
+                    )}
+                    aria-expanded={applyingId === c.id}
+                    onClick={() => openApply(c)}
+                  >
+                    {applyingId === c.id ? "신청 폼 닫기" : "가입 신청"}
+                  </button>
 
-                {applyingId === c.id ? (
-                  <div className="border-border space-y-3 rounded-lg border bg-muted/30 p-3">
-                    <p className="text-sm font-medium">{c.name}에 신청</p>
-                    <p className="text-muted-foreground text-xs">
-                      운영진에게 전달할 메시지(선택)를 적고 보내기를 누르세요.
-                    </p>
-                    <textarea
-                      name="message"
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      rows={4}
-                      className="border-input bg-background focus-visible:ring-ring w-full rounded-lg border px-3 py-2 text-sm outline-none focus-visible:ring-2"
-                      placeholder="자기소개 (선택)"
-                      maxLength={2000}
-                    />
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        data-testid={`clan-join-send-${c.id}`}
-                        className={cn(buttonVariants({ size: "sm" }))}
-                        disabled={busy}
-                        onClick={() => void runSubmit(false)}
-                      >
-                        보내기
-                      </button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        disabled={busy}
-                        onClick={() => setApplyingId(null)}
-                      >
-                        취소
-                      </Button>
+                  {applyingId === c.id ? (
+                    <div className="border-border space-y-3 rounded-lg border bg-muted/30 p-3">
+                      <p className="text-sm font-medium">{c.name}에 신청</p>
+                      <p className="text-muted-foreground text-xs">
+                        운영진에게 전달할 메시지(선택)를 적고 보내기를 누르세요.
+                      </p>
+                      <textarea
+                        name="message"
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        rows={4}
+                        className="border-input bg-background focus-visible:ring-ring w-full rounded-lg border px-3 py-2 text-sm outline-none focus-visible:ring-2"
+                        placeholder="자기소개 (선택)"
+                        maxLength={2000}
+                      />
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          data-testid={`clan-join-send-${c.id}`}
+                          className={cn(buttonVariants({ size: "sm" }))}
+                          disabled={busy}
+                          onClick={() => void runSubmit(false)}
+                        >
+                          보내기
+                        </button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={busy}
+                          onClick={() => setApplyingId(null)}
+                        >
+                          취소
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ) : null}
+                  ) : null}
                 </>
                 )}
               </CardContent>

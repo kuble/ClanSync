@@ -47,7 +47,6 @@ export default async function ProfilePage() {
 
   const [
     { data: row },
-    { data: rawJoin },
     { data: ugpRows },
     { data: inv },
     { data: sel },
@@ -61,15 +60,6 @@ export default async function ProfilePage() {
       )
       .eq("id", user.id)
       .maybeSingle(),
-    supabase
-      .from("clan_join_requests")
-      .select(
-        `id, status, applied_at, resolved_at, reject_reason, message,
-         clans ( name ),
-         games ( slug, name_ko )`,
-      )
-      .eq("user_id", user.id)
-      .order("applied_at", { ascending: false }),
     supabase
       .from("user_game_profiles")
       .select("game_id, games ( id, slug, name_ko )")
@@ -87,37 +77,76 @@ export default async function ProfilePage() {
       .order("slot_index", { ascending: true }),
   ]);
 
-  function normalizeJoin(
-    r: NonNullable<typeof rawJoin>[number],
-  ): JoinRow {
-    const cRaw = r.clans as { name: string } | { name: string }[] | null;
-    const gRaw = r.games as
-      | { slug: string; name_ko: string }
-      | { slug: string; name_ko: string }[]
-      | null;
-    const clanOne = Array.isArray(cRaw) ? cRaw[0] : cRaw;
-    const gameOne = Array.isArray(gRaw) ? gRaw[0] : gRaw;
+  const {
+    data: rawJoinFlat,
+    error: rawJoinFlatErr,
+  } = await supabase
+    .from("clan_join_requests")
+    .select(
+      "id, status, applied_at, resolved_at, reject_reason, message, clan_id, game_id",
+    )
+    .eq("user_id", user.id)
+    .order("applied_at", { ascending: false });
+
+  if (rawJoinFlatErr) {
+    console.error("[profile] clan_join_requests:", rawJoinFlatErr.message);
+  }
+
+  const clanIdsForJoin = [
+    ...new Set((rawJoinFlat ?? []).map((r) => r.clan_id).filter(Boolean)),
+  ];
+  const gameIdsForJoin = [
+    ...new Set((rawJoinFlat ?? []).map((r) => r.game_id).filter(Boolean)),
+  ];
+
+  const [joinClansRes, joinGamesRes] = await Promise.all([
+    clanIdsForJoin.length > 0
+      ? supabase.from("clans").select("id, name").in("id", clanIdsForJoin)
+      : Promise.resolve({
+          data: [] as { id: string; name: string }[],
+          error: null as null,
+        }),
+    gameIdsForJoin.length > 0
+      ? supabase.from("games").select("id, slug, name_ko").in("id", gameIdsForJoin)
+      : Promise.resolve({
+          data: [] as { id: string; slug: string; name_ko: string }[],
+          error: null as null,
+        }),
+  ]);
+
+  const clanNameById = new Map(
+    (joinClansRes.data ?? []).map((c) => [c.id, c.name]),
+  );
+  const gameInfoById = new Map(
+    (joinGamesRes.data ?? []).map((g) => [
+      g.id,
+      { slug: g.slug, name_ko: g.name_ko },
+    ]),
+  );
+
+  const hydratedJoinRows: JoinRow[] = (rawJoinFlat ?? []).map((r) => {
+    const clanName = clanNameById.get(r.clan_id);
+    const gameMeta = gameInfoById.get(r.game_id);
     return {
       id: r.id,
       status: r.status as JoinRow["status"],
       applied_at: r.applied_at,
       resolved_at: r.resolved_at,
       reject_reason: r.reject_reason,
-      message: r.message,
-      clans: clanOne ?? null,
-      games: gameOne ?? null,
+      message: r.message ?? "",
+      clans: clanName ? { name: clanName } : null,
+      games: gameMeta ?? null,
     };
-  }
+  });
 
-  const joinRequests: JoinRow[] = (rawJoin ?? [])
-    .map(normalizeJoin)
-    .filter((r) => {
-      if (r.status === "pending") return true;
-      if (r.status !== "approved" && r.status !== "rejected") return false;
-      if (!r.resolved_at) return false;
-      return new Date(r.resolved_at) >= weekAgo;
-    });
+  const pendingForBanner = hydratedJoinRows.filter((r) => r.status === "pending");
 
+  const joinRequests: JoinRow[] = hydratedJoinRows.filter((r) => {
+    if (r.status === "pending") return true;
+    if (r.status !== "approved" && r.status !== "rejected") return false;
+    if (!r.resolved_at) return false;
+    return new Date(r.resolved_at) >= weekAgo;
+  });
   const linkedGames: DecorationGame[] = (ugpRows ?? [])
     .map((r) => {
       const gRaw = r.games as
@@ -194,6 +223,25 @@ export default async function ProfilePage() {
           계정 정보와 꾸미기·가입 신청 상태를 한곳에서 확인합니다.
         </p>
       </header>
+
+      {pendingForBanner.length > 0 ? (
+        <section
+          className="bg-primary/10 border-primary/35 mb-8 rounded-xl border px-4 py-3 shadow-sm"
+          aria-label="진행 중인 가입 신청 요약"
+        >
+          <p className="text-primary text-xs font-semibold tracking-wide uppercase">
+            진행 중인 가입 신청
+          </p>
+          <ul className="mt-2 list-inside list-disc space-y-1 text-sm leading-relaxed">
+            {pendingForBanner.map((r) => (
+              <li key={r.id}>
+                「{r.clans?.name ?? "클랜"}」 ({r.games?.name_ko ?? "게임"}) · 검토 중 — 세부 내용과
+                취소는 아래 「가입 신청」 목록에서 할 수 있습니다.
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {row ? (
         <dl className="bg-card space-y-3 rounded-xl border p-4 text-sm shadow-sm">

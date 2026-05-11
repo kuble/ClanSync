@@ -30,7 +30,7 @@ export function ProfileJoinRequests({ rows }: { rows: JoinRow[] }) {
           가입 신청
         </h2>
         <p className="text-muted-foreground mt-2 text-sm">
-          최근 7일 이내 처리된 신청이 없고, 대기 중인 신청도 없습니다.
+          진행 중인 가입 신청이 없고, 최근 7일 이내에 승인·거절로 끝난 기록도 없습니다.
         </p>
       </section>
     );
