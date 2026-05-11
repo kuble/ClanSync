@@ -8,6 +8,14 @@
 | Vercel **네이티브 Git 연동** (푸시 → 빌드) | **약 2026-04-28 이후 새 프로덕션 배포 줄이 만들어지지 않음**으로 관측됨 (웹훅 · 연결 문제 가설과 일치) |
 | Deploy Hook URL을 잘못된 **다른 프로젝트 prj_\*** 에 붙이면 | API는 `{ "job": ... }`로 성공해도 **지금 브라우저에서 여는 `clan-sync` Deployments 줄에는 안 뜸** |
 
+### `main`과 프로덕션 커밋이 어긋났는지 확인
+
+1. GitHub에서 `main` 최신 커밋 SHA 확인(또는 로컬 `git rev-parse origin/main`).
+2. Vercel → 팀 **ClanSync** → **clan-sync** → **Deployments** → 최신 Production의 **Source** 커밋 SHA.
+3. **SHA가 다르면** GitHub → **Actions** → **Deploy production (Vercel CLI)** 최근 실행 로그를 연 뒤, `VERCEL_TOKEN` 없음 `::error::`가 있는지 확인 → 아래 [한 번만 설정](#한-번만-설정)대로 시크릿을 넣고 **Re-run jobs** 하거나 `main`에 임의 커밋을 푸시.
+
+**원인 요약**: 네이티브 Git 웹훅이 끊기면 Vercel은 예전 커밋에 묶일 수 있습니다. 이 레포의 **대체 경로**는 `VERCEL_TOKEN`이 설정된 Actions뿐이라, 시크릿이 비어 있으면 프로덕션이 `main`을 따라가지 않습니다.
+
 이 레포는 **항상 같은 팀·같은 앱으로** 올리도록 GitHub Actions에 식별자를 박았습니다:
 
 - 조직(team): **`team_UaVXQMdZ2aJQUkYHxU7iSzN3`** · slug **`clansync`**
