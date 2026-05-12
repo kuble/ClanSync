@@ -5,6 +5,11 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-13 — MainGame 스크림 상태·티어 필터 바
+
+- [x] **앱** — `filteredScrimRooms` 파이프·`scrim-filter-bar`(상태·티어 OR·취소 표시)·빈 필터 상태 UI. 빌드·Playwright 통과.
+- [x] **문서** — `08-MainGame.md` · `QA_시나리오.md` · 허브·Phase2.
+
 ### 2026-05-12 — MainGame 스크림 미니 캘린더·일자별 목록 헤더
 
 - [x] **앱** — `MainGameCommunityTabs` 월별 그리드(`scrim-mini-calendar`), 날짜 선택 필터·빈날 처리, 기본 묶음 `scrimDayList` 헤더. `Playwright CI` 통과.

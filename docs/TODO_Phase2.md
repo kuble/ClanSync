@@ -7,7 +7,7 @@
 | 항목 | 값 |
 |------|-----|
 | **단계** | Phase 2 — 앱 구현 |
-| **마지막 갱신** | 2026-05-12 — 스크림 탭 미니 캘린더(MainGame 클라이언트) |
+| **마지막 갱신** | 2026-05-13 — MainGame 스크림 필터 칩 |
 
 ## 전제 (Q&A 확정)
 
@@ -127,7 +127,7 @@ flowchart TD
 ### M7 — S07 MainGame 커뮤니티 (경량판)
 
 - [x] `/games/[g]` — 홍보 `board_posts`(**D-RANK-01** newest/space) · LFG `lfg_posts`/`lfg_applications`(**D-LFG-01** MVP) · 클랜 순위 미리보기(`clan_active_member_counts` RPC)
-- [x] 스크림 탭 — 월별 미니 캘린더·날짜 필터·날짜 헤더 그룹 목록(MainGame 클라이언트)
+- [x] 스크림 탭 — 월별 미니 캘린더·날짜 필터·날짜 헤더 목록(MainGame)·**상태·티어(SR 구간)·취소 숨김 필터 바**(`scrim-filter-bar`)
 - [ ] `/games/[g]/board/[postId]` — **라우트 미작성** (Phase 2+)
 - [ ] LFG 만료 cron·알림(D-EVENTS-03 in-app) — **부분**: `0039` `expire_open_lfg_posts_batch` · `/api/cron/dispatch-notifications` 에서 호출 (일 1회 Cron과 동선 공유)
 
