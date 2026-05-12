@@ -5,6 +5,13 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-14 — M6c: 밸런스 시드 정리·E2E 스모크·문서 게이트
+
+- [x] **시드** — QA 픽스처 클랜 미종료 `balance_sessions` 삭제.
+- [x] **앱** — `ClanBalanceSessionPanel` 테스트 훅(`data-testid`·`data-balance-phase`).
+- [x] **E2E** — 세션 생성→맵 밴 생략→경기 진행 체류→종료 smoke.
+- [x] **문서** — `TODO_Phase2`(M6c 완료)·`pages.md`/`09-BalanceMaker.md`·`QA_시나리오.md`·`debug-and-fixtures`·`TODO.md`·`e2e/README.md`.
+
 ### 2026-05-14 — M6b: 카카오 옵트인(`event_notify`)·브래킷 팀 슬롯 라벨·픽스처 premium 시드
 
 - [x] **앱** — `mergeEventNotifyPayload`·`kakao_notifications_opt_in` · `ClanEventNotifyForm`/`discordWebhookUrl` 전달 · 브래킷 `snapshot.teams`(슬롯 라벨)·`updateBracketTeamLabelsAction` · 탭 편집 UI.

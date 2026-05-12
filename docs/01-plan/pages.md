@@ -74,7 +74,7 @@
 | 05 | [05-GameAuth.md](./pages/05-GameAuth.md) | `/games/[gameSlug]/auth` | 1) 비로그인 → `/sign-in?next=...` · 2) 이미 게임 인증 + 클랜 `member` → `.../clan/[clanId]` · 3) 이미 게임 인증 + `none/pending` → `.../clan` (단, `?reauth=1`이면 인증 화면 유지 = D-AUTH-01 #3) | — | `sessionStorage.clansync_oauth_state` (CSRF) — 실서비스. 쿼리 `?game=`(목업) → `[gameSlug]`(운영) | 인증 진행 안내, `?reauth=1` 안내 배지 |
 | 06 | [06-ClanAuth.md](./pages/06-ClanAuth.md) | `/games/[gameSlug]/clan` | 1) 비로그인 → `/sign-in?next=...` · 2) 게임 인증 없음 → `.../auth?next=...` · 3) 클랜 `member` → `.../clan/[clanId]` · 4) 클랜 `pending` → 진입 허용 + `pendingView` 자동 노출 | — | `sessionStorage.clansync_pending_clan_apply` (선택한 클랜 ID), `clansync_clan_apply_status` | 가입 신청 모달, 클랜 상세 드로어, `pendingView` |
 | 07 | [07-MainClan.md](./pages/07-MainClan.md) | `/games/[gameSlug]/clan/[clanId]` | 1) 비로그인 → `/sign-in` · 2) 게임 인증 없음 → `.../auth` · 3) 클랜 미가입 → `.../clan` · 4) 다른 클랜 ID → 본인 클랜으로 정정 | 사이드바 메뉴별 `mock-officer-only`, `mock-hide-on-free` | URL 해시(`#dashboard`, `#balance` 등), `sessionStorage.clansync_sidebar_collapsed` | 알림 드로어, 채팅 패널 |
-| 09 | [09-BalanceMaker.md](./pages/09-BalanceMaker.md) | `/games/[gameSlug]/clan/[clanId]/balance` | 07 가드 + (편집은 운영진+) | 편집: officer+, 관전: member 가능. 일부 옵션(맵 풀 확장 등): premium | `sessionStorage.clansync_balance_session_*` (목업 세션 상태) | 결과 입력, 맵·밴 모달 |
+| 09 | [09-BalanceMaker.md](./pages/09-BalanceMaker.md) | `/games/[gameSlug]/clan/[clanId]/balance` | 07 가드 + (편집은 운영진+) | 편집: officer+, 관전: member. 승부예측: Premium 클랜·비출전. M/A: `edit_mscore` 플래그 | 테스트 훅: `data-testid="clan-balance-session-panel"` | 세션·맵밴·영웅밴(OW)·예측·결과 확정(RPC)·Realtime |
 | 10 | [10-Clan-Stats.md](./pages/10-Clan-Stats.md) | `/games/[gameSlug]/clan/[clanId]/stats` | 07 가드 + (경기 기록 탭은 officer+) | "경기 기록" 탭: officer+. 그 외: 전원 | URL 해시 `#stats` + 탭 쿼리(가능) | HoF 설정 모달 |
 | 11 | [11-Clan-Events.md](./pages/11-Clan-Events.md) | `/games/[gameSlug]/clan/[clanId]/events` | 07 가드 | 일정 등록·삭제: officer+. 대진표 생성기: premium. 투표 생성: officer+ | URL 해시 `#events`, **`?tab=`** `calendar`/`bracket`/`polls` | 일정 등록·상세, 알림 카드(리더: Discord·카카오 옵트인), 대진표 초안(팀 슬롯 이름), 투표 생성 |
 | 12 | [12-Clan-Manage.md](./pages/12-Clan-Manage.md) | `/games/[gameSlug]/clan/[clanId]/manage` | 07 가드 + officer+ (구성원 직접 접근은 403 또는 클랜 홈) | officer+ 전체. 구독결제 탭은 leader 전용(D-MANAGE-01) | URL 해시 `#manage` | 가입 요청 처리, 구성원 상세, 권한 변경 |
@@ -160,6 +160,7 @@ S01 쉘·온보딩·전역 프로필은 아래 파일이 **단일 목업**으로
 
 ### 밸런스메이커 (클랜 내 `/balance`, 운영진+)
 - 편집·맵/밴·팀 보드·플랜별 기능. **화면 카피·도움말 본문·스펙 메모**: [pages/09-BalanceMaker.md](./pages/09-BalanceMaker.md)
+- **구현(UI·검증)**: 본문 루트에 `data-testid="clan-balance-session-panel"`·단계 속성 `data-balance-phase`(`none` | `editing` | `map_ban` | `hero_ban` | `match_live`).
 - **세션**: 밸런스장 1명만 배치 편집, 나머지는 실시간 관전 동기화 → 배치 완료 후 밴(ON 시) → **경기 시작 = 밴 종료 직후**에 승부예측 마감 타이머. 디스코드는 선택 보조.
 
 ### 클랜 통계 (`/stats`, MainClan 탭)

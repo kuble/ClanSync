@@ -287,6 +287,14 @@ Premium 전용
 - **사후 정정**(오입력·누락)은 이 팝업에 반영하지 않고 **클랜 관리 → 내전 히스토리(예정 탭)** 에서 별도 처리한다.
 - 팝업이 닫히면 상태는 끝이며, 사이드바 알림 점·대시보드·통계 어디에도 "결과 미확인" 표식을 남기지 않는다.
 
+## Phase 2 앱 연동 상태 (개발 참고)
+
+- 라우트: `/games/[gameSlug]/clan/[clanId]/balance`.
+- 세션 단일 유지(UNIQUE 진행)·단계별 Server Action · Realtime 채널 `balance_session:{id}`.
+- 패널 루트: `data-testid="clan-balance-session-panel"` · `data-balance-phase`( `none` | `editing` | `map_ban` | `hero_ban` | `match_live` ).
+- 승부예측 마감: 경기 진행 진입 후 5분(`prediction-deadline.ts`). 결과 확정 및 코인 처리: RPC `set_balance_match_outcome` (적중 분배 규칙은 MVP 고정값).
+- 개발 픽스처: `npm run db:seed` 시 QA 픽스처 클랜의 미종료 `balance_sessions` 를 삭제해 세션 추가 제약을 피한다.
+
 ## 결정 필요
 
 - ~~디스코드 알림 채널·발송 시점·실패 시 재시도 (D-EVENTS-03와 공유)~~ — **DECIDED 2026-04-20** — 일정·투표 알림 채널·슬롯·재시도·quiet hours는 [§D-EVENTS-03](../decisions.md#d-events-03--일정투표-알림-채널정책) 단일 출처. 밸런스·이벤트 화면에서 동일 정책을 참조한다.
