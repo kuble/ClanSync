@@ -111,6 +111,64 @@ function formatScrimDayHeading(dayKey: string): string {
   });
 }
 
+/** 상태 칩용 (draft/matched 수 → 모집 중, 확정·종료 → 일정 성사 후) */
+type ScrimStatusFilterChip = "all" | "recruiting" | "settled";
+
+const SCRIM_TIER_BAND_KEYS = ["low", "mid", "high"] as const;
+type ScrimTierBandKey = (typeof SCRIM_TIER_BAND_KEYS)[number];
+
+/** 티어 범위가 이 SR 구간과 겹치면 통과 — 방에 티어 미표기면 필터 무시 */
+const SCRIM_TIER_BANDS: Record<ScrimTierBandKey, readonly [number, number]> = {
+  low: [800, 2300],
+  mid: [2000, 3400],
+  high: [3000, 5000],
+};
+
+const SCRIM_TIER_CHIP_META: Record<
+  ScrimTierBandKey,
+  { label: string; title: string }
+> = {
+  low: {
+    label: "저·중티어 묶음",
+    title: "호스트 티어 구간과 약 SR 800~2300 이 겹칠 때(미표기 방은 항상 표시)",
+  },
+  mid: {
+    label: "중위 묶음",
+    title: "약 SR 2000~3400 과 겹칠 때(미표기 방은 항상 표시)",
+  },
+  high: {
+    label: "고티어 묶음",
+    title: "약 SR 3000 이상 과 겹칠 때 · 최대 5000 스케일(미표기 방은 항상 표시)",
+  },
+};
+
+function scrimSpansOverlap(region: readonly [number, number], tierMin: number, tierMax: number) {
+  const rLo = Math.min(tierMin, tierMax);
+  const rHi = Math.max(tierMin, tierMax);
+  return Math.max(region[0], rLo) <= Math.min(region[1], rHi);
+}
+
+function scrimPassesStatusFilter(room: ScrimRoomRowOut, chip: ScrimStatusFilterChip) {
+  switch (chip) {
+    case "all":
+      return true;
+    case "recruiting":
+      return room.status === "draft" || room.status === "matched";
+    case "settled":
+      return room.status === "confirmed" || room.status === "finished";
+    default:
+      return true;
+  }
+}
+
+function scrimPassesTierBandFilter(room: ScrimRoomRowOut, bands: ScrimTierBandKey[]) {
+  if (!bands.length) return true;
+  const tm = room.tier_min;
+  const tx = room.tier_max;
+  if (tm == null || tx == null) return true;
+  return bands.some((k) => scrimSpansOverlap(SCRIM_TIER_BANDS[k], tm, tx));
+}
+
 export function MainGameCommunityTabs({
   gameSlug,
   promoSort,
@@ -267,24 +325,44 @@ export function MainGameCommunityTabs({
   const [selectedScrimDayKey, setSelectedScrimDayKey] = useState<string | null>(
     null,
   );
+  const [scrimStatusChip, setScrimStatusChip] =
+    useState<ScrimStatusFilterChip>("all");
+  const [scrimTierBandChip, setScrimTierBandChip] = useState<ScrimTierBandKey[]>(
+    [],
+  );
+  const [scrimShowCancelled, setScrimShowCancelled] = useState(false);
+
+  const filteredScrimRooms = useMemo(() => {
+    return scrimRooms.filter((room) => {
+      if (!scrimShowCancelled && room.status === "cancelled") return false;
+      if (!scrimPassesStatusFilter(room, scrimStatusChip)) return false;
+      if (!scrimPassesTierBandFilter(room, scrimTierBandChip)) return false;
+      return true;
+    });
+  }, [scrimRooms, scrimShowCancelled, scrimStatusChip, scrimTierBandChip]);
+
+  const scrimFiltersDirty =
+    scrimStatusChip !== "all" ||
+    scrimTierBandChip.length > 0 ||
+    scrimShowCancelled;
 
   const scrimsSortedByTime = useMemo(
     () =>
-      [...scrimRooms].sort(
+      [...filteredScrimRooms].sort(
         (a, b) =>
           new Date(a.scheduled_at).getTime() -
           new Date(b.scheduled_at).getTime(),
       ),
-    [scrimRooms],
+    [filteredScrimRooms],
   );
 
   const scrimLocalDayKeys = useMemo(() => {
     const s = new Set<string>();
-    for (const r of scrimRooms) {
+    for (const r of filteredScrimRooms) {
       s.add(localDateKeyFromScheduled(r.scheduled_at));
     }
     return s;
-  }, [scrimRooms]);
+  }, [filteredScrimRooms]);
 
   const todayLocalKey = useMemo(() => {
     const now = new Date();
@@ -878,6 +956,148 @@ export function MainGameCommunityTabs({
         ) : (
           <div className="space-y-4">
             <section
+              aria-label="스크림 목록 필터"
+              data-testid="scrim-filter-bar"
+              className="bg-card space-y-4 rounded-xl border p-4 shadow-sm"
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-muted-foreground font-medium">상태</span>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={scrimStatusChip === "all" ? "secondary" : "outline"}
+                  className="h-8"
+                  disabled={pending}
+                  onClick={() => setScrimStatusChip("all")}
+                >
+                  전체
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={scrimStatusChip === "recruiting" ? "secondary" : "outline"}
+                  className="h-8"
+                  disabled={pending}
+                  onClick={() => setScrimStatusChip("recruiting")}
+                >
+                  모집·조율 중
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={scrimStatusChip === "settled" ? "secondary" : "outline"}
+                  className="h-8"
+                  disabled={pending}
+                  onClick={() => setScrimStatusChip("settled")}
+                >
+                  일정 확정·종료
+                </Button>
+              </div>
+              <div className="flex flex-wrap items-start gap-2">
+                <span className="text-muted-foreground mt-1.5 shrink-0 font-medium">
+                  티어
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {SCRIM_TIER_BAND_KEYS.map((band) => {
+                    const meta = SCRIM_TIER_CHIP_META[band];
+                    const on = scrimTierBandChip.includes(band);
+                    return (
+                      <Button
+                        key={band}
+                        type="button"
+                        size="sm"
+                        variant={on ? "secondary" : "outline"}
+                        title={meta.title}
+                        className="h-8"
+                        aria-pressed={on}
+                        disabled={pending}
+                        onClick={() =>
+                          setScrimTierBandChip((prev) =>
+                            prev.includes(band)
+                              ? prev.filter((b) => b !== band)
+                              : [...prev, band],
+                          )
+                        }
+                      >
+                        {meta.label}
+                      </Button>
+                    );
+                  })}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={
+                      scrimTierBandChip.length === 0 ? "secondary" : "ghost"
+                    }
+                    className="h-8 px-3"
+                    disabled={pending}
+                    title="티어 구간 조건 해제"
+                    onClick={() => setScrimTierBandChip([])}
+                  >
+                    티어 조건 해제
+                  </Button>
+                </div>
+              </div>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="border-input size-4 shrink-0 rounded border"
+                  checked={scrimShowCancelled}
+                  disabled={pending}
+                  onChange={(e) => setScrimShowCancelled(e.target.checked)}
+                />
+                취소된 방도 표시
+              </label>
+              {scrimFiltersDirty ? (
+                <div className="flex flex-wrap items-center gap-2 border-t pt-3">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={pending}
+                    onClick={() => {
+                      setScrimStatusChip("all");
+                      setScrimTierBandChip([]);
+                      setScrimShowCancelled(false);
+                      setSelectedScrimDayKey(null);
+                    }}
+                  >
+                    필터 초기화
+                  </Button>
+                  <span className="text-muted-foreground max-w-xl text-[11px] leading-relaxed">
+                    티어 칩 여러 개는 OR(한 구간이라도 걸리면 목록 표시).
+                  </span>
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-[11px] leading-relaxed">
+                  호스트가 티어를 비워 둔 방은 상태만 맞으면 항상 보입니다.
+                </p>
+              )}
+            </section>
+
+            {!filteredScrimRooms.length ? (
+              <div className="border-muted-foreground/25 text-muted-foreground rounded-xl border border-dashed p-6 text-center text-sm">
+                선택한 필터 조건에 맞는 방이 없습니다.
+                <div className="mt-4 flex justify-center">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    disabled={pending}
+                    onClick={() => {
+                      setScrimStatusChip("all");
+                      setScrimTierBandChip([]);
+                      setScrimShowCancelled(false);
+                      setSelectedScrimDayKey(null);
+                    }}
+                  >
+                    필터 초기화
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+            <section
               className="bg-card space-y-3 rounded-xl border p-4 shadow-sm"
               aria-label="스크림이 예정된 날 선택"
               data-testid="scrim-mini-calendar"
@@ -1402,6 +1622,8 @@ export function MainGameCommunityTabs({
                 ),
               )}
             </div>
+              </>
+            )}
           </div>
         )}
       </TabsContent>
