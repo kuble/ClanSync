@@ -121,7 +121,11 @@ export function ClanBalanceSessionPanel({
 
   if (!session) {
     return (
-      <div className="space-y-4">
+      <div
+        className="space-y-4"
+        data-testid="clan-balance-session-panel"
+        data-balance-phase="none"
+      >
         <section className="rounded-lg border border-dashed p-6">
           <p className="text-muted-foreground text-sm">
             진행 중인 밸런스 세션이 없습니다. 운영진이 세션을 열면 맵 밴·경기
@@ -209,7 +213,11 @@ export function ClanBalanceSessionPanel({
         : null;
 
   return (
-    <div className="space-y-6">
+    <div
+      className="space-y-6"
+      data-testid="clan-balance-session-panel"
+      data-balance-phase={session.phase}
+    >
       <ClanBalanceSessionRealtime sessionId={session.id} />
       <div
         className={cn(
