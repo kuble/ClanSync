@@ -244,6 +244,20 @@ for (const clanDef of QA_SEED_CLANS) {
     process.exit(1);
   }
   console.log(`[seed] QA 클랜 premium 보장: ${clanDef.name}`);
+
+  const { error: balDelErr } = await supabase
+    .from("balance_sessions")
+    .delete()
+    .eq("clan_id", clanId)
+    .is("closed_at", null);
+
+  if (balDelErr) {
+    console.error(
+      "[seed] balance_sessions 진행 세션 삭제 실패:",
+      balDelErr.message,
+    );
+    process.exit(1);
+  }
 }
 
 console.log("[seed] 완료 (비밀번호는 qa-fixtures.mjs FIXTURE_PASSWORD 와 동일).");
