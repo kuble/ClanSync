@@ -1,10 +1,13 @@
 import { createServiceRoleClient } from "@/lib/supabase/service";
+import { parseTeamLabelsFromSnapshot } from "@/lib/clan/bracket-snapshot";
 
 export type SerializedBracketTournament = {
   id: string;
   title: string;
   format: "single_elim" | "double_elim" | "round_robin";
   team_count: number;
+  /** snapshot.teams 라벨 (슬롯 순). */
+  team_labels: string[];
   status: "draft" | "in_progress" | "finished" | "cancelled";
   snapshot: Record<string, unknown>;
   created_at: string;
@@ -26,19 +29,24 @@ export async function loadSerializedBracketTournaments(
 
   if (error || !rows?.length) return [];
 
-  return rows.map((r) => ({
-    id: r.id as string,
-    title: r.title as string,
-    format: r.format as SerializedBracketTournament["format"],
-    team_count: r.team_count as number,
-    status: r.status as SerializedBracketTournament["status"],
-    snapshot:
+  return rows.map((r) => {
+    const snap =
       typeof r.snapshot === "object" &&
       r.snapshot !== null &&
       !Array.isArray(r.snapshot)
         ? (r.snapshot as Record<string, unknown>)
-        : {},
-    created_at: r.created_at as string,
-    updated_at: r.updated_at as string,
-  }));
+        : {};
+    const teamCount = r.team_count as number;
+    return {
+      id: r.id as string,
+      title: r.title as string,
+      format: r.format as SerializedBracketTournament["format"],
+      team_count: teamCount,
+      team_labels: parseTeamLabelsFromSnapshot(snap, teamCount),
+      status: r.status as SerializedBracketTournament["status"],
+      snapshot: snap,
+      created_at: r.created_at as string,
+      updated_at: r.updated_at as string,
+    };
+  });
 }

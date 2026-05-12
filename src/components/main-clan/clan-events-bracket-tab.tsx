@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import {
   createBracketTournamentAction,
   deleteBracketTournamentDraftAction,
+  updateBracketTeamLabelsAction,
 } from "@/app/actions/bracket-tournaments";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -30,6 +31,12 @@ function formatLabelKo(
   return "라운드 로빈";
 }
 
+function formatTeamLabelsPreview(labels: readonly string[]): string {
+  const j = labels.join(" · ");
+  if (j.length <= 140) return j;
+  return `${j.slice(0, 137)}…`;
+}
+
 function statusLabelKo(
   s: SerializedBracketTournament["status"],
 ): string {
@@ -37,6 +44,83 @@ function statusLabelKo(
   if (s === "in_progress") return "진행 중";
   if (s === "finished") return "종료";
   return "취소";
+}
+
+function BracketTeamSlotLabelsEditor({
+  gameSlug,
+  clanId,
+  tournamentId,
+  teamLabels,
+  pending,
+  onTransition,
+}: {
+  gameSlug: string;
+  clanId: string;
+  tournamentId: string;
+  teamLabels: readonly string[];
+  pending: boolean;
+  onTransition: (
+    cb: () => Promise<void>,
+  ) => void;
+}) {
+  const router = useRouter();
+
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    onTransition(async () => {
+      const r = await updateBracketTeamLabelsAction(
+        gameSlug,
+        clanId,
+        tournamentId,
+        fd,
+      );
+      if (!r.ok) {
+        toast.error(r.error);
+        return;
+      }
+      toast.success("팀 슬롯 이름을 저장했습니다.");
+      router.refresh();
+    });
+  }
+
+  return (
+    <details className="bg-muted/20 mt-2 rounded-lg border px-3 py-2">
+      <summary className="cursor-pointer text-xs font-medium outline-none [&::-webkit-details-marker]:hidden [&::marker]:content-none">
+        팀 슬롯 이름 편집
+      </summary>
+      <form
+        data-testid={`bracket-team-labels-form-${tournamentId}`}
+        className="mt-3 space-y-2"
+        onSubmit={onSubmit}
+      >
+        {teamLabels.map((label, idx) => (
+          <div key={idx} className="flex flex-wrap items-center gap-2">
+            <Label
+              htmlFor={`tls-${tournamentId}-${idx}`}
+              className="text-muted-foreground w-full max-w-[4.5rem] shrink-0 text-xs"
+            >
+              슬롯 {idx + 1}
+            </Label>
+            <Input
+              id={`tls-${tournamentId}-${idx}`}
+              name={`team_label_${idx}`}
+              defaultValue={label}
+              required
+              minLength={1}
+              maxLength={48}
+              disabled={pending}
+              className="min-w-[8rem] flex-1 font-mono text-xs"
+              data-testid={`bracket-team-slot-input-${idx}`}
+            />
+          </div>
+        ))}
+        <Button type="submit" size="sm" variant="secondary" disabled={pending}>
+          팀 슬롯 저장
+        </Button>
+      </form>
+    </details>
+  );
 }
 
 export function ClanEventsBracketTab({
@@ -94,7 +178,11 @@ export function ClanEventsBracketTab({
 
   if (!planIsPremium) {
     return (
-      <div className="rounded-xl border border-dashed p-8 text-center">
+      <div
+        className="rounded-xl border border-dashed p-8 text-center"
+        data-testid="clan-events-bracket-tab"
+        data-has-premium="false"
+      >
         <p className="text-foreground text-sm font-medium">
           대진표 생성기는 Premium 플랜 전용입니다.
         </p>
@@ -116,7 +204,11 @@ export function ClanEventsBracketTab({
   }
 
   return (
-    <div className="space-y-6">
+    <div
+      className="space-y-6"
+      data-testid="clan-events-bracket-tab"
+      data-has-premium="true"
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-muted-foreground max-w-prose text-sm">
           Premium 클랜 전용 대진표 개최 초안을 저장합니다. 팀 로스터·시드·경기
@@ -135,7 +227,7 @@ export function ClanEventsBracketTab({
       </div>
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent showCloseButton>
+        <DialogContent showCloseButton data-testid="bracket-create-draft-dialog">
           <DialogHeader>
             <DialogTitle>대진표 초안</DialogTitle>
           </DialogHeader>
@@ -198,17 +290,21 @@ export function ClanEventsBracketTab({
           저장된 대진표 초안이 없습니다.
         </p>
       ) : (
-        <ul className="space-y-3" aria-label="대진표 목록">
+        <ul className="space-y-3" aria-label="대진표 목록" data-testid="bracket-tournament-list">
           {tournaments.map((t) => (
             <li
               key={t.id}
               className="bg-card flex flex-wrap items-start justify-between gap-3 rounded-xl border px-4 py-3 text-sm shadow-sm"
+              data-testid={`bracket-tournament-row-${t.id}`}
             >
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="font-medium">{t.title}</p>
                 <p className="text-muted-foreground mt-1 text-xs">
-                  {formatLabelKo(t.format)} · 팀 {t.team_count} ·{" "}
+                  {formatLabelKo(t.format)} · 팀 슬롯 {t.team_count} ·{" "}
                   {statusLabelKo(t.status)}
+                </p>
+                <p className="text-muted-foreground mt-1 text-xs leading-relaxed break-words">
+                  슬롯 이름 · {formatTeamLabelsPreview(t.team_labels)}
                 </p>
                 <p className="text-muted-foreground mt-1 text-xs tabular-nums">
                   수정{" "}
@@ -217,6 +313,18 @@ export function ClanEventsBracketTab({
                     timeStyle: "short",
                   })}
                 </p>
+                {canManageEvents && t.status === "draft" ? (
+                  <BracketTeamSlotLabelsEditor
+                    gameSlug={gameSlug}
+                    clanId={clanId}
+                    tournamentId={t.id}
+                    teamLabels={t.team_labels}
+                    pending={pending}
+                    onTransition={(cb) => {
+                      start(cb);
+                    }}
+                  />
+                ) : null}
               </div>
               {canManageEvents && t.status === "draft" ? (
                 <Button
