@@ -103,6 +103,39 @@ test.describe("UI 회귀 — MainClan (QA 리더)", () => {
     await rowLocator.getByRole("button", { name: "삭제" }).click();
     await expect(list.getByText(title)).not.toBeVisible({ timeout: 15_000 });
   });
+
+  test("밸런스: 세션 열기→경기 화면→종료(smoke)", async ({ page }) => {
+    const base = await gotoOverwatchLeaderClanBase(page);
+    await page.goto(`${base}/balance`);
+
+    const panel = page.getByTestId("clan-balance-session-panel");
+    await expect(panel).toBeVisible({ timeout: 20_000 });
+
+    await expect(panel).toHaveAttribute("data-balance-phase", "none");
+
+    await panel.getByRole("checkbox", { name: /맵 밴 사용/ }).uncheck();
+
+    await panel.getByRole("button", { name: "세션 열기" }).click();
+    await expect(panel.getByText("① 편집 중").first()).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(panel).toHaveAttribute("data-balance-phase", "editing");
+
+    await panel.getByRole("button", { name: "맵 밴 없이 경기 화면으로" }).click();
+    await expect(panel.getByText("③ 경기 진행").first()).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(panel).toHaveAttribute("data-balance-phase", "match_live");
+
+    await panel.getByRole("button", { name: "세션 종료" }).click();
+
+    await expect(panel).toHaveAttribute("data-balance-phase", "none", {
+      timeout: 15_000,
+    });
+    await expect(panel.getByRole("button", { name: "세션 열기" })).toBeVisible({
+      timeout: 15_000,
+    });
+  });
 });
 
 test.describe("UI 회귀 — MainGame 커뮤니티 탭", () => {

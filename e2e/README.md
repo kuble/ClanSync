@@ -19,8 +19,7 @@ Playwright는 **로컬**에서 `npm run dev`(기본 **http://127.0.0.1:3000**)�
 - **전 계정 로그인 스모크**: `e2e/fixture-login.spec.ts` (`npm run db:seed` 필요)
 - **온보딩 시나리오**: `e2e/onboarding.spec.ts` — 기본은 **QA_Member_01** + 고정 비번
 - **가입 신청 → 리더 거절 토스트**: `e2e/join-request-flow.spec.ts` — **QA_01_Clan** 카드 기준 (`db:seed`·앱 서버에 `SUPABASE_SERVICE_ROLE_KEY` 필요)
-- **UI 회귀 (live 페이지·탭·링크)**: `e2e/ui-regression.spec.ts` — 리더 MainClan 전 탭·헤더·알림 벨·MainGame 탭·무소속 멤버 온보딩 헤더. 실행 시 **`global-setup` 에서 자동으로 `npm run db:seed`** 한 번 돌린다 (`E2E_SKIP_SEED=1` 로 비활성화).
-
+- **UI 회귀 (live 페이지·탭·링크)**: `e2e/ui-regression.spec.ts` — 리더 MainClan 전 탭·헤더·알림 벨·대진표·밸런스 세션 스모크·MainGame 탭·무소속 멤버 온보딩 헤더. 실행 시 **`global-setup` 에서 자동으로 `npm run db:seed`** 한 번 돌린다 (`E2E_SKIP_SEED=1` 로 비활성화). 시드가 QA 픽스처 클랜의 진행 중 `balance_sessions` 는 삭제한다.
 선택 — 다른 프로젝트·임시 계정으로만 온보딩을 돌리고 싶을 때 **둘 다** 설정:
 
 ```env
