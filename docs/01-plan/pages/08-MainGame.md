@@ -161,7 +161,7 @@
 - **양측 확정**: `matched`이고 상대가 있을 때, 호스트/게스트 각각 `confirm_scrim` 권한자가 **우리 측 확정**을 누르면 `scrim_room_confirmations`에 해당 `side`가 쌓인다. 중복 확정은 한글 에러. (RLS — `confirmScrimSideAction`.) DB 트리거가 양측 확정 시 `confirmed` 승격 및 `clan_events` 동기화(0041).
 - **호스트 수정**: 개설 클랜 운영진이 **일정·제목·장소·모드·티어·메모**를 수정한다 (`updateScrimRoomDetailsAction`). **일시·장소·모드·티어 범위**가 바뀌고 기존에 확정(또는 한쪽 확정)이 있었다면 트리거 `scrim_rooms_invalidate_confirmations`가 확정 행을 삭제하고 `matched`로 되돌리므로, 앱은 다시 양측 확정이 필요함을 토스트한다. **제목·메모만** 바꾸면 확정은 유지된다.
 - **취소**: 호스트 또는 (상대가 배정된 경우) 게스트 쪽 `confirm_scrim` 권한자가 **스크림 취소** (`cancelScrimRoomAction`). `draft`/`matched`/`confirmed`만 허용 → `cancelled`·`cancelled_at`. 이후 `clan_events_apply_from_scrim_room`가 `scrim_auto` 행을 소프트 취소한다.
-- **미구현(목업·후속)**: 일자별 캘린더 UI, 스크림 전용 채팅 모달, 목업 수준 티어 **필터·칩 UI** 등은 추후 확장.
+- **미구현(Phase 2+ 등)**: 스크림 전용 채팅 모달, 목업 수준 티어 **필터·칩 UI** 등.
 
 ### 필터
 | 항목 | 옵션 |
@@ -170,8 +170,9 @@
 | 티어 (다중) | 전체, 또는 티어별 |
 
 ### 캘린더 / 일자별 목록
-- `#scrimDayList` — 날짜 패널 + 카드 리스트
-- 카드: 듀얼 아바타(vs 확정 시), 제목 또는 "A vs B", "클랜원 N명", 칩(시간·티어·모드), "클릭하여 상세 정보 · 채팅"
+- **Phase 2 앱**: `#scrimDayList` 플레이스 확인용 `data-testid="scrimDayList"` + 상단 미니 월간 그리드 `data-testid="scrim-mini-calendar"`. 스크림 예정 시각 기준 **로컬 날짜**로 매핑 후, 해당 날이 있는 달 버튼에 윤곽·선택 상태를 표시. **모든 날짜** 시에는 카드 블록을 날짜 헤더(요일 포함)별로 묶는다.
+- 목업 레퍼런스 `#scrimDayList` — 날짜 패널 + 카드 리스트
+- 카드(목업·후속 플러시): 듀얼 아바타(vs 확정 시), 제목 또는 "A vs B", "클랜원 N명", 칩(시간·티어·모드), "클릭하여 상세 정보 · 채팅"
 
 ### 모달·드로어
 - **신청/수정 모달** `#scrimApplyModal`

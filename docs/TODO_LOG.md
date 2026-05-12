@@ -5,7 +5,11 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
-### 2026-05-11 — 스크림 모드·티어·메모 (`scrim_rooms` 컬럼 연동)
+### 2026-05-12 — MainGame 스크림 미니 캘린더·일자별 목록 헤더
+
+- [x] **앱** — `MainGameCommunityTabs` 월별 그리드(`scrim-mini-calendar`), 날짜 선택 필터·빈날 처리, 기본 묶음 `scrimDayList` 헤더. `Playwright CI` 통과.
+- [x] **문서** — `08-MainGame.md` · `QA_시나리오.md` · 허브/Phase2.
+
 
 - [x] **앱** — `loadScrimRoomsForGame` 확장 · `createDraftScrimRoomAction` · `updateScrimRoomDetailsAction`(무효화 필드 정합) · 스크림 탭 폼·카드 표시.
 - [x] **문서** — `08-MainGame.md` · `QA_시나리오.md` · `TODO.md` · 본 로그.
