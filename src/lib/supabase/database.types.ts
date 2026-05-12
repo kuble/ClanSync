@@ -1362,6 +1362,7 @@ export type Database = {
           id: string
           instance_idx: number | null
           last_error: string | null
+          lfg_post_id: string | null
           poll_id: string | null
           recipient_user_id: string
           scheduled_at: string
@@ -1379,6 +1380,7 @@ export type Database = {
           id?: string
           instance_idx?: number | null
           last_error?: string | null
+          lfg_post_id?: string | null
           poll_id?: string | null
           recipient_user_id: string
           scheduled_at: string
@@ -1396,6 +1398,7 @@ export type Database = {
           id?: string
           instance_idx?: number | null
           last_error?: string | null
+          lfg_post_id?: string | null
           poll_id?: string | null
           recipient_user_id?: string
           scheduled_at?: string
@@ -1409,6 +1412,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "clan_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_log_lfg_post_id_fkey"
+            columns: ["lfg_post_id"]
+            isOneToOne: false
+            referencedRelation: "lfg_posts"
             referencedColumns: ["id"]
           },
           {
@@ -2282,6 +2292,8 @@ export type Database = {
         | "poll_deadline_window"
         | "poll_deadline_1h"
         | "event_cancelled"
+        | "lfg_post_expired"
+        | "lfg_application_expired"
       notification_status:
         | "scheduled"
         | "sent"
@@ -2489,6 +2501,8 @@ export const Constants = {
         "poll_deadline_window",
         "poll_deadline_1h",
         "event_cancelled",
+        "lfg_post_expired",
+        "lfg_application_expired",
       ],
       notification_status: [
         "scheduled",
