@@ -430,7 +430,12 @@ export function MainGameCommunityTabs({
             <ul className="mt-2 space-y-2">
               {promos.slice(0, 5).map((p) => (
                 <li key={p.id} className="bg-card rounded-lg border px-3 py-2 text-xs shadow-sm">
-                  <span className="font-medium">{p.title}</span>
+                  <Link
+                    href={`/games/${g}/board/${encodeURIComponent(p.id)}`}
+                    className="font-medium hover:underline"
+                  >
+                    {p.title}
+                  </Link>
                   <span className="text-muted-foreground"> · {p.clan_name}</span>
                 </li>
               ))}
@@ -505,7 +510,12 @@ export function MainGameCommunityTabs({
                 className="bg-card rounded-xl border px-4 py-3 shadow-sm"
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <p className="font-medium">{p.title}</p>
+                  <Link
+                    href={`/games/${g}/board/${encodeURIComponent(p.id)}`}
+                    className="font-medium hover:underline"
+                  >
+                    {p.title}
+                  </Link>
                   <Link
                     href={`/games/${g}/clan/${p.clan_id}`}
                     className="text-muted-foreground text-xs hover:underline"

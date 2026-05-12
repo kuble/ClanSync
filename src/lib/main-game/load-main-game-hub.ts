@@ -86,6 +86,66 @@ export async function loadPromotionFeed(
   return [...rows].sort((a, b) => b.space_remaining - a.space_remaining);
 }
 
+/** MainGame 게시판 상세 — URL의 게임과 글 게임 정합 검증 포함 */
+export type BoardPostDetailRow = {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
+  post_type: Database["public"]["Enums"]["board_post_type"];
+  is_pinned: boolean;
+  clan_id: string;
+  clan_name: string;
+  author_nickname: string;
+};
+
+export async function loadBoardPostDetail(
+  supabase: SupabaseClient<Database>,
+  gameId: string,
+  postId: string,
+): Promise<BoardPostDetailRow | null> {
+  const { data: row, error } = await supabase
+    .from("board_posts")
+    .select(
+      `
+      id,
+      title,
+      content,
+      created_at,
+      post_type,
+      is_pinned,
+      clan_id,
+      clans ( id, name ),
+      users!board_posts_created_by_fkey ( nickname )
+    `,
+    )
+    .eq("id", postId)
+    .eq("game_id", gameId)
+    .maybeSingle();
+
+  if (error || !row?.id) return null;
+
+  const clan = normalizeClanRow(row.clans);
+
+  const uRaw = row.users as
+    | { nickname: string }
+    | { nickname: string }[]
+    | null;
+  const uone = Array.isArray(uRaw) ? uRaw[0] : uRaw;
+
+  return {
+    id: row.id,
+    title: row.title,
+    content: row.content ?? "",
+    created_at: row.created_at,
+    post_type: row.post_type as Database["public"]["Enums"]["board_post_type"],
+    is_pinned: row.is_pinned,
+    clan_id: row.clan_id,
+    clan_name: clan?.name ?? "클랜",
+    author_nickname: uone?.nickname ?? "—",
+  };
+}
+
 export type LfgRowOut = {
   id: string;
   mode: string;
