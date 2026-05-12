@@ -266,9 +266,11 @@ H1 "클랜 이벤트"
 ### 수동 일정 Discord 웹훅 (MVP · `clan_settings.event_notify`)
 - **`discord_enabled` + 웹훅 URL**이 있을 때만: `createClanEventAction`·`updateClanEventAction`이 **in-app 예약까지 성공한 뒤** 비동기로 Incoming Webhook `POST` (타임아웃 8s). 실패해도 액션은 성공으로 유지.
 - **등록** 메시지 헤더: «클랜 일정 등록», **저장(수정)** 헤더: «클랜 일정 변경». 본문: 제목·유형·시작(로캘 포맷)·장소·이벤트 탭 링크.
+- **`event_notify` JSON**(리더 저장): 알 수 없는 키를 덮어쓰지 않고 병합한다. 카카오 알림톡은 **`kakao_notifications_opt_in`**(boolean·수신 의사)만 영속화하며, **번호 검증·실 발송 채널은 Phase 2+**(D-EVENTS-03). 이벤트 탭의 알림 카드 카피에 위 범위를 명시한다.
 
 ### 대진표 (D-EVENTS-05 DECIDED — 클랜 내 이벤트 전용)
 - 스키마: `bracket_tournaments` · `bracket_teams` · `bracket_team_members` · `bracket_matches` · `bracket_results` (→ `schema.md`).
+- **Phase 2 MVP 초안**: Premium 호스트 클랜만 `bracket_tournaments`(status=`draft`) 저장. `snapshot` JSON은 `v=1`, **`teams`** 를 `team_count`만큼 `{ slot, label }` 로 채우고 `matches` 는 비운다(실 대진 로직 미구축). 운영진은 초안에서 **슬롯 라벨만** 편집·저장한다. 로스터·코인 호스트 입장료·매치 결과는 후속 연동.
 - `host_clan_id = winner_clan_id` 불변식 (클랜 간 대회 없음).
 - 참가자(`bracket_team_members.user_id`)는 반드시 `tournament.host_clan_id`의 `clan_members`.
 - 코인 거래 멱등 키: `(tournament_id, 'host')` · `(tournament_id, clan_id, 'entry')` · `(tournament_id, clan_id, 'winner')` · `(tournament_id, 'refund_host')`. 각 거래 ID를 `bracket_tournaments.*_coin_transaction_id`에 보관.

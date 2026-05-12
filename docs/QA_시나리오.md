@@ -18,6 +18,30 @@
 
 <!-- 새 시나리오는 이 구분선 위에 추가 (최신이 위) -->
 
+## 2026-05-14 — 클랜 이벤트 알림 카드(카카오 옵트인)·대진표 팀 슬롯 이름
+
+**한 줄 요약**: 이벤트 탭 알림 카드에서 Discord와 함께 **카카오 수신 의사만** 저장하고, Premium 대진표 초안에서 **팀 슬롯 이름**을 생성 시 기본 채워 넣은 뒤 편집·저장할 수 있는지 확인한다.
+
+**환경**: `http://127.0.0.1:3000` · `npm run db:seed` 반영 픽스처(`QA_Leader_01`·`QA_01_Clan`은 seed 후 **premium**).
+
+**사전 조건**: [debug-and-fixtures.md](./01-plan/debug-and-fixtures.md) 픽스처 리더 로그인 · MainClan 이벤트 탭 접근 가능.
+
+**절차**:
+
+1. `QA_Leader_01` 로그인 후 `/games/overwatch/clan/{QA_01_Clan_UUID}/events`.
+2. (운영진 권한이면 상단 블록) `data-testid="clan-event-notify-settings"` 영역에 **카카오 알림톡 (예정)** 체크·저장 후 새로고침 시 선택이 유지되는지 본다(실 알림 미발송).
+3. 같은 페이지에서 **`?tab=bracket`** 으로 **대진표 생성기** 탭을 연다 (`data-testid="clan-events-bracket-tab"`).
+4. **대진표 초안 만들기** → 대회명 입력·팀 슬롯 수 선택 → 저장.
+5. 목록에 생긴 **초안** 카드에서 **슬롯 이름** 줄에 `팀 1 · 팀 2 · …` 가 보이는지 확인하고, **팀 슬롯 이름 편집**을 펼쳐 임의 라벨 수정 후 **팀 슬롯 저장** — 카드 미리보기 문구가 갱신되는지 본다.
+6. (선택) 동일 초안 **삭제**로 정리한다.
+
+**기대 결과**:
+
+- [ ] 카카오 항목은 **의사 플래그만** 남고, 메시지는 발송되지 않는다(카피로 범위가 안내된다).
+- [ ] 대진표 탭에서 Premium이 아닌 클랜은 잠금 안내만 보이거나, 픽스처 premium 클랜에서는 초안 작성·편집이 가능하다.
+
+**깨졌을 때**: `clan_settings.event_notify` JSON 병합 · `mergeEventNotifyPayload` · `bracket_tournaments.snapshot` · Server Action 권한·`subscription_tier`.
+
 ## 2026-05-13 — MainGame 스크림 상태·티어 필터 바
 
 **한 줄 요약**: 스크림 탭에서 상태(모집 중 vs 확정 후)·대략 티어 구간·취소 포함 여부로 목록과 달 점표를 줄인다.

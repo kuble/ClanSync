@@ -5,6 +5,12 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-14 — M6b: 카카오 옵트인(`event_notify`)·브래킷 팀 슬롯 라벨·픽스처 premium 시드
+
+- [x] **앱** — `mergeEventNotifyPayload`·`kakao_notifications_opt_in` · `ClanEventNotifyForm`/`discordWebhookUrl` 전달 · 브래킷 `snapshot.teams`(슬롯 라벨)·`updateBracketTeamLabelsAction` · 탭 편집 UI.
+- [x] **시드** — `QA_01_Clan` → `premium` 후처리(로컬 E2E·대진표 탭).
+- [x] **문서** — `11-Clan-Events.md` · `debug-and-fixtures.md` · `QA_시나리오.md` · `TODO_Phase2.md`(M6b 완료 선언)·허브 `TODO.md`.
+
 ### 2026-05-13 — MainGame 스크림 상태·티어 필터 바
 
 - [x] **앱** — `filteredScrimRooms` 파이프·`scrim-filter-bar`(상태·티어 OR·취소 표시)·빈 필터 상태 UI. 빌드·Playwright 통과.
