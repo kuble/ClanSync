@@ -231,6 +231,19 @@ for (const clanDef of QA_SEED_CLANS) {
   } else {
     console.log("[seed] 리더 멤버십 이미 존재:", clanDef.name);
   }
+
+  const { error: tierErr } = await supabase
+    .from("clans")
+    .update({ subscription_tier: "premium" })
+    .eq("id", clanId);
+  if (tierErr) {
+    console.error(
+      `[seed] QA 클랜 subscription_tier(premium) 갱신 실패:`,
+      tierErr.message,
+    );
+    process.exit(1);
+  }
+  console.log(`[seed] QA 클랜 premium 보장: ${clanDef.name}`);
 }
 
 console.log("[seed] 완료 (비밀번호는 qa-fixtures.mjs FIXTURE_PASSWORD 와 동일).");
