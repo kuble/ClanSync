@@ -117,6 +117,7 @@ export default async function ClanEventsPage({
           clanId={clanId}
           discordEnabled={notify.discord_enabled}
           discordWebhookUrl={notify.discord_webhook_url}
+          kakaoNotificationsOptIn={notify.kakao_notifications_opt_in}
           canEdit={canEditEventNotify}
         />
       ) : null}

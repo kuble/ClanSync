@@ -1,7 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
+import {
+  mergeEventNotifyPayload,
+  readClanEventNotifySettings,
+} from "@/lib/clan/event-notify-settings";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/lib/supabase/database.types";
@@ -51,6 +54,9 @@ export async function updateClanEventNotifyAction(
     .eq("clan_id", clanId)
     .maybeSingle();
 
+  const kakaoOptIn =
+    formData.get("kakao_notifications_opt_in") === "on";
+
   const prev = readClanEventNotifySettings(existing?.event_notify as Json | null);
 
   let webhookUrl = "";
@@ -70,15 +76,16 @@ export async function updateClanEventNotifyAction(
     }
   }
 
-  const nextPayload = {
+  const nextNotify = mergeEventNotifyPayload(existing?.event_notify, {
     discord_enabled: discordEnabled,
     discord_webhook_url: discordEnabled ? webhookUrl : "",
-  };
+    kakao_notifications_opt_in: kakaoOptIn,
+  });
 
   const { error } = await svc
     .from("clan_settings")
     .update({
-      event_notify: nextPayload as unknown as Json,
+      event_notify: nextNotify as unknown as Json,
       updated_by: user.id,
     })
     .eq("clan_id", clanId);
