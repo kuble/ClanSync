@@ -35,6 +35,8 @@ import type {
   ScrimRoomRowOut,
 } from "@/lib/main-game/load-main-game-hub";
 
+import type { MainGameCommunityTab } from "@/lib/main-game/main-game-community-tab";
+
 type Props = {
   gameSlug: string;
   promoSort: PromoSort;
@@ -50,6 +52,7 @@ type Props = {
   canCreateLfg: boolean;
   userId: string;
   clanHubHref: string;
+  initialTab?: MainGameCommunityTab;
 };
 
 function badgeForStatus(s: string | null): { label: string; className: string } | null {
@@ -184,6 +187,7 @@ export function MainGameCommunityTabs({
   canCreateLfg,
   userId,
   clanHubHref,
+  initialTab = "home",
 }: Props) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -399,7 +403,7 @@ export function MainGameCommunityTabs({
   const g = encodeURIComponent(gameSlug);
 
   return (
-    <Tabs defaultValue="home" className="w-full">
+    <Tabs defaultValue={initialTab} className="w-full">
       <TabsList variant="line" className="mb-6 w-full flex-wrap gap-1">
         <TabsTrigger value="home">홈</TabsTrigger>
         <TabsTrigger value="promo">홍보</TabsTrigger>

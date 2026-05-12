@@ -12,16 +12,17 @@ export type ClanInAppNotificationVM = {
 };
 
 /**
- * MainClan 셸 알림 벨(D-NOTIF-01). 현재 클랜에 귀속된 in-app 피드만 표시한다.
+ * MainClan 셸 알림 벨(D-NOTIF-01): 해당 클랜 알림 + 게임 허브 전역 알림(clan_id null).
  */
 export async function loadClanInAppNotifications(
   supabase: SupabaseClient<Database>,
   clanId: string,
 ): Promise<{ items: ClanInAppNotificationVM[]; unreadCount: number }> {
+  const clanOrGlobal = `clan_id.eq.${clanId},clan_id.is.null`;
   const { data: items, error: itemsErr } = await supabase
     .from("notifications")
     .select("id, kind, created_at, read_at, payload")
-    .eq("clan_id", clanId)
+    .or(clanOrGlobal)
     .order("created_at", { ascending: false })
     .limit(CLAN_INAPP_NOTIFICATIONS_LIMIT);
 

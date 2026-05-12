@@ -40,6 +40,8 @@ function formatRelativeKo(iso: string): string {
 function slotKindLabel(slot: string | undefined): string {
   if (!slot) return "투표";
   const map: Record<string, string> = {
+    lfg_post_expired: "LFG 마감(작성)",
+    lfg_application_expired: "LFG 마감(신청)",
     poll_created: "투표 생성",
     poll_daily: "투표 알림(매일)",
     poll_weekly: "투표 알림(매주)",
@@ -69,6 +71,19 @@ function notificationTitle(
     const slot =
       typeof p.slot_kind === "string" ? p.slot_kind : undefined;
     return base(`${slotKindLabel(slot)} · ${title}`, null);
+  }
+
+  if (
+    (kind === "lfg_post_expired" || kind === "lfg_application_expired")
+    && payload
+    && typeof payload === "object"
+  ) {
+    const p = payload as Record<string, unknown>;
+    const mode = typeof p.mode === "string" && p.mode.trim() ? p.mode.trim() : "LFG";
+    const slotRaw = typeof p.slot_kind === "string" ? p.slot_kind : undefined;
+    const line =
+      kind === "lfg_post_expired" ? `${mode} 모집이 마감되었습니다.` : `${mode} 모집 신청이 만료 처리되었습니다.`;
+    return base(`${slotKindLabel(slotRaw)} · ${line}`, null);
   }
 
   if (kind === "event_reminder" && payload && typeof payload === "object") {
@@ -181,7 +196,7 @@ export function ClanInAppNotificationBell({
         <SheetHeader className="border-border shrink-0 space-y-1 border-b px-4 py-3 text-left">
           <SheetTitle className="text-base">알림</SheetTitle>
           <p className="text-muted-foreground text-xs font-normal">
-            이 클랜에 대한 소식입니다. 브라우저 푸시는 이후 지원 예정(D-NOTIF-02).
+            클랜 소식과 게임 허브(LFG 등) 알림을 함께 보여 줍니다. 브라우저 푸시는 이후 예정(D-NOTIF-02).
           </p>
         </SheetHeader>
 
@@ -198,18 +213,24 @@ export function ClanInAppNotificationBell({
               {initialItems.map((row) => {
                 const { title } = notificationTitle(row.kind, row.payload);
                 const unread = row.read_at == null;
-                const pollId =
-                  row.payload &&
-                  typeof row.payload === "object" &&
-                  "poll_id" in row.payload
-                    ? (row.payload as { poll_id?: string }).poll_id
-                    : undefined;
-                const href =
+                const p =
+                  row.payload && typeof row.payload === "object"
+                    ? (row.payload as Record<string, unknown>)
+                    : {};
+                const pollId = typeof p.poll_id === "string" ? p.poll_id : undefined;
+                const gameSlug = typeof p.game_slug === "string" ? p.game_slug : "";
+                const isLfgExpire =
+                  row.kind === "lfg_post_expired" || row.kind === "lfg_application_expired";
+                let href =
                   row.kind === "poll_reminder" && pollId
                     ? `${eventsBase}?tab=polls`
                     : row.kind === "event_reminder"
                       ? `${eventsBase}?tab=calendar`
                       : eventsBase;
+
+                if (isLfgExpire && gameSlug) {
+                  href = `/games/${encodeURIComponent(gameSlug)}?tab=lfg`;
+                }
 
                 return (
                   <li key={row.id} className="py-0.5">

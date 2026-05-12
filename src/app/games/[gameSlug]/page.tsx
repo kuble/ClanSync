@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import {
+  coerceMainGameCommunityTab,
+} from "@/lib/main-game/main-game-community-tab";
 import { MainGameCommunityTabs } from "@/components/main-game/main-game-community-tabs";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { createClient } from "@/lib/supabase/server";
@@ -23,11 +26,12 @@ export default async function MainGamePage({
   searchParams,
 }: {
   params: Promise<{ gameSlug: string }>;
-  searchParams: Promise<{ promoSort?: string }>;
+  searchParams: Promise<{ promoSort?: string; tab?: string }>;
 }) {
   const { gameSlug } = await params;
   const sp = await searchParams;
   const promoSort: PromoSort = sp.promoSort === "space" ? "space" : "newest";
+  const initialTab = coerceMainGameCommunityTab(sp.tab);
 
   const supabase = await createClient();
   const {
@@ -151,6 +155,7 @@ export default async function MainGamePage({
         canCreateLfg={canCreateLfg}
         userId={user.id}
         clanHubHref={clanHubHref}
+        initialTab={initialTab}
       />
 
       <Link
