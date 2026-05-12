@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition, type FormEvent, type ReactElement } from "react";
 import { toast } from "sonner";
 
 import {
@@ -85,6 +85,32 @@ function localDatetimeInputValue(iso: string): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+/** 로컬 달력 날짜 키 (YYYY-MM-DD) — ISO 시각 문자열 기준 클라이언트 타임존 */
+function localDateKeyFromScheduled(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function calendarDayKey(year: number, monthIndex: number, day: number): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${year}-${pad(monthIndex + 1)}-${pad(day)}`;
+}
+
+function formatScrimDayHeading(dayKey: string): string {
+  const [ya, ma, da] = dayKey.split("-").map((x) => Number.parseInt(x, 10));
+  if (!Number.isFinite(ya) || !Number.isFinite(ma) || !Number.isFinite(da)) {
+    return dayKey;
+  }
+  const dt = new Date(ya!, ma! - 1, da);
+  return dt.toLocaleDateString("ko-KR", {
+    weekday: "short",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 export function MainGameCommunityTabs({
   gameSlug,
   promoSort,
@@ -153,7 +179,7 @@ export function MainGameCommunityTabs({
     );
   }
 
-  function submitPromo(e: React.FormEvent) {
+  function submitPromo(e: FormEvent) {
     e.preventDefault();
     start(async () => {
       const r = await createPromotionPostAction(gameSlug, promoTitle, promoBody);
@@ -167,7 +193,7 @@ export function MainGameCommunityTabs({
     });
   }
 
-  function submitLfg(e: React.FormEvent) {
+  function submitLfg(e: FormEvent) {
     e.preventDefault();
     start(async () => {
       const r = await createLfgPostAction(gameSlug, {
@@ -188,7 +214,7 @@ export function MainGameCommunityTabs({
     });
   }
 
-  function submitScrimDraft(e: React.FormEvent) {
+  function submitScrimDraft(e: FormEvent) {
     e.preventDefault();
     if (!myClanId) return;
     start(async () => {
@@ -233,6 +259,64 @@ export function MainGameCommunityTabs({
       router.refresh();
     });
   }
+
+  const [scrimCalendarMonth, setScrimCalendarMonth] = useState(() => {
+    const now = new Date();
+    return { y: now.getFullYear(), m: now.getMonth() };
+  });
+  const [selectedScrimDayKey, setSelectedScrimDayKey] = useState<string | null>(
+    null,
+  );
+
+  const scrimsSortedByTime = useMemo(
+    () =>
+      [...scrimRooms].sort(
+        (a, b) =>
+          new Date(a.scheduled_at).getTime() -
+          new Date(b.scheduled_at).getTime(),
+      ),
+    [scrimRooms],
+  );
+
+  const scrimLocalDayKeys = useMemo(() => {
+    const s = new Set<string>();
+    for (const r of scrimRooms) {
+      s.add(localDateKeyFromScheduled(r.scheduled_at));
+    }
+    return s;
+  }, [scrimRooms]);
+
+  const todayLocalKey = useMemo(() => {
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  }, []);
+
+  function shiftScrimCalendarMonth(delta: number) {
+    setScrimCalendarMonth(({ y, m }) => {
+      const next = new Date(y, m + delta, 1);
+      return { y: next.getFullYear(), m: next.getMonth() };
+    });
+  }
+
+  const scrimDisplayBuckets = useMemo(() => {
+    if (!selectedScrimDayKey) {
+      const ordered = [...scrimsSortedByTime];
+      const map = new Map<string, ScrimRoomRowOut[]>();
+      for (const r of ordered) {
+        const k = localDateKeyFromScheduled(r.scheduled_at);
+        const prev = map.get(k);
+        if (prev) prev.push(r);
+        else map.set(k, [r]);
+      }
+      const keysSorted = [...map.keys()].sort();
+      return keysSorted.map((dayKey) => ({ dayKey, rooms: map.get(dayKey)! }));
+    }
+    const hit = scrimsSortedByTime.filter(
+      (r) => localDateKeyFromScheduled(r.scheduled_at) === selectedScrimDayKey,
+    );
+    return [{ dayKey: selectedScrimDayKey, rooms: hit }];
+  }, [scrimsSortedByTime, selectedScrimDayKey]);
 
   const g = encodeURIComponent(gameSlug);
 
@@ -792,8 +876,135 @@ export function MainGameCommunityTabs({
             등록된 스크림이 없습니다.
           </p>
         ) : (
-          <ul className="space-y-4">
-            {scrimRooms.map((room) => {
+          <div className="space-y-4">
+            <section
+              className="bg-card space-y-3 rounded-xl border p-4 shadow-sm"
+              aria-label="스크림이 예정된 날 선택"
+              data-testid="scrim-mini-calendar"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  aria-label="이전 달"
+                  onClick={() => shiftScrimCalendarMonth(-1)}
+                >
+                  ‹
+                </Button>
+                <span className="flex-1 text-center text-sm font-medium tabular-nums">
+                  {new Date(
+                    scrimCalendarMonth.y,
+                    scrimCalendarMonth.m,
+                  ).toLocaleDateString("ko-KR", {
+                    year: "numeric",
+                    month: "long",
+                  })}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  aria-label="다음 달"
+                  onClick={() => shiftScrimCalendarMonth(1)}
+                >
+                  ›
+                </Button>
+              </div>
+              <div className="grid grid-cols-7 gap-1 text-[10px] font-medium text-muted-foreground">
+                {["일", "월", "화", "수", "목", "금", "토"].map((label) => (
+                  <span key={label} className="block text-center">
+                    {label}
+                  </span>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-1">
+                {(() => {
+                  const cy = scrimCalendarMonth.y;
+                  const cm = scrimCalendarMonth.m;
+                  const padStart = new Date(cy, cm, 1).getDay();
+                  const monthLast = new Date(cy, cm + 1, 0).getDate();
+                  const el: ReactElement[] = [];
+                  for (let i = 0; i < padStart; i += 1) {
+                    el.push(
+                      <span key={`scrim-cal-pad-${cy}-${cm}-${i}`} className="h-9" />,
+                    );
+                  }
+                  for (let day = 1; day <= monthLast; day += 1) {
+                    const dk = calendarDayKey(cy, cm, day);
+                    const hasHere = scrimLocalDayKeys.has(dk);
+                    const isSelected = selectedScrimDayKey === dk;
+                    const isToday = dk === todayLocalKey;
+                    el.push(
+                      <button
+                        key={`scrim-cal-${dk}`}
+                        type="button"
+                        aria-current={isSelected ? "date" : undefined}
+                        aria-pressed={isSelected}
+                        aria-label={`${dk} ${hasHere ? "(스크림 있음)" : "(스크림 없음)"}`}
+                        disabled={pending}
+                        onClick={() =>
+                          setSelectedScrimDayKey((prev) => (prev === dk ? null : dk))
+                        }
+                        className={cn(
+                          "h-9 rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                          isSelected
+                            ? "bg-primary text-primary-foreground"
+                            : hasHere
+                              ? "border border-primary/40 bg-muted/60 text-foreground"
+                              : "text-muted-foreground hover:bg-muted/50",
+                          isToday && !isSelected
+                            ? "ring-2 ring-muted-foreground/35 ring-offset-1"
+                            : "",
+                        )}
+                      >
+                        {day}
+                      </button>,
+                    );
+                  }
+                  return el;
+                })()}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={selectedScrimDayKey == null ? "secondary" : "outline"}
+                  disabled={pending}
+                  onClick={() => setSelectedScrimDayKey(null)}
+                >
+                  모든 날짜
+                </Button>
+                <p className="text-muted-foreground text-[11px]">
+                  같은 날을 다시 누르면 선택이 해제됩니다.
+                </p>
+              </div>
+            </section>
+
+            <div data-testid="scrimDayList" className="space-y-6">
+              {scrimDisplayBuckets.map(({ dayKey, rooms }) =>
+                rooms.length ? (
+                  <div key={`bucket-${dayKey}`}>
+                    {selectedScrimDayKey ? (
+                      <p className="text-muted-foreground mb-3 text-[11px]">
+                        선택한 날: {formatScrimDayHeading(dayKey)} ·{" "}
+                        <span className="font-medium tabular-nums text-foreground">
+                          {rooms.length}
+                        </span>
+                        건
+                      </p>
+                    ) : (
+                      <h3 className="border-border mb-3 flex items-baseline justify-between gap-2 border-b pb-2 text-sm font-semibold">
+                        <span>{formatScrimDayHeading(dayKey)}</span>
+                        <span className="text-muted-foreground text-[11px] font-normal tabular-nums">
+                          {rooms.length}건
+                        </span>
+                      </h3>
+                    )}
+                    <ul className="space-y-4">
+                      {rooms.map((room) => {
               const isHost = myClanId === room.clan_a_id;
               const isGuest =
                 room.clan_b_id != null && myClanId === room.clan_b_id;
@@ -1168,8 +1379,30 @@ export function MainGameCommunityTabs({
                   ) : null}
                 </li>
               );
-            })}
-          </ul>
+                      })}
+                    </ul>
+                  </div>
+                ) : (
+                  <div
+                    key={`bucket-${dayKey}-empty`}
+                    className="border-muted-foreground/30 text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm"
+                  >
+                    <p>선택한 날짜에 표시할 스크림이 없습니다.</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-3"
+                      disabled={pending}
+                      onClick={() => setSelectedScrimDayKey(null)}
+                    >
+                      모든 날짜 보기
+                    </Button>
+                  </div>
+                ),
+              )}
+            </div>
+          </div>
         )}
       </TabsContent>
     </Tabs>
