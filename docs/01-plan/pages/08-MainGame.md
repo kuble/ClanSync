@@ -130,6 +130,7 @@
 - 모달 "참여 신청" → `lfg_applications` INSERT (`status='applied'`) → 본인 카드/드로어에 "신청됨" 배지 즉시 반영 (D-LFG-01).
 - 신청 후 본인 드로어/카드 → "신청 취소" 버튼 (`status='canceled'`).
 - 모집자 측 드로어 → 신청자 목록 섹션(닉/티어/포지션/마이크 + 수락/거절). 수락 시 `slots` 도달하면 자동 `filled`.
+- 시간 경과로 `expires_at` 이 지난 뒤 크론이 `/api/cron/dispatch-notifications` 에서 **`expire_open_lfg_posts_batch` 후 `dispatch_inapp_notification_batch`** 를 호출하면, `open` 모집은 `expired`로 바뀌고 남아 있던 `applied` 신청은 `expired`로 정리된다. 작성자·대기 신청자에게 각각 **`lfg_post_expired`** / **`lfg_application_expired`** in-app 피드가 쌓이며(MainClan 셸에서는 **현재 클랜 알림과 함께 `clan_id` 가 없는 게임 허브 알림**도 벨에서 본다) 「원본 보기」→ `/games/[slug]?tab=lfg` 깊링크로 들어오면 본 페이지의 **LFG 탭**이 처음부터 열려 있다.
 
 ### 빈 상태
 - "조건에 맞는 파티가 없습니다" `.empty-state`

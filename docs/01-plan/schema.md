@@ -1148,7 +1148,7 @@ GROUP BY 1, 2;
 - INSERT: 회원가입 트리거에서 자동 기본값 INSERT.
 
 ### notification_log (알림 예약·발송 로그)
-> **D-EVENTS-03 · D-EVENTS-04** (DECIDED 2026-04-20) — 예약/발송/실패의 단일 출처. 중복 방지 UNIQUE `(event_id, slot_kind, scheduled_at, channel, recipient_user_id)`.
+> **D-EVENTS-03 · D-EVENTS-04** · **M7(`0042`)** — 예약/발송/실패 단일 출처. 투표/일정·LFG 만료 포함.
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
@@ -1156,7 +1156,8 @@ GROUP BY 1, 2;
 | event_id | uuid FK → clan_events NULL | 일정 알림 대상 |
 | instance_idx | int NULL | 반복 회차 |
 | poll_id | uuid FK → clan_polls NULL | 투표 알림 대상 |
-| slot_kind | enum('event_t_minus_24h','event_t_minus_1h','event_t_minus_10min','event_t_0','poll_created','poll_daily','poll_weekly','poll_deadline_window','poll_deadline_1h','event_cancelled') NOT NULL | |
+| lfg_post_id | uuid FK → lfg_posts NULL | **·M7**: LFG 만료 알림(`slot_kind=lfg_*_expired`) 대상 게시글 |
+| slot_kind | enum(…`'lfg_post_expired'`,`'lfg_application_expired'`) NOT NULL | 투표/일정·LFG 알림 종류 확장(**`0042`**) |
 | channel | enum('inapp','discord','kakao','web_push') NOT NULL | `web_push` 추가: D-NOTIF-02 (DECIDED 2026-04-21, Premium 전용) |
 | recipient_user_id | uuid FK → users NOT NULL | |
 | scheduled_at | timestamptz NOT NULL | 계획 발송 시각(quiet hours 보정 전) |
@@ -1164,13 +1165,13 @@ GROUP BY 1, 2;
 | status | enum('scheduled','sent','failed','cancelled','dlq') NOT NULL DEFAULT 'scheduled' | |
 | attempt_count | smallint NOT NULL DEFAULT 0 | 재시도 횟수(최대 5) |
 | last_error | text NULL | 마지막 실패 메시지 |
-| dedup_key | text NOT NULL | `hash(id)` — 공급자 측 중복 수신 감지용 |
+| dedup_key | text NOT NULL | 서비스 레이어 중복 수신 완화(해시/MD5 문자열 등) |
 | created_at | timestamptz NOT NULL DEFAULT now() | |
 | updated_at | timestamptz NOT NULL DEFAULT now() | |
 
 **제약·RLS**
 
-- `CHECK ((event_id IS NOT NULL) <> (poll_id IS NOT NULL))` — 둘 중 정확히 하나만.
+- `CHECK` — **`event_id` / `poll_id` / `lfg_post_id` 중 정확히 하나만** NOT NULL (**`0042`**).
 - UNIQUE `(event_id, instance_idx, slot_kind, channel, recipient_user_id) WHERE event_id IS NOT NULL`.
 - UNIQUE `(poll_id, slot_kind, scheduled_at, channel, recipient_user_id) WHERE poll_id IS NOT NULL`.
 - RLS: INSERT/UPDATE/DELETE 서비스 롤만. SELECT는 본인 행 + 운영자(관리자).
@@ -1208,6 +1209,7 @@ GROUP BY 1, 2;
 | `lfg_accepted` / `lfg_rejected` / `lfg_expired` | `lfg_applications` | `applicant_user_id` | D-LFG-01 |
 | `member_became_dormant` | `clan_members` | `read_members` 또는 `manage_members` 권한자 | D-CLAN-07 |
 | `event_reminder` | `notification_log` | `notification_log.recipient_user_id` | D-EVENTS-03 (in-app 채널 전용) |
+| `lfg_post_expired` / `lfg_application_expired` | `notification_log` | LFG 작성자 · 대기(`applied`) 신청자 각각 | **M7** `expire_open_lfg_posts_batch` + `dispatch_inapp_notification_batch` (`0042`; `notifications.clan_id` NULL · MainClan 벨에서 전역 포함 조회). |
 
 **제약·인덱스**
 

@@ -5,6 +5,13 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-12 — M7: LFG 만료 in-app (`0042`)·크론 순서·MainGame `?tab=`
+
+- [x] **DB** — `0042`(enum 확장 · `notification_log.lfg_post_id` · `expire`(작성자·신청자 `notification_log` 예약) · `dispatch` LFG 분기 · 「모두 읽음」이 게임 전역 null 포함).
+- [x] **앱** — `/api/cron/dispatch-notifications` 만료→디스패치 순서 · 벨 카피/링크 · `@/lib/main-game/main-game-community-tab` 서버 공유.
+- [x] **검증** — `db:push` · `types:gen` · `build` · `test:e2e` 13.
+- [x] **문서** — `schema`·`08-MainGame`·`pages`·`QA_시나리오`·`TODO_Phase2` 허브 갱신.
+
 ### 2026-05-14 — M6c: 밸런스 시드 정리·E2E 스모크·문서 게이트
 
 - [x] **시드** — QA 픽스처 클랜 미종료 `balance_sessions` 삭제.

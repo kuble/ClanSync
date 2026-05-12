@@ -79,7 +79,7 @@
 | 11 | [11-Clan-Events.md](./pages/11-Clan-Events.md) | `/games/[gameSlug]/clan/[clanId]/events` | 07 가드 | 일정 등록·삭제: officer+. 대진표 생성기: premium. 투표 생성: officer+ | URL 해시 `#events`, **`?tab=`** `calendar`/`bracket`/`polls` | 일정 등록·상세, 알림 카드(리더: Discord·카카오 옵트인), 대진표 초안(팀 슬롯 이름), 투표 생성 |
 | 12 | [12-Clan-Manage.md](./pages/12-Clan-Manage.md) | `/games/[gameSlug]/clan/[clanId]/manage` | 07 가드 + officer+ (구성원 직접 접근은 403 또는 클랜 홈) | officer+ 전체. 구독결제 탭은 leader 전용(D-MANAGE-01) | URL 해시 `#manage` | 가입 요청 처리, 구성원 상세, 권한 변경 |
 | 13 | [13-Clan-Store.md](./pages/13-Clan-Store.md) | `/games/[gameSlug]/clan/[clanId]/store` | 07 가드 | 클랜 풀 결제: leader. 개인 풀 충전·구매: 본인 | URL 해시 `#store` | 코인 충전, 아이템 구매 확인, Premium 업셀 |
-| 08 | [08-MainGame.md](./pages/08-MainGame.md) | `/games/[gameSlug]` | 1) 비로그인 → `/sign-in` · 2) 게임 인증 없음 → `.../auth` (클랜 미가입은 허용) | 스크림 자동 매칭: officer+. 스크림 평판 열람: leader | URL 해시 `#home/#promotion/#lfg/#scrim/#ranking`, `sessionStorage.clansync_lfg_filter` 등 | 가입 신청, 게시글 작성, 스크림 매칭 |
+| 08 | [08-MainGame.md](./pages/08-MainGame.md) | `/games/[gameSlug]` | 1) 비로그인 → `/sign-in` · 2) 게임 인증 없음 → `.../auth` (클랜 미가입은 허용) | 스크림 자동 매칭: officer+. 스크림 평판 열람: leader | **`?promoSort=`**(newest/space)·**`?tab=`**(home/promo/lfg/rank/scrim)·목업 레퍼런스 `#…` 등 | 홍보·LFG·순위·스크림 MVP, 게임 허브 전역 알림(`clan_id` null)·LFG 만료 깊링크 |
 | 14 | [14-Profile-Customization.md](./pages/14-Profile-Customization.md) | `/profile` | 비로그인 → `/sign-in` (게임/클랜 가드 없음) | 일부 프리셋: premium | `localStorage.clansync_nameplate_state`, `clansync_badge_case_state` (게임 단위) | 네임카드 케이스, 뱃지 케이스 모달 |
 
 > ※ 위 storage 키는 **목업 전용**. 실제 구현 시 대응 테이블·세션·서버 캐시로 옮긴다. 키 이름은 `mockup/scripts/*.js`의 사용처를 기준으로 한 인용이며, 일부는 정확 매칭이 아닐 수 있어 구현 진입 시 grep로 재확인 필요.

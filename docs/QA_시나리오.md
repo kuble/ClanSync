@@ -18,6 +18,30 @@
 
 <!-- 새 시나리오는 이 구분선 위에 추가 (최신이 위) -->
 
+## 2026-05-12 — MainGame · LFG 시간 만료 in-app 알림(M7 크론)
+
+**한 줄 요약**: `expires_at` 이 지난 `open` LFG 글이 크론에서 `expired`로 바뀌고, 작성자·대기 신청자에게 **클랜 벨 in-app**(게임 허브 전역)이 한 번 쌓이는지 확인한다.
+
+**환경**: `http://127.0.0.1:3000`(또는 Preview) · `CRON_SECRET` 으로 `/api/cron/dispatch-notifications` 호출 가능 — [debug-and-fixtures.md](./01-plan/debug-and-fixtures.md).
+
+**사전 조건**: 본인이 **게임 계정 연동 완료**(`user_game_profiles.is_verified`)인 계정. 테스트 글은 **마감을 과거 시각으로** 맞추거나, DB에서 `expires_at` 을 과거로 조정 후 크론을 호출해도 된다.
+
+**절차**:
+
+1. 테스트 계정 로그인 → `/games/overwatch` → **LFG 탭**에서 새 모집 등록.
+2. (선택·권장) Supabase 또는 SQL로 해당 `lfg_posts.expires_at` 을 `now()` 이나 과거로 UPDATE.
+3. `GET http://127.0.0.1:3000/api/cron/dispatch-notifications` 헤더 `Authorization: Bearer <CRON_SECRET>` 실행 — 응답에 **`lfg_expired` ≥ 1**·`ok: true`(또는 `lfg_note` 없음) 확인.
+4. MainClan `/games/overwatch/clan/{소속 클랜}` 우상단 알림 벨 클릭 → **LFG 마감** 카피의 항목이 있는지 확인.
+5. 해당 항목 **원본 보기** 클릭 → `/games/overwatch?tab=lfg` 가 열리고 LFG 탭이 활성이다.
+
+**기대 결과**:
+
+- [ ] 카드/UI에서 해당 모집이 더 이상 `open` 상태가 아니다.
+- [ ] 작성자·(있었다면) 대기 신청자에게 알림 피드가 **각각 규칙대로 한 번** 생긴다.
+- [ ] 「모두 읽음」 실행 시 해당 클랜 알림과 **함께 게임 허브 전역(`clan_id` null)** 미읽음도 정리된다.
+
+**깨졌을 때**: `notification_log`의 `lfg_post_id`·`slot_kind` · `expire_open_lfg_posts_batch` / `dispatch_inapp_notification_batch` · 크론 **호출 순서**(만료 먼저).
+
 ## 2026-05-14 — 밸런스메이커: 세션 열고 맵 밴 건너뛴 뒤 종료(smoke)
 
 **한 줄 요약**: 리더 계정으로 **미종료 세션이 없는** 픽스처 클랜에서 세션을 열고(**맵 밴 끔**), **편집→경기 화면→세션 종료**까지 간단히 돌린다(`npm run db:seed` 시 QA 클랜의 진행 세션이 삭제됨).
