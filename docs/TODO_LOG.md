@@ -5,6 +5,13 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-12 — M5 후속: 프로필 부계동 (`0043`)
+
+- [x] **DB·타입** — `user_alt_accounts`·RLS·`effective_view_alt_account_roles` · `types:gen`.
+- [x] **앱** — `/profile` 인증 게임 탭 부계동 패널·동의·서버 액션·클랜별 공개 요약.
+- [x] **검증** — `build` · `test:e2e`.
+- [x] **문서** — `14-Profile-Customization.md` 실구현·`QA_시나리오`·`TODO_Phase2` M5.
+
 ### 2026-05-12 — M7: LFG 만료 in-app (`0042`)·크론 순서·MainGame `?tab=`
 
 - [x] **DB** — `0042`(enum 확장 · `notification_log.lfg_post_id` · `expire`(작성자·신청자 `notification_log` 예약) · `dispatch` LFG 분기 · 「모두 읽음」이 게임 전역 null 포함).

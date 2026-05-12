@@ -169,6 +169,12 @@
 - 하단 체크박스: "위 내용에 동의합니다." — 체크해야 추가 버튼 활성화.
 - 추가 버튼 클릭 시 `user_alt_accounts` 에 INSERT.
 
+**실구현(Phase 2, M5 후속)**
+
+- 테이블 `user_alt_accounts`·RLS(`0043`)·함수 `effective_view_alt_account_roles` — 타인 조회는 같은 활성 클랜에서 `permissions.view_alt_accounts`(부재 시 앱 상수와 동일 기본)로 허용 역할이 겹칠 때만.
+- `/profile`: 게임별 탭 안에 인증 완료(`user_game_profiles.is_verified`)인 경우만 「부계동」패널. 소속 활성 클랜·게임이 맞으면 `clan_settings.permissions` 로 요약 줄을 보여 줌(`data-alt-accounts-panel`).
+- 서버 액션: 추가 시 인증 검증·동의 필수·삭제 시 본인 행만. 프리플라이트·REST 오류 메시지는 중복 등 DB 응답을 그대로 안내 가능.
+
 ### 공개 범위 요약 (본인 기준)
 
 | 토글 값 | 본인 | 같은 클랜 운영진+ | 같은 클랜 구성원 | 타 클랜 / 비소속 |

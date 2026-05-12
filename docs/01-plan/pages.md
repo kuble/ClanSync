@@ -179,6 +179,7 @@ S01 쉘·온보딩·전역 프로필은 아래 파일이 **단일 목업**으로
 
 ### 플레이어 프로필 · 꾸미기 (`/profile`)
 - `mockup/pages/profile.html` + partials(`player-profile-modal`·`badge-case-modal`·`nameplate-case-modal`) + `app.js`: **게임별** 네임카드 미리보기·뱃지 케이스(표시 **최대 5개**·게임 키별 상태). 네임플레이트는 **프리셋만** — 밸런스 경기 화면과 동일 정책(`pages/09-BalanceMaker.md` §참가자 네임플레이트).
+- **실구현(Phase 2)**: 게임별 탭에 **연동 인증 완료** 게임만 부계동(자기신고) 카드 동의·등록 (`user_alt_accounts` · 상세 [`14-Profile-Customization`](./pages/14-Profile-Customization.md)).
 
 ### MainGame (/games/[gameSlug])
 - 클랜 홍보 게시판
