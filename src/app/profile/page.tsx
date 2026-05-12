@@ -9,10 +9,16 @@ import {
 } from "@/components/profile/profile-game-decorations";
 import { ProfileDeleteAccountButton } from "@/components/profile/profile-delete-account-button";
 import { ProfileJoinRequests } from "@/components/profile/profile-join-requests";
+import type { AltAccountRow } from "@/components/profile/profile-game-alt-accounts";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { createClient } from "@/lib/supabase/server";
 import { fetchMyClanJoinRequests } from "@/lib/clan/fetch-my-clan-join-requests";
+import {
+  effectiveViewAltAccountRoles,
+  viewAltAudience,
+  viewAltAudienceCaption,
+} from "@/lib/clan/view-alt-disclosure";
 import type { Database } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
 
@@ -55,6 +61,7 @@ export default async function ProfilePage() {
     { data: sel },
     { data: unl },
     { data: picks },
+    { data: altRowsRaw },
   ] = await Promise.all([
     supabase
       .from("users")
@@ -65,7 +72,7 @@ export default async function ProfilePage() {
       .maybeSingle(),
     supabase
       .from("user_game_profiles")
-      .select("game_id, games ( id, slug, name_ko )")
+      .select("game_id, is_verified, games ( id, slug, name_ko )")
       .eq("user_id", user.id),
     supabase.from("user_nameplate_inventory").select("option_id").eq("user_id", user.id),
     supabase
@@ -78,6 +85,11 @@ export default async function ProfilePage() {
       .select("game_id, badge_id, slot_index")
       .eq("user_id", user.id)
       .order("slot_index", { ascending: true }),
+    supabase
+      .from("user_alt_accounts")
+      .select("id, game_id, alt_nick, note")
+      .eq("user_id", user.id)
+      .order("alt_nick"),
   ]);
 
   const { data: rawJoinFlat, error: rawJoinFlatErr } =
@@ -215,6 +227,75 @@ export default async function ProfilePage() {
     slot_index: number;
   }>;
 
+  const verifiedGameIds = [
+    ...new Set(
+      (ugpRows ?? [])
+        .filter((r) => r.is_verified)
+        .map((r) => r.game_id),
+    ),
+  ];
+
+  const membershipRowsPromise =
+    verifiedGameIds.length > 0 ?
+      supabase
+        .from("clan_members")
+        .select("clan_id, clans(name, game_id)")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+    : Promise.resolve({ data: [], error: null as null });
+
+  const { data: membershipRowsRaw } = await membershipRowsPromise;
+  const membershipRows = membershipRowsRaw ?? [];
+
+  const memClanIds = [...new Set(membershipRows.map((m) => m.clan_id))];
+  const { data: clanSettingsRows } =
+    memClanIds.length > 0 ?
+      await supabase
+        .from("clan_settings")
+        .select("clan_id, permissions")
+        .in("clan_id", memClanIds)
+    : { data: [] as { clan_id: string; permissions: unknown }[] };
+
+  const permissionsByClan = new Map<string, Record<string, unknown>>();
+  for (const cs of clanSettingsRows ?? []) {
+    permissionsByClan.set(
+      cs.clan_id,
+      (cs.permissions as Record<string, unknown> | null) ?? {},
+    );
+  }
+
+  const altAccountsByGameList: AltAccountRow[] = (altRowsRaw ?? []).map((x) => ({
+    id: x.id,
+    game_id: x.game_id,
+    alt_nick: x.alt_nick,
+    note: x.note ?? null,
+  }));
+
+  type AltAccountsBundle = { rows: AltAccountRow[]; disclosureLines: string[] };
+  const altAccountsByGame: Record<string, AltAccountsBundle> = {};
+
+  for (const gid of verifiedGameIds) {
+    const disclosureLines: string[] = [];
+    for (const m of membershipRows) {
+      const clanRaw = m.clans as
+        | { name: string; game_id: string }
+        | { name: string; game_id: string }[]
+        | null;
+      const clan = Array.isArray(clanRaw) ? clanRaw[0] : clanRaw;
+      if (!clan || clan.game_id !== gid) continue;
+      const roles = effectiveViewAltAccountRoles(
+        permissionsByClan.get(m.clan_id),
+      );
+      disclosureLines.push(
+        `「${clan.name}」${viewAltAudienceCaption(viewAltAudience(roles))}`,
+      );
+    }
+    altAccountsByGame[gid] = {
+      rows: altAccountsByGameList.filter((a) => a.game_id === gid),
+      disclosureLines,
+    };
+  }
+
   return (
     <main className="mx-auto max-w-2xl px-4 py-10">
       <header className="mb-8">
@@ -295,6 +376,8 @@ export default async function ProfilePage() {
 
       <ProfileGameDecorations
         games={linkedGames}
+        verifiedGameIds={verifiedGameIds}
+        altAccountsByGame={altAccountsByGame}
         nameplateOptions={nameplateOptions}
         ownedOptionIds={ownedOptionIds}
         selections={selections}

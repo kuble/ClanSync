@@ -1841,6 +1841,48 @@ export type Database = {
           },
         ]
       }
+      user_alt_accounts: {
+        Row: {
+          alt_nick: string
+          created_at: string
+          game_id: string
+          id: string
+          note: string | null
+          user_id: string
+        }
+        Insert: {
+          alt_nick: string
+          created_at?: string
+          game_id: string
+          id?: string
+          note?: string | null
+          user_id: string
+        }
+        Update: {
+          alt_nick?: string
+          created_at?: string
+          game_id?: string
+          id?: string
+          note?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_alt_accounts_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_alt_accounts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_badge_picks: {
         Row: {
           badge_id: string
@@ -2140,6 +2182,10 @@ export type Database = {
       dispatch_inapp_notification_batch: {
         Args: { p_limit?: number }
         Returns: number
+      }
+      effective_view_alt_account_roles: {
+        Args: { p_clan_id: string }
+        Returns: string[]
       }
       expire_open_lfg_posts_batch: {
         Args: { p_limit?: number }

@@ -17,6 +17,8 @@ import {
 } from "@/lib/profile-decoration-sync";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { AltAccountRow } from "@/components/profile/profile-game-alt-accounts";
+import { ProfileGameAltAccounts } from "@/components/profile/profile-game-alt-accounts";
 import { cn } from "@/lib/utils";
 
 const NP_LABEL: Record<NameplateCategory, string> = {
@@ -58,6 +60,12 @@ export type BadgeRow = {
 
 type Props = {
   games: DecorationGame[];
+  /** 해당 게임 user_game_profiles.is_verified 일 때 부계 패널 허용 */
+  verifiedGameIds: string[];
+  altAccountsByGame: Record<
+    string,
+    { rows: AltAccountRow[]; disclosureLines: string[] }
+  >;
   nameplateOptions: NameplateOptionRow[];
   ownedOptionIds: string[];
   selections: Array<{
@@ -95,6 +103,8 @@ function defaultOptionId(
 
 export function ProfileGameDecorations({
   games,
+  verifiedGameIds,
+  altAccountsByGame,
   nameplateOptions,
   ownedOptionIds,
   selections,
@@ -102,6 +112,7 @@ export function ProfileGameDecorations({
   unlockedBadgeIds,
   picks,
 }: Props) {
+  const verified = useMemo(() => new Set(verifiedGameIds), [verifiedGameIds]);
   const router = useRouter();
   const defaultSlug = games[0]?.slug ?? "";
   const [tabSlug, setTabSlug] = useState(defaultSlug);
@@ -223,6 +234,16 @@ export function ProfileGameDecorations({
               unlocked={unlocked}
               initialPicks={picksByGame.get(g.gameId) ?? []}
             />
+            {verified.has(g.gameId) ?
+              <ProfileGameAltAccounts
+                gameId={g.gameId}
+                gameSlug={g.slug}
+                disclosureLines={
+                  altAccountsByGame[g.gameId]?.disclosureLines ?? []
+                }
+                initialRows={altAccountsByGame[g.gameId]?.rows ?? []}
+              />
+            : null}
           </TabsContent>
         ))}
       </Tabs>
