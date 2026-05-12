@@ -38,6 +38,7 @@ export default defineConfig({
   forbidOnly: isCi,
   retries: isCi ? 2 : 0,
   workers: isCi ? 1 : undefined,
+  globalSetup: "./e2e/global-setup.ts",
   reporter: isCi ? "github" : "list",
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? defaultBase,

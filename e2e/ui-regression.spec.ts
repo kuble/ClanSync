@@ -56,6 +56,53 @@ test.describe("UI 회귀 — MainClan (QA 리더)", () => {
     await expect(sheet).toBeVisible({ timeout: 10_000 });
     await expect(sheet.getByText("알림", { exact: true })).toBeVisible();
   });
+
+  test("이벤트 대진표: 초안·팀 슬롯 이름(Premium 픽스처)", async ({ page }) => {
+    const base = await gotoOverwatchLeaderClanBase(page);
+    const title = `E2E 브래킷 ${Date.now()}`;
+    await page.goto(`${base}/events?tab=bracket`);
+
+    await expect(page.getByTestId("clan-events-bracket-tab")).toHaveAttribute(
+      "data-has-premium",
+      "true",
+      { timeout: 20_000 },
+    );
+
+    await page.getByRole("button", { name: "대진표 초안 만들기" }).click();
+
+    const dialog = page.getByTestId("bracket-create-draft-dialog");
+    await expect(dialog).toBeVisible({ timeout: 10_000 });
+    await dialog.getByLabel("대회명").fill(title);
+
+    await dialog.getByRole("button", { name: "저장" }).click();
+    await expect(page.getByText("대진표 초안을 저장했습니다")).toBeVisible({
+      timeout: 15_000,
+    });
+
+    const list = page.getByTestId("bracket-tournament-list");
+    await expect(list.getByText(title)).toBeVisible({ timeout: 15_000 });
+
+    const rowLocator = page
+      .locator('[data-testid^="bracket-tournament-row-"]')
+      .filter({ hasText: title })
+      .first();
+
+    await expect(rowLocator.getByText(/^슬롯 이름 ·/)).toBeVisible();
+    await expect(rowLocator.getByText(/^슬롯 이름 ·/)).toContainText("팀 1");
+
+    await rowLocator.getByText("팀 슬롯 이름 편집").click();
+
+    await rowLocator.getByTestId("bracket-team-slot-input-0").fill("E2E슬롯A");
+    await rowLocator.getByRole("button", { name: "팀 슬롯 저장" }).click();
+    await expect(page.getByText("팀 슬롯 이름을 저장했습니다")).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(rowLocator.getByText(/^슬롯 이름 ·/)).toContainText("E2E슬롯A");
+
+    page.once("dialog", (d) => void d.accept());
+    await rowLocator.getByRole("button", { name: "삭제" }).click();
+    await expect(list.getByText(title)).not.toBeVisible({ timeout: 15_000 });
+  });
 });
 
 test.describe("UI 회귀 — MainGame 커뮤니티 탭", () => {
