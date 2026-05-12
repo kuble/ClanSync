@@ -18,7 +18,7 @@
 /games/[gameSlug]/clan/[clanId]/manage  → 클랜 관리(구성원별 개인 통계·승패 등)
 /games/[gameSlug]/clan/[clanId]/store   → 클랜 스토어
 /games/[gameSlug]                       → MainGame (커뮤니티)
-/games/[gameSlug]/board/[postId]        → 게시글 상세 (목업 HTML 미작성 · Phase 2+)
+/games/[gameSlug]/board/[postId]        → 게시판 단일 글 상세 (`board_posts` · 목업 없음 · 읽기 전용 MVP)
 ```
 
 ## 인증/권한 미들웨어 흐름
@@ -100,7 +100,7 @@ S01 쉘·온보딩·전역 프로필은 아래 파일이 **단일 목업**으로
 | `/profile` | `profile.html` |
 | `/games/.../clan/[id]` 및 하위 탭·해시 | `main-clan.html` + `clan-mock.js` |
 | `/games/[slug]`(커뮤니티) | `main-game.html` |
-| `/games/.../board/[postId]` | _(목업 없음)_ |
+| `/games/.../board/[postId]` | _(목업 없음; 앱 라이브 단일 페이지)_ |
 
 ---
 

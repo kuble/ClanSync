@@ -109,7 +109,7 @@ Phase 1 감사([AUDIT-Phase1-2026-04-21.md](./AUDIT-Phase1-2026-04-21.md)) 포�
 | `/games/[g]/clan/[id]/store` | M6b | 🟥 |
 | `/games/[g]` 홈·홍보·LFG·순위 | M7 | 🟥 |
 | `/games/[g]` 스크림 탭 | Phase 2+ | 🟦 |
-| `/games/[g]/board/[postId]` | Phase 2+ | 🟦 |
+| `/games/[g]/board/[postId]` | M7 | 🟩 |
 | `/profile` | M5 | 🟥 |
 
 매 마일스톤 완료 시 해당 행을 🟩으로 갱신.

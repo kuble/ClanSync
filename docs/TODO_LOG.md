@@ -5,6 +5,12 @@
 
 <!-- 새 세션을 위에 추가 (최신이 위) -->
 
+### 2026-05-12 — M7 게시판 단일 글 상세 라우트
+
+- [x] **앱** — `/games/[g]/board/[postId]` · `loadBoardPostDetail` · 홍보 탭·홈 미리보기 제목 링크.
+- [x] **검증** — `build` · `test:e2e`.
+- [x] **문서** — `pages.md`·`08-MainGame.md`·`TODO_Phase2`·`QA_시나리오.md`·`TODO.md`.
+
 ### 2026-05-12 — M5 후속: 프로필 부계동 (`0043`)
 
 - [x] **DB·타입** — `user_alt_accounts`·RLS·`effective_view_alt_account_roles` · `types:gen`.
