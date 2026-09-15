@@ -1,6 +1,7 @@
 # ClanSync 데이터 스키마
 
-> Supabase (PostgreSQL) 기반. RLS 모든 테이블 적용 필수.
+> Supabase (PostgreSQL) 기반 **설계 명세**. 후속 구현 예정 항목도 포함하므로 현재 DB 구조와 동일하다고 가정하지 않는다.
+> 실제 구조: [`supabase/migrations/`](../../supabase/migrations/) · [`database.types.ts`](../../src/lib/supabase/database.types.ts). 원격 반영 여부는 별도 검증한다. RLS 모든 테이블 적용 필수.
 
 ---
 

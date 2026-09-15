@@ -1,18 +1,36 @@
 # Phase 2 — Next.js `src/` · Supabase · RLS
 
 > **허브**: [TODO.md](./TODO.md) · **Phase 1(종료)**: [TODO_Phase1.md](./TODO_Phase1.md) · **세션 로그**: [TODO_LOG.md](./TODO_LOG.md)  
-> **단일 출처**: [pages.md](./01-plan/pages.md) (라우트) · [schema.md](./01-plan/schema.md) (DB) · [FEATURE_INDEX.md](./01-plan/FEATURE_INDEX.md) (슬라이스)  
-> **체감 로드맵(사람용)**: [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md) — 마일스톤 별명·30초 데모 시나리오·라이브 상태 표. **에이전트는 시연/리뷰/릴리즈 시점에만 열면 된다**(실구현 시 필수 아님).
+> **기획 기준**: [pages.md](./01-plan/pages.md) (라우트 요구) · [schema.md](./01-plan/schema.md) (DB 설계) · [FEATURE_INDEX.md](./01-plan/FEATURE_INDEX.md) (슬라이스)
+> **실제 구현**: `src/` · `supabase/migrations/`와 대조한다. 아래 `live`는 구현 표기이며 원격 배포·품질 게이트 통과를 보증하지 않는다. 시연은 [QA_시나리오.md](./QA_시나리오.md) 참조.
 
 | 항목 | 값 |
 |------|-----|
-| **단계** | Phase 2 — 앱 구현 |
-| **마지막 갱신** | 2026-05-12 — M7 게시판 글 상세 `/board/[postId]` 라이브 · LFG **`0042`** · `?tab=` |
+| **단계** | Phase 2 — 기능 구현 후 품질 점검, M8 미완료 |
+| **마지막 갱신** | 2026-09-15 — 코드 리뷰·문서 정합성 정리 |
+
+## 2026-09-15 리뷰와 미완료 검증
+
+[코드 리뷰 보고서](./03-analysis/code-review-2026-09-15.md)에 근거·재현 조건·수정 방향을 기록했다. 이번 작업은 코드·SQL 검토와 문서 정리이며 M8 완료 감사가 아니다.
+
+| 검증 | 결과 |
+|------|------|
+| `npm run build` | 통과 — 컴파일·타입 검사·라우트 생성 |
+| 앱·미들웨어·E2E ESLint | 오류 3건·경고 1건 |
+| 전체 `npm run lint` | 오류 20건·경고 100건 — 로컬 아이콘 원본·정적 목업도 검사 |
+| 공개 화면 Playwright | 시드 비활성화, 랜딩·로그인 스모크 1건 통과 |
+| DB RLS·RPC 권한 | 마이그레이션 정적 검토. 실제 DB 역할별 실행 검증 미실시 |
+| 전체 E2E·동시성·반응형·키보드 | 이번 리뷰에서 실행 검증하지 않음 |
+
+- [ ] R01~R05: 서비스 RPC·사용자 쓰기 범위·게임 인증·RLS 재귀·LFG 권한 수정 및 허용/거부 검증.
+- [ ] R06~R09: 알림 재예약·시간대·클랜/LFG 동시 승인 회귀 검증.
+- [ ] 앱 린트 오류 해소와 CI 검증 범위 정리.
+- [ ] 위 수정 후 기술·UI 게이트를 실제 실행 결과로 확인하고 M8 완료 여부 재평가.
 
 ## 전제 (Q&A 확정)
 
 - **Q1 (로케일)**: `src/app/[locale]/`는 제거. `pages.md` 라우팅 맵을 1:1로 따른다. 다국어 재도입은 Phase 2+에서 `next-intl` 등으로 별건 처리.
-- **Q2 (범위)**: Phase 2 종료선 = **S00~S06, S08 전체 + S07 경량 탭 4개**(홈·클랜 홍보·LFG·클랜 순위). 스크림 채팅(**D-SCRIM-01/02**)·게시판 상세(`/games/[g]/board/[postId]`)·승부예측 정산·서비스워커 푸시·다국어는 **Phase 2+** 이관.
+- **Q2 (범위)**: Phase 2 구현 범위는 아래 마일스톤별 체크리스트 기준. 게시판 단일 글 상세·스크림 매칭 MVP·승부예측 기본 코인 처리는 구현되어 있다. 스크림 채팅·게시판 댓글/반응·파리뮤추엘 배당 고도화·서비스워커 푸시·다국어는 Phase 2+다. 실제 게임 OAuth와 구독 결제도 후속 범위다.
 
 ## 마일스톤 로드맵
 
@@ -23,7 +41,7 @@
 | **M2** 인증 쉘 | **S01** | `/` · `/sign-in` · `/sign-up` · `/games` + D-AUTH-01 매트릭스 + D-AUTH-03/06/07 | M1 | 완료 |
 | **M3** 온보딩 | **S02** | `/games/[g]/auth` (OAuth D-AUTH-02/05) · `/games/[g]/clan` (D-CLAN-01/02/04) + RLS 1차 | M2 | 완료 |
 | **M4** MainClan 쉘 | **S03** | `/games/[g]/clan/[id]` 레이아웃·사이드바(D-SHELL-01/02/03)·`hasPermission()`(D-PERM-01)·플랜 토글 | M3 | 완료 |
-| **M5** 프로필 | **S08** | `/profile` 네임플레이트·뱃지 케이스 (D-PROFILE-01~04) | M2 (병렬 가능) | 진행 중 |
+| **M5** 프로필 | **S08** | `/profile` 네임플레이트·뱃지 케이스 (D-PROFILE-01~04) | M2 (병렬 가능) | 완료(기능 구현) · 품질 검증 별도 |
 | **M6a** 통계 | **S05** | MainClan `/stats` 탭 · HoF (D-STATS-03/04) | M4 | 완료 |
 | **M6b** 이벤트·관리·스토어 | **S06** | `/events`(D-EVENTS-03) · `/manage`(D-CLAN-02 소비자·D-MANAGE-01~04) · `/store`(D-STORE-01/02·D-ECON-03) | M4 | **완료(Phase 2 약정)** — 카카오 `event_notify` 옵트인·대진 초안에 팀 슬롯 라벨; 잔여 코인 호스트결제·실 카카오 파이프·스크림 채팅·대진 진행 UI는 Phase 2+ |
 | **M6c** 밸런스 | **S04** | `/balance` 세션·맵밴 MVP·영웅 밴(OW)·M/A·예측 5분·결과 확정·클랜코인 적중 지급 | M4 | **완료(Phase 2 약정)** — Realtime 동기화·Playwright 스모크; **Phase 2+**: 파리뮤추엘식 배당 고도화·타 게임 히어로 풀·내전 통계 연동 등 |
@@ -56,7 +74,7 @@ flowchart TD
 
 1. 해당 슬라이스의 **수용 기준 체크박스 전부 ✓**([FEATURE_INDEX.md](./01-plan/FEATURE_INDEX.md) 링크 참조).
 2. [pages.md §페이지별 가드 체인 표](./01-plan/pages.md)의 대응 경로가 `middleware.ts`·Server Component 가드에서 **전부 통과**.
-3. RLS 정책이 **leader / officer / member / guest** 4역할에서 최소 1 케이스씩 테스트 통과 (`supabase db test` 혹은 Playwright).
+3. RLS 정책이 **leader / officer / member / guest** 4역할에서 최소 1 케이스씩 테스트 통과 (`supabase test db` 또는 직접 DB 접근의 허용·거부를 검증하는 테스트).
 4. 본 문서의 **체크리스트·라우트 대응표 갱신**.
 5. Nano-commit([.cursor/rules/git-nano-commit.mdc](../.cursor/rules/git-nano-commit.mdc)) 준수 + 세션 로그([TODO_LOG.md](./TODO_LOG.md)) 블록 추가.
 
@@ -68,7 +86,7 @@ flowchart TD
 7. **반응형 3폭** — 375 / 768 / 1280 px에서 레이아웃 깨짐·가로 스크롤 없음.
 8. **로딩·에러·빈 상태** — 각 신규 화면에 세 상태 디자인이 전부 존재(빈 리스트 안내·실패 메시지·스켈레톤 또는 스피너).
 
-> 집중 폴리시 구간(M5 프로필 · M8 종료 감사) 메모 및 각 마일스톤 30초 데모 시나리오는 [PHASE2_EXPERIENCE.md](./PHASE2_EXPERIENCE.md).
+> 시연·직접 재현 절차는 [QA_시나리오.md](./QA_시나리오.md)에만 유지한다.
 
 ## 체크리스트 (마일스톤별 상세)
 
@@ -135,7 +153,7 @@ flowchart TD
 ### M8 — Phase 2 종료 감사
 
 - [ ] `docs/AUDIT-Phase2-YYYY-MM-DD.md` 생성 (Phase 1 감사 포맷 복제)
-- [ ] Phase 2+ 이관 목록 확정 (스크림 채팅·2-phase·**게시판 댓글·반응**·승부예측 정산·서비스워커 푸시·다국어 등)
+- [ ] Phase 2+ 이관 목록 확정 (스크림 채팅·2-phase·게시판 댓글·반응·승부예측 배당 고도화·서비스워커 푸시·다국어 등)
 - [ ] [TODO.md](./TODO.md) 현재 단계 = "Phase 2 완료 · Phase 2+ 진입"
 
 ## 라우트 대응표 ([pages.md](./01-plan/pages.md) 기준)
@@ -162,47 +180,12 @@ flowchart TD
 
 Phase 1 정적 목업(`mockup/`)은 참조용으로 유지; 운영 빌드에서는 제외 정책(**D-SHELL-02**)을 따른다.
 
-## M1 인프라 베이스라인 — 산출물 지도
 
-| 영역 | 파일 | 비고 |
-|------|------|------|
-| Supabase 헬퍼 (브라우저) | `src/lib/supabase/client.ts` | `createBrowserClient` 래퍼 |
-| Supabase 헬퍼 (서버) | `src/lib/supabase/server.ts` | `cookies()` 기반 `createServerClient`, Server Component 쓰기 실패 무시 |
-| Supabase 헬퍼 (미들웨어) | `src/lib/supabase/middleware.ts` | `updateSession()` — 세션 refresh + D-SHELL-02 쿼리 정화 |
-| 루트 미들웨어 | `middleware.ts` | `_next` · 정적 자산 · favicon 제외 matcher |
-| 마이그레이션 | `supabase/migrations/0001_init.sql` | 5 테이블 + enum · RLS · `set_updated_at()` 트리거. 후속 `0002+` 는 슬라이스별 확장 |
-| ENV 템플릿 | `.env.example` | 로컬·Vercel Preview/Production 공통 키 |
-| npm scripts | `package.json` | `db:reset` · `db:push` · `types:gen` · **`db:seed`** |
-| 마이그레이션 | `supabase/migrations/0002_auth_login_and_seed_games.sql` | D-AUTH-06 감사·잠금 · 게임 4종 시드 · `handle_new_user` 트리거 |
-| 마이그레이션 | `supabase/migrations/0003_clan_join_requests.sql` | D-CLAN-02 `clan_join_requests` + RLS |
-| 마이그레이션 | `supabase/migrations/0004_main_clan_shell.sql` | `clans.subscription_tier` · `clan_settings` + RLS · 트리거 |
-| 마이그레이션 | `supabase/migrations/0013_clan_settings_event_notify.sql` | M6b `clan_settings.event_notify` (D-EVENTS-03 MVP) |
-| 마이그레이션 | `supabase/migrations/0027_clan_events_repeat.sql` | M6b `clan_events.repeat` · `repeat_weekdays` · `repeat_time` · 월 단위 펼침용 앵커 |
-| 마이그레이션 | `supabase/migrations/0028_event_rsvps.sql` | M6b `event_rsvps` 스크림 전용 RSVP (`instance_idx` = 회차 시작 ms) |
-| 마이그레이션 | `supabase/migrations/0029_clan_polls_mvp.sql` | M6b `clan_polls` · `poll_options` · `poll_votes` (단일 선택 교체 트리거) |
-| 마이그레이션 | `supabase/migrations/0030_bracket_tournaments_mvp.sql` | M6b `bracket_tournaments` · `bracket_format`/`bracket_status` · Premium 호스트 트리거 · snapshot jsonb |
-| 마이그레이션 | `supabase/migrations/0031_notification_log_poll_mvp.sql` | D-EVENTS-03/04 `notification_log` · 투표 예약 UNIQUE · 마감/종료 취소 트리거 · `maint_cancel_poll_notifications_past_deadline` |
-| 마이그레이션 | `supabase/migrations/0032_notifications_feed_dispatch.sql` | D-NOTIF-01 `notifications` 피드 · `dispatch_inapp_notification_batch`(poll_reminder MVP) |
-| 마이그레이션 | `supabase/migrations/0036_void_clan_store_purchase_rpc.sql` | D-STORE-03 `void_clan_store_purchase`(클랜 풀만·코인 환급·배너 초기화) |
-| 마이그레이션 | `supabase/migrations/0038_void_personal_store_purchase_rpc.sql` | D-STORE-03 `void_personal_store_purchase`(개인 풀·구매자 환급·입장 효과 네임플레이트 정리) |
-| 마이그레이션 | `supabase/migrations/0040_dispatch_inapp_event_reminders.sql` | `dispatch_inapp_notification_batch` — `event_reminder`(단발 일정 회차 알림 MVP) |
-| 마이그레이션 | `supabase/migrations/0041_scrim_rooms_clan_events_sync.sql` | `scrim_rooms`·확정·`clan_events` `scrim_auto` UPSERT·in-app 예약 트리거 |
-| 마이그레이션 | `supabase/migrations/0042_lfg_expire_inapp_notifications.sql` | **M7** LFG 만료 `notification_log`(`lfg_post_id`) · `expire_open_lfg_posts_batch` 재작성 · `dispatch`(LFG) · 클랜 읽음 범위 확장 |
+## 구현 파일 찾기
 
-| 마이그레이션 | `supabase/migrations/0014_store_coin_mvp.sql` | `coin_transactions`·`store_items`·`purchases`·`apply_store_purchase` (D-STORE-01 MVP) |
-| 마이그레이션 | `supabase/migrations/0015_store_profile_entrance_nameplate.sql` | 스토어 frame 카탈로그·`apply_store_purchase` 입장 효과 보유 부여 |
-| 마이그레이션 | `supabase/migrations/0016_balance_sessions_mvp.sql` | M6c `balance_sessions`·`balance_session_map_votes` + RLS (클랜당 미종료 1세션) |
-| 마이그레이션 | `supabase/migrations/0017_balance_sessions_rls_no_recursion.sql` | `clan_members` RLS 재귀 방지: `is_active_clan_member`·`is_clan_officer_plus`(SECURITY DEFINER) |
-| 마이그레이션 | `supabase/migrations/0018_balance_rls_bypass_in_helpers.sql` | 헬퍼에 `SET row_security = off` · `is_member_of_balance_session`(맵 투표 정책 단순화) |
-| 마이그레이션 | `supabase/migrations/0019_balance_session_roster.sql` | `balance_sessions.roster` jsonb · `list_balance_roster_pool`(닉네임 풀·`users` self RLS 우회) |
-| 권한 | `src/lib/clan/permission-defaults.ts` · `has-clan-permission.ts` | D-PERM-01 기본값·잠금 |
-| MainClan | `src/components/main-clan/main-clan-shell.tsx` · `clan/[clanId]/layout.tsx` | D-SHELL-01/03 |
-| 액션 | `src/app/actions/main-clan-shell.ts` | dev 플랜 전환 |
-| 인증 액션 | `src/app/actions/auth.ts` · `src/lib/supabase/auth-action-client.ts` | 로그인·가입·로그아웃, D-AUTH-07 쿠키 maxAge |
-| 온보딩 액션 | `src/app/actions/game-clan-onboarding.ts` | 게임 연동 시뮬 · 클랜 생성 · 가입 신청(D-CLAN-02) |
-| 온보딩 로더 | `src/lib/onboarding/load-game-onboarding.ts` | 미들웨어·페이지 공통 D-AUTH-01 상태 |
-| 게임 OAuth 메타 | `src/lib/game-auth/game-auth-config.ts` | D-AUTH-02 카피·CTA |
-| 라우팅 힐퍼 | `src/lib/routing/game-card-router.ts` | D-AUTH-01 `routeFromGameCard` |
-| M2~M4 UI | `src/app/page.tsx` · `sign-in/` · `sign-up/` · `games/` · `games/[gameSlug]/{auth,clan,page.tsx}` · `clan/[clanId]/**` | 탭 본문은 M6 |
+- 앱·도메인 구조: [프로젝트 README](../README.md).
+- DB 변경 이력: [`supabase/migrations/`](../supabase/migrations/). 설계 설명은 [schema.md](./01-plan/schema.md).
+- 기능 요구·관련 파일: [FEATURE_INDEX.md](./01-plan/FEATURE_INDEX.md)에서 해당 슬라이스 하나를 선택.
+- 과거 산출물 설명: [TODO_LOG.md](./TODO_LOG.md)와 Git 이력.
 
-> 0001_init 가 다루는 테이블은 `users`·`games`·`user_game_profiles`·`clans`·`clan_members` 5개 + 공용 enum·인덱스·updated_at 트리거. 나머지 테이블(`clan_join_requests`·`clan_settings`·`clan_reports`·`user_nameplate_*`·`user_badge_*`·`coin_transactions`·`matches`·`notifications*`·`web_push_subscriptions`·`user_privacy_overrides` 등)은 마일스톤 진행에 맞춰 `0002+` 마이그레이션으로 확장한다.
+마이그레이션별 산출물 표를 별도로 복제하지 않는다.

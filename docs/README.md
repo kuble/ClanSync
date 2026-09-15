@@ -1,60 +1,45 @@
-# ClanSync 문서 맵
+# ClanSync 문서 안내
 
-**목적**: 세션마다 필요한 파일만 `@`로 붙여 **토큰을 최소화**하고, 구현은 **작은 기술 단위(슬라이스)** 로 나눈다.
+현재 작업에는 **TODO → 해당 슬라이스 → 필요한 상세 명세** 순서로 접근합니다. 기획상의 요구와 구현·검증 완료 상태를 구분합니다.
 
----
+## 무엇을 볼 때 어디로 가는가
 
-## 읽는 순서 (처음 1회)
+| 목적 | 기준 문서 |
+|------|-----------|
+| 프로젝트 소개·실행 | [프로젝트 README](../README.md) |
+| 현재 작업·다음 우선순위 | [TODO.md](TODO.md) |
+| Phase 2 구현 현황·완료 검증 | [TODO_Phase2.md](TODO_Phase2.md) |
+| 코드 리뷰·수정 필요 사안 | [2026-09-15 리뷰](03-analysis/code-review-2026-09-15.md) |
+| 제품 범위·구독 티어 | [PRD](01-plan/PRD.md) |
+| 기능별 작업 단위 | [FEATURE_INDEX](01-plan/FEATURE_INDEX.md) → 해당 `slices/` 파일 |
+| 라우트·화면 요구 | [pages.md](01-plan/pages.md) → 해당 `pages/` 파일 |
+| 확정한 정책의 근거 | [decisions.md](01-plan/decisions.md) |
+| 권한·플랜 요구 | [gating-matrix.md](01-plan/gating-matrix.md) |
+| DB 설계 의도 | [schema.md](01-plan/schema.md) — 실제 구조는 [마이그레이션](../supabase/migrations/)·생성 타입과 대조 |
+| 미결·후속 아이디어 | [BACKLOG.md](01-plan/BACKLOG.md) |
+| 수동 시연·재현 | [QA_시나리오.md](QA_시나리오.md) |
+| 테스트 실행·픽스처 | [E2E 안내](../e2e/README.md) · [debug-and-fixtures.md](01-plan/debug-and-fixtures.md) |
+| 배포 연동 복구 | [VERCEL_PRODUCTION_SYNC.md](VERCEL_PRODUCTION_SYNC.md) |
+| 디자인·용어 확인 | [mockup-spec.md](02-design/mockup-spec.md) · [theme-modes.md](02-design/theme-modes.md) · [glossary.md](01-plan/glossary.md) |
 
-| 순서 | 파일 | 내용 |
-|:----:|------|------|
-| 1 | [01-plan/PRD.md](./01-plan/PRD.md) | 제품 한 줄, 티어(Free/Premium), 동결 범위 |
-| 2 | [01-plan/FEATURE_INDEX.md](./01-plan/FEATURE_INDEX.md) | **슬라이스 목록** — 작업 시 여기서 ID만 고른다 |
-| 3 | [TODO.md](./TODO.md) | **허브** — 상태·다음 프롬프트 (짧게 유지) |
-| 3b | [TODO_Phase1.md](./TODO_Phase1.md) | Phase 1 정적 목업 체크·요약표 |
-| 3c | [TODO_Phase2.md](./TODO_Phase2.md) | Phase 2 `src/`·Supabase·라우트 표 |
-| — | [TODO_LOG.md](./TODO_LOG.md) | 세션 히스토리만 (일상 `@` 생략) |
-| 4 | [01-plan/pages.md](./01-plan/pages.md) | 라우트 ↔ 화면 |
-| 5 | [01-plan/schema.md](./01-plan/schema.md) | DB·엔티티 (구현 단계에서 해당 테이블만) |
+## 중복을 늘리지 않는 갱신 규칙
 
-디자인 토큰·목업 파일 구조: [02-design/mockup-spec.md](./02-design/mockup-spec.md)
+1. 한 작업은 슬라이스 하나 또는 한 수정 사안으로 제한합니다.
+2. 구현 상태·검증 결과는 `TODO_Phase2.md`에, 다음 우선순위는 `TODO.md`에 적습니다. 별도 현황표를 복제하지 않습니다.
+3. 동작이 바뀌면 해당 상세 명세와 필요한 QA 절차를 갱신합니다. 코드 리뷰만 한 경우 QA 완료로 표시하지 않습니다.
+4. 요구사항 체크와 실행 검증을 구분합니다. 화면이 존재하거나 빌드가 통과했다는 이유로 RLS·동시성·접근성 검증을 완료 처리하지 않습니다.
+5. 세션 결과는 `TODO_LOG.md`에 짧게 추가합니다. 파일별 변경 이력은 Git을 사용합니다.
+6. 커밋·검증·푸시 조건은 [AGENTS.md](../AGENTS.md)를 따릅니다.
 
----
+## 필요할 때만 보는 과거 기록
 
-## 세션 절차 (권장)
+아래 문서는 과거 결정과 목업 유지보수에 필요하므로 보존합니다. 현재 기능 상태의 기준으로 사용하지 않습니다.
 
-1. **한 세션 = 한 슬라이스(또는 그 하위 체크리스트 한 덩어리)** 만 구현·목업·문서 수정한다.
-2. 작업 시작 시 `@docs/01-plan/FEATURE_INDEX.md` + **해당 슬라이스 파일 하나**만 추가로 연다.
-3. PRD 전체를 다시 읽지 않는다. 요약·동결 내용은 `PRD.md` 상단만.
-4. 미결·후속 아이디어는 [01-plan/BACKLOG.md](./01-plan/BACKLOG.md)에만 적고, 슬라이스 본문에는 **스코프 밖**으로 표시한다.
-5. 목업 수정 시: 슬라이스의「목업」절에 적힌 경로만 연다.
-6. 작업이 끝나면 [TODO_LOG.md](./TODO_LOG.md) 맨 위에 **세션 로그** 블록을 추가하고, [허브](./TODO.md)의 **마지막 갱신** 날짜를 고친 뒤, 해당 **페이즈** 문서([Phase2](./TODO_Phase2.md) 또는 목업 유지보수 시 [Phase1](./TODO_Phase1.md))의 체크·표를 갱신한다.
-7. **Phase 2 (`src/`)** 에서 이번 슬라이스가 끝나면, 에이전트는 커밋 전 **`npm run test:e2e`** 로 Playwright 검증을 돌린다(3000 dev가 있으면 재사용). 시드 계정·옵션: [e2e/README.md](../e2e/README.md) · [debug-and-fixtures.md](./01-plan/debug-and-fixtures.md). UI/시나리오 누적은 [QA_시나리오.md](./QA_시나리오.md) 규칙을 따른다.
-8. 진행도만 동기화하고 다음 프롬프트를 받으려면 Cursor에서 **`/todo`** 커맨드 실행 → [.cursor/commands/todo.md](../.cursor/commands/todo.md) 절차.
+- [TODO_Phase1.md](TODO_Phase1.md): 종료된 정적 목업 체크리스트.
+- [AUDIT-Phase1-2026-04-21.md](AUDIT-Phase1-2026-04-21.md): 당시 감사와 후속 정리 기록.
+- [TODO_LOG.md](TODO_LOG.md): 세션 이력.
+- [정적 목업 플랜](01-plan/non-page/clan-main-static-mockup-plan.md): 목업의 화면·권한 표현 의도.
 
----
+`PHASE2_EXPERIENCE.md`의 중복 상태표·옛 데모는 제거하고 진행도·QA 문서로 연결했습니다. 페이지 명세·정책 결정·법무 검토는 고유한 요구사항을 담으므로 유지합니다.
 
-## 폴더 역할
-
-| 경로 | 역할 |
-|------|------|
-| `docs/01-plan/PRD.md` | 동결된 기획 **요약** (짧게 유지) |
-| `docs/01-plan/FEATURE_INDEX.md` | 슬라이스 인덱스 (진입점) |
-| `docs/01-plan/slices/*.md` | 기능별 **실행 가능한** 명세 (한 파일 = 한 덩어리) |
-| `docs/01-plan/BACKLOG.md` | 미결 사항·에셋 교체·나중 반영 |
-| `docs/01-plan/debug-and-fixtures.md` | 로컬/staging **시드·픽스처·디버그 계층** (양 클랜·복수 계정). 결정: [decisions.md §D-DEV-01](./01-plan/decisions.md#d-dev-01--로컬staging-픽스처--디버그-계층) |
-| `docs/01-plan/*.md` (기타) | 도메인 심층 메모 (밸런스 UI 노트 등) — 슬라이스에서 `@`로 참조 |
-| `docs/TODO.md` | 허브 — 상태·다음 프롬프트 |
-| `docs/TODO_LOG.md` | 세션 로그 (히스토리; 토큰 절약용 분리) |
-| `docs/TODO_Phase1.md` | Phase 1 슬라이스 체크·요약표 |
-| `docs/TODO_Phase2.md` | Phase 2 체크·라우트 표 |
-| `docs/QA_시나리오.md` | **시연·직접 재현 절차** (마일스톤마다 누적). 규칙: `.cursor/rules/qa-demo-handoff.mdc` |
-| `docs/VERCEL_PRODUCTION_SYNC.md` | **푸시만 배포**: Vercel Git 연동 복구 절차 · 줄 어긋남 점검 · 수동 CLI/훅 백업 |
-| `docs/02-design/` | 목업·디자인 시스템 |
-
----
-
-## 용어 (고정)
-
-- 구독: **Free** / **Premium** (제품·문서·UI 카피 통일)
-- CSS 변수명 `pro-*`, 클래스 `badge-pro` 등은 **코드 식별자**로 유지 가능 (표시 문구는 Premium)
+구독 표시 용어는 **Free / Premium**으로 통일합니다. 기존 `pro-*` 코드 식별자는 별도입니다.
