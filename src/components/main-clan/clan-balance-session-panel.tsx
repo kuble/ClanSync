@@ -319,6 +319,7 @@ export function ClanBalanceSessionPanel({
           {isOverwatchBalanceGame(gameSlug) ? (
             <div className="mt-4">
               <ClanBalanceHeroBanClient
+                key={`${session.id}:${heroBanSyncKey}:${myHeroVote?.pick_1}:${myHeroVote?.pick_2}:${myHeroVote?.pick_3}`}
                 gameSlug={gameSlug}
                 clanId={clanId}
                 sessionId={session.id}
@@ -327,7 +328,6 @@ export function ClanBalanceSessionPanel({
                 allVotes={heroVotes}
                 canResolve={canManage}
                 isRosterParticipant={isRosterParticipant}
-                syncKey={heroBanSyncKey}
               />
             </div>
           ) : (

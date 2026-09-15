@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useSyncExternalStore } from "react"
 import { createPortal } from "react-dom"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
@@ -9,12 +9,12 @@ import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon
  * Sonner 기본 구현은 레이아웃 트리 안에 두면 부모의 transform·overflow·stacking 때문에
  * fixed 토스트가 화면 밖으로 밀리거나 가려질 수 있음 → body 포털로 고정.
  */
-const Toaster = ({ ...props }: ToasterProps) => {
-  const [mounted, setMounted] = useState(false)
+const subscribe = () => () => {};
+const clientSnapshot = () => true;
+const serverSnapshot = () => false;
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+const Toaster = ({ ...props }: ToasterProps) => {
+  const mounted = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot)
 
   if (!mounted) return null
 

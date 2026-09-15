@@ -140,9 +140,11 @@ export function ClanEventsView({
   const [activeOccurrence, setActiveOccurrence] =
     useState<ClanEventOccurrenceVm | null>(null);
 
-  const [rsvpAttendees, setRsvpAttendees] = useState<
-    { userId: string; nickname: string }[] | null
-  >(null);
+  const [rsvpResult, setRsvpResult] = useState<{
+    key: string; attendees: { userId: string; nickname: string }[];
+  } | null>(null);
+  const rsvpAttendees = rsvpResult?.key === activeOccurrence?.key
+    ? rsvpResult?.attendees : null;
 
   const goingKeySet = useMemo(
     () => new Set(myRsvpGoingKeys ?? []),
@@ -156,7 +158,6 @@ export function ClanEventsView({
       activeOccurrence.template.kind !== "scrim" ||
       !canManageEvents
     ) {
-      setRsvpAttendees(null);
       return;
     }
     let cancelled = false;
@@ -168,8 +169,7 @@ export function ClanEventsView({
         activeOccurrence.instanceIdx,
       );
       if (cancelled) return;
-      if (r.ok) setRsvpAttendees(r.attendees);
-      else setRsvpAttendees([]);
+      setRsvpResult({ key: activeOccurrence.key, attendees: r.ok ? r.attendees : [] });
     })();
     return () => {
       cancelled = true;
@@ -234,6 +234,7 @@ export function ClanEventsView({
   }
 
   function openDetail(occurrence: ClanEventOccurrenceVm) {
+    setRsvpResult(null);
     setActiveOccurrence(occurrence);
     setSheetOpen(true);
   }

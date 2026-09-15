@@ -45,7 +45,6 @@ export function ClanBalanceHeroBanClient({
   allVotes,
   canResolve,
   isRosterParticipant,
-  syncKey,
 }: {
   gameSlug: string;
   clanId: string;
@@ -59,7 +58,6 @@ export function ClanBalanceHeroBanClient({
   }[];
   canResolve: boolean;
   isRosterParticipant: boolean;
-  syncKey: string;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -67,12 +65,6 @@ export function ClanBalanceHeroBanClient({
   const [p1, setP1] = useState(myVote?.pick_1 ?? "");
   const [p2, setP2] = useState(myVote?.pick_2 ?? "");
   const [p3, setP3] = useState(myVote?.pick_3 ?? "");
-
-  useEffect(() => {
-    setP1(myVote?.pick_1 ?? "");
-    setP2(myVote?.pick_2 ?? "");
-    setP3(myVote?.pick_3 ?? "");
-  }, [syncKey, myVote?.pick_1, myVote?.pick_2, myVote?.pick_3]);
 
   const deadlineMs = useMemo(
     () => (deadlineIso ? new Date(deadlineIso).getTime() : null),

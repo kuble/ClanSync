@@ -277,7 +277,6 @@ export function ClanStatsView({
     () => Array.from({ length: 12 }, (_, i) => String(i + 1)),
     [],
   );
-  const personVals = monthLabels.map((m) => personRow[m] ?? 0);
   const intraVals = monthLabels.map((m) => intraRow[m] ?? 0);
   const partVals = monthLabels.map((m) => partRow[m] ?? 0);
 
