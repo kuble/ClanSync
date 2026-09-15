@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
@@ -41,7 +41,6 @@ export function ClanBalanceMaEditor({
   pool,
   canEdit,
   planPremium,
-  syncKey,
 }: {
   gameSlug: string;
   clanId: string;
@@ -51,16 +50,10 @@ export function ClanBalanceMaEditor({
   pool: PoolRow[];
   canEdit: boolean;
   planPremium: boolean;
-  syncKey: string;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [snap, setSnap] = useState<MaSnapshot>(initialSnapshot);
-
-  useEffect(() => {
-    setSnap(initialSnapshot);
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- initialSnapshot 참조는 렌더마다 바뀜; 서버와 맞출 때는 syncKey만 사용
-  }, [syncKey]);
 
   const nick = Object.fromEntries(
     pool.map((p) => [p.user_id, p.nickname] as const),
@@ -103,8 +96,9 @@ export function ClanBalanceMaEditor({
   return (
     <div className="space-y-3">
       <p className="text-muted-foreground text-xs">
-        M은 수동 점수(운영진, D-PERM-01 <code className="text-[0.7rem]">edit_mscore</code>
-        ). A는 Premium 클랜에서만 편집·표시(09-BalanceMaker).
+        M은 운영진이 기록하는 수동 점수입니다. 점수 범위는 {MA_SCORE_MIN}부터{" "}
+        {MA_SCORE_MAX}까지입니다.
+        {planPremium ? " A 점수도 함께 기록할 수 있습니다." : null}
       </p>
       <div className="overflow-x-auto rounded-lg border">
         <table className="w-full min-w-[28rem] text-sm">
@@ -123,13 +117,14 @@ export function ClanBalanceMaEditor({
               <tr key={s.label} className="border-b last:border-0">
                 <td className="text-muted-foreground px-3 py-2">{s.label}</td>
                 <td className="px-3 py-2 font-medium">
-                  {s.userId ? nick[s.userId] ?? "—" : "—"}
+                  {s.userId ? (nick[s.userId] ?? "—") : "—"}
                 </td>
                 <td className="px-3 py-2">
                   {s.userId ? (
                     canEdit ? (
                       <input
                         type="number"
+                        aria-label={`${s.label} ${nick[s.userId] ?? "멤버"} M 점수`}
                         min={MA_SCORE_MIN}
                         max={MA_SCORE_MAX}
                         step={1}
@@ -157,6 +152,7 @@ export function ClanBalanceMaEditor({
                       canEdit ? (
                         <input
                           type="number"
+                          aria-label={`${s.label} ${nick[s.userId] ?? "멤버"} A 점수`}
                           min={MA_SCORE_MIN}
                           max={MA_SCORE_MAX}
                           step={1}

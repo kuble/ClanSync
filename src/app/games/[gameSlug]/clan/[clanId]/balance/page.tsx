@@ -3,7 +3,7 @@ import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
-import { cn } from "@/lib/utils";
+import { CircleHelp } from "lucide-react";
 
 type RosterPoolRow =
   Database["public"]["Functions"]["list_balance_roster_pool"]["Returns"][number];
@@ -57,7 +57,13 @@ export default async function BalancePage({
         .from("balance_session_map_votes")
         .select("session_id, user_id, choice_idx")
         .eq("session_id", session.id)
-    : { data: [] as { session_id: string; user_id: string; choice_idx: number }[] };
+    : {
+        data: [] as {
+          session_id: string;
+          user_id: string;
+          choice_idx: number;
+        }[],
+      };
 
   let heroVotes: HeroVoteRow[] = [];
   if (session?.phase === "hero_ban") {
@@ -77,9 +83,12 @@ export default async function BalancePage({
     balancePredictions = bp ?? [];
   }
 
-  const { data: rosterPoolRows } = await supabase.rpc("list_balance_roster_pool", {
-    p_clan_id: clanId,
-  });
+  const { data: rosterPoolRows } = await supabase.rpc(
+    "list_balance_roster_pool",
+    {
+      p_clan_id: clanId,
+    },
+  );
   const rosterPool = (rosterPoolRows ?? []).map((r: RosterPoolRow) => ({
     user_id: r.user_id,
     nickname: r.nickname,
@@ -96,23 +105,30 @@ export default async function BalancePage({
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold tracking-tight">밸런스메이커</h2>
-        <p className="text-muted-foreground mt-1 text-sm">
-          팀 편성·맵/영웅 밴·경기 M/A·승부예측(Premium)·결과 확정까지 한 흐름입니다.
-          적중 보상은 MVP 기준 인당 5코인이며, Premium 클랜 풀에서 합산 차감됩니다.
-        </p>
-        {ctx.plan === "free" ? (
-          <p
-            className={cn(
-              "mt-3 rounded-lg border border-dashed border-amber-500/40 bg-amber-500/5 px-3 py-2 text-sm text-amber-100/90",
-            )}
-          >
-            Free 플랜: 일부 옵션은 Premium 전용입니다. (목업의{" "}
-            <code className="text-xs">mock-hide-on-free</code> 패턴)
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold tracking-tight">밸런스메이커</h2>
+          <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
+            함께 만드는 공정한 한 판. 팀 편성부터 밴픽, 경기 결과까지 한곳에서.
           </p>
-        ) : null}
+        </div>
+        <details className="group relative text-xs">
+          <summary className="flex cursor-pointer list-none items-center gap-1.5 rounded-lg border px-3 py-2 text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring">
+            <CircleHelp className="size-4" aria-hidden="true" />
+            이용 안내
+          </summary>
+          <div className="absolute right-0 z-10 mt-2 w-64 rounded-xl border bg-popover p-4 text-popover-foreground shadow-lg">
+            <p className="leading-relaxed">
+              운영진이 참가자를 배치한 뒤 밴픽과 경기를 시작합니다. 한 팀은 탱커
+              1명, 딜러 2명, 힐러 2명으로 구성됩니다.
+            </p>
+            <p className="mt-3 leading-relaxed text-muted-foreground">
+              Premium 클랜의 비출전 멤버는 경기 시작 후 5분 동안 승부예측에
+              참여할 수 있습니다.
+            </p>
+          </div>
+        </details>
       </div>
 
       <ClanBalanceSessionPanel

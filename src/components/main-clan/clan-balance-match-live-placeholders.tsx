@@ -1,12 +1,6 @@
 import Link from "next/link";
+import { Crown, Eye, LockKeyhole } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 export function ClanBalancePredictionPlaceholder({
@@ -22,47 +16,42 @@ export function ClanBalancePredictionPlaceholder({
   isRosterParticipant: boolean;
   className?: string;
 }) {
-  const storeHref = `/games/${gameSlug}/clan/${clanId}/store`;
-
-  if (isRosterParticipant) {
-    return (
-      <Card className={cn(className)}>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">승부예측</CardTitle>
-          <CardDescription>
-            출전 라인업에 포함된 멤버는 승부예측에 참여하지 않습니다.
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
-
-  if (!planPremium) {
-    return (
-      <Card
-        className={cn(
-          "border-amber-500/30 bg-amber-500/[0.06]",
-          className,
+  if (!isRosterParticipant && planPremium) return null;
+  return (
+    <section
+      className={cn(
+        "rounded-xl border bg-muted/15 p-4",
+        !isRosterParticipant && "border-amber-500/25 bg-amber-500/[0.04]",
+        className,
+      )}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <h4 className="flex items-center gap-2 text-sm font-semibold">
+          <Crown className="size-4 text-amber-500" aria-hidden="true" />
+          승부예측
+        </h4>
+        {isRosterParticipant ? (
+          <Eye className="size-4 text-muted-foreground" aria-hidden="true" />
+        ) : (
+          <LockKeyhole className="size-4 text-amber-500" aria-hidden="true" />
         )}
-      >
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">승부예측</CardTitle>
-          <CardDescription>
-            Premium 클랜에서 비출전 멤버가 블루/레드 승을 예측하고, 경기
-            확정 후 개인 코인 보상을 받을 수 있습니다.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Link
-            href={storeHref}
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            스토어에서 플랜 확인
-          </Link>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return null;
+      </div>
+      <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+        {isRosterParticipant
+          ? "이번 경기에 출전 중입니다. 승부예측은 경기를 관전하는 멤버만 참여할 수 있습니다."
+          : "Premium 클랜에서 승리할 팀을 예측하고 코인 보상을 받아보세요. 출전하지 않은 멤버가 참여할 수 있습니다."}
+      </p>
+      {!isRosterParticipant ? (
+        <Link
+          href={`/games/${gameSlug}/clan/${clanId}/store`}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "mt-4 w-full text-xs",
+          )}
+        >
+          스토어에서 플랜 확인
+        </Link>
+      ) : null}
+    </section>
+  );
 }

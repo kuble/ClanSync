@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { Check, Coins, Crown, Timer, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import {
   setBalanceMatchOutcomeAction,
@@ -9,13 +10,15 @@ import {
 } from "@/app/actions/clan-balance-session";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import type { Database } from "@/lib/supabase/database.types";
+import { cn } from "@/lib/utils";
 
 type MatchOutcome = Database["public"]["Enums"]["balance_match_outcome"];
 
@@ -36,24 +39,18 @@ export function ClanBalancePredictionClient({
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
-  const [now, setNow] = useState(() => Date.now());
-
-  const deadlineMs = useMemo(
-    () => (deadlineIso ? new Date(deadlineIso).getTime() : null),
-    [deadlineIso],
-  );
-
+  const [now, setNow] = useState<number | null>(null);
+  const deadlineMs = deadlineIso ? new Date(deadlineIso).getTime() : null;
   useEffect(() => {
-    if (deadlineMs == null) return;
-    const t = setInterval(() => setNow(Date.now()), 250);
-    return () => clearInterval(t);
+    if (deadlineMs === null) return;
+    const timer = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(timer);
   }, [deadlineMs]);
-
   const remainSec =
-    deadlineMs == null
+    deadlineMs === null || now === null
       ? null
       : Math.max(0, Math.ceil((deadlineMs - now) / 1000));
-  const expired = remainSec !== null && remainSec <= 0;
+  const expired = remainSec === 0;
 
   function submit(pick: 1 | 2) {
     start(async () => {
@@ -73,56 +70,84 @@ export function ClanBalancePredictionClient({
   }
 
   return (
-    <Card className="border-primary/20">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">승부예측</CardTitle>
-        <CardDescription>
-          Premium · 비출전 멤버만 참여합니다. 적중 시 개인 코인{" "}
-          <span className="text-foreground font-medium">5</span> (MVP 고정)은{" "}
-          <strong className="text-foreground">클랜 코인 풀</strong>에서 차감됩니다.
-          경기 진행 단계 진입 후{" "}
-          <span className="text-foreground font-medium">5분</span> 이내에만 제출·변경할
-          수 있습니다. 현재 제출 {predictionCount}명.
-          {remainSec != null ? (
-            <>
-              {" "}
-              남은 시간{" "}
-              <span className="font-medium tabular-nums text-foreground">
-                {expired ? "마감" : `${remainSec}s`}
-              </span>
-              .
-            </>
-          ) : (
-            <> 마감 시각이 없는 세션은 기존 정책(제한 없음)으로 동작합니다.</>
-          )}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {expired ? (
-          <p className="text-muted-foreground text-sm">
-            예측 마감 시간이 지났습니다. 변경이 필요하면 운영진에게 문의하세요.
-          </p>
-        ) : null}
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant={myPickTeam === 1 ? "default" : "outline"}
-            disabled={pending || expired}
-            onClick={() => submit(1)}
-          >
-            블루(팀1) 승
-          </Button>
-          <Button
-            type="button"
-            variant={myPickTeam === 2 ? "default" : "outline"}
-            disabled={pending || expired}
-            onClick={() => submit(2)}
-          >
-            레드(팀2) 승
-          </Button>
+    <section
+      className="overflow-hidden rounded-xl border border-primary/20 bg-primary/[0.025]"
+      aria-label="승부예측"
+    >
+      <div className="space-y-3 p-4">
+        <div className="flex items-center justify-between gap-2">
+          <h4 className="flex items-center gap-2 text-sm font-semibold">
+            <Crown className="size-4 text-amber-500" aria-hidden="true" />
+            승부예측
+          </h4>
+          <span className="text-[10px] font-bold text-primary">Premium</span>
         </div>
-      </CardContent>
-    </Card>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          승리할 팀을 선택하세요. 비출전 멤버만 참여할 수 있습니다.
+        </p>
+        {deadlineIso ? (
+          <div className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-xs">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Timer className="size-3.5" aria-hidden="true" />
+              예측 마감
+            </span>
+            <strong className="tabular-nums">
+              {remainSec === null
+                ? "—"
+                : expired
+                  ? "마감됨"
+                  : Math.floor(remainSec / 60) +
+                    ":" +
+                    String(remainSec % 60).padStart(2, "0")}
+            </strong>
+          </div>
+        ) : null}
+        <div className="grid grid-cols-2 gap-2">
+          {([1, 2] as const).map((team) => (
+            <button
+              key={team}
+              type="button"
+              aria-pressed={myPickTeam === team}
+              disabled={pending || expired}
+              onClick={() => submit(team)}
+              className={cn(
+                "flex min-h-20 flex-col items-center justify-center gap-2 rounded-xl border text-xs font-semibold focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-60",
+                team === 1
+                  ? "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300"
+                  : "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300",
+                myPickTeam === team && "ring-2 ring-current",
+              )}
+            >
+              {myPickTeam === team ? (
+                <Check className="size-4" aria-hidden="true" />
+              ) : (
+                <Trophy className="size-4" aria-hidden="true" />
+              )}
+              {team === 1 ? "블루(팀1) 승" : "레드(팀2) 승"}
+            </button>
+          ))}
+        </div>
+        <p
+          role="status"
+          className="text-center text-[11px] text-muted-foreground"
+        >
+          {predictionCount}명 참여
+          {myPickTeam
+            ? " · " + (myPickTeam === 1 ? "블루" : "레드") + " 팀 선택됨"
+            : ""}
+        </p>
+      </div>
+      <div className="border-t border-primary/10 px-4 py-3">
+        <p className="flex items-center gap-1.5 text-xs font-semibold">
+          <Coins className="size-3.5 text-amber-500" aria-hidden="true" />
+          적중 보상 5코인
+        </p>
+        <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+          경기 결과 확정 후 클랜 코인 풀에서 지급됩니다. 마감 전까지 선택을 바꿀
+          수 있습니다.
+        </p>
+      </div>
+    </section>
   );
 }
 
@@ -139,8 +164,19 @@ export function ClanBalanceMatchOutcomeClient({
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
+  const [outcome, setOutcome] = useState<Exclude<
+    MatchOutcome,
+    "pending"
+  > | null>(null);
+  const outcomeLabel =
+    outcome === "team1"
+      ? "블루 팀 승리"
+      : outcome === "team2"
+        ? "레드 팀 승리"
+        : "무효 · 재경기";
 
-  function run(outcome: Exclude<MatchOutcome, "pending">, label: string) {
+  function confirm() {
+    if (!outcome) return;
     start(async () => {
       const r = await setBalanceMatchOutcomeAction(
         gameSlug,
@@ -152,46 +188,85 @@ export function ClanBalanceMatchOutcomeClient({
         toast.error(r.error);
         return;
       }
-      toast.success(label);
+      toast.success(outcomeLabel + "로 확정했습니다.");
+      setOutcome(null);
       router.refresh();
     });
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">경기 결과 확정</CardTitle>
-        <CardDescription>
-          확정 시 예측이 마감됩니다. Premium은 적중 인원×5만큼 클랜 풀을 먼저
-          차감한 뒤 개인에게 지급합니다. 풀이 부족하면 확정되지 않습니다.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={pending || disabled}
-          onClick={() => run("team1", "블루(팀1) 승으로 확정했습니다.")}
-        >
-          블루 승
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          disabled={pending || disabled}
-          onClick={() => run("team2", "레드(팀2) 승으로 확정했습니다.")}
-        >
-          레드 승
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          disabled={pending || disabled}
-          onClick={() => run("void", "무효(재경기)로 처리했습니다.")}
-        >
-          무효 · 재경기
-        </Button>
-      </CardContent>
-    </Card>
+    <>
+      <section className="rounded-xl border bg-muted/15 p-4">
+        <h4 className="flex items-center gap-2 text-sm font-semibold">
+          <Trophy className="size-4 text-muted-foreground" aria-hidden="true" />
+          경기 결과 확정
+        </h4>
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+          승리한 팀을 기록하세요. 확정과 함께 예측이 마감되고 적중 보상이
+          지급됩니다.
+        </p>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="border-sky-500/30 text-sky-700 dark:text-sky-300"
+            disabled={pending || disabled}
+            onClick={() => setOutcome("team1")}
+          >
+            블루 승
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="border-rose-500/30 text-rose-700 dark:text-rose-300"
+            disabled={pending || disabled}
+            onClick={() => setOutcome("team2")}
+          >
+            레드 승
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            className="col-span-2 text-xs text-muted-foreground"
+            disabled={pending || disabled}
+            onClick={() => setOutcome("void")}
+          >
+            무효 · 재경기
+          </Button>
+        </div>
+      </section>
+      <Dialog
+        open={outcome !== null}
+        onOpenChange={(open) => {
+          if (!open && !pending) setOutcome(null);
+        }}
+      >
+        <DialogContent showCloseButton={!pending}>
+          <DialogHeader>
+            <DialogTitle>경기 결과를 확정할까요?</DialogTitle>
+            <DialogDescription>
+              <strong className="text-foreground">{outcomeLabel}</strong>로
+              기록됩니다.{" "}
+              {outcome === "void"
+                ? "이번 경기의 예측 보상은 지급되지 않습니다."
+                : "적중자에게 5코인씩 지급되며, 클랜 코인 풀이 부족하면 확정되지 않습니다."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={pending}
+              onClick={() => setOutcome(null)}
+            >
+              취소
+            </Button>
+            <Button type="button" disabled={pending} onClick={confirm}>
+              {pending ? "확정 중…" : "결과 확정"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
