@@ -41,14 +41,14 @@ export function ClanBannerSettingsForm({
       className="bg-card space-y-4 rounded-xl border p-4 shadow-sm"
     >
       <div>
-        <h3 className="text-sm font-medium">홍보 배너 URL</h3>
+        <h3 className="text-sm font-medium">클랜 배너</h3>
         <p className="text-muted-foreground mt-1 text-xs">
-          스토어에서 &quot;클랜 배너 슬롯&quot;을 구매한 뒤, https 이미지 주소를
-          등록합니다. 비우면 배너를 숨깁니다.
+          배너로 사용할 이미지의 https:// 주소를 입력해 주세요. 주소를 비우면
+          배너가 표시되지 않습니다.
         </p>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="banner-url">이미지 URL (https)</Label>
+        <Label htmlFor="banner-url">배너 이미지 주소</Label>
         <Input
           id="banner-url"
           name="banner_url"

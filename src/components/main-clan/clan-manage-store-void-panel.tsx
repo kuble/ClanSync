@@ -46,14 +46,12 @@ export function ClanManageStoreVoidPanel({
     <div className="space-y-6">
       {clanRows.length > 0 ? (
         <VoidSection
-          title="클랜 풀 구매 정정"
+          title="클랜 코인 사용 내역 정정"
           description={
             <>
-              D-STORE-03: 잘못된 <strong className="font-medium text-foreground">클랜 풀</strong>{" "}
-              구매만 운영진이 무효화할 수 있습니다. 코인은 클랜 풀로 되돌리고, 배너 슬롯이면
-              배너 URL도 해제됩니다.{" "}
-              <strong className="font-medium text-foreground">구매 당사자 본인</strong>은 처리할 수
-              없습니다.
+              운영진은 클랜 코인으로 잘못 구매한 상품을 취소할 수 있습니다.
+              사용한 코인은 클랜에 돌려드리며, 배너 슬롯 구매를 취소하면 등록된
+              배너도 해제됩니다. 본인의 구매는 다른 운영진에게 정정을 요청해 주세요.
             </>
           }
           gameSlug={gameSlug}
@@ -70,15 +68,12 @@ export function ClanManageStoreVoidPanel({
 
       {personalRows.length > 0 ? (
         <VoidSection
-          title="개인 풀 구매 정정"
+          title="개인 코인 사용 내역 정정"
           description={
             <>
-              같은 클랜의 <strong className="font-medium text-foreground">활동 멤버</strong>가
-              개인 코인으로 산 항목 중 잘못된 결제를 운영진이 무효화합니다. 코인은 구매자
-              개인 풀로 돌아가고, 프로필 입장 효과 상품이면 해당 스토어 네임플레이트 부여도
-              처리됩니다.{" "}
-              <strong className="font-medium text-foreground">구매 당사자 본인</strong>은 처리할 수
-              없습니다.
+              운영진은 활동 중인 클랜원이 개인 코인으로 잘못 구매한 상품을
+              취소할 수 있습니다. 코인은 구매자에게 돌려드리며, 해당 구매로 받은
+              꾸미기 효과는 해제됩니다. 본인의 구매는 다른 운영진에게 정정을 요청해 주세요.
             </>
           }
           gameSlug={gameSlug}
@@ -145,7 +140,7 @@ function VoidSection({
 
             {row.isBuyerSelf ? (
               <p className="text-muted-foreground text-xs">
-                본인이 구매한 건은 다른 운영진에게 무효화를 요청해 주세요.
+                본인이 구매한 상품은 다른 운영진에게 정정을 요청해 주세요.
               </p>
             ) : (
               <VoidRowForm
@@ -202,8 +197,8 @@ function VoidRowForm({
 
   const confirmMsg =
     pool === "clan"
-      ? "이 구매를 무효화하고 코인을 클랜 풀로 돌려보냅니다. 계속할까요?"
-      : "이 구매를 무효화하고 코인을 구매자 개인 풀로 돌려보냅니다. 계속할까요?";
+      ? "이 잘못된 구매를 취소하고 코인을 클랜에 돌려드립니다. 계속할까요?"
+      : "이 잘못된 구매를 취소하고 코인을 구매자에게 돌려드립니다. 계속할까요?";
 
   return (
     <form
@@ -229,7 +224,7 @@ function VoidRowForm({
                   reason.trim(),
                 );
           if (r.ok) {
-            onResult("완료: 무효화되었습니다.", true);
+            onResult("완료: 구매를 취소하고 코인을 돌려드렸습니다.", true);
             setReason("");
           } else {
             onResult(r.error, false);
@@ -239,7 +234,7 @@ function VoidRowForm({
     >
       <div className="min-w-0 flex-1 space-y-1">
         <Label htmlFor={`void-reason-${pool}-${purchaseId}`} className="text-xs">
-          사유 (감사 로그)
+          정정 사유
         </Label>
         <Input
           id={`void-reason-${pool}-${purchaseId}`}
@@ -252,7 +247,7 @@ function VoidRowForm({
         />
       </div>
       <Button type="submit" variant="destructive" size="sm" disabled={disabled}>
-        무효화
+        구매 취소
       </Button>
     </form>
   );

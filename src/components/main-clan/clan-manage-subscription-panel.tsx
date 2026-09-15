@@ -36,9 +36,9 @@ export function ClanManageSubscriptionPanel({
         await togglePlan(fd);
         toast.success("플랜을 전환했습니다.");
         router.refresh();
-      } catch (err) {
+      } catch {
         toast.error(
-          err instanceof Error ? err.message : "플랜 전환에 실패했습니다.",
+          "플랜을 전환하지 못했습니다. 잠시 후 다시 시도해 주세요.",
         );
       }
     });
@@ -51,16 +51,16 @@ export function ClanManageSubscriptionPanel({
         현재 플랜: <span className="font-medium">{tierLabel}</span>
       </p>
       <p className="text-muted-foreground text-xs">
-        실결제·청구 연동은 후속 단계입니다. Premium 전용 스토어 항목은 플랜에
-        따라 잠깁니다.
+        유료 구독 결제는 준비 중입니다. Premium 전용 상품과 기능은 Premium
+        클랜에서 이용할 수 있습니다.
       </p>
       {showDevPlanToggle && isLeader ? (
         <form onSubmit={onToggle} className="flex flex-wrap items-center gap-2">
           <Button type="submit" variant="outline" size="sm" disabled={pending}>
-            개발용 Free ↔ Premium 전환
+            테스트 플랜 전환
           </Button>
           <span className="text-muted-foreground text-xs">
-            NODE_ENV=development 또는 DEV_CLAN_PLAN_TOGGLE=1 일 때만 동작합니다.
+            테스트용 Free / Premium 전환입니다. 실제 결제는 발생하지 않습니다.
           </span>
         </form>
       ) : null}

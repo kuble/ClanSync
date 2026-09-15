@@ -711,6 +711,64 @@ export type Database = {
           },
         ]
       }
+      clan_notices: {
+        Row: {
+          clan_id: string
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_pinned: boolean
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          clan_id: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_pinned?: boolean
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          clan_id?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_pinned?: boolean
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_notices_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_notices_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_notices_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_polls: {
         Row: {
           anonymous: boolean
@@ -2270,6 +2328,10 @@ export type Database = {
         }
         Returns: string
       }
+      save_my_badge_picks: {
+        Args: { p_game_id: string; p_ordered_badge_ids: string[] }
+        Returns: undefined
+      }
       select_my_clan_join_requests: {
         Args: never
         Returns: {
@@ -2306,6 +2368,10 @@ export type Database = {
           p_session_id: string
         }
         Returns: Json
+      }
+      update_clan_rules: {
+        Args: { p_clan_id: string; p_rules: string }
+        Returns: undefined
       }
       void_clan_store_purchase: {
         Args: { p_actor_id: string; p_purchase_id: string; p_reason: string }

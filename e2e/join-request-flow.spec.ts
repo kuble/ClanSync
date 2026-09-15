@@ -98,7 +98,7 @@ test.describe("가입 신청 · 리더 거절 토스트", () => {
       ).toBeVisible({ timeout: 25_000 });
 
       const base = await gotoOverwatchLeaderClanBase(leaderPage);
-      await leaderPage.goto(`${base}/manage`);
+      await leaderPage.goto(`${base}/manage?tab=requests`);
 
       await expect(
         leaderPage.getByRole("heading", { name: "클랜 관리" }),

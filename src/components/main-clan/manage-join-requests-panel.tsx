@@ -54,7 +54,7 @@ export function ManageJoinRequestsPanel({
       toast.dismiss(tid);
       console.error(e);
       toast.error(
-        "처리에 실패했습니다. 로컬이면 `.env.local`의 SUPABASE_SERVICE_ROLE_KEY 여부·네트워크를 확인해 주세요.",
+        "가입을 승인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
         { duration: 7000 },
       );
     } finally {
@@ -87,7 +87,7 @@ export function ManageJoinRequestsPanel({
       toast.dismiss(tid);
       console.error(e);
       toast.error(
-        "처리에 실패했습니다. 로컬이면 `.env.local`의 SUPABASE_SERVICE_ROLE_KEY 여부·네트워크를 확인해 주세요.",
+        "신청을 거절하지 못했습니다. 잠시 후 다시 시도해 주세요.",
         { duration: 7000 },
       );
     } finally {
