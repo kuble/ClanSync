@@ -11,16 +11,47 @@ import {
 } from "./hof-config";
 import { inKstMonth, inKstYear, isoToKstYmd, toKstParts } from "./kst";
 
-type MatchRow = {
+import {
+  normalizeClanMatchRecords,
+  type ClanMatchRecord,
+  type StoredClanMatch,
+} from "./normalize-clan-match-records";
+
+type MatchRow = ClanMatchRecord;
+
+/** Keep lifetime totals complete beyond the API's default row limit. */
+async function loadAllStatsRows<T>(
+  loadPage: (
+    from: number,
+    to: number,
+  ) => PromiseLike<{ data: T[] | null; error: unknown }>,
+): Promise<T[]> {
+  const pageSize = 500;
+  const rows: T[] = [];
+  for (let from = 0; ; from += pageSize) {
+    const page = await loadPage(from, from + pageSize - 1);
+    if (page.error) throw new Error("통계 데이터를 불러오지 못했습니다.");
+    rows.push(...(page.data ?? []));
+    if (!page.data || page.data.length < pageSize) return rows;
+  }
+}
+
+export type ClanArchiveMatch = {
   id: string;
-  played_at: string;
-  match_type: Database["public"]["Enums"]["clan_match_type"];
-  status: Database["public"]["Enums"]["clan_match_status"];
-  match_players: { user_id: string; team: number }[] | null;
-  match_results:
-    | { winner_team: number | null }
-    | { winner_team: number | null }[]
-    | null;
+  matchType: string;
+  mapLabel: string | null;
+  playedAt: string;
+  source: ClanMatchRecord["source"];
+  outcome: ClanMatchRecord["outcome"];
+  winnerTeam: number | null;
+  players: {
+    userId: string;
+    nickname: string;
+    team: number;
+    role: string | null;
+    m: number | null;
+    a: number | null;
+  }[];
 };
 
 export type HofRowWinRate = {
@@ -79,10 +110,7 @@ export type ClanStatsPageModel = {
   };
   archive: {
     datesKst: string[];
-    sampleByDate: Record<
-      string,
-      { id: string; matchType: string; mapLabel: string | null }[]
-    >;
+    sampleByDate: Record<string, ClanArchiveMatch[]>;
   };
   permissions: {
     setHofRules: boolean;
@@ -100,11 +128,9 @@ function getWinnerTeam(m: MatchRow): number | null {
   return row.winner_team;
 }
 
-function intraFinishedWithWinner(m: MatchRow): boolean {
+function isCompletedIntra(m: MatchRow): boolean {
   return (
-    m.status === "finished" &&
-    m.match_type === "intra" &&
-    getWinnerTeam(m) != null
+    m.status === "finished" && m.match_type === "intra" && m.outcome !== "void"
   );
 }
 
@@ -113,7 +139,7 @@ function filterMatches(
   period: "all" | "month" | "year",
   now: Date,
 ): MatchRow[] {
-  const base = rows.filter(intraFinishedWithWinner);
+  const base = rows.filter(isCompletedIntra);
   if (period === "all") return base;
   const { year: cy, month: cm } = currentKstYearMonth(now);
   if (period === "month") {
@@ -132,7 +158,7 @@ function buildNickMap(
   return m;
 }
 
-function buildHofPeriod(
+export function buildHofPeriod(
   allRows: MatchRow[],
   period: "all" | "month" | "year",
   cfg: ResolvedHofConfig,
@@ -161,17 +187,21 @@ function buildHofPeriod(
   const matches = filterMatches(allRows, period, now);
   const totalIntra = matches.length;
   const minG =
-    totalIntra > 0 ? minGamesToQualify(totalIntra, cfg) : Number.MAX_SAFE_INTEGER;
+    totalIntra > 0
+      ? minGamesToQualify(totalIntra, cfg)
+      : Number.MAX_SAFE_INTEGER;
 
   const wins = new Map<string, number>();
   const losses = new Map<string, number>();
   const played = new Map<string, number>();
 
   for (const m of matches) {
-    const wt = getWinnerTeam(m)!;
+    const wt = getWinnerTeam(m);
     const players = m.match_players ?? [];
     for (const p of players) {
       played.set(p.user_id, (played.get(p.user_id) ?? 0) + 1);
+      // A draw or a finished game awaiting its result still counts as attendance.
+      if (wt === null) continue;
       if (p.team === wt) {
         wins.set(p.user_id, (wins.get(p.user_id) ?? 0) + 1);
       } else {
@@ -188,12 +218,13 @@ function buildHofPeriod(
     const w = wins.get(uid) ?? 0;
     const l = losses.get(uid) ?? 0;
     const dec = w + l;
+    if (dec === 0) continue;
     winRate.push({
       userId: uid,
       nickname: nick.get(uid) ?? "알 수 없음",
       wins: w,
       losses: l,
-      ratePct: dec > 0 ? Math.round((w / dec) * 1000) / 10 : null,
+      ratePct: Math.round((w / dec) * 1000) / 10,
     });
   }
   winRate.sort((a, b) => {
@@ -202,7 +233,8 @@ function buildHofPeriod(
     if (br !== ar) return br - ar;
     return b.wins - a.wins;
   });
-  const winTop = cfg.winRateVisibleTop === 999 ? winRate.length : cfg.winRateVisibleTop;
+  const winTop =
+    cfg.winRateVisibleTop === 999 ? winRate.length : cfg.winRateVisibleTop;
   const winSlice = winRate.slice(0, winTop);
 
   const participation: HofRowParticipation[] = [];
@@ -235,7 +267,9 @@ function buildHofPeriod(
   }
   cumulative.sort((a, b) => b.played - a.played);
   const cumTop =
-    cfg.cumulativeVisibleTop === 999 ? cumulative.length : cfg.cumulativeVisibleTop;
+    cfg.cumulativeVisibleTop === 999
+      ? cumulative.length
+      : cfg.cumulativeVisibleTop;
   const cumSlice = cumulative.slice(0, cumTop);
 
   return {
@@ -279,24 +313,26 @@ export async function loadClanStatsPage(
   const { data: memRpc } = await supabase.rpc("select_my_clan_membership", {
     p_clan_id: clanId,
   });
-  const role =
-    memRpc?.[0]?.status === "active" ? memRpc[0].role : undefined;
+  const role = memRpc?.[0]?.status === "active" ? memRpc[0].role : undefined;
+  if (!role) return null;
 
   const [
     setHofRules,
     viewMatchRecords,
     exportCsv,
-    { data: rawMatches },
-    { data: activityRows },
+    rawMatches,
+    completedSessions,
+    activityRows,
     { data: nickRows },
   ] = await Promise.all([
     hasClanPermission(supabase, userId, clanId, "set_hof_rules"),
     hasClanPermission(supabase, userId, clanId, "view_match_records"),
     hasClanPermission(supabase, userId, clanId, "export_csv"),
-    supabase
-      .from("matches")
-      .select(
-        `
+    loadAllStatsRows((from, to) =>
+      supabase
+        .from("matches")
+        .select(
+          `
         id,
         played_at,
         match_type,
@@ -305,16 +341,42 @@ export async function loadClanStatsPage(
         match_players ( user_id, team ),
         match_results ( winner_team )
       `,
-      )
-      .eq("clan_id", clanId),
-    supabase
-      .from("clan_daily_member_activity")
-      .select("activity_date")
-      .eq("clan_id", clanId),
+        )
+        .eq("clan_id", clanId)
+        .order("played_at", { ascending: false })
+        .order("id")
+        .range(from, to),
+    ),
+    loadAllStatsRows((from, to) =>
+      supabase
+        .from("balance_sessions")
+        .select(
+          "id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,match_outcome",
+        )
+        .eq("clan_id", clanId)
+        .neq("match_outcome", "pending")
+        .order("opened_at", { ascending: false })
+        .order("id")
+        .range(from, to),
+    ),
+    loadAllStatsRows((from, to) =>
+      supabase
+        .from("clan_daily_member_activity")
+        .select("activity_date")
+        .eq("clan_id", clanId)
+        .order("activity_date", { ascending: false })
+        .order("user_id")
+        .range(from, to),
+    ),
     supabase.rpc("clan_peer_nicknames", { p_clan_id: clanId }),
   ]);
 
-  const matches = (rawMatches ?? []) as unknown as MatchRow[];
+  const records = normalizeClanMatchRecords(
+    rawMatches as StoredClanMatch[],
+    completedSessions,
+  );
+  // A void result remains visible in the archive but does not count as a played match.
+  const matches = records.filter((record) => record.outcome !== "void");
   const cfg = resolveHofConfig(settings?.hof_config);
   const exposeHof = settings?.expose_hof ?? false;
   const nick = buildNickMap(nickRows);
@@ -340,16 +402,20 @@ export async function loadClanStatsPage(
   }
 
   const intraMatchesByYearMonth: Record<string, Record<string, number>> = {};
-  const intraParticipantsByYearMonth: Record<string, Record<string, Set<string>>> =
-    {};
+  const intraParticipantsByYearMonth: Record<
+    string,
+    Record<string, Set<string>>
+  > = {};
   for (const m of matches) {
     if (m.status !== "finished" || m.match_type !== "intra") continue;
     const { y, m: mo } = toKstParts(new Date(m.played_at));
     const ys = String(y);
     const ms = String(mo);
     if (!intraMatchesByYearMonth[ys]) intraMatchesByYearMonth[ys] = {};
-    intraMatchesByYearMonth[ys][ms] = (intraMatchesByYearMonth[ys][ms] ?? 0) + 1;
-    if (!intraParticipantsByYearMonth[ys]) intraParticipantsByYearMonth[ys] = {};
+    intraMatchesByYearMonth[ys][ms] =
+      (intraMatchesByYearMonth[ys][ms] ?? 0) + 1;
+    if (!intraParticipantsByYearMonth[ys])
+      intraParticipantsByYearMonth[ys] = {};
     if (!intraParticipantsByYearMonth[ys][ms]) {
       intraParticipantsByYearMonth[ys][ms] = new Set();
     }
@@ -362,8 +428,7 @@ export async function loadClanStatsPage(
   for (const y of Object.keys(intraParticipantsByYearMonth)) {
     intraParticipantsFlat[y] = {};
     for (const mo of Object.keys(intraParticipantsByYearMonth[y]!)) {
-      intraParticipantsFlat[y][mo] =
-        intraParticipantsByYearMonth[y]![mo]!.size;
+      intraParticipantsFlat[y][mo] = intraParticipantsByYearMonth[y]![mo]!.size;
     }
   }
 
@@ -375,20 +440,27 @@ export async function loadClanStatsPage(
   ).sort((a, b) => Number(b) - Number(a));
 
   const datesKst = new Set<string>();
-  const sampleByDate: Record<
-    string,
-    { id: string; matchType: string; mapLabel: string | null }[]
-  > = {};
-  for (const m of matches) {
-    if (m.status !== "finished") continue;
+  const sampleByDate: Record<string, ClanArchiveMatch[]> = {};
+  for (const m of viewMatchRecords ? records : []) {
     const d = isoToKstYmd(m.played_at);
     datesKst.add(d);
     if (!sampleByDate[d]) sampleByDate[d] = [];
-    const row = m as MatchRow & { map_label?: string | null };
     sampleByDate[d].push({
       id: m.id,
       matchType: m.match_type,
-      mapLabel: row.map_label ?? null,
+      mapLabel: m.map_label,
+      playedAt: m.played_at,
+      source: m.source,
+      outcome: m.outcome,
+      winnerTeam: getWinnerTeam(m),
+      players: m.match_players.map((player) => ({
+        userId: player.user_id,
+        nickname: nick.get(player.user_id) ?? "탈퇴한 멤버",
+        team: player.team,
+        role: player.role,
+        m: player.m,
+        a: player.a,
+      })),
     });
   }
   const archiveDates = Array.from(datesKst).sort().reverse();

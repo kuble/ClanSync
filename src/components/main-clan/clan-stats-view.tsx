@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { toast } from "sonner";
+import { ClanStatsArchive } from "./clan-stats-archive";
 import { saveClanHofConfigFormAction } from "@/app/actions/clan-stats-hof";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,6 +17,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -27,7 +30,16 @@ import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import type { ResolvedHofConfig } from "@/lib/clan/stats/hof-config";
 import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
 import { cn } from "@/lib/utils";
-import { Settings2 } from "lucide-react";
+import {
+  Activity,
+  BarChart3,
+  CalendarDays,
+  Crown,
+  Settings2,
+  Swords,
+  Trophy,
+  Users,
+} from "lucide-react";
 
 const TOP_OPTIONS = [3, 5, 10, 20, 999] as const;
 
@@ -47,12 +59,19 @@ function HofTable({
   empty: boolean;
 }) {
   return (
-    <div className="space-y-2">
-      <h4 className="text-foreground text-sm font-medium">{title}</h4>
+    <div className="space-y-3 rounded-xl border bg-muted/10 p-4">
+      <h4 className="flex items-center gap-2 text-foreground text-sm font-semibold">
+        <Trophy className="size-4 text-amber-500" aria-hidden="true" />
+        {title}
+      </h4>
       {empty ? (
-        <p className="text-muted-foreground text-sm">표시할 데이터가 없습니다.</p>
+        <p className="rounded-lg border border-dashed px-4 py-8 text-center text-xs text-muted-foreground">
+          아직 등재 기준을 충족한 멤버가 없습니다.
+        </p>
       ) : (
-        <div className="overflow-x-auto rounded-lg ring-1 ring-border">{children}</div>
+        <div className="overflow-x-auto rounded-lg ring-1 ring-border">
+          {children}
+        </div>
       )}
     </div>
   );
@@ -73,12 +92,22 @@ function HofSettingsForm({
   isLeader: boolean;
   onDone: () => void;
 }) {
+  const [pending, start] = useTransition();
   return (
     <form
       className="grid gap-4 pt-2"
       action={async (fd) => {
-        await saveClanHofConfigFormAction(gameSlug, clanId, fd);
-        onDone();
+        start(async () => {
+          try {
+            await saveClanHofConfigFormAction(gameSlug, clanId, fd);
+            toast.success("명예의 전당 설정을 저장했습니다.");
+            onDone();
+          } catch {
+            toast.error(
+              "설정을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+            );
+          }
+        });
       }}
     >
       <div className="grid gap-2 sm:grid-cols-2">
@@ -164,7 +193,9 @@ function HofSettingsForm({
       </div>
       <div className="grid gap-2 sm:grid-cols-3">
         <div className="space-y-1">
-          <Label htmlFor="eligibility_game_threshold">등재 기준 — 클랜 총 경기 수 기준점</Label>
+          <Label htmlFor="eligibility_game_threshold">
+            등재 기준 — 클랜 총 경기 수 기준점
+          </Label>
           <Input
             id="eligibility_game_threshold"
             name="eligibility_game_threshold"
@@ -175,7 +206,9 @@ function HofSettingsForm({
           />
         </div>
         <div className="space-y-1">
-          <Label htmlFor="eligibility_below_pct">기준점 이하일 때 최소 참여 비율(%)</Label>
+          <Label htmlFor="eligibility_below_pct">
+            기준점 이하일 때 최소 참여 비율(%)
+          </Label>
           <Input
             id="eligibility_below_pct"
             name="eligibility_below_pct"
@@ -186,7 +219,9 @@ function HofSettingsForm({
           />
         </div>
         <div className="space-y-1">
-          <Label htmlFor="eligibility_above_min_games">기준점 초과 시 최소 출전 수</Label>
+          <Label htmlFor="eligibility_above_min_games">
+            기준점 초과 시 최소 출전 수
+          </Label>
           <Input
             id="eligibility_above_min_games"
             name="eligibility_above_min_games"
@@ -205,18 +240,16 @@ function HofSettingsForm({
             defaultChecked={exposeHof}
             className="size-4 rounded border"
           />
-          <span>
-            HoF를 클랜 프로필에 외부 공개 (D-ECON-03, 기본 비공개)
-          </span>
+          <span>명예의 전당을 클랜 프로필에 공개</span>
         </label>
       ) : null}
       <DialogFooter className="gap-2 sm:justify-end">
-        <DialogClose
-          render={<Button type="button" variant="outline" />}
-        >
+        <DialogClose render={<Button type="button" variant="outline" />}>
           취소
         </DialogClose>
-        <Button type="submit">저장</Button>
+        <Button type="submit" disabled={pending}>
+          {pending ? "저장 중…" : "저장"}
+        </Button>
       </DialogFooter>
     </form>
   );
@@ -225,25 +258,53 @@ function HofSettingsForm({
 function MiniBars({
   values,
   labels,
+  title,
 }: {
-  values: number[];
+  values: (number | null)[];
   labels: string[];
+  title: string;
 }) {
-  const max = Math.max(1, ...values);
+  const max = Math.max(1, ...values.map((value) => value ?? 0));
   return (
-    <div className="flex h-28 items-end gap-1">
-      {values.map((v, i) => (
-        <div key={labels[i]} className="flex flex-1 flex-col items-center gap-1">
+    <div className="overflow-x-auto">
+      <div
+        role="img"
+        aria-label={
+          title +
+          ". " +
+          labels
+            .map(
+              (label, index) =>
+                label +
+                "월 " +
+                (values[index] === null ? "집계 전" : values[index]),
+            )
+            .join(", ")
+        }
+        className="relative flex min-w-[440px] gap-2 pt-4"
+      >
+        {values.map((value, index) => (
           <div
-            className="bg-primary/70 w-full min-w-0 max-w-8 rounded-t"
-            style={{ height: `${Math.max(6, (v / max) * 100)}%` }}
-            title={`${labels[i]}: ${v}`}
-          />
-          <span className="text-muted-foreground w-full truncate text-center text-[10px]">
-            {labels[i]}
-          </span>
-        </div>
-      ))}
+            key={labels[index]}
+            className="flex min-w-0 flex-1 flex-col items-center gap-2"
+          >
+            <span className="h-4 text-[10px] font-semibold tabular-nums text-muted-foreground">
+              {value ?? "—"}
+            </span>
+            <div className="flex h-32 w-full items-end justify-center border-b border-border bg-[linear-gradient(to_top,transparent_49%,var(--border)_50%,transparent_51%)]">
+              <div
+                className="w-full max-w-8 rounded-t bg-primary/65"
+                style={{
+                  height: value === null ? 0 : (value / max) * 100 + "%",
+                }}
+              />
+            </div>
+            <span className="text-[10px] text-muted-foreground">
+              {labels[index]}월
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -277,69 +338,98 @@ export function ClanStatsView({
     () => Array.from({ length: 12 }, (_, i) => String(i + 1)),
     [],
   );
-  const intraVals = monthLabels.map((m) => intraRow[m] ?? 0);
-  const partVals = monthLabels.map((m) => partRow[m] ?? 0);
+  const monthValue = (row: Record<string, number>, m: string) =>
+    Number(rankYear) > cy || (Number(rankYear) === cy && Number(m) > cm)
+      ? null
+      : (row[m] ?? 0);
+  const intraVals = monthLabels.map((m) => monthValue(intraRow, m));
+  const partVals = monthLabels.map((m) => monthValue(partRow, m));
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold tracking-tight">클랜 통계</h2>
-          <p className="text-muted-foreground mt-1 text-sm">
-            요약·명예의 전당·앱 이용(D-STATS-03)·경기 기록 열람 권한에 따른 탭입니다.
+          <h2 className="text-xl font-bold tracking-tight">클랜 통계</h2>
+          <p className="text-muted-foreground mt-2 text-xs">
+            함께 쌓아온 기록. 경기와 멤버의 활동을 한눈에 살펴보세요.
           </p>
         </div>
         {model.hof.exposeHof ? (
-          <Badge variant="secondary">HoF 외부 공개</Badge>
+          <Badge variant="secondary">명예의 전당 공개 중</Badge>
         ) : null}
       </div>
 
       <Tabs defaultValue={defaultMainTab} className="w-full">
         <TabsList
           variant="line"
-          className="mb-4 w-full flex-wrap justify-start gap-1"
+          className="mb-4 w-full flex-wrap justify-start gap-2 border-b sm:gap-5"
         >
-          <TabsTrigger value="summary">요약</TabsTrigger>
-          <TabsTrigger value="hof">명예의 전당</TabsTrigger>
+          <TabsTrigger value="summary">
+            <BarChart3 className="size-3.5" aria-hidden="true" />
+            요약
+          </TabsTrigger>
+          <TabsTrigger value="hof">
+            <Crown className="hidden size-3.5 sm:block" aria-hidden="true" />
+            명예의 전당
+          </TabsTrigger>
           {showArchive ? (
-            <TabsTrigger value="archive">경기 기록</TabsTrigger>
+            <TabsTrigger value="archive">
+              <Swords className="hidden size-3.5 sm:block" aria-hidden="true" />
+              경기 기록
+            </TabsTrigger>
           ) : null}
-          <TabsTrigger value="rankmap">앱 이용</TabsTrigger>
+          <TabsTrigger value="rankmap">
+            <Activity className="hidden size-3.5 sm:block" aria-hidden="true" />
+            앱 이용
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="summary" className="space-y-4">
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Card size="sm">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Card className="relative min-h-44 border border-primary/15 shadow-none">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">전체 경기 수</CardTitle>
+                <CardTitle className="flex items-center justify-between text-xs text-muted-foreground">
+                  전체 경기 수
+                  <Swords className="size-5 text-primary" aria-hidden="true" />
+                </CardTitle>
                 <CardDescription>종료된 경기 합계</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-semibold tabular-nums">
+                <p className="text-4xl font-bold tracking-tight tabular-nums">
                   {model.summary.totalMatches}
                 </p>
                 <p className="text-muted-foreground mt-1 text-xs">
-                  내전 {model.summary.intraCount} · 스크림 {model.summary.scrimCount}
+                  내전 {model.summary.intraCount} · 스크림{" "}
+                  {model.summary.scrimCount}
                   {model.summary.eventCount
                     ? ` · 이벤트 ${model.summary.eventCount}`
                     : ""}
                 </p>
               </CardContent>
             </Card>
-            <Card size="sm">
+            <Card className="min-h-44 shadow-none">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">구성원</CardTitle>
+                <CardTitle className="flex items-center justify-between text-xs text-muted-foreground">
+                  구성원
+                  <Users className="size-5 text-sky-500" aria-hidden="true" />
+                </CardTitle>
                 <CardDescription>현재 클랜 소속 인원</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-semibold tabular-nums">
+                <p className="text-4xl font-bold tracking-tight tabular-nums">
                   {model.summary.memberCount}
                 </p>
               </CardContent>
             </Card>
-            <Card size="sm">
+            <Card className="min-h-44 shadow-none">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">클랜 설립일</CardTitle>
+                <CardTitle className="flex items-center justify-between text-xs text-muted-foreground">
+                  클랜 설립일
+                  <CalendarDays
+                    className="size-5 text-emerald-500"
+                    aria-hidden="true"
+                  />
+                </CardTitle>
                 <CardDescription>클랜 생성일 (KST 표시)</CardDescription>
               </CardHeader>
               <CardContent>
@@ -357,7 +447,7 @@ export function ClanStatsView({
               <div>
                 <CardTitle className="text-base">명예의 전당</CardTitle>
                 <CardDescription>
-                  내전 승률·참여율·누적 출전 (등재 규칙은 설정에 따름)
+                  우리 클랜의 기록을 만들어가는 멤버들
                 </CardDescription>
               </div>
               {model.permissions.setHofRules ? (
@@ -378,6 +468,9 @@ export function ClanStatsView({
                   <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
                     <DialogHeader>
                       <DialogTitle>명예의 전당 설정</DialogTitle>
+                      <DialogDescription>
+                        순위 공개 범위와 등재 기준을 정합니다.
+                      </DialogDescription>
                     </DialogHeader>
                     <HofSettingsForm
                       gameSlug={gameSlug}
@@ -409,14 +502,16 @@ export function ClanStatsView({
                       ) : (
                         <>
                           <HofTable
-                            title="승률 순위 (무승부 제외)"
+                            title="승률 순위"
                             empty={block.winRate.length === 0}
                           >
                             <table className="w-full text-sm">
                               <thead className="bg-muted/50">
                                 <tr>
                                   <th className="px-3 py-2 text-left">#</th>
-                                  <th className="px-3 py-2 text-left">닉네임</th>
+                                  <th className="px-3 py-2 text-left">
+                                    닉네임
+                                  </th>
                                   <th className="px-3 py-2 text-right">승</th>
                                   <th className="px-3 py-2 text-right">패</th>
                                   <th className="px-3 py-2 text-right">승률</th>
@@ -424,8 +519,22 @@ export function ClanStatsView({
                               </thead>
                               <tbody>
                                 {block.winRate.map((r, i) => (
-                                  <tr key={r.userId} className="border-t border-border">
-                                    <td className="px-3 py-2">{i + 1}</td>
+                                  <tr
+                                    key={r.userId}
+                                    className="border-t border-border/70 odd:bg-muted/10"
+                                  >
+                                    <td className="px-3 py-2">
+                                      <span
+                                        className={cn(
+                                          "inline-flex size-6 items-center justify-center rounded-full text-xs font-bold",
+                                          i === 0
+                                            ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                                            : "bg-muted text-muted-foreground",
+                                        )}
+                                      >
+                                        {i + 1}
+                                      </span>
+                                    </td>
                                     <td className="px-3 py-2">{r.nickname}</td>
                                     <td className="px-3 py-2 text-right tabular-nums">
                                       {r.wins}
@@ -434,7 +543,9 @@ export function ClanStatsView({
                                       {r.losses}
                                     </td>
                                     <td className="px-3 py-2 text-right tabular-nums">
-                                      {r.ratePct == null ? "—" : `${r.ratePct}%`}
+                                      {r.ratePct == null
+                                        ? "—"
+                                        : `${r.ratePct}%`}
                                     </td>
                                   </tr>
                                 ))}
@@ -442,22 +553,40 @@ export function ClanStatsView({
                             </table>
                           </HofTable>
                           <HofTable
-                            title="참여율 순위 (해당 기간 내전 대비 출전 비율)"
+                            title="참여율 순위"
                             empty={block.participation.length === 0}
                           >
                             <table className="w-full text-sm">
                               <thead className="bg-muted/50">
                                 <tr>
                                   <th className="px-3 py-2 text-left">#</th>
-                                  <th className="px-3 py-2 text-left">닉네임</th>
+                                  <th className="px-3 py-2 text-left">
+                                    닉네임
+                                  </th>
                                   <th className="px-3 py-2 text-right">출전</th>
-                                  <th className="px-3 py-2 text-right">참여율</th>
+                                  <th className="px-3 py-2 text-right">
+                                    참여율
+                                  </th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {block.participation.map((r, i) => (
-                                  <tr key={r.userId} className="border-t border-border">
-                                    <td className="px-3 py-2">{i + 1}</td>
+                                  <tr
+                                    key={r.userId}
+                                    className="border-t border-border/70 odd:bg-muted/10"
+                                  >
+                                    <td className="px-3 py-2">
+                                      <span
+                                        className={cn(
+                                          "inline-flex size-6 items-center justify-center rounded-full text-xs font-bold",
+                                          i === 0
+                                            ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                                            : "bg-muted text-muted-foreground",
+                                        )}
+                                      >
+                                        {i + 1}
+                                      </span>
+                                    </td>
                                     <td className="px-3 py-2">{r.nickname}</td>
                                     <td className="px-3 py-2 text-right tabular-nums">
                                       {r.played}
@@ -471,21 +600,39 @@ export function ClanStatsView({
                             </table>
                           </HofTable>
                           <HofTable
-                            title="누적 출전 (내전 경기 수)"
+                            title="누적 출전"
                             empty={block.cumulative.length === 0}
                           >
                             <table className="w-full text-sm">
                               <thead className="bg-muted/50">
                                 <tr>
                                   <th className="px-3 py-2 text-left">#</th>
-                                  <th className="px-3 py-2 text-left">닉네임</th>
-                                  <th className="px-3 py-2 text-right">출전 수</th>
+                                  <th className="px-3 py-2 text-left">
+                                    닉네임
+                                  </th>
+                                  <th className="px-3 py-2 text-right">
+                                    출전 수
+                                  </th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {block.cumulative.map((r, i) => (
-                                  <tr key={r.userId} className="border-t border-border">
-                                    <td className="px-3 py-2">{i + 1}</td>
+                                  <tr
+                                    key={r.userId}
+                                    className="border-t border-border/70 odd:bg-muted/10"
+                                  >
+                                    <td className="px-3 py-2">
+                                      <span
+                                        className={cn(
+                                          "inline-flex size-6 items-center justify-center rounded-full text-xs font-bold",
+                                          i === 0
+                                            ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                                            : "bg-muted text-muted-foreground",
+                                        )}
+                                      >
+                                        {i + 1}
+                                      </span>
+                                    </td>
                                     <td className="px-3 py-2">{r.nickname}</td>
                                     <td className="px-3 py-2 text-right tabular-nums">
                                       {r.played}
@@ -506,48 +653,31 @@ export function ClanStatsView({
         </TabsContent>
 
         {showArchive ? (
-          <TabsContent value="archive" className="space-y-4">
-            <Card size="sm">
-              <CardHeader>
-                <CardTitle className="text-base">경기 기록</CardTitle>
-                <CardDescription>
-                  일자별 요약(M6b에서 캘린더·정정 요청 UI 연결 예정)
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {model.archive.datesKst.length === 0 ? (
-                  <p className="text-muted-foreground text-sm">기록된 경기가 없습니다.</p>
-                ) : (
-                  <ul className="max-h-80 space-y-2 overflow-y-auto text-sm">
-                    {model.archive.datesKst.map((d) => (
-                      <li
-                        key={d}
-                        className="rounded-lg border border-border px-3 py-2"
-                      >
-                        <p className="font-medium">{d}</p>
-                        <ul className="text-muted-foreground mt-1 list-inside list-disc">
-                          {(model.archive.sampleByDate[d] ?? []).map((m) => (
-                            <li key={m.id}>
-                              {m.matchType}
-                              {m.mapLabel ? ` · ${m.mapLabel}` : ""}
-                            </li>
-                          ))}
-                        </ul>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </CardContent>
-            </Card>
+          <TabsContent value="archive">
+            <section className="space-y-5 rounded-2xl border bg-card p-4 sm:p-5">
+              <div>
+                <h3 className="text-sm font-semibold">
+                  경기 기록{" "}
+                  <span className="ml-2 rounded-full bg-muted px-2 py-1 text-[9px] text-muted-foreground">
+                    운영진
+                  </span>
+                </h3>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  날짜별로 종료된 경기를 확인하세요.
+                </p>
+              </div>
+              <ClanStatsArchive archive={model.archive} />
+            </section>
           </TabsContent>
         ) : null}
 
         <TabsContent value="rankmap" className="space-y-6">
           <Card size="sm">
             <CardHeader>
-              <CardTitle className="text-base">활동일 (person-day)</CardTitle>
+              <CardTitle className="text-base">월별 클랜 활동</CardTitle>
               <CardDescription>
-                D-STATS-03 — 멤버별 하루 최초 1회만 집계. 미래 월은 —.
+                멤버가 클랜에 처음 방문한 날마다 1회 집계합니다. 같은 날의 추가
+                방문은 중복 계산하지 않습니다.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 overflow-x-auto">
@@ -566,7 +696,10 @@ export function ClanStatsView({
                   ))}
                 </select>
               </div>
-              <table className="w-full min-w-[520px] text-xs">
+              <table
+                aria-label="월별 클랜 활동일"
+                className="w-full min-w-[620px] overflow-hidden rounded-lg text-xs [&_th]:bg-muted/40 [&_th]:py-3 [&_td]:py-4 [&_td]:border-b [&_td]:border-border/60"
+              >
                 <thead>
                   <tr>
                     <th className="p-1 text-left">연도</th>
@@ -584,8 +717,7 @@ export function ClanStatsView({
                     {monthLabels.map((m) => {
                       const yNum = Number(rankYear);
                       const mNum = Number(m);
-                      const future =
-                        yNum > cy || (yNum === cy && mNum > cm);
+                      const future = yNum > cy || (yNum === cy && mNum > cm);
                       const v = personRow[m];
                       return (
                         <td key={m} className="p-1 text-center tabular-nums">
@@ -609,23 +741,29 @@ export function ClanStatsView({
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <p className="mb-2 text-sm font-medium">서로 다른 참여 멤버 수</p>
-                <MiniBars values={partVals} labels={monthLabels} />
+                <p className="mb-2 text-sm font-medium">
+                  서로 다른 참여 멤버 수
+                </p>
+                <MiniBars
+                  values={partVals}
+                  labels={monthLabels}
+                  title={rankYear + "년 월별 내전 참여 멤버 수"}
+                />
               </div>
               <div>
                 <p className="mb-2 text-sm font-medium">내전 경기 횟수</p>
-                <MiniBars values={intraVals} labels={monthLabels} />
+                <MiniBars
+                  values={intraVals}
+                  labels={monthLabels}
+                  title={rankYear + "년 월별 내전 경기 수"}
+                />
               </div>
             </CardContent>
           </Card>
 
           <p className="text-muted-foreground text-xs">
-            CSV 내보내기(D-STATS-04)는 권한 키{" "}
-            <code className="text-foreground">export_csv</code> 보유자 대상으로 Phase
-            2+ 에서 UI 연결합니다.
-            {model.permissions.exportCsv
-              ? " 현재 계정에 해당 권한이 있습니다."
-              : ""}
+            미래 월은 집계 전으로 표시됩니다. 내전 참여 인원은 같은 달의 중복
+            출전을 제외한 멤버 수입니다.
           </p>
         </TabsContent>
       </Tabs>
