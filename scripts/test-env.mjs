@@ -14,6 +14,7 @@ export function assertTestTarget(env) {
   }
 }
 
+/** @returns {Record<string, string | undefined>} */
 export function loadTestEnv({ cwd = process.cwd(), env = process.env } = {}) {
   const result = { ...parseEnvFile(resolve(cwd, ".env.e2e.local")), ...env };
   assertTestTarget(result);

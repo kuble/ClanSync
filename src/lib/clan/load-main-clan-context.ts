@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import type { ClanMemberRole } from "@/lib/clan/permission-defaults";
+import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 
 export type MainClanPlan = "free" | "premium";
 
@@ -11,6 +12,12 @@ export type MainClanContext = {
   gameName: string;
   role: ClanMemberRole;
   plan: MainClanPlan;
+  bannerUrl: string | null;
+  iconUrl: string | null;
+  memberCount: number | null;
+  styleLabel: string | null;
+  tags: string[];
+  canStartBalance: boolean;
   sidebarDots: {
     balance: boolean;
     events: boolean;
@@ -19,7 +26,7 @@ export type MainClanContext = {
 };
 
 /**
- * MainClan 레이아웃용 컨텍스트. D-SHELL-03 알림 점은 M4 에서 manage(pending 가입)만 실데이터.
+ * 활성 클랜 구성원의 레이아웃 정보와 진행 중 내전·가입 대기 알림.
  */
 export async function loadMainClanContext(
   supabase: SupabaseClient<Database>,
@@ -27,10 +34,9 @@ export async function loadMainClanContext(
   gameSlug: string,
   clanId: string,
 ): Promise<MainClanContext | null> {
-  void userId;
   const { data: clan, error } = await supabase
     .from("clans")
-    .select("id, name, subscription_tier, games!inner(slug, name_ko)")
+    .select("id, name, subscription_tier, banner_url, icon_url, style, tags, games!inner(slug, name_ko)")
     .eq("id", clanId)
     .maybeSingle();
 
@@ -58,6 +64,14 @@ export async function loadMainClanContext(
   }
 
   const tier = clan.subscription_tier as MainClanPlan | null;
+  const [members, balance, canStartBalance] = await Promise.all([
+    supabase.from("clan_members").select("id", { count: "exact", head: true })
+      .eq("clan_id", clanId).eq("status", "active"),
+    supabase.from("balance_sessions").select("id", { count: "exact", head: true })
+      .eq("clan_id", clanId).is("closed_at", null),
+    hasClanPermission(supabase, userId, clanId, "manage_clan_events"),
+  ]);
+  const styles = { social: "친목", casual: "즐겜", tryhard: "빡겜", pro: "경쟁" };
 
   return {
     clanId: clan.id,
@@ -66,8 +80,14 @@ export async function loadMainClanContext(
     gameName: game.name_ko,
     role,
     plan: tier === "premium" ? "premium" : "free",
+    bannerUrl: clan.banner_url,
+    iconUrl: clan.icon_url,
+    memberCount: members.error ? null : members.count,
+    styleLabel: clan.style ? styles[clan.style] : null,
+    tags: clan.tags ?? [],
+    canStartBalance,
     sidebarDots: {
-      balance: false,
+      balance: !balance.error && (balance.count ?? 0) > 0,
       events: false,
       manage: manageDot,
     },
