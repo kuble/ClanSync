@@ -59,23 +59,11 @@ export async function saveBadgePicksAction(input: {
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
 
-  const { error: delErr } = await supabase
-    .from("user_badge_picks")
-    .delete()
-    .eq("user_id", user.id)
-    .eq("game_id", input.gameId);
-
-  if (delErr) return { ok: false, error: delErr.message };
-
-  for (let i = 0; i < ids.length; i++) {
-    const { error: insErr } = await supabase.from("user_badge_picks").insert({
-      user_id: user.id,
-      game_id: input.gameId,
-      slot_index: i,
-      badge_id: ids[i],
-    });
-    if (insErr) return { ok: false, error: insErr.message };
-  }
+  const { error } = await supabase.rpc("save_my_badge_picks", {
+    p_game_id: input.gameId,
+    p_ordered_badge_ids: ids,
+  });
+  if (error) return { ok: false, error: error.message };
 
   revalidatePath("/profile");
   return { ok: true };
