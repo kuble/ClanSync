@@ -12,6 +12,20 @@
 
 ---
 
+## 기획 · 디자인 고도화 (UX)
+
+2026-09-16 사용자 요청으로 지속적인 구체화를 시작했다. 아래 항목은 기존 정책의 재검토 제안이며, `DECIDED`로 확정하기 전까지 현재 정책이 유효하다. 문제·후보안·남은 질문은 [고도화 논의 문서](./product-design-evolution.md)에 이어 쓴다.
+
+| 코드 | 상태 | 항목 | 기존 기준 / 논의 위치 |
+|------|------|------|-----------------------|
+| D-UX-01 | OPEN (2026-09-16) | 내전 참가·출전·진행·다음 판 연결 | D-EVENTS-01·D-PERM-01 / [논의](./product-design-evolution.md#ux-01) |
+| D-UX-02 | OPEN (2026-09-16) | 역할별 홈·새 클랜 첫 사용·초대 진입 | D-AUTH-01·D-SHELL-01·D-PERM-01 / [논의](./product-design-evolution.md#ux-02) |
+| D-UX-03 | OPEN (2026-09-16) | 편성 조건·추천 근거·점수 공개·맵 투표 용어 | 밸런스 명세·D-PERM-01·D-PRIV-01 / [논의](./product-design-evolution.md#ux-03) |
+| D-UX-04 | OPEN (2026-09-16) | 배너·카드·편성 도구·메뉴의 시각적 우선순위 | D-SHELL-01·목업 기준 / [논의](./product-design-evolution.md#ux-04) |
+| D-UX-05 | OPEN (2026-09-16) | 모바일 참가 행동·상태·운영 도구 범위 | D-SHELL-01·D-PERM-01 / [논의](./product-design-evolution.md#ux-05) |
+| D-UX-06 | OPEN (2026-09-16) | 참여 기록·지속적인 결과 요약·공개 태그 | D-ECON-03·04, D-PROFILE-04, D-STATS-02, D-PRIV-01 / [논의](./product-design-evolution.md#ux-06) |
+| D-UX-07 | OPEN (2026-09-16) | 랜딩 메시지·체험·Premium 가치와 경계 | D-LANDING-01·D-EVENTS-03·D-NOTIF-02·D-STORE-02 / [논의](./product-design-evolution.md#ux-07) |
+
 ## 인증 · 온보딩 (AUTH)
 
 | 코드 | 상태 | 항목 | 메모 / 영향 문서 |
