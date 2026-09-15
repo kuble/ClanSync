@@ -2,19 +2,15 @@
  * E2E 변수가 Playwright와 동일 규칙으로 로드되는지 점검 (비밀번호는 길이만).
  * 사용: npm run test:e2e:env-check
  */
-import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import { parseEnvFile } from "../scripts/parse-env-file.mjs";
+import { loadTestEnv } from "../scripts/test-env.mjs";
 import {
   FIXTURE_PASSWORD,
   qaFixtureEmail,
   QA_SEED_ACCOUNTS,
 } from "../scripts/fixtures/qa-fixtures.mjs";
 
-const root = resolve(fileURLToPath(new URL(".", import.meta.url)), "..");
-const fromEnv = parseEnvFile(resolve(root, ".env"));
-const fromLocal = parseEnvFile(resolve(root, ".env.local"));
-const merged = { ...fromEnv, ...fromLocal };
+const merged = loadTestEnv();
+console.log("QA Supabase:", merged.NEXT_PUBLIC_SUPABASE_URL);
 
 const email = (merged.E2E_EMAIL ?? "").trim();
 const password = (merged.E2E_PASSWORD ?? "").trim();

@@ -5,9 +5,7 @@
  * 계정·비밀번호·클랜 이름 규칙: scripts/fixtures/qa-fixtures.mjs
  */
 import { createClient } from "@supabase/supabase-js";
-import { readFileSync } from "fs";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
+import { loadTestEnv } from "./test-env.mjs";
 import {
   FIXTURE_PASSWORD,
   QA_SEED_ACCOUNTS,
@@ -15,33 +13,7 @@ import {
   qaFixtureEmail,
 } from "./fixtures/qa-fixtures.mjs";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-function loadEnvLocal() {
-  try {
-    const p = join(__dirname, "..", ".env.local");
-    const raw = readFileSync(p, "utf8");
-    for (const line of raw.split("\n")) {
-      const t = line.trim();
-      if (!t || t.startsWith("#")) continue;
-      const i = t.indexOf("=");
-      if (i === -1) continue;
-      const k = t.slice(0, i).trim();
-      let v = t.slice(i + 1).trim();
-      if (
-        (v.startsWith('"') && v.endsWith('"')) ||
-        (v.startsWith("'") && v.endsWith("'"))
-      ) {
-        v = v.slice(1, -1);
-      }
-      if (!process.env[k]) process.env[k] = v;
-    }
-  } catch {
-    // .env.local 없음 — CI 등에서는 환경변수 직접 주입
-  }
-}
-
-loadEnvLocal();
+Object.assign(process.env, loadTestEnv());
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

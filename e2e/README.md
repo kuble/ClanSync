@@ -1,50 +1,47 @@
 # Playwright E2E
 
+## 테스트 환경
+
+`clansync-test` (`moretvteewfcztxvwztw`, 서울 리전, Free)을 전용 QA DB로 사용합니다. 운영 데이터를 복사하지 않고 마이그레이션과 QA 픽스처로 구성했습니다.
+
+- `e2e/env.example`을 저장소 루트의 `.env.e2e.local`로 복사하고 **테스트 프로젝트**의 키와 DB 비밀번호를 채웁니다. 현재 개발 PC에는 설정되어 있습니다.
+- `CRON_SECRET`은 테스트용 난수를 사용합니다. 운영 키와 공유하지 않습니다.
+- 시드와 Playwright는 `.env.local`을 읽지 않습니다. CI 환경변수는 `.env.e2e.local`보다 우선하며, URL이 허용된 테스트 프로젝트와 다르면 실행 전에 차단합니다.
+- 프로젝트를 교체할 때는 `scripts/test-env.mjs`의 허용 대상을 함께 갱신합니다.
+
 ## 실행
 
-```bash
-# Chromium만 (이미 설치됨: npx playwright install chromium)
+```sh
+npm run db:test:push
+npm run db:seed
 npm run test:e2e
 ```
 
-Playwright는 **로컬**에서 `npm run dev`(기본 **http://127.0.0.1:3000**)를 재사용합니다. (`reuseExistingServer`)  
-**CI**(`CI=true`)에서는 `npm run build` 후 `next start`(기본 포트 **3010**)로 띄워 같은 저장소에 dev가 두 개 생기지 않게 합니다.
+`db:test:push`는 `.supabase-test/`의 별도 CLI 연결을 사용합니다. 기존 `supabase/.temp` 연결은 유지됩니다. 관리 토큰은 프로세스 환경 또는 `.env.local`의 `SUPABASE_ACCESS_TOKEN`을 사용하며, DB 비밀번호는 테스트 환경에서만 읽습니다. 타입 검증은 `npm run db:test:types`로 `.supabase-test/database.types.ts`에 생성합니다.
 
-포트만 바꾸려면: `PLAYWRIGHT_DEV_PORT=3020` (Unix) / `$env:PLAYWRIGHT_DEV_PORT="3020"` (PowerShell).
+Playwright는 전용 포트 **3010**에서 새 앱 서버를 시작합니다. 기존 서버를 재사용하거나 외부 URL로 연결하지 않으므로 테스트 DB와 앱 DB가 달라지는 일을 방지합니다. 포트 변경은 `PLAYWRIGHT_DEV_PORT`를 사용합니다. 공유 픽스처를 변경하는 테스트가 있어 작업자는 1개입니다.
 
-## QA 픽스처 계정 (기본값은 코드에 있음)
-
-이메일·비밀번호 규칙은 **`scripts/fixtures/qa-fixtures.mjs`** 한 곳입니다. Playwright는 `e2e/qa-fixture-credentials.ts`에서 이를 import 하므로, **`.env.local`에 계정을 적지 않아도** 시드만 맞춰 두면 같은 규칙으로 모든 픽스처 계정에 로그인할 수 있습니다.
-
-- **전 계정 로그인 스모크**: `e2e/fixture-login.spec.ts` (`npm run db:seed` 필요)
-- **온보딩 시나리오**: `e2e/onboarding.spec.ts` — 기본은 **QA_Member_01** + 고정 비번
-- **가입 신청 → 리더 거절 토스트**: `e2e/join-request-flow.spec.ts` — **QA_01_Clan** 카드 기준 (`db:seed`·앱 서버에 `SUPABASE_SERVICE_ROLE_KEY` 필요)
-- **UI 회귀 (live 페이지·탭·링크)**: `e2e/ui-regression.spec.ts` — 리더 MainClan 전 탭·헤더·알림 벨·대진표·밸런스 세션 스모크·MainGame 탭·무소속 멤버 온보딩 헤더. 실행 시 **`global-setup` 에서 자동으로 `npm run db:seed`** 한 번 돌린다 (`E2E_SKIP_SEED=1` 로 비활성화). 시드가 QA 픽스처 클랜의 진행 중 `balance_sessions` 는 삭제한다.
-선택 — 다른 프로젝트·임시 계정으로만 온보딩을 돌리고 싶을 때 **둘 다** 설정:
-
-```env
-E2E_EMAIL=...
-E2E_PASSWORD=...
-```
-
-**가입 신청 보내기·토스트까지** 포함한 전체 검증은 **`CI=true npm run test:e2e`**(또는 `npx playwright test e2e/onboarding.spec.ts`에 동일)로 실행하는 것을 권장합니다. `next dev`만 쓰면 React Strict Mode 때문에 패널이 안 열린 것처럼 보이며 E2E가 실패할 수 있습니다. CI 경로는 `next start`(프로덕션)로 뜹니다.
-
-**로그인 실패 알림이 뜨면**: `npm run db:seed` 했는지, `.env.local`의 Supabase(`NEXT_PUBLIC_SUPABASE_URL` 등)와 **같은 프로젝트**인지 확인하세요. `E2E_*` 오버라이드를 쓰는 경우에만 그 계정 존재 여부를 본다.
-
-**브라우저 수동 로그인은 되는데 E2E만 실패**할 때: npm `dotenv`는 `E2E_PASSWORD=ab#cd`처럼 **따옴표 없이 `#`가 있으면 `#` 앞만** 읽습니다. 이제 Playwright는 프로젝트 공통 파서(`scripts/parse-env-file.mjs`)를 쓰므로 `#`가 포함돼도 전체가 유지됩니다. 그래도 의심되면 `npm run test:e2e:env-check`로 **비밀번호 글자 수**가 수동 입력과 같은지 비교하세요.
-
-자세한 시드: [debug-and-fixtures.md](../docs/01-plan/debug-and-fixtures.md)
-
-## 다른 URL
-
-이미 `npm run dev` 등으로 서버를 띄운 주소로만 검증할 때:
+프로덕션 빌드로 검증하려면 PowerShell에서:
 
 ```powershell
-$env:PLAYWRIGHT_SKIP_WEBSERVER="1"
-$env:PLAYWRIGHT_BASE_URL="http://127.0.0.1:3000"
+$env:CI="true"
 npm run test:e2e
+Remove-Item Env:CI
 ```
 
-(`webServer` 자동 기동을 끄므로, 위 URL에 앱이 떠 있어야 합니다.)
+CI 경로는 `npm run build` 후 `next start`를 사용합니다. 로컬 기본 경로는 `next dev`이며 같은 저장소의 dev 인스턴스와 충돌할 경우 CI 경로를 사용합니다.
 
-**CI에서만** 기본적으로 `next start`가 다른 포트(3010)를 씁니다. 로컬에서도 동일하게 맞추려면 `PLAYWRIGHT_DEV_PORT`를 통일하면 됩니다.
+## 픽스처와 시나리오
+
+계정 규칙은 `scripts/fixtures/qa-fixtures.mjs`가 단일 출처입니다. Playwright 시작 시 `global-setup`이 자동으로 시드를 실행하며, QA 클랜의 미종료 밸런스 세션을 삭제합니다. `E2E_SKIP_SEED=1`은 시드만 생략하며 DB 대상 검사는 그대로 적용됩니다.
+
+- `smoke.spec.ts`: 공개 페이지
+- `fixture-login.spec.ts`: QA 계정 로그인
+- `onboarding.spec.ts`: 무소속 멤버 온보딩
+- `join-request-flow.spec.ts`: 가입 신청·리더 거절
+- `ui-regression.spec.ts`: 클랜·게임 탭, 대진표·밸런스 세션
+- `cron.spec.ts`: 인증 없는 요청 401, 테스트 DB에서 인증된 알림 처리 200
+
+온보딩 계정만 바꾸려면 `.env.e2e.local` 또는 CI에 `E2E_EMAIL`과 `E2E_PASSWORD`를 모두 설정합니다. 환경 확인은 `npm run test:e2e:env-check`, 운영 대상 차단 검증은 `node --test scripts/test-env.test.mjs`입니다. 비밀번호 값은 출력하지 않습니다.
+
+시드 상세: [debug-and-fixtures.md](../docs/01-plan/debug-and-fixtures.md)

@@ -90,7 +90,7 @@ DB 마이그레이션(`*.sql`)과 **분리된** 시드 레이어에 둔다. 마�
 | npm script | `package.json` — `db:seed` | `tsx scripts/seed-fixtures.ts` 등 |
 | 문서 | 본 파일 | 계정 목록·비밀번호 정책·실행 순서 |
 
-**실행 순서**: `supabase db reset` 또는 `db push` 후 `npm run db:seed` (로컬). CI에서는 staging 전용 job에서만.
+**실행 순서**: `npm run db:test:push` 후 `npm run db:seed`. `.env.e2e.local`의 전용 `clansync-test` 프로젝트만 허용하며 운영 URL은 실행 전에 차단한다. CI도 동일한 테스트 프로젝트의 키를 주입한다.
 
 ---
 
@@ -108,7 +108,7 @@ DB 마이그레이션(`*.sql`)과 **분리된** 시드 레이어에 둔다. 마�
 
 ## 5. QA · (향후 E2E)
 
-- Playwright: 계정·비번 기본값은 코드에서 `scripts/fixtures/qa-fixtures.mjs`를 읽음(`e2e/qa-fixture-credentials.ts`). `.env.local`의 `E2E_EMAIL`·`E2E_PASSWORD`는 온보딩용 **선택 오버라이드**(둘 다 있을 때만). 자세히는 [`e2e/README.md`](../../e2e/README.md).
+- Playwright: 계정·비번 기본값은 코드에서 `scripts/fixtures/qa-fixtures.mjs`를 읽음(`e2e/qa-fixture-credentials.ts`). `.env.e2e.local`의 `E2E_EMAIL`·`E2E_PASSWORD`는 온보딩용 **선택 오버라이드**(둘 다 있을 때만). 자세히는 [`e2e/README.md`](../../e2e/README.md).
 - GitHub Actions: staging URL + staging anon/service role secret로 `db:seed` 후 테스트 (Production 금지).
 
 ---

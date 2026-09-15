@@ -13,6 +13,8 @@
     "types:gen": "supabase gen types typescript --linked --schema public > src/lib/supabase/database.types.ts",
     "db:sync": "npm run db:push && npm run types:gen",
     "db:seed": "node scripts/seed-fixtures.mjs",
+    "db:test:push": "node scripts/supabase-test.mjs push",
+    "db:test:types": "node scripts/supabase-test.mjs types",
     "debug:supabase": "node scripts/debug-supabase-games.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
