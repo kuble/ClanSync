@@ -35,7 +35,7 @@ test.describe("UI 회귀 — MainClan (QA 리더)", () => {
 
     await page.getByRole("link", { name: "커뮤니티" }).click();
     await page.waitForURL(/\/games\/overwatch\/?$/);
-    await expect(page.getByRole("heading", { name: "오버워치" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "오버워치 커뮤니티" })).toBeVisible();
 
     await page.goto(base);
     await page.getByRole("link", { name: "프로필" }).click();
@@ -87,8 +87,8 @@ test.describe("UI 회귀 — MainClan (QA 리더)", () => {
       .filter({ hasText: title })
       .first();
 
-    await expect(rowLocator.getByText(/^슬롯 이름 ·/)).toBeVisible();
-    await expect(rowLocator.getByText(/^슬롯 이름 ·/)).toContainText("팀 1");
+    await expect(rowLocator.getByText("1라운드 배치 미리보기", { exact: true })).toBeVisible();
+    await expect(rowLocator.getByText("팀 1", { exact: true })).toBeVisible();
 
     await rowLocator.getByText("팀 슬롯 이름 편집").click();
 
@@ -97,7 +97,7 @@ test.describe("UI 회귀 — MainClan (QA 리더)", () => {
     await expect(page.getByText("팀 슬롯 이름을 저장했습니다")).toBeVisible({
       timeout: 15_000,
     });
-    await expect(rowLocator.getByText(/^슬롯 이름 ·/)).toContainText("E2E슬롯A");
+    await expect(rowLocator.getByText("E2E슬롯A", { exact: true })).toBeVisible();
 
     page.once("dialog", (d) => void d.accept());
     await rowLocator.getByRole("button", { name: "삭제" }).click();
@@ -142,11 +142,11 @@ test.describe("UI 회귀 — MainGame 커뮤니티 탭", () => {
   test("홈·홍보·LFG·순위·스크림 패널 문구 확인", async ({ page }) => {
     await loginAsFixtureRole(page, "Leader");
     await page.goto("/games/overwatch");
-    await expect(page.getByRole("heading", { name: "오버워치" })).toBeVisible({
+    await expect(page.getByRole("heading", { name: "오버워치 커뮤니티" })).toBeVisible({
       timeout: 15_000,
     });
 
-    await expect(page.getByText(/클랜 일정·통계·스토어는/)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "클랜 홍보", exact: true })).toBeVisible();
 
     await page.getByRole("tab", { name: "홍보" }).click();
     await expect(page.getByTestId("main-game-tab-promo")).toBeVisible({
@@ -155,10 +155,13 @@ test.describe("UI 회귀 — MainGame 커뮤니티 탭", () => {
     await expect(page.getByTestId("main-game-tab-promo").locator("select")).toBeVisible();
 
     await page.getByRole("tab", { name: "LFG" }).click();
-    await expect(page.getByText("LFG 모집 등록")).toBeVisible();
+    await page.getByRole("button", { name: "LFG 모집 등록", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "LFG 모집 등록" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).not.toBeVisible();
 
     await page.getByRole("tab", { name: "순위" }).click();
-    await expect(page.getByText(/활동 기준 미리보기/)).toBeVisible();
+    await expect(page.getByText("최근 활동한 클랜 순으로 표시합니다.")).toBeVisible();
 
     await page.getByRole("tab", { name: "스크림" }).click();
     const scrimTab = page.getByTestId("main-game-tab-scrim");
@@ -168,7 +171,7 @@ test.describe("UI 회귀 — MainGame 커뮤니티 탭", () => {
     ).toBeVisible();
 
     await page.getByRole("tab", { name: "홈" }).click();
-    await expect(page.getByText(/클랜 일정·통계·스토어는/)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "클랜 홍보", exact: true })).toBeVisible();
   });
 });
 

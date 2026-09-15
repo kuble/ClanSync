@@ -13,9 +13,13 @@ const WD_LABEL = ["월", "화", "수", "목", "금", "토", "일"];
 export function CreateClanEventForm({
   gameSlug,
   clanId,
+  defaultDate,
+  onCreated,
 }: {
   gameSlug: string;
   clanId: string;
+  defaultDate?: string;
+  onCreated?: () => void;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -44,16 +48,13 @@ export function CreateClanEventForm({
       toast.success("일정을 추가했습니다.");
       form.reset();
       setRepeatMode("none");
+      onCreated?.();
       router.refresh();
     });
   }
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="bg-card space-y-4 rounded-xl border p-4 shadow-sm"
-    >
-      <h3 className="text-sm font-medium">일정 추가</h3>
+    <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="evt-title">제목</Label>
         <Input id="evt-title" name="title" required maxLength={120} />
@@ -70,7 +71,7 @@ export function CreateClanEventForm({
           <option value="event">이벤트</option>
         </select>
         <p className="text-muted-foreground text-xs">
-          스크림 일정은 매칭 확정 시 자동 등록됩니다 (D-EVENTS-01).
+          스크림 일정은 매칭 확정 시 자동 등록됩니다.
         </p>
       </div>
       <div className="space-y-2">
@@ -89,7 +90,7 @@ export function CreateClanEventForm({
         </select>
         <p className="text-muted-foreground text-xs">
           매주·매월 반복 시 시각은 아래 &quot;시작&quot; 필드 시각과 동일하게
-          적용됩니다 (D-EVENTS-02).
+          적용됩니다.
         </p>
       </div>
       {repeatMode === "weekly" ? (
@@ -120,6 +121,7 @@ export function CreateClanEventForm({
           id="evt-start"
           name="start_at_local"
           type="datetime-local"
+          defaultValue={defaultDate ? `${defaultDate}T20:00` : undefined}
           required
         />
       </div>

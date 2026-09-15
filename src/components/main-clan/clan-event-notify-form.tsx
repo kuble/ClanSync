@@ -42,19 +42,13 @@ export function ClanEventNotifyForm({
   }
 
   return (
-    <div
-      className="bg-card space-y-4 rounded-xl border p-4 shadow-sm"
-      data-testid="clan-event-notify-settings"
-    >
+    <div className="space-y-4" data-testid="clan-event-notify-settings">
       <div>
         <h3 className="text-sm font-medium">외부 채널 알림 설정</h3>
         <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
-          D-EVENTS-03 기준 프리미엄 클랜은 Discord 웹훅으로 일정·투표 알림 일부가
-          전송될 수 있습니다. 카카오 알림톡은 기본 꺼짐 상태이며, 아래에서는
-          <strong className="text-foreground font-medium">
-            향후 수신 의사만
-          </strong>
-          저장합니다(번호 인증·실 발송 연동 Phase 2+).
+          Premium 클랜은 Discord 채널에서 일정·투표 알림을 받을 수 있습니다.
+          카카오 알림톡은 아직 제공되지 않으며, 아래에서는 향후 수신 의사만
+          저장합니다.
         </p>
       </div>
       {!canEdit ? (
@@ -81,17 +75,17 @@ export function ClanEventNotifyForm({
             </Label>
           </div>
           <div className="space-y-2">
-          <Label htmlFor="discord-webhook">웹훅 URL</Label>
-          <Input
-            id="discord-webhook"
-            name="discord_webhook_url"
-            type="url"
-            autoComplete="off"
-            placeholder="https://discord.com/api/webhooks/…"
-            defaultValue={discordWebhookUrl}
-            disabled={!canEdit}
-            className="font-mono text-xs"
-          />
+            <Label htmlFor="discord-webhook">웹훅 URL</Label>
+            <Input
+              id="discord-webhook"
+              name="discord_webhook_url"
+              type="url"
+              autoComplete="off"
+              placeholder="https://discord.com/api/webhooks/…"
+              defaultValue={discordWebhookUrl}
+              disabled={!canEdit}
+              className="font-mono text-xs"
+            />
           </div>
         </fieldset>
 
@@ -109,12 +103,15 @@ export function ClanEventNotifyForm({
               className="border-input mt-1 size-4 shrink-0 rounded"
             />
             <div>
-              <Label htmlFor="kakao-notifications-opt-in" className="font-normal">
+              <Label
+                htmlFor="kakao-notifications-opt-in"
+                className="font-normal"
+              >
                 이후 카카오 알림톡 연동 시 동의 접수
               </Label>
               <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
-                지금 선택해도 메시지는 발송되지 않으며, 채널 구축이 완료되면
-                quiet hours 및 백오프 정책(D-EVENTS-03)에 맞춰 활성화됩니다.
+                지금 선택해도 카카오 메시지는 발송되지 않습니다. 연동이 준비되면
+                별도로 안내합니다.
               </p>
             </div>
           </div>

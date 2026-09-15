@@ -3,7 +3,17 @@
 import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import {
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  GitBranch,
+  Plus,
+  Repeat2,
+  Vote,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   cancelClanEventAction,
@@ -18,6 +28,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -130,8 +141,14 @@ export function ClanEventsView({
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
+  const [createOpen, setCreateOpen] = useState(false);
+  const calendarRef = useRef<HTMLDivElement>(null);
+  const focusDateRef = useRef<string | null>(null);
   const now = new Date();
-  const [cursor, setCursor] = useState({ y: now.getFullYear(), m: now.getMonth() });
+  const [cursor, setCursor] = useState({
+    y: now.getFullYear(),
+    m: now.getMonth(),
+  });
   const [selectedKey, setSelectedKey] = useState(() =>
     dateKeyLocalFromDate(new Date()),
   );
@@ -141,10 +158,11 @@ export function ClanEventsView({
     useState<ClanEventOccurrenceVm | null>(null);
 
   const [rsvpResult, setRsvpResult] = useState<{
-    key: string; attendees: { userId: string; nickname: string }[];
+    key: string;
+    attendees: { userId: string; nickname: string }[];
   } | null>(null);
-  const rsvpAttendees = rsvpResult?.key === activeOccurrence?.key
-    ? rsvpResult?.attendees : null;
+  const rsvpAttendees =
+    rsvpResult?.key === activeOccurrence?.key ? rsvpResult?.attendees : null;
 
   const goingKeySet = useMemo(
     () => new Set(myRsvpGoingKeys ?? []),
@@ -169,7 +187,10 @@ export function ClanEventsView({
         activeOccurrence.instanceIdx,
       );
       if (cancelled) return;
-      setRsvpResult({ key: activeOccurrence.key, attendees: r.ok ? r.attendees : [] });
+      setRsvpResult({
+        key: activeOccurrence.key,
+        attendees: r.ok ? r.attendees : [],
+      });
     })();
     return () => {
       cancelled = true;
@@ -177,9 +198,8 @@ export function ClanEventsView({
   }, [sheetOpen, activeOccurrence, canManageEvents, gameSlug, clanId]);
 
   const [editOpen, setEditOpen] = useState(false);
-  const [editRepeat, setEditRepeat] = useState<SerializedClanEvent["repeat"]>(
-    "none",
-  );
+  const [editRepeat, setEditRepeat] =
+    useState<SerializedClanEvent["repeat"]>("none");
 
   const occurrences = useMemo(
     () => expandClanEventsForMonth(events, cursor.y, cursor.m),
@@ -231,6 +251,23 @@ export function ClanEventsView({
     if (sel.getFullYear() !== ny || sel.getMonth() !== nm) {
       setSelectedKey(dateKeyLocalFromDate(new Date(ny, nm, 1)));
     }
+  }
+
+  useEffect(() => {
+    if (!focusDateRef.current) return;
+    calendarRef.current
+      ?.querySelector<HTMLButtonElement>(
+        `[data-date="${focusDateRef.current}"]`,
+      )
+      ?.focus();
+    focusDateRef.current = null;
+  }, [cursor, selectedKey]);
+
+  function selectCalendarDate(date: Date, focus = false) {
+    const key = dateKeyLocalFromDate(date);
+    if (focus) focusDateRef.current = key;
+    setCursor({ y: date.getFullYear(), m: date.getMonth() });
+    setSelectedKey(key);
   }
 
   function openDetail(occurrence: ClanEventOccurrenceVm) {
@@ -301,7 +338,7 @@ export function ClanEventsView({
     if (!activeOccurrence) return;
     if (
       !confirm(
-        "이 일정 템플릿 전체를 취소할까요? 반복 일정의 모든 표시가 사라집니다.",
+        "이 일정을 취소할까요? 반복 일정은 이후 모든 회차가 함께 취소됩니다.",
       )
     ) {
       return;
@@ -324,159 +361,344 @@ export function ClanEventsView({
   }
 
   return (
-    <Tabs defaultValue={initialTab} className="gap-6">
-      <TabsList variant="line" className="w-full min-w-0 flex-wrap justify-start">
-        <TabsTrigger value="calendar">캘린더</TabsTrigger>
-        <TabsTrigger value="bracket">
+    <Tabs defaultValue={initialTab} className="gap-5">
+      <TabsList
+        variant="line"
+        className="w-full min-w-0 justify-start gap-2 border-b sm:gap-5"
+        aria-label="클랜 이벤트 하위 탭"
+      >
+        <TabsTrigger value="calendar" className="gap-1.5">
+          <CalendarDays className="size-4" aria-hidden="true" />
+          캘린더
+        </TabsTrigger>
+        <TabsTrigger value="bracket" className="gap-1.5">
+          <GitBranch className="hidden size-4 sm:block" aria-hidden="true" />
           대진표 생성기{" "}
-          <span className="text-muted-foreground text-xs font-normal">
+          <span className="rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-700 dark:text-amber-300">
             Premium
           </span>
         </TabsTrigger>
-        <TabsTrigger value="polls">투표</TabsTrigger>
+        <TabsTrigger value="polls" className="gap-1.5">
+          <Vote className="size-4" aria-hidden="true" />
+          투표
+        </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="calendar" className="space-y-8">
-        <p className="text-muted-foreground text-sm">
-          날짜를 선택하면 해당 날짜의 일정만 아래에 표시됩니다. 점 색: 보라=내전
-          · 초록=스크림 · 주황=이벤트. 반복 일정은 D-EVENTS-02 규칙으로 펼칩니다.
-        </p>
-
-        {canManageEvents ? (
-          <CreateClanEventForm gameSlug={gameSlug} clanId={clanId} />
-        ) : null}
-
+      <TabsContent value="calendar" className="space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="icon-sm"
               onClick={() => shiftMonth(-1)}
               aria-label="이전 달"
             >
-              ‹
+              <ChevronLeft className="size-4" aria-hidden="true" />
             </Button>
-            <span className="min-w-[10rem] text-center text-sm font-medium">
+            <h3 className="min-w-28 text-center text-base font-semibold">
               {monthLabel}
-            </span>
+            </h3>
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="icon-sm"
               onClick={() => shiftMonth(1)}
               aria-label="다음 달"
             >
-              ›
+              <ChevronRight className="size-4" aria-hidden="true" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => selectCalendarDate(new Date())}
+            >
+              오늘
             </Button>
           </div>
+          {canManageEvents ? (
+            <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
+              <Plus className="size-4" aria-hidden="true" />
+              일정 등록
+            </Button>
+          ) : null}
         </div>
 
         <div
-          className="border-border overflow-x-auto rounded-xl border"
+          ref={calendarRef}
           role="grid"
           aria-label="월간 캘린더"
+          className="overflow-hidden rounded-2xl border bg-card shadow-sm"
         >
-          <div className="grid grid-cols-7 gap-px bg-border p-px">
-            {["월", "화", "수", "목", "금", "토", "일"].map((w) => (
-              <div
-                key={w}
-                className="bg-muted/50 text-muted-foreground px-1 py-2 text-center text-xs font-medium"
-              >
-                {w}
-              </div>
-            ))}
-            {cells.map(({ date, inMonth }) => {
-              const key = dateKeyLocalFromDate(date);
-              const selected = key === selectedKey;
-              const kinds = kindsOnDay(key, occurrences);
-              return (
-                <button
-                  key={`${key}-${inMonth}-${date.getTime()}`}
-                  type="button"
-                  role="gridcell"
-                  data-date={key}
-                  onClick={() => setSelectedKey(key)}
+          <div role="row" className="grid grid-cols-7 border-b bg-muted/30">
+            {["월", "화", "수", "목", "금", "토", "일"].map(
+              (weekday, index) => (
+                <div
+                  key={weekday}
+                  role="columnheader"
                   className={cn(
-                    "bg-background focus-visible:ring-ring min-h-[4.25rem] px-1 py-2 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none",
-                    !inMonth && "text-muted-foreground/60",
-                    selected &&
-                      "ring-violet-500 ring-offset-background ring-2 ring-offset-2",
+                    "py-3 text-center text-[11px] font-semibold text-muted-foreground",
+                    index === 5 && "text-sky-600 dark:text-sky-400",
+                    index === 6 && "text-rose-600 dark:text-rose-400",
                   )}
                 >
-                  <span className="tabular-nums">{date.getDate()}</span>
-                  <div className="mt-1 flex min-h-[6px] flex-wrap gap-0.5">
-                    {kinds.map((k) => (
-                      <span
-                        key={k}
-                        className={cn("size-1.5 rounded-full", kindDotClass(k))}
-                        title={kindLabel(k)}
-                      />
-                    ))}
-                  </div>
-                </button>
-              );
-            })}
+                  {weekday}
+                </div>
+              ),
+            )}
           </div>
+          {Array.from({ length: cells.length / 7 }, (_, week) => (
+            <div
+              key={week}
+              role="row"
+              className="grid grid-cols-7 border-b last:border-b-0"
+            >
+              {cells.slice(week * 7, week * 7 + 7).map(({ date, inMonth }) => {
+                const key = dateKeyLocalFromDate(date);
+                const selected = key === selectedKey;
+                const today = key === dateKeyLocalFromDate(now);
+                const dayOccurrences = occurrences.filter(
+                  (o) => dateKeyLocalFromDate(o.displayAt) === key,
+                );
+                const kinds = kindsOnDay(key, occurrences);
+                return (
+                  <div
+                    key={key}
+                    role="gridcell"
+                    aria-selected={selected}
+                    className="min-w-0 border-r last:border-r-0"
+                  >
+                    <button
+                      type="button"
+                      data-date={key}
+                      aria-current={today ? "date" : undefined}
+                      aria-label={
+                        date.toLocaleDateString("ko-KR", {
+                          month: "long",
+                          day: "numeric",
+                          weekday: "long",
+                        }) +
+                        " · 일정 " +
+                        dayOccurrences.length +
+                        "건"
+                      }
+                      tabIndex={selected ? 0 : -1}
+                      onClick={() => selectCalendarDate(date)}
+                      onKeyDown={(event) => {
+                        const offsets: Record<string, number> = {
+                          ArrowLeft: -1,
+                          ArrowRight: 1,
+                          ArrowUp: -7,
+                          ArrowDown: 7,
+                        };
+                        if (event.key in offsets) {
+                          event.preventDefault();
+                          const target = new Date(date);
+                          target.setDate(target.getDate() + offsets[event.key]);
+                          selectCalendarDate(target, true);
+                        } else if (
+                          event.key === "Home" ||
+                          event.key === "End"
+                        ) {
+                          event.preventDefault();
+                          const target = new Date(date);
+                          const position = (date.getDay() + 6) % 7;
+                          target.setDate(
+                            date.getDate() +
+                              (event.key === "Home" ? -position : 6 - position),
+                          );
+                          selectCalendarDate(target, true);
+                        }
+                      }}
+                      className={cn(
+                        "flex min-h-20 w-full flex-col items-center gap-2 px-1 py-3 text-sm transition-colors hover:bg-muted/40 focus-visible:relative focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring sm:min-h-28 sm:items-start sm:px-3",
+                        !inMonth && "bg-muted/20 text-muted-foreground/50",
+                        selected &&
+                          "bg-primary/[0.07] ring-1 ring-inset ring-primary/50",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "flex size-6 items-center justify-center rounded-full text-xs font-medium tabular-nums",
+                          today &&
+                            "bg-primary font-bold text-primary-foreground",
+                          !today &&
+                            date.getDay() === 0 &&
+                            "text-rose-600 dark:text-rose-400",
+                        )}
+                      >
+                        {date.getDate()}
+                      </span>
+                      <span className="flex gap-1 sm:hidden">
+                        {kinds.map((kind) => (
+                          <span
+                            key={kind}
+                            className={cn(
+                              "size-1.5 rounded-full",
+                              kindDotClass(kind),
+                            )}
+                          />
+                        ))}
+                      </span>
+                      <span className="hidden w-full space-y-1 text-left sm:block">
+                        {dayOccurrences.slice(0, 2).map((o) => (
+                          <span
+                            key={o.key}
+                            className="flex min-w-0 items-center gap-1.5 rounded bg-muted/40 px-1 py-0.5 text-[10px]"
+                          >
+                            <span
+                              className={cn(
+                                "size-1 shrink-0 rounded-full",
+                                kindDotClass(o.template.kind),
+                              )}
+                            />
+                            <span className="truncate">{o.template.title}</span>
+                          </span>
+                        ))}
+                        {dayOccurrences.length > 2 ? (
+                          <span className="block pl-1 text-[9px] text-muted-foreground">
+                            +{dayOccurrences.length - 2}개 일정
+                          </span>
+                        ) : null}
+                      </span>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-end gap-4 text-[10px] text-muted-foreground">
+          {["intra", "scrim", "event"].map((kind) => (
+            <span key={kind} className="flex items-center gap-1.5">
+              <span
+                className={cn("size-1.5 rounded-full", kindDotClass(kind))}
+              />
+              {kindLabel(kind)}
+            </span>
+          ))}
         </div>
 
-        <section className="space-y-3" aria-live="polite">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h3 className="text-sm font-medium">{selectedDateTitle} 일정</h3>
-            <span className="text-muted-foreground text-xs tabular-nums">
+        <section
+          className="overflow-hidden rounded-xl border bg-card"
+          aria-live="polite"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b px-5 py-4">
+            <h3 className="flex items-center gap-2 text-sm font-semibold">
+              <CalendarDays
+                className="size-4 text-primary"
+                aria-hidden="true"
+              />
+              {selectedDateTitle} 일정
+            </h3>
+            <span className="rounded-full bg-muted px-2 py-1 text-[10px] font-semibold tabular-nums">
               {slotOccurrences.length}건
             </span>
           </div>
           {!slotOccurrences.length ? (
-            <p className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
-              이 날짜에는 등록된 일정이 없습니다.
-              {canManageEvents
-                ? " 운영진은 위에서 일정을 추가할 수 있습니다."
-                : ""}
-            </p>
+            <div className="flex flex-col items-center gap-3 px-5 py-10 text-center">
+              <CalendarDays
+                className="size-7 text-muted-foreground/40"
+                aria-hidden="true"
+              />
+              <p className="text-sm text-muted-foreground">
+                이 날짜에는 등록된 일정이 없습니다.
+              </p>
+              {canManageEvents ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-primary"
+                  onClick={() => setCreateOpen(true)}
+                >
+                  이 날짜에 일정 추가
+                </Button>
+              ) : null}
+            </div>
           ) : (
-            <ul className="space-y-2" role="list">
+            <ul className="divide-y" role="list">
               {slotOccurrences.map((o) => (
                 <li key={o.key}>
                   <button
                     type="button"
                     onClick={() => openDetail(o)}
-                    className="bg-card hover:bg-muted/40 w-full rounded-lg border px-4 py-3 text-left text-sm shadow-sm transition-colors"
+                    className="flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-muted/30 focus-visible:outline-2 focus-visible:outline-ring"
                   >
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <span className="font-medium">{o.template.title}</span>
+                    <span className="flex w-12 shrink-0 flex-col items-center gap-1 text-center text-xs font-semibold tabular-nums">
+                      <Clock
+                        className="size-3.5 text-muted-foreground"
+                        aria-hidden="true"
+                      />
+                      {o.displayAt.toLocaleTimeString("ko-KR", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      })}
+                    </span>
+                    <span
+                      className={cn(
+                        "h-10 w-0.5 shrink-0 rounded-full",
+                        kindDotClass(o.template.kind),
+                      )}
+                    />
+                    <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-center gap-2">
+                        <span className="text-[10px] text-muted-foreground">
+                          {kindLabel(o.template.kind)}
+                        </span>
                         {o.template.kind === "scrim" &&
                         goingKeySet.has(
                           clanEventRsvpKey(o.template.id, o.instanceIdx),
                         ) ? (
-                          <span className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 rounded px-1.5 py-0.5 text-[10px] font-medium">
+                          <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-300">
                             참가 중
                           </span>
                         ) : null}
-                        <span className="text-muted-foreground text-xs">
-                          {kindLabel(o.template.kind)}
-                        </span>
                       </span>
-                    </div>
-                    <p className="text-muted-foreground mt-1 text-xs">
-                      {o.displayAt.toLocaleTimeString("ko-KR", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                      {o.template.place ? ` · ${o.template.place}` : ""}
-                      {o.template.repeat !== "none" ? (
-                        <span className="text-muted-foreground ml-2">
-                          · {repeatSummaryKo(o.template)}
-                        </span>
-                      ) : null}
-                    </p>
+                      <strong className="mt-1 block truncate text-sm font-semibold">
+                        {o.template.title}
+                      </strong>
+                      <span className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                        {o.template.place ?? "장소 미정"}
+                        {o.template.repeat !== "none" ? (
+                          <span className="flex items-center gap-1">
+                            <Repeat2 className="size-3" aria-hidden="true" />
+                            {repeatSummaryKo(o.template)}
+                          </span>
+                        ) : null}
+                      </span>
+                    </span>
+                    <ChevronRight
+                      className="size-4 shrink-0 text-muted-foreground"
+                      aria-hidden="true"
+                    />
                   </button>
                 </li>
               ))}
             </ul>
           )}
         </section>
+
+        {canManageEvents ? (
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>일정 등록</DialogTitle>
+                <DialogDescription>
+                  클랜 멤버와 함께할 내전이나 이벤트를 등록하세요.
+                </DialogDescription>
+              </DialogHeader>
+              <CreateClanEventForm
+                gameSlug={gameSlug}
+                clanId={clanId}
+                defaultDate={selectedKey}
+                onCreated={() => setCreateOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
+        ) : null}
       </TabsContent>
 
       <TabsContent value="bracket" className="space-y-4">
@@ -522,11 +744,13 @@ export function ClanEventsView({
                   })}
                   {activeOccurrence.template.repeat !== "none" ? (
                     <span className="text-muted-foreground block text-xs">
-                      템플릿 기준일:{" "}
-                      {new Date(activeOccurrence.template.start_at).toLocaleString(
-                        "ko-KR",
-                        { dateStyle: "medium", timeStyle: "short" },
-                      )}
+                      첫 일정:{" "}
+                      {new Date(
+                        activeOccurrence.template.start_at,
+                      ).toLocaleString("ko-KR", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
                     </span>
                   ) : null}
                 </SheetDescription>
@@ -545,7 +769,7 @@ export function ClanEventsView({
                   <dd>
                     {activeOccurrence.template.source === "manual"
                       ? "수동 등록"
-                      : "스크림 자동 등록 (D-EVENTS-01)"}
+                      : "스크림 자동 등록"}
                   </dd>
                 </div>
               </dl>
@@ -626,7 +850,10 @@ export function ClanEventsView({
                   ) : (
                     <ul className="max-h-[220px] space-y-1 overflow-y-auto text-sm">
                       {rsvpAttendees.map((a) => (
-                        <li key={a.userId} className="flex justify-between gap-2">
+                        <li
+                          key={a.userId}
+                          className="flex justify-between gap-2"
+                        >
                           <span>{a.nickname}</span>
                           {viewerUserId && a.userId === viewerUserId ? (
                             <span className="text-muted-foreground text-xs">
@@ -664,7 +891,9 @@ export function ClanEventsView({
                       variant="secondary"
                       className="flex-1"
                       onClick={() => {
-                        setEditRepeat(activeOccurrence.template.repeat ?? "none");
+                        setEditRepeat(
+                          activeOccurrence.template.repeat ?? "none",
+                        );
                         setEditOpen(true);
                         setSheetOpen(false);
                       }}
@@ -789,7 +1018,9 @@ export function ClanEventsView({
                   name="start_at_local"
                   type="datetime-local"
                   required
-                  defaultValue={isoToDatetimeLocal(activeOccurrence.template.start_at)}
+                  defaultValue={isoToDatetimeLocal(
+                    activeOccurrence.template.start_at,
+                  )}
                 />
               </div>
               <div className="space-y-2">

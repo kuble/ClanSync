@@ -13,6 +13,7 @@ import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/lib/supabase/database.types";
+import { Bell, CalendarDays } from "lucide-react";
 
 export default async function ClanEventsPage({
   params,
@@ -25,7 +26,9 @@ export default async function ClanEventsPage({
   const sp = await searchParams;
   const tab = sp.tab;
   const initialTab: "calendar" | "bracket" | "polls" =
-    tab === "polls" || tab === "bracket" || tab === "calendar" ? tab : "calendar";
+    tab === "polls" || tab === "bracket" || tab === "calendar"
+      ? tab
+      : "calendar";
   await cancelStalePollNotificationLogs();
 
   const supabase = await createClient();
@@ -40,12 +43,7 @@ export default async function ClanEventsPage({
 
   const canManage =
     user != null && ctx != null
-      ? await hasClanPermission(
-          supabase,
-          user.id,
-          clanId,
-          "manage_clan_events",
-        )
+      ? await hasClanPermission(supabase, user.id, clanId, "manage_clan_events")
       : false;
 
   const canEditEventNotify = ctx?.role === "leader";
@@ -101,26 +99,23 @@ export default async function ClanEventsPage({
   const bracketTournaments = await loadSerializedBracketTournaments(clanId);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-semibold tracking-tight">클랜 이벤트</h2>
-        <p className="text-muted-foreground mt-1 text-sm">
-          캘린더·대진표·투표 상단 탭으로 전환합니다. 스크림·매칭에서 일정이
-          확정되면 클랜 이벤트에 자동 등록되는 흐름은 D-EVENTS-01 을
-          따릅니다.
+        <h2 className="text-xl font-bold tracking-tight">클랜 이벤트</h2>
+        <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
+          함께할 다음 약속. 클랜 일정과 투표, 대회를 한곳에서 관리하세요.
         </p>
       </div>
-
-      {canManage ? (
-        <ClanEventNotifyForm
-          gameSlug={gameSlug}
-          clanId={clanId}
-          discordEnabled={notify.discord_enabled}
-          discordWebhookUrl={notify.discord_webhook_url}
-          kakaoNotificationsOptIn={notify.kakao_notifications_opt_in}
-          canEdit={canEditEventNotify}
+      <div className="flex items-start gap-2.5 rounded-xl border border-primary/15 bg-primary/[0.04] px-4 py-3 text-xs leading-relaxed text-muted-foreground">
+        <CalendarDays
+          className="mt-0.5 size-4 shrink-0 text-primary"
+          aria-hidden="true"
         />
-      ) : null}
+        <p>
+          스크림이 확정되면 일정이 자동으로 등록됩니다. 변경·취소도 함께
+          반영되므로 다시 등록할 필요가 없습니다.
+        </p>
+      </div>
 
       <ClanEventsView
         gameSlug={gameSlug}
@@ -134,6 +129,24 @@ export default async function ClanEventsPage({
         bracketTournaments={bracketTournaments}
         initialTab={initialTab}
       />
+      {canManage ? (
+        <details className="rounded-xl border bg-card px-4 py-3">
+          <summary className="flex cursor-pointer items-center gap-2 text-xs font-semibold focus-visible:outline-2 focus-visible:outline-ring">
+            <Bell className="size-4 text-muted-foreground" aria-hidden="true" />
+            외부 채널 알림 설정
+          </summary>
+          <div className="mt-4">
+            <ClanEventNotifyForm
+              gameSlug={gameSlug}
+              clanId={clanId}
+              discordEnabled={notify.discord_enabled}
+              discordWebhookUrl={notify.discord_webhook_url}
+              kakaoNotificationsOptIn={notify.kakao_notifications_opt_in}
+              canEdit={canEditEventNotify}
+            />
+          </div>
+        </details>
+      ) : null}
     </div>
   );
 }

@@ -2,7 +2,8 @@
 
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import { Check, Clock, Plus, Vote } from "lucide-react";
 import { toast } from "sonner";
 import {
   closeClanPollAction,
@@ -14,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -22,9 +24,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-function pollIsOpen(p: SerializedClanPoll): boolean {
+function pollIsOpen(p: SerializedClanPoll, now = Date.now()): boolean {
   if (p.closed_at != null) return false;
-  return new Date(p.deadline_at).getTime() > Date.now();
+  return new Date(p.deadline_at).getTime() > now;
 }
 
 function totalVotes(p: SerializedClanPoll): number {
@@ -49,16 +51,21 @@ export function ClanEventsPollsTab({
   const [createOpen, setCreateOpen] = useState(false);
   const [optionInputs, setOptionInputs] = useState(["", ""]);
   const [pollNotifyEnabled, setPollNotifyEnabled] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
 
   const { openPolls, closedPolls } = useMemo(() => {
     const open: SerializedClanPoll[] = [];
     const closed: SerializedClanPoll[] = [];
     for (const p of polls) {
-      if (pollIsOpen(p)) open.push(p);
+      if (pollIsOpen(p, now)) open.push(p);
       else closed.push(p);
     }
     return { openPolls: open, closedPolls: closed };
-  }, [polls]);
+  }, [polls, now]);
 
   function addOptionRow() {
     if (optionInputs.length >= 12) return;
@@ -69,6 +76,10 @@ export function ClanEventsPollsTab({
     e.preventDefault();
     const form = e.currentTarget;
     const fd = new FormData(form);
+    const localDeadline = String(fd.get("deadline_local") ?? "");
+    const deadline = new Date(localDeadline);
+    if (!Number.isNaN(deadline.getTime()))
+      fd.set("deadline_local", deadline.toISOString());
     optionInputs.forEach((t) => {
       if (t.trim()) fd.append("option_label", t.trim());
     });
@@ -122,20 +133,14 @@ export function ClanEventsPollsTab({
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-muted-foreground text-sm">
-          진행 중 투표에 참여합니다. 알림 예약은 in-app으로 멤버별 저장되고, 클랜 일정
-          알림에서 Discord 웹훅을 켠 경우 동일 시각에 Discord 행도 예약됩니다(Cron이
-          `/api/cron/dispatch-notifications`에서 발송). 카카오 등은 후속입니다.
+          내전 시간부터 다음 이벤트까지, 클랜의 다음 결정을 함께 정해보세요.
         </p>
         {canManagePolls ? (
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            onClick={() => setCreateOpen(true)}
-          >
+          <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
+            <Plus className="size-4" aria-hidden="true" />
             투표 만들기
           </Button>
         ) : null}
@@ -145,6 +150,9 @@ export function ClanEventsPollsTab({
         <DialogContent showCloseButton className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>투표 만들기</DialogTitle>
+            <DialogDescription>
+              질문과 선택지를 입력하고 마감 시간을 정하세요.
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={onCreateSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -176,9 +184,7 @@ export function ClanEventsPollsTab({
                   onChange={(e) => setPollNotifyEnabled(e.target.checked)}
                   className="mt-0.5"
                 />
-                <span>
-                  클랜 활성 멤버에게 투표 알림 예약 (in-app 발송 레이어에 예약 저장)
-                </span>
+                <span>클랜 멤버에게 투표 알림 보내기</span>
               </label>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
@@ -191,7 +197,9 @@ export function ClanEventsPollsTab({
                     defaultValue="none"
                   >
                     <option value="none">없음 (알림 끔)</option>
-                    <option value="once">한 번 (생성 알림·마감 1h 전 등)</option>
+                    <option value="once">
+                      한 번 (생성 알림·마감 1h 전 등)
+                    </option>
                     <option value="daily">매일 (KST 정각)</option>
                     <option value="weekly">매주 (KST 정각)</option>
                     <option value="until_deadline_daily">
@@ -217,12 +225,13 @@ export function ClanEventsPollsTab({
                 </div>
               </div>
               <p className="text-muted-foreground text-xs leading-relaxed">
-                D-EVENTS-04: 매일은 마감까지 최소 48시간 · 매주는 14일 · 마감 전까지
-                매일은 24시간 · 마감이 60일 이상이면 과도할 수 있습니다.
+                반복 알림은 마감까지 여유가 있어야 합니다. 매일은 최소 48시간 ·
+                매주는 14일 · 마감 전까지 매일은 24시간 · 마감이 60일 이상이면
+                과도할 수 있습니다.
               </p>
             </div>
             <div className="flex flex-wrap gap-4">
-              <label className="flex cursor-pointer items-center gap-2 text-sm">
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg border bg-muted/15 px-3 py-2.5 text-xs has-[:checked]:border-primary/40 has-[:checked]:bg-primary/5">
                 <input type="checkbox" name="anonymous" />
                 익명 투표
               </label>
@@ -278,7 +287,7 @@ export function ClanEventsPollsTab({
       </Dialog>
 
       {!polls.length ? (
-        <p className="text-muted-foreground rounded-lg border border-dashed p-8 text-center text-sm">
+        <p className="text-muted-foreground rounded-2xl border border-dashed bg-card p-12 text-center text-sm">
           등록된 투표가 없습니다.
           {canManagePolls ? " 위 버튼으로 새 투표를 만들 수 있습니다." : ""}
         </p>
@@ -286,17 +295,24 @@ export function ClanEventsPollsTab({
 
       {openPolls.length ? (
         <section className="space-y-4" aria-label="진행 중인 투표">
-          <h3 className="text-sm font-medium">진행 중</h3>
-          <ul className="space-y-4">
+          <h3 className="flex items-center gap-2 text-xs font-semibold">
+            <Vote className="size-4 text-primary" aria-hidden="true" />
+            진행 중{" "}
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">
+              {openPolls.length}
+            </span>
+          </h3>
+          <ul className="grid items-start gap-4 xl:grid-cols-2">
             {openPolls.map((p) => (
               <li
                 key={p.id}
-                className="bg-card rounded-xl border p-4 shadow-sm"
+                className="bg-card rounded-2xl border p-5 shadow-sm"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <p className="font-medium">{p.title}</p>
-                    <p className="text-muted-foreground mt-1 text-xs">
+                    <p className="text-base font-semibold">{p.title}</p>
+                    <p className="text-muted-foreground mt-2 flex flex-wrap items-center gap-1 text-[11px]">
+                      <Clock className="mr-1 size-3" aria-hidden="true" />
                       마감{" "}
                       {new Date(p.deadline_at).toLocaleString("ko-KR", {
                         dateStyle: "medium",
@@ -322,7 +338,7 @@ export function ClanEventsPollsTab({
                 <PollResultBars poll={p} className="mt-4" />
 
                 {viewerUserId ? (
-                  pollIsOpen(p) ? (
+                  pollIsOpen(p, now) ? (
                     <form
                       key={`vote-${p.id}-${p.my_option_ids.slice().sort().join(",")}`}
                       onSubmit={onVoteSubmit}
@@ -346,6 +362,8 @@ export function ClanEventsPollsTab({
                             >
                               <input
                                 type={inputType}
+                                className="accent-primary"
+                                disabled={pending}
                                 name="option_id"
                                 value={o.id}
                                 defaultChecked={
@@ -358,7 +376,8 @@ export function ClanEventsPollsTab({
                         })}
                       </fieldset>
                       <Button type="submit" size="sm" disabled={pending}>
-                        투표하기
+                        <Check className="size-3.5" aria-hidden="true" />
+                        {p.my_option_ids.length ? "투표 변경" : "투표하기"}
                       </Button>
                     </form>
                   ) : (
@@ -379,13 +398,15 @@ export function ClanEventsPollsTab({
 
       {closedPolls.length ? (
         <section className="space-y-4 opacity-90" aria-label="종료된 투표">
-          <h3 className="text-sm font-medium text-muted-foreground">종료됨</h3>
+          <h3 className="text-xs font-semibold text-muted-foreground">
+            종료됨{" "}
+            <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-[10px]">
+              {closedPolls.length}
+            </span>
+          </h3>
           <ul className="space-y-4">
             {closedPolls.map((p) => (
-              <li
-                key={p.id}
-                className="rounded-xl border border-dashed p-4"
-              >
+              <li key={p.id} className="rounded-2xl border bg-muted/15 p-5">
                 <p className="font-medium">{p.title}</p>
                 <p className="text-muted-foreground mt-1 text-xs">
                   마감{" "}
@@ -418,7 +439,7 @@ function PollResultBars({
         const pct = total > 0 ? Math.round((o.vote_count / total) * 100) : 0;
         return (
           <div key={o.id}>
-            <div className="mb-0.5 flex justify-between text-xs">
+            <div className="mb-1.5 flex justify-between gap-3 text-xs">
               <span>{o.label}</span>
               <span className="text-muted-foreground tabular-nums">
                 {o.vote_count}표 ({pct}%)
@@ -426,16 +447,14 @@ function PollResultBars({
             </div>
             <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
               <div
-                className="bg-primary/70 h-full rounded-full transition-[width]"
+                className="bg-primary/65 h-full rounded-full transition-[width]"
                 style={{ width: `${pct}%` }}
               />
             </div>
           </div>
         );
       })}
-      <p className="text-muted-foreground text-xs tabular-nums">
-        총 {total}표
-      </p>
+      <p className="text-muted-foreground text-xs tabular-nums">총 {total}표</p>
     </div>
   );
 }
