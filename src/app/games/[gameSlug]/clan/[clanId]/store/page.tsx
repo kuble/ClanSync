@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Store } from "lucide-react";
 import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import {
@@ -99,8 +101,7 @@ export default async function ClanStorePage({
     const pool = row.pool_source as "clan" | "personal";
     const isPrem = row.is_premium_only === true;
 
-    const purchased =
-      pool === "clan" ? clanSet.has(id) : personalSet.has(id);
+    const purchased = pool === "clan" ? clanSet.has(id) : personalSet.has(id);
 
     let canAttemptPurchase = false;
     let disabledReason: string | null = null;
@@ -139,20 +140,17 @@ export default async function ClanStorePage({
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="text-lg font-semibold tracking-tight">스토어</h2>
-        <p className="text-muted-foreground mt-1 text-sm">
-          코인으로 클랜·개인 꾸미기를 구매합니다. Premium 전용 카드는 클랜
-          플랜 업그레이드 후 구매할 수 있습니다 (D-STORE-02). 결제한 코인은
-          환불하지 않습니다 (D-STORE-03).
-        </p>
-        {user ? (
-          <p className="mt-3 text-sm font-medium tabular-nums">
-            내 코인: {userCoins.toLocaleString("ko-KR")} · 클랜 풀:{" "}
-            {clanCoins.toLocaleString("ko-KR")}
+      <header className="flex items-center gap-3">
+        <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
+          <Store size={21} aria-hidden />
+        </span>
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">클랜 스토어</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            함께 모은 코인으로 클랜과 나만의 공간을 꾸며보세요.
           </p>
-        ) : null}
-      </div>
+        </div>
+      </header>
 
       {items.length > 0 ? (
         <ClanStorePanels
@@ -161,10 +159,13 @@ export default async function ClanStorePage({
           actorRole={ctx?.role ?? "member"}
           planIsPremium={premium}
           items={items}
+          userCoins={userCoins}
+          clanCoins={clanCoins}
+          canManageClanPool={canManageClanPool}
         />
       ) : (
         <p className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
-          진열 중인 상품이 없습니다. 마이그레이션·시드를 확인해 주세요.
+          새로운 상품을 준비하고 있어요.
         </p>
       )}
 
@@ -172,20 +173,39 @@ export default async function ClanStorePage({
         <ClanStoreCoinHistory
           clanId={clanId}
           showClanPool={
-            ctx != null &&
-            (ctx.role === "leader" || ctx.role === "officer")
+            ctx != null && (ctx.role === "leader" || ctx.role === "officer")
           }
         />
       ) : null}
 
-      <p className="text-muted-foreground text-xs">
-        거래 내역은 <code className="text-xs">coin_transactions</code> 원장에
-        기록됩니다. 클랜 배너 슬롯 구매 후 URL은{" "}
-        <strong className="font-medium text-foreground">클랜 관리</strong> 탭에서
-        설정합니다. 프로필 입장 효과는 구매 시 해당 게임의 네임플레이트{" "}
-        <strong className="font-medium text-foreground">프레임</strong> 보유로
-        반영되며, <code className="text-xs">/profile</code> 에서 선택합니다.
-      </p>
+      <details className="rounded-2xl border bg-card p-5 text-xs text-muted-foreground">
+        <summary className="cursor-pointer font-semibold text-foreground">
+          구매·코인 이용 안내
+        </summary>
+        <div className="mt-3 space-y-2 leading-relaxed">
+          <p>
+            클랜 코인과 개인 코인은 각각 적립·사용되며 서로 이전할 수 없습니다.
+            구매 후 일반 환불은 지원되지 않습니다.
+          </p>
+          <p>
+            구매한 클랜 배너는{" "}
+            <Link
+              className="text-primary underline-offset-4 hover:underline"
+              href={`/games/${gameSlug}/clan/${clanId}/manage`}
+            >
+              클랜 관리
+            </Link>
+            에서, 개인 프레임은{" "}
+            <Link
+              className="text-primary underline-offset-4 hover:underline"
+              href="/profile"
+            >
+              프로필 꾸미기
+            </Link>
+            에서 설정할 수 있습니다.
+          </p>
+        </div>
+      </details>
     </div>
   );
 }

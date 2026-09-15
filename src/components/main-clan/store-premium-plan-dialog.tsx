@@ -27,7 +27,7 @@ const PLAN_ROWS: { area: string; free: string; premium: string }[] = [
   {
     area: "운영 기능",
     free: "핵심 클랜 운영",
-    premium: "자동 밸런스·고급 통계·대진표·승부예측 등(로드맵 기준)",
+    premium: "고급 통계·대진표·승부예측",
   },
 ];
 
@@ -56,8 +56,7 @@ export function StorePremiumPlanDialog({
 }) {
   const router = useRouter();
   const manageHref = `/games/${gameSlug}/clan/${clanId}/manage#subscription`;
-  const showManageCta =
-    actorRole === "leader" || actorRole === "officer";
+  const showManageCta = actorRole === "leader" || actorRole === "officer";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -83,7 +82,9 @@ export function StorePremiumPlanDialog({
               {PLAN_ROWS.map((row) => (
                 <tr key={row.area} className="border-b last:border-0">
                   <td className="px-2 py-2 font-medium">{row.area}</td>
-                  <td className="text-muted-foreground px-2 py-2">{row.free}</td>
+                  <td className="text-muted-foreground px-2 py-2">
+                    {row.free}
+                  </td>
                   <td className="text-muted-foreground px-2 py-2">
                     {row.premium}
                   </td>
@@ -94,8 +95,8 @@ export function StorePremiumPlanDialog({
         </div>
 
         <p className="text-muted-foreground text-xs">
-          과금·약관 세부는 운영 정책에 따릅니다. 모달에서 즉시 결제를 시작하지
-          않으며, 구독·플랜 확인은 클랜 관리 화면에서 진행합니다 (D-MANAGE-01).
+          유료 결제는 준비 중입니다. 현재 클랜 플랜과 제공 기능은 클랜 관리에서
+          확인할 수 있습니다.
         </p>
 
         <DialogFooter className="sm:justify-between">
