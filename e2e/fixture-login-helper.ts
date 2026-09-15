@@ -12,7 +12,7 @@ export async function loginAsFixtureRole(
   const { email, password } = credentialsForFixture(role);
   await page.goto("/sign-in");
   await page.getByLabel("이메일").fill(email);
-  await page.getByLabel("비밀번호").fill(password);
+  await page.getByLabel("비밀번호", { exact: true }).fill(password);
   await page.getByRole("button", { name: "로그인" }).click();
   await page.waitForURL(/\/games\/?$/, { timeout: 45_000 });
 }
