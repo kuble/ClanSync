@@ -45,11 +45,14 @@ npm run dev
 |--------|----------------|
 | GitHub | `kuble/ClanSync` · Git/CLI/연결 앱의 저장소 접근 확인, 작업 커밋 자동 푸시 |
 | Supabase | `clansync` · `mxkrfnzlgaxzdzcjbfkg` · API 정상, 로컬·원격 마이그레이션 `0001`~`0043` 일치 |
+| Supabase QA | `clansync-test` · `moretvteewfcztxvwztw` · 서울 리전 Free, 마이그레이션 `0001`~`0043`·QA 픽스처 적용 |
 | Vercel | `clansync/clan-sync` · CLI 로그인 완료, `.vercel/project.json`으로 기존 프로젝트 연결 |
 
 Supabase CLI는 `.env.local`을 읽는 `node scripts/with-dotenv-local.mjs <명령>`으로 실행할 수 있습니다. 예: `node scripts/with-dotenv-local.mjs migration list --linked`. Vercel CLI는 `npx vercel`을 사용합니다. 인증·연결 파일과 기존 `.env.local`은 로컬에만 보관합니다.
 
-연결 앱의 추가 설치·인증 여부와 CLI 인증은 별개입니다. 위 개발 경로는 CLI로 검증했습니다. 로컬 Docker/PostgreSQL은 현재 없으므로 DB 변경의 역할별 테스트에는 별도 테스트 DB 환경이 필요합니다. 운영 Vercel에는 Supabase 환경변수 3개가 있으며, 알림 cron용 `CRON_SECRET`은 추가 설정이 필요합니다.
+연결 앱의 추가 설치·인증 여부와 CLI 인증은 별개입니다. 위 개발 경로는 CLI로 검증했습니다. 테스트는 `.env.e2e.local`의 별도 DB를 사용하며 운영 URL은 시드·E2E 실행 전에 차단합니다. `npm run db:test:push`는 테스트 DB만 갱신합니다. 자세한 실행법은 [E2E 안내](e2e/README.md)를 참조합니다.
+
+운영 Vercel에는 `CRON_SECRET`을 Secret으로 등록했습니다. 이후 배포부터 매일 02:00 UTC(한국 11:00)에 알림 cron이 인증된 요청을 보냅니다. 로컬·테스트 키는 운영과 다르게 설정했습니다.
 
 ## 검증
 
