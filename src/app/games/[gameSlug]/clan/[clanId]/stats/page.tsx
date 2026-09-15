@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { ClanStatsView } from "@/components/main-clan/clan-stats-view";
 import { loadClanStatsPage } from "@/lib/clan/stats/load-clan-stats";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 
 export default async function ClanStatsPage({
   params,
@@ -9,10 +9,8 @@ export default async function ClanStatsPage({
   params: Promise<{ gameSlug: string; clanId: string }>;
 }) {
   const { gameSlug, clanId } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await getRequestClient();
+  const user = await getRequestUser();
 
   if (!user) {
     redirect(`/sign-in?next=/games/${gameSlug}/clan/${clanId}/stats`);
@@ -23,7 +21,5 @@ export default async function ClanStatsPage({
     redirect(`/games/${gameSlug}/clan`);
   }
 
-  return (
-    <ClanStatsView gameSlug={gameSlug} clanId={clanId} model={model} />
-  );
+  return <ClanStatsView gameSlug={gameSlug} clanId={clanId} model={model} />;
 }

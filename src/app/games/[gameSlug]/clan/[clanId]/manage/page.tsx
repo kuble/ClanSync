@@ -17,8 +17,8 @@ import {
   ClanManageRules,
   type ManagedClanNotice,
 } from "@/components/main-clan/clan-manage-notices";
-import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
-import { hasClanPermission } from "@/lib/clan/has-clan-permission";
+import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
+import { hasRequestClanPermission } from "@/lib/clan/request-clan-access";
 import { ClanBannerSettingsForm } from "@/components/main-clan/clan-banner-settings-form";
 import {
   ClanManageStoreVoidPanel,
@@ -30,7 +30,7 @@ import type { ManageMemberRow } from "@/components/main-clan/manage-members-tabl
 import { ManageMembersTable } from "@/components/main-clan/manage-members-table";
 import { clanHasActivePurchaseForItemSlug } from "@/lib/store/store-purchase-queries";
 import { createServiceRoleClient } from "@/lib/supabase/service";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 
 /** pages.md — 클랜 관리: officer+ (멤버 직접 접근 403). */
 export default async function ManagePage({
@@ -48,15 +48,11 @@ export default async function ManagePage({
     requestedTab === "subscription"
       ? requestedTab
       : "overview";
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await getRequestClient();
+  const user = await getRequestUser();
 
   const ctx =
-    user != null
-      ? await loadMainClanContext(supabase, user.id, gameSlug, clanId)
-      : null;
+    user != null ? await getRequestMainClanContext(gameSlug, clanId) : null;
 
   if (!ctx || ctx.role === "member") {
     forbidden();
@@ -64,21 +60,16 @@ export default async function ManagePage({
 
   const canApprove =
     user != null
-      ? await hasClanPermission(
-          supabase,
-          user.id,
-          clanId,
-          "approve_join_requests",
-        )
+      ? await hasRequestClanPermission(clanId, "approve_join_requests")
       : false;
 
   const canKickMemberPerm =
     user != null
-      ? await hasClanPermission(supabase, user.id, clanId, "kick_member")
+      ? await hasRequestClanPermission(clanId, "kick_member")
       : false;
   const canKickOfficerPerm =
     user != null
-      ? await hasClanPermission(supabase, user.id, clanId, "kick_officer")
+      ? await hasRequestClanPermission(clanId, "kick_officer")
       : false;
 
   const actorRole = ctx?.role ?? "member";
@@ -89,7 +80,7 @@ export default async function ManagePage({
 
   const canManageClanPool =
     user != null
-      ? await hasClanPermission(supabase, user.id, clanId, "manage_clan_pool")
+      ? await hasRequestClanPermission(clanId, "manage_clan_pool")
       : false;
 
   const svc = createServiceRoleClient();

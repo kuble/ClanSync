@@ -1,14 +1,15 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Store } from "lucide-react";
-import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
-import { hasClanPermission } from "@/lib/clan/has-clan-permission";
+import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
+import { hasRequestClanPermission } from "@/lib/clan/request-clan-access";
 import {
   ClanStorePanels,
   type ClanStoreItemVM,
 } from "@/components/main-clan/clan-store-panels";
 import { ClanStoreCoinHistory } from "@/components/main-clan/clan-store-coin-history";
 import { MVP_STORE_SLUGS } from "@/lib/store/mvp-store-slugs";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 
 export default async function ClanStorePage({
   params,
@@ -16,15 +17,11 @@ export default async function ClanStorePage({
   params: Promise<{ gameSlug: string; clanId: string }>;
 }) {
   const { gameSlug, clanId } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const ctx =
-    user != null
-      ? await loadMainClanContext(supabase, user.id, gameSlug, clanId)
-      : null;
+  const supabase = await getRequestClient();
+  const user = await getRequestUser();
+  if (!user) redirect(`/sign-in?next=/games/${gameSlug}/clan/${clanId}/store`);
+  const ctx = await getRequestMainClanContext(gameSlug, clanId);
+  if (!ctx) redirect(`/games/${gameSlug}/clan`);
 
   let userCoins = 0;
   let clanCoins = 0;
@@ -45,9 +42,7 @@ export default async function ClanStorePage({
       .maybeSingle();
     clanCoins = crow?.coin_balance ?? 0;
 
-    canManageClanPool = await hasClanPermission(
-      supabase,
-      user.id,
+    canManageClanPool = await hasRequestClanPermission(
       clanId,
       "manage_clan_pool",
     );

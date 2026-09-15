@@ -1,7 +1,7 @@
 import { ClanBalanceSessionPanel } from "@/components/main-clan/clan-balance-session-panel";
-import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
-import { hasClanPermission } from "@/lib/clan/has-clan-permission";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
+import { hasRequestClanPermission } from "@/lib/clan/request-clan-access";
+import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import type { Database } from "@/lib/supabase/database.types";
 import { CircleHelp } from "lucide-react";
 
@@ -18,31 +18,21 @@ export default async function BalancePage({
   params: Promise<{ gameSlug: string; clanId: string }>;
 }) {
   const { gameSlug, clanId } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await getRequestClient();
+  const user = await getRequestUser();
   if (!user) {
     return null;
   }
 
-  const ctx = await loadMainClanContext(supabase, user.id, gameSlug, clanId);
+  const ctx = await getRequestMainClanContext(gameSlug, clanId);
   if (!ctx) {
     return null;
   }
 
-  const canManage = await hasClanPermission(
-    supabase,
-    user.id,
-    clanId,
-    "manage_clan_events",
-  );
-  const canEditMscore = await hasClanPermission(
-    supabase,
-    user.id,
-    clanId,
-    "edit_mscore",
-  );
+  const [canManage, canEditMscore] = await Promise.all([
+    hasRequestClanPermission(clanId, "manage_clan_events"),
+    hasRequestClanPermission(clanId, "edit_mscore"),
+  ]);
   const planPremium = ctx.plan === "premium";
 
   const { data: session } = await supabase

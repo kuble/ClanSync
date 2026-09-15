@@ -8,12 +8,13 @@ import {
 import { cancelStalePollNotificationLogs } from "@/lib/clan/cancel-stale-poll-notifications";
 import { loadSerializedBracketTournaments } from "@/lib/clan/load-bracket-tournaments";
 import { loadSerializedClanPolls } from "@/lib/clan/load-clan-polls";
-import { hasClanPermission } from "@/lib/clan/has-clan-permission";
-import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
+import { hasRequestClanPermission } from "@/lib/clan/request-clan-access";
+import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { createServiceRoleClient } from "@/lib/supabase/service";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestUser } from "@/lib/supabase/request";
 import type { Json } from "@/lib/supabase/database.types";
 import { Bell, CalendarDays } from "lucide-react";
+import { redirect } from "next/navigation";
 
 export default async function ClanEventsPage({
   params,
@@ -29,21 +30,15 @@ export default async function ClanEventsPage({
     tab === "polls" || tab === "bracket" || tab === "calendar"
       ? tab
       : "calendar";
+  const user = await getRequestUser();
+  if (!user) redirect(`/sign-in?next=/games/${gameSlug}/clan/${clanId}/events`);
+  const ctx = await getRequestMainClanContext(gameSlug, clanId);
+  if (!ctx) redirect(`/games/${gameSlug}/clan`);
   await cancelStalePollNotificationLogs();
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const ctx =
-    user != null
-      ? await loadMainClanContext(supabase, user.id, gameSlug, clanId)
-      : null;
 
   const canManage =
     user != null && ctx != null
-      ? await hasClanPermission(supabase, user.id, clanId, "manage_clan_events")
+      ? await hasRequestClanPermission(clanId, "manage_clan_events")
       : false;
 
   const canEditEventNotify = ctx?.role === "leader";

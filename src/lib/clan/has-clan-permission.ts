@@ -1,12 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import {
-  CLAN_PERMISSION_DEFAULTS,
   LOCKED_LEADER_ONLY,
   LOCKED_OFFICER_PLUS,
   type ClanMemberRole,
   type ClanPermissionKey,
 } from "@/lib/clan/permission-defaults";
+import { resolveClanPermission } from "@/lib/clan/clan-access-snapshot";
 
 /**
  * D-PERM-01 — 서버 컴포넌트·액션용 권한 판정 (Phase 2+ SQL 함수와 동일 규칙).
@@ -18,11 +18,15 @@ export async function hasClanPermission(
   perm: ClanPermissionKey,
 ): Promise<boolean> {
   void userId;
-  const { data: rows, error: membershipError } = await supabase.rpc("select_my_clan_membership", {
-    p_clan_id: clanId,
-  });
+  const { data: rows, error: membershipError } = await supabase.rpc(
+    "select_my_clan_membership",
+    {
+      p_clan_id: clanId,
+    },
+  );
   const row = rows?.[0];
-  if (membershipError || !row || row.status !== "active" || !row.role) return false;
+  if (membershipError || !row || row.status !== "active" || !row.role)
+    return false;
   const role = row.role as ClanMemberRole;
 
   if (LOCKED_LEADER_ONLY.has(perm)) return role === "leader";
@@ -38,17 +42,5 @@ export async function hasClanPermission(
 
   if (settingsError || !settings) return false;
 
-  const raw = settings.permissions as Record<string, unknown> | null;
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return false;
-  const fromDb = raw?.[perm];
-  let allowed: readonly string[];
-  if (Array.isArray(fromDb)) {
-    allowed = fromDb.filter((x): x is string => typeof x === "string");
-  } else if (fromDb === undefined) {
-    allowed = CLAN_PERMISSION_DEFAULTS[perm];
-  } else {
-    return false;
-  }
-
-  return (allowed as readonly string[]).includes(role);
+  return resolveClanPermission(role, perm, settings.permissions);
 }
