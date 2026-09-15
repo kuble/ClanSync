@@ -59,7 +59,6 @@ type Props = {
   gameName: string;
   clanLabel: string;
   gameActive: boolean;
-  promoSort: PromoSort;
   promos: PromoRow[];
   lfgs: LfgRowOut[];
   applicantsByPost: Record<string, LfgApplicantRow[]>;
@@ -221,7 +220,6 @@ export function MainGameCommunityTabs({
   gameName,
   clanLabel,
   gameActive,
-  promoSort,
   promos,
   lfgs,
   applicantsByPost,
@@ -238,6 +236,8 @@ export function MainGameCommunityTabs({
   const router = useRouter();
   const searchParams = useSearchParams();
   const tab = coerceMainGameCommunityTab(searchParams.get("tab"));
+  const promoSort: PromoSort =
+    searchParams.get("promoSort") === "space" ? "space" : "newest";
   function setTab(next: MainGameCommunityTab) {
     const query = new URLSearchParams(searchParams.toString());
     if (next === "home") query.delete("tab");
@@ -258,7 +258,12 @@ export function MainGameCommunityTabs({
   const [lfgSearch, setLfgSearch] = useState("");
   const [micOnly, setMicOnly] = useState(false);
   const [myApplicationsOnly, setMyApplicationsOnly] = useState(false);
-  const visiblePromos = promos.filter((p) =>
+  const sortedPromos = [...promos].sort((a, b) =>
+    promoSort === "space"
+      ? b.space_remaining - a.space_remaining
+      : new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
+  const visiblePromos = sortedPromos.filter((p) =>
     [p.title, p.clan_name, p.content]
       .join(" ")
       .toLocaleLowerCase()
@@ -323,9 +328,10 @@ export function MainGameCommunityTabs({
     : [];
 
   function onPromoSortChange(next: PromoSort) {
-    router.push(
-      `/games/${encodeURIComponent(gameSlug)}?tab=promo&promoSort=${next === "space" ? "space" : "newest"}`,
-    );
+    const query = new URLSearchParams(searchParams.toString());
+    query.set("tab", "promo");
+    query.set("promoSort", next);
+    window.history.pushState(null, "", `${window.location.pathname}?${query}`);
   }
 
   function submitPromo(e: FormEvent) {
@@ -415,7 +421,6 @@ export function MainGameCommunityTabs({
       setScrimTierMin("");
       setScrimTierMax("");
       setScrimMemo("");
-      router.refresh();
     });
   }
 
@@ -512,7 +517,7 @@ export function MainGameCommunityTabs({
       <TabsContent value="home">
         <CommunityHome
           gameSlug={gameSlug}
-          promos={promos}
+          promos={sortedPromos}
           lfgs={lfgs}
           ranks={rankClans}
           scrims={scrimRooms}

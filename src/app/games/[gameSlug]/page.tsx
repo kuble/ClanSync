@@ -7,7 +7,6 @@ import {
   loadPromotionFeed,
   loadScrimGuestClanOptions,
   loadScrimRoomsForGame,
-  type PromoSort,
 } from "@/lib/main-game/load-main-game-hub";
 import { loadGameOnboarding } from "@/lib/onboarding/load-game-onboarding";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
@@ -17,14 +16,10 @@ import { hasClanPermission } from "@/lib/clan/has-clan-permission";
  */
 export default async function MainGamePage({
   params,
-  searchParams,
 }: {
   params: Promise<{ gameSlug: string }>;
-  searchParams: Promise<{ promoSort?: string; tab?: string }>;
 }) {
   const { gameSlug } = await params;
-  const sp = await searchParams;
-  const promoSort: PromoSort = sp.promoSort === "space" ? "space" : "newest";
 
   const supabase = await createClient();
   const {
@@ -52,7 +47,7 @@ export default async function MainGamePage({
 
   const [promos, lfgBundle, rankClans, scrimRooms, scrimGuestClans] =
     await Promise.all([
-      loadPromotionFeed(supabase, game.id, promoSort),
+      loadPromotionFeed(supabase, game.id, "newest"),
       loadOpenLfgPosts(supabase, game.id, user.id),
       loadClanRankPreview(supabase, game.id),
       loadScrimRoomsForGame(supabase, game.id),
@@ -84,7 +79,6 @@ export default async function MainGamePage({
         (state.clanStatus === "pending" ? "가입 신청 확인" : "클랜 찾기")
       }
       gameActive={game.is_active}
-      promoSort={promoSort}
       promos={promos}
       lfgs={lfgBundle.posts}
       applicantsByPost={lfgBundle.applicantsByPost}

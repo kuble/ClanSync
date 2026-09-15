@@ -23,6 +23,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import type { MainGameCommunityTab } from "@/lib/main-game/main-game-community-tab";
+import { NavigationIcon } from "@/components/ui/navigation-icon";
 import styles from "./community.module.css";
 
 const navigation: {
@@ -128,18 +129,18 @@ export function CommunityFrame({
                 </button>
               ))}
               <Link href={clanHubHref}>
-                <Shield aria-hidden />
+                <NavigationIcon icon={Shield} label={clanLabel} />
                 {clanLabel}
               </Link>
               <Link href="/profile">
-                <UserRound aria-hidden />
+                <NavigationIcon icon={UserRound} label="프로필" />
                 프로필
               </Link>
             </nav>
           </SheetContent>
         </Sheet>
         <Link href="/games" className={styles.brand} aria-label="게임 선택">
-          <Layers3 size={18} aria-hidden />
+          <NavigationIcon icon={Layers3} label="게임 선택" />
         </Link>
         <span aria-hidden>/</span>
         <Link href={`/games/${encodeURIComponent(gameSlug)}`}>{gameName}</Link>
@@ -148,7 +149,7 @@ export function CommunityFrame({
           className={styles.headerAction}
           aria-label={clanLabel}
         >
-          <Shield size={15} aria-hidden />
+          <NavigationIcon icon={Shield} label={clanLabel} size={15} />
           <span>{clanLabel}</span>
         </Link>
       </header>
@@ -173,11 +174,11 @@ export function CommunityFrame({
         </TabsList>
         <nav className={styles.bottom} aria-label="계정 및 클랜">
           <Link href={clanHubHref} aria-label={clanLabel} title={clanLabel}>
-            <Shield aria-hidden />
+            <NavigationIcon icon={Shield} label={clanLabel} />
             <span>{clanLabel}</span>
           </Link>
           <Link href="/profile" aria-label="프로필" title="프로필">
-            <UserRound aria-hidden />
+            <NavigationIcon icon={UserRound} label="프로필" />
             <span>프로필</span>
           </Link>
         </nav>
