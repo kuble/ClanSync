@@ -44,9 +44,9 @@ npm run dev
 | 서비스 | 대상·확인 결과 |
 |--------|----------------|
 | GitHub | `kuble/ClanSync` · Git/CLI/연결 앱의 저장소 접근 확인, 작업 커밋 자동 푸시 |
-| Supabase | `clansync` · `mxkrfnzlgaxzdzcjbfkg` · 마이그레이션 48개 적용, 리뷰 수정 권한·타입 검증 완료 |
-| Supabase QA | `clansync-test` · `moretvteewfcztxvwztw` · 서울 리전 Free, 마이그레이션 48개·QA 픽스처 적용, DB 회귀 검증 완료 |
-| Vercel | `clansync/clan-sync` · 리뷰 수정 커밋 자동 배포 READY, [운영 서비스](https://clan-sync.vercel.app) 공개 응답·cron 인증 확인 |
+| Supabase | `clansync` · `mxkrfnzlgaxzdzcjbfkg` · 서울 리전, 마이그레이션 50개 적용, 리뷰 수정 권한·타입 검증 완료 |
+| Supabase QA | `clansync-test` · `moretvteewfcztxvwztw` · 서울 리전 Free, 마이그레이션 50개·QA 픽스처 적용, DB 회귀 검증 완료 |
+| Vercel | `clansync/clan-sync` · Git 자동 배포 READY, 페이지 함수 `icn1`(서울), [운영 서비스](https://clan-sync.vercel.app) 로그인·이동 확인 |
 
 Supabase CLI는 `.env.local`을 읽는 `node scripts/with-dotenv-local.mjs <명령>`으로 실행할 수 있습니다. 예: `node scripts/with-dotenv-local.mjs migration list --linked`. Vercel CLI는 `npx vercel`을 사용합니다. 인증·연결 파일과 기존 `.env.local`은 로컬에만 보관합니다.
 
@@ -63,7 +63,7 @@ npm run test:db
 npm run test:e2e
 ```
 
-리뷰 수정 후 빌드·전체 린트·DB 회귀 8개 시나리오·E2E 20건이 통과했습니다. ESLint는 앱·테스트·스크립트를 검사하며 완료된 정적 목업·생성 디렉터리는 제외합니다. 운영 반영 상태는 코드 리뷰 문서의 최신 현황을 따릅니다.
+최신 테스트 결과와 운영 반영 상태는 [구현·검증 현황](docs/TODO_Phase2.md)을 참조합니다. ESLint는 앱·테스트·스크립트를 검사하며 완료된 정적 목업·생성 디렉터리는 제외합니다.
 
 Playwright 실행·시드 조건은 [e2e/README.md](e2e/README.md)를 따릅니다. 전체 E2E는 기본적으로 QA 데이터를 다시 시드하므로 개발·테스트 DB에서 실행합니다. `db:push`·`db:sync`는 연결된 DB를 변경합니다.
 

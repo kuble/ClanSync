@@ -38,6 +38,10 @@ CI 경로는 `npm run build` 후 `next start`를 사용합니다. 로컬 기본 
 
 - `smoke.spec.ts`: 공개 페이지
 - `fixture-login.spec.ts`: QA 계정 로그인
+- `auth-performance.spec.ts`: 기존 프로필 보존·프로필 복구·로그인 잠금·자동 로그인 쿠키 수명
+- `session-cookies.spec.ts`: 실제 SDK의 서버/브라우저 갱신·쿠키 조각 교체·재로그인·로그아웃 때 수명 정책 유지 (HTTP 모의 응답)
+- `clan-request-isolation.spec.ts`: 동시 로그인 계정 간 렌더 격리·다음 요청의 변경된 역할/권한 반영
+- `navigation-feedback.spec.ts`: 응답 지연 중 이동 표시·서버 재조회 없는 홍보 정렬·브라우저 기록
 - `onboarding.spec.ts`: 무소속 멤버 온보딩
 - `join-request-flow.spec.ts`: 가입 신청·리더 거절
 - `ui-regression.spec.ts`: 클랜·게임 탭, 대진표·밸런스 세션
