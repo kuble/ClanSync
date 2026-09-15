@@ -23,7 +23,7 @@ Next.js 16 App Router · React 19 · TypeScript · Tailwind 4 · shadcn/ui · Su
 - 변수명 영어, 주석 한국어
 - Supabase RLS 모든 테이블 필수
 - 나노 단위 git 커밋 (`git-nano-commit.mdc` 참조)
-- 푸시·배포는 **명시 요청 시에만**. `main` 반영 절차는 `collaboration-workflow.mdc` 참조.
+- 작업 커밋은 사용자의 위임에 따라 **자동 푸시**. 별도 수동 배포와 `main` 병합 절차는 `collaboration-workflow.mdc` 참조.
 - 시연·직접 재현: 마일스톤·UI 변경 시 `docs/QA_시나리오.md` 섹션 추가 (`qa-demo-handoff.mdc`)
 - **자동 E2E**: Phase 2 구현 턴 마무리 시 `npm run test:e2e` 등 (`agent-auto-tasks.mdc`, `e2e/README.md`)
 - 토큰 절약: 작업을 작게 쪼개고 필요한 문서만 그때그때 읽는다

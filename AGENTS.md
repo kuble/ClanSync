@@ -4,9 +4,15 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
+# 개발 진입점 (Codex)
+
+- 주 개발 에이전트는 Codex다. 프로젝트 작업 지침은 이 `AGENTS.md`를 기준으로 한다.
+- 작업 시작 시 `docs/TODO.md`에서 우선순위를 확인하고, `docs/README.md`에서 해당 기능의 슬라이스·명세만 선택한다.
+- 연결 대상·검증 명령은 루트 `README.md`를 참조한다. CLI 인증과 `.env.local`을 사용하며 비밀값은 문서·커밋에 넣지 않는다.
+
 # 나노 커밋 (절대 잊지 말 것)
 
-`.cursor/rules/git-nano-commit.mdc` 는 `alwaysApply: true`. **한 번의 사용자 질의에 대한 응답 턴**에서 저장소에 변경이 생기면, **그 턴 안에서** 의미 단위별로 `git add`·`git commit`까지 끝낸다. “세션 종료 시에만 정리” 금지. 한 턴에 주제가 여러 개면 **커밋도 나눈다**. 변경이 없는 턴(읽기·설명만)은 커밋 없음. 사용자가 "커밋해"라고 말하지 않아도 자동 수행. 푸시는 명시 요청 시에만.
+`.cursor/rules/git-nano-commit.mdc` 는 `alwaysApply: true`. **한 번의 사용자 질의에 대한 응답 턴**에서 저장소에 변경이 생기면, **그 턴 안에서** 의미 단위별로 `git add`·`git commit`까지 끝낸다. “세션 종료 시에만 정리” 금지. 한 턴에 주제가 여러 개면 **커밋도 나눈다**. 변경이 없는 턴(읽기·설명만)은 커밋 없음. 사용자가 "커밋해"라고 말하지 않아도 자동 수행. **사용자의 푸시 위임(2026-09-15)에 따라 작업 커밋은 현재 작업 브랜치에 자동 푸시한다.** 보류 지시가 있으면 따른다. 별도 수동 Vercel 배포는 명시 요청 시에만.
 
 # 자동 실행 (터미널)
 

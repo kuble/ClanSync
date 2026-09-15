@@ -39,6 +39,18 @@ npm run dev
 
 기본 주소: [localhost:3000](http://localhost:3000).
 
+## 개발 연결 (2026-09-15 확인)
+
+| 서비스 | 대상·확인 결과 |
+|--------|----------------|
+| GitHub | `kuble/ClanSync` · Git/CLI/연결 앱의 저장소 접근 확인, 작업 커밋 자동 푸시 |
+| Supabase | `clansync` · `mxkrfnzlgaxzdzcjbfkg` · API 정상, 로컬·원격 마이그레이션 `0001`~`0043` 일치 |
+| Vercel | `clansync/clan-sync` · CLI 로그인 완료, `.vercel/project.json`으로 기존 프로젝트 연결 |
+
+Supabase CLI는 `.env.local`을 읽는 `node scripts/with-dotenv-local.mjs <명령>`으로 실행할 수 있습니다. 예: `node scripts/with-dotenv-local.mjs migration list --linked`. Vercel CLI는 `npx vercel`을 사용합니다. 인증·연결 파일과 기존 `.env.local`은 로컬에만 보관합니다.
+
+연결 앱의 추가 설치·인증 여부와 CLI 인증은 별개입니다. 위 개발 경로는 CLI로 검증했습니다. 로컬 Docker/PostgreSQL은 현재 없으므로 DB 변경의 역할별 테스트에는 별도 테스트 DB 환경이 필요합니다. 운영 Vercel에는 Supabase 환경변수 3개가 있으며, 알림 cron용 `CRON_SECRET`은 추가 설정이 필요합니다.
+
 ## 검증
 
 ```sh
@@ -50,4 +62,4 @@ npx eslint src middleware.ts playwright.config.ts e2e
 
 Playwright 실행·시드 조건은 [e2e/README.md](e2e/README.md)를 따릅니다. 전체 E2E는 기본적으로 QA 데이터를 다시 시드하므로 개발·테스트 DB에서 실행합니다. `db:push`·`db:sync`는 연결된 DB를 변경합니다.
 
-작업 규칙은 [AGENTS.md](AGENTS.md)를 따릅니다. 변경은 의미별 커밋, 푸시·배포는 명시 요청 시에만 진행합니다.
+작업 규칙은 [AGENTS.md](AGENTS.md)를 따릅니다. 변경은 의미별 커밋 후 자동 푸시합니다. 별도 수동 배포는 명시 요청 시에만 진행합니다.
