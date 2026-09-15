@@ -21,7 +21,7 @@ test.describe("가입 신청 · 리더 거절 토스트", () => {
       const memberCred = credentialsForFixture("Member");
       await memberPage.goto("/sign-in");
       await memberPage.getByLabel("이메일").fill(memberCred.email);
-      await memberPage.getByLabel("비밀번호").fill(memberCred.password);
+      await memberPage.getByLabel("비밀번호", { exact: true }).fill(memberCred.password);
       await memberPage.getByRole("button", { name: "로그인" }).click();
       await memberPage.waitForURL(/\/games\/?$/, { timeout: 45_000 });
 

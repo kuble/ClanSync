@@ -15,7 +15,7 @@ test.describe("온보딩 (QA 픽스처 Member)", () => {
 
     await page.goto("/sign-in");
     await page.getByLabel("이메일").fill(email);
-    await page.getByLabel("비밀번호").fill(password);
+    await page.getByLabel("비밀번호", { exact: true }).fill(password);
     await page.getByRole("button", { name: "로그인" }).click();
 
     const gamesListPath = (url: URL) => {

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BadgeCheck, LockKeyhole, Shield, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -20,6 +21,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { AltAccountRow } from "@/components/profile/profile-game-alt-accounts";
 import { ProfileGameAltAccounts } from "@/components/profile/profile-game-alt-accounts";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import styles from "./profile.module.css";
 
 const NP_LABEL: Record<NameplateCategory, string> = {
   emblem: "엠블럼",
@@ -39,6 +42,7 @@ export type DecorationGame = {
   gameId: string;
   slug: string;
   nameKo: string;
+  accountId?: string;
 };
 
 export type NameplateOptionRow = {
@@ -59,6 +63,7 @@ export type BadgeRow = {
 };
 
 type Props = {
+  nickname: string;
   games: DecorationGame[];
   /** 해당 게임 user_game_profiles.is_verified 일 때 부계 패널 허용 */
   verifiedGameIds: string[];
@@ -102,6 +107,7 @@ function defaultOptionId(
 }
 
 export function ProfileGameDecorations({
+  nickname,
   games,
   verifiedGameIds,
   altAccountsByGame,
@@ -182,76 +188,25 @@ export function ProfileGameDecorations({
     return m;
   }, [picks]);
 
-  if (games.length === 0) {
-    return (
-      <section className="mt-10" aria-labelledby="deco-heading">
-        <h2 id="deco-heading" className="text-lg font-semibold tracking-tight">
-          네임플레이트 · 뱃지
-        </h2>
-        <p className="text-muted-foreground mt-2 text-sm">
-          게임 계정을 연동하면 게임별 꾸미기를 설정할 수 있습니다.{" "}
-          <Link href="/games" className="text-primary underline underline-offset-4">
-            게임 선택
-          </Link>
-        </p>
-      </section>
-    );
-  }
-
-  return (
-    <section className="mt-10" aria-labelledby="deco-heading">
-      <h2 id="deco-heading" className="text-lg font-semibold tracking-tight">
-        네임플레이트 · 뱃지 스트립
-      </h2>
-      <p className="text-muted-foreground mt-1 text-xs">
-        D-PROFILE-01~04 · 연동된 게임별로 저장됩니다.
-      </p>
-
-      <Tabs
-        value={effectiveSlug}
-        onValueChange={handleTabChange}
-        className="mt-4 w-full max-w-xl"
-      >
-        <TabsList
-          variant="line"
-          className="w-full flex-wrap justify-start gap-1"
-        >
-          {games.map((g) => (
-            <TabsTrigger key={g.slug} value={g.slug}>
-              {g.nameKo}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        {games.map((g) => (
-          <TabsContent key={g.slug} value={g.slug} className="mt-4">
-            <GameDecorationPanel
-              key={`${g.slug}:${(picksByGame.get(g.gameId) ?? []).join("|")}`}
-              game={g}
-              nameplateOptions={nameplateOptions}
-              owned={owned}
-              selectionForGame={selectionMap.get(g.gameId) ?? {}}
-              badges={badges.filter((b) => b.game_id === g.gameId)}
-              unlocked={unlocked}
-              initialPicks={picksByGame.get(g.gameId) ?? []}
-            />
-            {verified.has(g.gameId) ?
-              <ProfileGameAltAccounts
-                gameId={g.gameId}
-                gameSlug={g.slug}
-                disclosureLines={
-                  altAccountsByGame[g.gameId]?.disclosureLines ?? []
-                }
-                initialRows={altAccountsByGame[g.gameId]?.rows ?? []}
-              />
-            : null}
-          </TabsContent>
-        ))}
-      </Tabs>
-    </section>
-  );
+  if (games.length === 0) return <section className={styles.empty}><h2 className={styles.sectionHeading}>아직 등록된 게임이 없습니다</h2><p className={styles.sectionText}>게임 계정을 연결하면 네임카드와 대표 뱃지를 설정할 수 있어요.</p><Link href="/games" className="text-primary mt-4 inline-block text-sm underline">게임 선택</Link></section>;
+  return <section aria-labelledby="deco-heading">
+    <h2 id="deco-heading" className={styles.sectionHeading}>게임별 프로필</h2><p className={styles.sectionText}>네임카드와 대표 뱃지는 게임별로 저장됩니다.</p>
+    <Tabs value={effectiveSlug} onValueChange={handleTabChange} className={styles.gameTabs}>
+      <TabsList className={styles.gameChips} aria-label="프로필 게임 선택">{games.map((game) => <TabsTrigger key={game.slug} value={game.slug}>{game.nameKo}</TabsTrigger>)}</TabsList>
+      {games.map((game) => <TabsContent key={game.slug} value={game.slug}>
+        <div className={styles.gameBundle}>
+          <div className={styles.bundleHeader}><h3>{game.nameKo}</h3><span className={cn(styles.pill, verified.has(game.gameId) && styles.connected)}>{verified.has(game.gameId) ? <><BadgeCheck size={12} aria-hidden="true" />계정 연동됨</> : "계정 연동 필요"}</span></div>
+          <GameDecorationPanel key={`${game.slug}:${(picksByGame.get(game.gameId) ?? []).join("|")}`} nickname={nickname} game={game} nameplateOptions={nameplateOptions} owned={owned} selectionForGame={selectionMap.get(game.gameId) ?? {}} badges={badges.filter((badge) => badge.game_id === game.gameId)} unlocked={unlocked} initialPicks={picksByGame.get(game.gameId) ?? []} />
+          <section className="mt-6 border-t pt-5"><h4 className={styles.label}>본계정</h4><p className="text-sm">{game.accountId || "계정 정보 없음"}</p>{!verified.has(game.gameId) ? <Link href={`/games/${game.slug}/auth?next=/profile`} className="text-primary mt-3 inline-block text-xs underline">계정 연동하기</Link> : null}</section>
+          {verified.has(game.gameId) ? <ProfileGameAltAccounts gameId={game.gameId} gameSlug={game.slug} disclosureLines={altAccountsByGame[game.gameId]?.disclosureLines ?? []} initialRows={altAccountsByGame[game.gameId]?.rows ?? []} /> : null}
+        </div>
+      </TabsContent>)}
+    </Tabs>
+  </section>;
 }
 
 function GameDecorationPanel({
+  nickname,
   game,
   nameplateOptions,
   owned,
@@ -260,6 +215,7 @@ function GameDecorationPanel({
   unlocked,
   initialPicks,
 }: {
+  nickname: string;
   game: DecorationGame;
   nameplateOptions: NameplateOptionRow[];
   owned: Set<string>;
@@ -270,6 +226,8 @@ function GameDecorationPanel({
 }) {
   const [pending, start] = useTransition();
   const [pickState, setPickState] = useState<string[]>(initialPicks);
+  const [nameplateOpen, setNameplateOpen] = useState(false);
+  const [badgesOpen, setBadgesOpen] = useState(false);
 
   const previewSelection = useMemo(() => {
     const out: Partial<Record<NameplateCategory, string>> = {
@@ -327,16 +285,9 @@ function GameDecorationPanel({
   }
 
   function togglePick(badgeId: string) {
-    setPickState((prev) => {
-      if (prev.includes(badgeId)) {
-        return prev.filter((x) => x !== badgeId);
-      }
-      if (prev.length >= 5) {
-        toast.message("스트립은 최대 5개까지입니다.");
-        return prev;
-      }
-      return [...prev, badgeId];
-    });
+    if (pickState.includes(badgeId)) { setPickState((previous) => previous.filter((id) => id !== badgeId)); return; }
+    if (pickState.length >= 5) { toast.message("대표 뱃지는 최대 5개까지입니다."); return; }
+    setPickState((previous) => [...previous, badgeId]);
   }
 
   function savePicks() {
@@ -350,6 +301,7 @@ function GameDecorationPanel({
         return;
       }
       toast.success("뱃지 스트립을 저장했습니다.");
+      setBadgesOpen(false);
       if (typeof window !== "undefined") {
         window.dispatchEvent(
           new CustomEvent(CLANSYNC_BADGE_PICKS_CHANGED, {
@@ -360,121 +312,44 @@ function GameDecorationPanel({
     });
   }
 
-  const equippableBadges = badges.filter((b) => equippable(b, unlocked));
-
-  return (
-    <div className="space-y-6">
-      <div
-        className="bg-muted/40 rounded-xl border p-4"
-        data-nameplate-preview={game.slug}
-        data-nameplate-self=""
-      >
-        <p className="text-muted-foreground text-xs font-medium">
-          미리보기 (D-PROFILE-01)
-        </p>
-        <p className="mt-2 text-sm font-medium">{previewLabels.join(" · ") || "—"}</p>
-      </div>
-
-      <div className="space-y-3">
-        {NP_ORDER.map((cat) => {
-          const opts = optionsForCategory(cat);
-          const value =
-            selectionForGame[cat] ??
-            defaultOptionId(nameplateOptions, game.gameId, cat) ??
-            "";
-          return (
-            <div key={cat}>
-              <label className="text-muted-foreground text-xs">{NP_LABEL[cat]}</label>
-              <select
-                className={cn(
-                  "border-input bg-background mt-1 w-full rounded-md border px-3 py-2 text-sm",
-                  "focus-visible:ring-ring outline-none focus-visible:ring-2",
-                )}
-                value={value}
-                disabled={opts.length === 0 || pending}
-                onChange={(e) => onNameplateChange(cat, e.target.value)}
-              >
-                {opts.length === 0 ? (
-                  <option value="">사용 가능한 옵션 없음</option>
-                ) : null}
-                {opts.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    {o.name_ko}
-                    {o.unlock_source !== "default" ? " (보유)" : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
-          );
-        })}
-      </div>
-
-      <div>
-        <p className="text-sm font-medium">뱃지 스트립 (최대 5)</p>
-        <div
-          className="bg-muted/30 mt-2 flex min-h-12 flex-wrap items-center gap-2 rounded-lg border px-3 py-2"
-          data-badge-strip={game.slug}
-          data-badge-strip-self=""
-        >
-          {pickState.length === 0 ? (
-            <span className="text-muted-foreground text-xs">비어 있음</span>
-          ) : (
-            pickState.map((bid, i) => {
-              const b = badges.find((x) => x.id === bid);
-              return (
-                <span
-                  key={`${bid}-${i}`}
-                  data-badge-strip-slot={i}
-                  className="bg-background inline-flex h-9 min-w-9 items-center justify-center rounded-md border text-sm"
-                  title={b?.name_ko}
-                >
-                  {b?.icon ?? "?"}
-                </span>
-              );
-            })
-          )}
-        </div>
-
-        <div className="mt-3 flex flex-wrap gap-2">
-          {equippableBadges.map((b) => {
-            const on = pickState.includes(b.id);
-            return (
-              <button
-                key={b.id}
-                type="button"
-                disabled={pending}
-                onClick={() => togglePick(b.id)}
-                className={cn(
-                  "rounded-full border px-3 py-1 text-xs transition-colors",
-                  on
-                    ? "border-primary bg-primary/10"
-                    : "bg-background hover:bg-muted/50",
-                )}
-              >
-                <span className="mr-1">{b.icon}</span>
-                {b.name_ko}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="mt-3">
-          <Button
-            type="button"
-            size="sm"
-            disabled={pending}
-            onClick={savePicks}
-          >
-            스트립 저장
-          </Button>
-        </div>
-
-        {badges.some((b) => !equippable(b, unlocked)) ? (
-          <p className="text-muted-foreground mt-3 text-xs">
-            잠긴 뱃지는 업적·이벤트·스토어에서 해금됩니다 (D-PROFILE-04).
-          </p>
-        ) : null}
-      </div>
+  return <>
+    <div className={styles.sectionHeader}><h4>네임카드 · 밸런스 슬롯 미리보기</h4><Button type="button" size="sm" variant="outline" onClick={() => setNameplateOpen(true)}><Sparkles size={13} aria-hidden="true" />꾸미기</Button></div>
+    <div className={styles.nameplate} data-game={game.slug} data-nameplate-preview={game.slug} data-nameplate-self="">
+      <div className={styles.nameplateEmblem}><Shield size={27} strokeWidth={1.5} aria-hidden="true" /></div>
+      <div className={styles.nameplateMain}><strong className={styles.nameplateNick}>{nickname}</strong><span className={styles.nameplateSubtitle}>{previewLabels.join(" · ") || "기본 네임카드"}</span></div>
     </div>
-  );
+    <section className={styles.badgeSection}>
+      <div className={styles.sectionHeader}><h4>대표 뱃지 (최대 5개)</h4><Button type="button" size="sm" variant="outline" onClick={() => setBadgesOpen(true)}>뱃지 케이스</Button></div>
+      <div className={styles.badgeStrip} data-badge-strip={game.slug} data-badge-strip-self="" aria-label="대표 뱃지 미리보기">
+        {Array.from({ length: 5 }, (_, index) => { const badge = badges.find((item) => item.id === pickState[index]); return <span key={index} data-badge-strip-slot={index} className={cn(styles.badgeSlot, !badge && styles.emptySlot)} title={badge?.name_ko ?? "빈 슬롯"}>{badge?.icon ?? "—"}</span>; })}
+      </div>
+      <p className={styles.nameplateNote}>앞쪽에 선택한 뱃지부터 네임카드에 표시됩니다.</p>
+    </section>
+    <Dialog open={nameplateOpen} onOpenChange={setNameplateOpen}>
+      <DialogContent className="sm:max-w-lg"><DialogHeader><DialogTitle>네임카드 꾸미기</DialogTitle><DialogDescription>보유한 꾸미기를 선택하면 바로 저장됩니다.</DialogDescription></DialogHeader>
+        <div className={styles.caseFields}>{NP_ORDER.map((category) => {
+          const options = optionsForCategory(category);
+          const value = selectionForGame[category] ?? defaultOptionId(nameplateOptions, game.gameId, category) ?? "";
+          return <label key={category}>{NP_LABEL[category]}<select value={value} disabled={options.length === 0 || pending} onChange={(event) => onNameplateChange(category, event.target.value)}>
+            {options.length === 0 ? <option value="">사용 가능한 옵션 없음</option> : null}
+            {options.map((option) => <option key={option.id} value={option.id}>{option.name_ko}{option.unlock_source !== "default" ? " (보유)" : ""}</option>)}
+          </select></label>;
+        })}</div>
+        <DialogFooter><Button type="button" variant="outline" onClick={() => setNameplateOpen(false)}>닫기</Button></DialogFooter>
+      </DialogContent>
+    </Dialog>
+    <Dialog open={badgesOpen} onOpenChange={(open) => { if (pending) return; setBadgesOpen(open); if (!open) setPickState(initialPicks); }}>
+      <DialogContent className="sm:max-w-lg"><DialogHeader><DialogTitle>뱃지 케이스</DialogTitle><DialogDescription>대표 뱃지를 최대 5개까지 선택하세요. 선택한 순서대로 표시됩니다.</DialogDescription></DialogHeader>
+        <div className={styles.caseHeader}><span className="text-muted-foreground text-xs">선택 {pickState.length} / 5</span><Button type="button" size="sm" variant="ghost" disabled={pending} onClick={() => setPickState([])}>선택 초기화</Button></div>
+        {badges.length ? <div className={styles.caseGrid}>{badges.map((badge) => {
+          const available = equippable(badge, unlocked);
+          const order = pickState.indexOf(badge.id);
+          return <button type="button" key={badge.id} disabled={pending || !available} aria-pressed={order >= 0} className={styles.badgeOption} onClick={() => togglePick(badge.id)}>
+            <span aria-hidden="true">{badge.icon}</span><strong>{badge.name_ko}</strong><small>{!available ? <span className="inline-flex items-center gap-1"><LockKeyhole size={10} aria-hidden="true" />미해금</span> : order >= 0 ? `${order + 1}번째 표시` : "보유"}</small>
+          </button>;
+        })}</div> : <p className={styles.empty}>아직 등록된 뱃지가 없습니다.</p>}
+        <DialogFooter><Button type="button" variant="outline" disabled={pending} onClick={() => { setPickState(initialPicks); setBadgesOpen(false); }}>취소</Button><Button type="button" disabled={pending} onClick={savePicks}>{pending ? "저장 중…" : "스트립 저장"}</Button></DialogFooter>
+      </DialogContent>
+    </Dialog>
+  </>;
 }
