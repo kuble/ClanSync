@@ -1,8 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition, type FormEvent, type ReactElement } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  useMemo,
+  useState,
+  useTransition,
+  type FormEvent,
+  type ReactElement,
+} from "react";
 import { toast } from "sonner";
 
 import {
@@ -22,7 +28,15 @@ import {
   updateScrimRoomDetailsAction,
 } from "@/app/actions/scrim-rooms";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { CommunityFrame } from "./community-frame";
+import { CommunityHome } from "./community-home";
 import { cn } from "@/lib/utils";
 
 import type {
@@ -35,10 +49,16 @@ import type {
   ScrimRoomRowOut,
 } from "@/lib/main-game/load-main-game-hub";
 
-import type { MainGameCommunityTab } from "@/lib/main-game/main-game-community-tab";
+import {
+  coerceMainGameCommunityTab,
+  type MainGameCommunityTab,
+} from "@/lib/main-game/main-game-community-tab";
 
 type Props = {
   gameSlug: string;
+  gameName: string;
+  clanLabel: string;
+  gameActive: boolean;
   promoSort: PromoSort;
   promos: PromoRow[];
   lfgs: LfgRowOut[];
@@ -52,16 +72,28 @@ type Props = {
   canCreateLfg: boolean;
   userId: string;
   clanHubHref: string;
-  initialTab?: MainGameCommunityTab;
 };
 
-function badgeForStatus(s: string | null): { label: string; className: string } | null {
+function badgeForStatus(
+  s: string | null,
+): { label: string; className: string } | null {
   if (!s) return null;
-  if (s === "applied") return { label: "신청됨", className: "bg-blue-500/15 text-blue-700 dark:text-blue-300" };
-  if (s === "accepted") return { label: "수락됨", className: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" };
-  if (s === "rejected") return { label: "거절됨", className: "bg-muted text-muted-foreground" };
-  if (s === "canceled") return { label: "취소됨", className: "bg-muted text-muted-foreground" };
-  if (s === "expired") return { label: "만료", className: "bg-muted text-muted-foreground" };
+  if (s === "applied")
+    return {
+      label: "신청됨",
+      className: "bg-blue-500/15 text-blue-700 dark:text-blue-300",
+    };
+  if (s === "accepted")
+    return {
+      label: "수락됨",
+      className: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+    };
+  if (s === "rejected")
+    return { label: "거절됨", className: "bg-muted text-muted-foreground" };
+  if (s === "canceled")
+    return { label: "취소됨", className: "bg-muted text-muted-foreground" };
+  if (s === "expired")
+    return { label: "만료", className: "bg-muted text-muted-foreground" };
   return null;
 }
 
@@ -133,7 +165,8 @@ const SCRIM_TIER_CHIP_META: Record<
 > = {
   low: {
     label: "저·중티어 묶음",
-    title: "호스트 티어 구간과 약 SR 800~2300 이 겹칠 때(미표기 방은 항상 표시)",
+    title:
+      "호스트 티어 구간과 약 SR 800~2300 이 겹칠 때(미표기 방은 항상 표시)",
   },
   mid: {
     label: "중위 묶음",
@@ -141,17 +174,25 @@ const SCRIM_TIER_CHIP_META: Record<
   },
   high: {
     label: "고티어 묶음",
-    title: "약 SR 3000 이상 과 겹칠 때 · 최대 5000 스케일(미표기 방은 항상 표시)",
+    title:
+      "약 SR 3000 이상 과 겹칠 때 · 최대 5000 스케일(미표기 방은 항상 표시)",
   },
 };
 
-function scrimSpansOverlap(region: readonly [number, number], tierMin: number, tierMax: number) {
+function scrimSpansOverlap(
+  region: readonly [number, number],
+  tierMin: number,
+  tierMax: number,
+) {
   const rLo = Math.min(tierMin, tierMax);
   const rHi = Math.max(tierMin, tierMax);
   return Math.max(region[0], rLo) <= Math.min(region[1], rHi);
 }
 
-function scrimPassesStatusFilter(room: ScrimRoomRowOut, chip: ScrimStatusFilterChip) {
+function scrimPassesStatusFilter(
+  room: ScrimRoomRowOut,
+  chip: ScrimStatusFilterChip,
+) {
   switch (chip) {
     case "all":
       return true;
@@ -164,7 +205,10 @@ function scrimPassesStatusFilter(room: ScrimRoomRowOut, chip: ScrimStatusFilterC
   }
 }
 
-function scrimPassesTierBandFilter(room: ScrimRoomRowOut, bands: ScrimTierBandKey[]) {
+function scrimPassesTierBandFilter(
+  room: ScrimRoomRowOut,
+  bands: ScrimTierBandKey[],
+) {
   if (!bands.length) return true;
   const tm = room.tier_min;
   const tx = room.tier_max;
@@ -174,6 +218,9 @@ function scrimPassesTierBandFilter(room: ScrimRoomRowOut, bands: ScrimTierBandKe
 
 export function MainGameCommunityTabs({
   gameSlug,
+  gameName,
+  clanLabel,
+  gameActive,
   promoSort,
   promos,
   lfgs,
@@ -187,40 +234,80 @@ export function MainGameCommunityTabs({
   canCreateLfg,
   userId,
   clanHubHref,
-  initialTab = "home",
 }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tab = coerceMainGameCommunityTab(searchParams.get("tab"));
+  function setTab(next: MainGameCommunityTab) {
+    const query = new URLSearchParams(searchParams.toString());
+    if (next === "home") query.delete("tab");
+    else query.set("tab", next);
+    const suffix = query.toString();
+    window.history.pushState(
+      null,
+      "",
+      window.location.pathname + (suffix ? "?" + suffix : ""),
+    );
+  }
+  const [compose, setCompose] = useState<"promo" | "lfg" | "scrim" | null>(
+    null,
+  );
   const [pending, start] = useTransition();
+
+  const [promoSearch, setPromoSearch] = useState("");
+  const [lfgSearch, setLfgSearch] = useState("");
+  const [micOnly, setMicOnly] = useState(false);
+  const [myApplicationsOnly, setMyApplicationsOnly] = useState(false);
+  const visiblePromos = promos.filter((p) =>
+    [p.title, p.clan_name, p.content]
+      .join(" ")
+      .toLocaleLowerCase()
+      .includes(promoSearch.trim().toLocaleLowerCase()),
+  );
+  const visibleLfgs = lfgs.filter(
+    (p) =>
+      (!micOnly || p.mic_required) &&
+      (!myApplicationsOnly ||
+        p.my_status === "applied" ||
+        p.my_status === "accepted") &&
+      [p.creator_nickname, p.mode, p.format, p.description]
+        .join(" ")
+        .toLocaleLowerCase()
+        .includes(lfgSearch.trim().toLocaleLowerCase()),
+  );
 
   const [promoTitle, setPromoTitle] = useState("");
   const [promoBody, setPromoBody] = useState("");
-
-  const [defaultExp] = useState(() => {
-    const d = new Date(Date.now() + 3 * 3600000);
-    d.setMinutes(0, 0, 0);
-    return d.toISOString().slice(0, 16);
-  });
 
   const [lfgMode, setLfgMode] = useState("경쟁전");
   const [lfgFormat, setLfgFormat] = useState("5vs5");
   const [lfgSlots, setLfgSlots] = useState(2);
   const [lfgHour, setLfgHour] = useState(20);
-  const [lfgExp, setLfgExp] = useState(defaultExp);
+  const [lfgExp, setLfgExp] = useState("");
   const [lfgMic, setLfgMic] = useState(false);
   const [lfgDesc, setLfgDesc] = useState("");
+
+  function openCompose(kind: "promo" | "lfg" | "scrim", openedAt: number) {
+    const deadline = new Date(openedAt + 3 * 3600000);
+    deadline.setMinutes(0, 0, 0);
+    const local = localDatetimeInputValue(deadline.toISOString());
+    setLfgExp((current) => current || local);
+    setScrimWhen((current) => current || local);
+    setCompose(kind);
+  }
 
   const [applyMsg, setApplyMsg] = useState<Record<string, string>>({});
 
   const [scrimTitle, setScrimTitle] = useState("");
   const [scrimPlace, setScrimPlace] = useState("");
-  const [scrimWhen, setScrimWhen] = useState(defaultExp);
+  const [scrimWhen, setScrimWhen] = useState("");
   const [scrimMode, setScrimMode] = useState("5vs5");
   const [scrimTierMin, setScrimTierMin] = useState("");
   const [scrimTierMax, setScrimTierMax] = useState("");
   const [scrimMemo, setScrimMemo] = useState("");
-  const [guestPickByRoom, setGuestPickByRoom] = useState<Record<string, string>>(
-    {},
-  );
+  const [guestPickByRoom, setGuestPickByRoom] = useState<
+    Record<string, string>
+  >({});
 
   const [editingScrimId, setEditingScrimId] = useState<string | null>(null);
   const [editScrimTitle, setEditScrimTitle] = useState("");
@@ -237,19 +324,25 @@ export function MainGameCommunityTabs({
 
   function onPromoSortChange(next: PromoSort) {
     router.push(
-      `/games/${encodeURIComponent(gameSlug)}?promoSort=${next === "space" ? "space" : "newest"}`,
+      `/games/${encodeURIComponent(gameSlug)}?tab=promo&promoSort=${next === "space" ? "space" : "newest"}`,
     );
   }
 
   function submitPromo(e: FormEvent) {
     e.preventDefault();
     start(async () => {
-      const r = await createPromotionPostAction(gameSlug, promoTitle, promoBody);
+      const r = await createPromotionPostAction(
+        gameSlug,
+        promoTitle,
+        promoBody,
+      );
       if (!r.ok) {
         toast.error(r.error);
         return;
       }
       toast.success("홍보글이 등록되었습니다.");
+      setCompose(null);
+      router.refresh();
       setPromoTitle("");
       setPromoBody("");
     });
@@ -272,6 +365,8 @@ export function MainGameCommunityTabs({
         return;
       }
       toast.success("LFG 모집을 등록했습니다.");
+      setCompose(null);
+      router.refresh();
       setLfgDesc("");
     });
   }
@@ -312,6 +407,8 @@ export function MainGameCommunityTabs({
         return;
       }
       toast.success("스크림 방을 만들었습니다.");
+      setCompose(null);
+      router.refresh();
       setScrimTitle("");
       setScrimPlace("");
       setScrimMode("5vs5");
@@ -331,9 +428,9 @@ export function MainGameCommunityTabs({
   );
   const [scrimStatusChip, setScrimStatusChip] =
     useState<ScrimStatusFilterChip>("all");
-  const [scrimTierBandChip, setScrimTierBandChip] = useState<ScrimTierBandKey[]>(
-    [],
-  );
+  const [scrimTierBandChip, setScrimTierBandChip] = useState<
+    ScrimTierBandKey[]
+  >([]);
   const [scrimShowCancelled, setScrimShowCancelled] = useState(false);
 
   const filteredScrimRooms = useMemo(() => {
@@ -403,48 +500,24 @@ export function MainGameCommunityTabs({
   const g = encodeURIComponent(gameSlug);
 
   return (
-    <Tabs defaultValue={initialTab} className="w-full">
-      <TabsList variant="line" className="mb-6 w-full flex-wrap gap-1">
-        <TabsTrigger value="home">홈</TabsTrigger>
-        <TabsTrigger value="promo">홍보</TabsTrigger>
-        <TabsTrigger value="lfg">LFG</TabsTrigger>
-        <TabsTrigger value="rank">순위</TabsTrigger>
-        <TabsTrigger value="scrim">스크림</TabsTrigger>
-      </TabsList>
-
-      <TabsContent value="home" className="space-y-4 text-sm">
-        <p className="text-muted-foreground">
-          클랜 일정·통계·스토어는{" "}
-          <Link href={clanHubHref} className="text-primary underline-offset-4 hover:underline">
-            클랜 화면
-          </Link>
-          에서 이용할 수 있습니다.
-        </p>
-        <div>
-          <p className="font-medium">최근 홍보</p>
-          {!promos.length ? (
-            <p className="text-muted-foreground mt-2 rounded-lg border border-dashed p-4 text-xs">
-              아직 홍보 글이 없습니다.
-            </p>
-          ) : (
-            <ul className="mt-2 space-y-2">
-              {promos.slice(0, 5).map((p) => (
-                <li key={p.id} className="bg-card rounded-lg border px-3 py-2 text-xs shadow-sm">
-                  <Link
-                    href={`/games/${g}/board/${encodeURIComponent(p.id)}`}
-                    className="font-medium hover:underline"
-                  >
-                    {p.title}
-                  </Link>
-                  <span className="text-muted-foreground"> · {p.clan_name}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        <p className="text-muted-foreground text-xs">
-          D-RANK-01: 정렬은 최신 / 여유 인원(활성 멤버 기준) 두 가지입니다.
-        </p>
+    <CommunityFrame
+      gameName={gameName}
+      gameSlug={gameSlug}
+      clanLabel={clanLabel}
+      clanHubHref={clanHubHref}
+      gameActive={gameActive}
+      tab={tab}
+      onNavigate={setTab}
+    >
+      <TabsContent value="home">
+        <CommunityHome
+          gameSlug={gameSlug}
+          promos={promos}
+          lfgs={lfgs}
+          ranks={rankClans}
+          scrims={scrimRooms}
+          onNavigate={setTab}
+        />
       </TabsContent>
 
       <TabsContent
@@ -453,9 +526,19 @@ export function MainGameCommunityTabs({
         className="space-y-6 text-sm"
       >
         <div className="flex flex-wrap items-center gap-3">
-          <label className="text-muted-foreground text-xs">정렬</label>
+          <input
+            aria-label="클랜 홍보 검색"
+            placeholder="클랜 이름이나 모집글 검색"
+            value={promoSearch}
+            onChange={(e) => setPromoSearch(e.target.value)}
+            className="min-w-0 flex-1 rounded-lg border bg-card px-3 py-2 text-sm"
+          />
+          <label htmlFor="promo-sort" className="text-muted-foreground text-xs">
+            정렬
+          </label>
           <select
             className="border-input bg-background rounded-md border px-2 py-1.5 text-xs"
+            id="promo-sort"
             value={promoSort}
             disabled={pending}
             onChange={(e) =>
@@ -468,43 +551,72 @@ export function MainGameCommunityTabs({
         </div>
 
         {canPostPromo ? (
-          <form onSubmit={submitPromo} className="bg-card space-y-3 rounded-xl border p-4 shadow-sm">
-            <p className="text-xs font-medium">홍보 글 작성</p>
-            <input
-              className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
-              placeholder="제목"
-              value={promoTitle}
-              disabled={pending}
-              onChange={(e) => setPromoTitle(e.target.value)}
-              required
-            />
-            <textarea
-              className="border-input bg-background min-h-[88px] w-full rounded-md border px-3 py-2 text-sm"
-              placeholder="내용"
-              value={promoBody}
-              disabled={pending}
-              onChange={(e) => setPromoBody(e.target.value)}
-            />
-            <Button type="submit" size="sm" disabled={pending}>
-              등록
+          <div className="flex justify-end">
+            <Button onClick={() => openCompose("promo", Date.now())}>
+              홍보 글 작성
             </Button>
-          </form>
+            <Dialog
+              open={compose === "promo"}
+              onOpenChange={(open) => {
+                if (!pending && !open) setCompose(null);
+              }}
+            >
+              <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
+                <DialogHeader>
+                  <DialogTitle>홍보 글 작성</DialogTitle>
+                </DialogHeader>
+                <form
+                  onSubmit={submitPromo}
+                  className="bg-card space-y-3 rounded-xl border p-4 shadow-sm"
+                >
+                  <p className="text-xs font-medium">홍보 글 작성</p>
+                  <input
+                    className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
+                    aria-label="제목"
+                    placeholder="제목"
+                    maxLength={200}
+                    value={promoTitle}
+                    disabled={pending}
+                    onChange={(e) => setPromoTitle(e.target.value)}
+                    required
+                  />
+                  <textarea
+                    className="border-input bg-background min-h-[88px] w-full rounded-md border px-3 py-2 text-sm"
+                    aria-label="내용"
+                    placeholder="내용"
+                    maxLength={8000}
+                    value={promoBody}
+                    disabled={pending}
+                    onChange={(e) => setPromoBody(e.target.value)}
+                  />
+                  <Button type="submit" size="sm" disabled={pending}>
+                    등록
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         ) : (
           <p className="text-muted-foreground rounded-lg border border-dashed p-4 text-xs">
             홍보글은 해당 게임에 소속된 클랜이 있을 때만 작성할 수 있습니다.{" "}
-            <Link href={`/games/${g}/clan`} className="text-primary underline-offset-4 hover:underline">
-              클랜 온보딩
+            <Link
+              href={`/games/${g}/clan`}
+              className="text-primary underline-offset-4 hover:underline"
+            >
+              클랜 찾기
             </Link>
           </p>
         )}
 
-        {!promos.length ? (
+        {!visiblePromos.length ? (
           <p className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
-            등록된 홍보가 없습니다.
+            {promos.length
+              ? "검색 조건에 맞는 홍보글이 없어요."
+              : "등록된 홍보가 없습니다."}
           </p>
         ) : (
-          <ul className="space-y-3">
-            {promos.map((p) => (
+          <ul className="grid gap-4 md:grid-cols-2">
+            {visiblePromos.map((p) => (
               <li
                 key={p.id}
                 className="bg-card rounded-xl border px-4 py-3 shadow-sm"
@@ -527,8 +639,9 @@ export function MainGameCommunityTabs({
                   {p.content || "—"}
                 </p>
                 <p className="text-muted-foreground mt-2 text-[11px]">
-                  {new Date(p.created_at).toLocaleString("ko-KR")} · 활성 {p.active_members}/
-                  {p.max_members}명 (남은 자리 {p.space_remaining})
+                  {new Date(p.created_at).toLocaleString("ko-KR")} · 활성{" "}
+                  {p.active_members}/{p.max_members}명 (남은 자리{" "}
+                  {p.space_remaining})
                 </p>
               </li>
             ))}
@@ -537,99 +650,162 @@ export function MainGameCommunityTabs({
       </TabsContent>
 
       <TabsContent value="lfg" className="space-y-6 text-sm">
-        {canCreateLfg ? (
-          <form onSubmit={submitLfg} className="bg-card space-y-3 rounded-xl border p-4 shadow-sm">
-            <p className="text-xs font-medium">LFG 모집 등록 (D-LFG-01)</p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="space-y-1 text-xs">
-                <span className="text-muted-foreground">모드</span>
-                <input
-                  className="border-input bg-background w-full rounded-md border px-2 py-1.5"
-                  value={lfgMode}
-                  disabled={pending}
-                  onChange={(e) => setLfgMode(e.target.value)}
-                />
-              </label>
-              <label className="space-y-1 text-xs">
-                <span className="text-muted-foreground">포맷</span>
-                <input
-                  className="border-input bg-background w-full rounded-md border px-2 py-1.5"
-                  value={lfgFormat}
-                  disabled={pending}
-                  onChange={(e) => setLfgFormat(e.target.value)}
-                />
-              </label>
-              <label className="space-y-1 text-xs">
-                <span className="text-muted-foreground">모집 인원 (슬롯)</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={11}
-                  className="border-input bg-background w-full rounded-md border px-2 py-1.5"
-                  value={lfgSlots}
-                  disabled={pending}
-                  onChange={(e) => setLfgSlots(Number(e.target.value))}
-                />
-              </label>
-              <label className="space-y-1 text-xs">
-                <span className="text-muted-foreground">시작 시각 (시, 0–23)</span>
-                <input
-                  type="number"
-                  min={0}
-                  max={23}
-                  className="border-input bg-background w-full rounded-md border px-2 py-1.5"
-                  value={lfgHour}
-                  disabled={pending}
-                  onChange={(e) => setLfgHour(Number(e.target.value))}
-                />
-              </label>
-            </div>
-            <label className="flex flex-col gap-1 text-xs">
-              <span className="text-muted-foreground">모집 마감 (로컬 시각)</span>
-              <input
-                type="datetime-local"
-                className="border-input bg-background rounded-md border px-2 py-1.5"
-                value={lfgExp}
-                disabled={pending}
-                onChange={(e) => setLfgExp(e.target.value)}
-              />
-            </label>
-            <label className="flex items-center gap-2 text-xs">
-              <input
-                type="checkbox"
-                checked={lfgMic}
-                disabled={pending}
-                onChange={(e) => setLfgMic(e.target.checked)}
-              />
-              마이크 필수
-            </label>
-            <textarea
-              className="border-input bg-background min-h-[72px] w-full rounded-md border px-2 py-1.5 text-xs"
-              placeholder="한마디 (선택)"
-              value={lfgDesc}
-              disabled={pending}
-              onChange={(e) => setLfgDesc(e.target.value)}
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border bg-card p-4">
+          <input
+            aria-label="파티 검색"
+            placeholder="닉네임·모드·파티 소개 검색"
+            value={lfgSearch}
+            onChange={(e) => setLfgSearch(e.target.value)}
+            className="min-w-0 basis-full rounded-lg border bg-background px-3 py-2 sm:flex-1 sm:basis-auto"
+          />
+          <label className="flex items-center gap-2 text-xs">
+            <input
+              type="checkbox"
+              checked={micOnly}
+              onChange={(e) => setMicOnly(e.target.checked)}
             />
-            <Button type="submit" size="sm" disabled={pending}>
-              모집 등록
+            마이크 필수 파티
+          </label>
+          <label className="flex items-center gap-2 text-xs">
+            <input
+              type="checkbox"
+              checked={myApplicationsOnly}
+              onChange={(e) => setMyApplicationsOnly(e.target.checked)}
+            />
+            내 신청
+          </label>
+          <span className="text-xs text-muted-foreground">
+            {visibleLfgs.length}개 파티
+          </span>
+        </div>
+        {canCreateLfg ? (
+          <div className="flex justify-end">
+            <Button onClick={() => openCompose("lfg", Date.now())}>
+              LFG 모집 등록
             </Button>
-          </form>
+            <Dialog
+              open={compose === "lfg"}
+              onOpenChange={(open) => {
+                if (!pending && !open) setCompose(null);
+              }}
+            >
+              <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
+                <DialogHeader>
+                  <DialogTitle>LFG 모집 등록</DialogTitle>
+                </DialogHeader>
+                <form
+                  onSubmit={submitLfg}
+                  className="bg-card space-y-3 rounded-xl border p-4 shadow-sm"
+                >
+                  <p className="text-xs font-medium">
+                    모집 정보를 입력해주세요
+                  </p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="space-y-1 text-xs">
+                      <span className="text-muted-foreground">모드</span>
+                      <input
+                        className="border-input bg-background w-full rounded-md border px-2 py-1.5"
+                        value={lfgMode}
+                        disabled={pending}
+                        onChange={(e) => setLfgMode(e.target.value)}
+                      />
+                    </label>
+                    <label className="space-y-1 text-xs">
+                      <span className="text-muted-foreground">포맷</span>
+                      <input
+                        className="border-input bg-background w-full rounded-md border px-2 py-1.5"
+                        value={lfgFormat}
+                        disabled={pending}
+                        onChange={(e) => setLfgFormat(e.target.value)}
+                      />
+                    </label>
+                    <label className="space-y-1 text-xs">
+                      <span className="text-muted-foreground">
+                        모집 인원 (슬롯)
+                      </span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={11}
+                        className="border-input bg-background w-full rounded-md border px-2 py-1.5"
+                        value={lfgSlots}
+                        disabled={pending}
+                        onChange={(e) => setLfgSlots(Number(e.target.value))}
+                      />
+                    </label>
+                    <label className="space-y-1 text-xs">
+                      <span className="text-muted-foreground">
+                        시작 시각 (시, 0–23)
+                      </span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={23}
+                        className="border-input bg-background w-full rounded-md border px-2 py-1.5"
+                        value={lfgHour}
+                        disabled={pending}
+                        onChange={(e) => setLfgHour(Number(e.target.value))}
+                      />
+                    </label>
+                  </div>
+                  <label className="flex flex-col gap-1 text-xs">
+                    <span className="text-muted-foreground">
+                      모집 마감 (로컬 시각)
+                    </span>
+                    <input
+                      type="datetime-local"
+                      className="border-input bg-background rounded-md border px-2 py-1.5"
+                      required
+                      value={lfgExp}
+                      disabled={pending}
+                      onChange={(e) => setLfgExp(e.target.value)}
+                    />
+                  </label>
+                  <label className="flex items-center gap-2 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={lfgMic}
+                      disabled={pending}
+                      onChange={(e) => setLfgMic(e.target.checked)}
+                    />
+                    마이크 필수
+                  </label>
+                  <textarea
+                    className="border-input bg-background min-h-[72px] w-full rounded-md border px-2 py-1.5 text-xs"
+                    aria-label="한마디 (선택)"
+                    placeholder="한마디 (선택)"
+                    value={lfgDesc}
+                    disabled={pending}
+                    onChange={(e) => setLfgDesc(e.target.value)}
+                  />
+                  <Button type="submit" size="sm" disabled={pending}>
+                    모집 등록
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         ) : (
           <p className="text-muted-foreground rounded-lg border border-dashed p-4 text-xs">
             LFG는 게임 계정 연동 후 이용할 수 있습니다.{" "}
-            <Link href={`/games/${g}/auth`} className="text-primary underline-offset-4 hover:underline">
+            <Link
+              href={`/games/${g}/auth`}
+              className="text-primary underline-offset-4 hover:underline"
+            >
               연동하기
             </Link>
           </p>
         )}
 
-        {!lfgs.length ? (
+        {!visibleLfgs.length ? (
           <p className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
-            진행 중인 LFG가 없습니다.
+            {lfgs.length
+              ? "검색 조건에 맞는 파티가 없어요."
+              : "진행 중인 LFG가 없습니다."}
           </p>
         ) : (
           <ul className="space-y-4">
-            {lfgs.map((row) => {
+            {visibleLfgs.map((row) => {
               const isCreator = row.creator_user_id === userId;
               const badge = badgeForStatus(row.my_status);
               const applicants = applicantsByPost[row.id] ?? [];
@@ -658,23 +834,30 @@ export function MainGameCommunityTabs({
                     </span>
                   </div>
                   <p className="text-muted-foreground mt-1 text-xs">
-                    모집자 {row.creator_nickname} · 시작 약 {row.start_time_hour}시 · 마감{" "}
+                    모집자 {row.creator_nickname} · 시작 약{" "}
+                    {row.start_time_hour}시 · 마감{" "}
                     {new Date(row.expires_at).toLocaleString("ko-KR")}
                     {row.mic_required ? " · 마이크 필요" : ""}
                   </p>
                   {row.description ? (
-                    <p className="mt-2 whitespace-pre-wrap text-xs">{row.description}</p>
+                    <p className="mt-2 whitespace-pre-wrap text-xs">
+                      {row.description}
+                    </p>
                   ) : null}
 
                   {!isCreator && !row.my_status ? (
                     <div className="mt-3 space-y-2">
                       <input
                         className="border-input bg-background w-full max-w-md rounded-md border px-2 py-1.5 text-xs"
+                        aria-label="신청 메모 (선택)"
                         placeholder="신청 메모 (선택)"
                         value={applyMsg[row.id] ?? ""}
                         disabled={pending}
                         onChange={(e) =>
-                          setApplyMsg((m) => ({ ...m, [row.id]: e.target.value }))
+                          setApplyMsg((m) => ({
+                            ...m,
+                            [row.id]: e.target.value,
+                          }))
                         }
                       />
                       <Button
@@ -732,7 +915,9 @@ export function MainGameCommunityTabs({
                         신청자 {applicants.length}명
                       </p>
                       {!applicants.length ? (
-                        <p className="text-muted-foreground text-xs">대기 중인 신청이 없습니다.</p>
+                        <p className="text-muted-foreground text-xs">
+                          대기 중인 신청이 없습니다.
+                        </p>
                       ) : (
                         <ul className="space-y-2">
                           {applicants.map((a) => (
@@ -753,11 +938,12 @@ export function MainGameCommunityTabs({
                                   disabled={pending}
                                   onClick={() => {
                                     start(async () => {
-                                      const r = await acceptLfgApplicationAction(
-                                        gameSlug,
-                                        row.id,
-                                        a.id,
-                                      );
+                                      const r =
+                                        await acceptLfgApplicationAction(
+                                          gameSlug,
+                                          row.id,
+                                          a.id,
+                                        );
                                       if (!r.ok) toast.error(r.error);
                                       else toast.success("수락했습니다.");
                                     });
@@ -773,11 +959,12 @@ export function MainGameCommunityTabs({
                                   disabled={pending}
                                   onClick={() => {
                                     start(async () => {
-                                      const r = await rejectLfgApplicationAction(
-                                        gameSlug,
-                                        row.id,
-                                        a.id,
-                                      );
+                                      const r =
+                                        await rejectLfgApplicationAction(
+                                          gameSlug,
+                                          row.id,
+                                          a.id,
+                                        );
                                       if (!r.ok) toast.error(r.error);
                                       else toast.success("거절했습니다.");
                                     });
@@ -797,7 +984,10 @@ export function MainGameCommunityTabs({
                         disabled={pending}
                         onClick={() => {
                           start(async () => {
-                            const r = await cancelLfgPostAction(gameSlug, row.id);
+                            const r = await cancelLfgPostAction(
+                              gameSlug,
+                              row.id,
+                            );
                             if (!r.ok) toast.error(r.error);
                             else toast.success("모집을 취소했습니다.");
                           });
@@ -816,7 +1006,7 @@ export function MainGameCommunityTabs({
 
       <TabsContent value="rank" className="space-y-3 text-sm">
         <p className="text-muted-foreground text-xs">
-          활동 기준 미리보기: 최근 활동 시각 순 (외부 순위표 정책 D-ECON-03와 별개의 경량 목록).
+          최근 활동한 클랜 순으로 표시합니다.
         </p>
         {!rankClans.length ? (
           <p className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
@@ -836,7 +1026,9 @@ export function MainGameCommunityTabs({
                 {rankClans.map((c, i) => (
                   <tr key={c.id} className="border-t">
                     <td className="px-3 py-2">
-                      <span className="text-muted-foreground mr-2 tabular-nums">{i + 1}</span>
+                      <span className="text-muted-foreground mr-2 tabular-nums">
+                        {i + 1}
+                      </span>
                       <Link
                         href={`/games/${g}/clan/${c.id}`}
                         className="font-medium hover:underline"
@@ -866,97 +1058,129 @@ export function MainGameCommunityTabs({
         className="space-y-6 text-sm"
       >
         <p className="text-muted-foreground text-xs">
-          같은 게임 소속 클랜 간 스크림 방 — 모집 후 상대를 지정하고, 양측 운영진이 확정합니다.
+          같은 게임 소속 클랜 간 스크림 방 — 모집 후 상대를 지정하고, 양측
+          운영진이 확정합니다.
         </p>
 
         {!myClanId ? (
           <p className="text-muted-foreground rounded-lg border border-dashed p-4 text-xs">
             스크림은 클랜에 소속된 뒤 이용할 수 있습니다.{" "}
-            <Link href={`/games/${g}/clan`} className="text-primary underline-offset-4 hover:underline">
+            <Link
+              href={`/games/${g}/clan`}
+              className="text-primary underline-offset-4 hover:underline"
+            >
               클랜 온보딩
             </Link>
           </p>
         ) : null}
 
         {myClanId && canConfirmScrim ? (
-          <form
-            onSubmit={submitScrimDraft}
-            className="bg-card space-y-3 rounded-xl border p-4 shadow-sm"
-          >
-            <p className="text-xs font-medium">스크림 방 개설 (모집 중)</p>
-            <input
-              className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
-              placeholder="제목 (선택)"
-              value={scrimTitle}
-              disabled={pending}
-              onChange={(e) => setScrimTitle(e.target.value)}
-            />
-            <label className="flex flex-col gap-1 text-xs">
-              <span className="text-muted-foreground">일시 (로컬)</span>
-              <input
-                type="datetime-local"
-                className="border-input bg-background rounded-md border px-2 py-1.5"
-                value={scrimWhen}
-                disabled={pending}
-                onChange={(e) => setScrimWhen(e.target.value)}
-                required
-              />
-            </label>
-            <input
-              className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
-              placeholder="장소 / 채널 (선택)"
-              value={scrimPlace}
-              disabled={pending}
-              onChange={(e) => setScrimPlace(e.target.value)}
-            />
-            <label className="space-y-1 text-xs">
-              <span className="text-muted-foreground">모드 (선택, 예: 5vs5)</span>
-              <input
-                className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
-                value={scrimMode}
-                disabled={pending}
-                onChange={(e) => setScrimMode(e.target.value)}
-                maxLength={32}
-              />
-            </label>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <label className="space-y-1 text-xs">
-                <span className="text-muted-foreground">티어 하한 (선택)</span>
-                <input
-                  type="number"
-                  className="border-input bg-background w-full rounded-md border px-2 py-1.5"
-                  value={scrimTierMin}
-                  disabled={pending}
-                  onChange={(e) => setScrimTierMin(e.target.value)}
-                  min={0}
-                  max={5000}
-                />
-              </label>
-              <label className="space-y-1 text-xs">
-                <span className="text-muted-foreground">티어 상한 (선택)</span>
-                <input
-                  type="number"
-                  className="border-input bg-background w-full rounded-md border px-2 py-1.5"
-                  value={scrimTierMax}
-                  disabled={pending}
-                  onChange={(e) => setScrimTierMax(e.target.value)}
-                  min={0}
-                  max={5000}
-                />
-              </label>
-            </div>
-            <textarea
-              className="border-input bg-background min-h-[72px] w-full rounded-md border px-3 py-2 text-sm"
-              placeholder="메모 (선택)"
-              value={scrimMemo}
-              disabled={pending}
-              onChange={(e) => setScrimMemo(e.target.value)}
-              maxLength={5000}
-            />
-            <Button type="submit" size="sm" disabled={pending}>
-              방 만들기
+          <div className="flex justify-end">
+            <Button onClick={() => openCompose("scrim", Date.now())}>
+              스크림 방 만들기
             </Button>
-          </form>
+            <Dialog
+              open={compose === "scrim"}
+              onOpenChange={(open) => {
+                if (!pending && !open) setCompose(null);
+              }}
+            >
+              <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
+                <DialogHeader>
+                  <DialogTitle>스크림 방 만들기</DialogTitle>
+                </DialogHeader>
+                <form
+                  onSubmit={submitScrimDraft}
+                  className="bg-card space-y-3 rounded-xl border p-4 shadow-sm"
+                >
+                  <p className="text-xs font-medium">
+                    스크림 방 개설 (모집 중)
+                  </p>
+                  <input
+                    className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
+                    aria-label="제목 (선택)"
+                    placeholder="제목 (선택)"
+                    value={scrimTitle}
+                    disabled={pending}
+                    onChange={(e) => setScrimTitle(e.target.value)}
+                  />
+                  <label className="flex flex-col gap-1 text-xs">
+                    <span className="text-muted-foreground">일시 (로컬)</span>
+                    <input
+                      type="datetime-local"
+                      className="border-input bg-background rounded-md border px-2 py-1.5"
+                      value={scrimWhen}
+                      disabled={pending}
+                      onChange={(e) => setScrimWhen(e.target.value)}
+                      required
+                    />
+                  </label>
+                  <input
+                    className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
+                    aria-label="장소 / 채널 (선택)"
+                    placeholder="장소 / 채널 (선택)"
+                    value={scrimPlace}
+                    disabled={pending}
+                    onChange={(e) => setScrimPlace(e.target.value)}
+                  />
+                  <label className="space-y-1 text-xs">
+                    <span className="text-muted-foreground">
+                      모드 (선택, 예: 5vs5)
+                    </span>
+                    <input
+                      className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
+                      value={scrimMode}
+                      disabled={pending}
+                      onChange={(e) => setScrimMode(e.target.value)}
+                      maxLength={32}
+                    />
+                  </label>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <label className="space-y-1 text-xs">
+                      <span className="text-muted-foreground">
+                        티어 하한 (선택)
+                      </span>
+                      <input
+                        type="number"
+                        className="border-input bg-background w-full rounded-md border px-2 py-1.5"
+                        value={scrimTierMin}
+                        disabled={pending}
+                        onChange={(e) => setScrimTierMin(e.target.value)}
+                        min={0}
+                        max={5000}
+                      />
+                    </label>
+                    <label className="space-y-1 text-xs">
+                      <span className="text-muted-foreground">
+                        티어 상한 (선택)
+                      </span>
+                      <input
+                        type="number"
+                        className="border-input bg-background w-full rounded-md border px-2 py-1.5"
+                        value={scrimTierMax}
+                        disabled={pending}
+                        onChange={(e) => setScrimTierMax(e.target.value)}
+                        min={0}
+                        max={5000}
+                      />
+                    </label>
+                  </div>
+                  <textarea
+                    className="border-input bg-background min-h-[72px] w-full rounded-md border px-3 py-2 text-sm"
+                    aria-label="메모 (선택)"
+                    placeholder="메모 (선택)"
+                    value={scrimMemo}
+                    disabled={pending}
+                    onChange={(e) => setScrimMemo(e.target.value)}
+                    maxLength={5000}
+                  />
+                  <Button type="submit" size="sm" disabled={pending}>
+                    방 만들기
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         ) : myClanId && !canConfirmScrim ? (
           <p className="text-muted-foreground rounded-lg border border-dashed p-4 text-xs">
             스크림 개설·확정은 클랜에서 허용된 운영 역할만 할 수 있습니다.
@@ -989,7 +1213,9 @@ export function MainGameCommunityTabs({
                 <Button
                   type="button"
                   size="sm"
-                  variant={scrimStatusChip === "recruiting" ? "secondary" : "outline"}
+                  variant={
+                    scrimStatusChip === "recruiting" ? "secondary" : "outline"
+                  }
                   className="h-8"
                   disabled={pending}
                   onClick={() => setScrimStatusChip("recruiting")}
@@ -999,7 +1225,9 @@ export function MainGameCommunityTabs({
                 <Button
                   type="button"
                   size="sm"
-                  variant={scrimStatusChip === "settled" ? "secondary" : "outline"}
+                  variant={
+                    scrimStatusChip === "settled" ? "secondary" : "outline"
+                  }
                   className="h-8"
                   disabled={pending}
                   onClick={() => setScrimStatusChip("settled")}
@@ -1111,536 +1339,613 @@ export function MainGameCommunityTabs({
               </div>
             ) : (
               <>
-            <section
-              className="bg-card space-y-3 rounded-xl border p-4 shadow-sm"
-              aria-label="스크림이 예정된 날 선택"
-              data-testid="scrim-mini-calendar"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 shrink-0"
-                  aria-label="이전 달"
-                  onClick={() => shiftScrimCalendarMonth(-1)}
+                <section
+                  className="bg-card space-y-3 rounded-xl border p-4 shadow-sm"
+                  aria-label="스크림이 예정된 날 선택"
+                  data-testid="scrim-mini-calendar"
                 >
-                  ‹
-                </Button>
-                <span className="flex-1 text-center text-sm font-medium tabular-nums">
-                  {new Date(
-                    scrimCalendarMonth.y,
-                    scrimCalendarMonth.m,
-                  ).toLocaleDateString("ko-KR", {
-                    year: "numeric",
-                    month: "long",
-                  })}
-                </span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 shrink-0"
-                  aria-label="다음 달"
-                  onClick={() => shiftScrimCalendarMonth(1)}
-                >
-                  ›
-                </Button>
-              </div>
-              <div className="grid grid-cols-7 gap-1 text-[10px] font-medium text-muted-foreground">
-                {["일", "월", "화", "수", "목", "금", "토"].map((label) => (
-                  <span key={label} className="block text-center">
-                    {label}
-                  </span>
-                ))}
-              </div>
-              <div className="grid grid-cols-7 gap-1">
-                {(() => {
-                  const cy = scrimCalendarMonth.y;
-                  const cm = scrimCalendarMonth.m;
-                  const padStart = new Date(cy, cm, 1).getDay();
-                  const monthLast = new Date(cy, cm + 1, 0).getDate();
-                  const el: ReactElement[] = [];
-                  for (let i = 0; i < padStart; i += 1) {
-                    el.push(
-                      <span key={`scrim-cal-pad-${cy}-${cm}-${i}`} className="h-9" />,
-                    );
-                  }
-                  for (let day = 1; day <= monthLast; day += 1) {
-                    const dk = calendarDayKey(cy, cm, day);
-                    const hasHere = scrimLocalDayKeys.has(dk);
-                    const isSelected = selectedScrimDayKey === dk;
-                    const isToday = dk === todayLocalKey;
-                    el.push(
-                      <button
-                        key={`scrim-cal-${dk}`}
-                        type="button"
-                        aria-current={isSelected ? "date" : undefined}
-                        aria-pressed={isSelected}
-                        aria-label={`${dk} ${hasHere ? "(스크림 있음)" : "(스크림 없음)"}`}
-                        disabled={pending}
-                        onClick={() =>
-                          setSelectedScrimDayKey((prev) => (prev === dk ? null : dk))
-                        }
-                        className={cn(
-                          "h-9 rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                          isSelected
-                            ? "bg-primary text-primary-foreground"
-                            : hasHere
-                              ? "border border-primary/40 bg-muted/60 text-foreground"
-                              : "text-muted-foreground hover:bg-muted/50",
-                          isToday && !isSelected
-                            ? "ring-2 ring-muted-foreground/35 ring-offset-1"
-                            : "",
-                        )}
-                      >
-                        {day}
-                      </button>,
-                    );
-                  }
-                  return el;
-                })()}
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={selectedScrimDayKey == null ? "secondary" : "outline"}
-                  disabled={pending}
-                  onClick={() => setSelectedScrimDayKey(null)}
-                >
-                  모든 날짜
-                </Button>
-                <p className="text-muted-foreground text-[11px]">
-                  같은 날을 다시 누르면 선택이 해제됩니다.
-                </p>
-              </div>
-            </section>
-
-            <div data-testid="scrimDayList" className="space-y-6">
-              {scrimDisplayBuckets.map(({ dayKey, rooms }) =>
-                rooms.length ? (
-                  <div key={`bucket-${dayKey}`}>
-                    {selectedScrimDayKey ? (
-                      <p className="text-muted-foreground mb-3 text-[11px]">
-                        선택한 날: {formatScrimDayHeading(dayKey)} ·{" "}
-                        <span className="font-medium tabular-nums text-foreground">
-                          {rooms.length}
-                        </span>
-                        건
-                      </p>
-                    ) : (
-                      <h3 className="border-border mb-3 flex items-baseline justify-between gap-2 border-b pb-2 text-sm font-semibold">
-                        <span>{formatScrimDayHeading(dayKey)}</span>
-                        <span className="text-muted-foreground text-[11px] font-normal tabular-nums">
-                          {rooms.length}건
-                        </span>
-                      </h3>
-                    )}
-                    <ul className="space-y-4">
-                      {rooms.map((room) => {
-              const isHost = myClanId === room.clan_a_id;
-              const isGuest =
-                room.clan_b_id != null && myClanId === room.clan_b_id;
-              const activeScrim =
-                room.status === "draft" ||
-                room.status === "matched" ||
-                room.status === "confirmed";
-              const showCancel =
-                canConfirmScrim &&
-                (isHost || isGuest) &&
-                activeScrim;
-              const showEditHost =
-                canConfirmScrim &&
-                isHost &&
-                activeScrim;
-              const showAttach =
-                canConfirmScrim &&
-                isHost &&
-                room.status === "draft" &&
-                room.clan_b_id == null;
-              const showConfirmHost =
-                canConfirmScrim &&
-                isHost &&
-                room.status === "matched" &&
-                room.clan_b_id != null &&
-                !room.host_confirmed;
-              const showConfirmGuest =
-                canConfirmScrim &&
-                isGuest &&
-                room.status === "matched" &&
-                !room.guest_confirmed;
-
-              const guestPick = guestPickByRoom[room.id] ?? "";
-              const isEditing = editingScrimId === room.id;
-
-              return (
-                <li
-                  key={room.id}
-                  className="bg-card rounded-xl border px-4 py-3 shadow-sm"
-                >
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <p className="font-medium">
-                      {room.title || "스크림"}
-                      <span className="text-muted-foreground ml-2 text-xs font-normal">
-                        {new Date(room.scheduled_at).toLocaleString("ko-KR")}
-                      </span>
-                    </p>
-                    <span className="bg-muted rounded-full px-2 py-0.5 text-[10px] font-medium">
-                      {scrimStatusLabel(room.status)}
+                  <div className="flex items-center justify-between gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      aria-label="이전 달"
+                      onClick={() => shiftScrimCalendarMonth(-1)}
+                    >
+                      ‹
+                    </Button>
+                    <span className="flex-1 text-center text-sm font-medium tabular-nums">
+                      {new Date(
+                        scrimCalendarMonth.y,
+                        scrimCalendarMonth.m,
+                      ).toLocaleDateString("ko-KR", {
+                        year: "numeric",
+                        month: "long",
+                      })}
                     </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      aria-label="다음 달"
+                      onClick={() => shiftScrimCalendarMonth(1)}
+                    >
+                      ›
+                    </Button>
                   </div>
-                  <p className="text-muted-foreground mt-1 text-xs">
-                    {room.clan_a_name}
-                    {room.clan_b_id
-                      ? ` ↔ ${room.clan_b_name ?? "상대"}`
-                      : " — 상대 미정"}
-                  </p>
-                  {room.place ? (
-                    <p className="text-muted-foreground mt-1 text-xs">{room.place}</p>
-                  ) : null}
-                  {room.mode ? (
-                    <p className="text-muted-foreground mt-1 text-xs">모드 {room.mode}</p>
-                  ) : null}
-                  {room.tier_min != null && room.tier_max != null ? (
-                    <p className="text-muted-foreground mt-1 text-xs">
-                      티어 범위 {room.tier_min}–{room.tier_max}
+                  <div className="grid grid-cols-7 gap-1 text-[10px] font-medium text-muted-foreground">
+                    {["일", "월", "화", "수", "목", "금", "토"].map((label) => (
+                      <span key={label} className="block text-center">
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-1">
+                    {(() => {
+                      const cy = scrimCalendarMonth.y;
+                      const cm = scrimCalendarMonth.m;
+                      const padStart = new Date(cy, cm, 1).getDay();
+                      const monthLast = new Date(cy, cm + 1, 0).getDate();
+                      const el: ReactElement[] = [];
+                      for (let i = 0; i < padStart; i += 1) {
+                        el.push(
+                          <span
+                            key={`scrim-cal-pad-${cy}-${cm}-${i}`}
+                            className="h-9"
+                          />,
+                        );
+                      }
+                      for (let day = 1; day <= monthLast; day += 1) {
+                        const dk = calendarDayKey(cy, cm, day);
+                        const hasHere = scrimLocalDayKeys.has(dk);
+                        const isSelected = selectedScrimDayKey === dk;
+                        const isToday = dk === todayLocalKey;
+                        el.push(
+                          <button
+                            key={`scrim-cal-${dk}`}
+                            type="button"
+                            aria-current={isSelected ? "date" : undefined}
+                            aria-pressed={isSelected}
+                            aria-label={`${dk} ${hasHere ? "(스크림 있음)" : "(스크림 없음)"}`}
+                            disabled={pending}
+                            onClick={() =>
+                              setSelectedScrimDayKey((prev) =>
+                                prev === dk ? null : dk,
+                              )
+                            }
+                            className={cn(
+                              "h-9 rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                              isSelected
+                                ? "bg-primary text-primary-foreground"
+                                : hasHere
+                                  ? "border border-primary/40 bg-muted/60 text-foreground"
+                                  : "text-muted-foreground hover:bg-muted/50",
+                              isToday && !isSelected
+                                ? "ring-2 ring-muted-foreground/35 ring-offset-1"
+                                : "",
+                            )}
+                          >
+                            {day}
+                          </button>,
+                        );
+                      }
+                      return el;
+                    })()}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={
+                        selectedScrimDayKey == null ? "secondary" : "outline"
+                      }
+                      disabled={pending}
+                      onClick={() => setSelectedScrimDayKey(null)}
+                    >
+                      모든 날짜
+                    </Button>
+                    <p className="text-muted-foreground text-[11px]">
+                      같은 날을 다시 누르면 선택이 해제됩니다.
                     </p>
-                  ) : null}
-                  {room.memo ? (
-                    <p className="text-muted-foreground mt-2 whitespace-pre-wrap text-xs">
-                      {room.memo}
-                    </p>
-                  ) : null}
-                  <p className="text-muted-foreground mt-2 text-[11px]">
-                    호스트 확정 {room.host_confirmed ? "완료" : "대기"} · 게스트
-                    확정 {room.guest_confirmed ? "완료" : "대기"}
-                    {room.confirmed_at
-                      ? ` · 확정 시각 ${new Date(room.confirmed_at).toLocaleString("ko-KR")}`
-                      : ""}
-                  </p>
+                  </div>
+                </section>
 
-                  {showEditHost || showCancel ? (
-                    <div className="mt-3 flex flex-wrap items-center gap-2 border-t pt-3">
-                      {showEditHost ? (
+                <div data-testid="scrimDayList" className="space-y-6">
+                  {scrimDisplayBuckets.map(({ dayKey, rooms }) =>
+                    rooms.length ? (
+                      <div key={`bucket-${dayKey}`}>
+                        {selectedScrimDayKey ? (
+                          <p className="text-muted-foreground mb-3 text-[11px]">
+                            선택한 날: {formatScrimDayHeading(dayKey)} ·{" "}
+                            <span className="font-medium tabular-nums text-foreground">
+                              {rooms.length}
+                            </span>
+                            건
+                          </p>
+                        ) : (
+                          <h3 className="border-border mb-3 flex items-baseline justify-between gap-2 border-b pb-2 text-sm font-semibold">
+                            <span>{formatScrimDayHeading(dayKey)}</span>
+                            <span className="text-muted-foreground text-[11px] font-normal tabular-nums">
+                              {rooms.length}건
+                            </span>
+                          </h3>
+                        )}
+                        <ul className="space-y-4">
+                          {rooms.map((room) => {
+                            const isHost = myClanId === room.clan_a_id;
+                            const isGuest =
+                              room.clan_b_id != null &&
+                              myClanId === room.clan_b_id;
+                            const activeScrim =
+                              room.status === "draft" ||
+                              room.status === "matched" ||
+                              room.status === "confirmed";
+                            const showCancel =
+                              canConfirmScrim &&
+                              (isHost || isGuest) &&
+                              activeScrim;
+                            const showEditHost =
+                              canConfirmScrim && isHost && activeScrim;
+                            const showAttach =
+                              canConfirmScrim &&
+                              isHost &&
+                              room.status === "draft" &&
+                              room.clan_b_id == null;
+                            const showConfirmHost =
+                              canConfirmScrim &&
+                              isHost &&
+                              room.status === "matched" &&
+                              room.clan_b_id != null &&
+                              !room.host_confirmed;
+                            const showConfirmGuest =
+                              canConfirmScrim &&
+                              isGuest &&
+                              room.status === "matched" &&
+                              !room.guest_confirmed;
+
+                            const guestPick = guestPickByRoom[room.id] ?? "";
+                            const isEditing = editingScrimId === room.id;
+
+                            return (
+                              <li
+                                key={room.id}
+                                className="bg-card rounded-xl border px-4 py-3 shadow-sm"
+                              >
+                                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                                  <p className="font-medium">
+                                    {room.title || "스크림"}
+                                    <span className="text-muted-foreground ml-2 text-xs font-normal">
+                                      {new Date(
+                                        room.scheduled_at,
+                                      ).toLocaleString("ko-KR")}
+                                    </span>
+                                  </p>
+                                  <span className="bg-muted rounded-full px-2 py-0.5 text-[10px] font-medium">
+                                    {scrimStatusLabel(room.status)}
+                                  </span>
+                                </div>
+                                <p className="text-muted-foreground mt-1 text-xs">
+                                  {room.clan_a_name}
+                                  {room.clan_b_id
+                                    ? ` ↔ ${room.clan_b_name ?? "상대"}`
+                                    : " — 상대 미정"}
+                                </p>
+                                {room.place ? (
+                                  <p className="text-muted-foreground mt-1 text-xs">
+                                    {room.place}
+                                  </p>
+                                ) : null}
+                                {room.mode ? (
+                                  <p className="text-muted-foreground mt-1 text-xs">
+                                    모드 {room.mode}
+                                  </p>
+                                ) : null}
+                                {room.tier_min != null &&
+                                room.tier_max != null ? (
+                                  <p className="text-muted-foreground mt-1 text-xs">
+                                    티어 범위 {room.tier_min}–{room.tier_max}
+                                  </p>
+                                ) : null}
+                                {room.memo ? (
+                                  <p className="text-muted-foreground mt-2 whitespace-pre-wrap text-xs">
+                                    {room.memo}
+                                  </p>
+                                ) : null}
+                                <p className="text-muted-foreground mt-2 text-[11px]">
+                                  호스트 확정{" "}
+                                  {room.host_confirmed ? "완료" : "대기"} ·
+                                  게스트 확정{" "}
+                                  {room.guest_confirmed ? "완료" : "대기"}
+                                  {room.confirmed_at
+                                    ? ` · 확정 시각 ${new Date(room.confirmed_at).toLocaleString("ko-KR")}`
+                                    : ""}
+                                </p>
+
+                                {showEditHost || showCancel ? (
+                                  <div className="mt-3 flex flex-wrap items-center gap-2 border-t pt-3">
+                                    {showEditHost ? (
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={pending}
+                                        onClick={() => {
+                                          if (editingScrimId === room.id) {
+                                            setEditingScrimId(null);
+                                          } else {
+                                            setEditingScrimId(room.id);
+                                            setEditScrimTitle(room.title ?? "");
+                                            setEditScrimPlace(room.place ?? "");
+                                            setEditScrimWhen(
+                                              localDatetimeInputValue(
+                                                room.scheduled_at,
+                                              ),
+                                            );
+                                            setEditScrimMode(room.mode ?? "");
+                                            setEditScrimTierMin(
+                                              room.tier_min != null
+                                                ? String(room.tier_min)
+                                                : "",
+                                            );
+                                            setEditScrimTierMax(
+                                              room.tier_max != null
+                                                ? String(room.tier_max)
+                                                : "",
+                                            );
+                                            setEditScrimMemo(room.memo ?? "");
+                                          }
+                                        }}
+                                      >
+                                        {isEditing
+                                          ? "수정 닫기"
+                                          : "일정·조건 수정"}
+                                      </Button>
+                                    ) : null}
+                                    {showCancel ? (
+                                      <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="sm"
+                                        disabled={pending}
+                                        onClick={() => {
+                                          if (
+                                            !window.confirm(
+                                              "이 스크림을 취소할까요? 연동된 클랜 일정이 해제됩니다.",
+                                            )
+                                          ) {
+                                            return;
+                                          }
+                                          start(async () => {
+                                            const r =
+                                              await cancelScrimRoomAction(
+                                                gameSlug,
+                                                room.id,
+                                              );
+                                            if (!r.ok) {
+                                              toast.error(r.error);
+                                              return;
+                                            }
+                                            toast.success(
+                                              "스크림을 취소했습니다.",
+                                            );
+                                            setEditingScrimId((id) =>
+                                              id === room.id ? null : id,
+                                            );
+                                            router.refresh();
+                                          });
+                                        }}
+                                      >
+                                        스크림 취소
+                                      </Button>
+                                    ) : null}
+                                  </div>
+                                ) : null}
+
+                                {showEditHost && isEditing ? (
+                                  <form
+                                    className="bg-muted/40 mt-3 space-y-2 rounded-lg border p-3"
+                                    onSubmit={(e) => {
+                                      e.preventDefault();
+                                      if (!myClanId) return;
+                                      start(async () => {
+                                        const r =
+                                          await updateScrimRoomDetailsAction(
+                                            gameSlug,
+                                            room.clan_a_id,
+                                            room.id,
+                                            {
+                                              title: editScrimTitle,
+                                              place: editScrimPlace,
+                                              scheduledAtIso: new Date(
+                                                editScrimWhen,
+                                              ).toISOString(),
+                                              mode: editScrimMode,
+                                              memo: editScrimMemo,
+                                              tierMin: editScrimTierMin,
+                                              tierMax: editScrimTierMax,
+                                            },
+                                          );
+                                        if (!r.ok) {
+                                          toast.error(r.error);
+                                          return;
+                                        }
+                                        toast.success(
+                                          r.needReconfirm
+                                            ? "일시·장소·모드·티어 범위를 바꿔 확정을 다시 받아야 합니다."
+                                            : "스크림 정보를 수정했습니다.",
+                                        );
+                                        setEditingScrimId(null);
+                                        router.refresh();
+                                      });
+                                    }}
+                                  >
+                                    <p className="text-xs font-medium">
+                                      수정 내용
+                                    </p>
+                                    <input
+                                      className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
+                                      aria-label="제목 (비우면 제목 없음)"
+                                      placeholder="제목 (비우면 제목 없음)"
+                                      value={editScrimTitle}
+                                      disabled={pending}
+                                      onChange={(e) =>
+                                        setEditScrimTitle(e.target.value)
+                                      }
+                                    />
+                                    <label className="flex flex-col gap-1 text-xs">
+                                      <span className="text-muted-foreground">
+                                        일시 (로컬)
+                                      </span>
+                                      <input
+                                        type="datetime-local"
+                                        className="border-input bg-background rounded-md border px-2 py-1.5"
+                                        value={editScrimWhen}
+                                        disabled={pending}
+                                        onChange={(e) =>
+                                          setEditScrimWhen(e.target.value)
+                                        }
+                                        required
+                                      />
+                                    </label>
+                                    <input
+                                      className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
+                                      aria-label="장소 / 채널 (비우면 없음)"
+                                      placeholder="장소 / 채널 (비우면 없음)"
+                                      value={editScrimPlace}
+                                      disabled={pending}
+                                      onChange={(e) =>
+                                        setEditScrimPlace(e.target.value)
+                                      }
+                                    />
+                                    <label className="space-y-1 text-xs">
+                                      <span className="text-muted-foreground">
+                                        모드 (비우면 없음)
+                                      </span>
+                                      <input
+                                        className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
+                                        value={editScrimMode}
+                                        disabled={pending}
+                                        onChange={(e) =>
+                                          setEditScrimMode(e.target.value)
+                                        }
+                                        maxLength={32}
+                                      />
+                                    </label>
+                                    <div className="grid gap-2 sm:grid-cols-2">
+                                      <label className="space-y-1 text-xs">
+                                        <span className="text-muted-foreground">
+                                          티어 하한
+                                        </span>
+                                        <input
+                                          type="number"
+                                          className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
+                                          value={editScrimTierMin}
+                                          disabled={pending}
+                                          onChange={(e) =>
+                                            setEditScrimTierMin(e.target.value)
+                                          }
+                                          min={0}
+                                          max={5000}
+                                        />
+                                      </label>
+                                      <label className="space-y-1 text-xs">
+                                        <span className="text-muted-foreground">
+                                          티어 상한
+                                        </span>
+                                        <input
+                                          type="number"
+                                          className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
+                                          value={editScrimTierMax}
+                                          disabled={pending}
+                                          onChange={(e) =>
+                                            setEditScrimTierMax(e.target.value)
+                                          }
+                                          min={0}
+                                          max={5000}
+                                        />
+                                      </label>
+                                    </div>
+                                    <textarea
+                                      className="border-input bg-background min-h-[64px] w-full rounded-md border px-2 py-1.5 text-xs"
+                                      aria-label="메모 (비우면 없음)"
+                                      placeholder="메모 (비우면 없음)"
+                                      value={editScrimMemo}
+                                      disabled={pending}
+                                      onChange={(e) =>
+                                        setEditScrimMemo(e.target.value)
+                                      }
+                                      maxLength={5000}
+                                    />
+                                    <Button
+                                      type="submit"
+                                      size="sm"
+                                      disabled={pending}
+                                    >
+                                      저장
+                                    </Button>
+                                  </form>
+                                ) : null}
+
+                                {showAttach ? (
+                                  <div className="mt-3 flex flex-wrap items-end gap-2 border-t pt-3">
+                                    <label className="flex flex-col gap-1 text-xs">
+                                      <span className="text-muted-foreground">
+                                        상대 클랜
+                                      </span>
+                                      <select
+                                        className="border-input bg-background min-w-[180px] rounded-md border px-2 py-1.5"
+                                        value={guestPick}
+                                        disabled={
+                                          pending || !guestCandidates.length
+                                        }
+                                        onChange={(e) =>
+                                          setGuestPickByRoom((m) => ({
+                                            ...m,
+                                            [room.id]: e.target.value,
+                                          }))
+                                        }
+                                      >
+                                        <option value="">선택…</option>
+                                        {guestCandidates.map((c) => (
+                                          <option key={c.id} value={c.id}>
+                                            {c.name}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </label>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      disabled={
+                                        pending || !guestPick || !myClanId
+                                      }
+                                      onClick={() => {
+                                        if (!myClanId || !guestPick) return;
+                                        start(async () => {
+                                          const r =
+                                            await attachGuestClanToScrimAction(
+                                              gameSlug,
+                                              myClanId,
+                                              room.id,
+                                              guestPick,
+                                            );
+                                          if (!r.ok) {
+                                            toast.error(r.error);
+                                            return;
+                                          }
+                                          toast.success(
+                                            "상대 클랜을 배정했습니다.",
+                                          );
+                                          setGuestPickByRoom((m) => {
+                                            const next = { ...m };
+                                            delete next[room.id];
+                                            return next;
+                                          });
+                                          router.refresh();
+                                        });
+                                      }}
+                                    >
+                                      상대 지정
+                                    </Button>
+                                    {!guestCandidates.length ? (
+                                      <span className="text-muted-foreground text-[11px]">
+                                        이 게임에 선택할 다른 클랜이 없습니다.
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                ) : null}
+
+                                {showConfirmHost ? (
+                                  <div className="mt-3 border-t pt-3">
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      disabled={pending}
+                                      onClick={() => {
+                                        start(async () => {
+                                          const r =
+                                            await confirmScrimSideAction(
+                                              gameSlug,
+                                              room.id,
+                                              "host",
+                                            );
+                                          if (!r.ok) {
+                                            toast.error(r.error);
+                                            return;
+                                          }
+                                          toast.success(
+                                            "호스트 측 확정을 기록했습니다.",
+                                          );
+                                          router.refresh();
+                                        });
+                                      }}
+                                    >
+                                      우리 측 확정 (호스트)
+                                    </Button>
+                                  </div>
+                                ) : null}
+
+                                {showConfirmGuest ? (
+                                  <div className="mt-3 border-t pt-3">
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      disabled={pending}
+                                      onClick={() => {
+                                        start(async () => {
+                                          const r =
+                                            await confirmScrimSideAction(
+                                              gameSlug,
+                                              room.id,
+                                              "guest",
+                                            );
+                                          if (!r.ok) {
+                                            toast.error(r.error);
+                                            return;
+                                          }
+                                          toast.success(
+                                            "게스트 측 확정을 기록했습니다.",
+                                          );
+                                          router.refresh();
+                                        });
+                                      }}
+                                    >
+                                      우리 측 확정 (게스트)
+                                    </Button>
+                                  </div>
+                                ) : null}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    ) : (
+                      <div
+                        key={`bucket-${dayKey}-empty`}
+                        className="border-muted-foreground/30 text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm"
+                      >
+                        <p>선택한 날짜에 표시할 스크림이 없습니다.</p>
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
+                          className="mt-3"
                           disabled={pending}
-                          onClick={() => {
-                            if (editingScrimId === room.id) {
-                              setEditingScrimId(null);
-                            } else {
-                              setEditingScrimId(room.id);
-                              setEditScrimTitle(room.title ?? "");
-                              setEditScrimPlace(room.place ?? "");
-                              setEditScrimWhen(localDatetimeInputValue(room.scheduled_at));
-                              setEditScrimMode(room.mode ?? "");
-                              setEditScrimTierMin(
-                                room.tier_min != null ? String(room.tier_min) : "",
-                              );
-                              setEditScrimTierMax(
-                                room.tier_max != null ? String(room.tier_max) : "",
-                              );
-                              setEditScrimMemo(room.memo ?? "");
-                            }
-                          }}
+                          onClick={() => setSelectedScrimDayKey(null)}
                         >
-                          {isEditing ? "수정 닫기" : "일정·조건 수정"}
+                          모든 날짜 보기
                         </Button>
-                      ) : null}
-                      {showCancel ? (
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          disabled={pending}
-                          onClick={() => {
-                            if (
-                              !window.confirm(
-                                "이 스크림을 취소할까요? 연동된 클랜 일정이 해제됩니다.",
-                              )
-                            ) {
-                              return;
-                            }
-                            start(async () => {
-                              const r = await cancelScrimRoomAction(
-                                gameSlug,
-                                room.id,
-                              );
-                              if (!r.ok) {
-                                toast.error(r.error);
-                                return;
-                              }
-                              toast.success("스크림을 취소했습니다.");
-                              setEditingScrimId((id) =>
-                                id === room.id ? null : id,
-                              );
-                              router.refresh();
-                            });
-                          }}
-                        >
-                          스크림 취소
-                        </Button>
-                      ) : null}
-                    </div>
-                  ) : null}
-
-                  {showEditHost && isEditing ? (
-                    <form
-                      className="bg-muted/40 mt-3 space-y-2 rounded-lg border p-3"
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        if (!myClanId) return;
-                        start(async () => {
-                          const r = await updateScrimRoomDetailsAction(
-                            gameSlug,
-                            room.clan_a_id,
-                            room.id,
-                            {
-                              title: editScrimTitle,
-                              place: editScrimPlace,
-                              scheduledAtIso: new Date(editScrimWhen).toISOString(),
-                              mode: editScrimMode,
-                              memo: editScrimMemo,
-                              tierMin: editScrimTierMin,
-                              tierMax: editScrimTierMax,
-                            },
-                          );
-                          if (!r.ok) {
-                            toast.error(r.error);
-                            return;
-                          }
-                          toast.success(
-                            r.needReconfirm
-                              ? "일시·장소·모드·티어 범위를 바꿔 확정을 다시 받아야 합니다."
-                              : "스크림 정보를 수정했습니다.",
-                          );
-                          setEditingScrimId(null);
-                          router.refresh();
-                        });
-                      }}
-                    >
-                      <p className="text-xs font-medium">수정 내용</p>
-                      <input
-                        className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
-                        placeholder="제목 (비우면 제목 없음)"
-                        value={editScrimTitle}
-                        disabled={pending}
-                        onChange={(e) => setEditScrimTitle(e.target.value)}
-                      />
-                      <label className="flex flex-col gap-1 text-xs">
-                        <span className="text-muted-foreground">일시 (로컬)</span>
-                        <input
-                          type="datetime-local"
-                          className="border-input bg-background rounded-md border px-2 py-1.5"
-                          value={editScrimWhen}
-                          disabled={pending}
-                          onChange={(e) => setEditScrimWhen(e.target.value)}
-                          required
-                        />
-                      </label>
-                      <input
-                        className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
-                        placeholder="장소 / 채널 (비우면 없음)"
-                        value={editScrimPlace}
-                        disabled={pending}
-                        onChange={(e) => setEditScrimPlace(e.target.value)}
-                      />
-                      <label className="space-y-1 text-xs">
-                        <span className="text-muted-foreground">모드 (비우면 없음)</span>
-                        <input
-                          className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
-                          value={editScrimMode}
-                          disabled={pending}
-                          onChange={(e) => setEditScrimMode(e.target.value)}
-                          maxLength={32}
-                        />
-                      </label>
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        <label className="space-y-1 text-xs">
-                          <span className="text-muted-foreground">티어 하한</span>
-                          <input
-                            type="number"
-                            className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
-                            value={editScrimTierMin}
-                            disabled={pending}
-                            onChange={(e) => setEditScrimTierMin(e.target.value)}
-                            min={0}
-                            max={5000}
-                          />
-                        </label>
-                        <label className="space-y-1 text-xs">
-                          <span className="text-muted-foreground">티어 상한</span>
-                          <input
-                            type="number"
-                            className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
-                            value={editScrimTierMax}
-                            disabled={pending}
-                            onChange={(e) => setEditScrimTierMax(e.target.value)}
-                            min={0}
-                            max={5000}
-                          />
-                        </label>
                       </div>
-                      <textarea
-                        className="border-input bg-background min-h-[64px] w-full rounded-md border px-2 py-1.5 text-xs"
-                        placeholder="메모 (비우면 없음)"
-                        value={editScrimMemo}
-                        disabled={pending}
-                        onChange={(e) => setEditScrimMemo(e.target.value)}
-                        maxLength={5000}
-                      />
-                      <Button type="submit" size="sm" disabled={pending}>
-                        저장
-                      </Button>
-                    </form>
-                  ) : null}
-
-                  {showAttach ? (
-                    <div className="mt-3 flex flex-wrap items-end gap-2 border-t pt-3">
-                      <label className="flex flex-col gap-1 text-xs">
-                        <span className="text-muted-foreground">상대 클랜</span>
-                        <select
-                          className="border-input bg-background min-w-[180px] rounded-md border px-2 py-1.5"
-                          value={guestPick}
-                          disabled={pending || !guestCandidates.length}
-                          onChange={(e) =>
-                            setGuestPickByRoom((m) => ({
-                              ...m,
-                              [room.id]: e.target.value,
-                            }))
-                          }
-                        >
-                          <option value="">선택…</option>
-                          {guestCandidates.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.name}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <Button
-                        type="button"
-                        size="sm"
-                        disabled={pending || !guestPick || !myClanId}
-                        onClick={() => {
-                          if (!myClanId || !guestPick) return;
-                          start(async () => {
-                            const r = await attachGuestClanToScrimAction(
-                              gameSlug,
-                              myClanId,
-                              room.id,
-                              guestPick,
-                            );
-                            if (!r.ok) {
-                              toast.error(r.error);
-                              return;
-                            }
-                            toast.success("상대 클랜을 배정했습니다.");
-                            setGuestPickByRoom((m) => {
-                              const next = { ...m };
-                              delete next[room.id];
-                              return next;
-                            });
-                            router.refresh();
-                          });
-                        }}
-                      >
-                        상대 지정
-                      </Button>
-                      {!guestCandidates.length ? (
-                        <span className="text-muted-foreground text-[11px]">
-                          이 게임에 선택할 다른 클랜이 없습니다.
-                        </span>
-                      ) : null}
-                    </div>
-                  ) : null}
-
-                  {showConfirmHost ? (
-                    <div className="mt-3 border-t pt-3">
-                      <Button
-                        type="button"
-                        size="sm"
-                        disabled={pending}
-                        onClick={() => {
-                          start(async () => {
-                            const r = await confirmScrimSideAction(
-                              gameSlug,
-                              room.id,
-                              "host",
-                            );
-                            if (!r.ok) {
-                              toast.error(r.error);
-                              return;
-                            }
-                            toast.success("호스트 측 확정을 기록했습니다.");
-                            router.refresh();
-                          });
-                        }}
-                      >
-                        우리 측 확정 (호스트)
-                      </Button>
-                    </div>
-                  ) : null}
-
-                  {showConfirmGuest ? (
-                    <div className="mt-3 border-t pt-3">
-                      <Button
-                        type="button"
-                        size="sm"
-                        disabled={pending}
-                        onClick={() => {
-                          start(async () => {
-                            const r = await confirmScrimSideAction(
-                              gameSlug,
-                              room.id,
-                              "guest",
-                            );
-                            if (!r.ok) {
-                              toast.error(r.error);
-                              return;
-                            }
-                            toast.success("게스트 측 확정을 기록했습니다.");
-                            router.refresh();
-                          });
-                        }}
-                      >
-                        우리 측 확정 (게스트)
-                      </Button>
-                    </div>
-                  ) : null}
-                </li>
-              );
-                      })}
-                    </ul>
-                  </div>
-                ) : (
-                  <div
-                    key={`bucket-${dayKey}-empty`}
-                    className="border-muted-foreground/30 text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm"
-                  >
-                    <p>선택한 날짜에 표시할 스크림이 없습니다.</p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="mt-3"
-                      disabled={pending}
-                      onClick={() => setSelectedScrimDayKey(null)}
-                    >
-                      모든 날짜 보기
-                    </Button>
-                  </div>
-                ),
-              )}
-            </div>
+                    ),
+                  )}
+                </div>
               </>
             )}
           </div>
         )}
       </TabsContent>
-    </Tabs>
+    </CommunityFrame>
   );
 }

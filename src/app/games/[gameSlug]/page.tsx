@@ -1,10 +1,5 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import {
-  coerceMainGameCommunityTab,
-} from "@/lib/main-game/main-game-community-tab";
 import { MainGameCommunityTabs } from "@/components/main-game/main-game-community-tabs";
-import { buttonVariants } from "@/components/ui/button-variants";
 import { createClient } from "@/lib/supabase/server";
 import {
   loadClanRankPreview,
@@ -16,10 +11,9 @@ import {
 } from "@/lib/main-game/load-main-game-hub";
 import { loadGameOnboarding } from "@/lib/onboarding/load-game-onboarding";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
-import { cn } from "@/lib/utils";
 
 /**
- * MainGame 커뮤니티 허브 (M7 경량) — 홍보·LFG·순위 실데이터.
+ * 게임별 커뮤니티 — 홍보·LFG·스크림과 공개 클랜 활동.
  */
 export default async function MainGamePage({
   params,
@@ -31,7 +25,6 @@ export default async function MainGamePage({
   const { gameSlug } = await params;
   const sp = await searchParams;
   const promoSort: PromoSort = sp.promoSort === "space" ? "space" : "newest";
-  const initialTab = coerceMainGameCommunityTab(sp.tab);
 
   const supabase = await createClient();
   const {
@@ -52,39 +45,19 @@ export default async function MainGamePage({
 
   const base = `/games/${encodeURIComponent(gameSlug)}`;
 
-  let clanSummary: { label: string; href: string; tone: "muted" | "ok" | "warn" };
-  if (state.clanStatus === "member" && state.clanId) {
-    clanSummary = {
-      label: `소속: ${state.clanName ?? "클랜"}`,
-      href: `${base}/clan/${state.clanId}`,
-      tone: "ok",
-    };
-  } else if (state.clanStatus === "pending") {
-    clanSummary = {
-      label: `가입 신청 중: ${state.clanName ?? "클랜"}`,
-      href: `${base}/clan?pending=1`,
-      tone: "warn",
-    };
-  } else {
-    clanSummary = {
-      label: "아직 클랜에 속해 있지 않습니다.",
-      href: `${base}/clan`,
-      tone: "muted",
-    };
-  }
-
   const clanHubHref =
     state.clanStatus === "member" && state.clanId
       ? `${base}/clan/${state.clanId}`
       : `${base}/clan`;
 
-  const [promos, lfgBundle, rankClans, scrimRooms, scrimGuestClans] = await Promise.all([
-    loadPromotionFeed(supabase, game.id, promoSort),
-    loadOpenLfgPosts(supabase, game.id, user.id),
-    loadClanRankPreview(supabase, game.id),
-    loadScrimRoomsForGame(supabase, game.id),
-    loadScrimGuestClanOptions(supabase, game.id),
-  ]);
+  const [promos, lfgBundle, rankClans, scrimRooms, scrimGuestClans] =
+    await Promise.all([
+      loadPromotionFeed(supabase, game.id, promoSort),
+      loadOpenLfgPosts(supabase, game.id, user.id),
+      loadClanRankPreview(supabase, game.id),
+      loadScrimRoomsForGame(supabase, game.id),
+      loadScrimGuestClanOptions(supabase, game.id),
+    ]);
 
   let canConfirmScrim = false;
   if (state.clanStatus === "member" && state.clanId) {
@@ -96,74 +69,34 @@ export default async function MainGamePage({
     );
   }
 
-  const myClanId = state.clanStatus === "member" ? state.clanId ?? null : null;
+  const myClanId =
+    state.clanStatus === "member" ? (state.clanId ?? null) : null;
 
   const canPostPromo = state.clanStatus === "member" && !!state.clanId;
   const canCreateLfg = state.authVerified;
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
-      <header className="mb-8">
-        <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-          게임 커뮤니티
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-          {game.name_ko}
-        </h1>
-        {!game.is_active ? (
-          <p className="text-muted-foreground mt-2 text-sm">
-            이 게임은 현재 비활성 상태입니다.
-          </p>
-        ) : null}
-      </header>
-
-      <section
-        className={cn(
-          "mb-8 rounded-xl border p-4 text-sm shadow-sm",
-          clanSummary.tone === "ok" && "border-emerald-500/30 bg-emerald-500/5",
-          clanSummary.tone === "warn" && "border-amber-500/30 bg-amber-500/5",
-          clanSummary.tone === "muted" && "bg-card",
-        )}
-      >
-        <p className="font-medium">{clanSummary.label}</p>
-        <p className="text-muted-foreground mt-1 text-xs">
-          게임 계정: {state.authVerified ? "연동됨" : "미연동"}
-        </p>
-        <Link
-          href={clanSummary.href}
-          className={cn(
-            buttonVariants({ size: "sm", variant: "secondary" }),
-            "mt-3 inline-flex",
-          )}
-        >
-          클랜 허브 / 온보딩
-        </Link>
-      </section>
-
-      <MainGameCommunityTabs
-        gameSlug={gameSlug}
-        promoSort={promoSort}
-        promos={promos}
-        lfgs={lfgBundle.posts}
-        applicantsByPost={lfgBundle.applicantsByPost}
-        rankClans={rankClans}
-        scrimRooms={scrimRooms}
-        scrimGuestClans={scrimGuestClans}
-        myClanId={myClanId}
-        canConfirmScrim={canConfirmScrim}
-        canPostPromo={canPostPromo}
-        canCreateLfg={canCreateLfg}
-        userId={user.id}
-        clanHubHref={clanHubHref}
-        initialTab={initialTab}
-      />
-
-      <Link
-        href="/games"
-        className={cn(buttonVariants({ variant: "ghost" }), "mt-10 inline-flex")}
-      >
-        ← 게임 선택
-      </Link>
-    </main>
+    <MainGameCommunityTabs
+      gameSlug={gameSlug}
+      gameName={game.name_ko}
+      clanLabel={
+        state.clanName ??
+        (state.clanStatus === "pending" ? "가입 신청 확인" : "클랜 찾기")
+      }
+      gameActive={game.is_active}
+      promoSort={promoSort}
+      promos={promos}
+      lfgs={lfgBundle.posts}
+      applicantsByPost={lfgBundle.applicantsByPost}
+      rankClans={rankClans}
+      scrimRooms={scrimRooms}
+      scrimGuestClans={scrimGuestClans}
+      myClanId={myClanId}
+      canConfirmScrim={canConfirmScrim}
+      canPostPromo={canPostPromo}
+      canCreateLfg={canCreateLfg}
+      userId={user.id}
+      clanHubHref={clanHubHref}
+    />
   );
 }
