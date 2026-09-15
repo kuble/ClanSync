@@ -45,9 +45,13 @@ CI 경로는 `npm run build` 후 `next start`를 사용합니다. 로컬 기본 
 - `review-rules.spec.ts`: 권한 조회 오류·권한 재정의, 개발 연동 제한, 명시적 시간대 입력
 - `event-timezone.spec.ts`: 한국 브라우저·UTC 서버에서 일정 생성·제목 수정·시간 수정
 - `game-link.spec.ts`: QA 환경의 서버 게임 인증 기록
+- `clan-dashboard.spec.ts`: 실제 공지·규칙·반복 일정·MVP·Free 제한·모바일
+- `clan-management.spec.ts`: 공지 작성·편집·고정·삭제와 규칙 저장·구성원 검색
+- `clan-match-records.spec.ts`: 종료 내전 기록·무효/무승부·명예의 전당 참여 집계
+- `frontend-rebuild.spec.ts`: 홍보 게시글·LFG 시간대·모바일 메뉴/브라우저 기록·상점 구매 취소
 
 온보딩 계정만 바꾸려면 `.env.e2e.local` 또는 CI에 `E2E_EMAIL`과 `E2E_PASSWORD`를 모두 설정합니다. 환경 확인은 `npm run test:e2e:env-check`, 운영 대상 차단 검증은 `node --test scripts/test-env.test.mjs`입니다. 비밀번호 값은 출력하지 않습니다.
 
-`npm run test:db`는 `scripts/review-db.test.mjs`의 실제 DB 회귀를 실행합니다. 동일한 테스트 URL 허용 목록을 사용하고 임시 사용자·클랜·모집·일정을 생성한 뒤 정리합니다. 서비스 RPC 직접 호출 차단, 잔액·게임 인증 위조 거부, RLS, LFG·가입 동시 승인, 일정·스크림 알림 재예약과 롤백을 확인합니다. 별도 앱 서버는 필요 없습니다.
+`npm run test:db`는 `scripts/review-db.test.mjs`, `clan-notices-db.test.mjs`, `profile-badge-db.test.mjs`를 순서대로 실행합니다. 동일한 테스트 URL 허용 목록을 사용하고 임시 사용자·클랜·모집·일정을 생성한 뒤 정리합니다. 서비스 RPC 직접 호출 차단, 잔액·게임 인증 위조 거부, RLS, LFG·가입 동시 승인, 알림 재예약, 공지·규칙 권한, 대표 배지 교체의 롤백·동시성을 확인합니다. 별도 앱 서버는 필요 없습니다.
 
 시드 상세: [debug-and-fixtures.md](../docs/01-plan/debug-and-fixtures.md)
