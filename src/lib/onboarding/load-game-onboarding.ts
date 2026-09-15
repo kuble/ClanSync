@@ -41,18 +41,18 @@ export async function loadGameOnboarding(
 
   if (gErr || !game) return null;
 
-  const { data: ugp } = await supabase
-    .from("user_game_profiles")
-    .select("is_verified")
-    .eq("user_id", userId)
-    .eq("game_id", game.id)
-    .maybeSingle();
+  const [{ data: ugp }, { data: myClanRows }] = await Promise.all([
+    supabase
+      .from("user_game_profiles")
+      .select("is_verified")
+      .eq("user_id", userId)
+      .eq("game_id", game.id)
+      .maybeSingle(),
+    supabase.rpc("my_active_clan_for_game", { p_game_id: game.id }),
+  ]);
 
   const authVerified = ugp?.is_verified === true;
 
-  const { data: myClanRows } = await supabase.rpc("my_active_clan_for_game", {
-    p_game_id: game.id,
-  });
   const myClan = myClanRows?.[0];
   if (myClan?.clan_id) {
     return {
