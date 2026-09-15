@@ -11,7 +11,7 @@ alwaysApply: true
 - **`types:gen`** 이 `Unauthorized` 면 Access Token 만료 가능 — `.env.local` 의 `SUPABASE_ACCESS_TOKEN` 갱신 또는 `npx supabase login` 후 재시도.
 - **`src/` 타입스크립트·TSX**를 의미 있게 수정한 뒤: 시간이 허락하면 **`npx eslint src`** (전체가 부담이면 변경 파일 위주).
 - **구현 마무리·커밋 전**: **`npm run build`**로 빌드 통과 확인(사용자가 금지하지 않은 한).
-- **Phase 2**에서 새 라우트·인증·온보딩·핵심 사용자 플로를 **구현·의미 있게 수정**한 턴이면, 커밋 전에 **`npm run test:e2e`** 로 Playwright 스모크·픽스처 로그인·온보딩까지 돌린다(`db:seed`·Supabase 필요). 로컬에 **3000 dev가 이미 떠 있으면 재사용**된다. 옛 번들·서버 격리가 필요하면 **`CI=true npm run test:e2e`**(빌드 + `next start`, 기본 3010). 자세한 조건: `e2e/README.md`.
-- **시드/픽스처 스크립트**를 바꾼 뒤: `npm run db:seed` 가 안전할 때만 검증 실행(원격/운영 DB에는 사용자 확인 후).
+- **Phase 2**에서 새 라우트·인증·온보딩·핵심 사용자 플로를 **구현·의미 있게 수정**한 턴이면, 커밋 전에 **`npm run test:e2e`** 로 Playwright 스모크·픽스처 로그인·온보딩까지 돌린다(`db:seed`·Supabase 필요). 전용 테스트 DB와 **3010의 새 서버**를 사용하고 기존 dev 서버는 재사용하지 않는다. 프로덕션 빌드 검증은 **`CI=true npm run test:e2e`**(빌드 + `next start`). 자세한 조건: `e2e/README.md`.
+- **시드/픽스처 스크립트**를 바꾼 뒤: `npm run db:seed`로 허용된 전용 테스트 DB에서 검증한다. 운영 URL은 스크립트가 차단하며 운영 DB에 시드하지 않는다.
 
 원칙: 비밀값은 채팅에 출력하지 않는다. 작업 커밋은 사용자의 위임에 따라 자동 푸시한다. 별도 수동 Vercel 배포는 **명시 요청 시에만**.
