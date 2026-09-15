@@ -27,7 +27,7 @@ alwaysApply: true
 
 1. **한 줄 요약** — 무엇을 검증하는지
 2. **환경** — `localhost:3000` / Vercel Preview URL(있으면) / 필요한 브랜치명
-3. **사전 조건** — 시드 계정·ENV·마이그레이션 여부 → [debug-and-fixtures.md](../docs/01-plan/debug-and-fixtures.md) · [D-DEV-01](../docs/01-plan/decisions.md#d-dev-01--로컬staging-픽스처--디버그-계층) 참조
+3. **사전 조건** — 시드 계정·ENV·마이그레이션 여부 → [debug-and-fixtures.md](../../docs/01-plan/debug-and-fixtures.md) · [D-DEV-01](../../docs/01-plan/decisions.md#d-dev-01--로컬staging-픽스처--디버그-계층) 참조
 4. **절차** — 번호 목록 (URL → 클릭 → 입력 → 기대 화면/문구)
 5. **기대 결과** — 체크박스 2~5개
 6. **깨졌을 때** — 브라우저 콘솔, Network 탭, Supabase Auth/로그, `middleware` 여부 등 **한두 줄 힌트**
@@ -46,4 +46,4 @@ alwaysApply: true
 
 - [collaboration-workflow.mdc](./collaboration-workflow.mdc) — main 반영 전 사용자 컨펌
 - [debug-and-fixtures.md](../../docs/01-plan/debug-and-fixtures.md)
-- [PHASE2_EXPERIENCE.md](../docs/PHASE2_EXPERIENCE.md) — 사람용 데모 아이디어 (에이전트는 필요 시만 참조)
+- [QA_시나리오.md](../../docs/QA_시나리오.md) — 시연·직접 재현 절차의 기준

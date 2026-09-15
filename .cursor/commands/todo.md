@@ -6,7 +6,7 @@
 
 - `docs/TODO.md` (허브 — 짧게)
 - `docs/TODO_LOG.md` (세션 로그 갱신 시에만)
-- 현재 페이즈 진행도: `docs/TODO_Phase1.md` (목업) — Phase 2 시작되면 `docs/TODO_Phase2.md` 신설/사용
+- 현재 페이즈 진행도: `docs/TODO_Phase2.md`. 목업만 유지보수할 때는 `docs/TODO_Phase1.md`.
 - `docs/01-plan/FEATURE_INDEX.md`, `docs/01-plan/BACKLOG.md`
 - 필요 시 `docs/01-plan/slices/slice-*.md`, `docs/01-plan/pages.md`, `docs/01-plan/schema.md`
 
@@ -28,11 +28,11 @@
 
 ## 4. 「다음 세션 권장 프롬프트」 갱신
 
-`docs/TODO.md` 하단의 권장 프롬프트 블록을 갱신. 기본은 첫 블록(현재 단계). 다음 작업이 목업만이면 두 번째 블록을 구체 과제로 맞춘다.
+`docs/TODO.md` 하단의 다음 작업 프롬프트 **한 개**를 현재 우선순위로 갱신한다.
 
-1. 우선순위: 현재 페이즈 진행도에서 `[ ]`이고 의존성 적고 기획 갭 큰 것
-2. 첫 코드 블록: `Phase{n}` · `pages` · `schema` · 선택 `slice-NN`
-3. 목업이면 두 번째 블록 채움
+1. 우선순위: 미해결 권한·데이터 정합성 문제 → 미완료 검증 → 후속 기능.
+2. 관련 리뷰 또는 `slice-NN`과 필요한 코드·명세만 지정한다.
+3. 완료로 표시하기 전에 실제 검증 결과를 확인한다.
 
 ## 5. 채팅 응답
 

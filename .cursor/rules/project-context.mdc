@@ -5,14 +5,14 @@ alwaysApply: true
 
 # ClanSync
 
-멀티 게임 클랜 관리 웹서비스. 내전/스크림 승률·참여율 아카이빙. 초기 타겟 오버워치.
+멀티 게임 클랜 관리 웹서비스. 내전 팀 승·참여 아카이빙과 스크림 매칭을 지원한다. 스크림 승패 통계는 비지원. 초기 타겟 오버워치.
 
 ## 현재 단계
 - **Phase 1 (목업)**: `mockup/`, `_hub.html` — 카피·기획 동기화 시에만 수정.
-- **Phase 2 (구현)**: Next.js `src/` + Supabase + Vercel. M4 쉘·M6a `/stats` 본문 착지 후 M6b/M5 진행 예정.
+- **Phase 2 (구현)**: Next.js `src/` + Supabase + Vercel. 최신 상태·다음 작업은 `docs/TODO.md`, 구현·검증 상세는 `docs/TODO_Phase2.md`만 참조한다.
 
 ## 스택
-Next.js 15 App Router · TypeScript · Tailwind · shadcn/ui (new-york, dark) · Supabase (mxkrfnzlgaxzdzcjbfkg) · Vercel (team: clansync) · 한/영/일 (next-intl 예정).
+Next.js 16 App Router · React 19 · TypeScript · Tailwind 4 · shadcn/ui · Supabase · Vercel. 정확한 버전은 `package.json` 기준. 현재 한국어 UI, 다국어는 후속 범위.
 
 ## 권한·플랜
 - 권한: leader > officer > member
@@ -23,7 +23,7 @@ Next.js 15 App Router · TypeScript · Tailwind · shadcn/ui (new-york, dark) ·
 - 변수명 영어, 주석 한국어
 - Supabase RLS 모든 테이블 필수
 - 나노 단위 git 커밋 (`git-nano-commit.mdc` 참조)
-- 협업·`main` 반영: 브랜치·푸시는 에이전트 설계, **`main` 머지/PR 완료 전 사용자 컨펌 필수** (`collaboration-workflow.mdc`)
+- 푸시·배포는 **명시 요청 시에만**. `main` 반영 절차는 `collaboration-workflow.mdc` 참조.
 - 시연·직접 재현: 마일스톤·UI 변경 시 `docs/QA_시나리오.md` 섹션 추가 (`qa-demo-handoff.mdc`)
 - **자동 E2E**: Phase 2 구현 턴 마무리 시 `npm run test:e2e` 등 (`agent-auto-tasks.mdc`, `e2e/README.md`)
 - 토큰 절약: 작업을 작게 쪼개고 필요한 문서만 그때그때 읽는다
@@ -38,7 +38,7 @@ Next.js 15 App Router · TypeScript · Tailwind · shadcn/ui (new-york, dark) ·
 - `docs/01-plan/pages/` — 페이지별 상세 (스펙 레벨)
 - `docs/01-plan/schema.md` — 데이터 스키마
 - `docs/01-plan/glossary.md` — 게임개발자 친화 용어 사전
-- `docs/01-plan/decisions.md` — 미결 정책 인덱스 (D-XXX-NN)
+- `docs/01-plan/decisions.md` — 정책 결정과 변경 근거 (D-XXX-NN)
 - `docs/01-plan/gating-matrix.md` — 권한·플랜 게이팅 매트릭스
 - `docs/01-plan/BACKLOG.md` — 잔여 백로그
-- `docs/TODO.md` (허브) · `docs/TODO_Phase1.md` · `docs/TODO_LOG.md`
+- `docs/TODO.md` (허브) · `docs/TODO_Phase2.md` (현재) · `docs/TODO_LOG.md` (이력)
