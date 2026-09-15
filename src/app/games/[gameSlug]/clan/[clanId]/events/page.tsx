@@ -34,64 +34,73 @@ export default async function ClanEventsPage({
   if (!user) redirect(`/sign-in?next=/games/${gameSlug}/clan/${clanId}/events`);
   const ctx = await getRequestMainClanContext(gameSlug, clanId);
   if (!ctx) redirect(`/games/${gameSlug}/clan`);
-  await cancelStalePollNotificationLogs();
-
-  const canManage =
-    user != null && ctx != null
-      ? await hasRequestClanPermission(clanId, "manage_clan_events")
-      : false;
-
-  const canEditEventNotify = ctx?.role === "leader";
-
   const svc = createServiceRoleClient();
-  const { data: settingsRow } = await svc
-    .from("clan_settings")
-    .select("event_notify")
-    .eq("clan_id", clanId)
-    .maybeSingle();
+  const pollsPromise = (async () => {
+    // Preserve cleanup before reading polls without blocking independent content.
+    await cancelStalePollNotificationLogs();
+    return loadSerializedClanPolls(clanId, user.id);
+  })();
+  const eventsPromise = (async () => {
+    const { data: rows } = await svc
+      .from("clan_events")
+      .select(
+        "id, title, kind, start_at, place, source, repeat, repeat_weekdays, repeat_time",
+      )
+      .eq("clan_id", clanId)
+      .is("cancelled_at", null)
+      .order("start_at", { ascending: true })
+      .limit(500);
 
+    const events: SerializedClanEvent[] = (rows ?? []).map((event) => ({
+      id: event.id,
+      title: event.title,
+      kind: event.kind as SerializedClanEvent["kind"],
+      start_at: event.start_at,
+      place: event.place ?? null,
+      source: event.source as SerializedClanEvent["source"],
+      repeat: event.repeat ?? "none",
+      repeat_weekdays: event.repeat_weekdays ?? null,
+      repeat_time: event.repeat_time ?? null,
+    }));
+    const eventIds = events.map((event) => event.id);
+    const { data: rsvpRows } =
+      eventIds.length > 0
+        ? await svc
+            .from("event_rsvps")
+            .select("event_id, instance_idx")
+            .eq("user_id", user.id)
+            .eq("status", "going")
+            .in("event_id", eventIds)
+        : { data: [] };
+    return {
+      events,
+      myRsvpGoingKeys: (rsvpRows ?? []).map((rsvp) =>
+        clanEventRsvpKey(rsvp.event_id, rsvp.instance_idx),
+      ),
+    };
+  })();
+
+  const [
+    canManage,
+    { data: settingsRow },
+    { events, myRsvpGoingKeys },
+    polls,
+    bracketTournaments,
+  ] = await Promise.all([
+    hasRequestClanPermission(clanId, "manage_clan_events"),
+    svc
+      .from("clan_settings")
+      .select("event_notify")
+      .eq("clan_id", clanId)
+      .maybeSingle(),
+    eventsPromise,
+    pollsPromise,
+    loadSerializedBracketTournaments(clanId),
+  ]);
+  const canEditEventNotify = ctx.role === "leader";
   const notify = readClanEventNotifySettings(
     settingsRow?.event_notify as Json | null,
   );
-
-  const { data: rows } = await svc
-    .from("clan_events")
-    .select(
-      "id, title, kind, start_at, place, source, repeat, repeat_weekdays, repeat_time",
-    )
-    .eq("clan_id", clanId)
-    .is("cancelled_at", null)
-    .order("start_at", { ascending: true })
-    .limit(500);
-
-  const events: SerializedClanEvent[] = (rows ?? []).map((r) => ({
-    id: r.id as string,
-    title: r.title as string,
-    kind: r.kind as SerializedClanEvent["kind"],
-    start_at: r.start_at as string,
-    place: (r.place as string | null) ?? null,
-    source: r.source as SerializedClanEvent["source"],
-    repeat: (r.repeat ?? "none") as SerializedClanEvent["repeat"],
-    repeat_weekdays: (r.repeat_weekdays as number[] | null) ?? null,
-    repeat_time: (r.repeat_time as string | null) ?? null,
-  }));
-
-  const eventIds = events.map((e) => e.id);
-  let myRsvpGoingKeys: string[] = [];
-  if (user && eventIds.length > 0) {
-    const { data: rsvpRows } = await svc
-      .from("event_rsvps")
-      .select("event_id, instance_idx")
-      .eq("user_id", user.id)
-      .eq("status", "going")
-      .in("event_id", eventIds);
-    myRsvpGoingKeys = (rsvpRows ?? []).map((r) =>
-      clanEventRsvpKey(r.event_id as string, Number(r.instance_idx)),
-    );
-  }
-
-  const polls = await loadSerializedClanPolls(clanId, user?.id ?? null);
-  const bracketTournaments = await loadSerializedBracketTournaments(clanId);
 
   return (
     <div className="space-y-5">

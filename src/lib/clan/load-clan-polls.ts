@@ -40,16 +40,17 @@ export async function loadSerializedClanPolls(
 
   const pollIds = polls.map((p) => p.id as string);
 
-  const { data: options } = await svc
-    .from("poll_options")
-    .select("id, poll_id, label, sort_order")
-    .in("poll_id", pollIds)
-    .order("sort_order", { ascending: true });
-
-  const { data: voteRows } = await svc
-    .from("poll_votes")
-    .select("poll_id, option_id, user_id")
-    .in("poll_id", pollIds);
+  const [{ data: options }, { data: voteRows }] = await Promise.all([
+    svc
+      .from("poll_options")
+      .select("id, poll_id, label, sort_order")
+      .in("poll_id", pollIds)
+      .order("sort_order", { ascending: true }),
+    svc
+      .from("poll_votes")
+      .select("poll_id, option_id, user_id")
+      .in("poll_id", pollIds),
+  ]);
 
   const countByOption = new Map<string, number>();
   const myByPoll = new Map<string, Set<string>>();
