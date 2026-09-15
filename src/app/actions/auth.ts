@@ -46,29 +46,41 @@ export async function signInAction(
   const maxAge = remember ? 60 * 60 * 24 * 30 : 60 * 60 * 24;
   const supabase = await createAuthActionClient(maxAge);
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-  if (error) {
+  if (error || !data.user) {
     await recordFailedPasswordAttempt(email, ip, ua);
     return { error: GENERIC_SIGN_IN_ERROR };
   }
 
-  await clearLoginLockout(email, ip);
+  // The password endpoint has already verified this user. UPDATE ... RETURNING
+  // also checks that the public profile exists, avoiding two auth reads and a
+  // separate profile lookup on every successful login.
+  const user = data.user;
+  const [profile] = await Promise.all([
+    supabase.from("users").update({ auto_login: remember }).eq("id", user.id)
+      .select("id").maybeSingle(),
+    clearLoginLockout(email, ip),
+  ]);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (user) {
-    const ensured = await ensurePublicUserProfile(user.id, supabase);
+  if (profile.error) {
+    return { error: "로그인 설정을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요." };
+  }
+
+  if (!profile.data) {
+    const ensured = await ensurePublicUserProfile(user.id, supabase, user);
     if (!ensured.ok) {
       return {
         error: `프로필을 준비하지 못했습니다. 잠시 후 다시 시도해 주세요. (${ensured.error})`,
       };
     }
-    await supabase
+    const { error: updateError } = await supabase
       .from("users")
       .update({ auto_login: remember })
       .eq("id", user.id);
+    if (updateError) {
+      return { error: "로그인 설정을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요." };
+    }
   }
 
   redirect(next);

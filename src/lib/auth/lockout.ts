@@ -29,12 +29,17 @@ export async function isLoginLocked(
   ip: string,
 ): Promise<boolean> {
   const svc = createServiceRoleClient();
-  const { data } = await svc
+  const { data, error } = await svc
     .from("auth_login_lockouts")
     .select("locked_until")
     .eq("email", normalizeEmail(email))
     .eq("ip", ip)
     .maybeSingle();
+
+  if (error) {
+    console.error("[auth] Login lockout lookup failed:", error.code);
+    return true;
+  }
 
   const until = data?.locked_until ? new Date(data.locked_until) : null;
   if (!until) return false;

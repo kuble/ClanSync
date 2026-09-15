@@ -71,11 +71,13 @@ async function insertUserRowWithNicknameRetry(
 export async function ensurePublicUserProfile(
   userId: string,
   userClient?: SupabaseClient<Database>,
+  /** Only pass a User returned by a successful server-side auth operation. */
+  verifiedUser?: User,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   if (userClient) {
-    const {
-      data: { user: sessionUser },
-    } = await userClient.auth.getUser();
+    const sessionUser = verifiedUser?.id === userId
+      ? verifiedUser
+      : (await userClient.auth.getUser()).data.user;
     if (sessionUser?.id === userId) {
       const { data: existingSelf } = await userClient
         .from("users")
