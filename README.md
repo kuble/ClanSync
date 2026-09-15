@@ -44,9 +44,9 @@ npm run dev
 | 서비스 | 대상·확인 결과 |
 |--------|----------------|
 | GitHub | `kuble/ClanSync` · Git/CLI/연결 앱의 저장소 접근 확인, 작업 커밋 자동 푸시 |
-| Supabase | `clansync` · `mxkrfnzlgaxzdzcjbfkg` · 기존 43개 적용, 리뷰 수정 마이그레이션 5개는 운영 승인 대기 |
+| Supabase | `clansync` · `mxkrfnzlgaxzdzcjbfkg` · 마이그레이션 48개 적용, 리뷰 수정 권한·타입 검증 완료 |
 | Supabase QA | `clansync-test` · `moretvteewfcztxvwztw` · 서울 리전 Free, 마이그레이션 48개·QA 픽스처 적용, DB 회귀 검증 완료 |
-| Vercel | `clansync/clan-sync` · CLI 로그인 완료, `.vercel/project.json`으로 기존 프로젝트 연결 |
+| Vercel | `clansync/clan-sync` · 리뷰 수정 커밋 자동 배포 READY, [운영 서비스](https://clan-sync.vercel.app) 공개 응답·cron 인증 확인 |
 
 Supabase CLI는 `.env.local`을 읽는 `node scripts/with-dotenv-local.mjs <명령>`으로 실행할 수 있습니다. 예: `node scripts/with-dotenv-local.mjs migration list --linked`. Vercel CLI는 `npx vercel`을 사용합니다. 인증·연결 파일과 기존 `.env.local`은 로컬에만 보관합니다.
 

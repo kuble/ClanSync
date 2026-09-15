@@ -2,7 +2,7 @@
 
 ## 수정 현황 — 2026-09-15
 
-**R01~R09 수정과 테스트 DB 검증 완료. 운영 DB의 마이그레이션 5개 적용 및 앱 배포는 대기 중이다.** 운영 적용 전에는 기존 결함이 해결된 것으로 간주하지 않는다.
+**R01~R09 수정·테스트 검증·운영 반영 완료.** 사용자 승인 후 운영 DB 마이그레이션 5개를 적용하고 Git 푸시·Vercel 자동 배포를 확인했다. M8 전체 품질 감사는 별도다.
 
 | 항목 | 구현 | 검증 |
 |------|------|------|
@@ -24,7 +24,7 @@
 - 일정: `20260915064919_atomic_event_notification_rescheduling.sql`, `20260915065915_widen_event_notification_instance.sql`; 일정 서버 액션·예약 헬퍼·ISO 파서. 반복 회차의 밀리초 식별자가 integer 범위를 초과하는 추가 결함도 bigint 변경으로 해결.
 - 함수 검색 경로: `20260915070440_pin_trigger_search_paths.sql`로 기존 함수 6개의 경로 고정.
 - React 상태 동기화 오류 3건·미사용 변수 1건 수정. 종료된 정적 목업·생성된 테스트 작업 디렉터리는 ESLint에서 제외하고 앱·테스트·스크립트는 검사.
-- 운영 변경은 기존 행 삭제 없이 권한·정책·함수 및 회차 컬럼 타입을 변경한다. DB 적용 후 새 RPC를 사용하는 앱을 푸시한다. 적용과 앱 전환 사이에는 구버전의 가입·LFG·일정 쓰기가 일시적으로 실패할 수 있다.
+- 운영 변경은 기존 행 삭제 없이 권한·정책·함수 및 회차 컬럼 타입을 변경했다. DB 적용·권한 읽기 검증 후 새 RPC를 사용하는 앱을 푸시했다. 향후 같은 형태의 배포도 DB와 앱의 전환 순서를 지킨다.
 
 ### 검증 결과
 
@@ -35,13 +35,16 @@
 | `CI=true npm run test:e2e` | 프로덕션 빌드 및 Playwright 20건 통과 |
 | `npm run lint` | 오류·경고 0건 |
 | `git diff --check` | 통과 |
-| 운영 읽기 검증 | 기존 public 비확장 함수 37개에 anon/authenticated EXECUTE가 남아 있어 R01 실제 적용 필요 확인 |
+| 운영 DB | 48개 적용·타입 동기화 완료. 서비스 함수 9개 anon/authenticated 실행 거부, 사용자 전이 RPC 4개만 authenticated 허용, 잔액·게임 인증·LFG 직접 쓰기 거부, 알림 회차 bigint 확인 |
+| 운영 타입 동기화 후 빌드 | 통과. 생성 타입은 테스트 DB 기준 파일과 동일 |
+| Vercel 자동 배포 | `8d741fd`의 production 배포 READY, 빌드 약 40초, 운영 도메인 연결 확인 |
+| 운영 공개 응답·로그 | `/`·`/sign-in` 200, 미인증 cron 401. 새 배포의 최근 10분 error 로그 조회 결과 0건 |
 
 DB 회귀는 `scripts/review-db.test.mjs`, 추가 UI·규칙 회귀는 `e2e/event-timezone.spec.ts`·`game-link.spec.ts`·`review-rules.spec.ts`에 있다. 테스트 DB에만 임시 계정·데이터를 생성하고 정리한다.
 
-테스트 DB Security Advisor의 검색 경로 경고 6건은 해소했다. 인증 사용자에게 의도적으로 허용한 SECURITY DEFINER 함수 18건, public의 citext 확장 1건, 유출 비밀번호 보호 비활성 1건은 남아 있다. 전체 UI·반응형·키보드·접근성 감사와 PR 필수 CI는 별도 과제이며 **M8은 미완료**다.
+운영·테스트 DB Security Advisor의 검색 경로 경고 6건은 해소했다. 인증 사용자에게 의도적으로 허용한 SECURITY DEFINER 함수 18건, public의 citext 확장 1건, 유출 비밀번호 보호 비활성 1건은 남아 있다. 전체 UI·반응형·키보드·접근성 감사와 PR 필수 CI는 별도 과제이며 **M8은 미완료**다.
 
-운영 `db:sync`는 자동 승인 검토가 “공유 서비스의 변경 범위에 대한 승인 부족”으로 실행 전에 거부했다. 운영 DB 적용과 이를 전제로 하는 앱 푸시는 사용자 승인 대기다.
+운영 적용은 사용자의 명시적 승인 후 `npm run db:sync`로 완료했다. [검증한 앱 배포](https://clan-sync-os11vc4s1-clansync.vercel.app) · [운영 서비스](https://clan-sync.vercel.app). 업무 데이터 변경·경합 검증은 전용 QA DB에서 수행했고, 운영에서는 스키마·권한·공개 HTTP·오류 로그를 확인했다.
 
 ## 최초 리뷰 평가
 
