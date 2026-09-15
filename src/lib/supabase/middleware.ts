@@ -2,6 +2,7 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import type { Database } from "@/lib/supabase/database.types";
+import { applySessionCookiePolicy, getSessionMaxAge } from "@/lib/supabase/session-cookies";
 
 /**
  * D-SHELL-02 — 운영 빌드에서 반드시 드롭되는 테스트/디버그 쿼리 파라미터.
@@ -37,11 +38,14 @@ export async function updateSession(request: NextRequest): Promise<SessionUpdate
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          for (const { name, value } of cookiesToSet) {
+          const sessionCookies = applySessionCookiePolicy(
+            cookiesToSet, getSessionMaxAge(request.cookies.getAll()),
+          );
+          for (const { name, value } of sessionCookies) {
             request.cookies.set(name, value);
           }
           response = NextResponse.next({ request });
-          for (const { name, value, options } of cookiesToSet) {
+          for (const { name, value, options } of sessionCookies) {
             response.cookies.set(name, value, options);
           }
         },

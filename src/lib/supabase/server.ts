@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
+import { applySessionCookiePolicy, getSessionMaxAge } from "@/lib/supabase/session-cookies";
 
 /**
  * Server Component / Route Handler / Server Action 용 Supabase 클라이언트.
@@ -21,7 +22,7 @@ export async function createClient() {
         },
         setAll(cookiesToSet) {
           try {
-            cookiesToSet.forEach(({ name, value, options }) =>
+            applySessionCookiePolicy(cookiesToSet, getSessionMaxAge(cookieStore.getAll())).forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options),
             );
           } catch {
