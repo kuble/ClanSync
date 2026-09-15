@@ -18,11 +18,11 @@ export async function hasClanPermission(
   perm: ClanPermissionKey,
 ): Promise<boolean> {
   void userId;
-  const { data: rows } = await supabase.rpc("select_my_clan_membership", {
+  const { data: rows, error: membershipError } = await supabase.rpc("select_my_clan_membership", {
     p_clan_id: clanId,
   });
   const row = rows?.[0];
-  if (!row || row.status !== "active" || !row.role) return false;
+  if (membershipError || !row || row.status !== "active" || !row.role) return false;
   const role = row.role as ClanMemberRole;
 
   if (LOCKED_LEADER_ONLY.has(perm)) return role === "leader";
@@ -30,22 +30,24 @@ export async function hasClanPermission(
     return role === "leader" || role === "officer";
   }
 
-  const { data: settings } = await supabase
+  const { data: settings, error: settingsError } = await supabase
     .from("clan_settings")
     .select("permissions")
     .eq("clan_id", clanId)
     .maybeSingle();
 
-  const raw = settings?.permissions as Record<string, unknown> | null;
+  if (settingsError || !settings) return false;
+
+  const raw = settings.permissions as Record<string, unknown> | null;
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return false;
   const fromDb = raw?.[perm];
   let allowed: readonly string[];
   if (Array.isArray(fromDb)) {
     allowed = fromDb.filter((x): x is string => typeof x === "string");
-    if (allowed.length === 0) {
-      allowed = CLAN_PERMISSION_DEFAULTS[perm];
-    }
-  } else {
+  } else if (fromDb === undefined) {
     allowed = CLAN_PERMISSION_DEFAULTS[perm];
+  } else {
+    return false;
   }
 
   return (allowed as readonly string[]).includes(role);

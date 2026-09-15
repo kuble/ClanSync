@@ -138,33 +138,10 @@ export async function applyLfgPostAction(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
 
-  const { data: post } = await supabase
-    .from("lfg_posts")
-    .select("id, creator_user_id, status, expires_at")
-    .eq("id", postId)
-    .maybeSingle();
-
-  if (!post || post.status !== "open") {
-    return { ok: false, error: "모집을 찾을 수 없거나 마감되었습니다." };
-  }
-  if (new Date(post.expires_at as string) <= new Date()) {
-    return { ok: false, error: "모집이 마감되었습니다." };
-  }
-  if (post.creator_user_id === user.id) {
-    return { ok: false, error: "본인 모집에는 신청할 수 없습니다." };
-  }
-
-  const { error } = await supabase.from("lfg_applications").insert({
-    post_id: postId,
-    applicant_user_id: user.id,
-    message: message?.trim().slice(0, 200) || null,
+  const { error } = await supabase.rpc("apply_lfg_post", {
+    p_post_id: postId, p_message: message?.trim().slice(0, 200),
   });
-  if (error) {
-    if (error.code === "23505") {
-      return { ok: false, error: "이미 신청한 모집입니다." };
-    }
-    return { ok: false, error: error.message };
-  }
+  if (error) return { ok: false, error: error.message };
 
   revalidateMainGame(gameSlug);
   return { ok: true };
@@ -181,47 +158,10 @@ export async function acceptLfgApplicationAction(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
 
-  const { data: post } = await supabase
-    .from("lfg_posts")
-    .select("id, creator_user_id, slots, status")
-    .eq("id", postId)
-    .maybeSingle();
-
-  if (!post || post.creator_user_id !== user.id || post.status !== "open") {
-    return { ok: false, error: "처리할 수 없는 모집입니다." };
-  }
-
-  const now = new Date().toISOString();
-  const { error: upErr } = await supabase
-    .from("lfg_applications")
-    .update({
-      status: "accepted",
-      resolved_at: now,
-      resolved_by: user.id,
-    })
-    .eq("id", applicationId)
-    .eq("post_id", postId)
-    .eq("status", "applied");
-
-  if (upErr) return { ok: false, error: upErr.message };
-
-  const { count } = await supabase
-    .from("lfg_applications")
-    .select("*", { count: "exact", head: true })
-    .eq("post_id", postId)
-    .eq("status", "accepted");
-
-  if ((count ?? 0) >= (post.slots ?? 99)) {
-    await supabase.from("lfg_posts").update({ status: "filled" }).eq("id", postId);
-    await supabase
-      .from("lfg_applications")
-      .update({
-        status: "expired",
-        resolved_at: now,
-      })
-      .eq("post_id", postId)
-      .eq("status", "applied");
-  }
+  const { error } = await supabase.rpc("resolve_lfg_application", {
+    p_post_id: postId, p_application_id: applicationId, p_decision: "accepted",
+  });
+  if (error) return { ok: false, error: error.message };
 
   revalidateMainGame(gameSlug);
   return { ok: true };
@@ -238,27 +178,9 @@ export async function rejectLfgApplicationAction(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
 
-  const { data: post } = await supabase
-    .from("lfg_posts")
-    .select("id, creator_user_id, status")
-    .eq("id", postId)
-    .maybeSingle();
-
-  if (!post || post.creator_user_id !== user.id || post.status !== "open") {
-    return { ok: false, error: "처리할 수 없는 모집입니다." };
-  }
-
-  const { error } = await supabase
-    .from("lfg_applications")
-    .update({
-      status: "rejected",
-      resolved_at: new Date().toISOString(),
-      resolved_by: user.id,
-    })
-    .eq("id", applicationId)
-    .eq("post_id", postId)
-    .eq("status", "applied");
-
+  const { error } = await supabase.rpc("resolve_lfg_application", {
+    p_post_id: postId, p_application_id: applicationId, p_decision: "rejected",
+  });
   if (error) return { ok: false, error: error.message };
 
   revalidateMainGame(gameSlug);
@@ -275,25 +197,12 @@ export async function cancelLfgApplicationAction(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
 
-  const { data: row } = await supabase
-    .from("lfg_applications")
-    .select("id, applicant_user_id, status")
-    .eq("id", applicationId)
-    .maybeSingle();
-
-  if (!row || row.applicant_user_id !== user.id || row.status !== "applied") {
-    return { ok: false, error: "취소할 신청이 없습니다." };
-  }
-
-  const { error } = await supabase
-    .from("lfg_applications")
-    .update({
-      status: "canceled",
-      resolved_at: new Date().toISOString(),
-      resolved_by: user.id,
-    })
-    .eq("id", applicationId);
-
+  const { data: row, error: lookupError } = await supabase.from("lfg_applications")
+    .select("post_id").eq("id", applicationId).eq("applicant_user_id", user.id).maybeSingle();
+  if (lookupError || !row) return { ok: false, error: "취소할 신청이 없습니다." };
+  const { error } = await supabase.rpc("resolve_lfg_application", {
+    p_post_id: row.post_id, p_application_id: applicationId, p_decision: "canceled",
+  });
   if (error) return { ok: false, error: error.message };
 
   revalidateMainGame(gameSlug);
@@ -310,32 +219,8 @@ export async function cancelLfgPostAction(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
 
-  const { data: post } = await supabase
-    .from("lfg_posts")
-    .select("id, creator_user_id, status")
-    .eq("id", postId)
-    .maybeSingle();
-
-  if (!post || post.creator_user_id !== user.id || post.status !== "open") {
-    return { ok: false, error: "취소할 모집이 없습니다." };
-  }
-
-  const now = new Date().toISOString();
-  const { error } = await supabase
-    .from("lfg_posts")
-    .update({ status: "canceled" })
-    .eq("id", postId);
-
+  const { error } = await supabase.rpc("cancel_lfg_post", { p_post_id: postId });
   if (error) return { ok: false, error: error.message };
-
-  await supabase
-    .from("lfg_applications")
-    .update({
-      status: "expired",
-      resolved_at: now,
-    })
-    .eq("post_id", postId)
-    .eq("status", "applied");
 
   revalidateMainGame(gameSlug);
   return { ok: true };

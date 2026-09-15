@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { allowDevGameLink } from "@/lib/auth/allow-dev-game-link";
 import { ensurePublicUserProfile } from "@/lib/auth/ensure-public-user";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import {
@@ -35,18 +36,11 @@ function normalizeTags(raw: string[]): string[] {
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
-function allowDevGameLink(): boolean {
-  return (
-    process.env.NODE_ENV === "development" ||
-    process.env.DEV_GAME_LINK_SIMULATOR === "1"
-  );
-}
-
 /** 개발·QA용 게임 인증 완료 시뮬레이션 (실 OAuth 콜백 전 단계). */
 export async function linkGameAccountDevAction(
   gameSlug: string,
 ): Promise<ActionResult> {
-  if (!allowDevGameLink()) {
+  if (!allowDevGameLink(process.env)) {
     return { ok: false, error: "이 환경에서는 시뮬레이션 연동을 사용할 수 없습니다." };
   }
 
@@ -72,7 +66,9 @@ export async function linkGameAccountDevAction(
   }
 
   const stamp = new Date().toISOString();
-  const { error } = await supabase.from("user_game_profiles").upsert(
+  const svcWrap = tryCreateServiceRoleClient();
+  if (!svcWrap.ok) return svcWrap;
+  const { error } = await svcWrap.client.from("user_game_profiles").upsert(
     {
       user_id: user.id,
       game_id: game.id,
@@ -498,91 +494,10 @@ export async function approveClanJoinRequestAction(
   );
   if (!can) return { ok: false, error: "가입을 승인할 권한이 없습니다." };
 
-  const svcWrap = tryCreateServiceRoleClient();
-  if (!svcWrap.ok) return svcWrap;
-  const svc = svcWrap.client;
-
-  const { data: row } = await svc
-    .from("clan_join_requests")
-    .select("id, user_id, clan_id, status")
-    .eq("id", requestId)
-    .maybeSingle();
-
-  if (!row || row.clan_id !== clanId || row.status !== "pending") {
-    return { ok: false, error: "처리할 수 없는 신청입니다." };
-  }
-
-  const { data: dup } = await svc
-    .from("clan_members")
-    .select("id")
-    .eq("clan_id", clanId)
-    .eq("user_id", row.user_id)
-    .maybeSingle();
-  if (dup) {
-    await svc
-      .from("clan_join_requests")
-      .update({
-        status: "rejected",
-        resolved_at: new Date().toISOString(),
-        resolved_by: user.id,
-        reject_reason: "이미 클랜에 등록된 사용자입니다.",
-      })
-      .eq("id", requestId)
-      .eq("status", "pending");
-    revalidateJoinRequestResolution(gameSlug, clanId);
-    return { ok: false, error: "이미 클랜 멤버입니다." };
-  }
-
-  const { data: clan } = await svc
-    .from("clans")
-    .select("max_members")
-    .eq("id", clanId)
-    .maybeSingle();
-  const { count: activeCount } = await svc
-    .from("clan_members")
-    .select("*", { count: "exact", head: true })
-    .eq("clan_id", clanId)
-    .eq("status", "active");
-
-  const cap = clan?.max_members ?? 200;
-  if ((activeCount ?? 0) >= cap) {
-    return { ok: false, error: "클랜 정원이 찼습니다." };
-  }
-
-  const now = new Date().toISOString();
-  const { error: insErr } = await svc.from("clan_members").insert({
-    clan_id: clanId,
-    user_id: row.user_id,
-    role: "member",
-    status: "active",
-    joined_at: now,
-    last_activity_at: now,
+  const { error } = await supabase.rpc("resolve_clan_join_request", {
+    p_clan_id: clanId, p_request_id: requestId, p_decision: "approved",
   });
-  if (insErr) {
-    if (insErr.code === "23505") {
-      return { ok: false, error: "이미 클랜 멤버입니다." };
-    }
-    return { ok: false, error: insErr.message };
-  }
-
-  const { error: updErr } = await svc
-    .from("clan_join_requests")
-    .update({
-      status: "approved",
-      resolved_at: now,
-      resolved_by: user.id,
-    })
-    .eq("id", requestId)
-    .eq("status", "pending");
-
-  if (updErr) {
-    await svc
-      .from("clan_members")
-      .delete()
-      .eq("clan_id", clanId)
-      .eq("user_id", row.user_id);
-    return { ok: false, error: updErr.message };
-  }
+  if (error) return { ok: false, error: error.message };
 
   revalidateJoinRequestResolution(gameSlug, clanId);
   return { ok: true };
@@ -608,33 +523,10 @@ export async function rejectClanJoinRequestAction(
   );
   if (!can) return { ok: false, error: "가입을 거절할 권한이 없습니다." };
 
-  const reason = rejectReason.trim().slice(0, 500);
-  const svcWrap = tryCreateServiceRoleClient();
-  if (!svcWrap.ok) return svcWrap;
-  const svc = svcWrap.client;
-
-  const { data: row } = await svc
-    .from("clan_join_requests")
-    .select("id, clan_id, status")
-    .eq("id", requestId)
-    .maybeSingle();
-
-  if (!row || row.clan_id !== clanId || row.status !== "pending") {
-    return { ok: false, error: "처리할 수 없는 신청입니다." };
-  }
-
-  const now = new Date().toISOString();
-  const { error } = await svc
-    .from("clan_join_requests")
-    .update({
-      status: "rejected",
-      resolved_at: now,
-      resolved_by: user.id,
-      reject_reason: reason || null,
-    })
-    .eq("id", requestId)
-    .eq("status", "pending");
-
+  const { error } = await supabase.rpc("resolve_clan_join_request", {
+    p_clan_id: clanId, p_request_id: requestId, p_decision: "rejected",
+    p_reason: rejectReason.trim().slice(0, 500),
+  });
   if (error) return { ok: false, error: error.message };
 
   revalidateJoinRequestResolution(gameSlug, clanId);
