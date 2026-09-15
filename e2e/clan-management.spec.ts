@@ -61,6 +61,16 @@ test("officers manage real notices and rules across management and dashboard", a
       .getByRole("button", { name: "공지 저장", exact: true })
       .click();
     await expect(editor).toHaveCount(0);
+    const edited = await svc
+      .from("clan_notices")
+      .select("title,content")
+      .eq("id", noticeId!)
+      .single();
+    expect(edited.error).toBeNull();
+    expect(edited.data).toEqual({
+      title: editedTitle,
+      content: "모임 시작 10분 전에 접속해 주세요.",
+    });
     await page
       .getByRole("button", { name: `${editedTitle} 고정 해제`, exact: true })
       .click();
@@ -142,16 +152,18 @@ test("officers manage real notices and rules across management and dashboard", a
       ),
     ).toBe(true);
   } finally {
+    const deleteNotice = svc
+      .from("clan_notices")
+      .delete()
+      .eq("clan_id", clanId);
     const cleanup = await Promise.all([
       svc
         .from("clans")
         .update({ rules: original.data!.rules })
         .eq("id", clanId),
-      svc
-        .from("clan_notices")
-        .delete()
-        .eq("clan_id", clanId)
-        .in("title", [title, editedTitle]),
+      noticeId
+        ? deleteNotice.eq("id", noticeId)
+        : deleteNotice.in("title", [title, editedTitle]),
     ]);
     for (const result of cleanup) expect(result.error).toBeNull();
   }

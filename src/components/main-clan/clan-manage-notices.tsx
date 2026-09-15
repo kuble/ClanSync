@@ -49,6 +49,8 @@ export function ClanManageNotices({
   const [editor, setEditor] = useState<ManagedClanNotice | "new" | null>(null);
   const [removing, setRemoving] = useState<ManagedClanNotice | null>(null);
   const editorReturnFocus = useRef<HTMLElement | null>(null);
+  const editorPopup = useRef<HTMLDivElement | null>(null);
+  const editorTitle = useRef<HTMLInputElement | null>(null);
 
   function edit(value: ManagedClanNotice | "new", trigger: HTMLElement) {
     editorReturnFocus.current = trigger;
@@ -198,7 +200,20 @@ export function ClanManageNotices({
         }}
       >
         <DialogContent
+          ref={editorPopup}
           className="sm:max-w-xl"
+          initialFocus={(interactionType) => {
+            const popup = editorPopup.current;
+            if (!popup || popup.contains(popup.ownerDocument.activeElement)) {
+              return false;
+            }
+            // Base UI queues its default focus in a frame, which can steal focus
+            // from a field the user has already started editing. Focus once now.
+            (interactionType === "touch" ? popup : editorTitle.current)?.focus({
+              preventScroll: true,
+            });
+            return false;
+          }}
           finalFocus={editorReturnFocus}
           showCloseButton={!pending}
         >
@@ -227,6 +242,7 @@ export function ClanManageNotices({
             <div className="space-y-2">
               <Label htmlFor="notice-title">제목</Label>
               <Input
+                ref={editorTitle}
                 id="notice-title"
                 name="title"
                 required
