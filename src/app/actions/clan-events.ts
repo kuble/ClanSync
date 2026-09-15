@@ -1,12 +1,11 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
+import { parseEventStart } from "@/lib/clan/parse-event-start";
 import { revalidatePath } from "next/cache";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
-import {
-  cancelScheduledClanEventNotifications,
-  insertClanEventInAppNotifications,
-} from "@/lib/clan/schedule-clan-event-inapp-notifications";
+import { saveClanEventWithNotifications } from "@/lib/clan/schedule-clan-event-inapp-notifications";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/database.types";
@@ -196,12 +195,8 @@ export async function createClanEventAction(
     ? (kindRaw as Database["public"]["Enums"]["clan_event_kind"])
     : "event";
 
-  const startIso = String(formData.get("start_at") ?? "").trim();
-  if (!startIso) return { ok: false, error: "시작 시각을 입력해 주세요." };
-  const startAt = new Date(startIso);
-  if (Number.isNaN(startAt.getTime())) {
-    return { ok: false, error: "시작 시각이 올바르지 않습니다." };
-  }
+  const startAt = parseEventStart(formData.get("start_at"));
+  if (!startAt) return { ok: false, error: "시간대가 포함된 시작 시각이 필요합니다." };
 
   const placeRaw = String(formData.get("place") ?? "").trim();
   const place = placeRaw ? placeRaw.slice(0, 500) : null;
@@ -221,28 +216,7 @@ export async function createClanEventAction(
     return { ok: false, error: "클랜을 찾을 수 없습니다." };
   }
 
-  const { data: inserted, error } = await svc
-    .from("clan_events")
-    .insert({
-      clan_id: clanId,
-      title,
-      kind,
-      start_at: startAt.toISOString(),
-      place,
-      source: "manual",
-      created_by: user.id,
-      repeat: parsedRepeat.repeat,
-      repeat_weekdays: parsedRepeat.repeat_weekdays,
-      repeat_time: parsedRepeat.repeat_time,
-    })
-    .select("id")
-    .single();
-
-  if (error || !inserted?.id) {
-    return { ok: false, error: error?.message ?? "저장에 실패했습니다." };
-  }
-
-  const newEventId = inserted.id as string;
+  const newEventId = randomUUID();
 
   const template = clanEventRowToRecord({
     id: newEventId,
@@ -256,13 +230,10 @@ export async function createClanEventAction(
     repeat_time: parsedRepeat.repeat_time,
   });
 
-  const sched = await insertClanEventInAppNotifications({
-    svc,
-    clanId,
-    template,
+  const sched = await saveClanEventWithNotifications({
+    svc, clanId, actorId: user.id, template, create: true,
   });
   if (!sched.ok) {
-    await svc.from("clan_events").delete().eq("id", newEventId);
     return { ok: false, error: sched.error };
   }
 
@@ -315,17 +286,8 @@ export async function updateClanEventAction(
     ? (kindRaw as Database["public"]["Enums"]["clan_event_kind"])
     : "event";
 
-  const local = String(formData.get("start_at_local") ?? "");
-  let startIso = String(formData.get("start_at") ?? "").trim();
-  if (local) {
-    const d = new Date(local);
-    if (!Number.isNaN(d.getTime())) startIso = d.toISOString();
-  }
-  if (!startIso) return { ok: false, error: "시작 시각을 입력해 주세요." };
-  const startAt = new Date(startIso);
-  if (Number.isNaN(startAt.getTime())) {
-    return { ok: false, error: "시작 시각이 올바르지 않습니다." };
-  }
+  const startAt = parseEventStart(formData.get("start_at"));
+  if (!startAt) return { ok: false, error: "시간대가 포함된 시작 시각이 필요합니다." };
 
   const placeRaw = String(formData.get("place") ?? "").trim();
   const place = placeRaw ? placeRaw.slice(0, 500) : null;
@@ -361,24 +323,6 @@ export async function updateClanEventAction(
     return { ok: false, error: "이미 취소된 일정입니다." };
   }
 
-  const { error } = await svc
-    .from("clan_events")
-    .update({
-      title,
-      kind,
-      start_at: startAt.toISOString(),
-      place,
-      repeat: parsedRepeat.repeat,
-      repeat_weekdays: parsedRepeat.repeat_weekdays,
-      repeat_time: parsedRepeat.repeat_time,
-    })
-    .eq("id", eventId)
-    .eq("clan_id", clanId);
-
-  if (error) return { ok: false, error: error.message };
-
-  await cancelScheduledClanEventNotifications(svc, eventId);
-
   const template = clanEventRowToRecord({
     id: eventId,
     title,
@@ -391,15 +335,13 @@ export async function updateClanEventAction(
     repeat_time: parsedRepeat.repeat_time,
   });
 
-  const sched = await insertClanEventInAppNotifications({
-    svc,
-    clanId,
-    template,
+  const sched = await saveClanEventWithNotifications({
+    svc, clanId, actorId: user.id, template, create: false,
   });
   if (!sched.ok) {
     return {
       ok: false,
-      error: `일정은 저장됐지만 알림 예약에 실패했습니다. ${sched.error}`,
+      error: sched.error,
     };
   }
 
@@ -473,8 +415,6 @@ export async function cancelClanEventAction(
     .is("cancelled_at", null);
 
   if (error) return { ok: false, error: error.message };
-
-  await cancelScheduledClanEventNotifications(svc, eventId);
 
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);
   return { ok: true };
