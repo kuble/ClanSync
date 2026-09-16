@@ -58,6 +58,7 @@ CI 경로는 `npm run build` 후 `next start`를 사용합니다. 로컬 기본 
 - `join-request-flow.spec.ts`: 가입 신청·리더 거절
 - `ui-regression.spec.ts`: 클랜·게임 탭, 대진표
 - `balance-session-live.spec.ts`: 독립 12명 클랜의 명단 자동 저장·개인 선호·실시간 반영·설정 적용 직후 시작·공유 추첨·주장 지명·경매·결과·기록·다음 라운드·종료
+- `balance-member-preference.spec.ts`: 같은 브라우저의 localhost 운영진/127.0.0.1 멤버 로그인 분리·선호 없음/순서 변경/새로고침/프로필 복귀·관리 UI 숨김
 - `profile-role-preference.spec.ts`: 별도 임시 사용자의 프로필 선호 연속 저장·즉시 재편집·실패 시 마지막 확정값 복구
 - `formation-rules.spec.ts`: 역할 정원·공통 순서·snake 지명·경매 예산/기한/무입찰
 - `roster-autosave.spec.ts`: 빠른 연속 입력·편성 전 flush·동시 저장·연결 실패·revision 충돌·최신 명단 복구
@@ -80,6 +81,8 @@ CI 경로는 `npm run build` 후 `next start`를 사용합니다. 로컬 기본 
 ## 직접 조작하는 QA 페이지
 
 운영진과 클랜원을 동시에 확인할 때는 `http://localhost:3011`에서 `QA_Leader_01`, `http://127.0.0.1:3011`에서 `QA_Member_02`로 각각 로그인한다. 같은 QA 앱·세션을 보되 호스트별 쿠키가 분리되어 다른 탭의 계정을 바꾸지 않는다. 클랜원 탭에서는 본인 선호만 변경하고 운영진 편성 조작은 표시하지 않는다.
+
+Next.js 개발 리소스가 두 호스트에서 모두 로드되도록 `next.config.ts`의 `allowedDevOrigins`에 `127.0.0.1`을 명시한다. 누락되면 멤버 화면의 초기 HTML은 보여도 개발 스크립트가 차단돼 클릭이 작동하지 않을 수 있다. 해당 문제는 실제 QA 개발 서버에서 수정 전 403/수정 후 200 응답과 멤버 조작으로 확인했고, 프로덕션 빌드 E2E는 별도로 검증한다.
 
 `npm run dev:qa`는 실제 앱을 `http://localhost:3011`에서 QA DB로 실행한다. `QA_Leader_01`로 일반 로그인하면 운영진 조작이 가능하다. QA 클랜은 리더와 `QA_Member_02`~`12`로 12명이며, `QA_Member_01`은 온보딩 테스트를 위해 별도로 둔다. 역할을 흉내내는 URL이나 인증 우회는 없다. `db:seed`는 열린 세션을 정리하므로 직접 테스트 중에는 다시 실행하지 않는다.
 
