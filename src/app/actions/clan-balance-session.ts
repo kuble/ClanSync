@@ -35,6 +35,7 @@ import {
   weightedPickMapIndex,
 } from "@/lib/balance/weighted-map-pick";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
+import { canManageRound } from "@/lib/balance/room-access";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/database.types";
 
@@ -107,7 +108,7 @@ async function withPrematchRound(
     if (!user) throw new Error("로그인이 필요합니다.");
     if (
       manager &&
-      !(await hasClanPermission(client, user.id, clanId, "manage_clan_events"))
+      !(await canManageRound(client, user.id, clanId, sessionId))
     )
       throw new Error("운영진만 진행할 수 있습니다.");
     const { data: round, error } = await client
@@ -554,11 +555,11 @@ export async function updateBalanceRosterAction(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
 
-  const can = await hasClanPermission(
+  const can = await canManageRound(
     supabase,
     user.id,
     clanId,
-    "manage_clan_events",
+    sessionId,
   );
   if (!can) return { ok: false, error: "운영진만 배치를 수정할 수 있습니다." };
 
@@ -663,12 +664,11 @@ export async function updateBalanceMaSnapshotAction(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
 
-  const canEdit = await hasClanPermission(
-    supabase,
-    user.id,
-    clanId,
-    "edit_mscore",
-  );
+  const [roundManager, scorePermission] = await Promise.all([
+    canManageRound(supabase, user.id, clanId, sessionId),
+    hasClanPermission(supabase, user.id, clanId, "edit_mscore"),
+  ]);
+  const canEdit = roundManager || scorePermission;
   if (!canEdit) {
     return { ok: false, error: "M점수를 편집할 권한이 없습니다." };
   }
@@ -802,6 +802,10 @@ export async function setBalanceMatchOutcomeAction(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
 
+  if (!(await canManageRound(supabase, user.id, clanId, sessionId))) {
+    return { ok: false, error: "이 내전 방의 결과를 기록할 권한이 없습니다." };
+  }
+
   const { data, error } = await supabase.rpc("set_balance_match_outcome", {
     p_session_id: sessionId,
     p_outcome: outcome,
@@ -834,11 +838,11 @@ export async function closeBalanceSessionAction(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
 
-  const can = await hasClanPermission(
+  const can = await canManageRound(
     supabase,
     user.id,
     clanId,
-    "manage_clan_events",
+    sessionId,
   );
   if (!can) return { ok: false, error: "운영진만 세션을 종료할 수 있습니다." };
 

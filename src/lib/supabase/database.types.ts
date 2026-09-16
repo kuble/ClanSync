@@ -121,6 +121,184 @@ export type Database = {
           },
         ]
       }
+      balance_room_rsvps: {
+        Row: {
+          response: string
+          room_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          response: string
+          room_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          response?: string
+          room_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "balance_room_rsvps_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "balance_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_room_rsvps_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      balance_room_schedules: {
+        Row: {
+          clan_id: string
+          created_at: string
+          created_by: string
+          enabled: boolean
+          id: string
+          interval_days: number
+          next_run_at: string
+          title: string
+        }
+        Insert: {
+          clan_id: string
+          created_at?: string
+          created_by: string
+          enabled?: boolean
+          id?: string
+          interval_days: number
+          next_run_at: string
+          title: string
+        }
+        Update: {
+          clan_id?: string
+          created_at?: string
+          created_by?: string
+          enabled?: boolean
+          id?: string
+          interval_days?: number
+          next_run_at?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "balance_room_schedules_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_room_schedules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      balance_rooms: {
+        Row: {
+          clan_id: string
+          closed_at: string | null
+          created_at: string
+          created_by: string
+          delegated_to: string | null
+          game_id: string
+          id: string
+          kind: string
+          rsvp_days: number | null
+          schedule_id: string | null
+          scheduled_at: string
+          series_id: string | null
+          status: string
+          title: string
+        }
+        Insert: {
+          clan_id: string
+          closed_at?: string | null
+          created_at?: string
+          created_by: string
+          delegated_to?: string | null
+          game_id: string
+          id?: string
+          kind: string
+          rsvp_days?: number | null
+          schedule_id?: string | null
+          scheduled_at?: string
+          series_id?: string | null
+          status?: string
+          title: string
+        }
+        Update: {
+          clan_id?: string
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string
+          delegated_to?: string | null
+          game_id?: string
+          id?: string
+          kind?: string
+          rsvp_days?: number | null
+          schedule_id?: string | null
+          scheduled_at?: string
+          series_id?: string | null
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "balance_rooms_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_rooms_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_rooms_delegated_to_fkey"
+            columns: ["delegated_to"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_rooms_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_rooms_schedule_id_clan_id_fkey"
+            columns: ["schedule_id", "clan_id"]
+            isOneToOne: false
+            referencedRelation: "balance_room_schedules"
+            referencedColumns: ["id", "clan_id"]
+          },
+          {
+            foreignKeyName: "balance_rooms_series_id_clan_id_game_id_fkey"
+            columns: ["series_id", "clan_id", "game_id"]
+            isOneToOne: false
+            referencedRelation: "balance_session_series"
+            referencedColumns: ["id", "clan_id", "game_id"]
+          },
+        ]
+      }
       balance_round_role_preferences: {
         Row: {
           ranking: string[]
@@ -2381,6 +2559,18 @@ export type Database = {
         Args: { p_roster: Json; p_uid: string }
         Returns: boolean
       }
+      can_manage_balance_room: {
+        Args: { p_clan_id: string; p_room_id: string }
+        Returns: boolean
+      }
+      can_manage_balance_round: {
+        Args: { p_clan_id: string; p_round_id: string }
+        Returns: boolean
+      }
+      cancel_balance_room: {
+        Args: { p_clan_id: string; p_room_id: string }
+        Returns: Json
+      }
       cancel_lfg_post: { Args: { p_post_id: string }; Returns: undefined }
       claim_discord_poll_notification_batch: {
         Args: { p_limit: number }
@@ -2415,6 +2605,21 @@ export type Database = {
           p_state: Json
         }
         Returns: boolean
+      }
+      create_balance_room: {
+        Args: {
+          p_clan_id: string
+          p_kind: string
+          p_repeat_every_days?: number
+          p_rsvp_days?: number
+          p_scheduled_at?: string
+          p_title: string
+        }
+        Returns: Json
+      }
+      delegate_balance_room: {
+        Args: { p_clan_id: string; p_officer_id?: string; p_room_id: string }
+        Returns: Json
       }
       dispatch_inapp_notification_batch: {
         Args: { p_limit?: number }
@@ -2454,6 +2659,7 @@ export type Database = {
         Args: { p_clan_id: string }
         Returns: number
       }
+      materialize_balance_rooms: { Args: { p_limit?: number }; Returns: Json }
       my_active_clan_for_game: {
         Args: { p_game_id: string }
         Returns: {
@@ -2471,6 +2677,10 @@ export type Database = {
       }
       next_balance_round: {
         Args: { p_clan_id: string; p_round_id: string }
+        Returns: Json
+      }
+      open_balance_room: {
+        Args: { p_clan_id: string; p_room_id: string }
         Returns: Json
       }
       open_balance_session_series: {
@@ -2587,6 +2797,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      set_balance_room_rsvp: {
+        Args: { p_clan_id: string; p_response: string; p_room_id: string }
+        Returns: Json
+      }
+      set_balance_room_schedule_enabled: {
+        Args: { p_clan_id: string; p_enabled: boolean; p_schedule_id: string }
+        Returns: Json
+      }
       submit_balance_ban_vote: {
         Args: {
           p_choice_idx?: number
@@ -2597,6 +2815,16 @@ export type Database = {
           p_round_id: string
         }
         Returns: boolean
+      }
+      update_balance_room: {
+        Args: {
+          p_clan_id: string
+          p_room_id: string
+          p_rsvp_days?: number
+          p_scheduled_at: string
+          p_title: string
+        }
+        Returns: Json
       }
       update_clan_rules: {
         Args: { p_clan_id: string; p_rules: string }

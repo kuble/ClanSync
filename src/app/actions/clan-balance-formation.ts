@@ -21,7 +21,7 @@ import {
   validateBanSettings,
   type BanSettings,
 } from "@/lib/balance/prematch";
-import { hasClanPermission } from "@/lib/clan/has-clan-permission";
+import { canManageRound } from "@/lib/balance/room-access";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import type { Json } from "@/lib/supabase/database.types";
@@ -48,7 +48,7 @@ export async function updateFormationAction(
         .eq("clan_id", clanId)
         .is("closed_at", null)
         .maybeSingle(),
-      hasClanPermission(client, user.id, clanId, "manage_clan_events"),
+      canManageRound(client, user.id, clanId, roundId),
     ]);
     if (error || !round || round.phase !== "editing")
       throw new Error("편성할 수 있는 라운드가 아닙니다.");
