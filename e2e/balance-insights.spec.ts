@@ -23,6 +23,8 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await expect(insights).not.toContainText("맵 반영 승률");
     const board = panel.locator('[aria-label="출전 명단 편집"]');
     await expect(board.getByRole("complementary", { name: "팀 밸런스 비교" })).toBeVisible();
+    await expect(insights).not.toContainText("차이");
+    expect((await insights.boundingBox())!.y).toBeGreaterThan((await panel.locator('[data-roster-slot="team1:s1"]').boundingBox())!.y);
     await expect(panel.getByText("출전 명단 10 / 10", { exact: true })).toHaveCount(0);
     expect((await fixture.activeRound(regular.roomId)).ma_snapshot).toEqual({});
     await page.screenshot({ path: test.info().outputPath("roster-sample-insights.png"), fullPage: true });
@@ -47,6 +49,16 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await settings.getByRole("checkbox", { name: "영웅 밴 사용", exact: true }).uncheck();
     await settings.getByRole("button", { name: "설정 적용", exact: true }).click();
     await expect(settings).toBeHidden();
+    await panel.getByRole("button", { name: "편성 시작", exact: true }).click();
+    const editRoster = panel.getByRole("button", { name: "명단 수정", exact: true });
+    await expect(editRoster).toBeVisible();
+    expect((await editRoster.boundingBox())!.y).toBeLessThan((await insights.boundingBox())!.y);
+    const end = await panel.getByRole("button", { name: "세션 종료", exact: true }).boundingBox();
+    const apply = await panel.getByRole("button", { name: "편성 적용", exact: true }).boundingBox();
+    expect(Math.abs(end!.y - apply!.y)).toBeLessThan(5);
+    expect(apply!.x).toBeGreaterThan(end!.x);
+    await editRoster.click();
+    await expect(panel.locator('[data-roster-slot="team1:tank"]')).toBeVisible();
     await panel.getByRole("button", { name: "편성 시작", exact: true }).click();
     await panel.getByRole("button", { name: "편성 적용", exact: true }).click();
     await panel.getByRole("button", { name: "혼합", exact: true }).click();

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Pause, Play, RotateCcw } from "lucide-react";
+import { Pause, Play } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { updateFormationAction } from "@/app/actions/clan-balance-formation";
@@ -150,7 +150,7 @@ export function ClanBalanceFormation({
       </section>
     );
   return (
-    <section data-testid="balance-formation" className="mt-4 space-y-4">
+    <section data-testid="balance-formation" className={state.stage === "complete" ? "hidden" : "mt-4 space-y-4"}>
       {endSessionControl}
       {manager ? (
         <div className="flex justify-end gap-1">
@@ -174,16 +174,6 @@ export function ClanBalanceFormation({
               )}
             </Button>
           ) : null}
-          <Button
-            size="icon"
-            variant="ghost"
-            disabled={pending || revealing}
-            title="명단 수정"
-            aria-label="명단 수정"
-            onClick={() => run({ type: "reset" })}
-          >
-            <RotateCcw className="size-4" />
-          </Button>
         </div>
       ) : null}
       {state.stage !== "complete" ? (

@@ -248,7 +248,6 @@ export function ClanBalanceRosterEditor({
       </p>
       <div aria-label="출전 명단 편집" aria-describedby={helpId}>
         <BalanceTeamHeading />
-        {renderInsights?.(roster)}
         <div className="space-y-2 rounded-xl bg-muted/35 p-2 sm:p-3">
           {BALANCE_SLOTS.map((slot) => (
             <div
@@ -341,6 +340,7 @@ export function ClanBalanceRosterEditor({
             </div>
           ))}
         </div>
+        {renderInsights ? <div className="mt-3">{renderInsights(roster)}</div> : null}
       </div>
 
       <section

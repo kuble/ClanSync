@@ -54,7 +54,7 @@ export function BalanceTeamInsights({ roster, scores, mode, map, premium, overal
   const estimate = selectedMap ? byMap : overall;
   const sampleEstimate = (context: string): BalanceEstimate => ({ context, team1: 42 + sampleHash(context) % 17, sampleSize: 1, confidence: "낮음" });
   return <aside aria-label="팀 밸런스 비교" className={compact ? "mb-3 space-y-2 rounded-xl bg-muted/25 px-3 py-3 sm:px-4" : "space-y-4 rounded-xl border bg-muted/15 p-4"} aria-live="polite">
-    <div className="flex items-center justify-between text-xs"><h4 className="font-semibold">{mode.toUpperCase()}점수 차이</h4><span className="text-muted-foreground">{totals[0] !== null && totals[1] !== null ? `차이 ${Math.abs(totals[0] - totals[1]).toFixed(1)}` : "점수 미등록 또는 명단 미완성"}</span></div>
+    <div className="flex items-center justify-between text-xs"><h4 className="font-semibold">{mode.toUpperCase()}점수 합계</h4>{totals.some((total) => total === null) ? <span className="text-muted-foreground">점수 미등록 또는 명단 미완성</span> : null}</div>
     <div className="flex justify-between text-sm font-semibold tabular-nums"><span className="text-sky-600 dark:text-sky-300">1팀 {totals[0]?.toFixed(1) ?? "—"}</span><span className="text-rose-600 dark:text-rose-300">2팀 {totals[1]?.toFixed(1) ?? "—"}</span></div>
     {premium ? <div className={compact ? "space-y-3 border-t pt-2" : "space-y-4 border-t pt-4"}>
       <EstimateRow title={selectedMap ? `예측 승률 · ${selectedMap} 반영` : "예측 승률"} context={context} estimate={sample ? sampleEstimate(context) : estimate} sample={sample} ready={complete} waiting={complete ? "예측 준비 중" : "10명 편성 후 확인"} />

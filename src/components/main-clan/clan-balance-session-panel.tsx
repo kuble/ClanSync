@@ -14,6 +14,7 @@ import {
   Gamepad2,
   Map,
   Radio,
+  RotateCcw,
   Shield,
   Swords,
   Users,
@@ -587,7 +588,19 @@ export function ClanBalanceSessionPanel({
                 showSummary={session.phase === "editing" && !mapScreen}
               />
             ) : null}
-            {!(session.phase === "editing" && !mapScreen && canManage && !formation) ? scoreControl : null}
+            {!(session.phase === "editing" && !mapScreen && canManage && !formation) ? (
+              <div className="flex items-center justify-between gap-2">
+                {scoreControl ?? <span />}
+                {canManage && formation && session.phase === "editing" && !mapScreen ? (
+                  <ClanBalanceRevealComplete state={formation} serverNow={presentationNow}>
+                    <Button size="icon" variant="ghost" title="명단 수정" aria-label="명단 수정" disabled={pending || busyFormation}
+                      onClick={() => runAction("명단을 수정할 수 있습니다.", () => updateFormationAction(gameSlug, clanId, session.id, session.formation_revision, { type: "reset" }))}>
+                      <RotateCcw className="size-4" />
+                    </Button>
+                  </ClanBalanceRevealComplete>
+                ) : null}
+              </div>
+            ) : null}
             {session.phase === "editing" && !mapScreen ? (
               <div className="space-y-5">
                 <div data-balance-guide="board">
@@ -638,7 +651,7 @@ export function ClanBalanceSessionPanel({
                   />
                 ) : null}
                 <ClanBalanceFormation
-                  endSessionControl={endSessionControl}
+                  endSessionControl={formation?.stage === "complete" ? null : endSessionControl}
                   serverNow={presentationNow}
                   key={session.id}
                   gameSlug={gameSlug}
@@ -664,6 +677,8 @@ export function ClanBalanceSessionPanel({
                   onPendingChange={setBusyFormation}
                 />
                 {formation?.stage === "complete" ? (
+                  <div className="flex items-center justify-between gap-3" data-balance-guide="primary">
+                    {endSessionControl ?? <span />}
                   <ClanBalanceRevealComplete
                     key={`reveal:${formation.draw?.id ?? session.id}`}
                     state={formation}
@@ -688,6 +703,7 @@ export function ClanBalanceSessionPanel({
                       </p>
                     )}
                   </ClanBalanceRevealComplete>
+                  </div>
                 ) : null}
               </div>
             ) : null}
