@@ -168,20 +168,22 @@ export async function loadClanDashboard(
     supabase
       .from("balance_sessions")
       .select(
-        "id, opened_at, closed_at, predictions_settled_at, resolved_map_label, roster, ma_snapshot, match_outcome, balance_session_series(opened_at)",
+        "id, opened_at, closed_at, predictions_settled_at, resolved_map_label, roster, ma_snapshot, match_outcome, balance_session_series!inner(opened_at,balance_rooms!inner(kind))",
         { count: "exact" },
       )
       .eq("clan_id", clanId)
+      .eq("balance_session_series.balance_rooms.kind", "regular")
       .neq("match_outcome", "pending")
       .limit(1000),
     plan === "premium"
       ? supabase
           .from("balance_sessions")
           .select(
-            "id, match_outcome, balance_session_predictions(user_id, pick_team), balance_session_series!inner(opened_at)",
+            "id, match_outcome, balance_session_predictions(user_id, pick_team), balance_session_series!inner(opened_at,balance_rooms!inner(kind))",
             { count: "exact" },
           )
           .eq("clan_id", clanId)
+          .eq("balance_session_series.balance_rooms.kind", "regular")
           .in("match_outcome", ["team1", "team2"])
           .gte("balance_session_series.opened_at", monthStart.toISOString())
           .lt("balance_session_series.opened_at", monthEnd.toISOString())

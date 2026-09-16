@@ -105,7 +105,8 @@ test("room ownership, reservations, delegation and scheduler stay scoped", async
     assert.equal(current.map_ban_seconds, 25);
     assert.deepEqual(current.map_types, ["hybrid"]);
     await ok(creator.client.rpc("close_balance_session_series", { p_clan_id: clanId, p_round_id: current.id }));
-    assert.equal((await ok(readRoom(owned.room_id))).status, "closed");
+    assert.deepEqual(await ok(svc.from("balance_rooms").select("id").eq("id", owned.room_id)), []);
+    assert.deepEqual(await ok(svc.from("balance_sessions").select("id").eq("series_id", owned.series_id)), []);
   });
 
   await t.test("regular delegation belongs to this room and ends on close", async () => {

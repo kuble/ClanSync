@@ -351,9 +351,10 @@ export async function loadClanStatsPage(
       supabase
         .from("balance_sessions")
         .select(
-          "id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,match_outcome,balance_session_series(opened_at)",
+          "id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,match_outcome,balance_session_series!inner(opened_at,balance_rooms!inner(kind))",
         )
         .eq("clan_id", clanId)
+        .eq("balance_session_series.balance_rooms.kind", "regular")
         .neq("match_outcome", "pending")
         .order("opened_at", { ascending: false })
         .order("id")
