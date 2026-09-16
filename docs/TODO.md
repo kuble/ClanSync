@@ -2,17 +2,17 @@
 
 마지막 갱신: 2026-09-16
 
-**초점:** 밸런스메이커의 명단·개인 선호·설정·공유 추첨·기록 화면을 QA에서 확인하고 사용자 피드백을 반영한다.
+**초점:** 내전 로비의 정규·깜짝 방, 예약·반복·임시 진행자·참석 응답과 방 안의 경기 흐름을 QA에서 확인한다.
 
 ## 실행 제약
 
-- **QA 우선, 운영 DB·운영 배포 보류.** 작업 브랜치: `codex/live-session-formation`. QA 마이그레이션 59개·운영 50개이며 운영 적용 9개가 대기 중이다.
+- **QA 우선, 운영 DB·운영 배포 보류.** 작업 브랜치: `codex/live-session-formation`. QA 마이그레이션 60개·운영 50개이며 운영 적용 10개가 대기 중이다.
 - 사용자 QA: `npm run dev:qa`(3011). 열린 명단을 시드로 초기화하지 않는다. 자동 E2E는 `E2E_SKIP_SEED=1`, 쓰기 테스트는 별도 임시 픽스처를 사용한다.
 - 변경 위험에 맞는 검증만 실행한다([기준](../.cursor/rules/agent-auto-tasks.mdc) · [실행법](../e2e/README.md)). main 병합·운영 반영 전에는 전체 회귀·빌드가 필요하다.
 
 ## 다음 우선순위
 
-1. 현재 QA의 밸런스메이커 피드백 수정·해당 시나리오 확인.
+1. 현재 QA의 내전 로비·경기 진행 피드백 수정·해당 시나리오 확인.
 2. 성능: 배포 직후·간헐적 5~6초 응답 편차 추가 계측. 원인 미확정.
 3. M8: 접근성 전수 감사, 모든 권한 조합 점검과 PR 필수 CI.
 4. 후속: 실력 기반 팀 균형·OCR·대진 진행·클랜 기본정보/리더 위임, 실제 게임 OAuth·유료 결제·알림 전달 연결.
@@ -20,7 +20,7 @@
 ## 필요한 문서만 선택
 
 - [기능별 코드·테스트 진입점](README.md) · [상세 구현·검증 현황](TODO_Phase2.md)
-- [편성 명세](02-design/formation-modes.md) · [내전 용어](01-plan/glossary.md#내전-운영-용어) · [고도화 결정](01-plan/product-design-evolution.md)
+- [로비·예약 명세](02-design/session-lobby.md) · [편성 명세](02-design/formation-modes.md) · [내전 용어](01-plan/glossary.md#내전-운영-용어) · [고도화 결정](01-plan/product-design-evolution.md)
 - [후속 아이디어](01-plan/BACKLOG.md) · [과거 작업 이력](TODO_LOG.md) · [운영 개편·리셋 사용 기록](02-design/frontend-rebuild.md)
 
 재개 시 `git status`와 최근 커밋을 확인한다. 사용자 기존 BACKLOG·QA 시나리오·개인 메모는 작업과 섞지 않는다. 추가 리셋은 승인되지 않았다.

@@ -8,6 +8,7 @@
 
 | 기능 | 코드 시작점 | 관련 테스트 |
 |---|---|---|
+| 내전 로비·예약·참석 응답 | [로비](../src/components/main-clan/clan-balance-lobby.tsx) · [방 액션](../src/app/actions/clan-balance-rooms.ts) · [방 권한](../src/lib/balance/room-access.ts) | [로비 통합](../e2e/balance-lobby.spec.ts) · [방 DB](../scripts/balance-rooms-db.test.mjs) |
 | 명단 입력·자동 저장 | [명단 편집](../src/components/main-clan/clan-balance-roster-editor.tsx) · [자동 저장](../src/lib/balance/roster-autosave.ts) | [roster-autosave](../e2e/roster-autosave.spec.ts) · [내전 통합](../e2e/balance-session-live.spec.ts) |
 | 역할 추첨·팀 편성·공유 연출 | [편성 UI](../src/components/main-clan/clan-balance-formation.tsx) · [추첨 팝업](../src/components/main-clan/clan-balance-draw-dialog.tsx) · [보드 연출](../src/components/main-clan/clan-balance-reveal-board.tsx) · [규칙](../src/lib/balance/formation.ts) | [formation-rules](../e2e/formation-rules.spec.ts) · [내전 통합](../e2e/balance-session-live.spec.ts) · [편성 DB](../scripts/formation-db.test.mjs) |
 | 역할 선호·라운드 설정 | [선호 액션](../src/app/actions/role-preferences.ts) · [설정 UI](../src/components/main-clan/clan-balance-settings.tsx) | [프로필 선호](../e2e/profile-role-preference.spec.ts) · [멤버 선호](../e2e/balance-member-preference.spec.ts) · [선호 DB](../scripts/role-preferences-db.test.mjs) |
@@ -25,6 +26,7 @@
 | 프로젝트 소개·실행 | [프로젝트 README](../README.md) |
 | 현재 작업·다음 우선순위 | [TODO.md](TODO.md) |
 | 내전 세션·라운드·날짜·참여 용어 | [용어 사전](01-plan/glossary.md#내전-운영-용어) — D-SESSION-01 확정 기준 |
+| 정규·깜짝 방·예약·임시 진행자 | [내전 로비 명세](02-design/session-lobby.md) |
 | 기획·디자인 고도화 논의 | [고도화 논의 문서](01-plan/product-design-evolution.md) — 제안 7개·결정 질문·화면 방향 |
 | 편성 방식·팀원용 공유 연출 | [편성 명세](02-design/formation-modes.md) — 확정 규칙·적용 범위·후속 구분 |
 | Phase 2 구현 현황·완료 검증 | [TODO_Phase2.md](TODO_Phase2.md) |
