@@ -338,22 +338,22 @@ export type Database = {
       balance_session_hero_votes: {
         Row: {
           pick_1: string
-          pick_2: string
-          pick_3: string
+          pick_2: string | null
+          pick_3: string | null
           session_id: string
           user_id: string
         }
         Insert: {
           pick_1: string
-          pick_2: string
-          pick_3: string
+          pick_2?: string | null
+          pick_3?: string | null
           session_id: string
           user_id: string
         }
         Update: {
           pick_1?: string
-          pick_2?: string
-          pick_3?: string
+          pick_2?: string | null
+          pick_3?: string | null
           session_id?: string
           user_id?: string
         }
@@ -505,9 +505,11 @@ export type Database = {
           formation_settings: Json
           formation_state: Json | null
           game_id: string
+          hero_ban_context: Json | null
           hero_ban_deadline_at: string | null
           hero_ban_enabled: boolean
           hero_ban_seconds: number
+          hero_bans_per_team: number
           host_user_id: string
           id: string
           ma_snapshot: Json
@@ -535,9 +537,11 @@ export type Database = {
           formation_settings?: Json
           formation_state?: Json | null
           game_id: string
+          hero_ban_context?: Json | null
           hero_ban_deadline_at?: string | null
           hero_ban_enabled?: boolean
           hero_ban_seconds?: number
+          hero_bans_per_team?: number
           host_user_id: string
           id?: string
           ma_snapshot?: Json
@@ -565,9 +569,11 @@ export type Database = {
           formation_settings?: Json
           formation_state?: Json | null
           game_id?: string
+          hero_ban_context?: Json | null
           hero_ban_deadline_at?: string | null
           hero_ban_enabled?: boolean
           hero_ban_seconds?: number
+          hero_bans_per_team?: number
           host_user_id?: string
           id?: string
           ma_snapshot?: Json
@@ -2788,6 +2794,7 @@ export type Database = {
           p_clan_id: string
           p_hero_ban: boolean
           p_hero_ban_seconds: number
+          p_hero_bans_per_team?: number
           p_map_ban: boolean
           p_map_ban_seconds: number
           p_map_types: string[]

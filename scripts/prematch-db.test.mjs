@@ -106,6 +106,7 @@ test("prematch rules, voting deadlines and explicit match start are atomic", asy
     p_hero_ban: row.hero_ban_enabled,
     p_map_ban_seconds: row.map_ban_seconds,
     p_hero_ban_seconds: row.hero_ban_seconds,
+    p_hero_bans_per_team: row.hero_bans_per_team,
     p_map_types: row.map_types,
     ...overrides,
   });
@@ -133,13 +134,13 @@ test("prematch rules, voting deadlines and explicit match start are atomic", asy
       p_expected_deadline: deadline ?? (await read()).map_ban_deadline_at,
       p_choice_idx: 0,
     });
-  const heroVote = async (client = member.client, deadline) =>
+  const heroVote = async (client = member.client, deadline, picks = ["ana", "mercy"]) =>
     client.rpc("submit_balance_ban_vote", {
       p_round_id: roundId,
       p_clan_id: clanId,
       p_kind: "hero",
       p_expected_deadline: deadline ?? (await read()).hero_ban_deadline_at,
-      p_picks: ["ana", "mercy", "reinhardt"],
+      p_picks: picks,
     });
 
   await t.test(
@@ -162,6 +163,8 @@ test("prematch rules, voting deadlines and explicit match start are atomic", asy
         { p_clan_id: randomUUID() },
         { p_map_ban_seconds: 4 },
         { p_hero_ban_seconds: 301 },
+        { p_hero_bans_per_team: 0 },
+        { p_hero_bans_per_team: 3 },
         { p_map_types: ["fake"] },
       ])
         assert.ok(
@@ -307,10 +310,16 @@ test("prematch rules, voting deadlines and explicit match start are atomic", asy
   );
 
   await t.test(
-    "hero ballots enforce lineup, settings cancel ballots and empty resolution waits for explicit start",
+    "hero ballots enforce lineup, abstention and atomic resolution/start with manager-only context",
     async () => {
+      assert.equal(await settings({ p_hero_bans_per_team: 1 }), true);
       await ok(patch({ phase: "hero_ban" }));
-      await ok(heroVote());
+      assert.ok((await heroVote()).error);
+      assert.ok((await heroVote(member.client, undefined, ["invalid"])).error);
+      await ok(heroVote(member.client, undefined, ["ana"]));
+      await ok(heroVote(member.client, undefined, []));
+      assert.equal(await countVotes("hero"), 0);
+      await ok(heroVote(member.client, undefined, ["ana"]));
       assert.ok((await heroVote(reserve.client)).error);
       assert.equal((await member.client.from("balance_session_hero_votes").insert({
         session_id: roundId, user_id: member.id, pick_1: "ana", pick_2: "mercy", pick_3: "reinhardt",
@@ -330,9 +339,13 @@ test("prematch rules, voting deadlines and explicit match start are atomic", asy
       );
       assert.ok((await heroVote()).error);
       const voting = await read();
-      await ok(patch({ banned_heroes: [], hero_ban_deadline_at: null }));
+      const context = { version: 1, bansPerTeam: 1, teams: { team1: [], team2: [] } };
+      const memberWrite = await member.client.from("balance_sessions").update({ hero_ban_context: context }).eq("id", roundId).select("id");
+      assert.ok(memberWrite.error || memberWrite.data?.length === 0);
+      await ok(patch({ banned_heroes: [], hero_ban_deadline_at: null, hero_ban_context: context, phase: "match_live" }));
       const resolved = await read();
-      assert.equal(resolved.phase, "hero_ban");
+      assert.equal(resolved.phase, "match_live");
+      assert.deepEqual(resolved.hero_ban_context, context);
       assert.deepEqual(resolved.banned_heroes, []);
       assert.ok(resolved.formation_revision > voting.formation_revision);
       await ok(patch({ phase: "match_live" }));
@@ -367,6 +380,7 @@ test("prematch rules, voting deadlines and explicit match start are atomic", asy
       const next = await read();
       assert.equal(next.map_ban_seconds, completed.map_ban_seconds);
       assert.equal(next.hero_ban_seconds, completed.hero_ban_seconds);
+      assert.equal(next.hero_bans_per_team, completed.hero_bans_per_team);
       assert.deepEqual(next.map_types, completed.map_types);
       assert.equal(next.resolved_map_label, null);
       assert.equal(next.banned_heroes, null);
@@ -374,7 +388,7 @@ test("prematch rules, voting deadlines and explicit match start are atomic", asy
       assert.equal(await settings({ p_map_ban: false }), true);
       await ok(patch({ resolved_map_label: "오아시스" }));
       await ok(patch({ phase: "hero_ban" }));
-      await ok(heroVote());
+      await ok(heroVote(member.client, undefined, ["ana"]));
       await ok(patch({ resolved_map_label: "리장 타워" }));
       assert.equal((await read()).phase, "editing");
       assert.equal(await countVotes("hero"), 0);

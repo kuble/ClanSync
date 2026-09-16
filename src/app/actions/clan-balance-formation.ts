@@ -236,6 +236,7 @@ export async function updateFormationSettingsAction(
       p_hero_ban: heroBan,
       p_map_ban_seconds: nextBans.mapBanSeconds,
       p_hero_ban_seconds: nextBans.heroBanSeconds,
+      p_hero_bans_per_team: nextBans.heroBansPerTeam,
       p_map_types: nextBans.mapTypes,
     });
     if (error) throw new Error(error.message);

@@ -1,6 +1,6 @@
-/**
- * 오버워치 내전 영웅 밴 (09-BalanceMaker: 1·2·3순위 7·5·3, 역할당 최대 2 · 전체 최대 4).
- */
+import type { BalanceRoster } from "./roster-schema";
+
+/** Each team nominates its own bans using equal-weight votes. */
 
 export type OwHeroRole = "tank" | "dps" | "support";
 
@@ -78,44 +78,39 @@ export function owHeroRole(id: string): OwHeroRole | null {
   return byId[id]?.role ?? null;
 }
 
-export function tallyHeroBanVotes(
-  rows: readonly { pick_1: string; pick_2: string; pick_3: string }[],
-): Record<string, number> {
-  const scores: Record<string, number> = {};
-  const add = (heroId: string, pts: number) => {
-    scores[heroId] = (scores[heroId] ?? 0) + pts;
-  };
-  for (const r of rows) {
-    add(r.pick_1, 7);
-    add(r.pick_2, 5);
-    add(r.pick_3, 3);
+export type HeroBanVote = {
+  user_id: string;
+  pick_1: string;
+  pick_2: string | null;
+  pick_3: string | null;
+};
+export type TeamHeroBan = { heroId: string; role: OwHeroRole; votes: number };
+export function heroVoteTeam(roster: BalanceRoster, userId: string): "team1" | "team2" | null {
+  for (const team of ["team1", "team2"] as const) {
+    const slots = roster[team];
+    if ([slots.tank, ...slots.dmg, ...slots.sup].includes(userId)) return team;
   }
-  return scores;
+  return null;
 }
-
-/** 점수 내림차순, 동점 시 id 오름차순 → 역할당 2·전체 4 제한으로 밴 확정 */
-export function resolveBannedHeroesFromScores(
-  scores: Record<string, number>,
-): string[] {
-  const sorted = Object.entries(scores)
-    .filter(([, s]) => s > 0)
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-
-  const picked: string[] = [];
-  const roleCount: Record<OwHeroRole, number> = {
-    tank: 0,
-    dps: 0,
-    support: 0,
-  };
-
-  for (const [heroId] of sorted) {
-    if (picked.length >= 4) break;
-    const role = owHeroRole(heroId);
-    if (!role) continue;
-    if (roleCount[role] >= 2) continue;
-    picked.push(heroId);
-    roleCount[role] += 1;
+export function teamHeroBanStandings(votes: readonly HeroBanVote[], roster: BalanceRoster) {
+  const scores: Record<"team1" | "team2", Record<string, number>> = { team1: {}, team2: {} };
+  for (const vote of votes) {
+    const team = heroVoteTeam(roster, vote.user_id);
+    if (!team) continue;
+    for (const id of new Set([vote.pick_1, vote.pick_2, vote.pick_3])) {
+      if (id && isValidOwHeroId(id)) scores[team][id] = (scores[team][id] ?? 0) + 1;
+    }
   }
-
-  return picked;
+  const ranked = (team: "team1" | "team2"): TeamHeroBan[] => Object.entries(scores[team])
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([heroId, votes]) => ({ heroId, votes, role: owHeroRole(heroId)! }));
+  return { team1: ranked("team1"), team2: ranked("team2") };
+}
+export function resolveTeamHeroBans(votes: readonly HeroBanVote[], roster: BalanceRoster, count: 1 | 2) {
+  const standings = teamHeroBanStandings(votes, roster);
+  const teams = { team1: standings.team1.slice(0, count), team2: standings.team2.slice(0, count) };
+  return {
+    bannedHeroes: [...new Set([...teams.team1, ...teams.team2].map((entry) => entry.heroId))],
+    context: { version: 1, bansPerTeam: count, teams },
+  };
 }

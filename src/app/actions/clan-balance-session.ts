@@ -21,8 +21,7 @@ import {
 import {
   isOverwatchBalanceGame,
   isValidOwHeroId,
-  resolveBannedHeroesFromScores,
-  tallyHeroBanVotes,
+  resolveTeamHeroBans,
 } from "@/lib/balance/ow-hero-ban";
 import {
   parseRoster,
@@ -219,6 +218,7 @@ export async function startMapBanPhaseAction(
               p_hero_ban: round.hero_ban_enabled,
               p_map_ban_seconds: bans.mapBanSeconds,
               p_hero_ban_seconds: bans.heroBanSeconds,
+      p_hero_bans_per_team: bans.heroBansPerTeam,
               p_map_types: selectedMapTypes,
             },
           );
@@ -442,9 +442,7 @@ export async function submitHeroBanVoteAction(
   gameSlug: string,
   clanId: string,
   sessionId: string,
-  pick1: string,
-  pick2: string,
-  pick3: string,
+  picks: string[],
   expectedDeadline: string,
 ): Promise<BalanceSessionActionResult> {
   if (!isOverwatchBalanceGame(gameSlug))
@@ -454,13 +452,9 @@ export async function submitHeroBanVoteAction(
     };
   if (typeof expectedDeadline !== "string" || !Number.isFinite(Date.parse(expectedDeadline)))
     return { ok: false, error: "최신 영웅 밴 투표 화면을 확인하세요." };
-  if ([pick1, pick2, pick3].some((pick) => typeof pick !== "string"))
-    return { ok: false, error: "알 수 없는 영웅입니다." };
-  const picks = [pick1.trim(), pick2.trim(), pick3.trim()];
-  if (new Set(picks).size !== 3)
-    return { ok: false, error: "서로 다른 영웅 3명을 선택하세요." };
-  if (picks.some((pick) => !isValidOwHeroId(pick)))
-    return { ok: false, error: "알 수 없는 영웅입니다." };
+  if (!Array.isArray(picks) || picks.length > 2 || new Set(picks).size !== picks.length ||
+    picks.some((pick) => typeof pick !== "string" || !isValidOwHeroId(pick)))
+    return { ok: false, error: "서로 다른 영웅을 선택하세요." };
   return withPrematchRound(
     gameSlug,
     clanId,
@@ -474,6 +468,8 @@ export async function submitHeroBanVoteAction(
         Date.parse(round.hero_ban_deadline_at) <= Date.now()
       )
         throw new Error("영웅 밴 투표가 마감되었습니다.");
+      if (picks.length > round.hero_bans_per_team)
+        throw new Error("팀별 밴 개수 이내로 선택하세요.");
       if (!rosterAssignedUserIds(parseRoster(round.roster)).includes(userId))
         throw new Error("출전 라인업에 포함된 멤버만 투표할 수 있습니다.");
       const { error } = await client.rpc("submit_balance_ban_vote", {
@@ -496,24 +492,26 @@ export async function resolveHeroBanAction(
     sessionId,
     true,
     async (client, round) => {
-      if (
-        round.phase !== "hero_ban" ||
-        round.banned_heroes !== null ||
-        !round.hero_ban_deadline_at
-      )
-        throw new Error("확정할 영웅 밴 투표가 없습니다.");
-      if (Date.parse(round.hero_ban_deadline_at) > Date.now())
-        throw new Error("영웅 밴 투표 마감 후 확정하세요.");
+      if (round.phase !== "hero_ban") throw new Error("영웅 밴 진행 단계가 아닙니다.");
+      // Old resolved rounds can start directly without restoring the removed result screen.
+      if (round.banned_heroes !== null) {
+        await savePrematchRound(client, round, { phase: "match_live", prediction_deadline_at: computeBalancePredictionDeadlineIso() });
+        return;
+      }
+      if (!round.hero_ban_deadline_at || Date.parse(round.hero_ban_deadline_at) > Date.now())
+        throw new Error("영웅 밴 투표 마감 후 경기를 시작하세요.");
       const { data: votes, error } = await client
         .from("balance_session_hero_votes")
-        .select("pick_1, pick_2, pick_3")
+        .select("user_id, pick_1, pick_2, pick_3")
         .eq("session_id", sessionId);
       if (error) throw new Error(error.message);
+      const result = resolveTeamHeroBans(votes ?? [], parseRoster(round.roster), parseBanSettings(round).heroBansPerTeam);
       await savePrematchRound(client, round, {
-        banned_heroes: resolveBannedHeroesFromScores(
-          tallyHeroBanVotes(votes ?? []),
-        ),
+        banned_heroes: result.bannedHeroes,
+        hero_ban_context: result.context,
         hero_ban_deadline_at: null,
+        phase: "match_live",
+        prediction_deadline_at: computeBalancePredictionDeadlineIso(),
       });
     },
   );
@@ -535,6 +533,8 @@ export async function skipHeroBanPhaseAction(
       await savePrematchRound(client, round, {
         banned_heroes: [],
         hero_ban_deadline_at: null,
+        phase: "match_live",
+        prediction_deadline_at: computeBalancePredictionDeadlineIso(),
       });
     },
   );
