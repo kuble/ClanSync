@@ -11,10 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { BalanceMapImage } from "./clan-balance-map-image";
-import {
-  ClanBalanceMapResultDialog,
-  ClanBalanceMapVotePreview,
-} from "./clan-balance-map-vote-preview";
+import { ClanBalanceMapVotePreview } from "./clan-balance-map-vote-preview";
 
 export function ClanBalanceMapBanClient({
   gameSlug,
@@ -44,16 +41,7 @@ export function ClanBalanceMapBanClient({
   const router = useRouter();
   const [pending, start] = useTransition();
   const [now, setNow] = useState<number | null>(null);
-  const [observedResult, setObservedResult] = useState(resolvedMap);
-  const [resultOpen, setResultOpen] = useState(false);
-  const [animateResult, setAnimateResult] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
-  // A reconnect starts with the saved result; only a new result starts its reveal.
-  if (observedResult !== resolvedMap) {
-    setObservedResult(resolvedMap);
-    setResultOpen(Boolean(resolvedMap));
-    setAnimateResult(Boolean(resolvedMap));
-  }
   const deadlineMs = deadlineIso ? new Date(deadlineIso).getTime() : 0;
   useEffect(() => {
     const anchor = serverNow ?? Date.now();
@@ -102,11 +90,10 @@ export function ClanBalanceMapBanClient({
         <div>
           <h4 className="flex items-center gap-2 text-base font-semibold">
             <Map className="size-5 text-primary" aria-hidden="true" />
-            어디에서 승부할까요?
+            {resolvedMap ? "맵이 확정되었습니다" : "어디에서 승부할까요?"}
           </h4>
           <p className="mt-2 text-xs text-muted-foreground">
-            후보 3개 중 1곳에 투표합니다. 득표가 높을수록 선택될 확률이
-            올라갑니다.
+            {resolvedMap ? "선택된 맵과 투표 결과를 확인하세요." : "후보 3개 중 1곳에 투표합니다. 득표가 높을수록 선택될 확률이 올라갑니다."}
           </p>
         </div>
         <div
@@ -132,6 +119,8 @@ export function ClanBalanceMapBanClient({
       <div className="grid gap-3 sm:grid-cols-3">
         {candidates.map((label, idx) => {
           const selected = myChoiceIdx === idx;
+          const winner = resolvedMap === label;
+          const highlighted = resolvedMap ? winner : selected;
           const count = tallies[idx] ?? 0;
           const share = total ? Math.round((count / total) * 100) : 0;
           return (
@@ -139,11 +128,12 @@ export function ClanBalanceMapBanClient({
               key={idx + "-" + label}
               type="button"
               aria-pressed={selected}
+              data-selected-map={winner || undefined}
               disabled={pending || expired || Boolean(resolvedMap)}
               onClick={() => onVote(idx)}
               className={cn(
                 "group overflow-hidden rounded-xl border text-left transition-colors focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-default",
-                selected
+                highlighted
                   ? "border-primary bg-primary/[0.05] ring-1 ring-primary/25"
                   : "border-border bg-muted/10 hover:border-primary/50",
               )}
@@ -154,9 +144,9 @@ export function ClanBalanceMapBanClient({
                 <span className="absolute left-3 top-3 rounded-full bg-black/40 px-2 py-1 text-[10px] font-semibold tracking-widest text-white backdrop-blur-sm">
                   MAP 0{idx + 1}
                 </span>
-                {selected ? (
+                {winner || selected ? (
                   <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-primary px-2 py-1 text-[10px] font-bold text-primary-foreground">
-                    <Check className="size-3" aria-hidden="true" />내 선택
+                    <Check className="size-3" aria-hidden="true" />{winner ? "선택된 맵" : "내 선택"}
                   </span>
                 ) : null}
               </div>
@@ -186,21 +176,12 @@ export function ClanBalanceMapBanClient({
           {myChoiceIdx !== null ? " · 내 선택이 반영되었습니다." : ""}
         </p>
         {resolvedMap ? (
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2" role="status">
+            <Check className="size-4 text-primary" aria-hidden="true" />
+            <span className="text-xs text-muted-foreground">선택된 맵</span>
             <strong className="text-sm" data-testid="resolved-map">
               {resolvedMap}
             </strong>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setAnimateResult(false);
-                setResultOpen(true);
-              }}
-            >
-              추첨 결과
-            </Button>
           </div>
         ) : canResolve ? (
           <Button
@@ -225,16 +206,6 @@ export function ClanBalanceMapBanClient({
         >
           QA 맵 투표 연출 테스트
         </Button>
-      ) : null}
-      {resolvedMap ? (
-        <ClanBalanceMapResultDialog
-          open={resultOpen}
-          onOpenChange={setResultOpen}
-          candidates={candidates}
-          tallies={tallies}
-          selectedMap={resolvedMap}
-          animate={animateResult}
-        />
       ) : null}
       {qaPreview ? (
         <ClanBalanceMapVotePreview

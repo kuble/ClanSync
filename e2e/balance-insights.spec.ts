@@ -55,11 +55,12 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
       await route.continue();
     });
     await panel.getByRole("button", { name: "왕의 길 선택", exact: true }).click();
-    await expect(insights).toContainText("맵 반영 승률 · 왕의 길");
+    await expect(insights.getByTestId("balance-win-probability")).toHaveCount(1);
+    await expect(insights).toContainText("예측 승률 · 왕의 길 반영");
     await expect(insights).toContainText("샘플");
     await expect(panel.getByRole("button", { name: "경기 시작", exact: true })).toBeEnabled();
     await panel.getByRole("button", { name: "눔바니 선택", exact: true }).click();
-    await expect(insights).toContainText("맵 반영 승률 · 눔바니");
+    await expect(insights).toContainText("예측 승률 · 눔바니 반영");
     await expect.poll(async () => (await fixture.activeRound(regular.roomId)).resolved_map_label).toBe("눔바니");
     await page.setViewportSize({ width: 390, height: 844 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);

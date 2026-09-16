@@ -294,21 +294,17 @@ test("경기 준비: QA 연출·설정 보존·유형 필터·공유 맵 결과�
     const expectedMap = voting.map_candidates![0];
     await Promise.all(
       [page, member].map(async (client) => {
-        const result = client.getByRole("dialog", {
-          name: "맵 추첨 결과",
-          exact: true,
-        });
-        await expect(result).toBeVisible({ timeout: 20_000 });
-        await expect(result.getByTestId("map-vote-result")).toHaveText(
-          expectedMap,
-          { timeout: 8_000 },
-        );
-        await result.getByRole("button", { name: "확인", exact: true }).click();
         await expect(client.getByTestId("resolved-map")).toHaveText(
           expectedMap,
+          { timeout: 20_000 },
         );
+        await expect(client.getByRole("dialog", { name: "맵 추첨 결과", exact: true })).toHaveCount(0);
+        await expect(client.locator('[data-selected-map="true"]')).toContainText(expectedMap);
+        await expect(client.getByRole("button", { name: "추첨 결과", exact: true })).toHaveCount(0);
       }),
     );
+    await expect(panel.getByTestId("balance-win-probability")).toHaveCount(1);
+    await expect(panel.getByTestId("balance-win-probability")).toContainText(`예측 승률 · ${expectedMap} 반영`);
     const resolved = await fixture.activeRound();
     expect(resolved).toMatchObject({
       phase: "map_ban",
