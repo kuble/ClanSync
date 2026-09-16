@@ -44,7 +44,9 @@ CI 경로는 `npm run build` 후 `next start`를 사용합니다. 로컬 기본 
 - `navigation-feedback.spec.ts`: 응답 지연 중 이동 표시·서버 재조회 없는 홍보 정렬·브라우저 기록
 - `onboarding.spec.ts`: 무소속 멤버 온보딩
 - `join-request-flow.spec.ts`: 가입 신청·리더 거절
-- `ui-regression.spec.ts`: 클랜·게임 탭, 대진표·밸런스 세션
+- `ui-regression.spec.ts`: 클랜·게임 탭, 대진표
+- `balance-session-live.spec.ts`: 운영진 명단·편성·경매·공유·결과·다음 라운드·종료
+- `formation-rules.spec.ts`: 역할 정원·공통 순서·snake 지명·경매 예산/기한/무입찰
 - `cron.spec.ts`: 인증 없는 요청 401, 테스트 DB에서 인증된 알림 처리 200
 - `review-rules.spec.ts`: 권한 조회 오류·권한 재정의, 개발 연동 제한, 명시적 시간대 입력
 - `event-timezone.spec.ts`: 한국 브라우저·UTC 서버에서 일정 생성·제목 수정·시간 수정
@@ -57,5 +59,11 @@ CI 경로는 `npm run build` 후 `next start`를 사용합니다. 로컬 기본 
 온보딩 계정만 바꾸려면 `.env.e2e.local` 또는 CI에 `E2E_EMAIL`과 `E2E_PASSWORD`를 모두 설정합니다. 환경 확인은 `npm run test:e2e:env-check`, 운영 대상 차단 검증은 `node --test scripts/test-env.test.mjs`입니다. 비밀번호 값은 출력하지 않습니다.
 
 `npm run test:db`는 `scripts/review-db.test.mjs`, `clan-notices-db.test.mjs`, `profile-badge-db.test.mjs`를 순서대로 실행합니다. 동일한 테스트 URL 허용 목록을 사용하고 임시 사용자·클랜·모집·일정을 생성한 뒤 정리합니다. 서비스 RPC 직접 호출 차단, 잔액·게임 인증 위조 거부, RLS, LFG·가입 동시 승인, 알림 재예약, 공지·규칙 권한, 대표 배지 교체의 롤백·동시성을 확인합니다. 별도 앱 서버는 필요 없습니다.
+
+세션·편성 DB 회귀는 `session-round-db.test.mjs`, `formation-db.test.mjs`도 `test:db`에서 실행한다. 동시 저장, 탈퇴·강등, 잘못된 명단, 단계 역행과 마감 이후 변경을 검증한다.
+
+## 직접 조작하는 QA 페이지
+
+`npm run dev:qa`는 실제 앱을 `http://localhost:3011`에서 QA DB로 실행한다. `QA_Leader_01`로 일반 로그인하면 운영진 조작이 가능하다. QA 클랜은 리더와 `QA_Member_02`~`12`로 12명이며, `QA_Member_01`은 온보딩 테스트를 위해 별도로 둔다. 역할을 흉내내는 URL이나 인증 우회는 없다. `db:seed`는 열린 세션을 정리하므로 직접 테스트 중에는 다시 실행하지 않는다.
 
 시드 상세: [debug-and-fixtures.md](../docs/01-plan/debug-and-fixtures.md)

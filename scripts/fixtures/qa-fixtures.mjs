@@ -26,6 +26,10 @@ export const QA_SEED_ACCOUNTS = [
   { rolePascal: "Member", numbering: "01", nickname: "QA_Member_01" },
   { rolePascal: "Leader", numbering: "01", nickname: "QA_Leader_01" },
   { rolePascal: "Admin", numbering: "01", nickname: "QA_Admin_01" },
+  ...Array.from({ length: 11 }, (_, index) => {
+    const numbering = String(index + 2).padStart(2, "0");
+    return { rolePascal: "Member", numbering, nickname: `QA_Member_${numbering}` };
+  }),
 ];
 
 export const QA_SEED_CLANS = [

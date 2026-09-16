@@ -217,8 +217,16 @@ for (const clanDef of QA_SEED_CLANS) {
   }
   console.log(`[seed] QA 클랜 premium 보장: ${clanDef.name}`);
 
+  // Keep Member_01 outside the clan for onboarding coverage. Additional QA
+  // members provide ten-player rounds plus non-playing prediction accounts.
+  const { error: rosterMembersError } = await supabase.from("clan_members").upsert(
+    userIds.slice(3).map(userId => ({ clan_id: clanId, user_id: userId, role: "member", status: "active", joined_at: new Date().toISOString() })),
+    { onConflict: "clan_id,user_id" },
+  );
+  if (rosterMembersError) throw rosterMembersError;
+
   const { error: balDelErr } = await supabase
-    .from("balance_sessions")
+    .from("balance_session_series")
     .delete()
     .eq("clan_id", clanId)
     .is("closed_at", null);
