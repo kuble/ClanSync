@@ -28,6 +28,8 @@ import {
   RosterAutosave,
   type RosterFlushResult,
 } from "@/lib/balance/roster-autosave";
+import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
+import type { ScoreMode } from "./balance-team-insights";
 
 export type ClanBalanceRosterEditorHandle = {
   flush(): Promise<RosterFlushResult>;
@@ -66,6 +68,9 @@ export function ClanBalanceRosterEditor({
   pool,
   canEdit,
   onDirtyChange,
+  onRosterChange,
+  scores,
+  scoreMode = "m",
   ref,
 }: {
   gameSlug: string;
@@ -76,6 +81,9 @@ export function ClanBalanceRosterEditor({
   pool: PoolRow[];
   canEdit: boolean;
   onDirtyChange?: (dirty: boolean) => void;
+  onRosterChange?: (roster: BalanceRoster) => void;
+  scores?: MaSnapshot;
+  scoreMode?: ScoreMode;
   ref?: Ref<ClanBalanceRosterEditorHandle>;
 }) {
   const helpId = useId();
@@ -98,6 +106,7 @@ export function ClanBalanceRosterEditor({
     autosave.getSnapshot,
     autosave.getSnapshot,
   );
+  useEffect(() => { onRosterChange?.(roster); }, [roster, onRosterChange]);
   useImperativeHandle(ref, () => ({ flush: autosave.flush, getRoster: () => autosave.getSnapshot().roster }), [autosave]);
   useEffect(() => {
     autosave.receiveRemote({ roster: initialRoster, revision });
@@ -268,7 +277,7 @@ export function ClanBalanceRosterEditor({
                         userId ? `${nickname} · 우클릭으로 비우기` : "빈자리"
                       }
                       className={cn(
-                        "relative flex min-h-20 min-w-0 select-none items-center justify-center rounded-xl border px-2 py-3 text-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:px-3",
+                        "relative flex min-h-20 min-w-0 flex-col gap-1 select-none items-center justify-center rounded-xl border px-2 py-3 text-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:px-3",
                         team === "team1"
                           ? "border-sky-500/35 bg-sky-500/[0.08]"
                           : "border-rose-500/35 bg-rose-500/[0.08]",
@@ -323,6 +332,7 @@ export function ClanBalanceRosterEditor({
                       <span className="max-w-full truncate text-xs font-bold sm:text-sm">
                         {nickname}
                       </span>
+                      {scores && userId ? <span className="text-[11px] font-normal tabular-nums text-muted-foreground">{scoreMode.toUpperCase()} {scores[userId]?.[scoreMode] ?? "—"}</span> : null}
                     </button>
                   </div>
                 );

@@ -8,6 +8,7 @@ import { hasRequestClanPermission } from "@/lib/clan/request-clan-access";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import type { Database } from "@/lib/supabase/database.types";
 import { parseRoleRanking } from "@/lib/balance/role-preferences";
+import { parseMaSnapshot, type MaSnapshot } from "@/lib/balance/ma-snapshot";
 import {
   parseRoster,
   rosterAssignedUserIds,
@@ -38,6 +39,8 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
 
 
   const planPremium = ctx.plan === "premium";
+  const staff = ctx.role === "leader" || ctx.role === "officer";
+  const canViewScores = staff && room.kind === "regular";
 
   const [{ data: session }, { data: series }, { data: recentRounds }] =
     await Promise.all([
@@ -67,7 +70,21 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
     canManageRound(supabase, user.id, clanId, session.id),
     hasRequestClanPermission(clanId, "edit_mscore"),
   ]);
-  const canEditMscore = canManage || scorePermission;
+  const canEditMscore = canViewScores && (canManage || scorePermission);
+  const scores: MaSnapshot = {};
+  if (canViewScores) {
+    const { data: scoredRounds, error } = await supabase.from("balance_sessions")
+      .select("ma_snapshot,balance_session_series!inner(balance_rooms!inner(kind))")
+      .eq("clan_id", clanId).eq("balance_session_series.balance_rooms.kind", "regular")
+      .order("opened_at", { ascending: false }).limit(100);
+    if (error) throw new Error("참가자 점수를 불러오지 못했습니다.");
+    for (const round of scoredRounds ?? []) {
+      for (const [id, score] of Object.entries(parseMaSnapshot(round.ma_snapshot))) {
+        if (!(id in scores)) scores[id] = score;
+      }
+    }
+    Object.assign(scores, parseMaSnapshot(session.ma_snapshot));
+  }
   const [{ data: profilePreference }, { data: roundPreference }] = session
     ? await Promise.all([
         supabase
@@ -166,13 +183,18 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
       </div>
 
       <ClanBalanceSessionPanel
+        key={session.id}
         gameSlug={gameSlug}
         clanId={clanId}
         userId={user.id}
         canManage={canManage}
-        canViewHistory={ctx.role === "leader" || ctx.role === "officer"}
+        canViewHistory={staff || (room.kind === "flash" && room.created_by === user.id && ctx.role === "member")}
+        historyScope={staff ? "clan" : "session"}
+        flash={room.kind === "flash"}
+        canViewScores={canViewScores}
+        scores={scores}
         hostNickname={hostNickname}
-        session={session}
+        session={canViewScores ? session : { ...session, ma_snapshot: {} }}
         series={series}
         profileRanking={parseRoleRanking(profilePreference?.ranking)}
         roundRanking={

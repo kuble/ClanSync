@@ -54,12 +54,14 @@ export function ClanBalanceRosterBoard({
   pool,
   snapshot,
   planPremium = false,
+  scoreMode = "m",
   highlightPlayer,
 }: {
   roster: BalanceRoster;
   pool: readonly { user_id: string; nickname: string }[];
   snapshot?: MaSnapshot;
   planPremium?: boolean;
+  scoreMode?: "m" | "a";
   highlightPlayer?: string;
 }) {
   const nickById = Object.fromEntries(pool.map((p) => [p.user_id, p.nickname]));
@@ -106,17 +108,9 @@ export function ClanBalanceRosterBoard({
                     {score ? (
                       <span className="flex gap-3 text-[11px] tabular-nums text-muted-foreground">
                         <span>
-                          M{" "}
-                          <strong className="text-foreground">{score.m}</strong>
+                          {scoreMode === "a" && planPremium ? "A" : "M"}{" "}
+                          <strong className="text-foreground">{scoreMode === "a" && planPremium ? score.a ?? "—" : score.m}</strong>
                         </span>
-                        {planPremium ? (
-                          <span>
-                            A{" "}
-                            <strong className="text-foreground">
-                              {score.a ?? "—"}
-                            </strong>
-                          </span>
-                        ) : null}
                       </span>
                     ) : (
                       <span className="text-[10px] text-muted-foreground">

@@ -17,7 +17,7 @@ import {
   type FormationCommand,
 } from "@/lib/balance/formation";
 import { useServerClock } from "@/lib/balance/use-server-clock";
-import { TEAM_MODE_LABELS } from "./clan-balance-settings";
+import type { ReactNode } from "react";
 import type { BalanceRoster } from "@/lib/balance/roster-schema";
 const inputClass =
   "min-h-10 w-full rounded-lg border bg-background px-3 text-xs";
@@ -38,9 +38,11 @@ export function ClanBalanceFormation({
   onPendingChange,
   serverNow,
   preferencePending = false,
+  endSessionControl,
 }: {
   serverNow: number;
   preferencePending?: boolean;
+  endSessionControl?: ReactNode;
   gameSlug: string;
   clanId: string;
   roundId: string;
@@ -126,10 +128,7 @@ export function ClanBalanceFormation({
         data-balance-guide="primary"
         className="mt-5 flex flex-wrap items-center justify-between gap-3"
       >
-        <p className="text-xs text-muted-foreground">
-          {settings.roles === "lottery" ? "공통 추첨순서" : "직접 배정"} ·{" "}
-          {TEAM_MODE_LABELS[settings.teams]}
-        </p>
+        {endSessionControl ?? <span />}
         {manager ? (
           <Button
             disabled={pending || preferencePending}
@@ -152,6 +151,7 @@ export function ClanBalanceFormation({
     );
   return (
     <section data-testid="balance-formation" className="mt-4 space-y-4">
+      {endSessionControl}
       {manager ? (
         <div className="flex justify-end gap-1">
           {state.stage !== "complete" ? (

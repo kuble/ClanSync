@@ -26,6 +26,7 @@ type Props = {
   gameSlug: string;
   clanId: string;
   currentSeriesId: string | null;
+  scope?: "clan" | "session";
   pool: readonly { user_id: string; nickname: string }[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -497,7 +498,7 @@ export function ClanBalanceHistoryDrawer({
             내전 기록
           </SheetTitle>
           <SheetDescription>
-            세션별 참여자 통계와 라운드 기록 · 최근 30개 세션
+            {props.scope === "session" ? "이 깜짝 내전의 기록만 표시합니다. 세션 종료 시 모두 삭제됩니다." : "세션별 참여자 통계와 라운드 기록 · 최근 30개 세션"}
           </SheetDescription>
         </SheetHeader>
         {open ? (

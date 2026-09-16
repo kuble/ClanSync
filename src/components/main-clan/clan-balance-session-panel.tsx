@@ -67,7 +67,7 @@ import {
   type FormationState,
 } from "@/lib/balance/formation";
 import { Button } from "@/components/ui/button";
-import { defaultMaForRoster, parseMaSnapshot } from "@/lib/balance/ma-snapshot";
+import { defaultMaForRoster } from "@/lib/balance/ma-snapshot";
 import { isOverwatchBalanceGame, owHeroLabel } from "@/lib/balance/ow-hero-ban";
 import {
   EMPTY_ROSTER,
@@ -79,6 +79,9 @@ import type { Database } from "@/lib/supabase/database.types";
 import { useServerClock } from "@/lib/balance/use-server-clock";
 import { ClanBalanceDrawDialog } from "./clan-balance-draw-dialog";
 import { cn } from "@/lib/utils";
+import { BalanceTeamInsights, ScoreModeToggle, type ScoreMode } from "./balance-team-insights";
+import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 type BalanceSession = Database["public"]["Tables"]["balance_sessions"]["Row"];
 type MapVote = Database["public"]["Tables"]["balance_session_map_votes"]["Row"];
@@ -93,6 +96,10 @@ export function ClanBalanceSessionPanel({
   userId,
   canManage,
   canViewHistory,
+  historyScope,
+  flash,
+  canViewScores,
+  scores,
   hostNickname,
   session,
   series,
@@ -112,6 +119,10 @@ export function ClanBalanceSessionPanel({
   userId: string;
   canManage: boolean;
   canViewHistory: boolean;
+  historyScope: "clan" | "session";
+  flash: boolean;
+  canViewScores: boolean;
+  scores: MaSnapshot;
   hostNickname: string | null;
   session: BalanceSession | null;
   series: Database["public"]["Tables"]["balance_session_series"]["Row"] | null;
@@ -136,6 +147,9 @@ export function ClanBalanceSessionPanel({
   const [historyOpen, setHistoryOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [confirmEnd, setConfirmEnd] = useState(false);
+  const [scoreMode, setScoreMode] = useState<ScoreMode>("m");
+  const [draftRoster, setDraftRoster] = useState(() => parseRoster(session?.roster));
   const formation =
     session?.formation_state as unknown as FormationState | null;
   const mapScreen = Boolean(
@@ -238,7 +252,7 @@ export function ClanBalanceSessionPanel({
     rosterAssignedUserIds(rosterData).includes(userId);
   const maForUi = defaultMaForRoster(
     rosterData,
-    parseMaSnapshot(session?.ma_snapshot),
+    scores,
   );
   const maSyncKey = `${session?.id}:${JSON.stringify(session?.ma_snapshot)}`;
   const candidates = session?.map_candidates;
@@ -270,6 +284,11 @@ export function ClanBalanceSessionPanel({
         : session?.match_outcome === "team2"
           ? "레드 팀 승리"
           : null;
+  const endSessionControl = session && canManage ? <Button variant="destructive" size="sm"
+    disabled={pending || busyFormation || (session.phase !== "editing" && session.match_outcome === "pending")}
+    title={session.phase !== "editing" && session.match_outcome === "pending" ? "경기 결과 또는 무효를 먼저 기록하세요." : undefined}
+    onClick={() => setConfirmEnd(true)}>세션 종료</Button> : null;
+  const renderInsights = (map: string | null, roster = rosterData) => canViewScores ? <BalanceTeamInsights roster={roster} scores={scores} mode={scoreMode} map={map} premium={planPremium} /> : null;
 
   return (
     <div
@@ -277,6 +296,20 @@ export function ClanBalanceSessionPanel({
       data-testid="clan-balance-session-panel"
       data-balance-phase={session?.phase ?? "none"}
     >
+      <Dialog open={confirmEnd} onOpenChange={(open) => { if (!pending) setConfirmEnd(open); }}>
+        <DialogContent><DialogHeader><DialogTitle>내전을 종료할까요?</DialogTitle><DialogDescription>{flash ? "깜짝 내전의 모든 라운드·참여·점수·투표 기록이 삭제되며 복구할 수 없습니다." : "현재 세션을 종료합니다. 정규 내전 기록은 보존됩니다."}</DialogDescription></DialogHeader>
+          <div className="flex justify-end gap-2"><Button variant="outline" disabled={pending} onClick={() => setConfirmEnd(false)}>돌아가기</Button><Button variant="destructive" disabled={pending} onClick={() => {
+            if (!session) return;
+            runAction("세션을 종료했습니다.", async () => {
+              const saved = await flushRoster();
+              if (!saved.ok) return { ok: false, error: "명단 저장을 완료한 뒤 다시 시도하세요." };
+              const result = await closeBalanceSessionAction(gameSlug, clanId, session.id);
+              if (result.ok) { setConfirmEnd(false); router.replace(`/games/${gameSlug}/clan/${clanId}/balance`); }
+              return result;
+            });
+          }}>종료 확정</Button></div>
+        </DialogContent>
+      </Dialog>
       <ClanBalanceSessionRealtime
         seriesId={series?.id ?? null}
         sessionId={session?.id ?? null}
@@ -347,6 +380,7 @@ export function ClanBalanceSessionPanel({
         </Sheet>
       ) : null}
       {canViewHistory ? <ClanBalanceHistoryDrawer
+        scope={historyScope}
         open={historyOpen}
         onOpenChange={setHistoryOpen}
         gameSlug={gameSlug}
@@ -450,17 +484,16 @@ export function ClanBalanceSessionPanel({
             ) : null}
           </div>
           <div className="flex items-center gap-1">
-            <Button
+            {canViewHistory ? <Button
               size="icon"
               variant="ghost"
               aria-label="내전 기록"
               title={canViewHistory ? "내전 기록" : "운영진 이상만 확인할 수 있습니다."}
-              disabled={!canViewHistory}
               data-balance-guide="history"
               onClick={() => setHistoryOpen(true)}
             >
               <BarChart3 className="size-4" />
-            </Button>
+            </Button> : null}
             {canManage ? (
               <Button
                 size="icon"
@@ -498,30 +531,6 @@ export function ClanBalanceSessionPanel({
                 onClick={() => setToolsOpen(true)}
               >
                 <Ellipsis className="size-4" />
-              </Button>
-            ) : null}
-            {session && canManage && session.phase === "editing" ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={pending || busyFormation}
-                onClick={() =>
-                  runAction("세션을 종료했습니다.", async () => {
-                    const saved = await flushRoster();
-                    if (!saved.ok)
-                      return {
-                        ok: false,
-                        error: "명단 저장을 완료한 뒤 다시 시도하세요.",
-                      };
-                    return closeBalanceSessionAction(
-                      gameSlug,
-                      clanId,
-                      session.id,
-                    );
-                  })
-                }
-              >
-                세션 종료
               </Button>
             ) : null}
           </div>
@@ -576,6 +585,7 @@ export function ClanBalanceSessionPanel({
                 showSummary={session.phase === "editing" && !mapScreen}
               />
             ) : null}
+            {canViewScores ? <ScoreModeToggle value={scoreMode} onChange={setScoreMode} premium={planPremium} /> : null}
             {session.phase === "editing" && !mapScreen ? (
               <div className="space-y-5">
                 <div data-balance-guide="board">
@@ -590,6 +600,9 @@ export function ClanBalanceSessionPanel({
                       initialRoster={rosterData}
                       pool={[...rosterPool]}
                       canEdit={!busyFormation && !pending}
+                      onRosterChange={setDraftRoster}
+                      scores={canViewScores ? scores : undefined}
+                      scoreMode={scoreMode}
                     />
                   ) : (
                     <ClanBalanceRevealBoard
@@ -600,6 +613,7 @@ export function ClanBalanceSessionPanel({
                     />
                   )}
                 </div>
+                {renderInsights(null, !formation && canManage ? draftRoster : rosterData)}
                 {isRosterParticipant &&
                 !formation &&
                 settings.roles === "lottery" ? (
@@ -621,6 +635,7 @@ export function ClanBalanceSessionPanel({
                   />
                 ) : null}
                 <ClanBalanceFormation
+                  endSessionControl={endSessionControl}
                   serverNow={presentationNow}
                   key={session.id}
                   gameSlug={gameSlug}
@@ -676,6 +691,7 @@ export function ClanBalanceSessionPanel({
 
             {session.phase === "editing" && mapScreen ? (
               <ClanBalancePrematchControls
+                renderInsights={renderInsights}
                 key={`${session.id}:${JSON.stringify(session.map_types)}`}
                 gameSlug={gameSlug}
                 clanId={clanId}
@@ -830,11 +846,12 @@ export function ClanBalanceSessionPanel({
                   <ClanBalanceRosterBoard
                     roster={rosterData}
                     pool={rosterPool}
-                    snapshot={maForUi}
+                    snapshot={canViewScores ? scores : undefined}
                     planPremium={planPremium}
+                    scoreMode={scoreMode}
                   />
                   <div className="space-y-4">
-                    {!planPremium || isRosterParticipant ? (
+                    {flash ? <p className="text-xs text-muted-foreground">깜짝 내전은 세션 종료 후 기록을 남기지 않으며 코인 보상을 지급하지 않습니다.</p> : !planPremium || isRosterParticipant ? (
                       <ClanBalancePredictionPlaceholder
                         planPremium={planPremium}
                         gameSlug={gameSlug}
@@ -885,30 +902,9 @@ export function ClanBalanceSessionPanel({
                         다음 라운드
                       </Button>
                     ) : null}
-                    {canManage ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full"
-                        disabled={
-                          pending || session.match_outcome === "pending"
-                        }
-                        onClick={() =>
-                          runAction("세션을 종료했습니다.", () =>
-                            closeBalanceSessionAction(
-                              gameSlug,
-                              clanId,
-                              session.id,
-                            ),
-                          )
-                        }
-                      >
-                        세션 종료
-                      </Button>
-                    ) : null}
                   </div>
                 </div>
-                <section className="border-t pt-5">
+                {canViewScores ? <section className="border-t pt-5">
                   <h4 className="mb-4 flex items-center gap-2 text-sm font-semibold">
                     <Users
                       className="size-4 text-muted-foreground"
@@ -926,12 +922,14 @@ export function ClanBalanceSessionPanel({
                     pool={[...rosterPool]}
                     canEdit={canEditMscore}
                     planPremium={planPremium}
+                    scoreMode={scoreMode}
                   />
-                </section>
+                </section> : null}
               </div>
             ) : null}
           </div>
         )}
+        {session && (mapScreen || session.phase !== "editing") ? <div className="px-5 pb-5">{endSessionControl}</div> : null}
       </section>
       <p className="text-right text-xs text-muted-foreground">
         경기 보상과 코인 내역은{" "}

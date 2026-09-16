@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useOptimistic, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { toast } from "sonner";
@@ -25,14 +25,17 @@ export function ClanBalancePrematchControls({
   clanId,
   session,
   canManage,
+  renderInsights,
 }: {
   gameSlug: string;
   clanId: string;
   session: Round;
   canManage: boolean;
+  renderInsights?: (map: string | null) => ReactNode;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
+  const [selectedMap, setSelectedMap] = useOptimistic(session.resolved_map_label);
   const [types, setTypes] = useState(parseBanSettings(session).mapTypes);
   const needsMapVote = session.map_ban_enabled && !session.resolved_map_label;
   const needsHeroVote =
@@ -45,6 +48,7 @@ export function ClanBalancePrematchControls({
 
   function selectMap(label: string) {
     start(async () => {
+      setSelectedMap(label);
       const result = await selectBalanceMapAction(
         gameSlug,
         clanId,
@@ -77,7 +81,7 @@ export function ClanBalancePrematchControls({
       ) : !session.map_ban_enabled && session.phase === "editing" ? (
         <BalanceManualMapPicker
           gameSlug={gameSlug}
-          value={session.resolved_map_label}
+          value={selectedMap}
           onChange={selectMap}
           disabled={pending}
           canManage={canManage}
@@ -88,6 +92,7 @@ export function ClanBalancePrematchControls({
           <strong>{session.resolved_map_label}</strong>
         </p>
       ) : null}
+      {renderInsights?.(selectedMap)}
       {canManage ? (
         <div className="flex justify-end" data-balance-guide="primary">
           <Button

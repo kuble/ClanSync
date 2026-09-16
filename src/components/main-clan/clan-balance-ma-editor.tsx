@@ -41,6 +41,7 @@ export function ClanBalanceMaEditor({
   pool,
   canEdit,
   planPremium,
+  scoreMode = "m",
 }: {
   gameSlug: string;
   clanId: string;
@@ -50,6 +51,7 @@ export function ClanBalanceMaEditor({
   pool: PoolRow[];
   canEdit: boolean;
   planPremium: boolean;
+  scoreMode?: "m" | "a";
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -106,8 +108,8 @@ export function ClanBalanceMaEditor({
             <tr className="bg-muted/40 border-b text-left">
               <th className="px-3 py-2 font-medium">슬롯</th>
               <th className="px-3 py-2 font-medium">닉네임</th>
-              <th className="px-3 py-2 font-medium tabular-nums">M</th>
-              {planPremium ? (
+              <th hidden={scoreMode !== "m"} className="px-3 py-2 font-medium tabular-nums">M</th>
+              {planPremium && scoreMode === "a" ? (
                 <th className="px-3 py-2 font-medium tabular-nums">A</th>
               ) : null}
             </tr>
@@ -119,7 +121,7 @@ export function ClanBalanceMaEditor({
                 <td className="px-3 py-2 font-medium">
                   {s.userId ? (nick[s.userId] ?? "—") : "—"}
                 </td>
-                <td className="px-3 py-2">
+                <td hidden={scoreMode !== "m"} className="px-3 py-2">
                   {s.userId ? (
                     canEdit ? (
                       <input
@@ -146,7 +148,7 @@ export function ClanBalanceMaEditor({
                     "—"
                   )}
                 </td>
-                {planPremium ? (
+                {planPremium && scoreMode === "a" ? (
                   <td className="px-3 py-2">
                     {s.userId ? (
                       canEdit ? (

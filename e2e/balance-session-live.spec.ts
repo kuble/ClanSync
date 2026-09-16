@@ -499,6 +499,7 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
     await page.keyboard.press("Escape");
     await expect(history).toBeHidden();
     await panel.getByRole("button", { name: "세션 종료", exact: true }).click();
+    await page.getByRole("button", { name: "종료 확정", exact: true }).click();
     await expect(page.getByTestId("clan-balance-lobby")).toBeVisible({ timeout: 20_000 });
     await expect.poll(async () => {
       const { data } = await fixture.service.from("balance_session_series")

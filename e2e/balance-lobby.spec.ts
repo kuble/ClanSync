@@ -76,7 +76,7 @@ async function addPlayer(panel: Locator, nickname: string) {
   await expect(panel.locator('[data-roster-slot="team1:d0"]')).toHaveText(nickname);
 }
 
-test("내전 기록 권한: 운영진 허용·깜짝 개설 멤버 차단", async ({ page, browser }) => {
+test("내전 기록 권한: 아이콘 숨김·깜짝 자기 세션·종료 삭제", async ({ page, browser }) => {
   test.setTimeout(120_000);
   const fixture = await createIsolatedBalanceFixture(2);
   const memberContext = await browser.newContext({ baseURL: test.info().project.use.baseURL });
@@ -87,12 +87,13 @@ test("내전 기록 권한: 운영진 허용·깜짝 개설 멤버 차단", asyn
       loginIsolatedBalanceUser(member, fixture.users[1]),
     ]);
     await member.goto(fixture.path);
-    await expect(member.getByRole("button", { name: "내전 기록", exact: true })).toBeDisabled();
+    await expect(member.getByRole("button", { name: "내전 기록", exact: true })).toHaveCount(0);
     const flash = await createAndEnterBalanceRoom(member, fixture.path, "기록 권한 검증", "flash");
     await expect(member.getByRole("heading", { name: /밸런스 편집/ })).toBeVisible();
-    await expect(member.getByRole("button", { name: "내전 기록", exact: true })).toBeDisabled();
+    await expect(member.getByRole("button", { name: "내전 기록", exact: true })).toBeEnabled();
+    await expect(member.getByRole("group", { name: "점수 표시", exact: true })).toHaveCount(0);
     await expect(member.getByRole("button", { name: "방송용 화면", exact: true })).toHaveCount(0);
-    await page.goto(flash.url);
+    const regular = await createAndEnterBalanceRoom(page, fixture.path, "정규 기록 권한");
     const requestPromise = page.waitForRequest((request) => request.method() === "POST" && !!request.headers()["next-action"] && !!request.postData()?.includes(fixture.clanId));
     await page.getByRole("button", { name: "내전 기록", exact: true }).click();
     const request = await requestPromise;
@@ -101,7 +102,7 @@ test("내전 기록 권한: 운영진 허용·깜짝 개설 멤버 차단", asyn
     await expect(history.getByText("내전 기록은 운영진 이상만 확인할 수 있습니다.", { exact: true })).toHaveCount(0);
     const payload = request.postData();
     if (!payload) throw new Error("Missing history action request");
-    async function replayHistory() {
+    async function replayHistory(seriesId = regular.roomId) {
       return member.evaluate(async ({ url, headers, body }) => {
         const response = await fetch(url, { method: "POST", headers, body });
         if (!response.ok) throw new Error(`History response: ${response.status}`);
@@ -114,10 +115,14 @@ test("내전 기록 권한: 운영진 허용·깜짝 개설 멤버 차단", asyn
           accept: "text/x-component",
           "next-router-state-tree": request.headers()["next-router-state-tree"] ?? "",
         },
-        body: payload,
+        body: payload!.replaceAll(regular.roomId, seriesId),
       });
     }
-    expect(await replayHistory()).toContain("내전 기록은 운영진 이상만 확인할 수 있습니다.");
+    expect(await replayHistory()).toContain("이 내전 기록을 볼 수 없습니다.");
+    const ownHistory = await replayHistory(flash.roomId);
+    expect(ownHistory).toContain('"ok":true');
+    expect(ownHistory).toContain(flash.roomId);
+    expect(ownHistory).not.toContain(`"id":"${regular.roomId}"`);
     const promoted = await fixture.service.from("clan_members").update({ role: "officer" })
       .eq("clan_id", fixture.clanId).eq("user_id", fixture.users[1].id);
     expect(promoted.error).toBeNull();
@@ -127,7 +132,26 @@ test("내전 기록 권한: 운영진 허용·깜짝 개설 멤버 차단", asyn
     const demoted = await fixture.service.from("clan_members").update({ role: "member" })
       .eq("clan_id", fixture.clanId).eq("user_id", fixture.users[1].id);
     expect(demoted.error).toBeNull();
-    expect(await replayHistory()).toContain("내전 기록은 운영진 이상만 확인할 수 있습니다.");
+    expect(await replayHistory()).toContain("이 내전 기록을 볼 수 없습니다.");
+    await member.reload();
+    await member.getByRole("button", { name: "내전 기록", exact: true }).click();
+    const ownDrawer = member.getByRole("dialog", { name: "내전 기록", exact: true });
+    await expect(ownDrawer).toContainText("이 깜짝 내전의 기록만 표시합니다.");
+    await member.keyboard.press("Escape");
+    await member.getByTestId("balance-formation").getByRole("button", { name: "세션 종료", exact: true }).click();
+    const confirm = member.getByRole("dialog", { name: "내전을 종료할까요?" });
+    await expect(confirm).toContainText("복구할 수 없습니다.");
+    await confirm.getByRole("button", { name: "종료 확정", exact: true }).click();
+    await expect(member.getByTestId("clan-balance-lobby")).toBeVisible();
+    for (const { data, error } of await Promise.all([
+      fixture.service.from("balance_rooms").select("id").eq("id", flash.roomId),
+      fixture.service.from("balance_session_series").select("id").eq("id", flash.roomId),
+      fixture.service.from("balance_sessions").select("id").eq("series_id", flash.roomId),
+    ])) {
+      expect(error).toBeNull(); expect(data).toEqual([]);
+    }
+    expect(await replayHistory(flash.roomId)).toContain("이 내전 기록을 볼 수 없습니다.");
+    expect((await readRoom(fixture, regular.roomId)).status).toBe("open");
   } finally {
     await memberContext.close();
     await fixture.cleanup();
@@ -232,6 +256,7 @@ test("정규 내전 예약: 주간 반복·임시 진행자 저장과 예약 방
     expect(opened.delegated_to).toBe(fixture.users[1].id);
     expect((await fixture.activeRound(opened.series_id!)).host_user_id).toBe(fixture.users[1].id);
     await panel.getByRole("button", { name: "세션 종료", exact: true }).click();
+    await page.getByRole("button", { name: "종료 확정", exact: true }).click();
     await expect(page.getByTestId("clan-balance-lobby")).toBeVisible();
     await expect.poll(async () => {
       const closed = await readRoom(fixture, room.id);

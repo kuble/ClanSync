@@ -57,9 +57,15 @@ export async function loadBalanceHistoryAction(
       "select_my_clan_membership", { p_clan_id: clanId },
     );
     const membership = memberships?.[0];
-    if (membershipError || membership?.status !== "active" ||
-      (membership.role !== "leader" && membership.role !== "officer")) {
-      return { ok: false, error: "내전 기록은 운영진 이상만 확인할 수 있습니다." };
+    const staff = membership?.role === "leader" || membership?.role === "officer";
+    const denied = { ok: false as const, error: "이 내전 기록을 볼 수 없습니다." };
+    if (membershipError || membership?.status !== "active") return denied;
+    if (!staff) {
+      if (!requestedSeriesId) return denied;
+      const { data: owned, error: ownerError } = await client.from("balance_rooms")
+        .select("id").eq("clan_id", clanId).eq("series_id", requestedSeriesId)
+        .eq("kind", "flash").eq("status", "open").eq("created_by", user.id).maybeSingle();
+      if (ownerError || !owned) return denied;
     }
     const { data: game, error: gameError } = await client
       .from("games")
@@ -68,7 +74,7 @@ export async function loadBalanceHistoryAction(
       .maybeSingle();
     if (gameError || !game)
       return { ok: false, error: "게임을 확인할 수 없습니다." };
-    const { data: recent, error } = await client
+    let recentQuery = client
       .from("balance_session_series")
       .select("id,opened_at,closed_at,session_date")
       .eq("clan_id", clanId)
@@ -76,8 +82,11 @@ export async function loadBalanceHistoryAction(
       .order("opened_at", { ascending: false })
       .order("id")
       .limit(30);
+    if (!staff) recentQuery = recentQuery.eq("id", requestedSeriesId!).is("closed_at", null);
+    const { data: recent, error } = await recentQuery;
     if (error) return { ok: false, error: "내전 기록을 불러오지 못했습니다." };
     const series = (recent ?? []).map(publicSeries);
+    if (!staff && !series.length) return denied;
     let selected = requestedSeriesId
       ? series.find((row) => row.id === requestedSeriesId)
       : (series.find((row) => row.closed_at === null) ?? series[0]);
