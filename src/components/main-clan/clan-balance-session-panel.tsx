@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import {
   closeBalanceSessionAction,
   openBalanceSessionAction,
+  nextBalanceRoundAction,
   skipHeroBanPhaseAction,
   skipMapBanToMatchLiveAction,
   startMapBanPhaseAction,
@@ -36,7 +37,10 @@ import { ClanBalanceMapBanClient } from "./clan-balance-map-ban-client";
 import { ClanBalanceRosterBoard } from "./clan-balance-roster-board";
 import { ClanBalanceRosterEditor } from "./clan-balance-roster-editor";
 import { ClanBalanceSessionRealtime } from "./clan-balance-session-realtime";
+import { ClanBalanceFormation } from "./clan-balance-formation";
+import type { FormationState } from "@/lib/balance/formation";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { defaultMaForRoster, parseMaSnapshot } from "@/lib/balance/ma-snapshot";
 import { isOverwatchBalanceGame, owHeroLabel } from "@/lib/balance/ow-hero-ban";
 import {
@@ -95,6 +99,8 @@ export function ClanBalanceSessionPanel({
   canManage,
   hostNickname,
   session,
+  series,
+  roundHistory,
   votes,
   heroVotes,
   balancePredictions,
@@ -108,6 +114,16 @@ export function ClanBalanceSessionPanel({
   canManage: boolean;
   hostNickname: string | null;
   session: BalanceSession | null;
+  series: Database["public"]["Tables"]["balance_session_series"]["Row"] | null;
+  roundHistory: Pick<
+    BalanceSession,
+    | "id"
+    | "round_number"
+    | "match_outcome"
+    | "resolved_map_label"
+    | "closed_at"
+    | "roster"
+  >[];
   votes: MapVote[];
   heroVotes: HeroVote[];
   balancePredictions: BalancePrediction[];
@@ -118,6 +134,10 @@ export function ClanBalanceSessionPanel({
   const router = useRouter();
   const [pending, start] = useTransition();
   const [dirtyRosterKey, setDirtyRosterKey] = useState<string | null>(null);
+  const [broadcast, setBroadcast] = useState(false);
+  const formation =
+    session?.formation_state as unknown as FormationState | null;
+  const formationActive = Boolean(formation && formation.stage !== "complete");
   const storeHref = `/games/${gameSlug}/clan/${clanId}/store`;
 
   function onOpenSession(e: FormEvent<HTMLFormElement>) {
@@ -129,7 +149,7 @@ export function ClanBalanceSessionPanel({
         toast.error(r.error);
         return;
       }
-      toast.success("밸런스 세션이 열렸습니다.");
+      toast.success("내전 세션이 열렸습니다.");
       router.refresh();
     });
   }
@@ -203,6 +223,87 @@ export function ClanBalanceSessionPanel({
         sessionId={session?.id ?? null}
         clanId={clanId}
       />
+      {series ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card px-5 py-4">
+          <div>
+            <p className="text-[11px] text-muted-foreground">
+              {series.closed_at ? "지난 내전" : "진행 중인 내전"} ·{" "}
+              {series.session_date?.replaceAll("-", ".")}
+            </p>
+            <h3 className="mt-1 text-lg font-bold">
+              {session ? `라운드 ${session.round_number}` : "세션 종료"}
+            </h3>
+          </div>
+          <div className="flex items-center gap-2">
+            {session ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setBroadcast(true)}
+              >
+                공유 화면
+              </Button>
+            ) : null}
+            {session && canManage && session.phase === "editing" ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={pending}
+                onClick={() =>
+                  runAction("세션을 종료했습니다.", () =>
+                    closeBalanceSessionAction(gameSlug, clanId, session.id),
+                  )
+                }
+              >
+                세션 종료
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+      {session ? (
+        <Dialog open={broadcast} onOpenChange={setBroadcast}>
+          <DialogContent
+            className="h-dvh w-screen max-w-none overflow-y-auto rounded-none p-5 sm:max-w-none sm:p-10"
+            showCloseButton={false}
+          >
+            <DialogTitle className="sr-only">내전 공유 화면</DialogTitle>
+            <div className="mx-auto max-w-5xl">
+              <div className="mb-8 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    {series?.session_date} 내전
+                  </p>
+                  <h2 className="mt-2 text-2xl font-bold">
+                    라운드 {session.round_number} ·{" "}
+                    {outcomeLabel ??
+                      (session.phase === "editing" ? "팀 편성" : "경기 진행")}
+                  </h2>
+                </div>
+                <Button variant="outline" onClick={() => setBroadcast(false)}>
+                  공유 화면 닫기
+                </Button>
+              </div>
+              <ClanBalanceRosterBoard roster={rosterData} pool={rosterPool} />
+              {formation ? (
+                <ClanBalanceFormation
+                  gameSlug={gameSlug}
+                  clanId={clanId}
+                  roundId={session.id}
+                  revision={session.formation_revision}
+                  state={formation}
+                  roster={rosterData}
+                  pool={rosterPool}
+                  userId={userId}
+                  canManage={false}
+                  dirty={false}
+                  readOnly
+                />
+              ) : null}
+            </div>
+          </DialogContent>
+        </Dialog>
+      ) : null}
       <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
           <h3 className="flex items-center gap-2 text-sm font-semibold">
@@ -249,8 +350,8 @@ export function ClanBalanceSessionPanel({
               >
                 <div>
                   <h4 className="flex items-center gap-2 text-sm font-semibold">
-                    <Gamepad2 className="size-4" aria-hidden="true" />새 경기
-                    준비
+                    <Gamepad2 className="size-4" aria-hidden="true" />
+                    내전 세션 열기
                   </h4>
                   <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                     밴픽 옵션을 선택하고 세션을 열어 참가자를 배치하세요.
@@ -324,12 +425,13 @@ export function ClanBalanceSessionPanel({
             {session.phase === "editing" ? (
               <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_260px]">
                 <div className="min-w-0">
-                  {canManage ? (
+                  {canManage && !formationActive ? (
                     <ClanBalanceRosterEditor
                       key={rosterEditorKey}
                       gameSlug={gameSlug}
                       clanId={clanId}
                       sessionId={session.id}
+                      revision={session.formation_revision}
                       initialRoster={rosterData}
                       pool={[...rosterPool]}
                       canEdit
@@ -343,6 +445,19 @@ export function ClanBalanceSessionPanel({
                       pool={rosterPool}
                     />
                   )}
+                  <ClanBalanceFormation
+                    key={session.id}
+                    gameSlug={gameSlug}
+                    clanId={clanId}
+                    roundId={session.id}
+                    revision={session.formation_revision}
+                    state={formation}
+                    roster={rosterData}
+                    pool={rosterPool}
+                    userId={userId}
+                    canManage={canManage}
+                    dirty={rosterDirty}
+                  />
                 </div>
                 <aside className="space-y-4">
                   <div className="rounded-xl border bg-muted/20 p-4">
@@ -401,7 +516,12 @@ export function ClanBalanceSessionPanel({
                     {canManage ? (
                       <Button
                         type="button"
-                        disabled={pending || rosterDirty}
+                        disabled={
+                          pending ||
+                          rosterDirty ||
+                          rosterCount !== 10 ||
+                          formationActive
+                        }
                         className="h-auto min-h-10 w-full whitespace-normal text-xs"
                         onClick={() =>
                           session.map_ban_enabled
@@ -626,12 +746,31 @@ export function ClanBalanceSessionPanel({
                         disabled={false}
                       />
                     ) : null}
+                    {canManage && session.match_outcome !== "pending" ? (
+                      <Button
+                        className="w-full"
+                        disabled={pending}
+                        onClick={() =>
+                          runAction("다음 라운드를 열었습니다.", () =>
+                            nextBalanceRoundAction(
+                              gameSlug,
+                              clanId,
+                              session.id,
+                            ),
+                          )
+                        }
+                      >
+                        다음 라운드
+                      </Button>
+                    ) : null}
                     {canManage ? (
                       <Button
                         type="button"
                         variant="outline"
                         className="w-full"
-                        disabled={pending}
+                        disabled={
+                          pending || session.match_outcome === "pending"
+                        }
                         onClick={() =>
                           runAction("세션을 종료했습니다.", () =>
                             closeBalanceSessionAction(
@@ -672,6 +811,40 @@ export function ClanBalanceSessionPanel({
           </div>
         )}
       </section>
+      {roundHistory.length ? (
+        <section className="rounded-2xl border bg-card p-5">
+          <h3 className="mb-4 text-sm font-semibold">라운드 기록</h3>
+          <div className="space-y-2">
+            {roundHistory.map((round) => (
+              <details key={round.id} className="rounded-xl border px-4 py-3">
+                <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 text-xs">
+                  <strong>라운드 {round.round_number}</strong>
+                  <span className="text-muted-foreground">
+                    {round.resolved_map_label ?? "자유 선택"}
+                  </span>
+                  <span>
+                    {round.match_outcome === "team1"
+                      ? "1팀 승리"
+                      : round.match_outcome === "team2"
+                        ? "2팀 승리"
+                        : round.match_outcome === "void"
+                          ? "취소 · 무효"
+                          : round.closed_at
+                            ? "종료"
+                            : "진행 중"}
+                  </span>
+                </summary>
+                <div className="mt-4">
+                  <ClanBalanceRosterBoard
+                    roster={parseRoster(round.roster)}
+                    pool={rosterPool}
+                  />
+                </div>
+              </details>
+            ))}
+          </div>
+        </section>
+      ) : null}
       <p className="text-right text-xs text-muted-foreground">
         경기 보상과 코인 내역은{" "}
         <Link

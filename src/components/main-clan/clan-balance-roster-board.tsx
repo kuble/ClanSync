@@ -37,13 +37,13 @@ export function BalanceTeamHeading() {
   return (
     <div className="mb-3 grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)] items-center gap-2 text-center sm:grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)]">
       <span className="text-xs font-bold tracking-wider text-sky-600 dark:text-sky-300">
-        블루 팀
+        1팀
       </span>
       <span className="text-base font-black italic text-muted-foreground/60">
         VS
       </span>
       <span className="text-xs font-bold tracking-wider text-rose-600 dark:text-rose-300">
-        레드 팀
+        2팀
       </span>
     </div>
   );
@@ -74,7 +74,7 @@ export function ClanBalanceRosterBoard({
               const userId = balanceSlotMember(roster[team], slot);
               const nickname = userId
                 ? (nickById[userId] ?? "탈퇴한 멤버")
-                : "빈 슬롯";
+                : "빈자리";
               const score = userId && snapshot ? snapshot[userId] : null;
               return (
                 <div key={team} className="contents">
@@ -89,7 +89,7 @@ export function ClanBalanceRosterBoard({
                     )}
                   >
                     <span className="sr-only">
-                      {team === "team1" ? "블루" : "레드"} {slot.label}
+                      {team === "team1" ? "1팀" : "2팀"} {slot.label}
                     </span>
                     <span
                       className="max-w-full truncate text-xs font-bold sm:text-sm"

@@ -4,6 +4,10 @@ import { hasRequestClanPermission } from "@/lib/clan/request-clan-access";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import type { Database } from "@/lib/supabase/database.types";
 import { CircleHelp } from "lucide-react";
+import {
+  parseRoster,
+  rosterAssignedUserIds,
+} from "@/lib/balance/roster-schema";
 
 type RosterPoolRow =
   Database["public"]["Functions"]["list_balance_roster_pool"]["Returns"][number];
@@ -35,12 +39,44 @@ export default async function BalancePage({
   ]);
   const planPremium = ctx.plan === "premium";
 
-  const { data: session } = await supabase
-    .from("balance_sessions")
-    .select("*")
-    .eq("clan_id", clanId)
-    .is("closed_at", null)
-    .maybeSingle();
+  const [{ data: session }, { data: series }, { data: recentRounds }] =
+    await Promise.all([
+      supabase
+        .from("balance_sessions")
+        .select("*")
+        .eq("clan_id", clanId)
+        .is("closed_at", null)
+        .maybeSingle(),
+      supabase
+        .from("balance_session_series")
+        .select("*")
+        .eq("clan_id", clanId)
+        .order("opened_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("balance_sessions")
+        .select("roster, opened_at")
+        .eq("clan_id", clanId)
+        .in("match_outcome", ["team1", "team2"])
+        .order("opened_at", { ascending: false })
+        .limit(100),
+    ]);
+  const { data: roundHistory } = series
+    ? await supabase
+        .from("balance_sessions")
+        .select(
+          "id, round_number, match_outcome, resolved_map_label, closed_at, roster",
+        )
+        .eq("series_id", series.id)
+        .order("round_number", { ascending: false })
+    : { data: [] };
+  const recency = new Map<string, number>();
+  (recentRounds ?? []).forEach((round, index) =>
+    rosterAssignedUserIds(parseRoster(round.roster)).forEach((id) => {
+      if (!recency.has(id)) recency.set(id, index);
+    }),
+  );
 
   const { data: votes } = session
     ? await supabase
@@ -79,10 +115,17 @@ export default async function BalancePage({
       p_clan_id: clanId,
     },
   );
-  const rosterPool = (rosterPoolRows ?? []).map((r: RosterPoolRow) => ({
-    user_id: r.user_id,
-    nickname: r.nickname,
-  }));
+  const rosterPool = ((rosterPoolRows ?? []) as RosterPoolRow[])
+    .map((r: RosterPoolRow) => ({
+      user_id: r.user_id,
+      nickname: r.nickname,
+    }))
+    .sort(
+      (a, b) =>
+        (recency.get(a.user_id) ?? Infinity) -
+          (recency.get(b.user_id) ?? Infinity) ||
+        a.nickname.localeCompare(b.nickname, "ko"),
+    );
 
   let hostNickname: string | null = null;
   if (session?.host_user_id) {
@@ -128,6 +171,8 @@ export default async function BalancePage({
         canManage={canManage}
         hostNickname={hostNickname}
         session={session}
+        series={series}
+        roundHistory={roundHistory ?? []}
         votes={votes ?? []}
         heroVotes={heroVotes}
         balancePredictions={balancePredictions}

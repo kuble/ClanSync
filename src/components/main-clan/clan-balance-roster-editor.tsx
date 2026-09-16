@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, GripVertical, Save, Search, Users, X } from "lucide-react";
+import { RotateCcw, Save, Search, Undo2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { updateBalanceRosterAction } from "@/app/actions/clan-balance-session";
 import { Button } from "@/components/ui/button";
 import {
+  EMPTY_ROSTER,
   type BalanceRoster,
   rosterAssignedUserIds,
 } from "@/lib/balance/roster-schema";
@@ -21,11 +22,32 @@ import { cn } from "@/lib/utils";
 
 type PoolRow = { user_id: string; nickname: string };
 type TeamKey = "team1" | "team2";
+type SlotAddress = { team: TeamKey; slot: BalanceSlot };
+
+const TEAMS = ["team1", "team2"] as const;
+const SLOT_ADDRESSES = TEAMS.flatMap((team) =>
+  BALANCE_SLOTS.map((slot) => ({ team, slot })),
+);
+const DRAG_TYPE = "application/x-clansync-roster-slot";
+
+function addressKey(address: SlotAddress) {
+  return `${address.team}:${address.slot.key}`;
+}
+
+function setSlot(
+  roster: BalanceRoster,
+  { team, slot }: SlotAddress,
+  userId: string | null,
+) {
+  if (slot.role === "tank") roster[team].tank = userId;
+  else roster[team][slot.role][slot.index] = userId;
+}
 
 export function ClanBalanceRosterEditor({
   gameSlug,
   clanId,
   sessionId,
+  revision,
   initialRoster,
   pool,
   canEdit,
@@ -34,66 +56,112 @@ export function ClanBalanceRosterEditor({
   gameSlug: string;
   clanId: string;
   sessionId: string;
+  revision: number;
   initialRoster: BalanceRoster;
   pool: PoolRow[];
   canEdit: boolean;
   onDirtyChange?: (dirty: boolean) => void;
 }) {
   const router = useRouter();
+  const helpId = useId();
   const [pending, start] = useTransition();
   const [roster, setRoster] = useState<BalanceRoster>(initialRoster);
   const [savedRoster, setSavedRoster] = useState(initialRoster);
+  const [history, setHistory] = useState<BalanceRoster[]>([]);
   const [query, setQuery] = useState("");
-  const [selectedMember, setSelectedMember] = useState<string | null>(null);
+  const [activeSlot, setActiveSlot] = useState<string | null>(null);
+  const [draggedSlot, setDraggedSlot] = useState<string | null>(null);
+  const [dropSlot, setDropSlot] = useState<string | null>(null);
   const usedIds = new Set(rosterAssignedUserIds(roster));
   const dirty = JSON.stringify(roster) !== JSON.stringify(savedRoster);
-  const visiblePool = pool.filter((p) =>
-    p.nickname.toLocaleLowerCase().includes(query.toLocaleLowerCase()),
+  const availablePool = pool.filter((member) => !usedIds.has(member.user_id));
+  const visiblePool = availablePool.filter((member) =>
+    member.nickname.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
   );
-  const selectedNickname = pool.find(
-    (p) => p.user_id === selectedMember,
-  )?.nickname;
+  const nickById = new Map(
+    pool.map((member) => [member.user_id, member.nickname]),
+  );
+  const firstEmpty = SLOT_ADDRESSES.find(
+    ({ team, slot }) => !balanceSlotMember(roster[team], slot),
+  );
 
-  function assign(teamKey: TeamKey, slot: BalanceSlot, userId: string | null) {
+  function clearInteraction() {
+    setActiveSlot(null);
+    setDraggedSlot(null);
+    setDropSlot(null);
+  }
+
+  function apply(next: BalanceRoster) {
     if (!canEdit || pending) return;
-    const next = structuredClone(roster);
-    // Moving a member clears their previous slot; a player can only play for one team.
-    if (userId) {
-      for (const team of [next.team1, next.team2]) {
-        if (team.tank === userId) team.tank = null;
-        team.dmg = team.dmg.map((id) => (id === userId ? null : id)) as [
-          string | null,
-          string | null,
-        ];
-        team.sup = team.sup.map((id) => (id === userId ? null : id)) as [
-          string | null,
-          string | null,
-        ];
-      }
-    }
-    if (slot.role === "tank") next[teamKey].tank = userId;
-    else next[teamKey][slot.role][slot.index] = userId;
+    clearInteraction();
+    if (JSON.stringify(next) === JSON.stringify(roster)) return;
+    setHistory((previous) => [...previous.slice(-99), roster]);
     setRoster(next);
-    setSelectedMember(null);
     onDirtyChange?.(JSON.stringify(next) !== JSON.stringify(savedRoster));
   }
 
+  function addMember(userId: string) {
+    if (!firstEmpty || usedIds.has(userId)) return;
+    const next = structuredClone(roster);
+    setSlot(next, firstEmpty, userId);
+    apply(next);
+  }
+
+  function emptySlot(address: SlotAddress) {
+    const next = structuredClone(roster);
+    setSlot(next, address, null);
+    apply(next);
+  }
+
+  function moveMember(sourceKey: string, target: SlotAddress) {
+    const source = SLOT_ADDRESSES.find(
+      (address) => addressKey(address) === sourceKey,
+    );
+    if (!source || sourceKey === addressKey(target)) {
+      clearInteraction();
+      return;
+    }
+    const movingId = balanceSlotMember(roster[source.team], source.slot);
+    if (!movingId) return;
+    const next = structuredClone(roster);
+    setSlot(next, source, balanceSlotMember(roster[target.team], target.slot));
+    setSlot(next, target, movingId);
+    apply(next);
+  }
+
+  function undo() {
+    if (!canEdit || pending) return;
+    const previous = history.at(-1);
+    if (!previous) return;
+    setHistory((entries) => entries.slice(0, -1));
+    setRoster(previous);
+    clearInteraction();
+    onDirtyChange?.(JSON.stringify(previous) !== JSON.stringify(savedRoster));
+  }
+
   function save() {
+    if (!canEdit || pending || !dirty) return;
+    clearInteraction();
     start(async () => {
-      const r = await updateBalanceRosterAction(
-        gameSlug,
-        clanId,
-        sessionId,
-        JSON.stringify(roster),
-      );
-      if (!r.ok) {
-        toast.error(r.error);
-        return;
+      try {
+        const result = await updateBalanceRosterAction(
+          gameSlug,
+          clanId,
+          sessionId,
+          JSON.stringify(roster),
+          revision,
+        );
+        if (!result.ok) {
+          toast.error(result.error);
+          return;
+        }
+        setSavedRoster(roster);
+        onDirtyChange?.(false);
+        toast.success("배치를 저장했습니다.");
+        router.refresh();
+      } catch {
+        toast.error("배치를 저장하지 못했습니다. 다시 시도해 주세요.");
       }
-      setSavedRoster(roster);
-      onDirtyChange?.(false);
-      toast.success("배치를 저장했습니다.");
-      router.refresh();
     });
   }
 
@@ -106,18 +174,40 @@ export function ClanBalanceRosterEditor({
             {usedIds.size} / 10
           </strong>
         </span>
-        <span
-          className={cn(
-            "rounded-full px-2 py-1 text-[10px] font-medium",
-            dirty
-              ? "bg-amber-500/10 text-amber-700 dark:text-amber-300"
-              : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-          )}
-        >
-          {dirty ? "저장하지 않은 변경" : "저장된 배치"}
-        </span>
+        {canEdit ? (
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              disabled={pending || history.length === 0}
+              onClick={undo}
+              aria-label="명단 변경 되돌리기"
+              title="되돌리기"
+            >
+              <Undo2 className="size-4" aria-hidden="true" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              disabled={pending || usedIds.size === 0}
+              onClick={() => apply(structuredClone(EMPTY_ROSTER))}
+              aria-label="출전 명단 초기화"
+              title="초기화"
+            >
+              <RotateCcw className="size-4" aria-hidden="true" />
+            </Button>
+          </div>
+        ) : null}
       </div>
-      <div>
+      <p id={helpId} className="sr-only">
+        아래 클랜원을 누르면 1팀부터 순서대로 빈자리에 들어갑니다. 참여자를
+        끌어 다른 자리로 이동하거나 교환할 수 있습니다. 키보드 또는 터치로는
+        참여자와 도착할 자리를 차례로 누르세요. 우클릭이나 Delete 키로 자리를
+        비우고 Escape 키로 이동 선택을 취소할 수 있습니다.
+      </p>
+      <div aria-label="출전 명단 편집" aria-describedby={helpId}>
         <BalanceTeamHeading />
         <div className="space-y-2 rounded-xl bg-muted/35 p-2 sm:p-3">
           {BALANCE_SLOTS.map((slot) => (
@@ -125,84 +215,79 @@ export function ClanBalanceRosterEditor({
               key={slot.key}
               className="grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)] items-stretch gap-2 sm:grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)]"
             >
-              {(["team1", "team2"] as const).map((teamKey, index) => {
-                const userId = balanceSlotMember(roster[teamKey], slot);
-                const teamLabel = teamKey === "team1" ? "블루" : "레드";
-                const prefix = teamKey === "team1" ? "t1" : "t2";
+              {TEAMS.map((team, index) => {
+                const address = { team, slot };
+                const key = addressKey(address);
+                const userId = balanceSlotMember(roster[team], slot);
+                const nickname = userId
+                  ? (nickById.get(userId) ?? "탈퇴한 멤버")
+                  : "빈자리";
+                const teamLabel = team === "team1" ? "1팀" : "2팀";
                 return (
-                  <div key={teamKey} className="contents">
+                  <div key={team} className="contents">
                     {index === 1 ? <BalanceRoleIcon slot={slot} /> : null}
-                    <div
+                    <button
+                      type="button"
+                      data-roster-slot={key}
+                      disabled={!canEdit || pending}
+                      draggable={canEdit && !pending && Boolean(userId)}
+                      aria-label={`${teamLabel} ${slot.label}: ${nickname}`}
+                      aria-pressed={activeSlot === key}
+                      aria-describedby={helpId}
+                      title={userId ? `${nickname} · 우클릭으로 비우기` : "빈자리"}
                       className={cn(
-                        "relative flex min-h-24 min-w-0 flex-col justify-center gap-1 rounded-xl border p-2 sm:px-3",
-                        teamKey === "team1"
-                          ? "border-sky-500/35 bg-sky-500/[0.06]"
-                          : "border-rose-500/35 bg-rose-500/[0.06]",
-                        !userId && "border-dashed",
-                        selectedMember && "ring-1 ring-primary/40",
+                        "relative flex min-h-20 min-w-0 select-none items-center justify-center rounded-xl border px-2 py-3 text-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:px-3",
+                        team === "team1"
+                          ? "border-sky-500/35 bg-sky-500/[0.08]"
+                          : "border-rose-500/35 bg-rose-500/[0.08]",
+                        !userId && "border-dashed text-muted-foreground/65",
+                        userId && canEdit && !pending &&
+                          "cursor-grab active:cursor-grabbing",
+                        (activeSlot === key || dropSlot === key) &&
+                          "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                        draggedSlot === key && "opacity-50",
                       )}
-                      onDragOver={(event) => {
-                        if (canEdit && !pending) event.preventDefault();
+                      onClick={() => {
+                        if (activeSlot) moveMember(activeSlot, address);
+                        else if (userId) setActiveSlot(key);
                       }}
+                      onContextMenu={(event) => {
+                        if (!canEdit || pending) return;
+                        event.preventDefault();
+                        emptySlot(address);
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === "Delete" || event.key === "Backspace") {
+                          event.preventDefault();
+                          emptySlot(address);
+                        } else if (event.key === "Escape") clearInteraction();
+                      }}
+                      onDragStart={(event) => {
+                        event.dataTransfer.setData(DRAG_TYPE, key);
+                        event.dataTransfer.effectAllowed = "move";
+                        setActiveSlot(null);
+                        setDraggedSlot(key);
+                      }}
+                      onDragEnd={clearInteraction}
+                      onDragOver={(event) => {
+                        if (!canEdit || pending || !draggedSlot) return;
+                        event.preventDefault();
+                        event.dataTransfer.dropEffect = "move";
+                        setDropSlot(key);
+                      }}
+                      onDragLeave={() => setDropSlot(null)}
                       onDrop={(event) => {
                         event.preventDefault();
-                        const id = event.dataTransfer.getData("text/plain");
-                        if (pool.some((p) => p.user_id === id))
-                          assign(teamKey, slot, id);
+                        if (!canEdit || pending || !draggedSlot) return;
+                        const source = event.dataTransfer.getData(DRAG_TYPE);
+                        if (source === draggedSlot) moveMember(source, address);
+                        else clearInteraction();
                       }}
                     >
-                      <label
-                        htmlFor={prefix + "-" + slot.key}
-                        className="text-[10px] font-medium text-muted-foreground"
-                      >
-                        {teamLabel} · {slot.label}
-                      </label>
-                      <select
-                        id={prefix + "-" + slot.key}
-                        disabled={!canEdit || pending}
-                        value={userId ?? ""}
-                        className="h-9 w-full min-w-0 rounded-md border border-transparent bg-transparent pr-1 text-xs font-bold outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40 sm:text-sm [&>option]:bg-background"
-                        onChange={(event) =>
-                          assign(teamKey, slot, event.target.value || null)
-                        }
-                      >
-                        <option value="">참가자 선택</option>
-                        {pool
-                          .filter(
-                            (p) =>
-                              !usedIds.has(p.user_id) || p.user_id === userId,
-                          )
-                          .map((p) => (
-                            <option key={p.user_id} value={p.user_id}>
-                              {p.nickname}
-                            </option>
-                          ))}
-                      </select>
-                      {selectedMember ? (
-                        <button
-                          type="button"
-                          disabled={!canEdit || pending}
-                          onClick={() => assign(teamKey, slot, selectedMember)}
-                          className="rounded bg-primary/10 px-1 py-1 text-[10px] font-semibold text-primary hover:bg-primary/20 focus-visible:outline-2 focus-visible:outline-ring"
-                        >
-                          {selectedNickname} 배치
-                        </button>
-                      ) : userId ? (
-                        <button
-                          type="button"
-                          disabled={!canEdit || pending}
-                          onClick={() => assign(teamKey, slot, null)}
-                          className="self-end rounded p-1 text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
-                          aria-label={teamLabel + " " + slot.label + " 비우기"}
-                        >
-                          <X className="size-3" aria-hidden="true" />
-                        </button>
-                      ) : (
-                        <span className="text-center text-[10px] text-muted-foreground/70">
-                          아래 멤버를 끌어놓으세요
-                        </span>
-                      )}
-                    </div>
+                      <span className="max-w-full truncate text-xs font-bold sm:text-sm">
+                        {nickname}
+                      </span>
+                    </button>
                   </div>
                 );
               })}
@@ -213,20 +298,15 @@ export function ClanBalanceRosterEditor({
 
       <section
         className="overflow-hidden rounded-xl border bg-muted/15"
-        aria-label="참가 가능 멤버"
+        aria-label="참가 가능 클랜원"
       >
         <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
-          <div>
-            <h4 className="text-xs font-semibold">
-              클랜 멤버{" "}
-              <span className="ml-1 tabular-nums text-muted-foreground">
-                {pool.length}
-              </span>
-            </h4>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              멤버 선택 후 슬롯에 배치하거나 끌어놓으세요.
-            </p>
-          </div>
+          <h4 className="text-xs font-semibold">
+            클랜원{" "}
+            <span className="ml-1 tabular-nums text-muted-foreground">
+              {availablePool.length}
+            </span>
+          </h4>
           <label className="flex h-9 w-full items-center gap-2 rounded-lg border bg-background px-3 sm:w-48">
             <Search
               className="size-3.5 shrink-0 text-muted-foreground"
@@ -241,70 +321,42 @@ export function ClanBalanceRosterEditor({
             />
           </label>
         </div>
-        <div className="flex min-h-24 flex-wrap content-start gap-2 p-4">
+        <div className="grid min-h-24 grid-cols-2 content-start gap-2 p-3 sm:grid-cols-3 sm:p-4">
           {visiblePool.length ? (
-            visiblePool.map((p) => (
+            visiblePool.map((member) => (
               <button
-                key={p.user_id}
+                key={member.user_id}
                 type="button"
-                draggable={canEdit && !pending}
-                disabled={!canEdit || pending}
-                onDragStart={(event) =>
-                  event.dataTransfer.setData("text/plain", p.user_id)
-                }
-                onClick={() =>
-                  setSelectedMember(
-                    selectedMember === p.user_id ? null : p.user_id,
-                  )
-                }
-                aria-pressed={selectedMember === p.user_id}
-                className={cn(
-                  "flex max-w-full items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50",
-                  selectedMember === p.user_id
-                    ? "border-primary bg-primary/10 text-primary"
-                    : usedIds.has(p.user_id)
-                      ? "border-border bg-muted text-muted-foreground"
-                      : "border-border bg-card hover:border-primary/50",
-                )}
+                disabled={!canEdit || pending || !firstEmpty}
+                onClick={() => addMember(member.user_id)}
+                aria-label={`${member.nickname} 출전 명단에 추가`}
+                title={member.nickname}
+                className="flex min-h-11 min-w-0 items-center justify-center rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold transition-colors hover:border-primary/50 hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-default disabled:opacity-50"
               >
-                {usedIds.has(p.user_id) ? (
-                  <Check className="size-3 shrink-0" aria-hidden="true" />
-                ) : (
-                  <GripVertical
-                    className="size-3 shrink-0 text-muted-foreground"
-                    aria-hidden="true"
-                  />
-                )}
-                <span className="truncate">{p.nickname}</span>
-                <span className="sr-only">
-                  {usedIds.has(p.user_id) ? "배치됨" : "배치 가능"}
-                </span>
+                <span className="truncate">{member.nickname}</span>
               </button>
             ))
           ) : (
-            <p className="py-3 text-xs text-muted-foreground">
-              {pool.length
+            <p className="col-span-full py-3 text-xs text-muted-foreground">
+              {query.trim()
                 ? "검색 결과가 없습니다."
-                : "참가할 수 있는 클랜 멤버가 없습니다."}
+                : pool.length
+                  ? "출전 명단에 추가할 클랜원이 없습니다."
+                  : "참가할 수 있는 클랜원이 없습니다."}
             </p>
           )}
         </div>
-        {selectedMember ? (
-          <p role="status" className="border-t px-4 py-2 text-xs text-primary">
-            {selectedNickname} 선택됨 · 배치할 슬롯의 버튼을 누르세요.
-          </p>
-        ) : null}
       </section>
       {canEdit ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p role="status" className="text-xs text-muted-foreground">
             {dirty
-              ? "변경한 배치를 저장한 뒤 다음 단계로 진행하세요."
-              : "다른 멤버에게는 저장된 배치가 실시간으로 표시됩니다."}
+              ? "변경한 명단을 저장해 주세요."
+              : "저장한 명단이 클랜원에게 실시간으로 표시됩니다."}
           </p>
           <Button
             type="button"
-            disabled={pending}
+            disabled={pending || !dirty}
             onClick={save}
             variant="outline"
           >

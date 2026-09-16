@@ -27,6 +27,16 @@ export function ClanBalanceSessionRealtime({
           filter: `clan_id=eq.${clanId}`,
         },
         refresh,
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "balance_session_series",
+          filter: `clan_id=eq.${clanId}`,
+        },
+        refresh,
       );
 
     if (sessionId) {
