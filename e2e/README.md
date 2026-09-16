@@ -79,6 +79,8 @@ CI 경로는 `npm run build` 후 `next start`를 사용합니다. 로컬 기본 
 
 ## 직접 조작하는 QA 페이지
 
+운영진과 클랜원을 동시에 확인할 때는 `http://localhost:3011`에서 `QA_Leader_01`, `http://127.0.0.1:3011`에서 `QA_Member_02`로 각각 로그인한다. 같은 QA 앱·세션을 보되 호스트별 쿠키가 분리되어 다른 탭의 계정을 바꾸지 않는다. 클랜원 탭에서는 본인 선호만 변경하고 운영진 편성 조작은 표시하지 않는다.
+
 `npm run dev:qa`는 실제 앱을 `http://localhost:3011`에서 QA DB로 실행한다. `QA_Leader_01`로 일반 로그인하면 운영진 조작이 가능하다. QA 클랜은 리더와 `QA_Member_02`~`12`로 12명이며, `QA_Member_01`은 온보딩 테스트를 위해 별도로 둔다. 역할을 흉내내는 URL이나 인증 우회는 없다. `db:seed`는 열린 세션을 정리하므로 직접 테스트 중에는 다시 실행하지 않는다.
 
 시드 상세: [debug-and-fixtures.md](../docs/01-plan/debug-and-fixtures.md)
