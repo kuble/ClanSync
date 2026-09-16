@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import {
   ArrowRight,
-  Ellipsis,
   BarChart3,
   Settings2,
   CircleHelp,
@@ -38,17 +37,8 @@ import { ClanBalanceMapBanClient } from "./clan-balance-map-ban-client";
 import { ClanBalanceRosterBoard } from "./clan-balance-roster-board";
 import { ClanBalanceGuide, type BalanceGuideStage } from "./clan-balance-guide";
 import { updateFormationAction } from "@/app/actions/clan-balance-formation";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
 import { ClanBalanceSettings } from "./clan-balance-settings";
 import { ClanBalancePrematchControls } from "./clan-balance-prematch-controls";
-import { ClanBalanceMapVotePreview } from "./clan-balance-map-vote-preview";
-import { mapPoolForGameSlug } from "@/lib/balance/map-pools";
 import { parseBanSettings } from "@/lib/balance/prematch";
 import { ClanBalanceHistoryDrawer } from "./clan-balance-history-drawer";
 import {
@@ -144,9 +134,7 @@ export function ClanBalanceSessionPanel({
   const [busyFormation, setBusyFormation] = useState(false);
   const [preferencePending, setPreferencePending] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [mapPreviewOpen, setMapPreviewOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [toolsOpen, setToolsOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [scoreMode, setScoreMode] = useState<ScoreMode>("m");
@@ -331,57 +319,6 @@ export function ClanBalanceSessionPanel({
           stage={guideStage}
         />
       ) : null}
-      {session ? (
-        <Sheet open={toolsOpen} onOpenChange={setToolsOpen}>
-          <SheetContent className="overflow-y-auto sm:max-w-xl">
-            <SheetHeader>
-              <SheetTitle>라운드 도구</SheetTitle>
-              <SheetDescription>
-                라운드 {session.round_number} · 팀 명단과 진행 설정
-              </SheetDescription>
-            </SheetHeader>
-            <div className="space-y-6 px-5 pb-6">
-              {canManage && session.phase !== "match_live" ? (
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    setToolsOpen(false);
-                    setSettingsOpen(true);
-                  }}
-                >
-                  <Settings2 className="size-4" /> 라운드 설정
-                </Button>
-              ) : null}
-              <ClanBalanceRosterBoard roster={rosterData} pool={rosterPool} />
-              {canManage &&
-              session.phase === "editing" &&
-              formation?.appliedAt !== undefined ? (
-                <Button
-                  variant="outline"
-                  disabled={pending}
-                  onClick={() => {
-                    start(async () => {
-                      const result = await updateFormationAction(
-                        gameSlug,
-                        clanId,
-                        session.id,
-                        session.formation_revision,
-                        { type: "reset" },
-                      );
-                      if (!result.ok) toast.error(result.error);
-                      else setToolsOpen(false);
-                      router.refresh();
-                    });
-                  }}
-                >
-                  명단 수정
-                </Button>
-              ) : null}
-            </div>
-          </SheetContent>
-        </Sheet>
-      ) : null}
       {canViewHistory ? <ClanBalanceHistoryDrawer
         scope={historyScope}
         open={historyOpen}
@@ -409,14 +346,6 @@ export function ClanBalanceSessionPanel({
           activeVote={
             session.phase === "map_ban" || session.phase === "hero_ban"
           }
-          onPreviewMapVote={
-            qaPreviewEnabled
-              ? () => {
-                  setSettingsOpen(false);
-                  setMapPreviewOpen(true);
-                }
-              : undefined
-          }
           editable={
             canManage && session.phase !== "match_live" && !busyFormation
           }
@@ -427,19 +356,6 @@ export function ClanBalanceSessionPanel({
             !busyFormation
           }
           beforeSave={flushRoster}
-        />
-      ) : null}
-      {canManage && qaPreviewEnabled && mapPreviewOpen ? (
-        <ClanBalanceMapVotePreview
-          open={mapPreviewOpen}
-          onOpenChange={setMapPreviewOpen}
-          candidates={
-            triple ??
-            (mapPoolForGameSlug(
-              gameSlug,
-              parseBanSettings(session).mapTypes,
-            ).slice(0, 3) as [string, string, string])
-          }
         />
       ) : null}
       <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
@@ -522,18 +438,6 @@ export function ClanBalanceSessionPanel({
                 onClick={() => setSettingsOpen(true)}
               >
                 <Settings2 className="size-4" />
-              </Button>
-            ) : null}
-            {mapScreen ? (
-              <Button
-                size="icon"
-                variant="ghost"
-                aria-label="라운드 도구"
-                title="라운드 도구"
-                data-balance-guide="tools"
-                onClick={() => setToolsOpen(true)}
-              >
-                <Ellipsis className="size-4" />
               </Button>
             ) : null}
           </div>
@@ -720,7 +624,6 @@ export function ClanBalanceSessionPanel({
             ) : null}
             {session.phase === "map_ban" ? (
               <div className="space-y-6">
-                {renderInsights(session.resolved_map_label, rosterData, true)}
                 {triple ? (
                   <ClanBalanceMapBanClient
                     gameSlug={gameSlug}
@@ -733,6 +636,8 @@ export function ClanBalanceSessionPanel({
                     myChoiceIdx={myVote?.choice_idx ?? null}
                     tallies={tallyMapVotes(votes)}
                     canResolve={canManage}
+                    heroBanEnabled={session.hero_ban_enabled}
+                    renderInsights={(map) => renderInsights(map, rosterData, true)}
                   />
                 ) : (
                   <p
@@ -742,15 +647,6 @@ export function ClanBalanceSessionPanel({
                     맵 후보를 불러오지 못했습니다. 페이지를 새로고침해 주세요.
                   </p>
                 )}
-                {session.resolved_map_label ? (
-                  <ClanBalancePrematchControls
-                    key={`${session.id}:${JSON.stringify(session.map_types)}`}
-                    gameSlug={gameSlug}
-                    clanId={clanId}
-                    session={session}
-                    canManage={canManage}
-                  />
-                ) : null}
               </div>
             ) : null}
 

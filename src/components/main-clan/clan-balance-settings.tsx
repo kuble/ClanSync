@@ -50,7 +50,6 @@ export function ClanBalanceSettings({
   formationEditable,
   banSettings,
   activeVote,
-  onPreviewMapVote,
   beforeSave,
 }: {
   open: boolean;
@@ -68,7 +67,6 @@ export function ClanBalanceSettings({
   formationEditable: boolean;
   banSettings: BanSettings;
   activeVote: boolean;
-  onPreviewMapVote?: () => void;
   beforeSave: () => Promise<{ ok: true; revision: number } | { ok: false }>;
 }) {
   const router = useRouter();
@@ -444,16 +442,6 @@ export function ClanBalanceSettings({
             <p className="text-xs text-muted-foreground">
               밴 설정을 변경하면 해당 투표를 초기화합니다.
             </p>
-          ) : null}
-          {onPreviewMapVote ? (
-            <Button
-              variant="outline"
-              className="w-full"
-              disabled={pending || Boolean(savedRules)}
-              onClick={onPreviewMapVote}
-            >
-              QA 맵 투표 연출
-            </Button>
           ) : null}
           {editable ? (
             <Button className="w-full" disabled={locked} onClick={save}>

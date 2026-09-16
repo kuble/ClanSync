@@ -77,9 +77,10 @@ DB 변경은 관련 `scripts/*-db.test.mjs`를 골라 `node --test <파일>`로 
 - `join-request-flow.spec.ts`: 가입 신청·리더 거절
 - `ui-regression.spec.ts`: 클랜·게임 탭, 대진표
 - `balance-session-live.spec.ts`: 독립 12명 클랜의 명단 자동 저장·개인 선호·실시간 반영·설정 적용 직후 시작·공유 추첨·주장 지명·경매·결과·기록·다음 라운드·종료
-- `balance-prematch.spec.ts`: 독립 QA 클랜의 편성 후 밴 설정·타이머 변경, 맵 유형 중복 선택, 두 클라이언트 투표·공유 결과, 수동 맵 저장, 영웅 밴 마감·별도 경기 시작, QA 연출 무기록
+- `balance-prematch.spec.ts`: 독립 QA 클랜의 편성 후 밴 설정·타이머 변경, 맵 유형 중복 선택, 두 클라이언트 가중 추첨·공유 결과·자동 영웅 밴, 수동 맵 저장, 영웅 밴 마감·별도 경기 시작
 - `balance-member-preference.spec.ts`: 같은 브라우저의 localhost 운영진/127.0.0.1 멤버 로그인 분리·선호 없음/순서 변경/새로고침/프로필 복귀·관리 UI 숨김
 - `profile-role-preference.spec.ts`: 별도 임시 사용자의 프로필 선호 연속 저장·즉시 재편집·실패 시 마지막 확정값 복구
+- `draw-presentation.spec.ts`: 역할 공개 시간·재접속 진행률·득표 가중 강조·무득표 예외
 - `formation-rules.spec.ts`: 역할 정원·공통 순서·snake 지명·경매 예산/기한/무입찰
 - `roster-autosave.spec.ts`: 빠른 연속 입력·편성 전 flush·동시 저장·연결 실패·revision 충돌·최신 명단 복구
 - `balance-history-rules.spec.ts`: 유효 승패 통계·고유 출전·연속 승패·0경기·개설 KST 날짜·공개 감사 정보 제한
