@@ -14,6 +14,7 @@ import {
   type FormationState,
 } from "@/lib/balance/formation";
 import { parseRoster } from "@/lib/balance/roster-schema";
+import { ROLE_DRAW_DURATION_MS } from "@/lib/balance/draw-presentation";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service";
@@ -110,7 +111,8 @@ export async function updateFormationAction(
         {
           id: randomUUID(),
           startedAt: Date.now(),
-          durationMs: 4000,
+          durationMs:
+            settings.roles === "lottery" ? ROLE_DRAW_DURATION_MS : 4000,
           roleMode: settings.roles,
         },
       );

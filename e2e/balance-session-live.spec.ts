@@ -7,6 +7,7 @@ import {
   parseRoster,
   rosterAssignedUserIds,
 } from "../src/lib/balance/roster-schema";
+import type { FormationState } from "../src/lib/balance/formation";
 
 test.use({ actionTimeout: 20_000 });
 
@@ -312,6 +313,50 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
       })
       .toEqual(["sup", "tank", "dmg"]);
     await panel.getByRole("button", { name: "편성 시작", exact: true }).click();
+    const operatorDraw = page.getByRole("dialog", {
+      name: "역할 추첨",
+      exact: true,
+    });
+    const memberDraw = member.getByRole("dialog", {
+      name: "역할 추첨",
+      exact: true,
+    });
+    await expect(operatorDraw).toBeVisible({ timeout: 15_000 });
+    await expect(memberDraw).toBeVisible({ timeout: 15_000 });
+    const savedDraw = (await fixture.activeRound())
+      .formation_state as unknown as FormationState;
+    const ownOrder = savedDraw.order.indexOf(fixture.users[1].id) + 1;
+    await expect(memberDraw.getByTestId("draw-my-order")).toContainText(
+      `${ownOrder}번`,
+    );
+    for (const dialog of [operatorDraw, memberDraw]) {
+      await expect(
+        dialog.getByRole("list", { name: "추첨 순서와 역할" }),
+      ).toHaveAttribute("data-draw-id", savedDraw.draw!.id);
+      await expect(dialog.getByRole("listitem")).toHaveCount(10);
+    }
+    await member.setViewportSize({ width: 390, height: 844 });
+    await expect
+      .poll(async () => {
+        const box = await memberDraw.boundingBox();
+        return Boolean(box && box.x >= 0 && box.x + box.width <= 391);
+      })
+      .toBe(true);
+    await memberDraw.screenshot({ path: ".supabase-test/role-draw-popup.png" });
+    // A completed draw stays visible until each viewer dismisses it.
+    await operatorDraw
+      .getByRole("button", { name: "확인", exact: true })
+      .click({ timeout: 25_000 });
+    await expect(memberDraw).toBeVisible();
+    await expect(memberDraw.getByRole("list")).toHaveAttribute(
+      "data-reveal-count",
+      "10",
+    );
+    await memberDraw.getByRole("button", { name: "확인", exact: true }).click();
+    await expect(memberPanel.getByTestId("my-draw-result")).toContainText(
+      `${ownOrder}번`,
+    );
+    await member.setViewportSize({ width: 1280, height: 720 });
     await expect(
       panel.getByRole("button", { name: "경기 시작", exact: true }),
     ).toBeEnabled({ timeout: 20_000 });
@@ -350,6 +395,9 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
       panel.getByRole("button", { name: "결과 다시 보기" }),
     ).toHaveCount(0);
     await member.reload();
+    await expect(
+      member.getByRole("dialog", { name: "역할 추첨", exact: true }),
+    ).toHaveCount(0);
     await expect
       .poll(() => readRoster(memberPanel, true), { timeout: 20_000 })
       .toEqual(drawnRoster);

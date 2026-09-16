@@ -13,6 +13,7 @@ import {
 } from "./clan-balance-roster-board";
 import { useServerClock } from "@/lib/balance/use-server-clock";
 import { cn } from "@/lib/utils";
+import { drawRevealCount } from "@/lib/balance/draw-presentation";
 
 /** A presentation of the server's saved draw, never a new random draw. */
 export function ClanBalanceRevealBoard({
@@ -61,10 +62,16 @@ export function ClanBalanceRevealBoard({
         />
       </div>
     );
-  const revealed = Math.max(
-    0,
-    Math.min(10, Math.floor(((elapsed - 650) / (draw.durationMs - 650)) * 11)),
-  );
+  const revealed =
+    draw.roleMode === "lottery"
+      ? drawRevealCount(draw, now, state.order.length)
+      : Math.max(
+          0,
+          Math.min(
+            10,
+            Math.floor(((elapsed - 650) / (draw.durationMs - 650)) * 11),
+          ),
+        );
   const ordered = new Set(state.order.slice(0, revealed));
   // Draft/auction first reveal assigned roles in the familiar two-column board,
   // then keep only captains in team slots while the remaining players are picked.

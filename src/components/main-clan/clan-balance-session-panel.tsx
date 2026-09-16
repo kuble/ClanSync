@@ -68,6 +68,7 @@ import {
 import { tallyMapVotes } from "@/lib/balance/weighted-map-pick";
 import type { Database } from "@/lib/supabase/database.types";
 import { useServerClock } from "@/lib/balance/use-server-clock";
+import { ClanBalanceDrawDialog } from "./clan-balance-draw-dialog";
 import { cn } from "@/lib/utils";
 
 type BalanceSession = Database["public"]["Tables"]["balance_sessions"]["Row"];
@@ -485,6 +486,15 @@ export function ClanBalanceSessionPanel({
           <div className="p-4 sm:p-6">
             {session.phase === "editing" ? (
               <div className="space-y-5">
+                {formation?.draw?.roleMode === "lottery" ? (
+                  <ClanBalanceDrawDialog
+                    key={formation.draw.id}
+                    state={formation}
+                    userId={userId}
+                    pool={rosterPool}
+                    serverNow={presentationNow}
+                  />
+                ) : null}
                 <div data-balance-guide="board">
                   {canManage && !formation ? (
                     <ClanBalanceRosterEditor
