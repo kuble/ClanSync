@@ -76,8 +76,8 @@ async function confirmResult(
 }
 
 async function expectReadOnlyShare(page: Page, panel: Locator) {
-  await panel.getByRole("button", { name: "공유 화면", exact: true }).click();
-  const share = page.getByRole("dialog", { name: "내전 공유 화면" });
+  await panel.getByRole("button", { name: "방송용 화면", exact: true }).click();
+  const share = page.getByRole("dialog", { name: "내전 방송용 화면" });
   await expect(share).toBeVisible();
   await expect(share.locator("[data-roster-slot]")).toHaveCount(0);
   await expect(share.getByRole("button", { name: "명단 수정" })).toHaveCount(0);
@@ -89,7 +89,7 @@ async function expectReadOnlyShare(page: Page, panel: Locator) {
     share.getByRole("button", { name: "결과 다시 보기" }),
   ).toHaveCount(0);
   await share
-    .getByRole("button", { name: "공유 화면 닫기", exact: true })
+    .getByRole("button", { name: "방송용 화면 닫기", exact: true })
     .click();
   await expect(share).toBeHidden();
 }
@@ -218,7 +218,7 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
       .getByRole("button", { name: "다음 라운드", exact: true })
       .click();
     await expect(
-      panel.getByRole("heading", { name: "라운드 2", exact: true }),
+      panel.getByRole("heading", { name: /밸런스 편집.*라운드 2/ }),
     ).toBeVisible({ timeout: 20_000 });
     expect(await readRoster(panel)).toEqual(savedRoster);
 
@@ -234,11 +234,15 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
       name: "이번 라운드 내 선호",
       exact: true,
     });
-    const defaultPreference = ownPreference.getByRole("button", {
-      name: "프로필 기본값",
+    const preferenceOptions = ownPreference.getByRole("button", {
+      name: "선호 옵션",
       exact: true,
     });
-    await expect(defaultPreference).toHaveAttribute("aria-pressed", "true");
+    await preferenceOptions.click();
+    await expect(
+      member.getByRole("menuitemradio", { name: "프로필 기본값", exact: true }),
+    ).toHaveAttribute("aria-checked", "true");
+    await member.keyboard.press("Escape");
     await expect(
       ownPreference.getByRole("button", { name: /탱커/ }),
     ).toHaveAccessibleName("1순위 탱커");
@@ -248,8 +252,9 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
     await expect(
       ownPreference.getByRole("button", { name: /딜러/ }),
     ).toHaveAccessibleName("3순위 딜러");
-    await ownPreference
-      .getByRole("button", { name: "선호 없음", exact: true })
+    await preferenceOptions.click();
+    await member
+      .getByRole("menuitemradio", { name: "선호 없음", exact: true })
       .click();
     await expect
       .poll(async () => {
@@ -268,7 +273,10 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
         .getByRole("list", { name: "역할 선호 순위" })
         .getByRole("button"),
     ).toHaveText(["–", "–", "–"]);
-    await defaultPreference.click();
+    await preferenceOptions.click();
+    await member
+      .getByRole("menuitemradio", { name: "프로필 기본값", exact: true })
+      .click();
     await expect
       .poll(async () => {
         const round = await fixture.activeRound();
@@ -281,12 +289,16 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
         return error ? "error" : data;
       })
       .toBeNull();
-    await expect(defaultPreference).toHaveAttribute("aria-pressed", "true");
-    await expect(defaultPreference).toBeEnabled({ timeout: 20_000 });
+    await expect(preferenceOptions).toBeEnabled({ timeout: 20_000 });
+    await preferenceOptions.click();
+    await expect(
+      member.getByRole("menuitemradio", { name: "프로필 기본값", exact: true }),
+    ).toHaveAttribute("aria-checked", "true");
+    await member.keyboard.press("Escape");
     await ownPreference
       .getByRole("button", { name: /힐러/ })
       .dragTo(ownPreference.getByRole("button", { name: /탱커/ }));
-    await expect(defaultPreference).toBeEnabled({ timeout: 20_000 });
+    await expect(preferenceOptions).toBeEnabled({ timeout: 20_000 });
     await expect
       .poll(async () => {
         const round = await fixture.activeRound();

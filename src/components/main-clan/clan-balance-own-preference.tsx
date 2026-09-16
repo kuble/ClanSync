@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Loader2, LockKeyhole } from "lucide-react";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveRoundRolePreferenceAction } from "@/app/actions/role-preferences";
@@ -40,28 +40,19 @@ function OwnPreferenceEditor({
   const router = useRouter();
   return (
     <section
-      className="rounded-xl border bg-muted/15 p-3"
+      className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t pt-3"
       aria-label="내 역할 선호"
+      aria-busy={pending}
     >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3
-          className="text-xs font-semibold"
-          id={`round-preference-${roundId}-label`}
-        >
-          이번 라운드 내 선호
-        </h3>
-        <Link
-          href="/profile"
-          className="text-xs text-muted-foreground underline underline-offset-4"
-        >
-          프로필에서 설정
-        </Link>
-      </div>
+      <h3 className="sr-only" id={`round-preference-${roundId}-label`}>
+        이번 라운드 내 선호
+      </h3>
       <RolePreferencePicker
         id={`round-preference-${roundId}`}
         labelledBy={`round-preference-${roundId}-label`}
         value={value}
         profileRanking={profileRanking}
+        compact
         disabled={locked || pending}
         onChange={(selected) => {
           setValue(selected);
@@ -91,13 +82,19 @@ function OwnPreferenceEditor({
           });
         }}
       />
-      <p className="mt-2 text-xs text-muted-foreground">
-        {locked
-          ? "편성이 시작되어 선호가 확정되었습니다."
-          : pending
-            ? "저장 중…"
-            : "바꾸지 않으면 프로필 선호를 사용합니다. 변경은 이번 라운드에만 적용됩니다."}
-      </p>
+      <span role="status" className="text-muted-foreground">
+        {pending ? (
+          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+        ) : null}
+        {locked ? <LockKeyhole className="size-4" aria-hidden="true" /> : null}
+        <span className="sr-only">
+          {locked
+            ? "편성이 시작되어 선호가 확정되었습니다."
+            : pending
+              ? "저장 중…"
+              : "변경은 이번 라운드에만 적용됩니다."}
+        </span>
+      </span>
       {error ? (
         <p role="alert" className="mt-2 text-xs text-destructive">
           {error}

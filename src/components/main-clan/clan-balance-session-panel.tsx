@@ -6,12 +6,13 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import {
   ArrowRight,
+  BarChart3,
   Settings2,
-  History,
   CircleHelp,
   Crown,
   Gamepad2,
   Map,
+  MonitorPlay,
   Radio,
   Shield,
   Swords,
@@ -229,61 +230,13 @@ export function ClanBalanceSessionPanel({
             : "none"
         }
       />
-      {series ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card px-5 py-4">
-          <div>
-            <p className="text-[11px] text-muted-foreground">
-              {series.closed_at ? "지난 내전" : "진행 중인 내전"} ·{" "}
-              {series.session_date?.replaceAll("-", ".")}
-            </p>
-            <h3 className="mt-1 text-lg font-bold">
-              {session ? `라운드 ${session.round_number}` : "세션 종료"}
-            </h3>
-          </div>
-          <div className="flex items-center gap-2">
-            {session ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setBroadcast(true)}
-              >
-                공유 화면
-              </Button>
-            ) : null}
-            {session && canManage && session.phase === "editing" ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={pending}
-                onClick={() =>
-                  runAction("세션을 종료했습니다.", async () => {
-                    const saved = await flushRoster();
-                    if (!saved.ok)
-                      return {
-                        ok: false,
-                        error: "명단 저장을 완료한 뒤 다시 시도하세요.",
-                      };
-                    return closeBalanceSessionAction(
-                      gameSlug,
-                      clanId,
-                      session.id,
-                    );
-                  })
-                }
-              >
-                세션 종료
-              </Button>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
-      {session ? (
+      {session && canManage ? (
         <Dialog open={broadcast} onOpenChange={setBroadcast}>
           <DialogContent
             className="h-dvh w-screen max-w-none overflow-y-auto rounded-none p-5 sm:max-w-none sm:p-10"
             showCloseButton={false}
           >
-            <DialogTitle className="sr-only">내전 공유 화면</DialogTitle>
+            <DialogTitle className="sr-only">내전 방송용 화면</DialogTitle>
             <div className="mx-auto max-w-5xl">
               <div className="mb-8 flex items-center justify-between">
                 <div>
@@ -297,7 +250,7 @@ export function ClanBalanceSessionPanel({
                   </h2>
                 </div>
                 <Button variant="outline" onClick={() => setBroadcast(false)}>
-                  공유 화면 닫기
+                  방송용 화면 닫기
                 </Button>
               </div>
               <ClanBalanceRevealBoard
@@ -334,12 +287,14 @@ export function ClanBalanceSessionPanel({
           </DialogContent>
         </Dialog>
       ) : null}
-      <ClanBalanceGuide
-        open={guideOpen}
-        onOpenChange={setGuideOpen}
-        editing={session?.phase === "editing" && !formation}
-        canManage={canManage}
-      />
+      {canManage ? (
+        <ClanBalanceGuide
+          open={guideOpen}
+          onOpenChange={setGuideOpen}
+          editing={session?.phase === "editing" && !formation}
+          canManage={canManage}
+        />
+      ) : null}
       <ClanBalanceHistoryDrawer
         open={historyOpen}
         onOpenChange={setHistoryOpen}
@@ -348,7 +303,7 @@ export function ClanBalanceSessionPanel({
         currentSeriesId={series?.id ?? null}
         pool={rosterPool}
       />
-      {session && settingsOpen ? (
+      {session && canManage && settingsOpen ? (
         <ClanBalanceSettings
           key={session.id}
           open={settingsOpen}
@@ -373,10 +328,31 @@ export function ClanBalanceSessionPanel({
       ) : null}
       <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
-          <h3 className="flex items-center gap-2 text-sm font-semibold">
-            <Swords className="size-4 text-primary" aria-hidden="true" />
-            {session?.phase === "match_live" ? "경기 현황" : "밸런스 편집"}
-          </h3>
+          <div>
+            <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+              <Swords className="size-4 text-primary" aria-hidden="true" />
+              {session?.phase === "match_live"
+                ? "경기 현황"
+                : session?.phase === "map_ban"
+                  ? "맵 밴"
+                  : session?.phase === "hero_ban"
+                    ? "영웅 밴"
+                    : canManage
+                      ? "밸런스 편집"
+                      : "팀 편성"}
+              {session ? (
+                <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                  라운드 {session.round_number}
+                </span>
+              ) : null}
+            </h3>
+            {series ? (
+              <p className="mt-1.5 pl-6 text-[11px] text-muted-foreground">
+                {series.session_date?.replaceAll("-", ".")}
+                {series.closed_at ? " · 세션 종료" : null}
+              </p>
+            ) : null}
+          </div>
           <div className="flex items-center gap-3 text-[11px]">
             {session ? (
               <span className="flex items-center gap-1.5 text-muted-foreground">
@@ -404,18 +380,31 @@ export function ClanBalanceSessionPanel({
               data-balance-guide="history"
               onClick={() => setHistoryOpen(true)}
             >
-              <History className="size-4" />
+              <BarChart3 className="size-4" />
             </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              aria-label="화면 안내"
-              title="화면 안내"
-              onClick={() => setGuideOpen(true)}
-            >
-              <CircleHelp className="size-4" />
-            </Button>
-            {session ? (
+            {canManage ? (
+              <Button
+                size="icon"
+                variant="ghost"
+                aria-label="화면 안내"
+                title="화면 안내"
+                onClick={() => setGuideOpen(true)}
+              >
+                <CircleHelp className="size-4" />
+              </Button>
+            ) : null}
+            {session && canManage ? (
+              <Button
+                size="icon"
+                variant="ghost"
+                aria-label="방송용 화면"
+                title="방송용 화면"
+                onClick={() => setBroadcast(true)}
+              >
+                <MonitorPlay className="size-4" />
+              </Button>
+            ) : null}
+            {session && canManage ? (
               <Button
                 size="icon"
                 variant="ghost"
@@ -426,6 +415,30 @@ export function ClanBalanceSessionPanel({
                 onClick={() => setSettingsOpen(true)}
               >
                 <Settings2 className="size-4" />
+              </Button>
+            ) : null}
+            {session && canManage && session.phase === "editing" ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={pending || busyFormation}
+                onClick={() =>
+                  runAction("세션을 종료했습니다.", async () => {
+                    const saved = await flushRoster();
+                    if (!saved.ok)
+                      return {
+                        ok: false,
+                        error: "명단 저장을 완료한 뒤 다시 시도하세요.",
+                      };
+                    return closeBalanceSessionAction(
+                      gameSlug,
+                      clanId,
+                      session.id,
+                    );
+                  })
+                }
+              >
+                세션 종료
               </Button>
             ) : null}
           </div>

@@ -1,7 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Crosshair, Plus, Shield } from "lucide-react";
+import Link from "next/link";
+import { ChevronDown, Crosshair, Plus, Shield } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ROLE_LABEL, type Role } from "@/lib/balance/formation";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +24,7 @@ export function RolePreferencePicker({
   value,
   profileRanking,
   disabled = false,
+  compact = false,
   onChange,
 }: {
   id: string;
@@ -21,6 +32,7 @@ export function RolePreferencePicker({
   value: Role[] | null;
   profileRanking?: Role[];
   disabled?: boolean;
+  compact?: boolean;
   onChange: (ranking: Role[] | null) => void;
 }) {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
@@ -52,9 +64,59 @@ export function RolePreferencePicker({
       role="group"
       aria-labelledby={labelledBy}
       aria-describedby={`${id}-help`}
-      className="mt-2"
+      className={compact ? "" : "mt-2"}
     >
       <div className="flex flex-wrap items-center gap-3">
+        {compact ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              aria-label="선호 옵션"
+              title="이번 라운드 내 선호"
+              disabled={disabled}
+              className="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-xs font-medium text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+            >
+              내 선호 <ChevronDown className="size-3.5" aria-hidden="true" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="min-w-52">
+              <DropdownMenuRadioGroup
+                value={
+                  value === null ? "profile" : value.length ? "custom" : "none"
+                }
+                onValueChange={(source) => {
+                  if (source === "profile" && value !== null) change(null);
+                  if (source === "none" && (value === null || value.length))
+                    change([]);
+                }}
+              >
+                {profileRanking !== undefined ? (
+                  <DropdownMenuRadioItem
+                    value="profile"
+                    className="min-h-11"
+                    closeOnClick
+                    disabled={disabled}
+                  >
+                    프로필 기본값
+                  </DropdownMenuRadioItem>
+                ) : null}
+                <DropdownMenuRadioItem
+                  value="none"
+                  className="min-h-11"
+                  closeOnClick
+                  disabled={disabled}
+                >
+                  선호 없음
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                render={<Link href="/profile" />}
+                className="min-h-11"
+              >
+                프로필에서 기본값 설정
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
         <ol aria-label="역할 선호 순위" className="flex gap-2">
           {roles.map((role, index) => {
             const Icon = ROLE_ICONS[role];
@@ -130,46 +192,51 @@ export function RolePreferencePicker({
             );
           })}
         </ol>
-        <div className="flex flex-wrap gap-1.5">
-          {profileRanking !== undefined ? (
+        {!compact ? (
+          <div className="flex flex-wrap gap-1.5">
+            {profileRanking !== undefined ? (
+              <button
+                type="button"
+                aria-pressed={value === null}
+                disabled={disabled}
+                className={cn(
+                  "min-h-9 rounded-lg border px-2.5 text-xs transition-colors disabled:opacity-50",
+                  value === null
+                    ? "border-primary/30 bg-primary/10 font-medium"
+                    : "text-muted-foreground hover:bg-muted",
+                )}
+                onClick={() => {
+                  setSelectedRole(null);
+                  if (value !== null) change(null);
+                }}
+              >
+                프로필 기본값
+              </button>
+            ) : null}
             <button
               type="button"
-              aria-pressed={value === null}
+              aria-pressed={value !== null && value.length === 0}
               disabled={disabled}
               className={cn(
                 "min-h-9 rounded-lg border px-2.5 text-xs transition-colors disabled:opacity-50",
-                value === null
+                value !== null && value.length === 0
                   ? "border-primary/30 bg-primary/10 font-medium"
                   : "text-muted-foreground hover:bg-muted",
               )}
               onClick={() => {
                 setSelectedRole(null);
-                if (value !== null) change(null);
+                if (value === null || value.length) change([]);
               }}
             >
-              프로필 기본값
+              선호 없음
             </button>
-          ) : null}
-          <button
-            type="button"
-            aria-pressed={value !== null && value.length === 0}
-            disabled={disabled}
-            className={cn(
-              "min-h-9 rounded-lg border px-2.5 text-xs transition-colors disabled:opacity-50",
-              value !== null && value.length === 0
-                ? "border-primary/30 bg-primary/10 font-medium"
-                : "text-muted-foreground hover:bg-muted",
-            )}
-            onClick={() => {
-              setSelectedRole(null);
-              if (value === null || value.length) change([]);
-            }}
-          >
-            선호 없음
-          </button>
-        </div>
+          </div>
+        ) : null}
       </div>
-      <p id={`${id}-help`} className="mt-2 text-xs text-muted-foreground">
+      <p
+        id={`${id}-help`}
+        className={compact ? "sr-only" : "mt-2 text-xs text-muted-foreground"}
+      >
         {selectedRole
           ? "교환할 아이콘을 누르세요. 다시 누르면 취소됩니다."
           : "끌어서 순위 변경 · 두 아이콘을 눌러 교환"}
