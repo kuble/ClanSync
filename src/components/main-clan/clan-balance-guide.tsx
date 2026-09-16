@@ -4,16 +4,153 @@ import { useEffect, useState } from "react";
 import { Dialog as Primitive } from "@base-ui/react/dialog";
 import { Button } from "@/components/ui/button";
 
+export type BalanceGuideStage =
+  | "roster"
+  | "formation"
+  | "map-types"
+  | "map-manual"
+  | "map-vote"
+  | "map-result"
+  | "hero-vote"
+  | "hero-result"
+  | "match";
+const GUIDES: Record<
+  BalanceGuideStage,
+  { target: string; title: string; text: string }[]
+> = {
+  roster: [
+    {
+      target: "board",
+      title: "대기방과 같은 자리",
+      text: "클랜원을 누르면 1팀부터 채워집니다. 이름을 끌어 자리를 바꾸고, 우클릭으로 비울 수 있습니다.",
+    },
+    {
+      target: "settings",
+      title: "이번 라운드의 규칙",
+      text: "역할·팀 편성 방식과 맵 밴·영웅 밴을 설정하세요.",
+    },
+    {
+      target: "primary",
+      title: "준비되면 편성 시작",
+      text: "열 명을 정하고 편성을 시작하세요. 명단과 개인 선호는 자동으로 반영됩니다.",
+    },
+  ],
+  formation: [
+    {
+      target: "board",
+      title: "팀 편성 확인",
+      text: "역할과 팀이 모두 정해지면 결과를 확인하세요.",
+    },
+    {
+      target: "primary",
+      title: "편성 적용",
+      text: "편성 적용을 누르면 맵을 고르는 화면으로 이동합니다.",
+    },
+  ],
+  "map-types": [
+    {
+      target: "map-types",
+      title: "투표할 맵 유형",
+      text: "쟁탈·밀기·화물·혼합을 함께 고를 수 있습니다. 전체를 누르면 모든 유형을 포함합니다.",
+    },
+    {
+      target: "primary",
+      title: "선택을 마치면 바로 투표",
+      text: "유형 선택 완료를 누르면 후보 맵 세 곳이 공개되고 투표 시간이 시작됩니다.",
+    },
+    {
+      target: "tools",
+      title: "팀과 밴 설정",
+      text: "라운드 도구에서 팀 명단을 확인하거나 경기 시작 전 밴 설정을 바꿀 수 있습니다.",
+    },
+  ],
+  "map-manual": [
+    {
+      target: "map-types",
+      title: "맵 유형 선택",
+      text: "맵 유형을 누르면 해당 전장들이 이미지로 펼쳐집니다.",
+    },
+    {
+      target: "map-picker",
+      title: "이미지로 맵 고르기",
+      text: "맵을 누르면 강조 표시와 함께 저장됩니다. 이미지를 보고 원하는 전장을 선택하세요.",
+    },
+    {
+      target: "primary",
+      title: "선택 후 경기 시작",
+      text: "맵이 저장되면 다음 버튼이 활성화됩니다. 영웅 밴을 사용하는 라운드는 영웅 밴을 거쳐 경기를 시작합니다.",
+    },
+  ],
+  "map-vote": [
+    {
+      target: "map-vote",
+      title: "원하는 맵에 투표",
+      text: "맵 이미지를 눌러 투표하세요. 마감 전까지 선택을 바꿀 수 있고 득표 비율만큼 추첨 확률이 높아집니다.",
+    },
+    {
+      target: "primary",
+      title: "마감 후 맵 공개",
+      text: "시간이 끝나면 운영진이 맵을 확정합니다. 모두에게 같은 추첨 결과가 표시됩니다.",
+    },
+  ],
+  "map-result": [
+    {
+      target: "map-vote",
+      title: "선정된 맵",
+      text: "이번 라운드에 선정된 맵을 확인하세요.",
+    },
+    {
+      target: "primary",
+      title: "다음 단계로",
+      text: "영웅 밴을 사용하면 밴 투표로, 사용하지 않으면 경기 시작으로 이어집니다.",
+    },
+  ],
+  "hero-vote": [
+    {
+      target: "hero-vote",
+      title: "영웅 밴 투표",
+      text: "서로 다른 영웅 세 명을 순서대로 선택하고 투표 반영을 누르세요. 출전자만 투표할 수 있습니다.",
+    },
+    {
+      target: "primary",
+      title: "밴 결과 확인",
+      text: "투표가 끝나면 운영진이 결과를 확정한 뒤 경기를 시작합니다.",
+    },
+  ],
+  "hero-result": [
+    {
+      target: "hero-vote",
+      title: "확정된 영웅 밴",
+      text: "이번 라운드에서 제외할 영웅을 확인하세요.",
+    },
+    {
+      target: "primary",
+      title: "경기 시작",
+      text: "맵과 밴이 준비되면 경기 시작을 누르세요.",
+    },
+  ],
+  match: [
+    {
+      target: "board",
+      title: "진행 중인 라운드",
+      text: "맵과 양 팀을 확인하고 경기 결과를 기록하세요.",
+    },
+    {
+      target: "history",
+      title: "내전 기록",
+      text: "기록에서 라운드 결과와 개인 승률을 확인할 수 있습니다.",
+    },
+  ],
+};
+
 export function ClanBalanceGuide({
   open,
   onOpenChange,
-  editing,
-  canManage,
+  stage,
 }: {
   open: boolean;
   onOpenChange: (value: boolean) => void;
-  editing: boolean;
-  canManage: boolean;
+  stage: BalanceGuideStage;
 }) {
   const [step, setStep] = useState(0);
   const [rect, setRect] = useState<{
@@ -22,42 +159,7 @@ export function ClanBalanceGuide({
     width: number;
     height: number;
   } | null>(null);
-  const steps =
-    editing && canManage
-      ? [
-          {
-            target: "board",
-            title: "대기방과 같은 자리",
-            text: "딜러 두 칸 · 가운데 탱커 · 아래 힐러 두 칸입니다. 아래 클랜원을 누르면 1팀부터 채워지고 자동 저장됩니다. 이름을 끌어 자리를 바꾸고, 우클릭으로 비울 수 있습니다.",
-          },
-          {
-            target: "settings",
-            title: "이번 내전의 규칙",
-            text: "설정에서 역할 추첨·팀 선발 방식과 맵 밴·영웅 밴을 정합니다. 클랜원은 편성 시작 전까지 본인의 역할 선호를 바꿀 수 있습니다.",
-          },
-          {
-            target: "primary",
-            title: "준비되면 편성 시작",
-            text: "열 명을 정하고 편성 시작을 누르세요. 저장과 선호 반영은 자동이며 모두에게 같은 추첨 과정과 결과가 표시됩니다.",
-          },
-          {
-            target: "history",
-            title: "기록은 여기서",
-            text: "진행 화면을 떠나지 않고 라운드별 결과와 승률·연패를 확인할 수 있습니다.",
-          },
-        ]
-      : [
-          {
-            target: "board",
-            title: "이번 라운드",
-            text: "역할과 팀 배치, 진행 중인 편성을 함께 볼 수 있습니다. 지명과 경매에서는 현재 차례와 본인 권한에 맞는 조작이 열립니다.",
-          },
-          {
-            target: "history",
-            title: "내전 기록",
-            text: "기록에서 세션별 라운드 결과와 개인 승률을 확인하세요. 진행 중이거나 무효인 경기는 승패 통계에 포함되지 않습니다.",
-          },
-        ];
+  const steps = GUIDES[stage];
   const visibleStep = Math.min(step, steps.length - 1);
   const current = steps[visibleStep];
   useEffect(() => {

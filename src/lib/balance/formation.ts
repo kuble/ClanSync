@@ -99,6 +99,8 @@ export type FormationState = {
   /** Optional only for rounds created before saved settings were introduced. */
   settings?: FormationSettings;
   draw?: FormationDraw;
+  /** Server time when the manager acknowledged this completed formation. */
+  appliedAt?: number;
   budgets: Record<Team, number>;
   remaining: string[];
   auction: {
@@ -121,6 +123,7 @@ export type FormationCommand =
       expectedDrawHistoryLength: number;
     }
   | { type: "reset" }
+  | { type: "apply" }
   | { type: "pick"; player: string }
   | { type: "bid"; team: Team; amount: number }
   | { type: "lot" | "settle" | "pause" | "resume" };
@@ -317,11 +320,24 @@ export function advanceFormation(
   random: RandomIndex,
 ): FormationState {
   const state = structuredClone(previous);
-  if (state.stage === "complete")
-    throw new Error("이미 편성이 완료되었습니다.");
   const manager = () => {
     if (!actor.manager) throw new Error("운영진만 진행할 수 있습니다.");
   };
+  if (command.type === "apply") {
+    manager();
+    if (state.stage !== "complete")
+      throw new Error("팀 편성을 먼저 완료하세요.");
+    if (
+      state.draw &&
+      (state.draw.roleMode === "lottery" || state.mode === "random") &&
+      now < state.draw.startedAt + state.draw.durationMs
+    )
+      throw new Error("추첨 결과 공개가 끝난 뒤 편성을 적용하세요.");
+    state.appliedAt ??= now;
+    return state;
+  }
+  if (state.stage === "complete")
+    throw new Error("이미 편성이 완료되었습니다.");
   const captain = (team: Team) => {
     if (
       !actor.manager &&

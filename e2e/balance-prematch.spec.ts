@@ -10,13 +10,47 @@ test.use({ actionTimeout: 20_000 });
 type Fixture = Awaited<ReturnType<typeof createIsolatedBalanceFixture>>;
 
 async function openSettings(page: Page, panel: Locator) {
-  await panel.getByRole("button", { name: "라운드 설정", exact: true }).click();
+  const direct = panel.getByRole("button", { name: "라운드 설정", exact: true });
+  if (await direct.count()) await direct.click();
+  else {
+    await panel.getByRole("button", { name: "라운드 도구", exact: true }).click();
+    await page.getByRole("dialog", { name: "라운드 도구", exact: true })
+      .getByRole("button", { name: "라운드 설정", exact: true }).click();
+  }
   const settings = page.getByRole("dialog", {
     name: "라운드 설정",
     exact: true,
   });
   await expect(settings).toBeVisible();
   return settings;
+}
+
+async function expectGuide(page: Page, panel: Locator, title: string) {
+  await panel.getByRole("button", { name: "화면 안내", exact: true }).click();
+  const guide = page.getByRole("dialog", { name: title, exact: true });
+  await expect(guide).toBeVisible();
+  await guide.getByRole("button", { name: "닫기", exact: true }).click();
+  await expect(guide).toBeHidden();
+}
+
+async function expectMapStage(panel: Locator) {
+  await expect(panel.locator("[data-board-slot]")).toHaveCount(0);
+  await expect(panel.locator("[data-roster-slot]")).toHaveCount(0);
+  await expect(panel.getByRole("region", { name: "참가 가능 클랜원" })).toHaveCount(0);
+}
+
+async function expectLoadedMapImage(card: Locator) {
+  const image = card.locator("img").first();
+  await expect(image).toBeVisible();
+  await expect.poll(() => image.evaluate((element) =>
+    element instanceof HTMLImageElement && element.complete && element.naturalWidth > 0,
+  )).toBe(true);
+}
+
+async function capturePanel(panel: Locator, name: string) {
+  const path = test.info().outputPath(`${name}.png`);
+  await panel.screenshot({ path });
+  await test.info().attach(name, { path, contentType: "image/png" });
 }
 
 async function saveSettings(settings: Locator) {
@@ -55,7 +89,7 @@ async function openAndForm(page: Page, fixture: Fixture) {
   // Starting immediately exercises the roster flush before formation.
   await panel.getByRole("button", { name: "편성 시작", exact: true }).click();
   await expect(
-    panel.getByRole("button", { name: "맵 밴 시작", exact: true }),
+    panel.getByRole("button", { name: "편성 적용", exact: true }),
   ).toBeEnabled();
   await expect(panel.locator("[data-board-slot]")).toHaveCount(10);
   return panel;
@@ -94,9 +128,10 @@ test("경기 준비: QA 연출·설정 보존·유형 필터·공유 맵 결과�
       memberPanel.getByRole("button", { name: "라운드 설정", exact: true }),
     ).toHaveCount(0);
     await expect(
-      memberPanel.getByRole("button", { name: "맵 밴 시작", exact: true }),
+      memberPanel.getByRole("button", { name: "편성 적용", exact: true }),
     ).toHaveCount(0);
     const formed = await fixture.activeRound();
+    await expectGuide(page, panel, "팀 편성 확인");
 
     const previewSettings = await openSettings(page, panel);
     await previewSettings
@@ -169,6 +204,18 @@ test("경기 준비: QA 연출·설정 보존·유형 필터·공유 맵 결과�
       hero_ban_seconds: 11,
     });
 
+    await panel.getByRole("button", { name: "편성 적용", exact: true }).click();
+    await expectMapStage(panel);
+    await expectMapStage(memberPanel);
+    const applied = await fixture.activeRound();
+    expect(applied.formation_state).toEqual({
+      ...(formed.formation_state as Record<string, unknown>), appliedAt: expect.any(Number),
+    });
+    await member.reload();
+    await expectMapStage(memberPanel);
+    await expect(memberPanel.getByRole("region", { name: "경기 준비", exact: true })).toBeVisible();
+    await expectGuide(page, panel, "투표할 맵 유형");
+
     const preparation = panel.getByRole("region", {
       name: "경기 준비",
       exact: true,
@@ -206,7 +253,7 @@ test("경기 준비: QA 연출·설정 보존·유형 필터·공유 맵 결과�
     ]);
 
     await preparation
-      .getByRole("button", { name: "맵 밴 시작", exact: true })
+      .getByRole("button", { name: "유형 선택 완료", exact: true })
       .click();
     // Both authenticated browsers vote immediately in the minimum 5-second window.
     await Promise.all([
@@ -227,6 +274,11 @@ test("경기 준비: QA 연출·설정 보존·유형 필터·공유 맵 결과�
       true,
     );
     expect(new Set(voting.map_candidates).size).toBe(3);
+    await expectMapStage(panel);
+    await expectMapStage(memberPanel);
+    await expectLoadedMapImage(panel.getByRole("button", { name: /MAP 01/ }));
+    await capturePanel(panel, "map-voting-gallery");
+    await expectGuide(page, panel, "원하는 맵에 투표");
     expect(await readVotes(fixture, formed.id)).toEqual(
       fixture.users
         .slice(0, 2)
@@ -264,7 +316,7 @@ test("경기 준비: QA 연출·설정 보존·유형 필터·공유 맵 결과�
       map_ban_deadline_at: null,
     });
     expect(resolved.roster).toEqual(formed.roster);
-    expect(resolved.formation_state).toEqual(formed.formation_state);
+    expect(resolved.formation_state).toEqual(applied.formation_state);
     await member.reload();
     await expect(memberPanel.getByTestId("resolved-map")).toHaveText(
       expectedMap,
@@ -283,19 +335,8 @@ test("경기 준비: QA 연출·설정 보존·유형 필터·공유 맵 결과�
       "match_live",
       { timeout: 20_000 },
     );
-    const locked = await openSettings(page, panel);
-    await expect(
-      locked.getByRole("checkbox", { name: "맵 밴 사용", exact: true }),
-    ).toBeDisabled();
-    await expect(
-      locked.getByRole("checkbox", { name: "영웅 밴 사용", exact: true }),
-    ).toBeDisabled();
-    await expect(
-      locked.getByRole("spinbutton", { name: "맵 밴 시간(초)", exact: true }),
-    ).toBeDisabled();
-    await expect(
-      locked.getByRole("button", { name: "설정 적용", exact: true }),
-    ).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: "라운드 설정", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: "라운드 설정", exact: true })).toHaveCount(0);
   } finally {
     await memberContext.close();
     await fixture.cleanup();
@@ -323,15 +364,33 @@ test("경기 준비: 수동 맵 보존·영웅 밴 마감·명시적 경기 시�
     expect(configured.roster).toEqual(formed.roster);
     expect(configured.formation_state).toEqual(formed.formation_state);
     expect(configured.resolved_map_label).toBeNull();
+    await panel.getByRole("button", { name: "편성 적용", exact: true }).click();
+    await expectMapStage(panel);
+    const applied = await fixture.activeRound();
+    await expectGuide(page, panel, "맵 유형 선택");
     const start = panel.getByRole("button", { name: "경기 시작", exact: true });
-    const picker = panel.getByRole("combobox", {
-      name: "경기 맵",
-      exact: true,
-    });
-    await expect(picker).toHaveValue("");
+    const picker = panel.getByRole("button", { name: "왕의 길 선택", exact: true });
+    await expect(panel.getByRole("combobox", { name: "경기 맵", exact: true })).toHaveCount(0);
+    await expect(panel.locator("[data-map-card]")).toHaveCount(0);
     await expect(start).toBeDisabled();
-    await picker.selectOption("왕의 길");
+    await panel.getByRole("button", { name: "혼합", exact: true }).click();
+    await picker.click();
+    await expect(picker).toHaveAttribute("aria-pressed", "true");
     await expect(start).toBeEnabled();
+    await expectLoadedMapImage(picker);
+    await capturePanel(panel, "manual-map-selected-desktop");
+    await page.setViewportSize({ width: 390, height: 844 });
+    const alternate = panel.getByRole("button", { name: "블리자드 월드 선택", exact: true });
+    await alternate.focus();
+    await page.keyboard.press("Enter");
+    await expect(alternate).toHaveAttribute("aria-pressed", "true");
+    await expect(start).toBeEnabled();
+    await picker.focus();
+    await page.keyboard.press("Space");
+    await expect(picker).toHaveAttribute("aria-pressed", "true");
+    await expect(start).toBeEnabled();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
+    await capturePanel(panel, "manual-map-selected-mobile");
     expect(await fixture.activeRound()).toMatchObject({
       phase: "editing",
       resolved_map_label: "왕의 길",
@@ -339,8 +398,10 @@ test("경기 준비: 수동 맵 보존·영웅 밴 마감·명시적 경기 시�
     });
     expect(await readVotes(fixture, formed.id)).toEqual([]);
     await page.reload();
-    await expect(picker).toHaveValue("왕의 길");
+    await expect(picker).toHaveAttribute("aria-pressed", "true");
     await expect(start).toBeEnabled();
+    await expectMapStage(panel);
+    await page.setViewportSize({ width: 1280, height: 720 });
 
     const heroSettings = await openSettings(page, panel);
     await heroSettings
@@ -357,7 +418,7 @@ test("경기 준비: 수동 맵 보존·영웅 밴 마감·명시적 경기 시�
       hero_ban_seconds: 5,
     });
     expect(heroConfigured.roster).toEqual(formed.roster);
-    expect(heroConfigured.formation_state).toEqual(formed.formation_state);
+    expect(heroConfigured.formation_state).toEqual(applied.formation_state);
     const beforeHeroStart = Date.now();
     await panel
       .getByRole("button", { name: "영웅 밴 시작", exact: true })

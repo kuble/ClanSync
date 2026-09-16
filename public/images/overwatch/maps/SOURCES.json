@@ -1,0 +1,250 @@
+{
+  "copyright": "Overwatch map artwork © Blizzard Entertainment. Images are used to identify in-game maps.",
+  "retrievedAt": "2026-09-16",
+  "processing": "Resized to 960×600 and encoded as WebP.",
+  "maps": [
+    {
+      "key": "lijiang-tower",
+      "name": "Lijiang Tower",
+      "file": "/images/overwatch/maps/lijiang-tower.webp",
+      "sourcePage": "https://overfast-api.tekrop.fr/maps",
+      "sourceImage": "https://overfast-api.tekrop.fr/static/maps/lijiang-tower.jpg",
+      "provider": "OverFast API (Overwatch screenshot)",
+      "bytes": 60266
+    },
+    {
+      "key": "oasis",
+      "name": "Oasis",
+      "file": "/images/overwatch/maps/oasis.webp",
+      "sourcePage": "https://overwatch.blizzard.com/en-us/media/image/oasis-screenshot-001/",
+      "sourceImage": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/blt28a85ae16eedc261/5cf15deda812cef409149b26/oasis-screenshot-001.jpg",
+      "provider": "Blizzard Entertainment",
+      "bytes": 31850
+    },
+    {
+      "key": "ilios",
+      "name": "Ilios",
+      "file": "/images/overwatch/maps/ilios.webp",
+      "sourcePage": "https://overfast-api.tekrop.fr/maps",
+      "sourceImage": "https://overfast-api.tekrop.fr/static/maps/ilios.jpg",
+      "provider": "OverFast API (Overwatch screenshot)",
+      "bytes": 57444
+    },
+    {
+      "key": "nepal",
+      "name": "Nepal",
+      "file": "/images/overwatch/maps/nepal.webp",
+      "sourcePage": "https://overfast-api.tekrop.fr/maps",
+      "sourceImage": "https://overfast-api.tekrop.fr/static/maps/nepal.jpg",
+      "provider": "OverFast API (Overwatch screenshot)",
+      "bytes": 83942
+    },
+    {
+      "key": "busan",
+      "name": "Busan",
+      "file": "/images/overwatch/maps/busan.webp",
+      "sourcePage": "https://overwatch.blizzard.com/en-us/media/image/busan-screenshot-001/",
+      "sourceImage": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/blt898d79b7cb93ff52/5cef226b425980470abca5ad/busan-screenshot-001.jpg",
+      "provider": "Blizzard Entertainment",
+      "bytes": 78658
+    },
+    {
+      "key": "antarctic-peninsula",
+      "name": "Antarctic Peninsula",
+      "file": "/images/overwatch/maps/antarctic-peninsula.webp",
+      "sourcePage": "https://overfast-api.tekrop.fr/maps",
+      "sourceImage": "https://overfast-api.tekrop.fr/static/maps/antarctic-peninsula.jpg",
+      "provider": "OverFast API (Overwatch screenshot)",
+      "bytes": 65164
+    },
+    {
+      "key": "samoa",
+      "name": "Samoa",
+      "file": "/images/overwatch/maps/samoa.webp",
+      "sourcePage": "https://overfast-api.tekrop.fr/maps",
+      "sourceImage": "https://overfast-api.tekrop.fr/static/maps/samoa.jpg",
+      "provider": "OverFast API (Overwatch screenshot)",
+      "bytes": 65328
+    },
+    {
+      "key": "new-queen-street",
+      "name": "New Queen Street",
+      "file": "/images/overwatch/maps/new-queen-street.webp",
+      "sourcePage": "https://overfast-api.tekrop.fr/maps",
+      "sourceImage": "https://overfast-api.tekrop.fr/static/maps/new-queen-street.jpg",
+      "provider": "OverFast API (Overwatch screenshot)",
+      "bytes": 91092
+    },
+    {
+      "key": "colosseo",
+      "name": "Colosseo",
+      "file": "/images/overwatch/maps/colosseo.webp",
+      "sourcePage": "https://overwatch.blizzard.com/en-us/media/image/colosseo-screenshot-001/",
+      "sourceImage": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/blt936abd4cd2e98231/62298aff04503350d255bce8/colosseo_screenshot_01.png",
+      "provider": "Blizzard Entertainment",
+      "bytes": 78556
+    },
+    {
+      "key": "esperanca",
+      "name": "Esperança",
+      "file": "/images/overwatch/maps/esperanca.webp",
+      "sourcePage": "https://overfast-api.tekrop.fr/maps",
+      "sourceImage": "https://overfast-api.tekrop.fr/static/maps/esperanca.jpg",
+      "provider": "OverFast API (Overwatch screenshot)",
+      "bytes": 110638
+    },
+    {
+      "key": "runasapi",
+      "name": "Runasapi",
+      "file": "/images/overwatch/maps/runasapi.webp",
+      "sourcePage": "https://overfast-api.tekrop.fr/maps",
+      "sourceImage": "https://overfast-api.tekrop.fr/static/maps/runasapi.jpg",
+      "provider": "OverFast API (Overwatch screenshot)",
+      "bytes": 90598
+    },
+    {
+      "key": "dorado",
+      "name": "Dorado",
+      "file": "/images/overwatch/maps/dorado.webp",
+      "sourcePage": "https://overwatch.blizzard.com/en-us/media/image/dorado-screenshot-001/",
+      "sourceImage": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/bltbd2cb20e96673878/5cef227372eb37ee09921a16/dorado-screenshot-001.jpg",
+      "provider": "Blizzard Entertainment",
+      "bytes": 69812
+    },
+    {
+      "key": "route-66",
+      "name": "Route 66",
+      "file": "/images/overwatch/maps/route-66.webp",
+      "sourcePage": "https://overfast-api.tekrop.fr/maps",
+      "sourceImage": "https://overfast-api.tekrop.fr/static/maps/route-66.jpg",
+      "provider": "OverFast API (Overwatch screenshot)",
+      "bytes": 80466
+    },
+    {
+      "key": "watchpoint-gibraltar",
+      "name": "Watchpoint: Gibraltar",
+      "file": "/images/overwatch/maps/watchpoint-gibraltar.webp",
+      "sourcePage": "https://overfast-api.tekrop.fr/maps",
+      "sourceImage": "https://overfast-api.tekrop.fr/static/maps/watchpoint-gibraltar.jpg",
+      "provider": "OverFast API (Overwatch screenshot)",
+      "bytes": 44536
+    },
+    {
+      "key": "junkertown",
+      "name": "Junkertown",
+      "file": "/images/overwatch/maps/junkertown.webp",
+      "sourcePage": "https://overwatch.blizzard.com/en-us/media/image/junkertown-screenshot-001/",
+      "sourceImage": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/blt8a381f93b24a3780/5cef22b4cf7aa6330ac66573/junkertown-screenshot-001.jpg",
+      "provider": "Blizzard Entertainment",
+      "bytes": 43568
+    },
+    {
+      "key": "rialto",
+      "name": "Rialto",
+      "file": "/images/overwatch/maps/rialto.webp",
+      "sourcePage": "https://overwatch.blizzard.com/en-us/media/image/rialto-screenshot-001/",
+      "sourceImage": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/blt205497d1e312c614/5cef22e47b48be290a7f884e/rialto-screenshot-001.jpg",
+      "provider": "Blizzard Entertainment",
+      "bytes": 62820
+    },
+    {
+      "key": "havana",
+      "name": "Havana",
+      "file": "/images/overwatch/maps/havana.webp",
+      "sourcePage": "https://overwatch.blizzard.com/en-us/media/image/havana-screenshot-001/",
+      "sourceImage": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/blt5d4dfc8105f56852/5cef22ab578308e4094573fa/havana-screenshot-001.jpg",
+      "provider": "Blizzard Entertainment",
+      "bytes": 97016
+    },
+    {
+      "key": "circuit-royal",
+      "name": "Circuit Royal",
+      "file": "/images/overwatch/maps/circuit-royal.webp",
+      "sourcePage": "https://overwatch.blizzard.com/en-us/media/image/circuit-royal-screenshot-001/",
+      "sourceImage": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/blt81bc002795797cb2/62298aff91f4232f0085d406/circuit-royal_screenshot_01.png",
+      "provider": "Blizzard Entertainment",
+      "bytes": 78110
+    },
+    {
+      "key": "shambali-monastery",
+      "name": "Shambali Monastery",
+      "file": "/images/overwatch/maps/shambali-monastery.webp",
+      "sourcePage": "https://overfast-api.tekrop.fr/maps",
+      "sourceImage": "https://overfast-api.tekrop.fr/static/maps/shambali-monastery.jpg",
+      "provider": "OverFast API (Overwatch screenshot)",
+      "bytes": 45406
+    },
+    {
+      "key": "kings-row",
+      "name": "King’s Row",
+      "file": "/images/overwatch/maps/kings-row.webp",
+      "sourcePage": "https://overwatch.blizzard.com/en-us/media/image/kings-row-screenshot-001/",
+      "sourceImage": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/bltd708bb168c584d9e/5cef22bc425980470abca5d7/kings-row-screenshot-001.jpg",
+      "provider": "Blizzard Entertainment",
+      "bytes": 32862
+    },
+    {
+      "key": "numbani",
+      "name": "Numbani",
+      "file": "/images/overwatch/maps/numbani.webp",
+      "sourcePage": "https://overwatch.blizzard.com/en-us/media/image/numbani-screenshot-001/",
+      "sourceImage": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/blt01eebe81ef1321d6/5cef22cd486d1c3d0af72404/numbani-screenshot-001.jpg",
+      "provider": "Blizzard Entertainment",
+      "bytes": 62136
+    },
+    {
+      "key": "hollywood",
+      "name": "Hollywood",
+      "file": "/images/overwatch/maps/hollywood.webp",
+      "sourcePage": "https://overwatch.blizzard.com/en-us/media/image/hollywood-screenshot-001/",
+      "sourceImage": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/bltef45617888ec27e7/5cef22b472eb37ee09921a34/hollywood-screenshot-001.jpg",
+      "provider": "Blizzard Entertainment",
+      "bytes": 86420
+    },
+    {
+      "key": "eichenwalde",
+      "name": "Eichenwalde",
+      "file": "/images/overwatch/maps/eichenwalde.webp",
+      "sourcePage": "https://overwatch.blizzard.com/en-us/media/image/eichenwalde-screenshot-001/",
+      "sourceImage": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/blteea67a2c7473f74e/5cef227a486d1c3d0af723d6/eichenwalde-screenshot-001.jpg",
+      "provider": "Blizzard Entertainment",
+      "bytes": 41340
+    },
+    {
+      "key": "blizzard-world",
+      "name": "Blizzard World",
+      "file": "/images/overwatch/maps/blizzard-world.webp",
+      "sourcePage": "https://overfast-api.tekrop.fr/maps",
+      "sourceImage": "https://overfast-api.tekrop.fr/static/maps/blizzard-world.jpg",
+      "provider": "OverFast API (Overwatch screenshot)",
+      "bytes": 99710
+    },
+    {
+      "key": "midtown",
+      "name": "Midtown",
+      "file": "/images/overwatch/maps/midtown.webp",
+      "sourcePage": "https://overwatch.blizzard.com/en-us/media/image/midtown-screenshot-001/",
+      "sourceImage": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/blt32ee2e586ba508c5/62298aff9485354f9b460bd0/midtown_screenshot_01.png",
+      "provider": "Blizzard Entertainment",
+      "bytes": 90374
+    },
+    {
+      "key": "paraiso",
+      "name": "Paraíso",
+      "file": "/images/overwatch/maps/paraiso.webp",
+      "sourcePage": "https://overfast-api.tekrop.fr/maps",
+      "sourceImage": "https://overfast-api.tekrop.fr/static/maps/paraiso.jpg",
+      "provider": "OverFast API (Overwatch screenshot)",
+      "bytes": 69016
+    },
+    {
+      "key": "neon-junction",
+      "name": "Neon Junction",
+      "file": "/images/overwatch/maps/neon-junction.webp",
+      "sourcePage": "https://overwatch.blizzard.com/en-us/news/24271881/",
+      "sourceImage": "https://bnetcmsus-a.akamaihd.net/cms/page_media/fk/FKMOU1K95QU91781145184691.png",
+      "provider": "Blizzard Entertainment",
+      "bytes": 74972
+    }
+  ]
+}

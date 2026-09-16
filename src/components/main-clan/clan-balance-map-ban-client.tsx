@@ -10,6 +10,7 @@ import {
 } from "@/app/actions/clan-balance-session";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { BalanceMapImage } from "./clan-balance-map-image";
 import {
   ClanBalanceMapResultDialog,
   ClanBalanceMapVotePreview,
@@ -96,7 +97,7 @@ export function ClanBalanceMapBanClient({
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-balance-guide="map-vote">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h4 className="flex items-center gap-2 text-base font-semibold">
@@ -147,12 +148,10 @@ export function ClanBalanceMapBanClient({
                   : "border-border bg-muted/10 hover:border-primary/50",
               )}
             >
-              <div className="relative flex h-28 items-center justify-center border-b bg-gradient-to-br from-muted/30 to-muted/80">
-                <Map
-                  className="size-12 text-muted-foreground/25"
-                  aria-hidden="true"
-                />
-                <span className="absolute left-3 top-3 text-[10px] font-semibold tracking-widest text-muted-foreground">
+              <div className="relative h-36 overflow-hidden border-b sm:h-52 lg:h-64">
+                <BalanceMapImage label={label} className="transition-transform duration-700 group-hover:scale-105 motion-reduce:transition-none" sizes="(max-width: 640px) 100vw, 33vw" />
+                <span className="absolute inset-0 bg-linear-to-t from-black/35 via-transparent to-black/30" aria-hidden="true" />
+                <span className="absolute left-3 top-3 rounded-full bg-black/40 px-2 py-1 text-[10px] font-semibold tracking-widest text-white backdrop-blur-sm">
                   MAP 0{idx + 1}
                 </span>
                 {selected ? (
@@ -180,7 +179,7 @@ export function ClanBalanceMapBanClient({
           );
         })}
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-muted/25 px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-muted/25 px-4 py-3" data-balance-guide={resolvedMap ? undefined : "primary"}>
         <p className="flex items-center gap-2 text-xs text-muted-foreground">
           <Vote className="size-4" aria-hidden="true" />
           {total}명 투표

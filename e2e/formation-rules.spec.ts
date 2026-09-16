@@ -90,6 +90,46 @@ test("formation requires ten distinct players and preserves manual teams", () =>
   expect(result.roster).not.toBe(roster);
 });
 
+test("applying a completed formation preserves its result and original acknowledgement", () => {
+  const state = createFormation(
+    roster,
+    { roles: "lottery", teams: "random" },
+    keepOrder,
+  );
+  const before = structuredClone(state);
+  const noReroll = () => { throw new Error("applying must not draw again"); };
+  const applied = advanceFormation(state, { type: "apply" }, manager, startTime, noReroll);
+  expect(applied).toEqual({ ...before, appliedAt: startTime });
+  expect(state).toEqual(before);
+  expect(advanceFormation(applied, { type: "apply" }, manager, startTime + 1000, noReroll)).toEqual(applied);
+});
+
+test("only managers can apply a completed formation", () => {
+  const complete = createFormation(roster, { roles: "manual", teams: "keep" }, keepOrder);
+  expect(() => advanceFormation(complete, { type: "apply" }, member, startTime, keepOrder)).toThrow(/운영진/);
+  for (const mode of ["draft", "auction"] as const) {
+    const incomplete = make(mode);
+    expect(() => advanceFormation(incomplete, { type: "apply" }, manager, startTime, keepOrder)).toThrow(/먼저 완료/);
+    expect(incomplete.appliedAt).toBeUndefined();
+  }
+});
+
+test("applying waits for lottery or random-team reveal but manual keep has no reveal gate", () => {
+  for (const setup of [
+    { roles: "lottery", teams: "keep" },
+    { roles: "manual", teams: "random" },
+  ] as const) {
+    const draw = { id: "apply-draw", startedAt: startTime, durationMs: 4000, roleMode: setup.roles };
+    const state = createFormation(roster, setup, keepOrder, draw);
+    expect(() => advanceFormation(state, { type: "apply" }, manager, startTime + 3999, keepOrder)).toThrow(/공개가 끝난/);
+    const applied = advanceFormation(state, { type: "apply" }, manager, startTime + 4000, keepOrder);
+    expect(applied).toEqual({ ...state, appliedAt: startTime + 4000 });
+  }
+  const manual = createFormation(roster, { roles: "manual", teams: "keep" }, keepOrder,
+    { id: "manual-draw", startedAt: startTime, durationMs: 4000, roleMode: "manual" });
+  expect(advanceFormation(manual, { type: "apply" }, manager, startTime, keepOrder).appliedAt).toBe(startTime);
+});
+
 test("one common order assigns each player's best remaining role within 2/4/4 quotas", () => {
   const preferences = Object.fromEntries(
     rosterAssignedUserIds(roster).map((id) => [

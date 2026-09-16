@@ -27,11 +27,13 @@ export function ClanBalanceDrawDialog({
   userId,
   pool,
   serverNow,
+  showSummary = true,
 }: {
   state: FormationState;
   userId: string;
   pool: readonly { user_id: string; nickname: string }[];
   serverNow: number;
+  showSummary?: boolean;
 }) {
   const draw = state.draw!;
   const end = draw.startedAt + draw.durationMs;
@@ -66,10 +68,10 @@ export function ClanBalanceDrawDialog({
 
   return (
     <>
-      {own ? (
+      {own && showSummary ? (
         <p
           data-testid="my-draw-result"
-          className="flex items-center gap-2 text-xs text-muted-foreground"
+          className="mb-5 flex items-center gap-2 text-xs text-muted-foreground"
         >
           <span>
             내 추첨 순번{" "}

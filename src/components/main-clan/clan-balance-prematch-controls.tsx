@@ -38,7 +38,7 @@ export function ClanBalancePrematchControls({
   const needsHeroVote =
     session.hero_ban_enabled && session.banned_heroes === null;
   const label = needsMapVote
-    ? "맵 밴 시작"
+    ? "유형 선택 완료"
     : needsHeroVote
       ? "영웅 밴 시작"
       : "경기 시작";
@@ -69,12 +69,12 @@ export function ClanBalancePrematchControls({
   }
 
   return (
-    <section className="space-y-4 border-t pt-5" aria-label="경기 준비">
+    <section className="space-y-6" aria-label="경기 준비">
       {needsMapVote && canManage ? (
         <div className="space-y-3">
           <MapTypeFilter value={types} onChange={setTypes} disabled={pending} />
         </div>
-      ) : !session.map_ban_enabled ? (
+      ) : !session.map_ban_enabled && session.phase === "editing" ? (
         <BalanceManualMapPicker
           gameSlug={gameSlug}
           value={session.resolved_map_label}
@@ -83,7 +83,7 @@ export function ClanBalancePrematchControls({
           canManage={canManage}
         />
       ) : session.resolved_map_label ? (
-        <p className="text-sm">
+        <p className="text-sm" data-balance-guide="map-vote">
           <span className="mr-2 text-muted-foreground">경기 맵</span>
           <strong>{session.resolved_map_label}</strong>
         </p>

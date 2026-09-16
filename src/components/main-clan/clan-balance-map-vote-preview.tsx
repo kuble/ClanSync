@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Map, RotateCcw } from "lucide-react";
+import { Check, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { BalanceMapImage } from "./clan-balance-map-image";
 
 const REVEAL_DURATION_MS = 3200;
 const SAMPLE_TALLIES: [number, number, number] = [3, 5, 2];
@@ -55,7 +56,7 @@ function MapVoteReveal({
       data-testid="map-vote-reveal"
       data-reveal-complete={done}
     >
-      <div className="grid gap-2 sm:grid-cols-3">
+      <div className="grid grid-cols-3 gap-2">
         {candidates.map((label, index) => {
           const count = tallies[index];
           const share = total ? Math.round((count / total) * 100) : 33;
@@ -66,24 +67,23 @@ function MapVoteReveal({
               data-map-label={label}
               data-highlighted={active}
               className={cn(
-                "relative rounded-xl border p-4 transition-colors motion-reduce:transition-none",
+                "relative overflow-hidden rounded-xl border transition-[border-color,box-shadow,opacity] motion-reduce:transition-none",
                 active
                   ? "border-primary bg-primary/10 ring-2 ring-primary/25"
                   : "border-border bg-muted/20",
                 done && !active && "opacity-55",
               )}
             >
-              <div className="mb-4 flex items-center justify-between">
-                <Map
-                  className="size-6 text-muted-foreground"
-                  aria-hidden="true"
-                />
+              <div className="relative h-24 overflow-hidden sm:h-44">
+                <BalanceMapImage label={label} sizes="(max-width: 640px) 33vw, 240px" className={cn("transition-transform duration-500 motion-reduce:transition-none", active && "scale-110")} />
+                <span className="absolute inset-0 bg-linear-to-t from-black/30 to-transparent" aria-hidden="true" />
                 {done && active ? (
-                  <Check className="size-5 text-primary" aria-hidden="true" />
+                  <span className="absolute right-2 top-2 rounded-full bg-primary p-1 text-primary-foreground"><Check className="size-4" aria-hidden="true" /></span>
                 ) : null}
               </div>
-              <p className="font-semibold">{label}</p>
-              <div className="mt-3 flex justify-between text-xs text-muted-foreground">
+              <div className="p-2.5 sm:p-4">
+              <p className="min-h-10 text-xs font-semibold sm:text-sm">{label}</p>
+              <div className="mt-2 flex justify-between text-xs text-muted-foreground">
                 <span>{count}표</span>
                 <strong className="tabular-nums text-foreground">
                   {share}%
@@ -94,6 +94,7 @@ function MapVoteReveal({
                   className="h-full rounded-full bg-primary"
                   style={{ width: `${share}%` }}
                 />
+              </div>
               </div>
             </div>
           );
