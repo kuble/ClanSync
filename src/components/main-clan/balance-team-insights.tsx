@@ -17,9 +17,9 @@ export function previewScores(ids: string[], saved: MaSnapshot): MaSnapshot {
 }
 // A future predictor must return the exact roster/score/map context it evaluated.
 export type BalanceEstimate = { context: string; team1: number; sampleSize: number; confidence: "낮음" | "보통" | "높음" };
-export function predictionContext(roster: BalanceRoster, scores: MaSnapshot, mode: ScoreMode, map: string | null) {
+export function predictionContext(roster: BalanceRoster, scores: MaSnapshot, mode: ScoreMode, map: string | null, bannedHeroes: readonly string[] = []) {
   const teams = [roster.team1, roster.team2].map((team) => [team.tank, ...team.dmg, ...team.sup].map((id) => [id, id ? scores[id]?.[mode] ?? null : null]));
-  return JSON.stringify([teams, mode, map]);
+  return JSON.stringify([teams, mode, map, [...new Set(bannedHeroes)].sort()]);
 }
 export function ScoreModeToggle({ value, onChange, premium }: { value: ScoreMode; onChange: (value: ScoreMode) => void; premium: boolean }) {
   return <div role="group" aria-label="점수 표시" className="inline-flex gap-1 rounded-lg bg-muted/50 p-1">
@@ -39,21 +39,22 @@ function EstimateRow({ title, context, estimate, ready, waiting, sample = false 
   </div>;
 }
 
-export function BalanceTeamInsights({ roster, scores, mode, map, premium, overall, byMap, showMap = false, compact = false, sample = false }: {
+export function BalanceTeamInsights({ roster, scores, mode, map, premium, overall, byMap, showMap = false, compact = false, sample = false, bannedHeroes }: {
   roster: BalanceRoster; scores: MaSnapshot; mode: ScoreMode; map: string | null; premium: boolean;
+  bannedHeroes?: readonly string[];
   overall?: BalanceEstimate; byMap?: BalanceEstimate;
   showMap?: boolean; compact?: boolean; sample?: boolean;
 }) {
   const teams = [roster.team1, roster.team2].map((team) => [team.tank, ...team.dmg, ...team.sup]);
   const complete = teams.flat().every(Boolean) && new Set(teams.flat()).size === 10;
   const selectedMap = showMap ? map : null;
-  const context = predictionContext(roster, scores, mode, selectedMap);
+  const context = predictionContext(roster, scores, mode, selectedMap, bannedHeroes);
   // A selected map replaces the overall estimate; never show stale overall odds
   // as though they included the newly selected map.
   const estimate = selectedMap ? byMap : overall;
   const sampleEstimate = (context: string): BalanceEstimate => ({ context, team1: 42 + sampleHash(context) % 17, sampleSize: 1, confidence: "낮음" });
   if (!premium) return null;
   return <aside aria-label="팀 밸런스 비교" className={compact ? "mb-3 space-y-2 rounded-xl bg-muted/25 px-3 py-3 sm:px-4" : "space-y-4 rounded-xl border bg-muted/15 p-4"} aria-live="polite">
-      <EstimateRow title={selectedMap ? `예측 승률 · ${selectedMap} 반영` : "예측 승률"} context={context} estimate={sample ? sampleEstimate(context) : estimate} sample={sample} ready={complete} waiting={complete ? "예측 준비 중" : "10명 편성 후 확인"} />
+      <EstimateRow title={bannedHeroes ? "예측 승률 · 맵·영웅 밴 반영" : selectedMap ? `예측 승률 · ${selectedMap} 반영` : "예측 승률"} context={context} estimate={sample ? sampleEstimate(context) : estimate} sample={sample} ready={complete} waiting={complete ? bannedHeroes ? "밴·포지션 영향 모델 준비 중" : "예측 준비 중" : "10명 편성 후 확인"} />
   </aside>;
 }

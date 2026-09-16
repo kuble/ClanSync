@@ -254,7 +254,6 @@ export function ClanBalanceSessionPanel({
       : null;
   const myVote = votes.find((vote) => vote.user_id === userId);
   const myHeroVote = heroVotes.find((vote) => vote.user_id === userId) ?? null;
-  const heroBanSyncKey = `${session?.id}:${JSON.stringify(heroVotes)}`;
   const myPrediction = balancePredictions.find(
     (prediction) => prediction.user_id === userId,
   );
@@ -492,7 +491,7 @@ export function ClanBalanceSessionPanel({
                 showSummary={session.phase === "editing" && !mapScreen}
               />
             ) : null}
-            {!(session.phase === "editing" && !mapScreen && canManage && !formation) ? (
+            {session.phase !== "hero_ban" && !(session.phase === "editing" && !mapScreen && canManage && !formation) ? (
               <div className="flex items-center justify-between gap-2">
                 {scoreControl ?? <span />}
                 {canManage && formation && session.phase === "editing" && !mapScreen ? (
@@ -659,62 +658,21 @@ export function ClanBalanceSessionPanel({
                     <strong>{session.resolved_map_label}</strong>
                   </p>
                 ) : null}
-                {session.banned_heroes !== null ? (
-                  <p className="text-sm">
-                    밴 영웅 ·{" "}
-                    {session.banned_heroes.length
-                      ? session.banned_heroes.map(owHeroLabel).join(", ")
-                      : "없음"}
-                  </p>
-                ) : isOverwatchBalanceGame(gameSlug) ? (
+                {isOverwatchBalanceGame(gameSlug) ? (
                   <ClanBalanceHeroBanClient
-                    key={
-                      heroBanSyncKey +
-                      ":" +
-                      myHeroVote?.pick_1 +
-                      ":" +
-                      myHeroVote?.pick_2 +
-                      ":" +
-                      myHeroVote?.pick_3
-                    }
-                    gameSlug={gameSlug}
-                    clanId={clanId}
-                    sessionId={session.id}
-                    deadlineIso={session.hero_ban_deadline_at}
-                    serverNow={serverNow}
-                    myVote={myHeroVote}
-                    allVotes={heroVotes}
-                    canResolve={canManage}
-                    isRosterParticipant={isRosterParticipant}
+                    key={session.id + ":" + session.hero_ban_deadline_at}
+                    gameSlug={gameSlug} clanId={clanId} sessionId={session.id}
+                    deadlineIso={session.hero_ban_deadline_at} serverNow={serverNow}
+                    myVote={myHeroVote} allVotes={heroVotes} canResolve={canManage}
+                    userId={userId} roster={rosterData}
+                    bansPerTeam={parseBanSettings(session).heroBansPerTeam}
+                    resolvedHeroes={session.banned_heroes}
+                    renderInsights={canViewScores ? (bannedHeroes) => <BalanceTeamInsights
+                      roster={rosterData} scores={displayScores} mode={scoreMode} map={session.resolved_map_label}
+                      premium={planPremium} showMap bannedHeroes={bannedHeroes} /> : undefined}
                   />
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    이 게임은 영웅 밴을 지원하지 않습니다. 운영진이 다음 단계로
-                    진행할 수 있습니다.
-                  </p>
-                )}
-                {canManage && session.banned_heroes === null ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={pending}
-                    onClick={() =>
-                      runAction("영웅 밴을 건너뛰었습니다.", () =>
-                        skipHeroBanPhaseAction(gameSlug, clanId, session.id),
-                      )
-                    }
-                  >
-                    영웅 밴 건너뛰기
-                  </Button>
-                ) : null}
-                {session.banned_heroes !== null ? (
-                  <ClanBalancePrematchControls
-                    key={`${session.id}:${JSON.stringify(session.map_types)}`}
-                    gameSlug={gameSlug}
-                    clanId={clanId}
-                    session={session}
-                    canManage={canManage}
-                  />
+                ) : canManage ? (
+                  <Button onClick={() => runAction("경기를 시작했습니다.", () => skipHeroBanPhaseAction(gameSlug, clanId, session.id))}>경기 시작</Button>
                 ) : null}
               </div>
             ) : null}

@@ -401,6 +401,15 @@ export function ClanBalanceSettings({
                 onChange={(e) => setHero(e.target.checked)}
               />
             </label>
+            <label className="block space-y-2 text-xs">
+              <span>팀별 영웅 밴 개수</span>
+              <select aria-label="팀별 영웅 밴 개수" className={field} disabled={!hero}
+                value={banDraft.heroBansPerTeam}
+                onChange={(event) => setBanDraft({ ...banDraft, heroBansPerTeam: Number(event.target.value) as 1 | 2 })}>
+                <option value={1}>팀당 1영웅</option>
+                <option value={2}>팀당 2영웅</option>
+              </select>
+            </label>
             <div className="grid grid-cols-2 gap-3">
               {(
                 [

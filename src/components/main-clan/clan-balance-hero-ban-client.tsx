@@ -1,251 +1,116 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useOptimistic, useTransition, type ReactNode } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Ban, Check, Timer, Users } from "lucide-react";
+import { Ban, Check, Crosshair, Shield, Plus, Timer, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
-import {
-  resolveHeroBanAction,
-  submitHeroBanVoteAction,
-} from "@/app/actions/clan-balance-session";
-import {
-  OW_HEROES,
-  owHeroLabel,
-  tallyHeroBanVotes,
-} from "@/lib/balance/ow-hero-ban";
+import { resolveHeroBanAction, submitHeroBanVoteAction } from "@/app/actions/clan-balance-session";
+import { OW_HEROES, heroVoteTeam, teamHeroBanStandings, owHeroLabel, type HeroBanVote } from "@/lib/balance/ow-hero-ban";
+import { OW_HERO_PORTRAITS } from "@/lib/balance/ow-hero-portraits";
+import type { BalanceRoster } from "@/lib/balance/roster-schema";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useServerClock } from "@/lib/balance/use-server-clock";
 
-const ROLE_LABEL = { tank: "탱커", dps: "공격", support: "지원" } as const;
+const ROLES = [
+  { id: "tank", label: "돌격", Icon: Shield },
+  { id: "dps", label: "공격", Icon: Crosshair },
+  { id: "support", label: "지원", Icon: Plus },
+] as const;
 
-export function ClanBalanceHeroBanClient({
-  gameSlug,
-  clanId,
-  sessionId,
-  deadlineIso,
-  serverNow,
-  myVote,
-  allVotes,
-  canResolve,
-  isRosterParticipant,
+export function ClanBalanceHeroBanClient({ gameSlug, clanId, sessionId, deadlineIso, serverNow,
+  myVote, allVotes, canResolve, userId, roster, bansPerTeam, resolvedHeroes, renderInsights,
 }: {
-  gameSlug: string;
-  clanId: string;
-  sessionId: string;
-  deadlineIso: string | null;
-  serverNow: number;
-  myVote: { pick_1: string; pick_2: string; pick_3: string } | null;
-  allVotes: readonly { pick_1: string; pick_2: string; pick_3: string }[];
-  canResolve: boolean;
-  isRosterParticipant: boolean;
+  gameSlug: string; clanId: string; sessionId: string; deadlineIso: string | null; serverNow: number;
+  myVote: HeroBanVote | null; allVotes: readonly HeroBanVote[]; canResolve: boolean; userId: string;
+  roster: BalanceRoster; bansPerTeam: 1 | 2; resolvedHeroes: string[] | null;
+  renderInsights?: (bannedHeroes: string[]) => ReactNode;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
-  const [picks, setPicks] = useState([
-    myVote?.pick_1 ?? "",
-    myVote?.pick_2 ?? "",
-    myVote?.pick_3 ?? "",
-  ]);
-  const deadlineMs = deadlineIso ? new Date(deadlineIso).getTime() : null;
-  const now = useServerClock(serverNow, deadlineMs ?? 0, 250);
-  const remainSec =
-    deadlineMs === null
-      ? null
-      : Math.max(0, Math.ceil((deadlineMs - now) / 1000));
-  const expired = remainSec === 0;
-  const scores = tallyHeroBanVotes(allVotes);
-  const topPreview = Object.entries(scores)
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .slice(0, 8);
-  const maxScore = topPreview[0]?.[1] ?? 1;
+  const saved = [myVote?.pick_1, myVote?.pick_2].filter((id): id is string => Boolean(id));
+  const [picks, setPicks] = useOptimistic(saved, (_previous, next: string[]) => next);
+  const now = useServerClock(serverNow, deadlineIso ? Date.parse(deadlineIso) : 0, 250);
+  const remain = deadlineIso ? Math.max(0, Math.ceil((Date.parse(deadlineIso) - now) / 1000)) : 0;
+  const expired = remain === 0 || resolvedHeroes !== null;
+  const myTeam = heroVoteTeam(roster, userId);
+  const standings = teamHeroBanStandings(allVotes, roster);
+  const proposed = [...new Set([...standings.team1.slice(0, bansPerTeam), ...standings.team2.slice(0, bansPerTeam)].map((entry) => entry.heroId))];
 
-  function onSubmit() {
-    if (!deadlineIso || expired || pending) return;
+  function toggle(id: string) {
+    if (!deadlineIso || expired || pending || !myTeam) return;
+    const next = picks.includes(id) ? picks.filter((pick) => pick !== id) : [...picks, id];
+    if (next.length > bansPerTeam) return;
     start(async () => {
-      const r = await submitHeroBanVoteAction(
-        gameSlug,
-        clanId,
-        sessionId,
-        picks[0]!,
-        picks[1]!,
-        picks[2]!,
-        deadlineIso,
-      );
-      if (!r.ok) {
-        toast.error(r.error);
-        return;
-      }
-      toast.success("영웅 밴 투표가 반영되었습니다.");
+      setPicks(next);
+      try {
+        const result = await submitHeroBanVoteAction(gameSlug, clanId, sessionId, next, deadlineIso);
+        if (!result.ok) toast.error(result.error);
+      } catch { toast.error("투표를 저장하지 못했습니다. 다시 선택해 주세요."); }
       router.refresh();
     });
   }
-  function onResolve() {
+  function beginMatch() {
     start(async () => {
-      const r = await resolveHeroBanAction(gameSlug, clanId, sessionId);
-      if (!r.ok) {
-        toast.error(r.error);
-        return;
-      }
-      toast.success("영웅 밴이 확정되었습니다.");
+      const result = await resolveHeroBanAction(gameSlug, clanId, sessionId);
+      if (!result.ok) toast.error(result.error);
       router.refresh();
     });
   }
-
-  return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h4 className="flex items-center gap-2 text-base font-semibold">
-            <Ban className="size-5 text-primary" aria-hidden="true" />
-            이번 경기에서 제외할 영웅
-          </h4>
-          <p className="mt-2 text-xs text-muted-foreground">
-            서로 다른 영웅 3명을 선택하세요. 순위에 따라 7 · 5 · 3점이
-            반영됩니다.
-          </p>
-        </div>
-        <span
-          className={cn(
-            "flex items-center gap-2 rounded-xl border px-4 py-2.5 text-lg font-bold tabular-nums",
-            expired
-              ? "bg-muted text-muted-foreground"
-              : "border-primary/20 bg-primary/5 text-primary",
-          )}
-        >
-          <Timer className="size-4" aria-hidden="true" />
-          {remainSec === null ? "—" : expired ? "투표 종료" : remainSec + "s"}
-        </span>
+  return <div className="space-y-6" data-testid="hero-ban-selection">
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h4 className="flex items-center gap-2 text-base font-bold"><Ban className="size-5 text-amber-400" />영웅 밴</h4>
+        <p className="mt-2 text-xs text-muted-foreground">팀당 최대 {bansPerTeam}명 · 팀 내 득표순으로 결정됩니다. 선택하지 않으면 기권합니다.</p>
       </div>
-      {isRosterParticipant ? (
-        <div className="grid gap-3 sm:grid-cols-3">
-          {picks.map((pick, index) => (
-            <label
-              key={index}
-              className={cn(
-                "space-y-4 rounded-xl border p-4",
-                pick ? "border-primary/30 bg-primary/[0.04]" : "bg-muted/15",
-              )}
-            >
-              <span className="flex items-center justify-between">
-                <span className="text-xs font-semibold">{index + 1}순위</span>
-                <span className="rounded-full bg-primary/10 px-2 py-1 text-[10px] font-bold text-primary">
-                  +{[7, 5, 3][index]}점
-                </span>
-              </span>
-              <span className="flex h-14 items-center justify-center rounded-lg bg-muted/30">
-                <Ban
-                  className="size-7 text-muted-foreground/40"
-                  aria-hidden="true"
-                />
-              </span>
-              <select
-                aria-label={index + 1 + "순위 영웅"}
-                className="h-10 w-full rounded-lg border bg-background px-3 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                value={pick}
-                disabled={pending || expired}
-                onChange={(event) =>
-                  setPicks((prev) =>
-                    prev.map((value, i) =>
-                      i === index
-                        ? event.target.value
-                        : value === event.target.value
-                          ? ""
-                          : value,
-                    ),
-                  )
-                }
-              >
-                <option value="">영웅 선택</option>
-                {(["tank", "dps", "support"] as const).map((role) => (
-                  <optgroup key={role} label={ROLE_LABEL[role]}>
-                    {OW_HEROES.filter(
-                      (hero) =>
-                        hero.role === role &&
-                        (!picks.includes(hero.id) || pick === hero.id),
-                    ).map((hero) => (
-                      <option key={hero.id} value={hero.id}>
-                        {hero.nameKo}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </label>
-          ))}
-        </div>
-      ) : (
-        <div className="rounded-xl border border-dashed bg-muted/10 p-5 text-xs leading-relaxed text-muted-foreground">
-          현재 경기를 관전 중입니다. 영웅 밴 투표는 출전 라인업에 포함된
-          참가자만 할 수 있습니다.
-        </div>
-      )}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Users className="size-4" aria-hidden="true" />
-          {allVotes.length}명 제출{myVote ? " · 내 투표 반영됨" : ""}
-        </p>
-        {isRosterParticipant ? (
-          <Button
-            type="button"
-            disabled={pending || expired || picks.some((pick) => !pick)}
-            onClick={onSubmit}
-          >
-            <Check className="size-4" aria-hidden="true" />
-            투표 반영
-          </Button>
-        ) : null}
-      </div>
-      <section className="rounded-xl border bg-muted/15 p-4">
-        <h5 className="text-xs font-semibold">실시간 밴 투표 현황</h5>
-        {topPreview.length ? (
-          <ul className="mt-4 grid gap-x-6 gap-y-3 sm:grid-cols-2">
-            {topPreview.map(([id, score], index) => (
-              <li key={id} className="space-y-1.5">
-                <div className="flex justify-between gap-2 text-xs">
-                  <span>
-                    <span className="mr-2 text-muted-foreground">
-                      {index + 1}
-                    </span>
-                    {owHeroLabel(id)}
-                  </span>
-                  <strong className="tabular-nums">{score}점</strong>
-                </div>
-                <div className="h-1 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full bg-primary/70"
-                    style={{
-                      width: Math.round((score / maxScore) * 100) + "%",
-                    }}
-                  />
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="py-6 text-center text-xs text-muted-foreground">
-            아직 제출된 투표가 없습니다.
-          </p>
-        )}
-      </section>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
-        <p className="text-xs text-muted-foreground">
-          득표 순으로 역할당 최대 2명, 전체 최대 4명이 제외됩니다.
-        </p>
-        {canResolve ? (
-          <Button
-            type="button"
-            disabled={pending || !expired}
-            onClick={onResolve}
-          >
-            영웅 밴 확정
-          </Button>
-        ) : (
-          <span className="text-xs text-muted-foreground">
-            운영진의 확정을 기다리고 있습니다.
-          </span>
-        )}
-      </div>
+      <span role="timer" className="flex items-center gap-2 rounded-lg border px-3 py-2 font-bold tabular-nums"><Timer className="size-4" />{expired ? "투표 종료" : remain + "s"}</span>
     </div>
-  );
+    <div className="grid gap-3 sm:grid-cols-2">
+      {(["team1", "team2"] as const).map((team, index) => <section key={team} aria-label={(index + 1) + "팀 밴 현황"}
+        className={cn("rounded-xl border p-3", index === 0 ? "border-sky-500/30 bg-sky-500/5" : "border-rose-500/30 bg-rose-500/5")}>
+        <div className="mb-3 flex items-center justify-between text-xs">
+          <strong className={index === 0 ? "text-sky-400" : "text-rose-400"}>{index + 1}팀 {myTeam === team ? "· 내 팀" : ""}</strong>
+          <span className="text-muted-foreground">{allVotes.filter((vote) => heroVoteTeam(roster, vote.user_id) === team).length} / 5명 선택</span>
+        </div>
+        <div className="flex gap-2">
+          {Array.from({ length: bansPerTeam }, (_, slot) => {
+            const entry = standings[team][slot];
+            return <div key={slot} className="flex min-h-14 flex-1 items-center gap-2 rounded-lg border bg-background/40 px-2 py-1">
+              {entry ? <><Image unoptimized src={OW_HERO_PORTRAITS[entry.heroId]} alt="" width={44} height={48} className="h-12 w-11 rounded object-cover object-top" />
+                <div><p className="text-xs font-semibold">{owHeroLabel(entry.heroId)}</p><p className="mt-1 text-[10px] text-muted-foreground">{entry.votes}표 · {ROLES.find((role) => role.id === entry.role)?.label}</p></div></>
+                : <span className="text-xs text-muted-foreground">{expired ? "밴 없음" : "선택 대기"}</span>}
+            </div>;
+          })}
+        </div>
+      </section>)}
+    </div>
+    <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+      <p className="text-muted-foreground">{myTeam ? "초상화를 눌러 선택 · 다시 누르면 취소" : "관전 중 · 출전자만 투표할 수 있습니다."}</p>
+      {myTeam ? <span role="status">{pending ? "저장 중…" : picks.length ? picks.map(owHeroLabel).join(" · ") : "선택 없음"} <span className="ml-2 tabular-nums text-muted-foreground">{picks.length}/{bansPerTeam}</span></span> : null}
+    </div>
+    <div className="space-y-5">
+      {ROLES.map(({ id: role, label, Icon }) => <section key={role} aria-label={label + " 영웅"}>
+        <h5 className="mb-2 flex items-center gap-2 text-xs font-bold text-muted-foreground"><Icon className="size-4" />{label}</h5>
+        <div className="grid grid-cols-5 gap-2 sm:grid-cols-8 lg:grid-cols-11">
+          {OW_HEROES.filter((hero) => hero.role === role).map((hero) => {
+            const selected = picks.includes(hero.id);
+            return <button key={hero.id} type="button" aria-label={hero.nameKo + " 밴 선택"} aria-pressed={selected}
+              disabled={pending || expired || !myTeam || (!selected && picks.length >= bansPerTeam)} onClick={() => toggle(hero.id)}
+              className={cn("group relative overflow-hidden rounded-md border bg-muted/30 text-center transition-colors focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-default", selected ? "border-amber-400 bg-amber-400/15 ring-2 ring-amber-400/50" : "border-border hover:border-foreground/60 disabled:opacity-50")}>
+              <Image unoptimized src={OW_HERO_PORTRAITS[hero.id]} alt="" width={104} height={112} className={cn("aspect-square w-full object-cover object-top", selected && "opacity-60")} />
+              {selected ? <Ban className="absolute left-1/2 top-1/3 size-7 -translate-x-1/2 text-amber-300 drop-shadow" aria-hidden="true" /> : null}
+              <span className="block truncate px-1 py-1.5 text-[10px] font-semibold">{hero.nameKo}</span>
+            </button>;
+          })}
+        </div>
+      </section>)}
+    </div>
+    {renderInsights?.(resolvedHeroes ?? proposed)}
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4" data-balance-guide="primary">
+      <p className="text-xs text-muted-foreground">무투표 팀은 밴 없음 · 동률은 영웅 고정 순서 · 양 팀 중복은 한 번만 제외</p>
+      {canResolve ? <Button disabled={pending || !expired} onClick={beginMatch}><Check className="size-4" />경기 시작<ArrowRight className="size-4" /></Button>
+        : <span className="text-xs text-muted-foreground">운영진이 경기를 시작하면 밴이 확정됩니다.</span>}
+    </div>
+  </div>;
 }
