@@ -13,7 +13,6 @@ import {
   Crown,
   Gamepad2,
   Map,
-  MonitorPlay,
   Radio,
   Shield,
   Swords,
@@ -68,7 +67,6 @@ import {
   type FormationState,
 } from "@/lib/balance/formation";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { defaultMaForRoster, parseMaSnapshot } from "@/lib/balance/ma-snapshot";
 import { isOverwatchBalanceGame, owHeroLabel } from "@/lib/balance/ow-hero-ban";
 import {
@@ -94,6 +92,7 @@ export function ClanBalanceSessionPanel({
   clanId,
   userId,
   canManage,
+  canViewHistory,
   hostNickname,
   session,
   series,
@@ -112,6 +111,7 @@ export function ClanBalanceSessionPanel({
   clanId: string;
   userId: string;
   canManage: boolean;
+  canViewHistory: boolean;
   hostNickname: string | null;
   session: BalanceSession | null;
   series: Database["public"]["Tables"]["balance_session_series"]["Row"] | null;
@@ -136,7 +136,6 @@ export function ClanBalanceSessionPanel({
   const [historyOpen, setHistoryOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
-  const [broadcast, setBroadcast] = useState(false);
   const formation =
     session?.formation_state as unknown as FormationState | null;
   const mapScreen = Boolean(
@@ -288,63 +287,6 @@ export function ClanBalanceSessionPanel({
             : "none"
         }
       />
-      {session && canManage ? (
-        <Dialog open={broadcast} onOpenChange={setBroadcast}>
-          <DialogContent
-            className="h-dvh w-screen max-w-none overflow-y-auto rounded-none p-5 sm:max-w-none sm:p-10"
-            showCloseButton={false}
-          >
-            <DialogTitle className="sr-only">내전 방송용 화면</DialogTitle>
-            <div className="mx-auto max-w-5xl">
-              <div className="mb-8 flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">
-                    {series?.session_date} 내전
-                  </p>
-                  <h2 className="mt-2 text-2xl font-bold">
-                    라운드 {session.round_number} ·{" "}
-                    {outcomeLabel ??
-                      (session.phase === "editing" ? "팀 편성" : "경기 진행")}
-                  </h2>
-                </div>
-                <Button variant="outline" onClick={() => setBroadcast(false)}>
-                  방송용 화면 닫기
-                </Button>
-              </div>
-              <ClanBalanceRevealBoard
-                state={formation}
-                roster={rosterData}
-                pool={rosterPool}
-                serverNow={presentationNow}
-              />
-              {formation ? (
-                <ClanBalanceFormation
-                  serverNow={presentationNow}
-                  gameSlug={gameSlug}
-                  clanId={clanId}
-                  roundId={session.id}
-                  revision={session.formation_revision}
-                  drawHistoryLength={
-                    Array.isArray(session.draw_history)
-                      ? session.draw_history.length
-                      : 0
-                  }
-                  state={formation}
-                  settings={settings}
-                  bans={{
-                    mapBan: session.map_ban_enabled,
-                    heroBan: session.hero_ban_enabled,
-                  }}
-                  pool={rosterPool}
-                  userId={userId}
-                  canManage={false}
-                  readOnly
-                />
-              ) : null}
-            </div>
-          </DialogContent>
-        </Dialog>
-      ) : null}
       {canManage ? (
         <ClanBalanceGuide
           open={guideOpen}
@@ -373,18 +315,6 @@ export function ClanBalanceSessionPanel({
                   }}
                 >
                   <Settings2 className="size-4" /> 라운드 설정
-                </Button>
-              ) : null}
-              {canManage ? (
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    setToolsOpen(false);
-                    setBroadcast(true);
-                  }}
-                >
-                  <MonitorPlay className="size-4" /> 방송용 화면
                 </Button>
               ) : null}
               <ClanBalanceRosterBoard roster={rosterData} pool={rosterPool} />
@@ -416,14 +346,14 @@ export function ClanBalanceSessionPanel({
           </SheetContent>
         </Sheet>
       ) : null}
-      <ClanBalanceHistoryDrawer
+      {canViewHistory ? <ClanBalanceHistoryDrawer
         open={historyOpen}
         onOpenChange={setHistoryOpen}
         gameSlug={gameSlug}
         clanId={clanId}
         currentSeriesId={series?.id ?? null}
         pool={rosterPool}
-      />
+      /> : null}
       {session && canManage && settingsOpen ? (
         <ClanBalanceSettings
           key={session.id}
@@ -524,7 +454,8 @@ export function ClanBalanceSessionPanel({
               size="icon"
               variant="ghost"
               aria-label="내전 기록"
-              title="내전 기록"
+              title={canViewHistory ? "내전 기록" : "운영진 이상만 확인할 수 있습니다."}
+              disabled={!canViewHistory}
               data-balance-guide="history"
               onClick={() => setHistoryOpen(true)}
             >
@@ -539,17 +470,6 @@ export function ClanBalanceSessionPanel({
                 onClick={() => setGuideOpen(true)}
               >
                 <CircleHelp className="size-4" />
-              </Button>
-            ) : null}
-            {session && canManage && !mapScreen ? (
-              <Button
-                size="icon"
-                variant="ghost"
-                aria-label="방송용 화면"
-                title="방송용 화면"
-                onClick={() => setBroadcast(true)}
-              >
-                <MonitorPlay className="size-4" />
               </Button>
             ) : null}
             {session &&

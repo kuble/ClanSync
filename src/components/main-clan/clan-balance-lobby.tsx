@@ -140,7 +140,7 @@ export function ClanBalanceLobby({ gameSlug, clanId, userId, clanRole, rooms, me
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-baseline gap-2"><h2 className="text-lg font-bold">내전 로비</h2><span className="text-xs tabular-nums text-muted-foreground">{active.length}</span></div>
         <div className="flex items-center gap-1">
-          <Button size="icon-sm" variant="ghost" aria-label="내전 기록" title="내전 기록" onClick={() => setHistoryOpen(true)}><History className="size-4" aria-hidden="true" /></Button>
+          <Button size="icon-sm" variant="ghost" aria-label="내전 기록" disabled={!staff} title={staff ? "내전 기록" : "운영진 이상만 확인할 수 있습니다."} onClick={() => setHistoryOpen(true)}><History className="size-4" aria-hidden="true" /></Button>
           <Button size="icon-sm" variant="ghost" aria-label="로비 안내" title="로비 안내" onClick={() => setGuideOpen(true)}><CircleHelp className="size-4" aria-hidden="true" /></Button>
           {canCreate ? <Button size="icon-sm" aria-label="내전 추가" title="내전 추가" data-lobby-guide="add" onClick={() => setCreateOpen(true)}><Plus className="size-4" aria-hidden="true" /></Button> : null}
         </div>
@@ -168,7 +168,7 @@ export function ClanBalanceLobby({ gameSlug, clanId, userId, clanRole, rooms, me
         onSchedule={(enabled) => run(() => setBalanceRoomScheduleEnabledAction(gameSlug, clanId, detail.schedule_id!, enabled), enabled ? "반복 예약이 켜졌습니다." : "반복 예약이 중지되었습니다.")}
       /> : null}
       {guideOpen ? <LobbyGuide canCreate={canCreate} onClose={() => setGuideOpen(false)} /> : null}
-      <ClanBalanceHistoryDrawer gameSlug={gameSlug} clanId={clanId} currentSeriesId={null} pool={members} open={historyOpen} onOpenChange={setHistoryOpen} />
+      {staff ? <ClanBalanceHistoryDrawer gameSlug={gameSlug} clanId={clanId} currentSeriesId={null} pool={members} open={historyOpen} onOpenChange={setHistoryOpen} /> : null}
     </section>
   );
 }

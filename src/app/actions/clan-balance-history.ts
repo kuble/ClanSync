@@ -53,6 +53,14 @@ export async function loadBalanceHistoryAction(
       data: { user },
     } = await client.auth.getUser();
     if (!user) return { ok: false, error: "로그인이 필요합니다." };
+    const { data: memberships, error: membershipError } = await client.rpc(
+      "select_my_clan_membership", { p_clan_id: clanId },
+    );
+    const membership = memberships?.[0];
+    if (membershipError || membership?.status !== "active" ||
+      (membership.role !== "leader" && membership.role !== "officer")) {
+      return { ok: false, error: "내전 기록은 운영진 이상만 확인할 수 있습니다." };
+    }
     const { data: game, error: gameError } = await client
       .from("games")
       .select("id")

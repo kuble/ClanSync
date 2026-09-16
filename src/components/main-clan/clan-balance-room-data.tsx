@@ -170,6 +170,7 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
         clanId={clanId}
         userId={user.id}
         canManage={canManage}
+        canViewHistory={ctx.role === "leader" || ctx.role === "officer"}
         hostNickname={hostNickname}
         session={session}
         series={series}

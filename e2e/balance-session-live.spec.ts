@@ -77,25 +77,6 @@ async function confirmResult(
   ).toBeEnabled({ timeout: 20_000 });
 }
 
-async function expectReadOnlyShare(page: Page, panel: Locator) {
-  await panel.getByRole("button", { name: "방송용 화면", exact: true }).click();
-  const share = page.getByRole("dialog", { name: "내전 방송용 화면" });
-  await expect(share).toBeVisible();
-  await expect(share.locator("[data-roster-slot]")).toHaveCount(0);
-  await expect(share.getByRole("button", { name: "명단 수정" })).toHaveCount(0);
-  await expect(
-    share.getByRole("spinbutton", { name: "입찰 크레딧" }),
-  ).toHaveCount(0);
-  await expect(share.getByRole("button", { name: /팀 입찰$/ })).toHaveCount(0);
-  await expect(
-    share.getByRole("button", { name: "결과 다시 보기" }),
-  ).toHaveCount(0);
-  await share
-    .getByRole("button", { name: "방송용 화면 닫기", exact: true })
-    .click();
-  await expect(share).toBeHidden();
-}
-
 async function applyAndSelectMap(panel: Locator) {
   const apply = panel.getByRole("button", { name: "편성 적용", exact: true });
   await expect(apply).toBeEnabled({ timeout: 25_000 });
@@ -233,7 +214,6 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
         .map((user) => user.id)
         .sort(),
     );
-    await expectReadOnlyShare(page, panel);
     await applyAndSelectMap(panel);
     await panel.getByRole("button", { name: "경기 시작", exact: true }).click();
     await expect(panel).toHaveAttribute("data-balance-phase", "match_live", {
@@ -483,7 +463,6 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
     await expect(
       formation.getByRole("button", { name: "1팀 입찰", exact: true }),
     ).toBeDisabled();
-    await expectReadOnlyShare(page, panel);
     await editRoster(page, panel);
     await settings(page, panel, "keep");
     await panel.getByRole("button", { name: "편성 시작", exact: true }).click();

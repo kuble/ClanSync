@@ -76,6 +76,64 @@ async function addPlayer(panel: Locator, nickname: string) {
   await expect(panel.locator('[data-roster-slot="team1:d0"]')).toHaveText(nickname);
 }
 
+test("내전 기록 권한: 운영진 허용·깜짝 개설 멤버 차단", async ({ page, browser }) => {
+  test.setTimeout(120_000);
+  const fixture = await createIsolatedBalanceFixture(2);
+  const memberContext = await browser.newContext({ baseURL: test.info().project.use.baseURL });
+  const member = await memberContext.newPage();
+  try {
+    await Promise.all([
+      loginIsolatedBalanceUser(page, fixture.users[0]),
+      loginIsolatedBalanceUser(member, fixture.users[1]),
+    ]);
+    await member.goto(fixture.path);
+    await expect(member.getByRole("button", { name: "내전 기록", exact: true })).toBeDisabled();
+    const flash = await createAndEnterBalanceRoom(member, fixture.path, "기록 권한 검증", "flash");
+    await expect(member.getByRole("heading", { name: /밸런스 편집/ })).toBeVisible();
+    await expect(member.getByRole("button", { name: "내전 기록", exact: true })).toBeDisabled();
+    await expect(member.getByRole("button", { name: "방송용 화면", exact: true })).toHaveCount(0);
+    await page.goto(flash.url);
+    const requestPromise = page.waitForRequest((request) => request.method() === "POST" && !!request.headers()["next-action"] && !!request.postData()?.includes(fixture.clanId));
+    await page.getByRole("button", { name: "내전 기록", exact: true }).click();
+    const request = await requestPromise;
+    const history = page.getByRole("dialog", { name: "내전 기록", exact: true });
+    await expect(history).toBeVisible();
+    await expect(history.getByText("내전 기록은 운영진 이상만 확인할 수 있습니다.", { exact: true })).toHaveCount(0);
+    const payload = request.postData();
+    if (!payload) throw new Error("Missing history action request");
+    async function replayHistory() {
+      return member.evaluate(async ({ url, headers, body }) => {
+        const response = await fetch(url, { method: "POST", headers, body });
+        if (!response.ok) throw new Error(`History response: ${response.status}`);
+        return response.text();
+      }, {
+        url: request.url(),
+        headers: {
+          "next-action": request.headers()["next-action"],
+          "content-type": request.headers()["content-type"],
+          accept: "text/x-component",
+          "next-router-state-tree": request.headers()["next-router-state-tree"] ?? "",
+        },
+        body: payload,
+      });
+    }
+    expect(await replayHistory()).toContain("내전 기록은 운영진 이상만 확인할 수 있습니다.");
+    const promoted = await fixture.service.from("clan_members").update({ role: "officer" })
+      .eq("clan_id", fixture.clanId).eq("user_id", fixture.users[1].id);
+    expect(promoted.error).toBeNull();
+    expect(await replayHistory()).toContain('"ok":true');
+    await member.reload();
+    await expect(member.getByRole("button", { name: "내전 기록", exact: true })).toBeEnabled();
+    const demoted = await fixture.service.from("clan_members").update({ role: "member" })
+      .eq("clan_id", fixture.clanId).eq("user_id", fixture.users[1].id);
+    expect(demoted.error).toBeNull();
+    expect(await replayHistory()).toContain("내전 기록은 운영진 이상만 확인할 수 있습니다.");
+  } finally {
+    await memberContext.close();
+    await fixture.cleanup();
+  }
+});
+
 test("로비 간소화: 예약 휠·주간 단일 행·바로 참여", async ({ page }) => {
   test.setTimeout(150_000);
   const fixture = await createIsolatedBalanceFixture(1);
