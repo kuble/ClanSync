@@ -110,12 +110,15 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
     await loginIsolatedBalanceUser(member, fixture.users[1]);
     await member.goto("/profile");
     await member.getByRole("tab", { name: "게임별", exact: true }).click();
-    const profilePreference = member
-      .getByRole("region", { name: "게임별 선호 역할" })
-      .getByRole("combobox");
+    const profilePreference = member.getByRole("region", {
+      name: "게임별 선호 역할",
+    });
     await expect(profilePreference).toBeVisible({ timeout: 20_000 });
-    await profilePreference.selectOption("tank,sup,dmg");
-    await expect(profilePreference).toBeEnabled({ timeout: 20_000 });
+    await profilePreference.getByRole("button", { name: /딜러/ }).click();
+    await profilePreference.getByRole("button", { name: /힐러/ }).click();
+    await expect(
+      profilePreference.getByRole("button", { name: /탱커/ }),
+    ).toBeEnabled({ timeout: 20_000 });
     await expect
       .poll(async () => {
         const { data } = await fixture.service
@@ -227,16 +230,63 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
       "READY",
       { timeout: 20_000 },
     );
-    const ownPreference = memberPanel.getByRole("combobox", {
+    const ownPreference = memberPanel.getByRole("group", {
       name: "이번 라운드 내 선호",
       exact: true,
     });
-    await expect(ownPreference).toHaveValue("profile");
-    await expect(ownPreference.locator("option:checked")).toContainText(
-      "탱커 → 힐러 → 딜러",
-    );
-    await ownPreference.selectOption("sup,tank,dmg");
-    await expect(ownPreference).toBeEnabled({ timeout: 20_000 });
+    const defaultPreference = ownPreference.getByRole("button", {
+      name: "프로필 기본값",
+      exact: true,
+    });
+    await expect(defaultPreference).toHaveAttribute("aria-pressed", "true");
+    await expect(
+      ownPreference.getByRole("button", { name: /탱커/ }),
+    ).toHaveAccessibleName("1순위 탱커");
+    await expect(
+      ownPreference.getByRole("button", { name: /힐러/ }),
+    ).toHaveAccessibleName("2순위 힐러");
+    await expect(
+      ownPreference.getByRole("button", { name: /딜러/ }),
+    ).toHaveAccessibleName("3순위 딜러");
+    await ownPreference
+      .getByRole("button", { name: "선호 없음", exact: true })
+      .click();
+    await expect
+      .poll(async () => {
+        const round = await fixture.activeRound();
+        const { data } = await fixture.service
+          .from("balance_round_role_preferences")
+          .select("ranking")
+          .eq("round_id", round.id)
+          .eq("user_id", fixture.users[1].id)
+          .single();
+        return data?.ranking;
+      })
+      .toEqual([]);
+    await expect(
+      ownPreference
+        .getByRole("list", { name: "역할 선호 순위" })
+        .getByRole("button"),
+    ).toHaveText(["–", "–", "–"]);
+    await defaultPreference.click();
+    await expect
+      .poll(async () => {
+        const round = await fixture.activeRound();
+        const { data, error } = await fixture.service
+          .from("balance_round_role_preferences")
+          .select("ranking")
+          .eq("round_id", round.id)
+          .eq("user_id", fixture.users[1].id)
+          .maybeSingle();
+        return error ? "error" : data;
+      })
+      .toBeNull();
+    await expect(defaultPreference).toHaveAttribute("aria-pressed", "true");
+    await expect(defaultPreference).toBeEnabled({ timeout: 20_000 });
+    await ownPreference
+      .getByRole("button", { name: /힐러/ })
+      .dragTo(ownPreference.getByRole("button", { name: /탱커/ }));
+    await expect(defaultPreference).toBeEnabled({ timeout: 20_000 });
     await expect
       .poll(async () => {
         const round = await fixture.activeRound();

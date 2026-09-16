@@ -2,11 +2,9 @@
 
 import { useState } from "react";
 import { saveProfileRolePreferenceAction } from "@/app/actions/role-preferences";
-import { ROLE_LABEL, type Role } from "@/lib/balance/formation";
-import {
-  ROLE_RANKINGS,
-  parseRoleRanking,
-} from "@/lib/balance/role-preferences";
+import type { Role } from "@/lib/balance/formation";
+import { parseRoleRanking } from "@/lib/balance/role-preferences";
+import { RolePreferencePicker } from "@/components/role-preference-picker";
 
 export function ProfileRolePreferences({
   games,
@@ -54,40 +52,38 @@ function GamePreference({
   game: { gameId: string; nameKo: string };
   ranking: Role[];
 }) {
-  const [value, setValue] = useState(ranking.join(","));
-  const [confirmedValue, setConfirmedValue] = useState(ranking.join(","));
+  const [value, setValue] = useState(ranking);
+  const [confirmedValue, setConfirmedValue] = useState(ranking);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   return (
     <div>
-      <label
-        htmlFor={`profile-role-${game.gameId}`}
+      <h3
+        id={`profile-role-${game.gameId}-label`}
         className="text-sm font-semibold"
       >
         {game.nameKo}
-      </label>
-      <select
+      </h3>
+      <RolePreferencePicker
         id={`profile-role-${game.gameId}`}
+        labelledBy={`profile-role-${game.gameId}-label`}
         value={value}
         disabled={pending}
-        className="mt-2 min-h-11 w-full rounded-lg border bg-background px-3 text-sm"
-        onChange={async (event) => {
-          const selected = event.target.value;
+        onChange={async (selected) => {
+          if (selected === null) return;
           setValue(selected);
           setError(null);
           setPending(true);
           try {
-            const selectedRanking =
-              ROLE_RANKINGS.find((entry) => entry.join(",") === selected) ?? [];
             const result = await saveProfileRolePreferenceAction(
               game.gameId,
-              selectedRanking,
+              selected,
             );
             if (!result.ok) {
               setValue(confirmedValue);
               setError(result.error);
             } else {
-              const confirmed = result.ranking.join(",");
+              const confirmed = result.ranking;
               setConfirmedValue(confirmed);
               setValue(confirmed);
             }
@@ -100,15 +96,7 @@ function GamePreference({
             setPending(false);
           }
         }}
-      >
-        {ROLE_RANKINGS.map((entry) => (
-          <option key={entry.join(",")} value={entry.join(",")}>
-            {entry.length
-              ? entry.map((role) => ROLE_LABEL[role]).join(" → ")
-              : "선호 없음"}
-          </option>
-        ))}
-      </select>
+      />
       {pending ? (
         <p className="mt-1 text-xs text-muted-foreground" role="status">
           저장 중…
