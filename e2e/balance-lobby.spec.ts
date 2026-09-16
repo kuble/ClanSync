@@ -28,16 +28,20 @@ async function scheduledRoom(
   await page.goto(fixture.path);
   await page.getByRole("button", { name: "내전 추가", exact: true }).click();
   const create = page.getByRole("dialog", { name: "내전 만들기", exact: true });
-  if (kind === "flash")
-    await expect(create.getByRole("radio", { name: "정규 내전", exact: true })).toBeDisabled();
   await create.getByRole("radio", {
     name: kind === "regular" ? "정규 내전" : "깜짝 내전", exact: true,
   }).check();
   await create.getByRole("textbox", { name: "내전 이름", exact: true }).fill(title);
   await create.getByRole("radio", { name: "예약", exact: true }).check();
   // The form explicitly accepts KST regardless of browser/server time zone.
-  const kstStart = new Date(Date.now() + (48 + 9) * 60 * 60 * 1000).toISOString().slice(0, 16);
-  await create.getByLabel("예약 시각 (한국 시간)", { exact: true }).fill(kstStart);
+  const kstStart = new Date(Date.now() + (48 + 9) * 60 * 60 * 1000).toISOString().slice(0, 19);
+  const dateWheel = create.getByRole("listbox", { name: "날짜", exact: true });
+  await dateWheel.press("Home");
+  await dateWheel.press("ArrowDown");
+  await dateWheel.press("ArrowDown");
+  for (const [label, value] of [["시", kstStart.slice(11, 13)], ["분", kstStart.slice(14, 16)], ["초", kstStart.slice(17, 19)]]) {
+    await create.getByRole("listbox", { name: label, exact: true }).getByRole("option", { name: value, exact: true }).click();
+  }
   if (kind === "regular") {
     await create.getByRole("checkbox", { name: "매주 같은 요일·시각", exact: true }).check();
   } else {
@@ -47,7 +51,7 @@ async function scheduledRoom(
   await create.getByRole("button", { name: "내전 만들기", exact: true }).click();
   await expect(create).toBeHidden();
   const row = page.getByTestId("balance-lobby-room").filter({
-    has: page.getByRole("button", { name: title, exact: true }),
+    hasText: title,
   });
   await expect(row).toBeVisible();
   const roomId = await row.getAttribute("data-room-id");
@@ -55,7 +59,7 @@ async function scheduledRoom(
   const room = await readRoom(fixture, roomId);
   expect(room.status).toBe("scheduled");
   expect(room.series_id).toBeNull();
-  expect(Date.parse(room.scheduled_at)).toBe(Date.parse(`${kstStart}:00+09:00`));
+  expect(Date.parse(room.scheduled_at)).toBe(Date.parse(`${kstStart}+09:00`));
   return room;
 }
 
@@ -71,6 +75,58 @@ async function addPlayer(panel: Locator, nickname: string) {
     .getByRole("button", { name: `${nickname} 출전 명단에 추가`, exact: true }).click();
   await expect(panel.locator('[data-roster-slot="team1:d0"]')).toHaveText(nickname);
 }
+
+test("로비 간소화: 예약 휠·주간 단일 행·바로 참여", async ({ page }) => {
+  test.setTimeout(150_000);
+  const fixture = await createIsolatedBalanceFixture(1);
+  try {
+    await loginIsolatedBalanceUser(page, fixture.users[0]);
+    const flash = await scheduledRoom(page, fixture, "flash", "휠 깜짝 예약");
+    const regular = await scheduledRoom(page, fixture, "regular", "주간 단일 행");
+    await expect(page.getByTestId("balance-lobby-room").first()).toHaveAttribute("data-room-id", regular.id);
+    const detail = await details(page, regular.id);
+    const seconds = detail.getByRole("listbox", { name: "초", exact: true });
+    await seconds.press("Home");
+    const box = await seconds.boundingBox();
+    if (!box) throw new Error("Missing time wheel");
+    await page.mouse.move(box.x + box.width / 2, box.y + 95);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2, box.y + 23, { steps: 8 });
+    await page.mouse.up();
+    await expect(seconds.getByRole("option", { selected: true })).toHaveText("02");
+    await detail.getByRole("button", { name: "예약 변경 저장", exact: true }).click();
+    await expect(detail).toBeHidden();
+    expect(new Date((await readRoom(fixture, regular.id)).scheduled_at).getUTCSeconds()).toBe(2);
+    await (await details(page, regular.id)).getByRole("button", { name: "지금 열기", exact: true }).click();
+    await page.waitForURL((url) => url.searchParams.get("room") === regular.id);
+    await page.goto(fixture.path);
+    const rows = page.getByTestId("balance-lobby-room");
+    await expect(rows).toHaveCount(2);
+    await expect(rows.first()).toHaveAttribute("data-room-id", regular.id);
+    await expect(rows.first()).toContainText("열림");
+    await expect(rows.first().getByRole("link", { name: "입장" })).toBeVisible();
+    const flashRow = roomRow(page, flash.id);
+    await expect(flashRow.getByRole("button", { name: "예약 보기", exact: true })).toHaveCount(0);
+    await flashRow.getByRole("button", { name: "참여", exact: true }).click();
+    await expect(flashRow.getByRole("button", { name: "참여 취소", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await page.reload();
+    await expect(flashRow).toContainText("참여 1");
+    await flashRow.getByRole("button", { name: "참여 취소", exact: true }).click();
+    await expect(flashRow).toContainText("참여 0");
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole("button", { name: "내전 추가", exact: true }).click();
+    const create = page.getByRole("dialog", { name: "내전 만들기", exact: true });
+    await create.getByRole("radio", { name: "예약", exact: true }).check();
+    await create.getByRole("checkbox", { name: "매주 같은 요일·시각", exact: true }).check();
+    await expect(create.getByRole("listbox", { name: "날짜", exact: true })).toHaveCount(0);
+    await expect(create.getByRole("listbox", { name: "요일", exact: true })).toBeVisible();
+    await expect(create.locator('input[type="datetime-local"]')).toHaveCount(0);
+    expect(await create.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+    await page.screenshot({ path: test.info().outputPath("schedule-wheel-mobile.png") });
+  } finally {
+    await fixture.cleanup();
+  }
+});
 
 test("정규 내전 예약: 주간 반복·임시 진행자 저장과 예약 방 입장", async ({ page }) => {
   test.setTimeout(150_000);
@@ -169,10 +225,8 @@ test("깜짝 내전: 클랜원 개설·참석 응답과 출전 명단 분리·�
       await test.info().attach(name, { path, contentType: "image/png" });
     }
     await visitor.setViewportSize({ width: 1280, height: 900 });
-    let visitorDetail = await details(visitor, flash.id);
-    await expect(visitorDetail.getByRole("button", { name: "지금 열기", exact: true })).toHaveCount(0);
-    await expect(visitorDetail.getByRole("button", { name: "예약 변경 저장", exact: true })).toHaveCount(0);
-    await visitorDetail.getByRole("button", { name: /^참석 \d+$/ }).click();
+    await expect(roomRow(visitor, flash.id).getByRole("button", { name: "예약 보기", exact: true })).toHaveCount(0);
+    await roomRow(visitor, flash.id).getByRole("button", { name: "참여", exact: true }).click();
     const readRsvp = async () => {
       const { data, error } = await fixture.service.from("balance_room_rsvps")
         .select("response").eq("room_id", flash.id).eq("user_id", fixture.users[2].id).maybeSingle();
@@ -181,13 +235,11 @@ test("깜짝 내전: 클랜원 개설·참석 응답과 출전 명단 분리·�
     };
     await expect.poll(readRsvp).toBe("going");
     await visitor.reload();
-    visitorDetail = await details(visitor, flash.id);
-    await expect(visitorDetail.getByRole("button", { name: "참석 1", exact: true }))
+    await expect(roomRow(visitor, flash.id).getByRole("button", { name: "참여 취소", exact: true }))
       .toHaveAttribute("aria-pressed", "true");
     expect((await readRoom(fixture, flash.id)).series_id).toBeNull();
     expect(await fixture.activeRound(regular.roomId)).toEqual(beforeRsvp);
     const ownerDetail = await details(owner, flash.id);
-    await expect(ownerDetail.getByRole("button", { name: "참석 1", exact: true })).toBeVisible();
     await ownerDetail.getByRole("button", { name: "지금 열기", exact: true }).click();
     await owner.waitForURL((url) => url.searchParams.get("room") === flash.id);
     const flashUrl = owner.url();

@@ -158,7 +158,7 @@ export async function createAndEnterBalanceRoom(
   await create.getByRole("button", { name: "내전 만들기", exact: true }).click();
   await expect(create).toBeHidden({ timeout: 20_000 });
   const row = page.getByTestId("balance-lobby-room").filter({
-    has: page.getByRole("button", { name: title, exact: true }),
+    hasText: title,
   });
   await expect(row).toBeVisible({ timeout: 20_000 });
   const roomId = await row.getAttribute("data-room-id");
