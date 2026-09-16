@@ -112,11 +112,11 @@ export function ClanBalanceRosterBoard({
                           <strong className="text-foreground">{scoreMode === "a" && planPremium ? score.a ?? "—" : score.m}</strong>
                         </span>
                       </span>
-                    ) : (
+                    ) : !userId ? (
                       <span className="text-[10px] text-muted-foreground">
-                        {userId ? slot.label : "참가자 대기"}
+                        참가자 대기
                       </span>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               );

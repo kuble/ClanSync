@@ -290,7 +290,7 @@ export function ClanBalanceSessionPanel({
     onClick={() => setConfirmEnd(true)}>세션 종료</Button> : null;
   const sampleScores = canViewScores && qaPreviewEnabled;
   const displayScores = sampleScores ? previewScores(rosterPool.map((member) => member.user_id), scores) : scores;
-  const scoreControl = canViewScores ? <div className="flex flex-wrap items-center gap-2"><ScoreModeToggle value={scoreMode} onChange={setScoreMode} premium={planPremium} />{sampleScores ? <span className="text-[10px] text-muted-foreground">샘플 점수·승률 포함</span> : null}</div> : null;
+  const scoreControl = canViewScores ? <ScoreModeToggle value={scoreMode} onChange={setScoreMode} premium={planPremium} /> : null;
   const renderInsights = (map: string | null, roster = rosterData, showMap = false) => canViewScores ? <BalanceTeamInsights roster={roster} scores={displayScores} mode={scoreMode} map={map} premium={planPremium} compact={!showMap} showMap={showMap} sample={sampleScores} /> : null;
 
   return (

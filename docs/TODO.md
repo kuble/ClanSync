@@ -6,7 +6,7 @@
 
 ## 실행 제약
 
-- **QA 우선, 운영 DB·운영 배포 보류.** 작업 브랜치: `codex/live-session-formation`. QA 마이그레이션 62개·운영 50개이며 운영 적용 12개가 대기 중이다.
+- **QA 우선, 운영 DB·운영 배포 보류.** 작업 브랜치: `codex/live-session-formation`. QA 마이그레이션 63개·운영 50개이며 운영 적용 13개가 대기 중이다.
 - 사용자 QA: `npm run dev:qa`(3011). 열린 명단을 시드로 초기화하지 않는다. 자동 E2E는 `E2E_SKIP_SEED=1`, 쓰기 테스트는 별도 임시 픽스처를 사용한다.
 - 변경 위험에 맞는 검증만 실행한다([기준](../.cursor/rules/agent-auto-tasks.mdc) · [실행법](../e2e/README.md)). main 병합·운영 반영 전에는 전체 회귀·빌드가 필요하다.
 
