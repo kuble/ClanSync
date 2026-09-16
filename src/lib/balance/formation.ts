@@ -12,6 +12,78 @@ export type FormationSetup = {
   teams: TeamMode;
   preferences?: Record<string, Role[]>;
   captains?: [string, string];
+  auctionBudget?: number;
+  minBid?: number;
+  durationSeconds?: number;
+};
+export type FormationSettings = Omit<FormationSetup, "preferences"> & {
+  auctionBudget: number;
+  minBid: number;
+  durationSeconds: number;
+};
+export const DEFAULT_FORMATION_SETTINGS: FormationSettings = {
+  roles: "manual",
+  teams: "keep",
+  auctionBudget: 1000,
+  minBid: 10,
+  durationSeconds: 20,
+};
+export function parseFormationSettings(value: unknown): FormationSettings {
+  const input =
+    value && typeof value === "object"
+      ? (value as Partial<FormationSettings>)
+      : {};
+  return { ...DEFAULT_FORMATION_SETTINGS, ...input };
+}
+export function sameFormationSettings(left: unknown, right: unknown): boolean {
+  const a = parseFormationSettings(left),
+    b = parseFormationSettings(right);
+  return (
+    a.roles === b.roles &&
+    a.teams === b.teams &&
+    a.auctionBudget === b.auctionBudget &&
+    a.minBid === b.minBid &&
+    a.durationSeconds === b.durationSeconds &&
+    (a.captains?.[0] ?? null) === (b.captains?.[0] ?? null) &&
+    (a.captains?.[1] ?? null) === (b.captains?.[1] ?? null)
+  );
+}
+
+export function validateFormationSettings(value: FormationSettings): void {
+  if (
+    !["manual", "lottery"].includes(value.roles) ||
+    !["keep", "random", "draft", "auction"].includes(value.teams)
+  )
+    throw new Error("편성 방식을 확인하세요.");
+  if (
+    !Number.isSafeInteger(value.minBid) ||
+    value.minBid < 10 ||
+    value.minBid > 1000 ||
+    value.minBid % 10 !== 0 ||
+    !Number.isSafeInteger(value.auctionBudget) ||
+    value.auctionBudget < value.minBid * 4 ||
+    value.auctionBudget > 100000 ||
+    value.auctionBudget % value.minBid !== 0 ||
+    !Number.isSafeInteger(value.durationSeconds) ||
+    value.durationSeconds < 10 ||
+    value.durationSeconds > 60
+  )
+    throw new Error("경매 예산·최소 입찰·시간을 확인하세요.");
+  if (
+    value.captains &&
+    (value.captains.length !== 2 ||
+      value.captains[0] === value.captains[1] ||
+      value.captains.some((id) => typeof id !== "string" || !id))
+  )
+    throw new Error("서로 다른 주장 두 명을 선택하세요.");
+  if (value.roles === "lottery" && value.captains)
+    throw new Error("역할 추첨에서는 배정된 탱커 두 명이 주장이 됩니다.");
+}
+export type FormationDraw = {
+  id: string;
+  startedAt: number;
+  durationMs: number;
+  roleMode: "manual" | "lottery";
 };
 export type FormationState = {
   version: 1;
@@ -24,6 +96,9 @@ export type FormationState = {
   picks: number;
   roster: BalanceRoster;
   sourceRoster: BalanceRoster;
+  /** Optional only for rounds created before saved settings were introduced. */
+  settings?: FormationSettings;
+  draw?: FormationDraw;
   budgets: Record<Team, number>;
   remaining: string[];
   auction: {
@@ -38,7 +113,13 @@ export type FormationState = {
   log: { text: string; player?: string; team?: Team; amount?: number }[];
 };
 export type FormationCommand =
-  | { type: "start"; setup: FormationSetup }
+  | {
+      type: "start";
+      setup: FormationSetup;
+      expectedRoster?: BalanceRoster;
+      expectedBans?: { mapBan: boolean; heroBan: boolean };
+      expectedDrawHistoryLength: number;
+    }
   | { type: "reset" }
   | { type: "pick"; player: string }
   | { type: "bid"; team: Team; amount: number }
@@ -111,13 +192,19 @@ export function maxBid(state: FormationState, team: Team): number {
       ...structuredClone(EMPTY_ROSTER),
       [team]: state.roster[team],
     }).length;
-  return state.budgets[team] - Math.max(0, remainingSlots - 1) * 10;
+  return (
+    state.budgets[team] -
+    Math.max(0, remainingSlots - 1) * (state.settings?.minBid ?? 10)
+  );
 }
 export function createFormation(
   roster: BalanceRoster,
   setup: FormationSetup,
   random: RandomIndex,
+  draw?: FormationDraw,
 ): FormationState {
+  const settings = parseFormationSettings(setup);
+  validateFormationSettings(settings);
   const players = rosterPlayers(roster);
   if (players.length !== 10 || new Set(players.map((p) => p.id)).size !== 10)
     throw new Error("출전자 10명을 먼저 저장하세요.");
@@ -134,15 +221,21 @@ export function createFormation(
     const counts: Record<Role, number> = { tank: 2, dmg: 4, sup: 4 };
     for (const id of order) {
       const player = players.find((p) => p.id === id)!;
-      const ranking = setup.preferences?.[id];
+      const ranking = setup.preferences?.[id] ?? [];
       if (
-        !ranking ||
-        ranking.length !== 3 ||
-        new Set(ranking).size !== 3 ||
+        (ranking.length !== 0 && ranking.length !== 3) ||
+        new Set(ranking).size !== ranking.length ||
         ranking.some((r) => !ROLES.includes(r))
       )
-        throw new Error("모든 출전자의 역할 우선순위를 입력하세요.");
-      const role = ranking.find((r) => counts[r] > 0)!;
+        throw new Error("역할 우선순위를 확인하세요.");
+      // No preference: draw one of the remaining role slots, rather than
+      // silently giving every unconfigured player the same role priority.
+      const remainingSlots = ROLES.flatMap((role) =>
+        Array<Role>(counts[role]).fill(role),
+      );
+      const role = ranking.length
+        ? ranking.find((r) => counts[r] > 0)!
+        : remainingSlots[random(remainingSlots.length)]!;
       player.role = role;
       counts[role]--;
     }
@@ -158,7 +251,16 @@ export function createFormation(
     picks: 0,
     roster: structuredClone(EMPTY_ROSTER),
     sourceRoster: structuredClone(roster),
-    budgets: { team1: 1000, team2: 1000 },
+    settings: {
+      roles: settings.roles,
+      teams: settings.teams,
+      captains: settings.captains,
+      auctionBudget: settings.auctionBudget,
+      minBid: settings.minBid,
+      durationSeconds: settings.durationSeconds,
+    },
+    ...(draw ? { draw } : {}),
+    budgets: { team1: settings.auctionBudget, team2: settings.auctionBudget },
     remaining: players.map((p) => p.id),
     auction: null,
     pausedAt: null,
@@ -261,7 +363,7 @@ export function advanceFormation(
     state.auction = {
       player: state.remaining[0]!,
       startedAt: now,
-      deadline: now + 20_000,
+      deadline: now + (state.settings?.durationSeconds ?? 20) * 1000,
       bid: 0,
       team: null,
       retry: false,
@@ -279,17 +381,17 @@ export function advanceFormation(
       throw new Error("해당 역할 자리가 없습니다.");
     if (
       !Number.isSafeInteger(command.amount) ||
-      command.amount % 10 !== 0 ||
-      command.amount < lot.bid + 10 ||
+      command.amount % (state.settings?.minBid ?? 10) !== 0 ||
+      command.amount < lot.bid + (state.settings?.minBid ?? 10) ||
       command.amount > maxBid(state, command.team)
     )
       throw new Error(
-        "최소 10P 단위이며 남은 선수의 최소 비용을 남겨야 합니다.",
+        `최소 ${state.settings?.minBid ?? 10}P 단위이며 남은 선수의 최소 비용을 남겨야 합니다.`,
       );
     lot.bid = command.amount;
     lot.team = command.team;
     lot.deadline = Math.min(
-      lot.startedAt + 50_000,
+      lot.startedAt + ((state.settings?.durationSeconds ?? 20) + 30) * 1000,
       Math.max(lot.deadline, now + 5_000),
     );
     return state;
@@ -302,7 +404,7 @@ export function advanceFormation(
       state.auction = {
         ...lot,
         startedAt: now,
-        deadline: now + 20_000,
+        deadline: now + (state.settings?.durationSeconds ?? 20) * 1000,
         retry: true,
       };
       state.log.push({ text: "무입찰 · 한 번 더 경매", player: lot.player });
@@ -311,11 +413,13 @@ export function advanceFormation(
     const fallback = !lot.team;
     if (!lot.team) {
       const eligible = (["team1", "team2"] as const).filter(
-        (t) => canFit(state, t, lot.player) && maxBid(state, t) >= 10,
+        (t) =>
+          canFit(state, t, lot.player) &&
+          maxBid(state, t) >= (state.settings?.minBid ?? 10),
       );
       if (!eligible.length) throw new Error("배정 가능한 팀이 없습니다.");
       lot.team = eligible[random(eligible.length)]!;
-      lot.bid = 10;
+      lot.bid = state.settings?.minBid ?? 10;
     }
     state.budgets[lot.team] -= lot.bid;
     assign(state, lot.team, lot.player);

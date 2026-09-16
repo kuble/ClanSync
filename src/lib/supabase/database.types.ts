@@ -121,6 +121,42 @@ export type Database = {
           },
         ]
       }
+      balance_round_role_preferences: {
+        Row: {
+          ranking: string[]
+          round_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ranking?: string[]
+          round_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ranking?: string[]
+          round_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "balance_round_role_preferences_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "balance_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_round_role_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       balance_session_hero_votes: {
         Row: {
           pick_1: string
@@ -286,7 +322,9 @@ export type Database = {
           banned_heroes: string[] | null
           clan_id: string
           closed_at: string | null
+          draw_history: Json
           formation_revision: number
+          formation_settings: Json
           formation_state: Json | null
           game_id: string
           hero_ban_deadline_at: string | null
@@ -311,7 +349,9 @@ export type Database = {
           banned_heroes?: string[] | null
           clan_id: string
           closed_at?: string | null
+          draw_history?: Json
           formation_revision?: number
+          formation_settings?: Json
           formation_state?: Json | null
           game_id: string
           hero_ban_deadline_at?: string | null
@@ -336,7 +376,9 @@ export type Database = {
           banned_heroes?: string[] | null
           clan_id?: string
           closed_at?: string | null
+          draw_history?: Json
           formation_revision?: number
+          formation_settings?: Json
           formation_state?: Json | null
           game_id?: string
           hero_ban_deadline_at?: string | null
@@ -1689,6 +1731,42 @@ export type Database = {
           },
         ]
       }
+      profile_role_preferences: {
+        Row: {
+          game_id: string
+          ranking: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          game_id: string
+          ranking?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          game_id?: string
+          ranking?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_role_preferences_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_role_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       purchases: {
         Row: {
           approved_by: string | null
@@ -2395,6 +2473,10 @@ export type Database = {
         Args: { p_event_id: string; p_schedule: Json }
         Returns: undefined
       }
+      resolve_balance_role_preferences: {
+        Args: { p_round_id: string }
+        Returns: Json
+      }
       resolve_clan_join_request: {
         Args: {
           p_clan_id: string
@@ -2427,6 +2509,14 @@ export type Database = {
         Args: { p_game_id: string; p_ordered_badge_ids: string[] }
         Returns: undefined
       }
+      save_profile_role_preference: {
+        Args: { p_game_id: string; p_ranking: string[] }
+        Returns: undefined
+      }
+      save_round_role_preference: {
+        Args: { p_ranking?: string[]; p_round_id: string }
+        Returns: undefined
+      }
       select_my_clan_join_requests: {
         Args: never
         Returns: {
@@ -2456,6 +2546,16 @@ export type Database = {
           role: Database["public"]["Enums"]["clan_member_role"]
           status: Database["public"]["Enums"]["clan_member_status"]
         }[]
+      }
+      set_balance_formation_settings: {
+        Args: {
+          p_hero_ban: boolean
+          p_map_ban: boolean
+          p_revision: number
+          p_round_id: string
+          p_settings: Json
+        }
+        Returns: boolean
       }
       set_balance_match_outcome: {
         Args: {

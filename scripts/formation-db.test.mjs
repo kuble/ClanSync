@@ -338,7 +338,7 @@ test("formation revisions authorize writes and serialize live transitions", asyn
     async () => {
       assert.equal(
         await ok(
-          svc.rpc("commit_balance_formation", args(2, state("complete", true))),
+          svc.rpc("commit_balance_formation", { ...args(2, state("complete", true)), p_command: "pick" }),
         ),
         true,
       );

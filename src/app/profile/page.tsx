@@ -22,6 +22,7 @@ import {
 import type { Database } from "@/lib/supabase/database.types";
 import { AccountShell } from "@/components/onboarding/account-shell";
 import { ProfilePanels } from "@/components/profile/profile-panels";
+import { ProfileRolePreferences } from "@/components/profile/profile-role-preferences";
 import styles from "@/components/profile/profile.module.css";
 
 export const dynamic = "force-dynamic";
@@ -65,6 +66,7 @@ export default async function ProfilePage() {
     { data: unl },
     { data: picks },
     { data: altRowsRaw },
+    { data: rolePreferences },
   ] = await Promise.all([
     supabase
       .from("users")
@@ -93,6 +95,7 @@ export default async function ProfilePage() {
       .select("id, game_id, alt_nick, note")
       .eq("user_id", user.id)
       .order("alt_nick"),
+    supabase.from("profile_role_preferences").select("game_id, ranking").eq("user_id", user.id),
   ]);
 
   const { data: rawJoinFlat, error: rawJoinFlatErr } =
@@ -324,7 +327,7 @@ export default async function ProfilePage() {
         <div><dt>가입일</dt><dd>{row.created_at ? new Date(row.created_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "—"}</dd></div>
       </dl></section>
     </> : <p className={styles.error} role="alert">계정 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>} games={
-      <ProfileGameDecorations nickname={row?.nickname || "플레이어"} games={linkedGames} verifiedGameIds={verifiedGameIds} altAccountsByGame={altAccountsByGame} nameplateOptions={nameplateOptions} ownedOptionIds={ownedOptionIds} selections={selections} badges={badges} unlockedBadgeIds={unlockedBadgeIds} picks={pickRows} />
+      <><ProfileRolePreferences games={linkedGames} preferences={rolePreferences ?? []} /><ProfileGameDecorations nickname={row?.nickname || "플레이어"} games={linkedGames} verifiedGameIds={verifiedGameIds} altAccountsByGame={altAccountsByGame} nameplateOptions={nameplateOptions} ownedOptionIds={ownedOptionIds} selections={selections} badges={badges} unlockedBadgeIds={unlockedBadgeIds} picks={pickRows} /></>
     } />
     <ProfileJoinRequests rows={joinRequests} loadFailed={joinRequestsFetchFailed} />
     <div className={styles.accountActions}><form action={signOutAction}><Button type="submit" variant="outline" size="sm">로그아웃</Button></form><ProfileDeleteAccountButton /></div>

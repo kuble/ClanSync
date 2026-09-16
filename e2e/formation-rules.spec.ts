@@ -5,6 +5,7 @@ import {
   createFormation,
   draftTurn,
   maxBid,
+  sameFormationSettings,
   type FormationState,
   type Role,
   type Team,
@@ -24,6 +25,14 @@ const member = { id: "member", manager: false };
 const keepOrder = (max: number) => max - 1;
 const chooseFirst = () => 0;
 const startTime = 100_000;
+
+test("settings baseline compares rule values independently of JSON property order", () => {
+  const left = { roles: "manual", teams: "auction", auctionBudget: 2000, minBid: 50, durationSeconds: 30, captains: ["a", "b"] };
+  const right = Object.fromEntries(Object.entries(left).reverse());
+  expect(sameFormationSettings(left, right)).toBe(true);
+  expect(sameFormationSettings(left, { ...right, minBid: 100 })).toBe(false);
+  expect(sameFormationSettings(left, { ...right, captains: ["b", "a"] })).toBe(false);
+});
 
 function make(mode: "draft" | "auction", random = keepOrder) {
   return createFormation(roster, { roles: "manual", teams: mode }, random);
@@ -132,16 +141,14 @@ test("one common order assigns each player's best remaining role within 2/4/4 qu
   expect(rerun.players.find((p) => p.id === "d1")!.role).toBe("tank");
 });
 
-test("lottery requires an explicit complete ranking from every participant", () => {
+test("lottery accepts absent preferences without check-in and rejects invalid rankings", () => {
   const preferences = Object.fromEntries(
     rosterAssignedUserIds(roster).map((id) => [
       id,
       ["tank", "dmg", "sup"] as Role[],
     ]),
   );
-  expect(() =>
-    createFormation(roster, { roles: "lottery", teams: "random" }, keepOrder),
-  ).toThrow(/우선순위/);
+  expectComplete(createFormation(roster, { roles: "lottery", teams: "random" }, keepOrder));
   preferences.s4 = ["tank", "tank", "sup"];
   expect(() =>
     createFormation(
@@ -152,7 +159,28 @@ test("lottery requires an explicit complete ranking from every participant", () 
   ).toThrow(/우선순위/);
 });
 
+test("unconfigured preferences draw remaining slots and public state never exposes rankings", () => {
+  const preferences = { t1: ["sup", "tank", "dmg"] as Role[], d1: [] as Role[] };
+  const draw = { id: "draw-1", startedAt: 2000, durationMs: 4000, roleMode: "lottery" as const };
+  const state = createFormation(roster, { roles: "lottery", teams: "random", preferences }, keepOrder, draw);
+  expectComplete(state);
+  expect(state.draw).toEqual(draw);
+  expect(JSON.stringify(state)).not.toContain("preferences");
+  expect(state.players.find((player) => player.id === "t1")?.role).toBe("sup");
+});
+
+test("saved auction rules bound spending, reserve and the round clock", () => {
+  const state = createFormation(roster, { roles: "manual", teams: "auction", auctionBudget: 2000, minBid: 50, durationSeconds: 30 }, keepOrder);
+  expect(state.budgets).toEqual({ team1: 2000, team2: 2000 });
+  expect(maxBid(state, "team1")).toBe(1850);
+  const lot = advanceFormation(state, { type: "lot" }, manager, startTime, keepOrder);
+  expect(lot.auction?.deadline).toBe(startTime + 30000);
+  expect(() => advanceFormation(lot, { type: "bid", team: "team1", amount: 10 }, manager, startTime, keepOrder)).toThrow(/50P/);
+  expect(() => createFormation(roster, { roles: "manual", teams: "auction", auctionBudget: 100, minBid: 50 }, keepOrder)).toThrow(/예산/);
+});
+
 test("captains must be different participants with the same assigned role", () => {
+  expect(() => createFormation(roster, { roles: "lottery", teams: "draft", captains: ["t1", "t2"] }, keepOrder)).toThrow(/탱커/);
   for (const captains of [
     ["t1", "t1"],
     ["t1", "d3"],
