@@ -1,9 +1,14 @@
 "use client";
 
-import { useId, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { RotateCcw, Save, Search, Undo2, Users } from "lucide-react";
-import { toast } from "sonner";
+import {
+  useEffect,
+  useId,
+  useImperativeHandle,
+  useState,
+  useSyncExternalStore,
+  type Ref,
+} from "react";
+import { RotateCcw, Search, Undo2, Users } from "lucide-react";
 import { updateBalanceRosterAction } from "@/app/actions/clan-balance-session";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +24,15 @@ import {
   type BalanceSlot,
 } from "./clan-balance-roster-board";
 import { cn } from "@/lib/utils";
+import {
+  RosterAutosave,
+  type RosterFlushResult,
+} from "@/lib/balance/roster-autosave";
+
+export type ClanBalanceRosterEditorHandle = {
+  flush(): Promise<RosterFlushResult>;
+  getRoster(): BalanceRoster;
+};
 
 type PoolRow = { user_id: string; nickname: string };
 type TeamKey = "team1" | "team2";
@@ -52,6 +66,7 @@ export function ClanBalanceRosterEditor({
   pool,
   canEdit,
   onDirtyChange,
+  ref,
 }: {
   gameSlug: string;
   clanId: string;
@@ -61,22 +76,65 @@ export function ClanBalanceRosterEditor({
   pool: PoolRow[];
   canEdit: boolean;
   onDirtyChange?: (dirty: boolean) => void;
+  ref?: Ref<ClanBalanceRosterEditorHandle>;
 }) {
-  const router = useRouter();
   const helpId = useId();
-  const [pending, start] = useTransition();
-  const [roster, setRoster] = useState<BalanceRoster>(initialRoster);
-  const [savedRoster, setSavedRoster] = useState(initialRoster);
+  const [autosave] = useState(
+    () =>
+      new RosterAutosave(
+        { roster: initialRoster, revision },
+        ({ roster, revision: expectedRevision }) =>
+          updateBalanceRosterAction(
+            gameSlug,
+            clanId,
+            sessionId,
+            JSON.stringify(roster),
+            expectedRevision,
+          ),
+      ),
+  );
+  const { roster, dirty, saving, error, remoteLoads } = useSyncExternalStore(
+    autosave.subscribe,
+    autosave.getSnapshot,
+    autosave.getSnapshot,
+  );
+  useImperativeHandle(ref, () => ({ flush: autosave.flush, getRoster: () => autosave.getSnapshot().roster }), [autosave]);
+  useEffect(() => {
+    autosave.receiveRemote({ roster: initialRoster, revision });
+  }, [autosave, initialRoster, revision]);
+  useEffect(() => {
+    onDirtyChange?.(dirty || saving);
+  }, [dirty, saving, onDirtyChange]);
+  useEffect(
+    () => () => {
+      void autosave.flush();
+    },
+    [autosave],
+  );
+  useEffect(() => {
+    if (!dirty && !saving) return;
+    const preventUnsavedExit = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+    };
+    window.addEventListener("beforeunload", preventUnsavedExit);
+    return () => window.removeEventListener("beforeunload", preventUnsavedExit);
+  }, [dirty, saving]);
   const [history, setHistory] = useState<BalanceRoster[]>([]);
+  const [historyRemoteLoads, setHistoryRemoteLoads] = useState(remoteLoads);
+  if (historyRemoteLoads !== remoteLoads) {
+    setHistoryRemoteLoads(remoteLoads);
+    setHistory([]);
+  }
   const [query, setQuery] = useState("");
   const [activeSlot, setActiveSlot] = useState<string | null>(null);
   const [draggedSlot, setDraggedSlot] = useState<string | null>(null);
   const [dropSlot, setDropSlot] = useState<string | null>(null);
   const usedIds = new Set(rosterAssignedUserIds(roster));
-  const dirty = JSON.stringify(roster) !== JSON.stringify(savedRoster);
   const availablePool = pool.filter((member) => !usedIds.has(member.user_id));
   const visiblePool = availablePool.filter((member) =>
-    member.nickname.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
+    member.nickname
+      .toLocaleLowerCase()
+      .includes(query.trim().toLocaleLowerCase()),
   );
   const nickById = new Map(
     pool.map((member) => [member.user_id, member.nickname]),
@@ -92,12 +150,11 @@ export function ClanBalanceRosterEditor({
   }
 
   function apply(next: BalanceRoster) {
-    if (!canEdit || pending) return;
+    if (!canEdit) return;
     clearInteraction();
     if (JSON.stringify(next) === JSON.stringify(roster)) return;
     setHistory((previous) => [...previous.slice(-99), roster]);
-    setRoster(next);
-    onDirtyChange?.(JSON.stringify(next) !== JSON.stringify(savedRoster));
+    autosave.edit(next);
   }
 
   function addMember(userId: string) {
@@ -130,39 +187,12 @@ export function ClanBalanceRosterEditor({
   }
 
   function undo() {
-    if (!canEdit || pending) return;
+    if (!canEdit) return;
     const previous = history.at(-1);
     if (!previous) return;
     setHistory((entries) => entries.slice(0, -1));
-    setRoster(previous);
+    autosave.edit(previous);
     clearInteraction();
-    onDirtyChange?.(JSON.stringify(previous) !== JSON.stringify(savedRoster));
-  }
-
-  function save() {
-    if (!canEdit || pending || !dirty) return;
-    clearInteraction();
-    start(async () => {
-      try {
-        const result = await updateBalanceRosterAction(
-          gameSlug,
-          clanId,
-          sessionId,
-          JSON.stringify(roster),
-          revision,
-        );
-        if (!result.ok) {
-          toast.error(result.error);
-          return;
-        }
-        setSavedRoster(roster);
-        onDirtyChange?.(false);
-        toast.success("배치를 저장했습니다.");
-        router.refresh();
-      } catch {
-        toast.error("배치를 저장하지 못했습니다. 다시 시도해 주세요.");
-      }
-    });
   }
 
   return (
@@ -180,7 +210,7 @@ export function ClanBalanceRosterEditor({
               type="button"
               variant="ghost"
               size="icon"
-              disabled={pending || history.length === 0}
+              disabled={history.length === 0}
               onClick={undo}
               aria-label="명단 변경 되돌리기"
               title="되돌리기"
@@ -191,7 +221,7 @@ export function ClanBalanceRosterEditor({
               type="button"
               variant="ghost"
               size="icon"
-              disabled={pending || usedIds.size === 0}
+              disabled={usedIds.size === 0}
               onClick={() => apply(structuredClone(EMPTY_ROSTER))}
               aria-label="출전 명단 초기화"
               title="초기화"
@@ -202,10 +232,10 @@ export function ClanBalanceRosterEditor({
         ) : null}
       </div>
       <p id={helpId} className="sr-only">
-        아래 클랜원을 누르면 1팀부터 순서대로 빈자리에 들어갑니다. 참여자를
-        끌어 다른 자리로 이동하거나 교환할 수 있습니다. 키보드 또는 터치로는
-        참여자와 도착할 자리를 차례로 누르세요. 우클릭이나 Delete 키로 자리를
-        비우고 Escape 키로 이동 선택을 취소할 수 있습니다.
+        아래 클랜원을 누르면 1팀부터 순서대로 빈자리에 들어갑니다. 참여자를 끌어
+        다른 자리로 이동하거나 교환할 수 있습니다. 키보드 또는 터치로는 참여자와
+        도착할 자리를 차례로 누르세요. 우클릭이나 Delete 키로 자리를 비우고
+        Escape 키로 이동 선택을 취소할 수 있습니다.
       </p>
       <div aria-label="출전 명단 편집" aria-describedby={helpId}>
         <BalanceTeamHeading />
@@ -229,19 +259,22 @@ export function ClanBalanceRosterEditor({
                     <button
                       type="button"
                       data-roster-slot={key}
-                      disabled={!canEdit || pending}
-                      draggable={canEdit && !pending && Boolean(userId)}
+                      disabled={!canEdit}
+                      draggable={canEdit && Boolean(userId)}
                       aria-label={`${teamLabel} ${slot.label}: ${nickname}`}
                       aria-pressed={activeSlot === key}
                       aria-describedby={helpId}
-                      title={userId ? `${nickname} · 우클릭으로 비우기` : "빈자리"}
+                      title={
+                        userId ? `${nickname} · 우클릭으로 비우기` : "빈자리"
+                      }
                       className={cn(
                         "relative flex min-h-20 min-w-0 select-none items-center justify-center rounded-xl border px-2 py-3 text-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:px-3",
                         team === "team1"
                           ? "border-sky-500/35 bg-sky-500/[0.08]"
                           : "border-rose-500/35 bg-rose-500/[0.08]",
                         !userId && "border-dashed text-muted-foreground/65",
-                        userId && canEdit && !pending &&
+                        userId &&
+                          canEdit &&
                           "cursor-grab active:cursor-grabbing",
                         (activeSlot === key || dropSlot === key) &&
                           "ring-2 ring-primary ring-offset-2 ring-offset-background",
@@ -252,12 +285,15 @@ export function ClanBalanceRosterEditor({
                         else if (userId) setActiveSlot(key);
                       }}
                       onContextMenu={(event) => {
-                        if (!canEdit || pending) return;
+                        if (!canEdit) return;
                         event.preventDefault();
                         emptySlot(address);
                       }}
                       onKeyDown={(event) => {
-                        if (event.key === "Delete" || event.key === "Backspace") {
+                        if (
+                          event.key === "Delete" ||
+                          event.key === "Backspace"
+                        ) {
                           event.preventDefault();
                           emptySlot(address);
                         } else if (event.key === "Escape") clearInteraction();
@@ -270,7 +306,7 @@ export function ClanBalanceRosterEditor({
                       }}
                       onDragEnd={clearInteraction}
                       onDragOver={(event) => {
-                        if (!canEdit || pending || !draggedSlot) return;
+                        if (!canEdit || !draggedSlot) return;
                         event.preventDefault();
                         event.dataTransfer.dropEffect = "move";
                         setDropSlot(key);
@@ -278,7 +314,7 @@ export function ClanBalanceRosterEditor({
                       onDragLeave={() => setDropSlot(null)}
                       onDrop={(event) => {
                         event.preventDefault();
-                        if (!canEdit || pending || !draggedSlot) return;
+                        if (!canEdit || !draggedSlot) return;
                         const source = event.dataTransfer.getData(DRAG_TYPE);
                         if (source === draggedSlot) moveMember(source, address);
                         else clearInteraction();
@@ -327,7 +363,7 @@ export function ClanBalanceRosterEditor({
               <button
                 key={member.user_id}
                 type="button"
-                disabled={!canEdit || pending || !firstEmpty}
+                disabled={!canEdit || !firstEmpty}
                 onClick={() => addMember(member.user_id)}
                 aria-label={`${member.nickname} 출전 명단에 추가`}
                 title={member.nickname}
@@ -347,22 +383,38 @@ export function ClanBalanceRosterEditor({
           )}
         </div>
       </section>
-      {canEdit ? (
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p role="status" className="text-xs text-muted-foreground">
-            {dirty
-              ? "변경한 명단을 저장해 주세요."
-              : "저장한 명단이 클랜원에게 실시간으로 표시됩니다."}
-          </p>
-          <Button
-            type="button"
-            disabled={pending || !dirty}
-            onClick={save}
-            variant="outline"
-          >
-            <Save className="size-4" aria-hidden="true" />
-            {pending ? "저장 중…" : "배치 저장"}
-          </Button>
+      {canEdit && error ? (
+        <div
+          className="space-y-2 rounded-lg border border-destructive/40 p-3"
+          role="alert"
+        >
+          <p className="text-xs text-destructive">{error.message}</p>
+          <div className="flex flex-wrap gap-2">
+            {error.remote?.editable !== false ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={saving}
+                onClick={() => {
+                  void autosave.retry();
+                }}
+              >
+                {error.remote ? "내 변경 다시 적용" : "다시 시도"}
+              </Button>
+            ) : null}
+            {error.remote ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={saving}
+                onClick={() => autosave.loadRemote()}
+              >
+                최신 명단 불러오기
+              </Button>
+            ) : null}
+          </div>
         </div>
       ) : null}
     </div>

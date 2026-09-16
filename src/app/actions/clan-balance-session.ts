@@ -494,7 +494,10 @@ export async function updateBalanceRosterAction(
   sessionId: string,
   rosterJson: string,
   expectedRevision: number,
-): Promise<BalanceSessionActionResult> {
+): Promise<import("@/lib/balance/roster-autosave").RosterSaveResult> {
+  if (!Number.isInteger(expectedRevision) || expectedRevision < 0) {
+    return { ok: false, error: "명단 버전이 올바르지 않습니다." };
+  }
   const supabase = await createClient();
   const {
     data: { user },
@@ -558,15 +561,34 @@ export async function updateBalanceRosterAction(
     .eq("clan_id", clanId)
     .is("closed_at", null)
     .eq("phase", "editing")
+    .is("formation_state", null)
     .eq("formation_revision", expectedRevision)
-    .select("id")
+    .select("roster, formation_revision")
     .maybeSingle();
 
   if (updErr) return { ok: false, error: updErr.message };
-  if (!saved) return { ok: false, error: "다른 조작이 먼저 반영되었습니다. 최신 명단을 확인하세요." };
+  if (!saved) {
+    const { data: latest } = await supabase
+      .from("balance_sessions")
+      .select("roster, formation_revision, phase, formation_state, closed_at")
+      .eq("id", sessionId)
+      .eq("clan_id", clanId)
+      .maybeSingle();
+    return {
+      ok: false,
+      error: "다른 조작이 먼저 반영되었습니다. 내 변경은 보관되어 있습니다.",
+      ...(latest ? {
+        conflict: {
+          roster: parseRoster(latest.roster),
+          revision: latest.formation_revision,
+          editable: latest.phase === "editing" && latest.closed_at === null && latest.formation_state === null,
+        },
+      } : {}),
+    };
+  }
 
   revalidatePath(balancePath(gameSlug, clanId));
-  return { ok: true };
+  return { ok: true, roster: parseRoster(saved.roster), revision: saved.formation_revision };
 }
 
 export async function updateBalanceMaSnapshotAction(
