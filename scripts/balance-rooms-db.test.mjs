@@ -138,9 +138,9 @@ test("room ownership, reservations, delegation and scheduler stay scoped", async
     await ok(other.client.rpc("set_balance_room_rsvp", args));
     await ok(other.client.rpc("set_balance_room_rsvp", { ...args, p_response: "maybe" }));
     const responses = await ok(svc.from("balance_room_rsvps").select("*").eq("room_id", reservation.room_id));
-    assert.equal(responses.length, 1);
-    assert.equal(responses[0].user_id, other.id);
-    assert.equal(responses[0].response, "maybe");
+    assert.equal(responses.length, 2);
+    assert.equal(responses.find((row) => row.user_id === creator.id)?.response, "going");
+    assert.equal(responses.find((row) => row.user_id === other.id)?.response, "maybe");
     assert.equal((await ok(readRoom(reservation.room_id))).series_id, null);
     await denied(other.client.from("balance_room_rsvps").insert({ room_id: reservation.room_id, user_id: creator.id, response: "going" }));
     await denied(inactive.client.rpc("set_balance_room_rsvp", args));
