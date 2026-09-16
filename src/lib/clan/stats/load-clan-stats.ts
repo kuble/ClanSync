@@ -351,7 +351,7 @@ export async function loadClanStatsPage(
       supabase
         .from("balance_sessions")
         .select(
-          "id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,match_outcome",
+          "id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,match_outcome,balance_session_series(opened_at)",
         )
         .eq("clan_id", clanId)
         .neq("match_outcome", "pending")

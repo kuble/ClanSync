@@ -24,7 +24,9 @@ export type CompletedBalanceSession = Pick<
   | "roster"
   | "ma_snapshot"
   | "match_outcome"
->;
+> & {
+  balance_session_series?: { opened_at: string } | null;
+};
 
 export type ClanMatchPlayer = {
   user_id: string;
@@ -70,9 +72,10 @@ function sessionPlayers(rosterJson: Json, scoreJson: Json): ClanMatchPlayer[] {
   return players;
 }
 
-/** Read-only projection: settled sessions are records even before the host closes the session.
- * A closed session with a pending outcome is a cancellation, not a played match.
- * The current schema does not copy sessions into matches; a matching id always prefers
+/** Read-only projection: a settled round is a record before its parent session closes.
+ * All rounds use the parent session opening date, including rounds after midnight.
+ * A closed round with a pending outcome is a legacy cancellation, not a played match.
+ * The current schema does not copy rounds into matches; a matching id always prefers
  * the explicit match record, so later record corrections retain one canonical source.
  */
 export function normalizeClanMatchRecords(
@@ -123,6 +126,7 @@ export function normalizeClanMatchRecords(
       id: session.id,
       source: "balance",
       played_at:
+        session.balance_session_series?.opened_at ??
         session.predictions_settled_at ??
         session.closed_at ??
         session.opened_at,

@@ -168,7 +168,7 @@ export async function loadClanDashboard(
     supabase
       .from("balance_sessions")
       .select(
-        "id, opened_at, closed_at, predictions_settled_at, resolved_map_label, roster, ma_snapshot, match_outcome",
+        "id, opened_at, closed_at, predictions_settled_at, resolved_map_label, roster, ma_snapshot, match_outcome, balance_session_series(opened_at)",
         { count: "exact" },
       )
       .eq("clan_id", clanId)
@@ -178,13 +178,13 @@ export async function loadClanDashboard(
       ? supabase
           .from("balance_sessions")
           .select(
-            "id, match_outcome, balance_session_predictions(user_id, pick_team)",
+            "id, match_outcome, balance_session_predictions(user_id, pick_team), balance_session_series!inner(opened_at)",
             { count: "exact" },
           )
           .eq("clan_id", clanId)
           .in("match_outcome", ["team1", "team2"])
-          .gte("predictions_settled_at", monthStart.toISOString())
-          .lt("predictions_settled_at", monthEnd.toISOString())
+          .gte("balance_session_series.opened_at", monthStart.toISOString())
+          .lt("balance_session_series.opened_at", monthEnd.toISOString())
           .limit(1000)
       : Promise.resolve({ data: [], error: null, count: 0 }),
   ]);

@@ -46,6 +46,28 @@ function match(overrides: Partial<StoredClanMatch> = {}): StoredClanMatch {
   };
 }
 
+test("rounds after midnight retain the session opening date", () => {
+  const openedAt = "2026-09-30T14:50:00Z";
+  const records = normalizeClanMatchRecords([], [
+    session({
+      id: "round-1",
+      opened_at: openedAt,
+      predictions_settled_at: "2026-09-30T15:10:00Z",
+      balance_session_series: { opened_at: openedAt },
+    }),
+    session({
+      id: "round-2",
+      opened_at: "2026-09-30T15:15:00Z",
+      predictions_settled_at: "2026-09-30T15:40:00Z",
+      balance_session_series: { opened_at: openedAt },
+    }),
+  ]);
+  expect(records).toHaveLength(2);
+  expect(records.map((record) => record.played_at)).toEqual([openedAt, openedAt]);
+  expect(records.map((record) => new Date(record.played_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" })))
+    .toEqual(["2026-09-30", "2026-09-30"]);
+});
+
 function hofRecords() {
   return normalizeClanMatchRecords(
     [

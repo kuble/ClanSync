@@ -36,18 +36,6 @@ function balancePath(gameSlug: string, clanId: string): string {
   return `/games/${gameSlug}/clan/${clanId}/balance`;
 }
 
-async function loadClanGameId(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  clanId: string,
-): Promise<string | null> {
-  const { data } = await supabase
-    .from("clans")
-    .select("game_id")
-    .eq("id", clanId)
-    .maybeSingle();
-  return data?.game_id ?? null;
-}
-
 export async function openBalanceSessionAction(
   gameSlug: string,
   clanId: string,
@@ -67,24 +55,18 @@ export async function openBalanceSessionAction(
   );
   if (!can) return { ok: false, error: "운영진만 세션을 열 수 있습니다." };
 
-  const gameId = await loadClanGameId(supabase, clanId);
-  if (!gameId) return { ok: false, error: "클랜 정보를 찾을 수 없습니다." };
-
   const mapBan = formData.get("mapBan") === "on";
   const heroBan = formData.get("heroBan") === "on";
 
-  const { error } = await supabase.from("balance_sessions").insert({
-    clan_id: clanId,
-    game_id: gameId,
-    host_user_id: user.id,
-    phase: "editing",
-    map_ban_enabled: mapBan,
-    hero_ban_enabled: heroBan,
+  const { error } = await supabase.rpc("open_balance_session_series", {
+    p_clan_id: clanId,
+    p_map_ban: mapBan,
+    p_hero_ban: heroBan,
   });
 
   if (error) {
     if (error.code === "23505") {
-      return { ok: false, error: "이미 진행 중인 밸런스 세션이 있습니다." };
+      return { ok: false, error: "이미 열린 내전 세션이 있습니다." };
     }
     return { ok: false, error: error.message };
   }
@@ -511,6 +493,7 @@ export async function updateBalanceRosterAction(
   clanId: string,
   sessionId: string,
   rosterJson: string,
+  expectedRevision: number,
 ): Promise<BalanceSessionActionResult> {
   const supabase = await createClient();
   const {
@@ -568,15 +551,19 @@ export async function updateBalanceRosterAction(
     return { ok: false, error: "편집 단계에서만 배치를 바꿀 수 있습니다." };
   }
 
-  const { error: updErr } = await supabase
+  const { data: saved, error: updErr } = await supabase
     .from("balance_sessions")
     .update({ roster: roster as unknown as Json })
     .eq("id", sessionId)
     .eq("clan_id", clanId)
     .is("closed_at", null)
-    .eq("phase", "editing");
+    .eq("phase", "editing")
+    .eq("formation_revision", expectedRevision)
+    .select("id")
+    .maybeSingle();
 
   if (updErr) return { ok: false, error: updErr.message };
+  if (!saved) return { ok: false, error: "다른 조작이 먼저 반영되었습니다. 최신 명단을 확인하세요." };
 
   revalidatePath(balancePath(gameSlug, clanId));
   return { ok: true };
@@ -773,17 +760,32 @@ export async function closeBalanceSessionAction(
   );
   if (!can) return { ok: false, error: "운영진만 세션을 종료할 수 있습니다." };
 
-  const { data: updated, error } = await supabase
-    .from("balance_sessions")
-    .update({ closed_at: new Date().toISOString() })
-    .eq("id", sessionId)
-    .eq("clan_id", clanId)
-    .is("closed_at", null)
-    .select("id")
-    .maybeSingle();
+  const { error } = await supabase.rpc("close_balance_session_series", {
+    p_clan_id: clanId,
+    p_round_id: sessionId,
+  });
 
   if (error) return { ok: false, error: error.message };
-  if (!updated) return { ok: false, error: "종료할 세션을 찾을 수 없습니다." };
+
+  revalidatePath(balancePath(gameSlug, clanId));
+  return { ok: true };
+}
+
+/** Keep the session date and roster while starting a distinct, empty round. */
+export async function nextBalanceRoundAction(
+  gameSlug: string,
+  clanId: string,
+  currentRoundId: string,
+): Promise<BalanceSessionActionResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+
+  const { error } = await supabase.rpc("next_balance_round", {
+    p_clan_id: clanId,
+    p_round_id: currentRoundId,
+  });
+  if (error) return { ok: false, error: error.message };
 
   revalidatePath(balancePath(gameSlug, clanId));
   return { ok: true };

@@ -229,11 +229,65 @@ export type Database = {
           },
         ]
       }
+      balance_session_series: {
+        Row: {
+          clan_id: string
+          closed_at: string | null
+          game_id: string
+          host_user_id: string
+          id: string
+          opened_at: string
+          session_date: string | null
+        }
+        Insert: {
+          clan_id: string
+          closed_at?: string | null
+          game_id: string
+          host_user_id: string
+          id?: string
+          opened_at?: string
+          session_date?: string | null
+        }
+        Update: {
+          clan_id?: string
+          closed_at?: string | null
+          game_id?: string
+          host_user_id?: string
+          id?: string
+          opened_at?: string
+          session_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "balance_session_series_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_session_series_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_session_series_host_user_id_fkey"
+            columns: ["host_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       balance_sessions: {
         Row: {
           banned_heroes: string[] | null
           clan_id: string
           closed_at: string | null
+          formation_revision: number
+          formation_state: Json | null
           game_id: string
           hero_ban_deadline_at: string | null
           hero_ban_enabled: boolean
@@ -250,11 +304,15 @@ export type Database = {
           predictions_settled_at: string | null
           resolved_map_label: string | null
           roster: Json
+          round_number: number
+          series_id: string
         }
         Insert: {
           banned_heroes?: string[] | null
           clan_id: string
           closed_at?: string | null
+          formation_revision?: number
+          formation_state?: Json | null
           game_id: string
           hero_ban_deadline_at?: string | null
           hero_ban_enabled?: boolean
@@ -271,11 +329,15 @@ export type Database = {
           predictions_settled_at?: string | null
           resolved_map_label?: string | null
           roster?: Json
+          round_number?: number
+          series_id: string
         }
         Update: {
           banned_heroes?: string[] | null
           clan_id?: string
           closed_at?: string | null
+          formation_revision?: number
+          formation_state?: Json | null
           game_id?: string
           hero_ban_deadline_at?: string | null
           hero_ban_enabled?: boolean
@@ -292,6 +354,8 @@ export type Database = {
           predictions_settled_at?: string | null
           resolved_map_label?: string | null
           roster?: Json
+          round_number?: number
+          series_id?: string
         }
         Relationships: [
           {
@@ -314,6 +378,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_sessions_series_fk"
+            columns: ["series_id", "clan_id", "game_id"]
+            isOneToOne: false
+            referencedRelation: "balance_session_series"
+            referencedColumns: ["id", "clan_id", "game_id"]
           },
         ]
       }
@@ -2242,6 +2313,22 @@ export type Database = {
           user_id: string
         }[]
       }
+      close_balance_session_series: {
+        Args: { p_clan_id: string; p_round_id: string }
+        Returns: Json
+      }
+      commit_balance_formation: {
+        Args: {
+          p_actor_id: string
+          p_clan_id: string
+          p_command: string
+          p_revision: number
+          p_roster: Json
+          p_round_id: string
+          p_state: Json
+        }
+        Returns: boolean
+      }
       dispatch_inapp_notification_batch: {
         Args: { p_limit?: number }
         Returns: number
@@ -2294,6 +2381,14 @@ export type Database = {
           clan_name: string
           game_id: string
         }[]
+      }
+      next_balance_round: {
+        Args: { p_clan_id: string; p_round_id: string }
+        Returns: Json
+      }
+      open_balance_session_series: {
+        Args: { p_clan_id: string; p_hero_ban?: boolean; p_map_ban?: boolean }
+        Returns: Json
       }
       record_clan_activity: { Args: { p_clan_id: string }; Returns: undefined }
       replace_event_inapp_notifications: {
