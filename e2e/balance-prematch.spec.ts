@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import {
   createIsolatedBalanceFixture,
+  createAndEnterBalanceRoom,
   loginIsolatedBalanceUser,
 } from "./isolated-balance-fixture";
 import { mapPoolForGameSlug } from "../src/lib/balance/map-pools";
@@ -61,9 +62,8 @@ async function saveSettings(settings: Locator) {
 }
 
 async function openAndForm(page: Page, fixture: Fixture) {
-  await page.goto(fixture.path);
+  await createAndEnterBalanceRoom(page, fixture.path);
   const panel = page.getByTestId("clan-balance-session-panel");
-  await panel.getByRole("button", { name: "세션 열기", exact: true }).click();
   await expect(panel).toHaveAttribute("data-balance-phase", "editing");
   const settings = await openSettings(page, panel);
   await settings.getByRole("radio", { name: /직접 배정/ }).check();
@@ -122,7 +122,7 @@ test("경기 준비: QA 연출·설정 보존·유형 필터·공유 맵 결과�
       loginIsolatedBalanceUser(member, fixture.users[1]),
     ]);
     const panel = await openAndForm(page, fixture);
-    await member.goto(fixture.path);
+    await member.goto(page.url());
     const memberPanel = member.getByTestId("clan-balance-session-panel");
     await expect(
       memberPanel.getByRole("button", { name: "라운드 설정", exact: true }),

@@ -6,15 +6,17 @@ import { createClient } from "@/lib/supabase/client";
 
 export function ClanBalanceSessionRealtime({
   sessionId,
+  seriesId,
   clanId,
   roundKey,
 }: {
   sessionId: string | null;
+  seriesId: string | null;
   clanId: string;
   roundKey: string;
 }) {
   const router = useRouter();
-  const connectionKey = `${clanId}:${sessionId ?? "none"}`;
+  const connectionKey = `${clanId}:${seriesId ?? "none"}:${sessionId ?? "none"}`;
   const [connection, setConnection] = useState({
     key: connectionKey,
     status: "CONNECTING",
@@ -54,7 +56,7 @@ export function ClanBalanceSessionRealtime({
           event: "*",
           schema: "public",
           table: "balance_sessions",
-          filter: `clan_id=eq.${clanId}`,
+          filter: seriesId ? `series_id=eq.${seriesId}` : `clan_id=eq.${clanId}`,
         },
         refresh,
       )
@@ -64,10 +66,14 @@ export function ClanBalanceSessionRealtime({
           event: "*",
           schema: "public",
           table: "balance_session_series",
-          filter: `clan_id=eq.${clanId}`,
+          filter: seriesId ? `id=eq.${seriesId}` : `clan_id=eq.${clanId}`,
         },
         refresh,
-      );
+      )
+      .on("postgres_changes", {
+        event: "*", schema: "public", table: "balance_rooms",
+        filter: seriesId ? `series_id=eq.${seriesId}` : `clan_id=eq.${clanId}`,
+      }, refresh);
 
     if (sessionId) {
       for (const table of [
@@ -122,10 +128,12 @@ export function ClanBalanceSessionRealtime({
         return;
       checking = true;
       try {
+        if (!seriesId) return;
         const { data, error } = await supabase
           .from("balance_sessions")
           .select("id,formation_revision,phase,match_outcome")
           .eq("clan_id", clanId)
+          .eq("series_id", seriesId)
           .is("closed_at", null)
           .maybeSingle();
         if (error || disposed) return;
@@ -158,7 +166,7 @@ export function ClanBalanceSessionRealtime({
       if (refreshTimer) clearTimeout(refreshTimer);
       void supabase.removeChannel(channel);
     };
-  }, [sessionId, clanId, connectionKey, router]);
+  }, [sessionId, seriesId, clanId, connectionKey, router]);
 
   return (
     <span

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 import { loadTestEnv } from "../scripts/test-env.mjs";
 import type { Database } from "../src/lib/supabase/database.types";
 
@@ -99,13 +99,14 @@ export async function createIsolatedBalanceFixture(userCount = 12) {
       users,
       cleanup,
       path: `/games/overwatch/clan/${clan.id}/balance`,
-      async activeRound() {
-        const { data, error } = await service
+      async activeRound(seriesId?: string) {
+        let query = service
           .from("balance_sessions")
           .select("*")
           .eq("clan_id", clan.id)
-          .is("closed_at", null)
-          .single();
+          .is("closed_at", null);
+        if (seriesId) query = query.eq("series_id", seriesId);
+        const { data, error } = await query.single();
         if (error) throw error;
         return data;
       },
@@ -138,4 +139,34 @@ export async function loginIsolatedBalanceUser(
   await page.getByLabel("비밀번호", { exact: true }).fill(user.password);
   await page.getByRole("button", { name: "로그인", exact: true }).click();
   await page.waitForURL(/\/games\/?$/, { timeout: 45_000 });
+}
+
+export async function createAndEnterBalanceRoom(
+  page: Page,
+  path: string,
+  title = "회귀 검증 내전",
+  kind: "regular" | "flash" = "regular",
+) {
+  await page.goto(path);
+  await page.getByRole("button", { name: "내전 추가", exact: true }).click();
+  const create = page.getByRole("dialog", { name: "내전 만들기", exact: true });
+  await create.getByRole("radio", {
+    name: kind === "regular" ? "정규 내전" : "깜짝 내전",
+    exact: true,
+  }).check();
+  await create.getByRole("textbox", { name: "내전 이름", exact: true }).fill(title);
+  await create.getByRole("button", { name: "내전 만들기", exact: true }).click();
+  await expect(create).toBeHidden({ timeout: 20_000 });
+  const row = page.getByTestId("balance-lobby-room").filter({
+    has: page.getByRole("button", { name: title, exact: true }),
+  });
+  await expect(row).toBeVisible({ timeout: 20_000 });
+  const roomId = await row.getAttribute("data-room-id");
+  if (!roomId) throw new Error("Created room is missing its identifier");
+  await row.getByRole("link", { name: "입장", exact: true }).click();
+  await page.waitForURL((url) => url.searchParams.get("room") === roomId);
+  await expect(page.getByTestId("clan-balance-session-panel")).toHaveAttribute(
+    "data-balance-phase", "editing", { timeout: 20_000 },
+  );
+  return { roomId, url: page.url() };
 }

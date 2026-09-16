@@ -122,8 +122,8 @@ function ClanHero({
           href={basePath + "/balance"}
           className={cn(buttonVariants({ size: "sm" }), styles.heroAction)}
         >
-          <NavigationIcon icon={Scale} label="밸런스메이커" />
-          내전 시작
+          <NavigationIcon icon={Scale} label="내전 로비" />
+          내전 로비 열기
         </Link>
       ) : null}
     </section>
@@ -154,7 +154,7 @@ export function MainClanShell({
     { href: basePath, label: "대시보드", icon: Home },
     {
       href: basePath + "/balance",
-      label: "밸런스메이커",
+      label: "내전 로비",
       icon: Scale,
       dot: ctx.sidebarDots.balance,
     },

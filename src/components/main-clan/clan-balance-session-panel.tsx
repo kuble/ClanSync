@@ -279,6 +279,7 @@ export function ClanBalanceSessionPanel({
       data-balance-phase={session?.phase ?? "none"}
     >
       <ClanBalanceSessionRealtime
+        seriesId={series?.id ?? null}
         sessionId={session?.id ?? null}
         clanId={clanId}
         roundKey={
@@ -517,16 +518,6 @@ export function ClanBalanceSessionPanel({
                 {hostNickname ? "호스트 · " + hostNickname : "세션 진행 중"}
               </span>
             ) : null}
-            <span
-              className={cn(
-                "rounded-full border px-2.5 py-1 font-semibold",
-                planPremium
-                  ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"
-                  : "border-border text-muted-foreground",
-              )}
-            >
-              {planPremium ? "Premium" : "Free"}
-            </span>
           </div>
           <div className="flex items-center gap-1">
             <Button

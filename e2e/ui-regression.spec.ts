@@ -15,7 +15,7 @@ test.describe("UI 회귀 — MainClan (QA 리더)", () => {
 
     const tabs: { suffix: string; heading: RegExp }[] = [
       { suffix: "", heading: /대시보드/ },
-      { suffix: "/balance", heading: /밸런스메이커/ },
+      { suffix: "/balance", heading: /내전 로비/ },
       { suffix: "/stats", heading: /클랜 통계/ },
       { suffix: "/events", heading: /클랜 이벤트/ },
       { suffix: "/manage", heading: /클랜 관리/ },

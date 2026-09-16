@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import {
   createIsolatedBalanceFixture,
+  createAndEnterBalanceRoom,
   loginIsolatedBalanceUser,
 } from "./isolated-balance-fixture";
 import {
@@ -156,10 +157,8 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
         return data?.ranking;
       })
       .toEqual(["tank", "sup", "dmg"]);
-    await page.goto(fixture.path);
+    const room = await createAndEnterBalanceRoom(page, fixture.path);
     const panel = page.getByTestId("clan-balance-session-panel");
-    await expect(panel).toHaveAttribute("data-balance-phase", "none");
-    await panel.getByRole("button", { name: "세션 열기", exact: true }).click();
     await expect(panel).toHaveAttribute("data-balance-phase", "editing", {
       timeout: 20_000,
     });
@@ -250,7 +249,7 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
     expect(await readRoster(panel)).toEqual(savedRoster);
 
     await settings(page, panel, "random", true);
-    await member.goto(fixture.path);
+    await member.goto(room.url);
     const memberPanel = member.getByTestId("clan-balance-session-panel");
     await expect(memberPanel.getByTestId("balance-realtime")).toHaveAttribute(
       "data-connection-status",
@@ -494,10 +493,6 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
       timeout: 20_000,
     });
     await confirmResult(page, panel, "void");
-    await panel.getByRole("button", { name: "세션 종료", exact: true }).click();
-    await expect(panel).toHaveAttribute("data-balance-phase", "none", {
-      timeout: 20_000,
-    });
     await page.setViewportSize({ width: 390, height: 844 });
     await panel.getByRole("button", { name: "내전 기록", exact: true }).click();
     const history = page.getByRole("dialog", {
@@ -522,6 +517,15 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
         () => document.documentElement.scrollWidth <= window.innerWidth + 1,
       ),
     ).toBe(true);
+    await page.keyboard.press("Escape");
+    await expect(history).toBeHidden();
+    await panel.getByRole("button", { name: "세션 종료", exact: true }).click();
+    await expect(page.getByTestId("clan-balance-lobby")).toBeVisible({ timeout: 20_000 });
+    await expect.poll(async () => {
+      const { data } = await fixture.service.from("balance_session_series")
+        .select("closed_at").eq("id", room.roomId).single();
+      return data?.closed_at;
+    }).toBeTruthy();
   } finally {
     await memberContext.close();
     await fixture.cleanup();

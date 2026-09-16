@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import {
   createIsolatedBalanceFixture,
+  createAndEnterBalanceRoom,
   type BalanceTestUser,
 } from "./isolated-balance-fixture";
 
@@ -25,10 +26,9 @@ test("서로 다른 루프백 탭: 클랜원 선호 저장·프로필 복귀·�
   const member = await context.newPage();
   const leaderClient = await fixture.memberClient(0);
   try {
-    const opened = await leaderClient.rpc("open_balance_session_series", {
-      p_clan_id: fixture.clanId,
-    });
-    expect(opened.error).toBeNull();
+    await loginAt(page, operatorOrigin, fixture.users[0]);
+    await loginAt(member, memberOrigin, fixture.users[1]);
+    const room = await createAndEnterBalanceRoom(page, `${operatorOrigin}${fixture.path}`);
     const emptyTeam = { tank: null, dmg: [null, null], sup: [null, null] };
     const roster = {
       team1: { ...emptyTeam, tank: fixture.users[0].id },
@@ -56,10 +56,8 @@ test("서로 다른 루프백 탭: 클랜원 선호 저장·프로필 복귀·�
     });
     expect(settings.error).toBeNull();
     expect(settings.data).toBe(true);
-    await loginAt(page, operatorOrigin, fixture.users[0]);
-    await loginAt(member, memberOrigin, fixture.users[1]);
-    await page.goto(`${operatorOrigin}${fixture.path}`);
-    await member.goto(`${memberOrigin}${fixture.path}`);
+    await page.reload();
+    await member.goto(`${memberOrigin}${fixture.path}?room=${room.roomId}`);
     const operatorPanel = page.getByTestId("clan-balance-session-panel");
     const memberPanel = member.getByTestId("clan-balance-session-panel");
     await expect(

@@ -4,7 +4,6 @@ import type { ClanMemberRole } from "@/lib/clan/permission-defaults";
 import { cache } from "react";
 import {
   readClanAccessSnapshot,
-  resolveClanPermission,
   type ClanAccessSnapshot,
 } from "@/lib/clan/clan-access-snapshot";
 import { getRequestClanAccess } from "@/lib/clan/request-clan-access";
@@ -113,11 +112,7 @@ async function loadMainClanContextData(
       .eq("clan_id", clanId)
       .is("closed_at", null),
   ]);
-  const canStartBalance = resolveClanPermission(
-    role,
-    "manage_clan_events",
-    access.permissions,
-  );
+  const canStartBalance = role === "leader" || role === "officer" || role === "member";
   const styles = {
     social: "친목",
     casual: "즐겜",
