@@ -189,12 +189,13 @@ test("로비 간소화: 예약 휠·주간 단일 행·바로 참여", async ({ 
     await expect(rows.first().getByRole("link", { name: "입장" })).toBeVisible();
     const flashRow = roomRow(page, flash.id);
     await expect(flashRow.getByRole("button", { name: "예약 보기", exact: true })).toHaveCount(0);
-    await flashRow.getByRole("button", { name: "참여", exact: true }).click();
     await expect(flashRow.getByRole("button", { name: "참여 취소", exact: true })).toHaveAttribute("aria-pressed", "true");
     await page.reload();
     await expect(flashRow).toContainText("참여 1");
     await flashRow.getByRole("button", { name: "참여 취소", exact: true }).click();
     await expect(flashRow).toContainText("참여 0");
+    await flashRow.getByRole("button", { name: "참여", exact: true }).click();
+    await expect(flashRow).toContainText("참여 1");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole("button", { name: "내전 추가", exact: true }).click();
     const create = page.getByRole("dialog", { name: "내전 만들기", exact: true });
@@ -338,7 +339,7 @@ test("깜짝 내전: 클랜원 개설·참석 응답과 출전 명단 분리·�
     await Promise.all([page.reload(), owner.reload()]);
     await expect(page).toHaveURL(regular.url);
     await expect(owner).toHaveURL(flashUrl);
-    await expect(regularPanel.locator('[data-roster-slot="team1:d0"]')).toHaveText(fixture.users[0].nickname);
+    await expect(regularPanel.locator('[data-roster-slot="team1:d0"]')).toContainText(fixture.users[0].nickname);
     await expect(flashPanel.locator('[data-roster-slot="team1:d0"]')).toHaveText(fixture.users[1].nickname);
     await visitor.goto(flashUrl);
     const visitorPanel = visitor.getByTestId("clan-balance-session-panel");

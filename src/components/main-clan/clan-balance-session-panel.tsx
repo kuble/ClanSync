@@ -79,7 +79,7 @@ import type { Database } from "@/lib/supabase/database.types";
 import { useServerClock } from "@/lib/balance/use-server-clock";
 import { ClanBalanceDrawDialog } from "./clan-balance-draw-dialog";
 import { cn } from "@/lib/utils";
-import { BalanceTeamInsights, ScoreModeToggle, type ScoreMode } from "./balance-team-insights";
+import { BalanceTeamInsights, ScoreModeToggle, previewScores, type ScoreMode } from "./balance-team-insights";
 import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
@@ -149,7 +149,6 @@ export function ClanBalanceSessionPanel({
   const [guideOpen, setGuideOpen] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [scoreMode, setScoreMode] = useState<ScoreMode>("m");
-  const [draftRoster, setDraftRoster] = useState(() => parseRoster(session?.roster));
   const formation =
     session?.formation_state as unknown as FormationState | null;
   const mapScreen = Boolean(
@@ -288,7 +287,10 @@ export function ClanBalanceSessionPanel({
     disabled={pending || busyFormation || (session.phase !== "editing" && session.match_outcome === "pending")}
     title={session.phase !== "editing" && session.match_outcome === "pending" ? "경기 결과 또는 무효를 먼저 기록하세요." : undefined}
     onClick={() => setConfirmEnd(true)}>세션 종료</Button> : null;
-  const renderInsights = (map: string | null, roster = rosterData) => canViewScores ? <BalanceTeamInsights roster={roster} scores={scores} mode={scoreMode} map={map} premium={planPremium} /> : null;
+  const sampleScores = canViewScores && qaPreviewEnabled;
+  const displayScores = sampleScores ? previewScores(rosterPool.map((member) => member.user_id), scores) : scores;
+  const scoreControl = canViewScores ? <div className="flex flex-wrap items-center gap-2"><ScoreModeToggle value={scoreMode} onChange={setScoreMode} premium={planPremium} />{sampleScores ? <span className="text-[10px] text-muted-foreground">샘플 점수·승률 포함</span> : null}</div> : null;
+  const renderInsights = (map: string | null, roster = rosterData, showMap = false) => canViewScores ? <BalanceTeamInsights roster={roster} scores={displayScores} mode={scoreMode} map={map} premium={planPremium} compact={!showMap} showMap={showMap} sample={sampleScores} /> : null;
 
   return (
     <div
@@ -585,7 +587,7 @@ export function ClanBalanceSessionPanel({
                 showSummary={session.phase === "editing" && !mapScreen}
               />
             ) : null}
-            {canViewScores ? <ScoreModeToggle value={scoreMode} onChange={setScoreMode} premium={planPremium} /> : null}
+            {!(session.phase === "editing" && !mapScreen && canManage && !formation) ? scoreControl : null}
             {session.phase === "editing" && !mapScreen ? (
               <div className="space-y-5">
                 <div data-balance-guide="board">
@@ -600,8 +602,9 @@ export function ClanBalanceSessionPanel({
                       initialRoster={rosterData}
                       pool={[...rosterPool]}
                       canEdit={!busyFormation && !pending}
-                      onRosterChange={setDraftRoster}
-                      scores={canViewScores ? scores : undefined}
+                      scoreControl={scoreControl}
+                      renderInsights={(roster) => renderInsights(null, roster)}
+                      scores={canViewScores ? displayScores : undefined}
                       scoreMode={scoreMode}
                     />
                   ) : (
@@ -613,7 +616,7 @@ export function ClanBalanceSessionPanel({
                     />
                   )}
                 </div>
-                {renderInsights(null, !formation && canManage ? draftRoster : rosterData)}
+                {formation || !canManage ? renderInsights(null) : null}
                 {isRosterParticipant &&
                 !formation &&
                 settings.roles === "lottery" ? (
@@ -691,7 +694,7 @@ export function ClanBalanceSessionPanel({
 
             {session.phase === "editing" && mapScreen ? (
               <ClanBalancePrematchControls
-                renderInsights={renderInsights}
+                renderInsights={(map) => renderInsights(map, rosterData, true)}
                 key={`${session.id}:${JSON.stringify(session.map_types)}`}
                 gameSlug={gameSlug}
                 clanId={clanId}
@@ -701,6 +704,7 @@ export function ClanBalanceSessionPanel({
             ) : null}
             {session.phase === "map_ban" ? (
               <div className="space-y-6">
+                {renderInsights(session.resolved_map_label, rosterData, true)}
                 {triple ? (
                   <ClanBalanceMapBanClient
                     gameSlug={gameSlug}
@@ -846,7 +850,7 @@ export function ClanBalanceSessionPanel({
                   <ClanBalanceRosterBoard
                     roster={rosterData}
                     pool={rosterPool}
-                    snapshot={canViewScores ? scores : undefined}
+                    snapshot={canViewScores ? displayScores : undefined}
                     planPremium={planPremium}
                     scoreMode={scoreMode}
                   />

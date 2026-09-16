@@ -12,11 +12,23 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     const roster = { team1: { tank: ids[0], dmg: ids.slice(1, 3), sup: ids.slice(3, 5) }, team2: { tank: ids[5], dmg: ids.slice(6, 8), sup: ids.slice(8, 10) } };
     const scores = Object.fromEntries(ids.map((id, i) => [id, { m: i < 5 ? 1 : 3, a: i < 5 ? 2 : 4 }]));
     const round = await fixture.activeRound(regular.roomId);
-    const seed = await fixture.service.from("balance_sessions").update({ roster, ma_snapshot: scores }).eq("id", round.id);
+    const seed = await fixture.service.from("balance_sessions").update({ roster }).eq("id", round.id);
     expect(seed.error).toBeNull();
     await page.reload();
     const panel = page.getByTestId("clan-balance-session-panel");
     const insights = panel.getByRole("complementary", { name: "팀 밸런스 비교" });
+    await expect(panel.locator('[data-roster-slot="team1:tank"]')).toContainText(/M -?\d/);
+    await expect(panel.getByText("샘플 점수·승률 포함", { exact: true })).toBeVisible();
+    await expect(insights).toContainText(/\d+%/);
+    await expect(insights).not.toContainText("맵 반영 승률");
+    const board = panel.locator('[aria-label="출전 명단 편집"]');
+    await expect(board.getByRole("complementary", { name: "팀 밸런스 비교" })).toBeVisible();
+    await expect(panel.getByText("출전 명단 10 / 10", { exact: true })).toHaveCount(0);
+    expect((await fixture.activeRound(regular.roomId)).ma_snapshot).toEqual({});
+    await page.screenshot({ path: test.info().outputPath("roster-sample-insights.png"), fullPage: true });
+    const savedScores = await fixture.service.from("balance_sessions").update({ ma_snapshot: scores }).eq("id", round.id);
+    expect(savedScores.error).toBeNull();
+    await page.reload();
     await expect(insights).toContainText("1팀 5.0");
     await panel.getByRole("button", { name: "A 점수", exact: true }).click();
     await expect(insights).toContainText("1팀 10.0");
@@ -26,7 +38,6 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await panel.locator('[data-roster-slot="team2:tank"]').click();
     await expect(insights).toContainText("1팀 7.0");
     await expect(insights).toContainText("2팀 13.0");
-    await expect(insights).not.toContainText("50%");
     await expect(panel.getByTestId("balance-formation").getByRole("button", { name: "세션 종료", exact: true })).toBeVisible();
     await panel.getByRole("button", { name: "라운드 설정", exact: true }).click();
     const settings = page.getByRole("dialog", { name: "라운드 설정", exact: true });
@@ -45,7 +56,7 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     });
     await panel.getByRole("button", { name: "왕의 길 선택", exact: true }).click();
     await expect(insights).toContainText("맵 반영 승률 · 왕의 길");
-    await expect(insights).toContainText("예측 준비 중");
+    await expect(insights).toContainText("샘플");
     await expect(panel.getByRole("button", { name: "경기 시작", exact: true })).toBeEnabled();
     await panel.getByRole("button", { name: "눔바니 선택", exact: true }).click();
     await expect(insights).toContainText("맵 반영 승률 · 눔바니");
@@ -59,6 +70,9 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     const created = await owner.rpc("create_balance_room", { p_clan_id: fixture.clanId, p_kind: "flash", p_title: "휘발성 검증" });
     expect(created.error).toBeNull();
     const flash = created.data as { series_id: string; room_id: string };
+    const creatorRsvp = await owner.from("balance_room_rsvps").select("user_id,response").eq("room_id", flash.room_id);
+    expect(creatorRsvp.error).toBeNull();
+    expect(creatorRsvp.data).toEqual([{ user_id: ids[1], response: "going" }]);
     const flashRound = await fixture.activeRound(flash.series_id);
     const setup = await fixture.service.from("balance_sessions").update({ roster, map_ban_enabled: false, hero_ban_enabled: false }).eq("id", flashRound.id);
     expect(setup.error).toBeNull();
@@ -87,6 +101,25 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     const remaining = await fixture.service.from("balance_session_predictions").select("session_id").eq("session_id", flashRound.id);
     expect(remaining.error).toBeNull(); expect(remaining.data).toEqual([]);
     expect((await fixture.activeRound(regular.roomId)).id).toBe(round.id);
+    const scheduled = await owner.rpc("create_balance_room", { p_clan_id: fixture.clanId, p_kind: "flash", p_title: "자동 참여 예약", p_scheduled_at: new Date(Date.now() + 2 * 86_400_000).toISOString(), p_rsvp_days: 1 });
+    expect(scheduled.error).toBeNull();
+    const scheduledId = (scheduled.data as { room_id: string }).room_id;
+    const reserved = await owner.from("balance_room_rsvps").select("response").eq("room_id", scheduledId).eq("user_id", ids[1]).single();
+    expect(reserved.error).toBeNull(); expect(reserved.data?.response).toBe("going");
+    await page.context().clearCookies();
+    await loginIsolatedBalanceUser(page, fixture.users[2]);
+    await page.goto(fixture.path);
+    for (const width of [1211, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      const actions = page.getByTestId("balance-room-actions");
+      await expect(actions).toHaveCount(2);
+      await expect(actions.first()).toBeVisible();
+      await expect(actions.last()).toBeVisible();
+      const boxes = await actions.evaluateAll((elements) => elements.map((element) => ({ x: element.getBoundingClientRect().x, width: element.getBoundingClientRect().width })));
+      expect(boxes[0]).toEqual(boxes[1]);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    }
+    await page.getByTestId("clan-balance-lobby").screenshot({ path: test.info().outputPath("lobby-actions-mobile.png") });
     await owner.auth.signOut();
   } finally {
     await fixture.cleanup();

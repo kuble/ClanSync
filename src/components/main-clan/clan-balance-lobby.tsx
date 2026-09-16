@@ -121,15 +121,19 @@ export function ClanBalanceLobby({ gameSlug, clanId, userId, clanRole, rooms, me
             <span className="inline-flex items-center gap-1"><Clock3 className="size-3" aria-hidden="true" /><time dateTime={room.scheduled_at}>{displayStart(room.scheduled_at)}</time></span>
             <span>{room.delegateNickname ?? room.creatorNickname}</span>
             {room.schedule_id && room.scheduleEnabled !== false ? <span className="inline-flex items-center gap-1"><Repeat2 className="size-3" aria-hidden="true" />{room.repeatEveryDays === 7 || !room.repeatEveryDays ? "매주" : `${room.repeatEveryDays}일마다`}</span> : null}
-            {room.kind === "flash" && room.rsvp_days !== null ? <span className="inline-flex items-center gap-1"><UsersRound className="size-3" aria-hidden="true" />참여 {room.rsvpCounts.going}</span> : null}
+            {room.kind === "flash" ? <span className="inline-flex items-center gap-1"><UsersRound className="size-3" aria-hidden="true" />참여 {room.rsvpCounts.going}</span> : null}
           </div>
           {room.kind === "flash" && room.status === "scheduled" && !rsvpOpen ? <p className="mt-1 text-[11px] text-muted-foreground">{participationHint}</p> : null}
         </div>
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="grid shrink-0 grid-cols-[5rem_2rem] items-center gap-1" data-testid="balance-room-actions">
+          <div className="flex justify-end [&>a]:w-full [&>button]:w-full">
           {room.status === "open" && room.series_id ? (
             <Link className={buttonVariants({ size: "sm", variant: "outline" })} href={roomPath(room.id)}>입장<ArrowUpRight className="size-3.5" aria-hidden="true" /></Link>
           ) : room.status === "scheduled" && room.kind === "flash" ? <Button size="sm" variant={room.myRsvp === "going" ? "secondary" : "outline"} aria-pressed={room.myRsvp === "going"} disabled={pending || !canCreate || !rsvpOpen} title={participationHint} onClick={() => run(() => setBalanceRoomRsvpAction(gameSlug, clanId, room.id, room.myRsvp === "going" ? "no" : "going"), room.myRsvp === "going" ? "참여를 취소했습니다." : "참여 신청이 완료되었습니다.")}>{room.myRsvp === "going" ? "참여 취소" : "참여"}</Button> : room.status === "scheduled" ? <Button size="sm" variant="outline" onClick={() => setDetailId(room.id)}>예약 보기</Button> : null}
-          {room.kind === "regular" || canManage ? <Button size="icon-sm" variant="ghost" aria-label={`${room.title} 방 정보`} title="방 정보" onClick={() => setDetailId(room.id)}><MoreHorizontal className="size-4" aria-hidden="true" /></Button> : null}
+          </div>
+          <div className="flex size-8 items-center justify-center">
+            {room.kind === "regular" || canManage ? <Button size="icon-sm" variant="ghost" aria-label={`${room.title} 방 정보`} title="방 정보" onClick={() => setDetailId(room.id)}><MoreHorizontal className="size-4" aria-hidden="true" /></Button> : null}
+          </div>
         </div>
       </li>
     );

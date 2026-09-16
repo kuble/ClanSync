@@ -7,8 +7,9 @@ import {
   useState,
   useSyncExternalStore,
   type Ref,
+  type ReactNode,
 } from "react";
-import { RotateCcw, Search, Undo2, Users } from "lucide-react";
+import { RotateCcw, Search, Undo2 } from "lucide-react";
 import { updateBalanceRosterAction } from "@/app/actions/clan-balance-session";
 import { Button } from "@/components/ui/button";
 import {
@@ -71,6 +72,8 @@ export function ClanBalanceRosterEditor({
   onRosterChange,
   scores,
   scoreMode = "m",
+  scoreControl,
+  renderInsights,
   ref,
 }: {
   gameSlug: string;
@@ -84,6 +87,8 @@ export function ClanBalanceRosterEditor({
   onRosterChange?: (roster: BalanceRoster) => void;
   scores?: MaSnapshot;
   scoreMode?: ScoreMode;
+  scoreControl?: ReactNode;
+  renderInsights?: (roster: BalanceRoster) => ReactNode;
   ref?: Ref<ClanBalanceRosterEditorHandle>;
 }) {
   const helpId = useId();
@@ -207,12 +212,7 @@ export function ClanBalanceRosterEditor({
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-        <span className="flex items-center gap-2 text-muted-foreground">
-          <Users className="size-4" aria-hidden="true" /> 출전 명단{" "}
-          <strong className="tabular-nums text-foreground">
-            {usedIds.size} / 10
-          </strong>
-        </span>
+        <div>{scoreControl}</div>
         {canEdit ? (
           <div className="flex items-center gap-1">
             <Button
@@ -248,6 +248,7 @@ export function ClanBalanceRosterEditor({
       </p>
       <div aria-label="출전 명단 편집" aria-describedby={helpId}>
         <BalanceTeamHeading />
+        {renderInsights?.(roster)}
         <div className="space-y-2 rounded-xl bg-muted/35 p-2 sm:p-3">
           {BALANCE_SLOTS.map((slot) => (
             <div
