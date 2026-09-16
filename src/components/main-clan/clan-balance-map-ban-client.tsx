@@ -10,6 +10,10 @@ import {
 } from "@/app/actions/clan-balance-session";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import {
+  ClanBalanceMapResultDialog,
+  ClanBalanceMapVotePreview,
+} from "./clan-balance-map-vote-preview";
 
 export function ClanBalanceMapBanClient({
   gameSlug,
@@ -20,32 +24,56 @@ export function ClanBalanceMapBanClient({
   myChoiceIdx,
   tallies,
   canResolve,
+  resolvedMap = null,
+  qaPreview = false,
+  serverNow,
 }: {
   gameSlug: string;
   clanId: string;
   sessionId: string;
   candidates: [string, string, string];
-  deadlineIso: string;
+  deadlineIso: string | null;
   myChoiceIdx: number | null;
   tallies: [number, number, number];
   canResolve: boolean;
+  resolvedMap?: string | null;
+  qaPreview?: boolean;
+  serverNow?: number;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [now, setNow] = useState<number | null>(null);
-  const deadlineMs = new Date(deadlineIso).getTime();
+  const [observedResult, setObservedResult] = useState(resolvedMap);
+  const [resultOpen, setResultOpen] = useState(false);
+  const [animateResult, setAnimateResult] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  // A reconnect starts with the saved result; only a new result starts its reveal.
+  if (observedResult !== resolvedMap) {
+    setObservedResult(resolvedMap);
+    setResultOpen(Boolean(resolvedMap));
+    setAnimateResult(Boolean(resolvedMap));
+  }
+  const deadlineMs = deadlineIso ? new Date(deadlineIso).getTime() : 0;
   useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 250);
-    return () => clearInterval(timer);
-  }, []);
+    const anchor = serverNow ?? Date.now();
+    const started = performance.now();
+    const update = () => setNow(anchor + performance.now() - started);
+    const frame = requestAnimationFrame(update);
+    const timer = setInterval(update, 250);
+    return () => {
+      cancelAnimationFrame(frame);
+      clearInterval(timer);
+    };
+  }, [serverNow]);
   const remainSec =
     now === null ? null : Math.max(0, Math.ceil((deadlineMs - now) / 1000));
   const expired = remainSec === 0;
   const total = tallies.reduce((sum, count) => sum + count, 0);
 
   function onVote(idx: number) {
+    if (resolvedMap || expired || pending || !deadlineIso) return;
     start(async () => {
-      const r = await submitMapVoteAction(gameSlug, clanId, sessionId, idx);
+      const r = await submitMapVoteAction(gameSlug, clanId, sessionId, idx, deadlineIso);
       if (!r.ok) {
         toast.error(r.error);
         return;
@@ -55,6 +83,7 @@ export function ClanBalanceMapBanClient({
     });
   }
   function onResolve() {
+    if (resolvedMap || pending || !expired) return;
     start(async () => {
       const r = await resolveMapBanAction(gameSlug, clanId, sessionId);
       if (!r.ok) {
@@ -89,7 +118,13 @@ export function ClanBalanceMapBanClient({
         >
           <Timer className="size-4" aria-hidden="true" />
           <span className="text-lg font-bold tabular-nums">
-            {remainSec === null ? "—" : expired ? "투표 종료" : remainSec + "s"}
+            {resolvedMap
+              ? "맵 확정"
+              : remainSec === null
+                ? "—"
+                : expired
+                  ? "투표 종료"
+                  : remainSec + "s"}
           </span>
         </div>
       </div>
@@ -103,7 +138,7 @@ export function ClanBalanceMapBanClient({
               key={idx + "-" + label}
               type="button"
               aria-pressed={selected}
-              disabled={pending || expired}
+              disabled={pending || expired || Boolean(resolvedMap)}
               onClick={() => onVote(idx)}
               className={cn(
                 "group overflow-hidden rounded-xl border text-left transition-colors focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-default",
@@ -151,8 +186,29 @@ export function ClanBalanceMapBanClient({
           {total}명 투표
           {myChoiceIdx !== null ? " · 내 선택이 반영되었습니다." : ""}
         </p>
-        {canResolve ? (
-          <Button type="button" disabled={pending} onClick={onResolve}>
+        {resolvedMap ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <strong className="text-sm" data-testid="resolved-map">
+              {resolvedMap}
+            </strong>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setAnimateResult(false);
+                setResultOpen(true);
+              }}
+            >
+              추첨 결과
+            </Button>
+          </div>
+        ) : canResolve ? (
+          <Button
+            type="button"
+            disabled={pending || !expired}
+            onClick={onResolve}
+          >
             맵 확정하기
           </Button>
         ) : (
@@ -161,6 +217,33 @@ export function ClanBalanceMapBanClient({
           </p>
         )}
       </div>
+      {qaPreview ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setPreviewOpen(true)}
+        >
+          QA 맵 투표 연출 테스트
+        </Button>
+      ) : null}
+      {resolvedMap ? (
+        <ClanBalanceMapResultDialog
+          open={resultOpen}
+          onOpenChange={setResultOpen}
+          candidates={candidates}
+          tallies={tallies}
+          selectedMap={resolvedMap}
+          animate={animateResult}
+        />
+      ) : null}
+      {qaPreview ? (
+        <ClanBalanceMapVotePreview
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          candidates={candidates}
+        />
+      ) : null}
     </div>
   );
 }

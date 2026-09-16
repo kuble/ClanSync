@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Ban, Check, Timer, Users } from "lucide-react";
 import { toast } from "sonner";
@@ -15,6 +15,7 @@ import {
 } from "@/lib/balance/ow-hero-ban";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useServerClock } from "@/lib/balance/use-server-clock";
 
 const ROLE_LABEL = { tank: "탱커", dps: "공격", support: "지원" } as const;
 
@@ -23,6 +24,7 @@ export function ClanBalanceHeroBanClient({
   clanId,
   sessionId,
   deadlineIso,
+  serverNow,
   myVote,
   allVotes,
   canResolve,
@@ -32,6 +34,7 @@ export function ClanBalanceHeroBanClient({
   clanId: string;
   sessionId: string;
   deadlineIso: string | null;
+  serverNow: number;
   myVote: { pick_1: string; pick_2: string; pick_3: string } | null;
   allVotes: readonly { pick_1: string; pick_2: string; pick_3: string }[];
   canResolve: boolean;
@@ -39,19 +42,15 @@ export function ClanBalanceHeroBanClient({
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
-  const [now, setNow] = useState<number | null>(null);
   const [picks, setPicks] = useState([
     myVote?.pick_1 ?? "",
     myVote?.pick_2 ?? "",
     myVote?.pick_3 ?? "",
   ]);
   const deadlineMs = deadlineIso ? new Date(deadlineIso).getTime() : null;
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 250);
-    return () => clearInterval(timer);
-  }, []);
+  const now = useServerClock(serverNow, deadlineMs ?? 0, 250);
   const remainSec =
-    deadlineMs === null || now === null
+    deadlineMs === null
       ? null
       : Math.max(0, Math.ceil((deadlineMs - now) / 1000));
   const expired = remainSec === 0;
@@ -62,6 +61,7 @@ export function ClanBalanceHeroBanClient({
   const maxScore = topPreview[0]?.[1] ?? 1;
 
   function onSubmit() {
+    if (!deadlineIso || expired || pending) return;
     start(async () => {
       const r = await submitHeroBanVoteAction(
         gameSlug,
@@ -70,6 +70,7 @@ export function ClanBalanceHeroBanClient({
         picks[0]!,
         picks[1]!,
         picks[2]!,
+        deadlineIso,
       );
       if (!r.ok) {
         toast.error(r.error);
@@ -232,7 +233,11 @@ export function ClanBalanceHeroBanClient({
           득표 순으로 역할당 최대 2명, 전체 최대 4명이 제외됩니다.
         </p>
         {canResolve ? (
-          <Button type="button" disabled={pending} onClick={onResolve}>
+          <Button
+            type="button"
+            disabled={pending || !expired}
+            onClick={onResolve}
+          >
             영웅 밴 확정
           </Button>
         ) : (

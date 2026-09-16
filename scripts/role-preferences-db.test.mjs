@@ -97,7 +97,8 @@ test("private role preferences, saved rules and draw history", async (t) => {
     assert.ok((await member.client.rpc("save_round_role_preference", { p_round_id: roundId,p_ranking: [] })).error);
     const latest = await read();
     assert.equal(await ok(leader.client.rpc("set_balance_formation_settings", { p_round_id: roundId,p_revision: latest.formation_revision,p_settings: settings,p_map_ban: false,p_hero_ban: false })),false);
-    assert.ok((await leader.client.from("balance_sessions").update({ map_ban_enabled: false }).eq("id",roundId)).error);
+    await ok(leader.client.from("balance_sessions").update({ map_ban_enabled: false }).eq("id",roundId));
+    assert.deepEqual((await read()).formation_state, latest.formation_state);
   });
   await t.test("shared draw history persists across reset and includes rules without rankings", async () => {
     const row = await read();

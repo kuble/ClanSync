@@ -192,6 +192,9 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
     // No waiting for the debounce: one start click must flush this final change.
     await panel.getByRole("button", { name: "편성 시작", exact: true }).click();
     await expect(candidates).toHaveCount(0);
+    await panel
+      .getByRole("combobox", { name: "경기 맵", exact: true })
+      .selectOption("부산");
     await expect(
       panel.getByRole("button", { name: "경기 시작", exact: true }),
     ).toBeEnabled({ timeout: 20_000 });
@@ -210,6 +213,9 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
         .sort(),
     );
     await expectReadOnlyShare(page, panel);
+    await panel
+      .getByRole("combobox", { name: "경기 맵", exact: true })
+      .selectOption("부산");
     await panel.getByRole("button", { name: "경기 시작", exact: true }).click();
     await expect(panel).toHaveAttribute("data-balance-phase", "match_live", {
       timeout: 20_000,
@@ -357,6 +363,9 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
       `${ownOrder}번`,
     );
     await member.setViewportSize({ width: 1280, height: 720 });
+    await panel
+      .getByRole("combobox", { name: "경기 맵", exact: true })
+      .selectOption("부산");
     await expect(
       panel.getByRole("button", { name: "경기 시작", exact: true }),
     ).toBeEnabled({ timeout: 20_000 });
@@ -421,6 +430,9 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
           formation.getByText(new RegExp(`지명 차례 · ${pick + 1}/8`)),
         ).toBeVisible({ timeout: 20_000 });
     }
+    await panel
+      .getByRole("combobox", { name: "경기 맵", exact: true })
+      .selectOption("부산");
     await expect(
       panel.getByRole("button", { name: "경기 시작", exact: true }),
     ).toBeEnabled({ timeout: 20_000 });
@@ -453,6 +465,9 @@ test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경
     await panel.getByRole("button", { name: "명단 수정", exact: true }).click();
     await settings(page, panel, "keep");
     await panel.getByRole("button", { name: "편성 시작", exact: true }).click();
+    await panel
+      .getByRole("combobox", { name: "경기 맵", exact: true })
+      .selectOption("부산");
     await panel.getByRole("button", { name: "경기 시작", exact: true }).click();
     await expect(panel).toHaveAttribute("data-balance-phase", "match_live", {
       timeout: 20_000,

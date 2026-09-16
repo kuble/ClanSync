@@ -177,6 +177,12 @@ export default async function BalancePage({
         rosterPool={rosterPool}
         canEditMscore={canEditMscore}
         planPremium={planPremium}
+        qaPreviewEnabled={
+          canManage &&
+          process.env.VERCEL_ENV !== "production" &&
+          process.env.NEXT_PUBLIC_SUPABASE_URL ===
+            "https://moretvteewfcztxvwztw.supabase.co"
+        }
       />
     </div>
   );

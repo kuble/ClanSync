@@ -18,7 +18,7 @@
     "db:test:types": "node scripts/supabase-test.mjs types",
     "debug:supabase": "node scripts/debug-supabase-games.mjs",
     "test:e2e": "playwright test",
-    "test:db": "node --test --test-concurrency=1 scripts/review-db.test.mjs scripts/clan-notices-db.test.mjs scripts/profile-badge-db.test.mjs scripts/session-round-db.test.mjs scripts/formation-db.test.mjs && node --test scripts/role-preferences-db.test.mjs",
+    "test:db": "node --test --test-concurrency=1 scripts/review-db.test.mjs scripts/clan-notices-db.test.mjs scripts/profile-badge-db.test.mjs scripts/session-round-db.test.mjs scripts/formation-db.test.mjs scripts/prematch-db.test.mjs && node --test scripts/role-preferences-db.test.mjs",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:env-check": "node e2e/check-e2e-env.mjs"
   },

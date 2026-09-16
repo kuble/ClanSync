@@ -329,12 +329,15 @@ export type Database = {
           game_id: string
           hero_ban_deadline_at: string | null
           hero_ban_enabled: boolean
+          hero_ban_seconds: number
           host_user_id: string
           id: string
           ma_snapshot: Json
           map_ban_deadline_at: string | null
           map_ban_enabled: boolean
+          map_ban_seconds: number
           map_candidates: string[] | null
+          map_types: string[]
           match_outcome: Database["public"]["Enums"]["balance_match_outcome"]
           opened_at: string
           phase: Database["public"]["Enums"]["balance_session_phase"]
@@ -356,12 +359,15 @@ export type Database = {
           game_id: string
           hero_ban_deadline_at?: string | null
           hero_ban_enabled?: boolean
+          hero_ban_seconds?: number
           host_user_id: string
           id?: string
           ma_snapshot?: Json
           map_ban_deadline_at?: string | null
           map_ban_enabled?: boolean
+          map_ban_seconds?: number
           map_candidates?: string[] | null
+          map_types?: string[]
           match_outcome?: Database["public"]["Enums"]["balance_match_outcome"]
           opened_at?: string
           phase?: Database["public"]["Enums"]["balance_session_phase"]
@@ -383,12 +389,15 @@ export type Database = {
           game_id?: string
           hero_ban_deadline_at?: string | null
           hero_ban_enabled?: boolean
+          hero_ban_seconds?: number
           host_user_id?: string
           id?: string
           ma_snapshot?: Json
           map_ban_deadline_at?: string | null
           map_ban_enabled?: boolean
+          map_ban_seconds?: number
           map_candidates?: string[] | null
+          map_types?: string[]
           match_outcome?: Database["public"]["Enums"]["balance_match_outcome"]
           opened_at?: string
           phase?: Database["public"]["Enums"]["balance_session_phase"]
@@ -2563,6 +2572,31 @@ export type Database = {
           p_session_id: string
         }
         Returns: Json
+      }
+      set_balance_prematch_settings: {
+        Args: {
+          p_clan_id: string
+          p_hero_ban: boolean
+          p_hero_ban_seconds: number
+          p_map_ban: boolean
+          p_map_ban_seconds: number
+          p_map_types: string[]
+          p_revision: number
+          p_round_id: string
+          p_settings: Json
+        }
+        Returns: boolean
+      }
+      submit_balance_ban_vote: {
+        Args: {
+          p_choice_idx?: number
+          p_clan_id: string
+          p_expected_deadline: string
+          p_kind: string
+          p_picks?: string[]
+          p_round_id: string
+        }
+        Returns: boolean
       }
       update_clan_rules: {
         Args: { p_clan_id: string; p_rules: string }

@@ -2,7 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { computeBalancePredictionDeadlineIso } from "@/lib/balance/prediction-deadline";
-import { pickThreeMapCandidates } from "@/lib/balance/map-pools";
+import {
+  mapPoolForGameSlug,
+  pickThreeMapCandidates,
+} from "@/lib/balance/map-pools";
+import {
+  parseBanSettings,
+  sameBanSettings,
+  validateBanSettings,
+  type BanSettings,
+} from "@/lib/balance/prematch";
 import {
   defaultMaForRoster,
   parseMaSnapshot,
@@ -21,12 +30,13 @@ import {
   rosterHasDuplicateUsers,
   type BalanceRoster,
 } from "@/lib/balance/roster-schema";
-import { tallyMapVotes, weightedPickMapIndex } from "@/lib/balance/weighted-map-pick";
+import {
+  tallyMapVotes,
+  weightedPickMapIndex,
+} from "@/lib/balance/weighted-map-pick";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/database.types";
-
-type Phase = Database["public"]["Enums"]["balance_session_phase"];
 
 export type BalanceSessionActionResult =
   | { ok: true }
@@ -75,115 +85,287 @@ export async function openBalanceSessionAction(
   return { ok: true };
 }
 
+type BalanceRound = Database["public"]["Tables"]["balance_sessions"]["Row"];
+type BalanceClient = Awaited<ReturnType<typeof createClient>>;
+
+async function withPrematchRound(
+  gameSlug: string,
+  clanId: string,
+  sessionId: string,
+  manager: boolean,
+  work: (
+    client: BalanceClient,
+    round: BalanceRound,
+    userId: string,
+  ) => Promise<void>,
+): Promise<BalanceSessionActionResult> {
+  try {
+    const client = await createClient();
+    const {
+      data: { user },
+    } = await client.auth.getUser();
+    if (!user) throw new Error("로그인이 필요합니다.");
+    if (
+      manager &&
+      !(await hasClanPermission(client, user.id, clanId, "manage_clan_events"))
+    )
+      throw new Error("운영진만 진행할 수 있습니다.");
+    const { data: round, error } = await client
+      .from("balance_sessions")
+      .select("*")
+      .eq("id", sessionId)
+      .eq("clan_id", clanId)
+      .is("closed_at", null)
+      .maybeSingle();
+    if (
+      error ||
+      !round ||
+      round.phase === "match_live" ||
+      round.match_outcome !== "pending"
+    )
+      throw new Error("경기 시작 전 라운드에서만 변경할 수 있습니다.");
+    const { data: game } = await client
+      .from("games")
+      .select("slug")
+      .eq("id", round.game_id)
+      .single();
+    if (game?.slug !== gameSlug)
+      throw new Error("게임 정보가 올바르지 않습니다.");
+    await work(client, round, user.id);
+    revalidatePath(balancePath(gameSlug, clanId));
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "라운드를 변경하지 못했습니다.",
+    };
+  }
+}
+
+/** The read snapshot includes ballot identity as well as rule/formation revision. */
+async function savePrematchRound(
+  client: BalanceClient,
+  round: BalanceRound,
+  patch: Database["public"]["Tables"]["balance_sessions"]["Update"],
+): Promise<void> {
+  let query = client
+    .from("balance_sessions")
+    .update(patch)
+    .eq("id", round.id)
+    .eq("clan_id", round.clan_id)
+    .is("closed_at", null)
+    .eq("phase", round.phase)
+    .eq("formation_revision", round.formation_revision);
+  query =
+    round.map_ban_deadline_at === null
+      ? query.is("map_ban_deadline_at", null)
+      : query.eq("map_ban_deadline_at", round.map_ban_deadline_at);
+  query =
+    round.hero_ban_deadline_at === null
+      ? query.is("hero_ban_deadline_at", null)
+      : query.eq("hero_ban_deadline_at", round.hero_ban_deadline_at);
+  query =
+    round.resolved_map_label === null
+      ? query.is("resolved_map_label", null)
+      : query.eq("resolved_map_label", round.resolved_map_label);
+  query =
+    round.banned_heroes === null
+      ? query.is("banned_heroes", null)
+      : query.not("banned_heroes", "is", null);
+  const { data, error } = await query.select("id").maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data)
+    throw new Error(
+      "라운드 상태가 변경되었습니다. 최신 화면에서 다시 시도하세요.",
+    );
+}
+
 export async function startMapBanPhaseAction(
   gameSlug: string,
   clanId: string,
   sessionId: string,
+  selectedMapTypes?: string[],
 ): Promise<BalanceSessionActionResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
-
-  const can = await hasClanPermission(
-    supabase,
-    user.id,
+  return withPrematchRound(
+    gameSlug,
     clanId,
-    "manage_clan_events",
+    sessionId,
+    true,
+    async (client, initialRound) => {
+      let round = initialRound;
+      if (round.phase !== "editing" || !round.map_ban_enabled)
+        throw new Error("맵 밴을 시작할 수 없는 상태입니다.");
+      const bans = parseBanSettings(round);
+      if (selectedMapTypes !== undefined) {
+        const candidateBans = {
+          ...bans,
+          mapTypes: selectedMapTypes as BanSettings["mapTypes"],
+        };
+        const error = validateBanSettings(candidateBans);
+        if (error) throw new Error(error);
+        if (!sameBanSettings(bans, candidateBans)) {
+          const { data: saved, error: saveError } = await client.rpc(
+            "set_balance_prematch_settings",
+            {
+              p_round_id: round.id,
+              p_clan_id: clanId,
+              p_revision: round.formation_revision,
+              p_settings: round.formation_settings,
+              p_map_ban: round.map_ban_enabled,
+              p_hero_ban: round.hero_ban_enabled,
+              p_map_ban_seconds: bans.mapBanSeconds,
+              p_hero_ban_seconds: bans.heroBanSeconds,
+              p_map_types: selectedMapTypes,
+            },
+          );
+          if (saveError) throw new Error(saveError.message);
+          if (!saved)
+            throw new Error(
+              "설정이 변경되었습니다. 최신 화면에서 다시 시도하세요.",
+            );
+          // The settings write is a separate CAS; a concurrent start/settings edit
+          // must not be silently adopted when committing this ballot.
+          round = {
+            ...round,
+            map_types: [...selectedMapTypes].sort(),
+            formation_revision: round.formation_revision + 1,
+            map_candidates: null,
+            map_ban_deadline_at: null,
+            resolved_map_label: null,
+            hero_ban_deadline_at: null,
+            banned_heroes: null,
+          };
+        }
+      }
+      const candidates = pickThreeMapCandidates(
+        gameSlug,
+        parseBanSettings(round).mapTypes,
+      );
+      if (candidates.length !== 3)
+        throw new Error("선택한 유형에 맵 후보가 3개 이상 필요합니다.");
+      await savePrematchRound(client, round, {
+        phase: "map_ban",
+        map_candidates: candidates,
+        resolved_map_label: null,
+        map_ban_deadline_at: new Date(
+          Date.now() + round.map_ban_seconds * 1000,
+        ).toISOString(),
+        hero_ban_deadline_at: null,
+        banned_heroes: null,
+        prediction_deadline_at: null,
+      });
+    },
   );
-  if (!can) return { ok: false, error: "운영진만 진행할 수 있습니다." };
-
-  const candidates = pickThreeMapCandidates(gameSlug);
-  const deadline = new Date(Date.now() + 15_000).toISOString();
-
-  const { data: updated, error } = await supabase
-    .from("balance_sessions")
-    .update({
-      phase: "map_ban",
-      map_candidates: candidates,
-      map_ban_deadline_at: deadline,
-      prediction_deadline_at: null,
-    })
-    .eq("id", sessionId)
-    .eq("clan_id", clanId)
-    .is("closed_at", null)
-    .eq("phase", "editing")
-    .eq("map_ban_enabled", true)
-    .select("id")
-    .maybeSingle();
-
-  if (error) return { ok: false, error: error.message };
-  if (!updated) {
-    return { ok: false, error: "맵 밴을 시작할 수 없는 상태입니다." };
-  }
-
-  revalidatePath(balancePath(gameSlug, clanId));
-  return { ok: true };
 }
 
+export async function selectBalanceMapAction(
+  gameSlug: string,
+  clanId: string,
+  sessionId: string,
+  mapLabel: string,
+): Promise<BalanceSessionActionResult> {
+  return withPrematchRound(
+    gameSlug,
+    clanId,
+    sessionId,
+    true,
+    async (client, round) => {
+      if (round.map_ban_enabled)
+        throw new Error("맵 밴을 끈 뒤 직접 맵을 선택하세요.");
+      if (
+        typeof mapLabel !== "string" ||
+        !mapPoolForGameSlug(gameSlug).includes(mapLabel)
+      )
+        throw new Error("이 게임의 맵 목록에서 선택하세요.");
+      if (round.resolved_map_label === mapLabel) return;
+      // The DB invalidates a hero ballot/result only when this map changes.
+      await savePrematchRound(client, round, {
+        resolved_map_label: mapLabel,
+        map_ban_deadline_at: null,
+      });
+    },
+  );
+}
+
+export async function startHeroBanPhaseAction(
+  gameSlug: string,
+  clanId: string,
+  sessionId: string,
+): Promise<BalanceSessionActionResult> {
+  return withPrematchRound(
+    gameSlug,
+    clanId,
+    sessionId,
+    true,
+    async (client, round) => {
+      if (
+        !round.hero_ban_enabled ||
+        !isOverwatchBalanceGame(gameSlug) ||
+        !["editing", "map_ban"].includes(round.phase) ||
+        !round.resolved_map_label?.trim() ||
+        round.map_ban_deadline_at
+      )
+        throw new Error("맵을 먼저 선택하거나 확정한 뒤 영웅 밴을 시작하세요.");
+      await savePrematchRound(client, round, {
+        phase: "hero_ban",
+        banned_heroes: null,
+        hero_ban_deadline_at: new Date(
+          Date.now() + round.hero_ban_seconds * 1000,
+        ).toISOString(),
+        prediction_deadline_at: null,
+      });
+    },
+  );
+}
+
+export async function startBalanceMatchAction(
+  gameSlug: string,
+  clanId: string,
+  sessionId: string,
+): Promise<BalanceSessionActionResult> {
+  return withPrematchRound(
+    gameSlug,
+    clanId,
+    sessionId,
+    true,
+    async (client, round) => {
+      if (!round.resolved_map_label?.trim() || round.map_ban_deadline_at)
+        throw new Error("경기를 시작하기 전에 맵을 선택하거나 확정하세요.");
+      if (
+        round.hero_ban_enabled &&
+        (round.banned_heroes === null || round.hero_ban_deadline_at)
+      )
+        throw new Error("영웅 밴을 먼저 완료하세요.");
+      await savePrematchRound(client, round, {
+        phase: "match_live",
+        prediction_deadline_at: computeBalancePredictionDeadlineIso(),
+      });
+    },
+  );
+}
+
+/** Compatibility for older callers: this explicit button still requires a map. */
 export async function skipMapBanToMatchLiveAction(
   gameSlug: string,
   clanId: string,
   sessionId: string,
 ): Promise<BalanceSessionActionResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
-
-  const can = await hasClanPermission(
-    supabase,
-    user.id,
-    clanId,
-    "manage_clan_events",
-  );
-  if (!can) return { ok: false, error: "운영진만 진행할 수 있습니다." };
-
-  const { data: session } = await supabase
+  const client = await createClient();
+  const { data: round } = await client
     .from("balance_sessions")
-    .select("hero_ban_enabled")
+    .select("map_ban_enabled, hero_ban_enabled, banned_heroes")
     .eq("id", sessionId)
     .eq("clan_id", clanId)
     .is("closed_at", null)
     .maybeSingle();
-
-  if (!session) return { ok: false, error: "세션을 찾을 수 없습니다." };
-
-  const nextPhase: Phase = session.hero_ban_enabled ? "hero_ban" : "match_live";
-  const heroDeadline =
-    nextPhase === "hero_ban"
-      ? new Date(Date.now() + 20_000).toISOString()
-      : null;
-
-  const { data: updated, error } = await supabase
-    .from("balance_sessions")
-    .update({
-      phase: nextPhase,
-      map_candidates: null,
-      map_ban_deadline_at: null,
-      hero_ban_deadline_at: heroDeadline,
-      prediction_deadline_at:
-        nextPhase === "match_live"
-          ? computeBalancePredictionDeadlineIso()
-          : null,
-    })
-    .eq("id", sessionId)
-    .eq("clan_id", clanId)
-    .is("closed_at", null)
-    .eq("phase", "editing")
-    .eq("map_ban_enabled", false)
-    .select("id")
-    .maybeSingle();
-
-  if (error) return { ok: false, error: error.message };
-  if (!updated) {
-    return { ok: false, error: "이 단계를 건너뛸 수 없습니다." };
-  }
-
-  revalidatePath(balancePath(gameSlug, clanId));
-  return { ok: true };
+  if (!round || round.map_ban_enabled)
+    return { ok: false, error: "맵 밴을 건너뛸 수 없습니다." };
+  return round.hero_ban_enabled && round.banned_heroes === null
+    ? startHeroBanPhaseAction(gameSlug, clanId, sessionId)
+    : startBalanceMatchAction(gameSlug, clanId, sessionId);
 }
 
 export async function submitMapVoteAction(
@@ -191,42 +373,32 @@ export async function submitMapVoteAction(
   clanId: string,
   sessionId: string,
   choiceIdx: number,
+  expectedDeadline: string,
 ): Promise<BalanceSessionActionResult> {
-  if (choiceIdx < 0 || choiceIdx > 2) {
+  if (!Number.isInteger(choiceIdx) || choiceIdx < 0 || choiceIdx > 2)
     return { ok: false, error: "잘못된 선택입니다." };
-  }
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
-
-  const { data: session } = await supabase
-    .from("balance_sessions")
-    .select("phase")
-    .eq("id", sessionId)
-    .eq("clan_id", clanId)
-    .is("closed_at", null)
-    .maybeSingle();
-
-  if (!session || session.phase !== "map_ban") {
-    return { ok: false, error: "맵 투표를 받지 않는 단계입니다." };
-  }
-
-  const { error } = await supabase.from("balance_session_map_votes").upsert(
-    {
-      session_id: sessionId,
-      user_id: user.id,
-      choice_idx: choiceIdx,
+  if (typeof expectedDeadline !== "string" || !Number.isFinite(Date.parse(expectedDeadline)))
+    return { ok: false, error: "최신 맵 투표 화면을 확인하세요." };
+  return withPrematchRound(
+    gameSlug,
+    clanId,
+    sessionId,
+    false,
+    async (client, round) => {
+      if (
+        round.phase !== "map_ban" ||
+        round.resolved_map_label !== null ||
+        !round.map_ban_deadline_at ||
+        Date.parse(round.map_ban_deadline_at) <= Date.now()
+      )
+        throw new Error("맵 투표가 마감되었습니다.");
+      const { error } = await client.rpc("submit_balance_ban_vote", {
+        p_round_id: sessionId, p_clan_id: clanId, p_kind: "map",
+        p_expected_deadline: expectedDeadline, p_choice_idx: choiceIdx,
+      });
+      if (error) throw new Error(error.message);
     },
-    { onConflict: "session_id,user_id" },
   );
-
-  if (error) return { ok: false, error: error.message };
-
-  revalidatePath(balancePath(gameSlug, clanId));
-  return { ok: true };
 }
 
 export async function resolveMapBanAction(
@@ -234,76 +406,35 @@ export async function resolveMapBanAction(
   clanId: string,
   sessionId: string,
 ): Promise<BalanceSessionActionResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
-
-  const can = await hasClanPermission(
-    supabase,
-    user.id,
+  return withPrematchRound(
+    gameSlug,
     clanId,
-    "manage_clan_events",
+    sessionId,
+    true,
+    async (client, round) => {
+      if (
+        round.phase !== "map_ban" ||
+        round.resolved_map_label !== null ||
+        !round.map_ban_deadline_at
+      )
+        throw new Error("확정할 맵 투표가 없습니다.");
+      if (Date.parse(round.map_ban_deadline_at) > Date.now())
+        throw new Error("맵 투표 마감 후 확정하세요.");
+      const candidates = round.map_candidates;
+      if (!candidates || candidates.length !== 3)
+        throw new Error("맵 후보가 없습니다.");
+      const { data: votes, error } = await client
+        .from("balance_session_map_votes")
+        .select("choice_idx")
+        .eq("session_id", sessionId);
+      if (error) throw new Error(error.message);
+      const winIdx = weightedPickMapIndex(tallyMapVotes(votes ?? []));
+      await savePrematchRound(client, round, {
+        resolved_map_label: candidates[winIdx] ?? candidates[0],
+        map_ban_deadline_at: null,
+      });
+    },
   );
-  if (!can) return { ok: false, error: "운영진만 맵을 확정할 수 있습니다." };
-
-  const { data: session, error: sessErr } = await supabase
-    .from("balance_sessions")
-    .select("phase, map_candidates, hero_ban_enabled")
-    .eq("id", sessionId)
-    .eq("clan_id", clanId)
-    .is("closed_at", null)
-    .maybeSingle();
-
-  if (sessErr || !session) {
-    return { ok: false, error: "세션을 찾을 수 없습니다." };
-  }
-  if (session.phase !== "map_ban") {
-    return { ok: false, error: "맵 밴 단계가 아닙니다." };
-  }
-
-  const candidates = session.map_candidates as string[] | null;
-  if (!candidates || candidates.length !== 3) {
-    return { ok: false, error: "맵 후보가 없습니다." };
-  }
-
-  const { data: voteRows } = await supabase
-    .from("balance_session_map_votes")
-    .select("choice_idx")
-    .eq("session_id", sessionId);
-
-  const tallies = tallyMapVotes(voteRows ?? []);
-  const winIdx = weightedPickMapIndex(tallies);
-  const resolved = candidates[winIdx] ?? candidates[0];
-
-  const nextPhase: Phase = session.hero_ban_enabled ? "hero_ban" : "match_live";
-  const heroDeadline =
-    nextPhase === "hero_ban"
-      ? new Date(Date.now() + 20_000).toISOString()
-      : null;
-
-  const { error: updErr } = await supabase
-    .from("balance_sessions")
-    .update({
-      phase: nextPhase,
-      resolved_map_label: resolved,
-      map_ban_deadline_at: null,
-      hero_ban_deadline_at: heroDeadline,
-      prediction_deadline_at:
-        nextPhase === "match_live"
-          ? computeBalancePredictionDeadlineIso()
-          : null,
-    })
-    .eq("id", sessionId)
-    .eq("clan_id", clanId)
-    .is("closed_at", null)
-    .eq("phase", "map_ban");
-
-  if (updErr) return { ok: false, error: updErr.message };
-
-  revalidatePath(balancePath(gameSlug, clanId));
-  return { ok: true };
 }
 
 export async function submitHeroBanVoteAction(
@@ -313,71 +444,44 @@ export async function submitHeroBanVoteAction(
   pick1: string,
   pick2: string,
   pick3: string,
+  expectedDeadline: string,
 ): Promise<BalanceSessionActionResult> {
-  if (!isOverwatchBalanceGame(gameSlug)) {
+  if (!isOverwatchBalanceGame(gameSlug))
     return {
       ok: false,
       error: "이 게임에서는 영웅 밴 투표를 지원하지 않습니다.",
     };
-  }
-
-  const a = pick1.trim();
-  const b = pick2.trim();
-  const c = pick3.trim();
-  if (new Set([a, b, c]).size !== 3) {
+  if (typeof expectedDeadline !== "string" || !Number.isFinite(Date.parse(expectedDeadline)))
+    return { ok: false, error: "최신 영웅 밴 투표 화면을 확인하세요." };
+  if ([pick1, pick2, pick3].some((pick) => typeof pick !== "string"))
+    return { ok: false, error: "알 수 없는 영웅입니다." };
+  const picks = [pick1.trim(), pick2.trim(), pick3.trim()];
+  if (new Set(picks).size !== 3)
     return { ok: false, error: "서로 다른 영웅 3명을 선택하세요." };
-  }
-  for (const p of [a, b, c]) {
-    if (!isValidOwHeroId(p)) {
-      return { ok: false, error: "알 수 없는 영웅입니다." };
-    }
-  }
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
-
-  const { data: session, error: sessErr } = await supabase
-    .from("balance_sessions")
-    .select("phase, roster")
-    .eq("id", sessionId)
-    .eq("clan_id", clanId)
-    .is("closed_at", null)
-    .maybeSingle();
-
-  if (sessErr || !session) {
-    return { ok: false, error: "세션을 찾을 수 없습니다." };
-  }
-  if (session.phase !== "hero_ban") {
-    return { ok: false, error: "영웅 밴 단계가 아닙니다." };
-  }
-
-  const roster = parseRoster(session.roster);
-  const assigned = new Set(rosterAssignedUserIds(roster));
-  if (!assigned.has(user.id)) {
-    return {
-      ok: false,
-      error: "출전 라인업에 포함된 멤버만 투표할 수 있습니다.",
-    };
-  }
-
-  const { error } = await supabase.from("balance_session_hero_votes").upsert(
-    {
-      session_id: sessionId,
-      user_id: user.id,
-      pick_1: a,
-      pick_2: b,
-      pick_3: c,
+  if (picks.some((pick) => !isValidOwHeroId(pick)))
+    return { ok: false, error: "알 수 없는 영웅입니다." };
+  return withPrematchRound(
+    gameSlug,
+    clanId,
+    sessionId,
+    false,
+    async (client, round, userId) => {
+      if (
+        round.phase !== "hero_ban" ||
+        round.banned_heroes !== null ||
+        !round.hero_ban_deadline_at ||
+        Date.parse(round.hero_ban_deadline_at) <= Date.now()
+      )
+        throw new Error("영웅 밴 투표가 마감되었습니다.");
+      if (!rosterAssignedUserIds(parseRoster(round.roster)).includes(userId))
+        throw new Error("출전 라인업에 포함된 멤버만 투표할 수 있습니다.");
+      const { error } = await client.rpc("submit_balance_ban_vote", {
+        p_round_id: sessionId, p_clan_id: clanId, p_kind: "hero",
+        p_expected_deadline: expectedDeadline, p_picks: picks,
+      });
+      if (error) throw new Error(error.message);
     },
-    { onConflict: "session_id,user_id" },
   );
-
-  if (error) return { ok: false, error: error.message };
-
-  revalidatePath(balancePath(gameSlug, clanId));
-  return { ok: true };
 }
 
 export async function resolveHeroBanAction(
@@ -385,64 +489,33 @@ export async function resolveHeroBanAction(
   clanId: string,
   sessionId: string,
 ): Promise<BalanceSessionActionResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
-
-  const can = await hasClanPermission(
-    supabase,
-    user.id,
+  return withPrematchRound(
+    gameSlug,
     clanId,
-    "manage_clan_events",
+    sessionId,
+    true,
+    async (client, round) => {
+      if (
+        round.phase !== "hero_ban" ||
+        round.banned_heroes !== null ||
+        !round.hero_ban_deadline_at
+      )
+        throw new Error("확정할 영웅 밴 투표가 없습니다.");
+      if (Date.parse(round.hero_ban_deadline_at) > Date.now())
+        throw new Error("영웅 밴 투표 마감 후 확정하세요.");
+      const { data: votes, error } = await client
+        .from("balance_session_hero_votes")
+        .select("pick_1, pick_2, pick_3")
+        .eq("session_id", sessionId);
+      if (error) throw new Error(error.message);
+      await savePrematchRound(client, round, {
+        banned_heroes: resolveBannedHeroesFromScores(
+          tallyHeroBanVotes(votes ?? []),
+        ),
+        hero_ban_deadline_at: null,
+      });
+    },
   );
-  if (!can) {
-    return { ok: false, error: "운영진만 영웅 밴을 확정할 수 있습니다." };
-  }
-
-  const { data: session, error: sessErr } = await supabase
-    .from("balance_sessions")
-    .select("phase")
-    .eq("id", sessionId)
-    .eq("clan_id", clanId)
-    .is("closed_at", null)
-    .maybeSingle();
-
-  if (sessErr || !session) {
-    return { ok: false, error: "세션을 찾을 수 없습니다." };
-  }
-  if (session.phase !== "hero_ban") {
-    return { ok: false, error: "영웅 밴 단계가 아닙니다." };
-  }
-
-  const { data: voteRows, error: voteErr } = await supabase
-    .from("balance_session_hero_votes")
-    .select("pick_1, pick_2, pick_3")
-    .eq("session_id", sessionId);
-
-  if (voteErr) return { ok: false, error: voteErr.message };
-
-  const scores = tallyHeroBanVotes(voteRows ?? []);
-  const banned = resolveBannedHeroesFromScores(scores);
-
-  const { error: updErr } = await supabase
-    .from("balance_sessions")
-    .update({
-      phase: "match_live",
-      banned_heroes: banned,
-      hero_ban_deadline_at: null,
-      prediction_deadline_at: computeBalancePredictionDeadlineIso(),
-    })
-    .eq("id", sessionId)
-    .eq("clan_id", clanId)
-    .is("closed_at", null)
-    .eq("phase", "hero_ban");
-
-  if (updErr) return { ok: false, error: updErr.message };
-
-  revalidatePath(balancePath(gameSlug, clanId));
-  return { ok: true };
 }
 
 export async function skipHeroBanPhaseAction(
@@ -450,44 +523,21 @@ export async function skipHeroBanPhaseAction(
   clanId: string,
   sessionId: string,
 ): Promise<BalanceSessionActionResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
-
-  const can = await hasClanPermission(
-    supabase,
-    user.id,
+  return withPrematchRound(
+    gameSlug,
     clanId,
-    "manage_clan_events",
+    sessionId,
+    true,
+    async (client, round) => {
+      if (round.phase !== "hero_ban" || round.banned_heroes !== null)
+        throw new Error("영웅 밴 진행 단계가 아닙니다.");
+      await savePrematchRound(client, round, {
+        banned_heroes: [],
+        hero_ban_deadline_at: null,
+      });
+    },
   );
-  if (!can) return { ok: false, error: "운영진만 진행할 수 있습니다." };
-
-  const { data: updated, error } = await supabase
-    .from("balance_sessions")
-    .update({
-      phase: "match_live",
-      hero_ban_deadline_at: null,
-      banned_heroes: null,
-      prediction_deadline_at: computeBalancePredictionDeadlineIso(),
-    })
-    .eq("id", sessionId)
-    .eq("clan_id", clanId)
-    .is("closed_at", null)
-    .eq("phase", "hero_ban")
-    .select("id")
-    .maybeSingle();
-
-  if (error) return { ok: false, error: error.message };
-  if (!updated) {
-    return { ok: false, error: "영웅 밴 단계가 아닙니다." };
-  }
-
-  revalidatePath(balancePath(gameSlug, clanId));
-  return { ok: true };
 }
-
 export async function updateBalanceRosterAction(
   gameSlug: string,
   clanId: string,
@@ -530,12 +580,13 @@ export async function updateBalanceRosterAction(
   if (poolErr) return { ok: false, error: poolErr.message };
 
   const poolRows = pool ?? [];
-  const allowed = new Set(
-    poolRows.map((r: { user_id: string }) => r.user_id),
-  );
+  const allowed = new Set(poolRows.map((r: { user_id: string }) => r.user_id));
   for (const uid of rosterAssignedUserIds(roster)) {
     if (!allowed.has(uid)) {
-      return { ok: false, error: "클랜 활동 멤버가 아닌 사용자가 포함되어 있습니다." };
+      return {
+        ok: false,
+        error: "클랜 활동 멤버가 아닌 사용자가 포함되어 있습니다.",
+      };
     }
   }
 
@@ -577,18 +628,27 @@ export async function updateBalanceRosterAction(
     return {
       ok: false,
       error: "다른 조작이 먼저 반영되었습니다. 내 변경은 보관되어 있습니다.",
-      ...(latest ? {
-        conflict: {
-          roster: parseRoster(latest.roster),
-          revision: latest.formation_revision,
-          editable: latest.phase === "editing" && latest.closed_at === null && latest.formation_state === null,
-        },
-      } : {}),
+      ...(latest
+        ? {
+            conflict: {
+              roster: parseRoster(latest.roster),
+              revision: latest.formation_revision,
+              editable:
+                latest.phase === "editing" &&
+                latest.closed_at === null &&
+                latest.formation_state === null,
+            },
+          }
+        : {}),
     };
   }
 
   revalidatePath(balancePath(gameSlug, clanId));
-  return { ok: true, roster: parseRoster(saved.roster), revision: saved.formation_revision };
+  return {
+    ok: true,
+    roster: parseRoster(saved.roster),
+    revision: saved.formation_revision,
+  };
 }
 
 export async function updateBalanceMaSnapshotAction(
@@ -800,7 +860,9 @@ export async function nextBalanceRoundAction(
   currentRoundId: string,
 ): Promise<BalanceSessionActionResult> {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
 
   const { error } = await supabase.rpc("next_balance_round", {

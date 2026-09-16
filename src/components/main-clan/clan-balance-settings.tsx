@@ -18,6 +18,11 @@ import {
   sameFormationSettings,
   type FormationSettings,
 } from "@/lib/balance/formation";
+import {
+  sameBanSettings,
+  validateBanSettings,
+  type BanSettings,
+} from "@/lib/balance/prematch";
 import type { BalanceRoster } from "@/lib/balance/roster-schema";
 
 export const TEAM_MODE_LABELS = {
@@ -42,6 +47,10 @@ export function ClanBalanceSettings({
   roster,
   pool,
   editable,
+  formationEditable,
+  banSettings,
+  activeVote,
+  onPreviewMapVote,
   beforeSave,
 }: {
   open: boolean;
@@ -56,14 +65,19 @@ export function ClanBalanceSettings({
   roster: BalanceRoster;
   pool: readonly { user_id: string; nickname: string }[];
   editable: boolean;
+  formationEditable: boolean;
+  banSettings: BanSettings;
+  activeVote: boolean;
+  onPreviewMapVote?: () => void;
   beforeSave: () => Promise<{ ok: true; revision: number } | { ok: false }>;
 }) {
   const router = useRouter();
   const [draft, setDraft] = useState(settings);
   const [map, setMap] = useState(mapBan);
   const [hero, setHero] = useState(heroBan);
+  const [banDraft, setBanDraft] = useState(banSettings);
   const [pending, start] = useTransition();
-  const [initialRules] = useState({ settings, mapBan, heroBan });
+  const [initialRules] = useState({ settings, mapBan, heroBan, banSettings });
   const [savedRules, setSavedRules] = useState<
     (typeof initialRules & { submittedRevision: number }) | null
   >(null);
@@ -72,26 +86,42 @@ export function ClanBalanceSettings({
     if (
       !sameFormationSettings(settings, savedRules.settings) ||
       mapBan !== savedRules.mapBan ||
-      heroBan !== savedRules.heroBan
+      heroBan !== savedRules.heroBan ||
+      !sameBanSettings(banSettings, savedRules.banSettings)
     ) {
       toast.error(
         "다른 운영진이 규칙을 다시 변경했습니다. 최신 설정을 확인하세요.",
       );
     }
     onOpenChange(false);
-  }, [savedRules, revision, settings, mapBan, heroBan, onOpenChange]);
+  }, [
+    savedRules,
+    revision,
+    settings,
+    mapBan,
+    heroBan,
+    banSettings,
+    onOpenChange,
+  ]);
   const baseRules = JSON.stringify([
     initialRules.settings,
     initialRules.mapBan,
     initialRules.heroBan,
+    initialRules.banSettings,
   ]);
   const rulesChanged =
-    !savedRules && baseRules !== JSON.stringify([settings, mapBan, heroBan]);
+    !savedRules &&
+    baseRules !== JSON.stringify([settings, mapBan, heroBan, banSettings]);
   const players = rosterPlayers(roster);
   const names = new Map(pool.map((p) => [p.user_id, p.nickname]));
   const locked = !editable || pending || Boolean(savedRules) || rulesChanged;
   function save() {
     if (locked) return;
+    const error = validateBanSettings(banDraft);
+    if (error) {
+      toast.error(error);
+      return;
+    }
     start(async () => {
       try {
         const flushed = await beforeSave();
@@ -105,6 +135,7 @@ export function ClanBalanceSettings({
           map,
           hero,
           initialRules,
+          banDraft,
         );
         if (!result.ok) {
           toast.error(result.error);
@@ -117,6 +148,7 @@ export function ClanBalanceSettings({
           settings: draft,
           mapBan: map,
           heroBan: hero,
+          banSettings: banDraft,
           submittedRevision: Math.max(revision, flushed.revision),
         });
         router.refresh();
@@ -142,8 +174,8 @@ export function ClanBalanceSettings({
           <SheetTitle>라운드 설정</SheetTitle>
           <SheetDescription>
             {editable
-              ? "다음 라운드에도 같은 규칙을 사용합니다."
-              : "진행 중인 라운드의 규칙입니다. 명단 수정 후 변경할 수 있습니다."}
+              ? "밴 설정은 경기 시작 전까지 변경할 수 있습니다."
+              : "경기가 시작되어 설정이 잠겼습니다."}
           </SheetDescription>
         </SheetHeader>
         <div className="space-y-7 px-5 pb-6">
@@ -156,7 +188,10 @@ export function ClanBalanceSettings({
               확인하세요.
             </p>
           ) : null}
-          <fieldset disabled={locked} className="space-y-3">
+          <fieldset
+            disabled={locked || !formationEditable}
+            className="space-y-3"
+          >
             <legend className="mb-3 font-semibold text-sm">역할 배정</legend>
             {(
               [
@@ -202,7 +237,7 @@ export function ClanBalanceSettings({
               </label>
             ))}
           </fieldset>
-          <fieldset disabled={locked}>
+          <fieldset disabled={locked || !formationEditable}>
             <legend className="font-semibold text-sm">팀원 선발</legend>
             <select
               aria-label="팀원 선발 방식"
@@ -368,7 +403,58 @@ export function ClanBalanceSettings({
                 onChange={(e) => setHero(e.target.checked)}
               />
             </label>
+            <div className="grid grid-cols-2 gap-3">
+              {(
+                [
+                  {
+                    key: "mapBanSeconds",
+                    label: "맵 밴 시간(초)",
+                    enabled: map,
+                  },
+                  {
+                    key: "heroBanSeconds",
+                    label: "영웅 밴 시간(초)",
+                    enabled: hero,
+                  },
+                ] as const
+              ).map(({ key, label, enabled }) => (
+                <label key={key} className="text-xs">
+                  {label}
+                  <input
+                    type="number"
+                    aria-label={label}
+                    className={field}
+                    min={5}
+                    max={300}
+                    step={1}
+                    disabled={!enabled}
+                    value={banDraft[key]}
+                    onChange={(e) =>
+                      setBanDraft({
+                        ...banDraft,
+                        [key]: Number(e.target.value),
+                      })
+                    }
+                  />
+                </label>
+              ))}
+            </div>
           </fieldset>
+          {editable && activeVote ? (
+            <p className="text-xs text-muted-foreground">
+              밴 설정을 변경하면 해당 투표를 초기화합니다.
+            </p>
+          ) : null}
+          {onPreviewMapVote ? (
+            <Button
+              variant="outline"
+              className="w-full"
+              disabled={pending || Boolean(savedRules)}
+              onClick={onPreviewMapVote}
+            >
+              QA 맵 투표 연출
+            </Button>
+          ) : null}
           {editable ? (
             <Button className="w-full" disabled={locked} onClick={save}>
               {pending || savedRules ? "적용 중…" : "설정 적용"}

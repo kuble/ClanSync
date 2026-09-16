@@ -342,18 +342,14 @@ test("formation revisions authorize writes and serialize live transitions", asyn
         ),
         true,
       );
-      await ok(
-        leader.client
-          .from("balance_sessions")
-          .update({ phase: "match_live" })
-          .eq("id", roundId),
-      );
+      await ok(leader.client.from("balance_sessions").update({ resolved_map_label: "리장 타워" }).eq("id", roundId));
+      await ok(leader.client.from("balance_sessions").update({ phase: "match_live" }).eq("id", roundId));
       assert.equal(
         await ok(svc.rpc("commit_balance_formation", args(3, state("late")))),
         false,
       );
       const row = await ok(read());
-      assert.equal(row.formation_revision, 3);
+      assert.equal(row.formation_revision, 5);
       assert.equal(row.formation_state.stage, "complete");
       assert.equal(row.phase, "match_live");
       assert.deepEqual(row.roster, fullRoster);

@@ -15,6 +15,12 @@ import {
 } from "@/lib/balance/formation";
 import { parseRoster } from "@/lib/balance/roster-schema";
 import { ROLE_DRAW_DURATION_MS } from "@/lib/balance/draw-presentation";
+import {
+  parseBanSettings,
+  sameBanSettings,
+  validateBanSettings,
+  type BanSettings,
+} from "@/lib/balance/prematch";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service";
@@ -176,7 +182,9 @@ export async function updateFormationSettingsAction(
     settings: FormationSettings;
     mapBan: boolean;
     heroBan: boolean;
+    banSettings?: BanSettings;
   },
+  banSettings?: BanSettings,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
     validateFormationSettings(settings);
@@ -187,7 +195,9 @@ export async function updateFormationSettingsAction(
     if (!user) throw new Error("로그인이 필요합니다.");
     const { data: round } = await client
       .from("balance_sessions")
-      .select("id, formation_settings, map_ban_enabled, hero_ban_enabled")
+      .select(
+        "id, formation_settings, map_ban_enabled, hero_ban_enabled, map_ban_seconds, hero_ban_seconds, map_types",
+      )
       .eq("id", roundId)
       .eq("clan_id", clanId)
       .maybeSingle();
@@ -199,7 +209,9 @@ export async function updateFormationSettingsAction(
         expectedRules.settings,
       ) ||
       round.map_ban_enabled !== expectedRules.mapBan ||
-      round.hero_ban_enabled !== expectedRules.heroBan
+      round.hero_ban_enabled !== expectedRules.heroBan ||
+      (expectedRules.banSettings &&
+        !sameBanSettings(parseBanSettings(round), expectedRules.banSettings))
     )
       throw new Error(
         "다른 운영진이 규칙을 변경했습니다. 설정을 다시 열어 확인하세요.",
@@ -212,12 +224,19 @@ export async function updateFormationSettingsAction(
       durationSeconds: settings.durationSeconds,
       ...(settings.captains ? { captains: settings.captains } : {}),
     };
-    const { data, error } = await client.rpc("set_balance_formation_settings", {
+    const nextBans = banSettings ?? parseBanSettings(round);
+    const banError = validateBanSettings(nextBans);
+    if (banError) throw new Error(banError);
+    const { data, error } = await client.rpc("set_balance_prematch_settings", {
       p_round_id: roundId,
+      p_clan_id: clanId,
       p_revision: revision,
       p_settings: safeSettings,
       p_map_ban: mapBan,
       p_hero_ban: heroBan,
+      p_map_ban_seconds: nextBans.mapBanSeconds,
+      p_hero_ban_seconds: nextBans.heroBanSeconds,
+      p_map_types: nextBans.mapTypes,
     });
     if (error) throw new Error(error.message);
     if (!data)

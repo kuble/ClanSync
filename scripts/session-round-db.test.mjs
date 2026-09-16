@@ -227,6 +227,7 @@ test("session lifecycle preserves dates, round history and authorization", async
           .update({ opened_at: "2026-09-14T16:00:00Z" })
           .eq("id", seriesId),
       );
+      await ok(leader.client.from("balance_sessions").update({ resolved_map_label: "리장 타워" }).eq("id", firstRound));
       await ok(
         svc
           .from("balance_sessions")
