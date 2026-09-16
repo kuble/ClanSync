@@ -1,5 +1,14 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { gotoOverwatchLeaderClanBase } from "./fixture-login-helper";
+import {
+  createIsolatedBalanceFixture,
+  loginIsolatedBalanceUser,
+} from "./isolated-balance-fixture";
+import {
+  parseRoster,
+  rosterAssignedUserIds,
+} from "../src/lib/balance/roster-schema";
+
+test.use({ actionTimeout: 20_000 });
 
 const orderedSlots = [
   "team1:d0",
@@ -13,13 +22,38 @@ const orderedSlots = [
   "team2:s0",
   "team2:s1",
 ];
-
-async function readRoster(panel: Locator) {
-  return Promise.all(
+const readRoster = (panel: Locator, board = false) =>
+  Promise.all(
     orderedSlots.map((key) =>
-      panel.locator(`[data-roster-slot="${key}"]`).innerText(),
+      panel
+        .locator(`[data-${board ? "board" : "roster"}-slot="${key}"]`)
+        .innerText(),
     ),
   );
+
+async function settings(
+  page: Page,
+  panel: Locator,
+  mode: "keep" | "random" | "draft" | "auction",
+  lottery = false,
+) {
+  await panel.getByRole("button", { name: "라운드 설정", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "라운드 설정", exact: true });
+  await expect(dialog).toBeVisible();
+  await dialog
+    .getByRole("radio", { name: lottery ? /공통 추첨순서/ : /직접 배정/ })
+    .check();
+  await dialog
+    .getByRole("combobox", { name: "팀원 선발 방식", exact: true })
+    .selectOption(mode);
+  await dialog
+    .getByRole("checkbox", { name: "맵 밴 사용", exact: true })
+    .uncheck();
+  await dialog
+    .getByRole("checkbox", { name: "영웅 밴 사용", exact: true })
+    .uncheck();
+  await dialog.getByRole("button", { name: "설정 적용", exact: true }).click();
+  await expect(dialog).toBeHidden({ timeout: 20_000 });
 }
 
 async function confirmResult(
@@ -34,7 +68,6 @@ async function confirmResult(
     })
     .click();
   const dialog = page.getByRole("dialog", { name: "경기 결과를 확정할까요?" });
-  await expect(dialog).toBeVisible();
   await dialog.getByRole("button", { name: "결과 확정", exact: true }).click();
   await expect(dialog).toBeHidden({ timeout: 20_000 });
   await expect(
@@ -42,120 +75,109 @@ async function confirmResult(
   ).toBeEnabled({ timeout: 20_000 });
 }
 
-async function closeRemainingQaSession(page: Page, panel: Locator) {
-  // Streaming navigation can finish before this panel has rendered.
-  await expect(panel).toBeVisible({ timeout: 20_000 });
-  await expect(panel).toHaveAttribute(
-    "data-balance-phase",
-    /^(none|editing|match_live)$/,
-    { timeout: 20_000 },
-  );
-  const phase = await panel.getAttribute("data-balance-phase");
-  if (phase === "none") return;
-
-  if (
-    phase === "match_live" &&
-    (await panel
-      .getByRole("button", { name: "무효 · 재경기", exact: true })
-      .count())
-  ) {
-    await confirmResult(page, panel, "void");
-  }
-  const close = panel.getByRole("button", { name: "세션 종료", exact: true });
-  await expect(close).toBeEnabled({ timeout: 20_000 });
-  await close.click();
-  await expect(panel).toHaveAttribute("data-balance-phase", "none", {
-    timeout: 20_000,
-  });
-  await expect(
-    panel.getByRole("button", { name: "세션 열기", exact: true }),
-  ).toBeVisible({ timeout: 20_000 });
-}
-
 async function expectReadOnlyShare(page: Page, panel: Locator) {
   await panel.getByRole("button", { name: "공유 화면", exact: true }).click();
   const share = page.getByRole("dialog", { name: "내전 공유 화면" });
   await expect(share).toBeVisible();
   await expect(share.locator("[data-roster-slot]")).toHaveCount(0);
-  await expect(share.getByRole("button", { name: "편성 초기화" })).toHaveCount(
-    0,
-  );
+  await expect(share.getByRole("button", { name: "명단 수정" })).toHaveCount(0);
   await expect(
     share.getByRole("spinbutton", { name: "입찰 크레딧" }),
   ).toHaveCount(0);
   await expect(share.getByRole("button", { name: /팀 입찰$/ })).toHaveCount(0);
   await expect(
-    share.locator("button:enabled").filter({
-      hasNotText: /^(공유 화면 닫기|결과 다시 보기)$/,
-    }),
+    share.getByRole("button", { name: "결과 다시 보기" }),
   ).toHaveCount(0);
-  await expect(
-    share.getByRole("button", { name: "공유 화면 닫기", exact: true }),
-  ).toBeEnabled();
-  await share.getByRole("button", { name: "공유 화면 닫기" }).click();
+  await share
+    .getByRole("button", { name: "공유 화면 닫기", exact: true })
+    .click();
   await expect(share).toBeHidden();
 }
 
-test("운영진 세션: 명단 조작·팀 편성·공유·결과·다음 라운드·종료", async ({
+test("독립 QA 세션: 자동 저장·개인 선호·공유 추첨·지명·경매·기록", async ({
   page,
+  browser,
 }) => {
-  test.setTimeout(240_000);
-  const base = await gotoOverwatchLeaderClanBase(page);
-  await page.goto(`${base}/balance`);
-  const panel = page.getByTestId("clan-balance-session-panel");
-  await closeRemainingQaSession(page, panel);
-
+  test.setTimeout(420_000);
+  const fixture = await createIsolatedBalanceFixture();
+  const memberContext = await browser.newContext({
+    baseURL: test.info().project.use.baseURL,
+  });
+  memberContext.setDefaultTimeout(20_000);
+  const member = await memberContext.newPage();
   try {
-    await panel.getByRole("checkbox", { name: /맵 밴 사용/ }).uncheck();
+    await loginIsolatedBalanceUser(page, fixture.users[0]);
+    await loginIsolatedBalanceUser(member, fixture.users[1]);
+    await member.goto("/profile");
+    await member.getByRole("tab", { name: "게임별", exact: true }).click();
+    const profilePreference = member
+      .getByRole("region", { name: "게임별 선호 역할" })
+      .getByRole("combobox");
+    await expect(profilePreference).toBeVisible({ timeout: 20_000 });
+    await profilePreference.selectOption("tank,sup,dmg");
+    await expect(profilePreference).toBeEnabled({ timeout: 20_000 });
+    await expect
+      .poll(async () => {
+        const { data } = await fixture.service
+          .from("profile_role_preferences")
+          .select("ranking")
+          .eq("user_id", fixture.users[1].id)
+          .eq("game_id", fixture.gameId)
+          .single();
+        return data?.ranking;
+      })
+      .toEqual(["tank", "sup", "dmg"]);
+    await page.goto(fixture.path);
+    const panel = page.getByTestId("clan-balance-session-panel");
+    await expect(panel).toHaveAttribute("data-balance-phase", "none");
     await panel.getByRole("button", { name: "세션 열기", exact: true }).click();
     await expect(panel).toHaveAttribute("data-balance-phase", "editing", {
       timeout: 20_000,
     });
     await expect(
-      panel.getByRole("heading", { name: "라운드 1", exact: true }),
-    ).toBeVisible();
-    const formation = panel.getByTestId("balance-formation");
-    const candidates = panel.getByRole("region", { name: "참가 가능 클랜원" });
-    const startMatch = panel.getByRole("button", {
-      name: "맵 밴 없이 경기 화면으로",
-      exact: true,
-    });
-    const slot = (key: string) => panel.locator(`[data-roster-slot="${key}"]`);
-    await expect(startMatch).toBeDisabled();
-    await expect(
-      formation.getByRole("button", { name: "편성 시작", exact: true }),
-    ).toBeDisabled();
-    expect(await candidates.getByRole("button").count()).toBeGreaterThanOrEqual(
-      10,
+      panel.getByRole("list", { name: "밸런스 진행 단계" }),
+    ).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: "배치 저장" })).toHaveCount(
+      0,
     );
-
-    const selected: string[] = [];
-    for (let i = 0; i < 10; i++) {
-      const candidate = candidates.getByRole("button").first();
-      const nickname = (await candidate.innerText()).trim();
-      selected.push(nickname);
-      await candidate.click();
-      await expect(slot(orderedSlots[i])).toHaveText(nickname);
+    await settings(page, panel, "keep");
+    await panel.getByRole("button", { name: "화면 안내", exact: true }).click();
+    await expect(
+      page.getByRole("dialog", { name: "대기방과 같은 자리", exact: true }),
+    ).toBeVisible();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "다음", exact: true })
+      .click();
+    await expect(
+      page.getByRole("dialog", { name: "이번 내전의 규칙", exact: true }),
+    ).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(
+      page.getByRole("dialog", { name: "이번 내전의 규칙", exact: true }),
+    ).toBeHidden();
+    const candidates = panel.getByRole("region", { name: "참가 가능 클랜원" });
+    const slot = (key: string) => panel.locator(`[data-roster-slot="${key}"]`);
+    const selected = fixture.users.slice(0, 10).map((user) => user.nickname);
+    for (let index = 0; index < 10; index++) {
+      await candidates
+        .getByRole("button", {
+          name: `${selected[index]} 출전 명단에 추가`,
+          exact: true,
+        })
+        .click();
+      await expect(slot(orderedSlots[index])).toHaveText(selected[index]);
       await expect(
         candidates.getByRole("button", {
-          name: `${nickname} 출전 명단에 추가`,
+          name: `${selected[index]} 출전 명단에 추가`,
           exact: true,
         }),
       ).toHaveCount(0);
     }
-    await expect(startMatch).toBeDisabled();
     await slot("team1:d1").click({ button: "right" });
     await expect(slot("team1:d1")).toHaveText("빈자리");
     await expect(slot("team1:tank")).toHaveText(selected[2]);
-    await expect(
-      candidates.getByRole("button", {
-        name: `${selected[1]} 출전 명단에 추가`,
-        exact: true,
-      }),
-    ).toBeVisible();
     await panel.getByRole("button", { name: "명단 변경 되돌리기" }).click();
-    await expect(slot("team1:d1")).toHaveText(selected[1]);
-
     await slot("team1:d0").dragTo(slot("team2:d1"));
     await expect(slot("team1:d0")).toHaveText(selected[6]);
     await expect(slot("team2:d1")).toHaveText(selected[0]);
@@ -163,87 +185,144 @@ test("운영진 세션: 명단 조작·팀 편성·공유·결과·다음 라운
     await panel.getByRole("button", { name: "출전 명단 초기화" }).click();
     expect(await readRoster(panel)).toEqual(Array(10).fill("빈자리"));
     await panel.getByRole("button", { name: "명단 변경 되돌리기" }).click();
-    expect(await readRoster(panel)).toEqual(savedRoster);
-    await panel.getByRole("button", { name: "배치 저장", exact: true }).click();
+    // No waiting for the debounce: one start click must flush this final change.
+    await panel.getByRole("button", { name: "편성 시작", exact: true }).click();
+    await expect(candidates).toHaveCount(0);
     await expect(
-      formation.getByRole("button", { name: "편성 시작", exact: true }),
+      panel.getByRole("button", { name: "경기 시작", exact: true }),
     ).toBeEnabled({ timeout: 20_000 });
-    await formation.getByRole("radio", { name: /현재 팀 유지/ }).check();
-    await formation
-      .getByRole("button", { name: "편성 시작", exact: true })
-      .click();
-    await expect(
-      formation
-        .locator('[aria-live="polite"]')
-        .getByText("팀 편성 완료", { exact: true }),
-    ).toBeVisible({ timeout: 20_000 });
-    expect(await readRoster(panel)).toEqual(savedRoster);
+    for (let index = 0; index < 10; index++)
+      await expect(
+        panel.locator(`[data-board-slot="${orderedSlots[index]}"]`),
+      ).toContainText(savedRoster[index]);
+    expect(
+      rosterAssignedUserIds(
+        parseRoster((await fixture.activeRound()).roster),
+      ).sort(),
+    ).toEqual(
+      fixture.users
+        .slice(0, 10)
+        .map((user) => user.id)
+        .sort(),
+    );
     await expectReadOnlyShare(page, panel);
-
-    await startMatch.click();
+    await panel.getByRole("button", { name: "경기 시작", exact: true }).click();
     await expect(panel).toHaveAttribute("data-balance-phase", "match_live", {
       timeout: 20_000,
     });
-    await expect(
-      panel.getByRole("button", { name: "세션 종료", exact: true }),
-    ).toBeDisabled();
     await confirmResult(page, panel, "win");
     await panel
       .getByRole("button", { name: "다음 라운드", exact: true })
       .click();
-    await expect(panel).toHaveAttribute("data-balance-phase", "editing", {
-      timeout: 20_000,
-    });
     await expect(
       panel.getByRole("heading", { name: "라운드 2", exact: true }),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 20_000 });
     expect(await readRoster(panel)).toEqual(savedRoster);
 
-    await formation.getByRole("radio", { name: /주장 지명/ }).check();
-    await formation
-      .getByRole("button", { name: "편성 시작", exact: true })
-      .click();
+    await settings(page, panel, "random", true);
+    await member.goto(fixture.path);
+    const memberPanel = member.getByTestId("clan-balance-session-panel");
+    await expect(memberPanel.getByTestId("balance-realtime")).toHaveAttribute(
+      "data-connection-status",
+      "READY",
+      { timeout: 20_000 },
+    );
+    const ownPreference = memberPanel.getByRole("combobox", {
+      name: "이번 라운드 내 선호",
+      exact: true,
+    });
+    await expect(ownPreference).toHaveValue("profile");
+    await expect(ownPreference.locator("option:checked")).toContainText(
+      "탱커 → 힐러 → 딜러",
+    );
+    await ownPreference.selectOption("sup,tank,dmg");
+    await expect(ownPreference).toBeEnabled({ timeout: 20_000 });
+    await expect
+      .poll(async () => {
+        const round = await fixture.activeRound();
+        const { data } = await fixture.service
+          .from("balance_round_role_preferences")
+          .select("ranking")
+          .eq("round_id", round.id)
+          .eq("user_id", fixture.users[1].id)
+          .single();
+        return data?.ranking;
+      })
+      .toEqual(["sup", "tank", "dmg"]);
+    await panel.getByRole("button", { name: "편성 시작", exact: true }).click();
+    await expect(
+      panel.getByRole("button", { name: "경기 시작", exact: true }),
+    ).toBeEnabled({ timeout: 20_000 });
+    await expect(ownPreference).toHaveCount(0, { timeout: 20_000 });
+    const drawnRound = await fixture.activeRound();
+    const draw = drawnRound.formation_state;
+    const { data: unchangedDefault } = await fixture.service
+      .from("profile_role_preferences")
+      .select("ranking")
+      .eq("user_id", fixture.users[1].id)
+      .eq("game_id", fixture.gameId)
+      .single();
+    expect(unchangedDefault?.ranking).toEqual(["tank", "sup", "dmg"]);
+    expect(drawnRound.formation_settings).toMatchObject({
+      roles: "lottery",
+      teams: "random",
+    });
+    const lockedClient = await fixture.memberClient(1);
+    const locked = await lockedClient.rpc("save_round_role_preference", {
+      p_round_id: drawnRound.id,
+      p_ranking: ["dmg", "tank", "sup"],
+    });
+    expect(locked.error?.message).toMatch(/편성이 시작/);
+    await lockedClient.auth.signOut({ scope: "local" });
+    const drawnRoster = await readRoster(panel, true);
+    await expect
+      .poll(() => readRoster(memberPanel, true), { timeout: 20_000 })
+      .toEqual(drawnRoster);
+    await expect(
+      memberPanel.getByRole("button", { name: "편성 시작", exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      memberPanel.getByRole("button", { name: "명단 수정", exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      panel.getByRole("button", { name: "결과 다시 보기" }),
+    ).toHaveCount(0);
+    await member.reload();
+    await expect
+      .poll(() => readRoster(memberPanel, true), { timeout: 20_000 })
+      .toEqual(drawnRoster);
+    expect((await fixture.activeRound()).formation_state).toEqual(draw);
+
+    await panel.getByRole("button", { name: "명단 수정", exact: true }).click();
+    await expect(candidates).toBeVisible({ timeout: 20_000 });
+    await settings(page, panel, "draft");
+    await panel.getByRole("button", { name: "편성 시작", exact: true }).click();
+    const formation = panel.getByTestId("balance-formation");
     await expect(formation.getByText(/지명 차례 · 1\/8/)).toBeVisible({
       timeout: 20_000,
     });
-    await expect(startMatch).toBeDisabled();
     for (let pick = 1; pick <= 8; pick++) {
       const choices = formation
         .getByRole("button")
         .filter({ hasText: /딜러|힐러|탱커/ });
-      const enabledChoice = choices
-        .and(formation.locator("button:enabled"))
-        .first();
-      await enabledChoice.click();
-      if (pick < 8) {
+      await choices.and(formation.locator("button:enabled")).first().click();
+      if (pick < 8)
         await expect(
           formation.getByText(new RegExp(`지명 차례 · ${pick + 1}/8`)),
         ).toBeVisible({ timeout: 20_000 });
-      }
     }
     await expect(
-      formation
-        .locator('[aria-live="polite"]')
-        .getByText("팀 편성 완료", { exact: true }),
-    ).toBeVisible({ timeout: 20_000 });
-    expect((await readRoster(panel)).sort()).toEqual([...savedRoster].sort());
-    await formation.getByRole("button", { name: "편성 초기화" }).click();
-    await expect(
-      formation.getByRole("button", { name: "편성 시작", exact: true }),
-    ).toBeVisible({ timeout: 20_000 });
-    expect(await readRoster(panel)).toEqual(savedRoster);
-
-    await formation.getByRole("radio", { name: /팀원 경매/ }).check();
+      panel.getByRole("button", { name: "경기 시작", exact: true }),
+    ).toBeEnabled({ timeout: 20_000 });
+    const drafted = await readRoster(panel, true);
+    for (const nickname of savedRoster)
+      expect(drafted.some((text) => text.includes(nickname))).toBe(true);
+    await panel.getByRole("button", { name: "명단 수정", exact: true }).click();
+    await settings(page, panel, "auction");
+    await panel.getByRole("button", { name: "편성 시작", exact: true }).click();
     await formation
-      .getByRole("button", { name: "편성 시작", exact: true })
+      .getByRole("button", { name: "다음 선수 공개", exact: true })
       .click();
-    await expect(
-      formation.getByRole("button", { name: "다음 선수 공개" }),
-    ).toBeVisible({ timeout: 20_000 });
-    await formation.getByRole("button", { name: "다음 선수 공개" }).click();
-    await expect(
-      formation.getByRole("spinbutton", { name: "입찰 크레딧" }),
-    ).toBeVisible({ timeout: 20_000 });
     await formation
       .getByRole("spinbutton", { name: "입찰 크레딧" })
       .fill("100");
@@ -261,24 +340,10 @@ test("운영진 세션: 명단 조작·팀 편성·공유·결과·다음 라운
       formation.getByRole("button", { name: "1팀 입찰", exact: true }),
     ).toBeDisabled();
     await expectReadOnlyShare(page, panel);
-    await formation.getByRole("button", { name: "편성 초기화" }).click();
-    await expect(
-      formation.getByRole("button", { name: "편성 시작", exact: true }),
-    ).toBeVisible({ timeout: 20_000 });
-    expect(await readRoster(panel)).toEqual(savedRoster);
-
-    await formation.getByRole("radio", { name: /공통 추첨순서/ }).check();
-    await formation.getByRole("radio", { name: /역할별 추첨/ }).check();
-    await formation
-      .getByRole("button", { name: "편성 시작", exact: true })
-      .click();
-    await expect(
-      formation
-        .locator('[aria-live="polite"]')
-        .getByText("팀 편성 완료", { exact: true }),
-    ).toBeVisible({ timeout: 20_000 });
-    expect((await readRoster(panel)).sort()).toEqual([...savedRoster].sort());
-    await startMatch.click();
+    await panel.getByRole("button", { name: "명단 수정", exact: true }).click();
+    await settings(page, panel, "keep");
+    await panel.getByRole("button", { name: "편성 시작", exact: true }).click();
+    await panel.getByRole("button", { name: "경기 시작", exact: true }).click();
     await expect(panel).toHaveAttribute("data-balance-phase", "match_live", {
       timeout: 20_000,
     });
@@ -287,21 +352,32 @@ test("운영진 세션: 명단 조작·팀 편성·공유·결과·다음 라운
     await expect(panel).toHaveAttribute("data-balance-phase", "none", {
       timeout: 20_000,
     });
-    await expect(
-      panel.getByRole("button", { name: "세션 열기", exact: true }),
-    ).toBeVisible();
-    await expect(
-      panel.getByRole("heading", { name: "라운드 기록", exact: true }),
-    ).toBeVisible();
-    await expect(
-      panel.locator("summary").filter({ hasText: "라운드 1" }),
-    ).toContainText("1팀 승리");
-    await expect(
-      panel.locator("summary").filter({ hasText: "라운드 2" }),
-    ).toContainText("취소 · 무효");
+    await page.setViewportSize({ width: 390, height: 844 });
+    await panel.getByRole("button", { name: "내전 기록", exact: true }).click();
+    const history = page.getByRole("dialog", {
+      name: "내전 기록",
+      exact: true,
+    });
+    await expect(history).toBeVisible();
+    await expect(history).toContainText("1라운드");
+    await expect(history).toContainText("2라운드");
+    await expect(history).toContainText("1팀 승리");
+    await expect(history).toContainText("무효");
+    await expect
+      .poll(async () => {
+        const bounds = await history.boundingBox();
+        return Boolean(
+          bounds && bounds.x >= -1 && bounds.x + bounds.width <= 391,
+        );
+      })
+      .toBe(true);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth + 1,
+      ),
+    ).toBe(true);
   } finally {
-    // Keep the shared QA clan usable if an assertion fails halfway through.
-    await page.goto(`${base}/balance`);
-    await closeRemainingQaSession(page, panel);
+    await memberContext.close();
+    await fixture.cleanup();
   }
 });

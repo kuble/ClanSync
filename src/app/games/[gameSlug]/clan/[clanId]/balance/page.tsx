@@ -3,7 +3,7 @@ import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { hasRequestClanPermission } from "@/lib/clan/request-clan-access";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import type { Database } from "@/lib/supabase/database.types";
-import { CircleHelp } from "lucide-react";
+import { parseRoleRanking } from "@/lib/balance/role-preferences";
 import {
   parseRoster,
   rosterAssignedUserIds,
@@ -62,15 +62,22 @@ export default async function BalancePage({
         .order("opened_at", { ascending: false })
         .limit(100),
     ]);
-  const { data: roundHistory } = series
-    ? await supabase
-        .from("balance_sessions")
-        .select(
-          "id, round_number, match_outcome, resolved_map_label, closed_at, roster",
-        )
-        .eq("series_id", series.id)
-        .order("round_number", { ascending: false })
-    : { data: [] };
+  const [{ data: profilePreference }, { data: roundPreference }] = session
+    ? await Promise.all([
+        supabase
+          .from("profile_role_preferences")
+          .select("ranking")
+          .eq("user_id", user.id)
+          .eq("game_id", session.game_id)
+          .maybeSingle(),
+        supabase
+          .from("balance_round_role_preferences")
+          .select("ranking")
+          .eq("user_id", user.id)
+          .eq("round_id", session.id)
+          .maybeSingle(),
+      ])
+    : [{ data: null }, { data: null }];
   const recency = new Map<string, number>();
   (recentRounds ?? []).forEach((round, index) =>
     rosterAssignedUserIds(parseRoster(round.roster)).forEach((id) => {
@@ -137,6 +144,9 @@ export default async function BalancePage({
     hostNickname = hostRow?.nickname ?? null;
   }
 
+  // Request-time clock aligns the initial reveal on this authenticated server page.
+  // eslint-disable-next-line react-hooks/purity
+  const serverNow = Date.now();
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -146,22 +156,6 @@ export default async function BalancePage({
             함께 만드는 공정한 한 판. 팀 편성부터 밴픽, 경기 결과까지 한곳에서.
           </p>
         </div>
-        <details className="group relative text-xs">
-          <summary className="flex cursor-pointer list-none items-center gap-1.5 rounded-lg border px-3 py-2 text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring">
-            <CircleHelp className="size-4" aria-hidden="true" />
-            이용 안내
-          </summary>
-          <div className="absolute right-0 z-10 mt-2 w-64 rounded-xl border bg-popover p-4 text-popover-foreground shadow-lg">
-            <p className="leading-relaxed">
-              운영진이 참가자를 배치한 뒤 밴픽과 경기를 시작합니다. 한 팀은 탱커
-              1명, 딜러 2명, 힐러 2명으로 구성됩니다.
-            </p>
-            <p className="mt-3 leading-relaxed text-muted-foreground">
-              Premium 클랜의 비출전 멤버는 경기 시작 후 5분 동안 승부예측에
-              참여할 수 있습니다.
-            </p>
-          </div>
-        </details>
       </div>
 
       <ClanBalanceSessionPanel
@@ -172,7 +166,11 @@ export default async function BalancePage({
         hostNickname={hostNickname}
         session={session}
         series={series}
-        roundHistory={roundHistory ?? []}
+        profileRanking={parseRoleRanking(profilePreference?.ranking)}
+        roundRanking={
+          roundPreference ? parseRoleRanking(roundPreference.ranking) : null
+        }
+        serverNow={serverNow}
         votes={votes ?? []}
         heroVotes={heroVotes}
         balancePredictions={balancePredictions}

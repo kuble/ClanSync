@@ -54,11 +54,13 @@ export function ClanBalanceRosterBoard({
   pool,
   snapshot,
   planPremium = false,
+  highlightPlayer,
 }: {
   roster: BalanceRoster;
   pool: readonly { user_id: string; nickname: string }[];
   snapshot?: MaSnapshot;
   planPremium?: boolean;
+  highlightPlayer?: string;
 }) {
   const nickById = Object.fromEntries(pool.map((p) => [p.user_id, p.nickname]));
   return (
@@ -80,12 +82,16 @@ export function ClanBalanceRosterBoard({
                 <div key={team} className="contents">
                   {idx === 1 ? <BalanceRoleIcon slot={slot} /> : null}
                   <div
+                    key={userId ?? "empty"}
+                    data-board-slot={`${team}:${slot.key}`}
                     className={cn(
                       "flex min-h-20 min-w-0 flex-col items-center justify-center gap-1 rounded-xl border px-2 py-3 text-center",
                       team === "team1"
                         ? "border-sky-500/35 bg-sky-500/[0.06]"
                         : "border-rose-500/35 bg-rose-500/[0.06]",
                       !userId && "border-dashed opacity-65",
+                      userId === highlightPlayer &&
+                        "ring-2 ring-primary motion-safe:animate-in motion-safe:slide-in-from-bottom-3 motion-safe:fade-in motion-safe:duration-500",
                     )}
                   >
                     <span className="sr-only">

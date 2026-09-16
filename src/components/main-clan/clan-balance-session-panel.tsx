@@ -3,10 +3,11 @@
 import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import {
   ArrowRight,
-  Check,
+  Settings2,
+  History,
   CircleHelp,
   Crown,
   Gamepad2,
@@ -35,10 +36,25 @@ import {
 import { ClanBalanceMaEditor } from "./clan-balance-ma-editor";
 import { ClanBalanceMapBanClient } from "./clan-balance-map-ban-client";
 import { ClanBalanceRosterBoard } from "./clan-balance-roster-board";
-import { ClanBalanceRosterEditor } from "./clan-balance-roster-editor";
+import { ClanBalanceGuide } from "./clan-balance-guide";
+import { ClanBalanceSettings } from "./clan-balance-settings";
+import { ClanBalanceHistoryDrawer } from "./clan-balance-history-drawer";
+import {
+  ClanBalanceRevealBoard,
+  ClanBalanceRevealComplete,
+} from "./clan-balance-reveal-board";
+import { ClanBalanceOwnPreference } from "./clan-balance-own-preference";
+import {
+  ClanBalanceRosterEditor,
+  type ClanBalanceRosterEditorHandle,
+} from "./clan-balance-roster-editor";
 import { ClanBalanceSessionRealtime } from "./clan-balance-session-realtime";
 import { ClanBalanceFormation } from "./clan-balance-formation";
-import type { FormationState } from "@/lib/balance/formation";
+import {
+  parseFormationSettings,
+  type Role,
+  type FormationState,
+} from "@/lib/balance/formation";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { defaultMaForRoster, parseMaSnapshot } from "@/lib/balance/ma-snapshot";
@@ -50,6 +66,7 @@ import {
 } from "@/lib/balance/roster-schema";
 import { tallyMapVotes } from "@/lib/balance/weighted-map-pick";
 import type { Database } from "@/lib/supabase/database.types";
+import { useServerClock } from "@/lib/balance/use-server-clock";
 import { cn } from "@/lib/utils";
 
 type BalanceSession = Database["public"]["Tables"]["balance_sessions"]["Row"];
@@ -59,39 +76,6 @@ type HeroVote =
 type BalancePrediction =
   Database["public"]["Tables"]["balance_session_predictions"]["Row"];
 
-function Workflow({ phase }: { phase: BalanceSession["phase"] | null }) {
-  const activeStep =
-    phase === "match_live"
-      ? 2
-      : phase === "map_ban" || phase === "hero_ban"
-        ? 1
-        : 0;
-  return (
-    <ol
-      aria-label="밸런스 진행 단계"
-      className="grid grid-cols-3 gap-1 border-b px-3 sm:px-5"
-    >
-      {["① 편집 중", "② 참가자 · 밴픽", "③ 경기 진행"].map((label, index) => (
-        <li
-          key={label}
-          aria-current={index === activeStep ? "step" : undefined}
-          className={cn(
-            "flex min-h-14 items-center justify-center gap-1.5 border-b-2 px-1 text-center text-[11px] font-semibold sm:text-xs",
-            index === activeStep
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground",
-          )}
-        >
-          {index < activeStep ? (
-            <Check className="hidden size-3.5 sm:block" aria-hidden="true" />
-          ) : null}
-          {label}
-        </li>
-      ))}
-    </ol>
-  );
-}
-
 export function ClanBalanceSessionPanel({
   gameSlug,
   clanId,
@@ -100,7 +84,9 @@ export function ClanBalanceSessionPanel({
   hostNickname,
   session,
   series,
-  roundHistory,
+  profileRanking,
+  roundRanking,
+  serverNow,
   votes,
   heroVotes,
   balancePredictions,
@@ -115,15 +101,9 @@ export function ClanBalanceSessionPanel({
   hostNickname: string | null;
   session: BalanceSession | null;
   series: Database["public"]["Tables"]["balance_session_series"]["Row"] | null;
-  roundHistory: Pick<
-    BalanceSession,
-    | "id"
-    | "round_number"
-    | "match_outcome"
-    | "resolved_map_label"
-    | "closed_at"
-    | "roster"
-  >[];
+  profileRanking: Role[];
+  roundRanking: Role[] | null;
+  serverNow: number;
   votes: MapVote[];
   heroVotes: HeroVote[];
   balancePredictions: BalancePrediction[];
@@ -133,16 +113,42 @@ export function ClanBalanceSessionPanel({
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
-  const [dirtyRosterKey, setDirtyRosterKey] = useState<string | null>(null);
+  const rosterRef = useRef<ClanBalanceRosterEditorHandle>(null);
+  const [busyFormation, setBusyFormation] = useState(false);
+  const [preferencePending, setPreferencePending] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
   const [broadcast, setBroadcast] = useState(false);
   const formation =
     session?.formation_state as unknown as FormationState | null;
-  const formationActive = Boolean(formation && formation.stage !== "complete");
+  const presentationNow = useServerClock(
+    serverNow,
+    Math.max(
+      formation?.draw
+        ? formation.draw.startedAt + formation.draw.durationMs
+        : 0,
+      formation?.auction?.deadline ?? 0,
+    ),
+  );
+  const settings = parseFormationSettings(session?.formation_settings);
+  async function flushRoster() {
+    const editor = rosterRef.current;
+    if (!editor)
+      return {
+        ok: true as const,
+        revision: session?.formation_revision ?? 0,
+        roster: parseRoster(session?.roster),
+      };
+    const result = await editor.flush();
+    return result.ok ? { ...result, roster: editor.getRoster() } : result;
+  }
   const storeHref = `/games/${gameSlug}/clan/${clanId}/store`;
 
   function onOpenSession(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    fd.set("mapBan", "on");
     start(async () => {
       const r = await openBalanceSessionAction(gameSlug, clanId, fd);
       if (!r.ok) {
@@ -173,11 +179,6 @@ export function ClanBalanceSessionPanel({
   const rosterCount = rosterAssignedUserIds(rosterData).length;
   const isRosterParticipant =
     rosterAssignedUserIds(rosterData).includes(userId);
-  const rosterEditorKey = session
-    ? `${session.id}:${JSON.stringify(session.roster)}`
-    : "";
-  const rosterDirty =
-    dirtyRosterKey === rosterEditorKey && Boolean(rosterEditorKey);
   const maForUi = defaultMaForRoster(
     rosterData,
     parseMaSnapshot(session?.ma_snapshot),
@@ -222,6 +223,11 @@ export function ClanBalanceSessionPanel({
       <ClanBalanceSessionRealtime
         sessionId={session?.id ?? null}
         clanId={clanId}
+        roundKey={
+          session
+            ? `${session.id}:${session.formation_revision}:${session.phase}:${session.match_outcome}`
+            : "none"
+        }
       />
       {series ? (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card px-5 py-4">
@@ -250,9 +256,19 @@ export function ClanBalanceSessionPanel({
                 size="sm"
                 disabled={pending}
                 onClick={() =>
-                  runAction("세션을 종료했습니다.", () =>
-                    closeBalanceSessionAction(gameSlug, clanId, session.id),
-                  )
+                  runAction("세션을 종료했습니다.", async () => {
+                    const saved = await flushRoster();
+                    if (!saved.ok)
+                      return {
+                        ok: false,
+                        error: "명단 저장을 완료한 뒤 다시 시도하세요.",
+                      };
+                    return closeBalanceSessionAction(
+                      gameSlug,
+                      clanId,
+                      session.id,
+                    );
+                  })
                 }
               >
                 세션 종료
@@ -284,25 +300,76 @@ export function ClanBalanceSessionPanel({
                   공유 화면 닫기
                 </Button>
               </div>
-              <ClanBalanceRosterBoard roster={rosterData} pool={rosterPool} />
+              <ClanBalanceRevealBoard
+                state={formation}
+                roster={rosterData}
+                pool={rosterPool}
+                serverNow={presentationNow}
+              />
               {formation ? (
                 <ClanBalanceFormation
+                  serverNow={presentationNow}
                   gameSlug={gameSlug}
                   clanId={clanId}
                   roundId={session.id}
                   revision={session.formation_revision}
+                  drawHistoryLength={
+                    Array.isArray(session.draw_history)
+                      ? session.draw_history.length
+                      : 0
+                  }
                   state={formation}
-                  roster={rosterData}
+                  settings={settings}
+                  bans={{
+                    mapBan: session.map_ban_enabled,
+                    heroBan: session.hero_ban_enabled,
+                  }}
                   pool={rosterPool}
                   userId={userId}
                   canManage={false}
-                  dirty={false}
                   readOnly
                 />
               ) : null}
             </div>
           </DialogContent>
         </Dialog>
+      ) : null}
+      <ClanBalanceGuide
+        open={guideOpen}
+        onOpenChange={setGuideOpen}
+        editing={session?.phase === "editing" && !formation}
+        canManage={canManage}
+      />
+      <ClanBalanceHistoryDrawer
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        gameSlug={gameSlug}
+        clanId={clanId}
+        currentSeriesId={series?.id ?? null}
+        pool={rosterPool}
+      />
+      {session && settingsOpen ? (
+        <ClanBalanceSettings
+          key={session.id}
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+          gameSlug={gameSlug}
+          clanId={clanId}
+          roundId={session.id}
+          revision={session.formation_revision}
+          settings={settings}
+          mapBan={session.map_ban_enabled}
+          heroBan={session.hero_ban_enabled}
+          roster={rosterData}
+          pool={rosterPool}
+          editable={
+            canManage &&
+            session.phase === "editing" &&
+            !formation &&
+            !busyFormation
+          }
+          beforeSave={flushRoster}
+        />
       ) : null}
       <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
@@ -328,76 +395,57 @@ export function ClanBalanceSessionPanel({
               {planPremium ? "Premium" : "Free"}
             </span>
           </div>
+          <div className="flex items-center gap-1">
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label="내전 기록"
+              title="내전 기록"
+              data-balance-guide="history"
+              onClick={() => setHistoryOpen(true)}
+            >
+              <History className="size-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label="화면 안내"
+              title="화면 안내"
+              onClick={() => setGuideOpen(true)}
+            >
+              <CircleHelp className="size-4" />
+            </Button>
+            {session ? (
+              <Button
+                size="icon"
+                variant="ghost"
+                aria-label="라운드 설정"
+                title="라운드 설정"
+                data-balance-guide="settings"
+                disabled={pending || busyFormation}
+                onClick={() => setSettingsOpen(true)}
+              >
+                <Settings2 className="size-4" />
+              </Button>
+            ) : null}
+          </div>
         </div>
-        <Workflow phase={session?.phase ?? null} />
 
         {!session ? (
           canManage ? (
-            <div className="grid gap-6 p-4 sm:p-6 xl:grid-cols-[minmax(0,1fr)_260px]">
-              <div>
-                <div className="mb-4 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>5 vs 5 · 탱커 1 / 딜러 2 / 힐러 2</span>
-                  <span>{rosterPool.length}명 참여 가능</span>
-                </div>
-                <ClanBalanceRosterBoard
-                  roster={EMPTY_ROSTER}
-                  pool={rosterPool}
-                />
-              </div>
+            <div className="space-y-5 p-4 sm:p-6" data-balance-guide="board">
+              <ClanBalanceRosterBoard roster={EMPTY_ROSTER} pool={rosterPool} />
               <form
                 onSubmit={onOpenSession}
-                className="flex flex-col gap-5 rounded-xl border bg-muted/20 p-5"
+                className="flex flex-wrap items-center justify-between gap-3"
               >
-                <div>
-                  <h4 className="flex items-center gap-2 text-sm font-semibold">
-                    <Gamepad2 className="size-4" aria-hidden="true" />
-                    내전 세션 열기
-                  </h4>
-                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                    밴픽 옵션을 선택하고 세션을 열어 참가자를 배치하세요.
-                  </p>
-                </div>
-                <fieldset className="space-y-3">
-                  <legend className="mb-3 text-[11px] font-semibold text-muted-foreground">
-                    밴픽 설정
-                  </legend>
-                  <label className="flex cursor-pointer items-start gap-3 rounded-lg border bg-card px-3 py-3 text-xs">
-                    <input
-                      type="checkbox"
-                      name="mapBan"
-                      defaultChecked
-                      className="mt-0.5 size-4 accent-primary"
-                    />
-                    <span>
-                      <span className="font-semibold">맵 밴 사용</span>
-                      <span className="mt-1 block text-[11px] leading-relaxed text-muted-foreground">
-                        3개 후보에 투표해 경기 맵을 정합니다.
-                      </span>
-                    </span>
-                  </label>
-                  <label className="flex cursor-pointer items-start gap-3 rounded-lg border bg-card px-3 py-3 text-xs">
-                    <input
-                      type="checkbox"
-                      name="heroBan"
-                      className="mt-0.5 size-4 accent-primary"
-                    />
-                    <span>
-                      <span className="font-semibold">영웅 밴 포함</span>
-                      <span className="mt-1 block text-[11px] leading-relaxed text-muted-foreground">
-                        참가자가 제외할 영웅에 투표합니다.
-                      </span>
-                    </span>
-                  </label>
-                </fieldset>
-                <div className="mt-auto border-t pt-4">
-                  <Button type="submit" disabled={pending} className="w-full">
-                    {pending ? "세션 여는 중…" : "세션 열기"}
-                    <ArrowRight className="size-4" aria-hidden="true" />
-                  </Button>
-                  <p className="mt-3 text-center text-[10px] text-muted-foreground">
-                    클랜당 하나의 세션을 진행할 수 있습니다.
-                  </p>
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  세션을 열고 참가자와 라운드 규칙을 정하세요.
+                </p>
+                <Button type="submit" disabled={pending}>
+                  {pending ? "세션 여는 중…" : "세션 열기"}
+                  <ArrowRight className="size-4" />
+                </Button>
               </form>
             </div>
           ) : (
@@ -423,106 +471,86 @@ export function ClanBalanceSessionPanel({
         ) : (
           <div className="p-4 sm:p-6">
             {session.phase === "editing" ? (
-              <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_260px]">
-                <div className="min-w-0">
-                  {canManage && !formationActive ? (
+              <div className="space-y-5">
+                <div data-balance-guide="board">
+                  {canManage && !formation ? (
                     <ClanBalanceRosterEditor
-                      key={rosterEditorKey}
+                      ref={rosterRef}
+                      key={session.id}
                       gameSlug={gameSlug}
                       clanId={clanId}
                       sessionId={session.id}
                       revision={session.formation_revision}
                       initialRoster={rosterData}
                       pool={[...rosterPool]}
-                      canEdit
-                      onDirtyChange={(dirty) =>
-                        setDirtyRosterKey(dirty ? rosterEditorKey : null)
-                      }
+                      canEdit={!busyFormation && !pending}
                     />
                   ) : (
-                    <ClanBalanceRosterBoard
+                    <ClanBalanceRevealBoard
+                      state={formation}
                       roster={rosterData}
                       pool={rosterPool}
+                      serverNow={presentationNow}
                     />
                   )}
-                  <ClanBalanceFormation
-                    key={session.id}
+                </div>
+                {isRosterParticipant &&
+                !formation &&
+                settings.roles === "lottery" ? (
+                  <ClanBalanceOwnPreference
+                    key={
+                      session.id +
+                      ":" +
+                      JSON.stringify(roundRanking) +
+                      ":" +
+                      profileRanking.join()
+                    }
                     gameSlug={gameSlug}
                     clanId={clanId}
                     roundId={session.id}
-                    revision={session.formation_revision}
-                    state={formation}
-                    roster={rosterData}
-                    pool={rosterPool}
-                    userId={userId}
-                    canManage={canManage}
-                    dirty={rosterDirty}
+                    profileRanking={profileRanking}
+                    roundRanking={roundRanking}
+                    locked={Boolean(formation) || busyFormation}
+                    onPendingChange={setPreferencePending}
                   />
-                </div>
-                <aside className="space-y-4">
-                  <div className="rounded-xl border bg-muted/20 p-4">
-                    <h4 className="flex items-center gap-2 text-xs font-semibold">
-                      <CircleHelp
-                        className="size-4 text-muted-foreground"
-                        aria-hidden="true"
-                      />
-                      편성 가이드
-                    </h4>
-                    <ul className="mt-4 space-y-4 text-xs leading-relaxed text-muted-foreground">
-                      <li>
-                        <strong className="mb-1 block text-foreground">
-                          5 vs 5 역할 고정
-                        </strong>
-                        팀마다 탱커 1명, 딜러 2명, 힐러 2명을 배치합니다.
-                      </li>
-                      <li>
-                        <strong className="mb-1 block text-foreground">
-                          멤버 선택 · 끌어놓기
-                        </strong>
-                        아래 목록에서 멤버를 골라 양 팀 슬롯에 배치하세요.
-                      </li>
-                      <li>
-                        <strong className="mb-1 block text-foreground">
-                          배치 저장 후 진행
-                        </strong>
-                        밴픽을 시작하면 출전 명단은 변경할 수 없습니다.
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="rounded-xl border bg-muted/20 p-4">
-                    <h4 className="text-xs font-semibold">배치 확정</h4>
-                    <dl className="my-4 space-y-2 text-xs">
-                      <div className="flex justify-between gap-2">
-                        <dt className="text-muted-foreground">
-                          저장된 출전 인원
-                        </dt>
-                        <dd className="font-semibold tabular-nums">
-                          {rosterCount} / 10
-                        </dd>
-                      </div>
-                      <div className="flex justify-between gap-2">
-                        <dt className="text-muted-foreground">맵 밴</dt>
-                        <dd>
-                          {session.map_ban_enabled ? "사용" : "사용 안 함"}
-                        </dd>
-                      </div>
-                      <div className="flex justify-between gap-2">
-                        <dt className="text-muted-foreground">영웅 밴</dt>
-                        <dd>
-                          {session.hero_ban_enabled ? "사용" : "사용 안 함"}
-                        </dd>
-                      </div>
-                    </dl>
-                    {canManage ? (
+                ) : null}
+                <ClanBalanceFormation
+                  serverNow={presentationNow}
+                  key={session.id}
+                  gameSlug={gameSlug}
+                  clanId={clanId}
+                  roundId={session.id}
+                  revision={session.formation_revision}
+                  drawHistoryLength={
+                    Array.isArray(session.draw_history)
+                      ? session.draw_history.length
+                      : 0
+                  }
+                  state={formation}
+                  settings={settings}
+                  bans={{
+                    mapBan: session.map_ban_enabled,
+                    heroBan: session.hero_ban_enabled,
+                  }}
+                  pool={rosterPool}
+                  userId={userId}
+                  canManage={canManage}
+                  beforeStart={flushRoster}
+                  preferencePending={preferencePending}
+                  onPendingChange={setBusyFormation}
+                />
+                {formation?.stage === "complete" && canManage ? (
+                  <ClanBalanceRevealComplete
+                    key={`reveal:${formation.draw?.id ?? session.id}`}
+                    state={formation}
+                    serverNow={presentationNow}
+                  >
+                    <div
+                      className="flex justify-end"
+                      data-balance-guide="primary"
+                    >
                       <Button
-                        type="button"
-                        disabled={
-                          pending ||
-                          rosterDirty ||
-                          rosterCount !== 10 ||
-                          formationActive
-                        }
-                        className="h-auto min-h-10 w-full whitespace-normal text-xs"
+                        disabled={pending || busyFormation}
                         onClick={() =>
                           session.map_ban_enabled
                             ? runAction("맵 밴을 시작했습니다.", () =>
@@ -542,28 +570,15 @@ export function ClanBalanceSessionPanel({
                         }
                       >
                         {session.map_ban_enabled
-                          ? "맵 밴 시작 (후보 3곳)"
-                          : "맵 밴 없이 경기 화면으로"}
-                        <ArrowRight
-                          className="size-3.5 shrink-0"
-                          aria-hidden="true"
-                        />
+                          ? "맵 밴 시작"
+                          : session.hero_ban_enabled
+                            ? "영웅 밴 시작"
+                            : "경기 시작"}
+                        <ArrowRight className="size-4" />
                       </Button>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">
-                        운영진이 편성을 마치면 밴픽이 시작됩니다.
-                      </p>
-                    )}
-                    {rosterDirty ? (
-                      <p
-                        role="status"
-                        className="mt-2 text-[11px] text-amber-700 dark:text-amber-300"
-                      >
-                        먼저 변경한 배치를 저장하세요.
-                      </p>
-                    ) : null}
-                  </div>
-                </aside>
+                    </div>
+                  </ClanBalanceRevealComplete>
+                ) : null}
               </div>
             ) : null}
 
@@ -811,40 +826,6 @@ export function ClanBalanceSessionPanel({
           </div>
         )}
       </section>
-      {roundHistory.length ? (
-        <section className="rounded-2xl border bg-card p-5">
-          <h3 className="mb-4 text-sm font-semibold">라운드 기록</h3>
-          <div className="space-y-2">
-            {roundHistory.map((round) => (
-              <details key={round.id} className="rounded-xl border px-4 py-3">
-                <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 text-xs">
-                  <strong>라운드 {round.round_number}</strong>
-                  <span className="text-muted-foreground">
-                    {round.resolved_map_label ?? "자유 선택"}
-                  </span>
-                  <span>
-                    {round.match_outcome === "team1"
-                      ? "1팀 승리"
-                      : round.match_outcome === "team2"
-                        ? "2팀 승리"
-                        : round.match_outcome === "void"
-                          ? "취소 · 무효"
-                          : round.closed_at
-                            ? "종료"
-                            : "진행 중"}
-                  </span>
-                </summary>
-                <div className="mt-4">
-                  <ClanBalanceRosterBoard
-                    roster={parseRoster(round.roster)}
-                    pool={rosterPool}
-                  />
-                </div>
-              </details>
-            ))}
-          </div>
-        </section>
-      ) : null}
       <p className="text-right text-xs text-muted-foreground">
         경기 보상과 코인 내역은{" "}
         <Link
