@@ -750,13 +750,19 @@ export async function submitBalancePredictionAction(
 
   const { data: session, error: sessErr } = await supabase
     .from("balance_sessions")
-    .select("phase, match_outcome, closed_at, prediction_deadline_at")
+    .select("phase, match_outcome, closed_at, prediction_deadline_at, series_id")
     .eq("id", sessionId)
     .eq("clan_id", clanId)
     .maybeSingle();
 
   if (sessErr || !session) {
     return { ok: false, error: "세션을 찾을 수 없습니다." };
+  }
+  const { data: predictionRoom, error: predictionRoomError } = await supabase
+    .from("balance_rooms").select("kind")
+    .eq("series_id", session.series_id).eq("clan_id", clanId).maybeSingle();
+  if (predictionRoomError || predictionRoom?.kind !== "regular") {
+    return { ok: false, error: "승부예측은 정규 내전에서만 참여할 수 있습니다." };
   }
   if (session.closed_at) {
     return { ok: false, error: "이미 종료된 세션입니다." };
