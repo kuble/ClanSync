@@ -9,6 +9,7 @@
 | 프로젝트 소개·실행 | [프로젝트 README](../README.md) |
 | 현재 작업·다음 우선순위 | [TODO.md](TODO.md) |
 | 기획·디자인 고도화 논의 | [고도화 논의 문서](01-plan/product-design-evolution.md) — 제안 7개·결정 질문·화면 방향 |
+| 편성 방식·팀원용 공유 연출 | [기준안 v0.1](02-design/formation-modes.md) — 역할 선고정 확정, 세부 규칙·시간·예산은 제안 |
 | Phase 2 구현 현황·완료 검증 | [TODO_Phase2.md](TODO_Phase2.md) |
 | 코드 리뷰·수정 필요 사안 | [2026-09-15 리뷰](03-analysis/code-review-2026-09-15.md) |
 | 제품 범위·구독 티어 | [PRD](01-plan/PRD.md) |
