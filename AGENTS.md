@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # 개발 진입점 (Codex)
 
 - 주 개발 에이전트는 Codex다. 프로젝트 작업 지침은 이 `AGENTS.md`를 기준으로 한다.
-- 작업 시작 시 `docs/TODO.md`에서 우선순위를 확인하고, `docs/README.md`에서 해당 기능의 슬라이스·명세만 선택한다.
+- 작업 시작 시 짧은 `docs/TODO.md`에서 현재 상태·우선순위를 확인하고, `docs/README.md`의 기능별 코드·테스트 진입점에서 필요한 파일만 선택한다. 전체 기획·로그·완료 체크리스트를 매번 읽지 않는다.
 - 연결 대상·검증 명령은 루트 `README.md`를 참조한다. CLI 인증과 `.env.local`을 사용하며 비밀값은 문서·커밋에 넣지 않는다.
 
 # 나노 커밋 (절대 잊지 말 것)
@@ -16,7 +16,14 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # 자동 실행 (터미널)
 
-에이전트가 이 저장소에서 **직접 실행 가능한** 명령(`db:push`, `types:gen`, `build`, `eslint src`, **`npm run test:e2e`** 등)은 사용자에게 미루지 않고 진행한다. 상세: `.cursor/rules/agent-auto-tasks.mdc`. 스키마 변경 후 타입 동기화는 **`npm run db:sync`** 로 한 번에 할 수 있다. Phase 2 구현 턴 마무리 시 Playwright는 같은 파일을 따른다.
+검증은 **변경 위험도에 맞춰 에이전트가 직접 실행**한다. 범위·명령의 기준은 [자동 실행 규칙](.cursor/rules/agent-auto-tasks.mdc), QA 실행법은 [E2E 안내](e2e/README.md)다. 작은 UI·문구 수정에 전체 빌드·로그인 14계정·온보딩·DB 회귀를 반복하지 않는다. 동작 변경은 해당 시나리오, 인증·권한·스키마·금액·공통 라우팅 변경은 영향받는 넓은 범위와 빌드, main 병합·운영 반영 전에는 전체 회귀와 빌드를 검증한다.
+
+현재는 **QA 우선, 운영 DB·배포 보류**다. QA 스키마 변경은 `db:test:push` → `db:test:types`로 적용·타입 확인한다. 연결 DB를 바꾸는 `db:push`·`db:sync`를 QA 명령 대신 사용하지 않는다. 사용자가 테스트 중인 QA 명단에는 시드를 다시 실행하지 않으며 E2E는 `E2E_SKIP_SEED=1`과 별도 임시 데이터를 사용한다.
+
+# 문서 갱신
+
+- `docs/TODO.md`는 현재 초점·제약·다음 우선순위만 유지한다. 상세 구현·검증 근거는 `docs/TODO_Phase2.md`, 설계 결정은 기존 명세에 둔다.
+- 동작·결정·진행 상태가 의미 있게 바뀔 때만 해당 문서와 `docs/TODO_LOG.md`를 짧게 갱신한다. 작은 문구·스타일 수정마다 현황표·회고를 복제하지 않는다. 파일별 이력은 Git을 사용한다.
 
 # 응답 스타일 (토큰 절약)
 

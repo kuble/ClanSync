@@ -11,38 +11,57 @@
 
 ## 실행
 
-**사용자가 QA를 직접 테스트 중인 현재는 시드를 건너뛴다.** 기존 `QA_01_Clan`의 열린 명단을 보존하려면 PowerShell에서 다음처럼 실행한다.
+기본은 **변경에 영향받는 파일/시나리오만 실행**합니다. 범위 선택은 [위험도별 검증 기준](../.cursor/rules/agent-auto-tasks.mdc), 코드와 테스트 대응은 [문서 진입점](../docs/README.md)을 따릅니다. 작은 UI·문구 수정에 전체 빌드·로그인 14계정·온보딩·DB 회귀를 반복하지 않습니다.
+
+**사용자가 QA를 직접 테스트 중인 현재는 시드를 건너뜁니다.** 예를 들어 내전 동작 변경은 PowerShell에서:
 
 ```powershell
-$env:E2E_SKIP_SEED="1"
-npm run test:e2e
-Remove-Item Env:E2E_SKIP_SEED
+$env:E2E_SKIP_SEED = "1"
+try {
+  npm run test:e2e -- e2e/balance-session-live.spec.ts
+} finally {
+  Remove-Item Env:E2E_SKIP_SEED
+}
 ```
 
-`balance-session-live.spec.ts`는 `isolated-balance-fixture.ts`로 임시 사용자 12명·Premium 클랜을 생성하고 종료 시 해당 데이터만 정리한다. 현재 사용자가 조작 중인 세션·명단을 재사용하거나 초기화하지 않는다. 다른 기존 시나리오는 각자의 픽스처를 사용하므로 전체 테스트가 모든 QA 데이터를 읽기만 하는 것은 아니다.
+파일은 아래 시나리오 목록에서 골라 바꿉니다. 한 파일 안에서는 `--grep "테스트 제목"`으로 필요한 시나리오를 선택할 수 있습니다. 변경 소스 린트는 `npx eslint <변경 파일>`, 타입 검사는 `npx tsc --noEmit`입니다.
 
-최초 환경 구성 또는 공유 QA 작업이 없을 때의 기본 실행은 다음과 같다.
+`balance-session-live.spec.ts`는 `isolated-balance-fixture.ts`로 임시 사용자 12명·Premium 클랜을 생성하고 종료 시 해당 데이터만 정리합니다. 시드 생략만으로 데이터가 격리되지는 않습니다. 다른 기존 시나리오에는 공유 픽스처를 변경하는 테스트도 있으므로 활성 QA 세션·명단을 건드리지 않는 범위를 선택하고, 쓰기 검증은 별도 임시 데이터를 사용합니다.
+
+### 최초 환경 구성
+
+**사용 중인 QA 명단이 없는 경우에만** 아래를 실행합니다. E2E 시작 시 시드가 한 번 실행되므로 `db:seed`를 중복 호출하지 않습니다.
 
 ```sh
 npm run db:test:push
-npm run db:seed
 npm run test:db
 npm run test:e2e
 ```
 
 `db:test:push`는 `.supabase-test/`의 별도 CLI 연결을 사용합니다. 기존 `supabase/.temp` 연결은 유지됩니다. 관리 토큰은 프로세스 환경 또는 `.env.local`의 `SUPABASE_ACCESS_TOKEN`을 사용하며, DB 비밀번호는 테스트 환경에서만 읽습니다. 타입 검증은 `npm run db:test:types`로 `.supabase-test/database.types.ts`에 생성합니다.
 
-Playwright는 전용 포트 **3010**에서 새 앱 서버를 시작합니다. 기존 서버를 재사용하거나 외부 URL로 연결하지 않으므로 테스트 DB와 앱 DB가 달라지는 일을 방지합니다. 포트 변경은 `PLAYWRIGHT_DEV_PORT`를 사용합니다. 공유 픽스처를 변경하는 테스트가 있어 작업자는 1개입니다. 서버는 UTC로 실행하고 테스트 환경에만 `DEV_GAME_LINK_SIMULATOR=1`을 주입합니다. 운영 DB URL·Vercel Production에서는 이 플래그로 시뮬레이터를 활성화할 수 없습니다.
+Playwright는 전용 포트 **3010**에서 새 앱 서버를 시작합니다. 기존 서버를 재사용하거나 외부 URL로 연결하지 않으므로 테스트 DB와 앱 DB가 달라지는 일을 방지합니다. `CLANSYNC_E2E=1`을 자동 주입해 빌드 폴더를 `.next-e2e`로 분리하므로 QA 서버(3011)의 `.next`와 개발 서버를 동시에 실행할 수 있습니다. 포트 변경은 `PLAYWRIGHT_DEV_PORT`를 사용합니다. 공유 픽스처를 변경하는 테스트가 있어 작업자는 1개입니다. 서버는 UTC로 실행하고 테스트 환경에만 `DEV_GAME_LINK_SIMULATOR=1`을 주입합니다. 운영 DB URL·Vercel Production에서는 이 플래그로 시뮬레이터를 활성화할 수 없습니다.
 
-프로덕션 빌드로 검증하려면 PowerShell에서:
+### main 병합·운영 반영 전 전체 회귀
+
+공유 픽스처 변경이 활성 QA와 충돌하지 않는 상태에서 실행합니다. PowerShell에서:
 
 ```powershell
-$env:CI="true"
-npm run test:e2e
-Remove-Item Env:CI
+npm run lint
+npx tsc --noEmit
+npm run test:db
+$env:CI = "true"
+$env:E2E_SKIP_SEED = "1"
+try {
+  npm run test:e2e
+} finally {
+  Remove-Item Env:CI, Env:E2E_SKIP_SEED
+}
 ```
 
-CI 경로는 `npm run build` 후 `next start`를 사용합니다. 로컬 기본 경로는 `next dev`이며 같은 저장소의 dev 인스턴스와 충돌할 경우 CI 경로를 사용합니다.
+CI 경로는 `npm run build` 후 `next start`를 사용하므로 같은 빌드를 직전에 중복 실행하지 않습니다. 로컬 기본 경로는 별도 빌드 폴더의 `next dev`입니다. 활성 QA 서버와 함께 실행할 수 있으므로 QA를 중단하거나 개발 서버 잠금을 피하려고 전체 빌드를 추가할 필요가 없습니다.
+
+DB 변경은 관련 `scripts/*-db.test.mjs`를 골라 `node --test <파일>`로 실행할 수 있습니다. 전체 `npm run test:db`는 넓은 DB 영향 또는 병합 전 검증에 사용합니다. 전체 회귀·빌드 통과가 운영 DB 적용·배포 승인을 뜻하지는 않습니다.
 
 ## 픽스처와 시나리오
 
@@ -88,4 +107,4 @@ Next.js 개발 리소스가 두 호스트에서 모두 로드되도록 `next.con
 
 시드 상세: [debug-and-fixtures.md](../docs/01-plan/debug-and-fixtures.md)
 
-2026-09-16 기준 QA 마이그레이션은 56개, 운영은 50개다. 작업 브랜치는 `codex/live-session-formation`이며 운영 전 6개 적용이 대기 중이다. 프로필의 게임별 선호를 저장한 뒤 밸런스 화면의 본인 라운드 선호·설정·기록을 직접 확인할 수 있다. 전체 회귀 82건 통과 후 수정한 내전 통합 1건과 프로필 1건 개별 재검증 통과, 총 84시나리오. DB·기타 검증 범위는 [Phase 2 현황](../docs/TODO_Phase2.md)을 따른다.
+현재 브랜치·운영 적용 대기는 [TODO](../docs/TODO.md), 실행한 검증 근거는 [Phase 2 현황](../docs/TODO_Phase2.md)에서 관리합니다.

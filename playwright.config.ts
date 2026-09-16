@@ -43,6 +43,6 @@ export default defineConfig({
     reuseExistingServer: false,
     timeout: 300_000,
     // Prevent Next.js from loading production management credentials from .env.local.
-    env: { SUPABASE_ACCESS_TOKEN: "", SUPABASE_DB_PASSWORD: "", TZ: "UTC", DEV_GAME_LINK_SIMULATOR: "1" },
+    env: { SUPABASE_ACCESS_TOKEN: "", SUPABASE_DB_PASSWORD: "", TZ: "UTC", DEV_GAME_LINK_SIMULATOR: "1", CLANSYNC_E2E: "1" },
   },
 });

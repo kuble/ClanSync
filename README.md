@@ -11,7 +11,7 @@ Phase 2 기능 구현 후 품질 점검 단계입니다. M8 종료 감사는 미
 - [2026-09-15 코드 리뷰](docs/03-analysis/code-review-2026-09-15.md)
 - [문서 안내](docs/README.md)
 
-현재 밸런스메이커 개선은 `codex/live-session-formation`에서 **QA로만** 검증한다. 명단 자동 저장·본인 역할 선호·라운드 설정·공유 추첨·세션 기록을 실제 로컬 앱에 반영했다. 운영 DB·배포는 보류 중이며 main 반영 전 운영에 대기 중인 마이그레이션 6개를 적용해야 한다. 사용자 테스트 중인 QA 명단은 다시 시드하지 않는다.
+작업 브랜치·QA 제약·운영 적용 대기는 [현재 작업](docs/TODO.md)에서 관리합니다.
 
 ## 기술과 구조
 
@@ -58,15 +58,10 @@ Supabase CLI는 `.env.local`을 읽는 `node scripts/with-dotenv-local.mjs <명�
 
 ## 검증
 
-```sh
-npm run build
-npm run lint
-npm run test:db
-npm run test:e2e
-```
+변경마다 [위험도별 검증 기준](.cursor/rules/agent-auto-tasks.mdc)을 적용합니다. 작은 수정은 변경 파일 린트·필요한 타입 검사와 해당 화면/시나리오만, 인증·권한·스키마·금액·공통 라우팅은 연관 회귀와 빌드, main 병합·운영 반영 전에는 전체 회귀와 빌드를 확인합니다.
 
-최신 테스트 결과와 운영 반영 상태는 [구현·검증 현황](docs/TODO_Phase2.md)을 참조합니다. ESLint는 앱·테스트·스크립트를 검사하며 완료된 정적 목업·생성 디렉터리는 제외합니다.
+명령과 시드 조건은 [E2E 안내](e2e/README.md), 코드·테스트 선택은 [기능별 진입점](docs/README.md)을 따릅니다. 사용자 QA가 진행 중이면 `E2E_SKIP_SEED=1`과 별도 임시 픽스처를 사용합니다. QA 스키마는 `db:test:push`·`db:test:types`를 사용하며 `db:push`·`db:sync`는 연결된 DB를 변경합니다.
 
-Playwright 실행·시드 조건은 [e2e/README.md](e2e/README.md)를 따릅니다. 기본 E2E는 QA 데이터를 다시 시드하므로, 사용자가 QA에서 테스트 중일 때는 `E2E_SKIP_SEED=1`로 실행합니다. 새 내전 시나리오는 임시 사용자·클랜을 따로 생성하고 정리합니다. `db:push`·`db:sync`는 연결된 DB를 변경합니다.
+최신 검증 근거는 [구현·검증 현황](docs/TODO_Phase2.md)을 참조합니다. ESLint는 앱·테스트·스크립트를 검사하며 완료된 정적 목업·생성 디렉터리는 제외합니다.
 
 작업 규칙은 [AGENTS.md](AGENTS.md)를 따릅니다. 변경은 의미별 커밋 후 자동 푸시합니다. 별도 수동 배포는 명시 요청 시에만 진행합니다.

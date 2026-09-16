@@ -1,6 +1,21 @@
 # ClanSync 문서 안내
 
-현재 작업은 **TODO**에서 확인합니다. 기획 논의는 **고도화 논의 문서 → 해당 결정 코드**, 구현은 **해당 슬라이스 → 필요한 상세 명세** 순서로 접근합니다. 제안·확정 요구·구현·검증 완료 상태를 구분합니다.
+시작할 때는 **[TODO](TODO.md) → 아래 기능별 진입점 → 필요한 명세**만 읽습니다. 기획 전체·완료 이력은 해당 결정의 근거가 필요할 때만 찾습니다. 제안·확정 요구·구현·검증 완료 상태를 구분합니다.
+
+## 기능별 코드·테스트 진입점
+
+검증 범위는 [변경 위험도 기준](../.cursor/rules/agent-auto-tasks.mdc), 실행 명령은 [E2E 안내](../e2e/README.md)를 따릅니다. 아래는 관련 파일을 찾는 지도이며 매번 전부 읽거나 실행하는 목록이 아닙니다.
+
+| 기능 | 코드 시작점 | 관련 테스트 |
+|---|---|---|
+| 명단 입력·자동 저장 | [명단 편집](../src/components/main-clan/clan-balance-roster-editor.tsx) · [자동 저장](../src/lib/balance/roster-autosave.ts) | [roster-autosave](../e2e/roster-autosave.spec.ts) · [내전 통합](../e2e/balance-session-live.spec.ts) |
+| 역할 추첨·팀 편성·공유 연출 | [편성 UI](../src/components/main-clan/clan-balance-formation.tsx) · [추첨 팝업](../src/components/main-clan/clan-balance-draw-dialog.tsx) · [보드 연출](../src/components/main-clan/clan-balance-reveal-board.tsx) · [규칙](../src/lib/balance/formation.ts) | [formation-rules](../e2e/formation-rules.spec.ts) · [내전 통합](../e2e/balance-session-live.spec.ts) · [편성 DB](../scripts/formation-db.test.mjs) |
+| 역할 선호·라운드 설정 | [선호 액션](../src/app/actions/role-preferences.ts) · [설정 UI](../src/components/main-clan/clan-balance-settings.tsx) | [프로필 선호](../e2e/profile-role-preference.spec.ts) · [멤버 선호](../e2e/balance-member-preference.spec.ts) · [선호 DB](../scripts/role-preferences-db.test.mjs) |
+| 세션·라운드·기록 | [세션 액션](../src/app/actions/clan-balance-session.ts) · [기록 규칙](../src/lib/balance/history.ts) | [기록 규칙](../e2e/balance-history-rules.spec.ts) · [내전 통합](../e2e/balance-session-live.spec.ts) · [세션 DB](../scripts/session-round-db.test.mjs) |
+| 로그인·권한·계정 격리 | [인증 액션](../src/app/actions/auth.ts) · [클랜 접근](../src/lib/clan/request-clan-access.ts) | [auth-performance](../e2e/auth-performance.spec.ts) · [쿠키](../e2e/session-cookies.spec.ts) · [계정 격리](../e2e/clan-request-isolation.spec.ts) · [RLS/권한 DB](../scripts/review-db.test.mjs) |
+| 클랜 운영·공지 | [관리 탭](../src/components/main-clan/clan-manage-tabs.tsx) · [공지 액션](../src/app/actions/clan-notices.ts) | [관리](../e2e/clan-management.spec.ts) · [대시보드](../e2e/clan-dashboard.spec.ts) · [공지 DB](../scripts/clan-notices-db.test.mjs) |
+| 일정·시간대 | [일정 액션](../src/app/actions/clan-events.ts) · [시간 파싱](../src/lib/clan/parse-event-start.ts) | [event-timezone](../e2e/event-timezone.spec.ts) · [review-rules](../e2e/review-rules.spec.ts) |
+| 공통 화면·페이지 이동 | [클랜 셸](../src/components/main-clan/main-clan-shell.tsx) · [클랜 레이아웃](../src/app/games/[gameSlug]/clan/[clanId]/layout.tsx) | [navigation-feedback](../e2e/navigation-feedback.spec.ts) · [frontend-rebuild](../e2e/frontend-rebuild.spec.ts) · [ui-regression](../e2e/ui-regression.spec.ts) |
 
 ## 무엇을 볼 때 어디로 가는가
 
@@ -10,7 +25,7 @@
 | 현재 작업·다음 우선순위 | [TODO.md](TODO.md) |
 | 내전 세션·라운드·날짜·참여 용어 | [용어 사전](01-plan/glossary.md#내전-운영-용어) — D-SESSION-01 확정 기준 |
 | 기획·디자인 고도화 논의 | [고도화 논의 문서](01-plan/product-design-evolution.md) — 제안 7개·결정 질문·화면 방향 |
-| 편성 방식·팀원용 공유 연출 | [기준안 v0.1](02-design/formation-modes.md) — 역할 선고정 확정, 세부 규칙·시간·예산은 제안 |
+| 편성 방식·팀원용 공유 연출 | [편성 명세](02-design/formation-modes.md) — 확정 규칙·적용 범위·후속 구분 |
 | Phase 2 구현 현황·완료 검증 | [TODO_Phase2.md](TODO_Phase2.md) |
 | 코드 리뷰·수정 필요 사안 | [2026-09-15 리뷰](03-analysis/code-review-2026-09-15.md) |
 | 제품 범위·구독 티어 | [PRD](01-plan/PRD.md) |
@@ -28,10 +43,10 @@
 ## 중복을 늘리지 않는 갱신 규칙
 
 1. 한 작업은 슬라이스 하나 또는 한 수정 사안으로 제한합니다.
-2. 구현 상태·검증 결과는 `TODO_Phase2.md`에, 다음 우선순위는 `TODO.md`에 적습니다. 별도 현황표를 복제하지 않습니다.
+2. 현재 초점·제약·다음 우선순위는 짧은 `TODO.md` 하나에 유지합니다. 상세 구현·검증 근거는 `TODO_Phase2.md`에 두고 시작 문서·README·로그에 결과표를 복제하지 않습니다.
 3. 동작이 바뀌면 해당 상세 명세와 필요한 QA 절차를 갱신합니다. 코드 리뷰만 한 경우 QA 완료로 표시하지 않습니다.
 4. 요구사항 체크와 실행 검증을 구분합니다. 화면이 존재하거나 빌드가 통과했다는 이유로 RLS·동시성·접근성 검증을 완료 처리하지 않습니다.
-5. 개발 작업 세션의 결과는 `TODO_LOG.md`에 짧게 추가합니다. 파일별 변경 이력은 Git을 사용합니다.
+5. 의미 있는 동작·결정·진행 상태 변경만 `TODO_LOG.md`에 날짜·결과·검증 범위/미검증 사항 1~3줄로 추가합니다. 작은 문구·스타일 수정마다 로그를 늘리지 않으며 파일별 변경 이력은 Git을 사용합니다.
 6. 커밋·검증·푸시 조건은 [AGENTS.md](../AGENTS.md)를 따릅니다.
 7. 고도화 논의는 해당 문서에 이어 쓰고, 확정 시 `decisions.md`와 영향받는 기존 명세를 갱신합니다. 논의 문서를 구현 상태표로 사용하지 않습니다.
 
