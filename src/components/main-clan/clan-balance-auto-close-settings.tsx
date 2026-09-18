@@ -102,13 +102,13 @@ export function ClanBalanceAutoCloseSettings({
               min={1}
               max={168}
               step={1}
+              placeholder="1~168시간"
               defaultValue={initialHours}
               required
               className="w-24 tabular-nums"
             />
             <span className="text-sm text-muted-foreground">시간 후 종료</span>
           </div>
-          <p className="text-xs text-muted-foreground">1시간부터 168시간까지 설정할 수 있습니다.</p>
         </div>
 
         <Button type="submit" disabled={pending}>
