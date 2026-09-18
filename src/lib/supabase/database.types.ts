@@ -2881,7 +2881,7 @@ export type Database = {
         | "clan"
         | "clansync"
       badge_unlock_kind: "achievement" | "event" | "store"
-      balance_match_outcome: "pending" | "team1" | "team2" | "void"
+      balance_match_outcome: "pending" | "team1" | "team2" | "void" | "draw"
       balance_session_phase: "editing" | "map_ban" | "hero_ban" | "match_live"
       board_post_type: "promotion" | "scrim"
       bracket_format: "single_elim" | "double_elim" | "round_robin"
@@ -3089,7 +3089,7 @@ export const Constants = {
         "clansync",
       ],
       badge_unlock_kind: ["achievement", "event", "store"],
-      balance_match_outcome: ["pending", "team1", "team2", "void"],
+      balance_match_outcome: ["pending", "team1", "team2", "void", "draw"],
       balance_session_phase: ["editing", "map_ban", "hero_ban", "match_live"],
       board_post_type: ["promotion", "scrim"],
       bracket_format: ["single_elim", "double_elim", "round_robin"],

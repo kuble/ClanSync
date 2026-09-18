@@ -56,6 +56,7 @@ function timeLabel(value: string): string {
 function outcomeLabel(round: BalanceHistoryRound): string {
   if (round.match_outcome === "team1") return "1팀 승리";
   if (round.match_outcome === "team2") return "2팀 승리";
+  if (round.match_outcome === "draw") return "무승부";
   if (round.match_outcome === "void") return "무효";
   return round.phase === "editing" ? "편성 중" : "결과 대기";
 }
@@ -208,7 +209,8 @@ function HistoryContent({
   const completed =
     data?.rounds.filter(
       (round) =>
-        round.match_outcome === "team1" || round.match_outcome === "team2",
+        round.match_outcome === "team1" || round.match_outcome === "team2" ||
+        round.match_outcome === "draw",
     ).length ?? 0;
 
   return (
@@ -327,8 +329,8 @@ function HistoryContent({
                 </label>
               </div>
               <p className="text-xs text-muted-foreground">
-                승패가 확정된 경기만 집계합니다. 대기·무효 경기와 쉬어 간
-                라운드는 연속 승패에 영향을 주지 않습니다.
+                승·무·패가 확정된 경기만 집계합니다. 무승부는 연승·연패를
+                끊으며, 대기·무효 경기와 쉬어 간 라운드는 집계하지 않습니다.
               </p>
               {stats.length ? (
                 <div className="overflow-x-auto rounded-xl border">
@@ -339,6 +341,7 @@ function HistoryContent({
                           "참여자",
                           "출전",
                           "승",
+                          "무",
                           "패",
                           "승률",
                           "현재 연속",
@@ -371,6 +374,9 @@ function HistoryContent({
                           </td>
                           <td className="px-3 py-3 text-right">
                             {member.wins}
+                          </td>
+                          <td className="px-3 py-3 text-right">
+                            {member.draws}
                           </td>
                           <td className="px-3 py-3 text-right">
                             {member.losses}

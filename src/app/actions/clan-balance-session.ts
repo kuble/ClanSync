@@ -798,7 +798,10 @@ export async function setBalanceMatchOutcomeAction(
   sessionId: string,
   outcome: Exclude<BalanceMatchOutcome, "pending">,
 ): Promise<BalanceSessionActionResult> {
-  if (outcome !== "team1" && outcome !== "team2" && outcome !== "void") {
+  if (
+    outcome !== "team1" && outcome !== "team2" &&
+    outcome !== "draw" && outcome !== "void"
+  ) {
     return { ok: false, error: "결과 값이 올바르지 않습니다." };
   }
 

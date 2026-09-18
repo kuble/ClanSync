@@ -30,6 +30,7 @@ test("session lifecycle preserves dates, round history and authorization", async
   let seriesId;
   let firstRound;
   let secondRound;
+  let drawRound;
   let expectedRoster;
   t.after(async () => {
     if (users.length)
@@ -371,7 +372,46 @@ test("session lifecycle preserves dates, round history and authorization", async
         ).length,
         2,
       );
-      await ok(close(leader.client, reopened.round_id));
+      drawRound = reopened.round_id;
     },
   );
+
+  await t.test("draws finalize without coin payouts, retain authorization and allow the next round", async () => {
+    await ok(leader.client.from("balance_sessions").update({
+      resolved_map_label: "리장 타워",
+    }).eq("id", drawRound));
+    await ok(svc.from("balance_sessions").update({
+      phase: "match_live",
+      roster: expectedRoster,
+      prediction_deadline_at: new Date(Date.now() + 60_000).toISOString(),
+    }).eq("id", drawRound));
+    await ok(member.client.from("balance_session_predictions").insert({
+      session_id: drawRound, user_id: member.id, pick_team: 1,
+    }));
+    const result = (client, value = "draw") => client.rpc("set_balance_match_outcome", {
+      p_session_id: drawRound, p_outcome: value,
+    });
+    assert.ok((await result(anon)).error);
+    for (const client of [member.client, outsider.client]) {
+      assert.equal((await ok(result(client))).error, "forbidden");
+    }
+    // No winning pick exists for a draw, even if the Premium coin pool is empty.
+    await ok(svc.from("clans").update({ coin_balance: 0 }).eq("id", clanId));
+    assert.equal((await ok(result(leader.client))).ok, true);
+    const round = await ok(readRound(drawRound));
+    assert.equal(round.match_outcome, "draw");
+    assert.ok(round.predictions_settled_at);
+    assert.equal(round.prediction_deadline_at, null);
+    assert.equal((await ok(result(leader.client, "team1"))).error, "already_resolved");
+    assert.equal((await ok(svc.from("coin_transactions").select("id")
+      .eq("reference_id", drawRound))).length, 0);
+    assert.equal((await ok(svc.from("users").select("coin_balance")
+      .eq("id", member.id).single())).coin_balance, 5);
+    assert.equal((await ok(svc.from("clans").select("coin_balance")
+      .eq("id", clanId).single())).coin_balance, 0);
+    const nextRound = await ok(next(leader.client, drawRound));
+    assert.equal((await ok(readRound(drawRound))).match_outcome, "draw");
+    assert.equal((await ok(readRound(nextRound.round_id))).match_outcome, "pending");
+    await ok(close(leader.client, nextRound.round_id));
+  });
 });

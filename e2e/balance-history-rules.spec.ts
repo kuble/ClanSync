@@ -49,6 +49,7 @@ test("history counts only valid results and preserves streaks across absent, pen
     userId: "a",
     appearances: 4,
     wins: 2,
+    draws: 0,
     losses: 2,
     winRate: 50,
     currentStreak: -2,
@@ -59,6 +60,27 @@ test("history counts only valid results and preserves streaks across absent, pen
     winRate: null,
     currentStreak: 0,
   });
+});
+
+test("draws count as appearances and reset a streak without counting void rounds", () => {
+  const rounds = [
+    round(1, "team1", ["a"], ["b"]),
+    round(2, "team1", ["a"], ["b"]),
+    round(3, "draw", ["a"], ["b"]),
+    round(4, "void", ["a"], ["b"]),
+  ];
+  const stats = calculateBalanceHistoryStats(rounds);
+  expect(stats.find((member) => member.userId === "a")).toMatchObject({
+    appearances: 3, wins: 2, draws: 1, losses: 0,
+    winRate: (2 / 3) * 100, currentStreak: 0,
+  });
+  expect(stats.find((member) => member.userId === "b")).toMatchObject({
+    appearances: 3, wins: 0, draws: 1, losses: 2,
+    winRate: 0, currentStreak: 0,
+  });
+  expect(calculateBalanceHistoryStats([
+    ...rounds, round(5, "team2", ["a"], ["b"]),
+  ]).find((member) => member.userId === "a")?.currentStreak).toBe(-1);
 });
 
 test("history deduplicates slot appearances and repeated rounds without giving opposing-team duplicates contradictory outcomes", () => {

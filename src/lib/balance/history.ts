@@ -39,7 +39,7 @@ export type BalanceHistoryRound = {
   round_number: number;
   opened_at: string;
   closed_at: string | null;
-  match_outcome: "pending" | "team1" | "team2" | "void";
+  match_outcome: "pending" | "team1" | "team2" | "draw" | "void";
   phase: string;
   resolved_map_label: string | null;
   roster: BalanceRoster;
@@ -56,9 +56,10 @@ export type BalanceMemberStats = {
   userId: string;
   appearances: number;
   wins: number;
+  draws: number;
   losses: number;
   winRate: number | null;
-  /** Positive for consecutive wins, negative for losses; only played rounds count. */
+  /** Positive for consecutive wins, negative for losses; a draw resets the streak. */
   currentStreak: number;
 };
 
@@ -223,12 +224,16 @@ export function calculateBalanceHistoryStats(
           userId: id,
           appearances: 0,
           wins: 0,
+          draws: 0,
           losses: 0,
           winRate: null,
           currentStreak: 0,
         });
     }
-    if (round.match_outcome !== "team1" && round.match_outcome !== "team2")
+    if (
+      round.match_outcome !== "team1" && round.match_outcome !== "team2" &&
+      round.match_outcome !== "draw"
+    )
       continue;
     for (const team of ["team1", "team2"] as const) {
       for (const id of teams[team]) {
@@ -237,11 +242,14 @@ export function calculateBalanceHistoryStats(
         const stats = members.get(id)!;
         const win = team === round.match_outcome;
         stats.appearances++;
-        if (win) stats.wins++;
+        if (round.match_outcome === "draw") stats.draws++;
+        else if (win) stats.wins++;
         else stats.losses++;
-        stats.currentStreak = win
-          ? Math.max(0, stats.currentStreak) + 1
-          : Math.min(0, stats.currentStreak) - 1;
+        stats.currentStreak = round.match_outcome === "draw"
+          ? 0
+          : win
+            ? Math.max(0, stats.currentStreak) + 1
+            : Math.min(0, stats.currentStreak) - 1;
         stats.winRate = (stats.wins / stats.appearances) * 100;
       }
     }
