@@ -182,6 +182,7 @@ test("로비 간소화: 예약 휠·주간 단일 행·바로 참여", async ({ 
     await expect(detail).toBeHidden();
     const movedRoom = await readRoom(fixture, regular.id);
     expect(new Date(movedRoom.scheduled_at).getUTCSeconds()).toBe(2);
+    if (!regular.schedule_id) throw new Error("Weekly reservation is missing its schedule");
     const { data: movedSchedule, error: movedScheduleError } = await fixture.service.from("balance_room_schedules")
       .select("title,next_run_at").eq("id", regular.schedule_id).single();
     expect(movedScheduleError).toBeNull();

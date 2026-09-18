@@ -32,7 +32,7 @@ function run(args, capture = false) {
 
 // A separate CLI workdir keeps supabase/.temp linked to the existing main project.
 run(["link", "--project-ref", TEST_PROJECT_REF, "--yes"]);
-if (action === "push") run(["db", "push", "--linked", "--yes"]);
+if (action === "push") run(["db", "push", "--linked", "--yes", ...(process.argv.includes("--include-all") ? ["--include-all"] : [])]);
 if (action === "list") run(["migration", "list", "--linked"]);
 if (action === "types") {
   const types = run(["gen", "types", "typescript", "--linked", "--schema", "public"], true);
