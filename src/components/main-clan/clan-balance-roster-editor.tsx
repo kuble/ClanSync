@@ -31,6 +31,8 @@ import {
 } from "@/lib/balance/roster-autosave";
 import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
 import type { ScoreMode } from "./balance-team-insights";
+import type { PlayerSessionInfoMap } from "@/lib/balance/player-session-stats";
+import { BalancePlayerCardContent, BalancePlayerDetails } from "./balance-player-details";
 
 export type ClanBalanceRosterEditorHandle = {
   flush(): Promise<RosterFlushResult>;
@@ -74,6 +76,9 @@ export function ClanBalanceRosterEditor({
   scoreMode = "m",
   scoreControl,
   renderInsights,
+  playerSessionInfo,
+  planPremium = false,
+  samplePlayerIds = [],
   ref,
 }: {
   gameSlug: string;
@@ -89,6 +94,9 @@ export function ClanBalanceRosterEditor({
   scoreMode?: ScoreMode;
   scoreControl?: ReactNode;
   renderInsights?: (roster: BalanceRoster) => ReactNode;
+  playerSessionInfo?: PlayerSessionInfoMap;
+  planPremium?: boolean;
+  samplePlayerIds?: readonly string[];
   ref?: Ref<ClanBalanceRosterEditorHandle>;
 }) {
   const helpId = useId();
@@ -247,7 +255,7 @@ export function ClanBalanceRosterEditor({
         Escape 키로 이동 선택을 취소할 수 있습니다.
       </p>
       <div aria-label="출전 명단 편집" aria-describedby={helpId}>
-        <BalanceTeamHeading />
+        <BalanceTeamHeading roster={roster} scores={scores} mode={scoreMode} />
         <div className="space-y-2 rounded-xl bg-muted/35 p-2 sm:p-3">
           {BALANCE_SLOTS.map((slot) => (
             <div
@@ -265,6 +273,7 @@ export function ClanBalanceRosterEditor({
                 return (
                   <div key={team} className="contents">
                     {index === 1 ? <BalanceRoleIcon slot={slot} /> : null}
+                    <BalancePlayerDetails nickname={nickname} info={userId ? playerSessionInfo?.[userId] : undefined} score={userId ? scores?.[userId] : undefined} premium={planPremium} sample={Boolean(userId && samplePlayerIds.includes(userId))}>
                     <button
                       type="button"
                       data-roster-slot={key}
@@ -273,9 +282,6 @@ export function ClanBalanceRosterEditor({
                       aria-label={`${teamLabel} ${slot.label}: ${nickname}`}
                       aria-pressed={activeSlot === key}
                       aria-describedby={helpId}
-                      title={
-                        userId ? `${nickname} · 우클릭으로 비우기` : "빈자리"
-                      }
                       className={cn(
                         "relative flex min-h-20 min-w-0 flex-col gap-1 select-none items-center justify-center rounded-xl border px-2 py-3 text-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:px-3",
                         team === "team1"
@@ -329,11 +335,9 @@ export function ClanBalanceRosterEditor({
                         else clearInteraction();
                       }}
                     >
-                      <span className="max-w-full truncate text-xs font-bold sm:text-sm">
-                        {nickname}
-                      </span>
-                      {scores && userId ? <span className="text-[11px] font-normal tabular-nums text-muted-foreground">{scoreMode.toUpperCase()} {scores[userId]?.[scoreMode] ?? "—"}</span> : null}
+                      <BalancePlayerCardContent nickname={nickname} info={userId ? playerSessionInfo?.[userId] : undefined} score={userId ? scores?.[userId] : undefined} showScore={Boolean(scores && userId)} mode={scoreMode} />
                     </button>
+                    </BalancePlayerDetails>
                   </div>
                 );
               })}
@@ -371,17 +375,17 @@ export function ClanBalanceRosterEditor({
         <div className="grid min-h-24 grid-cols-2 content-start gap-2 p-3 sm:grid-cols-3 sm:p-4">
           {visiblePool.length ? (
             visiblePool.map((member) => (
+              <BalancePlayerDetails key={member.user_id} nickname={member.nickname} info={playerSessionInfo?.[member.user_id]} score={scores?.[member.user_id]} premium={planPremium} sample={samplePlayerIds.includes(member.user_id)}>
               <button
-                key={member.user_id}
                 type="button"
-                disabled={!canEdit || !firstEmpty}
-                onClick={() => addMember(member.user_id)}
+                aria-disabled={!canEdit || !firstEmpty}
+                onClick={() => { if (canEdit && firstEmpty) addMember(member.user_id); }}
                 aria-label={`${member.nickname} 출전 명단에 추가`}
-                title={member.nickname}
-                className="flex min-h-11 min-w-0 items-center justify-center rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold transition-colors hover:border-primary/50 hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-default disabled:opacity-50"
+                className="flex min-h-11 min-w-0 items-center justify-center rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold transition-colors hover:border-primary/50 hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-disabled:cursor-default aria-disabled:opacity-50"
               >
                 <span className="truncate">{member.nickname}</span>
               </button>
+              </BalancePlayerDetails>
             ))
           ) : (
             <p className="col-span-full py-3 text-xs text-muted-foreground">

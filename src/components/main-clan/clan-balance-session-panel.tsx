@@ -72,6 +72,7 @@ import { ClanBalanceDrawDialog } from "./clan-balance-draw-dialog";
 import { cn } from "@/lib/utils";
 import { BalanceTeamInsights, ScoreModeToggle, previewScores, type ScoreMode } from "./balance-team-insights";
 import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
+import type { PlayerSessionInfoMap } from "@/lib/balance/player-session-stats";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 type BalanceSession = Database["public"]["Tables"]["balance_sessions"]["Row"];
@@ -104,6 +105,7 @@ export function ClanBalanceSessionPanel({
   canEditMscore,
   planPremium,
   qaPreviewEnabled = false,
+  playerSessionInfo,
 }: {
   gameSlug: string;
   clanId: string;
@@ -127,6 +129,7 @@ export function ClanBalanceSessionPanel({
   canEditMscore: boolean;
   planPremium: boolean;
   qaPreviewEnabled?: boolean;
+  playerSessionInfo?: PlayerSessionInfoMap;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -270,13 +273,14 @@ export function ClanBalanceSessionPanel({
         ? "블루 팀 승리"
         : session?.match_outcome === "team2"
           ? "레드 팀 승리"
-          : null;
+          : session?.match_outcome === "draw" ? "무승부" : null;
   const endSessionControl = session && canManage ? <Button variant="destructive" size="sm"
     disabled={pending || busyFormation || (session.phase !== "editing" && session.match_outcome === "pending")}
     title={session.phase !== "editing" && session.match_outcome === "pending" ? "경기 결과 또는 무효를 먼저 기록하세요." : undefined}
     onClick={() => setConfirmEnd(true)}>세션 종료</Button> : null;
   const sampleScores = canViewScores && qaPreviewEnabled;
   const displayScores = sampleScores ? previewScores(rosterPool.map((member) => member.user_id), scores) : scores;
+  const samplePlayerIds = sampleScores ? rosterPool.filter((member) => !scores[member.user_id]).map((member) => member.user_id) : [];
   const scoreControl = canViewScores ? <ScoreModeToggle value={scoreMode} onChange={setScoreMode} premium={planPremium} /> : null;
   const renderInsights = (map: string | null, roster = rosterData, showMap = false) => canViewScores ? <BalanceTeamInsights roster={roster} scores={displayScores} mode={scoreMode} map={map} premium={planPremium} compact={!showMap} showMap={showMap} sample={sampleScores} /> : null;
 
@@ -522,6 +526,9 @@ export function ClanBalanceSessionPanel({
                       renderInsights={(roster) => renderInsights(null, roster)}
                       scores={canViewScores ? displayScores : undefined}
                       scoreMode={scoreMode}
+                      planPremium={planPremium}
+                      playerSessionInfo={playerSessionInfo}
+                      samplePlayerIds={samplePlayerIds}
                     />
                   ) : (
                     <ClanBalanceRevealBoard
@@ -529,6 +536,11 @@ export function ClanBalanceSessionPanel({
                       roster={rosterData}
                       pool={rosterPool}
                       serverNow={presentationNow}
+                      snapshot={canViewScores ? displayScores : undefined}
+                      scoreMode={scoreMode}
+                      planPremium={planPremium}
+                      playerSessionInfo={playerSessionInfo}
+                      samplePlayerIds={samplePlayerIds}
                     />
                   )}
                 </div>
@@ -721,6 +733,8 @@ export function ClanBalanceSessionPanel({
                     roster={rosterData}
                     pool={rosterPool}
                     snapshot={canViewScores ? displayScores : undefined}
+                    playerSessionInfo={playerSessionInfo}
+                    samplePlayerIds={samplePlayerIds}
                     planPremium={planPremium}
                     scoreMode={scoreMode}
                   />

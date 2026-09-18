@@ -2,6 +2,9 @@ import { Crosshair, Plus, Shield } from "lucide-react";
 import type { BalanceRoster, TeamRoster } from "@/lib/balance/roster-schema";
 import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
 import { cn } from "@/lib/utils";
+import { formatBalanceScore, SCORE_LABEL, teamScoreTotal, type ScoreMode } from "@/lib/balance/score-display";
+import type { PlayerSessionInfoMap } from "@/lib/balance/player-session-stats";
+import { BalancePlayerCardContent, BalancePlayerDetails } from "./balance-player-details";
 
 export const BALANCE_SLOTS = [
   { key: "d0", label: "딜러 1", role: "dmg", index: 0 },
@@ -33,17 +36,19 @@ export function BalanceRoleIcon({ slot }: { slot: BalanceSlot }) {
   );
 }
 
-export function BalanceTeamHeading() {
+export function BalanceTeamHeading({ roster, scores, mode = "m" }: { roster?: BalanceRoster; scores?: MaSnapshot; mode?: ScoreMode }) {
   return (
     <div className="mb-3 grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)] items-center gap-2 text-center sm:grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)]">
       <span className="text-xs font-bold tracking-wider text-sky-600 dark:text-sky-300">
         1팀
+        {roster && scores ? <span data-testid="team1-score-total" className="mt-1 block text-sm tracking-normal" aria-label={`1팀 ${SCORE_LABEL[mode]} 합계`}><span className="mr-1 text-[10px] font-normal opacity-70">합계</span>{formatBalanceScore(teamScoreTotal(roster.team1, scores, mode))}</span> : null}
       </span>
       <span className="text-base font-black italic text-muted-foreground/60">
         VS
       </span>
       <span className="text-xs font-bold tracking-wider text-rose-600 dark:text-rose-300">
         2팀
+        {roster && scores ? <span data-testid="team2-score-total" className="mt-1 block text-sm tracking-normal" aria-label={`2팀 ${SCORE_LABEL[mode]} 합계`}><span className="mr-1 text-[10px] font-normal opacity-70">합계</span>{formatBalanceScore(teamScoreTotal(roster.team2, scores, mode))}</span> : null}
       </span>
     </div>
   );
@@ -56,6 +61,8 @@ export function ClanBalanceRosterBoard({
   planPremium = false,
   scoreMode = "m",
   highlightPlayer,
+  playerSessionInfo,
+  samplePlayerIds = [],
 }: {
   roster: BalanceRoster;
   pool: readonly { user_id: string; nickname: string }[];
@@ -63,11 +70,14 @@ export function ClanBalanceRosterBoard({
   planPremium?: boolean;
   scoreMode?: "m" | "a";
   highlightPlayer?: string;
+  playerSessionInfo?: PlayerSessionInfoMap;
+  samplePlayerIds?: readonly string[];
 }) {
   const nickById = Object.fromEntries(pool.map((p) => [p.user_id, p.nickname]));
+  const mode = scoreMode === "a" && planPremium ? "a" : "m";
   return (
     <div aria-label="출전 라인업">
-      <BalanceTeamHeading />
+      <BalanceTeamHeading roster={roster} scores={snapshot} mode={mode} />
       <div className="space-y-2 rounded-xl bg-muted/35 p-2 sm:p-3">
         {BALANCE_SLOTS.map((slot) => (
           <div
@@ -79,15 +89,19 @@ export function ClanBalanceRosterBoard({
               const nickname = userId
                 ? (nickById[userId] ?? "탈퇴한 멤버")
                 : "빈자리";
-              const score = userId && snapshot ? snapshot[userId] : null;
+              const score = userId && snapshot ? snapshot[userId] : undefined;
+              const info = userId ? playerSessionInfo?.[userId] : undefined;
               return (
                 <div key={team} className="contents">
                   {idx === 1 ? <BalanceRoleIcon slot={slot} /> : null}
+                  <BalancePlayerDetails nickname={nickname} info={info} score={score} premium={planPremium} sample={Boolean(userId && samplePlayerIds.includes(userId))}>
                   <div
                     key={userId ?? "empty"}
+                    tabIndex={userId && (info || score) ? 0 : undefined}
+                    title={!info && !score ? nickname : undefined}
                     data-board-slot={`${team}:${slot.key}`}
                     className={cn(
-                      "flex min-h-20 min-w-0 flex-col items-center justify-center gap-1 rounded-xl border px-2 py-3 text-center",
+                      "flex min-h-20 min-w-0 flex-col items-center justify-center gap-1 rounded-xl border px-3 py-3 text-center focus-visible:outline-2 focus-visible:outline-ring sm:px-4",
                       team === "team1"
                         ? "border-sky-500/35 bg-sky-500/[0.06]"
                         : "border-rose-500/35 bg-rose-500/[0.06]",
@@ -99,25 +113,14 @@ export function ClanBalanceRosterBoard({
                     <span className="sr-only">
                       {team === "team1" ? "1팀" : "2팀"} {slot.label}
                     </span>
-                    <span
-                      className="max-w-full truncate text-xs font-bold sm:text-sm"
-                      title={nickname}
-                    >
-                      {nickname}
-                    </span>
-                    {score ? (
-                      <span className="flex gap-3 text-[11px] tabular-nums text-muted-foreground">
-                        <span>
-                          {scoreMode === "a" && planPremium ? "A" : "M"}{" "}
-                          <strong className="text-foreground">{scoreMode === "a" && planPremium ? score.a ?? "—" : score.m}</strong>
-                        </span>
-                      </span>
-                    ) : !userId ? (
+                    <BalancePlayerCardContent nickname={nickname} info={info} score={score} showScore={Boolean(snapshot && userId)} mode={mode} />
+                    {!userId ? (
                       <span className="text-[10px] text-muted-foreground">
                         참가자 대기
                       </span>
                     ) : null}
                   </div>
+                  </BalancePlayerDetails>
                 </div>
               );
             })}

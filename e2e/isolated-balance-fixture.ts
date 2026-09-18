@@ -27,6 +27,13 @@ export async function createIsolatedBalanceFixture(userCount = 12) {
   async function cleanup() {
     const errors: string[] = [];
     if (clanId) {
+      // Remove rounds before clan cascades so historical round triggers never
+      // try to rebuild a series whose parent clan is already being deleted.
+      const { error: roundError } = await service
+        .from("balance_sessions")
+        .delete()
+        .eq("clan_id", clanId);
+      if (roundError) errors.push(roundError.message);
       const { error } = await service.from("clans").delete().eq("id", clanId);
       if (error) errors.push(error.message);
     }

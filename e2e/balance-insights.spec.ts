@@ -17,7 +17,7 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await page.reload();
     const panel = page.getByTestId("clan-balance-session-panel");
     const insights = panel.getByRole("complementary", { name: "팀 밸런스 비교" });
-    await expect(panel.locator('[data-roster-slot="team1:tank"]')).toContainText(/M -?\d/);
+    await expect(panel.locator('[data-roster-slot="team1:tank"]')).toContainText(/[+-]?\d+(?:\.\d+)?점/);
     await expect(panel.getByText("샘플 점수·승률 포함", { exact: true })).toHaveCount(0);
     await expect(insights).not.toContainText("점수 합계");
     await expect(insights).toContainText(/\d+%/);
@@ -29,17 +29,70 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await expect(panel.getByText("출전 명단 10 / 10", { exact: true })).toHaveCount(0);
     expect((await fixture.activeRound(regular.roomId)).ma_snapshot).toEqual({});
     await page.screenshot({ path: test.info().outputPath("roster-sample-insights.png"), fullPage: true });
-    const savedScores = await fixture.service.from("balance_sessions").update({ ma_snapshot: scores }).eq("id", round.id);
+    // Add completed rounds only to this isolated session; its active round stays intact.
+    const savedScores = await fixture.service.from("balance_sessions").update({ ma_snapshot: scores, round_number: 4 }).eq("id", round.id);
     expect(savedScores.error).toBeNull();
+    const historyStart = Date.now() - 4 * 60_000;
+    const pastRounds = await fixture.service.from("balance_sessions").insert(
+      (["team1", "draw", "team2"] as const).map((match_outcome, index) => ({
+        clan_id: fixture.clanId,
+        game_id: fixture.gameId,
+        host_user_id: ids[0],
+        series_id: round.series_id,
+        round_number: index + 1,
+        opened_at: new Date(historyStart + index * 60_000).toISOString(),
+        closed_at: new Date(historyStart + index * 60_000 + 30_000).toISOString(),
+        phase: "match_live" as const,
+        match_outcome,
+        roster,
+      })),
+    );
+    expect(pastRounds.error).toBeNull();
     await page.reload();
-    await expect(panel.locator('[data-roster-slot="team1:tank"]')).toContainText("M 1");
-    await panel.getByRole("button", { name: "A 점수", exact: true }).click();
-    await expect(panel.locator('[data-roster-slot="team1:tank"]')).toContainText("A 2");
-    await panel.getByRole("button", { name: "M 점수", exact: true }).click();
+    const player = panel.locator('[data-roster-slot="team1:tank"]');
+    await expect(player).toContainText("+1점");
+    await expect(player).not.toContainText(/\b[MA]\s*[+-]?\d/);
+    await expect(panel.getByTestId("team1-score-total")).toContainText("+5점");
+    await expect(panel.getByTestId("team2-score-total")).toContainText("+15점");
+    // Exercise a state change before hover so the server-rendered buttons are hydrated.
+    await panel.getByRole("button", { name: "분석 점수", exact: true }).click();
+    await expect(player).toContainText("+2점");
+    await panel.getByRole("button", { name: "평가 점수", exact: true }).click();
+    await expect(player).toContainText("+1점");
+    await player.hover();
+    const playerInfo = page.getByRole("tooltip");
+    await expect(playerInfo).toBeVisible();
+    await expect(playerInfo).toContainText("이번 세션 전적");
+    await expect(playerInfo).toContainText(/1\s*승.*1\s*무.*1\s*패/);
+    await expect(playerInfo).toContainText("33.3%");
+    await expect(playerInfo).toContainText(/1\s*연패/);
+    await expect(playerInfo).toContainText("평가 점수");
+    await expect(playerInfo).toContainText("분석 점수");
+    await expect(playerInfo).toContainText(/마이크\s*미설정/);
+    await page.screenshot({ path: test.info().outputPath("player-session-details.png"), fullPage: true });
+    await page.mouse.move(0, 0);
+    await expect(playerInfo).toBeHidden();
+    await panel.locator('[data-roster-slot="team2:d1"]').focus();
+    await page.keyboard.press("Tab");
+    await expect(player).toBeFocused();
+    await expect(playerInfo).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(playerInfo).toBeHidden();
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    await page.screenshot({ path: test.info().outputPath("roster-scores-mobile.png"), fullPage: true });
+    await page.setViewportSize({ width: 1211, height: 1272 });
+    await panel.getByRole("button", { name: "분석 점수", exact: true }).click();
+    await expect(player).toContainText("+2점");
+    await expect(panel.getByTestId("team1-score-total")).toContainText("+10점");
+    await expect(panel.getByTestId("team2-score-total")).toContainText("+20점");
+    await panel.getByRole("button", { name: "평가 점수", exact: true }).click();
     await panel.locator('[data-roster-slot="team1:tank"]').click();
     await panel.locator('[data-roster-slot="team2:tank"]').click();
-    await expect(panel.locator('[data-roster-slot="team1:tank"]')).toContainText("M 3");
-    await expect(panel.locator('[data-roster-slot="team2:tank"]')).toContainText("M 1");
+    await expect(panel.locator('[data-roster-slot="team1:tank"]')).toContainText("+3점");
+    await expect(panel.locator('[data-roster-slot="team2:tank"]')).toContainText("+1점");
+    await expect(panel.getByTestId("team1-score-total")).toContainText("+7점");
+    await expect(panel.getByTestId("team2-score-total")).toContainText("+13점");
     await expect(panel.getByTestId("balance-formation").getByRole("button", { name: "세션 종료", exact: true })).toBeVisible();
     await panel.getByRole("button", { name: "라운드 설정", exact: true }).click();
     const settings = page.getByRole("dialog", { name: "라운드 설정", exact: true });
@@ -149,8 +202,35 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     }
     await page.getByTestId("clan-balance-lobby").screenshot({ path: test.info().outputPath("lobby-actions-mobile.png") });
+    await page.goto(regular.url);
+    await expect(panel).toHaveAttribute("data-balance-phase", "match_live");
+    await expect(panel.getByRole("button", { name: "평가 점수", exact: true })).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: "분석 점수", exact: true })).toHaveCount(0);
+    await expect(panel.getByTestId("team1-score-total")).toHaveCount(0);
+    await expect(panel.getByTestId("team2-score-total")).toHaveCount(0);
+    const memberPlayer = panel.locator('[data-board-slot="team1:tank"]');
+    await memberPlayer.hover();
+    await expect(page.getByRole("tooltip").filter({ hasText: "이번 세션 전적" })).toHaveCount(0);
+    await expect(page.getByRole("tooltip").filter({ hasText: "평가 점수" })).toHaveCount(0);
+    await expect(page.getByRole("tooltip").filter({ hasText: "분석 점수" })).toHaveCount(0);
+    await expect(panel).not.toContainText("이번 세션 전적");
+    await expect(memberPlayer).not.toContainText(/[+-]\d+(?:\.\d+)?점/);
+    await expect(panel.getByRole("button", { name: "무승부", exact: true })).toHaveCount(0);
+    await page.context().clearCookies();
+    await loginIsolatedBalanceUser(page, fixture.users[0]);
+    await page.goto(regular.url);
+    await panel.getByRole("button", { name: "무승부", exact: true }).click();
+    await page.getByRole("dialog", { name: "경기 결과를 확정할까요?" }).getByRole("button", { name: "결과 확정", exact: true }).click();
+    await expect.poll(async () => (await fixture.activeRound(regular.roomId)).match_outcome).toBe("draw");
+    await panel.locator('[data-board-slot="team1:tank"]').hover();
+    await expect(page.getByRole("tooltip")).toContainText("1승 2무 1패");
+    await expect(page.getByRole("tooltip")).toContainText("25%");
+    await expect(page.getByRole("tooltip")).toContainText("연속 기록 없음");
     await owner.auth.signOut();
     await spectator.auth.signOut();
+  } catch (error) {
+    await page.screenshot({ path: test.info().outputPath("before-fixture-cleanup.png"), fullPage: true });
+    throw error;
   } finally {
     await fixture.cleanup();
   }

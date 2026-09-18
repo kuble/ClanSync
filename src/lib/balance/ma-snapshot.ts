@@ -64,18 +64,18 @@ export function validateMaSnapshot(
     const e = snap[uid];
     if (!e) continue;
     if (!Number.isFinite(e.m) || e.m < MA_SCORE_MIN || e.m > MA_SCORE_MAX) {
-      return { ok: false, error: "M 점수 범위를 확인해 주세요." };
+      return { ok: false, error: "평가 점수 범위를 확인해 주세요." };
     }
     if (e.a !== null) {
       if (!opts.allowA) {
-        return { ok: false, error: "A 점수는 Premium 클랜에서만 저장할 수 있습니다." };
+        return { ok: false, error: "분석 점수는 Premium 클랜에서만 저장할 수 있습니다." };
       }
       if (
         !Number.isFinite(e.a) ||
         e.a < MA_SCORE_MIN ||
         e.a > MA_SCORE_MAX
       ) {
-        return { ok: false, error: "A 점수 범위를 확인해 주세요." };
+        return { ok: false, error: "분석 점수 범위를 확인해 주세요." };
       }
     }
   }

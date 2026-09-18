@@ -10,6 +10,10 @@ import type { Database } from "@/lib/supabase/database.types";
 import { parseRoleRanking } from "@/lib/balance/role-preferences";
 import { parseMaSnapshot, type MaSnapshot } from "@/lib/balance/ma-snapshot";
 import {
+  buildPlayerSessionInfo,
+  type PlayerSessionRound,
+} from "@/lib/balance/player-session-stats";
+import {
   parseRoster,
   rosterAssignedUserIds,
 } from "@/lib/balance/roster-schema";
@@ -20,6 +24,28 @@ type HeroVoteRow =
   Database["public"]["Tables"]["balance_session_hero_votes"]["Row"];
 type BalancePredictionRow =
   Database["public"]["Tables"]["balance_session_predictions"]["Row"];
+
+async function loadSeriesRounds(
+  supabase: Awaited<ReturnType<typeof getRequestClient>>,
+  clanId: string,
+  seriesId: string,
+): Promise<PlayerSessionRound[]> {
+  const rounds: PlayerSessionRound[] = [];
+  const pageSize = 500;
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase
+      .from("balance_sessions")
+      .select("id, round_number, opened_at, match_outcome, roster")
+      .eq("clan_id", clanId)
+      .eq("series_id", seriesId)
+      .order("round_number", { ascending: true })
+      .order("id", { ascending: true })
+      .range(offset, offset + pageSize - 1);
+    if (error) throw new Error("세션 참가자 전적을 불러오지 못했습니다.");
+    rounds.push(...data);
+    if (data.length < pageSize) return rounds;
+  }
+}
 
 export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
   gameSlug: string;
@@ -41,8 +67,13 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
   const planPremium = ctx.plan === "premium";
   const staff = ctx.role === "leader" || ctx.role === "officer";
   const canViewScores = staff && room.kind === "regular";
+  const canViewHistory =
+    staff ||
+    (room.kind === "flash" &&
+      room.created_by === user.id &&
+      ctx.role === "member");
 
-  const [{ data: session }, { data: series }, { data: recentRounds }] =
+  const [{ data: session }, { data: series }, { data: recentRounds }, sessionRounds] =
     await Promise.all([
       supabase
         .from("balance_sessions")
@@ -61,9 +92,13 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
         .from("balance_sessions")
         .select("roster, opened_at")
         .eq("clan_id", clanId)
-        .in("match_outcome", ["team1", "team2"])
+        .in("match_outcome", ["team1", "team2", "draw"])
         .order("opened_at", { ascending: false })
         .limit(100),
+      // Keep participant summaries behind the same boundary as session history.
+      canViewHistory
+        ? loadSeriesRounds(supabase, clanId, room.series_id!)
+        : Promise.resolve([]),
     ]);
   if (!session || !series || series.closed_at) redirect(`/games/${gameSlug}/clan/${clanId}/balance`);
   const [canManage, scorePermission] = await Promise.all([
@@ -84,6 +119,9 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
       }
     }
     Object.assign(scores, parseMaSnapshot(session.ma_snapshot));
+    if (!planPremium) {
+      for (const score of Object.values(scores)) score.a = null;
+    }
   }
   const [{ data: profilePreference }, { data: roundPreference }] = session
     ? await Promise.all([
@@ -156,6 +194,18 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
           (recency.get(b.user_id) ?? Infinity) ||
         a.nickname.localeCompare(b.nickname, "ko"),
     );
+  const playerSessionInfo = canViewHistory
+    ? buildPlayerSessionInfo(
+        sessionRounds,
+        rosterPool.map((player) => player.user_id),
+      )
+    : undefined;
+  const visibleSessionScores = canViewScores
+    ? parseMaSnapshot(session.ma_snapshot)
+    : {};
+  if (!planPremium) {
+    for (const score of Object.values(visibleSessionScores)) score.a = null;
+  }
 
   let hostNickname: string | null = null;
   if (session?.host_user_id) {
@@ -188,13 +238,14 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
         clanId={clanId}
         userId={user.id}
         canManage={canManage}
-        canViewHistory={staff || (room.kind === "flash" && room.created_by === user.id && ctx.role === "member")}
+        canViewHistory={canViewHistory}
         historyScope={staff ? "clan" : "session"}
         flash={room.kind === "flash"}
         canViewScores={canViewScores}
         scores={scores}
+        playerSessionInfo={playerSessionInfo}
         hostNickname={hostNickname}
-        session={canViewScores ? session : { ...session, ma_snapshot: {} }}
+        session={{ ...session, ma_snapshot: visibleSessionScores }}
         series={series}
         profileRanking={parseRoleRanking(profilePreference?.ranking)}
         roundRanking={

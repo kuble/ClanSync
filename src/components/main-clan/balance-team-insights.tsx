@@ -3,8 +3,9 @@
 import { Button } from "@/components/ui/button";
 import type { BalanceRoster } from "@/lib/balance/roster-schema";
 import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
+import { SCORE_LABEL, type ScoreMode } from "@/lib/balance/score-display";
 
-export type ScoreMode = "m" | "a";
+export type { ScoreMode } from "@/lib/balance/score-display";
 function sampleHash(value: string) {
   return [...value].reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) >>> 0, 7);
 }
@@ -23,8 +24,8 @@ export function predictionContext(roster: BalanceRoster, scores: MaSnapshot, mod
 }
 export function ScoreModeToggle({ value, onChange, premium }: { value: ScoreMode; onChange: (value: ScoreMode) => void; premium: boolean }) {
   return <div role="group" aria-label="점수 표시" className="inline-flex gap-1 rounded-lg bg-muted/50 p-1">
-    <Button size="sm" variant={value === "m" ? "secondary" : "ghost"} aria-pressed={value === "m"} onClick={() => onChange("m")}>M 점수</Button>
-    {premium ? <Button size="sm" variant={value === "a" ? "secondary" : "ghost"} aria-pressed={value === "a"} onClick={() => onChange("a")}>A 점수</Button> : null}
+    <Button size="sm" variant={value === "m" ? "secondary" : "ghost"} aria-pressed={value === "m"} title="운영진이 평가한 점수" onClick={() => onChange("m")}>{SCORE_LABEL.m}</Button>
+    {premium ? <Button size="sm" variant={value === "a" ? "secondary" : "ghost"} aria-pressed={value === "a"} title="분석용 추정 점수" onClick={() => onChange("a")}>{SCORE_LABEL.a}</Button> : null}
   </div>;
 }
 

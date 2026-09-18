@@ -14,6 +14,8 @@ import {
 import { useServerClock } from "@/lib/balance/use-server-clock";
 import { cn } from "@/lib/utils";
 import { drawRevealCount } from "@/lib/balance/draw-presentation";
+import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
+import type { PlayerSessionInfoMap } from "@/lib/balance/player-session-stats";
 
 /** A presentation of the server's saved draw, never a new random draw. */
 export function ClanBalanceRevealBoard({
@@ -21,11 +23,21 @@ export function ClanBalanceRevealBoard({
   roster,
   pool,
   serverNow,
+  snapshot,
+  scoreMode,
+  planPremium,
+  playerSessionInfo,
+  samplePlayerIds,
 }: {
   state: FormationState | null;
   roster: BalanceRoster;
   pool: readonly { user_id: string; nickname: string }[];
   serverNow: number;
+  snapshot?: MaSnapshot;
+  scoreMode?: "m" | "a";
+  planPremium?: boolean;
+  playerSessionInfo?: PlayerSessionInfoMap;
+  samplePlayerIds?: readonly string[];
 }) {
   const [reduced, setReduced] = useState(false);
   const draw = state?.draw;
@@ -59,6 +71,11 @@ export function ClanBalanceRevealBoard({
           roster={roster}
           pool={pool}
           highlightPlayer={latest}
+          snapshot={snapshot}
+          scoreMode={scoreMode}
+          planPremium={planPremium}
+          playerSessionInfo={playerSessionInfo}
+          samplePlayerIds={samplePlayerIds}
         />
       </div>
     );

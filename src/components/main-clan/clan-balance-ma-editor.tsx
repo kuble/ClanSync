@@ -90,7 +90,7 @@ export function ClanBalanceMaEditor({
         toast.error(r.error);
         return;
       }
-      toast.success("M/A 스냅샷을 저장했습니다.");
+      toast.success("참가자 점수를 저장했습니다.");
       router.refresh();
     });
   }
@@ -98,9 +98,9 @@ export function ClanBalanceMaEditor({
   return (
     <div className="space-y-3">
       <p className="text-muted-foreground text-xs">
-        M은 운영진이 기록하는 수동 점수입니다. 점수 범위는 {MA_SCORE_MIN}부터{" "}
+        평가 점수는 운영진이 평가한 점수입니다. 점수 범위는 {MA_SCORE_MIN}부터{" "}
         {MA_SCORE_MAX}까지입니다.
-        {planPremium ? " A 점수도 함께 기록할 수 있습니다." : null}
+        {planPremium ? " 분석 점수는 분석용 추정값을 기록합니다." : null}
       </p>
       <div className="overflow-x-auto rounded-lg border">
         <table className="w-full min-w-[28rem] text-sm">
@@ -108,9 +108,9 @@ export function ClanBalanceMaEditor({
             <tr className="bg-muted/40 border-b text-left">
               <th className="px-3 py-2 font-medium">슬롯</th>
               <th className="px-3 py-2 font-medium">닉네임</th>
-              <th hidden={scoreMode !== "m"} className="px-3 py-2 font-medium tabular-nums">M</th>
+              <th hidden={scoreMode !== "m"} className="px-3 py-2 font-medium tabular-nums">평가 점수</th>
               {planPremium && scoreMode === "a" ? (
-                <th className="px-3 py-2 font-medium tabular-nums">A</th>
+                <th className="px-3 py-2 font-medium tabular-nums">분석 점수</th>
               ) : null}
             </tr>
           </thead>
@@ -126,10 +126,10 @@ export function ClanBalanceMaEditor({
                     canEdit ? (
                       <input
                         type="number"
-                        aria-label={`${s.label} ${nick[s.userId] ?? "멤버"} M 점수`}
+                        aria-label={`${s.label} ${nick[s.userId] ?? "멤버"} 평가 점수`}
                         min={MA_SCORE_MIN}
                         max={MA_SCORE_MAX}
-                        step={1}
+                        step="any"
                         disabled={pending}
                         className="border-input bg-background w-20 rounded-md border px-2 py-1 tabular-nums"
                         value={snap[s.userId]?.m ?? 0}
@@ -154,10 +154,10 @@ export function ClanBalanceMaEditor({
                       canEdit ? (
                         <input
                           type="number"
-                          aria-label={`${s.label} ${nick[s.userId] ?? "멤버"} A 점수`}
+                          aria-label={`${s.label} ${nick[s.userId] ?? "멤버"} 분석 점수`}
                           min={MA_SCORE_MIN}
                           max={MA_SCORE_MAX}
-                          step={1}
+                          step="any"
                           disabled={pending}
                           className="border-input bg-background w-20 rounded-md border px-2 py-1 tabular-nums"
                           value={
@@ -198,11 +198,11 @@ export function ClanBalanceMaEditor({
       </div>
       {canEdit ? (
         <Button type="button" disabled={pending} onClick={save}>
-          M/A 저장
+          점수 저장
         </Button>
       ) : (
         <p className="text-muted-foreground text-xs">
-          점수 편집은 M점수 편집 권한이 있는 운영진만 할 수 있습니다.
+          점수 편집 권한이 있는 운영진만 수정할 수 있습니다.
         </p>
       )}
     </div>
