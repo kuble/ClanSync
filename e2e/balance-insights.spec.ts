@@ -54,6 +54,10 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await expect(player).not.toContainText(/\b[MA]\s*[+-]?\d/);
     await expect(panel.getByTestId("team1-score-total")).toContainText("+5점");
     await expect(panel.getByTestId("team2-score-total")).toContainText("+15점");
+    const blueCard = panel.locator('[data-roster-slot="team1:tank"]');
+    const redCard = panel.locator('[data-roster-slot="team2:tank"]');
+    await expect(blueCard.locator(":scope > span")).toHaveCSS("flex-direction", "row");
+    await expect(redCard.locator(":scope > span")).toHaveCSS("flex-direction", "row-reverse");
     // Exercise a state change before hover so the server-rendered buttons are hydrated.
     await panel.getByRole("button", { name: "분석 점수", exact: true }).click();
     await expect(player).toContainText("+2점");

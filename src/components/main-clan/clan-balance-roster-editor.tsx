@@ -335,7 +335,7 @@ export function ClanBalanceRosterEditor({
                         else clearInteraction();
                       }}
                     >
-                      <BalancePlayerCardContent nickname={nickname} info={userId ? playerSessionInfo?.[userId] : undefined} score={userId ? scores?.[userId] : undefined} showScore={Boolean(scores && userId)} mode={scoreMode} />
+                      <BalancePlayerCardContent nickname={nickname} info={userId ? playerSessionInfo?.[userId] : undefined} score={userId ? scores?.[userId] : undefined} showScore={Boolean(scores && userId)} mode={scoreMode} mirrored={team === "team2"} />
                     </button>
                     </BalancePlayerDetails>
                   </div>

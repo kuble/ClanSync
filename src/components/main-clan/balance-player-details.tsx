@@ -45,17 +45,18 @@ export function BalancePlayerDetails({ children, nickname, info, score, premium 
   );
 }
 
-export function BalancePlayerCardContent({ nickname, info, score, showScore, mode = "m" }: {
+export function BalancePlayerCardContent({ nickname, info, score, showScore, mode = "m", mirrored = false }: {
   nickname: string;
   info?: PlayerSessionInfo;
   score?: MaEntry;
   showScore?: boolean;
   mode?: ScoreMode;
+  mirrored?: boolean;
 }) {
-  return <span className="flex w-full min-w-0 flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-3">
-    <span className="min-w-0 flex-1 text-left">
+  return <span className={`flex w-full min-w-0 flex-col items-stretch gap-2 sm:items-center sm:gap-3 ${mirrored ? "sm:flex-row-reverse" : "sm:flex-row"}`}>
+    <span className={`min-w-0 flex-1 text-left ${mirrored ? "sm:text-right" : ""}`}>
       <span className="block truncate text-xs font-bold sm:text-sm">{nickname}</span>
-      {info ? <span className="mt-1 flex items-center gap-2 text-[10px] tabular-nums text-muted-foreground sm:text-xs">
+      {info ? <span className={`mt-1 flex items-center gap-2 text-[10px] tabular-nums text-muted-foreground sm:text-xs ${mirrored ? "sm:justify-end" : ""}`}>
         <span>{info.wins}승 {info.draws}무 {info.losses}패</span>
         {info.micAvailable === true ? <Mic className="size-3" aria-label="마이크 사용" /> : info.micAvailable === false ? <MicOff className="size-3" aria-label="마이크 미사용" /> : null}
       </span> : null}
