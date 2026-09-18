@@ -59,19 +59,19 @@ export function BalancePlayerCardContent({ nickname, info, score, showScore, sho
 }) {
   const scoreVisible = Boolean(showScore);
   const infoVisible = Boolean(showInfo && info);
-  const onlyName = !scoreVisible && !infoVisible;
+  const centered = !scoreVisible;
   const streak = info?.currentStreak ?? 0;
   const infoLabel = infoMode === "record"
     ? info ? `${info.wins}승 ${info.draws}무 ${info.losses}패` : ""
     : streak > 0 ? `${streak}연승` : streak < 0 ? `${-streak}연패` : info && info.wins + info.draws + info.losses ? "연속 기록 없음" : "첫 경기 전";
   return <span className={cn(
     "flex w-full min-w-0 flex-col",
-    onlyName ? "items-center justify-center" : "items-stretch gap-2 sm:items-center sm:gap-3",
-    !onlyName && (mirrored ? "sm:flex-row-reverse" : "sm:flex-row"),
+    centered ? "items-center justify-center" : "items-stretch gap-2 sm:items-center sm:gap-3",
+    !centered && (mirrored ? "sm:flex-row-reverse" : "sm:flex-row"),
   )}>
-    <span className={cn("min-w-0", onlyName ? "text-center" : "flex-1 text-left", !onlyName && mirrored && "sm:text-right")}>
+    <span className={cn("min-w-0", centered ? "text-center" : "flex-1 text-left", !centered && mirrored && "sm:text-right")}>
       <span className="block truncate text-xs font-bold sm:text-sm">{nickname}</span>
-      {infoVisible && info ? <span className={cn("mt-1 flex items-center gap-2 text-[10px] tabular-nums text-muted-foreground sm:text-xs", mirrored && "sm:justify-end")}>
+      {infoVisible && info ? <span className={cn("mt-1 flex items-center gap-2 text-[10px] tabular-nums text-muted-foreground sm:text-xs", centered ? "justify-center" : mirrored && "sm:justify-end")}>
         <span>{infoLabel}</span>
         {info.micAvailable === true ? <Mic className="size-3" aria-label="마이크 사용" /> : info.micAvailable === false ? <MicOff className="size-3" aria-label="마이크 미사용" /> : null}
       </span> : null}

@@ -128,6 +128,7 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     const adjustedPlayer = panel.locator('[data-roster-slot="team1:tank"]');
     await expect(adjustedPlayer).not.toContainText(/[+-]?\d+(?:\.\d+)?점/);
     await expect(adjustedPlayer).toContainText(/1연[승패]/);
+    await expect(adjustedPlayer.locator(":scope > span > span").first()).toHaveCSS("text-align", "center");
     await panel.getByRole("button", { name: "라운드 설정", exact: true }).click();
     await settings.getByRole("checkbox", { name: "선수 카드 보조 정보 표시", exact: true }).uncheck();
     await settings.getByRole("button", { name: "설정 적용", exact: true }).click();
