@@ -52,6 +52,7 @@ import {
 } from "./clan-balance-roster-editor";
 import { ClanBalanceSessionRealtime } from "./clan-balance-session-realtime";
 import { ClanBalanceFormation } from "./clan-balance-formation";
+import { AuctionPurchases } from "./balance-auction-stage";
 import {
   parseFormationSettings,
   type Role,
@@ -484,8 +485,8 @@ export function ClanBalanceSessionPanel({
               </div>
             ) : null}
             {session.phase === "editing" && !mapScreen ? (
-              <div className="space-y-5">
-                <div data-balance-guide="board">
+              <div className="flex flex-col gap-5">
+                <div data-balance-guide="board" className="order-2">
                   {canManage && !formation ? (
                     <ClanBalanceRosterEditor
                       ref={rosterRef}
@@ -553,7 +554,7 @@ export function ClanBalanceSessionPanel({
                   />
                 ) : null}
                 <ClanBalanceFormation
-                  endSessionControl={formation?.stage === "complete" ? null : endSessionControl}
+                  endSessionControl={formation ? null : endSessionControl}
                   serverNow={presentationNow}
                   key={session.id}
                   gameSlug={gameSlug}
@@ -578,8 +579,11 @@ export function ClanBalanceSessionPanel({
                   preferencePending={preferencePending}
                   onPendingChange={setBusyFormation}
                 />
+                {formation && formation.stage !== "complete" ? <div className="order-last">{endSessionControl}</div> : null}
               </div>
             ) : null}
+
+            {mapScreen || session.phase === "match_live" ? <div className="my-4"><AuctionPurchases state={formation} /></div> : null}
 
             {session.phase === "editing" && mapScreen ? (
               <ClanBalancePrematchControls

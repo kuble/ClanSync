@@ -52,6 +52,40 @@ export async function updateFormationAction(
     ]);
     if (error || !round || round.phase !== "editing")
       throw new Error("편성할 수 있는 라운드가 아닙니다.");
+    if (command.type === "choose-item") {
+      // Opposing teams choose independently. Preserve the other team's latest
+      // purchase while pinning this request to the same formation and catalog.
+      let current = round;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const state = current.formation_state as unknown as FormationState | null;
+        if (!command.expectedDrawId || state?.draw?.id !== command.expectedDrawId)
+          throw new Error("편성이 변경되었습니다. 최신 화면에서 아이템을 선택하세요.");
+        const next = advanceFormation(state, command, { id: user.id, manager }, Date.now(), randomInt);
+        const { data: saved, error: saveError } = await createServiceRoleClient().rpc("commit_balance_formation", {
+          p_round_id: roundId,
+          p_clan_id: clanId,
+          p_revision: current.formation_revision,
+          p_actor_id: user.id,
+          p_command: command.type,
+          p_state: next as unknown as Json,
+          p_roster: next.roster as unknown as Json,
+        });
+        if (saveError) throw new Error("아이템 선택을 저장하지 못했습니다. 잠시 후 다시 시도하세요.");
+        if (saved) {
+          revalidatePath(`/games/${gameSlug}/clan/${clanId}/balance`);
+          return { ok: true };
+        }
+        const { data: refreshed, error: refreshError } = await client.from("balance_sessions")
+          .select("*").eq("id", roundId).eq("clan_id", clanId).is("closed_at", null).maybeSingle();
+        if (refreshError || !refreshed || refreshed.phase !== "editing") break;
+        current = refreshed;
+      }
+      throw new Error("아이템 선택이 변경되었습니다. 최신 화면에서 다시 시도하세요.");
+    }
+    if (command.type === "tick" && round.formation_revision !== revision) {
+      revalidatePath(`/games/${gameSlug}/clan/${clanId}/balance`);
+      return { ok: true };
+    }
     if (command.type !== "start" && round.formation_revision !== revision)
       throw new Error(
         "다른 조작이 먼저 반영되었습니다. 최신 화면에서 다시 시도하세요.",
@@ -110,6 +144,13 @@ export async function updateFormationAction(
       // Client-supplied rankings or rules are not trusted. Both are saved before
       // starting, and preference/settings changes invalidate this revision CAS.
       const settings = parseFormationSettings(round.formation_settings);
+      const { data: auctionItems, error: itemsError } =
+        settings.teams === "auction" && settings.auctionItemsEnabled
+          ? await client.from("clan_auction_items")
+              .select("id,name,description,cost")
+              .eq("clan_id", clanId).eq("enabled", true)
+          : { data: [], error: null };
+      if (itemsError) throw new Error("경매 아이템을 불러오지 못했습니다.");
       next = createFormation(
         roster,
         { ...settings, preferences: resolved as Record<string, Role[]> },
@@ -121,6 +162,7 @@ export async function updateFormationAction(
             settings.roles === "lottery" ? ROLE_DRAW_DURATION_MS : 4000,
           roleMode: settings.roles,
         },
+        auctionItems ?? [],
       );
       if (next.players.some((p) => !valid.has(p.id)))
         throw new Error("탈퇴 또는 게임 연결이 해제된 출전자를 교체하세요.");
@@ -141,6 +183,10 @@ export async function updateFormationAction(
       );
       roster = next.roster;
     }
+    // Ticks are clock wake-ups, not user inputs. Repeated/early wake-ups must
+    // neither increment the revision nor keep an idle session alive.
+    if (command.type === "tick" && JSON.stringify(previous) === JSON.stringify(next))
+      return { ok: true };
     const { data: saved, error: saveError } =
       await createServiceRoleClient().rpc("commit_balance_formation", {
         p_round_id: roundId,
@@ -153,7 +199,7 @@ export async function updateFormationAction(
       });
     if (saveError)
       throw new Error("편성을 저장하지 못했습니다. 잠시 후 다시 시도하세요.");
-    if (!saved)
+    if (!saved && command.type !== "tick")
       throw new Error(
         "라운드가 변경되었습니다. 최신 화면에서 다시 시도하세요.",
       );
@@ -222,6 +268,8 @@ export async function updateFormationSettingsAction(
       auctionBudget: settings.auctionBudget,
       minBid: settings.minBid,
       durationSeconds: settings.durationSeconds,
+      auctionItemsEnabled: settings.auctionItemsEnabled,
+      strategySeconds: settings.strategySeconds,
       showPlayerCardScore: settings.showPlayerCardScore,
       showPlayerCardInfo: settings.showPlayerCardInfo,
       showTeamComparisonSummary: settings.showTeamComparisonSummary,

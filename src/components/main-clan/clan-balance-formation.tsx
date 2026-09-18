@@ -1,117 +1,77 @@
 "use client";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Pause, Play } from "lucide-react";
+import { Crown, Pause, Play } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { updateFormationAction } from "@/app/actions/clan-balance-formation";
 import {
-  ROLE_LABEL,
-  TEAM_LABEL,
-  canFit,
-  draftTurn,
-  maxBid,
-  type FormationSettings,
-  type Team,
-  type FormationState,
-  type FormationCommand,
+  ROLE_LABEL, TEAM_LABEL, canFit, canControlTeam, draftTurn, getFormationDeadline,
+  type FormationSettings, type Team, type FormationState, type FormationCommand,
 } from "@/lib/balance/formation";
 import { useServerClock } from "@/lib/balance/use-server-clock";
-import type { ReactNode } from "react";
 import type { BalanceRoster } from "@/lib/balance/roster-schema";
-const inputClass =
-  "min-h-10 w-full rounded-lg border bg-background px-3 text-xs";
+import { BalanceAuctionStage } from "./balance-auction-stage";
+import { cn } from "@/lib/utils";
+
 export function ClanBalanceFormation({
-  gameSlug,
-  clanId,
-  roundId,
-  revision,
-  drawHistoryLength,
-  state,
-  settings,
-  bans,
-  pool,
-  userId,
-  canManage,
-  readOnly = false,
-  beforeStart,
-  onPendingChange,
-  serverNow,
-  preferencePending = false,
-  endSessionControl,
+  gameSlug, clanId, roundId, revision, drawHistoryLength, state, settings, bans,
+  pool, userId, canManage, readOnly = false, beforeStart, onPendingChange,
+  serverNow, preferencePending = false, endSessionControl,
 }: {
-  serverNow: number;
-  preferencePending?: boolean;
-  endSessionControl?: ReactNode;
-  gameSlug: string;
-  clanId: string;
-  roundId: string;
-  revision: number;
-  drawHistoryLength: number;
-  state: FormationState | null;
-  settings: FormationSettings;
+  serverNow: number; preferencePending?: boolean; endSessionControl?: ReactNode;
+  gameSlug: string; clanId: string; roundId: string; revision: number; drawHistoryLength: number;
+  state: FormationState | null; settings: FormationSettings;
   bans: { mapBan: boolean; heroBan: boolean };
   pool: readonly { user_id: string; nickname: string }[];
-  userId: string;
-  canManage: boolean;
-  readOnly?: boolean;
-  beforeStart?: () => Promise<
-    { ok: true; revision: number; roster: BalanceRoster } | { ok: false }
-  >;
+  userId: string; canManage: boolean; readOnly?: boolean;
+  beforeStart?: () => Promise<{ ok: true; revision: number; roster: BalanceRoster } | { ok: false }>;
   onPendingChange?: (pending: boolean) => void;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
-  const [autoApplyError, setAutoApplyError] = useState<string | null>(null);
-  const [autoApplyRetry, setAutoApplyRetry] = useState(0);
-  const autoApplyAttempt = useRef<string | null>(null);
-  const [bidDraft, setBidDraft] = useState({ lot: "", value: 10 });
-  const lotKey = `${state?.auction?.player}:${state?.auction?.startedAt}`;
-  const bidInput =
-    bidDraft.lot === lotKey ? bidDraft.value : (state?.settings?.minBid ?? 10);
-  const revealEnd =
-    state?.draw &&
-    (state.draw.roleMode === "lottery" || state.mode === "random")
-      ? state.draw.startedAt + state.draw.durationMs
-      : 0;
-  const now = useServerClock(
-    serverNow,
-    Math.max(revealEnd, state?.auction?.deadline ?? 0),
-    200,
-  );
-  const names = new Map(pool.map((p) => [p.user_id, p.nickname]));
+  const [progressError, setProgressError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
+  const revealEnd = state?.draw && (state.draw.roleMode === "lottery" || state.mode === "random")
+    ? state.draw.startedAt + state.draw.durationMs : 0;
+  const deadline = state ? getFormationDeadline(state) : null;
+  const now = useServerClock(serverNow, Math.max(revealEnd, deadline ?? 0), 100);
+  const names = new Map(pool.map((player) => [player.user_id, player.nickname]));
   const name = (id: string) => names.get(id) ?? "탈퇴한 멤버";
   const manager = canManage && !readOnly;
-  const canTeam = (team: Team) =>
-    !readOnly &&
-    (manager || state?.captains?.[team === "team1" ? 0 : 1] === userId);
+  const canTeam = (team: Team) => !readOnly && Boolean(state && canControlTeam(state, { id: userId, manager }, team));
   const revealing = now < revealEnd;
-  const autoApplyKey =
-    manager &&
-    state?.stage === "complete" &&
-    state.appliedAt === undefined &&
-    !revealing
-      ? `${roundId}:${revision}:${state.draw?.id ?? "direct"}:${autoApplyRetry}`
-      : null;
-  const increment = state?.settings?.minBid ?? 10;
+  const due = !readOnly && deadline !== null && now >= deadline;
+
+  // Each member may request a clock check; server time and CAS decide the result.
+  useEffect(() => {
+    if (!due || pending) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    async function tick() {
+      try {
+        const result = await updateFormationAction(gameSlug, clanId, roundId, revision, { type: "tick" });
+        if (cancelled) return;
+        setProgressError(result.ok ? null : result.error);
+        router.refresh();
+      } catch {
+        if (!cancelled) setProgressError("연결을 확인하고 있습니다. 복구되면 자동으로 이어집니다.");
+      }
+      if (!cancelled) timer = setTimeout(tick, 1500);
+    }
+    timer = setTimeout(tick, 100);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [due, pending, gameSlug, clanId, roundId, revision, router, retry]);
+
   function run(command: FormationCommand) {
     start(async () => {
       onPendingChange?.(true);
       try {
-        const flushed =
-          command.type === "start" && beforeStart
-            ? await beforeStart()
-            : { ok: true as const, revision };
+        const flushed = command.type === "start" && beforeStart ? await beforeStart() : { ok: true as const, revision };
         if (!flushed.ok) return;
-        const result = await updateFormationAction(
-          gameSlug,
-          clanId,
-          roundId,
-          Math.max(revision, flushed.revision),
-          command.type === "start" && "roster" in flushed
-            ? { ...command, expectedRoster: flushed.roster, expectedBans: bans }
-            : command,
-        );
+        const result = await updateFormationAction(gameSlug, clanId, roundId, Math.max(revision, flushed.revision),
+          command.type === "start" && "roster" in flushed ? { ...command, expectedRoster: flushed.roster, expectedBans: bans }
+            : command.type === "choose-item" ? { ...command, expectedDrawId: state?.draw?.id } : command);
         if (!result.ok) toast.error(result.error);
         router.refresh();
       } catch {
@@ -121,298 +81,33 @@ export function ClanBalanceFormation({
       }
     });
   }
-  useEffect(() => {
-    if (!autoApplyKey || pending || autoApplyAttempt.current === autoApplyKey)
-      return;
-    autoApplyAttempt.current = autoApplyKey;
-    start(async () => {
-      onPendingChange?.(true);
-      try {
-        const result = await updateFormationAction(
-          gameSlug,
-          clanId,
-          roundId,
-          revision,
-          { type: "apply" },
-        );
-        if (!result.ok) {
-          setAutoApplyError(result.error);
-          toast.error(result.error);
-          router.refresh();
-          return;
-        }
-        setAutoApplyError(null);
-        router.refresh();
-      } catch {
-        const message = "다음 단계로 이동하지 못했습니다.";
-        setAutoApplyError(message);
-        toast.error(message);
-      } finally {
-        onPendingChange?.(false);
-      }
-    });
-  }, [autoApplyKey, clanId, gameSlug, onPendingChange, pending, revision, roundId, router]);
-  const turn = state?.stage === "draft" ? draftTurn(state) : null;
-  const lot = state?.auction;
-  const seconds = lot
-    ? Math.max(
-        0,
-        Math.ceil(
-          (lot.deadline - (state?.pausedAt ?? (now || lot.startedAt))) / 1000,
-        ),
-      )
-    : 0;
-  if (!state)
-    return (
-      <section
-        data-testid="balance-formation"
-        data-balance-guide="primary"
-        className="mt-5 flex flex-wrap items-center justify-between gap-3"
-      >
-        {endSessionControl ?? <span />}
-        {manager ? (
-          <Button
-            disabled={pending || preferencePending}
-            onClick={() =>
-              run({
-                type: "start",
-                setup: settings,
-                expectedDrawHistoryLength: drawHistoryLength,
-              })
-            }
-          >
-            {pending
-              ? "처리 중…"
-              : settings.roles === "lottery" || settings.teams === "random"
-                ? "추첨 시작"
-                : settings.teams === "draft" || settings.teams === "auction"
-                  ? "편성 진행"
-                  : "다음 단계"}
-          </Button>
-        ) : (
-          <p className="text-xs text-muted-foreground">
-            운영진이 편성을 준비하고 있습니다.
-          </p>
-        )}
-      </section>
-    );
-  if (state.stage === "complete")
-    return (
-      <section
-        data-testid="balance-formation"
-        data-balance-guide="primary"
-        className="mt-4 flex flex-wrap items-center justify-between gap-3"
-      >
-        {endSessionControl ?? <span />}
-        {manager ? (
-          autoApplyError ? (
-            <Button
-              variant="outline"
-              disabled={pending}
-              onClick={() => {
-                setAutoApplyError(null);
-                setAutoApplyRetry((value) => value + 1);
-              }}
-            >
-              다음 단계 다시 시도
-            </Button>
-          ) : (
-            <p role="status" className="text-xs text-muted-foreground">
-              {revealing
-                ? "현재 화면에서 추첨 결과를 공개하고 있습니다."
-                : "다음 단계로 이동하고 있습니다."}
-            </p>
-          )
-        ) : (
-          <p role="status" className="text-xs text-muted-foreground">
-            {revealing
-              ? "추첨 결과를 공개하고 있습니다."
-              : "운영진이 다음 단계를 준비하고 있습니다."}
-          </p>
-        )}
-      </section>
-    );
-  return (
-    <section data-testid="balance-formation" className="mt-4 space-y-4">
-      {endSessionControl}
-      {manager ? (
-        <div className="flex justify-end gap-1">
-          <Button
-            size="icon"
-            variant="ghost"
-            disabled={pending || revealing}
-            title={state.pausedAt !== null ? "편성 재개" : "편성 일시정지"}
-            aria-label={
-              state.pausedAt !== null ? "편성 재개" : "편성 일시정지"
-            }
-            onClick={() =>
-              run({ type: state.pausedAt !== null ? "resume" : "pause" })
-            }
-          >
-            {state.pausedAt !== null ? (
-              <Play className="size-4" />
-            ) : (
-              <Pause className="size-4" />
-            )}
-          </Button>
-        </div>
-      ) : null}
-      <div
-        className="flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-muted/20 p-4"
-        aria-live="polite"
-      >
-        <strong className="text-sm">
-          {state.pausedAt !== null
-            ? "편성 일시정지"
-            : turn
-              ? TEAM_LABEL[turn] + " 지명 차례 · " + (state.picks + 1) + "/8"
-              : "팀원 경매"}
-        </strong>
-        {state.captains ? (
-          <span className="text-xs text-muted-foreground">
-            {name(state.captains[0])} vs {name(state.captains[1])}
-          </span>
-        ) : null}
+
+  if (!state) return <section data-testid="balance-formation" data-balance-guide="primary" className="order-last mt-5 flex flex-wrap items-center justify-between gap-3">
+    {endSessionControl ?? <span />}
+    {manager ? <Button disabled={pending || preferencePending} onClick={() => run({ type: "start", setup: settings, expectedDrawHistoryLength: drawHistoryLength })}>
+      {pending ? "처리 중…" : settings.roles === "lottery" || settings.teams === "random" ? "추첨 시작" : settings.teams === "draft" || settings.teams === "auction" ? "편성 진행" : "다음 단계"}
+    </Button> : <p className="text-xs text-muted-foreground">운영진이 편성을 준비하고 있습니다.</p>}
+  </section>;
+
+  if (state.stage === "complete") return <section data-testid="balance-formation" data-balance-guide="primary" className="order-last mt-4 flex flex-wrap items-center justify-between gap-3">
+    {endSessionControl ?? <span />}
+    {progressError ? <div role="status" className="space-y-2 text-xs text-muted-foreground"><p>{progressError}</p><Button variant="outline" onClick={() => setRetry((value) => value + 1)}>다음 단계 다시 시도</Button></div> : <p role="status" className="text-xs text-muted-foreground">{revealing ? "현재 화면에서 추첨 결과를 공개하고 있습니다." : "다음 단계로 이동하고 있습니다."}</p>}
+  </section>;
+
+  const turn = state.stage === "draft" ? draftTurn(state) : null;
+  return <section data-testid="balance-formation" data-balance-guide="primary" aria-label={turn ? "주장 지명" : "팀원 경매"} className="order-1 mt-3 space-y-4 rounded-2xl border border-primary/20 bg-muted/10 p-4 sm:p-5">
+    <div className="flex items-center justify-between gap-3">
+      <h3 className="flex items-center gap-2 text-sm font-bold"><Crown className="size-4 text-primary" aria-hidden="true" />{state.pausedAt !== null ? "편성 일시정지" : turn ? "주장 지명" : "팀원 경매"}</h3>
+      {manager ? <Button size="icon" variant="ghost" disabled={pending || revealing} title={state.pausedAt !== null ? "편성 재개" : "편성 일시정지"} aria-label={state.pausedAt !== null ? "편성 재개" : "편성 일시정지"} onClick={() => run({ type: state.pausedAt !== null ? "resume" : "pause" })}>{state.pausedAt !== null ? <Play className="size-4" /> : <Pause className="size-4" />}</Button> : null}
+    </div>
+    {turn ? <>
+      <div className={cn("rounded-xl border p-5 text-center", turn === "team1" ? "border-sky-500/30 bg-sky-500/5" : "border-rose-500/30 bg-rose-500/5")} aria-live="polite">
+        <p className="text-xs text-muted-foreground">{state.picks + 1}번째 지명 / 8</p>
+        <h4 className={cn("mt-2 text-xl font-bold", turn === "team1" ? "text-sky-400" : "text-rose-400")}>{TEAM_LABEL[turn]} · {state.captains ? name(state.captains[turn === "team1" ? 0 : 1]) : "주장"}</h4>
+        <p className="mt-2 text-xs text-muted-foreground">{canTeam(turn) ? "함께할 팀원을 선택하세요." : "현재 차례의 주장이 팀원을 선택하고 있습니다."}</p>
       </div>
-      {turn ? (
-        <div className="grid gap-2 sm:grid-cols-2">
-          {state.remaining.map((id) => (
-            <Button
-              variant="outline"
-              className="h-auto justify-between px-3 py-3"
-              key={id}
-              disabled={
-                pending ||
-                revealing ||
-                state.pausedAt !== null ||
-                !canTeam(turn) ||
-                !canFit(state, turn, id)
-              }
-              onClick={() => run({ type: "pick", player: id })}
-            >
-              <span>{name(id)}</span>
-              <span className="text-xs text-muted-foreground">
-                {ROLE_LABEL[state.players.find((p) => p.id === id)!.role]}
-              </span>
-            </Button>
-          ))}
-        </div>
-      ) : null}
-      {state.stage === "auction" ? (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {(["team1", "team2"] as const).map((t) => (
-            <div
-              className={`rounded-xl border p-4 ${t === "team1" ? "border-blue-500/25 bg-blue-500/5" : "border-rose-500/25 bg-rose-500/5"}`}
-              key={t}
-            >
-              <span className="text-xs">{TEAM_LABEL[t]} 남은 크레딧</span>
-              <strong className="mt-1 block text-2xl tabular-nums">
-                {state.budgets[t].toLocaleString()}
-                <small className="ml-1 text-xs">P</small>
-              </strong>
-            </div>
-          ))}
-        </div>
-      ) : null}
-      {state.stage === "auction" ? (
-        <div className="rounded-xl border bg-card p-5 text-center">
-          {lot ? (
-            <>
-              <p className="text-xs text-muted-foreground">
-                {lot.retry ? "재경매" : "현재 경매 선수"} ·{" "}
-                {
-                  ROLE_LABEL[
-                    state.players.find((p) => p.id === lot.player)!.role
-                  ]
-                }
-              </p>
-              <h5 className="my-3 text-2xl font-bold">{name(lot.player)}</h5>
-              <p className="mb-4 text-sm">
-                <strong className="text-primary">{lot.bid}P</strong> ·{" "}
-                {lot.team ? TEAM_LABEL[lot.team] : "입찰 대기"} ·{" "}
-                <span className="tabular-nums">{seconds}초</span>
-              </p>
-              {!readOnly && (manager || state.captains?.includes(userId)) ? (
-                <div className="mx-auto max-w-md space-y-2">
-                  <input
-                    type="number"
-                    aria-label="입찰 크레딧"
-                    min={lot.bid + increment}
-                    step={increment}
-                    value={Math.max(bidInput, lot.bid + increment)}
-                    onChange={(e) =>
-                      setBidDraft({
-                        lot: lotKey,
-                        value: Number(e.target.value),
-                      })
-                    }
-                    className={inputClass}
-                  />
-                  <div className="flex gap-2">
-                    {(["team1", "team2"] as const)
-                      .filter(canTeam)
-                      .map((team) => (
-                        <Button
-                          key={team}
-                          className="flex-1"
-                          disabled={
-                            pending ||
-                            revealing ||
-                            state.pausedAt !== null ||
-                            seconds === 0 ||
-                            !canFit(state, team, lot.player) ||
-                            maxBid(state, team) <
-                              Math.max(bidInput, lot.bid + increment)
-                          }
-                          onClick={() =>
-                            run({
-                              type: "bid",
-                              team,
-                              amount: Math.max(bidInput, lot.bid + increment),
-                            })
-                          }
-                        >
-                          {TEAM_LABEL[team]} 입찰
-                        </Button>
-                      ))}
-                  </div>
-                </div>
-              ) : null}
-              {manager ? (
-                <Button
-                  variant="outline"
-                  className="mt-3"
-                  disabled={
-                    pending ||
-                    revealing ||
-                    seconds > 0 ||
-                    state.pausedAt !== null
-                  }
-                  onClick={() => run({ type: "settle" })}
-                >
-                  경매 마감
-                </Button>
-              ) : null}
-            </>
-          ) : (
-            <>
-              <p className="mb-4 text-sm text-muted-foreground">
-                남은 선수 {state.remaining.length}명
-              </p>
-              {manager ? (
-                <Button
-                  disabled={pending || revealing || state.pausedAt !== null}
-                  onClick={() => run({ type: "lot" })}
-                >
-                  다음 선수 공개
-                </Button>
-              ) : (
-                <p className="text-xs">다음 선수를 기다리고 있습니다.</p>
-              )}
-            </>
-          )}
-        </div>
-      ) : null}
-    </section>
-  );
+      <div className="grid gap-2 sm:grid-cols-2" aria-label="지명 가능한 선수">{state.remaining.map((id) => <Button variant="outline" className="h-auto min-h-12 justify-between gap-2 px-3 py-3" key={id} disabled={pending || revealing || state.pausedAt !== null || !canTeam(turn) || !canFit(state, turn, id)} onClick={() => run({ type: "pick", player: id })}><span className="truncate">{name(id)}</span><span className="shrink-0 text-xs text-muted-foreground">{ROLE_LABEL[state.players.find((player) => player.id === id)!.role]}</span></Button>)}</div>
+    </> : <BalanceAuctionStage state={state} now={now} pending={pending} revealing={revealing} name={name} canTeam={canTeam} run={run} />}
+    {progressError ? <p role="status" className="text-xs text-amber-500">{progressError}</p> : null}
+  </section>;
 }
