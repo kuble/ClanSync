@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { drawRevealCount } from "@/lib/balance/draw-presentation";
 import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
 import type { PlayerSessionInfoMap } from "@/lib/balance/player-session-stats";
+import type { PlayerCardInfoMode } from "@/lib/balance/formation";
 
 /** A presentation of the server's saved draw, never a new random draw. */
 export function ClanBalanceRevealBoard({
@@ -30,6 +31,9 @@ export function ClanBalanceRevealBoard({
   samplePlayerIds,
   samplePrediction,
   showPrediction,
+  showPlayerCardScore,
+  showPlayerCardInfo,
+  playerCardInfo,
 }: {
   state: FormationState | null;
   roster: BalanceRoster;
@@ -42,6 +46,9 @@ export function ClanBalanceRevealBoard({
   samplePlayerIds?: readonly string[];
   samplePrediction?: boolean;
   showPrediction?: boolean;
+  showPlayerCardScore?: boolean;
+  showPlayerCardInfo?: boolean;
+  playerCardInfo?: PlayerCardInfoMode;
 }) {
   const [reduced, setReduced] = useState(false);
   const draw = state?.draw;
@@ -82,6 +89,9 @@ export function ClanBalanceRevealBoard({
           samplePlayerIds={samplePlayerIds}
           samplePrediction={samplePrediction}
           showPrediction={showPrediction}
+          showPlayerCardScore={showPlayerCardScore}
+          showPlayerCardInfo={showPlayerCardInfo}
+          playerCardInfo={playerCardInfo}
         />
       </div>
     );

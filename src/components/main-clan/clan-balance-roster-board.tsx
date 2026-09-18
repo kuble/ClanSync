@@ -6,6 +6,7 @@ import type { ScoreMode } from "@/lib/balance/score-display";
 import type { PlayerSessionInfoMap } from "@/lib/balance/player-session-stats";
 import { BalancePlayerCardContent, BalancePlayerDetails } from "./balance-player-details";
 import { BalanceTeamSummary } from "./balance-team-summary";
+import type { PlayerCardInfoMode } from "@/lib/balance/formation";
 
 export const BALANCE_SLOTS = [
   { key: "d0", label: "딜러 1", role: "dmg", index: 0 },
@@ -65,6 +66,9 @@ export function ClanBalanceRosterBoard({
   samplePlayerIds = [],
   samplePrediction = false,
   showPrediction = false,
+  showPlayerCardScore = true,
+  showPlayerCardInfo = true,
+  playerCardInfo = "record",
 }: {
   roster: BalanceRoster;
   pool: readonly { user_id: string; nickname: string }[];
@@ -76,6 +80,9 @@ export function ClanBalanceRosterBoard({
   samplePlayerIds?: readonly string[];
   samplePrediction?: boolean;
   showPrediction?: boolean;
+  showPlayerCardScore?: boolean;
+  showPlayerCardInfo?: boolean;
+  playerCardInfo?: PlayerCardInfoMode;
 }) {
   const nickById = Object.fromEntries(pool.map((p) => [p.user_id, p.nickname]));
   const mode = scoreMode === "a" && planPremium ? "a" : "m";
@@ -117,7 +124,7 @@ export function ClanBalanceRosterBoard({
                     <span className="sr-only">
                       {team === "team1" ? "1팀" : "2팀"} {slot.label}
                     </span>
-                    <BalancePlayerCardContent nickname={nickname} info={info} score={score} showScore={Boolean(snapshot && userId)} mode={mode} mirrored={team === "team2"} />
+                    <BalancePlayerCardContent nickname={nickname} info={info} score={score} showScore={Boolean(showPlayerCardScore && snapshot && userId)} showInfo={showPlayerCardInfo} infoMode={playerCardInfo} mode={mode} mirrored={team === "team2"} />
                     {!userId ? (
                       <span className="text-[10px] text-muted-foreground">
                         참가자 대기

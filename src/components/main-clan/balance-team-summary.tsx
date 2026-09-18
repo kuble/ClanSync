@@ -9,13 +9,11 @@ import { BalanceComparisonBar, isValidBalanceEstimate, predictionContext, sample
 function TeamLabels({ roster, scores, mode }: { roster: BalanceRoster; scores: MaSnapshot; mode: ScoreMode }) {
   return <>
     <span className="text-xs font-bold tracking-wider text-sky-600 dark:text-sky-300">
-      1팀
-      <span data-testid="team1-score-total" className="mt-1 block text-sm tracking-normal" aria-label={`1팀 ${SCORE_LABEL[mode]} 합계`}><span className="mr-1 text-[10px] font-normal opacity-70">합계</span>{formatBalanceScore(teamScoreTotal(roster.team1, scores, mode))}</span>
+      1팀<span data-testid="team1-score-total" className="tracking-normal" aria-label={`1팀 ${SCORE_LABEL[mode]} 합계`}>({formatBalanceScore(teamScoreTotal(roster.team1, scores, mode))})</span>
     </span>
     <span className="text-base font-black italic text-muted-foreground/60">VS</span>
     <span className="text-xs font-bold tracking-wider text-rose-600 dark:text-rose-300">
-      2팀
-      <span data-testid="team2-score-total" className="mt-1 block text-sm tracking-normal" aria-label={`2팀 ${SCORE_LABEL[mode]} 합계`}><span className="mr-1 text-[10px] font-normal opacity-70">합계</span>{formatBalanceScore(teamScoreTotal(roster.team2, scores, mode))}</span>
+      2팀<span data-testid="team2-score-total" className="tracking-normal" aria-label={`2팀 ${SCORE_LABEL[mode]} 합계`}>({formatBalanceScore(teamScoreTotal(roster.team2, scores, mode))})</span>
     </span>
   </>;
 }
@@ -52,9 +50,11 @@ export function BalanceTeamSummary({ roster, scores, mode, premium, showPredicti
       className="pointer-events-none block w-80 max-w-[calc(100vw-2rem)] space-y-4 rounded-xl border border-border bg-popover p-4 text-popover-foreground shadow-xl [&>div:last-child]:bg-popover"
     >
       <p className="text-sm font-bold">팀 비교 요약</p>
-      <BalanceComparisonBar title={`${SCORE_LABEL.m} 합계`} team1Label={formatBalanceScore(totals.m[0])} team2Label={formatBalanceScore(totals.m[1])} team1Share={scoreComparisonShare(totals.m[0], totals.m[1])} testId="team-summary-evaluation" />
-      {premium ? <BalanceComparisonBar title={`${SCORE_LABEL.a} 합계`} team1Label={formatBalanceScore(totals.a[0])} team2Label={formatBalanceScore(totals.a[1])} team1Share={scoreComparisonShare(totals.a[0], totals.a[1])} testId="team-summary-analysis" /> : null}
       {showPrediction ? <BalanceComparisonBar title="예측 승률" team1Label={predictedTeam1 == null ? "—" : `${predictedTeam1}%`} team2Label={predictedTeam1 == null ? "—" : `${100 - predictedTeam1}%`} team1Share={predictedTeam1} status={validEstimate ? samplePrediction ? "샘플" : `신뢰도 ${resolvedEstimate!.confidence} · ${resolvedEstimate!.sampleSize}경기` : complete ? "예측 준비 중" : "10명 편성 후 확인"} testId="team-summary-prediction" /> : null}
+      <div className={`grid gap-3 ${premium ? "grid-cols-2" : "grid-cols-1"}`}>
+        <BalanceComparisonBar compact title={`${SCORE_LABEL.m} 합계`} team1Label={formatBalanceScore(totals.m[0])} team2Label={formatBalanceScore(totals.m[1])} team1Share={scoreComparisonShare(totals.m[0], totals.m[1])} testId="team-summary-evaluation" />
+        {premium ? <BalanceComparisonBar compact title={`${SCORE_LABEL.a} 합계`} team1Label={formatBalanceScore(totals.a[0])} team2Label={formatBalanceScore(totals.a[1])} team1Share={scoreComparisonShare(totals.a[0], totals.a[1])} testId="team-summary-analysis" /> : null}
+      </div>
     </TooltipContent>
   </Tooltip>;
 }

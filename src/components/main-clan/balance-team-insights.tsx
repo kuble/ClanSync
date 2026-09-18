@@ -35,19 +35,20 @@ export function ScoreModeToggle({ value, onChange, premium }: { value: ScoreMode
   </div>;
 }
 
-export function BalanceComparisonBar({ title, team1Label, team2Label, team1Share, status, testId }: {
+export function BalanceComparisonBar({ title, team1Label, team2Label, team1Share, status, testId, compact = false }: {
   title: string;
   team1Label: string;
   team2Label: string;
   team1Share: number | null;
   status?: string;
   testId?: string;
+  compact?: boolean;
 }) {
   const share = team1Share == null || !Number.isFinite(team1Share) ? null : Math.max(0, Math.min(100, team1Share));
-  return <div className="space-y-2" data-testid={testId}>
-    <div className="flex items-center justify-between gap-2 text-xs"><span>{title}</span>{status ? <span className="text-muted-foreground">{status}</span> : null}</div>
-    <div className="flex items-center justify-between text-sm font-semibold tabular-nums"><span className="text-sky-600 dark:text-sky-300">{team1Label}</span><span className="text-rose-600 dark:text-rose-300">{team2Label}</span></div>
-    <div className="flex h-2 overflow-hidden rounded-full bg-muted" aria-hidden="true">{share == null ? null : <><span className="bg-sky-500" style={{ width: `${share}%` }} /><span className="flex-1 bg-rose-500" /></>}</div>
+  return <div className={compact ? "space-y-1.5" : "space-y-2"} data-testid={testId}>
+    <div className={`flex items-center justify-between gap-2 ${compact ? "text-[10px]" : "text-xs"}`}><span>{title}</span>{status ? <span className="text-muted-foreground">{status}</span> : null}</div>
+    <div className={`flex items-center justify-between font-semibold tabular-nums ${compact ? "text-xs" : "text-sm"}`}><span className="text-sky-600 dark:text-sky-300">{team1Label}</span><span className="text-rose-600 dark:text-rose-300">{team2Label}</span></div>
+    <div className={`flex overflow-hidden rounded-full bg-muted ${compact ? "h-1.5" : "h-2"}`} aria-hidden="true">{share == null ? null : <><span className="bg-sky-500" style={{ width: `${share}%` }} /><span className="flex-1 bg-rose-500" /></>}</div>
   </div>;
 }
 

@@ -523,7 +523,6 @@ export function ClanBalanceSessionPanel({
                       pool={[...rosterPool]}
                       canEdit={!busyFormation && !pending}
                       scoreControl={scoreControl}
-                      renderInsights={(roster) => renderInsights(null, roster)}
                       scores={canViewScores ? displayScores : undefined}
                       scoreMode={scoreMode}
                       planPremium={planPremium}
@@ -531,6 +530,9 @@ export function ClanBalanceSessionPanel({
                       samplePlayerIds={samplePlayerIds}
                       samplePrediction={sampleScores}
                       showPrediction={!flash && planPremium}
+                      showPlayerCardScore={settings.showPlayerCardScore}
+                      showPlayerCardInfo={settings.showPlayerCardInfo}
+                      playerCardInfo={settings.playerCardInfo}
                     />
                   ) : (
                     <ClanBalanceRevealBoard
@@ -545,10 +547,12 @@ export function ClanBalanceSessionPanel({
                       samplePlayerIds={samplePlayerIds}
                       samplePrediction={sampleScores}
                       showPrediction={!flash && planPremium}
+                      showPlayerCardScore={settings.showPlayerCardScore}
+                      showPlayerCardInfo={settings.showPlayerCardInfo}
+                      playerCardInfo={settings.playerCardInfo}
                     />
                   )}
                 </div>
-                {formation || !canManage ? renderInsights(null) : null}
                 {isRosterParticipant &&
                 !formation &&
                 settings.roles === "lottery" ? (
@@ -743,6 +747,9 @@ export function ClanBalanceSessionPanel({
                     scoreMode={scoreMode}
                     samplePrediction={sampleScores}
                     showPrediction={!flash && planPremium}
+                    showPlayerCardScore={settings.showPlayerCardScore}
+                    showPlayerCardInfo={settings.showPlayerCardInfo}
+                    playerCardInfo={settings.playerCardInfo}
                   />
                   <div className="space-y-4">
                     {flash ? <p className="text-xs text-muted-foreground">깜짝 내전은 세션 종료 후 기록을 남기지 않으며 코인 보상을 지급하지 않습니다.</p> : !planPremium || isRosterParticipant ? (

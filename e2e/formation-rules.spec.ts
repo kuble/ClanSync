@@ -32,6 +32,8 @@ test("settings baseline compares rule values independently of JSON property orde
   expect(sameFormationSettings(left, right)).toBe(true);
   expect(sameFormationSettings(left, { ...right, minBid: 100 })).toBe(false);
   expect(sameFormationSettings(left, { ...right, captains: ["b", "a"] })).toBe(false);
+  expect(sameFormationSettings(left, { ...right, showPlayerCardScore: false })).toBe(false);
+  expect(sameFormationSettings(left, { ...right, playerCardInfo: "streak" })).toBe(false);
 });
 
 function make(mode: "draft" | "auction", random = keepOrder) {

@@ -7,19 +7,26 @@ import {
 export type Role = "tank" | "dmg" | "sup";
 export type Team = "team1" | "team2";
 export type TeamMode = "keep" | "random" | "draft" | "auction";
+export type PlayerCardInfoMode = "record" | "streak";
 export type FormationSetup = {
   roles: "manual" | "lottery";
   teams: TeamMode;
+  showPlayerCardScore?: boolean;
+  showPlayerCardInfo?: boolean;
+  playerCardInfo?: PlayerCardInfoMode;
   preferences?: Record<string, Role[]>;
   captains?: [string, string];
   auctionBudget?: number;
   minBid?: number;
   durationSeconds?: number;
 };
-export type FormationSettings = Omit<FormationSetup, "preferences"> & {
+export type FormationSettings = Omit<FormationSetup, "preferences" | "showPlayerCardScore" | "showPlayerCardInfo" | "playerCardInfo"> & {
   auctionBudget: number;
   minBid: number;
   durationSeconds: number;
+  showPlayerCardScore: boolean;
+  showPlayerCardInfo: boolean;
+  playerCardInfo: PlayerCardInfoMode;
 };
 export const DEFAULT_FORMATION_SETTINGS: FormationSettings = {
   roles: "manual",
@@ -27,6 +34,9 @@ export const DEFAULT_FORMATION_SETTINGS: FormationSettings = {
   auctionBudget: 1000,
   minBid: 10,
   durationSeconds: 20,
+  showPlayerCardScore: true,
+  showPlayerCardInfo: true,
+  playerCardInfo: "record",
 };
 export function parseFormationSettings(value: unknown): FormationSettings {
   const input =
@@ -44,6 +54,9 @@ export function sameFormationSettings(left: unknown, right: unknown): boolean {
     a.auctionBudget === b.auctionBudget &&
     a.minBid === b.minBid &&
     a.durationSeconds === b.durationSeconds &&
+    a.showPlayerCardScore === b.showPlayerCardScore &&
+    a.showPlayerCardInfo === b.showPlayerCardInfo &&
+    a.playerCardInfo === b.playerCardInfo &&
     (a.captains?.[0] ?? null) === (b.captains?.[0] ?? null) &&
     (a.captains?.[1] ?? null) === (b.captains?.[1] ?? null)
   );
@@ -52,7 +65,10 @@ export function sameFormationSettings(left: unknown, right: unknown): boolean {
 export function validateFormationSettings(value: FormationSettings): void {
   if (
     !["manual", "lottery"].includes(value.roles) ||
-    !["keep", "random", "draft", "auction"].includes(value.teams)
+    !["keep", "random", "draft", "auction"].includes(value.teams) ||
+    typeof value.showPlayerCardScore !== "boolean" ||
+    typeof value.showPlayerCardInfo !== "boolean" ||
+    !["record", "streak"].includes(value.playerCardInfo)
   )
     throw new Error("편성 방식을 확인하세요.");
   if (
@@ -261,6 +277,9 @@ export function createFormation(
       auctionBudget: settings.auctionBudget,
       minBid: settings.minBid,
       durationSeconds: settings.durationSeconds,
+      showPlayerCardScore: settings.showPlayerCardScore,
+      showPlayerCardInfo: settings.showPlayerCardInfo,
+      playerCardInfo: settings.playerCardInfo,
     },
     ...(draw ? { draw } : {}),
     budgets: { team1: settings.auctionBudget, team2: settings.auctionBudget },

@@ -382,6 +382,48 @@ export function ClanBalanceSettings({
             ) : null}
           </fieldset>
           <fieldset disabled={locked} className="space-y-4 border-t pt-5">
+            <legend className="font-semibold text-sm">선수 카드 표시</legend>
+            <label className="flex items-center justify-between gap-4 text-sm">
+              <span>
+                점수 표시
+                <span className="mt-1 block text-xs text-muted-foreground">선택한 평가·분석 점수를 카드에 표시합니다.</span>
+              </span>
+              <input
+                type="checkbox"
+                aria-label="선수 카드 점수 표시"
+                className="size-4 shrink-0 accent-primary"
+                checked={draft.showPlayerCardScore}
+                onChange={(event) => setDraft({ ...draft, showPlayerCardScore: event.target.checked })}
+              />
+            </label>
+            <label className="flex items-center justify-between gap-4 text-sm">
+              <span>
+                보조 정보 표시
+                <span className="mt-1 block text-xs text-muted-foreground">닉네임 아래에 세션 기록을 표시합니다.</span>
+              </span>
+              <input
+                type="checkbox"
+                aria-label="선수 카드 보조 정보 표시"
+                className="size-4 shrink-0 accent-primary"
+                checked={draft.showPlayerCardInfo}
+                onChange={(event) => setDraft({ ...draft, showPlayerCardInfo: event.target.checked })}
+              />
+            </label>
+            <label className="block text-xs">
+              보조 정보 내용
+              <select
+                aria-label="선수 카드 보조 정보"
+                className={field}
+                disabled={!draft.showPlayerCardInfo}
+                value={draft.playerCardInfo}
+                onChange={(event) => setDraft({ ...draft, playerCardInfo: event.target.value as FormationSettings["playerCardInfo"] })}
+              >
+                <option value="record">세션 전적</option>
+                <option value="streak">현재 연승·연패</option>
+              </select>
+            </label>
+          </fieldset>
+          <fieldset disabled={locked} className="space-y-4 border-t pt-5">
             <legend className="font-semibold text-sm">밴픽</legend>
             <label className="flex items-center justify-between text-sm">
               맵 밴 사용

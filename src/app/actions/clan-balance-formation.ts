@@ -222,6 +222,9 @@ export async function updateFormationSettingsAction(
       auctionBudget: settings.auctionBudget,
       minBid: settings.minBid,
       durationSeconds: settings.durationSeconds,
+      showPlayerCardScore: settings.showPlayerCardScore,
+      showPlayerCardInfo: settings.showPlayerCardInfo,
+      playerCardInfo: settings.playerCardInfo,
       ...(settings.captains ? { captains: settings.captains } : {}),
     };
     const nextBans = banSettings ?? parseBanSettings(round);

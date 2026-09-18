@@ -33,6 +33,7 @@ import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
 import type { ScoreMode } from "./balance-team-insights";
 import type { PlayerSessionInfoMap } from "@/lib/balance/player-session-stats";
 import { BalancePlayerCardContent, BalancePlayerDetails } from "./balance-player-details";
+import type { PlayerCardInfoMode } from "@/lib/balance/formation";
 
 export type ClanBalanceRosterEditorHandle = {
   flush(): Promise<RosterFlushResult>;
@@ -75,12 +76,14 @@ export function ClanBalanceRosterEditor({
   scores,
   scoreMode = "m",
   scoreControl,
-  renderInsights,
   playerSessionInfo,
   planPremium = false,
   samplePlayerIds = [],
   samplePrediction = false,
   showPrediction = false,
+  showPlayerCardScore = true,
+  showPlayerCardInfo = true,
+  playerCardInfo = "record",
   ref,
 }: {
   gameSlug: string;
@@ -95,12 +98,14 @@ export function ClanBalanceRosterEditor({
   scores?: MaSnapshot;
   scoreMode?: ScoreMode;
   scoreControl?: ReactNode;
-  renderInsights?: (roster: BalanceRoster) => ReactNode;
   playerSessionInfo?: PlayerSessionInfoMap;
   planPremium?: boolean;
   samplePlayerIds?: readonly string[];
   samplePrediction?: boolean;
   showPrediction?: boolean;
+  showPlayerCardScore?: boolean;
+  showPlayerCardInfo?: boolean;
+  playerCardInfo?: PlayerCardInfoMode;
   ref?: Ref<ClanBalanceRosterEditorHandle>;
 }) {
   const helpId = useId();
@@ -339,7 +344,7 @@ export function ClanBalanceRosterEditor({
                         else clearInteraction();
                       }}
                     >
-                      <BalancePlayerCardContent nickname={nickname} info={userId ? playerSessionInfo?.[userId] : undefined} score={userId ? scores?.[userId] : undefined} showScore={Boolean(scores && userId)} mode={scoreMode} mirrored={team === "team2"} />
+                      <BalancePlayerCardContent nickname={nickname} info={userId ? playerSessionInfo?.[userId] : undefined} score={userId ? scores?.[userId] : undefined} showScore={Boolean(showPlayerCardScore && scores && userId)} showInfo={showPlayerCardInfo} infoMode={playerCardInfo} mode={scoreMode} mirrored={team === "team2"} />
                     </button>
                     </BalancePlayerDetails>
                   </div>
@@ -348,7 +353,6 @@ export function ClanBalanceRosterEditor({
             </div>
           ))}
         </div>
-        {renderInsights ? <div className="mt-3">{renderInsights(roster)}</div> : null}
       </div>
 
       <section
