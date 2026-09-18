@@ -16,6 +16,25 @@ alter table public.balance_session_series
 comment on column public.balance_session_series.last_activity_at is
   '라운드 편집, 역할 선호, 맵/영웅 투표, 승부예측을 포함한 마지막 입력 시각.';
 
+-- Legacy rows have no universal update timestamp. Use the latest timestamped
+-- round, prediction or role preference instead of granting every old session
+-- a new full timeout window at deployment.
+with legacy_activity as (
+  select s.id,
+    greatest(
+      s.opened_at,
+      coalesce((select max(r.opened_at) from public.balance_sessions r where r.series_id = s.id), s.opened_at),
+      coalesce((select max(p.created_at) from public.balance_session_predictions p join public.balance_sessions r on r.id = p.session_id where r.series_id = s.id), s.opened_at),
+      coalesce((select max(pref.updated_at) from public.balance_round_role_preferences pref join public.balance_sessions r on r.id = pref.round_id where r.series_id = s.id), s.opened_at)
+    ) as occurred_at
+  from public.balance_session_series s
+  where s.closed_at is null
+)
+update public.balance_session_series s
+   set last_activity_at = a.occurred_at
+  from legacy_activity a
+ where s.id = a.id;
+
 create index balance_session_series_auto_close_idx
   on public.balance_session_series(last_activity_at)
   where closed_at is null;
