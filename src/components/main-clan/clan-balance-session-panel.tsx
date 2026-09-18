@@ -532,6 +532,8 @@ export function ClanBalanceSessionPanel({
                       showPrediction={!flash && planPremium}
                       showPlayerCardScore={settings.showPlayerCardScore}
                       showPlayerCardInfo={settings.showPlayerCardInfo}
+                      showTeamComparisonSummary={settings.showTeamComparisonSummary}
+                      showPlayerSessionSummary={settings.showPlayerSessionSummary}
                       playerCardInfo={settings.playerCardInfo}
                     />
                   ) : (
@@ -549,6 +551,8 @@ export function ClanBalanceSessionPanel({
                       showPrediction={!flash && planPremium}
                       showPlayerCardScore={settings.showPlayerCardScore}
                       showPlayerCardInfo={settings.showPlayerCardInfo}
+                      showTeamComparisonSummary={settings.showTeamComparisonSummary}
+                      showPlayerSessionSummary={settings.showPlayerSessionSummary}
                       playerCardInfo={settings.playerCardInfo}
                     />
                   )}
@@ -749,6 +753,8 @@ export function ClanBalanceSessionPanel({
                     showPrediction={!flash && planPremium}
                     showPlayerCardScore={settings.showPlayerCardScore}
                     showPlayerCardInfo={settings.showPlayerCardInfo}
+                    showTeamComparisonSummary={settings.showTeamComparisonSummary}
+                    showPlayerSessionSummary={settings.showPlayerSessionSummary}
                     playerCardInfo={settings.playerCardInfo}
                   />
                   <div className="space-y-4">

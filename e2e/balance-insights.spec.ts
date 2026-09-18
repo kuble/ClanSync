@@ -119,9 +119,13 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     const settings = page.getByRole("dialog", { name: "라운드 설정", exact: true });
     await settings.getByRole("radio", { name: /직접 배정/ }).check();
     await settings.getByRole("combobox", { name: "팀원 선발 방식", exact: true }).selectOption("keep");
+    await settings.getByRole("tab", { name: "밴픽", exact: true }).click();
     await settings.getByRole("checkbox", { name: "맵 밴 사용", exact: true }).uncheck();
     await settings.getByRole("checkbox", { name: "영웅 밴 사용", exact: true }).uncheck();
+    await settings.getByRole("tab", { name: "화면 표시", exact: true }).click();
     await settings.getByRole("checkbox", { name: "선수 카드 점수 표시", exact: true }).uncheck();
+    await settings.getByRole("checkbox", { name: "팀 비교 요약 표시", exact: true }).uncheck();
+    await settings.getByRole("checkbox", { name: "플레이어 세션 정보 요약 표시", exact: true }).uncheck();
     await settings.getByRole("combobox", { name: "선수 카드 보조 정보", exact: true }).selectOption("streak");
     await settings.getByRole("button", { name: "설정 적용", exact: true }).click();
     await expect(settings).toBeHidden();
@@ -129,7 +133,12 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await expect(adjustedPlayer).not.toContainText(/[+-]?\d+(?:\.\d+)?점/);
     await expect(adjustedPlayer).toContainText(/1연[승패]/);
     await expect(adjustedPlayer.locator(":scope > span > span").first()).toHaveCSS("text-align", "center");
+    await expect(panel.locator('[aria-label="팀 비교 요약 보기"]')).toHaveCount(0);
+    await adjustedPlayer.hover();
+    await expect(page.getByRole("tooltip").filter({ hasText: fixture.users[0].nickname })).toHaveCount(0);
     await panel.getByRole("button", { name: "라운드 설정", exact: true }).click();
+    await settings.getByRole("tab", { name: "화면 표시", exact: true }).click();
+    await settings.getByRole("checkbox", { name: "플레이어 세션 정보 요약 표시", exact: true }).check();
     await settings.getByRole("checkbox", { name: "선수 카드 보조 정보 표시", exact: true }).uncheck();
     await settings.getByRole("button", { name: "설정 적용", exact: true }).click();
     await expect(settings).toBeHidden();

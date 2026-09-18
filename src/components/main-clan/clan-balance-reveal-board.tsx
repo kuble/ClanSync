@@ -33,6 +33,8 @@ export function ClanBalanceRevealBoard({
   showPrediction,
   showPlayerCardScore,
   showPlayerCardInfo,
+  showTeamComparisonSummary,
+  showPlayerSessionSummary,
   playerCardInfo,
 }: {
   state: FormationState | null;
@@ -48,6 +50,8 @@ export function ClanBalanceRevealBoard({
   showPrediction?: boolean;
   showPlayerCardScore?: boolean;
   showPlayerCardInfo?: boolean;
+  showTeamComparisonSummary?: boolean;
+  showPlayerSessionSummary?: boolean;
   playerCardInfo?: PlayerCardInfoMode;
 }) {
   const [reduced, setReduced] = useState(false);
@@ -91,6 +95,8 @@ export function ClanBalanceRevealBoard({
           showPrediction={showPrediction}
           showPlayerCardScore={showPlayerCardScore}
           showPlayerCardInfo={showPlayerCardInfo}
+          showTeamComparisonSummary={showTeamComparisonSummary}
+          showPlayerSessionSummary={showPlayerSessionSummary}
           playerCardInfo={playerCardInfo}
         />
       </div>

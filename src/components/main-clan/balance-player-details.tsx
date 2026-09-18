@@ -9,17 +9,18 @@ import { formatBalanceScore, SCORE_LABEL, type ScoreMode } from "@/lib/balance/s
 import type { PlayerCardInfoMode } from "@/lib/balance/formation";
 import { cn } from "@/lib/utils";
 
-export function BalancePlayerDetails({ children, nickname, info, score, premium = false, sample = false }: {
+export function BalancePlayerDetails({ children, nickname, info, score, premium = false, sample = false, enabled = true }: {
   children: ReactElement;
   nickname: string;
   info?: PlayerSessionInfo;
   score?: MaEntry;
   premium?: boolean;
   sample?: boolean;
+  enabled?: boolean;
 }) {
   const descriptionId = useId();
   const [open, setOpen] = useState(false);
-  if (!info && !score) return children;
+  if (!enabled || (!info && !score)) return children;
   const streak = info?.currentStreak ?? 0;
   const trigger = children as ReactElement<{ "aria-describedby"?: string }>;
   const describedBy = [trigger.props["aria-describedby"], open ? descriptionId : undefined].filter(Boolean).join(" ") || undefined;

@@ -38,8 +38,8 @@ export function BalanceRoleIcon({ slot }: { slot: BalanceSlot }) {
   );
 }
 
-export function BalanceTeamHeading({ roster, scores, mode = "m", premium = false, showPrediction = false, samplePrediction = false }: { roster?: BalanceRoster; scores?: MaSnapshot; mode?: ScoreMode; premium?: boolean; showPrediction?: boolean; samplePrediction?: boolean }) {
-  if (roster && scores) return <BalanceTeamSummary roster={roster} scores={scores} mode={mode} premium={premium} showPrediction={showPrediction} samplePrediction={samplePrediction} />;
+export function BalanceTeamHeading({ roster, scores, mode = "m", premium = false, showPrediction = false, samplePrediction = false, showSummary = true }: { roster?: BalanceRoster; scores?: MaSnapshot; mode?: ScoreMode; premium?: boolean; showPrediction?: boolean; samplePrediction?: boolean; showSummary?: boolean }) {
+  if (roster && scores) return <BalanceTeamSummary roster={roster} scores={scores} mode={mode} premium={premium} showPrediction={showPrediction} samplePrediction={samplePrediction} enabled={showSummary} />;
   return (
     <div className="mb-3 grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)] items-center gap-2 text-center sm:grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)]">
       <span className="text-xs font-bold tracking-wider text-sky-600 dark:text-sky-300">
@@ -68,6 +68,8 @@ export function ClanBalanceRosterBoard({
   showPrediction = false,
   showPlayerCardScore = true,
   showPlayerCardInfo = true,
+  showTeamComparisonSummary = true,
+  showPlayerSessionSummary = true,
   playerCardInfo = "record",
 }: {
   roster: BalanceRoster;
@@ -82,13 +84,15 @@ export function ClanBalanceRosterBoard({
   showPrediction?: boolean;
   showPlayerCardScore?: boolean;
   showPlayerCardInfo?: boolean;
+  showTeamComparisonSummary?: boolean;
+  showPlayerSessionSummary?: boolean;
   playerCardInfo?: PlayerCardInfoMode;
 }) {
   const nickById = Object.fromEntries(pool.map((p) => [p.user_id, p.nickname]));
   const mode = scoreMode === "a" && planPremium ? "a" : "m";
   return (
     <div aria-label="출전 라인업">
-      <BalanceTeamHeading roster={roster} scores={snapshot} mode={mode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} />
+      <BalanceTeamHeading roster={roster} scores={snapshot} mode={mode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} />
       <div className="space-y-2 rounded-xl bg-muted/35 p-2 sm:p-3">
         {BALANCE_SLOTS.map((slot) => (
           <div
@@ -105,10 +109,10 @@ export function ClanBalanceRosterBoard({
               return (
                 <div key={team} className="contents">
                   {idx === 1 ? <BalanceRoleIcon slot={slot} /> : null}
-                  <BalancePlayerDetails nickname={nickname} info={info} score={score} premium={planPremium} sample={Boolean(userId && samplePlayerIds.includes(userId))}>
+                  <BalancePlayerDetails nickname={nickname} info={info} score={score} premium={planPremium} sample={Boolean(userId && samplePlayerIds.includes(userId))} enabled={showPlayerSessionSummary}>
                   <div
                     key={userId ?? "empty"}
-                    tabIndex={userId && (info || score) ? 0 : undefined}
+                    tabIndex={showPlayerSessionSummary && userId && (info || score) ? 0 : undefined}
                     title={!info && !score ? nickname : undefined}
                     data-board-slot={`${team}:${slot.key}`}
                     className={cn(

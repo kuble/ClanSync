@@ -83,6 +83,8 @@ export function ClanBalanceRosterEditor({
   showPrediction = false,
   showPlayerCardScore = true,
   showPlayerCardInfo = true,
+  showTeamComparisonSummary = true,
+  showPlayerSessionSummary = true,
   playerCardInfo = "record",
   ref,
 }: {
@@ -105,6 +107,8 @@ export function ClanBalanceRosterEditor({
   showPrediction?: boolean;
   showPlayerCardScore?: boolean;
   showPlayerCardInfo?: boolean;
+  showTeamComparisonSummary?: boolean;
+  showPlayerSessionSummary?: boolean;
   playerCardInfo?: PlayerCardInfoMode;
   ref?: Ref<ClanBalanceRosterEditorHandle>;
 }) {
@@ -264,7 +268,7 @@ export function ClanBalanceRosterEditor({
         Escape 키로 이동 선택을 취소할 수 있습니다.
       </p>
       <div aria-label="출전 명단 편집" aria-describedby={helpId}>
-        <BalanceTeamHeading roster={roster} scores={scores} mode={scoreMode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} />
+        <BalanceTeamHeading roster={roster} scores={scores} mode={scoreMode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} />
         <div className="space-y-2 rounded-xl bg-muted/35 p-2 sm:p-3">
           {BALANCE_SLOTS.map((slot) => (
             <div
@@ -282,7 +286,7 @@ export function ClanBalanceRosterEditor({
                 return (
                   <div key={team} className="contents">
                     {index === 1 ? <BalanceRoleIcon slot={slot} /> : null}
-                    <BalancePlayerDetails nickname={nickname} info={userId ? playerSessionInfo?.[userId] : undefined} score={userId ? scores?.[userId] : undefined} premium={planPremium} sample={Boolean(userId && samplePlayerIds.includes(userId))}>
+                    <BalancePlayerDetails nickname={nickname} info={userId ? playerSessionInfo?.[userId] : undefined} score={userId ? scores?.[userId] : undefined} premium={planPremium} sample={Boolean(userId && samplePlayerIds.includes(userId))} enabled={showPlayerSessionSummary}>
                     <button
                       type="button"
                       data-roster-slot={key}
@@ -383,7 +387,7 @@ export function ClanBalanceRosterEditor({
         <div className="grid min-h-24 grid-cols-2 content-start gap-2 p-3 sm:grid-cols-3 sm:p-4">
           {visiblePool.length ? (
             visiblePool.map((member) => (
-              <BalancePlayerDetails key={member.user_id} nickname={member.nickname} info={playerSessionInfo?.[member.user_id]} score={scores?.[member.user_id]} premium={planPremium} sample={samplePlayerIds.includes(member.user_id)}>
+              <BalancePlayerDetails key={member.user_id} nickname={member.nickname} info={playerSessionInfo?.[member.user_id]} score={scores?.[member.user_id]} premium={planPremium} sample={samplePlayerIds.includes(member.user_id)} enabled={showPlayerSessionSummary}>
               <button
                 type="button"
                 aria-disabled={!canEdit || !firstEmpty}

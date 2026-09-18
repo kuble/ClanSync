@@ -224,6 +224,8 @@ export async function updateFormationSettingsAction(
       durationSeconds: settings.durationSeconds,
       showPlayerCardScore: settings.showPlayerCardScore,
       showPlayerCardInfo: settings.showPlayerCardInfo,
+      showTeamComparisonSummary: settings.showTeamComparisonSummary,
+      showPlayerSessionSummary: settings.showPlayerSessionSummary,
       playerCardInfo: settings.playerCardInfo,
       ...(settings.captains ? { captains: settings.captains } : {}),
     };

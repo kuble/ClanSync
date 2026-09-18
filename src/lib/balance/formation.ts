@@ -13,6 +13,8 @@ export type FormationSetup = {
   teams: TeamMode;
   showPlayerCardScore?: boolean;
   showPlayerCardInfo?: boolean;
+  showTeamComparisonSummary?: boolean;
+  showPlayerSessionSummary?: boolean;
   playerCardInfo?: PlayerCardInfoMode;
   preferences?: Record<string, Role[]>;
   captains?: [string, string];
@@ -20,12 +22,14 @@ export type FormationSetup = {
   minBid?: number;
   durationSeconds?: number;
 };
-export type FormationSettings = Omit<FormationSetup, "preferences" | "showPlayerCardScore" | "showPlayerCardInfo" | "playerCardInfo"> & {
+export type FormationSettings = Omit<FormationSetup, "preferences" | "showPlayerCardScore" | "showPlayerCardInfo" | "showTeamComparisonSummary" | "showPlayerSessionSummary" | "playerCardInfo"> & {
   auctionBudget: number;
   minBid: number;
   durationSeconds: number;
   showPlayerCardScore: boolean;
   showPlayerCardInfo: boolean;
+  showTeamComparisonSummary: boolean;
+  showPlayerSessionSummary: boolean;
   playerCardInfo: PlayerCardInfoMode;
 };
 export const DEFAULT_FORMATION_SETTINGS: FormationSettings = {
@@ -36,6 +40,8 @@ export const DEFAULT_FORMATION_SETTINGS: FormationSettings = {
   durationSeconds: 20,
   showPlayerCardScore: true,
   showPlayerCardInfo: true,
+  showTeamComparisonSummary: true,
+  showPlayerSessionSummary: true,
   playerCardInfo: "record",
 };
 export function parseFormationSettings(value: unknown): FormationSettings {
@@ -56,6 +62,8 @@ export function sameFormationSettings(left: unknown, right: unknown): boolean {
     a.durationSeconds === b.durationSeconds &&
     a.showPlayerCardScore === b.showPlayerCardScore &&
     a.showPlayerCardInfo === b.showPlayerCardInfo &&
+    a.showTeamComparisonSummary === b.showTeamComparisonSummary &&
+    a.showPlayerSessionSummary === b.showPlayerSessionSummary &&
     a.playerCardInfo === b.playerCardInfo &&
     (a.captains?.[0] ?? null) === (b.captains?.[0] ?? null) &&
     (a.captains?.[1] ?? null) === (b.captains?.[1] ?? null)
@@ -68,6 +76,8 @@ export function validateFormationSettings(value: FormationSettings): void {
     !["keep", "random", "draft", "auction"].includes(value.teams) ||
     typeof value.showPlayerCardScore !== "boolean" ||
     typeof value.showPlayerCardInfo !== "boolean" ||
+    typeof value.showTeamComparisonSummary !== "boolean" ||
+    typeof value.showPlayerSessionSummary !== "boolean" ||
     !["record", "streak"].includes(value.playerCardInfo)
   )
     throw new Error("편성 방식을 확인하세요.");
@@ -279,6 +289,8 @@ export function createFormation(
       durationSeconds: settings.durationSeconds,
       showPlayerCardScore: settings.showPlayerCardScore,
       showPlayerCardInfo: settings.showPlayerCardInfo,
+      showTeamComparisonSummary: settings.showTeamComparisonSummary,
+      showPlayerSessionSummary: settings.showPlayerSessionSummary,
       playerCardInfo: settings.playerCardInfo,
     },
     ...(draw ? { draw } : {}),

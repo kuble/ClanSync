@@ -18,7 +18,7 @@ function TeamLabels({ roster, scores, mode }: { roster: BalanceRoster; scores: M
   </>;
 }
 
-export function BalanceTeamSummary({ roster, scores, mode, premium, showPrediction = false, samplePrediction = false, estimate }: {
+export function BalanceTeamSummary({ roster, scores, mode, premium, showPrediction = false, samplePrediction = false, estimate, enabled = true }: {
   roster: BalanceRoster;
   scores: MaSnapshot;
   mode: ScoreMode;
@@ -26,6 +26,7 @@ export function BalanceTeamSummary({ roster, scores, mode, premium, showPredicti
   showPrediction?: boolean;
   samplePrediction?: boolean;
   estimate?: BalanceEstimate;
+  enabled?: boolean;
 }) {
   const totals = {
     m: [teamScoreTotal(roster.team1, scores, "m"), teamScoreTotal(roster.team2, scores, "m")] as const,
@@ -37,6 +38,9 @@ export function BalanceTeamSummary({ roster, scores, mode, premium, showPredicti
   const resolvedEstimate = samplePrediction ? sampleBalanceEstimate(context) : estimate;
   const validEstimate = isValidBalanceEstimate(resolvedEstimate, context, complete);
   const predictedTeam1 = validEstimate ? Math.round(resolvedEstimate!.team1) : null;
+  const heading = <div className="mb-3 grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)] items-center gap-2 rounded-lg text-center sm:grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)]"><TeamLabels roster={roster} scores={scores} mode={mode} /></div>;
+
+  if (!enabled) return heading;
 
   return <Tooltip disableHoverablePopup>
     <TooltipTrigger

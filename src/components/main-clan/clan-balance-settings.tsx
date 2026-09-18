@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Sheet,
   SheetContent,
@@ -172,7 +173,7 @@ export function ClanBalanceSettings({
           <SheetTitle>라운드 설정</SheetTitle>
           <SheetDescription>
             {editable
-              ? "밴 설정은 경기 시작 전까지 변경할 수 있습니다."
+              ? "편성, 화면 표시와 밴픽 설정을 관리합니다."
               : "경기가 시작되어 설정이 잠겼습니다."}
           </SheetDescription>
         </SheetHeader>
@@ -186,6 +187,13 @@ export function ClanBalanceSettings({
               확인하세요.
             </p>
           ) : null}
+          <Tabs defaultValue="formation" className="gap-5">
+            <TabsList className="grid h-10 w-full grid-cols-3">
+              <TabsTrigger value="formation">편성</TabsTrigger>
+              <TabsTrigger value="display">화면 표시</TabsTrigger>
+              <TabsTrigger value="bans">밴픽</TabsTrigger>
+            </TabsList>
+            <TabsContent value="formation" className="space-y-6 rounded-xl border bg-muted/10 p-4">
           <fieldset
             disabled={locked || !formationEditable}
             className="space-y-3"
@@ -381,9 +389,11 @@ export function ClanBalanceSettings({
               </p>
             ) : null}
           </fieldset>
-          <fieldset disabled={locked} className="space-y-4 border-t pt-5">
+            </TabsContent>
+            <TabsContent value="display" className="rounded-xl border bg-muted/10 p-4">
+          <fieldset disabled={locked} className="space-y-3">
             <legend className="font-semibold text-sm">선수 카드 표시</legend>
-            <label className="flex items-center justify-between gap-4 text-sm">
+            <label className="flex items-center justify-between gap-4 rounded-lg border bg-background/60 p-3 text-sm">
               <span>
                 점수 표시
                 <span className="mt-1 block text-xs text-muted-foreground">선택한 평가·분석 점수를 카드에 표시합니다.</span>
@@ -396,7 +406,7 @@ export function ClanBalanceSettings({
                 onChange={(event) => setDraft({ ...draft, showPlayerCardScore: event.target.checked })}
               />
             </label>
-            <label className="flex items-center justify-between gap-4 text-sm">
+            <label className="flex items-center justify-between gap-4 rounded-lg border bg-background/60 p-3 text-sm">
               <span>
                 보조 정보 표시
                 <span className="mt-1 block text-xs text-muted-foreground">닉네임 아래에 세션 기록을 표시합니다.</span>
@@ -407,6 +417,32 @@ export function ClanBalanceSettings({
                 className="size-4 shrink-0 accent-primary"
                 checked={draft.showPlayerCardInfo}
                 onChange={(event) => setDraft({ ...draft, showPlayerCardInfo: event.target.checked })}
+              />
+            </label>
+            <label className="flex items-center justify-between gap-4 rounded-lg border bg-background/60 p-3 text-sm">
+              <span>
+                팀 비교 요약
+                <span className="mt-1 block text-xs text-muted-foreground">팀 합계에 마우스를 올렸을 때 비교 팝업을 표시합니다.</span>
+              </span>
+              <input
+                type="checkbox"
+                aria-label="팀 비교 요약 표시"
+                className="size-4 shrink-0 accent-primary"
+                checked={draft.showTeamComparisonSummary}
+                onChange={(event) => setDraft({ ...draft, showTeamComparisonSummary: event.target.checked })}
+              />
+            </label>
+            <label className="flex items-center justify-between gap-4 rounded-lg border bg-background/60 p-3 text-sm">
+              <span>
+                플레이어 세션 정보
+                <span className="mt-1 block text-xs text-muted-foreground">플레이어에 마우스를 올렸을 때 상세 팝업을 표시합니다.</span>
+              </span>
+              <input
+                type="checkbox"
+                aria-label="플레이어 세션 정보 요약 표시"
+                className="size-4 shrink-0 accent-primary"
+                checked={draft.showPlayerSessionSummary}
+                onChange={(event) => setDraft({ ...draft, showPlayerSessionSummary: event.target.checked })}
               />
             </label>
             <label className="block text-xs">
@@ -423,7 +459,9 @@ export function ClanBalanceSettings({
               </select>
             </label>
           </fieldset>
-          <fieldset disabled={locked} className="space-y-4 border-t pt-5">
+            </TabsContent>
+            <TabsContent value="bans" className="rounded-xl border bg-muted/10 p-4">
+          <fieldset disabled={locked} className="space-y-4">
             <legend className="font-semibold text-sm">밴픽</legend>
             <label className="flex items-center justify-between text-sm">
               맵 밴 사용
@@ -489,6 +527,8 @@ export function ClanBalanceSettings({
               ))}
             </div>
           </fieldset>
+            </TabsContent>
+          </Tabs>
           {editable && activeVote ? (
             <p className="text-xs text-muted-foreground">
               밴 설정을 변경하면 해당 투표를 초기화합니다.
