@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { balanceTeamHeadingResult } from "../src/components/main-clan/clan-balance-roster-board";
 import {
   balanceSessionDate,
   calculateBalanceHistoryStats,
@@ -105,7 +106,7 @@ test("history deduplicates slot appearances and repeated rounds without giving o
   });
 });
 
-test("history sorting orders by losses, win rate, or appearances and leaves zero-game rates last", () => {
+test("history sorting supports every numeric column in both directions and leaves zero-game rates last", () => {
   const stats = calculateBalanceHistoryStats([
     round(1, "team1", ["a"], ["b"]),
     round(2, "team2", ["b"], ["c"]),
@@ -113,9 +114,34 @@ test("history sorting orders by losses, win rate, or appearances and leaves zero
   ]);
   expect(sortBalanceHistoryStats(stats, "losses")[0].userId).toBe("b");
   expect(sortBalanceHistoryStats(stats, "appearances")[0].userId).toBe("b");
+  expect(sortBalanceHistoryStats(stats, "wins")[0].userId).toBe("a");
+  expect(sortBalanceHistoryStats(stats, "draws")[0].draws).toBe(0);
+  expect(sortBalanceHistoryStats(stats, "currentStreak")[0].currentStreak).toBe(1);
+  expect(sortBalanceHistoryStats(stats, "currentStreak", "asc")[0].currentStreak).toBe(-2);
   expect(
     sortBalanceHistoryStats(stats, "winRate").map((member) => member.userId),
   ).toEqual(["a", "c", "b", "d"]);
+  expect(
+    sortBalanceHistoryStats(stats, "winRate", "asc").map((member) => member.userId),
+  ).toEqual(["b", "a", "c", "d"]);
+});
+
+test("history team heading marks the winner with a crown and labels a draw", () => {
+  expect(balanceTeamHeadingResult("team1")).toEqual({
+    team1Won: true,
+    team2Won: false,
+    centerLabel: "VS",
+  });
+  expect(balanceTeamHeadingResult("team2")).toEqual({
+    team1Won: false,
+    team2Won: true,
+    centerLabel: "VS",
+  });
+  expect(balanceTeamHeadingResult("draw")).toEqual({
+    team1Won: false,
+    team2Won: false,
+    centerLabel: "무승부",
+  });
 });
 
 test("session date stays fixed at opening date and old records use the Korean opening date", () => {

@@ -364,6 +364,23 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
     await expect(history).toContainText("2라운드");
     await expect(history).toContainText("1팀 승리");
     await expect(history).toContainText("무효");
+    await expect(
+      history.getByRole("combobox", { name: "통계 정렬", exact: true }),
+    ).toHaveCount(0);
+    const appearancesHeader = history.getByRole("columnheader", { name: /출전/ });
+    await expect(appearancesHeader).toHaveAttribute("aria-sort", "descending");
+    await appearancesHeader.getByRole("button").click();
+    await expect(appearancesHeader).toHaveAttribute("aria-sort", "ascending");
+    const firstRound = history.locator("details").filter({ hasText: "1라운드" }).first();
+    await firstRound.locator(":scope > summary").click();
+    await expect(
+      firstRound
+        .getByLabel("출전 라인업")
+        .getByLabel("1팀 승리", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      firstRound.getByLabel("출전 라인업").locator("svg.lucide-crown"),
+    ).toHaveCount(1);
     await expect
       .poll(async () => {
         const bounds = await history.boundingBox();

@@ -1,4 +1,4 @@
-import { Crosshair, Plus, Shield } from "lucide-react";
+import { Crown, Crosshair, Plus, Shield } from "lucide-react";
 import type { BalanceRoster, TeamRoster } from "@/lib/balance/roster-schema";
 import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
 import { cn } from "@/lib/utils";
@@ -38,18 +38,31 @@ export function BalanceRoleIcon({ slot }: { slot: BalanceSlot }) {
   );
 }
 
-export function BalanceTeamHeading({ roster, scores, mode = "m", premium = false, showPrediction = false, samplePrediction = false, showSummary = true }: { roster?: BalanceRoster; scores?: MaSnapshot; mode?: ScoreMode; premium?: boolean; showPrediction?: boolean; samplePrediction?: boolean; showSummary?: boolean }) {
+type TeamHeadingOutcome = "pending" | "team1" | "team2" | "draw" | "void";
+
+export function balanceTeamHeadingResult(outcome?: TeamHeadingOutcome) {
+  return {
+    team1Won: outcome === "team1",
+    team2Won: outcome === "team2",
+    centerLabel: outcome === "draw" ? "무승부" : "VS",
+  } as const;
+}
+
+export function BalanceTeamHeading({ roster, scores, mode = "m", premium = false, showPrediction = false, samplePrediction = false, showSummary = true, outcome }: { roster?: BalanceRoster; scores?: MaSnapshot; mode?: ScoreMode; premium?: boolean; showPrediction?: boolean; samplePrediction?: boolean; showSummary?: boolean; outcome?: TeamHeadingOutcome }) {
   if (roster && scores) return <BalanceTeamSummary roster={roster} scores={scores} mode={mode} premium={premium} showPrediction={showPrediction} samplePrediction={samplePrediction} enabled={showSummary} />;
+  const result = balanceTeamHeadingResult(outcome);
   return (
     <div className="mb-3 grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)] items-center gap-2 text-center sm:grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)]">
-      <span className="text-xs font-bold tracking-wider text-sky-600 dark:text-sky-300">
+      <span className="inline-flex items-center justify-center gap-1.5 text-xs font-bold tracking-wider text-sky-600 dark:text-sky-300" aria-label={result.team1Won ? "1팀 승리" : undefined}>
+        {result.team1Won ? <Crown className="size-4 text-amber-400" aria-hidden="true" /> : null}
         1팀
       </span>
       <span className="text-base font-black italic text-muted-foreground/60">
-        VS
+        {result.centerLabel === "무승부" ? <span className="text-xs not-italic tracking-normal text-amber-300">무승부</span> : result.centerLabel}
       </span>
-      <span className="text-xs font-bold tracking-wider text-rose-600 dark:text-rose-300">
+      <span className="inline-flex items-center justify-center gap-1.5 text-xs font-bold tracking-wider text-rose-600 dark:text-rose-300" aria-label={result.team2Won ? "2팀 승리" : undefined}>
         2팀
+        {result.team2Won ? <Crown className="size-4 text-amber-400" aria-hidden="true" /> : null}
       </span>
     </div>
   );
@@ -71,6 +84,7 @@ export function ClanBalanceRosterBoard({
   showTeamComparisonSummary = true,
   showPlayerSessionSummary = true,
   playerCardInfo = "record",
+  outcome,
 }: {
   roster: BalanceRoster;
   pool: readonly { user_id: string; nickname: string }[];
@@ -87,12 +101,13 @@ export function ClanBalanceRosterBoard({
   showTeamComparisonSummary?: boolean;
   showPlayerSessionSummary?: boolean;
   playerCardInfo?: PlayerCardInfoMode;
+  outcome?: TeamHeadingOutcome;
 }) {
   const nickById = Object.fromEntries(pool.map((p) => [p.user_id, p.nickname]));
   const mode = scoreMode === "a" && planPremium ? "a" : "m";
   return (
     <div aria-label="출전 라인업">
-      <BalanceTeamHeading roster={roster} scores={snapshot} mode={mode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} />
+      <BalanceTeamHeading roster={roster} scores={snapshot} mode={mode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} outcome={outcome} />
       <div className="space-y-2 rounded-xl bg-muted/35 p-2 sm:p-3">
         {BALANCE_SLOTS.map((slot) => (
           <div

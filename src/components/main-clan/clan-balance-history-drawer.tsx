@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, History, LoaderCircle, RefreshCw } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, History, LoaderCircle, RefreshCw } from "lucide-react";
 import { loadBalanceHistoryAction } from "@/app/actions/clan-balance-history";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,7 @@ import {
   type BalanceHistoryData,
   type BalanceHistoryRound,
   type BalanceStatsSort,
+  type BalanceStatsSortDirection,
   type PublicDrawEvent,
 } from "@/lib/balance/history";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,14 @@ const MODE_LABEL = {
   draft: "주장 지명",
   auction: "포인트 경매",
 };
+const STAT_COLUMNS: { key: BalanceStatsSort; label: string }[] = [
+  { key: "appearances", label: "출전" },
+  { key: "wins", label: "승" },
+  { key: "draws", label: "무" },
+  { key: "losses", label: "패" },
+  { key: "winRate", label: "승률" },
+  { key: "currentStreak", label: "현재 연속" },
+];
 const timeFormatter = new Intl.DateTimeFormat("ko-KR", {
   timeZone: "Asia/Seoul",
   hour: "2-digit",
@@ -149,6 +158,7 @@ function HistoryContent({
   const [requestedSeriesId, setRequestedSeriesId] = useState(currentSeriesId);
   const [refresh, setRefresh] = useState(0);
   const [sort, setSort] = useState<BalanceStatsSort>("appearances");
+  const [sortDirection, setSortDirection] = useState<BalanceStatsSortDirection>("desc");
   const [response, setResponse] = useState<{
     key: string;
     data: BalanceHistoryData | null;
@@ -186,9 +196,18 @@ function HistoryContent({
       sortBalanceHistoryStats(
         calculateBalanceHistoryStats(data?.rounds ?? []),
         sort,
+        sortDirection,
       ),
-    [data, sort],
+    [data, sort, sortDirection],
   );
+  const changeSort = (next: BalanceStatsSort) => {
+    if (next === sort) {
+      setSortDirection((current) => current === "desc" ? "asc" : "desc");
+      return;
+    }
+    setSort(next);
+    setSortDirection("desc");
+  };
   const nicknames = new Map(
     pool.map((member) => [member.user_id, member.nickname]),
   );
@@ -312,21 +331,6 @@ function HistoryContent({
                 >
                   참여자 통계
                 </h3>
-                <label className="text-xs">
-                  <span className="sr-only">통계 정렬</span>
-                  <select
-                    aria-label="통계 정렬"
-                    value={sort}
-                    onChange={(event) =>
-                      setSort(event.target.value as BalanceStatsSort)
-                    }
-                    className="h-9 rounded-lg border bg-background px-2"
-                  >
-                    <option value="appearances">출전 많은 순</option>
-                    <option value="losses">패배 많은 순</option>
-                    <option value="winRate">승률 높은 순</option>
-                  </select>
-                </label>
               </div>
               <p className="text-xs text-muted-foreground">
                 승·무·패가 확정된 경기만 집계합니다. 무승부는 연승·연패를
@@ -337,26 +341,27 @@ function HistoryContent({
                   <table className="w-full min-w-[440px] text-xs tabular-nums">
                     <thead className="bg-muted/45 text-muted-foreground">
                       <tr>
-                        {[
-                          "참여자",
-                          "출전",
-                          "승",
-                          "무",
-                          "패",
-                          "승률",
-                          "현재 연속",
-                        ].map((heading) => (
-                          <th
-                            key={heading}
+                        <th scope="col" className="whitespace-nowrap px-3 py-3 text-left font-medium">참여자</th>
+                        {STAT_COLUMNS.map((column) => {
+                          const active = sort === column.key;
+                          const Icon = active ? (sortDirection === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
+                          return <th
+                            key={column.key}
                             scope="col"
-                            className={cn(
-                              "whitespace-nowrap px-3 py-3 text-right font-medium",
-                              heading === "참여자" && "text-left",
-                            )}
+                            aria-sort={active ? (sortDirection === "asc" ? "ascending" : "descending") : "none"}
+                            className="whitespace-nowrap px-1 py-1 text-right font-medium"
                           >
-                            {heading}
-                          </th>
-                        ))}
+                            <button
+                              type="button"
+                              className={cn("inline-flex min-h-9 w-full items-center justify-end gap-1 rounded-md px-2 py-1 hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring", active && "text-foreground")}
+                              aria-label={`${column.label} ${active ? (sortDirection === "desc" ? "오름차순" : "내림차순") : "내림차순"}으로 정렬`}
+                              onClick={() => changeSort(column.key)}
+                            >
+                              {column.label}
+                              <Icon className={cn("size-3.5", !active && "opacity-45")} aria-hidden="true" />
+                            </button>
+                          </th>;
+                        })}
                       </tr>
                     </thead>
                     <tbody>
@@ -450,6 +455,7 @@ function HistoryContent({
                       <ClanBalanceRosterBoard
                         roster={round.roster}
                         pool={historyPool}
+                        outcome={round.match_outcome}
                       />
                       <details className="rounded-lg bg-muted/30 p-3">
                         <summary className="cursor-pointer text-xs font-medium">

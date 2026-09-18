@@ -63,7 +63,14 @@ export type BalanceMemberStats = {
   currentStreak: number;
 };
 
-export type BalanceStatsSort = "losses" | "winRate" | "appearances";
+export type BalanceStatsSort =
+  | "appearances"
+  | "wins"
+  | "draws"
+  | "losses"
+  | "winRate"
+  | "currentStreak";
+export type BalanceStatsSortDirection = "asc" | "desc";
 
 function record(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -260,12 +267,16 @@ export function calculateBalanceHistoryStats(
 export function sortBalanceHistoryStats(
   stats: readonly BalanceMemberStats[],
   sort: BalanceStatsSort,
+  direction: BalanceStatsSortDirection = "desc",
 ): BalanceMemberStats[] {
   return [...stats].sort((a, b) => {
-    const primary =
-      sort === "winRate"
-        ? (b.winRate ?? -1) - (a.winRate ?? -1)
-        : b[sort] - a[sort];
+    if (sort === "winRate" && (a.winRate === null || b.winRate === null)) {
+      if (a.winRate === null && b.winRate !== null) return 1;
+      if (a.winRate !== null && b.winRate === null) return -1;
+    }
+    const aValue = sort === "winRate" ? (a.winRate ?? 0) : a[sort];
+    const bValue = sort === "winRate" ? (b.winRate ?? 0) : b[sort];
+    const primary = (aValue - bValue) * (direction === "asc" ? 1 : -1);
     return (
       primary ||
       b.appearances - a.appearances ||
