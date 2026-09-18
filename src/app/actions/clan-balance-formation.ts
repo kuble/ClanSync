@@ -248,6 +248,11 @@ export async function updateFormationSettingsAction(
       .eq("clan_id", clanId)
       .maybeSingle();
     if (!round) throw new Error("라운드를 찾을 수 없습니다.");
+    if (settings.predictionEnabled !== parseFormationSettings(round.formation_settings).predictionEnabled) {
+      const { data: clan } = await client.from("clans").select("subscription_tier").eq("id", clanId).maybeSingle();
+      if (clan?.subscription_tier !== "premium")
+        throw new Error("승부예측 설정은 Premium 클랜에서만 변경할 수 있습니다.");
+    }
     if (
       !expectedRules ||
       !sameFormationSettings(
@@ -274,6 +279,7 @@ export async function updateFormationSettingsAction(
       showPlayerCardInfo: settings.showPlayerCardInfo,
       showTeamComparisonSummary: settings.showTeamComparisonSummary,
       showPlayerSessionSummary: settings.showPlayerSessionSummary,
+      predictionEnabled: settings.predictionEnabled,
       playerCardInfo: settings.playerCardInfo,
       ...(settings.captains ? { captains: settings.captains } : {}),
     };

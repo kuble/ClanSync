@@ -16,6 +16,7 @@ export type FormationSetup = {
   showPlayerCardInfo?: boolean;
   showTeamComparisonSummary?: boolean;
   showPlayerSessionSummary?: boolean;
+  predictionEnabled?: boolean;
   playerCardInfo?: PlayerCardInfoMode;
   preferences?: Record<string, Role[]>;
   captains?: [string, string];
@@ -35,6 +36,7 @@ export type FormationSettings = Omit<FormationSetup, "preferences" | "showPlayer
   showPlayerCardInfo: boolean;
   showTeamComparisonSummary: boolean;
   showPlayerSessionSummary: boolean;
+  predictionEnabled: boolean;
   playerCardInfo: PlayerCardInfoMode;
 };
 export const DEFAULT_FORMATION_SETTINGS: FormationSettings = {
@@ -49,6 +51,7 @@ export const DEFAULT_FORMATION_SETTINGS: FormationSettings = {
   showPlayerCardInfo: true,
   showTeamComparisonSummary: true,
   showPlayerSessionSummary: true,
+  predictionEnabled: true,
   playerCardInfo: "record",
 };
 export function parseFormationSettings(value: unknown): FormationSettings {
@@ -73,6 +76,7 @@ export function sameFormationSettings(left: unknown, right: unknown): boolean {
     a.showPlayerCardInfo === b.showPlayerCardInfo &&
     a.showTeamComparisonSummary === b.showTeamComparisonSummary &&
     a.showPlayerSessionSummary === b.showPlayerSessionSummary &&
+    a.predictionEnabled === b.predictionEnabled &&
     a.playerCardInfo === b.playerCardInfo &&
     (a.captains?.[0] ?? null) === (b.captains?.[0] ?? null) &&
     (a.captains?.[1] ?? null) === (b.captains?.[1] ?? null)
@@ -87,6 +91,7 @@ export function validateFormationSettings(value: FormationSettings): void {
     typeof value.showPlayerCardInfo !== "boolean" ||
     typeof value.showTeamComparisonSummary !== "boolean" ||
     typeof value.showPlayerSessionSummary !== "boolean" ||
+    typeof value.predictionEnabled !== "boolean" ||
     typeof value.auctionItemsEnabled !== "boolean" ||
     !["record", "streak"].includes(value.playerCardInfo)
   )
@@ -315,6 +320,7 @@ export function createFormation(
       showPlayerCardInfo: settings.showPlayerCardInfo,
       showTeamComparisonSummary: settings.showTeamComparisonSummary,
       showPlayerSessionSummary: settings.showPlayerSessionSummary,
+      predictionEnabled: settings.predictionEnabled,
       playerCardInfo: settings.playerCardInfo,
     },
     ...(draw ? { draw } : {}),
