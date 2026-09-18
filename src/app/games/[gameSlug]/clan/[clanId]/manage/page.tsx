@@ -20,6 +20,7 @@ import {
 import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { hasRequestClanPermission } from "@/lib/clan/request-clan-access";
 import { ClanBannerSettingsForm } from "@/components/main-clan/clan-banner-settings-form";
+import { ClanBalanceAutoCloseSettings } from "@/components/main-clan/clan-balance-auto-close-settings";
 import {
   ClanManageStoreVoidPanel,
   type ManageStoreVoidRowVM,
@@ -51,6 +52,7 @@ export default async function ManagePage({
   const initialTab: ManageTab =
     requestedTab === "requests" ||
     requestedTab === "members" ||
+    requestedTab === "balance" ||
     requestedTab === "subscription"
       ? requestedTab
       : "overview";
@@ -114,7 +116,7 @@ export default async function ManagePage({
     svc
       .from("clans")
       .select(
-        "name, description, rules, tags, banner_url, icon_url, discord_url, kakao_url, coin_balance, max_members, created_at",
+        "name, description, rules, tags, banner_url, icon_url, discord_url, kakao_url, coin_balance, max_members, created_at, balance_auto_close_enabled, balance_auto_close_hours",
       )
       .eq("id", clanId)
       .maybeSingle(),
@@ -466,6 +468,14 @@ export default async function ManagePage({
               rows={manageRows}
             />
           </section>
+        }
+        balance={
+          <ClanBalanceAutoCloseSettings
+            gameSlug={gameSlug}
+            clanId={clanId}
+            initialEnabled={clanProfile?.balance_auto_close_enabled ?? true}
+            initialHours={clanProfile?.balance_auto_close_hours ?? 3}
+          />
         }
         subscription={
           <div className="space-y-4">

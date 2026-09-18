@@ -7,10 +7,16 @@ import {
   UserRoundPlus,
   Users,
   CreditCard,
+  Swords,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export type ManageTab = "overview" | "requests" | "members" | "subscription";
+export type ManageTab =
+  | "overview"
+  | "requests"
+  | "members"
+  | "balance"
+  | "subscription";
 
 function subscribeToNavigation(callback: () => void) {
   window.addEventListener("hashchange", callback);
@@ -27,6 +33,7 @@ function readTab(fallback: ManageTab): ManageTab {
   return value === "overview" ||
     value === "requests" ||
     value === "members" ||
+    value === "balance" ||
     value === "subscription"
     ? value
     : fallback;
@@ -37,6 +44,7 @@ export function ClanManageTabs({
   overview,
   requests,
   members,
+  balance,
   subscription,
 }: {
   initialTab: ManageTab;
@@ -44,6 +52,7 @@ export function ClanManageTabs({
   overview: ReactNode;
   requests: ReactNode;
   members: ReactNode;
+  balance: ReactNode;
   subscription: ReactNode;
 }) {
   const tab = useSyncExternalStore(
@@ -62,6 +71,7 @@ export function ClanManageTabs({
     { key: "overview", label: "개요", Icon: LayoutDashboard },
     { key: "requests", label: "가입 요청", Icon: UserRoundPlus },
     { key: "members", label: "구성원", Icon: Users },
+    { key: "balance", label: "내전 관리 설정", Icon: Swords },
     { key: "subscription", label: "구독결제", Icon: CreditCard },
   ];
   return (
@@ -90,6 +100,7 @@ export function ClanManageTabs({
       <TabsContent value="overview">{overview}</TabsContent>
       <TabsContent value="requests">{requests}</TabsContent>
       <TabsContent value="members">{members}</TabsContent>
+      <TabsContent value="balance">{balance}</TabsContent>
       <TabsContent value="subscription">{subscription}</TabsContent>
     </Tabs>
   );
