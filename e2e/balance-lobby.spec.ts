@@ -167,6 +167,8 @@ test("로비 간소화: 예약 휠·주간 단일 행·바로 참여", async ({ 
     const regular = await scheduledRoom(page, fixture, "regular", "주간 단일 행");
     await expect(page.getByTestId("balance-lobby-room").first()).toHaveAttribute("data-room-id", regular.id);
     const detail = await details(page, regular.id);
+    await expect(detail.getByRole("listbox", { name: "요일", exact: true })).toBeVisible();
+    await expect(detail.getByRole("listbox", { name: "날짜", exact: true })).toHaveCount(0);
     const seconds = detail.getByRole("listbox", { name: "초", exact: true });
     await seconds.press("Home");
     const box = await seconds.boundingBox();
@@ -178,7 +180,13 @@ test("로비 간소화: 예약 휠·주간 단일 행·바로 참여", async ({ 
     await expect(seconds.getByRole("option", { selected: true })).toHaveText("02");
     await detail.getByRole("button", { name: "예약 변경 저장", exact: true }).click();
     await expect(detail).toBeHidden();
-    expect(new Date((await readRoom(fixture, regular.id)).scheduled_at).getUTCSeconds()).toBe(2);
+    const movedRoom = await readRoom(fixture, regular.id);
+    expect(new Date(movedRoom.scheduled_at).getUTCSeconds()).toBe(2);
+    const { data: movedSchedule, error: movedScheduleError } = await fixture.service.from("balance_room_schedules")
+      .select("title,next_run_at").eq("id", regular.schedule_id).single();
+    expect(movedScheduleError).toBeNull();
+    expect(movedSchedule?.title).toBe("주간 단일 행");
+    expect(Date.parse(movedSchedule!.next_run_at)).toBe(Date.parse(movedRoom.scheduled_at) + 7 * 86_400_000);
     await (await details(page, regular.id)).getByRole("button", { name: "지금 열기", exact: true }).click();
     await page.waitForURL((url) => url.searchParams.get("room") === regular.id);
     await page.goto(fixture.path);

@@ -228,14 +228,21 @@ function RoomDetailSheet({ room, members, serverNow, leader, canManage, pending,
   const [confirmCancel, setConfirmCancel] = useState(false);
   const ended = room.status === "closed" || room.status === "cancelled";
   const editable = canManage && room.status === "scheduled";
-  function save(event: FormEvent<HTMLFormElement>) { event.preventDefault(); onUpdate({ title: title.trim(), scheduledAt: `${date}+09:00`, rsvpDays: room.kind === "flash" && rsvp ? days : null }); }
+  const recurring = room.kind === "regular" && room.schedule_id !== null;
+  function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const scheduledAt = recurring
+      ? nextWeeklyDate(new Date(`${date.slice(0, 10)}T00:00:00Z`).getUTCDay(), date.slice(11), serverNow)
+      : date;
+    onUpdate({ title: title.trim(), scheduledAt: `${scheduledAt}+09:00`, rsvpDays: room.kind === "flash" && rsvp ? days : null });
+  }
   return (
     <Sheet open onOpenChange={(open) => { if (!open && !pending) onClose(); }}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-md" showCloseButton={!pending}>
         <SheetHeader><SheetTitle>내전 정보</SheetTitle><SheetDescription className="text-xs">{room.kind === "regular" ? "정규" : "깜짝"} · {STATUS[room.status]} · {room.creatorNickname}</SheetDescription></SheetHeader>
         <div className="space-y-6 px-4 pb-5">
           {onNextReservation ? <Button variant="outline" size="sm" onClick={onNextReservation}>다음 예약 보기</Button> : null}
-          {editable ? <form onSubmit={save} className="space-y-4"><fieldset disabled={pending} className="space-y-4"><label className="block text-xs font-semibold">내전 이름<input required maxLength={80} value={title} onChange={(event) => setTitle(event.target.value)} className={field} /></label><BalanceSchedulePicker value={date} onChange={setDate} serverNow={serverNow} disabled={pending} />{room.kind === "flash" ? <RsvpFields enabled={rsvp} days={days} onEnabled={setRsvp} onDays={setDays} /> : null}</fieldset><Button type="submit" variant="outline" className="w-full" disabled={pending || !title.trim()}>예약 변경 저장</Button></form> : <div className="space-y-2"><h3 className="font-semibold">{room.title}</h3><p className="text-xs text-muted-foreground">{displayStart(room.scheduled_at)} · 한국 시간</p></div>}
+          {editable ? <form onSubmit={save} className="space-y-4"><fieldset disabled={pending} className="space-y-4"><label className="block text-xs font-semibold">내전 이름<input required maxLength={80} value={title} onChange={(event) => setTitle(event.target.value)} className={field} /></label><BalanceSchedulePicker value={date} onChange={setDate} serverNow={serverNow} weekly={recurring} disabled={pending} />{room.kind === "flash" ? <RsvpFields enabled={rsvp} days={days} onEnabled={setRsvp} onDays={setDays} /> : null}</fieldset><Button type="submit" variant="outline" className="w-full" disabled={pending || !title.trim()}>예약 변경 저장</Button></form> : <div className="space-y-2"><h3 className="font-semibold">{room.title}</h3><p className="text-xs text-muted-foreground">{displayStart(room.scheduled_at)} · 한국 시간</p></div>}
 
           {leader && room.kind === "regular" && !ended ? <section className="space-y-3 border-t pt-4"><label className="block text-xs font-semibold">임시 진행 운영진<select value={delegate} onChange={(event) => setDelegate(event.target.value)} disabled={pending} className={field}><option value="">위임 없음</option>{members.filter((member) => member.role === "officer").map((member) => <option key={member.user_id} value={member.user_id}>{member.nickname}</option>)}</select></label><p className="text-[11px] text-muted-foreground">이 방이 종료되면 위임이 해제됩니다.</p><Button variant="outline" size="sm" disabled={pending || delegate === (room.delegated_to ?? "")} onClick={() => onDelegate(delegate || null)}>{delegate ? "진행 운영진 지정" : "위임 해제"}</Button></section> : room.delegateNickname ? <p className="text-xs text-muted-foreground">진행 운영진 · {room.delegateNickname}</p> : null}
           {canManage && room.schedule_id ? <label className="flex items-center justify-between border-t pt-4 text-sm"><span className="flex items-center gap-2"><Repeat2 className="size-4" aria-hidden="true" />반복 예약 유지</span><input type="checkbox" checked={room.scheduleEnabled !== false} disabled={pending} onChange={(event) => onSchedule(event.target.checked)} className="size-4 accent-primary" /></label> : null}

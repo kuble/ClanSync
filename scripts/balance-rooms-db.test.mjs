@@ -159,9 +159,11 @@ test("room ownership, reservations, delegation and scheduler stay scoped", async
     const nextReservation = (await ok(svc.from("balance_rooms").select("*").eq("schedule_id", scheduleId).eq("status", "scheduled")))[0];
     assert.ok(nextReservation);
     assert.equal(Date.parse(nextReservation.scheduled_at) - Date.parse(original.scheduled_at), 7 * 86400_000);
-    const cadenceBefore = await ok(svc.from("balance_room_schedules").select("next_run_at").eq("id", scheduleId).single());
-    await ok(leader.client.rpc("update_balance_room", { ...roomArgs(nextReservation.id), p_title: "Moved only once", p_scheduled_at: future(3) }));
-    assert.deepEqual(await ok(svc.from("balance_room_schedules").select("next_run_at").eq("id", scheduleId).single()), cadenceBefore);
+    const movedAt = future(3);
+    await ok(leader.client.rpc("update_balance_room", { ...roomArgs(nextReservation.id), p_title: "Moved weekly series", p_scheduled_at: movedAt }));
+    const movedSchedule = await ok(svc.from("balance_room_schedules").select("title,next_run_at").eq("id", scheduleId).single());
+    assert.equal(movedSchedule.title, "Moved weekly series");
+    assert.equal(Date.parse(movedSchedule.next_run_at), Date.parse(movedAt) + 7 * 86400_000);
     await denied(creator.client.rpc("set_balance_room_schedule_enabled", { ...scheduleArgs, p_enabled: false }));
     await ok(leader.client.rpc("set_balance_room_schedule_enabled", { ...scheduleArgs, p_enabled: false }));
     assert.equal((await ok(readRoom(nextReservation.id))).status, "scheduled");
