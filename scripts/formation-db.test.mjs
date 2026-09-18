@@ -333,12 +333,40 @@ test("formation revisions authorize writes and serialize live transitions", asyn
     },
   );
 
+  await t.test("member tick no-op preserves revision/activity and manager captain cannot alter opponent", async () => {
+    const row = await ok(read());
+    const activity = await ok(svc.from("balance_session_series").select("last_activity_at").eq("id", row.series_id).single());
+    assert.equal(await ok(svc.rpc("commit_balance_formation", {
+      ...args(row.formation_revision, row.formation_state), p_actor_id: member.id, p_command: "tick",
+    })), true);
+    assert.equal((await ok(read())).formation_revision, row.formation_revision);
+    assert.deepEqual(await ok(svc.from("balance_session_series").select("last_activity_at").eq("id", row.series_id).single()), activity);
+    const opponentBid = { ...row.formation_state, auction: { player: ids[1], team: "team2", bid: 10 } };
+    assert.equal((await svc.rpc("commit_balance_formation", {
+      ...args(row.formation_revision, opponentBid), p_command: "bid",
+    })).error?.code, "42501");
+    const opponentPick = structuredClone(row.formation_state);
+    opponentPick.roster.team2.dmg[0] = ids[1];
+    assert.equal((await svc.rpc("commit_balance_formation", {
+      ...args(row.formation_revision, opponentPick), p_command: "pick",
+    })).error?.code, "42501");
+    const opponentItem = { ...row.formation_state, itemChoices: { team2: "map" } };
+    // A newer opposing purchase may make an otherwise valid old proposal look
+    // like it changes the opponent. CAS must signal recomputation first.
+    assert.equal(await ok(svc.rpc("commit_balance_formation", {
+      ...args(row.formation_revision - 1, opponentItem), p_command: "choose-item",
+    })), false);
+    assert.equal((await svc.rpc("commit_balance_formation", {
+      ...args(row.formation_revision, opponentItem), p_command: "choose-item",
+    })).error?.code, "42501");
+  });
+
   await t.test(
     "completed formation permits phase advancement and prevents late CAS writes",
     async () => {
       assert.equal(
         await ok(
-          svc.rpc("commit_balance_formation", { ...args(2, state("complete", true)), p_command: "pick" }),
+          svc.rpc("commit_balance_formation", { ...args(2, state("complete", true)), p_actor_id: member.id, p_command: "tick" }),
         ),
         true,
       );

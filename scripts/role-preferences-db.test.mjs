@@ -15,7 +15,11 @@ test("private role preferences, saved rules and draw history", async (t) => {
   const users = [];
   let clanId;
   t.after(async () => {
-    if (clanId) await ok(svc.from("clans").delete().eq("id", clanId));
+    if (clanId) {
+      await ok(svc.from("balance_sessions").delete().eq("clan_id", clanId));
+      await ok(svc.from("balance_session_series").delete().eq("clan_id", clanId));
+      await ok(svc.from("clans").delete().eq("id", clanId));
+    }
     for (const user of users) {
       await ok(user.client.auth.signOut());
       await ok(svc.auth.admin.deleteUser(user.id));
@@ -103,7 +107,7 @@ test("private role preferences, saved rules and draw history", async (t) => {
   await t.test("shared draw history persists across reset and includes rules without rankings", async () => {
     const row = await read();
     assert.equal(row.draw_history.length,1);
-    assert.deepEqual(row.draw_history[0].settings,{ ...settings,captains:null });
+    assert.deepEqual(row.draw_history[0].settings,{ ...settings,captains:null,auctionItemsEnabled:false,strategySeconds:30 });
     assert.equal(JSON.stringify(row.draw_history).includes("ranking"),false);
     assert.equal(JSON.stringify(row.draw_history).includes("preferences"),false);
     const args = { ...startArgs(row.formation_revision),p_command: "reset",p_state: null };

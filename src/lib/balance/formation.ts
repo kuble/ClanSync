@@ -3,6 +3,7 @@ import {
   rosterAssignedUserIds,
   type BalanceRoster,
 } from "./roster-schema";
+import type { AuctionItem } from "./auction-items";
 
 export type Role = "tank" | "dmg" | "sup";
 export type Team = "team1" | "team2";
@@ -21,11 +22,15 @@ export type FormationSetup = {
   auctionBudget?: number;
   minBid?: number;
   durationSeconds?: number;
+  auctionItemsEnabled?: boolean;
+  strategySeconds?: number;
 };
 export type FormationSettings = Omit<FormationSetup, "preferences" | "showPlayerCardScore" | "showPlayerCardInfo" | "showTeamComparisonSummary" | "showPlayerSessionSummary" | "playerCardInfo"> & {
   auctionBudget: number;
   minBid: number;
   durationSeconds: number;
+  auctionItemsEnabled: boolean;
+  strategySeconds: number;
   showPlayerCardScore: boolean;
   showPlayerCardInfo: boolean;
   showTeamComparisonSummary: boolean;
@@ -38,6 +43,8 @@ export const DEFAULT_FORMATION_SETTINGS: FormationSettings = {
   auctionBudget: 1000,
   minBid: 10,
   durationSeconds: 20,
+  auctionItemsEnabled: false,
+  strategySeconds: 30,
   showPlayerCardScore: true,
   showPlayerCardInfo: true,
   showTeamComparisonSummary: true,
@@ -60,6 +67,8 @@ export function sameFormationSettings(left: unknown, right: unknown): boolean {
     a.auctionBudget === b.auctionBudget &&
     a.minBid === b.minBid &&
     a.durationSeconds === b.durationSeconds &&
+    a.auctionItemsEnabled === b.auctionItemsEnabled &&
+    a.strategySeconds === b.strategySeconds &&
     a.showPlayerCardScore === b.showPlayerCardScore &&
     a.showPlayerCardInfo === b.showPlayerCardInfo &&
     a.showTeamComparisonSummary === b.showTeamComparisonSummary &&
@@ -78,6 +87,7 @@ export function validateFormationSettings(value: FormationSettings): void {
     typeof value.showPlayerCardInfo !== "boolean" ||
     typeof value.showTeamComparisonSummary !== "boolean" ||
     typeof value.showPlayerSessionSummary !== "boolean" ||
+    typeof value.auctionItemsEnabled !== "boolean" ||
     !["record", "streak"].includes(value.playerCardInfo)
   )
     throw new Error("편성 방식을 확인하세요.");
@@ -92,7 +102,10 @@ export function validateFormationSettings(value: FormationSettings): void {
     value.auctionBudget % value.minBid !== 0 ||
     !Number.isSafeInteger(value.durationSeconds) ||
     value.durationSeconds < 10 ||
-    value.durationSeconds > 60
+    value.durationSeconds > 60 ||
+    !Number.isSafeInteger(value.strategySeconds) ||
+    value.strategySeconds < 10 ||
+    value.strategySeconds > 120
   )
     throw new Error("경매 예산·최소 입찰·시간을 확인하세요.");
   if (
@@ -114,7 +127,7 @@ export type FormationDraw = {
 export type FormationState = {
   version: 1;
   mode: TeamMode;
-  stage: "draft" | "auction" | "complete";
+  stage: "strategy" | "draft" | "auction" | "items" | "complete";
   players: { id: string; role: Role }[];
   order: string[];
   captains: [string, string] | null;
@@ -137,6 +150,11 @@ export type FormationState = {
     team: Team | null;
     retry: boolean;
   } | null;
+  nextLotAt?: number;
+  strategy?: { items: AuctionItem[]; startedAt: number; deadline: number };
+  award?: { player: string; team: Team; amount: number; startedAt: number; endsAt: number; fallback: boolean };
+  /** Missing key means pending; null means this team explicitly passed. */
+  itemChoices?: Partial<Record<Team, string | null>>;
   pausedAt: number | null;
   log: { text: string; player?: string; team?: Team; amount?: number }[];
 };
@@ -152,6 +170,8 @@ export type FormationCommand =
   | { type: "apply" }
   | { type: "pick"; player: string }
   | { type: "bid"; team: Team; amount: number }
+  | { type: "choose-item"; team: Team; itemId: string | null; expectedDrawId?: string }
+  | { type: "tick" }
   | { type: "lot" | "settle" | "pause" | "resume" };
 export const ROLE_LABEL: Record<Role, string> = {
   tank: "탱커",
@@ -161,6 +181,7 @@ export const ROLE_LABEL: Record<Role, string> = {
 export const TEAM_LABEL: Record<Team, string> = { team1: "1팀", team2: "2팀" };
 const CAPACITY: Record<Role, number> = { tank: 1, dmg: 2, sup: 2 };
 const ROLES: Role[] = ["dmg", "tank", "sup"];
+export const AUCTION_AWARD_DURATION_MS = 2500;
 type RandomIndex = (max: number) => number;
 function shuffle<T>(items: T[], random: RandomIndex): T[] {
   const result = [...items];
@@ -231,6 +252,7 @@ export function createFormation(
   setup: FormationSetup,
   random: RandomIndex,
   draw?: FormationDraw,
+  auctionItems: AuctionItem[] = [],
 ): FormationState {
   const settings = parseFormationSettings(setup);
   validateFormationSettings(settings);
@@ -287,6 +309,8 @@ export function createFormation(
       auctionBudget: settings.auctionBudget,
       minBid: settings.minBid,
       durationSeconds: settings.durationSeconds,
+      auctionItemsEnabled: settings.auctionItemsEnabled,
+      strategySeconds: settings.strategySeconds,
       showPlayerCardScore: settings.showPlayerCardScore,
       showPlayerCardInfo: settings.showPlayerCardInfo,
       showTeamComparisonSummary: settings.showTeamComparisonSummary,
@@ -339,7 +363,112 @@ export function createFormation(
   assign(state, "team2", b.id);
   state.remaining = shuffle(state.remaining, random);
   state.stage = setup.teams;
+  if (setup.teams === "auction") {
+    const readyAt = draw
+      ? draw.startedAt + (draw.roleMode === "lottery" ? draw.durationMs : 0)
+      : 0;
+    state.nextLotAt = readyAt;
+    if (settings.auctionItemsEnabled) {
+      if (auctionItems.length < 3)
+        throw new Error("클랜 내전 관리 설정에서 사용할 경매 아이템을 3개 이상 등록하세요.");
+      state.strategy = {
+        items: structuredClone(shuffle(auctionItems, random).slice(0, 3)),
+        startedAt: readyAt,
+        deadline: readyAt + settings.strategySeconds * 1000,
+      };
+      state.stage = "strategy";
+      state.itemChoices = {};
+    }
+  }
   return state;
+}
+
+/** Operators who are also captains never gain control of their opponent. */
+export function canControlTeam(
+  state: FormationState,
+  actor: { id: string; manager: boolean },
+  team: Team,
+): boolean {
+  if (state.captains?.[team === "team1" ? 0 : 1] === actor.id) return true;
+  return actor.manager && !state.captains?.includes(actor.id);
+}
+
+function revealEnd(state: FormationState): number {
+  return state.draw && (state.draw.roleMode === "lottery" || state.mode === "random")
+    ? state.draw.startedAt + state.draw.durationMs
+    : 0;
+}
+
+/** Clients may wake the server at this time; only the server clock advances state. */
+export function getFormationDeadline(state: FormationState): number | null {
+  if (state.pausedAt !== null) return null;
+  if (state.stage === "strategy") return state.strategy?.deadline ?? null;
+  if (state.stage === "auction") return state.award?.endsAt ?? state.auction?.deadline ?? state.nextLotAt ?? revealEnd(state);
+  if (state.stage === "complete" && !state.appliedAt) return revealEnd(state);
+  return null;
+}
+
+function startAuctionLot(state: FormationState, now: number) {
+  state.auction = {
+    player: state.remaining[0]!, startedAt: now,
+    deadline: now + (state.settings?.durationSeconds ?? 20) * 1000,
+    bid: 0, team: null, retry: false,
+  };
+  delete state.award;
+  delete state.nextLotAt;
+}
+
+function settleAuctionLot(state: FormationState, now: number, random: RandomIndex) {
+  const lot = state.auction!;
+  if (!lot.team && !lot.retry) {
+    state.auction = { ...lot, startedAt: lot.deadline,
+      deadline: lot.deadline + (state.settings?.durationSeconds ?? 20) * 1000, retry: true };
+    state.log.push({ text: "무입찰 · 한 번 더 경매", player: lot.player });
+    return;
+  }
+  const fallback = !lot.team;
+  if (!lot.team) {
+    const eligible = (["team1", "team2"] as const).filter((team) =>
+      canFit(state, team, lot.player) && maxBid(state, team) >= (state.settings?.minBid ?? 10));
+    if (!eligible.length) throw new Error("배정 가능한 팀이 없습니다.");
+    lot.team = eligible[random(eligible.length)]!;
+    lot.bid = state.settings?.minBid ?? 10;
+  }
+  state.budgets[lot.team] -= lot.bid;
+  assign(state, lot.team, lot.player);
+  state.log.push({ text: fallback ? "무입찰 · 최소가 추첨 배정" : "낙찰", player: lot.player, team: lot.team, amount: lot.bid });
+  state.award = { player: lot.player, team: lot.team, amount: lot.bid, startedAt: now, endsAt: now + AUCTION_AWARD_DURATION_MS, fallback };
+  state.auction = null;
+  // Even the last award is shown before entering the item/final stage.
+  state.stage = "auction";
+}
+
+function advanceClock(state: FormationState, now: number, random: RandomIndex): void {
+  if (state.pausedAt !== null || now < revealEnd(state)) return;
+  if (state.stage === "complete") {
+    state.appliedAt ??= now;
+    return;
+  }
+  if (state.stage === "strategy") {
+    if (!state.strategy || now < state.strategy.deadline) return;
+    state.stage = "auction";
+    startAuctionLot(state, state.strategy.deadline);
+    return;
+  }
+  if (state.stage !== "auction") return;
+  if (state.award) {
+    if (now < state.award.endsAt) return;
+    const readyAt = state.award.endsAt;
+    delete state.award;
+    if (!state.remaining.length) {
+      state.stage = state.strategy ? "items" : "complete";
+      if (state.stage === "complete") state.appliedAt = now;
+    } else startAuctionLot(state, readyAt);
+    return;
+  }
+  if (state.auction) {
+    if (now >= state.auction.deadline) settleAuctionLot(state, now, random);
+  } else if (now >= (state.nextLotAt ?? 0)) startAuctionLot(state, state.nextLotAt || now);
 }
 
 /** Server supplies identity, clock and randomness; client inputs never determine those. */
@@ -354,6 +483,10 @@ export function advanceFormation(
   const manager = () => {
     if (!actor.manager) throw new Error("운영진만 진행할 수 있습니다.");
   };
+  if (command.type === "tick") {
+    advanceClock(state, now, random);
+    return state;
+  }
   if (command.type === "apply") {
     manager();
     if (state.stage !== "complete")
@@ -370,10 +503,7 @@ export function advanceFormation(
   if (state.stage === "complete")
     throw new Error("이미 편성이 완료되었습니다.");
   const captain = (team: Team) => {
-    if (
-      !actor.manager &&
-      state.captains?.[team === "team1" ? 0 : 1] !== actor.id
-    )
+    if (!canControlTeam(state, actor, team))
       throw new Error("현재 팀 주장만 조작할 수 있습니다.");
   };
   if (command.type === "pause") {
@@ -385,8 +515,18 @@ export function advanceFormation(
   if (command.type === "resume") {
     manager();
     if (state.pausedAt === null) throw new Error("일시정지 상태가 아닙니다.");
+    const gap = now - state.pausedAt;
+    if (state.draw && state.pausedAt < revealEnd(state)) state.draw.startedAt += gap;
+    if (state.strategy && state.stage === "strategy") {
+      state.strategy.startedAt += gap;
+      state.strategy.deadline += gap;
+    }
+    if (state.nextLotAt !== undefined) state.nextLotAt += gap;
+    if (state.award) {
+      state.award.startedAt += gap;
+      state.award.endsAt += gap;
+    }
     if (state.auction) {
-      const gap = now - state.pausedAt;
       state.auction.startedAt += gap;
       state.auction.deadline += gap;
     }
@@ -394,6 +534,29 @@ export function advanceFormation(
     return state;
   }
   if (state.pausedAt !== null) throw new Error("진행을 재개한 뒤 조작하세요.");
+  if (now < revealEnd(state)) throw new Error("추첨 결과 공개가 끝난 뒤 진행하세요.");
+  if (command.type === "choose-item") {
+    if (state.stage !== "items" || !state.strategy)
+      throw new Error("아이템 선택 단계가 아닙니다.");
+    if (!["team1", "team2"].includes(command.team)) throw new Error("잘못된 팀입니다.");
+    captain(command.team);
+    state.itemChoices ??= {};
+    if (state.itemChoices[command.team] !== undefined)
+      throw new Error("이미 아이템 선택을 완료했습니다.");
+    const item = state.strategy.items.find((entry) => entry.id === command.itemId);
+    if (command.itemId !== null) {
+      if (!item) throw new Error("이번 경매에 공개된 아이템만 선택할 수 있습니다.");
+      if (item.cost > state.budgets[command.team]) throw new Error("남은 포인트가 부족합니다.");
+      state.budgets[command.team] -= item.cost;
+    }
+    state.itemChoices[command.team] = command.itemId;
+    state.log.push({ text: item ? `아이템 구매 · ${item.name}` : "아이템 선택 안 함", team: command.team, amount: item?.cost });
+    if (state.itemChoices.team1 !== undefined && state.itemChoices.team2 !== undefined) {
+      state.stage = "complete";
+      state.appliedAt = now;
+    }
+    return state;
+  }
   if (command.type === "pick") {
     if (state.stage !== "draft") throw new Error("지명 단계가 아닙니다.");
     const team = draftTurn(state);
@@ -407,14 +570,8 @@ export function advanceFormation(
   if (command.type === "lot") {
     manager();
     if (state.auction) throw new Error("진행 중인 경매를 먼저 마감하세요.");
-    state.auction = {
-      player: state.remaining[0]!,
-      startedAt: now,
-      deadline: now + (state.settings?.durationSeconds ?? 20) * 1000,
-      bid: 0,
-      team: null,
-      retry: false,
-    };
+    if (state.award) throw new Error("낙찰 결과 공개가 끝난 뒤 다음 경매가 시작됩니다.");
+    startAuctionLot(state, now);
     return state;
   }
   const lot = state.auction;
@@ -447,36 +604,7 @@ export function advanceFormation(
     manager();
     if (now < lot.deadline)
       throw new Error("입찰 종료 후 낙찰을 확정할 수 있습니다.");
-    if (!lot.team && !lot.retry) {
-      state.auction = {
-        ...lot,
-        startedAt: now,
-        deadline: now + (state.settings?.durationSeconds ?? 20) * 1000,
-        retry: true,
-      };
-      state.log.push({ text: "무입찰 · 한 번 더 경매", player: lot.player });
-      return state;
-    }
-    const fallback = !lot.team;
-    if (!lot.team) {
-      const eligible = (["team1", "team2"] as const).filter(
-        (t) =>
-          canFit(state, t, lot.player) &&
-          maxBid(state, t) >= (state.settings?.minBid ?? 10),
-      );
-      if (!eligible.length) throw new Error("배정 가능한 팀이 없습니다.");
-      lot.team = eligible[random(eligible.length)]!;
-      lot.bid = state.settings?.minBid ?? 10;
-    }
-    state.budgets[lot.team] -= lot.bid;
-    assign(state, lot.team, lot.player);
-    state.log.push({
-      text: fallback ? "무입찰 · 최소가 추첨 배정" : "낙찰",
-      player: lot.player,
-      team: lot.team,
-      amount: lot.bid,
-    });
-    state.auction = null;
+    settleAuctionLot(state, now, random);
     return state;
   }
   throw new Error("지원하지 않는 조작입니다.");

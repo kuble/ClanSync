@@ -27,7 +27,11 @@ test("prematch rules, voting deadlines and explicit match start are atomic", asy
     users = [];
   let clanId, roundId;
   t.after(async () => {
-    if (clanId) await ok(svc.from("clans").delete().eq("id", clanId));
+    if (clanId) {
+      await ok(svc.from("balance_sessions").delete().eq("clan_id", clanId));
+      await ok(svc.from("balance_session_series").delete().eq("clan_id", clanId));
+      await ok(svc.from("clans").delete().eq("id", clanId));
+    }
     for (const user of users) {
       if (user.client) await ok(user.client.auth.signOut());
       await ok(svc.auth.admin.deleteUser(user.id));
@@ -197,6 +201,9 @@ test("prematch rules, voting deadlines and explicit match start are atomic", asy
         true,
       );
       const row = await read();
+      assert.equal(row.formation_settings.playerCardInfo, "record");
+      assert.equal(row.formation_settings.auctionItemsEnabled, false);
+      assert.equal(row.formation_settings.strategySeconds, 30);
       const state = {
         stage: "complete",
         roster,
@@ -263,11 +270,12 @@ test("prematch rules, voting deadlines and explicit match start are atomic", asy
         }),
       );
       const voting = await read();
+      const activity = await ok(svc.from("balance_session_series").select("last_activity_at").eq("id", voting.series_id).single());
+      const ballotDuration = Date.parse(voting.map_ban_deadline_at) - Date.parse(activity.last_activity_at);
       assert.ok(
-        Date.parse(voting.map_ban_deadline_at) - Date.now() <= 6000,
-        `DB deadline drift: ${Date.parse(voting.map_ban_deadline_at) - Date.now()}ms`,
+        Math.abs(ballotDuration - voting.map_ban_seconds * 1000) < 500,
+        `DB ballot duration: ${ballotDuration}ms`,
       );
-      assert.ok(Date.parse(voting.map_ban_deadline_at) > Date.now());
       await ok(mapVote());
       assert.ok((await mapVote(outsider.client)).error);
       assert.ok((await mapVote(anon)).error);
