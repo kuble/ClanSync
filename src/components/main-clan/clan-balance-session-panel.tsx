@@ -282,7 +282,7 @@ export function ClanBalanceSessionPanel({
   const displayScores = sampleScores ? previewScores(rosterPool.map((member) => member.user_id), scores) : scores;
   const samplePlayerIds = sampleScores ? rosterPool.filter((member) => !scores[member.user_id]).map((member) => member.user_id) : [];
   const scoreControl = canViewScores ? <ScoreModeToggle value={scoreMode} onChange={setScoreMode} premium={planPremium} /> : null;
-  const renderInsights = (map: string | null, roster = rosterData, showMap = false) => canViewScores ? <BalanceTeamInsights roster={roster} scores={displayScores} mode={scoreMode} map={map} premium={planPremium} compact={!showMap} showMap={showMap} sample={sampleScores} /> : null;
+  const renderInsights = (map: string | null, roster = rosterData, showMap = false) => canViewScores && !flash ? <BalanceTeamInsights roster={roster} scores={displayScores} mode={scoreMode} map={map} premium={planPremium} compact={!showMap} showMap={showMap} sample={sampleScores} /> : null;
 
   return (
     <div
@@ -529,6 +529,8 @@ export function ClanBalanceSessionPanel({
                       planPremium={planPremium}
                       playerSessionInfo={playerSessionInfo}
                       samplePlayerIds={samplePlayerIds}
+                      samplePrediction={sampleScores}
+                      showPrediction={!flash && planPremium}
                     />
                   ) : (
                     <ClanBalanceRevealBoard
@@ -541,6 +543,8 @@ export function ClanBalanceSessionPanel({
                       planPremium={planPremium}
                       playerSessionInfo={playerSessionInfo}
                       samplePlayerIds={samplePlayerIds}
+                      samplePrediction={sampleScores}
+                      showPrediction={!flash && planPremium}
                     />
                   )}
                 </div>
@@ -679,7 +683,7 @@ export function ClanBalanceSessionPanel({
                     userId={userId} roster={rosterData}
                     bansPerTeam={parseBanSettings(session).heroBansPerTeam}
                     resolvedHeroes={session.banned_heroes}
-                    renderInsights={canViewScores ? (bannedHeroes) => <BalanceTeamInsights
+                    renderInsights={canViewScores && !flash ? (bannedHeroes) => <BalanceTeamInsights
                       roster={rosterData} scores={displayScores} mode={scoreMode} map={session.resolved_map_label}
                       premium={planPremium} showMap bannedHeroes={bannedHeroes} /> : undefined}
                   />
@@ -737,6 +741,8 @@ export function ClanBalanceSessionPanel({
                     samplePlayerIds={samplePlayerIds}
                     planPremium={planPremium}
                     scoreMode={scoreMode}
+                    samplePrediction={sampleScores}
+                    showPrediction={!flash && planPremium}
                   />
                   <div className="space-y-4">
                     {flash ? <p className="text-xs text-muted-foreground">깜짝 내전은 세션 종료 후 기록을 남기지 않으며 코인 보상을 지급하지 않습니다.</p> : !planPremium || isRosterParticipant ? (

@@ -79,6 +79,8 @@ export function ClanBalanceRosterEditor({
   playerSessionInfo,
   planPremium = false,
   samplePlayerIds = [],
+  samplePrediction = false,
+  showPrediction = false,
   ref,
 }: {
   gameSlug: string;
@@ -97,6 +99,8 @@ export function ClanBalanceRosterEditor({
   playerSessionInfo?: PlayerSessionInfoMap;
   planPremium?: boolean;
   samplePlayerIds?: readonly string[];
+  samplePrediction?: boolean;
+  showPrediction?: boolean;
   ref?: Ref<ClanBalanceRosterEditorHandle>;
 }) {
   const helpId = useId();
@@ -255,7 +259,7 @@ export function ClanBalanceRosterEditor({
         Escape 키로 이동 선택을 취소할 수 있습니다.
       </p>
       <div aria-label="출전 명단 편집" aria-describedby={helpId}>
-        <BalanceTeamHeading roster={roster} scores={scores} mode={scoreMode} />
+        <BalanceTeamHeading roster={roster} scores={scores} mode={scoreMode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} />
         <div className="space-y-2 rounded-xl bg-muted/35 p-2 sm:p-3">
           {BALANCE_SLOTS.map((slot) => (
             <div

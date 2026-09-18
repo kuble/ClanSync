@@ -2,9 +2,10 @@ import { Crosshair, Plus, Shield } from "lucide-react";
 import type { BalanceRoster, TeamRoster } from "@/lib/balance/roster-schema";
 import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
 import { cn } from "@/lib/utils";
-import { formatBalanceScore, SCORE_LABEL, teamScoreTotal, type ScoreMode } from "@/lib/balance/score-display";
+import type { ScoreMode } from "@/lib/balance/score-display";
 import type { PlayerSessionInfoMap } from "@/lib/balance/player-session-stats";
 import { BalancePlayerCardContent, BalancePlayerDetails } from "./balance-player-details";
+import { BalanceTeamSummary } from "./balance-team-summary";
 
 export const BALANCE_SLOTS = [
   { key: "d0", label: "딜러 1", role: "dmg", index: 0 },
@@ -36,19 +37,18 @@ export function BalanceRoleIcon({ slot }: { slot: BalanceSlot }) {
   );
 }
 
-export function BalanceTeamHeading({ roster, scores, mode = "m" }: { roster?: BalanceRoster; scores?: MaSnapshot; mode?: ScoreMode }) {
+export function BalanceTeamHeading({ roster, scores, mode = "m", premium = false, showPrediction = false, samplePrediction = false }: { roster?: BalanceRoster; scores?: MaSnapshot; mode?: ScoreMode; premium?: boolean; showPrediction?: boolean; samplePrediction?: boolean }) {
+  if (roster && scores) return <BalanceTeamSummary roster={roster} scores={scores} mode={mode} premium={premium} showPrediction={showPrediction} samplePrediction={samplePrediction} />;
   return (
     <div className="mb-3 grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)] items-center gap-2 text-center sm:grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)]">
       <span className="text-xs font-bold tracking-wider text-sky-600 dark:text-sky-300">
         1팀
-        {roster && scores ? <span data-testid="team1-score-total" className="mt-1 block text-sm tracking-normal" aria-label={`1팀 ${SCORE_LABEL[mode]} 합계`}><span className="mr-1 text-[10px] font-normal opacity-70">합계</span>{formatBalanceScore(teamScoreTotal(roster.team1, scores, mode))}</span> : null}
       </span>
       <span className="text-base font-black italic text-muted-foreground/60">
         VS
       </span>
       <span className="text-xs font-bold tracking-wider text-rose-600 dark:text-rose-300">
         2팀
-        {roster && scores ? <span data-testid="team2-score-total" className="mt-1 block text-sm tracking-normal" aria-label={`2팀 ${SCORE_LABEL[mode]} 합계`}><span className="mr-1 text-[10px] font-normal opacity-70">합계</span>{formatBalanceScore(teamScoreTotal(roster.team2, scores, mode))}</span> : null}
       </span>
     </div>
   );
@@ -63,6 +63,8 @@ export function ClanBalanceRosterBoard({
   highlightPlayer,
   playerSessionInfo,
   samplePlayerIds = [],
+  samplePrediction = false,
+  showPrediction = false,
 }: {
   roster: BalanceRoster;
   pool: readonly { user_id: string; nickname: string }[];
@@ -72,12 +74,14 @@ export function ClanBalanceRosterBoard({
   highlightPlayer?: string;
   playerSessionInfo?: PlayerSessionInfoMap;
   samplePlayerIds?: readonly string[];
+  samplePrediction?: boolean;
+  showPrediction?: boolean;
 }) {
   const nickById = Object.fromEntries(pool.map((p) => [p.user_id, p.nickname]));
   const mode = scoreMode === "a" && planPremium ? "a" : "m";
   return (
     <div aria-label="출전 라인업">
-      <BalanceTeamHeading roster={roster} scores={snapshot} mode={mode} />
+      <BalanceTeamHeading roster={roster} scores={snapshot} mode={mode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} />
       <div className="space-y-2 rounded-xl bg-muted/35 p-2 sm:p-3">
         {BALANCE_SLOTS.map((slot) => (
           <div

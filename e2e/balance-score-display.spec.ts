@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { formatBalanceScore, teamScoreTotal } from "../src/lib/balance/score-display";
+import { formatBalanceScore, scoreComparisonShare, teamScoreTotal } from "../src/lib/balance/score-display";
 import type { TeamRoster } from "../src/lib/balance/roster-schema";
 
 test("점수 합계는 소수·음수·미등록을 구분한다", () => {
@@ -11,4 +11,11 @@ test("점수 합계는 소수·음수·미등록을 구분한다", () => {
   expect(teamScoreTotal(team, { a: scores.a }, "m")).toBeNull();
   expect(teamScoreTotal(team, { ...scores, b: { m: 0, a: null } }, "a")).toBeNull();
   expect(formatBalanceScore(null)).toBe("—");
+});
+
+test("서로 다른 부호의 팀 점수도 VS 막대 비율로 비교한다", () => {
+  expect(scoreComparisonShare(2, 2)).toBe(50);
+  expect(scoreComparisonShare(3, 1)).toBe(75);
+  expect(scoreComparisonShare(-1, 1)).toBe(0);
+  expect(scoreComparisonShare(null, 1)).toBeNull();
 });

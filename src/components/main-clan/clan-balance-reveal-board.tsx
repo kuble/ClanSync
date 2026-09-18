@@ -28,6 +28,8 @@ export function ClanBalanceRevealBoard({
   planPremium,
   playerSessionInfo,
   samplePlayerIds,
+  samplePrediction,
+  showPrediction,
 }: {
   state: FormationState | null;
   roster: BalanceRoster;
@@ -38,6 +40,8 @@ export function ClanBalanceRevealBoard({
   planPremium?: boolean;
   playerSessionInfo?: PlayerSessionInfoMap;
   samplePlayerIds?: readonly string[];
+  samplePrediction?: boolean;
+  showPrediction?: boolean;
 }) {
   const [reduced, setReduced] = useState(false);
   const draw = state?.draw;
@@ -76,6 +80,8 @@ export function ClanBalanceRevealBoard({
           planPremium={planPremium}
           playerSessionInfo={playerSessionInfo}
           samplePlayerIds={samplePlayerIds}
+          samplePrediction={samplePrediction}
+          showPrediction={showPrediction}
         />
       </div>
     );

@@ -22,3 +22,12 @@ export function teamScoreTotal(team: TeamRoster, scores: MaSnapshot, mode: Score
   }
   return Math.round(sum * 100) / 100;
 }
+
+/** Convert two signed score totals into a bounded visual share for a VS bar. */
+export function scoreComparisonShare(team1: number | null, team2: number | null) {
+  if (team1 == null || team2 == null || !Number.isFinite(team1) || !Number.isFinite(team2)) return null;
+  if (team1 === team2) return 50;
+  const scale = Math.abs(team1) + Math.abs(team2);
+  if (!scale) return 50;
+  return Math.max(0, Math.min(100, 50 + ((team1 - team2) / scale) * 50));
+}

@@ -18,6 +18,12 @@ export function previewScores(ids: string[], saved: MaSnapshot): MaSnapshot {
 }
 // A future predictor must return the exact roster/score/map context it evaluated.
 export type BalanceEstimate = { context: string; team1: number; sampleSize: number; confidence: "낮음" | "보통" | "높음" };
+export function sampleBalanceEstimate(context: string): BalanceEstimate {
+  return { context, team1: 42 + sampleHash(context) % 17, sampleSize: 1, confidence: "낮음" };
+}
+export function isValidBalanceEstimate(estimate: BalanceEstimate | undefined, context: string, ready: boolean) {
+  return Boolean(ready && estimate?.context === context && Number.isFinite(estimate.team1) && estimate.team1 >= 0 && estimate.team1 <= 100 && estimate.sampleSize > 0);
+}
 export function predictionContext(roster: BalanceRoster, scores: MaSnapshot, mode: ScoreMode, map: string | null, bannedHeroes: readonly string[] = []) {
   const teams = [roster.team1, roster.team2].map((team) => [team.tank, ...team.dmg, ...team.sup].map((id) => [id, id ? scores[id]?.[mode] ?? null : null]));
   return JSON.stringify([teams, mode, map, [...new Set(bannedHeroes)].sort()]);
@@ -29,15 +35,35 @@ export function ScoreModeToggle({ value, onChange, premium }: { value: ScoreMode
   </div>;
 }
 
+export function BalanceComparisonBar({ title, team1Label, team2Label, team1Share, status, testId }: {
+  title: string;
+  team1Label: string;
+  team2Label: string;
+  team1Share: number | null;
+  status?: string;
+  testId?: string;
+}) {
+  const share = team1Share == null || !Number.isFinite(team1Share) ? null : Math.max(0, Math.min(100, team1Share));
+  return <div className="space-y-2" data-testid={testId}>
+    <div className="flex items-center justify-between gap-2 text-xs"><span>{title}</span>{status ? <span className="text-muted-foreground">{status}</span> : null}</div>
+    <div className="flex items-center justify-between text-sm font-semibold tabular-nums"><span className="text-sky-600 dark:text-sky-300">{team1Label}</span><span className="text-rose-600 dark:text-rose-300">{team2Label}</span></div>
+    <div className="flex h-2 overflow-hidden rounded-full bg-muted" aria-hidden="true">{share == null ? null : <><span className="bg-sky-500" style={{ width: `${share}%` }} /><span className="flex-1 bg-rose-500" /></>}</div>
+  </div>;
+}
+
 function EstimateRow({ title, context, estimate, ready, waiting, sample = false }: {
   title: string; context: string; estimate?: BalanceEstimate; ready: boolean; waiting: string; sample?: boolean;
 }) {
-  const valid = ready && estimate?.context === context && Number.isFinite(estimate.team1) && estimate.team1 >= 0 && estimate.team1 <= 100 && estimate.sampleSize > 0;
-  return <div className="space-y-2" aria-label="예측 승률" data-testid="balance-win-probability">
-    <div className="flex items-center justify-between gap-2 text-xs"><span>{title}</span><span className="text-muted-foreground">{valid ? sample ? "샘플" : `신뢰도 ${estimate.confidence} · ${estimate.sampleSize}경기` : waiting}</span></div>
-    <div className="flex items-center justify-between text-sm font-semibold tabular-nums"><span className="text-sky-600 dark:text-sky-300">{valid ? `${Math.round(estimate.team1)}%` : "—"}</span><span className="text-rose-600 dark:text-rose-300">{valid ? `${100 - Math.round(estimate.team1)}%` : "—"}</span></div>
-    <div className="flex h-2 overflow-hidden rounded-full bg-muted" aria-hidden="true">{valid ? <><span className="bg-sky-500" style={{ width: `${estimate.team1}%` }} /><span className="flex-1 bg-rose-500" /></> : null}</div>
-  </div>;
+  const valid = isValidBalanceEstimate(estimate, context, ready);
+  const team1 = valid ? Math.round(estimate!.team1) : null;
+  return <div aria-label="예측 승률"><BalanceComparisonBar
+    title={title}
+    team1Label={team1 == null ? "—" : `${team1}%`}
+    team2Label={team1 == null ? "—" : `${100 - team1}%`}
+    team1Share={team1}
+    status={valid ? sample ? "샘플" : `신뢰도 ${estimate!.confidence} · ${estimate!.sampleSize}경기` : waiting}
+    testId="balance-win-probability"
+  /></div>;
 }
 
 export function BalanceTeamInsights({ roster, scores, mode, map, premium, overall, byMap, showMap = false, compact = false, sample = false, bannedHeroes }: {
@@ -53,9 +79,8 @@ export function BalanceTeamInsights({ roster, scores, mode, map, premium, overal
   // A selected map replaces the overall estimate; never show stale overall odds
   // as though they included the newly selected map.
   const estimate = selectedMap ? byMap : overall;
-  const sampleEstimate = (context: string): BalanceEstimate => ({ context, team1: 42 + sampleHash(context) % 17, sampleSize: 1, confidence: "낮음" });
   if (!premium) return null;
   return <aside aria-label="팀 밸런스 비교" className={compact ? "mb-3 space-y-2 rounded-xl bg-muted/25 px-3 py-3 sm:px-4" : "space-y-4 rounded-xl border bg-muted/15 p-4"} aria-live="polite">
-      <EstimateRow title={bannedHeroes ? "예측 승률 · 맵·영웅 밴 반영" : selectedMap ? `예측 승률 · ${selectedMap} 반영` : "예측 승률"} context={context} estimate={sample ? sampleEstimate(context) : estimate} sample={sample} ready={complete} waiting={complete ? bannedHeroes ? "밴·포지션 영향 모델 준비 중" : "예측 준비 중" : "10명 편성 후 확인"} />
+      <EstimateRow title={bannedHeroes ? "예측 승률 · 맵·영웅 밴 반영" : selectedMap ? `예측 승률 · ${selectedMap} 반영` : "예측 승률"} context={context} estimate={sample ? sampleBalanceEstimate(context) : estimate} sample={sample} ready={complete} waiting={complete ? bannedHeroes ? "밴·포지션 영향 모델 준비 중" : "예측 준비 중" : "10명 편성 후 확인"} />
   </aside>;
 }
