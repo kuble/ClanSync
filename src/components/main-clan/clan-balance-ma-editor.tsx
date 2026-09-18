@@ -10,6 +10,7 @@ import type { BalanceRoster } from "@/lib/balance/roster-schema";
 import {
   MA_SCORE_MAX,
   MA_SCORE_MIN,
+  parseMaSnapshotForEdit,
   type MaSnapshot,
 } from "@/lib/balance/ma-snapshot";
 
@@ -79,6 +80,11 @@ export function ClanBalanceMaEditor({
   }
 
   function save() {
+    const validation = parseMaSnapshotForEdit(snap);
+    if (!validation.ok) {
+      toast.error(validation.error);
+      return;
+    }
     start(async () => {
       const r = await updateBalanceMaSnapshotAction(
         gameSlug,
