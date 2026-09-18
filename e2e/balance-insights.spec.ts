@@ -144,17 +144,8 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await expect(settings).toBeHidden();
     await expect(adjustedPlayer).not.toContainText(/\d+승|\d+무|\d+패|\d+연[승패]/);
     await expect(adjustedPlayer.locator(":scope > span > span").first()).toHaveCSS("text-align", "center");
-    await panel.getByRole("button", { name: "편성 시작", exact: true }).click();
-    const editRoster = panel.getByRole("button", { name: "명단 수정", exact: true });
-    await expect(editRoster).toBeVisible();
-    const end = await panel.getByRole("button", { name: "세션 종료", exact: true }).boundingBox();
-    const apply = await panel.getByRole("button", { name: "편성 적용", exact: true }).boundingBox();
-    expect(Math.abs(end!.y - apply!.y)).toBeLessThan(5);
-    expect(apply!.x).toBeGreaterThan(end!.x);
-    await editRoster.click();
-    await expect(panel.locator('[data-roster-slot="team1:tank"]')).toBeVisible();
-    await panel.getByRole("button", { name: "편성 시작", exact: true }).click();
-    await panel.getByRole("button", { name: "편성 적용", exact: true }).click();
+    await panel.getByRole("button", { name: "다음 단계", exact: true }).click();
+    await expect(panel.getByRole("button", { name: "혼합", exact: true })).toBeVisible({ timeout: 20_000 });
     await panel.getByRole("button", { name: "혼합", exact: true }).click();
     await page.route("**/balance?room=*", async (route) => {
       if (route.request().method() === "POST" && route.request().postData()?.includes("왕의 길")) await new Promise((resolve) => setTimeout(resolve, 500));

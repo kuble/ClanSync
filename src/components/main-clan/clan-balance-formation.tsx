@@ -1,5 +1,5 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Pause, Play } from "lucide-react";
 import { toast } from "sonner";
@@ -62,6 +62,9 @@ export function ClanBalanceFormation({
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
+  const [autoApplyError, setAutoApplyError] = useState<string | null>(null);
+  const [autoApplyRetry, setAutoApplyRetry] = useState(0);
+  const autoApplyAttempt = useRef<string | null>(null);
   const [bidDraft, setBidDraft] = useState({ lot: "", value: 10 });
   const lotKey = `${state?.auction?.player}:${state?.auction?.startedAt}`;
   const bidInput =
@@ -83,6 +86,13 @@ export function ClanBalanceFormation({
     !readOnly &&
     (manager || state?.captains?.[team === "team1" ? 0 : 1] === userId);
   const revealing = now < revealEnd;
+  const autoApplyKey =
+    manager &&
+    state?.stage === "complete" &&
+    state.appliedAt === undefined &&
+    !revealing
+      ? `${roundId}:${revision}:${state.draw?.id ?? "direct"}:${autoApplyRetry}`
+      : null;
   const increment = state?.settings?.minBid ?? 10;
   function run(command: FormationCommand) {
     start(async () => {
@@ -111,6 +121,37 @@ export function ClanBalanceFormation({
       }
     });
   }
+  useEffect(() => {
+    if (!autoApplyKey || pending || autoApplyAttempt.current === autoApplyKey)
+      return;
+    autoApplyAttempt.current = autoApplyKey;
+    start(async () => {
+      onPendingChange?.(true);
+      try {
+        const result = await updateFormationAction(
+          gameSlug,
+          clanId,
+          roundId,
+          revision,
+          { type: "apply" },
+        );
+        if (!result.ok) {
+          setAutoApplyError(result.error);
+          toast.error(result.error);
+          router.refresh();
+          return;
+        }
+        setAutoApplyError(null);
+        router.refresh();
+      } catch {
+        const message = "다음 단계로 이동하지 못했습니다.";
+        setAutoApplyError(message);
+        toast.error(message);
+      } finally {
+        onPendingChange?.(false);
+      }
+    });
+  }, [autoApplyKey, clanId, gameSlug, onPendingChange, pending, revision, roundId, router]);
   const turn = state?.stage === "draft" ? draftTurn(state) : null;
   const lot = state?.auction;
   const seconds = lot
@@ -140,7 +181,13 @@ export function ClanBalanceFormation({
               })
             }
           >
-            {pending ? "편성 중…" : "편성 시작"}
+            {pending
+              ? "처리 중…"
+              : settings.roles === "lottery" || settings.teams === "random"
+                ? "추첨 시작"
+                : settings.teams === "draft" || settings.teams === "auction"
+                  ? "편성 진행"
+                  : "다음 단계"}
           </Button>
         ) : (
           <p className="text-xs text-muted-foreground">
@@ -149,52 +196,84 @@ export function ClanBalanceFormation({
         )}
       </section>
     );
+  if (state.stage === "complete")
+    return (
+      <section
+        data-testid="balance-formation"
+        data-balance-guide="primary"
+        className="mt-4 flex flex-wrap items-center justify-between gap-3"
+      >
+        {endSessionControl ?? <span />}
+        {manager ? (
+          autoApplyError ? (
+            <Button
+              variant="outline"
+              disabled={pending}
+              onClick={() => {
+                setAutoApplyError(null);
+                setAutoApplyRetry((value) => value + 1);
+              }}
+            >
+              다음 단계 다시 시도
+            </Button>
+          ) : (
+            <p role="status" className="text-xs text-muted-foreground">
+              {revealing
+                ? "현재 화면에서 추첨 결과를 공개하고 있습니다."
+                : "다음 단계로 이동하고 있습니다."}
+            </p>
+          )
+        ) : (
+          <p role="status" className="text-xs text-muted-foreground">
+            {revealing
+              ? "추첨 결과를 공개하고 있습니다."
+              : "운영진이 다음 단계를 준비하고 있습니다."}
+          </p>
+        )}
+      </section>
+    );
   return (
-    <section data-testid="balance-formation" className={state.stage === "complete" ? "hidden" : "mt-4 space-y-4"}>
+    <section data-testid="balance-formation" className="mt-4 space-y-4">
       {endSessionControl}
       {manager ? (
         <div className="flex justify-end gap-1">
-          {state.stage !== "complete" ? (
-            <Button
-              size="icon"
-              variant="ghost"
-              disabled={pending || revealing}
-              title={state.pausedAt !== null ? "편성 재개" : "편성 일시정지"}
-              aria-label={
-                state.pausedAt !== null ? "편성 재개" : "편성 일시정지"
-              }
-              onClick={() =>
-                run({ type: state.pausedAt !== null ? "resume" : "pause" })
-              }
-            >
-              {state.pausedAt !== null ? (
-                <Play className="size-4" />
-              ) : (
-                <Pause className="size-4" />
-              )}
-            </Button>
-          ) : null}
+          <Button
+            size="icon"
+            variant="ghost"
+            disabled={pending || revealing}
+            title={state.pausedAt !== null ? "편성 재개" : "편성 일시정지"}
+            aria-label={
+              state.pausedAt !== null ? "편성 재개" : "편성 일시정지"
+            }
+            onClick={() =>
+              run({ type: state.pausedAt !== null ? "resume" : "pause" })
+            }
+          >
+            {state.pausedAt !== null ? (
+              <Play className="size-4" />
+            ) : (
+              <Pause className="size-4" />
+            )}
+          </Button>
         </div>
       ) : null}
-      {state.stage !== "complete" ? (
-        <div
-          className="flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-muted/20 p-4"
-          aria-live="polite"
-        >
-          <strong className="text-sm">
-            {state.pausedAt !== null
-              ? "편성 일시정지"
-              : turn
-                ? TEAM_LABEL[turn] + " 지명 차례 · " + (state.picks + 1) + "/8"
-                : "팀원 경매"}
-          </strong>
-          {state.captains ? (
-            <span className="text-xs text-muted-foreground">
-              {name(state.captains[0])} vs {name(state.captains[1])}
-            </span>
-          ) : null}
-        </div>
-      ) : null}
+      <div
+        className="flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-muted/20 p-4"
+        aria-live="polite"
+      >
+        <strong className="text-sm">
+          {state.pausedAt !== null
+            ? "편성 일시정지"
+            : turn
+              ? TEAM_LABEL[turn] + " 지명 차례 · " + (state.picks + 1) + "/8"
+              : "팀원 경매"}
+        </strong>
+        {state.captains ? (
+          <span className="text-xs text-muted-foreground">
+            {name(state.captains[0])} vs {name(state.captains[1])}
+          </span>
+        ) : null}
+      </div>
       {turn ? (
         <div className="grid gap-2 sm:grid-cols-2">
           {state.remaining.map((id) => (

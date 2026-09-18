@@ -55,7 +55,17 @@ async function saveSettings(settings: Locator) {
   await expect(settings).toBeHidden({ timeout: 20_000 });
 }
 
-async function openAndForm(page: Page, fixture: Fixture) {
+async function openAndForm(
+  page: Page,
+  fixture: Fixture,
+  options: {
+    mapBan?: boolean;
+    heroBan?: boolean;
+    mapBanSeconds?: number;
+    heroBanSeconds?: number;
+    heroBanCount?: 1 | 2;
+  } = {},
+) {
   await createAndEnterBalanceRoom(page, fixture.path);
   const panel = page.getByTestId("clan-balance-session-panel");
   await expect(panel).toHaveAttribute("data-balance-phase", "editing");
@@ -64,12 +74,24 @@ async function openAndForm(page: Page, fixture: Fixture) {
   await settings
     .getByRole("combobox", { name: "팀원 선발 방식", exact: true })
     .selectOption("keep");
-  await settings
-    .getByRole("checkbox", { name: "맵 밴 사용", exact: true })
-    .check();
-  await settings
-    .getByRole("checkbox", { name: "영웅 밴 사용", exact: true })
-    .check();
+  await expect(settings.getByRole("button", { name: /QA 맵 투표 연출/ })).toHaveCount(0);
+  await settings.getByRole("tab", { name: "밴픽", exact: true }).click();
+  const mapBan = options.mapBan ?? true;
+  const heroBan = options.heroBan ?? true;
+  await settings.getByRole("checkbox", { name: "맵 밴 사용", exact: true }).setChecked(mapBan);
+  await settings.getByRole("checkbox", { name: "영웅 밴 사용", exact: true }).setChecked(heroBan);
+  if (mapBan && options.mapBanSeconds !== undefined)
+    await settings
+      .getByRole("spinbutton", { name: "맵 밴 시간(초)", exact: true })
+      .fill(String(options.mapBanSeconds));
+  if (heroBan && options.heroBanSeconds !== undefined)
+    await settings
+      .getByRole("spinbutton", { name: "영웅 밴 시간(초)", exact: true })
+      .fill(String(options.heroBanSeconds));
+  if (heroBan && options.heroBanCount !== undefined)
+    await settings
+      .getByRole("combobox", { name: "팀별 영웅 밴 개수" })
+      .selectOption(String(options.heroBanCount));
   await saveSettings(settings);
   const candidates = panel.getByRole("region", { name: "참가 가능 클랜원" });
   for (const user of fixture.users.slice(0, 10)) {
@@ -80,12 +102,9 @@ async function openAndForm(page: Page, fixture: Fixture) {
       })
       .click();
   }
-  // Starting immediately exercises the roster flush before formation.
-  await panel.getByRole("button", { name: "편성 시작", exact: true }).click();
-  await expect(
-    panel.getByRole("button", { name: "편성 적용", exact: true }),
-  ).toBeEnabled();
-  await expect(panel.locator("[data-board-slot]")).toHaveCount(10);
+  // Advancing immediately exercises the roster flush and automatic apply.
+  await panel.getByRole("button", { name: "다음 단계", exact: true }).click();
+  await expectMapStage(panel);
   return panel;
 }
 
@@ -115,42 +134,21 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
       loginIsolatedBalanceUser(page, fixture.users[0]),
       loginIsolatedBalanceUser(member, fixture.users[1]),
     ]);
-    const panel = await openAndForm(page, fixture);
+    const panel = await openAndForm(page, fixture, {
+      mapBanSeconds: 5,
+      heroBanSeconds: 11,
+    });
     await member.goto(page.url());
     const memberPanel = member.getByTestId("clan-balance-session-panel");
     await expect(
       memberPanel.getByRole("button", { name: "라운드 설정", exact: true }),
     ).toHaveCount(0);
     await expect(
-      memberPanel.getByRole("button", { name: "편성 적용", exact: true }),
+      memberPanel.getByRole("button", { name: "다음 단계", exact: true }),
     ).toHaveCount(0);
     const formed = await fixture.activeRound();
-    await expectGuide(page, panel, "팀 편성 확인");
+    await expectGuide(page, panel, "투표할 맵 유형");
 
-    const settings = await openSettings(page, panel);
-    await expect(settings.getByRole("button", { name: /QA 맵 투표 연출/ })).toHaveCount(0);
-    await expect(
-      settings.getByRole("radio", { name: /직접 배정/ }),
-    ).toBeDisabled();
-    await expect(
-      settings.getByRole("combobox", { name: "팀원 선발 방식", exact: true }),
-    ).toBeDisabled();
-    await settings
-      .getByRole("checkbox", { name: "맵 밴 사용", exact: true })
-      .uncheck();
-    await expect(
-      settings.getByRole("spinbutton", { name: "맵 밴 시간(초)", exact: true }),
-    ).toBeDisabled();
-    await settings
-      .getByRole("checkbox", { name: "맵 밴 사용", exact: true })
-      .check();
-    await settings
-      .getByRole("spinbutton", { name: "맵 밴 시간(초)", exact: true })
-      .fill("5");
-    await settings
-      .getByRole("spinbutton", { name: "영웅 밴 시간(초)", exact: true })
-      .fill("11");
-    await saveSettings(settings);
     const configured = await fixture.activeRound();
     expect(configured.roster).toEqual(formed.roster);
     expect(configured.formation_state).toEqual(formed.formation_state);
@@ -161,13 +159,10 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
       hero_ban_seconds: 11,
     });
 
-    await panel.getByRole("button", { name: "편성 적용", exact: true }).click();
     await expectMapStage(panel);
     await expectMapStage(memberPanel);
     const applied = await fixture.activeRound();
-    expect(applied.formation_state).toEqual({
-      ...(formed.formation_state as Record<string, unknown>), appliedAt: expect.any(Number),
-    });
+    expect(applied.formation_state).toEqual(formed.formation_state);
     await member.reload();
     await expectMapStage(memberPanel);
     await expect(memberPanel.getByRole("region", { name: "경기 준비", exact: true })).toBeVisible();
@@ -288,23 +283,17 @@ test("경기 준비: 팀별 영웅 선택·기권·밴 확정과 경기 시작",
   const fixture = await createIsolatedBalanceFixture(10);
   try {
     await loginIsolatedBalanceUser(page, fixture.users[0]);
-    const panel = await openAndForm(page, fixture);
+    const panel = await openAndForm(page, fixture, {
+      mapBan: false,
+      heroBan: true,
+      heroBanSeconds: 5,
+      heroBanCount: 2,
+    });
     const formed = await fixture.activeRound();
-    const settings = await openSettings(page, panel);
-    await settings
-      .getByRole("checkbox", { name: "맵 밴 사용", exact: true })
-      .uncheck();
-    await settings
-      .getByRole("checkbox", { name: "영웅 밴 사용", exact: true })
-      .check();
-    await settings.getByRole("spinbutton", { name: "영웅 밴 시간(초)", exact: true }).fill("5");
-    await settings.getByRole("combobox", { name: "팀별 영웅 밴 개수" }).selectOption("2");
-    await saveSettings(settings);
     const configured = await fixture.activeRound();
     expect(configured.roster).toEqual(formed.roster);
     expect(configured.formation_state).toEqual(formed.formation_state);
     expect(configured.resolved_map_label).toBeNull();
-    await panel.getByRole("button", { name: "편성 적용", exact: true }).click();
     await expectMapStage(panel);
     await expectGuide(page, panel, "맵 유형 선택");
     const advance = panel.getByRole("button", { name: "영웅 밴 시작", exact: true });

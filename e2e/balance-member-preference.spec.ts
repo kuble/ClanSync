@@ -41,8 +41,9 @@ test("서로 다른 루프백 탭: 클랜원 선호 저장·프로필 복귀·�
       .eq("id", initial.id);
     expect(saved.error).toBeNull();
     const round = await fixture.activeRound();
-    const settings = await leaderClient.rpc("set_balance_formation_settings", {
+    const settings = await leaderClient.rpc("set_balance_prematch_settings", {
       p_round_id: round.id,
+      p_clan_id: fixture.clanId,
       p_revision: round.formation_revision,
       p_settings: {
         roles: "lottery",
@@ -50,9 +51,18 @@ test("서로 다른 루프백 탭: 클랜원 선호 저장·프로필 복귀·�
         auctionBudget: 1000,
         minBid: 10,
         durationSeconds: 20,
+        showPlayerCardScore: true,
+        showPlayerCardInfo: true,
+        showTeamComparisonSummary: true,
+        showPlayerSessionSummary: true,
+        playerCardInfo: "record",
       },
       p_map_ban: false,
       p_hero_ban: false,
+      p_map_ban_seconds: 15,
+      p_hero_ban_seconds: 20,
+      p_hero_bans_per_team: 2,
+      p_map_types: [],
     });
     expect(settings.error).toBeNull();
     expect(settings.data).toBe(true);
@@ -68,7 +78,9 @@ test("서로 다른 루프백 탭: 클랜원 선호 저장·프로필 복귀·�
       "명단 변경 되돌리기",
       "출전 명단 초기화",
       "화면 안내",
-      "편성 시작",
+      "다음 단계",
+      "추첨 시작",
+      "편성 진행",
       "방송용 화면",
     ]) {
       await expect(

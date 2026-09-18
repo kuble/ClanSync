@@ -31,8 +31,8 @@ const GUIDES: Record<
     },
     {
       target: "primary",
-      title: "준비되면 편성 시작",
-      text: "열 명을 정하고 편성을 시작하세요. 명단과 개인 선호는 자동으로 반영됩니다.",
+      title: "준비되면 다음 단계",
+      text: "직접 배정은 바로 다음 단계로 이동하고, 추첨은 현재 편성판에서 결과를 공개한 뒤 자동으로 이동합니다.",
     },
   ],
   formation: [
@@ -43,8 +43,8 @@ const GUIDES: Record<
     },
     {
       target: "primary",
-      title: "편성 적용",
-      text: "편성 적용을 누르면 맵을 고르는 화면으로 이동합니다.",
+      title: "자동으로 다음 단계",
+      text: "편성이 끝나면 별도 버튼 없이 맵을 고르는 화면으로 이동합니다.",
     },
   ],
   "map-types": [

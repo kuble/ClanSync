@@ -68,7 +68,6 @@ import {
 import { tallyMapVotes } from "@/lib/balance/weighted-map-pick";
 import type { Database } from "@/lib/supabase/database.types";
 import { useServerClock } from "@/lib/balance/use-server-clock";
-import { ClanBalanceDrawDialog } from "./clan-balance-draw-dialog";
 import { cn } from "@/lib/utils";
 import { BalanceTeamInsights, ScoreModeToggle, previewScores, type ScoreMode } from "./balance-team-insights";
 import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
@@ -191,20 +190,6 @@ export function ClanBalanceSessionPanel({
       };
     const result = await editor.flush();
     return result.ok ? { ...result, roster: editor.getRoster() } : result;
-  }
-  function applyFormation() {
-    if (!session) return;
-    start(async () => {
-      const result = await updateFormationAction(
-        gameSlug,
-        clanId,
-        session.id,
-        session.formation_revision,
-        { type: "apply" },
-      );
-      if (!result.ok) toast.error(result.error);
-      router.refresh();
-    });
   }
   const storeHref = `/games/${gameSlug}/clan/${clanId}/store`;
 
@@ -485,16 +470,6 @@ export function ClanBalanceSessionPanel({
           )
         ) : (
           <div className="p-4 sm:p-6">
-            {formation?.draw?.roleMode === "lottery" ? (
-              <ClanBalanceDrawDialog
-                key={formation.draw.id}
-                state={formation}
-                userId={userId}
-                pool={rosterPool}
-                serverNow={presentationNow}
-                showSummary={session.phase === "editing" && !mapScreen}
-              />
-            ) : null}
             {session.phase !== "hero_ban" && !(session.phase === "editing" && !mapScreen && canManage && !formation) ? (
               <div className="flex items-center justify-between gap-2">
                 {scoreControl ?? <span />}
@@ -603,35 +578,6 @@ export function ClanBalanceSessionPanel({
                   preferencePending={preferencePending}
                   onPendingChange={setBusyFormation}
                 />
-                {formation?.stage === "complete" ? (
-                  <div className="flex items-center justify-between gap-3" data-balance-guide="primary">
-                    {endSessionControl ?? <span />}
-                  <ClanBalanceRevealComplete
-                    key={`reveal:${formation.draw?.id ?? session.id}`}
-                    state={formation}
-                    serverNow={presentationNow}
-                  >
-                    {canManage ? (
-                      <div
-                        className="flex justify-end"
-                        data-balance-guide="primary"
-                      >
-                        <Button
-                          disabled={pending || busyFormation}
-                          onClick={applyFormation}
-                        >
-                          {pending ? "적용 중…" : "편성 적용"}
-                          <ArrowRight className="size-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">
-                        운영진이 편성을 확인하고 있습니다.
-                      </p>
-                    )}
-                  </ClanBalanceRevealComplete>
-                  </div>
-                ) : null}
               </div>
             ) : null}
 
