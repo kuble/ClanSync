@@ -196,7 +196,7 @@ export async function updateFormationSettingsAction(
     const { data: round } = await client
       .from("balance_sessions")
       .select(
-        "id, formation_settings, map_ban_enabled, hero_ban_enabled, map_ban_seconds, hero_ban_seconds, map_types",
+        "id, formation_settings, map_ban_enabled, hero_ban_enabled, map_ban_seconds, hero_ban_seconds, hero_bans_per_team, map_types",
       )
       .eq("id", roundId)
       .eq("clan_id", clanId)

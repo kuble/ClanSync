@@ -12,7 +12,7 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     const roster = { team1: { tank: ids[0], dmg: ids.slice(1, 3), sup: ids.slice(3, 5) }, team2: { tank: ids[5], dmg: ids.slice(6, 8), sup: ids.slice(8, 10) } };
     const scores = Object.fromEntries(ids.map((id, i) => [id, { m: i < 5 ? 1 : 3, a: i < 5 ? 2 : 4 }]));
     const round = await fixture.activeRound(regular.roomId);
-    const seed = await fixture.service.from("balance_sessions").update({ roster }).eq("id", round.id);
+    const seed = await fixture.service.from("balance_sessions").update({ roster, hero_bans_per_team: 1 }).eq("id", round.id);
     expect(seed.error).toBeNull();
     await page.reload();
     const panel = page.getByTestId("clan-balance-session-panel");
