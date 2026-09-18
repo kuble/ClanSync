@@ -256,9 +256,8 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await expect.poll(async () => (await fixture.activeRound(regular.roomId)).match_outcome).toBe("draw");
     await panel.locator('[data-board-slot="team1:tank"]').hover();
     const updatedPlayerInfo = page.getByRole("tooltip").filter({ hasText: "이번 세션 전적" });
-    await expect(updatedPlayerInfo).toContainText("1승 2무 1패");
-    await expect(updatedPlayerInfo).toContainText("25%");
-    await expect(updatedPlayerInfo).toContainText("연속 기록 없음");
+    await expect(updatedPlayerInfo).toHaveCount(0);
+    await expect(panel.locator('[data-board-slot="team1:tank"]')).not.toContainText(/점|\d+승|\d+무|\d+패/);
     await owner.auth.signOut();
     await spectator.auth.signOut();
   } catch (error) {

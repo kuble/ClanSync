@@ -156,11 +156,13 @@ export function ClanBalanceMatchOutcomeClient({
   clanId,
   sessionId,
   disabled,
+  predictionEnabled = true,
 }: {
   gameSlug: string;
   clanId: string;
   sessionId: string;
   disabled: boolean;
+  predictionEnabled?: boolean;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -204,8 +206,7 @@ export function ClanBalanceMatchOutcomeClient({
           경기 결과 확정
         </h4>
         <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-          경기 결과를 기록하세요. 승리 팀을 확정하면 예측 적중 보상이
-          지급됩니다. 무승부는 승패 없이 경기 기록에 포함됩니다.
+          경기 결과를 기록하세요. {predictionEnabled ? "승리 팀을 확정하면 예측 적중 보상이 지급됩니다. " : ""}무승부는 승패 없이 경기 기록에 포함됩니다.
         </p>
         <div className="mt-4 grid grid-cols-2 gap-2">
           <Button
@@ -257,7 +258,7 @@ export function ClanBalanceMatchOutcomeClient({
             <DialogDescription>
               <strong className="text-foreground">{outcomeLabel}</strong>로
               기록됩니다.{" "}
-              {outcome === "void" || outcome === "draw"
+              {!predictionEnabled ? "확정 후 다음 라운드를 시작할 수 있습니다." : outcome === "void" || outcome === "draw"
                 ? "이번 경기의 예측 보상은 지급되지 않습니다."
                 : "적중자에게 5코인씩 지급되며, 클랜 코인 풀이 부족하면 확정되지 않습니다."}
             </DialogDescription>

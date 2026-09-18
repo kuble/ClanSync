@@ -53,6 +53,8 @@ export function ClanBalanceSettings({
   banSettings,
   activeVote,
   beforeSave,
+  planPremium,
+  regularRoom,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -70,6 +72,8 @@ export function ClanBalanceSettings({
   banSettings: BanSettings;
   activeVote: boolean;
   beforeSave: () => Promise<{ ok: true; revision: number } | { ok: false }>;
+  planPremium: boolean;
+  regularRoom: boolean;
 }) {
   const router = useRouter();
   const [draft, setDraft] = useState(settings);
@@ -401,6 +405,7 @@ export function ClanBalanceSettings({
             <TabsContent value="display" className="rounded-xl border bg-muted/10 p-4">
           <fieldset disabled={locked} className="space-y-3">
             <legend className="font-semibold text-sm">선수 카드 표시</legend>
+            <p className="text-xs text-muted-foreground">편성 화면에 적용됩니다. 경기 현황에서는 참가자 이름만 표시합니다.</p>
             <label className="flex items-center justify-between gap-4 rounded-lg border bg-background/60 p-3 text-sm">
               <span>
                 점수 표시
@@ -471,6 +476,16 @@ export function ClanBalanceSettings({
             <TabsContent value="bans" className="rounded-xl border bg-muted/10 p-4">
           <fieldset disabled={locked} className="space-y-4">
             <legend className="font-semibold text-sm">밴픽</legend>
+            <div className="space-y-2 rounded-lg border bg-background/60 p-3">
+              <label className="flex items-center justify-between gap-3 text-sm font-medium">
+                승부예측 사용
+                <input type="checkbox" className="size-4 accent-primary disabled:cursor-not-allowed disabled:opacity-40"
+                  checked={planPremium && regularRoom && draft.predictionEnabled}
+                  disabled={!planPremium || !regularRoom}
+                  onChange={(event) => setDraft({ ...draft, predictionEnabled: event.target.checked })} />
+              </label>
+              <p className="text-xs text-muted-foreground">{!planPremium ? "Premium 클랜에서 사용할 수 있습니다." : !regularRoom ? "정규 내전에서만 사용할 수 있습니다." : "관전 멤버가 승리할 팀을 예측합니다. 경기 현황에서 따로 열 수 있습니다."}</p>
+            </div>
             <label className="flex items-center justify-between text-sm">
               맵 밴 사용
               <input
