@@ -777,6 +777,47 @@ export type Database = {
           },
         ]
       }
+      clan_auction_items: {
+        Row: {
+          clan_id: string
+          cost: number
+          created_at: string
+          description: string
+          enabled: boolean
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          clan_id: string
+          cost: number
+          created_at?: string
+          description?: string
+          enabled?: boolean
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          clan_id?: string
+          cost?: number
+          created_at?: string
+          description?: string
+          enabled?: boolean
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_auction_items_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_daily_member_activity: {
         Row: {
           activity_date: string

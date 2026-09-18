@@ -21,6 +21,7 @@ import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { hasRequestClanPermission } from "@/lib/clan/request-clan-access";
 import { ClanBannerSettingsForm } from "@/components/main-clan/clan-banner-settings-form";
 import { ClanBalanceAutoCloseSettings } from "@/components/main-clan/clan-balance-auto-close-settings";
+import { ClanAuctionItemSettings } from "@/components/main-clan/clan-auction-item-settings";
 import {
   ClanManageStoreVoidPanel,
   type ManageStoreVoidRowVM,
@@ -105,6 +106,7 @@ export default async function ManagePage({
     noticeResult,
     { data: rawPurchases },
     { data: pendings },
+    auctionItemsResult,
   ] = await Promise.all([
     svc
       .from("clan_members")
@@ -146,6 +148,11 @@ export default async function ManagePage({
           .eq("status", "pending")
           .order("applied_at", { ascending: true })
       : Promise.resolve({ data: [] }),
+    supabase
+      .from("clan_auction_items")
+      .select("id,name,description,cost,enabled")
+      .eq("clan_id", clanId)
+      .order("created_at", { ascending: true }),
   ]);
 
   const activeMemberIds = [
@@ -470,12 +477,20 @@ export default async function ManagePage({
           </section>
         }
         balance={
-          <ClanBalanceAutoCloseSettings
-            gameSlug={gameSlug}
-            clanId={clanId}
-            initialEnabled={clanProfile?.balance_auto_close_enabled ?? true}
-            initialHours={clanProfile?.balance_auto_close_hours ?? 3}
-          />
+          <div className="space-y-4">
+            <ClanBalanceAutoCloseSettings
+              gameSlug={gameSlug}
+              clanId={clanId}
+              initialEnabled={clanProfile?.balance_auto_close_enabled ?? true}
+              initialHours={clanProfile?.balance_auto_close_hours ?? 3}
+            />
+            <ClanAuctionItemSettings
+              gameSlug={gameSlug}
+              clanId={clanId}
+              items={auctionItemsResult.data ?? []}
+              loadError={!!auctionItemsResult.error}
+            />
+          </div>
         }
         subscription={
           <div className="space-y-4">
