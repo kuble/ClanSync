@@ -450,6 +450,7 @@ export type Database = {
           game_id: string
           host_user_id: string
           id: string
+          last_activity_at: string
           opened_at: string
           session_date: string | null
         }
@@ -459,6 +460,7 @@ export type Database = {
           game_id: string
           host_user_id: string
           id?: string
+          last_activity_at?: string
           opened_at?: string
           session_date?: string | null
         }
@@ -468,6 +470,7 @@ export type Database = {
           game_id?: string
           host_user_id?: string
           id?: string
+          last_activity_at?: string
           opened_at?: string
           session_date?: string | null
         }
@@ -1182,6 +1185,8 @@ export type Database = {
       }
       clans: {
         Row: {
+          balance_auto_close_enabled: boolean
+          balance_auto_close_hours: number
           banner_url: string | null
           coin_balance: number
           created_at: string
@@ -1207,6 +1212,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          balance_auto_close_enabled?: boolean
+          balance_auto_close_hours?: number
           banner_url?: string | null
           coin_balance?: number
           created_at?: string
@@ -1232,6 +1239,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          balance_auto_close_enabled?: boolean
+          balance_auto_close_hours?: number
           banner_url?: string | null
           coin_balance?: number
           created_at?: string
@@ -2600,6 +2609,10 @@ export type Database = {
         Args: { p_clan_id: string; p_round_id: string }
         Returns: Json
       }
+      close_stale_balance_sessions: {
+        Args: { p_limit?: number }
+        Returns: Json
+      }
       commit_balance_formation: {
         Args: {
           p_actor_id: string
@@ -2822,6 +2835,10 @@ export type Database = {
           p_round_id: string
         }
         Returns: boolean
+      }
+      update_balance_auto_close_settings: {
+        Args: { p_clan_id: string; p_enabled: boolean; p_hours: number }
+        Returns: Json
       }
       update_balance_room: {
         Args: {
