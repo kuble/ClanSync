@@ -64,7 +64,7 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await panel.getByRole("button", { name: "평가 점수", exact: true }).click();
     await expect(player).toContainText("+1점");
     await player.hover();
-    const playerInfo = page.getByRole("tooltip");
+    const playerInfo = page.getByRole("tooltip").filter({ hasText: fixture.users[0].nickname });
     await expect(playerInfo).toBeVisible();
     await expect(playerInfo).toContainText("이번 세션 전적");
     await expect(playerInfo).toContainText(/1\s*승.*1\s*무.*1\s*패/);
@@ -73,9 +73,15 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await expect(playerInfo).toContainText("평가 점수");
     await expect(playerInfo).toContainText("분석 점수");
     await expect(playerInfo).toContainText(/마이크\s*미설정/);
+    await expect(playerInfo).toHaveCSS("pointer-events", "none");
+    await expect(playerInfo.locator("..")).toHaveCSS("pointer-events", "none");
     await page.screenshot({ path: test.info().outputPath("player-session-details.png"), fullPage: true });
-    await page.mouse.move(0, 0);
+    await panel.locator('[data-roster-slot="team1:d0"]').hover();
+    const nextPlayerInfo = page.getByRole("tooltip").filter({ hasText: fixture.users[1].nickname });
+    await expect(nextPlayerInfo).toBeVisible();
     await expect(playerInfo).toBeHidden();
+    await page.mouse.move(0, 0);
+    await expect(nextPlayerInfo).toBeHidden();
     await panel.locator('[data-roster-slot="team2:d1"]').focus();
     await page.keyboard.press("Tab");
     await expect(player).toBeFocused();

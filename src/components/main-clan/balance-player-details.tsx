@@ -22,9 +22,9 @@ export function BalancePlayerDetails({ children, nickname, info, score, premium 
   const trigger = children as ReactElement<{ "aria-describedby"?: string }>;
   const describedBy = [trigger.props["aria-describedby"], open ? descriptionId : undefined].filter(Boolean).join(" ") || undefined;
   return (
-    <Tooltip open={open} onOpenChange={setOpen}>
+    <Tooltip open={open} onOpenChange={setOpen} disableHoverablePopup>
       <TooltipTrigger render={cloneElement(trigger, { "aria-describedby": describedBy })} delay={300} />
-      <TooltipContent id={descriptionId} role="tooltip" className="block w-64 rounded-xl border border-border bg-popover p-4 text-popover-foreground shadow-xl [&>div]:bg-popover" sideOffset={8}>
+      <TooltipContent id={descriptionId} role="tooltip" className="pointer-events-none block w-64 rounded-xl border border-border bg-popover p-4 text-popover-foreground shadow-xl [&>div]:bg-popover" sideOffset={8}>
         <p className="break-words text-sm font-bold">{nickname}</p>
         {info ? <>
           <p className="mt-3 text-[10px] opacity-65">이번 세션 전적</p>
