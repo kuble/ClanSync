@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { computeBalancePredictionDeadlineIso } from "@/lib/balance/prediction-deadline";
+import { parseFormationSettings } from "@/lib/balance/formation";
 import {
   mapPoolForGameSlug,
   pickThreeMapCandidates,
@@ -14,7 +15,7 @@ import {
 } from "@/lib/balance/prematch";
 import {
   defaultMaForRoster,
-  parseMaSnapshot,
+  parseMaSnapshotForEdit,
   validateMaSnapshot,
   type MaSnapshot,
 } from "@/lib/balance/ma-snapshot";
@@ -670,12 +671,14 @@ export async function updateBalanceMaSnapshotAction(
   ]);
   const canEdit = roundManager || scorePermission;
   if (!canEdit) {
-    return { ok: false, error: "M점수를 편집할 권한이 없습니다." };
+    return { ok: false, error: "참가자 점수를 편집할 권한이 없습니다." };
   }
 
   let partial: MaSnapshot;
   try {
-    partial = parseMaSnapshot(JSON.parse(maJson) as unknown);
+    const parsed = parseMaSnapshotForEdit(JSON.parse(maJson) as unknown);
+    if (!parsed.ok) return { ok: false, error: parsed.error };
+    partial = parsed.snapshot;
   } catch {
     return { ok: false, error: "점수 데이터 형식이 올바르지 않습니다." };
   }
@@ -750,7 +753,7 @@ export async function submitBalancePredictionAction(
 
   const { data: session, error: sessErr } = await supabase
     .from("balance_sessions")
-    .select("phase, match_outcome, closed_at, prediction_deadline_at, series_id")
+    .select("phase, match_outcome, closed_at, prediction_deadline_at, series_id, formation_settings, roster")
     .eq("id", sessionId)
     .eq("clan_id", clanId)
     .maybeSingle();
@@ -763,6 +766,17 @@ export async function submitBalancePredictionAction(
     .eq("series_id", session.series_id).eq("clan_id", clanId).maybeSingle();
   if (predictionRoomError || predictionRoom?.kind !== "regular") {
     return { ok: false, error: "승부예측은 정규 내전에서만 참여할 수 있습니다." };
+  }
+  const { data: predictionClan } = await supabase.from("clans")
+    .select("subscription_tier").eq("id", clanId).maybeSingle();
+  if (predictionClan?.subscription_tier !== "premium") {
+    return { ok: false, error: "승부예측은 Premium 클랜에서만 참여할 수 있습니다." };
+  }
+  if (!parseFormationSettings(session.formation_settings).predictionEnabled) {
+    return { ok: false, error: "이 라운드는 승부예측을 사용하지 않습니다." };
+  }
+  if (rosterAssignedUserIds(parseRoster(session.roster)).includes(user.id)) {
+    return { ok: false, error: "승부예측은 경기를 관전하는 멤버만 참여할 수 있습니다." };
   }
   if (session.closed_at) {
     return { ok: false, error: "이미 종료된 세션입니다." };
