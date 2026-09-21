@@ -126,6 +126,59 @@ test("room ownership, reservations, delegation and scheduler stay scoped", async
     assert.equal((await ok(svc.from("clan_members").select("role").eq("clan_id", clanId).eq("user_id", officer.id).single())).role, "officer");
   });
 
+  await t.test("new rooms inherit the latest regular settings and ignore flash changes", async () => {
+    const source = await ok(create(leader.client, "regular"));
+    let sourceRound = await ok(readRound(source.series_id));
+    const sourceSettings = {
+      roles: "lottery", teams: "auction", auctionBudget: 2200, minBid: 100,
+      durationSeconds: 45, auctionItemsEnabled: true, strategySeconds: 50,
+      showPlayerCardScore: false, showPlayerCardInfo: true,
+      showTeamComparisonSummary: false, showPlayerSessionSummary: true,
+      predictionEnabled: true, playerCardInfo: "streak",
+    };
+    assert.equal(await ok(leader.client.rpc("set_balance_prematch_settings", {
+      p_round_id: sourceRound.id, p_clan_id: clanId, p_revision: sourceRound.formation_revision,
+      p_settings: sourceSettings, p_map_ban: true, p_hero_ban: true,
+      p_map_ban_seconds: 37, p_hero_ban_seconds: 41,
+      p_map_types: ["control", "push"], p_hero_bans_per_team: 1,
+    })), true);
+    sourceRound = await ok(readRound(source.series_id));
+
+    const flash = await ok(create(creator.client, "flash"));
+    let flashRound = await ok(readRound(flash.series_id));
+    assert.deepEqual(flashRound.formation_settings, sourceSettings);
+    assert.equal(flashRound.map_ban_enabled, true);
+    assert.equal(flashRound.hero_ban_enabled, true);
+    assert.equal(flashRound.map_ban_seconds, 37);
+    assert.equal(flashRound.hero_ban_seconds, 41);
+    assert.equal(flashRound.hero_bans_per_team, 1);
+    assert.deepEqual(flashRound.map_types, ["control", "push"]);
+
+    const flashSettings = { ...sourceSettings, teams: "random", showPlayerCardScore: true };
+    assert.equal(await ok(creator.client.rpc("set_balance_prematch_settings", {
+      p_round_id: flashRound.id, p_clan_id: clanId, p_revision: flashRound.formation_revision,
+      p_settings: flashSettings, p_map_ban: false, p_hero_ban: false,
+      p_map_ban_seconds: 9, p_hero_ban_seconds: 11,
+      p_map_types: ["escort"], p_hero_bans_per_team: 2,
+    })), true);
+    flashRound = await ok(readRound(flash.series_id));
+
+    const target = await ok(create(leader.client, "regular"));
+    const targetRound = await ok(readRound(target.series_id));
+    assert.deepEqual(targetRound.formation_settings, sourceRound.formation_settings);
+    assert.notDeepEqual(targetRound.formation_settings, flashRound.formation_settings);
+    assert.equal(targetRound.map_ban_enabled, true);
+    assert.equal(targetRound.hero_ban_enabled, true);
+    assert.equal(targetRound.map_ban_seconds, 37);
+    assert.equal(targetRound.hero_ban_seconds, 41);
+    assert.equal(targetRound.hero_bans_per_team, 1);
+    assert.deepEqual(targetRound.map_types, ["control", "push"]);
+
+    await ok(leader.client.rpc("close_balance_session_series", { p_clan_id: clanId, p_round_id: sourceRound.id }));
+    await ok(creator.client.rpc("close_balance_session_series", { p_clan_id: clanId, p_round_id: flashRound.id }));
+    await ok(leader.client.rpc("close_balance_session_series", { p_clan_id: clanId, p_round_id: targetRound.id }));
+  });
+
   await t.test("RSVP is self-only, bounded by time, and does not create a roster or series", async () => {
     const reservation = await ok(create(creator.client, "flash", { p_scheduled_at: future(10), p_rsvp_days: 3 }));
     const args = { ...roomArgs(reservation.room_id), p_response: "going" };
