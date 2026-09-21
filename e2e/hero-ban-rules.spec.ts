@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { isValidOwHeroId, owHeroLabel, owHeroRole, resolveTeamHeroBans, type HeroBanVote } from "../src/lib/balance/ow-hero-ban";
+import { OW_HERO_PORTRAITS } from "../src/lib/balance/ow-hero-portraits";
 import { EMPTY_ROSTER } from "../src/lib/balance/roster-schema";
 
 test("team hero bans respect each team's votes, limit, abstention and overlap", () => {
@@ -31,5 +32,6 @@ test("hero ban roster includes every current hero missing from the original sele
     expect(isValidOwHeroId(id)).toBe(true);
     expect(owHeroLabel(id)).toBe(label);
     expect(owHeroRole(id)).toBe(role);
+    expect(OW_HERO_PORTRAITS[id]).toMatch(/^https:\/\/.+\.png$/);
   }
 });
