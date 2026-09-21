@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { resolveTeamHeroBans, type HeroBanVote } from "../src/lib/balance/ow-hero-ban";
+import { isValidOwHeroId, owHeroLabel, owHeroRole, resolveTeamHeroBans, type HeroBanVote } from "../src/lib/balance/ow-hero-ban";
 import { EMPTY_ROSTER } from "../src/lib/balance/roster-schema";
 
 test("team hero bans respect each team's votes, limit, abstention and overlap", () => {
@@ -18,4 +18,18 @@ test("team hero bans respect each team's votes, limit, abstention and overlap", 
   expect(two.context.teams.team2.map((hero) => hero.heroId)).toEqual(["ana", "mercy"]);
   expect(resolveTeamHeroBans(votes.slice(0, 2), roster, 2).context.teams.team2).toEqual([]);
   expect(resolveTeamHeroBans([], roster, 2).bannedHeroes).toEqual([]);
+});
+
+test("hero ban roster includes every current hero missing from the original selection", () => {
+  const additions = [
+    ["dmon", "D.Mon", "tank"], ["domina", "도미나", "tank"], ["hazard", "해저드", "tank"],
+    ["anran", "안란", "dps"], ["emre", "엠레", "dps"], ["sierra", "시에라", "dps"],
+    ["shion", "시온", "dps"], ["vendetta", "벤데타", "dps"],
+    ["jetpack_cat", "제트팩 캣", "support"], ["mizuki", "미즈키", "support"], ["wuyang", "우양", "support"],
+  ] as const;
+  for (const [id, label, role] of additions) {
+    expect(isValidOwHeroId(id)).toBe(true);
+    expect(owHeroLabel(id)).toBe(label);
+    expect(owHeroRole(id)).toBe(role);
+  }
 });

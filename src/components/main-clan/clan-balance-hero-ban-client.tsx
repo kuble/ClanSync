@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Ban, Check, Crosshair, Shield, Plus, Timer, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { resolveHeroBanAction, submitHeroBanVoteAction } from "@/app/actions/clan-balance-session";
-import { OW_HEROES, heroVoteTeam, teamHeroBanStandings, owHeroLabel, type HeroBanVote } from "@/lib/balance/ow-hero-ban";
+import { OW_HEROES, heroVoteTeam, teamHeroBanStandings, owHeroLabel, type HeroBanVote, type OwHero } from "@/lib/balance/ow-hero-ban";
 import { OW_HERO_PORTRAITS } from "@/lib/balance/ow-hero-portraits";
 import type { BalanceRoster } from "@/lib/balance/roster-schema";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,18 @@ const ROLES = [
   { id: "dps", label: "공격", Icon: Crosshair },
   { id: "support", label: "지원", Icon: Plus },
 ] as const;
+
+const HERO_PLACEHOLDER_TONES: Record<OwHero["role"], string> = {
+  tank: "bg-sky-950 text-sky-200",
+  dps: "bg-rose-950 text-rose-200",
+  support: "bg-emerald-950 text-emerald-200",
+};
+
+function HeroPortrait({ hero, className }: { hero: OwHero; className: string }) {
+  const src = OW_HERO_PORTRAITS[hero.id];
+  if (src) return <Image unoptimized src={src} alt="" width={104} height={112} className={className} />;
+  return <span aria-hidden="true" className={cn("flex items-center justify-center font-black", HERO_PLACEHOLDER_TONES[hero.role], className)}>{hero.nameKo.slice(0, 1)}</span>;
+}
 
 export function ClanBalanceHeroBanClient({ gameSlug, clanId, sessionId, deadlineIso, serverNow,
   myVote, allVotes, canResolve, userId, roster, bansPerTeam, resolvedHeroes, renderInsights,
@@ -76,8 +88,11 @@ export function ClanBalanceHeroBanClient({ gameSlug, clanId, sessionId, deadline
         <div className="flex gap-2">
           {Array.from({ length: bansPerTeam }, (_, slot) => {
             const entry = standings[team][slot];
+            const hero = entry && (OW_HEROES.find((candidate) => candidate.id === entry.heroId) ?? {
+              id: entry.heroId, nameKo: owHeroLabel(entry.heroId), role: entry.role,
+            });
             return <div key={slot} className="flex min-h-14 flex-1 items-center gap-2 rounded-lg border bg-background/40 px-2 py-1">
-              {entry ? <><Image unoptimized src={OW_HERO_PORTRAITS[entry.heroId]} alt="" width={44} height={48} className="h-12 w-11 rounded object-cover object-top" />
+              {entry && hero ? <><HeroPortrait hero={hero} className="h-12 w-11 rounded object-cover object-top" />
                 <div><p className="text-xs font-semibold">{owHeroLabel(entry.heroId)}</p><p className="mt-1 text-[10px] text-muted-foreground">{entry.votes}표 · {ROLES.find((role) => role.id === entry.role)?.label}</p></div></>
                 : <span className="text-xs text-muted-foreground">{expired ? "밴 없음" : "선택 대기"}</span>}
             </div>;
@@ -98,7 +113,7 @@ export function ClanBalanceHeroBanClient({ gameSlug, clanId, sessionId, deadline
             return <button key={hero.id} type="button" aria-label={hero.nameKo + " 밴 선택"} aria-pressed={selected}
               disabled={pending || expired || !myTeam || (!selected && picks.length >= bansPerTeam)} onClick={() => toggle(hero.id)}
               className={cn("group relative overflow-hidden rounded-md border bg-muted/30 text-center transition-colors focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-default", selected ? "border-amber-400 bg-amber-400/15 ring-2 ring-amber-400/50" : "border-border hover:border-foreground/60 disabled:opacity-50")}>
-              <Image unoptimized src={OW_HERO_PORTRAITS[hero.id]} alt="" width={104} height={112} className={cn("aspect-square w-full object-cover object-top", selected && "opacity-60")} />
+              <HeroPortrait hero={hero} className={cn("aspect-square w-full object-cover object-top", selected && "opacity-60")} />
               {selected ? <Ban className="absolute left-1/2 top-1/3 size-7 -translate-x-1/2 text-amber-300 drop-shadow" aria-hidden="true" /> : null}
               <span className="block truncate px-1 py-1.5 text-[10px] font-semibold">{hero.nameKo}</span>
             </button>;
