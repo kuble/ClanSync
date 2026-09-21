@@ -387,8 +387,8 @@ export function ClanBalanceRosterEditor({
         <div className="grid min-h-24 grid-cols-2 content-start gap-2 p-3 sm:grid-cols-3 sm:p-4">
           {visiblePool.length ? (
             visiblePool.map((member) => (
-              <BalancePlayerDetails key={member.user_id} nickname={member.nickname} info={playerSessionInfo?.[member.user_id]} score={scores?.[member.user_id]} premium={planPremium} sample={samplePlayerIds.includes(member.user_id)} enabled={showPlayerSessionSummary}>
               <button
+                key={member.user_id}
                 type="button"
                 aria-disabled={!canEdit || !firstEmpty}
                 onClick={() => { if (canEdit && firstEmpty) addMember(member.user_id); }}
@@ -397,7 +397,6 @@ export function ClanBalanceRosterEditor({
               >
                 <span className="truncate">{member.nickname}</span>
               </button>
-              </BalancePlayerDetails>
             ))
           ) : (
             <p className="col-span-full py-3 text-xs text-muted-foreground">

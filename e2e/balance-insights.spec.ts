@@ -18,6 +18,9 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     const panel = page.getByTestId("clan-balance-session-panel");
     const insights = panel.getByRole("complementary", { name: "팀 밸런스 비교" });
     await expect(panel.locator('[data-roster-slot="team1:tank"]')).toContainText(/[+-]?\d+(?:\.\d+)?점/);
+    const standbyMember = panel.getByRole("button", { name: `${fixture.users[10].nickname} 출전 명단에 추가` });
+    await standbyMember.hover();
+    await expect(page.getByRole("tooltip").filter({ hasText: fixture.users[10].nickname })).toHaveCount(0);
     await expect(panel.getByText("샘플 점수·승률 포함", { exact: true })).toHaveCount(0);
     await expect(insights).toHaveCount(0);
     await expect(panel.getByText("출전 명단 10 / 10", { exact: true })).toHaveCount(0);
