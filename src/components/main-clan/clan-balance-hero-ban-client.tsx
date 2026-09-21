@@ -1,9 +1,9 @@
 "use client";
 
-import { useOptimistic, useTransition, type ReactNode } from "react";
+import { useOptimistic, useTransition } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Ban, Check, Crosshair, Shield, Plus, Timer, ArrowRight, EyeOff } from "lucide-react";
+import { Ban, Check, Crosshair, Shield, Plus, Timer, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { resolveHeroBanAction, submitHeroBanVoteAction } from "@/app/actions/clan-balance-session";
 import { OW_HEROES, heroVoteTeam, teamHeroBanStandings, owHeroLabel, type HeroBanVote, type OwHero } from "@/lib/balance/ow-hero-ban";
@@ -32,12 +32,11 @@ function HeroPortrait({ hero, className }: { hero: OwHero; className: string }) 
 }
 
 export function ClanBalanceHeroBanClient({ gameSlug, clanId, sessionId, deadlineIso, serverNow,
-  myVote, allVotes, canResolve, userId, roster, bansPerTeam, resolvedHeroes, renderInsights,
+  myVote, allVotes, canResolve, userId, roster, bansPerTeam, resolvedHeroes,
 }: {
   gameSlug: string; clanId: string; sessionId: string; deadlineIso: string | null; serverNow: number;
   myVote: HeroBanVote | null; allVotes: readonly HeroBanVote[]; canResolve: boolean; userId: string;
   roster: BalanceRoster; bansPerTeam: 1 | 2; resolvedHeroes: string[] | null;
-  renderInsights?: (bannedHeroes: string[]) => ReactNode;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -48,7 +47,6 @@ export function ClanBalanceHeroBanClient({ gameSlug, clanId, sessionId, deadline
   const expired = remain === 0 || resolvedHeroes !== null;
   const myTeam = heroVoteTeam(roster, userId);
   const standings = teamHeroBanStandings(allVotes, roster);
-  const proposed = [...new Set([...standings.team1.slice(0, bansPerTeam), ...standings.team2.slice(0, bansPerTeam)].map((entry) => entry.heroId))];
 
   function toggle(id: string) {
     if (!deadlineIso || expired || pending || !myTeam) return;
@@ -78,7 +76,7 @@ export function ClanBalanceHeroBanClient({ gameSlug, clanId, sessionId, deadline
       </div>
       <span role="timer" className="flex items-center gap-2 rounded-lg border px-3 py-2 font-bold tabular-nums"><Timer className="size-4" />{expired ? "투표 종료" : remain + "s"}</span>
     </div>
-    <div className="grid gap-3 sm:grid-cols-2">
+    {expired ? <div className="grid gap-3 sm:grid-cols-2" data-testid="hero-ban-results">
       {(["team1", "team2"] as const).map((team, index) => <section key={team} aria-label={(index + 1) + "팀 밴 현황"}
         className={cn("rounded-xl border p-3", index === 0 ? "border-sky-500/30 bg-sky-500/5" : "border-rose-500/30 bg-rose-500/5")}>
         <div className="mb-3 flex items-center justify-between text-xs">
@@ -86,9 +84,7 @@ export function ClanBalanceHeroBanClient({ gameSlug, clanId, sessionId, deadline
           <span className="text-muted-foreground">{allVotes.filter((vote) => heroVoteTeam(roster, vote.user_id) === team).length} / 5명 선택</span>
         </div>
         <div className="flex gap-2">
-          {!expired ? <div className="flex min-h-14 w-full items-center justify-center gap-2 rounded-lg border border-dashed bg-background/20 px-3 text-xs text-muted-foreground">
-            <EyeOff className="size-4" aria-hidden="true" />투표 종료 후 일괄 공개
-          </div> : Array.from({ length: bansPerTeam }, (_, slot) => {
+          {Array.from({ length: bansPerTeam }, (_, slot) => {
             const entry = standings[team][slot];
             const hero = entry && (OW_HEROES.find((candidate) => candidate.id === entry.heroId) ?? {
               id: entry.heroId, nameKo: owHeroLabel(entry.heroId), role: entry.role,
@@ -96,13 +92,12 @@ export function ClanBalanceHeroBanClient({ gameSlug, clanId, sessionId, deadline
             return <div key={slot} className="flex min-h-14 flex-1 items-center gap-2 rounded-lg border bg-background/40 px-2 py-1">
               {entry && hero ? <><HeroPortrait hero={hero} className="h-12 w-11 rounded object-cover object-top" />
                 <div><p className="text-xs font-semibold">{owHeroLabel(entry.heroId)}</p><p className="mt-1 text-[10px] text-muted-foreground">{entry.votes}표 · {ROLES.find((role) => role.id === entry.role)?.label}</p></div></>
-                : <span className="text-xs text-muted-foreground">{expired ? "밴 없음" : "선택 대기"}</span>}
+                : <span className="text-xs text-muted-foreground">밴 없음</span>}
             </div>;
           })}
         </div>
       </section>)}
-    </div>
-    <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+    </div> : <><div className="flex flex-wrap items-center justify-between gap-2 text-xs">
       <p className="text-muted-foreground">{myTeam ? "초상화를 눌러 선택 · 다시 누르면 취소" : "관전 중 · 출전자만 투표할 수 있습니다."}</p>
       {myTeam ? <span role="status">{pending ? "저장 중…" : picks.length ? picks.map(owHeroLabel).join(" · ") : "선택 없음"} <span className="ml-2 tabular-nums text-muted-foreground">{picks.length}/{bansPerTeam}</span></span> : null}
     </div>
@@ -122,12 +117,11 @@ export function ClanBalanceHeroBanClient({ gameSlug, clanId, sessionId, deadline
           })}
         </div>
       </section>)}
-    </div>
-    {expired ? renderInsights?.(resolvedHeroes ?? proposed) : null}
-    <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4" data-balance-guide="primary">
+    </div></>}
+    {expired ? <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4" data-balance-guide="primary">
       <p className="text-xs text-muted-foreground">무투표 팀은 밴 없음 · 동률은 영웅 고정 순서 · 양 팀 중복은 한 번만 제외</p>
       {canResolve ? <Button disabled={pending || !expired} onClick={beginMatch}><Check className="size-4" />경기 시작<ArrowRight className="size-4" /></Button>
         : <span className="text-xs text-muted-foreground">운영진이 경기를 시작하면 밴이 확정됩니다.</span>}
-    </div>
+    </div> : null}
   </div>;
 }

@@ -640,9 +640,6 @@ export function ClanBalanceSessionPanel({
                     userId={userId} roster={rosterData}
                     bansPerTeam={parseBanSettings(session).heroBansPerTeam}
                     resolvedHeroes={session.banned_heroes}
-                    renderInsights={canViewScores && !flash ? (bannedHeroes) => <BalanceTeamInsights
-                      roster={rosterData} scores={displayScores} mode={scoreMode} map={session.resolved_map_label}
-                      premium={planPremium} showMap bannedHeroes={bannedHeroes} /> : undefined}
                   />
                 ) : canManage ? (
                   <Button onClick={() => runAction("경기를 시작했습니다.", () => skipHeroBanPhaseAction(gameSlug, clanId, session.id))}>경기 시작</Button>

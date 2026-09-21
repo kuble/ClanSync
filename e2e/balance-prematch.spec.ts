@@ -340,7 +340,7 @@ test("경기 준비: 팀별 영웅 선택·기권·밴 확정과 경기 시작",
       name: "경기 시작",
       exact: true,
     });
-    await expect(heroResolve).toBeDisabled();
+    await expect(heroResolve).toHaveCount(0);
     await expect(panel.getByRole("group", { name: "점수 표시" })).toHaveCount(0);
     const dva = panel.getByRole("button", { name: "D.Va 밴 선택", exact: true });
     await dva.click();
@@ -351,10 +351,8 @@ test("경기 준비: 팀별 영웅 선택·기권·밴 확정과 경기 시작",
     await expect(echo).toHaveAttribute("aria-pressed", "true");
     await expect(panel.getByRole("button", { name: "아나 밴 선택", exact: true })).toBeDisabled();
     const team1BanStatus = panel.getByRole("region", { name: "1팀 밴 현황" });
-    await expect(team1BanStatus).toContainText("1 / 5명 선택");
-    await expect(team1BanStatus).toContainText("투표 종료 후 일괄 공개");
-    await expect(team1BanStatus).not.toContainText("D.Va");
-    await expect(team1BanStatus).not.toContainText("에코");
+    await expect(team1BanStatus).toHaveCount(0);
+    await expect(panel.getByTestId("hero-ban-results")).toHaveCount(0);
     await expect.poll(() => dva.locator("img").evaluate((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0)).toBe(true);
     await capturePanel(panel, "hero-ban-portraits");
     const heroVoting = await fixture.activeRound();
@@ -374,9 +372,11 @@ test("경기 준비: 팀별 영웅 선택·기권·밴 확정과 경기 시작",
     if (heroVoteError) throw heroVoteError;
     expect(heroVotes).toEqual([{ user_id: fixture.users[0].id }]);
     await expect(heroResolve).toBeEnabled({ timeout: 10_000 });
+    await expect(dva).toHaveCount(0);
+    await expect(panel.getByTestId("hero-ban-results")).toBeVisible();
+    await expect(team1BanStatus).toContainText("1 / 5명 선택");
     await expect(team1BanStatus).toContainText("D.Va");
     await expect(team1BanStatus).toContainText("에코");
-    await expect(team1BanStatus).not.toContainText("투표 종료 후 일괄 공개");
     const startResponse = page.waitForResponse((response) => response.request().method() === "POST" && Boolean(response.request().headers()["next-action"]));
     await heroResolve.click();
     const actionBody = await (await startResponse).text();
