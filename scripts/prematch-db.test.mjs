@@ -317,6 +317,33 @@ test("prematch rules, voting deadlines and explicit match start are atomic", asy
     },
   );
 
+  await t.test("current heroes and rapid ballot replacements persist without duplicate votes", async () => {
+    assert.equal(await settings({ p_hero_ban_seconds: 60, p_hero_bans_per_team: 2 }), true);
+    await ok(patch({ phase: "hero_ban" }));
+    const deadline = (await read()).hero_ban_deadline_at;
+    const readBallot = () => ok(svc.from("balance_session_hero_votes")
+      .select("pick_1,pick_2,pick_3").eq("session_id", roundId).eq("user_id", member.id));
+    try {
+      for (const hero of ["dmon", "domina", "hazard", "anran", "emre", "sierra", "shion", "vendetta", "jetpack_cat", "mizuki", "wuyang"]) {
+        const result = await heroVote(member.client, deadline, [hero, "dva"]);
+        assert.equal(result.error, null, `${hero}: ${result.error?.message}`);
+        assert.deepEqual(await readBallot(), [{ pick_1: hero, pick_2: "dva", pick_3: null }]);
+      }
+      await Promise.all([["hazard"], ["hazard", "wuyang"], ["wuyang"], []]
+        .map((picks) => ok(heroVote(member.client, deadline, picks))));
+      await ok(heroVote(member.client, deadline, ["hazard", "wuyang"]));
+      assert.deepEqual(await readBallot(), [{ pick_1: "hazard", pick_2: "wuyang", pick_3: null }]);
+      for (const picks of [["hazard", "hazard"], ["hazard", "wuyang", "ana"], [null], ["unknown_hero"]]) {
+        assert.ok((await heroVote(member.client, deadline, picks)).error);
+        assert.deepEqual(await readBallot(), [{ pick_1: "hazard", pick_2: "wuyang", pick_3: null }]);
+      }
+      await ok(heroVote(member.client, deadline, []));
+      assert.deepEqual(await readBallot(), []);
+    } finally {
+      assert.equal(await settings({ p_hero_ban_seconds: 5 }), true);
+    }
+  });
+
   await t.test(
     "hero ballots enforce lineup, abstention and atomic resolution/start with manager-only context",
     async () => {

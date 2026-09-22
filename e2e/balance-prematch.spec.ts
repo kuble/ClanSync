@@ -286,7 +286,7 @@ test("경기 준비: 팀별 영웅 선택·기권·밴 확정과 경기 시작",
     const panel = await openAndForm(page, fixture, {
       mapBan: false,
       heroBan: true,
-      heroBanSeconds: 5,
+      heroBanSeconds: 15,
       heroBanCount: 2,
     });
     const formed = await fixture.activeRound();
@@ -342,18 +342,24 @@ test("경기 준비: 팀별 영웅 선택·기권·밴 확정과 경기 시작",
     });
     await expect(heroResolve).toHaveCount(0);
     await expect(panel.getByRole("group", { name: "점수 표시" })).toHaveCount(0);
-    const dva = panel.getByRole("button", { name: "D.Va 밴 선택", exact: true });
-    await dva.click();
-    await expect(dva).toHaveAttribute("aria-pressed", "true");
-    const echo = panel.getByRole("button", { name: "에코 밴 선택", exact: true });
-    await expect(echo).toBeEnabled();
-    await echo.click();
-    await expect(echo).toHaveAttribute("aria-pressed", "true");
+    const hazard = panel.getByRole("button", { name: "해저드 밴 선택", exact: true });
+    await hazard.dblclick({ delay: 0 });
+    await expect(hazard).toHaveAttribute("aria-pressed", "true");
+    await expect(hazard).toBeEnabled();
+    await hazard.click();
+    await expect(hazard).toHaveAttribute("aria-pressed", "false");
+    await hazard.click();
+    await expect(hazard).toHaveAttribute("aria-pressed", "true");
+    const wuyang = panel.getByRole("button", { name: "우양 밴 선택", exact: true });
+    await wuyang.click();
+    await expect(wuyang).toHaveAttribute("aria-pressed", "true");
+    await expect(wuyang).toBeEnabled();
+    await expect(page.locator('[data-sonner-toast][data-type="error"]')).toHaveCount(0);
     await expect(panel.getByRole("button", { name: "아나 밴 선택", exact: true })).toBeDisabled();
     const team1BanStatus = panel.getByRole("region", { name: "1팀 밴 현황" });
     await expect(team1BanStatus).toHaveCount(0);
     await expect(panel.getByTestId("hero-ban-results")).toHaveCount(0);
-    await expect.poll(() => dva.locator("img").evaluate((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0)).toBe(true);
+    await expect.poll(() => hazard.locator("img").evaluate((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0)).toBe(true);
     await capturePanel(panel, "hero-ban-portraits");
     const heroVoting = await fixture.activeRound();
     const afterHeroStart = Date.now();
@@ -363,31 +369,29 @@ test("경기 준비: 팀별 영웅 선택·기권·밴 확정과 경기 시작",
       banned_heroes: null,
     });
     const heroDeadline = Date.parse(heroVoting.hero_ban_deadline_at!);
-    expect(heroDeadline).toBeGreaterThanOrEqual(beforeHeroStart + 4_900);
-    expect(heroDeadline).toBeLessThanOrEqual(afterHeroStart + 5_100);
+    expect(heroDeadline).toBeGreaterThanOrEqual(beforeHeroStart + 14_900);
+    expect(heroDeadline).toBeLessThanOrEqual(afterHeroStart + 15_100);
     const { data: heroVotes, error: heroVoteError } = await fixture.service
       .from("balance_session_hero_votes")
       .select("user_id")
       .eq("session_id", formed.id);
     if (heroVoteError) throw heroVoteError;
     expect(heroVotes).toEqual([{ user_id: fixture.users[0].id }]);
-    await expect(heroResolve).toBeEnabled({ timeout: 10_000 });
-    await expect(dva).toHaveCount(0);
+    await expect(heroResolve).toBeEnabled({ timeout: 20_000 });
+    await expect(hazard).toHaveCount(0);
     await expect(panel.getByTestId("hero-ban-results")).toBeVisible();
     await expect(team1BanStatus).toContainText("1 / 5명 선택");
-    await expect(team1BanStatus).toContainText("D.Va");
-    await expect(team1BanStatus).toContainText("에코");
-    const startResponse = page.waitForResponse((response) => response.request().method() === "POST" && Boolean(response.request().headers()["next-action"]));
+    await expect(team1BanStatus).toContainText("해저드");
+    await expect(team1BanStatus).toContainText("우양");
     await heroResolve.click();
-    const actionBody = await (await startResponse).text();
-    expect(actionBody.match(/"ok":false[^\n]*/)?.[0] ?? "").toBe("");
     await expect(panel).toHaveAttribute("data-balance-phase", "match_live");
+    await expect(page.locator('[data-sonner-toast][data-type="error"]')).toHaveCount(0);
     expect(await fixture.activeRound()).toMatchObject({
       phase: "match_live",
       resolved_map_label: "왕의 길",
-      banned_heroes: ["dva", "echo"],
+      banned_heroes: ["hazard", "wuyang"],
       hero_ban_deadline_at: null,
-      hero_ban_context: { version: 1, bansPerTeam: 2, teams: { team1: [{ heroId: "dva", role: "tank", votes: 1 }, { heroId: "echo", role: "dps", votes: 1 }], team2: [] } },
+      hero_ban_context: { version: 1, bansPerTeam: 2, teams: { team1: [{ heroId: "hazard", role: "tank", votes: 1 }, { heroId: "wuyang", role: "support", votes: 1 }], team2: [] } },
     });
   } finally {
     await fixture.cleanup();

@@ -21,6 +21,22 @@ test("team hero bans respect each team's votes, limit, abstention and overlap", 
   expect(resolveTeamHeroBans([], roster, 2).bannedHeroes).toEqual([]);
 });
 
+test("different hero votes tie by hero ID within each team, independent of arrival order", () => {
+  const roster = structuredClone(EMPTY_ROSTER);
+  roster.team1.tank = "a";
+  roster.team1.dmg[0] = "b";
+  const votes: HeroBanVote[] = [
+    { user_id: "a", pick_1: "dva", pick_2: null, pick_3: null },
+    { user_id: "b", pick_1: "ana", pick_2: null, pick_3: null },
+  ];
+  expect(resolveTeamHeroBans(votes, roster, 1).bannedHeroes).toEqual(["ana"]);
+  expect(resolveTeamHeroBans([...votes].reverse(), roster, 1).bannedHeroes).toEqual(["ana"]);
+  expect(resolveTeamHeroBans(votes, roster, 2).bannedHeroes).toEqual(["ana", "dva"]);
+  roster.team1.dmg[0] = null;
+  roster.team2.tank = "b";
+  expect(resolveTeamHeroBans(votes, roster, 1).bannedHeroes).toEqual(["dva", "ana"]);
+});
+
 test("hero ban roster includes every current hero missing from the original selection", () => {
   const additions = [
     ["dmon", "D.Mon", "tank"], ["domina", "도미나", "tank"], ["hazard", "해저드", "tank"],
