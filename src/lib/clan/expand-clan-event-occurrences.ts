@@ -1,8 +1,9 @@
 /**
  * 클랜 일정 템플릿을 월 단위로 펼쳐 캘린더·슬롯에 사용합니다 (D-EVENTS-02).
- * 브라우저 로컬 타임존 기준으로 날짜·요일을 계산합니다.
+ * 한국 시간으로 날짜·요일을 계산해 서버·브라우저의 회차 식별자를 일치시킵니다.
  */
 
+import { koreanCalendarDate, koreanDateTime, koreanTime } from "./event-timezone";
 export type ClanEventRepeat = "none" | "weekly" | "monthly";
 
 /** 서버에서 내려준 행 — 반복 필드 포함 */
@@ -61,17 +62,18 @@ export function expandClanEventsForMonth(
   year: number,
   monthIndex: number,
 ): ClanEventOccurrenceVm[] {
-  const dim = new Date(year, monthIndex + 1, 0).getDate();
+  const dim = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
   const out: ClanEventOccurrenceVm[] = [];
 
   for (const t of templates) {
     const anchor = new Date(t.start_at);
     if (Number.isNaN(anchor.getTime())) continue;
+    const localAnchor = koreanCalendarDate(anchor);
 
     const repeat = t.repeat ?? "none";
 
     if (repeat === "none") {
-      if (anchor.getFullYear() !== year || anchor.getMonth() !== monthIndex) {
+      if (localAnchor.getUTCFullYear() !== year || localAnchor.getUTCMonth() !== monthIndex) {
         continue;
       }
       const instanceIdx = anchor.getTime();
@@ -86,14 +88,14 @@ export function expandClanEventsForMonth(
 
     if (repeat === "weekly") {
       const wds = (t.repeat_weekdays ?? []).slice().sort((a, b) => a - b);
-      const rt = t.repeat_time;
+      // The anchor is authoritative, including templates saved by old UTC servers.
+      const rt = koreanTime(anchor);
       if (!rt || wds.length === 0) continue;
 
       for (let day = 1; day <= dim; day++) {
-        const dt = new Date(year, monthIndex, day);
-        const iso = isoWeekdayLocal(dt);
+        const iso = new Date(Date.UTC(year, monthIndex, day)).getUTCDay() || 7;
         if (!wds.includes(iso)) continue;
-        const occ = combineLocalDateAndPgTime(dt, rt);
+        const occ = koreanDateTime(year, monthIndex, day, rt);
         if (occ.getTime() < anchor.getTime()) continue;
         const instanceIdx = occ.getTime();
         out.push({
@@ -107,12 +109,12 @@ export function expandClanEventsForMonth(
     }
 
     if (repeat === "monthly") {
-      const rt = t.repeat_time;
+      const rt = koreanTime(anchor);
       if (!rt) continue;
-      const dom = anchor.getDate();
-      const cand = new Date(year, monthIndex, dom);
-      if (cand.getMonth() !== monthIndex) continue;
-      const occ = combineLocalDateAndPgTime(cand, rt);
+      const dom = localAnchor.getUTCDate();
+      const cand = new Date(Date.UTC(year, monthIndex, dom));
+      if (cand.getUTCMonth() !== monthIndex) continue;
+      const occ = koreanDateTime(year, monthIndex, dom, rt);
       if (occ.getTime() < anchor.getTime()) continue;
       const instanceIdx = occ.getTime();
       out.push({
@@ -126,6 +128,17 @@ export function expandClanEventsForMonth(
 
   out.sort((a, b) => a.displayAt.getTime() - b.displayAt.getTime());
   return out;
+}
+
+/** Browser calendars use local day cells; their month can span two Korean months. */
+export function expandClanEventsForLocalCalendarMonth(
+  templates: ClanEventRecord[], year: number, monthIndex: number,
+): ClanEventOccurrenceVm[] {
+  return [-1, 0, 1].flatMap((offset) => {
+    const month = new Date(Date.UTC(year, monthIndex + offset, 1));
+    return expandClanEventsForMonth(templates, month.getUTCFullYear(), month.getUTCMonth());
+  }).filter(({ displayAt }) => displayAt.getFullYear() === year && displayAt.getMonth() === monthIndex)
+    .sort((a, b) => a.instanceIdx - b.instanceIdx);
 }
 
 /** 향후 in-app 알림 예약용: `now` 이후 시작하는 회차 `instanceIdx`(시작 시각 ms) 목록. */
@@ -148,8 +161,9 @@ export function listUpcomingOccurrenceStarts(
 
   const seen = new Set<number>();
   const starts: number[] = [];
-  let y = now.getFullYear();
-  let m = now.getMonth();
+  const localNow = koreanCalendarDate(now);
+  let y = localNow.getUTCFullYear();
+  let m = localNow.getUTCMonth();
 
   for (let i = 0; i < maxMonths && starts.length < maxOcc; i++) {
     const occs = expandClanEventsForMonth([t], y, m);
@@ -184,7 +198,8 @@ export function isOccurrenceValidForTemplate(
 ): boolean {
   const d = new Date(instanceIdxMs);
   if (Number.isNaN(d.getTime())) return false;
-  const expanded = expandClanEventsForMonth([t], d.getFullYear(), d.getMonth());
+  const local = koreanCalendarDate(d);
+  const expanded = expandClanEventsForMonth([t], local.getUTCFullYear(), local.getUTCMonth());
   return expanded.some((o) => o.instanceIdx === instanceIdxMs);
 }
 
@@ -203,10 +218,10 @@ export function repeatSummaryKo(t: ClanEventRecord): string {
       .sort((a, b) => a - b)
       .map((w) => WD_LABEL[w - 1] ?? "?")
       .join("·");
-    const tm = t.repeat_time?.slice(0, 5) ?? "";
+    const tm = koreanTime(new Date(t.start_at)).slice(0, 5);
     return `매주 ${days} ${tm}`;
   }
-  const dom = new Date(t.start_at).getDate();
-  const tm = t.repeat_time?.slice(0, 5) ?? "";
+  const dom = koreanCalendarDate(new Date(t.start_at)).getUTCDate();
+  const tm = koreanTime(new Date(t.start_at)).slice(0, 5);
   return `매월 ${dom}일 ${tm}`;
 }

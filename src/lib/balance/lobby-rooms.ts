@@ -8,7 +8,10 @@ export function activeLobbyRooms<T extends Room>(rooms: readonly T[]): T[] {
   const entries = new Map<string, T>();
   for (const room of rooms) {
     if (room.status !== "open" && room.status !== "scheduled") continue;
-    const key = room.kind === "regular" && room.schedule_id ? room.schedule_id : room.id;
+    // Every open occurrence remains reachable. Only collapse future reservations.
+    if (room.status === "scheduled" && room.schedule_id && rooms.some((other) =>
+      other.schedule_id === room.schedule_id && other.status === "open")) continue;
+    const key = room.kind === "regular" && room.schedule_id && room.status === "scheduled" ? room.schedule_id : room.id;
     const current = entries.get(key);
     if (!current || (room.status === "open" && current.status !== "open") ||
       (room.status === current.status && room.scheduled_at < current.scheduled_at)) entries.set(key, room);

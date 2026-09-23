@@ -51,7 +51,7 @@ import type {
 import {
   clanEventRsvpKey,
   dateKeyLocalFromDate,
-  expandClanEventsForMonth,
+  expandClanEventsForLocalCalendarMonth,
   repeatSummaryKo,
 } from "@/lib/clan/expand-clan-event-occurrences";
 import type { SerializedBracketTournament } from "@/lib/clan/load-bracket-tournaments";
@@ -202,7 +202,7 @@ export function ClanEventsView({
     useState<SerializedClanEvent["repeat"]>("none");
 
   const occurrences = useMemo(
-    () => expandClanEventsForMonth(events, cursor.y, cursor.m),
+    () => expandClanEventsForLocalCalendarMonth(events, cursor.y, cursor.m),
     [events, cursor.y, cursor.m],
   );
 
