@@ -13,14 +13,14 @@ export function ClanEventNotifyForm({
   gameSlug,
   clanId,
   discordEnabled,
-  discordWebhookUrl,
+  discordWebhookConfigured,
   kakaoNotificationsOptIn,
   canEdit,
 }: {
   gameSlug: string;
   clanId: string;
   discordEnabled: boolean;
-  discordWebhookUrl: string;
+  discordWebhookConfigured: boolean;
   kakaoNotificationsOptIn: boolean;
   canEdit: boolean;
 }) {
@@ -81,8 +81,8 @@ export function ClanEventNotifyForm({
               name="discord_webhook_url"
               type="url"
               autoComplete="off"
-              placeholder="https://discord.com/api/webhooks/…"
-              defaultValue={discordWebhookUrl}
+              placeholder={discordWebhookConfigured ? "저장된 주소 유지 (변경할 때만 입력)" : "https://discord.com/api/webhooks/…"}
+              defaultValue=""
               disabled={!canEdit}
               className="font-mono text-xs"
             />

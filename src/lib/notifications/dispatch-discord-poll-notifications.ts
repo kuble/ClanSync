@@ -1,3 +1,4 @@
+import { postDiscordWebhook } from "./discord-webhook";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -32,7 +33,7 @@ function parseClaimedRows(raw: unknown): ClaimedDiscordPollNotification[] {
     const webhook_url = typeof o.webhook_url === "string" ? o.webhook_url : "";
     const clan_id = typeof o.clan_id === "string" ? o.clan_id : "";
     const game_slug = typeof o.game_slug === "string" ? o.game_slug : "";
-    if (!log_id || !webhook_url || !clan_id || !game_slug) continue;
+    if (!log_id || !clan_id || !game_slug) continue;
     out.push({
       log_id,
       poll_id,
@@ -94,19 +95,14 @@ export async function dispatchDiscordPollNotifications(
     let ok = false;
     let errMsg = "";
     try {
-      const res = await fetch(row.webhook_url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: buildDiscordPollMessage(row) }),
-        signal: AbortSignal.timeout(10_000),
-      });
+      const res = await postDiscordWebhook(row.webhook_url, buildDiscordPollMessage(row));
       ok = res.ok;
       if (!ok) {
         errMsg = `HTTP ${res.status}`;
       }
-    } catch (e) {
+    } catch {
       ok = false;
-      errMsg = e instanceof Error ? e.message : "fetch error";
+      errMsg = "Discord 웹훅 전송 실패";
     }
 
     await svc.rpc("finalize_discord_notification_dispatch", {

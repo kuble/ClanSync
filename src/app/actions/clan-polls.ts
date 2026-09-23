@@ -163,7 +163,7 @@ export async function createClanPollAction(
     const evNotify = readClanEventNotifySettings(settingsRow?.event_notify ?? null);
     const discordWebhookOk =
       evNotify.discord_enabled &&
-      evNotify.discord_webhook_url.trim().startsWith("https://discord.com/api/webhooks/");
+      evNotify.discord_configured;
 
     const userIds = (memRows ?? []).map((r) => r.user_id as string);
     const logRows: {
@@ -304,14 +304,12 @@ export async function voteClanPollAction(
     }
   }
 
-  for (const optionId of optionIds) {
-    const { error: vErr } = await svc.from("poll_votes").insert({
-      poll_id: pollId,
-      option_id: optionId,
-      user_id: user.id,
-    });
-    if (vErr) return { ok: false, error: vErr.message };
-  }
+  const { error: voteError } = await supabase.rpc("submit_clan_poll_vote", {
+    p_clan_id: clanId,
+    p_poll_id: pollId,
+    p_option_ids: optionIds,
+  });
+  if (voteError) return { ok: false, error: voteError.message };
 
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);
   return { ok: true };

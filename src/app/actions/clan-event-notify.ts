@@ -1,19 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import {
-  mergeEventNotifyPayload,
-  readClanEventNotifySettings,
-} from "@/lib/clan/event-notify-settings";
+import { isDiscordWebhookUrl } from "@/lib/notifications/discord-webhook";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
-import type { Json } from "@/lib/supabase/database.types";
 
 export type UpdateClanEventNotifyResult =
   | { ok: true }
   | { ok: false; error: string };
-
-const DISCORD_WEBHOOK_PREFIX = "https://discord.com/api/webhooks/";
 
 export async function updateClanEventNotifyAction(
   gameSlug: string,
@@ -48,47 +42,15 @@ export async function updateClanEventNotifyAction(
     return { ok: false, error: "클랜을 찾을 수 없습니다." };
   }
 
-  const { data: existing } = await svc
-    .from("clan_settings")
-    .select("event_notify")
-    .eq("clan_id", clanId)
-    .maybeSingle();
-
-  const kakaoOptIn =
-    formData.get("kakao_notifications_opt_in") === "on";
-
-  const prev = readClanEventNotifySettings(existing?.event_notify as Json | null);
-
-  let webhookUrl = "";
-  if (discordEnabled) {
-    webhookUrl = webhookRaw.length > 0 ? webhookRaw : prev.discord_webhook_url;
-    if (webhookUrl.length === 0) {
-      return {
-        ok: false,
-        error: "Discord 알림을 켜려면 웹훅 URL을 입력해 주세요.",
-      };
-    }
-    if (!webhookUrl.startsWith(DISCORD_WEBHOOK_PREFIX)) {
-      return {
-        ok: false,
-        error: `웹훅 URL은 ${DISCORD_WEBHOOK_PREFIX} 로 시작해야 합니다.`,
-      };
-    }
+  if (webhookRaw && !isDiscordWebhookUrl(webhookRaw)) {
+    return { ok: false, error: "올바른 Discord 웹훅 URL을 입력해 주세요." };
   }
-
-  const nextNotify = mergeEventNotifyPayload(existing?.event_notify, {
-    discord_enabled: discordEnabled,
-    discord_webhook_url: discordEnabled ? webhookUrl : "",
-    kakao_notifications_opt_in: kakaoOptIn,
+  const { error } = await supabase.rpc("set_clan_notification_settings", {
+    p_clan_id: clanId,
+    p_enabled: discordEnabled,
+    p_url: webhookRaw || undefined,
+    p_kakao: formData.get("kakao_notifications_opt_in") === "on",
   });
-
-  const { error } = await svc
-    .from("clan_settings")
-    .update({
-      event_notify: nextNotify as unknown as Json,
-      updated_by: user.id,
-    })
-    .eq("clan_id", clanId);
 
   if (error) return { ok: false, error: error.message };
 

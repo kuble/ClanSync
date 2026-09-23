@@ -1,9 +1,11 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
+import { koreanTime } from "@/lib/clan/event-timezone";
 import { parseEventStart } from "@/lib/clan/parse-event-start";
 import { revalidatePath } from "next/cache";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
+import { postDiscordWebhook } from "@/lib/notifications/discord-webhook";
 import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
 import { saveClanEventWithNotifications } from "@/lib/clan/schedule-clan-event-inapp-notifications";
 import { createServiceRoleClient } from "@/lib/supabase/service";
@@ -23,12 +25,6 @@ const MANUAL_CREATE_KINDS = new Set<
   Database["public"]["Enums"]["clan_event_kind"]
 >(["intra", "event"]);
 
-function pgTimeFromDate(d: Date): string {
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mm = String(d.getMinutes()).padStart(2, "0");
-  return `${hh}:${mm}:00`;
-}
-
 type ParsedRepeatFields = {
   repeat: Database["public"]["Enums"]["clan_event_repeat"];
   repeat_weekdays: number[] | null;
@@ -44,7 +40,7 @@ function parseRepeatRule(
     return { error: "반복 설정이 올바르지 않습니다." };
   }
 
-  const pgTime = pgTimeFromDate(startAt);
+  const pgTime = koreanTime(startAt);
 
   if (raw === "none") {
     return { repeat: "none", repeat_weekdays: null, repeat_time: null };
@@ -125,7 +121,10 @@ async function notifyDiscordManualClanEvent(opts: {
     .maybeSingle();
 
   const n = readClanEventNotifySettings(s?.event_notify as Json | null);
-  if (!n.discord_enabled || n.discord_webhook_url.length === 0) return;
+  if (!n.discord_enabled) return;
+  const { data: secret } = await opts.svc.from("clan_notification_secrets")
+    .select("discord_webhook_url").eq("clan_id", opts.clanId).maybeSingle();
+  if (!secret?.discord_webhook_url) return;
 
   const when = opts.startAt.toLocaleString("ko-KR", {
     dateStyle: "medium",
@@ -150,12 +149,7 @@ async function notifyDiscordManualClanEvent(opts: {
   ].filter(Boolean);
 
   try {
-    const res = await fetch(n.discord_webhook_url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: lines.join("\n") }),
-      signal: AbortSignal.timeout(8_000),
-    });
+    const res = await postDiscordWebhook(secret.discord_webhook_url, lines.join("\n"), 8_000);
     if (!res.ok) {
       console.warn("Discord webhook non-OK", res.status);
     }
