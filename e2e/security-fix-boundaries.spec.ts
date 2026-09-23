@@ -1,0 +1,236 @@
+import { expect, test } from "@playwright/test";
+import { randomUUID } from "node:crypto";
+import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
+import { loadOpenLfgPosts, loadScrimRoomsForGame } from "../src/lib/main-game/load-main-game-hub";
+import { loadClanDashboard } from "../src/lib/clan/load-clan-dashboard";
+import { loadClanStatsPage } from "../src/lib/clan/stats/load-clan-stats";
+
+type Fixture = Awaited<ReturnType<typeof createIsolatedBalanceFixture>>;
+type Client = Awaited<ReturnType<Fixture["memberClient"]>>;
+let f: Fixture, leader: Client, member: Client, spectator: Client;
+const otherClans: string[] = [];
+async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>): Promise<NonNullable<T>> {
+  const { data, error } = await query;
+  expect(error, JSON.stringify(error)).toBeNull();
+  return data as NonNullable<T>;
+}
+const future = () => new Date(Date.now() + 86_400_000).toISOString();
+
+test.beforeAll(async () => {
+  test.setTimeout(180_000);
+  f = await createIsolatedBalanceFixture();
+  [leader, member, spectator] = await Promise.all([f.memberClient(0), f.memberClient(1), f.memberClient(11)]);
+  await ok(f.service.from("clans").update({ subscription_tier: "premium", coin_balance: 1000 }).eq("id", f.clanId));
+});
+test.afterAll(async () => {
+  if (!f) return;
+  const ids = f.users.map(u => u.id);
+  await ok(f.service.from("coin_transactions").delete().in("created_by", ids));
+  await ok(f.service.from("lfg_posts").delete().in("creator_user_id", ids));
+  await ok(f.service.from("scrim_rooms").delete().in("created_by", ids));
+  if (otherClans.length) await ok(f.service.from("clans").delete().in("id", otherClans));
+  await f.cleanup();
+});
+test.setTimeout(90_000);
+
+async function round(kind: "regular" | "flash" = "regular", owner = leader) {
+  const room = await ok(owner.rpc("create_balance_room", { p_clan_id: f.clanId, p_kind: kind, p_title: "review isolated" }));
+  const id = (room as { series_id: string }).series_id;
+  const row = await ok(f.service.from("balance_sessions").select("*").eq("series_id", id).is("closed_at", null).single());
+  const ids = f.users.slice(0, 10).map(u => u.id);
+  const roster = { team1: { tank: ids[0], dmg: ids.slice(1, 3), sup: ids.slice(3, 5) }, team2: { tank: ids[5], dmg: ids.slice(6, 8), sup: ids.slice(8, 10) } };
+  await ok(f.service.from("balance_sessions").update({ roster }).eq("id", row.id));
+  return { ...row, roster };
+}
+async function live(row: Awaited<ReturnType<typeof round>>) {
+  await ok(f.service.from("balance_sessions").update({ resolved_map_label: "리장 타워" }).eq("id", row.id));
+  await ok(f.service.from("balance_sessions").update({ phase: "match_live", prediction_deadline_at: future() }).eq("id", row.id));
+}
+
+test("webhook secrets stay private, leader can save/preserve/disable and cannot inject URLs", async () => {
+  const args = { p_clan_id: f.clanId, p_enabled: true, p_kakao: false, p_url: "https://discord.com/api/webhooks/123/isolated_test" };
+  expect((await member.rpc("set_clan_notification_settings", args)).error).not.toBeNull();
+  await ok(leader.rpc("set_clan_notification_settings", args));
+  await ok(leader.rpc("set_clan_notification_settings", { ...args, p_url: undefined }));
+  expect((await member.from("clan_notification_secrets").select("*").eq("clan_id", f.clanId)).error).not.toBeNull();
+  expect((await leader.from("clan_notification_secrets").select("*").eq("clan_id", f.clanId)).error).not.toBeNull();
+  const settings = await ok(member.from("clan_settings").select("event_notify").eq("clan_id", f.clanId).single());
+  expect(JSON.stringify(settings)).not.toContain("isolated_test");
+  expect(JSON.stringify(settings)).not.toContain("discord_webhook_url");
+  for (const url of ["http://127.0.0.1/private", "https://discord.com.evil.test/api/webhooks/123/t", args.p_url + "?wait=true"]) {
+    expect((await leader.rpc("set_clan_notification_settings", { ...args, p_url: url })).error).not.toBeNull();
+    expect((await leader.from("clan_settings").update({ event_notify: { discord_webhook_url: url } }).eq("clan_id", f.clanId)).error).not.toBeNull();
+  }
+  await ok(leader.rpc("set_clan_notification_settings", { ...args, p_enabled: false, p_url: undefined }));
+  expect(await ok(f.service.from("clan_notification_secrets").select("clan_id").eq("clan_id", f.clanId))).toHaveLength(0);
+});
+
+test("alternate accounts require a shared clan for the same game; owners retain access", async () => {
+  const other = await ok(f.service.from("games").select("id").neq("id", f.gameId).limit(1).single());
+  await ok(f.service.from("user_alt_accounts").insert([
+    { user_id: f.users[1].id, game_id: f.gameId, alt_nick: "visible", note: "same game" },
+    { user_id: f.users[1].id, game_id: other.id, alt_nick: "private", note: "different game" },
+  ]));
+  const own = await ok(member.from("user_alt_accounts").select("alt_nick").eq("user_id", f.users[1].id));
+  expect(own).toHaveLength(2);
+  const peer = await ok(leader.from("user_alt_accounts").select("alt_nick").eq("user_id", f.users[1].id));
+  expect(peer.map(x => x.alt_nick)).toEqual(["visible"]);
+});
+
+test("single-choice concurrent first votes replace atomically; multiple choice remains supported", async () => {
+  const poll = await ok(f.service.from("clan_polls").insert({ clan_id: f.clanId, title: "isolated", created_by: f.users[0].id, deadline_at: future() }).select("id").single());
+  const opts = await ok(f.service.from("poll_options").insert([0, 1].map(i => ({ poll_id: poll.id, label: String(i), sort_order: i }))).select("id"));
+  const vote = (ids: string[]) => member.rpc("submit_clan_poll_vote", { p_clan_id: f.clanId, p_poll_id: poll.id, p_option_ids: ids });
+  for (let i = 0; i < 6; i++) {
+    await ok(f.service.from("poll_votes").delete().eq("poll_id", poll.id));
+    await Promise.all(opts.map(o => ok(vote([o.id]))));
+    expect(await ok(f.service.from("poll_votes").select("option_id").eq("poll_id", poll.id))).toHaveLength(1);
+  }
+  expect((await vote(opts.map(o => o.id))).error).not.toBeNull();
+  expect((await vote([randomUUID()])).error).not.toBeNull();
+  await ok(f.service.from("clan_polls").update({ multiple_choice: true }).eq("id", poll.id));
+  await ok(vote(opts.map(o => o.id)));
+  expect(await ok(f.service.from("poll_votes").select("option_id").eq("poll_id", poll.id))).toHaveLength(2);
+  await ok(f.service.from("clan_polls").update({ closed_at: new Date().toISOString() }).eq("id", poll.id));
+  expect((await vote([opts[0].id])).error).not.toBeNull();
+});
+
+test("history RLS preserves live access and staff/own-open-flash history only", async () => {
+  const r = await round();
+  expect(await ok(member.from("balance_sessions").select("id").eq("id", r.id))).toHaveLength(1);
+  await ok(leader.rpc("close_balance_session_series", { p_clan_id: f.clanId, p_round_id: r.id }));
+  expect(await ok(member.from("balance_sessions").select("id,ma_snapshot").eq("id", r.id))).toHaveLength(0);
+  expect(await ok(member.from("balance_session_series").select("id").eq("id", r.series_id))).toHaveLength(0);
+  expect(await ok(leader.from("balance_sessions").select("id").eq("id", r.id))).toHaveLength(1);
+  const flash = await round("flash", member);
+  await live(flash);
+  await ok(member.rpc("set_balance_match_outcome", { p_session_id: flash.id, p_outcome: "void" }));
+  await ok(member.rpc("next_balance_round", { p_clan_id: f.clanId, p_round_id: flash.id }));
+  expect(await ok(member.from("balance_sessions").select("id").eq("id", flash.id))).toHaveLength(1);
+  expect(await ok(spectator.from("balance_sessions").select("id").eq("id", flash.id))).toHaveLength(0);
+});
+
+test("delegated score editors persist only allowed fields and cannot modify other round state", async () => {
+  const r = await round(); await live(r);
+  const args = { p_round_id: r.id, p_clan_id: f.clanId, p_snapshot: { [f.users[1].id]: { m: -10, a: 10 } } };
+  expect((await member.rpc("set_balance_scores", args)).error).not.toBeNull();
+  await ok(leader.from("clan_settings").update({ permissions: { edit_mscore: ["leader", "member"] } }).eq("clan_id", f.clanId));
+  await ok(member.rpc("set_balance_scores", args));
+  expect((await ok(f.service.from("balance_sessions").select("ma_snapshot").eq("id", r.id).single())).ma_snapshot).toEqual(args.p_snapshot);
+  expect((await member.rpc("set_balance_scores", { ...args, p_snapshot: { [f.users[1].id]: { m: 11, a: 0 } } })).error).not.toBeNull();
+  expect((await member.rpc("set_balance_scores", { ...args, p_snapshot: { [f.users[11].id]: { m: 0, a: 0 } } })).error).not.toBeNull();
+  expect((await member.from("balance_sessions").update({ match_outcome: "team1" }).eq("id", r.id)).error).not.toBeNull();
+  await ok(leader.from("clan_settings").update({ permissions: {} }).eq("clan_id", f.clanId));
+  expect((await member.rpc("set_balance_scores", args)).error).not.toBeNull();
+});
+
+test("prediction changes racing settlement conserve clan/personal coins and cannot change afterward", async () => {
+  for (let i = 0; i < 5; i++) {
+    const r = await round(); await live(r);
+    // A pre-existing winner is required to exercise the debit/payout race.
+    await ok(f.service.from("balance_session_predictions").insert({ session_id: r.id, user_id: f.users[10].id, pick_team: 1 }));
+    await ok(spectator.from("balance_session_predictions").insert({ session_id: r.id, user_id: f.users[11].id, pick_team: 2 }));
+    const [outcome] = await Promise.all([
+      leader.rpc("set_balance_match_outcome", { p_session_id: r.id, p_outcome: "team1" }),
+      spectator.from("balance_session_predictions").update({ pick_team: 1 }).eq("session_id", r.id),
+    ]);
+    expect(outcome.error).toBeNull(); expect(outcome.data).toMatchObject({ ok: true });
+    const ledger = await ok(f.service.from("coin_transactions").select("amount").eq("reference_id", r.id));
+    expect(ledger.length).toBeGreaterThanOrEqual(2);
+    expect(ledger.reduce((total, row) => total + row.amount, 0)).toBe(0);
+    const before = await ok(f.service.from("balance_session_predictions").select("pick_team").eq("session_id", r.id).eq("user_id", f.users[11].id).single());
+    await spectator.from("balance_session_predictions").update({ pick_team: before.pick_team === 1 ? 2 : 1 }).eq("session_id", r.id);
+    expect(await ok(f.service.from("balance_session_predictions").select("pick_team").eq("session_id", r.id).eq("user_id", f.users[11].id).single())).toEqual(before);
+    expect((await spectator.from("balance_session_predictions").update({ session_id: randomUUID() }).eq("session_id", r.id)).error).not.toBeNull();
+  }
+});
+
+test("closed map/hero ballot snapshots include accepted votes and reject stale identities", async () => {
+  const r = await round();
+  await ok(f.service.from("balance_sessions").update({ map_ban_enabled: true, hero_ban_enabled: true }).eq("id", r.id));
+  await ok(f.service.from("balance_sessions").update({ phase: "map_ban", map_candidates: ["네팔", "부산", "일리오스"] }).eq("id", r.id));
+  const current = await ok(f.service.from("balance_sessions").select("map_ban_deadline_at").eq("id", r.id).single());
+  await ok(member.rpc("submit_balance_ban_vote", { p_round_id: r.id, p_clan_id: f.clanId, p_kind: "map", p_expected_deadline: current.map_ban_deadline_at!, p_choice_idx: 1 }));
+  const deadline = new Date(Date.now() - 1000).toISOString();
+  await ok(f.service.from("balance_sessions").update({ map_ban_deadline_at: deadline }).eq("id", r.id));
+  const args = { p_round_id: r.id, p_clan_id: f.clanId, p_kind: "map", p_expected_deadline: deadline };
+  expect(await ok(leader.rpc("read_closed_balance_ballot", args))).toEqual([{ choice_idx: 1 }]);
+  expect((await member.rpc("read_closed_balance_ballot", args)).error).not.toBeNull();
+  expect((await leader.rpc("read_closed_balance_ballot", { ...args, p_expected_deadline: future() })).error).not.toBeNull();
+  expect((await member.rpc("submit_balance_ban_vote", { ...args, p_choice_idx: 2 })).error).not.toBeNull();
+  await ok(f.service.from("balance_sessions").update({ resolved_map_label: "부산", map_ban_deadline_at: null }).eq("id", r.id));
+  await ok(f.service.from("balance_sessions").update({ phase: "hero_ban" }).eq("id", r.id));
+  const hero = await ok(f.service.from("balance_sessions").select("hero_ban_deadline_at").eq("id", r.id).single());
+  await ok(member.rpc("submit_balance_ban_vote", { ...args, p_kind: "hero", p_expected_deadline: hero.hero_ban_deadline_at!, p_picks: ["ana"] }));
+  await ok(f.service.from("balance_sessions").update({ hero_ban_deadline_at: deadline }).eq("id", r.id));
+  expect(await ok(leader.rpc("read_closed_balance_ballot", { ...args, p_kind: "hero" }))).toEqual([{ user_id: f.users[1].id, pick_1: "ana", pick_2: null, pick_3: null }]);
+});
+
+test("concurrent scrim confirmations promote once; old schedules cannot hide upcoming rooms", async () => {
+  const c = await ok(f.service.from("clans").insert({ game_id: f.gameId, name: `rv-${randomUUID().slice(0, 8)}` }).select("id").single());
+  otherClans.push(c.id);
+  await ok(f.service.from("clan_members").insert({ clan_id: c.id, user_id: f.users[1].id, role: "leader", status: "active" }));
+  for (let i = 0; i < 3; i++) {
+    const r = await ok(f.service.from("scrim_rooms").insert({ clan_a_id: f.clanId, clan_b_id: c.id, created_by: f.users[0].id, status: "matched", scheduled_at: future() }).select("id").single());
+    await Promise.all([
+      ok(leader.from("scrim_room_confirmations").insert({ scrim_room_id: r.id, side: "host", confirmed_by: f.users[0].id })),
+      ok(member.from("scrim_room_confirmations").insert({ scrim_room_id: r.id, side: "guest", confirmed_by: f.users[1].id })),
+    ]);
+    expect((await ok(f.service.from("scrim_rooms").select("status").eq("id", r.id).single())).status).toBe("confirmed");
+    expect(await ok(f.service.from("clan_events").select("id").eq("scrim_id", r.id))).toHaveLength(2);
+  }
+  await ok(f.service.from("scrim_rooms").insert(Array.from({ length: 49 }, (_, i) => ({ clan_a_id: f.clanId, created_by: f.users[0].id, scheduled_at: new Date(Date.now() - (i + 2) * 86_400_000).toISOString() }))));
+  const upcoming = await ok(f.service.from("scrim_rooms").insert({ clan_a_id: f.clanId, created_by: f.users[0].id, scheduled_at: new Date(Date.now() + 60_000).toISOString() }).select("id").single());
+  expect((await loadScrimRoomsForGame(leader, f.gameId)).some(r => r.id === upcoming.id)).toBe(true);
+});
+
+test("LFG counts are consistent for viewers without exposing other applicants", async () => {
+  const p = await ok(leader.from("lfg_posts").insert({ game_id: f.gameId, creator_user_id: f.users[0].id, mode: "review", format: "5vs5", slots: 4, start_time_hour: 20, expires_at: future(), mic_required: false }).select("id").single());
+  await ok(member.rpc("apply_lfg_post", { p_post_id: p.id }));
+  await ok(spectator.rpc("apply_lfg_post", { p_post_id: p.id }));
+  for (const [client, user] of [[leader, f.users[0]], [member, f.users[1]], [spectator, f.users[11]]] as const) {
+    const result = await loadOpenLfgPosts(client, f.gameId, user.id);
+    expect(result.posts.find(post => post.id === p.id)?.applied_count).toBe(2);
+  }
+  expect(await ok(member.from("lfg_applications").select("id").eq("post_id", p.id))).toHaveLength(1);
+});
+
+test("member management request renders access denied instead of E488", async ({ page }) => {
+  await loginIsolatedBalanceUser(page, f.users[11]);
+  await page.goto(`/games/overwatch/clan/${f.clanId}/manage`);
+  await expect(page.getByText("접근 권한이 없습니다", { exact: false })).toBeVisible();
+  await expect(page.getByText("E488", { exact: false })).toBeHidden();
+});
+
+test("member dashboard and statistics retain aggregate totals without historical raw records", async () => {
+  const r = await round(); await live(r);
+  await ok(leader.rpc("set_balance_match_outcome", { p_session_id: r.id, p_outcome: "team1" }));
+  await ok(leader.rpc("close_balance_session_series", { p_clan_id: f.clanId, p_round_id: r.id }));
+  const [leaderDashboard, memberDashboard, stats] = await Promise.all([
+    loadClanDashboard(leader, f.clanId, "premium"), loadClanDashboard(member, f.clanId, "premium"),
+    loadClanStatsPage(member, f.users[1].id, f.clanId),
+  ]);
+  expect(memberDashboard?.completedIntraCount).toBeGreaterThan(0);
+  expect(memberDashboard?.completedIntraCount).toBe(leaderDashboard?.completedIntraCount);
+  expect(stats?.summary.intraCount).toBe(memberDashboard?.completedIntraCount);
+  expect(stats?.archive.datesKst).toEqual([]);
+  expect(stats?.archive.sampleByDate).toEqual({});
+  expect(await ok(member.from("balance_sessions").select("*").eq("id", r.id))).toHaveLength(0);
+});
+
+test("UTC calendar can select a month-end Korean occurrence", async ({ browser }) => {
+  const context = await browser.newContext({ timezoneId: "UTC" });
+  const page = await context.newPage();
+  const now = new Date();
+  const instant = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 15, 30));
+  const date = instant.toISOString().slice(0, 10);
+  const title = `month-boundary-${randomUUID().slice(0, 6)}`;
+  await ok(f.service.from("clan_events").insert({ clan_id: f.clanId, title, kind: "event", start_at: instant.toISOString(), created_by: f.users[0].id }));
+  try {
+    await loginIsolatedBalanceUser(page, f.users[0]);
+    await page.goto(`/games/overwatch/clan/${f.clanId}/events`);
+    await page.locator(`[data-date="${date}"]`).click();
+    await page.getByRole("button", { name: new RegExp(title) }).click();
+    await expect(page.getByRole("dialog")).toContainText(title);
+  } finally { await context.close(); }
+});
