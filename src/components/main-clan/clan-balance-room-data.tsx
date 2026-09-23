@@ -66,7 +66,8 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
 
   const planPremium = ctx.plan === "premium";
   const staff = ctx.role === "leader" || ctx.role === "officer";
-  const canViewScores = staff && room.kind === "regular";
+  const scorePermission = await hasRequestClanPermission(clanId, "edit_mscore");
+  const canViewScores = (staff || scorePermission) && room.kind === "regular";
   const canViewHistory =
     staff ||
     (room.kind === "flash" &&
@@ -88,23 +89,20 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
         .eq("clan_id", clanId)
         .eq("id", room.series_id!)
         .maybeSingle(),
-      supabase
+      canViewHistory ? supabase
         .from("balance_sessions")
         .select("roster, opened_at")
         .eq("clan_id", clanId)
         .in("match_outcome", ["team1", "team2", "draw"])
         .order("opened_at", { ascending: false })
-        .limit(100),
+        .limit(100) : Promise.resolve({ data: [] }),
       // Keep participant summaries behind the same boundary as session history.
       canViewHistory
         ? loadSeriesRounds(supabase, clanId, room.series_id!)
         : Promise.resolve([]),
     ]);
   if (!session || !series || series.closed_at) redirect(`/games/${gameSlug}/clan/${clanId}/balance`);
-  const [canManage, scorePermission] = await Promise.all([
-    canManageRound(supabase, user.id, clanId, session.id),
-    hasRequestClanPermission(clanId, "edit_mscore"),
-  ]);
+  const canManage = await canManageRound(supabase, user.id, clanId, session.id);
   const canEditMscore = canViewScores && (canManage || scorePermission);
   const scores: MaSnapshot = {};
   if (canViewScores) {

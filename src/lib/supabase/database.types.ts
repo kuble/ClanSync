@@ -1119,6 +1119,29 @@ export type Database = {
           },
         ]
       }
+      clan_notification_secrets: {
+        Row: {
+          clan_id: string
+          discord_webhook_url: string
+        }
+        Insert: {
+          clan_id: string
+          discord_webhook_url: string
+        }
+        Update: {
+          clan_id?: string
+          discord_webhook_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_notification_secrets_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: true
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_polls: {
         Row: {
           anonymous: boolean
@@ -2666,6 +2689,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      count_lfg_applications: {
+        Args: { p_post_ids: string[] }
+        Returns: {
+          applied_count: number
+          post_id: string
+        }[]
+      }
       create_balance_room: {
         Args: {
           p_clan_id: string
@@ -2745,6 +2775,15 @@ export type Database = {
       }
       open_balance_session_series: {
         Args: { p_clan_id: string; p_hero_ban?: boolean; p_map_ban?: boolean }
+        Returns: Json
+      }
+      read_closed_balance_ballot: {
+        Args: {
+          p_clan_id: string
+          p_expected_deadline: string
+          p_kind: string
+          p_round_id: string
+        }
         Returns: Json
       }
       record_clan_activity: { Args: { p_clan_id: string }; Returns: undefined }
@@ -2866,6 +2905,19 @@ export type Database = {
         Args: { p_clan_id: string; p_enabled: boolean; p_schedule_id: string }
         Returns: Json
       }
+      set_balance_scores: {
+        Args: { p_clan_id: string; p_round_id: string; p_snapshot: Json }
+        Returns: undefined
+      }
+      set_clan_notification_settings: {
+        Args: {
+          p_clan_id: string
+          p_enabled: boolean
+          p_kakao: boolean
+          p_url?: string
+        }
+        Returns: undefined
+      }
       submit_balance_ban_vote: {
         Args: {
           p_choice_idx?: number
@@ -2876,6 +2928,10 @@ export type Database = {
           p_round_id: string
         }
         Returns: boolean
+      }
+      submit_clan_poll_vote: {
+        Args: { p_clan_id: string; p_option_ids: string[]; p_poll_id: string }
+        Returns: undefined
       }
       update_balance_auto_close_settings: {
         Args: { p_clan_id: string; p_enabled: boolean; p_hours: number }

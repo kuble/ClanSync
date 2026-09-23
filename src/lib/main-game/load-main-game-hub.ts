@@ -200,13 +200,13 @@ export async function loadOpenLfgPosts(
     .select("id, post_id, status, message, applicant_user_id, created_at")
     .in("post_id", postIds);
 
-  const appliedCount = new Map<string, number>();
+  const { data: counts, error: countError } = await supabase.rpc("count_lfg_applications", { p_post_ids: postIds });
+  if (countError) throw new Error("모집 신청 인원을 불러오지 못했습니다.");
+  const appliedCount = new Map((counts ?? []).map(row => [row.post_id, row.applied_count]));
   const myStatus = new Map<string, string>();
   const myAppId = new Map<string, string>();
   for (const a of apps ?? []) {
-    if (a.status === "applied") {
-      appliedCount.set(a.post_id, (appliedCount.get(a.post_id) ?? 0) + 1);
-    }
+
     if (userId && a.applicant_user_id === userId) {
       myStatus.set(a.post_id, a.status);
       if (a.status === "applied") {
@@ -360,20 +360,14 @@ export async function loadScrimRoomsForGame(
   const sel =
     "id, clan_a_id, clan_b_id, title, scheduled_at, place, mode, tier_min, tier_max, memo, status, confirmed_at";
 
-  const [{ data: asHost }, { data: asGuest }] = await Promise.all([
-    supabase
-      .from("scrim_rooms")
-      .select(sel)
-      .in("clan_a_id", clanIds)
-      .order("scheduled_at", { ascending: true })
-      .limit(limit),
-    supabase
-      .from("scrim_rooms")
-      .select(sel)
-      .in("clan_b_id", clanIds)
-      .order("scheduled_at", { ascending: true })
-      .limit(limit),
-  ]);
+  const now = new Date().toISOString();
+  const results = await Promise.all((["clan_a_id", "clan_b_id"] as const).flatMap(side => [
+    supabase.from("scrim_rooms").select(sel).in(side, clanIds).gte("scheduled_at", now)
+      .order("scheduled_at", { ascending: true }).limit(limit),
+    supabase.from("scrim_rooms").select(sel).in(side, clanIds).lt("scheduled_at", now)
+      .order("scheduled_at", { ascending: false }).limit(limit),
+  ]));
+  if (results.some(result => result.error)) throw new Error("스크림 목록을 불러오지 못했습니다.");
 
   const byId = new Map<
     string,
@@ -393,7 +387,7 @@ export async function loadScrimRoomsForGame(
     }
   >();
 
-  for (const r of [...(asHost ?? []), ...(asGuest ?? [])]) {
+  for (const r of results.flatMap(result => result.data ?? [])) {
     byId.set(r.id, r);
   }
 

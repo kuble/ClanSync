@@ -59,7 +59,7 @@ export async function loadClanDashboard(
   });
   if (membership.error || membership.data?.[0]?.status !== "active")
     return null;
-  const eventClient = createServiceRoleClient();
+  const eventClient: SupabaseClient<Database> = createServiceRoleClient();
   const { y, m } = toKstParts(now);
   const monthStart = new Date(Date.UTC(y, m - 2, 1, -9));
   const monthEnd = new Date(Date.UTC(y, m - 1, 1, -9));
@@ -165,7 +165,8 @@ export async function loadClanDashboard(
       .eq("status", "finished")
       .limit(1000),
     supabase.rpc("clan_peer_nicknames", { p_clan_id: clanId }),
-    supabase
+    // Membership was checked above; only aggregates, never raw rounds, leave this loader.
+    eventClient
       .from("balance_sessions")
       .select(
         "id, opened_at, closed_at, predictions_settled_at, resolved_map_label, roster, ma_snapshot, match_outcome, balance_session_series!inner(opened_at,balance_rooms!inner(kind))",
@@ -176,7 +177,7 @@ export async function loadClanDashboard(
       .neq("match_outcome", "pending")
       .limit(1000),
     plan === "premium"
-      ? supabase
+      ? eventClient
           .from("balance_sessions")
           .select(
             "id, match_outcome, balance_session_predictions(user_id, pick_team), balance_session_series!inner(opened_at,balance_rooms!inner(kind))",

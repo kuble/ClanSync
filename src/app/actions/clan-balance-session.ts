@@ -425,10 +425,10 @@ export async function resolveMapBanAction(
       const candidates = round.map_candidates;
       if (!candidates || candidates.length !== 3)
         throw new Error("맵 후보가 없습니다.");
-      const { data: votes, error } = await client
-        .from("balance_session_map_votes")
-        .select("choice_idx")
-        .eq("session_id", sessionId);
+      const { data: ballot, error } = await client.rpc("read_closed_balance_ballot", {
+        p_round_id: sessionId, p_clan_id: clanId, p_kind: "map", p_expected_deadline: round.map_ban_deadline_at,
+      });
+      const votes = ballot as { choice_idx: number }[] | null;
       if (error) throw new Error(error.message);
       const winIdx = weightedPickMapIndex(tallyMapVotes(votes ?? []));
       await savePrematchRound(client, round, {
@@ -501,10 +501,10 @@ export async function resolveHeroBanAction(
       }
       if (!round.hero_ban_deadline_at || Date.parse(round.hero_ban_deadline_at) > Date.now())
         throw new Error("영웅 밴 투표 마감 후 경기를 시작하세요.");
-      const { data: votes, error } = await client
-        .from("balance_session_hero_votes")
-        .select("user_id, pick_1, pick_2, pick_3")
-        .eq("session_id", sessionId);
+      const { data: ballot, error } = await client.rpc("read_closed_balance_ballot", {
+        p_round_id: sessionId, p_clan_id: clanId, p_kind: "hero", p_expected_deadline: round.hero_ban_deadline_at,
+      });
+      const votes = ballot as { user_id: string; pick_1: string; pick_2: string | null; pick_3: string | null }[] | null;
       if (error) throw new Error(error.message);
       const result = resolveTeamHeroBans(votes ?? [], parseRoster(round.roster), parseBanSettings(round).heroBansPerTeam);
       await savePrematchRound(client, round, {
@@ -719,13 +719,9 @@ export async function updateBalanceMaSnapshotAction(
   const v = validateMaSnapshot(roster, merged, { allowA });
   if (!v.ok) return { ok: false, error: v.error };
 
-  const { error: updErr } = await supabase
-    .from("balance_sessions")
-    .update({ ma_snapshot: merged as unknown as Json })
-    .eq("id", sessionId)
-    .eq("clan_id", clanId)
-    .is("closed_at", null)
-    .eq("phase", "match_live");
+  const { error: updErr } = await supabase.rpc("set_balance_scores", {
+    p_round_id: sessionId, p_clan_id: clanId, p_snapshot: merged as unknown as Json,
+  });
 
   if (updErr) return { ok: false, error: updErr.message };
 

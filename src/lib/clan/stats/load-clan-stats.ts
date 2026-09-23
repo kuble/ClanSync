@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { createServiceRoleClient } from "@/lib/supabase/service";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import type { Database } from "@/lib/supabase/database.types";
 import {
@@ -315,6 +316,9 @@ export async function loadClanStatsPage(
   });
   const role = memRpc?.[0]?.status === "active" ? memRpc[0].role : undefined;
   if (!role) return null;
+  // Historical rows stay server-side. Member summaries are public within the
+  // clan; detailed archive records are emitted only with viewMatchRecords below.
+  const historyClient: SupabaseClient<Database> = createServiceRoleClient();
 
   const [
     setHofRules,
@@ -348,7 +352,7 @@ export async function loadClanStatsPage(
         .range(from, to),
     ),
     loadAllStatsRows((from, to) =>
-      supabase
+      historyClient
         .from("balance_sessions")
         .select(
           "id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,match_outcome,balance_session_series!inner(opened_at,balance_rooms!inner(kind))",
