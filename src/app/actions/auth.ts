@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { safeNextPath } from "@/lib/auth/safe-next-path";
 import { headers } from "next/headers";
 import {
   clearLoginLockout,
@@ -19,11 +20,6 @@ export type AuthMessageState = { error?: string; ok?: string } | null;
 
 const GENERIC_SIGN_IN_ERROR =
   "이메일 또는 비밀번호가 올바르지 않거나, 잠시 후 다시 시도해 주세요.";
-
-function safeNextPath(next: string): string {
-  if (next.startsWith("/") && !next.startsWith("//")) return next;
-  return "/games";
-}
 
 export async function signInAction(
   _prev: AuthMessageState,

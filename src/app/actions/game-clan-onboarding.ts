@@ -1,4 +1,5 @@
 "use server";
+import { safeNextPath } from "@/lib/auth/safe-next-path";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -99,12 +100,7 @@ export async function linkGameAccountDevSubmitAction(
 ): Promise<LinkGameDevFormState> {
   const gameSlug = String(formData.get("gameSlug") ?? "").trim();
   const nextRaw = formData.get("nextPath");
-  const nextPath =
-    typeof nextRaw === "string" &&
-    nextRaw.startsWith("/") &&
-    !nextRaw.startsWith("//")
-      ? nextRaw
-      : undefined;
+  const nextPath = safeNextPath(nextRaw, "") || undefined;
 
   const r = await linkGameAccountDevAction(gameSlug);
   if (!r.ok) return { error: r.error };

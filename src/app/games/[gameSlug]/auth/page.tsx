@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { safeNextPath } from "@/lib/auth/safe-next-path";
 import { ArrowLeft, Gamepad2, Info, ShieldCheck } from "lucide-react";
 import { AccountShell, OnboardingSteps } from "@/components/onboarding/account-shell";
 import { GameAuthConnect } from "@/components/onboarding/game-auth-connect";
@@ -14,7 +15,7 @@ export default async function GameAuthPage({ params, searchParams }: {
   const [{ gameSlug }, { reauth, next }] = await Promise.all([params, searchParams]);
   const cfg = getGameAuthConfig(gameSlug);
   const devSimulator = allowDevGameLink(process.env);
-  const nextPath = next?.startsWith("/") && !next.startsWith("//") ? next : undefined;
+  const nextPath = safeNextPath(next, "") || undefined;
   return <AccountShell><main className={`${styles.content} ${styles.authContent}`}>
     <OnboardingSteps current={2} />
     {cfg ? <>
