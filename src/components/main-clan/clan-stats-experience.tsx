@@ -125,8 +125,6 @@ function PersonalStats({ model, selectedId, onChoosePerson }: { model: ClanStats
   const [scoreKind, setScoreKind] = useState<"evaluation" | "analysis">("evaluation");
   const [scoreMatchId, setScoreMatchId] = useState<string | null>(null);
   const [predictionFilter, setPredictionFilter] = useState<"all" | "correct" | "incorrect" | "draw" | "void">("all");
-  const [participationMonth, setParticipationMonth] = useState<string | null>(null);
-  const [participationDay, setParticipationDay] = useState<string | null>(null);
   const person = model.personal.people.find((candidate) => candidate.userId === selectedId) ?? model.personal.people[0];
   const now = currentKstYearMonth();
   const periodMatches = person.matches.filter((match) => period === "all" || (period === "year" ? match.date.startsWith(String(now.year)) : match.date.startsWith(`${now.year}-${String(now.month).padStart(2, "0")}`)));
@@ -162,13 +160,6 @@ function PersonalStats({ model, selectedId, onChoosePerson }: { model: ClanStats
   const validPredictions = periodPredictions.filter((item) => item.result === "correct" || item.result === "incorrect");
   const correctPredictions = validPredictions.filter((item) => item.result === "correct").length;
   const visiblePredictions = periodPredictions.filter((item) => predictionFilter === "all" || item.result === predictionFilter).slice(0, 20);
-  const monthKey = participationMonth ?? periodMatches[0]?.date.slice(0, 7) ?? `${now.year}-${String(now.month).padStart(2, "0")}`;
-  const monthDays = new Map<string, PersonalMatch[]>();
-  for (const match of periodMatches.filter((item) => item.date.startsWith(monthKey))) {
-    if (!monthDays.has(match.date)) monthDays.set(match.date, []);
-    monthDays.get(match.date)!.push(match);
-  }
-  const selectedDayMatches = participationDay ? monthDays.get(participationDay) ?? [] : [];
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-base font-bold"><StatTitle title={`개인 기록 · ${person.nickname}`} help="정규 내전에서 실제 출전한 경기만 집계합니다." /></h3></div>
@@ -196,15 +187,9 @@ function PersonalStats({ model, selectedId, onChoosePerson }: { model: ClanStats
         </> : <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">상대별 전적은 클랜의 관계 통계 열람 권한에 따라 제공됩니다.</p>}
       </CardContent></Card>
       <Card size="sm"><CardHeader><CardTitle><StatTitle title="맵별 기록" help={<>맵이 저장된 경기만 표시합니다.</>} /></CardTitle></CardHeader><CardContent className="space-y-2"><FilterButtons label="맵 정렬" options={[{ id: "matches", label: "출전순" }, { id: "rate", label: "승률순" }]} value={mapSort} onChange={setMapSort} />{maps.map((row) => <div key={row.name} className="relative isolate overflow-hidden rounded-lg border p-3 text-sm"><div className="flex justify-between gap-2"><span>{row.name}</span><span>{row.matches}경기 · {rate(row.rate)}</span></div><StatsGauge value={row.wins} total={row.matches} label={`${row.name} 승률 ${rate(row.rate)}`} /></div>)}{maps.length === 0 && <p className="text-sm text-muted-foreground">맵 기록이 없습니다.</p>}</CardContent></Card>
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card size="sm"><CardHeader><CardTitle><StatTitle title="참여 날짜" help={<>날짜를 선택해 참여 내전과 경기를 확인합니다.</>} /></CardTitle></CardHeader><CardContent className="space-y-3"><OptionWheel label="참여 기록 월" options={[...new Set([monthKey, ...periodMatches.map((match) => match.date.slice(0, 7))])].sort().reverse().map((key) => ({ id: key, label: key }))} value={monthKey} onChange={(value) => { setParticipationMonth(value); setParticipationDay(null); }} />
-          <div className="grid grid-cols-7 gap-1.5">{Array.from({ length: Number(monthKey.slice(0, 4)) && Number(monthKey.slice(5, 7)) ? new Date(Number(monthKey.slice(0, 4)), Number(monthKey.slice(5, 7)), 0).getDate() : 0 }, (_, index) => { const date = `${monthKey}-${String(index + 1).padStart(2, "0")}`; const rows = monthDays.get(date) ?? []; return <button key={date} type="button" onClick={() => setParticipationDay(date)} aria-pressed={participationDay === date} aria-label={`${date}, ${rows.length}경기`} className={`rounded-lg border p-1.5 text-xs ${rows.length ? "bg-primary/15" : "text-muted-foreground"} ${participationDay === date ? "border-primary" : ""}`}>{index + 1}</button>; })}</div>
-          {participationDay && <p className="text-xs text-muted-foreground">{participationDay}: {selectedDayMatches.length}경기 · {new Set(selectedDayMatches.map((match) => match.seriesId).filter(Boolean)).size}회</p>}
-        </CardContent></Card>
         <Card size="sm"><CardHeader><CardTitle><StatTitle title="점수 이력" help={<>경기 당시 저장된 평가·분석 점수</>} /></CardTitle></CardHeader><CardContent className="space-y-3"><FilterButtons label="점수 종류" options={[{ id: "evaluation", label: "평가 점수" }, { id: "analysis", label: "분석 점수" }]} value={scoreKind} onChange={(value) => { setScoreKind(value); setScoreMatchId(null); }} />
           {scoreRows.length ? <><svg viewBox="0 0 100 100" role="img" aria-label={`${scoreKind === "evaluation" ? "평가" : "분석"} 점수 ${scoreRows.length}경기 변화`} className="h-32 w-full overflow-visible"><polyline fill="none" stroke="currentColor" strokeWidth="2" vectorEffect="non-scaling-stroke" points={scorePoints.map((point) => `${point.x},${point.y}`).join(" ")} />{scorePoints.map((point) => <circle key={point.match.id} cx={point.x} cy={point.y} r="2" fill="currentColor" />)}</svg><div className="flex max-h-28 flex-wrap gap-1 overflow-y-auto">{scoreRows.map((match) => <Button key={match.id} type="button" size="sm" variant={scoreMatchId === match.id ? "secondary" : "ghost"} onClick={() => setScoreMatchId(match.id)}>{match.date} {match[scoreKind]}점</Button>)}</div>{selectedScore && <p className="text-xs text-muted-foreground">{selectedScore.date} · {selectedScore.map ?? "맵 미기록"} · {selectedScore[scoreKind]}점</p>}</> : <p className="text-sm text-muted-foreground">저장된 점수 이력이 없습니다.</p>}
         </CardContent></Card>
-      </div>
       {person.userId === model.personal.viewerId && <Card size="sm"><CardHeader><CardTitle><StatTitle title="내 승부예측" help={<>적중·실패로 확정된 예측만 적중률에 포함합니다.</>} /></CardTitle></CardHeader><CardContent className="space-y-3">
         <div className="relative isolate overflow-hidden rounded-lg border p-3"><p className="text-sm"><strong className="text-xl tabular-nums">{validPredictions.length ? `${Math.round(correctPredictions / validPredictions.length * 1000) / 10}%` : "기록 없음"}</strong><span className="ml-2 text-xs text-muted-foreground">{correctPredictions}회 적중 / {validPredictions.length}회 유효</span></p>
         <StatsGauge value={correctPredictions} total={validPredictions.length} label={`${validPredictions.length}회 예측 중 ${correctPredictions}회 적중`} /></div>
