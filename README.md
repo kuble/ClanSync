@@ -58,6 +58,8 @@ Supabase CLI는 `.env.local`을 읽는 `node scripts/with-dotenv-local.mjs <명�
 
 ## 검증
 
+QA_01_Clan의 통계용 과거 데이터는 `node scripts/add-qa-stats-history.mjs`로 추가 예정량을 확인하고 `--apply`로 적용합니다. QA 전용 DB와 기존 12명만 사용하며, 2025-07~2026-09 종료 내전 60회·300경기(무효 10경기 포함)·관전자 예측 600개를 추가합니다. 기존 명단·내전·설정·코인은 보존하고 고정 ID로 중복 생성을 방지합니다. `[통계 QA] 과거 내전`으로 구분하며, 예측 보상은 지급하지 않습니다. 계정/클랜 시드와는 별개입니다.
+
 변경마다 [위험도별 검증 기준](.cursor/rules/agent-auto-tasks.mdc)을 적용합니다. 작은 수정은 변경 파일 린트·필요한 타입 검사와 해당 화면/시나리오만, 인증·권한·스키마·금액·공통 라우팅은 연관 회귀와 빌드, main 병합·운영 반영 전에는 전체 회귀와 빌드를 확인합니다.
 
 명령과 시드 조건은 [E2E 안내](e2e/README.md), 코드·테스트 선택은 [기능별 진입점](docs/README.md)을 따릅니다. 사용자 QA가 진행 중이면 `E2E_SKIP_SEED=1`과 별도 임시 픽스처를 사용합니다. QA 스키마는 `db:test:push`·`db:test:types`를 사용하며 `db:push`·`db:sync`는 연결된 DB를 변경합니다.
