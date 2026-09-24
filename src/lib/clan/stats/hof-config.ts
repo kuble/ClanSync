@@ -4,6 +4,7 @@ import { toKstParts } from "./kst";
 const TOP_OPTIONS = new Set([3, 5, 10, 20, 999]);
 
 export type ResolvedHofConfig = {
+  memberPersonalRecords: boolean;
   winRateVisibleTop: number;
   winsVisibleTop: number;
   streakVisibleTop: number;
@@ -18,6 +19,7 @@ export type ResolvedHofConfig = {
 };
 
 export const HOF_CONFIG_DEFAULTS: ResolvedHofConfig = {
+  memberPersonalRecords: false,
   winRateVisibleTop: 10,
   winsVisibleTop: 0,
   streakVisibleTop: 0,
@@ -58,6 +60,7 @@ export function resolveHofConfig(raw: Json | undefined): ResolvedHofConfig {
       : {};
 
   return {
+    memberPersonalRecords: o.member_personal_records === true,
     winRateVisibleTop: topCoerce(
       o.win_rate_visible_top,
       HOF_CONFIG_DEFAULTS.winRateVisibleTop,

@@ -110,6 +110,10 @@ export function HofSettingsForm({
         });
       }}
     >
+      <label className="flex items-start gap-3 rounded-lg border p-3 text-sm">
+        <input type="checkbox" name="member_personal_records" defaultChecked={cfg.memberPersonalRecords} className="mt-1" />
+        <span>멤버의 본인 개인 기록 열람 허용<span className="mt-1 block text-xs text-muted-foreground">기본은 운영진만 열람합니다. 켜면 멤버가 자신의 기록을 볼 수 있습니다.</span></span>
+      </label>
       <div className="grid gap-2 sm:grid-cols-2">
         <div className="space-y-1">
           <Label htmlFor="win_rate_visible_top">승률 순위 공개(구성원)</Label>

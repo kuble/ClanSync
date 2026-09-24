@@ -48,7 +48,13 @@ export async function saveClanHofConfigFormAction(
   );
   if (!allowed) throw new Error("명예의 전당 설정 권한이 없습니다.");
 
+  const { data: memberships } = await supabase.rpc("select_my_clan_membership", { p_clan_id: clanId });
+  if (!memberships?.some((row: { status: string; role: string }) => row.status === "active" && (row.role === "leader" || row.role === "officer"))) {
+    throw new Error("운영진만 통계 공개 설정을 변경할 수 있습니다.");
+  }
+
   const payload = {
+    member_personal_records: formData.get("member_personal_records") === "on",
     win_rate_visible_top: parseTop(formData, "win_rate_visible_top", 10),
     wins_visible_top: parseTop(formData, "wins_visible_top", 0),
     streak_visible_top: parseTop(formData, "streak_visible_top", 0),

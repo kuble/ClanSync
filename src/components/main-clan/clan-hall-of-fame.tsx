@@ -1,14 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { OptionWheel } from "@/components/ui/option-wheel";
+import { StatHelp, StatTitle } from "./stat-help";
 import { CalendarCheck, Settings2, Swords, Target, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
 import { HofSettingsForm } from "./clan-stats-view";
 import { StatsGauge } from "./clan-stats-charts";
+
+const HELP = { rate: "승 / (승 + 무 + 패). 최소 출전 기준을 충족한 멤버만 등재합니다.", attendance: "한 경기 이상 출전한 내전 날짜 수입니다. 같은 날 여러 내전에 참여해도 1일로 셉니다.", appearances: "선택 기간의 전체 유효 경기 중 실제 출전한 경기 수입니다.", prediction: "적중 횟수순으로 순위를 매깁니다. 게이지는 적중률이며 무승부·무효 예측은 제외합니다.", streak: "선택 기간의 최장 연속 승리 기록입니다. 무승부는 연승을 끝냅니다." };
 
 type Category = "rate" | "attendance" | "appearances" | "streak" | "prediction";
 const CATEGORIES = [
@@ -43,7 +47,7 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
       : year === String(now.year) ? model.hof.periods.year : model.hof.historyYears[year];
   const { totals } = block;
   const rows = category === "rate"
-    ? block.winRate.map((row) => ({ ...row, value: `${row.ratePct ?? 0}%`, detail: `${row.wins}승 ${row.draws}무 ${row.losses}패 · ${row.wins + row.draws + row.losses}경기`, numerator: row.wins, denominator: row.wins + row.draws + row.losses }))
+    ? block.winRate.map((row) => ({ ...row, value: `${row.ratePct ?? 0}%`, detail: `${row.wins}승 / ${row.draws}무 / ${row.losses}패 · ${row.wins + row.draws + row.losses}경기`, numerator: row.wins, denominator: row.wins + row.draws + row.losses }))
     : category === "attendance"
       ? block.participation.map((row) => ({ ...row, value: `${row.played}일`, detail: `전체 개최 ${totals.days}일 중 ${row.played}일 출석 · 내전 ${totals.sessions}회`, numerator: row.played, denominator: totals.days }))
       : category === "appearances"
@@ -59,34 +63,30 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
   ];
   return <div className="space-y-4">
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <div><h3 className="text-base font-bold">명예의 전당</h3><p className="text-xs text-muted-foreground">공개된 기록과 등재 기준에 따른 순위입니다.</p></div>
-      {model.permissions.setHofRules && <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+      <div><h3 className="text-base font-bold"><StatTitle title="명예의 전당" help="공개된 기록과 등재 기준에 따른 순위입니다." /></h3></div>
+      {model.permissions.isStaff && model.permissions.setHofRules && <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogTrigger render={<Button type="button" size="sm" variant="outline" />}><Settings2 className="size-4" aria-hidden="true" /> 설정</DialogTrigger>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg"><DialogHeader><DialogTitle>명예의 전당 설정</DialogTitle><DialogDescription>순위 공개 범위와 등재 기준을 정합니다.</DialogDescription></DialogHeader><HofSettingsForm gameSlug={gameSlug} clanId={clanId} cfg={model.hof.config} exposeHof={model.hof.exposeHof} isLeader={model.permissions.isLeader} onDone={() => setSettingsOpen(false)} /></DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg"><DialogHeader><DialogTitle>통계 공개 설정</DialogTitle><DialogDescription>순위 공개 범위와 등재 기준을 정합니다.</DialogDescription></DialogHeader><HofSettingsForm gameSlug={gameSlug} clanId={clanId} cfg={model.hof.config} exposeHof={model.hof.exposeHof} isLeader={model.permissions.isLeader} onDone={() => setSettingsOpen(false)} /></DialogContent>
       </Dialog>}
     </div>
     <div className="flex flex-wrap items-center gap-2">
-      <div role="group" aria-label="명예의 전당 기간" className="flex gap-1">
-        {([{ id: "all", label: "전체" }, { id: "month", label: "월별" }, { id: "year", label: "연도별" }] as const).map((item) => <Button key={item.id} type="button" size="sm" aria-pressed={period === item.id} variant={period === item.id ? "secondary" : "ghost"} onClick={() => setPeriod(item.id)}>{item.label}</Button>)}
-      </div>
-      {period === "month" && <select aria-label="명예의 전당 월" value={month} onChange={(event) => setMonth(event.target.value)} className="h-9 rounded-lg border bg-background px-3 text-sm">{months.map((key) => <option key={key} value={key}>{key.slice(0, 4)}년 {Number(key.slice(5))}월</option>)}</select>}
-      {period === "year" && <select aria-label="명예의 전당 연도" value={year} onChange={(event) => setYear(event.target.value)} className="h-9 rounded-lg border bg-background px-3 text-sm">{years.map((key) => <option key={key} value={key}>{key}년</option>)}</select>}
+      <OptionWheel label="명예의 전당 기간" options={[{ id: "all", label: "전체" }, { id: "month", label: "월별" }, { id: "year", label: "연도별" }]} value={period} onChange={setPeriod} />
+      {period === "month" && <OptionWheel label="명예의 전당 월" options={months.map((key) => ({id: key, label: key.slice(0,4) + "년 " + Number(key.slice(5)) + "월"}))} value={month} onChange={setMonth} />}
+      {period === "year" && <OptionWheel label="명예의 전당 연도" options={years.map((key) => ({id: key, label: key + "년"}))} value={year} onChange={setYear} />}
     </div>
     {block.undisclosed ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">{block.undisclosedHint}</p> : <>
       <p className="text-xs text-muted-foreground">선택 기간 정규 내전 <strong className="text-foreground">{totals.sessions}회</strong> · 개최 {totals.days}일 · 전체 {totals.matches}경기</p>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="명예의 전당 대표 기록">
         {leaders.filter((leader) => visible[leader.id]).map(({ id, row, value }) => {
           const { Icon, label } = CATEGORIES.find((item) => item.id === id)!;
-          return <button key={id} type="button" onClick={() => setCategory(id)} aria-pressed={category === id} className={`min-w-0 rounded-xl border p-3 text-left hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary ${category === id ? "border-primary/50 bg-primary/5" : "bg-card"}`}>
-            <span className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground"><Icon className="size-3.5 shrink-0 text-primary" aria-hidden="true" />{label}</span>
-            <span className="flex items-center justify-between gap-2"><span className="min-w-0 truncate text-xs font-medium" title={row?.nickname}>{row?.nickname ?? "기록 없음"}</span><strong className="shrink-0 text-sm tabular-nums">{value}</strong></span>
-          </button>;
+          return <div key={id} className={`min-w-0 rounded-xl border p-3 text-left hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary ${category === id ? "border-primary/50 bg-primary/5" : "bg-card"}`}>
+            <span className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground"><Icon className="size-3.5 shrink-0 text-primary" aria-hidden="true" />{label}<StatHelp title={label}>{HELP[id]}</StatHelp></span>
+            <button type="button" onClick={() => setCategory(id)} aria-pressed={category === id} aria-label={`${label} 순위 보기`} className="flex w-full items-center justify-between gap-2 text-left"><span className="min-w-0 truncate text-xs font-medium" title={row?.nickname}>{row?.nickname ?? "기록 없음"}</span><strong className="shrink-0 text-sm tabular-nums">{value}</strong></button>
+          </div>;
         })}
       </div>
-      <Card size="sm"><CardHeader><CardTitle>순위</CardTitle><CardDescription>부문을 선택하면 해당 순위를 확인할 수 있습니다.</CardDescription></CardHeader><CardContent className="space-y-4">
-        <div className="flex flex-wrap gap-1" role="group" aria-label="명예의 전당 부문">{CATEGORIES.filter((item) => visible[item.id]).map(({ id, label }) => <Button key={id} type="button" size="sm" aria-pressed={category === id} variant={category === id ? "secondary" : "ghost"} onClick={() => setCategory(id)}>{label}</Button>)}</div>
-        {category === "attendance" && <p className="text-xs text-muted-foreground">한 경기 이상 출전한 날을 출석으로 셉니다. 같은 날 여러 내전에 참여해도 1일입니다.</p>}
-        {category === "prediction" && <p className="text-xs text-muted-foreground">순위는 적중 횟수순이며 게이지는 적중률입니다. 무승부·무효 예측은 제외합니다.</p>}
+      <Card size="sm"><CardHeader><CardTitle><StatTitle title="순위" help={HELP[category]} /></CardTitle></CardHeader><CardContent className="space-y-3">
+        <OptionWheel label="명예의 전당 부문" options={CATEGORIES.filter((item) => visible[item.id])} value={category} onChange={setCategory} />
         {!rows.length ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">등재 기준을 충족한 기록이 없습니다.</p> : <ol className="space-y-2">{rows.map((row, index) => {
           const canOpen = model.personal.people.some((person) => person.userId === row.userId);
           const content = <>

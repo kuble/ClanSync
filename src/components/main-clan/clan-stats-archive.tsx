@@ -450,7 +450,7 @@ function ArchiveRecords({ records }: { records: ClanArchiveMatch[] }) {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-xs font-medium">{row.nickname}</p>
                   <p className="mt-1 text-[10px] tabular-nums text-muted-foreground">
-                    {row.wins}승 {row.draws}무 {row.losses}패
+                    {row.wins}승 / {row.draws}무 / {row.losses}패
                   </p>
                 </div>
                 <strong className="text-xs tabular-nums">

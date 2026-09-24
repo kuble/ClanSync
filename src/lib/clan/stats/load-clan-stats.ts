@@ -133,6 +133,7 @@ export type ClanStatsPageModel = {
     sampleByDate: Record<string, ClanArchiveMatch[]>;
   };
   permissions: {
+    viewPersonalRecords: boolean;
     setHofRules: boolean;
     isLeader: boolean;
     isStaff: boolean;
@@ -581,7 +582,8 @@ export async function loadClanStatsPage(
   // other members' detailed records within staff access even if a member is
   // granted the broad aggregate-statistics permission set.
   const canSeeOthers = role !== "member" && viewMonthly && viewYearly && viewMaps && viewSynergy && viewMscore;
-  const peopleIds = canSeeOthers ? [...new Set([userId, ...nick.keys()])] : [userId];
+  const viewPersonalRecords = role !== "member" || cfg.memberPersonalRecords;
+  const peopleIds = !viewPersonalRecords ? [] : canSeeOthers ? [...new Set([userId, ...nick.keys()])] : [userId];
   const personal = peopleIds.map((id) => ({
     userId: id,
     nickname: nick.get(id) ?? (id === userId ? "나" : "탈퇴한 멤버"),
@@ -652,6 +654,7 @@ export async function loadClanStatsPage(
       sampleByDate,
     },
     permissions: {
+      viewPersonalRecords,
       setHofRules,
       isLeader: role === "leader",
       isStaff: role !== "member",
