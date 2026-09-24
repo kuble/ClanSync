@@ -71,9 +71,9 @@ export function ClanStatsArchive({
   }
 
   return (
-    <div className="space-y-5">
-      <section className="overflow-hidden rounded-xl border bg-muted/15">
-        <div className="flex items-center justify-between gap-2 px-3 py-3">
+    <div className="space-y-4">
+      <section className="max-w-xl overflow-hidden rounded-xl border bg-muted/15" aria-label="경기 기록 주간 달력">
+        <div className="flex items-center justify-between gap-2 px-2 py-1.5">
           <Button
             type="button"
             variant="ghost"
@@ -87,7 +87,7 @@ export function ClanStatsArchive({
           >
             <ChevronLeft className="size-4" aria-hidden="true" />
           </Button>
-          <h4 className="text-sm font-semibold">
+          <h4 className="text-xs font-semibold sm:text-sm">
             {monday.toLocaleDateString("ko-KR", {
               year: "numeric",
               month: "long",
@@ -113,18 +113,10 @@ export function ClanStatsArchive({
           ref={calendarRef}
           role="grid"
           aria-label="경기 기록 날짜 선택"
-          className="px-3 pb-4"
+          className="px-2 pb-2"
         >
-          <div role="row" className="grid grid-cols-7">
-            {["월", "화", "수", "목", "금", "토", "일"].map((label) => (
-              <span
-                key={label}
-                role="columnheader"
-                className="py-2 text-center text-[10px] text-muted-foreground"
-              >
-                {label}
-              </span>
-            ))}
+          <div role="row" className="sr-only">
+            {["월", "화", "수", "목", "금", "토", "일"].map((label) => <span key={label} role="columnheader">{label}</span>)}
           </div>
           {[0].map((week) => (
             <div role="row" key={week} className="grid grid-cols-7">
@@ -139,7 +131,7 @@ export function ClanStatsArchive({
                     <button
                       type="button"
                       data-archive-date={key}
-                      aria-label={`${day.getMonth() + 1}월 ${day.getDate()}일${hasRecord.has(key) ? " 경기 기록 있음" : ""}`}
+                      aria-label={`${day.getMonth() + 1}월 ${day.getDate()}일 ${["일", "월", "화", "수", "목", "금", "토"][day.getDay()]}요일${hasRecord.has(key) ? " 경기 기록 있음" : ""}`}
                       tabIndex={selectedDay === key ? 0 : -1}
                       onClick={() => selectDay(day)}
                       onKeyDown={(event) => {
@@ -157,12 +149,12 @@ export function ClanStatsArchive({
                         }
                       }}
                       className={cn(
-                        "flex h-16 w-full flex-col items-center justify-center gap-1 rounded-lg text-xs tabular-nums hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring",
+                        "flex h-11 w-full flex-col items-center justify-center gap-0.5 rounded-lg text-xs tabular-nums hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring",
                         selectedDay === key &&
                           "bg-primary text-primary-foreground hover:bg-primary/90",
                       )}
                     >
-                      <span>{day.getDate()}</span>
+                      <span><span className="mr-1 text-[10px] text-muted-foreground">{["일", "월", "화", "수", "목", "금", "토"][day.getDay()]}</span>{day.getDate()}</span>
                       <span
                         className={cn(
                           "size-1 rounded-full",
@@ -180,7 +172,7 @@ export function ClanStatsArchive({
             </div>
           ))}
         </div>
-        <p className="border-t px-4 py-3 text-[10px] text-muted-foreground">
+        <p className="sr-only">
           점이 표시된 날짜에 경기 기록이 있습니다. 날짜는 한국 시간 기준으로
           표시합니다.
         </p>
@@ -228,7 +220,6 @@ function ArchiveRecords({ records }: { records: ClanArchiveMatch[] }) {
   );
   const match = records[activeIndex];
   const typeLabels: Record<string, string> = {
-    intra: "내전",
     scrim: "스크림",
     event: "이벤트",
   };
@@ -279,7 +270,7 @@ function ArchiveRecords({ records }: { records: ClanArchiveMatch[] }) {
         a.userId.localeCompare(b.userId),
     );
   return (
-    <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_260px]">
+    <div className="grid items-start gap-4 2xl:grid-cols-[minmax(0,1fr)_240px]">
       <section
         className="min-w-0 overflow-hidden rounded-xl border bg-card"
         aria-label="경기 상세"
@@ -315,10 +306,10 @@ function ArchiveRecords({ records }: { records: ClanArchiveMatch[] }) {
         <div className="space-y-5 p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <span className="text-[10px] font-semibold text-muted-foreground">
+              {match.matchType !== "intra" && <span className="text-[10px] font-semibold text-muted-foreground">
                 {typeLabels[match.matchType] ?? match.matchType}
-              </span>
-              <h5 className="mt-1 flex items-center gap-1.5 text-sm font-semibold">
+              </span>}
+              <h5 className="flex items-center gap-1.5 text-sm font-semibold">
                 <MapPin className="size-4 text-primary" aria-hidden="true" />
                 {match.mapLabel ?? "맵 미기록"}
               </h5>
@@ -344,18 +335,16 @@ function ArchiveRecords({ records }: { records: ClanArchiveMatch[] }) {
               <div key={team} className="min-w-0">
                 <div
                   className={cn(
-                    "mb-3 flex items-center justify-center gap-1.5 text-xs font-bold",
+                    "mb-2 flex flex-col items-center justify-center gap-0.5 text-xs font-bold",
                     team === 1
                       ? "text-sky-600 dark:text-sky-300"
                       : "text-rose-600 dark:text-rose-300",
                   )}
                 >
-                  {match.winnerTeam === team ? (
-                    <Crown className="size-3.5" aria-hidden="true" />
-                  ) : null}
-                  {team === 1 ? "블루 팀" : "레드 팀"}
+                  <Crown className={cn("size-3.5", match.winnerTeam !== team && "invisible")} aria-label={match.winnerTeam === team ? "승리 팀" : undefined} />
+                  <span>{team === 1 ? "블루 팀" : "레드 팀"}</span>
                 </div>
-                <ul className="space-y-2">
+                <ul className="grid grid-cols-1 gap-2 lg:grid-cols-3">
                   {match.players
                     .filter((player) => player.team === team)
                     .map((player) => {
@@ -371,7 +360,7 @@ function ArchiveRecords({ records }: { records: ClanArchiveMatch[] }) {
                         <li
                           key={player.userId}
                           className={cn(
-                            "flex min-h-14 min-w-0 items-center gap-2 rounded-lg border px-2 py-2.5 text-xs",
+                            "flex min-h-11 min-w-0 items-center gap-2 rounded-lg border px-2 py-2 text-xs",
                             team === 1
                               ? "border-sky-500/25 bg-sky-500/[0.04]"
                               : "border-rose-500/25 bg-rose-500/[0.04]",
@@ -395,11 +384,6 @@ function ArchiveRecords({ records }: { records: ClanArchiveMatch[] }) {
                           >
                             {player.nickname}
                           </span>
-                          {player.m !== null ? (
-                            <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">
-                              M {player.m}
-                            </span>
-                          ) : null}
                         </li>
                       );
                     })}
