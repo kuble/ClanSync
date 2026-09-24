@@ -11,6 +11,8 @@ import {
   type ResolvedHofConfig,
 } from "./hof-config";
 import { inKstMonth, inKstYear, isoToKstYmd, toKstParts } from "./kst";
+import { buildIntraStats, buildPersonalMatches, type IntraStats, type PersonalMatch } from "./clan-stats-analytics";
+import { personalPredictions, predictionTotals, type PredictionRecord } from "./clan-prediction-stats";
 
 import {
   normalizeClanMatchRecords,
@@ -59,6 +61,7 @@ export type HofRowWinRate = {
   userId: string;
   nickname: string;
   wins: number;
+  draws: number;
   losses: number;
   ratePct: number | null;
 };
@@ -76,16 +79,29 @@ export type HofRowCumulative = {
   played: number;
 };
 
+export type HofRowWins = { userId: string; nickname: string; wins: number; played: number };
+export type HofRowStreak = { userId: string; nickname: string; longest: number };
+export type HofRowPrediction = { userId: string; nickname: string; correct: number; valid: number; ratePct: number | null };
+
 export type HofPeriodPayload = {
   undisclosed: boolean;
   undisclosedHint: string | null;
   winRate: HofRowWinRate[];
+  wins: HofRowWins[];
+  streaks: HofRowStreak[];
   participation: HofRowParticipation[];
   cumulative: HofRowCumulative[];
+  predictionCorrect: HofRowPrediction[];
 };
 
 export type ClanStatsPageModel = {
   clanId: string;
+  intra: IntraStats;
+  personal: {
+    viewerId: string;
+    canSeePeers: boolean;
+    people: { userId: string; nickname: string; matches: PersonalMatch[]; predictions: ReturnType<typeof personalPredictions> }[];
+  };
   summary: {
     totalMatches: number;
     intraCount: number;
@@ -102,6 +118,8 @@ export type ClanStatsPageModel = {
       month: HofPeriodPayload;
       year: HofPeriodPayload;
     };
+    historyMonths: Record<string, HofPeriodPayload>;
+    historyYears: Record<string, HofPeriodPayload>;
   };
   rankmap: {
     personDaysByYearMonth: Record<string, Record<string, number>>;
@@ -116,7 +134,9 @@ export type ClanStatsPageModel = {
   permissions: {
     setHofRules: boolean;
     isLeader: boolean;
+    isStaff: boolean;
     viewMatchRecords: boolean;
+    viewMscore: boolean;
     exportCsv: boolean;
   };
 };
@@ -131,7 +151,8 @@ function getWinnerTeam(m: MatchRow): number | null {
 
 function isCompletedIntra(m: MatchRow): boolean {
   return (
-    m.status === "finished" && m.match_type === "intra" && m.outcome !== "void"
+    m.status === "finished" && m.match_type === "intra" &&
+    (m.outcome === "team1" || m.outcome === "team2" || m.outcome === "draw")
   );
 }
 
@@ -165,9 +186,13 @@ export function buildHofPeriod(
   cfg: ResolvedHofConfig,
   nick: Map<string, string>,
   now: Date,
+  openedSessions: readonly { id: string; openedAt: string }[] = [],
+  viewerIsStaff = false,
+  historical = false,
+  predictions: readonly PredictionRecord[] = [],
 ): HofPeriodPayload {
-  const undisclosedMonth = period === "month" && isHofMonthTabUndisclosed(cfg);
-  const undisclosedYear = period === "year" && isHofYearTabUndisclosed(cfg);
+  const undisclosedMonth = !viewerIsStaff && !historical && period === "month" && isHofMonthTabUndisclosed(cfg);
+  const undisclosedYear = !viewerIsStaff && !historical && period === "year" && isHofYearTabUndisclosed(cfg);
   const undisclosed = undisclosedMonth || undisclosedYear;
   const undisclosedHint = undisclosedMonth
     ? "월별 순위는 클랜 설정에 따라 다음 달 1일에 확정·공개됩니다."
@@ -180,8 +205,11 @@ export function buildHofPeriod(
       undisclosed: true,
       undisclosedHint,
       winRate: [],
+      wins: [],
+      streaks: [],
       participation: [],
       cumulative: [],
+      predictionCorrect: [],
     };
   }
 
@@ -193,16 +221,24 @@ export function buildHofPeriod(
       : Number.MAX_SAFE_INTEGER;
 
   const wins = new Map<string, number>();
+  const draws = new Map<string, number>();
   const losses = new Map<string, number>();
   const played = new Map<string, number>();
+  const sessionsByPlayer = new Map<string, Set<string>>();
 
   for (const m of matches) {
     const wt = getWinnerTeam(m);
-    const players = m.match_players ?? [];
+    const players = [...new Map((m.match_players ?? []).map((player) => [player.user_id, player])).values()];
     for (const p of players) {
       played.set(p.user_id, (played.get(p.user_id) ?? 0) + 1);
-      // A draw or a finished game awaiting its result still counts as attendance.
-      if (wt === null) continue;
+      if (m.series_id) {
+        if (!sessionsByPlayer.has(p.user_id)) sessionsByPlayer.set(p.user_id, new Set());
+        sessionsByPlayer.get(p.user_id)!.add(m.series_id);
+      }
+      if (wt === null) {
+        draws.set(p.user_id, (draws.get(p.user_id) ?? 0) + 1);
+        continue;
+      }
       if (p.team === wt) {
         wins.set(p.user_id, (wins.get(p.user_id) ?? 0) + 1);
       } else {
@@ -217,13 +253,15 @@ export function buildHofPeriod(
   for (const uid of played.keys()) {
     if (!eligible(uid)) continue;
     const w = wins.get(uid) ?? 0;
+    const d = draws.get(uid) ?? 0;
     const l = losses.get(uid) ?? 0;
-    const dec = w + l;
+    const dec = w + d + l;
     if (dec === 0) continue;
     winRate.push({
       userId: uid,
       nickname: nick.get(uid) ?? "알 수 없음",
       wins: w,
+      draws: d,
       losses: l,
       ratePct: Math.round((w / dec) * 1000) / 10,
     });
@@ -234,15 +272,40 @@ export function buildHofPeriod(
     if (br !== ar) return br - ar;
     return b.wins - a.wins;
   });
-  const winTop =
-    cfg.winRateVisibleTop === 999 ? winRate.length : cfg.winRateVisibleTop;
+  const winTop = viewerIsStaff || cfg.winRateVisibleTop === 999 ? winRate.length : cfg.winRateVisibleTop;
   const winSlice = winRate.slice(0, winTop);
 
+  const winsRows: HofRowWins[] = [...played.keys()].map((uid) => ({
+    userId: uid, nickname: nick.get(uid) ?? "알 수 없음", wins: wins.get(uid) ?? 0, played: played.get(uid) ?? 0,
+  })).sort((a, b) => b.wins - a.wins || b.played - a.played || a.nickname.localeCompare(b.nickname, "ko"));
+  const winsSlice = winsRows.slice(0, viewerIsStaff || cfg.winsVisibleTop === 999 ? winsRows.length : cfg.winsVisibleTop);
+
+  const streakByPlayer = new Map<string, { current: number; longest: number }>();
+  for (const match of [...matches].reverse()) {
+    const winner = getWinnerTeam(match);
+    for (const player of new Map(match.match_players.map((p) => [p.user_id, p])).values()) {
+      const old = streakByPlayer.get(player.user_id) ?? { current: 0, longest: 0 };
+      const current = winner !== null && player.team === winner ? old.current + 1 : 0;
+      streakByPlayer.set(player.user_id, { current, longest: Math.max(old.longest, current) });
+    }
+  }
+  const streaks: HofRowStreak[] = [...streakByPlayer].filter(([, row]) => row.longest > 0).map(([uid, row]) => ({
+    userId: uid, nickname: nick.get(uid) ?? "알 수 없음", longest: row.longest,
+  })).sort((a, b) => b.longest - a.longest || a.nickname.localeCompare(b.nickname, "ko"));
+  const streakSlice = streaks.slice(0, viewerIsStaff || cfg.streakVisibleTop === 999 ? streaks.length : cfg.streakVisibleTop);
+
   const participation: HofRowParticipation[] = [];
-  const denom = Math.max(totalIntra, 1);
+  const eligibleSessions = openedSessions.filter((session) => {
+    if (period === "all") return true;
+    const { year, month } = currentKstYearMonth(now);
+    return period === "month"
+      ? inKstMonth(session.openedAt, year, month)
+      : inKstYear(session.openedAt, year);
+  });
+  const denom = Math.max(new Set(eligibleSessions.map((session) => session.id)).size, 1);
   for (const uid of played.keys()) {
-    if (!eligible(uid)) continue;
-    const pl = played.get(uid) ?? 0;
+    const pl = sessionsByPlayer.get(uid)?.size ?? 0;
+    if (pl === 0) continue;
     participation.push({
       userId: uid,
       nickname: nick.get(uid) ?? "알 수 없음",
@@ -252,14 +315,13 @@ export function buildHofPeriod(
   }
   participation.sort((a, b) => b.ratePct - a.ratePct || b.played - a.played);
   const partTop =
-    cfg.participationVisibleTop === 999
+    viewerIsStaff || cfg.participationVisibleTop === 999
       ? participation.length
       : cfg.participationVisibleTop;
   const partSlice = participation.slice(0, partTop);
 
   const cumulative: HofRowCumulative[] = [];
   for (const uid of played.keys()) {
-    if (!eligible(uid)) continue;
     cumulative.push({
       userId: uid,
       nickname: nick.get(uid) ?? "알 수 없음",
@@ -268,17 +330,43 @@ export function buildHofPeriod(
   }
   cumulative.sort((a, b) => b.played - a.played);
   const cumTop =
-    cfg.cumulativeVisibleTop === 999
+    viewerIsStaff || cfg.cumulativeVisibleTop === 999
       ? cumulative.length
       : cfg.cumulativeVisibleTop;
   const cumSlice = cumulative.slice(0, cumTop);
+
+  const periodPredictions = predictions.filter((row) => period === "all" || (
+    period === "month" ? inKstMonth(row.playedAt, currentKstYearMonth(now).year, currentKstYearMonth(now).month)
+      : inKstYear(row.playedAt, currentKstYearMonth(now).year)
+  ));
+  const predictionGroups = new Map<string, PredictionRecord[]>();
+  for (const row of periodPredictions) {
+    if (!predictionGroups.has(row.userId)) predictionGroups.set(row.userId, []);
+    predictionGroups.get(row.userId)!.push(row);
+  }
+  const predictionRows: HofRowPrediction[] = [...predictionGroups].map(([uid, rows]) => {
+    const total = predictionTotals(rows);
+    return {
+      userId: uid,
+      nickname: nick.get(uid) ?? "알 수 없음",
+      correct: total.correct,
+      valid: total.valid,
+      ratePct: total.rate,
+    };
+  }).filter((row) => row.valid > 0);
+  const predictionTop = viewerIsStaff || cfg.predictionVisibleTop === 999
+    ? predictionRows.length : cfg.predictionVisibleTop;
+  const predictionCorrect = [...predictionRows].sort((a, b) => b.correct - a.correct || b.valid - a.valid || a.nickname.localeCompare(b.nickname, "ko")).slice(0, predictionTop);
 
   return {
     undisclosed: false,
     undisclosedHint: null,
     winRate: winSlice,
+    wins: winsSlice,
+    streaks: streakSlice,
     participation: partSlice,
     cumulative: cumSlice,
+    predictionCorrect,
   };
 }
 
@@ -324,14 +412,24 @@ export async function loadClanStatsPage(
     setHofRules,
     viewMatchRecords,
     exportCsv,
+    viewSynergy,
+    viewMonthly,
+    viewYearly,
+    viewMaps,
+    viewMscore,
     rawMatches,
     completedSessions,
-    activityRows,
+    openedSessions,
     { data: nickRows },
   ] = await Promise.all([
     hasClanPermission(supabase, userId, clanId, "set_hof_rules"),
     hasClanPermission(supabase, userId, clanId, "view_match_records"),
     hasClanPermission(supabase, userId, clanId, "export_csv"),
+    hasClanPermission(supabase, userId, clanId, "view_synergy_winrate"),
+    hasClanPermission(supabase, userId, clanId, "view_monthly_stats"),
+    hasClanPermission(supabase, userId, clanId, "view_yearly_stats"),
+    hasClanPermission(supabase, userId, clanId, "view_map_winrate"),
+    hasClanPermission(supabase, userId, clanId, "view_mscore"),
     loadAllStatsRows((from, to) =>
       supabase
         .from("matches")
@@ -355,7 +453,7 @@ export async function loadClanStatsPage(
       historyClient
         .from("balance_sessions")
         .select(
-          "id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,match_outcome,balance_session_series!inner(opened_at,balance_rooms!inner(kind))",
+          "id,series_id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,formation_settings,formation_state,banned_heroes,hero_ban_enabled,map_candidates,match_outcome,balance_session_map_votes(choice_idx),balance_session_predictions(user_id,pick_team),balance_session_series!inner(opened_at,balance_rooms!inner(kind))",
         )
         .eq("clan_id", clanId)
         .eq("balance_session_series.balance_rooms.kind", "regular")
@@ -365,12 +463,13 @@ export async function loadClanStatsPage(
         .range(from, to),
     ),
     loadAllStatsRows((from, to) =>
-      supabase
-        .from("clan_daily_member_activity")
-        .select("activity_date")
+      historyClient
+        .from("balance_session_series")
+        .select("id,opened_at,balance_rooms!inner(kind)")
         .eq("clan_id", clanId)
-        .order("activity_date", { ascending: false })
-        .order("user_id")
+        .eq("balance_rooms.kind", "regular")
+        .order("opened_at", { ascending: false })
+        .order("id")
         .range(from, to),
     ),
     supabase.rpc("clan_peer_nicknames", { p_clan_id: clanId }),
@@ -381,7 +480,7 @@ export async function loadClanStatsPage(
     completedSessions,
   );
   // A void result remains visible in the archive but does not count as a played match.
-  const matches = records.filter((record) => record.outcome !== "void");
+  const matches = records.filter((record) => record.outcome !== "void" && record.outcome !== "unrecorded");
   const cfg = resolveHofConfig(settings?.hof_config);
   const exposeHof = settings?.expose_hof ?? false;
   const nick = buildNickMap(nickRows);
@@ -394,16 +493,6 @@ export async function loadClanStatsPage(
     if (m.match_type === "intra") intraCount++;
     else if (m.match_type === "scrim") scrimCount++;
     else eventCount++;
-  }
-
-  const personDaysByYearMonth: Record<string, Record<string, number>> = {};
-  for (const r of activityRows ?? []) {
-    const d = r.activity_date;
-    const [y, mo] = d.split("-").map(Number);
-    const ys = String(y);
-    const ms = String(mo);
-    if (!personDaysByYearMonth[ys]) personDaysByYearMonth[ys] = {};
-    personDaysByYearMonth[ys][ms] = (personDaysByYearMonth[ys][ms] ?? 0) + 1;
   }
 
   const intraMatchesByYearMonth: Record<string, Record<string, number>> = {};
@@ -439,14 +528,13 @@ export async function loadClanStatsPage(
 
   const years = Array.from(
     new Set([
-      ...Object.keys(personDaysByYearMonth),
       ...Object.keys(intraMatchesByYearMonth),
     ]),
   ).sort((a, b) => Number(b) - Number(a));
 
   const datesKst = new Set<string>();
   const sampleByDate: Record<string, ClanArchiveMatch[]> = {};
-  for (const m of viewMatchRecords ? records : []) {
+  for (const m of viewMatchRecords ? records.filter((record) => record.match_type === "intra") : []) {
     const d = isoToKstYmd(m.played_at);
     datesKst.add(d);
     if (!sampleByDate[d]) sampleByDate[d] = [];
@@ -463,15 +551,70 @@ export async function loadClanStatsPage(
         nickname: nick.get(player.user_id) ?? "탈퇴한 멤버",
         team: player.team,
         role: player.role,
-        m: player.m,
-        a: player.a,
+        m: viewMscore ? player.m : null,
+        a: viewMscore ? player.a : null,
       })),
     });
   }
   const archiveDates = Array.from(datesKst).sort().reverse();
+  const hofSessions = openedSessions.map((session) => ({ id: session.id, openedAt: session.opened_at }));
+  const predictions: PredictionRecord[] = completedSessions.flatMap((session) => {
+    const outcome = session.match_outcome;
+    if (outcome === "pending") return [];
+    return (session.balance_session_predictions ?? []).map((pick) => ({
+      sessionId: session.id,
+      userId: pick.user_id,
+      playedAt: session.balance_session_series?.opened_at ?? session.opened_at,
+      map: session.resolved_map_label,
+      pickTeam: pick.pick_team,
+      outcome,
+    }));
+  });
+  // The personal privacy override is not persisted yet. Until it is, keep
+  // other members' detailed records within staff access even if a member is
+  // granted the broad aggregate-statistics permission set.
+  const canSeeOthers = role !== "member" && viewMonthly && viewYearly && viewMaps && viewSynergy && viewMscore;
+  const peopleIds = canSeeOthers ? [...new Set([userId, ...nick.keys()])] : [userId];
+  const personal = peopleIds.map((id) => ({
+    userId: id,
+    nickname: nick.get(id) ?? (id === userId ? "나" : "탈퇴한 멤버"),
+    matches: buildPersonalMatches(matches, id, nick, viewSynergy && role !== "member"),
+    predictions: id === userId ? personalPredictions(predictions, id) : [],
+  }));
+
+  const intra = buildIntraStats(records, hofSessions);
+  if (!viewMatchRecords) {
+    // The overview is available to members; individual round rows require
+    // the separate match-records permission even when the aggregates do not.
+    intra.scoreGaps = [];
+    intra.recent = [];
+  }
+  if (!viewMscore) {
+    intra.scoreGaps = [];
+    intra.scoreGapSummary = {
+      evaluation: { count: 0, average: null, ranges: [0, 0, 0, 0] },
+      analysis: { count: 0, average: null, ranges: [0, 0, 0, 0] },
+    };
+  }
+  const currentPeriod = currentKstYearMonth(now);
+  const currentMonthKey = `${currentPeriod.year}-${String(currentPeriod.month).padStart(2, "0")}`;
+  const historicalMonths = [...new Set([
+    ...matches.filter(isCompletedIntra).map((match) => isoToKstYmd(match.played_at).slice(0, 7)),
+    ...hofSessions.map((session) => isoToKstYmd(session.openedAt).slice(0, 7)),
+  ])].filter((key) => key < currentMonthKey).sort().reverse();
+  const historicalYears = [...new Set(historicalMonths.map((key) => key.slice(0, 4)))]
+    .filter((key) => Number(key) < currentPeriod.year).sort().reverse();
+  const historyMonths = Object.fromEntries(historicalMonths.map((key) => [
+    key, buildHofPeriod(matches, "month", cfg, nick, new Date(`${key}-15T12:00:00+09:00`), hofSessions, role !== "member", true, predictions),
+  ]));
+  const historyYears = Object.fromEntries(historicalYears.map((key) => [
+    key, buildHofPeriod(matches, "year", cfg, nick, new Date(`${key}-06-15T12:00:00+09:00`), hofSessions, role !== "member", true, predictions),
+  ]));
 
   return {
     clanId,
+    intra,
+    personal: { viewerId: userId, canSeePeers: viewSynergy && role !== "member", people: personal },
     summary: {
       totalMatches: matches.filter((m) => m.status === "finished").length,
       intraCount,
@@ -484,13 +627,15 @@ export async function loadClanStatsPage(
       exposeHof,
       config: cfg,
       periods: {
-        all: buildHofPeriod(matches, "all", cfg, nick, now),
-        month: buildHofPeriod(matches, "month", cfg, nick, now),
-        year: buildHofPeriod(matches, "year", cfg, nick, now),
+        all: buildHofPeriod(matches, "all", cfg, nick, now, hofSessions, role !== "member", false, predictions),
+        month: buildHofPeriod(matches, "month", cfg, nick, now, hofSessions, role !== "member", false, predictions),
+        year: buildHofPeriod(matches, "year", cfg, nick, now, hofSessions, role !== "member", false, predictions),
       },
+      historyMonths,
+      historyYears,
     },
     rankmap: {
-      personDaysByYearMonth,
+      personDaysByYearMonth: {},
       intraMatchesByYearMonth,
       intraParticipantsByYearMonth: intraParticipantsFlat,
       years,
@@ -502,7 +647,9 @@ export async function loadClanStatsPage(
     permissions: {
       setHofRules,
       isLeader: role === "leader",
+      isStaff: role !== "member",
       viewMatchRecords,
+      viewMscore,
       exportCsv,
     },
   };

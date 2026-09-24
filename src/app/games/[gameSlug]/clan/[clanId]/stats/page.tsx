@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { ClanStatsView } from "@/components/main-clan/clan-stats-view";
+import { ClanStatsExperience } from "@/components/main-clan/clan-stats-experience";
 import { loadClanStatsPage } from "@/lib/clan/stats/load-clan-stats";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 
@@ -21,5 +21,5 @@ export default async function ClanStatsPage({
     redirect(`/games/${gameSlug}/clan`);
   }
 
-  return <ClanStatsView gameSlug={gameSlug} clanId={clanId} model={model} />;
+  return <ClanStatsExperience gameSlug={gameSlug} clanId={clanId} model={model} />;
 }

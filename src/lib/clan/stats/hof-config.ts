@@ -5,6 +5,9 @@ const TOP_OPTIONS = new Set([3, 5, 10, 20, 999]);
 
 export type ResolvedHofConfig = {
   winRateVisibleTop: number;
+  winsVisibleTop: number;
+  streakVisibleTop: number;
+  predictionVisibleTop: number;
   participationVisibleTop: number;
   cumulativeVisibleTop: number;
   monthlyRankVisibility: "always" | "month_start";
@@ -16,6 +19,9 @@ export type ResolvedHofConfig = {
 
 export const HOF_CONFIG_DEFAULTS: ResolvedHofConfig = {
   winRateVisibleTop: 10,
+  winsVisibleTop: 0,
+  streakVisibleTop: 0,
+  predictionVisibleTop: 0,
   participationVisibleTop: 10,
   cumulativeVisibleTop: 10,
   monthlyRankVisibility: "always",
@@ -33,7 +39,7 @@ function num(v: unknown, fallback: number, min: number, max: number): number {
 function topCoerce(v: unknown, fallback: number): number {
   if (typeof v !== "number" || !Number.isFinite(v)) return fallback;
   const r = Math.round(v);
-  return TOP_OPTIONS.has(r) ? r : fallback;
+  return r === 0 || TOP_OPTIONS.has(r) ? r : fallback;
 }
 
 function monthVis(v: unknown): "always" | "month_start" {
@@ -56,6 +62,9 @@ export function resolveHofConfig(raw: Json | undefined): ResolvedHofConfig {
       o.win_rate_visible_top,
       HOF_CONFIG_DEFAULTS.winRateVisibleTop,
     ),
+    winsVisibleTop: topCoerce(o.wins_visible_top, HOF_CONFIG_DEFAULTS.winsVisibleTop),
+    streakVisibleTop: topCoerce(o.streak_visible_top, HOF_CONFIG_DEFAULTS.streakVisibleTop),
+    predictionVisibleTop: topCoerce(o.prediction_visible_top, HOF_CONFIG_DEFAULTS.predictionVisibleTop),
     participationVisibleTop: topCoerce(
       o.participation_visible_top,
       HOF_CONFIG_DEFAULTS.participationVisibleTop,

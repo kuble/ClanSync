@@ -41,7 +41,7 @@ import {
   Users,
 } from "lucide-react";
 
-const TOP_OPTIONS = [3, 5, 10, 20, 999] as const;
+const TOP_OPTIONS = [0, 3, 5, 10, 20, 999] as const;
 
 function formatDate(iso: string) {
   const d = new Date(iso);
@@ -77,7 +77,7 @@ function HofTable({
   );
 }
 
-function HofSettingsForm({
+export function HofSettingsForm({
   gameSlug,
   clanId,
   cfg,
@@ -123,13 +123,31 @@ function HofSettingsForm({
           >
             {TOP_OPTIONS.map((n) => (
               <option key={n} value={n}>
-                {n === 999 ? "전체" : `상위 ${n}명`}
+                {n === 0 ? "비공개" : n === 999 ? "전체" : `상위 ${n}명`}
               </option>
             ))}
           </select>
         </div>
         <div className="space-y-1">
-          <Label htmlFor="participation_visible_top">참여율 순위 공개</Label>
+          <Label htmlFor="wins_visible_top">다승 순위 공개</Label>
+          <select id="wins_visible_top" name="wins_visible_top" defaultValue={String(cfg.winsVisibleTop)} className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm">
+            {TOP_OPTIONS.map((n) => <option key={n} value={n}>{n === 0 ? "비공개" : n === 999 ? "전체" : `상위 ${n}명`}</option>)}
+          </select>
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="streak_visible_top">최장 연승 순위 공개</Label>
+          <select id="streak_visible_top" name="streak_visible_top" defaultValue={String(cfg.streakVisibleTop)} className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm">
+            {TOP_OPTIONS.map((n) => <option key={n} value={n}>{n === 0 ? "비공개" : n === 999 ? "전체" : `상위 ${n}명`}</option>)}
+          </select>
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="prediction_visible_top">승부예측 순위 공개</Label>
+          <select id="prediction_visible_top" name="prediction_visible_top" defaultValue={String(cfg.predictionVisibleTop)} className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm">
+            {TOP_OPTIONS.map((n) => <option key={n} value={n}>{n === 0 ? "비공개" : n === 999 ? "전체" : `상위 ${n}명`}</option>)}
+          </select>
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="participation_visible_top">세션 참여 순위 공개</Label>
           <select
             id="participation_visible_top"
             name="participation_visible_top"
@@ -140,7 +158,7 @@ function HofSettingsForm({
           >
             {TOP_OPTIONS.map((n) => (
               <option key={n} value={n}>
-                {n === 999 ? "전체" : `상위 ${n}명`}
+                {n === 0 ? "비공개" : n === 999 ? "전체" : `상위 ${n}명`}
               </option>
             ))}
           </select>
@@ -157,7 +175,7 @@ function HofSettingsForm({
           >
             {TOP_OPTIONS.map((n) => (
               <option key={n} value={n}>
-                {n === 999 ? "전체" : `상위 ${n}명`}
+                {n === 0 ? "비공개" : n === 999 ? "전체" : `상위 ${n}명`}
               </option>
             ))}
           </select>

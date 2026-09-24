@@ -24,7 +24,7 @@ function parseTop(formData: FormData, key: string, fallback: number): number {
   const raw = formData.get(key);
   if (typeof raw !== "string") return fallback;
   const n = Number.parseInt(raw, 10);
-  const ok = new Set([3, 5, 10, 20, 999]);
+  const ok = new Set([0, 3, 5, 10, 20, 999]);
   return ok.has(n) ? n : fallback;
 }
 
@@ -50,6 +50,9 @@ export async function saveClanHofConfigFormAction(
 
   const payload = {
     win_rate_visible_top: parseTop(formData, "win_rate_visible_top", 10),
+    wins_visible_top: parseTop(formData, "wins_visible_top", 0),
+    streak_visible_top: parseTop(formData, "streak_visible_top", 0),
+    prediction_visible_top: parseTop(formData, "prediction_visible_top", 0),
     participation_visible_top: parseTop(
       formData,
       "participation_visible_top",

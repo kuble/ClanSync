@@ -12,6 +12,7 @@ function session(
 ): CompletedBalanceSession {
   return {
     id: "session",
+    series_id: "series",
     opened_at: "2026-09-01T10:00:00Z",
     closed_at: null,
     predictions_settled_at: "2026-09-01T11:00:00Z",
@@ -28,6 +29,8 @@ function session(
       "blue-tank": { m: 2, a: 1 },
       "red-support": { m: 0, a: null },
     },
+    formation_settings: { roles: "manual", teams: "keep" },
+    banned_heroes: null,
     match_outcome: "team1",
     ...overrides,
   };
@@ -99,7 +102,7 @@ function hofRecords() {
   );
 }
 
-test("명예의 전당: 무승부와 결과 미기록의 참여를 포함하고 승률은 결정 경기로 계산한다", () => {
+test("명예의 전당: 무승부를 승률 분모에 포함하고 결과 미기록은 출전에서 제외한다", () => {
   const result = buildHofPeriod(
     hofRecords(),
     "month",
@@ -107,26 +110,57 @@ test("명예의 전당: 무승부와 결과 미기록의 참여를 포함하고 
     new Map(),
     new Date("2026-09-15T00:00:00Z"),
   );
-  expect(
-    result.participation.find((row) => row.userId === "regular"),
-  ).toMatchObject({ played: 3, ratePct: 100 });
+  expect(result.participation).toEqual([]);
   expect(
     result.cumulative.find((row) => row.userId === "draw-only"),
   ).toMatchObject({ played: 1 });
   expect(result.winRate.find((row) => row.userId === "regular")).toMatchObject({
     wins: 1,
+    draws: 1,
     losses: 0,
-    ratePct: 100,
+    ratePct: 50,
   });
   expect(result.winRate.find((row) => row.userId === "once")).toMatchObject({
     wins: 0,
     losses: 1,
     ratePct: 0,
   });
-  expect(result.winRate.some((row) => row.userId === "draw-only")).toBe(false);
+  expect(result.winRate.find((row) => row.userId === "draw-only")).toMatchObject({ wins: 0, draws: 1, ratePct: 0 });
   expect(result.participation.some((row) => row.userId === "blue-tank")).toBe(
     false,
   );
+});
+
+test("명예의 전당: 여러 라운드 출전은 세션 참여 한 번으로 집계한다", () => {
+  const openedAt = "2026-09-01T10:00:00Z";
+  const rows = normalizeClanMatchRecords([], [
+    session({ id: "r1", series_id: "series", match_outcome: "team1" }),
+    session({ id: "r2", series_id: "series", match_outcome: "draw" }),
+  ]);
+  const result = buildHofPeriod(rows, "all", HOF_CONFIG_DEFAULTS, new Map(), new Date("2026-09-15T00:00:00Z"), [{ id: "series", openedAt }]);
+  expect(result.participation.find((row) => row.userId === "blue-tank")).toMatchObject({ played: 1, ratePct: 100 });
+  expect(result.cumulative.find((row) => row.userId === "blue-tank")).toMatchObject({ played: 2 });
+});
+
+test("명예의 전당: 공개 전인 이번 달 순위와 확정된 지난달 순위를 구분한다", () => {
+  const rows = normalizeClanMatchRecords([], [session({ match_outcome: "team1" })]);
+  const cfg = { ...HOF_CONFIG_DEFAULTS, monthlyRankVisibility: "month_start" as const };
+  const thisMonth = buildHofPeriod(rows, "month", cfg, new Map(), new Date("2026-09-15T00:00:00Z"));
+  const pastMonth = buildHofPeriod(rows, "month", cfg, new Map(), new Date("2026-09-15T00:00:00Z"), [], false, true);
+  expect(thisMonth.undisclosed).toBe(true);
+  expect(pastMonth.undisclosed).toBe(false);
+  expect(pastMonth.cumulative.length).toBeGreaterThan(0);
+});
+
+test("명예의 전당: 예측 적중 횟수 순위는 공개 범위와 유효 표본을 따른다", () => {
+  const picks = Array.from({ length: 5 }, (_, index) => ({
+    sessionId: String(index), userId: "predictor", playedAt: "2026-09-01T10:00:00Z",
+    map: null, pickTeam: 1, outcome: index === 4 ? "team2" as const : "team1" as const,
+  }));
+  const hidden = buildHofPeriod([], "all", HOF_CONFIG_DEFAULTS, new Map(), new Date("2026-09-15T00:00:00Z"), [], false, false, picks);
+  const shown = buildHofPeriod([], "all", { ...HOF_CONFIG_DEFAULTS, predictionVisibleTop: 3 }, new Map(), new Date("2026-09-15T00:00:00Z"), [], false, false, picks);
+  expect(hidden.predictionCorrect).toEqual([]);
+  expect(shown.predictionCorrect[0]).toMatchObject({ correct: 4, valid: 5, ratePct: 80 });
 });
 
 test("명예의 전당: 등재 최소 경기 수도 무효를 제외한 전체 완료 경기로 판단한다", () => {
@@ -137,8 +171,8 @@ test("명예의 전당: 등재 최소 경기 수도 무효를 제외한 전체 �
     new Map(),
     new Date("2026-09-15T00:00:00Z"),
   );
-  expect(result.participation.map((row) => row.userId)).toEqual(["regular"]);
-  expect(result.cumulative.map((row) => row.userId)).toEqual(["regular"]);
+  expect(result.participation).toEqual([]);
+  expect(result.cumulative.map((row) => row.userId)).toEqual(expect.arrayContaining(["regular", "once", "draw-only"]));
   expect(result.winRate.map((row) => row.userId)).toEqual(["regular"]);
 });
 
