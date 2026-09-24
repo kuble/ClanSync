@@ -213,9 +213,60 @@ test("member dashboard and statistics retain aggregate totals without historical
   expect(memberDashboard?.completedIntraCount).toBeGreaterThan(0);
   expect(memberDashboard?.completedIntraCount).toBe(leaderDashboard?.completedIntraCount);
   expect(stats?.summary.intraCount).toBe(memberDashboard?.completedIntraCount);
+  expect(stats?.intra.completed).toBeGreaterThan(0);
+  expect(stats?.intra.recent).toEqual([]);
+  expect(stats?.intra.scoreGaps).toEqual([]);
+  expect(stats?.personal.people.map((person) => person.userId)).toEqual([f.users[1].id]);
   expect(stats?.archive.datesKst).toEqual([]);
   expect(stats?.archive.sampleByDate).toEqual({});
   expect(await ok(member.from("balance_sessions").select("*").eq("id", r.id))).toHaveLength(0);
+});
+
+test("site-usage source rows are visible to staff but hidden from members", async () => {
+  const date = new Date().toISOString().slice(0, 10);
+  await ok(f.service.from("clan_daily_member_activity").upsert({
+    clan_id: f.clanId, user_id: f.users[1].id, activity_date: date,
+  }));
+  const fromStaff = await ok(leader.from("clan_daily_member_activity").select("user_id").eq("clan_id", f.clanId));
+  const fromMember = await ok(member.from("clan_daily_member_activity").select("user_id").eq("clan_id", f.clanId));
+  expect(fromStaff.some((row) => row.user_id === f.users[1].id)).toBe(true);
+  expect(fromMember).toEqual([]);
+});
+
+test("settled prediction picks are private while live vote totals remain shared", async () => {
+  const r = await round();
+  await live(r);
+  await ok(f.service.from("balance_session_predictions").insert([
+    { session_id: r.id, user_id: f.users[1].id, pick_team: 1 },
+    { session_id: r.id, user_id: f.users[2].id, pick_team: 2 },
+  ]));
+  const before = await ok(member.from("balance_session_predictions").select("user_id").eq("session_id", r.id));
+  expect(before).toHaveLength(2);
+  await ok(leader.rpc("set_balance_match_outcome", { p_session_id: r.id, p_outcome: "team1" }));
+  const mine = await ok(member.from("balance_session_predictions").select("user_id").eq("session_id", r.id));
+  const staff = await ok(leader.from("balance_session_predictions").select("user_id").eq("session_id", r.id));
+  expect(mine.map((row) => row.user_id)).toEqual([f.users[1].id]);
+  expect(staff).toHaveLength(2);
+  const [myStats, staffStats] = await Promise.all([
+    loadClanStatsPage(member, f.users[1].id, f.clanId),
+    loadClanStatsPage(leader, f.users[0].id, f.clanId),
+  ]);
+  expect(myStats?.personal.people[0]?.predictions).toContainEqual(expect.objectContaining({ sessionId: r.id, result: "correct" }));
+  expect(myStats?.hof.periods.all.predictionCorrect).toEqual([]);
+  expect(staffStats?.hof.periods.all.predictionCorrect.some((row) => row.userId === f.users[1].id)).toBe(true);
+});
+
+test("statistics use three sections and site usage appears in staff management", async ({ page }) => {
+  await loginIsolatedBalanceUser(page, f.users[0]);
+  await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
+  await expect(page.getByRole("tab", { name: "명예의 전당" })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "내전 통계" })).toBeVisible();
+  await page.getByRole("tab", { name: "내전 통계" }).click();
+  await expect(page.getByRole("searchbox", { name: "경기 참가자 검색" })).toBeVisible();
+  await page.getByRole("tab", { name: "개인 기록" }).click();
+  await expect(page.getByText("함께한 기록")).toBeVisible();
+  await page.goto(`/games/overwatch/clan/${f.clanId}/manage?tab=overview`);
+  await expect(page.getByText("사이트 이용 통계")).toBeVisible();
 });
 
 test("UTC calendar can select a month-end Korean occurrence", async ({ browser }) => {
