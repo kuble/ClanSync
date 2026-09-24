@@ -39,7 +39,7 @@ const subscribe = () => () => {};
 const clientReady = () => true;
 const serverReady = () => false;
 const card =
-  "min-w-0 rounded-xl border border-border bg-card p-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)]";
+  "min-w-0 rounded-[22px] border border-border bg-card p-5 shadow-[0_10px_24px_rgba(28,30,30,0.1)]";
 const cardHeading =
   "text-xs font-semibold tracking-[0.035em] text-muted-foreground";
 const smallLink =
@@ -243,7 +243,7 @@ function ClanBadges({ model }: { model: ClanDashboardModel }) {
       unlocked: true,
       detail: dateLabel(created),
       hint: "클랜을 창단했어요",
-      color: "text-orange-500",
+      color: "text-[#8ad0de]",
     },
     {
       name: "내전 100회",
@@ -255,7 +255,7 @@ function ClanBadges({ model }: { model: ClanDashboardModel }) {
           ? "기록 확인 필요"
           : `${Math.min(model.completedIntraCount, 100)} / 100`,
       hint: "완료된 내전 100회 달성",
-      color: "text-primary",
+      color: "text-[#8ad0de]",
     },
     {
       name: "내전 500회",
@@ -267,7 +267,7 @@ function ClanBadges({ model }: { model: ClanDashboardModel }) {
           ? "기록 확인 필요"
           : `${Math.min(model.completedIntraCount, 500)} / 500`,
       hint: "완료된 내전 500회 달성",
-      color: "text-violet-500",
+      color: "text-[#8ad0de]",
     },
     {
       name: "1주년",
@@ -275,11 +275,11 @@ function ClanBadges({ model }: { model: ClanDashboardModel }) {
       unlocked: anniversary.getTime() <= new Date(model.now).getTime(),
       detail: dateLabel(anniversary),
       hint: "창단 1주년을 함께해요",
-      color: "text-rose-500",
+      color: "text-[#8ad0de]",
     },
   ];
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 min-[1101px]:grid-cols-2">
+    <div className="grid grid-cols-2 gap-2">
       {badges.map(({ name, Icon, unlocked, detail, hint, color }) => (
         <div
           key={name}
@@ -442,11 +442,11 @@ export function ClanDashboard({
     <>
       <h2 className="sr-only">클랜 대시보드</h2>
       <div
-        className="grid grid-cols-1 items-stretch gap-4 min-[1101px]:grid-cols-3"
+        className="grid grid-cols-1 items-stretch gap-4 min-[900px]:grid-cols-3"
         data-testid="clan-dashboard-grid"
       >
         <section
-          className={cn(card, "min-[1101px]:col-span-2")}
+          className={cn(card, "min-[900px]:col-span-2")}
           aria-labelledby="dashboard-notices-heading"
         >
           <div className="mb-4 flex items-center justify-between gap-2">
@@ -522,7 +522,7 @@ export function ClanDashboard({
           )}
         </section>
         <section
-          className={cn(card, "min-[1101px]:col-span-2")}
+          className={cn(card, "min-[900px]:col-span-2")}
           aria-labelledby="dashboard-events-heading"
         >
           <div className="mb-4 flex items-center justify-between gap-2">
@@ -551,21 +551,21 @@ export function ClanDashboard({
         <MvpCard
           title="지난달 승률 MVP"
           icon={Target}
-          tone="bg-gradient-to-br from-amber-400 to-orange-600"
+          tone="bg-[#315762]"
           value={model.mvp.winRate}
           model={model}
         />
         <MvpCard
           title="지난달 참여율 MVP"
           icon={Users}
-          tone="bg-gradient-to-br from-emerald-400 to-green-700"
+          tone="bg-[#315762]"
           value={model.mvp.participation}
           model={model}
         />
         <MvpCard
           title="지난달 승부예측 MVP"
           icon={Trophy}
-          tone="bg-gradient-to-br from-violet-500 to-blue-600"
+          tone="bg-[#315762]"
           value={model.mvp.prediction}
           model={model}
           premiumLocked={!isPremium}
