@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { buildIntraStats, buildPersonalMatches, currentStreak, recordTotals, relationRows } from "../src/lib/clan/stats/clan-stats-analytics";
 import { normalizeClanMatchRecords, type CompletedBalanceSession } from "../src/lib/clan/stats/normalize-clan-match-records";
 import { summarizeVisits } from "../src/lib/clan/stats/clan-site-usage";
-import { predictionTotals, personalPredictions, type PredictionRecord } from "../src/lib/clan/stats/clan-prediction-stats";
+import { predictionTotals, personalPredictions, predictionPointHistory, type PredictionRecord } from "../src/lib/clan/stats/clan-prediction-stats";
 
 function round(id: string, seriesId: string, result: "team1" | "team2" | "draw" | "void", swapped = false): CompletedBalanceSession {
   return {
@@ -62,6 +62,20 @@ test("승부예측 적중률은 승패 확정 표본만 사용하고 무승부·
   }));
   expect(predictionTotals(rows)).toEqual({ correct: 1, valid: 2, rate: 50 });
   expect(personalPredictions(rows, "member").map((row) => row.result)).toEqual(["correct", "incorrect", "draw", "void"]);
+});
+
+test("예측 포인트는 실제 지급·차감 날짜로 집계하고 다른 클랜·멤버 거래와 미지급 보상을 제외한다", () => {
+  const rows: PredictionRecord[] = ["paid", "unpaid"].map((sessionId) => ({ sessionId, userId: "me", playedAt: "2026-09-01T10:00:00Z", map: null, pickTeam: 1, outcome: "team1" }));
+  const ledger = [
+    { user_id: "me", reference_id: "paid", amount: 100, created_at: "2026-09-01T16:00:00Z" },
+    { user_id: "me", reference_id: "paid", amount: -30, created_at: "2026-09-02T11:00:00Z" },
+    { user_id: "someone", reference_id: "paid", amount: 999, created_at: "2026-09-02T11:00:00Z" },
+    { user_id: "me", reference_id: "other-clan", amount: 999, created_at: "2026-09-02T11:00:00Z" },
+  ];
+  expect(predictionPointHistory(rows, ledger, "me")).toEqual([
+    { date: "2026-09-01", earned: 0, lost: 0, net: 0 },
+    { date: "2026-09-02", earned: 100, lost: 30, net: 70 },
+  ]);
 });
 
 test("경매 통계는 보존된 낙찰·구매 로그만 세고 입찰은 가격에 넣지 않는다", () => {

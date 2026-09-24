@@ -320,7 +320,7 @@ test("personal records are staff-only by default and member self-access follows 
   expect(disabled?.personal.people).toEqual([]);
 });
 
-test("closed monthly and yearly top-three records appear as emblems", async ({ page }) => {
+test("closed monthly and yearly top-three records appear as emblems", async ({ page, browser }) => {
   const r = await round(); await live(r);
   await ok(leader.rpc("set_balance_match_outcome", { p_session_id: r.id, p_outcome: "team1" }));
   const previousYear = new Date().getUTCFullYear() - 1;
@@ -332,11 +332,63 @@ test("closed monthly and yearly top-three records appear as emblems", async ({ p
   await expect(board.getByRole("button", { name: new RegExp(`${previousYear}-02 .*1위 엠블럼`) }).first()).toBeVisible();
   await board.getByRole("button").first().hover();
   await expect(page.getByRole("tooltip")).toContainText("월간");
+  await page.mouse.move(0, 0);
+  await expect(page.getByRole("tooltip")).toBeHidden();
+  await expect(board).not.toContainText(`${previousYear}-02`);
+  const paths = await board.locator("button > svg > path:first-child").evaluateAll((elements) => elements.map((el) => el.getAttribute("d")));
+  expect(new Set(paths).size).toBeGreaterThan(1);
   await page.getByRole("listbox", { name: "수상 기간", exact: true }).press("End");
   await expect(board.getByRole("button", { name: new RegExp(`${previousYear} .*1위 엠블럼`) }).first()).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   await board.getByRole("button").first().click();
   await expect(page.getByRole("tooltip")).toContainText("연간");
+  await page.mouse.move(0, 0);
+  await expect(page.getByRole("tooltip")).toBeHidden();
+  const touchContext = await browser.newContext({ hasTouch: true, viewport: { width: 390, height: 844 }, storageState: await page.context().storageState() });
+  try {
+    const touchPage = await touchContext.newPage();
+    await touchPage.goto(`/games/overwatch/clan/${f.clanId}/stats`);
+    await touchPage.getByRole("tab", { name: "개인 기록" }).tap();
+    await touchPage.getByLabel("수상 엠블럼").getByRole("button").first().tap();
+    await expect(touchPage.getByRole("tooltip")).toContainText("월간");
+    await touchPage.getByRole("listbox", { name: "수상 기간", exact: true }).tap();
+    await expect(touchPage.getByRole("tooltip")).toBeHidden();
+    expect(await touchPage.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  } finally { await touchContext.close(); }
+});
+
+test("personal chart uses dated snapshots, compact wheel and actual private prediction payouts", async ({ page }) => {
+  const r = await round();
+  await ok(f.service.from("balance_sessions").update({ ma_snapshot: { [f.users[0].id]: { m: 2, a: 1 } } }).eq("id", r.id));
+  await live(r);
+  await ok(spectator.from("balance_session_predictions").insert({ session_id: r.id, user_id: f.users[11].id, pick_team: 1 }));
+  await ok(leader.rpc("set_balance_match_outcome", { p_session_id: r.id, p_outcome: "team1" }));
+  const current = await ok(f.service.from("clan_settings").select("hof_config").eq("clan_id", f.clanId).single());
+  await ok(f.service.from("clan_settings").update({ hof_config: { ...(current.hof_config as Record<string, unknown>), member_personal_records: true } }).eq("clan_id", f.clanId));
+  const own = await loadClanStatsPage(spectator, f.users[11].id, f.clanId);
+  const paid = await ok(spectator.from("coin_transactions").select("amount").eq("reference_id", r.id).eq("user_id", f.users[11].id));
+  expect(paid.length).toBeGreaterThan(0);
+  expect(own?.personal.people[0].predictionPoints.reduce((sum, day) => sum + day.net, 0)).toBe(paid.reduce((sum, row) => sum + row.amount, 0));
+  expect(own?.personal.people).toHaveLength(1);
+  const staff = await loadClanStatsPage(leader, f.users[0].id, f.clanId);
+  expect(staff?.personal.people.find((person) => person.userId === f.users[11].id)?.predictionPoints).toEqual([]);
+  await loginIsolatedBalanceUser(page, f.users[0]);
+  await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
+  await page.getByRole("tab", { name: "개인 기록" }).click();
+  const chart = page.getByRole("img", { name: /점수 이력 그래프/ });
+  await expect(chart).toBeVisible();
+  await chart.press("End");
+  await expect(page.getByRole("status", { name: "점수 이력 그래프 선택 값" })).toContainText("평가 점수");
+  await expect(page.getByRole("status", { name: "점수 이력 그래프 선택 값" })).toContainText("2점");
+  await chart.press("Escape");
+  await expect(page.getByRole("status", { name: "점수 이력 그래프 선택 값" })).toBeHidden();
+  const wheel = page.getByRole("listbox", { name: "점수 종류", exact: true });
+  await wheel.hover(); await page.mouse.wheel(0, 100);
+  await expect(wheel.getByRole("option", { selected: true })).toHaveText("분석 점수");
+  await expect(page.getByRole("button", { name: "점수 종류 다음" })).toHaveCount(0);
+  const selectedStyle = await wheel.getByRole("option", { selected: true }).evaluate((el) => getComputedStyle(el).transform);
+  expect(selectedStyle).toMatch(/^matrix\(1, 0, 0, 1,/);
+  await expect(page.getByText("참여 날짜", { exact: true })).toHaveCount(0);
 });
 
 test("UTC calendar can select a month-end Korean occurrence", async ({ browser }) => {

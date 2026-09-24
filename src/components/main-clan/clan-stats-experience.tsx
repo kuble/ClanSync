@@ -4,6 +4,7 @@ import { useState } from "react";
 import { OptionWheel } from "@/components/ui/option-wheel";
 import { StatHelp, StatTitle } from "./stat-help";
 import { StatsEmblems } from "./stats-emblems";
+import { StatsTimeChart } from "./stats-time-chart";
 import { Crown, Swords, UserRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -65,7 +66,7 @@ function IntraClanStats({ model }: { model: ClanStatsPageModel }) {
   })();
   return (
     <div className="space-y-5">
-      <div><h3 className="text-base font-bold"><StatTitle title="내전 통계" help="정규 내전의 개최·경기·출석 기록입니다." /></h3></div>
+      <div className="min-w-0 flex-1"><h3 className="text-base font-bold"><StatTitle title="내전 통계" help="정규 내전의 개최·경기·출석 기록입니다." /></h3></div>
       <div className="grid gap-3 sm:grid-cols-3">
         {([
           ["sessions", "개최 내전", stats.sessions, "열린 정규 내전"],
@@ -123,8 +124,6 @@ function PersonalStats({ model, selectedId, onChoosePerson }: { model: ClanStats
   const [relationDescending, setRelationDescending] = useState(true);
   const [mapSort, setMapSort] = useState<"matches" | "rate">("matches");
   const [scoreKind, setScoreKind] = useState<"evaluation" | "analysis">("evaluation");
-  const [scoreMatchId, setScoreMatchId] = useState<string | null>(null);
-  const [predictionFilter, setPredictionFilter] = useState<"all" | "correct" | "incorrect" | "draw" | "void">("all");
   const person = model.personal.people.find((candidate) => candidate.userId === selectedId) ?? model.personal.people[0];
   const now = currentKstYearMonth();
   const periodMatches = person.matches.filter((match) => period === "all" || (period === "year" ? match.date.startsWith(String(now.year)) : match.date.startsWith(`${now.year}-${String(now.month).padStart(2, "0")}`)));
@@ -150,19 +149,13 @@ function PersonalStats({ model, selectedId, onChoosePerson }: { model: ClanStats
   const maps = [...mapGroups].map(([name, rows]) => ({ name, ...recordTotals(rows) })).sort((a, b) => mapSort === "matches" ? b.matches - a.matches : (b.rate ?? -1) - (a.rate ?? -1));
   const selectedPeer = relations.find((row) => row.id === peerId);
   const roleRows = ROLE_OPTIONS.filter((option) => option.id !== "all").map((option) => ({ ...option, ...recordTotals(periodMatches.filter((match) => match.role === option.id)) }));
-  const scoreRows = [...matches].reverse().filter((match) => match[scoreKind] !== null);
-  const scoreValues = scoreRows.map((match) => match[scoreKind]!);
-  const scoreMin = scoreValues.length ? Math.min(...scoreValues) : 0;
-  const scoreMax = scoreValues.length ? Math.max(...scoreValues) : 0;
-  const scorePoints = scoreRows.map((match, index) => ({ match, x: scoreRows.length === 1 ? 50 : 5 + index * 90 / (scoreRows.length - 1), y: scoreMin === scoreMax ? 50 : 90 - (match[scoreKind]! - scoreMin) * 80 / (scoreMax - scoreMin) }));
-  const selectedScore = scoreRows.find((match) => match.id === scoreMatchId);
-  const periodPredictions = person.predictions.filter((item) => period === "all" || (period === "year" ? item.date.startsWith(String(now.year)) : item.date.startsWith(`${now.year}-${String(now.month).padStart(2, "0")}`)));
-  const validPredictions = periodPredictions.filter((item) => item.result === "correct" || item.result === "incorrect");
-  const correctPredictions = validPredictions.filter((item) => item.result === "correct").length;
-  const visiblePredictions = periodPredictions.filter((item) => predictionFilter === "all" || item.result === predictionFilter).slice(0, 20);
+  const scorePoints = [...matches].reverse().map((match) => ({ at: match.occurredAt, value: match[scoreKind] }));
+  const predictionDays = person.predictionPoints.filter((item) => period === "all" || (period === "year" ? item.date.startsWith(String(now.year)) : item.date.startsWith(    String(now.year) + "-" + String(now.month).padStart(2, "0"))));
+  const earned = predictionDays.reduce((sum, day) => sum + day.earned, 0);
+  const lost = predictionDays.reduce((sum, day) => sum + day.lost, 0);
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-base font-bold"><StatTitle title={`개인 기록 · ${person.nickname}`} help="정규 내전에서 실제 출전한 경기만 집계합니다." /></h3></div>
+      <div className="flex flex-wrap items-center justify-between gap-3"><div className="min-w-0 flex-1"><h3 className="text-base font-bold"><StatTitle title={`개인 기록 · ${person.nickname}`} help="정규 내전에서 실제 출전한 경기만 집계합니다." /></h3></div>
         {model.personal.people.length > 1 && <OptionWheel label="기록을 볼 멤버" options={model.personal.people.map((item) => ({ id: item.userId, label: item.nickname }))} value={person.userId} onChange={onChoosePerson} />}
       </div>
       <FilterButtons label="개인 기록 기간" options={[{ id: "all", label: "전체" }, { id: "month", label: "이번 달" }, { id: "year", label: "올해" }]} value={period} onChange={setPeriod} />
@@ -187,15 +180,16 @@ function PersonalStats({ model, selectedId, onChoosePerson }: { model: ClanStats
         </> : <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">상대별 전적은 클랜의 관계 통계 열람 권한에 따라 제공됩니다.</p>}
       </CardContent></Card>
       <Card size="sm"><CardHeader><CardTitle><StatTitle title="맵별 기록" help={<>맵이 저장된 경기만 표시합니다.</>} /></CardTitle></CardHeader><CardContent className="space-y-2"><FilterButtons label="맵 정렬" options={[{ id: "matches", label: "출전순" }, { id: "rate", label: "승률순" }]} value={mapSort} onChange={setMapSort} />{maps.map((row) => <div key={row.name} className="relative isolate overflow-hidden rounded-lg border p-3 text-sm"><div className="flex justify-between gap-2"><span>{row.name}</span><span>{row.matches}경기 · {rate(row.rate)}</span></div><StatsGauge value={row.wins} total={row.matches} label={`${row.name} 승률 ${rate(row.rate)}`} /></div>)}{maps.length === 0 && <p className="text-sm text-muted-foreground">맵 기록이 없습니다.</p>}</CardContent></Card>
-        <Card size="sm"><CardHeader><CardTitle><StatTitle title="점수 이력" help={<>경기 당시 저장된 평가·분석 점수</>} /></CardTitle></CardHeader><CardContent className="space-y-3"><FilterButtons label="점수 종류" options={[{ id: "evaluation", label: "평가 점수" }, { id: "analysis", label: "분석 점수" }]} value={scoreKind} onChange={(value) => { setScoreKind(value); setScoreMatchId(null); }} />
-          {scoreRows.length ? <><svg viewBox="0 0 100 100" role="img" aria-label={`${scoreKind === "evaluation" ? "평가" : "분석"} 점수 ${scoreRows.length}경기 변화`} className="h-32 w-full overflow-visible"><polyline fill="none" stroke="currentColor" strokeWidth="2" vectorEffect="non-scaling-stroke" points={scorePoints.map((point) => `${point.x},${point.y}`).join(" ")} />{scorePoints.map((point) => <circle key={point.match.id} cx={point.x} cy={point.y} r="2" fill="currentColor" />)}</svg><div className="flex max-h-28 flex-wrap gap-1 overflow-y-auto">{scoreRows.map((match) => <Button key={match.id} type="button" size="sm" variant={scoreMatchId === match.id ? "secondary" : "ghost"} onClick={() => setScoreMatchId(match.id)}>{match.date} {match[scoreKind]}점</Button>)}</div>{selectedScore && <p className="text-xs text-muted-foreground">{selectedScore.date} · {selectedScore.map ?? "맵 미기록"} · {selectedScore[scoreKind]}점</p>}</> : <p className="text-sm text-muted-foreground">저장된 점수 이력이 없습니다.</p>}
-        </CardContent></Card>
-      {person.userId === model.personal.viewerId && <Card size="sm"><CardHeader><CardTitle><StatTitle title="내 승부예측" help={<>적중·실패로 확정된 예측만 적중률에 포함합니다.</>} /></CardTitle></CardHeader><CardContent className="space-y-3">
-        <div className="relative isolate overflow-hidden rounded-lg border p-3"><p className="text-sm"><strong className="text-xl tabular-nums">{validPredictions.length ? `${Math.round(correctPredictions / validPredictions.length * 1000) / 10}%` : "기록 없음"}</strong><span className="ml-2 text-xs text-muted-foreground">{correctPredictions}회 적중 / {validPredictions.length}회 유효</span></p>
-        <StatsGauge value={correctPredictions} total={validPredictions.length} label={`${validPredictions.length}회 예측 중 ${correctPredictions}회 적중`} /></div>
-        <FilterButtons label="승부예측 결과" options={[{ id: "all", label: "전체" }, { id: "correct", label: "적중" }, { id: "incorrect", label: "실패" }, { id: "draw", label: "무승부" }, { id: "void", label: "무효" }]} value={predictionFilter} onChange={setPredictionFilter} />
-        {visiblePredictions.map((item) => <div key={item.sessionId} className="flex justify-between rounded-lg border p-3 text-sm"><span>{item.date} · {item.map ?? "맵 미기록"}</span><strong>{({ correct: "적중", incorrect: "실패", draw: "무승부 · 보상 없음", void: "무효 · 보상 없음" } as const)[item.result]}</strong></div>)}
-        {!visiblePredictions.length && <p className="text-sm text-muted-foreground">조건에 맞는 예측 기록이 없습니다.</p>}
+      <Card size="sm"><CardHeader><CardTitle><StatTitle title="점수 이력" help="경기 당시 저장된 점수를 실제 경기 날짜 순서로 표시합니다. 선 위에 마우스를 올리거나 방향키로 날짜별 값을 확인하세요. 저장되지 않은 점수는 연결하지 않습니다." /></CardTitle></CardHeader><CardContent className="space-y-3">
+        <FilterButtons label="점수 종류" options={[{ id: "evaluation", label: "평가 점수" }, { id: "analysis", label: "분석 점수" }]} value={scoreKind} onChange={setScoreKind} />
+        <StatsTimeChart key={scoreKind} label="점수 이력 그래프" unit="점" lines={[{ label: scoreKind === "evaluation" ? "평가 점수" : "분석 점수", color: "var(--primary)", points: scorePoints }]} empty="저장된 점수 이력이 없습니다." />
+      </CardContent></Card>
+      {person.userId === model.personal.viewerId && <Card size="sm"><CardHeader><CardTitle><StatTitle title="내 승부예측" help="실제 정산된 포인트의 일별 수익·손실입니다. 현재 규칙은 적중 보상만 지급하며 실패 차감은 없습니다. 미지급·무승부·무효는 0pt이며, 기록 정정에 따른 차감도 실제 거래 날짜에 반영합니다." /></CardTitle></CardHeader><CardContent className="space-y-3">
+        <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm tabular-nums"><span className="text-emerald-400">수익 +{earned.toLocaleString()}pt</span><span className="text-rose-400">손실 −{lost.toLocaleString()}pt</span><strong>순수익 {earned - lost > 0 ? "+" : ""}{(earned - lost).toLocaleString()}pt</strong></div>
+        <StatsTimeChart label="승부예측 포인트 그래프" unit="pt" lines={[
+          { label: "수익", color: "var(--color-emerald-400)", points: predictionDays.map((day) => ({ at: day.date + "T12:00:00+09:00", value: day.earned })) },
+          { label: "손실", color: "var(--color-rose-400)", points: predictionDays.map((day) => ({ at: day.date + "T12:00:00+09:00", value: -day.lost })) },
+        ]} empty="승부예측 기록이 없습니다." />
       </CardContent></Card>}
       <StatsEmblems hof={model.hof} userId={person.userId} />
     </div>
@@ -211,7 +205,7 @@ export function ClanStatsExperience({ gameSlug, clanId, model }: { gameSlug: str
     setTab("personal");
   };
   return <div className="space-y-6">
-    <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-xl font-bold tracking-tight"><StatTitle title="클랜 통계" help="주요 기록을 살펴보고 내전 통계에서 실제 경기를 찾아볼 수 있습니다." /></h2></div>{model.hof.exposeHof && <Badge variant="secondary">명예의 전당 공개 중</Badge>}</div>
+    <div className="flex flex-wrap items-center justify-between gap-3"><div className="min-w-0 flex-1"><h2 className="text-xl font-bold tracking-tight"><StatTitle title="클랜 통계" help="주요 기록을 살펴보고 내전 통계에서 실제 경기를 찾아볼 수 있습니다." /></h2></div>{model.hof.exposeHof && <Badge variant="secondary">명예의 전당 공개 중</Badge>}</div>
     <Tabs value={tab} onValueChange={setTab} className="w-full"><TabsList variant="line" className="mb-4 h-auto w-full justify-start gap-3 border-b sm:gap-6"><TabsTrigger value="hof"><Crown className="size-4" aria-hidden="true" /> 명예의 전당</TabsTrigger><TabsTrigger value="intra"><Swords className="size-4" aria-hidden="true" /> 내전 통계</TabsTrigger>{model.permissions.viewPersonalRecords && <TabsTrigger value="personal"><UserRound className="size-4" aria-hidden="true" /> 개인 기록</TabsTrigger>}</TabsList>
       <TabsContent value="hof"><HallOfFame model={model} gameSlug={gameSlug} clanId={clanId} onChoosePerson={choosePerson} /></TabsContent>
       <TabsContent value="intra"><IntraClanStats model={model} /></TabsContent>

@@ -12,7 +12,7 @@ import {
 } from "./hof-config";
 import { inKstMonth, inKstYear, isoToKstYmd, toKstParts } from "./kst";
 import { buildIntraStats, buildPersonalMatches, type IntraStats, type PersonalMatch } from "./clan-stats-analytics";
-import { personalPredictions, predictionTotals, type PredictionRecord } from "./clan-prediction-stats";
+import { personalPredictions, predictionTotals, predictionPointHistory, type PredictionRecord, type PredictionPointDay } from "./clan-prediction-stats";
 
 import {
   normalizeClanMatchRecords,
@@ -101,7 +101,7 @@ export type ClanStatsPageModel = {
   personal: {
     viewerId: string;
     canSeePeers: boolean;
-    people: { userId: string; nickname: string; matches: PersonalMatch[]; predictions: ReturnType<typeof personalPredictions> }[];
+    people: { userId: string; nickname: string; matches: PersonalMatch[]; predictions: ReturnType<typeof personalPredictions>; predictionPoints: PredictionPointDay[] }[];
   };
   summary: {
     totalMatches: number;
@@ -583,12 +583,19 @@ export async function loadClanStatsPage(
   // granted the broad aggregate-statistics permission set.
   const canSeeOthers = role !== "member" && viewMonthly && viewYearly && viewMaps && viewSynergy && viewMscore;
   const viewPersonalRecords = role !== "member" || cfg.memberPersonalRecords;
+  // Authenticated client and explicit owner scope keep personal balances private.
+  // Personal payouts have clan_id=null; session references establish clan scope below.
+  const predictionLedger = viewPersonalRecords ? await loadAllStatsRows((from, to) => supabase
+    .from("coin_transactions").select("user_id,reference_id,amount,created_at")
+    .eq("user_id", userId).eq("pool_type", "personal").eq("reference_type", "balance_session")
+    .order("created_at").order("id").range(from, to)) : [];
   const peopleIds = !viewPersonalRecords ? [] : canSeeOthers ? [...new Set([userId, ...nick.keys()])] : [userId];
   const personal = peopleIds.map((id) => ({
     userId: id,
     nickname: nick.get(id) ?? (id === userId ? "나" : "탈퇴한 멤버"),
     matches: buildPersonalMatches(matches, id, nick, viewSynergy && role !== "member"),
     predictions: id === userId ? personalPredictions(predictions, id) : [],
+    predictionPoints: id === userId ? predictionPointHistory(predictions, predictionLedger, id) : [],
   }));
 
   const intra = buildIntraStats(records, hofSessions);
