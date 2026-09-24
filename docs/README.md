@@ -18,6 +18,7 @@
 | 세션·라운드·기록·자동 종료 | [세션 액션](../src/app/actions/clan-balance-session.ts) · [자동 종료 설정](../src/app/actions/clan-balance-settings.ts) · [기록 규칙](../src/lib/balance/history.ts) | [자동 종료 DB](../scripts/balance-auto-close-db.test.mjs) · [기록 규칙](../e2e/balance-history-rules.spec.ts) · [내전 통합](../e2e/balance-session-live.spec.ts) · [세션 DB](../scripts/session-round-db.test.mjs) |
 | 로그인·권한·계정 격리 | [인증 액션](../src/app/actions/auth.ts) · [클랜 접근](../src/lib/clan/request-clan-access.ts) | [auth-performance](../e2e/auth-performance.spec.ts) · [쿠키](../e2e/session-cookies.spec.ts) · [계정 격리](../e2e/clan-request-isolation.spec.ts) · [RLS/권한 DB](../scripts/review-db.test.mjs) |
 | 클랜 운영·공지 | [관리 탭](../src/components/main-clan/clan-manage-tabs.tsx) · [내전 관리 설정](../src/components/main-clan/clan-balance-auto-close-settings.tsx) · [공지 액션](../src/app/actions/clan-notices.ts) | [관리](../e2e/clan-management.spec.ts) · [대시보드](../e2e/clan-dashboard.spec.ts) · [공지 DB](../scripts/clan-notices-db.test.mjs) |
+| 클랜 통계·사이트 이용 | [통계 로더](../src/lib/clan/stats/load-clan-stats.ts) · [집계 규칙](../src/lib/clan/stats/clan-stats-analytics.ts) · [통계 화면](../src/components/main-clan/clan-stats-experience.tsx) · [관리 방문 화면](../src/components/main-clan/clan-site-usage-panel.tsx) | [집계](../e2e/clan-stats-analytics.spec.ts) · [기록/HoF](../e2e/clan-match-records.spec.ts) · [권한 경계](../e2e/security-fix-boundaries.spec.ts) |
 | 일정·시간대 | [일정 액션](../src/app/actions/clan-events.ts) · [시간 파싱](../src/lib/clan/parse-event-start.ts) | [event-timezone](../e2e/event-timezone.spec.ts) · [review-rules](../e2e/review-rules.spec.ts) |
 | 공통 화면·페이지 이동 | [클랜 셸](../src/components/main-clan/main-clan-shell.tsx) · [클랜 레이아웃](../src/app/games/[gameSlug]/clan/[clanId]/layout.tsx) | [navigation-feedback](../e2e/navigation-feedback.spec.ts) · [frontend-rebuild](../e2e/frontend-rebuild.spec.ts) · [ui-regression](../e2e/ui-regression.spec.ts) |
 
@@ -31,7 +32,7 @@
 | 정규·깜짝 방·예약·임시 진행자 | [내전 로비 명세](02-design/session-lobby.md) |
 | 기획·디자인 고도화 논의 | [고도화 논의 문서](01-plan/product-design-evolution.md) — 제안 7개·결정 질문·화면 방향 |
 | 편성 방식·팀원용 공유 연출 | [편성 명세](02-design/formation-modes.md) — 확정 규칙·적용 범위·후속 구분 |
-| 클랜 통계·역할별 함께한 기록/상대 전적 | [통계 명세](01-plan/pages/10-Clan-Stats.md) — 명예의 전당·내전 통계·개인 기록, 사이트 이용은 관리로 이전. 항목별 표현·배치 우선순위·인터랙션 포함. 기획 확정·구현 대기 |
+| 클랜 통계·역할별 함께한 기록/상대 전적 | [통계 명세](01-plan/pages/10-Clan-Stats.md) — 명예의 전당·내전 통계·개인 기록, 사이트 이용은 관리로 이전. 1차 구현 범위와 잔여 항목은 §7 참조 |
 | Phase 2 구현 현황·완료 검증 | [TODO_Phase2.md](TODO_Phase2.md) |
 | 코드 리뷰·수정 필요 사안 | [2026-09-15 리뷰](03-analysis/code-review-2026-09-15.md) |
 | 제품 범위·구독 티어 | [PRD](01-plan/PRD.md) |
