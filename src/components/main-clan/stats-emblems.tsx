@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Trophy, CalendarCheck, Swords, Flame, Crosshair } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { OptionWheel } from "@/components/ui/option-wheel";
+import { StatsScrollArea } from "./stats-scroll-area";
 import { StatTitle, StatTooltip } from "./stat-help";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 
@@ -19,7 +20,7 @@ export function StatsEmblems({ hof, userId }: { hof: ClanStatsPageModel["hof"]; 
   });
   return <Card size="sm"><CardHeader><CardTitle><StatTitle title="엠블럼 컬렉션" help="마감된 월간·연간 순위의 1~3위에게 표시합니다. 트로피·달력·교차 검·불꽃·과녁은 부문을, 금·은·동은 순위를 나타냅니다. 이중 테두리는 연간 기록입니다. 공개된 부문만 표시하며 기록 정정 시 재집계됩니다." /></CardTitle></CardHeader><CardContent className="space-y-3">
     <OptionWheel label="수상 기간" options={[{ id: "month", label: "월간" }, { id: "year", label: "연간" }]} value={period} onChange={setPeriod} />
-    {emblems.length ? <div className="flex flex-wrap gap-3" aria-label="수상 엠블럼">{emblems.map((emblem) => {
+    {emblems.length ? <StatsScrollArea key={period} label="엠블럼 목록" className="max-h-64"><div className="flex flex-wrap gap-3" aria-label="수상 엠블럼">{emblems.map((emblem) => {
       const design = {
         "승률": { Icon: Trophy, shape: "M32 3 56 13 52 43 32 61 12 43 8 13Z" },
         "최다 출석": { Icon: CalendarCheck, shape: "M16 5H48L59 16V48L48 59H16L5 48V16Z" },
@@ -35,6 +36,6 @@ export function StatsEmblems({ hof, userId }: { hof: ClanStatsPageModel["hof"]; 
         <Icon className="relative -mt-2 size-7" strokeWidth={1.7} aria-hidden />
         <span aria-hidden className="absolute bottom-2 rounded-full border border-current/30 bg-card px-1.5 text-[10px] font-black leading-4">{emblem.rank}</span>
       </StatTooltip>;
-    })}</div> : <p className="rounded-lg border border-dashed p-4 text-xs text-muted-foreground">마감된 {period === "month" ? "월간" : "연간"} 기록의 상위 3위 엠블럼이 없습니다.</p>}
+    })}</div></StatsScrollArea> : <p className="rounded-lg border border-dashed p-4 text-xs text-muted-foreground">마감된 {period === "month" ? "월간" : "연간"} 기록의 상위 3위 엠블럼이 없습니다.</p>}
   </CardContent></Card>;
 }
