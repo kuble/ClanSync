@@ -29,7 +29,7 @@ export default function RootPage() {
             <div className={styles.portalMasthead}><span>PORTAL</span><small>BY<br />CLAN<br />SYNC</small></div>
             <div className={styles.portalTicker}><span>✳</span><span>YOUR CLAN, IN SYNC</span><span>▨</span><span>LOBBY / MATCH / ARCHIVE</span><span>↗</span></div>
             <div className={styles.portalScene}>
-              <Image src="/images/portal-night-alley.png" alt="푸른 조명 아래 함께 서 있는 두 클랜원" fill priority sizes="(max-width: 880px) 100vw, 540px" />
+              <Image src="/images/portal-night-alley.png" alt="어두운 차고 앞에 나란히 서 있는 두 사람" fill priority sizes="(max-width: 880px) 100vw, 540px" />
               <div className={styles.portalSceneContent}>
                 <span className={styles.portalEyebrow}>다음 경기가 시작되는 곳</span>
                 <h1 id="landing-title" className={styles.heroTitle}><span className="sr-only">ClanSync — </span>함께한 순간을<br />다음 경기로 잇다.</h1>
