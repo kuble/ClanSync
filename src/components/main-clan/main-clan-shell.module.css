@@ -53,26 +53,26 @@
   .plan { display: none; }
 }
 
-/* Portal palette is scoped to the clan dashboard so the other clan workflows stay familiar. */
-.portalDashboard { --surface: #f8f2dc; background: #f8f2dc; }
+/* The reference uses cream for fine panel outlines, not the application canvas. */
+.portalDashboard { --surface: #111313; background: #111313; }
 .portalDashboard .header {
-  --foreground: #1c1e1e;
-  --muted-foreground: #555e58;
-  --border: #c9cabd;
-  color: #1c1e1e;
-  background: #f8f2dc;
-  border-bottom-color: #c9cabd;
+  --foreground: #f2f0e4;
+  --muted-foreground: #c7cbc3;
+  --border: #c7c4b6;
+  color: #f2f0e4;
+  background: #111313;
+  border-bottom-color: #c7c4b6;
 }
-.portalDashboard .brand { color: #f8f2dc; background: #1c1e1e; border-radius: 3px; }
-.portalDashboard .breadcrumbs > a:hover { color: #146176; }
-.portalDashboard .plan { color: #624714; background: #f1e3b8; border: 1px solid #d6bf79; border-radius: 3px; }
+.portalDashboard .brand { color: #111313; background: #f2f0e4; border-radius: 3px; }
+.portalDashboard .breadcrumbs > a:hover { color: #8ad0de; }
+.portalDashboard .plan { color: #e8d79c; background: transparent; border: 1px solid #bda96c; border-radius: 3px; }
 .portalDashboard .rail {
-  --surface: #1c1e1e;
+  --surface: #111313;
   --foreground: #f2f0e4;
   --muted-foreground: #adb8b5;
-  --border: #48504b;
-  background: #1c1e1e;
-  border-right-color: #48504b;
+  --border: #c7c4b6;
+  background: #111313;
+  border-right-color: #c7c4b6;
 }
 .portalDashboard .navLink:hover { color: #f2f0e4; background: #ffffff12; }
 .portalDashboard .navLink[aria-current="page"] { color: #c5e9ec; background: #65bdd22b; border-left-color: #8ad0de; }
@@ -82,17 +82,17 @@
   --foreground: #f2f0e4;
   --muted: #2d3331;
   --muted-foreground: #bac4bf;
-  --border: #69736c;
+  --border: #b9b7aa;
   --primary: #8ad0de;
   --primary-foreground: #102329;
   color: #f2f0e4;
-  background: #f8f2dc;
+  background: #111313;
 }
 .portalDashboard .inner { max-width: 1380px; }
 .portalDashboard .hero {
   min-height: 286px;
   padding: 66px 30px 26px;
-  border: 1px solid #d9d8cc;
+  border: 1px solid #c7c4b6;
   border-radius: 28px;
   background: linear-gradient(180deg, #0913168c 0%, #07101118 42%, #070c0de6 100%), url("/images/portal-night-alley.png") center 53% / cover;
   box-shadow: 0 16px 30px #34372d1a;

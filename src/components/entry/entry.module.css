@@ -209,27 +209,27 @@
   .landing *, .authShell *, .gamesPage * { scroll-behavior: auto; transition: none; }
 }
 
-/* The portal study only changes the public landing page. Auth and app screens keep their own theme. */
+/* Keep this portal palette scoped to the public landing page. */
 .landing {
-  --entry-bg: #f8f2dc;
+  --entry-bg: #111313;
   --entry-surface: #222523;
-  --entry-border: #d8d7ca;
-  --entry-muted: #555a55;
+  --entry-border: #c7c4b6;
+  --entry-muted: #b8beb8;
   --entry-accent: #65bdd2;
-  color: #1c1e1e;
+  color: #f2f0e4;
   background: var(--entry-bg);
 }
-.landing .navbar { background: var(--entry-bg); border-color: #c9c9b9; }
+.landing .navbar { background: var(--entry-bg); border-color: #c7c4b6; }
 .landing .navbarInner { max-width: 1228px; }
-.landing .brand { color: #1c1e1e; font-family: Arial, sans-serif; font-weight: 900; letter-spacing: -.065em; }
-.landing .brandMark { color: #f8f2dc; background: #1c1e1e; border-radius: 3px; }
-.landing .navLinks { color: #474b47; font-family: var(--font-geist-mono), monospace; font-size: 11px; letter-spacing: .02em; }
-.landing .navLinks a:hover { color: #1c1e1e; }
-.landing .ghostButton { color: #1c1e1e; }
-.landing .ghostButton:hover { background: #e9e5d5; }
-.landing .navActions .button { background: #1c1e1e; border-color: #1c1e1e; color: #f8f2dc; }
-.landing .navActions .button:hover { background: #303634; }
-.landing a:focus-visible { outline-color: #146176; }
+.landing .brand { color: #f2f0e4; font-family: Arial, sans-serif; font-weight: 900; letter-spacing: -.065em; }
+.landing .brandMark { color: #111313; background: #f2f0e4; border-radius: 3px; }
+.landing .navLinks { color: #c9cbc1; font-family: var(--font-geist-mono), monospace; font-size: 11px; letter-spacing: .02em; }
+.landing .navLinks a:hover { color: #f2f0e4; }
+.landing .ghostButton { color: #f2f0e4; }
+.landing .ghostButton:hover { background: #2a302e; }
+.landing .navActions .button { background: #f2f0e4; border-color: #f2f0e4; color: #1c1e1e; }
+.landing .navActions .button:hover { background: #c8edf3; }
+.landing a:focus-visible { outline-color: #8ad0de; }
 
 .landing .hero {
   max-width: 1228px;
@@ -244,7 +244,7 @@
   min-width: 0;
   background: #1c1e1e;
   color: #f2f0e4;
-  border: 1px solid #333733;
+  border: 1px solid #c7c4b6;
   border-radius: 34px;
   box-shadow: 0 16px 32px #28292320;
   padding: 12px;
@@ -310,32 +310,32 @@
 .portalBrief a { display: inline-flex; align-items: center; gap: 7px; width: fit-content; color: #b3e5ee; font-size: 11px; font-weight: 700; }
 .portalBrief a:hover { color: #f2f0e4; }
 
-.landing .section { max-width: 1228px; margin: 0 auto; padding: 58px 24px; border-top: 1px solid #b8b9aa; }
+.landing .section { max-width: 1228px; margin: 0 auto; padding: 58px 24px; border-top: 1px solid #c7c4b6; }
 .landing .sectionTitle { font-family: Arial, var(--font-pretendard), sans-serif; font-size: clamp(29px, 3vw, 40px); font-weight: 900; letter-spacing: -.06em; }
-.landing .railButtons button { border-color: #777c73; color: #1c1e1e; border-radius: 3px; }
-.landing .railButtons button:hover { border-color: #146176; color: #146176; }
+.landing .railButtons button { border-color: #c7c4b6; color: #f2f0e4; border-radius: 3px; }
+.landing .railButtons button:hover { border-color: #8ad0de; color: #8ad0de; }
 .landing .featureRail { scrollbar-color: #777c73 transparent; }
 .landing .featureCard,
 .landing .featureCard:nth-child(3n + 2),
-.landing .featureCard:nth-child(3n) { background: #1c1e1e; color: #f2f0e4; border-color: #1c1e1e; border-radius: 17px; }
+.landing .featureCard:nth-child(3n) { background: #1c1e1e; color: #f2f0e4; border-color: #c7c4b6; border-radius: 17px; }
 .landing .featureIcon,
 .landing .featureCard:nth-child(3n + 2) .featureIcon,
 .landing .featureCard:nth-child(3n) .featureIcon { color: #8ad0de; }
 .landing .featureCard p { color: #d1d5cc; }
-.landing .supportedGame { background: #1c1e1e; color: #f2f0e4; border-color: #1c1e1e; border-radius: 17px; }
+.landing .supportedGame { background: #1c1e1e; color: #f2f0e4; border-color: #c7c4b6; border-radius: 17px; }
 .landing .gameMonogram,
 .landing .supportedGame:nth-child(2) .gameMonogram,
 .landing .supportedGame:nth-child(3) .gameMonogram { background: #33555b; color: #c6eef4; border-radius: 3px; }
 .landing .supportedGame p { color: #d1d5cc; }
 .landing .pricingCard,
-.landing .pricingCard:last-child { background: #1c1e1e; color: #f2f0e4; border-color: #1c1e1e; border-radius: 17px; }
+.landing .pricingCard:last-child { background: #1c1e1e; color: #f2f0e4; border-color: #c7c4b6; border-radius: 17px; }
 .landing .premiumPrice { color: #b3e5ee; }
 .landing .pricingNote,
 .landing .pricingList li { color: #d1d5cc; }
 .landing .pricingList svg { color: #8ad0de; }
-.landing .footer { max-width: 1180px; margin: 40px auto 0; border-color: #b8b9aa; color: #53584f; }
-.landing .footerLinks { color: #303a38; }
-.landing .footerLinks a:hover { color: #146176; }
+.landing .footer { max-width: 1180px; margin: 40px auto 0; border-color: #c7c4b6; color: #b8beb8; }
+.landing .footerLinks { color: #e0e2d8; }
+.landing .footerLinks a:hover { color: #8ad0de; }
 
 @media (max-width: 880px) {
   .landing .hero { grid-template-columns: minmax(0, 1fr); max-width: 570px; gap: 28px; }
