@@ -19,18 +19,18 @@
 .heading { font-size: 26px; font-weight: 800; line-height: 1.4; letter-spacing: -.025em; }
 .description { margin-top: 8px; color: var(--muted-foreground); font-size: 14px; line-height: 1.7; }
 .gameLabel { color: var(--primary); font-size: 12px; font-weight: 600; margin-bottom: 6px; }
-.authCard { padding: 32px; border: 1px solid var(--border); border-radius: 16px; }
-.gameIcon { width: 72px; height: 72px; border-radius: 12px; display: grid; place-items: center; background: #143027; color: #7bdda9; margin-bottom: 22px; }
+.authCard { padding: 32px; border: 1px solid var(--border); border-radius: 14px; }
+.gameIcon { width: 72px; height: 72px; border-radius: 10px; display: grid; place-items: center; background: #143027; color: #7bdda9; margin-bottom: 22px; }
 .authCard .heading { font-size: 22px; }
-.provider { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-top: 26px; }
+.provider { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-top: 26px; }
 .providerHeader { display: flex; gap: 12px; align-items: center; margin-bottom: 18px; }
 .providerHeader > svg { color: #83b8ef; flex-shrink: 0; }
 .providerHeader h2 { font-size: 15px; font-weight: 600; }
 .providerHeader p { color: var(--muted-foreground); font-size: 12px; margin-top: 4px; line-height: 1.6; }
-.notice { display: flex; align-items: flex-start; gap: 10px; padding: 13px 16px; border: 1px solid #60a5fa35; background: #3b82f60d; color: #a3c6ed; border-radius: 8px; font-size: 13px; line-height: 1.7; margin-top: 20px; }
+.notice { display: flex; align-items: flex-start; gap: 10px; padding: 13px 16px; border: 1px solid #60a5fa35; background: #3b82f60d; color: #a3c6ed; border-radius: 7px; font-size: 13px; line-height: 1.7; margin-top: 20px; }
 .notice svg { flex-shrink: 0; margin-top: 3px; }
 .warning { border-color: #f59e0b44; background: #f59e0b0d; color: #eed097; margin-top: 0; margin-bottom: 18px; }
-.pending { margin-block: 24px; padding: 18px 20px; border: 1px solid #46af7555; border-radius: 12px; background: #46af750d; }
+.pending { margin-block: 24px; padding: 18px 20px; border: 1px solid #46af7555; border-radius: 10px; background: #46af750d; }
 .pendingTop { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .pending h2 { font-size: 15px; font-weight: 650; }
 .pending p { color: var(--muted-foreground); font-size: 12px; line-height: 1.7; margin-top: 5px; }
@@ -44,13 +44,13 @@
 .searchField input { min-height: 42px; padding-left: 39px; }
 .filters { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 14px 0 18px; }
 .filters label { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--muted-foreground); }
-.filters select { min-height: 36px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--foreground); padding: 6px 26px 6px 10px; font-size: 12px; }
+.filters select { min-height: 36px; border-radius: 5px; border: 1px solid var(--border); background: var(--surface); color: var(--foreground); padding: 6px 26px 6px 10px; font-size: 12px; }
 .resultCount { color: var(--muted-foreground); font-size: 12px; margin-bottom: 14px; }
 .clanList { list-style: none; padding: 0; display: grid; gap: 14px; }
-.clanCard { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: transparent; }
+.clanCard { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: transparent; }
 .clanCard:hover { border-color: #46af7566; }
 .overview { display: flex; gap: 14px; align-items: flex-start; padding: 18px; width: 100%; cursor: pointer; text-align: left; background: transparent; }
-.clanEmblem { width: 45px; height: 45px; display: grid; place-items: center; border: 1px solid #46af7533; background: #46af751a; color: #88dba8; border-radius: 10px; font-size: 20px; font-weight: 750; flex-shrink: 0; }
+.clanEmblem { width: 45px; height: 45px; display: grid; place-items: center; border: 1px solid #46af7533; background: #46af751a; color: #88dba8; border-radius: 9px; font-size: 20px; font-weight: 750; flex-shrink: 0; }
 .clanText { min-width: 0; flex: 1; }
 .clanTitle { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 15px; font-weight: 700; }
 .clanSubtitle { font-size: 11px; color: var(--muted-foreground); margin-top: 4px; }
@@ -62,14 +62,14 @@
 .memberCount { display: flex; align-items: center; gap: 6px; color: var(--muted-foreground); font-size: 12px; }
 .applyPanel { padding: 18px; border-top: 1px solid var(--border); background: var(--surface); display: grid; gap: 12px; }
 .applyPanel label { font-size: 12px; color: var(--muted-foreground); }
-.applyPanel textarea { width: 100%; resize: vertical; border-radius: 7px; border: 1px solid var(--border); padding: 10px 12px; background: var(--background); min-height: 84px; color: var(--foreground); font-size: 13px; }
+.applyPanel textarea { width: 100%; resize: vertical; border-radius: 6px; border: 1px solid var(--border); padding: 10px 12px; background: var(--background); min-height: 84px; color: var(--foreground); font-size: 13px; }
 .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.error { color: #fca5a5; border: 1px solid #ef444440; background: #ef44440d; padding: 12px 14px; border-radius: 8px; font-size: 13px; line-height: 1.7; }
-.empty { border: 1px dashed var(--border); border-radius: 12px; padding: 38px 24px; text-align: center; color: var(--muted-foreground); font-size: 13px; line-height: 1.8; }
+.error { color: #fca5a5; border: 1px solid #ef444440; background: #ef44440d; padding: 12px 14px; border-radius: 7px; font-size: 13px; line-height: 1.7; }
+.empty { border: 1px dashed var(--border); border-radius: 10px; padding: 38px 24px; text-align: center; color: var(--muted-foreground); font-size: 13px; line-height: 1.8; }
 .pagination { display: flex; justify-content: center; gap: 14px; align-items: center; margin-top: 24px; font-size: 13px; color: var(--muted-foreground); }
 .back { display: inline-flex; gap: 6px; align-items: center; margin-top: 28px; color: var(--muted-foreground); font-size: 13px; }
 .back:hover { color: var(--foreground); }
-.createForm { border: 1px solid var(--border); border-radius: 14px; padding: 26px; background: var(--surface); }
+.createForm { border: 1px solid var(--border); border-radius: 12px; padding: 26px; background: var(--surface); }
 .createIntro { margin-bottom: 26px; }
 .createIntro h2 { font-size: 18px; font-weight: 700; }
 .createIntro p { font-size: 13px; line-height: 1.6; color: var(--muted-foreground); margin-top: 7px; }
@@ -77,13 +77,13 @@
 .formSection legend { display: block; width: 100%; padding-bottom: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 650; }
 .field { display: grid; gap: 8px; min-width: 0; }
 .field label, .field > span { font-size: 13px; font-weight: 500; }
-.field input:not([type="checkbox"]):not([type="radio"]), .field textarea, .field select { min-height: 40px; border: 1px solid var(--border); background: var(--background); border-radius: 7px; padding: 9px 12px; font-size: 13px; width: 100%; }
+.field input:not([type="checkbox"]):not([type="radio"]), .field textarea, .field select { min-height: 40px; border: 1px solid var(--border); background: var(--background); border-radius: 6px; padding: 9px 12px; font-size: 13px; width: 100%; }
 .field p { color: var(--muted-foreground); font-size: 12px; line-height: 1.6; }
 .fieldGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .choiceGroup { padding: 0; border: 0; }
 .choiceGroup legend { border: 0; margin: 0 0 9px; padding: 0; color: var(--foreground); font-size: 13px; font-weight: 500; }
 .chips { display: flex; gap: 7px; flex-wrap: wrap; }
-.chips label { position: relative; cursor: pointer; font-size: 12px; border: 1px solid var(--border); border-radius: 6px; padding: 7px 12px; color: var(--muted-foreground); background: var(--background); }
+.chips label { position: relative; cursor: pointer; font-size: 12px; border: 1px solid var(--border); border-radius: 5px; padding: 7px 12px; color: var(--muted-foreground); background: var(--background); }
 .chips input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .chips label:has(input:checked) { background: #46af7522; border-color: #46af7566; color: #90dda9; }
 .chips label:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 2px; }

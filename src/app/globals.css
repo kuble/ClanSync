@@ -41,10 +41,10 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
+  --radius-sm: 0.4375rem;
+  --radius-md: 0.625rem;
   --radius-lg: var(--radius);
-  --radius-xl: 1.5rem;
+  --radius-xl: 1.25rem;
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
@@ -70,7 +70,7 @@
   --border: #d5dfda;
   --input: #c8d5cd;
   --ring: #46af75;
-  --radius: 1rem;
+  --radius: 0.875rem;
   --brand-primary: #2b8a57;
   --brand-accent: #46af75;
   --text-secondary: #334155;

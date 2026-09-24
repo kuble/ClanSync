@@ -1,11 +1,11 @@
 .shell { min-height: 100dvh; background: var(--surface); }
 .header { height: 60px; position: fixed; z-index: 40; inset: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 24px; background: var(--surface); border-bottom: 1px solid var(--border); }
-.brand { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; color: #0d2b1f; background: #34c997; flex-shrink: 0; }
+.brand { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 7px; color: #0d2b1f; background: #34c997; flex-shrink: 0; }
 .breadcrumbs { display: flex; min-width: 0; align-items: center; gap: 14px; font-size: 13px; color: var(--muted-foreground); }
 .breadcrumbs > a:last-child { color: var(--foreground); font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .breadcrumbs > a:hover { color: var(--primary); }
 .headerLeft, .headerRight { display: flex; align-items: center; min-width: 0; gap: 16px; }
-.plan { color: var(--pro-gold); background: color-mix(in srgb, var(--pro-gold) 12%, transparent); font-size: 10px; font-weight: 700; letter-spacing: .03em; border-radius: 6px; padding: 3px 7px; }
+.plan { color: var(--pro-gold); background: color-mix(in srgb, var(--pro-gold) 12%, transparent); font-size: 10px; font-weight: 700; letter-spacing: .03em; border-radius: 5px; padding: 3px 7px; }
 .rail { position: fixed; left: 0; top: 60px; bottom: 0; z-index: 35; width: 64px; display: flex; flex-direction: column; background: var(--surface); border-right: 1px solid var(--border); overflow-x: hidden; transition: width .2s ease, box-shadow .2s ease; padding: 24px 0; }
 .rail:hover, .rail:focus-within { width: 220px; box-shadow: 8px 0 24px #0005; }
 .nav { display: flex; flex-direction: column; gap: 5px; }
@@ -20,10 +20,10 @@
 .bottom::before { content: ""; display: block; height: 1px; margin: 0 16px 12px; background: var(--border); }
 .content { min-height: 100dvh; padding: 88px 28px 36px 92px; }
 .inner { width: 100%; max-width: 1720px; margin: 0 auto; }
-.hero { position: relative; overflow: hidden; min-height: 160px; display: flex; align-items: flex-end; gap: 14px; padding: 20px; border-radius: 24px; margin-bottom: 20px; background: var(--card); }
+.hero { position: relative; overflow: hidden; min-height: 160px; display: flex; align-items: flex-end; gap: 14px; padding: 20px; border-radius: 20px; margin-bottom: 20px; background: var(--card); }
 .heroImage { position: absolute; inset: 0; height: 100%; width: 100%; object-fit: cover; }
 .heroImage + .heroShade { position: absolute; inset: 0; background: linear-gradient(0deg,#0b100de6,#0b100d33); }
-.clanIcon { position: relative; display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 12px; border: 2px solid #ffffff20; background: linear-gradient(135deg,#234d37,#46af75); color: white; box-shadow: 0 4px 16px #0005; flex-shrink: 0; overflow: hidden; }
+.clanIcon { position: relative; display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 10px; border: 2px solid #ffffff20; background: linear-gradient(135deg,#234d37,#46af75); color: white; box-shadow: 0 4px 16px #0005; flex-shrink: 0; overflow: hidden; }
 .clanIcon img { width: 100%; height: 100%; object-fit: cover; }
 .clanInfo { position: relative; min-width: 0; flex: 1; }
 .clanInfo h1 { font-size: 20px; font-weight: 800; letter-spacing: -.02em; color: #f3f4f6; line-height: 1.4; overflow-wrap: anywhere; }
@@ -34,7 +34,7 @@
 .drawer { width: min(248px,76vw); padding: 0; }
 .drawer .navLink { padding-left: 18px; gap: 12px; }
 .drawer .bottom { margin-top: 20px; }
-.skipLink { position: fixed; top: -80px; left: 80px; z-index: 100; padding: 8px 16px; color: var(--foreground); background: var(--card); border-radius: 8px; }
+.skipLink { position: fixed; top: -80px; left: 80px; z-index: 100; padding: 8px 16px; color: var(--foreground); background: var(--card); border-radius: 7px; }
 .skipLink:focus { top: 8px; }
 @media (max-width: 768px) {
   .header { padding: 0 16px; gap: 8px; }
@@ -45,7 +45,7 @@
   .rail { display: none; }
   .mobileTrigger { display: inline-flex; }
   .content { padding: 76px 16px 24px; }
-  .hero { padding: 18px; min-height: 150px; flex-wrap: wrap; border-radius: 20px; }
+  .hero { padding: 18px; min-height: 150px; flex-wrap: wrap; border-radius: 18px; }
   .clanIcon { width: 52px; height: 52px; }
   .clanInfo h1 { font-size: 18px; }
   .clanMeta { font-size: 11px; }

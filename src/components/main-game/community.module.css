@@ -25,7 +25,7 @@
   place-items: center;
   background: #34c997;
   color: #0d2b1f;
-  border-radius: 8px;
+  border-radius: 7px;
 }
 .headerAction {
   margin-left: auto;
@@ -126,7 +126,7 @@
 .pageIcon {
   width: 44px;
   height: 44px;
-  border-radius: 12px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
   background: #46af7515;
@@ -155,7 +155,7 @@
   flex-direction: column;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 24px;
+  border-radius: 20px;
   padding: 20px;
   min-width: 0;
 }
@@ -200,7 +200,7 @@
   padding: 16px;
   border: 1px solid var(--border);
   background: var(--surface);
-  border-radius: 16px;
+  border-radius: 14px;
   min-width: 0;
   transition:
     border-color 0.15s,
@@ -227,7 +227,7 @@
 .clanMark {
   width: 32px;
   height: 32px;
-  border-radius: 9px;
+  border-radius: 8px;
   background: #46af751a;
   color: var(--primary) !important;
   display: grid !important;
@@ -335,7 +335,7 @@
   flex-shrink: 0;
   background: #46af7519;
   border: 1px solid #46af7520;
-  border-radius: 9px;
+  border-radius: 8px;
   font-size: 11px;
   color: var(--primary);
 }
@@ -352,7 +352,7 @@
   top: -70px;
   z-index: 60;
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: 7px;
   background: var(--card);
 }
 .skip:focus {
@@ -417,6 +417,6 @@
   }
   .card {
     padding: 18px;
-    border-radius: 20px;
+    border-radius: 18px;
   }
 }
