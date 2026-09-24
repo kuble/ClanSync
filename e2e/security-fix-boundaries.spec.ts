@@ -267,7 +267,8 @@ test("statistics use three sections and site usage appears in staff management",
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
   await expect(page.getByRole("tab", { name: "명예의 전당" })).toBeVisible();
   await expect(page.getByRole("tab", { name: "내전 통계" })).toBeVisible();
-  await expect(page.getByLabel("명예의 전당 대표 기록").locator("button[aria-pressed]")).toHaveCount(4);
+  await expect(page.getByLabel("명예의 전당 순위").locator('[data-slot="card"]')).toHaveCount(4);
+  await expect(page.getByRole("listbox", { name: "명예의 전당 부문" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "다승", exact: true })).toHaveCount(0);
   await page.getByRole("listbox", { name: "명예의 전당 기간", exact: true }).press("ArrowDown");
   await expect(page.getByRole("listbox", { name: "명예의 전당 월", exact: true })).toBeVisible();

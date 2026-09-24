@@ -133,12 +133,7 @@ export function HofSettingsForm({
           </select>
         </div>
         <input type="hidden" name="wins_visible_top" value={String(cfg.winsVisibleTop)} />
-        <div className="space-y-1">
-          <Label htmlFor="streak_visible_top">최장 연승 순위 공개</Label>
-          <select id="streak_visible_top" name="streak_visible_top" defaultValue={String(cfg.streakVisibleTop)} className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm">
-            {TOP_OPTIONS.map((n) => <option key={n} value={n}>{n === 0 ? "비공개" : n === 999 ? "전체" : `상위 ${n}명`}</option>)}
-          </select>
-        </div>
+        <input type="hidden" name="streak_visible_top" value={String(cfg.streakVisibleTop)} />
         <div className="space-y-1">
           <Label htmlFor="prediction_visible_top">승부예측 순위 공개</Label>
           <select id="prediction_visible_top" name="prediction_visible_top" defaultValue={String(cfg.predictionVisibleTop)} className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm">
