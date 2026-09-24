@@ -90,13 +90,13 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
         {!rows.length ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">등재 기준을 충족한 기록이 없습니다.</p> : <ol className="space-y-2">{rows.map((row, index) => {
           const canOpen = model.personal.people.some((person) => person.userId === row.userId);
           const content = <>
+            {category !== "streak" && <StatsGauge value={row.numerator} total={row.denominator} label={`${row.nickname}: ${row.detail}, ${row.value}`} />}
             <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-amber-500/10 text-xs font-bold text-amber-500">{index + 1}</span>
-            <span className="min-w-0 flex-1 space-y-2"><span className="flex items-center justify-between gap-3"><span className="truncate text-sm font-semibold">{row.nickname}</span><strong className="shrink-0 text-sm tabular-nums">{row.value}</strong></span>
-              {category !== "streak" && <StatsGauge value={row.numerator} total={row.denominator} label={`${row.nickname}: ${row.detail}, ${row.value}`} />}
+            <span className="min-w-0 flex-1 space-y-1"><span className="flex items-center justify-between gap-3"><span className="truncate text-sm font-semibold">{row.nickname}</span><strong className="shrink-0 text-sm tabular-nums">{row.value}</strong></span>
               <span className="block text-[11px] text-muted-foreground">{row.detail}</span>
             </span>
           </>;
-          const className = "flex w-full items-center gap-3 rounded-xl border p-3 text-left";
+          const className = "relative isolate flex w-full items-center gap-3 overflow-hidden rounded-xl border p-3 text-left";
           return <li key={row.userId}>{canOpen ? <button type="button" onClick={() => onChoosePerson(row.userId)} className={`${className} hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary`}>{content}</button> : <div className={className}>{content}</div>}</li>;
         })}</ol>}
       </CardContent></Card>

@@ -1,12 +1,12 @@
 "use client";
 
-/** A proportion always has an explicit denominator, including empty records. */
+/** Fills the nearest relative/isolate slot behind its content, without adding a row. */
 export function StatsGauge({ value, total, label }: { value: number; total: number; label: string }) {
   const percent = total > 0 ? Math.min(100, Math.max(0, value / total * 100)) : 0;
   return <span role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={100}
     aria-valuenow={Math.round(percent * 10) / 10} aria-valuetext={total > 0 ? label : "기록 없음"}
-    className="block h-1.5 w-full overflow-hidden rounded-full bg-muted">
-    <span className="block h-full rounded-full bg-primary" style={{ width: `${percent}%` }} />
+    className="pointer-events-none absolute inset-0 -z-10 m-0! overflow-hidden rounded-[inherit]">
+    <span className="block h-full bg-primary/15 motion-safe:transition-[width] motion-safe:duration-300" style={{ width: `${percent}%` }} />
   </span>;
 }
 

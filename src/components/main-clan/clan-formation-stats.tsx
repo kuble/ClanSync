@@ -17,7 +17,7 @@ export function ClanFormationStats({ summaries }: { summaries: IntraStats["score
       </div><span className="text-xs text-muted-foreground">{summary.count}경기</span></div>
       {summary.average === null ? <p className="rounded-lg border border-dashed p-5 text-center text-sm text-muted-foreground">경기 전 점수가 저장된 기록이 없습니다.</p> : <>
         <p className="text-sm text-muted-foreground">평균 차이 <strong className="ml-2 text-xl tabular-nums text-foreground">{summary.average}점</strong></p>
-        <div className="space-y-3">{["1점 미만", "1~2점", "2~4점", "4점 이상"].map((label, index) => <div key={label} className="space-y-1.5"><div className="flex justify-between text-xs"><span>{label}</span><strong className="tabular-nums">{summary.ranges[index]} / {summary.count}경기</strong></div><StatsGauge value={summary.ranges[index]} total={summary.count} label={`${label}: ${summary.ranges[index]} / ${summary.count}경기`} /></div>)}</div>
+        <div className="space-y-3">{["1점 미만", "1~2점", "2~4점", "4점 이상"].map((label, index) => <div key={label} className="relative isolate overflow-hidden rounded-lg border p-3"><div className="flex justify-between text-xs"><span>{label}</span><strong className="tabular-nums">{summary.ranges[index]} / {summary.count}경기</strong></div><StatsGauge value={summary.ranges[index]} total={summary.count} label={`${label}: ${summary.ranges[index]} / ${summary.count}경기`} /></div>)}</div>
       </>}
       <p className="text-xs text-muted-foreground">실제 경기의 접전 정도가 아닌, 편성 당시의 예상 점수 차이입니다.</p>
     </CardContent>
