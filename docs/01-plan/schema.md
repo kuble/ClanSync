@@ -982,7 +982,9 @@ draft ──► matched ──► confirmed ──► finished
 - 분쟁 추적: 같은 경기에 정정이 반복되면 운영 알림(Phase 2+ anomaly detection 후보).
 
 ### clan_daily_member_activity (클랜 활동일 · D-STATS-03)
-> **D-STATS-03** (DECIDED 2026-04-21) — 탭 4 "앱 이용" §영역 1의 측정 단위 = **활동일(person-day)**. 멤버가 자기 클랜 페이지에 첫 페이지뷰를 기록한 날 = 1행. DAY UNIQUE로 새벽 새로고침·매크로·prefetch 스팸 자동 차단. INSERT-only. [decisions.md §D-STATS-03](./decisions.md#d-stats-03--앱-이용-횟수-측정-단위--활동일-person-day).
+> **D-STATS-03** (DECIDED 2026-04-21) — 앱/사이트 방문의 측정 단위 = **활동일(person-day)**. 멤버가 자기 클랜 페이지에 첫 페이지뷰를 기록한 날 = 1행. DAY UNIQUE로 같은 날 중복 기록을 막는다. INSERT-only. [D-STATS-03](./decisions.md#d-stats-03--앱-이용-횟수-측정-단위--활동일-person-day).
+
+> **[D-STATS-05](./decisions.md#d-stats-05) (2026-09-24), 기획 확정·구현 대기:** 방문 통계를 클랜 관리의 운영진 전용 영역으로 이동한다. 이 절은 목표 설계이며 실제 테이블·집계·RLS 마이그레이션이 적용됐다는 뜻이 아니다. 기존 전 멤버 열람 기획은 아래 관리 전용 목표로 대체한다.
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
@@ -1010,7 +1012,7 @@ ON CONFLICT (clan_id, user_id, activity_date) DO NOTHING;
 
 **RLS**
 
-- SELECT: 같은 클랜 활성 멤버 전원 (영역 2·3과 동일 정책).
+- SELECT 목표: 같은 클랜의 권한 있는 운영진(leader/officer)만 방문 통계 조회. 일반 member에게 원본·집계 응답을 제공하지 않는다. 실제 정책 변경·검증은 D-STATS-05 구현 단계에서 수행한다.
 - INSERT: `record_clan_activity()` RPC 경유만. 직접 INSERT 차단(서비스 롤도 RPC 사용).
 - UPDATE/DELETE: 전면 차단(INSERT-only). 멤버 탈퇴 후에도 행 보존 → 과거 통계 진실성 유지. 사용자 계정 삭제(GDPR) 시에만 CASCADE.
 
@@ -1021,8 +1023,8 @@ CREATE MATERIALIZED VIEW clan_monthly_activity AS
 SELECT
   clan_id,
   date_trunc('month', activity_date)::date AS month,
-  COUNT(*)                  AS person_days,      -- 영역 1
-  COUNT(DISTINCT user_id)   AS active_members    -- 영역 2 (월간)
+  COUNT(*)                  AS person_days,      -- 사이트 방문 활동일 합
+  COUNT(DISTINCT user_id)   AS active_members    -- 월간 사이트 방문자 수 (내전 출전 아님)
 FROM clan_daily_member_activity
 GROUP BY 1, 2;
 
@@ -1037,8 +1039,8 @@ GROUP BY 1, 2;
 ```
 
 - cron 매일 새벽 1회 `REFRESH MATERIALIZED VIEW CONCURRENTLY ...`.
-- 영역 1(`person_days`) ↔ 영역 2(`active_members`) 동시 산출 → 두 영역 일관성 강화.
-- 영역 3(내전 경기 수)은 `matches` 테이블 별도 집계 (본 테이블과 무관).
+- `person_days`는 사이트 방문 활동일 합, `active_members`는 해당 기간의 사이트 방문자 distinct다. 월별 distinct를 더해 연간 방문자 수로 사용하지 않는다.
+- **내전 순참여인원·경기 수·참여율은 이 테이블로 계산하지 않는다.** 정규 내전 확정 기록·출전 명단을 별도로 집계하여 [내전 통계](./pages/10-Clan-Stats.md)에 제공한다. 방문 수치와 내전 참여 지표를 합치지 않는다.
 
 **카운트 컨텍스트**
 

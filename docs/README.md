@@ -31,6 +31,7 @@
 | 정규·깜짝 방·예약·임시 진행자 | [내전 로비 명세](02-design/session-lobby.md) |
 | 기획·디자인 고도화 논의 | [고도화 논의 문서](01-plan/product-design-evolution.md) — 제안 7개·결정 질문·화면 방향 |
 | 편성 방식·팀원용 공유 연출 | [편성 명세](02-design/formation-modes.md) — 확정 규칙·적용 범위·후속 구분 |
+| 클랜 통계·역할별 함께한 기록/상대 전적 | [통계 명세](01-plan/pages/10-Clan-Stats.md) — 명예의 전당·내전 통계·개인 기록, 사이트 이용은 관리로 이전. 기획 확정·구현 대기 |
 | Phase 2 구현 현황·완료 검증 | [TODO_Phase2.md](TODO_Phase2.md) |
 | 코드 리뷰·수정 필요 사안 | [2026-09-15 리뷰](03-analysis/code-review-2026-09-15.md) |
 | 제품 범위·구독 티어 | [PRD](01-plan/PRD.md) |
