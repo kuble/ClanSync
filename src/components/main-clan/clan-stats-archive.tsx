@@ -20,6 +20,7 @@ import type {
   ClanArchiveMatch,
 } from "@/lib/clan/stats/load-clan-stats";
 import { isoToKstYmd } from "@/lib/clan/stats/kst";
+import { StatsScrollArea } from "./stats-scroll-area";
 import { cn } from "@/lib/utils";
 
 function dateKey(date: Date) {
@@ -431,7 +432,7 @@ function ArchiveRecords({ records }: { records: ClanArchiveMatch[] }) {
           이날의 내전 승률
         </h5>
         {ranking.length ? (
-          <ol className="divide-y">
+          <StatsScrollArea label="이날의 내전 승률 목록" className="max-h-80"><ol className="divide-y">
             {ranking.map((row, index) => (
               <li
                 key={row.userId}
@@ -460,7 +461,7 @@ function ArchiveRecords({ records }: { records: ClanArchiveMatch[] }) {
                 </strong>
               </li>
             ))}
-          </ol>
+          </ol></StatsScrollArea>
         ) : (
           <p className="px-4 py-8 text-center text-xs text-muted-foreground">
             집계할 내전 결과가 없습니다.

@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
 import { HofSettingsForm } from "./clan-stats-view";
+import { StatsScrollArea } from "./stats-scroll-area";
 import { StatsGauge } from "./clan-stats-charts";
 
 const HELP = { rate: "승 / (승 + 무 + 패). 최소 출전 기준을 충족한 멤버만 등재합니다.", attendance: "한 경기 이상 출전한 내전 날짜 수입니다. 같은 날 여러 내전에 참여해도 1일로 셉니다.", appearances: "선택 기간의 전체 유효 경기 중 실제 출전한 경기 수입니다.", prediction: "적중 횟수순으로 순위를 매깁니다. 게이지는 적중률이며 무승부·무효 예측은 제외합니다.", streak: "선택 기간의 최장 연속 승리 기록입니다. 무승부는 연승을 끝냅니다." };
@@ -87,7 +88,7 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
       </div>
       <Card size="sm"><CardHeader><CardTitle><StatTitle title="순위" help={HELP[category]} /></CardTitle></CardHeader><CardContent className="space-y-3">
         <OptionWheel label="명예의 전당 부문" options={CATEGORIES.filter((item) => visible[item.id])} value={category} onChange={setCategory} />
-        {!rows.length ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">등재 기준을 충족한 기록이 없습니다.</p> : <ol className="space-y-2">{rows.map((row, index) => {
+        {!rows.length ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">등재 기준을 충족한 기록이 없습니다.</p> : <StatsScrollArea label="명예의 전당 순위 목록" className="max-h-96"><ol className="space-y-2">{rows.map((row, index) => {
           const canOpen = model.personal.people.some((person) => person.userId === row.userId);
           const content = <>
             {category !== "streak" && <StatsGauge value={row.numerator} total={row.denominator} label={`${row.nickname}: ${row.detail}, ${row.value}`} />}
@@ -98,7 +99,7 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
           </>;
           const className = "relative isolate flex w-full items-center gap-3 overflow-hidden rounded-xl border p-3 text-left";
           return <li key={row.userId}>{canOpen ? <button type="button" onClick={() => onChoosePerson(row.userId)} className={`${className} hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary`}>{content}</button> : <div className={className}>{content}</div>}</li>;
-        })}</ol>}
+        })}</ol></StatsScrollArea>}
       </CardContent></Card>
     </>}
   </div>;
