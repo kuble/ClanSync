@@ -76,12 +76,15 @@ export async function recordFailedPasswordAttempt(
 
   const { data: row } = await svc
     .from("auth_login_lockouts")
-    .select("consecutive_failures")
+    .select("consecutive_failures,locked_until")
     .eq("email", norm)
     .eq("ip", ip)
     .maybeSingle();
 
-  const prev = row?.consecutive_failures ?? 0;
+  // An expired lock starts a fresh series of failures. Otherwise one bad
+  // password after the 15-minute timeout would immediately lock the user again.
+  const expired = row?.locked_until ? new Date(row.locked_until).getTime() <= Date.now() : false;
+  const prev = expired ? 0 : (row?.consecutive_failures ?? 0);
   const next = prev + 1;
   let lockedUntil: string | null = null;
   if (next >= MAX_FAILURES) {

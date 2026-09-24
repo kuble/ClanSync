@@ -133,3 +133,20 @@ test("an active login lock blocks even a correct password before a session is cr
   expect(audit.error).toBeNull();
   expect(audit.data).toEqual([{ reason: "locked" }]);
 });
+
+test("an expired login lock allows a new failure series", async ({ page, authUser }) => {
+  const { svc, email, ip } = authUser;
+  expect((await svc.from("auth_login_lockouts").upsert({
+    email, ip, consecutive_failures: 5, locked_until: new Date(Date.now() - 60_000).toISOString(),
+  }, { onConflict: "email,ip" })).error).toBeNull();
+
+  await fillSignIn(page, authUser);
+  await page.getByLabel("비밀번호", { exact: true }).fill("incorrect-password");
+  await page.getByRole("button", { name: "로그인", exact: true }).click();
+  await expect(page.locator("form").getByRole("alert")).toContainText("이메일 또는 비밀번호");
+
+  const lock = await svc.from("auth_login_lockouts")
+    .select("consecutive_failures,locked_until").eq("email", email).eq("ip", ip).single();
+  expect(lock.error).toBeNull();
+  expect(lock.data).toEqual({ consecutive_failures: 1, locked_until: null });
+});
