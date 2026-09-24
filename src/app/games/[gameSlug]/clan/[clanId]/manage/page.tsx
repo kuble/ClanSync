@@ -37,6 +37,7 @@ import { loadClanSiteVisits } from "@/lib/clan/stats/clan-site-usage";
 import { loadClanStatsPage } from "@/lib/clan/stats/load-clan-stats";
 import { ClanFormationStats } from "@/components/main-clan/clan-formation-stats";
 import { ClanSiteUsagePanel } from "@/components/main-clan/clan-site-usage-panel";
+import { ClanOperationalStats } from "@/components/main-clan/clan-operational-stats";
 
 function purchasedItemName(
   items: { name_ko: string } | { name_ko: string }[] | null,
@@ -440,6 +441,7 @@ export default async function ManagePage({
               loadFailed={!!clanProfileError || !clanProfile}
             />
             {stats?.permissions.viewMscore && <ClanFormationStats summaries={stats.intra.scoreGapSummary} />}
+            {stats && <ClanOperationalStats stats={stats.intra} />}
             <ClanSiteUsagePanel visits={siteVisits} />
           </div>
         }
