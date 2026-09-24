@@ -84,6 +84,7 @@ export type HofRowStreak = { userId: string; nickname: string; longest: number }
 export type HofRowPrediction = { userId: string; nickname: string; correct: number; valid: number; ratePct: number | null };
 
 export type HofPeriodPayload = {
+  totals: { sessions: number; days: number; matches: number };
   undisclosed: boolean;
   undisclosedHint: string | null;
   winRate: HofRowWinRate[];
@@ -202,6 +203,7 @@ export function buildHofPeriod(
 
   if (undisclosed) {
     return {
+      totals: { sessions: 0, days: 0, matches: 0 },
       undisclosed: true,
       undisclosedHint,
       winRate: [],
@@ -224,17 +226,15 @@ export function buildHofPeriod(
   const draws = new Map<string, number>();
   const losses = new Map<string, number>();
   const played = new Map<string, number>();
-  const sessionsByPlayer = new Map<string, Set<string>>();
+  const attendanceByPlayer = new Map<string, Set<string>>();
 
   for (const m of matches) {
     const wt = getWinnerTeam(m);
     const players = [...new Map((m.match_players ?? []).map((player) => [player.user_id, player])).values()];
     for (const p of players) {
       played.set(p.user_id, (played.get(p.user_id) ?? 0) + 1);
-      if (m.series_id) {
-        if (!sessionsByPlayer.has(p.user_id)) sessionsByPlayer.set(p.user_id, new Set());
-        sessionsByPlayer.get(p.user_id)!.add(m.series_id);
-      }
+      if (!attendanceByPlayer.has(p.user_id)) attendanceByPlayer.set(p.user_id, new Set());
+      attendanceByPlayer.get(p.user_id)!.add(isoToKstYmd(m.played_at));
       if (wt === null) {
         draws.set(p.user_id, (draws.get(p.user_id) ?? 0) + 1);
         continue;
@@ -302,9 +302,15 @@ export function buildHofPeriod(
       ? inKstMonth(session.openedAt, year, month)
       : inKstYear(session.openedAt, year);
   });
-  const denom = Math.max(new Set(eligibleSessions.map((session) => session.id)).size, 1);
+  // Multiple regular gatherings on the same KST date count as one attendance day.
+  const heldDays = new Set([
+    ...eligibleSessions.map((session) => isoToKstYmd(session.openedAt)),
+    ...matches.map((match) => isoToKstYmd(match.played_at)),
+  ]);
+  const totals = { sessions: new Set(eligibleSessions.map((session) => session.id)).size, days: heldDays.size, matches: totalIntra };
+  const denom = Math.max(totals.days, 1);
   for (const uid of played.keys()) {
-    const pl = sessionsByPlayer.get(uid)?.size ?? 0;
+    const pl = attendanceByPlayer.get(uid)?.size ?? 0;
     if (pl === 0) continue;
     participation.push({
       userId: uid,
@@ -359,6 +365,7 @@ export function buildHofPeriod(
   const predictionCorrect = [...predictionRows].sort((a, b) => b.correct - a.correct || b.valid - a.valid || a.nickname.localeCompare(b.nickname, "ko")).slice(0, predictionTop);
 
   return {
+    totals,
     undisclosed: false,
     undisclosedHint: null,
     winRate: winSlice,
@@ -374,7 +381,7 @@ export async function loadClanStatsPage(
   supabase: SupabaseClient<Database>,
   userId: string,
   clanId: string,
-  options?: { now?: Date },
+  options?: { now?: Date; includeManagement?: boolean },
 ): Promise<ClanStatsPageModel | null> {
   const now = options?.now ?? new Date();
 
@@ -589,7 +596,7 @@ export async function loadClanStatsPage(
     intra.scoreGaps = [];
     intra.recent = [];
   }
-  if (!viewMscore) {
+  if (!viewMscore || role === "member" || !options?.includeManagement) {
     intra.scoreGaps = [];
     intra.scoreGapSummary = {
       evaluation: { count: 0, average: null, ranges: [0, 0, 0, 0] },

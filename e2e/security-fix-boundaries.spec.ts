@@ -247,10 +247,15 @@ test("settled prediction picks are private while live vote totals remain shared"
   const staff = await ok(leader.from("balance_session_predictions").select("user_id").eq("session_id", r.id));
   expect(mine.map((row) => row.user_id)).toEqual([f.users[1].id]);
   expect(staff).toHaveLength(2);
-  const [myStats, staffStats] = await Promise.all([
+  const [myStats, staffStats, staffManagement, memberManagement] = await Promise.all([
     loadClanStatsPage(member, f.users[1].id, f.clanId),
     loadClanStatsPage(leader, f.users[0].id, f.clanId),
+    loadClanStatsPage(leader, f.users[0].id, f.clanId, { includeManagement: true }),
+    loadClanStatsPage(member, f.users[1].id, f.clanId, { includeManagement: true }),
   ]);
+  expect(staffStats?.intra.scoreGapSummary.evaluation.count).toBe(0);
+  expect(memberManagement?.intra.scoreGapSummary.evaluation.count).toBe(0);
+  expect(staffManagement?.permissions.isStaff).toBe(true);
   expect(myStats?.personal.people[0]?.predictions).toContainEqual(expect.objectContaining({ sessionId: r.id, result: "correct" }));
   expect(myStats?.hof.periods.all.predictionCorrect).toEqual([]);
   expect(staffStats?.hof.periods.all.predictionCorrect.some((row) => row.userId === f.users[1].id)).toBe(true);
@@ -261,12 +266,22 @@ test("statistics use three sections and site usage appears in staff management",
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
   await expect(page.getByRole("tab", { name: "명예의 전당" })).toBeVisible();
   await expect(page.getByRole("tab", { name: "내전 통계" })).toBeVisible();
+  await expect(page.getByLabel("명예의 전당 대표 기록").getByRole("button")).toHaveCount(4);
+  await expect(page.getByRole("button", { name: "다승", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "월별", exact: true }).click();
+  await expect(page.getByRole("combobox", { name: "명예의 전당 월", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "연도별", exact: true }).click();
+  await expect(page.getByRole("combobox", { name: "명예의 전당 연도", exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "내전 통계" }).click();
   await expect(page.getByRole("searchbox", { name: "경기 참가자 검색" })).toBeVisible();
+  await expect(page.getByText("편성 방식", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("최근 경기", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("편성 점수 차이", { exact: true })).toHaveCount(0);
   await page.getByRole("tab", { name: "개인 기록" }).click();
   await expect(page.getByText("함께한 기록")).toBeVisible();
   await page.goto(`/games/overwatch/clan/${f.clanId}/manage?tab=overview`);
   await expect(page.getByText("사이트 이용 통계")).toBeVisible();
+  await expect(page.getByText("편성 점수 차이", { exact: true })).toBeVisible();
 });
 
 test("UTC calendar can select a month-end Korean occurrence", async ({ browser }) => {

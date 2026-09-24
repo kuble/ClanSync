@@ -34,6 +34,8 @@ import { clanHasActivePurchaseForItemSlug } from "@/lib/store/store-purchase-que
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import { loadClanSiteVisits } from "@/lib/clan/stats/clan-site-usage";
+import { loadClanStatsPage } from "@/lib/clan/stats/load-clan-stats";
+import { ClanFormationStats } from "@/components/main-clan/clan-formation-stats";
 import { ClanSiteUsagePanel } from "@/components/main-clan/clan-site-usage-panel";
 
 function purchasedItemName(
@@ -96,6 +98,7 @@ export default async function ManagePage({
 
   const svc = createServiceRoleClient();
   const siteVisitsPromise = loadClanSiteVisits(svc, clanId);
+  const statsPromise = user ? loadClanStatsPage(supabase, user.id, clanId, { includeManagement: true }) : Promise.resolve(null);
   // Start the two-step banner lookup while the independent page data loads.
   const bannerSlotPromise = clanHasActivePurchaseForItemSlug(
     svc,
@@ -300,7 +303,7 @@ export default async function ManagePage({
     }),
   );
   const base = `/games/${gameSlug}/clan/${clanId}`;
-  const siteVisits = await siteVisitsPromise;
+  const [siteVisits, stats] = await Promise.all([siteVisitsPromise, statsPromise]);
   const externalLinks = [
     { label: "디스코드", url: clanProfile?.discord_url },
     { label: "오픈카카오톡", url: clanProfile?.kakao_url },
@@ -436,6 +439,7 @@ export default async function ManagePage({
               initialRules={clanProfile?.rules ?? null}
               loadFailed={!!clanProfileError || !clanProfile}
             />
+            {stats?.permissions.viewMscore && <ClanFormationStats summaries={stats.intra.scoreGapSummary} />}
             <ClanSiteUsagePanel visits={siteVisits} />
           </div>
         }

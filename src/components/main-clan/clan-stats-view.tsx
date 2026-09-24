@@ -128,12 +128,7 @@ export function HofSettingsForm({
             ))}
           </select>
         </div>
-        <div className="space-y-1">
-          <Label htmlFor="wins_visible_top">다승 순위 공개</Label>
-          <select id="wins_visible_top" name="wins_visible_top" defaultValue={String(cfg.winsVisibleTop)} className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm">
-            {TOP_OPTIONS.map((n) => <option key={n} value={n}>{n === 0 ? "비공개" : n === 999 ? "전체" : `상위 ${n}명`}</option>)}
-          </select>
-        </div>
+        <input type="hidden" name="wins_visible_top" value={String(cfg.winsVisibleTop)} />
         <div className="space-y-1">
           <Label htmlFor="streak_visible_top">최장 연승 순위 공개</Label>
           <select id="streak_visible_top" name="streak_visible_top" defaultValue={String(cfg.streakVisibleTop)} className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm">
@@ -147,7 +142,7 @@ export function HofSettingsForm({
           </select>
         </div>
         <div className="space-y-1">
-          <Label htmlFor="participation_visible_top">세션 참여 순위 공개</Label>
+          <Label htmlFor="participation_visible_top">출석 일수 순위 공개</Label>
           <select
             id="participation_visible_top"
             name="participation_visible_top"
@@ -164,7 +159,7 @@ export function HofSettingsForm({
           </select>
         </div>
         <div className="space-y-1">
-          <Label htmlFor="cumulative_visible_top">누적 출전 순위 공개</Label>
+          <Label htmlFor="cumulative_visible_top">경기 출전 순위 공개</Label>
           <select
             id="cumulative_visible_top"
             name="cumulative_visible_top"

@@ -110,7 +110,7 @@ test("명예의 전당: 무승부를 승률 분모에 포함하고 결과 미기
     new Map(),
     new Date("2026-09-15T00:00:00Z"),
   );
-  expect(result.participation).toEqual([]);
+  expect(result.participation.find((row) => row.userId === "regular")).toMatchObject({ played: 2, ratePct: 100 });
   expect(
     result.cumulative.find((row) => row.userId === "draw-only"),
   ).toMatchObject({ played: 1 });
@@ -131,7 +131,7 @@ test("명예의 전당: 무승부를 승률 분모에 포함하고 결과 미기
   );
 });
 
-test("명예의 전당: 여러 라운드 출전은 세션 참여 한 번으로 집계한다", () => {
+test("명예의 전당: 여러 라운드 출전은 출석 하루로 집계한다", () => {
   const openedAt = "2026-09-01T10:00:00Z";
   const rows = normalizeClanMatchRecords([], [
     session({ id: "r1", series_id: "series", match_outcome: "team1" }),
@@ -140,6 +140,19 @@ test("명예의 전당: 여러 라운드 출전은 세션 참여 한 번으로 �
   const result = buildHofPeriod(rows, "all", HOF_CONFIG_DEFAULTS, new Map(), new Date("2026-09-15T00:00:00Z"), [{ id: "series", openedAt }]);
   expect(result.participation.find((row) => row.userId === "blue-tank")).toMatchObject({ played: 1, ratePct: 100 });
   expect(result.cumulative.find((row) => row.userId === "blue-tank")).toMatchObject({ played: 2 });
+});
+
+test("출석 일수는 같은 날의 여러 내전을 합치고 개최 일수와 출전 경기 분모를 구분한다", () => {
+  const dates = ["2025-08-01T14:00:00Z", "2025-08-01T14:30:00Z", "2025-08-01T15:10:00Z", "2026-09-01T10:00:00Z"];
+  const opened = dates.map((openedAt, index) => ({ id: `day-${index}`, openedAt }));
+  const rows = normalizeClanMatchRecords([], dates.slice(0, 3).map((opened_at, index) => session({ id: `r-${index}`, series_id: opened[index].id, opened_at, balance_session_series: { opened_at }, match_outcome: "team1" })));
+  const annual = buildHofPeriod(rows, "year", HOF_CONFIG_DEFAULTS, new Map(), new Date("2025-08-15T00:00:00Z"), opened, true, true);
+  expect(annual.totals).toEqual({ sessions: 3, days: 2, matches: 3 });
+  expect(annual.participation[0]).toMatchObject({ played: 2, ratePct: 100 });
+  expect(annual.cumulative[0]).toMatchObject({ played: 3 });
+  const all = buildHofPeriod(rows, "all", HOF_CONFIG_DEFAULTS, new Map(), new Date("2026-09-15T00:00:00Z"), opened, true);
+  expect(all.totals).toEqual({ sessions: 4, days: 3, matches: 3 });
+  expect(all.participation[0]).toMatchObject({ played: 2, ratePct: 66.7 });
 });
 
 test("명예의 전당: 공개 전인 이번 달 순위와 확정된 지난달 순위를 구분한다", () => {
@@ -171,7 +184,7 @@ test("명예의 전당: 등재 최소 경기 수도 무효를 제외한 전체 �
     new Map(),
     new Date("2026-09-15T00:00:00Z"),
   );
-  expect(result.participation).toEqual([]);
+  expect(result.participation.find((row) => row.userId === "regular")).toMatchObject({ played: 2, ratePct: 100 });
   expect(result.cumulative.map((row) => row.userId)).toEqual(expect.arrayContaining(["regular", "once", "draw-only"]));
   expect(result.winRate.map((row) => row.userId)).toEqual(["regular"]);
 });
