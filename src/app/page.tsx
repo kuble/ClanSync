@@ -1,7 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowRight, Check } from "lucide-react";
 import { EntryBrand } from "@/components/entry/entry-brand";
+import { LandingPreview } from "@/components/entry/landing-preview";
 import { LandingFeatures } from "@/components/entry/landing-features";
 import styles from "@/components/entry/entry.module.css";
 
@@ -23,42 +23,16 @@ export default function RootPage() {
         </div>
       </header>
       <main>
-        <section className={styles.hero} aria-labelledby="landing-title">
+        <section className={styles.hero}>
           <div className={styles.heroCopy}>
-            <div className={styles.portalTopline}><span>CLANSYNC / ENTRANCE</span><span>THE CLAN PORTAL ↗</span></div>
-            <div className={styles.portalMasthead}><span>PORTAL</span><small>BY<br />CLAN<br />SYNC</small></div>
-            <div className={styles.portalTicker}><span>✳</span><span>YOUR CLAN, IN SYNC</span><span>▨</span><span>LOBBY / MATCH / ARCHIVE</span><span>↗</span></div>
-            <div className={styles.portalScene}>
-              <Image src="/images/portal-night-alley.png" alt="어두운 차고 앞에 나란히 서 있는 두 사람" fill priority sizes="(max-width: 880px) 100vw, 540px" />
-              <div className={styles.portalSceneContent}>
-                <span className={styles.portalEyebrow}>다음 경기가 시작되는 곳</span>
-                <h1 id="landing-title" className={styles.heroTitle}><span className="sr-only">ClanSync — </span>함께한 순간을<br />다음 경기로 잇다.</h1>
-                <p className={styles.heroSubtitle}>멤버를 모으고 팀을 편성하세요. 경기의 기록까지 한곳에서 이어집니다.</p>
-              </div>
-            </div>
+            <h1 className={styles.heroTitle}><span className="sr-only">ClanSync — </span><span>Archive Your History,</span><em>Stay in Sync</em></h1>
+            <p className={styles.heroSubtitle}>추억을 기록하고 클랜을 체계적으로 관리하세요.</p>
             <div className={styles.heroActions}>
-              <Link href="/sign-up" className={styles.button}>클랜 시작하기 <ArrowRight size={16} aria-hidden="true" /></Link>
               <Link href="/sign-in" className={styles.secondaryButton}>로그인</Link>
-            </div>
-            <div className={styles.portalMainFooter}><span>CLAN MANAGEMENT</span><span>TEAM FORMATION</span><span>MATCH HISTORY</span></div>
-          </div>
-          <div className={styles.portalSide}>
-            <div className={styles.portalTopline}><span>CLANSYNC / INSIDE</span><span>02 / 02</span></div>
-            <div className={styles.portalSideStory}>
-              <div className={styles.portalSidePhoto}><Image src="/images/portal-night-alley.png" alt="" fill sizes="(max-width: 880px) 65vw, 330px" /></div>
-              <div className={styles.portalSideRail}>
-                <div><span>01 / GATHER</span><strong>멤버를<br />모으고</strong></div>
-                <div><span>02 / BALANCE</span><strong>팀을<br />나누고</strong></div>
-                <div><span>03 / ARCHIVE</span><strong>경기를<br />기록하다</strong></div>
-              </div>
-            </div>
-            <div className={styles.portalPreviewHeading}><span>INSIDE THE PORTAL</span><span>하나로 이어지는 클랜 활동</span></div>
-            <div className={styles.portalBrief}>
-              <span aria-hidden="true" className={styles.portalOrbit} />
-              <div><p>내전 로비부터 경기 통계까지,<br />우리 클랜의 흐름을 한곳에.</p><a href="#features">지원 기능 보기 <ArrowRight size={14} aria-hidden="true" /></a></div>
-              <span aria-hidden="true" className={styles.portalTriangle} />
+              <Link href="/sign-up" className={styles.button}>가입하기 <ArrowRight size={16} aria-hidden="true" /></Link>
             </div>
           </div>
+          <LandingPreview />
         </section>
         <LandingFeatures />
         <section id="games" className={styles.section}>

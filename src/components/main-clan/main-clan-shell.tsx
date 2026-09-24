@@ -80,20 +80,12 @@ function NavLinks({
 function ClanHero({
   ctx,
   basePath,
-  portal,
 }: {
   ctx: MainClanContext;
   basePath: string;
-  portal: boolean;
 }) {
   return (
     <section className={styles.hero} aria-label="클랜 소개">
-      {portal ? (
-        <div className={styles.heroTopline} aria-hidden="true">
-          <span>CLANSYNC / CLAN PORTAL</span>
-          <span>MEMBERS IN SYNC ↗</span>
-        </div>
-      ) : null}
       {ctx.bannerUrl ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element -- clan-owned external image */}
@@ -152,8 +144,7 @@ export function MainClanShell({
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const basePath = `/games/${ctx.gameSlug}/clan/${ctx.clanId}`;
-  const isDashboard = pathname === basePath;
-  const showHero = isDashboard || pathname === basePath + "/store";
+  const showHero = pathname === basePath || pathname === basePath + "/store";
   const togglePlan = toggleClanPlanDevFormAction.bind(
     null,
     ctx.gameSlug,
@@ -201,7 +192,7 @@ export function MainClanShell({
   }, []);
 
   return (
-    <div className={cn(styles.shell, isDashboard && styles.portalDashboard)}>
+    <div className={styles.shell}>
       <a href="#main-content" className={styles.skipLink}>
         본문으로 이동
       </a>
@@ -285,7 +276,7 @@ export function MainClanShell({
       </aside>
       <main id="main-content" className={styles.content}>
         <div className={styles.inner}>
-          {showHero ? <ClanHero ctx={ctx} basePath={basePath} portal={isDashboard} /> : null}
+          {showHero ? <ClanHero ctx={ctx} basePath={basePath} /> : null}
           {children}
         </div>
       </main>

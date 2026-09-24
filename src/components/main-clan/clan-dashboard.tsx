@@ -34,19 +34,16 @@ import type {
   DashboardNotice,
 } from "@/lib/clan/load-clan-dashboard";
 import { cn } from "@/lib/utils";
-import shellStyles from "./main-clan-shell.module.css";
 
 const subscribe = () => () => {};
 const clientReady = () => true;
 const serverReady = () => false;
-const card = cn(
-  "min-w-0 rounded-[18px] border border-border bg-card p-5",
-  shellStyles.gridCard,
-);
+const card =
+  "min-w-0 rounded-xl border border-border bg-card p-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)]";
 const cardHeading =
   "text-xs font-semibold tracking-[0.035em] text-muted-foreground";
 const smallLink =
-  "inline-flex shrink-0 items-center gap-1 rounded-[5px] border border-border bg-background/40 px-2.5 py-1.5 text-[11px] font-medium text-foreground transition hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
+  "inline-flex shrink-0 items-center gap-1 rounded-md border border-border bg-background/40 px-2.5 py-1.5 text-[11px] font-medium text-foreground transition hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
 
 function EmptyCard({
   icon: Icon,
@@ -59,7 +56,7 @@ function EmptyCard({
 }) {
   return (
     <div className="flex min-h-36 flex-col items-center justify-center px-2 py-5 text-center">
-      <span className="mb-3 flex size-10 items-center justify-center rounded-[10px] border border-border/70 bg-muted/50 text-muted-foreground">
+      <span className="mb-3 flex size-10 items-center justify-center rounded-xl border border-border/70 bg-muted/50 text-muted-foreground">
         <Icon className="size-4" aria-hidden="true" />
       </span>
       <p className="text-[13px] font-semibold text-foreground">{title}</p>
@@ -111,7 +108,7 @@ function NoticeRow({
     </>
   );
   const className =
-    "flex w-full items-start gap-3 rounded-[10px] border-l-[3px] border-primary bg-muted/55 px-3.5 py-3 text-left transition hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
+    "flex w-full items-start gap-3 rounded-lg border-l-[3px] border-primary bg-muted/55 px-3.5 py-3 text-left transition hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
   return notice.kind === "poll" ? (
     <Link href={href} className={className}>
       {contents}
@@ -180,7 +177,7 @@ function UpcomingEvents({
             href={`${base}/events`}
             className="group flex items-center gap-3 border-b border-border py-3 first:pt-1 last:border-0 last:pb-0"
           >
-            <span className="flex w-11 shrink-0 flex-col items-center rounded-[10px] bg-muted/70 py-1.5">
+            <span className="flex w-11 shrink-0 flex-col items-center rounded-lg bg-muted/70 py-1.5">
               <span className="text-lg font-bold leading-tight text-foreground">
                 {date.getDate()}
               </span>
@@ -204,11 +201,11 @@ function UpcomingEvents({
             </span>
             <span
               className={cn(
-                "shrink-0 rounded-[5px] px-2 py-1 text-[10px] font-semibold",
+                "shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold",
                 today
                   ? "bg-primary/12 text-primary"
                   : event.kind === "scrim"
-                    ? "bg-primary/10 text-primary"
+                    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
                     : "bg-muted text-muted-foreground",
               )}
             >
@@ -246,7 +243,7 @@ function ClanBadges({ model }: { model: ClanDashboardModel }) {
       unlocked: true,
       detail: dateLabel(created),
       hint: "클랜을 창단했어요",
-      color: "text-primary",
+      color: "text-orange-500",
     },
     {
       name: "내전 100회",
@@ -270,7 +267,7 @@ function ClanBadges({ model }: { model: ClanDashboardModel }) {
           ? "기록 확인 필요"
           : `${Math.min(model.completedIntraCount, 500)} / 500`,
       hint: "완료된 내전 500회 달성",
-      color: "text-primary",
+      color: "text-violet-500",
     },
     {
       name: "1주년",
@@ -278,17 +275,17 @@ function ClanBadges({ model }: { model: ClanDashboardModel }) {
       unlocked: anniversary.getTime() <= new Date(model.now).getTime(),
       detail: dateLabel(anniversary),
       hint: "창단 1주년을 함께해요",
-      color: "text-primary",
+      color: "text-rose-500",
     },
   ];
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 min-[1101px]:grid-cols-2">
       {badges.map(({ name, Icon, unlocked, detail, hint, color }) => (
         <div
           key={name}
           title={hint}
           className={cn(
-            "flex min-w-0 flex-col items-center rounded-[10px] border border-border bg-muted/35 px-2 py-3 text-center",
+            "flex min-w-0 flex-col items-center rounded-lg border border-border bg-muted/35 px-2 py-3 text-center",
             !unlocked && "bg-muted/15",
           )}
         >
@@ -344,8 +341,8 @@ function MvpCard({
       <h3 className={cardHeading}>{title}</h3>
       {premiumLocked ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-2 py-4 text-center">
-          <Crown className="size-7 text-primary" aria-hidden="true" />
-          <p className="text-[13px] font-bold text-primary">
+          <Crown className="size-7 text-amber-500" aria-hidden="true" />
+          <p className="text-[13px] font-bold text-amber-700 dark:text-amber-300">
             Premium 전용
           </p>
           <p className="text-xs text-muted-foreground">
@@ -354,7 +351,7 @@ function MvpCard({
           <button
             type="button"
             onClick={onUpgrade}
-            className="mt-1 rounded-[5px] bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:bg-[#b8e5ec]"
+            className="mt-1 rounded-md bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:brightness-105"
           >
             Premium 알아보기
           </button>
@@ -381,7 +378,7 @@ function MvpCard({
             <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
               {value.detail}
             </p>
-            <p className="mt-2.5 inline-flex items-center gap-1.5 rounded-[5px] border border-primary/20 bg-primary/8 px-2.5 py-1.5 text-[11px] font-semibold text-primary">
+            <p className="mt-2.5 inline-flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/8 px-2.5 py-1.5 text-[11px] font-semibold text-primary">
               <Icon className="size-3.5" aria-hidden="true" />
               {value.highlight}
             </p>
@@ -445,11 +442,11 @@ export function ClanDashboard({
     <>
       <h2 className="sr-only">클랜 대시보드</h2>
       <div
-        className="grid grid-cols-1 items-stretch gap-4 min-[900px]:grid-cols-3"
+        className="grid grid-cols-1 items-stretch gap-4 min-[1101px]:grid-cols-3"
         data-testid="clan-dashboard-grid"
       >
         <section
-          className={cn(card, "min-[900px]:col-span-2")}
+          className={cn(card, "min-[1101px]:col-span-2")}
           aria-labelledby="dashboard-notices-heading"
         >
           <div className="mb-4 flex items-center justify-between gap-2">
@@ -512,7 +509,7 @@ export function ClanDashboard({
               type="button"
               aria-label="클랜 규칙 전체 보기"
               onClick={readRules}
-              className="max-h-56 w-full overflow-y-auto whitespace-pre-wrap break-words rounded-[10px] p-1 text-left text-[13px] leading-7 text-foreground/80 transition hover:bg-muted/50"
+              className="max-h-56 w-full overflow-y-auto whitespace-pre-wrap break-words rounded-lg p-1 text-left text-[13px] leading-7 text-foreground/80 transition hover:bg-muted/50"
             >
               {model.rules}
             </button>
@@ -525,7 +522,7 @@ export function ClanDashboard({
           )}
         </section>
         <section
-          className={cn(card, "min-[900px]:col-span-2")}
+          className={cn(card, "min-[1101px]:col-span-2")}
           aria-labelledby="dashboard-events-heading"
         >
           <div className="mb-4 flex items-center justify-between gap-2">
@@ -554,21 +551,21 @@ export function ClanDashboard({
         <MvpCard
           title="지난달 승률 MVP"
           icon={Target}
-          tone="bg-[#3d4646]"
+          tone="bg-gradient-to-br from-amber-400 to-orange-600"
           value={model.mvp.winRate}
           model={model}
         />
         <MvpCard
           title="지난달 참여율 MVP"
           icon={Users}
-          tone="bg-[#3d4646]"
+          tone="bg-gradient-to-br from-emerald-400 to-green-700"
           value={model.mvp.participation}
           model={model}
         />
         <MvpCard
           title="지난달 승부예측 MVP"
           icon={Trophy}
-          tone="bg-[#3d4646]"
+          tone="bg-gradient-to-br from-violet-500 to-blue-600"
           value={model.mvp.prediction}
           model={model}
           premiumLocked={!isPremium}
