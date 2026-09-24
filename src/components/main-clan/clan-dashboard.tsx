@@ -41,7 +41,7 @@ const clientReady = () => true;
 const serverReady = () => false;
 const card = cn(
   "min-w-0 rounded-[18px] border border-border bg-card p-5",
-  shellStyles.paperCard,
+  shellStyles.gridCard,
 );
 const cardHeading =
   "text-xs font-semibold tracking-[0.035em] text-muted-foreground";
@@ -208,7 +208,7 @@ function UpcomingEvents({
                 today
                   ? "bg-primary/12 text-primary"
                   : event.kind === "scrim"
-                    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                    ? "bg-primary/10 text-primary"
                     : "bg-muted text-muted-foreground",
               )}
             >
@@ -354,7 +354,7 @@ function MvpCard({
           <button
             type="button"
             onClick={onUpgrade}
-            className="mt-1 rounded-[5px] bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:bg-[#ead6a7]"
+            className="mt-1 rounded-[5px] bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:bg-[#b8e5ec]"
           >
             Premium 알아보기
           </button>
@@ -554,21 +554,21 @@ export function ClanDashboard({
         <MvpCard
           title="지난달 승률 MVP"
           icon={Target}
-          tone="bg-[#65573a]"
+          tone="bg-[#3d4646]"
           value={model.mvp.winRate}
           model={model}
         />
         <MvpCard
           title="지난달 참여율 MVP"
           icon={Users}
-          tone="bg-[#65573a]"
+          tone="bg-[#3d4646]"
           value={model.mvp.participation}
           model={model}
         />
         <MvpCard
           title="지난달 승부예측 MVP"
           icon={Trophy}
-          tone="bg-[#65573a]"
+          tone="bg-[#3d4646]"
           value={model.mvp.prediction}
           model={model}
           premiumLocked={!isPremium}
