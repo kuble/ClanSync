@@ -88,7 +88,7 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
       </div>
       <Card size="sm"><CardHeader><CardTitle><StatTitle title="순위" help={HELP[category]} /></CardTitle></CardHeader><CardContent className="space-y-3">
         <OptionWheel label="명예의 전당 부문" options={CATEGORIES.filter((item) => visible[item.id])} value={category} onChange={setCategory} />
-        {!rows.length ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">등재 기준을 충족한 기록이 없습니다.</p> : <StatsScrollArea label="명예의 전당 순위 목록" className="max-h-96"><ol className="space-y-2">{rows.map((row, index) => {
+        {!rows.length ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">등재 기준을 충족한 기록이 없습니다.</p> : <StatsScrollArea label="명예의 전당 순위 목록" className="max-h-96"><ol className="grid gap-2 min-[900px]:grid-cols-2">{rows.map((row, index) => {
           const canOpen = model.personal.people.some((person) => person.userId === row.userId);
           const content = <>
             {category !== "streak" && <StatsGauge value={row.numerator} total={row.denominator} label={`${row.nickname}: ${row.detail}, ${row.value}`} />}

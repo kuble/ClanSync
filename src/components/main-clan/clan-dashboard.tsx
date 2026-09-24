@@ -442,7 +442,7 @@ export function ClanDashboard({
     <>
       <h2 className="sr-only">클랜 대시보드</h2>
       <div
-        className="grid grid-cols-1 items-stretch gap-4 min-[1101px]:grid-cols-3"
+        className="grid grid-cols-1 items-stretch gap-4 min-[900px]:grid-cols-2 min-[1101px]:grid-cols-3"
         data-testid="clan-dashboard-grid"
       >
         <section

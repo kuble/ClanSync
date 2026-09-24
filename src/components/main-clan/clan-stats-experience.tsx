@@ -88,7 +88,7 @@ function IntraClanStats({ model }: { model: ClanStatsPageModel }) {
           )}
         </CardContent>
       </Card>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 min-[900px]:grid-cols-2">
         <Card size="sm"><CardHeader><CardTitle><StatTitle title="맵별 경기" help={<>전체 경기 중 맵 사용 비율 · 맵을 누르면 경기 기록을 좁힙니다.</>} /></CardTitle></CardHeader><CardContent className="space-y-2">
           <FilterButtons label="맵 유형" options={[{ id: "all", label: "전체" }, ...stats.mapTypes.map((row) => ({ id: row.name, label: ({ control: "쟁탈", push: "밀기", escort: "화물", hybrid: "혼합" } as Record<string, string>)[row.name] ?? row.name }))]} value={mapType} onChange={setMapType} />
           {map && <Button type="button" size="sm" variant="outline" onClick={() => setMap(null)}>맵 조건 해제: {map}</Button>}
@@ -101,7 +101,7 @@ function IntraClanStats({ model }: { model: ClanStatsPageModel }) {
         </CardContent></Card>
       </div>
       <Card size="sm"><CardHeader><CardTitle><StatTitle title="맵 투표와 선정" help={<>후보 등장·투표 수·최종 선정은 서로 다른 단위입니다.</>} /></CardTitle></CardHeader><CardContent>
-        {stats.mapVotes.length ? <StatsScrollArea label="맵 투표와 선정 목록" className="max-h-80"><table className="w-full min-w-[440px] text-sm"><thead><tr className="border-b text-xs text-muted-foreground"><th className="p-2 text-left">맵</th><th className="p-2 text-right">후보</th><th className="p-2 text-right">득표</th><th className="p-2 text-right">선정</th></tr></thead><tbody>{stats.mapVotes.map((row) => <tr key={row.name} className="border-b"><td className="p-2">{row.name}</td><td className="p-2 text-right">{row.candidates}회</td><td className="p-2 text-right">{row.votes}표</td><td className="p-2 text-right">{row.selected}경기</td></tr>)}</tbody></table></StatsScrollArea> : <p className="text-sm text-muted-foreground">맵 투표 이력이 없습니다.</p>}
+        {stats.mapVotes.length ? <div className="grid gap-3 min-[900px]:grid-cols-2">{[stats.mapVotes.slice(0, Math.ceil(stats.mapVotes.length / 2)), stats.mapVotes.slice(Math.ceil(stats.mapVotes.length / 2))].filter((rows) => rows.length).map((rows, index) => <StatsScrollArea key={index} label={`맵 투표와 선정 목록 ${index + 1}`} className="max-h-80"><table className="w-full min-w-[340px] text-sm"><thead><tr className="border-b text-xs text-muted-foreground"><th className="p-2 text-left">맵</th><th className="p-2 text-right">후보</th><th className="p-2 text-right">득표</th><th className="p-2 text-right">선정</th></tr></thead><tbody>{rows.map((row) => <tr key={row.name} className="border-b"><td className="p-2">{row.name}</td><td className="p-2 text-right">{row.candidates}회</td><td className="p-2 text-right">{row.votes}표</td><td className="p-2 text-right">{row.selected}경기</td></tr>)}</tbody></table></StatsScrollArea>)}</div> : <p className="text-sm text-muted-foreground">맵 투표 이력이 없습니다.</p>}
       </CardContent></Card>
       <details className="rounded-xl border p-4"><summary className="cursor-pointer text-sm font-semibold">경매 기록 · {stats.auction.lots}건 낙찰</summary>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -209,7 +209,7 @@ export function ClanStatsExperience({ gameSlug, clanId, model }: { gameSlug: str
     setPersonId(id);
     setTab("personal");
   };
-  return <div className="space-y-6">
+  return <div className="mx-auto w-full max-w-[1120px] space-y-6">
     <div className="flex flex-wrap items-center justify-between gap-3"><div className="min-w-0 flex-1"><h2 className="text-xl font-bold tracking-tight"><StatTitle title="클랜 통계" help="주요 기록을 살펴보고 내전 통계에서 실제 경기를 찾아볼 수 있습니다." /></h2></div>{model.hof.exposeHof && <Badge variant="secondary">명예의 전당 공개 중</Badge>}</div>
     <Tabs value={tab} onValueChange={(value) => { setTab(value); if (value === "personal") setPersonId(null); }} className="w-full"><TabsList variant="line" className="mb-4 h-auto w-full justify-start gap-3 border-b sm:gap-6"><TabsTrigger value="hof"><Crown className="size-4" aria-hidden="true" /> 명예의 전당</TabsTrigger><TabsTrigger value="intra"><Swords className="size-4" aria-hidden="true" /> 내전 통계</TabsTrigger>{model.permissions.viewPersonalRecords && <TabsTrigger value="personal"><UserRound className="size-4" aria-hidden="true" /> 개인 기록</TabsTrigger>}</TabsList>
       <TabsContent value="hof"><HallOfFame model={model} gameSlug={gameSlug} clanId={clanId} onChoosePerson={choosePerson} /></TabsContent>

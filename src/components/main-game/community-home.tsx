@@ -39,7 +39,7 @@ export function CommunityHome({
   return (
     <div className={styles.homeGrid}>
       <section
-        className={`${styles.card} ${styles.full}`}
+        className={styles.card}
         aria-labelledby="community-promos"
       >
         <header className={styles.cardHead}>
@@ -89,7 +89,7 @@ export function CommunityHome({
         </Button>
       </section>
       <section
-        className={`${styles.card} ${styles.full}`}
+        className={styles.card}
         aria-labelledby="community-scrims"
       >
         <header className={styles.cardHead}>

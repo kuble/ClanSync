@@ -114,7 +114,7 @@
   min-width: 0;
 }
 .inner {
-  max-width: 1720px;
+  max-width: 1280px;
   margin: auto;
 }
 .pageHead {
@@ -146,9 +146,6 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
-}
-.full {
-  grid-column: 1/-1;
 }
 .card {
   display: flex;
@@ -189,11 +186,8 @@
 .promoGrid,
 .scrimGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 10px;
-}
-.scrimGrid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 .promoCard,
 .scrimCard {

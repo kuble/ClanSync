@@ -19,7 +19,7 @@
 .bottom { margin-top: auto; padding-top: 20px; }
 .bottom::before { content: ""; display: block; height: 1px; margin: 0 16px 12px; background: var(--border); }
 .content { min-height: 100dvh; padding: 88px 28px 36px 92px; }
-.inner { width: 100%; max-width: 1720px; margin: 0 auto; }
+.inner { width: 100%; max-width: 1280px; margin: 0 auto; }
 .hero { position: relative; overflow: hidden; min-height: 160px; display: flex; align-items: flex-end; gap: 14px; padding: 20px; border-radius: 20px; margin-bottom: 20px; background: var(--card); }
 .heroImage { position: absolute; inset: 0; height: 100%; width: 100%; object-fit: cover; }
 .heroImage + .heroShade { position: absolute; inset: 0; background: linear-gradient(0deg,#0b100de6,#0b100d33); }
