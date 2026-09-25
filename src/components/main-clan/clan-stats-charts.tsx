@@ -18,9 +18,9 @@ export function StatsTrend({ points, selected, onSelect, unit }: {
 }) {
   const max = Math.max(1, ...points.map((point) => point.value));
   const x = (index: number) => 36 + index / Math.max(1, points.length - 1) * 548;
-  const y = (value: number) => 126 - value / max * 110;
+  const y = (value: number) => 150 - value / max * 110;
   return <div className="space-y-2">
-    <svg viewBox="0 0 600 144" className="h-36 w-full" preserveAspectRatio="none" role="img" aria-label="월별 내전 추이 꺾은선 그래프. 아래 월 버튼에서 수치를 확인하고 경기 기록을 좁힐 수 있습니다.">
+    <svg viewBox="0 0 600 180" className="aspect-[10/3] w-full" role="img" aria-label="월별 내전 추이 꺾은선 그래프. 아래 월 버튼에서 수치를 확인하고 경기 기록을 좁힐 수 있습니다.">
       {[0, Math.ceil(max / 2), max].filter((value, index, values) => values.indexOf(value) === index).map((value) => <g key={value}>
         <line x1="36" x2="584" y1={y(value)} y2={y(value)} stroke="currentColor" strokeOpacity="0.12" />
         <text x="28" y={y(value) + 4} textAnchor="end" fontSize="10" fill="currentColor" opacity="0.6">{value}</text>
