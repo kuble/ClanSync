@@ -23,67 +23,42 @@ export default async function ClanStorePage({
   const ctx = await getRequestMainClanContext(gameSlug, clanId);
   if (!ctx) redirect(`/games/${gameSlug}/clan`);
 
-  let userCoins = 0;
-  let clanCoins = 0;
-  let canManageClanPool = false;
-
-  if (user) {
-    const { data: urow } = await supabase
+  const [userBalance, clanBalance, canManageClanPool, catalog, personalPurchases, clanPurchases] = await Promise.all([
+    supabase
       .from("users")
       .select("coin_balance")
       .eq("id", user.id)
-      .maybeSingle();
-    userCoins = urow?.coin_balance ?? 0;
-
-    const { data: crow } = await supabase
+      .maybeSingle(),
+    supabase
       .from("clans")
       .select("coin_balance")
       .eq("id", clanId)
-      .maybeSingle();
-    clanCoins = crow?.coin_balance ?? 0;
-
-    canManageClanPool = await hasRequestClanPermission(
-      clanId,
-      "manage_clan_pool",
-    );
-  }
-
-  const premium = ctx?.plan === "premium";
-
-  const { data: catalogRows } = await supabase
-    .from("store_items")
-    .select("id, slug, name_ko, price_coins, pool_source, is_premium_only")
-    .eq("is_active", true)
-    .in("slug", [...MVP_STORE_SLUGS]);
-
-  const bySlug = new Map(
-    (catalogRows ?? []).map((r) => [r.slug as string, r] as const),
-  );
-
-  let personalItemIds: string[] = [];
-  let clanItemIds: string[] = [];
-
-  if (user) {
-    const { data: pPersonal } = await supabase
+      .maybeSingle(),
+    hasRequestClanPermission(clanId, "manage_clan_pool"),
+    supabase
+      .from("store_items")
+      .select("id, slug, name_ko, price_coins, pool_source, is_premium_only")
+      .eq("is_active", true)
+      .in("slug", [...MVP_STORE_SLUGS]),
+    supabase
       .from("purchases")
       .select("item_id")
       .eq("user_id", user.id)
       .eq("pool_source", "personal")
-      .is("voided_at", null);
-
-    const { data: pClan } = await supabase
+      .is("voided_at", null),
+    supabase
       .from("purchases")
       .select("item_id")
       .eq("clan_id", clanId)
       .eq("pool_source", "clan")
-      .is("voided_at", null);
-
-    personalItemIds = (pPersonal ?? []).map((r) => r.item_id as string);
-    clanItemIds = (pClan ?? []).map((r) => r.item_id as string);
-  }
-
-  const personalSet = new Set(personalItemIds);
-  const clanSet = new Set(clanItemIds);
+      .is("voided_at", null),
+  ]);
+  const userCoins = userBalance.data?.coin_balance ?? 0;
+  const clanCoins = clanBalance.data?.coin_balance ?? 0;
+  const premium = ctx.plan === "premium";
+  const bySlug = new Map((catalog.data ?? []).map((row) => [row.slug, row] as const));
+  const personalSet = new Set((personalPurchases.data ?? []).map((row) => row.item_id));
+  const clanSet = new Set((clanPurchases.data ?? []).map((row) => row.item_id));
 
   const items: ClanStoreItemVM[] = [];
 
