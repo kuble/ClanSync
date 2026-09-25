@@ -71,6 +71,27 @@ test("rounds after midnight retain the session opening date", () => {
     .toEqual(["2026-09-30", "2026-09-30"]);
 });
 
+test("historical rank aggregation stays within the CPU budget for 300 ten-player matches", () => {
+  const players = Array.from({ length: 10 }, (_, i) => ({ user_id: `player-${i}`, team: i < 5 ? 1 : 2 }));
+  const records = normalizeClanMatchRecords(Array.from({ length: 300 }, (_, index) => match({
+    id: `history-${index}`,
+    played_at: new Date(Date.UTC(2025, 6 + Math.floor(index / 20), 1 + Math.floor(index % 20 / 5), 12)).toISOString(),
+    match_players: players,
+    match_results: { winner_team: index % 2 + 1 },
+  })), []);
+  const months = [...new Set(records.map((record) => record.played_at.slice(0, 7)))];
+  const years = [...new Set(months.map((month) => month.slice(0, 4)))];
+  const now = new Date("2026-09-30T12:00:00Z");
+  const started = performance.now();
+  const history = buildHofRankHistory(records, HOF_CONFIG_DEFAULTS, new Map(), now, [], true, [], months, years);
+  const elapsed = performance.now() - started;
+  const final = buildHofPeriod(records, "all", HOF_CONFIG_DEFAULTS, new Map(), now, [], true);
+  expect(history.all.at(-1)?.appearances).toEqual(final.cumulative.map((row) => row.userId));
+  expect(history.all.at(-1)?.rate).toEqual(final.winRate.map((row) => row.userId));
+  expect(Object.keys(history.months)).toHaveLength(15);
+  expect(elapsed, "Pure aggregation must not hold the server event loop for seconds").toBeLessThan(3000);
+});
+
 function hofRecords() {
   return normalizeClanMatchRecords(
     [

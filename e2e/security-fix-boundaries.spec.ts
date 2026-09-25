@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 import { loadOpenLfgPosts, loadScrimRoomsForGame } from "../src/lib/main-game/load-main-game-hub";
 import { loadClanDashboard } from "../src/lib/clan/load-clan-dashboard";
-import { loadClanStatsPage } from "../src/lib/clan/stats/load-clan-stats";
+import { loadClanManagementStats, loadClanStatsPage } from "../src/lib/clan/stats/load-clan-stats";
 
 type Fixture = Awaited<ReturnType<typeof createIsolatedBalanceFixture>>;
 type Client = Awaited<ReturnType<Fixture["memberClient"]>>;
@@ -251,12 +251,15 @@ test("settled prediction picks are private while live vote totals remain shared"
   const [myStats, staffStats, staffManagement, memberManagement] = await Promise.all([
     loadClanStatsPage(member, f.users[1].id, f.clanId),
     loadClanStatsPage(leader, f.users[0].id, f.clanId),
-    loadClanStatsPage(leader, f.users[0].id, f.clanId, { includeManagement: true }),
-    loadClanStatsPage(member, f.users[1].id, f.clanId, { includeManagement: true }),
+    loadClanManagementStats(leader, f.clanId),
+    loadClanManagementStats(member, f.clanId),
   ]);
   expect(staffStats?.intra.scoreGapSummary.evaluation.count).toBe(0);
-  expect(memberManagement?.intra.scoreGapSummary.evaluation.count).toBe(0);
-  expect(staffManagement?.permissions.isStaff).toBe(true);
+  expect(memberManagement).toBeNull();
+  expect(staffManagement?.intra.completed).toBe(staffStats?.intra.completed);
+  expect(staffManagement?.permissions.viewMscore).toBe(true);
+  expect(staffManagement).not.toHaveProperty("hof");
+  expect(staffManagement).not.toHaveProperty("personal");
   expect(myStats?.personal.people).toEqual([]);
   expect(myStats?.hof.periods.all.predictionCorrect).toEqual([]);
   expect(staffStats?.hof.periods.all.predictionCorrect.some((row) => row.userId === f.users[1].id)).toBe(true);
@@ -267,13 +270,13 @@ test("statistics use three sections and site usage appears in staff management",
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
   await expect(page.getByRole("tab", { name: "명예의 전당" })).toBeVisible();
   await expect(page.getByRole("tab", { name: "내전 통계" })).toBeVisible();
-  await expect(page.getByLabel("명예의 전당 순위").locator('[data-slot="card"]')).toHaveCount(4);
+  await expect(page.getByRole("radiogroup", { name: "통계 부문", exact: true }).getByRole("radio")).toHaveCount(4);
   await expect(page.getByRole("listbox", { name: "명예의 전당 부문" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "다승", exact: true })).toHaveCount(0);
-  await page.getByRole("listbox", { name: "명예의 전당 기간", exact: true }).press("ArrowDown");
-  await expect(page.getByRole("listbox", { name: "명예의 전당 월", exact: true })).toBeVisible();
-  await page.getByRole("listbox", { name: "명예의 전당 기간", exact: true }).press("End");
-  await expect(page.getByRole("listbox", { name: "명예의 전당 연도", exact: true })).toBeVisible();
+  await page.getByRole("radiogroup", { name: "명예의 전당 기간", exact: true }).getByRole("radio", { name: "월별", exact: true }).click();
+  await expect(page.getByRole("radiogroup", { name: "월", exact: true })).toBeVisible();
+  await page.getByRole("radiogroup", { name: "명예의 전당 기간", exact: true }).getByRole("radio", { name: "연도별", exact: true }).click();
+  await expect(page.getByRole("radiogroup", { name: "명예의 전당 연도", exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "내전 통계" }).click();
   await expect(page.getByRole("searchbox", { name: "경기 참가자 검색" })).toBeVisible();
   await expect(page.getByText("편성 방식", { exact: true })).toHaveCount(0);
@@ -285,6 +288,15 @@ test("statistics use three sections and site usage appears in staff management",
   await page.goto(`/games/overwatch/clan/${f.clanId}/manage?tab=overview`);
   await expect(page.getByText("사이트 이용 통계")).toBeVisible();
   await expect(page.getByText("편성 점수 차이", { exact: true })).toBeVisible();
+  await page.goto(`/games/overwatch/clan/${f.clanId}/store`);
+  await expect(page.getByRole("heading", { name: "클랜 스토어", exact: true })).toBeVisible();
+  const clanBalance = await ok(f.service.from("clans").select("coin_balance").eq("id", f.clanId).single());
+  const personalBalance = await ok(f.service.from("users").select("coin_balance").eq("id", f.users[0].id).single());
+  const coins = page.getByLabel("보유 코인");
+  await expect(coins.getByText("클랜 코인", { exact: true }).locator("..").locator("strong")).toHaveText(clanBalance.coin_balance.toLocaleString("ko-KR"));
+  await expect(coins.getByText("내 코인", { exact: true }).locator("..").locator("strong")).toHaveText(personalBalance.coin_balance.toLocaleString("ko-KR"));
+  await page.getByRole("tab", { name: "개인 꾸미기", exact: true }).click();
+  await expect(page.getByRole("tab", { name: "개인 꾸미기", exact: true })).toHaveAttribute("aria-selected", "true");
 });
 
 test("personal records are staff-only by default and member self-access follows the saved setting", async ({ page }) => {
@@ -292,6 +304,7 @@ test("personal records are staff-only by default and member self-access follows 
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
   await expect(page.getByRole("tab", { name: "개인 기록" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "설정", exact: true })).toHaveCount(0);
+  await page.context().clearCookies();
   await loginIsolatedBalanceUser(page, f.users[0]);
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
   await page.getByRole("button", { name: "설정", exact: true }).click();
@@ -303,6 +316,7 @@ test("personal records are staff-only by default and member self-access follows 
   expect(enabled?.permissions.viewPersonalRecords).toBe(true);
   expect(enabled?.personal.people.map((person) => person.userId)).toEqual([f.users[1].id]);
   expect(enabled?.personal.canSeePeers).toBe(false);
+  await page.context().clearCookies();
   await loginIsolatedBalanceUser(page, f.users[1]);
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
   await page.getByRole("tab", { name: "개인 기록" }).click();
@@ -312,8 +326,9 @@ test("personal records are staff-only by default and member self-access follows 
   await expect(page.getByText("선택 기간·역할 조건을 적용한 최근 기록입니다.")).toHaveCount(0);
   await page.getByRole("button", { name: "최근 흐름 도움말" }).focus();
   await expect(page.getByRole("tooltip")).toContainText("현재 연속");
-  await page.getByRole("listbox", { name: "개인 기록 기간", exact: true }).press("ArrowDown");
-  await expect(page.getByRole("listbox", { name: "개인 기록 기간", exact: true }).getByRole("option", { selected: true })).toHaveText("이번 달");
+  await page.getByRole("radiogroup", { name: "개인 기록 기간", exact: true }).getByRole("radio", { name: "이번 달", exact: true }).click();
+  await expect(page.getByRole("radiogroup", { name: "개인 기록 기간", exact: true }).getByRole("radio", { checked: true })).toHaveText("이번 달");
+  await page.context().clearCookies();
   await loginIsolatedBalanceUser(page, f.users[0]);
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
   await page.getByRole("button", { name: "설정", exact: true }).click();

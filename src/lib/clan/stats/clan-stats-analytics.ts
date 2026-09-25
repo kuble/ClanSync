@@ -240,6 +240,7 @@ export function buildPersonalMatches(
   userId: string,
   nicknames: ReadonlyMap<string, string>,
   includePeers: boolean,
+  peerCache = new Map<string, PersonalMatch["peers"][number]>(),
 ): PersonalMatch[] {
   return completedIntra(records).flatMap((record) => {
     const players = uniquePlayers(record);
@@ -261,12 +262,16 @@ export function buildPersonalMatches(
       analysis: player.a,
       result,
       peers: includePeers
-        ? players.filter((candidate) => candidate.user_id !== userId).map((candidate) => ({
-            id: candidate.user_id,
-            nickname: nicknames.get(candidate.user_id) ?? "탈퇴한 멤버",
-            role: candidate.role,
-            relation: candidate.team === player.team ? "ally" as const : "enemy" as const,
-          }))
+        ? players.filter((candidate) => candidate.user_id !== userId).map((candidate) => {
+            const relation = candidate.team === player.team ? "ally" : "enemy";
+            const key = `${candidate.user_id}:${candidate.role}:${relation}`;
+            let peer = peerCache.get(key);
+            if (!peer) {
+              peer = { id: candidate.user_id, nickname: nicknames.get(candidate.user_id) ?? "탈퇴한 멤버", role: candidate.role, relation };
+              peerCache.set(key, peer);
+            }
+            return peer;
+          })
         : [],
     }];
   });

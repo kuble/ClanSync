@@ -34,7 +34,7 @@ import { clanHasActivePurchaseForItemSlug } from "@/lib/store/store-purchase-que
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import { loadClanSiteVisits } from "@/lib/clan/stats/clan-site-usage";
-import { loadClanStatsPage } from "@/lib/clan/stats/load-clan-stats";
+import { loadClanManagementStats } from "@/lib/clan/stats/load-clan-stats";
 import { ClanFormationStats } from "@/components/main-clan/clan-formation-stats";
 import { ClanSiteUsagePanel } from "@/components/main-clan/clan-site-usage-panel";
 import { ClanOperationalStats } from "@/components/main-clan/clan-operational-stats";
@@ -99,7 +99,7 @@ export default async function ManagePage({
 
   const svc = createServiceRoleClient();
   const siteVisitsPromise = loadClanSiteVisits(svc, clanId);
-  const statsPromise = user ? loadClanStatsPage(supabase, user.id, clanId, { includeManagement: true }) : Promise.resolve(null);
+  const statsPromise = loadClanManagementStats(supabase, clanId);
   // Start the two-step banner lookup while the independent page data loads.
   const bannerSlotPromise = clanHasActivePurchaseForItemSlug(
     svc,

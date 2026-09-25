@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createServiceRoleClient } from "@/lib/supabase/service";
-import { hasClanPermission } from "@/lib/clan/has-clan-permission";
+import { resolveClanPermission } from "@/lib/clan/clan-access-snapshot";
+import type { ClanPermissionKey } from "@/lib/clan/permission-defaults";
 import type { Database } from "@/lib/supabase/database.types";
 import {
   currentKstYearMonth,
@@ -244,11 +245,12 @@ export function buildHofPeriod(
 
   for (const m of matches) {
     const wt = getWinnerTeam(m);
+    const attendanceDate = isoToKstYmd(m.played_at);
     const players = [...new Map((m.match_players ?? []).map((player) => [player.user_id, player])).values()];
     for (const p of players) {
       played.set(p.user_id, (played.get(p.user_id) ?? 0) + 1);
       if (!attendanceByPlayer.has(p.user_id)) attendanceByPlayer.set(p.user_id, new Set());
-      attendanceByPlayer.get(p.user_id)!.add(isoToKstYmd(m.played_at));
+      attendanceByPlayer.get(p.user_id)!.add(attendanceDate);
       if (wt === null) {
         draws.set(p.user_id, (draws.get(p.user_id) ?? 0) + 1);
         continue;
@@ -309,9 +311,9 @@ export function buildHofPeriod(
   const streakSlice = streaks.slice(0, viewerIsStaff || cfg.streakVisibleTop === 999 ? streaks.length : cfg.streakVisibleTop);
 
   const participation: HofRowParticipation[] = [];
+  const { year, month } = currentKstYearMonth(now);
   const eligibleSessions = openedSessions.filter((session) => {
     if (period === "all") return true;
-    const { year, month } = currentKstYearMonth(now);
     return period === "month"
       ? inKstMonth(session.openedAt, year, month)
       : inKstYear(session.openedAt, year);
@@ -356,8 +358,8 @@ export function buildHofPeriod(
   const cumSlice = cumulative.slice(0, cumTop);
 
   const periodPredictions = predictions.filter((row) => period === "all" || (
-    period === "month" ? inKstMonth(row.playedAt, currentKstYearMonth(now).year, currentKstYearMonth(now).month)
-      : inKstYear(row.playedAt, currentKstYearMonth(now).year)
+    period === "month" ? inKstMonth(row.playedAt, year, month)
+      : inKstYear(row.playedAt, year)
   ));
   const predictionGroups = new Map<string, PredictionRecord[]>();
   for (const row of periodPredictions) {
@@ -442,15 +444,11 @@ export function buildHofRankHistory(
   };
 }
 
-export async function loadClanStatsPage(
+async function loadClanStatsSource(
   supabase: SupabaseClient<Database>,
-  userId: string,
   clanId: string,
-  options?: { now?: Date; includeManagement?: boolean },
-): Promise<ClanStatsPageModel | null> {
-  const now = options?.now ?? new Date();
-
-  const [{ data: clan }, { count: memberCount }, { data: settings }] =
+) {
+  const [{ data: clan }, { count: memberCount }, { data: settings, error: settingsError }, membership] =
     await Promise.all([
       supabase
         .from("clans")
@@ -464,44 +462,34 @@ export async function loadClanStatsPage(
         .eq("status", "active"),
       supabase
         .from("clan_settings")
-        .select("hof_config, expose_hof")
+        .select("hof_config, expose_hof, permissions")
         .eq("clan_id", clanId)
         .maybeSingle(),
+      supabase.rpc("select_my_clan_membership", { p_clan_id: clanId }),
     ]);
 
   if (!clan) return null;
 
-  const { data: memRpc } = await supabase.rpc("select_my_clan_membership", {
-    p_clan_id: clanId,
-  });
-  const role = memRpc?.[0]?.status === "active" ? memRpc[0].role : undefined;
+  const role = !membership.error && membership.data?.[0]?.status === "active" ? membership.data[0].role : undefined;
   if (!role) return null;
+  // One fresh, request-local snapshot supplies all eight permission checks.
+  const can = (permission: ClanPermissionKey) => resolveClanPermission(role, permission, settingsError ? null : settings?.permissions);
+  const permissions = {
+    setHofRules: can("set_hof_rules"), viewMatchRecords: can("view_match_records"),
+    exportCsv: can("export_csv"), viewSynergy: can("view_synergy_winrate"),
+    viewMonthly: can("view_monthly_stats"), viewYearly: can("view_yearly_stats"),
+    viewMaps: can("view_map_winrate"), viewMscore: can("view_mscore"),
+  };
   // Historical rows stay server-side. Member summaries are public within the
   // clan; detailed archive records are emitted only with viewMatchRecords below.
   const historyClient: SupabaseClient<Database> = createServiceRoleClient();
 
   const [
-    setHofRules,
-    viewMatchRecords,
-    exportCsv,
-    viewSynergy,
-    viewMonthly,
-    viewYearly,
-    viewMaps,
-    viewMscore,
     rawMatches,
     completedSessions,
     openedSessions,
     { data: nickRows },
   ] = await Promise.all([
-    hasClanPermission(supabase, userId, clanId, "set_hof_rules"),
-    hasClanPermission(supabase, userId, clanId, "view_match_records"),
-    hasClanPermission(supabase, userId, clanId, "export_csv"),
-    hasClanPermission(supabase, userId, clanId, "view_synergy_winrate"),
-    hasClanPermission(supabase, userId, clanId, "view_monthly_stats"),
-    hasClanPermission(supabase, userId, clanId, "view_yearly_stats"),
-    hasClanPermission(supabase, userId, clanId, "view_map_winrate"),
-    hasClanPermission(supabase, userId, clanId, "view_mscore"),
     loadAllStatsRows((from, to) =>
       supabase
         .from("matches")
@@ -551,6 +539,39 @@ export async function loadClanStatsPage(
     rawMatches as StoredClanMatch[],
     completedSessions,
   );
+  return { clan, memberCount, settings, role, permissions, records, completedSessions, openedSessions, nickRows };
+}
+
+/** Management uses operational aggregates, without computing HoF or every member's personal history. */
+export async function loadClanManagementStats(supabase: SupabaseClient<Database>, clanId: string) {
+  const source = await loadClanStatsSource(supabase, clanId);
+  if (!source || source.role === "member") return null;
+  const intra = buildIntraStats(source.records, source.openedSessions.map((row) => ({ id: row.id, openedAt: row.opened_at })));
+  if (!source.permissions.viewMatchRecords) {
+    intra.scoreGaps = [];
+    intra.recent = [];
+  }
+  if (!source.permissions.viewMscore) {
+    intra.scoreGaps = [];
+    intra.scoreGapSummary = {
+      evaluation: { count: 0, average: null, ranges: [0, 0, 0, 0] },
+      analysis: { count: 0, average: null, ranges: [0, 0, 0, 0] },
+    };
+  }
+  return { intra, permissions: { viewMscore: source.permissions.viewMscore } };
+}
+
+export async function loadClanStatsPage(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  clanId: string,
+  options?: { now?: Date; includeManagement?: boolean },
+): Promise<ClanStatsPageModel | null> {
+  const source = await loadClanStatsSource(supabase, clanId);
+  if (!source) return null;
+  const now = options?.now ?? new Date();
+  const { clan, memberCount, settings, role, records, completedSessions, openedSessions, nickRows } = source;
+  const { setHofRules, viewMatchRecords, exportCsv, viewSynergy, viewMonthly, viewYearly, viewMaps, viewMscore } = source.permissions;
   // A void result remains visible in the archive but does not count as a played match.
   const matches = records.filter((record) => record.outcome !== "void" && record.outcome !== "unrecorded");
   const cfg = resolveHofConfig(settings?.hof_config);
@@ -654,10 +675,13 @@ export async function loadClanStatsPage(
     .eq("user_id", userId).eq("pool_type", "personal").eq("reference_type", "balance_session")
     .order("created_at").order("id").range(from, to)) : [];
   const peopleIds = !viewPersonalRecords ? [] : canSeeOthers ? [...new Set([userId, ...nick.keys()])] : [userId];
+  // Shared object identities let RSC transmit repeated teammate/opponent details once.
+  // Keep this cache local to this authorized response, never across accounts or requests.
+  const peerCache = new Map<string, PersonalMatch["peers"][number]>();
   const personal = peopleIds.map((id) => ({
     userId: id,
     nickname: nick.get(id) ?? (id === userId ? "나" : "탈퇴한 멤버"),
-    matches: buildPersonalMatches(matches, id, nick, viewSynergy && role !== "member"),
+    matches: buildPersonalMatches(matches, id, nick, viewSynergy && role !== "member", peerCache),
     predictions: id === userId ? personalPredictions(predictions, id) : [],
     predictionPoints: id === userId ? predictionPointHistory(predictions, predictionLedger, id) : [],
   }));

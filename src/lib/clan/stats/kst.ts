@@ -1,12 +1,15 @@
 /** KST(Asia/Seoul) 기준 날짜 파트 — 통계·활동일 집계에 사용 */
 
-export function toKstParts(d: Date) {
-  const parts = new Intl.DateTimeFormat("en-CA", {
+// The formatter is immutable; constructing one per row dominated historical aggregation.
+const kstDateFormatter = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Seoul",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).formatToParts(d);
+});
+
+export function toKstParts(d: Date) {
+  const parts = kstDateFormatter.formatToParts(d);
   const y = Number(parts.find((p) => p.type === "year")!.value);
   const m = Number(parts.find((p) => p.type === "month")!.value);
   const day = Number(parts.find((p) => p.type === "day")!.value);

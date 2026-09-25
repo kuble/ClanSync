@@ -43,6 +43,11 @@ test("정규 내전의 세션·출전·무승부와 역할별 아군/적군 관�
   expect(currentStreak(personal)).toEqual({ result: "loss", count: 1 });
   expect(relationRows(personal, "tank", "sup", "ally")).toMatchObject([{ id: "b", matches: 2, wins: 1, draws: 1 }]);
   expect(relationRows(personal, "tank", "tank", "enemy").find((row) => row.id === "b")).toMatchObject({ matches: 1, losses: 1 });
+  const repeatedAlly = personal.flatMap((match) => match.peers).filter((peer) => peer.id === "b" && peer.relation === "ally");
+  expect(repeatedAlly).toHaveLength(2);
+  expect(repeatedAlly[0]).toBe(repeatedAlly[1]);
+  const fresh = buildPersonalMatches(records, "a", new Map([["b", "Renamed"]]), true);
+  expect(fresh.flatMap((match) => match.peers).find((peer) => peer.id === "b")?.nickname).toBe("Renamed");
   expect(buildPersonalMatches(records, "a", new Map(), false).every((match) => match.peers.length === 0)).toBe(true);
 });
 
