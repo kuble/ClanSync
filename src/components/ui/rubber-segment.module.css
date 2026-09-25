@@ -1,0 +1,19 @@
+.thumb {
+  transition: left 380ms cubic-bezier(.22, 1.4, .45, 1), width 380ms cubic-bezier(.22, 1.4, .45, 1);
+}
+
+.pulse {
+  animation: rubber-pulse 380ms ease-out;
+}
+
+@keyframes rubber-pulse {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.13, .9); }
+  72% { transform: scale(.96, 1.05); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thumb { transition: none; }
+  .pulse { animation: none; }
+}

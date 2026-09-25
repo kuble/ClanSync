@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { OptionWheel } from "@/components/ui/option-wheel";
+import { RubberSegment } from "@/components/ui/rubber-segment";
 import { StatHelp, StatTitle } from "./stat-help";
 import { StatsEmblems } from "./stats-emblems";
 import { StatsScrollArea } from "./stats-scroll-area";
@@ -41,7 +41,7 @@ function FilterButtons<T extends string>({ options, value, onChange, label }: {
   onChange: (value: T) => void;
   label: string;
 }) {
-  return <OptionWheel options={options} value={value} onChange={onChange} label={label} />;
+  return <RubberSegment options={options} value={value} onChange={onChange} label={label} />;
 }
 
 function IntraClanStats({ model }: { model: ClanStatsPageModel }) {
@@ -84,7 +84,7 @@ function IntraClanStats({ model }: { model: ClanStatsPageModel }) {
       <Card size="sm" className="mx-auto w-full max-w-4xl"><CardHeader><CardTitle><StatTitle title="참여 추이" help={<>최근 12개월 · {metric === "sessions" ? "개최 내전" : metric === "matches" ? "완료 경기" : "월별 순출전 인원"}</>} /></CardTitle></CardHeader>
         <CardContent>
           {stats.sessions === 0 && stats.completed === 0 ? <p className="py-6 text-center text-sm text-muted-foreground">집계할 내전 기록이 없습니다.</p> : (
-            <StatsTrend points={months.map((item) => ({ key: item.key, value: item[metric] }))} selected={month} onSelect={(key) => setMonth(month === key ? null : key)} unit={metric === "participants" ? "명" : metric === "matches" ? "경기" : "회"} />
+            <StatsTrend points={months.map((item) => ({ key: item.key, value: item[metric] }))} selected={month} onSelect={setMonth} unit={metric === "participants" ? "명" : metric === "matches" ? "경기" : "회"} />
           )}
         </CardContent>
       </Card>
