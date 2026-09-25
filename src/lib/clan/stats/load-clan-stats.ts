@@ -95,6 +95,14 @@ export type HofPeriodPayload = {
   predictionCorrect: HofRowPrediction[];
 };
 
+export type HofRankPoint = {
+  date: string;
+  rate: string[];
+  attendance: string[];
+  appearances: string[];
+  prediction: string[];
+};
+
 export type ClanStatsPageModel = {
   clanId: string;
   intra: IntraStats;
@@ -121,6 +129,11 @@ export type ClanStatsPageModel = {
     };
     historyMonths: Record<string, HofPeriodPayload>;
     historyYears: Record<string, HofPeriodPayload>;
+    rankHistory: {
+      all: HofRankPoint[];
+      months: Record<string, HofRankPoint[]>;
+      years: Record<string, HofRankPoint[]>;
+    };
   };
   rankmap: {
     personDaysByYearMonth: Record<string, Record<string, number>>;
@@ -378,6 +391,57 @@ export function buildHofPeriod(
   };
 }
 
+/** Cumulative standings at dates with records; current-period disclosure and visible-top rules still apply. */
+export function buildHofRankHistory(
+  allRows: MatchRow[],
+  cfg: ResolvedHofConfig,
+  nick: Map<string, string>,
+  now: Date,
+  openedSessions: readonly { id: string; openedAt: string }[],
+  viewerIsStaff: boolean,
+  predictions: readonly PredictionRecord[],
+  monthKeys: readonly string[],
+  yearKeys: readonly string[],
+) {
+  const today = isoToKstYmd(now.toISOString());
+  const matches = allRows.filter(isCompletedIntra);
+  const datedMatches = matches.map((row) => ({ row, date: isoToKstYmd(row.played_at) }));
+  const datedSessions = openedSessions.map((row) => ({ row, date: isoToKstYmd(row.openedAt) }));
+  const datedPredictions = predictions.map((row) => ({ row, date: isoToKstYmd(row.playedAt) }));
+  const dates = [...new Set([...datedMatches, ...datedSessions, ...datedPredictions].map((item) => item.date))]
+    .filter((date) => date <= today).sort();
+  const lastDateOfEachMonth = [...new Map(dates.map((date) => [date.slice(0, 7), date])).values()];
+  const current = currentKstYearMonth(now);
+  const currentMonth = `${current.year}-${String(current.month).padStart(2, "0")}`;
+  const sample = (items: string[]) => items.length <= 12 ? items : [...new Set(Array.from({ length: 12 }, (_, index) => items[Math.round(index * (items.length - 1) / 11)]))];
+  const build = (period: "all" | "month" | "year", key: string, checkpoints: string[]): HofRankPoint[] => {
+    if (!viewerIsStaff && ((period === "month" && key === currentMonth && isHofMonthTabUndisclosed(cfg))
+      || (period === "year" && key === String(current.year) && isHofYearTabUndisclosed(cfg)))) return [];
+    return sample(checkpoints).map((date) => {
+      const cutoff = new Date(`${date}T12:00:00+09:00`);
+      const block = buildHofPeriod(
+        datedMatches.filter((item) => item.date <= date).map((item) => item.row),
+        period, cfg, nick, cutoff,
+        datedSessions.filter((item) => item.date <= date).map((item) => item.row),
+        viewerIsStaff, period !== "all" && key < (period === "month" ? currentMonth : String(current.year)),
+        datedPredictions.filter((item) => item.date <= date).map((item) => item.row),
+      );
+      return {
+        date,
+        rate: block.winRate.map((row) => row.userId),
+        attendance: block.participation.map((row) => row.userId),
+        appearances: block.cumulative.map((row) => row.userId),
+        prediction: block.predictionCorrect.map((row) => row.userId),
+      };
+    });
+  };
+  return {
+    all: build("all", "", lastDateOfEachMonth),
+    months: Object.fromEntries(monthKeys.map((key) => [key, build("month", key, dates.filter((date) => date.startsWith(key)))])),
+    years: Object.fromEntries(yearKeys.map((key) => [key, build("year", key, lastDateOfEachMonth.filter((date) => date.startsWith(key)))])),
+  };
+}
+
 export async function loadClanStatsPage(
   supabase: SupabaseClient<Database>,
   userId: string,
@@ -626,6 +690,8 @@ export async function loadClanStatsPage(
   const historyYears = Object.fromEntries(historicalYears.map((key) => [
     key, buildHofPeriod(matches, "year", cfg, nick, new Date(`${key}-06-15T12:00:00+09:00`), hofSessions, role !== "member", true, predictions),
   ]));
+  const rankHistory = buildHofRankHistory(matches, cfg, nick, now, hofSessions, role !== "member", predictions,
+    [currentMonthKey, ...historicalMonths], [String(currentPeriod.year), ...historicalYears]);
 
   return {
     clanId,
@@ -649,6 +715,7 @@ export async function loadClanStatsPage(
       },
       historyMonths,
       historyYears,
+      rankHistory,
     },
     rankmap: {
       personDaysByYearMonth: {},

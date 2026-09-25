@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { OptionWheel } from "@/components/ui/option-wheel";
+import { RubberSegment } from "@/components/ui/rubber-segment";
 import { StatTitle } from "./stat-help";
 import { Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
 import { HofSettingsForm } from "./clan-stats-view";
 import { StatsScrollArea } from "./stats-scroll-area";
 import { StatsGauge } from "./clan-stats-charts";
+import { HofRankChart, RANK_COLORS } from "./hof-rank-chart";
 
 const RANKINGS = [
   { id: "rate", label: "승률", help: "승 / (승 + 무 + 패). 최소 출전 기준을 충족한 멤버만 등재합니다." },
@@ -38,6 +39,7 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
   const [period, setPeriod] = useState<"all" | "month" | "year">("all");
   const [month, setMonth] = useState(currentMonth);
   const [year, setYear] = useState(String(now.year));
+  const [ranking, setRanking] = useState<(typeof RANKINGS)[number]["id"]>("rate");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const block = period === "all" ? model.hof.periods.all
     : period === "month" ? (month === currentMonth ? model.hof.periods.month : model.hof.historyMonths[month])
@@ -49,6 +51,12 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
     appearances: block.cumulative.map((row) => ({ ...row, value: `${row.played}경기`, detail: `전체 ${totals.matches}경기 중 ${row.played}경기 출전 · 내전 ${totals.sessions}회`, numerator: row.played, denominator: totals.matches })),
     prediction: block.predictionCorrect.map((row) => ({ ...row, value: `${row.correct}회`, detail: `${row.valid}회 예측 중 ${row.correct}회 적중 · 적중률 ${row.ratePct ?? 0}%`, numerator: row.correct, denominator: row.valid })),
   };
+  const available = RANKINGS.filter(({ id }) => visible[id]);
+  const active = available.find(({ id }) => id === ranking) ?? available[0];
+  const history = period === "all" ? model.hof.rankHistory.all
+    : period === "month" ? model.hof.rankHistory.months[month] ?? [] : model.hof.rankHistory.years[year] ?? [];
+  const monthYears = [...new Set(months.map((key) => key.slice(0, 4)))];
+  const monthsInYear = months.filter((key) => key.startsWith(month.slice(0, 4)));
   return <div className="space-y-4">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="min-w-0 flex-1"><h3 className="text-base font-bold"><StatTitle title="명예의 전당" help="공개된 기록과 등재 기준에 따른 순위입니다." /></h3></div>
@@ -57,26 +65,29 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg"><DialogHeader><DialogTitle>통계 공개 설정</DialogTitle><DialogDescription>순위 공개 범위와 등재 기준을 정합니다.</DialogDescription></DialogHeader><HofSettingsForm gameSlug={gameSlug} clanId={clanId} cfg={model.hof.config} exposeHof={model.hof.exposeHof} isLeader={model.permissions.isLeader} onDone={() => setSettingsOpen(false)} /></DialogContent>
       </Dialog>}
     </div>
-    <div className="flex flex-wrap items-center gap-2">
-      <OptionWheel label="명예의 전당 기간" options={[{ id: "all", label: "전체" }, { id: "month", label: "월별" }, { id: "year", label: "연도별" }]} value={period} onChange={setPeriod} />
-      {period === "month" && <OptionWheel label="명예의 전당 월" options={months.map((key) => ({id: key, label: key.slice(0,4) + "년 " + Number(key.slice(5)) + "월"}))} value={month} onChange={setMonth} />}
-      {period === "year" && <OptionWheel label="명예의 전당 연도" options={years.map((key) => ({id: key, label: key + "년"}))} value={year} onChange={setYear} />}
+    <div className="flex flex-wrap items-center gap-3">
+      {available.length > 0 && <RubberSegment label="통계 부문" options={available} value={active.id} onChange={setRanking} />}
+      <RubberSegment label="명예의 전당 기간" options={[{ id: "all", label: "전체" }, { id: "month", label: "월별" }, { id: "year", label: "연도별" }]} value={period} onChange={setPeriod} />
+      {period === "month" && <>
+        <RubberSegment label="연도" options={monthYears.map((key) => ({ id: key, label: `${key}년` }))} value={month.slice(0, 4)} onChange={(key) => setMonth(months.find((item) => item.startsWith(key)) ?? month)} />
+        <RubberSegment label="월" options={monthsInYear.map((key) => ({ id: key, label: `${Number(key.slice(5))}월` }))} value={month} onChange={setMonth} />
+      </>}
+      {period === "year" && <RubberSegment label="명예의 전당 연도" options={years.map((key) => ({id: key, label: key + "년"}))} value={year} onChange={setYear} />}
     </div>
-    {block.undisclosed ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">{block.undisclosedHint}</p> : <>
+    {block.undisclosed ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">{block.undisclosedHint}</p> : !active ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">공개된 통계 부문이 없습니다.</p> : <>
       <p className="text-xs text-muted-foreground">선택 기간 정규 내전 <strong className="text-foreground">{totals.sessions}회</strong> · 개최 {totals.days}일 · 전체 {totals.matches}경기</p>
-      <div className="grid items-start gap-3 lg:grid-cols-2" aria-label="명예의 전당 순위">
-        {RANKINGS.filter(({ id }) => visible[id]).map(({ id, label, help }) => (
-          <Card key={id} size="sm" className="min-w-0">
-            <CardHeader><CardTitle><h4><StatTitle title={label} help={help} /></h4></CardTitle></CardHeader>
+      <div className="grid items-start gap-3 xl:grid-cols-[minmax(18rem,0.85fr)_minmax(0,1.3fr)]" aria-label="명예의 전당 순위와 변동">
+          <Card key={active.id} size="sm" className="min-w-0">
+            <CardHeader><CardTitle><h4><StatTitle title={active.label} help={active.help} /></h4></CardTitle></CardHeader>
             <CardContent>
-              {rankingRows[id].length ? (
-                <StatsScrollArea label={`${label} 순위 목록`} className="max-h-80">
+              {rankingRows[active.id].length ? (
+                <StatsScrollArea label={`${active.label} 순위 목록`} className="max-h-[28rem]">
                   <ol className="space-y-2">
-                    {rankingRows[id].map((row, index) => {
+                    {rankingRows[active.id].map((row, index) => {
                       const canOpen = model.personal.people.some((person) => person.userId === row.userId);
                       const content = <>
                         <StatsGauge value={row.numerator} total={row.denominator} label={`${row.nickname}: ${row.detail}, ${row.value}`} />
-                        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-amber-500/10 text-xs font-bold text-amber-500">{index + 1}</span>
+                        <span className="flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold" style={{ color: RANK_COLORS[index % RANK_COLORS.length], backgroundColor: `${RANK_COLORS[index % RANK_COLORS.length]}22` }}>{index + 1}</span>
                         <span className="min-w-0 flex-1 space-y-1">
                           <span className="flex items-center justify-between gap-3"><span className="truncate text-sm font-semibold">{row.nickname}</span><strong className="shrink-0 text-sm tabular-nums">{row.value}</strong></span>
                           <span className="block text-[11px] text-muted-foreground">{row.detail}</span>
@@ -90,7 +101,9 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
               ) : <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">등재 기준을 충족한 기록이 없습니다.</p>}
             </CardContent>
           </Card>
-        ))}
+          <Card size="sm" className="min-w-0"><CardHeader><CardTitle><h4>누적 순위 변동</h4></CardTitle></CardHeader><CardContent>
+            <HofRankChart points={history} rows={rankingRows[active.id]} ranking={active.id} period={period} />
+          </CardContent></Card>
       </div>
     </>}
   </div>;
