@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { RubberSegment } from "@/components/ui/rubber-segment";
-import { StatHelp, StatTitle } from "./stat-help";
+import { StatTitle } from "./stat-help";
 import { StatsEmblems } from "./stats-emblems";
 import { StatsScrollArea } from "./stats-scroll-area";
 import { StatsMemberPicker } from "./stats-member-picker";
 import { StatsTimeChart } from "./stats-time-chart";
-import { Crown, Swords, UserRound } from "lucide-react";
+import { Crown, Swords, UserRound, History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,10 +16,9 @@ import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
 import { currentStreak, longestStreak, recordTotals, relationRows, type PersonalMatch, type StatRole } from "@/lib/clan/stats/clan-stats-analytics";
 import { HallOfFame } from "./clan-hall-of-fame";
-import { StatsGauge, StatsTrend } from "./clan-stats-charts";
-import { ClanStatsArchive } from "./clan-stats-archive";
-import { mapDetailsForLabel } from "@/lib/balance/map-pools";
-import { OW_HERO_PORTRAITS } from "@/lib/balance/ow-hero-portraits";
+import { StatsGauge } from "./clan-stats-charts";
+import { IntraClanStats } from "./clan-intra-stats";
+import { ClanMatchHistory } from "./clan-match-history";
 
 type StatPeriod = "all" | "month" | "year";
 const ROLE_OPTIONS = [
@@ -41,79 +40,7 @@ function FilterButtons<T extends string>({ options, value, onChange, label }: {
   onChange: (value: T) => void;
   label: string;
 }) {
-  return <RubberSegment options={options} value={value} onChange={onChange} label={label} />;
-}
-
-function IntraClanStats({ model }: { model: ClanStatsPageModel }) {
-  const [metric, setMetric] = useState<"matches" | "sessions" | "participants">("matches");
-  const [map, setMap] = useState<string | null>(null);
-  const [mapType, setMapType] = useState("all");
-  const [banRole, setBanRole] = useState("all");
-  const [month, setMonth] = useState<string | null>(null);
-  const [memberSearch, setMemberSearch] = useState("");
-  const stats = model.intra;
-  const current = currentKstYearMonth();
-  const monthly = new Map(stats.months.map((item) => [item.key, item]));
-  const months = Array.from({ length: 12 }, (_, index) => {
-    const date = new Date(Date.UTC(current.year, current.month - 12 + index, 1));
-    const key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
-    return monthly.get(key) ?? { key, sessions: 0, matches: 0, participants: 0 };
-  });
-  const included = (date: string, mapName: string | null) =>
-    (!map || mapName === map) && (!month || date.startsWith(month));
-  const memberTerm = memberSearch.trim().toLocaleLowerCase("ko");
-  const archive = !map && !month && !memberTerm ? model.archive : (() => {
-    const sampleByDate = Object.fromEntries(Object.entries(model.archive.sampleByDate).map(([date, rows]) => [date, rows.filter((row) => included(date, row.mapLabel) && (!memberTerm || row.players.some((player) => player.nickname.toLocaleLowerCase("ko").includes(memberTerm))))]));
-    return { datesKst: model.archive.datesKst.filter((date) => sampleByDate[date]?.length), sampleByDate };
-  })();
-  return (
-    <div className="space-y-5">
-      <div className="min-w-0 flex-1"><h3 className="text-base font-bold"><StatTitle title="내전 통계" help="정규 내전의 개최·경기·출석 기록입니다." /></h3></div>
-      <div className="grid gap-3 sm:grid-cols-3">
-        {([
-          ["sessions", "개최 내전", stats.sessions, "열린 정규 내전"],
-          ["matches", "완료 경기", stats.completed, "승/무/패 확정"],
-          ["participants", "출전 멤버", stats.participants, "기간 내 고유 인원"],
-        ] as const).map(([key, label, value, hint]) => (
-          <div key={key} className="relative"><span className="absolute right-2 top-2 z-10"><StatHelp title={label}>{hint}</StatHelp></span><button type="button" aria-pressed={metric === key} onClick={() => setMetric(key)} className={`h-full w-full rounded-xl border p-4 text-left transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary ${metric === key ? "border-primary/60 bg-primary/5" : ""}`}>
-            <span className="block text-xs text-muted-foreground">{label}</span><strong className="mt-1 block text-3xl tabular-nums">{value}</strong>
-            <span className="mt-1 block text-xs text-muted-foreground">{key === "sessions" ? `내전 1회당 평균 ${stats.averageMatchesPerSession ?? "—"}경기` : key === "matches" ? `무승부 ${stats.draws}경기 · ${rate(stats.drawRate)}` : `내전 1회당 평균 ${stats.averageParticipantsPerSession ?? "—"}명`}</span>
-          </button></div>
-        ))}
-      </div>
-      <Card size="sm" className="mx-auto w-full max-w-4xl"><CardHeader><CardTitle><StatTitle title="참여 추이" help={<>최근 12개월 · {metric === "sessions" ? "개최 내전" : metric === "matches" ? "완료 경기" : "월별 순출전 인원"}</>} /></CardTitle></CardHeader>
-        <CardContent>
-          {stats.sessions === 0 && stats.completed === 0 ? <p className="py-6 text-center text-sm text-muted-foreground">집계할 내전 기록이 없습니다.</p> : (
-            <StatsTrend points={months.map((item) => ({ key: item.key, value: item[metric] }))} selected={month} onSelect={setMonth} unit={metric === "participants" ? "명" : metric === "matches" ? "경기" : "회"} />
-          )}
-        </CardContent>
-      </Card>
-      <div className="grid gap-4 min-[900px]:grid-cols-2">
-        <Card size="sm"><CardHeader><CardTitle><StatTitle title="맵별 경기" help={<>전체 경기 중 맵 사용 비율 · 맵을 누르면 경기 기록을 좁힙니다.</>} /></CardTitle></CardHeader><CardContent className="space-y-2">
-          <FilterButtons label="맵 유형" options={[{ id: "all", label: "전체" }, ...stats.mapTypes.map((row) => ({ id: row.name, label: ({ control: "쟁탈", push: "밀기", escort: "화물", hybrid: "혼합" } as Record<string, string>)[row.name] ?? row.name }))]} value={mapType} onChange={setMapType} />
-          {map && <Button type="button" size="sm" variant="outline" onClick={() => setMap(null)}>맵 조건 해제: {map}</Button>}
-          <StatsScrollArea label="맵별 경기 목록" className="max-h-80">{stats.maps.filter((row) => mapType === "all" || mapDetailsForLabel(row.name)?.type === mapType).length ? stats.maps.filter((row) => mapType === "all" || mapDetailsForLabel(row.name)?.type === mapType).map((row) => <button key={row.name} type="button" onClick={() => setMap(map === row.name ? null : row.name)} aria-pressed={map === row.name} className="relative isolate flex w-full items-center gap-3 overflow-hidden rounded-lg border px-3 py-2 text-left text-sm hover:bg-muted/50"><span className="size-10 shrink-0 rounded-md bg-muted bg-cover bg-center" style={mapDetailsForLabel(row.name) ? { backgroundImage: `url(${mapDetailsForLabel(row.name)!.image})` } : undefined} aria-hidden="true" /><span className="min-w-0 flex-1"><span className="flex justify-between gap-2"><span className="truncate">{row.name}</span><strong className="shrink-0 text-xs tabular-nums">{row.matches} / {stats.completed}경기</strong></span><StatsGauge value={row.matches} total={stats.completed} label={`${row.name} 사용 ${row.matches} / 전체 ${stats.completed}경기`} /></span></button>) : <p className="text-sm text-muted-foreground">선택한 유형의 맵 기록이 없습니다.</p>}</StatsScrollArea>
-        </CardContent></Card>
-        <Card size="sm"><CardHeader><CardTitle><StatTitle title="영웅 밴" help={<>최종 밴된 경기 수 · 투표 수와 구분</>} /></CardTitle></CardHeader><CardContent className="space-y-2">
-          <FilterButtons label="영웅 역할" options={[{ id: "all", label: "전체" }, { id: "tank", label: "돌격" }, { id: "dps", label: "공격" }, { id: "support", label: "지원" }]} value={banRole} onChange={setBanRole} />
-          <p className="text-xs text-muted-foreground">밴 사용 {stats.banEnabledMatches}경기 중 밴 없음 {stats.noBanMatches}경기</p>
-          <StatsScrollArea label="영웅 밴 목록" className="max-h-80">{stats.bans.filter((row) => banRole === "all" || row.role === banRole).length ? stats.bans.filter((row) => banRole === "all" || row.role === banRole).map((row) => <div key={row.hero} className="relative isolate flex items-center gap-3 overflow-hidden rounded-lg border px-3 py-2 text-sm"><span className="size-10 shrink-0 rounded-md bg-muted bg-cover bg-center" style={OW_HERO_PORTRAITS[row.hero] ? { backgroundImage: `url(${OW_HERO_PORTRAITS[row.hero]})` } : undefined} aria-hidden="true" /><span className="min-w-0 flex-1"><span className="flex justify-between gap-2"><span>{row.name}</span><strong className="shrink-0 text-xs tabular-nums">{row.matches} / {stats.completed}경기</strong></span><StatsGauge value={row.matches} total={stats.completed} label={`${row.name} 밴 ${row.matches} / 전체 ${stats.completed}경기`} /></span></div>) : <p className="text-sm text-muted-foreground">해당 역할의 확정 밴 기록이 없습니다.</p>}</StatsScrollArea>
-        </CardContent></Card>
-      </div>
-      {model.permissions.viewMatchRecords ? (
-        <Card size="sm">
-          <CardHeader className="gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
-            <CardTitle><StatTitle title="경기 기록" help={<>날짜를 선택해 양 팀과 결과를 확인하세요.</>} /></CardTitle>
-            <input aria-label="경기 참가자 검색" type="search" placeholder="참가자 이름 검색" value={memberSearch} onChange={(event) => setMemberSearch(event.target.value)} className="h-9 w-full rounded-lg border bg-background px-3 text-sm sm:w-56" />
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {(month || map) && <div className="flex flex-wrap gap-2">{month && <Button size="sm" variant="outline" onClick={() => setMonth(null)}>{month} 해제</Button>}{map && <Button size="sm" variant="outline" onClick={() => setMap(null)}>{map} 해제</Button>}</div>}
-            <ClanStatsArchive key={`${month ?? "all"}:${map ?? "all"}:${memberTerm}`} archive={archive} />
-          </CardContent>
-        </Card>
-      ) : <p className="text-xs text-muted-foreground">상세 경기 기록은 클랜의 경기 기록 열람 권한에 따라 제공됩니다.</p>}
-    </div>
-  );
+  return <RubberSegment options={options} value={value} onChange={onChange} label={label} labelPosition="top" />;
 }
 
 function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageModel; selectedId: string; onBack: () => void }) {
@@ -210,10 +137,11 @@ export function ClanStatsExperience({ gameSlug, clanId, model }: { gameSlug: str
     setTab("personal");
   };
   return <div className="mx-auto w-full max-w-[1120px] space-y-6">
-    <div className="flex flex-wrap items-center justify-between gap-3"><div className="min-w-0 flex-1"><h2 className="text-xl font-bold tracking-tight"><StatTitle title="클랜 통계" help="주요 기록을 살펴보고 내전 통계에서 실제 경기를 찾아볼 수 있습니다." /></h2></div>{model.hof.exposeHof && <Badge variant="secondary">명예의 전당 공개 중</Badge>}</div>
-    <Tabs value={tab} onValueChange={(value) => { setTab(value); if (value === "personal") setPersonId(null); }} className="w-full"><TabsList variant="line" className="mb-4 h-auto w-full justify-start gap-3 border-b sm:gap-6"><TabsTrigger value="hof"><Crown className="size-4" aria-hidden="true" /> 명예의 전당</TabsTrigger><TabsTrigger value="intra"><Swords className="size-4" aria-hidden="true" /> 내전 통계</TabsTrigger>{model.permissions.viewPersonalRecords && <TabsTrigger value="personal"><UserRound className="size-4" aria-hidden="true" /> 개인 기록</TabsTrigger>}</TabsList>
+    <div className="flex flex-wrap items-center justify-between gap-3"><div className="min-w-0 flex-1"><h2 className="text-xl font-bold tracking-tight"><StatTitle title="클랜 통계" help="명예의 전당, 내전 통계, 경기 기록과 개인 기록을 살펴봅니다." /></h2></div>{model.hof.exposeHof && <Badge variant="secondary">명예의 전당 공개 중</Badge>}</div>
+    <Tabs value={tab} onValueChange={(value) => { setTab(value); if (value === "personal") setPersonId(null); }} className="w-full"><TabsList variant="line" className="mb-4 h-auto w-full justify-start gap-0 border-b [&_button]:gap-1 [&_button]:px-1 [&_button]:text-xs sm:[&_button]:text-sm [&_svg]:hidden sm:[&_svg]:block"><TabsTrigger value="hof"><Crown className="size-4" aria-hidden="true" /> 명예의 전당</TabsTrigger><TabsTrigger value="intra"><Swords className="size-4" aria-hidden="true" /> 내전 통계</TabsTrigger>{model.permissions.viewMatchRecords && <TabsTrigger value="records"><History className="size-4" aria-hidden="true" /> 경기 기록</TabsTrigger>}{model.permissions.viewPersonalRecords && <TabsTrigger value="personal"><UserRound className="size-4" aria-hidden="true" /> 개인 기록</TabsTrigger>}</TabsList>
       <TabsContent value="hof"><HallOfFame model={model} gameSlug={gameSlug} clanId={clanId} onChoosePerson={choosePerson} /></TabsContent>
       <TabsContent value="intra"><IntraClanStats model={model} /></TabsContent>
+      {model.permissions.viewMatchRecords && <TabsContent value="records"><ClanMatchHistory model={model} /></TabsContent>}
       {model.permissions.viewPersonalRecords && <TabsContent value="personal">{personId ? <PersonalStats key={personId} model={model} selectedId={personId} onBack={() => setPersonId(null)} /> : <StatsMemberPicker people={model.personal.people} onSelect={choosePerson} />}</TabsContent>}
     </Tabs>
   </div>;

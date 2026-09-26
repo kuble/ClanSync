@@ -4,11 +4,12 @@ import { useLayoutEffect, useRef } from "react";
 import styles from "./rubber-segment.module.css";
 
 /** Segmented filter with an elastic thumb, inspired by React Bits Rubber Segment. */
-export function RubberSegment<T extends string>({ options, value, onChange, label }: {
+export function RubberSegment<T extends string>({ options, value, onChange, label, labelPosition = "inline" }: {
   options: readonly { id: T; label: string }[];
   value: T;
   onChange: (value: T) => void;
   label: string;
+  labelPosition?: "inline" | "top";
 }) {
   const track = useRef<HTMLDivElement>(null);
   const viewport = useRef<HTMLDivElement>(null);
@@ -45,7 +46,7 @@ export function RubberSegment<T extends string>({ options, value, onChange, labe
     if (options[target] && target !== index) onChange(options[target].id);
   };
 
-  return <div className="flex min-w-0 max-w-full items-center gap-2">
+  return <div className={`flex min-w-0 max-w-full gap-2 ${labelPosition === "top" ? "flex-col items-start" : "items-center"}`}>
     <span className="shrink-0 text-[11px] text-muted-foreground">{label}</span>
     <div ref={viewport} className="min-w-0 max-w-full overflow-x-auto rounded-lg [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <div ref={track} role="radiogroup" aria-label={label} className="relative flex w-max items-center rounded-lg border bg-muted/30 p-[3px]">

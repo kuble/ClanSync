@@ -265,19 +265,21 @@ test("settled prediction picks are private while live vote totals remain shared"
   expect(staffStats?.hof.periods.all.predictionCorrect.some((row) => row.userId === f.users[1].id)).toBe(true);
 });
 
-test("statistics use three sections and site usage appears in staff management", async ({ page }) => {
+test("statistics use four sections and site usage appears in staff management", async ({ page }) => {
   await loginIsolatedBalanceUser(page, f.users[0]);
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
   await expect(page.getByRole("tab", { name: "명예의 전당" })).toBeVisible();
   await expect(page.getByRole("tab", { name: "내전 통계" })).toBeVisible();
-  await expect(page.getByRole("radiogroup", { name: "통계 부문", exact: true }).getByRole("radio")).toHaveCount(4);
+  await expect(page.getByRole("radiogroup", { name: "부문", exact: true }).getByRole("radio")).toHaveCount(4);
   await expect(page.getByRole("listbox", { name: "명예의 전당 부문" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "다승", exact: true })).toHaveCount(0);
-  await page.getByRole("radiogroup", { name: "명예의 전당 기간", exact: true }).getByRole("radio", { name: "월별", exact: true }).click();
-  await expect(page.getByRole("radiogroup", { name: "월", exact: true })).toBeVisible();
-  await page.getByRole("radiogroup", { name: "명예의 전당 기간", exact: true }).getByRole("radio", { name: "연도별", exact: true }).click();
-  await expect(page.getByRole("radiogroup", { name: "명예의 전당 연도", exact: true })).toBeVisible();
+  await page.getByRole("radiogroup", { name: "기간", exact: true }).getByRole("radio", { name: "월별", exact: true }).click();
+  await expect(page.getByRole("listbox", { name: "월", exact: true })).toBeVisible();
+  await page.getByRole("radiogroup", { name: "기간", exact: true }).getByRole("radio", { name: "연도별", exact: true }).click();
+  await expect(page.getByRole("listbox", { name: "연도", exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "내전 통계" }).click();
+  await expect(page.getByRole("searchbox", { name: "경기 참가자 검색" })).toHaveCount(0);
+  await page.getByRole("tab", { name: "경기 기록" }).click();
   await expect(page.getByRole("searchbox", { name: "경기 참가자 검색" })).toBeVisible();
   await expect(page.getByText("편성 방식", { exact: true })).toHaveCount(0);
   await expect(page.getByText("최근 경기", { exact: true })).toHaveCount(0);
