@@ -234,7 +234,7 @@ test("site-usage source rows are visible to staff but hidden from members", asyn
   expect(fromMember).toEqual([]);
 });
 
-test("settled prediction picks are private while live vote totals remain shared", async () => {
+test("settled prediction picks are private while live vote totals remain shared", async ({ page }) => {
   const r = await round();
   await live(r);
   await ok(f.service.from("balance_session_predictions").insert([
@@ -263,6 +263,16 @@ test("settled prediction picks are private while live vote totals remain shared"
   expect(myStats?.personal.people).toEqual([]);
   expect(myStats?.hof.periods.all.predictionCorrect).toEqual([]);
   expect(staffStats?.hof.periods.all.predictionCorrect.some((row) => row.userId === f.users[1].id)).toBe(true);
+  const selected = staffStats?.personal.people.find((person) => person.userId === f.users[1].id);
+  expect(selected?.predictions).toMatchObject([{ sessionId: r.id, result: "correct" }]);
+  expect(selected?.predictionPoints).toEqual([]);
+  await loginIsolatedBalanceUser(page, f.users[0]);
+  await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
+  await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
+  await page.getByRole("button", { name: `${f.users[1].nickname} 개인 기록 열기`, exact: true }).click();
+  await expect(page.getByLabel("승부예측 요약")).toContainText("적중률100%");
+  await expect(page.getByText("포인트 수익·손실은 본인만 볼 수 있습니다.", { exact: true })).toBeVisible();
+  await expect(page.getByText("내 승부예측", { exact: true })).toHaveCount(0);
 });
 
 test("statistics use four sections and site usage appears in staff management", async ({ page }) => {

@@ -6,7 +6,7 @@ import { StatsScrollArea } from "./stats-scroll-area";
 
 const VISIBLE_LIMIT = 10;
 const COLORS = ["var(--primary)", "#d6ac62", "#9a92ce", "#db8296", "#79b6bb", "#719bda", "#cf8660", "#a9b978", "#b279b3", "#b6a18b", "var(--muted-foreground)"];
-type DonutRow = { name: string; value: number; image?: string };
+type DonutRow = { name: string; value: number; image?: string; detail?: string };
 
 function DonutImage({ src, size, className = "object-cover" }: { src: string; size: number; className?: string }) {
   const [failed, setFailed] = useState(false);
@@ -16,16 +16,18 @@ function DonutImage({ src, size, className = "object-cover" }: { src: string; si
 }
 
 /** Show the top ten items and group the remaining counts into one other slice. */
-export function StatsDonut({ rows, label, unit, showImages = false }: { rows: DonutRow[]; label: string; unit: string; showImages?: boolean }) {
+export function StatsDonut({ rows, label, unit, showImages = false, preserveOrder = false, horizontal = false }: { rows: DonutRow[]; label: string; unit: string; showImages?: boolean; preserveOrder?: boolean; horizontal?: boolean }) {
   const [active, setActive] = useState<number | null>(null);
-  const ordered = [...rows].filter((row) => row.value > 0).sort((a, b) => b.value - a.value || a.name.localeCompare(b.name, "ko"));
+  const ordered = [...rows].filter((row) => row.value > 0);
+  if (!preserveOrder) ordered.sort((a, b) => b.value - a.value || a.name.localeCompare(b.name, "ko"));
   const slices: DonutRow[] = ordered.length > VISIBLE_LIMIT ? [...ordered.slice(0, VISIBLE_LIMIT), { name: "기타", value: ordered.slice(VISIBLE_LIMIT).reduce((sum, row) => sum + row.value, 0) }] : ordered;
   const total = ordered.reduce((sum, row) => sum + row.value, 0);
   const selected = active === null ? null : slices[active];
   const featured = selected ?? (showImages ? ordered[0] : null);
   const highlighted = active ?? (showImages ? 0 : null);
   if (!total) return <p className="flex min-h-60 items-center justify-center text-sm text-muted-foreground">선택한 조건의 기록이 없습니다.</p>;
-  return <div className="space-y-4">
+  return <div className={horizontal ? "grid items-start gap-5 sm:grid-cols-[240px_minmax(0,1fr)]" : "space-y-4"}>
+    <div className={horizontal ? "space-y-4 sm:sticky sm:top-20" : "space-y-4"}>
     <div className="relative mx-auto size-44">
       <svg viewBox="0 0 180 180" className="size-full -rotate-90" role="img" aria-label={`${label}, 총 ${total}${unit}. 아래 범례에서 항목별 수치를 확인할 수 있습니다.`}>
         {slices.map((slice, i) => {
@@ -43,6 +45,8 @@ export function StatsDonut({ rows, label, unit, showImages = false }: { rows: Do
       </div> : <div aria-hidden="true" className="pointer-events-none absolute inset-8 flex flex-col items-center justify-center text-center"><span className="max-w-full truncate text-xs text-muted-foreground">{featured?.name ?? "합계"}</span><strong className="mt-1 text-2xl tabular-nums">{(featured?.value ?? total).toLocaleString()}<span className="ml-1 text-xs font-normal">{unit}</span></strong></div>}
     </div>
     {showImages && <p className="-mt-2 text-center text-[11px] text-muted-foreground">전체 <strong className="ml-1 font-medium tabular-nums text-foreground">{total.toLocaleString()}{unit}</strong></p>}
+    </div>
+    <div className="min-w-0 space-y-4">
     <ul className="space-y-1" aria-label={`${label} 비중`}>
       {slices.map((slice, i) => <li key={slice.name}><button type="button" onPointerEnter={() => setActive(i)} onPointerLeave={() => setActive(null)} onFocus={() => setActive(i)} onBlur={() => setActive(null)} onClick={() => setActive(active === i ? null : i)} className={`flex w-full items-center gap-2 rounded-md px-1 py-1.5 text-left text-xs hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary ${showImages && highlighted === i ? "bg-muted/40" : ""}`}>
         {showImages ? <span aria-hidden="true" className="flex shrink-0 items-center gap-1.5">
@@ -51,8 +55,9 @@ export function StatsDonut({ rows, label, unit, showImages = false }: { rows: Do
             {slice.image ? <DonutImage key={slice.image} src={slice.image} size={28} /> : <span className="grid grid-cols-2 gap-0.5 opacity-70">{[0, 1, 2, 3].map((cell) => <span key={cell} className="size-1 rounded-[1px]" style={{ background: COLORS[i] }} />)}</span>}
           </span>
         </span> : <span className="size-2 shrink-0 rounded-sm" style={{ background: COLORS[i] }} />}
-        <span className="min-w-0 flex-1 truncate">{slice.name}</span><span className="tabular-nums text-muted-foreground">{(slice.value / total * 100).toFixed(1)}%</span><strong className="min-w-12 text-right tabular-nums">{slice.value}{unit}</strong></button></li>)}
+        <span className="min-w-0 flex-1 truncate">{slice.name}{slice.detail && <span className="mt-0.5 block text-[10px] font-normal text-muted-foreground">{slice.detail}</span>}</span><span className="tabular-nums text-muted-foreground">{(slice.value / total * 100).toFixed(1)}%</span><strong className="min-w-12 text-right tabular-nums">{slice.value}{unit}</strong></button></li>)}
     </ul>
-    {ordered.length > VISIBLE_LIMIT && <details className="border-t pt-3"><summary className="cursor-pointer text-xs text-muted-foreground">전체 {ordered.length}개 항목 보기</summary><StatsScrollArea label={`${label} 전체 목록`} className="mt-3 max-h-64"><ul className="space-y-2">{ordered.map((row) => <li key={row.name} className="flex justify-between gap-3 text-xs"><span className="min-w-0 truncate">{row.name}</span><strong className="shrink-0 tabular-nums">{row.value}{unit} · {(row.value / total * 100).toFixed(1)}%</strong></li>)}</ul></StatsScrollArea></details>}
+    {ordered.length > VISIBLE_LIMIT && <details className="border-t pt-3"><summary className="cursor-pointer text-xs text-muted-foreground">전체 {ordered.length}개 항목 보기</summary><StatsScrollArea label={`${label} 전체 목록`} className="mt-3 max-h-64"><ul className="space-y-2">{ordered.map((row) => <li key={row.name} className="flex justify-between gap-3 text-xs"><span className="min-w-0 truncate">{row.name}{row.detail && <span className="block text-muted-foreground">{row.detail}</span>}</span><strong className="shrink-0 tabular-nums">{row.value}{unit} · {(row.value / total * 100).toFixed(1)}%</strong></li>)}</ul></StatsScrollArea></details>}
+    </div>
   </div>;
 }

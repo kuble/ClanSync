@@ -634,7 +634,9 @@ export async function loadClanStatsPage(
     userId: id,
     nickname: nick.get(id) ?? (id === userId ? "나" : "탈퇴한 멤버"),
     matches: buildPersonalMatches(matches, id, nick, viewSynergy && role !== "member", peerCache),
-    predictions: id === userId ? personalPredictions(predictions, id) : [],
+    // peopleIds already restricts other players to authorized staff. Keep the
+    // existing authenticated prediction query and owner-only ledger scope.
+    predictions: personalPredictions(predictions, id),
     predictionPoints: id === userId ? predictionPointHistory(predictions, predictionLedger, id) : [],
   }));
 
