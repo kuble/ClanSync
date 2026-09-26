@@ -26,12 +26,14 @@ export function ClanBalancePrematchControls({
   session,
   canManage,
   renderInsights,
+  endSessionControl,
 }: {
   gameSlug: string;
   clanId: string;
   session: Round;
   canManage: boolean;
   renderInsights?: (map: string | null) => ReactNode;
+  endSessionControl?: ReactNode;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -94,7 +96,8 @@ export function ClanBalancePrematchControls({
       ) : null}
       {renderInsights?.(selectedMap)}
       {canManage ? (
-        <div className="flex justify-end" data-balance-guide="primary">
+        <div className="flex items-center justify-between gap-3" data-balance-guide="primary">
+          <div>{endSessionControl}</div>
           <Button
             disabled={pending || (!needsMapVote && !session.resolved_map_label)}
             onClick={advance}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check } from "lucide-react";
+import { Check, LayoutGrid } from "lucide-react";
 import {
   MAP_TYPES,
   mapDetailsForLabel,
@@ -12,14 +12,6 @@ import { OverwatchMapIcon } from "@/components/ui/overwatch-icons";
 import { cn } from "@/lib/utils";
 import { BalanceMapImage } from "./clan-balance-map-image";
 
-const TYPE_ART: Record<MapType, string> = {
-  control: "일리오스",
-  push: "콜로세오",
-  escort: "서킷 로얄",
-  hybrid: "왕의 길",
-  flashpoint: "수라바사",
-};
-
 function MapTypeCard({ id, label, selected, disabled, onClick }: {
   id: MapType | "all";
   label: string;
@@ -29,15 +21,9 @@ function MapTypeCard({ id, label, selected, disabled, onClick }: {
 }) {
   return (
     <button type="button" aria-label={label} title={label} aria-pressed={selected} disabled={disabled} onClick={onClick}
-      className={cn("group relative min-h-24 overflow-hidden rounded-xl border text-left text-white transition-[border-color,box-shadow] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:cursor-default sm:min-h-32", selected ? "border-primary ring-2 ring-primary/50" : "border-white/10 hover:border-primary/70")}>
-      {id === "all" ? (
-        <span className="absolute inset-0 grid grid-cols-2" aria-hidden="true">
-          {MAP_TYPES.slice(0, 4).map((type) => <span key={type.id} className="relative"><BalanceMapImage label={TYPE_ART[type.id]} sizes="120px" /></span>)}
-        </span>
-      ) : <BalanceMapImage label={TYPE_ART[id]} className="transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none" sizes="(max-width: 640px) 50vw, 240px" />}
-      <span className="absolute inset-0 bg-linear-to-t from-black/85 via-black/20 to-black/10" aria-hidden="true" />
-      {selected ? <span className="absolute right-2 top-2 rounded-full bg-primary p-1 text-primary-foreground"><Check className="size-3.5" aria-hidden="true" /></span> : null}
-      <span className="absolute bottom-3 left-3 font-bold sm:text-base">{id === "all" ? label : <OverwatchMapIcon type={id} className="size-7 drop-shadow" />}</span>
+      className={cn("flex min-h-20 flex-col items-center justify-center gap-2 rounded-xl border px-2 py-3 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:cursor-default", selected ? "border-primary bg-primary/15 text-primary ring-1 ring-primary/40" : "border-border bg-muted/20 text-muted-foreground hover:border-primary/50 hover:text-foreground")}>
+      {id === "all" ? <LayoutGrid className="size-6" aria-hidden="true" /> : <OverwatchMapIcon type={id} className="size-7" />}
+      <span>{label}</span>
     </button>
   );
 }

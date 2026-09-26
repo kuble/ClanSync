@@ -300,6 +300,13 @@ test("경기 준비: 팀별 영웅 선택·기권·밴 확정과 경기 시작",
     const picker = panel.getByRole("button", { name: "왕의 길 선택", exact: true });
     await expect(panel.getByRole("combobox", { name: "경기 맵", exact: true })).toHaveCount(0);
     await expect(panel.locator("[data-map-card]")).toHaveCount(0);
+    const typeButtons = panel.locator('[data-balance-guide="map-types"]');
+    await expect(typeButtons.locator("img")).toHaveCount(0);
+    await expect(typeButtons.getByRole("button", { name: "혼합", exact: true })).toHaveText("혼합");
+    const endButton = panel.getByRole("button", { name: "세션 종료", exact: true });
+    const endBox = await endButton.boundingBox(), advanceBox = await advance.boundingBox();
+    expect(Math.abs(endBox!.y + endBox!.height / 2 - advanceBox!.y - advanceBox!.height / 2)).toBeLessThan(2);
+    expect(endBox!.x).toBeLessThan(advanceBox!.x);
     await expect(advance).toBeDisabled();
     await panel.getByRole("button", { name: "플래시포인트", exact: true }).click();
     await panel.getByRole("button", { name: "아틀리스 선택", exact: true }).click();

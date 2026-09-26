@@ -586,6 +586,7 @@ export function ClanBalanceSessionPanel({
 
             {session.phase === "editing" && mapScreen ? (
               <ClanBalancePrematchControls
+                endSessionControl={endSessionControl}
                 renderInsights={(map) => renderInsights(map, rosterData, true)}
                 key={`${session.id}:${JSON.stringify(session.map_types)}`}
                 gameSlug={gameSlug}
@@ -744,7 +745,7 @@ export function ClanBalanceSessionPanel({
             ) : null}
           </div>
         )}
-        {session && (mapScreen || session.phase !== "editing") ? <div className="px-5 pb-5">{endSessionControl}</div> : null}
+        {session && session.phase !== "editing" ? <div className="px-5 pb-5">{endSessionControl}</div> : null}
       </section>
       <p className="text-right text-xs text-muted-foreground">
         경기 보상과 코인 내역은{" "}

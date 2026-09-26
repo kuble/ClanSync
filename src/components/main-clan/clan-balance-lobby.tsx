@@ -4,7 +4,7 @@ import { useEffect, useState, useTransition, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Dialog as GuideDialog } from "@base-ui/react/dialog";
-import { ArrowUpRight, CalendarDays, ChevronDown, CircleHelp, Clock3, History, MoreHorizontal, Plus, Repeat2, UsersRound, Zap } from "lucide-react";
+import { ArrowUpRight, CalendarDays, CircleHelp, Clock3, History, MoreHorizontal, Plus, Repeat2, UsersRound, Zap } from "lucide-react";
 import { toast } from "sonner";
 import {
   cancelBalanceRoomAction,
@@ -63,14 +63,12 @@ export function ClanBalanceLobby({ gameSlug, clanId, userId, clanRole, rooms, me
   const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
-  const [showEnded, setShowEnded] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [pending, start] = useTransition();
   const staff = clanRole === "leader" || clanRole === "officer";
   const canCreate = staff || clanRole === "member";
   const active = activeLobbyRooms(rooms);
-  const ended = rooms.filter((room) => room.status === "closed" || room.status === "cancelled");
   const detail = rooms.find((room) => room.id === detailId);
   const nextReservation = detail?.kind === "regular" && detail.schedule_id && detail.status === "open"
     ? rooms.filter((room) => room.schedule_id === detail.schedule_id && room.status === "scheduled").sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at))[0] : null;
@@ -158,10 +156,6 @@ export function ClanBalanceLobby({ gameSlug, clanId, userId, clanRole, rooms, me
           </div>
         )}
       </div>
-      {ended.length ? <div>
-        <button type="button" aria-expanded={showEnded} onClick={() => setShowEnded(!showEnded)} className="flex items-center gap-2 py-1 text-xs text-muted-foreground">종료된 내전 {ended.length}<ChevronDown className={cn("size-3.5 transition-transform", showEnded && "rotate-180")} aria-hidden="true" /></button>
-        {showEnded ? <ul aria-label="종료·취소 내전" className="mt-2 divide-y rounded-xl border">{ended.map(row)}</ul> : null}
-      </div> : null}
       {createOpen ? <CreateRoomSheet staff={staff} serverNow={serverNow} pending={pending} onClose={() => setCreateOpen(false)} onSubmit={(input) => run(() => createBalanceRoomAction(gameSlug, clanId, input), "내전이 추가되었습니다.", () => setCreateOpen(false))} /> : null}
       {detail ? <RoomDetailSheet key={`${detail.id}:${detail.status}:${detail.scheduled_at}:${detail.title}`} room={detail} members={members} serverNow={serverNow} leader={clanRole === "leader"} canManage={staff || (detail.kind === "flash" && detail.created_by === userId && canCreate)} pending={pending} onClose={() => setDetailId(null)}
         onNextReservation={nextReservation ? () => setDetailId(nextReservation.id) : undefined}

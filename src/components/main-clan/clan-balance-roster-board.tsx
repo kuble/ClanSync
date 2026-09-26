@@ -1,4 +1,5 @@
-import { Crown, Crosshair, Plus, Shield } from "lucide-react";
+import { Crown } from "lucide-react";
+import { OverwatchRoleIcon } from "@/components/ui/overwatch-icons";
 import type { BalanceRoster, TeamRoster } from "@/lib/balance/roster-schema";
 import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
 import { cn } from "@/lib/utils";
@@ -23,17 +24,14 @@ export function balanceSlotMember(team: TeamRoster, slot: BalanceSlot) {
 }
 
 export function BalanceRoleIcon({ slot }: { slot: BalanceSlot }) {
-  const Icon =
-    slot.role === "tank" ? Shield : slot.role === "dmg" ? Crosshair : Plus;
   return (
     <span
-      className="flex flex-col items-center justify-center gap-1 text-muted-foreground"
+      className="flex items-center justify-center text-muted-foreground"
       title={slot.label}
+      role="img"
+      aria-label={slot.label}
     >
-      <Icon className="size-4 sm:size-5" aria-hidden="true" />
-      <span className="text-[9px] font-medium sm:text-[10px]">
-        {slot.role === "tank" ? "탱커" : slot.role === "dmg" ? "딜러" : "힐러"}
-      </span>
+      <OverwatchRoleIcon role={slot.role === "dmg" ? "damage" : slot.role === "sup" ? "support" : "tank"} className="size-5 sm:size-6" />
     </span>
   );
 }
