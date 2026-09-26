@@ -7,11 +7,11 @@ import { StatsScrollArea } from "./stats-scroll-area";
 const COLORS = ["var(--primary)", "#d6ac62", "#9a92ce", "#db8296", "#79b6bb", "var(--muted-foreground)"];
 type DonutRow = { name: string; value: number; image?: string };
 
-function DonutImage({ src, size, className = "" }: { src: string; size: number; className?: string }) {
+function DonutImage({ src, size, className = "object-cover" }: { src: string; size: number; className?: string }) {
   const [failed, setFailed] = useState(false);
   if (failed) return null;
   // Reuse existing small map artwork and official hero portraits directly.
-  return <Image src={src} alt="" fill sizes={`${size}px`} unoptimized onError={() => setFailed(true)} className={`object-cover ${className}`} />;
+  return <Image src={src} alt="" fill sizes={`${size}px`} unoptimized onError={() => setFailed(true)} className={className} />;
 }
 
 /** Limit the visual to six slices; the full counts remain available below it. */
@@ -33,7 +33,7 @@ export function StatsDonut({ rows, label, unit, showImages = false }: { rows: Do
         })}
       </svg>
       {showImages && featured?.image ? <div aria-hidden="true" className="pointer-events-none absolute inset-8 isolate overflow-hidden rounded-full bg-zinc-950 text-white ring-1 ring-white/10">
-        <DonutImage key={featured.image} src={featured.image} size={112} className="animate-in fade-in duration-200 motion-reduce:animate-none" />
+        <DonutImage key={featured.image} src={featured.image} size={112} className="object-cover animate-in fade-in duration-200 motion-reduce:animate-none" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-black/20 to-black/90" />
         <div className="absolute inset-x-2 bottom-3 text-center [text-shadow:0_1px_4px_rgb(0_0_0/0.8)]">
           <span className="block truncate text-[11px] font-semibold">{featured.name}</span>
@@ -44,9 +44,11 @@ export function StatsDonut({ rows, label, unit, showImages = false }: { rows: Do
     {showImages && <p className="-mt-2 text-center text-[11px] text-muted-foreground">전체 <strong className="ml-1 font-medium tabular-nums text-foreground">{total.toLocaleString()}{unit}</strong></p>}
     <ul className="space-y-1" aria-label={`${label} 비중`}>
       {slices.map((slice, i) => <li key={slice.name}><button type="button" onPointerEnter={() => setActive(i)} onPointerLeave={() => setActive(null)} onFocus={() => setActive(i)} onBlur={() => setActive(null)} onClick={() => setActive(active === i ? null : i)} className={`flex w-full items-center gap-2 rounded-md px-1 py-1.5 text-left text-xs hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary ${showImages && highlighted === i ? "bg-muted/40" : ""}`}>
-        {showImages ? <span aria-hidden="true" className="relative grid size-7 shrink-0 place-items-center overflow-hidden rounded-md bg-muted ring-1 ring-foreground/10">
-          {slice.image ? <DonutImage key={slice.image} src={slice.image} size={28} /> : <span className="grid grid-cols-2 gap-0.5 opacity-70">{[0, 1, 2, 3].map((cell) => <span key={cell} className="size-1 rounded-[1px]" style={{ background: COLORS[i] }} />)}</span>}
-          <span className="absolute inset-y-0 left-0 w-0.5" style={{ background: COLORS[i] }} />
+        {showImages ? <span aria-hidden="true" className="flex shrink-0 items-center gap-1.5">
+          <span className="size-1.5 shrink-0 rounded-full" style={{ background: COLORS[i] }} />
+          <span className="relative grid size-7 place-items-center overflow-hidden rounded-md bg-muted ring-1 ring-foreground/10">
+            {slice.image ? <DonutImage key={slice.image} src={slice.image} size={28} className="object-contain" /> : <span className="grid grid-cols-2 gap-0.5 opacity-70">{[0, 1, 2, 3].map((cell) => <span key={cell} className="size-1 rounded-[1px]" style={{ background: COLORS[i] }} />)}</span>}
+          </span>
         </span> : <span className="size-2 shrink-0 rounded-sm" style={{ background: COLORS[i] }} />}
         <span className="min-w-0 flex-1 truncate">{slice.name}</span><span className="tabular-nums text-muted-foreground">{(slice.value / total * 100).toFixed(1)}%</span><strong className="min-w-12 text-right tabular-nums">{slice.value}{unit}</strong></button></li>)}
     </ul>
