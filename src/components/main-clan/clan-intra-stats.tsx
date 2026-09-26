@@ -28,7 +28,7 @@ export function IntraClanStats({ model }: { model: ClanStatsPageModel }) {
   const bans = stats.bans.filter((row) => banRole === "all" || row.role === banRole);
   return <div className="space-y-5" aria-label="내전 통계 내용">
     <h3 className="text-base font-bold"><StatTitle title="내전 통계" help="기간 필터는 참여 추이, 요약, 맵·밴·선호 맵에 함께 적용됩니다. 날짜는 한국 시간의 내전 개최일 기준입니다." /></h3>
-    <StatsPeriodFilter value={period} onChange={setPeriod} years={years} withDay />
+    <StatsPeriodFilter value={period} onChange={setPeriod} years={years} />
     <Card size="sm"><CardHeader><CardTitle><StatTitle title="참여 추이" help="전체는 연도별, 연도는 월별, 월은 일별 추이입니다. 그래프에 마우스를 올리거나 방향키로 값을 확인하세요. 출전 멤버는 각 기간의 고유 인원으로, 기간별 인원을 더한 값과 전체 인원은 다를 수 있습니다." /></CardTitle><p className="text-xs text-muted-foreground">{statsPeriodLabel(period)} · {activeMetric.label}</p></CardHeader>
       <CardContent className="grid min-w-0 gap-5 min-[900px]:grid-cols-[minmax(0,1fr)_220px]">
         <StatsTrend key={`${statsPeriodKey(period)}:${metric}`} points={intraTrendPoints(model.intraPeriods, period, metric)} label={activeMetric.label} unit={activeMetric.unit} />

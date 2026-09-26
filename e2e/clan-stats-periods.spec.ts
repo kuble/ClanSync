@@ -51,8 +51,8 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await expect(page.getByRole("status", { name: "참여 추이 선택 값" })).toBeVisible();
     await chart.focus(); await chart.press("Home"); await chart.press("ArrowRight");
     await expect(page.getByRole("status", { name: "참여 추이 선택 값" })).toContainText("9경기");
-    await page.getByRole("listbox", { name: "일자", exact: true }).press("End");
-    await expect(completed).toContainText("0경기");
+    await expect(page.getByRole("listbox", { name: "일자", exact: true })).toHaveCount(0);
+    await expect(completed).toContainText("9경기");
     await page.getByRole("tab", { name: "경기 기록" }).click();
     await expect(page.getByRole("searchbox", { name: "경기 참가자 검색" })).toBeVisible();
     await expect(page.getByLabel("경기 기록 주간 달력")).toBeVisible();
