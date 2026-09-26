@@ -71,6 +71,25 @@ test("rounds after midnight retain the session opening date", () => {
     .toEqual(["2026-09-30", "2026-09-30"]);
 });
 
+test("규정 경기 미달자와 미출전자는 운영진에게만 전달하고 기간별로 기준을 계산한다", () => {
+  const records = normalizeClanMatchRecords(Array.from({ length: 10 }, (_, i) => match({
+    id: `qualification-${i}`, played_at: i === 0 ? "2026-08-01T10:00:00Z" : "2026-09-01T10:00:00Z",
+    match_players: [{ user_id: "regular", team: 2 }, ...(i === 0 ? [{ user_id: "once", team: 1 }] : [])],
+  })), []);
+  const nick = new Map([["regular", "Regular"], ["once", "Once"], ["zero", "Zero"]]);
+  const now = new Date("2026-09-26T00:00:00Z");
+  const staff = buildHofPeriod(records, "all", HOF_CONFIG_DEFAULTS, nick, now, [], true);
+  expect(staff.minimumGames).toBe(3);
+  expect(staff.winRate.map((row) => row.userId)).toEqual(["regular"]);
+  expect(staff.unqualified.map((row) => row.userId)).toEqual(["once", "zero"]);
+  expect(staff.unqualified[1]).toMatchObject({ wins: 0, draws: 0, losses: 0, ratePct: null });
+  expect(buildHofPeriod(records, "all", HOF_CONFIG_DEFAULTS, nick, now).unqualified).toEqual([]);
+  const august = buildHofPeriod(records, "month", HOF_CONFIG_DEFAULTS, nick, new Date("2026-08-15T00:00:00Z"), [], true, true);
+  expect(august.minimumGames).toBe(1);
+  expect(august.winRate.map((row) => row.userId)).toContain("once");
+  expect(august.unqualified.map((row) => row.userId)).toEqual(["zero"]);
+});
+
 function hofRecords() {
   return normalizeClanMatchRecords(
     [

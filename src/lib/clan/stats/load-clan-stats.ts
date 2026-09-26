@@ -13,6 +13,7 @@ import {
 } from "./hof-config";
 import { inKstMonth, inKstYear, isoToKstYmd, toKstParts } from "./kst";
 import { buildIntraStats, buildPersonalMatches, type IntraStats, type PersonalMatch } from "./clan-stats-analytics";
+import { buildIntraOverviewPeriods, type IntraOverview } from "./intra-overview";
 import { personalPredictions, predictionTotals, predictionPointHistory, type PredictionRecord, type PredictionPointDay } from "./clan-prediction-stats";
 
 import {
@@ -86,6 +87,8 @@ export type HofRowPrediction = { userId: string; nickname: string; correct: numb
 
 export type HofPeriodPayload = {
   totals: { sessions: number; days: number; matches: number };
+  minimumGames: number;
+  unqualified: HofRowWinRate[];
   undisclosed: boolean;
   undisclosedHint: string | null;
   winRate: HofRowWinRate[];
@@ -99,6 +102,7 @@ export type HofPeriodPayload = {
 export type ClanStatsPageModel = {
   clanId: string;
   intra: IntraStats;
+  intraPeriods: Record<string, IntraOverview>;
   personal: {
     viewerId: string;
     canSeePeers: boolean;
@@ -206,6 +210,8 @@ export function buildHofPeriod(
   if (undisclosed) {
     return {
       totals: { sessions: 0, days: 0, matches: 0 },
+      minimumGames: 0,
+      unqualified: [],
       undisclosed: true,
       undisclosedHint,
       winRate: [],
@@ -222,7 +228,7 @@ export function buildHofPeriod(
   const minG =
     totalIntra > 0
       ? minGamesToQualify(totalIntra, cfg)
-      : Number.MAX_SAFE_INTEGER;
+      : 1;
 
   const wins = new Map<string, number>();
   const draws = new Map<string, number>();
@@ -277,6 +283,12 @@ export function buildHofPeriod(
   });
   const winTop = viewerIsStaff || cfg.winRateVisibleTop === 999 ? winRate.length : cfg.winRateVisibleTop;
   const winSlice = winRate.slice(0, winTop);
+  // Below-threshold records are an operational view; never serialize them for members.
+  const unqualified: HofRowWinRate[] = viewerIsStaff ? [...new Set([...nick.keys(), ...played.keys()])]
+    .filter((uid) => !eligible(uid)).map((uid) => {
+      const w = wins.get(uid) ?? 0, d = draws.get(uid) ?? 0, l = losses.get(uid) ?? 0;
+      return { userId: uid, nickname: nick.get(uid) ?? "알 수 없음", wins: w, draws: d, losses: l, ratePct: w + d + l ? Math.round(w / (w + d + l) * 1000) / 10 : null };
+    }).sort((a, b) => (b.wins + b.draws + b.losses) - (a.wins + a.draws + a.losses) || a.nickname.localeCompare(b.nickname, "ko")) : [];
 
   const winsRows: HofRowWins[] = [...played.keys()].map((uid) => ({
     userId: uid, nickname: nick.get(uid) ?? "알 수 없음", wins: wins.get(uid) ?? 0, played: played.get(uid) ?? 0,
@@ -369,6 +381,8 @@ export function buildHofPeriod(
 
   return {
     totals,
+    minimumGames: minG,
+    unqualified,
     undisclosed: false,
     undisclosedHint: null,
     winRate: winSlice,
@@ -654,6 +668,7 @@ export async function loadClanStatsPage(
   return {
     clanId,
     intra,
+    intraPeriods: buildIntraOverviewPeriods(records, hofSessions),
     personal: { viewerId: userId, canSeePeers: viewSynergy && role !== "member", people: personal },
     summary: {
       totalMatches: matches.filter((m) => m.status === "finished").length,

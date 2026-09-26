@@ -3,6 +3,7 @@ import { buildIntraStats, buildPersonalMatches, currentStreak, recordTotals, rel
 import { normalizeClanMatchRecords, type CompletedBalanceSession } from "../src/lib/clan/stats/normalize-clan-match-records";
 import { summarizeVisits } from "../src/lib/clan/stats/clan-site-usage";
 import { predictionTotals, personalPredictions, predictionPointHistory, type PredictionRecord } from "../src/lib/clan/stats/clan-prediction-stats";
+import { buildIntraOverviewPeriods, intraTrendPoints } from "../src/lib/clan/stats/intra-overview";
 
 function round(id: string, seriesId: string, result: "team1" | "team2" | "draw" | "void", swapped = false): CompletedBalanceSession {
   return {
@@ -49,6 +50,25 @@ test("정규 내전의 세션·출전·무승부와 역할별 아군/적군 관�
   const fresh = buildPersonalMatches(records, "a", new Map([["b", "Renamed"]]), true);
   expect(fresh.flatMap((match) => match.peers).find((peer) => peer.id === "b")?.nickname).toBe("Renamed");
   expect(buildPersonalMatches(records, "a", new Map(), false).every((match) => match.peers.length === 0)).toBe(true);
+});
+
+test("기간 필터는 KST 개최일로 경기·고유 인원·영웅 밴·선호 맵을 함께 집계한다", () => {
+  const september = { ...round("r1", "s1", "team1"), hero_ban_enabled: true, banned_heroes: ["ana", "ana", "genji"], map_candidates: ["부산", "네팔"], balance_session_map_votes: [{ choice_idx: 1 }, { choice_idx: 1 }, { choice_idx: 0 }, { choice_idx: 9 }] };
+  const october = { ...round("r2", "s2", "draw"), balance_session_series: { opened_at: "2026-09-30T15:05:00Z" }, hero_ban_enabled: true, banned_heroes: [], resolved_map_label: "네팔" };
+  const records = normalizeClanMatchRecords([], [september, october, round("r3", "s1", "void")]);
+  const periods = buildIntraOverviewPeriods(records, [{ id: "s1", openedAt: "2026-09-01T14:55:00Z" }, { id: "s2", openedAt: "2026-09-30T15:05:00Z" }, { id: "empty", openedAt: "2026-10-02T00:00:00Z" }]);
+  expect(periods.all).toMatchObject({ sessions: 3, completed: 2, participants: 3, draws: 1 });
+  expect(periods["2026-09"]).toMatchObject({ sessions: 1, completed: 1, participants: 3, draws: 0, noBanMatches: 0, mapVotes: [{ name: "네팔", value: 2 }, { name: "부산", value: 1 }] });
+  expect(periods["2026-09"].bans.map((row) => row.value)).toEqual([1, 1]);
+  expect(periods["2026-10-01"]).toMatchObject({ completed: 1, draws: 1, noBanMatches: 1, maps: [{ name: "네팔", value: 1 }] });
+  expect(periods["2026-10-02"]).toMatchObject({ sessions: 1, completed: 0, participants: 0 });
+  const period = { mode: "all" as const, year: "2026", month: "09", day: "all" };
+  expect(intraTrendPoints(periods, period, "participants")).toEqual([{ key: "2026", label: "2026년", value: 3 }]);
+  expect(intraTrendPoints(periods, { ...period, mode: "year" }, "completed")).toHaveLength(12);
+  expect(intraTrendPoints(periods, { ...period, mode: "month" }, "completed")).toHaveLength(30);
+  expect(intraTrendPoints(periods, { ...period, mode: "month", month: "02", year: "2024" }, "completed")).toHaveLength(29);
+  expect(intraTrendPoints(periods, { ...period, mode: "month", day: "01" }, "completed")).toEqual([{ key: "2026-09-01", label: "1일", value: 1 }]);
+  expect(JSON.stringify(periods)).not.toContain('"user_id"');
 });
 
 test("기간 방문자는 고유 멤버, 활동일은 멤버별 일수로 구분한다", () => {
