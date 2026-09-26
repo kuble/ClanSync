@@ -4,7 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import { StatsScrollArea } from "./stats-scroll-area";
 
-const COLORS = ["var(--primary)", "#d6ac62", "#9a92ce", "#db8296", "#79b6bb", "var(--muted-foreground)"];
+const VISIBLE_LIMIT = 10;
+const COLORS = ["var(--primary)", "#d6ac62", "#9a92ce", "#db8296", "#79b6bb", "#719bda", "#cf8660", "#a9b978", "#b279b3", "#b6a18b", "var(--muted-foreground)"];
 type DonutRow = { name: string; value: number; image?: string };
 
 function DonutImage({ src, size, className = "object-cover" }: { src: string; size: number; className?: string }) {
@@ -14,11 +15,11 @@ function DonutImage({ src, size, className = "object-cover" }: { src: string; si
   return <Image src={src} alt="" fill sizes={`${size}px`} unoptimized onError={() => setFailed(true)} className={className} />;
 }
 
-/** Limit the visual to six slices; the full counts remain available below it. */
+/** Show the top ten items and group the remaining counts into one other slice. */
 export function StatsDonut({ rows, label, unit, showImages = false }: { rows: DonutRow[]; label: string; unit: string; showImages?: boolean }) {
   const [active, setActive] = useState<number | null>(null);
   const ordered = [...rows].filter((row) => row.value > 0).sort((a, b) => b.value - a.value || a.name.localeCompare(b.name, "ko"));
-  const slices: DonutRow[] = ordered.length > 6 ? [...ordered.slice(0, 5), { name: "기타", value: ordered.slice(5).reduce((sum, row) => sum + row.value, 0) }] : ordered;
+  const slices: DonutRow[] = ordered.length > VISIBLE_LIMIT ? [...ordered.slice(0, VISIBLE_LIMIT), { name: "기타", value: ordered.slice(VISIBLE_LIMIT).reduce((sum, row) => sum + row.value, 0) }] : ordered;
   const total = ordered.reduce((sum, row) => sum + row.value, 0);
   const selected = active === null ? null : slices[active];
   const featured = selected ?? (showImages ? ordered[0] : null);
@@ -47,11 +48,11 @@ export function StatsDonut({ rows, label, unit, showImages = false }: { rows: Do
         {showImages ? <span aria-hidden="true" className="flex shrink-0 items-center gap-1.5">
           <span className="size-1.5 shrink-0 rounded-full" style={{ background: COLORS[i] }} />
           <span className="relative grid size-7 place-items-center overflow-hidden rounded-md bg-muted ring-1 ring-foreground/10">
-            {slice.image ? <DonutImage key={slice.image} src={slice.image} size={28} className="object-contain" /> : <span className="grid grid-cols-2 gap-0.5 opacity-70">{[0, 1, 2, 3].map((cell) => <span key={cell} className="size-1 rounded-[1px]" style={{ background: COLORS[i] }} />)}</span>}
+            {slice.image ? <DonutImage key={slice.image} src={slice.image} size={28} /> : <span className="grid grid-cols-2 gap-0.5 opacity-70">{[0, 1, 2, 3].map((cell) => <span key={cell} className="size-1 rounded-[1px]" style={{ background: COLORS[i] }} />)}</span>}
           </span>
         </span> : <span className="size-2 shrink-0 rounded-sm" style={{ background: COLORS[i] }} />}
         <span className="min-w-0 flex-1 truncate">{slice.name}</span><span className="tabular-nums text-muted-foreground">{(slice.value / total * 100).toFixed(1)}%</span><strong className="min-w-12 text-right tabular-nums">{slice.value}{unit}</strong></button></li>)}
     </ul>
-    {ordered.length > 6 && <details className="border-t pt-3"><summary className="cursor-pointer text-xs text-muted-foreground">전체 {ordered.length}개 항목 보기</summary><StatsScrollArea label={`${label} 전체 목록`} className="mt-3 max-h-64"><ul className="space-y-2">{ordered.map((row) => <li key={row.name} className="flex justify-between gap-3 text-xs"><span className="min-w-0 truncate">{row.name}</span><strong className="shrink-0 tabular-nums">{row.value}{unit} · {(row.value / total * 100).toFixed(1)}%</strong></li>)}</ul></StatsScrollArea></details>}
+    {ordered.length > VISIBLE_LIMIT && <details className="border-t pt-3"><summary className="cursor-pointer text-xs text-muted-foreground">전체 {ordered.length}개 항목 보기</summary><StatsScrollArea label={`${label} 전체 목록`} className="mt-3 max-h-64"><ul className="space-y-2">{ordered.map((row) => <li key={row.name} className="flex justify-between gap-3 text-xs"><span className="min-w-0 truncate">{row.name}</span><strong className="shrink-0 tabular-nums">{row.value}{unit} · {(row.value / total * 100).toFixed(1)}%</strong></li>)}</ul></StatsScrollArea></details>}
   </div>;
 }
