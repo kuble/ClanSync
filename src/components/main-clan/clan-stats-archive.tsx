@@ -114,7 +114,7 @@ function ArchiveRecords({ records }: { records: ClanArchiveMatch[] }) {
               {outcomes[match.outcome]}
             </span>
           </div>
-          <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
             {([1, 2] as const).map((team) => (
               <div key={team} className="min-w-0">
                 <div
@@ -128,7 +128,7 @@ function ArchiveRecords({ records }: { records: ClanArchiveMatch[] }) {
                   <Crown className={cn("size-3.5", match.winnerTeam !== team && "invisible")} aria-label={match.winnerTeam === team ? "승리 팀" : undefined} />
                   <span>{team === 1 ? "블루 팀" : "레드 팀"}</span>
                 </div>
-                <ul aria-label={team === 1 ? "블루 팀 명단" : "레드 팀 명단"} className="grid grid-cols-5 gap-1.5">
+                <ul aria-label={team === 1 ? "블루 팀 명단" : "레드 팀 명단"} className="grid grid-cols-1 gap-2">
                   {match.players
                     .filter((player) => player.team === team)
                     .map((player) => {
@@ -144,7 +144,7 @@ function ArchiveRecords({ records }: { records: ClanArchiveMatch[] }) {
                         <li
                           key={player.userId}
                           className={cn(
-                            "flex min-h-20 min-w-0 flex-col items-center justify-center gap-2 rounded-lg border px-1 py-2 text-center text-[10px]",
+                            "flex min-h-11 min-w-0 items-center gap-2 rounded-lg border px-2 py-2 text-xs",
                             team === 1
                               ? "border-sky-500/25 bg-sky-500/[0.04]"
                               : "border-rose-500/25 bg-rose-500/[0.04]",
@@ -163,7 +163,7 @@ function ArchiveRecords({ records }: { records: ClanArchiveMatch[] }) {
                             />
                           ) : null}
                           <span
-                            className="w-full break-all font-medium leading-relaxed"
+                            className="min-w-0 flex-1 break-all font-medium leading-relaxed"
                             title={player.nickname}
                           >
                             {player.nickname}
@@ -172,7 +172,7 @@ function ArchiveRecords({ records }: { records: ClanArchiveMatch[] }) {
                       );
                     })}
                   {!match.players.some((player) => player.team === team) ? (
-                    <li className="col-span-5 rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
+                    <li className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
                       출전자 기록 없음
                     </li>
                   ) : null}
