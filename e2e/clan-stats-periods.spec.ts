@@ -42,7 +42,8 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await expect(completed).toContainText("1경기");
     await expect(page.getByLabel("맵별 경기 비중")).toContainText("부산");
     await month.hover();
-    await page.mouse.wheel(0, 28);
+    // A large mouse-wheel impulse must advance one month, not skip to December.
+    await page.mouse.wheel(0, 800);
     await expect(month.getByRole("option", { selected: true })).toHaveText("8월");
     await expect(completed).toContainText("9경기");
     await expect(page.getByLabel("맵별 경기 비중")).toContainText("네팔");
