@@ -46,6 +46,7 @@ export type ClanArchiveMatch = {
   matchType: string;
   mapLabel: string | null;
   playedAt: string;
+  occurredAt: string;
   source: ClanMatchRecord["source"];
   outcome: ClanMatchRecord["outcome"];
   winnerTeam: number | null;
@@ -586,6 +587,7 @@ export async function loadClanStatsPage(
       matchType: m.match_type,
       mapLabel: m.map_label,
       playedAt: m.played_at,
+      occurredAt: m.occurred_at,
       source: m.source,
       outcome: m.outcome,
       winnerTeam: getWinnerTeam(m),
