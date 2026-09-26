@@ -13,6 +13,10 @@
 
 ## ⚠️ 검토 필요
 
+### 게임 이미지·아이콘 권리 문의
+
+- [에셋 권리 확인·문의 목록](../../licenses/game-assets-review.md)에 우선 확인 자산, 화면·원본 URL, 문의 초안과 답변 기록을 관리한다. 현황: 2026-09-26 목록 작성, 사용 허락 미확인·문의 미발송.
+
 ### 1. 배틀넷 API (오버워치 게임 인증)
 - **Blizzard Battle.net OAuth API** 사용 예정
 - Blizzard Developer Portal 가입 및 앱 등록 필요

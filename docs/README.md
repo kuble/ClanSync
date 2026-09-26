@@ -26,6 +26,7 @@
 
 | 목적 | 기준 문서 |
 |------|-----------|
+| 게임 이미지·아이콘 권리 문의 | [에셋 권리 확인 목록](licenses/game-assets-review.md) · [개별 파일·원본 URL CSV](licenses/game-assets-inventory.csv) |
 | 프로젝트 소개·실행 | [프로젝트 README](../README.md) |
 | 현재 작업·다음 우선순위 | [TODO.md](TODO.md) |
 | 내전 세션·라운드·날짜·참여 용어 | [용어 사전](01-plan/glossary.md#내전-운영-용어) — D-SESSION-01 확정 기준 |
