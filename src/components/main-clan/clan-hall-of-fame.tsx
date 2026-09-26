@@ -12,7 +12,7 @@ import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
 import { HofSettingsForm } from "./clan-stats-view";
 import { StatsScrollArea } from "./stats-scroll-area";
 import { StatsGauge } from "./clan-stats-charts";
-import { HofRankChart, RANK_COLORS } from "./hof-rank-chart";
+import { HofComments } from "./hof-comments";
 
 const RANKINGS = [
   { id: "rate", label: "승률", help: "승 / (승 + 무 + 패). 최소 출전 기준을 충족한 멤버만 등재합니다." },
@@ -53,8 +53,8 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
   };
   const available = RANKINGS.filter(({ id }) => visible[id]);
   const active = available.find(({ id }) => id === ranking) ?? available[0];
-  const history = period === "all" ? model.hof.rankHistory.all
-    : period === "month" ? model.hof.rankHistory.months[month] ?? [] : model.hof.rankHistory.years[year] ?? [];
+  const periodKey = period === "all" ? "all" : period === "month" ? month : year;
+  const periodLabel = period === "all" ? "전체 기간" : period === "month" ? `${month.slice(0, 4)}년 ${Number(month.slice(5))}월` : `${year}년`;
   const monthYears = [...new Set(months.map((key) => key.slice(0, 4)))];
   const monthsInYear = months.filter((key) => key.startsWith(month.slice(0, 4)));
   return <div className="space-y-4">
@@ -76,7 +76,7 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
     </div>
     {block.undisclosed ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">{block.undisclosedHint}</p> : !active ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">공개된 통계 부문이 없습니다.</p> : <>
       <p className="text-xs text-muted-foreground">선택 기간 정규 내전 <strong className="text-foreground">{totals.sessions}회</strong> · 개최 {totals.days}일 · 전체 {totals.matches}경기</p>
-      <div className="grid items-start gap-3 xl:grid-cols-[minmax(18rem,0.85fr)_minmax(0,1.3fr)]" aria-label="명예의 전당 순위와 변동">
+      <div className="grid items-start gap-4 min-[1000px]:grid-cols-2" aria-label="명예의 전당 순위와 반응">
           <Card key={active.id} size="sm" className="min-w-0">
             <CardHeader><CardTitle><h4><StatTitle title={active.label} help={active.help} /></h4></CardTitle></CardHeader>
             <CardContent>
@@ -87,7 +87,7 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
                       const canOpen = model.personal.people.some((person) => person.userId === row.userId);
                       const content = <>
                         <StatsGauge value={row.numerator} total={row.denominator} label={`${row.nickname}: ${row.detail}, ${row.value}`} />
-                        <span className="flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold" style={{ color: RANK_COLORS[index % RANK_COLORS.length], backgroundColor: `${RANK_COLORS[index % RANK_COLORS.length]}22` }}>{index + 1}</span>
+                        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">{index + 1}</span>
                         <span className="min-w-0 flex-1 space-y-1">
                           <span className="flex items-center justify-between gap-3"><span className="truncate text-sm font-semibold">{row.nickname}</span><strong className="shrink-0 text-sm tabular-nums">{row.value}</strong></span>
                           <span className="block text-[11px] text-muted-foreground">{row.detail}</span>
@@ -101,9 +101,7 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
               ) : <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">등재 기준을 충족한 기록이 없습니다.</p>}
             </CardContent>
           </Card>
-          <Card size="sm" className="min-w-0"><CardHeader><CardTitle><h4>누적 순위 변동</h4></CardTitle></CardHeader><CardContent>
-            <HofRankChart points={history} rows={rankingRows[active.id]} ranking={active.id} period={period} />
-          </CardContent></Card>
+          <HofComments key={`${clanId}:${active.id}:${periodKey}`} clanId={clanId} ranking={active.id} periodKey={periodKey} label={`${periodLabel} · ${active.label}`} />
       </div>
     </>}
   </div>;

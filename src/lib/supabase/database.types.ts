@@ -933,6 +933,51 @@ export type Database = {
           },
         ]
       }
+      clan_hof_comments: {
+        Row: {
+          author_id: string | null
+          clan_id: string
+          content: string
+          created_at: string
+          id: string
+          period_key: string
+          ranking: string
+        }
+        Insert: {
+          author_id?: string | null
+          clan_id: string
+          content: string
+          created_at?: string
+          id?: string
+          period_key: string
+          ranking: string
+        }
+        Update: {
+          author_id?: string | null
+          clan_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          period_key?: string
+          ranking?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_hof_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_hof_comments_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_join_requests: {
         Row: {
           applied_at: string
@@ -2636,6 +2681,10 @@ export type Database = {
       }
       balance_roster_contains_user: {
         Args: { p_roster: Json; p_uid: string }
+        Returns: boolean
+      }
+      can_access_hof_comments: {
+        Args: { p_clan_id: string; p_period_key: string; p_ranking: string }
         Returns: boolean
       }
       can_manage_balance_room: {

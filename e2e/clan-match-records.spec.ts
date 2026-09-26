@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { buildHofPeriod, buildHofRankHistory } from "../src/lib/clan/stats/load-clan-stats";
+import { buildHofPeriod } from "../src/lib/clan/stats/load-clan-stats";
 import { HOF_CONFIG_DEFAULTS } from "../src/lib/clan/stats/hof-config";
 import {
   normalizeClanMatchRecords,
@@ -69,27 +69,6 @@ test("rounds after midnight retain the session opening date", () => {
   expect(records.map((record) => record.played_at)).toEqual([openedAt, openedAt]);
   expect(records.map((record) => new Date(record.played_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" })))
     .toEqual(["2026-09-30", "2026-09-30"]);
-});
-
-test("historical rank aggregation stays within the CPU budget for 300 ten-player matches", () => {
-  const players = Array.from({ length: 10 }, (_, i) => ({ user_id: `player-${i}`, team: i < 5 ? 1 : 2 }));
-  const records = normalizeClanMatchRecords(Array.from({ length: 300 }, (_, index) => match({
-    id: `history-${index}`,
-    played_at: new Date(Date.UTC(2025, 6 + Math.floor(index / 20), 1 + Math.floor(index % 20 / 5), 12)).toISOString(),
-    match_players: players,
-    match_results: { winner_team: index % 2 + 1 },
-  })), []);
-  const months = [...new Set(records.map((record) => record.played_at.slice(0, 7)))];
-  const years = [...new Set(months.map((month) => month.slice(0, 4)))];
-  const now = new Date("2026-09-30T12:00:00Z");
-  const started = performance.now();
-  const history = buildHofRankHistory(records, HOF_CONFIG_DEFAULTS, new Map(), now, [], true, [], months, years);
-  const elapsed = performance.now() - started;
-  const final = buildHofPeriod(records, "all", HOF_CONFIG_DEFAULTS, new Map(), now, [], true);
-  expect(history.all.at(-1)?.appearances).toEqual(final.cumulative.map((row) => row.userId));
-  expect(history.all.at(-1)?.rate).toEqual(final.winRate.map((row) => row.userId));
-  expect(Object.keys(history.months)).toHaveLength(15);
-  expect(elapsed, "Pure aggregation must not hold the server event loop for seconds").toBeLessThan(3000);
 });
 
 function hofRecords() {
@@ -208,24 +187,6 @@ test("명예의 전당: 등재 최소 경기 수도 무효를 제외한 전체 �
   expect(result.participation.find((row) => row.userId === "regular")).toMatchObject({ played: 2, ratePct: 100 });
   expect(result.cumulative.map((row) => row.userId)).toEqual(expect.arrayContaining(["regular", "once", "draw-only"]));
   expect(result.winRate.map((row) => row.userId)).toEqual(["regular"]);
-});
-
-test("명예의 전당: 날짜별 누적 순위가 실제 결과를 따라 바뀌고 공개 전 월은 숨긴다", () => {
-  const rows = normalizeClanMatchRecords([
-    match({ id: "day-1", played_at: "2026-09-01T10:00:00Z", match_players: [{ user_id: "a", team: 1 }, { user_id: "b", team: 2 }], match_results: { winner_team: 1 } }),
-    match({ id: "day-2", played_at: "2026-09-02T10:00:00Z", match_players: [{ user_id: "a", team: 1 }, { user_id: "b", team: 2 }], match_results: { winner_team: 2 } }),
-    match({ id: "day-3", played_at: "2026-09-03T10:00:00Z", match_players: [{ user_id: "a", team: 1 }, { user_id: "b", team: 2 }], match_results: { winner_team: 2 } }),
-  ], []);
-  const now = new Date("2026-09-25T00:00:00Z");
-  const args = [rows, HOF_CONFIG_DEFAULTS, new Map([["a", "A"], ["b", "B"]]), now, [], true, [], ["2026-09"], ["2026"]] as const;
-  const history = buildHofRankHistory(...args);
-  expect(history.months["2026-09"].map((point) => point.date)).toEqual(["2026-09-01", "2026-09-02", "2026-09-03"]);
-  expect(history.months["2026-09"][0].rate[0]).toBe("a");
-  expect(history.months["2026-09"][2].rate[0]).toBe("b");
-  expect(history.all.at(-1)?.rate[0]).toBe("b");
-
-  const hidden = buildHofRankHistory(rows, { ...HOF_CONFIG_DEFAULTS, monthlyRankVisibility: "month_start" }, new Map(), now, [], false, [], ["2026-09"], ["2026"]);
-  expect(hidden.months["2026-09"]).toEqual([]);
 });
 
 test("경기 기록: 취소된 세션을 제외하고 닫기 전 확정 결과와 실제 라인업을 표시한다", () => {
