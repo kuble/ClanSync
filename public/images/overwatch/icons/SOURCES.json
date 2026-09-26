@@ -8,5 +8,18 @@
     "damage": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/blt05d482c88096959a/6504cff7d9caa1285f64b6bd/Damage.svg",
     "support": "https://blz-contentstack-images.akamaized.net/v3/assets/blt2477dcaf4ebd440c/blt3ccd5df488163b33/6504cff7fc2ae4d7c50445c4/Support.svg"
   },
-  "mapModes": "Custom ClanSync SVG symbols in src/components/ui/overwatch-icons.tsx. No official mode-icon download was verified."
+  "mapModes": {
+    "createdAt": "2026-09-26",
+    "reference": "Six images supplied by the user, described as copied from NamuWiki's Overwatch maps page. The external page and original authorship could not be verified.",
+    "processing": "Manually redrawn SVG geometry based on the supplied silhouettes. Rendered with a CSS mask; no source raster files are bundled.",
+    "rights": "Redrawing does not clear rights in the reference designs. These files are not claimed to be original ClanSync designs or verified official downloads.",
+    "files": {
+      "assault": "mode-assault.svg",
+      "control": "mode-control.svg",
+      "escort": "mode-escort.svg",
+      "hybrid": "mode-hybrid.svg",
+      "push": "mode-push.svg",
+      "flashpoint": "mode-flashpoint.svg"
+    }
+  }
 }
