@@ -3,13 +3,15 @@ export const MAP_TYPES = [
   { id: "push", label: "밀기" },
   { id: "escort", label: "화물" },
   { id: "hybrid", label: "혼합" },
+  { id: "flashpoint", label: "플래시포인트" },
 ] as const;
 
 export type MapType = (typeof MAP_TYPES)[number]["id"];
 
 /**
- * 내전에서 지원하는 4개 유형의 전장 목록. 시즌별 경쟁전 로테이션은 아니다.
+ * 내전에서 지원하는 5개 유형의 전장 목록. 시즌별 경쟁전 로테이션은 아니다.
  * 한글 명칭·유형: Blizzard 패치 노트 2023/02, 2023/10, 2024/06 및
+ * 플래시포인트: https://overwatch.blizzard.com/ko-kr/news/patch-notes/live/2025/6/
  * 네온 교차로 소개 https://overwatch.blizzard.com/ko-kr/news/24271881/
  */
 const OVERWATCH_MAPS: readonly { id: string; label: string; type: MapType }[] = [
@@ -40,6 +42,9 @@ const OVERWATCH_MAPS: readonly { id: string; label: string; type: MapType }[] = 
   { id: "midtown", label: "미드타운", type: "hybrid" },
   { id: "paraiso", label: "파라이수", type: "hybrid" },
   { id: "neon-junction", label: "네온 교차로", type: "hybrid" },
+  { id: "suravasa", label: "수라바사", type: "flashpoint" },
+  { id: "new-junk-city", label: "뉴 정크 시티", type: "flashpoint" },
+  { id: "aatlis", label: "아틀리스", type: "flashpoint" },
 ];
 
 /** Artwork sources: public/images/overwatch/maps/SOURCES.json. */

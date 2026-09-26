@@ -8,6 +8,7 @@ import {
   mapPoolForGameSlug,
   type MapType,
 } from "@/lib/balance/map-pools";
+import { OverwatchMapIcon } from "@/components/ui/overwatch-icons";
 import { cn } from "@/lib/utils";
 import { BalanceMapImage } from "./clan-balance-map-image";
 
@@ -16,6 +17,7 @@ const TYPE_ART: Record<MapType, string> = {
   push: "콜로세오",
   escort: "서킷 로얄",
   hybrid: "왕의 길",
+  flashpoint: "수라바사",
 };
 
 function MapTypeCard({ id, label, selected, disabled, onClick }: {
@@ -26,16 +28,16 @@ function MapTypeCard({ id, label, selected, disabled, onClick }: {
   onClick: () => void;
 }) {
   return (
-    <button type="button" aria-label={label} aria-pressed={selected} disabled={disabled} onClick={onClick}
+    <button type="button" aria-label={label} title={label} aria-pressed={selected} disabled={disabled} onClick={onClick}
       className={cn("group relative min-h-24 overflow-hidden rounded-xl border text-left text-white transition-[border-color,box-shadow] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:cursor-default sm:min-h-32", selected ? "border-primary ring-2 ring-primary/50" : "border-white/10 hover:border-primary/70")}>
       {id === "all" ? (
         <span className="absolute inset-0 grid grid-cols-2" aria-hidden="true">
-          {MAP_TYPES.map((type) => <span key={type.id} className="relative"><BalanceMapImage label={TYPE_ART[type.id]} sizes="120px" /></span>)}
+          {MAP_TYPES.slice(0, 4).map((type) => <span key={type.id} className="relative"><BalanceMapImage label={TYPE_ART[type.id]} sizes="120px" /></span>)}
         </span>
       ) : <BalanceMapImage label={TYPE_ART[id]} className="transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none" sizes="(max-width: 640px) 50vw, 240px" />}
       <span className="absolute inset-0 bg-linear-to-t from-black/85 via-black/20 to-black/10" aria-hidden="true" />
       {selected ? <span className="absolute right-2 top-2 rounded-full bg-primary p-1 text-primary-foreground"><Check className="size-3.5" aria-hidden="true" /></span> : null}
-      <span className="absolute bottom-3 left-3 font-bold sm:text-base">{label}</span>
+      <span className="absolute bottom-3 left-3 font-bold sm:text-base">{id === "all" ? label : <OverwatchMapIcon type={id} className="size-7 drop-shadow" />}</span>
     </button>
   );
 }
@@ -52,7 +54,7 @@ export function MapTypeFilter({
   return (
     <fieldset disabled={disabled} className="space-y-3" data-balance-guide="map-types">
       <legend className="text-sm font-semibold">맵 유형</legend>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-6">
         <MapTypeCard id="all" label="전체" selected={value.length === 0} disabled={disabled} onClick={() => onChange([])} />
         {MAP_TYPES.map(({ id, label }) => (
           <MapTypeCard
@@ -104,7 +106,7 @@ export function BalanceManualMapPicker({
       {gameSlug === "overwatch" ? (
         <fieldset className="space-y-3" data-balance-guide="map-types">
           <legend className="text-sm font-semibold">맵 유형</legend>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
             {MAP_TYPES.map(({ id, label }) => (
               <MapTypeCard key={id} id={id} label={label} selected={type === id} disabled={disabled}
                 onClick={() => { setType(id); setPreview(null); }} />

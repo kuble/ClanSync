@@ -191,8 +191,7 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
     await expect(all).toHaveAttribute("aria-pressed", "true");
     await expect(control).toHaveAttribute("aria-pressed", "false");
     await expect(escort).toHaveAttribute("aria-pressed", "false");
-    await control.click();
-    await escort.click();
+    await preparation.getByRole("button", { name: "플래시포인트", exact: true }).click();
     await Promise.all([
       expect(panel.getByTestId("balance-realtime")).toHaveAttribute(
         "data-connection-status",
@@ -217,18 +216,19 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
       .toBe(2);
     const voting = await fixture.activeRound();
     expect(voting.phase).toBe("map_ban");
-    expect(voting.map_types).toEqual(["control", "escort"]);
+    expect(voting.map_types).toEqual(["flashpoint"]);
     expect(voting.map_ban_seconds).toBe(5);
     expect(voting.map_ban_deadline_at).not.toBeNull();
     expect(voting.map_candidates).toHaveLength(3);
-    const allowed = mapPoolForGameSlug("overwatch", ["control", "escort"]);
+    const allowed = mapPoolForGameSlug("overwatch", ["flashpoint"]);
+    expect([...allowed].sort()).toEqual(["수라바사", "뉴 정크 시티", "아틀리스"].sort());
     expect(voting.map_candidates?.every((map) => allowed.includes(map))).toBe(
       true,
     );
     expect(new Set(voting.map_candidates).size).toBe(3);
     await expectMapStage(panel);
     await expectMapStage(memberPanel);
-    await expectLoadedMapImage(panel.getByRole("button", { name: /MAP 01/ }));
+    for (const number of ["01", "02", "03"]) await expectLoadedMapImage(panel.getByRole("button", { name: new RegExp("MAP " + number) }));
     await capturePanel(panel, "map-voting-gallery");
     await expectGuide(page, panel, "원하는 맵에 투표");
     expect(await readVotes(fixture, formed.id)).toEqual(
@@ -301,6 +301,10 @@ test("경기 준비: 팀별 영웅 선택·기권·밴 확정과 경기 시작",
     await expect(panel.getByRole("combobox", { name: "경기 맵", exact: true })).toHaveCount(0);
     await expect(panel.locator("[data-map-card]")).toHaveCount(0);
     await expect(advance).toBeDisabled();
+    await panel.getByRole("button", { name: "플래시포인트", exact: true }).click();
+    await panel.getByRole("button", { name: "아틀리스 선택", exact: true }).click();
+    await expect(panel.getByRole("button", { name: "아틀리스 선택", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect.poll(async () => (await fixture.activeRound()).resolved_map_label).toBe("아틀리스");
     await panel.getByRole("button", { name: "혼합", exact: true }).click();
     await picker.click();
     await expect(picker).toHaveAttribute("aria-pressed", "true");

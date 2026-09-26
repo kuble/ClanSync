@@ -190,6 +190,10 @@ test("prematch rules, voting deadlines and explicit match start are atomic", asy
         ),
       );
       assert.equal(results.filter(Boolean).length, 1);
+      assert.equal(await settings({ p_map_types: ["flashpoint"] }), true);
+      assert.deepEqual((await read()).map_types, ["flashpoint"]);
+      assert.ok((await svc.from("balance_sessions").update({ map_types: ["fake"] }).eq("id", roundId)).error);
+      assert.ok((await svc.from("balance_sessions").update({ map_types: [null] }).eq("id", roundId)).error);
       assert.equal(
         await settings({
           p_map_ban: true,

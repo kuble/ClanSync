@@ -245,6 +245,36 @@
       "sourceImage": "https://bnetcmsus-a.akamaihd.net/cms/page_media/fk/FKMOU1K95QU91781145184691.png",
       "provider": "Blizzard Entertainment",
       "bytes": 74972
+    },
+    {
+      "key": "aatlis",
+      "name": "Aatlis",
+      "sourcePage": "https://overwatch.blizzard.com/en-us/news/24206339/",
+      "sourceImage": "https://bnetcmsus-a.akamaihd.net/cms/page_media/yj/YJ9T3QK03YAP1750172244093.png",
+      "file": "/images/overwatch/maps/aatlis.webp",
+      "provider": "Blizzard Entertainment",
+      "retrievedAt": "2026-09-26",
+      "bytes": 77756
+    },
+    {
+      "key": "suravasa",
+      "name": "Suravasa",
+      "sourcePage": "https://overwatch.blizzard.com/en-us/news/24215719/",
+      "sourceImage": "https://bnetcmsus-a.akamaihd.net/cms/page_media/x0/X0NN0LIHG4K51751394084399.png",
+      "file": "/images/overwatch/maps/suravasa.webp",
+      "provider": "Blizzard Entertainment",
+      "retrievedAt": "2026-09-26",
+      "bytes": 92050
+    },
+    {
+      "key": "new-junk-city",
+      "name": "New Junk City",
+      "sourcePage": "https://overwatch.blizzard.com/en-us/news/24215719/",
+      "sourceImage": "https://bnetcmsus-a.akamaihd.net/cms/page_media/xd/XD1RJK07ZT9B1751034662158.png",
+      "file": "/images/overwatch/maps/new-junk-city.webp",
+      "provider": "Blizzard Entertainment",
+      "retrievedAt": "2026-09-26",
+      "bytes": 71946
     }
   ]
 }
