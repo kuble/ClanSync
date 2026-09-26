@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { RubberSegment } from "@/components/ui/rubber-segment";
-import { StatTitle } from "./stat-help";
+import { StatTitle, StatHelp } from "./stat-help";
 import { StatsEmblems } from "./stats-emblems";
 import { StatsScrollArea } from "./stats-scroll-area";
 import { StatsMemberPicker } from "./stats-member-picker";
@@ -20,12 +20,14 @@ import { StatsGauge } from "./clan-stats-charts";
 import { IntraClanStats } from "./clan-intra-stats";
 import { ClanMatchHistory } from "./clan-match-history";
 
-type StatPeriod = "all" | "month" | "year";
+import { StatsPeriodFilter } from "./stats-period-filter";
+import { statsPeriodKey, type StatsPeriod } from "@/lib/clan/stats/intra-overview";
+import { OverwatchRoleIcon } from "@/components/ui/overwatch-icons";
 const ROLE_OPTIONS = [
   { id: "all", label: "전체" },
-  { id: "tank", label: "돌격" },
-  { id: "dmg", label: "공격" },
-  { id: "sup", label: "지원" },
+  { id: "tank", label: "돌격", icon: <OverwatchRoleIcon role="tank" /> },
+  { id: "dmg", label: "공격", icon: <OverwatchRoleIcon role="damage" /> },
+  { id: "sup", label: "지원", icon: <OverwatchRoleIcon role="support" /> },
 ] as const;
 const ROLE_LABEL: Record<Exclude<StatRole, null>, string> = { tank: "돌격", dmg: "공격", sup: "지원" };
 const RESULT_LABEL = { win: "승", draw: "무", loss: "패" } as const;
@@ -35,7 +37,7 @@ function rate(value: number | null) {
 }
 
 function FilterButtons<T extends string>({ options, value, onChange, label }: {
-  options: readonly { id: T; label: string }[];
+  options: readonly { id: T; label: string; icon?: ReactNode }[];
   value: T;
   onChange: (value: T) => void;
   label: string;
@@ -44,7 +46,8 @@ function FilterButtons<T extends string>({ options, value, onChange, label }: {
 }
 
 function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageModel; selectedId: string; onBack: () => void }) {
-  const [period, setPeriod] = useState<StatPeriod>("all");
+  const now = currentKstYearMonth();
+  const [period, setPeriod] = useState<StatsPeriod>({ mode: "all", year: String(now.year), month: String(now.month).padStart(2, "0"), day: "all" });
   const [role, setRole] = useState<Exclude<StatRole, null> | "all">("all");
   const [peerRole, setPeerRole] = useState<Exclude<StatRole, null> | "all">("all");
   const [relation, setRelation] = useState<"ally" | "enemy">("ally");
@@ -54,8 +57,10 @@ function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageMode
   const [mapSort, setMapSort] = useState<"matches" | "rate">("matches");
   const [scoreKind, setScoreKind] = useState<"evaluation" | "analysis">("evaluation");
   const person = model.personal.people.find((candidate) => candidate.userId === selectedId) ?? model.personal.people[0];
-  const now = currentKstYearMonth();
-  const periodMatches = person.matches.filter((match) => period === "all" || (period === "year" ? match.date.startsWith(String(now.year)) : match.date.startsWith(`${now.year}-${String(now.month).padStart(2, "0")}`)));
+  const years = [...new Set([String(now.year), ...person.matches.map((match) => match.date.slice(0, 4)), ...person.predictionPoints.map((day) => day.date.slice(0, 4))])].sort().reverse();
+  const periodKey = statsPeriodKey(period);
+  const inPeriod = (date: string) => periodKey === "all" || date.startsWith(periodKey);
+  const periodMatches = person.matches.filter((match) => inPeriod(match.date));
   const matches = periodMatches;
   const totals = recordTotals(matches);
   const streak = currentStreak(person.matches);
@@ -79,7 +84,7 @@ function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageMode
   const selectedPeer = relations.find((row) => row.id === peerId);
   const roleRows = ROLE_OPTIONS.map((option) => ({ ...option, ...recordTotals(periodMatches.filter((match) => option.id === "all" || match.role === option.id)) }));
   const scorePoints = [...matches].reverse().map((match) => ({ at: match.occurredAt, value: match[scoreKind] }));
-  const predictionDays = person.predictionPoints.filter((item) => period === "all" || (period === "year" ? item.date.startsWith(String(now.year)) : item.date.startsWith(    String(now.year) + "-" + String(now.month).padStart(2, "0"))));
+  const predictionDays = person.predictionPoints.filter((item) => inPeriod(item.date));
   const earned = predictionDays.reduce((sum, day) => sum + day.earned, 0);
   const lost = predictionDays.reduce((sum, day) => sum + day.lost, 0);
   return (
@@ -87,13 +92,13 @@ function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageMode
       <div className="flex flex-wrap items-center justify-between gap-3"><div className="min-w-0 flex-1"><h3 className="text-base font-bold"><StatTitle title={`개인 기록 · ${person.nickname}`} help="정규 내전에서 실제 출전한 경기만 집계합니다." /></h3></div>
         <Button type="button" variant="outline" size="sm" onClick={onBack}>멤버 다시 선택</Button>
       </div>
-      <FilterButtons label="개인 기록 기간" options={[{ id: "all", label: "전체" }, { id: "month", label: "이번 달" }, { id: "year", label: "올해" }]} value={period} onChange={setPeriod} />
+      <section aria-label="개인 기록 기간"><StatsPeriodFilter value={period} onChange={(next) => { setPeriod(next); setPeerId(null); }} years={years} /></section>
       <div className="grid gap-3 sm:grid-cols-3">
         <Card size="sm"><CardHeader><CardDescription><StatTitle title="출전 경기" help="선택 기간의 실제 출전 경기 수입니다. 참여 내전 횟수에는 내전 정보가 없는 과거 경기를 제외합니다." /></CardDescription><CardTitle className="text-2xl tabular-nums">{totals.matches}경기</CardTitle></CardHeader><CardContent className="text-xs text-muted-foreground">참여 내전 {totals.sessions}회</CardContent></Card>
         <Card size="sm"><CardHeader><CardDescription><StatTitle title="승/무/패" help="무효·결과 미정은 제외합니다." /></CardDescription><CardTitle className="text-xl tabular-nums">{totals.wins}승 / {totals.draws}무 / {totals.losses}패</CardTitle></CardHeader></Card>
         <Card size="sm" className="relative isolate"><CardHeader><CardDescription><StatTitle title="승률" help="승 ÷ (승 + 무 + 패). 무승부도 분모에 포함합니다." /></CardDescription><CardTitle className="text-2xl tabular-nums">{rate(totals.rate)}</CardTitle></CardHeader><CardContent className="text-xs text-muted-foreground"><StatsGauge value={totals.wins} total={totals.matches} label={`승률 ${rate(totals.rate)} · ${totals.wins}승 / ${totals.matches}경기`} /></CardContent></Card>
       </div>
-      <Card size="sm"><CardHeader><CardTitle><StatTitle title="최근 흐름" help={<>현재 연속은 선택 기간과 관계없이 최신 전체 경기 기준입니다.</>} /></CardTitle></CardHeader><CardContent className="space-y-3"><div className="flex flex-wrap gap-1.5">{person.matches.slice(0, 10).map((match) => <span key={match.id} title={`${match.date} ${match.map ?? "맵 미기록"}`} className={`rounded px-2 py-1 text-xs ${match.result === "win" ? "bg-sky-500/15 text-sky-400" : match.result === "loss" ? "bg-rose-500/15 text-rose-400" : "bg-muted"}`}>{RESULT_LABEL[match.result]}</span>)}{!person.matches.length && <span className="text-sm text-muted-foreground">기록 없음</span>}</div><p className="text-sm font-semibold">{streak.count ? `${streak.count}연${streak.result === "win" ? "승" : "패"}` : "현재 연속 기록 없음"}</p></CardContent></Card>
+      <Card size="sm"><CardHeader><CardTitle><span className="flex flex-wrap items-center gap-x-3 gap-y-1"><span>최근 흐름</span><span className={`text-xs font-medium ${streak.count ? streak.result === "win" ? "text-sky-400" : "text-rose-400" : "text-muted-foreground"}`}>{streak.count ? `${streak.count}연${streak.result === "win" ? "승" : "패"}` : "현재 연속 기록 없음"}</span><StatHelp title="최근 흐름">현재 연속은 선택 기간과 관계없이 최신 전체 경기 기준입니다.</StatHelp></span></CardTitle></CardHeader><CardContent className="space-y-3"><div className="flex flex-wrap gap-1.5">{person.matches.slice(0, 10).map((match) => <span key={match.id} title={`${match.date} ${match.map ?? "맵 미기록"}`} className={`rounded px-2 py-1 text-xs ${match.result === "win" ? "bg-sky-500/15 text-sky-400" : match.result === "loss" ? "bg-rose-500/15 text-rose-400" : "bg-muted"}`}>{RESULT_LABEL[match.result]}</span>)}{!person.matches.length && <span className="text-sm text-muted-foreground">기록 없음</span>}</div></CardContent></Card>
       <div className="grid gap-3 sm:grid-cols-2">{([{ label: "최장 연승", row: bestWin }, { label: "최장 연패", row: bestLoss }] as const).map(({ label, row }) => <Card key={label} size="sm"><CardHeader><CardDescription><StatTitle title={label} help="선택한 기간 안에서 이어진 최장 연속 기록입니다." /></CardDescription><CardTitle className="text-xl">{row.count ? `${row.count}경기` : "기록 없음"}</CardTitle></CardHeader>{row.count > 0 && <CardContent className="text-xs text-muted-foreground">{row.start} ~ {row.end}</CardContent>}</Card>)}</div>
       <Card size="sm"><CardHeader><CardTitle><StatTitle title="역할별 기록" help="선택 기간의 전체·돌격·공격·지원 기록을 함께 비교합니다. 시너지 역할 조건은 이 기록에 영향을 주지 않습니다." /></CardTitle></CardHeader><CardContent>
         <div className="grid grid-cols-4 gap-1.5 sm:gap-3" aria-label="역할별 기록 비교">{roleRows.map((row) => <div key={row.id} className="relative isolate min-w-0 overflow-hidden rounded-lg border px-1.5 py-3 text-center sm:px-3">
