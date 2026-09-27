@@ -484,7 +484,7 @@ export function ClanBalanceSettings({
                   disabled={!planPremium || !regularRoom}
                   onChange={(event) => setDraft({ ...draft, predictionEnabled: event.target.checked })} />
               </label>
-              <p className="text-xs text-muted-foreground">{!planPremium ? "Premium 클랜에서 사용할 수 있습니다." : !regularRoom ? "정규 내전에서만 사용할 수 있습니다." : "관전 멤버가 승리할 팀을 예측합니다. 경기 현황에서 따로 열 수 있습니다."}</p>
+              <p className="text-xs text-muted-foreground">{!planPremium ? "Premium 클랜에서 사용할 수 있습니다." : !regularRoom ? "정규 내전에서만 사용할 수 있습니다." : "관전 멤버가 블루 승·레드 승·무승부를 예측합니다. 경기 현황에서 따로 열 수 있습니다."}</p>
             </div>
             <label className="flex items-center justify-between text-sm">
               맵 밴 사용

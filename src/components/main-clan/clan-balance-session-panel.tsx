@@ -248,6 +248,8 @@ export function ClanBalanceSessionPanel({
       ? 1
       : myPrediction?.pick_team === 2
         ? 2
+        : myPrediction?.pick_team === 3
+          ? 3
         : null;
   const outcomeLabel =
     session?.match_outcome === "void"

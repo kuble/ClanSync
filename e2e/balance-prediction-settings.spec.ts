@@ -133,6 +133,10 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
       await red.click();
       await expect.poll(readPick).toBe(2);
       await expect(red).toHaveAttribute("aria-pressed", "true");
+      const draw = predictions.getByRole("button", { name: "무승부", exact: true });
+      await draw.click();
+      await expect.poll(readPick).toBe(3);
+      await expect(draw).toHaveAttribute("aria-pressed", "true");
       await spectator.screenshot({ path: test.info().outputPath("prediction-drawer-desktop.png"), fullPage: true });
       await spectator.setViewportSize({ width: 390, height: 844 });
       await expect.poll(async () => {

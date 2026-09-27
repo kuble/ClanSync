@@ -9,7 +9,7 @@ export type PredictionRecord = {
   outcome: "team1" | "team2" | "draw" | "void";
 };
 
-export type PredictionResult = "correct" | "incorrect" | "draw" | "void";
+export type PredictionResult = "correct" | "incorrect" | "void";
 
 export type PredictionPointDay = { date: string; earned: number; lost: number; net: number };
 /** Actual personal ledger amounts only; a correct pick does not imply a payout. */
@@ -35,8 +35,8 @@ export function predictionPointHistory(rows: readonly PredictionRecord[], transa
 }
 
 export function predictionResult(row: PredictionRecord): PredictionResult {
-  if (row.outcome === "draw" || row.outcome === "void") return row.outcome;
-  return row.pickTeam === (row.outcome === "team1" ? 1 : 2) ? "correct" : "incorrect";
+  if (row.outcome === "void") return "void";
+  return row.pickTeam === (row.outcome === "team1" ? 1 : row.outcome === "team2" ? 2 : 3) ? "correct" : "incorrect";
 }
 
 export function predictionTotals(rows: readonly PredictionRecord[]) {
@@ -53,6 +53,7 @@ export function personalPredictions(rows: readonly PredictionRecord[], userId: s
     sessionId: row.sessionId,
     date: isoToKstYmd(row.playedAt),
     map: row.map,
+    outcome: row.outcome,
     result: predictionResult(row),
   }));
 }

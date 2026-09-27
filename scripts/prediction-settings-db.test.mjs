@@ -120,6 +120,8 @@ test("round prediction settings enforce Premium, persistence and spectator RLS",
     assert.equal(await ok(save(true)), true);
     await live();
     await ok(prediction(spectator.client, spectator.id));
+    await ok(prediction(spectator.client, spectator.id, 3));
+    assert.equal((await ok(svc.from("balance_session_predictions").select("pick_team").eq("session_id", roundId).single())).pick_team, 3);
     assert.ok((await prediction(leader.client, leader.id)).error);
     assert.ok((await prediction(outsider.client, outsider.id)).error);
     assert.ok((await prediction(spectator.client, leader.id)).error);

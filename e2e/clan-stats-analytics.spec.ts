@@ -80,13 +80,13 @@ test("기간 방문자는 고유 멤버, 활동일은 멤버별 일수로 구분
   expect(summarizeVisits(visits, "2026-09-01", "2026-09-02")).toEqual({ visitors: 2, personDays: 3 });
 });
 
-test("승부예측 적중률은 승패 확정 표본만 사용하고 무승부·무효를 따로 보존한다", () => {
-  const rows: PredictionRecord[] = (["team1", "team2", "draw", "void"] as const).map((outcome, index) => ({
+test("승부예측 적중력은 무승부를 포함하고 무효만 제외한다", () => {
+  const rows: PredictionRecord[] = (["team1", "team2", "draw", "draw", "void"] as const).map((outcome, index) => ({
     sessionId: String(index), userId: "member", playedAt: "2026-09-01T10:00:00Z", map: null,
-    pickTeam: 1, outcome,
+    pickTeam: index === 3 ? 3 : 1, outcome,
   }));
-  expect(predictionTotals(rows)).toEqual({ correct: 1, valid: 2, rate: 50 });
-  expect(personalPredictions(rows, "member").map((row) => row.result)).toEqual(["correct", "incorrect", "draw", "void"]);
+  expect(predictionTotals(rows)).toEqual({ correct: 2, valid: 4, rate: 50 });
+  expect(personalPredictions(rows, "member").map((row) => row.result)).toEqual(["correct", "incorrect", "incorrect", "correct", "void"]);
 });
 
 test("예측 포인트는 실제 지급·차감 날짜로 집계하고 다른 클랜·멤버 거래와 미지급 보상을 제외한다", () => {

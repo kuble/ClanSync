@@ -376,7 +376,7 @@ test("session lifecycle preserves dates, round history and authorization", async
     },
   );
 
-  await t.test("draws finalize without coin payouts, retain authorization and allow the next round", async () => {
+  await t.test("draw picks receive 5 coins; void rounds do not pay", async () => {
     await ok(leader.client.from("balance_sessions").update({
       resolved_map_label: "리장 타워",
     }).eq("id", drawRound));
@@ -386,7 +386,7 @@ test("session lifecycle preserves dates, round history and authorization", async
       prediction_deadline_at: new Date(Date.now() + 60_000).toISOString(),
     }).eq("id", drawRound));
     await ok(member.client.from("balance_session_predictions").insert({
-      session_id: drawRound, user_id: member.id, pick_team: 1,
+      session_id: drawRound, user_id: member.id, pick_team: 3,
     }));
     const result = (client, value = "draw") => client.rpc("set_balance_match_outcome", {
       p_session_id: drawRound, p_outcome: value,
@@ -395,8 +395,7 @@ test("session lifecycle preserves dates, round history and authorization", async
     for (const client of [member.client, outsider.client]) {
       assert.equal((await ok(result(client))).error, "forbidden");
     }
-    // No winning pick exists for a draw, even if the Premium coin pool is empty.
-    await ok(svc.from("clans").update({ coin_balance: 0 }).eq("id", clanId));
+    await ok(svc.from("clans").update({ coin_balance: 5 }).eq("id", clanId));
     assert.equal((await ok(result(leader.client))).ok, true);
     const round = await ok(readRound(drawRound));
     assert.equal(round.match_outcome, "draw");
@@ -404,14 +403,30 @@ test("session lifecycle preserves dates, round history and authorization", async
     assert.equal(round.prediction_deadline_at, null);
     assert.equal((await ok(result(leader.client, "team1"))).error, "already_resolved");
     assert.equal((await ok(svc.from("coin_transactions").select("id")
-      .eq("reference_id", drawRound))).length, 0);
+      .eq("reference_id", drawRound))).length, 2);
     assert.equal((await ok(svc.from("users").select("coin_balance")
-      .eq("id", member.id).single())).coin_balance, 5);
+      .eq("id", member.id).single())).coin_balance, 10);
     assert.equal((await ok(svc.from("clans").select("coin_balance")
       .eq("id", clanId).single())).coin_balance, 0);
     const nextRound = await ok(next(leader.client, drawRound));
     assert.equal((await ok(readRound(drawRound))).match_outcome, "draw");
     assert.equal((await ok(readRound(nextRound.round_id))).match_outcome, "pending");
+    await ok(leader.client.from("balance_sessions").update({
+      resolved_map_label: "리장 타워",
+    }).eq("id", nextRound.round_id));
+    await ok(svc.from("balance_sessions").update({
+      phase: "match_live",
+      roster: expectedRoster,
+      prediction_deadline_at: new Date(Date.now() + 60_000).toISOString(),
+    }).eq("id", nextRound.round_id));
+    const voidCandidate = await ok(readRound(nextRound.round_id));
+    assert.equal(voidCandidate.phase, "match_live");
+    assert.equal(voidCandidate.match_outcome, "pending");
+    assert.equal(voidCandidate.closed_at, null);
+    assert.ok(new Date(voidCandidate.prediction_deadline_at).getTime() > Date.now());
+    await ok(member.client.from("balance_session_predictions").insert({ session_id: nextRound.round_id, user_id: member.id, pick_team: 3 }));
+    assert.equal((await ok(leader.client.rpc("set_balance_match_outcome", { p_session_id: nextRound.round_id, p_outcome: "void" }))).ok, true);
+    assert.equal((await ok(svc.from("coin_transactions").select("id").eq("reference_id", nextRound.round_id))).length, 0);
     await ok(close(leader.client, nextRound.round_id));
   });
 });

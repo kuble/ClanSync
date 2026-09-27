@@ -185,7 +185,7 @@ export async function loadClanDashboard(
           )
           .eq("clan_id", clanId)
           .eq("balance_session_series.balance_rooms.kind", "regular")
-          .in("match_outcome", ["team1", "team2"])
+          .in("match_outcome", ["team1", "team2", "draw"])
           .gte("balance_session_series.opened_at", monthStart.toISOString())
           .lt("balance_session_series.opened_at", monthEnd.toISOString())
           .limit(1000)
@@ -284,7 +284,7 @@ export async function loadClanDashboard(
     { userId: string; correct: number; total: number }
   >();
   for (const session of predictions.data ?? []) {
-    const winner = session.match_outcome === "team1" ? 1 : 2;
+    const winner = session.match_outcome === "team1" ? 1 : session.match_outcome === "team2" ? 2 : 3;
     for (const prediction of session.balance_session_predictions) {
       const score = predictionScores.get(prediction.user_id) ?? {
         userId: prediction.user_id,

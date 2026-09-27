@@ -735,10 +735,10 @@ export async function submitBalancePredictionAction(
   gameSlug: string,
   clanId: string,
   sessionId: string,
-  pickTeam: 1 | 2,
+  pickTeam: 1 | 2 | 3,
 ): Promise<BalanceSessionActionResult> {
-  if (pickTeam !== 1 && pickTeam !== 2) {
-    return { ok: false, error: "팀 선택이 올바르지 않습니다." };
+  if (pickTeam !== 1 && pickTeam !== 2 && pickTeam !== 3) {
+    return { ok: false, error: "예측 선택이 올바르지 않습니다." };
   }
 
   const supabase = await createClient();

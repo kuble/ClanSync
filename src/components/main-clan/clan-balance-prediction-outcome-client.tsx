@@ -33,7 +33,7 @@ export function ClanBalancePredictionClient({
   gameSlug: string;
   clanId: string;
   sessionId: string;
-  myPickTeam: 1 | 2 | null;
+  myPickTeam: 1 | 2 | 3 | null;
   predictionCount: number;
   deadlineIso: string | null;
 }) {
@@ -52,7 +52,7 @@ export function ClanBalancePredictionClient({
       : Math.max(0, Math.ceil((deadlineMs - now) / 1000));
   const expired = remainSec === 0;
 
-  function submit(pick: 1 | 2) {
+  function submit(pick: 1 | 2 | 3) {
     start(async () => {
       const r = await submitBalancePredictionAction(
         gameSlug,
@@ -83,7 +83,7 @@ export function ClanBalancePredictionClient({
           <span className="text-[10px] font-bold text-primary">Premium</span>
         </div>
         <p className="text-xs leading-relaxed text-muted-foreground">
-          승리할 팀을 선택하세요. 비출전 멤버만 참여할 수 있습니다.
+          블루 승·레드 승·무승부 중 예측하세요. 비출전 멤버만 참여할 수 있습니다.
         </p>
         {deadlineIso ? (
           <div className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-xs">
@@ -102,8 +102,8 @@ export function ClanBalancePredictionClient({
             </strong>
           </div>
         ) : null}
-        <div className="grid grid-cols-2 gap-2">
-          {([1, 2] as const).map((team) => (
+        <div className="grid grid-cols-3 gap-2">
+          {([1, 2, 3] as const).map((team) => (
             <button
               key={team}
               type="button"
@@ -114,7 +114,9 @@ export function ClanBalancePredictionClient({
                 "flex min-h-20 flex-col items-center justify-center gap-2 rounded-xl border text-xs font-semibold focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-60",
                 team === 1
                   ? "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300"
-                  : "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300",
+                  : team === 2
+                    ? "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300"
+                    : "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
                 myPickTeam === team && "ring-2 ring-current",
               )}
             >
@@ -123,7 +125,7 @@ export function ClanBalancePredictionClient({
               ) : (
                 <Trophy className="size-4" aria-hidden="true" />
               )}
-              {team === 1 ? "블루(팀1) 승" : "레드(팀2) 승"}
+              {team === 1 ? "블루(팀1) 승" : team === 2 ? "레드(팀2) 승" : "무승부"}
             </button>
           ))}
         </div>
@@ -133,7 +135,7 @@ export function ClanBalancePredictionClient({
         >
           {predictionCount}명 참여
           {myPickTeam
-            ? " · " + (myPickTeam === 1 ? "블루" : "레드") + " 팀 선택됨"
+            ? " · " + (myPickTeam === 1 ? "블루 승" : myPickTeam === 2 ? "레드 승" : "무승부") + " 선택됨"
             : ""}
         </p>
       </div>
@@ -206,7 +208,7 @@ export function ClanBalanceMatchOutcomeClient({
           경기 결과 확정
         </h4>
         <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-          경기 결과를 기록하세요. {predictionEnabled ? "승리 팀을 확정하면 예측 적중 보상이 지급됩니다. " : ""}무승부는 승패 없이 경기 기록에 포함됩니다.
+          경기 결과를 기록하세요. {predictionEnabled ? "블루 승·레드 승·무승부 중 적중한 예측에 보상이 지급됩니다. " : ""}무승부는 승패 없이 경기 기록에 포함됩니다.
         </p>
         <div className="mt-4 grid grid-cols-2 gap-2">
           <Button
@@ -258,7 +260,7 @@ export function ClanBalanceMatchOutcomeClient({
             <DialogDescription>
               <strong className="text-foreground">{outcomeLabel}</strong>로
               기록됩니다.{" "}
-              {!predictionEnabled ? "확정 후 다음 라운드를 시작할 수 있습니다." : outcome === "void" || outcome === "draw"
+              {!predictionEnabled ? "확정 후 다음 라운드를 시작할 수 있습니다." : outcome === "void"
                 ? "이번 경기의 예측 보상은 지급되지 않습니다."
                 : "적중자에게 5코인씩 지급되며, 클랜 코인 풀이 부족하면 확정되지 않습니다."}
             </DialogDescription>

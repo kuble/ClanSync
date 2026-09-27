@@ -16,11 +16,11 @@ export function ClanBalancePredictionDrawer({ isParticipant, outcome, ...props }
   return <Sheet>
     <SheetTrigger render={<Button variant="outline" size="sm" />}><Trophy className="size-4" aria-hidden="true" />승부예측</SheetTrigger>
     <SheetContent className="overflow-y-auto data-[side=right]:w-full data-[side=right]:sm:max-w-md">
-      <SheetHeader><SheetTitle>승부예측</SheetTitle><SheetDescription>관전 중인 멤버가 승리할 팀을 선택합니다.</SheetDescription></SheetHeader>
+      <SheetHeader><SheetTitle>승부예측</SheetTitle><SheetDescription>관전 중인 멤버가 블루 승·레드 승·무승부를 예측합니다.</SheetDescription></SheetHeader>
       <div className="px-4 pb-6">
         {outcome !== "pending" ? <p className="rounded-xl border bg-muted/20 p-4 text-sm leading-relaxed">
-          {outcome === "void" || outcome === "draw"
-            ? `이번 경기는 ${outcome === "draw" ? "무승부" : "무효"}로 확정되어 예측 보상이 지급되지 않습니다.`
+          {outcome === "void"
+            ? "이번 경기는 무효로 확정되어 예측 보상이 지급되지 않습니다."
             : "결과가 확정되었습니다. 적중 보상은 개인 코인 내역에서 확인할 수 있습니다."}
         </p> : isParticipant ? <p className="rounded-xl border bg-muted/20 p-4 text-sm leading-relaxed text-muted-foreground">이번 경기에 출전 중입니다. 승부예측은 경기를 관전하는 멤버만 참여할 수 있습니다.</p>
           : <ClanBalancePredictionClient {...props} />}
