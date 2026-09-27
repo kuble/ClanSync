@@ -145,6 +145,7 @@ export type ClanStatsPageModel = {
     isStaff: boolean;
     viewMatchRecords: boolean;
     viewMscore: boolean;
+    editMscore: boolean;
     exportCsv: boolean;
   };
 };
@@ -429,7 +430,7 @@ async function loadClanStatsSource(
     setHofRules: can("set_hof_rules"), viewMatchRecords: can("view_match_records"),
     exportCsv: can("export_csv"), viewSynergy: can("view_synergy_winrate"),
     viewMonthly: can("view_monthly_stats"), viewYearly: can("view_yearly_stats"),
-    viewMaps: can("view_map_winrate"), viewMscore: can("view_mscore"),
+    viewMaps: can("view_map_winrate"), viewMscore: can("view_mscore"), editMscore: can("edit_mscore"),
   };
   // Historical rows stay server-side. Member summaries are public within the
   // clan; detailed archive records are emitted only with viewMatchRecords below.
@@ -620,12 +621,15 @@ export async function loadClanStatsPage(
   // granted the broad aggregate-statistics permission set.
   const canSeeOthers = role !== "member" && viewMonthly && viewYearly && viewMaps && viewSynergy && viewMscore;
   const viewPersonalRecords = role !== "member" || cfg.memberPersonalRecords;
-  // Authenticated client and explicit owner scope keep personal balances private.
-  // Personal payouts have clan_id=null; session references establish clan scope below.
-  const predictionLedger = viewPersonalRecords ? await loadAllStatsRows((from, to) => supabase
-    .from("coin_transactions").select("user_id,reference_id,amount,created_at")
-    .eq("user_id", userId).eq("pool_type", "personal").eq("reference_type", "balance_session")
-    .order("created_at").order("id").range(from, to)) : [];
+  // Staff use a clan-scoped ledger RPC; members retain the owner-only query.
+  // Personal payouts have clan_id=null, so session references establish scope.
+  const predictionLedger = !viewPersonalRecords ? [] : role !== "member" && canSeeOthers
+    ? await loadAllStatsRows((from, to) => supabase
+      .rpc("read_clan_prediction_ledger", { p_clan_id: clanId }).range(from, to))
+    : await loadAllStatsRows((from, to) => supabase
+      .from("coin_transactions").select("user_id,reference_id,amount,created_at")
+      .eq("user_id", userId).eq("pool_type", "personal").eq("reference_type", "balance_session")
+      .order("created_at").order("id").range(from, to));
   const peopleIds = !viewPersonalRecords ? [] : canSeeOthers ? [...new Set([userId, ...nick.keys()])] : [userId];
   // Shared object identities let RSC transmit repeated teammate/opponent details once.
   // Keep this cache local to this authorized response, never across accounts or requests.
@@ -634,10 +638,10 @@ export async function loadClanStatsPage(
     userId: id,
     nickname: nick.get(id) ?? (id === userId ? "나" : "탈퇴한 멤버"),
     matches: buildPersonalMatches(matches, id, nick, viewSynergy && role !== "member", peerCache),
-    // peopleIds already restricts other players to authorized staff. Keep the
-    // existing authenticated prediction query and owner-only ledger scope.
+    // peopleIds restricts peers to authorized staff; the ledger RPC itself
+    // checks active officer/leader membership and clan ownership of each round.
     predictions: personalPredictions(predictions, id),
-    predictionPoints: id === userId ? predictionPointHistory(predictions, predictionLedger, id) : [],
+    predictionPoints: id === userId || role !== "member" ? predictionPointHistory(predictions, predictionLedger, id) : [],
   }));
 
   const intra = buildIntraStats(records, hofSessions);
@@ -710,6 +714,7 @@ export async function loadClanStatsPage(
       isStaff: role !== "member",
       viewMatchRecords,
       viewMscore,
+      editMscore: source.permissions.editMscore,
       exportCsv,
     },
   };

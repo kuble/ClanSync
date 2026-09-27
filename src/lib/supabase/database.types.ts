@@ -2826,6 +2826,15 @@ export type Database = {
         Args: { p_clan_id: string; p_hero_ban?: boolean; p_map_ban?: boolean }
         Returns: Json
       }
+      read_clan_prediction_ledger: {
+        Args: { p_clan_id: string }
+        Returns: {
+          amount: number
+          created_at: string
+          reference_id: string
+          user_id: string
+        }[]
+      }
       read_closed_balance_ballot: {
         Args: {
           p_clan_id: string
@@ -2985,6 +2994,15 @@ export type Database = {
       update_balance_auto_close_settings: {
         Args: { p_clan_id: string; p_enabled: boolean; p_hours: number }
         Returns: Json
+      }
+      update_balance_history_mscore: {
+        Args: {
+          p_clan_id: string
+          p_round_id: string
+          p_score: number
+          p_user_id: string
+        }
+        Returns: undefined
       }
       update_balance_room: {
         Args: {

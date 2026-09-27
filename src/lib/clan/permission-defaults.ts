@@ -9,7 +9,7 @@ export const CLAN_PERMISSION_DEFAULTS = {
   bulk_kick_dormant: ["leader"],
   kick_member: ["leader", "officer"],
   approve_join_requests: ["leader", "officer"],
-  edit_mscore: ["leader"],
+  edit_mscore: ["leader", "officer"],
   set_hof_rules: ["leader"],
   view_match_records: ["leader", "officer"],
   correct_match_records: ["leader"],

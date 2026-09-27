@@ -2519,7 +2519,7 @@ CREATE UNIQUE INDEX lfg_app_one_active_per_user
 | 멤버 관리 | `bulk_kick_dormant` | 휴면 일괄 강퇴 | ✓ | ✗ | ✗ | 🔒 | D-MANAGE-02 |
 | 멤버 관리 | `kick_member` | 일반 멤버 강퇴 | ✓ | ✓ | ✗ | ✓ | — |
 | 멤버 관리 | `approve_join_requests` | 가입 신청 승인/거절 | ✓ | ✓ | ✗ | ✓ | — |
-| 평판·통계 | `edit_mscore` | M점수 편집 | ✓ | ✗ | ✗ | ✓ (officer 허용) | D-MANAGE-02 |
+| 평판·통계 | `edit_mscore` | 진행 중·완료 내전의 평가 점수 편집 | ✓ | ✓ | ✗ | ✓ (역할 변경 가능) | D-MANAGE-02 |
 | 평판·통계 | `set_hof_rules` | HoF 설정 모달 | ✓ | ✗ | ✗ | ✓ (officer 허용) | **D-STATS-01** |
 | 평판·통계 | `view_match_records` | 경기 기록 열람 (캘린더·일별 슬라이더) | ✓ | ✓ | ✗ | ✓ (member 허용) | — |
 | 평판·통계 | `correct_match_records` | 경기 사후 정정 | ✓ | ✗ | ✗ | ✓ (officer 허용) | **D-STATS-02** |

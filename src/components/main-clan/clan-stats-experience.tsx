@@ -7,6 +7,7 @@ import { StatsPlayerBanner } from "./stats-emblems";
 import { StatsDonut } from "./stats-donut";
 import { MAP_TYPES, mapDetailsForLabel, type MapType } from "@/lib/balance/map-pools";
 import { StatsScrollArea } from "./stats-scroll-area";
+import { StatsScoreEditor } from "./stats-score-editor";
 import { StatsMemberPicker } from "./stats-member-picker";
 import { StatsSignedTrendChart, StatsTimeChart } from "./stats-time-chart";
 import { Crown, Swords, UserRound, History } from "lucide-react";
@@ -82,7 +83,7 @@ function SynergyRing({ peer, relation }: { peer: SynergyPeer | undefined; relati
   </aside>;
 }
 
-function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageModel; selectedId: string; onBack: () => void }) {
+function PersonalStats({ model, selectedId, onBack, gameSlug, clanId }: { model: ClanStatsPageModel; selectedId: string; onBack: () => void; gameSlug: string; clanId: string }) {
   const now = currentKstYearMonth();
   const [period, setPeriod] = useState<StatsPeriod>({ mode: "all", year: String(now.year), month: String(now.month).padStart(2, "0"), day: "all" });
   const [role, setRole] = useState<Exclude<StatRole, null> | "all">("all");
@@ -132,6 +133,7 @@ function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageMode
   const incorrect = picks.filter((pick) => pick.result === "incorrect").length;
   const predictionRate = correct + incorrect ? Math.round(correct / (correct + incorrect) * 1000) / 10 : null;
   const ownPrediction = person.userId === model.personal.viewerId;
+  const canViewPredictionPoints = ownPrediction || model.permissions.isStaff;
   const predictionTrend = predictionDays.map((day) => ({ date: day.date, change: day.net }))
     .sort((a, b) => a.date.localeCompare(b.date))
     .reduce<{ at: string; value: number }[]>((trend, { date, change }) => [...trend, { at: date + "T12:00:00+09:00", value: (trend.at(-1)?.value ?? 0) + change }], []);
@@ -193,13 +195,13 @@ function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageMode
         </> : <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">상대별 전적은 클랜의 관계 통계 열람 권한에 따라 제공됩니다.</p>}
       </CardContent></Card>
       <Card size="sm"><CardHeader><CardTitle><StatTitle title="점수 이력" help="경기 당시 저장된 점수를 실제 경기 날짜 순서로 표시합니다. 선 위에 마우스를 올리거나 방향키로 날짜별 값을 확인하세요. 저장되지 않은 점수는 연결하지 않습니다." /></CardTitle></CardHeader><CardContent className="space-y-3">
-        <FilterButtons label="점수 종류" options={[{ id: "evaluation", label: "평가 점수" }, { id: "analysis", label: "분석 점수" }]} value={scoreKind} onChange={setScoreKind} />
+        <div className="flex flex-wrap items-end justify-between gap-2"><FilterButtons label="점수 종류" options={[{ id: "evaluation", label: "평가 점수" }, { id: "analysis", label: "분석 점수" }]} value={scoreKind} onChange={setScoreKind} />{scoreKind === "evaluation" && model.permissions.editMscore && <StatsScoreEditor key={periodKey + person.userId} gameSlug={gameSlug} clanId={clanId} playerId={person.userId} matches={matches} />}</div>
         <StatsTimeChart key={scoreKind} label="점수 이력 그래프" unit="점" lines={[{ label: scoreKind === "evaluation" ? "평가 점수" : "분석 점수", color: "var(--primary)", points: scorePoints }]} empty="저장된 점수 이력이 없습니다." />
       </CardContent></Card>
-      <Card size="sm"><CardHeader><CardTitle><StatTitle title="승부예측 기록" help="무효 경기를 제외한 예측의 적중 확률입니다. 본인에게는 실제 정산 포인트의 일별 누적 흐름을 표시합니다." /></CardTitle></CardHeader><CardContent className="space-y-3">
+      <Card size="sm"><CardHeader><CardTitle><StatTitle title="승부예측 기록" help="무효 경기를 제외한 예측의 적중 확률입니다. 본인과 운영진에게 실제 정산 포인트의 일별 누적 흐름을 표시합니다." /></CardTitle></CardHeader><CardContent className="space-y-3">
         <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground tabular-nums" aria-label="승부예측 요약"><span>예측 참여 {picks.length}회</span><span>적중 {correct}회</span><span>실패 {incorrect}회</span><strong className="text-foreground">적중력 {rate(predictionRate)}</strong><span>무승부 적중 {picks.filter((pick) => pick.outcome === "draw" && pick.result === "correct").length}회 · 무효 {picks.filter((pick) => pick.result === "void").length}회</span></div>
-        {ownPrediction && <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs tabular-nums"><span className="text-emerald-400">수익 +{earned.toLocaleString()}pt</span><span className="text-rose-400">손실 −{lost.toLocaleString()}pt</span><strong>순수익 {earned - lost > 0 ? "+" : ""}{(earned - lost).toLocaleString()}pt</strong></div>}
-        {ownPrediction ? <><p className="text-xs text-muted-foreground">획득·차감 포인트를 반영한 일별 누적 흐름</p><StatsSignedTrendChart label="승부예측 누적 포인트 그래프" unit="pt" points={predictionTrend} empty="선택한 기간에 승부예측 기록이 없습니다." /></> : <p className="rounded-lg border border-dashed p-4 text-xs text-muted-foreground">포인트 수익·손실은 본인만 볼 수 있습니다.</p>}
+        {canViewPredictionPoints && <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs tabular-nums"><span className="text-emerald-400">수익 +{earned.toLocaleString()}pt</span><span className="text-rose-400">손실 −{lost.toLocaleString()}pt</span><strong>순수익 {earned - lost > 0 ? "+" : ""}{(earned - lost).toLocaleString()}pt</strong></div>}
+        {canViewPredictionPoints ? <><p className="text-xs text-muted-foreground">획득·차감 포인트를 반영한 일별 누적 흐름</p><StatsSignedTrendChart label="승부예측 누적 포인트 그래프" unit="pt" points={predictionTrend} empty="선택한 기간에 승부예측 기록이 없습니다." /></> : <p className="rounded-lg border border-dashed p-4 text-xs text-muted-foreground">포인트 수익·손실은 본인과 운영진만 볼 수 있습니다.</p>}
       </CardContent></Card>
     </div>
   );
@@ -219,7 +221,7 @@ export function ClanStatsExperience({ gameSlug, clanId, model }: { gameSlug: str
       <TabsContent value="hof"><HallOfFame model={model} gameSlug={gameSlug} clanId={clanId} onChoosePerson={choosePerson} /></TabsContent>
       <TabsContent value="intra"><IntraClanStats model={model} /></TabsContent>
       {model.permissions.viewMatchRecords && <TabsContent value="records"><ClanMatchHistory model={model} /></TabsContent>}
-      {model.permissions.viewPersonalRecords && <TabsContent value="personal">{personId ? <PersonalStats key={personId} model={model} selectedId={personId} onBack={() => setPersonId(null)} /> : <StatsMemberPicker people={model.personal.people} onSelect={choosePerson} />}</TabsContent>}
+      {model.permissions.viewPersonalRecords && <TabsContent value="personal">{personId ? <PersonalStats key={personId} model={model} selectedId={personId} onBack={() => setPersonId(null)} gameSlug={gameSlug} clanId={clanId} /> : <StatsMemberPicker people={model.personal.people} onSelect={choosePerson} />}</TabsContent>}
     </Tabs>
   </div>;
 }

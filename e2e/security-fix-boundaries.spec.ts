@@ -265,13 +265,14 @@ test("settled prediction picks are private while live vote totals remain shared"
   expect(staffStats?.hof.periods.all.predictionCorrect.some((row) => row.userId === f.users[1].id)).toBe(true);
   const selected = staffStats?.personal.people.find((person) => person.userId === f.users[1].id);
   expect(selected?.predictions).toMatchObject([{ sessionId: r.id, result: "correct" }]);
-  expect(selected?.predictionPoints).toEqual([]);
+  expect(selected?.predictionPoints.reduce((sum, day) => sum + day.net, 0)).toBe(5);
   await loginIsolatedBalanceUser(page, f.users[0]);
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
   await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
   await page.getByRole("button", { name: `${f.users[1].nickname} 개인 기록 열기`, exact: true }).click();
-  await expect(page.getByLabel("승부예측 요약")).toContainText("적중력100%");
-  await expect(page.getByText("포인트 수익·손실은 본인만 볼 수 있습니다.", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("승부예측 요약")).toContainText("적중력 100%");
+  await expect(page.getByText("수익 +5pt", { exact: true })).toBeVisible();
+  await expect(page.getByRole("img", { name: "승부예측 누적 포인트 그래프" })).toBeVisible();
   await expect(page.getByText("내 승부예측", { exact: true })).toHaveCount(0);
 });
 
@@ -390,7 +391,7 @@ test("closed monthly and yearly top-three records appear as emblems", async ({ p
   } finally { await touchContext.close(); }
 });
 
-test("personal chart uses dated snapshots and keeps actual prediction payouts private", async ({ page }) => {
+test("staff can inspect prediction payouts and edit completed evaluation scores", async ({ page }) => {
   const r = await round();
   await ok(f.service.from("balance_sessions").update({ ma_snapshot: { [f.users[0].id]: { m: 2, a: 1 } } }).eq("id", r.id));
   await live(r);
@@ -404,7 +405,13 @@ test("personal chart uses dated snapshots and keeps actual prediction payouts pr
   expect(own?.personal.people[0].predictionPoints.reduce((sum, day) => sum + day.net, 0)).toBe(paid.reduce((sum, row) => sum + row.amount, 0));
   expect(own?.personal.people).toHaveLength(1);
   const staff = await loadClanStatsPage(leader, f.users[0].id, f.clanId);
-  expect(staff?.personal.people.find((person) => person.userId === f.users[11].id)?.predictionPoints).toEqual([]);
+  expect(staff?.personal.people.find((person) => person.userId === f.users[11].id)?.predictionPoints.reduce((sum, day) => sum + day.net, 0)).toBe(5);
+  expect((await member.rpc("read_clan_prediction_ledger", { p_clan_id: f.clanId })).error).not.toBeNull();
+  expect((await leader.rpc("read_clan_prediction_ledger", { p_clan_id: randomUUID() })).error).not.toBeNull();
+  expect((await member.rpc("update_balance_history_mscore", { p_round_id: r.id, p_clan_id: f.clanId, p_user_id: f.users[0].id, p_score: 9 })).error).not.toBeNull();
+  expect((await leader.from("balance_sessions").update({ ma_snapshot: { [f.users[0].id]: { m: 9, a: 9 } } }).eq("id", r.id)).error).not.toBeNull();
+  expect((await leader.rpc("update_balance_history_mscore", { p_round_id: r.id, p_clan_id: f.clanId, p_user_id: f.users[11].id, p_score: 9 })).error).not.toBeNull();
+  expect((await leader.rpc("update_balance_history_mscore", { p_round_id: r.id, p_clan_id: f.clanId, p_user_id: f.users[0].id, p_score: 11 })).error).not.toBeNull();
   await loginIsolatedBalanceUser(page, f.users[0]);
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
   await page.getByRole("tab", { name: "개인 기록" }).click();
@@ -416,11 +423,36 @@ test("personal chart uses dated snapshots and keeps actual prediction payouts pr
   await expect(page.getByRole("status", { name: "점수 이력 그래프 선택 값" })).toContainText("2점");
   await chart.press("Escape");
   await expect(page.getByRole("status", { name: "점수 이력 그래프 선택 값" })).toBeHidden();
+  await page.getByRole("button", { name: "평가 점수 수정" }).click();
+  const scoreDialog = page.getByRole("dialog", { name: "평가 점수 수정" });
+  await scoreDialog.getByRole("combobox", { name: "수정할 경기" }).selectOption(r.id);
+  await scoreDialog.getByRole("spinbutton", { name: "평가 점수 입력" }).fill("3.5");
+  await scoreDialog.getByRole("button", { name: "점수 저장" }).click();
+  await expect(scoreDialog).toBeHidden();
+  const saved = await ok(f.service.from("balance_sessions").select("ma_snapshot").eq("id", r.id).single());
+  expect((saved.ma_snapshot as Record<string, { m: number; a: number }>)[f.users[0].id]).toEqual({ m: 3.5, a: 1 });
   await page.getByRole("button", { name: "멤버 선택", exact: true }).click();
   await page.getByRole("textbox", { name: "멤버 이름 검색" }).fill(f.users[11].nickname);
   await page.getByRole("button", { name: `${f.users[11].nickname} 개인 기록 열기`, exact: true }).click();
-  await expect(page.getByText("포인트 수익·손실은 본인만 볼 수 있습니다.")).toBeVisible();
-  await expect(page.getByRole("img", { name: "승부예측 누적 포인트 그래프" })).toHaveCount(0);
+  await expect(page.getByText("수익 +5pt", { exact: true })).toBeVisible();
+  await expect(page.getByRole("img", { name: "승부예측 누적 포인트 그래프" })).toBeVisible();
+  await ok(f.service.from("clan_members").update({ role: "officer" }).eq("clan_id", f.clanId).eq("user_id", f.users[1].id));
+  try {
+    expect((await ok(member.rpc("read_clan_prediction_ledger", { p_clan_id: f.clanId }))).some((row) => row.reference_id === r.id && row.user_id === f.users[11].id && row.amount === 5)).toBe(true);
+    await ok(member.rpc("update_balance_history_mscore", { p_round_id: r.id, p_clan_id: f.clanId, p_user_id: f.users[0].id, p_score: 4 }));
+    await ok(f.service.from("clan_settings").update({ permissions: { edit_mscore: ["leader"] } }).eq("clan_id", f.clanId));
+    expect((await member.rpc("update_balance_history_mscore", { p_round_id: r.id, p_clan_id: f.clanId, p_user_id: f.users[0].id, p_score: 5 })).error).not.toBeNull();
+  } finally {
+    await ok(f.service.from("clan_settings").update({ permissions: {} }).eq("clan_id", f.clanId));
+    await ok(f.service.from("clan_members").update({ role: "member" }).eq("clan_id", f.clanId).eq("user_id", f.users[1].id));
+  }
+  await page.context().clearCookies();
+  await loginIsolatedBalanceUser(page, f.users[11]);
+  await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
+  await page.getByRole("tab", { name: "개인 기록" }).click();
+  await page.getByRole("button", { name: `${f.users[11].nickname} 개인 기록 열기`, exact: true }).click();
+  await expect(page.getByRole("button", { name: "평가 점수 수정" })).toHaveCount(0);
+  await expect(page.getByText("수익 +5pt", { exact: true })).toBeVisible();
 });
 
 test("UTC calendar can select a month-end Korean occurrence", async ({ browser }) => {

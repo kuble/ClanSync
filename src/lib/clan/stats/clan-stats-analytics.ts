@@ -7,6 +7,7 @@ export type StatRole = "tank" | "dmg" | "sup" | null;
 export type MatchResult = "win" | "draw" | "loss";
 export type PersonalMatch = {
   id: string;
+  source: ClanMatchRecord["source"];
   seriesId: string | null;
   date: string;
   occurredAt: string;
@@ -253,6 +254,7 @@ export function buildPersonalMatches(
         : "loss";
     return [{
       id: record.id,
+      source: record.source,
       seriesId: record.series_id,
       date: isoToKstYmd(record.played_at),
       occurredAt: record.occurred_at,
