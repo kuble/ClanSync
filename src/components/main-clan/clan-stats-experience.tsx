@@ -132,9 +132,7 @@ function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageMode
   const incorrect = picks.filter((pick) => pick.result === "incorrect").length;
   const predictionRate = correct + incorrect ? Math.round(correct / (correct + incorrect) * 1000) / 10 : null;
   const ownPrediction = person.userId === model.personal.viewerId;
-  const dailyPredictionFlow = new Map<string, number>();
-  for (const pick of picks) dailyPredictionFlow.set(pick.date, (dailyPredictionFlow.get(pick.date) ?? 0) + (pick.result === "correct" ? 1 : pick.result === "incorrect" ? -1 : 0));
-  const predictionTrend = (ownPrediction ? predictionDays.map((day) => ({ date: day.date, change: day.net })) : [...dailyPredictionFlow].map(([date, change]) => ({ date, change })))
+  const predictionTrend = predictionDays.map((day) => ({ date: day.date, change: day.net }))
     .sort((a, b) => a.date.localeCompare(b.date))
     .reduce<{ at: string; value: number }[]>((trend, { date, change }) => [...trend, { at: date + "T12:00:00+09:00", value: (trend.at(-1)?.value ?? 0) + change }], []);
   return (
@@ -148,10 +146,10 @@ function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageMode
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-semibold"><StatTitle title="역할별 승률" help="선택 기간에 실제 배정된 역할별 경기와 승·무·패를 표시합니다. 전체에는 역할 미상 경기도 포함됩니다. 승률은 승 ÷ (승 + 무 + 패)입니다." /></h3><span className="text-xs text-muted-foreground">참여 내전 {totals.sessions}회</span></div>
             <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <table className="w-full min-w-[400px] text-sm tabular-nums">
-                <thead className="border-b text-xs text-muted-foreground"><tr><th scope="col" className="px-3 py-2 text-left font-semibold">역할</th><th scope="col" className="px-3 py-2 text-right font-semibold">경기</th><th scope="col" className="px-3 py-2 text-right font-semibold">승/무/패</th><th scope="col" className="px-3 py-2 text-right font-semibold">승률</th></tr></thead>
+                <thead className="border-b text-xs text-muted-foreground"><tr><th scope="col" className="px-3 py-2 text-left font-semibold">역할</th><th scope="col" className="px-3 py-2 text-right font-semibold">승률</th><th scope="col" className="px-3 py-2 text-right font-semibold">승/무/패</th><th scope="col" className="px-3 py-2 text-right font-semibold">경기</th></tr></thead>
                 <tbody>{roleRows.map((row) => <tr key={row.id} className="border-b last:border-b-0">
                   <th scope="row" className="px-3 py-2.5 text-left font-semibold"><span className="inline-flex items-center gap-2">{"icon" in row && row.icon}{row.label}</span></th>
-                  <td className="px-3 py-2.5 text-right">{row.matches}</td><td className="px-3 py-2.5 text-right">{row.wins}/{row.draws}/{row.losses}</td><td className="px-3 py-2.5 text-right font-semibold">{rate(row.rate)}</td>
+                  <td className="px-3 py-2.5 text-right font-semibold">{rate(row.rate)}</td><td className="px-3 py-2.5 text-right">{row.wins}/{row.draws}/{row.losses}</td><td className="px-3 py-2.5 text-right">{row.matches}</td>
                 </tr>)}</tbody>
               </table>
             </div>
@@ -176,15 +174,15 @@ function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageMode
               <table className="w-full min-w-[500px] text-sm">
                 <thead><tr className="border-b text-xs text-muted-foreground">
                   <th scope="col" className="p-2 text-left">멤버</th>
-                  <th scope="col" className="p-2 text-right" aria-sort={relationSort === "matches" ? relationDescending ? "descending" : "ascending" : "none"}><button type="button" onClick={() => sortRelation("matches")} className="hover:text-foreground">경기{relationSort === "matches" ? relationDescending ? " ↓" : " ↑" : ""}</button></th>
-                  <th scope="col" className="p-2 text-right" aria-label="승/무/패"><span className="inline-flex items-center justify-end gap-0.5">{([{ key: "wins", label: "승" }, { key: "draws", label: "무" }, { key: "losses", label: "패" }] as const).map(({ key, label }, index) => <span key={key}><button type="button" aria-label={`${label} 정렬`} onClick={() => sortRelation(key)} className="hover:text-foreground">{label}{relationSort === key ? relationDescending ? " ↓" : " ↑" : ""}</button>{index < 2 && <span aria-hidden="true"> / </span>}</span>)}</span></th>
                   <th scope="col" className="p-2 text-right" aria-sort={relationSort === "rate" ? relationDescending ? "descending" : "ascending" : "none"}><button type="button" onClick={() => sortRelation("rate")} className="hover:text-foreground">승률{relationSort === "rate" ? relationDescending ? " ↓" : " ↑" : ""}</button></th>
+                  <th scope="col" className="p-2 text-right" aria-label="승/무/패"><span className="inline-flex items-center justify-end gap-0.5">{([{ key: "wins", label: "승" }, { key: "draws", label: "무" }, { key: "losses", label: "패" }] as const).map(({ key, label }, index) => <span key={key}><button type="button" aria-label={`${label} 정렬`} onClick={() => sortRelation(key)} className="hover:text-foreground">{label}{relationSort === key ? relationDescending ? " ↓" : " ↑" : ""}</button>{index < 2 && <span aria-hidden="true"> / </span>}</span>)}</span></th>
+                  <th scope="col" className="p-2 text-right" aria-sort={relationSort === "matches" ? relationDescending ? "descending" : "ascending" : "none"}><button type="button" onClick={() => sortRelation("matches")} className="hover:text-foreground">경기{relationSort === "matches" ? relationDescending ? " ↓" : " ↑" : ""}</button></th>
                 </tr></thead>
                 <tbody>{relations.map((row) => <tr key={row.id} className="border-b">
                   <th scope="row" className="p-2 text-left"><button type="button" className="rounded-sm text-left font-medium underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-primary" aria-pressed={selectedPeer?.id === row.id} onPointerEnter={() => setPeerId(row.id)} onFocus={() => setPeerId(row.id)} onClick={() => setPeerId(row.id)}>{row.nickname}</button></th>
-                  <td className="p-2 text-right tabular-nums">{row.matches}</td>
-                  <td className="whitespace-nowrap p-2 text-right tabular-nums">{row.wins}승 / {row.draws}무 / {row.losses}패</td>
                   <td className="p-2 text-right tabular-nums">{Math.round(row.wins / row.matches * 1000) / 10}%</td>
+                  <td className="whitespace-nowrap p-2 text-right tabular-nums">{row.wins}승 / {row.draws}무 / {row.losses}패</td>
+                  <td className="p-2 text-right tabular-nums">{row.matches}</td>
                 </tr>)}</tbody>
               </table>
               {relations.length === 0 && <p className="py-5 text-center text-sm text-muted-foreground">해당 역할 조합의 기록이 없습니다.</p>}
@@ -198,11 +196,10 @@ function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageMode
         <FilterButtons label="점수 종류" options={[{ id: "evaluation", label: "평가 점수" }, { id: "analysis", label: "분석 점수" }]} value={scoreKind} onChange={setScoreKind} />
         <StatsTimeChart key={scoreKind} label="점수 이력 그래프" unit="점" lines={[{ label: scoreKind === "evaluation" ? "평가 점수" : "분석 점수", color: "var(--primary)", points: scorePoints }]} empty="저장된 점수 이력이 없습니다." />
       </CardContent></Card>
-      <Card size="sm"><CardHeader><CardTitle><StatTitle title="승부예측 기록" help={ownPrediction ? "선택 기간의 실제 정산 포인트를 날짜별로 누적합니다. 정정으로 인한 차감은 거래 날짜에 반영합니다." : "선택 기간의 적중을 +1, 실패를 −1로 계산한 누적 흐름입니다. 다른 멤버의 정산 포인트는 공개되지 않습니다."} /></CardTitle></CardHeader><CardContent className="space-y-3">
-        <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground tabular-nums" aria-label="승부예측 요약"><span>예측 참여 {picks.length}회</span><span>적중 {correct}회</span><span>실패 {incorrect}회</span><span>적중률 {rate(predictionRate)}</span><span>무승부 {picks.filter((pick) => pick.result === "draw").length}회 · 무효 {picks.filter((pick) => pick.result === "void").length}회</span></div>
+      <Card size="sm"><CardHeader><CardTitle><StatTitle title="승부예측 기록" help="무효 경기를 제외한 예측의 적중 확률입니다. 본인에게는 실제 정산 포인트의 일별 누적 흐름을 표시합니다." /></CardTitle></CardHeader><CardContent className="space-y-3">
+        <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground tabular-nums" aria-label="승부예측 요약"><span>예측 참여 {picks.length}회</span><span>적중 {correct}회</span><span>실패 {incorrect}회</span><strong className="text-foreground">적중력 {rate(predictionRate)}</strong><span>무승부 적중 {picks.filter((pick) => pick.outcome === "draw" && pick.result === "correct").length}회 · 무효 {picks.filter((pick) => pick.result === "void").length}회</span></div>
         {ownPrediction && <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs tabular-nums"><span className="text-emerald-400">수익 +{earned.toLocaleString()}pt</span><span className="text-rose-400">손실 −{lost.toLocaleString()}pt</span><strong>순수익 {earned - lost > 0 ? "+" : ""}{(earned - lost).toLocaleString()}pt</strong></div>}
-        <p className="text-xs text-muted-foreground">{ownPrediction ? "일별 누적 정산 포인트" : "적중 +1 · 실패 −1의 누적 흐름 (포인트 아님)"}</p>
-        <StatsSignedTrendChart label={ownPrediction ? "승부예측 누적 포인트 그래프" : "승부예측 누적 적중 흐름 그래프"} unit={ownPrediction ? "pt" : "건"} points={predictionTrend} empty="선택한 기간에 승부예측 기록이 없습니다." />
+        {ownPrediction ? <><p className="text-xs text-muted-foreground">획득·차감 포인트를 반영한 일별 누적 흐름</p><StatsSignedTrendChart label="승부예측 누적 포인트 그래프" unit="pt" points={predictionTrend} empty="선택한 기간에 승부예측 기록이 없습니다." /></> : <p className="rounded-lg border border-dashed p-4 text-xs text-muted-foreground">포인트 수익·손실은 본인만 볼 수 있습니다.</p>}
       </CardContent></Card>
     </div>
   );

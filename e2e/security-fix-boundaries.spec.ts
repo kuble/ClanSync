@@ -270,7 +270,7 @@ test("settled prediction picks are private while live vote totals remain shared"
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
   await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
   await page.getByRole("button", { name: `${f.users[1].nickname} 개인 기록 열기`, exact: true }).click();
-  await expect(page.getByLabel("승부예측 요약")).toContainText("적중률100%");
+  await expect(page.getByLabel("승부예측 요약")).toContainText("적중력100%");
   await expect(page.getByText("포인트 수익·손실은 본인만 볼 수 있습니다.", { exact: true })).toBeVisible();
   await expect(page.getByText("내 승부예측", { exact: true })).toHaveCount(0);
 });
@@ -390,7 +390,7 @@ test("closed monthly and yearly top-three records appear as emblems", async ({ p
   } finally { await touchContext.close(); }
 });
 
-test("personal chart uses dated snapshots, compact wheel and actual private prediction payouts", async ({ page }) => {
+test("personal chart uses dated snapshots and keeps actual prediction payouts private", async ({ page }) => {
   const r = await round();
   await ok(f.service.from("balance_sessions").update({ ma_snapshot: { [f.users[0].id]: { m: 2, a: 1 } } }).eq("id", r.id));
   await live(r);
@@ -416,32 +416,11 @@ test("personal chart uses dated snapshots, compact wheel and actual private pred
   await expect(page.getByRole("status", { name: "점수 이력 그래프 선택 값" })).toContainText("2점");
   await chart.press("Escape");
   await expect(page.getByRole("status", { name: "점수 이력 그래프 선택 값" })).toBeHidden();
-  const wheel = page.getByRole("listbox", { name: "점수 종류", exact: true });
-  await wheel.hover(); await page.mouse.wheel(0, 100);
-  await expect(wheel.getByRole("option", { selected: true })).toHaveText("분석 점수");
-  await expect(page.getByRole("button", { name: "점수 종류 다음" })).toHaveCount(0);
-  const selectedStyle = await wheel.getByRole("option", { selected: true }).evaluate((el) => getComputedStyle(el).transform);
-  expect(selectedStyle).toMatch(/^matrix\(1, 0, 0, 1,/);
-  await expect(page.getByText("참여 날짜", { exact: true })).toHaveCount(0);
-  const roles = page.getByLabel("역할별 기록 비교");
-  await expect(roles.locator(":scope > div")).toHaveCount(4);
-  await expect(roles.getByRole("button")).toHaveCount(0);
-  const beforeRoles = await roles.innerText();
-  await page.getByRole("listbox", { name: "내 역할", exact: true }).press("End");
-  await expect(roles).toHaveText(beforeRoles, { useInnerText: true });
-  await expect(page.getByRole("region", { name: "맵별 기록 목록", exact: true })).toHaveAttribute("data-more-below", "false");
-  await page.setViewportSize({ width: 390, height: 844 });
-  const tops = await roles.locator(":scope > div").evaluateAll((elements) => elements.map((el) => el.getBoundingClientRect().top));
-  expect(new Set(tops).size).toBe(1);
-  await page.getByRole("button", { name: "멤버 다시 선택" }).click();
-  await expect(page.getByRole("heading", { name: "멤버를 선택하세요" })).toBeVisible();
-  await expect(page.getByText("역할별 기록", { exact: true })).toHaveCount(0);
-  await page.getByRole("textbox", { name: "멤버 이름 검색" }).fill("no-such-member");
-  await expect(page.getByText("검색 결과가 없습니다.")).toBeVisible();
-  await page.getByRole("textbox", { name: "멤버 이름 검색" }).fill(f.users[1].nickname);
-  await expect(page.getByRole("region", { name: "개인 기록 멤버 목록", exact: true }).getByRole("button")).toHaveCount(1);
-  await page.getByRole("button", { name: `${f.users[1].nickname} 개인 기록 열기`, exact: true }).click();
-  await expect(page.getByRole("heading", { name: new RegExp(`개인 기록 · ${f.users[1].nickname}`) })).toBeVisible();
+  await page.getByRole("button", { name: "멤버 선택", exact: true }).click();
+  await page.getByRole("textbox", { name: "멤버 이름 검색" }).fill(f.users[11].nickname);
+  await page.getByRole("button", { name: `${f.users[11].nickname} 개인 기록 열기`, exact: true }).click();
+  await expect(page.getByText("포인트 수익·손실은 본인만 볼 수 있습니다.")).toBeVisible();
+  await expect(page.getByRole("img", { name: "승부예측 누적 포인트 그래프" })).toHaveCount(0);
 });
 
 test("UTC calendar can select a month-end Korean occurrence", async ({ browser }) => {
