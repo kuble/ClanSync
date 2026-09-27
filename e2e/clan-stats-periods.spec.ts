@@ -134,6 +134,12 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await expect(synergy.getByRole("row").filter({ hasText: f.users[1].nickname })).toContainText("1승 / 0무 / 0패");
     await expect(synergyChart.getByRole("img", { name: new RegExp(`${f.users[1].nickname} 상대 팀 승률 100%`) })).toBeVisible();
     await expect(synergyChart.locator('svg[role="img"] > circle')).toHaveCount(2);
+    const ring = (await synergyChart.locator('svg[role="img"]').boundingBox())!;
+    const avatar = (await synergyChart.getByLabel("기본 프로필 이미지").boundingBox())!;
+    const name = (await synergyChart.getByRole("heading", { name: f.users[1].nickname }).boundingBox())!;
+    expect(name.y + name.height).toBeLessThan(ring.y);
+    expect(avatar.x).toBeGreaterThan(ring.x + 30);
+    expect(avatar.x + avatar.width).toBeLessThan(ring.x + ring.width - 30);
     await expect(synergyChart).toContainText("완벽한 천적");
     await expect(synergy).not.toContainText("근거 경기");
     const synergyBox = await synergy.boundingBox(), chartBox = await synergyChart.boundingBox();

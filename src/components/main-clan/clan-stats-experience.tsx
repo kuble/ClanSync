@@ -66,15 +66,14 @@ function SynergyRing({ peer, relation }: { peer: SynergyPeer | undefined; relati
   if (!peer) return <aside aria-label="시너지 승률 차트" className="flex min-h-64 items-center justify-center rounded-xl border border-dashed px-5 text-center text-sm text-muted-foreground">멤버 이름에 마우스를 올리거나 선택하면 시너지 승률이 표시됩니다.</aside>;
   const percentage = Math.round(peer.wins / peer.matches * 1000) / 10;
   return <aside aria-label="시너지 승률 차트" className="flex min-h-64 flex-col items-center justify-center rounded-xl border bg-muted/15 px-3 py-4 text-center">
+    <h3 className="mb-2 max-w-full truncate px-1 text-sm font-semibold" title={peer.nickname}>{peer.nickname}</h3>
     <div className="relative size-44 text-rose-400">
       <svg viewBox="0 0 180 180" role="img" aria-label={`${peer.nickname} ${relation === "ally" ? "같은 팀" : "상대 팀"} 승률 ${percentage}%, ${peer.matches}경기`} className="size-full overflow-visible">
         <circle cx="90" cy="90" r="68" fill="none" stroke="var(--muted-foreground)" strokeOpacity=".4" strokeWidth="15" />
         <circle cx="90" cy="90" r="68" fill="none" stroke="currentColor" strokeWidth="15" pathLength="100" strokeDasharray={`${percentage} 100`} transform="rotate(-90 90 90)" className="transition-[stroke-dasharray] duration-300 motion-reduce:transition-none" />
       </svg>
-      <div className="pointer-events-none absolute inset-6 isolate overflow-hidden rounded-full border border-primary/25 bg-primary/15 text-primary">
-        <span aria-label="기본 프로필 이미지" className="absolute inset-0 grid place-items-center"><UserRound className="size-20" aria-hidden="true" /></span>
-        <span className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-background via-background/85 to-transparent" />
-        <span className="absolute inset-x-2 bottom-2 truncate text-center text-xs font-semibold text-foreground" title={peer.nickname}>{peer.nickname}</span>
+      <div className="pointer-events-none absolute inset-9 isolate overflow-hidden rounded-full border border-primary/25 bg-primary/15 text-primary">
+        <span aria-label="기본 프로필 이미지" className="absolute inset-0 grid place-items-center"><UserRound className="size-16" aria-hidden="true" /></span>
       </div>
     </div>
     <strong className="-mt-1 text-2xl tabular-nums">{percentage}%</strong>
