@@ -5,7 +5,7 @@ import { RubberSegment } from "@/components/ui/rubber-segment";
 import { StatTitle, StatHelp } from "./stat-help";
 import { StatsPlayerBanner } from "./stats-emblems";
 import { StatsDonut } from "./stats-donut";
-import { mapDetailsForLabel } from "@/lib/balance/map-pools";
+import { MAP_TYPES, mapDetailsForLabel, type MapType } from "@/lib/balance/map-pools";
 import { StatsScrollArea } from "./stats-scroll-area";
 import { StatsMemberPicker } from "./stats-member-picker";
 import { StatsSignedTrendChart, StatsTimeChart } from "./stats-time-chart";
@@ -30,8 +30,8 @@ const ROLE_OPTIONS = [
   { id: "dmg", label: "공격", icon: <OverwatchRoleIcon role="damage" /> },
   { id: "sup", label: "지원", icon: <OverwatchRoleIcon role="support" /> },
 ] as const;
-const ROLE_LABEL: Record<Exclude<StatRole, null>, string> = { tank: "돌격", dmg: "공격", sup: "지원" };
 const RESULT_LABEL = { win: "승", draw: "무", loss: "패" } as const;
+const MAP_TYPE_OPTIONS = [{ id: "all", label: "전체" }, ...MAP_TYPES] as const;
 
 function rate(value: number | null) {
   return value === null ? "기록 없음" : `${value}%`;
@@ -47,7 +47,6 @@ function FilterButtons<T extends string>({ options, value, onChange, label }: {
 }
 
 type SynergyPeer = ReturnType<typeof relationRows>[number];
-const HEART_PATH = "M90 53C96 43 107 33 124 33C146 33 160 51 157 75C153 110 102 147 90 157C78 147 27 110 23 75C20 51 34 33 56 33C73 33 84 43 90 53Z";
 
 function synergyVerdict(rate: number, relation: "ally" | "enemy") {
   if (rate <= 30) return relation === "ally" ? "최악의 듀오" : "넘기 힘든 상대";
@@ -62,14 +61,14 @@ function synergyVerdict(rate: number, relation: "ally" | "enemy") {
   return relation === "ally" ? "운명의 상대" : "완벽한 천적";
 }
 
-function SynergyHeart({ peer, relation }: { peer: SynergyPeer | undefined; relation: "ally" | "enemy" }) {
+function SynergyRing({ peer, relation }: { peer: SynergyPeer | undefined; relation: "ally" | "enemy" }) {
   if (!peer) return <aside aria-label="시너지 승률 차트" className="flex min-h-64 items-center justify-center rounded-xl border border-dashed px-5 text-center text-sm text-muted-foreground">멤버 이름에 마우스를 올리거나 선택하면 시너지 승률이 표시됩니다.</aside>;
   const percentage = Math.round(peer.wins / peer.matches * 1000) / 10;
   return <aside aria-label="시너지 승률 차트" className="flex min-h-64 flex-col items-center justify-center rounded-xl border bg-muted/15 px-3 py-4 text-center">
     <div className="relative size-44 text-rose-400">
       <svg viewBox="0 0 180 180" role="img" aria-label={`${peer.nickname} ${relation === "ally" ? "같은 팀" : "상대 팀"} 승률 ${percentage}%, ${peer.matches}경기`} className="size-full overflow-visible">
-        <path d={HEART_PATH} fill="none" stroke="var(--muted-foreground)" strokeOpacity=".4" strokeWidth="15" strokeLinejoin="round" />
-        <path d={HEART_PATH} fill="none" stroke="currentColor" strokeWidth="15" strokeLinejoin="round" pathLength="100" strokeDasharray={`${percentage} 100`} className="transition-[stroke-dasharray] duration-300 motion-reduce:transition-none" />
+        <circle cx="90" cy="90" r="68" fill="none" stroke="var(--muted-foreground)" strokeOpacity=".4" strokeWidth="15" />
+        <circle cx="90" cy="90" r="68" fill="none" stroke="currentColor" strokeWidth="15" pathLength="100" strokeDasharray={`${percentage} 100`} transform="rotate(-90 90 90)" className="transition-[stroke-dasharray] duration-300 motion-reduce:transition-none" />
       </svg>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pb-1 text-foreground">
         <span aria-label="기본 프로필 이미지" className="grid size-20 place-items-center rounded-full border border-primary/25 bg-primary/10 text-primary"><UserRound className="size-12" aria-hidden="true" /></span>
@@ -91,7 +90,8 @@ function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageMode
   const [peerId, setPeerId] = useState<string | null>(null);
   const [relationSort, setRelationSort] = useState<"matches" | "wins" | "draws" | "losses" | "rate">("matches");
   const [relationDescending, setRelationDescending] = useState(true);
-  const [recordRole, setRecordRole] = useState<Exclude<StatRole, null> | "all">("all");
+  const [mapRole, setMapRole] = useState<Exclude<StatRole, null> | "all">("all");
+  const [mapType, setMapType] = useState<MapType | "all">("all");
   const [mapSort, setMapSort] = useState<"matches" | "rate">("matches");
   const [scoreKind, setScoreKind] = useState<"evaluation" | "analysis">("evaluation");
   const person = model.personal.people.find((candidate) => candidate.userId === selectedId) ?? model.personal.people[0];
@@ -112,10 +112,10 @@ function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageMode
     if (key === relationSort) setRelationDescending((current) => !current);
     else { setRelationSort(key); setRelationDescending(true); }
   };
-  const recordMatches = matches.filter((match) => recordRole === "all" || match.role === recordRole);
-  const recordSummary = recordTotals(recordMatches);
+  const roleRows = ROLE_OPTIONS.slice(1).map((option) => ({ ...option, ...recordTotals(matches.filter((match) => match.role === option.id)) }));
+  const mapMatches = matches.filter((match) => (mapRole === "all" || match.role === mapRole) && (mapType === "all" || (match.map && mapDetailsForLabel(match.map)?.type === mapType)));
   const mapGroups = new Map<string, PersonalMatch[]>();
-  for (const match of recordMatches) {
+  for (const match of mapMatches) {
     if (!match.map) continue;
     if (!mapGroups.has(match.map)) mapGroups.set(match.map, []);
     mapGroups.get(match.map)!.push(match);
@@ -154,10 +154,20 @@ function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageMode
           </div>
         </CardContent>
       </Card>
-      <Card size="sm"><CardHeader><CardTitle><StatTitle title="내전 기록" help="역할을 고르면 해당 역할로 출전한 경기만 집계합니다. 도넛은 맵별 출전 비중이며 정렬 상위 10개 맵과 기타를 표시합니다. 시너지 역할 조건과는 별개입니다." /></CardTitle></CardHeader><CardContent className="space-y-4">
-        <div className="flex flex-wrap items-end justify-between gap-3"><FilterButtons label="역할" options={ROLE_OPTIONS} value={recordRole} onChange={setRecordRole} /><FilterButtons label="맵 정렬" options={[{ id: "matches", label: "출전순" }, { id: "rate", label: "승률순" }]} value={mapSort} onChange={setMapSort} /></div>
-        <div role="region" aria-label="선택 역할 전적" className="flex flex-wrap items-baseline gap-x-5 gap-y-1 rounded-xl border bg-muted/15 px-4 py-3 text-sm"><strong className="font-semibold">{recordRole === "all" ? "전체 역할" : ROLE_LABEL[recordRole]}</strong><span className="tabular-nums">{recordSummary.matches}경기</span><span className="tabular-nums text-muted-foreground">{recordSummary.wins}승 / {recordSummary.draws}무 / {recordSummary.losses}패</span><strong className="tabular-nums">승률 {rate(recordSummary.rate)}</strong></div>
-        <section aria-label="내전 기록 맵 목록"><StatsDonut key={periodKey + recordRole + mapSort} label="맵별 출전" unit="경기" showImages horizontal preserveOrder rows={maps.map((row) => ({ name: row.name, value: row.matches, image: mapDetailsForLabel(row.name)?.image, detail: `${row.wins}승 / ${row.draws}무 / ${row.losses}패 · 승률 ${rate(row.rate)}` }))} /></section>
+      <Card size="sm" role="region" aria-label="역할별 승률"><CardHeader><CardTitle><StatTitle title="역할별 승률" help="선택 기간에 실제 배정된 역할별 승·무·패와 출전 라운드를 표시합니다. 승률은 승 ÷ (승 + 무 + 패)입니다." /></CardTitle></CardHeader><CardContent>
+        <div className="overflow-x-auto rounded-lg border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <table className="w-full min-w-[520px] border-collapse text-center text-sm tabular-nums">
+            <thead className="bg-muted/40 text-xs text-muted-foreground"><tr>{["역할", "승", "무", "패", "라운드", "승률"].map((label) => <th key={label} scope="col" className="border-r px-3 py-3 font-semibold last:border-r-0">{label}</th>)}</tr></thead>
+            <tbody>{roleRows.map((row, index) => <tr key={row.id} className={`border-t ${index % 2 ? "bg-muted/20" : "bg-background"}`}>
+              <th scope="row" className="border-r px-3 py-4 font-semibold"><span className="inline-flex items-center justify-center gap-2">{row.id !== "all" && row.icon}{row.label}</span></th>
+              <td className="border-r px-3 py-4">{row.wins}</td><td className="border-r px-3 py-4">{row.draws}</td><td className="border-r px-3 py-4">{row.losses}</td><td className="border-r px-3 py-4 font-semibold">{row.matches}</td><td className="px-3 py-4 font-semibold">{rate(row.rate)}</td>
+            </tr>)}</tbody>
+          </table>
+        </div>
+      </CardContent></Card>
+      <Card size="sm" role="region" aria-label="맵별 승률"><CardHeader><CardTitle><StatTitle title="맵별 승률" help="선택 조건의 맵별 출전 비중과 승·무·패 및 승률을 표시합니다. 도넛 면적은 출전 경기 수 기준입니다." /></CardTitle></CardHeader><CardContent className="space-y-4">
+        <div className="flex flex-wrap items-end justify-between gap-3"><div className="flex min-w-0 flex-wrap items-end gap-3"><FilterButtons label="역할" options={ROLE_OPTIONS} value={mapRole} onChange={setMapRole} /><FilterButtons label="맵 형식" options={MAP_TYPE_OPTIONS} value={mapType} onChange={setMapType} /></div><FilterButtons label="맵 정렬" options={[{ id: "matches", label: "출전순" }, { id: "rate", label: "승률순" }]} value={mapSort} onChange={setMapSort} /></div>
+        <section aria-label="맵별 승률 목록"><StatsDonut key={periodKey + mapRole + mapType + mapSort} label="맵별 출전" unit="경기" showImages horizontal preserveOrder rows={maps.map((row) => ({ name: row.name, value: row.matches, image: mapDetailsForLabel(row.name)?.image, detail: `${row.wins}승 / ${row.draws}무 / ${row.losses}패 · 승률 ${rate(row.rate)}` }))} /></section>
       </CardContent></Card>
       <Card size="sm"><CardHeader><CardTitle><StatTitle title="시너지" help={<>내 역할과 상대 역할, 팀 관계를 함께 선택합니다.</>} /></CardTitle></CardHeader><CardContent className="space-y-4">
         {model.personal.canSeePeers ? <>
@@ -183,7 +193,7 @@ function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageMode
               {relations.length === 0 && <p className="py-5 text-center text-sm text-muted-foreground">해당 역할 조합의 기록이 없습니다.</p>}
             </div>
           </StatsScrollArea>
-          <SynergyHeart peer={selectedPeer} relation={relation} />
+          <SynergyRing peer={selectedPeer} relation={relation} />
           </div>
         </> : <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">상대별 전적은 클랜의 관계 통계 열람 권한에 따라 제공됩니다.</p>}
       </CardContent></Card>
