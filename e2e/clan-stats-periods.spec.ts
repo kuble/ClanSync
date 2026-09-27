@@ -123,6 +123,9 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await page.setViewportSize({ width: 1217, height: 910 });
     const synergy = page.getByRole("region", { name: "시너지 기록 목록" });
     const synergyChart = page.getByRole("complementary", { name: "시너지 승률 차트" });
+    const recordCard = page.getByText("내전 기록", { exact: true });
+    const synergyCard = page.getByText("시너지", { exact: true });
+    expect((await recordCard.boundingBox())!.y).toBeLessThan((await synergyCard.boundingBox())!.y);
     await expect(synergyChart).toContainText("멤버 이름에 마우스를 올리거나 선택하면");
     await page.getByRole("radiogroup", { name: "팀 관계" }).getByRole("radio", { name: "상대 팀" }).click();
     await synergy.getByRole("button", { name: f.users[1].nickname, exact: true }).hover();
@@ -155,6 +158,8 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await page.setViewportSize({ width: 390, height: 844 });
     const personalPeriod = page.getByRole("region", { name: "개인 기록 기간", exact: true });
     const playerSummary = page.getByRole("region", { name: "플레이어 요약" });
+    await expect(personalPeriod).toHaveCSS("position", "sticky");
+    await expect(playerSummary).not.toContainText("선택 기간의 전적과 최근 흐름");
     await expect(playerSummary).toContainText("10경기");
     await personalPeriod.getByRole("radio", { name: "연도별", exact: true }).click();
     await personalPeriod.getByRole("listbox", { name: "연도", exact: true }).press("End");
@@ -186,11 +191,9 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await expect(role.getByRole("radio", { name: "돌격", exact: true })).toHaveAttribute("title", "돌격");
     await role.getByRole("radio", { name: "돌격", exact: true }).press("ArrowRight");
     await expect(role.getByRole("radio", { name: "공격", exact: true })).toHaveAttribute("aria-checked", "true");
-    await page.getByText("역할 조합표 보기", { exact: true }).click();
-    const matrix = page.locator("details").filter({ has: page.getByText("역할 조합표 보기", { exact: true }) });
-    await expect(matrix.getByRole("columnheader", { name: "돌격", exact: true })).toBeVisible();
-    await expect(matrix.getByRole("rowheader", { name: "지원", exact: true })).toBeVisible();
-    await expect(page.getByLabel("승부예측 요약")).toContainText("예측 참여0회");
+    await expect(page.getByText("역할 조합표 보기", { exact: true })).toHaveCount(0);
+    await expect(page.getByLabel("승부예측 요약")).toContainText("예측 참여 0회");
+    await expect(page.getByText("선택한 기간에 승부예측 기록이 없습니다.")).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.getByRole("tab", { name: "명예의 전당" }).click();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
