@@ -68,7 +68,7 @@ function SynergyHeart({ peer, relation }: { peer: SynergyPeer | undefined; relat
   return <aside aria-label="시너지 승률 차트" className="flex min-h-64 flex-col items-center justify-center rounded-xl border bg-muted/15 px-3 py-4 text-center">
     <div className="relative size-44 text-rose-400">
       <svg viewBox="0 0 180 180" role="img" aria-label={`${peer.nickname} ${relation === "ally" ? "같은 팀" : "상대 팀"} 승률 ${percentage}%, ${peer.matches}경기`} className="size-full overflow-visible">
-        <path d={HEART_PATH} fill="none" stroke="var(--muted)" strokeWidth="15" strokeLinejoin="round" />
+        <path d={HEART_PATH} fill="none" stroke="var(--muted-foreground)" strokeOpacity=".4" strokeWidth="15" strokeLinejoin="round" />
         <path d={HEART_PATH} fill="none" stroke="currentColor" strokeWidth="15" strokeLinejoin="round" pathLength="100" strokeDasharray={`${percentage} 100`} className="transition-[stroke-dasharray] duration-300 motion-reduce:transition-none" />
       </svg>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pb-1 text-foreground">
