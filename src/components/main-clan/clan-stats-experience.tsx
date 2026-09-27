@@ -11,13 +11,13 @@ import { StatsMemberPicker } from "./stats-member-picker";
 import { StatsSignedTrendChart, StatsTimeChart } from "./stats-time-chart";
 import { Crown, Swords, UserRound, History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
 import { currentStreak, longestStreak, recordTotals, relationRows, type PersonalMatch, type StatRole } from "@/lib/clan/stats/clan-stats-analytics";
 import { HallOfFame } from "./clan-hall-of-fame";
-import { StatsGauge } from "./clan-stats-charts";
 import { IntraClanStats } from "./clan-intra-stats";
 import { ClanMatchHistory } from "./clan-match-history";
 
@@ -70,9 +70,10 @@ function SynergyRing({ peer, relation }: { peer: SynergyPeer | undefined; relati
         <circle cx="90" cy="90" r="68" fill="none" stroke="var(--muted-foreground)" strokeOpacity=".4" strokeWidth="15" />
         <circle cx="90" cy="90" r="68" fill="none" stroke="currentColor" strokeWidth="15" pathLength="100" strokeDasharray={`${percentage} 100`} transform="rotate(-90 90 90)" className="transition-[stroke-dasharray] duration-300 motion-reduce:transition-none" />
       </svg>
-      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pb-1 text-foreground">
-        <span aria-label="기본 프로필 이미지" className="grid size-20 place-items-center rounded-full border border-primary/25 bg-primary/10 text-primary"><UserRound className="size-12" aria-hidden="true" /></span>
-        <span className="mt-1 max-w-30 truncate text-xs font-semibold" title={peer.nickname}>{peer.nickname}</span>
+      <div className="pointer-events-none absolute inset-6 isolate overflow-hidden rounded-full border border-primary/25 bg-primary/15 text-primary">
+        <span aria-label="기본 프로필 이미지" className="absolute inset-0 grid place-items-center"><UserRound className="size-20" aria-hidden="true" /></span>
+        <span className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-background via-background/85 to-transparent" />
+        <span className="absolute inset-x-2 bottom-2 truncate text-center text-xs font-semibold text-foreground" title={peer.nickname}>{peer.nickname}</span>
       </div>
     </div>
     <strong className="-mt-1 text-2xl tabular-nums">{percentage}%</strong>
@@ -112,7 +113,7 @@ function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageMode
     if (key === relationSort) setRelationDescending((current) => !current);
     else { setRelationSort(key); setRelationDescending(true); }
   };
-  const roleRows = ROLE_OPTIONS.slice(1).map((option) => ({ ...option, ...recordTotals(matches.filter((match) => match.role === option.id)) }));
+  const roleRows = ROLE_OPTIONS.map((option) => ({ ...option, ...recordTotals(option.id === "all" ? matches : matches.filter((match) => match.role === option.id)) }));
   const mapMatches = matches.filter((match) => (mapRole === "all" || match.role === mapRole) && (mapType === "all" || (match.map && mapDetailsForLabel(match.map)?.type === mapType)));
   const mapGroups = new Map<string, PersonalMatch[]>();
   for (const match of mapMatches) {
@@ -138,36 +139,32 @@ function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageMode
     .reduce<{ at: string; value: number }[]>((trend, { date, change }) => [...trend, { at: date + "T12:00:00+09:00", value: (trend.at(-1)?.value ?? 0) + change }], []);
   return (
     <div className="space-y-5">
-      <StatsPlayerBanner hof={model.hof} userId={person.userId} nickname={person.nickname} onBack={onBack} />
-      <section aria-label="개인 기록 기간" className="sticky top-[60px] z-30 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80"><StatsPeriodFilter value={period} onChange={(next) => { setPeriod(next); setPeerId(null); }} years={years} /></section>
+      <StatsPlayerBanner hof={model.hof} userId={person.userId} nickname={person.nickname} />
+      <section aria-label="개인 기록 기간" className="sticky top-[60px] z-30 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80"><div className="flex flex-wrap items-end justify-between gap-3"><StatsPeriodFilter value={period} onChange={(next) => { setPeriod(next); setPeerId(null); }} years={years} /><Button type="button" variant="outline" size="sm" onClick={onBack}>멤버 선택</Button></div></section>
       <Card size="sm" role="region" aria-label="플레이어 요약">
         <CardHeader><CardTitle>플레이어 요약</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-2 sm:grid-cols-3">
-            <div className="rounded-xl border bg-muted/15 p-3"><p className="text-xs text-muted-foreground"><StatTitle title="출전 경기" help="선택 기간의 실제 출전 경기 수입니다. 참여 내전 횟수에는 내전 정보가 없는 과거 경기를 제외합니다." /></p><strong className="mt-2 block text-xl tabular-nums">{totals.matches}경기</strong><p className="mt-1 text-xs text-muted-foreground">참여 내전 {totals.sessions}회</p></div>
-            <div className="rounded-xl border bg-muted/15 p-3"><p className="text-xs text-muted-foreground"><StatTitle title="승/무/패" help="무효·결과 미정은 제외합니다." /></p><strong className="mt-2 block text-lg tabular-nums">{totals.wins}승 / {totals.draws}무 / {totals.losses}패</strong></div>
-            <div className="relative isolate rounded-xl border bg-muted/15 p-3"><p className="text-xs text-muted-foreground"><StatTitle title="승률" help="승 ÷ (승 + 무 + 패). 무승부도 분모에 포함합니다." /></p><strong className="mt-2 block text-xl tabular-nums">{rate(totals.rate)}</strong><StatsGauge value={totals.wins} total={totals.matches} label={`승률 ${rate(totals.rate)} · ${totals.wins}승 / ${totals.matches}경기`} /></div>
-          </div>
+          <section aria-label="역할별 승률" className="min-w-0">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-semibold"><StatTitle title="역할별 승률" help="선택 기간에 실제 배정된 역할별 경기와 승·무·패를 표시합니다. 전체에는 역할 미상 경기도 포함됩니다. 승률은 승 ÷ (승 + 무 + 패)입니다." /></h3><span className="text-xs text-muted-foreground">참여 내전 {totals.sessions}회</span></div>
+            <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <table className="w-full min-w-[400px] text-sm tabular-nums">
+                <thead className="border-b text-xs text-muted-foreground"><tr><th scope="col" className="px-3 py-2 text-left font-semibold">역할</th><th scope="col" className="px-3 py-2 text-right font-semibold">경기</th><th scope="col" className="px-3 py-2 text-right font-semibold">승/무/패</th><th scope="col" className="px-3 py-2 text-right font-semibold">승률</th></tr></thead>
+                <tbody>{roleRows.map((row) => <tr key={row.id} className="border-b last:border-b-0">
+                  <th scope="row" className="px-3 py-2.5 text-left font-semibold"><span className="inline-flex items-center gap-2">{"icon" in row && row.icon}{row.label}</span></th>
+                  <td className="px-3 py-2.5 text-right">{row.matches}</td><td className="px-3 py-2.5 text-right">{row.wins}/{row.draws}/{row.losses}</td><td className="px-3 py-2.5 text-right font-semibold">{rate(row.rate)}</td>
+                </tr>)}</tbody>
+              </table>
+            </div>
+          </section>
           <div className="grid gap-4 border-t pt-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
             <div className="min-w-0"><div className="flex flex-wrap items-center gap-2 text-sm font-semibold"><span>최근 흐름</span><span className={`text-xs ${streak.count ? streak.result === "win" ? "text-sky-400" : "text-rose-400" : "text-muted-foreground"}`}>{streak.count ? `${streak.count}연${streak.result === "win" ? "승" : "패"}` : "현재 연속 기록 없음"}</span><StatHelp title="최근 흐름">현재 연속은 선택 기간과 관계없이 최신 전체 경기 기준입니다.</StatHelp></div><div className="mt-3 flex flex-wrap gap-1.5">{person.matches.slice(0, 10).map((match) => <span key={match.id} title={`${match.date} ${match.map ?? "맵 미기록"}`} className={`rounded px-2 py-1 text-xs ${match.result === "win" ? "bg-sky-500/15 text-sky-400" : match.result === "loss" ? "bg-rose-500/15 text-rose-400" : "bg-muted"}`}>{RESULT_LABEL[match.result]}</span>)}{!person.matches.length && <span className="text-sm text-muted-foreground">기록 없음</span>}</div></div>
             <div className="grid grid-cols-2 gap-3">{([{ label: "최장 연승", row: bestWin }, { label: "최장 연패", row: bestLoss }] as const).map(({ label, row }) => <div key={label} className="min-w-0 rounded-xl border bg-muted/10 p-3"><p className="text-xs text-muted-foreground"><StatTitle title={label} help="선택한 기간 안에서 이어진 최장 연속 기록입니다." /></p><strong className="mt-2 block text-lg tabular-nums">{row.count ? `${row.count}경기` : "기록 없음"}</strong></div>)}</div>
           </div>
         </CardContent>
       </Card>
-      <Card size="sm" role="region" aria-label="역할별 승률"><CardHeader><CardTitle><StatTitle title="역할별 승률" help="선택 기간에 실제 배정된 역할별 승·무·패와 출전 라운드를 표시합니다. 승률은 승 ÷ (승 + 무 + 패)입니다." /></CardTitle></CardHeader><CardContent>
-        <div className="overflow-x-auto rounded-lg border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <table className="w-full min-w-[520px] border-collapse text-center text-sm tabular-nums">
-            <thead className="bg-muted/40 text-xs text-muted-foreground"><tr>{["역할", "승", "무", "패", "라운드", "승률"].map((label) => <th key={label} scope="col" className="border-r px-3 py-3 font-semibold last:border-r-0">{label}</th>)}</tr></thead>
-            <tbody>{roleRows.map((row, index) => <tr key={row.id} className={`border-t ${index % 2 ? "bg-muted/20" : "bg-background"}`}>
-              <th scope="row" className="border-r px-3 py-4 font-semibold"><span className="inline-flex items-center justify-center gap-2">{row.id !== "all" && row.icon}{row.label}</span></th>
-              <td className="border-r px-3 py-4">{row.wins}</td><td className="border-r px-3 py-4">{row.draws}</td><td className="border-r px-3 py-4">{row.losses}</td><td className="border-r px-3 py-4 font-semibold">{row.matches}</td><td className="px-3 py-4 font-semibold">{rate(row.rate)}</td>
-            </tr>)}</tbody>
-          </table>
-        </div>
-      </CardContent></Card>
       <Card size="sm" role="region" aria-label="맵별 승률"><CardHeader><CardTitle><StatTitle title="맵별 승률" help="선택 조건의 맵별 출전 비중과 승·무·패 및 승률을 표시합니다. 도넛 면적은 출전 경기 수 기준입니다." /></CardTitle></CardHeader><CardContent className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3"><div className="flex min-w-0 flex-wrap items-end gap-3"><FilterButtons label="역할" options={ROLE_OPTIONS} value={mapRole} onChange={setMapRole} /><FilterButtons label="맵 형식" options={MAP_TYPE_OPTIONS} value={mapType} onChange={setMapType} /></div><FilterButtons label="맵 정렬" options={[{ id: "matches", label: "출전순" }, { id: "rate", label: "승률순" }]} value={mapSort} onChange={setMapSort} /></div>
-        <section aria-label="맵별 승률 목록"><StatsDonut key={periodKey + mapRole + mapType + mapSort} label="맵별 출전" unit="경기" showImages horizontal preserveOrder rows={maps.map((row) => ({ name: row.name, value: row.matches, image: mapDetailsForLabel(row.name)?.image, detail: `${row.wins}승 / ${row.draws}무 / ${row.losses}패 · 승률 ${rate(row.rate)}` }))} /></section>
+        <section aria-label="맵별 승률 목록"><StatsDonut key={periodKey + mapRole + mapType + mapSort} label="맵별 승률" unit="경기" showImages horizontal preserveOrder mapResults rows={maps.map((row) => ({ name: row.name, value: row.matches, image: mapDetailsForLabel(row.name)?.image, wins: row.wins, draws: row.draws, losses: row.losses, rate: row.rate }))} /></section>
       </CardContent></Card>
       <Card size="sm"><CardHeader><CardTitle><StatTitle title="시너지" help={<>내 역할과 상대 역할, 팀 관계를 함께 선택합니다.</>} /></CardTitle></CardHeader><CardContent className="space-y-4">
         {model.personal.canSeePeers ? <>

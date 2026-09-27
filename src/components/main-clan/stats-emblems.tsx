@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Popover } from "@base-ui/react/popover";
 import { Trophy, CalendarCheck, Swords, Flame, Crosshair, UserRound, ChevronDown, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { RubberSegment } from "@/components/ui/rubber-segment";
 import { StatsScrollArea } from "./stats-scroll-area";
 import { StatTooltip } from "./stat-help";
@@ -51,7 +50,7 @@ function EmblemCollection({ hof, userId }: { hof: Hof; userId: string }) {
   </div>;
 }
 
-export function StatsPlayerBanner({ hof, userId, nickname, onBack }: { hof: Hof; userId: string; nickname: string; onBack: () => void }) {
+export function StatsPlayerBanner({ hof, userId, nickname }: { hof: Hof; userId: string; nickname: string }) {
   const emblems = [...collectEmblems(hof, userId, "month"), ...collectEmblems(hof, userId, "year")]
     .sort((a, b) => b.date.localeCompare(a.date) || a.rank - b.rank);
   const featured = emblems.slice(0, 3);
@@ -76,7 +75,6 @@ export function StatsPlayerBanner({ hof, userId, nickname, onBack }: { hof: Hof;
           </Popover.Popup>
         </Popover.Positioner></Popover.Portal>
       </Popover.Root>
-      <Button type="button" variant="outline" size="sm" onClick={onBack}>멤버 다시 선택</Button>
     </div>
   </section>;
 }
