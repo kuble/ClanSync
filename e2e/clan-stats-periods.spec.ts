@@ -121,6 +121,17 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await page.getByRole("tab", { name: "개인 기록" }).click();
     await page.getByRole("button", { name: f.users[0].nickname + " 개인 기록 열기", exact: true }).click();
     await page.setViewportSize({ width: 1217, height: 910 });
+    const synergy = page.getByRole("region", { name: "시너지 기록 목록" });
+    const synergyChart = page.getByRole("complementary", { name: "시너지 승률 차트" });
+    await expect(synergyChart).toContainText("멤버 이름에 마우스를 올리거나 선택하면");
+    await page.getByRole("radiogroup", { name: "팀 관계" }).getByRole("radio", { name: "상대 팀" }).click();
+    await synergy.getByRole("button", { name: f.users[1].nickname, exact: true }).hover();
+    await expect(synergyChart.getByRole("img", { name: new RegExp(`${f.users[1].nickname} 상대 팀 승률 100%`) })).toBeVisible();
+    await expect(synergyChart).toContainText("완벽한 천적");
+    await expect(synergy).not.toContainText("근거 경기");
+    const synergyBox = await synergy.boundingBox(), chartBox = await synergyChart.boundingBox();
+    expect(chartBox!.x).toBeGreaterThan(synergyBox!.x + synergyBox!.width);
+    await page.getByRole("radiogroup", { name: "팀 관계" }).getByRole("radio", { name: "같은 팀" }).click();
     const banner = page.getByRole("region", { name: "플레이어 배너", exact: true });
     const emblems = banner.getByRole("button", { name: f.users[0].nickname + " 엠블럼 컬렉션 열기", exact: true });
     await emblems.hover();

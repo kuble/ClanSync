@@ -46,6 +46,42 @@ function FilterButtons<T extends string>({ options, value, onChange, label }: {
   return <RubberSegment options={options} value={value} onChange={onChange} label={label} labelPosition="top" />;
 }
 
+type SynergyPeer = ReturnType<typeof relationRows>[number];
+const HEART_PATH = "M90 157C78 147 27 110 23 75C20 51 34 33 56 33C73 33 84 43 90 53C96 43 107 33 124 33C146 33 160 51 157 75C153 110 102 147 90 157Z";
+
+function synergyVerdict(rate: number, relation: "ally" | "enemy") {
+  if (rate <= 30) return relation === "ally" ? "최악의 듀오" : "넘기 힘든 상대";
+  if (rate < 35) return relation === "ally" ? "엇갈린 호흡" : "까다로운 상대";
+  if (rate < 40) return relation === "ally" ? "아쉬운 호흡" : "불리한 상대";
+  if (rate < 45) return relation === "ally" ? "호흡을 맞추는 중" : "조금 밀리는 상대";
+  if (rate < 50) return relation === "ally" ? "가능성이 보이는 듀오" : "접전의 상대";
+  if (rate < 55) return relation === "ally" ? "반반의 궁합" : "팽팽한 상대";
+  if (rate < 60) return relation === "ally" ? "무난한 호흡" : "해볼 만한 상대";
+  if (rate < 65) return relation === "ally" ? "좋은 호흡" : "우세한 상대";
+  if (rate < 70) return relation === "ally" ? "환상의 호흡" : "상성이 좋은 상대";
+  return relation === "ally" ? "운명의 상대" : "완벽한 천적";
+}
+
+function SynergyHeart({ peer, relation }: { peer: SynergyPeer | undefined; relation: "ally" | "enemy" }) {
+  if (!peer) return <aside aria-label="시너지 승률 차트" className="flex min-h-64 items-center justify-center rounded-xl border border-dashed px-5 text-center text-sm text-muted-foreground">멤버 이름에 마우스를 올리거나 선택하면 시너지 승률이 표시됩니다.</aside>;
+  const percentage = Math.round(peer.wins / peer.matches * 1000) / 10;
+  return <aside aria-label="시너지 승률 차트" className="flex min-h-64 flex-col items-center justify-center rounded-xl border bg-muted/15 px-3 py-4 text-center">
+    <div className="relative size-44 text-rose-400">
+      <svg viewBox="0 0 180 180" role="img" aria-label={`${peer.nickname} ${relation === "ally" ? "같은 팀" : "상대 팀"} 승률 ${percentage}%, ${peer.matches}경기`} className="size-full overflow-visible">
+        <path d={HEART_PATH} fill="none" stroke="var(--muted)" strokeWidth="15" strokeLinejoin="round" />
+        <path d={HEART_PATH} fill="none" stroke="currentColor" strokeWidth="15" strokeLinejoin="round" pathLength="100" strokeDasharray={`${percentage} 100`} className="transition-[stroke-dasharray] duration-300 motion-reduce:transition-none" />
+      </svg>
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pb-1 text-foreground">
+        <span aria-label="기본 프로필 이미지" className="grid size-11 place-items-center rounded-full border border-primary/25 bg-primary/10 text-primary"><UserRound className="size-6" aria-hidden="true" /></span>
+        <span className="mt-1 max-w-30 truncate text-xs font-semibold" title={peer.nickname}>{peer.nickname}</span>
+      </div>
+    </div>
+    <strong className="-mt-1 text-2xl tabular-nums">{percentage}%</strong>
+    <p className="mt-1 text-sm font-semibold text-rose-400">{synergyVerdict(percentage, relation)}</p>
+    <p className="mt-1 text-[11px] text-muted-foreground">{peer.matches}경기 · {peer.wins}승 {peer.draws}무 {peer.losses}패</p>
+  </aside>;
+}
+
 function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageModel; selectedId: string; onBack: () => void }) {
   const now = currentKstYearMonth();
   const [period, setPeriod] = useState<StatsPeriod>({ mode: "all", year: String(now.year), month: String(now.month).padStart(2, "0"), day: "all" });
@@ -114,9 +150,11 @@ function PersonalStats({ model, selectedId, onBack }: { model: ClanStatsPageMode
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2"><FilterButtons label="내 역할" options={ROLE_OPTIONS} value={role} onChange={(value) => { setRole(value); setPeerId(null); }} /><FilterButtons label="팀 관계" options={[{ id: "ally", label: "같은 팀" }, { id: "enemy", label: "상대 팀" }]} value={relation} onChange={(value) => { setRelation(value); setPeerId(null); }} />
           <div><FilterButtons label="상대 역할" options={ROLE_OPTIONS} value={peerRole} onChange={(value) => { setPeerRole(value); setPeerId(null); }} /></div></div>
           <p className="text-xs text-muted-foreground">{role === "all" ? "모든 역할" : ROLE_LABEL[role!]}로 출전했을 때, {relation === "ally" ? "같은 팀" : "상대 팀"} {peerRole === "all" ? "모든 역할" : ROLE_LABEL[peerRole!]} 멤버와의 기록입니다. 승률은 {person.nickname} 관점입니다.</p>
-          <StatsScrollArea label="시너지 기록 목록" className="max-h-80"><div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"><table className="w-full min-w-[540px] text-sm"><thead><tr className="border-b text-xs text-muted-foreground"><th className="p-2 text-left">멤버</th>{([{ key: "matches", label: "경기" }, { key: "wins", label: "승" }, { key: "draws", label: "무" }, { key: "losses", label: "패" }, { key: "rate", label: "승률" }] as const).map(({ key, label }) => <th key={key} className="p-2 text-right" aria-sort={relationSort === key ? relationDescending ? "descending" : "ascending" : "none"}><button type="button" onClick={() => sortRelation(key)} className="hover:text-foreground">{label}{relationSort === key ? relationDescending ? " ↓" : " ↑" : ""}</button></th>)}</tr></thead><tbody>{relations.map((row) => <tr key={row.id} className="border-b"><td className="p-2"><button type="button" className="text-left font-medium underline-offset-2 hover:underline" onClick={() => setPeerId(peerId === row.id ? null : row.id)}>{row.nickname}</button></td><td className="p-2 text-right">{row.matches}</td><td className="p-2 text-right">{row.wins}</td><td className="p-2 text-right">{row.draws}</td><td className="p-2 text-right">{row.losses}</td><td className="p-2 text-right">{Math.round(row.wins / row.matches * 1000) / 10}%</td></tr>)}</tbody></table>{relations.length === 0 && <p className="py-5 text-center text-sm text-muted-foreground">해당 역할 조합의 기록이 없습니다.</p>}</div>
-          {selectedPeer && <div className="rounded-lg border p-3"><p className="text-sm font-semibold">{selectedPeer.nickname}와의 근거 경기 · {selectedPeer.matches}경기</p><p className="mt-1 text-xs text-muted-foreground">{model.permissions.viewMatchRecords ? "내전 통계의 경기 기록에서 날짜와 양 팀을 확인할 수 있습니다." : "경기 상세는 경기 기록 열람 권한이 필요합니다."}</p><p className="mt-2 text-xs">{periodMatches.filter((match) => selectedPeer.matchIds.includes(match.id)).map((match) => `${match.date} ${RESULT_LABEL[match.result]}`).join(" · ")}</p></div>}
+          <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
+          <StatsScrollArea label="시너지 기록 목록" className="max-h-80"><div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"><table className="w-full min-w-[540px] text-sm"><thead><tr className="border-b text-xs text-muted-foreground"><th className="p-2 text-left">멤버</th>{([{ key: "matches", label: "경기" }, { key: "wins", label: "승" }, { key: "draws", label: "무" }, { key: "losses", label: "패" }, { key: "rate", label: "승률" }] as const).map(({ key, label }) => <th key={key} className="p-2 text-right" aria-sort={relationSort === key ? relationDescending ? "descending" : "ascending" : "none"}><button type="button" onClick={() => sortRelation(key)} className="hover:text-foreground">{label}{relationSort === key ? relationDescending ? " ↓" : " ↑" : ""}</button></th>)}</tr></thead><tbody>{relations.map((row) => <tr key={row.id} className="border-b"><th scope="row" className="p-2 text-left"><button type="button" className="rounded-sm text-left font-medium underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-primary" aria-pressed={selectedPeer?.id === row.id} onPointerEnter={() => setPeerId(row.id)} onFocus={() => setPeerId(row.id)} onClick={() => setPeerId(row.id)}>{row.nickname}</button></th><td className="p-2 text-right">{row.matches}</td><td className="p-2 text-right">{row.wins}</td><td className="p-2 text-right">{row.draws}</td><td className="p-2 text-right">{row.losses}</td><td className="p-2 text-right">{Math.round(row.wins / row.matches * 1000) / 10}%</td></tr>)}</tbody></table>{relations.length === 0 && <p className="py-5 text-center text-sm text-muted-foreground">해당 역할 조합의 기록이 없습니다.</p>}</div>
           <details className="rounded-lg border p-3"><summary className="cursor-pointer text-sm font-semibold">역할 조합표 보기</summary><div className="mt-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"><table className="w-full min-w-[400px] text-xs"><thead><tr><th className="p-2 text-left">내 역할 / 상대 역할</th>{ROLE_OPTIONS.slice(1).map((item) => <th key={item.id} scope="col" className="p-2" aria-label={item.label}><span title={item.label} className="inline-flex">{item.id !== "all" && item.icon}</span></th>)}</tr></thead><tbody>{ROLE_OPTIONS.slice(1).map((own) => <tr key={own.id} className="border-t"><th scope="row" className="p-2 text-left" aria-label={own.label}><span title={own.label} className="inline-flex">{own.id !== "all" && own.icon}</span></th>{ROLE_OPTIONS.slice(1).map((peer) => { const rows = relationRows(periodMatches, own.id, peer.id, relation); const ids = new Set(rows.flatMap((row) => row.matchIds)); const sample = periodMatches.filter((match) => ids.has(match.id)); const total = recordTotals(sample); return <td key={peer.id} className="p-1 text-center"><button type="button" aria-label={`${own.label} / ${peer.label} 조합 선택`} onClick={() => { setRole(own.id); setPeerRole(peer.id); setPeerId(null); }} className="w-full rounded-lg border p-2 hover:bg-muted/50">{total.matches ? <>{rate(total.rate)}<span className="block text-muted-foreground">{total.matches}경기</span></> : "—"}</button></td>; })}</tr>)}</tbody></table></div><p className="mt-2 text-xs text-muted-foreground">한 경기에서 같은 역할의 상대를 여러 명 만나도 조합 칸에는 한 경기로 셉니다.</p></details></StatsScrollArea>
+          <SynergyHeart peer={selectedPeer} relation={relation} />
+          </div>
         </> : <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">상대별 전적은 클랜의 관계 통계 열람 권한에 따라 제공됩니다.</p>}
       </CardContent></Card>
       <Card size="sm"><CardHeader><CardTitle><StatTitle title="맵별 기록" help="도넛은 맵별 출전 비중입니다. 선택 정렬의 상위 10개 맵을 표시하고 나머지는 기타로 묶습니다. 각 맵의 승률은 범례에서 확인합니다." /></CardTitle></CardHeader><CardContent className="space-y-4">
