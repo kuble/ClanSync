@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
-import { loadClanStatsPage } from "../src/lib/clan/stats/load-clan-stats";
+import { loadClanStatsDetail, loadClanStatsPage } from "../src/lib/clan/stats/load-clan-stats";
 
 async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>): Promise<NonNullable<T>> {
   const { data, error } = await query;
@@ -22,9 +22,21 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     expect(memberModel?.hof.periods.all.unqualified).toEqual([]);
     expect(memberModel?.intraPeriods.all).toMatchObject({ completed: 10, participants: 2 });
     expect(JSON.stringify(memberModel?.intraPeriods)).not.toContain(f.users[1].id);
+    const light = await loadClanStatsPage(leader, f.users[0].id, f.clanId, { deferDetails: true });
+    expect(light?.hof).toEqual(staffModel?.hof);
+    expect(light?.intraPeriods).toEqual(staffModel?.intraPeriods);
+    expect(light?.archive.datesKst).toEqual([]);
+    expect(light?.personal.people.every((person) => !person.matches.length && !person.predictions.length && !person.predictionPoints.length)).toBe(true);
+    expect(light?.personal.people.map((person) => person.lastPlayedAt)).toEqual(staffModel?.personal.people.map((person) => person.lastPlayedAt));
+    expect(await loadClanStatsDetail(leader, f.users[0].id, f.clanId)).toEqual({ kind: "archive", archive: staffModel?.archive });
+    expect(await loadClanStatsDetail(leader, f.users[0].id, f.clanId, f.users[0].id)).toEqual({ kind: "personal", person: staffModel?.personal.people.find((person) => person.userId === f.users[0].id) });
     await loginIsolatedBalanceUser(page, f.users[0]);
-    await page.goto(f.path.replace(/balance$/, "stats"));
+    const detailRequests: string[] = [];
+    page.on("request", (request) => { if (request.url().includes(`/api/clans/${f.clanId}/stats?`)) detailRequests.push(request.url()); });
+    const initialResponse = await page.goto(f.path.replace(/balance$/, "stats"));
     await expect(page.getByText("3경기 이상 출전", { exact: true })).toBeVisible();
+    expect(await initialResponse!.text()).not.toContain(rows[0].id);
+    expect(detailRequests).toHaveLength(0);
     await page.getByText(/규정 미달 2명/).click();
     await expect(page.getByLabel("규정 미달 멤버")).toContainText("0 / 3경기");
     await page.getByRole("tab", { name: "내전 통계" }).click();
@@ -60,6 +72,7 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await expect(completed).toContainText("9경기");
     await page.getByRole("tab", { name: "경기 기록" }).click();
     await expect(page.getByRole("searchbox", { name: "경기 참가자 검색" })).toBeVisible();
+    expect(detailRequests.filter((url) => url.includes("section=archive"))).toHaveLength(1);
     await expect(page.getByLabel("경기 기록 주간 달력")).toHaveCount(0);
     await page.setViewportSize({ width: 1217, height: 910 });
     const datePicker = page.getByRole("button", { name: /^경기 기록 날짜 선택,/ });
@@ -119,7 +132,16 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await page.getByRole("radio", { name: "월별", exact: true }).click();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.getByRole("tab", { name: "개인 기록" }).click();
+    await page.route(`**/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`, (route) => route.fulfill({ status: 503, body: "unavailable" }), { times: 1 });
     await page.getByRole("button", { name: f.users[0].nickname + " 개인 기록 열기", exact: true }).click();
+    await expect(page.getByRole("alert").filter({ hasText: "통계 기록을 불러오지 못했습니다." })).toBeVisible();
+    await page.getByRole("button", { name: "다시 불러오기" }).click();
+    await expect(page.getByRole("region", { name: "플레이어 요약", exact: true })).toBeVisible();
+    expect(detailRequests.filter((url) => url.includes("section=personal"))).toHaveLength(2);
+    await page.getByRole("button", { name: "멤버 선택", exact: true }).click();
+    await page.getByRole("button", { name: f.users[0].nickname + " 개인 기록 열기", exact: true }).click();
+    await expect(page.getByRole("region", { name: "플레이어 요약", exact: true })).toBeVisible();
+    expect(detailRequests.filter((url) => url.includes("section=personal"))).toHaveLength(2);
     await page.setViewportSize({ width: 1217, height: 910 });
     const synergy = page.getByRole("region", { name: "시너지 기록 목록" });
     const synergyChart = page.getByRole("complementary", { name: "시너지 승률 차트" });

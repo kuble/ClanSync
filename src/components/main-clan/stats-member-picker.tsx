@@ -11,7 +11,9 @@ export function StatsMemberPicker({ people, onSelect }: { people: ClanStatsPageM
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<"recent" | "name">("recent");
   const visible = people.filter((person) => person.nickname.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())).sort((a, b) => {
-    const latest = (person: typeof a) => person.matches.reduce((time, match) => Math.max(time, Date.parse(match.occurredAt)), 0);
+    const latest = (person: typeof a) => person.lastPlayedAt !== undefined
+      ? person.lastPlayedAt ? Date.parse(person.lastPlayedAt) : 0
+      : person.matches.reduce((time, match) => Math.max(time, Date.parse(match.occurredAt)), 0);
     return (sort === "recent" ? latest(b) - latest(a) : 0) || a.nickname.localeCompare(b.nickname, "ko");
   });
   return <section className="space-y-4" aria-label="개인 기록 멤버 선택">

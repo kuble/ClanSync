@@ -20,7 +20,10 @@ if (login.error) throw new Error(login.error.message);
 const { data: clan, error } = await client.from("clans").select("id").eq("name", QA_SEED_CLANS[0].name).single();
 if (error || !clan) throw new Error("QA clan is unavailable; this script does not seed it.");
 const base = `http://localhost:${port}/games/overwatch/clan/${clan.id}`;
-const pages = ["", "/balance", "/stats", "/events", "/manage", "/store"];
+const knownPages = ["", "/balance", "/stats", "/events", "/manage", "/store"];
+const requestedPages = process.argv.slice(2);
+if (requestedPages.some((page) => !knownPages.includes(page))) throw new Error("Unknown QA page");
+const pages = requestedPages.length ? requestedPages : knownPages;
 for (let run = 1; run <= 3; run++) {
   for (const page of pages) {
     const started = performance.now();

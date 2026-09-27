@@ -16,7 +16,7 @@ export default async function ClanStatsPage({
     redirect(`/sign-in?next=/games/${gameSlug}/clan/${clanId}/stats`);
   }
 
-  const model = await loadClanStatsPage(supabase, user.id, clanId);
+  const model = await loadClanStatsPage(supabase, user.id, clanId, { deferDetails: true });
   if (!model) {
     redirect(`/games/${gameSlug}/clan`);
   }

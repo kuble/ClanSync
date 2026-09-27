@@ -19,6 +19,7 @@ import { personalPredictions, predictionTotals, predictionPointHistory, type Pre
 import {
   normalizeClanMatchRecords,
   type ClanMatchRecord,
+  type CompletedBalanceSession,
   type StoredClanMatch,
 } from "./normalize-clan-match-records";
 
@@ -102,12 +103,13 @@ export type HofPeriodPayload = {
 
 export type ClanStatsPageModel = {
   clanId: string;
+  deferredDetails?: boolean;
   intra: IntraStats;
   intraPeriods: Record<string, IntraOverview>;
   personal: {
     viewerId: string;
     canSeePeers: boolean;
-    people: { userId: string; nickname: string; matches: PersonalMatch[]; predictions: ReturnType<typeof personalPredictions>; predictionPoints: PredictionPointDay[] }[];
+    people: { userId: string; nickname: string; lastPlayedAt?: string | null; matches: PersonalMatch[]; predictions: ReturnType<typeof personalPredictions>; predictionPoints: PredictionPointDay[] }[];
   };
   summary: {
     totalMatches: number;
@@ -399,6 +401,7 @@ export function buildHofPeriod(
 async function loadClanStatsSource(
   supabase: SupabaseClient<Database>,
   clanId: string,
+  scope: "full" | "overview" | "detail" = "full",
 ) {
   const [{ data: clan }, { count: memberCount }, { data: settings, error: settingsError }, membership] =
     await Promise.all([
@@ -461,19 +464,21 @@ async function loadClanStatsSource(
         .order("id")
         .range(from, to),
     ),
-    loadAllStatsRows((from, to) =>
-      historyClient
-        .from("balance_sessions")
-        .select(
-          "id,series_id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,formation_settings,formation_state,banned_heroes,hero_ban_enabled,map_candidates,match_outcome,balance_session_map_votes(choice_idx),balance_session_predictions(user_id,pick_team),balance_session_series!inner(opened_at,balance_rooms!inner(kind))",
-        )
+    loadAllStatsRows<CompletedBalanceSession>((from, to) => {
+      const table = historyClient.from("balance_sessions");
+      const query = scope === "full"
+        ? table.select("id,series_id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,formation_settings,formation_state,banned_heroes,hero_ban_enabled,map_candidates,match_outcome,balance_session_map_votes(choice_idx),balance_session_predictions(user_id,pick_team),balance_session_series!inner(opened_at,balance_rooms!inner(kind))")
+        : scope === "overview"
+          ? table.select("id,series_id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,banned_heroes,hero_ban_enabled,map_candidates,match_outcome,balance_session_map_votes(choice_idx),balance_session_predictions(user_id,pick_team),balance_session_series!inner(opened_at,balance_rooms!inner(kind))")
+          : table.select("id,series_id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,match_outcome,balance_session_predictions(user_id,pick_team),balance_session_series!inner(opened_at,balance_rooms!inner(kind))");
+      return query
         .eq("clan_id", clanId)
         .eq("balance_session_series.balance_rooms.kind", "regular")
         .neq("match_outcome", "pending")
         .order("opened_at", { ascending: false })
         .order("id")
-        .range(from, to),
-    ),
+        .range(from, to);
+    }),
     loadAllStatsRows((from, to) =>
       historyClient
         .from("balance_session_series")
@@ -492,6 +497,81 @@ async function loadClanStatsSource(
     completedSessions,
   );
   return { clan, memberCount, settings, role, permissions, records, completedSessions, openedSessions, nickRows };
+}
+
+type StatsSource = NonNullable<Awaited<ReturnType<typeof loadClanStatsSource>>>;
+export type ClanPersonalStats = ClanStatsPageModel["personal"]["people"][number];
+export type ClanStatsDetail = { kind: "personal"; person: ClanPersonalStats } | { kind: "archive"; archive: ClanStatsPageModel["archive"] };
+
+function personalAccess(source: StatsSource, userId: string, nick: Map<string, string>) {
+  const { role, permissions: p } = source;
+  const canSeeOthers = role !== "member" && p.viewMonthly && p.viewYearly && p.viewMaps && p.viewSynergy && p.viewMscore;
+  const viewPersonalRecords = role !== "member" || resolveHofConfig(source.settings?.hof_config).memberPersonalRecords;
+  return { canSeeOthers, viewPersonalRecords, peopleIds: !viewPersonalRecords ? [] : canSeeOthers ? [...new Set([userId, ...nick.keys()])] : [userId] };
+}
+
+function sourcePredictions(source: StatsSource): PredictionRecord[] {
+  return source.completedSessions.flatMap((session) => {
+    const outcome = session.match_outcome;
+    if (outcome === "pending") return [];
+    return (session.balance_session_predictions ?? []).map((pick) => ({
+      sessionId: session.id, userId: pick.user_id,
+      playedAt: session.balance_session_series?.opened_at ?? session.opened_at,
+      map: session.resolved_map_label, pickTeam: pick.pick_team, outcome,
+    }));
+  });
+}
+
+function buildArchive(records: readonly ClanMatchRecord[], nick: Map<string, string>, viewMscore: boolean): ClanStatsPageModel["archive"] {
+  const sampleByDate: Record<string, ClanArchiveMatch[]> = {};
+  for (const m of records) {
+    if (m.match_type !== "intra") continue;
+    const date = isoToKstYmd(m.played_at);
+    (sampleByDate[date] ??= []).push({
+      id: m.id, matchType: m.match_type, mapLabel: m.map_label, playedAt: m.played_at,
+      occurredAt: m.occurred_at, source: m.source, outcome: m.outcome, winnerTeam: getWinnerTeam(m),
+      players: m.match_players.map((p) => ({ userId: p.user_id, nickname: nick.get(p.user_id) ?? "탈퇴한 멤버", team: p.team, role: p.role, m: viewMscore ? p.m : null, a: viewMscore ? p.a : null })),
+    });
+  }
+  return { datesKst: Object.keys(sampleByDate).sort().reverse(), sampleByDate };
+}
+
+async function loadPredictionLedger(supabase: SupabaseClient<Database>, clanId: string, userId: string, staff: boolean) {
+  return staff
+    ? loadAllStatsRows((from, to) => supabase.rpc("read_clan_prediction_ledger", { p_clan_id: clanId }).eq("user_id", userId).range(from, to))
+    : loadAllStatsRows((from, to) => supabase.from("coin_transactions").select("user_id,reference_id,amount,created_at")
+      .eq("user_id", userId).eq("pool_type", "personal").eq("reference_type", "balance_session")
+      .order("created_at").order("id").range(from, to));
+}
+
+/** Each detail request checks current membership and permissions before returning private rows. */
+export async function loadClanStatsDetail(supabase: SupabaseClient<Database>, userId: string, clanId: string, personId?: string): Promise<ClanStatsDetail | null> {
+  const source = await loadClanStatsSource(supabase, clanId, "detail");
+  if (!source) return null;
+  const nick = buildNickMap(source.nickRows);
+  if (!personId) return source.permissions.viewMatchRecords
+    ? { kind: "archive", archive: buildArchive(source.records, nick, source.permissions.viewMscore) } : null;
+  const access = personalAccess(source, userId, nick);
+  if (!access.peopleIds.includes(personId)) return null;
+  const predictions = sourcePredictions(source);
+  const ledger = await loadPredictionLedger(supabase, clanId, personId, source.role !== "member");
+  const matches = buildPersonalMatches(source.records, personId, nick, source.permissions.viewSynergy && source.role !== "member");
+  return { kind: "personal", person: {
+    userId: personId, nickname: nick.get(personId) ?? "나", lastPlayedAt: matches[0]?.occurredAt ?? null, matches,
+    predictions: personalPredictions(predictions, personId), predictionPoints: predictionPointHistory(predictions, ledger, personId),
+  } };
+}
+
+function indexPeriods<T>(rows: readonly T[], date: (row: T) => string) {
+  const buckets = new Map<string, T[]>();
+  for (const row of rows) {
+    const day = isoToKstYmd(date(row));
+    for (const key of [day.slice(0, 4), day.slice(0, 7)]) {
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key)!.push(row);
+    }
+  }
+  return buckets;
 }
 
 /** Management uses operational aggregates, without computing HoF or every member's personal history. */
@@ -517,13 +597,13 @@ export async function loadClanStatsPage(
   supabase: SupabaseClient<Database>,
   userId: string,
   clanId: string,
-  options?: { now?: Date; includeManagement?: boolean },
+  options?: { now?: Date; includeManagement?: boolean; deferDetails?: boolean },
 ): Promise<ClanStatsPageModel | null> {
-  const source = await loadClanStatsSource(supabase, clanId);
+  const source = await loadClanStatsSource(supabase, clanId, options?.deferDetails ? "overview" : "full");
   if (!source) return null;
   const now = options?.now ?? new Date();
-  const { clan, memberCount, settings, role, records, completedSessions, openedSessions, nickRows } = source;
-  const { setHofRules, viewMatchRecords, exportCsv, viewSynergy, viewMonthly, viewYearly, viewMaps, viewMscore } = source.permissions;
+  const { clan, memberCount, settings, role, records, openedSessions, nickRows } = source;
+  const { setHofRules, viewMatchRecords, exportCsv, viewSynergy, viewMscore } = source.permissions;
   // A void result remains visible in the archive but does not count as a played match.
   const matches = records.filter((record) => record.outcome !== "void" && record.outcome !== "unrecorded");
   const cfg = resolveHofConfig(settings?.hof_config);
@@ -577,74 +657,42 @@ export async function loadClanStatsPage(
     ]),
   ).sort((a, b) => Number(b) - Number(a));
 
-  const datesKst = new Set<string>();
-  const sampleByDate: Record<string, ClanArchiveMatch[]> = {};
-  for (const m of viewMatchRecords ? records.filter((record) => record.match_type === "intra") : []) {
-    const d = isoToKstYmd(m.played_at);
-    datesKst.add(d);
-    if (!sampleByDate[d]) sampleByDate[d] = [];
-    sampleByDate[d].push({
-      id: m.id,
-      matchType: m.match_type,
-      mapLabel: m.map_label,
-      playedAt: m.played_at,
-      occurredAt: m.occurred_at,
-      source: m.source,
-      outcome: m.outcome,
-      winnerTeam: getWinnerTeam(m),
-      players: m.match_players.map((player) => ({
-        userId: player.user_id,
-        nickname: nick.get(player.user_id) ?? "탈퇴한 멤버",
-        team: player.team,
-        role: player.role,
-        m: viewMscore ? player.m : null,
-        a: viewMscore ? player.a : null,
-      })),
-    });
-  }
-  const archiveDates = Array.from(datesKst).sort().reverse();
+  const archive = viewMatchRecords && !options?.deferDetails
+    ? buildArchive(records, nick, viewMscore) : { datesKst: [], sampleByDate: {} };
   const hofSessions = openedSessions.map((session) => ({ id: session.id, openedAt: session.opened_at }));
-  const predictions: PredictionRecord[] = completedSessions.flatMap((session) => {
-    const outcome = session.match_outcome;
-    if (outcome === "pending") return [];
-    return (session.balance_session_predictions ?? []).map((pick) => ({
-      sessionId: session.id,
-      userId: pick.user_id,
-      playedAt: session.balance_session_series?.opened_at ?? session.opened_at,
-      map: session.resolved_map_label,
-      pickTeam: pick.pick_team,
-      outcome,
-    }));
-  });
+  const predictions = sourcePredictions(source);
   // The personal privacy override is not persisted yet. Until it is, keep
   // other members' detailed records within staff access even if a member is
   // granted the broad aggregate-statistics permission set.
-  const canSeeOthers = role !== "member" && viewMonthly && viewYearly && viewMaps && viewSynergy && viewMscore;
-  const viewPersonalRecords = role !== "member" || cfg.memberPersonalRecords;
+  const { canSeeOthers, viewPersonalRecords, peopleIds } = personalAccess(source, userId, nick);
   // Staff use a clan-scoped ledger RPC; members retain the owner-only query.
   // Personal payouts have clan_id=null, so session references establish scope.
-  const predictionLedger = !viewPersonalRecords ? [] : role !== "member" && canSeeOthers
+  const predictionLedger = !viewPersonalRecords || options?.deferDetails ? [] : role !== "member" && canSeeOthers
     ? await loadAllStatsRows((from, to) => supabase
       .rpc("read_clan_prediction_ledger", { p_clan_id: clanId }).range(from, to))
     : await loadAllStatsRows((from, to) => supabase
       .from("coin_transactions").select("user_id,reference_id,amount,created_at")
       .eq("user_id", userId).eq("pool_type", "personal").eq("reference_type", "balance_session")
       .order("created_at").order("id").range(from, to));
-  const peopleIds = !viewPersonalRecords ? [] : canSeeOthers ? [...new Set([userId, ...nick.keys()])] : [userId];
   // Shared object identities let RSC transmit repeated teammate/opponent details once.
   // Keep this cache local to this authorized response, never across accounts or requests.
   const peerCache = new Map<string, PersonalMatch["peers"][number]>();
+  const lastPlayed = new Map<string, string>();
+  for (const match of matches.filter(isCompletedIntra)) for (const player of match.match_players) {
+    if (!lastPlayed.has(player.user_id)) lastPlayed.set(player.user_id, match.occurred_at);
+  }
   const personal = peopleIds.map((id) => ({
     userId: id,
     nickname: nick.get(id) ?? (id === userId ? "나" : "탈퇴한 멤버"),
-    matches: buildPersonalMatches(matches, id, nick, viewSynergy && role !== "member", peerCache),
+    lastPlayedAt: lastPlayed.get(id) ?? null,
+    matches: options?.deferDetails ? [] : buildPersonalMatches(matches, id, nick, viewSynergy && role !== "member", peerCache),
     // peopleIds restricts peers to authorized staff; the ledger RPC itself
     // checks active officer/leader membership and clan ownership of each round.
-    predictions: personalPredictions(predictions, id),
-    predictionPoints: id === userId || role !== "member" ? predictionPointHistory(predictions, predictionLedger, id) : [],
+    predictions: options?.deferDetails ? [] : personalPredictions(predictions, id),
+    predictionPoints: !options?.deferDetails && (id === userId || role !== "member") ? predictionPointHistory(predictions, predictionLedger, id) : [],
   }));
 
-  const intra = buildIntraStats(records, hofSessions);
+  const intra = options?.deferDetails ? buildIntraStats([], []) : buildIntraStats(records, hofSessions);
   if (!viewMatchRecords) {
     // The overview is available to members; individual round rows require
     // the separate match-records permission even when the aggregates do not.
@@ -666,15 +714,19 @@ export async function loadClanStatsPage(
   ])].filter((key) => key < currentMonthKey).sort().reverse();
   const historicalYears = [...new Set(historicalMonths.map((key) => key.slice(0, 4)))]
     .filter((key) => Number(key) < currentPeriod.year).sort().reverse();
+  const matchPeriods = indexPeriods(matches, (match) => match.played_at);
+  const sessionPeriods = indexPeriods(hofSessions, (session) => session.openedAt);
+  const predictionPeriods = indexPeriods(predictions, (prediction) => prediction.playedAt);
   const historyMonths = Object.fromEntries(historicalMonths.map((key) => [
-    key, buildHofPeriod(matches, "month", cfg, nick, new Date(`${key}-15T12:00:00+09:00`), hofSessions, role !== "member", true, predictions),
+    key, buildHofPeriod(matchPeriods.get(key) ?? [], "month", cfg, nick, new Date(`${key}-15T12:00:00+09:00`), sessionPeriods.get(key) ?? [], role !== "member", true, predictionPeriods.get(key) ?? []),
   ]));
   const historyYears = Object.fromEntries(historicalYears.map((key) => [
-    key, buildHofPeriod(matches, "year", cfg, nick, new Date(`${key}-06-15T12:00:00+09:00`), hofSessions, role !== "member", true, predictions),
+    key, buildHofPeriod(matchPeriods.get(key) ?? [], "year", cfg, nick, new Date(`${key}-06-15T12:00:00+09:00`), sessionPeriods.get(key) ?? [], role !== "member", true, predictionPeriods.get(key) ?? []),
   ]));
 
   return {
     clanId,
+    deferredDetails: options?.deferDetails,
     intra,
     intraPeriods: buildIntraOverviewPeriods(records, hofSessions),
     personal: { viewerId: userId, canSeePeers: viewSynergy && role !== "member", people: personal },
@@ -703,10 +755,7 @@ export async function loadClanStatsPage(
       intraParticipantsByYearMonth: intraParticipantsFlat,
       years,
     },
-    archive: {
-      datesKst: archiveDates,
-      sampleByDate,
-    },
+    archive,
     permissions: {
       viewPersonalRecords,
       setHofRules,

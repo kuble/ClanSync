@@ -391,7 +391,7 @@ test("closed monthly and yearly top-three records appear as emblems", async ({ p
   } finally { await touchContext.close(); }
 });
 
-test("staff can inspect prediction payouts and edit completed evaluation scores", async ({ page }) => {
+test("staff can inspect prediction payouts and edit completed evaluation scores", async ({ page, request }) => {
   const r = await round();
   await ok(f.service.from("balance_sessions").update({ ma_snapshot: { [f.users[0].id]: { m: 2, a: 1 } } }).eq("id", r.id));
   await live(r);
@@ -413,6 +413,13 @@ test("staff can inspect prediction payouts and edit completed evaluation scores"
   expect((await leader.rpc("update_balance_history_mscore", { p_round_id: r.id, p_clan_id: f.clanId, p_user_id: f.users[11].id, p_score: 9 })).error).not.toBeNull();
   expect((await leader.rpc("update_balance_history_mscore", { p_round_id: r.id, p_clan_id: f.clanId, p_user_id: f.users[0].id, p_score: 11 })).error).not.toBeNull();
   await loginIsolatedBalanceUser(page, f.users[0]);
+  const detailUrl = `/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[11].id}`;
+  expect((await request.get(detailUrl)).status()).toBe(401);
+  const staffDetail = await page.request.get(detailUrl);
+  expect(staffDetail.status()).toBe(200);
+  expect(staffDetail.headers()["cache-control"]).toContain("no-store");
+  expect((await staffDetail.json()).person.predictionPoints).toEqual(staff?.personal.people.find((person) => person.userId === f.users[11].id)?.predictionPoints);
+  expect((await page.request.get(`/api/clans/${randomUUID()}/stats?section=archive`)).status()).toBe(403);
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
   await page.getByRole("tab", { name: "개인 기록" }).click();
   await page.getByRole("button", { name: `${f.users[0].nickname} 개인 기록 열기`, exact: true }).click();
@@ -427,10 +434,16 @@ test("staff can inspect prediction payouts and edit completed evaluation scores"
   const scoreDialog = page.getByRole("dialog", { name: "평가 점수 수정" });
   await scoreDialog.getByRole("combobox", { name: "수정할 경기" }).selectOption(r.id);
   await scoreDialog.getByRole("spinbutton", { name: "평가 점수 입력" }).fill("3.5");
+  const refreshedDetail = page.waitForResponse((response) => response.url().includes(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`));
   await scoreDialog.getByRole("button", { name: "점수 저장" }).click();
   await expect(scoreDialog).toBeHidden();
   const saved = await ok(f.service.from("balance_sessions").select("ma_snapshot").eq("id", r.id).single());
   expect((saved.ma_snapshot as Record<string, { m: number; a: number }>)[f.users[0].id]).toEqual({ m: 3.5, a: 1 });
+  await (await refreshedDetail).finished();
+  await expect(chart).toBeVisible();
+  await chart.press("End");
+  await expect(page.getByRole("status", { name: "점수 이력 그래프 선택 값" })).toContainText("3.5점");
+  await chart.press("Escape");
   await page.getByRole("button", { name: "멤버 선택", exact: true }).click();
   await page.getByRole("textbox", { name: "멤버 이름 검색" }).fill(f.users[11].nickname);
   await page.getByRole("button", { name: `${f.users[11].nickname} 개인 기록 열기`, exact: true }).click();
@@ -448,11 +461,18 @@ test("staff can inspect prediction payouts and edit completed evaluation scores"
   }
   await page.context().clearCookies();
   await loginIsolatedBalanceUser(page, f.users[11]);
+  expect((await page.request.get(detailUrl)).status()).toBe(200);
+  expect((await page.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`)).status()).toBe(403);
+  expect((await page.request.get(`/api/clans/${f.clanId}/stats?section=archive`)).status()).toBe(403);
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
   await page.getByRole("tab", { name: "개인 기록" }).click();
   await page.getByRole("button", { name: `${f.users[11].nickname} 개인 기록 열기`, exact: true }).click();
   await expect(page.getByRole("button", { name: "평가 점수 수정" })).toHaveCount(0);
   await expect(page.getByText("수익 +5pt", { exact: true })).toBeVisible();
+  await ok(f.service.from("clan_settings").update({ hof_config: { ...(current.hof_config as Record<string, unknown>), member_personal_records: false } }).eq("clan_id", f.clanId));
+  expect((await page.request.get(detailUrl)).status()).toBe(403);
+  await page.reload();
+  await expect(page.getByRole("tab", { name: "개인 기록" })).toHaveCount(0);
 });
 
 test("UTC calendar can select a month-end Korean occurrence", async ({ browser }) => {
