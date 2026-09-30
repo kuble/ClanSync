@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { loadTestEnv } from "./test-env.mjs";
+import { qaFixtureEmail } from "./fixtures/qa-fixtures.mjs";
 
 // Add presentation content only to the named QA clan. Never reseed accounts or matches.
 const clanId = "73441bc9-2ffd-4789-8da4-f50423073706";
@@ -22,9 +23,9 @@ function id(key) {
 }
 const clan = await checked(db.from("clans").select("name,rules").eq("id", clanId).single());
 assert.equal(clan.name, "QA_01_Clan");
-const leader = await checked(db.from("clan_members").select("user_id,users(nickname)")
+const leader = await checked(db.from("clan_members").select("user_id,users(email)")
   .eq("clan_id", clanId).eq("role", "leader").eq("status", "active").single());
-assert.equal(leader.users.nickname, "QA_Leader_01");
+assert.equal(leader.users.email.toLowerCase(), qaFixtureEmail("Leader", "01").toLowerCase());
 const now = new Date();
 const notices = [
   {

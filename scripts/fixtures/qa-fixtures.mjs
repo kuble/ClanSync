@@ -40,5 +40,11 @@ export const QA_SEED_CLANS = [
   },
 ];
 
+/** Stable identity order; demo display names may change without changing logins/history. */
+export const QA_CLAN_ACCOUNT_EMAILS = [
+  qaFixtureEmail("Leader", "01"),
+  ...Array.from({ length: 11 }, (_, i) => qaFixtureEmail("Member", String(i + 2).padStart(2, "0"))),
+].map((email) => email.toLowerCase());
+
 /** 온보딩 E2E 기본 계정 */
 export const DEFAULT_E2E_EMAIL = qaFixtureEmail("Member", "01");

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { loadTestEnv } from "./test-env.mjs";
+import { QA_CLAN_ACCOUNT_EMAILS } from "./fixtures/qa-fixtures.mjs";
 
 // Explicitly requested historical fixtures, not the destructive account/clan seed.
 // Stable IDs allow interrupted runs to resume without duplicating completed history.
@@ -35,9 +36,9 @@ const clan = await checked(db.from("clans").select("id,name,game_id,subscription
 assert.equal(clan.name, "QA_01_Clan");
 assert.equal(clan.subscription_tier, "premium", "Prediction fixtures require the existing QA Premium entitlement.");
 const members = await all("clan_members");
-const people = await checked(db.from("users").select("id,nickname,coin_balance").in("id", members.filter((m) => m.status === "active").map((m) => m.user_id)).order("nickname"));
+const people = await checked(db.from("users").select("id,nickname,email,coin_balance").in("id", members.filter((m) => m.status === "active").map((m) => m.user_id)).order("email"));
 assert.equal(people.length, 12, "Expected the existing twelve QA members; no account creation is allowed.");
-assert.deepEqual(people.map((p) => p.nickname), ["QA_Leader_01", ...Array.from({ length: 11 }, (_, i) => `QA_Member_${String(i + 2).padStart(2, "0")}`)]);
+assert.deepEqual(people.map((p) => p.email.toLowerCase()), QA_CLAN_ACCOUNT_EMAILS);
 const host = people[0].id;
 assert(members.some((m) => m.user_id === host && m.role === "leader"));
 const game = await checked(db.from("games").select("slug").eq("id", clan.game_id).single());

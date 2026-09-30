@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createClient } from "@supabase/supabase-js";
 import { loadTestEnv } from "./test-env.mjs";
+import { QA_CLAN_ACCOUNT_EMAILS } from "./fixtures/qa-fixtures.mjs";
 import { buildVarietyHistory, summarizeVariety, VARIETY_CLAN_ID as CLAN_ID, VARIETY_TITLE } from "./fixtures/qa-stats-variety.mjs";
 
 // Additive, resumable history import. Never runs the account/clan seed or awards coins.
@@ -33,8 +34,8 @@ const clan = await checked(db.from("clans").select("id,name,game_id,subscription
 assert.equal(clan.name, "QA_01_Clan");
 assert.equal(clan.subscription_tier, "premium");
 const members = await all("clan_members");
-const people = await checked(db.from("users").select("id,nickname").in("id", members.filter((m) => m.status === "active").map((m) => m.user_id)).order("nickname"));
-assert.deepEqual(people.map((p) => p.nickname), ["QA_Leader_01", ...Array.from({ length: 11 }, (_, i) => `QA_Member_${String(i + 2).padStart(2, "0")}`)]);
+const people = await checked(db.from("users").select("id,nickname,email").in("id", members.filter((m) => m.status === "active").map((m) => m.user_id)).order("email"));
+assert.deepEqual(people.map((p) => p.email.toLowerCase()), QA_CLAN_ACCOUNT_EMAILS);
 assert(members.some((m) => m.user_id === people[0].id && m.role === "leader"));
 assert.equal((await checked(db.from("games").select("slug").eq("id", clan.game_id).single())).slug, "overwatch");
 const history = buildVarietyHistory(people, clan.game_id);
