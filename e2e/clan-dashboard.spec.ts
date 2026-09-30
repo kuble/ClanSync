@@ -1,7 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { createClient } from "@supabase/supabase-js";
-import { gotoOverwatchLeaderClanBase } from "./fixture-login-helper";
-import { loadTestEnv } from "../scripts/test-env.mjs";
+import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
+import type { Json } from "../src/lib/supabase/database.types";
 
 test.use({ timezoneId: "Asia/Seoul" });
 
@@ -10,14 +9,11 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
   browser,
 }) => {
   test.setTimeout(90_000);
-  const env = loadTestEnv();
-  const svc = createClient(
-    env.NEXT_PUBLIC_SUPABASE_URL!,
-    env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false, autoRefreshToken: false } },
-  );
-  const base = await gotoOverwatchLeaderClanBase(page);
-  const clanId = base.split("/").at(-1)!;
+  const fixture = await createIsolatedBalanceFixture(2);
+  const svc = fixture.service;
+  const clanId = fixture.clanId;
+  const base = `/games/overwatch/clan/${clanId}`;
+  await loginIsolatedBalanceUser(page, fixture.users[0]);
   const title = `dashboard-${Date.now()}`;
   const [{ data: clan }, { data: settings }, { data: leader }] =
     await Promise.all([
@@ -65,16 +61,16 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
           .from("clan_settings")
           .update({
             expose_hof: false,
-            hof_config: { ...settings!.hof_config, eligibility_below_pct: 1 },
+            hof_config: { ...(settings!.hof_config as Record<string, Json>), eligibility_below_pct: 1 },
           })
           .eq("clan_id", clanId)
       ).error,
     ).toBeNull();
     const local = await page.evaluate(() => {
       const day = new Date();
+      const previous = new Date(day.getFullYear(), day.getMonth() - 1, 15, 20);
       day.setDate(day.getDate() + 1);
       day.setHours(20, 0, 0, 0);
-      const previous = new Date(day.getFullYear(), day.getMonth() - 1, 15, 20);
       return {
         start: day.toISOString(),
         weekday: day.getDay() || 7,
@@ -108,8 +104,8 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
           clan_id: clanId,
           game_id: clan!.game_id,
           created_by: leader!.user_id,
-          match_type: "intra",
-          status: "finished",
+          match_type: "intra" as const,
+          status: "finished" as const,
           played_at: local.previous,
         })),
       ),
@@ -254,5 +250,6 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         .eq("clan_id", clanId),
     ]);
     for (const result of cleanup) expect(result.error).toBeNull();
+    await fixture.cleanup();
   }
 });

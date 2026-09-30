@@ -9,6 +9,7 @@ import {
 import { toKstParts } from "@/lib/clan/stats/kst";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { normalizeClanMatchRecords } from "@/lib/clan/stats/normalize-clan-match-records";
+import { loadDashboardRows } from "./load-dashboard-rows";
 
 export type DashboardNotice = {
   id: string;
@@ -152,7 +153,7 @@ export async function loadClanDashboard(
   }
 
   const [matches, nicknames, sessions, predictions] = await Promise.all([
-    supabase
+    loadDashboardRows((from, to) => supabase
       .from("matches")
       .select(
         "id, played_at, match_type, status, map_label, match_players(user_id, team), match_results(winner_team)",
@@ -163,10 +164,11 @@ export async function loadClanDashboard(
       .eq("clan_id", clanId)
       .eq("match_type", "intra")
       .eq("status", "finished")
-      .limit(1000),
+      .order("id")
+      .range(from, to)),
     supabase.rpc("clan_peer_nicknames", { p_clan_id: clanId }),
     // Membership was checked above; only aggregates, never raw rounds, leave this loader.
-    eventClient
+    loadDashboardRows((from, to) => eventClient
       .from("balance_sessions")
       .select(
         "id, opened_at, closed_at, predictions_settled_at, resolved_map_label, roster, ma_snapshot, match_outcome, balance_session_series!inner(opened_at,balance_rooms!inner(kind))",
@@ -175,9 +177,10 @@ export async function loadClanDashboard(
       .eq("clan_id", clanId)
       .eq("balance_session_series.balance_rooms.kind", "regular")
       .neq("match_outcome", "pending")
-      .limit(1000),
+      .order("id")
+      .range(from, to)),
     plan === "premium"
-      ? eventClient
+      ? loadDashboardRows((from, to) => eventClient
           .from("balance_sessions")
           .select(
             "id, match_outcome, balance_session_predictions(user_id, pick_team), balance_session_series!inner(opened_at,balance_rooms!inner(kind))",
@@ -188,7 +191,8 @@ export async function loadClanDashboard(
           .in("match_outcome", ["team1", "team2", "draw"])
           .gte("balance_session_series.opened_at", monthStart.toISOString())
           .lt("balance_session_series.opened_at", monthEnd.toISOString())
-          .limit(1000)
+          .order("id")
+          .range(from, to))
       : Promise.resolve({ data: [], error: null, count: 0 }),
   ]);
   // Never award a winner from a truncated result set or failed request.
