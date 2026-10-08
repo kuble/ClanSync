@@ -5,6 +5,7 @@ import { Crown, Pause, Play, RotateCcw, Shield, Cross, Swords, MousePointer2 } f
 import type { FormationSettings, Role } from "@/lib/balance/formation";
 import { cn } from "@/lib/utils";
 import styles from "./balance-formation-preview.module.css";
+import { AUTO_DRAW_ORDER, AUTO_DRAW_TEAMS, BalanceAutoDrawPreview, type AutoDrawScene } from "./balance-auto-draw-preview";
 
 const players: { name: string; role: Role }[] = [
   { name: "새벽", role: "tank" }, { name: "구름", role: "tank" },
@@ -23,6 +24,7 @@ type PreviewStep = {
   rolesKnown: number;
   credits: number[];
   durationMs?: number;
+  autoDraw?: AutoDrawScene;
   auction?: {
     player: number;
     seconds: number;
@@ -45,6 +47,21 @@ function buildSteps(settings: FormationSettings): PreviewStep[] {
   const add = (title: string, text: string, active: number[] = [], extra: Partial<PreviewStep> = {}) => {
     steps.push({ title, text, active, teams: [...teams], credits: [...credits], rolesKnown: 10, ...extra });
   };
+  if (settings.roles === "lottery" && settings.teams === "random") {
+    add("내 선호 역할 선택", "여우의 화면입니다. 이번 라운드에 원하는 역할의 순위를 먼저 정해요.", [], { rolesKnown: 0, autoDraw: { kind: "preference" } });
+    add("지원 1순위로 변경", "두 역할을 선택해 순서를 바꾸면 이번 라운드의 선호가 저장돼요.", [], { rolesKnown: 0, autoDraw: { kind: "preference", preferenceChanged: true } });
+    add("편성 화면으로 전환", "명단의 10명이 준비되면 운영진이 추첨을 시작해요. 선호는 본인만 볼 수 있어요.", [], { rolesKnown: 0, autoDraw: { kind: "roster" } });
+    add("추첨 발표 화면으로 전환", "공통 순서를 추첨하고, 각 선수의 선호와 남은 역할 자리에 따라 배정해요.", [], { durationMs: 1000, rolesKnown: 0, autoDraw: { kind: "draw", revealed: 0 } });
+    AUTO_DRAW_ORDER.forEach((index, order) => {
+      teams[index] = AUTO_DRAW_TEAMS[index];
+      add(`${order + 1}번째 발표 · ${players[index].name}`, index === 8
+        ? "여우는 선호한 지원에 배정되고, 역할별 팀 추첨으로 2팀에 합류해요."
+        : `${players[index].name}의 역할은 ${roleNames[players[index].role]}, 팀은 ${teams[index] === 0 ? "1" : "2"}팀! 확정된 자리는 남고 다음 선수를 공개해요.`, [index],
+      { durationMs: 800, autoDraw: { kind: "draw", revealed: order + 1 } });
+    });
+    add("팀 구성 완료", "각 팀에 돌격 1 · 공격 2 · 지원 2명. 여우는 2팀 지원으로 배정됐어요.", [], { durationMs: 3200, autoDraw: { kind: "complete", revealed: 10 } });
+    return steps;
+  }
   if (settings.roles === "lottery") {
     add("선호 역할 확인", "자동 배정은 각 선수의 선호 역할과 남은 자리를 확인해요.", [], { rolesKnown: 0 });
     add("공통 순서 추첨", "모든 선수가 같은 추첨 순서로 역할을 배정받아요.", [0, 1], { rolesKnown: 0 });
@@ -173,7 +190,7 @@ export function BalanceFormationPreview({ settings }: { settings: FormationSetti
             onClick={() => setPlayback({ step: 0, elapsed: 0, playing: true })}><RotateCcw size={13} /></button>
         </div>}
       </div>
-      <div className={styles.board} aria-hidden="true">
+      {frame.autoDraw ? <BalanceAutoDrawPreview scene={frame.autoDraw} players={players} elapsed={elapsed} /> : <div className={styles.board} aria-hidden="true">
         <div className="absolute inset-x-3 top-2 flex items-center justify-between text-[10px] text-muted-foreground min-[1100px]:text-xs">
           <span>{finished ? "팀 구성 완료" : "출전 선수"}</span>
           <span>{settings.teams === "draft" ? "A → B → B → A" : settings.teams === "auction" ? `${settings.durationSeconds}초 입찰` : "돌격 2 · 공격 4 · 지원 4"}</span>
@@ -195,7 +212,7 @@ export function BalanceFormationPreview({ settings }: { settings: FormationSetti
             {isCaptainMode && index < 2 && team !== null && <Crown size={11} className="ml-auto shrink-0" />}
           </div>;
         })}
-      </div>
+      </div>}
       {settings.teams === "auction" && <div className={styles.liveAuction} aria-label="A팀 주장 경매 화면">
         {frame.auction ? <>
         <div className="flex items-center justify-between gap-2">

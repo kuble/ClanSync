@@ -15,5 +15,56 @@
 .bidClick { background: var(--primary); color: var(--primary-foreground); animation: bidClick 500ms ease; }
 .cursor { position: absolute; right: 24%; bottom: -5px; filter: drop-shadow(0 1px 2px rgb(0 0 0 / 30%)); }
 @keyframes bidClick { 50% { transform: scale(.97); } }
+.screenStage { height: 360px; overflow: hidden; }
+.screenHeader { height: 40px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); font-size: 11px; }
+.screenHeader span { color: var(--muted-foreground); font-size: 10px; }
+.screenTransition { height: calc(100% - 40px); animation: screenEnter 350ms ease both; }
+.preferenceScreen { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 16px; text-align: center; }
+.preferencePicker { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; width: 100%; max-width: 300px; padding: 12px 0; border-block: 1px solid var(--border); }
+.preferenceRanks { display: flex; gap: 8px; width: 100%; max-width: 202px; }
+.preferenceRole { position: relative; display: flex; flex: 1; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: 6px; height: 76px; border: 1px solid var(--border); border-radius: 10px; font-size: 11px; }
+.rank { position: absolute; top: 3px; right: 6px; color: var(--muted-foreground); font-size: 10px; }
+.preferenceSelected { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, var(--background)); }
+.preferenceCursor { position: absolute; bottom: 0; right: 0; color: var(--primary); }
+.rosterScreen { height: 100%; padding: 18px 14px; display: flex; flex-direction: column; justify-content: center; gap: 14px; }
+.readyPlayers { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.readyPlayer { display: flex; min-width: 0; flex-direction: column; align-items: center; gap: 6px; padding: 10px 2px; border: 1px solid var(--border); border-radius: 7px; font-size: 11px; text-align: center; overflow-wrap: anywhere; }
+.readyPlayer span { color: var(--muted-foreground); font-size: 9px; }
+.drawStart { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 10px; font-size: 11px; color: var(--muted-foreground); }
+.drawStart strong { display: flex; align-items: center; justify-content: center; gap: 16px; min-width: 150px; padding: 10px; background: var(--primary); color: var(--primary-foreground); border-radius: 7px; }
+.drawScreen { padding: 10px 12px; }
+.drawStatus { display: flex; justify-content: space-between; align-items: center; gap: 4px; font-size: 10px; color: var(--primary); }
+.drawStatus span { color: var(--muted-foreground); white-space: nowrap; }
+.drawHeading, .drawRow { display: grid; grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr); gap: 6px; align-items: center; }
+.drawHeading { text-align: center; font-size: 12px; height: 28px; }
+.drawHeading strong:first-child { color: #38bdf8; }
+.drawHeading strong:last-child { color: #fb7185; }
+.drawHeading span { color: var(--muted-foreground); font-size: 11px; font-style: italic; }
+.drawSlots { display: flex; flex-direction: column; gap: 5px; }
+.drawPlayer { height: 47px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: 1px solid; border-radius: 8px; font-size: 11px; }
+.drawPlayer span { font-size: 9px; color: var(--muted-foreground); }
+.drawTeamA { border-color: color-mix(in srgb, #38bdf8 30%, transparent); background: color-mix(in srgb, #38bdf8 5%, transparent); }
+.drawTeamB { border-color: color-mix(in srgb, #fb7185 30%, transparent); background: color-mix(in srgb, #fb7185 5%, transparent); }
+.drawRevealed { box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 40%, transparent); }
+.myResult { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, var(--background)); }
+.slotRole { width: 20px; height: 20px; justify-self: center; color: var(--muted-foreground); }
+.rollingName { opacity: .3; }
+.revealedName { animation: nameReveal 250ms ease both; }
+@keyframes screenEnter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes nameReveal { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
+@media (min-width: 1100px) {
+  .screenStage { height: 420px; }
+  .screenHeader { font-size: 13px; height: 44px; }
+  .screenHeader span { font-size: 12px; }
+  .screenTransition { height: calc(100% - 44px); }
+  .preferencePicker { flex-direction: row; max-width: 320px; }
+  .readyPlayer { padding: 18px 2px; font-size: 13px; }
+  .readyPlayer span { font-size: 11px; }
+  .drawScreen { padding: 14px 18px; }
+  .drawStatus { font-size: 12px; }
+  .drawHeading { height: 32px; font-size: 14px; }
+  .drawPlayer { height: 55px; font-size: 14px; }
+  .drawPlayer span { font-size: 11px; }
+}
 @media (min-width: 1100px) { .auctionMode .player { font-size: 13px; } }
-@media (prefers-reduced-motion: reduce) { .player { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .player { transition: none; } .screenTransition, .revealedName { animation: none; } }
