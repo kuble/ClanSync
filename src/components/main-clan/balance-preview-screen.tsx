@@ -16,6 +16,7 @@ export type PreviewScene = {
   kind: "preference" | "roster" | "manual" | "draw" | "lineup" | "captains" | "draft" | "strategy" | "auction" | "settlement" | "items" | "complete";
   preferenceChanged?: boolean;
   revealed?: number;
+  continuous?: boolean;
   turn?: number;
 };
 

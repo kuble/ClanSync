@@ -50,16 +50,11 @@ function buildSteps(settings: FormationSettings): PreviewStep[] {
     add("내 선호 역할 선택", "여우의 화면입니다. 이번 라운드에 원하는 역할의 순위를 먼저 정해요.", [], { rolesKnown: 0, scene: { kind: "preference" } });
     add("지원 1순위로 변경", "두 역할을 선택해 순서를 바꾸면 이번 라운드의 선호가 저장돼요.", [], { rolesKnown: 0, scene: { kind: "preference", preferenceChanged: true } });
     add("편성 화면으로 전환", "명단의 10명이 준비되면 운영진이 편성을 시작해요. 선호는 본인만 볼 수 있어요.", [], { rolesKnown: 0, scene: { kind: "roster" } });
-    add("추첨 발표 화면으로 전환", "공통 순서를 추첨하고, 각 선수의 선호와 남은 역할 자리에 따라 배정해요.", [], { rolesKnown: 0, scene: { kind: "draw", revealed: 0 } });
-    AUTO_DRAW_ORDER.forEach((index, order) => {
-      if (settings.teams === "random") teams[index] = AUTO_DRAW_TEAMS[index];
-      add(`${order + 1}번째 발표 · ${players[index].name}`, settings.teams !== "random"
-        ? `${players[index].name}은 ${roleNames[players[index].role]}에 배정됐어요. 역할을 모두 정한 뒤 ${labels[settings.teams]}로 진행해요.`
-        : index === 8
-        ? "여우는 선호한 지원에 배정되고, 역할별 팀 추첨으로 2팀에 합류해요."
-        : `${players[index].name}의 역할은 ${roleNames[players[index].role]}, 팀은 ${teams[index] === 0 ? "1" : "2"}팀! 확정된 자리는 남고 다음 선수를 공개해요.`, [index],
-      { scene: { kind: "draw", revealed: order + 1 } });
-    });
+    if (settings.teams === "random") AUTO_DRAW_ORDER.forEach((index) => { teams[index] = AUTO_DRAW_TEAMS[index]; });
+    add("추첨 발표", settings.teams === "random"
+      ? "공통 순서에 따라 선호 역할과 팀을 연속 공개해요. 여우는 2팀 지원으로 배정돼요."
+      : `선호와 남은 역할 자리에 따라 10명의 역할을 연속 공개한 뒤 ${labels[settings.teams]}로 진행해요.`, [],
+    { durationMs: 11000, scene: { kind: "draw", revealed: 0, continuous: true } });
   } else {
     add("수동 명단 확인", "운영진이 명단에서 선수의 역할과 자리를 배치해요.", [], { scene: { kind: "manual" } });
     add("역할 인원 확인", "돌격 2명 · 공격 4명 · 지원 4명인지 확인해요. 정한 역할은 팀원 선발에서도 유지돼요.", players.map((_, i) => i), { scene: { kind: "manual" } });
@@ -157,7 +152,10 @@ export function BalanceFormationPreview({ settings }: { settings: FormationSetti
   const sequence = useMemo(() => buildSteps(settings), [settings]);
   const last = sequence.length - 1;
   const current = reducedMotion && !selected ? last : Math.min(step, last);
-  const frame = sequence[current];
+  const savedFrame = sequence[current];
+  const frame = savedFrame.scene.continuous ? { ...savedFrame, scene: { ...savedFrame.scene,
+    revealed: reducedMotion ? players.length : Math.max(0, Math.min(players.length, Math.floor((elapsed - 1000) / 800) + 1)),
+  } } : savedFrame;
   // Hold explanations long enough to read, even when the illustrated event is brief.
   const duration = Math.max(6000, frame.durationMs ?? 6000);
   const simulatedElapsed = elapsed * ((frame.durationMs ?? duration) / duration);
