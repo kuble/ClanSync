@@ -23,6 +23,7 @@ export type PreviewStep = {
   rolesKnown: number;
   credits: number[];
   durationMs?: number;
+  preparationSeconds?: number;
   scene: PreviewScene;
   auction?: {
     player: number;
@@ -41,6 +42,9 @@ function buildSteps(settings: FormationSettings): PreviewStep[] {
   const bid = Number.isFinite(settings.minBid) ? Math.max(1, Math.min(settings.minBid, Math.floor(budget / 6))) : 10;
   const price = Math.min(bid * 2, budget - bid * 3);
   const seconds = Number.isFinite(settings.durationSeconds) ? Math.max(10, Math.min(60, settings.durationSeconds)) : 20;
+  const extension = Number.isFinite(settings.bidExtensionSeconds) ? Math.max(0, Math.min(30, settings.bidExtensionSeconds)) : 5;
+  const preparation = Number.isFinite(settings.auctionPreparationSeconds) ? Math.max(0, Math.min(60, settings.auctionPreparationSeconds)) : 5;
+  const lateSeconds = Math.min(3, Math.max(1, extension - 1));
   const credits = [budget, budget];
   const steps: PreviewStep[] = [];
   const add = (title: string, text: string, active: number[] = [], extra: Partial<PreviewStep> = {}) => {
@@ -97,7 +101,9 @@ function buildSteps(settings: FormationSettings): PreviewStep[] {
         add("전략 준비", `${settings.strategySeconds}초 동안 팀 전략을 준비한 뒤 선수 경매를 시작해요.`, [], { scene: { kind: "strategy" } });
       }
       add("A팀 주장 시점", "A팀 주장 시점으로 보여드릴게요. 내 팀 크레딧을 보며 상대 팀과 입찰 경쟁을 해요.", [], { scene: { kind: "auction" } });
-      for (const [index, desiredWinner] of [[2, 0], [3, 1]] as const) {
+      {
+        const index = 2;
+        const desiredWinner = 0;
         const raised = price > bid;
         const winningPrice = desiredWinner === 0 ? Math.min(bid * 3, budget - bid * 3) : price;
         const counterBid = desiredWinner === 0 && winningPrice > price;
@@ -109,23 +115,24 @@ function buildSteps(settings: FormationSettings): PreviewStep[] {
           scene: { kind: "auction" }, durationMs: 2000, auction: { ...live, seconds: seconds - 2, leader: 0, amount: bid, nextBid: price, myAction: true, notice: `내 입찰 전송 · ${bid} cr` },
         });
         add("상대 팀 입찰 도착", raised ? `B팀이 ${price} cr로 올렸어요. 카운트다운이 흐르는 동안 재입찰할 수 있어요.` : "남은 선수의 최소 비용을 확보해야 해서 상대 팀은 추가 입찰을 하지 못해요.", [index], {
-          scene: { kind: "auction" }, durationMs: (seconds - (counterBid ? 7 : 4)) * 1000,
+          scene: { kind: "auction" }, durationMs: (seconds - (counterBid ? 4 + lateSeconds : 4)) * 1000,
           auction: { ...live, seconds: seconds - 4, leader: raised ? 1 : 0, amount: raised ? price : bid, nextBid: price + bid, notice: raised ? `B팀 새 입찰 · ${price} cr` : "상대 팀 입찰 대기" },
         });
-        if (counterBid) add("내 재입찰 · 시간 연장", `3초 남았을 때 A팀이 ${winningPrice} cr로 재입찰해요. 남은 시간이 5초로 늘어나 상대 팀도 대응할 수 있어요.`, [index], {
-          scene: { kind: "auction" }, durationMs: 5000, auction: { ...live, seconds: 5, leader: 0, amount: winningPrice, nextBid: winningPrice + bid, myAction: true, extended: true, notice: "마감 직전 입찰 · 3초 → 5초" },
+        if (counterBid) add(extension > lateSeconds ? "내 재입찰 · 시간 연장" : "내 재입찰", extension > lateSeconds ? `${lateSeconds}초 남았을 때 A팀이 ${winningPrice} cr로 재입찰해요. 마지막 ${extension}초의 입찰은 남은 시간을 ${extension}초로 연장해요(최대 기본 시간 + 30초).` : `A팀이 ${winningPrice} cr로 재입찰해요. ${extension === 0 ? "시간 연장은 꺼져 있어요." : `마지막 ${extension}초에 입찰하면 남은 시간을 ${extension}초로 연장해요(최대 기본 시간 + 30초).`}`, [index], {
+          scene: { kind: "auction" }, durationMs: Math.max(lateSeconds, extension) * 1000, auction: { ...live, seconds: Math.max(lateSeconds, extension), leader: 0, amount: winningPrice, nextBid: winningPrice + bid, myAction: true, extended: extension > lateSeconds, notice: extension > lateSeconds ? `마감 직전 입찰 · ${lateSeconds}초 → ${extension}초` : `입찰 연장 ${extension}초 설정` },
         });
         add("입찰 마감", `${winner === 0 ? "내 A팀" : "상대 B팀"}이 ${amount} cr로 낙찰받아요. 종료된 경매에는 더 입찰할 수 없어요.`, [index], {
           scene: { kind: "settlement" }, auction: { ...live, seconds: 0, leader: winner, amount, nextBid: amount, notice: `${winner === 0 ? "A" : "B"}팀 낙찰 확정` },
         });
         teams[index] = winner; credits[winner] -= amount;
-        add("선수 합류 · 크레딧 차감", `${players[index].name}이 ${winner === 0 ? "내 A팀" : "상대 B팀"}에 합류하고 ${amount} cr를 사용해요. 다음 선수는 자동으로 공개돼요.`, [index], { scene: { kind: "settlement" } });
+        add("선수 합류 · 다음 입찰 준비", `${players[index].name}이 A팀에 합류하고 ${amount} cr를 사용해요. 낙찰 시점부터 ${preparation}초 동안 다음 입찰 금액을 정해요. ${preparation < 3 ? "낙찰 결과는 최소 2.5초 동안 보여줘요." : "준비가 끝나면 다음 선수가 자동 공개돼요."}`, [index], { scene: { kind: "settlement" }, preparationSeconds: preparation, durationMs: Math.max(2500, preparation * 1000) });
       }
+      teams[3] = 1; credits[1] -= price;
       for (const [first, second] of [[4, 5], [6, 7], [8, 9]]) {
         teams[first] = 0; teams[second] = 1;
         credits[0] -= bid; credits[1] -= bid;
-        add(`남은 ${roleNames[players[first].role]} 선발`, `${players[first].name}·${players[second].name}도 같은 과정을 거쳐 예시에서는 최소 금액 ${bid} cr로 각각 합류해요.`, [first, second]);
       }
+      add("남은 선수 선발", "나머지 선수도 같은 입찰과 준비 과정을 거쳐 각 팀의 역할 자리를 채워요. 무입찰은 한 번 재경매한 뒤 가능한 팀에 최소가로 추첨 배정해요.", [3, 4, 5, 6, 7, 8, 9]);
       if (settings.auctionItemsEnabled) add("남은 크레딧으로 아이템 선택", "팀원 선발 후 남은 크레딧으로 전략 아이템을 구매하거나 구매하지 않을 수 있어요.", [], { scene: { kind: "items" } });
     }
     add("팀 구성 완료", "각 팀 5명의 역할 정원을 확인한 뒤 다음 단계로 넘어가요.", [], { scene: { kind: "complete" } });
@@ -159,7 +166,7 @@ export function BalanceFormationPreview({ settings }: { settings: FormationSetti
   // Hold explanations long enough to read, even when the illustrated event is brief.
   const duration = Math.max(6000, frame.durationMs ?? 6000);
   const simulatedElapsed = elapsed * ((frame.durationMs ?? duration) / duration);
-  const remaining = Math.max(0, (frame.auction?.seconds ?? 0) - Math.floor(simulatedElapsed / 1000));
+  const remaining = Math.max(0, (frame.auction?.seconds ?? frame.preparationSeconds ?? 0) - Math.floor(simulatedElapsed / 1000));
   const chapterStarts = sequence.flatMap((item, index) => index === 0 || item.scene.kind !== sequence[index - 1].scene.kind
     ? [{ index, kind: item.scene.kind, label: sceneLabels[item.scene.kind] }] : []);
   const chapters = chapterStarts.map((item, index) => ({ ...item, label: chapterStarts.filter((other) => other.kind === item.kind).length > 1

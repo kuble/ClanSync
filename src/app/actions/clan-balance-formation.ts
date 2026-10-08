@@ -273,6 +273,8 @@ export async function updateFormationSettingsAction(
       auctionBudget: settings.auctionBudget,
       minBid: settings.minBid,
       durationSeconds: settings.durationSeconds,
+      auctionPreparationSeconds: settings.auctionPreparationSeconds,
+      bidExtensionSeconds: settings.bidExtensionSeconds,
       auctionItemsEnabled: settings.auctionItemsEnabled,
       strategySeconds: settings.strategySeconds,
       showPlayerCardScore: settings.showPlayerCardScore,

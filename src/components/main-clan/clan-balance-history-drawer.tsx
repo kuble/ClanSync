@@ -114,6 +114,8 @@ function DrawAudit({
               {settings?.durationSeconds != null
                 ? ` · ${settings.durationSeconds}초`
                 : ""}
+              {settings?.auctionPreparationSeconds != null ? ` · 낙찰 후 준비 ${settings.auctionPreparationSeconds}초` : ""}
+              {settings?.bidExtensionSeconds != null ? ` · 입찰 연장 ${settings.bidExtensionSeconds}초` : ""}
             </p>
           ) : null}
           {settings?.captains?.length ? (

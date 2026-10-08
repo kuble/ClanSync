@@ -47,11 +47,11 @@ test("round prediction settings enforce Premium, persistence and spectator RLS",
     team2: { tank: ids[5], dmg: ids.slice(6, 8), sup: ids.slice(8, 10) } };
   await ok(leader.client.from("balance_sessions").update({ roster }).eq("id", roundId));
   const read = () => ok(svc.from("balance_sessions").select("*").eq("id", roundId).single());
-  const save = async (predictionEnabled, client = leader.client) => {
+  const save = async (predictionEnabled, client = leader.client, timing = {}) => {
     const row = await read();
     return client.rpc("set_balance_prematch_settings", {
       p_round_id: roundId, p_clan_id: clanId, p_revision: row.formation_revision,
-      p_settings: { ...row.formation_settings, predictionEnabled },
+      p_settings: { ...row.formation_settings, predictionEnabled, ...timing },
       p_map_ban: row.map_ban_enabled, p_hero_ban: row.hero_ban_enabled,
       p_map_ban_seconds: row.map_ban_seconds, p_hero_ban_seconds: row.hero_ban_seconds,
       p_hero_bans_per_team: row.hero_bans_per_team, p_map_types: row.map_types,
@@ -66,6 +66,21 @@ test("round prediction settings enforce Premium, persistence and spectator RLS",
   const prediction = (client, id, pick_team = 1) => client.from("balance_session_predictions").upsert({
     session_id: roundId, user_id: id, pick_team,
   }, { onConflict: "session_id,user_id" });
+
+  await t.test("auction timing persists, rejects malformed values and respects manager permissions", async () => {
+    assert.equal(await ok(save(true, leader.client, { auctionPreparationSeconds: 12, bidExtensionSeconds: 8 })), true);
+    assert.equal((await read()).formation_settings.auctionPreparationSeconds, 12);
+    assert.equal((await read()).formation_settings.bidExtensionSeconds, 8);
+    assert.ok((await save(true, spectator.client, { auctionPreparationSeconds: 10 })).error);
+    assert.ok((await save(true, outsider.client, { bidExtensionSeconds: 10 })).error);
+    for (const invalid of [{ auctionPreparationSeconds: -1 }, { auctionPreparationSeconds: 61 }, { bidExtensionSeconds: 31 }, { bidExtensionSeconds: 1.5 }, { bidExtensionSeconds: "8" }, { auctionPreparationSeconds: null }]) {
+      assert.ok((await save(true, leader.client, invalid)).error);
+      assert.ok((await svc.from("balance_sessions").update({ formation_settings: { ...(await read()).formation_settings, ...invalid } }).eq("id", roundId)).error);
+    }
+    assert.equal((await read()).formation_settings.auctionPreparationSeconds, 12);
+    assert.equal(await ok(save(true, leader.client, { auctionPreparationSeconds: 0, bidExtensionSeconds: 0 })), true);
+    assert.equal((await read()).formation_settings.bidExtensionSeconds, 0);
+  });
 
   await t.test("Free clans retain legacy defaults but cannot toggle through a forged request", async () => {
     assert.equal(await ok(save(true)), true);

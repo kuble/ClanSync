@@ -23,6 +23,8 @@ export type FormationSetup = {
   auctionBudget?: number;
   minBid?: number;
   durationSeconds?: number;
+  auctionPreparationSeconds?: number;
+  bidExtensionSeconds?: number;
   auctionItemsEnabled?: boolean;
   strategySeconds?: number;
 };
@@ -30,6 +32,8 @@ export type FormationSettings = Omit<FormationSetup, "preferences" | "showPlayer
   auctionBudget: number;
   minBid: number;
   durationSeconds: number;
+  auctionPreparationSeconds: number;
+  bidExtensionSeconds: number;
   auctionItemsEnabled: boolean;
   strategySeconds: number;
   showPlayerCardScore: boolean;
@@ -45,6 +49,8 @@ export const DEFAULT_FORMATION_SETTINGS: FormationSettings = {
   auctionBudget: 1000,
   minBid: 10,
   durationSeconds: 20,
+  auctionPreparationSeconds: 5,
+  bidExtensionSeconds: 5,
   auctionItemsEnabled: false,
   strategySeconds: 30,
   showPlayerCardScore: true,
@@ -70,6 +76,8 @@ export function sameFormationSettings(left: unknown, right: unknown): boolean {
     a.auctionBudget === b.auctionBudget &&
     a.minBid === b.minBid &&
     a.durationSeconds === b.durationSeconds &&
+    a.auctionPreparationSeconds === b.auctionPreparationSeconds &&
+    a.bidExtensionSeconds === b.bidExtensionSeconds &&
     a.auctionItemsEnabled === b.auctionItemsEnabled &&
     a.strategySeconds === b.strategySeconds &&
     a.showPlayerCardScore === b.showPlayerCardScore &&
@@ -108,6 +116,12 @@ export function validateFormationSettings(value: FormationSettings): void {
     !Number.isSafeInteger(value.durationSeconds) ||
     value.durationSeconds < 10 ||
     value.durationSeconds > 60 ||
+    !Number.isSafeInteger(value.auctionPreparationSeconds) ||
+    value.auctionPreparationSeconds < 0 ||
+    value.auctionPreparationSeconds > 60 ||
+    !Number.isSafeInteger(value.bidExtensionSeconds) ||
+    value.bidExtensionSeconds < 0 ||
+    value.bidExtensionSeconds > 30 ||
     !Number.isSafeInteger(value.strategySeconds) ||
     value.strategySeconds < 10 ||
     value.strategySeconds > 120
@@ -314,6 +328,8 @@ export function createFormation(
       auctionBudget: settings.auctionBudget,
       minBid: settings.minBid,
       durationSeconds: settings.durationSeconds,
+      auctionPreparationSeconds: settings.auctionPreparationSeconds,
+      bidExtensionSeconds: settings.bidExtensionSeconds,
       auctionItemsEnabled: settings.auctionItemsEnabled,
       strategySeconds: settings.strategySeconds,
       showPlayerCardScore: settings.showPlayerCardScore,
@@ -443,7 +459,8 @@ function settleAuctionLot(state: FormationState, now: number, random: RandomInde
   state.budgets[lot.team] -= lot.bid;
   assign(state, lot.team, lot.player);
   state.log.push({ text: fallback ? "무입찰 · 최소가 추첨 배정" : "낙찰", player: lot.player, team: lot.team, amount: lot.bid });
-  state.award = { player: lot.player, team: lot.team, amount: lot.bid, startedAt: now, endsAt: now + AUCTION_AWARD_DURATION_MS, fallback };
+  const preparationMs = state.remaining.length ? (state.settings?.auctionPreparationSeconds ?? 5) * 1000 : 0;
+  state.award = { player: lot.player, team: lot.team, amount: lot.bid, startedAt: now, endsAt: now + Math.max(AUCTION_AWARD_DURATION_MS, preparationMs), fallback };
   state.auction = null;
   // Even the last award is shown before entering the item/final stage.
   state.stage = "auction";
@@ -602,7 +619,7 @@ export function advanceFormation(
     lot.team = command.team;
     lot.deadline = Math.min(
       lot.startedAt + ((state.settings?.durationSeconds ?? 20) + 30) * 1000,
-      Math.max(lot.deadline, now + 5_000),
+      Math.max(lot.deadline, now + (state.settings?.bidExtensionSeconds ?? 5) * 1000),
     );
     return state;
   }

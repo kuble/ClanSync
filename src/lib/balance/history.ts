@@ -17,6 +17,8 @@ export type PublicDrawSettings = {
   auctionBudget?: number;
   minBid?: number;
   durationSeconds?: number;
+  auctionPreparationSeconds?: number;
+  bidExtensionSeconds?: number;
   captains?: string[];
 };
 
@@ -106,11 +108,11 @@ function publicSettings(value: unknown): PublicDrawSettings | null {
   if (input.roles === "manual" || input.roles === "lottery")
     result.roles = input.roles;
   if (isMode(input.teams)) result.teams = input.teams;
-  for (const key of ["auctionBudget", "minBid", "durationSeconds"] as const) {
+  for (const key of ["auctionBudget", "minBid", "durationSeconds", "auctionPreparationSeconds", "bidExtensionSeconds"] as const) {
     if (
       typeof input[key] === "number" &&
       Number.isFinite(input[key]) &&
-      input[key] > 0
+      input[key] >= 0
     )
       result[key] = input[key];
   }

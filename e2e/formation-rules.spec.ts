@@ -8,6 +8,8 @@ import {
   draftTurn,
   getFormationDeadline,
   maxBid,
+  parseFormationSettings,
+  validateFormationSettings,
   sameFormationSettings,
   type FormationState,
   type Role,
@@ -41,6 +43,8 @@ test("settings baseline compares rule values independently of JSON property orde
   expect(sameFormationSettings(left, { ...right, playerCardInfo: "streak" })).toBe(false);
   expect(sameFormationSettings(left, { ...right, auctionItemsEnabled: true })).toBe(false);
   expect(sameFormationSettings(left, { ...right, strategySeconds: 60 })).toBe(false);
+  expect(sameFormationSettings(left, { ...right, auctionPreparationSeconds: 12 })).toBe(false);
+  expect(sameFormationSettings(left, { ...right, bidExtensionSeconds: 8 })).toBe(false);
 });
 
 function make(mode: "draft" | "auction", random = keepOrder) {
@@ -646,7 +650,7 @@ test("member clock wakeups wait for reveal, settle once and retain award before 
   state = advanceFormation(state, { type: "bid", team: "team1", amount: 100 }, captain(state, "team1"), startTime + 4001, keepOrder);
   const deadline = state.auction!.deadline;
   state = advanceFormation(state, { type: "tick" }, member, deadline, keepOrder);
-  expect(state.award).toMatchObject({ team: "team1", amount: 100, endsAt: deadline + AUCTION_AWARD_DURATION_MS });
+  expect(state.award).toMatchObject({ team: "team1", amount: 100, endsAt: deadline + 5000 });
   expect(state.budgets.team1).toBe(900);
   expect(state.auction).toBeNull();
   expect(advanceFormation(state, { type: "tick" }, member, deadline + 1, keepOrder)).toEqual(state);
@@ -731,4 +735,43 @@ test("pause preserves award time and completed draft can apply through a member 
   expect(state.award!.endsAt).toBe(endsAt + 10_000);
   const complete = createFormation(roster, { roles: "manual", teams: "keep" }, keepOrder);
   expect(advanceFormation(complete, { type: "tick" }, member, startTime, keepOrder).appliedAt).toBe(startTime);
+});
+
+
+test("auction timing settings validate, extend late bids and preserve preparation on pause", () => {
+  for (const invalid of [{ auctionPreparationSeconds: -1 }, { auctionPreparationSeconds: 61 }, { bidExtensionSeconds: 31 }, { bidExtensionSeconds: 1.5 }]) {
+    expect(() => validateFormationSettings(parseFormationSettings(invalid))).toThrow();
+  }
+  let state = createFormation(roster, { roles: "manual", teams: "auction", auctionPreparationSeconds: 12, bidExtensionSeconds: 8 }, keepOrder);
+  state = advanceFormation(state, { type: "lot" }, manager, startTime, keepOrder);
+  const deadline = state.auction!.deadline;
+  state = advanceFormation(state, { type: "bid", team: "team1", amount: 100 }, captain(state, "team1"), deadline - 1000, keepOrder);
+  expect(state.auction!.deadline).toBe(deadline + 7000);
+  // Repeated valid bids never exceed the base duration plus 30 seconds.
+  for (let amount = 110; amount <= 150; amount += 10) {
+    state = advanceFormation(state, { type: "bid", team: "team1", amount }, captain(state, "team1"), state.auction!.deadline - 1000, keepOrder);
+  }
+  expect(state.auction!.deadline).toBe(startTime + 50000);
+  const settledAt = state.auction!.deadline;
+  state = advanceFormation(state, { type: "tick" }, member, settledAt, keepOrder);
+  expect(state.award!.endsAt).toBe(settledAt + 12000);
+  expect(state.budgets.team1).toBe(850);
+  expect(() => advanceFormation(state, { type: "lot" }, manager, settledAt + 1000, keepOrder)).toThrow();
+  state = advanceFormation(state, { type: "pause" }, manager, settledAt + 2000, keepOrder);
+  state = advanceFormation(state, { type: "resume" }, manager, settledAt + 12000, keepOrder);
+  expect(state.award!.endsAt).toBe(settledAt + 22000);
+  expect(advanceFormation(state, { type: "tick" }, member, state.award!.endsAt - 1, keepOrder)).toEqual(state);
+  const next = advanceFormation(state, { type: "tick" }, member, state.award!.endsAt, keepOrder);
+  expect(next.auction!.startedAt).toBe(settledAt + 22000);
+  expect(next.budgets.team1).toBe(850);
+});
+
+test("zero timing options disable extension and retain only award presentation", () => {
+  let state = createFormation(roster, { roles: "manual", teams: "auction", auctionPreparationSeconds: 0, bidExtensionSeconds: 0 }, keepOrder);
+  state = advanceFormation(state, { type: "lot" }, manager, startTime, keepOrder);
+  const deadline = state.auction!.deadline;
+  state = advanceFormation(state, { type: "bid", team: "team1", amount: 100 }, captain(state, "team1"), deadline - 1, keepOrder);
+  expect(state.auction!.deadline).toBe(deadline);
+  state = advanceFormation(state, { type: "tick" }, member, deadline, keepOrder);
+  expect(state.award!.endsAt).toBe(deadline + AUCTION_AWARD_DURATION_MS);
 });

@@ -155,6 +155,16 @@ test("formation previews support readable pacing, seeking and every screen flow 
     await expect(timer).toHaveText("0초");
     await page.clock.runFor(6000);
     await expect(preview.getByTestId("preview-credits-0")).toHaveText("940 cr");
+    await expect(preview.getByTestId("auction-preview-preparation")).toHaveText("5초");
+    await expect(preview.getByRole("button", { name: /입찰.*구간 보기/ })).toHaveCount(1);
+    await expect(preview.getByRole("button", { name: /낙찰.*구간 보기/ })).toHaveCount(1);
+    await dialog.getByLabel("낙찰 후 준비 시간(초)", { exact: true }).fill("12");
+    await seek(9);
+    await expect(preview.getByTestId("auction-preview-preparation")).toHaveText("12초");
+    await dialog.getByLabel("입찰 연장 시간(초)", { exact: true }).fill("8");
+    await seek(7);
+    await expect(timer).toHaveText("8초");
+    await expect(preview.getByTestId("formation-preview-caption")).toContainText("마지막 8초");
     await chapter("결과");
     await expectTeams();
     await expect(preview.getByTestId("preview-credits-0")).toHaveText("880 cr");
@@ -165,6 +175,12 @@ test("formation previews support readable pacing, seeking and every screen flow 
     await chapter("아이템 선택");
     await expect(screen).toHaveAttribute("data-screen", "items");
     await expect(screen).toContainText("구매 안 함");
+    await expect(screen).toContainText("영웅 밴 1장");
+    await expect(screen).toContainText("맵 선택권 1장");
+    await expect(screen).toContainText("영웅 밴 2장");
+    await expect(screen).toContainText("100cr");
+    await expect(screen).toContainText("50cr");
+    await expect(screen).toContainText("200cr");
 
     await page.emulateMedia({ reducedMotion: "reduce" });
     await mode.selectOption("random");

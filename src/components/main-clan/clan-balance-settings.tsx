@@ -212,15 +212,13 @@ export function ClanBalanceSettings({
                 [
                   "manual",
                   "수동 배정",
-                  "손든 순서 등으로 배치한 역할을 사용합니다.",
                 ],
                 [
                   "lottery",
                   "자동 배정",
-                  "같은 추첨 순서에 따라 본인의 선호와 남은 역할을 적용합니다.",
                 ],
               ] as const
-            ).map(([value, label, text]) => (
+            ).map(([value, label]) => (
               <label
                 key={value}
                 className="flex items-start gap-3 rounded-xl border p-4 text-sm"
@@ -244,9 +242,6 @@ export function ClanBalanceSettings({
                 />
                 <span>
                   <strong>{label}</strong>
-                  <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
-                    {text}
-                  </span>
                 </span>
               </label>
             ))}
@@ -281,9 +276,6 @@ export function ClanBalanceSettings({
           <fieldset disabled={locked || !formationEditable}>
             {["draft", "auction"].includes(draft.teams) ? (
               <div className="mt-4 space-y-3">
-                <p className="text-xs text-muted-foreground">
-                  같은 역할의 두 명이 주장을 맡습니다. 기본은 양 팀 탱커입니다.
-                </p>
                 {draft.roles === "manual" ? (
                   ([0, 1] as const).map((i) => (
                     <label key={i} className="block text-xs">
@@ -337,21 +329,11 @@ export function ClanBalanceSettings({
                       </select>
                     </label>
                   ))
-                ) : (
-                  <p className="text-xs">
-                    역할 추첨으로 정해진 탱커 2명이 주장이 됩니다.
-                  </p>
-                )}
-                {draft.teams === "draft" ? (
-                  <p className="text-xs text-muted-foreground">
-                    선픽 팀 추첨 후 A → B → B → A → A → B → B → A 순서로
-                    지명합니다.
-                  </p>
                 ) : null}
               </div>
             ) : null}
             {draft.teams === "auction" ? (
-              <div className="mt-5 grid grid-cols-3 gap-3">
+              <div className="mt-5 grid grid-cols-2 gap-3">
                 {(
                   [
                     {
@@ -375,6 +357,8 @@ export function ClanBalanceSettings({
                       max: 60,
                       step: 1,
                     },
+                    { key: "auctionPreparationSeconds", label: "낙찰 후 준비 시간(초)", min: 0, max: 60, step: 1 },
+                    { key: "bidExtensionSeconds", label: "입찰 연장 시간(초)", min: 0, max: 30, step: 1 },
                   ] as const
                 ).map((f) => (
                   <label key={f.key} className="text-xs">
@@ -395,16 +379,8 @@ export function ClanBalanceSettings({
                 ))}
               </div>
             ) : null}
-            {draft.teams === "auction" ? (
-              <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                마지막 5초 입찰 시 남은 시간을 5초로 연장합니다(최대 기본 시간 +
-                30초). 무입찰은 한 번 재경매 후 가능한 팀에 최소가로 추첨
-                배정합니다. 시간이 끝나면 낙찰과 다음 선수 공개가 자동으로 이어집니다.
-              </p>
-            ) : null}
             {draft.teams === "auction" ? <div className="mt-4 space-y-3 rounded-lg border bg-background/50 p-3">
               <label className="flex items-center justify-between gap-3 text-sm font-medium">전략 아이템 사용<input type="checkbox" className="size-4 accent-primary" checked={draft.auctionItemsEnabled} onChange={(event) => setDraft({ ...draft, auctionItemsEnabled: event.target.checked })} /></label>
-              <p className="text-xs leading-relaxed text-muted-foreground">아이템 3개 공개 → 전략 준비 → 팀원 경매 → 남은 포인트로 아이템 선택 순서로 진행합니다.</p>
               {draft.auctionItemsEnabled ? <label className="block text-xs">전략 준비 시간(초)<input type="number" aria-label="전략 준비 시간(초)" min={10} max={120} step={1} className={field} value={draft.strategySeconds} onChange={(event) => setDraft({ ...draft, strategySeconds: Number(event.target.value) })} /></label> : null}
               <Link href={`/games/${gameSlug}/clan/${clanId}/manage?tab=balance#auction-items`} className="inline-block text-xs font-semibold text-primary underline underline-offset-4">클랜 전략 아이템 관리</Link>
               <p className="text-[11px] text-muted-foreground">활성 아이템을 3개 이상 등록해 주세요. 효과는 운영진이 경기 규칙에 직접 적용합니다.</p>

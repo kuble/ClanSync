@@ -172,12 +172,14 @@ test("주장 전용 지명·입찰, 자동 경매와 공개 아이템 선택 후
     const settings = page.getByRole("dialog", { name: "라운드 설정", exact: true });
     await settings.getByRole("combobox", { name: "팀원 선발 방식", exact: true }).selectOption("auction");
     await settings.getByLabel("입찰 시간(초)", { exact: true }).fill("20");
+    await settings.getByLabel("낙찰 후 준비 시간(초)", { exact: true }).fill("12");
+    await settings.getByLabel("입찰 연장 시간(초)", { exact: true }).fill("8");
     await settings.getByRole("checkbox", { name: "전략 아이템 사용", exact: true }).check();
     await settings.getByLabel("전략 준비 시간(초)", { exact: true }).fill("10");
     await settings.getByRole("button", { name: "설정 적용", exact: true }).click();
     await expect(settings).toBeHidden();
     expect((await fixture.activeRound(room.roomId)).formation_settings).toMatchObject({
-      teams: "auction", durationSeconds: 20, strategySeconds: 10, auctionItemsEnabled: true,
+      teams: "auction", durationSeconds: 20, strategySeconds: 10, auctionItemsEnabled: true, auctionPreparationSeconds: 12, bidExtensionSeconds: 8,
     });
     const auctionRequestPromise = formationRequest(page, "start");
     await panel.getByRole("button", { name: "편성 진행", exact: true }).click();
@@ -235,11 +237,16 @@ test("주장 전용 지명·입찰, 자동 경매와 공개 아이템 선택 후
     await expect(award).toHaveAttribute("data-player-id", lot.player);
     await expect(award).toContainText("110");
     await award.screenshot({ path: test.info().outputPath("auction-award-desktop.png") });
+    const awardSnapshot = (await fixture.activeRound(room.roomId)).formation_state as unknown as FormationState;
+    expect(awardSnapshot.award!.endsAt - awardSnapshot.award!.startedAt).toBe(12000);
+    await expect(award).toContainText("다음 입찰 금액을 준비하세요.");
     const memberLot = memberPanel.getByTestId("auction-player");
     await expect(memberLot).toBeVisible({ timeout: 15_000 });
     await expect(memberLot).not.toHaveAttribute("data-player-id", lot.player);
     const awarded = (await fixture.activeRound(room.roomId)).formation_state as unknown as FormationState;
     expect(awarded.budgets.team1).toBe(890);
+    expect(awarded.settings).toMatchObject({ auctionPreparationSeconds: 12, bidExtensionSeconds: 8 });
+
     expect(awarded.remaining).not.toContain(lot.player);
     await page.goto(room.url);
     await page.setViewportSize({ width: 858, height: 1032 });

@@ -81,7 +81,8 @@ export function BalanceAuctionStage({ state, now, pending, revealing, name, canT
       <p className={cn("text-sm font-bold", teamColor(award.team))}>{TEAM_LABEL[award.team]} {award.fallback ? "자동 배정" : "낙찰"}</p>
       <h4 className="break-words text-3xl font-black">{name(award.player)}</h4>
       <p className="text-xl font-bold tabular-nums">{award.amount.toLocaleString()}<span className="ml-1 text-xs">pt</span></p>
-      <p className="text-xs text-muted-foreground">{state.remaining.length ? "곧 다음 선수를 공개합니다." : state.strategy ? "곧 아이템을 선택합니다." : "팀 편성을 마무리합니다."}</p>
+      <p className="text-xs text-muted-foreground">{state.remaining.length ? "다음 입찰 금액을 준비하세요." : state.strategy ? "곧 아이템을 선택합니다." : "팀 편성을 마무리합니다."}</p>
+      {state.remaining.length > 0 && <Countdown deadline={award.endsAt} startedAt={award.startedAt} now={clock} paused={state.pausedAt !== null} />}
     </div> : lot ? <div className="relative overflow-hidden rounded-xl border bg-background/40 p-4 text-center sm:p-6" data-testid="auction-player" data-player-id={lot.player}>
       <div className="mx-auto max-w-lg space-y-4">
         <p className="text-xs font-semibold text-muted-foreground">{lot.retry ? "재경매" : "현재 경매 선수"} · {ROLE_LABEL[state.players.find((player) => player.id === lot.player)!.role]} · {9 - state.remaining.length} / 8</p>

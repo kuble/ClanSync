@@ -99,7 +99,7 @@ export function BalancePreviewScreen({ frame, settings, players, elapsed, remain
         </div> : scene.kind === "strategy" || scene.kind === "items" ? <div className={styles.centerScreen}>
           <h3>{scene.kind === "items" ? "남은 크레딧으로 아이템 선택" : "전략 아이템 공개 · 준비"}</h3>
           {creditCards}
-          <div className={styles.itemCards}>{["A", "B", "C"].map((item) => <div key={item}><Shield size={22} aria-hidden="true" /><strong>전략 카드 {item}</strong><span>클랜 등록 아이템 예시</span></div>)}</div>
+          <div className={styles.itemCards}>{[{ name: "영웅 밴 1장", cost: 100 }, { name: "맵 선택권 1장", cost: 50 }, { name: "영웅 밴 2장", cost: 200 }].map((item) => <div key={item.name}><Shield size={22} aria-hidden="true" /><strong>{item.name}</strong><span>{item.cost}cr</span></div>)}</div>
           <p>{scene.kind === "items" ? "팀당 최대 1개 · 양 팀 동일 아이템 구매 가능" : `${settings.strategySeconds}초 전략 준비 후 선수 경매 시작`}</p>
           {scene.kind === "items" && <div className={styles.myBid}>구매 안 함 <Check size={15} aria-hidden="true" /></div>}
         </div> : scene.kind === "auction" || scene.kind === "settlement" ? <div className={styles.auctionScreen}>
@@ -107,7 +107,7 @@ export function BalancePreviewScreen({ frame, settings, players, elapsed, remain
           {frame.auction ? <>
             <div className={styles.auctionPlayer}><strong>{players[frame.auction.player].name}</strong><span>{roleNames[players[frame.auction.player].role]} · {scene.kind === "settlement" ? "낙찰 확정" : "경매 중인 선수"}</span></div>
             <div className="flex items-center justify-between gap-2 text-xs"><span>{remaining === 0 ? "입찰 종료" : frame.auction.extended ? "연장된 시간" : "입찰 남은 시간"}</span><strong className="text-xl tabular-nums" data-testid="auction-preview-timer">{remaining}초</strong></div>
-            <div className="h-1 rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, remaining / (frame.auction.extended ? 5 : settings.durationSeconds) * 100)}%` }} /></div>
+            <div className="h-1 rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, remaining / (frame.auction.extended ? settings.bidExtensionSeconds : settings.durationSeconds) * 100)}%` }} /></div>
             <div className="flex items-center justify-between gap-2 text-xs"><span>{frame.auction.leader === null ? "아직 입찰이 없어요" : frame.auction.leader === 0 ? "내 팀이 최고 입찰 중" : "상대 팀이 최고 입찰 중"}</span><strong data-testid="auction-preview-price">{frame.auction.amount} cr</strong></div>
             <p className="text-xs text-muted-foreground" data-testid="auction-preview-notice">{frame.auction.notice}</p>
             <div className={cn(styles.myBid, frame.auction.myAction && styles.bidClick)} key={frame.title}>
@@ -116,7 +116,7 @@ export function BalancePreviewScreen({ frame, settings, players, elapsed, remain
             </div>
           </> : <div className={styles.centerScreen}>
             <Crown size={32} aria-hidden="true" /><h3>{scene.kind === "settlement" ? "선수 합류 · 크레딧 차감" : "A팀 주장 시점으로 보여드릴게요"}</h3>
-            {scene.kind === "settlement" ? <p>{frame.active.map((index) => players[index].name).join(" · ")}이 합류했어요. 다음 선수가 공개됩니다.</p> : <p>선수 공개 → 내 입찰 → 상대 입찰 → 재입찰 → 낙찰</p>}
+            {scene.kind === "settlement" ? <><p>{frame.active.map((index) => players[index].name).join(" · ")}이 합류했어요. 다음 입찰 금액을 준비하세요.</p><strong data-testid="auction-preview-preparation">{remaining}초</strong></> : <p>선수 공개 → 내 입찰 → 상대 입찰 → 재입찰 → 낙찰</p>}
           </div>}
         </div> : <div className={styles.drawScreen}>
           <div className={styles.drawStatus}><strong>{scene.kind === "complete" ? "팀 구성 완료" : scene.kind === "manual" ? "명단에서 역할과 자리 배치" : scene.kind === "lineup" ? "선발된 팀원 합류" : visible.size ? "순서대로 역할과 자리를 공개합니다" : "추첨 순서를 섞고 있습니다"}</strong><span>{scene.kind === "manual" ? "10" : visible.size} / 10</span></div>
