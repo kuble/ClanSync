@@ -13,6 +13,7 @@ export type MapType = (typeof MAP_TYPES)[number]["id"];
  * 한글 명칭·유형: Blizzard 패치 노트 2023/02, 2023/10, 2024/06 및
  * 플래시포인트: https://overwatch.blizzard.com/ko-kr/news/patch-notes/live/2025/6/
  * 네온 교차로 소개 https://overwatch.blizzard.com/ko-kr/news/24271881/
+ * 그림스뵈튼: https://overwatch.nexon.com/news/patchnotes/844/patch-2026-10-06
  */
 const OVERWATCH_MAPS: readonly { id: string; label: string; type: MapType }[] = [
   { id: "lijiang-tower", label: "리장 타워", type: "control" },
@@ -34,6 +35,7 @@ const OVERWATCH_MAPS: readonly { id: string; label: string; type: MapType }[] = 
   { id: "havana", label: "하바나", type: "escort" },
   { id: "circuit-royal", label: "서킷 로얄", type: "escort" },
   { id: "shambali-monastery", label: "샴발리 수도원", type: "escort" },
+  { id: "grimsvotn", label: "그림스뵈튼", type: "escort" },
   { id: "kings-row", label: "왕의 길", type: "hybrid" },
   { id: "numbani", label: "눔바니", type: "hybrid" },
   { id: "hollywood", label: "할리우드", type: "hybrid" },

@@ -275,6 +275,16 @@
       "provider": "Blizzard Entertainment",
       "retrievedAt": "2026-09-26",
       "bytes": 71946
+    },
+    {
+      "key": "grimsvotn",
+      "name": "Grímsvötn",
+      "sourcePage": "https://news.blizzard.com/en-us/article/24303008/feed-your-hunger-in-reign-of-talon-season-5-a-grim-doctrine",
+      "sourceImage": "https://bnetcmsus-a.akamaihd.net/cms/gallery/RX3QWMYOFLJH1790794796527.png",
+      "file": "/images/overwatch/maps/grimsvotn.webp",
+      "provider": "Blizzard Entertainment",
+      "retrievedAt": "2026-10-09",
+      "bytes": 48238
     }
   ]
 }
