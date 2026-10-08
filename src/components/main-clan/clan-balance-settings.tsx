@@ -211,12 +211,12 @@ export function ClanBalanceSettings({
               [
                 [
                   "manual",
-                  "직접 배정",
+                  "수동 배정",
                   "손든 순서 등으로 배치한 역할을 사용합니다.",
                 ],
                 [
                   "lottery",
-                  "공통 추첨순서",
+                  "자동 배정",
                   "같은 추첨 순서에 따라 본인의 선호와 남은 역할을 적용합니다.",
                 ],
               ] as const
@@ -276,7 +276,7 @@ export function ClanBalanceSettings({
             </select>
           </fieldset>
             <div className={styles.preview}>
-              <BalanceFormationPreview key={`${draft.roles}:${draft.teams}`} settings={draft} />
+              <BalanceFormationPreview key={`${draft.roles}:${draft.teams}:${draft.auctionItemsEnabled}`} settings={draft} />
             </div>
           <fieldset disabled={locked || !formationEditable}>
             {["draft", "auction"].includes(draft.teams) ? (

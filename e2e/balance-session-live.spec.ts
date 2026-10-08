@@ -44,7 +44,7 @@ async function settings(
   const dialog = page.getByRole("dialog", { name: "라운드 설정", exact: true });
   await expect(dialog).toBeVisible();
   await dialog
-    .getByRole("radio", { name: lottery ? /공통 추첨순서/ : /직접 배정/ })
+    .getByRole("radio", { name: lottery ? /자동 배정/ : /수동 배정/ })
     .check();
   await dialog
     .getByRole("combobox", { name: "팀원 선발 방식", exact: true })

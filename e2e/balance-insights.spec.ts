@@ -120,7 +120,7 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await expect(panel.getByTestId("balance-formation").getByRole("button", { name: "세션 종료", exact: true })).toBeVisible();
     await panel.getByRole("button", { name: "라운드 설정", exact: true }).click();
     const settings = page.getByRole("dialog", { name: "라운드 설정", exact: true });
-    await settings.getByRole("radio", { name: /직접 배정/ }).check();
+    await settings.getByRole("radio", { name: /수동 배정/ }).check();
     await settings.getByRole("combobox", { name: "팀원 선발 방식", exact: true }).selectOption("keep");
     await settings.getByRole("tab", { name: "밴픽", exact: true }).click();
     await settings.getByRole("checkbox", { name: "맵 밴 사용", exact: true }).uncheck();

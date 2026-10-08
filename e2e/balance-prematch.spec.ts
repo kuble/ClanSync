@@ -70,7 +70,7 @@ async function openAndForm(
   const panel = page.getByTestId("clan-balance-session-panel");
   await expect(panel).toHaveAttribute("data-balance-phase", "editing");
   const settings = await openSettings(page, panel);
-  await settings.getByRole("radio", { name: /직접 배정/ }).check();
+  await settings.getByRole("radio", { name: /수동 배정/ }).check();
   await settings
     .getByRole("combobox", { name: "팀원 선발 방식", exact: true })
     .selectOption("keep");
