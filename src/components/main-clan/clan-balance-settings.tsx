@@ -27,6 +27,7 @@ import {
 } from "@/lib/balance/prematch";
 import type { BalanceRoster } from "@/lib/balance/roster-schema";
 import { BalanceFormationPreview } from "./balance-formation-preview";
+import styles from "./clan-balance-settings.module.css";
 
 export const TEAM_MODE_LABELS = {
   keep: "현재 팀 유지",
@@ -172,9 +173,10 @@ export function ClanBalanceSettings({
       }}
     >
       <SheetContent
-        className="overflow-y-auto sm:max-w-lg"
+        className={`overflow-hidden sm:max-w-lg ${styles.sheet}`}
         showCloseButton={!pending && !savedRules}
       >
+        <div className={styles.panel} data-testid="balance-settings-panel">
         <SheetHeader>
           <SheetTitle>라운드 설정</SheetTitle>
           <SheetDescription>
@@ -273,7 +275,9 @@ export function ClanBalanceSettings({
                 ))}
             </select>
           </fieldset>
-            <BalanceFormationPreview key={`${draft.roles}:${draft.teams}`} settings={draft} />
+            <div className={styles.preview}>
+              <BalanceFormationPreview key={`${draft.roles}:${draft.teams}`} settings={draft} />
+            </div>
           <fieldset disabled={locked || !formationEditable}>
             {["draft", "auction"].includes(draft.teams) ? (
               <div className="mt-4 space-y-3">
@@ -568,6 +572,7 @@ export function ClanBalanceSettings({
               {pending || savedRules ? "적용 중…" : "설정 적용"}
             </Button>
           ) : null}
+        </div>
         </div>
       </SheetContent>
     </Sheet>

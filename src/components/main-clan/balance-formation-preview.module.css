@@ -1,12 +1,12 @@
-.board { position: relative; height: 286px; overflow: hidden; }
-.team { position: absolute; top: 115px; bottom: 7px; width: 46%; border-radius: 8px; border: 1px solid; padding: 5px 8px; }
+.board { position: relative; height: calc(286px * var(--preview-scale, 1)); overflow: hidden; }
+.team { position: absolute; top: calc(115px * var(--preview-scale, 1)); bottom: 7px; width: 46%; border-radius: 8px; border: 1px solid; padding: 5px 8px; }
 .teamA { left: 2%; border-color: color-mix(in srgb, #38bdf8 25%, transparent); background: color-mix(in srgb, #38bdf8 5%, transparent); color: #38bdf8; }
 .teamB { left: 52%; border-color: color-mix(in srgb, #fb923c 25%, transparent); background: color-mix(in srgb, #fb923c 5%, transparent); color: #fb923c; }
-.player { position: absolute; height: 24px; display: flex; align-items: center; gap: 4px; padding: 0 6px; border-radius: 5px; border: 1px solid var(--border); background: var(--card); font-size: 10px; transition: left 550ms ease, top 550ms ease, width 550ms ease, border-color 350ms ease; }
+.player { position: absolute; height: calc(24px * var(--preview-scale, 1)); display: flex; align-items: center; gap: 4px; padding: 0 6px; border-radius: 5px; border: 1px solid var(--border); background: var(--card); font-size: calc(10px * var(--preview-scale, 1)); transition: left 550ms ease, top 550ms ease, width 550ms ease, border-color 350ms ease; }
 .playerA { border-color: color-mix(in srgb, #38bdf8 45%, transparent); }
 .playerB { border-color: color-mix(in srgb, #fb923c 45%, transparent); }
 .active { border-color: var(--primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 15%, transparent); }
-.bid { position: absolute; top: 88px; left: 3%; border-radius: 5px; padding: 4px 8px; background: var(--card); border: 1px solid var(--primary); font-size: 11px; font-weight: 600; }
+.bid { position: absolute; top: calc(88px * var(--preview-scale, 1)); left: 3%; border-radius: 5px; padding: 4px 8px; background: var(--card); border: 1px solid var(--primary); font-size: calc(11px * var(--preview-scale, 1)); font-weight: 600; }
 .control { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 6px; color: var(--muted-foreground); }
 .control:hover { background: var(--muted); color: var(--foreground); }
 .control:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }

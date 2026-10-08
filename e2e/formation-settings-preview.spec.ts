@@ -21,6 +21,11 @@ test("formation settings illustrate each mode without applying it", async ({ pag
     const mode = dialog.getByRole("combobox", { name: "팀원 선발 방식", exact: true });
     const caption = preview.getByTestId("formation-preview-caption");
     await expect(preview).toBeVisible();
+    const panel = page.getByTestId("balance-settings-panel");
+    const previewBox = await preview.boundingBox();
+    const panelBox = await panel.boundingBox();
+    expect(previewBox!.x + previewBox!.width).toBeLessThan(panelBox!.x);
+    expect(previewBox!.width).toBeGreaterThan(450);
     await expect(caption).toContainText("그대로 사용");
     await mode.selectOption("random");
     await expect(caption).toContainText("역할별로");
@@ -47,7 +52,11 @@ test("formation settings illustrate each mode without applying it", async ({ pag
     await page.clock.runFor(1600);
     await expect(preview).toContainText("B팀 40 cr");
     await preview.scrollIntoViewIfNeeded();
-    await preview.screenshot({ animations: "disabled", path: test.info().outputPath("auction-preview.png") });
+    await page.screenshot({ animations: "disabled", path: test.info().outputPath("auction-preview.png") });
+    await dialog.getByRole("tab", { name: "화면 표시", exact: true }).click();
+    await page.clock.runFor(300);
+    await expect(preview).toBeHidden();
+    await dialog.getByRole("tab", { name: "편성", exact: true }).click();
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(caption).toContainText("다음 선수도");
     await expect(preview.getByRole("button")).toHaveCount(0);
@@ -56,7 +65,14 @@ test("formation settings illustrate each mode without applying it", async ({ pag
     await page.setViewportSize({ width: 390, height: 844 });
     await preview.scrollIntoViewIfNeeded();
     expect(await preview.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+    const mobilePreview = await preview.boundingBox();
+    const mobilePanel = await panel.boundingBox();
+    expect(mobilePreview!.x).toBeGreaterThanOrEqual(mobilePanel!.x);
+    expect(mobilePreview!.x + mobilePreview!.width).toBeLessThanOrEqual(mobilePanel!.x + mobilePanel!.width);
     expect(await readSettings()).toEqual(before);
+    await page.keyboard.press("Escape");
+    await page.clock.runFor(300);
+    await expect(dialog).toBeHidden();
   } finally {
     await fixture.cleanup();
   }

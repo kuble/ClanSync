@@ -73,8 +73,8 @@ export function BalanceFormationPreview({ settings }: { settings: FormationSetti
     <section className="mt-3 overflow-hidden rounded-xl border bg-background" aria-label="편성 방식 미리보기">
       <div className="flex items-center justify-between gap-2 border-b px-3 py-2.5">
         <div>
-          <p className="text-xs font-semibold">{labels[settings.teams]} 미리보기</p>
-          <p className="mt-0.5 text-[10px] text-muted-foreground">예시 명단 · {settings.roles === "lottery" ? "선호 역할과 추첨 순서로 역할 배정" : "직접 배정한 역할 사용"}</p>
+          <p className="text-xs font-semibold min-[1100px]:text-base">{labels[settings.teams]} 미리보기</p>
+          <p className="mt-0.5 text-[10px] text-muted-foreground min-[1100px]:text-xs">예시 명단 · {settings.roles === "lottery" ? "선호 역할과 추첨 순서로 역할 배정" : "직접 배정한 역할 사용"}</p>
         </div>
         {!reducedMotion && last > 0 && <div className="flex gap-1">
           <button type="button" className={styles.control} aria-label={playing && !finished ? "미리보기 일시정지" : "미리보기 재생"}
@@ -86,12 +86,12 @@ export function BalanceFormationPreview({ settings }: { settings: FormationSetti
         </div>}
       </div>
       <div className={styles.board} aria-hidden="true">
-        <div className="absolute inset-x-3 top-2 flex items-center justify-between text-[10px] text-muted-foreground">
+        <div className="absolute inset-x-3 top-2 flex items-center justify-between text-[10px] text-muted-foreground min-[1100px]:text-xs">
           <span>{finished ? "팀 구성 완료" : "출전 선수"}</span>
           <span>{settings.teams === "draft" ? "A → B → B → A" : settings.teams === "auction" ? `${settings.durationSeconds}초 입찰` : "돌격 2 · 공격 4 · 지원 4"}</span>
         </div>
         {[0, 1].map((team) => <div key={team} className={cn(styles.team, team === 0 ? styles.teamA : styles.teamB)}>
-          <div className="flex items-center justify-between text-[11px] font-semibold">
+          <div className="flex items-center justify-between text-[11px] font-semibold min-[1100px]:text-sm">
             <span>{team === 0 ? "A팀" : "B팀"}</span>
             {settings.teams === "auction" && !finished && <span className="text-[10px] font-normal">{team === 1 && current >= 4 ? Math.max(0, budget - nextBid) : budget} cr</span>}
           </div>
@@ -102,8 +102,8 @@ export function BalanceFormationPreview({ settings }: { settings: FormationSetti
           const Icon = roleIcons[player.role];
           const active = settings.teams === "auction" && index === 2 && current >= 1 && current < 4;
           return <div key={player.name} className={cn(styles.player, team === 0 && styles.playerA, team === 1 && styles.playerB, active && styles.active)}
-            style={{ left: team === null ? `${3 + (index % 5) * 19}%` : team === 0 ? "3%" : "53%", top: team === null ? 30 + row * 29 : 140 + row * 27, width: team === null ? "18%" : "44%" }}>
-            <Icon size={12} className="shrink-0" /><span className="truncate">{player.name}</span>
+            style={{ left: team === null ? `${3 + (index % 5) * 19}%` : team === 0 ? "3%" : "53%", top: `calc(${team === null ? 30 + row * 29 : 140 + row * 27}px * var(--preview-scale, 1))`, width: team === null ? "18%" : "44%" }}>
+            <Icon size={12} className="shrink-0 min-[1100px]:size-4" /><span className="truncate">{player.name}</span>
             {isCaptainMode && index < 2 && team !== null && <Crown size={11} className="ml-auto shrink-0" />}
           </div>;
         })}
@@ -115,7 +115,7 @@ export function BalanceFormationPreview({ settings }: { settings: FormationSetti
         <div className="flex shrink-0 gap-1" aria-hidden="true">
           {sequence.map((_, index) => <span key={index} className={cn("h-1 w-2 rounded-full", index <= current ? "bg-primary" : "bg-muted-foreground/20")} />)}
         </div>
-        <p className="text-xs leading-relaxed" data-testid="formation-preview-caption">{sequence[current]}</p>
+        <p className="text-xs leading-relaxed min-[1100px]:text-sm" data-testid="formation-preview-caption">{sequence[current]}</p>
       </div>
       <span className="sr-only">{labels[settings.teams]}. {sequence[current]} {players.map((player, index) => `${player.name} ${roleNames[player.role]} ${assignedTeam(index) === null ? "대기" : assignedTeam(index) === 0 ? "A팀" : "B팀"}`).join(", ")}</span>
     </section>
