@@ -216,7 +216,7 @@ test("주장 전용 지명·입찰, 자동 경매와 공개 아이템 선택 후
     await expect(memberPanel.getByTestId("balance-formation").getByRole("button", { name: /^1팀 입찰/ })).toHaveCount(0);
     expect(await replayFormation(page, auctionRequest, lotRound.formation_revision, {
       type: "bid", team: "team2", amount: 10,
-    })).toContain("현재 팀 주장만 조작할 수 있습니다.");
+    })).toContain("해당 팀 주장만 입찰할 수 있습니다.");
     expect(((await fixture.activeRound(room.roomId)).formation_state as unknown as FormationState).auction?.bid).toBe(0);
     const formation = panel.getByTestId("balance-formation");
     const bidInput = formation.getByLabel("입찰 포인트", { exact: true });
@@ -229,6 +229,17 @@ test("주장 전용 지명·입찰, 자동 경매와 공개 아이템 선택 후
     await expect.poll(async () => ((await fixture.activeRound(room.roomId)).formation_state as unknown as FormationState).auction)
       .toMatchObject({ player: lot.player, team: "team1", bid: 110 });
     await expect(firstLot).toContainText("1팀 최고 입찰");
+    const held = await fixture.activeRound(room.roomId);
+    expect(await replayFormation(page, auctionRequest, held.formation_revision, { type: "bid", team: "team1", amount: 120 })).toContain("최고 입찰 중");
+    const heldState = held.formation_state as unknown as FormationState;
+    const sameTeam = { ...heldState, auction: { ...heldState.auction!, bid: 120 } };
+    expect((await fixture.service.rpc("commit_balance_formation", { p_round_id: held.id, p_clan_id: fixture.clanId, p_revision: held.formation_revision, p_state: sameTeam as unknown as Json, p_roster: held.roster, p_actor_id: ids[0], p_command: "bid" })).error?.message).toContain("최고 입찰 중");
+    const promote = await fixture.service.from("clan_members").update({ role: "officer" }).eq("clan_id", fixture.clanId).eq("user_id", ids[2]);
+    expect(promote.error).toBeNull();
+    const outsiderBid = { ...heldState, auction: { ...heldState.auction!, team: "team2", bid: 120 } };
+    expect((await fixture.service.rpc("commit_balance_formation", { p_round_id: held.id, p_clan_id: fixture.clanId, p_revision: held.formation_revision, p_state: outsiderBid as unknown as Json, p_roster: held.roster, p_actor_id: ids[2], p_command: "bid" })).error?.code).toBe("42501");
+    await expect(formation.getByRole("button", { name: /^1팀 입찰/ })).toHaveCount(0);
+    await expect(firstLot).toContainText("최고 입찰 중");
     await formation.screenshot({ path: test.info().outputPath("auction-countdown-desktop.png") });
     // The other captain remains on the page; an absent session manager must not stop the clock.
     await page.goto(fixture.path);
@@ -239,7 +250,9 @@ test("주장 전용 지명·입찰, 자동 경매와 공개 아이템 선택 후
     await award.screenshot({ path: test.info().outputPath("auction-award-desktop.png") });
     const awardSnapshot = (await fixture.activeRound(room.roomId)).formation_state as unknown as FormationState;
     expect(awardSnapshot.award!.endsAt - awardSnapshot.award!.startedAt).toBe(12000);
-    await expect(award).toContainText("다음 입찰 금액을 준비하세요.");
+    const preparation = memberPanel.getByTestId("auction-preparation");
+    await expect(preparation).toBeVisible({ timeout: 5000 });
+    await expect(preparation).toHaveAttribute("data-player-id", awardSnapshot.remaining[0]);
     const memberLot = memberPanel.getByTestId("auction-player");
     await expect(memberLot).toBeVisible({ timeout: 15_000 });
     await expect(memberLot).not.toHaveAttribute("data-player-id", lot.player);

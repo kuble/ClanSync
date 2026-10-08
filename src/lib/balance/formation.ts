@@ -415,6 +415,11 @@ export function canControlTeam(
   return actor.manager && !state.captains?.includes(actor.id);
 }
 
+/** Bidding is exclusively a captain's decision, even for clan operators. */
+export function canBidForTeam(state: FormationState, actorId: string, team: Team): boolean {
+  return state.captains?.[team === "team1" ? 0 : 1] === actorId;
+}
+
 function revealEnd(state: FormationState): number {
   return state.draw && (state.draw.roleMode === "lottery" || state.mode === "random")
     ? state.draw.startedAt + state.draw.durationMs
@@ -602,8 +607,11 @@ export function advanceFormation(
   if (command.type === "bid") {
     if (!["team1", "team2"].includes(command.team))
       throw new Error("잘못된 팀입니다.");
-    captain(command.team);
+    if (!canBidForTeam(state, actor.id, command.team))
+      throw new Error("해당 팀 주장만 입찰할 수 있습니다.");
     if (now >= lot.deadline) throw new Error("입찰 시간이 종료되었습니다.");
+    if (lot.team === command.team)
+      throw new Error("최고 입찰 중입니다. 상대 팀의 입찰을 기다리세요.");
     if (!canFit(state, command.team, lot.player))
       throw new Error("해당 역할 자리가 없습니다.");
     if (

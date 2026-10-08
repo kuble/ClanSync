@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { updateFormationAction } from "@/app/actions/clan-balance-formation";
 import {
-  ROLE_LABEL, TEAM_LABEL, canFit, canControlTeam, draftTurn, getFormationDeadline,
+  ROLE_LABEL, TEAM_LABEL, canFit, canControlTeam, canBidForTeam, draftTurn, getFormationDeadline,
   type FormationSettings, type Team, type FormationState, type FormationCommand,
 } from "@/lib/balance/formation";
 import { useServerClock } from "@/lib/balance/use-server-clock";
@@ -107,7 +107,7 @@ export function ClanBalanceFormation({
         <p className="mt-2 text-xs text-muted-foreground">{canTeam(turn) ? "함께할 팀원을 선택하세요." : "현재 차례의 주장이 팀원을 선택하고 있습니다."}</p>
       </div>
       <div className="grid gap-2 sm:grid-cols-2" aria-label="지명 가능한 선수">{state.remaining.map((id) => <Button variant="outline" className="h-auto min-h-12 justify-between gap-2 px-3 py-3" key={id} disabled={pending || revealing || state.pausedAt !== null || !canTeam(turn) || !canFit(state, turn, id)} onClick={() => run({ type: "pick", player: id })}><span className="truncate">{name(id)}</span><span className="shrink-0 text-xs text-muted-foreground">{ROLE_LABEL[state.players.find((player) => player.id === id)!.role]}</span></Button>)}</div>
-    </> : <BalanceAuctionStage state={state} now={now} pending={pending} revealing={revealing} name={name} canTeam={canTeam} run={run} />}
+    </> : <BalanceAuctionStage state={state} now={now} pending={pending} revealing={revealing} name={name} canTeam={canTeam} canBid={(team) => !readOnly && canBidForTeam(state, userId, team)} run={run} />}
     {progressError ? <p role="status" className="text-xs text-amber-500">{progressError}</p> : null}
   </section>;
 }

@@ -228,7 +228,7 @@ test("saved auction rules bound spending, reserve and the round clock", () => {
   expect(maxBid(state, "team1")).toBe(1850);
   const lot = advanceFormation(state, { type: "lot" }, manager, startTime, keepOrder);
   expect(lot.auction?.deadline).toBe(startTime + 30000);
-  expect(() => advanceFormation(lot, { type: "bid", team: "team1", amount: 10 }, manager, startTime, keepOrder)).toThrow(/50P/);
+  expect(() => advanceFormation(lot, { type: "bid", team: "team1", amount: 10 }, captain(state, "team1"), startTime, keepOrder)).toThrow(/50P/);
   expect(() => createFormation(roster, { roles: "manual", teams: "auction", auctionBudget: 100, minBid: 50 }, keepOrder)).toThrow(/예산/);
 });
 
@@ -369,8 +369,8 @@ test("auction reserves the minimum price for remaining slots and debits only on 
     expect(() =>
       advanceFormation(
         state,
-        { type: "bid", team: "team1", amount },
-        captain(state, "team1"),
+        { type: "bid", team: state.auction!.team === "team1" ? "team2" : "team1", amount },
+        captain(state, state.auction!.team === "team1" ? "team2" : "team1"),
         startTime + 1,
         keepOrder,
       ),
@@ -481,7 +481,7 @@ test("late bids reset remaining time to five seconds without exceeding fifty sec
   state = advanceFormation(
     state,
     { type: "bid", team: "team1", amount: 10 },
-    manager,
+    captain(state, "team1"),
     startTime + 1_000,
     keepOrder,
   );
@@ -489,7 +489,7 @@ test("late bids reset remaining time to five seconds without exceeding fifty sec
   state = advanceFormation(
     state,
     { type: "bid", team: "team2", amount: 20 },
-    manager,
+    captain(state, "team2"),
     startTime + 19_000,
     keepOrder,
   );
@@ -502,8 +502,8 @@ test("late bids reset remaining time to five seconds without exceeding fifty sec
     const time = state.auction!.deadline - 1_000;
     state = advanceFormation(
       state,
-      { type: "bid", team: "team1", amount },
-      manager,
+      { type: "bid", team: state.auction!.team === "team1" ? "team2" : "team1", amount },
+      captain(state, state.auction!.team === "team1" ? "team2" : "team1"),
       time,
       keepOrder,
     );
@@ -512,7 +512,7 @@ test("late bids reset remaining time to five seconds without exceeding fifty sec
   state = advanceFormation(
     state,
     { type: "bid", team: "team2", amount: 200 },
-    manager,
+    captain(state, "team2"),
     startTime + 49_999,
     keepOrder,
   );
@@ -521,7 +521,7 @@ test("late bids reset remaining time to five seconds without exceeding fifty sec
     advanceFormation(
       state,
       { type: "bid", team: "team1", amount: 210 },
-      manager,
+      captain(state, "team1"),
       startTime + 50_000,
       keepOrder,
     ),
@@ -550,7 +550,7 @@ test("operator pause freezes both the auction deadline and its maximum duration"
     advanceFormation(
       state,
       { type: "bid", team: "team1", amount: 10 },
-      manager,
+      captain(state, "team1"),
       startTime + 6_000,
       keepOrder,
     ),
@@ -586,7 +586,7 @@ test("operator pause freezes both the auction deadline and its maximum duration"
   state = advanceFormation(
     state,
     { type: "bid", team: "team1", amount: 10 },
-    manager,
+    captain(state, "team1"),
     startTime + 79_000,
     keepOrder,
   );
@@ -727,7 +727,7 @@ test("item purchases spend remaining budgets, permit same item, require both cap
 
 test("pause preserves award time and completed draft can apply through a member tick", () => {
   let state = openAuction();
-  state = advanceFormation(state, { type: "bid", team: "team1", amount: 10 }, manager, startTime, keepOrder);
+  state = advanceFormation(state, { type: "bid", team: "team1", amount: 10 }, captain(state, "team1"), startTime, keepOrder);
   state = advanceFormation(state, { type: "tick" }, member, state.auction!.deadline, keepOrder);
   const endsAt = state.award!.endsAt;
   state = advanceFormation(state, { type: "pause" }, manager, endsAt - 1000, keepOrder);
@@ -749,13 +749,13 @@ test("auction timing settings validate, extend late bids and preserve preparatio
   expect(state.auction!.deadline).toBe(deadline + 7000);
   // Repeated valid bids never exceed the base duration plus 30 seconds.
   for (let amount = 110; amount <= 150; amount += 10) {
-    state = advanceFormation(state, { type: "bid", team: "team1", amount }, captain(state, "team1"), state.auction!.deadline - 1000, keepOrder);
+    state = advanceFormation(state, { type: "bid", team: state.auction!.team === "team1" ? "team2" : "team1", amount }, captain(state, state.auction!.team === "team1" ? "team2" : "team1"), state.auction!.deadline - 1000, keepOrder);
   }
   expect(state.auction!.deadline).toBe(startTime + 50000);
   const settledAt = state.auction!.deadline;
   state = advanceFormation(state, { type: "tick" }, member, settledAt, keepOrder);
   expect(state.award!.endsAt).toBe(settledAt + 12000);
-  expect(state.budgets.team1).toBe(850);
+  expect(state.budgets[state.award!.team]).toBe(850);
   expect(() => advanceFormation(state, { type: "lot" }, manager, settledAt + 1000, keepOrder)).toThrow();
   state = advanceFormation(state, { type: "pause" }, manager, settledAt + 2000, keepOrder);
   state = advanceFormation(state, { type: "resume" }, manager, settledAt + 12000, keepOrder);
@@ -763,7 +763,7 @@ test("auction timing settings validate, extend late bids and preserve preparatio
   expect(advanceFormation(state, { type: "tick" }, member, state.award!.endsAt - 1, keepOrder)).toEqual(state);
   const next = advanceFormation(state, { type: "tick" }, member, state.award!.endsAt, keepOrder);
   expect(next.auction!.startedAt).toBe(settledAt + 22000);
-  expect(next.budgets.team1).toBe(850);
+  expect(next.budgets[state.award!.team]).toBe(850);
 });
 
 test("zero timing options disable extension and retain only award presentation", () => {
@@ -774,4 +774,13 @@ test("zero timing options disable extension and retain only award presentation",
   expect(state.auction!.deadline).toBe(deadline);
   state = advanceFormation(state, { type: "tick" }, member, deadline, keepOrder);
   expect(state.award!.endsAt).toBe(deadline + AUCTION_AWARD_DURATION_MS);
+});
+
+test("only captains bid and highest team waits for an opponent", () => {
+ let state = openAuction();
+ expect(() => advanceFormation(state, { type: "bid", team: "team1", amount: 10 }, manager, startTime, keepOrder)).toThrow(/주장/);
+ state = advanceFormation(state, { type: "bid", team: "team1", amount: 10 }, captain(state, "team1"), startTime, keepOrder);
+ expect(() => advanceFormation(state, { type: "bid", team: "team1", amount: 20 }, captain(state, "team1"), startTime + 1, keepOrder)).toThrow(/최고 입찰/);
+ state = advanceFormation(state, { type: "bid", team: "team2", amount: 20 }, captain(state, "team2"), startTime + 2, keepOrder);
+ expect(advanceFormation(state, { type: "bid", team: "team1", amount: 30 }, captain(state, "team1"), startTime + 3, keepOrder).auction?.bid).toBe(30);
 });

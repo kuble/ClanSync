@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Check, Crown, Gavel, Gift, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ROLE_LABEL, TEAM_LABEL, canFit, maxBid, type FormationCommand, type FormationState, type Team } from "@/lib/balance/formation";
+import { AUCTION_AWARD_DURATION_MS, ROLE_LABEL, TEAM_LABEL, canFit, maxBid, type FormationCommand, type FormationState, type Team } from "@/lib/balance/formation";
 
 const teams = ["team1", "team2"] as const;
 const teamColor = (team: Team) => team === "team1" ? "text-sky-400" : "text-rose-400";
@@ -39,9 +39,9 @@ export function AuctionPurchases({ state }: { state: FormationState | null }) {
   </aside>;
 }
 
-export function BalanceAuctionStage({ state, now, pending, revealing, name, canTeam, run }: {
+export function BalanceAuctionStage({ state, now, pending, revealing, name, canTeam, canBid, run }: {
   state: FormationState; now: number; pending: boolean; revealing: boolean;
-  name: (id: string) => string; canTeam: (team: Team) => boolean; run: (command: FormationCommand) => void;
+  name: (id: string) => string; canTeam: (team: Team) => boolean; canBid: (team: Team) => boolean; run: (command: FormationCommand) => void;
 }) {
   const [bidDraft, setBidDraft] = useState({ lot: "", value: 0 });
   const lot = state.auction;
@@ -54,6 +54,9 @@ export function BalanceAuctionStage({ state, now, pending, revealing, name, canT
   const award = state.award;
   const actionable = !pending && !revealing && !frozen;
   const controlledTeams = teams.filter(canTeam);
+  const biddingTeams = teams.filter(canBid);
+  const leading = Boolean(lot?.team && biddingTeams.includes(lot.team));
+  const nextPlayer = award && clock >= award.startedAt + AUCTION_AWARD_DURATION_MS ? state.remaining[0] : null;
   const itemStage = state.stage === "items";
   const strategyStage = state.stage === "strategy";
   const stages = state.strategy ? ["아이템 공개", "팀원 경매", "아이템 선택", "편성 완료"] : ["팀원 경매", "편성 완료"];
@@ -76,6 +79,11 @@ export function BalanceAuctionStage({ state, now, pending, revealing, name, canT
       <h4 className="text-xl font-bold">이번 경매의 전략 아이템</h4>
       <p className="text-xs leading-relaxed text-muted-foreground">선수 영입 후 남은 포인트로 팀당 아이템 하나를 구매할 수 있습니다.<br />아이템 가격을 확인하고 영입 예산을 계획하세요.</p>
       <Countdown deadline={state.strategy.deadline} startedAt={state.strategy.startedAt} now={clock} paused={frozen} />
+    </div> : nextPlayer && award ? <div role="status" data-testid="auction-preparation" data-player-id={nextPlayer} className="space-y-4 rounded-xl border bg-background/40 p-6 text-center">
+      <p className="text-xs font-semibold text-muted-foreground">다음 경매 선수 · {ROLE_LABEL[state.players.find((player) => player.id === nextPlayer)!.role]}</p>
+      <h4 className="break-words text-3xl font-black">{name(nextPlayer)}</h4>
+      <p className="text-xs text-muted-foreground">입찰할 금액을 준비하세요.</p>
+      <Countdown deadline={award.endsAt} startedAt={award.startedAt} now={clock} paused={frozen} />
     </div> : award ? <div key={`${award.player}:${award.startedAt}`} role="status" data-testid="auction-award" data-player-id={award.player} className={cn("space-y-3 rounded-xl border p-6 text-center motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 motion-safe:duration-500", award.team === "team1" ? "border-sky-400/50 bg-sky-500/10" : "border-rose-400/50 bg-rose-500/10")}>
       <Gavel className={cn("mx-auto size-8", teamColor(award.team))} aria-hidden="true" />
       <p className={cn("text-sm font-bold", teamColor(award.team))}>{TEAM_LABEL[award.team]} {award.fallback ? "자동 배정" : "낙찰"}</p>
@@ -92,13 +100,13 @@ export function BalanceAuctionStage({ state, now, pending, revealing, name, canT
           <p className="text-3xl font-black tabular-nums">{lot.bid.toLocaleString()}<span className="ml-1 text-sm font-medium">pt</span></p>
         </div>
         <Countdown deadline={lot.deadline} startedAt={lot.startedAt} now={clock} paused={frozen} />
-        {controlledTeams.length ? <div className="space-y-3 pt-2">
+        {leading ? <p role="status" className="rounded-lg bg-primary/10 p-3 text-sm font-medium">최고 입찰 중 · 상대 팀의 입찰을 기다립니다.</p> : biddingTeams.length ? <div className="space-y-3 pt-2">
           <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
             <div className="grid gap-1 min-[480px]:grid-cols-2">{[-10 * increment, -increment].map((delta) => <Button key={delta} size="sm" variant="outline" className="px-2 tabular-nums" disabled={!actionable || clock >= lot.deadline || amount <= minimum} onClick={() => setBidDraft({ lot: lotKey, value: Math.max(minimum, amount + delta) })}>{delta}</Button>)}</div>
             <label className="min-w-0"><span className="sr-only">입찰 포인트</span><input inputMode="numeric" pattern="[0-9]*" aria-label="입찰 포인트" className="h-10 w-full min-w-0 rounded-lg border bg-background px-1 text-center text-base font-bold tabular-nums" disabled={!actionable || clock >= lot.deadline} value={amount} onChange={(event) => { if (/^\d*$/.test(event.target.value)) setBidDraft({ lot: lotKey, value: Math.min(100000, Number(event.target.value)) }); }} /></label>
             <div className="grid gap-1 min-[480px]:grid-cols-2">{[10 * increment, increment].map((delta) => <Button key={delta} size="sm" variant="outline" className="px-2 tabular-nums" disabled={!actionable || clock >= lot.deadline || amount + delta > 100000} onClick={() => setBidDraft({ lot: lotKey, value: amount + delta })}>+{delta}</Button>)}</div>
           </div>
-          <div className="flex gap-2">{controlledTeams.map((team) => <Button key={team} className="min-w-0 flex-1" disabled={!actionable || clock >= lot.deadline || !canFit(state, team, lot.player) || amount % increment !== 0 || maxBid(state, team) < amount} onClick={() => run({ type: "bid", team, amount })}>{TEAM_LABEL[team]} 입찰 · {amount.toLocaleString()}pt</Button>)}</div>
+          <div className="flex gap-2">{biddingTeams.map((team) => <Button key={team} className="min-w-0 flex-1" disabled={!actionable || clock >= lot.deadline || !canFit(state, team, lot.player) || amount % increment !== 0 || maxBid(state, team) < amount} onClick={() => run({ type: "bid", team, amount })}>{TEAM_LABEL[team]} 입찰 · {amount.toLocaleString()}pt</Button>)}</div>
           <p className="text-[11px] text-muted-foreground">{increment}pt 단위 · 남은 선수의 최소 영입 비용은 자동으로 남겨 둡니다.</p>
         </div> : <p className="text-xs text-muted-foreground">양 팀 주장이 입찰하고 있습니다.</p>}
       </div>

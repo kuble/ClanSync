@@ -125,7 +125,7 @@ function buildSteps(settings: FormationSettings): PreviewStep[] {
           scene: { kind: "settlement" }, auction: { ...live, seconds: 0, leader: winner, amount, nextBid: amount, notice: `${winner === 0 ? "A" : "B"}팀 낙찰 확정` },
         });
         teams[index] = winner; credits[winner] -= amount;
-        add("선수 합류 · 다음 입찰 준비", `${players[index].name}이 A팀에 합류하고 ${amount} cr를 사용해요. 낙찰 시점부터 ${preparation}초 동안 다음 입찰 금액을 정해요. ${preparation < 3 ? "낙찰 결과는 최소 2.5초 동안 보여줘요." : "준비가 끝나면 다음 선수가 자동 공개돼요."}`, [index], { scene: { kind: "settlement" }, preparationSeconds: preparation, durationMs: Math.max(2500, preparation * 1000) });
+        add("선수 합류 · 다음 입찰 준비", `${players[index].name}이 A팀에 합류하고 ${amount} cr를 사용해요. 낙찰 시점부터 ${preparation}초 동안 다음 입찰 금액을 정해요. ${preparation < 3 ? "낙찰 결과는 최소 2.5초 동안 보여줘요." : "다음 경매 선수를 미리 보고 준비해요."}`, [index], { scene: { kind: "preparation" }, preparationSeconds: preparation, durationMs: Math.max(2500, preparation * 1000) });
       }
       teams[3] = 1; credits[1] -= price;
       for (const [first, second] of [[4, 5], [6, 7], [8, 9]]) {
@@ -150,7 +150,7 @@ const motionSnapshot = () => window.matchMedia("(prefers-reduced-motion: reduce)
 const sceneLabels: Record<PreviewScene["kind"], string> = {
   preference: "선호 선택", roster: "명단 확인", manual: "역할 배치", draw: "추첨 발표",
   lineup: "팀 배치", captains: "주장 선정", draft: "지명", strategy: "전략 준비",
-  auction: "입찰", settlement: "낙찰", items: "아이템 선택", complete: "결과",
+  auction: "입찰", settlement: "낙찰", preparation: "다음 선수 준비", items: "아이템 선택", complete: "결과",
 };
 
 export function BalanceFormationPreview({ settings }: { settings: FormationSettings }) {
