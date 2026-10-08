@@ -65,7 +65,7 @@ export function ClanBalanceMaEditor({
 
   function setEntry(
     userId: string,
-    patch: Partial<{ m: number; a: number | null }>,
+    patch: { m: number },
   ) {
     setSnap((prev) => {
       const cur = prev[userId] ?? { m: 0, a: null };
@@ -73,7 +73,7 @@ export function ClanBalanceMaEditor({
         ...prev,
         [userId]: {
           m: patch.m !== undefined ? patch.m : cur.m,
-          a: patch.a !== undefined ? patch.a : cur.a,
+          a: cur.a,
         },
       };
     });
@@ -106,7 +106,7 @@ export function ClanBalanceMaEditor({
       <p className="text-muted-foreground text-xs">
         평가 점수는 운영진이 평가한 점수입니다. 점수 범위는 {MA_SCORE_MIN}부터{" "}
         {MA_SCORE_MAX}까지입니다.
-        {planPremium ? " 분석 점수는 분석용 추정값을 기록합니다." : null}
+        {planPremium ? " 분석 점수는 맵·역할별 전적에서 자동 계산된 참고 값이며 수정할 수 없습니다." : null}
       </p>
       <div className="overflow-x-auto rounded-lg border">
         <table className="w-full min-w-[28rem] text-sm">
@@ -156,45 +156,7 @@ export function ClanBalanceMaEditor({
                 </td>
                 {planPremium && scoreMode === "a" ? (
                   <td className="px-3 py-2">
-                    {s.userId ? (
-                      canEdit ? (
-                        <input
-                          type="number"
-                          aria-label={`${s.label} ${nick[s.userId] ?? "멤버"} 분석 점수`}
-                          min={MA_SCORE_MIN}
-                          max={MA_SCORE_MAX}
-                          step="any"
-                          disabled={pending}
-                          className="border-input bg-background w-20 rounded-md border px-2 py-1 tabular-nums"
-                          value={
-                            snap[s.userId]?.a === null ||
-                            snap[s.userId]?.a === undefined
-                              ? ""
-                              : String(snap[s.userId]!.a)
-                          }
-                          placeholder="—"
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            if (v === "") {
-                              setEntry(s.userId!, { a: null });
-                              return;
-                            }
-                            const n = Number(v);
-                            if (!Number.isFinite(n)) return;
-                            setEntry(s.userId!, { a: n });
-                          }}
-                        />
-                      ) : (
-                        <span className="tabular-nums">
-                          {snap[s.userId]?.a === null ||
-                          snap[s.userId]?.a === undefined
-                            ? "—"
-                            : snap[s.userId]!.a}
-                        </span>
-                      )
-                    ) : (
-                      "—"
-                    )}
+                    <span className="tabular-nums">{s.userId ? (snap[s.userId]?.a ?? "—") : "—"}</span>
                   </td>
                 ) : null}
               </tr>
@@ -202,13 +164,13 @@ export function ClanBalanceMaEditor({
           </tbody>
         </table>
       </div>
-      {canEdit ? (
+      {canEdit && scoreMode === "m" ? (
         <Button type="button" disabled={pending} onClick={save}>
           점수 저장
         </Button>
       ) : (
         <p className="text-muted-foreground text-xs">
-          점수 편집 권한이 있는 운영진만 수정할 수 있습니다.
+          {scoreMode === "a" ? "분석 점수는 자동 계산됩니다." : "평가 점수 편집 권한이 있어야 수정할 수 있습니다."}
         </p>
       )}
     </div>

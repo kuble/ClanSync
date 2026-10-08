@@ -67,8 +67,8 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
       settings = await openSettings(page);
       await expect(settings.getByRole("checkbox", { name: "승부예측 사용", exact: true })).not.toBeChecked();
       await settings.getByRole("checkbox", { name: "승부예측 사용", exact: true }).check();
-      await settings.getByRole("checkbox", { name: "맵 밴 사용", exact: true }).check();
-      await settings.getByRole("spinbutton", { name: "맵 밴 시간(초)", exact: true }).fill("5");
+      await settings.getByRole("checkbox", { name: "맵 투표 사용", exact: true }).check();
+      await settings.getByRole("spinbutton", { name: "맵 투표 시간(초)", exact: true }).fill("5");
       await settings.getByRole("checkbox", { name: "영웅 밴 사용", exact: true }).uncheck();
       await saveSettings(settings);
       await expect.poll(async () => (await fixture.activeRound(room.roomId)).formation_settings).toMatchObject({
@@ -78,7 +78,7 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
     });
 
     const panel = page.getByTestId("clan-balance-session-panel");
-    await test.step("맵 유형 선택과 맵 밴에서 점수 선택 숨김", async () => {
+    await test.step("맵 유형 선택과 맵 투표에서 점수 선택 숨김", async () => {
       await panel.getByRole("button", { name: "다음 단계", exact: true }).click();
       await expect(panel.getByRole("button", { name: "유형 선택 완료", exact: true })).toBeVisible();
       await expectNoScoreToggle(panel);
@@ -185,7 +185,7 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
       await page.reload();
       const settings = await openSettings(page);
       await settings.getByRole("checkbox", { name: "승부예측 사용", exact: true }).uncheck();
-      await settings.getByRole("checkbox", { name: "맵 밴 사용", exact: true }).uncheck();
+      await settings.getByRole("checkbox", { name: "맵 투표 사용", exact: true }).uncheck();
       await settings.getByRole("checkbox", { name: "영웅 밴 사용", exact: true }).uncheck();
       await saveSettings(settings);
       await panel.getByRole("button", { name: "다음 단계", exact: true }).click();

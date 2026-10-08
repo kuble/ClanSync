@@ -1,7 +1,7 @@
 import type { BalanceRoster } from "@/lib/balance/roster-schema";
 import { rosterAssignedUserIds } from "@/lib/balance/roster-schema";
 
-/** Manual / Auto 점수 한 줄(09-BalanceMaker). A는 Premium 편집·표시. */
+/** 평가 / 분석 점수 한 줄. A는 Premium 통계 계산·참고 전용. */
 export type MaEntry = {
   m: number;
   a: number | null;

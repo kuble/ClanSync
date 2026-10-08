@@ -78,11 +78,11 @@ async function openAndForm(
   await settings.getByRole("tab", { name: "밴픽", exact: true }).click();
   const mapBan = options.mapBan ?? true;
   const heroBan = options.heroBan ?? true;
-  await settings.getByRole("checkbox", { name: "맵 밴 사용", exact: true }).setChecked(mapBan);
+  await settings.getByRole("checkbox", { name: "맵 투표 사용", exact: true }).setChecked(mapBan);
   await settings.getByRole("checkbox", { name: "영웅 밴 사용", exact: true }).setChecked(heroBan);
   if (mapBan && options.mapBanSeconds !== undefined)
     await settings
-      .getByRole("spinbutton", { name: "맵 밴 시간(초)", exact: true })
+      .getByRole("spinbutton", { name: "맵 투표 시간(초)", exact: true })
       .fill(String(options.mapBanSeconds));
   if (heroBan && options.heroBanSeconds !== undefined)
     await settings

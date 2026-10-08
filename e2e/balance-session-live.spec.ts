@@ -51,7 +51,7 @@ async function settings(
     .selectOption(mode);
   await dialog.getByRole("tab", { name: "밴픽", exact: true }).click();
   await dialog
-    .getByRole("checkbox", { name: "맵 밴 사용", exact: true })
+    .getByRole("checkbox", { name: "맵 투표 사용", exact: true })
     .uncheck();
   await dialog
     .getByRole("checkbox", { name: "영웅 밴 사용", exact: true })

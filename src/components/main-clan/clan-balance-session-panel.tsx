@@ -69,6 +69,7 @@ import { useServerClock } from "@/lib/balance/use-server-clock";
 import { cn } from "@/lib/utils";
 import { BalanceTeamInsights, ScoreModeToggle, previewScores, type ScoreMode } from "./balance-team-insights";
 import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
+import { contextualScores, type AnalysisContext } from "@/lib/balance/analysis-context";
 import type { PlayerSessionInfoMap } from "@/lib/balance/player-session-stats";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
@@ -89,6 +90,7 @@ export function ClanBalanceSessionPanel({
   flash,
   canViewScores,
   scores,
+  analysisContext,
   hostNickname,
   session,
   series,
@@ -113,6 +115,7 @@ export function ClanBalanceSessionPanel({
   flash: boolean;
   canViewScores: boolean;
   scores: MaSnapshot;
+  analysisContext?: AnalysisContext;
   hostNickname: string | null;
   session: BalanceSession | null;
   series: Database["public"]["Tables"]["balance_session_series"]["Row"] | null;
@@ -264,10 +267,11 @@ export function ClanBalanceSessionPanel({
     title={session.phase !== "editing" && session.match_outcome === "pending" ? "경기 결과 또는 무효를 먼저 기록하세요." : undefined}
     onClick={() => setConfirmEnd(true)}>세션 종료</Button> : null;
   const sampleScores = canViewScores && qaPreviewEnabled;
-  const displayScores = sampleScores ? previewScores(rosterPool.map((member) => member.user_id), scores) : scores;
+  const baseScores = sampleScores ? previewScores(rosterPool.map((member) => member.user_id), scores) : scores;
+  const displayScores = analysisContext ? contextualScores(baseScores, analysisContext, rosterData, session?.resolved_map_label ?? null, formation?.players) : baseScores;
   const samplePlayerIds = sampleScores ? rosterPool.filter((member) => !scores[member.user_id]).map((member) => member.user_id) : [];
   const scoreControl = canViewScores ? <ScoreModeToggle value={scoreMode} onChange={setScoreMode} premium={planPremium} /> : null;
-  const renderInsights = (map: string | null, roster = rosterData, showMap = false) => canViewScores && !flash ? <BalanceTeamInsights roster={roster} scores={displayScores} mode={scoreMode} map={map} premium={planPremium} compact={!showMap} showMap={showMap} sample={sampleScores} /> : null;
+  const renderInsights = (map: string | null, roster = rosterData, showMap = false) => canViewScores && !flash ? <BalanceTeamInsights roster={roster} scores={analysisContext ? contextualScores(baseScores, analysisContext, roster, map, formation?.players) : displayScores} mode={scoreMode} map={map} premium={planPremium} compact={!showMap} showMap={showMap} sample={sampleScores} /> : null;
 
   return (
     <div
@@ -356,7 +360,7 @@ export function ClanBalanceSessionPanel({
               {session?.phase === "match_live"
                 ? "경기 현황"
                 : session?.phase === "map_ban"
-                  ? "맵 밴"
+                  ? "맵 투표"
                   : session?.phase === "hero_ban"
                     ? "영웅 밴"
                     : mapScreen
@@ -472,6 +476,12 @@ export function ClanBalanceSessionPanel({
           )
         ) : (
           <div className="p-4 sm:p-6">
+            {session.phase === "editing" && !mapScreen && !session.map_ban_enabled ? (
+              <details className="mb-5 rounded-xl border bg-muted/10 p-4" open={!session.resolved_map_label}>
+                <summary className="cursor-pointer text-sm font-semibold">경기 맵 · {session.resolved_map_label ?? "맵 선택"}</summary>
+                <div className="pt-4"><ClanBalancePrematchControls editingOnly gameSlug={gameSlug} clanId={clanId} session={session} canManage={canManage && !busyFormation} /></div>
+              </details>
+            ) : null}
             {session.phase === "editing" && !mapScreen && !(canManage && !formation) ? (
               <div className="flex items-center justify-between gap-2">
                 {scoreControl ?? <span />}
@@ -501,6 +511,8 @@ export function ClanBalanceSessionPanel({
                       canEdit={!busyFormation && !pending}
                       scoreControl={scoreControl}
                       scores={canViewScores ? displayScores : undefined}
+                      analysisContext={analysisContext}
+                      analysisMap={session.resolved_map_label}
                       scoreMode={scoreMode}
                       planPremium={planPremium}
                       playerSessionInfo={playerSessionInfo}

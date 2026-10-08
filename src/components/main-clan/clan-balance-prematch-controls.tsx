@@ -27,6 +27,7 @@ export function ClanBalancePrematchControls({
   canManage,
   renderInsights,
   endSessionControl,
+  editingOnly = false,
 }: {
   gameSlug: string;
   clanId: string;
@@ -34,6 +35,7 @@ export function ClanBalancePrematchControls({
   canManage: boolean;
   renderInsights?: (map: string | null) => ReactNode;
   endSessionControl?: ReactNode;
+  editingOnly?: boolean;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -95,7 +97,7 @@ export function ClanBalancePrematchControls({
         </p>
       ) : null}
       {renderInsights?.(selectedMap)}
-      {canManage ? (
+      {editingOnly ? null : canManage ? (
         <div className="flex items-center justify-between gap-3" data-balance-guide="primary">
           <div>{endSessionControl}</div>
           <Button

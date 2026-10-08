@@ -2826,6 +2826,10 @@ export type Database = {
         Args: { p_clan_id: string; p_hero_ban?: boolean; p_map_ban?: boolean }
         Returns: Json
       }
+      read_balance_analysis_context: {
+        Args: { p_clan_id: string; p_round_id: string }
+        Returns: Json
+      }
       read_clan_prediction_ledger: {
         Args: { p_clan_id: string }
         Returns: {

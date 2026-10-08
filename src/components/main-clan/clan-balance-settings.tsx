@@ -473,7 +473,7 @@ export function ClanBalanceSettings({
               <p className="text-xs text-muted-foreground">{!planPremium ? "Premium 클랜에서 사용할 수 있습니다." : !regularRoom ? "정규 내전에서만 사용할 수 있습니다." : "관전 멤버가 블루 승·레드 승·무승부를 예측합니다. 경기 현황에서 따로 열 수 있습니다."}</p>
             </div>
             <label className="flex items-center justify-between text-sm">
-              맵 밴 사용
+              맵 투표 사용
               <input
                 type="checkbox"
                 className="size-4 accent-primary"
@@ -504,7 +504,7 @@ export function ClanBalanceSettings({
                 [
                   {
                     key: "mapBanSeconds",
-                    label: "맵 밴 시간(초)",
+                    label: "맵 투표 시간(초)",
                     enabled: map,
                   },
                   {

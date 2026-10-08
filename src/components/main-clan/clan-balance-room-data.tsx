@@ -9,6 +9,7 @@ import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import type { Database } from "@/lib/supabase/database.types";
 import { parseRoleRanking } from "@/lib/balance/role-preferences";
 import { parseMaSnapshot, type MaSnapshot } from "@/lib/balance/ma-snapshot";
+import { parseAnalysisContext } from "@/lib/balance/analysis-context";
 import {
   buildPlayerSessionInfo,
   type PlayerSessionRound,
@@ -104,12 +105,19 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
   if (!session || !series || series.closed_at) redirect(`/games/${gameSlug}/clan/${clanId}/balance`);
   const canManage = await canManageRound(supabase, user.id, clanId, session.id);
   const canEditMscore = canViewScores && (canManage || scorePermission);
+  let analysisContext: ReturnType<typeof parseAnalysisContext> | undefined;
   const scores: MaSnapshot = {};
   if (canViewScores) {
-    const { data: scoredRounds, error } = await supabase.from("balance_sessions")
+    const [{ data: scoredRounds, error }, analysisResult] = await Promise.all([supabase.from("balance_sessions")
       .select("ma_snapshot,balance_session_series!inner(balance_rooms!inner(kind))")
       .eq("clan_id", clanId).eq("balance_session_series.balance_rooms.kind", "regular")
-      .order("opened_at", { ascending: false }).limit(100);
+      .order("opened_at", { ascending: false }).limit(100),
+      planPremium && session.phase !== "match_live"
+        ? supabase.rpc("read_balance_analysis_context", { p_round_id: session.id, p_clan_id: clanId })
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+    if (analysisResult.error) throw new Error("분석 점수를 불러오지 못했습니다.");
+    if (planPremium && session.phase !== "match_live") analysisContext = parseAnalysisContext(analysisResult.data);
     if (error) throw new Error("참가자 점수를 불러오지 못했습니다.");
     for (const round of scoredRounds ?? []) {
       for (const [id, score] of Object.entries(parseMaSnapshot(round.ma_snapshot))) {
@@ -241,6 +249,7 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
         flash={room.kind === "flash"}
         canViewScores={canViewScores}
         scores={scores}
+        analysisContext={analysisContext}
         playerSessionInfo={playerSessionInfo}
         hostNickname={hostNickname}
         session={{ ...session, ma_snapshot: visibleSessionScores }}

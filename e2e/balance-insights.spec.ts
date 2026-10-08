@@ -24,7 +24,7 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await expect(panel.getByText("샘플 점수·승률 포함", { exact: true })).toHaveCount(0);
     await expect(insights).toHaveCount(0);
     await expect(panel.getByText("출전 명단 10 / 10", { exact: true })).toHaveCount(0);
-    expect((await fixture.activeRound(regular.roomId)).ma_snapshot).toEqual({});
+    expect((await fixture.activeRound(regular.roomId)).ma_snapshot).toMatchObject({ [ids[0]]: { m: 0, a: null } });
     await page.screenshot({ path: test.info().outputPath("roster-sample-insights.png"), fullPage: true });
     // Add completed rounds only to this isolated session; its active round stays intact.
     const savedScores = await fixture.service.from("balance_sessions").update({ ma_snapshot: scores, round_number: 4 }).eq("id", round.id);
@@ -53,11 +53,13 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await expect(panel.getByTestId("team2-score-total")).toContainText("+15점");
     await expect(panel.locator('[aria-label="팀 비교 요약 보기"]')).toContainText("1팀(+5점)");
     await expect(panel.locator('[aria-label="팀 비교 요약 보기"]')).toContainText("2팀(+15점)");
+    await panel.getByRole("button", { name: "분석 점수", exact: true }).click();
+    await panel.getByRole("button", { name: "평가 점수", exact: true }).click();
     await panel.locator('[aria-label="팀 비교 요약 보기"]').hover();
     const teamSummary = page.getByRole("tooltip").filter({ hasText: "팀 비교 요약" });
     await expect(teamSummary).toBeVisible();
     await expect(teamSummary.getByTestId("team-summary-evaluation")).toContainText(/평가 점수 합계.*\+5점.*\+15점/);
-    await expect(teamSummary.getByTestId("team-summary-analysis")).toContainText(/분석 점수 합계.*\+10점.*\+20점/);
+    await expect(teamSummary.getByTestId("team-summary-analysis")).toContainText(/분석 점수 합계.*0점.*0점/);
     await expect(teamSummary.getByTestId("team-summary-prediction")).toContainText(/예측 승률.*\d+%.*\d+%/);
     const predictionBox = await teamSummary.getByTestId("team-summary-prediction").boundingBox();
     const evaluationBox = await teamSummary.getByTestId("team-summary-evaluation").boundingBox();
@@ -74,7 +76,7 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await expect(redCard.locator(":scope > span")).toHaveCSS("flex-direction", "row-reverse");
     // Exercise a state change before hover so the server-rendered buttons are hydrated.
     await panel.getByRole("button", { name: "분석 점수", exact: true }).click();
-    await expect(player).toContainText("+2점");
+    await expect(player).toContainText("0점");
     await panel.getByRole("button", { name: "평가 점수", exact: true }).click();
     await expect(player).toContainText("+1점");
     await player.hover();
@@ -107,9 +109,9 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await page.screenshot({ path: test.info().outputPath("roster-scores-mobile.png"), fullPage: true });
     await page.setViewportSize({ width: 1211, height: 1272 });
     await panel.getByRole("button", { name: "분석 점수", exact: true }).click();
-    await expect(player).toContainText("+2점");
-    await expect(panel.getByTestId("team1-score-total")).toContainText("+10점");
-    await expect(panel.getByTestId("team2-score-total")).toContainText("+20점");
+    await expect(player).toContainText("0점");
+    await expect(panel.getByTestId("team1-score-total")).toContainText("0점");
+    await expect(panel.getByTestId("team2-score-total")).toContainText("0점");
     await panel.getByRole("button", { name: "평가 점수", exact: true }).click();
     await panel.locator('[data-roster-slot="team1:tank"]').click();
     await panel.locator('[data-roster-slot="team2:tank"]').click();
@@ -123,7 +125,7 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await settings.getByRole("radio", { name: /수동 배정/ }).check();
     await settings.getByRole("combobox", { name: "팀원 선발 방식", exact: true }).selectOption("keep");
     await settings.getByRole("tab", { name: "밴픽", exact: true }).click();
-    await settings.getByRole("checkbox", { name: "맵 밴 사용", exact: true }).uncheck();
+    await settings.getByRole("checkbox", { name: "맵 투표 사용", exact: true }).uncheck();
     await settings.getByRole("checkbox", { name: "영웅 밴 사용", exact: true }).uncheck();
     await settings.getByRole("tab", { name: "화면 표시", exact: true }).click();
     await settings.getByRole("checkbox", { name: "선수 카드 점수 표시", exact: true }).uncheck();
@@ -192,7 +194,8 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     const started = await fixture.service.from("balance_sessions").update({ phase: "match_live" }).eq("id", flashRound.id);
     expect(started.error).toBeNull();
     expect((await spectator.from("balance_session_predictions").insert({ ...prediction, session_id: flashRound.id })).error?.code).toBe("42501");
-    expect((await spectator.from("balance_session_predictions").update({ session_id: flashRound.id }).eq("session_id", round.id).eq("user_id", prediction.user_id)).error?.code).toBe("42501");
+    expect((await spectator.from("balance_session_predictions").update({ session_id: flashRound.id }).eq("session_id", round.id).eq("user_id", prediction.user_id)).error?.message).toBe("immutable_prediction_identity");
+    expect((await fixture.service.from("balance_session_predictions").select("session_id").eq("session_id", round.id).eq("user_id", prediction.user_id).single()).data?.session_id).toBe(round.id);
     const legacy = await fixture.service.from("balance_session_predictions").insert({ ...prediction, session_id: flashRound.id });
     expect(legacy.error).toBeNull();
     const blockedUpdate = await spectator.from("balance_session_predictions").update({ pick_team: 2 }).eq("session_id", flashRound.id).eq("user_id", prediction.user_id).select();

@@ -27,7 +27,7 @@ const GUIDES: Record<
     {
       target: "settings",
       title: "이번 라운드의 규칙",
-      text: "역할·팀 편성 방식과 맵 밴·영웅 밴을 설정하세요.",
+      text: "역할·팀 편성 방식과 맵 투표·영웅 밴을 설정하세요.",
     },
     {
       target: "primary",

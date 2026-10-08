@@ -1,5 +1,6 @@
 "use client";
 
+import { contextualScores } from "@/lib/balance/analysis-context";
 import {
   useEffect,
   useId,
@@ -74,6 +75,8 @@ export function ClanBalanceRosterEditor({
   onDirtyChange,
   onRosterChange,
   scores,
+  analysisContext,
+  analysisMap = null,
   scoreMode = "m",
   scoreControl,
   playerSessionInfo,
@@ -98,6 +101,8 @@ export function ClanBalanceRosterEditor({
   onDirtyChange?: (dirty: boolean) => void;
   onRosterChange?: (roster: BalanceRoster) => void;
   scores?: MaSnapshot;
+  analysisContext?: import("@/lib/balance/analysis-context").AnalysisContext;
+  analysisMap?: string | null;
   scoreMode?: ScoreMode;
   scoreControl?: ReactNode;
   playerSessionInfo?: PlayerSessionInfoMap;
@@ -164,6 +169,7 @@ export function ClanBalanceRosterEditor({
   const [activeSlot, setActiveSlot] = useState<string | null>(null);
   const [draggedSlot, setDraggedSlot] = useState<string | null>(null);
   const [dropSlot, setDropSlot] = useState<string | null>(null);
+  const displayScores = scores && analysisContext ? contextualScores(scores, analysisContext, roster, analysisMap) : scores;
   const usedIds = new Set(rosterAssignedUserIds(roster));
   const availablePool = pool.filter((member) => !usedIds.has(member.user_id));
   const visiblePool = availablePool.filter((member) =>
@@ -268,7 +274,7 @@ export function ClanBalanceRosterEditor({
         Escape 키로 이동 선택을 취소할 수 있습니다.
       </p>
       <div aria-label="출전 명단 편집" aria-describedby={helpId}>
-        <BalanceTeamHeading roster={roster} scores={scores} mode={scoreMode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} />
+        <BalanceTeamHeading roster={roster} scores={displayScores} mode={scoreMode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} />
         <div className="space-y-2 rounded-xl bg-muted/35 p-2 sm:p-3">
           {BALANCE_SLOTS.map((slot) => (
             <div
@@ -286,7 +292,7 @@ export function ClanBalanceRosterEditor({
                 return (
                   <div key={team} className="contents">
                     {index === 1 ? <BalanceRoleIcon slot={slot} /> : null}
-                    <BalancePlayerDetails nickname={nickname} info={userId ? playerSessionInfo?.[userId] : undefined} score={userId ? scores?.[userId] : undefined} premium={planPremium} sample={Boolean(userId && samplePlayerIds.includes(userId))} enabled={showPlayerSessionSummary}>
+                    <BalancePlayerDetails nickname={nickname} info={userId ? playerSessionInfo?.[userId] : undefined} score={userId ? displayScores?.[userId] : undefined} premium={planPremium} sample={Boolean(userId && samplePlayerIds.includes(userId))} enabled={showPlayerSessionSummary}>
                     <button
                       type="button"
                       data-roster-slot={key}
@@ -348,7 +354,7 @@ export function ClanBalanceRosterEditor({
                         else clearInteraction();
                       }}
                     >
-                      <BalancePlayerCardContent nickname={nickname} info={userId ? playerSessionInfo?.[userId] : undefined} score={userId ? scores?.[userId] : undefined} showScore={Boolean(showPlayerCardScore && scores && userId)} showInfo={showPlayerCardInfo} infoMode={playerCardInfo} mode={scoreMode} mirrored={team === "team2"} />
+                      <BalancePlayerCardContent nickname={nickname} info={userId ? playerSessionInfo?.[userId] : undefined} score={userId ? displayScores?.[userId] : undefined} showScore={Boolean(showPlayerCardScore && displayScores && userId)} showInfo={showPlayerCardInfo} infoMode={playerCardInfo} mode={scoreMode} mirrored={team === "team2"} />
                     </button>
                     </BalancePlayerDetails>
                   </div>

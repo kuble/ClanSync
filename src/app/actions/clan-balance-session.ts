@@ -15,6 +15,7 @@ import {
 } from "@/lib/balance/prematch";
 import {
   defaultMaForRoster,
+  parseMaSnapshot,
   parseMaSnapshotForEdit,
   validateMaSnapshot,
   type MaSnapshot,
@@ -198,7 +199,7 @@ export async function startMapBanPhaseAction(
     async (client, initialRound) => {
       let round = initialRound;
       if (round.phase !== "editing" || !round.map_ban_enabled)
-        throw new Error("맵 밴을 시작할 수 없는 상태입니다.");
+        throw new Error("맵 투표를 시작할 수 없는 상태입니다.");
       const bans = parseBanSettings(round);
       if (selectedMapTypes !== undefined) {
         const candidateBans = {
@@ -276,7 +277,7 @@ export async function selectBalanceMapAction(
     true,
     async (client, round) => {
       if (round.map_ban_enabled)
-        throw new Error("맵 밴을 끈 뒤 직접 맵을 선택하세요.");
+        throw new Error("맵 투표를 끈 뒤 직접 맵을 선택하세요.");
       if (
         typeof mapLabel !== "string" ||
         !mapPoolForGameSlug(gameSlug).includes(mapLabel)
@@ -364,7 +365,7 @@ export async function skipMapBanToMatchLiveAction(
     .is("closed_at", null)
     .maybeSingle();
   if (!round || round.map_ban_enabled)
-    return { ok: false, error: "맵 밴을 건너뛸 수 없습니다." };
+    return { ok: false, error: "맵 투표를 건너뛸 수 없습니다." };
   return round.hero_ban_enabled && round.banned_heroes === null
     ? startHeroBanPhaseAction(gameSlug, clanId, sessionId)
     : startBalanceMatchAction(gameSlug, clanId, sessionId);
@@ -692,7 +693,7 @@ export async function updateBalanceMaSnapshotAction(
 
   const { data: session, error: sessErr } = await supabase
     .from("balance_sessions")
-    .select("phase, roster")
+    .select("phase, roster, ma_snapshot")
     .eq("id", sessionId)
     .eq("clan_id", clanId)
     .is("closed_at", null)
@@ -709,7 +710,10 @@ export async function updateBalanceMaSnapshotAction(
   }
 
   const roster = parseRoster(session.roster);
-  let merged = defaultMaForRoster(roster, partial);
+  let merged = defaultMaForRoster(roster, parseMaSnapshot(session.ma_snapshot));
+  for (const [id, entry] of Object.entries(partial)) {
+    if (merged[id]) merged[id].m = entry.m;
+  }
   if (!allowA) {
     merged = Object.fromEntries(
       Object.entries(merged).map(([k, v]) => [k, { m: v.m, a: null }]),

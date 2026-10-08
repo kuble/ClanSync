@@ -34,7 +34,7 @@ export function ClanBalanceScoreDrawer({ snapshotKey, ...props }: Omit<Component
   return <Sheet>
     <SheetTrigger render={<Button variant="outline" size="sm" />}><SlidersHorizontal className="size-4" aria-hidden="true" />점수 조정</SheetTrigger>
     <SheetContent className="overflow-y-auto data-[side=right]:w-full data-[side=right]:sm:max-w-2xl">
-      <SheetHeader><SheetTitle>참가자 점수 조정</SheetTitle><SheetDescription>이번 경기의 참가자 점수를 수정합니다.</SheetDescription></SheetHeader>
+      <SheetHeader><SheetTitle>참가자 점수 조정</SheetTitle><SheetDescription>평가 점수를 수정하고 자동 계산된 분석 점수를 확인합니다.</SheetDescription></SheetHeader>
       <div className="space-y-4 px-4 pb-6">
         <ScoreModeToggle value={mode} onChange={setMode} premium={props.planPremium} />
         <ClanBalanceMaEditor key={snapshotKey} {...props} scoreMode={mode} />
