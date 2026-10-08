@@ -26,6 +26,7 @@ import {
   type BanSettings,
 } from "@/lib/balance/prematch";
 import type { BalanceRoster } from "@/lib/balance/roster-schema";
+import { BalanceFormationPreview } from "./balance-formation-preview";
 
 export const TEAM_MODE_LABELS = {
   keep: "현재 팀 유지",
@@ -248,6 +249,7 @@ export function ClanBalanceSettings({
               </label>
             ))}
           </fieldset>
+          <div>
           <fieldset disabled={locked || !formationEditable}>
             <legend className="font-semibold text-sm">팀원 선발</legend>
             <select
@@ -270,6 +272,9 @@ export function ClanBalanceSettings({
                   </option>
                 ))}
             </select>
+          </fieldset>
+            <BalanceFormationPreview key={`${draft.roles}:${draft.teams}`} settings={draft} />
+          <fieldset disabled={locked || !formationEditable}>
             {["draft", "auction"].includes(draft.teams) ? (
               <div className="mt-4 space-y-3">
                 <p className="text-xs text-muted-foreground">
@@ -401,6 +406,7 @@ export function ClanBalanceSettings({
               <p className="text-[11px] text-muted-foreground">활성 아이템을 3개 이상 등록해 주세요. 효과는 운영진이 경기 규칙에 직접 적용합니다.</p>
             </div> : null}
           </fieldset>
+          </div>
             </TabsContent>
             <TabsContent value="display" className="rounded-xl border bg-muted/10 p-4">
           <fieldset disabled={locked} className="space-y-3">
