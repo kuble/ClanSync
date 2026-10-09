@@ -1310,9 +1310,12 @@ user_badge_unlocks (
 | 적립 | 일일 출석 | `user_attendance` | `(user_id, date)` | 1회/일 |
 | 적립 | 7일 연속 출석 | `user_attendance.streak` | `(user_id, streak_week_start)` | 주 1회, 최초 7일 도달 시 |
 | 적립 | 이벤트 미션 완료 | `event_rewards` (Phase 2+) | `(event_id, user_id, mission_key)` | 금액은 이벤트별 |
-| 적립 | 승부예측 적중 | `predictions` (Phase 2+) | `(prediction_id)` | 배당 반영 |
+| 적립 | 승부예측 배당·반환 | `balance_session_predictions` | `(경기, 사용자, settle/edit 요청)` | 2026-10-09 새 경기 코인 풀·원금 포함 배당 |
+| 차감 | 승부예측 참여 | `balance_session_predictions` | `(경기, 사용자, edit 요청)` | 개인 잔액 예약 차감·마감 전 취소 가능 |
 | 차감 | 개인 꾸미기 구매 | `purchases(pool_source='personal')` | `(purchase_id)` | 네임카드·네임플레이트·뱃지 테두리 등 |
 | 차감 | store 뱃지 구매 | `user_badge_unlocks(unlock_source='store')` (D-PROFILE-04) | `(user_id, badge_id)` | **개인 코인만**, 클랜 코인 불가 |
+
+**승부예측 변경 결정 (2026-10-09, QA 적용):** 새 경기부터 관전자 개인 코인으로 전체 풀을 만들고 적중자의 참여 금액 비율로 원금 포함 배당한다. 편성 편집부터 접수하고 경기 현황 전환 후 공통 5분에 마감한다. 무효·적중자 없음은 전액 반환한다. 현재 내전 안의 닉네임·적중률·누적 순이익만 멤버에게 공개한다. 기존 경기의 고정 보상은 유지한다. 상세 규칙은 [편성 명세](../02-design/formation-modes.md#관전자-코인-풀공개-순위-2026-10-09)를 따른다.
 
 **클랜 풀 (clan)**
 

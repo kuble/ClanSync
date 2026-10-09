@@ -21,6 +21,7 @@ test.beforeAll(async () => {
   f = await createIsolatedBalanceFixture();
   [leader, member, spectator] = await Promise.all([f.memberClient(0), f.memberClient(1), f.memberClient(11)]);
   await ok(f.service.from("clans").update({ subscription_tier: "premium", coin_balance: 1000 }).eq("id", f.clanId));
+  await ok(f.service.from("users").update({ coin_balance: 1000 }).in("id", f.users.slice(10).map((u) => u.id)));
 });
 test.afterAll(async () => {
   if (!f) return;
@@ -128,11 +129,12 @@ test("prediction changes racing settlement conserve clan/personal coins and cann
   for (let i = 0; i < 5; i++) {
     const r = await round(); await live(r);
     // A pre-existing winner is required to exercise the debit/payout race.
-    await ok(f.service.from("balance_session_predictions").insert({ session_id: r.id, user_id: f.users[10].id, pick_team: 1 }));
-    await ok(spectator.from("balance_session_predictions").insert({ session_id: r.id, user_id: f.users[11].id, pick_team: 2 }));
+    const otherSpectator = await f.memberClient(10);
+    await ok(otherSpectator.rpc("place_balance_prediction_pool", { p_session_id: r.id, p_pick: 1, p_stake: 10 }));
+    await ok(spectator.rpc("place_balance_prediction_pool", { p_session_id: r.id, p_pick: 2, p_stake: 20 }));
     const [outcome] = await Promise.all([
       leader.rpc("set_balance_match_outcome", { p_session_id: r.id, p_outcome: "team1" }),
-      spectator.from("balance_session_predictions").update({ pick_team: 1 }).eq("session_id", r.id),
+      spectator.rpc("place_balance_prediction_pool", { p_session_id: r.id, p_pick: 1, p_stake: 20 }),
     ]);
     expect(outcome.error).toBeNull(); expect(outcome.data).toMatchObject({ ok: true });
     const ledger = await ok(f.service.from("coin_transactions").select("amount").eq("reference_id", r.id));
@@ -141,7 +143,8 @@ test("prediction changes racing settlement conserve clan/personal coins and cann
     const before = await ok(f.service.from("balance_session_predictions").select("pick_team").eq("session_id", r.id).eq("user_id", f.users[11].id).single());
     await spectator.from("balance_session_predictions").update({ pick_team: before.pick_team === 1 ? 2 : 1 }).eq("session_id", r.id);
     expect(await ok(f.service.from("balance_session_predictions").select("pick_team").eq("session_id", r.id).eq("user_id", f.users[11].id).single())).toEqual(before);
-    expect((await spectator.from("balance_session_predictions").update({ session_id: randomUUID() }).eq("session_id", r.id)).error).not.toBeNull();
+    expect(await ok(spectator.from("balance_session_predictions").update({ session_id: randomUUID() }).eq("session_id", r.id).select("session_id"))).toEqual([]);
+    expect(await ok(f.service.from("balance_session_predictions").select("pick_team").eq("session_id", r.id).eq("user_id", f.users[11].id).single())).toEqual(before);
   }
 });
 
@@ -234,7 +237,7 @@ test("site-usage source rows are visible to staff but hidden from members", asyn
   expect(fromMember).toEqual([]);
 });
 
-test("settled prediction picks are private while live vote totals remain shared", async ({ page }) => {
+test("pool prediction picks are private while aggregate totals remain shared", async ({ page }) => {
   const r = await round();
   await live(r);
   await ok(f.service.from("balance_session_predictions").insert([
@@ -242,7 +245,7 @@ test("settled prediction picks are private while live vote totals remain shared"
     { session_id: r.id, user_id: f.users[2].id, pick_team: 2 },
   ]));
   const before = await ok(member.from("balance_session_predictions").select("user_id").eq("session_id", r.id));
-  expect(before).toHaveLength(2);
+  expect(before).toHaveLength(1);
   await ok(leader.rpc("set_balance_match_outcome", { p_session_id: r.id, p_outcome: "team1" }));
   const mine = await ok(member.from("balance_session_predictions").select("user_id").eq("session_id", r.id));
   const staff = await ok(leader.from("balance_session_predictions").select("user_id").eq("session_id", r.id));
@@ -265,13 +268,13 @@ test("settled prediction picks are private while live vote totals remain shared"
   expect(staffStats?.hof.periods.all.predictionCorrect.some((row) => row.userId === f.users[1].id)).toBe(true);
   const selected = staffStats?.personal.people.find((person) => person.userId === f.users[1].id);
   expect(selected?.predictions).toMatchObject([{ sessionId: r.id, result: "correct" }]);
-  expect(selected?.predictionPoints.reduce((sum, day) => sum + day.net, 0)).toBe(5);
+  expect(selected?.predictionPoints.reduce((sum, day) => sum + day.net, 0)).toBe(0);
   await loginIsolatedBalanceUser(page, f.users[0]);
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
   await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
   await page.getByRole("button", { name: `${f.users[1].nickname} 개인 기록 열기`, exact: true }).click();
   await expect(page.getByLabel("승부예측 요약")).toContainText("적중력 100%");
-  await expect(page.getByText("수익 +5pt", { exact: true })).toBeVisible();
+  await expect(page.getByText("순수익 0pt", { exact: true })).toBeVisible();
   await expect(page.getByRole("img", { name: "승부예측 누적 포인트 그래프" })).toBeVisible();
   await expect(page.getByText("내 승부예측", { exact: true })).toHaveCount(0);
 });
@@ -395,7 +398,10 @@ test("staff can inspect prediction payouts and edit completed evaluation scores"
   const r = await round();
   await ok(f.service.from("balance_sessions").update({ ma_snapshot: { [f.users[0].id]: { m: 2, a: 1 } } }).eq("id", r.id));
   await live(r);
-  await ok(spectator.from("balance_session_predictions").insert({ session_id: r.id, user_id: f.users[11].id, pick_team: 1 }));
+  const liveSnapshot = (await ok(f.service.from("balance_sessions").select("ma_snapshot").eq("id", r.id).single())).ma_snapshot as Record<string, { m: number; a: number | null }>;
+  await ok(spectator.rpc("place_balance_prediction_pool", { p_session_id: r.id, p_pick: 1, p_stake: 5 }));
+  const otherSpectator = await f.memberClient(10);
+  await ok(otherSpectator.rpc("place_balance_prediction_pool", { p_session_id: r.id, p_pick: 2, p_stake: 5 }));
   await ok(leader.rpc("set_balance_match_outcome", { p_session_id: r.id, p_outcome: "team1" }));
   const current = await ok(f.service.from("clan_settings").select("hof_config").eq("clan_id", f.clanId).single());
   await ok(f.service.from("clan_settings").update({ hof_config: { ...(current.hof_config as Record<string, unknown>), member_personal_records: true } }).eq("clan_id", f.clanId));
@@ -438,7 +444,7 @@ test("staff can inspect prediction payouts and edit completed evaluation scores"
   await scoreDialog.getByRole("button", { name: "점수 저장" }).click();
   await expect(scoreDialog).toBeHidden();
   const saved = await ok(f.service.from("balance_sessions").select("ma_snapshot").eq("id", r.id).single());
-  expect((saved.ma_snapshot as Record<string, { m: number; a: number }>)[f.users[0].id]).toEqual({ m: 3.5, a: 1 });
+  expect((saved.ma_snapshot as Record<string, { m: number; a: number | null }>)[f.users[0].id]).toEqual({ m: 3.5, a: liveSnapshot[f.users[0].id].a });
   await (await refreshedDetail).finished();
   await expect(chart).toBeVisible();
   await chart.press("End");
@@ -447,11 +453,11 @@ test("staff can inspect prediction payouts and edit completed evaluation scores"
   await page.getByRole("button", { name: "멤버 선택", exact: true }).click();
   await page.getByRole("textbox", { name: "멤버 이름 검색" }).fill(f.users[11].nickname);
   await page.getByRole("button", { name: `${f.users[11].nickname} 개인 기록 열기`, exact: true }).click();
-  await expect(page.getByText("수익 +5pt", { exact: true })).toBeVisible();
+  await expect(page.getByText("순수익 +5pt", { exact: true })).toBeVisible();
   await expect(page.getByRole("img", { name: "승부예측 누적 포인트 그래프" })).toBeVisible();
   await ok(f.service.from("clan_members").update({ role: "officer" }).eq("clan_id", f.clanId).eq("user_id", f.users[1].id));
   try {
-    expect((await ok(member.rpc("read_clan_prediction_ledger", { p_clan_id: f.clanId }))).some((row) => row.reference_id === r.id && row.user_id === f.users[11].id && row.amount === 5)).toBe(true);
+    expect((await ok(member.rpc("read_clan_prediction_ledger", { p_clan_id: f.clanId }))).filter((row) => row.reference_id === r.id && row.user_id === f.users[11].id).reduce((sum, row) => sum + row.amount, 0)).toBe(5);
     await ok(member.rpc("update_balance_history_mscore", { p_round_id: r.id, p_clan_id: f.clanId, p_user_id: f.users[0].id, p_score: 4 }));
     await ok(f.service.from("clan_settings").update({ permissions: { edit_mscore: ["leader"] } }).eq("clan_id", f.clanId));
     expect((await member.rpc("update_balance_history_mscore", { p_round_id: r.id, p_clan_id: f.clanId, p_user_id: f.users[0].id, p_score: 5 })).error).not.toBeNull();
@@ -468,7 +474,7 @@ test("staff can inspect prediction payouts and edit completed evaluation scores"
   await page.getByRole("tab", { name: "개인 기록" }).click();
   await page.getByRole("button", { name: `${f.users[11].nickname} 개인 기록 열기`, exact: true }).click();
   await expect(page.getByRole("button", { name: "평가 점수 수정" })).toHaveCount(0);
-  await expect(page.getByText("수익 +5pt", { exact: true })).toBeVisible();
+  await expect(page.getByText("순수익 +5pt", { exact: true })).toBeVisible();
   await ok(f.service.from("clan_settings").update({ hof_config: { ...(current.hof_config as Record<string, unknown>), member_personal_records: false } }).eq("clan_id", f.clanId));
   expect((await page.request.get(detailUrl)).status()).toBe(403);
   await page.reload();

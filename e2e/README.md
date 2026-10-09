@@ -63,6 +63,8 @@ CI 경로는 `npm run build` 후 `next start`를 사용하므로 같은 빌드�
 
 DB 변경은 관련 `scripts/*-db.test.mjs`를 골라 `node --test <파일>`로 실행할 수 있습니다. 전체 `npm run test:db`는 넓은 DB 영향 또는 병합 전 검증에 사용합니다. 전체 회귀·빌드 통과가 운영 DB 적용·배포 승인을 뜻하지는 않습니다.
 
+코인 풀은 `npm run test:prediction-pool:db` 또는 전체 `test:db`에서 금액 보존·동시성·RLS·마감·반환·기존 고정 보상 호환을 검증합니다. 공유 TypeScript 픽스처를 직접 읽으며 검증 환경은 Node.js 24.14입니다. `E2E_SKIP_SEED=1`과 `balance-prediction-pool.spec.ts`는 별도 13명 내전에서 편성 중 참여→5분 타이머→마감→배당/공개 순위와 모바일 너비를 검증합니다. 실제 QA 명단을 시드로 초기화하지 않습니다.
+
 ## 픽스처와 시나리오
 
 계정 규칙은 `scripts/fixtures/qa-fixtures.mjs`가 단일 출처입니다. Playwright 시작 시 `global-setup`이 자동으로 시드를 실행하며, QA 클랜의 미종료 밸런스 세션을 삭제합니다. `E2E_SKIP_SEED=1`은 시드만 생략하며 DB 대상 검사는 그대로 적용됩니다.

@@ -73,6 +73,7 @@ import { BalanceTeamInsights, ScoreModeToggle, previewScores, type ScoreMode } f
 import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
 import { contextualScores, type AnalysisContext } from "@/lib/balance/analysis-context";
 import type { PlayerSessionInfoMap } from "@/lib/balance/player-session-stats";
+import type { PredictionPool } from "@/lib/balance/prediction-pool";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 type BalanceSession = Database["public"]["Tables"]["balance_sessions"]["Row"];
@@ -103,6 +104,7 @@ export function ClanBalanceSessionPanel({
   votes,
   heroVotes,
   balancePredictions,
+  predictionPool,
   rosterPool,
   canEditMscore,
   planPremium,
@@ -129,6 +131,7 @@ export function ClanBalanceSessionPanel({
   votes: MapVote[];
   heroVotes: HeroVote[];
   balancePredictions: BalancePrediction[];
+  predictionPool: PredictionPool | null;
   rosterPool: readonly { user_id: string; nickname: string }[];
   canEditMscore: boolean;
   planPremium: boolean;
@@ -330,12 +333,13 @@ export function ClanBalanceSessionPanel({
           currentSeriesId={series?.id ?? null}
           pool={rosterPool}
         /> : null}
-        {session?.phase === "match_live" && !flash && planPremium && settings.predictionEnabled ? <ClanBalancePredictionDrawer
+        {session && (session.prediction_pool_enabled || session.phase === "match_live") && !flash && planPremium && settings.predictionEnabled ? <ClanBalancePredictionDrawer
           key={session.id}
           gameSlug={gameSlug} clanId={clanId} sessionId={session.id}
           myPickTeam={myPickTeam} predictionCount={balancePredictions.length}
           deadlineIso={session.prediction_deadline_at}
           outcome={session.match_outcome} isParticipant={isRosterParticipant}
+          pool={predictionPool} serverNow={serverNow} phase={session.phase}
         /> : null}
       </div>
       {session && canManage && settingsOpen ? (

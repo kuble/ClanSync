@@ -32,6 +32,7 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
   spectatorContext.setDefaultTimeout(20_000);
   const spectator = await spectatorContext.newPage();
   try {
+    expect((await fixture.service.from("users").update({ coin_balance: 100 }).eq("id", fixture.users[10].id)).error).toBeNull();
     await Promise.all([
       loginIsolatedBalanceUser(page, fixture.users[0]),
       loginIsolatedBalanceUser(spectator, fixture.users[10]),
@@ -111,8 +112,8 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
       await panel.screenshot({ path: test.info().outputPath("match-live-names-only.png") });
       await page.getByRole("button", { name: "승부예측", exact: true }).click();
       const participantPrediction = page.getByRole("dialog", { name: "승부예측", exact: true });
-      await expect(participantPrediction).toContainText("이번 경기에 출전 중입니다");
-      await expect(participantPrediction.getByRole("button", { name: "블루(팀1) 승", exact: true })).toHaveCount(0);
+      await expect(participantPrediction).toContainText("관전자만 참여할 수 있습니다");
+      await expect(participantPrediction.getByRole("button", { name: "블루 승", exact: true })).toBeDisabled();
       await participantPrediction.getByRole("button", { name: "닫기", exact: true }).click();
     });
 
@@ -126,16 +127,20 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
         if (result.error) throw result.error;
         return result.data?.pick_team;
       };
-      const blue = predictions.getByRole("button", { name: "블루(팀1) 승", exact: true });
+      const blue = predictions.getByRole("button", { name: "블루 승", exact: true });
       await blue.click();
+      await predictions.getByRole("textbox", { name: "걸 코인", exact: true }).fill("10");
+      await predictions.getByRole("button", { name: "코인 걸기", exact: true }).click();
       await expect.poll(readPick).toBe(1);
       await expect(blue).toHaveAttribute("aria-pressed", "true");
-      const red = predictions.getByRole("button", { name: "레드(팀2) 승", exact: true });
+      const red = predictions.getByRole("button", { name: "레드 승", exact: true });
       await red.click();
+      await predictions.getByRole("button", { name: "예측 변경", exact: true }).click();
       await expect.poll(readPick).toBe(2);
       await expect(red).toHaveAttribute("aria-pressed", "true");
       const draw = predictions.getByRole("button", { name: "무승부", exact: true });
       await draw.click();
+      await predictions.getByRole("button", { name: "예측 변경", exact: true }).click();
       await expect.poll(readPick).toBe(3);
       await expect(draw).toHaveAttribute("aria-pressed", "true");
       await spectator.screenshot({ path: test.info().outputPath("prediction-drawer-desktop.png"), fullPage: true });

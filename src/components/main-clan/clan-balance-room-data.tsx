@@ -10,6 +10,7 @@ import type { Database } from "@/lib/supabase/database.types";
 import { parseRoleRanking } from "@/lib/balance/role-preferences";
 import { parseMaSnapshot, type MaSnapshot } from "@/lib/balance/ma-snapshot";
 import { parseAnalysisContext } from "@/lib/balance/analysis-context";
+import { parsePredictionPool, type PredictionPool } from "@/lib/balance/prediction-pool";
 import {
   buildPlayerSessionInfo,
   type PlayerSessionRound,
@@ -178,9 +179,15 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
   if (session?.phase === "match_live") {
     const { data: bp } = await supabase
       .from("balance_session_predictions")
-      .select("session_id, user_id, pick_team, created_at")
+      .select("*")
       .eq("session_id", session.id);
     balancePredictions = bp ?? [];
+  }
+  let predictionPool: PredictionPool | null = null;
+  if (session?.prediction_pool_enabled && room.kind === "regular" && planPremium) {
+    const { data, error } = await supabase.rpc("read_balance_prediction_pool", { p_session_id: session.id });
+    if (error) throw new Error("승부예측 정보를 불러오지 못했습니다.");
+    predictionPool = parsePredictionPool(data);
   }
 
   const { data: rosterPoolRows } = await supabase.rpc(
@@ -255,6 +262,7 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
         votes={votes ?? []}
         heroVotes={heroVotes}
         balancePredictions={balancePredictions}
+        predictionPool={predictionPool}
         rosterPool={rosterPool}
         canEditMscore={canEditMscore}
         planPremium={planPremium}
