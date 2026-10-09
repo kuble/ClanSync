@@ -23,13 +23,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import type { ResolvedHofConfig } from "@/lib/clan/stats/hof-config";
 import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
 import { cn } from "@/lib/utils";
+import { HofEligibilitySettings } from "./hof-eligibility-settings";
 import {
   Activity,
   BarChart3,
@@ -81,6 +81,7 @@ export function HofSettingsForm({
   gameSlug,
   clanId,
   cfg,
+  totalGames,
   exposeHof,
   isLeader,
   onDone,
@@ -88,6 +89,7 @@ export function HofSettingsForm({
   gameSlug: string;
   clanId: string;
   cfg: ResolvedHofConfig;
+  totalGames?: number;
   exposeHof: boolean;
   isLeader: boolean;
   onDone: () => void;
@@ -95,7 +97,7 @@ export function HofSettingsForm({
   const [pending, start] = useTransition();
   return (
     <form
-      className="flex min-h-0 flex-col gap-4 pt-2"
+      className="flex min-h-0 flex-1 flex-col gap-4 pt-2"
       action={async (fd) => {
         start(async () => {
           try {
@@ -110,7 +112,15 @@ export function HofSettingsForm({
         });
       }}
     >
-      <fieldset disabled={pending} className="min-h-0 space-y-4 overflow-y-auto pb-1">
+      <fieldset disabled={pending} className="flex min-h-0 flex-1 flex-col">
+      <Tabs defaultValue="access" className="min-h-0 flex-1 gap-4">
+        <TabsList className="grid h-10 w-full shrink-0 grid-cols-3" aria-label="통계 설정 영역">
+          <TabsTrigger value="access">열람·공개</TabsTrigger>
+          <TabsTrigger value="ranking">순위 공개</TabsTrigger>
+          <TabsTrigger value="eligibility">등재 기준</TabsTrigger>
+        </TabsList>
+        <div className="min-h-0 flex-1 overflow-y-auto pb-1">
+      <TabsContent value="access" keepMounted>
       <section aria-labelledby="hof-access-title" className="space-y-3 rounded-xl border p-4">
       <h4 id="hof-access-title" className="text-sm font-semibold">열람·공개</h4>
       <label className="flex cursor-pointer items-start gap-3 text-sm">
@@ -122,6 +132,8 @@ export function HofSettingsForm({
         <span>명예의 전당을 클랜 프로필에 공개<span className="mt-1 block text-xs text-muted-foreground">클랜 프로필을 방문한 사람에게 공개합니다.</span></span>
       </label>}
       </section>
+      </TabsContent>
+      <TabsContent value="ranking" keepMounted className="space-y-4">
       <section aria-labelledby="hof-ranking-title" className="space-y-3 rounded-xl border p-4">
       <h4 id="hof-ranking-title" className="text-sm font-semibold">순위 공개 범위</h4>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -219,50 +231,10 @@ export function HofSettingsForm({
         </div>
       </div>
       </section>
-      <section aria-labelledby="hof-eligibility-title" className="space-y-3 rounded-xl border p-4">
-      <div><h4 id="hof-eligibility-title" className="text-sm font-semibold">승률 등재 기준</h4><p className="mt-1 text-xs text-muted-foreground">클랜 경기 수가 기준점 이하이면 참여 비율을, 초과하면 최소 출전 수를 적용합니다.</p></div>
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="space-y-1">
-          <Label htmlFor="eligibility_game_threshold">
-            총 경기 수 기준점
-          </Label>
-          <Input
-            id="eligibility_game_threshold"
-            name="eligibility_game_threshold"
-            type="number"
-            min={1}
-            max={5000}
-            defaultValue={cfg.eligibilityGameThreshold}
-          />
+      </TabsContent>
+      <TabsContent value="eligibility" keepMounted><HofEligibilitySettings cfg={cfg} totalGames={totalGames} /></TabsContent>
         </div>
-        <div className="space-y-1">
-          <Label htmlFor="eligibility_below_pct">
-            기준점 이하 · 참여 비율(%)
-          </Label>
-          <Input
-            id="eligibility_below_pct"
-            name="eligibility_below_pct"
-            type="number"
-            min={1}
-            max={100}
-            defaultValue={cfg.eligibilityBelowPct}
-          />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="eligibility_above_min_games">
-            기준점 초과 · 최소 출전
-          </Label>
-          <Input
-            id="eligibility_above_min_games"
-            name="eligibility_above_min_games"
-            type="number"
-            min={1}
-            max={2000}
-            defaultValue={cfg.eligibilityAboveMinGames}
-          />
-        </div>
-      </div>
-      </section>
+      </Tabs>
       </fieldset>
       <DialogFooter className="shrink-0 gap-2 sm:justify-end">
         <DialogClose render={<Button type="button" variant="outline" disabled={pending} />}>

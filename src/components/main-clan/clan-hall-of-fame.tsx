@@ -72,7 +72,7 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
       <div className="ml-auto flex items-center gap-2 self-center">
       {model.permissions.isStaff && model.permissions.setHofRules && <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogTrigger render={<Button type="button" size="sm" variant="outline" />}><Settings2 className="size-4" aria-hidden="true" /> 설정</DialogTrigger>
-        <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden sm:max-w-2xl"><DialogHeader><DialogTitle>통계 공개 설정</DialogTitle><DialogDescription>열람 권한, 순위 공개와 승률 등재 기준을 관리합니다.</DialogDescription></DialogHeader><HofSettingsForm gameSlug={gameSlug} clanId={clanId} cfg={model.hof.config} exposeHof={model.hof.exposeHof} isLeader={model.permissions.isLeader} onDone={() => setSettingsOpen(false)} /></DialogContent>
+        <DialogContent className="flex h-[min(720px,90dvh)] flex-col overflow-hidden sm:max-w-xl"><DialogHeader><DialogTitle>통계 공개 설정</DialogTitle><DialogDescription>열람, 순위 공개와 승률 등재를 설정합니다.</DialogDescription></DialogHeader><HofSettingsForm gameSlug={gameSlug} clanId={clanId} cfg={model.hof.config} totalGames={totals.matches} exposeHof={model.hof.exposeHof} isLeader={model.permissions.isLeader} onDone={() => setSettingsOpen(false)} /></DialogContent>
       </Dialog>}
       </div>
     </div>

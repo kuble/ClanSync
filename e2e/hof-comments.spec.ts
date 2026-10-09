@@ -159,7 +159,11 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await expect(page.getByText(/규정 미달 ·/)).toHaveCount(0);
     await leaderPage.getByRole("button", { name: "설정", exact: true }).click();
     const settings = leaderPage.getByRole("dialog", { name: "통계 공개 설정" });
-    for (const name of ["열람·공개", "순위 공개 범위", "공개 시점", "승률 등재 기준"]) await expect(settings.getByRole("heading", { name, exact: true })).toBeVisible();
+    await expect(settings.getByRole("heading", { name: "열람·공개", exact: true })).toBeVisible();
+    await settings.getByRole("tab", { name: "순위 공개", exact: true }).click();
+    for (const name of ["순위 공개 범위", "공개 시점"]) await expect(settings.getByRole("heading", { name, exact: true })).toBeVisible();
+    await settings.getByRole("tab", { name: "등재 기준", exact: true }).click();
+    await expect(settings.getByRole("heading", { name: "승률 등재 기준", exact: true })).toBeVisible();
     await settings.getByRole("button", { name: "취소", exact: true }).click();
     await leaderPage.getByRole("button", { name: `${f.users[1].nickname} 댓글 삭제`, exact: true }).click();
     await leaderPage.getByRole("button", { name: "삭제 확인", exact: true }).click();
