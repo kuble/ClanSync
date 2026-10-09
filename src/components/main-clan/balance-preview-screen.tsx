@@ -1,6 +1,7 @@
 import { Check, ChevronDown, Crosshair, Crown, MousePointer2, Plus, Shield } from "lucide-react";
 import type { FormationSettings, Role } from "@/lib/balance/formation";
-import type { PreviewStep } from "./balance-formation-preview";
+import type { ReactNode } from "react";
+import type { PreviewStep, PreviewSettingField, PreviewSettingFocus } from "./balance-formation-preview";
 import { OverwatchRoleIcon } from "@/components/ui/overwatch-icons";
 import { cn } from "@/lib/utils";
 import styles from "./balance-formation-preview.module.css";
@@ -20,12 +21,29 @@ export type PreviewScene = {
   turn?: number;
 };
 
-export function BalancePreviewScreen({ frame, settings, players, elapsed, remaining }: {
+const settingLabels: Record<PreviewSettingField, string> = {
+  auctionBudget: "팀 크레딧", minBid: "최소·증액 단위", durationSeconds: "입찰 시간",
+  auctionPreparationSeconds: "낙찰 후 준비 시간", bidExtensionSeconds: "입찰 연장 시간", strategySeconds: "전략 준비 시간",
+};
+function SettingHighlight({ field, focus, children }: { field: PreviewSettingField; focus: PreviewSettingFocus | null; children: ReactNode }) {
+  if (focus?.field !== field) return children;
+  const unit = field === "auctionBudget" || field === "minBid" ? " cr" : "초";
+  return <div className={styles.settingHighlight} data-preview-highlight={field}>
+    {children}
+    <span className={styles.settingChange} role="status">
+      {settingLabels[field]} · {focus.previousValue !== focus.value ? <>{focus.previousValue}{unit} → </> : null}
+      <strong>{focus.value}{unit}{focus.value === 0 && field === "bidExtensionSeconds" ? " (연장 끔)" : ""}</strong>
+    </span>
+  </div>;
+}
+
+export function BalancePreviewScreen({ frame, settings, players, elapsed, remaining, focus = null }: {
   frame: PreviewStep;
   settings: FormationSettings;
   players: { name: string; role: Role }[];
   elapsed: number;
   remaining: number;
+  focus?: PreviewSettingFocus | null;
 }) {
   const scene = frame.scene;
   const roleDraw = scene.kind === "draw" && settings.roles === "lottery" && settings.teams !== "random";
@@ -41,12 +59,12 @@ export function BalancePreviewScreen({ frame, settings, players, elapsed, remain
     lineup: "팀 배치 화면", captains: "주장 선정 화면", draft: "주장 지명 화면", strategy: "전략 준비 화면",
     auction: "A팀 주장 경매 화면", settlement: "낙찰 결과 화면", preparation: "다음 선수 준비 화면", items: "전략 아이템 선택 화면", complete: "편성 결과 화면",
   };
-  const creditCards = <div className={styles.creditCards}>{[0, 1].map((team) => <div key={team}>
+  const creditCards = <SettingHighlight field="auctionBudget" focus={focus}><div className={styles.creditCards}>{[0, 1].map((team) => <div key={team}>
     <span>{team === 0 ? "A팀 · 내 팀" : "B팀 · 상대 팀"}</span><strong data-testid={`preview-credits-${team}`}>{frame.credits[team]} cr</strong>
-  </div>)}</div>;
+  </div>)}</div></SettingHighlight>;
   const ranking: Role[] = scene.preferenceChanged ? ["sup", "dmg", "tank"] : ["tank", "dmg", "sup"];
   return (
-    <div className={styles.screenStage} data-testid="formation-preview-screen" data-screen={scene.kind}>
+    <div className={cn(styles.screenStage, focus && styles.screenFocused)} data-testid="formation-preview-screen" data-screen={scene.kind}>
       <div className={styles.screenHeader}>
         <strong>내전 편성</strong>
         {scene.kind === "complete" && settings.teams === "auction" ? <span className="flex gap-2">{[0, 1].map((team) => <span key={team} data-testid={`preview-credits-${team}`}>{frame.credits[team]} cr</span>)}</span> : <span>{scene.kind === "preference" ? "여우 · 내 화면" : scene.kind === "manual" || scene.kind === "captains" ? "운영진 시점" : scene.kind === "auction" || scene.kind === "draft" ? "A팀 주장 시점" : "모두에게 보이는 화면"}</span>}
@@ -100,23 +118,23 @@ export function BalancePreviewScreen({ frame, settings, players, elapsed, remain
           <h3>{scene.kind === "items" ? "남은 크레딧으로 아이템 선택" : "전략 아이템 공개 · 준비"}</h3>
           {creditCards}
           <div className={styles.itemCards}>{[{ name: "영웅 밴 1장", cost: 100 }, { name: "맵 선택권 1장", cost: 50 }, { name: "영웅 밴 2장", cost: 200 }].map((item) => <div key={item.name}><Shield size={22} aria-hidden="true" /><strong>{item.name}</strong><span>{item.cost}cr</span></div>)}</div>
-          <p>{scene.kind === "items" ? "팀당 최대 1개 · 양 팀 동일 아이템 구매 가능" : `${settings.strategySeconds}초 전략 준비 후 선수 경매 시작`}</p>
+          <SettingHighlight field="strategySeconds" focus={focus}><p>{scene.kind === "items" ? "팀당 최대 1개 · 양 팀 동일 아이템 구매 가능" : `${settings.strategySeconds}초 전략 준비 후 선수 경매 시작`}</p></SettingHighlight>
           {scene.kind === "items" && <div className={styles.myBid}>구매 안 함 <Check size={15} aria-hidden="true" /></div>}
         </div> : scene.kind === "auction" || scene.kind === "settlement" || scene.kind === "preparation" ? <div className={styles.auctionScreen}>
           {creditCards}
           {frame.auction ? <>
             <div className={styles.auctionPlayer}><strong>{players[frame.auction.player].name}</strong><span>{roleNames[players[frame.auction.player].role]} · {scene.kind === "settlement" ? "낙찰 확정" : "경매 중인 선수"}</span></div>
-            <div className="flex items-center justify-between gap-2 text-xs"><span>{remaining === 0 ? "입찰 종료" : frame.auction.extended ? "연장된 시간" : "입찰 남은 시간"}</span><strong className="text-xl tabular-nums" data-testid="auction-preview-timer">{remaining}초</strong></div>
+            <SettingHighlight field="durationSeconds" focus={focus}><div className="flex items-center justify-between gap-2 text-xs"><span>{remaining === 0 ? "입찰 종료" : frame.auction.extended ? "연장된 시간" : "입찰 남은 시간"}</span><strong className="text-xl tabular-nums" data-testid="auction-preview-timer">{remaining}초</strong></div></SettingHighlight>
             <div className="h-1 rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, remaining / (frame.auction.extended ? settings.bidExtensionSeconds : settings.durationSeconds) * 100)}%` }} /></div>
             <div className="flex items-center justify-between gap-2 text-xs"><span>{frame.auction.leader === null ? "아직 입찰이 없어요" : frame.auction.leader === 0 ? "내 팀이 최고 입찰 중" : "상대 팀이 최고 입찰 중"}</span><strong data-testid="auction-preview-price">{frame.auction.amount} cr</strong></div>
-            <p className="text-xs text-muted-foreground" data-testid="auction-preview-notice">{frame.auction.notice}</p>
-            <div className={cn(styles.myBid, frame.auction.myAction && styles.bidClick)} key={frame.title}>
+            <SettingHighlight field="bidExtensionSeconds" focus={focus}><p className="text-xs text-muted-foreground" data-testid="auction-preview-notice">{frame.auction.notice}</p></SettingHighlight>
+            <SettingHighlight field="minBid" focus={focus}><div className={cn(styles.myBid, frame.auction.myAction && styles.bidClick)} key={frame.title}>
               {remaining === 0 ? `${frame.auction.leader === 0 ? "A" : "B"}팀 낙찰` : frame.auction.leader === 0 ? "최고 입찰 중 · 상대 팀 입찰 대기" : `내 입찰 ${frame.auction.nextBid} cr`}
               {frame.auction.myAction && <MousePointer2 size={18} className={styles.cursor} aria-hidden="true" />}
-            </div>
+            </div></SettingHighlight>
           </> : <div className={styles.centerScreen}>
             <Crown size={32} aria-hidden="true" /><h3>{scene.kind === "settlement" ? "선수 합류 · 크레딧 차감" : "A팀 주장 시점으로 보여드릴게요"}</h3>
-            {frame.preparationSeconds !== undefined ? <><p>다음 경매 선수 · {players[3].name} ({roleNames[players[3].role]})</p><p>입찰할 금액을 준비하세요.</p><strong data-testid="auction-preview-preparation">{remaining}초</strong></> : <p>선수 공개 → 내 입찰 → 상대 입찰 → 재입찰 → 낙찰</p>}
+            {frame.preparationSeconds !== undefined ? <><p>다음 경매 선수 · {players[3].name} ({roleNames[players[3].role]})</p><p>입찰할 금액을 준비하세요.</p><SettingHighlight field="auctionPreparationSeconds" focus={focus}><strong data-testid="auction-preview-preparation">{remaining}초</strong></SettingHighlight></> : <p>선수 공개 → 내 입찰 → 상대 입찰 → 재입찰 → 낙찰</p>}
           </div>}
         </div> : <div className={styles.drawScreen}>
           <div className={styles.drawStatus}><strong>{scene.kind === "complete" ? "팀 구성 완료" : scene.kind === "manual" ? "명단에서 역할과 자리 배치" : scene.kind === "lineup" ? "선발된 팀원 합류" : visible.size ? "순서대로 역할과 자리를 공개합니다" : "추첨 순서를 섞고 있습니다"}</strong><span>{scene.kind === "manual" ? "10" : visible.size} / 10</span></div>

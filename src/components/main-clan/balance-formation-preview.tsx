@@ -15,6 +15,8 @@ const players: { name: string; role: Role }[] = [
   { name: "여우", role: "sup" }, { name: "감자", role: "sup" },
 ];
 const roleNames = { tank: "돌격", dmg: "공격", sup: "지원" };
+export type PreviewSettingField = "auctionBudget" | "minBid" | "durationSeconds" | "auctionPreparationSeconds" | "bidExtensionSeconds" | "strategySeconds";
+export type PreviewSettingFocus = { field: PreviewSettingField; previousValue: number; value: number };
 export type PreviewStep = {
   title: string;
   text: string;
@@ -153,10 +155,24 @@ const sceneLabels: Record<PreviewScene["kind"], string> = {
   auction: "입찰", settlement: "낙찰", preparation: "다음 선수 준비", items: "아이템 선택", complete: "결과",
 };
 
-export function BalanceFormationPreview({ settings }: { settings: FormationSettings }) {
+function focusedStep(sequence: PreviewStep[], field: PreviewSettingField) {
+  const index = sequence.findIndex((item) => field === "strategySeconds" ? item.title === "전략 준비"
+    : field === "auctionPreparationSeconds" ? item.scene.kind === "preparation"
+    : field === "bidExtensionSeconds" ? item.auction?.myAction && item.auction.leader === 0 && item.title.startsWith("내 재입찰")
+    : item.scene.kind === "auction" && item.auction?.leader === null);
+  return index < 0 ? null : index;
+}
+
+export function BalanceFormationPreview({ settings, focus = null }: { settings: FormationSettings; focus?: PreviewSettingFocus | null }) {
   const reducedMotion = useSyncExternalStore(subscribeMotion, motionSnapshot, () => false);
-  const [{ step, playing, elapsed, selected }, setPlayback] = useState({ step: 0, playing: true, elapsed: 0, selected: false });
   const sequence = useMemo(() => buildSteps(settings), [settings]);
+  const [playback, setPlayback] = useState({ step: 0, playing: true, elapsed: 0, selected: false, focusRequest: null as PreviewSettingFocus | null, highlighted: false });
+  if (playback.focusRequest !== focus) {
+    const index = focus && settings.teams === "auction" ? focusedStep(sequence, focus.field) : null;
+    setPlayback({ ...playback, focusRequest: focus, highlighted: index !== null,
+      ...(index !== null ? { step: index, elapsed: 0, playing: false, selected: true } : {}) });
+  }
+  const { step, playing, elapsed, selected, highlighted } = playback;
   const last = sequence.length - 1;
   const current = reducedMotion && !selected ? last : Math.min(step, last);
   const savedFrame = sequence[current];
@@ -172,13 +188,13 @@ export function BalanceFormationPreview({ settings }: { settings: FormationSetti
   const chapters = chapterStarts.map((item, index) => ({ ...item, label: chapterStarts.filter((other) => other.kind === item.kind).length > 1
     ? `${item.label} ${chapterStarts.slice(0, index + 1).filter((other) => other.kind === item.kind).length}` : item.label }));
   const chapter = chapters.findLast((item) => item.index <= current)!;
-  const seek = (index: number) => setPlayback({ step: index, elapsed: 0, playing: false, selected: true });
+  const seek = (index: number) => setPlayback({ ...playback, step: index, elapsed: 0, playing: false, selected: true, highlighted: false });
   useEffect(() => {
     if (!playing || reducedMotion || last === 0) return;
     const timer = window.setInterval(() => {
       if (document.hidden) return;
       setPlayback((value) => value.elapsed + 200 >= duration
-        ? { step: (value.step + 1) % (last + 1), playing: true, elapsed: 0, selected: false }
+        ? { ...value, step: (value.step + 1) % (last + 1), playing: true, elapsed: 0, selected: false }
         : { ...value, elapsed: value.elapsed + 200 });
     }, 200);
     return () => window.clearInterval(timer);
@@ -192,14 +208,14 @@ export function BalanceFormationPreview({ settings }: { settings: FormationSetti
         </div>
         {!reducedMotion && <div className="flex gap-1">
           <button type="button" className={styles.control} aria-label={playing ? "미리보기 일시정지" : "미리보기 재생"}
-            onClick={() => setPlayback({ step: current, elapsed, playing: !playing, selected: false })}>
+            onClick={() => setPlayback({ ...playback, step: current, elapsed, playing: !playing, selected: false, highlighted: false })}>
             {playing ? <Pause size={13} /> : <Play size={13} />}
           </button>
           <button type="button" className={styles.control} aria-label="미리보기 다시 보기"
-            onClick={() => setPlayback({ step: 0, elapsed: 0, playing: true, selected: false })}><RotateCcw size={13} /></button>
+            onClick={() => setPlayback({ ...playback, step: 0, elapsed: 0, playing: true, selected: false, highlighted: false })}><RotateCcw size={13} /></button>
         </div>}
       </div>
-      <BalancePreviewScreen frame={frame} settings={settings} players={players} elapsed={elapsed} remaining={remaining} />
+      <BalancePreviewScreen frame={frame} settings={settings} players={players} elapsed={elapsed} remaining={remaining} focus={highlighted ? focus : null} />
       <div className={styles.previewFooter}>
         <div className="flex items-center justify-between gap-2 text-xs font-semibold min-[1100px]:text-sm">
           <span data-testid="formation-preview-title">{frame.title}</span>
@@ -214,7 +230,7 @@ export function BalanceFormationPreview({ settings }: { settings: FormationSetti
             aria-label={`${index + 1}. ${item.label} 구간 보기`} aria-current={item.index === chapter.index ? "step" : undefined}
             onClick={() => seek(item.index)}>{item.label}</button>)}
         </nav>
-        <p className="text-[10px] text-muted-foreground">타임라인이나 구간을 선택하면 해당 장면에서 일시정지합니다.</p>
+        <p className="text-[10px] text-muted-foreground">{highlighted ? "편집 중인 값의 위치를 강조했어요. 재생하거나 구간을 선택하면 시연을 이어 볼 수 있어요." : "수치 입력을 선택하면 적용 위치를 강조합니다. 타임라인이나 구간을 선택하면 해당 장면에서 일시정지합니다."}</p>
       </div>
     </section>
   );

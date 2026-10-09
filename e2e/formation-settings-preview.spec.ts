@@ -182,6 +182,32 @@ test("formation previews support readable pacing, seeking and every screen flow 
     await expect(screen).toContainText("50cr");
     await expect(screen).toContainText("200cr");
 
+    for (const setting of [
+      { label: "팀 크레딧", field: "auctionBudget", value: "1500", restore: "1000", scene: "auction", text: "1000 cr → 1500 cr" },
+      { label: "최소·증액 단위", field: "minBid", value: "40", restore: "20", scene: "auction", text: "10 cr → 40 cr" },
+      { label: "입찰 시간(초)", field: "durationSeconds", value: "35", restore: "20", scene: "auction", text: "20초 → 35초" },
+      { label: "낙찰 후 준비 시간(초)", field: "auctionPreparationSeconds", value: "15", restore: "12", scene: "preparation", text: "5초 → 15초" },
+      { label: "입찰 연장 시간(초)", field: "bidExtensionSeconds", value: "0", restore: "8", scene: "auction", text: "5초 → 0초 (연장 끔)" },
+      { label: "전략 준비 시간(초)", field: "strategySeconds", value: "45", restore: "30", scene: "strategy", text: "30초 → 45초" },
+    ]) {
+      const input = dialog.getByRole("spinbutton", { name: setting.label, exact: true });
+      await input.focus();
+      await expect(screen.locator(`[data-preview-highlight="${setting.field}"]`)).toBeVisible();
+      await input.fill(setting.value);
+      await expect(screen).toHaveAttribute("data-screen", setting.scene);
+      await expect(screen.getByRole("status")).toContainText(setting.text);
+      const pausedTitle = await title.textContent();
+      await page.clock.runFor(12000);
+      await expect(title).toHaveText(pausedTitle!);
+      await input.fill(setting.restore);
+    }
+    await play();
+    await expect(screen.locator("[data-preview-highlight]")).toHaveCount(0);
+    await chapter("입찰");
+    await dialog.getByRole("spinbutton", { name: "입찰 연장 시간(초)", exact: true }).fill("8");
+    await expect(preview.getByTestId("auction-preview-timer")).toHaveText("8초");
+    await page.screenshot({ animations: "disabled", path: test.info().outputPath("setting-highlight-preview.png") });
+
     await page.emulateMedia({ reducedMotion: "reduce" });
     await mode.selectOption("random");
     await expect(screen).toHaveAttribute("data-screen", "complete");
@@ -201,6 +227,13 @@ test("formation previews support readable pacing, seeking and every screen flow 
     await preview.scrollIntoViewIfNeeded();
     expect(await screen.locator('[data-preview-player="8"]').evaluate((el) => el.getBoundingClientRect().bottom <= el.closest('[data-testid="formation-preview-screen"]')!.getBoundingClientRect().bottom)).toBe(true);
     await mode.selectOption("auction");
+    await dialog.getByRole("spinbutton", { name: "입찰 시간(초)", exact: true }).fill("40");
+    await expect(screen.getByRole("status")).toContainText("20초 → 40초");
+    await expect(preview.getByTestId("auction-preview-timer")).toHaveText("40초");
+    await preview.scrollIntoViewIfNeeded();
+    const highlightedBox = await screen.locator('[data-preview-highlight="durationSeconds"]').boundingBox();
+    const screenBox = await screen.boundingBox();
+    expect(highlightedBox!.y + highlightedBox!.height).toBeLessThanOrEqual(screenBox!.y + screenBox!.height);
     await chapter("입찰");
     await seek(Number(await timeline.inputValue()) + 1);
     await preview.scrollIntoViewIfNeeded();

@@ -26,7 +26,7 @@ import {
   type BanSettings,
 } from "@/lib/balance/prematch";
 import type { BalanceRoster } from "@/lib/balance/roster-schema";
-import { BalanceFormationPreview } from "./balance-formation-preview";
+import { BalanceFormationPreview, type PreviewSettingFocus, type PreviewSettingField } from "./balance-formation-preview";
 import styles from "./clan-balance-settings.module.css";
 
 export const TEAM_MODE_LABELS = {
@@ -79,6 +79,7 @@ export function ClanBalanceSettings({
 }) {
   const router = useRouter();
   const [draft, setDraft] = useState(settings);
+  const [previewFocus, setPreviewFocus] = useState<PreviewSettingFocus | null>(null);
   const [map, setMap] = useState(mapBan);
   const [hero, setHero] = useState(heroBan);
   const [banDraft, setBanDraft] = useState(banSettings);
@@ -121,6 +122,13 @@ export function ClanBalanceSettings({
   const players = rosterPlayers(roster);
   const names = new Map(pool.map((p) => [p.user_id, p.nickname]));
   const locked = !editable || pending || Boolean(savedRules) || rulesChanged;
+  function focusPreview(field: PreviewSettingField, value = draft[field]) {
+    setPreviewFocus({ field, previousValue: initialRules.settings[field], value });
+  }
+  function changePreviewSetting(field: PreviewSettingField, value: number) {
+    setDraft({ ...draft, [field]: value });
+    focusPreview(field, value);
+  }
   function save() {
     if (locked) return;
     const error = validateBanSettings(banDraft);
@@ -228,7 +236,8 @@ export function ClanBalanceSettings({
                   name="setting-roles"
                   className="mt-1 accent-primary"
                   checked={draft.roles === value}
-                  onChange={() =>
+                  onChange={() => {
+                    setPreviewFocus(null);
                     setDraft({
                       ...draft,
                       roles: value,
@@ -237,8 +246,8 @@ export function ClanBalanceSettings({
                           ? "random"
                           : draft.teams,
                       captains: undefined,
-                    })
-                  }
+                    });
+                  }}
                 />
                 <span>
                   <strong>{label}</strong>
@@ -253,13 +262,14 @@ export function ClanBalanceSettings({
               aria-label="팀원 선발 방식"
               className={field}
               value={draft.teams}
-              onChange={(e) =>
+              onChange={(e) => {
+                setPreviewFocus(null);
                 setDraft({
                   ...draft,
                   teams: e.target.value as FormationSettings["teams"],
                   captains: undefined,
-                })
-              }
+                });
+              }}
             >
               {Object.entries(TEAM_MODE_LABELS)
                 .filter(([key]) => draft.roles === "manual" || key !== "keep")
@@ -271,7 +281,7 @@ export function ClanBalanceSettings({
             </select>
           </fieldset>
             <div className={styles.preview}>
-              <BalanceFormationPreview key={`${draft.roles}:${draft.teams}:${draft.auctionItemsEnabled}`} settings={draft} />
+              <BalanceFormationPreview key={`${draft.roles}:${draft.teams}:${draft.auctionItemsEnabled}`} settings={draft} focus={previewFocus} />
             </div>
           <fieldset disabled={locked || !formationEditable}>
             {["draft", "auction"].includes(draft.teams) ? (
@@ -371,8 +381,9 @@ export function ClanBalanceSettings({
                       max={f.max}
                       step={f.step}
                       value={draft[f.key]}
+                      onFocus={() => focusPreview(f.key)}
                       onChange={(e) =>
-                        setDraft({ ...draft, [f.key]: Number(e.target.value) })
+                        changePreviewSetting(f.key, Number(e.target.value))
                       }
                     />
                   </label>
@@ -380,8 +391,8 @@ export function ClanBalanceSettings({
               </div>
             ) : null}
             {draft.teams === "auction" ? <div className="mt-4 space-y-3 rounded-lg border bg-background/50 p-3">
-              <label className="flex items-center justify-between gap-3 text-sm font-medium">전략 아이템 사용<input type="checkbox" className="size-4 accent-primary" checked={draft.auctionItemsEnabled} onChange={(event) => setDraft({ ...draft, auctionItemsEnabled: event.target.checked })} /></label>
-              {draft.auctionItemsEnabled ? <label className="block text-xs">전략 준비 시간(초)<input type="number" aria-label="전략 준비 시간(초)" min={10} max={120} step={1} className={field} value={draft.strategySeconds} onChange={(event) => setDraft({ ...draft, strategySeconds: Number(event.target.value) })} /></label> : null}
+              <label className="flex items-center justify-between gap-3 text-sm font-medium">전략 아이템 사용<input type="checkbox" className="size-4 accent-primary" checked={draft.auctionItemsEnabled} onChange={(event) => { setPreviewFocus(null); setDraft({ ...draft, auctionItemsEnabled: event.target.checked }); }} /></label>
+              {draft.auctionItemsEnabled ? <label className="block text-xs">전략 준비 시간(초)<input type="number" aria-label="전략 준비 시간(초)" min={10} max={120} step={1} className={field} value={draft.strategySeconds} onFocus={() => focusPreview("strategySeconds")} onChange={(event) => changePreviewSetting("strategySeconds", Number(event.target.value))} /></label> : null}
               <Link href={`/games/${gameSlug}/clan/${clanId}/manage?tab=balance#auction-items`} className="inline-block text-xs font-semibold text-primary underline underline-offset-4">클랜 전략 아이템 관리</Link>
               <p className="text-[11px] text-muted-foreground">활성 아이템을 3개 이상 등록해 주세요. 효과는 운영진이 경기 규칙에 직접 적용합니다.</p>
             </div> : null}
