@@ -47,6 +47,5 @@ export function ArchiveDayTable({ records }: { records: ClanArchiveMatch[] }) {
         </tr>)}{!rows.length && <tr><td colSpan={6} className="px-4 py-8 text-center text-xs text-muted-foreground">집계할 내전 결과가 없습니다.</td></tr>}</tbody>
       </table>
     </div>
-    <p className="border-t px-4 py-3 text-[10px] leading-relaxed text-muted-foreground">무승부는 승률에서 제외하며 연승·연패를 종료합니다. 무효·미기록은 건너뜁니다. 현재 기록은 마지막 출전 기준이며 오름차순은 연패 → 연승 순입니다.</p>
   </aside>;
 }

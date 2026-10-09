@@ -50,16 +50,15 @@ export function IntraClanStats({ model }: { model: ClanStatsPageModel }) {
     </div>
     <div className="grid items-stretch gap-4 min-[800px]:grid-cols-2 min-[1200px]:grid-cols-3">
       <Card size="sm" className="min-w-0"><CardHeader><CardTitle><StatTitle title="맵별 경기" help="선택한 맵 유형 내 경기 비중입니다. 모든 맵을 표시하며 목록을 스크롤해 항목별 수치를 확인할 수 있습니다." /></CardTitle></CardHeader><CardContent className="space-y-4">
-        <div className="min-h-24 space-y-2"><RubberSegment label="맵 유형" labelPosition="top" options={MAP_OPTIONS} value={mapType} onChange={setMapType} /><p className="text-[11px] text-muted-foreground">{loaded.pending ? "—" : maps.reduce((sum, row) => sum + row.value, 0)}경기</p></div>
+        <div className="min-h-16"><RubberSegment label="맵 유형" labelPosition="top" options={MAP_OPTIONS} value={mapType} onChange={setMapType} /></div>
         <StatsDonut rows={maps} label="맵별 경기" unit="경기" showImages={DONUT_IMAGE_PREVIEW} fixedLegend busy={loaded.pending} />
       </CardContent></Card>
       <Card size="sm" className="min-w-0"><CardHeader><CardTitle><StatTitle title="영웅 밴" help="최종 밴 건수의 비중입니다. 한 경기에서 여러 영웅이 밴될 수 있으므로 합계는 경기 수와 다릅니다. 역할 필터 선택 시 해당 역할 내 비중입니다." /></CardTitle></CardHeader><CardContent className="space-y-4">
-        <div className="min-h-24 space-y-2"><RubberSegment label="영웅 역할" labelPosition="top" options={[{ id: "all", label: "전체" }, { id: "tank", label: "돌격", icon: <OverwatchRoleIcon role="tank" /> }, { id: "dps", label: "공격", icon: <OverwatchRoleIcon role="damage" /> }, { id: "support", label: "지원", icon: <OverwatchRoleIcon role="support" /> }]} value={banRole} onChange={setBanRole} />
-        <p className="text-[11px] text-muted-foreground">밴 사용 {loaded.pending ? "—" : stats.banEnabledMatches}경기 · 밴 없음 {loaded.pending ? "—" : stats.noBanMatches}경기</p></div>
+        <div className="min-h-16"><RubberSegment label="영웅 역할" labelPosition="top" options={[{ id: "all", label: "전체" }, { id: "tank", label: "돌격", icon: <OverwatchRoleIcon role="tank" /> }, { id: "dps", label: "공격", icon: <OverwatchRoleIcon role="damage" /> }, { id: "support", label: "지원", icon: <OverwatchRoleIcon role="support" /> }]} value={banRole} onChange={setBanRole} /></div>
         <StatsDonut rows={bans} label="영웅 밴" unit="건" showImages={DONUT_IMAGE_PREVIEW} fixedLegend busy={loaded.pending} />
       </CardContent></Card>
       <Card size="sm" className="min-w-0"><CardHeader><CardTitle><StatTitle title="선호 맵" help="완료 경기의 맵 선정 투표에서 각 후보가 받은 표의 비중입니다. 맵 유형을 선택하면 해당 유형 안의 득표 비중을 표시합니다." /></CardTitle></CardHeader><CardContent className="space-y-4">
-        <div className="min-h-24 space-y-2"><RubberSegment label="맵 유형" labelPosition="top" options={MAP_OPTIONS} value={preferredMapType} onChange={setPreferredMapType} /><p className="text-[11px] text-muted-foreground">{loaded.pending ? "—" : preferredMaps.reduce((sum, row) => sum + row.value, 0)}표</p></div>
+        <div className="min-h-16"><RubberSegment label="맵 유형" labelPosition="top" options={MAP_OPTIONS} value={preferredMapType} onChange={setPreferredMapType} /></div>
         <StatsDonut rows={preferredMaps} label="선호 맵" unit="표" showImages={DONUT_IMAGE_PREVIEW} fixedLegend busy={loaded.pending} />
       </CardContent></Card>
     </div>
