@@ -2779,6 +2779,17 @@ export type Database = {
         Args: { p_limit?: number }
         Returns: number
       }
+      edit_clan_match_record: {
+        Args: {
+          p_actor_id: string
+          p_clan_id: string
+          p_id: string
+          p_operation: string
+          p_record: Json
+          p_revision: string
+        }
+        Returns: string
+      }
       effective_view_alt_account_roles: {
         Args: { p_clan_id: string }
         Returns: string[]
@@ -2852,6 +2863,14 @@ export type Database = {
       read_balance_prediction_pool: {
         Args: { p_session_id: string }
         Returns: Json
+      }
+      read_clan_match_record_corrections: {
+        Args: { p_clan_id: string }
+        Returns: {
+          deleted: boolean
+          id: string
+          payload: Json
+        }[]
       }
       read_clan_prediction_ledger: {
         Args: { p_clan_id: string }

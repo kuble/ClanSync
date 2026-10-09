@@ -10,7 +10,14 @@ export type StoredClanMatch = Pick<
   MatchTable,
   "id" | "played_at" | "match_type" | "status" | "map_label"
 > & {
-  match_players: { user_id: string; team: number }[] | null;
+  match_players: { user_id: string; team: number; role?: ClanMatchPlayer["role"]; m?: number | null; a?: number | null }[] | null;
+  occurred_at?: string;
+  series_id?: string | null;
+  outcome?: ClanMatchRecord["outcome"];
+  banned_heroes?: string[] | null;
+  hero_ban_enabled?: boolean | null;
+  map_candidates?: string[] | null;
+  balance_session_map_votes?: { choice_idx: number }[] | null;
   match_results:
     { winner_team: number | null } | { winner_team: number | null }[] | null;
 };
@@ -42,6 +49,7 @@ export type ClanMatchPlayer = {
 
 export type ClanMatchRecord = {
   id: string;
+  revision?: string;
   series_id: string | null;
   source: "match" | "balance";
   played_at: string;
@@ -103,34 +111,34 @@ export function normalizeClanMatchRecords(
       : match.match_results;
     records.set(match.id, {
       id: match.id,
-      series_id: null,
+      series_id: match.series_id ?? null,
       source: "match",
       played_at: match.played_at,
-      occurred_at: match.played_at,
+      occurred_at: match.occurred_at ?? match.played_at,
       match_type: match.match_type,
       status: "finished",
       map_label: match.map_label,
       match_players: (match.match_players ?? []).map((player) => ({
         ...player,
-        role: null,
-        m: null,
-        a: null,
+        role: player.role ?? null,
+        m: player.m ?? null,
+        a: player.a ?? null,
       })),
       match_results: result,
       formation_mode: null,
       formation_state: null,
-      banned_heroes: null,
-      hero_ban_enabled: null,
-      map_candidates: null,
-      map_votes: null,
+      banned_heroes: match.banned_heroes ?? null,
+      hero_ban_enabled: match.hero_ban_enabled ?? null,
+      map_candidates: match.map_candidates ?? null,
+      map_votes: match.balance_session_map_votes?.map((vote) => vote.choice_idx) ?? null,
       outcome:
-        result === null
+        match.outcome ?? (result === null
           ? "unrecorded"
           : result.winner_team === 1
             ? "team1"
             : result.winner_team === 2
               ? "team2"
-              : "draw",
+              : "draw"),
     });
   }
   for (const session of sessions) {

@@ -46,6 +46,7 @@ async function loadAllStatsRows<T>(
 
 export type ClanArchiveMatch = {
   id: string;
+  revision?: string;
   matchType: string;
   mapLabel: string | null;
   playedAt: string;
@@ -146,6 +147,7 @@ export type ClanStatsPageModel = {
     sampleByDate: Record<string, ClanArchiveMatch[]>;
     maps?: string[];
     deferredDays?: boolean;
+    members?: { userId: string; nickname: string }[];
   };
   permissions: {
     viewPersonalRecords: boolean;
@@ -153,6 +155,7 @@ export type ClanStatsPageModel = {
     isLeader: boolean;
     isStaff: boolean;
     viewMatchRecords: boolean;
+    correctMatchRecords: boolean;
     viewMscore: boolean;
     editMscore: boolean;
     exportCsv: boolean;
@@ -437,7 +440,7 @@ async function loadClanStatsSource(
   // One fresh, request-local snapshot supplies all eight permission checks.
   const can = (permission: ClanPermissionKey) => resolveClanPermission(role, permission, settingsError ? null : settings?.permissions);
   const permissions = {
-    setHofRules: can("set_hof_rules"), viewMatchRecords: can("view_match_records"),
+    setHofRules: can("set_hof_rules"), viewMatchRecords: can("view_match_records"), correctMatchRecords: can("correct_match_records"),
     exportCsv: can("export_csv"), viewSynergy: can("view_synergy_winrate"),
     viewMonthly: can("view_monthly_stats"), viewYearly: can("view_yearly_stats"),
     viewMaps: can("view_map_winrate"), viewMscore: can("view_mscore"), editMscore: can("edit_mscore"),
@@ -459,6 +462,7 @@ async function loadClanStatsSource(
     completedSessions,
     openedSessions,
     { data: nickRows },
+    corrections,
   ] = await Promise.all([
     loadAllStatsRows((from, to) =>
       supabase
@@ -509,10 +513,15 @@ async function loadClanStatsSource(
     scope === "management"
       ? Promise.resolve({ data: [] })
       : supabase.rpc("clan_peer_nicknames", { p_clan_id: clanId }),
+    loadAllStatsRows((from, to) => historyClient.rpc("read_clan_match_record_corrections", { p_clan_id: clanId }).range(from, to)),
   ]);
 
+  const canonicalMatches = new Map((rawMatches as StoredClanMatch[]).map((match) => [match.id, match]));
+  for (const correction of corrections) canonicalMatches.set(correction.id, correction.deleted
+    ? { id: correction.id, status: "draft", played_at: "2000-01-01T00:00:00Z", match_type: "intra", map_label: null, match_players: [], match_results: null }
+    : correction.payload as unknown as StoredClanMatch);
   const records = normalizeClanMatchRecords(
-    rawMatches as StoredClanMatch[],
+    [...canonicalMatches.values()],
     completedSessions,
   );
   return { clan, memberCount, settings, role, permissions, records, completedSessions, openedSessions, nickRows };
@@ -549,7 +558,7 @@ function buildArchive(records: readonly ClanMatchRecord[], nick: Map<string, str
     if (m.match_type !== "intra") continue;
     const date = isoToKstYmd(m.played_at);
     (sampleByDate[date] ??= []).push({
-      id: m.id, matchType: m.match_type, mapLabel: m.map_label, playedAt: m.played_at,
+      id: m.id, revision: m.revision, matchType: m.match_type, mapLabel: m.map_label, playedAt: m.played_at,
       occurredAt: m.occurred_at, source: m.source, outcome: m.outcome, winnerTeam: getWinnerTeam(m),
       players: m.match_players.map((p) => ({ userId: p.user_id, nickname: nick.get(p.user_id) ?? "탈퇴한 멤버", team: p.team, role: p.role, m: viewMscore ? p.m : null, a: viewMscore ? p.a : null })),
     });
@@ -648,12 +657,13 @@ export async function loadClanStatsPeriod(supabase: SupabaseClient<Database>, cl
 export async function loadClanStatsArchive(supabase: SupabaseClient<Database>, clanId: string, day?: string): Promise<ClanStatsDetail | null> {
   const source = await loadClanStatsSource(supabase, clanId, "metadata");
   if (!source?.permissions.viewMatchRecords) return null;
+  const members = source.permissions.correctMatchRecords ? [...buildNickMap(source.nickRows)].map(([userId, nickname]) => ({ userId, nickname })) : undefined;
   if (day) return { kind: "archive", archive: buildArchive(await readStatsRecords(clanId, { day }), buildNickMap(source.nickRows), source.permissions.viewMscore) };
   const { periods } = await readStatsSummary(clanId, ["all"]);
   const archive = periods.all?.archive ?? EMPTY_STATS_AGGREGATE.archive;
   const latest = archive.datesKst[0];
   const initial = latest ? buildArchive(await readStatsRecords(clanId, { day: latest }), buildNickMap(source.nickRows), source.permissions.viewMscore) : { sampleByDate: {} };
-  return { kind: "archive", archive: { ...archive, sampleByDate: initial.sampleByDate, deferredDays: true } };
+  return { kind: "archive", archive: { ...archive, sampleByDate: initial.sampleByDate, deferredDays: true, members } };
 }
 
 async function loadClanStatsOverview(supabase: SupabaseClient<Database>, userId: string, clanId: string, now: Date): Promise<ClanStatsPageModel | null> {
@@ -891,6 +901,7 @@ export async function loadClanStatsPageFromRecords(
       isLeader: role === "leader",
       isStaff: role !== "member",
       viewMatchRecords,
+      correctMatchRecords: source.permissions.correctMatchRecords,
       viewMscore,
       editMscore: source.permissions.editMscore,
       exportCsv,

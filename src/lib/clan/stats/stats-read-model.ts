@@ -46,16 +46,19 @@ export async function readStatsSummary(clanId: string, periods: string[]): Promi
 export async function readStatsRecords(clanId: string, filter: { day?: string; userId?: string }) {
   const client: SupabaseClient<Database> = createServiceRoleClient();
   const matches: StoredClanMatch[] = [], sessions: CompletedBalanceSession[] = [];
+  const revisions = new Map<string, string>();
   for (let offset = 0; ; offset += 500) {
     const { data, error } = await client.rpc("read_clan_stats_records", {
       p_clan_id: clanId, p_day: filter.day, p_user_id: filter.userId, p_offset: offset,
     });
     if (error) throw new Error("통계 기록을 불러오지 못했습니다.", { cause: error });
     for (const row of data ?? []) {
+      const payload = row.payload as unknown as { id: string; _revision?: string };
+      if (payload._revision) revisions.set(payload.id, payload._revision);
       if (row.source === "match") matches.push(row.payload as unknown as StoredClanMatch);
       else sessions.push(row.payload as unknown as CompletedBalanceSession);
     }
     if (!data || data.length < 500) break;
   }
-  return normalizeClanMatchRecords(matches, sessions);
+  return normalizeClanMatchRecords(matches, sessions).map((record) => ({ ...record, revision: revisions.get(record.id) }));
 }
