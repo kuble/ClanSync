@@ -53,6 +53,7 @@ test("경기 결과: 팀 전체 강조·확인 팝업·직접 점수 편집·무
           const bounds = (await outside.boundingBox())!;
           await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
           await expect(page.getByRole("dialog", { name: "내전 기록", exact: true })).toHaveCount(0);
+          await expect(page.getByRole("dialog", { name: "승부예측", exact: true })).toHaveCount(0);
           await page.mouse.click(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
           await expect(input).toBeHidden();
           await expect(scoreButton).toBeFocused();

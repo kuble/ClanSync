@@ -117,8 +117,31 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
       await participantPrediction.getByRole("button", { name: "닫기", exact: true }).click();
     });
 
+    await test.step("승부예측은 호버로 열고 창 밖 이동으로 닫으며 클릭·키보드도 지원", async () => {
+      const tab = spectator.getByRole("button", { name: "승부예측", exact: true });
+      const predictions = spectator.getByRole("dialog", { name: "승부예측", exact: true });
+      await tab.hover();
+      await expect(predictions).toBeVisible();
+      await predictions.getByRole("heading", { name: "승부예측", exact: true }).hover();
+      await expect(predictions).toBeVisible();
+      await spectator.mouse.move(100, 100);
+      await expect(predictions).toBeHidden();
+      await tab.click();
+      await expect(predictions).toBeVisible();
+      await spectator.keyboard.press("Escape");
+      await expect(predictions).toBeHidden();
+      await expect(tab).toBeFocused();
+      const bounds = (await tab.boundingBox())!;
+      await spectator.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+      await expect(predictions).toBeHidden();
+      await tab.press("Enter");
+      await expect(predictions).toBeVisible();
+      await predictions.getByRole("button", { name: "닫기", exact: true }).click();
+      await expect(predictions).toBeHidden();
+    });
+
     await test.step("관전자는 별도 드로워에서 예측하고 변경", async () => {
-      await spectator.getByRole("button", { name: "승부예측", exact: true }).click();
+      await spectator.getByRole("button", { name: "승부예측", exact: true }).hover();
       const predictions = spectator.getByRole("dialog", { name: "승부예측", exact: true });
       await expect(predictions).toBeVisible();
       const readPick = async () => {
@@ -153,6 +176,12 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
       await spectator.screenshot({ path: test.info().outputPath("prediction-drawer-mobile.png"), fullPage: true });
       await predictions.getByRole("button", { name: "닫기", exact: true }).click();
       await expect(predictions).toBeHidden();
+      const tab = spectator.getByRole("button", { name: "승부예측", exact: true });
+      await tab.hover();
+      await expect(predictions).toBeHidden();
+      await tab.click();
+      await expect(predictions).toBeVisible();
+      await predictions.getByRole("button", { name: "닫기", exact: true }).click();
       await expect(spectator.getByRole("button", { name: "점수 조정", exact: true })).toHaveCount(0);
     });
 
