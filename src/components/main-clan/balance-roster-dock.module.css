@@ -7,8 +7,7 @@
 .handle { display: grid; place-items: center; width: 28px; height: 32px; border-radius: 6px; cursor: grab; color: var(--muted-foreground); }
 .handle:active { cursor: grabbing; }
 .handle:hover { background: var(--muted); color: var(--foreground); }
-.handle:focus-visible, .positionSelect:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
-.positionSelect { min-height: 32px; padding: 4px; border: 1px solid var(--border); border-radius: 6px; background: var(--background); font-size: 11px; }
+.handle:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 .members [data-roster-members] { max-height: 320px; overflow-y: auto; }
 .targets { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
 .target { position: absolute; pointer-events: auto; display: grid; place-items: center; border: 2px dashed var(--primary); border-radius: 12px; background: color-mix(in srgb, var(--background) 90%, var(--primary)); color: var(--primary); font-size: 13px; font-weight: 600; }
@@ -18,9 +17,12 @@
 .left { top: 70px; bottom: 70px; left: 0; width: 21%; }
 .right { top: 70px; bottom: 70px; right: 0; width: 21%; }
 @container (min-width: 720px) {
-  .layout:is([data-member-position="left"], [data-member-position="right"]) { display: grid; align-items: start; grid-template-columns: minmax(220px, 28%) minmax(0, 1fr); }
+  .layout:is([data-member-position="left"], [data-member-position="right"]) { display: grid; align-items: stretch; grid-template-columns: minmax(220px, 28%) minmax(0, 1fr); }
   .layout[data-member-position="right"] { grid-template-columns: minmax(0, 1fr) minmax(220px, 28%); }
   .layout[data-member-position="right"] .members { order: 2; }
-  .layout:is([data-member-position="left"], [data-member-position="right"]) .members [data-roster-members] { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 480px; padding: 12px; }
+  .layout:is([data-member-position="left"], [data-member-position="right"]) .members { min-height: 0; contain: size; }
+  .layout:is([data-member-position="left"], [data-member-position="right"]) .members > section { display: flex; flex-direction: column; height: 100%; }
+  .layout:is([data-member-position="left"], [data-member-position="right"]) .members > section > div:first-child { flex-shrink: 0; }
+  .layout:is([data-member-position="left"], [data-member-position="right"]) .members [data-roster-members] { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 0; max-height: none; flex: 1; padding: 12px; }
   .layout:is([data-member-position="left"], [data-member-position="right"]) .members input { width: 100%; }
 }

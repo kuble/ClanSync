@@ -286,13 +286,15 @@ export function ClanBalanceRosterEditor({
         aria-label="참가 가능 클랜원"
       >
         <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
+          <div className="flex items-center gap-2">
+          {handle}
           <h4 className="text-xs font-semibold">
             클랜원{" "}
             <span className="ml-1 tabular-nums text-muted-foreground">
               {availablePool.length}
             </span>
           </h4>
-          {handle}
+          </div>
           <label className="flex h-9 w-full items-center gap-2 rounded-lg border bg-background px-3">
             <Search
               className="size-3.5 shrink-0 text-muted-foreground"

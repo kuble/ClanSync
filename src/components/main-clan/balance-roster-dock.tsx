@@ -21,9 +21,9 @@ export function BalanceRosterDock({ members, children }: {
   const [dragging, setDragging] = useState(false);
   const [target, setTarget] = useState<Position | null>(null);
   const finish = () => { setDragging(false); setTarget(null); };
-  const handle = <div className="flex items-center gap-1">
-    <button type="button" draggable className={styles.handle} aria-label="클랜원 목록 이동" aria-describedby={helpId}
+  const handle = <button type="button" draggable className={styles.handle} aria-label="클랜원 목록 이동" aria-describedby={helpId} aria-expanded={dragging}
       title="끌어서 이동 · 방향키로 배치"
+      onClick={() => { setDragging((value) => !value); setTarget(null); }}
       onDragStart={(event) => {
         event.dataTransfer.setData(DRAG_TYPE, "members");
         event.dataTransfer.effectAllowed = "move";
@@ -36,14 +36,9 @@ export function BalanceRosterDock({ members, children }: {
         if (event.key === "Escape") finish();
       }}>
       <GripVertical className="size-4" aria-hidden="true" />
-    </button>
-    <select aria-label="클랜원 목록 위치" value={position} className={styles.positionSelect}
-      onChange={(event) => setPosition(event.target.value as Position)}>
-      {positions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-    </select>
-  </div>;
+    </button>;
   return <div className={styles.container}>
-    <p id={helpId} className="sr-only">손잡이를 참여자 목록의 위, 왼쪽, 오른쪽, 아래로 끌어 배치하세요. 방향키나 위치 선택으로도 옮길 수 있습니다.</p>
+    <p id={helpId} className="sr-only">손잡이를 참여자 목록의 위, 왼쪽, 오른쪽, 아래로 끌어 배치하세요. 손잡이를 누른 뒤 부착 위치를 선택하거나 방향키로도 옮길 수 있습니다.</p>
     <div className={styles.layout} data-member-position={position}>
       <div className={cn(styles.members, dragging && "opacity-50")}>{members(handle)}</div>
       <div className={styles.board}>

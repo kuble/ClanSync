@@ -16,10 +16,12 @@ test("클랜원 목록 네 방향 부착·빈자리 드래그·교환·되돌리
     const board = panel.locator('[aria-label="출전 명단 편집"]');
     const layout = panel.locator("[data-member-position]");
     const handle = candidates.getByRole("button", { name: "클랜원 목록 이동", exact: true });
-    const position = candidates.getByRole("combobox", { name: "클랜원 목록 위치", exact: true });
     const slot = (key: string) => panel.locator(`[data-roster-slot="${key}"]`);
     const member = (index: number) => candidates.getByRole("button", { name: `${fixture.users[index].nickname} 출전 명단에 추가`, exact: true });
-    await expect(position).toHaveValue("left");
+    await expect(layout).toHaveAttribute("data-member-position", "left");
+    await expect(candidates.getByRole("combobox", { name: "클랜원 목록 위치", exact: true })).toHaveCount(0);
+    const gripBox = await handle.boundingBox(), headingBox = await candidates.getByRole("heading", { name: /^클랜원/ }).boundingBox();
+    expect(gripBox!.x + gripBox!.width).toBeLessThanOrEqual(headingBox!.x);
     const before = await fixture.activeRound();
 
     const checkPosition = async (value: string) => {
@@ -29,6 +31,7 @@ test("클랜원 목록 네 방향 부착·빈자리 드래그·교환·되돌리
       if (value === "right") expect(boardBox!.x + boardBox!.width).toBeLessThanOrEqual(listBox!.x);
       if (value === "top") expect(listBox!.y + listBox!.height).toBeLessThanOrEqual(boardBox!.y);
       if (value === "bottom") expect(boardBox!.y + boardBox!.height).toBeLessThanOrEqual(listBox!.y);
+      if (value === "left" || value === "right") expect(Math.abs(listBox!.height - boardBox!.height)).toBeLessThan(1);
     };
     await checkPosition("left");
     for (const value of ["right", "top", "bottom", "left"]) {
@@ -76,12 +79,14 @@ test("클랜원 목록 네 방향 부착·빈자리 드래그·교환·되돌리
     await page.reload();
     await expect(slot("team2:s1")).toContainText(fixture.users[1].nickname);
     await panel.screenshot({ path: test.info().outputPath("roster-left.png") });
-    await position.selectOption("right");
+    await handle.press("ArrowRight");
+    await checkPosition("right");
     await panel.screenshot({ path: test.info().outputPath("roster-right.png") });
     await handle.press("ArrowDown");
     await checkPosition("bottom");
     await page.setViewportSize({ width: 390, height: 844 });
-    await position.selectOption("left");
+    await handle.click();
+    await panel.getByRole("button", { name: "클랜원 목록 왼쪽에 부착", exact: true }).click();
     const search = candidates.getByRole("textbox", { name: "참가자 닉네임 검색", exact: true });
     await search.fill(fixture.users[0].nickname);
     await expect(member(0)).toBeVisible();
@@ -105,5 +110,11 @@ test("클랜원 목록 네 방향 부착·빈자리 드래그·교환·되돌리
       const saved = parseRoster((await fixture.activeRound()).roster);
       return { ids: rosterAssignedUserIds(saved).sort(), replacement: saved.team2.sup[1] };
     }).toEqual({ ids: fixture.users.filter((_, index) => index !== 1).map((user) => user.id).sort(), replacement: fixture.users[10].id });
+    await checkPosition("left");
+    // No available members: the side panel still matches the participant list.
+    expect((await fixture.service.from("clan_members").delete().eq("clan_id", fixture.clanId).eq("user_id", fixture.users[1].id)).error).toBeNull();
+    await page.reload();
+    await expect(candidates).toContainText("출전 명단에 추가할 클랜원이 없습니다.");
+    await checkPosition("left");
   } finally { await fixture.cleanup(); }
 });
