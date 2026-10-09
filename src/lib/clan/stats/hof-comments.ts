@@ -1,7 +1,17 @@
 export const HOF_COMMENT_RANKINGS = ["rate", "attendance", "appearances", "prediction"] as const;
 export type HofCommentRanking = (typeof HOF_COMMENT_RANKINGS)[number];
 export type HofCommentThread = { clanId: string; ranking: HofCommentRanking; periodKey: string };
-export type HofComment = { id: string; content: string; createdAt: string; nickname: string; canDelete: boolean };
+export const HOF_REACTIONS = [
+  { kind: "like", emoji: "👍", label: "좋아요" },
+  { kind: "heart", emoji: "❤️", label: "하트" },
+  { kind: "laugh", emoji: "😆", label: "웃음" },
+  { kind: "clap", emoji: "👏", label: "박수" },
+  { kind: "surprised", emoji: "😮", label: "놀람" },
+  { kind: "sad", emoji: "😢", label: "슬픔" },
+] as const;
+export type HofReactionKind = (typeof HOF_REACTIONS)[number]["kind"];
+export type HofReaction = { kind: HofReactionKind; count: number; mine: boolean };
+export type HofComment = { id: string; content: string; createdAt: string; nickname: string; canDelete: boolean; reactions: HofReaction[] };
 export const HOF_COMMENT_PAGE_SIZE = 30;
 export const HOF_COMMENT_MAX_LENGTH = 500;
 

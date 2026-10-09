@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
-import { HOF_COMMENT_MAX_LENGTH, HOF_COMMENT_PAGE_SIZE, validHofCommentThread, type HofComment, type HofCommentThread } from "@/lib/clan/stats/hof-comments";
+import { HOF_COMMENT_MAX_LENGTH, HOF_COMMENT_PAGE_SIZE, HOF_REACTIONS, validHofCommentThread, type HofComment, type HofCommentThread, type HofReaction, type HofReactionKind } from "@/lib/clan/stats/hof-comments";
 
 type Failure = { ok: false; error: string };
 type Cursor = { createdAt: string; id: string };
@@ -36,12 +36,14 @@ export async function listHofCommentsAction(thread: HofCommentThread, cursor: Cu
   if (result.error || names.error) return { ok: false, error: "반응을 불러오지 못했습니다. 다시 시도해 주세요." };
   const nicknames = new Map(names.data.map((row) => [row.user_id, row.nickname]));
   const rows = result.data.slice(0, HOF_COMMENT_PAGE_SIZE);
+  const reactions = await readReactions(ctx.supabase, rows.map((row) => row.id));
+  if (!reactions) return { ok: false, error: "반응을 불러오지 못했습니다. 다시 시도해 주세요." };
   const last = rows.at(-1);
   return {
     ok: true,
     comments: rows.map((row) => ({ id: row.id, content: row.content, createdAt: row.created_at,
       nickname: row.author_id ? nicknames.get(row.author_id) ?? "이전 멤버" : "탈퇴한 멤버",
-      canDelete: ctx.isStaff || row.author_id === ctx.user.id })),
+      canDelete: ctx.isStaff || row.author_id === ctx.user.id, reactions: reactions.get(row.id) ?? [] })),
     nextCursor: result.data.length > HOF_COMMENT_PAGE_SIZE && last ? { createdAt: last.created_at, id: last.id } : null,
   };
 }
@@ -56,7 +58,36 @@ export async function addHofCommentAction(thread: HofCommentThread, content: str
     .select("id, content, created_at").single();
   if (error) return { ok: false, error: "댓글을 등록하지 못했습니다. 다시 시도해 주세요." };
   const { data: profile } = await ctx.supabase.from("users").select("nickname").eq("id", ctx.user.id).maybeSingle();
-  return { ok: true, comment: { id: data.id, content: data.content, createdAt: data.created_at, nickname: profile?.nickname ?? "나", canDelete: true } };
+  return { ok: true, comment: { id: data.id, content: data.content, createdAt: data.created_at, nickname: profile?.nickname ?? "나", canDelete: true, reactions: [] } };
+}
+
+async function readReactions(supabase: SupabaseClient<Database>, commentIds: string[]) {
+  const grouped = new Map<string, HofReaction[]>();
+  if (!commentIds.length) return grouped;
+  const { data, error } = await supabase.rpc("list_hof_comment_reactions", { p_comment_ids: commentIds });
+  if (error) return null;
+  for (const row of data) {
+    const option = HOF_REACTIONS.find(({ kind }) => kind === row.kind);
+    if (!option) continue;
+    const entries = grouped.get(row.comment_id) ?? [];
+    entries.push({ kind: option.kind, count: Number(row.total), mine: row.mine });
+    grouped.set(row.comment_id, entries);
+  }
+  return grouped;
+}
+
+export async function setHofCommentReactionAction(thread: HofCommentThread, commentId: string, kind: HofReactionKind | null): Promise<Failure | { ok: true; reactions: HofReaction[] }> {
+  if (typeof commentId !== "string" || !uuid.test(commentId) || (kind !== null && !HOF_REACTIONS.some((option) => option.kind === kind))) return denied;
+  const ctx = await threadContext(thread);
+  if (!ctx) return denied;
+  const { data: comment, error: lookupError } = await ctx.supabase.from("clan_hof_comments").select("id")
+    .eq("id", commentId).eq("clan_id", thread.clanId).eq("ranking", thread.ranking).eq("period_key", thread.periodKey).maybeSingle();
+  if (lookupError || !comment) return denied;
+  const { error } = await ctx.supabase.rpc("set_hof_comment_reaction", { p_comment_id: commentId, ...(kind === null ? {} : { p_kind: kind }) });
+  if (error) return { ok: false, error: "공감을 저장하지 못했습니다. 다시 시도해 주세요." };
+  const reactions = await readReactions(ctx.supabase, [commentId]);
+  if (!reactions) return { ok: false, error: "공감 결과를 확인하지 못했습니다. 새로고침으로 확인해 주세요." };
+  return { ok: true, reactions: reactions.get(commentId) ?? [] };
 }
 
 export async function deleteHofCommentAction(thread: HofCommentThread, commentId: string): Promise<Failure | { ok: true }> {

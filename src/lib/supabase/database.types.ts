@@ -948,6 +948,39 @@ export type Database = {
           },
         ]
       }
+      clan_hof_comment_reactions: {
+        Row: {
+          comment_id: string
+          kind: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          kind: string
+          user_id?: string
+        }
+        Update: {
+          comment_id?: string
+          kind?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_hof_comment_reactions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "clan_hof_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_hof_comment_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_hof_comments: {
         Row: {
           author_id: string | null
@@ -2815,6 +2848,15 @@ export type Database = {
           user_id: string
         }[]
       }
+      list_hof_comment_reactions: {
+        Args: { p_comment_ids: string[] }
+        Returns: {
+          comment_id: string
+          kind: string
+          mine: boolean
+          total: number
+        }[]
+      }
       maint_cancel_poll_notifications_past_deadline: {
         Args: never
         Returns: undefined
@@ -3036,6 +3078,10 @@ export type Database = {
           p_kakao: boolean
           p_url?: string
         }
+        Returns: undefined
+      }
+      set_hof_comment_reaction: {
+        Args: { p_comment_id: string; p_kind?: string }
         Returns: undefined
       }
       submit_balance_ban_vote: {
