@@ -148,10 +148,11 @@ export function ClanBalancePredictionClient({
   );
 }
 
-export function ClanBalanceMatchOutcomeClient({ gameSlug, clanId, sessionId, roster, pool, disabled, snapshot, renderScore }: {
+export function ClanBalanceMatchOutcomeClient({ gameSlug, clanId, sessionId, roster, pool, disabled, snapshot, renderScore, endSessionControl }: {
   gameSlug: string; clanId: string; sessionId: string; roster: BalanceRoster;
   pool: readonly { user_id: string; nickname: string }[];
   disabled: boolean; snapshot?: import("@/lib/balance/ma-snapshot").MaSnapshot; renderScore?: (userId: string) => import("react").ReactNode;
+  endSessionControl?: import("react").ReactNode;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -175,9 +176,13 @@ export function ClanBalanceMatchOutcomeClient({ gameSlug, clanId, sessionId, ros
     <ClanBalanceRosterBoard roster={roster} pool={pool} outcome={outcome ?? "pending"}
       onTeamSelect={choose} selectionDisabled={pending || disabled} snapshot={snapshot} renderScore={renderScore}
       showPlayerCardScore={Boolean(snapshot)} showPlayerCardInfo={false} showTeamComparisonSummary={false} showPlayerSessionSummary={false} />
-    <section className="flex items-center justify-center gap-2" aria-label="다른 경기 결과">
+    <section className="flex flex-wrap items-center justify-between gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]" aria-label="경기 결과와 세션 종료">
+      <div className="justify-self-start">{endSessionControl}</div>
+      <div className="flex items-center gap-2">
       <Button variant="ghost" size="sm" disabled={pending || disabled} onClick={() => choose("draw")}><Equal className="size-4" aria-hidden="true" />무승부</Button>
       <Button variant="ghost" size="sm" disabled={pending || disabled} onClick={() => choose("void")}><RotateCcw className="size-4" aria-hidden="true" />무효 · 재경기</Button>
+      </div>
+      <span className="hidden sm:block" aria-hidden="true" />
     </section>
     <Dialog open={confirmOpen} onOpenChange={(open) => { if (!pending) { setConfirmOpen(open); if (!open) setOutcome(null); } }}>
       <DialogContent className="sm:max-w-sm"><DialogHeader><DialogTitle>{label}로 확정할까요?</DialogTitle><DialogDescription>{outcome === "void" ? "전적·예측 보상에서 제외됩니다." : "확정한 결과는 변경할 수 없습니다."}</DialogDescription></DialogHeader>

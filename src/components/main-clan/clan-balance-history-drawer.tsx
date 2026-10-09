@@ -31,6 +31,7 @@ type Props = {
   pool: readonly { user_id: string; nickname: string }[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  docked?: boolean;
 };
 
 const ROLE_LABEL = { tank: "탱커", dmg: "딜러", sup: "힐러" };
@@ -480,6 +481,7 @@ function HistoryContent({
 export function ClanBalanceHistoryDrawer({
   open,
   onOpenChange,
+  docked = false,
   ...props
 }: Props) {
   const tab = useRef<HTMLButtonElement>(null);
@@ -498,7 +500,7 @@ export function ClanBalanceHistoryDrawer({
         pointer.current = { x: event.clientX, y: event.clientY };
         if (!suppressHover.current && window.matchMedia("(min-width: 1024px) and (hover: hover) and (pointer: fine)").matches) onOpenChange(true);
       }} onMouseLeave={() => { suppressHover.current = false; }} onClick={() => { suppressHover.current = false; onOpenChange(true); }}
-        className={cn("fixed right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-xl border border-primary/25 bg-background/95 px-2 py-3 text-xs font-semibold text-primary shadow-lg focus-visible:outline-2 focus-visible:outline-ring", open && "invisible pointer-events-none")}>
+        className={cn("flex flex-col items-center gap-2 rounded-l-xl border border-primary/25 bg-background/95 px-2 py-3 text-xs font-semibold text-primary shadow-lg focus-visible:outline-2 focus-visible:outline-ring", !docked && "fixed right-3 top-1/2 z-40 -translate-y-1/2", open && "invisible pointer-events-none")}>
         <History className="size-4" aria-hidden="true" /><span className="[writing-mode:vertical-rl]">내전 기록</span>
       </button> : null}
     <Sheet open={open} onOpenChange={changeOpen}>

@@ -12,7 +12,7 @@ export function ClanBalancePredictionDrawer({ isParticipant, outcome, ...props }
   outcome: Database["public"]["Enums"]["balance_match_outcome"];
 }) {
   return <Sheet>
-    <SheetTrigger render={<Button variant="outline" size="sm" />}><Trophy className="size-4" aria-hidden="true" />승부예측</SheetTrigger>
+    <SheetTrigger render={<Button variant="ghost" aria-label="승부예측" data-testid="balance-prediction-tab" className="h-auto flex-col gap-2 rounded-l-xl rounded-r-none border border-primary/25 bg-background/95 px-2 py-3 text-xs font-semibold text-primary shadow-lg" />}><Trophy className="size-4" aria-hidden="true" /><span className="[writing-mode:vertical-rl]">승부예측</span></SheetTrigger>
     <SheetContent className="overflow-y-auto data-[side=right]:w-full data-[side=right]:sm:max-w-md">
       <SheetHeader><SheetTitle>승부예측</SheetTitle><SheetDescription>관전 중인 멤버가 블루 승·레드 승·무승부를 예측합니다.</SheetDescription></SheetHeader>
       <div className="px-4 pb-6">

@@ -60,8 +60,15 @@ test("경기 결과: 팀 전체 강조·확인 팝업·직접 점수 편집·무
         await expect.poll(async () => (await fixture.activeRound(room.roomId)).ma_snapshot).toMatchObject({ [ids[1]]: { m: -10 }, [ids[6]]: { m: 10 } });
         const bannerBounds = (await panel.getByTestId("balance-match-map").boundingBox())!;
         const predictionBounds = (await panel.getByRole("button", { name: "승부예측", exact: true }).boundingBox())!;
+        const historyBounds = (await panel.getByRole("button", { name: "내전 기록 열기", exact: true }).boundingBox())!;
         expect(bannerBounds.x).toBeLessThan(predictionBounds.x);
-        expect(Math.abs((bannerBounds.y + bannerBounds.height / 2) - (predictionBounds.y + predictionBounds.height / 2))).toBeLessThan(3);
+        expect(predictionBounds.y).toBeGreaterThan(historyBounds.y + historyBounds.height);
+        expect(Math.abs(predictionBounds.x - historyBounds.x)).toBeLessThan(2);
+        const end = result.getByRole("button", { name: "세션 종료", exact: true });
+        await expect(end).toBeDisabled();
+        const endBounds = (await end.boundingBox())!;
+        const drawBounds = (await result.getByRole("button", { name: "무승부", exact: true }).boundingBox())!;
+        expect(Math.abs((endBounds.y + endBounds.height / 2) - (drawBounds.y + drawBounds.height / 2))).toBeLessThan(3);
         await page.setViewportSize({ width: 390, height: 844 });
         await scoreButton.click();
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
@@ -113,6 +120,10 @@ test("경기 결과: 팀 전체 강조·확인 팝업·직접 점수 편집·무
       if (outcome === "team1" || outcome === "team2") await expect(panel.getByLabel(outcome === "team1" ? "1팀 승리" : "2팀 승리", { exact: true })).toBeVisible();
       if (outcome === "void") {
         await panel.screenshot({ path: test.info().outputPath("match-result-void-mobile.png") });
+        await panel.getByRole("button", { name: "세션 종료", exact: true }).click();
+        const closeSession = page.getByRole("dialog", { name: "내전을 종료할까요?", exact: true });
+        await expect(closeSession).toBeVisible();
+        await closeSession.getByRole("button", { name: "돌아가기", exact: true }).click();
         await page.getByRole("button", { name: "내전 기록 열기", exact: true }).click();
         const history = page.getByRole("dialog", { name: "내전 기록", exact: true });
         await expect(history.locator("tbody tr").filter({ hasText: fixture.users[0].nickname })).toContainText("1/1/1");

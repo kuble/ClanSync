@@ -103,6 +103,7 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
         await expect(slots).toHaveCount(10);
         for (const user of fixture.users.slice(0, 10)) await expect(slots.filter({ hasText: user.nickname })).toHaveCount(1);
         await expect(live.getByRole("button", { name: /평가 점수 수정/ })).toHaveCount(view === page ? 10 : 0);
+        await expect(slots.first()).toBeVisible();
         await slots.first().hover({ force: true });
         await expect(view.getByRole("tooltip").filter({ hasText: "이번 세션 전적" })).toHaveCount(0);
         await expect(live.getByRole("region", { name: "승부예측", exact: true })).toHaveCount(0);

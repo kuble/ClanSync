@@ -319,15 +319,25 @@ export function ClanBalanceSessionPanel({
           stage={guideStage}
         />
       ) : null}
-      {canViewHistory ? <ClanBalanceHistoryDrawer
-        scope={historyScope}
-        open={historyOpen}
-        onOpenChange={setHistoryOpen}
-        gameSlug={gameSlug}
-        clanId={clanId}
-        currentSeriesId={series?.id ?? null}
-        pool={rosterPool}
-      /> : null}
+      <div className="fixed right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-stretch gap-2" data-testid="balance-drawer-shortcuts">
+        {canViewHistory ? <ClanBalanceHistoryDrawer
+          docked
+          scope={historyScope}
+          open={historyOpen}
+          onOpenChange={setHistoryOpen}
+          gameSlug={gameSlug}
+          clanId={clanId}
+          currentSeriesId={series?.id ?? null}
+          pool={rosterPool}
+        /> : null}
+        {session?.phase === "match_live" && !flash && planPremium && settings.predictionEnabled ? <ClanBalancePredictionDrawer
+          key={session.id}
+          gameSlug={gameSlug} clanId={clanId} sessionId={session.id}
+          myPickTeam={myPickTeam} predictionCount={balancePredictions.length}
+          deadlineIso={session.prediction_deadline_at}
+          outcome={session.match_outcome} isParticipant={isRosterParticipant}
+        /> : null}
+      </div>
       {session && canManage && settingsOpen ? (
         <ClanBalanceSettings
           key={session.id}
@@ -683,13 +693,6 @@ export function ClanBalanceSessionPanel({
                     )}
                     {outcomeLabel ?? "경기 진행 중"}
                   </span>
-                  {!flash && planPremium && settings.predictionEnabled ? <ClanBalancePredictionDrawer
-                    key={session.id}
-                    gameSlug={gameSlug} clanId={clanId} sessionId={session.id}
-                    myPickTeam={myPickTeam} predictionCount={balancePredictions.length}
-                    deadlineIso={session.prediction_deadline_at}
-                    outcome={session.match_outcome} isParticipant={isRosterParticipant}
-                  /> : null}
                   </div>
                 </div>
                 {session.banned_heroes?.length ? (
@@ -712,6 +715,7 @@ export function ClanBalanceSessionPanel({
                     key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id}
                     roster={rosterData} pool={rosterPool} disabled={false}
                     snapshot={canViewScores ? maForUi : undefined} renderScore={renderMatchScore}
+                    endSessionControl={endSessionControl}
                   /> : (
                   <ClanBalanceRosterBoard
                     roster={rosterData}
@@ -724,32 +728,30 @@ export function ClanBalanceSessionPanel({
                     outcome={session.match_outcome}
                   />
                   )}
-                  {flash || (canManage && session.match_outcome !== "pending") ? <div className="space-y-3">
-                    {flash ? <p className="text-xs text-muted-foreground">깜짝 내전은 세션 종료 후 기록을 남기지 않으며 코인 보상을 지급하지 않습니다.</p> : null}
-                    {canManage && session.match_outcome !== "pending" ? (
-                      <Button
-                        className="w-full"
-                        disabled={pending}
-                        onClick={() =>
-                          runAction("다음 경기를 열었습니다.", () =>
-                            nextBalanceRoundAction(
-                              gameSlug,
-                              clanId,
-                              session.id,
-                            ),
-                          )
-                        }
-                      >
-                        다음 경기
-                      </Button>
-                    ) : null}
+                  {canManage && session.match_outcome !== "pending" ? <div className="flex items-center justify-between gap-2">
+                    {endSessionControl}
+                    <Button
+                      disabled={pending}
+                      onClick={() =>
+                        runAction("다음 경기를 열었습니다.", () =>
+                          nextBalanceRoundAction(
+                            gameSlug,
+                            clanId,
+                            session.id,
+                          ),
+                        )
+                      }
+                    >
+                      다음 경기
+                    </Button>
                   </div> : null}
+                  {flash ? <p className="text-xs text-muted-foreground">깜짝 내전은 세션 종료 후 기록을 남기지 않으며 코인 보상을 지급하지 않습니다.</p> : null}
                 </div>
               </div>
             ) : null}
           </div>
         )}
-        {session && session.phase !== "editing" ? <div className="px-5 pb-3">{endSessionControl}</div> : null}
+        {session && session.phase !== "editing" && session.phase !== "match_live" ? <div className="px-5 pb-3">{endSessionControl}</div> : null}
       </section>
     </div>
   );
