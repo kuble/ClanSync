@@ -98,6 +98,63 @@ async function applyAndSelectMap(panel: Locator) {
   await expect(panel).toHaveAttribute("data-balance-phase", "match_live", { timeout: 20_000 });
 }
 
+test("편성 완료 확인이 늦어져도 편집 보드 없이 경기로 전환한다", async ({ page }) => {
+  test.setTimeout(180_000);
+  const fixture = await createIsolatedBalanceFixture(10);
+  let tickRequests = 0;
+  let releaseTick!: () => void;
+  const heldTick = new Promise<void>((resolve) => { releaseTick = resolve; });
+  try {
+    await loginIsolatedBalanceUser(page, fixture.users[0]);
+    await createAndEnterBalanceRoom(page, fixture.path);
+    const panel = page.getByTestId("clan-balance-session-panel");
+    await settings(page, panel, "keep");
+    await panel.getByTestId("balance-editor-map").click();
+    const mapPicker = page.getByRole("dialog", { name: "경기 맵 선택", exact: true });
+    await mapPicker.getByRole("button", { name: "부산 선택", exact: true }).click();
+    await expect(mapPicker).toBeHidden();
+    await expect.poll(async () => (await fixture.activeRound()).resolved_map_label).toBe("부산");
+    const candidates = panel.getByRole("region", { name: "참가 가능 클랜원" });
+    for (const user of fixture.users) {
+      await candidates.getByRole("button", { name: `${user.nickname} 출전 명단에 추가`, exact: true }).click();
+    }
+
+    // Hold the server acknowledgement so the transition is observable even on
+    // a fast connection. The page must keep its retry worker without the board.
+    await page.route("**/balance?room=*", async (route) => {
+      if (route.request().method() === "POST" && route.request().postData()?.includes('"type":"tick"')) {
+        tickRequests++;
+        await heldTick;
+      }
+      await route.continue();
+    });
+    await panel.getByRole("button", { name: "다음 단계", exact: true }).click();
+    await expect.poll(() => tickRequests).toBe(1);
+    await expect(panel).toHaveAttribute("data-formation-transition", "true");
+    await expect(panel.getByRole("heading", { name: /경기 준비.*경기 1/ })).toBeVisible();
+    await expect(panel.locator("[data-balance-guide=board]")).toHaveCount(0);
+    await expect(panel.getByTestId("balance-editor-map")).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: "명단 수정", exact: true })).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: "경기 설정", exact: true })).toHaveCount(0);
+    await expect(panel.getByTestId("balance-formation")).toContainText("경기 준비 중…");
+    const completed = await fixture.activeRound();
+    expect((completed.formation_state as unknown as FormationState).appliedAt).toBeUndefined();
+    expect(tickRequests).toBe(1);
+
+    releaseTick();
+    await expect(panel).toHaveAttribute("data-balance-phase", "match_live", { timeout: 20_000 });
+    await expect(panel).not.toHaveAttribute("data-formation-transition", "true");
+    await expect(panel).toContainText("부산");
+    const live = await fixture.activeRound();
+    expect(live.roster).toEqual(completed.roster);
+    expect(live.formation_state).toEqual({ ...(completed.formation_state as Record<string, unknown>), appliedAt: expect.any(Number) });
+  } finally {
+    releaseTick();
+    await page.unrouteAll({ behavior: "wait" });
+    await fixture.cleanup();
+  }
+});
+
 test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·자동 전환·기록", async ({
   page,
   browser,

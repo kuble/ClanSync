@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useState, useTransition, type ReactNode } from "react";
+import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Crown, Pause, Play } from "lucide-react";
+import { Crown, LoaderCircle, Pause, Play } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { updateFormationAction } from "@/app/actions/clan-balance-formation";
@@ -32,6 +32,7 @@ export function ClanBalanceFormation({
   const [pending, start] = useTransition();
   const [progressError, setProgressError] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
+  const clockAttempt = useRef<string | null>(null);
   const revealEnd = state?.draw && (state.draw.roleMode === "lottery" || state.mode === "random")
     ? state.draw.startedAt + state.draw.durationMs : 0;
   const deadline = state ? getFormationDeadline(state) : null;
@@ -48,17 +49,23 @@ export function ClanBalanceFormation({
     if (!due || pending) return;
     // Wait for the action and its refreshed props before checking the clock again.
     // Repeated refreshes with an old revision can keep the new screen suspended.
-    const timer = setTimeout(() => start(async () => {
-      try {
-        const result = await updateFormationAction(gameSlug, clanId, roundId, revision, { type: "tick" });
-        setProgressError(result.ok ? null : result.error);
-        router.refresh();
-      } catch {
-        setProgressError("연결을 확인하고 있습니다. 복구되면 자동으로 이어집니다.");
-      }
-    }), 1500);
+    const key = `${roundId}:${revision}:${deadline}:${retry}`;
+    // Wake immediately at a new deadline; only unchanged/failed checks back off.
+    const delay = clockAttempt.current === key ? 1500 : 0;
+    const timer = setTimeout(() => {
+      clockAttempt.current = key;
+      start(async () => {
+        try {
+          const result = await updateFormationAction(gameSlug, clanId, roundId, revision, { type: "tick" });
+          setProgressError(result.ok ? null : result.error);
+          router.refresh();
+        } catch {
+          setProgressError("연결을 확인하고 있습니다. 복구되면 자동으로 이어집니다.");
+        }
+      });
+    }, delay);
     return () => clearTimeout(timer);
-  }, [due, pending, gameSlug, clanId, roundId, revision, router, retry]);
+  }, [due, pending, gameSlug, clanId, roundId, revision, deadline, router, retry]);
 
   function run(command: FormationCommand) {
     start(async () => {
@@ -86,9 +93,9 @@ export function ClanBalanceFormation({
     </Button> : <p className="text-xs text-muted-foreground">운영진이 편성을 준비하고 있습니다.</p>}
   </section>;
 
-  if (state.stage === "complete") return <section data-testid="balance-formation" data-balance-guide="primary" className="order-last flex flex-wrap items-center justify-between gap-3">
+  if (state.stage === "complete") return <section data-testid="balance-formation" data-balance-guide="primary" className={cn("order-last flex flex-wrap items-center justify-between gap-3", !revealing && "justify-center py-10")}>
     {endSessionControl ?? <span />}
-    {progressError ? <div role="status" className="space-y-2 text-xs text-muted-foreground"><p>{progressError}</p><Button variant="outline" onClick={() => setRetry((value) => value + 1)}>다음 단계 다시 시도</Button></div> : <p role="status" className="text-xs text-muted-foreground">{revealing ? "현재 화면에서 추첨 결과를 공개하고 있습니다." : "다음 단계로 이동하고 있습니다."}</p>}
+    {progressError ? <div role="status" className="space-y-2 text-xs text-muted-foreground"><p>{progressError}</p><Button variant="outline" onClick={() => setRetry((value) => value + 1)}>다음 단계 다시 시도</Button></div> : <p role="status" className="flex items-center gap-2 text-xs text-muted-foreground">{revealing ? "현재 화면에서 추첨 결과를 공개하고 있습니다." : <><LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />경기 준비 중…</>}</p>}
   </section>;
 
   const turn = state.stage === "draft" ? draftTurn(state) : null;

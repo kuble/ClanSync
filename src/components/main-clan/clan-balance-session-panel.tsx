@@ -187,6 +187,14 @@ export function ClanBalanceSessionPanel({
       formation?.auction?.deadline ?? 0,
     ),
   );
+  const formationRevealEnd = formation?.draw &&
+    (formation.draw.roleMode === "lottery" || formation.mode === "random")
+    ? formation.draw.startedAt + formation.draw.durationMs : 0;
+  const awaitingFormation = Boolean(
+    session?.phase === "editing" && formation?.stage === "complete" &&
+    formation.appliedAt === undefined && formation.pausedAt === null &&
+    presentationNow >= formationRevealEnd,
+  );
   const settings = parseFormationSettings(session?.formation_settings);
   async function flushRoster() {
     const editor = rosterRef.current;
@@ -281,7 +289,7 @@ export function ClanBalanceSessionPanel({
   const samplePlayerIds = sampleScores ? rosterPool.filter((member) => !scores[member.user_id]).map((member) => member.user_id) : [];
   const scoreControl = canViewScores ? <ScoreModeToggle value={scoreMode} onChange={setScoreMode} premium={planPremium} /> : null;
   const renderInsights = (map: string | null, roster = rosterData, showMap = false) => canViewScores && !flash ? <BalanceTeamInsights roster={roster} scores={analysisContext ? contextualScores(baseScores, analysisContext, roster, map, formation?.players) : displayScores} mode={scoreMode} map={map} premium={planPremium} compact={!showMap} showMap={showMap} sample={sampleScores} /> : null;
-  const editorMap = session?.phase === "editing" && !mapScreen && !session.map_ban_enabled ?
+  const editorMap = session?.phase === "editing" && !mapScreen && !awaitingFormation && !session.map_ban_enabled ?
     <BalanceEditorMap key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id} selectedMap={session.resolved_map_label} canManage={canManage && !busyFormation && !pending} beforeSelect={flushRoster} /> : null;
 
   return (
@@ -289,6 +297,7 @@ export function ClanBalanceSessionPanel({
       className="space-y-5"
       data-testid="clan-balance-session-panel"
       data-balance-phase={session?.phase ?? "none"}
+      data-formation-transition={awaitingFormation ? "true" : undefined}
     >
       <Dialog open={confirmEnd} onOpenChange={(open) => { if (!pending) setConfirmEnd(open); }}>
         <DialogContent><DialogHeader><DialogTitle>내전을 종료할까요?</DialogTitle><DialogDescription>{flash ? "깜짝 내전의 모든 경기·참여·점수·투표 기록이 삭제되며 복구할 수 없습니다." : "현재 세션을 종료합니다. 정규 내전 기록은 보존됩니다."}</DialogDescription></DialogHeader>
@@ -385,15 +394,17 @@ export function ClanBalanceSessionPanel({
                   ? "맵 투표"
                   : session?.phase === "hero_ban"
                     ? "영웅 밴"
-                    : mapScreen
-                      ? session?.resolved_map_label
-                        ? "경기 준비"
-                        : session?.map_ban_enabled
-                          ? "맵 유형 선택"
-                          : "맵 선택"
-                      : canManage
-                        ? "밸런스 편집"
-                        : "팀 편성"}
+                    : awaitingFormation
+                      ? "경기 준비"
+                      : mapScreen
+                        ? session?.resolved_map_label
+                          ? "경기 준비"
+                          : session?.map_ban_enabled
+                            ? "맵 유형 선택"
+                            : "맵 선택"
+                        : canManage
+                          ? "밸런스 편집"
+                          : "팀 편성"}
               {session ? (
                 <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                   경기 {session.round_number}
@@ -424,6 +435,7 @@ export function ClanBalanceSessionPanel({
                 variant="ghost"
                 aria-label="화면 안내"
                 title="화면 안내"
+                disabled={awaitingFormation}
                 onClick={() => setGuideOpen(true)}
               >
                 <CircleHelp className="size-4" />
@@ -432,6 +444,7 @@ export function ClanBalanceSessionPanel({
             {session &&
             canManage &&
             !mapScreen &&
+            !awaitingFormation &&
             session.phase !== "match_live" ? (
               <Button
                 size="icon"
@@ -488,7 +501,7 @@ export function ClanBalanceSessionPanel({
         ) : (
           <div className={cn("px-4 pt-2 sm:px-6", session.phase === "match_live" ? "pb-2 sm:pb-3" : "pb-4 sm:pb-6")}>
             {editorMap && !(canManage && !formation) ? <div className="mb-3 max-w-sm">{editorMap}</div> : null}
-            {session.phase === "editing" && !mapScreen && !(canManage && !formation) ? (
+            {session.phase === "editing" && !mapScreen && !awaitingFormation && !(canManage && !formation) ? (
               <div className="flex items-center justify-between gap-2">
                 {scoreControl ?? <span />}
                 {canManage && formation && session.phase === "editing" && !mapScreen ? (
@@ -503,7 +516,7 @@ export function ClanBalanceSessionPanel({
             ) : null}
             {session.phase === "editing" && !mapScreen ? (
               <div className="flex flex-col gap-3">
-                <div data-balance-guide="board" className="order-2">
+                {!awaitingFormation ? <div data-balance-guide="board" className="order-2">
                   {canManage && !formation ? (
                     <ClanBalanceRosterEditor
                       ref={rosterRef}
@@ -554,7 +567,7 @@ export function ClanBalanceSessionPanel({
                       playerCardInfo={settings.playerCardInfo}
                     />
                   )}
-                </div>
+                </div> : null}
                 {isRosterParticipant &&
                 !formation &&
                 settings.roles === "lottery" ? (
