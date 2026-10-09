@@ -32,14 +32,15 @@ test("formation previews support readable pacing, seeking and every screen flow 
     const panel = page.getByTestId("balance-settings-panel");
     const previewBox = await preview.boundingBox();
     const panelBox = await panel.boundingBox();
+    const normalScreenHeight = (await screen.boundingBox())!.height;
     expect(previewBox!.x + previewBox!.width).toBeLessThan(panelBox!.x);
     expect(previewBox!.y).toBeGreaterThanOrEqual(0);
     expect(previewBox!.y + previewBox!.height).toBeLessThanOrEqual(page.viewportSize()!.height);
 
     await expect(screen).toHaveAttribute("data-screen", "manual");
-    await page.clock.runFor(4000);
+    await page.clock.runFor(3800);
     await expect(title).toHaveText("수동 명단 확인");
-    await page.clock.runFor(2000);
+    await page.clock.runFor(200);
     await expect(title).toHaveText("역할 인원 확인");
     await seek(0);
     await page.clock.runFor(12000);
@@ -50,7 +51,7 @@ test("formation previews support readable pacing, seeking and every screen flow 
     await chapter("결과");
     await expectTeams();
     await play();
-    await page.clock.runFor(6000);
+    await page.clock.runFor(4000);
     await expect(title).toHaveText("수동 명단 확인");
 
     await mode.selectOption("random");
@@ -65,7 +66,7 @@ test("formation previews support readable pacing, seeking and every screen flow 
 
     await dialog.getByRole("radio", { name: /자동 배정/ }).check();
     await expect(screen).toHaveAttribute("data-screen", "preference");
-    await page.clock.runFor(4000);
+    await page.clock.runFor(3800);
     await expect(title).toHaveText("내 선호 역할 선택");
     await seek(1);
     await expect(screen.locator("[data-preview-preference]").first()).toHaveAttribute("data-preview-preference", "sup");
@@ -77,13 +78,13 @@ test("formation previews support readable pacing, seeking and every screen flow 
     await page.clock.runFor(2000);
     expect(await screen.locator('[data-revealed="false"] strong').allTextContents()).toEqual(frozenNames);
     await play();
-    await page.clock.runFor(400);
+    await page.clock.runFor(200);
     expect(await screen.locator('[data-revealed="false"] strong').allTextContents()).not.toEqual(frozenNames);
-    await page.clock.runFor(600);
+    await page.clock.runFor(200);
     await expect(title).toHaveText("추첨 발표");
     await expect(screen.locator('[data-revealed="true"]')).toHaveCount(1);
     await expect(preview.getByTestId("formation-preview-step")).toHaveText("4 / 5");
-    await page.clock.runFor(2400);
+    await page.clock.runFor(1000);
     await expect(screen.locator('[data-preview-player="8"]')).toHaveAttribute("data-preview-team", "B");
     await expect(screen.locator('[data-preview-player="8"]')).toContainText("지원");
     await preview.getByRole("button", { name: "미리보기 일시정지", exact: true }).click();
@@ -92,14 +93,14 @@ test("formation previews support readable pacing, seeking and every screen flow 
     await expect(preview.getByTestId("formation-preview-step")).toHaveText("4 / 5");
     await page.screenshot({ animations: "disabled", path: test.info().outputPath("auto-timeline-preview.png") });
     await play();
-    await page.clock.runFor(4800);
+    await page.clock.runFor(1600);
     await expect(screen.locator('[data-revealed="true"]')).toHaveCount(10);
     await expect(title).toHaveText("추첨 발표");
     await expect(preview.getByTestId("formation-preview-step")).toHaveText("4 / 5");
-    await page.clock.runFor(2800);
+    await page.clock.runFor(1000);
     await expect(screen).toHaveAttribute("data-screen", "complete");
     await expectTeams();
-    await page.clock.runFor(6000);
+    await page.clock.runFor(4000);
     await expect(screen).toHaveAttribute("data-screen", "preference");
 
     for (const teamMode of ["draft", "auction"]) {
@@ -107,7 +108,7 @@ test("formation previews support readable pacing, seeking and every screen flow 
       await expect(screen).toHaveAttribute("data-screen", "preference");
       await chapter("추첨 발표");
       await play();
-      await page.clock.runFor(3400);
+      await page.clock.runFor(1400);
       await expect(screen.locator('[data-revealed="true"]')).toHaveCount(4);
       await expect(screen).toContainText("역할 자리");
       await chapter("결과");
@@ -128,6 +129,9 @@ test("formation previews support readable pacing, seeking and every screen flow 
     await expectTeams();
 
     await mode.selectOption("auction");
+    const extensionBox = await dialog.getByLabel("입찰 연장 시간(초)", { exact: true }).boundingBox();
+    const preparationBox = await dialog.getByLabel("낙찰 후 준비 시간(초)", { exact: true }).boundingBox();
+    expect(extensionBox!.y < preparationBox!.y || (extensionBox!.y === preparationBox!.y && extensionBox!.x < preparationBox!.x)).toBe(true);
     await dialog.getByRole("spinbutton", { name: "최소·증액 단위", exact: true }).fill("20");
     await chapter("입찰");
     await expect(screen).toHaveAttribute("data-screen", "auction");
@@ -137,23 +141,23 @@ test("formation previews support readable pacing, seeking and every screen flow 
     const price = preview.getByTestId("auction-preview-price");
     await expect(timer).toHaveText("20초");
     await play();
-    await page.clock.runFor(3000);
+    await page.clock.runFor(2000);
     await expect(timer).toHaveText("19초");
-    await page.clock.runFor(3000);
+    await page.clock.runFor(2000);
     await expect(title).toHaveText("내 첫 입찰");
     await expect(price).toHaveText("20 cr");
     await seek(6);
     await expect(price).toHaveText("40 cr");
     await play();
-    await page.clock.runFor(13000);
+    await page.clock.runFor(4000);
     await expect(title).toHaveText("내 재입찰 · 시간 연장");
     await expect(timer).toHaveText("5초");
     await expect(price).toHaveText("60 cr");
     await page.screenshot({ animations: "disabled", path: test.info().outputPath("auction-timeline-preview.png") });
-    await page.clock.runFor(6000);
+    await page.clock.runFor(4000);
     await expect(screen).toHaveAttribute("data-screen", "settlement");
     await expect(timer).toHaveText("0초");
-    await page.clock.runFor(6000);
+    await page.clock.runFor(4000);
     await expect(preview.getByTestId("preview-credits-0")).toHaveText("940 cr");
     await expect(preview.getByTestId("auction-preview-preparation")).toHaveText("5초");
     await expect(preview.getByRole("button", { name: /입찰.*구간 보기/ })).toHaveCount(1);
@@ -196,6 +200,15 @@ test("formation previews support readable pacing, seeking and every screen flow 
       await input.fill(setting.value);
       await expect(screen).toHaveAttribute("data-screen", setting.scene);
       await expect(screen.getByRole("status")).toContainText(setting.text);
+      await expect(screen.getByRole("status")).toHaveClass("sr-only");
+      await expect(screen.locator("[data-preview-highlight]")).toHaveCount(1);
+      const highlight = await screen.locator(`[data-preview-highlight="${setting.field}"]`).boundingBox();
+      const unchangedScreen = await screen.boundingBox();
+      expect(unchangedScreen!.height).toBe(normalScreenHeight);
+      if (setting.field === "auctionBudget") {
+        expect(highlight!.height).toBeLessThan(40);
+        expect(highlight!.width).toBeLessThan(unchangedScreen!.width / 2);
+      }
       const pausedTitle = await title.textContent();
       await page.clock.runFor(12000);
       await expect(title).toHaveText(pausedTitle!);

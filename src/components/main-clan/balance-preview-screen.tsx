@@ -30,7 +30,7 @@ function SettingHighlight({ field, focus, children }: { field: PreviewSettingFie
   const unit = field === "auctionBudget" || field === "minBid" ? " cr" : "초";
   return <div className={styles.settingHighlight} data-preview-highlight={field}>
     {children}
-    <span className={styles.settingChange} role="status">
+    <span className="sr-only" role="status">
       {settingLabels[field]} · {focus.previousValue !== focus.value ? <>{focus.previousValue}{unit} → </> : null}
       <strong>{focus.value}{unit}{focus.value === 0 && field === "bidExtensionSeconds" ? " (연장 끔)" : ""}</strong>
     </span>
@@ -59,12 +59,13 @@ export function BalancePreviewScreen({ frame, settings, players, elapsed, remain
     lineup: "팀 배치 화면", captains: "주장 선정 화면", draft: "주장 지명 화면", strategy: "전략 준비 화면",
     auction: "A팀 주장 경매 화면", settlement: "낙찰 결과 화면", preparation: "다음 선수 준비 화면", items: "전략 아이템 선택 화면", complete: "편성 결과 화면",
   };
-  const creditCards = <SettingHighlight field="auctionBudget" focus={focus}><div className={styles.creditCards}>{[0, 1].map((team) => <div key={team}>
-    <span>{team === 0 ? "A팀 · 내 팀" : "B팀 · 상대 팀"}</span><strong data-testid={`preview-credits-${team}`}>{frame.credits[team]} cr</strong>
-  </div>)}</div></SettingHighlight>;
+  const creditCards = <div className={styles.creditCards}>{[0, 1].map((team) => <div key={team}>
+    <span>{team === 0 ? "A팀 · 내 팀" : "B팀 · 상대 팀"}</span>
+    <SettingHighlight field="auctionBudget" focus={team === 0 ? focus : null}><span>팀 크레딧 · <strong data-testid={`preview-credits-${team}`}>{frame.credits[team]} cr</strong></span></SettingHighlight>
+  </div>)}</div>;
   const ranking: Role[] = scene.preferenceChanged ? ["sup", "dmg", "tank"] : ["tank", "dmg", "sup"];
   return (
-    <div className={cn(styles.screenStage, focus && styles.screenFocused)} data-testid="formation-preview-screen" data-screen={scene.kind}>
+    <div className={styles.screenStage} data-testid="formation-preview-screen" data-screen={scene.kind}>
       <div className={styles.screenHeader}>
         <strong>내전 편성</strong>
         {scene.kind === "complete" && settings.teams === "auction" ? <span className="flex gap-2">{[0, 1].map((team) => <span key={team} data-testid={`preview-credits-${team}`}>{frame.credits[team]} cr</span>)}</span> : <span>{scene.kind === "preference" ? "여우 · 내 화면" : scene.kind === "manual" || scene.kind === "captains" ? "운영진 시점" : scene.kind === "auction" || scene.kind === "draft" ? "A팀 주장 시점" : "모두에게 보이는 화면"}</span>}

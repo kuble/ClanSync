@@ -367,8 +367,8 @@ export function ClanBalanceSettings({
                       max: 60,
                       step: 1,
                     },
-                    { key: "auctionPreparationSeconds", label: "낙찰 후 준비 시간(초)", min: 0, max: 60, step: 1 },
                     { key: "bidExtensionSeconds", label: "입찰 연장 시간(초)", min: 0, max: 30, step: 1 },
+                    { key: "auctionPreparationSeconds", label: "낙찰 후 준비 시간(초)", min: 0, max: 60, step: 1 },
                   ] as const
                 ).map((f) => (
                   <label key={f.key} className="text-xs">

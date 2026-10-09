@@ -176,12 +176,11 @@ export function BalanceFormationPreview({ settings, focus = null }: { settings: 
   const last = sequence.length - 1;
   const current = reducedMotion && !selected ? last : Math.min(step, last);
   const savedFrame = sequence[current];
+  const duration = 4000;
+  const simulatedElapsed = elapsed * ((savedFrame.durationMs ?? duration) / duration);
   const frame = savedFrame.scene.continuous ? { ...savedFrame, scene: { ...savedFrame.scene,
-    revealed: reducedMotion ? players.length : Math.max(0, Math.min(players.length, Math.floor((elapsed - 1000) / 800) + 1)),
+    revealed: reducedMotion ? players.length : Math.max(0, Math.min(players.length, Math.floor((simulatedElapsed - 1000) / 800) + 1)),
   } } : savedFrame;
-  // Hold explanations long enough to read, even when the illustrated event is brief.
-  const duration = Math.max(6000, frame.durationMs ?? 6000);
-  const simulatedElapsed = elapsed * ((frame.durationMs ?? duration) / duration);
   const remaining = Math.max(0, (frame.auction?.seconds ?? frame.preparationSeconds ?? 0) - Math.floor(simulatedElapsed / 1000));
   const chapterStarts = sequence.flatMap((item, index) => index === 0 || item.scene.kind !== sequence[index - 1].scene.kind
     ? [{ index, kind: item.scene.kind, label: sceneLabels[item.scene.kind] }] : []);
@@ -204,7 +203,7 @@ export function BalanceFormationPreview({ settings, focus = null }: { settings: 
       <div className="flex items-center justify-between gap-2 border-b px-3 py-2.5">
         <div>
           <p className="text-xs font-semibold min-[1100px]:text-base">{labels[settings.teams]} 미리보기</p>
-          <p className="mt-0.5 text-[10px] text-muted-foreground min-[1100px]:text-xs">예시 명단 · {settings.roles === "lottery" ? "자동 배정" : "수동 배정"} · {reducedMotion ? "정적 미리보기" : "느린 반복 재생"}</p>
+          <p className="mt-0.5 text-[10px] text-muted-foreground min-[1100px]:text-xs">예시 명단 · {settings.roles === "lottery" ? "자동 배정" : "수동 배정"} · {reducedMotion ? "정적 미리보기" : "4초씩 반복 재생"}</p>
         </div>
         {!reducedMotion && <div className="flex gap-1">
           <button type="button" className={styles.control} aria-label={playing ? "미리보기 일시정지" : "미리보기 재생"}
@@ -215,7 +214,7 @@ export function BalanceFormationPreview({ settings, focus = null }: { settings: 
             onClick={() => setPlayback({ ...playback, step: 0, elapsed: 0, playing: true, selected: false, highlighted: false })}><RotateCcw size={13} /></button>
         </div>}
       </div>
-      <BalancePreviewScreen frame={frame} settings={settings} players={players} elapsed={elapsed} remaining={remaining} focus={highlighted ? focus : null} />
+      <BalancePreviewScreen frame={frame} settings={settings} players={players} elapsed={simulatedElapsed} remaining={remaining} focus={highlighted ? focus : null} />
       <div className={styles.previewFooter}>
         <div className="flex items-center justify-between gap-2 text-xs font-semibold min-[1100px]:text-sm">
           <span data-testid="formation-preview-title">{frame.title}</span>
