@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, History, LoaderCircle, RefreshCw } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, History, LoaderCircle, RefreshCw } from "lucide-react";
 import { loadBalanceHistoryAction } from "@/app/actions/clan-balance-history";
 import { Button } from "@/components/ui/button";
 import {
@@ -149,6 +149,83 @@ function DrawAudit({
   );
 }
 
+function HistoryMatches({ rounds, pool, nickname }: {
+  rounds: BalanceHistoryRound[];
+  pool: Props["pool"];
+  nickname: (id: string) => string;
+}) {
+  const rail = useRef<HTMLDivElement>(null);
+  const drag = useRef<{ x: number; left: number; moved: boolean } | null>(null);
+  const [index, setIndex] = useState(0);
+  const count = rounds.length;
+  function go(next: number) {
+    const element = rail.current;
+    if (element) element.scrollTo({ left: Math.max(0, Math.min(count - 1, next)) * (element.clientWidth + 12), behavior: "smooth" });
+  }
+  return <section aria-labelledby="balance-history-rounds-heading" className="min-w-0 space-y-3">
+    <div className="flex items-center justify-between gap-2">
+      <h3 id="balance-history-rounds-heading" className="font-semibold">경기 기록 <span className="ml-1 text-sm font-normal text-muted-foreground">{count}</span></h3>
+      <div className="flex items-center gap-1">
+        <Button variant="ghost" size="icon-sm" aria-label="이전 경기 보기" disabled={index === 0} onClick={() => go(index - 1)}><ChevronLeft className="size-4" /></Button>
+        <span className="min-w-9 text-center text-xs tabular-nums text-muted-foreground" aria-live="polite">{index + 1}/{count}</span>
+        <Button variant="ghost" size="icon-sm" aria-label="다음 경기 보기" disabled={index === count - 1} onClick={() => go(index + 1)}><ChevronRight className="size-4" /></Button>
+      </div>
+    </div>
+    <div ref={rail} role="region" aria-label="경기 기록 넘기기" aria-roledescription="캐러셀" tabIndex={0}
+      data-testid="balance-history-carousel"
+      className="relative flex snap-x snap-mandatory gap-3 overflow-x-auto rounded-xl [scrollbar-width:none] focus-visible:outline-2 focus-visible:outline-ring [&::-webkit-scrollbar]:hidden"
+      onScroll={(event) => setIndex(Math.round(event.currentTarget.scrollLeft / (event.currentTarget.clientWidth + 12)))}
+      onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return;
+        if (event.key === "ArrowRight" || event.key === "ArrowLeft") { event.preventDefault(); go(index + (event.key === "ArrowRight" ? 1 : -1)); }
+      }}
+      onPointerDown={(event) => {
+        if (event.pointerType === "touch" || event.button !== 0 || (event.target as HTMLElement).closest("button,summary,a")) return;
+        drag.current = { x: event.clientX, left: event.currentTarget.scrollLeft, moved: false };
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }}
+      onPointerMove={(event) => {
+        const start = drag.current;
+        if (!start) return;
+        const distance = event.clientX - start.x;
+        if (Math.abs(distance) > 8) start.moved = true;
+        if (start.moved) {
+          event.preventDefault();
+          event.currentTarget.style.scrollSnapType = "none";
+          event.currentTarget.scrollLeft = start.left - distance;
+        }
+      }}
+      onPointerUp={(event) => {
+        const element = event.currentTarget;
+        const start = drag.current;
+        if (!start) return;
+        drag.current = null;
+        element.style.removeProperty("scroll-snap-type");
+        element.releasePointerCapture(event.pointerId);
+        const distance = event.clientX - start.x;
+        const startIndex = Math.round(start.left / (element.clientWidth + 12));
+        go(startIndex + (Math.abs(distance) >= 50 ? (distance < 0 ? 1 : -1) : 0));
+      }}
+      onPointerCancel={(event) => { drag.current = null; event.currentTarget.style.removeProperty("scroll-snap-type"); }}>
+      {rounds.map((round, page) => <article key={round.id} inert={page !== index} className="min-w-0 flex-[0_0_100%] snap-start select-none rounded-xl border" data-testid="balance-history-round" aria-label={`${round.round_number}경기`} aria-roledescription="슬라이드">
+        <div className="flex items-center gap-3 border-b px-4 py-3">
+          <span className="shrink-0 font-bold">{round.round_number}경기<span className="mt-0.5 block text-[10px] font-normal text-muted-foreground">{timeLabel(round.opened_at)}</span></span>
+          <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{round.resolved_map_label ?? "맵 미지정"}</span>
+          <span className={cn("shrink-0 text-xs font-semibold", round.match_outcome === "team1" && "text-sky-600 dark:text-sky-300", round.match_outcome === "team2" && "text-rose-600 dark:text-rose-300")}>{outcomeLabel(round)}</span>
+        </div>
+        <div className="space-y-3 p-3 [&_[data-board-slot]]:min-h-12 [&_[data-board-slot]]:py-2 sm:p-4">
+          <ClanBalanceRosterBoard roster={round.roster} pool={pool} outcome={round.match_outcome} showPlayerSessionSummary={false} />
+          <details className="rounded-lg bg-muted/30 p-3">
+            <summary className="cursor-pointer text-xs font-medium">편성·추첨 이력 <span className="text-muted-foreground">({round.drawHistory.length})</span></summary>
+            {round.drawHistory.length ? <ol className="mt-3 space-y-2">{round.drawHistory.map((event, eventIndex) => <DrawAudit key={`${event.at}:${eventIndex}`} event={event} nickname={nickname} />)}</ol> : <p className="mt-3 text-xs text-muted-foreground">저장된 편성·추첨 이력이 없습니다.</p>}
+          </details>
+        </div>
+      </article>)}
+    </div>
+    <p className="text-center text-[11px] text-muted-foreground">좌우로 끌어 다른 경기를 확인하세요.</p>
+  </section>;
+}
+
 function HistoryContent({
   gameSlug,
   clanId,
@@ -167,7 +244,7 @@ function HistoryContent({
   const requestKey = `${gameSlug}:${clanId}:${currentSeriesId ?? "latest"}:${scope}:${refresh}`;
   useEffect(() => {
     let cancelled = false;
-    loadBalanceHistoryAction(gameSlug, clanId, currentSeriesId, scope === "clan" ? "today" : "session")
+    loadBalanceHistoryAction(gameSlug, clanId, currentSeriesId)
       .then((result) => {
         if (cancelled) return;
         setResponse(
@@ -194,11 +271,11 @@ function HistoryContent({
   const stats = useMemo(
     () =>
       sortBalanceHistoryStats(
-        calculateBalanceHistoryStats(data?.rounds ?? [], scope === "clan"),
+        calculateBalanceHistoryStats(data?.rounds ?? []),
         sort,
         sortDirection,
       ),
-    [data, sort, sortDirection, scope],
+    [data, sort, sortDirection],
   );
   const changeSort = (next: BalanceStatsSort) => {
     if (next === sort) {
@@ -236,8 +313,8 @@ function HistoryContent({
     <>
       <div className="flex shrink-0 items-center justify-between gap-2 border-b px-4 pb-3 sm:px-6">
         <p className="text-sm font-medium">
-          {(data?.date ?? selected?.session_date)?.replaceAll("-", ".")}
-          {data?.date ? <span className="ml-2 text-xs text-muted-foreground">오늘 · 한국시간</span> : null}
+          {selected?.session_date.replaceAll("-", ".")}
+          <span className="ml-2 text-xs text-muted-foreground">현재 내전</span>
         </p>
         <Button
           variant="outline"
@@ -279,10 +356,11 @@ function HistoryContent({
           </div>
         ) : !data?.rounds.length ? (
           <p className="py-16 text-center text-sm text-muted-foreground">
-            {scope === "clan" ? "오늘 기록된 내전 경기가 없습니다." : "아직 기록된 내전 경기가 없습니다."}
+            아직 기록된 내전 경기가 없습니다.
           </p>
         ) : (
           <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]" data-testid="balance-history-columns">
+            <HistoryMatches key={requestKey} rounds={data.rounds} pool={historyPool} nickname={nickname} />
             <div className="min-w-0 space-y-4">
               <div className="grid grid-cols-3 gap-2">
                 {[
@@ -304,82 +382,6 @@ function HistoryContent({
                   </div>
                 ))}
               </div>
-              <section
-                aria-labelledby="balance-history-rounds-heading"
-                className="space-y-3"
-              >
-                <h3 id="balance-history-rounds-heading" className="font-semibold">
-                  {scope === "clan" ? "오늘 경기" : "경기 기록"}{" "}
-                  <span className="ml-1 text-sm font-normal text-muted-foreground">
-                    {data?.rounds.length ?? 0}
-                  </span>
-                </h3>
-                {data?.rounds.length ? (
-                  data.rounds.map((round, index) => (
-                    <details key={round.id} open={index === 0} className="group rounded-xl border" data-testid="balance-history-round">
-                      <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-4 [&::-webkit-details-marker]:hidden">
-                        <span className="shrink-0 font-bold">
-                          {round.round_number}라운드
-                          <span className="mt-0.5 block text-[10px] font-normal text-muted-foreground">{timeLabel(round.opened_at)}</span>
-                        </span>
-                        <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-                          {round.resolved_map_label ?? "맵 미지정"}
-                        </span>
-                        <span
-                          className={cn(
-                            "shrink-0 text-xs font-semibold",
-                            round.match_outcome === "team1" &&
-                              "text-sky-600 dark:text-sky-300",
-                            round.match_outcome === "team2" &&
-                              "text-rose-600 dark:text-rose-300",
-                          )}
-                        >
-                          {outcomeLabel(round)}
-                        </span>
-                        <ChevronDown
-                          className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
-                          aria-hidden="true"
-                        />
-                      </summary>
-                      <div className="space-y-3 border-t p-3 [&_[data-board-slot]]:min-h-12 [&_[data-board-slot]]:py-2 sm:p-4">
-                        <ClanBalanceRosterBoard
-                          roster={round.roster}
-                          pool={historyPool}
-                          outcome={round.match_outcome}
-                        />
-                        <details className="rounded-lg bg-muted/30 p-3">
-                          <summary className="cursor-pointer text-xs font-medium">
-                            편성·추첨 이력{" "}
-                            <span className="text-muted-foreground">
-                              ({round.drawHistory.length})
-                            </span>
-                          </summary>
-                          {round.drawHistory.length ? (
-                            <ol className="mt-3 space-y-2">
-                              {round.drawHistory.map((event, index) => (
-                                <DrawAudit
-                                  key={`${event.at}:${index}`}
-                                  event={event}
-                                  nickname={nickname}
-                                />
-                              ))}
-                            </ol>
-                          ) : (
-                            <p className="mt-3 text-xs text-muted-foreground">
-                              저장된 편성·추첨 이력이 없습니다.
-                            </p>
-                          )}
-                        </details>
-                      </div>
-                    </details>
-                  ))
-                ) : (
-                  <p className="py-6 text-center text-sm text-muted-foreground">
-                    아직 라운드가 없습니다.
-                  </p>
-                )}
-              </section>
-            </div>
             <section
               aria-labelledby="balance-history-stats-heading"
               className="min-w-0 space-y-3 rounded-xl border bg-muted/15 p-3 sm:p-4 lg:sticky lg:top-0"
@@ -394,7 +396,7 @@ function HistoryContent({
               </div>
               <p className="text-xs text-muted-foreground">
                 승·무·패가 확정된 경기만 집계합니다. 무승부는 연승·연패를
-                끊으며, 대기·무효 경기와 쉬어 간 라운드는 집계하지 않습니다.
+                끊으며, 대기·무효 경기와 쉬어 간 경기는 집계하지 않습니다.
               </p>
               {stats.length ? (
                 <div className="overflow-x-auto rounded-xl border">
@@ -469,6 +471,7 @@ function HistoryContent({
                 </p>
               )}
             </section>
+            </div>
           </div>
         )}
       </div>
@@ -482,15 +485,20 @@ export function ClanBalanceHistoryDrawer({
   ...props
 }: Props) {
   return (
+    <>
+      {props.currentSeriesId && !open ? <button type="button" aria-label="내전 기록 열기" title="내전 기록" onMouseEnter={() => onOpenChange(true)} onClick={() => onOpenChange(true)}
+        className="fixed right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-xl border border-primary/25 bg-background/95 px-2 py-3 text-xs font-semibold text-primary shadow-lg focus-visible:outline-2 focus-visible:outline-ring">
+        <History className="size-4" aria-hidden="true" /><span className="[writing-mode:vertical-rl]">내전 기록</span>
+      </button> : null}
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="gap-4 data-[side=right]:w-full data-[side=right]:sm:max-w-[min(1180px,96vw)]">
+      <SheetContent className="gap-4 data-[side=right]:w-full data-[side=right]:sm:max-w-[min(1080px,96vw)]">
         <SheetHeader className="shrink-0 px-4 pr-14 pb-0 sm:px-6 sm:pr-14">
           <SheetTitle className="flex items-center gap-2">
             <History className="size-5" aria-hidden="true" />
             내전 기록
           </SheetTitle>
           <SheetDescription>
-            {props.scope === "session" ? "이 깜짝 내전의 기록만 표시합니다. 세션 종료 시 모두 삭제됩니다." : "오늘의 경기 정보와 참여자 통계"}
+            {props.scope === "session" ? "이 깜짝 내전의 기록만 표시합니다. 세션 종료 시 모두 삭제됩니다." : "현재 내전의 경기 정보와 참여자 통계"}
           </SheetDescription>
         </SheetHeader>
         {open ? (
@@ -501,5 +509,6 @@ export function ClanBalanceHistoryDrawer({
         ) : null}
       </SheetContent>
     </Sheet>
+    </>
   );
 }

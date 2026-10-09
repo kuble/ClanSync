@@ -49,8 +49,6 @@ export type BalanceHistoryRound = {
 };
 
 export type BalanceHistoryData = {
-  /** Set only for the clan's Korean calendar-day view. */
-  date?: string;
   series: BalanceHistorySeries[];
   selectedSeriesId: string | null;
   rounds: BalanceHistoryRound[];
@@ -205,30 +203,6 @@ export function sortHistoryRounds<
   );
 }
 
-export function balanceHistoryDay(now = new Date()): {
-  date: string;
-  start: string;
-  end: string;
-} {
-  const date = balanceSessionDate(null, now.toISOString());
-  const start = new Date(`${date}T00:00:00+09:00`);
-  return {
-    date,
-    start: start.toISOString(),
-    end: new Date(start.getTime() + 86_400_000).toISOString(),
-  };
-}
-
-/** Round numbers restart in each room, so daily streaks use opening time. */
-export function sortDailyHistoryRounds<
-  T extends Pick<BalanceHistoryRound, "id" | "round_number" | "opened_at">,
->(rounds: readonly T[]): T[] {
-  return [...rounds].sort((a, b) =>
-    a.opened_at.localeCompare(b.opened_at) ||
-    a.round_number - b.round_number || a.id.localeCompare(b.id),
-  );
-}
-
 function teamIds(team: TeamRoster): Set<string> {
   return new Set(
     [team.tank, ...team.dmg, ...team.sup].filter((id): id is string =>
@@ -242,11 +216,10 @@ export function calculateBalanceHistoryStats(
     BalanceHistoryRound,
     "id" | "round_number" | "opened_at" | "match_outcome" | "roster"
   >[],
-  daily = false,
 ): BalanceMemberStats[] {
   const members = new Map<string, BalanceMemberStats>();
   const seenRounds = new Set<string>();
-  for (const round of daily ? sortDailyHistoryRounds(rounds) : sortHistoryRounds(rounds)) {
+  for (const round of sortHistoryRounds(rounds)) {
     if (seenRounds.has(round.id)) continue;
     seenRounds.add(round.id);
     const roster = parseRoster(round.roster);

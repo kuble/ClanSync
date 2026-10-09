@@ -102,7 +102,7 @@ test("내전 기록 권한: 아이콘 숨김·깜짝 자기 세션·종료 삭�
     await expect(history.getByText("내전 기록은 운영진 이상만 확인할 수 있습니다.", { exact: true })).toHaveCount(0);
     const payload = request.postData();
     if (!payload) throw new Error("Missing history action request");
-    async function replayHistory(seriesId = regular.roomId, scope = "session") {
+    async function replayHistory(seriesId = regular.roomId) {
       return member.evaluate(async ({ url, headers, body }) => {
         const response = await fetch(url, { method: "POST", headers, body });
         if (!response.ok) throw new Error(`History response: ${response.status}`);
@@ -115,11 +115,10 @@ test("내전 기록 권한: 아이콘 숨김·깜짝 자기 세션·종료 삭�
           accept: "text/x-component",
           "next-router-state-tree": request.headers()["next-router-state-tree"] ?? "",
         },
-        body: payload!.replaceAll(regular.roomId, seriesId).replace('"today"', JSON.stringify(scope)),
+        body: payload!.replaceAll(regular.roomId, seriesId),
       });
     }
     expect(await replayHistory()).toContain("이 내전 기록을 볼 수 없습니다.");
-    expect(await replayHistory(flash.roomId, "today")).toContain("이 내전 기록을 볼 수 없습니다.");
     const ownHistory = await replayHistory(flash.roomId);
     expect(ownHistory).toContain('"ok":true');
     expect(ownHistory).toContain(flash.roomId);
@@ -354,13 +353,13 @@ test("깜짝 내전: 클랜원 개설·참석 응답과 출전 명단 분리·�
     await visitor.goto(flashUrl);
     const visitorPanel = visitor.getByTestId("clan-balance-session-panel");
     await expect(visitorPanel.locator('[data-board-slot="team1:d0"]')).toContainText(fixture.users[1].nickname);
-    await expect(visitorPanel.getByRole("button", { name: "라운드 설정", exact: true })).toHaveCount(0);
+    await expect(visitorPanel.getByRole("button", { name: "경기 설정", exact: true })).toHaveCount(0);
     await expect(visitorPanel.locator("[data-roster-slot]")).toHaveCount(0);
     await owner.goto(regular.url);
     await expect(flashPanel.locator('[data-board-slot="team1:d0"]')).toContainText(fixture.users[0].nickname);
-    await expect(flashPanel.getByRole("button", { name: "라운드 설정", exact: true })).toHaveCount(0);
+    await expect(flashPanel.getByRole("button", { name: "경기 설정", exact: true })).toHaveCount(0);
     await owner.goto(flashUrl);
-    await expect(flashPanel.getByRole("button", { name: "라운드 설정", exact: true })).toBeVisible();
+    await expect(flashPanel.getByRole("button", { name: "경기 설정", exact: true })).toBeVisible();
   } finally {
     await Promise.all([ownerContext.close(), visitorContext.close()]);
     await fixture.cleanup();
