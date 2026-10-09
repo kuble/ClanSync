@@ -246,7 +246,7 @@ export function ClanBalanceRosterEditor({
     clearInteraction();
   }
 
-  const toolbar = <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+  const toolbar = <div className="mb-3 flex flex-wrap items-center justify-between gap-2 px-2 pt-2 text-xs sm:px-3 sm:pt-3">
         <div>{scoreControl}</div>
         {canEdit ? (
           <div className="flex items-center gap-1">
@@ -360,10 +360,10 @@ export function ClanBalanceRosterEditor({
       </section>
       </div>
       )}>
-      <div aria-label="출전 명단 편집" aria-describedby={helpId}>
+      <div aria-label="출전 명단 편집" aria-describedby={helpId} className="rounded-xl bg-muted/35">
         {toolbar}
         <BalanceTeamHeading roster={roster} scores={displayScores} mode={scoreMode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} comparisonMode={teamComparisonMode} />
-        <div className="space-y-2 rounded-xl bg-muted/35 p-2 sm:p-3">
+        <div className="space-y-2 p-2 sm:p-3">
           {BALANCE_SLOTS.map((slot) => (
             <div
               key={slot.key}
