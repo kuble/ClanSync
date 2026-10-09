@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, MapPin, Clock, Crown, Crosshair, Shield, Plus, Swords } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Clock, Crown, Crosshair, Shield, Plus, Pencil, Trash2, Swords } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ClanStatsPageModel, ClanArchiveMatch } from "@/lib/clan/stats/load-clan-stats";
 import { isoToKstYmd } from "@/lib/clan/stats/kst";
@@ -76,26 +76,28 @@ function ArchiveRecords({ records, editor, pending, emptyText }: { records: Clan
         className="flex h-[560px] min-w-0 flex-col overflow-hidden rounded-xl border bg-card"
         aria-label="경기 상세"
       >
-        <div className="flex items-center justify-between gap-2 border-b bg-muted/20 px-4 py-3">
-          <h5 className="text-xs font-semibold">경기 기록</h5>
-          <div className="flex items-center gap-2">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1 border-b bg-muted/20 px-2 py-2 sm:px-3">
+          <h5 className="truncate text-xs font-semibold">경기 기록</h5>
+          <div className="flex items-center gap-1" aria-label="경기 기록 이동">
             <Button
               type="button"
               variant="ghost"
               size="icon-sm"
+              className="size-6 sm:size-8"
               aria-label="이전 경기"
               disabled={pending || activeIndex === 0}
               onClick={() => setActiveId(records[activeIndex - 1].id)}
             >
               <ChevronLeft className="size-4" aria-hidden="true" />
             </Button>
-            <span className="text-xs tabular-nums text-muted-foreground">
+            <span className="whitespace-nowrap text-xs tabular-nums text-muted-foreground">
               {records.length ? activeIndex + 1 : 0} / {records.length}
             </span>
             <Button
               type="button"
               variant="ghost"
               size="icon-sm"
+              className="size-6 sm:size-8"
               aria-label="다음 경기"
               disabled={pending || activeIndex >= records.length - 1}
               onClick={() => setActiveId(records[activeIndex + 1].id)}
@@ -103,12 +105,14 @@ function ArchiveRecords({ records, editor, pending, emptyText }: { records: Clan
               <ChevronRight className="size-4" aria-hidden="true" />
             </Button>
           </div>
+          <div className="flex items-center justify-end sm:gap-0.5">
+            {editor && <>
+              <Button size="icon-sm" variant="ghost" className="size-6 sm:size-8" aria-label="기록 추가" title="기록 추가" disabled={pending} onClick={() => setEditing({ mode: "create" })}><Plus className="size-3.5" aria-hidden="true" /></Button>
+              <Button size="icon-sm" variant="ghost" className="size-6 sm:size-8" aria-label="기록 수정" title="기록 수정" disabled={pending || !match?.revision} onClick={() => setEditing({ mode: "update", match })}><Pencil className="size-3.5" aria-hidden="true" /></Button>
+              <Button size="icon-sm" variant="ghost" className="size-6 sm:size-8" aria-label="기록 제거" title="기록 제거" disabled={pending || !match?.revision} onClick={() => setEditing({ mode: "delete", match })}><Trash2 className="size-3.5" aria-hidden="true" /></Button>
+            </>}
+          </div>
         </div>
-        {editor && <div className="flex flex-wrap gap-1 border-b px-3 py-2">
-          <Button size="sm" variant="ghost" disabled={pending} onClick={() => setEditing({ mode: "create" })}><Plus className="size-3.5" aria-hidden="true" />기록 추가</Button>
-          <Button size="sm" variant="ghost" disabled={pending || !match?.revision} onClick={() => setEditing({ mode: "update", match })}>기록 수정</Button>
-          <Button size="sm" variant="ghost" disabled={pending || !match?.revision} onClick={() => setEditing({ mode: "delete", match })}>기록 제거</Button>
-        </div>}
         <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden focus-visible:outline-2 focus-visible:outline-ring" tabIndex={0} aria-label="경기 상세 내용">
         {match ? <div className="space-y-5 p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">

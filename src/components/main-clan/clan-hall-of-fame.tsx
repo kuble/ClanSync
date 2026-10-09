@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { RubberSegment } from "@/components/ui/rubber-segment";
-import { StatTitle } from "./stat-help";
+import { StatHelp, StatTitle } from "./stat-help";
 import { Crown, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -62,16 +62,15 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
   const periodKey = statsPeriodKey(period);
   const periodLabel = statsPeriodLabel(period);
   return <div className="relative space-y-4" aria-busy={loaded.pending}>
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <div className="min-w-0 flex-1"><h3 className="text-base font-bold"><StatTitle title="명예의 전당" help="공개된 기록과 등재 기준에 따른 순위입니다." /></h3></div>
+    <div className="flex flex-wrap items-end gap-4">
+      {active && <RubberSegment label="부문" labelPosition="top" options={available} value={active.id} onChange={setRanking} />}
+      <StatsPeriodFilter value={period} onChange={(next) => setPeriod({ ...next, month: next.year === String(now.year) && Number(next.month) > now.month ? String(now.month).padStart(2, "0") : next.month })} years={years} maxMonth={year === String(now.year) ? now.month : 12} />
+      <div className="ml-auto flex items-center gap-2 self-center"><StatHelp title="명예의 전당">공개된 기록과 등재 기준에 따른 순위입니다.</StatHelp>
       {model.permissions.isStaff && model.permissions.setHofRules && <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogTrigger render={<Button type="button" size="sm" variant="outline" />}><Settings2 className="size-4" aria-hidden="true" /> 설정</DialogTrigger>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg"><DialogHeader><DialogTitle>통계 공개 설정</DialogTitle><DialogDescription>순위 공개 범위와 등재 기준을 정합니다.</DialogDescription></DialogHeader><HofSettingsForm gameSlug={gameSlug} clanId={clanId} cfg={model.hof.config} exposeHof={model.hof.exposeHof} isLeader={model.permissions.isLeader} onDone={() => setSettingsOpen(false)} /></DialogContent>
       </Dialog>}
-    </div>
-    <div className="flex flex-wrap items-start gap-4">
-      {active && <RubberSegment label="부문" labelPosition="top" options={available} value={active.id} onChange={setRanking} />}
-      <StatsPeriodFilter value={period} onChange={(next) => setPeriod({ ...next, month: next.year === String(now.year) && Number(next.month) > now.month ? String(now.month).padStart(2, "0") : next.month })} years={years} maxMonth={year === String(now.year) ? now.month : 12} />
+      </div>
     </div>
     {loaded.feedback}
     {block.undisclosed ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">{block.undisclosedHint}</p> : !active ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">공개된 통계 부문이 없습니다.</p> : <>
