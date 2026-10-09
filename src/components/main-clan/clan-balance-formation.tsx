@@ -82,14 +82,14 @@ export function ClanBalanceFormation({
     });
   }
 
-  if (!state) return <section data-testid="balance-formation" data-balance-guide="primary" className="order-last mt-5 flex flex-wrap items-center justify-between gap-3">
+  if (!state) return <section data-testid="balance-formation" data-balance-guide="primary" className="order-last flex flex-wrap items-center justify-between gap-3">
     {endSessionControl ?? <span />}
     {manager ? <Button disabled={pending || preferencePending} onClick={() => run({ type: "start", setup: settings, expectedDrawHistoryLength: drawHistoryLength })}>
       {pending ? "처리 중…" : settings.roles === "lottery" || settings.teams === "random" ? "추첨 시작" : settings.teams === "draft" || settings.teams === "auction" ? "편성 진행" : "다음 단계"}
     </Button> : <p className="text-xs text-muted-foreground">운영진이 편성을 준비하고 있습니다.</p>}
   </section>;
 
-  if (state.stage === "complete") return <section data-testid="balance-formation" data-balance-guide="primary" className="order-last mt-4 flex flex-wrap items-center justify-between gap-3">
+  if (state.stage === "complete") return <section data-testid="balance-formation" data-balance-guide="primary" className="order-last flex flex-wrap items-center justify-between gap-3">
     {endSessionControl ?? <span />}
     {progressError ? <div role="status" className="space-y-2 text-xs text-muted-foreground"><p>{progressError}</p><Button variant="outline" onClick={() => setRetry((value) => value + 1)}>다음 단계 다시 시도</Button></div> : <p role="status" className="text-xs text-muted-foreground">{revealing ? "현재 화면에서 추첨 결과를 공개하고 있습니다." : "다음 단계로 이동하고 있습니다."}</p>}
   </section>;

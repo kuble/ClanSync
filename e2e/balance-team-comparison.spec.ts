@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { createAndEnterBalanceRoom, createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
 test("중앙 팀 그래프의 점수 토글·승률 설정 저장·모바일 표시", async ({ page }) => {
-  test.setTimeout(90_000);
+  test.setTimeout(150_000);
   const fixture = await createIsolatedBalanceFixture(10);
   try {
     await loginIsolatedBalanceUser(page, fixture.users[0]);
@@ -29,9 +29,18 @@ test("중앙 팀 그래프의 점수 토글·승률 설정 저장·모바일 표
     const teamHeading = panel.locator('[aria-label="팀 비교 요약 보기"]');
     await expect(teamHeading.locator(":scope > span").first()).toHaveText("1팀");
     await expect(teamHeading.locator(":scope > span").last()).toHaveText("2팀");
+    for (const [index, key] of ["team1:tank", "team2:tank"].entries()) {
+      const titleBox = await teamHeading.locator(":scope > span").nth(index).boundingBox();
+      const cardBox = await panel.locator(`[data-roster-slot="${key}"]`).boundingBox();
+      expect(Math.abs(titleBox!.x + titleBox!.width / 2 - cardBox!.x - cardBox!.width / 2)).toBeLessThan(1);
+    }
     await expect(panel.locator('[data-roster-slot="team2:s1"]')).toBeInViewport();
     await expect(graph.getByTestId("team-comparison-blue-bar")).toHaveAttribute("style", /width:\s*75%/);
-    const toggle = panel.getByRole("group", { name: "점수 표시" });
+    const board = panel.locator('[aria-label="출전 명단 편집"]');
+    const toggle = board.getByRole("group", { name: "점수 표시" });
+    await expect(toggle).toBeVisible();
+    const footerBox = await panel.getByTestId("balance-formation").boundingBox(), boardBox = await board.boundingBox();
+    expect(footerBox!.y - boardBox!.y - boardBox!.height).toBeLessThanOrEqual(13);
     await toggle.getByRole("button", { name: "분석 점수", exact: true }).click();
     await expect(graph).toContainText(/분석 점수 합계.*0점.*0점/);
     await expect(graph.getByTestId("team-comparison-blue-bar")).toHaveAttribute("style", /width:\s*50%/);
