@@ -46,9 +46,9 @@ test("중앙 팀 그래프의 점수 토글·승률 설정 저장·모바일 표
     await expect(graph.getByTestId("team-comparison-blue-bar")).toHaveAttribute("style", /width:\s*50%/);
     await toggle.getByRole("button", { name: "평가 점수", exact: true }).click();
     await expect(graph).toContainText("-5점");
-    const settings = page.getByRole("dialog", { name: "라운드 설정", exact: true });
+    const settings = page.getByRole("dialog", { name: "경기 설정", exact: true });
     const openSettings = async () => {
-      await panel.getByRole("button", { name: "라운드 설정", exact: true }).click();
+      await panel.getByRole("button", { name: "경기 설정", exact: true }).click();
       await settings.getByRole("tab", { name: "화면 표시", exact: true }).click();
     };
     await openSettings();

@@ -51,7 +51,7 @@ export async function updateFormationAction(
       canManageRound(client, user.id, clanId, roundId),
     ]);
     if (error || !round || round.phase !== "editing")
-      throw new Error("편성할 수 있는 라운드가 아닙니다.");
+      throw new Error("편성할 수 있는 경기가 아닙니다.");
     if (command.type === "choose-item") {
       // Opposing teams choose independently. Preserve the other team's latest
       // purchase while pinning this request to the same formation and catalog.
@@ -201,7 +201,7 @@ export async function updateFormationAction(
       throw new Error("편성을 저장하지 못했습니다. 잠시 후 다시 시도하세요.");
     if (!saved && command.type !== "tick")
       throw new Error(
-        "라운드가 변경되었습니다. 최신 화면에서 다시 시도하세요.",
+        "경기가 변경되었습니다. 최신 화면에서 다시 시도하세요.",
       );
     revalidatePath(`/games/${gameSlug}/clan/${clanId}/balance`);
     return { ok: true };
@@ -247,7 +247,7 @@ export async function updateFormationSettingsAction(
       .eq("id", roundId)
       .eq("clan_id", clanId)
       .maybeSingle();
-    if (!round) throw new Error("라운드를 찾을 수 없습니다.");
+    if (!round) throw new Error("경기를 찾을 수 없습니다.");
     if (settings.predictionEnabled !== parseFormationSettings(round.formation_settings).predictionEnabled) {
       const { data: clan } = await client.from("clans").select("subscription_tier").eq("id", clanId).maybeSingle();
       if (clan?.subscription_tier !== "premium")

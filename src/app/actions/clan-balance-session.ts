@@ -125,7 +125,7 @@ async function withPrematchRound(
       round.phase === "match_live" ||
       round.match_outcome !== "pending"
     )
-      throw new Error("경기 시작 전 라운드에서만 변경할 수 있습니다.");
+      throw new Error("경기 시작 전 경기에서만 변경할 수 있습니다.");
     const { data: game } = await client
       .from("games")
       .select("slug")
@@ -142,7 +142,7 @@ async function withPrematchRound(
       error:
         error instanceof Error
           ? error.message
-          : "라운드를 변경하지 못했습니다.",
+          : "경기를 변경하지 못했습니다.",
     };
   }
 }
@@ -181,7 +181,7 @@ async function savePrematchRound(
   if (error) throw new Error(error.message);
   if (!data)
     throw new Error(
-      "라운드 상태가 변경되었습니다. 최신 화면에서 다시 시도하세요.",
+      "경기 상태가 변경되었습니다. 최신 화면에서 다시 시도하세요.",
     );
 }
 
@@ -773,7 +773,7 @@ export async function submitBalancePredictionAction(
     return { ok: false, error: "승부예측은 Premium 클랜에서만 참여할 수 있습니다." };
   }
   if (!parseFormationSettings(session.formation_settings).predictionEnabled) {
-    return { ok: false, error: "이 라운드는 승부예측을 사용하지 않습니다." };
+    return { ok: false, error: "이 경기는 승부예측을 사용하지 않습니다." };
   }
   if (rosterAssignedUserIds(parseRoster(session.roster)).includes(user.id)) {
     return { ok: false, error: "승부예측은 경기를 관전하는 멤버만 참여할 수 있습니다." };

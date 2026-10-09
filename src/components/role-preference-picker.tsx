@@ -71,7 +71,7 @@ export function RolePreferencePicker({
           <DropdownMenu>
             <DropdownMenuTrigger
               aria-label="선호 옵션"
-              title="이번 라운드 내 선호"
+              title="이번 경기 내 선호"
               disabled={disabled}
               className="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-xs font-medium text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             >

@@ -71,10 +71,10 @@ test("서로 다른 루프백 탭: 클랜원 선호 저장·프로필 복귀·�
     const operatorPanel = page.getByTestId("clan-balance-session-panel");
     const memberPanel = member.getByTestId("clan-balance-session-panel");
     await expect(
-      operatorPanel.getByRole("button", { name: "라운드 설정", exact: true }),
+      operatorPanel.getByRole("button", { name: "경기 설정", exact: true }),
     ).toBeVisible();
     for (const name of [
-      "라운드 설정",
+      "경기 설정",
       "명단 변경 되돌리기",
       "출전 명단 초기화",
       "화면 안내",
@@ -89,7 +89,7 @@ test("서로 다른 루프백 탭: 클랜원 선호 저장·프로필 복귀·�
     }
 
     const picker = memberPanel.getByRole("group", {
-      name: "이번 라운드 내 선호",
+      name: "이번 경기 내 선호",
       exact: true,
     });
     const options = picker.getByRole("button", {
@@ -149,10 +149,10 @@ test("서로 다른 루프백 탭: 클랜원 선호 저장·프로필 복귀·�
     // Both logins survive in the same browser context without sharing cookies.
     await page.reload();
     await expect(
-      operatorPanel.getByRole("button", { name: "라운드 설정", exact: true }),
+      operatorPanel.getByRole("button", { name: "경기 설정", exact: true }),
     ).toBeVisible();
     await expect(
-      memberPanel.getByRole("button", { name: "라운드 설정", exact: true }),
+      memberPanel.getByRole("button", { name: "경기 설정", exact: true }),
     ).toHaveCount(0);
   } finally {
     await member.close();

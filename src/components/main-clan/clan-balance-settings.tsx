@@ -186,7 +186,7 @@ export function ClanBalanceSettings({
       >
         <div className={styles.panel} data-testid="balance-settings-panel">
         <SheetHeader>
-          <SheetTitle>라운드 설정</SheetTitle>
+          <SheetTitle>경기 설정</SheetTitle>
           <SheetDescription>
             {editable
               ? "편성, 화면 표시와 밴픽 설정을 관리합니다."

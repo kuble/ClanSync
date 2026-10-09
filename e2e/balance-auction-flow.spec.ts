@@ -168,8 +168,8 @@ test("주장 전용 지명·입찰, 자동 경매와 공개 아이템 선택 후
     ]).select("id,name,description,cost,enabled");
     expect(catalog.error).toBeNull();
     await page.reload();
-    await panel.getByRole("button", { name: "라운드 설정", exact: true }).click();
-    const settings = page.getByRole("dialog", { name: "라운드 설정", exact: true });
+    await panel.getByRole("button", { name: "경기 설정", exact: true }).click();
+    const settings = page.getByRole("dialog", { name: "경기 설정", exact: true });
     await settings.getByRole("combobox", { name: "팀원 선발 방식", exact: true }).selectOption("auction");
     await settings.getByLabel("입찰 시간(초)", { exact: true }).fill("20");
     await settings.getByLabel("낙찰 후 준비 시간(초)", { exact: true }).fill("12");
@@ -322,7 +322,7 @@ test("주장 전용 지명·입찰, 자동 경매와 공개 아이템 선택 후
     expect(complete.budgets.team1).toBe(itemState.budgets.team1 - selectedItem.cost);
     expect(complete.budgets.team2).toBe(itemState.budgets.team2);
     expect(complete.appliedAt).toEqual(expect.any(Number));
-    await expect(panel.getByRole("heading", { name: /맵 선택.*라운드 1/ })).toBeVisible({ timeout: 20_000 });
+    await expect(panel.getByRole("heading", { name: /맵 선택.*경기 1/ })).toBeVisible({ timeout: 20_000 });
     await expect(panel.getByTestId("balance-formation")).toHaveCount(0);
     await expect(panel.getByRole("complementary", { name: "구매한 전략 아이템", exact: true }))
       .toContainText(selectedItem.name);

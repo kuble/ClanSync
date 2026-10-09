@@ -1,4 +1,4 @@
-import { Crown } from "lucide-react";
+import { Crown, Equal, RotateCcw } from "lucide-react";
 import { OverwatchRoleIcon } from "@/components/ui/overwatch-icons";
 import type { BalanceRoster, TeamRoster } from "@/lib/balance/roster-schema";
 import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
@@ -42,26 +42,27 @@ export function balanceTeamHeadingResult(outcome?: TeamHeadingOutcome) {
   return {
     team1Won: outcome === "team1",
     team2Won: outcome === "team2",
-    centerLabel: outcome === "draw" ? "무승부" : "VS",
+    centerLabel: outcome === "draw" ? "무승부" : outcome === "void" ? "무효" : "VS",
   } as const;
 }
 
-export function BalanceTeamHeading({ roster, scores, mode = "m", premium = false, showPrediction = false, samplePrediction = false, showSummary = true, comparisonMode = "score", outcome }: { roster?: BalanceRoster; scores?: MaSnapshot; mode?: ScoreMode; premium?: boolean; showPrediction?: boolean; samplePrediction?: boolean; showSummary?: boolean; comparisonMode?: TeamComparisonMode; outcome?: TeamHeadingOutcome }) {
+export function BalanceTeamHeading({ roster, scores, mode = "m", premium = false, showPrediction = false, samplePrediction = false, showSummary = true, comparisonMode = "score", outcome, onTeamSelect, selectionDisabled }: { roster?: BalanceRoster; scores?: MaSnapshot; mode?: ScoreMode; premium?: boolean; showPrediction?: boolean; samplePrediction?: boolean; showSummary?: boolean; comparisonMode?: TeamComparisonMode; outcome?: TeamHeadingOutcome; onTeamSelect?: (team: "team1" | "team2") => void; selectionDisabled?: boolean }) {
   if (roster && scores) return <BalanceTeamSummary roster={roster} scores={scores} mode={mode} premium={premium} showPrediction={showPrediction} samplePrediction={samplePrediction} enabled={showSummary} comparisonMode={comparisonMode} />;
   const result = balanceTeamHeadingResult(outcome);
+  const Label = onTeamSelect ? "button" : "span";
   return (
     <div className="mb-3 grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)] items-center gap-2 text-center sm:grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)]">
-      <span className="inline-flex items-center justify-center gap-1.5 text-xs font-bold tracking-wider text-sky-600 dark:text-sky-300" aria-label={result.team1Won ? "1팀 승리" : undefined}>
+      <Label type={onTeamSelect ? "button" : undefined} disabled={onTeamSelect ? selectionDisabled : undefined} onClick={onTeamSelect ? () => onTeamSelect("team1") : undefined} aria-pressed={onTeamSelect ? result.team1Won : undefined} className="inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-bold tracking-wider text-sky-600 focus-visible:outline-2 focus-visible:outline-ring dark:text-sky-300" aria-label={onTeamSelect ? "블루 승" : result.team1Won ? "1팀 승리" : undefined}>
         {result.team1Won ? <Crown className="size-4 text-amber-400" aria-hidden="true" /> : null}
         1팀
-      </span>
+      </Label>
       <span className="text-base font-black italic text-muted-foreground/60">
-        {result.centerLabel === "무승부" ? <span className="text-xs not-italic tracking-normal text-amber-300">무승부</span> : result.centerLabel}
+        {result.centerLabel === "무승부" ? <span className="flex flex-col items-center text-[10px] not-italic tracking-normal text-amber-300"><Equal className="size-5" aria-hidden="true" />무승부</span> : result.centerLabel === "무효" ? <span className="flex flex-col items-center text-[10px] not-italic"><RotateCcw className="size-4" aria-hidden="true" />무효</span> : result.centerLabel}
       </span>
-      <span className="inline-flex items-center justify-center gap-1.5 text-xs font-bold tracking-wider text-rose-600 dark:text-rose-300" aria-label={result.team2Won ? "2팀 승리" : undefined}>
+      <Label type={onTeamSelect ? "button" : undefined} disabled={onTeamSelect ? selectionDisabled : undefined} onClick={onTeamSelect ? () => onTeamSelect("team2") : undefined} aria-pressed={onTeamSelect ? result.team2Won : undefined} className="inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-bold tracking-wider text-rose-600 focus-visible:outline-2 focus-visible:outline-ring dark:text-rose-300" aria-label={onTeamSelect ? "레드 승" : result.team2Won ? "2팀 승리" : undefined}>
         2팀
         {result.team2Won ? <Crown className="size-4 text-amber-400" aria-hidden="true" /> : null}
-      </span>
+      </Label>
     </div>
   );
 }
@@ -84,6 +85,8 @@ export function ClanBalanceRosterBoard({
   showPlayerSessionSummary = true,
   playerCardInfo = "record",
   outcome,
+  onTeamSelect,
+  selectionDisabled,
 }: {
   roster: BalanceRoster;
   pool: readonly { user_id: string; nickname: string }[];
@@ -102,12 +105,15 @@ export function ClanBalanceRosterBoard({
   showPlayerSessionSummary?: boolean;
   playerCardInfo?: PlayerCardInfoMode;
   outcome?: TeamHeadingOutcome;
+  onTeamSelect?: (team: "team1" | "team2") => void;
+  selectionDisabled?: boolean;
 }) {
   const nickById = Object.fromEntries(pool.map((p) => [p.user_id, p.nickname]));
   const mode = scoreMode === "a" && planPremium ? "a" : "m";
+  const Card = onTeamSelect ? "button" : "div";
   return (
     <div aria-label="출전 라인업">
-      <BalanceTeamHeading roster={roster} scores={snapshot} mode={mode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} comparisonMode={teamComparisonMode} outcome={outcome} />
+      <BalanceTeamHeading roster={roster} scores={snapshot} mode={mode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} comparisonMode={teamComparisonMode} outcome={outcome} onTeamSelect={onTeamSelect} selectionDisabled={selectionDisabled} />
       <div className="space-y-2 rounded-xl bg-muted/35 p-2 sm:p-3">
         {BALANCE_SLOTS.map((slot) => (
           <div
@@ -125,7 +131,12 @@ export function ClanBalanceRosterBoard({
                 <div key={team} className="contents">
                   {idx === 1 ? <BalanceRoleIcon slot={slot} /> : null}
                   <BalancePlayerDetails nickname={nickname} info={info} score={score} premium={planPremium} sample={Boolean(userId && samplePlayerIds.includes(userId))} enabled={showPlayerSessionSummary}>
-                  <div
+                  <Card
+                    type={onTeamSelect ? "button" : undefined}
+                    disabled={onTeamSelect ? selectionDisabled : undefined}
+                    aria-pressed={onTeamSelect ? outcome === team : undefined}
+                    aria-label={onTeamSelect ? `${team === "team1" ? "1팀" : "2팀"} ${nickname} 승리 선택` : undefined}
+                    onClick={onTeamSelect ? () => onTeamSelect(team) : undefined}
                     key={userId ?? "empty"}
                     tabIndex={showPlayerSessionSummary && userId && (info || score) ? 0 : undefined}
                     title={!info && !score ? nickname : undefined}
@@ -138,6 +149,9 @@ export function ClanBalanceRosterBoard({
                       !userId && "border-dashed opacity-65",
                       userId === highlightPlayer &&
                         "ring-2 ring-primary motion-safe:animate-in motion-safe:slide-in-from-bottom-3 motion-safe:fade-in motion-safe:duration-500",
+                      (outcome === team || outcome === "draw") && "ring-2 ring-amber-400/70",
+                      outcome === "void" && "opacity-50 grayscale",
+                      onTeamSelect && "cursor-pointer hover:ring-2 hover:ring-primary/40 disabled:cursor-wait",
                     )}
                   >
                     <span className="sr-only">
@@ -149,7 +163,7 @@ export function ClanBalanceRosterBoard({
                         참가자 대기
                       </span>
                     ) : null}
-                  </div>
+                  </Card>
                   </BalancePlayerDetails>
                 </div>
               );

@@ -45,7 +45,7 @@ function OwnPreferenceEditor({
       aria-busy={pending}
     >
       <h3 className="sr-only" id={`round-preference-${roundId}-label`}>
-        이번 라운드 내 선호
+        이번 경기 내 선호
       </h3>
       <RolePreferencePicker
         id={`round-preference-${roundId}`}
@@ -92,7 +92,7 @@ function OwnPreferenceEditor({
             ? "편성이 시작되어 선호가 확정되었습니다."
             : pending
               ? "저장 중…"
-              : "변경은 이번 라운드에만 적용됩니다."}
+              : "변경은 이번 경기에만 적용됩니다."}
         </span>
       </span>
       {error ? (

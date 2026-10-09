@@ -46,7 +46,7 @@ export async function saveRoundRolePreferenceAction(
     .eq("id", roundId)
     .eq("clan_id", clanId)
     .maybeSingle();
-  if (!round) return { ok: false, error: "라운드를 찾을 수 없습니다." };
+  if (!round) return { ok: false, error: "경기를 찾을 수 없습니다." };
   const { error } = await client.rpc("save_round_role_preference", {
     p_round_id: roundId,
     ...(ranking !== null ? { p_ranking: ranking } : {}),

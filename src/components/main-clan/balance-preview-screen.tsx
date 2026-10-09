@@ -72,7 +72,7 @@ export function BalancePreviewScreen({ frame, settings, players, elapsed, remain
       </div>
       <div key={scene.kind} className={styles.screenTransition} role="group" aria-label={screenNames[scene.kind]}>
         {scene.kind === "preference" ? <div className={styles.preferenceScreen}>
-          <span className="text-xs text-muted-foreground">이번 라운드 내 선호</span>
+          <span className="text-xs text-muted-foreground">이번 경기 내 선호</span>
           <h3 className="text-lg font-semibold">어떤 역할로 플레이할까요?</h3>
           <p className="text-xs text-muted-foreground">원하는 역할을 앞순위로 바꿔요.</p>
           <div className={styles.preferencePicker}>

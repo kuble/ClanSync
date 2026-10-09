@@ -9,6 +9,7 @@ import {
   Settings2,
   CircleHelp,
   Crown,
+  Equal,
   Gamepad2,
   Map,
   Radio,
@@ -36,6 +37,7 @@ import { updateFormationAction } from "@/app/actions/clan-balance-formation";
 import { ClanBalanceSettings } from "./clan-balance-settings";
 import { ClanBalancePrematchControls } from "./clan-balance-prematch-controls";
 import { BalanceEditorMap } from "./balance-editor-map";
+import { BalanceAutoStartMatch } from "./balance-auto-start-match";
 import { parseBanSettings } from "@/lib/balance/prematch";
 import { ClanBalanceHistoryDrawer } from "./clan-balance-history-drawer";
 import {
@@ -283,7 +285,7 @@ export function ClanBalanceSessionPanel({
       data-balance-phase={session?.phase ?? "none"}
     >
       <Dialog open={confirmEnd} onOpenChange={(open) => { if (!pending) setConfirmEnd(open); }}>
-        <DialogContent><DialogHeader><DialogTitle>내전을 종료할까요?</DialogTitle><DialogDescription>{flash ? "깜짝 내전의 모든 라운드·참여·점수·투표 기록이 삭제되며 복구할 수 없습니다." : "현재 세션을 종료합니다. 정규 내전 기록은 보존됩니다."}</DialogDescription></DialogHeader>
+        <DialogContent><DialogHeader><DialogTitle>내전을 종료할까요?</DialogTitle><DialogDescription>{flash ? "깜짝 내전의 모든 경기·참여·점수·투표 기록이 삭제되며 복구할 수 없습니다." : "현재 세션을 종료합니다. 정규 내전 기록은 보존됩니다."}</DialogDescription></DialogHeader>
           <div className="flex justify-end gap-2"><Button variant="outline" disabled={pending} onClick={() => setConfirmEnd(false)}>돌아가기</Button><Button variant="destructive" disabled={pending} onClick={() => {
             if (!session) return;
             runAction("세션을 종료했습니다.", async () => {
@@ -377,7 +379,7 @@ export function ClanBalanceSessionPanel({
                         : "팀 편성"}
               {session ? (
                 <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                  라운드 {session.round_number}
+                  경기 {session.round_number}
                 </span>
               ) : null}
             </h3>
@@ -427,8 +429,8 @@ export function ClanBalanceSessionPanel({
               <Button
                 size="icon"
                 variant="ghost"
-                aria-label="라운드 설정"
-                title="라운드 설정"
+                aria-label="경기 설정"
+                title="경기 설정"
                 data-balance-guide="settings"
                 disabled={pending || busyFormation}
                 onClick={() => setSettingsOpen(true)}
@@ -448,7 +450,7 @@ export function ClanBalanceSessionPanel({
                 className="flex flex-wrap items-center justify-between gap-3"
               >
                 <p className="text-xs text-muted-foreground">
-                  세션을 열고 참가자와 라운드 규칙을 정하세요.
+                  세션을 열고 참가자와 경기 규칙을 정하세요.
                 </p>
                 <Button type="submit" disabled={pending}>
                   {pending ? "세션 여는 중…" : "세션 열기"}
@@ -599,6 +601,9 @@ export function ClanBalanceSessionPanel({
             {mapScreen || session.phase === "match_live" ? <div className="my-4"><AuctionPurchases state={formation} /></div> : null}
 
             {session.phase === "editing" && mapScreen ? (
+              session.resolved_map_label ? (
+                canManage ? <BalanceAutoStartMatch key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id} heroBan={session.hero_ban_enabled && session.banned_heroes === null} /> : <p role="status" className="py-4 text-center text-sm text-muted-foreground">경기 화면으로 이동하고 있습니다…</p>
+              ) : (
               <ClanBalancePrematchControls
                 endSessionControl={endSessionControl}
                 renderInsights={(map) => renderInsights(map, rosterData, true)}
@@ -608,6 +613,7 @@ export function ClanBalanceSessionPanel({
                 session={session}
                 canManage={canManage}
               />
+              )
             ) : null}
             {session.phase === "map_ban" ? (
               <div className="space-y-6">
@@ -673,12 +679,14 @@ export function ClanBalanceSessionPanel({
                   <span
                     className={cn(
                       "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold",
-                      outcomeLabel
+                      session.match_outcome === "void"
+                        ? "bg-muted text-muted-foreground"
+                        : outcomeLabel
                         ? "bg-amber-500/10 text-amber-700 dark:text-amber-300"
                         : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
                     )}
                   >
-                    {outcomeLabel ? (
+                    {session.match_outcome === "draw" ? <Equal className="size-3.5" aria-hidden="true" /> : session.match_outcome === "void" ? <RotateCcw className="size-3.5" aria-hidden="true" /> : outcomeLabel ? (
                       <Crown className="size-3.5" aria-hidden="true" />
                     ) : (
                       <span className="size-1.5 rounded-full bg-current" />
@@ -716,7 +724,12 @@ export function ClanBalanceSessionPanel({
                     canEdit={canEditMscore} planPremium={planPremium}
                   /> : null}
                 </div>
-                <div className={cn("grid items-start gap-6", canManage && "xl:grid-cols-[minmax(0,1fr)_280px]")}>
+                <div className="space-y-4">
+                  {canManage && session.match_outcome === "pending" ? <ClanBalanceMatchOutcomeClient
+                    key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id}
+                    roster={rosterData} pool={rosterPool} disabled={false}
+                    predictionEnabled={!flash && planPremium && settings.predictionEnabled}
+                  /> : (
                   <ClanBalanceRosterBoard
                     roster={rosterData}
                     pool={rosterPool}
@@ -724,24 +737,17 @@ export function ClanBalanceSessionPanel({
                     showPlayerCardInfo={false}
                     showTeamComparisonSummary={false}
                     showPlayerSessionSummary={false}
+                    outcome={session.match_outcome}
                   />
+                  )}
                   <div className="space-y-4">
                     {flash ? <p className="text-xs text-muted-foreground">깜짝 내전은 세션 종료 후 기록을 남기지 않으며 코인 보상을 지급하지 않습니다.</p> : null}
-                    {canManage && session.match_outcome === "pending" ? (
-                      <ClanBalanceMatchOutcomeClient
-                        gameSlug={gameSlug}
-                        clanId={clanId}
-                        sessionId={session.id}
-                        disabled={false}
-                        predictionEnabled={!flash && planPremium && settings.predictionEnabled}
-                      />
-                    ) : null}
                     {canManage && session.match_outcome !== "pending" ? (
                       <Button
                         className="w-full"
                         disabled={pending}
                         onClick={() =>
-                          runAction("다음 라운드를 열었습니다.", () =>
+                          runAction("다음 경기를 열었습니다.", () =>
                             nextBalanceRoundAction(
                               gameSlug,
                               clanId,
@@ -750,7 +756,7 @@ export function ClanBalanceSessionPanel({
                           )
                         }
                       >
-                        다음 라운드
+                        다음 경기
                       </Button>
                     ) : null}
                   </div>

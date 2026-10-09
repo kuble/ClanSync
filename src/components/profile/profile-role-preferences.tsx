@@ -24,7 +24,7 @@ export function ProfileRolePreferences({
         게임별 선호 역할
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        내전 역할 추첨의 기본 선호입니다. 라운드마다 다시 입력하지 않아도
+        내전 역할 추첨의 기본 선호입니다. 경기마다 다시 입력하지 않아도
         됩니다.
       </p>
       <div className="mt-4 space-y-4">

@@ -53,8 +53,8 @@ function buildSteps(settings: FormationSettings): PreviewStep[] {
     steps.push({ title, text, active, teams: [...teams], credits: [...credits], rolesKnown: 10, scene: { kind: "lineup" }, ...extra });
   };
   if (settings.roles === "lottery") {
-    add("내 선호 역할 선택", "여우의 화면입니다. 이번 라운드에 원하는 역할의 순위를 먼저 정해요.", [], { rolesKnown: 0, scene: { kind: "preference" } });
-    add("지원 1순위로 변경", "두 역할을 선택해 순서를 바꾸면 이번 라운드의 선호가 저장돼요.", [], { rolesKnown: 0, scene: { kind: "preference", preferenceChanged: true } });
+    add("내 선호 역할 선택", "여우의 화면입니다. 이번 경기에 원하는 역할의 순위를 먼저 정해요.", [], { rolesKnown: 0, scene: { kind: "preference" } });
+    add("지원 1순위로 변경", "두 역할을 선택해 순서를 바꾸면 이번 경기의 선호가 저장돼요.", [], { rolesKnown: 0, scene: { kind: "preference", preferenceChanged: true } });
     add("편성 화면으로 전환", "명단의 10명이 준비되면 운영진이 편성을 시작해요. 선호는 본인만 볼 수 있어요.", [], { rolesKnown: 0, scene: { kind: "roster" } });
     if (settings.teams === "random") AUTO_DRAW_ORDER.forEach((index) => { teams[index] = AUTO_DRAW_TEAMS[index]; });
     add("추첨 발표", settings.teams === "random"

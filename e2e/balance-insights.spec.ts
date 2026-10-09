@@ -120,8 +120,8 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await expect(panel.getByTestId("team1-score-total")).toContainText("+7점");
     await expect(panel.getByTestId("team2-score-total")).toContainText("+13점");
     await expect(panel.getByTestId("balance-formation").getByRole("button", { name: "세션 종료", exact: true })).toBeVisible();
-    await panel.getByRole("button", { name: "라운드 설정", exact: true }).click();
-    const settings = page.getByRole("dialog", { name: "라운드 설정", exact: true });
+    await panel.getByRole("button", { name: "경기 설정", exact: true }).click();
+    const settings = page.getByRole("dialog", { name: "경기 설정", exact: true });
     await settings.getByRole("radio", { name: /수동 배정/ }).check();
     await settings.getByRole("combobox", { name: "팀원 선발 방식", exact: true }).selectOption("keep");
     await settings.getByRole("tab", { name: "밴픽", exact: true }).click();
@@ -134,6 +134,9 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await settings.getByRole("combobox", { name: "선수 카드 보조 정보", exact: true }).selectOption("streak");
     await settings.getByRole("button", { name: "설정 적용", exact: true }).click();
     await expect(settings).toBeHidden();
+    const mapPicker = page.getByRole("dialog", { name: "경기 맵 선택", exact: true });
+    await expect(mapPicker).toBeVisible();
+    await mapPicker.getByRole("button", { name: "닫기", exact: true }).click();
     const adjustedPlayer = panel.locator('[data-roster-slot="team1:tank"]');
     await expect(adjustedPlayer).not.toContainText(/[+-]?\d+(?:\.\d+)?점/);
     await expect(adjustedPlayer).toContainText(/1연[승패]/);
@@ -141,7 +144,7 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await expect(panel.locator('[aria-label="팀 비교 요약 보기"]')).toHaveCount(0);
     await adjustedPlayer.hover();
     await expect(page.getByRole("tooltip").filter({ hasText: fixture.users[0].nickname })).toHaveCount(0);
-    await panel.getByRole("button", { name: "라운드 설정", exact: true }).click();
+    await panel.getByRole("button", { name: "경기 설정", exact: true }).click();
     await settings.getByRole("tab", { name: "화면 표시", exact: true }).click();
     await settings.getByRole("checkbox", { name: "플레이어 세션 정보 요약 표시", exact: true }).check();
     await settings.getByRole("checkbox", { name: "선수 카드 보조 정보 표시", exact: true }).uncheck();
@@ -157,18 +160,8 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
       await route.continue();
     });
     await panel.getByRole("button", { name: "왕의 길 선택", exact: true }).click();
-    await expect(insights.getByTestId("balance-win-probability")).toHaveCount(1);
-    await expect(insights).toContainText("예측 승률 · 왕의 길 반영");
-    await expect(insights).toContainText("샘플");
-    await expect(panel.getByRole("button", { name: "경기 시작", exact: true })).toBeEnabled();
-    await panel.getByRole("button", { name: "눔바니 선택", exact: true }).click();
-    await expect(insights).toContainText("예측 승률 · 눔바니 반영");
-    await expect.poll(async () => (await fixture.activeRound(regular.roomId)).resolved_map_label).toBe("눔바니");
-    await page.setViewportSize({ width: 390, height: 844 });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-    await page.screenshot({ path: test.info().outputPath("map-insights-mobile.png"), fullPage: true });
-    await panel.getByRole("button", { name: "경기 시작", exact: true }).click();
     await expect(panel).toHaveAttribute("data-balance-phase", "match_live");
+    await expect.poll(async () => (await fixture.activeRound(regular.roomId)).resolved_map_label).toBe("왕의 길");
     await expect(panel.locator('[data-board-slot="team1:d0"]').getByText("딜러 1", { exact: true })).toHaveCount(0);
     const spectator = await fixture.memberClient(10);
     const prediction = { session_id: round.id, user_id: fixture.users[10].id, pick_team: 1 };
@@ -258,7 +251,7 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await loginIsolatedBalanceUser(page, fixture.users[0]);
     await page.goto(regular.url);
     await panel.getByRole("button", { name: "무승부", exact: true }).click();
-    await page.getByRole("dialog", { name: "경기 결과를 확정할까요?" }).getByRole("button", { name: "결과 확정", exact: true }).click();
+    await panel.getByRole("button", { name: "결과 확정", exact: true }).click();
     await expect.poll(async () => (await fixture.activeRound(regular.roomId)).match_outcome).toBe("draw");
     await panel.locator('[data-board-slot="team1:tank"]').hover();
     const updatedPlayerInfo = page.getByRole("tooltip").filter({ hasText: "이번 세션 전적" });

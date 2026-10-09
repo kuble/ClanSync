@@ -76,12 +76,12 @@ export function BalanceManualMapPicker({
   disabled?: boolean;
   canManage?: boolean;
 }) {
-  const [type, setType] = useState<MapType | null>(() => mapDetailsForLabel(value ?? "")?.type ?? null);
+  const [type, setType] = useState<MapType | null>(() => mapDetailsForLabel(value ?? "")?.type ?? (gameSlug === "overwatch" ? "control" : null));
   const [preview, setPreview] = useState<string | null>(null);
   const [savedValue, setSavedValue] = useState(value);
   if (savedValue !== value) {
     setSavedValue(value);
-    setType(mapDetailsForLabel(value ?? "")?.type ?? null);
+    setType(mapDetailsForLabel(value ?? "")?.type ?? (gameSlug === "overwatch" ? "control" : null));
     setPreview(null);
   }
   const pool = gameSlug === "overwatch" && !type ? [] : mapPoolForGameSlug(gameSlug, type ? [type] : []);

@@ -40,8 +40,10 @@ async function settings(
   mode: "keep" | "random" | "draft" | "auction",
   lottery = false,
 ) {
-  await panel.getByRole("button", { name: "라운드 설정", exact: true }).click();
-  const dialog = page.getByRole("dialog", { name: "라운드 설정", exact: true });
+  const mapPicker = page.getByRole("dialog", { name: "경기 맵 선택", exact: true });
+  if (await mapPicker.isVisible()) await mapPicker.getByRole("button", { name: "닫기", exact: true }).click();
+  await panel.getByRole("button", { name: "경기 설정", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "경기 설정", exact: true });
   await expect(dialog).toBeVisible();
   await dialog
     .getByRole("radio", { name: lottery ? /자동 배정/ : /수동 배정/ })
@@ -58,10 +60,10 @@ async function settings(
     .uncheck();
   await dialog.getByRole("button", { name: "설정 적용", exact: true }).click();
   await expect(dialog).toBeHidden({ timeout: 20_000 });
+  if (await mapPicker.isVisible()) await mapPicker.getByRole("button", { name: "닫기", exact: true }).click();
 }
 
 async function confirmResult(
-  page: Page,
   panel: Locator,
   outcome: "win" | "void",
 ) {
@@ -71,11 +73,9 @@ async function confirmResult(
       exact: true,
     })
     .click();
-  const dialog = page.getByRole("dialog", { name: "경기 결과를 확정할까요?" });
-  await dialog.getByRole("button", { name: "결과 확정", exact: true }).click();
-  await expect(dialog).toBeHidden({ timeout: 20_000 });
+  await panel.getByRole("button", { name: "결과 확정", exact: true }).click();
   await expect(
-    panel.getByRole("button", { name: "다음 라운드", exact: true }),
+    panel.getByRole("button", { name: "다음 경기", exact: true }),
   ).toBeEnabled({ timeout: 20_000 });
 }
 
@@ -89,8 +89,7 @@ async function applyAndSelectMap(panel: Locator) {
   await panel.getByRole("button", { name: "쟁탈", exact: true }).click();
   const map = panel.getByRole("button", { name: "부산 선택", exact: true });
   await map.click();
-  await expect(map).toHaveAttribute("aria-pressed", "true");
-  await expect(panel.getByRole("button", { name: "경기 시작", exact: true })).toBeEnabled();
+  await expect(panel).toHaveAttribute("data-balance-phase", "match_live", { timeout: 20_000 });
 }
 
 test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·자동 전환·기록", async ({
@@ -150,11 +149,11 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
       .getByRole("button", { name: "다음", exact: true })
       .click();
     await expect(
-      page.getByRole("dialog", { name: "이번 라운드의 규칙", exact: true }),
+      page.getByRole("dialog", { name: "이번 경기의 규칙", exact: true }),
     ).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(
-      page.getByRole("dialog", { name: "이번 라운드의 규칙", exact: true }),
+      page.getByRole("dialog", { name: "이번 경기의 규칙", exact: true }),
     ).toBeHidden();
     const candidates = panel.getByRole("region", { name: "참가 가능 클랜원" });
     const slot = (key: string) => panel.locator(`[data-roster-slot="${key}"]`);
@@ -199,16 +198,15 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
         .sort(),
     );
     await applyAndSelectMap(panel);
-    await panel.getByRole("button", { name: "경기 시작", exact: true }).click();
     await expect(panel).toHaveAttribute("data-balance-phase", "match_live", {
       timeout: 20_000,
     });
-    await confirmResult(page, panel, "win");
+    await confirmResult(panel, "win");
     await panel
-      .getByRole("button", { name: "다음 라운드", exact: true })
+      .getByRole("button", { name: "다음 경기", exact: true })
       .click();
     await expect(
-      panel.getByRole("heading", { name: /밸런스 편집.*라운드 2/ }),
+      panel.getByRole("heading", { name: /밸런스 편집.*경기 2/ }),
     ).toBeVisible({ timeout: 20_000 });
     expect(await readRoster(panel)).toEqual(savedRoster);
 
@@ -221,7 +219,7 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
       { timeout: 20_000 },
     );
     const ownPreference = memberPanel.getByRole("group", {
-      name: "이번 라운드 내 선호",
+      name: "이번 경기 내 선호",
       exact: true,
     });
     const preferenceOptions = ownPreference.getByRole("button", {
@@ -341,18 +339,17 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
       panel.getByRole("button", { name: "결과 다시 보기" }),
     ).toHaveCount(0);
     await applyAndSelectMap(panel);
-    await expect(memberPanel.locator("[data-board-slot]")).toHaveCount(0);
+    await expect(memberPanel.locator("[data-board-slot]")).toHaveCount(10);
     const appliedState = (await fixture.activeRound()).formation_state;
     expect(appliedState).toEqual({ ...(draw as Record<string, unknown>), appliedAt: expect.any(Number) });
     await member.reload();
-    await expect(memberPanel.locator("[data-board-slot]")).toHaveCount(0);
-    await expect(memberPanel.getByRole("button", { name: "부산 선택", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(memberPanel.locator("[data-board-slot]")).toHaveCount(10);
+    await expect(memberPanel).toContainText("부산");
     expect((await fixture.activeRound()).formation_state).toEqual(appliedState);
-    await panel.getByRole("button", { name: "경기 시작", exact: true }).click();
     await expect(panel).toHaveAttribute("data-balance-phase", "match_live", {
       timeout: 20_000,
     });
-    await confirmResult(page, panel, "void");
+    await confirmResult(panel, "void");
     await page.setViewportSize({ width: 390, height: 844 });
     await panel.getByRole("button", { name: "내전 기록", exact: true }).click();
     const history = page.getByRole("dialog", {
@@ -360,8 +357,8 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
       exact: true,
     });
     await expect(history).toBeVisible();
-    await expect(history).toContainText("1라운드");
-    await expect(history).toContainText("2라운드");
+    await expect(history).toContainText("1경기");
+    await expect(history).toContainText("2경기");
     await expect(history).toContainText("1팀 승리");
     await expect(history).toContainText("무효");
     await expect(
@@ -373,8 +370,7 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
     await expect(appearancesHeader).toHaveAttribute("aria-sort", "descending");
     await appearancesHeader.getByRole("button").click();
     await expect(appearancesHeader).toHaveAttribute("aria-sort", "ascending");
-    const firstRound = history.locator("details").filter({ hasText: "1라운드" }).first();
-    if (await firstRound.getAttribute("open") === null) await firstRound.locator(":scope > summary").click();
+    const firstRound = history.getByTestId("balance-history-round").filter({ hasText: "1경기" }).first();
     await expect(
       firstRound
         .getByLabel("출전 라인업")

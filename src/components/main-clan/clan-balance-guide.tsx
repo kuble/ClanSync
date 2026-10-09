@@ -26,7 +26,7 @@ const GUIDES: Record<
     },
     {
       target: "settings",
-      title: "이번 라운드의 규칙",
+      title: "이번 경기의 규칙",
       text: "역할·팀 편성 방식과 맵 투표·영웅 밴을 설정하세요.",
     },
     {
@@ -44,7 +44,7 @@ const GUIDES: Record<
     {
       target: "primary",
       title: "자동으로 다음 단계",
-      text: "편성이 끝나면 경기 준비 화면으로 이동합니다. 미리 선택한 맵은 그대로 사용하고, 맵이 없으면 선택합니다.",
+      text: "편성이 끝나면 미리 고른 맵으로 경기를 시작합니다. 영웅 밴을 사용하면 밴 투표로 이동하며, 맵이 없으면 먼저 선택합니다.",
     },
   ],
   "map-types": [
@@ -63,7 +63,7 @@ const GUIDES: Record<
     {
       target: "map-types",
       title: "맵 유형 선택",
-      text: "맵 유형을 누르면 해당 전장들이 이미지로 펼쳐집니다.",
+      text: "쟁탈 맵이 먼저 펼쳐집니다. 다른 유형을 누르면 해당 전장들을 볼 수 있습니다.",
     },
     {
       target: "map-picker",
@@ -73,7 +73,7 @@ const GUIDES: Record<
     {
       target: "primary",
       title: "선택 후 경기 시작",
-      text: "맵이 저장되면 다음 버튼이 활성화됩니다. 영웅 밴을 사용하는 라운드는 영웅 밴을 거쳐 경기를 시작합니다.",
+      text: "맵을 선택하면 바로 경기를 시작합니다. 영웅 밴을 사용하는 경기는 밴 투표로 이동합니다.",
     },
   ],
   "map-vote": [
@@ -92,7 +92,7 @@ const GUIDES: Record<
     {
       target: "map-vote",
       title: "선정된 맵",
-      text: "이번 라운드에 선정된 맵을 확인하세요.",
+      text: "이번 경기에 선정된 맵을 확인하세요.",
     },
     {
       target: "primary",
@@ -116,7 +116,7 @@ const GUIDES: Record<
     {
       target: "hero-vote",
       title: "확정된 영웅 밴",
-      text: "이번 라운드에서 제외할 영웅을 확인하세요.",
+      text: "이번 경기에서 제외할 영웅을 확인하세요.",
     },
     {
       target: "primary",
@@ -127,13 +127,13 @@ const GUIDES: Record<
   match: [
     {
       target: "board",
-      title: "진행 중인 라운드",
+      title: "진행 중인 경기",
       text: "맵과 양 팀을 확인하고 경기 결과를 기록하세요.",
     },
     {
       target: "history",
       title: "내전 기록",
-      text: "기록에서 라운드 결과와 개인 승률을 확인할 수 있습니다.",
+      text: "기록에서 경기 결과와 개인 승률을 확인할 수 있습니다.",
     },
   ],
 };

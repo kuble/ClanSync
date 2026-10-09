@@ -8,8 +8,8 @@ import {
 test.use({ actionTimeout: 20_000 });
 
 async function openSettings(page: Page) {
-  await page.getByRole("button", { name: "라운드 설정", exact: true }).click();
-  const settings = page.getByRole("dialog", { name: "라운드 설정", exact: true });
+  await page.getByRole("button", { name: "경기 설정", exact: true }).click();
+  const settings = page.getByRole("dialog", { name: "경기 설정", exact: true });
   await expect(settings).toBeVisible();
   await settings.getByRole("tab", { name: "밴픽", exact: true }).click();
   return settings;
@@ -188,10 +188,13 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
       await settings.getByRole("checkbox", { name: "맵 투표 사용", exact: true }).uncheck();
       await settings.getByRole("checkbox", { name: "영웅 밴 사용", exact: true }).uncheck();
       await saveSettings(settings);
+      const mapPicker = page.getByRole("dialog", { name: "경기 맵 선택", exact: true });
+      await expect(mapPicker).toBeVisible();
+      await mapPicker.getByRole("button", { name: "닫기", exact: true }).click();
       await panel.getByRole("button", { name: "다음 단계", exact: true }).click();
       await panel.getByRole("button", { name: "혼합", exact: true }).click();
       await panel.getByRole("button", { name: "눔바니 선택", exact: true }).click();
-      await panel.getByRole("button", { name: "경기 시작", exact: true }).click();
+
       await expect(panel).toHaveAttribute("data-balance-phase", "match_live");
       await spectator.goto(offRoom.url);
       for (const view of [page, spectator]) await expect(view.getByRole("button", { name: "승부예측", exact: true })).toHaveCount(0);
