@@ -467,10 +467,10 @@ async function loadClanStatsSource(
     loadAllStatsRows<CompletedBalanceSession>((from, to) => {
       const table = historyClient.from("balance_sessions");
       const query = scope === "full"
-        ? table.select("id,series_id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,formation_settings,formation_state,banned_heroes,hero_ban_enabled,map_candidates,match_outcome,balance_session_map_votes(choice_idx),balance_session_predictions(user_id,pick_team),balance_session_series!inner(opened_at,balance_rooms!inner(kind))")
+        ? table.select("id,series_id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,formation_settings,formation_state,banned_heroes,hero_ban_enabled,map_candidates,match_outcome,balance_session_map_votes(choice_idx),balance_session_predictions(user_id,pick_team,pool_settlement),balance_session_series!inner(opened_at,balance_rooms!inner(kind))")
         : scope === "overview"
-          ? table.select("id,series_id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,banned_heroes,hero_ban_enabled,map_candidates,match_outcome,balance_session_map_votes(choice_idx),balance_session_predictions(user_id,pick_team),balance_session_series!inner(opened_at,balance_rooms!inner(kind))")
-          : table.select("id,series_id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,match_outcome,balance_session_predictions(user_id,pick_team),balance_session_series!inner(opened_at,balance_rooms!inner(kind))");
+          ? table.select("id,series_id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,banned_heroes,hero_ban_enabled,map_candidates,match_outcome,balance_session_map_votes(choice_idx),balance_session_predictions(user_id,pick_team,pool_settlement),balance_session_series!inner(opened_at,balance_rooms!inner(kind))")
+          : table.select("id,series_id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,match_outcome,balance_session_predictions(user_id,pick_team,pool_settlement),balance_session_series!inner(opened_at,balance_rooms!inner(kind))");
       return query
         .eq("clan_id", clanId)
         .eq("balance_session_series.balance_rooms.kind", "regular")
@@ -517,7 +517,7 @@ function sourcePredictions(source: StatsSource): PredictionRecord[] {
     return (session.balance_session_predictions ?? []).map((pick) => ({
       sessionId: session.id, userId: pick.user_id,
       playedAt: session.balance_session_series?.opened_at ?? session.opened_at,
-      map: session.resolved_map_label, pickTeam: pick.pick_team, outcome,
+      map: session.resolved_map_label, pickTeam: pick.pick_team, outcome, poolSettlement: pick.pool_settlement,
     }));
   });
 }
@@ -540,7 +540,7 @@ async function loadPredictionLedger(supabase: SupabaseClient<Database>, clanId: 
   return staff
     ? loadAllStatsRows((from, to) => supabase.rpc("read_clan_prediction_ledger", { p_clan_id: clanId }).eq("user_id", userId).range(from, to))
     : loadAllStatsRows((from, to) => supabase.from("coin_transactions").select("user_id,reference_id,amount,created_at")
-      .eq("user_id", userId).eq("pool_type", "personal").eq("reference_type", "balance_session")
+      .eq("user_id", userId).eq("pool_type", "personal").in("reference_type", ["balance_session", "balance_prediction_pool"])
       .order("created_at").order("id").range(from, to));
 }
 
@@ -672,7 +672,7 @@ export async function loadClanStatsPage(
       .rpc("read_clan_prediction_ledger", { p_clan_id: clanId }).range(from, to))
     : await loadAllStatsRows((from, to) => supabase
       .from("coin_transactions").select("user_id,reference_id,amount,created_at")
-      .eq("user_id", userId).eq("pool_type", "personal").eq("reference_type", "balance_session")
+      .eq("user_id", userId).eq("pool_type", "personal").in("reference_type", ["balance_session", "balance_prediction_pool"])
       .order("created_at").order("id").range(from, to));
   // Shared object identities let RSC transmit repeated teammate/opponent details once.
   // Keep this cache local to this authorized response, never across accounts or requests.

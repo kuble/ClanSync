@@ -36,6 +36,7 @@ test("round prediction settings enforce Premium, persistence and spectator RLS",
     if (client) await ok(client.auth.signInWithPassword({ email, password }));
   }
   const [leader, spectator, outsider] = users;
+  await ok(svc.from("users").update({ coin_balance: 100 }).eq("id", spectator.id));
   const game = await ok(svc.from("games").select("id").eq("slug", "overwatch").single());
   clanId = (await ok(svc.from("clans").insert({ game_id: game.id, name: `Prediction-${tag}` }).select("id").single())).id;
   await ok(svc.from("clan_members").insert(users.filter((_, i) => i !== 2).map((user, i) => ({
@@ -63,7 +64,9 @@ test("round prediction settings enforce Premium, persistence and spectator RLS",
     await ok(svc.from("balance_sessions").update({ phase: "match_live", roster,
       prediction_deadline_at: new Date(Date.now() + 60_000).toISOString() }).eq("id", roundId));
   };
-  const prediction = (client, id, pick_team = 1) => client.from("balance_session_predictions").upsert({
+  const prediction = (client, id, pick_team = 1) => id === spectator.id || client === leader.client || client === outsider.client
+    ? client.rpc("place_balance_prediction_pool", { p_session_id: roundId, p_pick: pick_team, p_stake: 1 })
+    : client.from("balance_session_predictions").upsert({
     session_id: roundId, user_id: id, pick_team,
   }, { onConflict: "session_id,user_id" });
 

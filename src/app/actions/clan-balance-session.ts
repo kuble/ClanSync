@@ -740,6 +740,7 @@ export async function submitBalancePredictionAction(
   clanId: string,
   sessionId: string,
   pickTeam: 1 | 2 | 3,
+  stakeCoins?: number,
 ): Promise<BalanceSessionActionResult> {
   if (pickTeam !== 1 && pickTeam !== 2 && pickTeam !== 3) {
     return { ok: false, error: "예측 선택이 올바르지 않습니다." };
@@ -753,7 +754,7 @@ export async function submitBalancePredictionAction(
 
   const { data: session, error: sessErr } = await supabase
     .from("balance_sessions")
-    .select("phase, match_outcome, closed_at, prediction_deadline_at, series_id, formation_settings, roster")
+    .select("phase, match_outcome, closed_at, prediction_deadline_at, series_id, formation_settings, roster, prediction_pool_enabled")
     .eq("id", sessionId)
     .eq("clan_id", clanId)
     .maybeSingle();
@@ -780,6 +781,15 @@ export async function submitBalancePredictionAction(
   }
   if (session.closed_at) {
     return { ok: false, error: "이미 종료된 세션입니다." };
+  }
+  if (session.prediction_pool_enabled) {
+    if (!Number.isSafeInteger(stakeCoins) || stakeCoins === undefined || stakeCoins < 0 || stakeCoins > 2_147_483_647) {
+      return { ok: false, error: "걸 코인은 1개 이상 정수로 입력하세요." };
+    }
+    const { error } = await supabase.rpc("place_balance_prediction_pool", { p_session_id: sessionId, p_pick: pickTeam, p_stake: stakeCoins });
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(balancePath(gameSlug, clanId));
+    return { ok: true };
   }
   if (session.phase !== "match_live" || session.match_outcome !== "pending") {
     return { ok: false, error: "지금은 예측을 받지 않습니다." };

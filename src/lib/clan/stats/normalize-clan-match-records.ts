@@ -28,7 +28,7 @@ export type CompletedBalanceSession = Pick<
 > & Partial<Pick<SessionTable, "series_id" | "formation_settings" | "banned_heroes" | "map_candidates" | "hero_ban_enabled">> & {
   balance_session_series?: { opened_at: string } | null;
   balance_session_map_votes?: { choice_idx: number }[] | null;
-  balance_session_predictions?: { user_id: string; pick_team: number }[] | null;
+  balance_session_predictions?: { user_id: string; pick_team: number; pool_settlement?: string | null }[] | null;
   formation_state?: Json | null;
 };
 

@@ -410,20 +410,32 @@ export type Database = {
       balance_session_predictions: {
         Row: {
           created_at: string
+          payout_coins: number
           pick_team: number
+          pool_settled_at: string | null
+          pool_settlement: string | null
           session_id: string
+          stake_coins: number
           user_id: string
         }
         Insert: {
           created_at?: string
+          payout_coins?: number
           pick_team: number
+          pool_settled_at?: string | null
+          pool_settlement?: string | null
           session_id: string
+          stake_coins?: number
           user_id: string
         }
         Update: {
           created_at?: string
+          payout_coins?: number
           pick_team?: number
+          pool_settled_at?: string | null
+          pool_settlement?: string | null
           session_id?: string
+          stake_coins?: number
           user_id?: string
         }
         Relationships: [
@@ -525,6 +537,7 @@ export type Database = {
           opened_at: string
           phase: Database["public"]["Enums"]["balance_session_phase"]
           prediction_deadline_at: string | null
+          prediction_pool_enabled: boolean
           predictions_settled_at: string | null
           resolved_map_label: string | null
           roster: Json
@@ -557,6 +570,7 @@ export type Database = {
           opened_at?: string
           phase?: Database["public"]["Enums"]["balance_session_phase"]
           prediction_deadline_at?: string | null
+          prediction_pool_enabled?: boolean
           predictions_settled_at?: string | null
           resolved_map_label?: string | null
           roster?: Json
@@ -589,6 +603,7 @@ export type Database = {
           opened_at?: string
           phase?: Database["public"]["Enums"]["balance_session_phase"]
           prediction_deadline_at?: string | null
+          prediction_pool_enabled?: boolean
           predictions_settled_at?: string | null
           resolved_map_label?: string | null
           roster?: Json
@@ -2826,8 +2841,16 @@ export type Database = {
         Args: { p_clan_id: string; p_hero_ban?: boolean; p_map_ban?: boolean }
         Returns: Json
       }
+      place_balance_prediction_pool: {
+        Args: { p_pick: number; p_session_id: string; p_stake: number }
+        Returns: undefined
+      }
       read_balance_analysis_context: {
         Args: { p_clan_id: string; p_round_id: string }
+        Returns: Json
+      }
+      read_balance_prediction_pool: {
+        Args: { p_session_id: string }
         Returns: Json
       }
       read_clan_prediction_ledger: {

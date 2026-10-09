@@ -5,6 +5,9 @@ export function coinReasonLabelKo(reason: string): string {
     match_enter: "내전 출전",
     match_win: "내전 승리",
     attendance_daily: "출석",
+    balance_prediction_stake: "승부예측 참여",
+    balance_prediction_refund: "승부예측 반환",
+    balance_prediction_win: "승부예측 배당",
   };
   return map[reason] ?? reason;
 }

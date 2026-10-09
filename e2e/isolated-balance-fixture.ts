@@ -27,6 +27,9 @@ export async function createIsolatedBalanceFixture(userCount = 12) {
   async function cleanup() {
     const errors: string[] = [];
     if (clanId) {
+      // Fixed-reward legacy fixtures create a clan ledger with a restrictive FK.
+      const { error: ledgerError } = await service.from("coin_transactions").delete().eq("clan_id", clanId);
+      if (ledgerError) errors.push(ledgerError.message);
       // Remove rounds before clan cascades so historical round triggers never
       // try to rebuild a series whose parent clan is already being deleted.
       const { error: roundError } = await service

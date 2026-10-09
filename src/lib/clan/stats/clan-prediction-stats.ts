@@ -7,6 +7,7 @@ export type PredictionRecord = {
   map: string | null;
   pickTeam: number;
   outcome: "team1" | "team2" | "draw" | "void";
+  poolSettlement?: string | null;
 };
 
 export type PredictionResult = "correct" | "incorrect" | "void";
@@ -35,7 +36,7 @@ export function predictionPointHistory(rows: readonly PredictionRecord[], transa
 }
 
 export function predictionResult(row: PredictionRecord): PredictionResult {
-  if (row.outcome === "void") return "void";
+  if (row.outcome === "void" || row.poolSettlement === "refund") return "void";
   return row.pickTeam === (row.outcome === "team1" ? 1 : row.outcome === "team2" ? 2 : 3) ? "correct" : "incorrect";
 }
 

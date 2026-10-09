@@ -89,6 +89,14 @@ test("승부예측 적중력은 무승부를 포함하고 무효만 제외한다
   expect(personalPredictions(rows, "member").map((row) => row.result)).toEqual(["correct", "incorrect", "incorrect", "correct", "void"]);
 });
 
+test("코인 풀 반환은 적중률에서 제외하고 원장 순이익은 보존한다", () => {
+  const refunded: PredictionRecord = { sessionId: "refund", userId: "me", playedAt: "2026-10-09T01:00:00Z", map: null, pickTeam: 1, outcome: "team2", poolSettlement: "refund" };
+  expect(predictionTotals([refunded])).toEqual({ correct: 0, valid: 0, rate: null });
+  expect(personalPredictions([refunded], "me")[0].result).toBe("void");
+  const ledger = [-7, 7].map((amount) => ({ user_id: "me", reference_id: "refund", amount, created_at: "2026-10-09T02:00:00Z" }));
+  expect(predictionPointHistory([refunded], ledger, "me")).toEqual([{ date: "2026-10-09", earned: 7, lost: 7, net: 0 }]);
+});
+
 test("예측 포인트는 실제 지급·차감 날짜로 집계하고 다른 클랜·멤버 거래와 미지급 보상을 제외한다", () => {
   const rows: PredictionRecord[] = ["paid", "unpaid"].map((sessionId) => ({ sessionId, userId: "me", playedAt: "2026-09-01T10:00:00Z", map: null, pickTeam: 1, outcome: "team1" }));
   const ledger = [
