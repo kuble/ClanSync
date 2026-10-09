@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { buildHofPeriod } from "../src/lib/clan/stats/load-clan-stats";
-import { HOF_CONFIG_DEFAULTS } from "../src/lib/clan/stats/hof-config";
+import { HOF_CONFIG_DEFAULTS, minSessionsToQualify, minGamesToQualify } from "../src/lib/clan/stats/hof-config";
 import {
   normalizeClanMatchRecords,
   type CompletedBalanceSession,
@@ -129,7 +129,7 @@ test("명예의 전당: 무승부를 승률 분모에 포함하고 결과 미기
     new Map(),
     new Date("2026-09-15T00:00:00Z"),
   );
-  expect(result.participation.find((row) => row.userId === "regular")).toMatchObject({ played: 2, ratePct: 100 });
+  expect(result.participation).toEqual([]); // Manual records without a regular series cannot imply attendance.
   expect(
     result.cumulative.find((row) => row.userId === "draw-only"),
   ).toMatchObject({ played: 1 });
@@ -150,7 +150,7 @@ test("명예의 전당: 무승부를 승률 분모에 포함하고 결과 미기
   );
 });
 
-test("명예의 전당: 여러 라운드 출전은 출석 하루로 집계한다", () => {
+test("명예의 전당: 여러 라운드 출전은 내전 참여 1회로 집계한다", () => {
   const openedAt = "2026-09-01T10:00:00Z";
   const rows = normalizeClanMatchRecords([], [
     session({ id: "r1", series_id: "series", match_outcome: "team1" }),
@@ -161,17 +161,31 @@ test("명예의 전당: 여러 라운드 출전은 출석 하루로 집계한다
   expect(result.cumulative.find((row) => row.userId === "blue-tank")).toMatchObject({ played: 2 });
 });
 
-test("출석 일수는 같은 날의 여러 내전을 합치고 개최 일수와 출전 경기 분모를 구분한다", () => {
+test("내전 참여는 같은 날의 여러 내전도 각각 세고 개최 일수와 출전 경기 분모를 구분한다", () => {
   const dates = ["2025-08-01T14:00:00Z", "2025-08-01T14:30:00Z", "2025-08-01T15:10:00Z", "2026-09-01T10:00:00Z"];
   const opened = dates.map((openedAt, index) => ({ id: `day-${index}`, openedAt }));
   const rows = normalizeClanMatchRecords([], dates.slice(0, 3).map((opened_at, index) => session({ id: `r-${index}`, series_id: opened[index].id, opened_at, balance_session_series: { opened_at }, match_outcome: "team1" })));
   const annual = buildHofPeriod(rows, "year", HOF_CONFIG_DEFAULTS, new Map(), new Date("2025-08-15T00:00:00Z"), opened, true, true);
   expect(annual.totals).toEqual({ sessions: 3, days: 2, matches: 3 });
-  expect(annual.participation[0]).toMatchObject({ played: 2, ratePct: 100 });
+  expect(annual.participation[0]).toMatchObject({ played: 3, ratePct: 100 });
   expect(annual.cumulative[0]).toMatchObject({ played: 3 });
   const all = buildHofPeriod(rows, "all", HOF_CONFIG_DEFAULTS, new Map(), new Date("2026-09-15T00:00:00Z"), opened, true);
   expect(all.totals).toEqual({ sessions: 4, days: 3, matches: 3 });
-  expect(all.participation[0]).toMatchObject({ played: 2, ratePct: 66.7 });
+  expect(all.participation[0]).toMatchObject({ played: 3, ratePct: 75 });
+});
+
+test("내전 참여 최소 비율에는 경기 출전의 고정 횟수를 적용하지 않고 미달 기록은 운영진만 확인한다", () => {
+  const cfg = { ...HOF_CONFIG_DEFAULTS, eligibilitySessionPct: 50 };
+  expect(minSessionsToQualify(200, cfg)).toBe(100);
+  expect(minGamesToQualify(200, cfg)).toBe(30);
+  const opened = Array.from({ length: 3 }, (_, i) => ({ id: `series-${i}`, openedAt: "2026-09-01T10:00:00Z" }));
+  const rows = normalizeClanMatchRecords([], [session({ series_id: opened[0].id, match_outcome: "team1" })]);
+  const args = [rows, "all", cfg, new Map(), new Date("2026-09-15T00:00:00Z"), opened] as const;
+  const staff = buildHofPeriod(...args, true), member = buildHofPeriod(...args);
+  expect(staff.minimumSessions).toBe(2);
+  expect(staff.participation).toEqual([]);
+  expect(staff.unqualifiedParticipation.find((r) => r.userId === "blue-tank")).toMatchObject({ played: 1, ratePct: 33.3 });
+  expect(member.unqualifiedParticipation).toEqual([]);
 });
 
 test("명예의 전당: 공개 전인 이번 달 순위와 확정된 지난달 순위를 구분한다", () => {
@@ -203,7 +217,7 @@ test("명예의 전당: 등재 최소 경기 수도 무효를 제외한 전체 �
     new Map(),
     new Date("2026-09-15T00:00:00Z"),
   );
-  expect(result.participation.find((row) => row.userId === "regular")).toMatchObject({ played: 2, ratePct: 100 });
+  expect(result.participation).toEqual([]);
   expect(result.cumulative.map((row) => row.userId)).toEqual(expect.arrayContaining(["regular", "once", "draw-only"]));
   expect(result.winRate.map((row) => row.userId)).toEqual(["regular"]);
 });

@@ -94,6 +94,7 @@ export async function saveClanHofConfigFormAction(
       1,
       2000,
     ),
+    eligibility_session_pct: parseIntField(formData, "eligibility_session_pct", 30, 1, 100),
   };
 
   resolveHofConfig(payload);

@@ -8,6 +8,7 @@ import {
   isHofMonthTabUndisclosed,
   isHofYearTabUndisclosed,
   minGamesToQualify,
+  minSessionsToQualify,
   resolveHofConfig,
   type ResolvedHofConfig,
 } from "./hof-config";
@@ -96,7 +97,9 @@ export type HofRowPrediction = { userId: string; nickname: string; correct: numb
 export type HofPeriodPayload = {
   totals: { sessions: number; days: number; matches: number };
   minimumGames: number;
+  minimumSessions: number;
   unqualified: HofRowWinRate[];
+  unqualifiedParticipation: HofRowParticipation[];
   undisclosed: boolean;
   undisclosedHint: string | null;
   winRate: HofRowWinRate[];
@@ -228,7 +231,9 @@ export function buildHofPeriod(
     return {
       totals: { sessions: 0, days: 0, matches: 0 },
       minimumGames: 0,
+      minimumSessions: 0,
       unqualified: [],
+      unqualifiedParticipation: [],
       undisclosed: true,
       undisclosedHint,
       winRate: [],
@@ -251,16 +256,22 @@ export function buildHofPeriod(
   const draws = new Map<string, number>();
   const losses = new Map<string, number>();
   const played = new Map<string, number>();
-  const attendanceByPlayer = new Map<string, Set<string>>();
+  const participationByPlayer = new Map<string, Set<string>>();
+  const { year, month } = currentKstYearMonth(now);
+  const eligibleSessions = openedSessions.filter((session) => period === "all" || (
+    period === "month" ? inKstMonth(session.openedAt, year, month) : inKstYear(session.openedAt, year)
+  ));
+  const openedIds = new Set(eligibleSessions.map((session) => session.id));
 
   for (const m of matches) {
     const wt = getWinnerTeam(m);
-    const attendanceDate = isoToKstYmd(m.played_at);
     const players = [...new Map((m.match_players ?? []).map((player) => [player.user_id, player])).values()];
     for (const p of players) {
       played.set(p.user_id, (played.get(p.user_id) ?? 0) + 1);
-      if (!attendanceByPlayer.has(p.user_id)) attendanceByPlayer.set(p.user_id, new Set());
-      attendanceByPlayer.get(p.user_id)!.add(attendanceDate);
+      if (m.series_id && openedIds.has(m.series_id)) {
+        if (!participationByPlayer.has(p.user_id)) participationByPlayer.set(p.user_id, new Set());
+        participationByPlayer.get(p.user_id)!.add(m.series_id);
+      }
       if (wt === null) {
         draws.set(p.user_id, (draws.get(p.user_id) ?? 0) + 1);
         continue;
@@ -326,37 +337,26 @@ export function buildHofPeriod(
   })).sort((a, b) => b.longest - a.longest || a.nickname.localeCompare(b.nickname, "ko"));
   const streakSlice = streaks.slice(0, viewerIsStaff || cfg.streakVisibleTop === 999 ? streaks.length : cfg.streakVisibleTop);
 
-  const participation: HofRowParticipation[] = [];
-  const { year, month } = currentKstYearMonth(now);
-  const eligibleSessions = openedSessions.filter((session) => {
-    if (period === "all") return true;
-    return period === "month"
-      ? inKstMonth(session.openedAt, year, month)
-      : inKstYear(session.openedAt, year);
-  });
-  // Multiple regular gatherings on the same KST date count as one attendance day.
+  // Days remain a descriptive total; participation is counted per regular series.
   const heldDays = new Set([
     ...eligibleSessions.map((session) => isoToKstYmd(session.openedAt)),
     ...matches.map((match) => isoToKstYmd(match.played_at)),
   ]);
-  const totals = { sessions: new Set(eligibleSessions.map((session) => session.id)).size, days: heldDays.size, matches: totalIntra };
-  const denom = Math.max(totals.days, 1);
-  for (const uid of played.keys()) {
-    const pl = attendanceByPlayer.get(uid)?.size ?? 0;
-    if (pl === 0) continue;
-    participation.push({
-      userId: uid,
-      nickname: nick.get(uid) ?? "알 수 없음",
-      played: pl,
-      ratePct: Math.round((pl / denom) * 1000) / 10,
-    });
-  }
+  const totals = { sessions: openedIds.size, days: heldDays.size, matches: totalIntra };
+  const minimumSessions = totals.sessions ? minSessionsToQualify(totals.sessions, cfg) : 1;
+  const participationRow = (uid: string): HofRowParticipation => {
+    const pl = participationByPlayer.get(uid)?.size ?? 0;
+    return { userId: uid, nickname: nick.get(uid) ?? "알 수 없음", played: pl, ratePct: totals.sessions ? Math.round(pl / totals.sessions * 1000) / 10 : 0 };
+  };
+  const participation = [...participationByPlayer.keys()].map(participationRow).filter((row) => row.played >= minimumSessions);
   participation.sort((a, b) => b.ratePct - a.ratePct || b.played - a.played || a.userId.localeCompare(b.userId));
   const partTop =
     viewerIsStaff || cfg.participationVisibleTop === 999
       ? participation.length
       : cfg.participationVisibleTop;
   const partSlice = participation.slice(0, partTop);
+  const unqualifiedParticipation = viewerIsStaff ? [...new Set([...nick.keys(), ...played.keys()])].map(participationRow)
+    .filter((row) => row.played < minimumSessions).sort((a, b) => b.played - a.played || a.nickname.localeCompare(b.nickname, "ko")) : [];
 
   const cumulative: HofRowCumulative[] = [];
   for (const uid of played.keys()) {
@@ -399,7 +399,9 @@ export function buildHofPeriod(
   return {
     totals,
     minimumGames: minG,
+    minimumSessions,
     unqualified,
+    unqualifiedParticipation,
     undisclosed: false,
     undisclosedHint: null,
     winRate: winSlice,
@@ -651,14 +653,19 @@ function aggregateHof(data: StatsAggregate, key: string, source: StatsSource, no
   const empty = buildHofPeriod([], kind, cfg, nick, now, [], staff, key.slice(0, currentKey.length) !== currentKey);
   if (empty.undisclosed) return empty;
   const minimum = data.totals.matches ? minGamesToQualify(data.totals.matches, cfg) : 1;
+  const minimumSessions = data.totals.sessions ? minSessionsToQualify(data.totals.sessions, cfg) : 1;
   const name = (id: string) => nick.get(id) ?? "알 수 없음";
   const rate = (w: number, n: number) => n ? Math.round(w / n * 1000) / 10 : null;
   const top = <T,>(rows: T[], limit: number) => rows.slice(0, staff || limit === 999 ? rows.length : limit);
   const records = data.players.map((p) => ({ userId: p.userId, nickname: name(p.userId), wins: p.wins, draws: p.draws, losses: p.losses, ratePct: rate(p.wins, p.played) }));
   const played = (r: HofRowWinRate) => r.wins + r.draws + r.losses;
   const people = new Map(data.players.map((p) => [p.userId, p]));
+  const participationRow = (id: string): HofRowParticipation => {
+    const sessions = people.get(id)?.sessions ?? 0;
+    return { userId: id, nickname: name(id), played: sessions, ratePct: rate(sessions, data.totals.sessions) ?? 0 };
+  };
   return {
-    ...empty, totals: data.totals, minimumGames: minimum,
+    ...empty, totals: data.totals, minimumGames: minimum, minimumSessions,
     winRate: top(records.filter((p) => played(p) >= minimum).sort((a, b) => (b.ratePct ?? 0) - (a.ratePct ?? 0) || b.wins - a.wins || a.userId.localeCompare(b.userId)), cfg.winRateVisibleTop),
     unqualified: staff ? [...new Set([...nick.keys(), ...people.keys()])].filter((id) => (people.get(id)?.played ?? 0) < minimum).map((id) => {
       const p = people.get(id);
@@ -666,7 +673,8 @@ function aggregateHof(data: StatsAggregate, key: string, source: StatsSource, no
     }).sort((a, b) => played(b) - played(a) || a.nickname.localeCompare(b.nickname, "ko")) : [],
     wins: top(data.players.map((p) => ({ userId: p.userId, nickname: name(p.userId), wins: p.wins, played: p.played })).sort((a, b) => b.wins - a.wins || b.played - a.played || a.nickname.localeCompare(b.nickname, "ko")), cfg.winsVisibleTop),
     streaks: top(data.players.filter((p) => p.longest > 0).map((p) => ({ userId: p.userId, nickname: name(p.userId), longest: p.longest })).sort((a, b) => b.longest - a.longest || a.nickname.localeCompare(b.nickname, "ko")), cfg.streakVisibleTop),
-    participation: top(data.players.map((p) => ({ userId: p.userId, nickname: name(p.userId), played: p.days, ratePct: rate(p.days, Math.max(1, data.totals.days))! })).sort((a, b) => b.ratePct - a.ratePct || b.played - a.played || a.userId.localeCompare(b.userId)), cfg.participationVisibleTop),
+    participation: top(data.players.map((p) => participationRow(p.userId)).filter((p) => p.played >= minimumSessions).sort((a, b) => b.ratePct - a.ratePct || b.played - a.played || a.userId.localeCompare(b.userId)), cfg.participationVisibleTop),
+    unqualifiedParticipation: staff ? [...new Set([...nick.keys(), ...people.keys()])].map(participationRow).filter((p) => p.played < minimumSessions).sort((a, b) => b.played - a.played || a.nickname.localeCompare(b.nickname, "ko")) : [],
     cumulative: top(data.players.map((p) => ({ userId: p.userId, nickname: name(p.userId), played: p.played })).sort((a, b) => b.played - a.played || a.userId.localeCompare(b.userId)), cfg.cumulativeVisibleTop),
     predictionCorrect: top(data.predictions.map((p) => ({ ...p, nickname: name(p.userId), ratePct: rate(p.correct, p.valid) })).sort((a, b) => b.correct - a.correct || b.valid - a.valid || a.nickname.localeCompare(b.nickname, "ko")), cfg.predictionVisibleTop),
   };

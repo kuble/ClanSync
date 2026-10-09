@@ -7,7 +7,7 @@ import { normalizeClanMatchRecords, type StoredClanMatch, type CompletedBalanceS
 
 export type StatsAggregate = {
   totals: { sessions: number; days: number; matches: number };
-  players: { userId: string; played: number; wins: number; draws: number; losses: number; days: number; longest: number; lastPlayedAt: string }[];
+  players: { userId: string; played: number; wins: number; draws: number; losses: number; days: number; sessions: number; longest: number; lastPlayedAt: string }[];
   predictions: { userId: string; valid: number; correct: number }[];
   summary: { totalMatches: number; intraCount: number; scrimCount: number; eventCount: number };
   overview: IntraOverview;
