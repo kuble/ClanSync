@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
+import { useEffect, useRef, useState, useTransition, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Map, Timer, Vote } from "lucide-react";
+import { Check, Map, Timer } from "lucide-react";
 import { toast } from "sonner";
 import {
   resolveMapBanAction,
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { BalanceMapImage } from "./clan-balance-map-image";
 import { MAP_DRAW_TICKS, mapDrawHighlight, mapDrawTickDelay } from "@/lib/balance/map-draw-presentation";
+import styles from "./clan-balance-map-ban-client.module.css";
 
 export function ClanBalanceMapBanClient({
   gameSlug,
@@ -45,12 +46,15 @@ export function ClanBalanceMapBanClient({
   const router = useRouter();
   const [pending, start] = useTransition();
   const [now, setNow] = useState<number | null>(null);
-  const [draw, setDraw] = useState({ map: resolvedMap, tick: MAP_DRAW_TICKS });
+  const [draw, setDraw] = useState({ map: resolvedMap, tick: MAP_DRAW_TICKS, animate: false });
+  const [resolveError, setResolveError] = useState<string | null>(null);
+  const [resolveRetry, setResolveRetry] = useState(0);
   const [advanceError, setAdvanceError] = useState<string | null>(null);
   const advancing = useRef(false);
+  const resolving = useRef<string | null>(null);
   // A refresh of an already visible result must not replay the draw.
   if (draw.map !== resolvedMap) {
-    setDraw({ map: resolvedMap, tick: resolvedMap ? 0 : MAP_DRAW_TICKS });
+    setDraw({ map: resolvedMap, tick: resolvedMap ? 0 : MAP_DRAW_TICKS, animate: Boolean(resolvedMap) });
   }
   const revealing = Boolean(resolvedMap) && draw.tick < MAP_DRAW_TICKS;
   const displayedMap = revealing ? null : resolvedMap;
@@ -77,7 +81,7 @@ export function ClanBalanceMapBanClient({
         advancing.current = false;
         router.refresh();
       }
-    }, 700);
+    }, 1200);
     return () => clearTimeout(timer);
   }, [displayedMap, canResolve, heroBanEnabled, advanceError, gameSlug, clanId, sessionId, router]);
   const deadlineMs = deadlineIso ? new Date(deadlineIso).getTime() : 0;
@@ -96,6 +100,18 @@ export function ClanBalanceMapBanClient({
     now === null ? null : Math.max(0, Math.ceil((deadlineMs - now) / 1000));
   const expired = remainSec === 0;
   const total = tallies.reduce((sum, count) => sum + count, 0);
+  useEffect(() => {
+    if (!expired || !canResolve || resolvedMap || pending || !deadlineIso || resolving.current === deadlineIso) return;
+    resolving.current = deadlineIso;
+    start(async () => {
+      try {
+        const result = await resolveMapBanAction(gameSlug, clanId, sessionId);
+        if (!result.ok) setResolveError(result.error);
+      } catch {
+        setResolveError("맵을 확정하지 못했습니다.");
+      } finally { router.refresh(); }
+    });
+  }, [expired, canResolve, resolvedMap, pending, deadlineIso, resolveRetry, gameSlug, clanId, sessionId, router]);
 
   function onVote(idx: number) {
     if (resolvedMap || expired || pending || !deadlineIso) return;
@@ -109,21 +125,8 @@ export function ClanBalanceMapBanClient({
       router.refresh();
     });
   }
-  function onResolve() {
-    if (resolvedMap || pending || !expired) return;
-    start(async () => {
-      const r = await resolveMapBanAction(gameSlug, clanId, sessionId);
-      if (!r.ok) {
-        toast.error(r.error);
-        return;
-      }
-      router.refresh();
-    });
-  }
-
   return (
     <div className="space-y-5" data-balance-guide="map-vote" data-map-revealing={revealing}>
-      {renderInsights?.(displayedMap)}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h4 className="flex items-center gap-2 text-base font-semibold">
@@ -154,7 +157,22 @@ export function ClanBalanceMapBanClient({
           </span>
         </div>
       </div>
-      <div className="grid gap-3 sm:grid-cols-3">
+      {displayedMap ? (
+        <article className={cn("relative overflow-hidden rounded-xl border border-primary bg-primary/5", draw.animate && styles.expand)}
+          data-testid="resolved-map-card" role="status" style={{
+            "--reveal-left": `${Math.max(0, candidates.indexOf(displayedMap)) * 100 / 3}%`,
+            "--reveal-right": `${(2 - Math.max(0, candidates.indexOf(displayedMap))) * 100 / 3}%`,
+          } as CSSProperties}>
+          <div className="relative h-36 overflow-hidden sm:h-52 lg:h-64">
+            <BalanceMapImage label={displayedMap} sizes="100vw" />
+            <span className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent" aria-hidden="true" />
+            <div className="absolute bottom-5 left-5 flex items-center gap-2 text-white">
+              <Check className="size-5 text-primary" aria-hidden="true" />
+              <strong className="text-xl" data-testid="resolved-map">{displayedMap}</strong>
+            </div>
+          </div>
+        </article>
+      ) : <div className="grid gap-3 sm:grid-cols-3" data-testid="map-vote-gallery">
         {candidates.map((label, idx) => {
           const selected = myChoiceIdx === idx;
           const winner = displayedMap === label;
@@ -211,43 +229,22 @@ export function ClanBalanceMapBanClient({
             </button>
           );
         })}
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-muted/25 px-4 py-3" data-balance-guide={resolvedMap ? undefined : "primary"}>
-        <p className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Vote className="size-4" aria-hidden="true" />
-          {total}명 투표
-          {myChoiceIdx !== null ? " · 내 선택이 반영되었습니다." : ""}
-        </p>
-        {revealing ? (
-          <p role="status" className="text-sm font-semibold text-primary">전장 추첨 중…</p>
-        ) : displayedMap ? (
-          <div className="flex flex-wrap items-center gap-2" role="status">
-            <Check className="size-4 text-primary" aria-hidden="true" />
-            <span className="text-xs text-muted-foreground">선택된 맵</span>
-            <strong className="text-sm" data-testid="resolved-map">
-              {displayedMap}
-            </strong>
-          </div>
-        ) : canResolve ? (
-          <Button
-            type="button"
-            disabled={pending || !expired}
-            onClick={onResolve}
-          >
-            맵 확정하기
-          </Button>
-        ) : (
-          <p className="text-xs text-muted-foreground">
-            운영진이 투표 결과를 반영해 맵을 확정합니다.
-          </p>
-        )}
-      </div>
+      </div>}
+      {resolveError && !resolvedMap ? (
+        <div role="alert" className="flex flex-wrap items-center justify-end gap-3">
+          <p className="text-xs text-destructive">{resolveError}</p>
+          <Button variant="outline" disabled={pending} onClick={() => {
+            resolving.current = null; setResolveError(null); setResolveRetry((value) => value + 1);
+          }}>맵 확정 다시 시도</Button>
+        </div>
+      ) : null}
       {advanceError ? (
         <div role="alert" className="flex flex-wrap items-center justify-end gap-3">
           <p className="text-xs text-destructive">{advanceError}</p>
           <Button variant="outline" onClick={() => setAdvanceError(null)}>다음 단계 다시 시도</Button>
         </div>
       ) : null}
+      {renderInsights?.(displayedMap)}
     </div>
   );
 }

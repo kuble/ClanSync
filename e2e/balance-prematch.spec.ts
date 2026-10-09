@@ -141,7 +141,7 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
       loginIsolatedBalanceUser(member, fixture.users[1]),
     ]);
     const panel = await openAndForm(page, fixture, {
-      mapBanSeconds: 5,
+      mapBanSeconds: 15,
       heroBanSeconds: 11,
     });
     await member.goto(page.url());
@@ -161,7 +161,7 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
     expect(configured).toMatchObject({
       map_ban_enabled: true,
       hero_ban_enabled: true,
-      map_ban_seconds: 5,
+      map_ban_seconds: 15,
       hero_ban_seconds: 11,
     });
 
@@ -212,7 +212,7 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
     await preparation
       .getByRole("button", { name: "유형 선택 완료", exact: true })
       .click();
-    // Both authenticated browsers vote immediately in the minimum 5-second window.
+    // Both authenticated browsers vote before automatic resolution at the shared deadline.
     await Promise.all([
       panel.getByRole("button", { name: /MAP 01/ }).click(),
       memberPanel.getByRole("button", { name: /MAP 02/ }).click(),
@@ -223,7 +223,7 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
     const voting = await fixture.activeRound();
     expect(voting.phase).toBe("map_ban");
     expect(voting.map_types).toEqual(["flashpoint"]);
-    expect(voting.map_ban_seconds).toBe(5);
+    expect(voting.map_ban_seconds).toBe(15);
     expect(voting.map_ban_deadline_at).not.toBeNull();
     expect(voting.map_candidates).toHaveLength(3);
     const allowed = mapPoolForGameSlug("overwatch", ["flashpoint"]);
@@ -243,13 +243,14 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
         .map((user, index) => ({ user_id: user.id, choice_idx: index }))
         .sort((a, b) => a.user_id.localeCompare(b.user_id)),
     );
-    const resolve = panel.getByRole("button", {
-      name: "맵 확정하기",
-      exact: true,
-    });
-    await expect(resolve).toBeEnabled({ timeout: 10_000 });
-    await resolve.click();
-    await expect(panel.locator('[data-map-revealing="true"]')).toBeVisible();
+    await expect(panel.getByRole("button", { name: "맵 확정하기", exact: true })).toHaveCount(0);
+    await expect(panel.getByText(/명 투표 · 내 선택/)).toHaveCount(0);
+    const oddsBefore = await panel.getByTestId("balance-win-probability").boundingBox();
+    const galleryBefore = await panel.getByTestId("map-vote-gallery").boundingBox();
+    const endBefore = await panel.getByRole("button", { name: "세션 종료", exact: true }).boundingBox();
+    expect(oddsBefore!.y).toBeGreaterThan(galleryBefore!.y + galleryBefore!.height);
+    expect(oddsBefore!.y + oddsBefore!.height).toBeLessThan(endBefore!.y);
+    await expect(panel.locator('[data-map-revealing="true"]')).toBeVisible({ timeout: 20_000 });
     await expect(panel.locator('[data-vote-excluded="true"]')).toHaveCount(1);
     await expect(panel.locator('[data-vote-excluded="true"]')).toContainText(voting.map_candidates![2]);
     await expect(panel.getByRole("button", { name: "경기 도구", exact: true })).toHaveCount(0);
@@ -257,6 +258,10 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
     await expect(panel.getByTestId("resolved-map")).toBeVisible();
     const expectedMap = await panel.getByTestId("resolved-map").innerText();
     expect(voting.map_candidates!.slice(0, 2)).toContain(expectedMap);
+    await expect(panel.getByTestId("map-vote-gallery")).toHaveCount(0);
+    const expanded = await panel.getByTestId("resolved-map-card").boundingBox();
+    expect(expanded!.width).toBeGreaterThan(galleryBefore!.width - 2);
+    await capturePanel(panel, "map-confirmed-expanded");
     await expect(panel.getByTestId("balance-win-probability")).toHaveCount(1);
     await expect(panel.getByTestId("balance-win-probability")).toContainText(expectedMap);
     await Promise.all([panel, memberPanel].map(async (view) => {
@@ -360,7 +365,7 @@ test("경기 준비: 팀별 영웅 선택·기권·밴 확정과 경기 시작",
     await expect(team1BanStatus).toContainText("우양");
     await expect.poll(() => Date.now()).toBeGreaterThan(heroDeadline + 1_000);
     await heroResolve.click();
-    await expect(panel).toHaveAttribute("data-balance-phase", "match_live");
+    await expect(panel).toHaveAttribute("data-balance-phase", "match_live", { timeout: 20_000 });
     await expect(page.locator('[data-sonner-toast][data-type="error"]')).toHaveCount(0);
     expect(await fixture.activeRound()).toMatchObject({
       phase: "match_live",
@@ -369,6 +374,12 @@ test("경기 준비: 팀별 영웅 선택·기권·밴 확정과 경기 시작",
       hero_ban_deadline_at: null,
       hero_ban_context: { version: 1, bansPerTeam: 2, teams: { team1: [{ heroId: "hazard", role: "tank", votes: 1 }, { heroId: "wuyang", role: "support", votes: 1 }], team2: [] } },
     });
+  } catch (error) {
+    await capturePanel(page.getByTestId("clan-balance-session-panel"), "hero-start-failure");
+    await test.info().attach("hero-start-state", {
+      body: JSON.stringify({ text: await page.locator("body").innerText(), round: await fixture.activeRound() }), contentType: "application/json",
+    });
+    throw error;
   } finally {
     await fixture.cleanup();
   }

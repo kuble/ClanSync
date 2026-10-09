@@ -1,0 +1,19 @@
+.expand {
+  animation: expandMap 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes expandMap {
+  from { clip-path: inset(0 var(--reveal-right) 0 var(--reveal-left) round 0.75rem); }
+  to { clip-path: inset(0 0 0 0 round 0.75rem); }
+}
+
+@media (max-width: 639px) {
+  @keyframes expandMap {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expand { animation: none; }
+}

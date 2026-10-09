@@ -415,6 +415,8 @@ export async function resolveMapBanAction(
     sessionId,
     true,
     async (client, round) => {
+      // Repeated timer requests must keep the first persisted draw.
+      if (round.resolved_map_label && (round.phase === "map_ban" || round.phase === "hero_ban")) return;
       if (
         round.phase !== "map_ban" ||
         round.resolved_map_label !== null ||
@@ -432,10 +434,16 @@ export async function resolveMapBanAction(
       const votes = ballot as { choice_idx: number }[] | null;
       if (error) throw new Error(error.message);
       const winIdx = weightedPickMapIndex(tallyMapVotes(votes ?? []));
-      await savePrematchRound(client, round, {
-        resolved_map_label: candidates[winIdx] ?? candidates[0],
-        map_ban_deadline_at: null,
-      });
+      try {
+        await savePrematchRound(client, round, {
+          resolved_map_label: candidates[winIdx] ?? candidates[0],
+          map_ban_deadline_at: null,
+        });
+      } catch (error) {
+        const { data: current } = await client.from("balance_sessions")
+          .select("resolved_map_label,closed_at,phase").eq("id", sessionId).eq("clan_id", clanId).maybeSingle();
+        if (!current?.resolved_map_label || current.closed_at || current.phase === "editing") throw error;
+      }
     },
   );
 }

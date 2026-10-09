@@ -86,9 +86,7 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
       await panel.getByRole("button", { name: "유형 선택 완료", exact: true }).click();
       await expect(panel).toHaveAttribute("data-balance-phase", "map_ban");
       await expectNoScoreToggle(panel);
-      const resolve = panel.getByRole("button", { name: "맵 확정하기", exact: true });
-      await expect(resolve).toBeEnabled({ timeout: 15_000 });
-      await resolve.click();
+      await expect(panel.getByRole("button", { name: "맵 확정하기", exact: true })).toHaveCount(0);
       await expect(panel).toHaveAttribute("data-balance-phase", "match_live", { timeout: 25_000 });
     });
 
