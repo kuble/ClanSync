@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import {
   ArrowRight,
-  BarChart3,
   Settings2,
   CircleHelp,
   Crown,
@@ -401,16 +400,6 @@ export function ClanBalanceSessionPanel({
             </div>
           </div>
           <div className="flex items-center gap-1">
-            {canViewHistory ? <Button
-              size="icon"
-              variant="ghost"
-              aria-label="내전 기록"
-              title={canViewHistory ? "내전 기록" : "운영진 이상만 확인할 수 있습니다."}
-              data-balance-guide="history"
-              onClick={() => setHistoryOpen(true)}
-            >
-              <BarChart3 className="size-4" />
-            </Button> : null}
             {canManage ? (
               <Button
                 size="icon"

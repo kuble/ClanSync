@@ -5,7 +5,7 @@ import { EMPTY_ROSTER } from "../src/lib/balance/roster-schema";
 
 test.use({ actionTimeout: 20_000 });
 
-test("현재 내전 기록: 다른 방 제외·좌우 드래그·승률 정렬·우측 요약·빈 기록", async ({ page }) => {
+test("현재 내전 기록: 호버 닫힘·좌측 요약·모바일 순서·좌우 드래그·승률 정렬", async ({ page }) => {
   test.setTimeout(120_000);
   const fixture = await createIsolatedBalanceFixture(3);
   try {
@@ -56,8 +56,10 @@ test("현재 내전 기록: 다른 방 제외·좌우 드래그·승률 정렬·
     const statsBounds = await stats.boundingBox();
     const summaryBounds = await history.getByText("완료 경기", { exact: true }).boundingBox();
     expect(matchBounds!.x + matchBounds!.width).toBeLessThan(statsBounds!.x);
-    expect(summaryBounds!.x).toBeGreaterThan(matchBounds!.x + matchBounds!.width);
-    expect(summaryBounds!.y).toBeLessThan(statsBounds!.y);
+    expect(summaryBounds!.x).toBeLessThan(statsBounds!.x);
+    expect(summaryBounds!.y).toBeLessThan(matchBounds!.y);
+    const drawerBounds = (await history.boundingBox())!;
+    expect(drawerBounds.x).toBeGreaterThan(200);
     const carousel = history.getByTestId("balance-history-carousel");
     const bounds = (await carousel.boundingBox())!;
     await page.mouse.move(bounds.x + bounds.width * 0.7, bounds.y + 28);
@@ -72,12 +74,29 @@ test("현재 내전 기록: 다른 방 제외·좌우 드래그·승률 정렬·
     await page.keyboard.press("ArrowLeft");
     await expect.poll(() => carousel.evaluate((element) => Math.round(element.scrollLeft / (element.clientWidth + 12)))).toBe(1);
     await page.screenshot({ path: test.info().outputPath("history-current-desktop.png") });
+    await page.mouse.move(40, 400);
+    await expect(history).toBeHidden();
+    await page.getByRole("button", { name: "내전 기록 열기", exact: true }).hover();
+    await expect(history).toBeVisible();
+    await page.mouse.move(800, 400);
     await page.setViewportSize({ width: 390, height: 844 });
+    if (!(await history.isVisible())) await page.getByRole("button", { name: "내전 기록 열기", exact: true }).click();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     const columns = await history.getByTestId("balance-history-columns").evaluate((element) => getComputedStyle(element).gridTemplateColumns);
     expect(columns.trim().split(" ")).toHaveLength(1);
+    const infoMobile = (await history.getByRole("region", { name: "내전 정보" }).boundingBox())!;
+    const statsMobile = (await stats.boundingBox())!;
+    const matchesMobile = (await matches.boundingBox())!;
+    expect(infoMobile.y).toBeLessThan(statsMobile.y);
+    expect(statsMobile.y + statsMobile.height).toBeLessThan(matchesMobile.y);
+    const scroll = history.locator('[aria-busy]');
+    expect(await scroll.evaluate((element) => getComputedStyle(element).scrollbarColor)).not.toBe("auto");
+    await page.mouse.move(0, 0);
+    await expect(history).toBeVisible();
+    await page.screenshot({ path: test.info().outputPath("history-mobile-order.png") });
     await page.keyboard.press("Escape");
-    await page.getByRole("button", { name: "내전 기록", exact: true }).click();
+    await expect(page.getByRole("button", { name: "내전 기록", exact: true })).toHaveCount(0);
+    await page.getByRole("button", { name: "내전 기록 열기", exact: true }).click();
     await expect(rates).toHaveAttribute("aria-sort", "descending");
     expect((await fixture.service.from("balance_sessions").delete().eq("series_id", active.series_id)).error).toBeNull();
     await history.getByRole("button", { name: "내전 기록 새로고침" }).click();

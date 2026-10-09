@@ -87,15 +87,15 @@ test("내전 기록 권한: 아이콘 숨김·깜짝 자기 세션·종료 삭�
       loginIsolatedBalanceUser(member, fixture.users[1]),
     ]);
     await member.goto(fixture.path);
-    await expect(member.getByRole("button", { name: "내전 기록", exact: true })).toHaveCount(0);
+    await expect(member.getByRole("button", { name: "내전 기록 열기", exact: true })).toHaveCount(0);
     const flash = await createAndEnterBalanceRoom(member, fixture.path, "기록 권한 검증", "flash");
     await expect(member.getByRole("heading", { name: /밸런스 편집/ })).toBeVisible();
-    await expect(member.getByRole("button", { name: "내전 기록", exact: true })).toBeEnabled();
+    await expect(member.getByRole("button", { name: "내전 기록 열기", exact: true })).toBeEnabled();
     await expect(member.getByRole("group", { name: "점수 표시", exact: true })).toHaveCount(0);
     await expect(member.getByRole("button", { name: "방송용 화면", exact: true })).toHaveCount(0);
     const regular = await createAndEnterBalanceRoom(page, fixture.path, "정규 기록 권한");
     const requestPromise = page.waitForRequest((request) => request.method() === "POST" && !!request.headers()["next-action"] && !!request.postData()?.includes(fixture.clanId));
-    await page.getByRole("button", { name: "내전 기록", exact: true }).click();
+    await page.getByRole("button", { name: "내전 기록 열기", exact: true }).click();
     const request = await requestPromise;
     const history = page.getByRole("dialog", { name: "내전 기록", exact: true });
     await expect(history).toBeVisible();
@@ -128,13 +128,13 @@ test("내전 기록 권한: 아이콘 숨김·깜짝 자기 세션·종료 삭�
     expect(promoted.error).toBeNull();
     expect(await replayHistory()).toContain('"ok":true');
     await member.reload();
-    await expect(member.getByRole("button", { name: "내전 기록", exact: true })).toBeEnabled();
+    await expect(member.getByRole("button", { name: "내전 기록 열기", exact: true })).toBeEnabled();
     const demoted = await fixture.service.from("clan_members").update({ role: "member" })
       .eq("clan_id", fixture.clanId).eq("user_id", fixture.users[1].id);
     expect(demoted.error).toBeNull();
     expect(await replayHistory()).toContain("이 내전 기록을 볼 수 없습니다.");
     await member.reload();
-    await member.getByRole("button", { name: "내전 기록", exact: true }).click();
+    await member.getByRole("button", { name: "내전 기록 열기", exact: true }).click();
     const ownDrawer = member.getByRole("dialog", { name: "내전 기록", exact: true });
     await expect(ownDrawer).toContainText("이 깜짝 내전의 기록만 표시합니다.");
     await member.keyboard.press("Escape");

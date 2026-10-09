@@ -330,7 +330,7 @@ function HistoryContent({
         </Button>
       </div>
       <div
-        className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 sm:px-6"
+        className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 [scrollbar-color:var(--muted-foreground)_var(--background)] [scrollbar-width:thin] sm:px-6"
         aria-busy={loading}
       >
         {loading ? (
@@ -360,9 +360,7 @@ function HistoryContent({
           </p>
         ) : (
           <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]" data-testid="balance-history-columns">
-            <HistoryMatches key={requestKey} rounds={data.rounds} pool={historyPool} nickname={nickname} />
-            <div className="min-w-0 space-y-4">
-              <div className="grid grid-cols-3 gap-2">
+              <section aria-label="내전 정보" className="grid grid-cols-3 gap-2 lg:col-start-1 lg:row-start-1">
                 {[
                   ["완료 경기", `${completed}판`],
                   [
@@ -381,10 +379,10 @@ function HistoryContent({
                     <p className="mt-1 text-base font-bold sm:text-lg">{value}</p>
                   </div>
                 ))}
-              </div>
+              </section>
             <section
               aria-labelledby="balance-history-stats-heading"
-              className="min-w-0 space-y-3 rounded-xl border bg-muted/15 p-3 sm:p-4 lg:sticky lg:top-0"
+              className="min-w-0 space-y-3 rounded-xl border bg-muted/15 p-3 sm:p-4 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:sticky lg:top-0"
             >
               <div className="flex items-center justify-between gap-3">
                 <h3
@@ -399,7 +397,7 @@ function HistoryContent({
                 끊으며, 대기·무효 경기와 쉬어 간 경기는 집계하지 않습니다.
               </p>
               {stats.length ? (
-                <div className="overflow-x-auto rounded-xl border">
+                <div className="overflow-x-auto rounded-xl border [scrollbar-color:var(--muted-foreground)_var(--background)] [scrollbar-width:thin]">
                   <table className="w-full min-w-[400px] text-xs tabular-nums">
                     <thead className="bg-muted/45 text-muted-foreground">
                       <tr>
@@ -471,7 +469,7 @@ function HistoryContent({
                 </p>
               )}
             </section>
-            </div>
+            <div className="min-w-0 lg:col-start-1 lg:row-start-2"><HistoryMatches key={requestKey} rounds={data.rounds} pool={historyPool} nickname={nickname} /></div>
           </div>
         )}
       </div>
@@ -484,14 +482,30 @@ export function ClanBalanceHistoryDrawer({
   onOpenChange,
   ...props
 }: Props) {
+  const tab = useRef<HTMLButtonElement>(null);
+  const pointer = useRef<{ x: number; y: number } | null>(null);
+  const suppressHover = useRef(false);
+  function changeOpen(next: boolean) {
+    if (!next && pointer.current && tab.current) {
+      const bounds = tab.current.getBoundingClientRect();
+      suppressHover.current = pointer.current.x >= bounds.left && pointer.current.x <= bounds.right && pointer.current.y >= bounds.top && pointer.current.y <= bounds.bottom;
+    }
+    onOpenChange(next);
+  }
   return (
     <>
-      {props.currentSeriesId && !open ? <button type="button" aria-label="내전 기록 열기" title="내전 기록" onMouseEnter={() => onOpenChange(true)} onClick={() => onOpenChange(true)}
-        className="fixed right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-xl border border-primary/25 bg-background/95 px-2 py-3 text-xs font-semibold text-primary shadow-lg focus-visible:outline-2 focus-visible:outline-ring">
+      {props.currentSeriesId ? <button ref={tab} type="button" data-balance-guide="history" aria-hidden={open || undefined} tabIndex={open ? -1 : 0} aria-label="내전 기록 열기" title="내전 기록" onMouseEnter={(event) => {
+        pointer.current = { x: event.clientX, y: event.clientY };
+        if (!suppressHover.current && window.matchMedia("(min-width: 1024px) and (hover: hover) and (pointer: fine)").matches) onOpenChange(true);
+      }} onMouseLeave={() => { suppressHover.current = false; }} onClick={() => { suppressHover.current = false; onOpenChange(true); }}
+        className={cn("fixed right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-xl border border-primary/25 bg-background/95 px-2 py-3 text-xs font-semibold text-primary shadow-lg focus-visible:outline-2 focus-visible:outline-ring", open && "invisible pointer-events-none")}>
         <History className="size-4" aria-hidden="true" /><span className="[writing-mode:vertical-rl]">내전 기록</span>
       </button> : null}
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="gap-4 data-[side=right]:w-full data-[side=right]:sm:max-w-[min(1080px,96vw)]">
+    <Sheet open={open} onOpenChange={changeOpen}>
+      <SheetContent onPointerMove={(event) => { pointer.current = { x: event.clientX, y: event.clientY }; }} onPointerLeave={(event) => {
+        pointer.current = { x: event.clientX, y: event.clientY };
+        if (event.pointerType === "mouse" && window.matchMedia("(min-width: 1024px) and (hover: hover) and (pointer: fine)").matches) changeOpen(false);
+      }} className="gap-4 data-[side=right]:w-full data-[side=right]:sm:max-w-[min(1000px,84vw)]">
         <SheetHeader className="shrink-0 px-4 pr-14 pb-0 sm:px-6 sm:pr-14">
           <SheetTitle className="flex items-center gap-2">
             <History className="size-5" aria-hidden="true" />
