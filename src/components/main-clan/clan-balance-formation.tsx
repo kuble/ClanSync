@@ -46,21 +46,18 @@ export function ClanBalanceFormation({
   // Each member may request a clock check; server time and CAS decide the result.
   useEffect(() => {
     if (!due || pending) return;
-    let cancelled = false;
-    let timer: ReturnType<typeof setTimeout>;
-    async function tick() {
+    // Wait for the action and its refreshed props before checking the clock again.
+    // Repeated refreshes with an old revision can keep the new screen suspended.
+    const timer = setTimeout(() => start(async () => {
       try {
         const result = await updateFormationAction(gameSlug, clanId, roundId, revision, { type: "tick" });
-        if (cancelled) return;
         setProgressError(result.ok ? null : result.error);
         router.refresh();
       } catch {
-        if (!cancelled) setProgressError("연결을 확인하고 있습니다. 복구되면 자동으로 이어집니다.");
+        setProgressError("연결을 확인하고 있습니다. 복구되면 자동으로 이어집니다.");
       }
-      if (!cancelled) timer = setTimeout(tick, 1500);
-    }
-    timer = setTimeout(tick, 100);
-    return () => { cancelled = true; clearTimeout(timer); };
+    }), 1500);
+    return () => clearTimeout(timer);
   }, [due, pending, gameSlug, clanId, roundId, revision, router, retry]);
 
   function run(command: FormationCommand) {

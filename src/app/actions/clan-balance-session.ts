@@ -428,18 +428,20 @@ export async function resolveMapBanAction(
       const candidates = round.map_candidates;
       if (!candidates || candidates.length !== 3)
         throw new Error("맵 후보가 없습니다.");
-      const { data: ballot, error } = await client.rpc("read_closed_balance_ballot", {
-        p_round_id: sessionId, p_clan_id: clanId, p_kind: "map", p_expected_deadline: round.map_ban_deadline_at,
-      });
-      const votes = ballot as { choice_idx: number }[] | null;
-      if (error) throw new Error(error.message);
-      const winIdx = weightedPickMapIndex(tallyMapVotes(votes ?? []));
       try {
+        const { data: ballot, error } = await client.rpc("read_closed_balance_ballot", {
+          p_round_id: sessionId, p_clan_id: clanId, p_kind: "map", p_expected_deadline: round.map_ban_deadline_at,
+        });
+        const votes = ballot as { choice_idx: number }[] | null;
+        if (error) throw new Error(error.message);
+        const winIdx = weightedPickMapIndex(tallyMapVotes(votes ?? []));
         await savePrematchRound(client, round, {
           resolved_map_label: candidates[winIdx] ?? candidates[0],
           map_ban_deadline_at: null,
         });
       } catch (error) {
+        // Another host tab can resolve between the round read and ballot lock.
+        // A committed result is also success when the closed ballot is stale.
         const { data: current } = await client.from("balance_sessions")
           .select("resolved_map_label,closed_at,phase").eq("id", sessionId).eq("clan_id", clanId).maybeSingle();
         if (!current?.resolved_map_label || current.closed_at || current.phase === "editing") throw error;

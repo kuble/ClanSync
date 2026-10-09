@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -16,6 +16,9 @@ export function ClanBalanceSessionRealtime({
   roundKey: string;
 }) {
   const router = useRouter();
+  const [refreshPending, startRefresh] = useTransition();
+  const refreshingRef = useRef(false);
+  const queuedRefreshRef = useRef(false);
   const connectionKey = `${clanId}:${seriesId ?? "none"}:${sessionId ?? "none"}`;
   const [connection, setConnection] = useState({
     key: connectionKey,
@@ -29,13 +32,31 @@ export function ClanBalanceSessionRealtime({
   }, [roundKey]);
 
   useEffect(() => {
+    refreshingRef.current = refreshPending;
+    // Preserve one catch-up refresh for events received while rendering.
+    // Starting a fresh request every two seconds can starve a slow transition.
+    if (!refreshPending && queuedRefreshRef.current) {
+      queuedRefreshRef.current = false;
+      refreshingRef.current = true;
+      startRefresh(() => router.refresh());
+    }
+  }, [refreshPending, router]);
+
+  useEffect(() => {
     const supabase = createClient();
     let disposed = false;
     let refreshTimer: ReturnType<typeof setTimeout> | undefined;
     const refresh = () => {
       if (disposed) return;
       if (refreshTimer) clearTimeout(refreshTimer);
-      refreshTimer = setTimeout(() => router.refresh(), 120);
+      refreshTimer = setTimeout(() => {
+        if (refreshingRef.current) {
+          queuedRefreshRef.current = true;
+          return;
+        }
+        refreshingRef.current = true;
+        startRefresh(() => router.refresh());
+      }, 120);
     };
     const channel = supabase
       .channel(`balance_session:${sessionId ?? clanId}`)
@@ -164,6 +185,7 @@ export function ClanBalanceSessionRealtime({
       document.removeEventListener("visibilitychange", checkRevision);
       window.clearInterval(timer);
       if (refreshTimer) clearTimeout(refreshTimer);
+      queuedRefreshRef.current = false;
       void supabase.removeChannel(channel);
     };
   }, [sessionId, seriesId, clanId, connectionKey, router]);

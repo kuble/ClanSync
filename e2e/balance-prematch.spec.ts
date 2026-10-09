@@ -110,6 +110,11 @@ async function openAndForm(
   }
   // Advancing immediately exercises the roster flush and automatic apply.
   await panel.getByRole("button", { name: "다음 단계", exact: true }).click();
+  if (mapBan) {
+    // Empty roster slots also occur during the outgoing formation reveal.
+    // Wait for the actual map preparation before opening its guide or voting.
+    await expect(panel.getByRole("region", { name: "경기 준비", exact: true })).toBeVisible({ timeout: 20_000 });
+  }
   await expectMapStage(panel);
   return panel;
 }
@@ -135,6 +140,7 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
   });
   memberContext.setDefaultTimeout(20_000);
   const member = await memberContext.newPage();
+  let hostMirror: Page | undefined;
   try {
     await Promise.all([
       loginIsolatedBalanceUser(page, fixture.users[0]),
@@ -221,6 +227,10 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
       .poll(async () => (await readVotes(fixture, formed.id)).length)
       .toBe(2);
     const voting = await fixture.activeRound();
+    hostMirror = await page.context().newPage();
+    await hostMirror.goto(page.url());
+    const mirrorPanel = hostMirror.getByTestId("clan-balance-session-panel");
+    await expect(mirrorPanel.getByTestId("balance-realtime")).toHaveAttribute("data-connection-status", "READY");
     expect(voting.phase).toBe("map_ban");
     expect(voting.map_types).toEqual(["flashpoint"]);
     expect(voting.map_ban_seconds).toBe(15);
@@ -264,9 +274,10 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
     await capturePanel(panel, "map-confirmed-expanded");
     await expect(panel.getByTestId("balance-win-probability")).toHaveCount(1);
     await expect(panel.getByTestId("balance-win-probability")).toContainText(expectedMap);
-    await Promise.all([panel, memberPanel].map(async (view) => {
+    await Promise.all([panel, memberPanel, mirrorPanel].map(async (view) => {
       await expect(view).toHaveAttribute("data-balance-phase", "hero_ban", { timeout: 20_000 });
       await expect(view.getByText(expectedMap, { exact: true })).toBeVisible();
+      await expect(view.getByRole("alert")).toHaveCount(0);
     }));
     await expect(page.getByRole("dialog", { name: "맵 추첨 결과", exact: true })).toHaveCount(0);
     const resolved = await fixture.activeRound();
@@ -282,6 +293,7 @@ test("경기 준비: 가중 맵 연출·설정 보존·공유 결과·자동 영
     await expect(panel.getByRole("button", { name: "경기 설정", exact: true })).toHaveCount(0);
     await expect(page.getByRole("dialog", { name: "경기 설정", exact: true })).toHaveCount(0);
   } finally {
+    await hostMirror?.close();
     await memberContext.close();
     await fixture.cleanup();
   }

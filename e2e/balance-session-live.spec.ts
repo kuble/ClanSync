@@ -41,7 +41,10 @@ async function settings(
   lottery = false,
 ) {
   const mapPicker = page.getByRole("dialog", { name: "경기 맵 선택", exact: true });
-  if (await mapPicker.isVisible()) await mapPicker.getByRole("button", { name: "닫기", exact: true }).click();
+  if (await mapPicker.isVisible()) {
+    await mapPicker.getByRole("button", { name: "닫기", exact: true }).click();
+    await expect(mapPicker).toBeHidden();
+  }
   await panel.getByRole("button", { name: "경기 설정", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "경기 설정", exact: true });
   await expect(dialog).toBeVisible();
@@ -60,7 +63,10 @@ async function settings(
     .uncheck();
   await dialog.getByRole("button", { name: "설정 적용", exact: true }).click();
   await expect(dialog).toBeHidden({ timeout: 20_000 });
-  if (await mapPicker.isVisible()) await mapPicker.getByRole("button", { name: "닫기", exact: true }).click();
+  if (await mapPicker.isVisible()) {
+    await mapPicker.getByRole("button", { name: "닫기", exact: true }).click();
+    await expect(mapPicker).toBeHidden();
+  }
 }
 
 async function confirmResult(
@@ -205,6 +211,12 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
     await panel
       .getByRole("button", { name: "다음 경기", exact: true })
       .click();
+    // A new match opens its map picker, which hides the underlying panel from
+    // the accessibility tree until the host chooses a map or closes the picker.
+    const nextMapPicker = page.getByRole("dialog", { name: "경기 맵 선택", exact: true });
+    await expect(nextMapPicker).toBeVisible({ timeout: 20_000 });
+    await nextMapPicker.getByRole("button", { name: "닫기", exact: true }).click();
+    await expect(nextMapPicker).toBeHidden();
     await expect(
       panel.getByRole("heading", { name: /밸런스 편집.*경기 2/ }),
     ).toBeVisible({ timeout: 20_000 });
