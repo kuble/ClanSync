@@ -42,9 +42,7 @@ const MODE_LABEL = {
 };
 const STAT_COLUMNS: { key: BalanceStatsSort; label: string }[] = [
   { key: "appearances", label: "출전" },
-  { key: "wins", label: "승" },
-  { key: "draws", label: "무" },
-  { key: "losses", label: "패" },
+  { key: "wins", label: "승/무/패" },
   { key: "winRate", label: "승률" },
   { key: "currentStreak", label: "현재 연속" },
 ];
@@ -155,21 +153,21 @@ function HistoryContent({
   gameSlug,
   clanId,
   currentSeriesId,
+  scope = "clan",
   pool,
 }: Omit<Props, "open" | "onOpenChange">) {
-  const [requestedSeriesId, setRequestedSeriesId] = useState(currentSeriesId);
   const [refresh, setRefresh] = useState(0);
-  const [sort, setSort] = useState<BalanceStatsSort>("appearances");
+  const [sort, setSort] = useState<BalanceStatsSort>("winRate");
   const [sortDirection, setSortDirection] = useState<BalanceStatsSortDirection>("desc");
   const [response, setResponse] = useState<{
     key: string;
     data: BalanceHistoryData | null;
     error: string | null;
   } | null>(null);
-  const requestKey = `${gameSlug}:${clanId}:${requestedSeriesId ?? "latest"}:${refresh}`;
+  const requestKey = `${gameSlug}:${clanId}:${currentSeriesId ?? "latest"}:${scope}:${refresh}`;
   useEffect(() => {
     let cancelled = false;
-    loadBalanceHistoryAction(gameSlug, clanId, requestedSeriesId)
+    loadBalanceHistoryAction(gameSlug, clanId, currentSeriesId, scope === "clan" ? "today" : "session")
       .then((result) => {
         if (cancelled) return;
         setResponse(
@@ -189,18 +187,18 @@ function HistoryContent({
     return () => {
       cancelled = true;
     };
-  }, [gameSlug, clanId, requestedSeriesId, requestKey]);
+  }, [gameSlug, clanId, currentSeriesId, scope, requestKey]);
 
   const loading = response?.key !== requestKey;
   const data = response?.data;
   const stats = useMemo(
     () =>
       sortBalanceHistoryStats(
-        calculateBalanceHistoryStats(data?.rounds ?? []),
+        calculateBalanceHistoryStats(data?.rounds ?? [], scope === "clan"),
         sort,
         sortDirection,
       ),
-    [data, sort, sortDirection],
+    [data, sort, sortDirection, scope],
   );
   const changeSort = (next: BalanceStatsSort) => {
     if (next === sort) {
@@ -236,31 +234,14 @@ function HistoryContent({
 
   return (
     <>
-      <div className="flex shrink-0 items-end gap-2 border-b px-4 pb-4 sm:px-6">
-        <label className="min-w-0 flex-1 space-y-1.5 text-xs font-medium">
-          <span>내전 날짜 · 세션</span>
-          <select
-            aria-label="내전 날짜와 세션"
-            className="h-10 w-full rounded-lg border bg-background px-3 text-sm"
-            value={requestedSeriesId ?? data?.selectedSeriesId ?? ""}
-            disabled={loading || !data?.series.length}
-            onChange={(event) => setRequestedSeriesId(event.target.value)}
-          >
-            {!data?.series.length ? (
-              <option value="">{loading ? "불러오는 중" : "세션 없음"}</option>
-            ) : null}
-            {data?.series.map((series) => (
-              <option key={series.id} value={series.id}>
-                {series.session_date.replaceAll("-", ".")} ·{" "}
-                {timeLabel(series.opened_at)} 개설
-                {series.closed_at === null ? " · 진행 중" : ""}
-              </option>
-            ))}
-          </select>
-        </label>
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b px-4 pb-3 sm:px-6">
+        <p className="text-sm font-medium">
+          {(data?.date ?? selected?.session_date)?.replaceAll("-", ".")}
+          {data?.date ? <span className="ml-2 text-xs text-muted-foreground">오늘 · 한국시간</span> : null}
+        </p>
         <Button
           variant="outline"
-          size="icon"
+          size="icon-sm"
           aria-label="내전 기록 새로고침"
           disabled={loading}
           onClick={() => setRefresh((value) => value + 1)}
@@ -296,35 +277,112 @@ function HistoryContent({
               다시 불러오기
             </Button>
           </div>
-        ) : !selected ? (
+        ) : !data?.rounds.length ? (
           <p className="py-16 text-center text-sm text-muted-foreground">
-            아직 기록된 내전 세션이 없습니다.
+            {scope === "clan" ? "오늘 기록된 내전 경기가 없습니다." : "아직 기록된 내전 경기가 없습니다."}
           </p>
         ) : (
-          <div className="space-y-6">
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                ["완료 경기", `${completed}판`],
-                [
-                  "승패 기록 인원",
-                  `${stats.filter((member) => member.appearances > 0).length}명`,
-                ],
-                ["세션 상태", selected.closed_at ? "종료" : "진행 중"],
-              ].map(([label, value]) => (
-                <div
-                  key={label}
-                  className="rounded-xl border bg-muted/25 px-2 py-3 text-center"
-                >
-                  <p className="text-[10px] text-muted-foreground sm:text-xs">
-                    {label}
+          <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]" data-testid="balance-history-columns">
+            <div className="min-w-0 space-y-4">
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  ["완료 경기", `${completed}판`],
+                  [
+                    "참여자",
+                    `${stats.length}명`,
+                  ],
+                  ["진행 중", `${data.rounds.filter((round) => round.match_outcome === "pending").length}판`],
+                ].map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="rounded-xl border bg-muted/25 px-2 py-3 text-center"
+                  >
+                    <p className="text-[10px] text-muted-foreground sm:text-xs">
+                      {label}
+                    </p>
+                    <p className="mt-1 text-base font-bold sm:text-lg">{value}</p>
+                  </div>
+                ))}
+              </div>
+              <section
+                aria-labelledby="balance-history-rounds-heading"
+                className="space-y-3"
+              >
+                <h3 id="balance-history-rounds-heading" className="font-semibold">
+                  {scope === "clan" ? "오늘 경기" : "경기 기록"}{" "}
+                  <span className="ml-1 text-sm font-normal text-muted-foreground">
+                    {data?.rounds.length ?? 0}
+                  </span>
+                </h3>
+                {data?.rounds.length ? (
+                  data.rounds.map((round, index) => (
+                    <details key={round.id} open={index === 0} className="group rounded-xl border" data-testid="balance-history-round">
+                      <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-4 [&::-webkit-details-marker]:hidden">
+                        <span className="shrink-0 font-bold">
+                          {round.round_number}라운드
+                          <span className="mt-0.5 block text-[10px] font-normal text-muted-foreground">{timeLabel(round.opened_at)}</span>
+                        </span>
+                        <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+                          {round.resolved_map_label ?? "맵 미지정"}
+                        </span>
+                        <span
+                          className={cn(
+                            "shrink-0 text-xs font-semibold",
+                            round.match_outcome === "team1" &&
+                              "text-sky-600 dark:text-sky-300",
+                            round.match_outcome === "team2" &&
+                              "text-rose-600 dark:text-rose-300",
+                          )}
+                        >
+                          {outcomeLabel(round)}
+                        </span>
+                        <ChevronDown
+                          className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+                          aria-hidden="true"
+                        />
+                      </summary>
+                      <div className="space-y-3 border-t p-3 [&_[data-board-slot]]:min-h-12 [&_[data-board-slot]]:py-2 sm:p-4">
+                        <ClanBalanceRosterBoard
+                          roster={round.roster}
+                          pool={historyPool}
+                          outcome={round.match_outcome}
+                        />
+                        <details className="rounded-lg bg-muted/30 p-3">
+                          <summary className="cursor-pointer text-xs font-medium">
+                            편성·추첨 이력{" "}
+                            <span className="text-muted-foreground">
+                              ({round.drawHistory.length})
+                            </span>
+                          </summary>
+                          {round.drawHistory.length ? (
+                            <ol className="mt-3 space-y-2">
+                              {round.drawHistory.map((event, index) => (
+                                <DrawAudit
+                                  key={`${event.at}:${index}`}
+                                  event={event}
+                                  nickname={nickname}
+                                />
+                              ))}
+                            </ol>
+                          ) : (
+                            <p className="mt-3 text-xs text-muted-foreground">
+                              저장된 편성·추첨 이력이 없습니다.
+                            </p>
+                          )}
+                        </details>
+                      </div>
+                    </details>
+                  ))
+                ) : (
+                  <p className="py-6 text-center text-sm text-muted-foreground">
+                    아직 라운드가 없습니다.
                   </p>
-                  <p className="mt-1 text-base font-bold sm:text-lg">{value}</p>
-                </div>
-              ))}
+                )}
+              </section>
             </div>
             <section
               aria-labelledby="balance-history-stats-heading"
-              className="space-y-3"
+              className="min-w-0 space-y-3 rounded-xl border bg-muted/15 p-3 sm:p-4 lg:sticky lg:top-0"
             >
               <div className="flex items-center justify-between gap-3">
                 <h3
@@ -340,7 +398,7 @@ function HistoryContent({
               </p>
               {stats.length ? (
                 <div className="overflow-x-auto rounded-xl border">
-                  <table className="w-full min-w-[440px] text-xs tabular-nums">
+                  <table className="w-full min-w-[400px] text-xs tabular-nums">
                     <thead className="bg-muted/45 text-muted-foreground">
                       <tr>
                         <th scope="col" className="whitespace-nowrap px-3 py-3 text-left font-medium">참여자</th>
@@ -356,7 +414,7 @@ function HistoryContent({
                             <button
                               type="button"
                               className={cn("inline-flex min-h-9 w-full items-center justify-end gap-1 rounded-md px-2 py-1 hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring", active && "text-foreground")}
-                              aria-label={`${column.label} ${active ? (sortDirection === "desc" ? "오름차순" : "내림차순") : "내림차순"}으로 정렬`}
+                              aria-label={`${column.key === "wins" ? "승수" : column.label} ${active ? (sortDirection === "desc" ? "오름차순" : "내림차순") : "내림차순"}으로 정렬`}
                               onClick={() => changeSort(column.key)}
                             >
                               {column.label}
@@ -380,13 +438,7 @@ function HistoryContent({
                             {member.appearances}
                           </td>
                           <td className="px-3 py-3 text-right">
-                            {member.wins}
-                          </td>
-                          <td className="px-3 py-3 text-right">
-                            {member.draws}
-                          </td>
-                          <td className="px-3 py-3 text-right">
-                            {member.losses}
+                            <span aria-label={`${member.wins}승 ${member.draws}무 ${member.losses}패`}>{member.wins}/{member.draws}/{member.losses}</span>
                           </td>
                           <td className="px-3 py-3 text-right">
                             {member.winRate === null
@@ -417,80 +469,6 @@ function HistoryContent({
                 </p>
               )}
             </section>
-            <section
-              aria-labelledby="balance-history-rounds-heading"
-              className="space-y-3"
-            >
-              <h3 id="balance-history-rounds-heading" className="font-semibold">
-                라운드 기록{" "}
-                <span className="ml-1 text-sm font-normal text-muted-foreground">
-                  {data?.rounds.length ?? 0}
-                </span>
-              </h3>
-              {data?.rounds.length ? (
-                data.rounds.map((round) => (
-                  <details key={round.id} className="group rounded-xl border">
-                    <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-4 [&::-webkit-details-marker]:hidden">
-                      <span className="shrink-0 font-bold">
-                        {round.round_number}라운드
-                      </span>
-                      <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-                        {round.resolved_map_label ?? "맵 미지정"}
-                      </span>
-                      <span
-                        className={cn(
-                          "shrink-0 text-xs font-semibold",
-                          round.match_outcome === "team1" &&
-                            "text-sky-600 dark:text-sky-300",
-                          round.match_outcome === "team2" &&
-                            "text-rose-600 dark:text-rose-300",
-                        )}
-                      >
-                        {outcomeLabel(round)}
-                      </span>
-                      <ChevronDown
-                        className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
-                        aria-hidden="true"
-                      />
-                    </summary>
-                    <div className="space-y-4 border-t p-3 sm:p-4">
-                      <ClanBalanceRosterBoard
-                        roster={round.roster}
-                        pool={historyPool}
-                        outcome={round.match_outcome}
-                      />
-                      <details className="rounded-lg bg-muted/30 p-3">
-                        <summary className="cursor-pointer text-xs font-medium">
-                          편성·추첨 이력{" "}
-                          <span className="text-muted-foreground">
-                            ({round.drawHistory.length})
-                          </span>
-                        </summary>
-                        {round.drawHistory.length ? (
-                          <ol className="mt-3 space-y-2">
-                            {round.drawHistory.map((event, index) => (
-                              <DrawAudit
-                                key={`${event.at}:${index}`}
-                                event={event}
-                                nickname={nickname}
-                              />
-                            ))}
-                          </ol>
-                        ) : (
-                          <p className="mt-3 text-xs text-muted-foreground">
-                            저장된 편성·추첨 이력이 없습니다.
-                          </p>
-                        )}
-                      </details>
-                    </div>
-                  </details>
-                ))
-              ) : (
-                <p className="py-6 text-center text-sm text-muted-foreground">
-                  아직 라운드가 없습니다.
-                </p>
-              )}
-            </section>
           </div>
         )}
       </div>
@@ -505,14 +483,14 @@ export function ClanBalanceHistoryDrawer({
 }: Props) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="gap-4 data-[side=right]:w-full data-[side=right]:sm:max-w-[min(880px,92vw)]">
+      <SheetContent className="gap-4 data-[side=right]:w-full data-[side=right]:sm:max-w-[min(1180px,96vw)]">
         <SheetHeader className="shrink-0 px-4 pr-14 pb-0 sm:px-6 sm:pr-14">
           <SheetTitle className="flex items-center gap-2">
             <History className="size-5" aria-hidden="true" />
             내전 기록
           </SheetTitle>
           <SheetDescription>
-            {props.scope === "session" ? "이 깜짝 내전의 기록만 표시합니다. 세션 종료 시 모두 삭제됩니다." : "세션별 참여자 통계와 라운드 기록 · 최근 30개 세션"}
+            {props.scope === "session" ? "이 깜짝 내전의 기록만 표시합니다. 세션 종료 시 모두 삭제됩니다." : "오늘의 경기 정보와 참여자 통계"}
           </SheetDescription>
         </SheetHeader>
         {open ? (

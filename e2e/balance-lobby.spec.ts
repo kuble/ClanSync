@@ -102,7 +102,7 @@ test("내전 기록 권한: 아이콘 숨김·깜짝 자기 세션·종료 삭�
     await expect(history.getByText("내전 기록은 운영진 이상만 확인할 수 있습니다.", { exact: true })).toHaveCount(0);
     const payload = request.postData();
     if (!payload) throw new Error("Missing history action request");
-    async function replayHistory(seriesId = regular.roomId) {
+    async function replayHistory(seriesId = regular.roomId, scope = "session") {
       return member.evaluate(async ({ url, headers, body }) => {
         const response = await fetch(url, { method: "POST", headers, body });
         if (!response.ok) throw new Error(`History response: ${response.status}`);
@@ -115,10 +115,11 @@ test("내전 기록 권한: 아이콘 숨김·깜짝 자기 세션·종료 삭�
           accept: "text/x-component",
           "next-router-state-tree": request.headers()["next-router-state-tree"] ?? "",
         },
-        body: payload!.replaceAll(regular.roomId, seriesId),
+        body: payload!.replaceAll(regular.roomId, seriesId).replace('"today"', JSON.stringify(scope)),
       });
     }
     expect(await replayHistory()).toContain("이 내전 기록을 볼 수 없습니다.");
+    expect(await replayHistory(flash.roomId, "today")).toContain("이 내전 기록을 볼 수 없습니다.");
     const ownHistory = await replayHistory(flash.roomId);
     expect(ownHistory).toContain('"ok":true');
     expect(ownHistory).toContain(flash.roomId);

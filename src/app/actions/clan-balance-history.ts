@@ -1,9 +1,11 @@
 "use server";
 
 import {
+  balanceHistoryDay,
   balanceSessionDate,
   parsePublicDrawHistory,
   sortHistoryRounds,
+  sortDailyHistoryRounds,
   type BalanceHistoryData,
   type BalanceHistoryRound,
   type BalanceHistorySeries,
@@ -33,14 +35,30 @@ function publicSeries(
   };
 }
 
+function publicRound(row: StoredRound): BalanceHistoryRound {
+  return {
+    id: row.id,
+    round_number: row.round_number,
+    opened_at: row.opened_at,
+    closed_at: row.closed_at,
+    match_outcome: row.match_outcome,
+    phase: row.phase,
+    resolved_map_label: row.resolved_map_label,
+    roster: parseRoster(row.roster),
+    drawHistory: parsePublicDrawHistory(row.draw_history),
+  };
+}
+
 export async function loadBalanceHistoryAction(
   gameSlug: string,
   clanId: string,
   requestedSeriesId: string | null = null,
+  scope: "session" | "today" = "session",
 ): Promise<HistoryResult> {
   if (
     !UUID.test(clanId) ||
     (requestedSeriesId !== null && !UUID.test(requestedSeriesId)) ||
+    (scope !== "session" && scope !== "today") ||
     typeof gameSlug !== "string" ||
     !gameSlug ||
     gameSlug.length > 80
@@ -61,7 +79,7 @@ export async function loadBalanceHistoryAction(
     const denied = { ok: false as const, error: "이 내전 기록을 볼 수 없습니다." };
     if (membershipError || membership?.status !== "active") return denied;
     if (!staff) {
-      if (!requestedSeriesId) return denied;
+      if (!requestedSeriesId || scope === "today") return denied;
       const { data: owned, error: ownerError } = await client.from("balance_rooms")
         .select("id").eq("clan_id", clanId).eq("series_id", requestedSeriesId)
         .eq("kind", "flash").eq("status", "open").eq("created_by", user.id).maybeSingle();
@@ -74,6 +92,23 @@ export async function loadBalanceHistoryAction(
       .maybeSingle();
     if (gameError || !game)
       return { ok: false, error: "게임을 확인할 수 없습니다." };
+    if (scope === "today") {
+      const day = balanceHistoryDay();
+      const rounds: BalanceHistoryRound[] = [];
+      for (let offset = 0; ; offset += 200) {
+        const { data: rows, error } = await client.from("balance_sessions")
+          .select("*").eq("clan_id", clanId).eq("game_id", game.id)
+          .gte("opened_at", day.start).lt("opened_at", day.end)
+          .order("opened_at").order("id").range(offset, offset + 199);
+        if (error) return { ok: false, error: "라운드 기록을 불러오지 못했습니다." };
+        rounds.push(...(rows ?? []).map(publicRound));
+        if (!rows || rows.length < 200) break;
+      }
+      return { ok: true, data: {
+        date: day.date, series: [], selectedSeriesId: null,
+        rounds: sortDailyHistoryRounds(rounds),
+      } };
+    }
     let recentQuery = client
       .from("balance_session_series")
       .select("id,opened_at,closed_at,session_date")
@@ -120,17 +155,7 @@ export async function loadBalanceHistoryAction(
       if (roundError)
         return { ok: false, error: "라운드 기록을 불러오지 못했습니다." };
       for (const row of (rows ?? []) as StoredRound[]) {
-        rounds.push({
-          id: row.id,
-          round_number: row.round_number,
-          opened_at: row.opened_at,
-          closed_at: row.closed_at,
-          match_outcome: row.match_outcome,
-          phase: row.phase,
-          resolved_map_label: row.resolved_map_label,
-          roster: parseRoster(row.roster),
-          drawHistory: parsePublicDrawHistory(row.draw_history),
-        });
+        rounds.push(publicRound(row));
       }
       if (!rows || rows.length < 200) break;
     }

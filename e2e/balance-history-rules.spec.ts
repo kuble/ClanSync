@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { balanceTeamHeadingResult } from "../src/components/main-clan/clan-balance-roster-board";
 import {
   balanceSessionDate,
+  balanceHistoryDay,
   calculateBalanceHistoryStats,
   parsePublicDrawHistory,
   sortBalanceHistoryStats,
@@ -151,6 +152,18 @@ test("session date stays fixed at opening date and old records use the Korean op
   expect(balanceSessionDate(null, "2026-09-15T14:59:59Z")).toBe("2026-09-15");
   expect(balanceSessionDate(null, "2026-09-15T15:00:00Z")).toBe("2026-09-16");
   expect(balanceSessionDate(null, "invalid")).toBe("날짜 미상");
+});
+
+test("daily history uses Korean midnight bounds and chronological streaks across rooms", () => {
+  expect(balanceHistoryDay(new Date("2026-10-08T15:00:00Z"))).toEqual({
+    date: "2026-10-09", start: "2026-10-08T15:00:00.000Z", end: "2026-10-09T15:00:00.000Z",
+  });
+  expect(balanceHistoryDay(new Date("2026-10-08T14:59:59Z")).date).toBe("2026-10-08");
+  const early = { ...round(9, "team1", ["a"]), opened_at: "2026-10-08T16:00:00Z" };
+  const later = { ...round(1, "team2", ["a"]), opened_at: "2026-10-08T17:00:00Z" };
+  expect(calculateBalanceHistoryStats([later, early], true)[0]).toMatchObject({
+    appearances: 2, wins: 1, losses: 1, currentStreak: -1,
+  });
 });
 
 test("round order uses round number rather than response order or close time", () => {

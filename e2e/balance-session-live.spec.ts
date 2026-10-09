@@ -368,11 +368,13 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
       history.getByRole("combobox", { name: "통계 정렬", exact: true }),
     ).toHaveCount(0);
     const appearancesHeader = history.getByRole("columnheader", { name: /출전/ });
+    await expect(history.getByRole("columnheader", { name: /승률/ })).toHaveAttribute("aria-sort", "descending");
+    await appearancesHeader.getByRole("button").click();
     await expect(appearancesHeader).toHaveAttribute("aria-sort", "descending");
     await appearancesHeader.getByRole("button").click();
     await expect(appearancesHeader).toHaveAttribute("aria-sort", "ascending");
     const firstRound = history.locator("details").filter({ hasText: "1라운드" }).first();
-    await firstRound.locator(":scope > summary").click();
+    if (await firstRound.getAttribute("open") === null) await firstRound.locator(":scope > summary").click();
     await expect(
       firstRound
         .getByLabel("출전 라인업")
