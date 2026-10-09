@@ -337,6 +337,9 @@ test("경기 준비: 팀별 영웅 선택·기권·밴 확정과 경기 시작",
     });
     expect(await readVotes(fixture, formed.id)).toEqual([]);
     await page.reload();
+    await expect(picker).toHaveCount(0);
+    await expect(panel.getByRole("region", { name: "경기 준비", exact: true })).toContainText("왕의 길");
+    await panel.getByRole("button", { name: "맵 변경", exact: true }).click();
     await expect(picker).toHaveAttribute("aria-pressed", "true");
     await expect(advance).toBeEnabled();
     await expectMapStage(panel);
@@ -380,8 +383,9 @@ test("경기 준비: 팀별 영웅 선택·기권·밴 확정과 경기 시작",
       banned_heroes: null,
     });
     const heroDeadline = Date.parse(heroVoting.hero_ban_deadline_at!);
-    expect(heroDeadline).toBeGreaterThanOrEqual(beforeHeroStart + 14_900);
-    expect(heroDeadline).toBeLessThanOrEqual(afterHeroStart + 15_100);
+    // The hosted DB and test runner clocks can differ by a few hundred milliseconds.
+    expect(heroDeadline).toBeGreaterThanOrEqual(beforeHeroStart + 14_000);
+    expect(heroDeadline).toBeLessThanOrEqual(afterHeroStart + 16_000);
     const { data: heroVotes, error: heroVoteError } = await fixture.service
       .from("balance_session_hero_votes")
       .select("user_id")
@@ -394,6 +398,7 @@ test("경기 준비: 팀별 영웅 선택·기권·밴 확정과 경기 시작",
     await expect(team1BanStatus).toContainText("1 / 5명 선택");
     await expect(team1BanStatus).toContainText("해저드");
     await expect(team1BanStatus).toContainText("우양");
+    await expect.poll(() => Date.now()).toBeGreaterThan(heroDeadline + 1_000);
     await heroResolve.click();
     await expect(panel).toHaveAttribute("data-balance-phase", "match_live");
     await expect(page.locator('[data-sonner-toast][data-type="error"]')).toHaveCount(0);

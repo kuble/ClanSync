@@ -3,6 +3,63 @@ import { createAndEnterBalanceRoom, createIsolatedBalanceFixture, loginIsolatedB
 import { analysisValue, parseAnalysisContext } from "../src/lib/balance/analysis-context";
 import type { Json } from "../src/lib/supabase/database.types";
 
+test.use({ actionTimeout: 20_000 });
+
+test("미리 선택한 맵은 주장 지명과 추첨 완료 후 다시 선택하지 않는다", async ({ page }) => {
+  test.setTimeout(120_000);
+  const fixture = await createIsolatedBalanceFixture(11);
+  try {
+    await loginIsolatedBalanceUser(page, fixture.users[0]);
+    // The operator is not a captain, so one browser can manage both draft turns.
+    const ids = fixture.users.slice(1, 11).map((user) => user.id);
+    const roster = { team1: { tank: ids[0], dmg: ids.slice(1, 3), sup: ids.slice(3, 5) }, team2: { tank: ids[5], dmg: ids.slice(6, 8), sup: ids.slice(8, 10) } };
+    for (const mode of ["draft", "random"] as const) {
+      const heroBan = mode === "random";
+      const room = await createAndEnterBalanceRoom(page, fixture.path, `선택 맵 유지 ${mode}`);
+      const round = await fixture.activeRound(room.roomId);
+      expect((await fixture.service.from("balance_sessions").update({
+        roster, map_ban_enabled: false, hero_ban_enabled: heroBan,
+        formation_settings: { roles: "manual", teams: mode },
+      }).eq("id", round.id)).error).toBeNull();
+      await page.reload();
+      const panel = page.getByTestId("clan-balance-session-panel");
+      const picker = panel.getByRole("region", { name: "경기 맵", exact: true });
+      await picker.getByRole("button", { name: "쟁탈", exact: true }).click();
+      await picker.getByRole("button", { name: "리장 타워 선택", exact: true }).click();
+      await expect.poll(async () => (await fixture.activeRound(room.roomId)).resolved_map_label).toBe("리장 타워");
+      // A selected map can still be changed while editing the formation.
+      const summary = panel.locator("details > summary").filter({ hasText: "경기 맵" });
+      await expect(summary).toContainText("리장 타워");
+      await summary.click();
+      await expect(picker).toBeVisible();
+      await picker.getByRole("button", { name: "부산 선택", exact: true }).click();
+      await expect.poll(async () => (await fixture.activeRound(room.roomId)).resolved_map_label).toBe("부산");
+      await panel.getByRole("button", { name: mode === "draft" ? "편성 진행" : "추첨 시작", exact: true }).click();
+      if (mode === "draft") {
+        const candidates = panel.locator('[aria-label="지명 가능한 선수"]');
+        for (let pick = 0; pick < 8; pick++) {
+          await expect(candidates.getByRole("button")).toHaveCount(8 - pick);
+          await candidates.locator("button:enabled").first().click();
+        }
+      }
+      await expect(panel.getByRole("heading", { name: /경기 준비/ })).toBeVisible({ timeout: 20_000 });
+      await expect(picker).toHaveCount(0);
+      const ready = panel.getByRole("region", { name: "경기 준비", exact: true });
+      await expect(ready).toContainText("부산");
+      await expect(ready.getByRole("button", { name: /선택$/ })).toHaveCount(0);
+      expect((await fixture.activeRound(room.roomId)).resolved_map_label).toBe("부산");
+      await panel.getByRole("button", { name: "화면 안내", exact: true }).click();
+      const guide = page.getByRole("dialog", { name: "선정된 맵", exact: true });
+      await expect(guide).toBeVisible();
+      await guide.getByRole("button", { name: "닫기", exact: true }).click();
+      await ready.getByRole("button", { name: heroBan ? "영웅 밴 시작" : "경기 시작", exact: true }).click();
+      await expect(panel).toHaveAttribute("data-balance-phase", heroBan ? "hero_ban" : "match_live");
+      expect((await fixture.activeRound(room.roomId)).resolved_map_label).toBe("부산");
+      await panel.screenshot({ path: test.info().outputPath(`preselected-map-${mode}.png`) });
+    }
+  } finally { await fixture.cleanup(); }
+});
+
 test("편성 중 맵 변경은 분석만 변경하고 경기 중 분석은 읽기 전용", async ({ page }) => {
   test.setTimeout(150_000);
   const fixture = await createIsolatedBalanceFixture(11);

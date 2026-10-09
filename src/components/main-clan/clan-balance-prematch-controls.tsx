@@ -40,6 +40,7 @@ export function ClanBalancePrematchControls({
   const router = useRouter();
   const [pending, start] = useTransition();
   const [selectedMap, setSelectedMap] = useOptimistic(session.resolved_map_label);
+  const [manualMapOpen, setManualMapOpen] = useState(!session.resolved_map_label);
   const [types, setTypes] = useState(parseBanSettings(session).mapTypes);
   const needsMapVote = session.map_ban_enabled && !session.resolved_map_label;
   const needsHeroVote =
@@ -82,7 +83,7 @@ export function ClanBalancePrematchControls({
         <div className="space-y-3">
           <MapTypeFilter value={types} onChange={setTypes} disabled={pending} />
         </div>
-      ) : !session.map_ban_enabled && session.phase === "editing" ? (
+      ) : !session.map_ban_enabled && session.phase === "editing" && (editingOnly || manualMapOpen) ? (
         <BalanceManualMapPicker
           gameSlug={gameSlug}
           value={selectedMap}
@@ -91,10 +92,10 @@ export function ClanBalancePrematchControls({
           canManage={canManage}
         />
       ) : session.resolved_map_label ? (
-        <p className="text-sm" data-balance-guide="map-vote">
-          <span className="mr-2 text-muted-foreground">경기 맵</span>
-          <strong>{session.resolved_map_label}</strong>
-        </p>
+        <div className="flex items-center justify-between gap-3" data-balance-guide="map-vote">
+          <p className="text-sm"><span className="mr-2 text-muted-foreground">경기 맵</span><strong>{session.resolved_map_label}</strong></p>
+          {!session.map_ban_enabled && canManage ? <Button size="sm" variant="outline" disabled={pending} onClick={() => setManualMapOpen(true)}>맵 변경</Button> : null}
+        </div>
       ) : null}
       {renderInsights?.(selectedMap)}
       {editingOnly ? null : canManage ? (

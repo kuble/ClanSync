@@ -163,11 +163,11 @@ export function ClanBalanceSessionPanel({
         : session?.phase === "match_live"
           ? "match"
           : mapScreen
-            ? session?.map_ban_enabled
-              ? session.resolved_map_label
-                ? "map-result"
-                : "map-types"
-              : "map-manual"
+            ? session?.resolved_map_label
+              ? "map-result"
+              : session?.map_ban_enabled
+                ? "map-types"
+                : "map-manual"
             : formation
               ? "formation"
               : "roster";
@@ -364,9 +364,11 @@ export function ClanBalanceSessionPanel({
                   : session?.phase === "hero_ban"
                     ? "영웅 밴"
                     : mapScreen
-                      ? session?.map_ban_enabled
-                        ? "맵 유형 선택"
-                        : "맵 선택"
+                      ? session?.resolved_map_label
+                        ? "경기 준비"
+                        : session?.map_ban_enabled
+                          ? "맵 유형 선택"
+                          : "맵 선택"
                       : canManage
                         ? "밸런스 편집"
                         : "팀 편성"}
