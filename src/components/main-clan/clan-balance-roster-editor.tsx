@@ -246,7 +246,7 @@ export function ClanBalanceRosterEditor({
     clearInteraction();
   }
 
-  const toolbar = <div className="mb-3 flex flex-wrap items-center justify-between gap-2 px-2 pt-2 text-xs sm:px-3 sm:pt-3">
+  const toolbar = <div className="mb-2 flex flex-wrap items-center justify-between gap-2 px-2 pt-2 text-xs sm:px-3 sm:pt-3">
         <div>{scoreControl}</div>
         {canEdit ? (
           <div className="flex items-center gap-1">
