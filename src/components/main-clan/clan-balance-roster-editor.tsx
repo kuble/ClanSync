@@ -34,6 +34,7 @@ import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
 import type { ScoreMode } from "./balance-team-insights";
 import type { PlayerSessionInfoMap } from "@/lib/balance/player-session-stats";
 import { BalancePlayerCardContent, BalancePlayerDetails } from "./balance-player-details";
+import { BalanceRosterDock } from "./balance-roster-dock";
 import type { PlayerCardInfoMode } from "@/lib/balance/formation";
 
 export type ClanBalanceRosterEditorHandle = {
@@ -50,6 +51,7 @@ const SLOT_ADDRESSES = TEAMS.flatMap((team) =>
   BALANCE_SLOTS.map((slot) => ({ team, slot })),
 );
 const DRAG_TYPE = "application/x-clansync-roster-slot";
+const MEMBER_DRAG_TYPE = "application/x-clansync-roster-member";
 
 function addressKey(address: SlotAddress) {
   return `${address.team}:${address.slot.key}`;
@@ -167,7 +169,9 @@ export function ClanBalanceRosterEditor({
   }
   const [query, setQuery] = useState("");
   const [activeSlot, setActiveSlot] = useState<string | null>(null);
+  const [activeMember, setActiveMember] = useState<string | null>(null);
   const [draggedSlot, setDraggedSlot] = useState<string | null>(null);
+  const [draggedMember, setDraggedMember] = useState<string | null>(null);
   const [dropSlot, setDropSlot] = useState<string | null>(null);
   const displayScores = scores && analysisContext ? contextualScores(scores, analysisContext, roster, analysisMap) : scores;
   const usedIds = new Set(rosterAssignedUserIds(roster));
@@ -186,7 +190,9 @@ export function ClanBalanceRosterEditor({
 
   function clearInteraction() {
     setActiveSlot(null);
+    setActiveMember(null);
     setDraggedSlot(null);
+    setDraggedMember(null);
     setDropSlot(null);
   }
 
@@ -198,10 +204,10 @@ export function ClanBalanceRosterEditor({
     autosave.edit(next);
   }
 
-  function addMember(userId: string) {
-    if (!firstEmpty || usedIds.has(userId)) return;
+  function addMember(userId: string, target = firstEmpty) {
+    if (!target || usedIds.has(userId) || !availablePool.some((member) => member.user_id === userId)) return;
     const next = structuredClone(roster);
-    setSlot(next, firstEmpty, userId);
+    setSlot(next, target, userId);
     apply(next);
   }
 
@@ -268,11 +274,82 @@ export function ClanBalanceRosterEditor({
         ) : null}
       </div>
       <p id={helpId} className="sr-only">
-        아래 클랜원을 누르면 1팀부터 순서대로 빈자리에 들어갑니다. 참여자를 끌어
+        클랜원을 누르면 1팀부터 순서대로 빈자리에 들어가며, 원하는 자리로 끌어 넣을 수도 있습니다.
+        채워진 자리에 놓으면 기존 참여자는 클랜원 목록으로 돌아갑니다. 명단이 가득 찼을 때는 클랜원과 교체할 자리를 차례로 누르세요. 참여자를 끌어
         다른 자리로 이동하거나 교환할 수 있습니다. 키보드 또는 터치로는 참여자와
         도착할 자리를 차례로 누르세요. 우클릭이나 Delete 키로 자리를 비우고
         Escape 키로 이동 선택을 취소할 수 있습니다.
       </p>
+      <BalanceRosterDock members={(handle) => (
+      <section
+        className="overflow-hidden rounded-xl border bg-muted/15"
+        aria-label="참가 가능 클랜원"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
+          <h4 className="text-xs font-semibold">
+            클랜원{" "}
+            <span className="ml-1 tabular-nums text-muted-foreground">
+              {availablePool.length}
+            </span>
+          </h4>
+          {handle}
+          <label className="flex h-9 w-full items-center gap-2 rounded-lg border bg-background px-3">
+            <Search
+              className="size-3.5 shrink-0 text-muted-foreground"
+              aria-hidden="true"
+            />
+            <input
+              aria-label="참가자 닉네임 검색"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="닉네임 검색"
+              className="min-w-0 flex-1 bg-transparent text-xs outline-none"
+            />
+          </label>
+          {activeMember ? <p className="w-full text-xs text-primary" role="status">교체할 참여자 자리를 선택하세요.</p> : null}
+        </div>
+        <div data-roster-members className="grid min-h-24 grid-cols-2 content-start gap-2 p-3 sm:grid-cols-3 sm:p-4">
+          {visiblePool.length ? (
+            visiblePool.map((member) => (
+              <button
+                key={member.user_id}
+                type="button"
+                aria-disabled={!canEdit}
+                aria-pressed={activeMember === member.user_id}
+                draggable={canEdit}
+                onDragStart={(event) => {
+                  if (!canEdit) { event.preventDefault(); return; }
+                  clearInteraction();
+                  event.dataTransfer.setData(MEMBER_DRAG_TYPE, member.user_id);
+                  event.dataTransfer.effectAllowed = "move";
+                  setDraggedMember(member.user_id);
+                }}
+                onDragEnd={clearInteraction}
+                onClick={() => {
+                  if (!canEdit) return;
+                  const target = SLOT_ADDRESSES.find((address) => addressKey(address) === activeSlot);
+                  if (target || firstEmpty) addMember(member.user_id, target ?? firstEmpty);
+                  else { setActiveSlot(null); setActiveMember(activeMember === member.user_id ? null : member.user_id); }
+                }}
+                onKeyDown={(event) => { if (event.key === "Escape") clearInteraction(); }}
+                aria-label={`${member.nickname} 출전 명단에 추가`}
+                className={cn("flex min-h-11 min-w-0 items-center justify-center rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold transition-colors hover:border-primary/50 hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-disabled:cursor-default aria-disabled:opacity-50", canEdit && "cursor-grab active:cursor-grabbing", draggedMember === member.user_id && "opacity-50", activeMember === member.user_id && "ring-2 ring-primary")}
+              >
+                <span className="truncate">{member.nickname}</span>
+              </button>
+            ))
+          ) : (
+            <p className="col-span-full py-3 text-xs text-muted-foreground">
+              {query.trim()
+                ? "검색 결과가 없습니다."
+                : pool.length
+                  ? "출전 명단에 추가할 클랜원이 없습니다."
+                  : "참가할 수 있는 클랜원이 없습니다."}
+            </p>
+          )}
+        </div>
+      </section>
+      )}>
       <div aria-label="출전 명단 편집" aria-describedby={helpId}>
         <BalanceTeamHeading roster={roster} scores={displayScores} mode={scoreMode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} />
         <div className="space-y-2 rounded-xl bg-muted/35 p-2 sm:p-3">
@@ -315,7 +392,8 @@ export function ClanBalanceRosterEditor({
                         draggedSlot === key && "opacity-50",
                       )}
                       onClick={() => {
-                        if (activeSlot) moveMember(activeSlot, address);
+                        if (activeMember) addMember(activeMember, address);
+                        else if (activeSlot) moveMember(activeSlot, address);
                         else if (userId) setActiveSlot(key);
                       }}
                       onContextMenu={(event) => {
@@ -336,11 +414,12 @@ export function ClanBalanceRosterEditor({
                         event.dataTransfer.setData(DRAG_TYPE, key);
                         event.dataTransfer.effectAllowed = "move";
                         setActiveSlot(null);
+                        setActiveMember(null);
                         setDraggedSlot(key);
                       }}
                       onDragEnd={clearInteraction}
                       onDragOver={(event) => {
-                        if (!canEdit || !draggedSlot) return;
+                        if (!canEdit || (!draggedSlot && !draggedMember)) return;
                         event.preventDefault();
                         event.dataTransfer.dropEffect = "move";
                         setDropSlot(key);
@@ -348,12 +427,15 @@ export function ClanBalanceRosterEditor({
                       onDragLeave={() => setDropSlot(null)}
                       onDrop={(event) => {
                         event.preventDefault();
-                        if (!canEdit || !draggedSlot) return;
-                        const source = event.dataTransfer.getData(DRAG_TYPE);
-                        if (source === draggedSlot) moveMember(source, address);
-                        else clearInteraction();
+                        if (!canEdit) return;
+                        if (draggedMember && event.dataTransfer.getData(MEMBER_DRAG_TYPE) === draggedMember) {
+                          addMember(draggedMember, address);
+                        } else if (draggedSlot && event.dataTransfer.getData(DRAG_TYPE) === draggedSlot) {
+                          moveMember(draggedSlot, address);
+                        } else clearInteraction();
                       }}
                     >
+                      {draggedMember && userId && dropSlot === key ? <span className="absolute right-2 top-1 text-[10px] font-semibold text-primary">교체</span> : null}
                       <BalancePlayerCardContent nickname={nickname} info={userId ? playerSessionInfo?.[userId] : undefined} score={userId ? displayScores?.[userId] : undefined} showScore={Boolean(showPlayerCardScore && displayScores && userId)} showInfo={showPlayerCardInfo} infoMode={playerCardInfo} mode={scoreMode} mirrored={team === "team2"} />
                     </button>
                     </BalancePlayerDetails>
@@ -364,57 +446,7 @@ export function ClanBalanceRosterEditor({
           ))}
         </div>
       </div>
-
-      <section
-        className="overflow-hidden rounded-xl border bg-muted/15"
-        aria-label="참가 가능 클랜원"
-      >
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
-          <h4 className="text-xs font-semibold">
-            클랜원{" "}
-            <span className="ml-1 tabular-nums text-muted-foreground">
-              {availablePool.length}
-            </span>
-          </h4>
-          <label className="flex h-9 w-full items-center gap-2 rounded-lg border bg-background px-3 sm:w-48">
-            <Search
-              className="size-3.5 shrink-0 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <input
-              aria-label="참가자 닉네임 검색"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="닉네임 검색"
-              className="min-w-0 flex-1 bg-transparent text-xs outline-none"
-            />
-          </label>
-        </div>
-        <div className="grid min-h-24 grid-cols-2 content-start gap-2 p-3 sm:grid-cols-3 sm:p-4">
-          {visiblePool.length ? (
-            visiblePool.map((member) => (
-              <button
-                key={member.user_id}
-                type="button"
-                aria-disabled={!canEdit || !firstEmpty}
-                onClick={() => { if (canEdit && firstEmpty) addMember(member.user_id); }}
-                aria-label={`${member.nickname} 출전 명단에 추가`}
-                className="flex min-h-11 min-w-0 items-center justify-center rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold transition-colors hover:border-primary/50 hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-disabled:cursor-default aria-disabled:opacity-50"
-              >
-                <span className="truncate">{member.nickname}</span>
-              </button>
-            ))
-          ) : (
-            <p className="col-span-full py-3 text-xs text-muted-foreground">
-              {query.trim()
-                ? "검색 결과가 없습니다."
-                : pool.length
-                  ? "출전 명단에 추가할 클랜원이 없습니다."
-                  : "참가할 수 있는 클랜원이 없습니다."}
-            </p>
-          )}
-        </div>
-      </section>
+      </BalanceRosterDock>
       {canEdit && error ? (
         <div
           className="space-y-2 rounded-lg border border-destructive/40 p-3"

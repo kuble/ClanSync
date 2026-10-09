@@ -83,6 +83,7 @@ DB 변경은 관련 `scripts/*-db.test.mjs`를 골라 `node --test <파일>`로 
 - `draw-presentation.spec.ts`: 역할 공개 시간·재접속 진행률·득표 가중 강조·무득표 예외
 - `formation-rules.spec.ts`: 역할 정원·공통 순서·snake 지명·경매 예산/기한/무입찰
 - `roster-autosave.spec.ts`: 빠른 연속 입력·편성 전 flush·동시 저장·연결 실패·revision 충돌·최신 명단 복구
+- `balance-roster-dock.spec.ts`: 독립 클랜의 목록 네 방향 부착·빈자리 추가·기존 참여자 교체·자리 교환·되돌리기·자동 저장·모바일 클릭·10명 정원 유지
 - `balance-history-rules.spec.ts`: 유효 승패 통계·고유 출전·연속 승패·0경기·개설 KST 날짜·공개 감사 정보 제한
 - `cron.spec.ts`: 인증 없는 요청 401, 테스트 DB에서 인증된 알림 처리 200
 - `review-rules.spec.ts`: 권한 조회 오류·권한 재정의, 개발 연동 제한, 명시적 시간대 입력
