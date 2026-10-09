@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { HallOfFame } from "./clan-hall-of-fame";
-import { StatHelp } from "./stat-help";
 import { StatsMemberPicker } from "./stats-member-picker";
 import { StatsDetailLoader, type StatsDetailCache } from "./stats-detail-loader";
 
@@ -26,7 +25,7 @@ export function ClanStatsExperience({ gameSlug, clanId, model }: { gameSlug: str
     setTab("personal");
   };
   return <div className="mx-auto w-full max-w-[1120px] space-y-6">
-    <Tabs value={tab} onValueChange={(value) => { setTab(value); if (value === "personal") setPersonId(null); }} className="w-full gap-4"><div className="flex items-center gap-2 border-b"><TabsList variant="line" className="h-auto min-w-0 flex-1 justify-start gap-0 [&_button]:gap-1 [&_button]:px-1 [&_button]:text-xs sm:[&_button]:text-sm [&_svg]:hidden sm:[&_svg]:block"><TabsTrigger value="hof"><Crown className="size-4" aria-hidden="true" /> 명예의 전당</TabsTrigger><TabsTrigger value="intra"><Swords className="size-4" aria-hidden="true" /> 내전 통계</TabsTrigger>{model.permissions.viewMatchRecords && <TabsTrigger value="records"><History className="size-4" aria-hidden="true" /> 경기 기록</TabsTrigger>}{model.permissions.viewPersonalRecords && <TabsTrigger value="personal"><UserRound className="size-4" aria-hidden="true" /> 개인 기록</TabsTrigger>}</TabsList>{model.hof.exposeHof && <Badge variant="secondary" className="hidden sm:inline-flex">명예의 전당 공개 중</Badge>}<StatHelp title="클랜 통계">명예의 전당, 내전 통계, 경기 기록과 개인 기록을 살펴봅니다.</StatHelp></div>
+    <Tabs value={tab} onValueChange={(value) => { setTab(value); if (value === "personal") setPersonId(null); }} className="w-full gap-4"><div className="flex items-center gap-2 border-b"><TabsList variant="line" className="h-auto min-w-0 flex-1 justify-start gap-0 [&_button]:gap-1 [&_button]:px-1 [&_button]:text-xs sm:[&_button]:text-sm [&_svg]:hidden sm:[&_svg]:block"><TabsTrigger value="hof"><Crown className="size-4" aria-hidden="true" /> 명예의 전당</TabsTrigger><TabsTrigger value="intra"><Swords className="size-4" aria-hidden="true" /> 내전 통계</TabsTrigger>{model.permissions.viewMatchRecords && <TabsTrigger value="records"><History className="size-4" aria-hidden="true" /> 경기 기록</TabsTrigger>}{model.permissions.viewPersonalRecords && <TabsTrigger value="personal"><UserRound className="size-4" aria-hidden="true" /> 개인 기록</TabsTrigger>}</TabsList>{model.hof.exposeHof && <Badge variant="secondary" className="hidden sm:inline-flex">명예의 전당 공개 중</Badge>}</div>
       <TabsContent value="hof"><HallOfFame model={model} gameSlug={gameSlug} clanId={clanId} onChoosePerson={choosePerson} /></TabsContent>
       <TabsContent value="intra"><IntraClanStats model={model} /></TabsContent>
       {model.permissions.viewMatchRecords && <TabsContent value="records">{model.deferredDetails

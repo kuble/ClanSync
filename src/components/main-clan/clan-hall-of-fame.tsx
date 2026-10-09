@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { RubberSegment } from "@/components/ui/rubber-segment";
-import { StatHelp, StatTitle } from "./stat-help";
+import { StatTitle } from "./stat-help";
 import { Crown, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +23,7 @@ const RANKINGS = [
   { id: "prediction", label: "예측 적중", help: "적중 횟수순으로 순위를 매깁니다. 적중률을 함께 표시하며 무승부·무효 예측은 제외합니다." },
 ] as const;
 
-type RankRow = { userId: string; nickname: string; value: string; detail: string };
+type RankRow = { userId: string; nickname: string; value: string; detail: string; rank?: number | null; shortfall?: number };
 
 export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
   model: ClanStatsPageModel; gameSlug: string; clanId: string; onChoosePerson: (userId: string) => void;
@@ -52,7 +52,11 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
   };
   const { totals } = block;
   const rankingRows: Record<(typeof RANKINGS)[number]["id"], RankRow[]> = {
-    rate: block.winRate.map((row) => ({ ...row, value: `${row.ratePct ?? 0}%`, detail: `${row.wins}승 / ${row.draws}무 / ${row.losses}패 · ${row.wins + row.draws + row.losses}경기` })),
+    rate: [
+      ...block.winRate.map((row, index) => ({ ...row, rank: index + 1, shortfall: 0 })),
+      ...(model.permissions.isStaff ? block.unqualified.map((row) => ({ ...row, rank: null, shortfall: Math.max(0, block.minimumGames - row.wins - row.draws - row.losses) })) : []),
+    ].sort((a, b) => (b.ratePct ?? -1) - (a.ratePct ?? -1) || b.wins - a.wins || a.userId.localeCompare(b.userId))
+      .map((row) => ({ ...row, value: row.ratePct === null ? "—" : `${row.ratePct}%`, detail: `${row.wins}승 / ${row.draws}무 / ${row.losses}패 · ${row.wins + row.draws + row.losses}경기` })),
     attendance: block.participation.map((row) => ({ ...row, value: `${row.played}일`, detail: `전체 개최 ${totals.days}일 중 ${row.played}일 출석 · 내전 ${totals.sessions}회` })),
     appearances: block.cumulative.map((row) => ({ ...row, value: `${row.played}경기`, detail: `전체 ${totals.matches}경기 중 ${row.played}경기 출전 · 내전 ${totals.sessions}회` })),
     prediction: block.predictionCorrect.map((row) => ({ ...row, value: `${row.correct}회`, detail: `${row.valid}회 예측 중 ${row.correct}회 적중 · 적중률 ${row.ratePct ?? 0}%` })),
@@ -65,50 +69,47 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
     <div className="flex flex-wrap items-end gap-4">
       {active && <RubberSegment label="부문" labelPosition="top" options={available} value={active.id} onChange={setRanking} />}
       <StatsPeriodFilter value={period} onChange={(next) => setPeriod({ ...next, month: next.year === String(now.year) && Number(next.month) > now.month ? String(now.month).padStart(2, "0") : next.month })} years={years} maxMonth={year === String(now.year) ? now.month : 12} />
-      <div className="ml-auto flex items-center gap-2 self-center"><StatHelp title="명예의 전당">공개된 기록과 등재 기준에 따른 순위입니다.</StatHelp>
+      <div className="ml-auto flex items-center gap-2 self-center">
       {model.permissions.isStaff && model.permissions.setHofRules && <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogTrigger render={<Button type="button" size="sm" variant="outline" />}><Settings2 className="size-4" aria-hidden="true" /> 설정</DialogTrigger>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg"><DialogHeader><DialogTitle>통계 공개 설정</DialogTitle><DialogDescription>순위 공개 범위와 등재 기준을 정합니다.</DialogDescription></DialogHeader><HofSettingsForm gameSlug={gameSlug} clanId={clanId} cfg={model.hof.config} exposeHof={model.hof.exposeHof} isLeader={model.permissions.isLeader} onDone={() => setSettingsOpen(false)} /></DialogContent>
+        <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden sm:max-w-2xl"><DialogHeader><DialogTitle>통계 공개 설정</DialogTitle><DialogDescription>열람 권한, 순위 공개와 승률 등재 기준을 관리합니다.</DialogDescription></DialogHeader><HofSettingsForm gameSlug={gameSlug} clanId={clanId} cfg={model.hof.config} exposeHof={model.hof.exposeHof} isLeader={model.permissions.isLeader} onDone={() => setSettingsOpen(false)} /></DialogContent>
       </Dialog>}
       </div>
     </div>
     {loaded.feedback}
     {block.undisclosed ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">{block.undisclosedHint}</p> : !active ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">공개된 통계 부문이 없습니다.</p> : <>
-      <p className="text-xs text-muted-foreground">선택 기간 정규 내전 <strong className="text-foreground">{loaded.pending ? "—" : totals.sessions}회</strong> · 개최 {loaded.pending ? "—" : totals.days}일 · 전체 {loaded.pending ? "—" : totals.matches}경기</p>
-      <div className="grid items-start gap-4 min-[1000px]:grid-cols-2" aria-label="명예의 전당 순위와 반응">
-          <Card size="sm" className="min-w-0">
+      <div className="grid items-stretch gap-4 min-[1000px]:grid-cols-2" aria-label="명예의 전당 순위와 반응">
+          <Card size="sm" className="h-[36rem] min-w-0" aria-label={`${active.label} 순위`}>
             <CardHeader><CardTitle><h4><StatTitle title={active.label} help={active.help} /></h4></CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              {active.id === "rate" && <div className="flex flex-wrap items-center justify-between gap-1 rounded-lg border bg-background/40 px-3 py-2 text-xs"><span className="text-muted-foreground">최소 규정 경기</span><strong>{totals.matches ? `${block.minimumGames}경기 이상 출전` : "집계할 경기 없음"}</strong></div>}
-                <StatsScrollArea label={`${active.label} 순위 목록`} className="h-[28rem]">
+            <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
+              <div className="space-y-2 rounded-lg border bg-background/40 px-3 py-2 text-xs">
+                <p className="text-[11px] text-muted-foreground">{periodLabel} · 정규 내전 <strong className="text-foreground">{loaded.pending ? "—" : totals.sessions}회</strong> · 개최 {loaded.pending ? "—" : totals.days}일 · 전체 {loaded.pending ? "—" : totals.matches}경기</p>
+                {active.id === "rate" && <div className="flex flex-wrap items-center justify-between gap-1 border-t pt-2"><span className="text-muted-foreground">최소 규정 경기</span><strong>{totals.matches ? `${block.minimumGames}경기 이상 출전` : "집계할 경기 없음"}</strong></div>}
+              </div>
+                <StatsScrollArea label={`${active.label} 순위 목록`} className="min-h-0 flex-1">
               {rankingRows[active.id].length ? (
                   <ol className="space-y-2">
                     {rankingRows[active.id].map((row, index) => {
                       const canOpen = model.personal.people.some((person) => person.userId === row.userId);
+                      const rank = row.rank === undefined ? index + 1 : row.rank;
+                      const unqualified = rank === null;
                       const content = <>
-                        <span className={`flex w-12 shrink-0 flex-col items-center font-black tabular-nums ${index === 0 ? "text-amber-300" : index === 1 ? "text-slate-300" : index === 2 ? "text-orange-300" : "text-muted-foreground"}`}>
-                          {index < 3 && <Crown className="mb-0.5 size-3.5" aria-hidden="true" />}
-                          <span className="text-2xl leading-none">{String(index + 1).padStart(2, "0")}<span className="sr-only">위</span></span>
+                        <span className={`flex w-12 shrink-0 flex-col items-center font-black tabular-nums ${rank === 1 ? "text-amber-300" : rank === 2 ? "text-slate-300" : rank === 3 ? "text-orange-300" : "text-muted-foreground"}`}>
+                          {rank !== null && rank <= 3 && <Crown className="mb-0.5 size-3.5" aria-hidden="true" />}
+                          <span className="text-2xl leading-none">{rank === null ? "--" : String(rank).padStart(2, "0")}<span className="sr-only">{unqualified ? "순위 제외" : "위"}</span></span>
                         </span>
                         <span className="min-w-0 flex-1 space-y-1">
                           <span className="flex items-center justify-between gap-3"><span className="truncate text-sm font-semibold">{row.nickname}</span><strong className="shrink-0 text-lg tabular-nums">{row.value}</strong></span>
                           <span className="block text-[11px] text-muted-foreground">{row.detail}</span>
+                          {unqualified && <span className="block text-[10px] text-muted-foreground">규정 미달 · {row.shortfall}경기 부족</span>}
                         </span>
                       </>;
-                      const className = `relative flex min-h-[76px] w-full items-center gap-3 rounded-lg border p-3 text-left ${index === 0 ? "border-amber-400/25 bg-amber-400/[0.04]" : "bg-background/20"}`;
+                      const className = `relative flex min-h-[76px] w-full items-center gap-3 rounded-lg border p-3 text-left ${unqualified ? "border-dashed bg-muted/20" : rank === 1 ? "border-amber-400/25 bg-amber-400/[0.04]" : "bg-background/20"}`;
                       return <li key={row.userId}>{canOpen ? <button type="button" onClick={() => onChoosePerson(row.userId)} className={`${className} hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary`}>{content}</button> : <div className={className}>{content}</div>}</li>;
                     })}
                   </ol>
-              ) : <p className="flex h-[26rem] items-center justify-center p-8 text-center text-sm text-muted-foreground">{loaded.pending ? "집계 중…" : "등재 기준을 충족한 기록이 없습니다."}</p>}
+              ) : <p className="flex min-h-72 items-center justify-center p-8 text-center text-sm text-muted-foreground">{loaded.pending ? "집계 중…" : "등재 기준을 충족한 기록이 없습니다."}</p>}
                 </StatsScrollArea>
-              {active.id === "rate" && model.permissions.isStaff && <details className="rounded-lg border border-dashed p-3">
-                <summary className="cursor-pointer text-xs font-semibold">규정 미달 {block.unqualified.length}명 <span className="ml-1 font-normal text-muted-foreground">운영진 전용</span></summary>
-                <p className="mt-2 text-[11px] text-muted-foreground">정식 순위에서 제외됩니다. 출전 수가 기준에 도달하면 자동 등재됩니다.</p>
-                {block.unqualified.length ? <StatsScrollArea label="규정 미달 멤버" className="mt-3 max-h-64"><ul className="divide-y">{block.unqualified.map((row) => {
-                  const played = row.wins + row.draws + row.losses;
-                  return <li key={row.userId} className="flex items-center gap-3 py-2 text-xs"><span className="min-w-0 flex-1 truncate font-medium">{row.nickname}</span><span className="shrink-0 text-right tabular-nums"><span className="block">{played} / {block.minimumGames}경기</span><span className="text-muted-foreground">{Math.max(0, block.minimumGames - played)}경기 부족</span></span></li>;
-                })}</ul></StatsScrollArea> : <p className="mt-3 text-xs text-muted-foreground">규정 미달 멤버가 없습니다.</p>}
-              </details>}
             </CardContent>
           </Card>
           <HofComments clanId={clanId} ranking={active.id} periodKey={periodKey} label={`${periodLabel} · ${active.label}`} />

@@ -95,7 +95,7 @@ export function HofSettingsForm({
   const [pending, start] = useTransition();
   return (
     <form
-      className="grid gap-4 pt-2"
+      className="flex min-h-0 flex-col gap-4 pt-2"
       action={async (fd) => {
         start(async () => {
           try {
@@ -110,11 +110,21 @@ export function HofSettingsForm({
         });
       }}
     >
-      <label className="flex items-start gap-3 rounded-lg border p-3 text-sm">
-        <input type="checkbox" name="member_personal_records" defaultChecked={cfg.memberPersonalRecords} className="mt-1" />
+      <fieldset disabled={pending} className="min-h-0 space-y-4 overflow-y-auto pb-1">
+      <section aria-labelledby="hof-access-title" className="space-y-3 rounded-xl border p-4">
+      <h4 id="hof-access-title" className="text-sm font-semibold">열람·공개</h4>
+      <label className="flex cursor-pointer items-start gap-3 text-sm">
+        <input type="checkbox" name="member_personal_records" defaultChecked={cfg.memberPersonalRecords} className="mt-1 size-4 accent-primary" />
         <span>멤버의 본인 개인 기록 열람 허용<span className="mt-1 block text-xs text-muted-foreground">기본은 운영진만 열람합니다. 켜면 멤버가 자신의 기록을 볼 수 있습니다.</span></span>
       </label>
-      <div className="grid gap-2 sm:grid-cols-2">
+      {isLeader && <label className="flex cursor-pointer items-start gap-3 border-t pt-3 text-sm">
+        <input type="checkbox" name="expose_hof" defaultChecked={exposeHof} className="mt-1 size-4 accent-primary" />
+        <span>명예의 전당을 클랜 프로필에 공개<span className="mt-1 block text-xs text-muted-foreground">클랜 프로필을 방문한 사람에게 공개합니다.</span></span>
+      </label>}
+      </section>
+      <section aria-labelledby="hof-ranking-title" className="space-y-3 rounded-xl border p-4">
+      <h4 id="hof-ranking-title" className="text-sm font-semibold">순위 공개 범위</h4>
+      <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1">
           <Label htmlFor="win_rate_visible_top">승률 순위 공개(구성원)</Label>
           <select
@@ -174,8 +184,13 @@ export function HofSettingsForm({
             ))}
           </select>
         </div>
+      </div>
+      </section>
+      <section aria-labelledby="hof-period-title" className="space-y-3 rounded-xl border p-4">
+      <h4 id="hof-period-title" className="text-sm font-semibold">공개 시점</h4>
+      <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1">
-          <Label htmlFor="monthly_rank_visibility">월별 순위 공개</Label>
+          <Label htmlFor="monthly_rank_visibility">월별 순위</Label>
           <select
             id="monthly_rank_visibility"
             name="monthly_rank_visibility"
@@ -189,7 +204,7 @@ export function HofSettingsForm({
           </select>
         </div>
         <div className="space-y-1">
-          <Label htmlFor="yearly_rank_visibility">연도별 순위 공개</Label>
+          <Label htmlFor="yearly_rank_visibility">연도별 순위</Label>
           <select
             id="yearly_rank_visibility"
             name="yearly_rank_visibility"
@@ -203,10 +218,13 @@ export function HofSettingsForm({
           </select>
         </div>
       </div>
-      <div className="grid gap-2 sm:grid-cols-3">
+      </section>
+      <section aria-labelledby="hof-eligibility-title" className="space-y-3 rounded-xl border p-4">
+      <div><h4 id="hof-eligibility-title" className="text-sm font-semibold">승률 등재 기준</h4><p className="mt-1 text-xs text-muted-foreground">클랜 경기 수가 기준점 이하이면 참여 비율을, 초과하면 최소 출전 수를 적용합니다.</p></div>
+      <div className="grid gap-3 sm:grid-cols-3">
         <div className="space-y-1">
           <Label htmlFor="eligibility_game_threshold">
-            등재 기준 — 클랜 총 경기 수 기준점
+            총 경기 수 기준점
           </Label>
           <Input
             id="eligibility_game_threshold"
@@ -219,7 +237,7 @@ export function HofSettingsForm({
         </div>
         <div className="space-y-1">
           <Label htmlFor="eligibility_below_pct">
-            기준점 이하일 때 최소 참여 비율(%)
+            기준점 이하 · 참여 비율(%)
           </Label>
           <Input
             id="eligibility_below_pct"
@@ -232,7 +250,7 @@ export function HofSettingsForm({
         </div>
         <div className="space-y-1">
           <Label htmlFor="eligibility_above_min_games">
-            기준점 초과 시 최소 출전 수
+            기준점 초과 · 최소 출전
           </Label>
           <Input
             id="eligibility_above_min_games"
@@ -244,19 +262,10 @@ export function HofSettingsForm({
           />
         </div>
       </div>
-      {isLeader ? (
-        <label className="flex cursor-pointer items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            name="expose_hof"
-            defaultChecked={exposeHof}
-            className="size-4 rounded border"
-          />
-          <span>명예의 전당을 클랜 프로필에 공개</span>
-        </label>
-      ) : null}
-      <DialogFooter className="gap-2 sm:justify-end">
-        <DialogClose render={<Button type="button" variant="outline" />}>
+      </section>
+      </fieldset>
+      <DialogFooter className="shrink-0 gap-2 sm:justify-end">
+        <DialogClose render={<Button type="button" variant="outline" disabled={pending} />}>
           취소
         </DialogClose>
         <Button type="submit" disabled={pending}>
