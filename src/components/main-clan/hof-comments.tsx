@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { MessageSquare, RefreshCw, Send } from "lucide-react";
 import { addHofCommentAction, deleteHofCommentAction, listHofCommentsAction } from "@/app/actions/hof-comments";
 import { HOF_COMMENT_MAX_LENGTH, type HofComment, type HofCommentThread } from "@/lib/clan/stats/hof-comments";
@@ -10,20 +10,36 @@ import { StatsScrollArea } from "./stats-scroll-area";
 
 const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
-/** The parent keys this component by thread, isolating drafts and in-flight replies. */
+/** Preserve the card and controls; only a thread's draft/replies reset on a scope change. */
 export function HofComments({ clanId, ranking, periodKey, label }: HofCommentThread & { label: string }) {
+  const key = clanId + ":" + ranking + ":" + periodKey;
+  const [refresh, setRefresh] = useState(0);
+  const [status, setStatus] = useState<{ key: string; loading: boolean; busy: boolean }>();
+  const onStatus = useCallback((loading: boolean, busy: boolean) => setStatus({ key, loading, busy }), [key]);
+  const disabled = status?.key !== key || status.loading || status.busy;
+  return <Card size="sm" className="min-w-0 overflow-hidden" aria-label={label + " 반응"}>
+    <CardHeader className="grid-cols-[1fr_auto] items-center border-b pb-3">
+      <CardTitle><h4 className="flex items-center gap-2"><MessageSquare className="size-4 text-primary" aria-hidden="true" />반응 <span className="text-[10px] font-normal tracking-wider text-muted-foreground">순위 토크</span></h4><p className="mt-2 text-xs font-normal text-muted-foreground">{label}</p></CardTitle>
+      <Button type="button" variant="ghost" size="icon-sm" aria-label="반응 새로고침" disabled={disabled} onClick={() => setRefresh((value) => value + 1)}><RefreshCw className="size-3.5" aria-hidden="true" /></Button>
+    </CardHeader>
+    <HofCommentsThread key={key} clanId={clanId} ranking={ranking} periodKey={periodKey} refresh={refresh} onStatus={onStatus} />
+  </Card>;
+}
+
+function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: HofCommentThread & { refresh: number; onStatus: (loading: boolean, busy: boolean) => void }) {
   const [comments, setComments] = useState<HofComment[]>([]);
   const [cursor, setCursor] = useState<{ createdAt: string; id: string } | null>(null);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [refresh, setRefresh] = useState(0);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const thread = { clanId, ranking, periodKey };
 
+  useEffect(() => { onStatus(loading, busy); }, [loading, busy, onStatus]);
   useEffect(() => {
     let active = true;
+    setLoading(true); setError("");
     listHofCommentsAction({ clanId, ranking, periodKey }).then((result) => {
       if (!active) return;
       if (result.ok) { setComments(result.comments); setCursor(result.nextCursor); }
@@ -69,14 +85,11 @@ export function HofComments({ clanId, ranking, periodKey, label }: HofCommentThr
     finally { setBusy(false); }
   }
 
-  return <Card size="sm" className="min-w-0 overflow-hidden" aria-label={`${label} 반응`}>
-    <CardHeader className="grid-cols-[1fr_auto] items-center border-b pb-3">
-      <CardTitle><h4 className="flex items-center gap-2"><MessageSquare className="size-4 text-primary" aria-hidden="true" />반응 <span className="text-[10px] font-normal tracking-wider text-muted-foreground">순위 토크</span></h4><p className="mt-2 text-xs font-normal text-muted-foreground">{label}</p></CardTitle>
-      <Button type="button" variant="ghost" size="icon-sm" aria-label="반응 새로고침" disabled={busy || loading} onClick={() => { setError(""); setLoading(true); setRefresh((value) => value + 1); }}><RefreshCw className="size-3.5" aria-hidden="true" /></Button>
-    </CardHeader>
+  return (
     <CardContent className="space-y-4">
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-      {loading ? <p role="status" className="flex min-h-60 items-center justify-center text-sm text-muted-foreground">반응을 불러오는 중…</p> : <StatsScrollArea label="순위 댓글 목록" className="max-h-[22rem] min-h-60">
+      <StatsScrollArea label="순위 댓글 목록" className="h-[22rem]">
+        {loading ? <p role="status" className="flex min-h-60 items-center justify-center text-sm text-muted-foreground">반응을 불러오는 중…</p> : <>
         {comments.length ? <ol className="space-y-5">{comments.map((comment) => <li key={comment.id} className="flex items-start gap-2.5">
           <span aria-hidden="true" className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-xs font-black text-primary">{Array.from(comment.nickname)[0]}</span>
           <div className="min-w-0 flex-1 space-y-1.5">
@@ -86,12 +99,13 @@ export function HofComments({ clanId, ranking, periodKey, label }: HofCommentThr
           </div>
         </li>)}</ol> : !error && <div className="flex min-h-60 flex-col items-center justify-center gap-3 text-center"><MessageSquare className="size-8 text-primary/50" aria-hidden="true" /><p className="text-sm font-semibold">이번 순위, 할 말 있죠?</p><p className="text-xs text-muted-foreground">아직 조용하네요. 첫 한마디를 남겨보세요.</p></div>}
         {cursor && <Button type="button" className="mt-3 w-full" variant="outline" size="sm" disabled={busy} onClick={() => void loadMore()}>이전 댓글 더 보기</Button>}
-      </StatsScrollArea>}
+        </>}
+      </StatsScrollArea>
       <form onSubmit={submit} className="overflow-hidden rounded-xl border bg-background/50 focus-within:border-primary/60">
         <label htmlFor="hof-comment" className="sr-only">순위에 댓글 남기기</label>
         <textarea id="hof-comment" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={HOF_COMMENT_MAX_LENGTH} rows={2} placeholder="이번에도 2등? 순위 보고 한마디." className="block min-h-20 w-full resize-y bg-transparent px-3 pt-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none" disabled={busy} />
         <div className="flex items-center justify-between gap-2 px-3 py-2"><span className="text-[10px] tabular-nums text-muted-foreground">{draft.length} / {HOF_COMMENT_MAX_LENGTH}</span><Button type="submit" size="sm" disabled={busy || loading || !draft.trim()}><Send className="size-3.5" aria-hidden="true" />댓글 등록</Button></div>
       </form>
     </CardContent>
-  </Card>;
+  );
 }

@@ -61,7 +61,7 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
   const active = available.find(({ id }) => id === ranking) ?? available[0];
   const periodKey = statsPeriodKey(period);
   const periodLabel = statsPeriodLabel(period);
-  return <div className="space-y-4">
+  return <div className="relative space-y-4" aria-busy={loaded.pending}>
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="min-w-0 flex-1"><h3 className="text-base font-bold"><StatTitle title="명예의 전당" help="공개된 기록과 등재 기준에 따른 순위입니다." /></h3></div>
       {model.permissions.isStaff && model.permissions.setHofRules && <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
@@ -73,15 +73,16 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
       {active && <RubberSegment label="부문" labelPosition="top" options={available} value={active.id} onChange={setRanking} />}
       <StatsPeriodFilter value={period} onChange={(next) => setPeriod({ ...next, month: next.year === String(now.year) && Number(next.month) > now.month ? String(now.month).padStart(2, "0") : next.month })} years={years} maxMonth={year === String(now.year) ? now.month : 12} />
     </div>
-    {loaded.pending ? loaded.feedback : block.undisclosed ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">{block.undisclosedHint}</p> : !active ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">공개된 통계 부문이 없습니다.</p> : <>
-      <p className="text-xs text-muted-foreground">선택 기간 정규 내전 <strong className="text-foreground">{totals.sessions}회</strong> · 개최 {totals.days}일 · 전체 {totals.matches}경기</p>
+    {loaded.feedback}
+    {block.undisclosed ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">{block.undisclosedHint}</p> : !active ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">공개된 통계 부문이 없습니다.</p> : <>
+      <p className="text-xs text-muted-foreground">선택 기간 정규 내전 <strong className="text-foreground">{loaded.pending ? "—" : totals.sessions}회</strong> · 개최 {loaded.pending ? "—" : totals.days}일 · 전체 {loaded.pending ? "—" : totals.matches}경기</p>
       <div className="grid items-start gap-4 min-[1000px]:grid-cols-2" aria-label="명예의 전당 순위와 반응">
-          <Card key={active.id} size="sm" className="min-w-0">
+          <Card size="sm" className="min-w-0">
             <CardHeader><CardTitle><h4><StatTitle title={active.label} help={active.help} /></h4></CardTitle></CardHeader>
             <CardContent className="space-y-3">
               {active.id === "rate" && <div className="flex flex-wrap items-center justify-between gap-1 rounded-lg border bg-background/40 px-3 py-2 text-xs"><span className="text-muted-foreground">최소 규정 경기</span><strong>{totals.matches ? `${block.minimumGames}경기 이상 출전` : "집계할 경기 없음"}</strong></div>}
+                <StatsScrollArea label={`${active.label} 순위 목록`} className="h-[28rem]">
               {rankingRows[active.id].length ? (
-                <StatsScrollArea label={`${active.label} 순위 목록`} className="max-h-[28rem]">
                   <ol className="space-y-2">
                     {rankingRows[active.id].map((row, index) => {
                       const canOpen = model.personal.people.some((person) => person.userId === row.userId);
@@ -99,8 +100,8 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
                       return <li key={row.userId}>{canOpen ? <button type="button" onClick={() => onChoosePerson(row.userId)} className={`${className} hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary`}>{content}</button> : <div className={className}>{content}</div>}</li>;
                     })}
                   </ol>
+              ) : <p className="flex h-[26rem] items-center justify-center p-8 text-center text-sm text-muted-foreground">{loaded.pending ? "집계 중…" : "등재 기준을 충족한 기록이 없습니다."}</p>}
                 </StatsScrollArea>
-              ) : <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">등재 기준을 충족한 기록이 없습니다.</p>}
               {active.id === "rate" && model.permissions.isStaff && <details className="rounded-lg border border-dashed p-3">
                 <summary className="cursor-pointer text-xs font-semibold">규정 미달 {block.unqualified.length}명 <span className="ml-1 font-normal text-muted-foreground">운영진 전용</span></summary>
                 <p className="mt-2 text-[11px] text-muted-foreground">정식 순위에서 제외됩니다. 출전 수가 기준에 도달하면 자동 등재됩니다.</p>
@@ -111,7 +112,7 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
               </details>}
             </CardContent>
           </Card>
-          <HofComments key={`${clanId}:${active.id}:${periodKey}`} clanId={clanId} ranking={active.id} periodKey={periodKey} label={`${periodLabel} · ${active.label}`} />
+          <HofComments clanId={clanId} ranking={active.id} periodKey={periodKey} label={`${periodLabel} · ${active.label}`} />
       </div>
     </>}
   </div>;

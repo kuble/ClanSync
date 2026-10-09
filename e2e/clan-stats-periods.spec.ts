@@ -42,7 +42,7 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     expect(archive?.kind === "archive" && archive.archive.datesKst).toEqual(staffModel?.archive.datesKst);
     for (const day of staffModel?.archive.datesKst ?? []) {
       const detail = await loadClanStatsArchive(leader, f.clanId, day);
-      const canonical = (rows: NonNullable<typeof staffModel>["archive"]["sampleByDate"][string] | undefined) => rows?.map((row) => ({ ...row, players: [...row.players].sort((a, b) => a.userId.localeCompare(b.userId)) }));
+      const canonical = (rows: NonNullable<typeof staffModel>["archive"]["sampleByDate"][string] | undefined) => rows?.map((row) => ({ ...row, revision: undefined, players: [...row.players].sort((a, b) => a.userId.localeCompare(b.userId)) }));
       expect(detail?.kind === "archive" && canonical(detail.archive.sampleByDate[day])).toEqual(canonical(staffModel?.archive.sampleByDate[day]));
     }
     expect(await loadClanStatsDetail(leader, f.users[0].id, f.clanId, f.users[0].id)).toEqual({ kind: "personal", person: staffModel?.personal.people.find((person) => person.userId === f.users[0].id) });
@@ -59,6 +59,12 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     const summary = page.getByLabel("선택 기간 요약");
     const completed = summary.getByRole("button", { name: /완료 경기/ });
     await expect(completed).toContainText("10경기");
+    const trendNode = await page.getByRole("img", { name: /개최 내전 그래프/ }).elementHandle();
+    const cards = page.locator('[data-slot="card"]');
+    const cardNodes = await cards.elementHandles();
+    const fixedCards = cards.filter({ has: page.locator('[role="region"][aria-label$="전체 목록"]') });
+    const originalHeights = await fixedCards.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().height));
+    expect(Math.max(...originalHeights) - Math.min(...originalHeights)).toBeLessThan(2);
     await completed.click();
     await expect(page.getByRole("searchbox", { name: "경기 참가자 검색" })).toHaveCount(0);
     await page.getByRole("radio", { name: "월별", exact: true }).click();
@@ -75,9 +81,13 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await expect(month.getByRole("option", { selected: true })).toHaveText("8월");
     await expect(completed).toContainText("9경기");
     await expect(page.getByLabel("맵별 경기 비중")).toContainText("네팔");
+    for (const node of cardNodes) expect(await node.evaluate((el) => el.isConnected)).toBe(true);
+    expect(await trendNode!.evaluate((el) => el.isConnected)).toBe(true);
     const mapTypes = page.getByRole("radiogroup", { name: "맵 유형", exact: true });
     await mapTypes.getByRole("radio", { name: "플래시포인트", exact: true }).click();
     await expect(page.locator('[data-slot="card"]').filter({ has: mapTypes })).toContainText("선택한 조건의 기록이 없습니다.");
+    expect(await fixedCards.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().height))).toEqual(originalHeights);
+    await expect(page.getByRole("region", { name: "맵별 경기 전체 목록" })).toHaveCSS("scrollbar-width", "none");
     await mapTypes.getByRole("radio", { name: "전체", exact: true }).click();
     const chart = page.getByRole("img", { name: /완료 경기 그래프/ });
     await chart.hover();
@@ -88,6 +98,7 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await expect(completed).toContainText("9경기");
     await page.getByRole("tab", { name: "경기 기록" }).click();
     await expect(page.getByRole("searchbox", { name: "경기 참가자 검색" })).toBeVisible();
+    await expect(page.getByRole("radiogroup", { name: "기간", exact: true })).toHaveCount(0);
     expect(detailRequests.filter((url) => url.includes("section=archive"))).toHaveLength(1);
     await expect(page.getByLabel("경기 기록 주간 달력")).toHaveCount(0);
     await page.setViewportSize({ width: 1217, height: 910 });
@@ -98,6 +109,8 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     const detailBox = await detail.boundingBox(), dailyBox = await daily.boundingBox();
     expect(dailyBox!.x).toBeGreaterThan(detailBox!.x + detailBox!.width);
     expect(Math.abs(dailyBox!.y - detailBox!.y)).toBeLessThan(2);
+    expect(Math.abs(dailyBox!.height - detailBox!.height)).toBeLessThan(2);
+    const detailNode = await detail.elementHandle(), dailyNode = await daily.elementHandle();
     await datePicker.click();
     const calendar = page.getByRole("dialog", { name: "경기 기록 달력" });
     await expect(calendar).toBeVisible();
@@ -107,6 +120,8 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await expect(datePicker).toBeFocused();
     await expect(datePicker).toContainText("2025년 7월 1일");
     await expect(detail).toContainText("부산");
+    expect(await detailNode!.evaluate((el) => el.isConnected)).toBe(true);
+    expect(await dailyNode!.evaluate((el) => el.isConnected)).toBe(true);
     const table = daily.getByRole("table");
     await expect(table.getByRole("rowheader").first()).toHaveText(f.users[0].nickname);
     await table.getByRole("button", { name: "승률 정렬", exact: true }).click();
@@ -114,7 +129,8 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await expect(table.getByRole("rowheader").first()).toHaveText(f.users[1].nickname);
     await table.getByRole("button", { name: "승률 정렬", exact: true }).click();
     await expect(table.getByRole("rowheader").first()).toHaveText(f.users[0].nickname);
-    for (const name of ["이름 정렬", "승 정렬", "무 정렬", "패 정렬", "당일 현재 연승·연패 정렬", "당일 최장 연승 정렬", "당일 최장 연패 정렬"]) {
+    await expect(table.getByRole("cell", { name: "1/0/0", exact: true })).toBeVisible();
+    for (const name of ["이름 정렬", "승/무/패 (승 기준) 정렬", "당일 현재 연승·연패 정렬", "당일 최장 연승 정렬", "당일 최장 연패 정렬"]) {
       await table.getByRole("button", { name, exact: true }).click();
       const header = table.getByRole("columnheader", { name, exact: true });
       const firstDirection = await header.getAttribute("aria-sort");
@@ -136,6 +152,8 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await page.keyboard.press("Enter");
     await expect(detail).toContainText("이 날짜에는 기록된 경기가 없습니다.");
     await expect(daily).toContainText("집계할 내전 결과가 없습니다.");
+    expect((await detail.boundingBox())!.height).toBe(detailBox!.height);
+    expect((await daily.boundingBox())!.height).toBe(dailyBox!.height);
     await datePicker.click();
     await page.keyboard.press("Escape");
     await expect(calendar).toBeHidden();
