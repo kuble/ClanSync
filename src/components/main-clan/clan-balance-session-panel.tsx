@@ -29,6 +29,7 @@ import {
   ClanBalanceMatchOutcomeClient,
 } from "./clan-balance-prediction-outcome-client";
 import { ClanBalancePredictionDrawer } from "./clan-balance-match-drawers";
+import { BalancePredictionCountdown } from "./balance-prediction-countdown";
 import { BalancePlayerScoreEditor } from "./balance-player-score-editor";
 import { ClanBalanceMapBanClient } from "./clan-balance-map-ban-client";
 import { ClanBalanceRosterBoard } from "./clan-balance-roster-board";
@@ -199,6 +200,7 @@ export function ClanBalanceSessionPanel({
   const preparingMatch = Boolean(session?.phase === "editing" && mapScreen && session.resolved_map_label);
   const editingScreen = session?.phase === "editing" && (!mapScreen || preparingMatch);
   const settings = parseFormationSettings(session?.formation_settings);
+  const showPrediction = Boolean(session && (session.prediction_pool_enabled || session.phase === "match_live") && !flash && planPremium && settings.predictionEnabled);
   async function flushRoster() {
     const editor = rosterRef.current;
     if (!editor)
@@ -345,7 +347,7 @@ export function ClanBalanceSessionPanel({
           currentSeriesId={series?.id ?? null}
           pool={rosterPool}
         /> : null}
-        {session && (session.prediction_pool_enabled || session.phase === "match_live") && !flash && planPremium && settings.predictionEnabled ? <ClanBalancePredictionDrawer
+        {session && showPrediction ? <ClanBalancePredictionDrawer
           key={session.id}
           gameSlug={gameSlug} clanId={clanId} sessionId={session.id}
           myPickTeam={myPickTeam} predictionCount={balancePredictions.length}
@@ -386,8 +388,8 @@ export function ClanBalanceSessionPanel({
           beforeSave={flushRoster}
         />
       ) : null}
-      <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:px-5" data-testid="balance-round-header">
+      <section className={cn("rounded-2xl border bg-card shadow-sm", session?.phase === "match_live" ? "overflow-visible" : "overflow-hidden")} data-testid="balance-session-card">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] sm:px-5" data-testid="balance-round-header">
           <div>
             <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold">
               <Swords className="size-4 text-primary" aria-hidden="true" />
@@ -419,17 +421,16 @@ export function ClanBalanceSessionPanel({
               </p>
             ) : null}
           </div>
-          <div className="order-3 col-span-2 min-w-0 sm:order-none sm:col-span-1 sm:text-center">
+          <div className="order-3 col-span-2 min-w-0 text-center sm:order-none sm:col-span-1" data-testid="balance-room-title">
             <h2 className="truncate text-sm font-semibold" title={roomTitle}>{roomTitle}</h2>
-            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground sm:justify-center">
-              <span>{flash ? "깜짝 내전" : "정규 내전"}</span>
-              {session && (!mapScreen || preparingMatch) ? <span className="flex items-center gap-1.5">
+            {session && (!mapScreen || preparingMatch) ? <div className="mt-1 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-1.5">
                 <Radio className="size-3 text-emerald-500" aria-hidden="true" />
                 {hostNickname ? "호스트 · " + hostNickname : "세션 진행 중"}
-              </span> : null}
-            </div>
+              </span>
+            </div> : null}
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center justify-self-end gap-1">
             {canManage ? (
               <Button
                 size="icon"
@@ -689,27 +690,23 @@ export function ClanBalanceSessionPanel({
 
             {session.phase === "match_live" ? (
               <div className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-3" data-testid="balance-match-map-row">
                   <BalanceMatchMapBanner label={session.resolved_map_label} />
-                  <div className="flex items-center gap-2">
+                  {outcomeLabel ? (
                   <span
                     className={cn(
                       "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold",
                       session.match_outcome === "void"
                         ? "bg-muted text-muted-foreground"
-                        : outcomeLabel
-                        ? "bg-amber-500/10 text-amber-700 dark:text-amber-300"
-                        : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+                        : "bg-amber-500/10 text-amber-700 dark:text-amber-300",
                     )}
                   >
-                    {session.match_outcome === "draw" ? <Equal className="size-3.5" aria-hidden="true" /> : session.match_outcome === "void" ? <RotateCcw className="size-3.5" aria-hidden="true" /> : outcomeLabel ? (
+                    {session.match_outcome === "draw" ? <Equal className="size-3.5" aria-hidden="true" /> : session.match_outcome === "void" ? <RotateCcw className="size-3.5" aria-hidden="true" /> : (
                       <Crown className="size-3.5" aria-hidden="true" />
-                    ) : (
-                      <span className="size-1.5 rounded-full bg-current" />
                     )}
-                    {outcomeLabel ?? "경기 진행 중"}
+                    {outcomeLabel}
                   </span>
-                  </div>
+                  ) : showPrediction ? <BalancePredictionCountdown key={session.id} deadlineIso={session.prediction_deadline_at} serverNow={serverNow} /> : null}
                 </div>
                 {session.banned_heroes?.length ? (
                   <div className="flex flex-wrap items-center gap-2 text-xs">

@@ -9,6 +9,7 @@ import type { Database } from "@/lib/supabase/database.types";
 import { ClanBalancePredictionClient } from "./clan-balance-prediction-outcome-client";
 import { ClanBalancePredictionPool } from "./clan-balance-prediction-pool";
 import type { PredictionPool } from "@/lib/balance/prediction-pool";
+import { useServerClock } from "@/lib/balance/use-server-clock";
 
 export function ClanBalancePredictionDrawer({ isParticipant, outcome, pool, serverNow, phase, ...props }: ComponentProps<typeof ClanBalancePredictionClient> & {
   isParticipant: boolean;
@@ -19,6 +20,9 @@ export function ClanBalancePredictionDrawer({ isParticipant, outcome, pool, serv
 }) {
   const [open, setOpen] = useState(false);
   const contentId = useId();
+  const deadline = props.deadlineIso ? Date.parse(props.deadlineIso) : 0;
+  const live = phase === "match_live" && outcome === "pending";
+  const now = useServerClock(serverNow, live && Number.isFinite(deadline) ? deadline : 0, 1000);
   const tab = useRef<HTMLButtonElement>(null);
   const pointer = useRef<{ x: number; y: number } | null>(null);
   const suppressHover = useRef(false);
@@ -33,7 +37,10 @@ export function ClanBalancePredictionDrawer({ isParticipant, outcome, pool, serv
     <Button ref={tab} variant="ghost" aria-label="승부예측" aria-haspopup="dialog" aria-expanded={open} aria-controls={contentId} aria-hidden={open || undefined} tabIndex={open ? -1 : 0} data-testid="balance-prediction-tab" onMouseMove={(event) => {
       pointer.current = { x: event.clientX, y: event.clientY };
       if (!suppressHover.current && window.matchMedia("(min-width: 1024px) and (hover: hover) and (pointer: fine)").matches) setOpen(true);
-    }} onMouseLeave={() => { suppressHover.current = false; }} onClick={() => { suppressHover.current = false; setOpen(true); }} className={cn("h-auto flex-col gap-2 rounded-l-xl rounded-r-none border border-primary/25 bg-background/95 px-2 py-3 text-xs font-semibold text-primary shadow-lg", open && "invisible pointer-events-none")}><Trophy className="size-4" aria-hidden="true" /><span className="[writing-mode:vertical-rl]">승부예측</span></Button>
+    }} onMouseLeave={() => { suppressHover.current = false; }} onClick={() => { suppressHover.current = false; setOpen(true); }} className={cn("h-auto flex-col gap-2 rounded-l-xl rounded-r-none border border-primary/25 bg-background/95 px-2 py-3 text-xs font-semibold text-primary shadow-lg", open && "invisible pointer-events-none")}>
+      <Trophy className="size-4" aria-hidden="true" />
+      <span className="[writing-mode:vertical-rl]">승부예측</span>
+    </Button>
     <Sheet open={open} onOpenChange={changeOpen}>
     <SheetContent id={contentId} finalFocus={tab} onPointerMove={(event) => { pointer.current = { x: event.clientX, y: event.clientY }; }} onPointerLeave={(event) => {
       pointer.current = { x: event.clientX, y: event.clientY };
@@ -41,7 +48,7 @@ export function ClanBalancePredictionDrawer({ isParticipant, outcome, pool, serv
     }} className="overflow-y-auto data-[side=right]:w-full data-[side=right]:sm:max-w-md">
       <SheetHeader><SheetTitle>승부예측</SheetTitle><SheetDescription>관전 중인 멤버가 블루 승·레드 승·무승부를 예측합니다.</SheetDescription></SheetHeader>
       <div className="px-4 pb-6">
-        {pool ? <ClanBalancePredictionPool {...props} initialPool={pool} outcome={outcome} isParticipant={isParticipant} serverNow={serverNow} phase={phase} /> : outcome !== "pending" ? <p className="rounded-xl border bg-muted/20 p-4 text-sm leading-relaxed">
+        {pool ? <ClanBalancePredictionPool {...props} initialPool={pool} outcome={outcome} isParticipant={isParticipant} serverNow={now} phase={phase} /> : outcome !== "pending" ? <p className="rounded-xl border bg-muted/20 p-4 text-sm leading-relaxed">
           {outcome === "void"
             ? "이번 경기는 무효로 확정되어 예측 보상이 지급되지 않습니다."
             : "결과가 확정되었습니다. 적중 보상은 개인 코인 내역에서 확인할 수 있습니다."}
