@@ -2862,6 +2862,22 @@ export type Database = {
           user_id: string
         }[]
       }
+      read_clan_stats_records: {
+        Args: {
+          p_clan_id: string
+          p_day?: string
+          p_offset?: number
+          p_user_id?: string
+        }
+        Returns: {
+          payload: Json
+          source: string
+        }[]
+      }
+      read_clan_stats_summary: {
+        Args: { p_clan_id: string; p_periods: string[] }
+        Returns: Json
+      }
       read_closed_balance_ballot: {
         Args: {
           p_clan_id: string
