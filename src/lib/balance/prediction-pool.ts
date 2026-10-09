@@ -1,6 +1,7 @@
 import type { Json } from "@/lib/supabase/database.types";
 
 export type PredictionPool = {
+  hostOnly: boolean;
   total: number;
   count: number;
   teams: [number, number, number];
@@ -18,6 +19,7 @@ export function parsePredictionPool(value: Json): PredictionPool {
   };
   if (!Array.isArray(value.teams) || value.teams.length !== 3 || value.teams.some((entry) => typeof entry !== "number")) throw new Error("예측 선택 정보를 확인하지 못했습니다.");
   return {
+    hostOnly: value.hostOnly === true,
     total: numeric("total"), count: numeric("count"), balance: numeric("balance"),
     teams: value.teams as [number, number, number],
     mine: value.mine as PredictionPool["mine"],

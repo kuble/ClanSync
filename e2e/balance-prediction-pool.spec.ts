@@ -1,6 +1,60 @@
 import { expect, test } from "@playwright/test";
 import { createAndEnterBalanceRoom, createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
+test("내전 개설 관전자는 코인 없이 예측 저장·변경·취소하고 적중률만 공개", async ({ page }) => {
+  test.setTimeout(90_000);
+  const f = await createIsolatedBalanceFixture(12);
+  try {
+    expect((await f.service.from("users").update({ coin_balance: 100 }).in("id", [f.users[0].id, f.users[11].id])).error).toBeNull();
+    await loginIsolatedBalanceUser(page, f.users[0]);
+    const room = await createAndEnterBalanceRoom(page, f.path, "개설자 예측 검증");
+    const round = await f.activeRound(room.roomId);
+    const ids = f.users.slice(1, 11).map((user) => user.id);
+    const roster = { team1: { tank: ids[0], dmg: ids.slice(1, 3), sup: ids.slice(3, 5) }, team2: { tank: ids[5], dmg: ids.slice(6, 8), sup: ids.slice(8, 10) } };
+    expect((await f.service.from("balance_sessions").update({ roster, map_ban_enabled: false, hero_ban_enabled: false,
+      formation_settings: { roles: "manual", teams: "keep", predictionEnabled: true } }).eq("id", round.id)).error).toBeNull();
+    await page.reload();
+    await page.getByRole("dialog", { name: "경기 맵 선택", exact: true }).getByRole("button", { name: "부산 선택", exact: true }).click();
+    await page.getByRole("button", { name: "승부예측", exact: true }).click();
+    const drawer = page.getByRole("dialog", { name: "승부예측", exact: true });
+    await expect(drawer).toContainText("개설자는 코인 없이 예측만 참여합니다.");
+    await expect(drawer.getByRole("textbox", { name: "걸 코인", exact: true })).toHaveCount(0);
+    await drawer.getByRole("button", { name: "블루 승", exact: true }).click();
+    await drawer.getByRole("button", { name: "예측 저장", exact: true }).click();
+    await expect(drawer).toContainText("블루 승 · 코인 참여 없음");
+    await drawer.getByRole("button", { name: "무승부", exact: true }).click();
+    await drawer.getByRole("button", { name: "예측 변경", exact: true }).click();
+    await expect(drawer).toContainText("무승부 · 코인 참여 없음");
+    await drawer.getByRole("button", { name: "취소", exact: true }).click();
+    await expect(drawer.getByRole("button", { name: "예측 저장", exact: true })).toBeVisible();
+    await expect(drawer).not.toContainText("코인 참여 없음");
+    await drawer.getByRole("button", { name: "블루 승", exact: true }).click();
+    await drawer.getByRole("button", { name: "예측 저장", exact: true }).click();
+    await expect(drawer).toContainText("블루 승 · 코인 참여 없음");
+    await page.screenshot({ path: test.info().outputPath("host-prediction-without-coins.png") });
+    await drawer.getByRole("button", { name: "닫기", exact: true }).click();
+    await page.getByTestId("clan-balance-session-panel").getByRole("button", { name: "다음 단계", exact: true }).click();
+    await expect(page.getByTestId("clan-balance-session-panel")).toHaveAttribute("data-balance-phase", "match_live");
+    await page.reload();
+    await page.getByRole("button", { name: "승부예측", exact: true }).click();
+    await expect(drawer).toContainText("블루 승 · 코인 참여 없음");
+    const spectator = await f.memberClient(11);
+    expect((await spectator.rpc("place_balance_prediction_pool", { p_session_id: round.id, p_pick: 1, p_stake: 10 })).error).toBeNull();
+    const host = await f.memberClient(0);
+    expect((await host.rpc("place_balance_prediction_pool", { p_session_id: round.id, p_pick: 1, p_stake: 10 })).error?.message).toContain("개설자는 코인을");
+    await drawer.getByRole("button", { name: "닫기", exact: true }).click();
+    await page.getByRole("button", { name: "1팀 승리 선택", exact: true }).click();
+    await page.getByRole("dialog", { name: /로 확정할까요\?/ }).getByRole("button", { name: "확정", exact: true }).click();
+    await page.getByRole("button", { name: "승부예측", exact: true }).click();
+    await expect(drawer).toContainText("적중 · 코인 참여 없음");
+    const ranking = drawer.getByRole("table").getByRole("row").filter({ hasText: f.users[0].nickname });
+    await expect(ranking).toContainText("100%");
+    await expect(ranking.getByRole("cell").last()).toHaveText("0");
+    expect((await f.service.from("users").select("coin_balance").eq("id", f.users[0].id).single()).data?.coin_balance).toBe(100);
+    await page.screenshot({ path: test.info().outputPath("host-prediction-accuracy-only.png") });
+  } finally { await f.cleanup(); }
+});
+
 test("관전자 코인 풀: 편성부터 참여·공유 마감·비례 정산·현재 내전 공개 순위", async ({ page, browser }) => {
   test.setTimeout(180_000);
   const f = await createIsolatedBalanceFixture(13);

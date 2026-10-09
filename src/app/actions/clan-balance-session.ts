@@ -739,10 +739,10 @@ export async function submitBalancePredictionAction(
   gameSlug: string,
   clanId: string,
   sessionId: string,
-  pickTeam: 1 | 2 | 3,
+  pickTeam: 0 | 1 | 2 | 3,
   stakeCoins?: number,
 ): Promise<BalanceSessionActionResult> {
-  if (pickTeam !== 1 && pickTeam !== 2 && pickTeam !== 3) {
+  if (pickTeam !== 0 && pickTeam !== 1 && pickTeam !== 2 && pickTeam !== 3) {
     return { ok: false, error: "예측 선택이 올바르지 않습니다." };
   }
 
@@ -791,6 +791,7 @@ export async function submitBalancePredictionAction(
     revalidatePath(balancePath(gameSlug, clanId));
     return { ok: true };
   }
+  if (pickTeam === 0) return { ok: false, error: "예측 선택이 올바르지 않습니다." };
   if (session.phase !== "match_live" || session.match_outcome !== "pending") {
     return { ok: false, error: "지금은 예측을 받지 않습니다." };
   }

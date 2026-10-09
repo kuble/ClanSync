@@ -8,6 +8,101 @@ async function ok(query) {
   return data;
 }
 
+test("original host predicts without coins, preserves spectator eligibility and never dilutes payouts", async (t) => {
+  const f = await createIsolatedBalanceFixture(13);
+  t.after(() => f.cleanup());
+  const [host, winner, officer] = await Promise.all([0, 11, 12].map((index) => f.memberClient(index)));
+  await ok(f.service.from("users").update({ coin_balance: 100 }).in("id", [0, 11, 12].map((index) => f.users[index].id)));
+  await ok(f.service.from("clan_members").update({ role: "officer" }).eq("clan_id", f.clanId).eq("user_id", f.users[12].id));
+  const opened = await ok(host.rpc("open_balance_session_series", { p_clan_id: f.clanId }));
+  let id = opened.round_id;
+  const ids = f.users.slice(1, 11).map((user) => user.id);
+  const roster = { team1: { tank: ids[0], dmg: ids.slice(1, 3), sup: ids.slice(3, 5) }, team2: { tank: ids[5], dmg: ids.slice(6, 8), sup: ids.slice(8, 10) } };
+  await ok(host.from("balance_sessions").update({ roster }).eq("id", id));
+  const bet = (client, pick, stake = 0) => client.rpc("place_balance_prediction_pool", { p_session_id: id, p_pick: pick, p_stake: stake });
+  const pool = (client = host) => ok(client.rpc("read_balance_prediction_pool", { p_session_id: id }));
+  const hostBalance = async () => (await ok(f.service.from("users").select("coin_balance").eq("id", f.users[0].id).single())).coin_balance;
+  const next = async () => { id = (await ok(host.rpc("next_balance_round", { p_clan_id: f.clanId, p_round_id: id }))).round_id; };
+  const live = async () => {
+    await ok(host.from("balance_sessions").update({ resolved_map_label: "부산" }).eq("id", id));
+    await ok(f.service.from("balance_sessions").update({ phase: "match_live" }).eq("id", id));
+  };
+  const settle = (value) => ok(host.rpc("set_balance_match_outcome", { p_session_id: id, p_outcome: value }));
+  const enable = async (value) => {
+    const r = await f.activeRound(opened.series_id);
+    return ok(host.rpc("set_balance_prematch_settings", { p_round_id: id, p_clan_id: f.clanId, p_revision: r.formation_revision,
+      p_settings: { ...r.formation_settings, predictionEnabled: value }, p_map_ban: r.map_ban_enabled, p_hero_ban: r.hero_ban_enabled,
+      p_map_ban_seconds: r.map_ban_seconds, p_hero_ban_seconds: r.hero_ban_seconds, p_hero_bans_per_team: r.hero_bans_per_team, p_map_types: r.map_types }));
+  };
+
+  await t.test("coin-free save, edit and cancel, with server enforcement against forged positive stakes", async () => {
+    assert.equal((await pool()).hostOnly, true);
+    assert.equal((await pool(officer)).hostOnly, false, "other managers can still bet as spectators");
+    await ok(bet(winner, 1));
+    assert.equal((await pool(winner)).mine, null, "zero stake does not create a regular spectator entry");
+    for (const [pick, stake] of [[1, 1], [1, 100], [1, -1], [4, 0], [null, 0]]) assert.ok((await bet(host, pick, stake)).error);
+    await Promise.all([ok(bet(host, 1)), ok(bet(host, 1))]);
+    assert.deepEqual((await pool()).mine, { pick: 1, stake: 0, payout: 0, settlement: null });
+    assert.equal((await pool()).total, 0);
+    assert.equal((await pool()).count, 0);
+    await ok(bet(host, 3));
+    assert.equal((await pool()).mine.pick, 3);
+    await ok(bet(host, 0));
+    assert.equal((await pool()).mine, null);
+    await ok(bet(host, 1));
+    await enable(false);
+    assert.equal((await pool()).mine, null);
+    assert.ok((await bet(host, 1)).error);
+    await enable(true);
+    await ok(bet(host, 1));
+    const replacement = structuredClone(roster);
+    replacement.team1.tank = f.users[0].id;
+    await ok(host.from("balance_sessions").update({ roster: replacement }).eq("id", id));
+    assert.equal((await pool()).mine, null);
+    assert.ok((await bet(host, 1)).error, "host players cannot predict");
+    await ok(host.from("balance_sessions").update({ roster }).eq("id", id));
+    assert.equal(await hostBalance(), 100);
+  });
+
+  await t.test("cutoff and settlement count host accuracy but pay only coin participants exactly once", async () => {
+    await ok(bet(host, 1)); await ok(bet(winner, 1, 10)); await ok(bet(officer, 2, 30));
+    assert.deepEqual((await pool()).teams, [10, 30, 0]);
+    assert.equal((await pool()).count, 2);
+    await live();
+    await ok(f.service.from("balance_sessions").update({ prediction_deadline_at: new Date(Date.now() - 1000).toISOString() }).eq("id", id));
+    assert.ok((await bet(host, 2)).error);
+    assert.ok((await bet(host, 0)).error);
+    const results = await Promise.all([settle("team1"), settle("team1")]);
+    assert.equal(results.filter((result) => result.ok).length, 1);
+    assert.deepEqual((await pool()).mine, { pick: 1, stake: 0, payout: 0, settlement: "win" });
+    assert.equal((await pool(winner)).mine.payout, 40, "host zero stake does not dilute the winning share");
+    assert.deepEqual((await pool()).ranking.find((entry) => entry.user_id === f.users[0].id), {
+      user_id: f.users[0].id, nickname: f.users[0].nickname, hits: 1, played: 1, profit: 0,
+    });
+    assert.equal((await ok(f.service.from("coin_transactions").select("amount").eq("reference_id", id))).reduce((sum, row) => sum + row.amount, 0), 0);
+  });
+
+  await t.test("host-only hits do not keep an unmatched coin pool; draw, loss and void track accuracy correctly", async () => {
+    for (const [outcome, hostPick, stakePick] of [["team1", 1, 2], ["draw", 3, 3], ["team2", 1, 2], ["void", 1, 1]]) {
+      await next();
+      assert.equal((await pool()).hostOnly, true);
+      await ok(bet(host, hostPick)); await ok(bet(winner, stakePick, 5));
+      await live(); assert.equal((await settle(outcome)).ok, true);
+      assert.equal((await pool(winner)).mine.payout, 5);
+      assert.equal((await pool()).mine.payout, 0);
+      assert.equal((await pool()).mine.settlement, outcome === "void" ? "refund" : outcome === "team2" ? "lose" : "win");
+    }
+    assert.deepEqual((await pool()).ranking.find((entry) => entry.user_id === f.users[0].id), {
+      user_id: f.users[0].id, nickname: f.users[0].nickname, hits: 3, played: 4, profit: 0,
+    });
+    await next(); await ok(bet(host, 2));
+    assert.equal((await ok(host.rpc("close_balance_session_series", { p_clan_id: f.clanId, p_round_id: id }))).ok, true);
+    assert.equal((await pool()).mine, null);
+    assert.equal(await hostBalance(), 100);
+    assert.deepEqual(await ok(f.service.from("coin_transactions").select("amount").eq("user_id", f.users[0].id)), [], "coin-free predictions never write a money ledger");
+  });
+});
+
 test("coin pool reserves, refunds, pays exactly once and scopes public event rankings", async (t) => {
   const f = await createIsolatedBalanceFixture(14);
   t.after(() => f.cleanup());

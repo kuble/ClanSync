@@ -52,18 +52,22 @@ export function ClanBalancePredictionPool({ gameSlug, clanId, sessionId, initial
   }, [clanId, sessionId, initialPool]);
 
   function submit(cancel = false) {
-    const stake = cancel ? 0 : Number(amount);
-    if (!cancel && (!pick || !amount.trim() || !Number.isSafeInteger(stake) || stake < 1 || stake > available)) {
+    const stake = cancel || pool.hostOnly ? 0 : Number(amount);
+    if (!cancel && !pick) return;
+    if (!cancel && !pool.hostOnly && (!amount.trim() || !Number.isSafeInteger(stake) || stake < 1 || stake > available)) {
       toast.error("사용 가능한 코인 안에서 1개 이상 정수로 입력하세요."); return;
     }
     start(async () => {
       try {
-        const result = await submitBalancePredictionAction(gameSlug, clanId, sessionId, pick ?? pool.mine?.pick ?? 1, stake);
+        const choice = cancel && pool.hostOnly ? 0 : pick ?? pool.mine?.pick ?? 1;
+        const result = await submitBalancePredictionAction(gameSlug, clanId, sessionId, choice, stake);
         if (!result.ok) { toast.error(result.error); return; }
         const updated = await readPredictionPoolAction(clanId, sessionId);
         if (updated.ok) setPool(updated.pool);
         if (cancel) { setPick(null); setAmount(""); }
-        toast.success(cancel ? "참여를 취소하고 코인을 돌려받았습니다." : "예측과 코인을 저장했습니다.");
+        toast.success(pool.hostOnly
+          ? cancel ? "예측을 취소했습니다." : "예측을 저장했습니다."
+          : cancel ? "참여를 취소하고 코인을 돌려받았습니다." : "예측과 코인을 저장했습니다.");
         router.refresh();
       } catch { toast.error("저장하지 못했습니다. 다시 시도하세요."); }
     });
@@ -76,7 +80,7 @@ export function ClanBalancePredictionPool({ gameSlug, clanId, sessionId, initial
         <strong className="text-lg tabular-nums">{number(pool.total)} 코인</strong>
       </div>
       <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground" role="status">
-        <span>{pool.count}명 참여</span>
+        <span>{pool.count}명 코인 참여</span>
         <span className="flex items-center gap-1"><Timer className="size-3.5" />{resolved ? "정산 완료" : phase !== "match_live" ? "경기 시작 후 5분" : expired ? "마감됨" : Math.floor(remaining / 60) + ":" + String(remaining % 60).padStart(2, "0")}</span>
       </div>
       <div className="grid grid-cols-3 gap-2">
@@ -93,15 +97,17 @@ export function ClanBalancePredictionPool({ gameSlug, clanId, sessionId, initial
         })}
       </div>
       {!resolved && !expired && isParticipant ? <p className="text-xs text-muted-foreground">관전자만 참여할 수 있습니다.</p> : canBet ? <form className="space-y-3" onSubmit={(event) => { event.preventDefault(); submit(); }}>
-        <label className="flex flex-wrap items-center justify-between gap-2 text-xs">
+        {pool.hostOnly ? <p className="text-xs text-muted-foreground">개설자는 코인 없이 예측만 참여합니다.</p> : <label className="flex flex-wrap items-center justify-between gap-2 text-xs">
           <span>걸 코인</span><span className="text-muted-foreground">사용 가능 {number(available)}</span>
           <input aria-label="걸 코인" type="text" inputMode="numeric" autoComplete="off" value={amount} disabled={pending} onChange={(event) => setAmount(event.target.value)}
             className="h-10 w-full rounded-lg border bg-background px-3 text-base tabular-nums focus-visible:outline-2 focus-visible:outline-ring" />
-        </label>
-        <div className="flex gap-2"><Button type="submit" className="flex-1" disabled={pending || !pick}>{pending ? "저장 중…" : pool.mine ? "예측 변경" : "코인 걸기"}</Button>{pool.mine ? <Button type="button" variant="outline" disabled={pending} onClick={() => submit(true)}>취소</Button> : null}</div>
+        </label>}
+        <div className="flex gap-2"><Button type="submit" className="flex-1" disabled={pending || !pick}>{pending ? "저장 중…" : pool.mine ? "예측 변경" : pool.hostOnly ? "예측 저장" : "코인 걸기"}</Button>{pool.mine ? <Button type="button" variant="outline" disabled={pending} onClick={() => submit(true)}>취소</Button> : null}</div>
       </form> : null}
       {pool.mine ? <p className="rounded-lg bg-muted/35 px-3 py-2 text-xs leading-relaxed" role="status">
-        {settlement === "win" ? "적중 · " + number(pool.mine.payout) + "코인 수령 · 순이익 +" + number(pool.mine.payout - pool.mine.stake)
+        {pool.hostOnly && pool.mine.stake === 0
+          ? (settlement === "win" ? "적중" : settlement === "lose" ? "미적중" : settlement === "refund" ? "무효" : labels[pool.mine.pick - 1]) + " · 코인 참여 없음"
+          : settlement === "win" ? "적중 · " + number(pool.mine.payout) + "코인 수령 · 순이익 +" + number(pool.mine.payout - pool.mine.stake)
           : settlement === "lose" ? "미적중 · " + number(pool.mine.stake) + "코인"
           : settlement === "refund" ? number(pool.mine.payout) + "코인 반환"
           : labels[pool.mine.pick - 1] + " · " + number(pool.mine.stake) + "코인 참여"}
