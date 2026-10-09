@@ -96,8 +96,8 @@ export function ClanBalancePredictionPool({ gameSlug, clanId, sessionId, initial
           </button>;
         })}
       </div>
-      {!resolved && !expired && isParticipant ? <p className="text-xs text-muted-foreground">관전자만 참여할 수 있습니다.</p> : canBet ? <form className="space-y-3" onSubmit={(event) => { event.preventDefault(); submit(); }}>
-        {pool.hostOnly ? <p className="text-xs text-muted-foreground">개설자는 코인 없이 예측만 참여합니다.</p> : <label className="flex flex-wrap items-center justify-between gap-2 text-xs">
+      {!resolved && !expired && isParticipant ? <p className="text-xs text-muted-foreground">이번 경기 출전 중</p> : canBet ? <form className="space-y-3" onSubmit={(event) => { event.preventDefault(); submit(); }}>
+        {pool.hostOnly ? <p className="text-xs text-muted-foreground">개설자 · 예측만 참여</p> : <label className="flex flex-wrap items-center justify-between gap-2 text-xs">
           <span>걸 코인</span><span className="text-muted-foreground">사용 가능 {number(available)}</span>
           <input aria-label="걸 코인" type="text" inputMode="numeric" autoComplete="off" value={amount} disabled={pending} onChange={(event) => setAmount(event.target.value)}
             className="h-10 w-full rounded-lg border bg-background px-3 text-base tabular-nums focus-visible:outline-2 focus-visible:outline-ring" />
@@ -112,7 +112,6 @@ export function ClanBalancePredictionPool({ gameSlug, clanId, sessionId, initial
           : settlement === "refund" ? number(pool.mine.payout) + "코인 반환"
           : labels[pool.mine.pick - 1] + " · " + number(pool.mine.stake) + "코인 참여"}
       </p> : null}
-      <p className="text-[11px] leading-relaxed text-muted-foreground">전체 풀을 적중자의 참여 코인 비율로 나눕니다. 배당은 마감까지 변하며 원금을 포함합니다. 무효·적중자 없음은 전액 반환됩니다.</p>
     </section>
     <section className="space-y-3" aria-label="내전 예측 순위">
       <h3 className="text-sm font-semibold">내전 예측 순위</h3>
@@ -125,7 +124,6 @@ export function ClanBalancePredictionPool({ gameSlug, clanId, sessionId, initial
           <td className={cn("wrap-anywhere px-3 py-3 text-right font-semibold",entry.profit > 0 ? "text-primary" : entry.profit < 0 ? "text-rose-400" : "text-muted-foreground")}>{entry.profit > 0 ? "+" : ""}{number(entry.profit)}</td>
         </tr>)}</tbody>
       </table></div> : <p className="rounded-xl border px-3 py-4 text-xs text-muted-foreground">정산된 예측이 없습니다.</p>}
-      <p className="text-[11px] text-muted-foreground">현재 내전의 닉네임·적중률·누적 순이익을 멤버에게 공개합니다.</p>
     </section>
   </div>;
 }

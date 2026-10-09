@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { Check, Coins, Crown, Equal, RotateCcw, Timer, Trophy } from "lucide-react";
+import { Check, Crown, Equal, RotateCcw, Timer, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import {
   setBalanceMatchOutcomeAction,
@@ -77,9 +77,6 @@ export function ClanBalancePredictionClient({
           </h4>
           <span className="text-[10px] font-bold text-primary">Premium</span>
         </div>
-        <p className="text-xs leading-relaxed text-muted-foreground">
-          블루 승·레드 승·무승부 중 예측하세요. 비출전 멤버만 참여할 수 있습니다.
-        </p>
         {deadlineIso ? (
           <div className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-xs">
             <span className="flex items-center gap-1.5 text-muted-foreground">
@@ -132,16 +129,6 @@ export function ClanBalancePredictionClient({
           {myPickTeam
             ? " · " + (myPickTeam === 1 ? "블루 승" : myPickTeam === 2 ? "레드 승" : "무승부") + " 선택됨"
             : ""}
-        </p>
-      </div>
-      <div className="border-t border-primary/10 px-4 py-3">
-        <p className="flex items-center gap-1.5 text-xs font-semibold">
-          <Coins className="size-3.5 text-amber-500" aria-hidden="true" />
-          적중 보상 5코인
-        </p>
-        <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
-          경기 결과 확정 후 클랜 코인 풀에서 지급됩니다. 마감 전까지 선택을 바꿀
-          수 있습니다.
         </p>
       </div>
     </section>
