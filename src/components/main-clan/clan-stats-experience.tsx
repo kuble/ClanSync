@@ -31,7 +31,7 @@ export function ClanStatsExperience({ gameSlug, clanId, model }: { gameSlug: str
       <TabsContent value="hof"><HallOfFame model={model} gameSlug={gameSlug} clanId={clanId} onChoosePerson={choosePerson} /></TabsContent>
       <TabsContent value="intra"><IntraClanStats model={model} /></TabsContent>
       {model.permissions.viewMatchRecords && <TabsContent value="records">{model.deferredDetails
-        ? <StatsDetailLoader cache={cache} url={`/api/clans/${clanId}/stats?section=archive`}>{(detail) => detail.kind === "archive" && <ClanMatchHistory model={{ ...model, archive: detail.archive }} />}</StatsDetailLoader>
+        ? <StatsDetailLoader cache={cache} initial={{ kind: "archive", archive: model.archive }} url={`/api/clans/${clanId}/stats?section=archive`}>{(detail) => detail.kind === "archive" && <ClanMatchHistory model={{ ...model, archive: detail.archive }} />}</StatsDetailLoader>
         : <ClanMatchHistory model={model} />}</TabsContent>}
       {model.permissions.viewPersonalRecords && <TabsContent value="personal">{personId ? model.deferredDetails
         ? <StatsDetailLoader cache={cache} url={`/api/clans/${clanId}/stats?section=personal&userId=${personId}`}>{(detail) => detail.kind === "personal" && <PersonalStats key={personId} model={{ ...model, personal: { ...model.personal, people: [detail.person] } }} selectedId={personId} onBack={() => setPersonId(null)} gameSlug={gameSlug} clanId={clanId} />}</StatsDetailLoader>

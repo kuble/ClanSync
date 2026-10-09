@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, MapPin, Clock, Crown, Crosshair, Shield, Plus, Swords } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ClanStatsPageModel, ClanArchiveMatch } from "@/lib/clan/stats/load-clan-stats";
@@ -9,45 +10,51 @@ import { cn } from "@/lib/utils";
 import { ArchiveDatePicker } from "./archive-date-picker";
 import { ArchiveDayTable } from "./archive-day-table";
 import { StatsDetailLoader, type StatsDetailCache } from "./stats-detail-loader";
+import { MatchRecordEditor } from "./match-record-editor";
 
-export function ClanStatsArchive({ archive, clanId, periodKey = "all", filters, mapFilter = "all", participantSearch = "" }: {
+export function ClanStatsArchive({ archive, clanId, canEdit = false, periodKey = "all", filters, mapFilter = "all", participantSearch = "" }: {
   archive: ClanStatsPageModel["archive"];
   clanId?: string;
+  canEdit?: boolean;
   periodKey?: string;
   filters?: ReactNode;
   mapFilter?: string;
   participantSearch?: string;
 }) {
-  const [selectedDay, setSelectedDay] = useState(() => archive.datesKst[0] ?? (periodKey === "all" ? isoToKstYmd(new Date().toISOString()) : periodKey + (periodKey.length === 4 ? "-01" : "") + "-01"));
-  const dayRecords = archive.sampleByDate[selectedDay] ?? [];
-  const { requests: cache } = useMemo(() => ({ archive, requests: new Map() as StatsDetailCache }), [archive]);
-  const fetchDay = clanId && archive.deferredDays && archive.datesKst.includes(selectedDay) && !archive.sampleByDate[selectedDay];
+  const router = useRouter();
+  const [selection, setSelectedDay] = useState<string>();
+  const [saved, setSaved] = useState<{ base: typeof archive; data: typeof archive }>();
+  const current = saved?.base === archive ? saved.data : archive;
+  const selectedDay = selection ?? current.datesKst[0] ?? isoToKstYmd(new Date().toISOString());
+  const dayRecords = current.sampleByDate[selectedDay] ?? [];
+  const { requests: cache } = useMemo(() => ({ current, requests: new Map() as StatsDetailCache }), [current]);
+  const fetchDay = clanId && current.deferredDays && current.datesKst.includes(selectedDay) && !current.sampleByDate[selectedDay];
+  const onSaved = (data: typeof archive, day: string) => { setSaved({ base: archive, data }); setSelectedDay(day); router.refresh(); };
   return <div className="space-y-4">
     <div className="flex flex-wrap items-end justify-between gap-3" aria-label="경기 기록 날짜 및 필터">
-      <ArchiveDatePicker value={selectedDay} onChange={setSelectedDay} dates={archive.datesKst} periodKey={periodKey} />
+      <ArchiveDatePicker value={selectedDay} onChange={setSelectedDay} dates={current.datesKst} periodKey={periodKey} />
       {filters}
     </div>
-    {fetchDay ? <StatsDetailLoader cache={cache} url={`/api/clans/${clanId}/stats?section=archive&day=${selectedDay}`}>
-      {(detail) => detail.kind === "archive" && <ArchiveDay key={selectedDay} dayRecords={detail.archive.sampleByDate[selectedDay] ?? []} mapFilter={mapFilter} participantSearch={participantSearch} />}
-    </StatsDetailLoader> : <ArchiveDay key={selectedDay} dayRecords={dayRecords} mapFilter={mapFilter} participantSearch={participantSearch} />}
+    <StatsDetailLoader cache={cache} url={fetchDay ? `/api/clans/${clanId}/stats?section=archive&day=${selectedDay}` : undefined} initial={{ kind: "archive", archive: { ...current, sampleByDate: { [selectedDay]: dayRecords } } }}>
+      {(detail, pending) => detail.kind === "archive" && <ArchiveDay dayRecords={detail.archive.sampleByDate[selectedDay] ?? []} mapFilter={mapFilter} participantSearch={participantSearch} pending={pending} editor={clanId && canEdit ? { clanId, day: selectedDay, members: current.members ?? [], onSaved, onReload: () => router.refresh() } : undefined} />}
+    </StatsDetailLoader>
   </div>;
 }
 
-function ArchiveDay({ dayRecords, mapFilter, participantSearch }: { dayRecords: ClanArchiveMatch[]; mapFilter: string; participantSearch: string }) {
+type EditorContext = { clanId: string; day: string; members: { userId: string; nickname: string }[]; onSaved: (archive: ClanStatsPageModel["archive"], day: string) => void; onReload: () => void };
+
+function ArchiveDay({ dayRecords, mapFilter, participantSearch, pending, editor }: { dayRecords: ClanArchiveMatch[]; mapFilter: string; participantSearch: string; pending: boolean; editor?: EditorContext }) {
   const term = participantSearch.trim().toLocaleLowerCase("ko");
   const records = dayRecords.filter((row) => (mapFilter === "all" || row.mapLabel === mapFilter) && (!term || row.players.some((player) => player.nickname.toLocaleLowerCase("ko").includes(term))));
-  return <div className="grid items-start gap-4 min-[1100px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      {records.length ? <ArchiveRecords records={records} /> : <section aria-label="경기 상세" className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-6 text-center">
-        <Swords className="size-7 text-muted-foreground/30" aria-hidden="true" />
-        <p role="status" className="text-sm text-muted-foreground">{dayRecords.length ? "선택한 조건에 맞는 경기가 없습니다." : "이 날짜에는 기록된 경기가 없습니다."}</p>
-        <p className="text-xs text-muted-foreground">{dayRecords.length ? "맵 또는 참가자 필터를 변경해 보세요." : "날짜를 눌러 다른 날의 기록을 확인하세요."}</p>
-      </section>}
+  return <div className="grid items-stretch gap-4 min-[1100px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <ArchiveRecords records={records} editor={editor} pending={pending} emptyText={dayRecords.length ? "선택한 조건에 맞는 경기가 없습니다." : "이 날짜에는 기록된 경기가 없습니다."} />
       <ArchiveDayTable records={dayRecords} />
   </div>;
 }
 
-function ArchiveRecords({ records }: { records: ClanArchiveMatch[] }) {
-  const [activeId, setActiveId] = useState(records[0].id);
+function ArchiveRecords({ records, editor, pending, emptyText }: { records: ClanArchiveMatch[]; editor?: EditorContext; pending: boolean; emptyText: string }) {
+  const [activeId, setActiveId] = useState(records[0]?.id);
+  const [editing, setEditing] = useState<{ mode: "create" | "update" | "delete"; match?: ClanArchiveMatch }>();
   const activeIndex = Math.max(
     0,
     records.findIndex((record) => record.id === activeId),
@@ -66,7 +73,7 @@ function ArchiveRecords({ records }: { records: ClanArchiveMatch[] }) {
   };
   return (
       <section
-        className="min-w-0 overflow-hidden rounded-xl border bg-card"
+        className="flex h-[560px] min-w-0 flex-col overflow-hidden rounded-xl border bg-card"
         aria-label="경기 상세"
       >
         <div className="flex items-center justify-between gap-2 border-b bg-muted/20 px-4 py-3">
@@ -77,27 +84,33 @@ function ArchiveRecords({ records }: { records: ClanArchiveMatch[] }) {
               variant="ghost"
               size="icon-sm"
               aria-label="이전 경기"
-              disabled={activeIndex === 0}
+              disabled={pending || activeIndex === 0}
               onClick={() => setActiveId(records[activeIndex - 1].id)}
             >
               <ChevronLeft className="size-4" aria-hidden="true" />
             </Button>
             <span className="text-xs tabular-nums text-muted-foreground">
-              {activeIndex + 1} / {records.length}
+              {records.length ? activeIndex + 1 : 0} / {records.length}
             </span>
             <Button
               type="button"
               variant="ghost"
               size="icon-sm"
               aria-label="다음 경기"
-              disabled={activeIndex >= records.length - 1}
+              disabled={pending || activeIndex >= records.length - 1}
               onClick={() => setActiveId(records[activeIndex + 1].id)}
             >
               <ChevronRight className="size-4" aria-hidden="true" />
             </Button>
           </div>
         </div>
-        <div className="space-y-5 p-4">
+        {editor && <div className="flex flex-wrap gap-1 border-b px-3 py-2">
+          <Button size="sm" variant="ghost" disabled={pending} onClick={() => setEditing({ mode: "create" })}><Plus className="size-3.5" aria-hidden="true" />기록 추가</Button>
+          <Button size="sm" variant="ghost" disabled={pending || !match?.revision} onClick={() => setEditing({ mode: "update", match })}>기록 수정</Button>
+          <Button size="sm" variant="ghost" disabled={pending || !match?.revision} onClick={() => setEditing({ mode: "delete", match })}>기록 제거</Button>
+        </div>}
+        <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden focus-visible:outline-2 focus-visible:outline-ring" tabIndex={0} aria-label="경기 상세 내용">
+        {match ? <div className="space-y-5 p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               {match.matchType !== "intra" && <span className="text-[10px] font-semibold text-muted-foreground">
@@ -199,7 +212,9 @@ function ArchiveRecords({ records }: { records: ClanArchiveMatch[] }) {
               timeStyle: "short",
             })}
           </p>
+        </div> : <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center"><Swords className="size-7 text-muted-foreground/30" aria-hidden="true" /><p role="status" className="text-sm text-muted-foreground">{pending ? "경기 기록을 불러오는 중…" : emptyText}</p></div>}
         </div>
+        {editing && editor && <MatchRecordEditor key={`${editing.mode}:${editing.match?.id ?? "new"}`} {...editor} mode={editing.mode} match={editing.match} onClose={() => setEditing(undefined)} onReload={() => { setEditing(undefined); editor.onReload(); }} onSaved={(archive, day) => { setEditing(undefined); editor.onSaved(archive, day); }} />}
       </section>
   );
 }
