@@ -104,12 +104,9 @@ export default async function ClanEventsPage({
 
   return (
     <div className="space-y-5">
-      <div>
-        <h2 className="text-xl font-bold tracking-tight">클랜 이벤트</h2>
-        <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
-          함께할 다음 약속. 클랜 일정과 투표, 대회를 한곳에서 관리하세요.
-        </p>
-      </div>
+      <p className="text-muted-foreground text-xs leading-relaxed">
+        함께할 다음 약속. 클랜 일정과 투표, 대회를 한곳에서 관리하세요.
+      </p>
       <div className="flex items-start gap-2.5 rounded-xl border border-primary/15 bg-primary/[0.04] px-4 py-3 text-xs leading-relaxed text-muted-foreground">
         <CalendarDays
           className="mt-0.5 size-4 shrink-0 text-primary"

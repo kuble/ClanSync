@@ -1,20 +1,24 @@
 .shell { min-height: 100dvh; background: var(--surface); }
 .header { height: 60px; position: fixed; z-index: 40; inset: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 24px; background: var(--surface); border-bottom: 1px solid var(--border); }
 .brand { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 7px; color: #0d2b1f; background: #34c997; flex-shrink: 0; }
-.breadcrumbs { display: flex; min-width: 0; align-items: center; gap: 14px; font-size: 13px; color: var(--muted-foreground); }
-.breadcrumbs > a:last-child { color: var(--foreground); font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.breadcrumbs { display: flex; min-width: 0; overflow: hidden; align-items: center; gap: 14px; font-size: 13px; color: var(--muted-foreground); }
+.breadcrumbs > a:last-of-type { min-width: 0; color: var(--foreground); font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.breadcrumbs > a:first-of-type, .breadcrumbs > span { flex-shrink: 0; }
+.pageTitle { flex-shrink: 0; font-size: inherit; font-weight: 600; color: var(--foreground); white-space: nowrap; }
 .breadcrumbs > a:hover { color: var(--primary); }
 .headerLeft, .headerRight { display: flex; align-items: center; min-width: 0; gap: 16px; }
+.headerLeft { flex: 1; }
+.headerRight { flex-shrink: 0; }
 .plan { color: var(--pro-gold); background: color-mix(in srgb, var(--pro-gold) 12%, transparent); font-size: 10px; font-weight: 700; letter-spacing: .03em; border-radius: 5px; padding: 3px 7px; }
 .rail { position: fixed; left: 0; top: 60px; bottom: 0; z-index: 35; width: 64px; display: flex; flex-direction: column; background: var(--surface); border-right: 1px solid var(--border); overflow-x: hidden; transition: width .2s ease, box-shadow .2s ease; padding: 24px 0; }
-.rail:hover, .rail:focus-within { width: 220px; box-shadow: 8px 0 24px #0005; }
+.rail:hover, .rail:has(:focus-visible) { width: 220px; box-shadow: 8px 0 24px #0005; }
 .nav { display: flex; flex-direction: column; gap: 5px; }
 .navLink { display: flex; position: relative; align-items: center; height: 44px; padding: 0 22px; gap: 18px; border-left: 2px solid transparent; color: var(--muted-foreground); transition: background .15s, color .15s; white-space: nowrap; outline-offset: -3px; }
 .navLink svg { width: 18px; height: 18px; flex-shrink: 0; }
 .navLink:hover { background: #ffffff06; color: var(--foreground); }
 .navLink[aria-current="page"] { background: #46af7514; border-left-color: var(--primary); color: #a0cfb1; }
 .navText { opacity: 0; font-size: 13px; font-weight: 500; transition: opacity .15s; }
-.rail:hover .navText, .rail:focus-within .navText, .drawer .navText { opacity: 1; }
+.rail:hover .navText, .rail:has(:focus-visible) .navText, .drawer .navText { opacity: 1; }
 .dot { position: absolute; left: 36px; top: 7px; width: 7px; height: 7px; background: #ef4444; border-radius: 50%; box-shadow: 0 0 0 2px var(--surface); }
 .bottom { margin-top: auto; padding-top: 20px; }
 .bottom::before { content: ""; display: block; height: 1px; margin: 0 16px 12px; background: var(--border); }

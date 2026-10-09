@@ -115,8 +115,7 @@ export default async function ClanStorePage({
           <Store size={21} aria-hidden />
         </span>
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">클랜 스토어</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             함께 모은 코인으로 클랜과 나만의 공간을 꾸며보세요.
           </p>
         </div>

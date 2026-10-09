@@ -181,6 +181,9 @@ export function MainClanShell({
     { href: `/games/${ctx.gameSlug}`, label: "커뮤니티", icon: Globe2 },
     { href: "/profile", label: "프로필", icon: UserRound },
   ];
+  const pageTitle = [...items, ...bottomItems].find(({ href }) =>
+    pathname === href || (href.startsWith(basePath + "/") && pathname.startsWith(href + "/")),
+  )?.label;
 
   useEffect(() => {
     const desktop = window.matchMedia("(min-width: 769px)");
@@ -237,6 +240,7 @@ export function MainClanShell({
             <Link href={`/games/${ctx.gameSlug}`}>{ctx.gameName}</Link>
             <span aria-hidden>/</span>
             <Link href={basePath}>{ctx.clanName}</Link>
+            {pageTitle && <><span aria-hidden>/</span><h2 className={styles.pageTitle} aria-current="page">{pageTitle}</h2></>}
           </nav>
         </div>
         <div className={styles.headerRight}>

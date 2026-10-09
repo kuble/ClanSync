@@ -140,7 +140,7 @@ export function ClanBalanceLobby({ gameSlug, clanId, userId, clanRole, rooms, me
   return (
     <section className="space-y-4" aria-label="내전 로비" data-testid="clan-balance-lobby">
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-baseline gap-2"><h2 className="text-lg font-bold">내전 로비</h2><span className="text-xs tabular-nums text-muted-foreground">{active.length}</span></div>
+        <span className="text-xs tabular-nums text-muted-foreground">진행·예약 {active.length}개</span>
         <div className="flex items-center gap-1">
           {staff ? <Button size="icon-sm" variant="ghost" aria-label="내전 기록" title="내전 기록" onClick={() => setHistoryOpen(true)}><History className="size-4" aria-hidden="true" /></Button> : null}
           <Button size="icon-sm" variant="ghost" aria-label="로비 안내" title="로비 안내" onClick={() => setGuideOpen(true)}><CircleHelp className="size-4" aria-hidden="true" /></Button>

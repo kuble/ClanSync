@@ -20,7 +20,7 @@ export default async function ManagePage({ params, searchParams }: {
   return (
     <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
-        <div><h2 className="text-xl font-bold tracking-tight">클랜 관리</h2><p className="mt-1 text-[13px] text-muted-foreground">{ctx.clanName}의 운영과 설정</p></div>
+        <p className="text-[13px] text-muted-foreground">{ctx.clanName}의 운영과 설정</p>
         <span className="rounded-lg border border-border px-3 py-1.5 text-xs text-muted-foreground">{ctx.role === "leader" ? "클랜장" : "운영진"} · {ctx.plan === "premium" ? "Premium" : "Free"}</span>
       </header>
       <div className="grid items-start gap-5 lg:grid-cols-[200px_minmax(0,1fr)]">
