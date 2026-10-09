@@ -60,6 +60,20 @@ test("현재 내전 기록: 호버 닫힘·좌측 요약·모바일 순서·좌�
     expect(summaryBounds!.y).toBeLessThan(matchBounds!.y);
     const drawerBounds = (await history.boundingBox())!;
     expect(drawerBounds.x).toBeGreaterThan(200);
+    const statsTable = history.getByTestId("balance-history-stats-table");
+    const expectNoTableScroll = async () => {
+      expect(await statsTable.evaluate((table) => {
+        const wrapper = table.parentElement!;
+        return wrapper.scrollWidth <= wrapper.clientWidth + 1;
+      })).toBe(true);
+      const lastColumn = (await statsTable.locator("tbody tr").first().locator("td").last().boundingBox())!;
+      const wrapper = (await statsTable.locator("..").boundingBox())!;
+      expect(lastColumn.x + lastColumn.width).toBeLessThanOrEqual(wrapper.x + wrapper.width + 1);
+    };
+    await expectNoTableScroll();
+    await page.setViewportSize({ width: 1111, height: 884 });
+    await expectNoTableScroll();
+    await page.setViewportSize({ width: 1220, height: 884 });
     const carousel = history.getByTestId("balance-history-carousel");
     const bounds = (await carousel.boundingBox())!;
     await page.mouse.move(bounds.x + bounds.width * 0.7, bounds.y + 28);
@@ -89,6 +103,13 @@ test("현재 내전 기록: 호버 닫힘·좌측 요약·모바일 순서·좌�
     const matchesMobile = (await matches.boundingBox())!;
     expect(infoMobile.y).toBeLessThan(statsMobile.y);
     expect(statsMobile.y + statsMobile.height).toBeLessThan(matchesMobile.y);
+    await expectNoTableScroll();
+    await page.setViewportSize({ width: 320, height: 844 });
+    await expectNoTableScroll();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    await page.setViewportSize({ width: 490, height: 884 });
+    await expectNoTableScroll();
+    await page.setViewportSize({ width: 390, height: 844 });
     const scroll = history.locator('[aria-busy]');
     expect(await scroll.evaluate((element) => getComputedStyle(element).scrollbarColor)).not.toBe("auto");
     await page.mouse.move(0, 0);

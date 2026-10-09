@@ -360,7 +360,7 @@ function HistoryContent({
             아직 기록된 내전 경기가 없습니다.
           </p>
         ) : (
-          <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]" data-testid="balance-history-columns">
+          <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]" data-testid="balance-history-columns">
               <section aria-label="내전 정보" className="grid grid-cols-3 gap-2 lg:col-start-1 lg:row-start-1">
                 {[
                   ["완료 경기", `${completed}판`],
@@ -399,10 +399,11 @@ function HistoryContent({
               </p>
               {stats.length ? (
                 <div className="overflow-x-auto rounded-xl border [scrollbar-color:var(--muted-foreground)_var(--background)] [scrollbar-width:thin]">
-                  <table className="w-full min-w-[400px] text-xs tabular-nums">
+                  <table className="w-full table-fixed text-xs tabular-nums" data-testid="balance-history-stats-table">
+                    <colgroup><col className="w-[28%]" /><col className="w-[12%]" /><col className="w-[24%]" /><col className="w-[18%]" /><col className="w-[18%]" /></colgroup>
                     <thead className="bg-muted/45 text-muted-foreground">
                       <tr>
-                        <th scope="col" className="whitespace-nowrap px-3 py-3 text-left font-medium">참여자</th>
+                        <th scope="col" className="px-2 py-3 text-left font-medium">참여자</th>
                         {STAT_COLUMNS.map((column) => {
                           const active = sort === column.key;
                           const Icon = active ? (sortDirection === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
@@ -410,16 +411,16 @@ function HistoryContent({
                             key={column.key}
                             scope="col"
                             aria-sort={active ? (sortDirection === "asc" ? "ascending" : "descending") : "none"}
-                            className="whitespace-nowrap px-1 py-1 text-right font-medium"
+                            className="px-0.5 py-1 text-right font-medium"
                           >
                             <button
                               type="button"
-                              className={cn("inline-flex min-h-9 w-full items-center justify-end gap-1 rounded-md px-2 py-1 hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring", active && "text-foreground")}
+                              className={cn("inline-flex min-h-9 w-full items-center justify-end gap-0.5 rounded-md px-0.5 py-1 hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring", active && "text-foreground")}
                               aria-label={`${column.key === "wins" ? "승수" : column.label} ${active ? (sortDirection === "desc" ? "오름차순" : "내림차순") : "내림차순"}으로 정렬`}
                               onClick={() => changeSort(column.key)}
                             >
-                              {column.label}
-                              <Icon className={cn("size-3.5", !active && "opacity-45")} aria-hidden="true" />
+                              <span className="min-w-0 wrap-anywhere">{column.label}</span>
+                              <Icon className={cn("size-3 shrink-0", !active && "hidden opacity-45 sm:block")} aria-hidden="true" />
                             </button>
                           </th>;
                         })}
@@ -430,25 +431,25 @@ function HistoryContent({
                         <tr key={member.userId} className="border-t">
                           <th
                             scope="row"
-                            className="max-w-44 truncate px-3 py-3 text-left font-medium"
+                            className="truncate px-2 py-3 text-left font-medium"
                             title={nickname(member.userId)}
                           >
                             {nickname(member.userId)}
                           </th>
-                          <td className="px-3 py-3 text-right">
+                          <td className="wrap-anywhere px-1 py-3 text-right">
                             {member.appearances}
                           </td>
-                          <td className="px-3 py-3 text-right">
+                          <td className="wrap-anywhere px-1 py-3 text-right">
                             <span aria-label={`${member.wins}승 ${member.draws}무 ${member.losses}패`}>{member.wins}/{member.draws}/{member.losses}</span>
                           </td>
-                          <td className="px-3 py-3 text-right">
+                          <td className="wrap-anywhere px-1 py-3 text-right">
                             {member.winRate === null
                               ? "—"
                               : `${Math.round(member.winRate)}%`}
                           </td>
                           <td
                             className={cn(
-                              "whitespace-nowrap px-3 py-3 text-right",
+                              "wrap-anywhere px-1 py-3 text-right",
                               member.currentStreak > 0 &&
                                 "text-sky-600 dark:text-sky-300",
                               member.currentStreak < 0 &&
