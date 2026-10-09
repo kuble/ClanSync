@@ -51,8 +51,8 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await expect(player).not.toContainText(/\b[MA]\s*[+-]?\d/);
     await expect(panel.getByTestId("team1-score-total")).toContainText("+5점");
     await expect(panel.getByTestId("team2-score-total")).toContainText("+15점");
-    await expect(panel.locator('[aria-label="팀 비교 요약 보기"]')).toContainText("1팀(+5점)");
-    await expect(panel.locator('[aria-label="팀 비교 요약 보기"]')).toContainText("2팀(+15점)");
+    await expect(panel.locator('[aria-label="팀 비교 요약 보기"] > span').first()).toHaveText("1팀");
+    await expect(panel.locator('[aria-label="팀 비교 요약 보기"] > span').last()).toHaveText("2팀");
     await panel.getByRole("button", { name: "분석 점수", exact: true }).click();
     await panel.getByRole("button", { name: "평가 점수", exact: true }).click();
     await panel.locator('[aria-label="팀 비교 요약 보기"]').hover();

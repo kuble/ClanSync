@@ -8,14 +8,14 @@ import type { ReactNode } from "react";
 import { formatBalanceScore, scoreComparisonShare, SCORE_LABEL, teamScoreTotal, type ScoreMode } from "@/lib/balance/score-display";
 import { BalanceComparisonBar, isValidBalanceEstimate, predictionContext, sampleBalanceEstimate, type BalanceEstimate } from "./balance-team-insights";
 
-function TeamLabels({ roster, scores, mode, comparison, showTotals }: { roster: BalanceRoster; scores: MaSnapshot; mode: ScoreMode; comparison: ReactNode; showTotals: boolean }) {
+function TeamLabels({ comparison }: { comparison: ReactNode }) {
   return <>
     <span className="text-xs font-bold tracking-wider text-sky-600 dark:text-sky-300">
-      1팀{showTotals ? <span data-testid="team1-score-total" className="tracking-normal" aria-label={`1팀 ${SCORE_LABEL[mode]} 합계`}>({formatBalanceScore(teamScoreTotal(roster.team1, scores, mode))})</span> : null}
+      1팀
     </span>
     {comparison}
     <span className="text-xs font-bold tracking-wider text-rose-600 dark:text-rose-300">
-      2팀{showTotals ? <span data-testid="team2-score-total" className="tracking-normal" aria-label={`2팀 ${SCORE_LABEL[mode]} 합계`}>({formatBalanceScore(teamScoreTotal(roster.team2, scores, mode))})</span> : null}
+      2팀
     </span>
   </>;
 }
@@ -48,12 +48,12 @@ export function BalanceTeamSummary({ roster, scores, mode, premium, showPredicti
   const labels = prediction ? [predictedTeam1 == null ? "—" : `${predictedTeam1}%`, predictedTeam1 == null ? "—" : `${100 - predictedTeam1}%`] : totals[mode].map(formatBalanceScore);
   const comparison = <div data-testid="team-comparison-graph" data-mode={prediction ? "prediction" : mode} data-score-mode={mode} aria-label={`${title}: 1팀 ${labels[0]}, 2팀 ${labels[1]}${prediction ? `, ${predictionStatus}` : ""}`} aria-live="polite" className="min-w-0 space-y-1">
     <p className="text-[10px] font-medium text-muted-foreground">{title}</p>
-    <div className="flex justify-between gap-2 text-[11px] font-bold tabular-nums"><span className="text-sky-600 dark:text-sky-300">{labels[0]}</span><span className="text-rose-600 dark:text-rose-300">{labels[1]}</span></div>
+    <div className="flex justify-between gap-2 text-[11px] font-bold tabular-nums"><span data-testid={prediction ? undefined : "team1-score-total"} aria-label={`1팀 ${title}`} className="text-sky-600 dark:text-sky-300">{labels[0]}</span><span data-testid={prediction ? undefined : "team2-score-total"} aria-label={`2팀 ${title}`} className="text-rose-600 dark:text-rose-300">{labels[1]}</span></div>
     <div className="flex h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true">{share == null ? null : <><span data-testid="team-comparison-blue-bar" className="bg-sky-500" style={{ width: `${share}%` }} /><span className="flex-1 bg-rose-500" /></>}</div>
     {prediction ? <p className="text-[9px] text-muted-foreground">{predictionStatus}</p> : null}
   </div>;
   const headingClass = "mb-3 grid grid-cols-[minmax(0,1fr)_minmax(110px,32%)_minmax(0,1fr)] items-center gap-2 rounded-lg text-center";
-  const content = <TeamLabels roster={roster} scores={scores} mode={mode} comparison={comparison} showTotals={!prediction} />;
+  const content = <TeamLabels comparison={comparison} />;
   const heading = <div className={headingClass}>{content}</div>;
 
   if (!enabled) return heading;
