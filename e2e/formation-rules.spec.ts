@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { computeBalancePredictionDeadlineIso } from "../src/lib/balance/prediction-deadline";
 import {
   advanceFormation,
   AUCTION_AWARD_DURATION_MS,
@@ -737,6 +738,22 @@ test("pause preserves award time and completed draft can apply through a member 
   expect(advanceFormation(complete, { type: "tick" }, member, startTime, keepOrder).appliedAt).toBe(startTime);
 });
 
+
+test("prediction minutes normalize legacy defaults, validate limits and set the requested deadline", () => {
+  expect(parseFormationSettings({}).predictionMinutes).toBe(2);
+  for (const predictionMinutes of [1, 2, 10])
+    expect(() => validateFormationSettings(parseFormationSettings({ predictionMinutes }))).not.toThrow();
+  for (const predictionMinutes of [0, 11, 1.5, "2", null])
+    expect(() => validateFormationSettings(parseFormationSettings({ predictionMinutes }))).toThrow(/승부예측/);
+  expect(sameFormationSettings({}, { predictionMinutes: 2 })).toBe(true);
+  expect(sameFormationSettings({}, { predictionMinutes: 3 })).toBe(false);
+  for (const predictionMinutes of [2, 3]) {
+    const before = Date.now();
+    const deadline = Date.parse(computeBalancePredictionDeadlineIso(predictionMinutes === 2 ? undefined : { predictionMinutes }));
+    expect(deadline).toBeGreaterThanOrEqual(before + predictionMinutes * 60_000);
+    expect(deadline).toBeLessThanOrEqual(Date.now() + predictionMinutes * 60_000);
+  }
+});
 
 test("auction timing settings validate, extend late bids and preserve preparation on pause", () => {
   for (const invalid of [{ auctionPreparationSeconds: -1 }, { auctionPreparationSeconds: 61 }, { bidExtensionSeconds: 31 }, { bidExtensionSeconds: 1.5 }]) {

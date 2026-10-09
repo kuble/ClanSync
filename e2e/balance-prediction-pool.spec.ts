@@ -71,7 +71,7 @@ test("관전자 코인 풀: 편성부터 참여·공유 마감·비례 정산·�
     await spectator.goto(room.url);
     await spectator.getByRole("button", { name: "승부예측", exact: true }).click();
     const drawer = spectator.getByRole("dialog", { name: "승부예측", exact: true });
-    await expect(drawer).toContainText("경기 시작 후 5분");
+    await expect(drawer).toContainText("경기 시작 후 2분");
     await expect(drawer).toContainText("사용 가능 100");
     await drawer.getByRole("button", { name: "블루 승", exact: true }).click();
     await drawer.getByRole("textbox", { name: "걸 코인", exact: true }).fill("101");
@@ -98,7 +98,9 @@ test("관전자 코인 풀: 편성부터 참여·공유 마감·비례 정산·�
     await picker.getByRole("button", { name: "부산 선택", exact: true }).click();
     await page.getByTestId("clan-balance-session-panel").getByRole("button", { name: "다음 단계", exact: true }).click();
     await expect(page.getByTestId("clan-balance-session-panel")).toHaveAttribute("data-balance-phase", "match_live");
-    await expect(drawer).toContainText(/4:[0-5]\d/);
+    if (!(await drawer.isVisible())) await spectator.getByRole("button", { name: "승부예측", exact: true }).click();
+    await drawer.getByRole("heading", { name: "승부예측", exact: true }).hover();
+    await expect(drawer).toContainText(/(?:1:[0-5]\d|2:00)/);
     const deadline = (await f.activeRound(room.roomId)).prediction_deadline_at;
     await spectator.reload();
     await spectator.getByRole("button", { name: "승부예측", exact: true }).click();

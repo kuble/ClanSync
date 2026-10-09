@@ -354,6 +354,7 @@ export function ClanBalanceSessionPanel({
           deadlineIso={session.prediction_deadline_at}
           outcome={session.match_outcome} isParticipant={isRosterParticipant}
           pool={predictionPool} serverNow={serverNow} phase={session.phase}
+          predictionMinutes={settings.predictionMinutes}
         /> : null}
       </div>
       {session && canManage && settingsOpen ? (

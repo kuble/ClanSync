@@ -19,6 +19,7 @@ export type FormationSetup = {
   teamComparisonMode?: TeamComparisonMode;
   showPlayerSessionSummary?: boolean;
   predictionEnabled?: boolean;
+  predictionMinutes?: number;
   playerCardInfo?: PlayerCardInfoMode;
   preferences?: Record<string, Role[]>;
   captains?: [string, string];
@@ -44,6 +45,7 @@ export type FormationSettings = Omit<FormationSetup, "preferences" | "showPlayer
   teamComparisonMode: TeamComparisonMode;
   showPlayerSessionSummary: boolean;
   predictionEnabled: boolean;
+  predictionMinutes: number;
   playerCardInfo: PlayerCardInfoMode;
 };
 export const DEFAULT_FORMATION_SETTINGS: FormationSettings = {
@@ -62,6 +64,7 @@ export const DEFAULT_FORMATION_SETTINGS: FormationSettings = {
   teamComparisonMode: "score",
   showPlayerSessionSummary: true,
   predictionEnabled: true,
+  predictionMinutes: 2,
   playerCardInfo: "record",
 };
 export function parseFormationSettings(value: unknown): FormationSettings {
@@ -90,6 +93,7 @@ export function sameFormationSettings(left: unknown, right: unknown): boolean {
     a.teamComparisonMode === b.teamComparisonMode &&
     a.showPlayerSessionSummary === b.showPlayerSessionSummary &&
     a.predictionEnabled === b.predictionEnabled &&
+    a.predictionMinutes === b.predictionMinutes &&
     a.playerCardInfo === b.playerCardInfo &&
     (a.captains?.[0] ?? null) === (b.captains?.[0] ?? null) &&
     (a.captains?.[1] ?? null) === (b.captains?.[1] ?? null)
@@ -97,6 +101,8 @@ export function sameFormationSettings(left: unknown, right: unknown): boolean {
 }
 
 export function validateFormationSettings(value: FormationSettings): void {
+  if (!Number.isSafeInteger(value.predictionMinutes) || value.predictionMinutes < 1 || value.predictionMinutes > 10)
+    throw new Error("승부예측 마감 시간은 1~10분 사이 정수로 입력하세요.");
   if (
     !["manual", "lottery"].includes(value.roles) ||
     !["keep", "random", "draft", "auction"].includes(value.teams) ||
@@ -344,6 +350,7 @@ export function createFormation(
       teamComparisonMode: settings.teamComparisonMode,
       showPlayerSessionSummary: settings.showPlayerSessionSummary,
       predictionEnabled: settings.predictionEnabled,
+      predictionMinutes: settings.predictionMinutes,
       playerCardInfo: settings.playerCardInfo,
     },
     ...(draw ? { draw } : {}),

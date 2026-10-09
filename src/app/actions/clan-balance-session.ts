@@ -344,7 +344,7 @@ export async function startBalanceMatchAction(
         throw new Error("영웅 밴을 먼저 완료하세요.");
       await savePrematchRound(client, round, {
         phase: "match_live",
-        prediction_deadline_at: computeBalancePredictionDeadlineIso(),
+        prediction_deadline_at: computeBalancePredictionDeadlineIso(round.formation_settings),
       });
     },
   );
@@ -507,7 +507,7 @@ export async function resolveHeroBanAction(
       if (round.phase !== "hero_ban") throw new Error("영웅 밴 진행 단계가 아닙니다.");
       // Old resolved rounds can start directly without restoring the removed result screen.
       if (round.banned_heroes !== null) {
-        await savePrematchRound(client, round, { phase: "match_live", prediction_deadline_at: computeBalancePredictionDeadlineIso() });
+        await savePrematchRound(client, round, { phase: "match_live", prediction_deadline_at: computeBalancePredictionDeadlineIso(round.formation_settings) });
         return;
       }
       if (!round.hero_ban_deadline_at || Date.parse(round.hero_ban_deadline_at) > Date.now())
@@ -523,7 +523,7 @@ export async function resolveHeroBanAction(
         hero_ban_context: result.context,
         hero_ban_deadline_at: null,
         phase: "match_live",
-        prediction_deadline_at: computeBalancePredictionDeadlineIso(),
+        prediction_deadline_at: computeBalancePredictionDeadlineIso(round.formation_settings),
       });
     },
   );
@@ -546,7 +546,7 @@ export async function skipHeroBanPhaseAction(
         banned_heroes: [],
         hero_ban_deadline_at: null,
         phase: "match_live",
-        prediction_deadline_at: computeBalancePredictionDeadlineIso(),
+        prediction_deadline_at: computeBalancePredictionDeadlineIso(round.formation_settings),
       });
     },
   );

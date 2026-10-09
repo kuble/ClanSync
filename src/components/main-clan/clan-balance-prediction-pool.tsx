@@ -15,10 +15,10 @@ import { cn } from "@/lib/utils";
 const labels = ["블루 승", "레드 승", "무승부"] as const;
 const number = (value: number) => value.toLocaleString("ko-KR");
 
-export function ClanBalancePredictionPool({ gameSlug, clanId, sessionId, initialPool, deadlineIso, phase, outcome, isParticipant, serverNow }: {
+export function ClanBalancePredictionPool({ gameSlug, clanId, sessionId, initialPool, deadlineIso, phase, outcome, isParticipant, serverNow, predictionMinutes }: {
   gameSlug: string; clanId: string; sessionId: string; initialPool: PredictionPool;
   deadlineIso: string | null; phase: Database["public"]["Enums"]["balance_session_phase"];
-  outcome: Database["public"]["Enums"]["balance_match_outcome"]; isParticipant: boolean; serverNow: number;
+  outcome: Database["public"]["Enums"]["balance_match_outcome"]; isParticipant: boolean; serverNow: number; predictionMinutes: number;
 }) {
   const router = useRouter();
   const [pool, setPool] = useState(initialPool);
@@ -81,7 +81,7 @@ export function ClanBalancePredictionPool({ gameSlug, clanId, sessionId, initial
       </div>
       <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground" role="status">
         <span>{pool.count}명 코인 참여</span>
-        <span className="flex items-center gap-1"><Timer className="size-3.5" />{resolved ? "정산 완료" : phase !== "match_live" ? "경기 시작 후 5분" : expired ? "마감됨" : Math.floor(remaining / 60) + ":" + String(remaining % 60).padStart(2, "0")}</span>
+        <span className="flex items-center gap-1"><Timer className="size-3.5" />{resolved ? "정산 완료" : phase !== "match_live" ? `경기 시작 후 ${predictionMinutes}분` : expired ? "마감됨" : Math.floor(remaining / 60) + ":" + String(remaining % 60).padStart(2, "0")}</span>
       </div>
       <div className="grid grid-cols-3 gap-2">
         {labels.map((label, index) => {

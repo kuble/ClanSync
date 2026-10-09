@@ -1,6 +1,6 @@
-/** 경기 진행 진입 후 승부예측 마감까지 (09-BalanceMaker: 경기 시작 후 타이머 — MVP 5분) */
-export const BALANCE_PREDICTION_WINDOW_MS = 5 * 60 * 1000;
+import { parseFormationSettings } from "./formation";
 
-export function computeBalancePredictionDeadlineIso(): string {
-  return new Date(Date.now() + BALANCE_PREDICTION_WINDOW_MS).toISOString();
+/** 경기 현황 진입부터 설정한 시간까지. 시작된 경기의 마감은 다시 계산하지 않는다. */
+export function computeBalancePredictionDeadlineIso(settings?: unknown): string {
+  return new Date(Date.now() + parseFormationSettings(settings).predictionMinutes * 60_000).toISOString();
 }

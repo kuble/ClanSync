@@ -11,12 +11,13 @@ import { ClanBalancePredictionPool } from "./clan-balance-prediction-pool";
 import type { PredictionPool } from "@/lib/balance/prediction-pool";
 import { useServerClock } from "@/lib/balance/use-server-clock";
 
-export function ClanBalancePredictionDrawer({ isParticipant, outcome, pool, serverNow, phase, ...props }: ComponentProps<typeof ClanBalancePredictionClient> & {
+export function ClanBalancePredictionDrawer({ isParticipant, outcome, pool, serverNow, phase, predictionMinutes, ...props }: ComponentProps<typeof ClanBalancePredictionClient> & {
   isParticipant: boolean;
   outcome: Database["public"]["Enums"]["balance_match_outcome"];
   pool: PredictionPool | null;
   serverNow: number;
   phase: Database["public"]["Enums"]["balance_session_phase"];
+  predictionMinutes: number;
 }) {
   const [open, setOpen] = useState(false);
   const contentId = useId();
@@ -48,7 +49,7 @@ export function ClanBalancePredictionDrawer({ isParticipant, outcome, pool, serv
     }} className="overflow-y-auto data-[side=right]:w-full data-[side=right]:sm:max-w-md">
       <SheetHeader><SheetTitle>승부예측</SheetTitle><SheetDescription>관전 중인 멤버가 블루 승·레드 승·무승부를 예측합니다.</SheetDescription></SheetHeader>
       <div className="px-4 pb-6">
-        {pool ? <ClanBalancePredictionPool {...props} initialPool={pool} outcome={outcome} isParticipant={isParticipant} serverNow={now} phase={phase} /> : outcome !== "pending" ? <p className="rounded-xl border bg-muted/20 p-4 text-sm leading-relaxed">
+        {pool ? <ClanBalancePredictionPool {...props} initialPool={pool} outcome={outcome} isParticipant={isParticipant} serverNow={now} phase={phase} predictionMinutes={predictionMinutes} /> : outcome !== "pending" ? <p className="rounded-xl border bg-muted/20 p-4 text-sm leading-relaxed">
           {outcome === "void"
             ? "이번 경기는 무효로 확정되어 예측 보상이 지급되지 않습니다."
             : "결과가 확정되었습니다. 적중 보상은 개인 코인 내역에서 확인할 수 있습니다."}

@@ -94,6 +94,11 @@ test("round prediction settings enforce Premium, persistence and spectator RLS",
       formation_settings: { ...(await read()).formation_settings, predictionEnabled: false },
     }).eq("id", roundId)).error);
     assert.equal((await read()).formation_settings.predictionEnabled, true);
+    assert.equal((await read()).formation_settings.predictionMinutes, 2);
+    assert.match((await save(true, leader.client, { predictionMinutes: 3 })).error?.message ?? "", /Premium/);
+    assert.ok((await leader.client.from("balance_sessions").update({
+      formation_settings: { ...(await read()).formation_settings, predictionMinutes: 3 },
+    }).eq("id", roundId)).error);
   });
 
   await t.test("Premium manager changes prediction without resetting completed formation", async () => {
@@ -119,8 +124,28 @@ test("round prediction settings enforce Premium, persistence and spectator RLS",
     assert.equal((await read()).formation_settings.teamComparisonMode, "score");
   });
 
+  await t.test("prediction minutes persist without resetting formation and reject invalid or unauthorized writes", async () => {
+    const formation = (await read()).formation_state;
+    for (const predictionMinutes of [1, 10, 3]) {
+      assert.equal(await ok(save(false, leader.client, { predictionMinutes })), true);
+      assert.equal((await read()).formation_settings.predictionMinutes, predictionMinutes);
+      assert.deepEqual((await read()).formation_state, formation);
+    }
+    for (const predictionMinutes of [0, 11, 1.5, "2", null]) {
+      assert.ok((await save(false, leader.client, { predictionMinutes })).error);
+      assert.ok((await svc.from("balance_sessions").update({ formation_settings: { ...(await read()).formation_settings, predictionMinutes } }).eq("id", roundId)).error);
+    }
+    for (const user of [spectator, outsider])
+      assert.ok((await save(false, user.client, { predictionMinutes: 4 })).error);
+    assert.equal((await read()).formation_settings.predictionMinutes, 3);
+  });
+
   await t.test("disabled prediction blocks inserts, updates and upserts at the database boundary", async () => {
     await live();
+    const deadline = Date.parse((await read()).prediction_deadline_at);
+    assert.ok(deadline - Date.now() > 170_000 && deadline - Date.now() <= 181_000);
+    assert.ok((await leader.client.from("balance_sessions").update({ formation_settings: { ...(await read()).formation_settings, predictionMinutes: 4 } }).eq("id", roundId)).error);
+    assert.equal(Date.parse((await read()).prediction_deadline_at), deadline);
     assert.ok((await prediction(spectator.client, spectator.id)).error);
     await ok(svc.from("balance_session_predictions").insert({ session_id: roundId, user_id: spectator.id, pick_team: 1 }));
     assert.deepEqual(await ok(spectator.client.from("balance_session_predictions").update({ pick_team: 2 })
@@ -134,6 +159,7 @@ test("round prediction settings enforce Premium, persistence and spectator RLS",
     assert.equal((await ok(leader.client.rpc("set_balance_match_outcome", { p_session_id: roundId, p_outcome: "void" }))).ok, true);
     ({ round_id: roundId } = await ok(leader.client.rpc("next_balance_round", { p_clan_id: clanId, p_round_id: roundId })));
     assert.equal((await read()).formation_settings.predictionEnabled, false);
+    assert.equal((await read()).formation_settings.predictionMinutes, 3);
     await setTier("free");
     assert.equal(await ok(save(false)), true, "unchanged inherited false remains saveable");
     assert.match((await save(true)).error?.message ?? "", /Premium/);

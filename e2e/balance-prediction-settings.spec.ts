@@ -25,6 +25,55 @@ async function expectNoScoreToggle(panel: Locator) {
   await expect(panel.getByRole("button", { name: "분석 점수", exact: true })).toHaveCount(0);
 }
 
+test("승부예측 마감 시간: 기본 2분·세부 입력·초안 미리보기·저장과 경기 시작", async ({ page }) => {
+  test.setTimeout(120_000);
+  const fixture = await createIsolatedBalanceFixture(11);
+  try {
+    await loginIsolatedBalanceUser(page, fixture.users[0]);
+    const room = await createAndEnterBalanceRoom(page, fixture.path, "예측 마감 설정 확인");
+    const round = await fixture.activeRound(room.roomId);
+    const ids = fixture.users.slice(1).map((user) => user.id);
+    const roster = { team1: { tank: ids[0], dmg: ids.slice(1, 3), sup: ids.slice(3, 5) }, team2: { tank: ids[5], dmg: ids.slice(6, 8), sup: ids.slice(8, 10) } };
+    expect((await fixture.service.from("balance_sessions").update({ roster, resolved_map_label: "부산" }).eq("id", round.id)).error).toBeNull();
+    await page.reload();
+    let settings = await openSettings(page);
+    const minutes = settings.getByRole("spinbutton", { name: "승부예측 마감 시간(분)", exact: true });
+    await expect(minutes).toHaveValue("2");
+    await minutes.fill("3");
+    const preview = page.getByTestId("balance-ban-preview");
+    await expect(preview).toContainText("경기 시작 후 3분 마감");
+    const toggle = settings.getByRole("checkbox", { name: "승부예측 사용", exact: true });
+    await toggle.uncheck();
+    await expect(minutes).toHaveCount(0);
+    await expect(preview).not.toContainText("관전자 승부예측");
+    await toggle.check();
+    await expect(minutes).toHaveValue("3");
+    await page.screenshot({ path: test.info().outputPath("prediction-minutes-settings.png") });
+    await saveSettings(settings);
+    await expect.poll(async () => (await fixture.activeRound(room.roomId)).formation_settings).toMatchObject({ predictionEnabled: true, predictionMinutes: 3 });
+    settings = await openSettings(page);
+    await expect(settings.getByRole("spinbutton", { name: "승부예측 마감 시간(분)", exact: true })).toHaveValue("3");
+    await settings.getByRole("button", { name: "닫기", exact: true }).click();
+
+    const drawer = page.getByRole("dialog", { name: "승부예측", exact: true });
+    await page.getByRole("button", { name: "승부예측", exact: true }).click();
+    await expect(drawer).toContainText("경기 시작 후 3분");
+    await drawer.getByRole("button", { name: "닫기", exact: true }).click();
+    const panel = page.getByTestId("clan-balance-session-panel");
+    await panel.getByRole("button", { name: "다음 단계", exact: true }).click();
+    await expect(panel).toHaveAttribute("data-balance-phase", "match_live", { timeout: 20_000 });
+    const live = await fixture.activeRound(room.roomId);
+    const delta = Date.parse(live.prediction_deadline_at!) - Date.now();
+    expect(delta).toBeGreaterThan(170_000);
+    expect(delta).toBeLessThanOrEqual(181_000);
+    await expect(panel.getByTestId("balance-prediction-countdown")).toContainText("승부예측 마감까지");
+    await page.reload();
+    expect(Date.parse((await fixture.activeRound(room.roomId)).prediction_deadline_at!)).toBe(Date.parse(live.prediction_deadline_at!));
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
 test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워·점수 범위", async ({ page, browser }) => {
   test.setTimeout(240_000);
   const fixture = await createIsolatedBalanceFixture(11);

@@ -63,9 +63,9 @@ export function BalanceDisplayPreview({ settings, premium, regularRoom }: {
 
 export type BanPreviewStage = "map" | "hero" | "match";
 
-export function BalanceBanPreview({ gameSlug, mapEnabled, heroEnabled, settings, stage, onStageChange, predictionEnabled }: {
+export function BalanceBanPreview({ gameSlug, mapEnabled, heroEnabled, settings, stage, onStageChange, predictionEnabled, predictionMinutes }: {
   gameSlug: string; mapEnabled: boolean; heroEnabled: boolean; settings: BanSettings;
-  stage: BanPreviewStage; onStageChange: (stage: BanPreviewStage) => void; predictionEnabled: boolean;
+  stage: BanPreviewStage; onStageChange: (stage: BanPreviewStage) => void; predictionEnabled: boolean; predictionMinutes: number;
 }) {
   const maps = mapPoolForGameSlug(gameSlug, settings.mapTypes).slice(0, 3);
   const heroes = OW_HEROES.filter((hero) => ["reinhardt", "tracer", "ana", "mercy"].includes(hero.id));
@@ -120,7 +120,7 @@ export function BalanceBanPreview({ gameSlug, mapEnabled, heroEnabled, settings,
         <h4 className="text-sm font-bold">경기 시작</h4>
         <div className="relative flex min-h-24 items-end overflow-hidden rounded-xl border"><BalanceMapImage label={activeMap} sizes="660px" /><strong className="relative z-10 w-full bg-linear-to-t from-black/80 to-black/20 p-4 text-sm text-white">경기 맵 · {activeMap}</strong></div>
         <p className="text-xs text-muted-foreground">{mapEnabled ? "투표 결과로 맵 결정" : "편성에서 선택한 맵으로 진행"}{heroEnabled ? ` · 팀당 ${settings.heroBansPerTeam}명 영웅 밴 반영` : " · 영웅 밴 없이 진행"}</p>
-        {predictionEnabled ? <p className="text-xs text-primary">관전자 승부예측 · 경기 시작 후 5분 마감</p> : null}
+        {predictionEnabled ? <p className="text-xs text-primary">관전자 승부예측 · 경기 시작 후 {predictionMinutes}분 마감</p> : null}
       </>}
     </div>
     <footer className="border-t bg-muted/15 px-4 py-3 text-xs text-muted-foreground">예시 화면 · 투표와 밴 선택은 저장되지 않습니다.</footer>

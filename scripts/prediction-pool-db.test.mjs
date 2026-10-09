@@ -173,7 +173,7 @@ test("coin pool reserves, refunds, pays exactly once and scopes public event ran
     assert.ok((await leader.from("balance_sessions").update({ prediction_pool_enabled: false }).eq("id", id)).error);
   });
 
-  await t.test("a spectator entering the lineup gets a refund before a shared five-minute deadline", async () => {
+  await t.test("a spectator entering the lineup gets a refund before a shared two-minute deadline", async () => {
     await ok(bet(a, 1, 10));
     const replacement = structuredClone(roster);
     replacement.team1.tank = f.users[10].id;
@@ -186,7 +186,7 @@ test("coin pool reserves, refunds, pays exactly once and scopes public event ran
     assert.deepEqual((await pool()).teams, [30, 30, 0]);
     await live();
     const deadline = Date.parse((await f.activeRound(opened.series_id)).prediction_deadline_at);
-    assert.ok(deadline - Date.now() > 290_000 && deadline - Date.now() <= 301_000, `deadline delta: ${deadline - Date.now()}ms`);
+    assert.ok(deadline - Date.now() > 110_000 && deadline - Date.now() <= 121_000, `deadline delta: ${deadline - Date.now()}ms`);
     await ok(leader.from("balance_sessions").update({ roster }).eq("id", id));
     assert.equal(Date.parse((await f.activeRound(opened.series_id)).prediction_deadline_at), deadline, "unrelated writes do not restart timer");
     await ok(f.service.from("balance_sessions").update({ prediction_deadline_at: new Date(Date.now() - 1000).toISOString() }).eq("id", id));

@@ -319,7 +319,7 @@ Premium 전용
 - 라우트: `/games/[gameSlug]/clan/[clanId]/balance`.
 - 세션 단일 유지(UNIQUE 진행)·단계별 Server Action · Realtime 채널 `balance_session:{id}`.
 - 패널 루트: `data-testid="clan-balance-session-panel"` · `data-balance-phase`( `none` | `editing` | `map_ban` | `hero_ban` | `match_live` ).
-- 승부예측은 새 경기부터 편성 편집 중 접수한다. 경기 현황(`match_live`) 전환 후 서버 기준 5분에 마감하며 개인 코인으로 건 전체 풀을 적중자의 참여 비율로 배당한다. 제출/취소는 `place_balance_prediction_pool`, 결과 확정은 `set_balance_match_outcome`, 집계/내전별 공개 순위는 `read_balance_prediction_pool` RPC로 처리한다. 기존 경기의 고정 5코인 정책과 원장은 보존한다.
+- 승부예측은 새 경기부터 편성 편집 중 접수한다. `밴픽 > 승부예측 사용 > 마감 시간(분)`에서 1~10분을 직접 입력하며 기본값은 2분이다. 경기 현황(`match_live`) 전환 후 서버가 설정한 시간에 마감하며 이미 시작한 경기의 마감은 유지한다. 개인 코인으로 건 전체 풀을 적중자의 참여 비율로 배당한다. 제출/취소는 `place_balance_prediction_pool`, 결과 확정은 `set_balance_match_outcome`, 집계/내전별 공개 순위는 `read_balance_prediction_pool` RPC로 처리한다. 기존 경기의 고정 5코인 정책과 원장은 보존한다.
 - 개발 픽스처: `npm run db:seed` 시 QA 픽스처 클랜의 미종료 `balance_session_series`와 연결 라운드를 삭제해 새 테스트를 준비한다.
 
 ## 결정 필요

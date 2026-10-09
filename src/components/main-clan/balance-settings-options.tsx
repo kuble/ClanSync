@@ -54,7 +54,7 @@ export function BalanceBanSettings({ gameSlug, map, hero, onMapChange, onHeroCha
 }) {
   const [stage, setStage] = useState<BanPreviewStage>(map ? "map" : hero ? "hero" : "match");
   return <div className="space-y-5">
-    <div className={styles.preview}><BalanceBanPreview gameSlug={gameSlug} mapEnabled={map} heroEnabled={hero} settings={settings} stage={stage} onStageChange={setStage} predictionEnabled={premium && regularRoom && formation.predictionEnabled} /></div>
+    <div className={styles.preview}><BalanceBanPreview gameSlug={gameSlug} mapEnabled={map} heroEnabled={hero} settings={settings} stage={stage} onStageChange={setStage} predictionEnabled={premium && regularRoom && formation.predictionEnabled} predictionMinutes={formation.predictionMinutes} /></div>
     <fieldset disabled={locked} className="space-y-3">
       <legend className="sr-only">밴픽 설정</legend>
       <section className="rounded-xl border bg-muted/10 px-4 py-2" aria-label="맵 투표 설정">
@@ -69,7 +69,11 @@ export function BalanceBanSettings({ gameSlug, map, hero, onMapChange, onHeroCha
         </div> : null}
       </section>
       <section className="rounded-xl border bg-muted/10 px-4 py-2" aria-label="관전자 이벤트">
-        <Toggle label="승부예측 사용" hint={!premium ? "Premium 클랜 전용" : !regularRoom ? "정규 내전 전용" : "관전자 코인 풀 · 경기 시작 후 5분 마감"} disabled={!premium || !regularRoom} checked={premium && regularRoom && formation.predictionEnabled} onChange={(checked) => { onFormationChange({ ...formation, predictionEnabled: checked }); setStage("match"); }} />
+        <Toggle label="승부예측 사용" hint={!premium ? "Premium 클랜 전용" : !regularRoom ? "정규 내전 전용" : "관전자 코인 풀"} disabled={!premium || !regularRoom} checked={premium && regularRoom && formation.predictionEnabled} onChange={(checked) => { onFormationChange({ ...formation, predictionEnabled: checked }); setStage("match"); }} />
+        {premium && regularRoom && formation.predictionEnabled ? <label className="mb-2 block border-t pt-3 text-xs">마감 시간(분)
+          <input type="number" inputMode="numeric" aria-label="승부예측 마감 시간(분)" min={1} max={10} step={1} className={`${field} ${styles.numberInput}`} value={formation.predictionMinutes} onFocus={() => setStage("match")} onChange={(event) => { onFormationChange({ ...formation, predictionMinutes: Number(event.target.value) }); setStage("match"); }} />
+          <span className="mt-2 block text-muted-foreground">경기 현황 진입부터 · 1~10분</span>
+        </label> : null}
       </section>
     </fieldset>
   </div>;
