@@ -47,7 +47,7 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     expect(pastRounds.error).toBeNull();
     await page.reload();
     const player = panel.locator('[data-roster-slot="team1:tank"]');
-    await expect(player).toContainText("+1점");
+    await expect(player).toContainText("+1");
     await expect(player).not.toContainText(/\b[MA]\s*[+-]?\d/);
     await expect(panel.getByTestId("team1-score-total")).toContainText("+5점");
     await expect(panel.getByTestId("team2-score-total")).toContainText("+15점");
@@ -76,9 +76,9 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await expect(redCard.locator(":scope > span")).toHaveCSS("flex-direction", "row-reverse");
     // Exercise a state change before hover so the server-rendered buttons are hydrated.
     await panel.getByRole("button", { name: "분석 점수", exact: true }).click();
-    await expect(player).toContainText("0점");
+    await expect(player).toContainText("0");
     await panel.getByRole("button", { name: "평가 점수", exact: true }).click();
-    await expect(player).toContainText("+1점");
+    await expect(player).toContainText("+1");
     await player.hover();
     const playerInfo = page.getByRole("tooltip").filter({ hasText: fixture.users[0].nickname });
     await expect(playerInfo).toBeVisible();
@@ -109,14 +109,14 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await page.screenshot({ path: test.info().outputPath("roster-scores-mobile.png"), fullPage: true });
     await page.setViewportSize({ width: 1211, height: 1272 });
     await panel.getByRole("button", { name: "분석 점수", exact: true }).click();
-    await expect(player).toContainText("0점");
+    await expect(player).toContainText("0");
     await expect(panel.getByTestId("team1-score-total")).toContainText("0점");
     await expect(panel.getByTestId("team2-score-total")).toContainText("0점");
     await panel.getByRole("button", { name: "평가 점수", exact: true }).click();
     await panel.locator('[data-roster-slot="team1:tank"]').click();
     await panel.locator('[data-roster-slot="team2:tank"]').click();
-    await expect(panel.locator('[data-roster-slot="team1:tank"]')).toContainText("+3점");
-    await expect(panel.locator('[data-roster-slot="team2:tank"]')).toContainText("+1점");
+    await expect(panel.locator('[data-roster-slot="team1:tank"]')).toContainText("+3");
+    await expect(panel.locator('[data-roster-slot="team2:tank"]')).toContainText("+1");
     await expect(panel.getByTestId("team1-score-total")).toContainText("+7점");
     await expect(panel.getByTestId("team2-score-total")).toContainText("+13점");
     await expect(panel.getByTestId("balance-formation").getByRole("button", { name: "세션 종료", exact: true })).toBeVisible();
@@ -251,7 +251,7 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await loginIsolatedBalanceUser(page, fixture.users[0]);
     await page.goto(regular.url);
     await panel.getByRole("button", { name: "무승부", exact: true }).click();
-    await panel.getByRole("button", { name: "결과 확정", exact: true }).click();
+    await page.getByRole("dialog", { name: "무승부로 확정할까요?", exact: true }).getByRole("button", { name: "확정", exact: true }).click();
     await expect.poll(async () => (await fixture.activeRound(regular.roomId)).match_outcome).toBe("draw");
     await panel.locator('[data-board-slot="team1:tank"]').hover();
     const updatedPlayerInfo = page.getByRole("tooltip").filter({ hasText: "이번 세션 전적" });

@@ -1,4 +1,5 @@
 import { Crown, Equal, RotateCcw } from "lucide-react";
+import type { ReactNode } from "react";
 import { OverwatchRoleIcon } from "@/components/ui/overwatch-icons";
 import type { BalanceRoster, TeamRoster } from "@/lib/balance/roster-schema";
 import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
@@ -47,7 +48,7 @@ export function balanceTeamHeadingResult(outcome?: TeamHeadingOutcome) {
 }
 
 export function BalanceTeamHeading({ roster, scores, mode = "m", premium = false, showPrediction = false, samplePrediction = false, showSummary = true, comparisonMode = "score", outcome, onTeamSelect, selectionDisabled }: { roster?: BalanceRoster; scores?: MaSnapshot; mode?: ScoreMode; premium?: boolean; showPrediction?: boolean; samplePrediction?: boolean; showSummary?: boolean; comparisonMode?: TeamComparisonMode; outcome?: TeamHeadingOutcome; onTeamSelect?: (team: "team1" | "team2") => void; selectionDisabled?: boolean }) {
-  if (roster && scores) return <BalanceTeamSummary roster={roster} scores={scores} mode={mode} premium={premium} showPrediction={showPrediction} samplePrediction={samplePrediction} enabled={showSummary} comparisonMode={comparisonMode} />;
+  if (roster && scores && !onTeamSelect && (!outcome || outcome === "pending")) return <BalanceTeamSummary roster={roster} scores={scores} mode={mode} premium={premium} showPrediction={showPrediction} samplePrediction={samplePrediction} enabled={showSummary} comparisonMode={comparisonMode} />;
   const result = balanceTeamHeadingResult(outcome);
   const Label = onTeamSelect ? "button" : "span";
   return (
@@ -87,6 +88,7 @@ export function ClanBalanceRosterBoard({
   outcome,
   onTeamSelect,
   selectionDisabled,
+  renderScore,
 }: {
   roster: BalanceRoster;
   pool: readonly { user_id: string; nickname: string }[];
@@ -107,20 +109,20 @@ export function ClanBalanceRosterBoard({
   outcome?: TeamHeadingOutcome;
   onTeamSelect?: (team: "team1" | "team2") => void;
   selectionDisabled?: boolean;
+  renderScore?: (userId: string) => ReactNode;
 }) {
   const nickById = Object.fromEntries(pool.map((p) => [p.user_id, p.nickname]));
   const mode = scoreMode === "a" && planPremium ? "a" : "m";
-  const Card = onTeamSelect ? "button" : "div";
   return (
     <div aria-label="출전 라인업">
       <BalanceTeamHeading roster={roster} scores={snapshot} mode={mode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} comparisonMode={teamComparisonMode} outcome={outcome} onTeamSelect={onTeamSelect} selectionDisabled={selectionDisabled} />
-      <div className="space-y-2 rounded-xl bg-muted/35 p-2 sm:p-3">
-        {BALANCE_SLOTS.map((slot) => (
-          <div
-            key={slot.key}
-            className="grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)] items-stretch gap-2 sm:grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)]"
-          >
-            {(["team1", "team2"] as const).map((team, idx) => {
+      <div className="grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)] gap-2 rounded-xl bg-muted/35 p-2 sm:grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)] sm:p-3">
+        {(["team1", "team2"] as const).map((team, idx) => <div key={team} className="contents">
+          {idx === 1 ? <div className="grid grid-rows-5 gap-2">{BALANCE_SLOTS.map((slot) => <BalanceRoleIcon key={slot.key} slot={slot} />)}</div> : null}
+          <div data-testid={`balance-team-${team}`} className={cn("relative min-w-0 rounded-xl p-1", (outcome === team || outcome === "draw") && "ring-2 ring-amber-400/70", outcome === "void" && "opacity-50 grayscale", onTeamSelect && "hover:bg-amber-400/5 hover:ring-2 hover:ring-amber-400/70 [&:has([data-score-editor=editing])]:ring-0! [&:has([data-score-editor=editing])]:bg-transparent! [&:has([data-score-editor]:hover)]:ring-0! [&:has([data-score-editor]:hover)]:bg-transparent!")}>
+            {onTeamSelect ? <button type="button" aria-label={`${idx + 1}팀 승리 선택`} aria-pressed={outcome === team} disabled={selectionDisabled} onClick={() => onTeamSelect(team)} className="absolute inset-0 z-10 rounded-xl focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-wait" /> : null}
+            <div className={cn("space-y-2", onTeamSelect && "pointer-events-none")}>
+            {BALANCE_SLOTS.map((slot) => {
               const userId = balanceSlotMember(roster[team], slot);
               const nickname = userId
                 ? (nickById[userId] ?? "탈퇴한 멤버")
@@ -128,18 +130,12 @@ export function ClanBalanceRosterBoard({
               const score = userId && snapshot ? snapshot[userId] : undefined;
               const info = userId ? playerSessionInfo?.[userId] : undefined;
               return (
-                <div key={team} className="contents">
-                  {idx === 1 ? <BalanceRoleIcon slot={slot} /> : null}
+                <div key={slot.key}>
                   <BalancePlayerDetails nickname={nickname} info={info} score={score} premium={planPremium} sample={Boolean(userId && samplePlayerIds.includes(userId))} enabled={showPlayerSessionSummary}>
-                  <Card
-                    type={onTeamSelect ? "button" : undefined}
-                    disabled={onTeamSelect ? selectionDisabled : undefined}
-                    aria-pressed={onTeamSelect ? outcome === team : undefined}
-                    aria-label={onTeamSelect ? `${team === "team1" ? "1팀" : "2팀"} ${nickname} 승리 선택` : undefined}
-                    onClick={onTeamSelect ? () => onTeamSelect(team) : undefined}
+                  <div
                     key={userId ?? "empty"}
                     tabIndex={showPlayerSessionSummary && userId && (info || score) ? 0 : undefined}
-                    title={!info && !score ? nickname : undefined}
+                    title={!onTeamSelect && !info && !score ? nickname : undefined}
                     data-board-slot={`${team}:${slot.key}`}
                     className={cn(
                       "flex min-h-20 min-w-0 flex-col items-center justify-center gap-1 rounded-xl border px-3 py-3 text-center focus-visible:outline-2 focus-visible:outline-ring sm:px-4",
@@ -149,27 +145,25 @@ export function ClanBalanceRosterBoard({
                       !userId && "border-dashed opacity-65",
                       userId === highlightPlayer &&
                         "ring-2 ring-primary motion-safe:animate-in motion-safe:slide-in-from-bottom-3 motion-safe:fade-in motion-safe:duration-500",
-                      (outcome === team || outcome === "draw") && "ring-2 ring-amber-400/70",
-                      outcome === "void" && "opacity-50 grayscale",
-                      onTeamSelect && "cursor-pointer hover:ring-2 hover:ring-primary/40 disabled:cursor-wait",
                     )}
                   >
                     <span className="sr-only">
                       {team === "team1" ? "1팀" : "2팀"} {slot.label}
                     </span>
-                    <BalancePlayerCardContent nickname={nickname} info={info} score={score} showScore={Boolean(showPlayerCardScore && snapshot && userId)} showInfo={showPlayerCardInfo} infoMode={playerCardInfo} mode={mode} mirrored={team === "team2"} />
+                    <BalancePlayerCardContent nickname={nickname} info={info} score={score} showScore={Boolean(showPlayerCardScore && snapshot && userId)} showInfo={showPlayerCardInfo} infoMode={playerCardInfo} mode={mode} mirrored={team === "team2"} scoreControl={userId ? renderScore?.(userId) : undefined} />
                     {!userId ? (
                       <span className="text-[10px] text-muted-foreground">
                         참가자 대기
                       </span>
                     ) : null}
-                  </Card>
+                  </div>
                   </BalancePlayerDetails>
                 </div>
               );
             })}
+            </div>
           </div>
-        ))}
+        </div>)}
       </div>
     </div>
   );

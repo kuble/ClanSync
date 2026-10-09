@@ -1,6 +1,6 @@
 "use client";
 
-import { cloneElement, useId, useState, type ReactElement } from "react";
+import { cloneElement, useId, useState, type ReactElement, type ReactNode } from "react";
 import { Mic, MicOff } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { MaEntry } from "@/lib/balance/ma-snapshot";
@@ -48,7 +48,7 @@ export function BalancePlayerDetails({ children, nickname, info, score, premium 
   );
 }
 
-export function BalancePlayerCardContent({ nickname, info, score, showScore, showInfo = true, infoMode = "record", mode = "m", mirrored = false }: {
+export function BalancePlayerCardContent({ nickname, info, score, showScore, showInfo = true, infoMode = "record", mode = "m", mirrored = false, scoreControl }: {
   nickname: string;
   info?: PlayerSessionInfo;
   score?: MaEntry;
@@ -57,6 +57,7 @@ export function BalancePlayerCardContent({ nickname, info, score, showScore, sho
   infoMode?: PlayerCardInfoMode;
   mode?: ScoreMode;
   mirrored?: boolean;
+  scoreControl?: ReactNode;
 }) {
   const scoreVisible = Boolean(showScore);
   const infoVisible = Boolean(showInfo && info);
@@ -77,6 +78,6 @@ export function BalancePlayerCardContent({ nickname, info, score, showScore, sho
         {info.micAvailable === true ? <Mic className="size-3" aria-label="마이크 사용" /> : info.micAvailable === false ? <MicOff className="size-3" aria-label="마이크 미사용" /> : null}
       </span> : null}
     </span>
-    {scoreVisible ? <span aria-label={`${SCORE_LABEL[mode]} ${formatBalanceScore(score?.[mode])}`} className="shrink-0 rounded-lg border border-current/10 bg-background/50 px-2 py-2 text-sm font-bold tabular-nums sm:min-w-16 sm:text-base">{formatBalanceScore(score?.[mode])}</span> : null}
+    {scoreVisible ? scoreControl ?? <span aria-label={`${SCORE_LABEL[mode]} ${formatBalanceScore(score?.[mode])}`} className="shrink-0 rounded-lg border border-current/10 bg-background/50 px-2 py-2 text-sm font-bold tabular-nums sm:min-w-16 sm:text-base">{formatBalanceScore(score?.[mode]).replace(/점$/, "")}</span> : null}
   </span>;
 }

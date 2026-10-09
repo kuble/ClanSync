@@ -91,7 +91,7 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
       await expect(panel).toHaveAttribute("data-balance-phase", "match_live", { timeout: 25_000 });
     });
 
-    await test.step("진행 중 명단은 운영진과 멤버 모두 이름만 표시", async () => {
+    await test.step("운영진은 점수 직접 편집, 멤버는 이름만 표시", async () => {
       await spectator.goto(room.url);
       for (const view of [page, spectator]) {
         const live = view.getByTestId("clan-balance-session-panel");
@@ -101,9 +101,9 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
         await expect(live.locator('[aria-label="팀 비교 요약 보기"]')).toHaveCount(0);
         const slots = live.locator("[data-board-slot]");
         await expect(slots).toHaveCount(10);
-        const names = await slots.locator(":scope > span:not(.sr-only)").allTextContents();
-        expect(names.map((name) => name.trim()).sort()).toEqual(fixture.users.slice(0, 10).map((user) => user.nickname).sort());
-        await slots.first().hover();
+        for (const user of fixture.users.slice(0, 10)) await expect(slots.filter({ hasText: user.nickname })).toHaveCount(1);
+        await expect(live.getByRole("button", { name: /평가 점수 수정/ })).toHaveCount(view === page ? 10 : 0);
+        await slots.first().hover({ force: true });
         await expect(view.getByRole("tooltip").filter({ hasText: "이번 세션 전적" })).toHaveCount(0);
         await expect(live.getByRole("region", { name: "승부예측", exact: true })).toHaveCount(0);
       }
@@ -150,30 +150,25 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
       await expect(spectator.getByRole("button", { name: "점수 조정", exact: true })).toHaveCount(0);
     });
 
-    await test.step("점수 조정 드로워에서 -10과 +10 저장", async () => {
-      await panel.getByRole("button", { name: "점수 조정", exact: true }).click();
-      const scores = page.getByRole("dialog", { name: "참가자 점수 조정", exact: true });
-      await expect(scores).toBeVisible();
+    await test.step("참여자 점수 클릭으로 -10과 +10 저장", async () => {
+      await expect(panel.getByRole("button", { name: "점수 조정", exact: true })).toHaveCount(0);
       const beforeInvalid = (await fixture.activeRound(room.roomId)).ma_snapshot;
-      await scores.getByRole("spinbutton", { name: `블루 · 탱커 ${fixture.users[0].nickname} 평가 점수`, exact: true }).fill("10.1");
-      await scores.getByRole("button", { name: "점수 저장", exact: true }).click();
+      await panel.getByRole("button", { name: `${fixture.users[0].nickname} 평가 점수 수정`, exact: true }).click();
+      await panel.getByRole("textbox", { name: `${fixture.users[0].nickname} 평가 점수`, exact: true }).fill("10.1");
+      await panel.getByRole("button", { name: `${fixture.users[0].nickname} 점수 저장`, exact: true }).click();
       await expect(page.getByText("평가 점수는 -10부터 10까지 입력해 주세요.", { exact: true })).toBeVisible();
       expect((await fixture.activeRound(room.roomId)).ma_snapshot).toEqual(beforeInvalid);
-      for (const mode of ["평가 점수", "분석 점수"] as const) {
-        await scores.getByRole("button", { name: mode, exact: true }).click();
-        const blue = scores.getByRole("spinbutton", { name: `블루 · 탱커 ${fixture.users[0].nickname} ${mode}`, exact: true });
-        const red = scores.getByRole("spinbutton", { name: `레드 · 탱커 ${fixture.users[5].nickname} ${mode}`, exact: true });
-        await expect(blue).toHaveAttribute("min", "-10");
-        await expect(blue).toHaveAttribute("max", "10");
-        await blue.fill("-10");
-        await red.fill("10");
-        await scores.getByRole("button", { name: "점수 저장", exact: true }).click();
-        const field = mode === "평가 점수" ? "m" : "a";
+      for (const [index, score] of [[0, -10], [5, 10]]) {
+        const nickname = fixture.users[index].nickname;
+        if (index !== 0) await panel.getByRole("button", { name: `${nickname} 평가 점수 수정`, exact: true }).click();
+        const input = panel.getByRole("textbox", { name: `${nickname} 평가 점수`, exact: true });
+        await expect(input).toHaveAttribute("type", "text");
+        await input.fill(String(score));
+        await panel.getByRole("button", { name: `${nickname} 점수 저장`, exact: true }).click();
         await expect.poll(async () => (await fixture.activeRound(room.roomId)).ma_snapshot).toMatchObject({
-          [ids[0]]: { [field]: -10 }, [ids[5]]: { [field]: 10 },
+          [ids[index]]: { m: score },
         });
       }
-      await scores.getByRole("button", { name: "닫기", exact: true }).click();
       await expectNoScoreToggle(panel);
     });
 
@@ -202,6 +197,10 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
       await spectator.goto(room.url);
       await expect(spectator.getByRole("button", { name: "승부예측", exact: true })).toHaveCount(0);
     });
+  } catch (error) {
+    await page.screenshot({ path: test.info().outputPath("before-fixture-cleanup.png") });
+    await test.info().attach("before-fixture-cleanup", { body: await page.locator("body").innerText(), contentType: "text/plain" });
+    throw error;
   } finally {
     await spectatorContext.close();
     await fixture.cleanup();

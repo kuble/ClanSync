@@ -28,14 +28,15 @@ import { ClanBalanceHeroBanClient } from "./clan-balance-hero-ban-client";
 import {
   ClanBalanceMatchOutcomeClient,
 } from "./clan-balance-prediction-outcome-client";
-import { ClanBalancePredictionDrawer, ClanBalanceScoreDrawer } from "./clan-balance-match-drawers";
+import { ClanBalancePredictionDrawer } from "./clan-balance-match-drawers";
+import { BalancePlayerScoreEditor } from "./balance-player-score-editor";
 import { ClanBalanceMapBanClient } from "./clan-balance-map-ban-client";
 import { ClanBalanceRosterBoard } from "./clan-balance-roster-board";
 import { ClanBalanceGuide, type BalanceGuideStage } from "./clan-balance-guide";
 import { updateFormationAction } from "@/app/actions/clan-balance-formation";
 import { ClanBalanceSettings } from "./clan-balance-settings";
 import { ClanBalancePrematchControls } from "./clan-balance-prematch-controls";
-import { BalanceEditorMap } from "./balance-editor-map";
+import { BalanceEditorMap, BalanceMatchMapBanner } from "./balance-editor-map";
 import { BalanceAutoStartMatch } from "./balance-auto-start-match";
 import { parseBanSettings } from "@/lib/balance/prematch";
 import { ClanBalanceHistoryDrawer } from "./clan-balance-history-drawer";
@@ -233,7 +234,10 @@ export function ClanBalanceSessionPanel({
     rosterData,
     scores,
   );
-  const maSyncKey = `${session?.id}:${JSON.stringify(session?.ma_snapshot)}`;
+  const renderMatchScore = canViewScores && canEditMscore && session ? (id: string) => <BalancePlayerScoreEditor
+    key={`${session.id}:${id}`} gameSlug={gameSlug} clanId={clanId} sessionId={session.id} userId={id}
+    nickname={rosterPool.find((member) => member.user_id === id)?.nickname ?? "참여자"} value={maForUi[id]?.m}
+  /> : undefined;
   const candidates = session?.map_candidates;
   const triple =
     candidates?.length === 3
@@ -468,7 +472,7 @@ export function ClanBalanceSessionPanel({
             </div>
           )
         ) : (
-          <div className="px-4 pb-4 pt-2 sm:px-6 sm:pb-6">
+          <div className={cn("px-4 pt-2 sm:px-6", session.phase === "match_live" ? "pb-2 sm:pb-3" : "pb-4 sm:pb-6")}>
             {editorMap && !(canManage && !formation) ? <div className="mb-3 max-w-sm">{editorMap}</div> : null}
             {session.phase === "editing" && !mapScreen && !(canManage && !formation) ? (
               <div className="flex items-center justify-between gap-2">
@@ -658,13 +662,10 @@ export function ClanBalanceSessionPanel({
             ) : null}
 
             {session.phase === "match_live" ? (
-              <div className="space-y-6">
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/20 px-4 py-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Map className="size-4 text-primary" aria-hidden="true" />
-                    <span className="text-muted-foreground">경기 맵</span>
-                    <strong>{session.resolved_map_label ?? "자유 선택"}</strong>
-                  </div>
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <BalanceMatchMapBanner label={session.resolved_map_label} />
+                  <div className="flex items-center gap-2">
                   <span
                     className={cn(
                       "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold",
@@ -682,6 +683,14 @@ export function ClanBalanceSessionPanel({
                     )}
                     {outcomeLabel ?? "경기 진행 중"}
                   </span>
+                  {!flash && planPremium && settings.predictionEnabled ? <ClanBalancePredictionDrawer
+                    key={session.id}
+                    gameSlug={gameSlug} clanId={clanId} sessionId={session.id}
+                    myPickTeam={myPickTeam} predictionCount={balancePredictions.length}
+                    deadlineIso={session.prediction_deadline_at}
+                    outcome={session.match_outcome} isParticipant={isRosterParticipant}
+                  /> : null}
+                  </div>
                 </div>
                 {session.banned_heroes?.length ? (
                   <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -698,38 +707,24 @@ export function ClanBalanceSessionPanel({
                     ))}
                   </div>
                 ) : null}
-                <div className="flex flex-wrap justify-end gap-2">
-                  {!flash && planPremium && settings.predictionEnabled ? <ClanBalancePredictionDrawer
-                    key={session.id}
-                    gameSlug={gameSlug} clanId={clanId} sessionId={session.id}
-                    myPickTeam={myPickTeam} predictionCount={balancePredictions.length}
-                    deadlineIso={session.prediction_deadline_at}
-                    outcome={session.match_outcome} isParticipant={isRosterParticipant}
-                  /> : null}
-                  {canViewScores && canEditMscore ? <ClanBalanceScoreDrawer
-                    key={`${session.id}:scores`} snapshotKey={maSyncKey}
-                    gameSlug={gameSlug} clanId={clanId} sessionId={session.id}
-                    roster={rosterData} initialSnapshot={maForUi} pool={[...rosterPool]}
-                    canEdit={canEditMscore} planPremium={planPremium}
-                  /> : null}
-                </div>
                 <div className="space-y-4">
                   {canManage && session.match_outcome === "pending" ? <ClanBalanceMatchOutcomeClient
                     key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id}
                     roster={rosterData} pool={rosterPool} disabled={false}
-                    predictionEnabled={!flash && planPremium && settings.predictionEnabled}
+                    snapshot={canViewScores ? maForUi : undefined} renderScore={renderMatchScore}
                   /> : (
                   <ClanBalanceRosterBoard
                     roster={rosterData}
                     pool={rosterPool}
-                    showPlayerCardScore={false}
+                    snapshot={canViewScores ? maForUi : undefined} renderScore={renderMatchScore}
+                    showPlayerCardScore={canViewScores}
                     showPlayerCardInfo={false}
                     showTeamComparisonSummary={false}
                     showPlayerSessionSummary={false}
                     outcome={session.match_outcome}
                   />
                   )}
-                  <div className="space-y-4">
+                  {flash || (canManage && session.match_outcome !== "pending") ? <div className="space-y-3">
                     {flash ? <p className="text-xs text-muted-foreground">깜짝 내전은 세션 종료 후 기록을 남기지 않으며 코인 보상을 지급하지 않습니다.</p> : null}
                     {canManage && session.match_outcome !== "pending" ? (
                       <Button
@@ -748,13 +743,13 @@ export function ClanBalanceSessionPanel({
                         다음 경기
                       </Button>
                     ) : null}
-                  </div>
+                  </div> : null}
                 </div>
               </div>
             ) : null}
           </div>
         )}
-        {session && session.phase !== "editing" ? <div className="px-5 pb-5">{endSessionControl}</div> : null}
+        {session && session.phase !== "editing" ? <div className="px-5 pb-3">{endSessionControl}</div> : null}
       </section>
     </div>
   );

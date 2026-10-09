@@ -73,7 +73,7 @@ async function confirmResult(
       exact: true,
     })
     .click();
-  await panel.getByRole("button", { name: "결과 확정", exact: true }).click();
+  await panel.page().getByRole("dialog", { name: /로 확정할까요\?/ }).getByRole("button", { name: "확정", exact: true }).click();
   await expect(
     panel.getByRole("button", { name: "다음 경기", exact: true }),
   ).toBeEnabled({ timeout: 20_000 });
@@ -351,7 +351,7 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
     });
     await confirmResult(panel, "void");
     await page.setViewportSize({ width: 390, height: 844 });
-    await panel.getByRole("button", { name: "내전 기록", exact: true }).click();
+    await page.getByRole("button", { name: "내전 기록 열기", exact: true }).click();
     const history = page.getByRole("dialog", {
       name: "내전 기록",
       exact: true,

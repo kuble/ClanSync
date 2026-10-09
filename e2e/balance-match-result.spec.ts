@@ -3,7 +3,7 @@ import { createAndEnterBalanceRoom, createIsolatedBalanceFixture, loginIsolatedB
 
 test.use({ actionTimeout: 20_000 });
 
-test("경기 결과: 팀 영역 왕관·선택 변경·명시적 확정·무승부·무효·멤버 권한", async ({ page, browser }) => {
+test("경기 결과: 팀 전체 강조·확인 팝업·직접 점수 편집·무승부·무효·멤버 권한", async ({ page, browser }) => {
   test.setTimeout(150_000);
   const fixture = await createIsolatedBalanceFixture(10);
   const memberContext = await browser.newContext({ baseURL: test.info().project.use.baseURL });
@@ -25,16 +25,61 @@ test("경기 결과: 팀 영역 왕관·선택 변경·명시적 확정·무승�
       await panel.getByRole("button", { name: "다음 단계", exact: true }).click();
       await expect(panel).toHaveAttribute("data-balance-phase", "match_live", { timeout: 20_000 });
       const result = panel.getByTestId("balance-match-result");
-      const confirm = result.getByRole("button", { name: "결과 확정", exact: true });
-      await expect(confirm).toBeDisabled();
-      await result.locator('[data-board-slot="team1:d0"]').click();
-      await expect(result.getByRole("button", { name: "블루 승", exact: true })).toHaveAttribute("aria-pressed", "true");
+      await expect(result.getByRole("button", { name: "결과 확정", exact: true })).toHaveCount(0);
+      const dialog = page.getByRole("dialog", { name: /로 확정할까요\?/ });
+      const confirm = dialog.getByRole("button", { name: "확정", exact: true });
+      const blue = result.getByRole("button", { name: "1팀 승리 선택", exact: true });
+      await blue.hover();
+      await expect(result.getByTestId("balance-team-team1")).not.toHaveCSS("box-shadow", "none");
+      await expect(result.locator('[data-board-slot="team1:d0"]')).toHaveCSS("box-shadow", "none");
+      if (outcome === "team1") {
+        await expect(panel.getByRole("button", { name: "점수 조정", exact: true })).toHaveCount(0);
+        const scoreButton = result.getByRole("button", { name: `${fixture.users[1].nickname} 평가 점수 수정`, exact: true });
+        await expect(scoreButton).not.toContainText("점");
+        await scoreButton.click();
+        await expect(dialog).toHaveCount(0);
+        const input = result.getByRole("textbox", { name: `${fixture.users[1].nickname} 평가 점수`, exact: true });
+        await expect(input).toHaveAttribute("type", "text");
+        await expect(input).toHaveAttribute("inputmode", "decimal");
+        await expect(result.getByTestId("balance-team-team1")).not.toHaveCSS("box-shadow", / 2px(?:,|$)/);
+        await input.fill("10.1");
+        await result.getByRole("button", { name: `${fixture.users[1].nickname} 점수 저장`, exact: true }).click();
+        await expect(page.locator('[data-sonner-toast][data-type="error"]')).toContainText("-10부터 10");
+        await input.fill("-10");
+        await input.press("Enter");
+        await expect.poll(async () => (await fixture.activeRound(room.roomId)).ma_snapshot).toMatchObject({ [ids[1]]: { m: -10 } });
+        await expect(scoreButton).toHaveText("-10");
+        await scoreButton.click();
+        await input.fill("4");
+        await input.press("Escape");
+        await expect(scoreButton).toHaveText("-10");
+        const nextScore = result.getByRole("button", { name: `${fixture.users[6].nickname} 평가 점수 수정`, exact: true });
+        await nextScore.click();
+        await result.getByRole("textbox", { name: `${fixture.users[6].nickname} 평가 점수`, exact: true }).fill("10");
+        await result.getByRole("button", { name: `${fixture.users[6].nickname} 점수 저장`, exact: true }).click();
+        await expect.poll(async () => (await fixture.activeRound(room.roomId)).ma_snapshot).toMatchObject({ [ids[1]]: { m: -10 }, [ids[6]]: { m: 10 } });
+        const bannerBounds = (await panel.getByTestId("balance-match-map").boundingBox())!;
+        const predictionBounds = (await panel.getByRole("button", { name: "승부예측", exact: true }).boundingBox())!;
+        expect(bannerBounds.x).toBeLessThan(predictionBounds.x);
+        expect(Math.abs((bannerBounds.y + bannerBounds.height / 2) - (predictionBounds.y + predictionBounds.height / 2))).toBeLessThan(3);
+        await page.setViewportSize({ width: 390, height: 844 });
+        await scoreButton.click();
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+        await result.getByRole("button", { name: `${fixture.users[1].nickname} 점수 취소`, exact: true }).click();
+        await page.setViewportSize({ width: 1211, height: 1272 });
+      }
+      await blue.click();
+      await expect(dialog).toBeVisible();
+      await expect(result.locator('[aria-label="블루 승"]')).toHaveAttribute("aria-pressed", "true");
       await expect(result.locator("svg.lucide-crown")).toHaveCount(1);
       expect((await fixture.activeRound(room.roomId)).match_outcome).toBe("pending");
-      await result.locator('[data-board-slot="team2:d0"]').click();
-      await expect(result.getByRole("button", { name: "블루 승", exact: true })).toHaveAttribute("aria-pressed", "false");
-      await expect(result.getByRole("button", { name: "레드 승", exact: true })).toHaveAttribute("aria-pressed", "true");
-      if (outcome === "team1") await result.getByRole("button", { name: "블루 승", exact: true }).click();
+      await dialog.getByRole("button", { name: "취소", exact: true }).click();
+      await expect(result.locator("svg.lucide-crown")).toHaveCount(0);
+      await result.getByRole("button", { name: "2팀 승리 선택", exact: true }).click();
+      await expect(result.locator('[aria-label="블루 승"]')).toHaveAttribute("aria-pressed", "false");
+      await expect(result.locator('[aria-label="레드 승"]')).toHaveAttribute("aria-pressed", "true");
+      if (outcome !== "team2") await dialog.getByRole("button", { name: "취소", exact: true }).click();
+      if (outcome === "team1") await blue.click();
       if (outcome === "draw" || outcome === "void") {
         await result.getByRole("button", { name: outcome === "draw" ? "무승부" : "무효 · 재경기", exact: true }).click();
         await expect(result.locator("svg.lucide-crown")).toHaveCount(0);
@@ -44,6 +89,8 @@ test("경기 결과: 팀 영역 왕관·선택 변경·명시적 확정·무승�
       const memberPanel = member.getByTestId("clan-balance-session-panel");
       await expect(memberPanel.getByTestId("balance-match-result")).toHaveCount(0);
       await expect(memberPanel.getByRole("button", { name: "결과 확정", exact: true })).toHaveCount(0);
+      await expect(memberPanel.getByRole("button", { name: /평가 점수 수정/ })).toHaveCount(0);
+      await expect(memberPanel.getByRole("button", { name: /팀 승리 선택/ })).toHaveCount(0);
       if (outcome === "void") {
         await page.setViewportSize({ width: 390, height: 844 });
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
@@ -55,7 +102,7 @@ test("경기 결과: 팀 영역 왕관·선택 변경·명시적 확정·무승�
           else await route.continue();
         });
         await confirm.click();
-        await expect(page.locator('[data-sonner-toast][data-type="error"]')).toContainText("결과를 저장하지 못했습니다");
+        await expect(page.locator('[data-sonner-toast][data-type="error"]').filter({ hasText: "결과를 저장하지 못했습니다" })).toBeVisible();
         expect((await fixture.activeRound(room.roomId)).match_outcome).toBe("pending");
         await expect(result.locator("svg.lucide-crown")).toHaveCount(1);
         await page.unroute(actionPath);
@@ -66,7 +113,7 @@ test("경기 결과: 팀 영역 왕관·선택 변경·명시적 확정·무승�
       if (outcome === "team1" || outcome === "team2") await expect(panel.getByLabel(outcome === "team1" ? "1팀 승리" : "2팀 승리", { exact: true })).toBeVisible();
       if (outcome === "void") {
         await panel.screenshot({ path: test.info().outputPath("match-result-void-mobile.png") });
-        await panel.getByRole("button", { name: "내전 기록", exact: true }).click();
+        await page.getByRole("button", { name: "내전 기록 열기", exact: true }).click();
         const history = page.getByRole("dialog", { name: "내전 기록", exact: true });
         await expect(history.locator("tbody tr").filter({ hasText: fixture.users[0].nickname })).toContainText("1/1/1");
         await page.keyboard.press("Escape");
@@ -75,5 +122,9 @@ test("경기 결과: 팀 영역 왕관·선택 변경·명시적 확정·무승�
         await expect(panel).toHaveAttribute("data-balance-phase", "editing");
       }
     }
+  } catch (error) {
+    await page.screenshot({ path: test.info().outputPath("before-fixture-cleanup.png") });
+    await test.info().attach("before-fixture-cleanup", { body: await page.locator("body").innerText(), contentType: "text/plain" });
+    throw error;
   } finally { await memberContext.close(); await fixture.cleanup(); }
 });

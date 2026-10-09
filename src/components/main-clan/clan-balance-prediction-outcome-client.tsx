@@ -9,6 +9,7 @@ import {
   submitBalancePredictionAction,
 } from "@/app/actions/clan-balance-session";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ClanBalanceRosterBoard } from "./clan-balance-roster-board";
 import type { BalanceRoster } from "@/lib/balance/roster-schema";
 import type { Database } from "@/lib/supabase/database.types";
@@ -147,14 +148,15 @@ export function ClanBalancePredictionClient({
   );
 }
 
-export function ClanBalanceMatchOutcomeClient({ gameSlug, clanId, sessionId, roster, pool, disabled, predictionEnabled = true }: {
+export function ClanBalanceMatchOutcomeClient({ gameSlug, clanId, sessionId, roster, pool, disabled, snapshot, renderScore }: {
   gameSlug: string; clanId: string; sessionId: string; roster: BalanceRoster;
   pool: readonly { user_id: string; nickname: string }[];
-  disabled: boolean; predictionEnabled?: boolean;
+  disabled: boolean; snapshot?: import("@/lib/balance/ma-snapshot").MaSnapshot; renderScore?: (userId: string) => import("react").ReactNode;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [outcome, setOutcome] = useState<Exclude<MatchOutcome, "pending"> | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const label = outcome === "team1" ? "블루 팀 승리" : outcome === "team2" ? "레드 팀 승리" : outcome === "draw" ? "무승부" : outcome === "void" ? "무효 · 재경기" : null;
   function confirm() {
     if (!outcome || pending || disabled) return;
@@ -163,21 +165,24 @@ export function ClanBalanceMatchOutcomeClient({ gameSlug, clanId, sessionId, ros
         const result = await setBalanceMatchOutcomeAction(gameSlug, clanId, sessionId, outcome);
         if (!result.ok) { toast.error(result.error); return; }
         toast.success(label + "로 확정했습니다.");
+        setConfirmOpen(false);
         router.refresh();
       } catch { toast.error("결과를 저장하지 못했습니다. 다시 시도하세요."); }
     });
   }
-  return <div className="space-y-4" data-testid="balance-match-result">
+  function choose(value: Exclude<MatchOutcome, "pending">) { setOutcome(value); setConfirmOpen(true); }
+  return <div className="space-y-3" data-testid="balance-match-result">
     <ClanBalanceRosterBoard roster={roster} pool={pool} outcome={outcome ?? "pending"}
-      onTeamSelect={setOutcome} selectionDisabled={pending || disabled}
-      showPlayerCardScore={false} showPlayerCardInfo={false} showTeamComparisonSummary={false} showPlayerSessionSummary={false} />
-    <section className="flex flex-wrap items-center gap-2 rounded-xl border bg-muted/15 p-3" aria-label="경기 결과 확정">
-      <p className="w-full text-xs text-muted-foreground">승리한 팀을 눌러 왕관을 표시한 뒤 확정하세요.</p>
-      <Button variant={outcome === "draw" ? "secondary" : "outline"} aria-pressed={outcome === "draw"} disabled={pending || disabled} onClick={() => setOutcome("draw")}><Equal className="size-4" aria-hidden="true" />무승부</Button>
-      <Button variant={outcome === "void" ? "secondary" : "outline"} aria-pressed={outcome === "void"} disabled={pending || disabled} onClick={() => setOutcome("void")}><RotateCcw className="size-4" aria-hidden="true" />무효 · 재경기</Button>
-      <span role="status" className="min-w-0 flex-1 text-center text-xs font-semibold">{label ?? "결과 미선택"}</span>
-      <Button disabled={!outcome || pending || disabled} onClick={confirm}>{pending ? "확정 중…" : "결과 확정"}</Button>
-      <p className="w-full text-[11px] text-muted-foreground">{outcome === "void" ? "무효 경기는 전적에서 제외되며 예측 보상이 지급되지 않습니다. 다음 경기로 재경기를 진행하세요." : outcome === "draw" ? "양 팀에 무승부로 기록됩니다." : "결과 확정 전까지 선택을 바꿀 수 있습니다."}{predictionEnabled && outcome !== "void" ? " 확정 시 적중자에게 5코인씩 지급됩니다." : ""}</p>
+      onTeamSelect={choose} selectionDisabled={pending || disabled} snapshot={snapshot} renderScore={renderScore}
+      showPlayerCardScore={Boolean(snapshot)} showPlayerCardInfo={false} showTeamComparisonSummary={false} showPlayerSessionSummary={false} />
+    <section className="flex items-center justify-center gap-2" aria-label="다른 경기 결과">
+      <Button variant="ghost" size="sm" disabled={pending || disabled} onClick={() => choose("draw")}><Equal className="size-4" aria-hidden="true" />무승부</Button>
+      <Button variant="ghost" size="sm" disabled={pending || disabled} onClick={() => choose("void")}><RotateCcw className="size-4" aria-hidden="true" />무효 · 재경기</Button>
     </section>
+    <Dialog open={confirmOpen} onOpenChange={(open) => { if (!pending) { setConfirmOpen(open); if (!open) setOutcome(null); } }}>
+      <DialogContent className="sm:max-w-sm"><DialogHeader><DialogTitle>{label}로 확정할까요?</DialogTitle><DialogDescription>{outcome === "void" ? "전적·예측 보상에서 제외됩니다." : "확정한 결과는 변경할 수 없습니다."}</DialogDescription></DialogHeader>
+        <div className="flex justify-end gap-2"><Button variant="outline" disabled={pending} onClick={() => { setConfirmOpen(false); setOutcome(null); }}>취소</Button><Button disabled={pending || disabled} onClick={confirm}>{pending ? "확정 중…" : "확정"}</Button></div>
+      </DialogContent>
+    </Dialog>
   </div>;
 }

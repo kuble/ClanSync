@@ -68,3 +68,11 @@ export function BalanceEditorMap({ gameSlug, clanId, sessionId, selectedMap, can
     </Dialog>
   </>;
 }
+
+export function BalanceMatchMapBanner({ label }: { label: string | null }) {
+  return <div data-testid="balance-match-map" className="relative flex h-11 w-full max-w-xs shrink-0 items-center overflow-hidden rounded-xl border bg-muted">
+    {label ? <BalanceMapImage label={label} sizes="(max-width: 640px) 70vw, 320px" loading="eager" /> : null}
+    <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/20" />
+    <span className="relative flex min-w-0 items-center gap-2 px-3 text-xs font-semibold text-white"><Map className="size-3.5 shrink-0" aria-hidden="true" /><span className="truncate">경기 맵 · {label ?? "자유 선택"}</span></span>
+  </div>;
+}

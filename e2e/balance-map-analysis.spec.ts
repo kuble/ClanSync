@@ -95,26 +95,22 @@ test("편성 중 맵 변경은 분석만 변경하고 경기 중 분석은 읽�
     await expect.poll(async () => (await fixture.activeRound(room.roomId)).resolved_map_label).toBe("리장 타워");
     await panel.getByRole("button", { name: "분석 점수", exact: true }).click();
     const card = panel.locator('[data-roster-slot="team1:tank"]');
-    await expect(card).toContainText("+5점");
+    await expect(card).toContainText("+5");
     await panel.getByRole("button", { name: "경기 맵 변경 · 리장 타워", exact: true }).click();
     await picker.getByRole("button", { name: "오아시스 선택", exact: true }).click();
-    await expect(card).toContainText("-5점");
+    await expect(card).toContainText("-5");
     const mapRound = await fixture.activeRound(room.roomId);
     expect((mapRound.ma_snapshot as Record<string, { m: number; a: number }>)[ids[0]]).toEqual({ m: 2, a: -5 });
     await panel.getByRole("button", { name: "평가 점수", exact: true }).click();
-    await expect(card).toContainText("+2점");
+    await expect(card).toContainText("+2");
     await panel.getByRole("button", { name: "다음 단계", exact: true }).click();
 
     await expect(panel).toHaveAttribute("data-balance-phase", "match_live");
-    await panel.getByRole("button", { name: "점수 조정", exact: true }).click();
-    const drawer = page.getByRole("dialog", { name: "참가자 점수 조정", exact: true });
-    await drawer.getByRole("button", { name: "분석 점수", exact: true }).click();
-    await expect(drawer.getByRole("spinbutton")).toHaveCount(0);
-    await expect(drawer.getByRole("button", { name: "점수 저장", exact: true })).toHaveCount(0);
-    await expect(drawer).toContainText("수정할 수 없습니다");
-    await drawer.getByRole("button", { name: "평가 점수", exact: true }).click();
-    await drawer.getByRole("spinbutton").first().fill("3");
-    await drawer.getByRole("button", { name: "점수 저장", exact: true }).click();
+    await expect(panel.getByRole("button", { name: "점수 조정", exact: true })).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: "분석 점수", exact: true })).toHaveCount(0);
+    await panel.getByRole("button", { name: `${fixture.users[0].nickname} 평가 점수 수정`, exact: true }).click();
+    await panel.getByRole("textbox", { name: `${fixture.users[0].nickname} 평가 점수`, exact: true }).fill("3");
+    await panel.getByRole("button", { name: `${fixture.users[0].nickname} 점수 저장`, exact: true }).click();
     await expect.poll(async () => (await fixture.activeRound(room.roomId)).ma_snapshot).toMatchObject({ [ids[0]]: { m: 3, a: -5 } });
     // A forged direct RPC cannot alter the frozen A even with valid edit permission.
     const forged = { ...(await fixture.activeRound(room.roomId)).ma_snapshot as Record<string, Json> };
@@ -127,6 +123,6 @@ test("편성 중 맵 변경은 분석만 변경하고 경기 중 분석은 읽�
     const beforeEmpty = (await fixture.activeRound(room.roomId)).ma_snapshot;
     expect((await leader.rpc("set_balance_scores", { p_round_id: round.id, p_clan_id: fixture.clanId, p_snapshot: {} })).error).toBeNull();
     expect((await fixture.activeRound(room.roomId)).ma_snapshot).toEqual(beforeEmpty);
-    await drawer.screenshot({ path: test.info().outputPath("analysis-read-only.png") });
+    await panel.screenshot({ path: test.info().outputPath("analysis-read-only.png") });
   } finally { await fixture.cleanup(); }
 });
