@@ -54,7 +54,7 @@ async function settings(
   await dialog
     .getByRole("combobox", { name: "팀원 선발 방식", exact: true })
     .selectOption(mode);
-  await dialog.getByRole("tab", { name: "밴픽", exact: true }).click();
+  await dialog.getByRole("tab", { name: "경기 구성", exact: true }).click();
   await dialog
     .getByRole("checkbox", { name: "맵 투표 사용", exact: true })
     .uncheck();

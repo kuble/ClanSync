@@ -190,7 +190,7 @@ export function ClanBalanceSettings({
           <SheetTitle>경기 설정</SheetTitle>
           <SheetDescription>
             {editable
-              ? "편성, 화면 표시와 밴픽 설정을 관리합니다."
+              ? "편성, 화면 표시와 경기 구성을 관리합니다."
               : "경기가 시작되어 설정이 잠겼습니다."}
           </SheetDescription>
         </SheetHeader>
@@ -208,7 +208,7 @@ export function ClanBalanceSettings({
             <TabsList className="grid h-10 w-full grid-cols-3">
               <TabsTrigger value="formation">편성</TabsTrigger>
               <TabsTrigger value="display">화면 표시</TabsTrigger>
-              <TabsTrigger value="bans">밴픽</TabsTrigger>
+              <TabsTrigger value="bans">경기 구성</TabsTrigger>
             </TabsList>
             <TabsContent value="formation" className="space-y-6 rounded-xl border bg-muted/10 p-4">
           <fieldset

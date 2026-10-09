@@ -11,7 +11,7 @@ async function openSettings(page: Page) {
   await page.getByRole("button", { name: "경기 설정", exact: true }).click();
   const settings = page.getByRole("dialog", { name: "경기 설정", exact: true });
   await expect(settings).toBeVisible();
-  await settings.getByRole("tab", { name: "밴픽", exact: true }).click();
+  await settings.getByRole("tab", { name: "경기 구성", exact: true }).click();
   return settings;
 }
 

@@ -124,7 +124,7 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     const settings = page.getByRole("dialog", { name: "경기 설정", exact: true });
     await settings.getByRole("radio", { name: /수동 배정/ }).check();
     await settings.getByRole("combobox", { name: "팀원 선발 방식", exact: true }).selectOption("keep");
-    await settings.getByRole("tab", { name: "밴픽", exact: true }).click();
+    await settings.getByRole("tab", { name: "경기 구성", exact: true }).click();
     await settings.getByRole("checkbox", { name: "맵 투표 사용", exact: true }).uncheck();
     await settings.getByRole("checkbox", { name: "영웅 밴 사용", exact: true }).uncheck();
     await settings.getByRole("tab", { name: "화면 표시", exact: true }).click();

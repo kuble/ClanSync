@@ -52,7 +52,7 @@ test("화면 표시·밴픽 미리보기와 종속 설정은 초안만 반영하
     await card.hover();
     await expect(page.getByRole("tooltip").filter({ hasText: "이번 세션 전적" })).toHaveCount(0);
     await page.screenshot({ path: test.info().outputPath("display-settings-preview-desktop.png") });
-    await dialog.getByRole("tab", { name: "밴픽", exact: true }).click();
+    await dialog.getByRole("tab", { name: "경기 구성", exact: true }).click();
     const bans = dialog.getByTestId("balance-ban-preview");
     await expect(display).toBeHidden();
     await expect(bans).toHaveAttribute("data-stage", "match");
@@ -107,7 +107,7 @@ test("화면 표시·밴픽 미리보기와 종속 설정은 초안만 반영하
     expect(saved).toMatchObject({ map_ban_enabled: true, hero_ban_enabled: true, map_ban_seconds: 45, hero_ban_seconds: 35, hero_bans_per_team: 1 });
     await page.reload();
     await page.getByRole("button", { name: "경기 설정", exact: true }).click();
-    await dialog.getByRole("tab", { name: "밴픽", exact: true }).click();
+    await dialog.getByRole("tab", { name: "경기 구성", exact: true }).click();
     await expect(options.getByRole("spinbutton", { name: "맵 투표 시간(초)", exact: true })).toHaveValue("45");
     await expect(options.getByRole("combobox", { name: "팀별 영웅 밴 개수", exact: true })).toHaveValue("1");
   } finally { await fixture.cleanup(); }

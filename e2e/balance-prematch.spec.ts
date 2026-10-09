@@ -75,7 +75,7 @@ async function openAndForm(
     .getByRole("combobox", { name: "팀원 선발 방식", exact: true })
     .selectOption("keep");
   await expect(settings.getByRole("button", { name: /QA 맵 투표 연출/ })).toHaveCount(0);
-  await settings.getByRole("tab", { name: "밴픽", exact: true }).click();
+  await settings.getByRole("tab", { name: "경기 구성", exact: true }).click();
   const mapBan = options.mapBan ?? true;
   const heroBan = options.heroBan ?? true;
   await settings.getByRole("checkbox", { name: "맵 투표 사용", exact: true }).setChecked(mapBan);
