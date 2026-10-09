@@ -36,6 +36,7 @@ import { ClanBalanceGuide, type BalanceGuideStage } from "./clan-balance-guide";
 import { updateFormationAction } from "@/app/actions/clan-balance-formation";
 import { ClanBalanceSettings } from "./clan-balance-settings";
 import { ClanBalancePrematchControls } from "./clan-balance-prematch-controls";
+import { BalanceEditorMap } from "./balance-editor-map";
 import { parseBanSettings } from "@/lib/balance/prematch";
 import { ClanBalanceHistoryDrawer } from "./clan-balance-history-drawer";
 import {
@@ -274,6 +275,8 @@ export function ClanBalanceSessionPanel({
   const samplePlayerIds = sampleScores ? rosterPool.filter((member) => !scores[member.user_id]).map((member) => member.user_id) : [];
   const scoreControl = canViewScores ? <ScoreModeToggle value={scoreMode} onChange={setScoreMode} premium={planPremium} /> : null;
   const renderInsights = (map: string | null, roster = rosterData, showMap = false) => canViewScores && !flash ? <BalanceTeamInsights roster={roster} scores={analysisContext ? contextualScores(baseScores, analysisContext, roster, map, formation?.players) : displayScores} mode={scoreMode} map={map} premium={planPremium} compact={!showMap} showMap={showMap} sample={sampleScores} /> : null;
+  const editorMap = session?.phase === "editing" && !mapScreen && !session.map_ban_enabled ?
+    <BalanceEditorMap key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id} selectedMap={session.resolved_map_label} canManage={canManage && !busyFormation && !pending} beforeSelect={flushRoster} /> : null;
 
   return (
     <div
@@ -477,12 +480,7 @@ export function ClanBalanceSessionPanel({
           )
         ) : (
           <div className="px-4 pb-4 pt-2 sm:px-6 sm:pb-6">
-            {session.phase === "editing" && !mapScreen && !session.map_ban_enabled ? (
-              <details className="mb-3 rounded-xl border bg-muted/10 px-3 py-2.5" open={!session.resolved_map_label}>
-                <summary className="cursor-pointer text-sm font-semibold">경기 맵 · {session.resolved_map_label ?? "맵 선택"}</summary>
-                <div className="pt-4"><ClanBalancePrematchControls editingOnly gameSlug={gameSlug} clanId={clanId} session={session} canManage={canManage && !busyFormation} /></div>
-              </details>
-            ) : null}
+            {editorMap && !(canManage && !formation) ? <div className="mb-3 max-w-sm">{editorMap}</div> : null}
             {session.phase === "editing" && !mapScreen && !(canManage && !formation) ? (
               <div className="flex items-center justify-between gap-2">
                 {scoreControl ?? <span />}
@@ -497,7 +495,7 @@ export function ClanBalanceSessionPanel({
               </div>
             ) : null}
             {session.phase === "editing" && !mapScreen ? (
-              <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-3">
                 <div data-balance-guide="board" className="order-2">
                   {canManage && !formation ? (
                     <ClanBalanceRosterEditor
@@ -511,6 +509,7 @@ export function ClanBalanceSessionPanel({
                       pool={[...rosterPool]}
                       canEdit={!busyFormation && !pending}
                       scoreControl={scoreControl}
+                      rosterAside={editorMap}
                       scores={canViewScores ? displayScores : undefined}
                       analysisContext={analysisContext}
                       analysisMap={session.resolved_map_label}

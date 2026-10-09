@@ -4,14 +4,27 @@ import { parseRoster, rosterAssignedUserIds } from "../src/lib/balance/roster-sc
 
 test.use({ actionTimeout: 20_000 });
 
-test("클랜원 목록 네 방향 부착·빈자리 드래그·교환·되돌리기·자동 저장", async ({ page }) => {
-  test.setTimeout(120_000);
+test("맵 팝업·배너와 클랜원 목록 네 방향 부착·드래그·되돌리기·자동 저장", async ({ page }) => {
+  test.setTimeout(150_000);
   const fixture = await createIsolatedBalanceFixture(11);
   try {
     await page.setViewportSize({ width: 1440, height: 1200 });
     await loginIsolatedBalanceUser(page, fixture.users[0]);
     await createAndEnterBalanceRoom(page, fixture.path, "목록 배치 검증");
+    const initial = await fixture.activeRound();
+    expect((await fixture.service.from("balance_sessions").update({ map_ban_enabled: false }).eq("id", initial.id)).error).toBeNull();
+    await page.reload();
     const panel = page.getByTestId("clan-balance-session-panel");
+    const picker = page.getByRole("dialog", { name: "경기 맵 선택", exact: true });
+    await expect(picker).toBeVisible();
+    await picker.getByRole("button", { name: "쟁탈", exact: true }).click();
+    await picker.getByRole("button", { name: "리장 타워 선택", exact: true }).click();
+    await expect(picker).toBeHidden();
+    const sidebar = panel.locator("[data-roster-sidebar]");
+    const banner = sidebar.getByTestId("balance-editor-map");
+    await expect(banner).toContainText("리장 타워");
+    await expect(banner.locator("img")).toBeVisible();
+    await expect.poll(async () => (await fixture.activeRound()).resolved_map_label).toBe("리장 타워");
     const candidates = panel.getByRole("region", { name: "참가 가능 클랜원", exact: true });
     const board = panel.locator('[aria-label="출전 명단 편집"]');
     const layout = panel.locator("[data-member-position]");
@@ -26,7 +39,7 @@ test("클랜원 목록 네 방향 부착·빈자리 드래그·교환·되돌리
 
     const checkPosition = async (value: string) => {
       await expect(layout).toHaveAttribute("data-member-position", value);
-      const listBox = await candidates.boundingBox(), boardBox = await board.boundingBox();
+      const listBox = await sidebar.boundingBox(), boardBox = await board.boundingBox();
       if (value === "left") expect(listBox!.x + listBox!.width).toBeLessThanOrEqual(boardBox!.x);
       if (value === "right") expect(boardBox!.x + boardBox!.width).toBeLessThanOrEqual(listBox!.x);
       if (value === "top") expect(listBox!.y + listBox!.height).toBeLessThanOrEqual(boardBox!.y);
@@ -52,6 +65,11 @@ test("클랜원 목록 네 방향 부착·빈자리 드래그·교환·되돌리
     }
     expect((await fixture.activeRound()).formation_revision).toBe(before.formation_revision);
     await member(1).dragTo(slot("team2:s1"));
+    // Changing a map also flushes any pending roster edit before refreshing.
+    await banner.click();
+    await picker.getByRole("button", { name: "부산 선택", exact: true }).click();
+    await expect(picker).toBeHidden();
+    await expect.poll(async () => (await fixture.activeRound()).resolved_map_label).toBe("부산");
     await expect(slot("team2:s1")).toContainText(fixture.users[1].nickname);
     await expect(member(1)).toHaveCount(0);
     await member(2).dragTo(slot("team2:s1"));
@@ -77,6 +95,8 @@ test("클랜원 목록 네 방향 부착·빈자리 드래그·교환·되돌리
       team2: { sup: [null, fixture.users[1].id] },
     });
     await page.reload();
+    await expect(picker).toBeHidden();
+    await expect(banner).toContainText("부산");
     await expect(slot("team2:s1")).toContainText(fixture.users[1].nickname);
     await panel.screenshot({ path: test.info().outputPath("roster-left.png") });
     await handle.press("ArrowRight");

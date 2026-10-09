@@ -21,8 +21,9 @@
   .layout[data-member-position="right"] { grid-template-columns: minmax(0, 1fr) minmax(220px, 28%); }
   .layout[data-member-position="right"] .members { order: 2; }
   .layout:is([data-member-position="left"], [data-member-position="right"]) .members { min-height: 0; contain: size; }
-  .layout:is([data-member-position="left"], [data-member-position="right"]) .members > section { display: flex; flex-direction: column; height: 100%; }
-  .layout:is([data-member-position="left"], [data-member-position="right"]) .members > section > div:first-child { flex-shrink: 0; }
+  .layout:is([data-member-position="left"], [data-member-position="right"]) .members > [data-roster-sidebar] { height: 100%; }
+  .layout:is([data-member-position="left"], [data-member-position="right"]) .members section { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  .layout:is([data-member-position="left"], [data-member-position="right"]) .members section > div:first-child { flex-shrink: 0; }
   .layout:is([data-member-position="left"], [data-member-position="right"]) .members [data-roster-members] { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 0; max-height: none; flex: 1; padding: 12px; }
   .layout:is([data-member-position="left"], [data-member-position="right"]) .members input { width: 100%; }
 }

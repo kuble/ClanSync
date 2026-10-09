@@ -23,14 +23,13 @@ test("미리 선택한 맵은 주장 지명과 추첨 완료 후 다시 선택�
       }).eq("id", round.id)).error).toBeNull();
       await page.reload();
       const panel = page.getByTestId("clan-balance-session-panel");
-      const picker = panel.getByRole("region", { name: "경기 맵", exact: true });
+      const picker = page.getByRole("dialog", { name: "경기 맵 선택", exact: true });
       await picker.getByRole("button", { name: "쟁탈", exact: true }).click();
       await picker.getByRole("button", { name: "리장 타워 선택", exact: true }).click();
       await expect.poll(async () => (await fixture.activeRound(room.roomId)).resolved_map_label).toBe("리장 타워");
       // A selected map can still be changed while editing the formation.
-      const summary = panel.locator("details > summary").filter({ hasText: "경기 맵" });
-      await expect(summary).toContainText("리장 타워");
-      await summary.click();
+      await expect(picker).toBeHidden();
+      await panel.getByRole("button", { name: "경기 맵 변경 · 리장 타워", exact: true }).click();
       await expect(picker).toBeVisible();
       await picker.getByRole("button", { name: "부산 선택", exact: true }).click();
       await expect.poll(async () => (await fixture.activeRound(room.roomId)).resolved_map_label).toBe("부산");
@@ -43,7 +42,7 @@ test("미리 선택한 맵은 주장 지명과 추첨 완료 후 다시 선택�
         }
       }
       await expect(panel.getByRole("heading", { name: /경기 준비/ })).toBeVisible({ timeout: 20_000 });
-      await expect(picker).toHaveCount(0);
+      await expect(picker).toBeHidden();
       const ready = panel.getByRole("region", { name: "경기 준비", exact: true });
       await expect(ready).toContainText("부산");
       await expect(ready.getByRole("button", { name: /선택$/ })).toHaveCount(0);
@@ -53,7 +52,7 @@ test("미리 선택한 맵은 주장 지명과 추첨 완료 후 다시 선택�
       await expect(guide).toBeVisible();
       await guide.getByRole("button", { name: "닫기", exact: true }).click();
       await ready.getByRole("button", { name: heroBan ? "영웅 밴 시작" : "경기 시작", exact: true }).click();
-      await expect(panel).toHaveAttribute("data-balance-phase", heroBan ? "hero_ban" : "match_live");
+      await expect(panel).toHaveAttribute("data-balance-phase", heroBan ? "hero_ban" : "match_live", { timeout: 20_000 });
       expect((await fixture.activeRound(room.roomId)).resolved_map_label).toBe("부산");
       await panel.screenshot({ path: test.info().outputPath(`preselected-map-${mode}.png`) });
     }
@@ -99,14 +98,14 @@ test("편성 중 맵 변경은 분석만 변경하고 경기 중 분석은 읽�
     await page.reload();
     const panel = page.getByTestId("clan-balance-session-panel");
     await expect(panel.locator('[data-roster-slot="team1:tank"]')).toBeVisible();
-    const picker = panel.getByRole("region", { name: "경기 맵", exact: true });
+    const picker = page.getByRole("dialog", { name: "경기 맵 선택", exact: true });
     await picker.getByRole("button", { name: "쟁탈", exact: true }).click();
     await picker.getByRole("button", { name: "리장 타워 선택", exact: true }).click();
     await expect.poll(async () => (await fixture.activeRound(room.roomId)).resolved_map_label).toBe("리장 타워");
     await panel.getByRole("button", { name: "분석 점수", exact: true }).click();
     const card = panel.locator('[data-roster-slot="team1:tank"]');
     await expect(card).toContainText("+5점");
-    await panel.locator("details > summary").filter({ hasText: "경기 맵" }).click();
+    await panel.getByRole("button", { name: "경기 맵 변경 · 리장 타워", exact: true }).click();
     await picker.getByRole("button", { name: "오아시스 선택", exact: true }).click();
     await expect(card).toContainText("-5점");
     const mapRound = await fixture.activeRound(room.roomId);

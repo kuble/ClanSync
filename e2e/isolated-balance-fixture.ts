@@ -167,7 +167,8 @@ export async function createAndEnterBalanceRoom(
   const row = page.getByTestId("balance-lobby-room").filter({
     hasText: title,
   });
-  await expect(row).toBeVisible({ timeout: 20_000 });
+  // The dialog closes optimistically; wait for the refreshed server-rendered row.
+  await expect(row).toBeVisible({ timeout: 45_000 });
   const roomId = await row.getAttribute("data-room-id");
   if (!roomId) throw new Error("Created room is missing its identifier");
   await row.getByRole("link", { name: "입장", exact: true }).click();
@@ -175,5 +176,12 @@ export async function createAndEnterBalanceRoom(
   await expect(page.getByTestId("clan-balance-session-panel")).toHaveAttribute(
     "data-balance-phase", "editing", { timeout: 20_000 },
   );
+  // General scenarios continue editing after dismissing the optional initial picker.
+  if (await page.getByTestId("balance-editor-map").count()) {
+    const picker = page.getByRole("dialog", { name: "경기 맵 선택", exact: true });
+    await expect(picker).toBeVisible();
+    await picker.getByRole("button", { name: "닫기", exact: true }).click();
+    await expect(picker).toBeHidden();
+  }
   return { roomId, url: page.url() };
 }

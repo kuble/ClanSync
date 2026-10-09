@@ -81,6 +81,7 @@ export function ClanBalanceRosterEditor({
   analysisMap = null,
   scoreMode = "m",
   scoreControl,
+  rosterAside,
   playerSessionInfo,
   planPremium = false,
   samplePlayerIds = [],
@@ -108,6 +109,7 @@ export function ClanBalanceRosterEditor({
   analysisMap?: string | null;
   scoreMode?: ScoreMode;
   scoreControl?: ReactNode;
+  rosterAside?: ReactNode;
   playerSessionInfo?: PlayerSessionInfoMap;
   planPremium?: boolean;
   samplePlayerIds?: readonly string[];
@@ -244,9 +246,7 @@ export function ClanBalanceRosterEditor({
     clearInteraction();
   }
 
-  return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+  const toolbar = <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs">
         <div>{scoreControl}</div>
         {canEdit ? (
           <div className="flex items-center gap-1">
@@ -274,7 +274,10 @@ export function ClanBalanceRosterEditor({
             </Button>
           </div>
         ) : null}
-      </div>
+      </div>;
+
+  return (
+    <div className="space-y-3">
       <p id={helpId} className="sr-only">
         클랜원을 누르면 1팀부터 순서대로 빈자리에 들어가며, 원하는 자리로 끌어 넣을 수도 있습니다.
         채워진 자리에 놓으면 기존 참여자는 클랜원 목록으로 돌아갑니다. 명단이 가득 찼을 때는 클랜원과 교체할 자리를 차례로 누르세요. 참여자를 끌어
@@ -283,6 +286,8 @@ export function ClanBalanceRosterEditor({
         Escape 키로 이동 선택을 취소할 수 있습니다.
       </p>
       <BalanceRosterDock members={(handle) => (
+      <div data-roster-sidebar className="flex flex-col gap-2">
+      {rosterAside}
       <section
         className="overflow-hidden rounded-xl border bg-muted/15"
         aria-label="참가 가능 클랜원"
@@ -353,8 +358,10 @@ export function ClanBalanceRosterEditor({
           )}
         </div>
       </section>
+      </div>
       )}>
       <div aria-label="출전 명단 편집" aria-describedby={helpId}>
+        {toolbar}
         <BalanceTeamHeading roster={roster} scores={displayScores} mode={scoreMode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} comparisonMode={teamComparisonMode} />
         <div className="space-y-2 rounded-xl bg-muted/35 p-2 sm:p-3">
           {BALANCE_SLOTS.map((slot) => (
