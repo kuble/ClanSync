@@ -1,7 +1,6 @@
 "use client";
 
 import type { FormEvent } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import {
@@ -195,7 +194,6 @@ export function ClanBalanceSessionPanel({
     const result = await editor.flush();
     return result.ok ? { ...result, roster: editor.getRoster() } : result;
   }
-  const storeHref = `/games/${gameSlug}/clan/${clanId}/store`;
 
   function onOpenSession(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -763,16 +761,6 @@ export function ClanBalanceSessionPanel({
         )}
         {session && session.phase !== "editing" ? <div className="px-5 pb-5">{endSessionControl}</div> : null}
       </section>
-      <p className="text-right text-xs text-muted-foreground">
-        경기 보상과 코인 내역은{" "}
-        <Link
-          href={storeHref}
-          className="font-medium text-foreground underline-offset-4 hover:underline"
-        >
-          스토어
-        </Link>
-        에서 확인하세요.
-      </p>
     </div>
   );
 }
