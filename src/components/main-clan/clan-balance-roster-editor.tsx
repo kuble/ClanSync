@@ -74,6 +74,7 @@ export function ClanBalanceRosterEditor({
   initialRoster,
   pool,
   canEdit,
+  teamAdjustment = false,
   onDirtyChange,
   onRosterChange,
   scores,
@@ -102,6 +103,7 @@ export function ClanBalanceRosterEditor({
   initialRoster: BalanceRoster;
   pool: PoolRow[];
   canEdit: boolean;
+  teamAdjustment?: boolean;
   onDirtyChange?: (dirty: boolean) => void;
   onRosterChange?: (roster: BalanceRoster) => void;
   scores?: MaSnapshot;
@@ -209,6 +211,7 @@ export function ClanBalanceRosterEditor({
   }
 
   function addMember(userId: string, target = firstEmpty) {
+    if (teamAdjustment) return;
     if (!target || usedIds.has(userId) || !availablePool.some((member) => member.user_id === userId)) return;
     const next = structuredClone(roster);
     setSlot(next, target, userId);
@@ -216,6 +219,7 @@ export function ClanBalanceRosterEditor({
   }
 
   function emptySlot(address: SlotAddress) {
+    if (teamAdjustment) return;
     const next = structuredClone(roster);
     setSlot(next, address, null);
     apply(next);
@@ -230,6 +234,7 @@ export function ClanBalanceRosterEditor({
       return;
     }
     const movingId = balanceSlotMember(roster[source.team], source.slot);
+    if (teamAdjustment && source.slot.role !== target.slot.role) { clearInteraction(); return; }
     if (!movingId) return;
     const next = structuredClone(roster);
     setSlot(next, source, balanceSlotMember(roster[target.team], target.slot));
@@ -261,7 +266,7 @@ export function ClanBalanceRosterEditor({
             >
               <Undo2 className="size-4" aria-hidden="true" />
             </Button>
-            <Button
+            {!teamAdjustment ? <Button
               type="button"
               variant="ghost"
               size="icon"
@@ -271,7 +276,7 @@ export function ClanBalanceRosterEditor({
               title="초기화"
             >
               <RotateCcw className="size-4" aria-hidden="true" />
-            </Button>
+            </Button> : null}
           </div>
         ) : null}
       </div>;
@@ -279,13 +284,16 @@ export function ClanBalanceRosterEditor({
   return (
     <div className="space-y-3">
       <p id={helpId} className="sr-only">
+        {teamAdjustment ? "배정된 역할을 유지하며 같은 역할의 두 선수를 끌거나 차례로 눌러 팀 배치를 교환하세요." : <>
         클랜원을 누르면 1팀부터 순서대로 빈자리에 들어가며, 원하는 자리로 끌어 넣을 수도 있습니다.
         채워진 자리에 놓으면 기존 참여자는 클랜원 목록으로 돌아갑니다. 명단이 가득 찼을 때는 클랜원과 교체할 자리를 차례로 누르세요. 참여자를 끌어
         다른 자리로 이동하거나 교환할 수 있습니다. 키보드 또는 터치로는 참여자와
         도착할 자리를 차례로 누르세요. 우클릭이나 Delete 키로 자리를 비우고
         Escape 키로 이동 선택을 취소할 수 있습니다.
+        </>}
       </p>
-      <BalanceRosterDock members={(handle) => (
+      {teamAdjustment ? <p className="text-xs text-muted-foreground">같은 역할끼리 교환해 팀 밸런스를 조정하세요.</p> : null}
+      <BalanceRosterDock showMembers={!teamAdjustment} members={(handle) => (
       <div data-roster-sidebar className="flex flex-col gap-2">
       {rosterAside}
       <section

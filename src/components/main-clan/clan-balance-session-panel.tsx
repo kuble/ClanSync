@@ -198,6 +198,7 @@ export function ClanBalanceSessionPanel({
     presentationNow >= formationRevealEnd,
   );
   const preparingMatch = Boolean(session?.phase === "editing" && mapScreen && session.resolved_map_label);
+  const teamAdjustment = formation?.stage === "review" && presentationNow >= formationRevealEnd;
   const editingScreen = session?.phase === "editing" && (!mapScreen || preparingMatch);
   const settings = parseFormationSettings(session?.formation_settings);
   const showPrediction = Boolean(session && (session.prediction_pool_enabled || session.phase === "match_live") && !flash && planPremium && settings.predictionEnabled);
@@ -295,7 +296,7 @@ export function ClanBalanceSessionPanel({
   const scoreControl = canViewScores ? <ScoreModeToggle value={scoreMode} onChange={setScoreMode} premium={planPremium} /> : null;
   const renderInsights = (map: string | null, roster = rosterData, showMap = false) => canViewScores && !flash ? <BalanceTeamInsights roster={roster} scores={analysisContext ? contextualScores(baseScores, analysisContext, roster, map, formation?.players) : displayScores} mode={scoreMode} map={map} premium={planPremium} compact={!showMap} showMap={showMap} sample={sampleScores} /> : null;
   const editorMap = editingScreen && session && !session.map_ban_enabled ?
-    <BalanceEditorMap key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id} selectedMap={session.resolved_map_label} canManage={canManage && !busyFormation && !pending} beforeSelect={flushRoster} /> : null;
+    <BalanceEditorMap key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id} selectedMap={session.resolved_map_label} canManage={canManage && !busyFormation && !pending} beforeSelect={flushRoster} autoOpen={!formation} /> : null;
 
   return (
     <div
@@ -518,10 +519,10 @@ export function ClanBalanceSessionPanel({
             {editingScreen ? (
               <div className="flex flex-col gap-3">
                 <div data-balance-guide="board" className="order-2">
-                  {canManage && !formation ? (
+                  {canManage && (!formation || teamAdjustment) ? (
                     <ClanBalanceRosterEditor
                       ref={rosterRef}
-                      key={session.id}
+                      key={session.id + (teamAdjustment ? ":team-adjustment" : ":roster")}
                       gameSlug={gameSlug}
                       clanId={clanId}
                       sessionId={session.id}
@@ -529,8 +530,9 @@ export function ClanBalanceSessionPanel({
                       initialRoster={rosterData}
                       pool={[...rosterPool]}
                       canEdit={!busyFormation && !pending}
-                      scoreControl={scoreControl}
-                      rosterAside={editorMap}
+                      teamAdjustment={teamAdjustment}
+                      scoreControl={teamAdjustment ? undefined : scoreControl}
+                      rosterAside={teamAdjustment ? undefined : editorMap}
                       scores={canViewScores ? displayScores : undefined}
                       analysisContext={analysisContext}
                       analysisMap={session.resolved_map_label}
@@ -590,7 +592,7 @@ export function ClanBalanceSessionPanel({
                   />
                 ) : null}
                 <ClanBalanceFormation
-                  endSessionControl={formation && formation.stage !== "complete" ? null : endSessionControl}
+                  endSessionControl={formation && !["complete", "review"].includes(formation.stage) ? null : endSessionControl}
                   serverNow={presentationNow}
                   key={session.id}
                   gameSlug={gameSlug}
@@ -615,7 +617,7 @@ export function ClanBalanceSessionPanel({
                   preferencePending={preferencePending}
                   onPendingChange={setBusyFormation}
                 />
-                {formation && formation.stage !== "complete" ? <div className="order-last">{endSessionControl}</div> : null}
+                {formation && !["complete", "review"].includes(formation.stage) ? <div className="order-last">{endSessionControl}</div> : null}
               </div>
             ) : null}
 

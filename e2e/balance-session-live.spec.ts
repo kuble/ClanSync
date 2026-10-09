@@ -452,10 +452,11 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
     await expect(
       panel.getByRole("button", { name: "결과 다시 보기" }),
     ).toHaveCount(0);
+    await panel.getByRole("button", { name: "다음 단계", exact: true }).click();
     await applyAndSelectMap(panel);
     await expect(memberPanel.locator("[data-board-slot]")).toHaveCount(10);
     const appliedState = (await fixture.activeRound()).formation_state;
-    expect(appliedState).toEqual({ ...(draw as Record<string, unknown>), appliedAt: expect.any(Number) });
+    expect(appliedState).toEqual({ ...(draw as Record<string, unknown>), stage: "complete", appliedAt: expect.any(Number) });
     await member.reload();
     await expect(memberPanel.locator("[data-board-slot]")).toHaveCount(10);
     await expect(memberPanel).toContainText("부산");

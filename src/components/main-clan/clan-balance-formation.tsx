@@ -72,7 +72,7 @@ export function ClanBalanceFormation({
     start(async () => {
       onPendingChange?.(true);
       try {
-        const flushed = command.type === "start" && beforeStart ? await beforeStart() : { ok: true as const, revision };
+        const flushed = (command.type === "start" || command.type === "apply") && beforeStart ? await beforeStart() : { ok: true as const, revision };
         if (!flushed.ok) return;
         const result = await updateFormationAction(gameSlug, clanId, roundId, Math.max(revision, flushed.revision),
           command.type === "start" && "roster" in flushed ? { ...command, expectedRoster: flushed.roster, expectedBans: bans }
@@ -101,6 +101,13 @@ export function ClanBalanceFormation({
       error={progressError}
       onRetry={() => setRetry((value) => value + 1)}
     /> : null}
+  </section>;
+
+  if (state.stage === "review") return <section data-testid="balance-formation" data-balance-guide="primary" className="order-last flex flex-wrap items-center justify-between gap-3">
+    {endSessionControl ?? <span />}
+    {revealing ? <p role="status" className="text-xs text-muted-foreground">현재 화면에서 추첨 결과를 공개하고 있습니다.</p>
+      : manager ? <Button disabled={pending} onClick={() => run({ type: "apply" })}>다음 단계</Button>
+        : <p role="status" className="text-xs text-muted-foreground">운영진이 팀 밸런스를 조정하고 있습니다.</p>}
   </section>;
 
   const turn = state.stage === "draft" ? draftTurn(state) : null;

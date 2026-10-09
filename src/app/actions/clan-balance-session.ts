@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { computeBalancePredictionDeadlineIso } from "@/lib/balance/prediction-deadline";
-import { parseFormationSettings } from "@/lib/balance/formation";
+import { advanceFormation, parseFormationSettings, type FormationState } from "@/lib/balance/formation";
+import { createServiceRoleClient } from "@/lib/supabase/service";
 import {
   mapPoolForGameSlug,
   pickThreeMapCandidates,
@@ -605,7 +606,7 @@ export async function updateBalanceRosterAction(
 
   const { data: session, error: sessErr } = await supabase
     .from("balance_sessions")
-    .select("phase")
+    .select("phase, formation_state, formation_revision")
     .eq("id", sessionId)
     .eq("clan_id", clanId)
     .is("closed_at", null)
@@ -616,6 +617,24 @@ export async function updateBalanceRosterAction(
   }
   if (session.phase !== "editing") {
     return { ok: false, error: "편집 단계에서만 배치를 바꿀 수 있습니다." };
+  }
+
+  if ((session.formation_state as unknown as FormationState | null)?.stage === "review" && session.formation_revision === expectedRevision) {
+    try {
+      const next = advanceFormation(session.formation_state as unknown as FormationState,
+        { type: "adjust", roster }, { id: user.id, manager: can }, Date.now(), () => { throw new Error("팀 조정에서는 다시 추첨하지 않습니다."); });
+      const { data: committed, error } = await createServiceRoleClient().rpc("commit_balance_formation", {
+        p_round_id: sessionId, p_clan_id: clanId, p_revision: expectedRevision,
+        p_actor_id: user.id, p_command: "adjust", p_state: next as unknown as Json, p_roster: next.roster as unknown as Json,
+      });
+      if (error) return { ok: false, error: error.message };
+      if (committed) {
+        revalidatePath(balancePath(gameSlug, clanId));
+        return { ok: true, roster: next.roster, revision: expectedRevision + 1 };
+      }
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : "팀 배치를 저장하지 못했습니다." };
+    }
   }
 
   const { data: saved, error: updErr } = await supabase
@@ -649,7 +668,7 @@ export async function updateBalanceRosterAction(
               editable:
                 latest.phase === "editing" &&
                 latest.closed_at === null &&
-                latest.formation_state === null,
+                (latest.formation_state === null || (latest.formation_state as unknown as FormationState).stage === "review"),
             },
           }
         : {}),

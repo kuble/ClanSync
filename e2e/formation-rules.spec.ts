@@ -75,7 +75,7 @@ function expectComplete(state: FormationState) {
   expect(actualIds).toEqual(expectedIds);
   expect(new Set(actualIds).size).toBe(10);
   expect(state.remaining).toEqual([]);
-  expect(state.stage).toBe("complete");
+  expect(["complete", "review"]).toContain(state.stage);
   for (const team of [state.roster.team1, state.roster.team2]) {
     expect(team.tank).toBeTruthy();
     expect(team.dmg.filter(Boolean)).toHaveLength(2);
@@ -113,7 +113,7 @@ test("applying a completed formation preserves its result and original acknowled
   const before = structuredClone(state);
   const noReroll = () => { throw new Error("applying must not draw again"); };
   const applied = advanceFormation(state, { type: "apply" }, manager, startTime, noReroll);
-  expect(applied).toEqual({ ...before, appliedAt: startTime });
+  expect(applied).toEqual({ ...before, stage: "complete", appliedAt: startTime });
   expect(state).toEqual(before);
   expect(advanceFormation(applied, { type: "apply" }, manager, startTime + 1000, noReroll)).toEqual(applied);
 });
@@ -137,11 +137,33 @@ test("applying waits for lottery or random-team reveal but manual keep has no re
     const state = createFormation(roster, setup, keepOrder, draw);
     expect(() => advanceFormation(state, { type: "apply" }, manager, startTime + 3999, keepOrder)).toThrow(/공개가 끝난/);
     const applied = advanceFormation(state, { type: "apply" }, manager, startTime + 4000, keepOrder);
-    expect(applied).toEqual({ ...state, appliedAt: startTime + 4000 });
+    expect(applied).toEqual({ ...state, stage: "complete", appliedAt: startTime + 4000 });
   }
   const manual = createFormation(roster, { roles: "manual", teams: "keep" }, keepOrder,
     { id: "manual-draw", startedAt: startTime, durationMs: 4000, roleMode: "manual" });
   expect(advanceFormation(manual, { type: "apply" }, manager, startTime, keepOrder).appliedAt).toBe(startTime);
+});
+
+test("automatic roles wait for team review; swaps preserve assigned roles and the shared draw", () => {
+  const draw = { id: "review-draw", startedAt: startTime, durationMs: 4000, roleMode: "lottery" as const };
+  const state = createFormation(roster, { roles: "lottery", teams: "random" }, keepOrder, draw);
+  expect(state.stage).toBe("review");
+  expect(getFormationDeadline(state)).toBeNull();
+  expect(advanceFormation(state, { type: "tick" }, member, startTime + 99_000, keepOrder)).toEqual(state);
+  const adjusted = structuredClone(state.roster);
+  [adjusted.team1.dmg[0], adjusted.team2.dmg[0]] = [adjusted.team2.dmg[0], adjusted.team1.dmg[0]];
+  expect(() => advanceFormation(state, { type: "adjust", roster: adjusted }, manager, startTime + 3999, keepOrder)).toThrow(/공개 후/);
+  expect(() => advanceFormation(state, { type: "adjust", roster: adjusted }, member, startTime + 4000, keepOrder)).toThrow(/운영진/);
+  const next = advanceFormation(state, { type: "adjust", roster: adjusted }, manager, startTime + 4000, keepOrder);
+  expect(next).toEqual({ ...state, roster: adjusted });
+  const invalid = structuredClone(adjusted);
+  [invalid.team1.tank, invalid.team2.dmg[0]] = [invalid.team2.dmg[0], invalid.team1.tank];
+  expect(() => advanceFormation(next, { type: "adjust", roster: invalid }, manager, startTime + 4000, keepOrder)).toThrow(/같은 역할/);
+  invalid.team1.tank = null;
+  expect(() => advanceFormation(next, { type: "adjust", roster: invalid }, manager, startTime + 4000, keepOrder)).toThrow(/출전자 10명/);
+  const applied = advanceFormation(next, { type: "apply" }, manager, startTime + 5000, keepOrder);
+  expect(applied).toEqual({ ...next, stage: "complete", appliedAt: startTime + 5000 });
+  expect(() => advanceFormation(applied, { type: "adjust", roster: adjusted }, manager, startTime + 6000, keepOrder)).toThrow(/팀 배치 단계/);
 });
 
 test("one common order assigns each player's best remaining role within 2/4/4 quotas", () => {

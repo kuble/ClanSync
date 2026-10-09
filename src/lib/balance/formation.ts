@@ -158,7 +158,7 @@ export type FormationDraw = {
 export type FormationState = {
   version: 1;
   mode: TeamMode;
-  stage: "strategy" | "draft" | "auction" | "items" | "complete";
+  stage: "strategy" | "draft" | "auction" | "items" | "review" | "complete";
   players: { id: string; role: Role }[];
   order: string[];
   captains: [string, string] | null;
@@ -199,6 +199,7 @@ export type FormationCommand =
     }
   | { type: "reset" }
   | { type: "apply" }
+  | { type: "adjust"; roster: BalanceRoster }
   | { type: "pick"; player: string }
   | { type: "bid"; team: Team; amount: number }
   | { type: "choose-item"; team: Team; itemId: string | null; expectedDrawId?: string }
@@ -381,6 +382,7 @@ export function createFormation(
         assign(state, i < CAPACITY[role] ? "team1" : "team2", p.id),
       );
     }
+    if (setup.roles === "lottery") state.stage = "review";
     return state;
   }
   const captainIds =
@@ -531,7 +533,7 @@ export function advanceFormation(
   }
   if (command.type === "apply") {
     manager();
-    if (state.stage !== "complete")
+    if (state.stage !== "complete" && state.stage !== "review")
       throw new Error("팀 편성을 먼저 완료하세요.");
     if (
       state.draw &&
@@ -539,7 +541,19 @@ export function advanceFormation(
       now < state.draw.startedAt + state.draw.durationMs
     )
       throw new Error("추첨 결과 공개가 끝난 뒤 편성을 적용하세요.");
+    state.stage = "complete";
     state.appliedAt ??= now;
+    return state;
+  }
+  if (command.type === "adjust") {
+    manager();
+    if (state.stage !== "review" || now < revealEnd(state))
+      throw new Error("역할 공개 후 팀 배치 단계에서만 조정할 수 있습니다.");
+    const players = rosterPlayers(command.roster);
+    if (players.length !== 10 || new Set(players.map((player) => player.id)).size !== 10 ||
+      players.some((player) => !state.players.some((assigned) => assigned.id === player.id && assigned.role === player.role)))
+      throw new Error("배정된 역할과 출전자 10명을 유지하며 같은 역할끼리 교환하세요.");
+    state.roster = structuredClone(command.roster);
     return state;
   }
   if (state.stage === "complete")

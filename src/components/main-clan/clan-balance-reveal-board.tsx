@@ -117,7 +117,7 @@ export function ClanBalanceRevealBoard({
   const ordered = new Set(state.order.slice(0, revealed));
   // Draft/auction first reveal assigned roles in the familiar two-column board,
   // then keep only captains in team slots while the remaining players are picked.
-  const staging = state.stage !== "complete";
+  const staging = state.stage !== "complete" && state.stage !== "review";
   const rolePlayers = (role: string) =>
     state.order.filter(
       (id) => state.players.find((p) => p.id === id)?.role === role,

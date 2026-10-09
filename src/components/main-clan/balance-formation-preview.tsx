@@ -83,6 +83,7 @@ function buildSteps(settings: FormationSettings): PreviewStep[] {
     }
     }
     add("팀 구성 완료", "각 팀에 돌격 1 · 공격 2 · 지원 2명! 역할 정원을 유지해요.", [], { scene: { kind: "complete" } });
+    if (settings.roles === "lottery") add("팀 밸런스 조정", "추첨 후 같은 역할끼리 팀을 교환하고 점수와 승률을 확인해요. 다음 단계를 눌러야 경기 준비로 넘어가요.");
   } else {
     teams[0] = 0; teams[1] = 1;
     add("양 팀 주장 배치", settings.roles === "lottery"

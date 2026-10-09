@@ -416,4 +416,31 @@ test("formation revisions authorize writes and serialize live transitions", asyn
       );
     },
   );
+  await t.test("role review blocks phase advancement and permits only operator roster adjustment through CAS", async () => {
+    const opened = await ok(leader.client.rpc("open_balance_session_series", { p_clan_id: clanId }));
+    roundId = opened.round_id;
+    const review = { ...state("role review", true), mode: "random", stage: "review", captains: null };
+    assert.equal(await ok(svc.rpc("commit_balance_formation", args(0, review))), true);
+    await ok(leader.client.from("balance_sessions").update({ resolved_map_label: "부산" }).eq("id", roundId));
+    let row = await ok(read());
+    assert.match((await leader.client.from("balance_sessions").update({ phase: "match_live" }).eq("id", roundId)).error?.message ?? "", /먼저 완료/);
+    const adjusted = structuredClone(row.formation_state);
+    [adjusted.roster.team1.dmg[0], adjusted.roster.team2.dmg[0]] = [adjusted.roster.team2.dmg[0], adjusted.roster.team1.dmg[0]];
+    const adjust = { ...args(row.formation_revision, adjusted), p_command: "adjust" };
+    for (const client of [anon, leader.client, member.client])
+      assert.equal((await client.rpc("commit_balance_formation", adjust)).error?.code, "42501");
+    assert.equal((await svc.rpc("commit_balance_formation", { ...adjust, p_actor_id: member.id })).error?.code, "42501");
+    const forged = { ...adjusted, order: [...adjusted.order].reverse() };
+    assert.equal((await svc.rpc("commit_balance_formation", { ...adjust, p_state: forged })).error?.code, "22023");
+    assert.equal(await ok(svc.rpc("commit_balance_formation", adjust)), true);
+    assert.equal(await ok(svc.rpc("commit_balance_formation", adjust)), false);
+    row = await ok(read());
+    assert.equal(row.phase, "editing");
+    assert.deepEqual(row.formation_state, adjusted);
+    assert.deepEqual(row.roster, adjusted.roster);
+    const applied = { ...adjusted, stage: "complete", appliedAt: Date.now() };
+    assert.equal(await ok(svc.rpc("commit_balance_formation", { ...args(row.formation_revision, applied), p_command: "apply" })), true);
+    await ok(leader.client.from("balance_sessions").update({ phase: "match_live" }).eq("id", roundId));
+    assert.equal((await ok(read())).phase, "match_live");
+  });
 });

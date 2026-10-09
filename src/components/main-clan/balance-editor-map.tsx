@@ -9,17 +9,18 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { BalanceMapImage } from "./clan-balance-map-image";
 import { BalanceManualMapPicker } from "./clan-balance-map-options";
 
-export function BalanceEditorMap({ gameSlug, clanId, sessionId, selectedMap, canManage, beforeSelect }: {
+export function BalanceEditorMap({ gameSlug, clanId, sessionId, selectedMap, canManage, beforeSelect, autoOpen = true }: {
   gameSlug: string;
   clanId: string;
   sessionId: string;
   selectedMap: string | null;
   canManage: boolean;
+  autoOpen?: boolean;
   beforeSelect?: () => Promise<{ ok: boolean }>;
 }) {
   const router = useRouter();
   const [map, setMap] = useOptimistic(selectedMap);
-  const [open, setOpen] = useState(canManage && !selectedMap);
+  const [open, setOpen] = useState(autoOpen && canManage && !selectedMap);
   const [pending, start] = useTransition();
 
   function selectMap(label: string) {
