@@ -240,19 +240,21 @@ test("site-usage source rows are visible to staff but hidden from members", asyn
 test("pool prediction picks are private while aggregate totals remain shared", async ({ page }) => {
   const r = await round();
   await live(r);
-  await ok(f.service.from("balance_session_predictions").insert([
-    { session_id: r.id, user_id: f.users[1].id, pick_team: 1 },
-    { session_id: r.id, user_id: f.users[2].id, pick_team: 2 },
-  ]));
-  const before = await ok(member.from("balance_session_predictions").select("user_id").eq("session_id", r.id));
+  const predictor = await f.memberClient(10);
+  // Pool predictions belong to spectators. Stakes return unchanged when every
+  // spectator picks the winner, so this still isolates privacy from profit.
+  for (const client of [predictor, spectator]) {
+    expect((await client.rpc("place_balance_prediction_pool", { p_session_id: r.id, p_pick: 1, p_stake: 10 })).error).toBeNull();
+  }
+  const before = await ok(predictor.from("balance_session_predictions").select("user_id").eq("session_id", r.id));
   expect(before).toHaveLength(1);
   await ok(leader.rpc("set_balance_match_outcome", { p_session_id: r.id, p_outcome: "team1" }));
-  const mine = await ok(member.from("balance_session_predictions").select("user_id").eq("session_id", r.id));
+  const mine = await ok(predictor.from("balance_session_predictions").select("user_id").eq("session_id", r.id));
   const staff = await ok(leader.from("balance_session_predictions").select("user_id").eq("session_id", r.id));
-  expect(mine.map((row) => row.user_id)).toEqual([f.users[1].id]);
+  expect(mine.map((row) => row.user_id)).toEqual([f.users[10].id]);
   expect(staff).toHaveLength(2);
   const [myStats, staffStats, staffManagement, memberManagement] = await Promise.all([
-    loadClanStatsPage(member, f.users[1].id, f.clanId),
+    loadClanStatsPage(predictor, f.users[10].id, f.clanId),
     loadClanStatsPage(leader, f.users[0].id, f.clanId),
     loadClanManagementStats(leader, f.clanId),
     loadClanManagementStats(member, f.clanId),
@@ -265,14 +267,14 @@ test("pool prediction picks are private while aggregate totals remain shared", a
   expect(staffManagement).not.toHaveProperty("personal");
   expect(myStats?.personal.people).toEqual([]);
   expect(myStats?.hof.periods.all.predictionCorrect).toEqual([]);
-  expect(staffStats?.hof.periods.all.predictionCorrect.some((row) => row.userId === f.users[1].id)).toBe(true);
-  const selected = staffStats?.personal.people.find((person) => person.userId === f.users[1].id);
+  expect(staffStats?.hof.periods.all.predictionCorrect.some((row) => row.userId === f.users[10].id)).toBe(true);
+  const selected = staffStats?.personal.people.find((person) => person.userId === f.users[10].id);
   expect(selected?.predictions).toMatchObject([{ sessionId: r.id, result: "correct" }]);
   expect(selected?.predictionPoints.reduce((sum, day) => sum + day.net, 0)).toBe(0);
   await loginIsolatedBalanceUser(page, f.users[0]);
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
   await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
-  await page.getByRole("button", { name: `${f.users[1].nickname} 개인 기록 열기`, exact: true }).click();
+  await page.getByRole("button", { name: `${f.users[10].nickname} 개인 기록 열기`, exact: true }).click();
   await expect(page.getByLabel("승부예측 요약")).toContainText("적중력 100%");
   await expect(page.getByText("순수익 0pt", { exact: true })).toBeVisible();
   await expect(page.getByRole("img", { name: "승부예측 누적 포인트 그래프" })).toBeVisible();
@@ -301,7 +303,7 @@ test("statistics use four sections and site usage appears in staff management", 
   await page.getByRole("tab", { name: "개인 기록" }).click();
   await page.getByRole("button", { name: `${f.users[0].nickname} 개인 기록 열기`, exact: true }).click();
   await expect(page.getByText("시너지", { exact: true })).toBeVisible();
-  await page.goto(`/games/overwatch/clan/${f.clanId}/manage?tab=overview`);
+  await page.goto(`/games/overwatch/clan/${f.clanId}/manage?tab=insights`);
   await expect(page.getByText("사이트 이용 통계")).toBeVisible();
   await expect(page.getByText("편성 점수 차이", { exact: true })).toBeVisible();
   await page.goto(`/games/overwatch/clan/${f.clanId}/store`);
