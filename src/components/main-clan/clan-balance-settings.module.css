@@ -1,4 +1,6 @@
 .panel { height: 100%; overflow-y: auto; scrollbar-color: var(--muted-foreground) var(--background); scrollbar-width: thin; }
+.numberInput { appearance: textfield; }
+.numberInput::-webkit-inner-spin-button, .numberInput::-webkit-outer-spin-button { appearance: none; margin: 0; }
 
 .previewTeamHeading > div { grid-template-columns: minmax(0, 1fr) minmax(110px, 2fr) minmax(0, 1fr); }
 .previewTeamHeading [data-testid="team-comparison-graph"] { width: 100%; max-width: 220px; }

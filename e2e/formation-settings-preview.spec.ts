@@ -25,6 +25,13 @@ test("화면 표시·밴픽 미리보기와 종속 설정은 초안만 반영하
     await expect(options.getByRole("group", { name: "닉네임 카드", exact: true }).getByRole("checkbox")).toHaveCount(3);
     await expect(options.getByRole("group", { name: "팀 비교", exact: true }).getByRole("checkbox")).toHaveCount(1);
     await expect(card).toContainText("+1.2");
+    const scoreGraph = display.getByTestId("team-comparison-graph");
+    const titleBox = await scoreGraph.getByText("평가 점수 합계", { exact: true }).boundingBox();
+    const firstScore = await scoreGraph.getByTestId("team1-score-total").boundingBox();
+    const secondScore = await scoreGraph.getByTestId("team2-score-total").boundingBox();
+    expect(Math.abs(titleBox!.y + titleBox!.height / 2 - firstScore!.y - firstScore!.height / 2)).toBeLessThan(2);
+    expect(titleBox!.x).toBeGreaterThanOrEqual(firstScore!.x + firstScore!.width);
+    expect(titleBox!.x + titleBox!.width).toBeLessThanOrEqual(secondScore!.x);
     await options.getByRole("checkbox", { name: "선수 카드 점수 표시", exact: true }).uncheck();
     await expect(card).not.toContainText("+1.2");
     await options.getByRole("checkbox", { name: "선수 카드 점수 표시", exact: true }).check();
@@ -54,6 +61,7 @@ test("화면 표시·밴픽 미리보기와 종속 설정은 초안만 반영하
     await expect(bans.getByRole("navigation", { name: "밴픽 진행 순서", exact: true }).getByRole("button")).toHaveCount(1);
     await options.getByRole("checkbox", { name: "맵 투표 사용", exact: true }).check();
     await options.getByRole("spinbutton", { name: "맵 투표 시간(초)", exact: true }).fill("45");
+    expect(await options.getByRole("spinbutton", { name: "맵 투표 시간(초)", exact: true }).evaluate((input) => getComputedStyle(input).appearance)).toBe("textfield");
     await expect(bans.getByTestId("ban-preview-map-time")).toHaveText("45초");
     await bans.getByRole("button", { name: "오아시스 미리보기 투표", exact: true }).click();
     await expect(bans.getByRole("button", { name: "오아시스 미리보기 투표", exact: true })).toHaveAttribute("aria-pressed", "true");

@@ -25,7 +25,10 @@ test("중앙 팀 그래프의 점수 토글·승률 설정 저장·모바일 표
     await expect(header).toContainText("정규 내전");
     await expect(header).toContainText(`호스트 · ${fixture.users[0].nickname}`);
     const graph = panel.getByTestId("team-comparison-graph");
-    await expect(graph).toContainText(/평가 점수 합계.*-5점.*-15점/);
+    await expect(graph).toHaveAttribute("aria-label", /평가 점수 합계.*-5점.*-15점/);
+    const scoreTitle = await graph.getByText("평가 점수 합계", { exact: true }).boundingBox();
+    const score1 = await graph.getByTestId("team1-score-total").boundingBox();
+    expect(Math.abs(scoreTitle!.y + scoreTitle!.height / 2 - score1!.y - score1!.height / 2)).toBeLessThan(2);
     const teamHeading = panel.locator('[aria-label="팀 비교 요약 보기"]');
     await expect(teamHeading.locator(":scope > span").first()).toHaveText("1팀");
     await expect(teamHeading.locator(":scope > span").last()).toHaveText("2팀");
@@ -42,7 +45,7 @@ test("중앙 팀 그래프의 점수 토글·승률 설정 저장·모바일 표
     const footerBox = await panel.getByTestId("balance-formation").boundingBox(), boardBox = await board.boundingBox();
     expect(footerBox!.y - boardBox!.y - boardBox!.height).toBeLessThanOrEqual(13);
     await toggle.getByRole("button", { name: "분석 점수", exact: true }).click();
-    await expect(graph).toContainText(/분석 점수 합계.*0점.*0점/);
+    await expect(graph).toHaveAttribute("aria-label", /분석 점수 합계.*0점.*0점/);
     await expect(graph.getByTestId("team-comparison-blue-bar")).toHaveAttribute("style", /width:\s*50%/);
     await toggle.getByRole("button", { name: "평가 점수", exact: true }).click();
     await expect(graph).toContainText("-5점");
