@@ -21,6 +21,7 @@ export type MainClanContext = {
   bannerUrl: string | null;
   iconUrl: string | null;
   memberCount: number | null;
+  pendingJoinRequestCount: number;
   styleLabel: string | null;
   tags: string[];
   canStartBalance: boolean;
@@ -130,6 +131,7 @@ async function loadMainClanContextData(
     bannerUrl: clan.banner_url,
     iconUrl: clan.icon_url,
     memberCount: members.error ? null : members.count,
+    pendingJoinRequestCount: requests.count ?? 0,
     styleLabel: clan.style ? styles[clan.style] : null,
     tags: clan.tags ?? [],
     canStartBalance,

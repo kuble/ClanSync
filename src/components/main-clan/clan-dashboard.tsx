@@ -514,7 +514,7 @@ export function ClanDashboard({
               클랜 공지사항
             </h3>
             {actorRole !== "member" && (
-              <Link href={`${base}/manage?tab=overview#notices`} className={smallLink}>
+              <Link href={`${base}/manage?tab=notices#notices`} className={smallLink}>
                 공지 관리
                 <ArrowUpRight className="size-3" aria-hidden="true" />
               </Link>
@@ -557,7 +557,7 @@ export function ClanDashboard({
               클랜 규칙
             </h3>
             {actorRole !== "member" ? (
-              <Link href={`${base}/manage?tab=overview#rules`} className={smallLink}>편집</Link>
+              <Link href={`${base}/manage?tab=notices#rules`} className={smallLink}>편집</Link>
             ) : model.rules ? (
               <button type="button" className={smallLink} onClick={readRules}>
                 전체 보기

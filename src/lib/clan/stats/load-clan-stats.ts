@@ -401,7 +401,7 @@ export function buildHofPeriod(
 async function loadClanStatsSource(
   supabase: SupabaseClient<Database>,
   clanId: string,
-  scope: "full" | "overview" | "detail" = "full",
+  scope: "full" | "overview" | "detail" | "management" = "full",
 ) {
   const [{ data: clan }, { count: memberCount }, { data: settings, error: settingsError }, membership] =
     await Promise.all([
@@ -426,7 +426,7 @@ async function loadClanStatsSource(
   if (!clan) return null;
 
   const role = !membership.error && membership.data?.[0]?.status === "active" ? membership.data[0].role : undefined;
-  if (!role) return null;
+  if (!role || (scope === "management" && role === "member")) return null;
   // One fresh, request-local snapshot supplies all eight permission checks.
   const can = (permission: ClanPermissionKey) => resolveClanPermission(role, permission, settingsError ? null : settings?.permissions);
   const permissions = {
@@ -466,7 +466,9 @@ async function loadClanStatsSource(
     ),
     loadAllStatsRows<CompletedBalanceSession>((from, to) => {
       const table = historyClient.from("balance_sessions");
-      const query = scope === "full"
+      const query = scope === "management"
+        ? table.select("id,series_id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,formation_settings,formation_state,banned_heroes,hero_ban_enabled,map_candidates,match_outcome,balance_session_map_votes(choice_idx),balance_session_series!inner(opened_at,balance_rooms!inner(kind))")
+        : scope === "full"
         ? table.select("id,series_id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,formation_settings,formation_state,banned_heroes,hero_ban_enabled,map_candidates,match_outcome,balance_session_map_votes(choice_idx),balance_session_predictions(user_id,pick_team,pool_settlement),balance_session_series!inner(opened_at,balance_rooms!inner(kind))")
         : scope === "overview"
           ? table.select("id,series_id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,banned_heroes,hero_ban_enabled,map_candidates,match_outcome,balance_session_map_votes(choice_idx),balance_session_predictions(user_id,pick_team,pool_settlement),balance_session_series!inner(opened_at,balance_rooms!inner(kind))")
@@ -489,7 +491,9 @@ async function loadClanStatsSource(
         .order("id")
         .range(from, to),
     ),
-    supabase.rpc("clan_peer_nicknames", { p_clan_id: clanId }),
+    scope === "management"
+      ? Promise.resolve({ data: [] })
+      : supabase.rpc("clan_peer_nicknames", { p_clan_id: clanId }),
   ]);
 
   const records = normalizeClanMatchRecords(
@@ -576,7 +580,7 @@ function indexPeriods<T>(rows: readonly T[], date: (row: T) => string) {
 
 /** Management uses operational aggregates, without computing HoF or every member's personal history. */
 export async function loadClanManagementStats(supabase: SupabaseClient<Database>, clanId: string) {
-  const source = await loadClanStatsSource(supabase, clanId);
+  const source = await loadClanStatsSource(supabase, clanId, "management");
   if (!source || source.role === "member") return null;
   const intra = buildIntraStats(source.records, source.openedSessions.map((row) => ({ id: row.id, openedAt: row.opened_at })));
   if (!source.permissions.viewMatchRecords) {

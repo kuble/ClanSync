@@ -1,33 +1,27 @@
 import { expect, test } from "@playwright/test";
-import { createClient } from "@supabase/supabase-js";
-import { gotoOverwatchLeaderClanBase } from "./fixture-login-helper";
-import { loadTestEnv } from "../scripts/test-env.mjs";
+import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
 test("officers manage real notices and rules across management and dashboard", async ({
   page,
 }) => {
-  test.setTimeout(120_000);
-  const env = loadTestEnv();
-  const svc = createClient(
-    env.NEXT_PUBLIC_SUPABASE_URL!,
-    env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: { persistSession: false, autoRefreshToken: false },
-    },
-  );
-  const base = await gotoOverwatchLeaderClanBase(page);
-  const clanId = base.split("/").at(-1)!;
+  test.setTimeout(180_000);
+  const f = await createIsolatedBalanceFixture(2);
+  const svc = f.service;
+  const clanId = f.clanId;
+  const base = f.path.replace(/\/balance$/, "");
   const title = `notice-${Date.now()}`;
   const editedTitle = `${title}-edited`;
-  const original = await svc
-    .from("clans")
-    .select("rules")
-    .eq("id", clanId)
-    .single();
-  expect(original.error).toBeNull();
   let noticeId: string | undefined;
   try {
-    await page.goto(`${base}/manage?tab=overview`);
+    await loginIsolatedBalanceUser(page, f.users[0]);
+    const response = await page.goto(`${base}/manage?tab=overview`);
+    const body = await response!.text();
+    expect(body).not.toContain(f.users[1].email);
+    expect(body).not.toContain("scoreGaps");
+    await expect(page.getByRole("button", { name: "공지 작성", exact: true })).toHaveCount(0);
+    await expect(page.getByText("사이트 이용 통계", { exact: true })).toHaveCount(0);
+    await page.getByRole("navigation", { name: "클랜 관리 항목" }).getByRole("link", { name: "공지·규칙", exact: true }).click();
+    await expect(page).toHaveURL(/tab=notices/);
     await page.getByRole("button", { name: "공지 작성", exact: true }).click();
     const editor = page.getByRole("dialog");
     await editor.getByLabel("제목", { exact: true }).fill(title);
@@ -113,16 +107,16 @@ test("officers manage real notices and rules across management and dashboard", a
 
     await page.goto(`${base}/manage?tab=members`);
     await expect(
-      page.getByRole("tab", { name: "구성원", exact: true }),
-    ).toHaveAttribute("aria-selected", "true");
+      page.getByRole("navigation", { name: "클랜 관리 항목" }).getByRole("link", { name: "구성원", exact: true }),
+    ).toHaveAttribute("aria-current", "page");
     await page
       .getByRole("textbox", { name: "구성원 검색", exact: true })
       .fill(`missing-${title}`);
     await expect(
       page.getByText("조건에 맞는 멤버가 없습니다.", { exact: true }),
     ).toBeVisible();
-    await page.getByRole("tab", { name: "개요", exact: true }).click();
-    await expect(page).toHaveURL(/tab=overview/);
+    await page.getByRole("navigation", { name: "클랜 관리 항목" }).getByRole("link", { name: "공지·규칙", exact: true }).click();
+    await expect(page).toHaveURL(/tab=notices/);
     await page
       .getByRole("button", { name: `${editedTitle} 삭제`, exact: true })
       .click();
@@ -145,26 +139,72 @@ test("officers manage real notices and rules across management and dashboard", a
         () => document.documentElement.scrollWidth <= window.innerWidth,
       ),
     ).toBe(true);
-    await page.getByRole("tab", { name: "구성원", exact: true }).click();
+    await page.getByRole("combobox", { name: "클랜 관리 항목", exact: true }).selectOption("members");
+    await expect(page.getByRole("textbox", { name: "구성원 검색", exact: true })).toBeVisible();
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth,
       ),
     ).toBe(true);
   } finally {
-    const deleteNotice = svc
-      .from("clan_notices")
-      .delete()
-      .eq("clan_id", clanId);
-    const cleanup = await Promise.all([
-      svc
-        .from("clans")
-        .update({ rules: original.data!.rules })
-        .eq("id", clanId),
-      noticeId
-        ? deleteNotice.eq("id", noticeId)
-        : deleteNotice.in("title", [title, editedTitle]),
-    ]);
-    for (const result of cleanup) expect(result.error).toBeNull();
+    await f.cleanup();
   }
+});
+
+test("management sections preserve navigation, pending counts and officer/member access", async ({ page }) => {
+  test.setTimeout(180_000);
+  const f = await createIsolatedBalanceFixture(3);
+  const base = f.path.replace(/\/balance$/, "");
+  try {
+    expect((await f.service.from("clan_members").delete().eq("clan_id", f.clanId).eq("user_id", f.users[2].id)).error).toBeNull();
+    const request = await f.service.from("clan_join_requests").insert({ clan_id: f.clanId, game_id: f.gameId, user_id: f.users[2].id, message: "신청 전용 메시지", status: "pending" }).select("id").single();
+    expect(request.error).toBeNull();
+    await loginIsolatedBalanceUser(page, f.users[0]);
+    const initial = await page.goto(`${base}/manage`);
+    expect(await initial!.text()).not.toContain("신청 전용 메시지");
+    const nav = page.getByRole("navigation", { name: "클랜 관리 항목", exact: true });
+    await expect(nav.getByRole("link", { name: "가입 요청 1", exact: true })).toBeVisible();
+    await nav.getByRole("link", { name: "가입 요청 1", exact: true }).click();
+    await page.getByTestId(`manage-join-approve-${request.data!.id}`).click();
+    await expect(page.getByText("대기 중인 가입 신청이 없습니다.", { exact: true })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "가입 요청", exact: true })).toBeVisible();
+    await expect.poll(async () => (await f.service.from("clan_members").select("status").eq("clan_id", f.clanId).eq("user_id", f.users[2].id).single()).data?.status).toBe("active");
+
+    for (const [label, heading] of [["클랜 꾸미기", "클랜 배너"], ["내전·경매", "세션 자동 종료"], ["운영 통계", "내전 운영 통계"], ["코인·플랜", "구독·플랜"]]) {
+      await nav.getByRole("link", { name: label, exact: true }).click();
+      await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
+    }
+    await page.goBack();
+    await expect(nav.getByRole("link", { name: "운영 통계", exact: true })).toHaveAttribute("aria-current", "page");
+    await expect(page.getByText("사이트 이용 통계", { exact: true })).toBeVisible();
+    await page.reload();
+    await expect(nav.getByRole("link", { name: "운영 통계", exact: true })).toHaveAttribute("aria-current", "page");
+    await page.goto(`${base}/manage#subscription`);
+    await expect(page).toHaveURL(/tab=subscription/);
+    await expect(page.getByRole("heading", { name: "구독·플랜", exact: true })).toBeVisible();
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const select = page.getByRole("combobox", { name: "클랜 관리 항목", exact: true });
+    for (const key of ["overview", "notices", "appearance", "requests", "members", "balance", "insights", "subscription"]) {
+      await select.selectOption(key);
+      await expect(page).toHaveURL(new RegExp(`tab=${key}$`));
+      await expect(select).toHaveValue(key);
+      await expect(page.getByRole("status").filter({ hasText: "불러오는 중" })).toHaveCount(0);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    }
+
+    await page.context().clearCookies();
+    await loginIsolatedBalanceUser(page, f.users[1]);
+    const denied = await page.goto(`${base}/manage?tab=insights`);
+    const deniedBody = await denied!.text();
+    expect(deniedBody).not.toContain("신청 전용 메시지");
+    await expect(page.getByRole("heading", { name: "접근 권한이 없습니다", exact: true })).toBeVisible();
+    await expect(page.getByText("사이트 이용 통계", { exact: true })).toHaveCount(0);
+    expect((await f.service.from("clan_members").update({ role: "officer" }).eq("clan_id", f.clanId).eq("user_id", f.users[1].id)).error).toBeNull();
+    await page.reload();
+    await expect(page.getByText("사이트 이용 통계", { exact: true })).toBeVisible();
+    await select.selectOption("subscription");
+    await expect(page.getByRole("heading", { name: "구독·플랜", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "테스트 플랜 전환", exact: true })).toHaveCount(0);
+  } finally { await f.cleanup(); }
 });

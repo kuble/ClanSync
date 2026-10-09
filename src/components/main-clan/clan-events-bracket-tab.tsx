@@ -138,7 +138,7 @@ export function ClanEventsBracketTab({
   const [pending, start] = useTransition();
   const [createOpen, setCreateOpen] = useState(false);
 
-  const manageUrl = `/games/${gameSlug}/clan/${clanId}/manage#subscription`;
+  const manageUrl = `/games/${gameSlug}/clan/${clanId}/manage?tab=subscription`;
 
   function onCreateSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();

@@ -55,7 +55,7 @@ export function StorePremiumPlanDialog({
   clanId: string;
 }) {
   const router = useRouter();
-  const manageHref = `/games/${gameSlug}/clan/${clanId}/manage#subscription`;
+  const manageHref = `/games/${gameSlug}/clan/${clanId}/manage?tab=subscription`;
   const showManageCta = actorRole === "leader" || actorRole === "officer";
 
   return (
