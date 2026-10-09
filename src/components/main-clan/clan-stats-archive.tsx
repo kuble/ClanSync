@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, MapPin, Clock, Crown, Crosshair, Shield, Plu
 import { Button } from "@/components/ui/button";
 import type { ClanStatsPageModel, ClanArchiveMatch } from "@/lib/clan/stats/load-clan-stats";
 import { isoToKstYmd } from "@/lib/clan/stats/kst";
+import { archiveSessionSummary, sessionDurationLabel } from "@/lib/clan/stats/archive-session-summary";
 import { cn } from "@/lib/utils";
 import { ArchiveDatePicker } from "./archive-date-picker";
 import { ArchiveDayTable } from "./archive-day-table";
@@ -47,12 +48,12 @@ function ArchiveDay({ dayRecords, mapFilter, participantSearch, pending, editor 
   const term = participantSearch.trim().toLocaleLowerCase("ko");
   const records = dayRecords.filter((row) => (mapFilter === "all" || row.mapLabel === mapFilter) && (!term || row.players.some((player) => player.nickname.toLocaleLowerCase("ko").includes(term))));
   return <div className="grid items-stretch gap-4 min-[1100px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      <ArchiveRecords records={records} editor={editor} pending={pending} emptyText={dayRecords.length ? "선택한 조건에 맞는 경기가 없습니다." : "이 날짜에는 기록된 경기가 없습니다."} />
+      <ArchiveRecords records={records} dayRecords={dayRecords} editor={editor} pending={pending} emptyText={dayRecords.length ? "선택한 조건에 맞는 경기가 없습니다." : "이 날짜에는 기록된 경기가 없습니다."} />
       <ArchiveDayTable records={dayRecords} />
   </div>;
 }
 
-function ArchiveRecords({ records, editor, pending, emptyText }: { records: ClanArchiveMatch[]; editor?: EditorContext; pending: boolean; emptyText: string }) {
+function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { records: ClanArchiveMatch[]; dayRecords: ClanArchiveMatch[]; editor?: EditorContext; pending: boolean; emptyText: string }) {
   const [activeId, setActiveId] = useState(records[0]?.id);
   const [editing, setEditing] = useState<{ mode: "create" | "update" | "delete"; match?: ClanArchiveMatch }>();
   const activeIndex = Math.max(
@@ -60,6 +61,7 @@ function ArchiveRecords({ records, editor, pending, emptyText }: { records: Clan
     records.findIndex((record) => record.id === activeId),
   );
   const match = records[activeIndex];
+  const summary = archiveSessionSummary(dayRecords, match);
   const typeLabels: Record<string, string> = {
     scrim: "스크림",
     event: "이벤트",
@@ -73,9 +75,17 @@ function ArchiveRecords({ records, editor, pending, emptyText }: { records: Clan
   };
   return (
       <section
-        className="flex h-[560px] min-w-0 flex-col overflow-hidden rounded-xl border bg-card"
+        className="flex h-[560px] min-w-0 flex-col gap-3"
         aria-label="경기 상세"
       >
+        <dl className="grid shrink-0 grid-cols-3 gap-2" aria-label="내전 요약">
+          {[
+            { label: "내전 회차", value: summary.number === null ? "—" : `${summary.number.toLocaleString()}회`, title: "클랜에서 열린 전체 내전의 누적 회차" },
+            { label: "참여 인원", value: `${summary.participants}명`, title: "이 내전의 기록에 출전한 고유 인원" },
+            { label: "활성 시간", value: sessionDurationLabel(summary.activeMinutes), title: "내전 시작부터 마지막 경기 기록까지" },
+          ].map((item) => <div key={item.label} title={item.title} className="flex min-h-20 min-w-0 flex-col items-center justify-center gap-1 rounded-xl border bg-background/40 px-2 py-3 text-center"><dt className="text-[10px] text-muted-foreground">{item.label}</dt><dd className="text-sm font-bold tabular-nums sm:text-lg">{pending ? "—" : item.value}</dd></div>)}
+        </dl>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border bg-card">
         <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1 border-b bg-muted/20 px-2 py-2 sm:px-3">
           <h5 className="truncate text-xs font-semibold">경기 기록</h5>
           <div className="flex items-center gap-1" aria-label="경기 기록 이동">
@@ -217,6 +227,7 @@ function ArchiveRecords({ records, editor, pending, emptyText }: { records: Clan
             })}
           </p>
         </div> : <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center"><Swords className="size-7 text-muted-foreground/30" aria-hidden="true" /><p role="status" className="text-sm text-muted-foreground">{pending ? "경기 기록을 불러오는 중…" : emptyText}</p></div>}
+        </div>
         </div>
         {editing && editor && <MatchRecordEditor key={`${editing.mode}:${editing.match?.id ?? "new"}`} {...editor} mode={editing.mode} match={editing.match} onClose={() => setEditing(undefined)} onReload={() => { setEditing(undefined); editor.onReload(); }} onSaved={(archive, day) => { setEditing(undefined); editor.onSaved(archive, day); }} />}
       </section>

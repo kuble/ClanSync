@@ -46,6 +46,9 @@ async function loadAllStatsRows<T>(
 
 export type ClanArchiveMatch = {
   id: string;
+  seriesId?: string | null;
+  sessionNumber?: number;
+  sessionOpenedAt?: string;
   revision?: string;
   matchType: string;
   mapLabel: string | null;
@@ -552,18 +555,41 @@ function sourcePredictions(source: StatsSource): PredictionRecord[] {
   });
 }
 
-function buildArchive(records: readonly ClanMatchRecord[], nick: Map<string, string>, viewMscore: boolean): ClanStatsPageModel["archive"] {
+function buildArchive(records: readonly ClanMatchRecord[], nick: Map<string, string>, viewMscore: boolean, sessions: readonly { id: string; opened_at: string }[] = []): ClanStatsPageModel["archive"] {
   const sampleByDate: Record<string, ClanArchiveMatch[]> = {};
+  const orderedSessions = [...sessions].sort((a, b) => a.opened_at.localeCompare(b.opened_at) || a.id.localeCompare(b.id));
+  const sessionInfo = new Map(orderedSessions.map((session, index) => [session.id, { sessionNumber: index + 1, sessionOpenedAt: session.opened_at }]));
   for (const m of records) {
     if (m.match_type !== "intra") continue;
     const date = isoToKstYmd(m.played_at);
     (sampleByDate[date] ??= []).push({
-      id: m.id, revision: m.revision, matchType: m.match_type, mapLabel: m.map_label, playedAt: m.played_at,
+      id: m.id, seriesId: m.series_id, ...(m.series_id ? sessionInfo.get(m.series_id) : {}), revision: m.revision, matchType: m.match_type, mapLabel: m.map_label, playedAt: m.played_at,
       occurredAt: m.occurred_at, source: m.source, outcome: m.outcome, winnerTeam: getWinnerTeam(m),
       players: m.match_players.map((p) => ({ userId: p.user_id, nickname: nick.get(p.user_id) ?? "탈퇴한 멤버", team: p.team, role: p.role, m: viewMscore ? p.m : null, a: viewMscore ? p.a : null })),
     });
   }
   return { datesKst: Object.keys(sampleByDate).sort().reverse(), sampleByDate };
+}
+
+/** Enrich only the requested day's sessions; historical match rows stay unloaded. */
+async function addArchiveSessionNumbers(clanId: string, archive: ClanStatsPageModel["archive"]) {
+  const ids = [...new Set(Object.values(archive.sampleByDate).flatMap((rows) => rows.flatMap((row) => row.seriesId ? [row.seriesId] : [])))];
+  if (!ids.length) return archive;
+  const client = createServiceRoleClient();
+  const { data, error } = await client.from("balance_session_series").select("id,opened_at,balance_rooms!inner(kind)")
+    .eq("clan_id", clanId).eq("balance_rooms.kind", "regular").in("id", ids);
+  if (error) throw new Error("내전 회차를 불러오지 못했습니다.", { cause: error });
+  const info = new Map(await Promise.all(data.map(async (session) => {
+    const { count, error } = await client.from("balance_session_series").select("id,balance_rooms!inner(kind)", { count: "exact", head: true })
+      .eq("clan_id", clanId).eq("balance_rooms.kind", "regular")
+      .or(`opened_at.lt.${session.opened_at},and(opened_at.eq.${session.opened_at},id.lte.${session.id})`);
+    if (error || count === null) throw new Error("내전 회차를 불러오지 못했습니다.", { cause: error });
+    return [session.id, { sessionNumber: count, sessionOpenedAt: session.opened_at }] as const;
+  })));
+  for (const rows of Object.values(archive.sampleByDate)) {
+    for (const row of rows) if (row.seriesId) Object.assign(row, info.get(row.seriesId));
+  }
+  return archive;
 }
 
 async function loadPredictionLedger(supabase: SupabaseClient<Database>, clanId: string, userId: string, staff: boolean) {
@@ -658,11 +684,11 @@ export async function loadClanStatsArchive(supabase: SupabaseClient<Database>, c
   const source = await loadClanStatsSource(supabase, clanId, "metadata");
   if (!source?.permissions.viewMatchRecords) return null;
   const members = source.permissions.correctMatchRecords ? [...buildNickMap(source.nickRows)].map(([userId, nickname]) => ({ userId, nickname })) : undefined;
-  if (day) return { kind: "archive", archive: buildArchive(await readStatsRecords(clanId, { day }), buildNickMap(source.nickRows), source.permissions.viewMscore) };
+  if (day) return { kind: "archive", archive: await addArchiveSessionNumbers(clanId, buildArchive(await readStatsRecords(clanId, { day }), buildNickMap(source.nickRows), source.permissions.viewMscore)) };
   const { periods } = await readStatsSummary(clanId, ["all"]);
   const archive = periods.all?.archive ?? EMPTY_STATS_AGGREGATE.archive;
   const latest = archive.datesKst[0];
-  const initial = latest ? buildArchive(await readStatsRecords(clanId, { day: latest }), buildNickMap(source.nickRows), source.permissions.viewMscore) : { sampleByDate: {} };
+  const initial = latest ? await addArchiveSessionNumbers(clanId, buildArchive(await readStatsRecords(clanId, { day: latest }), buildNickMap(source.nickRows), source.permissions.viewMscore)) : { sampleByDate: {} };
   return { kind: "archive", archive: { ...archive, sampleByDate: initial.sampleByDate, deferredDays: true, members } };
 }
 
@@ -797,7 +823,7 @@ export async function loadClanStatsPageFromRecords(
   ).sort((a, b) => Number(b) - Number(a));
 
   const archive = viewMatchRecords && !options?.deferDetails
-    ? buildArchive(records, nick, viewMscore) : { datesKst: [], sampleByDate: {} };
+    ? buildArchive(records, nick, viewMscore, openedSessions) : { datesKst: [], sampleByDate: {} };
   const hofSessions = openedSessions.map((session) => ({ id: session.id, openedAt: session.opened_at }));
   const predictions = sourcePredictions(source);
   // The personal privacy override is not persisted yet. Until it is, keep
