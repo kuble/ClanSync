@@ -496,7 +496,7 @@ export function ClanBalanceHistoryDrawer({
   }
   return (
     <>
-      {props.currentSeriesId ? <button ref={tab} type="button" data-balance-guide="history" aria-hidden={open || undefined} tabIndex={open ? -1 : 0} aria-label="내전 기록 열기" title="내전 기록" onMouseEnter={(event) => {
+      {props.currentSeriesId ? <button ref={tab} type="button" data-balance-guide="history" aria-hidden={open || undefined} tabIndex={open ? -1 : 0} aria-label="내전 기록 열기" title="내전 기록" onMouseMove={(event) => {
         pointer.current = { x: event.clientX, y: event.clientY };
         if (!suppressHover.current && window.matchMedia("(min-width: 1024px) and (hover: hover) and (pointer: fine)").matches) onOpenChange(true);
       }} onMouseLeave={() => { suppressHover.current = false; }} onClick={() => { suppressHover.current = false; onOpenChange(true); }}

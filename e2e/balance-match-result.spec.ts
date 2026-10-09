@@ -42,6 +42,29 @@ test("경기 결과: 팀 전체 강조·확인 팝업·직접 점수 편집·무
         await expect(input).toHaveAttribute("type", "text");
         await expect(input).toHaveAttribute("inputmode", "decimal");
         await expect(result.getByTestId("balance-team-team1")).not.toHaveCSS("box-shadow", / 2px(?:,|$)/);
+        const beforeOutside = (await fixture.activeRound(room.roomId)).ma_snapshot;
+        await input.fill("4");
+        await input.press("Tab");
+        await page.keyboard.press("Tab");
+        await page.keyboard.press("Tab");
+        await expect(input).toBeFocused();
+        for (const target of ["2팀 승리 선택", `${fixture.users[6].nickname} 평가 점수 수정`, "무승부", "내전 기록 열기", "승부예측"]) {
+          const outside = page.getByRole("button", { name: target, exact: true, includeHidden: true });
+          const bounds = (await outside.boundingBox())!;
+          await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+          await expect(page.getByRole("dialog", { name: "내전 기록", exact: true })).toHaveCount(0);
+          await page.mouse.click(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+          await expect(input).toBeHidden();
+          await expect(scoreButton).toBeFocused();
+          await expect(result.getByRole("textbox")).toHaveCount(0);
+          await expect(dialog).toHaveCount(0);
+          await expect(page.getByRole("dialog", { name: "내전 기록", exact: true })).toHaveCount(0);
+          await expect(page.getByRole("dialog", { name: "승부예측", exact: true })).toHaveCount(0);
+          expect((await fixture.activeRound(room.roomId)).ma_snapshot).toEqual(beforeOutside);
+          expect((await fixture.activeRound(room.roomId)).match_outcome).toBe("pending");
+          await scoreButton.click();
+          await expect(input).toBeVisible();
+        }
         await input.fill("10.1");
         await result.getByRole("button", { name: `${fixture.users[1].nickname} 점수 저장`, exact: true }).click();
         await expect(page.locator('[data-sonner-toast][data-type="error"]')).toContainText("-10부터 10");
