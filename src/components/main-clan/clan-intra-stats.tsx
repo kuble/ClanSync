@@ -25,6 +25,7 @@ export function IntraClanStats({ model }: { model: ClanStatsPageModel }) {
   const [period, setPeriod] = useState<StatsPeriod>({ mode: "all", year: String(now.year), month: String(now.month).padStart(2, "0"), day: "all" });
   const [metric, setMetric] = useState<(typeof METRICS)[number]["id"]>("sessions");
   const [mapType, setMapType] = useState("all");
+  const [preferredMapType, setPreferredMapType] = useState("all");
   const [banRole, setBanRole] = useState("all");
   const years = [...new Set([String(now.year), ...Object.keys(model.periodDirectory ?? model.intraPeriods).filter((key) => /^\d{4}$/.test(key))])].sort().reverse();
   const selected = model.intraPeriods[statsPeriodKey(period)];
@@ -33,9 +34,9 @@ export function IntraClanStats({ model }: { model: ClanStatsPageModel }) {
   const activeMetric = METRICS.find((item) => item.id === metric)!;
   const maps = stats.maps.filter((row) => mapType === "all" || mapDetailsForLabel(row.name)?.type === mapType).map((row) => ({ ...row, image: mapDetailsForLabel(row.name)?.image }));
   const bans = stats.bans.filter((row) => banRole === "all" || row.role === banRole).map((row) => ({ ...row, image: OW_HERO_PORTRAITS[row.id] }));
-  const preferredMaps = stats.mapVotes.map((row) => ({ ...row, image: mapDetailsForLabel(row.name)?.image }));
+  const preferredMaps = stats.mapVotes.filter((row) => preferredMapType === "all" || mapDetailsForLabel(row.name)?.type === preferredMapType).map((row) => ({ ...row, image: mapDetailsForLabel(row.name)?.image }));
   return <div className="space-y-5" aria-label="내전 통계 내용" aria-busy={loaded.pending}>
-    <div className="flex items-center gap-3"><StatsPeriodFilter value={period} onChange={setPeriod} years={years} /><StatHelp title="내전 통계">기간 필터는 참여 추이, 요약, 맵·밴·선호 맵에 함께 적용됩니다. 날짜는 한국 시간의 내전 개최일 기준입니다.</StatHelp></div>
+    <section aria-label="내전 통계 기간" className="sticky top-[60px] z-30 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80"><div className="flex items-center justify-between gap-3"><StatsPeriodFilter value={period} onChange={setPeriod} years={years} /><StatHelp title="내전 통계">기간 필터는 참여 추이, 요약, 맵·밴·선호 맵에 함께 적용됩니다. 날짜는 한국 시간의 내전 개최일 기준입니다.</StatHelp></div></section>
     <div className="relative">
     {loaded.feedback}
     <Card size="sm"><CardHeader><CardTitle><StatTitle title="참여 추이" help="전체는 연도별, 연도는 월별, 월은 일별 추이입니다. 그래프에 마우스를 올리거나 방향키로 값을 확인하세요. 출전 멤버는 각 기간의 고유 인원으로, 기간별 인원을 더한 값과 전체 인원은 다를 수 있습니다." /></CardTitle><p className="text-xs text-muted-foreground">{statsPeriodLabel(period)} · {activeMetric.label}</p></CardHeader>
@@ -48,8 +49,8 @@ export function IntraClanStats({ model }: { model: ClanStatsPageModel }) {
     </Card>
     </div>
     <div className="grid items-stretch gap-4 min-[800px]:grid-cols-2 min-[1200px]:grid-cols-3">
-      <Card size="sm" className="min-w-0"><CardHeader><CardTitle><StatTitle title="맵별 경기" help="선택한 맵 유형 내 경기 비중입니다. 11개 이상이면 상위 10개와 기타를 표시하며 전체 목록에서 나머지 수치를 확인할 수 있습니다." /></CardTitle></CardHeader><CardContent className="space-y-4">
-        <div className="min-h-24 space-y-2"><RubberSegment label="맵 유형" labelPosition="top" options={MAP_OPTIONS} value={mapType} onChange={setMapType} /><p className="text-[11px] text-muted-foreground">{statsPeriodLabel(period)} · {loaded.pending ? "—" : maps.reduce((sum, row) => sum + row.value, 0)}경기</p></div>
+      <Card size="sm" className="min-w-0"><CardHeader><CardTitle><StatTitle title="맵별 경기" help="선택한 맵 유형 내 경기 비중입니다. 모든 맵을 표시하며 목록을 스크롤해 항목별 수치를 확인할 수 있습니다." /></CardTitle></CardHeader><CardContent className="space-y-4">
+        <div className="min-h-24 space-y-2"><RubberSegment label="맵 유형" labelPosition="top" options={MAP_OPTIONS} value={mapType} onChange={setMapType} /><p className="text-[11px] text-muted-foreground">{loaded.pending ? "—" : maps.reduce((sum, row) => sum + row.value, 0)}경기</p></div>
         <StatsDonut rows={maps} label="맵별 경기" unit="경기" showImages={DONUT_IMAGE_PREVIEW} fixedLegend busy={loaded.pending} />
       </CardContent></Card>
       <Card size="sm" className="min-w-0"><CardHeader><CardTitle><StatTitle title="영웅 밴" help="최종 밴 건수의 비중입니다. 한 경기에서 여러 영웅이 밴될 수 있으므로 합계는 경기 수와 다릅니다. 역할 필터 선택 시 해당 역할 내 비중입니다." /></CardTitle></CardHeader><CardContent className="space-y-4">
@@ -57,7 +58,10 @@ export function IntraClanStats({ model }: { model: ClanStatsPageModel }) {
         <p className="text-[11px] text-muted-foreground">밴 사용 {loaded.pending ? "—" : stats.banEnabledMatches}경기 · 밴 없음 {loaded.pending ? "—" : stats.noBanMatches}경기</p></div>
         <StatsDonut rows={bans} label="영웅 밴" unit="건" showImages={DONUT_IMAGE_PREVIEW} fixedLegend busy={loaded.pending} />
       </CardContent></Card>
-      <Card size="sm" className="min-w-0"><CardHeader><CardTitle><StatTitle title="선호 맵" help="완료 경기의 맵 선정 투표에서 각 후보가 받은 표의 비중입니다. 최종 선정 횟수나 맵 밴 횟수와는 다릅니다." /></CardTitle></CardHeader><CardContent className="space-y-4"><div className="min-h-24 space-y-2 text-xs text-muted-foreground"><p>맵 선정 투표 · {statsPeriodLabel(period)}</p><p>멤버들이 선택한 맵의 득표 비중</p></div><StatsDonut rows={preferredMaps} label="선호 맵" unit="표" showImages={DONUT_IMAGE_PREVIEW} fixedLegend busy={loaded.pending} /></CardContent></Card>
+      <Card size="sm" className="min-w-0"><CardHeader><CardTitle><StatTitle title="선호 맵" help="완료 경기의 맵 선정 투표에서 각 후보가 받은 표의 비중입니다. 맵 유형을 선택하면 해당 유형 안의 득표 비중을 표시합니다." /></CardTitle></CardHeader><CardContent className="space-y-4">
+        <div className="min-h-24 space-y-2"><RubberSegment label="맵 유형" labelPosition="top" options={MAP_OPTIONS} value={preferredMapType} onChange={setPreferredMapType} /><p className="text-[11px] text-muted-foreground">{loaded.pending ? "—" : preferredMaps.reduce((sum, row) => sum + row.value, 0)}표</p></div>
+        <StatsDonut rows={preferredMaps} label="선호 맵" unit="표" showImages={DONUT_IMAGE_PREVIEW} fixedLegend busy={loaded.pending} />
+      </CardContent></Card>
     </div>
   </div>;
 }

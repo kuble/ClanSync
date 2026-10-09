@@ -53,8 +53,8 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await expect(page.getByText("3경기 이상 출전", { exact: true })).toBeVisible();
     expect(await initialResponse!.text()).not.toContain(rows[0].id);
     expect(detailRequests).toHaveLength(0);
-    await page.getByText(/규정 미달 2명/).click();
-    await expect(page.getByLabel("규정 미달 멤버")).toContainText("0 / 3경기");
+    await expect(page.getByLabel("승률 순위", { exact: true }).getByText(/규정 미달 ·/)).toHaveCount(2);
+    await expect(page.getByLabel("승률 순위", { exact: true })).toContainText("3경기 부족");
     await page.getByRole("tab", { name: "내전 통계" }).click();
     const summary = page.getByLabel("선택 기간 요약");
     const completed = summary.getByRole("button", { name: /완료 경기/ });
@@ -83,7 +83,7 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await expect(page.getByLabel("맵별 경기 비중")).toContainText("네팔");
     for (const node of cardNodes) expect(await node.evaluate((el) => el.isConnected)).toBe(true);
     expect(await trendNode!.evaluate((el) => el.isConnected)).toBe(true);
-    const mapTypes = page.getByRole("radiogroup", { name: "맵 유형", exact: true });
+    const mapTypes = page.getByRole("radiogroup", { name: "맵 유형", exact: true }).first();
     await mapTypes.getByRole("radio", { name: "플래시포인트", exact: true }).click();
     await expect(page.locator('[data-slot="card"]').filter({ has: mapTypes })).toContainText("선택한 조건의 기록이 없습니다.");
     expect(await fixedCards.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().height))).toEqual(originalHeights);

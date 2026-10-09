@@ -4,7 +4,6 @@ import { useState } from "react";
 import Image from "next/image";
 import { StatsScrollArea } from "./stats-scroll-area";
 
-const VISIBLE_LIMIT = 10;
 const COLORS = ["var(--primary)", "#d6ac62", "#9a92ce", "#db8296", "#79b6bb", "#719bda", "#cf8660", "#a9b978", "#b279b3", "#b6a18b", "var(--muted-foreground)"];
 type DonutRow = { name: string; value: number; image?: string; detail?: string; wins?: number; draws?: number; losses?: number; rate?: number | null };
 
@@ -19,17 +18,17 @@ function DonutImage({ src, size, className = "object-cover" }: { src: string; si
   return <Image src={src} alt="" fill sizes={`${size}px`} unoptimized onError={() => setFailed(true)} className={className} />;
 }
 
-/** Use a compact summary by default; personal map results show every map. */
+/** Keep all categories in the chart and scrollable legend. */
 export function StatsDonut({ rows, label, unit, showImages = false, preserveOrder = false, horizontal = false, mapResults = false, fixedLegend = false, busy = false }: { rows: DonutRow[]; label: string; unit: string; showImages?: boolean; preserveOrder?: boolean; horizontal?: boolean; mapResults?: boolean; fixedLegend?: boolean; busy?: boolean }) {
   const [active, setActive] = useState<number | null>(null);
   const ordered = [...rows].filter((row) => row.value > 0);
   if (!preserveOrder) ordered.sort((a, b) => b.value - a.value || a.name.localeCompare(b.name, "ko"));
-  const slices: DonutRow[] = !mapResults && ordered.length > VISIBLE_LIMIT ? [...ordered.slice(0, VISIBLE_LIMIT), { name: "기타", value: ordered.slice(VISIBLE_LIMIT).reduce((sum, row) => sum + row.value, 0) }] : ordered;
+  const slices = ordered;
   const total = ordered.reduce((sum, row) => sum + row.value, 0);
   const selected = active === null ? null : slices[active];
   const featured = selected ?? (showImages ? ordered[0] : null);
   const highlighted = active ?? (showImages ? 0 : null);
-  const color = (index: number) => mapResults ? COLORS[index % (COLORS.length - 1)] : COLORS[index];
+  const color = (index: number) => COLORS[index % COLORS.length];
   const centerValue = (row: DonutRow) => mapResults ? (row.rate === null || row.rate === undefined ? "기록 없음" : `${row.rate}%`) : row.value.toLocaleString();
   const legend = <ul className="space-y-1" aria-label={`${label} 비중`}>
     {slices.map((slice, i) => <li key={slice.name}><button type="button" onPointerEnter={() => setActive(i)} onPointerLeave={() => setActive(null)} onFocus={() => setActive(i)} onBlur={() => setActive(null)} onClick={() => setActive(active === i ? null : i)} className={`flex w-full items-center gap-2 rounded-md px-1 py-1.5 text-left text-xs hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary ${showImages && highlighted === i ? "bg-muted/40" : ""}`}>
@@ -66,7 +65,6 @@ export function StatsDonut({ rows, label, unit, showImages = false, preserveOrde
       <StatsScrollArea label={`${label} 전체 목록`} className={mapResults || fixedLegend ? "h-[224px]" : "max-h-80"}>
       <div className="space-y-4">
     {total ? legend : <p className="flex h-full min-h-32 items-center justify-center text-sm text-muted-foreground">{busy ? "집계 중…" : "선택한 조건의 기록이 없습니다."}</p>}
-    {!mapResults && ordered.length > VISIBLE_LIMIT && <details className="border-t pt-3"><summary className="cursor-pointer text-xs text-muted-foreground">전체 {ordered.length}개 항목 보기</summary><StatsScrollArea label={`${label} 전체 목록`} className="mt-3 max-h-64"><ul className="space-y-2">{ordered.map((row) => <li key={row.name} className="flex justify-between gap-3 text-xs"><span className="min-w-0 truncate">{row.name}{row.detail && <span className="block text-muted-foreground">{row.detail}</span>}</span><strong className="shrink-0 tabular-nums">{row.value}{unit} · {(row.value / total * 100).toFixed(1)}%</strong></li>)}</ul></StatsScrollArea></details>}
       </div></StatsScrollArea>
     </div>
   </div>;
