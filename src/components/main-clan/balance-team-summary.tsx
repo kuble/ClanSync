@@ -54,7 +54,7 @@ export function BalanceTeamSummary({ roster, scores, mode, premium, showPredicti
       <span data-testid={prediction ? undefined : "team2-score-total"} aria-label={`2팀 ${title}`} className="text-right text-rose-600 dark:text-rose-300">{labels[1]}</span>
     </div>
     <div className="flex h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true">{share == null ? null : <><span data-testid="team-comparison-blue-bar" className="bg-sky-500" style={{ width: `${share}%` }} /><span className="flex-1 bg-rose-500" /></>}</div>
-    {prediction ? <p className="text-[9px] leading-3 text-muted-foreground">{predictionStatus}</p> : null}
+    {prediction && !(validEstimate && samplePrediction) ? <p className="text-[9px] leading-3 text-muted-foreground">{predictionStatus}</p> : null}
   </div>;
   const headingClass = "mb-1 grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)] items-center gap-2 rounded-lg px-2 text-center [container-type:inline-size] sm:grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)] sm:px-3";
   const content = <TeamLabels comparison={comparison} />;
