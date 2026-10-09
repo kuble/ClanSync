@@ -22,7 +22,14 @@ if (error || !clan) throw new Error("QA clan is unavailable; this script does no
 const base = `http://localhost:${port}/games/overwatch/clan/${clan.id}`;
 const knownPages = ["", "/balance", "/stats", "/events", "/manage", "/store"];
 const requestedPages = process.argv.slice(2);
-if (requestedPages.some((page) => !knownPages.includes(page))) throw new Error("Unknown QA page");
+const knownManagementTabs = ["overview", "notices", "appearance", "requests", "members", "balance", "insights", "subscription"];
+function isKnownPage(page) {
+  if (knownPages.includes(page)) return true;
+  const url = new URL(page, "http://localhost");
+  if (url.pathname === "/manage" && knownManagementTabs.includes(url.searchParams.get("tab")) && [...url.searchParams].length === 1) return true;
+  return /^\/balance\?room=[0-9a-f-]{36}$/i.test(page);
+}
+if (requestedPages.some((page) => !isKnownPage(page))) throw new Error("Unknown QA page");
 const pages = requestedPages.length ? requestedPages : knownPages;
 for (let run = 1; run <= 3; run++) {
   for (const page of pages) {
