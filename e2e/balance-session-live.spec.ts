@@ -98,12 +98,15 @@ async function applyAndSelectMap(panel: Locator) {
   await expect(panel).toHaveAttribute("data-balance-phase", "match_live", { timeout: 20_000 });
 }
 
-test("편성 완료 확인이 늦어져도 편집 보드 없이 경기로 전환한다", async ({ page }) => {
+test("편성 완료·경기 시작 대기 중 보드를 유지하고 블러로 조작을 막는다", async ({ page }) => {
   test.setTimeout(180_000);
   const fixture = await createIsolatedBalanceFixture(10);
   let tickRequests = 0;
+  let startRequests = 0;
   let releaseTick!: () => void;
+  let releaseStart!: () => void;
   const heldTick = new Promise<void>((resolve) => { releaseTick = resolve; });
+  const heldStart = new Promise<void>((resolve) => { releaseStart = resolve; });
   try {
     await loginIsolatedBalanceUser(page, fixture.users[0]);
     await createAndEnterBalanceRoom(page, fixture.path);
@@ -119,30 +122,71 @@ test("편성 완료 확인이 늦어져도 편집 보드 없이 경기로 전환
       await candidates.getByRole("button", { name: `${user.nickname} 출전 명단에 추가`, exact: true }).click();
     }
 
-    // Hold the server acknowledgement so the transition is observable even on
-    // a fast connection. The page must keep its retry worker without the board.
+    const round = await fixture.activeRound();
+    const startBody = JSON.stringify(["overwatch", fixture.clanId, round.id]);
+    // Delay both acknowledgements and fail the first match start. The board
+    // stays behind a blocking overlay until the server confirms the next phase.
     await page.route("**/balance?room=*", async (route) => {
       if (route.request().method() === "POST" && route.request().postData()?.includes('"type":"tick"')) {
         tickRequests++;
         await heldTick;
+      } else if (route.request().method() === "POST" && route.request().postData() === startBody) {
+        startRequests++;
+        if (startRequests === 1) { await route.abort("failed"); return; }
+        await heldStart;
       }
       await route.continue();
     });
     await panel.getByRole("button", { name: "다음 단계", exact: true }).click();
     await expect.poll(() => tickRequests).toBe(1);
     await expect(panel).toHaveAttribute("data-formation-transition", "true");
-    await expect(panel.getByRole("heading", { name: /경기 준비.*경기 1/ })).toBeVisible();
-    await expect(panel.locator("[data-balance-guide=board]")).toHaveCount(0);
-    await expect(panel.getByTestId("balance-editor-map")).toHaveCount(0);
-    await expect(panel.getByRole("button", { name: "명단 수정", exact: true })).toHaveCount(0);
-    await expect(panel.getByRole("button", { name: "경기 설정", exact: true })).toHaveCount(0);
-    await expect(panel.getByTestId("balance-formation")).toContainText("경기 준비 중…");
+    const overlay = page.getByTestId("balance-preparation-overlay");
+    await expect(overlay).toBeVisible();
+    await expect(overlay).toContainText("경기 준비 중…");
+    const board = panel.locator("[data-balance-guide=board]");
+    await expect(board).toBeVisible();
+    const boardText = await board.textContent();
+    const boardBox = await board.boundingBox();
+    const heading = panel.getByRole("heading", { name: /밸런스 편집.*경기 1/, includeHidden: true });
+    await expect(heading).toBeVisible();
+    await expect(panel.getByTestId("balance-editor-map")).toBeVisible();
+    const reset = panel.getByRole("button", { name: "명단 수정", exact: true, includeHidden: true });
+    const settingsButton = panel.getByRole("button", { name: "경기 설정", exact: true, includeHidden: true });
+    await expect(reset).toBeVisible();
+    await expect(settingsButton).toBeVisible();
+    // Mouse clicks, Escape and keyboard navigation cannot reach the background.
+    await expect(settingsButton.click({ trial: true, timeout: 500 })).rejects.toThrow();
+    const resetBox = await reset.boundingBox();
+    expect(resetBox).not.toBeNull();
+    await page.mouse.click(resetBox!.x + resetBox!.width / 2, resetBox!.y + resetBox!.height / 2);
+    await page.keyboard.press("Escape");
+    await expect(overlay).toBeVisible();
+    await page.keyboard.press("Tab");
+    await expect.poll(() => overlay.evaluate((element) => element.contains(document.activeElement))).toBe(true);
     const completed = await fixture.activeRound();
     expect((completed.formation_state as unknown as FormationState).appliedAt).toBeUndefined();
     expect(tickRequests).toBe(1);
+    await page.screenshot({ path: test.info().outputPath("preparation-overlay.png") });
+    const viewport = page.viewportSize()!;
+    await page.setViewportSize({ width: 490, height: 884 });
+    await expect(overlay).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await page.setViewportSize(viewport);
 
     releaseTick();
+    await expect(overlay.getByRole("button", { name: "다시 시도", exact: true })).toBeVisible();
+    await expect(panel).toHaveAttribute("data-balance-phase", "editing");
+    await expect(board).toHaveText(boardText!);
+    await expect(heading).toBeVisible();
+    expect(await board.boundingBox()).toMatchObject({ width: boardBox!.width, height: boardBox!.height });
+    expect(startRequests).toBe(1);
+    await overlay.getByRole("button", { name: "다시 시도", exact: true }).click();
+    await expect.poll(() => startRequests).toBe(2);
+    await expect(overlay).toBeVisible();
+    await expect(board).toHaveText(boardText!);
+    releaseStart();
     await expect(panel).toHaveAttribute("data-balance-phase", "match_live", { timeout: 20_000 });
+    await expect(overlay).toBeHidden();
     await expect(panel).not.toHaveAttribute("data-formation-transition", "true");
     await expect(panel).toContainText("부산");
     const live = await fixture.activeRound();
@@ -150,6 +194,7 @@ test("편성 완료 확인이 늦어져도 편집 보드 없이 경기로 전환
     expect(live.formation_state).toEqual({ ...(completed.formation_state as Record<string, unknown>), appliedAt: expect.any(Number) });
   } finally {
     releaseTick();
+    releaseStart();
     await page.unrouteAll({ behavior: "wait" });
     await fixture.cleanup();
   }
@@ -323,7 +368,7 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
           .eq("user_id", fixture.users[1].id)
           .single();
         return data?.ranking;
-      })
+      }, { timeout: 20_000 })
       .toEqual([]);
     await expect(
       ownPreference

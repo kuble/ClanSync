@@ -2,9 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LoaderCircle } from "lucide-react";
 import { startBalanceMatchAction, startHeroBanPhaseAction } from "@/app/actions/clan-balance-session";
-import { Button } from "@/components/ui/button";
+import { BalancePreparationOverlay } from "./balance-preparation-overlay";
 
 export function BalanceAutoStartMatch({ gameSlug, clanId, sessionId, heroBan }: {
   gameSlug: string; clanId: string; sessionId: string; heroBan: boolean;
@@ -27,7 +26,5 @@ export function BalanceAutoStartMatch({ gameSlug, clanId, sessionId, heroBan }: 
     });
     return () => { cancelled = true; };
   }, [gameSlug, clanId, sessionId, heroBan, router, retry]);
-  return <div role="status" className="flex items-center justify-center gap-2 py-4 text-sm text-muted-foreground">
-    {error ? <><span>{error}</span><Button variant="outline" onClick={() => { setError(null); setRetry((value) => value + 1); }}>다시 시도</Button></> : <><LoaderCircle className="size-4 animate-spin" aria-hidden="true" />{heroBan ? "영웅 밴으로 이동 중…" : "경기를 시작하고 있습니다…"}</>}
-  </div>;
+  return <BalancePreparationOverlay error={error} onRetry={() => { setError(null); setRetry((value) => value + 1); }} />;
 }
