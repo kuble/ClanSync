@@ -524,6 +524,7 @@ export function ClanBalanceSessionPanel({
                       showPlayerCardScore={settings.showPlayerCardScore}
                       showPlayerCardInfo={settings.showPlayerCardInfo}
                       showTeamComparisonSummary={settings.showTeamComparisonSummary}
+                      teamComparisonMode={settings.teamComparisonMode}
                       showPlayerSessionSummary={settings.showPlayerSessionSummary}
                       playerCardInfo={settings.playerCardInfo}
                     />
@@ -543,6 +544,7 @@ export function ClanBalanceSessionPanel({
                       showPlayerCardScore={settings.showPlayerCardScore}
                       showPlayerCardInfo={settings.showPlayerCardInfo}
                       showTeamComparisonSummary={settings.showTeamComparisonSummary}
+                      teamComparisonMode={settings.teamComparisonMode}
                       showPlayerSessionSummary={settings.showPlayerSessionSummary}
                       playerCardInfo={settings.playerCardInfo}
                     />

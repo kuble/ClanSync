@@ -280,6 +280,7 @@ export async function updateFormationSettingsAction(
       showPlayerCardScore: settings.showPlayerCardScore,
       showPlayerCardInfo: settings.showPlayerCardInfo,
       showTeamComparisonSummary: settings.showTeamComparisonSummary,
+      teamComparisonMode: settings.teamComparisonMode,
       showPlayerSessionSummary: settings.showPlayerSessionSummary,
       predictionEnabled: settings.predictionEnabled,
       playerCardInfo: settings.playerCardInfo,

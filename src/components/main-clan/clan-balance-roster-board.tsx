@@ -7,7 +7,7 @@ import type { ScoreMode } from "@/lib/balance/score-display";
 import type { PlayerSessionInfoMap } from "@/lib/balance/player-session-stats";
 import { BalancePlayerCardContent, BalancePlayerDetails } from "./balance-player-details";
 import { BalanceTeamSummary } from "./balance-team-summary";
-import type { PlayerCardInfoMode } from "@/lib/balance/formation";
+import type { PlayerCardInfoMode, TeamComparisonMode } from "@/lib/balance/formation";
 
 export const BALANCE_SLOTS = [
   { key: "d0", label: "딜러 1", role: "dmg", index: 0 },
@@ -46,8 +46,8 @@ export function balanceTeamHeadingResult(outcome?: TeamHeadingOutcome) {
   } as const;
 }
 
-export function BalanceTeamHeading({ roster, scores, mode = "m", premium = false, showPrediction = false, samplePrediction = false, showSummary = true, outcome }: { roster?: BalanceRoster; scores?: MaSnapshot; mode?: ScoreMode; premium?: boolean; showPrediction?: boolean; samplePrediction?: boolean; showSummary?: boolean; outcome?: TeamHeadingOutcome }) {
-  if (roster && scores) return <BalanceTeamSummary roster={roster} scores={scores} mode={mode} premium={premium} showPrediction={showPrediction} samplePrediction={samplePrediction} enabled={showSummary} />;
+export function BalanceTeamHeading({ roster, scores, mode = "m", premium = false, showPrediction = false, samplePrediction = false, showSummary = true, comparisonMode = "score", outcome }: { roster?: BalanceRoster; scores?: MaSnapshot; mode?: ScoreMode; premium?: boolean; showPrediction?: boolean; samplePrediction?: boolean; showSummary?: boolean; comparisonMode?: TeamComparisonMode; outcome?: TeamHeadingOutcome }) {
+  if (roster && scores) return <BalanceTeamSummary roster={roster} scores={scores} mode={mode} premium={premium} showPrediction={showPrediction} samplePrediction={samplePrediction} enabled={showSummary} comparisonMode={comparisonMode} />;
   const result = balanceTeamHeadingResult(outcome);
   return (
     <div className="mb-3 grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)] items-center gap-2 text-center sm:grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)]">
@@ -80,6 +80,7 @@ export function ClanBalanceRosterBoard({
   showPlayerCardScore = true,
   showPlayerCardInfo = true,
   showTeamComparisonSummary = true,
+  teamComparisonMode = "score",
   showPlayerSessionSummary = true,
   playerCardInfo = "record",
   outcome,
@@ -97,6 +98,7 @@ export function ClanBalanceRosterBoard({
   showPlayerCardScore?: boolean;
   showPlayerCardInfo?: boolean;
   showTeamComparisonSummary?: boolean;
+  teamComparisonMode?: TeamComparisonMode;
   showPlayerSessionSummary?: boolean;
   playerCardInfo?: PlayerCardInfoMode;
   outcome?: TeamHeadingOutcome;
@@ -105,7 +107,7 @@ export function ClanBalanceRosterBoard({
   const mode = scoreMode === "a" && planPremium ? "a" : "m";
   return (
     <div aria-label="출전 라인업">
-      <BalanceTeamHeading roster={roster} scores={snapshot} mode={mode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} outcome={outcome} />
+      <BalanceTeamHeading roster={roster} scores={snapshot} mode={mode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} comparisonMode={teamComparisonMode} outcome={outcome} />
       <div className="space-y-2 rounded-xl bg-muted/35 p-2 sm:p-3">
         {BALANCE_SLOTS.map((slot) => (
           <div

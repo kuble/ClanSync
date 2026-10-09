@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { drawRevealCount } from "@/lib/balance/draw-presentation";
 import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
 import type { PlayerSessionInfoMap } from "@/lib/balance/player-session-stats";
-import type { PlayerCardInfoMode } from "@/lib/balance/formation";
+import type { PlayerCardInfoMode, TeamComparisonMode } from "@/lib/balance/formation";
 
 /** A presentation of the server's saved draw, never a new random draw. */
 export function ClanBalanceRevealBoard({
@@ -34,6 +34,7 @@ export function ClanBalanceRevealBoard({
   showPlayerCardScore,
   showPlayerCardInfo,
   showTeamComparisonSummary,
+  teamComparisonMode,
   showPlayerSessionSummary,
   playerCardInfo,
 }: {
@@ -51,6 +52,7 @@ export function ClanBalanceRevealBoard({
   showPlayerCardScore?: boolean;
   showPlayerCardInfo?: boolean;
   showTeamComparisonSummary?: boolean;
+  teamComparisonMode?: TeamComparisonMode;
   showPlayerSessionSummary?: boolean;
   playerCardInfo?: PlayerCardInfoMode;
 }) {
@@ -96,6 +98,7 @@ export function ClanBalanceRevealBoard({
           showPlayerCardScore={showPlayerCardScore}
           showPlayerCardInfo={showPlayerCardInfo}
           showTeamComparisonSummary={showTeamComparisonSummary}
+          teamComparisonMode={teamComparisonMode}
           showPlayerSessionSummary={showPlayerSessionSummary}
           playerCardInfo={playerCardInfo}
         />

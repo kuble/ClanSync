@@ -403,6 +403,20 @@ export function ClanBalanceSettings({
           <fieldset disabled={locked} className="space-y-3">
             <legend className="font-semibold text-sm">선수 카드 표시</legend>
             <p className="text-xs text-muted-foreground">편성 화면에 적용됩니다. 경기 현황에서는 참가자 이름만 표시합니다.</p>
+            <label className="block rounded-lg border bg-background/60 p-3 text-sm">
+              팀 비교 그래프
+              <span className="mt-1 block text-xs text-muted-foreground">두 팀 사이에 표시합니다. 평가·분석 점수 토글에 따라 비교 기준이 바뀝니다.</span>
+              <select
+                aria-label="팀 비교 그래프"
+                className={field}
+                value={planPremium && regularRoom ? draft.teamComparisonMode : "score"}
+                onChange={(event) => setDraft({ ...draft, teamComparisonMode: event.target.value as FormationSettings["teamComparisonMode"] })}
+              >
+                <option value="score">점수 합계</option>
+                <option value="prediction" disabled={!planPremium || !regularRoom}>예측 승률</option>
+              </select>
+              {!planPremium || !regularRoom ? <span className="mt-1 block text-xs text-muted-foreground">예측 승률은 Premium 정규 내전에서 표시합니다.</span> : null}
+            </label>
             <label className="flex items-center justify-between gap-4 rounded-lg border bg-background/60 p-3 text-sm">
               <span>
                 점수 표시

@@ -35,7 +35,7 @@ import type { ScoreMode } from "./balance-team-insights";
 import type { PlayerSessionInfoMap } from "@/lib/balance/player-session-stats";
 import { BalancePlayerCardContent, BalancePlayerDetails } from "./balance-player-details";
 import { BalanceRosterDock } from "./balance-roster-dock";
-import type { PlayerCardInfoMode } from "@/lib/balance/formation";
+import type { PlayerCardInfoMode, TeamComparisonMode } from "@/lib/balance/formation";
 
 export type ClanBalanceRosterEditorHandle = {
   flush(): Promise<RosterFlushResult>;
@@ -89,6 +89,7 @@ export function ClanBalanceRosterEditor({
   showPlayerCardScore = true,
   showPlayerCardInfo = true,
   showTeamComparisonSummary = true,
+  teamComparisonMode = "score",
   showPlayerSessionSummary = true,
   playerCardInfo = "record",
   ref,
@@ -115,6 +116,7 @@ export function ClanBalanceRosterEditor({
   showPlayerCardScore?: boolean;
   showPlayerCardInfo?: boolean;
   showTeamComparisonSummary?: boolean;
+  teamComparisonMode?: TeamComparisonMode;
   showPlayerSessionSummary?: boolean;
   playerCardInfo?: PlayerCardInfoMode;
   ref?: Ref<ClanBalanceRosterEditorHandle>;
@@ -353,7 +355,7 @@ export function ClanBalanceRosterEditor({
       </section>
       )}>
       <div aria-label="출전 명단 편집" aria-describedby={helpId}>
-        <BalanceTeamHeading roster={roster} scores={displayScores} mode={scoreMode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} />
+        <BalanceTeamHeading roster={roster} scores={displayScores} mode={scoreMode} premium={planPremium} showPrediction={showPrediction} samplePrediction={samplePrediction} showSummary={showTeamComparisonSummary} comparisonMode={teamComparisonMode} />
         <div className="space-y-2 rounded-xl bg-muted/35 p-2 sm:p-3">
           {BALANCE_SLOTS.map((slot) => (
             <div

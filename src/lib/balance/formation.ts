@@ -9,12 +9,14 @@ export type Role = "tank" | "dmg" | "sup";
 export type Team = "team1" | "team2";
 export type TeamMode = "keep" | "random" | "draft" | "auction";
 export type PlayerCardInfoMode = "record" | "streak";
+export type TeamComparisonMode = "score" | "prediction";
 export type FormationSetup = {
   roles: "manual" | "lottery";
   teams: TeamMode;
   showPlayerCardScore?: boolean;
   showPlayerCardInfo?: boolean;
   showTeamComparisonSummary?: boolean;
+  teamComparisonMode?: TeamComparisonMode;
   showPlayerSessionSummary?: boolean;
   predictionEnabled?: boolean;
   playerCardInfo?: PlayerCardInfoMode;
@@ -28,7 +30,7 @@ export type FormationSetup = {
   auctionItemsEnabled?: boolean;
   strategySeconds?: number;
 };
-export type FormationSettings = Omit<FormationSetup, "preferences" | "showPlayerCardScore" | "showPlayerCardInfo" | "showTeamComparisonSummary" | "showPlayerSessionSummary" | "playerCardInfo"> & {
+export type FormationSettings = Omit<FormationSetup, "preferences" | "showPlayerCardScore" | "showPlayerCardInfo" | "showTeamComparisonSummary" | "teamComparisonMode" | "showPlayerSessionSummary" | "playerCardInfo"> & {
   auctionBudget: number;
   minBid: number;
   durationSeconds: number;
@@ -39,6 +41,7 @@ export type FormationSettings = Omit<FormationSetup, "preferences" | "showPlayer
   showPlayerCardScore: boolean;
   showPlayerCardInfo: boolean;
   showTeamComparisonSummary: boolean;
+  teamComparisonMode: TeamComparisonMode;
   showPlayerSessionSummary: boolean;
   predictionEnabled: boolean;
   playerCardInfo: PlayerCardInfoMode;
@@ -56,6 +59,7 @@ export const DEFAULT_FORMATION_SETTINGS: FormationSettings = {
   showPlayerCardScore: true,
   showPlayerCardInfo: true,
   showTeamComparisonSummary: true,
+  teamComparisonMode: "score",
   showPlayerSessionSummary: true,
   predictionEnabled: true,
   playerCardInfo: "record",
@@ -83,6 +87,7 @@ export function sameFormationSettings(left: unknown, right: unknown): boolean {
     a.showPlayerCardScore === b.showPlayerCardScore &&
     a.showPlayerCardInfo === b.showPlayerCardInfo &&
     a.showTeamComparisonSummary === b.showTeamComparisonSummary &&
+    a.teamComparisonMode === b.teamComparisonMode &&
     a.showPlayerSessionSummary === b.showPlayerSessionSummary &&
     a.predictionEnabled === b.predictionEnabled &&
     a.playerCardInfo === b.playerCardInfo &&
@@ -98,6 +103,7 @@ export function validateFormationSettings(value: FormationSettings): void {
     typeof value.showPlayerCardScore !== "boolean" ||
     typeof value.showPlayerCardInfo !== "boolean" ||
     typeof value.showTeamComparisonSummary !== "boolean" ||
+    !["score", "prediction"].includes(value.teamComparisonMode) ||
     typeof value.showPlayerSessionSummary !== "boolean" ||
     typeof value.predictionEnabled !== "boolean" ||
     typeof value.auctionItemsEnabled !== "boolean" ||
@@ -335,6 +341,7 @@ export function createFormation(
       showPlayerCardScore: settings.showPlayerCardScore,
       showPlayerCardInfo: settings.showPlayerCardInfo,
       showTeamComparisonSummary: settings.showTeamComparisonSummary,
+      teamComparisonMode: settings.teamComparisonMode,
       showPlayerSessionSummary: settings.showPlayerSessionSummary,
       predictionEnabled: settings.predictionEnabled,
       playerCardInfo: settings.playerCardInfo,

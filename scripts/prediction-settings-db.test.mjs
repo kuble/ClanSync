@@ -102,6 +102,20 @@ test("round prediction settings enforce Premium, persistence and spectator RLS",
     assert.deepEqual((await read()).formation_state, formation);
   });
 
+  await t.test("team comparison mode persists after formation and validates manager requests", async () => {
+    const formation = (await read()).formation_state;
+    for (const teamComparisonMode of ["prediction", "score"]) {
+      assert.equal(await ok(save(false, leader.client, { teamComparisonMode })), true);
+      assert.equal((await read()).formation_settings.teamComparisonMode, teamComparisonMode);
+      assert.deepEqual((await read()).formation_state, formation);
+    }
+    for (const teamComparisonMode of ["other", null, true, 1])
+      assert.ok((await save(false, leader.client, { teamComparisonMode })).error);
+    for (const user of [spectator, outsider])
+      assert.ok((await save(false, user.client, { teamComparisonMode: "prediction" })).error);
+    assert.equal((await read()).formation_settings.teamComparisonMode, "score");
+  });
+
   await t.test("disabled prediction blocks inserts, updates and upserts at the database boundary", async () => {
     await live();
     assert.ok((await prediction(spectator.client, spectator.id)).error);
