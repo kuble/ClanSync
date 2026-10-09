@@ -27,6 +27,7 @@ import {
 } from "@/lib/balance/prematch";
 import type { BalanceRoster } from "@/lib/balance/roster-schema";
 import { BalanceFormationPreview, type PreviewSettingFocus, type PreviewSettingField } from "./balance-formation-preview";
+import { BalanceDisplaySettings, BalanceBanSettings } from "./balance-settings-options";
 import styles from "./clan-balance-settings.module.css";
 
 export const TEAM_MODE_LABELS = {
@@ -399,168 +400,13 @@ export function ClanBalanceSettings({
           </fieldset>
           </div>
             </TabsContent>
-            <TabsContent value="display" className="rounded-xl border bg-muted/10 p-4">
-          <fieldset disabled={locked} className="space-y-3">
-            <legend className="font-semibold text-sm">선수 카드 표시</legend>
-            <p className="text-xs text-muted-foreground">편성 화면에 적용됩니다. 경기 현황에서는 참가자 이름만 표시합니다.</p>
-            <label className="block rounded-lg border bg-background/60 p-3 text-sm">
-              팀 비교 그래프
-              <span className="mt-1 block text-xs text-muted-foreground">두 팀 사이에 표시합니다. 평가·분석 점수 토글에 따라 비교 기준이 바뀝니다.</span>
-              <select
-                aria-label="팀 비교 그래프"
-                className={field}
-                value={planPremium && regularRoom ? draft.teamComparisonMode : "score"}
-                onChange={(event) => setDraft({ ...draft, teamComparisonMode: event.target.value as FormationSettings["teamComparisonMode"] })}
-              >
-                <option value="score">점수 합계</option>
-                <option value="prediction" disabled={!planPremium || !regularRoom}>예측 승률</option>
-              </select>
-              {!planPremium || !regularRoom ? <span className="mt-1 block text-xs text-muted-foreground">예측 승률은 Premium 정규 내전에서 표시합니다.</span> : null}
-            </label>
-            <label className="flex items-center justify-between gap-4 rounded-lg border bg-background/60 p-3 text-sm">
-              <span>
-                점수 표시
-                <span className="mt-1 block text-xs text-muted-foreground">선택한 평가·분석 점수를 카드에 표시합니다.</span>
-              </span>
-              <input
-                type="checkbox"
-                aria-label="선수 카드 점수 표시"
-                className="size-4 shrink-0 accent-primary"
-                checked={draft.showPlayerCardScore}
-                onChange={(event) => setDraft({ ...draft, showPlayerCardScore: event.target.checked })}
-              />
-            </label>
-            <label className="flex items-center justify-between gap-4 rounded-lg border bg-background/60 p-3 text-sm">
-              <span>
-                보조 정보 표시
-                <span className="mt-1 block text-xs text-muted-foreground">닉네임 아래에 세션 기록을 표시합니다.</span>
-              </span>
-              <input
-                type="checkbox"
-                aria-label="선수 카드 보조 정보 표시"
-                className="size-4 shrink-0 accent-primary"
-                checked={draft.showPlayerCardInfo}
-                onChange={(event) => setDraft({ ...draft, showPlayerCardInfo: event.target.checked })}
-              />
-            </label>
-            <label className="flex items-center justify-between gap-4 rounded-lg border bg-background/60 p-3 text-sm">
-              <span>
-                팀 비교 요약
-                <span className="mt-1 block text-xs text-muted-foreground">팀 합계에 마우스를 올렸을 때 비교 팝업을 표시합니다.</span>
-              </span>
-              <input
-                type="checkbox"
-                aria-label="팀 비교 요약 표시"
-                className="size-4 shrink-0 accent-primary"
-                checked={draft.showTeamComparisonSummary}
-                onChange={(event) => setDraft({ ...draft, showTeamComparisonSummary: event.target.checked })}
-              />
-            </label>
-            <label className="flex items-center justify-between gap-4 rounded-lg border bg-background/60 p-3 text-sm">
-              <span>
-                플레이어 세션 정보
-                <span className="mt-1 block text-xs text-muted-foreground">플레이어에 마우스를 올렸을 때 상세 팝업을 표시합니다.</span>
-              </span>
-              <input
-                type="checkbox"
-                aria-label="플레이어 세션 정보 요약 표시"
-                className="size-4 shrink-0 accent-primary"
-                checked={draft.showPlayerSessionSummary}
-                onChange={(event) => setDraft({ ...draft, showPlayerSessionSummary: event.target.checked })}
-              />
-            </label>
-            <label className="block text-xs">
-              보조 정보 내용
-              <select
-                aria-label="선수 카드 보조 정보"
-                className={field}
-                disabled={!draft.showPlayerCardInfo}
-                value={draft.playerCardInfo}
-                onChange={(event) => setDraft({ ...draft, playerCardInfo: event.target.value as FormationSettings["playerCardInfo"] })}
-              >
-                <option value="record">세션 전적</option>
-                <option value="streak">현재 연승·연패</option>
-              </select>
-            </label>
-          </fieldset>
+            <TabsContent value="display">
+              <BalanceDisplaySettings settings={draft} onChange={setDraft} locked={locked} premium={planPremium} regularRoom={regularRoom} />
             </TabsContent>
-            <TabsContent value="bans" className="rounded-xl border bg-muted/10 p-4">
-          <fieldset disabled={locked} className="space-y-4">
-            <legend className="font-semibold text-sm">밴픽</legend>
-            <div className="space-y-2 rounded-lg border bg-background/60 p-3">
-              <label className="flex items-center justify-between gap-3 text-sm font-medium">
-                승부예측 사용
-                <input type="checkbox" className="size-4 accent-primary disabled:cursor-not-allowed disabled:opacity-40"
-                  checked={planPremium && regularRoom && draft.predictionEnabled}
-                  disabled={!planPremium || !regularRoom}
-                  onChange={(event) => setDraft({ ...draft, predictionEnabled: event.target.checked })} />
-              </label>
-              <p className="text-xs text-muted-foreground">{!planPremium ? "Premium 클랜에서 사용할 수 있습니다." : !regularRoom ? "정규 내전에서만 사용할 수 있습니다." : "관전 멤버가 블루 승·레드 승·무승부를 예측합니다. 경기 현황에서 따로 열 수 있습니다."}</p>
-            </div>
-            <label className="flex items-center justify-between text-sm">
-              맵 투표 사용
-              <input
-                type="checkbox"
-                className="size-4 accent-primary"
-                checked={map}
-                onChange={(e) => setMap(e.target.checked)}
-              />
-            </label>
-            <label className="flex items-center justify-between text-sm">
-              영웅 밴 사용
-              <input
-                type="checkbox"
-                className="size-4 accent-primary"
-                checked={hero}
-                onChange={(e) => setHero(e.target.checked)}
-              />
-            </label>
-            <label className="block space-y-2 text-xs">
-              <span>팀별 영웅 밴 개수</span>
-              <select aria-label="팀별 영웅 밴 개수" className={field} disabled={!hero}
-                value={banDraft.heroBansPerTeam}
-                onChange={(event) => setBanDraft({ ...banDraft, heroBansPerTeam: Number(event.target.value) as 1 | 2 })}>
-                <option value={1}>팀당 1영웅</option>
-                <option value={2}>팀당 2영웅</option>
-              </select>
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              {(
-                [
-                  {
-                    key: "mapBanSeconds",
-                    label: "맵 투표 시간(초)",
-                    enabled: map,
-                  },
-                  {
-                    key: "heroBanSeconds",
-                    label: "영웅 밴 시간(초)",
-                    enabled: hero,
-                  },
-                ] as const
-              ).map(({ key, label, enabled }) => (
-                <label key={key} className="text-xs">
-                  {label}
-                  <input
-                    type="number"
-                    aria-label={label}
-                    className={field}
-                    min={5}
-                    max={300}
-                    step={1}
-                    disabled={!enabled}
-                    value={banDraft[key]}
-                    onChange={(e) =>
-                      setBanDraft({
-                        ...banDraft,
-                        [key]: Number(e.target.value),
-                      })
-                    }
-                  />
-                </label>
-              ))}
-            </div>
-          </fieldset>
+            <TabsContent value="bans">
+              <BalanceBanSettings gameSlug={gameSlug} map={map} hero={hero} onMapChange={setMap} onHeroChange={setHero}
+                settings={banDraft} onChange={setBanDraft} formation={draft} onFormationChange={setDraft}
+                locked={locked} premium={planPremium} regularRoom={regularRoom} />
             </TabsContent>
           </Tabs>
           {editable && activeVote ? (
