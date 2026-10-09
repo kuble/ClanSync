@@ -1,0 +1,11 @@
+.sheet[data-side="right"] { width: 100%; max-width: 440px; overflow: hidden; }
+.panel { display: flex; height: 100%; min-height: 0; flex-direction: column; }
+.preview { margin-top: 20px; }
+
+@media (min-width: 1100px) {
+  .sheet[data-side="right"] { width: 100%; max-width: none; background: transparent; border: 0; box-shadow: none; overflow: visible; pointer-events: none; }
+  .panel { width: 440px; margin-left: auto; background: var(--background); border-left: 1px solid var(--border); box-shadow: -8px 0 30px rgb(0 0 0 / 12%); pointer-events: auto; }
+  .sheet > button { pointer-events: auto; }
+  .preview { position: fixed; top: 50%; left: 32px; right: 472px; transform: translateY(-50%); display: flex; justify-content: center; margin-top: 0; pointer-events: none; }
+  .preview > section { width: 100%; max-width: 660px; max-height: calc(100dvh - 64px); overflow-y: auto; pointer-events: auto; scrollbar-color: var(--muted-foreground) var(--background); scrollbar-width: thin; }
+}

@@ -6,7 +6,8 @@ import { StatTitle } from "./stat-help";
 import { Crown, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import settingsStyles from "./hof-settings.module.css";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
 import { HofSettingsForm } from "./clan-stats-view";
@@ -18,7 +19,7 @@ import { useStatsPeriod } from "./use-stats-period";
 
 const RANKINGS = [
   { id: "rate", label: "승률", help: "승 / (승 + 무 + 패). 최소 출전 기준을 충족한 멤버만 등재합니다." },
-  { id: "attendance", label: "최다 출석", help: "한 경기 이상 출전한 내전 날짜 수입니다. 같은 날 여러 내전에 참여해도 1일로 셉니다." },
+  { id: "attendance", label: "최다 참여", help: "한 경기 이상 출전한 정규 내전 횟수입니다. 같은 내전의 여러 경기는 1회로 세며, 전체 정규 내전 중 최소 참여 비율을 충족한 멤버를 등재합니다." },
   { id: "appearances", label: "최다 출전", help: "선택 기간의 전체 유효 경기 중 실제 출전한 경기 수입니다." },
   { id: "prediction", label: "예측 적중", help: "적중 횟수순으로 순위를 매깁니다. 적중률을 함께 표시하며 무승부·무효 예측은 제외합니다." },
 ] as const;
@@ -46,7 +47,7 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
       : year === String(now.year) ? model.hof.periods.year : model.hof.historyYears[year];
   const loaded = useStatsPeriod(model, statsPeriodKey(period), !selectedBlock);
   const block = selectedBlock ?? loaded.data?.hof ?? {
-    totals: { sessions: 0, days: 0, matches: 0 }, minimumGames: 1,
+    totals: { sessions: 0, days: 0, matches: 0 }, minimumGames: 1, minimumSessions: 1, unqualifiedParticipation: [],
     unqualified: model.permissions.isStaff ? [...model.hof.periods.all.winRate, ...model.hof.periods.all.unqualified].map((row) => ({ ...row, wins: 0, draws: 0, losses: 0, ratePct: null })) : [],
     undisclosed: false, undisclosedHint: null, winRate: [], wins: [], streaks: [], participation: [], cumulative: [], predictionCorrect: [],
   };
@@ -57,7 +58,11 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
       ...(model.permissions.isStaff ? block.unqualified.map((row) => ({ ...row, rank: null, shortfall: Math.max(0, block.minimumGames - row.wins - row.draws - row.losses) })) : []),
     ].sort((a, b) => (b.ratePct ?? -1) - (a.ratePct ?? -1) || b.wins - a.wins || a.userId.localeCompare(b.userId))
       .map((row) => ({ ...row, value: row.ratePct === null ? "—" : `${row.ratePct}%`, detail: `${row.wins}승 / ${row.draws}무 / ${row.losses}패 · ${row.wins + row.draws + row.losses}경기` })),
-    attendance: block.participation.map((row) => ({ ...row, value: `${row.played}일`, detail: `전체 개최 ${totals.days}일 중 ${row.played}일 출석 · 내전 ${totals.sessions}회` })),
+    attendance: [
+      ...block.participation.map((row, index) => ({ ...row, rank: index + 1, shortfall: 0 })),
+      ...(model.permissions.isStaff ? block.unqualifiedParticipation.map((row) => ({ ...row, rank: null, shortfall: Math.max(0, block.minimumSessions - row.played) })) : []),
+    ].sort((a, b) => b.ratePct - a.ratePct || b.played - a.played || a.userId.localeCompare(b.userId))
+      .map((row) => ({ ...row, value: `${row.played}회`, detail: `전체 정규 내전 ${totals.sessions}회 중 ${row.played}회 참여 · 참여율 ${row.ratePct}%` })),
     appearances: block.cumulative.map((row) => ({ ...row, value: `${row.played}경기`, detail: `전체 ${totals.matches}경기 중 ${row.played}경기 출전 · 내전 ${totals.sessions}회` })),
     prediction: block.predictionCorrect.map((row) => ({ ...row, value: `${row.correct}회`, detail: `${row.valid}회 예측 중 ${row.correct}회 적중 · 적중률 ${row.ratePct ?? 0}%` })),
   };
@@ -70,10 +75,13 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
       {active && <RubberSegment label="부문" labelPosition="top" options={available} value={active.id} onChange={setRanking} />}
       <StatsPeriodFilter value={period} onChange={(next) => setPeriod({ ...next, month: next.year === String(now.year) && Number(next.month) > now.month ? String(now.month).padStart(2, "0") : next.month })} years={years} maxMonth={year === String(now.year) ? now.month : 12} />
       <div className="ml-auto flex items-center gap-2 self-center">
-      {model.permissions.isStaff && model.permissions.setHofRules && <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <DialogTrigger render={<Button type="button" size="sm" variant="outline" />}><Settings2 className="size-4" aria-hidden="true" /> 설정</DialogTrigger>
-        <DialogContent className="flex h-[min(720px,90dvh)] flex-col overflow-hidden sm:max-w-xl"><DialogHeader><DialogTitle>통계 공개 설정</DialogTitle><DialogDescription>열람, 순위 공개와 승률 등재를 설정합니다.</DialogDescription></DialogHeader><HofSettingsForm gameSlug={gameSlug} clanId={clanId} cfg={model.hof.config} totalGames={totals.matches} exposeHof={model.hof.exposeHof} isLeader={model.permissions.isLeader} onDone={() => setSettingsOpen(false)} /></DialogContent>
-      </Dialog>}
+      {model.permissions.isStaff && model.permissions.setHofRules && <Sheet open={settingsOpen} onOpenChange={setSettingsOpen}>
+        <SheetTrigger render={<Button type="button" size="sm" variant="outline" />}><Settings2 className="size-4" aria-hidden="true" /> 설정</SheetTrigger>
+        <SheetContent className={settingsStyles.sheet}><div className={settingsStyles.panel}>
+          <SheetHeader className="shrink-0 px-5 pb-5 pt-5 pr-12"><SheetTitle>통계 공개 설정</SheetTitle><SheetDescription>열람, 순위 공개와 등재 기준을 설정합니다.</SheetDescription></SheetHeader>
+          <HofSettingsForm gameSlug={gameSlug} clanId={clanId} cfg={model.hof.config} totalGames={totals.matches} totalSessions={totals.sessions} exposeHof={model.hof.exposeHof} isLeader={model.permissions.isLeader} onDone={() => setSettingsOpen(false)} />
+        </div></SheetContent>
+      </Sheet>}
       </div>
     </div>
     {loaded.feedback}
@@ -85,6 +93,7 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
               <div className="space-y-2 rounded-lg border bg-background/40 px-3 py-2 text-xs">
                 <p className="text-[11px] text-muted-foreground">{periodLabel} · 정규 내전 <strong className="text-foreground">{loaded.pending ? "—" : totals.sessions}회</strong> · 개최 {loaded.pending ? "—" : totals.days}일 · 전체 {loaded.pending ? "—" : totals.matches}경기</p>
                 {active.id === "rate" && <div className="flex flex-wrap items-center justify-between gap-1 border-t pt-2"><span className="text-muted-foreground">최소 규정 경기</span><strong>{totals.matches ? `${block.minimumGames}경기 이상 출전` : "집계할 경기 없음"}</strong></div>}
+                {active.id === "attendance" && <div className="flex flex-wrap items-center justify-between gap-1 border-t pt-2"><span className="text-muted-foreground">최소 참여 조건</span><strong>{totals.sessions ? `${block.minimumSessions}회 이상 참여 · ${model.hof.config.eligibilitySessionPct}%` : "집계할 내전 없음"}</strong></div>}
               </div>
                 <StatsScrollArea label={`${active.label} 순위 목록`} className="min-h-0 flex-1">
               {rankingRows[active.id].length ? (
@@ -101,7 +110,7 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
                         <span className="min-w-0 flex-1 space-y-1">
                           <span className="flex items-center justify-between gap-3"><span className="truncate text-sm font-semibold">{row.nickname}</span><strong className="shrink-0 text-lg tabular-nums">{row.value}</strong></span>
                           <span className="block text-[11px] text-muted-foreground">{row.detail}</span>
-                          {unqualified && <span className="block text-[10px] text-muted-foreground">규정 미달 · {row.shortfall}경기 부족</span>}
+                          {unqualified && <span className="block text-[10px] text-muted-foreground">규정 미달 · {row.shortfall}{active.id === "attendance" ? "회" : "경기"} 부족</span>}
                         </span>
                       </>;
                       const className = `relative flex min-h-[76px] w-full items-center gap-3 rounded-lg border p-3 text-left ${unqualified ? "border-dashed bg-muted/20" : rank === 1 ? "border-amber-400/25 bg-amber-400/[0.04]" : "bg-background/20"}`;

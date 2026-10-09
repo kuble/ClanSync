@@ -13,7 +13,7 @@ import { collectHofEmblems as collectEmblems, type HofEmblem as Emblem } from "@
 type Hof = ClanStatsPageModel["hof"];
 const DESIGNS = {
   "승률": { Icon: Trophy, shape: "M32 3 56 13 52 43 32 61 12 43 8 13Z" },
-  "최다 출석": { Icon: CalendarCheck, shape: "M16 5H48L59 16V48L48 59H16L5 48V16Z" },
+  "최다 참여": { Icon: CalendarCheck, shape: "M16 5H48L59 16V48L48 59H16L5 48V16Z" },
   "최다 출전": { Icon: Swords, shape: "M32 2 61 32 32 62 3 32Z" },
   "최장 연승": { Icon: Flame, shape: "M32 2 41 14 56 9 53 26 63 36 48 44 45 59 32 53 19 59 16 44 1 36 11 26 8 9 23 14Z" },
   "예측 적중": { Icon: Crosshair, shape: "M32 3A29 29 0 1 1 31.99 3Z" },

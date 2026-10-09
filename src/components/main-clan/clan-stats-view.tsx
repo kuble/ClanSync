@@ -15,10 +15,8 @@ import {
 } from "@/components/ui/card";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -29,7 +27,8 @@ import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import type { ResolvedHofConfig } from "@/lib/clan/stats/hof-config";
 import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
 import { cn } from "@/lib/utils";
-import { HofEligibilitySettings } from "./hof-eligibility-settings";
+import { HofEligibilitySettings, HofEligibilityPreview, useHofEligibilityDraft } from "./hof-eligibility-settings";
+import settingsStyles from "./hof-settings.module.css";
 import {
   Activity,
   BarChart3,
@@ -82,6 +81,7 @@ export function HofSettingsForm({
   clanId,
   cfg,
   totalGames,
+  totalSessions,
   exposeHof,
   isLeader,
   onDone,
@@ -90,14 +90,16 @@ export function HofSettingsForm({
   clanId: string;
   cfg: ResolvedHofConfig;
   totalGames?: number;
+  totalSessions?: number;
   exposeHof: boolean;
   isLeader: boolean;
   onDone: () => void;
 }) {
   const [pending, start] = useTransition();
+  const draft = useHofEligibilityDraft(cfg);
   return (
     <form
-      className="flex min-h-0 flex-1 flex-col gap-4 pt-2"
+      className="flex min-h-0 flex-1 flex-col gap-4"
       action={async (fd) => {
         start(async () => {
           try {
@@ -112,7 +114,7 @@ export function HofSettingsForm({
         });
       }}
     >
-      <fieldset disabled={pending} className="flex min-h-0 flex-1 flex-col">
+      <fieldset disabled={pending} className="flex min-h-0 flex-1 flex-col px-5">
       <Tabs defaultValue="access" className="min-h-0 flex-1 gap-4">
         <TabsList className="grid h-10 w-full shrink-0 grid-cols-3" aria-label="통계 설정 영역">
           <TabsTrigger value="access">열람·공개</TabsTrigger>
@@ -163,7 +165,7 @@ export function HofSettingsForm({
           </select>
         </div>
         <div className="space-y-1">
-          <Label htmlFor="participation_visible_top">출석 일수 순위 공개</Label>
+          <Label htmlFor="participation_visible_top">내전 참여 순위 공개</Label>
           <select
             id="participation_visible_top"
             name="participation_visible_top"
@@ -232,18 +234,19 @@ export function HofSettingsForm({
       </div>
       </section>
       </TabsContent>
-      <TabsContent value="eligibility" keepMounted><HofEligibilitySettings cfg={cfg} totalGames={totalGames} /></TabsContent>
+      <TabsContent value="eligibility" keepMounted>
+        <HofEligibilitySettings draft={draft} />
+        <div className={settingsStyles.preview}><HofEligibilityPreview draft={draft} totalGames={totalGames} totalSessions={totalSessions} /></div>
+      </TabsContent>
         </div>
       </Tabs>
       </fieldset>
-      <DialogFooter className="shrink-0 gap-2 sm:justify-end">
-        <DialogClose render={<Button type="button" variant="outline" disabled={pending} />}>
-          취소
-        </DialogClose>
+      <div className="flex shrink-0 justify-end gap-2 border-t px-5 py-4">
+        <Button type="button" variant="outline" disabled={pending} onClick={onDone}>취소</Button>
         <Button type="submit" disabled={pending}>
           {pending ? "저장 중…" : "저장"}
         </Button>
-      </DialogFooter>
+      </div>
     </form>
   );
 }

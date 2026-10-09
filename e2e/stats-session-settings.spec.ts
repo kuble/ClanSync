@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
-import { loadClanStatsArchive } from "../src/lib/clan/stats/load-clan-stats";
+import { loadClanStatsArchive, loadClanStatsPage } from "../src/lib/clan/stats/load-clan-stats";
 import { archiveSessionSummary, sessionDurationLabel } from "../src/lib/clan/stats/archive-session-summary";
 
 async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>) {
@@ -12,6 +12,7 @@ async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>) {
 
 test("stats: session summary, visual eligibility and settings tabs preserve saved fields", async ({ page }) => {
   test.setTimeout(120_000);
+  await page.setViewportSize({ width: 1304, height: 884 });
   const f = await createIsolatedBalanceFixture(2);
   try {
     const prior = randomUUID(), flash = randomUUID(), series = randomUUID();
@@ -33,6 +34,9 @@ test("stats: session summary, visual eligibility and settings tabs preserve save
     }
     await ok(f.service.from("clan_settings").upsert({ clan_id: f.clanId, hof_config: { wins_visible_top: 3, streak_visible_top: 5 } }));
     const leader = await f.memberClient(0);
+    const initial = await loadClanStatsPage(leader, f.users[0].id, f.clanId, { deferDetails: true });
+    expect(initial?.hof.periods.all.totals.sessions).toBe(2);
+    expect(initial?.hof.periods.all.participation[0]).toMatchObject({ played: 1, ratePct: 50 });
     const detail = await loadClanStatsArchive(leader, f.clanId, "2025-09-30");
     expect(detail?.kind).toBe("archive");
     const records = detail!.kind === "archive" ? detail!.archive.sampleByDate["2025-09-30"] : [];
@@ -67,21 +71,56 @@ test("stats: session summary, visual eligibility and settings tabs preserve save
     await settings.getByLabel("기준 전환점", { exact: true }).fill("10");
     await settings.getByLabel("전체 경기의", { exact: true }).fill("50");
     await settings.getByLabel("출전 횟수", { exact: true }).fill("7");
-    await settings.getByRole("button", { name: "10경기", exact: true }).click();
-    const preview = settings.getByLabel("승률 등재 미리보기", { exact: true });
-    await expect(preview.getByRole("status").first()).toContainText("5경기");
-    await settings.getByRole("button", { name: "11경기", exact: true }).click();
-    await expect(preview.getByRole("status").first()).toContainText("7경기");
+    await settings.getByLabel("전체 정규 내전의", { exact: true }).fill("60");
+    const preview = settings.getByLabel("순위 등재 미리보기", { exact: true });
+    await expect(preview.getByText("미리보기", { exact: true })).toBeVisible();
+    await expect(settings.getByRole("button", { name: /^\d+경기$/ })).toHaveCount(0);
+    const total = preview.getByLabel("클랜 전체 경기", { exact: true });
+    await expect(total).toHaveAttribute("max", "200");
+    await total.press("Home");
+    for (let i = 0; i < 10; i++) await total.press("ArrowRight");
+    await expect(preview.locator("output")).toContainText("5경기");
+    await total.press("ArrowRight");
+    await expect(preview.locator("output")).toContainText("7경기");
     await settings.getByLabel("멤버 출전", { exact: true }).press("End");
-    await expect(settings.getByRole("status", { name: "출전 기준 확인", exact: true })).toContainText("등재 가능");
+    await expect(settings.getByRole("status", { name: "출전 기준 확인", exact: true })).toContainText("순위 등재 가능");
+    await total.press("End");
+    await expect(total).toHaveValue("200");
+    await expect(preview.locator("output")).toContainText("순위 등재 최소 요구 경기7경기");
+    const previewBox = await preview.boundingBox();
+    const rulesBox = await settings.getByLabel("전체 정규 내전의", { exact: true }).boundingBox();
+    expect(previewBox!.x + previewBox!.width).toBeLessThan(864);
+    expect(rulesBox!.x).toBeGreaterThan(864);
+    await settings.getByRole("button", { name: "순위 등재 기준 도움말", exact: true }).focus();
+    await expect(page.getByRole("tooltip")).toContainText("새벽까지");
+    await preview.getByRole("button", { name: "내전 참여", exact: true }).click();
+    await expect(preview.locator("output")).toContainText("2회");
+    await preview.getByLabel("클랜 전체 내전", { exact: true }).press("End");
+    await expect(preview.locator("output")).toContainText("120회");
+    await settings.getByLabel("전체 정규 내전의", { exact: true }).fill("50");
+    await expect(preview.locator("output")).toContainText("100회");
+    await settings.getByLabel("전체 정규 내전의", { exact: true }).fill("60");
     await settings.getByRole("tab", { name: "열람·공개", exact: true }).click();
     await settings.getByRole("button", { name: "저장", exact: true }).click();
     await expect(settings).toBeHidden();
     const saved = await ok(f.service.from("clan_settings").select("hof_config").eq("clan_id", f.clanId).single());
-    expect(saved.hof_config).toMatchObject({ member_personal_records: true, win_rate_visible_top: 5, wins_visible_top: 3, streak_visible_top: 5, eligibility_game_threshold: 10, eligibility_below_pct: 50, eligibility_above_min_games: 7 });
+    expect(saved.hof_config).toMatchObject({ member_personal_records: true, win_rate_visible_top: 5, wins_visible_top: 3, streak_visible_top: 5, eligibility_game_threshold: 10, eligibility_below_pct: 50, eligibility_above_min_games: 7, eligibility_session_pct: 60 });
+    const [staff, member] = await Promise.all([
+      loadClanStatsPage(leader, f.users[0].id, f.clanId, { deferDetails: true }),
+      loadClanStatsPage(await f.memberClient(1), f.users[1].id, f.clanId, { deferDetails: true }),
+    ]);
+    expect(staff?.hof.periods.all.minimumSessions).toBe(2);
+    expect(staff?.hof.periods.all.participation).toEqual([]);
+    expect(staff?.hof.periods.all.unqualifiedParticipation[0]).toMatchObject({ played: 1, ratePct: 50 });
+    expect(member?.hof.periods.all.unqualifiedParticipation).toEqual([]);
+    await page.getByRole("radio", { name: "최다 참여", exact: true }).click();
+    await expect(page.getByLabel("최다 참여 순위", { exact: true })).toContainText("규정 미달 · 1회 부족");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole("button", { name: "설정", exact: true }).click();
     await page.getByRole("dialog", { name: "통계 공개 설정", exact: true }).getByRole("tab", { name: "등재 기준", exact: true }).click();
+    await expect(preview).toBeVisible();
+    const mobile = await preview.boundingBox();
+    expect(mobile!.width).toBeLessThanOrEqual(350);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   } finally { await f.cleanup(); }
 });

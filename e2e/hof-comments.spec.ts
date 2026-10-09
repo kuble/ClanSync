@@ -125,8 +125,8 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await expect(reply.getByRole("button", { name: "하트 공감 1명", exact: true })).toHaveAttribute("aria-pressed", "true");
     await reply.getByRole("button", { name: "하트 공감 1명", exact: true }).click();
     await expect(reply.getByRole("button", { name: "하트 공감 1명", exact: true })).toHaveCount(0);
-    await page.getByRole("radio", { name: "최다 출석", exact: true }).click();
-    await expect(page.getByLabel("전체 기간 · 최다 출석 반응", { exact: true })).toBeVisible();
+    await page.getByRole("radio", { name: "최다 참여", exact: true }).click();
+    await expect(page.getByLabel("전체 기간 · 최다 참여 반응", { exact: true })).toBeVisible();
     await expect(page.getByText(content, { exact: true })).toHaveCount(0);
     await page.getByRole("radio", { name: "승률", exact: true }).click();
     await page.getByRole("radio", { name: "월별", exact: true }).click();
