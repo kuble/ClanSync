@@ -18,7 +18,6 @@ import {
   type BalanceHistoryRound,
   type BalanceStatsSort,
   type BalanceStatsSortDirection,
-  type PublicDrawEvent,
 } from "@/lib/balance/history";
 import { cn } from "@/lib/utils";
 import { ClanBalanceRosterBoard } from "./clan-balance-roster-board";
@@ -34,13 +33,6 @@ type Props = {
   docked?: boolean;
 };
 
-const ROLE_LABEL = { tank: "탱커", dmg: "딜러", sup: "힐러" };
-const MODE_LABEL = {
-  keep: "현재 팀 유지",
-  random: "팀 추첨",
-  draft: "주장 지명",
-  auction: "포인트 경매",
-};
 const STAT_COLUMNS: { key: BalanceStatsSort; label: string }[] = [
   { key: "appearances", label: "출전" },
   { key: "wins", label: "승/무/패" },
@@ -69,91 +61,9 @@ function outcomeLabel(round: BalanceHistoryRound): string {
   return round.phase === "editing" ? "편성 중" : "결과 대기";
 }
 
-function DrawAudit({
-  event,
-  nickname,
-}: {
-  event: PublicDrawEvent;
-  nickname: (id: string) => string;
-}) {
-  const settings = event.settings;
-  const roles = new Map(
-    event.players.map((player) => [player.id, player.role]),
-  );
-  const drawId = event.draw?.id;
-  return (
-    <li className="space-y-2 rounded-lg border bg-background p-3 text-xs">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="font-semibold">
-          {event.event === "reset" ? "편성 초기화" : "편성 시작"}
-        </span>
-        <time dateTime={event.at} className="text-muted-foreground">
-          {timeLabel(event.at)} KST
-        </time>
-      </div>
-      {drawId ? (
-        <p className="break-all text-[10px] text-muted-foreground">
-          추첨 {drawId}
-        </p>
-      ) : null}
-      {event.event === "start" ? (
-        <>
-          <p className="text-muted-foreground">
-            {event.draw?.roleMode === "lottery" || settings?.roles === "lottery"
-              ? "선호 역할 추첨"
-              : "역할 직접 배정"}
-            {event.mode ? ` · ${MODE_LABEL[event.mode]}` : ""}
-          </p>
-          {settings?.teams === "auction" || event.mode === "auction" ? (
-            <p className="text-muted-foreground">
-              {settings?.auctionBudget != null
-                ? `팀당 ${settings.auctionBudget.toLocaleString("ko-KR")}P`
-                : "예산 기록 없음"}
-              {settings?.minBid != null ? ` · 최소 ${settings.minBid}P` : ""}
-              {settings?.durationSeconds != null
-                ? ` · ${settings.durationSeconds}초`
-                : ""}
-              {settings?.auctionPreparationSeconds != null ? ` · 낙찰 후 준비 ${settings.auctionPreparationSeconds}초` : ""}
-              {settings?.bidExtensionSeconds != null ? ` · 입찰 연장 ${settings.bidExtensionSeconds}초` : ""}
-            </p>
-          ) : null}
-          {settings?.captains?.length ? (
-            <p>주장: {settings.captains.map(nickname).join(" · ")}</p>
-          ) : null}
-          {event.order.length ? (
-            <div>
-              <p className="mb-2 text-[10px] font-medium text-muted-foreground">
-                저장된 추첨 순서
-              </p>
-              <ol className="flex flex-wrap gap-1.5">
-                {event.order.map((id, index) => (
-                  <li key={id} className="rounded-md bg-muted px-2 py-1">
-                    <span className="mr-1.5 tabular-nums text-muted-foreground">
-                      {index + 1}
-                    </span>
-                    {nickname(id)}
-                    {roles.has(id) ? (
-                      <span className="ml-1 text-[10px] text-muted-foreground">
-                        {ROLE_LABEL[roles.get(id)!]}
-                      </span>
-                    ) : null}
-                  </li>
-                ))}
-              </ol>
-            </div>
-          ) : null}
-        </>
-      ) : (
-        <p className="text-muted-foreground">이전 추첨 기록은 유지됩니다.</p>
-      )}
-    </li>
-  );
-}
-
-function HistoryMatches({ rounds, pool, nickname }: {
+function HistoryMatches({ rounds, pool }: {
   rounds: BalanceHistoryRound[];
   pool: Props["pool"];
-  nickname: (id: string) => string;
 }) {
   const rail = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; left: number; moved: boolean } | null>(null);
@@ -216,14 +126,9 @@ function HistoryMatches({ rounds, pool, nickname }: {
         </div>
         <div className="space-y-3 p-3 [&_[data-board-slot]]:min-h-12 [&_[data-board-slot]]:py-2 sm:p-4">
           <ClanBalanceRosterBoard roster={round.roster} pool={pool} outcome={round.match_outcome} showPlayerSessionSummary={false} />
-          <details className="rounded-lg bg-muted/30 p-3">
-            <summary className="cursor-pointer text-xs font-medium">편성·추첨 이력 <span className="text-muted-foreground">({round.drawHistory.length})</span></summary>
-            {round.drawHistory.length ? <ol className="mt-3 space-y-2">{round.drawHistory.map((event, eventIndex) => <DrawAudit key={`${event.at}:${eventIndex}`} event={event} nickname={nickname} />)}</ol> : <p className="mt-3 text-xs text-muted-foreground">저장된 편성·추첨 이력이 없습니다.</p>}
-          </details>
         </div>
       </article>)}
     </div>
-    <p className="text-center text-[11px] text-muted-foreground">좌우로 끌어 다른 경기를 확인하세요.</p>
   </section>;
 }
 
@@ -471,7 +376,7 @@ function HistoryContent({
                 </p>
               )}
             </section>
-            <div className="min-w-0 lg:col-start-1 lg:row-start-2"><HistoryMatches key={requestKey} rounds={data.rounds} pool={historyPool} nickname={nickname} /></div>
+            <div className="min-w-0 lg:col-start-1 lg:row-start-2"><HistoryMatches key={requestKey} rounds={data.rounds} pool={historyPool} /></div>
           </div>
         )}
       </div>
