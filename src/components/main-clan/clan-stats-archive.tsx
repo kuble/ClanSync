@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight, MapPin, Clock, Crown, Crosshair, Shield, Plus, Swords } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ClanStatsPageModel, ClanArchiveMatch } from "@/lib/clan/stats/load-clan-stats";
@@ -8,9 +8,11 @@ import { isoToKstYmd } from "@/lib/clan/stats/kst";
 import { cn } from "@/lib/utils";
 import { ArchiveDatePicker } from "./archive-date-picker";
 import { ArchiveDayTable } from "./archive-day-table";
+import { StatsDetailLoader, type StatsDetailCache } from "./stats-detail-loader";
 
-export function ClanStatsArchive({ archive, periodKey = "all", filters, mapFilter = "all", participantSearch = "" }: {
+export function ClanStatsArchive({ archive, clanId, periodKey = "all", filters, mapFilter = "all", participantSearch = "" }: {
   archive: ClanStatsPageModel["archive"];
+  clanId?: string;
   periodKey?: string;
   filters?: ReactNode;
   mapFilter?: string;
@@ -18,21 +20,29 @@ export function ClanStatsArchive({ archive, periodKey = "all", filters, mapFilte
 }) {
   const [selectedDay, setSelectedDay] = useState(() => archive.datesKst[0] ?? (periodKey === "all" ? isoToKstYmd(new Date().toISOString()) : periodKey + (periodKey.length === 4 ? "-01" : "") + "-01"));
   const dayRecords = archive.sampleByDate[selectedDay] ?? [];
-  const term = participantSearch.trim().toLocaleLowerCase("ko");
-  const records = dayRecords.filter((row) => (mapFilter === "all" || row.mapLabel === mapFilter) && (!term || row.players.some((player) => player.nickname.toLocaleLowerCase("ko").includes(term))));
+  const { requests: cache } = useMemo(() => ({ archive, requests: new Map() as StatsDetailCache }), [archive]);
+  const fetchDay = clanId && archive.deferredDays && archive.datesKst.includes(selectedDay) && !archive.sampleByDate[selectedDay];
   return <div className="space-y-4">
     <div className="flex flex-wrap items-end justify-between gap-3" aria-label="경기 기록 날짜 및 필터">
       <ArchiveDatePicker value={selectedDay} onChange={setSelectedDay} dates={archive.datesKst} periodKey={periodKey} />
       {filters}
     </div>
-    <div className="grid items-start gap-4 min-[1100px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      {records.length ? <ArchiveRecords key={selectedDay} records={records} /> : <section aria-label="경기 상세" className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-6 text-center">
+    {fetchDay ? <StatsDetailLoader cache={cache} url={`/api/clans/${clanId}/stats?section=archive&day=${selectedDay}`}>
+      {(detail) => detail.kind === "archive" && <ArchiveDay key={selectedDay} dayRecords={detail.archive.sampleByDate[selectedDay] ?? []} mapFilter={mapFilter} participantSearch={participantSearch} />}
+    </StatsDetailLoader> : <ArchiveDay key={selectedDay} dayRecords={dayRecords} mapFilter={mapFilter} participantSearch={participantSearch} />}
+  </div>;
+}
+
+function ArchiveDay({ dayRecords, mapFilter, participantSearch }: { dayRecords: ClanArchiveMatch[]; mapFilter: string; participantSearch: string }) {
+  const term = participantSearch.trim().toLocaleLowerCase("ko");
+  const records = dayRecords.filter((row) => (mapFilter === "all" || row.mapLabel === mapFilter) && (!term || row.players.some((player) => player.nickname.toLocaleLowerCase("ko").includes(term))));
+  return <div className="grid items-start gap-4 min-[1100px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      {records.length ? <ArchiveRecords records={records} /> : <section aria-label="경기 상세" className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-6 text-center">
         <Swords className="size-7 text-muted-foreground/30" aria-hidden="true" />
         <p role="status" className="text-sm text-muted-foreground">{dayRecords.length ? "선택한 조건에 맞는 경기가 없습니다." : "이 날짜에는 기록된 경기가 없습니다."}</p>
         <p className="text-xs text-muted-foreground">{dayRecords.length ? "맵 또는 참가자 필터를 변경해 보세요." : "날짜를 눌러 다른 날의 기록을 확인하세요."}</p>
       </section>}
       <ArchiveDayTable records={dayRecords} />
-    </div>
   </div>;
 }
 

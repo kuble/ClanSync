@@ -340,12 +340,15 @@ test("personal records are staff-only by default and member self-access follows 
   await page.getByRole("tab", { name: "개인 기록" }).click();
   await expect(page.getByRole("region", { name: "개인 기록 멤버 목록", exact: true }).getByRole("button")).toHaveCount(1);
   await page.getByRole("button", { name: `${f.users[1].nickname} 개인 기록 열기`, exact: true }).click();
+  await page.getByRole("button", { name: `${f.users[1].nickname} 엠블럼 컬렉션 열기`, exact: true }).click();
   await expect(page.getByText("엠블럼 컬렉션", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "엠블럼 컬렉션 닫기" }).click();
   await expect(page.getByText("선택 기간·역할 조건을 적용한 최근 기록입니다.")).toHaveCount(0);
   await page.getByRole("button", { name: "최근 흐름 도움말" }).focus();
   await expect(page.getByRole("tooltip")).toContainText("현재 연속");
-  await page.getByRole("radiogroup", { name: "개인 기록 기간", exact: true }).getByRole("radio", { name: "이번 달", exact: true }).click();
-  await expect(page.getByRole("radiogroup", { name: "개인 기록 기간", exact: true }).getByRole("radio", { checked: true })).toHaveText("이번 달");
+  const period = page.getByRole("region", { name: "개인 기록 기간", exact: true });
+  await period.getByRole("radio", { name: "월별", exact: true }).click();
+  await expect(period.getByRole("radio", { checked: true })).toHaveText("월별");
   await page.context().clearCookies();
   await loginIsolatedBalanceUser(page, f.users[0]);
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
@@ -366,6 +369,7 @@ test("closed monthly and yearly top-three records appear as emblems", async ({ p
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
   await page.getByRole("tab", { name: "개인 기록" }).click();
   await page.getByRole("button", { name: `${f.users[0].nickname} 개인 기록 열기`, exact: true }).click();
+  await page.getByRole("button", { name: `${f.users[0].nickname} 엠블럼 컬렉션 열기`, exact: true }).click();
   const board = page.getByLabel("수상 엠블럼");
   await expect(board.getByRole("button", { name: new RegExp(`${previousYear}-02 .*1위 엠블럼`) }).first()).toBeVisible();
   await board.getByRole("button").first().hover();
@@ -373,9 +377,9 @@ test("closed monthly and yearly top-three records appear as emblems", async ({ p
   await page.mouse.move(0, 0);
   await expect(page.getByRole("tooltip")).toBeHidden();
   await expect(board).not.toContainText(`${previousYear}-02`);
-  const paths = await board.locator("button > svg > path:first-child").evaluateAll((elements) => elements.map((el) => el.getAttribute("d")));
+  const paths = await board.locator("button svg.absolute > path:first-child").evaluateAll((elements) => elements.map((el) => el.getAttribute("d")));
   expect(new Set(paths).size).toBeGreaterThan(1);
-  await page.getByRole("listbox", { name: "수상 기간", exact: true }).press("End");
+  await page.getByRole("radiogroup", { name: "수상 기간", exact: true }).getByRole("radio", { name: "연간", exact: true }).click();
   await expect(board.getByRole("button", { name: new RegExp(`${previousYear} .*1위 엠블럼`) }).first()).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   await board.getByRole("button").first().click();
@@ -388,9 +392,10 @@ test("closed monthly and yearly top-three records appear as emblems", async ({ p
     await touchPage.goto(`/games/overwatch/clan/${f.clanId}/stats`);
     await touchPage.getByRole("tab", { name: "개인 기록" }).tap();
     await touchPage.getByRole("button", { name: `${f.users[0].nickname} 개인 기록 열기`, exact: true }).tap();
+    await touchPage.getByRole("button", { name: `${f.users[0].nickname} 엠블럼 컬렉션 열기`, exact: true }).tap();
     await touchPage.getByLabel("수상 엠블럼").getByRole("button").first().tap();
     await expect(touchPage.getByRole("tooltip")).toContainText("월간");
-    await touchPage.getByRole("listbox", { name: "수상 기간", exact: true }).tap();
+    await touchPage.getByRole("radiogroup", { name: "수상 기간", exact: true }).getByRole("radio", { name: "연간", exact: true }).tap();
     await expect(touchPage.getByRole("tooltip")).toBeHidden();
     expect(await touchPage.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   } finally { await touchContext.close(); }

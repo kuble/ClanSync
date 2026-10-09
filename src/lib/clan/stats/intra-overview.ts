@@ -65,7 +65,7 @@ export function buildIntraOverviewPeriods(records: readonly ClanMatchRecord[], s
   }));
 }
 
-export function intraTrendPoints(periods: Record<string, IntraOverview>, period: StatsPeriod, metric: "sessions" | "completed" | "participants") {
+export function intraTrendPoints(periods: Record<string, Pick<IntraOverview, "sessions" | "completed" | "participants">>, period: StatsPeriod, metric: "sessions" | "completed" | "participants") {
   const keys = period.mode === "all" ? Object.keys(periods).filter((key) => /^\d{4}$/.test(key)).sort()
     : period.mode === "year" ? Array.from({ length: 12 }, (_, i) => `${period.year}-${String(i + 1).padStart(2, "0")}`)
     : period.day !== "all" ? [statsPeriodKey(period)]

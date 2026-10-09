@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
-import { loadClanStatsDetail, loadClanStatsPage } from "../src/lib/clan/stats/load-clan-stats";
+import { loadClanStatsDetail, loadClanStatsPage, loadClanStatsPeriod, loadClanStatsArchive } from "../src/lib/clan/stats/load-clan-stats";
 
 async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>): Promise<NonNullable<T>> {
   const { data, error } = await query;
@@ -23,12 +23,28 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     expect(memberModel?.intraPeriods.all).toMatchObject({ completed: 10, participants: 2 });
     expect(JSON.stringify(memberModel?.intraPeriods)).not.toContain(f.users[1].id);
     const light = await loadClanStatsPage(leader, f.users[0].id, f.clanId, { deferDetails: true });
-    expect(light?.hof).toEqual(staffModel?.hof);
-    expect(light?.intraPeriods).toEqual(staffModel?.intraPeriods);
+    expect(light?.hof.periods).toEqual(staffModel?.hof.periods);
+    expect(light?.intraPeriods.all).toEqual(staffModel?.intraPeriods.all);
+    expect(light?.hof.historyMonths).toEqual({});
+    for (const key of ["2025", "2025-07", "2025-08", "2025-07-01"]) {
+      const period = await loadClanStatsPeriod(leader, f.clanId, key);
+      expect(period?.kind).toBe("period");
+      if (period?.kind === "period") {
+        expect(period.intra).toEqual(staffModel?.intraPeriods[key]);
+        if (key.length === 7) expect(period.hof).toEqual(staffModel?.hof.historyMonths[key]);
+        if (key.length === 4) expect(period.hof).toEqual(staffModel?.hof.historyYears[key]);
+      }
+    }
     expect(light?.archive.datesKst).toEqual([]);
     expect(light?.personal.people.every((person) => !person.matches.length && !person.predictions.length && !person.predictionPoints.length)).toBe(true);
     expect(light?.personal.people.map((person) => person.lastPlayedAt)).toEqual(staffModel?.personal.people.map((person) => person.lastPlayedAt));
-    expect(await loadClanStatsDetail(leader, f.users[0].id, f.clanId)).toEqual({ kind: "archive", archive: staffModel?.archive });
+    const archive = await loadClanStatsDetail(leader, f.users[0].id, f.clanId);
+    expect(archive?.kind === "archive" && archive.archive.datesKst).toEqual(staffModel?.archive.datesKst);
+    for (const day of staffModel?.archive.datesKst ?? []) {
+      const detail = await loadClanStatsArchive(leader, f.clanId, day);
+      const canonical = (rows: NonNullable<typeof staffModel>["archive"]["sampleByDate"][string] | undefined) => rows?.map((row) => ({ ...row, players: [...row.players].sort((a, b) => a.userId.localeCompare(b.userId)) }));
+      expect(detail?.kind === "archive" && canonical(detail.archive.sampleByDate[day])).toEqual(canonical(staffModel?.archive.sampleByDate[day]));
+    }
     expect(await loadClanStatsDetail(leader, f.users[0].id, f.clanId, f.users[0].id)).toEqual({ kind: "personal", person: staffModel?.personal.people.find((person) => person.userId === f.users[0].id) });
     await loginIsolatedBalanceUser(page, f.users[0]);
     const detailRequests: string[] = [];

@@ -13,6 +13,7 @@ import { StatsTrend } from "./clan-stats-charts";
 import { StatsDonut } from "./stats-donut";
 import { StatTitle } from "./stat-help";
 import { OverwatchMapIcon, OverwatchRoleIcon } from "@/components/ui/overwatch-icons";
+import { useStatsPeriod } from "./use-stats-period";
 
 const METRICS = [{ id: "sessions", label: "개최 내전", unit: "회" }, { id: "completed", label: "완료 경기", unit: "경기" }, { id: "participants", label: "출전 멤버", unit: "명" }] as const;
 const MAP_OPTIONS = [{ id: "all", label: "전체" }, ...MAP_TYPES.map((type) => ({ ...type, icon: <OverwatchMapIcon type={type.id} /> }))];
@@ -25,8 +26,10 @@ export function IntraClanStats({ model }: { model: ClanStatsPageModel }) {
   const [metric, setMetric] = useState<(typeof METRICS)[number]["id"]>("sessions");
   const [mapType, setMapType] = useState("all");
   const [banRole, setBanRole] = useState("all");
-  const years = [...new Set([String(now.year), ...Object.keys(model.intraPeriods).filter((key) => /^\d{4}$/.test(key))])].sort().reverse();
-  const stats = model.intraPeriods[statsPeriodKey(period)] ?? EMPTY_INTRA_OVERVIEW;
+  const years = [...new Set([String(now.year), ...Object.keys(model.periodDirectory ?? model.intraPeriods).filter((key) => /^\d{4}$/.test(key))])].sort().reverse();
+  const selected = model.intraPeriods[statsPeriodKey(period)];
+  const loaded = useStatsPeriod(model, statsPeriodKey(period), !selected);
+  const stats = selected ?? loaded.data?.intra ?? EMPTY_INTRA_OVERVIEW;
   const activeMetric = METRICS.find((item) => item.id === metric)!;
   const maps = stats.maps.filter((row) => mapType === "all" || mapDetailsForLabel(row.name)?.type === mapType).map((row) => ({ ...row, image: mapDetailsForLabel(row.name)?.image }));
   const bans = stats.bans.filter((row) => banRole === "all" || row.role === banRole).map((row) => ({ ...row, image: OW_HERO_PORTRAITS[row.id] }));
@@ -34,9 +37,10 @@ export function IntraClanStats({ model }: { model: ClanStatsPageModel }) {
   return <div className="space-y-5" aria-label="내전 통계 내용">
     <h3 className="text-base font-bold"><StatTitle title="내전 통계" help="기간 필터는 참여 추이, 요약, 맵·밴·선호 맵에 함께 적용됩니다. 날짜는 한국 시간의 내전 개최일 기준입니다." /></h3>
     <StatsPeriodFilter value={period} onChange={setPeriod} years={years} />
+    {loaded.pending ? loaded.feedback : <>
     <Card size="sm"><CardHeader><CardTitle><StatTitle title="참여 추이" help="전체는 연도별, 연도는 월별, 월은 일별 추이입니다. 그래프에 마우스를 올리거나 방향키로 값을 확인하세요. 출전 멤버는 각 기간의 고유 인원으로, 기간별 인원을 더한 값과 전체 인원은 다를 수 있습니다." /></CardTitle><p className="text-xs text-muted-foreground">{statsPeriodLabel(period)} · {activeMetric.label}</p></CardHeader>
       <CardContent className="grid min-w-0 gap-5 min-[900px]:grid-cols-[minmax(0,1fr)_220px]">
-        <StatsTrend key={`${statsPeriodKey(period)}:${metric}`} points={intraTrendPoints(model.intraPeriods, period, metric)} label={activeMetric.label} unit={activeMetric.unit} />
+        <StatsTrend key={`${statsPeriodKey(period)}:${metric}`} points={intraTrendPoints(model.periodDirectory ?? model.intraPeriods, period, metric)} label={activeMetric.label} unit={activeMetric.unit} />
         <div className="grid grid-cols-1 gap-2 sm:max-[899px]:grid-cols-3" aria-label="선택 기간 요약">
           {METRICS.map((item) => <button key={item.id} type="button" onClick={() => setMetric(item.id)} aria-pressed={metric === item.id} className={`rounded-lg border px-4 py-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-primary ${metric === item.id ? "border-primary/50 bg-primary/5" : "hover:bg-muted/50"}`}><span className="text-xs text-muted-foreground">{item.label}</span><strong className="mt-1 block text-2xl tabular-nums">{stats[item.id].toLocaleString()}<span className="ml-1 text-xs font-normal text-muted-foreground">{item.unit}</span></strong><span className="mt-1 block text-[11px] text-muted-foreground">{item.id === "sessions" ? `내전당 평균 ${stats.averageMatchesPerSession ?? "—"}경기` : item.id === "completed" ? `무승부 ${stats.draws}경기 · ${stats.completed ? (stats.draws / stats.completed * 100).toFixed(1) : 0}%` : `내전당 평균 ${stats.averageParticipantsPerSession ?? "—"}명`}</span></button>)}
         </div>
@@ -54,5 +58,6 @@ export function IntraClanStats({ model }: { model: ClanStatsPageModel }) {
       </CardContent></Card>
       <Card size="sm" className="min-w-0"><CardHeader><CardTitle><StatTitle title="선호 맵" help="완료 경기의 맵 선정 투표에서 각 후보가 받은 표의 비중입니다. 최종 선정 횟수나 맵 밴 횟수와는 다릅니다." /></CardTitle></CardHeader><CardContent className="space-y-4"><div className="min-h-24 space-y-2 text-xs text-muted-foreground"><p>맵 선정 투표 · {statsPeriodLabel(period)}</p><p>멤버들이 선택한 맵의 득표 비중</p></div><StatsDonut key={statsPeriodKey(period)} rows={preferredMaps} label="선호 맵" unit="표" showImages={DONUT_IMAGE_PREVIEW} /></CardContent></Card>
     </div>
+    </>}
   </div>;
 }

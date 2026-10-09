@@ -14,6 +14,7 @@ import { StatsScrollArea } from "./stats-scroll-area";
 import { StatsPeriodFilter } from "./stats-period-filter";
 import { statsPeriodKey, statsPeriodLabel, type StatsPeriod } from "@/lib/clan/stats/intra-overview";
 import { HofComments } from "./hof-comments";
+import { useStatsPeriod } from "./use-stats-period";
 
 const RANKINGS = [
   { id: "rate", label: "승률", help: "승 / (승 + 무 + 패). 최소 출전 기준을 충족한 멤버만 등재합니다." },
@@ -35,7 +36,7 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
   };
   const now = currentKstYearMonth();
   const currentMonth = `${now.year}-${String(now.month).padStart(2, "0")}`;
-  const years = [...new Set([String(now.year), ...Object.keys(model.hof.historyYears)])].sort().reverse();
+  const years = [...new Set([String(now.year), ...Object.keys(model.periodDirectory ?? model.hof.historyYears).filter((key) => /^\d{4}$/.test(key))])].sort().reverse();
   const [period, setPeriod] = useState<StatsPeriod>({ mode: "all", year: String(now.year), month: String(now.month).padStart(2, "0"), day: "all" });
   const month = `${period.year}-${period.month}`, year = period.year;
   const [ranking, setRanking] = useState<(typeof RANKINGS)[number]["id"]>("rate");
@@ -43,7 +44,8 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
   const selectedBlock = period.mode === "all" ? model.hof.periods.all
     : period.mode === "month" ? (month === currentMonth ? model.hof.periods.month : model.hof.historyMonths[month])
       : year === String(now.year) ? model.hof.periods.year : model.hof.historyYears[year];
-  const block = selectedBlock ?? {
+  const loaded = useStatsPeriod(model, statsPeriodKey(period), !selectedBlock);
+  const block = selectedBlock ?? loaded.data?.hof ?? {
     totals: { sessions: 0, days: 0, matches: 0 }, minimumGames: 1,
     unqualified: model.permissions.isStaff ? [...model.hof.periods.all.winRate, ...model.hof.periods.all.unqualified].map((row) => ({ ...row, wins: 0, draws: 0, losses: 0, ratePct: null })) : [],
     undisclosed: false, undisclosedHint: null, winRate: [], wins: [], streaks: [], participation: [], cumulative: [], predictionCorrect: [],
@@ -71,7 +73,7 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
       {active && <RubberSegment label="부문" labelPosition="top" options={available} value={active.id} onChange={setRanking} />}
       <StatsPeriodFilter value={period} onChange={(next) => setPeriod({ ...next, month: next.year === String(now.year) && Number(next.month) > now.month ? String(now.month).padStart(2, "0") : next.month })} years={years} maxMonth={year === String(now.year) ? now.month : 12} />
     </div>
-    {block.undisclosed ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">{block.undisclosedHint}</p> : !active ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">공개된 통계 부문이 없습니다.</p> : <>
+    {loaded.pending ? loaded.feedback : block.undisclosed ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">{block.undisclosedHint}</p> : !active ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">공개된 통계 부문이 없습니다.</p> : <>
       <p className="text-xs text-muted-foreground">선택 기간 정규 내전 <strong className="text-foreground">{totals.sessions}회</strong> · 개최 {totals.days}일 · 전체 {totals.matches}경기</p>
       <div className="grid items-start gap-4 min-[1000px]:grid-cols-2" aria-label="명예의 전당 순위와 반응">
           <Card key={active.id} size="sm" className="min-w-0">

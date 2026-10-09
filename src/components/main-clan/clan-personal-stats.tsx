@@ -132,7 +132,7 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId }: {
     .reduce<{ at: string; value: number }[]>((trend, { date, change }) => [...trend, { at: date + "T12:00:00+09:00", value: (trend.at(-1)?.value ?? 0) + change }], []);
   return (
     <div className="space-y-5">
-      <StatsPlayerBanner hof={model.hof} userId={person.userId} nickname={person.nickname} />
+      <StatsPlayerBanner awards={person.emblems} hof={model.hof} userId={person.userId} nickname={person.nickname} />
       <section aria-label="개인 기록 기간" className="sticky top-[60px] z-30 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80"><div className="flex flex-wrap items-end justify-between gap-3"><StatsPeriodFilter value={period} onChange={(next) => { setPeriod(next); setPeerId(null); }} years={years} /><Button type="button" variant="outline" size="sm" onClick={onBack}>멤버 선택</Button></div></section>
       <Card size="sm" role="region" aria-label="플레이어 요약">
         <CardHeader><CardTitle>플레이어 요약</CardTitle></CardHeader>

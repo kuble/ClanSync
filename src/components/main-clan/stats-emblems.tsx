@@ -8,6 +8,8 @@ import { StatsScrollArea } from "./stats-scroll-area";
 import { StatTooltip } from "./stat-help";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 
+import { collectHofEmblems as collectEmblems, type HofEmblem as Emblem } from "@/lib/clan/stats/hof-emblems";
+
 type Hof = ClanStatsPageModel["hof"];
 const DESIGNS = {
   "승률": { Icon: Trophy, shape: "M32 3 56 13 52 43 32 61 12 43 8 13Z" },
@@ -17,17 +19,6 @@ const DESIGNS = {
   "예측 적중": { Icon: Crosshair, shape: "M32 3A29 29 0 1 1 31.99 3Z" },
 };
 
-function collectEmblems(hof: Hof, userId: string, period: "month" | "year") {
-  return Object.entries(period === "month" ? hof.historyMonths : hof.historyYears)
-    .sort(([a], [b]) => b.localeCompare(a)).flatMap(([date, block]) => {
-      if (block.undisclosed) return [];
-      return ([ ["승률", block.winRate], ["최다 출석", block.participation], ["최다 출전", block.cumulative], ["최장 연승", block.streaks], ["예측 적중", block.predictionCorrect] ] as const).flatMap(([category, rows]) => {
-        const rank = rows.findIndex((row) => row.userId === userId) + 1;
-        return rank > 0 && rank <= 3 ? [{ key: `${period}-${date}-${category}`, date, period, category, rank }] : [];
-      });
-    });
-}
-type Emblem = ReturnType<typeof collectEmblems>[number];
 const emblemLabel = (emblem: Emblem) => `${emblem.date} ${emblem.period === "month" ? "월간" : "연간"} · ${emblem.category} ${emblem.rank}위`;
 
 function EmblemGlyph({ emblem, compact = false }: { emblem: Emblem; compact?: boolean }) {
@@ -39,9 +30,9 @@ function EmblemGlyph({ emblem, compact = false }: { emblem: Emblem; compact?: bo
   </span>;
 }
 
-function EmblemCollection({ hof, userId }: { hof: Hof; userId: string }) {
+function EmblemCollection({ awards }: { awards: Emblem[] }) {
   const [period, setPeriod] = useState<"month" | "year">("month");
-  const emblems = collectEmblems(hof, userId, period);
+  const emblems = awards.filter((emblem) => emblem.period === period);
   return <div className="space-y-3">
     <RubberSegment label="수상 기간" options={[{ id: "month", label: "월간" }, { id: "year", label: "연간" }]} value={period} onChange={setPeriod} />
     {emblems.length ? <StatsScrollArea key={period} label="엠블럼 목록" className="max-h-64"><div className="flex flex-wrap gap-1" aria-label="수상 엠블럼">{emblems.map((emblem) =>
@@ -50,8 +41,8 @@ function EmblemCollection({ hof, userId }: { hof: Hof; userId: string }) {
   </div>;
 }
 
-export function StatsPlayerBanner({ hof, userId, nickname }: { hof: Hof; userId: string; nickname: string }) {
-  const emblems = [...collectEmblems(hof, userId, "month"), ...collectEmblems(hof, userId, "year")]
+export function StatsPlayerBanner({ hof, userId, nickname, awards }: { hof: Hof; userId: string; nickname: string; awards?: Emblem[] }) {
+  const emblems = [...(awards ?? [...collectEmblems(hof, userId, "month"), ...collectEmblems(hof, userId, "year")])]
     .sort((a, b) => b.date.localeCompare(a.date) || a.rank - b.rank);
   const featured = emblems.slice(0, 3);
   return <section aria-label="플레이어 배너" className="relative isolate flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-primary/20 bg-card px-5 py-5 sm:px-6">
@@ -71,7 +62,7 @@ export function StatsPlayerBanner({ hof, userId, nickname }: { hof: Hof; userId:
           <Popover.Popup className="w-[480px] max-w-[calc(100vw-2rem)] rounded-xl border bg-popover p-4 text-popover-foreground shadow-xl outline-none">
             <div className="mb-1 flex items-center justify-between gap-3"><Popover.Title className="text-sm font-bold">엠블럼 컬렉션</Popover.Title><Popover.Close aria-label="엠블럼 컬렉션 닫기" className="rounded-md p-1 hover:bg-muted"><X className="size-4" /></Popover.Close></div>
             <Popover.Description className="mb-4 text-xs leading-relaxed text-muted-foreground">{nickname}의 월간·연간 상위 3위 기록입니다. 대표 엠블럼은 최근 수상순, 같은 기간은 순위순으로 3개 표시합니다.</Popover.Description>
-            <EmblemCollection hof={hof} userId={userId} />
+            <EmblemCollection awards={emblems} />
           </Popover.Popup>
         </Popover.Positioner></Popover.Portal>
       </Popover.Root>
