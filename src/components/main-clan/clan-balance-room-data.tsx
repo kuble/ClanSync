@@ -227,16 +227,8 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
   // eslint-disable-next-line react-hooks/purity
   const serverNow = Date.now();
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <Link href={`/games/${gameSlug}/clan/${clanId}/balance`} className="mb-3 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"><ArrowLeft className="size-3.5" />내전 로비</Link>
-          <h2 className="text-xl font-bold tracking-tight">{room.title}</h2>
-          <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
-            {room.kind === "regular" ? "정규 내전" : "깜짝 내전"}
-          </p>
-        </div>
-      </div>
+    <div className="space-y-3">
+      <Link href={`/games/${gameSlug}/clan/${clanId}/balance`} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"><ArrowLeft className="size-3.5" />내전 로비</Link>
 
       <ClanBalanceSessionPanel
         key={session.id}
@@ -252,6 +244,7 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
         analysisContext={analysisContext}
         playerSessionInfo={playerSessionInfo}
         hostNickname={hostNickname}
+        roomTitle={room.title}
         session={{ ...session, ma_snapshot: visibleSessionScores }}
         series={series}
         profileRanking={parseRoleRanking(profilePreference?.ranking)}

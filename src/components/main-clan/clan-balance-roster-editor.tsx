@@ -245,7 +245,7 @@ export function ClanBalanceRosterEditor({
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
         <div>{scoreControl}</div>
         {canEdit ? (

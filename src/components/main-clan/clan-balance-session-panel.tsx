@@ -92,6 +92,7 @@ export function ClanBalanceSessionPanel({
   scores,
   analysisContext,
   hostNickname,
+  roomTitle,
   session,
   series,
   profileRanking,
@@ -117,6 +118,7 @@ export function ClanBalanceSessionPanel({
   scores: MaSnapshot;
   analysisContext?: AnalysisContext;
   hostNickname: string | null;
+  roomTitle: string;
   session: BalanceSession | null;
   series: Database["public"]["Tables"]["balance_session_series"]["Row"] | null;
   profileRanking: Role[];
@@ -353,7 +355,7 @@ export function ClanBalanceSessionPanel({
         />
       ) : null}
       <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:px-5" data-testid="balance-round-header">
           <div>
             <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold">
               <Swords className="size-4 text-primary" aria-hidden="true" />
@@ -379,24 +381,21 @@ export function ClanBalanceSessionPanel({
               ) : null}
             </h3>
             {series ? (
-              <p className="mt-1.5 pl-6 text-[11px] text-muted-foreground">
+              <p className="mt-1 pl-6 text-[11px] text-muted-foreground">
                 {series.session_date?.replaceAll("-", ".")}
                 {series.closed_at ? " · 세션 종료" : null}
               </p>
             ) : null}
           </div>
-          <div
-            className={cn(
-              "flex items-center gap-3 text-[11px]",
-              mapScreen && "hidden",
-            )}
-          >
-            {session ? (
-              <span className="flex items-center gap-1.5 text-muted-foreground">
+          <div className="order-3 col-span-2 min-w-0 sm:order-none sm:col-span-1 sm:text-center">
+            <h2 className="truncate text-sm font-semibold" title={roomTitle}>{roomTitle}</h2>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground sm:justify-center">
+              <span>{flash ? "깜짝 내전" : "정규 내전"}</span>
+              {session && !mapScreen ? <span className="flex items-center gap-1.5">
                 <Radio className="size-3 text-emerald-500" aria-hidden="true" />
                 {hostNickname ? "호스트 · " + hostNickname : "세션 진행 중"}
-              </span>
-            ) : null}
+              </span> : null}
+            </div>
           </div>
           <div className="flex items-center gap-1">
             {canViewHistory ? <Button
@@ -477,9 +476,9 @@ export function ClanBalanceSessionPanel({
             </div>
           )
         ) : (
-          <div className="p-4 sm:p-6">
+          <div className="px-4 pb-4 pt-2 sm:px-6 sm:pb-6">
             {session.phase === "editing" && !mapScreen && !session.map_ban_enabled ? (
-              <details className="mb-5 rounded-xl border bg-muted/10 p-4" open={!session.resolved_map_label}>
+              <details className="mb-3 rounded-xl border bg-muted/10 px-3 py-2.5" open={!session.resolved_map_label}>
                 <summary className="cursor-pointer text-sm font-semibold">경기 맵 · {session.resolved_map_label ?? "맵 선택"}</summary>
                 <div className="pt-4"><ClanBalancePrematchControls editingOnly gameSlug={gameSlug} clanId={clanId} session={session} canManage={canManage && !busyFormation} /></div>
               </details>
