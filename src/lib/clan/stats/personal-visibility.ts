@@ -1,4 +1,22 @@
 import type { PersonalMatch } from "./clan-stats-analytics";
+import type { ClanMemberRole } from "../permission-defaults";
+
+export const PERSONAL_RECORD_ACCESS_OPTIONS = [
+  { id: "leader", label: "서버장" },
+  { id: "officer", label: "운영진" },
+  { id: "member", label: "멤버" },
+] as const;
+
+/** An absent threshold keeps legacy grants; malformed explicit values allow only the leader. */
+export function resolvePersonalRecordMinRole(value: unknown): ClanMemberRole | null {
+  if (value === undefined) return null;
+  return value === "officer" || value === "member" ? value : "leader";
+}
+
+export function canViewPersonalRecords(role: ClanMemberRole, minimum: ClanMemberRole): boolean {
+  const level = { leader: 2, officer: 1, member: 0 };
+  return level[role] >= level[minimum];
+}
 
 export const PERSONAL_STATS_SECTIONS = [
   { id: "records", label: "경기 전적", description: "역할별·맵별 승률, 최근 흐름과 연승·연패" },

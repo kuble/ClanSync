@@ -1,10 +1,12 @@
 import type { Json } from "@/lib/supabase/database.types";
 import { toKstParts } from "./kst";
-import { DEFAULT_PERSONAL_SECTIONS, resolvePersonalSections, type PersonalStatsSection } from "./personal-visibility";
+import { DEFAULT_PERSONAL_SECTIONS, resolvePersonalRecordMinRole, resolvePersonalSections, type PersonalStatsSection } from "./personal-visibility";
+import type { ClanMemberRole } from "../permission-defaults";
 
 const TOP_OPTIONS = new Set([3, 5, 10, 20, 999]);
 
 export type ResolvedHofConfig = {
+  personalRecordMinRole: ClanMemberRole | null;
   memberPersonalRecords: boolean;
   memberPersonalAudience: "own" | "clan";
   memberPersonalSections: PersonalStatsSection[];
@@ -23,6 +25,7 @@ export type ResolvedHofConfig = {
 };
 
 export const HOF_CONFIG_DEFAULTS: ResolvedHofConfig = {
+  personalRecordMinRole: null,
   memberPersonalRecords: false,
   memberPersonalAudience: "own",
   memberPersonalSections: [...DEFAULT_PERSONAL_SECTIONS],
@@ -67,6 +70,7 @@ export function resolveHofConfig(raw: Json | undefined): ResolvedHofConfig {
       : {};
 
   return {
+    personalRecordMinRole: resolvePersonalRecordMinRole(o.personal_record_min_role),
     memberPersonalRecords: o.member_personal_records === true,
     memberPersonalAudience: o.member_personal_audience === "clan" ? "clan" : "own",
     memberPersonalSections: resolvePersonalSections(o.member_personal_sections),

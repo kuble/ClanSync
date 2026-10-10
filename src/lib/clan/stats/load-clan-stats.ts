@@ -15,7 +15,7 @@ import {
 import { inKstMonth, inKstYear, isoToKstYmd, toKstParts } from "./kst";
 import { buildIntraStats, buildPersonalMatches, type IntraStats, type PersonalMatch } from "./clan-stats-analytics";
 import { buildIntraOverviewPeriods, EMPTY_INTRA_OVERVIEW, type IntraOverview } from "./intra-overview";
-import { restrictPersonalStats, type PersonalScore, type PersonalStatsSection } from "./personal-visibility";
+import { canViewPersonalRecords, restrictPersonalStats, type PersonalScore, type PersonalStatsSection } from "./personal-visibility";
 import type { ClanMemberRole } from "../permission-defaults";
 import { readStatsSummary, readStatsRecords, EMPTY_STATS_AGGREGATE, type StatsAggregate, type StatsSummary } from "./stats-read-model";
 import { collectHofEmblems, type HofEmblem } from "./hof-emblems";
@@ -549,8 +549,9 @@ export type ClanStatsDetail = { kind: "personal"; person: ClanPersonalStats }
 function personalAccess(source: StatsSource, userId: string, nick: Map<string, string>) {
   const { role, permissions: p } = source;
   const cfg = resolveHofConfig(source.settings?.hof_config);
-  const canSeeOthers = role === "member" ? cfg.memberPersonalAudience === "clan" : p.viewMonthly && p.viewYearly && p.viewMaps && p.viewSynergy && p.viewMscore;
-  const viewPersonalRecords = role !== "member" || (cfg.memberPersonalRecords && cfg.memberPersonalSections.length > 0);
+  const canSeeOthers = cfg.personalRecordMinRole !== null || (role === "member" ? cfg.memberPersonalAudience === "clan" : p.viewMonthly && p.viewYearly && p.viewMaps && p.viewSynergy && p.viewMscore);
+  const roleAllowed = cfg.personalRecordMinRole !== null ? canViewPersonalRecords(role, cfg.personalRecordMinRole) : role !== "member" || cfg.memberPersonalRecords;
+  const viewPersonalRecords = roleAllowed && (role !== "member" || cfg.memberPersonalSections.length > 0);
   return { canSeeOthers, viewPersonalRecords, peopleIds: !viewPersonalRecords ? [] : canSeeOthers ? [...new Set([userId, ...nick.keys()])] : [userId] };
 }
 

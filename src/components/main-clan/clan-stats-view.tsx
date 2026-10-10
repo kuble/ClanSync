@@ -6,6 +6,7 @@ import { ClanStatsArchive } from "./clan-stats-archive";
 import { saveClanHofConfigFormAction } from "@/app/actions/clan-stats-hof";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RubberSegment } from "@/components/ui/rubber-segment";
 import {
   Card,
   CardContent,
@@ -29,7 +30,7 @@ import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
 import { cn } from "@/lib/utils";
 import { HofEligibilitySettings, HofEligibilityPreview, useHofEligibilityDraft } from "./hof-eligibility-settings";
 import settingsStyles from "./hof-settings.module.css";
-import { PERSONAL_STATS_SECTIONS } from "@/lib/clan/stats/personal-visibility";
+import { PERSONAL_RECORD_ACCESS_OPTIONS, PERSONAL_STATS_SECTIONS } from "@/lib/clan/stats/personal-visibility";
 import {
   Activity,
   BarChart3,
@@ -99,6 +100,7 @@ export function HofSettingsForm({
   scope?: "all" | "hof" | "personal";
 }) {
   const [pending, start] = useTransition();
+  const [personalMinimum, setPersonalMinimum] = useState(cfg.personalRecordMinRole ?? (cfg.memberPersonalRecords ? "member" : "officer"));
   const draft = useHofEligibilityDraft(cfg);
   return (
     <form
@@ -120,13 +122,10 @@ export function HofSettingsForm({
       <input type="hidden" name="settings_scope" value={scope} />
       <fieldset disabled={pending} className="flex min-h-0 flex-1 flex-col px-5">
       {scope === "personal" ? <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pb-2"><section className="space-y-3 rounded-xl border p-4" aria-label="개인 기록 열람 범위">
-        <h4 className="text-sm font-semibold">열람 범위</h4>
-        <label className="flex cursor-pointer items-start gap-3 text-sm">
-          <input type="checkbox" name="member_personal_records" defaultChecked={cfg.memberPersonalRecords} className="mt-1 size-4 accent-primary" />
-          <span>멤버에게 개인 기록 공개<span className="mt-1 block text-xs text-muted-foreground">켜면 아래 공개 대상에 맞춰 선택한 통계를 제공합니다.</span></span>
-        </label>
-        <label className="block space-y-2 text-sm"><span>공개 대상</span><select name="member_personal_audience" defaultValue={cfg.memberPersonalAudience} className="h-9 w-full rounded-md border bg-background px-2"><option value="own">멤버 본인만</option><option value="clan">클랜 구성원 서로 열람</option></select></label>
-        <p className="text-xs leading-relaxed text-muted-foreground">운영진의 기존 열람 권한은 유지됩니다. 포인트 수익·손실은 본인과 운영진만 볼 수 있습니다.</p>
+        <h4 className="text-sm font-semibold">기록 공개</h4>
+        <input type="hidden" name="personal_record_min_role" value={personalMinimum} />
+        <RubberSegment label="기록 공개" labelPosition="hidden" options={PERSONAL_RECORD_ACCESS_OPTIONS} value={personalMinimum} onChange={setPersonalMinimum} />
+        <p className="text-xs leading-relaxed text-muted-foreground">선택한 역할과 그 상위 역할이 열람할 수 있습니다. 포인트 수익·손실은 본인과 운영진만 볼 수 있습니다.</p>
       </section><section className="space-y-4 rounded-xl border p-4" aria-label="공개할 통계"><h4 className="text-sm font-semibold">공개할 통계</h4>{PERSONAL_STATS_SECTIONS.map(({ id, label, description }) => <label key={id} className="flex cursor-pointer items-start gap-3 text-sm"><input type="checkbox" name="member_personal_sections" value={id} defaultChecked={cfg.memberPersonalSections.includes(id)} className="mt-1 size-4 accent-primary" /><span>{label}<span className="mt-1 block text-xs text-muted-foreground">{description}</span></span></label>)}<p className="text-xs text-muted-foreground">선택한 통계가 없으면 멤버에게 개인 기록 탭이 표시되지 않습니다.</p></section></div> : <Tabs defaultValue={scope === "hof" ? "ranking" : "access"} className="min-h-0 flex-1 gap-4">
         <TabsList className={`grid h-10 w-full shrink-0 ${scope === "hof" ? "grid-cols-2" : "grid-cols-3"}`} aria-label="명예의 전당 설정 영역">
           {scope === "all" && <TabsTrigger value="access">열람·공개</TabsTrigger>}

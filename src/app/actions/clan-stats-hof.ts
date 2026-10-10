@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
-import { PERSONAL_STATS_SECTIONS } from "@/lib/clan/stats/personal-visibility";
+import { PERSONAL_RECORD_ACCESS_OPTIONS, PERSONAL_STATS_SECTIONS } from "@/lib/clan/stats/personal-visibility";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/lib/supabase/database.types";
@@ -41,7 +41,11 @@ export async function saveClanHofConfigFormAction(gameSlug: string, clanId: stri
     if (scope === "personal" || scope === "all") {
       patch.member_personal_records = fd.get("member_personal_records") === "on";
       if (scope === "personal") {
-        patch.member_personal_audience = fd.get("member_personal_audience") === "clan" ? "clan" : "own";
+        const minimum = fd.get("personal_record_min_role");
+        if (!PERSONAL_RECORD_ACCESS_OPTIONS.some(({ id }) => id === minimum)) throw new Error("공개 대상이 올바르지 않습니다.");
+        patch.personal_record_min_role = String(minimum);
+        patch.member_personal_records = minimum === "member";
+        patch.member_personal_audience = "clan";
         patch.member_personal_sections = PERSONAL_STATS_SECTIONS.filter(({ id }) => fd.getAll("member_personal_sections").includes(id)).map(({ id }) => id);
       }
     }

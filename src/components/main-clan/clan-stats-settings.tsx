@@ -16,7 +16,7 @@ export function ClanStatsSettings({ model, gameSlug, clanId, scope }: {
   const [open, setOpen] = useState(false);
   if (scope === "records" || scope === "intra" ? !model.permissions.isLeader : !model.permissions.isStaff || !model.permissions.setHofRules) return null;
   const title = { hof: "명예의 전당 설정", personal: "개인 기록 설정", records: "경기 기록 설정", intra: "내전 통계 설정" }[scope];
-  const description = { hof: "순위 공개와 등재 기준을 설정합니다.", personal: "공개 대상과 멤버에게 제공할 통계를 선택합니다.", records: "경기 기록의 열람·추가·편집·삭제 대상을 각각 선택합니다.", intra: "내전 통계를 볼 수 있는 대상을 선택합니다." }[scope];
+  const description = { hof: "순위 공개와 등재 기준을 설정합니다.", personal: "열람 가능한 역할과 멤버에게 제공할 통계를 선택합니다.", records: "경기 기록의 열람·추가·편집·삭제 대상을 각각 선택합니다.", intra: "내전 통계를 볼 수 있는 대상을 선택합니다." }[scope];
   return <Sheet open={open} onOpenChange={setOpen}>
     <SheetTrigger render={<Button type="button" size="icon" variant="ghost" aria-label={title} title={title} />}>
       <Settings2 className="size-4" aria-hidden="true" />
