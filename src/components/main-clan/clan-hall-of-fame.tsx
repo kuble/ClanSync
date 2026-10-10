@@ -1,16 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { RubberSegment } from "@/components/ui/rubber-segment";
 import { StatTitle } from "./stat-help";
-import { Crown, Settings2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Crown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import settingsStyles from "./hof-settings.module.css";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
-import { HofSettingsForm } from "./clan-stats-view";
 import { StatsScrollArea } from "./stats-scroll-area";
 import { StatsPeriodFilter } from "./stats-period-filter";
 import { statsPeriodKey, statsPeriodLabel, type StatsPeriod } from "@/lib/clan/stats/intra-overview";
@@ -26,8 +22,8 @@ const RANKINGS = [
 
 type RankRow = { userId: string; nickname: string; value: string; detail: string; rank?: number | null; shortfall?: number };
 
-export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
-  model: ClanStatsPageModel; gameSlug: string; clanId: string; onChoosePerson: (userId: string) => void;
+export function HallOfFame({ model, clanId, onChoosePerson, settings }: {
+  model: ClanStatsPageModel; clanId: string; onChoosePerson: (userId: string) => void; settings?: ReactNode;
 }) {
   const visible = {
     rate: model.permissions.isStaff || model.hof.config.winRateVisibleTop > 0,
@@ -41,7 +37,6 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
   const [period, setPeriod] = useState<StatsPeriod>({ mode: "all", year: String(now.year), month: String(now.month).padStart(2, "0"), day: "all" });
   const month = `${period.year}-${period.month}`, year = period.year;
   const [ranking, setRanking] = useState<(typeof RANKINGS)[number]["id"]>("rate");
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const selectedBlock = period.mode === "all" ? model.hof.periods.all
     : period.mode === "month" ? (month === currentMonth ? model.hof.periods.month : model.hof.historyMonths[month])
       : year === String(now.year) ? model.hof.periods.year : model.hof.historyYears[year];
@@ -71,19 +66,11 @@ export function HallOfFame({ model, gameSlug, clanId, onChoosePerson }: {
   const periodKey = statsPeriodKey(period);
   const periodLabel = statsPeriodLabel(period);
   return <div className="relative space-y-4" aria-busy={loaded.pending}>
-    <div className="flex flex-wrap items-end gap-4">
-      {active && <RubberSegment label="부문" labelPosition="top" options={available} value={active.id} onChange={setRanking} />}
+    <section aria-label="명예의 전당 필터" className="sticky top-[60px] z-30 flex flex-wrap items-center gap-3 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      {active && <RubberSegment label="부문" labelPosition="hidden" options={available} value={active.id} onChange={setRanking} />}
       <StatsPeriodFilter value={period} onChange={(next) => setPeriod({ ...next, month: next.year === String(now.year) && Number(next.month) > now.month ? String(now.month).padStart(2, "0") : next.month })} years={years} maxMonth={year === String(now.year) ? now.month : 12} />
-      <div className="ml-auto flex items-center gap-2 self-center">
-      {model.permissions.isStaff && model.permissions.setHofRules && <Sheet open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <SheetTrigger render={<Button type="button" size="sm" variant="outline" />}><Settings2 className="size-4" aria-hidden="true" /> 설정</SheetTrigger>
-        <SheetContent className={settingsStyles.sheet}><div className={settingsStyles.panel}>
-          <SheetHeader className="shrink-0 px-5 pb-5 pt-5 pr-12"><SheetTitle>통계 공개 설정</SheetTitle><SheetDescription>열람, 순위 공개와 등재 기준을 설정합니다.</SheetDescription></SheetHeader>
-          <HofSettingsForm gameSlug={gameSlug} clanId={clanId} cfg={model.hof.config} totalGames={totals.matches} totalSessions={totals.sessions} exposeHof={model.hof.exposeHof} isLeader={model.permissions.isLeader} onDone={() => setSettingsOpen(false)} />
-        </div></SheetContent>
-      </Sheet>}
-      </div>
-    </div>
+      <div className="ml-auto shrink-0">{settings}</div>
+    </section>
     {loaded.feedback}
     {block.undisclosed ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">{block.undisclosedHint}</p> : !active ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">공개된 통계 부문이 없습니다.</p> : <>
       <div className="grid items-stretch gap-4 min-[1000px]:grid-cols-2" aria-label="명예의 전당 순위와 반응">

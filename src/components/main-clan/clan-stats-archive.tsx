@@ -13,10 +13,11 @@ import { ArchiveDayTable } from "./archive-day-table";
 import { StatsDetailLoader, type StatsDetailCache } from "./stats-detail-loader";
 import { MatchRecordEditor } from "./match-record-editor";
 
-export function ClanStatsArchive({ archive, clanId, canEdit = false, periodKey = "all", filters, mapFilter = "all", participantSearch = "" }: {
+export function ClanStatsArchive({ archive, clanId, canEdit = false, canCreate = canEdit, canUpdate = canEdit, canDelete = canEdit, periodKey = "all", filters, mapFilter = "all", participantSearch = "" }: {
   archive: ClanStatsPageModel["archive"];
   clanId?: string;
   canEdit?: boolean;
+  canCreate?: boolean; canUpdate?: boolean; canDelete?: boolean;
   periodKey?: string;
   filters?: ReactNode;
   mapFilter?: string;
@@ -37,12 +38,12 @@ export function ClanStatsArchive({ archive, clanId, canEdit = false, periodKey =
       {filters}
     </div>
     <StatsDetailLoader cache={cache} url={fetchDay ? `/api/clans/${clanId}/stats?section=archive&day=${selectedDay}` : undefined} initial={{ kind: "archive", archive: { ...current, sampleByDate: { [selectedDay]: dayRecords } } }}>
-      {(detail, pending) => detail.kind === "archive" && <ArchiveDay dayRecords={detail.archive.sampleByDate[selectedDay] ?? []} mapFilter={mapFilter} participantSearch={participantSearch} pending={pending} editor={clanId && canEdit ? { clanId, day: selectedDay, members: current.members ?? [], onSaved, onReload: () => router.refresh() } : undefined} />}
+      {(detail, pending) => detail.kind === "archive" && <ArchiveDay dayRecords={detail.archive.sampleByDate[selectedDay] ?? []} mapFilter={mapFilter} participantSearch={participantSearch} pending={pending} editor={clanId && (canCreate || canUpdate || canDelete) ? { canCreate, canUpdate, canDelete, clanId, day: selectedDay, members: current.members ?? [], onSaved, onReload: () => router.refresh() } : undefined} />}
     </StatsDetailLoader>
   </div>;
 }
 
-type EditorContext = { clanId: string; day: string; members: { userId: string; nickname: string }[]; onSaved: (archive: ClanStatsPageModel["archive"], day: string) => void; onReload: () => void };
+type EditorContext = { canCreate: boolean; canUpdate: boolean; canDelete: boolean; clanId: string; day: string; members: { userId: string; nickname: string }[]; onSaved: (archive: ClanStatsPageModel["archive"], day: string) => void; onReload: () => void };
 
 function ArchiveDay({ dayRecords, mapFilter, participantSearch, pending, editor }: { dayRecords: ClanArchiveMatch[]; mapFilter: string; participantSearch: string; pending: boolean; editor?: EditorContext }) {
   const term = participantSearch.trim().toLocaleLowerCase("ko");
@@ -117,9 +118,9 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
           </div>
           <div className="flex items-center justify-end sm:gap-0.5">
             {editor && <>
-              <Button size="icon-sm" variant="ghost" className="size-6 sm:size-8" aria-label="기록 추가" title="기록 추가" disabled={pending} onClick={() => setEditing({ mode: "create" })}><Plus className="size-3.5" aria-hidden="true" /></Button>
-              <Button size="icon-sm" variant="ghost" className="size-6 sm:size-8" aria-label="기록 수정" title="기록 수정" disabled={pending || !match?.revision} onClick={() => setEditing({ mode: "update", match })}><Pencil className="size-3.5" aria-hidden="true" /></Button>
-              <Button size="icon-sm" variant="ghost" className="size-6 sm:size-8" aria-label="기록 제거" title="기록 제거" disabled={pending || !match?.revision} onClick={() => setEditing({ mode: "delete", match })}><Trash2 className="size-3.5" aria-hidden="true" /></Button>
+              {editor.canCreate && <Button size="icon-sm" variant="ghost" className="size-6 sm:size-8" aria-label="기록 추가" title="기록 추가" disabled={pending} onClick={() => setEditing({ mode: "create" })}><Plus className="size-3.5" aria-hidden="true" /></Button>}
+              {editor.canUpdate && <Button size="icon-sm" variant="ghost" className="size-6 sm:size-8" aria-label="기록 수정" title="기록 수정" disabled={pending || !match?.revision} onClick={() => setEditing({ mode: "update", match })}><Pencil className="size-3.5" aria-hidden="true" /></Button>}
+              {editor.canDelete && <Button size="icon-sm" variant="ghost" className="size-6 sm:size-8" aria-label="기록 제거" title="기록 제거" disabled={pending || !match?.revision} onClick={() => setEditing({ mode: "delete", match })}><Trash2 className="size-3.5" aria-hidden="true" /></Button>}
             </>}
           </div>
         </div>

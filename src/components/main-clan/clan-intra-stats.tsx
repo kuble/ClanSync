@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RubberSegment } from "@/components/ui/rubber-segment";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
@@ -19,7 +19,7 @@ const MAP_OPTIONS = [{ id: "all", label: "전체" }, ...MAP_TYPES.map((type) => 
 // Temporary artwork preview: false restores the original three donut presentations.
 const DONUT_IMAGE_PREVIEW = true;
 
-export function IntraClanStats({ model }: { model: ClanStatsPageModel }) {
+export function IntraClanStats({ model, settings }: { model: ClanStatsPageModel; settings?: ReactNode }) {
   const now = currentKstYearMonth();
   const [period, setPeriod] = useState<StatsPeriod>({ mode: "all", year: String(now.year), month: String(now.month).padStart(2, "0"), day: "all" });
   const [metric, setMetric] = useState<(typeof METRICS)[number]["id"]>("sessions");
@@ -35,7 +35,7 @@ export function IntraClanStats({ model }: { model: ClanStatsPageModel }) {
   const bans = stats.bans.filter((row) => banRole === "all" || row.role === banRole).map((row) => ({ ...row, image: OW_HERO_PORTRAITS[row.id] }));
   const preferredMaps = stats.mapVotes.filter((row) => preferredMapType === "all" || mapDetailsForLabel(row.name)?.type === preferredMapType).map((row) => ({ ...row, image: mapDetailsForLabel(row.name)?.image }));
   return <div className="space-y-5" aria-label="내전 통계 내용" aria-busy={loaded.pending}>
-    <section aria-label="내전 통계 기간" className="sticky top-[60px] z-30 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80"><StatsPeriodFilter value={period} onChange={setPeriod} years={years} /></section>
+    <section aria-label="내전 통계 기간" className="sticky top-[60px] z-30 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80"><div className="flex flex-wrap items-center justify-between gap-3"><StatsPeriodFilter value={period} onChange={setPeriod} years={years} />{settings}</div></section>
     <div className="relative">
     {loaded.feedback}
     <Card size="sm"><CardHeader><CardTitle>참여 추이</CardTitle><p className="text-xs text-muted-foreground">{statsPeriodLabel(period)} · {activeMetric.label}</p></CardHeader>

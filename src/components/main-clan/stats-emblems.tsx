@@ -41,7 +41,7 @@ function EmblemCollection({ awards }: { awards: Emblem[] }) {
   </div>;
 }
 
-export function StatsPlayerBanner({ hof, userId, nickname, awards }: { hof: Hof; userId: string; nickname: string; awards?: Emblem[] }) {
+export function StatsPlayerBanner({ hof, userId, nickname, awards, showEmblems = true }: { showEmblems?: boolean; hof: Hof; userId: string; nickname: string; awards?: Emblem[] }) {
   const emblems = [...(awards ?? [...collectEmblems(hof, userId, "month"), ...collectEmblems(hof, userId, "year")])]
     .sort((a, b) => b.date.localeCompare(a.date) || a.rank - b.rank);
   const featured = emblems.slice(0, 3);
@@ -52,7 +52,7 @@ export function StatsPlayerBanner({ hof, userId, nickname, awards }: { hof: Hof;
       <div className="min-w-0"><p className="mb-1 text-xs text-muted-foreground">개인 기록</p><h3 className="truncate text-lg font-bold" aria-label={`개인 기록 · ${nickname}`}>{nickname}</h3></div>
     </div>
     <div className="flex flex-wrap items-center gap-4">
-      <Popover.Root>
+      {showEmblems && <Popover.Root>
         <Popover.Trigger openOnHover delay={150} closeDelay={180} aria-label={`${nickname} 엠블럼 컬렉션 열기`} className="flex items-center gap-1 rounded-xl border border-border/60 bg-background/25 px-2 py-1.5 text-muted-foreground hover:border-primary/50 focus-visible:outline-2 focus-visible:outline-primary">
           <span className="sr-only">대표 엠블럼: {featured.map(emblemLabel).join(", ") || "수상 기록 없음"}</span>
           {Array.from({ length: 3 }, (_, index) => featured[index] ? <EmblemGlyph key={featured[index].key} emblem={featured[index]} compact /> : <span key={index} aria-hidden="true" className="m-1 grid size-10 place-items-center rounded-full border border-dashed border-muted-foreground/20"><Trophy className="size-4 opacity-30" /></span>)}
@@ -65,7 +65,7 @@ export function StatsPlayerBanner({ hof, userId, nickname, awards }: { hof: Hof;
             <EmblemCollection awards={emblems} />
           </Popover.Popup>
         </Popover.Positioner></Popover.Portal>
-      </Popover.Root>
+      </Popover.Root>}
     </div>
   </section>;
 }

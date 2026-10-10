@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Search, UserRound } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { RubberSegment } from "@/components/ui/rubber-segment";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { StatsScrollArea } from "./stats-scroll-area";
 
-export function StatsMemberPicker({ people, onSelect }: { people: ClanStatsPageModel["personal"]["people"]; onSelect: (id: string) => void }) {
+export function StatsMemberPicker({ people, onSelect, settings }: { settings?: ReactNode; people: ClanStatsPageModel["personal"]["people"]; onSelect: (id: string) => void }) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<"recent" | "name">("recent");
   const visible = people.filter((person) => person.nickname.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())).sort((a, b) => {
@@ -21,6 +21,7 @@ export function StatsMemberPicker({ people, onSelect }: { people: ClanStatsPageM
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="relative min-w-0 flex-1 sm:max-w-sm"><Search aria-hidden className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input aria-label="멤버 이름 검색" placeholder="멤버 이름 검색" value={query} onChange={(event) => setQuery(event.target.value)} className="pl-9" /></div>
       <RubberSegment label="멤버 정렬" options={[{ id: "recent", label: "최근 출전순" }, { id: "name", label: "이름순" }]} value={sort} onChange={setSort} />
+      {settings}
     </div>
     <StatsScrollArea label="개인 기록 멤버 목록" className="max-h-[min(32rem,60vh)]">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">{visible.map((person) => <button key={person.userId} type="button" onClick={() => onSelect(person.userId)} aria-label={`${person.nickname} 개인 기록 열기`}
