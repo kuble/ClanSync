@@ -1,0 +1,77 @@
+import { expect, test } from "@playwright/test";
+import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
+
+test.use({ timezoneId: "UTC" });
+
+test("calendar: desktop day panel and mobile bottom drawer keep the selected date", async ({ page }) => {
+  test.setTimeout(150_000);
+  const f = await createIsolatedBalanceFixture(1);
+  const now = new Date();
+  const dayKey = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-15`;
+  const emptyKey = dayKey.replace(/15$/, "16");
+  try {
+    const { error } = await f.service.from("clan_events").insert([
+      { clan_id: f.clanId, created_by: f.users[0].id, title: "오전 일정", start_at: `${dayKey}T09:00:00Z`, kind: "event" },
+      { clan_id: f.clanId, created_by: f.users[0].id, title: "오후 일정", start_at: `${dayKey}T17:00:00Z`, kind: "intra" },
+    ]);
+    expect(error).toBeNull();
+    await page.setViewportSize({ width: 1304, height: 884 });
+    await loginIsolatedBalanceUser(page, f.users[0]);
+    await page.goto(f.path.replace(/balance$/, "events"));
+    const calendar = page.getByRole("grid", { name: "월간 캘린더" });
+    const panel = page.getByRole("region", { name: "선택한 날짜 일정" });
+    const day = calendar.locator(`[data-date="${dayKey}"]`);
+    await day.click();
+    await expect(panel.getByRole("button")).toHaveCount(2);
+    await expect(panel.getByRole("button").first()).toContainText("오전 일정");
+    const gridBox = await calendar.boundingBox(), panelBox = await panel.boundingBox();
+    expect(panelBox!.x).toBeGreaterThanOrEqual(gridBox!.x + gridBox!.width);
+    expect(Math.abs(panelBox!.y - gridBox!.y)).toBeLessThan(2);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(panel).not.toBeVisible();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await day.click();
+    const drawer = page.getByRole("dialog", { name: /15일.*일정/ });
+    await expect(drawer).toBeVisible();
+    await expect.poll(async () => {
+      const box = await drawer.boundingBox();
+      return Math.abs(box!.y + box!.height - 844);
+    }).toBeLessThan(2);
+    const drawerBox = await drawer.boundingBox();
+    expect(drawerBox!.width).toBe(390);
+    await expect(drawer.getByRole("button", { name: /오전 일정/ })).toBeVisible();
+    await drawer.getByRole("button", { name: "닫기", exact: true }).click();
+    await expect(drawer).not.toBeVisible();
+    await expect(day).toBeFocused();
+    await day.press("ArrowRight");
+    const emptyDay = calendar.locator(`[data-date="${emptyKey}"]`);
+    await expect(emptyDay).toBeFocused();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await emptyDay.press("Enter");
+    const emptyDrawer = page.getByRole("dialog", { name: /16일.*일정/ });
+    await expect(emptyDrawer.getByText("이 날짜에는 등록된 일정이 없습니다.")).toBeVisible();
+    await emptyDrawer.getByRole("button", { name: "이 날짜에 일정 추가" }).click();
+    const create = page.getByRole("dialog", { name: "일정 등록" });
+    await expect(create).toBeVisible();
+    await expect(create.getByLabel("시작 (로컬 시각)")).toHaveValue(`${emptyKey}T20:00`);
+    await page.keyboard.press("Escape");
+
+    await day.click();
+    await drawer.getByRole("button", { name: /오전 일정/ }).click();
+    const detail = page.getByRole("dialog", { name: "이벤트 · 오전 일정" });
+    await expect(detail).toBeVisible();
+    await expect(drawer).not.toBeVisible();
+    await page.keyboard.press("Escape");
+    await day.click();
+    await expect(drawer).toBeVisible();
+    await page.setViewportSize({ width: 1304, height: 884 });
+    await expect(drawer).not.toBeVisible();
+    await expect(panel.getByRole("button", { name: /오전 일정/ })).toBeVisible();
+    await page.getByRole("button", { name: "다음 달", exact: true }).click();
+    await expect(panel.getByText("이 날짜에는 등록된 일정이 없습니다.")).toBeVisible();
+  } finally {
+    await f.cleanup();
+  }
+});

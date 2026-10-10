@@ -107,6 +107,7 @@ try {
 - `cron.spec.ts`: 인증 없는 요청 401, 테스트 DB에서 인증된 알림 처리 200
 - `review-rules.spec.ts`: 권한 조회 오류·권한 재정의, 개발 연동 제한, 명시적 시간대 입력
 - `event-timezone.spec.ts`: 한국 브라우저·UTC 서버에서 일정 생성·제목 수정·시간 수정
+- `event-calendar-layout.spec.ts`: 임시 클랜의 데스크톱 우측 일정·모바일 하단 드로워, 빈 날짜·등록/상세 전환·키보드/포커스·너비 변경 시 선택 유지
 - `game-link.spec.ts`: QA 환경의 서버 게임 인증 기록
 - `clan-dashboard.spec.ts`: 실제 공지·규칙·반복 일정·MVP·Free 제한·모바일
 - `clan-management.spec.ts`: 공지 작성·편집·고정·삭제와 규칙 저장·구성원 검색

@@ -159,6 +159,16 @@ export function ClanEventsView({
   const [selectedKey, setSelectedKey] = useState(() =>
     dateKeyLocalFromDate(new Date()),
   );
+  const [dayDrawerOpen, setDayDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const closeOnDesktop = () => {
+      if (desktop.matches) setDayDrawerOpen(false);
+    };
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, []);
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [activeOccurrence, setActiveOccurrence] =
@@ -270,14 +280,18 @@ export function ClanEventsView({
     focusDateRef.current = null;
   }, [cursor, selectedKey]);
 
-  function selectCalendarDate(date: Date, focus = false) {
+  function selectCalendarDate(date: Date, focus = false, showSchedule = false) {
     const key = dateKeyLocalFromDate(date);
     if (focus) focusDateRef.current = key;
     setCursor({ y: date.getFullYear(), m: date.getMonth() });
     setSelectedKey(key);
+    if (showSchedule && window.matchMedia("(max-width: 1023px)").matches) {
+      setDayDrawerOpen(true);
+    }
   }
 
   function openDetail(occurrence: ClanEventOccurrenceVm) {
+    setDayDrawerOpen(false);
     setRsvpResult(null);
     setActiveOccurrence(occurrence);
     setSheetOpen(true);
@@ -367,6 +381,97 @@ export function ClanEventsView({
     });
   }
 
+  const daySchedule = (
+    <>
+      {!slotOccurrences.length ? (
+        <div className="flex flex-col items-center gap-3 px-5 py-10 text-center">
+          <CalendarDays
+            className="size-7 text-muted-foreground/40"
+            aria-hidden="true"
+          />
+          <p className="text-sm text-muted-foreground">
+            이 날짜에는 등록된 일정이 없습니다.
+          </p>
+          {canManageEvents ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-xs text-primary"
+              onClick={() => {
+                setDayDrawerOpen(false);
+                setCreateOpen(true);
+              }}
+            >
+              이 날짜에 일정 추가
+            </Button>
+          ) : null}
+        </div>
+      ) : (
+        <ul className="divide-y" role="list">
+          {slotOccurrences.map((o) => (
+            <li key={o.key}>
+              <button
+                type="button"
+                onClick={() => openDetail(o)}
+                className="flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-muted/30 focus-visible:outline-2 focus-visible:outline-ring"
+              >
+                <span className="flex w-12 shrink-0 flex-col items-center gap-1 text-center text-xs font-semibold tabular-nums">
+                  <Clock
+                    className="size-3.5 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                  {o.displayAt.toLocaleTimeString("ko-KR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })}
+                </span>
+                <span
+                  className={cn(
+                    "h-10 w-0.5 shrink-0 rounded-full",
+                    kindDotClass(o.template.kind),
+                  )}
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span className="text-[10px] text-muted-foreground">
+                      {kindLabel(o.template.kind)}
+                    </span>
+                    {o.template.kind === "scrim" &&
+                    goingKeySet.has(
+                      clanEventRsvpKey(o.template.id, o.instanceIdx),
+                    ) ? (
+                      <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-300">
+                        참가 중
+                      </span>
+                    ) : null}
+                  </span>
+                  <strong className="mt-1 block truncate text-sm font-semibold">
+                    {o.template.title}
+                  </strong>
+                  <span className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                    {o.template.place ?? "장소 미정"}
+                    {o.template.repeat !== "none" ? (
+                      <span className="flex items-center gap-1">
+                        <Repeat2 className="size-3" aria-hidden="true" />
+                        {repeatSummaryKo(o.template)}
+                      </span>
+                    ) : null}
+                  </span>
+                </span>
+                <ChevronRight
+                  className="size-4 shrink-0 text-muted-foreground"
+                  aria-hidden="true"
+                />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+
   return (
     <Tabs defaultValue={initialTab} className="gap-5">
       <TabsList
@@ -427,261 +532,213 @@ export function ClanEventsView({
           </div>
         </div>
 
-        <div
-          ref={calendarRef}
-          role="grid"
-          aria-label="월간 캘린더"
-          className="overflow-hidden rounded-2xl border bg-card shadow-sm"
-        >
-          <div role="row" className="grid grid-cols-7 border-b bg-muted/30">
-            {["월", "화", "수", "목", "금", "토", "일"].map(
-              (weekday, index) => (
-                <div
-                  key={weekday}
-                  role="columnheader"
-                  className={cn(
-                    "py-3 text-center text-[11px] font-semibold text-muted-foreground",
-                    index === 5 && "text-sky-600 dark:text-sky-400",
-                    index === 6 && "text-rose-600 dark:text-rose-400",
-                  )}
-                >
-                  {weekday}
-                </div>
-              ),
-            )}
-          </div>
-          {Array.from({ length: cells.length / 7 }, (_, week) => (
+        <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.45fr)]">
+          <div className="min-w-0 space-y-3">
             <div
-              key={week}
-              role="row"
-              className="grid grid-cols-7 border-b last:border-b-0"
+              ref={calendarRef}
+              role="grid"
+              aria-label="월간 캘린더"
+              className="overflow-hidden rounded-2xl border bg-card shadow-sm"
             >
-              {cells.slice(week * 7, week * 7 + 7).map(({ date, inMonth }) => {
-                const key = dateKeyLocalFromDate(date);
-                const selected = key === selectedKey;
-                const today = key === dateKeyLocalFromDate(now);
-                const dayOccurrences = occurrences.filter(
-                  (o) => dateKeyLocalFromDate(o.displayAt) === key,
-                );
-                const kinds = kindsOnDay(key, occurrences);
-                return (
-                  <div
-                    key={key}
-                    role="gridcell"
-                    aria-selected={selected}
-                    className="min-w-0 border-r last:border-r-0"
-                  >
-                    <button
-                      type="button"
-                      data-date={key}
-                      aria-current={today ? "date" : undefined}
-                      aria-label={
-                        date.toLocaleDateString("ko-KR", {
-                          month: "long",
-                          day: "numeric",
-                          weekday: "long",
-                        }) +
-                        " · 일정 " +
-                        dayOccurrences.length +
-                        "건"
-                      }
-                      tabIndex={selected ? 0 : -1}
-                      onClick={() => selectCalendarDate(date)}
-                      onKeyDown={(event) => {
-                        const offsets: Record<string, number> = {
-                          ArrowLeft: -1,
-                          ArrowRight: 1,
-                          ArrowUp: -7,
-                          ArrowDown: 7,
-                        };
-                        if (event.key in offsets) {
-                          event.preventDefault();
-                          const target = new Date(date);
-                          target.setDate(target.getDate() + offsets[event.key]);
-                          selectCalendarDate(target, true);
-                        } else if (
-                          event.key === "Home" ||
-                          event.key === "End"
-                        ) {
-                          event.preventDefault();
-                          const target = new Date(date);
-                          const position = (date.getDay() + 6) % 7;
-                          target.setDate(
-                            date.getDate() +
-                              (event.key === "Home" ? -position : 6 - position),
-                          );
-                          selectCalendarDate(target, true);
-                        }
-                      }}
+              <div role="row" className="grid grid-cols-7 border-b bg-muted/30">
+                {["월", "화", "수", "목", "금", "토", "일"].map(
+                  (weekday, index) => (
+                    <div
+                      key={weekday}
+                      role="columnheader"
                       className={cn(
-                        "flex min-h-20 w-full flex-col items-center gap-2 px-1 py-3 text-sm transition-colors hover:bg-muted/40 focus-visible:relative focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring sm:min-h-28 sm:items-start sm:px-3",
-                        !inMonth && "bg-muted/20 text-muted-foreground/50",
-                        selected &&
-                          "bg-primary/[0.07] ring-1 ring-inset ring-primary/50",
+                        "py-3 text-center text-[11px] font-semibold text-muted-foreground",
+                        index === 5 && "text-sky-600 dark:text-sky-400",
+                        index === 6 && "text-rose-600 dark:text-rose-400",
                       )}
                     >
-                      <span
-                        className={cn(
-                          "flex size-6 items-center justify-center rounded-full text-xs font-medium tabular-nums",
-                          today &&
-                            "bg-primary font-bold text-primary-foreground",
-                          !today &&
-                            date.getDay() === 0 &&
-                            "text-rose-600 dark:text-rose-400",
-                        )}
+                      {weekday}
+                    </div>
+                  ),
+                )}
+              </div>
+              {Array.from({ length: cells.length / 7 }, (_, week) => (
+                <div
+                  key={week}
+                  role="row"
+                  className="grid grid-cols-7 border-b last:border-b-0"
+                >
+                  {cells.slice(week * 7, week * 7 + 7).map(({ date, inMonth }) => {
+                    const key = dateKeyLocalFromDate(date);
+                    const selected = key === selectedKey;
+                    const today = key === dateKeyLocalFromDate(now);
+                    const dayOccurrences = occurrences.filter(
+                      (o) => dateKeyLocalFromDate(o.displayAt) === key,
+                    );
+                    const kinds = kindsOnDay(key, occurrences);
+                    return (
+                      <div
+                        key={key}
+                        role="gridcell"
+                        aria-selected={selected}
+                        className="min-w-0 border-r last:border-r-0"
                       >
-                        {date.getDate()}
-                      </span>
-                      <span className="flex gap-1 sm:hidden">
-                        {kinds.map((kind) => (
+                        <button
+                          type="button"
+                          data-date={key}
+                          aria-current={today ? "date" : undefined}
+                          aria-label={
+                            date.toLocaleDateString("ko-KR", {
+                              month: "long",
+                              day: "numeric",
+                              weekday: "long",
+                            }) +
+                            " · 일정 " +
+                            dayOccurrences.length +
+                            "건"
+                          }
+                          tabIndex={selected ? 0 : -1}
+                          onClick={() => selectCalendarDate(date, false, true)}
+                          onKeyDown={(event) => {
+                            const offsets: Record<string, number> = {
+                              ArrowLeft: -1,
+                              ArrowRight: 1,
+                              ArrowUp: -7,
+                              ArrowDown: 7,
+                            };
+                            if (event.key in offsets) {
+                              event.preventDefault();
+                              const target = new Date(date);
+                              target.setDate(target.getDate() + offsets[event.key]);
+                              selectCalendarDate(target, true);
+                            } else if (
+                              event.key === "Home" ||
+                              event.key === "End"
+                            ) {
+                              event.preventDefault();
+                              const target = new Date(date);
+                              const position = (date.getDay() + 6) % 7;
+                              target.setDate(
+                                date.getDate() +
+                                  (event.key === "Home" ? -position : 6 - position),
+                              );
+                              selectCalendarDate(target, true);
+                            }
+                          }}
+                          className={cn(
+                            "flex min-h-20 w-full flex-col items-center gap-2 px-1 py-3 text-sm transition-colors hover:bg-muted/40 focus-visible:relative focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring sm:min-h-28 sm:items-start sm:px-3",
+                            !inMonth && "bg-muted/20 text-muted-foreground/50",
+                            selected &&
+                              "bg-primary/[0.07] ring-1 ring-inset ring-primary/50",
+                          )}
+                        >
                           <span
-                            key={kind}
                             className={cn(
-                              "size-1.5 rounded-full",
-                              kindDotClass(kind),
+                              "flex size-6 items-center justify-center rounded-full text-xs font-medium tabular-nums",
+                              today &&
+                                "bg-primary font-bold text-primary-foreground",
+                              !today &&
+                                date.getDay() === 0 &&
+                                "text-rose-600 dark:text-rose-400",
                             )}
-                          />
-                        ))}
-                      </span>
-                      <span className="hidden w-full space-y-1 text-left sm:block">
-                        {dayOccurrences.slice(0, 2).map((o) => (
-                          <span
-                            key={o.key}
-                            className="flex min-w-0 items-center gap-1.5 rounded bg-muted/40 px-1 py-0.5 text-[10px]"
                           >
-                            <span
-                              className={cn(
-                                "size-1 shrink-0 rounded-full",
-                                kindDotClass(o.template.kind),
-                              )}
-                            />
-                            <span className="truncate">{o.template.title}</span>
+                            {date.getDate()}
                           </span>
-                        ))}
-                        {dayOccurrences.length > 2 ? (
-                          <span className="block pl-1 text-[9px] text-muted-foreground">
-                            +{dayOccurrences.length - 2}개 일정
+                          <span className="flex gap-1 sm:hidden">
+                            {kinds.map((kind) => (
+                              <span
+                                key={kind}
+                                className={cn(
+                                  "size-1.5 rounded-full",
+                                  kindDotClass(kind),
+                                )}
+                              />
+                            ))}
                           </span>
-                        ) : null}
-                      </span>
-                    </button>
-                  </div>
-                );
-              })}
+                          <span className="hidden w-full space-y-1 text-left sm:block">
+                            {dayOccurrences.slice(0, 2).map((o) => (
+                              <span
+                                key={o.key}
+                                className="flex min-w-0 items-center gap-1.5 rounded bg-muted/40 px-1 py-0.5 text-[10px]"
+                              >
+                                <span
+                                  className={cn(
+                                    "size-1 shrink-0 rounded-full",
+                                    kindDotClass(o.template.kind),
+                                  )}
+                                />
+                                <span className="truncate">{o.template.title}</span>
+                              </span>
+                            ))}
+                            {dayOccurrences.length > 2 ? (
+                              <span className="block pl-1 text-[9px] text-muted-foreground">
+                                +{dayOccurrences.length - 2}개 일정
+                              </span>
+                            ) : null}
+                          </span>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        <div className="flex justify-end gap-4 text-[10px] text-muted-foreground">
-          {["intra", "scrim", "event"].map((kind) => (
-            <span key={kind} className="flex items-center gap-1.5">
-              <span
-                className={cn("size-1.5 rounded-full", kindDotClass(kind))}
-              />
-              {kindLabel(kind)}
-            </span>
-          ))}
+            <div className="flex justify-end gap-4 text-[10px] text-muted-foreground">
+              {["intra", "scrim", "event"].map((kind) => (
+                <span key={kind} className="flex items-center gap-1.5">
+                  <span
+                    className={cn("size-1.5 rounded-full", kindDotClass(kind))}
+                  />
+                  {kindLabel(kind)}
+                </span>
+              ))}
+            </div>
+
+          </div>
+          <section
+            className="hidden min-w-0 flex-col overflow-hidden rounded-2xl border bg-card lg:flex"
+            aria-label="선택한 날짜 일정"
+            aria-live="polite"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b px-5 py-4">
+              <h3 className="flex items-center gap-2 text-sm font-semibold">
+                <CalendarDays
+                  className="size-4 text-primary"
+                  aria-hidden="true"
+                />
+                {selectedDateTitle} 일정
+              </h3>
+              <span className="rounded-full bg-muted px-2 py-1 text-[10px] font-semibold tabular-nums">
+                {slotOccurrences.length}건
+              </span>
+            </div>
+            <div className="min-h-64 flex-1">{daySchedule}</div>
+          </section>
         </div>
 
-        <section
-          className="overflow-hidden rounded-xl border bg-card"
-          aria-live="polite"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b px-5 py-4">
-            <h3 className="flex items-center gap-2 text-sm font-semibold">
-              <CalendarDays
-                className="size-4 text-primary"
-                aria-hidden="true"
-              />
-              {selectedDateTitle} 일정
-            </h3>
-            <span className="rounded-full bg-muted px-2 py-1 text-[10px] font-semibold tabular-nums">
-              {slotOccurrences.length}건
-            </span>
-          </div>
-          {!slotOccurrences.length ? (
-            <div className="flex flex-col items-center gap-3 px-5 py-10 text-center">
-              <CalendarDays
-                className="size-7 text-muted-foreground/40"
-                aria-hidden="true"
-              />
-              <p className="text-sm text-muted-foreground">
-                이 날짜에는 등록된 일정이 없습니다.
-              </p>
-              {canManageEvents ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs text-primary"
-                  onClick={() => setCreateOpen(true)}
-                >
-                  이 날짜에 일정 추가
-                </Button>
-              ) : null}
+        <Sheet open={dayDrawerOpen} onOpenChange={setDayDrawerOpen}>
+          <SheetContent
+            side="bottom"
+            finalFocus={() =>
+              calendarRef.current?.querySelector<HTMLButtonElement>(
+                `[data-date="${selectedKey}"]`,
+              )
+            }
+            className="max-h-[85dvh] gap-0 rounded-t-2xl pb-[env(safe-area-inset-bottom)] motion-reduce:transition-none data-starting-style:translate-y-full data-ending-style:translate-y-full"
+          >
+            <div
+              aria-hidden="true"
+              className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-muted-foreground/30"
+            />
+            <SheetHeader className="shrink-0 border-b pr-12">
+              <SheetTitle className="flex items-center gap-2">
+                <CalendarDays className="size-4 text-primary" aria-hidden="true" />
+                {selectedDateTitle} 일정
+              </SheetTitle>
+              <SheetDescription>
+                {slotOccurrences.length}건의 일정
+              </SheetDescription>
+            </SheetHeader>
+            <div className="min-h-40 overflow-y-auto overscroll-contain">
+              {daySchedule}
             </div>
-          ) : (
-            <ul className="divide-y" role="list">
-              {slotOccurrences.map((o) => (
-                <li key={o.key}>
-                  <button
-                    type="button"
-                    onClick={() => openDetail(o)}
-                    className="flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-muted/30 focus-visible:outline-2 focus-visible:outline-ring"
-                  >
-                    <span className="flex w-12 shrink-0 flex-col items-center gap-1 text-center text-xs font-semibold tabular-nums">
-                      <Clock
-                        className="size-3.5 text-muted-foreground"
-                        aria-hidden="true"
-                      />
-                      {o.displayAt.toLocaleTimeString("ko-KR", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: false,
-                      })}
-                    </span>
-                    <span
-                      className={cn(
-                        "h-10 w-0.5 shrink-0 rounded-full",
-                        kindDotClass(o.template.kind),
-                      )}
-                    />
-                    <span className="min-w-0 flex-1">
-                      <span className="flex flex-wrap items-center gap-2">
-                        <span className="text-[10px] text-muted-foreground">
-                          {kindLabel(o.template.kind)}
-                        </span>
-                        {o.template.kind === "scrim" &&
-                        goingKeySet.has(
-                          clanEventRsvpKey(o.template.id, o.instanceIdx),
-                        ) ? (
-                          <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-300">
-                            참가 중
-                          </span>
-                        ) : null}
-                      </span>
-                      <strong className="mt-1 block truncate text-sm font-semibold">
-                        {o.template.title}
-                      </strong>
-                      <span className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                        {o.template.place ?? "장소 미정"}
-                        {o.template.repeat !== "none" ? (
-                          <span className="flex items-center gap-1">
-                            <Repeat2 className="size-3" aria-hidden="true" />
-                            {repeatSummaryKo(o.template)}
-                          </span>
-                        ) : null}
-                      </span>
-                    </span>
-                    <ChevronRight
-                      className="size-4 shrink-0 text-muted-foreground"
-                      aria-hidden="true"
-                    />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+          </SheetContent>
+        </Sheet>
 
         {canManageEvents ? (
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
