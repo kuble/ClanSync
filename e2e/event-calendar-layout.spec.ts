@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
-test.use({ timezoneId: "UTC" });
+test.use({ timezoneId: "UTC", actionTimeout: 15_000 });
 
 test("calendar: desktop day panel and mobile bottom drawer keep the selected date", async ({ page }) => {
   test.setTimeout(150_000);
@@ -28,6 +28,22 @@ test("calendar: desktop day panel and mobile bottom drawer keep the selected dat
     expect(panelBox!.x).toBeGreaterThanOrEqual(gridBox!.x + gridBox!.width);
     expect(Math.abs(panelBox!.y - gridBox!.y)).toBeLessThan(2);
     await expect(page.getByRole("dialog")).toHaveCount(0);
+    const inlineDetail = panel.getByRole("region", { name: "일정 상세" });
+    await panel.getByRole("button", { name: /오전 일정/ }).click();
+    await expect(inlineDetail.getByRole("heading", { name: "이벤트 · 오전 일정" })).toBeVisible();
+    await expect(panel.getByRole("button", { name: /오전 일정/ })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await panel.getByRole("button", { name: /오후 일정/ }).click();
+    await expect(inlineDetail.getByRole("heading", { name: "내전 · 오후 일정" })).toBeVisible();
+    await inlineDetail.getByRole("button", { name: "편집", exact: true }).click();
+    const edit = page.getByRole("dialog", { name: "일정 편집" });
+    await expect(edit.getByLabel("제목", { exact: true })).toHaveValue("오후 일정");
+    await page.keyboard.press("Escape");
+    await expect(edit).not.toBeVisible();
+    await panel.getByRole("button", { name: /오전 일정/ }).click();
+    await calendar.locator(`[data-date="${emptyKey}"]`).click();
+    await expect(inlineDetail).toHaveCount(0);
+    await day.click();
 
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(panel).not.toBeVisible();
@@ -63,14 +79,21 @@ test("calendar: desktop day panel and mobile bottom drawer keep the selected dat
     const detail = page.getByRole("dialog", { name: "이벤트 · 오전 일정" });
     await expect(detail).toBeVisible();
     await expect(drawer).not.toBeVisible();
+    await page.setViewportSize({ width: 1304, height: 884 });
+    await expect(detail).not.toBeVisible();
+    await expect(inlineDetail.getByRole("heading", { name: "이벤트 · 오전 일정" })).toBeVisible();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(detail).toBeVisible();
     await page.keyboard.press("Escape");
     await day.click();
     await expect(drawer).toBeVisible();
     await page.setViewportSize({ width: 1304, height: 884 });
     await expect(drawer).not.toBeVisible();
     await expect(panel.getByRole("button", { name: /오전 일정/ })).toBeVisible();
+    await panel.getByRole("button", { name: /오전 일정/ }).click();
     await page.getByRole("button", { name: "다음 달", exact: true }).click();
     await expect(panel.getByText("이 날짜에는 등록된 일정이 없습니다.")).toBeVisible();
+    await expect(inlineDetail).toHaveCount(0);
   } finally {
     await f.cleanup();
   }

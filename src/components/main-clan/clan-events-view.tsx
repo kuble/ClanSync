@@ -161,15 +161,6 @@ export function ClanEventsView({
   );
   const [dayDrawerOpen, setDayDrawerOpen] = useState(false);
 
-  useEffect(() => {
-    const desktop = window.matchMedia("(min-width: 1024px)");
-    const closeOnDesktop = () => {
-      if (desktop.matches) setDayDrawerOpen(false);
-    };
-    desktop.addEventListener("change", closeOnDesktop);
-    return () => desktop.removeEventListener("change", closeOnDesktop);
-  }, []);
-
   const [sheetOpen, setSheetOpen] = useState(false);
   const [activeOccurrence, setActiveOccurrence] =
     useState<ClanEventOccurrenceVm | null>(null);
@@ -188,7 +179,6 @@ export function ClanEventsView({
 
   useEffect(() => {
     if (
-      !sheetOpen ||
       !activeOccurrence ||
       activeOccurrence.template.kind !== "scrim" ||
       !canManageEvents
@@ -212,11 +202,21 @@ export function ClanEventsView({
     return () => {
       cancelled = true;
     };
-  }, [sheetOpen, activeOccurrence, canManageEvents, gameSlug, clanId]);
+  }, [activeOccurrence, canManageEvents, gameSlug, clanId]);
 
   const [editOpen, setEditOpen] = useState(false);
   const [editRepeat, setEditRepeat] =
     useState<SerializedClanEvent["repeat"]>("none");
+
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const changePresentation = () => {
+      setDayDrawerOpen(false);
+      setSheetOpen(!desktop.matches && !!activeOccurrence && !editOpen);
+    };
+    desktop.addEventListener("change", changePresentation);
+    return () => desktop.removeEventListener("change", changePresentation);
+  }, [activeOccurrence, editOpen]);
 
   const occurrences = useMemo(
     () => expandClanEventsForLocalCalendarMonth(events, cursor.y, cursor.m),
@@ -256,6 +256,9 @@ export function ClanEventsView({
   }, [selectedKey]);
 
   function shiftMonth(delta: number) {
+    setEditOpen(false);
+    setActiveOccurrence(null);
+    setSheetOpen(false);
     const d = new Date(cursor.y, cursor.m + delta, 1);
     const ny = d.getFullYear();
     const nm = d.getMonth();
@@ -285,16 +288,22 @@ export function ClanEventsView({
     if (focus) focusDateRef.current = key;
     setCursor({ y: date.getFullYear(), m: date.getMonth() });
     setSelectedKey(key);
+    if (key !== selectedKey) {
+      setEditOpen(false);
+      setActiveOccurrence(null);
+      setSheetOpen(false);
+    }
     if (showSchedule && window.matchMedia("(max-width: 1023px)").matches) {
       setDayDrawerOpen(true);
     }
   }
 
   function openDetail(occurrence: ClanEventOccurrenceVm) {
+    setEditOpen(false);
     setDayDrawerOpen(false);
     setRsvpResult(null);
     setActiveOccurrence(occurrence);
-    setSheetOpen(true);
+    setSheetOpen(window.matchMedia("(max-width: 1023px)").matches);
   }
 
   function onRsvpToggle() {
@@ -381,6 +390,176 @@ export function ClanEventsView({
     });
   }
 
+  const eventDetails = activeOccurrence ? (
+    <>
+      <dl className="grid gap-2 px-4 text-sm">
+        <div className="grid grid-cols-[6rem_1fr] gap-2">
+          <dt className="text-muted-foreground">반복</dt>
+          <dd>{repeatSummaryKo(activeOccurrence.template)}</dd>
+        </div>
+        <div className="grid grid-cols-[6rem_1fr] gap-2">
+          <dt className="text-muted-foreground">장소·메모</dt>
+          <dd>{activeOccurrence.template.place?.trim() || "—"}</dd>
+        </div>
+        <div className="grid grid-cols-[6rem_1fr] gap-2">
+          <dt className="text-muted-foreground">출처</dt>
+          <dd>
+            {activeOccurrence.template.source === "manual"
+              ? "수동 등록"
+              : "스크림 자동 등록"}
+          </dd>
+        </div>
+      </dl>
+
+      {activeOccurrence.template.kind === "scrim" && viewerUserId ? (
+        <div className="space-y-3 border-t px-4 pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-muted-foreground text-xs font-medium">
+              참가 (스크림 전용)
+            </span>
+            <span
+              className={cn(
+                "rounded px-2 py-0.5 text-xs font-medium",
+                goingKeySet.has(
+                  clanEventRsvpKey(
+                    activeOccurrence.template.id,
+                    activeOccurrence.instanceIdx,
+                  ),
+                )
+                  ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                  : "bg-muted text-muted-foreground",
+              )}
+            >
+              {goingKeySet.has(
+                clanEventRsvpKey(
+                  activeOccurrence.template.id,
+                  activeOccurrence.instanceIdx,
+                ),
+              )
+                ? "참가 중"
+                : "미참가"}
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant={
+              goingKeySet.has(
+                clanEventRsvpKey(
+                  activeOccurrence.template.id,
+                  activeOccurrence.instanceIdx,
+                ),
+              )
+                ? "secondary"
+                : "default"
+            }
+            className="w-full"
+            disabled={pending}
+            onClick={onRsvpToggle}
+          >
+            {goingKeySet.has(
+              clanEventRsvpKey(
+                activeOccurrence.template.id,
+                activeOccurrence.instanceIdx,
+              ),
+            )
+              ? "참가 취소"
+              : "참가"}
+          </Button>
+        </div>
+      ) : null}
+
+      {canManageEvents &&
+      activeOccurrence.template.kind === "scrim" &&
+      rsvpAttendees ? (
+        <div className="space-y-2 border-t px-4 pt-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <span className="text-muted-foreground text-xs font-medium">
+              참가 명단 (운영진 전용)
+            </span>
+            <span className="text-muted-foreground tabular-nums text-xs">
+              {rsvpAttendees.length}명
+            </span>
+          </div>
+          {rsvpAttendees.length === 0 ? (
+            <p className="text-muted-foreground text-xs">
+              아직 참가한 사람이 없습니다.
+            </p>
+          ) : (
+            <ul className="max-h-[220px] space-y-1 overflow-y-auto text-sm">
+              {rsvpAttendees.map((a) => (
+                <li
+                  key={a.userId}
+                  className="flex justify-between gap-2"
+                >
+                  <span>{a.nickname}</span>
+                  {viewerUserId && a.userId === viewerUserId ? (
+                    <span className="text-muted-foreground text-xs">
+                      나
+                    </span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : null}
+
+      {canManageEvents &&
+      activeOccurrence.template.source === "scrim_auto" ? (
+        <div className="px-4 pt-2">
+          <Link
+            href={`/games/${gameSlug}`}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "w-full sm:w-auto",
+            )}
+          >
+            스크림 홈으로 (상세 연결 예정)
+          </Link>
+        </div>
+      ) : null}
+
+      <SheetFooter className="flex-col gap-2 sm:flex-col">
+        {canManageEvents &&
+        activeOccurrence.template.source === "manual" ? (
+          <div className="flex w-full flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              className="flex-1"
+              onClick={() => {
+                setEditRepeat(
+                  activeOccurrence.template.repeat ?? "none",
+                );
+                setEditOpen(true);
+                setSheetOpen(false);
+              }}
+            >
+              편집
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              className="flex-1"
+              disabled={pending}
+              onClick={onCancelEvent}
+            >
+              일정 취소
+            </Button>
+          </div>
+        ) : activeOccurrence.template.source !== "manual" ? (
+          <p className="text-muted-foreground text-xs">
+            스크림 등 자동 생성 일정은 읽기 전용입니다.
+          </p>
+        ) : (
+          <p className="text-muted-foreground text-xs">
+            편집·취소는 운영진만 가능합니다.
+          </p>
+        )}
+      </SheetFooter>
+    </>
+  ) : null;
+
   const daySchedule = (
     <>
       {!slotOccurrences.length ? (
@@ -414,7 +593,11 @@ export function ClanEventsView({
               <button
                 type="button"
                 onClick={() => openDetail(o)}
-                className="flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-muted/30 focus-visible:outline-2 focus-visible:outline-ring"
+                aria-pressed={activeOccurrence?.key === o.key}
+                className={cn(
+                  "flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-muted/30 focus-visible:outline-2 focus-visible:outline-ring",
+                  activeOccurrence?.key === o.key && "bg-primary/[0.07]",
+                )}
               >
                 <span className="flex w-12 shrink-0 flex-col items-center gap-1 text-center text-xs font-semibold tabular-nums">
                   <Clock
@@ -473,7 +656,17 @@ export function ClanEventsView({
   );
 
   return (
-    <Tabs defaultValue={initialTab} className="gap-5">
+    <Tabs
+      defaultValue={initialTab}
+      className="gap-5"
+      onValueChange={(tab) => {
+        if (tab !== "calendar") {
+          setEditOpen(false);
+          setActiveOccurrence(null);
+          setSheetOpen(false);
+        }
+      }}
+    >
       <TabsList
         variant="line"
         className="w-full min-w-0 justify-start gap-2 border-b sm:gap-5"
@@ -707,7 +900,27 @@ export function ClanEventsView({
                 {slotOccurrences.length}건
               </span>
             </div>
-            <div className="min-h-64 flex-1">{daySchedule}</div>
+            <div className="flex min-h-64 flex-1 flex-col">
+              {daySchedule}
+              {activeOccurrence ? (
+                <section aria-label="일정 상세" className="flex flex-1 flex-col gap-4 border-t pt-4">
+                  <div className="space-y-1 px-4">
+                    <h4 className="text-sm font-semibold break-words">
+                      {kindLabel(activeOccurrence.template.kind)} · {activeOccurrence.template.title}
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      이 회차 시작: {activeOccurrence.displayAt.toLocaleString("ko-KR", { dateStyle: "medium", timeStyle: "short" })}
+                    </p>
+                    {activeOccurrence.template.repeat !== "none" ? (
+                      <p className="text-xs text-muted-foreground">
+                        첫 일정: {new Date(activeOccurrence.template.start_at).toLocaleString("ko-KR", { dateStyle: "medium", timeStyle: "short" })}
+                      </p>
+                    ) : null}
+                  </div>
+                  {eventDetails}
+                </section>
+              ) : null}
+            </div>
           </section>
         </div>
 
@@ -786,7 +999,7 @@ export function ClanEventsView({
         open={sheetOpen}
         onOpenChange={(o) => {
           setSheetOpen(o);
-          if (!o) setActiveOccurrence(null);
+          if (!o && sheetOpen) setActiveOccurrence(null);
         }}
       >
         <SheetContent side="right" className="w-full max-w-[min(420px,92vw)]">
@@ -816,185 +1029,16 @@ export function ClanEventsView({
                   ) : null}
                 </SheetDescription>
               </SheetHeader>
-              <dl className="grid gap-2 px-4 text-sm">
-                <div className="grid grid-cols-[6rem_1fr] gap-2">
-                  <dt className="text-muted-foreground">반복</dt>
-                  <dd>{repeatSummaryKo(activeOccurrence.template)}</dd>
-                </div>
-                <div className="grid grid-cols-[6rem_1fr] gap-2">
-                  <dt className="text-muted-foreground">장소·메모</dt>
-                  <dd>{activeOccurrence.template.place?.trim() || "—"}</dd>
-                </div>
-                <div className="grid grid-cols-[6rem_1fr] gap-2">
-                  <dt className="text-muted-foreground">출처</dt>
-                  <dd>
-                    {activeOccurrence.template.source === "manual"
-                      ? "수동 등록"
-                      : "스크림 자동 등록"}
-                  </dd>
-                </div>
-              </dl>
-
-              {activeOccurrence.template.kind === "scrim" && viewerUserId ? (
-                <div className="space-y-3 border-t px-4 pt-4">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-muted-foreground text-xs font-medium">
-                      참가 (스크림 전용)
-                    </span>
-                    <span
-                      className={cn(
-                        "rounded px-2 py-0.5 text-xs font-medium",
-                        goingKeySet.has(
-                          clanEventRsvpKey(
-                            activeOccurrence.template.id,
-                            activeOccurrence.instanceIdx,
-                          ),
-                        )
-                          ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
-                          : "bg-muted text-muted-foreground",
-                      )}
-                    >
-                      {goingKeySet.has(
-                        clanEventRsvpKey(
-                          activeOccurrence.template.id,
-                          activeOccurrence.instanceIdx,
-                        ),
-                      )
-                        ? "참가 중"
-                        : "미참가"}
-                    </span>
-                  </div>
-                  <Button
-                    type="button"
-                    variant={
-                      goingKeySet.has(
-                        clanEventRsvpKey(
-                          activeOccurrence.template.id,
-                          activeOccurrence.instanceIdx,
-                        ),
-                      )
-                        ? "secondary"
-                        : "default"
-                    }
-                    className="w-full"
-                    disabled={pending}
-                    onClick={onRsvpToggle}
-                  >
-                    {goingKeySet.has(
-                      clanEventRsvpKey(
-                        activeOccurrence.template.id,
-                        activeOccurrence.instanceIdx,
-                      ),
-                    )
-                      ? "참가 취소"
-                      : "참가"}
-                  </Button>
-                </div>
-              ) : null}
-
-              {canManageEvents &&
-              activeOccurrence.template.kind === "scrim" &&
-              rsvpAttendees ? (
-                <div className="space-y-2 border-t px-4 pt-4">
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <span className="text-muted-foreground text-xs font-medium">
-                      참가 명단 (운영진 전용)
-                    </span>
-                    <span className="text-muted-foreground tabular-nums text-xs">
-                      {rsvpAttendees.length}명
-                    </span>
-                  </div>
-                  {rsvpAttendees.length === 0 ? (
-                    <p className="text-muted-foreground text-xs">
-                      아직 참가한 사람이 없습니다.
-                    </p>
-                  ) : (
-                    <ul className="max-h-[220px] space-y-1 overflow-y-auto text-sm">
-                      {rsvpAttendees.map((a) => (
-                        <li
-                          key={a.userId}
-                          className="flex justify-between gap-2"
-                        >
-                          <span>{a.nickname}</span>
-                          {viewerUserId && a.userId === viewerUserId ? (
-                            <span className="text-muted-foreground text-xs">
-                              나
-                            </span>
-                          ) : null}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ) : null}
-
-              {canManageEvents &&
-              activeOccurrence.template.source === "scrim_auto" ? (
-                <div className="px-4 pt-2">
-                  <Link
-                    href={`/games/${gameSlug}`}
-                    className={cn(
-                      buttonVariants({ variant: "outline", size: "sm" }),
-                      "w-full sm:w-auto",
-                    )}
-                  >
-                    스크림 홈으로 (상세 연결 예정)
-                  </Link>
-                </div>
-              ) : null}
-
-              <SheetFooter className="flex-col gap-2 sm:flex-col">
-                {canManageEvents &&
-                activeOccurrence.template.source === "manual" ? (
-                  <div className="flex w-full flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="flex-1"
-                      onClick={() => {
-                        setEditRepeat(
-                          activeOccurrence.template.repeat ?? "none",
-                        );
-                        setEditOpen(true);
-                        setSheetOpen(false);
-                      }}
-                    >
-                      편집
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      className="flex-1"
-                      disabled={pending}
-                      onClick={onCancelEvent}
-                    >
-                      일정 취소
-                    </Button>
-                  </div>
-                ) : activeOccurrence.template.source !== "manual" ? (
-                  <p className="text-muted-foreground text-xs">
-                    스크림 등 자동 생성 일정은 읽기 전용입니다.
-                  </p>
-                ) : (
-                  <p className="text-muted-foreground text-xs">
-                    편집·취소는 운영진만 가능합니다.
-                  </p>
-                )}
-              </SheetFooter>
+              {eventDetails}
             </>
           ) : null}
         </SheetContent>
       </Sheet>
 
-      <Dialog
-        open={editOpen}
-        onOpenChange={(o) => {
-          setEditOpen(o);
-          if (!o) setActiveOccurrence(null);
-        }}
-      >
-        {activeOccurrence ? (
-          <DialogContent showCloseButton className="max-h-[90vh] overflow-y-auto">
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent showCloseButton className="max-h-[90vh] overflow-y-auto">
+          {activeOccurrence ? (
+            <>
             <DialogHeader>
               <DialogTitle>일정 편집</DialogTitle>
             </DialogHeader>
@@ -1107,8 +1151,9 @@ export function ClanEventsView({
                 </Button>
               </DialogFooter>
             </form>
-          </DialogContent>
-        ) : null}
+            </>
+          ) : null}
+        </DialogContent>
       </Dialog>
     </Tabs>
   );
