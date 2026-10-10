@@ -408,14 +408,6 @@ export function ClanEventsView({
             >
               <ChevronRight className="size-4" aria-hidden="true" />
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => selectCalendarDate(new Date())}
-            >
-              오늘
-            </Button>
           </div>
           {canManageEvents ? (
             <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>

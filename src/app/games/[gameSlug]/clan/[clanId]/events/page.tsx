@@ -13,7 +13,7 @@ import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { getRequestUser } from "@/lib/supabase/request";
 import type { Json } from "@/lib/supabase/database.types";
-import { Bell, CalendarDays } from "lucide-react";
+import { Bell } from "lucide-react";
 import { redirect } from "next/navigation";
 
 export default async function ClanEventsPage({
@@ -104,20 +104,6 @@ export default async function ClanEventsPage({
 
   return (
     <div className="space-y-5">
-      <p className="text-muted-foreground text-xs leading-relaxed">
-        함께할 다음 약속. 클랜 일정과 투표, 대회를 한곳에서 관리하세요.
-      </p>
-      <div className="flex items-start gap-2.5 rounded-xl border border-primary/15 bg-primary/[0.04] px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-        <CalendarDays
-          className="mt-0.5 size-4 shrink-0 text-primary"
-          aria-hidden="true"
-        />
-        <p>
-          스크림이 확정되면 일정이 자동으로 등록됩니다. 변경·취소도 함께
-          반영되므로 다시 등록할 필요가 없습니다.
-        </p>
-      </div>
-
       <ClanEventsView
         gameSlug={gameSlug}
         clanId={clanId}
