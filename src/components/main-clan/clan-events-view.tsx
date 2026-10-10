@@ -591,6 +591,22 @@ export function ClanEventsView({
     </>
   ) : null;
 
+  const dateAddButton = canManageEvents ? (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      aria-label="이 날짜에 일정 추가"
+      onClick={() => {
+        setDayDrawerOpen(false);
+        setCreateOpen(true);
+      }}
+    >
+      <Plus className="size-3.5" aria-hidden="true" />
+      추가
+    </Button>
+  ) : null;
+
   const daySchedule = (
     <>
       {!slotOccurrences.length ? (
@@ -602,23 +618,9 @@ export function ClanEventsView({
           <p className="text-sm text-muted-foreground">
             이 날짜에는 등록된 일정이 없습니다.
           </p>
-          {canManageEvents ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="text-xs text-primary"
-              onClick={() => {
-                setDayDrawerOpen(false);
-                setCreateOpen(true);
-              }}
-            >
-              이 날짜에 일정 추가
-            </Button>
-          ) : null}
         </div>
       ) : (
-        <ul className="space-y-2 p-3" role="list">
+        <ul className="max-h-[50dvh] space-y-2 overflow-y-auto overscroll-contain p-3 lg:max-h-56" role="list" aria-label="날짜별 일정 목록">
           {slotOccurrences.map((o) => (
             <li key={o.key}>
               <button
@@ -626,7 +628,7 @@ export function ClanEventsView({
                 onClick={() => openDetail(o)}
                 aria-pressed={activeOccurrence?.key === o.key}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-ring motion-reduce:transition-none",
+                  "flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-left transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-ring motion-reduce:transition-none",
                   activeOccurrence?.key === o.key && "border-primary/25 bg-primary/[0.08]",
                 )}
               >
@@ -645,7 +647,7 @@ export function ClanEventsView({
                 />
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-2">
-                    <span className={cn("rounded px-1.5 py-0.5 text-[10px] font-medium", kindToneClass(o.template.kind))}>
+                    <span className={cn("rounded px-1.5 py-0.5 text-[10px] leading-none font-medium", kindToneClass(o.template.kind))}>
                       {kindLabel(o.template.kind)}
                     </span>
                     {o.template.repeat !== "none" ? (
@@ -660,7 +662,7 @@ export function ClanEventsView({
                       </span>
                     ) : null}
                   </span>
-                  <strong className="mt-1.5 block truncate text-sm font-medium">
+                  <strong className="mt-1 block truncate text-sm font-medium">
                     {o.template.title}
                   </strong>
                 </span>
@@ -923,9 +925,12 @@ export function ClanEventsView({
                   <span className="block text-base font-semibold">일정</span>
                 </span>
               </h3>
-              <span className="text-xs text-muted-foreground tabular-nums">
-                {slotOccurrences.length}개 일정
-              </span>
+              <div className="flex shrink-0 items-center gap-2">
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {slotOccurrences.length}개 일정
+                </span>
+                {dateAddButton}
+              </div>
             </div>
             <div className="flex min-h-64 flex-1 flex-col">
               {daySchedule}
@@ -975,9 +980,12 @@ export function ClanEventsView({
                 <CalendarDays className="size-4 text-primary" aria-hidden="true" />
                 {selectedDateTitle} 일정
               </SheetTitle>
-              <SheetDescription>
-                {slotOccurrences.length}건의 일정
-              </SheetDescription>
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <SheetDescription>
+                  {slotOccurrences.length}건의 일정
+                </SheetDescription>
+                {dateAddButton}
+              </div>
             </SheetHeader>
             <div className="min-h-40 overflow-y-auto overscroll-contain">
               {daySchedule}
