@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { MessageSquare, RefreshCw, Send } from "lucide-react";
 import { addHofCommentAction, deleteHofCommentAction, listHofCommentsAction, setHofCommentReactionAction } from "@/app/actions/hof-comments";
 import { HOF_COMMENT_MAX_LENGTH, HOF_REACTIONS, type HofComment, type HofCommentThread, type HofReactionKind } from "@/lib/clan/stats/hof-comments";
@@ -43,7 +43,17 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const input = useRef<HTMLTextAreaElement>(null);
+  const viewport = useRef<HTMLDivElement>(null);
+  const scrollUpdate = useRef<"latest" | { height: number; top: number } | null>("latest");
   const thread = { clanId, ranking, periodKey };
+
+  useLayoutEffect(() => {
+    const el = viewport.current;
+    const update = scrollUpdate.current;
+    if (loading || !el || !update) return;
+    el.scrollTop = update === "latest" ? el.scrollHeight : update.top + el.scrollHeight - update.height;
+    scrollUpdate.current = null;
+  }, [comments, loading]);
 
   useEffect(() => { onStatus(loading, busy); }, [loading, busy, onStatus]);
   useEffect(() => {
@@ -51,7 +61,7 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
     setLoading(true); setError("");
     listHofCommentsAction({ clanId, ranking, periodKey }).then((result) => {
       if (!active) return;
-      if (result.ok) { setComments(result.comments); setCursor(result.nextCursor); }
+      if (result.ok) { scrollUpdate.current = "latest"; setComments(result.comments); setCursor(result.nextCursor); }
       else setError(result.error);
     }).catch(() => { if (active) setError("반응을 불러오지 못했습니다. 다시 시도해 주세요."); })
       .finally(() => { if (active) setLoading(false); });
@@ -64,7 +74,7 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
     setBusy(true); setError("");
     try {
       const result = await addHofCommentAction(thread, draft);
-      if (result.ok) { setComments((rows) => [result.comment, ...rows]); setDraft(""); }
+      if (result.ok) { scrollUpdate.current = "latest"; setComments((rows) => [result.comment, ...rows]); setDraft(""); }
       else setError(result.error);
     } catch { setError("등록 결과를 확인하지 못했습니다. 새로고침으로 확인해 주세요."); }
     finally { setBusy(false); }
@@ -108,6 +118,7 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
     try {
       const result = await listHofCommentsAction(thread, cursor);
       if (result.ok) {
+        if (viewport.current) scrollUpdate.current = { height: viewport.current.scrollHeight, top: viewport.current.scrollTop };
         setComments((rows) => [...rows, ...result.comments.filter((item) => !rows.some((row) => row.id === item.id))]);
         setCursor(result.nextCursor);
       } else setError(result.error);
@@ -118,14 +129,15 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
   return (
     <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-      <StatsScrollArea label="순위 댓글 목록" className="min-h-0 flex-1">
+      <StatsScrollArea label="순위 댓글 목록" className="min-h-0 flex-1" viewportRef={viewport}>
         {loading ? <p role="status" className="flex min-h-60 items-center justify-center text-sm text-muted-foreground">반응을 불러오는 중…</p> : <>
-        {comments.length ? <ol className="space-y-5">{comments.map((comment) => <li key={comment.id} className="flex items-start gap-2.5">
+        {cursor && <Button type="button" className="w-full" variant="outline" size="sm" disabled={busy} onClick={() => void loadMore()}>이전 댓글 더 보기</Button>}
+        {comments.length ? <ol className="space-y-5">{[...comments].reverse().map((comment) => <li key={comment.id} className={`flex items-start gap-2.5 ${comment.isMine ? "flex-row-reverse" : ""}`}>
           <span aria-hidden="true" className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-xs font-black text-primary">{Array.from(comment.nickname)[0]}</span>
           <div className="min-w-0 flex-1 space-y-1.5">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px]"><strong className="max-w-full truncate text-xs">{comment.nickname}</strong><time dateTime={comment.createdAt} className="text-muted-foreground">{dateFormat.format(new Date(comment.createdAt))}</time>{comment.canDelete && <button type="button" className="ml-auto text-muted-foreground hover:text-foreground" disabled={busy} aria-label={`${comment.nickname} 댓글 삭제`} onClick={() => setConfirmDelete(comment.id)}>삭제</button>}</div>
-            <p className="w-fit max-w-full whitespace-pre-wrap break-words rounded-xl rounded-tl-sm border bg-background/50 px-3 py-2.5 text-sm leading-relaxed [overflow-wrap:anywhere]">{comment.content}</p>
-            <div className="flex flex-wrap items-center gap-1" aria-label={`${comment.nickname} 댓글 공감`}>
+            <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] ${comment.isMine ? "justify-end" : ""}`}><strong className="max-w-full truncate text-xs">{comment.nickname}</strong><time dateTime={comment.createdAt} className="text-muted-foreground">{dateFormat.format(new Date(comment.createdAt))}</time>{comment.canDelete && <button type="button" className={`${comment.isMine ? "" : "ml-auto"} text-muted-foreground hover:text-foreground`} disabled={busy} aria-label={`${comment.nickname} 댓글 삭제`} onClick={() => setConfirmDelete(comment.id)}>삭제</button>}</div>
+            <p className={`w-fit max-w-[85%] whitespace-pre-wrap break-words rounded-xl border px-3 py-2.5 text-sm leading-relaxed [overflow-wrap:anywhere] ${comment.isMine ? "ml-auto rounded-tr-sm border-primary/25 bg-primary/15" : "rounded-tl-sm bg-background/50"}`}>{comment.content}</p>
+            <div className={`flex flex-wrap items-center gap-1 ${comment.isMine ? "justify-end" : ""}`} aria-label={`${comment.nickname} 댓글 공감`}>
               {HOF_REACTIONS.map((option) => {
                 const reaction = comment.reactions.find(({ kind }) => kind === option.kind);
                 return reaction && <button key={option.kind} type="button" aria-pressed={reaction.mine} disabled={busy || loading}
@@ -136,15 +148,14 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
               <HofEmojiPicker label={`${comment.nickname} 댓글 공감 선택`} title="공감 선택" options={reactionOptions} disabled={busy || loading}
                 onSelect={(value) => { const option = HOF_REACTIONS.find(({ kind }) => kind === value); if (option) void react(comment, option.kind); }} />
             </div>
-            {confirmDelete === comment.id && <div className="flex flex-wrap items-center gap-2 text-xs"><span>이 댓글을 삭제할까요?</span><Button type="button" size="xs" variant="destructive" disabled={busy} onClick={() => void remove(comment.id)}>삭제 확인</Button><Button type="button" size="xs" variant="ghost" disabled={busy} onClick={() => setConfirmDelete(null)}>취소</Button></div>}
+            {confirmDelete === comment.id && <div className={`flex flex-wrap items-center gap-2 text-xs ${comment.isMine ? "justify-end" : ""}`}><span>이 댓글을 삭제할까요?</span><Button type="button" size="xs" variant="destructive" disabled={busy} onClick={() => void remove(comment.id)}>삭제 확인</Button><Button type="button" size="xs" variant="ghost" disabled={busy} onClick={() => setConfirmDelete(null)}>취소</Button></div>}
           </div>
         </li>)}</ol> : !error && <div className="flex min-h-60 flex-col items-center justify-center gap-3 text-center"><MessageSquare className="size-8 text-primary/50" aria-hidden="true" /><p className="text-sm font-semibold">이번 순위, 할 말 있죠?</p><p className="text-xs text-muted-foreground">아직 조용하네요. 첫 한마디를 남겨보세요.</p></div>}
-        {cursor && <Button type="button" className="mt-3 w-full" variant="outline" size="sm" disabled={busy} onClick={() => void loadMore()}>이전 댓글 더 보기</Button>}
         </>}
       </StatsScrollArea>
       <form onSubmit={submit} className="shrink-0 overflow-hidden rounded-xl border bg-background/50 focus-within:border-primary/60">
-        <label htmlFor="hof-comment" className="sr-only">순위에 댓글 남기기</label>
-        <textarea ref={input} id="hof-comment" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={HOF_COMMENT_MAX_LENGTH} rows={2} placeholder="이번에도 2등? 순위 보고 한마디." className="block min-h-20 w-full resize-none bg-transparent px-3 pt-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none" disabled={busy} />
+        <label htmlFor="hof-comment" className="sr-only">순위 보고 한마디</label>
+        <textarea ref={input} id="hof-comment" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={HOF_COMMENT_MAX_LENGTH} rows={2} placeholder="순위 보고 한마디" className="block min-h-20 w-full resize-none bg-transparent px-3 pt-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none" disabled={busy} />
         <div className="flex items-center gap-2 px-2 py-2">
           <HofEmojiPicker label="댓글 이모티콘 선택" title="이모티콘 선택" options={emojiOptions} disabled={busy} onSelect={insertEmoji} finalFocus={input} />
           <span className="text-[10px] tabular-nums text-muted-foreground">{draft.length} / {HOF_COMMENT_MAX_LENGTH}</span>

@@ -11,7 +11,7 @@ export const HOF_REACTIONS = [
 ] as const;
 export type HofReactionKind = (typeof HOF_REACTIONS)[number]["kind"];
 export type HofReaction = { kind: HofReactionKind; count: number; mine: boolean };
-export type HofComment = { id: string; content: string; createdAt: string; nickname: string; canDelete: boolean; reactions: HofReaction[] };
+export type HofComment = { id: string; content: string; createdAt: string; nickname: string; isMine: boolean; canDelete: boolean; reactions: HofReaction[] };
 export const HOF_COMMENT_PAGE_SIZE = 30;
 export const HOF_COMMENT_MAX_LENGTH = 500;
 
