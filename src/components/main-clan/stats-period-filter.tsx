@@ -9,7 +9,7 @@ export function StatsPeriodFilter({ value, onChange, years, withDay = false, max
 }) {
   const days = new Date(Date.UTC(Number(value.year), Number(value.month), 0)).getUTCDate();
   return <div className="flex max-w-full flex-wrap items-start gap-3">
-    <RubberSegment label="기간" labelPosition="top" value={value.mode} options={[{ id: "all", label: "전체" }, { id: "year", label: "연도별" }, { id: "month", label: "월별" }]} onChange={(mode) => onChange({ ...value, mode, day: "all" })} />
+    <RubberSegment label="기간" labelPosition="hidden" value={value.mode} options={[{ id: "all", label: "전체" }, { id: "year", label: "연도별" }, { id: "month", label: "월별" }]} onChange={(mode) => onChange({ ...value, mode, day: "all" })} />
     {value.mode !== "all" && <WheelSelect label="연도" value={value.year} options={years.map((id) => ({ id, label: `${id}년` }))} onChange={(year) => onChange({ ...value, year, day: "all" })} />}
     {value.mode === "month" && <>
       <WheelSelect label="월" value={value.month} options={Array.from({ length: maxMonth }, (_, i) => ({ id: String(i + 1).padStart(2, "0"), label: `${i + 1}월` }))} onChange={(month) => onChange({ ...value, month, day: "all" })} />

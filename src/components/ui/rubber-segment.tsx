@@ -9,7 +9,7 @@ export function RubberSegment<T extends string>({ options, value, onChange, labe
   value: T;
   onChange: (value: T) => void;
   label: string;
-  labelPosition?: "inline" | "top";
+  labelPosition?: "inline" | "top" | "hidden";
 }) {
   const track = useRef<HTMLDivElement>(null);
   const viewport = useRef<HTMLDivElement>(null);
@@ -47,7 +47,7 @@ export function RubberSegment<T extends string>({ options, value, onChange, labe
   };
 
   return <div className={`flex min-w-0 max-w-full gap-2 ${labelPosition === "top" ? "flex-col items-start" : "items-center"}`}>
-    <span className="shrink-0 text-[11px] text-muted-foreground">{label}</span>
+    {labelPosition !== "hidden" && <span className="shrink-0 text-[11px] text-muted-foreground">{label}</span>}
     <div ref={viewport} className="min-w-0 max-w-full overflow-x-auto rounded-lg [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <div ref={track} role="radiogroup" aria-label={label} className="relative flex w-max items-center rounded-lg border bg-muted/30 p-[3px]">
         <span ref={thumb} aria-hidden className={`${styles.thumb} pointer-events-none absolute inset-y-[3px] z-0 rounded-[7px] bg-primary/80 opacity-0 shadow-sm`}>
