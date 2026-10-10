@@ -23,6 +23,7 @@
 | 통계 조회 성능 | [조회 모델 설계](02-design/clan-stats-read-model.md) · [요약·기록 RPC 로더](../src/lib/clan/stats/stats-read-model.ts) · [기간 지연 조회](../src/components/main-clan/use-stats-period.tsx) | [정합성·권한](../e2e/clan-stats-read-model.spec.ts) · [1만 경기 측정](../e2e/clan-stats-scale.spec.ts) |
 | 경기 기록 추가·정정·제거 | [기록 액션](../src/app/actions/clan-match-records.ts) · [편집 창](../src/components/main-clan/match-record-editor.tsx) · [날짜별 기록](../src/components/main-clan/clan-stats-archive.tsx) · [당일 전적](../src/components/main-clan/archive-day-table.tsx) | [CRUD·권한·원본 보존](../e2e/clan-match-record-editing.spec.ts) · [영역 유지·고정 높이](../e2e/clan-stats-periods.spec.ts) |
 | 일정·시간대 | [일정 액션](../src/app/actions/clan-events.ts) · [시간 파싱](../src/lib/clan/parse-event-start.ts) | [event-timezone](../e2e/event-timezone.spec.ts) · [review-rules](../e2e/review-rules.spec.ts) |
+| Discord 공용 봇·일정 알림 | [연결 안내](guides/discord-bot-setup.md) · [봇 API](../src/lib/notifications/discord-bot.ts) · [발송](../src/lib/notifications/dispatch-discord-bot-notifications.ts) · [설정 액션](../src/app/actions/clan-event-notify.ts) | [권한·예약·UI](../e2e/event-discord-bot.spec.ts) · [기존 DB 회귀](../scripts/review-db.test.mjs) |
 | 공통 화면·페이지 이동 | [클랜 셸](../src/components/main-clan/main-clan-shell.tsx) · [클랜 레이아웃](../src/app/games/[gameSlug]/clan/[clanId]/layout.tsx) | [navigation-feedback](../e2e/navigation-feedback.spec.ts) · [frontend-rebuild](../e2e/frontend-rebuild.spec.ts) · [ui-regression](../e2e/ui-regression.spec.ts) |
 
 ## 무엇을 볼 때 어디로 가는가

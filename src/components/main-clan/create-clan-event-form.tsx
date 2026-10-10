@@ -8,6 +8,7 @@ import { createClanEventAction } from "@/app/actions/clan-events";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { EventDiscordFields } from "./event-discord-fields";
 const WD_LABEL = ["월", "화", "수", "목", "금", "토", "일"];
 
 export function CreateClanEventForm({
@@ -15,11 +16,15 @@ export function CreateClanEventForm({
   clanId,
   defaultDate,
   onCreated,
+  discordAvailable = false,
+  discordChannelName,
 }: {
   gameSlug: string;
   clanId: string;
   defaultDate?: string;
   onCreated?: () => void;
+  discordAvailable?: boolean;
+  discordChannelName?: string | null;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -129,6 +134,7 @@ export function CreateClanEventForm({
         <Label htmlFor="evt-place">장소·메모 (선택)</Label>
         <Input id="evt-place" name="place" maxLength={500} />
       </div>
+      <EventDiscordFields available={discordAvailable} channelName={discordChannelName} />
       <Button type="submit" disabled={pending}>
         {pending ? "저장 중…" : "등록"}
       </Button>

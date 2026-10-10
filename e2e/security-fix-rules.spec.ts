@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { safeNextPath } from "../src/lib/auth/safe-next-path";
 import { isDiscordWebhookUrl, postDiscordWebhook } from "../src/lib/notifications/discord-webhook";
-import { dispatchDiscordPollNotifications } from "../src/lib/notifications/dispatch-discord-poll-notifications";
+import { dispatchDiscordBotNotifications } from "../src/lib/notifications/dispatch-discord-bot-notifications";
 import { expandClanEventsForMonth, expandClanEventsForLocalCalendarMonth, isOccurrenceValidForTemplate, type ClanEventRecord } from "../src/lib/clan/expand-clan-event-occurrences";
 import { activeLobbyRooms } from "../src/lib/balance/lobby-rooms";
 
@@ -14,6 +14,8 @@ test("Discord sinks reject stored unsafe URLs and redirects; failed jobs finaliz
   const valid = "https://discord.com/api/webhooks/123456/token_abc-DEF";
   for (const url of ["http://127.0.0.1/a", "https://discord.com.evil.test/api/webhooks/1/x", "https://discord.com/api/webhooks/../x", "https://discord.com/api/webhooks/1/x?next=http://localhost", valid + "\n"]) expect(isDiscordWebhookUrl(url)).toBe(false);
   const original = global.fetch;
+  const token = process.env.DISCORD_BOT_TOKEN;
+  process.env.DISCORD_BOT_TOKEN = "isolated-test-token";
   const calls: RequestInit[] = [];
   global.fetch = async (_url, init) => { calls.push(init!); return new Response(null, { status: 204 }); };
   try {
@@ -23,13 +25,17 @@ test("Discord sinks reject stored unsafe URLs and redirects; failed jobs finaliz
     expect(calls[0].redirect).toBe("error");
     const finalized: unknown[] = [];
     const client = { rpc: async (name: string, args: unknown) => {
-      if (name === "claim_discord_poll_notification_batch") return { data: [{ log_id: "log", clan_id: "clan", game_slug: "overwatch", webhook_url: "http://localhost/private" }], error: null };
+      if (name === "claim_discord_bot_notification_batch") return { data: [{ log_id: "log", clan_id: "clan", game_slug: "overwatch", channel_id: "http://localhost/private" }], error: null };
       finalized.push(args); return { data: null, error: null };
-    } } as unknown as Parameters<typeof dispatchDiscordPollNotifications>[0];
-    expect(await dispatchDiscordPollNotifications(client, 1)).toEqual({ claimed: 1, sent: 0, failed: 1 });
-    expect(finalized).toEqual([{ p_log_id: "log", p_ok: false, p_error: "Discord 웹훅 전송 실패" }]);
+    }, from: (table: string) => {
+      const query = { select: () => query, eq: () => query, single: async () => ({ data:
+        table === "notification_log" ? { status: "processing" } : table === "clans" ? { subscription_tier: "premium" } : table === "clan_settings" ? { event_notify: { discord_enabled: true, discord_transport: "bot" } } : { channel_id: "http://localhost/private" }, error: null }) };
+      return query;
+    } } as unknown as Parameters<typeof dispatchDiscordBotNotifications>[0];
+    expect(await dispatchDiscordBotNotifications(client, 1)).toEqual({ claimed: 1, sent: 0, failed: 1 });
+    expect(finalized).toEqual([{ p_log_id: "log", p_ok: false, p_error: "Discord bot delivery failed" }]);
     expect(calls).toHaveLength(1);
-  } finally { global.fetch = original; }
+  } finally { global.fetch = original; if (token === undefined) delete process.env.DISCORD_BOT_TOKEN; else process.env.DISCORD_BOT_TOKEN = token; }
 });
 
 test("Korean weekly/monthly instances survive UTC, KST and DST host timezones", () => {

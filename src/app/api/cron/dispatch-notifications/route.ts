@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
-import { dispatchDiscordPollNotifications } from "@/lib/notifications/dispatch-discord-poll-notifications";
+import { dispatchDiscordBotNotifications } from "@/lib/notifications/dispatch-discord-bot-notifications";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 
 /**
  * LFG 만료 정리(notification_log 적재 포함) 후 due in-app(notification_log→notifications) 디스패치,
- * Discord 투표 알림 웹훅 순서 처리.
+ * Discord 일정·투표 알림 봇 발송.
  * Vercel Cron(Hobby: 하루 1회) 또는 수동 호출 시 `Authorization: Bearer <CRON_SECRET>` 필요.
  */
+export const maxDuration = 300;
+
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
   if (!secret || secret.length < 8) {
@@ -63,7 +65,7 @@ export async function GET(request: Request) {
   };
   let discord_note: string | null = null;
   try {
-    discord = await dispatchDiscordPollNotifications(svc, 40);
+    discord = await dispatchDiscordBotNotifications(svc, 40);
   } catch (e) {
     discord_note = e instanceof Error ? e.message : "discord_dispatch_failed";
   }

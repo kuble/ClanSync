@@ -869,12 +869,48 @@ export type Database = {
           },
         ]
       }
+      clan_discord_connections: {
+        Row: {
+          channel_id: string | null
+          channel_name: string | null
+          clan_id: string
+          guild_id: string
+          guild_name: string
+          updated_at: string
+        }
+        Insert: {
+          channel_id?: string | null
+          channel_name?: string | null
+          clan_id: string
+          guild_id: string
+          guild_name: string
+          updated_at?: string
+        }
+        Update: {
+          channel_id?: string | null
+          channel_name?: string | null
+          clan_id?: string
+          guild_id?: string
+          guild_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_discord_connections_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: true
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_events: {
         Row: {
           cancelled_at: string | null
           clan_id: string
           created_at: string
           created_by: string
+          discord_notify: Json
           finished_at: string | null
           id: string
           kind: Database["public"]["Enums"]["clan_event_kind"]
@@ -893,6 +929,7 @@ export type Database = {
           clan_id: string
           created_at?: string
           created_by: string
+          discord_notify?: Json
           finished_at?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["clan_event_kind"]
@@ -911,6 +948,7 @@ export type Database = {
           clan_id?: string
           created_at?: string
           created_by?: string
+          discord_notify?: Json
           finished_at?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["clan_event_kind"]
@@ -2748,6 +2786,10 @@ export type Database = {
         Returns: Json
       }
       cancel_lfg_post: { Args: { p_post_id: string }; Returns: undefined }
+      claim_discord_bot_notification_batch: {
+        Args: { p_event_id?: string; p_limit: number }
+        Returns: Json
+      }
       claim_discord_poll_notification_batch: {
         Args: { p_limit: number }
         Returns: Json
@@ -2785,6 +2827,15 @@ export type Database = {
           p_state: Json
         }
         Returns: boolean
+      }
+      connect_clan_discord_bot: {
+        Args: {
+          p_actor_id: string
+          p_clan_id: string
+          p_guild_id: string
+          p_guild_name: string
+        }
+        Returns: undefined
       }
       count_lfg_applications: {
         Args: { p_post_ids: string[] }
@@ -2830,6 +2881,10 @@ export type Database = {
       expire_open_lfg_posts_batch: {
         Args: { p_limit?: number }
         Returns: number
+      }
+      finalize_discord_bot_notification: {
+        Args: { p_error: string; p_log_id: string; p_ok: boolean }
+        Returns: undefined
       }
       finalize_discord_notification_dispatch: {
         Args: { p_error: string; p_log_id: string; p_ok: boolean }
@@ -2949,6 +3004,10 @@ export type Database = {
         Returns: Json
       }
       record_clan_activity: { Args: { p_clan_id: string }; Returns: undefined }
+      replace_event_discord_notifications: {
+        Args: { p_actor_id: string; p_event_id: string; p_schedule: Json }
+        Returns: undefined
+      }
       replace_event_inapp_notifications: {
         Args: { p_event_id: string; p_schedule: Json }
         Returns: undefined
@@ -2971,6 +3030,15 @@ export type Database = {
           p_application_id: string
           p_decision: string
           p_post_id: string
+        }
+        Returns: undefined
+      }
+      save_clan_stats_settings: {
+        Args: {
+          p_actor_id: string
+          p_clan_id: string
+          p_patch: Json
+          p_scope: string
         }
         Returns: undefined
       }
@@ -3019,15 +3087,6 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
-      }
-      save_clan_stats_settings: {
-        Args: {
-          p_actor_id: string
-          p_clan_id: string
-          p_patch: Json
-          p_scope: string
-        }
-        Returns: undefined
       }
       select_my_clan_membership: {
         Args: { p_clan_id: string }
@@ -3078,6 +3137,18 @@ export type Database = {
       }
       set_balance_scores: {
         Args: { p_clan_id: string; p_round_id: string; p_snapshot: Json }
+        Returns: undefined
+      }
+      set_clan_discord_bot_settings: {
+        Args: {
+          p_actor_id: string
+          p_channel_id: string
+          p_channel_name: string
+          p_clan_id: string
+          p_enabled: boolean
+          p_guild_id: string
+          p_kakao: boolean
+        }
         Returns: undefined
       }
       set_clan_notification_settings: {
@@ -3205,6 +3276,8 @@ export type Database = {
         | "event_cancelled"
         | "lfg_post_expired"
         | "lfg_application_expired"
+        | "event_created"
+        | "event_updated"
       notification_status:
         | "scheduled"
         | "sent"
@@ -3414,6 +3487,8 @@ export const Constants = {
         "event_cancelled",
         "lfg_post_expired",
         "lfg_application_expired",
+        "event_created",
+        "event_updated",
       ],
       notification_status: [
         "scheduled",

@@ -56,6 +56,8 @@ Supabase CLI는 `.env.local`을 읽는 `node scripts/with-dotenv-local.mjs <명�
 
 운영 Vercel에는 `CRON_SECRET`을 Secret으로 등록했습니다. 이후 배포부터 매일 02:00 UTC(한국 11:00)에 알림 cron이 인증된 요청을 보냅니다. 로컬·테스트 키는 운영과 다르게 설정했습니다.
 
+Discord 알림은 공용 ClanSync 봇의 서버 초대·채널 선택 방식으로 QA에 구현했습니다. 앱 등록·서버 키·분 단위 예약 발송 연결은 [공용 봇 연결 안내](docs/guides/discord-bot-setup.md)를 따릅니다. 실제 Discord 발송 및 운영 반영은 아직 완료하지 않았습니다.
+
 ## 검증
 
 영상 촬영용 QA 대시보드는 `node scripts/add-qa-dashboard-demo.mjs`로 추가량을 확인하고 `--apply`로 적용합니다. `QA_01_Clan`에 공지 3개·주간 일정 3개·빈 클랜 규칙만 추가하며, 고정 ID로 중복을 막고 기존 계정·명단·경기·코인을 보존합니다. 사용자 편집 후 재실행해도 기존 공지·일정·규칙을 덮어쓰지 않습니다.

@@ -24,6 +24,7 @@ import {
 import { ClanEventsBracketTab } from "@/components/main-clan/clan-events-bracket-tab";
 import { ClanEventsPollsTab } from "@/components/main-clan/clan-events-polls-tab";
 import { CreateClanEventForm } from "@/components/main-clan/create-clan-event-form";
+import { EventDiscordFields } from "@/components/main-clan/event-discord-fields";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
@@ -127,6 +128,9 @@ export function ClanEventsView({
   polls,
   bracketTournaments,
   initialTab = "calendar",
+  notificationSettings,
+  discordAvailable = false,
+  discordChannelName,
 }: {
   gameSlug: string;
   clanId: string;
@@ -138,6 +142,9 @@ export function ClanEventsView({
   polls: SerializedClanPoll[];
   bracketTournaments: SerializedBracketTournament[];
   initialTab?: "calendar" | "bracket" | "polls";
+  notificationSettings?: React.ReactNode;
+  discordAvailable?: boolean;
+  discordChannelName?: string | null;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -409,12 +416,15 @@ export function ClanEventsView({
               <ChevronRight className="size-4" aria-hidden="true" />
             </Button>
           </div>
+          <div className="flex items-center gap-2">
           {canManageEvents ? (
             <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
               <Plus className="size-4" aria-hidden="true" />
               일정 등록
             </Button>
           ) : null}
+          {notificationSettings}
+          </div>
         </div>
 
         <div
@@ -686,6 +696,8 @@ export function ClanEventsView({
                 gameSlug={gameSlug}
                 clanId={clanId}
                 defaultDate={selectedKey}
+                discordAvailable={discordAvailable}
+                discordChannelName={discordChannelName}
                 onCreated={() => setCreateOpen(false)}
               />
             </DialogContent>
@@ -925,7 +937,7 @@ export function ClanEventsView({
         }}
       >
         {activeOccurrence ? (
-          <DialogContent showCloseButton>
+          <DialogContent showCloseButton className="max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>일정 편집</DialogTitle>
             </DialogHeader>
@@ -1024,6 +1036,7 @@ export function ClanEventsView({
                   defaultValue={activeOccurrence.template.place ?? ""}
                 />
               </div>
+              <EventDiscordFields available={discordAvailable} channelName={discordChannelName} value={activeOccurrence.template.discord_notify} />
               <DialogFooter className="gap-2 sm:gap-2">
                 <Button
                   type="button"

@@ -263,10 +263,12 @@ H1 "클랜 이벤트"
 - **수정·취소(수동)**: 일정 저장 시 기존 해당 `event_id`의 `scheduled` 예약을 취소한 뒤 위 규칙으로 재예약. 향후 도래 회차가 없으면 INSERT 없이 성공. 취소(`cancelled_at`) 시에도 `scheduled` 예약을 취소.
 - **발송**: `dispatch_inapp_notification_batch`가 피드 `notifications.kind = event_reminder` 로 반영. 알림 벨 링크는 캘린더 탭(`?tab=calendar`).
 
-### 수동 일정 Discord 웹훅 (MVP · `clan_settings.event_notify`)
-- **`discord_enabled` + 웹훅 URL**이 있을 때만: `createClanEventAction`·`updateClanEventAction`이 **in-app 예약까지 성공한 뒤** 비동기로 Incoming Webhook `POST` (타임아웃 8s). 실패해도 액션은 성공으로 유지.
-- **등록** 메시지 헤더: «클랜 일정 등록», **저장(수정)** 헤더: «클랜 일정 변경». 본문: 제목·유형·시작(로캘 포맷)·장소·이벤트 탭 링크.
-- **`event_notify` JSON**(리더 저장): 알 수 없는 키를 덮어쓰지 않고 병합한다. 카카오 알림톡은 **`kakao_notifications_opt_in`**(boolean·수신 의사)만 영속화하며, **번호 검증·실 발송 채널은 Phase 2+**(D-EVENTS-03). 이벤트 탭의 알림 카드 카피에 위 범위를 명시한다.
+### Discord 공용 봇 (2026-10-10 QA)
+- 페이지 소개·스크림 자동 등록 안내·오늘 버튼을 제거했다. 하단 외부 채널 펼침 영역은 일정 등록 옆 **알림 설정** 아이콘으로 옮겼다.
+- Premium 클랜장만 공용 봇 초대·채널 저장을 할 수 있다. OAuth state/현재 클랜장 자격과 Discord 서버 관리 권한을 검증하고, 서버·채널 ID/이름은 service-only 테이블에 저장한다. 클라이언트에 토큰·웹훅 주소를 제공하지 않는다.
+- 수동 일정 등록·편집에 **Discord 알림**과 등록·변경/하루 전/1시간 전/10분 전/시작 시 선택을 넣었다. 일정과 예약은 한 트랜잭션으로 저장하며 실패·취소·sent 보존·채널 변경을 처리한다. 기존 투표 예약도 봇으로 발송한다.
+- 전역 알림 해제 후에는 미래 슬롯만 복구하며, 과거 등록·변경 알림은 재생하지 않는다. 카카오는 수신 의사만 저장한다.
+- 실제 앱 등록·서버 환경변수·초대와 분 단위 스케줄러 연결은 남아 있다. 현재 하루 1회 cron으로는 정시 사전 알림을 제공하지 않는다. [연결·운영 조건 및 검증 범위](../../guides/discord-bot-setup.md).
 
 ### 대진표 (D-EVENTS-05 DECIDED — 클랜 내 이벤트 전용)
 - 스키마: `bracket_tournaments` · `bracket_teams` · `bracket_team_members` · `bracket_matches` · `bracket_results` (→ `schema.md`).

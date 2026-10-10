@@ -1,5 +1,7 @@
 import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
-import { ClanEventNotifyForm } from "@/components/main-clan/clan-event-notify-form";
+import { ClanEventNotificationSettings } from "@/components/main-clan/clan-event-notify-form";
+import { discordBotConfigured } from "@/lib/notifications/discord-bot";
+import { readEventDiscordSettings } from "@/lib/clan/event-discord-settings";
 import { ClanEventsView } from "@/components/main-clan/clan-events-view";
 import {
   clanEventRsvpKey,
@@ -13,7 +15,6 @@ import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { getRequestUser } from "@/lib/supabase/request";
 import type { Json } from "@/lib/supabase/database.types";
-import { Bell } from "lucide-react";
 import { redirect } from "next/navigation";
 
 export default async function ClanEventsPage({
@@ -21,7 +22,7 @@ export default async function ClanEventsPage({
   searchParams,
 }: {
   params: Promise<{ gameSlug: string; clanId: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; discord?: string }>;
 }) {
   const { gameSlug, clanId } = await params;
   const sp = await searchParams;
@@ -44,7 +45,7 @@ export default async function ClanEventsPage({
     const { data: rows } = await svc
       .from("clan_events")
       .select(
-        "id, title, kind, start_at, place, source, repeat, repeat_weekdays, repeat_time",
+        "id, title, kind, start_at, place, source, repeat, repeat_weekdays, repeat_time, discord_notify",
       )
       .eq("clan_id", clanId)
       .is("cancelled_at", null)
@@ -61,6 +62,7 @@ export default async function ClanEventsPage({
       repeat: event.repeat ?? "none",
       repeat_weekdays: event.repeat_weekdays ?? null,
       repeat_time: event.repeat_time ?? null,
+      discord_notify: readEventDiscordSettings(event.discord_notify),
     }));
     const eventIds = events.map((event) => event.id);
     const { data: rsvpRows } =
@@ -101,6 +103,10 @@ export default async function ClanEventsPage({
   const notify = readClanEventNotifySettings(
     settingsRow?.event_notify as Json | null,
   );
+  const canOpenSettings = canManage || canEditEventNotify;
+  const { data: connection } = canOpenSettings ? await svc.from("clan_discord_connections")
+    .select("guild_name,channel_id,channel_name").eq("clan_id", clanId).maybeSingle() : { data: null };
+  const botConfigured = discordBotConfigured();
 
   return (
     <div className="space-y-5">
@@ -115,25 +121,13 @@ export default async function ClanEventsPage({
         polls={polls}
         bracketTournaments={bracketTournaments}
         initialTab={initialTab}
+        discordAvailable={botConfigured && notify.discord_enabled && !!connection?.channel_id && ctx.plan === "premium"}
+        discordChannelName={connection?.channel_name}
+        notificationSettings={canOpenSettings ? <ClanEventNotificationSettings gameSlug={gameSlug} clanId={clanId}
+          discordEnabled={notify.discord_enabled} kakaoNotificationsOptIn={notify.kakao_notifications_opt_in}
+          canEdit={canEditEventNotify} premium={ctx.plan === "premium"} botConfigured={botConfigured}
+          connection={connection} connectionResult={sp.discord} /> : undefined}
       />
-      {canManage ? (
-        <details className="rounded-xl border bg-card px-4 py-3">
-          <summary className="flex cursor-pointer items-center gap-2 text-xs font-semibold focus-visible:outline-2 focus-visible:outline-ring">
-            <Bell className="size-4 text-muted-foreground" aria-hidden="true" />
-            외부 채널 알림 설정
-          </summary>
-          <div className="mt-4">
-            <ClanEventNotifyForm
-              gameSlug={gameSlug}
-              clanId={clanId}
-              discordEnabled={notify.discord_enabled}
-              discordWebhookConfigured={notify.discord_configured}
-              kakaoNotificationsOptIn={notify.kakao_notifications_opt_in}
-              canEdit={canEditEventNotify}
-            />
-          </div>
-        </details>
-      ) : null}
     </div>
   );
 }

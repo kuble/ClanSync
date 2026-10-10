@@ -161,7 +161,7 @@ export async function createClanPollAction(
       .eq("clan_id", clanId)
       .maybeSingle();
     const evNotify = readClanEventNotifySettings(settingsRow?.event_notify ?? null);
-    const discordWebhookOk =
+    const discordBotOk =
       evNotify.discord_enabled &&
       evNotify.discord_configured;
 
@@ -196,7 +196,7 @@ export async function createClanPollAction(
       }
     }
 
-    if (discordWebhookOk) {
+    if (discordBotOk) {
       for (const s of slots) {
         const scheduledAt = s.scheduled_at.toISOString();
         const dedup_key = createHash("sha256")

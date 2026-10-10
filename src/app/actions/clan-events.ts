@@ -5,12 +5,13 @@ import { koreanTime } from "@/lib/clan/event-timezone";
 import { parseEventStart } from "@/lib/clan/parse-event-start";
 import { revalidatePath } from "next/cache";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
-import { postDiscordWebhook } from "@/lib/notifications/discord-webhook";
-import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
+import { after } from "next/server";
+import { dispatchDiscordBotNotifications } from "@/lib/notifications/dispatch-discord-bot-notifications";
+import { eventDiscordSettingsFromForm } from "@/lib/clan/event-discord-settings";
 import { saveClanEventWithNotifications } from "@/lib/clan/schedule-clan-event-inapp-notifications";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
-import type { Database, Json } from "@/lib/supabase/database.types";
+import type { Database } from "@/lib/supabase/database.types";
 import {
   isOccurrenceValidForTemplate,
   type ClanEventRecord,
@@ -97,67 +98,6 @@ function clanEventRowToRecord(row: {
   };
 }
 
-function kindLabelKo(kind: Database["public"]["Enums"]["clan_event_kind"]): string {
-  if (kind === "intra") return "내전";
-  if (kind === "scrim") return "스크림";
-  return "이벤트";
-}
-
-async function notifyDiscordManualClanEvent(opts: {
-  svc: ReturnType<typeof createServiceRoleClient>;
-  clanId: string;
-  gameSlug: string;
-  title: string;
-  kind: Database["public"]["Enums"]["clan_event_kind"];
-  startAt: Date;
-  place: string | null;
-  /** 등록 vs 저장(수정) 카피 분기 */
-  change: "create" | "update";
-}): Promise<void> {
-  const { data: s } = await opts.svc
-    .from("clan_settings")
-    .select("event_notify")
-    .eq("clan_id", opts.clanId)
-    .maybeSingle();
-
-  const n = readClanEventNotifySettings(s?.event_notify as Json | null);
-  if (!n.discord_enabled) return;
-  const { data: secret } = await opts.svc.from("clan_notification_secrets")
-    .select("discord_webhook_url").eq("clan_id", opts.clanId).maybeSingle();
-  if (!secret?.discord_webhook_url) return;
-
-  const when = opts.startAt.toLocaleString("ko-KR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "";
-  const path = `/games/${opts.gameSlug}/clan/${opts.clanId}/events`;
-  const link = base ? `${base.replace(/\/$/, "")}${path}` : path;
-
-  const headline =
-    opts.change === "create"
-      ? "📅 **클랜 일정 등록**"
-      : "📅 **클랜 일정 변경**";
-
-  const lines = [
-    headline,
-    `**${opts.title}**`,
-    `유형: ${kindLabelKo(opts.kind)}`,
-    `시작: ${when}`,
-    opts.place ? `메모: ${opts.place}` : null,
-    `열기: ${link}`,
-  ].filter(Boolean);
-
-  try {
-    const res = await postDiscordWebhook(secret.discord_webhook_url, lines.join("\n"), 8_000);
-    if (!res.ok) {
-      console.warn("Discord webhook non-OK", res.status);
-    }
-  } catch {
-    /* 웹훅 실패는 일정 저장 성공과 분리 */
-  }
-}
-
 export async function createClanEventAction(
   gameSlug: string,
   clanId: string,
@@ -224,6 +164,8 @@ export async function createClanEventAction(
     repeat_time: parsedRepeat.repeat_time,
   });
 
+  template.discord_notify = eventDiscordSettingsFromForm(formData);
+
   const sched = await saveClanEventWithNotifications({
     svc, clanId, actorId: user.id, template, create: true,
   });
@@ -231,17 +173,9 @@ export async function createClanEventAction(
     return { ok: false, error: sched.error };
   }
 
-  void notifyDiscordManualClanEvent({
-    svc,
-    clanId,
-    gameSlug,
-    title,
-    kind,
-    startAt,
-    place,
-    change: "create",
+  after(async () => {
+    try { await dispatchDiscordBotNotifications(svc, 10, newEventId); } catch { /* Durable outbox remains available for the worker. */ }
   });
-
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);
   return { ok: true };
 }
@@ -329,6 +263,8 @@ export async function updateClanEventAction(
     repeat_time: parsedRepeat.repeat_time,
   });
 
+  template.discord_notify = eventDiscordSettingsFromForm(formData);
+
   const sched = await saveClanEventWithNotifications({
     svc, clanId, actorId: user.id, template, create: false,
   });
@@ -339,17 +275,9 @@ export async function updateClanEventAction(
     };
   }
 
-  void notifyDiscordManualClanEvent({
-    svc,
-    clanId,
-    gameSlug,
-    title,
-    kind,
-    startAt,
-    place,
-    change: "update",
+  after(async () => {
+    try { await dispatchDiscordBotNotifications(svc, 10, eventId); } catch { /* Durable outbox remains available for the worker. */ }
   });
-
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);
   return { ok: true };
 }

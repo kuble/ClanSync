@@ -4,6 +4,7 @@
  */
 
 import { koreanCalendarDate, koreanDateTime, koreanTime } from "./event-timezone";
+import type { EventDiscordSettings } from "./event-discord-settings";
 export type ClanEventRepeat = "none" | "weekly" | "monthly";
 
 /** 서버에서 내려준 행 — 반복 필드 포함 */
@@ -18,6 +19,7 @@ export type ClanEventRecord = {
   repeat_weekdays: number[] | null;
   /** Postgres time 문자열 HH:mm:ss 또는 null */
   repeat_time: string | null;
+  discord_notify?: EventDiscordSettings;
 };
 
 /** 페이지 props 등과 호환 */
