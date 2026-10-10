@@ -48,7 +48,10 @@ export function resolveClanPermission(
     Array.isArray(permissions)
   )
     return false;
-  const value = (permissions as Record<string, unknown>)[perm];
+  const settings = permissions as Record<string, unknown>;
+  // Preserve existing correction grants until a task is configured separately.
+  const value = settings[perm] === undefined && ["create_match_records", "edit_match_records", "delete_match_records"].includes(perm)
+    ? settings.correct_match_records : settings[perm];
   const allowed = Array.isArray(value)
     ? value.filter((item): item is string => typeof item === "string")
     : value === undefined

@@ -2,130 +2,63 @@
 
 import { revalidatePath } from "next/cache";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
-import { resolveHofConfig } from "@/lib/clan/stats/hof-config";
+import { PERSONAL_STATS_SECTIONS } from "@/lib/clan/stats/personal-visibility";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
+import type { Json } from "@/lib/supabase/database.types";
 
-function parseIntField(
-  formData: FormData,
-  key: string,
-  fallback: number,
-  min: number,
-  max: number,
-): number {
-  const raw = formData.get(key);
-  if (typeof raw !== "string") return fallback;
-  const n = Number.parseInt(raw, 10);
-  if (!Number.isFinite(n)) return fallback;
-  return Math.min(max, Math.max(min, n));
+function numberField(fd: FormData, key: string, fallback: number, min: number, max: number) {
+  const value = Number(fd.get(key) ?? fallback);
+  return Number.isFinite(value) ? Math.min(max, Math.max(min, Math.round(value))) : fallback;
+}
+function top(fd: FormData, key: string, fallback: number) {
+  const value = Number(fd.get(key) ?? fallback);
+  return [0, 3, 5, 10, 20, 999].includes(value) ? value : fallback;
 }
 
-function parseTop(formData: FormData, key: string, fallback: number): number {
-  const raw = formData.get(key);
-  if (typeof raw !== "string") return fallback;
-  const n = Number.parseInt(raw, 10);
-  const ok = new Set([0, 3, 5, 10, 20, 999]);
-  return ok.has(n) ? n : fallback;
-}
-
-/** set_hof_rules 보유자 — HoF 규칙 JSON 저장 (클랜장 전용 expose_hof 는 별도 액션) */
-export async function saveClanHofConfigFormAction(
-  gameSlug: string,
-  clanId: string,
-  formData: FormData,
-): Promise<void> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+/** DB rechecks the authenticated actor and merges a whitelisted patch under a row lock. */
+export async function saveClanHofConfigFormAction(gameSlug: string, clanId: string, fd: FormData): Promise<void> {
+  const client = await createClient();
+  const { data: { user } } = await client.auth.getUser();
   if (!user) throw new Error("로그인이 필요합니다.");
-
-  const allowed = await hasClanPermission(
-    supabase,
-    user.id,
-    clanId,
-    "set_hof_rules",
-  );
-  if (!allowed) throw new Error("명예의 전당 설정 권한이 없습니다.");
-
-  const { data: memberships } = await supabase.rpc("select_my_clan_membership", { p_clan_id: clanId });
-  if (!memberships?.some((row: { status: string; role: string }) => row.status === "active" && (row.role === "leader" || row.role === "officer"))) {
-    throw new Error("운영진만 통계 공개 설정을 변경할 수 있습니다.");
+  const scope = fd.get("settings_scope") ?? "all";
+  if (!["all", "hof", "personal", "records", "intra"].includes(String(scope))) throw new Error("설정 영역이 올바르지 않습니다.");
+  const { data, error } = await client.rpc("select_my_clan_membership", { p_clan_id: clanId });
+  const member = !error ? data?.[0] : undefined;
+  if (!member || member.status !== "active" || member.role === "member") throw new Error("운영진만 설정을 변경할 수 있습니다.");
+  if (scope === "records" || scope === "intra") {
+    if (member.role !== "leader") throw new Error("클랜장만 열람·작업 권한을 설정할 수 있습니다.");
+  } else if (!await hasClanPermission(client, user.id, clanId, "set_hof_rules")) throw new Error("통계 설정 권한이 없습니다.");
+  const patch: Record<string, Json> = {};
+  if (scope === "records" || scope === "intra") {
+    const keys = scope === "records" ? ["view_match_records", "create_match_records", "edit_match_records", "delete_match_records"] : ["view_intra_stats"];
+    for (const key of keys) {
+      const roles = fd.getAll(key);
+      if (roles.some((role) => !["leader", "officer", "member"].includes(String(role)))) throw new Error("권한 대상이 올바르지 않습니다.");
+      patch[key] = ["leader", ...["officer", "member"].filter((role) => roles.includes(role))];
+    }
+  } else {
+    if (scope === "personal" || scope === "all") {
+      patch.member_personal_records = fd.get("member_personal_records") === "on";
+      if (scope === "personal") {
+        patch.member_personal_audience = fd.get("member_personal_audience") === "clan" ? "clan" : "own";
+        patch.member_personal_sections = PERSONAL_STATS_SECTIONS.filter(({ id }) => fd.getAll("member_personal_sections").includes(id)).map(({ id }) => id);
+      }
+    }
+    if (scope === "hof" || scope === "all") {
+      for (const [key, fallback] of [["win_rate_visible_top", 10], ["wins_visible_top", 0], ["streak_visible_top", 0], ["prediction_visible_top", 0], ["participation_visible_top", 10], ["cumulative_visible_top", 10]] as const) patch[key] = top(fd, key, fallback);
+      patch.monthly_rank_visibility = fd.get("monthly_rank_visibility") === "month_start" ? "month_start" : "always";
+      patch.yearly_rank_visibility = fd.get("yearly_rank_visibility") === "year_start" ? "year_start" : "always";
+      patch.eligibility_game_threshold = numberField(fd, "eligibility_game_threshold", 100, 1, 5000);
+      patch.eligibility_below_pct = numberField(fd, "eligibility_below_pct", 30, 1, 100);
+      patch.eligibility_above_min_games = numberField(fd, "eligibility_above_min_games", 30, 1, 2000);
+      patch.eligibility_session_pct = numberField(fd, "eligibility_session_pct", 30, 1, 100);
+      if (member.role === "leader") patch.expose_hof = fd.get("expose_hof") === "on" || fd.get("expose_hof") === "true";
+    }
   }
-
-  const payload = {
-    member_personal_records: formData.get("member_personal_records") === "on",
-    win_rate_visible_top: parseTop(formData, "win_rate_visible_top", 10),
-    wins_visible_top: parseTop(formData, "wins_visible_top", 0),
-    streak_visible_top: parseTop(formData, "streak_visible_top", 0),
-    prediction_visible_top: parseTop(formData, "prediction_visible_top", 0),
-    participation_visible_top: parseTop(
-      formData,
-      "participation_visible_top",
-      10,
-    ),
-    cumulative_visible_top: parseTop(formData, "cumulative_visible_top", 10),
-    monthly_rank_visibility:
-      formData.get("monthly_rank_visibility") === "month_start"
-        ? "month_start"
-        : "always",
-    yearly_rank_visibility:
-      formData.get("yearly_rank_visibility") === "year_start"
-        ? "year_start"
-        : "always",
-    eligibility_game_threshold: parseIntField(
-      formData,
-      "eligibility_game_threshold",
-      100,
-      1,
-      5000,
-    ),
-    eligibility_below_pct: parseIntField(
-      formData,
-      "eligibility_below_pct",
-      30,
-      1,
-      100,
-    ),
-    eligibility_above_min_games: parseIntField(
-      formData,
-      "eligibility_above_min_games",
-      30,
-      1,
-      2000,
-    ),
-    eligibility_session_pct: parseIntField(formData, "eligibility_session_pct", 30, 1, 100),
-  };
-
-  resolveHofConfig(payload);
-
-  const { data: mRows } = await supabase.rpc("select_my_clan_membership", {
-    p_clan_id: clanId,
+  const { error: saveError } = await createServiceRoleClient().rpc("save_clan_stats_settings", {
+    p_clan_id: clanId, p_actor_id: user.id, p_scope: String(scope), p_patch: patch,
   });
-  const m = mRows?.[0];
-
-  const exposeHof =
-    m?.status === "active" &&
-    m?.role === "leader" &&
-    (formData.get("expose_hof") === "on" ||
-      formData.get("expose_hof") === "true");
-
-  const svc = createServiceRoleClient();
-  const updateBody =
-    m?.status === "active" && m?.role === "leader"
-      ? {
-          hof_config: payload,
-          expose_hof: exposeHof,
-          updated_by: user.id,
-        }
-      : { hof_config: payload, updated_by: user.id };
-
-  const { error } = await svc
-    .from("clan_settings")
-    .update(updateBody)
-    .eq("clan_id", clanId);
-
-  if (error) throw new Error(error.message);
-
+  if (saveError) throw new Error("설정을 저장하지 못했습니다.", { cause: saveError });
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/stats`);
 }

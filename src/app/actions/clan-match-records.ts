@@ -22,7 +22,8 @@ export async function editClanMatchRecord(input: {
   if (!user) return { ok: false as const, error: "로그인이 필요합니다." };
   const access = await readClanAccessSnapshot(client, input.clanId);
   const membership = access.membership;
-  if (!membership || membership.status !== "active" || !resolveClanPermission(membership.role, "correct_match_records", access.permissions)
+  const operationPermission = { create: "create_match_records", update: "edit_match_records", delete: "delete_match_records" } as const;
+  if (!membership || membership.status !== "active" || !resolveClanPermission(membership.role, operationPermission[input.operation], access.permissions)
     || !resolveClanPermission(membership.role, "view_match_records", access.permissions)) return { ok: false as const, error: "경기 기록을 정정할 권한이 없습니다." };
   const r = input.record;
   if (input.operation !== "delete" && (!r || !["team1", "team2", "draw", "void", "unrecorded"].includes(r.outcome)

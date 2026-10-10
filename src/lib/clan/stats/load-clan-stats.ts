@@ -14,7 +14,9 @@ import {
 } from "./hof-config";
 import { inKstMonth, inKstYear, isoToKstYmd, toKstParts } from "./kst";
 import { buildIntraStats, buildPersonalMatches, type IntraStats, type PersonalMatch } from "./clan-stats-analytics";
-import { buildIntraOverviewPeriods, type IntraOverview } from "./intra-overview";
+import { buildIntraOverviewPeriods, EMPTY_INTRA_OVERVIEW, type IntraOverview } from "./intra-overview";
+import { restrictPersonalStats, type PersonalScore, type PersonalStatsSection } from "./personal-visibility";
+import type { ClanMemberRole } from "../permission-defaults";
 import { readStatsSummary, readStatsRecords, EMPTY_STATS_AGGREGATE, type StatsAggregate, type StatsSummary } from "./stats-read-model";
 import { collectHofEmblems, type HofEmblem } from "./hof-emblems";
 import { personalPredictions, predictionTotals, predictionPointHistory, type PredictionRecord, type PredictionPointDay } from "./clan-prediction-stats";
@@ -112,6 +114,7 @@ export type HofPeriodPayload = {
 
 export type ClanStatsPageModel = {
   clanId: string;
+  statsSettings?: { recordRoles: Record<string, ClanMemberRole[]>; intraRoles: ClanMemberRole[] };
   deferredDetails?: boolean;
   /** Only all/current month/current year have full summaries on first render. */
   deferredPeriods?: boolean;
@@ -121,7 +124,7 @@ export type ClanStatsPageModel = {
   personal: {
     viewerId: string;
     canSeePeers: boolean;
-    people: { userId: string; nickname: string; lastPlayedAt?: string | null; matches: PersonalMatch[]; predictions: ReturnType<typeof personalPredictions>; predictionPoints: PredictionPointDay[]; emblems?: HofEmblem[] }[];
+    people: { userId: string; nickname: string; lastPlayedAt?: string | null; matches: PersonalMatch[]; scores?: PersonalScore[]; visibleSections?: PersonalStatsSection[]; predictions: ReturnType<typeof personalPredictions>; predictionPoints: PredictionPointDay[]; emblems?: HofEmblem[] }[];
   };
   summary: {
     totalMatches: number;
@@ -162,6 +165,10 @@ export type ClanStatsPageModel = {
     isStaff: boolean;
     viewMatchRecords: boolean;
     correctMatchRecords: boolean;
+    createMatchRecords?: boolean;
+    editMatchRecords?: boolean;
+    deleteMatchRecords?: boolean;
+    viewIntraStats?: boolean;
     viewMscore: boolean;
     editMscore: boolean;
     exportCsv: boolean;
@@ -446,6 +453,7 @@ async function loadClanStatsSource(
   const can = (permission: ClanPermissionKey) => resolveClanPermission(role, permission, settingsError ? null : settings?.permissions);
   const permissions = {
     setHofRules: can("set_hof_rules"), viewMatchRecords: can("view_match_records"), correctMatchRecords: can("correct_match_records"),
+    createMatchRecords: can("create_match_records"), editMatchRecords: can("edit_match_records"), deleteMatchRecords: can("delete_match_records"), viewIntraStats: can("view_intra_stats"),
     exportCsv: can("export_csv"), viewSynergy: can("view_synergy_winrate"),
     viewMonthly: can("view_monthly_stats"), viewYearly: can("view_yearly_stats"),
     viewMaps: can("view_map_winrate"), viewMscore: can("view_mscore"), editMscore: can("edit_mscore"),
@@ -540,9 +548,23 @@ export type ClanStatsDetail = { kind: "personal"; person: ClanPersonalStats }
 
 function personalAccess(source: StatsSource, userId: string, nick: Map<string, string>) {
   const { role, permissions: p } = source;
-  const canSeeOthers = role !== "member" && p.viewMonthly && p.viewYearly && p.viewMaps && p.viewSynergy && p.viewMscore;
-  const viewPersonalRecords = role !== "member" || resolveHofConfig(source.settings?.hof_config).memberPersonalRecords;
+  const cfg = resolveHofConfig(source.settings?.hof_config);
+  const canSeeOthers = role === "member" ? cfg.memberPersonalAudience === "clan" : p.viewMonthly && p.viewYearly && p.viewMaps && p.viewSynergy && p.viewMscore;
+  const viewPersonalRecords = role !== "member" || (cfg.memberPersonalRecords && cfg.memberPersonalSections.length > 0);
   return { canSeeOthers, viewPersonalRecords, peopleIds: !viewPersonalRecords ? [] : canSeeOthers ? [...new Set([userId, ...nick.keys()])] : [userId] };
+}
+
+function personalForViewer(source: StatsSource, viewerId: string, person: ClanPersonalStats): ClanPersonalStats {
+  if (source.role !== "member") return person;
+  const sections = resolveHofConfig(source.settings?.hof_config).memberPersonalSections.filter((id) => id !== "prediction_points" || person.userId === viewerId);
+  return restrictPersonalStats(person, sections);
+}
+
+function statsSettings(source: StatsSource): ClanStatsPageModel["statsSettings"] {
+  if (source.role !== "leader") return undefined;
+  const roles: ClanMemberRole[] = ["leader", "officer", "member"];
+  const allowed = (key: ClanPermissionKey) => roles.filter((role) => resolveClanPermission(role, key, source.settings?.permissions));
+  return { recordRoles: Object.fromEntries(["view_match_records", "create_match_records", "edit_match_records", "delete_match_records"].map((key) => [key, allowed(key as ClanPermissionKey)])), intraRoles: allowed("view_intra_stats") };
 }
 
 function sourcePredictions(source: StatsSource): PredictionRecord[] {
@@ -626,10 +648,10 @@ export async function loadClanStatsDetail(supabase: SupabaseClient<Database>, us
     map: pick.balance_sessions.resolved_map_label, outcome: pick.balance_sessions.match_outcome as PredictionRecord["outcome"], poolSettlement: pick.pool_settlement,
   }));
   const matches = buildPersonalMatches(records, personId, nick, source.permissions.viewSynergy && source.role !== "member");
-  return { kind: "personal", person: {
+  return { kind: "personal", person: personalForViewer(source, userId, {
     userId: personId, nickname: nick.get(personId) ?? "나", lastPlayedAt: matches[0]?.occurredAt ?? null, matches,
     predictions: personalPredictions(predictions, personId), predictionPoints: predictionPointHistory(predictions, ledger, personId), emblems,
-  } };
+  }) };
 }
 
 async function loadPersonalEmblems(source: StatsSource, clanId: string, userId: string) {
@@ -685,13 +707,13 @@ export async function loadClanStatsPeriod(supabase: SupabaseClient<Database>, cl
   if (!source) return null;
   const { periods } = await readStatsSummary(clanId, [key]);
   const data = periods[key] ?? EMPTY_STATS_AGGREGATE;
-  return { kind: "period", key, hof: aggregateHof(data, key, source, now), intra: data.overview };
+  return { kind: "period", key, hof: aggregateHof(data, key, source, now), intra: source.permissions.viewIntraStats ? data.overview : EMPTY_INTRA_OVERVIEW };
 }
 
 export async function loadClanStatsArchive(supabase: SupabaseClient<Database>, clanId: string, day?: string): Promise<ClanStatsDetail | null> {
   const source = await loadClanStatsSource(supabase, clanId, "metadata");
   if (!source?.permissions.viewMatchRecords) return null;
-  const members = source.permissions.correctMatchRecords ? [...buildNickMap(source.nickRows)].map(([userId, nickname]) => ({ userId, nickname })) : undefined;
+  const members = source.permissions.createMatchRecords || source.permissions.editMatchRecords ? [...buildNickMap(source.nickRows)].map(([userId, nickname]) => ({ userId, nickname })) : undefined;
   if (day) return { kind: "archive", archive: await addArchiveSessionNumbers(clanId, buildArchive(await readStatsRecords(clanId, { day }), buildNickMap(source.nickRows), source.permissions.viewMscore)) };
   const { periods } = await readStatsSummary(clanId, ["all"]);
   const archive = periods.all?.archive ?? EMPTY_STATS_AGGREGATE.archive;
@@ -709,9 +731,9 @@ async function loadClanStatsOverview(supabase: SupabaseClient<Database>, userId:
   const nick = buildNickMap(source.nickRows), access = personalAccess(source, userId, nick);
   const lastPlayed = new Map(all.players.map((p) => [p.userId, p.lastPlayedAt]));
   return {
-    clanId, deferredDetails: true, deferredPeriods: true, periodDirectory: directory,
-    intra: buildIntraStats([], []), intraPeriods: { all: all.overview, ...Object.fromEntries(Object.entries(periods).map(([key, value]) => [key, value.overview])) },
-    personal: { viewerId: userId, canSeePeers: source.permissions.viewSynergy && source.role !== "member", people: access.peopleIds.map((id) => ({
+    clanId, statsSettings: statsSettings(source), deferredDetails: true, deferredPeriods: true, periodDirectory: directory,
+    intra: buildIntraStats([], []), intraPeriods: source.permissions.viewIntraStats ? { all: all.overview, ...Object.fromEntries(Object.entries(periods).map(([key, value]) => [key, value.overview])) } : {},
+    personal: { viewerId: userId, canSeePeers: source.permissions.viewSynergy && source.role !== "member", people: access.peopleIds.map((id) => personalForViewer(source, userId, {
       userId: id, nickname: nick.get(id) ?? (id === userId ? "나" : "탈퇴한 멤버"), lastPlayedAt: lastPlayed.get(id) ?? null,
       matches: [], predictions: [], predictionPoints: [],
     })) },
@@ -834,9 +856,8 @@ export async function loadClanStatsPageFromRecords(
     ? buildArchive(records, nick, viewMscore, openedSessions) : { datesKst: [], sampleByDate: {} };
   const hofSessions = openedSessions.map((session) => ({ id: session.id, openedAt: session.opened_at }));
   const predictions = sourcePredictions(source);
-  // The personal privacy override is not persisted yet. Until it is, keep
-  // other members' detailed records within staff access even if a member is
-  // granted the broad aggregate-statistics permission set.
+  // Member access follows the explicit personal audience and section settings.
+  // Broad aggregate grants alone never expose other members' personal records.
   const { canSeeOthers, viewPersonalRecords, peopleIds } = personalAccess(source, userId, nick);
   // Staff use a clan-scoped ledger RPC; members retain the owner-only query.
   // Personal payouts have clan_id=null, so session references establish scope.
@@ -899,10 +920,11 @@ export async function loadClanStatsPageFromRecords(
 
   return {
     clanId,
+    statsSettings: statsSettings(source),
     deferredDetails: options?.deferDetails,
-    intra,
-    intraPeriods: buildIntraOverviewPeriods(records, hofSessions),
-    personal: { viewerId: userId, canSeePeers: viewSynergy && role !== "member", people: personal.map((person) => ({ ...person, emblems: [...collectHofEmblems({ historyMonths, historyYears }, person.userId, "month"), ...collectHofEmblems({ historyMonths, historyYears }, person.userId, "year")] })) },
+    intra: source.permissions.viewIntraStats ? intra : buildIntraStats([], []),
+    intraPeriods: source.permissions.viewIntraStats ? buildIntraOverviewPeriods(records, hofSessions) : {},
+    personal: { viewerId: userId, canSeePeers: viewSynergy && role !== "member", people: personal.map((person) => personalForViewer(source, userId, { ...person, emblems: [...collectHofEmblems({ historyMonths, historyYears }, person.userId, "month"), ...collectHofEmblems({ historyMonths, historyYears }, person.userId, "year")] })) },
     summary: {
       totalMatches: matches.filter((m) => m.status === "finished").length,
       intraCount,
@@ -936,6 +958,7 @@ export async function loadClanStatsPageFromRecords(
       isStaff: role !== "member",
       viewMatchRecords,
       correctMatchRecords: source.permissions.correctMatchRecords,
+      createMatchRecords: source.permissions.createMatchRecords, editMatchRecords: source.permissions.editMatchRecords, deleteMatchRecords: source.permissions.deleteMatchRecords, viewIntraStats: source.permissions.viewIntraStats,
       viewMscore,
       editMscore: source.permissions.editMscore,
       exportCsv,

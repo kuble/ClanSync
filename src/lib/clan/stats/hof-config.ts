@@ -1,10 +1,13 @@
 import type { Json } from "@/lib/supabase/database.types";
 import { toKstParts } from "./kst";
+import { DEFAULT_PERSONAL_SECTIONS, resolvePersonalSections, type PersonalStatsSection } from "./personal-visibility";
 
 const TOP_OPTIONS = new Set([3, 5, 10, 20, 999]);
 
 export type ResolvedHofConfig = {
   memberPersonalRecords: boolean;
+  memberPersonalAudience: "own" | "clan";
+  memberPersonalSections: PersonalStatsSection[];
   winRateVisibleTop: number;
   winsVisibleTop: number;
   streakVisibleTop: number;
@@ -21,6 +24,8 @@ export type ResolvedHofConfig = {
 
 export const HOF_CONFIG_DEFAULTS: ResolvedHofConfig = {
   memberPersonalRecords: false,
+  memberPersonalAudience: "own",
+  memberPersonalSections: [...DEFAULT_PERSONAL_SECTIONS],
   winRateVisibleTop: 10,
   winsVisibleTop: 0,
   streakVisibleTop: 0,
@@ -63,6 +68,8 @@ export function resolveHofConfig(raw: Json | undefined): ResolvedHofConfig {
 
   return {
     memberPersonalRecords: o.member_personal_records === true,
+    memberPersonalAudience: o.member_personal_audience === "clan" ? "clan" : "own",
+    memberPersonalSections: resolvePersonalSections(o.member_personal_sections),
     winRateVisibleTop: topCoerce(
       o.win_rate_visible_top,
       HOF_CONFIG_DEFAULTS.winRateVisibleTop,

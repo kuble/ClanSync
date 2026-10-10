@@ -3020,6 +3020,15 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      save_clan_stats_settings: {
+        Args: {
+          p_actor_id: string
+          p_clan_id: string
+          p_patch: Json
+          p_scope: string
+        }
+        Returns: undefined
+      }
       select_my_clan_membership: {
         Args: { p_clan_id: string }
         Returns: {
