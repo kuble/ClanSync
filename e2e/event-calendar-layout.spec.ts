@@ -79,6 +79,11 @@ test("calendar: desktop day panel and mobile bottom drawer keep the selected dat
     const detail = page.getByRole("dialog", { name: "이벤트 · 오전 일정" });
     await expect(detail).toBeVisible();
     await expect(drawer).not.toBeVisible();
+    await expect.poll(async () => {
+      const box = await detail.boundingBox();
+      return Math.abs(box!.y + box!.height - 844);
+    }).toBeLessThan(2);
+    expect((await detail.boundingBox())!.width).toBe(390);
     await page.setViewportSize({ width: 1304, height: 884 });
     await expect(detail).not.toBeVisible();
     await expect(inlineDetail.getByRole("heading", { name: "이벤트 · 오전 일정" })).toBeVisible();

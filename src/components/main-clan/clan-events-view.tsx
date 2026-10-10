@@ -10,8 +10,12 @@ import {
   ChevronRight,
   Clock,
   GitBranch,
+  MapPin,
+  MousePointer2,
+  Pencil,
   Plus,
   Repeat2,
+  Trash2,
   Vote,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -78,6 +82,12 @@ function kindDotClass(kind: string): string {
   if (kind === "intra") return "bg-violet-500";
   if (kind === "scrim") return "bg-emerald-500";
   return "bg-orange-500";
+}
+
+function kindToneClass(kind: string): string {
+  if (kind === "intra") return "bg-violet-500/10 text-violet-700 dark:text-violet-300";
+  if (kind === "scrim") return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
+  return "bg-orange-500/10 text-orange-700 dark:text-orange-300";
 }
 
 function buildCalendarCells(
@@ -392,21 +402,40 @@ export function ClanEventsView({
 
   const eventDetails = activeOccurrence ? (
     <>
-      <dl className="grid gap-2 px-4 text-sm">
-        <div className="grid grid-cols-[6rem_1fr] gap-2">
-          <dt className="text-muted-foreground">반복</dt>
-          <dd>{repeatSummaryKo(activeOccurrence.template)}</dd>
+      <div className="mx-5 flex items-center gap-3 rounded-xl border bg-background/50 px-4 py-3">
+        <Clock className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <div>
+          <p className="text-2xl font-semibold tracking-tight tabular-nums">
+            {activeOccurrence.displayAt.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false })}
+          </p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {activeOccurrence.displayAt.toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "long" })}
+          </p>
         </div>
-        <div className="grid grid-cols-[6rem_1fr] gap-2">
-          <dt className="text-muted-foreground">장소·메모</dt>
-          <dd>{activeOccurrence.template.place?.trim() || "—"}</dd>
+        <span className="ml-auto text-xs text-muted-foreground">시작</span>
+      </div>
+      <dl className="grid gap-5 px-5 text-sm">
+        <div className="grid grid-cols-[1rem_1fr] gap-x-3 gap-y-1">
+          <dt className="col-span-2 flex items-center gap-3 text-xs text-muted-foreground">
+            <Repeat2 className="size-4" aria-hidden="true" />
+            반복
+          </dt>
+          <dd className="col-start-2 leading-relaxed">
+            {repeatSummaryKo(activeOccurrence.template)}
+            {activeOccurrence.template.repeat !== "none" ? (
+              <span className="mt-1 block text-xs text-muted-foreground">
+                {new Date(activeOccurrence.template.start_at).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })}부터
+              </span>
+            ) : null}
+          </dd>
         </div>
-        <div className="grid grid-cols-[6rem_1fr] gap-2">
-          <dt className="text-muted-foreground">출처</dt>
-          <dd>
-            {activeOccurrence.template.source === "manual"
-              ? "수동 등록"
-              : "스크림 자동 등록"}
+        <div className="grid grid-cols-[1rem_1fr] gap-x-3 gap-y-1">
+          <dt className="col-span-2 flex items-center gap-3 text-xs text-muted-foreground">
+            <MapPin className="size-4" aria-hidden="true" />
+            장소·메모
+          </dt>
+          <dd className="col-start-2 break-words whitespace-pre-wrap leading-relaxed">
+            {activeOccurrence.template.place?.trim() || "장소 미정"}
           </dd>
         </div>
       </dl>
@@ -519,13 +548,13 @@ export function ClanEventsView({
         </div>
       ) : null}
 
-      <SheetFooter className="flex-col gap-2 sm:flex-col">
+      <SheetFooter className="mt-1 flex-col gap-2 border-t px-5 py-4 sm:flex-col">
         {canManageEvents &&
         activeOccurrence.template.source === "manual" ? (
           <div className="flex w-full flex-wrap gap-2">
             <Button
               type="button"
-              variant="secondary"
+              variant="outline"
               className="flex-1"
               onClick={() => {
                 setEditRepeat(
@@ -535,15 +564,17 @@ export function ClanEventsView({
                 setSheetOpen(false);
               }}
             >
+              <Pencil className="size-3.5" aria-hidden="true" />
               편집
             </Button>
             <Button
               type="button"
-              variant="destructive"
-              className="flex-1"
+              variant="ghost"
+              className="flex-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
               disabled={pending}
               onClick={onCancelEvent}
             >
+              <Trash2 className="size-3.5" aria-hidden="true" />
               일정 취소
             </Button>
           </div>
@@ -563,7 +594,7 @@ export function ClanEventsView({
   const daySchedule = (
     <>
       {!slotOccurrences.length ? (
-        <div className="flex flex-col items-center gap-3 px-5 py-10 text-center">
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-5 py-10 text-center">
           <CalendarDays
             className="size-7 text-muted-foreground/40"
             aria-hidden="true"
@@ -587,7 +618,7 @@ export function ClanEventsView({
           ) : null}
         </div>
       ) : (
-        <ul className="divide-y" role="list">
+        <ul className="space-y-2 p-3" role="list">
           {slotOccurrences.map((o) => (
             <li key={o.key}>
               <button
@@ -595,15 +626,11 @@ export function ClanEventsView({
                 onClick={() => openDetail(o)}
                 aria-pressed={activeOccurrence?.key === o.key}
                 className={cn(
-                  "flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-muted/30 focus-visible:outline-2 focus-visible:outline-ring",
-                  activeOccurrence?.key === o.key && "bg-primary/[0.07]",
+                  "flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-ring motion-reduce:transition-none",
+                  activeOccurrence?.key === o.key && "border-primary/25 bg-primary/[0.08]",
                 )}
               >
-                <span className="flex w-12 shrink-0 flex-col items-center gap-1 text-center text-xs font-semibold tabular-nums">
-                  <Clock
-                    className="size-3.5 text-muted-foreground"
-                    aria-hidden="true"
-                  />
+                <span className="w-11 shrink-0 text-sm font-semibold tabular-nums">
                   {o.displayAt.toLocaleTimeString("ko-KR", {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -612,15 +639,18 @@ export function ClanEventsView({
                 </span>
                 <span
                   className={cn(
-                    "h-10 w-0.5 shrink-0 rounded-full",
+                    "h-8 w-0.5 shrink-0 rounded-full",
                     kindDotClass(o.template.kind),
                   )}
                 />
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-2">
-                    <span className="text-[10px] text-muted-foreground">
+                    <span className={cn("rounded px-1.5 py-0.5 text-[10px] font-medium", kindToneClass(o.template.kind))}>
                       {kindLabel(o.template.kind)}
                     </span>
+                    {o.template.repeat !== "none" ? (
+                      <Repeat2 className="size-3 text-muted-foreground" aria-label="반복 일정" />
+                    ) : null}
                     {o.template.kind === "scrim" &&
                     goingKeySet.has(
                       clanEventRsvpKey(o.template.id, o.instanceIdx),
@@ -630,18 +660,9 @@ export function ClanEventsView({
                       </span>
                     ) : null}
                   </span>
-                  <strong className="mt-1 block truncate text-sm font-semibold">
+                  <strong className="mt-1.5 block truncate text-sm font-medium">
                     {o.template.title}
                   </strong>
-                  <span className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                    {o.template.place ?? "장소 미정"}
-                    {o.template.repeat !== "none" ? (
-                      <span className="flex items-center gap-1">
-                        <Repeat2 className="size-3" aria-hidden="true" />
-                        {repeatSummaryKo(o.template)}
-                      </span>
-                    ) : null}
-                  </span>
                 </span>
                 <ChevronRight
                   className="size-4 shrink-0 text-muted-foreground"
@@ -701,7 +722,7 @@ export function ClanEventsView({
             >
               <ChevronLeft className="size-4" aria-hidden="true" />
             </Button>
-            <h3 className="min-w-28 text-center text-base font-semibold">
+            <h3 className="min-w-32 text-center text-lg font-semibold tracking-tight">
               {monthLabel}
             </h3>
             <Button
@@ -731,7 +752,7 @@ export function ClanEventsView({
               ref={calendarRef}
               role="grid"
               aria-label="월간 캘린더"
-              className="overflow-hidden rounded-2xl border bg-card shadow-sm"
+              className="overflow-hidden rounded-2xl border bg-card"
             >
               <div role="row" className="grid grid-cols-7 border-b bg-muted/30">
                 {["월", "화", "수", "목", "금", "토", "일"].map(
@@ -814,18 +835,20 @@ export function ClanEventsView({
                             }
                           }}
                           className={cn(
-                            "flex min-h-20 w-full flex-col items-center gap-2 px-1 py-3 text-sm transition-colors hover:bg-muted/40 focus-visible:relative focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring sm:min-h-28 sm:items-start sm:px-3",
+                            "flex min-h-20 w-full flex-col items-center gap-2 px-1 py-3 text-sm transition-colors hover:bg-muted/40 focus-visible:relative focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none sm:min-h-28 sm:items-start sm:px-2.5",
                             !inMonth && "bg-muted/20 text-muted-foreground/50",
                             selected &&
-                              "bg-primary/[0.07] ring-1 ring-inset ring-primary/50",
+                              "bg-primary/[0.08] ring-1 ring-inset ring-primary/40",
                           )}
                         >
                           <span
                             className={cn(
-                              "flex size-6 items-center justify-center rounded-full text-xs font-medium tabular-nums",
+                              "flex size-7 items-center justify-center rounded-full text-[13px] font-medium tabular-nums",
                               today &&
                                 "bg-primary font-bold text-primary-foreground",
+                              selected && !today && "bg-primary/15 font-semibold text-primary",
                               !today &&
+                                !selected &&
                                 date.getDay() === 0 &&
                                 "text-rose-600 dark:text-rose-400",
                             )}
@@ -847,15 +870,15 @@ export function ClanEventsView({
                             {dayOccurrences.slice(0, 2).map((o) => (
                               <span
                                 key={o.key}
-                                className="flex min-w-0 items-center gap-1.5 rounded bg-muted/40 px-1 py-0.5 text-[10px]"
+                                className={cn("flex min-w-0 items-start gap-1.5 rounded-md px-1.5 py-1 text-[11px] leading-snug", kindToneClass(o.template.kind))}
                               >
                                 <span
                                   className={cn(
-                                    "size-1 shrink-0 rounded-full",
+                                    "mt-1.5 size-1 shrink-0 rounded-full",
                                     kindDotClass(o.template.kind),
                                   )}
                                 />
-                                <span className="truncate">{o.template.title}</span>
+                                <span className="line-clamp-2 break-keep">{o.template.title}</span>
                               </span>
                             ))}
                             {dayOccurrences.length > 2 ? (
@@ -871,7 +894,7 @@ export function ClanEventsView({
                 </div>
               ))}
             </div>
-            <div className="flex justify-end gap-4 text-[10px] text-muted-foreground">
+            <div className="flex justify-end gap-4 text-[11px] text-muted-foreground">
               {["intra", "scrim", "event"].map((kind) => (
                 <span key={kind} className="flex items-center gap-1.5">
                   <span
@@ -884,41 +907,50 @@ export function ClanEventsView({
 
           </div>
           <section
-            className="hidden min-w-0 flex-col overflow-hidden rounded-2xl border bg-card lg:flex"
+            className="hidden min-h-[36rem] min-w-0 flex-col self-start overflow-hidden rounded-2xl border bg-card lg:flex"
             aria-label="선택한 날짜 일정"
             aria-live="polite"
           >
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b px-5 py-4">
-              <h3 className="flex items-center gap-2 text-sm font-semibold">
-                <CalendarDays
-                  className="size-4 text-primary"
-                  aria-hidden="true"
-                />
-                {selectedDateTitle} 일정
+            <div className="flex items-center justify-between gap-3 border-b px-5 py-5">
+              <h3 className="flex items-center gap-3" aria-label={`${selectedDateTitle} 일정`}>
+                <span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-3xl font-semibold tracking-tight text-primary tabular-nums" aria-hidden="true">
+                  {Number(selectedKey.slice(-2))}
+                </span>
+                <span className="space-y-1">
+                  <span className="block text-xs text-muted-foreground">
+                    {Number(selectedKey.slice(5, 7))}월 {selectedDateTitle.split(" ").at(-1)}
+                  </span>
+                  <span className="block text-base font-semibold">일정</span>
+                </span>
               </h3>
-              <span className="rounded-full bg-muted px-2 py-1 text-[10px] font-semibold tabular-nums">
-                {slotOccurrences.length}건
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {slotOccurrences.length}개 일정
               </span>
             </div>
             <div className="flex min-h-64 flex-1 flex-col">
               {daySchedule}
               {activeOccurrence ? (
-                <section aria-label="일정 상세" className="flex flex-1 flex-col gap-4 border-t pt-4">
-                  <div className="space-y-1 px-4">
-                    <h4 className="text-sm font-semibold break-words">
-                      {kindLabel(activeOccurrence.template.kind)} · {activeOccurrence.template.title}
+                <section aria-label="일정 상세" className="flex flex-1 flex-col gap-5 border-t bg-background/20 pt-5">
+                  <div className="space-y-3 px-5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={cn("rounded-md px-2 py-1 text-[11px] font-medium", kindToneClass(activeOccurrence.template.kind))}>
+                        {kindLabel(activeOccurrence.template.kind)}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground">
+                        {activeOccurrence.template.source === "manual" ? "수동 등록" : "스크림 자동 등록"}
+                      </span>
+                    </div>
+                    <h4 className="text-xl font-semibold break-words leading-snug tracking-tight" aria-label={`${kindLabel(activeOccurrence.template.kind)} · ${activeOccurrence.template.title}`}>
+                      {activeOccurrence.template.title}
                     </h4>
-                    <p className="text-xs text-muted-foreground">
-                      이 회차 시작: {activeOccurrence.displayAt.toLocaleString("ko-KR", { dateStyle: "medium", timeStyle: "short" })}
-                    </p>
-                    {activeOccurrence.template.repeat !== "none" ? (
-                      <p className="text-xs text-muted-foreground">
-                        첫 일정: {new Date(activeOccurrence.template.start_at).toLocaleString("ko-KR", { dateStyle: "medium", timeStyle: "short" })}
-                      </p>
-                    ) : null}
                   </div>
                   {eventDetails}
                 </section>
+              ) : slotOccurrences.length ? (
+                <div className="flex flex-1 flex-col items-center justify-center gap-3 px-5 py-10 text-center">
+                  <MousePointer2 className="size-5 text-muted-foreground/60" aria-hidden="true" />
+                  <p className="text-xs leading-relaxed text-muted-foreground">일정을 선택하면 상세를 볼 수 있어요.</p>
+                </div>
               ) : null}
             </div>
           </section>
@@ -1002,31 +1034,20 @@ export function ClanEventsView({
           if (!o && sheetOpen) setActiveOccurrence(null);
         }}
       >
-        <SheetContent side="right" className="w-full max-w-[min(420px,92vw)]">
+        <SheetContent
+          side="bottom"
+          className="max-h-[85dvh] overflow-y-auto overscroll-contain rounded-t-2xl pb-[env(safe-area-inset-bottom)] motion-reduce:transition-none data-starting-style:translate-y-full data-ending-style:translate-y-full"
+        >
           {activeOccurrence ? (
             <>
-              <SheetHeader>
-                <SheetTitle className="pr-8">
+              <div aria-hidden="true" className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-muted-foreground/30" />
+              <SheetHeader className="px-5 pt-0">
+                <SheetTitle className="pr-8 text-xl font-semibold leading-snug tracking-tight">
                   {kindLabel(activeOccurrence.template.kind)} ·{" "}
                   {activeOccurrence.template.title}
                 </SheetTitle>
                 <SheetDescription>
-                  이 회차 시작:{" "}
-                  {activeOccurrence.displayAt.toLocaleString("ko-KR", {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                  })}
-                  {activeOccurrence.template.repeat !== "none" ? (
-                    <span className="text-muted-foreground block text-xs">
-                      첫 일정:{" "}
-                      {new Date(
-                        activeOccurrence.template.start_at,
-                      ).toLocaleString("ko-KR", {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}
-                    </span>
-                  ) : null}
+                  {activeOccurrence.template.source === "manual" ? "수동 등록" : "스크림 자동 등록"}
                 </SheetDescription>
               </SheetHeader>
               {eventDetails}
