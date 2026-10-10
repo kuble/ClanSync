@@ -83,9 +83,10 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await expect(page.getByLabel("맵별 경기 비중")).toContainText("네팔");
     for (const node of cardNodes) expect(await node.evaluate((el) => el.isConnected)).toBe(true);
     expect(await trendNode!.evaluate((el) => el.isConnected)).toBe(true);
-    const mapTypes = page.getByRole("radiogroup", { name: "맵 유형", exact: true }).first();
+    const mapGamesCard = page.locator('[data-slot="card"]').filter({ has: page.getByText("맵별 경기", { exact: true }) });
+    const mapTypes = mapGamesCard.getByRole("radiogroup", { name: "맵 유형", exact: true });
     await mapTypes.getByRole("radio", { name: "플래시포인트", exact: true }).click();
-    await expect(page.locator('[data-slot="card"]').filter({ has: mapTypes })).toContainText("선택한 조건의 기록이 없습니다.");
+    await expect(mapGamesCard).toContainText("선택한 조건의 기록이 없습니다.");
     expect(await fixedCards.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().height))).toEqual(originalHeights);
     await expect(page.getByRole("region", { name: "맵별 경기 전체 목록" })).toHaveCSS("scrollbar-width", "none");
     await mapTypes.getByRole("radio", { name: "전체", exact: true }).click();
@@ -177,6 +178,11 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await expect(page.getByRole("region", { name: "플레이어 요약", exact: true })).toBeVisible();
     expect(detailRequests.filter((url) => url.includes("section=personal"))).toHaveLength(2);
     await page.setViewportSize({ width: 1217, height: 910 });
+    const historyCards = page.getByLabel("개인 기록 그래프", { exact: true }).locator('[data-slot="card"]');
+    await expect(historyCards.first()).toContainText("점수 변동 이력");
+    const scoreBox = (await historyCards.nth(0).boundingBox())!, predictionBox = (await historyCards.nth(1).boundingBox())!;
+    expect(scoreBox.y).toBe(predictionBox.y);
+    expect(predictionBox.x).toBeGreaterThan(scoreBox.x + scoreBox.width);
     const synergy = page.getByRole("region", { name: "시너지 기록 목록" });
     const synergyChart = page.getByRole("complementary", { name: "시너지 승률 차트" });
     const roleCard = page.getByRole("region", { name: "역할별 승률", exact: true });
@@ -223,6 +229,8 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     expect(mapSortBox!.x).toBeGreaterThan(mapRoleBox!.x + mapRoleBox!.width);
     await page.setViewportSize({ width: 390, height: 844 });
     const personalPeriod = page.getByRole("region", { name: "개인 기록 기간", exact: true });
+    const mobileScoreBox = (await historyCards.nth(0).boundingBox())!, mobilePredictionBox = (await historyCards.nth(1).boundingBox())!;
+    expect(mobilePredictionBox.y).toBeGreaterThan(mobileScoreBox.y + mobileScoreBox.height);
     const playerSummary = page.getByRole("region", { name: "플레이어 요약" });
     const roleTable = roleCard.getByRole("table");
     const totalMatches = roleTable.getByRole("row").filter({ hasText: "전체" }).getByRole("cell").last();
