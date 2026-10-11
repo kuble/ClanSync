@@ -478,19 +478,21 @@ export function ClanDashboard({
   clanId,
   isPremium,
   actorRole,
+  initialNotice,
 }: {
   model: ClanDashboardModel;
   gameSlug: string;
   clanId: string;
   isPremium: boolean;
   actorRole: ClanMemberRole;
+  initialNotice?: { title: string; content: string };
 }) {
   const base = `/games/${gameSlug}/clan/${clanId}`;
   const [reading, setReading] = useState<{
     title: string;
     content: string;
     description: string;
-  } | null>(null);
+  } | null>(initialNotice ? { ...initialNotice, description: "클랜 공지사항" } : null);
   const [premiumOpen, setPremiumOpen] = useState(false);
   const readRules = () =>
     setReading({

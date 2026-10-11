@@ -51,7 +51,7 @@ function displayStart(iso: string) {
   return new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(iso));
 }
 
-export function ClanBalanceLobby({ gameSlug, clanId, userId, clanRole, rooms, members, serverNow }: {
+export function ClanBalanceLobby({ gameSlug, clanId, userId, clanRole, rooms, members, serverNow, initialRoomId }: {
   gameSlug: string;
   clanId: string;
   userId: string;
@@ -59,10 +59,11 @@ export function ClanBalanceLobby({ gameSlug, clanId, userId, clanRole, rooms, me
   rooms: readonly LobbyRoom[];
   members: readonly Member[];
   serverNow: number;
+  initialRoomId?: string;
 }) {
   const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
-  const [detailId, setDetailId] = useState<string | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(initialRoomId ?? null);
   const [guideOpen, setGuideOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [pending, start] = useTransition();

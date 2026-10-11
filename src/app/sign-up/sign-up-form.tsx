@@ -13,7 +13,7 @@ function SubmitButton() {
   return <button type="submit" className={styles.submit} disabled={pending}>{pending ? "가입 처리 중…" : "가입하기"}</button>;
 }
 
-export function SignUpForm() {
+export function SignUpForm({ nextPath = "/games" }: { nextPath?: string }) {
   const [state, formAction] = useActionState<AuthMessageState, FormData>(signUpAction, null);
   const maxYear = new Date().getFullYear() - 10;
   const years = Array.from({ length: maxYear - 1949 }, (_, index) => maxYear - index);
@@ -22,6 +22,7 @@ export function SignUpForm() {
       <h1 className={styles.authHeading}>ClanSync에 오신 걸 환영해요</h1>
       <p className={styles.authSubtitle}>몇 가지 정보만 입력하면 바로 시작할 수 있어요.</p>
       <form action={formAction} className={styles.form}>
+        <input type="hidden" name="next" value={nextPath} />
         {state?.error ? <p className={styles.error} role="alert" aria-live="polite">{state.error}</p> : null}
         <div className={styles.field}>
           <label htmlFor="email">이메일</label>
@@ -59,7 +60,7 @@ export function SignUpForm() {
         </label>
         <SubmitButton />
       </form>
-      <p className={styles.authFooter}>이미 계정이 있으신가요? <Link href="/sign-in">로그인</Link></p>
+      <p className={styles.authFooter}>이미 계정이 있으신가요? <Link href={`/sign-in?next=${encodeURIComponent(nextPath)}`}>로그인</Link></p>
     </>
   );
 }

@@ -3,6 +3,7 @@ import { ClanBalanceLobby, type LobbyRoom } from "@/components/main-clan/clan-ba
 import { ClanBalanceRoomData } from "@/components/main-clan/clan-balance-room-data";
 import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
+import type { Database } from "@/lib/supabase/database.types";
 
 export default async function BalancePage({ params, searchParams }: {
   params: Promise<{ gameSlug: string; clanId: string }>;
@@ -14,14 +15,16 @@ export default async function BalancePage({ params, searchParams }: {
   if (!user) return null;
   const ctx = await getRequestMainClanContext(gameSlug, clanId);
   if (!ctx) return null;
+  let linkedRoom: Database["public"]["Tables"]["balance_rooms"]["Row"] | null = null;
   if (query.room) {
     if (typeof query.room !== "string" || !/^[0-9a-f-]{36}$/i.test(query.room)) notFound();
     const { data: room, error } = await client.from("balance_rooms").select("*")
       .eq("id", query.room).eq("clan_id", clanId).maybeSingle();
     if (error) throw new Error("내전 정보를 불러오지 못했습니다.");
     if (!room) notFound();
-    if (room.status !== "open" || !room.series_id) redirect(`/games/${gameSlug}/clan/${clanId}/balance`);
-    return <ClanBalanceRoomData gameSlug={gameSlug} clanId={clanId} room={room} />;
+    if (room.status === "open" && room.series_id) return <ClanBalanceRoomData gameSlug={gameSlug} clanId={clanId} room={room} />;
+    if (room.status !== "scheduled") redirect(`/games/${gameSlug}/clan/${clanId}/balance`);
+    linkedRoom = room;
   }
   const [roomResult, memberResult, scheduleResult, poolResult] = await Promise.all([
     client.from("balance_rooms").select("*").eq("clan_id", clanId).order("created_at", { ascending: false }).limit(100),
@@ -31,6 +34,7 @@ export default async function BalancePage({ params, searchParams }: {
   ]);
   if (roomResult.error || memberResult.error || scheduleResult.error || poolResult.error) throw new Error("내전 목록을 불러오지 못했습니다.");
   const rooms = roomResult.data ?? [];
+  if (linkedRoom && !rooms.some((room) => room.id === linkedRoom?.id)) rooms.unshift(linkedRoom);
   const members = (memberResult.data ?? []).map((member) => ({
     user_id: member.user_id, role: member.role,
     nickname: poolResult.data?.find((person: { user_id: string; nickname: string }) => person.user_id === member.user_id)?.nickname ?? "클랜원",
@@ -58,5 +62,5 @@ export default async function BalancePage({ params, searchParams }: {
   // The server clock keeps RSVP windows consistent across browser time zones.
   // eslint-disable-next-line react-hooks/purity
   const serverNow = Date.now();
-  return <ClanBalanceLobby gameSlug={gameSlug} clanId={clanId} userId={user.id} clanRole={ctx.role} rooms={lobbyRooms} members={members} serverNow={serverNow} />;
+  return <ClanBalanceLobby gameSlug={gameSlug} clanId={clanId} userId={user.id} clanRole={ctx.role} rooms={lobbyRooms} members={members} serverNow={serverNow} initialRoomId={typeof query.room === "string" ? query.room : undefined} />;
 }

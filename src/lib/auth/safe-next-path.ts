@@ -5,7 +5,7 @@ export function safeNextPath(value: unknown, fallback = "/games"): string {
   try {
     const origin = "https://clansync.invalid";
     const url = new URL(value, origin);
-    if (url.origin !== origin || url.pathname.startsWith("//")) return fallback;
+    if (url.origin !== origin || url.pathname.startsWith("//") || url.pathname === "/sign-in" || url.pathname === "/sign-up") return fallback;
     return url.pathname + url.search + url.hash;
   } catch { return fallback; }
 }

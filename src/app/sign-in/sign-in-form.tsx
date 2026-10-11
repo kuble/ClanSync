@@ -39,7 +39,7 @@ export function SignInForm({ nextPath }: { nextPath: string }) {
         </div>
         <SubmitButton />
       </form>
-      <p className={styles.authFooter}>계정이 없으신가요? <Link href="/sign-up">회원가입</Link></p>
+      <p className={styles.authFooter}>계정이 없으신가요? <Link href={`/sign-up?next=${encodeURIComponent(nextPath)}`}>회원가입</Link></p>
     </>
   );
 }

@@ -2,8 +2,9 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { loadGameOnboarding } from "@/lib/onboarding/load-game-onboarding";
 import { mergeCookies, updateSession } from "@/lib/supabase/middleware";
+import { safeNextPath } from "@/lib/auth/safe-next-path";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { response, user, supabase } = await updateSession(request);
   const url = request.nextUrl;
   const path = url.pathname;
@@ -36,7 +37,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if ((path === "/sign-in" || path === "/sign-up") && user) {
-    const r = NextResponse.redirect(new URL("/games", request.url));
+    const r = NextResponse.redirect(new URL(safeNextPath(url.searchParams.get("next")), request.url));
     return mergeCookies(response, r);
   }
 
@@ -72,7 +73,12 @@ export async function middleware(request: NextRequest) {
       if (sub === "auth") {
         const reauth = url.searchParams.get("reauth") === "1";
         if (state.authVerified && !reauth) {
+          const next = safeNextPath(url.searchParams.get("next"), "");
+          if (next.startsWith(`/games/${gameSlug}/`) && !next.startsWith(`/games/${gameSlug}/auth`)) {
+            return mergeCookies(response, NextResponse.redirect(new URL(next, request.url)));
+          }
           if (state.clanStatus === "member" && state.clanId) {
+
             const r = NextResponse.redirect(
               new URL(
                 `/games/${encodeURIComponent(gameSlug)}/clan/${state.clanId}`,
@@ -106,6 +112,12 @@ export async function middleware(request: NextRequest) {
             return mergeCookies(response, r);
           }
           if (state.clanStatus === "member" && state.clanId) {
+            const next = safeNextPath(request.cookies.get("clansync-clan-return")?.value, "");
+            if (next.startsWith(`/games/${gameSlug}/clan/${state.clanId}/`) || next.startsWith(`/games/${gameSlug}/clan/${state.clanId}?`)) {
+              const r = NextResponse.redirect(new URL(next, request.url));
+              r.cookies.delete("clansync-clan-return");
+              return mergeCookies(response, r);
+            }
             const r = NextResponse.redirect(
               new URL(
                 `/games/${encodeURIComponent(gameSlug)}/clan/${state.clanId}`,
@@ -134,6 +146,7 @@ export async function middleware(request: NextRequest) {
               request.url,
             ),
           );
+          r.cookies.set("clansync-clan-return", safeNextPath(nextTarget), { httpOnly: true, sameSite: "lax", secure: url.protocol === "https:", path: "/", maxAge: 60*60*24*7 });
           return mergeCookies(response, r);
         }
         if (clanIdSeg !== state.clanId) {
@@ -163,8 +176,4 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
-export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)",
-  ],
-};
+export const config = { matcher: ["/", "/sign-in", "/sign-up", "/profile", "/games/:path*"] };

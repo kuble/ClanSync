@@ -6,7 +6,7 @@ import { expandClanEventsForMonth, expandClanEventsForLocalCalendarMonth, isOccu
 import { activeLobbyRooms } from "../src/lib/balance/lobby-rooms";
 
 test("redirects reject authority confusion and preserve internal links", () => {
-  for (const path of ["//evil.test", "/\\evil.test", "/%5cevil.test", "/%2fevil.test", "/\tevil.test", "https://evil.test", "/a/..//evil.test", "/%0aevil.test"]) expect(safeNextPath(path)).toBe("/games");
+  for (const path of ["//evil.test", "/\\evil.test", "/%5cevil.test", "/%2fevil.test", "/\tevil.test", "https://evil.test", "/a/..//evil.test", "/%0aevil.test", "/sign-in?next=/games", "/sign-up"]) expect(safeNextPath(path)).toBe("/games");
   for (const path of ["/games", "/games/overwatch?room=123#players", "/games?q=https%3A%2F%2Fexample.com"]) expect(safeNextPath(path)).toBe(path);
 });
 
@@ -26,6 +26,7 @@ test("Discord sinks reject stored unsafe URLs and redirects; failed jobs finaliz
     const finalized: unknown[] = [];
     const client = { rpc: async (name: string, args: unknown) => {
       if (name === "claim_discord_bot_notification_batch") return { data: [{ log_id: "log", clan_id: "clan", game_slug: "overwatch", channel_id: "http://localhost/private" }], error: null };
+      if (name === "recheck_clan_discord_notification") return { data: { log_id: "log", clan_id: "clan", game_slug: "overwatch", channel_id: "http://localhost/private" }, error: null };
       finalized.push(args); return { data: null, error: null };
     }, from: (table: string) => {
       const query = { select: () => query, eq: () => query, single: async () => ({ data:

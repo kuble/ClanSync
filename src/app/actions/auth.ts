@@ -92,6 +92,7 @@ export async function signUpAction(
   const birthYear = Number.parseInt(String(formData.get("birth_year") ?? ""), 10);
   const gender = String(formData.get("gender") ?? "undisclosed");
   const terms = formData.get("terms") === "on";
+  const next = safeNextPath(formData.get("next"));
 
   if (!terms) {
     return { error: "이용약관 및 개인정보 처리에 동의해 주세요." };
@@ -146,7 +147,7 @@ export async function signUpAction(
     }
   }
 
-  redirect("/games");
+  redirect(next);
 }
 
 export async function signOutAction(): Promise<void> {
