@@ -3171,7 +3171,6 @@ export type Database = {
           p_clan_id: string
           p_enabled: boolean
           p_guild_id: string
-          p_kakao: boolean
         }
         Returns: undefined
       }
@@ -3183,17 +3182,7 @@ export type Database = {
           p_clan_id: string
           p_enabled: boolean
           p_guild_id: string
-          p_kakao: boolean
           p_routes: Json
-        }
-        Returns: undefined
-      }
-      set_clan_notification_settings: {
-        Args: {
-          p_clan_id: string
-          p_enabled: boolean
-          p_kakao: boolean
-          p_url?: string
         }
         Returns: undefined
       }

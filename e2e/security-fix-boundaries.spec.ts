@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 import { loadOpenLfgPosts, loadScrimRoomsForGame } from "../src/lib/main-game/load-main-game-hub";
 import { loadClanDashboard } from "../src/lib/clan/load-clan-dashboard";
@@ -49,19 +50,21 @@ async function live(row: Awaited<ReturnType<typeof round>>) {
 }
 
 test("legacy webhook APIs are retired, secrets stay private and users cannot inject URLs", async () => {
-  const args = { p_clan_id: f.clanId, p_enabled: true, p_kakao: false, p_url: "https://discord.com/api/webhooks/123/isolated_test" };
-  expect((await member.rpc("set_clan_notification_settings", args)).error).not.toBeNull();
-  expect((await leader.rpc("set_clan_notification_settings", args)).error).not.toBeNull();
+  // Probe the removed endpoint deliberately; it is absent from generated Database types.
+  const retiredSettings = (client: Client, args: Record<string, unknown>) => (client as SupabaseClient).rpc("set_clan_notification_settings", args);
+  const args = { p_clan_id: f.clanId, p_enabled: true, p_url: "https://discord.com/api/webhooks/123/isolated_test" };
+  expect((await retiredSettings(member, args)).error).not.toBeNull();
+  expect((await retiredSettings(leader, args)).error).not.toBeNull();
   expect((await member.from("clan_notification_secrets").select("*").eq("clan_id", f.clanId)).error).not.toBeNull();
   expect((await leader.from("clan_notification_secrets").select("*").eq("clan_id", f.clanId)).error).not.toBeNull();
   const settings = await ok(member.from("clan_settings").select("event_notify").eq("clan_id", f.clanId).single());
   expect(JSON.stringify(settings)).not.toContain("isolated_test");
   expect(JSON.stringify(settings)).not.toContain("discord_webhook_url");
   for (const url of ["http://127.0.0.1/private", "https://discord.com.evil.test/api/webhooks/123/t", args.p_url + "?wait=true"]) {
-    expect((await leader.rpc("set_clan_notification_settings", { ...args, p_url: url })).error).not.toBeNull();
+    expect((await retiredSettings(leader, { ...args, p_url: url })).error).not.toBeNull();
     expect((await leader.from("clan_settings").update({ event_notify: { discord_webhook_url: url } }).eq("clan_id", f.clanId)).error).not.toBeNull();
   }
-  expect((await leader.rpc("set_clan_notification_settings", { ...args, p_enabled: false, p_url: undefined })).error).not.toBeNull();
+  expect((await retiredSettings(leader, { ...args, p_enabled: false, p_url: undefined })).error).not.toBeNull();
   expect(await ok(f.service.from("clan_notification_secrets").select("clan_id").eq("clan_id", f.clanId))).toHaveLength(0);
 });
 

@@ -16,13 +16,16 @@ test("five routes: role checks, room timing/reschedule/cancel, notices once, pol
   try {
     const routes = readDiscordNotificationRoutes(null);
     routes.flash.channel_id = other;
-    const prefs = { p_actor_id: f.users[0].id, p_clan_id: f.clanId, p_guild_id: guild, p_channel_id: channel, p_channel_name: "기본", p_enabled: true, p_kakao: false, p_routes: routes };
+    const prefs = { p_actor_id: f.users[0].id, p_clan_id: f.clanId, p_guild_id: guild, p_channel_id: channel, p_channel_name: "기본", p_enabled: true, p_routes: routes };
     await ok(f.service.rpc("connect_clan_discord_bot", { p_actor_id: f.users[0].id, p_clan_id: f.clanId, p_guild_id: guild, p_guild_name: "QA Discord" }));
     const member = await f.memberClient(1);
     expect((await member.rpc("set_clan_discord_notification_preferences", prefs)).error).not.toBeNull();
     expect((await f.service.rpc("set_clan_discord_notification_preferences", { ...prefs, p_actor_id: f.users[1].id })).error?.code).toBe("42501");
     expect((await f.service.rpc("set_clan_discord_notification_preferences", { ...prefs, p_routes: { ...routes, invalid: {} } })).error).not.toBeNull();
     await ok(f.service.rpc("set_clan_discord_notification_preferences", prefs));
+    const notify = (await ok(f.service.from("clan_settings").select("event_notify").eq("clan_id", f.clanId).single())).event_notify;
+    expect(notify).not.toHaveProperty("kakao_notifications_opt_in");
+    expect((await f.service.from("clan_settings").update({ event_notify: { ...notify as object, kakao_notifications_opt_in: true } }).eq("clan_id", f.clanId)).error?.code).toBe("23514");
     const leader = await f.memberClient(0);
     const future = new Date(Date.now()+3_600_000).toISOString();
     const regular = await ok(leader.rpc("create_balance_room", { p_clan_id: f.clanId, p_kind: "regular", p_title: "정규 알림", p_scheduled_at: future })) as { room_id: string };
@@ -110,12 +113,14 @@ test("settings: leader saves kinds while bot is unavailable; officers read, memb
   test.setTimeout(150_000);
   const f = await createIsolatedBalanceFixture(3), officerContext = await browser.newContext();
   try {
-    const prefs = { p_actor_id: f.users[0].id, p_clan_id: f.clanId, p_guild_id: guild, p_channel_id: channel, p_channel_name: "기본", p_enabled: true, p_kakao: false, p_routes: readDiscordNotificationRoutes(null) };
+    const prefs = { p_actor_id: f.users[0].id, p_clan_id: f.clanId, p_guild_id: guild, p_channel_id: channel, p_channel_name: "기본", p_enabled: true, p_routes: readDiscordNotificationRoutes(null) };
     await ok(f.service.rpc("connect_clan_discord_bot", { p_actor_id: f.users[0].id, p_clan_id: f.clanId, p_guild_id: guild, p_guild_name: "QA Discord" }));
     await ok(f.service.rpc("set_clan_discord_notification_preferences", prefs));
     await loginIsolatedBalanceUser(page, f.users[0]);
     const path = f.path.replace(/balance$/, "manage?tab=notifications");
     await page.goto(path);
+    await expect(page.getByText(/카카오 알림톡/)).toHaveCount(0);
+    await expect(page.locator('input[name="kakao_notifications_opt_in"]')).toHaveCount(0);
     await page.getByRole("switch", { name: "Discord 알림 사용", exact: true }).uncheck();
     await page.getByRole("switch", { name: "깜짝 내전 알림", exact: true }).uncheck();
     await page.getByRole("checkbox", { name: "종료·결과 알림", exact: true }).uncheck();
@@ -200,7 +205,7 @@ test("off periods skip past notices/closures, restore future reservations; match
   const f = await createIsolatedBalanceFixture(1);
   try {
     const routes = readDiscordNotificationRoutes(null);
-    const prefs = { p_actor_id: f.users[0].id, p_clan_id: f.clanId, p_guild_id: guild, p_channel_id: channel, p_channel_name: "기본", p_enabled: true, p_kakao: false, p_routes: routes };
+    const prefs = { p_actor_id: f.users[0].id, p_clan_id: f.clanId, p_guild_id: guild, p_channel_id: channel, p_channel_name: "기본", p_enabled: true, p_routes: routes };
     await ok(f.service.rpc("connect_clan_discord_bot", { p_actor_id: f.users[0].id, p_clan_id: f.clanId, p_guild_id: guild, p_guild_name: "QA" }));
     await ok(f.service.rpc("set_clan_discord_notification_preferences", prefs));
     const start = new Date(Date.now()+3_600_000).toISOString(), leader = await f.memberClient(0);

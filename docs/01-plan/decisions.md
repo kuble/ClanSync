@@ -76,7 +76,7 @@
 |------|------|------|------|
 | D-EVENTS-01 | DECIDED (2026-04-20) · Supplemented (2026-04-21) → D-PERM-01 흡수 (2026-04-21) | 스크림 확정 → 클랜 이벤트 자동 생성 + 수동 등록 유형 제한 + RSVP 범위 + 권한 분기 | `scrim_rooms.status='confirmed'` 전환 시 **양쪽 클랜 각각**에 `clan_events` 자동 INSERT. `source='scrim_auto'` 이벤트는 **읽기 전용**. **수동 등록은 내전·이벤트 2종만**. **RSVP는 스크림 전용 단일 토글**. → 편집·삭제·참가 명단 권한은 권한 키 `manage_clan_events`(기본 운영진+, 토글 가능)로 일반화. [§D-EVENTS-01](#d-events-01--스크림-확정--클랜-이벤트-자동-생성동기화) · [§Supplemental](#d-events-01-supplemental--유형-수동-제한--rsvp-범위--권한-분기--2026-04-21) |
 | D-EVENTS-02 | REVISED (2026-04-21) | 일정 반복 — 요일·시각만, 종료 조건·상한 폐지 | 반복은 `weekly`(월~일 다중 체크박스 + `HH:mm`) · `monthly`(시작일의 day-of-month + `HH:mm`) · `none` 3종뿐. **종료 조건(count/until/never) 3모드 및 52회 hard stop 전면 폐지** — 편집(반복=none 저장) 또는 삭제로만 종료. [§D-EVENTS-02 Revised](#d-events-02-revised--일정-반복-요일시각-기반-무기한--2026-04-21) |
-| D-EVENTS-03 | DECIDED (2026-04-20) | 일정 알림 채널 (카카오/디스코드) 발송 시점·실패 시 재시도 | Premium 전용 Discord + 카카오 알림톡, Free는 in-app만. **카카오 기본 OFF**(옵트인), Discord 연동 시 ON. 발송 슬롯 T-24h·T-1h·T-10min·T+0. 재시도 지수 백오프 5회(1m→5m→30m→2h→6h) 후 DLQ. Quiet hours 00~07 KST 카카오 연기. 중복 방지 `(event_id, kind, scheduled_at, channel)` UNIQUE. [§D-EVENTS-03](#d-events-03--일정투표-알림-채널정책) |
+| D-EVENTS-03 | DECIDED (2026-10-12 변경) | 일정 알림 채널 (Discord) 발송 시점·실패 시 재시도 | Premium 전용 Discord, Free는 in-app만. 카카오 알림톡 제거. Discord 연동 시 ON. 발송 슬롯 T-24h·T-1h·T-10min·T+0. 재시도 지수 백오프 5회(1m→5m→30m→2h→6h) 후 DLQ. 중복 방지 `(event_id, kind, scheduled_at, channel)` UNIQUE. [§D-EVENTS-03](#d-events-03--일정투표-알림-채널정책) |
 | D-EVENTS-04 | DECIDED (2026-04-20) | 투표 알림 반복(`마감 전까지 매일`) ↔ 마감일과의 일관성 검증 | 반복 모드별 마감 하한: **매일 ≥ +48h**, **매주 ≥ +14d**, **마감 전까지 매일 ≥ +24h** (24h 미만 에러). 상한 60d(초과 경고). 투표 생성 시 Server Action이 전체 발송 스케줄을 `notification_log` 예약 INSERT, 마감 도달 시 잔여 예약 자동 취소. [§D-EVENTS-04](#d-events-04--투표-알림과-마감일-일관성-검증) |
 | D-EVENTS-05 | DECIDED (2026-04-20), 배치 변경 (2026-09-24) | 대진표(Bracket) 결과의 클랜 통계·코인 반영 여부 | **대진표 = 클랜 내 이벤트**(클랜 간 토너먼트는 기획 없음). 정규 내전과 별도 집계하며 화면 배치는 D-STATS-05 이후 후속 설계. HoF·외부 순위표 반영 X. 이벤트 포함 활동 지표와 내전 전적은 구분한다. **코인은 D-ECON-01 확정값만**(개최 500 차감·참가 +200·우승 +1,000, 전부 클랜 풀). 개인 풀 보상·MVP 자동 산정 **없음**. [§D-EVENTS-05](#d-events-05--대진표-결과의-통계코인-반영) |
 
@@ -162,7 +162,7 @@
 | 코드 | 상태 | 항목 | 메모 |
 |------|------|------|------|
 | D-NOTIF-01 | DECIDED (2026-04-21) | 운영·개인·일정 알림을 통합하는 in-app 알림 센터 도입 | **프리셋 α(디스코드식 통합 센터)** — 네비게이션바 상단 **벨 아이콘 + 드로워**. 범위 = **운영 + 개인 결과 + D-EVENTS-03 일정 알림 전체 통합**. 저장 = **M1 분리 + FK**: `notification_log`(기존 발송 레이어 유지) + `notifications`(신설 피드 레이어). 일정 in-app 발송 시 AFTER UPDATE 트리거로 `notifications` INSERT, 운영·개인 알림은 소스 테이블(`clan_join_requests`·`match_record_correction_requests`·`scrim_room_confirmations`·`lfg_applications` 등) **DB 트리거로 자동 INSERT**. 2상태(unread/read), 읽은 후 **7일 자동 GC**. D-SHELL-03 사이드바 메뉴별 점은 **병존**(척도 다름). D-PERM-01 권한 키 신설 없음(수신자 계산은 소스 RLS). [§D-NOTIF-01](#d-notif-01--in-app-알림-센터-통합-도입) |
-| D-NOTIF-02 | DECIDED (2026-04-21) | 브라우저 ServiceWorker 웹 푸시 도입 여부·과금 게이팅·권한 프롬프트 타이밍 | **프리셋 α (보수적 도입)** — **Premium 전용**(D-EVENTS-03 카카오·Discord 과금 경계 정합), **4 카테고리 독립 토글**(운영·개인·일정·채팅), 권한 요청은 **벨 드로워 최초 열 때 맥락형 배너**, **서버 quiet hours 00~07 KST 준수**(07시 일괄). 스키마 신설: `web_push_subscriptions`(user_id·endpoint·p256dh·auth·user_agent·created_at·revoked_at, soft delete). `notification_log.channel` 카탈로그에 `web_push` 추가. **권한 키 신설 없음**(개인 구독은 본인 선택). 범위 = **R3** (결정·스키마 + 벨 드로워 최상단 inert 예고 배너 1줄만). 실구현(VAPID·ServiceWorker·서버 워커·구독 관리 UI)은 **Phase 2+ 이관** — 공급자 선택은 후속 D-NOTIF-02b. [§D-NOTIF-02](#d-notif-02--브라우저-서비스워커-웹-푸시-도입-정책-프리셋-α) |
+| D-NOTIF-02 | DECIDED (2026-04-21) | 브라우저 ServiceWorker 웹 푸시 도입 여부·과금 게이팅·권한 프롬프트 타이밍 | **프리셋 α (보수적 도입)** — **Premium 전용**(D-EVENTS-03 Discord 과금 경계 정합), **4 카테고리 독립 토글**(운영·개인·일정·채팅), 권한 요청은 **벨 드로워 최초 열 때 맥락형 배너**, **서버 quiet hours 00~07 KST 준수**(07시 일괄). 스키마 신설: `web_push_subscriptions`(user_id·endpoint·p256dh·auth·user_agent·created_at·revoked_at, soft delete). `notification_log.channel` 카탈로그에 `web_push` 추가. **권한 키 신설 없음**(개인 구독은 본인 선택). 범위 = **R3** (결정·스키마 + 벨 드로워 최상단 inert 예고 배너 1줄만). 실구현(VAPID·ServiceWorker·서버 워커·구독 관리 UI)은 **Phase 2+ 이관** — 공급자 선택은 후속 D-NOTIF-02b. [§D-NOTIF-02](#d-notif-02--브라우저-서비스워커-웹-푸시-도입-정책-프리셋-α) |
 | D-NOTIF-03 | DROPPED (2026-04-21) | 이메일 다이제스트(일간/주간 요약) 도입 여부 | **도입하지 않음**. 이메일은 **거래 메일(비밀번호 재설정·가입 인증·필수 공지)로만** 사용. 재참여·이탈 방지 유인은 in-app 피드(D-NOTIF-01)·브라우저 푸시(D-NOTIF-02)로 갈음. 결정 번복 시 D-NOTIF-03b로 재오픈. [§D-NOTIF-03](#d-notif-03--이메일-다이제스트-dropped) |
 
 ---
@@ -1879,7 +1879,7 @@ user_badge_unlocks (
 
 - 캘린더 셀 점: 회색 dim + 취소선 스타일(`mock-events-cal-dot--cancelled` 신설 예정).
 - 일정 카드: 제목 취소선 + 우상단 "취소됨" 라벨.
-- 알림 스케줄: D-EVENTS-03에 따라 `cancelled_at` 세팅 순간 **미발송 예약 알림 전부 취소**(이미 보낸 건은 별도 취소 알림 1회 발송 — Discord·카카오 재사용).
+- 알림 스케줄: D-EVENTS-03에 따라 `cancelled_at` 세팅 순간 **미발송 예약 알림 전부 취소**(이미 보낸 건은 별도 취소 알림 1회 발송 — Discord 재사용).
 
 **Phase 2+ 스키마 영향 (요지)**
 
@@ -2063,8 +2063,8 @@ CHECK (
 
 ### D-EVENTS-03 — 일정·투표 알림 채널·정책
 
-- **결정일**: 2026-04-20
-- **요지**: 알림 채널은 **Discord (연동 시 기본 ON)**, **카카오 알림톡 (기본 OFF · 옵트인)**, **in-app (항상 ON)** 3종. Free 플랜은 in-app만. 발송은 일정 기준 **T-24h · T-1h · T-10min · T+0** 4개 슬롯(일정 성격에 따라 일부 스킵). 실패는 **지수 백오프 5회**. quiet hours(00~07 KST) 카카오 자동 연기. 모든 스케줄은 `notification_log` 테이블에서 단일 출처로 관리.
+- **결정일**: 2026-04-20 → 2026-10-12 변경: 카카오 알림톡은 사용하지 않으므로 수신 희망 UI·저장 API·번호 인증/발송 계획을 제거한다.
+- **요지**: 알림 채널은 **Discord (연동 시 기본 ON)**, **in-app (항상 ON)** 2종. Free 플랜은 in-app만. 발송은 일정 기준 **T-24h · T-1h · T-10min · T+0** 4개 슬롯(일정 성격에 따라 일부 스킵). 실패는 **지수 백오프 5회**. 모든 스케줄은 `notification_log` 테이블에서 단일 출처로 관리.
 
 **채널 · 플랜 매트릭스**
 
@@ -2072,14 +2072,13 @@ CHECK (
 |------|:----:|:-------:|----------------|------|
 | in-app (브라우저 알림 센터·navbar 벨) | ✓ | ✓ | ON (강제) | 비로그인 시 무시 |
 | Discord (DM 또는 클랜 채널) | ✗ | ✓ | **ON** (연동 있을 때만) | OAuth `identify email` 외 Bot OAuth 별도(D-AUTH-05) |
-| 카카오 알림톡 | ✗ | ✓ | **OFF** | 사용자가 알림 설정에서 명시적 ON 시 발송 · 번호 인증 필요 |
 
 **발송 슬롯 (일정 기준)**
 
 | 슬롯 | 트리거 | 스킵 조건 | 채널 |
 |------|--------|-----------|------|
-| T-24h | 시작 24시간 전 | 일정이 24h 이내 등록 시 스킵 | in-app · Discord · 카카오(ON 시) |
-| T-1h | 시작 1시간 전 | — | in-app · Discord · 카카오(ON 시) |
+| T-24h | 시작 24시간 전 | 일정이 24h 이내 등록 시 스킵 | in-app · Discord |
+| T-1h | 시작 1시간 전 | — | in-app · Discord |
 | T-10min | 시작 10분 전 | — | in-app · Discord |
 | T+0 | 시작 순간 | 일정 옵션에서 체크 시에만 | in-app |
 
@@ -2099,32 +2098,22 @@ CHECK (
 - 1회차 실패 → 1분 후 재시도 → 5분 → 30분 → 2시간 → 6시간. 총 5회.
 - 5회 실패 시 **DLQ**(dead letter queue) 이관 + 운영자 대시보드 알림.
 - Discord rate limit **429** 수신 시 `Retry-After` 헤더 준수(백오프 무시).
-- 카카오 알림톡 실패는 당사자에게 in-app 폴백 메시지 1회 자동 발송.
 - 재시도 카운트는 `notification_log.attempt_count`에 기록. 모든 시도 타임스탬프는 `notification_attempts` child 테이블(Phase 2+ 운영 로그).
 
 **중복 방지**
 
 - UNIQUE `(event_id, slot_kind, scheduled_at, channel, recipient_user_id)`.
 - 재시도는 행 추가가 아닌 `attempt_count++` · `last_error` UPDATE.
-- 멱등 전송: Discord·카카오 페이로드에 `dedup_key = hash(notification_log.id)` 포함, 공급자 측 중복 수신 감지.
+- 멱등 전송: Discord 페이로드에 `dedup_key = hash(notification_log.id)` 포함, 공급자 측 중복 수신 감지.
 
-**Quiet Hours (카카오 전용)**
-
-- 기본 **00:00~07:00 KST** 자동 연기 → 07:00에 일괄 발송.
-- 사용자 설정에서 범위 조정 가능(`notification_preferences.quiet_start`·`quiet_end`).
-- Discord·in-app은 제약 없음(사용자가 직접 음소거 책임).
-- 긴급 슬롯 T-10min은 quiet hours 무시(스크림 시작 임박 등 손실 치명적).
+Discord·in-app은 quiet hours 제약 없음(사용자가 직접 음소거). 웹 푸시의 quiet hours 계획은 D-NOTIF-02를 따른다.
 
 **사용자 옵트 구조 (`notification_preferences` 테이블)**
 
 ```
 user_id pk
 channel_discord bool default true   -- 연동 있을 때만 의미
-channel_kakao bool default false    -- D-EVENTS-03 기본 OFF
 channel_inapp bool default true     -- 항상 true (UI에서 토글 숨김)
-kakao_verified_phone text null      -- 카카오 알림톡 수신 전 필수
-quiet_start time default '00:00'
-quiet_end time default '07:00'
 digest_hour smallint default 9      -- 투표 매일 발송 시각
 per_event_kind jsonb                -- {"scrim":true,"intra":true,"event":true,"poll":true}
 updated_at timestamptz
@@ -2133,8 +2122,8 @@ updated_at timestamptz
 **연관 문서 업데이트 대상**
 
 - `schema.md` — `notification_preferences`·`notification_log` 테이블 신설.
-- `pages/11-Clan-Events.md` — 알림 채널·Quiet hours 행 추가.
-- `pages/14-Profile-Customization.md` — 프로필 "알림 설정" 섹션에서 카카오·Discord 토글 노출(Phase 2+).
+- `pages/11-Clan-Events.md` — Discord·in-app 알림 채널.
+- 클랜 관리 `알림·연동` — Discord 연결·종류별 토글/채널 설정.
 - D-AUTH-05(Discord OAuth) 스코프가 이 결정의 전제. 알림 발송용 Bot OAuth는 별도 권한 플로우.
 
 ### D-EVENTS-04 — 투표 알림과 마감일 일관성 검증
@@ -3003,7 +2992,7 @@ notifications (신설)
 
 **β/γ/δ 탈락 근거**
 
-- **β** (Free 전면 허용): VAPID·웹 푸시 인프라가 사실상 무료여서 기술적으로 가능하지만, **D-EVENTS-03의 "외부 채널 = Premium" 원칙**을 깨뜨린다. 장기적으로 카카오알림톡·Discord 게이팅의 근거가 약해지고 Premium 차별화 훼손.
+- **β** (Free 전면 허용): VAPID·웹 푸시 인프라가 사실상 무료여서 기술적으로 가능하지만, **D-EVENTS-03의 "외부 채널 = Premium" 원칙**을 깨뜨린다. 장기적으로 Discord 게이팅의 근거가 약해지고 Premium 차별화 훼손.
 - **γ** (Free 중요 알림만 하이브리드): 정책상 자연스럽지만 `kind × plan` 매트릭스가 **11 kind × 2 plan = 22 조합**으로 복잡. 테스트·QA 비용 증가. 추후 D-NOTIF-02c로 분리 검토 가능.
 - **δ** (도입 보류): in-app만으로도 탭을 열어둔 사용자는 커버. 하지만 모바일 사용자·탭 닫은 사용자의 재참여 경로가 0이 되어 참여율 저하 위험.
 
@@ -3036,7 +3025,6 @@ notifications (신설)
   |----|------|------|
   | `in_app` | D-NOTIF-01 피드 sync 대상 | Free·Premium 공통 |
   | `discord` | Bot 발송 | Premium |
-  | `kakao` | 알림톡 | Premium (옵트인) |
   | **`web_push`** *(신설)* | ServiceWorker push | **Premium** |
 
 - **재시도 정책**: D-EVENTS-03 지수 백오프 5회(1m→5m→30m→2h→6h) 동일. 410 Gone(구독 폐기) 응답 시 즉시 DLQ 없이 `web_push_subscriptions.revoked_at = now()` 업데이트하고 재시도 중단.
@@ -3080,7 +3068,7 @@ notifications INSERT (D-NOTIF-01 트리거 결과)
 
 **조용 시간 (Quiet Hours)**
 
-- **서버 측 00~07 KST 준수** — D-EVENTS-03 카카오알림톡과 동일 정책. 그 시간대 발생 알림은 07:00 KST로 `scheduled_at` 지연.
+- **서버 측 00~07 KST 준수** — 웹 푸시의 독립 정책. 그 시간대 발생 알림은 07:00 KST로 `scheduled_at` 지연.
 - 예외: **본인이 직접 트리거한 이벤트**(예: 내가 제출한 정정 요청 결과)는 조용 시간에도 즉시 발송 — 본인 요청 응답이므로.
 - 디바이스 OS DnD는 **별개 레이어**로 존중 — 서버가 07시에 발송해도 OS가 차단하면 그건 사용자의 OS 설정 책임.
 

@@ -64,7 +64,7 @@ test("QA bot connection permissions, atomic reminders, retries, channel changes 
     expect((await f.service.rpc("connect_clan_discord_bot", { ...connect, p_actor_id: f.users[1].id })).error?.code).toBe("42501");
     await ok(f.service.rpc("connect_clan_discord_bot", connect));
     for (const client of [leader, member]) expect((await client.from("clan_discord_connections").select("*")).error).not.toBeNull();
-    const settings = { p_actor_id: f.users[0].id, p_clan_id: f.clanId, p_guild_id: guild, p_channel_id: channel, p_channel_name: "알림", p_enabled: true, p_kakao: false };
+    const settings = { p_actor_id: f.users[0].id, p_clan_id: f.clanId, p_guild_id: guild, p_channel_id: channel, p_channel_name: "알림", p_enabled: true };
     expect((await f.service.rpc("set_clan_discord_bot_settings", { ...settings, p_guild_id: bot })).error).not.toBeNull();
     await ok(f.service.rpc("set_clan_discord_bot_settings", settings));
     const id = randomUUID(), start = new Date(Date.now() + 172_800_000).toISOString();
@@ -73,6 +73,7 @@ test("QA bot connection permissions, atomic reminders, retries, channel changes 
     const save = (patch: Json = event, create = false, slots: Json = schedule, actor = f.users[0].id) => f.service.rpc("save_manual_clan_event", { p_clan_id: f.clanId, p_actor_id: actor, p_event_id: id, p_event: patch, p_schedule: slots, p_create: create });
     expect((await save(event, true, schedule, f.users[1].id)).error?.code).toBe("42501");
     await ok(save(event, true));
+    expect((await f.service.from("notification_log").insert({ event_id: id, recipient_user_id: f.users[0].id, channel: "kakao", slot_kind: "event_t_minus_1h", scheduled_at: start, dedup_key: `retired-kakao-${id}` })).error?.code).toBe("23514");
     const logs = () => ok(f.service.from("notification_log").select("*").eq("event_id", id).eq("channel", "discord"));
     const rows = await logs(); expect(rows.map((row) => row.slot_kind).sort()).toEqual(["event_created", "event_t_minus_1h"]);
     const reminder = rows.find((row) => row.slot_kind === "event_t_minus_1h")!;

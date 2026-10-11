@@ -52,7 +52,7 @@ async function NotificationSettings({ ctx, connectionResult }: Pick<Props, "ctx"
   if (settings.error || connection.error) throw new Error("알림 설정을 불러오지 못했습니다.");
   const notify = readClanEventNotifySettings(settings.data.event_notify);
   return <ClanDiscordSettings gameSlug={ctx.gameSlug} clanId={ctx.clanId} canEdit={ctx.role === "leader"} premium={ctx.plan === "premium"}
-    botConfigured={discordBotConfigured()} connection={connection.data} discordEnabled={notify.discord_enabled} kakaoNotificationsOptIn={notify.kakao_notifications_opt_in}
+    botConfigured={discordBotConfigured()} connection={connection.data} discordEnabled={notify.discord_enabled}
     routes={readDiscordNotificationRoutes(settings.data.event_notify)} connectionResult={connectionResult} />;
 }
 

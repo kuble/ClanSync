@@ -47,7 +47,7 @@ export async function updateClanEventNotifyAction(gameSlug: string, clanId: stri
   const { error } = await actor.svc.rpc("set_clan_discord_notification_preferences", {
     p_actor_id: actor.user.id, p_clan_id: clanId, p_guild_id: connection?.guild_id ?? "",
     p_channel_id: channelId, p_channel_name: channelName,
-    p_enabled: enabled, p_kakao: formData.get("kakao_notifications_opt_in") === "on",
+    p_enabled: enabled,
     p_routes: routes,
   });
   if (error) return { ok: false as const, error: "알림 설정을 저장하지 못했습니다. 연결 상태를 확인해 주세요." };

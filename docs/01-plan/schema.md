@@ -1139,17 +1139,13 @@ GROUP BY 1, 2;
 - `rank=1`의 팀이 `bracket_tournaments.winner_coin_transaction_id` 트리거 조건.
 
 ### notification_preferences (알림 설정)
-> **D-EVENTS-03** (DECIDED 2026-04-20) — 카카오 기본 OFF (옵트인). Discord 연동 시 ON. Quiet hours 00~07 KST 카카오 연기. 상세 [§D-EVENTS-03](./decisions.md#d-events-03--일정투표-알림-채널정책).
+> **D-EVENTS-03** (2026-10-12 변경) — Discord 연동 시 ON. 카카오 알림톡은 제거했으며 수신 설정·전화번호 수집은 사용하지 않는다. 상세 [§D-EVENTS-03](./decisions.md#d-events-03--일정투표-알림-채널정책).
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | user_id | uuid PK FK → users | 1:1 |
 | channel_inapp | boolean NOT NULL DEFAULT true | 항상 true (UI 토글 숨김) |
 | channel_discord | boolean NOT NULL DEFAULT true | Discord 연동 없으면 무시 |
-| channel_kakao | boolean NOT NULL DEFAULT false | **옵트인** |
-| kakao_verified_phone | text NULL | 알림톡 수신 전 필수 |
-| quiet_start | time NOT NULL DEFAULT '00:00' | 카카오 전용 연기 시작 |
-| quiet_end | time NOT NULL DEFAULT '07:00' | 카카오 전용 연기 종료 |
 | digest_hour | smallint NOT NULL DEFAULT 9 CHECK (digest_hour BETWEEN 0 AND 23) | 매일·매주 발송 시각(KST) |
 | per_event_kind | jsonb NOT NULL DEFAULT '{"scrim":true,"intra":true,"event":true,"poll":true}'::jsonb | 유형별 on/off |
 | updated_at | timestamptz NOT NULL DEFAULT now() | |
@@ -1170,7 +1166,7 @@ GROUP BY 1, 2;
 | poll_id | uuid FK → clan_polls NULL | 투표 알림 대상 |
 | lfg_post_id | uuid FK → lfg_posts NULL | **·M7**: LFG 만료 알림(`slot_kind=lfg_*_expired`) 대상 게시글 |
 | slot_kind | enum(…`'lfg_post_expired'`,`'lfg_application_expired'`) NOT NULL | 투표/일정·LFG 알림 종류 확장(**`0042`**) |
-| channel | enum('inapp','discord','kakao','web_push') NOT NULL | `web_push` 추가: D-NOTIF-02 (DECIDED 2026-04-21, Premium 전용) |
+| channel | enum('inapp','discord','kakao','web_push') NOT NULL | `kakao`는 과거 로그 호환용이며 신규 예약·처리를 금지한다(2026-10-12). `web_push` 계획: D-NOTIF-02 (Premium 전용) |
 | recipient_user_id | uuid FK → users NOT NULL | |
 | scheduled_at | timestamptz NOT NULL | 계획 발송 시각(quiet hours 보정 전) |
 | effective_at | timestamptz NULL | 실제 발송 시각(quiet hours·retry 후) |

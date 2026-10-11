@@ -12,7 +12,7 @@ import { DiscordBenefitsGallery } from "./discord-benefits-gallery";
 
 export type EventNotifyConnection = { guild_name: string; channel_id: string | null; channel_name: string | null };
 type Props = {
-  gameSlug: string; clanId: string; discordEnabled: boolean; kakaoNotificationsOptIn: boolean;
+  gameSlug: string; clanId: string; discordEnabled: boolean;
   canEdit: boolean; premium: boolean; botConfigured: boolean; connection: EventNotifyConnection | null;
   routes: DiscordNotificationRoutes; connectionResult?: string;
 };
@@ -25,7 +25,7 @@ function Toggle({ name, label, checked, onChange, disabled }: { name: string; la
   </label>;
 }
 
-export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, kakaoNotificationsOptIn, canEdit, premium, botConfigured, connection, routes: initialRoutes, connectionResult }: Props) {
+export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit, premium, botConfigured, connection, routes: initialRoutes, connectionResult }: Props) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [channels, setChannels] = useState<{ id: string; name: string }[]>([]);
@@ -112,7 +112,6 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, kakaoNot
             {id === "polls" && <div className="flex flex-wrap gap-5">{([['created', '시작 알림'], ['ended', '종료·결과 알림']] as const).map(([key, text]) => <label key={key} className="flex items-center gap-2 text-xs"><input type="checkbox" name={`discord_polls_${key}`} checked={routes.polls[key]} onChange={(event) => setRoutes((current) => ({ ...current, polls: { ...current.polls, [key]: event.target.checked } }))} className="size-4 accent-primary" />{text}</label>)}</div>}
           </div>)}
         </section>
-        <label className="flex items-start gap-2 text-xs"><input name="kakao_notifications_opt_in" type="checkbox" defaultChecked={kakaoNotificationsOptIn} className="mt-0.5 size-4 accent-primary" /><span>카카오 알림톡 연동 시 수신 희망<span className="mt-1 block text-muted-foreground">현재는 수신 의사만 저장합니다.</span></span></label>
         {canEdit && premium && <div className="sticky bottom-0 flex justify-end border-t border-border bg-background/95 py-3"><Button type="submit" disabled={pending || enabled && (loading || !!loadError || !channelId)}>{pending && <RefreshCw className="size-4 animate-spin" />}설정 저장</Button></div>}
       </fieldset>
     </form>

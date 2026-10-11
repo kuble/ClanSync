@@ -5,6 +5,5 @@ export function readClanEventNotifySettings(raw: Json | null | undefined) {
   return {
     discord_enabled: o.discord_transport === "bot" && o.discord_enabled === true,
     discord_configured: o.discord_transport === "bot" && o.discord_configured === true,
-    kakao_notifications_opt_in: o.kakao_notifications_opt_in === true,
   };
 }

@@ -4,7 +4,7 @@
 >
 > **D-EVENTS-02 REVISED (2026-04-21)** — 반복은 `none`/`weekly`/`monthly` 3종뿐. `weekly`는 **월~일 다중 체크박스 + `HH:mm`**, `monthly`는 **시작일의 day-of-month + `HH:mm`**. **종료 조건(count/until/never)·52회 hard stop 전면 폐지** — 편집(반복=`none`으로 저장) 또는 삭제로만 종료. `clan_event_exceptions`는 그대로 유지. → [decisions.md §D-EVENTS-02 Revised](../decisions.md#d-events-02-revised--일정-반복-요일시각-기반-무기한--2026-04-21)
 >
-> **D-EVENTS-03 DECIDED (2026-04-20)** — 채널: Discord(연동 시 ON) · 카카오(기본 **OFF 옵트인**) · in-app(항상). 슬롯 T-24h/T-1h/T-10min/T+0. 재시도 지수 백오프 5회 후 DLQ. quiet hours 00~07 KST 카카오 연기. `notification_log`·`notification_preferences` 단일 출처. → [decisions.md §D-EVENTS-03](../decisions.md#d-events-03--일정투표-알림-채널정책)
+> **D-EVENTS-03 DECIDED (2026-04-20)** — 채널: Discord(연동 시 ON) · in-app(항상). 카카오 알림톡은 2026-10-12 사용하지 않기로 결정하고 제거했다. 슬롯 T-24h/T-1h/T-10min/T+0. 재시도 지수 백오프 5회 후 DLQ. `notification_log`·`notification_preferences` 단일 출처. → [decisions.md §D-EVENTS-03](../decisions.md#d-events-03--일정투표-알림-채널정책)
 >
 > **D-EVENTS-04 DECIDED (2026-04-20)** — 투표 알림 반복 검증: `매일 ≥ +48h`, `매주 ≥ +14d`, `마감 전까지 매일 ≥ +24h`. 상한 60d(초과 경고). 생성 시 `notification_log` 전체 예약 INSERT, 마감 시 잔여 자동 취소. 프론트 1차 + Server Action 최종 검증. → [decisions.md §D-EVENTS-04](../decisions.md#d-events-04--투표-알림과-마감일-일관성-검증)
 >
@@ -87,7 +87,7 @@ H1 "클랜 이벤트"
 - 데스크톱은 캘린더 높이의 우측 패널을 사용한다. 모바일은 전체 너비·최대 화면 높이 85%의 하단 드로워이며 오버레이 + Esc/오버레이 클릭/× 버튼으로 닫힌다.
 - 헤더: 유형 배지 → 제목 → 부제(한국어 날짜).
   - 스크림(`kind='scrim'`) 드로워에 한해 "스크림에서 자동 등록 · D-EVENTS-01" 배지 + **스크림 상세 열기** 버튼 노출. 배지는 전원 노출, 버튼은 **운영진+만**(D-EVENTS-01 Supplemental).
-- 본문 `<dl>`: 시작(날짜·시각·종료), 장소, 반복(예: `매주 월·수·금 21:00 · 편집·삭제 전까지 계속`), 알림(`in-app · Discord · 카카오(옵트인)`).
+- 본문 `<dl>`: 시작(날짜·시각·종료), 장소, 반복(예: `매주 월·수·금 21:00 · 편집·삭제 전까지 계속`), 알림(`in-app · Discord`).
 - **참가 섹션** (D-EVENTS-01 Supplemental) — `kind='scrim'` 드로워에서만 렌더.
   - 단일 **"참가" 토글 버튼** + 상단 상태 배지(`미참가`/`참가 중`). 클릭 시 `confirm()`으로 의사 확인 후 `rsvp` 토글. 3버튼(`going`/`maybe`/`not_going`) 스키마는 폐기.
   - 확인 메시지: 참가 시 `"이 스크림에 참가하시겠습니까? 참가 명단에 인게임 닉네임이 노출됩니다."`, 취소 시 `"이 스크림 참가를 취소하시겠습니까?"`.
@@ -126,7 +126,7 @@ H1 "클랜 이벤트"
 | T-1h 임박 알림 | checkbox default ON | — |
 | T-10min 긴급 알림 | checkbox default ON | quiet hours 무시 |
 | T+0 시작 알림 | checkbox default OFF | — |
-| 채널 | 프로필 설정 따름(여기선 읽기 전용 요약만) | Free는 in-app만. 카카오는 옵트인 필요 안내 |
+| 채널 | 프로필 설정 따름(여기선 읽기 전용 요약만) | Free는 in-app만. Discord는 클랜 관리의 알림·연동에서 설정 |
 
 ### 권한 (D-EVENTS-01 Supplemental 2026-04-21)
 - "+ 일정 등록" 버튼은 **운영진+**만 표시.
@@ -220,7 +220,7 @@ H1 "클랜 이벤트"
 - 상한 공통 60d — 초과 시 경고 모달 ("60일 이상 떨어진 투표입니다. 계속 진행하시겠어요?").
 - 프론트 1차 인라인 검증 + Server Action이 최종 게이트. 통과 시 `notification_log`에 전체 발송 스케줄을 한 번에 `status='scheduled'`로 INSERT.
 - 마감 도달·수동 조기 종료 시 DB 트리거가 잔여 `scheduled` 행을 `cancelled`로 일괄 UPDATE.
-- 알림 채널은 D-EVENTS-03 정책(Discord 연동 시 ON · 카카오 옵트인 · in-app 항상)을 따름.
+- 알림 채널은 D-EVENTS-03 정책(Discord 연동 시 ON · in-app 항상)을 따름.
 
 ### 권한
 - 만들기·종료는 운영진+. 투표 자체는 전원.
@@ -237,7 +237,7 @@ H1 "클랜 이벤트"
 | 캘린더·일정 카드·투표 카드 열람 | ✓ | ✓ | ✓ | — | — |
 | "+ 일정 등록" / "+ 투표 만들기" | ✓ | ✓ | ✗ | — | — |
 | 대진표 생성기 본문 | ✓ | ✓ | ✓ (관전) | 🔒 안내만 | ✓ |
-| 알림 발송 (카카오/디스코드) | — | — | — | ✗ | ✓ (D-EVENTS-03) |
+| 알림 발송 (Discord) | — | — | — | ✗ | ✓ (D-EVENTS-03) |
 
 ## 데이터·연동
 
@@ -278,7 +278,7 @@ H1 "클랜 이벤트"
 - 페이지 소개·스크림 자동 등록 안내·오늘 버튼을 제거했다. 하단 외부 채널 펼침 영역은 일정 등록 옆 **알림 설정** 아이콘으로 옮겼다.
 - Premium 클랜장만 공용 봇 초대·채널 저장을 할 수 있다. OAuth state/현재 클랜장 자격과 Discord 서버 관리 권한을 검증하고, 서버·채널 ID/이름은 service-only 테이블에 저장한다. 클라이언트에 토큰·웹훅 주소를 제공하지 않는다.
 - 수동 일정 등록·편집에 **Discord 알림**과 등록·변경/하루 전/1시간 전/10분 전/시작 시 선택을 넣었다. 일정과 예약은 한 트랜잭션으로 저장하며 실패·취소·sent 보존·채널 변경을 처리한다. 기존 투표 예약도 봇으로 발송한다.
-- 전역 알림 해제 후에는 미래 슬롯만 복구하며, 과거 등록·변경 알림은 재생하지 않는다. 카카오는 수신 의사만 저장한다.
+- 전역 알림 해제 후에는 미래 슬롯만 복구하며, 과거 등록·변경 알림은 재생하지 않는다. 카카오 알림톡의 수신 희망 UI·저장 API는 제거했다.
 - 실제 앱 등록·서버 환경변수·초대와 분 단위 스케줄러 연결은 남아 있다. 현재 하루 1회 cron으로는 정시 사전 알림을 제공하지 않는다. [연결·운영 조건 및 검증 범위](../../guides/discord-bot-setup.md).
 
 ### 대진표 (D-EVENTS-05 DECIDED — 클랜 내 이벤트 전용)
