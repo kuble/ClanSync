@@ -1931,8 +1931,10 @@ export type Database = {
           instance_idx: number | null
           last_error: string | null
           lfg_post_id: string | null
+          notice_id: string | null
           poll_id: string | null
           recipient_user_id: string
+          room_id: string | null
           scheduled_at: string
           slot_kind: Database["public"]["Enums"]["notification_slot_kind"]
           status: Database["public"]["Enums"]["notification_status"]
@@ -1949,8 +1951,10 @@ export type Database = {
           instance_idx?: number | null
           last_error?: string | null
           lfg_post_id?: string | null
+          notice_id?: string | null
           poll_id?: string | null
           recipient_user_id: string
+          room_id?: string | null
           scheduled_at: string
           slot_kind: Database["public"]["Enums"]["notification_slot_kind"]
           status?: Database["public"]["Enums"]["notification_status"]
@@ -1967,8 +1971,10 @@ export type Database = {
           instance_idx?: number | null
           last_error?: string | null
           lfg_post_id?: string | null
+          notice_id?: string | null
           poll_id?: string | null
           recipient_user_id?: string
+          room_id?: string | null
           scheduled_at?: string
           slot_kind?: Database["public"]["Enums"]["notification_slot_kind"]
           status?: Database["public"]["Enums"]["notification_status"]
@@ -1990,6 +1996,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "notification_log_notice_id_fkey"
+            columns: ["notice_id"]
+            isOneToOne: false
+            referencedRelation: "clan_notices"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "notification_log_poll_id_fkey"
             columns: ["poll_id"]
             isOneToOne: false
@@ -2001,6 +2014,13 @@ export type Database = {
             columns: ["recipient_user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_log_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "balance_rooms"
             referencedColumns: ["id"]
           },
         ]
@@ -2787,7 +2807,7 @@ export type Database = {
       }
       cancel_lfg_post: { Args: { p_post_id: string }; Returns: undefined }
       claim_discord_bot_notification_batch: {
-        Args: { p_event_id?: string; p_limit: number }
+        Args: { p_clan_id?: string; p_event_id?: string; p_limit: number }
         Returns: Json
       }
       claim_discord_poll_notification_batch: {
@@ -3003,6 +3023,10 @@ export type Database = {
         }
         Returns: Json
       }
+      recheck_clan_discord_notification: {
+        Args: { p_attempt: number; p_log_id: string }
+        Returns: Json
+      }
       record_clan_activity: { Args: { p_clan_id: string }; Returns: undefined }
       replace_event_discord_notifications: {
         Args: { p_actor_id: string; p_event_id: string; p_schedule: Json }
@@ -3151,6 +3175,19 @@ export type Database = {
         }
         Returns: undefined
       }
+      set_clan_discord_notification_preferences: {
+        Args: {
+          p_actor_id: string
+          p_channel_id: string
+          p_channel_name: string
+          p_clan_id: string
+          p_enabled: boolean
+          p_guild_id: string
+          p_kakao: boolean
+          p_routes: Json
+        }
+        Returns: undefined
+      }
       set_clan_notification_settings: {
         Args: {
           p_clan_id: string
@@ -3278,6 +3315,9 @@ export type Database = {
         | "lfg_application_expired"
         | "event_created"
         | "event_updated"
+        | "room_t_minus_10min"
+        | "notice_created"
+        | "poll_ended"
       notification_status:
         | "scheduled"
         | "sent"
@@ -3489,6 +3529,9 @@ export const Constants = {
         "lfg_application_expired",
         "event_created",
         "event_updated",
+        "room_t_minus_10min",
+        "notice_created",
+        "poll_ended",
       ],
       notification_status: [
         "scheduled",

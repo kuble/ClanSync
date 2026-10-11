@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
+import { dispatchClanDiscordAfter } from "@/lib/notifications/dispatch-clan-discord-after";
 
 type Result = { ok: true } | { ok: false; error: string };
 
@@ -64,6 +65,7 @@ export async function saveClanNoticeAction(
       error: "공지를 저장하지 못했습니다. 권한과 공지 상태를 확인해 주세요.",
     };
   refreshClan(gameSlug, clanId);
+  if (!noticeId) dispatchClanDiscordAfter(clanId);
   return { ok: true };
 }
 

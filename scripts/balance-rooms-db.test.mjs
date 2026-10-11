@@ -146,7 +146,7 @@ test("room ownership, reservations, delegation and scheduler stay scoped", async
 
     const flash = await ok(create(creator.client, "flash"));
     let flashRound = await ok(readRound(flash.series_id));
-    assert.deepEqual(flashRound.formation_settings, sourceSettings);
+    assert.deepEqual(flashRound.formation_settings, sourceRound.formation_settings);
     assert.equal(flashRound.map_ban_enabled, true);
     assert.equal(flashRound.hero_ban_enabled, true);
     assert.equal(flashRound.map_ban_seconds, 37);

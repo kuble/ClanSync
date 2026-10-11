@@ -3,7 +3,7 @@
 import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
-import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
+import { dispatchClanDiscordAfter } from "@/lib/notifications/dispatch-clan-discord-after";
 import { buildPollNotificationSlots } from "@/lib/clan/poll-notification-schedule";
 import {
   parsePollNotifyRepeat,
@@ -155,21 +155,11 @@ export async function createClanPollAction(
       return { ok: false, error: memErr.message };
     }
 
-    const { data: settingsRow } = await svc
-      .from("clan_settings")
-      .select("event_notify")
-      .eq("clan_id", clanId)
-      .maybeSingle();
-    const evNotify = readClanEventNotifySettings(settingsRow?.event_notify ?? null);
-    const discordBotOk =
-      evNotify.discord_enabled &&
-      evNotify.discord_configured;
-
     const userIds = (memRows ?? []).map((r) => r.user_id as string);
     const logRows: {
       poll_id: string;
       slot_kind: string;
-      channel: "inapp" | "discord";
+      channel: "inapp";
       recipient_user_id: string;
       scheduled_at: string;
       dedup_key: string;
@@ -196,26 +186,6 @@ export async function createClanPollAction(
       }
     }
 
-    if (discordBotOk) {
-      for (const s of slots) {
-        const scheduledAt = s.scheduled_at.toISOString();
-        const dedup_key = createHash("sha256")
-          .update(
-            `${pollId}|${s.slot_kind}|${scheduledAt}|${user.id}|discord`,
-          )
-          .digest("hex");
-        logRows.push({
-          poll_id: pollId,
-          slot_kind: s.slot_kind,
-          channel: "discord",
-          recipient_user_id: user.id,
-          scheduled_at: scheduledAt,
-          dedup_key,
-          status: "scheduled",
-        });
-      }
-    }
-
     const chunk = 400;
     for (let i = 0; i < logRows.length; i += chunk) {
       const slice = logRows.slice(i, i + chunk);
@@ -227,6 +197,7 @@ export async function createClanPollAction(
     }
   }
 
+  dispatchClanDiscordAfter(clanId);
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);
   return { ok: true };
 }
@@ -311,6 +282,7 @@ export async function voteClanPollAction(
   });
   if (voteError) return { ok: false, error: voteError.message };
 
+  dispatchClanDiscordAfter(clanId);
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);
   return { ok: true };
 }
@@ -355,6 +327,7 @@ export async function closeClanPollAction(
 
   if (error) return { ok: false, error: error.message };
 
+  dispatchClanDiscordAfter(clanId);
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);
   return { ok: true };
 }

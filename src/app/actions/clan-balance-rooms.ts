@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { dispatchClanDiscordAfter } from "@/lib/notifications/dispatch-clan-discord-after";
 import type { Json } from "@/lib/supabase/database.types";
 
 type RoomResult = { ok: true } | { ok: false; error: string };
@@ -46,6 +47,7 @@ function payload(data: Json | null, error: { message: string } | null): Record<s
 
 function invalidate(gameSlug: string, clanId: string) {
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/balance`);
+  dispatchClanDiscordAfter(clanId);
 }
 
 export async function createBalanceRoomAction(
