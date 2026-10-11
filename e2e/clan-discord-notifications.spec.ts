@@ -194,7 +194,7 @@ test("capture actual QA screens for the Discord benefits gallery", async ({ page
     await ok(f.service.from("poll_votes").insert(f.users.map((user,index) => ({ poll_id: poll.id, option_id: options[index === 3 ? 1 : 0].id, user_id: user.id }))));
     await ok(f.service.from("clan_polls").update({ closed_at: new Date().toISOString() }).eq("id", poll.id));
     await page.goto(`${f.path.replace(/balance$/, "events")}?tab=polls&poll=${poll.id}`);
-    await expect(page.locator(`#poll-${poll.id}`)).toBeFocused();
+    await expect(page.getByRole("dialog", { name: "다음 내전 시간 투표", exact: true })).toBeVisible();
     await capture("polls");
     expect(event.id).toBeTruthy();
   } finally { await f.cleanup(); }
@@ -261,7 +261,7 @@ test("notification links survive sign-in/sign-up, game verification and clan app
     const poll = await ok(f.service.from("clan_polls").insert({ clan_id: f.clanId, title: "링크 투표", deadline_at: start, created_by: f.users[0].id }).select("id").single());
     await ok(f.service.from("poll_options").insert([{ poll_id: poll.id, label: "A", sort_order: 0 }, { poll_id: poll.id, label: "B", sort_order: 1 }]));
     await page.goto(`${f.path.replace(/balance$/, "events")}?tab=polls&poll=${poll.id}`);
-    await expect(page.locator(`#poll-${poll.id}`)).toBeFocused();
+    await expect(page.getByRole("dialog", { name: "링크 투표", exact: true })).toBeVisible();
     await ok(f.service.from("clan_members").delete().eq("clan_id", f.clanId).eq("user_id", f.users[0].id));
     await page.goto(target); await expect(page).toHaveURL(/\/clan$/);
     expect((await page.context().cookies()).find((cookie) => cookie.name === "clansync-clan-return")?.value).toContain(room.room_id);
