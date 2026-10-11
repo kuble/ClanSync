@@ -39,12 +39,14 @@ export function ClanEventsPollsTab({
   polls,
   canManagePolls,
   viewerUserId,
+  initialPollId,
 }: {
   gameSlug: string;
   clanId: string;
   polls: SerializedClanPoll[];
   canManagePolls: boolean;
   viewerUserId: string | null;
+  initialPollId?: string;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -52,6 +54,12 @@ export function ClanEventsPollsTab({
   const [optionInputs, setOptionInputs] = useState(["", ""]);
   const [pollNotifyEnabled, setPollNotifyEnabled] = useState(false);
   const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!initialPollId) return;
+    const target = document.getElementById(`poll-${initialPollId}`);
+    target?.scrollIntoView({ block: "center", behavior: "instant" });
+    target?.focus({ preventScroll: true });
+  }, [initialPollId]);
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(timer);
@@ -306,6 +314,8 @@ export function ClanEventsPollsTab({
             {openPolls.map((p) => (
               <li
                 key={p.id}
+                id={`poll-${p.id}`}
+                tabIndex={-1}
                 className="bg-card rounded-2xl border p-5 shadow-sm"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
@@ -315,6 +325,8 @@ export function ClanEventsPollsTab({
                       <Clock className="mr-1 size-3" aria-hidden="true" />
                       마감{" "}
                       {new Date(p.deadline_at).toLocaleString("ko-KR", {
+                        timeZone: "Asia/Seoul",
+                        hour12: false,
                         dateStyle: "medium",
                         timeStyle: "short",
                       })}
@@ -406,11 +418,13 @@ export function ClanEventsPollsTab({
           </h3>
           <ul className="space-y-4">
             {closedPolls.map((p) => (
-              <li key={p.id} className="rounded-2xl border bg-muted/15 p-5">
+              <li key={p.id} id={`poll-${p.id}`} tabIndex={-1} className="rounded-2xl border bg-muted/15 p-5">
                 <p className="font-medium">{p.title}</p>
                 <p className="text-muted-foreground mt-1 text-xs">
                   마감{" "}
                   {new Date(p.deadline_at).toLocaleString("ko-KR", {
+                    timeZone: "Asia/Seoul",
+                    hour12: false,
                     dateStyle: "medium",
                     timeStyle: "short",
                   })}

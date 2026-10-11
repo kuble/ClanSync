@@ -1,5 +1,7 @@
 import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
-import { ClanEventNotificationSettings } from "@/components/main-clan/clan-event-notify-form";
+import Link from "next/link";
+import { SlidersHorizontal } from "lucide-react";
+import { discordDestination } from "@/lib/clan/discord-notification-settings";
 import { discordBotConfigured } from "@/lib/notifications/discord-bot";
 import { readEventDiscordSettings } from "@/lib/clan/event-discord-settings";
 import { ClanEventsView } from "@/components/main-clan/clan-events-view";
@@ -22,7 +24,7 @@ export default async function ClanEventsPage({
   searchParams,
 }: {
   params: Promise<{ gameSlug: string; clanId: string }>;
-  searchParams: Promise<{ tab?: string; discord?: string }>;
+  searchParams: Promise<{ tab?: string; event?: string; at?: string; poll?: string }>;
 }) {
   const { gameSlug, clanId } = await params;
   const sp = await searchParams;
@@ -107,6 +109,7 @@ export default async function ClanEventsPage({
   const { data: connection } = canOpenSettings ? await svc.from("clan_discord_connections")
     .select("guild_name,channel_id,channel_name").eq("clan_id", clanId).maybeSingle() : { data: null };
   const botConfigured = discordBotConfigured();
+  const calendarChannel = discordDestination(settingsRow?.event_notify, "calendar", connection?.channel_id ?? null);
 
   return (
     <div className="space-y-5">
@@ -121,12 +124,12 @@ export default async function ClanEventsPage({
         polls={polls}
         bracketTournaments={bracketTournaments}
         initialTab={initialTab}
-        discordAvailable={botConfigured && notify.discord_enabled && !!connection?.channel_id && ctx.plan === "premium"}
-        discordChannelName={connection?.channel_name}
-        notificationSettings={canOpenSettings ? <ClanEventNotificationSettings gameSlug={gameSlug} clanId={clanId}
-          discordEnabled={notify.discord_enabled} kakaoNotificationsOptIn={notify.kakao_notifications_opt_in}
-          canEdit={canEditEventNotify} premium={ctx.plan === "premium"} botConfigured={botConfigured}
-          connection={connection} connectionResult={sp.discord} /> : undefined}
+        initialEventId={sp.event}
+        initialEventAt={sp.at}
+        initialPollId={sp.poll}
+        discordAvailable={botConfigured && notify.discord_enabled && !!calendarChannel && ctx.plan === "premium"}
+        discordChannelName={calendarChannel === connection?.channel_id ? connection?.channel_name : null}
+        notificationSettings={canOpenSettings ? <Link href={`/games/${gameSlug}/clan/${clanId}/manage?tab=notifications`} aria-label="클랜 알림 설정" title="클랜 알림 설정" className="inline-flex size-8 items-center justify-center rounded-md hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><SlidersHorizontal className="size-4" /></Link> : undefined}
       />
     </div>
   );

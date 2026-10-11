@@ -25,8 +25,7 @@ export function ClanCreateForm({ gameSlug }: { gameSlug: string }) {
         const result = await createClanAndLeadAction(gameSlug, formData);
         if (!result.ok) { setError(result.error); return; }
         toast.success("클랜을 만들었습니다.");
-        router.refresh();
-        router.push(`/games/${gameSlug}/clan/${result.clanId}`);
+        router.push(`/games/${gameSlug}/clan/${result.clanId}/welcome`);
       } catch { setError("클랜을 만들지 못했습니다. 잠시 후 다시 시도해 주세요."); }
     });
   }

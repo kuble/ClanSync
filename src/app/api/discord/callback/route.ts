@@ -27,7 +27,7 @@ export async function GET(request: Request) {
       connected = !error;
     } catch { /* No OAuth token, code or Discord payload is sent to the client or logs. */ }
   }
-  const target = new URL(`/games/${actor.gameSlug}/clan/${session.clanId}/events`, request.url);
+  const target = new URL(`/games/${actor.gameSlug}/clan/${session.clanId}/manage?tab=notifications`, request.url);
   target.searchParams.set("discord", connected ? "connected" : "failed");
   const response = NextResponse.redirect(target);
   response.cookies.delete({ name: "clansync-discord-state", path: "/api/discord" });

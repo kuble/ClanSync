@@ -127,11 +127,11 @@ test("events UI: settings icon, registration notification fields, local time and
     await page.goto(path);
     await expect(page.getByText("함께할 다음 약속.", { exact: false })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "오늘", exact: true })).toHaveCount(0);
-    await page.getByRole("button", { name: "알림 설정", exact: true }).click();
-    const settings = page.getByRole("dialog", { name: "알림 설정" });
-    await expect(settings.getByRole("button", { name: "Discord 알림 추가" })).toBeDisabled();
+    await page.getByRole("link", { name: "클랜 알림 설정", exact: true }).click();
+    const settings = page.getByTestId("clan-event-notify-settings");
+    await expect(settings.getByText("Discord 연결하기", { exact: true })).toBeVisible();
     await expect(settings.getByText("웹훅 URL")).toHaveCount(0);
-    await page.keyboard.press("Escape");
+    await page.goto(path);
     await page.getByRole("button", { name: "일정 등록", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "일정 등록" });
     await expect(dialog.getByRole("checkbox", { name: "Discord 알림", exact: true })).toBeDisabled();
@@ -147,7 +147,7 @@ test("events UI: settings icon, registration notification fields, local time and
     expect(event.discord_notify).toMatchObject({ enabled: false });
     expect((await page.request.get(`/api/discord/callback?state=forged&code=forged`)).status()).toBe(400);
     const memberPage = await memberContext.newPage(); await loginIsolatedBalanceUser(memberPage, f.users[1]);
-    await memberPage.goto(path); await expect(memberPage.getByRole("button", { name: "알림 설정", exact: true })).toHaveCount(0);
+    await memberPage.goto(path); await expect(memberPage.getByRole("link", { name: "클랜 알림 설정", exact: true })).toHaveCount(0);
     expect((await memberPage.request.get(`/api/discord/connect?clanId=${f.clanId}`)).status()).toBe(403);
   } finally { await memberContext.close(); await f.cleanup(); }
 });

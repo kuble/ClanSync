@@ -20,12 +20,16 @@ import { ClanManageStoreVoidPanel, type ManageStoreVoidRowVM } from "./clan-mana
 import { ClanFormationStats } from "./clan-formation-stats";
 import { ClanOperationalStats } from "./clan-operational-stats";
 import { ClanSiteUsagePanel } from "./clan-site-usage-panel";
+import { ClanDiscordSettings } from "./clan-discord-settings";
+import { discordBotConfigured } from "@/lib/notifications/discord-bot";
+import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
+import { readDiscordNotificationRoutes } from "@/lib/clan/discord-notification-settings";
 
 const panel = "rounded-xl border border-border bg-card p-4 sm:p-5";
-type Props = { ctx: MainClanContext; selected: ManageTab };
+type Props = { ctx: MainClanContext; selected: ManageTab; connectionResult?: string };
 
 /** The parent page verifies officer+ before any service-role read is started. */
-export async function ClanManageContent({ ctx, selected }: Props) {
+export async function ClanManageContent({ ctx, selected, connectionResult }: Props) {
   switch (selected) {
     case "overview": return <Overview ctx={ctx} />;
     case "notices": return <Notices ctx={ctx} />;
@@ -33,9 +37,23 @@ export async function ClanManageContent({ ctx, selected }: Props) {
     case "requests": return <Requests ctx={ctx} />;
     case "members": return <Members ctx={ctx} />;
     case "balance": return <BalanceSettings ctx={ctx} />;
+    case "notifications": return <NotificationSettings ctx={ctx} connectionResult={connectionResult} />;
     case "insights": return <Insights ctx={ctx} />;
     case "subscription": return <Subscription ctx={ctx} />;
   }
+}
+
+async function NotificationSettings({ ctx, connectionResult }: Pick<Props, "ctx" | "connectionResult">) {
+  const svc = createServiceRoleClient();
+  const [settings, connection] = await Promise.all([
+    svc.from("clan_settings").select("event_notify").eq("clan_id", ctx.clanId).single(),
+    svc.from("clan_discord_connections").select("guild_name,channel_id,channel_name").eq("clan_id", ctx.clanId).maybeSingle(),
+  ]);
+  if (settings.error || connection.error) throw new Error("알림 설정을 불러오지 못했습니다.");
+  const notify = readClanEventNotifySettings(settings.data.event_notify);
+  return <ClanDiscordSettings gameSlug={ctx.gameSlug} clanId={ctx.clanId} canEdit={ctx.role === "leader"} premium={ctx.plan === "premium"}
+    botConfigured={discordBotConfigured()} connection={connection.data} discordEnabled={notify.discord_enabled} kakaoNotificationsOptIn={notify.kakao_notifications_opt_in}
+    routes={readDiscordNotificationRoutes(settings.data.event_notify)} connectionResult={connectionResult} />;
 }
 
 async function Overview({ ctx }: Pick<Props, "ctx">) {

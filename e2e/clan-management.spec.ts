@@ -185,7 +185,7 @@ test("management sections preserve navigation, pending counts and officer/member
 
     await page.setViewportSize({ width: 390, height: 844 });
     const select = page.getByRole("combobox", { name: "클랜 관리 항목", exact: true });
-    for (const key of ["overview", "notices", "appearance", "requests", "members", "balance", "insights", "subscription"]) {
+    for (const key of ["overview", "notices", "appearance", "requests", "members", "balance", "notifications", "insights", "subscription"]) {
       await select.selectOption(key);
       await expect(page).toHaveURL(new RegExp(`tab=${key}$`));
       await expect(select).toHaveValue(key);

@@ -233,8 +233,6 @@ export async function createClanAndLeadAction(
     return { ok: false, error: mErr.message };
   }
 
-  revalidatePath("/games");
-  revalidatePath(`/games/${gameSlug}/clan`);
   return { ok: true, clanId: clan.id };
 }
 

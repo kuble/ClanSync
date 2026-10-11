@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { BarChart3, CreditCard, ImageIcon, LayoutDashboard, Megaphone, Swords, UserRoundPlus, Users } from "lucide-react";
+import { Bell, BarChart3, CreditCard, ImageIcon, LayoutDashboard, Megaphone, Swords, UserRoundPlus, Users } from "lucide-react";
 import { MANAGE_SECTIONS, type ManageTab } from "@/lib/clan/manage-sections";
 import { NavigationIcon } from "@/components/ui/navigation-icon";
 import { cn } from "@/lib/utils";
 
-const icons = { overview: LayoutDashboard, notices: Megaphone, appearance: ImageIcon, requests: UserRoundPlus, members: Users, balance: Swords, insights: BarChart3, subscription: CreditCard };
+const icons = { overview: LayoutDashboard, notices: Megaphone, appearance: ImageIcon, requests: UserRoundPlus, members: Users, balance: Swords, notifications: Bell, insights: BarChart3, subscription: CreditCard };
 
 /** Server navigation loads only the selected section, including on refresh/back. */
 export function ClanManageNavigation({ selected, pendingCount, basePath }: {

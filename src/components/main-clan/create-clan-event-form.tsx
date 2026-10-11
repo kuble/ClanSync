@@ -134,7 +134,7 @@ export function CreateClanEventForm({
         <Label htmlFor="evt-place">장소·메모 (선택)</Label>
         <Input id="evt-place" name="place" maxLength={500} />
       </div>
-      <EventDiscordFields available={discordAvailable} channelName={discordChannelName} />
+      <EventDiscordFields available={discordAvailable} channelName={discordChannelName} settingsHref={`/games/${gameSlug}/clan/${clanId}/manage?tab=notifications`} />
       <Button type="submit" disabled={pending}>
         {pending ? "저장 중…" : "등록"}
       </Button>

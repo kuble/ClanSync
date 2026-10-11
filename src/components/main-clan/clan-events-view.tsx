@@ -61,6 +61,7 @@ import {
 import type { SerializedBracketTournament } from "@/lib/clan/load-bracket-tournaments";
 import type { SerializedClanPoll } from "@/lib/clan/load-clan-polls";
 import { cn } from "@/lib/utils";
+import { koreanCalendarDate } from "@/lib/clan/event-timezone";
 
 const WD_EDIT_LABEL = ["월", "화", "수", "목", "금", "토", "일"];
 
@@ -140,6 +141,9 @@ export function ClanEventsView({
   notificationSettings,
   discordAvailable = false,
   discordChannelName,
+  initialEventId,
+  initialEventAt,
+  initialPollId,
 }: {
   gameSlug: string;
   clanId: string;
@@ -154,6 +158,9 @@ export function ClanEventsView({
   notificationSettings?: React.ReactNode;
   discordAvailable?: boolean;
   discordChannelName?: string | null;
+  initialEventId?: string;
+  initialEventAt?: string;
+  initialPollId?: string;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -164,19 +171,37 @@ export function ClanEventsView({
   const detailBackRef = useRef<HTMLButtonElement>(null);
   const focusOccurrenceRef = useRef<string | null>(null);
   const wasShowingDetailRef = useRef(false);
+  const [linkedOccurrence] = useState(() => {
+    const template = events.find((event) => event.id === initialEventId);
+    if (!template) return null;
+    const date = new Date(initialEventAt || template.start_at);
+    if (!Number.isFinite(date.getTime())) return null;
+    const kst = koreanCalendarDate(date);
+    return expandClanEventsForLocalCalendarMonth([template], kst.getUTCFullYear(), kst.getUTCMonth())
+      .find((occurrence) => occurrence.displayAt.getTime() === date.getTime()) ?? null;
+  });
   const now = new Date();
+  const linkedMonth = linkedOccurrence ? koreanCalendarDate(linkedOccurrence.displayAt) : null;
   const [cursor, setCursor] = useState({
-    y: now.getFullYear(),
-    m: now.getMonth(),
+    y: linkedMonth?.getUTCFullYear() ?? now.getFullYear(),
+    m: linkedMonth?.getUTCMonth() ?? now.getMonth(),
   });
   const [selectedKey, setSelectedKey] = useState(() =>
-    dateKeyLocalFromDate(new Date()),
+    dateKeyLocalFromDate(linkedOccurrence?.displayAt ?? new Date()),
   );
   const [dayDrawerOpen, setDayDrawerOpen] = useState(false);
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [activeOccurrence, setActiveOccurrence] =
-    useState<ClanEventOccurrenceVm | null>(null);
+    useState<ClanEventOccurrenceVm | null>(linkedOccurrence);
+
+  useEffect(() => {
+    if (linkedOccurrence && window.matchMedia("(max-width: 1023px)").matches) {
+      // The browser alone knows whether the deep link needs a mobile sheet.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSheetOpen(true);
+    }
+  }, [linkedOccurrence]);
 
   const [rsvpResult, setRsvpResult] = useState<{
     key: string;
@@ -422,10 +447,10 @@ export function ClanEventsView({
         <Clock className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
         <div>
           <p className="text-2xl font-semibold tracking-tight tabular-nums">
-            {activeOccurrence.displayAt.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false })}
+            {activeOccurrence.displayAt.toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit", hour12: false })}
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {activeOccurrence.displayAt.toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "long" })}
+            {activeOccurrence.displayAt.toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric", weekday: "long" })}
           </p>
         </div>
         <span className="ml-auto text-xs text-muted-foreground">시작</span>
@@ -440,7 +465,7 @@ export function ClanEventsView({
             {repeatSummaryKo(activeOccurrence.template)}
             {activeOccurrence.template.repeat !== "none" ? (
               <span className="mt-1 block text-xs text-muted-foreground">
-                {new Date(activeOccurrence.template.start_at).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })}부터
+                {new Date(activeOccurrence.template.start_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric" })}부터
               </span>
             ) : null}
           </dd>
@@ -638,6 +663,7 @@ export function ClanEventsView({
               >
                 <span className="w-11 shrink-0 text-sm font-semibold tabular-nums">
                   {o.displayAt.toLocaleTimeString("ko-KR", {
+                    timeZone: "Asia/Seoul",
                     hour: "2-digit",
                     minute: "2-digit",
                     hour12: false,
@@ -1051,6 +1077,7 @@ export function ClanEventsView({
           polls={polls}
           canManagePolls={canManageEvents}
           viewerUserId={viewerUserId}
+          initialPollId={initialPollId}
         />
       </TabsContent>
 
@@ -1186,7 +1213,7 @@ export function ClanEventsView({
                   defaultValue={activeOccurrence.template.place ?? ""}
                 />
               </div>
-              <EventDiscordFields available={discordAvailable} channelName={discordChannelName} value={activeOccurrence.template.discord_notify} />
+              <EventDiscordFields available={discordAvailable} channelName={discordChannelName} value={activeOccurrence.template.discord_notify} settingsHref={`/games/${gameSlug}/clan/${clanId}/manage?tab=notifications`} />
               <DialogFooter className="gap-2 sm:gap-2">
                 <Button
                   type="button"
