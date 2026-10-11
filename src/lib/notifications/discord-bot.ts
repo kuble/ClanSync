@@ -1,6 +1,9 @@
+import type { DiscordMessagePayload } from "./discord-message";
+
 const API = "https://discord.com/api/v10";
 export const isDiscordId = (value: string) => /^\d{17,20}$/.test(value);
-export const DISCORD_SEND_PERMISSIONS = BigInt(3072);
+// View Channel + Send Messages + Embed Links, including channel overwrites.
+export const DISCORD_SEND_PERMISSIONS = BigInt(19456);
 
 export function discordBotConfigured() {
   return !!(process.env.DISCORD_BOT_TOKEN && process.env.DISCORD_CLIENT_SECRET &&
@@ -76,11 +79,11 @@ export async function verifyDiscordGuildManager(accessToken: string, guildId: st
   return false;
 }
 
-export async function postDiscordBotMessage(channelId: string, content: string, nonce?: string) {
+export async function postDiscordBotMessage(channelId: string, message: string | DiscordMessagePayload, nonce?: string) {
   if (!isDiscordId(channelId)) throw new Error("Invalid Discord channel");
   return request<{ id: string }>(`/channels/${channelId}/messages`, botAuthorization(), {
     method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content: content.slice(0, 2000), allowed_mentions: { parse: [] },
+    body: JSON.stringify({ ...(typeof message === "string" ? { content: message.slice(0, 2000) } : message), allowed_mentions: { parse: [] },
       ...(nonce ? { nonce: nonce.slice(0, 25), enforce_nonce: true } : {}) }),
   });
 }

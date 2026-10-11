@@ -1,23 +1,10 @@
 import { postDiscordBotMessage } from "./discord-bot";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
+import { buildDiscordBotMessage, type DiscordNotificationRow } from "./discord-message";
+export { buildDiscordBotMessage } from "./discord-message";
 
-type Row = { log_id: string; event_id: string | null; poll_id: string | null; room_id?: string | null; notice_id?: string | null; attempt_count?: number; slot_kind: string; title: string; start_at: string | null; deadline_at: string | null; clan_id: string; game_slug: string; channel_id: string };
-const LABEL: Record<string, string> = {
-  event_created: "일정 등록", event_updated: "일정 변경", event_t_minus_24h: "하루 전", event_t_minus_1h: "1시간 전",
-  event_t_minus_10min: "10분 전", event_t_0: "시작 시", poll_created: "투표 생성", poll_daily: "매일 알림",
-  poll_weekly: "매주 알림", poll_deadline_window: "마감 임박", poll_deadline_1h: "마감 1시간 전",
-  room_t_minus_10min: "곧 내전이 시작됩니다", notice_created: "새 공지", poll_ended: "투표 종료 · 결과 확인",
-};
-export function buildDiscordBotMessage(row: Row) {
-  const time = row.event_id || row.room_id ? row.start_at : row.deadline_at;
-  const when = time ? new Date(time).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "medium", timeStyle: "short" }) : "";
-  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "");
-  const path = `/games/${row.game_slug}/clan/${row.clan_id}`;
-  const target = row.room_id ? `${path}/balance?room=${row.room_id}` : row.notice_id ? `${path}?notice=${row.notice_id}` : row.poll_id ? `${path}/events?tab=polls&poll=${row.poll_id}` : `${path}/events?event=${row.event_id}&at=${encodeURIComponent(row.start_at ?? "")}`;
-  return [`**클랜 ${row.room_id ? "내전" : row.notice_id ? "공지" : row.event_id ? "일정" : "투표"} 알림**`, row.title, `안내: ${LABEL[row.slot_kind] ?? "알림"}`,
-    when ? `${row.event_id || row.room_id ? "시작" : "마감"}: ${when} (한국 시간)` : null, `${base}${target}`].filter(Boolean).join("\n");
-}
+type Row = DiscordNotificationRow;
 
 /** Durable outbox: no token means no claims; each send is rechecked after the lease. */
 export async function dispatchDiscordBotNotifications(svc: SupabaseClient<Database>, limit: number, eventId?: string, clanId?: string) {
@@ -34,6 +21,13 @@ export async function dispatchDiscordBotNotifications(svc: SupabaseClient<Databa
       const current = fresh as unknown as Row;
       let ok = false;
       try {
+        if (current.notice_id) {
+          const { data: notice, error } = await svc.from("clan_notices").select("title,content")
+            .eq("id", current.notice_id).eq("clan_id", current.clan_id).maybeSingle();
+          if (error || !notice) throw new Error("Discord notice source unavailable");
+          current.title = notice.title;
+          current.notice_content = notice.content;
+        }
         await postDiscordBotMessage(current.channel_id, buildDiscordBotMessage(current), row.log_id.replaceAll("-", "").slice(0, 25));
         ok = true;
       } catch { /* Record a fixed error without Discord payloads or credentials. */ }

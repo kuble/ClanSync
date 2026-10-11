@@ -62,6 +62,7 @@ test("five routes: role checks, room timing/reschedule/cancel, notices once, pol
     expect(await claim()).toEqual([]);
     // The sender uses the current destination and exact notice link, not a claimed stale channel.
     const freshNotice = await ok(f.service.from("clan_notices").insert({ clan_id: f.clanId, title: "전송 검증", content: "본문", created_by: f.users[0].id }).select("id").single());
+    await ok(f.service.from("clan_notices").update({ content: "발송 직전 수정한 본문\n두 번째 줄" }).eq("id", freshNotice.id));
     routes.announcements.channel_id = other;
     await ok(f.service.rpc("set_clan_discord_notification_preferences", prefs));
     let sent = 0;
@@ -69,7 +70,7 @@ test("five routes: role checks, room timing/reschedule/cancel, notices once, pol
     globalThis.fetch = async (url, init) => {
       if (!String(url).startsWith("https://discord.com/")) return original(url, init);
       expect(String(url)).toContain(`/channels/${other}/messages`);
-      expect(JSON.parse(String(init?.body)).content).toContain(`?notice=${freshNotice.id}`);
+      expect(JSON.parse(String(init?.body))).toMatchObject({ embeds: [{ title: "전송 검증", description: expect.stringContaining("발송 직전 수정한 본문\n두 번째 줄\n\n[공지 읽기](<"), url: expect.stringContaining(`?notice=${freshNotice.id}`) }], allowed_mentions: { parse: [] } });
       sent++; return Response.json({ id: "mock-message" });
     };
     expect(await dispatchDiscordBotNotifications(f.service, 100, undefined, f.clanId)).toMatchObject({ sent: 1, failed: 0 });
@@ -126,8 +127,26 @@ test("settings: leader saves kinds while bot is unavailable; officers read, memb
     const officer = await officerContext.newPage(); await loginIsolatedBalanceUser(officer, f.users[1]); await officer.goto(path);
     await expect(officer.getByRole("switch", { name: "정규 내전 알림", exact: true })).toBeDisabled();
     await expect(officer.getByRole("button", { name: "설정 저장", exact: true })).toHaveCount(0);
-    await page.setViewportSize({ width: 390, height: 844 });
     await page.getByText("Discord 활용 예시", { exact: true }).click();
+    await page.getByRole("button", { name: "새 공지가 채팅에 묻히지 않게", exact: true }).click();
+    await expect(page.getByText("토요일 21시에 정규 내전이 열립니다.", { exact: false }).filter({ visible: true })).toBeVisible();
+    const captureDir = process.env.DISCORD_MESSAGE_CAPTURE_DIR;
+    if (captureDir) {
+      await mkdir(captureDir, { recursive: true });
+      await page.getByText("알림 설정을 저장했습니다.", { exact: true }).waitFor({ state: "hidden" });
+      await page.getByRole("img", { name: "공지 화면 서비스 화면 예시", exact: true }).filter({ visible: true }).evaluate((image) => (image as HTMLImageElement).decode());
+      await page.getByRole("region", { name: "Discord 활용 갤러리", exact: true }).screenshot({ path: `${captureDir}/discord-notice-preview.png` });
+    }
+    await page.getByRole("button", { name: "투표 시작부터 결과까지", exact: true }).click();
+    await page.getByRole("button", { name: "시작 알림", exact: true }).filter({ visible: true }).click();
+    await expect(page.getByText("다음 내전 시간 투표가 시작 됐어요", { exact: true }).filter({ visible: true })).toBeVisible();
+    await page.getByRole("button", { name: "종료 알림", exact: true }).filter({ visible: true }).click();
+    await expect(page.getByText("다음 내전 시간 투표가 종료 됐어요", { exact: true }).filter({ visible: true })).toBeVisible();
+    if (captureDir) {
+      await page.getByRole("img", { name: "투표 화면 서비스 화면 예시", exact: true }).filter({ visible: true }).evaluate((image) => (image as HTMLImageElement).decode());
+      await page.getByRole("region", { name: "Discord 활용 갤러리", exact: true }).screenshot({ path: `${captureDir}/discord-poll-preview.png` });
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole("button", { name: "함께할 일정을 놓치지 않도록", exact: true }).click();
     await page.getByRole("button", { name: "캘린더 화면 크게 보기", exact: true }).filter({ visible: true }).click();
     await expect(page.getByRole("dialog", { name: "캘린더 화면" })).toBeVisible();
@@ -249,6 +268,6 @@ test("notification links survive sign-in/sign-up, game verification and clan app
     await ok(f.service.from("user_game_profiles").update({ is_verified: true }).eq("user_id", f.users[0].id));
     await page.reload(); await expect(page).toHaveURL(new RegExp(`room=${room.room_id}`));
     const message = buildDiscordBotMessage({ log_id: "id", poll_id: poll.id, event_id: null, slot_kind: "poll_ended", title: "투표", start_at: null, deadline_at: start, clan_id: f.clanId, game_slug: "overwatch", channel_id: channel });
-    expect(message).toContain(`?tab=polls&poll=${poll.id}`);
+    expect(message.embeds?.[0].url).toContain(`?tab=polls&poll=${poll.id}`);
   } finally { await f.cleanup(); }
 });

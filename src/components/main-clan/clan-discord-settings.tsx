@@ -89,6 +89,7 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, kakaoNot
         <section className="rounded-xl border border-border bg-card p-5">
           <div className="flex items-center justify-between gap-4"><div><h4 className="text-sm font-semibold">Discord 알림 사용</h4><p className="mt-1 text-xs text-muted-foreground">이 설정은 클랜 전체에 적용됩니다.</p></div><Toggle name="discord_enabled" label="Discord 알림 사용" checked={enabled} onChange={setEnabled} disabled={!connection || !botConfigured && !enabled} /></div>
           <div className="mt-5 space-y-2"><label htmlFor="discord-channel" className="text-xs font-medium">기본 알림 채널</label>
+            <p className="text-xs leading-relaxed text-muted-foreground">봇에 채널 보기·메시지 보내기·링크 임베드 권한이 있는 채널을 선택하세요. 기존 봇에 권한이 없다면 서버 다시 연결로 추가할 수 있습니다.</p>
             <select id="discord-channel" name="discord_channel_id" value={channelId} onChange={(event) => setChannelId(event.target.value)} disabled={channelDisabled} className={selectClass}>
               <option value="">{loading ? "채널 불러오는 중…" : "채널 선택"}</option>
               {connection?.channel_id && !channels.some((entry) => entry.id === connection.channel_id) && <option value={connection.channel_id}>#{connection.channel_name} {loading ? "" : "(권한 확인 필요)"}</option>}

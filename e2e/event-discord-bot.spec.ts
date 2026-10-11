@@ -13,10 +13,12 @@ async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>) {
 }
 
 test("Discord permission overwrites and server manager verification fail closed", async () => {
-  const roles = [{ id: guild, permissions: "3072" }, { id: "role", permissions: "0" }];
+  const roles = [{ id: guild, permissions: "19456" }, { id: "role", permissions: "0" }];
   const text = { id: channel, name: "알림", type: 0 };
   expect(canBotSend(guild, bot, ["role"], roles, text)).toBe(true);
   expect(canBotSend(guild, bot, [], roles, { ...text, type: 2 })).toBe(false);
+  expect(canBotSend(guild, bot, [], [{ id: guild, permissions: "3072" }], text)).toBe(false);
+  expect(canBotSend(guild, bot, [], roles, { ...text, permission_overwrites: [{ id: guild, type: 0, deny: "16384", allow: "0" }] })).toBe(false);
   const deny = { id: guild, type: 0, deny: "2048", allow: "0" };
   expect(canBotSend(guild, bot, [], roles, { ...text, permission_overwrites: [deny] })).toBe(false);
   expect(canBotSend(guild, bot, ["role"], roles, { ...text, permission_overwrites: [deny, { id: "role", type: 0, deny: "0", allow: "2048" }] })).toBe(true);
@@ -46,7 +48,7 @@ test("bot sends only to the fixed API, blocks mentions and does not expose failu
     expect(requests).toHaveLength(1);
     globalThis.fetch = async () => new Response("sensitive-response", { status: 429 });
     await expect(postDiscordBotMessage(channel, "test")).rejects.toThrow("Discord HTTP 429");
-    expect(buildDiscordBotMessage({ log_id: "test", event_id: "event", poll_id: null, slot_kind: "event_t_minus_1h", title: "일정", start_at: "2026-10-12T11:00:00Z", deadline_at: null, clan_id: "clan", game_slug: "overwatch", channel_id: channel })).toContain("8:00 (한국 시간)");
+    expect(buildDiscordBotMessage({ log_id: "test", event_id: "event", poll_id: null, slot_kind: "event_t_minus_1h", title: "일정", start_at: "2026-10-12T11:00:00Z", deadline_at: null, clan_id: "clan", game_slug: "overwatch", channel_id: channel }).embeds?.[0].description).toContain("20:00 · 1시간 전");
   } finally { globalThis.fetch = original; if (token === undefined) delete process.env.DISCORD_BOT_TOKEN; else process.env.DISCORD_BOT_TOKEN = token; }
 });
 
