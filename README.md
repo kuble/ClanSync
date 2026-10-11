@@ -56,7 +56,7 @@ Supabase CLI는 `.env.local`을 읽는 `node scripts/with-dotenv-local.mjs <명�
 
 운영 Vercel에는 `CRON_SECRET`을 Secret으로 등록했습니다. 이후 배포부터 매일 02:00 UTC(한국 11:00)에 알림 cron이 인증된 요청을 보냅니다. 로컬·테스트 키는 운영과 다르게 설정했습니다.
 
-Discord 알림은 공용 ClanSync 봇의 서버 초대·채널 선택 방식으로 QA에 구현했습니다. 앱 등록·서버 키·분 단위 예약 발송 연결은 [공용 봇 연결 안내](docs/guides/discord-bot-setup.md)를 따릅니다. 실제 Discord 발송 및 운영 반영은 아직 완료하지 않았습니다.
+Discord 연결은 클랜 관리의 `알림·연동`에서 설정합니다. 기본 채널·종류별 토글/채널과 내전·일정·공지·투표 시작/종료 알림, 새 클랜 연동 안내·활용 갤러리를 QA에 구현했습니다. 앱 키는 설정되어 있으며 분 단위 워커·실제 외부 발송 확인은 [공용 봇 연결 안내](docs/guides/discord-bot-setup.md)를 따릅니다. 운영 반영은 보류합니다.
 
 ## 검증
 
