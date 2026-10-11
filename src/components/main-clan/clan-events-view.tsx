@@ -841,7 +841,7 @@ export function ClanEventsView({
                             }
                           }}
                           className={cn(
-                            "flex h-20 w-full flex-col items-center gap-2 px-1 py-3 text-sm transition-colors hover:bg-muted/40 focus-visible:relative focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none sm:h-28 sm:items-start sm:gap-1.5 sm:px-2.5 sm:py-2.5",
+                            "flex h-20 w-full flex-col items-center gap-2 px-1 py-3 text-sm transition-colors hover:bg-muted/40 focus-visible:relative focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none sm:h-28 sm:items-start sm:gap-1 sm:px-2.5 sm:py-1.5",
                             !inMonth && "bg-muted/20 text-muted-foreground/50",
                             selected &&
                               "bg-primary/[0.08] ring-1 ring-inset ring-primary/40",
@@ -849,7 +849,7 @@ export function ClanEventsView({
                         >
                           <span
                             className={cn(
-                              "flex size-7 items-center justify-center rounded-full text-[13px] font-medium tabular-nums",
+                              "flex size-7 items-center justify-center rounded-full text-[13px] font-medium tabular-nums sm:size-6 sm:shrink-0",
                               today &&
                                 "bg-primary font-bold text-primary-foreground",
                               selected && !today && "bg-primary/15 font-semibold text-primary",
@@ -872,24 +872,24 @@ export function ClanEventsView({
                               />
                             ))}
                           </span>
-                          <span className="hidden w-full space-y-1 text-left sm:block">
+                          <span className="hidden w-full space-y-0.5 text-left sm:block">
                             {dayOccurrences.slice(0, 2).map((o) => (
                               <span
                                 key={o.key}
-                                className={cn("flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-0.5 text-[11px] leading-tight", kindToneClass(o.template.kind))}
+                                className={cn("flex min-w-0 items-start gap-1.5 rounded-md px-1.5 py-0.5 text-[11px] leading-3", kindToneClass(o.template.kind))}
                                 title={o.template.title}
                               >
                                 <span
                                   className={cn(
-                                    "size-1 shrink-0 rounded-full",
+                                    "mt-1 size-1 shrink-0 rounded-full",
                                     kindDotClass(o.template.kind),
                                   )}
                                 />
-                                <span className="truncate">{o.template.title}</span>
+                                <span className="line-clamp-2 min-w-0 flex-1 break-words">{o.template.title}</span>
                               </span>
                             ))}
                             {dayOccurrences.length > 2 ? (
-                              <span className="block pl-1 text-[9px] text-muted-foreground">
+                              <span className="block pl-1 text-[9px] leading-3 text-muted-foreground">
                                 +{dayOccurrences.length - 2}개 일정
                               </span>
                             ) : null}
