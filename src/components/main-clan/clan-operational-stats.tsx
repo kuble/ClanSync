@@ -1,52 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { StatTitle } from "./stat-help";
-import { StatsScrollArea } from "./stats-scroll-area";
 
 export function ClanOperationalStats({ stats }: { stats: ClanStatsPageModel["intra"] }) {
-  const midpoint = Math.ceil(stats.mapVotes.length / 2);
-  const mapGroups = [stats.mapVotes.slice(0, midpoint), stats.mapVotes.slice(midpoint)];
-
   return (
     <section className="space-y-4" aria-label="내전 운영 통계">
       <h3 className="text-sm font-bold">내전 운영 통계</h3>
-      <Card size="sm">
-        <CardHeader>
-          <CardTitle>
-            <StatTitle title="맵 투표와 선정" help="후보 등장·투표 수·최종 선정은 서로 다른 단위입니다." />
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {stats.mapVotes.length ? (
-            <div className="grid gap-3 min-[900px]:grid-cols-2">
-              {mapGroups.filter((rows) => rows.length).map((rows, index) => (
-                <StatsScrollArea key={index} label={`맵 투표와 선정 목록 ${index + 1}`} className="max-h-80">
-                  <table className="w-full min-w-[340px] text-sm">
-                    <thead>
-                      <tr className="border-b text-xs text-muted-foreground">
-                        <th className="p-2 text-left">맵</th>
-                        <th className="p-2 text-right">후보</th>
-                        <th className="p-2 text-right">득표</th>
-                        <th className="p-2 text-right">선정</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rows.map((row) => (
-                        <tr key={row.name} className="border-b">
-                          <td className="p-2">{row.name}</td>
-                          <td className="p-2 text-right">{row.candidates}회</td>
-                          <td className="p-2 text-right">{row.votes}표</td>
-                          <td className="p-2 text-right">{row.selected}경기</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </StatsScrollArea>
-              ))}
-            </div>
-          ) : <p className="text-sm text-muted-foreground">맵 투표 이력이 없습니다.</p>}
-        </CardContent>
-      </Card>
       <Card size="sm">
         <CardHeader><CardTitle>경매 기록 · {stats.auction.lots}건 낙찰</CardTitle></CardHeader>
         <CardContent className="grid gap-4 lg:grid-cols-2">
