@@ -11,7 +11,6 @@ import {
   Clock,
   GitBranch,
   MapPin,
-  MousePointer2,
   Pencil,
   Plus,
   Repeat2,
@@ -161,6 +160,10 @@ export function ClanEventsView({
   const [createOpen, setCreateOpen] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
   const focusDateRef = useRef<string | null>(null);
+  const dayListRef = useRef<HTMLDivElement>(null);
+  const detailBackRef = useRef<HTMLButtonElement>(null);
+  const focusOccurrenceRef = useRef<string | null>(null);
+  const wasShowingDetailRef = useRef(false);
   const now = new Date();
   const [cursor, setCursor] = useState({
     y: now.getFullYear(),
@@ -240,6 +243,19 @@ export function ClanEventsView({
       ),
     [occurrences, selectedKey],
   );
+  const activeSlotIndex = slotOccurrences.findIndex((o) => o.key === activeOccurrence?.key);
+
+  useEffect(() => {
+    if (activeOccurrence && !wasShowingDetailRef.current && window.matchMedia("(min-width: 1024px)").matches) {
+      detailBackRef.current?.focus({ preventScroll: true });
+    } else if (!activeOccurrence && focusOccurrenceRef.current) {
+      const key = focusOccurrenceRef.current;
+      Array.from(dayListRef.current?.querySelectorAll<HTMLButtonElement>("[data-event-key]") ?? [])
+        .find((button) => button.dataset.eventKey === key)?.focus({ preventScroll: false });
+      focusOccurrenceRef.current = null;
+    }
+    wasShowingDetailRef.current = !!activeOccurrence;
+  }, [activeOccurrence]);
 
   const cells = useMemo(
     () => buildCalendarCells(cursor.y, cursor.m),
@@ -548,7 +564,11 @@ export function ClanEventsView({
         </div>
       ) : null}
 
-      <SheetFooter className="mt-1 flex-col gap-2 border-t px-5 py-4 sm:flex-col">
+    </>
+  ) : null;
+
+  const eventActions = activeOccurrence ? (
+      <SheetFooter className="mt-0 shrink-0 flex-col gap-2 border-t px-5 py-4 sm:flex-col">
         {canManageEvents &&
         activeOccurrence.template.source === "manual" ? (
           <div className="flex w-full flex-wrap gap-2">
@@ -588,23 +608,6 @@ export function ClanEventsView({
           </p>
         )}
       </SheetFooter>
-    </>
-  ) : null;
-
-  const dateAddButton = canManageEvents ? (
-    <Button
-      type="button"
-      variant="outline"
-      size="sm"
-      aria-label="이 날짜에 일정 추가"
-      onClick={() => {
-        setDayDrawerOpen(false);
-        setCreateOpen(true);
-      }}
-    >
-      <Plus className="size-3.5" aria-hidden="true" />
-      추가
-    </Button>
   ) : null;
 
   const daySchedule = (
@@ -620,11 +623,12 @@ export function ClanEventsView({
           </p>
         </div>
       ) : (
-        <ul className="max-h-[50dvh] space-y-2 overflow-y-auto overscroll-contain p-3 lg:max-h-56" role="list" aria-label="날짜별 일정 목록">
+        <ul className="space-y-2 p-3" role="list" aria-label="날짜별 일정 목록">
           {slotOccurrences.map((o) => (
             <li key={o.key}>
               <button
                 type="button"
+                data-event-key={o.key}
                 onClick={() => openDetail(o)}
                 aria-pressed={activeOccurrence?.key === o.key}
                 className={cn(
@@ -749,7 +753,7 @@ export function ClanEventsView({
         </div>
 
         <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.45fr)]">
-          <div className="min-w-0 space-y-3">
+          <div className="min-w-0">
             <div
               ref={calendarRef}
               role="grid"
@@ -837,7 +841,7 @@ export function ClanEventsView({
                             }
                           }}
                           className={cn(
-                            "flex min-h-20 w-full flex-col items-center gap-2 px-1 py-3 text-sm transition-colors hover:bg-muted/40 focus-visible:relative focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none sm:min-h-28 sm:items-start sm:px-2.5",
+                            "flex h-20 w-full flex-col items-center gap-2 px-1 py-3 text-sm transition-colors hover:bg-muted/40 focus-visible:relative focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none sm:h-28 sm:items-start sm:gap-1.5 sm:px-2.5 sm:py-2.5",
                             !inMonth && "bg-muted/20 text-muted-foreground/50",
                             selected &&
                               "bg-primary/[0.08] ring-1 ring-inset ring-primary/40",
@@ -872,15 +876,16 @@ export function ClanEventsView({
                             {dayOccurrences.slice(0, 2).map((o) => (
                               <span
                                 key={o.key}
-                                className={cn("flex min-w-0 items-start gap-1.5 rounded-md px-1.5 py-1 text-[11px] leading-snug", kindToneClass(o.template.kind))}
+                                className={cn("flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-0.5 text-[11px] leading-tight", kindToneClass(o.template.kind))}
+                                title={o.template.title}
                               >
                                 <span
                                   className={cn(
-                                    "mt-1.5 size-1 shrink-0 rounded-full",
+                                    "size-1 shrink-0 rounded-full",
                                     kindDotClass(o.template.kind),
                                   )}
                                 />
-                                <span className="line-clamp-2 break-keep">{o.template.title}</span>
+                                <span className="truncate">{o.template.title}</span>
                               </span>
                             ))}
                             {dayOccurrences.length > 2 ? (
@@ -896,24 +901,14 @@ export function ClanEventsView({
                 </div>
               ))}
             </div>
-            <div className="flex justify-end gap-4 text-[11px] text-muted-foreground">
-              {["intra", "scrim", "event"].map((kind) => (
-                <span key={kind} className="flex items-center gap-1.5">
-                  <span
-                    className={cn("size-1.5 rounded-full", kindDotClass(kind))}
-                  />
-                  {kindLabel(kind)}
-                </span>
-              ))}
-            </div>
-
           </div>
+          <div className="relative hidden min-w-0 lg:block">
           <section
-            className="hidden min-h-[36rem] min-w-0 flex-col self-start overflow-hidden rounded-2xl border bg-card lg:flex"
+            className="absolute inset-0 flex min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border bg-card"
             aria-label="선택한 날짜 일정"
             aria-live="polite"
           >
-            <div className="flex items-center justify-between gap-3 border-b px-5 py-5">
+            <div className="shrink-0 border-b px-5 py-5">
               <h3 className="flex items-center gap-3" aria-label={`${selectedDateTitle} 일정`}>
                 <span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-3xl font-semibold tracking-tight text-primary tabular-nums" aria-hidden="true">
                   {Number(selectedKey.slice(-2))}
@@ -925,17 +920,36 @@ export function ClanEventsView({
                   <span className="block text-base font-semibold">일정</span>
                 </span>
               </h3>
-              <div className="flex shrink-0 items-center gap-2">
-                <span className="text-xs text-muted-foreground tabular-nums">
-                  {slotOccurrences.length}개 일정
-                </span>
-                {dateAddButton}
-              </div>
             </div>
-            <div className="flex min-h-64 flex-1 flex-col">
-              {daySchedule}
+            <div className="flex min-h-0 flex-1 flex-col">
               {activeOccurrence ? (
-                <section aria-label="일정 상세" className="flex flex-1 flex-col gap-5 border-t bg-background/20 pt-5">
+                <section aria-label="일정 상세" className="flex min-h-0 flex-1 flex-col bg-background/20">
+                  <div className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
+                    <Button
+                      ref={detailBackRef}
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        focusOccurrenceRef.current = activeOccurrence.key;
+                        setActiveOccurrence(null);
+                      }}
+                    >
+                      <ChevronLeft className="size-3.5" aria-hidden="true" />
+                      목록으로
+                    </Button>
+                    {slotOccurrences.length > 1 ? (
+                      <div className="flex gap-1">
+                        <Button type="button" variant="ghost" size="icon-sm" aria-label="이전 일정" disabled={activeSlotIndex <= 0} onClick={() => openDetail(slotOccurrences[activeSlotIndex - 1])}>
+                          <ChevronLeft className="size-4" aria-hidden="true" />
+                        </Button>
+                        <Button type="button" variant="ghost" size="icon-sm" aria-label="다음 일정" disabled={activeSlotIndex < 0 || activeSlotIndex >= slotOccurrences.length - 1} onClick={() => openDetail(slotOccurrences[activeSlotIndex + 1])}>
+                          <ChevronRight className="size-4" aria-hidden="true" />
+                        </Button>
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain py-5" aria-label="일정 상세 내용">
                   <div className="space-y-3 px-5">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className={cn("rounded-md px-2 py-1 text-[11px] font-medium", kindToneClass(activeOccurrence.template.kind))}>
@@ -950,15 +964,25 @@ export function ClanEventsView({
                     </h4>
                   </div>
                   {eventDetails}
+                  </div>
+                  {eventActions}
                 </section>
-              ) : slotOccurrences.length ? (
-                <div className="flex flex-1 flex-col items-center justify-center gap-3 px-5 py-10 text-center">
-                  <MousePointer2 className="size-5 text-muted-foreground/60" aria-hidden="true" />
-                  <p className="text-xs leading-relaxed text-muted-foreground">일정을 선택하면 상세를 볼 수 있어요.</p>
+              ) : (
+                <div ref={dayListRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
+                  {daySchedule}
                 </div>
-              ) : null}
+              )}
             </div>
           </section>
+          </div>
+          <div className="flex justify-end gap-4 text-[11px] text-muted-foreground lg:col-start-1">
+            {["intra", "scrim", "event"].map((kind) => (
+              <span key={kind} className="flex items-center gap-1.5">
+                <span className={cn("size-1.5 rounded-full", kindDotClass(kind))} />
+                {kindLabel(kind)}
+              </span>
+            ))}
+          </div>
         </div>
 
         <Sheet open={dayDrawerOpen} onOpenChange={setDayDrawerOpen}>
@@ -980,14 +1004,9 @@ export function ClanEventsView({
                 <CalendarDays className="size-4 text-primary" aria-hidden="true" />
                 {selectedDateTitle} 일정
               </SheetTitle>
-              <div className="mt-2 flex items-center justify-between gap-3">
-                <SheetDescription>
-                  {slotOccurrences.length}건의 일정
-                </SheetDescription>
-                {dateAddButton}
-              </div>
+              <SheetDescription className="sr-only">등록된 일정을 시간순으로 확인하세요.</SheetDescription>
             </SheetHeader>
-            <div className="min-h-40 overflow-y-auto overscroll-contain">
+            <div className="min-h-0 overflow-y-auto overscroll-contain">
               {daySchedule}
             </div>
           </SheetContent>
@@ -1059,6 +1078,7 @@ export function ClanEventsView({
                 </SheetDescription>
               </SheetHeader>
               {eventDetails}
+              {eventActions}
             </>
           ) : null}
         </SheetContent>
