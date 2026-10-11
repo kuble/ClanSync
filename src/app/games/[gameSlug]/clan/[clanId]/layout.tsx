@@ -36,14 +36,9 @@ export default async function MainClanLayout({
     if (error) console.error("record_clan_activity", error.message);
   });
 
-  const showDevPlanToggle =
-    process.env.NODE_ENV === "development" ||
-    process.env.DEV_CLAN_PLAN_TOGGLE === "1";
-
   return (
     <MainClanShell
       ctx={ctx}
-      showDevPlanToggle={showDevPlanToggle}
       inAppNotifications={inAppNotifications}
     >
       {children}

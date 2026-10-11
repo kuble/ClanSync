@@ -17,8 +17,6 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
-import { toggleClanPlanDevFormAction } from "@/app/actions/main-clan-shell";
-import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import {
   Sheet,
@@ -132,12 +130,10 @@ function ClanHero({
 
 export function MainClanShell({
   ctx,
-  showDevPlanToggle,
   inAppNotifications,
   children,
 }: {
   ctx: MainClanContext;
-  showDevPlanToggle: boolean;
   inAppNotifications: { items: ClanInAppNotificationVM[]; unreadCount: number };
   children: React.ReactNode;
 }) {
@@ -145,11 +141,6 @@ export function MainClanShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const basePath = `/games/${ctx.gameSlug}/clan/${ctx.clanId}`;
   const showHero = pathname === basePath || pathname === basePath + "/store";
-  const togglePlan = toggleClanPlanDevFormAction.bind(
-    null,
-    ctx.gameSlug,
-    ctx.clanId,
-  );
   const items: NavItem[] = [
     { href: basePath, label: "대시보드", icon: Home },
     {
@@ -263,19 +254,6 @@ export function MainClanShell({
           <nav aria-label="계정 및 커뮤니티">
             <NavLinks items={bottomItems} basePath={basePath} />
           </nav>
-          {showDevPlanToggle && ctx.role === "leader" ? (
-            <form action={togglePlan} className="mt-3 border-t p-2">
-              <Button
-                type="submit"
-                variant="outline"
-                size="sm"
-                className="w-full text-xs"
-                aria-label="개발용 플랜 전환"
-              >
-                플랜 전환
-              </Button>
-            </form>
-          ) : null}
         </div>
       </aside>
       <main id="main-content" className={styles.content}>
