@@ -19,10 +19,14 @@ test("Discord sends rich cards for rooms, calendar, notices and both poll states
       { source: { ...base, poll_id: "poll", title: "다음 내전 시간", slot_kind: "poll_created", deadline_at: "2026-10-12T12:00:00Z" }, title: "다음 내전 시간 투표가 시작 됐어요", body: "마감 오늘 21:00", action: "투표 참여하기", target: "/events?tab=polls&poll=poll" },
       { source: { ...base, poll_id: "poll", title: "다음 내전 시간", slot_kind: "poll_ended" }, title: "다음 내전 시간 투표가 종료 됐어요", body: "투표 종료 · 결과 확인", action: "투표 결과 보기", target: "/events?tab=polls&poll=poll" },
     ];
+    const categories = ["⚔️ 내전", "📅 일정", "📣 공지", "🗳️ 투표", "🗳️ 투표"];
     for (const [index, item] of cases.entries()) {
       await postDiscordBotMessage(channel, buildDiscordBotMessage(item.source, options), `nonce-${index}`);
       const payload = sent[index] as { embeds: { title: string; description: string; url: string; color: number }[] };
       expect(payload).not.toHaveProperty("content");
+      expect(payload).toMatchObject({ embeds: [{ author: { name: categories[index] } }] });
+      expect(payload).not.toHaveProperty("avatar_url");
+      expect(payload).not.toHaveProperty("username");
       expect(payload).toMatchObject({ embeds: [{ title: item.title, description: `${item.body}\n\n[${item.action}](<https://clansync.example/games/overwatch/clan/clan${item.target}>)`, color: 0x43b581 }], allowed_mentions: { parse: [] }, nonce: `nonce-${index}`, enforce_nonce: true });
       expect(payload.embeds[0].url).toContain(item.target);
     }
@@ -38,7 +42,7 @@ test("long Korean notices retain a complete hyperlink within Discord embed limit
   expect(embed.description.length).toBeLessThanOrEqual(4096);
   expect(embed.description).toContain("…\n\n[공지 읽기](<https://clansync.example/games/overwatch/clan/clan?notice=notice>)");
   expect(embed.description).not.toContain("\uFFFD");
-  expect(embed.title.length + embed.description.length).toBeLessThanOrEqual(6000);
+  expect(embed.author.name.length + embed.title.length + embed.description.length).toBeLessThanOrEqual(6000);
 });
 
 test("repeated calendar occurrences use Korean dates and keep the exact occurrence link", () => {

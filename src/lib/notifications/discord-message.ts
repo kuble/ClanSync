@@ -8,7 +8,7 @@ export type DiscordNotificationRow = {
 
 export type DiscordMessagePayload = {
   content?: string;
-  embeds?: { title: string; description: string; url: string; color: number }[];
+  embeds?: { author: { name: string }; title: string; description: string; url: string; color: number }[];
 };
 
 const LABEL: Record<string, string> = {
@@ -44,15 +44,18 @@ export function buildDiscordNotificationCard(row: DiscordNotificationRow, option
     : `${path}/events?${new URLSearchParams({ event: row.event_id ?? "", at: row.start_at ?? "" })}`;
   const url = new URL(target, origin).href;
   const now = options.now ?? new Date();
-  let title = row.title, body = "", action = "";
+  let title = row.title, body = "", action = "", category = "📅 일정";
   if (row.notice_id) {
+    category = "📣 공지";
     body = row.notice_content?.trim() ?? "";
     action = "공지 읽기";
   } else if (row.room_id) {
+    category = "⚔️ 내전";
     title = `${row.title}이 곧 시작돼요`;
     body = [formatTime(row.start_at, now), "시작 10분 전"].filter(Boolean).join(" · ");
     action = "내전으로 이동";
   } else if (row.poll_id) {
+    category = "🗳️ 투표";
     const ended = row.slot_kind === "poll_ended";
     title = `${row.title} 투표가 ${ended ? "종료" : "시작"} 됐어요`;
     const deadline = formatTime(row.deadline_at, now);
@@ -63,10 +66,10 @@ export function buildDiscordNotificationCard(row: DiscordNotificationRow, option
     action = "일정 확인";
   }
   const link = `[${action}](<${url}>)`;
-  return { title: truncate(title, 256), body: truncate(body, 4096 - link.length - 2), action, url, color: COLOR };
+  return { category, title: truncate(title, 256), body: truncate(body, 4096 - link.length - 2), action, url, color: COLOR };
 }
 
 export function buildDiscordBotMessage(row: DiscordNotificationRow, options?: { siteUrl?: string; now?: Date }): DiscordMessagePayload {
   const card = buildDiscordNotificationCard(row, options);
-  return { embeds: [{ title: card.title, description: [card.body, `[${card.action}](<${card.url}>)`].filter(Boolean).join("\n\n"), url: card.url, color: card.color }] };
+  return { embeds: [{ author: { name: card.category }, title: card.title, description: [card.body, `[${card.action}](<${card.url}>)`].filter(Boolean).join("\n\n"), url: card.url, color: card.color }] };
 }
