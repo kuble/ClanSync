@@ -7,21 +7,11 @@ import { Check, Clock, Plus, Vote } from "lucide-react";
 import { toast } from "sonner";
 import {
   closeClanPollAction,
-  createClanPollAction,
   voteClanPollAction,
 } from "@/app/actions/clan-polls";
 import type { SerializedClanPoll } from "@/lib/clan/load-clan-polls";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { ClanPollCreateDialog } from "@/components/main-clan/clan-poll-create-dialog";
 import { cn } from "@/lib/utils";
 
 function pollIsOpen(p: SerializedClanPoll, now = Date.now()): boolean {
@@ -51,8 +41,6 @@ export function ClanEventsPollsTab({
   const router = useRouter();
   const [pending, start] = useTransition();
   const [createOpen, setCreateOpen] = useState(false);
-  const [optionInputs, setOptionInputs] = useState(["", ""]);
-  const [pollNotifyEnabled, setPollNotifyEnabled] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     if (!initialPollId) return;
@@ -74,37 +62,6 @@ export function ClanEventsPollsTab({
     }
     return { openPolls: open, closedPolls: closed };
   }, [polls, now]);
-
-  function addOptionRow() {
-    if (optionInputs.length >= 12) return;
-    setOptionInputs((rows) => [...rows, ""]);
-  }
-
-  function onCreateSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const fd = new FormData(form);
-    const localDeadline = String(fd.get("deadline_local") ?? "");
-    const deadline = new Date(localDeadline);
-    if (!Number.isNaN(deadline.getTime()))
-      fd.set("deadline_local", deadline.toISOString());
-    optionInputs.forEach((t) => {
-      if (t.trim()) fd.append("option_label", t.trim());
-    });
-    start(async () => {
-      const r = await createClanPollAction(gameSlug, clanId, fd);
-      if (!r.ok) {
-        toast.error(r.error);
-        return;
-      }
-      toast.success("투표를 만들었습니다.");
-      setCreateOpen(false);
-      setOptionInputs(["", ""]);
-      setPollNotifyEnabled(false);
-      form.reset();
-      router.refresh();
-    });
-  }
 
   function onVoteSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -134,12 +91,6 @@ export function ClanEventsPollsTab({
     });
   }
 
-  const [createDeadlineDefault] = useState(() => {
-    const d = new Date(Date.now() + 48 * 3600000);
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  });
-
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -154,145 +105,13 @@ export function ClanEventsPollsTab({
         ) : null}
       </div>
 
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent showCloseButton className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>투표 만들기</DialogTitle>
-            <DialogDescription>
-              질문과 선택지를 입력하고 마감 시간을 정하세요.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={onCreateSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="poll-title">제목</Label>
-              <Input
-                id="poll-title"
-                name="title"
-                required
-                maxLength={120}
-                placeholder="예: 다음 금요일 내전 시간"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="poll-deadline">마감 (로컬 시각)</Label>
-              <Input
-                id="poll-deadline"
-                name="deadline_local"
-                type="datetime-local"
-                required
-                defaultValue={createDeadlineDefault}
-              />
-            </div>
-            <div className="space-y-3 rounded-lg border border-dashed p-3">
-              <label className="flex cursor-pointer items-start gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  name="poll_notify_enabled"
-                  checked={pollNotifyEnabled}
-                  onChange={(e) => setPollNotifyEnabled(e.target.checked)}
-                  className="mt-0.5"
-                />
-                <span>클랜 멤버에게 투표 알림 보내기</span>
-              </label>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="poll-notify-repeat">알림 반복</Label>
-                  <select
-                    id="poll-notify-repeat"
-                    name="notify_repeat"
-                    disabled={!pollNotifyEnabled}
-                    className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm"
-                    defaultValue="none"
-                  >
-                    <option value="none">없음 (알림 끔)</option>
-                    <option value="once">
-                      한 번 (생성 알림·마감 1h 전 등)
-                    </option>
-                    <option value="daily">매일 (KST 정각)</option>
-                    <option value="weekly">매주 (KST 정각)</option>
-                    <option value="until_deadline_daily">
-                      마감 전 24h 윈도 · 매일
-                    </option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="poll-notify-hour">알림 시각 (KST 정각)</Label>
-                  <select
-                    id="poll-notify-hour"
-                    name="notify_hour"
-                    disabled={!pollNotifyEnabled}
-                    className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm"
-                    defaultValue="9"
-                  >
-                    {Array.from({ length: 24 }, (_, h) => (
-                      <option key={h} value={String(h)}>
-                        {String(h).padStart(2, "0")}:00
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <p className="text-muted-foreground text-xs leading-relaxed">
-                반복 알림은 마감까지 여유가 있어야 합니다. 매일은 최소 48시간 ·
-                매주는 14일 · 마감 전까지 매일은 24시간 · 마감이 60일 이상이면
-                과도할 수 있습니다.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-4">
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg border bg-muted/15 px-3 py-2.5 text-xs has-[:checked]:border-primary/40 has-[:checked]:bg-primary/5">
-                <input type="checkbox" name="anonymous" />
-                익명 투표
-              </label>
-              <label className="flex cursor-pointer items-center gap-2 text-sm">
-                <input type="checkbox" name="multiple_choice" />
-                복수 선택 허용
-              </label>
-            </div>
-            <div className="space-y-2">
-              <span className="text-sm font-medium">선택지 (2~12개)</span>
-              {optionInputs.map((_, i) => (
-                <Input
-                  key={i}
-                  value={optionInputs[i]}
-                  onChange={(ev) => {
-                    const v = ev.target.value;
-                    setOptionInputs((rows) => {
-                      const next = [...rows];
-                      next[i] = v;
-                      return next;
-                    });
-                  }}
-                  maxLength={80}
-                  placeholder={`선택지 ${i + 1}`}
-                  aria-label={`선택지 ${i + 1}`}
-                />
-              ))}
-              {optionInputs.length < 12 ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addOptionRow}
-                >
-                  선택지 추가
-                </Button>
-              ) : null}
-            </div>
-            <DialogFooter className="gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setCreateOpen(false)}
-              >
-                취소
-              </Button>
-              <Button type="submit" disabled={pending}>
-                {pending ? "만드는 중…" : "만들기"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {createOpen ? (
+        <ClanPollCreateDialog
+          gameSlug={gameSlug}
+          clanId={clanId}
+          onOpenChange={setCreateOpen}
+        />
+      ) : null}
 
       {!polls.length ? (
         <p className="text-muted-foreground rounded-2xl border border-dashed bg-card p-12 text-center text-sm">
