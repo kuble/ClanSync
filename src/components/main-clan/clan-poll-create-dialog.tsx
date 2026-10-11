@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useRef, useState, useTransition } from "react";
-import { Bell, Plus, X } from "lucide-react";
+import { Bell, CalendarDays, Clock, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { createClanPollAction } from "@/app/actions/clan-polls";
 import {
@@ -45,7 +45,7 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange }: {
   const titleRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const [deadline, setDeadline] = useState(() => deadlineAfter(48));
-  const [deadlinePreset, setDeadlinePreset] = useState<number | null>(48);
+  const [deadlineDay = "", deadlineTime = ""] = deadline.split("T");
   const [multipleChoice, setMultipleChoice] = useState(false);
   const [anonymous, setAnonymous] = useState(false);
   const [notifyEnabled, setNotifyEnabled] = useState(false);
@@ -58,6 +58,16 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange }: {
     setErrors((current) => {
       const next = { ...current };
       delete next[id];
+      return next;
+    });
+    setSubmitError(null);
+  }
+
+  function clearDeadlineError() {
+    setErrors((current) => {
+      const next = { ...current };
+      delete next["poll-deadline-date"];
+      delete next["poll-deadline-time"];
       return next;
     });
     setSubmitError(null);
@@ -94,11 +104,15 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange }: {
       labels.add(label);
     }
     const deadlineDate = new Date(deadline);
-    if (Number.isNaN(deadlineDate.getTime())) {
-      nextErrors["poll-deadline"] = "마감 날짜와 시간을 입력해 주세요.";
+    if (!deadlineDay) {
+      nextErrors["poll-deadline-date"] = "마감 날짜를 선택해 주세요.";
+    } else if (!deadlineTime) {
+      nextErrors["poll-deadline-time"] = "마감 시간을 입력해 주세요.";
+    } else if (Number.isNaN(deadlineDate.getTime())) {
+      nextErrors["poll-deadline-date"] = "마감 날짜와 시간을 확인해 주세요.";
     } else {
       const validation = validatePollNotifyAgainstDeadline(Date.now(), deadlineDate.getTime(), notifyEnabled ? notifyRepeat : "none");
-      if (!validation.ok) nextErrors["poll-deadline"] = validation.error;
+      if (!validation.ok) nextErrors["poll-deadline-date"] = validation.error;
     }
     setErrors(nextErrors);
     setSubmitError(null);
@@ -181,43 +195,54 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange }: {
                 <Plus className="size-3.5" aria-hidden />선택지 추가
                 <span className="text-[11px] tabular-nums text-muted-foreground">{options.length}/12</span>
               </Button>
+              <div className="space-y-3 border-t pt-4">
+                <PollToggle id="poll-multiple-choice" name="multiple_choice" label="중복 투표" description="여러 선택지를 함께 고를 수 있어요." checked={multipleChoice} onChange={setMultipleChoice} />
+                <PollToggle id="poll-anonymous" name="anonymous" label="익명 투표" description="누가 투표했는지 이름을 공개하지 않아요." checked={anonymous} onChange={setAnonymous} />
+              </div>
             </section>
 
             <section className="space-y-3 border-t pt-5" aria-label="마감 설정">
               <div className="flex items-center justify-between gap-2">
-                <Label htmlFor="poll-deadline" className="font-semibold">마감 일시</Label>
+                <h3 className="text-sm font-semibold">마감 일시</h3>
                 <span className="text-[11px] text-muted-foreground">기기 시간 기준</span>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {[[24, "1일 후"], [48, "2일 후"], [168, "1주 후"]].map(([hours, label]) => (
-                  <Button key={hours} type="button" size="sm" variant="outline" aria-pressed={deadlinePreset === hours} className={cn("h-8 text-xs", deadlinePreset === hours && "border-primary/40 bg-primary/10 text-primary")} onClick={() => { setDeadline(deadlineAfter(Number(hours))); setDeadlinePreset(Number(hours)); clearError("poll-deadline"); }}>{label}</Button>
-                ))}
+              <div className="grid gap-3 min-[500px]:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+                <div className="min-w-0 space-y-2">
+                  <Label htmlFor="poll-deadline-date" className="gap-1.5 text-xs text-muted-foreground"><CalendarDays className="size-3.5" aria-hidden />마감 날짜</Label>
+                  <Input
+                    id="poll-deadline-date"
+                    type="date"
+                    value={deadlineDay}
+                    className="h-12 w-full min-w-0 px-3 text-base font-medium md:text-base dark:bg-input/50 dark:[color-scheme:dark]"
+                    onChange={(event) => { setDeadline(`${event.target.value}T${deadlineTime}`); clearDeadlineError(); }}
+                    {...inputErrorProps("poll-deadline-date")}
+                  />
+                  <FieldError id="poll-deadline-date" errors={errors} />
+                </div>
+                <div className="min-w-0 space-y-2">
+                  <Label htmlFor="poll-deadline-time" className="gap-1.5 text-xs text-muted-foreground"><Clock className="size-3.5" aria-hidden />마감 시간</Label>
+                  <Input
+                    id="poll-deadline-time"
+                    type="time"
+                    value={deadlineTime}
+                    className="h-12 w-full min-w-0 px-3 text-base font-medium md:text-base dark:bg-input/50 dark:[color-scheme:dark]"
+                    onChange={(event) => { setDeadline(`${deadlineDay}T${event.target.value}`); clearDeadlineError(); }}
+                    {...inputErrorProps("poll-deadline-time")}
+                  />
+                  <FieldError id="poll-deadline-time" errors={errors} />
+                </div>
               </div>
-              <Input id="poll-deadline" name="deadline_local" type="datetime-local" value={deadline} className="h-10 w-full min-w-0" onChange={(event) => { setDeadline(event.target.value); setDeadlinePreset(null); clearError("poll-deadline"); }} {...inputErrorProps("poll-deadline")} />
-              <FieldError id="poll-deadline" errors={errors} />
             </section>
 
-            <fieldset className="space-y-3">
-              <legend className="mb-3 text-sm font-semibold">투표 방식</legend>
-              <div className="grid grid-cols-2 gap-2">
-                {[{ multiple: false, label: "하나만 선택" }, { multiple: true, label: "여러 개 선택" }].map((mode) => (
-                  <label key={mode.label} className={cn("flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-3 text-xs transition-colors", multipleChoice === mode.multiple ? "border-primary/40 bg-primary/5" : "hover:bg-muted/40")}>
-                    <input type="radio" name="poll_choice_mode" value={mode.multiple ? "multiple" : "single"} checked={multipleChoice === mode.multiple} onChange={() => setMultipleChoice(mode.multiple)} className="size-3.5 accent-primary" />{mode.label}
-                  </label>
-                ))}
-              </div>
-              <PollToggle id="poll-anonymous" name="anonymous" label="익명 투표" description="누가 투표했는지 이름을 공개하지 않아요." checked={anonymous} onChange={setAnonymous} />
-            </fieldset>
-
             <section className="space-y-3 border-t pt-4" aria-label="참여 알림 설정">
-              <PollToggle id="poll-notify-enabled" name="poll_notify_enabled" label="참여 알림 보내기" description="클랜 멤버에게 사이트 알림으로 참여를 알려요." checked={notifyEnabled} onChange={(enabled) => { setNotifyEnabled(enabled); clearError("poll-deadline"); }} />
+              <PollToggle id="poll-notify-enabled" name="poll_notify_enabled" label="참여 알림 보내기" description="클랜 멤버에게 사이트 알림으로 참여를 알려요." checked={notifyEnabled} onChange={(enabled) => { setNotifyEnabled(enabled); clearDeadlineError(); }} />
               {notifyEnabled ? (
                 <div className="space-y-3 rounded-lg border bg-muted/20 p-3">
                   <div className="flex items-center gap-2 text-xs font-medium"><Bell className="size-3.5 text-muted-foreground" aria-hidden />사이트 알림</div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="poll-notify-repeat" className="text-xs">알림 빈도</Label>
-                      <select id="poll-notify-repeat" value={notifyRepeat} onChange={(event) => { setNotifyRepeat(event.target.value as Exclude<PollNotifyRepeat, "none">); clearError("poll-deadline"); }} className="h-9 w-full rounded-md border border-input bg-background px-2 text-xs">
+                      <select id="poll-notify-repeat" value={notifyRepeat} onChange={(event) => { setNotifyRepeat(event.target.value as Exclude<PollNotifyRepeat, "none">); clearDeadlineError(); }} className="h-9 w-full rounded-md border border-input bg-background px-2 text-xs">
                         <option value="once">기본 (시작 · 마감 1시간 전)</option>
                         <option value="daily">매일</option>
                         <option value="weekly">매주</option>

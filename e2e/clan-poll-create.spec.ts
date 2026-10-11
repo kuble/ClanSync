@@ -3,7 +3,7 @@ import path from "node:path";
 import { test, expect, type Page } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
-test.use({ actionTimeout: 20_000 });
+test.use({ actionTimeout: 20_000, timezoneId: "Asia/Seoul" });
 
 async function capture(page: Page, filename: string) {
   const directory = process.env.POLL_CREATE_CAPTURE_DIR;
@@ -26,8 +26,13 @@ test("투표 생성: 선택지 편집·검증·알림 기본값·저장과 모�
     const addOption = dialog.getByRole("button", { name: /^선택지 추가/ });
     const submit = dialog.getByRole("button", { name: "투표 시작하기", exact: true });
     const notify = dialog.getByRole("switch", { name: "참여 알림 보내기", exact: true });
+    const multipleChoice = dialog.getByRole("switch", { name: "중복 투표", exact: true });
+    const deadlineDay = dialog.getByLabel("마감 날짜", { exact: true });
+    const deadlineTime = dialog.getByLabel("마감 시간", { exact: true });
     await expect(title).toBeFocused();
-    await expect(dialog.getByRole("radio", { name: "하나만 선택", exact: true })).toBeChecked();
+    await expect(multipleChoice).not.toBeChecked();
+    await expect(dialog.getByRole("button", { name: /^(1일 후|2일 후|1주 후)$/ })).toHaveCount(0);
+    await expect(dialog.getByRole("region", { name: "선택지 작성", exact: true }).getByRole("switch")).toHaveCount(2);
     await expect(notify).not.toBeChecked();
     await expect(dialog.getByLabel("알림 빈도", { exact: true })).toHaveCount(0);
     await expect(dialog.getByRole("button", { name: "선택지 1 삭제", exact: true })).toBeDisabled();
@@ -52,21 +57,35 @@ test("투표 생성: 선택지 편집·검증·알림 기본값·저장과 모�
     await expect(dialog.getByText("선택지를 입력하거나 이 항목을 삭제해 주세요.", { exact: true })).toBeVisible();
     await dialog.getByRole("textbox", { name: "선택지 3", exact: true }).fill("일요일 오후 8시");
 
+    const initialTime = await deadlineTime.inputValue();
+    await deadlineTime.fill("");
+    await submit.click();
+    await expect(dialog.getByText("마감 시간을 입력해 주세요.", { exact: true })).toBeVisible();
+    await expect(deadlineTime).toBeFocused();
+    await deadlineTime.fill(initialTime);
+
     await notify.check();
     await expect(dialog.getByLabel("알림 빈도", { exact: true })).toHaveValue("once");
     await expect(dialog.getByLabel("알림 시각 (한국 시간)", { exact: true })).toHaveCount(0);
     await dialog.getByLabel("알림 빈도", { exact: true }).selectOption("daily");
-    await dialog.getByRole("button", { name: "1일 후", exact: true }).click();
+    const deadlineDays = await page.evaluate(() => {
+      const dayAfter = (days: number) => {
+        const date = new Date(Date.now() + days * 86_400_000);
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      };
+      return { tomorrow: dayAfter(1), nextWeek: dayAfter(7) };
+    });
+    await deadlineDay.fill(deadlineDays.tomorrow);
     await submit.click();
     await expect(dialog.getByText(/48시간 이내 마감에는/)).toBeVisible();
     const { data: invalidPolls, error: invalidError } = await fixture.service.from("clan_polls").select("id").eq("clan_id", fixture.clanId);
     expect(invalidError).toBeNull();
     expect(invalidPolls).toEqual([]);
-    await dialog.getByRole("button", { name: "1주 후", exact: true }).click();
+    await deadlineDay.fill(deadlineDays.nextWeek);
     await dialog.getByLabel("알림 시각 (한국 시간)", { exact: true }).selectOption("21");
-    await dialog.getByRole("radio", { name: "여러 개 선택", exact: true }).check();
+    await multipleChoice.check();
     await dialog.getByRole("switch", { name: "익명 투표", exact: true }).check();
-    const deadline = await dialog.getByLabel("마감 일시", { exact: true }).inputValue();
+    const deadline = `${await deadlineDay.inputValue()}T${await deadlineTime.inputValue()}`;
     const expectedDeadline = await page.evaluate((value) => new Date(value).toISOString(), deadline);
     // Capture the main input flow with the supplementary settings below the fold.
     await title.focus();
@@ -90,7 +109,7 @@ test("투표 생성: 선택지 편집·검증·알림 기본값·저장과 모�
     await createButton.click();
     await expect(title).toHaveValue("");
     await expect(notify).not.toBeChecked();
-    await expect(dialog.getByRole("radio", { name: "하나만 선택", exact: true })).toBeChecked();
+    await expect(multipleChoice).not.toBeChecked();
     await title.fill("모바일 선택지 확인");
     for (let index = 3; index <= 12; index++) await addOption.click();
     await expect(addOption).toBeDisabled();
