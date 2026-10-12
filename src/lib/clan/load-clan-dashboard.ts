@@ -10,6 +10,7 @@ import { toKstParts } from "@/lib/clan/stats/kst";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { normalizeClanMatchRecords } from "@/lib/clan/stats/normalize-clan-match-records";
 import { loadDashboardRows } from "./load-dashboard-rows";
+import { loadClanHistory } from "./load-clan-history";
 
 export type DashboardNotice = {
   id: string;
@@ -65,7 +66,7 @@ export async function loadClanDashboard(
   const monthStart = new Date(Date.UTC(y, m - 2, 1, -9));
   const monthEnd = new Date(Date.UTC(y, m - 1, 1, -9));
   const month = toKstParts(monthStart);
-  const [clan, polls, events, settings, notices] = await Promise.all([
+  const [clan, polls, events, settings, notices, history] = await Promise.all([
     supabase
       .from("clans")
       .select("rules, created_at")
@@ -102,6 +103,7 @@ export async function loadClanDashboard(
       .order("is_pinned", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(3),
+    loadClanHistory(eventClient, clanId),
   ]);
   if (!clan.data) return null;
 
@@ -134,7 +136,7 @@ export async function loadClanDashboard(
     rules: clan.data.rules,
     events: events.data ?? [],
     createdAt: clan.data.created_at,
-    completedIntraCount: null,
+    completedIntraCount: history.completedRegular,
     previousMonth: `${month.y}년 ${month.m}월`,
     mvp: { winRate: null, participation: null, prediction: null },
     errors: {
@@ -219,7 +221,6 @@ export async function loadClanDashboard(
     matches.data ?? [],
     sessions.data ?? [],
   ).filter((record) => record.outcome !== "void");
-  model.completedIntraCount = records.length;
   const monthly = records.filter((record) => {
     const playedAt = new Date(record.played_at).getTime();
     return playedAt >= monthStart.getTime() && playedAt < monthEnd.getTime();

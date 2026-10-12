@@ -5,14 +5,10 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   ArrowUpRight,
   CalendarDays,
-  Cake,
   ChevronRight,
   Crown,
-  Flame,
   Megaphone,
   ScrollText,
-  ShieldCheck,
-  Swords,
   Target,
   Trophy,
   Users,
@@ -25,6 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ClanBadges } from "@/components/main-clan/clan-badges";
 import { StorePremiumPlanDialog } from "@/components/main-clan/store-premium-plan-dialog";
 import { listUpcomingOccurrenceStarts } from "@/lib/clan/expand-clan-event-occurrences";
 import type { ClanMemberRole } from "@/lib/clan/permission-defaults";
@@ -286,96 +283,6 @@ function UpcomingEvents({
   );
 }
 
-function ClanBadges({ model }: { model: ClanDashboardModel }) {
-  const created = new Date(model.createdAt);
-  const anniversary = new Date(created);
-  anniversary.setUTCFullYear(anniversary.getUTCFullYear() + 1);
-  const dateLabel = (date: Date) =>
-    new Intl.DateTimeFormat("ko-KR", {
-      timeZone: "Asia/Seoul",
-      year: "numeric",
-      month: "2-digit",
-    }).format(date);
-  const badges = [
-    {
-      name: "창단",
-      Icon: Flame,
-      unlocked: true,
-      detail: dateLabel(created),
-      hint: "클랜을 창단했어요",
-      color: "text-orange-500",
-    },
-    {
-      name: "내전 100회",
-      Icon: Swords,
-      unlocked:
-        model.completedIntraCount != null && model.completedIntraCount >= 100,
-      detail:
-        model.completedIntraCount == null
-          ? "기록 확인 필요"
-          : `${Math.min(model.completedIntraCount, 100)} / 100`,
-      hint: "완료된 내전 100회 달성",
-      color: "text-primary",
-    },
-    {
-      name: "내전 500회",
-      Icon: ShieldCheck,
-      unlocked:
-        model.completedIntraCount != null && model.completedIntraCount >= 500,
-      detail:
-        model.completedIntraCount == null
-          ? "기록 확인 필요"
-          : `${Math.min(model.completedIntraCount, 500)} / 500`,
-      hint: "완료된 내전 500회 달성",
-      color: "text-violet-500",
-    },
-    {
-      name: "1주년",
-      Icon: Cake,
-      unlocked: anniversary.getTime() <= new Date(model.now).getTime(),
-      detail: dateLabel(anniversary),
-      hint: "창단 1주년을 함께해요",
-      color: "text-rose-500",
-    },
-  ];
-  return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 min-[1101px]:grid-cols-2">
-      {badges.map(({ name, Icon, unlocked, detail, hint, color }) => (
-        <div
-          key={name}
-          title={hint}
-          className={cn(
-            "flex min-w-0 flex-col items-center rounded-lg border border-border bg-muted/35 px-2 py-3 text-center",
-            !unlocked && "bg-muted/15",
-          )}
-        >
-          <Icon
-            className={cn(
-              "mb-2 size-6",
-              unlocked ? color : "text-muted-foreground/40",
-            )}
-            aria-hidden="true"
-          />
-          <span
-            className={cn(
-              "text-[11px] font-semibold",
-              unlocked ? "text-foreground" : "text-muted-foreground",
-            )}
-          >
-            {name}
-          </span>
-          <span className="mt-1 text-[10px] text-muted-foreground">
-            {detail}
-          </span>
-          <span className="mt-1 text-[9px] text-muted-foreground">
-            {unlocked ? "달성" : "미달성"}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function MvpCard({
   title,
   value,
@@ -602,7 +509,7 @@ export function ClanDashboard({
               aria-hidden="true"
             />
           </div>
-          <ClanBadges model={model} />
+          <ClanBadges createdAt={model.createdAt} completedIntraCount={model.completedIntraCount} now={model.now} className="min-[1101px]:grid-cols-2" />
         </section>
         <MvpCard
           title="지난달 승률 MVP"

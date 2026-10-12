@@ -1,8 +1,10 @@
 import "server-only";
 import Link from "next/link";
-import { ArrowUpRight, ExternalLink, ImageIcon, Users } from "lucide-react";
+import { ArrowUpRight, CalendarDays, Clock, ImageIcon, Trophy } from "lucide-react";
 import type { MainClanContext } from "@/lib/clan/load-main-clan-context";
-import { MANAGE_SECTIONS, type ManageTab } from "@/lib/clan/manage-sections";
+import type { ManageTab } from "@/lib/clan/manage-sections";
+import { loadClanHistory } from "@/lib/clan/load-clan-history";
+import { ClanBadges } from "./clan-badges";
 import { hasRequestClanPermission } from "@/lib/clan/request-clan-access";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import { createServiceRoleClient } from "@/lib/supabase/service";
@@ -58,32 +60,37 @@ async function NotificationSettings({ ctx, connectionResult }: Pick<Props, "ctx"
 
 async function Overview({ ctx }: Pick<Props, "ctx">) {
   const svc = createServiceRoleClient();
-  const { data: profile, error } = await svc.from("clans")
-    .select("description,tags,discord_url,kakao_url,coin_balance,max_members")
-    .eq("id", ctx.clanId).single();
-  if (error) throw new Error("클랜 정보를 불러오지 못했습니다.");
-  const links = [{ label: "디스코드", url: profile.discord_url }, { label: "오픈카카오톡", url: profile.kakao_url }].filter(({ url }) => {
-    try { return !!url && new URL(url).protocol === "https:"; } catch { return false; }
-  });
+  const [profile, history] = await Promise.all([
+    svc.from("clans").select("created_at,coin_balance,max_members").eq("id", ctx.clanId).single(),
+    loadClanHistory(svc, ctx.clanId),
+  ]);
+  if (profile.error) throw new Error("클랜 정보를 불러오지 못했습니다.");
   const base = `/games/${ctx.gameSlug}/clan/${ctx.clanId}`;
+  const dateLabel = (value: string) => new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric" }).format(new Date(value));
+  const facts = [
+    { label: "구성원", value: ctx.memberCount == null ? "—" : `${ctx.memberCount}명`, detail: ctx.memberCount == null ? `정원 ${profile.data.max_members}명` : `정원 ${profile.data.max_members}명 · ${Math.max(0, profile.data.max_members - ctx.memberCount)}자리 여유`, href: `${base}/manage?tab=members` },
+    { label: "총 내전", value: history.total == null ? "—" : `${history.total.toLocaleString()}회`, detail: "정규·깜짝 내전 개설 회차", href: `${base}/balance` },
+    { label: "클랜 코인", value: Number(profile.data.coin_balance).toLocaleString(), detail: "잔액·플랜", href: `${base}/manage?tab=subscription` },
+  ];
   return <div className="space-y-5">
     <div className="grid grid-cols-3 gap-2 sm:gap-3">
-      {[{ label: "구성원", value: ctx.memberCount == null ? "—" : `${ctx.memberCount}명`, detail: `정원 ${profile.max_members}명`, tab: "members" }, { label: "가입 대기", value: `${ctx.pendingJoinRequestCount}건`, detail: "승인·거절", tab: "requests" }, { label: "클랜 코인", value: Number(profile.coin_balance).toLocaleString(), detail: "잔액·플랜", tab: "subscription" }].map(({ label, value, detail, tab }) => (
-        <Link key={label} href={`${base}/manage?tab=${tab}`} prefetch={false} className={`${panel} min-w-0 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}>
-          <p className="text-[11px] text-muted-foreground sm:text-xs">{label}</p><p className="mt-2 break-words text-xl font-bold tabular-nums sm:text-2xl">{value}</p><p className="mt-1 text-[11px] text-muted-foreground">{detail}</p>
+      {facts.map(({ label, value, detail, href }) => (
+        <Link key={label} href={href} prefetch={false} aria-label={`${label} ${value}`} className="group min-w-0 rounded-xl border border-border bg-card p-3 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-5">
+          <div className="flex items-center justify-between gap-1"><p className="text-[11px] text-muted-foreground sm:text-xs">{label}</p><ArrowUpRight className="size-3 shrink-0 text-muted-foreground/60 group-hover:text-primary" aria-hidden /></div>
+          <p className="mt-3 break-words text-xl font-semibold tabular-nums sm:text-2xl">{value}</p><p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{detail}</p>
         </Link>
       ))}
     </div>
-    {ctx.pendingJoinRequestCount > 0 && <Link href={`${base}/manage?tab=requests`} prefetch={false} className="flex items-center justify-between gap-3 rounded-xl border border-primary/25 bg-primary/5 px-4 py-3 text-sm"><span>가입 요청 <strong>{ctx.pendingJoinRequestCount}건</strong>이 기다리고 있습니다.</span><ArrowUpRight className="size-4 shrink-0 text-primary" aria-hidden /></Link>}
-    <section className={panel} aria-label="클랜 기본 정보">
-      <div className="flex items-center gap-3"><span className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary"><Users className="size-5" aria-hidden /></span><div><h4 className="text-sm font-bold">{ctx.clanName}</h4><p className="mt-1 text-xs text-muted-foreground">{ctx.gameName}{ctx.styleLabel ? ` · ${ctx.styleLabel}` : ""}</p></div></div>
-      <p className="mt-4 whitespace-pre-wrap text-[13px] leading-relaxed text-foreground/80">{profile.description || "클랜 소개가 아직 없습니다."}</p>
-      {!!profile.tags?.length && <div className="mt-3 flex flex-wrap gap-1.5">{(profile.tags as string[]).map((tag) => <span key={tag} className="rounded-md bg-muted px-2 py-1 text-[11px] text-muted-foreground">{tag}</span>)}</div>}
-      <div className="mt-4 flex flex-wrap gap-4 border-t border-border pt-4">{links.length ? links.map(({ label, url }) => <a key={label} href={url!} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">{label}<ExternalLink className="size-3" aria-hidden /></a>) : <p className="text-xs text-muted-foreground">등록된 외부 채널이 없습니다.</p>}</div>
+    <section className={panel} aria-label="클랜 기록">
+      <dl className="grid gap-5 sm:grid-cols-2 sm:gap-0 sm:divide-x sm:divide-border">
+        <div className="flex items-start gap-3 sm:pr-5"><CalendarDays className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden /><div><dt className="text-xs text-muted-foreground">클랜 설립일</dt><dd className="mt-2 text-sm font-medium">{dateLabel(profile.data.created_at)}</dd></div></div>
+        <div className="flex items-start gap-3 sm:pl-5"><Clock className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden /><div><dt className="text-xs text-muted-foreground">최근 내전</dt><dd className="mt-2 text-sm font-medium">{history.total == null ? "기록 확인 필요" : history.latestAt ? dateLabel(history.latestAt) : "아직 개설된 내전이 없습니다."}</dd></div></div>
+      </dl>
     </section>
-    <section className="space-y-3" aria-label="운영 바로가기">
-      <h4 className="text-sm font-semibold">자주 사용하는 관리</h4>
-      <div className="grid gap-3 sm:grid-cols-2">{MANAGE_SECTIONS.filter(({ key }) => ["notices", "balance", "appearance", "insights"].includes(key)).map(({ key, label, description }) => <Link key={key} href={`${base}/manage?tab=${key}`} prefetch={false} className={`${panel} group transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}><div className="flex items-center justify-between"><h5 className="text-[13px] font-semibold">{label}</h5><ArrowUpRight className="size-4 text-muted-foreground group-hover:text-primary" aria-hidden /></div><p className="mt-2 text-xs leading-relaxed text-muted-foreground">{description}</p></Link>)}</div>
+    <section className={`${panel} space-y-4`} aria-label="클랜 배지">
+      <div className="flex items-center gap-2"><Trophy className="size-4 text-primary" aria-hidden /><h4 className="text-sm font-semibold">클랜 배지</h4></div>
+      <ClanBadges createdAt={profile.data.created_at} completedIntraCount={history.completedRegular} now={new Date().toISOString()} />
+      <p className="text-[11px] text-muted-foreground">내전 배지는 종료된 정규 내전 회차를 기준으로 달성합니다.</p>
     </section>
   </div>;
 }
