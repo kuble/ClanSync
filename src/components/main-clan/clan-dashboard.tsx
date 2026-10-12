@@ -529,10 +529,10 @@ export function ClanDashboard({
               description="잠시 후 새로고침해 주세요."
             />
           ) : model.notices.length ? (
-            <div className="max-h-72 space-y-2.5 overflow-y-auto">
+            <ul aria-label="최근 클랜 공지" className="space-y-2.5">
               {model.notices.map((notice) => (
+                <li key={`${notice.kind}:${notice.id}`}>
                 <NoticeRow
-                  key={`${notice.kind}:${notice.id}`}
                   notice={notice}
                   href={`${base}/events?tab=polls`}
                   onRead={() =>
@@ -543,8 +543,9 @@ export function ClanDashboard({
                     })
                   }
                 />
+                </li>
               ))}
-            </div>
+            </ul>
           ) : (
             <EmptyCard
               icon={Megaphone}

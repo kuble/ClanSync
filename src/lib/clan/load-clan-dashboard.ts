@@ -79,7 +79,7 @@ export async function loadClanDashboard(
       .is("closed_at", null)
       .gt("deadline_at", now.toISOString())
       .order("created_at", { ascending: false })
-      .limit(5),
+      .limit(3),
     eventClient
       .from("clan_events")
       .select(
@@ -101,7 +101,7 @@ export async function loadClanDashboard(
       .eq("clan_id", clanId)
       .order("is_pinned", { ascending: false })
       .order("created_at", { ascending: false })
-      .limit(5),
+      .limit(3),
   ]);
   if (!clan.data) return null;
 
@@ -130,7 +130,7 @@ export async function loadClanDashboard(
           Number(b.isPinned) - Number(a.isPinned) ||
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       )
-      .slice(0, 5),
+      .slice(0, 3),
     rules: clan.data.rules,
     events: events.data ?? [],
     createdAt: clan.data.created_at,
