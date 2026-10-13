@@ -39,7 +39,17 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     const freeId=page.url().split("/").at(-1)!;
     await page.getByLabel("댓글 내용",{exact:true}).fill("좋아요, 같이 해요!");
     await page.getByRole("button",{name:"댓글 등록",exact:true}).click();
-    await expect(page.getByText("좋아요, 같이 해요!",{exact:true})).toBeVisible();
+    await expect(page.getByRole("listitem").filter({hasText:"좋아요, 같이 해요!"})).toBeVisible();
+    const editComment=page.getByRole("button",{name:"댓글 편집",exact:true});
+    await expect(editComment.locator("svg")).toBeVisible();
+    await expect(editComment).toHaveText("");
+    await editComment.click();await page.getByLabel("댓글 내용",{exact:true}).fill("수정한 댓글이에요.");
+    await page.getByRole("button",{name:"댓글 수정",exact:true}).click();
+    await expect(page.getByRole("listitem").filter({hasText:"수정한 댓글이에요."})).toBeVisible();
+    const deleteComment=page.getByRole("button",{name:"댓글 삭제",exact:true});
+    await expect(deleteComment.locator("svg")).toBeVisible();await deleteComment.click();
+    await page.getByRole("dialog").getByRole("button",{name:"삭제",exact:true}).click();
+    await expect(page.getByRole("listitem").filter({hasText:"수정한 댓글이에요."})).toHaveCount(0);
     await page.getByRole("button",{name:"공감 0",exact:true}).click();await expect(page.getByRole("button",{name:"공감 1",exact:true})).toHaveAttribute("aria-pressed","true");
     await page.reload();await expect(page.getByRole("button",{name:"공감 1",exact:true})).toHaveAttribute("aria-pressed","true");
     await page.goto(base+"/board/feedback");await page.getByRole("button",{name:"피드백 신청",exact:true}).click();
@@ -62,7 +72,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     await editor.getByRole("button",{name:"저장",exact:true}).click();await expect(page).toHaveURL(/\/board\/channels\/[0-9a-f-]{36}$/);
     await expect(page.getByRole("link",{name:"YouTube 방송 채널 열기 ↗",exact:true})).toHaveAttribute("href","https://www.youtube.com/@clansync");
     await expect(page.getByRole("link",{name:"Twitch 방송 채널 열기 ↗",exact:true})).toHaveAttribute("href","https://www.twitch.tv/clansync");
-    await expect(page.getByText("API 연결 필요",{exact:true})).toHaveCount(2);
+    await expect(page.getByText("API 연결 필요",{exact:true})).toHaveCount(0);
     await page.getByRole("button",{name:"편집",exact:true}).click();
     await expect(editor.getByLabel("방송 채널 링크 2",{exact:true})).toHaveValue("https://www.twitch.tv/clansync");
     await editor.getByRole("button",{name:"방송 채널 2 삭제",exact:true}).click();

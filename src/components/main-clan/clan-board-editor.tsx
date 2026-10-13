@@ -62,7 +62,7 @@ export function ClanBoardEditor({gameSlug,clanId,kind,post,onClose,coaches=[],in
       const result=await saveBoardPostAction(gameSlug,clanId,{id,kind,title:realTitle,content,details:requestDetails,imagePath,editing:!!post,coachId:kind==="feedback"?coachId:null});
       if(!result.ok)throw new Error(result.error);
       uploaded=[];toast.success(post?"글을 수정했습니다.":"글을 등록했습니다.");if(result.warning)toast.warning(result.warning);
-      onClose();if(post)router.refresh();else router.push("/games/"+gameSlug+"/clan/"+clanId+"/board/"+kind+"/"+id);
+      onClose();if(!post)router.push("/games/"+gameSlug+"/clan/"+clanId+"/board/"+kind+"/"+id);
     }catch(error){
       if(uploaded.length){
         // A lost response can follow a committed post; never erase its attachment.
