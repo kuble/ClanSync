@@ -1,4 +1,5 @@
 import Link from "next/link";
+import {ArrowLeft} from "lucide-react";
 import { forbidden,notFound } from "next/navigation";
 import { getRequestClient } from "@/lib/supabase/request";
 import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
@@ -17,7 +18,7 @@ export default async function PostPage({params,searchParams}:{params:Promise<{ga
     const result=await client.from("clan_notices").select("title,content,created_at").eq("id",postId).eq("clan_id",clanId).maybeSingle();
     if(result.error)throw new Error("공지를 불러오지 못했습니다.");
     if(!result.data)notFound();
-    return <article className="space-y-5 rounded-xl border border-border bg-card p-5 sm:p-7"><Link href={base+"/board/notices"} className="text-sm text-muted-foreground">← 클랜 공지 및 규칙</Link><h3 className="text-xl font-semibold">{result.data.title}</h3><p className="text-xs text-muted-foreground">{new Date(result.data.created_at).toLocaleDateString("ko-KR",{timeZone:"Asia/Seoul"})}</p><div className="whitespace-pre-wrap break-words text-sm leading-7">{result.data.content}</div></article>;
+    return <div className="space-y-5"><Link href={base+"/board/notices"} className="inline-flex min-h-10 items-center gap-2 text-xs text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" aria-hidden/>클랜 공지 및 규칙</Link><article className="overflow-hidden rounded-xl border border-border bg-card"><header className="border-b border-border px-5 py-6 sm:px-7"><p className="mb-3 text-xs font-medium text-primary">클랜 공지</p><h3 className="break-words text-xl font-semibold leading-8 tracking-tight sm:text-2xl">{result.data.title}</h3><time dateTime={result.data.created_at} className="mt-4 block text-xs text-muted-foreground">{new Date(result.data.created_at).toLocaleDateString("ko-KR",{timeZone:"Asia/Seoul"})}</time></header><div className="p-5 sm:p-7"><div className="max-w-[68ch] whitespace-pre-wrap break-words text-[15px] leading-8">{result.data.content}</div></div></article></div>;
   }
   if(!isBoardKind(section))notFound();
   const commentPage=/^[1-9]\d{0,4}$/.test(query.comments??"")?Number(query.comments):1;

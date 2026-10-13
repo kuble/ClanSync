@@ -32,7 +32,7 @@ export type ManagedClanNotice = {
   createdAt: string;
   author: string;
 };
-const panel = "rounded-xl border border-border bg-card p-5";
+const panel = "rounded-xl border border-border bg-card p-5 sm:p-6";
 
 export function ClanManageNotices({
   gameSlug,
@@ -176,6 +176,7 @@ export function ClanManageNotices({
                   size="icon-sm"
                   disabled={pending}
                   aria-label={`${notice.title} 편집`}
+                  title="공지 편집"
                   onClick={(event) => edit(notice, event.currentTarget)}
                 >
                   <Pencil />
@@ -186,6 +187,7 @@ export function ClanManageNotices({
                   size="icon-sm"
                   disabled={pending}
                   aria-label={`${notice.title} 삭제`}
+                  title="공지 삭제"
                   onClick={() => setRemoving(notice)}
                 >
                   <Trash2 className="text-destructive" />
@@ -204,7 +206,7 @@ export function ClanManageNotices({
       >
         <DialogContent
           ref={editorPopup}
-          className="sm:max-w-xl"
+          className="board-scroll max-h-[90dvh] overflow-y-auto sm:max-w-xl"
           initialFocus={(interactionType) => {
             const popup = editorPopup.current;
             if (!popup || popup.contains(popup.ownerDocument.activeElement)) {
@@ -265,7 +267,7 @@ export function ClanManageNotices({
                 rows={9}
                 defaultValue={editor && editor !== "new" ? editor.content : ""}
                 disabled={pending}
-                className="max-h-[40vh] w-full resize-y rounded-lg border border-input bg-background px-3 py-2 text-sm leading-7 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="board-scroll max-h-[40vh] w-full resize-y rounded-lg border border-input bg-background p-4 text-base leading-7 outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-sm"
                 placeholder="공지 내용을 입력해 주세요."
               />
             </div>
@@ -423,7 +425,7 @@ function ClanRulesEditor({
           onChange={(event) => setRules(event.target.value)}
           disabled={pending}
           placeholder="예: 서로 존중하며 플레이해요. 내전 일정은 미리 알려주세요."
-          className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm leading-7 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="board-scroll max-h-80 w-full resize-y rounded-lg border border-input bg-background p-4 text-base leading-7 outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-sm"
         />
         <div className="flex items-center justify-between gap-3">
           <span className="text-[11px] text-muted-foreground">

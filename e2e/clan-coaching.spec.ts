@@ -23,7 +23,7 @@ test('클랜원 선생님 등록·지정 신청·담당 상태·참여자 댓글
     await dialog.getByRole('button',{name:'저장',exact:true}).click();
     await expect(page).toHaveURL(/\/board\/feedback\/[0-9a-f-]{36}$/,{timeout:20000});
     const postId=page.url().split('/').at(-1)!;
-    await expect(page.getByText('코칭 선생님: '+coach.nickname,{exact:true})).toBeVisible();
+    await expect(page.getByRole('region',{name:'코칭 신청 정보',exact:true}).getByText(coach.nickname,{exact:true})).toBeVisible();
     const notify=await ok(f.service.from('notifications').select('recipient_user_id').eq('kind','coaching_requested').eq('source_id',postId));
     expect(notify.map(r=>r.recipient_user_id)).toEqual([coach.id]);
     await page.context().clearCookies();await loginIsolatedBalanceUser(page,coach);await page.goto(base+'/board/feedback');

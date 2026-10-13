@@ -62,13 +62,13 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     await editor.getByRole("button",{name:"저장",exact:true}).click();await expect(page).toHaveURL(/\/board\/feedback\/[0-9a-f-]{36}$/);
     await page.getByLabel("신청 상태",{exact:true}).selectOption("complete");
     await expect.poll(async()=>{const rows=await ok(f.service.from("clan_board_posts").select("status").eq("clan_id",f.clanId).eq("kind","feedback").single());return rows.status;}).toBe("complete");
-    await page.goto(base+"/board/channels");await page.getByRole("button",{name:"채널 소개",exact:true}).click();
+    await page.goto(base+"/board/channels");await page.getByRole("button",{name:"채널 등록",exact:true}).click();
     await editor.getByLabel("제목",{exact:true}).fill("우리 클랜 게임 방송");
     await editor.getByLabel("방송 채널 링크 1",{exact:true}).fill("https://www.youtube.com/@clansync");
     await editor.getByRole("button",{name:"방송 플랫폼 추가",exact:true}).click();
     await editor.getByLabel("방송 플랫폼 2",{exact:true}).selectOption("Twitch");
     await editor.getByLabel("방송 채널 링크 2",{exact:true}).fill("https://www.twitch.tv/clansync");
-    await editor.getByLabel("채널 소개",{exact:true}).fill("게임과 클랜 이야기를 나눠요.");
+    await expect(editor.getByLabel("채널 소개",{exact:true})).toHaveCount(0);
     await editor.getByRole("button",{name:"저장",exact:true}).click();await expect(page).toHaveURL(/\/board\/channels\/[0-9a-f-]{36}$/);
     await expect(page.getByRole("link",{name:"YouTube 방송 채널 열기 ↗",exact:true})).toHaveAttribute("href","https://www.youtube.com/@clansync");
     await expect(page.getByRole("link",{name:"Twitch 방송 채널 열기 ↗",exact:true})).toHaveAttribute("href","https://www.twitch.tv/clansync");

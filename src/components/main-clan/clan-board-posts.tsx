@@ -3,11 +3,11 @@ import Image from "next/image";
 import Link from "next/link";
 import {useMemo,useState} from "react";
 import {useRouter} from "next/navigation";
-import {Camera,GraduationCap,MessageSquare,Plus,Radio} from "lucide-react";
+import {Camera,Clock3,GraduationCap,MessageSquare,Plus,Radio,UserRound} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {ClanBoardEditor} from "./clan-board-editor";
 import {ClanCoachDirectory} from "./clan-coach-directory";
-import {ClanChannelLinks} from "./clan-channel-links";
+import {ClanChannelLinks,ClanChannelStatus} from "./clan-channel-links";
 import {CircularCarousel} from "./circular-carousel";
 import {boardChannels,boardDate,boardDetails,boardImageUrl,FEEDBACK_STATUS,type BoardKind,type BoardListPost} from "@/lib/clan/board";
 import type {ClanCoach} from "@/lib/clan/coaching";
@@ -19,11 +19,11 @@ export function ClanBoardPosts({base,gameSlug,clanId,kind,title,description,post
   const available=coaches.filter(c=>c.userId!==userId&&c.accepting);
   const request=(id:string)=>{setCoachId(id);setEditing(true);};
   return <div className="space-y-5">
-    <header className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-lg font-semibold">{title}</h3><p className="mt-1 text-xs text-muted-foreground">{description}</p></div><Button size="sm" disabled={kind==="feedback"&&!available.length} onClick={()=>{setCoachId("");setEditing(true);}}><Plus className="size-4"/>{kind==="memories"?"추억 남기기":kind==="feedback"?"피드백 신청":kind==="channels"?"채널 소개":"글 작성"}</Button></header>
+    <header className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-lg font-semibold tracking-tight">{title}</h3><p className="mt-1.5 text-xs leading-5 text-muted-foreground">{description}</p></div><Button size="sm" disabled={kind==="feedback"&&!available.length} onClick={()=>{setCoachId("");setEditing(true);}}><Plus className="size-4" aria-hidden/>{kind==="memories"?"추억 남기기":kind==="feedback"?"피드백 신청":kind==="channels"?"채널 등록":"글 작성"}</Button></header>
     {kind==="feedback"&&<ClanCoachDirectory coaches={coaches} userId={userId} gameSlug={gameSlug} clanId={clanId} onRequest={request}/>}
-    {!posts.length?<div className="flex min-h-96 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-card p-6 text-center"><Camera className="size-6 text-muted-foreground" aria-hidden/><p className="text-sm">아직 등록된 {kind==="memories"?"추억":kind==="feedback"?"신청":kind==="channels"?"채널":"글"}이 없어요.</p><p className="text-xs text-muted-foreground">{kind==="feedback"?"선생님을 선택해 첫 피드백을 요청해 보세요.":"첫 이야기를 남겨 주세요."}</p></div>
+    {!posts.length?<div className={cn("flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-card p-6 text-center",kind==="memories"?"min-h-96":"min-h-64")}>{kind==="memories"?<Camera className="size-6 text-muted-foreground" aria-hidden/>:kind==="channels"?<Radio className="size-6 text-muted-foreground" aria-hidden/>:<MessageSquare className="size-6 text-muted-foreground" aria-hidden/>}<p className="text-sm">아직 등록된 {kind==="memories"?"추억":kind==="feedback"?"신청":kind==="channels"?"채널":"글"}이 없어요.</p><p className="text-xs text-muted-foreground">{kind==="feedback"?"선생님을 선택해 첫 피드백을 요청해 보세요.":kind==="channels"?"첫 방송 채널을 등록해 주세요.":"첫 이야기를 남겨 주세요."}</p></div>
       :kind==="memories"?<MemoryGallery base={base} posts={posts}/>
-      :kind==="channels"?<div className="grid gap-4 sm:grid-cols-2">{posts.map(p=>{const d=boardDetails(p.details);return <article key={p.id} className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5"><div className="flex items-center justify-between"><Radio className="size-5 text-primary" aria-hidden/><span className="text-xs text-muted-foreground">{boardChannels(d).length}개 플랫폼</span></div><Link prefetch={false} className="text-base font-semibold hover:text-primary" href={base+"/board/channels/"+p.id}>{p.title}</Link><p className="line-clamp-3 whitespace-pre-wrap break-words text-sm text-muted-foreground">{p.content}</p><p className="text-xs">{d.schedule||"방송 시간 자유"} · {p.author}</p><div className="mt-auto"><ClanChannelLinks channels={boardChannels(d)}/></div></article>;})}</div>
+      :kind==="channels"?<div className="grid gap-4 lg:grid-cols-2">{posts.map(p=>{const d=boardDetails(p.details);return <article key={p.id} className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card"><div className="space-y-4 p-5"><div className="flex flex-wrap items-center justify-between gap-2"><ClanChannelStatus live={d.isLive===true}/><span className="text-[11px] text-muted-foreground">{boardChannels(d).length}개 플랫폼</span></div><Link prefetch={false} className="block break-words text-lg font-semibold leading-7 tracking-tight hover:text-primary" href={base+"/board/channels/"+p.id}>{p.title}</Link><div className="flex items-center gap-2 text-xs text-muted-foreground"><UserRound className="size-3.5 shrink-0" aria-hidden/><span className="truncate">{p.author}</span></div><div className="flex items-start gap-2 text-sm leading-6"><Clock3 className="mt-1 size-3.5 shrink-0 text-muted-foreground" aria-hidden/><p className="break-words">{d.schedule||"방송 시간 자유"}</p></div></div><div className="mt-auto border-t border-border bg-muted/15 p-4"><ClanChannelLinks channels={boardChannels(d)}/></div></article>;})}</div>
       :<BoardPostRows base={base} kind={kind} posts={posts}/>}
     {editing&&<ClanBoardEditor gameSlug={gameSlug} clanId={clanId} kind={kind} coaches={coaches.filter(c=>c.userId!==userId)} initialCoachId={coachId} onClose={()=>setEditing(false)}/>}
   </div>;

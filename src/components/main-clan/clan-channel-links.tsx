@@ -1,5 +1,10 @@
-import {ArrowUpRight} from "lucide-react";
+import {ArrowUpRight,Radio} from "lucide-react";
 import {safeBoardUrl,type BoardChannel} from "@/lib/clan/board";
+import {cn} from "@/lib/utils";
+
+export function ClanChannelStatus({live}:{live:boolean}){
+  return <span className={cn("inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium",live?"bg-red-500/10 text-red-500 dark:text-red-400":"bg-muted text-muted-foreground")}><Radio className="size-3.5" aria-hidden/>{live?"생방송 중":"방송 대기"}</span>;
+}
 
 export function ClanChannelLinks({channels}:{channels:BoardChannel[]}){
   return <ul className="flex flex-wrap gap-2">{channels.map(channel=>{
