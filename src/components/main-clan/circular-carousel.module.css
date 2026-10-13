@@ -1,0 +1,12 @@
+.carousel { position:relative; height:410px; overflow:hidden; touch-action:pan-y; user-select:none; -webkit-tap-highlight-color:transparent; cursor:grab; }
+.carousel:active { cursor:grabbing; }
+.carousel:focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
+.stage { position:absolute; top:50%; left:50%; transform-style:preserve-3d; opacity:0; }
+.carousel[data-ready=true] .stage { opacity:1; }
+.camera,.ring { position:relative; width:0; height:0; transform-style:preserve-3d; }
+.card { position:absolute; display:flex; flex-direction:column; padding:12px 12px 18px; border:1px solid #d4d3c9; background:#f6f3e9; color:#27372f; box-shadow:0 10px 24px #0004; text-align:center; overflow:hidden; backface-visibility:hidden; }
+.card:focus-visible { outline:3px solid var(--primary); outline-offset:3px; }
+.card > img { flex:none; height:64%; width:100%; object-fit:cover; pointer-events:none; }
+.card > span { pointer-events:none; }
+.card > span:last-child { margin-top:auto; padding-top:8px; }
+@media(max-width:640px) { .carousel { height:340px; } .card { padding:9px 9px 14px; } }
