@@ -2,45 +2,46 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
-import { BOARD_PAGE_SIZE, type BoardKind, type BoardPost, type BoardComment } from "./board";
+import {getRequestClanAccess} from "./request-clan-access";
+import {loadClanPeerNames} from "./load-clan-peer-names";
+import { BOARD_PAGE_SIZE, type BoardKind, type BoardPost, type BoardComment, type BoardListPost } from "./board";
+type ListRow=Pick<Database["public"]["Tables"]["clan_board_posts"]["Row"],"id"|"title"|"details"|"status"|"image_path"|"created_at"|"author_id"|"coach_id">&{content?:string;clan_board_comments?:{count:number}[]};
 
 export async function loadClanBoard(clanId: string, kind: BoardKind, page: number) {
-  const [untyped,user] = await Promise.all([getRequestClient(),getRequestUser()]);
+  const [untyped,user,access] = await Promise.all([getRequestClient(),getRequestUser(),getRequestClanAccess(clanId)]);
   const client: SupabaseClient<Database> = untyped;
+  if(!user||access.membership?.status!=="active")return null;
   const [result,names] = await Promise.all([
-    client.from("clan_board_posts").select("*,clan_board_comments(count)",{count:"exact"}).eq("clan_id",clanId).eq("kind",kind)
-      .order("created_at",{ascending:false}).order("id",{ascending:false}).range((page-1)*BOARD_PAGE_SIZE,page*BOARD_PAGE_SIZE-1),
-    client.rpc("clan_peer_nicknames",{p_clan_id:clanId}),
+    client.from("clan_board_posts").select(kind==="channels"||kind==="memories"?"id,title,content,details,status,image_path,created_at,author_id,coach_id":"id,title,details,status,image_path,created_at,author_id,coach_id,clan_board_comments(count)",{count:"exact"}).eq("clan_id",clanId).eq("kind",kind)
+      .order("created_at",{ascending:false}).order("id",{ascending:false}).range((page-1)*BOARD_PAGE_SIZE,page*BOARD_PAGE_SIZE-1).overrideTypes<ListRow[],{merge:false}>(),
+    loadClanPeerNames(clanId),
   ]);
   if (result.error || names.error || !user) return null;
   const nicknames = new Map(names.data.map(row=>[row.user_id,row.nickname]));
-  const membership = await client.rpc("select_my_clan_membership",{p_clan_id:clanId});
-  if (membership.error || membership.data?.[0]?.status !== "active") return null;
-  const staff = membership.data[0].role !== "member";
-  return { userId:user.id, posts:result.data.map((row): BoardPost => ({
-    ...row,author:row.author_id ? nicknames.get(row.author_id) ?? "이전 멤버" : "탈퇴한 멤버",
-    canManage:staff || row.author_id===user.id,canReplaceImage:row.author_id===user.id,
-    commentCount:row.clan_board_comments[0]?.count ?? 0,coachName:row.coach_id?nicknames.get(row.coach_id)??"이전 선생님":undefined,
+  return { userId:user.id, posts:result.data.map((row): BoardListPost => ({
+    id:row.id,title:row.title,details:row.details,status:row.status,image_path:row.image_path,created_at:row.created_at,
+    content:"content" in row&&typeof row.content==="string"?row.content.slice(0,kind==="channels"?300:100):"",
+    author:row.author_id ? nicknames.get(row.author_id) ?? "이전 멤버" : "탈퇴한 멤버",
+    commentCount:row.clan_board_comments?.[0]?.count??0,coachName:row.coach_id?nicknames.get(row.coach_id)??"이전 선생님":undefined,
   })),total:result.count ?? 0 };
 }
 
 export async function loadBoardArticle(clanId: string, kind: BoardKind, postId: string, commentPage: number) {
-  const [untyped,user] = await Promise.all([getRequestClient(),getRequestUser()]);
+  const [untyped,user,access] = await Promise.all([getRequestClient(),getRequestUser(),getRequestClanAccess(clanId)]);
   const client: SupabaseClient<Database> = untyped;
-  if (!user) return null;
+  if (!user||access.membership?.status!=="active") return null;
   const post = await client.from("clan_board_posts").select("*").eq("clan_id",clanId).eq("kind",kind).eq("id",postId).maybeSingle();
   if (post.error) throw new Error("글을 불러오지 못했습니다.");
   if (!post.data) return null;
-  const [comments,reactions,mine,names,membership] = await Promise.all([
+  const [comments,reactions,mine,names] = await Promise.all([
     client.from("clan_board_comments").select("*",{count:"exact"}).eq("post_id",postId).order("created_at").order("id")
       .range((commentPage-1)*50,commentPage*50-1),
     client.from("clan_board_reactions").select("*",{count:"exact",head:true}).eq("post_id",postId),
     client.from("clan_board_reactions").select("post_id").eq("post_id",postId).eq("user_id",user.id).maybeSingle(),
-    client.rpc("clan_peer_nicknames",{p_clan_id:clanId}),
-    client.rpc("select_my_clan_membership",{p_clan_id:clanId}),
+    loadClanPeerNames(clanId),
   ]);
-  if (comments.error || reactions.error || mine.error || names.error || membership.error || membership.data?.[0]?.status !== "active") throw new Error("글의 댓글과 공감을 불러오지 못했습니다.");
-  const staff = membership.data[0].role !== "member";
+  if (comments.error || reactions.error || mine.error || names.error) throw new Error("글의 댓글과 공감을 불러오지 못했습니다.");
+  const staff = access.membership.role !== "member";
   const nicknames = new Map(names.data.map(row=>[row.user_id,row.nickname]));
   const name = (id: string | null) => id ? nicknames.get(id) ?? "이전 멤버" : "탈퇴한 멤버";
   return {

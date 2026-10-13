@@ -24,6 +24,7 @@ export type BoardPost = Database["public"]["Tables"]["clan_board_posts"]["Row"] 
   author: string; canManage: boolean; canReplaceImage: boolean; commentCount: number; coachName?: string; canSetStatus?: boolean;
 };
 export type BoardComment = Database["public"]["Tables"]["clan_board_comments"]["Row"] & { author: string; canManage: boolean };
+export type BoardListPost=Pick<BoardPost,"id"|"title"|"content"|"details"|"status"|"image_path"|"created_at"|"author"|"commentCount"|"coachName">;
 export const STREAM_PLATFORMS = ["YouTube","CHZZK","Twitch","SOOP"] as const;
 export type BoardChannel = {platform:string;url:string};
 export type BoardDetails = { role?: string; replay?: string; video?: string; moment?: string; platform?: string; channel?: string; channels?: BoardChannel[]; schedule?: string; takenAt?: string };

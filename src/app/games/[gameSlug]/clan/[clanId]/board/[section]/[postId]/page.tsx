@@ -21,7 +21,8 @@ export default async function PostPage({params,searchParams}:{params:Promise<{ga
   }
   if(!isBoardKind(section))notFound();
   const commentPage=/^[1-9]\d{0,4}$/.test(query.comments??"")?Number(query.comments):1;
-  const [data,coaches]=await Promise.all([loadBoardArticle(clanId,section,postId,commentPage),section==="feedback"?loadClanCoaches(clanId):Promise.resolve([])]);
+  const data=await loadBoardArticle(clanId,section,postId,commentPage);
   if(!data)notFound();
+  const coaches=section==="feedback"&&data.post.canManage?await loadClanCoaches(clanId):[];
   return <ClanBoardArticle key={data.userId+postId} base={base} gameSlug={gameSlug} clanId={clanId} kind={section} {...data} commentPage={commentPage} coaches={coaches}/>;
 }
