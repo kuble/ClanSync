@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
 import { Megaphone, Pin, PinOff, Plus, Pencil, Trash2 } from "lucide-react";
 import {
@@ -38,11 +39,13 @@ export function ClanManageNotices({
   clanId,
   notices,
   loadFailed,
+  canManage = true,
 }: {
   gameSlug: string;
   clanId: string;
   notices: ManagedClanNotice[];
   loadFailed: boolean;
+  canManage?: boolean;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -91,14 +94,14 @@ export function ClanManageNotices({
             중요한 소식을 클랜원에게 전하세요. 고정한 공지가 먼저 표시됩니다.
           </p>
         </div>
-        <Button
+        {canManage && <Button
           type="button"
           size="sm"
           onClick={(event) => edit("new", event.currentTarget)}
         >
           <Plus className="size-3.5" />
           공지 작성
-        </Button>
+        </Button>}
       </div>
       {loadFailed ? (
         <p
@@ -133,7 +136,7 @@ export function ClanManageNotices({
                       aria-label="고정 공지"
                     />
                   )}
-                  <span className="truncate">{notice.title}</span>
+                  <Link href={"/games/"+gameSlug+"/clan/"+clanId+"/board/notices/"+notice.id} className="truncate hover:text-primary">{notice.title}</Link>
                 </p>
                 <p className="mt-1.5 text-[11px] text-muted-foreground">
                   {notice.author} ·{" "}
@@ -143,7 +146,7 @@ export function ClanManageNotices({
                   }).format(new Date(notice.createdAt))}
                 </p>
               </div>
-              <div className="flex shrink-0 items-center gap-1">
+              {canManage && <div className="flex shrink-0 items-center gap-1">
                 <Button
                   type="button"
                   variant="ghost"
@@ -187,7 +190,7 @@ export function ClanManageNotices({
                 >
                   <Trash2 className="text-destructive" />
                 </Button>
-              </div>
+              </div>}
             </li>
           ))}
         </ul>
@@ -341,11 +344,13 @@ export function ClanManageRules({
   clanId,
   initialRules,
   loadFailed,
+  canManage = true,
 }: {
   gameSlug: string;
   clanId: string;
   initialRules: string | null;
   loadFailed: boolean;
+  canManage?: boolean;
 }) {
   const router = useRouter();
   const [retrying, retry] = useTransition();
@@ -363,6 +368,7 @@ export function ClanManageRules({
       </section>
     );
   }
+  if (!canManage) return <section className={panel} id="rules" aria-labelledby="manage-rules-title"><h3 id="manage-rules-title" className="text-sm font-bold">클랜 규칙</h3><div className="mt-4 min-h-24 whitespace-pre-wrap break-words text-sm leading-7">{initialRules || "아직 등록된 규칙이 없습니다."}</div></section>;
   // Mount the editor only after a successful read, including after a retry.
   return <ClanRulesEditor gameSlug={gameSlug} clanId={clanId} initialRules={initialRules} />;
 }

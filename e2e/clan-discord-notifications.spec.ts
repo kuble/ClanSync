@@ -73,7 +73,7 @@ test("five routes: role checks, room timing/reschedule/cancel, notices once, pol
     globalThis.fetch = async (url, init) => {
       if (!String(url).startsWith("https://discord.com/")) return original(url, init);
       expect(String(url)).toContain(`/channels/${other}/messages`);
-      expect(JSON.parse(String(init?.body))).toMatchObject({ embeds: [{ title: "전송 검증", description: expect.stringContaining("발송 직전 수정한 본문\n두 번째 줄\n\n[공지 읽기](<"), url: expect.stringContaining(`?notice=${freshNotice.id}`) }], allowed_mentions: { parse: [] } });
+      expect(JSON.parse(String(init?.body))).toMatchObject({ embeds: [{ title: "전송 검증", description: expect.stringContaining("발송 직전 수정한 본문\n두 번째 줄\n\n[공지 읽기](<"), url: expect.stringContaining(`/board/notices/${freshNotice.id}`) }], allowed_mentions: { parse: [] } });
       sent++; return Response.json({ id: "mock-message" });
     };
     expect(await dispatchDiscordBotNotifications(f.service, 100, undefined, f.clanId)).toMatchObject({ sent: 1, failed: 0 });

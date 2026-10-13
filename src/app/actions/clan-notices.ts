@@ -22,6 +22,7 @@ function refreshClan(gameSlug: string, clanId: string) {
   const base = `/games/${gameSlug}/clan/${clanId}`;
   revalidatePath(base);
   revalidatePath(`${base}/manage`);
+  revalidatePath(`${base}/board`, "layout");
 }
 
 export async function saveClanNoticeAction(

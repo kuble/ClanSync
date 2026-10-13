@@ -10,6 +10,7 @@ import {
   Home,
   Layers3,
   Menu,
+  MessagesSquare,
   Scale,
   Settings,
   Shield,
@@ -59,6 +60,7 @@ function NavLinks({
           <Link
             key={href}
             href={href}
+            prefetch={false}
             aria-label={label}
             title={label}
             aria-current={active ? "page" : undefined}
@@ -150,6 +152,7 @@ export function MainClanShell({
       dot: ctx.sidebarDots.balance,
     },
     { href: basePath + "/stats", label: "클랜 통계", icon: BarChart3 },
+    { href: basePath + "/board", label: "게시판", icon: MessagesSquare },
     {
       href: basePath + "/events",
       label: "이벤트",
@@ -172,7 +175,7 @@ export function MainClanShell({
     { href: `/games/${ctx.gameSlug}`, label: "커뮤니티", icon: Globe2 },
     { href: "/profile", label: "프로필", icon: UserRound },
   ];
-  const pageTitle = [...items, ...bottomItems].find(({ href }) =>
+  const pageTitle = pathname === basePath + "/badges" ? "클랜 배지" : [...items, ...bottomItems].find(({ href }) =>
     pathname === href || (href.startsWith(basePath + "/") && pathname.startsWith(href + "/")),
   )?.label;
 

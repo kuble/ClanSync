@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, BarChart3, CreditCard, ImageIcon, LayoutDashboard, Megaphone, Swords, UserRoundPlus, Users } from "lucide-react";
 import { MANAGE_SECTIONS, type ManageTab } from "@/lib/clan/manage-sections";
@@ -9,6 +9,12 @@ import { NavigationIcon } from "@/components/ui/navigation-icon";
 import { cn } from "@/lib/utils";
 
 const icons = { overview: LayoutDashboard, notices: Megaphone, appearance: ImageIcon, requests: UserRoundPlus, members: Users, balance: Swords, notifications: Bell, insights: BarChart3, subscription: CreditCard };
+const visibleSections = MANAGE_SECTIONS.filter(section => section.key !== "notices");
+const subscribeReady = () => () => {};
+const clientReady = () => true;
+const serverReady = () => false;
+// Query changes can remount the page; convert each legacy link once per document.
+const convertedLegacyLinks = new Set<string>();
 
 /** Server navigation loads only the selected section, including on refresh/back. */
 export function ClanManageNavigation({ selected, pendingCount, basePath }: {
@@ -17,25 +23,32 @@ export function ClanManageNavigation({ selected, pendingCount, basePath }: {
   basePath: string;
 }) {
   const router = useRouter();
+  const ready = useSyncExternalStore(subscribeReady, clientReady, serverReady);
+  const [pending, start] = useTransition();
   useEffect(() => {
     // Preserve old plan links saved before query-based navigation.
-    if (window.location.hash === "#subscription" && selected !== "subscription") {
-      router.replace(`${basePath}?tab=subscription`, { scroll: false });
+    if (window.location.hash === "#subscription") {
+      const firstVisit = !convertedLegacyLinks.has(basePath);
+      convertedLegacyLinks.add(basePath);
+      const current = new URL(window.location.href);
+      current.hash = "";
+      window.history.replaceState(window.history.state, "", current);
+      if (firstVisit && selected !== "subscription") start(() => router.replace(`${basePath}?tab=subscription`, { scroll: false }));
     }
   }, [basePath, router, selected]);
 
   return (
     <>
     <label className="block space-y-2 lg:hidden"><span className="text-xs font-medium text-muted-foreground">관리 항목</span>
-      <select aria-label="클랜 관리 항목" value={selected} onChange={(event) => router.push(`${basePath}?tab=${event.target.value}`, { scroll: false })} className="min-h-11 w-full rounded-lg border border-border bg-card px-3 text-sm">
-        {[...new Set(MANAGE_SECTIONS.map((section) => section.group))].map((group) => <optgroup key={group} label={group}>{MANAGE_SECTIONS.filter((section) => section.group === group).map(({ key, label }) => <option key={key} value={key}>{label}{key === "requests" && pendingCount > 0 ? ` (${pendingCount})` : ""}</option>)}</optgroup>)}
+      <select aria-label="클랜 관리 항목" disabled={!ready || pending} value={selected} onChange={(event) => router.push(`${basePath}?tab=${event.target.value}`, { scroll: false })} className="min-h-11 w-full rounded-lg border border-border bg-card px-3 text-sm">
+        {[...new Set(visibleSections.map((section) => section.group))].map((group) => <optgroup key={group} label={group}>{visibleSections.filter((section) => section.group === group).map(({ key, label }) => <option key={key} value={key}>{label}{key === "requests" && pendingCount > 0 ? ` (${pendingCount})` : ""}</option>)}</optgroup>)}
       </select>
     </label>
     <nav aria-label="클랜 관리 항목" className="hidden gap-4 rounded-xl border border-border bg-card p-3 lg:sticky lg:top-20 lg:grid lg:self-start">
-      {[...new Set(MANAGE_SECTIONS.map((section) => section.group))].map((group) => (
+      {[...new Set(visibleSections.map((section) => section.group))].map((group) => (
         <div key={group} className="min-w-0 space-y-1">
           <p className="px-3 pb-1 text-[11px] font-semibold text-muted-foreground">{group}</p>
-          {MANAGE_SECTIONS.filter((section) => section.group === group).map(({ key, label }) => (
+          {visibleSections.filter((section) => section.group === group).map(({ key, label }) => (
             <Link
               key={key}
               href={`${basePath}?tab=${key}`}

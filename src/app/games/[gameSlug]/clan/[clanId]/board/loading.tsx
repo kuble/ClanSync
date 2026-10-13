@@ -1,0 +1,1 @@
+export default function BoardLoading(){return <div className="flex min-h-96 items-center justify-center rounded-xl border border-border bg-card text-sm text-muted-foreground" role="status">게시글을 불러오는 중…</div>;}

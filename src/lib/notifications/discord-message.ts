@@ -39,7 +39,7 @@ export function buildDiscordNotificationCard(row: DiscordNotificationRow, option
   if (!["http:", "https:"].includes(origin.protocol)) throw new Error("Invalid Discord notification site URL");
   const path = `/games/${encodeURIComponent(row.game_slug)}/clan/${encodeURIComponent(row.clan_id)}`;
   const target = row.room_id ? `${path}/balance?${new URLSearchParams({ room: row.room_id })}`
-    : row.notice_id ? `${path}?${new URLSearchParams({ notice: row.notice_id })}`
+    : row.notice_id ? `${path}/board/notices/${encodeURIComponent(row.notice_id)}`
     : row.poll_id ? `${path}/events?${new URLSearchParams({ tab: "polls", poll: row.poll_id })}`
     : `${path}/events?${new URLSearchParams({ event: row.event_id ?? "", at: row.start_at ?? "" })}`;
   const url = new URL(target, origin).href;

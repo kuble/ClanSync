@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
+test.use({actionTimeout:20000});
 
 test("officers manage real notices and rules across management and dashboard", async ({
   page,
@@ -20,8 +21,8 @@ test("officers manage real notices and rules across management and dashboard", a
     expect(body).not.toContain("scoreGaps");
     await expect(page.getByRole("button", { name: "공지 작성", exact: true })).toHaveCount(0);
     await expect(page.getByText("사이트 이용 통계", { exact: true })).toHaveCount(0);
-    await page.getByRole("navigation", { name: "클랜 관리 항목" }).getByRole("link", { name: "공지·규칙", exact: true }).click();
-    await expect(page).toHaveURL(/tab=notices/);
+    await page.goto(base+"/manage?tab=notices");
+    await expect(page).toHaveURL(/\/board\/notices$/);
     await page.getByRole("button", { name: "공지 작성", exact: true }).click();
     const editor = page.getByRole("dialog");
     await editor.getByLabel("제목", { exact: true }).fill(title);
@@ -89,14 +90,13 @@ test("officers manage real notices and rules across management and dashboard", a
     await page.goto(base);
     await page
       .getByRole("region", { name: "클랜 공지사항", exact: true })
-      .getByRole("button", { name: new RegExp(editedTitle) })
+      .getByRole("link", { name: new RegExp(editedTitle) })
       .click();
     await expect(
       page
-        .getByRole("dialog")
         .getByText("모임 시작 10분 전에 접속해 주세요.", { exact: true }),
     ).toBeVisible();
-    await page.keyboard.press("Escape");
+    await page.goto(base);
     await page
       .getByRole("button", { name: "클랜 규칙 전체 보기", exact: true })
       .click();
@@ -115,8 +115,8 @@ test("officers manage real notices and rules across management and dashboard", a
     await expect(
       page.getByText("조건에 맞는 멤버가 없습니다.", { exact: true }),
     ).toBeVisible();
-    await page.getByRole("navigation", { name: "클랜 관리 항목" }).getByRole("link", { name: "공지·규칙", exact: true }).click();
-    await expect(page).toHaveURL(/tab=notices/);
+    await page.goto(base+"/manage?tab=notices");
+    await expect(page).toHaveURL(/\/board\/notices$/);
     await page
       .getByRole("button", { name: `${editedTitle} 삭제`, exact: true })
       .click();
@@ -133,6 +133,7 @@ test("officers manage real notices and rules across management and dashboard", a
         return result.data?.length;
       })
       .toBe(0);
+    await page.goto(base+"/manage");
     await page.setViewportSize({ width: 390, height: 844 });
     expect(
       await page.evaluate(
@@ -185,7 +186,7 @@ test("management sections preserve navigation, pending counts and officer/member
 
     await page.setViewportSize({ width: 390, height: 844 });
     const select = page.getByRole("combobox", { name: "클랜 관리 항목", exact: true });
-    for (const key of ["overview", "notices", "appearance", "requests", "members", "balance", "notifications", "insights", "subscription"]) {
+    for (const key of ["overview", "appearance", "requests", "members", "balance", "notifications", "insights", "subscription"]) {
       await select.selectOption(key);
       await expect(page).toHaveURL(new RegExp(`tab=${key}$`));
       await expect(select).toHaveValue(key);

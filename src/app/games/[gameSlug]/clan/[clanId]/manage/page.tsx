@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { forbidden } from "next/navigation";
+import { forbidden, redirect } from "next/navigation";
 import { ClanManageNavigation } from "@/components/main-clan/clan-manage-tabs";
 import { ClanManageContent } from "@/components/main-clan/clan-manage-content";
 import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
@@ -12,6 +12,7 @@ export default async function ManagePage({ params, searchParams }: {
 }) {
   const [{ gameSlug, clanId }, query] = await Promise.all([params, searchParams]);
   const ctx = await getRequestMainClanContext(gameSlug, clanId);
+  if (ctx && query.tab === "notices") redirect("/games/"+gameSlug+"/clan/"+clanId+"/board/notices");
   if (!ctx || ctx.role === "member") forbidden();
   const selected = resolveManageTab(query.tab);
   const section = MANAGE_SECTIONS.find((item) => item.key === selected)!;
