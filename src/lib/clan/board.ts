@@ -21,15 +21,20 @@ export function isBoardKind(value: unknown): value is BoardKind {
   return typeof value === "string" && BOARD_SECTIONS.some(s => s.key === value && s.key !== "notices");
 }
 export type BoardPost = Database["public"]["Tables"]["clan_board_posts"]["Row"] & {
-  author: string; canManage: boolean; canReplaceImage: boolean; commentCount: number;
+  author: string; canManage: boolean; canReplaceImage: boolean; commentCount: number; coachName?: string; canSetStatus?: boolean;
 };
 export type BoardComment = Database["public"]["Tables"]["clan_board_comments"]["Row"] & { author: string; canManage: boolean };
-export type BoardDetails = { role?: string; replay?: string; video?: string; moment?: string; platform?: string; channel?: string; schedule?: string; takenAt?: string };
+export const STREAM_PLATFORMS = ["YouTube","CHZZK","Twitch","SOOP"] as const;
+export type BoardChannel = {platform:string;url:string};
+export type BoardDetails = { role?: string; replay?: string; video?: string; moment?: string; platform?: string; channel?: string; channels?: BoardChannel[]; schedule?: string; takenAt?: string };
 export const FEEDBACK_STATUS = { requested: "신청", answering: "답변 중", complete: "완료" } as const;
 export function boardDetails(value: Json): BoardDetails {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
-  return Object.fromEntries(Object.entries(value).filter(([key, v]) => ["role","replay","video","moment","platform","channel","schedule","takenAt"].includes(key) && typeof v === "string")) as BoardDetails;
+  const details = Object.fromEntries(Object.entries(value).filter(([key, v]) => ["role","replay","video","moment","platform","channel","schedule","takenAt"].includes(key) && typeof v === "string")) as BoardDetails;
+  if(Array.isArray(value.channels))details.channels=value.channels.filter((entry):entry is {platform:string;url:string}=>!!entry&&typeof entry==='object'&&!Array.isArray(entry)&&typeof entry.platform==='string'&&typeof entry.url==='string');
+  return details;
 }
+export function boardChannels(details:BoardDetails):BoardChannel[]{return details.channels??(details.platform&&details.channel?[{platform:details.platform,url:details.channel}]:[]);}
 export function safeBoardUrl(value: unknown): string | null {
   if (typeof value !== "string" || value.length > 1000) return null;
   try { const url = new URL(value); return url.protocol === "https:" && !url.username && !url.password ? url.href : null; } catch { return null; }
@@ -42,7 +47,7 @@ export function validateBoardInput(kind: BoardKind, title: string, content: stri
   if (!title.trim() || title.trim().length > 200) return "제목은 1~200자로 입력해 주세요.";
   if (content.trim().length > (kind === "memories" ? 100 : 20000)) return kind === "memories" ? "사진 아래 한마디는 100자 이내로 적어 주세요." : "본문은 20,000자 이내로 입력해 주세요.";
   if (kind === "free" && !content.trim()) return "본문을 입력해 주세요.";
-  if (Object.values(raw).some(v => typeof v !== "string" || v.length > 1000)) return "입력 내용을 확인해 주세요.";
+  if (Object.entries(raw).some(([key,v]) => key!=="channels"&&(typeof v !== "string" || v.length > 1000))) return "입력 내용을 확인해 주세요.";
   if (kind === "feedback") {
     if (!raw.role?.trim() || raw.role.length > 100 || !content.trim()) return "역할·영웅과 궁금한 점을 입력해 주세요.";
     if (raw.replay && !/^[a-z0-9]{6,12}$/i.test(raw.replay.trim())) return "리플레이 코드는 영문·숫자 6~12자로 입력해 주세요.";
@@ -51,10 +56,17 @@ export function validateBoardInput(kind: BoardKind, title: string, content: stri
     if ((raw.moment?.length ?? 0) > 100) return "궁금한 장면은 100자 이내로 적어 주세요.";
   }
   if (kind === "channels") {
-    const url = safeBoardUrl(raw.channel);
     const hosts: Record<string,string[]> = { YouTube:["youtube.com","youtu.be"], CHZZK:["chzzk.naver.com"], Twitch:["twitch.tv"], SOOP:["sooplive.co.kr","afreecatv.com"] };
-    const allowed = hosts[raw.platform ?? ""];
-    if (!url || !allowed?.some(h => new URL(url).hostname === h || new URL(url).hostname.endsWith("." + h))) return "플랫폼에 맞는 방송 채널의 https 링크를 입력해 주세요.";
+    const channels=boardChannels(raw);
+    if(!Array.isArray(channels)||channels.length<1||channels.length>4)return "방송 채널을 1~4개 등록해 주세요.";
+    const platforms=new Set<string>();
+    for(const entry of channels){
+      if(!entry||typeof entry.platform!=="string"||typeof entry.url!=="string"||entry.url.length>600)return "방송 채널 정보를 확인해 주세요.";
+      const url=safeBoardUrl(entry.url),allowed=hosts[entry.platform];
+      if(!url||!allowed?.some(h=>new URL(url).hostname===h||new URL(url).hostname.endsWith("."+h)))return "플랫폼에 맞는 방송 채널의 https 링크를 입력해 주세요.";
+      if(platforms.has(entry.platform))return "같은 방송 플랫폼은 한 번만 등록해 주세요.";
+      platforms.add(entry.platform);
+    }
     if ((raw.schedule?.length ?? 0) > 100) return "방송 시간은 100자 이내로 적어 주세요.";
   }
   if (raw.takenAt && (!/^\d{4}-\d{2}-\d{2}$/.test(raw.takenAt) || !Number.isFinite(Date.parse(raw.takenAt)) || new Date(raw.takenAt).toISOString().slice(0,10) !== raw.takenAt)) return "촬영일을 확인해 주세요.";
