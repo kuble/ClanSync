@@ -5,6 +5,7 @@ import type { MainClanContext } from "@/lib/clan/load-main-clan-context";
 import type { ManageTab } from "@/lib/clan/manage-sections";
 import { loadClanHistory } from "@/lib/clan/load-clan-history";
 import { ClanBadges } from "./clan-badges";
+import { loadClanBadges } from "@/lib/clan/load-clan-badges";
 import { hasRequestClanPermission } from "@/lib/clan/request-clan-access";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import { createServiceRoleClient } from "@/lib/supabase/service";
@@ -60,9 +61,10 @@ async function NotificationSettings({ ctx, connectionResult }: Pick<Props, "ctx"
 
 async function Overview({ ctx }: Pick<Props, "ctx">) {
   const svc = createServiceRoleClient();
-  const [profile, history] = await Promise.all([
+  const [profile, history, badges] = await Promise.all([
     svc.from("clans").select("created_at,coin_balance,max_members").eq("id", ctx.clanId).single(),
     loadClanHistory(svc, ctx.clanId),
+    loadClanBadges(ctx.clanId).catch(() => null),
   ]);
   if (profile.error) throw new Error("클랜 정보를 불러오지 못했습니다.");
   const base = `/games/${ctx.gameSlug}/clan/${ctx.clanId}`;
@@ -77,7 +79,7 @@ async function Overview({ ctx }: Pick<Props, "ctx">) {
       {facts.map(({ label, value, detail, href }) => (
         <Link key={label} href={href} prefetch={false} aria-label={`${label} ${value}`} className="group min-w-0 rounded-xl border border-border bg-card p-3 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-5">
           <div className="flex items-center justify-between gap-1"><p className="text-[11px] text-muted-foreground sm:text-xs">{label}</p><ArrowUpRight className="size-3 shrink-0 text-muted-foreground/60 group-hover:text-primary" aria-hidden /></div>
-          <p className="mt-3 break-words text-xl font-semibold tabular-nums sm:text-2xl">{value}</p><p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{detail}</p>
+          {label === "총 내전" ? <><dl className="mt-3 grid grid-cols-2 gap-2"><div><dt className="text-[11px] text-muted-foreground">정규 내전</dt><dd className="mt-1 text-lg font-semibold tabular-nums sm:text-xl">{history.regular == null ? "확인 필요" : history.regular.toLocaleString()+"회"}</dd></div><div><dt className="text-[11px] text-muted-foreground">깜짝 내전</dt><dd className="mt-1 text-lg font-semibold tabular-nums sm:text-xl">{history.flash == null ? "확인 필요" : history.flash.toLocaleString()+"회"}</dd></div></dl><p className="mt-2 text-[11px] text-muted-foreground">총 {value} · 개설 회차{history.regular != null && history.flash != null && history.total != null && history.regular+history.flash!==history.total ? " · 분류 확인 필요":""}</p></> : <><p className="mt-3 break-words text-xl font-semibold tabular-nums sm:text-2xl">{value}</p><p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{detail}</p></>}
         </Link>
       ))}
     </div>
@@ -89,8 +91,8 @@ async function Overview({ ctx }: Pick<Props, "ctx">) {
     </section>
     <section className={`${panel} space-y-4`} aria-label="클랜 배지">
       <div className="flex items-center gap-2"><Trophy className="size-4 text-primary" aria-hidden /><h4 className="text-sm font-semibold">클랜 배지</h4></div>
-      <ClanBadges createdAt={profile.data.created_at} completedIntraCount={history.completedRegular} now={new Date().toISOString()} />
-      <p className="text-[11px] text-muted-foreground">내전 배지는 종료된 정규 내전 회차를 기준으로 달성합니다.</p>
+      {badges ? <ClanBadges collection={badges} gameSlug={ctx.gameSlug} clanId={ctx.clanId} compact /> : <p role="alert" className="flex min-h-52 items-center justify-center text-sm text-muted-foreground">배지 기록을 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</p>}
+      <p className="text-[11px] text-muted-foreground">내전 배지는 종료된 종류별 내전 회차를 기준으로 달성합니다.</p>
     </section>
   </div>;
 }

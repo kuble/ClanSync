@@ -22,6 +22,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ClanBadges } from "@/components/main-clan/clan-badges";
+import type { ClanBadgeCollection } from "@/lib/clan/badges";
 import { StorePremiumPlanDialog } from "@/components/main-clan/store-premium-plan-dialog";
 import { listUpcomingOccurrenceStarts } from "@/lib/clan/expand-clan-event-occurrences";
 import type { ClanMemberRole } from "@/lib/clan/permission-defaults";
@@ -126,11 +127,9 @@ function EmptyCard({
 
 function NoticeRow({
   notice,
-  onRead,
   href,
 }: {
   notice: DashboardNotice;
-  onRead: () => void;
   href: string;
 }) {
   const contents = (
@@ -166,14 +165,10 @@ function NoticeRow({
   );
   const className =
     "flex w-full items-start gap-3 rounded-lg border-l-[3px] border-primary bg-muted/55 px-3.5 py-3 text-left transition hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
-  return notice.kind === "poll" ? (
+  return (
     <Link href={href} className={className}>
       {contents}
     </Link>
-  ) : (
-    <button type="button" onClick={onRead} className={className}>
-      {contents}
-    </button>
   );
 }
 
@@ -386,6 +381,7 @@ export function ClanDashboard({
   isPremium,
   actorRole,
   initialNotice,
+  badgeCollection,
 }: {
   model: ClanDashboardModel;
   gameSlug: string;
@@ -393,6 +389,7 @@ export function ClanDashboard({
   isPremium: boolean;
   actorRole: ClanMemberRole;
   initialNotice?: { title: string; content: string };
+  badgeCollection: ClanBadgeCollection | null;
 }) {
   const base = `/games/${gameSlug}/clan/${clanId}`;
   const [reading, setReading] = useState<{
@@ -423,7 +420,7 @@ export function ClanDashboard({
               클랜 공지사항
             </h3>
             {actorRole !== "member" && (
-              <Link href={`${base}/manage?tab=notices#notices`} className={smallLink}>
+              <Link href={`${base}/board/notices`} className={smallLink}>
                 공지 관리
                 <ArrowUpRight className="size-3" aria-hidden="true" />
               </Link>
@@ -441,14 +438,7 @@ export function ClanDashboard({
                 <li key={`${notice.kind}:${notice.id}`}>
                 <NoticeRow
                   notice={notice}
-                  href={`${base}/events?tab=polls`}
-                  onRead={() =>
-                    setReading({
-                      title: notice.title,
-                      content: notice.content,
-                      description: "클랜 공지사항",
-                    })
-                  }
+                  href={notice.kind === "poll" ? `${base}/events?tab=polls` : `${base}/board/notices/${notice.id}`}
                 />
                 </li>
               ))}
@@ -467,7 +457,7 @@ export function ClanDashboard({
               클랜 규칙
             </h3>
             {actorRole !== "member" ? (
-              <Link href={`${base}/manage?tab=notices#rules`} className={smallLink}>편집</Link>
+              <Link href={`${base}/board/notices#rules`} className={smallLink}>편집</Link>
             ) : model.rules ? (
               <button type="button" className={smallLink} onClick={readRules}>
                 전체 보기
@@ -509,7 +499,7 @@ export function ClanDashboard({
               aria-hidden="true"
             />
           </div>
-          <ClanBadges createdAt={model.createdAt} completedIntraCount={model.completedIntraCount} now={model.now} className="min-[1101px]:grid-cols-2" />
+          {badgeCollection ? <ClanBadges collection={badgeCollection} gameSlug={gameSlug} clanId={clanId} compact /> : <p role="alert" className="flex min-h-52 items-center justify-center text-sm text-muted-foreground">배지 기록을 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</p>}
         </section>
         <MvpCard
           title="지난달 승률 MVP"

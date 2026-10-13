@@ -3,6 +3,7 @@ import { ClanDashboard } from "@/components/main-clan/clan-dashboard";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { loadClanDashboard } from "@/lib/clan/load-clan-dashboard";
+import { loadClanBadges } from "@/lib/clan/load-clan-badges";
 
 export default async function MainClanDashboardPage({
   params,
@@ -17,7 +18,7 @@ export default async function MainClanDashboardPage({
   if (!user) redirect("/sign-in");
   const ctx = await getRequestMainClanContext(gameSlug, clanId);
   if (!ctx) notFound();
-  const model = await loadClanDashboard(supabase, clanId, ctx.plan);
+  const [model, badgeCollection] = await Promise.all([loadClanDashboard(supabase, clanId, ctx.plan), loadClanBadges(clanId).catch(() => null)]);
   if (!model) notFound();
   const { notice: noticeId } = await searchParams;
   let initialNotice: { title: string; content: string } | undefined;
@@ -28,6 +29,7 @@ export default async function MainClanDashboardPage({
   return (
     <ClanDashboard
       model={model}
+      badgeCollection={badgeCollection}
       gameSlug={gameSlug}
       clanId={clanId}
       isPremium={ctx.plan === "premium"}
