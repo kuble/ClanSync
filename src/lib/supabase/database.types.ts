@@ -918,6 +918,48 @@ export type Database = {
           },
         ]
       }
+      clan_board_coaches: {
+        Row: {
+          accepting: boolean
+          bio: string
+          clan_id: string
+          expertise: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accepting?: boolean
+          bio?: string
+          clan_id: string
+          expertise: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          accepting?: boolean
+          bio?: string
+          clan_id?: string
+          expertise?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_board_coaches_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_board_coaches_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_board_comments: {
         Row: {
           author_id: string | null
@@ -961,6 +1003,7 @@ export type Database = {
         Row: {
           author_id: string | null
           clan_id: string
+          coach_id: string | null
           content: string
           created_at: string
           details: Json
@@ -974,6 +1017,7 @@ export type Database = {
         Insert: {
           author_id?: string | null
           clan_id: string
+          coach_id?: string | null
           content?: string
           created_at?: string
           details?: Json
@@ -987,6 +1031,7 @@ export type Database = {
         Update: {
           author_id?: string | null
           clan_id?: string
+          coach_id?: string | null
           content?: string
           created_at?: string
           details?: Json
@@ -1010,6 +1055,13 @@ export type Database = {
             columns: ["clan_id"]
             isOneToOne: false
             referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_board_posts_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
