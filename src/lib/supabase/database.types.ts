@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -829,6 +829,217 @@ export type Database = {
             columns: ["clan_id"]
             isOneToOne: false
             referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_badge_awards: {
+        Row: {
+          badge_key: string
+          clan_id: string
+          created_at: string
+          earned_at: string | null
+        }
+        Insert: {
+          badge_key: string
+          clan_id: string
+          created_at?: string
+          earned_at?: string | null
+        }
+        Update: {
+          badge_key?: string
+          clan_id?: string
+          created_at?: string
+          earned_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_badge_awards_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_badge_featured: {
+        Row: {
+          badge_keys: string[]
+          clan_id: string
+        }
+        Insert: {
+          badge_keys?: string[]
+          clan_id: string
+        }
+        Update: {
+          badge_keys?: string[]
+          clan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_badge_featured_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: true
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_badge_seen: {
+        Row: {
+          clan_id: string
+          seen_at: string
+          user_id: string
+        }
+        Insert: {
+          clan_id: string
+          seen_at?: string
+          user_id?: string
+        }
+        Update: {
+          clan_id?: string
+          seen_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_badge_seen_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_badge_seen_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_board_comments: {
+        Row: {
+          author_id: string | null
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+        }
+        Insert: {
+          author_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+        }
+        Update: {
+          author_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_board_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_board_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "clan_board_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_board_posts: {
+        Row: {
+          author_id: string | null
+          clan_id: string
+          content: string
+          created_at: string
+          details: Json
+          id: string
+          image_path: string | null
+          kind: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          clan_id: string
+          content?: string
+          created_at?: string
+          details?: Json
+          id?: string
+          image_path?: string | null
+          kind: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          clan_id?: string
+          content?: string
+          created_at?: string
+          details?: Json
+          id?: string
+          image_path?: string | null
+          kind?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_board_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_board_posts_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_board_reactions: {
+        Row: {
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          post_id: string
+          user_id?: string
+        }
+        Update: {
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_board_reactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "clan_board_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_board_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
