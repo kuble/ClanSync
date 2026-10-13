@@ -10,18 +10,20 @@
 |---|---|---|
 | 클랜 공지 및 규칙 | `board/notices` | 규칙 문서와 고정 우선 공지 목록. 운영진 편집, 클랜원 열람 |
 | 자유 게시판 | `board/free` | 제목·본문·선택 사진, 댓글·공감 |
-| 피드백 신청 게시판 | `board/feedback` | 역할·영웅, 리플레이 코드 또는 영상 링크, 장면·질문. 신청/답변 중/완료 |
-| 방송 채널 홍보방 | `board/channels` | YouTube/CHZZK/Twitch/SOOP 채널 카드, 소개·방송 시간·외부 링크 |
+| 피드백 신청 게시판 | `board/feedback` | 클랜원 선생님 자기 등록·분야/소개·신청 중단, 선생님 지정 리플레이 신청과 신청/답변 중/완료 |
+| 방송 채널 홍보방 | `board/channels` | YouTube/CHZZK/Twitch/SOOP 최대 4개 링크, 소개·방송 시간·플랫폼별 라이브 상태 |
 | 추억 열람방 | `board/memories` | 사진 한 장·100자 이내 한마디·선택 촬영일. 폴라로이드 앨범과 전체 보기 |
 
 전체 기본 주소는 `/games/[gameSlug]/clan/[clanId]`이다. 글 상세는 `board/[section]/[postId]`, 목록은 24개씩, 댓글은 50개씩 페이지로 조회한다.
 
 - 공지는 기존 `clan_notices`, 규칙은 `clans.rules`와 저장 액션을 유지한다. 구 `manage?tab=notices` 주소는 게시판으로 연결하며 대시보드 공지·관리 링크와 새 Discord 공지 링크는 게시판을 가리킨다. 기존 `?notice=<id>` 직접 링크도 열람을 유지한다.
 - 일반 글은 `clan_board_posts`, 댓글/공감은 각각 `clan_board_comments`/`clan_board_reactions`로 관리한다. 게임 허브의 공개 홍보·스크림 게시판과 섞지 않는다.
-- 작성자는 본인 글/댓글 편집·삭제, 운영진은 게시판 관리가 가능하다. 댓글 권한은 글 작성자와 별개다. 피드백 상태는 신청자 또는 운영진이 변경한다. 별도 지정 코치·비공개 신청은 후속 범위다.
+- 작성자는 본인 글/댓글 편집·삭제, 운영진은 게시판 관리가 가능하다. 댓글 권한은 글 작성자와 별개다. 클랜원이 직접 선생님으로 등록하고 신청 받기를 중단/재개한다. 새 요청은 활성 소속이며 신청을 받는 다른 선생님을 지정한다. 기존 미지정 요청은 보존한다. 피드백 상태는 신청자·담당 선생님·운영진이 변경하며 선생님에게 신청자 글의 편집/삭제 권한을 주지 않는다. 비공개 신청은 후속 범위다.
+- 선생님 지정 신청은 해당 선생님에게 사이트 알림을 보낸다. 새 댓글은 신청자·선생님·이전 댓글 참여자의 활성 소속을 확인해 본인을 제외하고 한 번씩 보낸다. 댓글 수정은 재알림하지 않는다. 알림의 원본 링크는 해당 신청/댓글 영역으로 이동하며 표시 중인 탭은 30초마다 새 알림을 확인한다.
+- 방송 플랫폼은 추가/삭제할 수 있으며 같은 플랫폼을 중복 등록하지 않는다. 기존 단일 채널 글도 유지한다. YouTube/Twitch/CHZZK의 공식 API 어댑터와 키 미설정/실패 상태를 제공한다. 현재 키 미설정이며 SOOP 자동 확인은 미지원이다([연결 안내](../../guides/clan-channel-live.md)).
 - 사진은 비공개 저장소 `clan-board-images`를 사용한다. JPEG/PNG/WebP, 원본 최대 5MB와 600px WebP 미리보기로 저장한다. 사진 변경/글 삭제·확정되지 않은 업로드 실패 때 파일 정리를 시도하고, 정리 실패는 성공한 글 저장과 구분해 알린다. 저장 응답이 끊겨도 이미 저장된 글의 사진을 지우지 않는다.
 - 사진 열람은 `board/image/[postId]`에서 요청마다 현재 계정·게임·클랜 소속·글을 확인한다. 원본/미리보기 모두 공개 URL을 발급하지 않으며 응답은 `private, no-store`이다. 탈퇴자 요청은 기존 미들웨어의 가입 화면 연결 또는 접근 거부로 차단한다.
-- 추억 앨범은 정면의 사진과 기울어진 주변 사진, 좌우 버튼·스와이프·방향키를 사용한다. 자동 회전 없이 한 장씩 이동하며 동작 축소 설정과 모바일 한 장 열람을 제공한다. 긴 한마디는 앨범에서 세 줄로 요약하고 상세에서 전체를 읽는다.
+- 추억 앨범은 제공받은 React Bits CircularCarousel의 원형 orbit 배치·스프링·드래그 관성·스냅을 폴라로이드에 적용한다. 각 카드/사진은 글 ID로 유지하고 링을 회전시켜 이미지 교체 지연을 없앤다. 좌우 버튼·방향키·Home/End·모바일 드래그·동작 축소와 전체 보기를 제공한다. 긴 한마디는 앨범에서 세 줄로 요약하고 상세에서 전체를 읽는다. 촬영일은 밝은 달력 아이콘과 필드 클릭 즉시 네이티브 달력을 연다. React Bits 저작권·라이선스는 소스 옆에 보존한다.
 - 저장 실패 시 작성 내용과 선택 파일을 유지한다. 공간/페이지 이동과 로딩·오류는 공통 목차 아래의 내용 영역에서 처리한다. 사진은 미리보기부터 지연 로드한다.
 
 ## 배지 케이스와 회차
@@ -37,6 +39,8 @@
 
 - 메뉴/경로: `src/app/games/[gameSlug]/clan/[clanId]/board/` · `badges/`
 - 게시판: `src/lib/clan/board.ts` · `load-clan-board.ts` · `src/app/actions/clan-board.ts`
+- 코칭: `src/lib/clan/load-clan-coaches.ts` · `src/components/main-clan/clan-coach-directory.tsx` · `e2e/clan-coaching.spec.ts` · `scripts/clan-coaching-db.test.mjs`
+- 앨범: `src/components/main-clan/circular-carousel.tsx`; 방송: `channel-live.mjs` · `scripts/channel-live.test.mjs`
 - 케이스: `src/lib/clan/badges.ts` · `load-clan-badges.ts` · `src/components/main-clan/clan-badges.tsx`
 - DB/권한: `scripts/clan-boards-db.test.mjs`; 브라우저: `e2e/clan-board.spec.ts`, `clan-management-overview.spec.ts`, `clan-management.spec.ts`, 공지 링크 관련 `clan-discord-notifications.spec.ts`
 - 실제 수행한 검증과 제한은 [Phase 2 현황](../../TODO_Phase2.md)에 기록한다.
