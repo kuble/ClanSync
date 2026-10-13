@@ -15,6 +15,8 @@
 /games/[gameSlug]/clan/[clanId]/balance → 밸런스메이커
 /games/[gameSlug]/clan/[clanId]/stats   → 클랜 통계(탭·권한: [pages/10-Clan-Stats.md](./pages/10-Clan-Stats.md))
 /games/[gameSlug]/clan/[clanId]/events  → 클랜 이벤트
+/games/[gameSlug]/clan/[clanId]/board   → 클랜 게시판(공지·규칙/자유/리플레이 신청/방송 채널/추억)
+/games/[gameSlug]/clan/[clanId]/badges  → 클랜 배지 케이스
 /games/[gameSlug]/clan/[clanId]/manage  → 클랜 관리(구성원별 개인 통계·승패 등)
 /games/[gameSlug]/clan/[clanId]/store   → 클랜 스토어
 /games/[gameSlug]                       → MainGame (커뮤니티)

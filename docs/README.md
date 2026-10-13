@@ -8,6 +8,8 @@
 
 | 기능 | 코드 시작점 | 관련 테스트 |
 |---|---|---|
+| 클랜 게시판·사진 앨범 | [목록/입력 규칙](../src/lib/clan/board.ts) · [저장 액션](../src/app/actions/clan-board.ts) · [화면](../src/components/main-clan/clan-board-posts.tsx) · [명세](01-plan/pages/15-Clan-Board.md) | [작성·상태·사진·권한](../e2e/clan-board.spec.ts) · [DB/RLS](../scripts/clan-boards-db.test.mjs) · [공지 이동](../e2e/clan-management.spec.ts) |
+| 내전 회차·클랜 배지 케이스 | [회차](../src/lib/clan/load-clan-history.ts) · [배지 로더](../src/lib/clan/load-clan-badges.ts) · [핀 케이스](../src/components/main-clan/clan-badges.tsx) | [회차·획득·대시보드](../e2e/clan-management-overview.spec.ts) · [발급/진열 권한](../scripts/clan-boards-db.test.mjs) |
 | 내전 로비·예약·참석 응답 | [로비](../src/components/main-clan/clan-balance-lobby.tsx) · [방 액션](../src/app/actions/clan-balance-rooms.ts) · [방 권한](../src/lib/balance/room-access.ts) | [로비 통합](../e2e/balance-lobby.spec.ts) · [방 DB](../scripts/balance-rooms-db.test.mjs) |
 | 명단 입력·자동 저장 | [명단 편집](../src/components/main-clan/clan-balance-roster-editor.tsx) · [자동 저장](../src/lib/balance/roster-autosave.ts) | [목록 배치·드래그](../e2e/balance-roster-dock.spec.ts) · [roster-autosave](../e2e/roster-autosave.spec.ts) · [내전 통합](../e2e/balance-session-live.spec.ts) |
 | 참가자 점수·세션 전적 | [정보창](../src/components/main-clan/balance-player-details.tsx) · [세션 집계](../src/lib/balance/player-session-stats.ts) · [점수 표시](../src/lib/balance/score-display.ts) | [점수·호버 통합](../e2e/balance-insights.spec.ts) · [세션 집계](../e2e/player-session-stats.spec.ts) · [합계](../e2e/balance-score-display.spec.ts) |
