@@ -21,6 +21,8 @@ import {
 import type { ClanInAppNotificationVM } from "@/lib/clan/load-clan-inapp-notifications";
 import type { Json } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
+import {createClient} from "@/lib/supabase/client";
+import {uuidPattern} from "@/lib/clan/board";
 
 function formatRelativeKo(iso: string): string {
   const t = new Date(iso).getTime();
@@ -61,6 +63,10 @@ function notificationTitle(
   payload: Json,
 ): { title: string; href: string | null } {
   const base = (g: string, h: string | null) => ({ title: g, href: h });
+  if((kind==="coaching_requested"||kind==="coaching_comment")&&payload&&typeof payload==='object'&&!Array.isArray(payload)){
+    const title=typeof payload.post_title==='string'?payload.post_title:'리플레이 피드백';
+    return base((kind==="coaching_requested"?'새 코칭 신청':'코칭 댓글')+' · '+title,null);
+  }
 
   if (kind === "poll_reminder" && payload && typeof payload === "object") {
     const p = payload as Record<string, unknown>;
@@ -114,6 +120,20 @@ export function ClanInAppNotificationBell({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [badgeHidden, setBadgeHidden] = useState(false);
+  const signature=initialItems.map(i=>i.id+':'+(i.read_at??'')).join('|');
+  useEffect(()=>{
+    const client=createClient();let stopped=false,busy=false;
+    async function check(){
+      if(document.hidden||busy)return;busy=true;
+      try{
+        const rows=await client.from('notifications').select('id,read_at').or(`clan_id.eq.${clanId},clan_id.is.null`).order('created_at',{ascending:false}).limit(30);
+        if(!stopped&&!rows.error&&rows.data.map(i=>i.id+':'+(i.read_at??'')).join('|')!==signature)router.refresh();
+      }catch{/* Retry on the next poll without interrupting the current page. */}finally{busy=false;}
+    }
+    const timer=window.setInterval(check,30_000);
+    document.addEventListener('visibilitychange',check);
+    return ()=>{stopped=true;clearInterval(timer);document.removeEventListener('visibilitychange',check);};
+  },[clanId,router,signature]);
 
   useEffect(() => {
     setBadgeHidden(false);
@@ -124,6 +144,7 @@ export function ClanInAppNotificationBell({
   /** 열 때 revalidate(읽음 RPC)가 오픈 직후와 겹치면 Dialog 팝업이 뜨지 않을 수 있어, 읽음 처리는 닫을 때만 수행. */
   const onOpenChange = (next: boolean) => {
     if (next) {
+      router.refresh();
       const unreadIds = initialItems
         .filter((i) => i.read_at == null)
         .map((i) => i.id);
@@ -230,6 +251,9 @@ export function ClanInAppNotificationBell({
 
                 if (isLfgExpire && gameSlug) {
                   href = `/games/${encodeURIComponent(gameSlug)}?tab=lfg`;
+                }
+                if((row.kind==='coaching_requested'||row.kind==='coaching_comment')&&typeof p.post_id==='string'&&uuidPattern.test(p.post_id)){
+                  href=eventsBase.replace(/\/events$/,'')+'/board/feedback/'+p.post_id+(row.kind==='coaching_comment'?'#comments':'');
                 }
 
                 return (

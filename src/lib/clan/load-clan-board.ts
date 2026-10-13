@@ -20,7 +20,7 @@ export async function loadClanBoard(clanId: string, kind: BoardKind, page: numbe
   return { userId:user.id, posts:result.data.map((row): BoardPost => ({
     ...row,author:row.author_id ? nicknames.get(row.author_id) ?? "이전 멤버" : "탈퇴한 멤버",
     canManage:staff || row.author_id===user.id,canReplaceImage:row.author_id===user.id,
-    commentCount:row.clan_board_comments[0]?.count ?? 0,
+    commentCount:row.clan_board_comments[0]?.count ?? 0,coachName:row.coach_id?nicknames.get(row.coach_id)??"이전 선생님":undefined,
   })),total:result.count ?? 0 };
 }
 
@@ -44,7 +44,7 @@ export async function loadBoardArticle(clanId: string, kind: BoardKind, postId: 
   const nicknames = new Map(names.data.map(row=>[row.user_id,row.nickname]));
   const name = (id: string | null) => id ? nicknames.get(id) ?? "이전 멤버" : "탈퇴한 멤버";
   return {
-    post:{ ...post.data,author:name(post.data.author_id),canManage:staff || post.data.author_id===user.id,canReplaceImage:post.data.author_id===user.id,commentCount:comments.count ?? 0 } satisfies BoardPost,
+    post:{ ...post.data,author:name(post.data.author_id),canManage:staff || post.data.author_id===user.id,canReplaceImage:post.data.author_id===user.id,commentCount:comments.count ?? 0,coachName:post.data.coach_id?name(post.data.coach_id):undefined,canSetStatus:staff||post.data.author_id===user.id||post.data.coach_id===user.id } satisfies BoardPost,
     comments:comments.data.map((row): BoardComment=>({...row,author:name(row.author_id),canManage:staff || row.author_id===user.id})),
     reactions:reactions.count ?? 0,liked:!!mine.data,userId:user.id,
   };

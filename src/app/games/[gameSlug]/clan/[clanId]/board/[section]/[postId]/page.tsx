@@ -3,6 +3,7 @@ import { forbidden,notFound } from "next/navigation";
 import { getRequestClient } from "@/lib/supabase/request";
 import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { loadBoardArticle } from "@/lib/clan/load-clan-board";
+import {loadClanCoaches} from "@/lib/clan/load-clan-coaches";
 import { isBoardKind,uuidPattern } from "@/lib/clan/board";
 import { ClanBoardArticle } from "@/components/main-clan/clan-board-article";
 export default async function PostPage({params,searchParams}:{params:Promise<{gameSlug:string;clanId:string;section:string;postId:string}>;searchParams:Promise<{comments?:string}>}) {
@@ -20,7 +21,7 @@ export default async function PostPage({params,searchParams}:{params:Promise<{ga
   }
   if(!isBoardKind(section))notFound();
   const commentPage=/^[1-9]\d{0,4}$/.test(query.comments??"")?Number(query.comments):1;
-  const data=await loadBoardArticle(clanId,section,postId,commentPage);
+  const [data,coaches]=await Promise.all([loadBoardArticle(clanId,section,postId,commentPage),section==="feedback"?loadClanCoaches(clanId):Promise.resolve([])]);
   if(!data)notFound();
-  return <ClanBoardArticle key={data.userId+postId} base={base} gameSlug={gameSlug} clanId={clanId} kind={section} {...data} commentPage={commentPage}/>;
+  return <ClanBoardArticle key={data.userId+postId} base={base} gameSlug={gameSlug} clanId={clanId} kind={section} {...data} commentPage={commentPage} coaches={coaches}/>;
 }

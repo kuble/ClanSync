@@ -2,7 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
-import { BOARD_IMAGE_BUCKET, boardThumbnail, isBoardKind, uuidPattern, validateBoardInput, type BoardDetails } from "@/lib/clan/board";
+import { BOARD_IMAGE_BUCKET, boardChannels, boardThumbnail, isBoardKind, uuidPattern, validateBoardInput, type BoardDetails } from "@/lib/clan/board";
 
 type Result = { ok: true; id?: string; warning?: string } | { ok: false; error: string };
 async function actor(gameSlug: string, clanId: string) {
@@ -16,7 +16,7 @@ async function actor(gameSlug: string, clanId: string) {
 function refresh(gameSlug: string, clanId: string) { revalidatePath("/games/" + gameSlug + "/clan/" + clanId + "/board", "layout"); }
 
 export async function saveBoardPostAction(gameSlug: string, clanId: string, input: {
-  id: string; kind: string; title: string; content: string; details: BoardDetails; imagePath: string | null; editing: boolean;
+  id: string; kind: string; title: string; content: string; details: BoardDetails; imagePath: string | null; editing: boolean; coachId?:string|null;
 }): Promise<Result> {
   if (!input || !uuidPattern.test(input.id) || !isBoardKind(input.kind) || typeof input.title !== "string" || typeof input.content !== "string" || !input.details || typeof input.details !== "object" || Array.isArray(input.details) || typeof input.editing !== "boolean")
     return { ok:false,error:"글 정보를 확인해 주세요." };
@@ -24,8 +24,14 @@ export async function saveBoardPostAction(gameSlug: string, clanId: string, inpu
   if (error) return { ok:false,error };
   const ctx = await actor(gameSlug,clanId);
   if (!ctx) return { ok:false,error:"활성 클랜원만 글을 작성할 수 있습니다." };
-  const old = input.editing ? await ctx.supabase.from("clan_board_posts").select("id,author_id,image_path").eq("id",input.id).eq("clan_id",clanId).eq("kind",input.kind).maybeSingle() : null;
+  const old = input.editing ? await ctx.supabase.from("clan_board_posts").select("id,author_id,image_path,coach_id").eq("id",input.id).eq("clan_id",clanId).eq("kind",input.kind).maybeSingle() : null;
   if (input.editing && (old?.error || !old?.data || (old.data.author_id !== ctx.user.id && ctx.ctx.role === "member"))) return { ok:false,error:"이 글을 편집할 권한이 없습니다." };
+  const coachId=input.kind==="feedback"?(input.coachId??old?.data?.coach_id??null):null;
+  if(input.kind==="feedback"&&(!input.editing||coachId!==old?.data?.coach_id)){
+    if(typeof coachId!=="string"||!uuidPattern.test(coachId))return {ok:false,error:"피드백을 받을 코칭 선생님을 선택해 주세요."};
+    const coach=await ctx.supabase.from("clan_board_coaches").select("user_id").eq("clan_id",clanId).eq("user_id",coachId).eq("accepting",true).maybeSingle();
+    if(coach.error||!coach.data||coachId===(old?.data?.author_id??ctx.user.id))return {ok:false,error:"신청을 받는 다른 코칭 선생님을 선택해 주세요."};
+  }
   if (input.imagePath !== null) {
     if (typeof input.imagePath !== "string") return { ok:false,error:"사진 정보를 확인해 주세요." };
     if (input.imagePath !== old?.data?.image_path) {
@@ -40,9 +46,9 @@ export async function saveBoardPostAction(gameSlug: string, clanId: string, inpu
   }
   if (input.kind === "memories" && !input.imagePath) return { ok:false,error:"추억 사진을 한 장 선택해 주세요." };
   const details: BoardDetails = input.kind === "feedback" ? { role:input.details.role?.trim(), replay:input.details.replay?.trim().toUpperCase(), video:input.details.video?.trim(), moment:input.details.moment?.trim() }
-    : input.kind === "channels" ? { platform:input.details.platform, channel:input.details.channel?.trim(), schedule:input.details.schedule?.trim() }
+    : input.kind === "channels" ? { channels:boardChannels(input.details).map(c=>({platform:c.platform,url:c.url.trim()})), schedule:input.details.schedule?.trim() }
     : input.kind === "memories" ? { takenAt:input.details.takenAt } : {};
-  const values = { title:input.title.trim(),content:input.content.trim(),details:JSON.parse(JSON.stringify(details)),image_path:input.imagePath };
+  const values = { title:input.title.trim(),content:input.content.trim(),details:JSON.parse(JSON.stringify(details)),image_path:input.imagePath,coach_id:coachId };
   const query = input.editing ? ctx.supabase.from("clan_board_posts").update(values).eq("id",input.id).eq("clan_id",clanId).eq("kind",input.kind)
     : ctx.supabase.from("clan_board_posts").insert({ ...values,id:input.id,clan_id:clanId,kind:input.kind });
   const saved = await query.select("id").maybeSingle();
@@ -76,7 +82,7 @@ export async function setBoardStatusAction(gameSlug: string, clanId: string, id:
   const ctx = await actor(gameSlug,clanId);
   if (!ctx) return { ok:false,error:"클랜 접근 권한을 확인해 주세요." };
   const result = await ctx.supabase.from("clan_board_posts").update({status}).eq("id",id).eq("clan_id",clanId).eq("kind","feedback").select("id").maybeSingle();
-  if (result.error || !result.data) return { ok:false,error:"신청자 또는 운영진만 상태를 바꿀 수 있습니다." };
+  if (result.error || !result.data) return { ok:false,error:"신청자·담당 선생님·운영진만 상태를 바꿀 수 있습니다." };
   refresh(gameSlug,clanId); return { ok:true };
 }
 
@@ -111,4 +117,16 @@ export async function setBoardReactionAction(gameSlug: string, clanId: string, p
   const result = liked ? await ctx.supabase.from("clan_board_reactions").insert({post_id:postId}) : await ctx.supabase.from("clan_board_reactions").delete().eq("post_id",postId).eq("user_id",ctx.user.id);
   if (result.error && result.error.code !== "23505") return {ok:false,error:"공감을 저장하지 못했습니다."};
   refresh(gameSlug,clanId); return {ok:true};
+}
+
+export async function saveCoachProfileAction(gameSlug:string,clanId:string,input:{expertise:string;bio:string;accepting:boolean}):Promise<Result>{
+  if(!input||typeof input.expertise!=="string"||!input.expertise.trim()||input.expertise.trim().length>100||typeof input.bio!=="string"||input.bio.length>1000||typeof input.accepting!=="boolean")return {ok:false,error:"코칭 분야와 소개를 확인해 주세요."};
+  const ctx=await actor(gameSlug,clanId);
+  if(!ctx)return {ok:false,error:"활성 클랜원만 코칭 선생님으로 등록할 수 있습니다."};
+  const values={expertise:input.expertise.trim(),bio:input.bio.trim(),accepting:input.accepting};
+  const old=await ctx.supabase.from("clan_board_coaches").select("user_id").eq("clan_id",clanId).eq("user_id",ctx.user.id).maybeSingle();
+  if(old.error)return {ok:false,error:"선생님 프로필을 확인하지 못했습니다."};
+  const result=old.data?await ctx.supabase.from("clan_board_coaches").update(values).eq("clan_id",clanId).eq("user_id",ctx.user.id):await ctx.supabase.from("clan_board_coaches").insert({...values,clan_id:clanId});
+  if(result.error)return {ok:false,error:"선생님 프로필을 저장하지 못했습니다."};
+  refresh(gameSlug,clanId);return {ok:true};
 }

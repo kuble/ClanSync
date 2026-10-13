@@ -11,6 +11,7 @@ function revalidateMainClanRoutes(gameSlug: string, clanId: string) {
   revalidatePath(`${base}/events`);
   revalidatePath(`${base}/manage`);
   revalidatePath(`${base}/store`);
+  revalidatePath(`${base}/board`,"layout");
 }
 
 /** 드로어에 표시된 항목 일괄 읽음 (열 때 호출). */

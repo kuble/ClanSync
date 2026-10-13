@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { expect,test } from "@playwright/test";
 import { createIsolatedBalanceFixture,loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 import { boardThumbnail } from "../src/lib/clan/board";
+test.use({actionTimeout:20_000});
 
 async function ok<T>(query:PromiseLike<{data:T;error:unknown}>){const {data,error}=await query;expect(error,JSON.stringify(error)).toBeNull();return data as NonNullable<T>;}
 async function cleanupPhotos(f:Awaited<ReturnType<typeof createIsolatedBalanceFixture>>){
@@ -19,6 +20,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
   try{
     await ok(f.service.from("clans").update({rules:"서로 존중하며 플레이해요."}).eq("id",f.clanId));
     await ok(f.service.from("clan_notices").insert({clan_id:f.clanId,created_by:f.users[0].id,title:"클랜 소식",content:"중요한 약속",is_pinned:true}));
+    await ok(f.service.from("clan_board_coaches").insert({clan_id:f.clanId,user_id:f.users[0].id,expertise:"지원 · 아나"}));
     await loginIsolatedBalanceUser(page,f.users[1]);await page.goto(base+"/board");
     await expect(page).toHaveURL(/\/board\/notices$/);
     await expect(page.getByText("서로 존중하며 플레이해요.",{exact:true})).toBeVisible();
@@ -42,6 +44,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     await page.reload();await expect(page.getByRole("button",{name:"공감 1",exact:true})).toHaveAttribute("aria-pressed","true");
     await page.goto(base+"/board/feedback");await page.getByRole("button",{name:"피드백 신청",exact:true}).click();
     await editor.getByLabel("제목",{exact:true}).fill("아나 위치 선정 질문");
+    await editor.getByLabel("코칭 선생님",{exact:true}).selectOption(f.users[0].id);
     await editor.getByLabel("역할·영웅",{exact:true}).fill("지원 · 아나");
     await editor.getByLabel("리플레이 코드",{exact:true}).fill("ABC123");
     await editor.getByLabel("궁금한 장면·시간",{exact:true}).fill("03:20 첫 한타");
@@ -51,10 +54,20 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     await expect.poll(async()=>{const rows=await ok(f.service.from("clan_board_posts").select("status").eq("clan_id",f.clanId).eq("kind","feedback").single());return rows.status;}).toBe("complete");
     await page.goto(base+"/board/channels");await page.getByRole("button",{name:"채널 소개",exact:true}).click();
     await editor.getByLabel("제목",{exact:true}).fill("우리 클랜 게임 방송");
-    await editor.getByLabel("방송 채널 링크",{exact:true}).fill("https://www.youtube.com/@clansync");
+    await editor.getByLabel("방송 채널 링크 1",{exact:true}).fill("https://www.youtube.com/@clansync");
+    await editor.getByRole("button",{name:"방송 플랫폼 추가",exact:true}).click();
+    await editor.getByLabel("방송 플랫폼 2",{exact:true}).selectOption("Twitch");
+    await editor.getByLabel("방송 채널 링크 2",{exact:true}).fill("https://www.twitch.tv/clansync");
     await editor.getByLabel("채널 소개",{exact:true}).fill("게임과 클랜 이야기를 나눠요.");
     await editor.getByRole("button",{name:"저장",exact:true}).click();await expect(page).toHaveURL(/\/board\/channels\/[0-9a-f-]{36}$/);
-    await expect(page.getByRole("link",{name:"방송 채널 열기 ↗",exact:true})).toHaveAttribute("href","https://www.youtube.com/@clansync");
+    await expect(page.getByRole("link",{name:"YouTube 방송 채널 열기 ↗",exact:true})).toHaveAttribute("href","https://www.youtube.com/@clansync");
+    await expect(page.getByRole("link",{name:"Twitch 방송 채널 열기 ↗",exact:true})).toHaveAttribute("href","https://www.twitch.tv/clansync");
+    await expect(page.getByText("API 연결 필요",{exact:true})).toHaveCount(2);
+    await page.getByRole("button",{name:"편집",exact:true}).click();
+    await expect(editor.getByLabel("방송 채널 링크 2",{exact:true})).toHaveValue("https://www.twitch.tv/clansync");
+    await editor.getByRole("button",{name:"방송 채널 2 삭제",exact:true}).click();
+    await editor.getByRole("button",{name:"저장",exact:true}).click();
+    await expect(page.getByRole("link",{name:"Twitch 방송 채널 열기 ↗",exact:true})).toHaveCount(0);
     await page.context().clearCookies();await loginIsolatedBalanceUser(page,f.users[2]);await page.goto(base+"/board/free/"+freeId);
     await expect(page.getByRole("button",{name:"편집",exact:true})).toHaveCount(0);
     await expect(page.getByRole("button",{name:"댓글 편집",exact:true})).toHaveCount(0);
@@ -84,6 +97,10 @@ test("추억 사진 업로드·미리보기·앨범 이동·모바일·삭제와
     const editor=page.getByRole("dialog");await editor.getByLabel("사진",{exact:true}).setInputFiles({name:"memory.png",mimeType:"image/png",buffer:image});
     await editor.getByLabel("사진 아래 한마디",{exact:true}).fill("첫 번째 함께한 날");
     await editor.getByLabel("촬영일",{exact:true}).fill("2026-10-13");
+    await expect(editor.getByLabel("촬영일",{exact:true})).toHaveClass(/color-scheme:dark/);
+    await editor.getByLabel("촬영일",{exact:true}).evaluate(node=>{(node as HTMLInputElement).showPicker=()=>{node.setAttribute("data-picker-opened","yes");};});
+    await editor.getByLabel("촬영일",{exact:true}).click();
+    await expect(editor.getByLabel("촬영일",{exact:true})).toHaveAttribute("data-picker-opened","yes");
     await editor.getByRole("button",{name:"저장",exact:true}).click();await expect(page).toHaveURL(/\/board\/memories\/[0-9a-f-]{36}$/,{timeout:20000});
     const first=await ok(f.service.from("clan_board_posts").select("id,image_path").eq("clan_id",f.clanId).eq("kind","memories").single());
     paths.push(first.image_path!,boardThumbnail(first.image_path!));
@@ -98,7 +115,15 @@ test("추억 사진 업로드·미리보기·앨범 이동·모바일·삭제와
     await ok(f.service.storage.from("clan-board-images").upload(boardThumbnail(secondPath),image,{contentType:"image/png"}));
     await ok(f.service.from("clan_board_posts").insert({id:secondId,clan_id:f.clanId,author_id:f.users[1].id,kind:"memories",title:"두 번째 사진",content:"다시 만나자",image_path:secondPath}));
     await page.goto(base+"/board/memories");await expect(page.getByText("1 / 2",{exact:true})).toBeVisible();
+    const photos=page.locator('[data-photo-id]');
+    const before=await photos.evaluateAll(nodes=>nodes.map(n=>({id:n.getAttribute('data-photo-id'),src:n.querySelector('img')?.getAttribute('src')})));
     await page.getByRole("button",{name:"다음 추억",exact:true}).click();await expect(page.getByText("2 / 2",{exact:true})).toBeVisible();
+    await page.getByRole("button",{name:"다음 추억",exact:true}).click();await page.getByRole("button",{name:"이전 추억",exact:true}).click();
+    await expect(page.locator('[data-photo-id="'+first.id+'"][data-active="true"]')).toBeVisible();
+    expect(await photos.evaluateAll(nodes=>nodes.map(n=>({id:n.getAttribute('data-photo-id'),src:n.querySelector('img')?.getAttribute('src')})))).toEqual(before);
+    await page.emulateMedia({reducedMotion:'reduce'});
+    await page.getByRole("region",{name:"원형 추억 앨범",exact:true}).press('Home');
+    await expect(page.getByText("1 / 2",{exact:true})).toBeVisible();
     await page.getByRole("button",{name:"전체 보기",exact:true}).click();await expect(page.getByRole("link",{name:/첫 번째 함께한 날/})).toBeVisible();
     await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await page.goto(base+"/board/memories/"+first.id);
