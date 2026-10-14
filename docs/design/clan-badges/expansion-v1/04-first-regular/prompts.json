@@ -1,0 +1,52 @@
+{
+  "createdAt": "2026-10-14",
+  "tool": "image_gen.imagegen (built-in)",
+  "status": "design-options-pending-selection",
+  "family": "첫 정규 내전",
+  "milestones": [
+    1
+  ],
+  "transparent_background": true,
+  "concepts": [
+    {
+      "id": "01",
+      "name": "첫 교차",
+      "shape": "a compact classic shield",
+      "motif": "Two beautiful ivory ceremonial swords crossed under a small emerald four-point star, polished gold blade edges and hilts, with a tiny mint ribbon. A clean symbol of the first shared battle.",
+      "file": "01.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE premium physical collectible enamel pin for a gaming clan's FIRST REGULAR SHARED MATCH achievement. This is one single commemorative badge, not a level series.\nConcept: 첫 교차. Outer contour: a compact classic shield. Motif: Two beautiful ivory ceremonial swords crossed under a small emerald four-point star, polished gold blade edges and hilts, with a tiny mint ribbon. A clean symbol of the first shared battle.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe pin should have a distinct well-balanced contour and jewel-quality sculpture, fully front-facing and upright, centered LARGE on a square canvas, about 90 percent canvas height with a small even safety margin. Genuine transparent alpha everywhere outside the object. No backdrop, poster, rectangular plate, checkerboard, case, text, labels, numbers, inscriptions, letters or glow. A tasteful wearable gaming-clan collectible, not an emoji or flat icon."
+    },
+    {
+      "id": "02",
+      "name": "첫 발자국",
+      "shape": "an oval field seal",
+      "motif": "Two stylized bold ivory boot-sole footprints stepping onto a sculpted emerald field, each sole outlined in gold, a small gold star between them. Do not depict human feet, toes or faces.",
+      "file": "02.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE premium physical collectible enamel pin for a gaming clan's FIRST REGULAR SHARED MATCH achievement. This is one single commemorative badge, not a level series.\nConcept: 첫 발자국. Outer contour: an oval field seal. Motif: Two stylized bold ivory boot-sole footprints stepping onto a sculpted emerald field, each sole outlined in gold, a small gold star between them. Do not depict human feet, toes or faces.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe pin should have a distinct well-balanced contour and jewel-quality sculpture, fully front-facing and upright, centered LARGE on a square canvas, about 90 percent canvas height with a small even safety margin. Genuine transparent alpha everywhere outside the object. No backdrop, poster, rectangular plate, checkerboard, case, text, labels, numbers, inscriptions, letters or glow. A tasteful wearable gaming-clan collectible, not an emoji or flat icon."
+    },
+    {
+      "id": "03",
+      "name": "개막의 문",
+      "shape": "a tall arched crest",
+      "motif": "An open emerald double doorway framed in sculpted gold and warm ivory, a small four-point star revealed inside the opening. A symbolic first step into a shared battlefield, not a castle with multiple towers.",
+      "file": "03.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE premium physical collectible enamel pin for a gaming clan's FIRST REGULAR SHARED MATCH achievement. This is one single commemorative badge, not a level series.\nConcept: 개막의 문. Outer contour: a tall arched crest. Motif: An open emerald double doorway framed in sculpted gold and warm ivory, a small four-point star revealed inside the opening. A symbolic first step into a shared battlefield, not a castle with multiple towers.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe pin should have a distinct well-balanced contour and jewel-quality sculpture, fully front-facing and upright, centered LARGE on a square canvas, about 90 percent canvas height with a small even safety margin. Genuine transparent alpha everywhere outside the object. No backdrop, poster, rectangular plate, checkerboard, case, text, labels, numbers, inscriptions, letters or glow. A tasteful wearable gaming-clan collectible, not an emoji or flat icon."
+    },
+    {
+      "id": "04",
+      "name": "첫 함성",
+      "shape": "a circular medallion",
+      "motif": "An elegant curved ivory battle horn with polished gold mouthpiece and rim, a flowing emerald ribbon wrapped once around it, with a small mint enamel spark at the bell. A celebratory first gathering.",
+      "file": "04.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE premium physical collectible enamel pin for a gaming clan's FIRST REGULAR SHARED MATCH achievement. This is one single commemorative badge, not a level series.\nConcept: 첫 함성. Outer contour: a circular medallion. Motif: An elegant curved ivory battle horn with polished gold mouthpiece and rim, a flowing emerald ribbon wrapped once around it, with a small mint enamel spark at the bell. A celebratory first gathering.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe pin should have a distinct well-balanced contour and jewel-quality sculpture, fully front-facing and upright, centered LARGE on a square canvas, about 90 percent canvas height with a small even safety margin. Genuine transparent alpha everywhere outside the object. No backdrop, poster, rectangular plate, checkerboard, case, text, labels, numbers, inscriptions, letters or glow. A tasteful wearable gaming-clan collectible, not an emoji or flat icon."
+    },
+    {
+      "id": "05",
+      "name": "첫 합",
+      "shape": "a rounded hexagonal medallion",
+      "motif": "Two stylized armored gauntlets meeting in a fist bump, one ivory and one pale mint, sculpted gold seams, over a rich emerald center with one small gold four-point star above. Simplified physical armored forms, no bare human anatomy.",
+      "file": "05.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE premium physical collectible enamel pin for a gaming clan's FIRST REGULAR SHARED MATCH achievement. This is one single commemorative badge, not a level series.\nConcept: 첫 합. Outer contour: a rounded hexagonal medallion. Motif: Two stylized armored gauntlets meeting in a fist bump, one ivory and one pale mint, sculpted gold seams, over a rich emerald center with one small gold four-point star above. Simplified physical armored forms, no bare human anatomy.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe pin should have a distinct well-balanced contour and jewel-quality sculpture, fully front-facing and upright, centered LARGE on a square canvas, about 90 percent canvas height with a small even safety margin. Genuine transparent alpha everywhere outside the object. No backdrop, poster, rectangular plate, checkerboard, case, text, labels, numbers, inscriptions, letters or glow. A tasteful wearable gaming-clan collectible, not an emoji or flat icon."
+    }
+  ]
+}
