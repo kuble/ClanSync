@@ -1,0 +1,60 @@
+{
+  "createdAt": "2026-10-14",
+  "tool": "image_gen.imagegen (built-in)",
+  "status": "design-options-pending-selection",
+  "family": "오래 함께한 열 동료",
+  "milestones": [
+    1,
+    3,
+    5,
+    10
+  ],
+  "transparent_background": false,
+  "concepts": [
+    {
+      "id": "01",
+      "name": "시간의 원탁",
+      "shape": "a circular medallion",
+      "motif": "An emerald round table with TEN fixed small ivory seat markers, surrounding a gold hourglass.",
+      "progression": "1 year: a simple central hourglass and ten seat markers. 3: a more complete double ring around the hourglass. 5: gold connecting curves weave the ten seats into a firm ring. 10: the interconnected table becomes an elegant complete time-and-companionship seal. Keep the ten seats present at every stage.",
+      "file": "01.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 1Y, 3Y, 5Y, 10Y milestones.\nFamily: 시간의 원탁. Outer contour shared across all four: a circular medallion. Motif: An emerald round table with TEN fixed small ivory seat markers, surrounding a gold hourglass.\nSpecific growth progression, left to right: 1 year: a simple central hourglass and ten seat markers. 3: a more complete double ring around the hourglass. 5: gold connecting curves weave the ten seats into a firm ring. 10: the interconnected table becomes an elegant complete time-and-companionship seal. Keep the ten seats present at every stage.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"1Y\", \"3Y\", \"5Y\", \"10Y\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    },
+    {
+      "id": "02",
+      "name": "한 뿌리의 인연",
+      "shape": "a broad oval crest",
+      "motif": "A sculpted intertwined gold root-knot over mint and emerald enamel, expressing continuous companionship without copying a tree canopy.",
+      "progression": "1 year: two linked root loops. 3: three interwoven loops. 5: a denser five-loop shared root knot. 10: a complete symmetrical woven root crest with broad roots and a small ivory star at the center. No leafy tree, to distinguish this from anniversary badges.",
+      "file": "02.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 1Y, 3Y, 5Y, 10Y milestones.\nFamily: 한 뿌리의 인연. Outer contour shared across all four: a broad oval crest. Motif: A sculpted intertwined gold root-knot over mint and emerald enamel, expressing continuous companionship without copying a tree canopy.\nSpecific growth progression, left to right: 1 year: two linked root loops. 3: three interwoven loops. 5: a denser five-loop shared root knot. 10: a complete symmetrical woven root crest with broad roots and a small ivory star at the center. No leafy tree, to distinguish this from anniversary badges.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"1Y\", \"3Y\", \"5Y\", \"10Y\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    },
+    {
+      "id": "03",
+      "name": "열 이름의 결속",
+      "shape": "an octagonal medallion",
+      "motif": "TEN fixed substantial gold-and-ivory chain links surrounding a central emerald bond.",
+      "progression": "1 year: ten simple links encircle a small central knot. 3: the central knot expands to three connected loops. 5: a five-loop braid binds the outer ring. 10: an elegant fully interlaced Celtic-like bond fills the center while preserving all ten outer links. No writing inside links.",
+      "file": "03.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 1Y, 3Y, 5Y, 10Y milestones.\nFamily: 열 이름의 결속. Outer contour shared across all four: an octagonal medallion. Motif: TEN fixed substantial gold-and-ivory chain links surrounding a central emerald bond.\nSpecific growth progression, left to right: 1 year: ten simple links encircle a small central knot. 3: the central knot expands to three connected loops. 5: a five-loop braid binds the outer ring. 10: an elegant fully interlaced Celtic-like bond fills the center while preserving all ten outer links. No writing inside links.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"1Y\", \"3Y\", \"5Y\", \"10Y\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    },
+    {
+      "id": "04",
+      "name": "함께 켠 등불",
+      "shape": "a softly arched shield",
+      "motif": "Warm ivory light inside emerald gold-framed companion lanterns, representing staying together.",
+      "progression": "1 year: two lanterns sharing one small base. 3: three lanterns connected by a gold arch. 5: five small bold lanterns forming a semicircle. 10: a full seven-lantern circle around one central ivory star, a lasting shared light. Lantern counts are symbolic; ten continuous members is the condition shown outside.",
+      "file": "04.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 1Y, 3Y, 5Y, 10Y milestones.\nFamily: 함께 켠 등불. Outer contour shared across all four: a softly arched shield. Motif: Warm ivory light inside emerald gold-framed companion lanterns, representing staying together.\nSpecific growth progression, left to right: 1 year: two lanterns sharing one small base. 3: three lanterns connected by a gold arch. 5: five small bold lanterns forming a semicircle. 10: a full seven-lantern circle around one central ivory star, a lasting shared light. Lantern counts are symbolic; ten continuous members is the condition shown outside.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"1Y\", \"3Y\", \"5Y\", \"10Y\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    },
+    {
+      "id": "05",
+      "name": "같은 항로",
+      "shape": "a classic maritime shield",
+      "motif": "An ivory sailing vessel on emerald enamel water, with polished gold rigging and a four-point guiding star.",
+      "progression": "1 year: a simple one-sail boat. 3: a two-sail vessel. 5: a mature three-mast ship. 10: a grand three-mast vessel with fuller billowing sails, defined gold rigging and a broader emerald wave base. Same ship identity and external rim at every stage.",
+      "file": "05.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 1Y, 3Y, 5Y, 10Y milestones.\nFamily: 같은 항로. Outer contour shared across all four: a classic maritime shield. Motif: An ivory sailing vessel on emerald enamel water, with polished gold rigging and a four-point guiding star.\nSpecific growth progression, left to right: 1 year: a simple one-sail boat. 3: a two-sail vessel. 5: a mature three-mast ship. 10: a grand three-mast vessel with fuller billowing sails, defined gold rigging and a broader emerald wave base. Same ship identity and external rim at every stage.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"1Y\", \"3Y\", \"5Y\", \"10Y\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    }
+  ]
+}
