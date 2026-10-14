@@ -38,6 +38,8 @@
 
 동 배지를 비교 시안에서 투명 배경으로 분리한 뒤 그 원본의 테두리를 편집해 은·금·플래티넘 3종을 제작했다. 내장 `image_gen.imagegen`을 사용했으며 전체 제작 요청은 [production-prompts.json](production-prompts.json)에 보관했다. 각 PNG는 1254 × 1254px RGBA이며 생성 원본의 알파를 유지해 복사했다.
 
+10주년 테두리는 후속 요청으로 [블루 티타늄·바이올렛 티타늄·블랙 루테늄 3종](metal-alternatives-v1/README.md)을 추가 비교한다. 마감 선택은 대기 중이며 현재 적용한 플래티넘은 유지한다.
+
 ## 원본과 검증
 
 - 내장 `image_gen.imagegen`으로 디자인별 비교 이미지 1장씩, 총 5장을 생성했다. 기존 첫 깃발 PNG는 제작 질감 참고로만 전달했다.
