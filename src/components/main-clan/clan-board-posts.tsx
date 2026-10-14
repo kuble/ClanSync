@@ -43,7 +43,7 @@ function BoardPostRows({base,kind,posts}:{base:string;kind:BoardKind;posts:Board
   </section>;
 }
 function MemoryGallery({base,posts}:{base:string;posts:BoardListPost[]}){
-  return <section className="space-y-4" aria-label="추억 앨범"><p className="text-xs text-muted-foreground">사진 한 장에 담긴 우리 이야기</p>
+  return <section aria-label="추억 앨범">
     <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{posts.map((p,i)=><Link key={p.id} prefetch={false} href={base+"/board/memories/"+p.id} className={styles.polaroid} style={{transform:"rotate("+(i%3-1)*2+"deg)"}}>
       <Image unoptimized loading={i<2?"eager":"lazy"} src={boardImageUrl(base,p.id,true)} width={600} height={450} alt={p.content||p.title} className={styles.memoryImage}/><span className={styles.memoryCaption}>{p.content||p.title}</span><span className={styles.memoryDate}><time dateTime={p.created_at}>{boardDate(p.created_at)}</time> · {p.author}</span>
     </Link>)}</div>
