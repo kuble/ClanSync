@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { expect,test } from "@playwright/test";
 import { createIsolatedBalanceFixture,loginIsolatedBalanceUser } from "./isolated-balance-fixture";
-import { boardThumbnail } from "../src/lib/clan/board";
+import { boardDate,boardThumbnail } from "../src/lib/clan/board";
 test.use({actionTimeout:20_000});
 
 async function ok<T>(query:PromiseLike<{data:T;error:unknown}>){const {data,error}=await query;expect(error,JSON.stringify(error)).toBeNull();return data as NonNullable<T>;}
@@ -90,7 +90,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
   }finally{await cleanupPhotos(f);await f.cleanup();}
 });
 
-test("추억 사진 업로드·미리보기·앨범 이동·모바일·삭제와 사진 접근 차단",async({page})=>{
+test("추억 사진 업로드·폴라로이드 목록·게시일·모바일·삭제와 사진 접근 차단",async({page})=>{
   test.setTimeout(240_000);const f=await createIsolatedBalanceFixture(2),base=f.path.replace(/\/balance$/,"");
   const paths:string[]=[];
   async function requestPhoto(postId:string){
@@ -106,13 +106,10 @@ test("추억 사진 업로드·미리보기·앨범 이동·모바일·삭제와
     await page.getByRole("button",{name:"추억 남기기",exact:true}).click();
     const editor=page.getByRole("dialog");await editor.getByLabel("사진",{exact:true}).setInputFiles({name:"memory.png",mimeType:"image/png",buffer:image});
     await editor.getByLabel("사진 아래 한마디",{exact:true}).fill("첫 번째 함께한 날");
-    await editor.getByLabel("촬영일",{exact:true}).fill("2026-10-13");
-    await expect(editor.getByLabel("촬영일",{exact:true})).toHaveClass(/color-scheme:dark/);
-    await editor.getByLabel("촬영일",{exact:true}).evaluate(node=>{(node as HTMLInputElement).showPicker=()=>{node.setAttribute("data-picker-opened","yes");};});
-    await editor.getByLabel("촬영일",{exact:true}).click();
-    await expect(editor.getByLabel("촬영일",{exact:true})).toHaveAttribute("data-picker-opened","yes");
+    await expect(editor.getByLabel("촬영일",{exact:true})).toHaveCount(0);
     await editor.getByRole("button",{name:"저장",exact:true}).click();await expect(page).toHaveURL(/\/board\/memories\/[0-9a-f-]{36}$/,{timeout:20000});
-    const first=await ok(f.service.from("clan_board_posts").select("id,image_path").eq("clan_id",f.clanId).eq("kind","memories").single());
+    const first=await ok(f.service.from("clan_board_posts").select("id,image_path,created_at,details").eq("clan_id",f.clanId).eq("kind","memories").single());
+    expect(first.details).toEqual({});
     paths.push(first.image_path!,boardThumbnail(first.image_path!));
     await expect(page.getByRole("img",{name:"첫 번째 함께한 날",exact:true})).toBeVisible();
     const photo=await requestPhoto(first.id);
@@ -123,18 +120,23 @@ test("추억 사진 업로드·미리보기·앨범 이동·모바일·삭제와
     paths.push(secondPath,boardThumbnail(secondPath));
     await ok(f.service.storage.from("clan-board-images").upload(secondPath,image,{contentType:"image/png"}));
     await ok(f.service.storage.from("clan-board-images").upload(boardThumbnail(secondPath),image,{contentType:"image/png"}));
-    await ok(f.service.from("clan_board_posts").insert({id:secondId,clan_id:f.clanId,author_id:f.users[1].id,kind:"memories",title:"두 번째 사진",content:"다시 만나자",image_path:secondPath}));
-    await page.goto(base+"/board/memories");await expect(page.getByText("1 / 2",{exact:true})).toBeVisible();
-    const photos=page.locator('[data-photo-id]');
-    const before=await photos.evaluateAll(nodes=>nodes.map(n=>({id:n.getAttribute('data-photo-id'),src:n.querySelector('img')?.getAttribute('src')})));
-    await page.getByRole("button",{name:"다음 추억",exact:true}).click();await expect(page.getByText("2 / 2",{exact:true})).toBeVisible();
-    await page.getByRole("button",{name:"다음 추억",exact:true}).click();await page.getByRole("button",{name:"이전 추억",exact:true}).click();
-    await expect(page.locator('[data-photo-id="'+first.id+'"][data-active="true"]')).toBeVisible();
-    expect(await photos.evaluateAll(nodes=>nodes.map(n=>({id:n.getAttribute('data-photo-id'),src:n.querySelector('img')?.getAttribute('src')})))).toEqual(before);
-    await page.emulateMedia({reducedMotion:'reduce'});
-    await page.getByRole("region",{name:"원형 추억 앨범",exact:true}).press('Home');
-    await expect(page.getByText("1 / 2",{exact:true})).toBeVisible();
-    await page.getByRole("button",{name:"전체 보기",exact:true}).click();await expect(page.getByRole("link",{name:/첫 번째 함께한 날/})).toBeVisible();
+    const postedAt="2026-10-13T15:30:00.000Z";
+    await ok(f.service.from("clan_board_posts").insert({id:secondId,clan_id:f.clanId,author_id:f.users[1].id,kind:"memories",title:"두 번째 사진",content:"다시 만나자",image_path:secondPath,created_at:postedAt,details:{takenAt:"2020-01-01"}}));
+    await page.goto(base+"/board/memories");
+    const gallery=page.getByRole("region",{name:"추억 앨범",exact:true}),cards=gallery.getByRole("link");
+    await expect(cards).toHaveCount(2);
+    for(const name of ["앨범으로 보기","전체 보기","다음 추억","이전 추억"])await expect(page.getByRole("button",{name,exact:true})).toHaveCount(0);
+    await expect(cards.filter({hasText:"첫 번째 함께한 날"}).locator("time")).toHaveText(boardDate(first.created_at));
+    await expect(cards.filter({hasText:"다시 만나자"}).locator("time")).toHaveText("2026. 10. 14.");
+    await expect(page.getByText("2020-01-01",{exact:true})).toHaveCount(0);
+    await cards.filter({hasText:"다시 만나자"}).click();
+    await expect(page.locator("article header time")).toHaveText(boardDate(postedAt,true));
+    await page.getByRole("button",{name:"편집",exact:true}).click();await expect(editor.getByLabel("촬영일",{exact:true})).toHaveCount(0);
+    await editor.getByLabel("사진 아래 한마디",{exact:true}).fill("수정해도 게시일 유지");await editor.getByRole("button",{name:"저장",exact:true}).click();
+    await expect(page.getByText("수정해도 게시일 유지",{exact:true})).toBeVisible();
+    const edited=await ok(f.service.from("clan_board_posts").select("created_at,details").eq("id",secondId).single());
+    expect(Date.parse(edited.created_at)).toBe(Date.parse(postedAt));expect(edited.details).toEqual({takenAt:"2020-01-01"});
+    await page.goto(base+"/board/memories");await expect(cards).toHaveCount(2);
     await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await page.goto(base+"/board/memories/"+first.id);
     await page.getByRole("button",{name:"삭제",exact:true}).click();await page.getByRole("dialog").getByRole("button",{name:"삭제",exact:true}).click();

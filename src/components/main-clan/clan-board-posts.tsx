@@ -1,14 +1,12 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import {useMemo,useState} from "react";
-import {useRouter} from "next/navigation";
+import {useState} from "react";
 import {Camera,Clock3,GraduationCap,MessageSquare,Plus,Radio,UserRound} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {ClanBoardEditor} from "./clan-board-editor";
 import {ClanCoachDirectory} from "./clan-coach-directory";
 import {ClanChannelLinks,ClanChannelStatus} from "./clan-channel-links";
-import {CircularCarousel} from "./circular-carousel";
 import {boardChannels,boardDate,boardDetails,boardImageUrl,FEEDBACK_STATUS,type BoardKind,type BoardListPost} from "@/lib/clan/board";
 import type {ClanCoach} from "@/lib/clan/coaching";
 import {cn} from "@/lib/utils";
@@ -45,12 +43,9 @@ function BoardPostRows({base,kind,posts}:{base:string;kind:BoardKind;posts:Board
   </section>;
 }
 function MemoryGallery({base,posts}:{base:string;posts:BoardListPost[]}){
-  const router=useRouter(),[all,setAll]=useState(false);
-  const items=useMemo(()=>posts.map(p=>{
-    const d=boardDetails(p.details);
-    return {id:p.id,label:p.content||p.title,content:<><Image key={p.id} unoptimized loading="eager" draggable={false} src={boardImageUrl(base,p.id,true)} width={600} height={450} alt={p.content||p.title} className={styles.memoryImage}/><span className={styles.memoryCaption}>{p.content||p.title}</span><span className={styles.memoryDate}>{d.takenAt||boardDate(p.created_at)} · {p.author}</span></>};
-  }),[base,posts]);
-  return <section className="space-y-4" aria-label="추억 앨범"><div className="flex items-center justify-between"><p className="text-xs text-muted-foreground">사진 한 장에 담긴 우리 이야기</p><Button variant="outline" size="sm" aria-pressed={all} onClick={()=>setAll(!all)}>{all?"앨범으로 보기":"전체 보기"}</Button></div>
-    {all?<div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{items.map((item,i)=><Link key={item.id} prefetch={false} href={base+"/board/memories/"+item.id} className={styles.polaroid} style={{transform:"rotate("+(i%3-1)*2+"deg)"}}>{item.content}</Link>)}</div>:<CircularCarousel items={items} onItemClick={id=>router.push(base+"/board/memories/"+id)}/>}
+  return <section className="space-y-4" aria-label="추억 앨범"><p className="text-xs text-muted-foreground">사진 한 장에 담긴 우리 이야기</p>
+    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{posts.map((p,i)=><Link key={p.id} prefetch={false} href={base+"/board/memories/"+p.id} className={styles.polaroid} style={{transform:"rotate("+(i%3-1)*2+"deg)"}}>
+      <Image unoptimized loading={i<2?"eager":"lazy"} src={boardImageUrl(base,p.id,true)} width={600} height={450} alt={p.content||p.title} className={styles.memoryImage}/><span className={styles.memoryCaption}>{p.content||p.title}</span><span className={styles.memoryDate}><time dateTime={p.created_at}>{boardDate(p.created_at)}</time> · {p.author}</span>
+    </Link>)}</div>
   </section>;
 }
