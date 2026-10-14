@@ -1,5 +1,5 @@
 export const CLAN_BADGES = [
-  {key:"founding",name:"창단",group:"기념",icon:"flame",target:0,story:"우리 이름으로 첫 페이지를 열었던 날"},
+  {key:"founding",name:"창단",group:"기념",icon:"flame",target:0,story:"우리 이름으로 첫 깃발을 세웠던 날"},
   {key:"regular-1",name:"첫 정규 내전",group:"정규 내전",icon:"swords",target:1,story:"처음으로 함께 끝낸 정규 내전"},
   {key:"regular-10",name:"정규 내전 10회",group:"정규 내전",icon:"swords",target:10,story:"한 번의 만남이 우리의 일상이 됐어요"},
   {key:"regular-50",name:"정규 내전 50회",group:"정규 내전",icon:"swords",target:50,story:"오십 번의 팀과 웃음을 함께 쌓았어요"},
