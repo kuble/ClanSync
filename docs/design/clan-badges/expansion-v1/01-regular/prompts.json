@@ -1,0 +1,60 @@
+{
+  "createdAt": "2026-10-14",
+  "tool": "image_gen.imagegen (built-in)",
+  "status": "design-options-pending-selection",
+  "family": "누적 정규 내전",
+  "milestones": [
+    50,
+    100,
+    1000,
+    10000
+  ],
+  "transparent_background": false,
+  "concepts": [
+    {
+      "id": "01",
+      "name": "교차하는 검",
+      "file": "01.png",
+      "shape": "a broad classic shield",
+      "motif": "Ivory and emerald enamel ceremonial swords with gold blades and a small central four-point star.",
+      "progression": "50: one upright sword. 100: two crossed swords. 1,000: three swords in a balanced fan with a green ribbon. 10,000: five swords in a grand but readable fan with a fuller ribbon. Preserve the same shield rim and center star throughout.",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio with EXACTLY FOUR fully visible physical collectible clan enamel pins in one evenly spaced horizontal row, left to right 50, 100, 1,000, 10,000 milestones. All four belong to one evolving design family.\nFamily: 교차하는 검. Outer contour: a broad classic shield. Motif: Ivory and emerald enamel ceremonial swords with gold blades and a small central four-point star.\nProgression from left to right: 50: one upright sword. 100: two crossed swords. 1,000: three swords in a balanced fan with a green ribbon. 10,000: five swords in a grand but readable fan with a fuller ribbon. Preserve the same shield rim and center star throughout.\nMaterials for ALL stages: rich emerald, pale mint and warm ivory hard enamel, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp beveled edges and carefully controlled dimensional highlights. Gold finish stays identical across every tier. The drawing grows in complexity; do not recolor the border for levels. Strong readable silhouettes at small UI sizes, a few bold forms, restrained detail.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, identical lighting and same maximum pin height, generous clear spacing. Put only the exact plain ivory numeric captions \"50\", \"100\", \"1,000\", \"10,000\" outside and centered beneath their corresponding pins. No other text. No numbers or lettering on the actual pins. No case, hands, scenery, thick display frames, brand logos, game logos, watermarks, emoji, flat vector icons or fake glowing effects. Each actual badge must be a tangible premium physical gold-and-enamel object, not a pictogram. Every stage must match the specified progression and external contour."
+    },
+    {
+      "id": "02",
+      "name": "전장의 지도",
+      "file": "02.png",
+      "shape": "a rounded hexagonal medallion",
+      "motif": "A sculpted ivory folded battlefield map with thick gold route lines and emerald waypoint stones.",
+      "progression": "50: one small folded map and one waypoint. 100: a wider map linking two waypoints. 1,000: four clear connected waypoints over a broader map. 10,000: a complete strategic map with a bold central hub and five surrounding connected markers. No tiny cartographic text.",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio with EXACTLY FOUR fully visible physical collectible clan enamel pins in one evenly spaced horizontal row, left to right 50, 100, 1,000, 10,000 milestones. All four belong to one evolving design family.\nFamily: 전장의 지도. Outer contour: a rounded hexagonal medallion. Motif: A sculpted ivory folded battlefield map with thick gold route lines and emerald waypoint stones.\nProgression from left to right: 50: one small folded map and one waypoint. 100: a wider map linking two waypoints. 1,000: four clear connected waypoints over a broader map. 10,000: a complete strategic map with a bold central hub and five surrounding connected markers. No tiny cartographic text.\nMaterials for ALL stages: rich emerald, pale mint and warm ivory hard enamel, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp beveled edges and carefully controlled dimensional highlights. Gold finish stays identical across every tier. The drawing grows in complexity; do not recolor the border for levels. Strong readable silhouettes at small UI sizes, a few bold forms, restrained detail.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, identical lighting and same maximum pin height, generous clear spacing. Put only the exact plain ivory numeric captions \"50\", \"100\", \"1,000\", \"10,000\" outside and centered beneath their corresponding pins. No other text. No numbers or lettering on the actual pins. No case, hands, scenery, thick display frames, brand logos, game logos, watermarks, emoji, flat vector icons or fake glowing effects. Each actual badge must be a tangible premium physical gold-and-enamel object, not a pictogram. Every stage must match the specified progression and external contour."
+    },
+    {
+      "id": "03",
+      "name": "쌓인 연대기",
+      "file": "03.png",
+      "shape": "a tall rounded rectangular crest",
+      "motif": "Emerald bound campaign record books with ivory pages and a gold sword-shaped bookmark.",
+      "progression": "50: one closed book. 100: one open book with the sword bookmark. 1,000: three books forming a layered archive. 10,000: five books arranged as a complete small archive with the central open volume. Count records of shared battles, not victories.",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio with EXACTLY FOUR fully visible physical collectible clan enamel pins in one evenly spaced horizontal row, left to right 50, 100, 1,000, 10,000 milestones. All four belong to one evolving design family.\nFamily: 쌓인 연대기. Outer contour: a tall rounded rectangular crest. Motif: Emerald bound campaign record books with ivory pages and a gold sword-shaped bookmark.\nProgression from left to right: 50: one closed book. 100: one open book with the sword bookmark. 1,000: three books forming a layered archive. 10,000: five books arranged as a complete small archive with the central open volume. Count records of shared battles, not victories.\nMaterials for ALL stages: rich emerald, pale mint and warm ivory hard enamel, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp beveled edges and carefully controlled dimensional highlights. Gold finish stays identical across every tier. The drawing grows in complexity; do not recolor the border for levels. Strong readable silhouettes at small UI sizes, a few bold forms, restrained detail.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, identical lighting and same maximum pin height, generous clear spacing. Put only the exact plain ivory numeric captions \"50\", \"100\", \"1,000\", \"10,000\" outside and centered beneath their corresponding pins. No other text. No numbers or lettering on the actual pins. No case, hands, scenery, thick display frames, brand logos, game logos, watermarks, emoji, flat vector icons or fake glowing effects. Each actual badge must be a tangible premium physical gold-and-enamel object, not a pictogram. Every stage must match the specified progression and external contour."
+    },
+    {
+      "id": "04",
+      "name": "깃발 아래의 기록",
+      "file": "04.png",
+      "shape": "a circular medallion",
+      "motif": "An ivory shield over crossed emerald standards, with gold seams and a small central star.",
+      "progression": "50: a simple central shield with one narrow standard. 100: two crossed standards. 1,000: four standards fanning around the shield. 10,000: six standards forming a full symmetrical campaign crest. Keep all standards fully inside the circular rim.",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio with EXACTLY FOUR fully visible physical collectible clan enamel pins in one evenly spaced horizontal row, left to right 50, 100, 1,000, 10,000 milestones. All four belong to one evolving design family.\nFamily: 깃발 아래의 기록. Outer contour: a circular medallion. Motif: An ivory shield over crossed emerald standards, with gold seams and a small central star.\nProgression from left to right: 50: a simple central shield with one narrow standard. 100: two crossed standards. 1,000: four standards fanning around the shield. 10,000: six standards forming a full symmetrical campaign crest. Keep all standards fully inside the circular rim.\nMaterials for ALL stages: rich emerald, pale mint and warm ivory hard enamel, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp beveled edges and carefully controlled dimensional highlights. Gold finish stays identical across every tier. The drawing grows in complexity; do not recolor the border for levels. Strong readable silhouettes at small UI sizes, a few bold forms, restrained detail.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, identical lighting and same maximum pin height, generous clear spacing. Put only the exact plain ivory numeric captions \"50\", \"100\", \"1,000\", \"10,000\" outside and centered beneath their corresponding pins. No other text. No numbers or lettering on the actual pins. No case, hands, scenery, thick display frames, brand logos, game logos, watermarks, emoji, flat vector icons or fake glowing effects. Each actual badge must be a tangible premium physical gold-and-enamel object, not a pictogram. Every stage must match the specified progression and external contour."
+    },
+    {
+      "id": "05",
+      "name": "단련된 약속",
+      "file": "05.png",
+      "shape": "an octagonal forge seal",
+      "motif": "An elegant ivory anvil and emerald-handled gold hammer, a metaphor for repeated shared practice.",
+      "progression": "50: a simple anvil. 100: an anvil with one resting hammer. 1,000: two crossed hammers and a stronger stepped anvil. 10,000: a mature forge crest with two hammers, a central small sword and a substantial three-level anvil base. No fire or scenery outside the badge.",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio with EXACTLY FOUR fully visible physical collectible clan enamel pins in one evenly spaced horizontal row, left to right 50, 100, 1,000, 10,000 milestones. All four belong to one evolving design family.\nFamily: 단련된 약속. Outer contour: an octagonal forge seal. Motif: An elegant ivory anvil and emerald-handled gold hammer, a metaphor for repeated shared practice.\nProgression from left to right: 50: a simple anvil. 100: an anvil with one resting hammer. 1,000: two crossed hammers and a stronger stepped anvil. 10,000: a mature forge crest with two hammers, a central small sword and a substantial three-level anvil base. No fire or scenery outside the badge.\nMaterials for ALL stages: rich emerald, pale mint and warm ivory hard enamel, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp beveled edges and carefully controlled dimensional highlights. Gold finish stays identical across every tier. The drawing grows in complexity; do not recolor the border for levels. Strong readable silhouettes at small UI sizes, a few bold forms, restrained detail.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, identical lighting and same maximum pin height, generous clear spacing. Put only the exact plain ivory numeric captions \"50\", \"100\", \"1,000\", \"10,000\" outside and centered beneath their corresponding pins. No other text. No numbers or lettering on the actual pins. No case, hands, scenery, thick display frames, brand logos, game logos, watermarks, emoji, flat vector icons or fake glowing effects. Each actual badge must be a tangible premium physical gold-and-enamel object, not a pictogram. Every stage must match the specified progression and external contour."
+    }
+  ]
+}
