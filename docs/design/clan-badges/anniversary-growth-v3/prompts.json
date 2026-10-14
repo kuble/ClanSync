@@ -1,0 +1,36 @@
+{
+  "createdAt": "2026-10-14",
+  "tool": "image_gen.imagegen",
+  "mode": "built-in",
+  "transparent_background": true,
+  "outputs": [
+    {
+      "years": 1,
+      "file": "public/clan-badges/anniversary-growing-history-1y-gold-v3.png",
+      "referenced_image_paths": [
+        "public/clan-badges/anniversary-growing-history-1y-gold-v2.png"
+      ],
+      "prompt": "Use case: precise-object-edit.\nEdit target: the supplied growing-history physical enamel anniversary pin.\nPrimary change: Change the tree to a VERY YOUNG SINGLE-LEAF sapling: exactly ONE emerald leaf standing vertically at the top of one slender gold stem. Remove both lateral mint leaves entirely, remove their upper branches cleanly and restore the ivory enamel. Exactly one leaf total, no small shoots, no extra foliage. Keep the small root-center star and diamond, with two restrained short roots.\nInvariants: preserve the exact shield silhouette, thick WARM POLISHED GOLD outer metal rim, thin gold inset rim, ivory enamel field, premium emerald/mint enamel material, natural dimensional reflections, front-facing centered upright proportions and root-center four-point star/diamond. Do not change the gold frame material or its geometry. No black or silver rim. All foliage and roots must remain inside the shield. One pin, large on a square canvas with a small even transparent margin. True alpha outside the shield. No text, digits, year lettering, labels, background, case, checkerboard, extra symbols, flowers or fruit."
+    },
+    {
+      "years": 3,
+      "file": "public/clan-badges/anniversary-growing-history-3y-gold-v3.png",
+      "copiedFrom": "public/clan-badges/anniversary-growing-history-1y-gold-v2.png",
+      "operation": "Copy unchanged; reuse the three-/five-leaf gold artwork."
+    },
+    {
+      "years": 5,
+      "file": "public/clan-badges/anniversary-growing-history-5y-gold-v3.png",
+      "copiedFrom": "public/clan-badges/anniversary-growing-history-3y-gold-v2.png",
+      "operation": "Copy unchanged; reuse the three-/five-leaf gold artwork."
+    },
+    {
+      "years": 10,
+      "file": "public/clan-badges/anniversary-growing-history-10y-gold-v3.png",
+      "referenced_image_paths": [
+        "public/clan-badges/anniversary-growing-history-10y-gold-v2.png"
+      ],
+      "prompt": "Use case: precise-object-edit.\nEdit target: the supplied growing-history physical enamel anniversary pin.\nPrimary change: Make the tree visibly LUSH AND MATURE with a rounded abundant canopy of roughly FIFTEEN to NINETEEN slightly smaller sculpted emerald and mint enamel leaves on several strong golden branches. Branching should read as a rich real tree crown rather than a stack of four leaf pairs. A thick elegant golden trunk and extensive curved roots convey ten years of growth. Balanced clear gold separation between leaves; light layering is fine. Fill the upper shield richly while keeping ivory breathing room around the tree. Preserve the root-center star and diamond.\nInvariants: preserve the exact shield silhouette, thick WARM POLISHED GOLD outer metal rim, thin gold inset rim, ivory enamel field, premium emerald/mint enamel material, natural dimensional reflections, front-facing centered upright proportions and root-center four-point star/diamond. Do not change the gold frame material or its geometry. No black or silver rim. All foliage and roots must remain inside the shield. One pin, large on a square canvas with a small even transparent margin. True alpha outside the shield. No text, digits, year lettering, labels, background, case, checkerboard, extra symbols, flowers or fruit."
+    }
+  ]
+}
