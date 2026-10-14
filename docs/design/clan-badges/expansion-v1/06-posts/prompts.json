@@ -1,0 +1,60 @@
+{
+  "createdAt": "2026-10-14",
+  "tool": "image_gen.imagegen (built-in)",
+  "status": "design-options-pending-selection",
+  "family": "우리의 게시글",
+  "milestones": [
+    50,
+    100,
+    1000,
+    10000
+  ],
+  "transparent_background": false,
+  "concepts": [
+    {
+      "id": "01",
+      "name": "우리의 문장",
+      "shape": "an elegant arched writing crest",
+      "motif": "An ivory quill with emerald enamel feather veins, a small gold ink vessel and a sculpted ivory scroll.",
+      "progression": "50: one simple quill. 100: a quill with a small ink vessel. 1,000: the quill above one broad ivory scroll. 10,000: a mature quill-and-scroll archive with two layered scrolls and a small gold seal. No lettering on scrolls.",
+      "file": "01.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 50, 100, 1,000, 10,000 milestones.\nFamily: 우리의 문장. Outer contour shared across all four: an elegant arched writing crest. Motif: An ivory quill with emerald enamel feather veins, a small gold ink vessel and a sculpted ivory scroll.\nSpecific growth progression, left to right: 50: one simple quill. 100: a quill with a small ink vessel. 1,000: the quill above one broad ivory scroll. 10,000: a mature quill-and-scroll archive with two layered scrolls and a small gold seal. No lettering on scrolls.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"50\", \"100\", \"1,000\", \"10,000\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    },
+    {
+      "id": "02",
+      "name": "이어지는 이야기",
+      "shape": "a circular medallion",
+      "motif": "Dimensional hard-enamel conversation bubbles in emerald, mint and ivory, with thick gold borders and no typography.",
+      "progression": "50: one bold sculpted bubble with a small gold star inside. 100: two connected bubbles. 1,000: three interlocking bubbles. 10,000: five bubbles forming a complete harmonious conversation rosette. These must look like physical jewelry, not emoji or flat app icons.",
+      "file": "02.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 50, 100, 1,000, 10,000 milestones.\nFamily: 이어지는 이야기. Outer contour shared across all four: a circular medallion. Motif: Dimensional hard-enamel conversation bubbles in emerald, mint and ivory, with thick gold borders and no typography.\nSpecific growth progression, left to right: 50: one bold sculpted bubble with a small gold star inside. 100: two connected bubbles. 1,000: three interlocking bubbles. 10,000: five bubbles forming a complete harmonious conversation rosette. These must look like physical jewelry, not emoji or flat app icons.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"50\", \"100\", \"1,000\", \"10,000\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    },
+    {
+      "id": "03",
+      "name": "편지의 광장",
+      "shape": "a rounded rectangular postal crest",
+      "motif": "An emerald mailbox and warm ivory envelopes with polished gold seams.",
+      "progression": "50: a simple closed mailbox. 100: an open mailbox with one envelope. 1,000: three envelopes fanning above the mailbox. 10,000: five bold envelopes forming a complete postal crest with a small mint ribbon. No words, addresses or postal branding.",
+      "file": "03.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 50, 100, 1,000, 10,000 milestones.\nFamily: 편지의 광장. Outer contour shared across all four: a rounded rectangular postal crest. Motif: An emerald mailbox and warm ivory envelopes with polished gold seams.\nSpecific growth progression, left to right: 50: a simple closed mailbox. 100: an open mailbox with one envelope. 1,000: three envelopes fanning above the mailbox. 10,000: five bold envelopes forming a complete postal crest with a small mint ribbon. No words, addresses or postal branding.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"50\", \"100\", \"1,000\", \"10,000\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    },
+    {
+      "id": "04",
+      "name": "기록의 서가",
+      "shape": "a softly rounded square medallion",
+      "motif": "Emerald and mint community journal spines with warm ivory pages and polished gold binding.",
+      "progression": "50: one standing journal. 100: two linked journals. 1,000: three journals on a substantial gold shelf. 10,000: five journals filling one compact community archive shelf with a small central ivory star. No spine titles.",
+      "file": "04.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 50, 100, 1,000, 10,000 milestones.\nFamily: 기록의 서가. Outer contour shared across all four: a softly rounded square medallion. Motif: Emerald and mint community journal spines with warm ivory pages and polished gold binding.\nSpecific growth progression, left to right: 50: one standing journal. 100: two linked journals. 1,000: three journals on a substantial gold shelf. 10,000: five journals filling one compact community archive shelf with a small central ivory star. No spine titles.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"50\", \"100\", \"1,000\", \"10,000\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    },
+    {
+      "id": "05",
+      "name": "모인 목소리",
+      "shape": "an oval community seal",
+      "motif": "An ornate ivory speaking horn with an emerald handle and thick sculpted gold voice rays.",
+      "progression": "50: one small speaking horn. 100: a horn with two clear sound rays. 1,000: three voice rays and an emerald ribbon linking a pair of horns. 10,000: two mature speaking horns with five sound rays forming an elegant civic-voices crest. No mouths or people.",
+      "file": "05.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 50, 100, 1,000, 10,000 milestones.\nFamily: 모인 목소리. Outer contour shared across all four: an oval community seal. Motif: An ornate ivory speaking horn with an emerald handle and thick sculpted gold voice rays.\nSpecific growth progression, left to right: 50: one small speaking horn. 100: a horn with two clear sound rays. 1,000: three voice rays and an emerald ribbon linking a pair of horns. 10,000: two mature speaking horns with five sound rays forming an elegant civic-voices crest. No mouths or people.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"50\", \"100\", \"1,000\", \"10,000\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    }
+  ]
+}
