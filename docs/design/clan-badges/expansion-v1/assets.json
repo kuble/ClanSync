@@ -1,0 +1,427 @@
+{
+  "createdAt": "2026-10-14",
+  "tool": "image_gen.imagegen (built-in)",
+  "copiedWithoutImageEdits": true,
+  "assets": [
+    {
+      "file": "01-regular/01.png",
+      "sourceFile": "exec-f67d655f-6146-4b7a-a211-9eca423c8135.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2291241,
+      "sha256": "4DE40BC56EED0EA3AFD3325E73737F49DCC03BBD001EB4336F14FA98AF40BC57",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "01-regular/02.png",
+      "sourceFile": "exec-8141cf85-b94e-45bb-9a0a-bd4e0dd99941.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2273069,
+      "sha256": "A18C642945BF429B751A35FDB813A6A4249BF36889DF2EF43104E02BFDF85614",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "01-regular/03.png",
+      "sourceFile": "exec-21fa79d2-0593-49b5-9ffd-9d750020dbe8.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2398803,
+      "sha256": "C84F65CA27798580F6484B4D1A507A544298BE1EB45B1CEF628F542026FDA9C1",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "01-regular/04.png",
+      "sourceFile": "exec-e2d4d867-15f8-4a22-b38e-6fa54f9908b2.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2373749,
+      "sha256": "61E599A0E7AA0E7DEEFAD6F9EB1C698C61C4424CB5B959BA7754219E37801675",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "01-regular/05.png",
+      "sourceFile": "exec-03c2d175-3423-4e1f-9fc9-cabd017a6e72.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2273996,
+      "sha256": "6BA7B2A7FC7892CDCDDEFAE63D78E4A8427220387A0F8B598371194DAD59B730",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "02-flash/01.png",
+      "sourceFile": "exec-ee3b6f15-f762-41c8-809a-39fa4d1d9a56.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2126359,
+      "sha256": "1B2F13C14CC536F16E8B3825E97CDA0A7B1F99CA943A14E8FA18DDDEED91F08E",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "02-flash/02.png",
+      "sourceFile": "exec-deaf59fa-a484-4c87-955c-e52bb932d1c0.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2190433,
+      "sha256": "36634A73557E28CBAC44867138DF6B706400CDF5C6E578083DDC688C3580F209",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "02-flash/03.png",
+      "sourceFile": "exec-da397a3f-8370-437f-8587-d715f3410680.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2172181,
+      "sha256": "DA8B0670A647077ADCC64A18F196B7FF6E1232CBE674146026948BB73FDC68E6",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "02-flash/04.png",
+      "sourceFile": "exec-e0e7907c-7f41-4bed-8c4e-722fe8cb6aeb.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2092672,
+      "sha256": "D91B5E9F1476331ECCA5F32FF462902E8D35E2E6F8BFB2E69621F1BBCC519AD6",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "02-flash/05.png",
+      "sourceFile": "exec-12057f09-3ac6-415f-9d4b-8a2aff09c176.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2233478,
+      "sha256": "4C8A3AED3BD328FE5DC3F297B57CEA43C784287DA6A0A167D5B1EF9265D4D0D4",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "03-tenure/01.png",
+      "sourceFile": "exec-d774b990-6033-4e0f-8ed6-05c36e7865c2.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2237111,
+      "sha256": "325516B14BB611739EFDD69C2E3B0F89A5741FDE2A264BEB63348987A80FDF68",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "03-tenure/02.png",
+      "sourceFile": "exec-60b5d9f0-5478-4fcd-91d7-dc158a6d548a.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2258356,
+      "sha256": "579D45A7AE6B7DC4652E8AF70024CF5AAF308EEAA68AB9FB8238421E9C0EDD65",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "03-tenure/03.png",
+      "sourceFile": "exec-d1e33c7f-2339-45fa-9fc5-2c1e76939312.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2382794,
+      "sha256": "D580BA4635E5C991006E8579EB8D31010AB8F52BDB1B150685495AC1CC096586",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "03-tenure/04.png",
+      "sourceFile": "exec-b8c32d21-e777-4382-8e8f-36b5b426ce03.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2181535,
+      "sha256": "215113082F617AEB42AA025C7E9957BA1796E6873A8C42B09A1AAA0C20232280",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "03-tenure/05.png",
+      "sourceFile": "exec-791bd15e-59e7-4360-ba5b-efc29eae190c.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2180570,
+      "sha256": "4DBF94275634F0B932B56FF13CEBC5A86765FBB33AFD88E1F5790FA8A4C8068D",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "04-first-regular/01.png",
+      "sourceFile": "exec-9f828bb2-0cec-41f5-b7dd-fb34587eb3de.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2255036,
+      "sha256": "5FB5896C4CB62C4F343EA4CD9510F614E77223788A428FC066BACF3B977D4930",
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "file": "04-first-regular/02.png",
+      "sourceFile": "exec-d3d045e3-53e1-420d-8ee4-95a359697437.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1926833,
+      "sha256": "DDD84B964FDBCF725E50A0F1BC358FC99EE9F5A7E096363447C2801C2123A556",
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "file": "04-first-regular/03.png",
+      "sourceFile": "exec-273a3e0c-89d7-4635-8062-a083c7b752ec.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1784820,
+      "sha256": "8D706B15C8EF3C358345B86B8B733D4CCE476C6161C025A9049FB1902CCCA594",
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "file": "04-first-regular/04.png",
+      "sourceFile": "exec-8fdc8097-4938-418f-a684-5030fbb317e5.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2525919,
+      "sha256": "9A0EADD4CC37E1ED6C4FC9B8BA556F1B700A1DA1BF73F856E2031E461823CA9E",
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "file": "04-first-regular/05.png",
+      "sourceFile": "exec-de8eaee4-9926-4d50-9573-65f79a6d8ce4.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2049757,
+      "sha256": "268B22D39EE26EA374C43773A3720355BCB373FF05E84DFF82CC6CBDA2B85E58",
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "file": "05-coaching/01.png",
+      "sourceFile": "exec-bece2352-f53e-4063-8076-5b3b21cb0fc8.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2140084,
+      "sha256": "17799DE6C548E2F131694B5207F308C31E8BA41940408789C2AEB1C70EB99BB7",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "05-coaching/02.png",
+      "sourceFile": "exec-9628207d-7295-479b-a827-f372108ec90c.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2212427,
+      "sha256": "DBCF5CA37650E7042524630127DA1F7E333374C21C1017DDB18246C074B0EA76",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "05-coaching/03.png",
+      "sourceFile": "exec-98f66ec2-35d4-4a94-a498-a28f5c252c0e.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2069062,
+      "sha256": "641D9DC02027FD68255821E6518AF3B48FEE14E341A587BEFB1C62D04C7BAA68",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "05-coaching/04.png",
+      "sourceFile": "exec-de13b763-0e57-411c-9cbe-679d0ebba2d8.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 1905358,
+      "sha256": "727897FE4B51287D86408CC0B0E9B9E43FF347F0268DB34B0BFB3E154576210B",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "05-coaching/05.png",
+      "sourceFile": "exec-0e368a0a-91ff-4721-ba96-2c9a5a854d84.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2190520,
+      "sha256": "F2799DF0DDF2AAFC2C23CF7AD1FF0F6D17FA8DED76ADC6C708BDFC76E5DAFD6E",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "06-posts/01.png",
+      "sourceFile": "exec-849f948e-7bd9-449e-8b88-7462462aecd7.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2201733,
+      "sha256": "41D348BE0C1217A8540435972246FBFA5ED7FAD17A632B3DDB5F2ADE07FBA0A7",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "06-posts/02.png",
+      "sourceFile": "exec-73c84421-4fe3-49a0-9b4d-f20550a2be26.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2063469,
+      "sha256": "DFF29A53DFF59AB76C8FCEB86BF507183CDB65AD78FF08F8CBBF81E208A905CD",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "06-posts/03.png",
+      "sourceFile": "exec-7a9fdf94-ecac-4f81-8391-f2e6f84d5aec.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2061742,
+      "sha256": "8BEBBC431E528DEFBB5B5FCC8631B7C5C3E82578DDDA4DF10223DDB257E81034",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "06-posts/04.png",
+      "sourceFile": "exec-c65288d0-81f8-4d6d-8b70-d88cf869242e.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2145663,
+      "sha256": "57DEEB57577BD87D52C18A9E939BF98E160B161E3F93CA8777A353EBDEAA5A4E",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "06-posts/05.png",
+      "sourceFile": "exec-ddd71a53-90af-4ae7-9f5a-01daa7b8da3f.png",
+      "width": 1942,
+      "height": 809,
+      "bytes": 2263878,
+      "sha256": "096D6CF089387A48B15DBCCC5A16BA9A344EC6BF13DBDA00791C278EDE512D9C",
+      "cornerAlpha": [
+        255,
+        255,
+        255,
+        255
+      ]
+    }
+  ]
+}
