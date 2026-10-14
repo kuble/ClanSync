@@ -1,6 +1,6 @@
 # 주년 배지 디자인 후보
 
-제작일: 2026-10-14 · 상태: 기본 디자인 선택 대기
+제작일: 2026-10-14 · 상태: **4번 자라는 역사 선택·적용**
 
 ## 비교 기준
 
@@ -25,11 +25,22 @@
 | 4 | [자라는 역사](04-growing-history.png) | 같은 뿌리에서 더 단단해지는 클랜의 역사 |
 | 5 | [이어지는 빛](05-lasting-star.png) | 첫 깃발의 별이 시간이 지나도 이어지는 기념 |
 
-주년 기념의 의미가 바로 보이는 안은 2번 모래시계이며, 기존 창단 배지의 별 문양과 연결되는 안은 5번이다.
+사용자는 4번 **자라는 역사**를 선택했다. 다섯 잎·금빛 줄기와 뿌리·작은 별·아이보리 바탕을 유지하고 테두리만 연차별 금속으로 변경한다.
+
+## 선택한 개별 배지
+
+| 주년 | 적용 원본 |
+|---|---|
+| 1주년 · 동 | [bronze PNG](../../../../public/clan-badges/anniversary-growing-history-bronze.png) |
+| 3주년 · 은 | [silver PNG](../../../../public/clan-badges/anniversary-growing-history-silver.png) |
+| 5주년 · 금 | [gold PNG](../../../../public/clan-badges/anniversary-growing-history-gold.png) |
+| 10주년 · 플래티넘 | [platinum PNG](../../../../public/clan-badges/anniversary-growing-history-platinum.png) |
+
+동 배지를 비교 시안에서 투명 배경으로 분리한 뒤 그 원본의 테두리를 편집해 은·금·플래티넘 3종을 제작했다. 내장 `image_gen.imagegen`을 사용했으며 전체 제작 요청은 [production-prompts.json](production-prompts.json)에 보관했다. 각 PNG는 1254 × 1254px RGBA이며 생성 원본의 알파를 유지해 복사했다.
 
 ## 원본과 검증
 
 - 내장 `image_gen.imagegen`으로 디자인별 비교 이미지 1장씩, 총 5장을 생성했다. 기존 첫 깃발 PNG는 제작 질감 참고로만 전달했다.
 - 각 PNG는 1942 × 809px의 비교용 이미지이며, 4개 배지·주년 표기·테두리 금속 차이와 기본 문양의 일관성을 육안으로 확인했다.
 - 파일은 생성 원본을 수정 없이 복사했다. 재생성용 전체 요청은 [prompts.json](prompts.json)에 보관했다.
-- 선택 후 해당 디자인의 투명 배경 개별 배지와 케이스 실루엣을 제작한다. 이 비교 시안은 앱에 적용하지 않았으며, 주년 획득 조건과 기존 배지 데이터는 변경하지 않았다.
+- 선택한 개별 PNG와 공통 방패 실루엣을 전체 케이스·대표 진열에 적용했다. 창단일의 1·3·5·10년 기준일에 획득하며 기존 1주년 키/발급 기록은 유지한다. DB 스키마는 변경하지 않았다.

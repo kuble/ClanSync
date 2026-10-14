@@ -2,22 +2,22 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useId, useRef, useState, useTransition } from "react";
+import { useEffect, useId, useRef, useState, useTransition, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
-import { Cake, Flame, ShieldCheck, Sparkles, Swords, Star } from "lucide-react";
+import { Flame, ShieldCheck, Sparkles, Swords, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { setFeaturedBadgesAction, acknowledgeBadgesAction } from "@/app/actions/clan-badges";
-import { type ClanBadge, type ClanBadgeCollection, type ClanBadgeKey } from "@/lib/clan/badges";
+import { CLAN_BADGE_ARTWORK, type ClanBadge, type ClanBadgeCollection, type ClanBadgeKey } from "@/lib/clan/badges";
 import { cn } from "@/lib/utils";
 import styles from "./clan-collection.module.css";
 
-const icons = { flame: Flame, swords: Swords, shield: ShieldCheck, sparkles: Sparkles, cake: Cake };
+const icons = { flame: Flame, swords: Swords, shield: ShieldCheck, sparkles: Sparkles };
 const badgeDate = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul" });
 
 function acquisitionMethod(badge: ClanBadge) {
   if (badge.key === "founding") return "클랜 창단";
-  if (badge.key === "anniversary") return "클랜 창단 1주년";
+  if ("years" in badge) return "클랜 창단 " + badge.years + "주년";
   return badge.group + " " + badge.target + "회 종료";
 }
 
@@ -112,16 +112,21 @@ export function ClanBadges({
     <div className={styles.case}>
       <div className={styles.casePlate}>{collection.clanName}</div>
       <div ref={caseRef} className={cn(styles.caseGrid, compact && styles.compactGrid)} aria-label="배지 진열">
-        {badges.map(b => <button key={b.key} data-badge={b.key} type="button" title={b.name}
+        {badges.map(b => {
+          const artwork = CLAN_BADGE_ARTWORK[b.key];
+          const mask = "years" in b ? CLAN_BADGE_ARTWORK.anniversary : artwork;
+          return <button key={b.key} data-badge={b.key} type="button" title={b.name}
           aria-label={b.name + " " + (b.earned ? "획득" : "미획득")}
           aria-pressed={selected?.key === b.key} aria-controls={detailsId}
-          className={cn(styles.pin, b.key === "founding" ? styles.artworkSocket : styles[b.icon])}
+          className={cn(styles.pin, artwork ? styles.artworkSocket : styles[b.icon])}
+          style={mask ? { "--badge-mask": `url("/_next/image?url=${encodeURIComponent(mask)}&w=256&q=75")` } as CSSProperties : undefined}
           onClick={() => setSelectedKey(b.key)}>
           <span className={styles.socketShadow} aria-hidden="true">
             <span className={styles.socketRim}><span className={styles.socketWell} /></span>
           </span>
           {b.earned && <BadgeEmblem badge={b} compact={compact} />}
-        </button>)}
+        </button>;
+        })}
         {badges.length === 0 && <p className={styles.caseEmpty}>대표 배지를 지정해 주세요.</p>}
       </div>
     </div>
@@ -139,10 +144,10 @@ export function ClanBadges({
 }
 
 function BadgeEmblem({ badge, compact }: { badge: ClanBadge; compact: boolean }) {
-  const Icon = icons[badge.icon], isFounding = badge.key === "founding";
-  return <span data-emblem className={cn(styles.emblem, isFounding && styles.artwork)}>
-    {isFounding
-      ? <Image src="/clan-badges/founding-first-banner.png" alt="" width={256} height={256} loading="eager"
+  const Icon = icons[badge.icon], artwork = CLAN_BADGE_ARTWORK[badge.key];
+  return <span data-emblem className={cn(styles.emblem, artwork && styles.artwork)}>
+    {artwork
+      ? <Image src={artwork} alt="" width={256} height={256} loading={compact || badge.key === "founding" ? "eager" : "lazy"}
           sizes={compact ? "(max-width: 640px) 28vw, 220px" : "(max-width: 640px) 44vw, 240px"} className={styles.badgeImage} />
       : <><span className={styles.enamel} /><Icon className={styles.badgeIcon} aria-hidden="true" /></>}
   </span>;

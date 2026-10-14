@@ -66,6 +66,17 @@ test("운영 현황의 회차·배지·중복 제거와 대시보드 공지 3개
     const hundred = page.locator('[data-badge="regular-100"]');
     await expect(page.locator('[data-badge="founding"] img')).toBeVisible();
     expect(await page.locator('[data-badge="founding"] img').evaluate(img => img.clientWidth)).toBeGreaterThan(120);
+    await expect(page.getByRole("button", { name: "1주년 획득", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "1주년 획득", exact: true }).click();
+    await expect(details).toContainText("클랜 창단 1주년");
+    await expect(details).toContainText("2026. 9. 15.");
+    for (const years of [3, 5, 10]) {
+      const anniversary = page.getByRole("button", { name: `${years}주년 미획득`, exact: true });
+      await anniversary.click();
+      await expect(anniversary.locator("img")).toHaveCount(0);
+      await expect(details).toContainText(`클랜 창단 ${years}주년`);
+      await expect(details).toContainText("미획득");
+    }
     expect(await hundred.innerText()).toBe("");
     await expect(hundred).toHaveAccessibleName("내전 100회 미획득");
     await hundred.click();
@@ -98,6 +109,54 @@ test("운영 현황의 회차·배지·중복 제거와 대시보드 공지 3개
     await expect(page.getByRole("button", { name: "획득 확인", exact: true })).toHaveCount(0);
     await page.reload();
     await expect(page.getByRole("button", { name: "획득 확인", exact: true })).toHaveCount(0);
+    // Backdate only this temporary clan to exercise all four anniversary awards.
+    const anniversaryKeys = ["anniversary", "anniversary-3", "anniversary-5", "anniversary-10"];
+    await ok(f.service.from("clan_badge_awards").delete().eq("clan_id", f.clanId).in("badge_key", anniversaryKeys));
+    const tenYearsAgo = new Date(Date.now() - 3_600_000);
+    tenYearsAgo.setUTCFullYear(tenYearsAgo.getUTCFullYear() - 10);
+    await ok(f.service.from("clans").update({ created_at: tenYearsAgo.toISOString() }).eq("id", f.clanId));
+    await page.reload();
+    await page.getByRole("button", { name: "기념", exact: true }).click();
+    for (const [years, key, metal] of [[1, "anniversary", "bronze"], [3, "anniversary-3", "silver"], [5, "anniversary-5", "gold"], [10, "anniversary-10", "platinum"]] as const) {
+      const anniversary = page.locator(`[data-badge="${key}"]`);
+      await expect(anniversary).toHaveAccessibleName(`${years}주년 획득`);
+      await anniversary.click();
+      await expect(details).toContainText(`클랜 창단 ${years}주년`);
+      const image = anniversary.locator("img");
+      await expect(image).toHaveAttribute("src", new RegExp(`anniversary-growing-history-${metal}`));
+      await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+      expect(await image.evaluate(img => img.clientWidth)).toBeGreaterThan(120);
+    }
+    await capture(page, "anniversary-growing-history-desktop.png");
+    await page.getByRole("button", { name: "대표 배지 지정", exact: true }).click();
+    await expect(page.getByText("대표 배지는 최대 3개예요.", { exact: false })).toBeVisible();
+    await page.getByRole("button", { name: "전체", exact: true }).click();
+    await page.locator('[data-badge="regular-1"]').click();
+    await page.getByRole("button", { name: "대표 배지 해제", exact: true }).click();
+    await expect(page.getByRole("button", { name: "대표 배지 지정", exact: true })).toBeVisible();
+    await page.locator('[data-badge="anniversary-10"]').click();
+    await page.getByRole("button", { name: "대표 배지 지정", exact: true }).click();
+    await expect(page.getByRole("button", { name: "대표 배지 해제", exact: true })).toBeVisible();
+    await expect.poll(async () => (await f.service.from("clan_badge_featured").select("badge_keys").eq("clan_id", f.clanId).single()).data?.badge_keys).toEqual(["regular-10", "regular-100", "anniversary-10"]);
+    await page.goto(base+"/manage");
+    await expect(page.locator('[data-badge="anniversary-10"] img')).toHaveAttribute("src", /anniversary-growing-history-platinum/);
+    await page.goto(base+"/badges");
+    await page.getByRole("button", { name: "기념", exact: true }).click();
+    await page.setViewportSize({ width: 390, height: 844 });
+    const anniversaryImage = page.locator('[data-badge="anniversary-10"] img');
+    await anniversaryImage.scrollIntoViewIfNeeded();
+    await expect(anniversaryImage).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await capture(page, "anniversary-growing-history-mobile.png");
+    await page.setViewportSize({ width: 1100, height: 884 });
+    // A tenth anniversary still in the future must revoke only its own award.
+    const beforeTenth = new Date(Date.now() + 86_400_000);
+    beforeTenth.setUTCFullYear(beforeTenth.getUTCFullYear() - 10);
+    await ok(f.service.from("clans").update({ created_at: beforeTenth.toISOString() }).eq("id", f.clanId));
+    await page.reload();
+    await expect(page.getByRole("button", { name: "10주년 미획득", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "5주년 획득", exact: true })).toBeVisible();
+    expect(await ok(f.service.from("clan_badge_awards").select("badge_key").eq("clan_id", f.clanId).eq("badge_key", "anniversary-10"))).toHaveLength(0);
     await page.goto(base+"/manage");
     await expect(page.getByRole("link", { name: "총 내전 101회", exact: true })).toBeVisible();
     await page.goto(base);

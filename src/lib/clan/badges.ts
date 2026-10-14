@@ -7,9 +7,19 @@ export const CLAN_BADGES = [
   {key:"regular-500",name:"내전 500회",group:"정규 내전",icon:"shield",target:500,story:"오백 번의 경기 너머에도 함께해요"},
   {key:"flash-1",name:"첫 깜짝 내전",group:"깜짝 내전",icon:"sparkles",target:1,story:"갑자기 모여도 즐거웠던 첫날"},
   {key:"flash-10",name:"깜짝 내전 10회",group:"깜짝 내전",icon:"sparkles",target:10,story:"예고 없이 모인 열 번의 즐거움"},
-  {key:"anniversary",name:"1주년",group:"기념",icon:"cake",target:0,story:"사계절을 지나 다시 함께 맞은 날"},
+  {key:"anniversary",name:"1주년",group:"기념",icon:"shield",target:0,years:1,story:"사계절을 지나 같은 뿌리에서 자란 우리"},
+  {key:"anniversary-3",name:"3주년",group:"기념",icon:"shield",target:0,years:3,story:"세 번의 사계절을 함께 지나온 인연"},
+  {key:"anniversary-5",name:"5주년",group:"기념",icon:"shield",target:0,years:5,story:"다섯 해의 기억이 단단한 역사가 됐어요"},
+  {key:"anniversary-10",name:"10주년",group:"기념",icon:"shield",target:0,years:10,story:"십 년을 함께 뿌리내린 우리 클랜"},
 ] as const;
 export type ClanBadgeKey=(typeof CLAN_BADGES)[number]["key"];
 export type ClanBadge = (typeof CLAN_BADGES)[number] & {earned:boolean;earnedAt:string|null;awardedAt:string|null;progress:string;isNew:boolean};
 export type ClanBadgeCollection = {badges:ClanBadge[];featured:ClanBadgeKey[]|null;clanName:string;createdAt:string;userId:string};
-export function badgeAnniversary(createdAt:string){const date=new Date(createdAt);date.setUTCFullYear(date.getUTCFullYear()+1);return date.toISOString();}
+export const CLAN_BADGE_ARTWORK:Partial<Record<ClanBadgeKey,string>>={
+  founding:"/clan-badges/founding-first-banner.png",
+  anniversary:"/clan-badges/anniversary-growing-history-bronze.png",
+  "anniversary-3":"/clan-badges/anniversary-growing-history-silver.png",
+  "anniversary-5":"/clan-badges/anniversary-growing-history-gold.png",
+  "anniversary-10":"/clan-badges/anniversary-growing-history-platinum.png",
+};
+export function badgeAnniversary(createdAt:string,years=1){const date=new Date(createdAt);date.setUTCFullYear(date.getUTCFullYear()+years);return date.toISOString();}

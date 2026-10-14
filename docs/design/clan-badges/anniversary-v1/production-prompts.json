@@ -1,0 +1,34 @@
+{
+  "createdAt": "2026-10-14",
+  "selectedConcept": "04-growing-history",
+  "tool": "image_gen.imagegen (built-in)",
+  "transparentBackground": true,
+  "base": {
+    "input": "docs/design/clan-badges/anniversary-v1/04-growing-history.png",
+    "output": "public/clan-badges/anniversary-growing-history-bronze.png",
+    "prompt": "Use case: background-extraction / precise-object-edit.\nAsset type: production clan anniversary enamel badge PNG, transparent background.\nInput image: the approved \"Growing History\" four-badge comparison sheet.\nExtract ONLY the far-left bronze-bordered tree shield as ONE large isolated badge. Preserve exactly its shield silhouette, five enamel leaves (emerald center and lower leaves, mint upper side leaves), ivory field, champagne-gold trunk, mirrored roots, small four-point star and diamond near the roots, wide bronze outer rim, all internal seams, proportions and lighting. This is the selected approved design; do not redesign or invent decorations. The existing tree and roots must match the reference faithfully.\nComposition: one badge, front-facing, upright, centered on a square canvas, full silhouette visible, badge occupies about 90 percent of canvas height with a small even transparent safety margin, enough width to preserve original proportions. No other badges, no title, no year, no numerals, no captions. No backdrop, no colored rectangle, no checkerboard, no drop shadow beyond the object silhouette. Genuine transparent alpha background. Sharp polished hard-enamel and sculpted metal texture at high resolution, consistent with the approved source."
+  },
+  "variants": [
+    {
+      "years": 3,
+      "metal": "silver",
+      "input": "public/clan-badges/anniversary-growing-history-bronze.png",
+      "output": "public/clan-badges/anniversary-growing-history-silver.png",
+      "prompt": "Use case: precise-object-edit.\nInput image: approved bronze \"Growing History\" tree shield production PNG, edit target.\nMake an EXACT matching neutral brushed silver, medium neutral silver-gray with restrained white reflections; clearly less pale and less blue than platinum outer-border variant.\nCHANGE ONLY the thick continuous OUTERMOST shield border from bronze/copper to neutral brushed silver, medium neutral silver-gray with restrained white reflections; clearly less pale and less blue than platinum. The thin inset border, tree trunk, leaf dividers, roots, diamond and star stay exactly the original champagne-gold.\nPreserve all original pixels and geometry as closely as possible everywhere else: shield outline, five leaf shapes and positions, mint/emerald enamel, ivory field, raised trunk and mirrored roots, central small star and diamond, proportions, placement, canvas size, transparent margins, highlights and lighting. Do not redesign, add, remove or reposition any detail. This is the same physical die mold with different outer rim plating, not a new design.\nOutput one upright front-facing badge centered on the SAME square canvas and at the SAME scale as the input. Genuine transparent alpha background preserved. No other badges, text, labels, years, numerals, logos, backdrop, shadow outside silhouette, checkerboard or opaque rectangle."
+    },
+    {
+      "years": 5,
+      "metal": "gold",
+      "input": "public/clan-badges/anniversary-growing-history-bronze.png",
+      "output": "public/clan-badges/anniversary-growing-history-gold.png",
+      "prompt": "Use case: precise-object-edit.\nInput image: approved bronze \"Growing History\" tree shield production PNG, edit target.\nMake an EXACT matching warm polished gold, rich golden yellow with crisp elegant highlights outer-border variant.\nCHANGE ONLY the thick continuous OUTERMOST shield border from bronze/copper to warm polished gold, rich golden yellow with crisp elegant highlights. The thin inset border, tree trunk, leaf dividers, roots, diamond and star stay exactly the original champagne-gold.\nPreserve all original pixels and geometry as closely as possible everywhere else: shield outline, five leaf shapes and positions, mint/emerald enamel, ivory field, raised trunk and mirrored roots, central small star and diamond, proportions, placement, canvas size, transparent margins, highlights and lighting. Do not redesign, add, remove or reposition any detail. This is the same physical die mold with different outer rim plating, not a new design.\nOutput one upright front-facing badge centered on the SAME square canvas and at the SAME scale as the input. Genuine transparent alpha background preserved. No other badges, text, labels, years, numerals, logos, backdrop, shadow outside silhouette, checkerboard or opaque rectangle."
+    },
+    {
+      "years": 10,
+      "metal": "platinum",
+      "input": "public/clan-badges/anniversary-growing-history-bronze.png",
+      "output": "public/clan-badges/anniversary-growing-history-platinum.png",
+      "prompt": "Use case: precise-object-edit.\nInput image: approved bronze \"Growing History\" tree shield production PNG, edit target.\nMake an EXACT matching bright cool polished platinum, luminous pale near-white metal with subtle icy blue reflections; clearly paler and cooler than neutral silver outer-border variant.\nCHANGE ONLY the thick continuous OUTERMOST shield border from bronze/copper to bright cool polished platinum, luminous pale near-white metal with subtle icy blue reflections; clearly paler and cooler than neutral silver. The thin inset border, tree trunk, leaf dividers, roots, diamond and star stay exactly the original champagne-gold.\nPreserve all original pixels and geometry as closely as possible everywhere else: shield outline, five leaf shapes and positions, mint/emerald enamel, ivory field, raised trunk and mirrored roots, central small star and diamond, proportions, placement, canvas size, transparent margins, highlights and lighting. Do not redesign, add, remove or reposition any detail. This is the same physical die mold with different outer rim plating, not a new design.\nOutput one upright front-facing badge centered on the SAME square canvas and at the SAME scale as the input. Genuine transparent alpha background preserved. No other badges, text, labels, years, numerals, logos, backdrop, shadow outside silhouette, checkerboard or opaque rectangle."
+    }
+  ]
+}

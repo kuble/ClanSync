@@ -52,10 +52,9 @@
 }
 .sparkles { --socket-shape:polygon(50% 0%,97% 50%,50% 100%,3% 50%); }
 .shield { --socket-shape:polygon(50% 0%,95% 18%,89% 68%,73% 88%,50% 100%,27% 88%,11% 68%,5% 18%); }
-.cake { --socket-shape:circle(47% at 50% 50%); }
 .artworkSocket .socketRim {
   /* Reuse the optimized pin image instead of loading the full PNG for its mould. */
-  clip-path:none; mask-image:url("/_next/image?url=%2Fclan-badges%2Ffounding-first-banner.png&w=256&q=75");
+  clip-path:none; mask-image:var(--badge-mask);
   mask-size:contain; mask-repeat:no-repeat; mask-position:center;
 }
 .artworkSocket .socketWell { clip-path:none; inset:0; }

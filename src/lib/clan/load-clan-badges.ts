@@ -22,12 +22,13 @@ export const loadClanBadges=cache(async(clanId:string):Promise<ClanBadgeCollecti
     client.from("clan_badge_seen").select("seen_at").eq("clan_id",clanId).eq("user_id",user.id).maybeSingle(),
   ]);
   if(clan.error||regular.error||flash.error||featured.error||seen.error||history.completedRegular===null||history.completedFlash===null)throw new Error("배지 기록을 불러오지 못했습니다.");
-  const anniversary=badgeAnniversary(clan.data.created_at),now=Date.now();
+  const now=Date.now();
   const badges=CLAN_BADGES.map(b=>{
+    const anniversary="years" in b?badgeAnniversary(clan.data.created_at,b.years):null;
     const count=b.group==="정규 내전"?history.completedRegular!:history.completedFlash!;
-    const earned=b.key==="founding"||(b.key==="anniversary"?Date.parse(anniversary)<=now:count>=b.target);
-    const earnedAt=b.key==="founding"?clan.data.created_at:b.key==="anniversary"?anniversary:(b.group==="정규 내전"?regular.data:flash.data)[b.target-1]?.closed_at??null;
-    return {...b,earned,earnedAt:earned?earnedAt:null,progress:b.target?Math.min(count,b.target)+" / "+b.target:new Date(b.key==="founding"?clan.data.created_at:anniversary).toLocaleDateString("ko-KR",{timeZone:"Asia/Seoul"}),isNew:false};
+    const earned=b.key==="founding"||(anniversary?Date.parse(anniversary)<=now:count>=b.target);
+    const earnedAt=b.key==="founding"?clan.data.created_at:anniversary??(b.group==="정규 내전"?regular.data:flash.data)[b.target-1]?.closed_at??null;
+    return {...b,earned,earnedAt:earned?earnedAt:null,progress:b.target?Math.min(count,b.target)+" / "+b.target:new Date(anniversary??clan.data.created_at).toLocaleDateString("ko-KR",{timeZone:"Asia/Seoul"}),isNew:false};
   });
   // Existing correction semantics return a milestone below its threshold to an empty slot.
   const invalid=badges.filter(b=>!b.earned).map(b=>b.key);
