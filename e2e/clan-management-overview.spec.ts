@@ -117,13 +117,13 @@ test("운영 현황의 회차·배지·중복 제거와 대시보드 공지 3개
     await ok(f.service.from("clans").update({ created_at: tenYearsAgo.toISOString() }).eq("id", f.clanId));
     await page.reload();
     await page.getByRole("button", { name: "기념", exact: true }).click();
-    for (const [years, key, metal] of [[1, "anniversary", "bronze"], [3, "anniversary-3", "silver"], [5, "anniversary-5", "gold"], [10, "anniversary-10", "black-ruthenium"]] as const) {
+    for (const [years, key] of [[1, "anniversary"], [3, "anniversary-3"], [5, "anniversary-5"], [10, "anniversary-10"]] as const) {
       const anniversary = page.locator(`[data-badge="${key}"]`);
       await expect(anniversary).toHaveAccessibleName(`${years}주년 획득`);
       await anniversary.click();
       await expect(details).toContainText(`클랜 창단 ${years}주년`);
       const image = anniversary.locator("img");
-      await expect(image).toHaveAttribute("src", new RegExp(`anniversary-growing-history-${metal}`));
+      await expect(image).toHaveAttribute("src", new RegExp(`anniversary-growing-history-${years}y-gold-v2`));
       await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
       expect(await image.evaluate(img => img.clientWidth)).toBeGreaterThan(120);
     }
@@ -139,7 +139,7 @@ test("운영 현황의 회차·배지·중복 제거와 대시보드 공지 3개
     await expect(page.getByRole("button", { name: "대표 배지 해제", exact: true })).toBeVisible();
     await expect.poll(async () => (await f.service.from("clan_badge_featured").select("badge_keys").eq("clan_id", f.clanId).single()).data?.badge_keys).toEqual(["regular-10", "regular-100", "anniversary-10"]);
     await page.goto(base+"/manage");
-    await expect(page.locator('[data-badge="anniversary-10"] img')).toHaveAttribute("src", /anniversary-growing-history-black-ruthenium/);
+    await expect(page.locator('[data-badge="anniversary-10"] img')).toHaveAttribute("src", /anniversary-growing-history-10y-gold-v2/);
     await page.goto(base+"/badges");
     await page.getByRole("button", { name: "기념", exact: true }).click();
     await page.setViewportSize({ width: 390, height: 844 });

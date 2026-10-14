@@ -18,6 +18,7 @@ const badgeDate = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul" });
 function acquisitionMethod(badge: ClanBadge) {
   if (badge.key === "founding") return "클랜 창단";
   if ("years" in badge) return "클랜 창단 " + badge.years + "주년";
+  if (badge.group === "멤버") return "활성 클랜원 " + badge.target + "명";
   return badge.group + " " + badge.target + "회 종료";
 }
 
@@ -93,7 +94,7 @@ export function ClanBadges({
   return <div className={cn("space-y-4", className)}>
     {!compact && <>
       <div className="flex flex-wrap gap-2" aria-label="배지 컬렉션">
-        {["전체", "기념", "정규 내전", "깜짝 내전"].map(value =>
+        {["전체", "기념", "멤버", "정규 내전", "깜짝 내전"].map(value =>
           <Button key={value} size="sm" variant={group === value ? "default" : "outline"}
             aria-pressed={group === value} onClick={() => setGroup(value)}>{value}</Button>)}
       </div>
@@ -114,7 +115,7 @@ export function ClanBadges({
       <div ref={caseRef} className={cn(styles.caseGrid, compact && styles.compactGrid)} aria-label="배지 진열">
         {badges.map(b => {
           const artwork = CLAN_BADGE_ARTWORK[b.key];
-          const mask = "years" in b ? CLAN_BADGE_ARTWORK.anniversary : artwork;
+          const mask = b.group === "멤버" ? CLAN_BADGE_ARTWORK["members-10"] : "years" in b ? CLAN_BADGE_ARTWORK.anniversary : artwork;
           return <button key={b.key} data-badge={b.key} type="button" title={b.name}
           aria-label={b.name + " " + (b.earned ? "획득" : "미획득")}
           aria-pressed={selected?.key === b.key} aria-controls={detailsId}
@@ -139,7 +140,7 @@ export function ClanBadges({
     </div>}
     {compact
       ? <Link href={"/games/" + gameSlug + "/clan/" + clanId + "/badges"} className="inline-flex text-xs font-medium text-primary">배지 케이스 보기 →</Link>
-      : <p className="text-xs leading-6 text-muted-foreground">내전 배지는 종료된 회차를 기준으로 합니다. 기록 정정으로 조건에 미달하면 다시 미획득으로 표시됩니다.</p>}
+      : <p className="text-xs leading-6 text-muted-foreground">내전 배지는 종료된 회차, 멤버 배지는 현재 활성 인원을 기준으로 합니다. 조건에 미달하면 다시 미획득으로 표시됩니다.</p>}
   </div>;
 }
 

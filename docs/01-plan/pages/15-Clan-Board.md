@@ -35,10 +35,11 @@
 
 - 운영 현황은 정규/깜짝 **개설 회차**를 따로 표시한다. 합계는 보조로 남기고 아직 열지 않은 예약은 제외한다. 누락된 방 종류는 임의 분류하지 않는다.
 - `badges`에서 활성 클랜원 모두 전체 핀 배지 케이스를 본다. 매트한 안감·모양별 눌린 홈·클랜 이름 각인으로 구성하며, 안에는 큰 배지만 진열한다. 미획득 배지는 빈 홈으로 표시한다.
-- 기념/정규/깜짝 컬렉션과 창단, 정규 1·10·50·100·500회, 깜짝 1·10회, 1·3·5·10주년의 12종을 제공한다. 시즌 배지의 조건은 후속 결정한다.
+- 기념/멤버/정규/깜짝 컬렉션과 창단, 정규 1·10·50·100·500회, 깜짝 1·10회, 1·3·5·10주년, 활성 멤버 10·20·50·100명의 16종을 제공한다. 시즌 배지의 조건은 후속 결정한다.
 - 창단 그래픽은 사용자 선택인 [첫 깃발 에나멜 핀](../../design/clan-badges/founding-v1/README.md)을 케이스·대표 진열에 공통 사용한다. 배지명은 창단이며, 투명 PNG를 Next Image로 화면 크기에 맞게 제공한다.
-- 주년 그래픽은 사용자 선택인 [자라는 역사](../../design/clan-badges/anniversary-v1/README.md)다. 나무·뿌리·별·방패는 같은 구조로 유지하고 테두리를 1주년 동, 3주년 은, 5주년 금, 10주년 블랙 루테늄으로 구분한다. 미획득 홈은 동 배지의 실루엣을 공통 사용하며 실제 배지는 획득 후 진열한다.
+- 주년 그래픽은 사용자 선택인 [자라는 역사 성장형 V2](../../design/clan-badges/anniversary-growth-v2/README.md)다. 1·3·5·10주년의 잎이 3·5·7·9개로 늘고 줄기·뿌리가 굵어진다. 테두리는 첫 깃발·성채와 같은 금빛 금속으로 통일한다. 미획득 홈은 1주년 방패 실루엣을 공통 사용하며 실제 배지는 획득 후 진열한다.
 - 주년은 창단 시각에서 해당 UTC 연도를 더한 기준일에 획득하고 이름·획득 방식·획득일은 케이스 밖에 표시한다. 기존 1주년 키 `anniversary`와 UTC 윤일 이월 규칙은 유지한다. 신규 3·5·10주년은 기존 발급/대표/확인 테이블을 사용하며 스키마를 변경하지 않는다.
+- 멤버 그래픽은 [우리의 성채](../../design/clan-badges/members-v1/README.md)다. 10·20·50·100명에서 1·3·5·7개 탑으로 성장하고 미획득 홈은 10명 아치 실루엣을 공유한다. 현재 `active` 인원만 세며 대기/탈퇴/차단은 제외한다. 조건 미달이면 발급을 회수하고 대표 진열에서도 제외한다. 획득일은 최초 조건 확인 시각이며 보유 중에는 유지하고 재획득 시 새 시각을 저장한다. 과거 달성일은 추정하지 않는다.
 - 내전 성취는 종료된 해당 종류의 회차를 센다. 조건을 넘긴 실제 종료 시점에서 획득일을 복원하며, 알 수 없는 과거 날짜는 확인 필요로 둔다. 기록 정정으로 조건 미달이면 기존 판정과 같이 미획득으로 되돌린다.
 - `clan_badge_awards`는 서버에서만 발급한다. 운영진이 고른 대표 배지 최대 3개는 `clan_badge_featured`에 저장하고 대시보드/운영 현황에 표시한다. 선택 전에는 획득한 첫 3개를 기본 진열한다.
 - 배지 선택 시 팝업 없이 케이스 바깥의 이름·획득 방식·획득일 세 항목을 갱신한다. 전체 케이스는 위의 고정 정보 행, 대표 진열은 아래의 정보 행을 사용한다. 미획득 진척은 획득 방식에 함께 표시한다. 분류를 바꾸면 표시 중인 배지로 선택 정보를 맞춘다. 대표 배지 지정/해제는 정보 행 밖에 둔다.
@@ -51,5 +52,6 @@
 - 코칭: `src/lib/clan/load-clan-coaches.ts` · `src/components/main-clan/clan-coach-directory.tsx` · `e2e/clan-coaching.spec.ts` · `scripts/clan-coaching-db.test.mjs`
 - 사진 목록: `src/components/main-clan/clan-board-posts.tsx` · `e2e/clan-board.spec.ts`; 방송 링크/수동 상태: `src/components/main-clan/clan-channel-links.tsx` · `e2e/clan-channel-manual-live.spec.ts`; 목록 배치/전송량: `e2e/clan-board-list.spec.ts`
 - 케이스: `src/lib/clan/badges.ts` · `load-clan-badges.ts` · `src/components/main-clan/clan-badges.tsx`
+- 멤버 판정/회수·획득일 보존·대표 진열·주년 성장 이미지: `e2e/clan-badge-growth.spec.ts`
 - DB/권한: `scripts/clan-boards-db.test.mjs`; 브라우저: `e2e/clan-board.spec.ts`, `clan-management-overview.spec.ts`, `clan-management.spec.ts`, 공지 링크 관련 `clan-discord-notifications.spec.ts`
 - 실제 수행한 검증과 제한은 [Phase 2 현황](../../TODO_Phase2.md)에 기록한다.
