@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useId, useRef, useState, useTransition, type CSSProperties } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore, useTransition, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { Flame, ShieldCheck, Sparkles, Swords, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { RubberSegment } from "@/components/ui/rubber-segment";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { setFeaturedBadgesAction, acknowledgeBadgesAction } from "@/app/actions/clan-badges";
 import { CLAN_BADGES, CLAN_BADGE_ARTWORK, CLAN_BADGE_SERIES_NAMES, getClanBadgeRepresentatives, type ClanBadge, type ClanBadgeCollection, type ClanBadgeKey } from "@/lib/clan/badges";
@@ -15,6 +16,37 @@ import styles from "./clan-collection.module.css";
 
 const icons = { flame: Flame, swords: Swords, shield: ShieldCheck, sparkles: Sparkles };
 const badgeDate = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul" });
+const categories = [
+  { id: "전체", groups: [] },
+  { id: "기념", groups: ["기념"] },
+  { id: "동료", groups: ["멤버", "동료"] },
+  { id: "내전", groups: ["정규 내전", "깜짝 내전"] },
+  { id: "활동", groups: ["코칭", "게시판"] },
+];
+const checkedCache = new Map<string, string>();
+function subscribeChecked(callback: () => void) {
+  const storageChanged = (event: StorageEvent) => {
+    if (event.key) checkedCache.delete(event.key);
+    else checkedCache.clear();
+    callback();
+  };
+  window.addEventListener("storage", storageChanged);
+  window.addEventListener("clansync:badge-checked", callback);
+  return () => {
+    window.removeEventListener("storage", storageChanged);
+    window.removeEventListener("clansync:badge-checked", callback);
+  };
+}
+function checkedSnapshot(key: string) {
+  try { return checkedCache.get(key) ?? localStorage.getItem(key) ?? "{}"; }
+  catch { return checkedCache.get(key) ?? "{}"; }
+}
+function parseChecked(snapshot: string): Record<string, string> {
+  try {
+    const value = JSON.parse(snapshot);
+    return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  } catch { return {}; }
+}
 
 function acquisitionMethod(badge: ClanBadge) {
   if (badge.key === "founding") return "클랜 창단";
@@ -34,12 +66,12 @@ export function ClanBadges({
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
-  const [selectedKey, setSelectedKey] = useState<ClanBadgeKey | null>(null);
   const [group, setGroup] = useState("전체");
   const [seriesOpen, setSeriesOpen] = useState(false);
   const [seriesKey, setSeriesKey] = useState<ClanBadgeKey | null>(null);
-  const detailsId = useId();
   const seriesDetailsId = useId();
+  const checkedKey = `clansync:badge-checked:v1:${collection.userId}:${clanId}`;
+  const checked = parseChecked(useSyncExternalStore(subscribeChecked, () => checkedSnapshot(checkedKey), () => "{}"));
   const displayBadges = getClanBadgeRepresentatives(collection.badges);
   const storedFeatured = collection.featured ?? displayBadges.filter(b => b.earned).slice(0, 3).map(b => b.key);
   const featured = [...new Set(storedFeatured.map(key => {
@@ -48,12 +80,12 @@ export function ClanBadges({
   }))];
   const badges = compact
     ? featured.flatMap(key => displayBadges.filter(b => b.key === key && b.earned))
-    : displayBadges.filter(b => group === "전체" || b.group === group);
-  const selected = badges.find(b => b.key === selectedKey) ?? badges[0] ?? null;
+    : displayBadges.filter(b => group === "전체" || categories.find(c => c.id === group)?.groups.includes(b.group));
   const seriesSelected = collection.badges.find(b => b.key === seriesKey);
   const series = seriesSelected && "series" in seriesSelected ? collection.badges.filter(b => "series" in b && b.series === seriesSelected.series) : [];
-  const seriesRepresentative = seriesSelected && "series" in seriesSelected ? displayBadges.find(b => "series" in b && b.series === seriesSelected.series) : null;
-  const fresh = collection.badges.filter(b => b.isNew);
+  const seriesRepresentative = seriesSelected && "series" in seriesSelected ? displayBadges.find(b => "series" in b && b.series === seriesSelected.series) : seriesSelected;
+  const fresh = collection.badges.filter(b => b.earned && b.isNew && b.awardedAt);
+  const unread = fresh.filter(b => checked[b.key] !== b.awardedAt);
   const caseRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -93,59 +125,45 @@ export function ClanBadges({
     });
   }
 
-  const details = <section id={detailsId} className={cn(styles.badgeDetails, !compact && styles.stickyDetails)}
-    aria-label="선택한 배지 정보" aria-live="polite" aria-atomic="true">
-    {selected && <dl className={styles.detailGrid}>
-      <div><dt>이름</dt><dd className={styles.detailName}>{selected.name}</dd></div>
-      <div><dt>획득 방식</dt><dd>{acquisitionMethod(selected)}
-        {selected.target > 0 && !selected.earned && <span className={styles.detailProgress}>{selected.progress}</span>}
-      </dd></div>
-      <div><dt>획득일</dt><dd>{selected.earned
-        ? selected.earnedAt ? badgeDate.format(new Date(selected.earnedAt)) : "확인 필요"
-        : "미획득"}</dd></div>
-    </dl>}
-  </section>;
+  function inspect(badge: ClanBadge) {
+    setSeriesKey(badge.key);
+    const viewed = unread.filter(b => b.key === badge.key || ("series" in badge && "series" in b && b.series === badge.series));
+    const next = { ...parseChecked(checkedSnapshot(checkedKey)) };
+    if (viewed.length) {
+      for (const b of viewed) next[b.key] = b.awardedAt!;
+      const snapshot = JSON.stringify(next);
+      checkedCache.set(checkedKey, snapshot);
+      // shortcut: Partial reads are browser-local; use server per-badge reads if cross-device partial sync is needed.
+      try { localStorage.setItem(checkedKey, snapshot); checkedCache.delete(checkedKey); }
+      catch { /* Keep the in-memory snapshot when storage is unavailable. */ }
+      window.dispatchEvent(new Event("clansync:badge-checked"));
+    }
+    if (fresh.length && fresh.every(b => next[b.key] === b.awardedAt)) {
+      const latest = fresh.reduce((a, b) => Date.parse(a.awardedAt!) >= Date.parse(b.awardedAt!) ? a : b).awardedAt!;
+      start(async () => {
+        try {
+          const result = await acknowledgeBadgesAction(gameSlug, clanId, latest);
+          if (!result.ok) toast.error(result.error);
+          else router.refresh();
+        } catch { toast.error("확인 상태를 저장하지 못했습니다."); }
+      });
+    }
+  }
 
   return <Dialog open={seriesOpen} onOpenChange={setSeriesOpen}><div className={cn("space-y-4", className)}>
-    {!compact && <>
-      <div className="flex flex-wrap gap-2" aria-label="배지 컬렉션">
-        {["전체", "기념", "멤버", "정규 내전", "깜짝 내전", "동료", "코칭", "게시판"].map(value =>
-          <Button key={value} size="sm" variant={group === value ? "default" : "outline"}
-            aria-pressed={group === value} onClick={() => setGroup(value)}>{value}</Button>)}
-      </div>
-      {fresh.length > 0 && <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-primary/10 p-3 text-sm">
-        <span role="status">새로 획득한 배지 {fresh.length}개</span>
-        <Button size="sm" variant="ghost" disabled={pending} onClick={() => start(async () => {
-          try {
-            const result = await acknowledgeBadgesAction(gameSlug, clanId);
-            if (!result.ok) toast.error(result.error);
-            else router.refresh();
-          } catch { toast.error("확인 상태를 저장하지 못했습니다."); }
-        })}>획득 확인</Button>
-      </div>}
-    </>}
-    {!compact && details}
+    {!compact && <RubberSegment label="배지 컬렉션" labelPosition="hidden" value={group} onChange={setGroup}
+      options={categories.map(category => {
+        const hasNew = unread.some(b => category.id === "전체" || category.groups.includes(b.group));
+        return { id: category.id, label: category.id, description: hasNew ? "새로 획득한 배지가 있습니다." : undefined, badge: hasNew ?
+          <span data-new-badges aria-label="새 배지" className="inline-flex size-3.5 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold leading-none text-white">N</span> : undefined };
+      })} />}
     <div className={styles.case}>
       <div className={styles.casePlate}>{collection.clanName}</div>
       <div ref={caseRef} className={cn(styles.caseGrid, compact && styles.compactGrid)} role="group" aria-label="배지 진열">
-        {badges.map(b => {
-          const hasSeries = "series" in b;
-          const pin = renderPin(b, compact, selected?.key === b.key, () => {
-            setSelectedKey(b.key);
-            if (hasSeries) setSeriesKey(b.key);
-          }, hasSeries ? undefined : detailsId, true);
-          return hasSeries ? <DialogTrigger key={b.key} render={pin} /> : pin;
-        })}
+        {badges.map(b => <DialogTrigger key={b.key} render={renderPin(b, compact, seriesOpen && seriesKey === b.key, () => inspect(b), undefined, true)} />)}
         {badges.length === 0 && <p className={styles.caseEmpty}>대표 배지를 지정해 주세요.</p>}
       </div>
     </div>
-    {compact && details}
-    {!compact && canManage && selected?.earned && <div className="flex justify-end">
-      <Button size="sm" variant="outline" disabled={pending} onClick={() => feature(selected.key)}>
-        <Star className={cn("size-4", featured.includes(selected.key) && "fill-primary text-primary")} />
-        {featured.includes(selected.key) ? "대표 배지 해제" : "대표 배지 지정"}
-      </Button>
-    </div>}
     {compact
       ? <Link href={"/games/" + gameSlug + "/clan/" + clanId + "/badges"} className="inline-flex text-xs font-medium text-primary">배지 케이스 보기 →</Link>
       : <p className="text-xs leading-6 text-muted-foreground">내전은 승·무·패가 있는 회차, 코칭은 완료된 신청, 게시글은 자유 게시판을 기준으로 합니다. 멤버와 동료는 현재 활성 인원 기준이며 조건 미달 시 미획득으로 돌아갑니다.</p>}
@@ -179,7 +197,7 @@ export function ClanBadges({
             </Button>}
         </section>
       </div>
-      <section className="mt-2 space-y-3" aria-label="계열의 기록">
+      {series.length > 0 && <section className="mt-2 space-y-3" aria-label="계열의 기록">
         <div className="flex items-baseline justify-between gap-3">
           <h3 className="text-sm font-semibold">성장의 기록</h3><p className="text-right text-xs text-muted-foreground">{series.map(b => "years" in b ? b.years + (b.group === "동료" ? "년" : "주년") : b.target.toLocaleString("ko-KR") + (b.group === "멤버" ? "명" : b.group === "게시판" ? "개" : "회")).join(" · ")}</p>
         </div>
@@ -188,7 +206,7 @@ export function ClanBadges({
             {series.map(b => renderPin(b, false, b.key === seriesSelected.key, () => setSeriesKey(b.key), seriesDetailsId))}
           </div>
         </div>
-      </section>
+      </section>}
     </DialogContent>}
   </div></Dialog>;
 }

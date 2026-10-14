@@ -22,13 +22,18 @@ export async function setFeaturedBadgesAction(gameSlug:string,clanId:string,keys
   if(result.error)return {ok:false,error:"획득한 배지만 대표 배지로 지정할 수 있습니다."};
   revalidatePath("/games/"+gameSlug+"/clan/"+clanId,"layout");return {ok:true};
 }
-export async function acknowledgeBadgesAction(gameSlug:string,clanId:string):Promise<Result>{
+export async function acknowledgeBadgesAction(gameSlug:string,clanId:string,viewedThrough:string):Promise<Result>{
+  const cutoff=typeof viewedThrough==="string"&&viewedThrough.length<=64?Date.parse(viewedThrough):NaN;
+  if(!Number.isFinite(cutoff)||cutoff>Date.now())return {ok:false,error:"확인한 배지의 날짜를 확인해 주세요."};
   const ctx=await actor(gameSlug,clanId);if(!ctx)return {ok:false,error:"클랜 접근 권한을 확인해 주세요."};
-  const existing=await ctx.client.from("clan_badge_seen").select("user_id").eq("clan_id",clanId).eq("user_id",ctx.user.id).maybeSingle();
+  const existing=await ctx.client.from("clan_badge_seen").select("seen_at").eq("clan_id",clanId).eq("user_id",ctx.user.id).maybeSingle();
   if(existing.error)return {ok:false,error:"확인 상태를 불러오지 못했습니다."};
-  const seen_at=new Date().toISOString();
-  let result=existing.data?await ctx.client.from("clan_badge_seen").update({seen_at}).eq("clan_id",clanId).eq("user_id",ctx.user.id):await ctx.client.from("clan_badge_seen").insert({clan_id:clanId,user_id:ctx.user.id,seen_at});
-  if(result.error?.code==="23505")result=await ctx.client.from("clan_badge_seen").update({seen_at}).eq("clan_id",clanId).eq("user_id",ctx.user.id);
+  if(existing.data&&Date.parse(existing.data.seen_at)>=cutoff)return {ok:true};
+  // A badge awarded after the displayed collection must remain new, even during a slow request.
+  const seen_at=new Date(cutoff).toISOString();
+  const update=()=>ctx.client.from("clan_badge_seen").update({seen_at}).eq("clan_id",clanId).eq("user_id",ctx.user.id).lt("seen_at",seen_at);
+  let result=existing.data?await update():await ctx.client.from("clan_badge_seen").insert({clan_id:clanId,user_id:ctx.user.id,seen_at});
+  if(result.error?.code==="23505")result=await update();
   if(result.error)return {ok:false,error:"배지 확인 상태를 저장하지 못했습니다."};
   revalidatePath("/games/"+gameSlug+"/clan/"+clanId+"/badges");return {ok:true};
 }

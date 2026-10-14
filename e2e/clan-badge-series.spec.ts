@@ -39,7 +39,7 @@ test("주년 한 슬롯·최고 단계 승급·연관 배지 상세와 대표 �
       established.setUTCFullYear(established.getUTCFullYear()-years);
       await ok(f.service.from("clans").update({ created_at: established.toISOString() }).eq("id", f.clanId));
       await page.reload();
-      await page.getByRole("button", { name: "기념", exact: true }).click();
+      await page.getByRole("radio", { name: "기념", exact: true }).click();
       const representative = mainCase.locator(`[data-badge="${key}"]`);
       await expect(mainCase.locator('[data-badge^="anniversary"]')).toHaveCount(1);
       await expect(mainCase.locator("button")).toHaveCount(2);

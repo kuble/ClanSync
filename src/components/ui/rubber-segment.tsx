@@ -1,11 +1,11 @@
 "use client";
 
-import { useLayoutEffect, useRef, type ReactNode } from "react";
+import { useId, useLayoutEffect, useRef, type ReactNode } from "react";
 import styles from "./rubber-segment.module.css";
 
 /** Segmented filter with an elastic thumb, inspired by React Bits Rubber Segment. */
 export function RubberSegment<T extends string>({ options, value, onChange, label, labelPosition = "inline" }: {
-  options: readonly { id: T; label: string; icon?: ReactNode }[];
+  options: readonly { id: T; label: string; icon?: ReactNode; badge?: ReactNode; description?: string }[];
   value: T;
   onChange: (value: T) => void;
   label: string;
@@ -15,6 +15,7 @@ export function RubberSegment<T extends string>({ options, value, onChange, labe
   const viewport = useRef<HTMLDivElement>(null);
   const thumb = useRef<HTMLSpanElement>(null);
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
+  const descriptionId = useId();
   const index = Math.max(0, options.findIndex((option) => option.id === value));
 
   useLayoutEffect(() => {
@@ -54,7 +55,7 @@ export function RubberSegment<T extends string>({ options, value, onChange, labe
           <span key={value} className={`${styles.pulse} block size-full rounded-[inherit]`} />
         </span>
         {options.map((option, i) => <button key={option.id} ref={(node) => { buttons.current[i] = node; }} type="button" role="radio"
-          aria-checked={i === index} aria-label={option.label} title={option.icon ? option.label : undefined} tabIndex={i === index ? 0 : -1}
+          aria-checked={i === index} aria-label={option.label} aria-describedby={option.description ? `${descriptionId}-${i}` : undefined} title={option.icon ? option.label : undefined} tabIndex={i === index ? 0 : -1}
           onClick={() => choose(i)}
           onKeyDown={(event) => {
             const next = event.key === "Home" ? 0 : event.key === "End" ? options.length - 1
@@ -63,7 +64,11 @@ export function RubberSegment<T extends string>({ options, value, onChange, labe
             if (next !== null) { event.preventDefault(); choose(next); }
           }}
           className={`relative z-10 min-h-8 min-w-12 whitespace-nowrap rounded-md px-3 text-xs font-semibold tabular-nums transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${i === index ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-          {option.icon ? <span aria-hidden="true" className="flex items-center justify-center">{option.icon}</span> : option.label}
+          <span className="inline-flex items-center justify-center gap-1.5">
+            {option.icon ? <span aria-hidden="true" className="flex items-center justify-center">{option.icon}</span> : option.label}
+            {option.badge}
+          </span>
+          {option.description && <span id={`${descriptionId}-${i}`} className="sr-only">{option.description}</span>}
         </button>)}
       </div>
     </div>

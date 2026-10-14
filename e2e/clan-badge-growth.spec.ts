@@ -8,7 +8,7 @@ async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>) {
   return data as NonNullable<T>;
 }
 
-test("성채 멤버 배지의 9·10명 판정·획득일 보존·회수와 단계 상세", async ({ page }) => {
+test("배지 분류·N 확인과 성채 9·10명 판정·획득일 보존·회수·상세", async ({ page }) => {
   test.setTimeout(180_000);
   const f = await createIsolatedBalanceFixture(10);
   const base = f.path.replace(/\/balance$/, "");
@@ -23,8 +23,22 @@ test("성채 멤버 배지의 9·10명 판정·획득일 보존·회수와 단�
     await loginIsolatedBalanceUser(page,f.users[0]);
     await page.setViewportSize({ width:1100,height:884 });
     await page.goto(base+"/badges");
-    await page.getByRole("button", { name:"멤버",exact:true }).click();
-    await expect(mainCase.locator("button")).toHaveCount(1);
+    const categories = page.getByRole("radiogroup", { name:"배지 컬렉션",exact:true });
+    const category = (name:string) => categories.getByRole("radio", { name,exact:true });
+    const newMarker = (name:string) => category(name).locator("[data-new-badges]");
+    await expect(categories.getByRole("radio")).toHaveCount(5);
+    await expect(page.getByRole("region",{name:"선택한 배지 정보",exact:true})).toHaveCount(0);
+    await expect(page.getByRole("button",{name:"획득 확인",exact:true})).toHaveCount(0);
+    await expect(newMarker("기념")).toBeVisible();
+    await expect(newMarker("동료")).toHaveCount(0);
+    await category("전체").focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(category("기념")).toBeChecked();
+    await expect(mainCase.locator("button")).toHaveCount(2);
+    await page.keyboard.press("ArrowRight");
+    await expect(category("동료")).toBeChecked();
+    await expect(mainCase.locator("button")).toHaveCount(2);
+    await expect(mainCase.locator('[data-badge="tenure-1"]')).toBeVisible();
     await expect(ten).toHaveAccessibleName("멤버 10명 미획득");
     await ten.click();
     await expect(description).toContainText("9 / 10명");
@@ -38,12 +52,14 @@ test("성채 멤버 배지의 9·10명 판정·획득일 보존·회수와 단�
     await expect(dialog).toHaveCount(0);
     await ok(f.service.from("clan_members").update({ status:"active" }).eq("clan_id",f.clanId).eq("user_id",lateMemberId));
     await page.reload();
-    await page.getByRole("button", { name:"멤버",exact:true }).click();
+    await category("동료").click();
     await expect(ten).toHaveAccessibleName("멤버 10명 획득");
+    await expect(newMarker("동료")).toBeVisible();
+    await expect(newMarker("기념")).toBeVisible();
     const earlier = new Date(Date.now()-2*86_400_000).toISOString();
     await ok(f.service.from("clan_badge_awards").update({ earned_at:earlier }).eq("clan_id",f.clanId).eq("badge_key","members-10"));
     await page.reload();
-    await page.getByRole("button", { name:"멤버",exact:true }).click();
+    await category("동료").click();
     await ten.click();
     await expect(description).toContainText(new Intl.DateTimeFormat("ko-KR",{timeZone:"Asia/Seoul"}).format(new Date(earlier)));
     const image = dialog.getByRole("img", { name:"멤버 10명 배지",exact:true });
@@ -59,6 +75,27 @@ test("성채 멤버 배지의 9·10명 판정·획득일 보존·회수와 단�
     await dialog.getByRole("button", { name:"대표 배지 지정",exact:true }).click();
     await expect(dialog.getByRole("button", { name:"대표 배지 해제",exact:true })).toBeVisible();
     await dialog.getByRole("button", { name:"닫기",exact:true }).click();
+    await expect(newMarker("동료")).toHaveCount(0);
+    await expect(newMarker("기념")).toBeVisible();
+    expect(await ten.evaluate(button=>getComputedStyle(button,"::after").content)).toBe("none");
+    await page.reload();
+    await expect(newMarker("동료")).toHaveCount(0);
+    await expect(newMarker("기념")).toBeVisible();
+    await category("활동").click();
+    await expect(mainCase.locator('[data-badge="coaching-5"]')).toBeVisible();
+    await expect(mainCase.locator('[data-badge="posts-50"]')).toBeVisible();
+    await category("내전").click();
+    await expect(mainCase.locator("button")).toHaveCount(3);
+    await category("기념").click();
+    await mainCase.locator('[data-badge="founding"]').click();
+    await expect(dialog.getByRole("heading",{name:"창단",exact:true})).toBeVisible();
+    await expect(description).toContainText("클랜 창단");
+    await expect(related).toHaveCount(0);
+    await dialog.getByRole("button",{name:"닫기",exact:true}).click();
+    await expect(categories.locator("[data-new-badges]")).toHaveCount(0);
+    await expect.poll(async()=>(await f.service.from("clan_badge_seen").select("seen_at").eq("clan_id",f.clanId).eq("user_id",f.users[0].id).maybeSingle()).data?.seen_at).toBeTruthy();
+    await page.reload();
+    await expect(categories.locator("[data-new-badges]")).toHaveCount(0);
     await page.goto(base+"/manage");
     await expect(mainCase.locator('[data-badge="members-10"] img')).toHaveAttribute("src",/members-shared-citadel-10/);
     await mainCase.locator('[data-badge="members-10"]').click();
@@ -66,7 +103,7 @@ test("성채 멤버 배지의 9·10명 판정·획득일 보존·회수와 단�
     await expect(dialog.getByRole("button",{name:/대표 배지 (지정|해제)/})).toHaveCount(0);
     await dialog.getByRole("button", { name:"닫기",exact:true }).click();
     await page.goto(base+"/badges");
-    await page.getByRole("button", { name:"멤버",exact:true }).click();
+    await category("동료").click();
     await page.setViewportSize({ width:390,height:844 });
     await ten.click();
     await expect(image).toBeVisible();
@@ -74,7 +111,7 @@ test("성채 멤버 배지의 9·10명 판정·획득일 보존·회수와 단�
     await dialog.getByRole("button", { name:"닫기",exact:true }).click();
     await ok(f.service.from("clan_members").update({ status:"left" }).eq("clan_id",f.clanId).eq("user_id",lateMemberId));
     await page.reload();
-    await page.getByRole("button", { name:"멤버",exact:true }).click();
+    await category("동료").click();
     await expect(ten).toHaveAccessibleName("멤버 10명 미획득");
     expect(await ok(f.service.from("clan_badge_awards").select("badge_key").eq("clan_id",f.clanId).eq("badge_key","members-10"))).toHaveLength(0);
     await page.goto(base+"/manage");

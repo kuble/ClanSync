@@ -101,18 +101,22 @@ test("운영 현황의 회차·배지·중복 제거와 대시보드 공지 3개
     await mainCase.locator('[data-badge="founding"]').click();
     await page.getByRole("button", { name:"대표 배지 해제",exact:true }).click();
     await expect(page.getByRole("button", { name:"대표 배지 지정",exact:true })).toBeVisible();
+    await dialog.getByRole("button", { name:"닫기",exact:true }).click();
     await mainCase.locator('[data-badge="anniversary"]').click();
     await dialog.getByRole("button", { name:"대표 배지 지정",exact:true }).click();
     await expect(dialog.getByRole("button", { name:"대표 배지 해제",exact:true })).toBeVisible();
     await dialog.getByRole("button", { name:"닫기",exact:true }).click();
     await expect.poll(async()=>(await f.service.from("clan_badge_featured").select("badge_keys").eq("clan_id",f.clanId).single()).data?.badge_keys).toEqual(["regular-1","regular-100","anniversary"]);
-    await page.getByRole("button", { name:"획득 확인",exact:true }).click();
+    await mainCase.locator('[data-badge="regular-1"]').click();
+    await expect(related).toHaveCount(0);
+    await dialog.getByRole("button", { name:"닫기",exact:true }).click();
+    await expect(page.getByRole("radiogroup",{name:"배지 컬렉션",exact:true}).locator("[data-new-badges]")).toHaveCount(0);
     await expect(page.getByRole("button", { name:"획득 확인",exact:true })).toHaveCount(0);
     const tenYearsAgo = new Date(Date.now()-3_600_000);
     tenYearsAgo.setUTCFullYear(tenYearsAgo.getUTCFullYear()-10);
     await ok(f.service.from("clans").update({created_at:tenYearsAgo.toISOString()}).eq("id",f.clanId));
     await page.reload();
-    await page.getByRole("button", { name:"기념",exact:true }).click();
+    await page.getByRole("radio", { name:"기념",exact:true }).click();
     await mainCase.locator('[data-badge="anniversary-10"]').click();
     for(const [years,key] of [[1,"anniversary"],[3,"anniversary-3"],[5,"anniversary-5"],[10,"anniversary-10"]] as const) {
       const slot = related.locator('[data-badge="'+key+'"]');
@@ -127,7 +131,7 @@ test("운영 현황의 회차·배지·중복 제거와 대시보드 공지 3개
     await page.goto(base+"/manage");
     await expect(mainCase.locator('[data-badge="anniversary-10"] img')).toHaveAttribute("src",/anniversary-growing-history-10y-gold-v3/);
     await page.goto(base+"/badges");
-    await page.getByRole("button", { name:"기념",exact:true }).click();
+    await page.getByRole("radio", { name:"기념",exact:true }).click();
     await page.setViewportSize({width:390,height:844});
     await mainCase.locator('[data-badge="anniversary-10"]').click();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
@@ -141,7 +145,7 @@ test("운영 현황의 회차·배지·중복 제거와 대시보드 공지 3개
     await expect(mainCase.locator('[data-badge="anniversary-5"]')).toBeVisible();
     await expect(mainCase.locator('[data-badge="anniversary-10"]')).toHaveCount(0);
     expect(await ok(f.service.from("clan_badge_awards").select("badge_key").eq("clan_id",f.clanId).eq("badge_key","anniversary-10"))).toHaveLength(0);
-    await page.getByRole("button", { name:"깜짝 내전",exact:true }).click();
+    await page.getByRole("radio", { name:"내전",exact:true }).click();
     await mainCase.locator('[data-badge="flash-10"]').click();
     await expect(related.locator("button")).toHaveCount(4);
     await related.locator('[data-badge="flash-10"]').click();
