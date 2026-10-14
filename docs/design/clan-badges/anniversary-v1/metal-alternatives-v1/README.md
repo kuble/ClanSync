@@ -18,4 +18,4 @@
 
 내장 `image_gen.imagegen`으로 후보별 1회씩 총 3회를 편집했다. 입력 원본은 [bronze PNG](../../../../../public/clan-badges/anniversary-growing-history-bronze.png)이며 재생성용 요청은 [prompts.json](prompts.json)에 보관했다.
 
-각 원본은 1254 × 1254px RGBA다. 생성 원본을 수정 없이 복사하고 해시·크기·투명 모서리 알파를 확인했다. 문양·배치·테두리 차이는 육안으로 비교했다. 선택한 [적용 PNG](../../../../../public/clan-badges/anniversary-growing-history-black-ruthenium.png)를 10주년의 공통 이미지 경로에 연결했다. 기존 획득 조건·공통 방패 홈은 유지한다.
+각 원본은 1254 × 1254px RGBA다. 생성 원본을 수정 없이 복사하고 해시·크기·투명 모서리 알파를 확인했다. 문양·배치·테두리 차이는 육안으로 비교했다. 선택한 [당시 적용 PNG](../../../../../public/clan-badges/anniversary-growing-history-black-ruthenium.png)를 10주년에 연결했다. 후속 [성장형 V2](../../anniversary-growth-v2/README.md)에서는 금빛 테두리로 통일하며 이 마감 선택 이력은 보존한다.

@@ -1,0 +1,30 @@
+{
+  "createdAt": "2026-10-14",
+  "tool": "image_gen.imagegen",
+  "transparent_background": true,
+  "referenced_image_paths": [
+    "docs/design/clan-badges/members-v1/04-shared-citadel.png"
+  ],
+  "outputs": [
+    {
+      "activeMembers": 10,
+      "file": "public/clan-badges/members-shared-citadel-10.png",
+      "prompt": "Use case: background-extraction / precise-object-edit.\nInput image: the approved four-column \"Our Citadel\" member milestone badge sheet. Extract ONLY the FIRST / far-left badge, the 10-member stage with 1 tower, as ONE isolated production PNG.\nPreserve the selected badge EXACTLY: the arched outline and flat rounded bottom, continuous champagne-gold rim, ivory tower(s), mint enamel roof(s), emerald field and doorway, gold star, architecture, proportions, lighting and every relief detail. Do not redesign, add or remove towers. The 10-member stage has exactly 1 separately visible tower roof tips.\nOutput one upright front-facing badge centered on a square canvas, full silhouette visible with a small even transparent safety margin; badge uses about 90 percent of canvas height. No other stages, labels, member counts, text, backdrop, rectangular background, checkerboard or outside shadow. Genuine transparent alpha background. Premium hard-enamel jewelry finish with sharp clear borders."
+    },
+    {
+      "activeMembers": 20,
+      "file": "public/clan-badges/members-shared-citadel-20.png",
+      "prompt": "Use case: background-extraction / precise-object-edit.\nInput image: the approved four-column \"Our Citadel\" member milestone badge sheet. Extract ONLY the SECOND badge, the 20-member stage with 3 towers, as ONE isolated production PNG.\nPreserve the selected badge EXACTLY: the arched outline and flat rounded bottom, continuous champagne-gold rim, ivory tower(s), mint enamel roof(s), emerald field and doorway, gold star, architecture, proportions, lighting and every relief detail. Do not redesign, add or remove towers. The 20-member stage has exactly 3 separately visible tower roof tips.\nOutput one upright front-facing badge centered on a square canvas, full silhouette visible with a small even transparent safety margin; badge uses about 90 percent of canvas height. No other stages, labels, member counts, text, backdrop, rectangular background, checkerboard or outside shadow. Genuine transparent alpha background. Premium hard-enamel jewelry finish with sharp clear borders."
+    },
+    {
+      "activeMembers": 50,
+      "file": "public/clan-badges/members-shared-citadel-50.png",
+      "prompt": "Use case: background-extraction / precise-object-edit.\nInput image: the approved four-column \"Our Citadel\" member milestone badge sheet. Extract ONLY the THIRD badge, the 50-member stage with 5 towers, as ONE isolated production PNG.\nPreserve the selected badge EXACTLY: the arched outline and flat rounded bottom, continuous champagne-gold rim, ivory tower(s), mint enamel roof(s), emerald field and doorway, gold star, architecture, proportions, lighting and every relief detail. Do not redesign, add or remove towers. The 50-member stage has exactly 5 separately visible tower roof tips.\nOutput one upright front-facing badge centered on a square canvas, full silhouette visible with a small even transparent safety margin; badge uses about 90 percent of canvas height. No other stages, labels, member counts, text, backdrop, rectangular background, checkerboard or outside shadow. Genuine transparent alpha background. Premium hard-enamel jewelry finish with sharp clear borders."
+    },
+    {
+      "activeMembers": 100,
+      "file": "public/clan-badges/members-shared-citadel-100.png",
+      "prompt": "Use case: background-extraction / precise-object-edit.\nInput image: the approved four-column \"Our Citadel\" member milestone badge sheet. Extract ONLY the FOURTH / far-right badge, the 100-member stage with 7 towers, as ONE isolated production PNG.\nPreserve the selected badge EXACTLY: the arched outline and flat rounded bottom, continuous champagne-gold rim, ivory tower(s), mint enamel roof(s), emerald field and doorway, gold star, architecture, proportions, lighting and every relief detail. Do not redesign, add or remove towers. The 100-member stage has exactly 7 separately visible tower roof tips.\nOutput one upright front-facing badge centered on a square canvas, full silhouette visible with a small even transparent safety margin; badge uses about 90 percent of canvas height. No other stages, labels, member counts, text, backdrop, rectangular background, checkerboard or outside shadow. Genuine transparent alpha background. Premium hard-enamel jewelry finish with sharp clear borders."
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "createdAt": "2026-10-14",
+  "tool": "image_gen.imagegen",
+  "transparent_background": true,
+  "workflow": "Generate each growing tree with prompts.json, then change only its outer rim to match the shared-citadel gold material.",
+  "outputs": [
+    {
+      "years": 1,
+      "file": "public/clan-badges/anniversary-growing-history-1y-gold-v2.png",
+      "referenced_image_paths": [
+        "intermediate growing-history 1-year PNG from prompts.json",
+        "public/clan-badges/members-shared-citadel-10.png"
+      ],
+      "prompt": "Edit ONLY the outer metal border of the FIRST image, the 1-year growing-history enamel badge. Replace ALL black ruthenium / charcoal / dark gunmetal on the outer shield rim with the SAME rich warm polished gold metal used on the SECOND reference, the shared-citadel pin. Gold face planes, bright pale gold edge highlights, amber-gold bevels and natural darker gold shadows. No black or silver as the border material. This gold should match the warm gold outlines already inside the tree and other clan pins. Keep EVERYTHING else in the first image pixel-faithful: its shield outline and proportions, ivory enamel center, exactly 3 emerald/mint leaves with their exact positions, golden trunk and roots, small root star, engraving, bevel thickness, composition, scale and lighting. Do not redesign, add, delete or move any leaf, root, branch or symbol. One isolated physical enamel collectible pin, centered, large, with true alpha transparency outside the badge. No text, numbers, case, background, poster, comparison layout, glow or additional elements. Output a square production image."
+    },
+    {
+      "years": 3,
+      "file": "public/clan-badges/anniversary-growing-history-3y-gold-v2.png",
+      "referenced_image_paths": [
+        "intermediate growing-history 3-year PNG from prompts.json",
+        "public/clan-badges/members-shared-citadel-10.png"
+      ],
+      "prompt": "Edit ONLY the outer metal border of the FIRST image, the 3-year growing-history enamel badge. Replace ALL black ruthenium / charcoal / dark gunmetal on the outer shield rim with the SAME rich warm polished gold metal used on the SECOND reference, the shared-citadel pin. Gold face planes, bright pale gold edge highlights, amber-gold bevels and natural darker gold shadows. No black or silver as the border material. This gold should match the warm gold outlines already inside the tree and other clan pins. Keep EVERYTHING else in the first image pixel-faithful: its shield outline and proportions, ivory enamel center, exactly 5 emerald/mint leaves with their exact positions, golden trunk and roots, small root star, engraving, bevel thickness, composition, scale and lighting. Do not redesign, add, delete or move any leaf, root, branch or symbol. One isolated physical enamel collectible pin, centered, large, with true alpha transparency outside the badge. No text, numbers, case, background, poster, comparison layout, glow or additional elements. Output a square production image."
+    },
+    {
+      "years": 5,
+      "file": "public/clan-badges/anniversary-growing-history-5y-gold-v2.png",
+      "referenced_image_paths": [
+        "intermediate growing-history 5-year PNG from prompts.json",
+        "public/clan-badges/members-shared-citadel-10.png"
+      ],
+      "prompt": "Edit ONLY the outer metal border of the FIRST image, the 5-year growing-history enamel badge. Replace ALL black ruthenium / charcoal / dark gunmetal on the outer shield rim with the SAME rich warm polished gold metal used on the SECOND reference, the shared-citadel pin. Gold face planes, bright pale gold edge highlights, amber-gold bevels and natural darker gold shadows. No black or silver as the border material. This gold should match the warm gold outlines already inside the tree and other clan pins. Keep EVERYTHING else in the first image pixel-faithful: its shield outline and proportions, ivory enamel center, exactly 7 emerald/mint leaves with their exact positions, golden trunk and roots, small root star, engraving, bevel thickness, composition, scale and lighting. Do not redesign, add, delete or move any leaf, root, branch or symbol. One isolated physical enamel collectible pin, centered, large, with true alpha transparency outside the badge. No text, numbers, case, background, poster, comparison layout, glow or additional elements. Output a square production image."
+    },
+    {
+      "years": 10,
+      "file": "public/clan-badges/anniversary-growing-history-10y-gold-v2.png",
+      "referenced_image_paths": [
+        "intermediate growing-history 10-year PNG from prompts.json",
+        "public/clan-badges/members-shared-citadel-10.png"
+      ],
+      "prompt": "Edit ONLY the outer metal border of the FIRST image, the 10-year growing-history enamel badge. Replace ALL black ruthenium / charcoal / dark gunmetal on the outer shield rim with the SAME rich warm polished gold metal used on the SECOND reference, the shared-citadel pin. Gold face planes, bright pale gold edge highlights, amber-gold bevels and natural darker gold shadows. No black or silver as the border material. This gold should match the warm gold outlines already inside the tree and other clan pins. Keep EVERYTHING else in the first image pixel-faithful: its shield outline and proportions, ivory enamel center, exactly 9 emerald/mint leaves with their exact positions, golden trunk and roots, small root star, engraving, bevel thickness, composition, scale and lighting. Do not redesign, add, delete or move any leaf, root, branch or symbol. One isolated physical enamel collectible pin, centered, large, with true alpha transparency outside the badge. No text, numbers, case, background, poster, comparison layout, glow or additional elements. Output a square production image."
+    }
+  ]
+}
