@@ -2,7 +2,7 @@
 
 제작일: 2026-10-14 · 상태: **4번 자라는 역사 선택·적용**
 
-## 비교 기준
+## 초기 시안 비교 기준
 
 기본 디자인 후보는 5개이며, 각 비교 이미지에는 동일한 문양과 형태의 배지 4개가 왼쪽부터 나란히 배치되어 있다.
 
@@ -34,11 +34,11 @@
 | 1주년 · 동 | [bronze PNG](../../../../public/clan-badges/anniversary-growing-history-bronze.png) |
 | 3주년 · 은 | [silver PNG](../../../../public/clan-badges/anniversary-growing-history-silver.png) |
 | 5주년 · 금 | [gold PNG](../../../../public/clan-badges/anniversary-growing-history-gold.png) |
-| 10주년 · 플래티넘 | [platinum PNG](../../../../public/clan-badges/anniversary-growing-history-platinum.png) |
+| 10주년 · 블랙 루테늄 | [black ruthenium PNG](../../../../public/clan-badges/anniversary-growing-history-black-ruthenium.png) |
 
 동 배지를 비교 시안에서 투명 배경으로 분리한 뒤 그 원본의 테두리를 편집해 은·금·플래티넘 3종을 제작했다. 내장 `image_gen.imagegen`을 사용했으며 전체 제작 요청은 [production-prompts.json](production-prompts.json)에 보관했다. 각 PNG는 1254 × 1254px RGBA이며 생성 원본의 알파를 유지해 복사했다.
 
-10주년 테두리는 후속 요청으로 [블루 티타늄·바이올렛 티타늄·블랙 루테늄 3종](metal-alternatives-v1/README.md)을 추가 비교한다. 마감 선택은 대기 중이며 현재 적용한 플래티넘은 유지한다.
+10주년 테두리는 후속 요청으로 [마감 후보 3종](metal-alternatives-v1/README.md)을 비교한 뒤 **3번 블랙 루테늄**으로 확정·교체했다. 선택한 원본을 수정 없이 공통 배지 이미지 경로에 연결했으며 전체 케이스·대표 진열에서 사용한다. 초기 플래티넘 원본과 제작 요청은 비교 이력으로 보존한다.
 
 ## 원본과 검증
 

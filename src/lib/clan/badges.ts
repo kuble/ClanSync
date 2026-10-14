@@ -20,6 +20,6 @@ export const CLAN_BADGE_ARTWORK:Partial<Record<ClanBadgeKey,string>>={
   anniversary:"/clan-badges/anniversary-growing-history-bronze.png",
   "anniversary-3":"/clan-badges/anniversary-growing-history-silver.png",
   "anniversary-5":"/clan-badges/anniversary-growing-history-gold.png",
-  "anniversary-10":"/clan-badges/anniversary-growing-history-platinum.png",
+  "anniversary-10":"/clan-badges/anniversary-growing-history-black-ruthenium.png",
 };
 export function badgeAnniversary(createdAt:string,years=1){const date=new Date(createdAt);date.setUTCFullYear(date.getUTCFullYear()+years);return date.toISOString();}
