@@ -1,0 +1,60 @@
+{
+  "createdAt": "2026-10-14",
+  "tool": "image_gen.imagegen (built-in)",
+  "status": "design-options-pending-selection",
+  "family": "함께한 코칭",
+  "milestones": [
+    5,
+    10,
+    100,
+    1000
+  ],
+  "transparent_background": false,
+  "concepts": [
+    {
+      "id": "01",
+      "name": "지식의 등불",
+      "shape": "a tall arched shield",
+      "motif": "An emerald lantern with warm ivory light and substantial sculpted gold framing.",
+      "progression": "5: a small simple lantern. 10: a wider lantern with two ivory light panes. 100: a stronger lantern resting above one open book. 1,000: a mature teaching lantern with broad rays and a three-book base. No actual glow beyond the badge.",
+      "file": "01.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 5, 10, 100, 1,000 milestones.\nFamily: 지식의 등불. Outer contour shared across all four: a tall arched shield. Motif: An emerald lantern with warm ivory light and substantial sculpted gold framing.\nSpecific growth progression, left to right: 5: a small simple lantern. 10: a wider lantern with two ivory light panes. 100: a stronger lantern resting above one open book. 1,000: a mature teaching lantern with broad rays and a three-book base. No actual glow beyond the badge.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"5\", \"10\", \"100\", \"1,000\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    },
+    {
+      "id": "02",
+      "name": "열린 배움",
+      "shape": "a rounded square crest",
+      "motif": "An open ivory book with emerald binding, polished gold page seams and a golden quill.",
+      "progression": "5: one plain open book. 10: an open book with one small gold quill. 100: three layered volumes and a larger quill. 1,000: five layered volumes supporting the open central book and an elegant emerald ribbon. No printed letters on pages.",
+      "file": "02.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 5, 10, 100, 1,000 milestones.\nFamily: 열린 배움. Outer contour shared across all four: a rounded square crest. Motif: An open ivory book with emerald binding, polished gold page seams and a golden quill.\nSpecific growth progression, left to right: 5: one plain open book. 10: an open book with one small gold quill. 100: three layered volumes and a larger quill. 1,000: five layered volumes supporting the open central book and an elegant emerald ribbon. No printed letters on pages.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"5\", \"10\", \"100\", \"1,000\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    },
+    {
+      "id": "03",
+      "name": "성장의 나침반",
+      "shape": "a circular compass medallion",
+      "motif": "An ivory compass rose and emerald direction arrow in polished gold, representing helpful guidance.",
+      "progression": "5: a simple compass with one direction arrow. 10: a clear four-point compass rose. 100: a more complete eight-point rose with thicker gold paths. 1,000: a mature sixteen-ray guidance compass with a substantial central emerald gem. Keep it readable; no miniature tick numbers.",
+      "file": "03.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 5, 10, 100, 1,000 milestones.\nFamily: 성장의 나침반. Outer contour shared across all four: a circular compass medallion. Motif: An ivory compass rose and emerald direction arrow in polished gold, representing helpful guidance.\nSpecific growth progression, left to right: 5: a simple compass with one direction arrow. 10: a clear four-point compass rose. 100: a more complete eight-point rose with thicker gold paths. 1,000: a mature sixteen-ray guidance compass with a substantial central emerald gem. Keep it readable; no miniature tick numbers.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"5\", \"10\", \"100\", \"1,000\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    },
+    {
+      "id": "04",
+      "name": "길을 밝혀준 별",
+      "shape": "a beveled diamond crest",
+      "motif": "A central ivory guiding star with small emerald companion stars linked by thick gold paths.",
+      "progression": "5: one central star with one small companion. 10: two companions. 100: four companions in a balanced guiding constellation. 1,000: six companions and a complete connected constellation around the same guiding star. No space scenery.",
+      "file": "04.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 5, 10, 100, 1,000 milestones.\nFamily: 길을 밝혀준 별. Outer contour shared across all four: a beveled diamond crest. Motif: A central ivory guiding star with small emerald companion stars linked by thick gold paths.\nSpecific growth progression, left to right: 5: one central star with one small companion. 10: two companions. 100: four companions in a balanced guiding constellation. 1,000: six companions and a complete connected constellation around the same guiding star. No space scenery.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"5\", \"10\", \"100\", \"1,000\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    },
+    {
+      "id": "05",
+      "name": "전략의 수",
+      "shape": "a classic strategy shield",
+      "motif": "Sculpted ivory chess pieces with emerald bases and polished gold seams, a metaphor for learning better decisions.",
+      "progression": "5: one clean knight piece. 10: a knight standing on a small emerald chess square. 100: a knight and rook on a three-square base. 1,000: a knight, rook and bishop arranged as a complete strategy crest on a broader base. No king's crown or victory trophy.",
+      "file": "05.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 5, 10, 100, 1,000 milestones.\nFamily: 전략의 수. Outer contour shared across all four: a classic strategy shield. Motif: Sculpted ivory chess pieces with emerald bases and polished gold seams, a metaphor for learning better decisions.\nSpecific growth progression, left to right: 5: one clean knight piece. 10: a knight standing on a small emerald chess square. 100: a knight and rook on a three-square base. 1,000: a knight, rook and bishop arranged as a complete strategy crest on a broader base. No king's crown or victory trophy.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"5\", \"10\", \"100\", \"1,000\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    }
+  ]
+}
