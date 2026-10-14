@@ -14,3 +14,11 @@
 선택한 비교 시안을 내장 `image_gen.imagegen`으로 한 핀씩 추출해 배경을 투명하게 제작했다. 첫 정규 핀은 이미 투명한 선택 원본을 재사용했다. 총 21장, 1254×1254px이며 원본을 수정 없이 [공용 이미지 폴더](../../../../../public/clan-badges/expansion-v1)에 복사했다. 원본 SHA-256 일치와 네 모서리 알파 최대 1/255를 확인했다.
 
 전체 요청·파일·해시는 [제작 기록](prompts-and-assets.json), 발급 조건은 [확장 명세](../../../../01-plan/clan-badge-expansion-v1.md)에 둔다. [이전 5안 비교](../README.md)는 선택 이력으로 보존한다.
+
+## QA 화면
+
+새로 만든 격리 클랜을 촬영한 화면이다. 실제 사용자 명단·게시글을 바꾸지 않았다.
+
+![데스크톱 배지 케이스](verification-desktop.png)
+
+![모바일 장기 동료 상세](verification-mobile.png)

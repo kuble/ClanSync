@@ -39,7 +39,7 @@
 | 프로젝트 소개·실행 | [프로젝트 README](../README.md) |
 | 실제 시연 영상·Vrew 내레이션 제작 | [다른 프로젝트에도 쓰는 제작 가이드](guides/demo-video-vrew-workflow.md) · [ClanSync 촬영 범위](clansync-demo-video.md) |
 | 현재 작업·다음 우선순위 | [TODO.md](TODO.md) |
-| 클랜 배지 확장 디자인·선택 | [6계열 × 5스타일](design/clan-badges/expansion-v1/README.md) · [발급 기준 초안](01-plan/clan-badge-expansion-v1.md) · [전체 후보](01-plan/clan-badge-catalog.md) |
+| 클랜 배지 확장 디자인·선택 | [선택 핀·QA 화면](design/clan-badges/expansion-v1/production-v1/README.md) · [이전 5안 비교](design/clan-badges/expansion-v1/README.md) · [발급 기준](01-plan/clan-badge-expansion-v1.md) · [전체 후보](01-plan/clan-badge-catalog.md) |
 | 내전 세션·라운드·날짜·참여 용어 | [용어 사전](01-plan/glossary.md#내전-운영-용어) — D-SESSION-01 확정 기준 |
 | 정규·깜짝 방·예약·임시 진행자 | [내전 로비 명세](02-design/session-lobby.md) |
 | 기획·디자인 고도화 논의 | [고도화 논의 문서](01-plan/product-design-evolution.md) — 제안 7개·결정 질문·화면 방향 |
