@@ -1,0 +1,60 @@
+{
+  "createdAt": "2026-10-14",
+  "tool": "image_gen.imagegen (built-in)",
+  "status": "design-options-pending-selection",
+  "family": "누적 깜짝 내전",
+  "milestones": [
+    10,
+    50,
+    100,
+    1000
+  ],
+  "transparent_background": false,
+  "concepts": [
+    {
+      "id": "01",
+      "name": "모여든 번개",
+      "shape": "a sharp but elegant diamond",
+      "motif": "Bold emerald and mint lightning bolts separated by sculpted polished gold.",
+      "progression": "10: one bolt. 50: two converging bolts. 100: three bolts meeting at a small gold core. 1,000: five bolts forming a complete energetic starburst. No glowing effects outside the pin.",
+      "file": "01.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 10, 50, 100, 1,000 milestones.\nFamily: 모여든 번개. Outer contour shared across all four: a sharp but elegant diamond. Motif: Bold emerald and mint lightning bolts separated by sculpted polished gold.\nSpecific growth progression, left to right: 10: one bolt. 50: two converging bolts. 100: three bolts meeting at a small gold core. 1,000: five bolts forming a complete energetic starburst. No glowing effects outside the pin.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"10\", \"50\", \"100\", \"1,000\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    },
+    {
+      "id": "02",
+      "name": "번개의 코어",
+      "shape": "a beveled hexagonal medallion",
+      "motif": "A sculpted emerald energy crystal resting in an ivory gold-lined socket.",
+      "progression": "10: one small crystal. 50: three joined crystal points. 100: five crystal facets creating a crown of energy. 1,000: a complete large crystal star with a small central gold spark. Keep the external metal rim the same.",
+      "file": "02.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 10, 50, 100, 1,000 milestones.\nFamily: 번개의 코어. Outer contour shared across all four: a beveled hexagonal medallion. Motif: A sculpted emerald energy crystal resting in an ivory gold-lined socket.\nSpecific growth progression, left to right: 10: one small crystal. 50: three joined crystal points. 100: five crystal facets creating a crown of energy. 1,000: a complete large crystal star with a small central gold spark. Keep the external metal rim the same.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"10\", \"50\", \"100\", \"1,000\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    },
+    {
+      "id": "03",
+      "name": "즉흥의 불꽃",
+      "shape": "a rounded teardrop crest",
+      "motif": "Mint and emerald flames shaped as thick physical enamel lobes with gold edges.",
+      "progression": "10: one restrained flame. 50: a flame with three lobes. 100: five clearly layered flame lobes. 1,000: a rich symmetrical communal bonfire with seven bold lobes over a small ivory base. The increasing sculpture, not color, conveys growth.",
+      "file": "03.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 10, 50, 100, 1,000 milestones.\nFamily: 즉흥의 불꽃. Outer contour shared across all four: a rounded teardrop crest. Motif: Mint and emerald flames shaped as thick physical enamel lobes with gold edges.\nSpecific growth progression, left to right: 10: one restrained flame. 50: a flame with three lobes. 100: five clearly layered flame lobes. 1,000: a rich symmetrical communal bonfire with seven bold lobes over a small ivory base. The increasing sculpture, not color, conveys growth.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"10\", \"50\", \"100\", \"1,000\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    },
+    {
+      "id": "04",
+      "name": "튀어오른 스파크",
+      "shape": "an oval medallion",
+      "motif": "A four-point ivory shooting star with flowing emerald and mint gold-edged trails.",
+      "progression": "10: one star with one short trail. 50: two clear trails. 100: three extended flowing trails and one small companion spark. 1,000: five harmonious flowing trails and three companion sparks forming an energetic crest. No cosmic backdrop.",
+      "file": "04.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 10, 50, 100, 1,000 milestones.\nFamily: 튀어오른 스파크. Outer contour shared across all four: an oval medallion. Motif: A four-point ivory shooting star with flowing emerald and mint gold-edged trails.\nSpecific growth progression, left to right: 10: one star with one short trail. 50: two clear trails. 100: three extended flowing trails and one small companion spark. 1,000: five harmonious flowing trails and three companion sparks forming an energetic crest. No cosmic backdrop.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"10\", \"50\", \"100\", \"1,000\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    },
+    {
+      "id": "05",
+      "name": "뜻밖의 소집",
+      "shape": "a round topped shield",
+      "motif": "A ceremonial ivory handbell with an emerald handle and gold relief sound arcs.",
+      "progression": "10: one simple bell. 50: a bell with one pair of sound arcs. 100: a fuller bell with two pairs of bold sound arcs and a small green ribbon. 1,000: three pairs of sound arcs and a complete ceremonial ribbon. Keep arcs within the badge.",
+      "file": "05.png",
+      "prompt": "Use case: stylized-concept / product-mockup.\nCreate ONE landscape comparison sheet about 2.4:1 aspect ratio showing EXACTLY FOUR premium physical clan enamel pins in one evenly spaced horizontal row, left to right 10, 50, 100, 1,000 milestones.\nFamily: 뜻밖의 소집. Outer contour shared across all four: a round topped shield. Motif: A ceremonial ivory handbell with an emerald handle and gold relief sound arcs.\nSpecific growth progression, left to right: 10: one simple bell. 50: a bell with one pair of sound arcs. 100: a fuller bell with two pairs of bold sound arcs and a small green ribbon. 1,000: three pairs of sound arcs and a complete ceremonial ribbon. Keep arcs within the badge.\nMaterials: rich emerald, pale mint and warm ivory HARD ENAMEL, substantial polished WARM GOLD metal rim and seams, realistic jewelry relief, crisp dimensional bevels and controlled highlights. Gold finish remains identical for every tier. Strong readable silhouettes at 80px, restrained bold forms. No black/silver tier rim, bronze recoloring, emoji, flat app icons, thin vector doodles, real people, watermarks, game logos or branded symbols.\nThe internal illustration grows through the specified stages; do not just swap a numeral or border color. Keep all objects fully inside the common outer contour.\nPresentation: uniform matte charcoal #151918 backdrop, front-facing upright pins, same lighting and maximum pin height, generous spacing, every complete badge clearly visible. Add ONLY plain ivory numeric captions \"10\", \"50\", \"100\", \"1,000\" OUTSIDE and centered below their corresponding pins. No other lettering, no numerals on the actual jewelry. No case, background scenery, giant frames, glowing effects or missing tiers."
+    }
+  ]
+}
