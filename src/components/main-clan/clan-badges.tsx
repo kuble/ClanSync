@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { setFeaturedBadgesAction, acknowledgeBadgesAction } from "@/app/actions/clan-badges";
-import { CLAN_BADGE_ARTWORK, getClanBadgeRepresentatives, type ClanBadge, type ClanBadgeCollection, type ClanBadgeKey } from "@/lib/clan/badges";
+import { CLAN_BADGES, CLAN_BADGE_ARTWORK, CLAN_BADGE_SERIES_NAMES, getClanBadgeRepresentatives, type ClanBadge, type ClanBadgeCollection, type ClanBadgeKey } from "@/lib/clan/badges";
 import { cn } from "@/lib/utils";
 import styles from "./clan-collection.module.css";
 
@@ -18,9 +18,12 @@ const badgeDate = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul" });
 
 function acquisitionMethod(badge: ClanBadge) {
   if (badge.key === "founding") return "클랜 창단";
-  if ("years" in badge) return "클랜 창단 " + badge.years + "주년";
+  if (badge.group === "동료" && "years" in badge) return badge.years + "년 이상 연속 소속된 활성 동료 10명";
+  if (badge.metric === "anniversary") return "클랜 창단 " + badge.years + "주년";
   if (badge.group === "멤버") return "활성 클랜원 " + badge.target + "명";
-  return badge.group + " " + badge.target + "회 종료";
+  if (badge.group === "코칭") return "완료된 피드백 신청 " + badge.target.toLocaleString("ko-KR") + "건";
+  if (badge.group === "게시판") return "자유 게시판 글 " + badge.target.toLocaleString("ko-KR") + "개";
+  return "승·무·패를 기록한 " + badge.group + " " + badge.target.toLocaleString("ko-KR") + "회차";
 }
 
 export function ClanBadges({
@@ -106,7 +109,7 @@ export function ClanBadges({
   return <Dialog open={seriesOpen} onOpenChange={setSeriesOpen}><div className={cn("space-y-4", className)}>
     {!compact && <>
       <div className="flex flex-wrap gap-2" aria-label="배지 컬렉션">
-        {["전체", "기념", "멤버", "정규 내전", "깜짝 내전"].map(value =>
+        {["전체", "기념", "멤버", "정규 내전", "깜짝 내전", "동료", "코칭", "게시판"].map(value =>
           <Button key={value} size="sm" variant={group === value ? "default" : "outline"}
             aria-pressed={group === value} onClick={() => setGroup(value)}>{value}</Button>)}
       </div>
@@ -145,7 +148,7 @@ export function ClanBadges({
     </div>}
     {compact
       ? <Link href={"/games/" + gameSlug + "/clan/" + clanId + "/badges"} className="inline-flex text-xs font-medium text-primary">배지 케이스 보기 →</Link>
-      : <p className="text-xs leading-6 text-muted-foreground">내전 배지는 종료된 회차, 멤버 배지는 현재 활성 인원을 기준으로 합니다. 조건에 미달하면 다시 미획득으로 표시됩니다.</p>}
+      : <p className="text-xs leading-6 text-muted-foreground">내전은 승·무·패가 있는 회차, 코칭은 완료된 신청, 게시글은 자유 게시판을 기준으로 합니다. 멤버와 동료는 현재 활성 인원 기준이며 조건 미달 시 미획득으로 돌아갑니다.</p>}
     {seriesSelected && seriesRepresentative && <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto p-5 sm:max-w-3xl sm:p-7">
       <div className={styles.seriesHeader}>
         <div className={cn(styles.pin, styles.seriesArtwork, styles[seriesSelected.icon], !seriesSelected.earned && styles.unearnedPreview)}>
@@ -156,7 +159,7 @@ export function ClanBadges({
             : <BadgeEmblem badge={seriesSelected} compact={false} />}
         </div>
         <section id={seriesDetailsId} className={styles.seriesDescription} aria-label="배지 계열 설명" aria-live="polite">
-          <p className="text-xs text-muted-foreground">{seriesSelected.group}{seriesSelected.group === "기념" ? " · 자라는 역사" : seriesSelected.group === "멤버" ? " · 우리의 성채" : ""}</p>
+          <p className="text-xs text-muted-foreground">{seriesSelected.group}{"series" in seriesSelected && " · "+CLAN_BADGE_SERIES_NAMES[seriesSelected.series]}</p>
           <DialogTitle className="text-2xl font-semibold">{seriesSelected.name}</DialogTitle>
           <DialogDescription className="leading-7">{seriesSelected.story}</DialogDescription>
           <span className={cn(styles.seriesStatus, seriesSelected.earned && styles.earnedStatus)}>
@@ -164,7 +167,7 @@ export function ClanBadges({
           </span>
           <dl className={styles.seriesFacts}>
             <div><dt>획득 방식</dt><dd>{acquisitionMethod(seriesSelected)}</dd></div>
-            <div><dt>{seriesSelected.earned ? "획득일" : "years" in seriesSelected ? "획득 예정일" : "현재 진행"}</dt>
+            <div><dt>{seriesSelected.earned ? "획득일" : seriesSelected.metric === "anniversary" ? "획득 예정일" : "현재 진행"}</dt>
               <dd>{seriesSelected.earned
                 ? seriesSelected.earnedAt ? badgeDate.format(new Date(seriesSelected.earnedAt)) : "확인 필요"
                 : seriesSelected.progress}</dd></div>
@@ -178,7 +181,7 @@ export function ClanBadges({
       </div>
       <section className="mt-2 space-y-3" aria-label="계열의 기록">
         <div className="flex items-baseline justify-between gap-3">
-          <h3 className="text-sm font-semibold">성장의 기록</h3><p className="text-right text-xs text-muted-foreground">{series.map(b => "years" in b ? b.years + "주년" : b.target + (b.group === "멤버" ? "명" : "회")).join(" · ")}</p>
+          <h3 className="text-sm font-semibold">성장의 기록</h3><p className="text-right text-xs text-muted-foreground">{series.map(b => "years" in b ? b.years + (b.group === "동료" ? "년" : "주년") : b.target.toLocaleString("ko-KR") + (b.group === "멤버" ? "명" : b.group === "게시판" ? "개" : "회")).join(" · ")}</p>
         </div>
         <div className={styles.case}>
           <div className={styles.caseGrid} role="group" aria-label="연관 단계 배지">
@@ -192,7 +195,8 @@ export function ClanBadges({
 
 function renderPin(badge: ClanBadge, compact: boolean, selected: boolean, onClick: () => void, controls?: string, eager = false) {
   const artwork = CLAN_BADGE_ARTWORK[badge.key];
-  const mask = badge.group === "멤버" ? CLAN_BADGE_ARTWORK["members-10"] : "years" in badge ? CLAN_BADGE_ARTWORK.anniversary : artwork;
+  const first = "series" in badge ? CLAN_BADGES.find(b => "series" in b && b.series === badge.series) : badge;
+  const mask = first ? CLAN_BADGE_ARTWORK[first.key] : artwork;
   return <button key={badge.key} data-badge={badge.key} type="button" title={badge.name}
     aria-label={badge.name + " " + (badge.earned ? "획득" : "미획득")}
     aria-pressed={selected} aria-controls={controls}

@@ -3244,6 +3244,7 @@ export type Database = {
         Args: { p_session_id: string }
         Returns: Json
       }
+      read_clan_badge_metrics: { Args: { p_clan_id: string }; Returns: Json }
       read_clan_match_record_corrections: {
         Args: { p_clan_id: string }
         Returns: {

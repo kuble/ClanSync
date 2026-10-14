@@ -35,6 +35,11 @@ test("운영 현황의 회차·배지·중복 제거와 대시보드 공지 3개
     // Compatibility creates the matching rooms; the flash must not count for badges.
     await ok(f.service.from("balance_rooms").update({ kind: "regular" }).in("id", [...regular.map((row) => row.id), current]));
     await ok(f.service.from("balance_rooms").update({ kind: "flash" }).eq("id", flash));
+    await ok(f.service.from("balance_sessions").insert([
+      ...regular.map(row=>({series_id:row.id,opened_at:row.opened_at,closed_at:"2026-09-10T00:00:00Z",match_outcome:"team1" as const})),
+      {series_id:flash,opened_at:"2026-10-09T12:00:00Z",closed_at:"2026-10-09T14:00:00Z",match_outcome:"draw" as const},
+      {series_id:current,opened_at:"2026-10-11T16:00:00Z",closed_at:null,match_outcome:"pending" as const},
+    ].map(row=>({...row,clan_id:f.clanId,game_id:f.gameId,host_user_id:f.users[0].id,round_number:1}))));
     await ok(f.service.from("balance_rooms").insert({ clan_id: f.clanId, game_id: f.gameId, created_by: f.users[0].id, title: "예약만 된 내전", scheduled_at: new Date(Date.now() + 86_400_000).toISOString(), kind: "regular", status: "scheduled" }));
     const now = Date.now();
     await ok(f.service.from("clan_notices").insert(Array.from({ length: 6 }, (_, index) => ({ clan_id: f.clanId, created_by: f.users[0].id,
@@ -66,21 +71,22 @@ test("운영 현황의 회차·배지·중복 제거와 대시보드 공지 3개
     const dialog = page.getByRole("dialog");
     const description = dialog.getByRole("region", { name:"배지 계열 설명",exact:true });
     const related = dialog.getByRole("group", { name:"연관 단계 배지",exact:true });
-    await expect(mainCase.locator("button")).toHaveCount(5);
+    await expect(mainCase.locator("button")).toHaveCount(9);
     await expect(mainCase.locator('[data-badge="founding"] img')).toBeVisible();
     expect(await mainCase.locator('[data-badge="founding"] img').evaluate(img=>img.clientWidth)).toBeGreaterThan(120);
     await mainCase.locator('[data-badge="regular-50"]').click();
-    await expect(related.locator("button")).toHaveCount(5);
+    await expect(related.locator("button")).toHaveCount(4);
     await related.locator('[data-badge="regular-100"]').click();
-    await expect(description).toContainText("99 / 100");
+    await expect(description).toContainText("99 / 100회");
     await expect(description).toContainText("미획득");
     await expect(related.locator('[data-badge="regular-100"] img')).toHaveCount(0);
     await dialog.getByRole("button", { name:"닫기",exact:true }).click();
     await ok(f.service.from("balance_session_series").update({closed_at:new Date().toISOString()}).eq("id",current));
+    await ok(f.service.from("balance_sessions").update({closed_at:new Date().toISOString(),match_outcome:"team2"}).eq("series_id",current));
     await page.reload();
     await expect(mainCase.locator('[data-badge="regular-50"]')).toHaveCount(0);
     await mainCase.locator('[data-badge="regular-100"]').click();
-    await expect(description).toContainText("정규 내전 100회 종료");
+    await expect(description).toContainText("승·무·패를 기록한 정규 내전 100회차");
     await dialog.getByRole("button", { name:"대표 배지 해제",exact:true }).click();
     await expect(dialog.getByRole("button", { name:"대표 배지 지정",exact:true })).toBeVisible();
     await dialog.getByRole("button", { name:"대표 배지 지정",exact:true }).click();
@@ -99,7 +105,7 @@ test("운영 현황의 회차·배지·중복 제거와 대시보드 공지 3개
     await dialog.getByRole("button", { name:"대표 배지 지정",exact:true }).click();
     await expect(dialog.getByRole("button", { name:"대표 배지 해제",exact:true })).toBeVisible();
     await dialog.getByRole("button", { name:"닫기",exact:true }).click();
-    await expect.poll(async()=>(await f.service.from("clan_badge_featured").select("badge_keys").eq("clan_id",f.clanId).single()).data?.badge_keys).toEqual(["flash-1","regular-100","anniversary"]);
+    await expect.poll(async()=>(await f.service.from("clan_badge_featured").select("badge_keys").eq("clan_id",f.clanId).single()).data?.badge_keys).toEqual(["regular-1","regular-100","anniversary"]);
     await page.getByRole("button", { name:"획득 확인",exact:true }).click();
     await expect(page.getByRole("button", { name:"획득 확인",exact:true })).toHaveCount(0);
     const tenYearsAgo = new Date(Date.now()-3_600_000);
@@ -136,8 +142,8 @@ test("운영 현황의 회차·배지·중복 제거와 대시보드 공지 3개
     await expect(mainCase.locator('[data-badge="anniversary-10"]')).toHaveCount(0);
     expect(await ok(f.service.from("clan_badge_awards").select("badge_key").eq("clan_id",f.clanId).eq("badge_key","anniversary-10"))).toHaveLength(0);
     await page.getByRole("button", { name:"깜짝 내전",exact:true }).click();
-    await mainCase.locator('[data-badge="flash-1"]').click();
-    await expect(related.locator("button")).toHaveCount(2);
+    await mainCase.locator('[data-badge="flash-10"]').click();
+    await expect(related.locator("button")).toHaveCount(4);
     await related.locator('[data-badge="flash-10"]').click();
     await expect(description).toContainText("1 / 10");
     await dialog.getByRole("button", { name:"닫기",exact:true }).click();

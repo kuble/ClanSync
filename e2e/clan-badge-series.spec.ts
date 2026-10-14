@@ -97,10 +97,10 @@ test("주년 한 슬롯·최고 단계 승급·연관 배지 상세와 대표 �
 });
 
 test("모든 계열의 최고 달성·첫 미획득·인원 미달 단계 복귀", () => {
-  const earned = new Set<ClanBadgeKey>(["founding","regular-1","regular-10","regular-50","flash-1","anniversary","anniversary-3","anniversary-5","members-10","members-20"]);
+  const earned = new Set<ClanBadgeKey>(["founding","regular-1","regular-50","flash-10","anniversary","anniversary-3","anniversary-5","members-10","members-20","tenure-3","coaching-10","posts-100"]);
   const badges:ClanBadge[] = CLAN_BADGES.map(badge=>({...badge,earned:earned.has(badge.key),earnedAt:null,awardedAt:null,progress:"",isNew:false}));
   const keys = (rows:ClanBadge[]) => getClanBadgeRepresentatives(rows).map(badge=>badge.key).sort();
-  expect(keys([...badges].reverse())).toEqual(["anniversary-5","flash-1","founding","members-20","regular-50"]);
-  expect(keys(badges.map(badge=>({...badge,earned:badge.key==="members-20"?false:badge.earned})))).toEqual(["anniversary-5","flash-1","founding","members-10","regular-50"]);
-  expect(keys(badges.map(badge=>({...badge,earned:badge.key==="founding"})))).toEqual(["anniversary","flash-1","founding","members-10","regular-1"]);
+  expect(keys([...badges].reverse())).toEqual(["anniversary-5","coaching-10","flash-10","founding","members-20","posts-100","regular-1","regular-50","tenure-3"]);
+  expect(keys(badges.map(badge=>({...badge,earned:badge.key==="members-20"?false:badge.earned})))).toEqual(["anniversary-5","coaching-10","flash-10","founding","members-10","posts-100","regular-1","regular-50","tenure-3"]);
+  expect(keys(badges.map(badge=>({...badge,earned:badge.key==="founding"})))).toEqual(["anniversary","coaching-5","flash-10","founding","members-10","posts-50","regular-1","regular-50","tenure-1"]);
 });
