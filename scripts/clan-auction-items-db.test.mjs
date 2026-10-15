@@ -44,6 +44,14 @@ test("auction item catalog isolates clans and limits writes to active officers",
   }
   const [clanId, otherClanId] = clanIds;
   await ok(svc.from("clan_members").insert(users.map((user) => ({ clan_id: user.role === "outsider" ? otherClanId : clanId, user_id: user.id, role: user.role === "outsider" ? "leader" : user.role, status: "active" }))));
+  const defaults = await ok(leader.client.from("clan_auction_items").select("name,cost,enabled,description").eq("clan_id", clanId).order("cost"));
+  assert.deepEqual(defaults.map(({name,cost,enabled}) => ({name,cost,enabled})), [
+    {name:"맵 선정권",cost:50,enabled:true}, {name:"영웅 밴 카드 1장",cost:100,enabled:true}, {name:"영웅 밴 카드 2장",cost:300,enabled:true},
+  ]);
+  assert.ok(defaults.every((item) => item.description.length > 10));
+  await ok(leader.client.from("clan_auction_items").delete().eq("clan_id",clanId));
+  await ok(svc.from("clans").update({name:`Updated-${tag}`}).eq("id",clanId));
+  assert.deepEqual(await ok(leader.client.from("clan_auction_items").select("id").eq("clan_id",clanId)), []);
   const values = { clan_id: clanId, name: "맵 선정권", description: "경기 시작 전에 맵을 선택합니다.", cost: 100, enabled: true };
 
   assert.ok((await anon.from("clan_auction_items").select("id")).error);

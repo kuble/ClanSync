@@ -9,8 +9,7 @@ test("운영진이 경매 아이템 예시·수정·사용 여부·추가·삭�
     const managePath = `/games/overwatch/clan/${fixture.clanId}/manage?tab=balance`;
     await page.goto(managePath);
     const catalog = page.locator("#auction-items");
-    await expect(catalog.getByText("사용 중 0개", { exact: false })).toBeVisible();
-    await catalog.getByRole("button", { name: "예시 아이템 추가", exact: true }).click();
+    await expect(catalog.getByRole("button", { name: "예시 아이템 추가", exact: true })).toHaveCount(0);
     await expect(catalog.getByText("사용 중 3개", { exact: true })).toBeVisible();
     await expect(catalog.getByRole("listitem")).toHaveCount(3);
 
@@ -46,7 +45,7 @@ test("운영진이 경매 아이템 예시·수정·사용 여부·추가·삭�
     await catalog.getByRole("listitem").filter({ hasText: "진영 선택권" }).getByRole("button", { name: "삭제", exact: true }).click();
     await expect(catalog.getByRole("listitem")).toHaveCount(3);
     await page.setViewportSize({ width: 390, height: 844 });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   } finally {
     await fixture.cleanup();
   }

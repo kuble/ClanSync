@@ -159,6 +159,7 @@ test("주장 전용 지명·입찰, 자동 경매와 공개 아이템 선택 후
       roster,
     }).eq("id", current.id);
     expect(reset.error).toBeNull();
+    expect((await fixture.service.from("clan_auction_items").delete().eq("clan_id", fixture.clanId)).error).toBeNull();
     const catalog = await fixture.service.from("clan_auction_items").insert([
       { clan_id: fixture.clanId, name: "맵 선정권", description: "맵을 선택할 권리", cost: 100, enabled: true },
       { clan_id: fixture.clanId, name: "영웅 밴 무효화", description: "한 영웅 밴을 취소", cost: 100, enabled: true },
