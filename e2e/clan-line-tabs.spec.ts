@@ -57,6 +57,22 @@ test("관리 중복 행 제거·탭 설명·마우스/키보드/터치와 공통
     await expect(page.getByRole("radiogroup", { name: "투표 상태", exact: true })).toBeVisible();
 
     await page.goto(`${base}/stats`);
+    const rankingTitle = page.getByRole("button", { name: "승률 도움말", exact: true });
+    await rankingTitle.hover();
+    const guide = page.getByRole("tooltip");
+    await expect(guide).toBeVisible();
+    const anchorBox = await rankingTitle.boundingBox(), guideBox = await guide.boundingBox();
+    expect(guideBox!.x).toBeGreaterThan(anchorBox!.x + anchorBox!.width);
+    await page.getByRole("button", { name: "명예의 전당 설정", exact: true }).click();
+    const settings = page.getByRole("dialog", { name: "명예의 전당 설정", exact: true });
+    await settings.getByRole("tab", { name: "등재 기준", exact: true }).click();
+    await settings.getByRole("button", { name: "순위 등재 기준 도움말", exact: true }).focus();
+    await expect(guide).toContainText("새벽까지");
+    const longGuideBox = await guide.boundingBox();
+    expect(longGuideBox!.x).toBeGreaterThanOrEqual(0);
+    expect(longGuideBox!.x + longGuideBox!.width).toBeLessThanOrEqual(844);
+    await settings.getByRole("button", { name: "취소", exact: true }).click();
+    await expect(settings).toBeHidden();
     await page.getByRole("tab", { name: "내전 통계", exact: true }).click();
     await expect(page.getByRole("tab", { name: "내전 통계", exact: true })).toHaveAttribute("aria-selected", "true");
     await page.goto(`${base}/store`);

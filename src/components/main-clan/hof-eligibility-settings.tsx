@@ -22,14 +22,13 @@ export function HofEligibilitySettings({ draft }: { draft: EligibilityDraft }) {
   const { threshold, setThreshold, percentage, setPercentage, minimum, setMinimum, sessionPct, setSessionPct, rules } = draft;
   const cutoff = rules.eligibilityGameThreshold;
   return <section aria-labelledby="hof-eligibility-title" className="space-y-4">
-    <div className="flex items-center gap-3">
-      <h4 id="hof-eligibility-title" className="text-sm font-semibold">순위 등재 기준</h4>
+    <h4 id="hof-eligibility-title" className="text-sm font-semibold">
       <StatHelp title="순위 등재 기준"><div className="space-y-2">
         <p>클랜마다 내전을 여는 횟수와 한 번에 진행하는 경기 수가 다릅니다. 경기 수가 갑자기 늘거나 새벽까지 이어져도 꾸준히 참여한 멤버의 요구 출전 수가 계속 높아지지 않도록 구분합니다.</p>
         <p>승률은 경기 수가 적을 때 출전 비율을, 전환점을 넘으면 고정 출전 수를 적용합니다. 기본 설정에서는 30경기 이상 출전하면 최소 요구 경기를 충족합니다.</p>
         <p>내전 참여는 같은 내전에서 여러 경기에 출전해도 1회입니다. 전체 정규 내전 중 참여 비율만 적용하며, 고정 횟수 기준은 적용하지 않습니다.</p>
       </div></StatHelp>
-    </div>
+    </h4>
     <div className="space-y-4 rounded-xl border bg-muted/10 p-4">
       <h5 className="text-xs font-semibold">경기 출전 · 승률 순위</h5>
       <div className="flex flex-wrap items-center justify-between gap-2">

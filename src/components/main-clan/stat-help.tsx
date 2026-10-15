@@ -1,7 +1,6 @@
 "use client";
 
 import { useId, useRef, useState, type ReactElement, type ReactNode } from "react";
-import { Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 /** Pointer hover never latches focus open; touch can toggle, keyboard uses focus/Escape. */
@@ -18,11 +17,11 @@ export function StatTooltip({ label, children, description, className, render }:
     onPointerDown={(event) => { touch.current = event.pointerType === "touch"; }}
     onPointerLeave={(event) => { if (event.pointerType !== "touch") setOpen(false); }}
     onFocus={() => { if (!touch.current) setOpen(true); }} onBlur={() => setOpen(false)} onClick={() => { if (touch.current) setOpen((value) => !value); }}
-    className={className}>{children}</TooltipTrigger><TooltipContent id={id} role="tooltip" className="pointer-events-none max-w-72 text-pretty leading-relaxed">{description}</TooltipContent></Tooltip>;
+    className={className}>{children}</TooltipTrigger><TooltipContent id={id} role="tooltip" side="right" sideOffset={8} collisionPadding={8} collisionAvoidance={{ side: "flip", align: "shift", fallbackAxisSide: "end" }} className="pointer-events-none max-w-[min(18rem,calc(100vw-1rem))] text-pretty leading-relaxed">{description}</TooltipContent></Tooltip>;
 }
 export function StatHelp({ title, children }: { title: string; children: ReactNode }) {
-  return <StatTooltip label={title + " 도움말"} description={children} className="ml-auto inline-flex size-6 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-primary"><Info className="size-3.5" aria-hidden /></StatTooltip>;
+  return <StatTooltip label={title + " 도움말"} description={children} className="inline-flex text-left focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-primary">{title}</StatTooltip>;
 }
 export function StatTitle({ title, help }: { title: string; help: ReactNode }) {
-  return <span className="flex w-full items-center justify-between gap-3"><span>{title}</span><StatHelp title={title}>{help}</StatHelp></span>;
+  return <StatHelp title={title}>{help}</StatHelp>;
 }
