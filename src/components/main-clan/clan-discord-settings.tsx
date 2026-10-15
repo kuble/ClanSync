@@ -102,15 +102,15 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
           <div className="border-b border-border px-5 py-4"><h4 className="text-sm font-semibold"><HelpText label="세부 알림 채널" help="전체 멘션 없이 전달합니다. 개인 수신은 Discord의 채널 알림 설정에서 조절하세요." /></h4></div>
           {DISCORD_NOTIFICATION_TYPES.map(({ id, label, description }) => <div key={id} className="space-y-3 border-b border-border p-5 last:border-b-0">
             <div className="text-[13px] font-semibold"><HelpText label={label} help={description} /></div>
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
             <select aria-label={`${label} 알림 채널`} name={`discord_${id}_channel`} value={routes[id].channel_id} onChange={(event) => autosave.update((current) => ({ ...current, routes: { ...current.routes, [id]: { ...current.routes[id], channel_id: event.target.value } } }))} disabled={channelDisabled} className={selectClass}>
               <option value="">기본 채널 사용</option>
               {routes[id].channel_id && !channels.some((channel) => channel.id === routes[id].channel_id) && <option value={routes[id].channel_id}>기존 채널 (권한 확인 필요)</option>}
               {channels.map((channel) => <option key={channel.id} value={channel.id}>#{channel.name}</option>)}
             </select>
+            {id === "polls" && <div className="order-3 flex w-full flex-wrap gap-x-5 gap-y-2 sm:order-none sm:w-auto sm:flex-1">{([['created', '시작 알림'], ['ended', '종료·결과 알림']] as const).map(([key, text]) => <label key={key} className="flex items-center gap-2 whitespace-nowrap text-xs"><input type="checkbox" name={`discord_polls_${key}`} disabled={!canEdit || !premium} checked={routes.polls[key]} onChange={(event) => autosave.update((current) => ({ ...current, routes: { ...current.routes, polls: { ...current.routes.polls, [key]: event.target.checked } } }))} className="size-4 accent-primary" />{text}</label>)}</div>}
             <Toggle name={`discord_${id}_enabled`} label={`${label} 알림`} checked={routes[id].enabled} disabled={!canEdit || !premium} onChange={(value) => autosave.update((current) => ({ ...current, routes: { ...current.routes, [id]: { ...current.routes[id], enabled: value } } }))} />
             </div>
-            {id === "polls" && <div className="flex flex-wrap gap-5">{([['created', '시작 알림'], ['ended', '종료·결과 알림']] as const).map(([key, text]) => <label key={key} className="flex items-center gap-2 text-xs"><input type="checkbox" name={`discord_polls_${key}`} disabled={!canEdit || !premium} checked={routes.polls[key]} onChange={(event) => autosave.update((current) => ({ ...current, routes: { ...current.routes, polls: { ...current.routes.polls, [key]: event.target.checked } } }))} className="size-4 accent-primary" />{text}</label>)}</div>}
           </div>)}
           </section>
         </section>
