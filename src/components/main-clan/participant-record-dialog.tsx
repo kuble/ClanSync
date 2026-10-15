@@ -101,7 +101,7 @@ export function ParticipantRecordDialog({ clanId, gameSlug, userId, nickname, ga
             <Button size="sm" variant="outline" disabled={pending} onClick={() => { setError(""); setUnlink(record); }}>연결 해제</Button>
           </div>)}
         </section>}
-        <label className="block space-y-2 text-xs font-semibold">{linked.length ? "다른 기록 찾기" : "연결할 이전 기록"}
+        <label className="flex flex-col gap-2 text-xs font-semibold">{linked.length ? "다른 기록 찾기" : "연결할 이전 기록"}
           <span className="relative block"><Search size={16} className="pointer-events-none absolute left-3 top-3 text-muted-foreground" aria-hidden="true" /><input aria-label="기존 참가자 검색" autoFocus={Boolean(requestId && joinMode === "link")} placeholder="예전에 쓰던 닉네임으로 검색" value={query} onChange={(e) => { setQuery(e.target.value); setSelected(null); }} disabled={pending} className="h-10 w-full rounded-lg border bg-background pl-9 pr-3 text-sm font-normal" /></span>
         </label>
         <div className="min-h-40 max-h-64 space-y-2 overflow-y-auto" aria-label="기존 참가자 검색 결과" aria-busy={loading}>
@@ -119,9 +119,9 @@ export function ParticipantRecordDialog({ clanId, gameSlug, userId, nickname, ga
         </>}
       </div>}
       {error && <p role="alert" className="px-5 pb-4 text-xs text-destructive sm:px-6">{error}</p>}
-      <div className="space-y-4 border-t bg-muted/20 px-5 py-4 sm:px-6">
-        {!unlink && <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">{chosen && linkRecords ? <><span className="font-semibold text-foreground">{chosen.nickname} · {chosen.played}경기</span><ArrowRight size={14} aria-hidden="true" /><span>{displayName}에게 연결</span></> : requestId && joinMode === "new" ? "이전 기록을 연결하지 않고 클랜 가입을 승인합니다." : requestId && !joinMode ? "먼저 이전 기록을 연결할지 선택해 주세요." : "연결할 기록을 선택해 주세요."}</p>}
-        <div className="flex justify-end gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t bg-muted/20 px-5 py-4 sm:px-6">
+        {!unlink && <p className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-xs leading-relaxed text-muted-foreground">{chosen && linkRecords ? <><span className="font-semibold text-foreground">{chosen.nickname} · {chosen.played}경기</span><ArrowRight size={14} aria-hidden="true" /><span>{displayName}에게 연결</span></> : requestId && joinMode === "new" ? "이전 기록을 연결하지 않고 클랜 가입을 승인합니다." : requestId && !joinMode ? "먼저 이전 기록을 연결할지 선택해 주세요." : "연결할 기록을 선택해 주세요."}</p>}
+        <div className="ml-auto flex shrink-0 justify-end gap-2">
         <Button size="sm" variant="outline" disabled={pending} onClick={() => {
           if (unlink) { setUnlink(null); return; }
           if (requestId && joinMode === "link") { setJoinMode(null); setSelected(null); setQuery(""); setError(""); return; }
