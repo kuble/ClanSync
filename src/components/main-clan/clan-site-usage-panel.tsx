@@ -13,6 +13,10 @@ function shift(date: string, days: number) {
   return result.toISOString().slice(0, 10);
 }
 
+function VisitDetails({ label, visitors, memberNames }: { label: string; visitors: string[]; memberNames: Record<string, string> }) {
+  return <div className="min-w-36 space-y-2 py-1"><p className="font-semibold tabular-nums">{label}</p><p className="text-[11px]">방문 {visitors.length}명</p>{visitors.length ? <ul className="board-scroll max-h-[min(18rem,calc(100dvh-8rem))] space-y-1 overflow-y-auto border-t border-current/15 pt-2">{visitors.map((id) => <li key={id} className="break-all">{memberNames[id] ?? "탈퇴한 멤버"}</li>)}</ul> : <p>방문 기록 없음</p>}</div>;
+}
+
 export function ClanSiteUsagePanel({ visits, memberNames }: { visits: ClanSiteVisit[]; memberNames: Record<string, string> }) {
   const [span, setSpan] = useState<7 | 30>(30);
   const [display, setDisplay] = useState<"chart" | "table">("chart");
@@ -35,7 +39,8 @@ export function ClanSiteUsagePanel({ visits, memberNames }: { visits: ClanSiteVi
   const monthly = Array.from({ length: 12 }, (_, index) => {
     const key = `${year}-${String(index + 1).padStart(2, "0")}`;
     const rows = visits.filter((visit) => visit.date.startsWith(key));
-    return { key, visitors: new Set(rows.map((visit) => visit.userId)).size, personDays: rows.length };
+    const visitorIds = [...new Set(rows.map((visit) => visit.userId))];
+    return { key, visitors: visitorIds.length, visitorIds, personDays: rows.length };
   });
   const monthMax = Math.max(1, ...monthly.map((month) => month.visitors));
   const annual = summarizeVisits(visits, `${year}-01-01`, `${year}-12-31`);
@@ -67,7 +72,7 @@ export function ClanSiteUsagePanel({ visits, memberNames }: { visits: ClanSiteVi
             <div className="flex h-40 items-end gap-1 border-b" aria-label="일별 방문자 그래프">{dayCounts.map((day) => <StatTooltip key={day.date} label={`${day.date} 방문 ${day.count}명`} hoverable
               render={<button type="button" aria-label={`${day.date} 방문 ${day.count}명`} style={{ height: `${Math.max(4, day.count / max * 100)}%` }} />}
               className="min-w-0 flex-1 rounded-t-sm bg-primary/55 transition-colors hover:bg-primary/80 focus-visible:outline-2 focus-visible:outline-primary data-popup-open:bg-primary"
-              description={<div className="min-w-36 space-y-2 py-1"><p className="font-semibold tabular-nums">{day.date}</p><p className="text-[11px]">방문 {day.count}명</p>{day.visitors.length ? <ul className="board-scroll max-h-[min(18rem,calc(100dvh-8rem))] space-y-1 overflow-y-auto border-t border-current/15 pt-2">{day.visitors.map((id) => <li key={id} className="break-all">{memberNames[id] ?? "탈퇴한 멤버"}</li>)}</ul> : <p>방문 기록 없음</p>}</div>}>{null}</StatTooltip>)}</div>
+              description={<VisitDetails label={day.date} visitors={day.visitors} memberNames={memberNames} />}>{null}</StatTooltip>)}</div>
             <div className="mt-3 flex justify-between text-[10px] tabular-nums text-muted-foreground"><span>{start.slice(5).replace("-", ".")}</span><span>{days[Math.floor((span - 1) / 2)].slice(5).replace("-", ".")}</span><span>{today.slice(5).replace("-", ".")}</span></div>
           </> : <div className="board-scroll h-full overflow-auto rounded-lg border"><table className="w-full text-xs" aria-label="날짜별 방문자 표"><thead className="sticky top-0 bg-card"><tr className="border-b text-muted-foreground"><th className="p-3 text-left font-normal">날짜</th><th className="p-3 text-right font-normal">방문자</th></tr></thead><tbody className="divide-y">{dayCounts.map((day) => <tr key={day.date}><td className="px-3 py-2 tabular-nums">{day.date}</td><td className="px-3 py-2 text-right tabular-nums">{day.count.toLocaleString()}명</td></tr>)}</tbody></table></div>}
         </div>
@@ -78,7 +83,12 @@ export function ClanSiteUsagePanel({ visits, memberNames }: { visits: ClanSiteVi
           <select aria-label="사이트 이용 통계 연도" value={year} onChange={(event) => setYear(Number(event.target.value))} className="h-9 rounded-lg border border-input bg-background px-3 text-xs focus-visible:outline-2 focus-visible:outline-ring">{years.map((item) => <option key={item} value={item}>{item}년</option>)}</select>
         </div>
         <div className="h-44 min-w-0">
-          {display === "chart" ? <div className="flex h-full items-end gap-1.5" role="img" aria-label={monthly.map((month) => `${month.key} 방문 ${month.visitors}명`).join(", ")}>{monthly.map((month) => <div key={month.key} className="flex min-w-0 flex-1 flex-col items-center gap-2"><span className="text-[10px] tabular-nums">{month.visitors.toLocaleString()}</span><span className="w-full rounded-t-sm bg-primary/55" style={{ height: `${Math.max(4, month.visitors / monthMax * 126)}px` }} /><span className="text-[10px] tabular-nums text-muted-foreground">{Number(month.key.slice(5))}월</span></div>)}</div> : <div className="board-scroll h-full overflow-auto rounded-lg border"><table className="w-full text-xs" aria-label="월별 방문자 표"><thead className="sticky top-0 bg-card"><tr className="border-b text-muted-foreground"><th className="p-3 text-left font-normal">월</th><th className="p-3 text-right font-normal">방문 멤버</th><th className="p-3 text-right font-normal">활동일</th></tr></thead><tbody className="divide-y">{monthly.map((month) => <tr key={month.key}><td className="px-3 py-2 tabular-nums">{month.key}</td><td className="px-3 py-2 text-right tabular-nums">{month.visitors.toLocaleString()}명</td><td className="px-3 py-2 text-right tabular-nums">{month.personDays.toLocaleString()}일</td></tr>)}</tbody></table></div>}
+          {display === "chart" ? <div className="flex h-full items-end gap-1.5" role="group" aria-label="월별 방문자 그래프">{monthly.map((month) => <div key={month.key} className="flex min-w-0 flex-1 flex-col items-center gap-2"><span className="text-[10px] tabular-nums">{month.visitors.toLocaleString()}</span>
+            <StatTooltip label={`${year}년 ${Number(month.key.slice(5))}월 방문 ${month.visitors}명`} hoverable
+              render={<button type="button" aria-label={`${year}년 ${Number(month.key.slice(5))}월 방문 ${month.visitors}명`} style={{ height: `${Math.max(4, month.visitors / monthMax * 126)}px` }} />}
+              className="w-full rounded-t-sm bg-primary/55 transition-colors hover:bg-primary/80 focus-visible:outline-2 focus-visible:outline-primary data-popup-open:bg-primary"
+              description={<VisitDetails label={`${year}년 ${Number(month.key.slice(5))}월`} visitors={month.visitorIds} memberNames={memberNames} />}>{null}</StatTooltip>
+            <span className="text-[10px] tabular-nums text-muted-foreground">{Number(month.key.slice(5))}월</span></div>)}</div> : <div className="board-scroll h-full overflow-auto rounded-lg border"><table className="w-full text-xs" aria-label="월별 방문자 표"><thead className="sticky top-0 bg-card"><tr className="border-b text-muted-foreground"><th className="p-3 text-left font-normal">월</th><th className="p-3 text-right font-normal">방문 멤버</th><th className="p-3 text-right font-normal">활동일</th></tr></thead><tbody className="divide-y">{monthly.map((month) => <tr key={month.key}><td className="px-3 py-2 tabular-nums">{month.key}</td><td className="px-3 py-2 text-right tabular-nums">{month.visitors.toLocaleString()}명</td><td className="px-3 py-2 text-right tabular-nums">{month.personDays.toLocaleString()}일</td></tr>)}</tbody></table></div>}
         </div>
       </div>
     </CardContent>

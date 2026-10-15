@@ -160,8 +160,11 @@ test("management sections preserve navigation, pending counts and officer/member
   const base = f.path.replace(/\/balance$/, "");
   const visitDate = isoToKstYmd(new Date(Date.now() - 86_400_000).toISOString());
   const emptyDate = isoToKstYmd(new Date(Date.now() - 172_800_000).toISOString());
+  const visitYear = Number(visitDate.slice(0, 4)), visitMonth = Number(visitDate.slice(5, 7));
+  const historyYear = visitYear - 1;
   try {
     expect((await f.service.from("clan_daily_member_activity").upsert(f.users.slice(0, 2).map((user) => ({ clan_id: f.clanId, user_id: user.id, activity_date: visitDate })))).error).toBeNull();
+    expect((await f.service.from("clan_daily_member_activity").upsert({ clan_id: f.clanId, user_id: f.users[2].id, activity_date: `${historyYear}-${visitDate.slice(5, 7)}-15` })).error).toBeNull();
     expect((await f.service.from("clan_members").delete().eq("clan_id", f.clanId).eq("user_id", f.users[2].id)).error).toBeNull();
     const request = await f.service.from("clan_join_requests").insert({ clan_id: f.clanId, game_id: f.gameId, user_id: f.users[2].id, message: "신청 전용 메시지", status: "pending" }).select("id").single();
     expect(request.error).toBeNull();
@@ -222,6 +225,25 @@ test("management sections preserve navigation, pending counts and officer/member
     expect(await usageNode!.evaluate((node) => node.isConnected)).toBe(true);
     await usage.getByRole("radio", { name: "표", exact: true }).press("Home");
     await expect(usage.getByRole("radio", { name: "그래프", exact: true })).toHaveAttribute("aria-checked", "true");
+    const yearPicker = usage.getByRole("combobox", { name: "사이트 이용 통계 연도", exact: true });
+    await yearPicker.selectOption(String(visitYear));
+    const monthlyBar = usage.getByRole("button", { name: `${visitYear}년 ${visitMonth}월 방문 2명`, exact: true });
+    await monthlyBar.hover();
+    await expect(visitors).toContainText(`${visitYear}년 ${visitMonth}월`);
+    for (const user of f.users.slice(0, 2)) await expect(visitors).toContainText(user.nickname);
+    await expect(visitors.getByRole("listitem")).toHaveCount(2);
+    await yearPicker.selectOption(String(historyYear));
+    const historyBar = usage.getByRole("button", { name: `${historyYear}년 ${visitMonth}월 방문 1명`, exact: true });
+    await historyBar.focus();
+    await expect(visitors).toContainText(`${historyYear}년 ${visitMonth}월`);
+    await expect(visitors).toContainText(f.users[2].nickname);
+    await expect(visitors.getByRole("listitem")).toHaveCount(1);
+    await page.keyboard.press("Escape");
+    await expect(visitors).toBeHidden();
+    const emptyMonth = visitMonth === 12 ? 1 : visitMonth + 1;
+    await usage.getByRole("button", { name: `${historyYear}년 ${emptyMonth}월 방문 0명`, exact: true }).hover();
+    await expect(visitors).toContainText("방문 기록 없음");
+    await page.mouse.move(1, 1);
     const touchContext = await page.context().browser()!.newContext({ hasTouch: true, viewport: { width: 390, height: 844 }, storageState: await page.context().storageState() });
     try {
       const touchPage = await touchContext.newPage();
@@ -234,6 +256,16 @@ test("management sections preserve navigation, pending counts and officer/member
       expect(popupBox.x + popupBox.width).toBeLessThanOrEqual(390);
       await expect.poll(() => touchPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await touchPage.getByRole("button", { name: `${visitDate} 방문 2명`, exact: true }).tap();
+      await expect(touchVisitors).toBeHidden();
+      await touchPage.getByRole("combobox", { name: "사이트 이용 통계 연도", exact: true }).selectOption(String(visitYear));
+      const touchMonth = touchPage.getByRole("button", { name: `${visitYear}년 ${visitMonth}월 방문 2명`, exact: true });
+      await touchMonth.tap();
+      await expect(touchVisitors).toContainText(`${visitYear}년 ${visitMonth}월`);
+      await expect(touchVisitors).toContainText(f.users[1].nickname);
+      const monthPopup = (await touchVisitors.boundingBox())!;
+      expect(monthPopup.x).toBeGreaterThanOrEqual(0);
+      expect(monthPopup.x + monthPopup.width).toBeLessThanOrEqual(390);
+      await touchMonth.tap();
       await expect(touchVisitors).toBeHidden();
     } finally { await touchContext.close(); }
     await page.reload();
