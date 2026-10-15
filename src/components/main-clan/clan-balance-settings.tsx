@@ -283,10 +283,10 @@ export function ClanBalanceSettings({
             </div>
           <fieldset disabled={locked || !formationEditable}>
             {["draft", "auction"].includes(draft.teams) ? (
-              <div className="mt-4 space-y-3">
+              <div className="mt-4 grid grid-cols-2 gap-3">
                 {draft.roles === "manual" ? (
                   ([0, 1] as const).map((i) => (
-                    <label key={i} className="block text-xs">
+                    <label key={i} className="block min-w-0 text-xs">
                       {i + 1}팀 주장
                       <select
                         className={field}
