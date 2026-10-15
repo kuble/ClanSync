@@ -110,8 +110,12 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     await page.keyboard.press("Escape");
     await expect(monthList).toBeHidden();
     await expect(month).toBeFocused();
+    // Do not let the preceding wheel/hover target change keyboard highlighting.
+    await page.mouse.move(0, 0);
     await month.press("Enter");
+    await expect(monthList).toBeVisible();
     await page.keyboard.press("Home");
+    await expect(page.getByRole("option", { name: "1월", exact: true })).toBeFocused();
     for (let i = 0; i < 7; i++) await page.keyboard.press("ArrowDown");
     await page.keyboard.press("Enter");
     await expect(month).toHaveText("8월");
