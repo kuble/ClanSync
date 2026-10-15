@@ -306,7 +306,7 @@ test("statistics use four sections and site usage appears in staff management", 
   await page.getByRole("button", { name: `${f.users[0].nickname} 개인 기록 열기`, exact: true }).click();
   await expect(page.getByText("시너지", { exact: true })).toBeVisible();
   await page.goto(`/games/overwatch/clan/${f.clanId}/manage?tab=insights`);
-  await expect(page.getByText("사이트 이용 통계")).toBeVisible();
+  await expect(page.getByText("클랜 페이지", { exact: true })).toBeVisible();
   await expect(page.getByText("편성 점수 차이", { exact: true })).toBeVisible();
   await page.goto(`/games/overwatch/clan/${f.clanId}/store`);
   await expect(page.getByRole("heading", { name: "클랜 스토어", exact: true })).toBeVisible();
