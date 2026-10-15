@@ -182,9 +182,6 @@ export function ManageMembersTable({
           <option value="inactive">비활성만</option>
           <option value="dormant">휴면만</option>
         </select>
-        <span className="text-xs text-muted-foreground">
-          {filtered.length}명
-        </span>
       </div>
       <div className="overflow-x-auto rounded-lg border">
         <table className="w-full min-w-[640px] text-left text-sm">
