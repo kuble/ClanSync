@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
+import { isoToKstYmd } from "../src/lib/clan/stats/kst";
 test.use({actionTimeout:20000});
 
 test("officers manage real notices and rules across management and dashboard", async ({
@@ -157,7 +158,10 @@ test("management sections preserve navigation, pending counts and officer/member
   test.setTimeout(180_000);
   const f = await createIsolatedBalanceFixture(3);
   const base = f.path.replace(/\/balance$/, "");
+  const visitDate = isoToKstYmd(new Date(Date.now() - 86_400_000).toISOString());
+  const emptyDate = isoToKstYmd(new Date(Date.now() - 172_800_000).toISOString());
   try {
+    expect((await f.service.from("clan_daily_member_activity").upsert(f.users.slice(0, 2).map((user) => ({ clan_id: f.clanId, user_id: user.id, activity_date: visitDate })))).error).toBeNull();
     expect((await f.service.from("clan_members").delete().eq("clan_id", f.clanId).eq("user_id", f.users[2].id)).error).toBeNull();
     const request = await f.service.from("clan_join_requests").insert({ clan_id: f.clanId, game_id: f.gameId, user_id: f.users[2].id, message: "신청 전용 메시지", status: "pending" }).select("id").single();
     expect(request.error).toBeNull();
@@ -194,6 +198,23 @@ test("management sections preserve navigation, pending counts and officer/member
     await page.keyboard.press("Escape");
     await usage.getByRole("radio", { name: "최근 7일", exact: true }).click();
     await expect(usage.getByLabel("일별 방문자 그래프").getByRole("button")).toHaveCount(7);
+    const visitBar = usage.getByRole("button", { name: `${visitDate} 방문 2명`, exact: true });
+    const visitors = page.getByRole("tooltip");
+    await visitBar.hover();
+    await expect(visitors).toContainText(visitDate);
+    for (const user of f.users.slice(0, 2)) await expect(visitors).toContainText(user.nickname);
+    await visitors.hover();
+    await expect(visitors).toBeVisible();
+    await page.mouse.move(1, 1);
+    await expect(visitors).toBeHidden();
+    await visitBar.focus();
+    await expect(visitors).toContainText(f.users[0].nickname);
+    await page.keyboard.press("Escape");
+    await expect(visitors).toBeHidden();
+    await usage.getByRole("button", { name: `${emptyDate} 방문 0명`, exact: true }).hover();
+    await expect(visitors).toContainText("방문 기록 없음");
+    await expect(usage.getByText(/방문:/)).toHaveCount(0);
+    await page.mouse.move(1, 1);
     await usage.getByRole("radio", { name: "표", exact: true }).click();
     await expect(usage.getByRole("table", { name: "날짜별 방문자 표", exact: true }).getByRole("row")).toHaveCount(8);
     await expect(usage.getByRole("table", { name: "월별 방문자 표", exact: true }).getByRole("row")).toHaveCount(13);
@@ -201,6 +222,20 @@ test("management sections preserve navigation, pending counts and officer/member
     expect(await usageNode!.evaluate((node) => node.isConnected)).toBe(true);
     await usage.getByRole("radio", { name: "표", exact: true }).press("Home");
     await expect(usage.getByRole("radio", { name: "그래프", exact: true })).toHaveAttribute("aria-checked", "true");
+    const touchContext = await page.context().browser()!.newContext({ hasTouch: true, viewport: { width: 390, height: 844 }, storageState: await page.context().storageState() });
+    try {
+      const touchPage = await touchContext.newPage();
+      await touchPage.goto(`${base}/manage?tab=insights`);
+      await touchPage.getByRole("button", { name: `${visitDate} 방문 2명`, exact: true }).tap();
+      const touchVisitors = touchPage.getByRole("tooltip");
+      await expect(touchVisitors).toContainText(f.users[1].nickname);
+      const popupBox = (await touchVisitors.boundingBox())!;
+      expect(popupBox.x).toBeGreaterThanOrEqual(0);
+      expect(popupBox.x + popupBox.width).toBeLessThanOrEqual(390);
+      await expect.poll(() => touchPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      await touchPage.getByRole("button", { name: `${visitDate} 방문 2명`, exact: true }).tap();
+      await expect(touchVisitors).toBeHidden();
+    } finally { await touchContext.close(); }
     await page.reload();
     await expect(nav.getByRole("link", { name: "운영 통계", exact: true })).toHaveAttribute("aria-current", "page");
     await page.goto(`${base}/manage#subscription`);

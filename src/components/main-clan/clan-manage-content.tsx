@@ -11,6 +11,7 @@ import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { clanHasActivePurchaseForItemSlug } from "@/lib/store/store-purchase-queries";
 import { loadClanSiteVisits } from "@/lib/clan/stats/clan-site-usage";
+import { loadClanPeerNames } from "@/lib/clan/load-clan-peer-names";
 import { loadClanManagementStats } from "@/lib/clan/stats/load-clan-stats";
 import { ClanManageNotices, ClanManageRules } from "./clan-manage-notices";
 import { ClanBannerSettingsForm } from "./clan-banner-settings-form";
@@ -162,8 +163,9 @@ async function BalanceSettings({ ctx }: Pick<Props, "ctx">) {
 
 async function Insights({ ctx }: Pick<Props, "ctx">) {
   const client = await getRequestClient();
-  const [stats, visits] = await Promise.all([loadClanManagementStats(client, ctx.clanId), loadClanSiteVisits(createServiceRoleClient(), ctx.clanId)]);
-  return <div className="space-y-5">{stats?.permissions.viewMscore && <ClanFormationStats summaries={stats.intra.scoreGapSummary} />}{stats && <ClanOperationalStats stats={stats.intra} />}<ClanSiteUsagePanel visits={visits} /></div>;
+  const [stats, visits, names] = await Promise.all([loadClanManagementStats(client, ctx.clanId), loadClanSiteVisits(createServiceRoleClient(), ctx.clanId), loadClanPeerNames(ctx.clanId)]);
+  if (names.error) throw new Error("방문자 이름을 불러오지 못했습니다.");
+  return <div className="space-y-5">{stats?.permissions.viewMscore && <ClanFormationStats summaries={stats.intra.scoreGapSummary} />}{stats && <ClanOperationalStats stats={stats.intra} />}<ClanSiteUsagePanel visits={visits} memberNames={Object.fromEntries(names.data.map((row) => [row.user_id, row.nickname]))} /></div>;
 }
 
 async function Subscription({ ctx }: Pick<Props, "ctx">) {
