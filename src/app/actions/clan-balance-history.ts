@@ -8,7 +8,7 @@ import {
   type BalanceHistoryRound,
   type BalanceHistorySeries,
 } from "@/lib/balance/history";
-import { parseRoster } from "@/lib/balance/roster-schema";
+import { parseRoster, resolveRosterParticipants } from "@/lib/balance/roster-schema";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -139,12 +139,25 @@ export async function loadBalanceHistoryAction(
       }
       if (!rows || rows.length < 200) break;
     }
+    const participantIds = [...new Set(rounds.flatMap((round) => Object.values(round.roster).flatMap((team) => [team.tank, ...team.dmg, ...team.sup]).filter((id): id is string => !!id)))];
+    const participants: { user_id: string; nickname: string }[] = [];
+    const linkedAccounts = new Map<string, string>();
+    for (let offset = 0; offset < participantIds.length; offset += 200) {
+      const { data: names, error: namesError } = await client.from("clan_participants").select("id,nickname,alias,user_id").eq("clan_id", clanId).eq("is_guest", true).in("id", participantIds.slice(offset, offset + 200));
+      if (namesError) return { ok: false, error: "참가자 이름을 불러오지 못했습니다." };
+      for (const name of names ?? []) {
+        const nickname = `${name.nickname}${name.alias ? ` · ${name.alias}` : ""}`;
+        participants.push({ user_id: name.id, nickname });
+        if (name.user_id) { linkedAccounts.set(name.id, name.user_id); participants.push({ user_id: name.user_id, nickname }); }
+      }
+    }
     return {
       ok: true,
       data: {
         series,
         selectedSeriesId: selected.id,
-        rounds: sortHistoryRounds(rounds),
+        rounds: sortHistoryRounds(rounds.map((round) => ({ ...round, roster: resolveRosterParticipants(round.roster, linkedAccounts) }))),
+        participants,
       },
     };
   } catch {

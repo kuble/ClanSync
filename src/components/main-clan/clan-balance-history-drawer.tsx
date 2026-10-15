@@ -192,14 +192,14 @@ function HistoryContent({
     setSortDirection("desc");
   };
   const nicknames = new Map(
-    pool.map((member) => [member.user_id, member.nickname]),
+    [...(data?.participants ?? []), ...pool].map((member) => [member.user_id, member.nickname]),
   );
   const nickname = (id: string) =>
     nicknames.get(id) ?? `이전 멤버 · ${id.slice(0, 6)}`;
   const historyPool = [
     ...pool,
     ...stats
-      .filter((member) => !nicknames.has(member.userId))
+      .filter((member) => !pool.some((player) => player.user_id === member.userId))
       .map((member) => ({
         user_id: member.userId,
         nickname: nickname(member.userId),

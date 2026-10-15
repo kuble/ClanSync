@@ -19,6 +19,7 @@ import { ClanBalanceAutoCloseSettings } from "./clan-balance-auto-close-settings
 import { ClanAuctionItemSettings } from "./clan-auction-item-settings";
 import { ManageJoinRequestsPanel } from "./manage-join-requests-panel";
 import { ManageMembersTable, type ManageMemberRow } from "./manage-members-table";
+import { ClanParticipantData } from "./clan-participant-data";
 import { ClanManageSubscriptionPanel } from "./clan-manage-subscription-panel";
 import { ClanManageStoreVoidPanel, type ManageStoreVoidRowVM } from "./clan-manage-store-void-panel";
 import { ClanFormationStats } from "./clan-formation-stats";
@@ -144,15 +145,17 @@ async function Members({ ctx }: Pick<Props, "ctx">) {
   ]);
   if (members.error) throw new Error("구성원을 불러오지 못했습니다.");
   const ids = members.data.map((row) => row.user_id);
-  const [profiles, gameProfiles] = await Promise.all([
+  const [profiles, gameProfiles, participantNames] = await Promise.all([
     ids.length ? svc.from("users").select("id,nickname").in("id", ids) : { data: [], error: null },
     ids.length ? svc.from("user_game_profiles").select("user_id,is_verified,games!inner(slug)").in("user_id", ids).eq("games.slug", ctx.gameSlug) : { data: [], error: null },
+    (await getRequestClient()).rpc("clan_peer_nicknames", { p_clan_id: ctx.clanId }),
   ]);
-  if (profiles.error || gameProfiles.error) throw new Error("구성원 정보를 불러오지 못했습니다.");
+  if (profiles.error || gameProfiles.error || participantNames.error) throw new Error("구성원 정보를 불러오지 못했습니다.");
   const byId = new Map((profiles.data ?? []).map((row) => [row.id, row]));
+  const labels = new Map<string, string>((participantNames.data ?? []).map((row: { user_id: string; nickname: string }) => [row.user_id, row.nickname]));
   const verified = new Set((gameProfiles.data ?? []).filter((row) => row.is_verified).map((row) => row.user_id));
-  const rows: ManageMemberRow[] = members.data.map((row) => ({ userId: row.user_id, nickname: byId.get(row.user_id)?.nickname ?? "—", gameVerified: verified.has(row.user_id), role: row.role, joinedLabel: new Date(row.joined_at).toLocaleDateString("ko-KR"), lastActivityAt: row.last_activity_at ?? row.joined_at, actions: { canKick: row.role === "leader" ? false : row.role === "officer" ? kickOfficer : kickMember, canPromote: row.role === "member" && ctx.role === "leader", canDemote: row.role === "officer" && ctx.role === "leader" } }));
-  return <section className={panel}><p className="mb-4 text-xs text-muted-foreground">활동 멤버 {rows.length}명</p><ManageMembersTable gameSlug={ctx.gameSlug} clanId={ctx.clanId} rows={rows} /></section>;
+  const rows: ManageMemberRow[] = members.data.map((row) => ({ userId: row.user_id, nickname: labels.get(row.user_id) ?? byId.get(row.user_id)?.nickname ?? "—", gameVerified: verified.has(row.user_id), role: row.role, joinedLabel: new Date(row.joined_at).toLocaleDateString("ko-KR"), lastActivityAt: row.last_activity_at ?? row.joined_at, actions: { canKick: row.role === "leader" ? false : row.role === "officer" ? kickOfficer : kickMember, canPromote: row.role === "member" && ctx.role === "leader", canDemote: row.role === "officer" && ctx.role === "leader" } }));
+  return <div className="space-y-4"><section className={panel}><p className="mb-4 text-xs text-muted-foreground">활동 멤버 {rows.length}명</p><ManageMembersTable gameSlug={ctx.gameSlug} clanId={ctx.clanId} rows={rows} /></section><ClanParticipantData clanId={ctx.clanId} gameSlug={ctx.gameSlug} /></div>;
 }
 
 async function BalanceSettings({ ctx }: Pick<Props, "ctx">) {

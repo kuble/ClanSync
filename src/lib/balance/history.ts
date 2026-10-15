@@ -52,6 +52,7 @@ export type BalanceHistoryData = {
   series: BalanceHistorySeries[];
   selectedSeriesId: string | null;
   rounds: BalanceHistoryRound[];
+  participants?: { user_id: string; nickname: string }[];
 };
 
 export type BalanceMemberStats = {

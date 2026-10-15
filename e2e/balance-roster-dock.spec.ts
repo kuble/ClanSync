@@ -33,7 +33,7 @@ test("맵 팝업·배너와 클랜원 목록 네 방향 부착·드래그·되�
     const member = (index: number) => candidates.getByRole("button", { name: `${fixture.users[index].nickname} 출전 명단에 추가`, exact: true });
     await expect(layout).toHaveAttribute("data-member-position", "left");
     await expect(candidates.getByRole("combobox", { name: "클랜원 목록 위치", exact: true })).toHaveCount(0);
-    const gripBox = await handle.boundingBox(), headingBox = await candidates.getByRole("heading", { name: /^클랜원/ }).boundingBox();
+    const gripBox = await handle.boundingBox(), headingBox = await candidates.getByRole("heading", { name: /^참가자/ }).boundingBox();
     expect(gripBox!.x + gripBox!.width).toBeLessThanOrEqual(headingBox!.x);
     const before = await fixture.activeRound();
 

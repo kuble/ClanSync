@@ -35,6 +35,7 @@ import type { ScoreMode } from "./balance-team-insights";
 import type { PlayerSessionInfoMap } from "@/lib/balance/player-session-stats";
 import { BalancePlayerCardContent, BalancePlayerDetails } from "./balance-player-details";
 import { BalanceRosterDock } from "./balance-roster-dock";
+import { ClanParticipantEditor } from "./clan-participant-editor";
 import type { PlayerCardInfoMode, TeamComparisonMode } from "@/lib/balance/formation";
 
 export type ClanBalanceRosterEditorHandle = {
@@ -304,12 +305,13 @@ export function ClanBalanceRosterEditor({
           <div className="flex items-center gap-2">
           {handle}
           <h4 className="text-xs font-semibold">
-            클랜원{" "}
+            참가자{" "}
             <span className="ml-1 tabular-nums text-muted-foreground">
               {availablePool.length}
             </span>
           </h4>
           </div>
+          {canEdit && <ClanParticipantEditor clanId={clanId} />}
           <label className="flex h-9 w-full items-center gap-2 rounded-lg border bg-background px-3">
             <Search
               className="size-3.5 shrink-0 text-muted-foreground"

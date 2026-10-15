@@ -105,7 +105,7 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
     canManage, scoredResult, analysisResult,
     { data: profilePreference }, { data: roundPreference },
     { data: votes }, { data: heroVotes }, { data: balancePredictions },
-    poolResult, { data: rosterPoolRows }, { data: hostRow },
+    poolResult, { data: rosterPoolRows }, { data: hostRow }, participantLinks,
   ] = await Promise.all([
     canManageRound(supabase, user.id, clanId, session.id),
     canViewScores ? supabase.from("balance_sessions")
@@ -135,18 +135,23 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
     session.host_user_id
       ? supabase.from("users").select("nickname").eq("id", room.delegated_to ?? room.created_by).maybeSingle()
       : Promise.resolve({ data: null }),
+    supabase.from("clan_participants").select("id,user_id").eq("clan_id", clanId).eq("is_guest", true).not("user_id", "is", null),
   ]);
   const canEditMscore = canViewScores && (canManage || scorePermission);
   let analysisContext: ReturnType<typeof parseAnalysisContext> | undefined;
   const scores: MaSnapshot = {};
   if (analysisResult.error) throw new Error("분석 점수를 불러오지 못했습니다.");
   if (scoredResult.error) throw new Error("참가자 점수를 불러오지 못했습니다.");
-  if (poolResult.error) throw new Error("승부예측 정보를 불러오지 못했습니다.");
+  if (poolResult.error) throw new Error("승부예측 정보를 불러오지 못했습니다.", { cause: poolResult.error });
+  if (participantLinks.error) throw new Error("참가자 연결 정보를 불러오지 못했습니다.");
+  const linkedAccounts = new Map<string, string>((participantLinks.data ?? []).map((p: { id: string; user_id: string | null }) => [p.id, p.user_id!]));
   if (canViewScores) {
     if (planPremium && session.phase !== "match_live") analysisContext = parseAnalysisContext(analysisResult.data);
     for (const round of scoredResult.data ?? []) {
       for (const [id, score] of Object.entries(parseMaSnapshot(round.ma_snapshot))) {
         if (!(id in scores)) scores[id] = score;
+        const account = linkedAccounts.get(id);
+        if (account && !(account in scores)) scores[account] = score;
       }
     }
     Object.assign(scores, parseMaSnapshot(session.ma_snapshot));
@@ -157,6 +162,8 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
   (recentRounds ?? []).forEach((round, index) =>
     rosterAssignedUserIds(parseRoster(round.roster)).forEach((id) => {
       if (!recency.has(id)) recency.set(id, index);
+      const account = linkedAccounts.get(id);
+      if (account && !recency.has(account)) recency.set(account, index);
     }),
   );
 
