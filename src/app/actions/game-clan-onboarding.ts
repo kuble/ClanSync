@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { allowDevGameLink } from "@/lib/auth/allow-dev-game-link";
 import { ensurePublicUserProfile } from "@/lib/auth/ensure-public-user";
+import { parseBattleTag } from "@/lib/game-auth/battle-tag";
 import { hasClanPermission } from "@/lib/clan/has-clan-permission";
 import {
   createServiceRoleClient,
@@ -40,6 +41,7 @@ export type ActionResult = { ok: true } | { ok: false; error: string };
 /** 개발·QA용 게임 인증 완료 시뮬레이션 (실 OAuth 콜백 전 단계). */
 export async function linkGameAccountDevAction(
   gameSlug: string,
+  battleTag?: string,
 ): Promise<ActionResult> {
   if (!allowDevGameLink(process.env)) {
     return { ok: false, error: "이 환경에서는 시뮬레이션 연동을 사용할 수 없습니다." };
@@ -66,14 +68,23 @@ export async function linkGameAccountDevAction(
     return { ok: false, error: "연동할 수 없는 게임입니다." };
   }
 
+  const tag = gameSlug === "overwatch" ? parseBattleTag(battleTag ?? "") : null;
+  if (gameSlug === "overwatch" && !tag) {
+    return { ok: false, error: "배틀태그 전체를 입력해 주세요. 예: AimZero#12345" };
+  }
+
   const stamp = new Date().toISOString();
   const svcWrap = tryCreateServiceRoleClient();
   if (!svcWrap.ok) return svcWrap;
+  const existing = await svcWrap.client.from("user_game_profiles").select("game_uid")
+    .eq("user_id", user.id).eq("game_id", game.id).maybeSingle();
+  if (existing.error) return { ok: false, error: "연결 정보를 불러오지 못했습니다. 다시 시도해 주세요." };
   const { error } = await svcWrap.client.from("user_game_profiles").upsert(
     {
       user_id: user.id,
       game_id: game.id,
-      game_uid: `dev:${game.slug}:${user.id.slice(0, 8)}`,
+      game_uid: existing.data?.game_uid ?? `dev:${game.slug}:${user.id.slice(0, 8)}`,
+      ...(tag ? { battle_tag: tag } : {}),
       is_verified: true,
       verified_at: stamp,
       updated_at: stamp,
@@ -81,11 +92,14 @@ export async function linkGameAccountDevAction(
     { onConflict: "user_id,game_id" },
   );
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: error.code === "23505"
+    ? "이미 다른 계정에 연결된 배틀태그입니다. #번호까지 확인해 주세요."
+    : "계정을 연결하지 못했습니다. 잠시 후 다시 시도해 주세요." };
 
   revalidatePath("/games");
   revalidatePath(`/games/${gameSlug}/auth`);
   revalidatePath(`/games/${gameSlug}/clan`);
+  revalidatePath("/profile");
   return { ok: true };
 }
 
@@ -102,7 +116,7 @@ export async function linkGameAccountDevSubmitAction(
   const nextRaw = formData.get("nextPath");
   const nextPath = safeNextPath(nextRaw, "") || undefined;
 
-  const r = await linkGameAccountDevAction(gameSlug);
+  const r = await linkGameAccountDevAction(gameSlug, String(formData.get("battleTag") ?? ""));
   if (!r.ok) return { error: r.error };
 
   const target =

@@ -77,7 +77,7 @@ export default async function ProfilePage() {
       .maybeSingle(),
     supabase
       .from("user_game_profiles")
-      .select("game_id, game_uid, is_verified, games ( id, slug, name_ko )")
+      .select("game_id, game_uid, battle_tag, is_verified, games ( id, slug, name_ko )")
       .eq("user_id", user.id),
     supabase.from("user_nameplate_inventory").select("option_id").eq("user_id", user.id),
     supabase
@@ -176,7 +176,7 @@ export default async function ProfilePage() {
         | null;
       const g = Array.isArray(gRaw) ? gRaw[0] : gRaw;
       if (!g) return null;
-      return { gameId: g.id, slug: g.slug, nameKo: g.name_ko, accountId: String(r.game_uid ?? "") };
+      return { gameId: g.id, slug: g.slug, nameKo: g.name_ko, accountId: r.battle_tag ?? String(r.game_uid ?? "") };
     })
     .filter((x): x is DecorationGame => x !== null);
 

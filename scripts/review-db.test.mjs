@@ -76,7 +76,8 @@ test("review defects: direct API permissions, transactions and notification life
   await t.test("R02 balance writes fail, signup/profile writes and purchase/refund preserve ledger", async () => {
     assert.equal((await ok(member.client.from("users").select("coin_balance").eq("id", member.id).single())).coin_balance, 0);
     await denied(member.client.from("users").update({ coin_balance: 999999 }).eq("id", member.id));
-    await ok(member.client.from("users").update({ nickname: `rv_${tag}_edited`, auto_login: true }).eq("id", member.id));
+    await denied(member.client.from("users").update({ nickname: `rv_${tag}_edited` }).eq("id", member.id));
+    await ok(member.client.from("users").update({ auto_login: true }).eq("id", member.id));
     await ok(svc.from("users").delete().eq("id", selfInsert.id));
     const profile = { id: selfInsert.id, email: selfInsert.email, nickname: `rv_${tag}_self`, birth_year: 2000 };
     await denied(selfInsert.client.from("users").insert({ ...profile, coin_balance: 100 }));
@@ -96,6 +97,7 @@ test("review defects: direct API permissions, transactions and notification life
   });
   await t.test("R03 game verification is server-only", async () => {
     await denied(member.client.from("user_game_profiles").update({ is_verified: true, game_uid: "forged" }).eq("user_id", member.id));
+    await denied(member.client.from("user_game_profiles").update({ battle_tag: "Forged#12345" }).eq("user_id", member.id));
     await denied(selfInsert.client.from("user_game_profiles").insert({ user_id: selfInsert.id, game_id: gid, game_uid: "forged", is_verified: true }));
     await ok(svc.from("user_game_profiles").insert({ user_id: selfInsert.id, game_id: gid, game_uid: "server-proof", is_verified: true }));
   });

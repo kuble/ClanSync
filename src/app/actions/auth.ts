@@ -88,7 +88,6 @@ export async function signUpAction(
 ): Promise<AuthMessageState> {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
-  const nickname = String(formData.get("nickname") ?? "").trim();
   const birthYear = Number.parseInt(String(formData.get("birth_year") ?? ""), 10);
   const gender = String(formData.get("gender") ?? "undisclosed");
   const terms = formData.get("terms") === "on";
@@ -96,9 +95,6 @@ export async function signUpAction(
 
   if (!terms) {
     return { error: "이용약관 및 개인정보 처리에 동의해 주세요." };
-  }
-  if (nickname.length < 2 || nickname.length > 20) {
-    return { error: "닉네임은 2~20자로 입력해 주세요." };
   }
   if (!Number.isFinite(birthYear)) {
     return { error: "출생연도를 선택해 주세요." };
@@ -126,7 +122,6 @@ export async function signUpAction(
     password,
     options: {
       data: {
-        nickname,
         birth_year: birthYear,
         gender: genderOk,
         auto_login: false,
@@ -135,7 +130,11 @@ export async function signUpAction(
   });
 
   if (error) {
-    return { error: error.message };
+    return { error: "가입하지 못했습니다. 이메일 주소를 확인하거나 잠시 후 다시 시도해 주세요." };
+  }
+
+  if (!signData.session) {
+    return { ok: "입력한 주소로 온 가입 안내 메일을 확인해 주세요. 확인을 마친 뒤 로그인하면 게임 계정을 연결할 수 있습니다." };
   }
 
   if (signData.user) {

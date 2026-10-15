@@ -17,20 +17,22 @@ export function SignUpForm({ nextPath = "/games" }: { nextPath?: string }) {
   const [state, formAction] = useActionState<AuthMessageState, FormData>(signUpAction, null);
   const maxYear = new Date().getFullYear() - 10;
   const years = Array.from({ length: maxYear - 1949 }, (_, index) => maxYear - index);
+  if (state?.ok) return <div className="space-y-5">
+    <span className="inline-flex size-12 items-center justify-center rounded-full bg-primary/10 text-2xl text-primary" aria-hidden="true">✓</span>
+    <h1 className={styles.authHeading}>이메일을 확인해 주세요</h1>
+    <p className={styles.authSubtitle} role="status">{state.ok}</p>
+    <Link className={`${styles.submit} flex items-center justify-center`} href={`/sign-in?next=${encodeURIComponent(nextPath)}`}>로그인 화면으로</Link>
+  </div>;
   return (
     <>
       <h1 className={styles.authHeading}>ClanSync에 오신 걸 환영해요</h1>
-      <p className={styles.authSubtitle}>몇 가지 정보만 입력하면 바로 시작할 수 있어요.</p>
-      <form action={formAction} className={styles.form}>
+      <p className={styles.authSubtitle}>닉네임은 따로 만들지 않아요. 게임 연동 후 배틀태그 이름을 사용합니다.</p>
+      <form action={formAction} className={styles.form} onReset={(event) => event.preventDefault()}>
         <input type="hidden" name="next" value={nextPath} />
         {state?.error ? <p className={styles.error} role="alert" aria-live="polite">{state.error}</p> : null}
         <div className={styles.field}>
           <label htmlFor="email">이메일</label>
           <input className={styles.input} id="email" name="email" type="email" autoComplete="email" required placeholder="you@example.com" />
-        </div>
-        <div className={styles.field}>
-          <label htmlFor="nickname">닉네임</label>
-          <input className={styles.input} id="nickname" name="nickname" autoComplete="nickname" required minLength={2} maxLength={20} placeholder="클랜에서 사용할 닉네임 (2~20자)" />
         </div>
         <div className={styles.fieldRow}>
           <div className={styles.field}>

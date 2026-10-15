@@ -3005,6 +3005,7 @@ export type Database = {
       }
       user_game_profiles: {
         Row: {
+          battle_tag: string | null
           created_at: string
           game_id: string
           game_uid: string
@@ -3015,6 +3016,7 @@ export type Database = {
           verified_at: string | null
         }
         Insert: {
+          battle_tag?: string | null
           created_at?: string
           game_id: string
           game_uid: string
@@ -3025,6 +3027,7 @@ export type Database = {
           verified_at?: string | null
         }
         Update: {
+          battle_tag?: string | null
           created_at?: string
           game_id?: string
           game_uid?: string

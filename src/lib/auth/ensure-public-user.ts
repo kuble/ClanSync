@@ -17,10 +17,10 @@ function clampBirthYear(y: number): number {
 function rowFromAuthUser(user: User): UserInsert {
   const meta = user.user_metadata ?? {};
   let nickname = String(
-    meta.nickname ?? user.email?.split("@")[0] ?? "user",
+    meta.nickname ?? "새 회원",
   ).trim();
   nickname = nickname.slice(0, 20);
-  if (!nickname) nickname = "user";
+  if (!nickname) nickname = "새 회원";
 
   const birthRaw = meta.birth_year;
   const birthYear =
@@ -44,26 +44,23 @@ function rowFromAuthUser(user: User): UserInsert {
   };
 }
 
-async function insertUserRowWithNicknameRetry(
+async function insertUserRow(
   client: SupabaseClient<Database>,
   userId: string,
   row: UserInsert,
 ): Promise<{ error: { message: string; code?: string } | null }> {
-  let r = row;
-  let { error } = await client.from("users").insert(r);
+  const { error } = await client.from("users").insert(row);
   if (error?.code === "23505") {
-    r = {
-      ...r,
-      nickname: `${r.nickname!.slice(0, 12)}_${userId.replace(/-/g, "").slice(0, 8)}`,
-    };
-    ({ error } = await client.from("users").insert(r));
+    // Another authenticated request may have repaired the same profile first.
+    const { data } = await client.from("users").select("id").eq("id", userId).maybeSingle();
+    if (data) return { error: null };
   }
   return { error };
 }
 
 /**
  * auth.users 와 1:1 인 public.users 행이 없을 때 보강 (FK·RLS 흐름용).
- * 트리거 누락·닉네임 유니크 충돌 등으로 프로필이 빠진 계정을 복구한다.
+ * 트리거 누락 등으로 프로필이 빠진 계정을 복구한다. 기존 표시 이름은 덮어쓰지 않는다.
  *
  * `userClient` 가 있고 세션 uid 가 `userId` 와 일치하면 RLS `users_self_insert` 로
  * 먼저 시도한다(서비스 롤 키 미설정·스키마 GRANT 누락 대비).
@@ -87,7 +84,7 @@ export async function ensurePublicUserProfile(
       if (existingSelf) return { ok: true };
 
       const row = rowFromAuthUser(sessionUser);
-      const { error } = await insertUserRowWithNicknameRetry(
+      const { error } = await insertUserRow(
         userClient,
         userId,
         row,
@@ -114,7 +111,7 @@ export async function ensurePublicUserProfile(
   }
 
   const row = rowFromAuthUser(admin.user);
-  const { error } = await insertUserRowWithNicknameRetry(svc, userId, row);
+  const { error } = await insertUserRow(svc, userId, row);
 
   if (error) {
     return { ok: false, error: error.message };
