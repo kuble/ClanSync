@@ -476,6 +476,7 @@ async function loadClanStatsSource(
     openedSessions,
     { data: nickRows },
     corrections,
+    participantLinks,
   ] = await Promise.all([
     loadAllStatsRows((from, to) =>
       supabase
@@ -527,16 +528,18 @@ async function loadClanStatsSource(
       ? Promise.resolve({ data: [] })
       : supabase.rpc("clan_peer_nicknames", { p_clan_id: clanId }),
     loadAllStatsRows((from, to) => historyClient.rpc("read_clan_match_record_corrections", { p_clan_id: clanId }).range(from, to)),
+    loadAllStatsRows((from, to) => supabase.from("clan_participants").select("id,user_id").eq("clan_id", clanId).eq("is_guest", true).not("user_id", "is", null).order("id").range(from, to)),
   ]);
 
   const canonicalMatches = new Map((rawMatches as StoredClanMatch[]).map((match) => [match.id, match]));
   for (const correction of corrections) canonicalMatches.set(correction.id, correction.deleted
     ? { id: correction.id, status: "draft", played_at: "2000-01-01T00:00:00Z", match_type: "intra", map_label: null, match_players: [], match_results: null }
     : correction.payload as unknown as StoredClanMatch);
+  const linkedAccounts = new Map(participantLinks.map((p) => [p.id, p.user_id!]));
   const records = normalizeClanMatchRecords(
     [...canonicalMatches.values()],
     completedSessions,
-  );
+  ).map((record) => ({ ...record, match_players: record.match_players.map((p) => ({ ...p, user_id: linkedAccounts.get(p.user_id) ?? p.user_id })) }));
   return { clan, memberCount, settings, role, permissions, records, completedSessions, openedSessions, nickRows };
 }
 

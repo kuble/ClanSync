@@ -53,7 +53,7 @@ export function parseRoster(json: unknown): BalanceRoster {
   };
 }
 
-/** 슬롯에 배정된 고유 user_id (null 제외) */
+/** Legacy name: these are participant IDs; guest IDs never grant login permissions. */
 export function rosterAssignedUserIds(r: BalanceRoster): string[] {
   const out: string[] = [];
   const push = (id: string | null) => {
@@ -72,4 +72,11 @@ export function rosterAssignedUserIds(r: BalanceRoster): string[] {
 export function rosterHasDuplicateUsers(r: BalanceRoster): boolean {
   const ids = rosterAssignedUserIds(r);
   return new Set(ids).size !== ids.length;
+}
+
+/** Read projection only; original rosters and actor IDs must remain unchanged. */
+export function resolveRosterParticipants(roster: BalanceRoster, accounts: ReadonlyMap<string, string>): BalanceRoster {
+  const resolve = (id: string | null) => id ? accounts.get(id) ?? id : null;
+  const team = (value: TeamRoster): TeamRoster => ({ tank: resolve(value.tank), dmg: [resolve(value.dmg[0]), resolve(value.dmg[1])], sup: [resolve(value.sup[0]), resolve(value.sup[1])] });
+  return { team1: team(roster.team1), team2: team(roster.team2) };
 }

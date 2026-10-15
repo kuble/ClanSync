@@ -1536,6 +1536,154 @@ export type Database = {
           },
         ]
       }
+      clan_participant_invites: {
+        Row: {
+          clan_id: string
+          expires_at: string
+          participant_id: string
+          token: string
+        }
+        Insert: {
+          clan_id: string
+          expires_at?: string
+          participant_id: string
+          token?: string
+        }
+        Update: {
+          clan_id?: string
+          expires_at?: string
+          participant_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_participant_invites_clan_id_participant_id_fkey"
+            columns: ["clan_id", "participant_id"]
+            isOneToOne: true
+            referencedRelation: "clan_participants"
+            referencedColumns: ["clan_id", "id"]
+          },
+        ]
+      }
+      clan_participant_links: {
+        Row: {
+          clan_id: string
+          id: string
+          participant_id: string
+          requested_at: string
+          requested_by: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          revoke_note: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          status: string
+        }
+        Insert: {
+          clan_id: string
+          id?: string
+          participant_id: string
+          requested_at?: string
+          requested_by: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          revoke_note?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          status?: string
+        }
+        Update: {
+          clan_id?: string
+          id?: string
+          participant_id?: string
+          requested_at?: string
+          requested_by?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          revoke_note?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_participant_links_clan_id_participant_id_fkey"
+            columns: ["clan_id", "participant_id"]
+            isOneToOne: false
+            referencedRelation: "clan_participants"
+            referencedColumns: ["clan_id", "id"]
+          },
+          {
+            foreignKeyName: "clan_participant_links_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_participant_links_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_participant_links_revoked_by_fkey"
+            columns: ["revoked_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_participants: {
+        Row: {
+          alias: string | null
+          clan_id: string
+          created_at: string
+          id: string
+          is_guest: boolean
+          nickname: string
+          user_id: string | null
+        }
+        Insert: {
+          alias?: string | null
+          clan_id: string
+          created_at?: string
+          id?: string
+          is_guest?: boolean
+          nickname: string
+          user_id?: string | null
+        }
+        Update: {
+          alias?: string | null
+          clan_id?: string
+          created_at?: string
+          id?: string
+          is_guest?: boolean
+          nickname?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_participants_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_polls: {
         Row: {
           anonymous: boolean
@@ -3182,6 +3330,10 @@ export type Database = {
         Args: { p_session_id: string }
         Returns: boolean
       }
+      issue_clan_participant_invite: {
+        Args: { p_clan_id: string; p_id: string }
+        Returns: string
+      }
       list_balance_roster_pool: {
         Args: { p_clan_id: string }
         Returns: {
@@ -3256,6 +3408,7 @@ export type Database = {
           payload: Json
         }[]
       }
+      read_clan_participant_invite: { Args: { p_token: string }; Returns: Json }
       read_clan_prediction_ledger: {
         Args: { p_clan_id: string }
         Returns: {
@@ -3303,6 +3456,10 @@ export type Database = {
         Args: { p_event_id: string; p_schedule: Json }
         Returns: undefined
       }
+      request_clan_participant_link: {
+        Args: { p_token: string }
+        Returns: string
+      }
       resolve_balance_role_preferences: {
         Args: { p_round_id: string }
         Returns: Json
@@ -3323,6 +3480,19 @@ export type Database = {
           p_post_id: string
         }
         Returns: undefined
+      }
+      review_clan_participant_link: {
+        Args: { p_action: string; p_note: string; p_request_id: string }
+        Returns: undefined
+      }
+      save_clan_participant: {
+        Args: {
+          p_alias: string
+          p_clan_id: string
+          p_id: string
+          p_nickname: string
+        }
+        Returns: string
       }
       save_clan_stats_settings: {
         Args: {
