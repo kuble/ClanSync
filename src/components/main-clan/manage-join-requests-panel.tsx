@@ -4,12 +4,12 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
-  approveClanJoinRequestAction,
   rejectClanJoinRequestAction,
 } from "@/app/actions/game-clan-onboarding";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ParticipantRecordDialog } from "./participant-record-dialog";
 
 const MANAGE_TOAST_DURATION_MS = 4800;
 const MANAGE_REFRESH_DELAY_MS = 2600;
@@ -19,7 +19,9 @@ export type ManageJoinRequestRow = {
   message: string;
   appliedAt: string;
   nickname: string;
-  email: string;
+  userId: string;
+  gameTag: string | null;
+  gameVerified: boolean;
 };
 
 export function ManageJoinRequestsPanel({
@@ -35,32 +37,7 @@ export function ManageJoinRequestsPanel({
   const [busy, setBusy] = useState(false);
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
-
-  async function approve(id: string) {
-    setBusy(true);
-    const tid = toast.loading("가입 승인 처리 중…");
-    try {
-      const r = await approveClanJoinRequestAction(gameSlug, clanId, id);
-      toast.dismiss(tid);
-      if (!r.ok) {
-        toast.error(r.error, { duration: 7000 });
-        return;
-      }
-      toast.success("가입을 승인했습니다.", {
-        duration: MANAGE_TOAST_DURATION_MS,
-      });
-      window.setTimeout(() => router.refresh(), MANAGE_REFRESH_DELAY_MS);
-    } catch (e) {
-      toast.dismiss(tid);
-      console.error(e);
-      toast.error(
-        "가입을 승인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-        { duration: 7000 },
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
+  const [approving, setApproving] = useState<ManageJoinRequestRow | null>(null);
 
   async function submitReject(id: string) {
     setBusy(true);
@@ -104,7 +81,7 @@ export function ManageJoinRequestsPanel({
   }
 
   return (
-    <ul className="space-y-4">
+    <><ul className="space-y-4">
       {rows.map((row) => (
         <li
           key={row.id}
@@ -115,15 +92,12 @@ export function ManageJoinRequestsPanel({
               <p className="font-medium">
                 {row.nickname}
                 <span className="text-muted-foreground ml-2 text-sm font-normal">
-                  {row.email}
+                  {row.gameTag ?? "배틀태그 미등록"} · {row.gameVerified ? "게임 인증 완료" : "게임 미인증"}
                 </span>
               </p>
               <p className="text-muted-foreground mt-1 text-xs">
                 신청일{" "}
-                {new Date(row.appliedAt).toLocaleString("ko-KR", {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                })}
+                {new Date(Date.parse(row.appliedAt) + 9 * 60 * 60 * 1000).toISOString().slice(0, 16).replace("T", " ")}
               </p>
               {row.message ? (
                 <p className="text-muted-foreground mt-2 border-l-2 pl-3 text-sm">
@@ -137,7 +111,7 @@ export function ManageJoinRequestsPanel({
                 size="sm"
                 disabled={busy}
                 data-testid={`manage-join-approve-${row.id}`}
-                onClick={() => void approve(row.id)}
+                onClick={() => setApproving(row)}
               >
                 승인
               </Button>
@@ -190,6 +164,6 @@ export function ManageJoinRequestsPanel({
           ) : null}
         </li>
       ))}
-    </ul>
+    </ul>{approving && <ParticipantRecordDialog key={approving.id} clanId={clanId} gameSlug={gameSlug} userId={approving.userId} nickname={approving.nickname} gameTag={approving.gameTag} requestId={approving.id} onClose={() => setApproving(null)} />}</>
   );
 }

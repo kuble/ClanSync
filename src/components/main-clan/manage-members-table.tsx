@@ -12,11 +12,14 @@ import {
   setClanMemberRoleAction,
 } from "@/app/actions/clan-manage-members";
 import { Button } from "@/components/ui/button";
+import { MemberRecordButton } from "./participant-record-dialog";
 
 export type ManageMemberRow = {
   userId: string;
   nickname: string;
   gameVerified: boolean;
+  gameTag: string | null;
+  linkedCount: number;
   role: "leader" | "officer" | "member";
   joinedLabel: string;
   lastActivityAt?: string | null;
@@ -224,6 +227,7 @@ export function ManageMembersTable({
                 </td>
                 <td className="px-3 py-2 text-right">
                   <div className="flex flex-wrap items-center justify-end gap-1">
+                    <MemberRecordButton clanId={clanId} gameSlug={gameSlug} userId={m.userId} nickname={m.nickname} gameTag={m.gameTag} linkedCount={m.linkedCount} />
                     {m.actions.canPromote ? (
                       <form onSubmit={onPromote} className="inline">
                         <input
@@ -281,11 +285,6 @@ export function ManageMembersTable({
                       >
                         강퇴
                       </Button>
-                    ) : null}
-                    {!m.actions.canKick &&
-                    !m.actions.canPromote &&
-                    !m.actions.canDemote ? (
-                      <span className="text-muted-foreground text-xs">—</span>
                     ) : null}
                   </div>
                 </td>

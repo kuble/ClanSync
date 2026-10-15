@@ -58,12 +58,8 @@ test("guest records accumulate, require staff approval and revert without moving
 
     await page.context().clearCookies(); await loginIsolatedBalanceUser(page, f.users[0]);
     await page.goto(`${base}/manage?tab=members`);
-    const requestRow = page.locator(`[data-link-request="${request.id}"]`);
-    await requestRow.getByRole("button", { name: "연결 승인", exact: true }).click();
-    let dialog = page.getByRole("dialog", { name: "계정 연결 승인", exact: true });
-    await dialog.getByLabel("연결 처리 사유").fill("음성 채널에서 본인 확인");
-    await dialog.getByRole("button", { name: "처리 확인", exact: true }).click();
-    await expect(dialog).toBeHidden(); await expect(requestRow).toContainText("연결 완료");
+    // Old invitation links remain compatible; new approvals are covered below.
+    await ok(leader.rpc("review_clan_participant_link", { p_request_id: request.id, p_action: "approve", p_note: "음성 채널에서 본인 확인" }));
     expect(await played(guest!)).toBe(0);
     expect(await played(f.users[1].id)).toBe(3);
     expect(await ok(claimant.rpc("read_clan_participant_invite", { p_token: token! }))).toBeNull();
@@ -81,17 +77,18 @@ test("guest records accumulate, require staff approval and revert without moving
     // Correcting a linked record must retain its original guest provenance.
     await ok(f.service.rpc("edit_clan_match_record", { p_clan_id: f.clanId, p_actor_id: f.users[0].id, p_id: firstRecord!, p_operation: "update", p_revision: first._revision,
       p_record: { playedAt: "2026-10-01T10:00:00Z", occurredAt: "2026-10-01T10:00:00Z", mapLabel: "일리오스", outcome: "team1", players: [{ userId: f.users[1].id, team: 1, role: "tank" }, { userId: f.users[0].id, team: 2, role: "tank" }] } as Json }));
-    await requestRow.getByRole("button", { name: "연결 취소", exact: true }).click();
-    dialog = page.getByRole("dialog", { name: "계정 연결 취소", exact: true });
-    await dialog.getByLabel("연결 처리 사유").fill("동명이인 연결 오류 정정");
-    await dialog.getByRole("button", { name: "처리 확인", exact: true }).click();
-    await expect(dialog).toBeHidden(); await expect(requestRow).toContainText("연결 취소");
+    await page.reload();
+    await page.getByRole("button", { name: `${f.users[1].nickname} 이전 기록 관리`, exact: true }).first().click();
+    const dialog = page.getByRole("dialog", { name: "이전 내전 기록 연결", exact: true });
+    await dialog.getByRole("button", { name: "연결 해제", exact: true }).click();
+    await page.getByRole("dialog", { name: "기록 연결 해제", exact: true }).getByRole("button", { name: "연결 해제", exact: true }).click();
+    await expect(page.getByRole("dialog")).toBeHidden();
     expect(await played(guest!)).toBe(2);
     expect(await played(f.users[1].id)).toBe(2);
     expect(await ok(f.service.from("users").select("id,coin_balance").in("id", f.users.map((u) => u.id)).order("id"))).toEqual(coinsBefore);
     const audit = (await ok(leader.from("clan_participant_links").select("*").eq("id", request.id).single()))!;
     expect(audit.reviewed_by).toBe(f.users[0].id); expect(audit.revoked_by).toBe(f.users[0].id);
-    expect(audit.review_note).toBe("음성 채널에서 본인 확인"); expect(audit.revoke_note).toBe("동명이인 연결 오류 정정");
+    expect(audit.review_note).toBe("음성 채널에서 본인 확인"); expect(audit.revoke_note).toContain("기록 연결을 해제");
     await page.setViewportSize({ width: 390, height: 844 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.getByRole("region", { name: "내전 참가자 명부", exact: true }).screenshot({ path: testInfo.outputPath("participants-mobile.png") });
@@ -106,14 +103,15 @@ test("guest registration is reusable in the live roster and conflicting identiti
     await createAndEnterBalanceRoom(page, f.path);
     await page.getByRole("button", { name: "미가입 참가자 추가", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "미가입 참가자 추가", exact: true });
-    await dialog.getByLabel("참가자 게임 닉네임").fill("AIMZERO"); await dialog.getByLabel("참가자 클랜 별칭").fill("용병제로");
+    await dialog.getByLabel("참가자 게임 닉네임").fill("AIMZERO");
+    await expect(dialog.getByRole("textbox")).toHaveCount(1);
     await dialog.getByRole("button", { name: "참가자 저장", exact: true }).click(); await expect(dialog).toBeHidden();
-    const guest = (await ok(f.service.from("clan_participants").select("id").eq("clan_id", f.clanId).eq("alias", "용병제로").single()))!;
+    const guest = (await ok(f.service.from("clan_participants").select("id").eq("clan_id", f.clanId).eq("nickname", "AIMZERO").single()))!;
     const leader = await f.memberClient(0), member = await f.memberClient(1);
     const currentRound = await f.activeRound();
     await ok(leader.rpc("read_balance_prediction_pool", { p_session_id: currentRound.id }));
     const panel = page.getByTestId("clan-balance-session-panel");
-    await panel.getByRole("button", { name: "AIMZERO · 용병제로 출전 명단에 추가", exact: true }).click();
+    await panel.getByRole("button", { name: "AIMZERO 출전 명단에 추가", exact: true }).click();
     for (const user of f.users) await panel.getByRole("button", { name: `${user.nickname} 출전 명단에 추가`, exact: true }).click();
     await expect.poll(async () => JSON.stringify((await f.activeRound()).roster)).toContain(guest.id);
     const round = await f.activeRound();

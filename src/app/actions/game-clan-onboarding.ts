@@ -473,7 +473,9 @@ export async function approveClanJoinRequestAction(
   gameSlug: string,
   clanId: string,
   requestId: string,
+  participantId: string | null = null,
 ): Promise<ActionResult> {
+  if (![clanId, requestId, ...(participantId === null ? [] : [participantId])].every((id) => typeof id === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))) return { ok: false, error: "가입 신청 정보가 올바르지 않습니다." };
   const supabase = await createClient();
   const {
     data: { user },
@@ -488,8 +490,8 @@ export async function approveClanJoinRequestAction(
   );
   if (!can) return { ok: false, error: "가입을 승인할 권한이 없습니다." };
 
-  const { error } = await supabase.rpc("resolve_clan_join_request", {
-    p_clan_id: clanId, p_request_id: requestId, p_decision: "approved",
+  const { error } = await supabase.rpc("approve_clan_join_with_participant", {
+    p_clan_id: clanId, p_request_id: requestId, p_participant_id: participantId,
   });
   if (error) return { ok: false, error: error.message };
 
