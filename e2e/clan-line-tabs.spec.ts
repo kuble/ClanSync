@@ -1,0 +1,73 @@
+import { expect, test } from "@playwright/test";
+import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
+
+test.use({ hasTouch: true, actionTimeout: 20_000 });
+
+test("관리 중복 행 제거·탭 설명·마우스/키보드/터치와 공통 탭 이동", async ({ page }) => {
+  test.setTimeout(150_000);
+  const f = await createIsolatedBalanceFixture(1);
+  const base = f.path.replace(/\/balance$/, "");
+  try {
+    await page.setViewportSize({ width: 844, height: 1004 });
+    await loginIsolatedBalanceUser(page, f.users[0]);
+    await page.goto(`${base}/manage`);
+    const nav = page.getByRole("navigation", { name: "클랜 관리 항목", exact: true });
+    const overview = nav.getByRole("link", { name: "운영 현황", exact: true });
+    await expect(overview).toHaveAttribute("aria-current", "page");
+    await expect(page.getByText(/의 운영과 설정$/)).toHaveCount(0);
+    await expect(page.getByText("클랜장 · Premium", { exact: true })).toHaveCount(0);
+    await expect(page.locator("#manage-section-heading")).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "운영 현황", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "운영 현황", exact: true })).toBeVisible();
+    await overview.hover();
+    await expect(page.getByRole("tooltip")).toHaveText("클랜 정보와 처리할 일을 확인하세요.");
+    await page.mouse.move(820, 10);
+    await expect(page.getByRole("tooltip")).toBeHidden();
+    await overview.focus();
+    await expect(page.getByRole("tooltip")).toHaveText("클랜 정보와 처리할 일을 확인하세요.");
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("tooltip")).toBeHidden();
+    const appearance = nav.getByRole("link", { name: "클랜 꾸미기", exact: true });
+    await appearance.focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/tab=appearance$/);
+    await expect(page.getByRole("heading", { name: "클랜 배너", exact: true })).toBeVisible();
+    await page.goBack();
+    await expect(overview).toHaveAttribute("aria-current", "page");
+    await page.setViewportSize({ width: 390, height: 844 });
+    await overview.tap();
+    await expect(page.getByRole("tooltip")).toHaveText("클랜 정보와 처리할 일을 확인하세요.");
+    await page.getByRole("navigation", { name: "클랜 관리 분류" }).getByRole("link", { name: "운영 설정", exact: true }).tap();
+    await nav.getByRole("link", { name: "코인·플랜", exact: true }).tap();
+    await expect(page.getByRole("heading", { name: "구독·플랜", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "코인·플랜", exact: true })).toHaveCount(0);
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+
+    await page.setViewportSize({ width: 844, height: 1004 });
+    await page.goto(`${base}/board/notices`);
+    await page.getByRole("navigation", { name: "게시판 목차" }).getByRole("link", { name: "자유 게시판", exact: true }).click();
+    await expect(page).toHaveURL(/board\/free$/);
+    await page.goto(`${base}/events`);
+    const events = page.getByRole("tablist", { name: "클랜 이벤트 하위 탭" });
+    await events.getByRole("tab", { name: "캘린더", exact: true }).focus();
+    await page.keyboard.press("End");
+    await expect(events.getByRole("tab", { name: "투표", exact: true })).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(events.getByRole("tab", { name: "투표", exact: true })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByRole("radiogroup", { name: "투표 상태", exact: true })).toBeVisible();
+
+    await page.goto(`${base}/stats`);
+    await page.getByRole("tab", { name: "내전 통계", exact: true }).click();
+    await expect(page.getByRole("tab", { name: "내전 통계", exact: true })).toHaveAttribute("aria-selected", "true");
+    await page.goto(`${base}/store`);
+    await page.getByRole("tab", { name: "개인 꾸미기", exact: true }).click();
+    await expect(page.getByRole("tab", { name: "개인 꾸미기", exact: true })).toHaveAttribute("aria-selected", "true");
+    await page.goto("/profile");
+    await page.getByRole("tab", { name: "게임별", exact: true }).click();
+    await expect(page.getByRole("tab", { name: "게임별", exact: true })).toHaveAttribute("aria-selected", "true");
+    await page.screenshot({ path: test.info().outputPath("profile-line-tabs.png"), animations: "disabled" });
+    await page.goto(`${base}/manage`);
+    await expect(overview).toBeVisible();
+    await page.screenshot({ path: test.info().outputPath("manage-line-tabs.png"), animations: "disabled" });
+  } finally { await f.cleanup(); }
+});

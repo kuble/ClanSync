@@ -1,0 +1,44 @@
+.list:where(:not([data-orientation="vertical"]):not([aria-orientation="vertical"])) {
+  gap: 0;
+}
+
+.list:where(:not([data-orientation="vertical"]):not([aria-orientation="vertical"])) > .item {
+  position: relative;
+}
+
+.list > .item[data-slot="tabs-trigger"] {
+  background: transparent;
+  border-radius: 0;
+}
+
+.list:where(:not([data-orientation="vertical"]):not([aria-orientation="vertical"])) > .item + .item::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 50%;
+  width: 1px;
+  height: 14px;
+  transform: translateY(-50%);
+  background: var(--border);
+  pointer-events: none;
+}
+
+.list:where(:not([data-orientation="vertical"]):not([aria-orientation="vertical"])) > .item::after {
+  content: "";
+  position: absolute;
+  inset-inline: 14px;
+  bottom: 0;
+  height: 2px;
+  background: var(--primary);
+  opacity: 0;
+  transition: opacity 150ms;
+  pointer-events: none;
+}
+
+.list > .item:is([data-active], [aria-current="page"])::after {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .list > .item::after { transition: none; }
+}

@@ -40,8 +40,8 @@ export function ClanManageNavigation({ selected, pendingCount, basePath }: {
       label: name, href: `${basePath}?tab=${name === group ? selected : visibleSections.find((section) => section.group === name)!.key}`,
       selected: name === group, badge: name === "구성원 관리" ? requestBadge : undefined,
     }))} />
-    <ClanSectionLinks label="클랜 관리 항목" compact items={visibleSections.filter((section) => section.group === group).map(({ key, label }) => ({
-      label, href: `${basePath}?tab=${key}`, selected: key === selected,
+    <ClanSectionLinks label="클랜 관리 항목" compact items={visibleSections.filter((section) => section.group === group).map(({ key, label, description }) => ({
+      label, description, href: `${basePath}?tab=${key}`, selected: key === selected,
       icon: <NavigationIcon icon={icons[key]} label={label} />, badge: key === "requests" ? requestBadge : undefined,
     }))} />
   </div>;
