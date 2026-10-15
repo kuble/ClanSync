@@ -296,6 +296,11 @@ export async function submitClanJoinRequestAction(
 
   const msg = message.trim().slice(0, 2000);
 
+  const membership = await supabase.rpc("select_my_clan_membership", { p_clan_id: clanId });
+  if (membership.error) return { ok: false, error: "클랜 소속 상태를 확인하지 못했습니다. 다시 시도해 주세요." };
+  if (membership.data?.[0]?.status === "banned")
+    return { ok: false, error: "이 클랜은 재가입이 제한되어 있습니다. 운영진의 재가입 허용 후 신청해 주세요." };
+
   const { data: existing } = await supabase
     .from("clan_join_requests")
     .select("id, clan_id")

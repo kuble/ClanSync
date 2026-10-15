@@ -1405,6 +1405,8 @@ export type Database = {
         Row: {
           clan_id: string
           created_at: string
+          departed_at: string | null
+          departure_kind: string | null
           id: string
           joined_at: string | null
           last_activity_at: string | null
@@ -1417,6 +1419,8 @@ export type Database = {
         Insert: {
           clan_id: string
           created_at?: string
+          departed_at?: string | null
+          departure_kind?: string | null
           id?: string
           joined_at?: string | null
           last_activity_at?: string | null
@@ -1429,6 +1433,8 @@ export type Database = {
         Update: {
           clan_id?: string
           created_at?: string
+          departed_at?: string | null
+          departure_kind?: string | null
           id?: string
           joined_at?: string | null
           last_activity_at?: string | null
@@ -3231,6 +3237,10 @@ export type Database = {
         Returns: Json
       }
       cancel_lfg_post: { Args: { p_post_id: string }; Returns: undefined }
+      change_clan_membership: {
+        Args: { p_action: string; p_clan_id: string; p_user_id?: string }
+        Returns: undefined
+      }
       claim_discord_bot_notification_batch: {
         Args: { p_clan_id?: string; p_event_id?: string; p_limit: number }
         Returns: Json
