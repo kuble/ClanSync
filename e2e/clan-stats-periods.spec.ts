@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 import { loadClanStatsDetail, loadClanStatsPage, loadClanStatsPeriod, loadClanStatsArchive } from "../src/lib/clan/stats/load-clan-stats";
 
@@ -11,6 +11,18 @@ async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>): Promise<N
 test("stats: period-wide filters, popup selectors, tooltip, record tab and staff qualification boundary", async ({ page }) => {
   test.setTimeout(150_000);
   const f = await createIsolatedBalanceFixture(3);
+  async function selectMobileMode(region: Locator, mode: string) {
+    await region.getByRole("combobox", { name: "기간", exact: true }).click();
+    await page.getByRole("option", { name: mode, exact: true }).click();
+  }
+  async function expectCompactPeriod(region: Locator) {
+    const controls = region.getByRole("combobox").or(region.getByRole("button"));
+    await expect.poll(() => controls.evaluateAll((nodes) => {
+      const boxes = nodes.map((node) => node.getBoundingClientRect());
+      return Math.max(...boxes.map((box) => box.y)) - Math.min(...boxes.map((box) => box.y));
+    })).toBeLessThan(2);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
   try {
     const rows = await ok(f.service.from("matches").insert(Array.from({ length: 10 }, (_, i) => ({ clan_id: f.clanId, game_id: f.gameId, match_type: "intra" as const, status: "finished" as const, played_at: i === 0 ? "2025-07-01T10:00:00Z" : "2025-08-02T10:00:00Z", map_label: i === 0 ? "부산" : "네팔", created_by: f.users[0].id }))).select("id, map_label"));
     await ok(f.service.from("match_players").insert(rows.flatMap((row) => [{ match_id: row.id, user_id: f.users[0].id, team: 1 }, ...(row.map_label === "부산" ? [{ match_id: row.id, user_id: f.users[1].id, team: 2 }] : [])])));
@@ -194,8 +206,13 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.getByRole("tab", { name: "내전 통계" }).click();
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.getByRole("radio", { name: "월별", exact: true }).click();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    const intraPeriod = page.getByRole("region", { name: "내전 통계 기간", exact: true });
+    await selectMobileMode(intraPeriod, "월별");
+    await expectCompactPeriod(intraPeriod);
+    await intraPeriod.getByRole("button", { name: "내전 통계 설정", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "내전 통계 설정", exact: true })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog", { name: "내전 통계 설정", exact: true })).toBeHidden();
     await page.getByRole("tab", { name: "개인 기록" }).click();
     await page.route(`**/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`, (route) => route.fulfill({ status: 503, body: "unavailable" }), { times: 1 });
     await page.getByRole("button", { name: f.users[0].nickname + " 개인 기록 열기", exact: true }).click();
@@ -271,11 +288,21 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     await expect(page.getByRole("region", { name: "플레이어 배너" }).getByRole("button", { name: "멤버 선택" })).toHaveCount(0);
     await expect(playerSummary).not.toContainText("선택 기간의 전적과 최근 흐름");
     await expect(totalMatches).toHaveText("10");
-    await personalPeriod.getByRole("radio", { name: "연도별", exact: true }).click();
+    await selectMobileMode(personalPeriod, "연도별");
     await personalPeriod.getByRole("combobox", { name: "연도", exact: true }).click();
     await page.getByRole("option", { name: "2025년", exact: true }).click();
     await expect(totalMatches).toHaveText("10");
-    await personalPeriod.getByRole("radio", { name: "월별", exact: true }).click();
+    await selectMobileMode(personalPeriod, "월별");
+    await expectCompactPeriod(personalPeriod);
+    await page.setViewportSize({ width: 320, height: 740 });
+    await expectCompactPeriod(personalPeriod);
+    await personalPeriod.getByRole("combobox", { name: "기간", exact: true }).click();
+    const compactPopup = (await page.getByRole("listbox", { name: "기간", exact: true }).boundingBox())!;
+    expect(compactPopup.x).toBeGreaterThanOrEqual(0);
+    expect(compactPopup.x + compactPopup.width).toBeLessThanOrEqual(320);
+    await page.getByRole("option", { name: "월별", exact: true }).press("Escape");
+    await expect(personalPeriod.getByRole("combobox", { name: "기간", exact: true })).toBeFocused();
+    await page.setViewportSize({ width: 390, height: 844 });
     const personalMonth = personalPeriod.getByRole("combobox", { name: "월", exact: true });
     await personalMonth.click();
     await page.getByRole("option", { name: "1월", exact: true }).click();
@@ -321,6 +348,13 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     await personalPeriod.getByRole("button", { name: "멤버 선택" }).click();
     await expect(page.getByRole("button", { name: f.users[0].nickname + " 개인 기록 열기", exact: true })).toBeVisible();
     await page.getByRole("tab", { name: "명예의 전당" }).click();
+    const hofFilter = page.getByRole("region", { name: "명예의 전당 필터", exact: true });
+    await selectMobileMode(hofFilter, "월별");
+    await expectCompactPeriod(hofFilter);
+    expect((await hofFilter.boundingBox())!.height).toBeLessThanOrEqual(100);
+    await page.setViewportSize({ width: 320, height: 740 });
+    await expectCompactPeriod(hofFilter);
+    expect((await hofFilter.boundingBox())!.height).toBeLessThanOrEqual(100);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   } finally { await f.cleanup(); }
 });

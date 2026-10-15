@@ -12,9 +12,9 @@ export function PeriodSelect({ label, options, value, onChange, disabled = false
 }) {
   return <Select.Root value={value} onValueChange={(next) => { if (next !== null) onChange(next); }} disabled={disabled}
     items={options.map((option) => ({ value: option.id, label: option.label }))}>
-    <Select.Trigger aria-label={label} className="flex h-10 min-w-24 shrink-0 items-center justify-between gap-3 rounded-lg border border-input bg-muted/20 px-3 text-xs font-semibold tabular-nums transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 data-popup-open:border-primary/50 data-popup-open:bg-primary/10">
+    <Select.Trigger aria-label={label} className="flex h-8 shrink-0 items-center justify-between gap-1 rounded-lg border border-input bg-muted/20 px-2 text-[11px] font-semibold tabular-nums transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 data-popup-open:border-primary/50 data-popup-open:bg-primary/10 sm:h-10 sm:min-w-24 sm:gap-3 sm:px-3 sm:text-xs">
       <Select.Value />
-      <Select.Icon><ChevronDown aria-hidden="true" className="size-3.5 text-muted-foreground" /></Select.Icon>
+      <Select.Icon><ChevronDown aria-hidden="true" className="size-3 text-muted-foreground sm:size-3.5" /></Select.Icon>
     </Select.Trigger>
     <Select.Portal>
       <Select.Positioner side="bottom" align="start" sideOffset={6} collisionPadding={8} alignItemWithTrigger={false} className="z-50">

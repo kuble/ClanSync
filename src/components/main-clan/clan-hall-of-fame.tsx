@@ -66,9 +66,9 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings }: {
   const periodKey = statsPeriodKey(period);
   const periodLabel = statsPeriodLabel(period);
   return <div className="relative space-y-4" aria-busy={loaded.pending}>
-    <section aria-label="명예의 전당 필터" className="sticky top-[60px] z-30 flex flex-wrap items-center gap-3 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <section aria-label="명예의 전당 필터" className="sticky top-[60px] z-30 flex flex-wrap items-center gap-2 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur sm:gap-3 supports-[backdrop-filter]:bg-background/80">
       {active && <RubberSegment label="부문" labelPosition="hidden" options={available} value={active.id} onChange={setRanking} />}
-      <div className="flex w-full min-w-0 items-end gap-3 sm:ml-auto sm:w-auto sm:items-center">
+      <div className="flex w-full min-w-0 items-center gap-1.5 sm:ml-auto sm:w-auto sm:gap-3">
         <StatsPeriodFilter value={period} onChange={(next) => setPeriod({ ...next, month: next.year === String(now.year) && Number(next.month) > now.month ? String(now.month).padStart(2, "0") : next.month })} years={years} maxMonth={year === String(now.year) ? now.month : 12} />
         <div className="ml-auto shrink-0">{settings}</div>
       </div>
