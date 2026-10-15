@@ -187,13 +187,14 @@ test("management sections preserve navigation, pending counts and officer/member
     expect(await initial!.text()).not.toContain("신청 전용 메시지");
     const nav = page.getByRole("navigation", { name: "클랜 관리 항목", exact: true });
     async function selectSection(key: string) {
-      const group = ["overview", "appearance"].includes(key) ? "클랜 운영" : ["requests", "members"].includes(key) ? "구성원 관리" : "운영 설정";
+      const group = ["overview", "appearance", "insights"].includes(key) ? "클랜 운영" : ["requests", "members"].includes(key) ? "구성원 관리" : "운영 설정";
       const label = { overview: "운영 현황", appearance: "클랜 꾸미기", requests: "가입 요청", members: "구성원", balance: "내전·경매", notifications: "알림·연동", insights: "운영 통계", subscription: "코인·플랜" }[key]!;
       await page.getByRole("navigation", { name: "클랜 관리 분류" }).getByRole("link", { name: new RegExp(`^${group}`) }).click();
       await nav.getByRole("link", { name: new RegExp(`^${label}`) }).click();
     }
     await page.getByRole("navigation", { name: "클랜 관리 분류" }).getByRole("link", { name: /^구성원 관리/ }).click();
-    await expect(nav.getByRole("link", { name: "가입 요청 1", exact: true })).toBeVisible();
+    await expect(page).toHaveURL(/tab=members$/);
+    await expect(nav.getByRole("link")).toHaveText(["구성원", "가입 요청1"]);
     await nav.getByRole("link", { name: "가입 요청 1", exact: true }).click();
     await page.getByTestId(`manage-join-approve-${request.data!.id}`).click();
     const joinDialog = page.getByRole("dialog", { name: "클랜 가입 승인", exact: true });
@@ -208,14 +209,19 @@ test("management sections preserve navigation, pending counts and officer/member
       await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
     }
     await page.goBack();
+    await expect(nav.getByRole("link", { name: "내전·경매", exact: true })).toHaveAttribute("aria-current", "page");
+    await expect(nav.getByRole("link")).toHaveText(["내전·경매", "알림·연동", "코인·플랜"]);
+    await page.goBack();
     await expect(nav.getByRole("link", { name: "운영 통계", exact: true })).toHaveAttribute("aria-current", "page");
+    await expect(page.getByRole("navigation", { name: "클랜 관리 분류" }).getByRole("link", { name: "클랜 운영", exact: true })).toHaveAttribute("aria-current", "page");
+    await expect(nav.getByRole("link")).toHaveText(["운영 현황", "클랜 꾸미기", "운영 통계"]);
     await expect(page.getByText("클랜 페이지", { exact: true })).toBeVisible();
     await expect(page.getByText("사이트 이용 통계", { exact: true })).toHaveCount(0);
     const usage = page.getByRole("region", { name: "클랜 페이지", exact: true });
     const usageNode = await usage.elementHandle();
     const usageHeight = (await usage.boundingBox())!.height;
     await usage.getByRole("button", { name: "방문 활동일 합계 도움말", exact: true }).hover();
-    await expect(page.getByRole("tooltip")).toContainText("한 멤버가 하루 방문하면 1활동일");
+    await expect(page.getByRole("tooltip").and(page.locator("[data-open]"))).toContainText("한 멤버가 하루 방문하면 1활동일");
     await page.keyboard.press("Escape");
     const monthFilter = usage.getByLabel("클랜 페이지 조회 월", { exact: true });
     await selectMonth(page, visitMonthKey);
