@@ -9,6 +9,7 @@ import {
 } from "@/components/profile/profile-game-decorations";
 import { ProfileDeleteAccountButton } from "@/components/profile/profile-delete-account-button";
 import { ProfileJoinRequests } from "@/components/profile/profile-join-requests";
+import { ProfileClanMemberships } from "@/components/profile/profile-clan-memberships";
 import type { AltAccountRow } from "@/components/profile/profile-game-alt-accounts";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
@@ -241,14 +242,11 @@ export default async function ProfilePage() {
     ),
   ];
 
-  const membershipRowsPromise =
-    verifiedGameIds.length > 0 ?
-      supabase
+  const membershipRowsPromise = supabase
         .from("clan_members")
-        .select("clan_id, clans(name, game_id)")
+        .select("clan_id, role, clans(name, game_id, games(slug,name_ko))")
         .eq("user_id", user.id)
-        .eq("status", "active")
-    : Promise.resolve({ data: [], error: null as null });
+        .eq("status", "active");
 
   const { data: membershipRowsRaw } = await membershipRowsPromise;
   const membershipRows = membershipRowsRaw ?? [];
@@ -329,6 +327,12 @@ export default async function ProfilePage() {
     </> : <p className={styles.error} role="alert">계정 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>} games={
       <><ProfileRolePreferences games={linkedGames} preferences={rolePreferences ?? []} /><ProfileGameDecorations nickname={row?.nickname || "플레이어"} games={linkedGames} verifiedGameIds={verifiedGameIds} altAccountsByGame={altAccountsByGame} nameplateOptions={nameplateOptions} ownedOptionIds={ownedOptionIds} selections={selections} badges={badges} unlockedBadgeIds={unlockedBadgeIds} picks={pickRows} /></>
     } />
+    <ProfileClanMemberships rows={membershipRows.flatMap((membership) => {
+      const clan = Array.isArray(membership.clans) ? membership.clans[0] : membership.clans;
+      const game = Array.isArray(clan?.games) ? clan.games[0] : clan?.games;
+      if (!game) return [];
+      return [{ clanId: membership.clan_id, clanName: clan.name, gameSlug: game.slug, gameName: game.name_ko, role: membership.role }];
+    })} />
     <ProfileJoinRequests rows={joinRequests} loadFailed={joinRequestsFetchFailed} />
     <div className={styles.accountActions}><form action={signOutAction}><Button type="submit" variant="outline" size="sm">로그아웃</Button></form><ProfileDeleteAccountButton /></div>
   </main></AccountShell>;

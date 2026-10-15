@@ -4,15 +4,18 @@ import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Search, ChevronLeft, ChevronRight, ChevronsUp, ShieldMinus, UserRoundMinus } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, ChevronsUp, ShieldMinus, UserRoundMinus, UserRoundCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
   kickClanMemberAction,
   setClanMemberRoleAction,
+  allowClanRejoinAction,
 } from "@/app/actions/clan-manage-members";
 import { Button } from "@/components/ui/button";
 import { MemberRecordButton } from "./participant-record-dialog";
+import { RubberSegment } from "@/components/ui/rubber-segment";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export type ManageMemberRow = {
   userId: string;
@@ -20,6 +23,9 @@ export type ManageMemberRow = {
   gameVerified: boolean;
   gameTag: string | null;
   linkedCount: number;
+  status: "active" | "left" | "banned";
+  departureKind: string | null;
+  departedLabel: string;
   role: "leader" | "officer" | "member";
   joinedLabel: string;
   lastActivityAt?: string | null;
@@ -27,6 +33,7 @@ export type ManageMemberRow = {
     canKick: boolean;
     canPromote: boolean;
     canDemote: boolean;
+    canAllowRejoin: boolean;
   };
 };
 
@@ -42,6 +49,9 @@ export function ManageMembersTable({
   const router = useRouter();
   const [pending, start] = useTransition();
   const [query, setQuery] = useState("");
+  const [scope, setScope] = useState<"current" | "former">("current");
+  const [allowing, setAllowing] = useState<ManageMemberRow | null>(null);
+  const [allowError, setAllowError] = useState("");
   const [filter, setFilter] = useState("all");
   const [pageIndex, setPageIndex] = useState(0);
   const [now] = useState(() => Date.now());
@@ -67,7 +77,8 @@ export function ManageMembersTable({
   };
   const filtered = rows.filter(
     (row) =>
-      (filter === "all" || activity(row) === filter) &&
+      (scope === "current" ? row.status === "active" : row.status !== "active") &&
+      (filter === "all" || (scope === "current" ? activity(row) : row.status) === filter) &&
       `${row.nickname} ${row.gameTag ?? ""}`
         .toLocaleLowerCase()
         .includes(query.toLocaleLowerCase()),
@@ -137,20 +148,24 @@ export function ManageMembersTable({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
+      <RubberSegment label="구성원 구분" labelPosition="hidden" value={scope} onChange={(next) => { setScope(next); setFilter("all"); setPageIndex(0); }} options={[
+        { id: "current", label: "현재 구성원", badge: rows.filter((row) => row.status === "active").length },
+        { id: "former", label: "이전 구성원", badge: rows.filter((row) => row.status !== "active").length },
+      ]} />
+      {scope === "current" && <div className="flex flex-wrap gap-2">
         {(["active", "inactive", "dormant"] as const).map((key) => (
           <span
             key={key}
             className={`rounded-full px-3 py-1.5 text-xs font-medium ${activityClass[key]}`}
           >
             {activityLabels[key]}{" "}
-            {rows.filter((row) => activity(row) === key).length}명
+            {rows.filter((row) => row.status === "active" && activity(row) === key).length}명
           </span>
         ))}
         <span className="self-center text-[11px] text-muted-foreground">
           최근 활동 기준 · 비활성 30일 · 휴면 60일
         </span>
-      </div>
+      </div>}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-44 flex-1">
           <Search
@@ -169,7 +184,7 @@ export function ManageMembersTable({
           />
         </div>
         <select
-          aria-label="활동 상태"
+          aria-label={scope === "current" ? "활동 상태" : "재가입 상태"}
           value={filter}
           onChange={(event) => {
             setFilter(event.target.value);
@@ -178,9 +193,7 @@ export function ManageMembersTable({
           className="h-9 rounded-lg border border-input bg-background px-3 text-xs"
         >
           <option value="all">전체</option>
-          <option value="active">활성만</option>
-          <option value="inactive">비활성만</option>
-          <option value="dormant">휴면만</option>
+          {scope === "current" ? <><option value="active">활성만</option><option value="inactive">비활성만</option><option value="dormant">휴면만</option></> : <><option value="left">재가입 가능</option><option value="banned">재가입 차단</option></>}
         </select>
       </div>
       <div className="overflow-x-auto rounded-lg border">
@@ -189,9 +202,10 @@ export function ManageMembersTable({
             <tr>
               <th className="px-3 py-2">닉네임</th>
               <th className="px-3 py-2">게임 인증</th>
-              <th className="px-3 py-2">활동 상태</th>
-              <th className="px-3 py-2">역할</th>
+              <th className="px-3 py-2">{scope === "current" ? "활동 상태" : "상태"}</th>
+              <th className="px-3 py-2">{scope === "current" ? "역할" : "이전 역할"}</th>
               <th className="px-3 py-2">가입</th>
+              {scope === "former" && <th className="whitespace-nowrap px-3 py-2">탈퇴·강퇴일</th>}
               <th className="px-3 py-2 text-right">작업</th>
             </tr>
           </thead>
@@ -214,18 +228,20 @@ export function ManageMembersTable({
                 </td>
                 <td className="text-muted-foreground px-3 py-2 text-xs">
                   <span
-                    className={`rounded-md px-2 py-1 text-[10px] font-medium ${activityClass[activity(m)]}`}
+                    className={`whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-medium ${scope === "current" ? activityClass[activity(m)] : m.status === "banned" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}
                   >
-                    {activityLabels[activity(m)]}
+                    {scope === "current" ? activityLabels[activity(m)] : m.status === "banned" ? "강퇴 · 재가입 차단" : m.departureKind === "kicked" ? "강퇴 · 재가입 허용" : m.departureKind === "left" ? "자진 탈퇴" : "탈퇴"}
                   </span>
                 </td>
                 <td className="px-3 py-2">{roleLabel(m.role)}</td>
                 <td className="text-muted-foreground px-3 py-2 text-xs">
                   {m.joinedLabel}
                 </td>
+                {scope === "former" && <td className="px-3 py-2 text-xs text-muted-foreground">{m.departedLabel}</td>}
                 <td className="px-3 py-2 text-right">
                   <div className="flex flex-wrap items-center justify-end gap-1">
-                    <MemberRecordButton clanId={clanId} gameSlug={gameSlug} userId={m.userId} nickname={m.nickname} gameTag={m.gameTag} linkedCount={m.linkedCount} />
+                    {m.status === "active" && <MemberRecordButton clanId={clanId} gameSlug={gameSlug} userId={m.userId} nickname={m.nickname} gameTag={m.gameTag} linkedCount={m.linkedCount} />}
+                    {m.actions.canAllowRejoin && <Button type="button" variant="ghost" size="icon-sm" disabled={pending} aria-label={`${m.nickname} 재가입 허용`} title="재가입 허용" onClick={() => { setAllowError(""); setAllowing(m); }}><UserRoundCheck aria-hidden="true" /></Button>}
                     {m.actions.canPromote ? (
                       <form onSubmit={onPromote} className="inline">
                         <input
@@ -322,6 +338,19 @@ export function ManageMembersTable({
           <ChevronRight />
         </Button>
       </div>
+      <Dialog open={!!allowing} onOpenChange={(open) => { if (!open && !pending) setAllowing(null); }}>
+        <DialogContent showCloseButton={!pending}><DialogHeader><DialogTitle>재가입을 허용할까요?</DialogTitle><DialogDescription>{allowing?.nickname} 님이 다시 가입 신청을 보낼 수 있습니다. 가입은 신청 후 운영진이 별도로 승인합니다.</DialogDescription></DialogHeader>
+          {allowError && <p role="alert" className="text-xs text-destructive">{allowError}</p>}
+          <div className="flex justify-end gap-2 border-t pt-4"><Button size="sm" variant="outline" disabled={pending} onClick={() => setAllowing(null)}>취소</Button><Button size="sm" disabled={pending} onClick={() => {
+            if (!allowing) return;
+            start(async () => {
+              const result = await allowClanRejoinAction(gameSlug, clanId, allowing.userId);
+              if (!result.ok) { setAllowError(result.error); return; }
+              setAllowing(null); toast.success("재가입을 허용했습니다. 가입 신청 후 승인이 필요합니다."); router.refresh();
+            });
+          }}>{pending ? "처리 중…" : "재가입 허용"}</Button></div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

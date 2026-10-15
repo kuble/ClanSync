@@ -131,20 +131,22 @@ async function Requests({ ctx }: Pick<Props, "ctx">) {
   const requests = await svc.from("clan_join_requests").select("id,user_id,message,applied_at").eq("clan_id", ctx.clanId).eq("status", "pending").order("applied_at");
   if (requests.error) throw new Error("가입 요청을 불러오지 못했습니다.");
   const ids = [...new Set(requests.data.map((row) => row.user_id))];
-  const [profiles, gameProfiles] = await Promise.all([
+  const [profiles, gameProfiles, memberships] = await Promise.all([
     ids.length ? svc.from("users").select("id,nickname,birth_year,gender").in("id", ids) : { data: [], error: null },
     ids.length ? svc.from("user_game_profiles").select("user_id,game_uid,battle_tag,is_verified,games!inner(slug)").in("user_id", ids).eq("games.slug", ctx.gameSlug) : { data: [], error: null },
+    ids.length ? svc.from("clan_members").select("user_id,status").eq("clan_id", ctx.clanId).in("user_id", ids) : { data: [], error: null },
   ]);
-  if (profiles.error || gameProfiles.error) throw new Error("신청자 정보를 불러오지 못했습니다.");
+  if (profiles.error || gameProfiles.error || memberships.error) throw new Error("신청자 정보를 불러오지 못했습니다.");
+  const returning = new Set((memberships.data ?? []).filter((row) => row.status === "left").map((row) => row.user_id));
   const byId = new Map((profiles.data ?? []).map((row) => [row.id, row]));
   const gamesById = new Map((gameProfiles.data ?? []).map((row) => [row.user_id, row]));
-  return <section className={panel}><p className="mb-4 text-xs text-muted-foreground">{requests.data.length}건 대기</p><ManageJoinRequestsPanel gameSlug={ctx.gameSlug} clanId={ctx.clanId} rows={requests.data.map((row) => ({ id: row.id, userId: row.user_id, message: row.message ?? "", appliedAt: row.applied_at, nickname: byId.get(row.user_id)?.nickname ?? "—", gameTag: profileBattleTag(gamesById.get(row.user_id)), gameVerified: gamesById.get(row.user_id)?.is_verified ?? false, profile: { birthYear: byId.get(row.user_id)?.birth_year ?? null, gender: byId.get(row.user_id)?.gender ?? null } }))} /></section>;
+  return <section className={panel}><p className="mb-4 text-xs text-muted-foreground">{requests.data.length}건 대기</p><ManageJoinRequestsPanel gameSlug={ctx.gameSlug} clanId={ctx.clanId} rows={requests.data.map((row) => ({ id: row.id, userId: row.user_id, returningMember: returning.has(row.user_id), message: row.message ?? "", appliedAt: row.applied_at, nickname: byId.get(row.user_id)?.nickname ?? "—", gameTag: profileBattleTag(gamesById.get(row.user_id)), gameVerified: gamesById.get(row.user_id)?.is_verified ?? false, profile: { birthYear: byId.get(row.user_id)?.birth_year ?? null, gender: byId.get(row.user_id)?.gender ?? null } }))} /></section>;
 }
 
 async function Members({ ctx }: Pick<Props, "ctx">) {
   const svc = createServiceRoleClient();
   const [members, kickMember, kickOfficer] = await Promise.all([
-    svc.from("clan_members").select("user_id,role,joined_at,last_activity_at").eq("clan_id", ctx.clanId).eq("status", "active").order("role").order("joined_at"),
+    svc.from("clan_members").select("user_id,role,status,joined_at,last_activity_at,departed_at,departure_kind").eq("clan_id", ctx.clanId).in("status", ["active", "left", "banned"]).order("role").order("joined_at"),
     hasRequestClanPermission(ctx.clanId, "kick_member"), hasRequestClanPermission(ctx.clanId, "kick_officer"),
   ]);
   if (members.error) throw new Error("구성원을 불러오지 못했습니다.");
@@ -162,8 +164,8 @@ async function Members({ ctx }: Pick<Props, "ctx">) {
   const gamesById = new Map((gameProfiles.data ?? []).map((row) => [row.user_id, row]));
   const linkedCounts = new Map<string, number>();
   for (const link of links.data ?? []) if (link.user_id) linkedCounts.set(link.user_id, (linkedCounts.get(link.user_id) ?? 0) + 1);
-  const rows: ManageMemberRow[] = members.data.map((row) => ({ userId: row.user_id, nickname: byId.get(row.user_id)?.nickname ?? labels.get(row.user_id) ?? "—", gameTag: profileBattleTag(gamesById.get(row.user_id)), linkedCount: linkedCounts.get(row.user_id) ?? 0, gameVerified: verified.has(row.user_id), role: row.role, joinedLabel: new Date(row.joined_at).toLocaleDateString("ko-KR"), lastActivityAt: row.last_activity_at ?? row.joined_at, actions: { canKick: row.role === "leader" ? false : row.role === "officer" ? kickOfficer : kickMember, canPromote: row.role === "member" && ctx.role === "leader", canDemote: row.role === "officer" && ctx.role === "leader" } }));
-  return <div className="space-y-4"><section className={panel}><p className="mb-4 text-xs text-muted-foreground">활동 멤버 {rows.length}명</p><ManageMembersTable gameSlug={ctx.gameSlug} clanId={ctx.clanId} rows={rows} /></section><ClanParticipantData clanId={ctx.clanId} gameSlug={ctx.gameSlug} /></div>;
+  const rows: ManageMemberRow[] = members.data.map((row) => ({ userId: row.user_id, status: row.status === "banned" ? "banned" : row.status === "left" ? "left" : "active", departureKind: row.departure_kind, departedLabel: row.departed_at ? new Date(row.departed_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "—", nickname: byId.get(row.user_id)?.nickname ?? labels.get(row.user_id) ?? "—", gameTag: profileBattleTag(gamesById.get(row.user_id)), linkedCount: linkedCounts.get(row.user_id) ?? 0, gameVerified: verified.has(row.user_id), role: row.role, joinedLabel: new Date(row.joined_at).toLocaleDateString("ko-KR"), lastActivityAt: row.last_activity_at ?? row.joined_at, actions: { canKick: row.status === "active" && (row.role === "officer" ? kickOfficer : row.role === "member" && kickMember), canPromote: row.status === "active" && row.role === "member" && ctx.role === "leader", canDemote: row.status === "active" && row.role === "officer" && ctx.role === "leader", canAllowRejoin: row.status === "banned" && row.role !== "leader" && (ctx.role === "leader" || row.role === "member") } }));
+  return <div className="space-y-4"><section className={panel}><p className="mb-4 text-xs text-muted-foreground">활동 멤버 {rows.filter((row) => row.status === "active").length}명</p><ManageMembersTable gameSlug={ctx.gameSlug} clanId={ctx.clanId} rows={rows} /></section><ClanParticipantData clanId={ctx.clanId} gameSlug={ctx.gameSlug} /></div>;
 }
 
 async function BalanceSettings({ ctx }: Pick<Props, "ctx">) {

@@ -18,13 +18,14 @@ type Props = {
   gameTag: string | null;
   requestId?: string;
   profile?: PlayerDemographics;
+  returningMember?: boolean;
   onClose: () => void;
 };
 
-export function ParticipantRecordDialog({ clanId, gameSlug, userId, nickname, gameTag, requestId, profile, onClose }: Props) {
+export function ParticipantRecordDialog({ clanId, gameSlug, userId, nickname, gameTag, requestId, profile, returningMember = false, onClose }: Props) {
   const router = useRouter();
   const [records, setRecords] = useState<GuestRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!returningMember);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
@@ -32,6 +33,7 @@ export function ParticipantRecordDialog({ clanId, gameSlug, userId, nickname, ga
   const [unlink, setUnlink] = useState<GuestRecord | null>(null);
   const [pending, start] = useTransition();
   useEffect(() => {
+    if (returningMember) return;
     let current = true;
     loadGuestRecords(clanId).then((result) => {
       if (!current) return;
@@ -41,14 +43,14 @@ export function ParticipantRecordDialog({ clanId, gameSlug, userId, nickname, ga
       if (current) { setError("기존 기록을 불러오지 못했습니다. 창을 다시 열어 주세요."); setLoading(false); }
     });
     return () => { current = false; };
-  }, [clanId]);
+  }, [clanId, returningMember]);
 
   const linked = records.filter((r) => r.userId === userId);
   const chosen = records.find((r) => r.id === selected);
   const displayName = gameTag?.split("#")[0] ?? nickname;
-  const linkRecords = !requestId || joinMode === "link";
+  const linkRecords = !returningMember && (!requestId || joinMode === "link");
   const hasRecommendation = records.some((r) => !r.userId && participantRecommendation(r.nickname, nickname, gameTag) > 0);
-  const ready = unlink ? !loading : requestId ? joinMode === "new" || (joinMode === "link" && !loading && Boolean(selected)) : !loading && Boolean(selected);
+  const ready = unlink ? !loading : requestId ? returningMember || joinMode === "new" || (joinMode === "link" && !loading && Boolean(selected)) : !loading && Boolean(selected);
   const candidates = records.filter((r) => !r.userId && participantSearchName(r.nickname).includes(participantSearchName(query)))
     .sort((a, b) => participantRecommendation(b.nickname, nickname, gameTag) - participantRecommendation(a.nickname, nickname, gameTag) || (b.lastPlayed ?? "").localeCompare(a.lastPlayed ?? "") || a.id.localeCompare(b.id));
 
@@ -73,7 +75,7 @@ export function ParticipantRecordDialog({ clanId, gameSlug, userId, nickname, ga
     <DialogContent className="max-h-[90dvh] gap-0 overflow-y-auto p-0 sm:max-w-xl">
       <div className="space-y-4 border-b px-5 py-5 sm:px-6">
       <DialogHeader>
-        <DialogTitle>{unlink ? "이전 기록 연결을 해제할까요?" : requestId ? "클랜 가입 승인" : "이전 내전 기록"}</DialogTitle>
+        <DialogTitle>{unlink ? "이전 기록 연결을 해제할까요?" : requestId ? returningMember ? "클랜 재가입 승인" : "클랜 가입 승인" : "이전 내전 기록"}</DialogTitle>
         {(unlink || !requestId) && <DialogDescription>{unlink ? "선택한 과거 기록만 계정에서 분리됩니다." : "가입 전 기록을 연결하거나 잘못 연결한 기록을 해제하세요."}</DialogDescription>}
       </DialogHeader>
       <div className="flex items-center gap-3">
@@ -86,7 +88,8 @@ export function ParticipantRecordDialog({ clanId, gameSlug, userId, nickname, ga
         <p className="text-sm leading-relaxed">이 기록은 다시 <strong>{unlink.nickname}</strong> 이름으로 남으며, 나중에 올바른 계정에 연결할 수 있습니다.</p>
         <p className="text-xs leading-relaxed text-muted-foreground">{displayName}의 클랜 가입 상태와 가입 후 경기·코인은 그대로 유지됩니다.</p>
       </div> : <div className="space-y-4 px-5 py-5 sm:px-6">
-        {requestId && joinMode !== "link" && <fieldset className="space-y-2" disabled={pending}>
+        {requestId && returningMember && <div className="rounded-lg border border-primary/25 bg-primary/5 p-4"><p className="text-sm font-semibold">기존 계정으로 돌아오는 구성원입니다.</p><p className="mt-2 text-xs leading-relaxed text-muted-foreground">이전 내전 기록을 그대로 이어 쓰며 일반 멤버로 가입합니다.</p></div>}
+        {requestId && !returningMember && joinMode !== "link" && <fieldset className="space-y-2" disabled={pending}>
           <legend className="mb-3 text-sm font-semibold">이전 내전 기록을 연결할까요?</legend>
           {([{ mode: "link", label: "이전 기록 연결", description: "가입 전에 참여한 내전 기록을 이 계정으로 모아요." }, { mode: "new", label: "연결 없이 가입", description: "이전 기록을 가져오지 않고 클랜에 가입해요." }] as const).map((option) => <label key={option.mode} className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${joinMode === option.mode ? "border-primary bg-primary/5" : "hover:border-primary/40"}`}>
             <span className="relative mt-0.5 flex size-5 shrink-0"><input type="radio" name="join-record-mode" aria-label={option.label} className="peer absolute inset-0 z-10 m-0 size-5 cursor-pointer opacity-0" checked={joinMode === option.mode} onChange={() => { setJoinMode(option.mode); setSelected(null); setQuery(""); setError(""); }} /><span className="flex size-5 items-center justify-center rounded-full border peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring">{joinMode === option.mode && <Check size={13} aria-hidden="true" />}</span></span>
@@ -120,7 +123,7 @@ export function ParticipantRecordDialog({ clanId, gameSlug, userId, nickname, ga
       </div>}
       {error && <p role="alert" className="px-5 pb-4 text-xs text-destructive sm:px-6">{error}</p>}
       <div className="flex flex-wrap items-center justify-between gap-3 border-t bg-muted/20 px-5 py-4 sm:px-6">
-        {!unlink && <p className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-xs leading-relaxed text-muted-foreground">{chosen && linkRecords ? <><span className="font-semibold text-foreground">{chosen.nickname} · {chosen.played}경기</span><ArrowRight size={14} aria-hidden="true" /><span>{displayName}에게 연결</span></> : requestId && joinMode === "new" ? "이전 기록을 연결하지 않고 클랜 가입을 승인합니다." : requestId && !joinMode ? "먼저 이전 기록을 연결할지 선택해 주세요." : "연결할 기록을 선택해 주세요."}</p>}
+        {!unlink && <p className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-xs leading-relaxed text-muted-foreground">{chosen && linkRecords ? <><span className="font-semibold text-foreground">{chosen.nickname} · {chosen.played}경기</span><ArrowRight size={14} aria-hidden="true" /><span>{displayName}에게 연결</span></> : requestId && returningMember ? "기존 기록을 이어서 재가입을 승인합니다." : requestId && joinMode === "new" ? "이전 기록을 연결하지 않고 클랜 가입을 승인합니다." : requestId && !joinMode ? "먼저 이전 기록을 연결할지 선택해 주세요." : "연결할 기록을 선택해 주세요."}</p>}
         <div className="ml-auto flex shrink-0 justify-end gap-2">
         <Button size="sm" variant="outline" disabled={pending} onClick={() => {
           if (unlink) { setUnlink(null); return; }

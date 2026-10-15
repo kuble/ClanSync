@@ -25,6 +25,7 @@ export type ManageJoinRequestRow = {
   gameTag: string | null;
   gameVerified: boolean;
   profile: PlayerDemographics;
+  returningMember?: boolean;
 };
 
 export function ManageJoinRequestsPanel({
@@ -97,6 +98,7 @@ export function ManageJoinRequestsPanel({
                 <span className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] ${row.gameVerified ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}><ShieldCheck size={12} aria-hidden="true" />{row.gameVerified ? "게임 인증 완료" : "게임 미인증"}</span>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">{playerProfileDetails(row.profile)}</p>
+              {row.returningMember && <p className="mt-1 text-xs font-medium text-primary">재가입 · 기존 내전 기록 유지</p>}
               <p className="text-muted-foreground mt-1 text-xs">
                 신청일{" "}
                 {new Date(Date.parse(row.appliedAt) + 9 * 60 * 60 * 1000).toISOString().slice(0, 16).replace("T", " ")}
@@ -166,6 +168,6 @@ export function ManageJoinRequestsPanel({
           ) : null}
         </li>
       ))}
-    </ul>{approving && <ParticipantRecordDialog key={approving.id} clanId={clanId} gameSlug={gameSlug} userId={approving.userId} nickname={approving.nickname} gameTag={approving.gameTag} requestId={approving.id} profile={approving.profile} onClose={() => setApproving(null)} />}</>
+    </ul>{approving && <ParticipantRecordDialog key={approving.id} clanId={clanId} gameSlug={gameSlug} userId={approving.userId} nickname={approving.nickname} gameTag={approving.gameTag} requestId={approving.id} profile={approving.profile} returningMember={approving.returningMember} onClose={() => setApproving(null)} />}</>
   );
 }
