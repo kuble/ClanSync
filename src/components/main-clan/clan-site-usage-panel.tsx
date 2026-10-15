@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { RubberSegment } from "@/components/ui/rubber-segment";
+import { StatTitle } from "./stat-help";
 import { isoToKstYmd } from "@/lib/clan/stats/kst";
 import { summarizeVisits, type ClanSiteVisit } from "@/lib/clan/stats/clan-site-usage";
 
@@ -37,21 +38,45 @@ export function ClanSiteUsagePanel({ visits }: { visits: ClanSiteVisit[] }) {
   });
   const monthMax = Math.max(1, ...monthly.map((month) => month.visitors));
   const annual = summarizeVisits(visits, `${year}-01-01`, `${year}-12-31`);
-  return <Card size="sm">
-    <CardHeader><CardTitle>사이트 이용 통계</CardTitle><CardDescription>클랜 방문 기록 · 내전 출전과 별도로 집계</CardDescription></CardHeader>
-    <CardContent className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex gap-2"><Button type="button" size="sm" variant={span === 7 ? "secondary" : "outline"} aria-pressed={span === 7} onClick={() => { setSpan(7); setSelectedDate(null); }}>최근 7일</Button><Button type="button" size="sm" variant={span === 30 ? "secondary" : "outline"} aria-pressed={span === 30} onClick={() => { setSpan(30); setSelectedDate(null); }}>최근 30일</Button></div>
-        <span className="text-xs text-muted-foreground">{start} ~ {today}</span>
+  return <Card className="gap-0 py-0" role="region" aria-label="사이트 이용 통계">
+    <CardHeader className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4">
+      <h3 aria-label="사이트 이용 통계" className="text-sm font-semibold"><StatTitle title="사이트 이용 통계" help="클랜 페이지를 방문한 멤버를 한국 시간 기준으로 하루 한 번 집계합니다. 내전 출전 기록과는 별도입니다." /></h3>
+      <RubberSegment label="사이트 이용 통계 기간" labelPosition="hidden" options={[{ id: "7", label: "최근 7일" }, { id: "30", label: "최근 30일" }]} value={span === 7 ? "7" : "30"} onChange={(value) => { setSpan(value === "7" ? 7 : 30); setSelectedDate(null); }} />
+    </CardHeader>
+    <CardContent className="space-y-5 px-5 py-5">
+      <p className="text-xs tabular-nums text-muted-foreground">{start.replaceAll("-", ".")} ~ {today.replaceAll("-", ".")}</p>
+      <div className="grid grid-cols-2 divide-x border-b pb-5">
+        <div className="pr-5">
+          <div className="text-xs text-muted-foreground"><StatTitle title="방문한 멤버" help={`선택 기간에 방문한 고유 멤버 수입니다. 비교 기간은 ${previousStart} ~ ${previousEnd}입니다.`} /></div>
+          <p className="mt-2 text-3xl font-semibold tabular-nums">{current.visitors.toLocaleString()}<span className="ml-1 text-sm font-normal text-muted-foreground">명</span></p>
+          <p className="mt-2 text-xs text-muted-foreground">{hasPrevious ? <>이전 기간 <span className="font-medium tabular-nums text-foreground">{diff >= 0 ? "+" : ""}{diff.toLocaleString()}명</span></> : "비교 기록 없음"}</p>
+        </div>
+        <div className="pl-5">
+          <div className="text-xs text-muted-foreground"><StatTitle title="방문 활동일 합계" help="한 멤버가 하루 방문하면 1활동일입니다. 같은 날 여러 번 방문해도 한 번만 세며, 모든 멤버의 활동일을 더합니다." /></div>
+          <p className="mt-2 text-3xl font-semibold tabular-nums">{current.personDays.toLocaleString()}<span className="ml-1 text-sm font-normal text-muted-foreground">일</span></p>
+        </div>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2"><div className="rounded-xl border p-4"><span className="text-xs text-muted-foreground">방문한 멤버</span><strong className="mt-1 block text-3xl tabular-nums">{current.visitors}명</strong><span className="text-xs text-muted-foreground">{hasPrevious ? `이전 ${span}일 대비 ${diff >= 0 ? "+" : ""}${diff}명 · ${previousStart} ~ ${previousEnd}` : "비교 기록 없음"}</span></div><div className="rounded-xl border p-4"><span className="text-xs text-muted-foreground">방문 활동일 합계</span><strong className="mt-1 block text-3xl tabular-nums">{current.personDays}일</strong><span className="text-xs text-muted-foreground">한 멤버가 하루 방문하면 1활동일</span></div></div>
-      <div className="flex items-center justify-between"><h4 className="text-sm font-semibold">날짜별 방문자</h4><div className="flex gap-1"><Button type="button" size="sm" variant={display === "chart" ? "secondary" : "ghost"} onClick={() => setDisplay("chart")}>그래프</Button><Button type="button" size="sm" variant={display === "table" ? "secondary" : "ghost"} onClick={() => setDisplay("table")}>표</Button></div></div>
-      {display === "chart" ? <div className="flex h-28 items-end gap-0.5" aria-label="일별 방문자 그래프">{dayCounts.map((day) => <button key={day.date} type="button" title={`${day.date}: ${day.count}명`} aria-label={`${day.date} 방문 ${day.count}명`} aria-pressed={selectedDate === day.date} onClick={() => setSelectedDate(day.date)} className={`min-w-0 flex-1 rounded-t transition-colors focus-visible:outline-2 focus-visible:outline-primary ${selectedDate === day.date ? "bg-primary" : "bg-primary/55 hover:bg-primary/80"}`} style={{ height: `${Math.max(4, day.count / max * 100)}%` }} />)}</div> : <div className="max-h-44 overflow-auto rounded-lg border"><table className="w-full text-xs"><thead><tr className="border-b"><th className="p-2 text-left">날짜</th><th className="p-2 text-right">방문자</th></tr></thead><tbody>{dayCounts.map((day) => <tr key={day.date} className="border-b"><td className="p-2">{day.date}</td><td className="p-2 text-right">{day.count}명</td></tr>)}</tbody></table></div>}
-      {selected && <p className="text-xs text-muted-foreground">{selected.date} 방문: {selected.count}명</p>}
-      <div className="border-t pt-5">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><div><h4 className="text-sm font-semibold">월·연도별 비교</h4><p className="text-xs text-muted-foreground">{year}년 방문 {annual.visitors}명 · 활동일 {annual.personDays}일</p></div><select aria-label="사이트 이용 통계 연도" value={year} onChange={(event) => setYear(Number(event.target.value))} className="rounded-lg border bg-background px-3 py-2 text-sm">{years.map((item) => <option key={item} value={item}>{item}년</option>)}</select></div>
-        {display === "chart" ? <div className="flex h-32 items-end gap-2" role="img" aria-label={monthly.map((month) => `${month.key} 방문 ${month.visitors}명`).join(", ")}>{monthly.map((month) => <div key={month.key} className="flex min-w-0 flex-1 flex-col items-center gap-1"><span className="text-[10px] tabular-nums">{month.visitors}</span><span className="w-full rounded-t bg-primary/70" style={{ height: `${Math.max(4, month.visitors / monthMax * 82)}px` }} /><span className="text-[10px] text-muted-foreground">{month.key.slice(5)}월</span></div>)}</div> : <div className="overflow-x-auto rounded-lg border"><table className="w-full min-w-[440px] text-xs"><thead><tr className="border-b"><th className="p-2 text-left">월</th><th className="p-2 text-right">방문한 멤버</th><th className="p-2 text-right">활동일 합계</th></tr></thead><tbody>{monthly.map((month) => <tr key={month.key} className="border-b"><td className="p-2">{month.key}</td><td className="p-2 text-right">{month.visitors}명</td><td className="p-2 text-right">{month.personDays}일</td></tr>)}</tbody></table></div>}
-        <p className="mt-2 text-xs text-muted-foreground">연간 방문자는 월별 방문자를 더하지 않고 연간 고유 멤버로 셉니다.</p>
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h4 className="text-sm font-semibold"><StatTitle title="날짜별 방문자" help="날짜별 고유 방문 멤버 수입니다. 막대에 마우스를 올리거나 선택하면 해당 날짜의 인원을 볼 수 있습니다." /></h4>
+          <RubberSegment label="사이트 이용 통계 표시" labelPosition="hidden" options={[{ id: "chart", label: "그래프" }, { id: "table", label: "표" }]} value={display} onChange={setDisplay} />
+        </div>
+        <div className="h-48 min-w-0">
+          {display === "chart" ? <>
+            <div className="flex h-40 items-end gap-1 border-b" aria-label="일별 방문자 그래프">{dayCounts.map((day) => <button key={day.date} type="button" title={`${day.date}: ${day.count}명`} aria-label={`${day.date} 방문 ${day.count}명`} aria-pressed={selectedDate === day.date} onClick={() => setSelectedDate(day.date)} className={`min-w-0 flex-1 rounded-t-sm transition-colors focus-visible:outline-2 focus-visible:outline-primary ${selectedDate === day.date ? "bg-primary" : "bg-primary/55 hover:bg-primary/80"}`} style={{ height: `${Math.max(4, day.count / max * 100)}%` }} />)}</div>
+            <div className="mt-3 flex justify-between text-[10px] tabular-nums text-muted-foreground"><span>{start.slice(5).replace("-", ".")}</span><span>{days[Math.floor((span - 1) / 2)].slice(5).replace("-", ".")}</span><span>{today.slice(5).replace("-", ".")}</span></div>
+          </> : <div className="board-scroll h-full overflow-auto rounded-lg border"><table className="w-full text-xs" aria-label="날짜별 방문자 표"><thead className="sticky top-0 bg-card"><tr className="border-b text-muted-foreground"><th className="p-3 text-left font-normal">날짜</th><th className="p-3 text-right font-normal">방문자</th></tr></thead><tbody className="divide-y">{dayCounts.map((day) => <tr key={day.date}><td className="px-3 py-2 tabular-nums">{day.date}</td><td className="px-3 py-2 text-right tabular-nums">{day.count.toLocaleString()}명</td></tr>)}</tbody></table></div>}
+        </div>
+        <p className="min-h-4 text-xs tabular-nums text-muted-foreground" aria-live="polite">{selected ? `${selected.date} 방문: ${selected.count}명` : null}</p>
+      </div>
+      <div className="space-y-4 border-t pt-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div><h4 className="text-sm font-semibold"><StatTitle title="월·연도별 비교" help="월별·연간 고유 방문 멤버 수와 활동일 합계입니다. 연간 방문자는 월별 방문자를 더하지 않고 중복을 제외합니다." /></h4><p className="mt-2 text-xs tabular-nums text-muted-foreground">방문 {annual.visitors.toLocaleString()}명 · 활동일 {annual.personDays.toLocaleString()}일</p></div>
+          <select aria-label="사이트 이용 통계 연도" value={year} onChange={(event) => setYear(Number(event.target.value))} className="h-9 rounded-lg border border-input bg-background px-3 text-xs focus-visible:outline-2 focus-visible:outline-ring">{years.map((item) => <option key={item} value={item}>{item}년</option>)}</select>
+        </div>
+        <div className="h-44 min-w-0">
+          {display === "chart" ? <div className="flex h-full items-end gap-1.5" role="img" aria-label={monthly.map((month) => `${month.key} 방문 ${month.visitors}명`).join(", ")}>{monthly.map((month) => <div key={month.key} className="flex min-w-0 flex-1 flex-col items-center gap-2"><span className="text-[10px] tabular-nums">{month.visitors.toLocaleString()}</span><span className="w-full rounded-t-sm bg-primary/55" style={{ height: `${Math.max(4, month.visitors / monthMax * 126)}px` }} /><span className="text-[10px] tabular-nums text-muted-foreground">{Number(month.key.slice(5))}월</span></div>)}</div> : <div className="board-scroll h-full overflow-auto rounded-lg border"><table className="w-full text-xs" aria-label="월별 방문자 표"><thead className="sticky top-0 bg-card"><tr className="border-b text-muted-foreground"><th className="p-3 text-left font-normal">월</th><th className="p-3 text-right font-normal">방문 멤버</th><th className="p-3 text-right font-normal">활동일</th></tr></thead><tbody className="divide-y">{monthly.map((month) => <tr key={month.key}><td className="px-3 py-2 tabular-nums">{month.key}</td><td className="px-3 py-2 text-right tabular-nums">{month.visitors.toLocaleString()}명</td><td className="px-3 py-2 text-right tabular-nums">{month.personDays.toLocaleString()}일</td></tr>)}</tbody></table></div>}
+        </div>
       </div>
     </CardContent>
   </Card>;
