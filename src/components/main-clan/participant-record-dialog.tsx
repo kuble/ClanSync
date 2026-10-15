@@ -138,6 +138,6 @@ export function ParticipantRecordDialog({ clanId, gameSlug, userId, nickname, ga
 
 export function MemberRecordButton(props: Omit<Props, "requestId" | "onClose"> & { linkedCount: number }) {
   const [open, setOpen] = useState(false);
-  return <><Button size="sm" variant="outline" aria-label={`${props.nickname} 이전 기록 관리`} onClick={() => setOpen(true)}><Link2 size={13} aria-hidden="true" />{props.linkedCount ? `연결된 기록 ${props.linkedCount}` : "이전 기록 연결"}</Button>
+  return <><Button size="icon-sm" variant="ghost" className={props.linkedCount ? "text-primary" : "text-muted-foreground"} aria-label={`${props.nickname} 이전 기록 관리`} title={props.linkedCount ? `연결된 기록 ${props.linkedCount}` : "이전 기록 연결"} onClick={() => setOpen(true)}><Link2 aria-hidden="true" /></Button>
     {open && <ParticipantRecordDialog {...props} onClose={() => setOpen(false)} />}</>;
 }

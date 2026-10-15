@@ -4,7 +4,7 @@ import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, ShieldPlus, ShieldMinus, UserRoundMinus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
@@ -243,12 +243,13 @@ export function ManageMembersTable({
                         />
                         <Button
                           type="submit"
-                          variant="secondary"
-                          size="sm"
+                          variant="ghost"
+                          size="icon-sm"
                           disabled={pending}
                           aria-label={`${m.nickname} 운영진 승격`}
+                          title="운영진 승격"
                         >
-                          승격
+                          <ShieldPlus aria-hidden="true" />
                         </Button>
                       </form>
                     ) : null}
@@ -266,12 +267,13 @@ export function ManageMembersTable({
                         />
                         <Button
                           type="submit"
-                          variant="secondary"
-                          size="sm"
+                          variant="ghost"
+                          size="icon-sm"
                           disabled={pending}
                           aria-label={`${m.nickname} 멤버로 강등`}
+                          title="멤버로 강등"
                         >
-                          강등
+                          <ShieldMinus aria-hidden="true" />
                         </Button>
                       </form>
                     ) : null}
@@ -279,12 +281,13 @@ export function ManageMembersTable({
                       <Button
                         type="button"
                         variant="destructive"
-                        size="sm"
+                        size="icon-sm"
                         disabled={pending}
                         aria-label={`${m.nickname} 강퇴`}
+                        title="강퇴"
                         onClick={() => onKick(m.userId, m.nickname)}
                       >
-                        강퇴
+                        <UserRoundMinus aria-hidden="true" />
                       </Button>
                     ) : null}
                   </div>
