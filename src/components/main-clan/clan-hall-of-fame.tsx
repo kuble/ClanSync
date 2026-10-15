@@ -68,8 +68,10 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings }: {
   return <div className="relative space-y-4" aria-busy={loaded.pending}>
     <section aria-label="명예의 전당 필터" className="sticky top-[60px] z-30 flex flex-wrap items-center gap-3 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80">
       {active && <RubberSegment label="부문" labelPosition="hidden" options={available} value={active.id} onChange={setRanking} />}
-      <StatsPeriodFilter value={period} onChange={(next) => setPeriod({ ...next, month: next.year === String(now.year) && Number(next.month) > now.month ? String(now.month).padStart(2, "0") : next.month })} years={years} maxMonth={year === String(now.year) ? now.month : 12} />
-      <div className="ml-auto shrink-0">{settings}</div>
+      <div className="flex w-full min-w-0 items-end gap-3 sm:ml-auto sm:w-auto sm:items-center">
+        <StatsPeriodFilter value={period} onChange={(next) => setPeriod({ ...next, month: next.year === String(now.year) && Number(next.month) > now.month ? String(now.month).padStart(2, "0") : next.month })} years={years} maxMonth={year === String(now.year) ? now.month : 12} />
+        <div className="ml-auto shrink-0">{settings}</div>
+      </div>
     </section>
     {loaded.feedback}
     {block.undisclosed ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">{block.undisclosedHint}</p> : !active ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">공개된 통계 부문이 없습니다.</p> : <>

@@ -292,9 +292,9 @@ test("statistics use four sections and site usage appears in staff management", 
   await expect(page.getByRole("listbox", { name: "명예의 전당 부문" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "다승", exact: true })).toHaveCount(0);
   await page.getByRole("radiogroup", { name: "기간", exact: true }).getByRole("radio", { name: "월별", exact: true }).click();
-  await expect(page.getByRole("listbox", { name: "월", exact: true })).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "월", exact: true })).toBeVisible();
   await page.getByRole("radiogroup", { name: "기간", exact: true }).getByRole("radio", { name: "연도별", exact: true }).click();
-  await expect(page.getByRole("listbox", { name: "연도", exact: true })).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "연도", exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "내전 통계" }).click();
   await expect(page.getByRole("searchbox", { name: "경기 참가자 검색" })).toHaveCount(0);
   await page.getByRole("tab", { name: "경기 기록" }).click();

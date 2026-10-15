@@ -7,6 +7,7 @@ import { saveClanHofConfigFormAction } from "@/app/actions/clan-stats-hof";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RubberSegment } from "@/components/ui/rubber-segment";
+import { PeriodSelect } from "@/components/ui/period-select";
 import {
   Card,
   CardContent,
@@ -696,19 +697,7 @@ export function ClanStatsView({
             </CardHeader>
             <CardContent className="space-y-3 overflow-x-auto">
               <div className="flex flex-wrap items-center gap-2">
-                <Label htmlFor="rank-year">연도</Label>
-                <select
-                  id="rank-year"
-                  value={rankYear}
-                  onChange={(e) => setRankYear(e.target.value)}
-                  className="border-input bg-background h-9 rounded-md border px-2 text-sm"
-                >
-                  {rankYears.map((y) => (
-                    <option key={y} value={y}>
-                      {y}
-                    </option>
-                  ))}
-                </select>
+                <PeriodSelect label="클랜 활동 연도" value={rankYear} onChange={setRankYear} options={rankYears.map((id) => ({ id, label: `${id}년` }))} />
               </div>
               <table
                 aria-label="월별 클랜 활동일"

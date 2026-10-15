@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Popover } from "@base-ui/react/popover";
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PeriodSelect } from "@/components/ui/period-select";
 import { cn } from "@/lib/utils";
 
 function parseDay(key: string) {
@@ -56,8 +57,8 @@ export function ArchiveDatePicker({ value, onChange, dates, periodKey = "all" }:
         <div className="mb-3 flex items-center justify-between gap-2">
           <Button variant="ghost" size="icon-sm" aria-label="이전 달" disabled={!withinPeriod(dateKey(new Date(year, month - 1, 1)))} onClick={() => moveMonth(-1)}><ChevronLeft className="size-4" /></Button>
           <div className="flex items-center gap-1">
-            <select aria-label="달력 연도" value={year} disabled={periodKey !== "all"} onChange={(event) => setCursor(dateKey(new Date(Number(event.target.value), month, 1)))} className="rounded-md bg-transparent px-1 py-1 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-ring">{[...new Set([String(year), ...years])].sort().reverse().map((y) => <option key={y} value={y} className="bg-popover">{y}년</option>)}</select>
-            <select aria-label="달력 월" value={month} disabled={periodKey.length > 4 && periodKey !== "all"} onChange={(event) => setCursor(dateKey(new Date(year, Number(event.target.value), 1)))} className="rounded-md bg-transparent px-1 py-1 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-ring">{Array.from({ length: 12 }, (_, m) => <option key={m} value={m} className="bg-popover">{m + 1}월</option>)}</select>
+            <PeriodSelect label="달력 연도" value={String(year)} disabled={periodKey !== "all"} onChange={(value) => setCursor(dateKey(new Date(Number(value), month, 1)))} options={[...new Set([String(year), ...years])].sort().reverse().map((id) => ({ id, label: `${id}년` }))} />
+            <PeriodSelect label="달력 월" value={String(month)} disabled={periodKey.length > 4 && periodKey !== "all"} onChange={(value) => setCursor(dateKey(new Date(year, Number(value), 1)))} options={Array.from({ length: 12 }, (_, m) => ({ id: String(m), label: `${m + 1}월` }))} />
           </div>
           <Button variant="ghost" size="icon-sm" aria-label="다음 달" disabled={!withinPeriod(dateKey(new Date(year, month + 1, 1)))} onClick={() => moveMonth(1)}><ChevronRight className="size-4" /></Button>
         </div>

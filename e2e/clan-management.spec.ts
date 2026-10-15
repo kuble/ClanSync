@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 import { isoToKstYmd } from "../src/lib/clan/stats/kst";
 test.use({actionTimeout:20000});
@@ -166,6 +166,16 @@ test("management sections preserve navigation, pending counts and officer/member
   const visitYear = Number(visitDate.slice(0, 4)), visitMonth = Number(visitDate.slice(5, 7));
   const visitMonthDays = new Date(Date.UTC(visitYear, visitMonth, 0)).getUTCDate();
   const historyYear = visitYear - 1;
+  async function selectPopup(target: Page, label: string, option: string) {
+    const trigger = target.getByRole("combobox", { name: label, exact: true });
+    await trigger.click();
+    await target.getByRole("option", { name: option, exact: true }).click();
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  }
+  async function selectMonth(target: Page, value: string) {
+    await selectPopup(target, "클랜 페이지 조회 연도", `${value.slice(0, 4)}년`);
+    await selectPopup(target, "클랜 페이지 조회 월", `${Number(value.slice(5))}월`);
+  }
   try {
     expect((await f.service.from("clan_daily_member_activity").upsert(f.users.slice(0, 2).map((user) => ({ clan_id: f.clanId, user_id: user.id, activity_date: visitDate })))).error).toBeNull();
     expect((await f.service.from("clan_daily_member_activity").upsert({ clan_id: f.clanId, user_id: f.users[2].id, activity_date: `${historyYear}-${visitDate.slice(5, 7)}-15` })).error).toBeNull();
@@ -205,8 +215,8 @@ test("management sections preserve navigation, pending counts and officer/member
     await expect(page.getByRole("tooltip")).toContainText("한 멤버가 하루 방문하면 1활동일");
     await page.keyboard.press("Escape");
     const monthFilter = usage.getByLabel("클랜 페이지 조회 월", { exact: true });
-    await monthFilter.fill(visitMonthKey);
-    await expect(monthFilter).toHaveValue(visitMonthKey);
+    await selectMonth(page, visitMonthKey);
+    await expect(monthFilter).toHaveText(`${visitMonth}월`);
     await expect(usage.getByLabel("일별 방문자 그래프").getByRole("button")).toHaveCount(visitMonthDays);
     const visitBar = usage.getByRole("button", { name: `${visitDate} 방문 2명`, exact: true });
     const visitors = page.getByRole("tooltip").and(page.locator("[data-open]"));
@@ -232,19 +242,24 @@ test("management sections preserve navigation, pending counts and officer/member
     expect(await usageNode!.evaluate((node) => node.isConnected)).toBe(true);
     await usage.getByRole("radio", { name: "표", exact: true }).press("Home");
     await expect(usage.getByRole("radio", { name: "그래프", exact: true })).toHaveAttribute("aria-checked", "true");
-    await monthFilter.fill("2024-02");
+    await selectMonth(page, "2024-02");
     await expect(usage.getByLabel("일별 방문자 그래프").getByRole("button")).toHaveCount(29);
     await expect(usage.getByText("2024.02.01 ~ 2024.02.29", { exact: true })).toBeVisible();
-    await monthFilter.fill(`${historyYear}-01`);
+    await selectMonth(page, `${historyYear}-01`);
     await expect(usage.getByLabel("일별 방문자 그래프").getByRole("button")).toHaveCount(31);
     await usage.getByRole("button", { name: "방문한 멤버 도움말", exact: true }).focus();
     await expect(visitors).toContainText(`${historyYear - 1}-12-01 ~ ${historyYear - 1}-12-31`);
     await page.keyboard.press("Escape");
-    await monthFilter.fill(visitMonthKey);
-    await monthFilter.fill("");
-    await expect(monthFilter).toHaveValue(visitMonthKey);
+    await selectMonth(page, visitMonthKey);
+    await monthFilter.click();
+    await page.getByRole("option", { selected: true }).press("Home");
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("listbox", { name: "클랜 페이지 조회 월", exact: true })).toBeHidden();
+    await expect(monthFilter).toHaveAttribute("aria-expanded", "false");
+    await expect(monthFilter).toHaveText(`${visitMonth}월`);
+    await expect(monthFilter).toBeFocused();
     const yearPicker = usage.getByRole("combobox", { name: "클랜 페이지 비교 연도", exact: true });
-    await expect(yearPicker).toHaveValue(String(visitYear));
+    await expect(yearPicker).toHaveText(`${visitYear}년`);
     expect(await usageNode!.evaluate((node) => node.isConnected)).toBe(true);
     expect(Math.abs((await usage.boundingBox())!.height - usageHeight)).toBeLessThan(2);
     const monthlyBar = usage.getByRole("button", { name: `${visitYear}년 ${visitMonth}월 방문 2명`, exact: true });
@@ -252,7 +267,7 @@ test("management sections preserve navigation, pending counts and officer/member
     await expect(visitors).toContainText(`${visitYear}년 ${visitMonth}월`);
     for (const user of f.users.slice(0, 2)) await expect(visitors).toContainText(user.nickname);
     await expect(visitors.getByRole("listitem")).toHaveCount(2);
-    await yearPicker.selectOption(String(historyYear));
+    await selectPopup(page, "클랜 페이지 비교 연도", `${historyYear}년`);
     const historyBar = usage.getByRole("button", { name: `${historyYear}년 ${visitMonth}월 방문 1명`, exact: true });
     await historyBar.focus();
     await expect(visitors).toContainText(`${historyYear}년 ${visitMonth}월`);
@@ -268,7 +283,15 @@ test("management sections preserve navigation, pending counts and officer/member
     try {
       const touchPage = await touchContext.newPage();
       await touchPage.goto(`${base}/manage?tab=insights`);
-      await touchPage.getByLabel("클랜 페이지 조회 월", { exact: true }).fill(visitMonthKey);
+      await touchPage.getByRole("combobox", { name: "클랜 페이지 조회 연도", exact: true }).tap();
+      const touchYearList = touchPage.getByRole("listbox", { name: "클랜 페이지 조회 연도", exact: true });
+      const yearPopupBox = (await touchYearList.boundingBox())!;
+      expect(yearPopupBox.x).toBeGreaterThanOrEqual(0);
+      expect(yearPopupBox.x + yearPopupBox.width).toBeLessThanOrEqual(390);
+      expect(await touchYearList.evaluate((node) => node.scrollHeight > node.clientHeight)).toBe(true);
+      await touchPage.getByRole("option", { name: `${visitYear}년`, exact: true }).tap();
+      await touchPage.getByRole("combobox", { name: "클랜 페이지 조회 월", exact: true }).tap();
+      await touchPage.getByRole("option", { name: `${visitMonth}월`, exact: true }).tap();
       await touchPage.getByRole("button", { name: `${visitDate} 방문 2명`, exact: true }).tap();
       const touchVisitors = touchPage.getByRole("tooltip").and(touchPage.locator("[data-open]"));
       await expect(touchVisitors).toContainText(f.users[1].nickname);
@@ -278,7 +301,7 @@ test("management sections preserve navigation, pending counts and officer/member
       await expect.poll(() => touchPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await touchPage.getByRole("button", { name: `${visitDate} 방문 2명`, exact: true }).tap();
       await expect(touchVisitors).toBeHidden();
-      await touchPage.getByRole("combobox", { name: "클랜 페이지 비교 연도", exact: true }).selectOption(String(visitYear));
+      await selectPopup(touchPage, "클랜 페이지 비교 연도", `${visitYear}년`);
       const touchMonth = touchPage.getByRole("button", { name: `${visitYear}년 ${visitMonth}월 방문 2명`, exact: true });
       await touchMonth.tap();
       await expect(touchVisitors).toContainText(`${visitYear}년 ${visitMonth}월`);

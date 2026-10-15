@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { PeriodSelect } from "@/components/ui/period-select";
 import { RubberSegment } from "@/components/ui/rubber-segment";
 import { StatTitle, StatTooltip } from "./stat-help";
 import { isoToKstYmd } from "@/lib/clan/stats/kst";
@@ -39,7 +39,11 @@ export function ClanSiteUsagePanel({ visits, memberNames }: { visits: ClanSiteVi
   const max = Math.max(1, ...dayCounts.map((day) => day.count));
   const diff = current.visitors - previous.visitors;
   const hasPrevious = visits.some((visit) => visit.date >= previousStart && visit.date <= previousEnd);
-  const years = [...new Set([year, Number(today.slice(0, 4)), ...visits.map((visit) => Number(visit.date.slice(0, 4)))] )].sort((a, b) => b - a);
+  const currentYear = Number(today.slice(0, 4));
+  const firstYear = Math.min(currentYear - 9, ...visits.map((visit) => Number(visit.date.slice(0, 4))));
+  const years = Array.from({ length: currentYear - firstYear + 1 }, (_, index) => ({ id: String(currentYear - index), label: `${currentYear - index}년` }));
+  const months = Array.from({ length: 12 }, (_, index) => ({ id: String(index + 1).padStart(2, "0"), label: `${index + 1}월` }));
+  function selectMonth(value: string) { setMonth(value); setYear(Number(value.slice(0, 4))); }
   const monthly = Array.from({ length: 12 }, (_, index) => {
     const key = `${year}-${String(index + 1).padStart(2, "0")}`;
     const rows = visits.filter((visit) => visit.date.startsWith(key));
@@ -51,11 +55,10 @@ export function ClanSiteUsagePanel({ visits, memberNames }: { visits: ClanSiteVi
   return <Card className="gap-0 py-0" role="region" aria-label="클랜 페이지">
     <CardHeader className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4">
       <h3 aria-label="클랜 페이지" className="text-sm font-semibold"><StatTitle title="클랜 페이지" help="클랜 페이지를 방문한 멤버를 한국 시간 기준으로 하루 한 번 집계합니다. 내전 출전 기록과는 별도입니다." /></h3>
-      <Input type="month" aria-label="클랜 페이지 조회 월" value={month} onChange={(event) => {
-        const value = event.target.value;
-        if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(value)) return;
-        setMonth(value); setYear(Number(value.slice(0, 4)));
-      }} className="h-9 w-auto max-w-full text-xs dark:[color-scheme:dark]" />
+      <div className="flex items-center gap-2">
+        <PeriodSelect label="클랜 페이지 조회 연도" value={month.slice(0, 4)} options={years} onChange={(value) => selectMonth(`${value}-${month.slice(5)}`)} />
+        <PeriodSelect label="클랜 페이지 조회 월" value={month.slice(5)} options={months} onChange={(value) => selectMonth(`${month.slice(0, 4)}-${value}`)} />
+      </div>
     </CardHeader>
     <CardContent className="space-y-5 px-5 py-5">
       <p className="text-xs tabular-nums text-muted-foreground">{start.replaceAll("-", ".")} ~ {end.replaceAll("-", ".")}</p>
@@ -88,7 +91,7 @@ export function ClanSiteUsagePanel({ visits, memberNames }: { visits: ClanSiteVi
       <div className="space-y-4 border-t pt-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div><h4 className="text-sm font-semibold"><StatTitle title="월·연도별 비교" help="월별·연간 고유 방문 멤버 수와 활동일 합계입니다. 연간 방문자는 월별 방문자를 더하지 않고 중복을 제외합니다." /></h4><p className="mt-2 text-xs tabular-nums text-muted-foreground">방문 {annual.visitors.toLocaleString()}명 · 활동일 {annual.personDays.toLocaleString()}일</p></div>
-          <select aria-label="클랜 페이지 비교 연도" value={year} onChange={(event) => setYear(Number(event.target.value))} className="h-9 rounded-lg border border-input bg-background px-3 text-xs focus-visible:outline-2 focus-visible:outline-ring">{years.map((item) => <option key={item} value={item}>{item}년</option>)}</select>
+          <PeriodSelect label="클랜 페이지 비교 연도" value={String(year)} options={years} onChange={(value) => setYear(Number(value))} />
         </div>
         <div className="h-44 min-w-0">
           {display === "chart" ? <div className="flex h-full items-end gap-1.5" role="group" aria-label="월별 방문자 그래프">{monthly.map((month) => <div key={month.key} className="flex min-w-0 flex-1 flex-col items-center gap-2"><span className="text-[10px] tabular-nums">{month.visitors.toLocaleString()}</span>

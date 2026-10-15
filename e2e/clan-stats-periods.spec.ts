@@ -8,7 +8,7 @@ async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>): Promise<N
   return data as NonNullable<T>;
 }
 
-test("stats: period-wide filters, wheel, tooltip, record tab and staff qualification boundary", async ({ page }) => {
+test("stats: period-wide filters, popup selectors, tooltip, record tab and staff qualification boundary", async ({ page }) => {
   test.setTimeout(150_000);
   const f = await createIsolatedBalanceFixture(3);
   try {
@@ -68,17 +68,36 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await completed.click();
     await expect(page.getByRole("searchbox", { name: "경기 참가자 검색" })).toHaveCount(0);
     await page.getByRole("radio", { name: "월별", exact: true }).click();
-    await page.getByRole("listbox", { name: "연도", exact: true }).press("End");
-    const month = page.getByRole("listbox", { name: "월", exact: true });
-    await month.press("Home");
-    for (let i = 0; i < 6; i++) await month.press("ArrowDown");
-    await expect(month.getByRole("option", { selected: true })).toHaveText("7월");
+    const year = page.getByRole("combobox", { name: "연도", exact: true });
+    await year.click();
+    await page.getByRole("option", { name: "2025년", exact: true }).click();
+    const month = page.getByRole("combobox", { name: "월", exact: true });
+    const periodBox = (await page.getByRole("radiogroup", { name: "기간", exact: true }).boundingBox())!;
+    const monthBox = (await month.boundingBox())!;
+    expect(Math.abs(periodBox.y - monthBox.y)).toBeLessThan(2);
+    await month.click();
+    const monthList = page.getByRole("listbox", { name: "월", exact: true });
+    await expect(monthList).toHaveCSS("overflow-y", "auto");
+    expect(await monthList.evaluate((node) => node.scrollHeight > node.clientHeight)).toBe(true);
+    await page.getByRole("option", { name: "7월", exact: true }).click();
+    await expect(month).toHaveText("7월");
     await expect(completed).toContainText("1경기");
     await expect(page.getByLabel("맵별 경기 비중")).toContainText("부산");
-    await month.hover();
-    // A large mouse-wheel impulse must advance one month, not skip to December.
+    await month.click();
+    await monthList.hover();
+    const initialScroll = await monthList.evaluate((node) => node.scrollTop);
     await page.mouse.wheel(0, 800);
-    await expect(month.getByRole("option", { selected: true })).toHaveText("8월");
+    await expect.poll(() => monthList.evaluate((node) => node.scrollTop)).toBeGreaterThan(initialScroll);
+    await expect(month).toHaveText("7월");
+    await expect(completed).toContainText("1경기");
+    await page.keyboard.press("Escape");
+    await expect(monthList).toBeHidden();
+    await expect(month).toBeFocused();
+    await month.press("Enter");
+    await page.keyboard.press("Home");
+    for (let i = 0; i < 7; i++) await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Enter");
+    await expect(month).toHaveText("8월");
     await expect(completed).toContainText("9경기");
     await expect(page.getByLabel("맵별 경기 비중")).toContainText("네팔");
     for (const node of cardNodes) expect(await node.evaluate((el) => el.isConnected)).toBe(true);
@@ -115,7 +134,12 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await datePicker.click();
     const calendar = page.getByRole("dialog", { name: "경기 기록 달력" });
     await expect(calendar).toBeVisible();
-    await calendar.getByRole("button", { name: "이전 달", exact: true }).click();
+    await calendar.getByRole("combobox", { name: "달력 연도", exact: true }).click();
+    await page.getByRole("option", { name: "2025년", exact: true }).click();
+    await expect(calendar).toBeVisible();
+    await calendar.getByRole("combobox", { name: "달력 월", exact: true }).click();
+    await page.getByRole("option", { name: "7월", exact: true }).click();
+    await expect(calendar).toBeVisible();
     await calendar.getByRole("button", { name: "2025년 7월 1일 경기 기록 있음", exact: true }).click();
     await expect(calendar).toBeHidden();
     await expect(datePicker).toBeFocused();
@@ -160,6 +184,12 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await expect(calendar).toBeHidden();
     await page.setViewportSize({ width: 390, height: 844 });
     await datePicker.click();
+    await calendar.getByRole("combobox", { name: "달력 월", exact: true }).click();
+    const mobileListBox = (await page.getByRole("listbox", { name: "달력 월", exact: true }).boundingBox())!;
+    expect(mobileListBox.x).toBeGreaterThanOrEqual(0);
+    expect(mobileListBox.x + mobileListBox.width).toBeLessThanOrEqual(390);
+    await page.keyboard.press("Escape");
+    await expect(calendar).toBeVisible();
     await calendar.getByRole("button", { name: "2025년 7월 1일 경기 기록 있음", exact: true }).click();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.getByRole("tab", { name: "내전 통계" }).click();
@@ -180,7 +210,9 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await page.setViewportSize({ width: 1217, height: 910 });
     const historyCards = page.getByLabel("개인 기록 그래프", { exact: true }).locator('[data-slot="card"]');
     await expect(historyCards.first()).toContainText("점수 변동 이력");
-    const scoreBox = (await historyCards.nth(0).boundingBox())!, predictionBox = (await historyCards.nth(1).boundingBox())!;
+    const [scoreBox, predictionBox] = await historyCards.evaluateAll((nodes) => nodes.slice(0, 2).map((node) => {
+      const { x, y, width } = node.getBoundingClientRect(); return { x, y, width };
+    }));
     expect(scoreBox.y).toBe(predictionBox.y);
     expect(predictionBox.x).toBeGreaterThan(scoreBox.x + scoreBox.width);
     const synergy = page.getByRole("region", { name: "시너지 기록 목록" });
@@ -240,13 +272,16 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await expect(playerSummary).not.toContainText("선택 기간의 전적과 최근 흐름");
     await expect(totalMatches).toHaveText("10");
     await personalPeriod.getByRole("radio", { name: "연도별", exact: true }).click();
-    await personalPeriod.getByRole("listbox", { name: "연도", exact: true }).press("End");
+    await personalPeriod.getByRole("combobox", { name: "연도", exact: true }).click();
+    await page.getByRole("option", { name: "2025년", exact: true }).click();
     await expect(totalMatches).toHaveText("10");
     await personalPeriod.getByRole("radio", { name: "월별", exact: true }).click();
-    const personalMonth = personalPeriod.getByRole("listbox", { name: "월", exact: true });
-    await personalMonth.press("Home");
+    const personalMonth = personalPeriod.getByRole("combobox", { name: "월", exact: true });
+    await personalMonth.click();
+    await page.getByRole("option", { name: "1월", exact: true }).click();
     await expect(totalMatches).toHaveText("0");
-    for (let i = 0; i < 6; i++) await personalMonth.press("ArrowDown");
+    await personalMonth.click();
+    await page.getByRole("option", { name: "7월", exact: true }).click();
     await expect(totalMatches).toHaveText("1");
     const recordMaps = page.getByRole("region", { name: "맵별 승률 목록" });
     await expect(roleTable.getByRole("columnheader")).toHaveText(["역할", "승률", "승/무/패", "경기"]);
@@ -267,7 +302,8 @@ test("stats: period-wide filters, wheel, tooltip, record tab and staff qualifica
     await mapRole.getByRole("radio", { name: "돌격", exact: true }).click();
     await expect(recordMaps).toContainText("선택한 조건의 기록이 없습니다.");
     await mapRole.getByRole("radio", { name: "전체", exact: true }).click();
-    await personalMonth.press("ArrowDown");
+    await personalMonth.click();
+    await page.getByRole("option", { name: "8월", exact: true }).click();
     await expect(totalMatches).toHaveText("9");
     await expect(roleTable.getByRole("row").filter({ hasText: "지원" }).getByRole("cell")).toHaveText(["기록 없음", "0/0/0", "0"]);
     await expect(recordMaps).not.toContainText("부산");
