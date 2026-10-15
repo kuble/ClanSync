@@ -67,6 +67,11 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     expect(detailRequests).toHaveLength(0);
     await expect(page.getByLabel("승률 순위", { exact: true }).getByText(/규정 미달 ·/)).toHaveCount(2);
     await expect(page.getByLabel("승률 순위", { exact: true })).toContainText("3경기 부족");
+    const hofControls = page.getByRole("region", { name: "명예의 전당 필터", exact: true });
+    const rankingBox = (await hofControls.getByRole("radiogroup", { name: "부문", exact: true }).boundingBox())!;
+    const periodBoxAtHof = (await hofControls.getByRole("radiogroup", { name: "기간", exact: true }).boundingBox())!;
+    expect(periodBoxAtHof.x - rankingBox.x - rankingBox.width).toBeGreaterThanOrEqual(8);
+    expect(periodBoxAtHof.x - rankingBox.x - rankingBox.width).toBeLessThanOrEqual(16);
     await page.getByRole("tab", { name: "내전 통계" }).click();
     const summary = page.getByLabel("선택 기간 요약");
     const completed = summary.getByRole("button", { name: /완료 경기/ });

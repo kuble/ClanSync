@@ -68,7 +68,7 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings }: {
   return <div className="relative space-y-4" aria-busy={loaded.pending}>
     <section aria-label="명예의 전당 필터" className="sticky top-[60px] z-30 flex flex-wrap items-center gap-2 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur sm:gap-3 supports-[backdrop-filter]:bg-background/80">
       {active && <RubberSegment label="부문" labelPosition="hidden" options={available} value={active.id} onChange={setRanking} />}
-      <div className="flex w-full min-w-0 items-center gap-1.5 sm:ml-auto sm:w-auto sm:gap-3">
+      <div className="flex w-full min-w-0 items-center gap-1.5 sm:w-auto sm:flex-1 sm:gap-3">
         <StatsPeriodFilter value={period} onChange={(next) => setPeriod({ ...next, month: next.year === String(now.year) && Number(next.month) > now.month ? String(now.month).padStart(2, "0") : next.month })} years={years} maxMonth={year === String(now.year) ? now.month : 12} />
         <div className="ml-auto shrink-0">{settings}</div>
       </div>
