@@ -74,7 +74,7 @@ export function ParticipantRecordDialog({ clanId, gameSlug, userId, nickname, ga
       <div className="space-y-4 border-b px-5 py-5 sm:px-6">
       <DialogHeader>
         <DialogTitle>{unlink ? "이전 기록 연결을 해제할까요?" : requestId ? "클랜 가입 승인" : "이전 내전 기록"}</DialogTitle>
-        <DialogDescription>{unlink ? "선택한 과거 기록만 계정에서 분리됩니다." : requestId ? "가입 전 내전 기록을 연결할지 선택해 주세요." : "가입 전 기록을 연결하거나 잘못 연결한 기록을 해제하세요."}</DialogDescription>
+        <DialogDescription>{unlink ? "선택한 과거 기록만 계정에서 분리됩니다." : requestId ? joinMode === "link" ? "연결할 이전 내전 기록을 선택해 주세요." : "가입 전 내전 기록을 연결할지 선택해 주세요." : "가입 전 기록을 연결하거나 잘못 연결한 기록을 해제하세요."}</DialogDescription>
       </DialogHeader>
       <div className="flex items-center gap-3">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><UserRound size={19} aria-hidden="true" /></span>
@@ -86,7 +86,7 @@ export function ParticipantRecordDialog({ clanId, gameSlug, userId, nickname, ga
         <p className="text-sm leading-relaxed">이 기록은 다시 <strong>{unlink.nickname}</strong> 이름으로 남으며, 나중에 올바른 계정에 연결할 수 있습니다.</p>
         <p className="text-xs leading-relaxed text-muted-foreground">{displayName}의 클랜 가입 상태와 가입 후 경기·코인은 그대로 유지됩니다.</p>
       </div> : <div className="space-y-4 px-5 py-5 sm:px-6">
-        {requestId && <fieldset className="space-y-2" disabled={pending}>
+        {requestId && joinMode !== "link" && <fieldset className="space-y-2" disabled={pending}>
           <legend className="mb-3 text-sm font-semibold">이전 내전 기록을 연결할까요?</legend>
           {([{ mode: "link", label: "이전 기록 연결", description: "가입 전에 참여한 내전 기록을 이 계정으로 모아요." }, { mode: "new", label: "연결 없이 가입", description: "이전 기록을 가져오지 않고 클랜에 가입해요." }] as const).map((option) => <label key={option.mode} className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${joinMode === option.mode ? "border-primary bg-primary/5" : "hover:border-primary/40"}`}>
             <span className="relative mt-0.5 flex size-5 shrink-0"><input type="radio" name="join-record-mode" aria-label={option.label} className="peer absolute inset-0 z-10 m-0 size-5 cursor-pointer opacity-0" checked={joinMode === option.mode} onChange={() => { setJoinMode(option.mode); setSelected(null); setQuery(""); setError(""); }} /><span className="flex size-5 items-center justify-center rounded-full border peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring">{joinMode === option.mode && <Check size={13} aria-hidden="true" />}</span></span>
@@ -102,7 +102,7 @@ export function ParticipantRecordDialog({ clanId, gameSlug, userId, nickname, ga
           </div>)}
         </section>}
         <label className="block space-y-2 text-xs font-semibold">{linked.length ? "다른 기록 찾기" : "연결할 이전 기록"}
-          <span className="relative block"><Search size={16} className="pointer-events-none absolute left-3 top-3 text-muted-foreground" aria-hidden="true" /><input aria-label="기존 참가자 검색" placeholder="예전에 쓰던 닉네임으로 검색" value={query} onChange={(e) => { setQuery(e.target.value); setSelected(null); }} disabled={pending} className="h-10 w-full rounded-lg border bg-background pl-9 pr-3 text-sm font-normal" /></span>
+          <span className="relative block"><Search size={16} className="pointer-events-none absolute left-3 top-3 text-muted-foreground" aria-hidden="true" /><input aria-label="기존 참가자 검색" autoFocus={Boolean(requestId && joinMode === "link")} placeholder="예전에 쓰던 닉네임으로 검색" value={query} onChange={(e) => { setQuery(e.target.value); setSelected(null); }} disabled={pending} className="h-10 w-full rounded-lg border bg-background pl-9 pr-3 text-sm font-normal" /></span>
         </label>
         <div className="min-h-40 max-h-64 space-y-2 overflow-y-auto" aria-label="기존 참가자 검색 결과" aria-busy={loading}>
           {loading ? <p className="p-4 text-sm text-muted-foreground" role="status">이전 기록을 불러오는 중…</p> : candidates.length ? candidates.map((record) => <div key={record.id} className={`rounded-lg border p-3 transition-colors ${selected === record.id ? "border-primary bg-primary/5" : "hover:border-primary/40"}`} data-participant-candidate={record.id}>
@@ -122,7 +122,11 @@ export function ParticipantRecordDialog({ clanId, gameSlug, userId, nickname, ga
       <div className="space-y-4 border-t bg-muted/20 px-5 py-4 sm:px-6">
         {!unlink && <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">{chosen && linkRecords ? <><span className="font-semibold text-foreground">{chosen.nickname} · {chosen.played}경기</span><ArrowRight size={14} aria-hidden="true" /><span>{displayName}에게 연결</span></> : requestId && joinMode === "new" ? "이전 기록을 연결하지 않고 클랜 가입을 승인합니다." : requestId && !joinMode ? "먼저 이전 기록을 연결할지 선택해 주세요." : "연결할 기록을 선택해 주세요."}</p>}
         <div className="flex justify-end gap-2">
-        <Button size="sm" variant="outline" disabled={pending} onClick={() => unlink ? setUnlink(null) : onClose()}>{unlink ? "뒤로" : "취소"}</Button>
+        <Button size="sm" variant="outline" disabled={pending} onClick={() => {
+          if (unlink) { setUnlink(null); return; }
+          if (requestId && joinMode === "link") { setJoinMode(null); setSelected(null); setQuery(""); setError(""); return; }
+          onClose();
+        }}>{unlink ? "뒤로" : requestId && joinMode === "link" ? "이전" : "취소"}</Button>
         <Button size="sm" disabled={!ready || pending} onClick={submit}>
           {pending ? "처리 중…" : unlink ? "연결 해제" : requestId ? joinMode === "link" ? "연결 후 가입 승인" : "가입 승인" : "이 기록 연결"}
         </Button>
