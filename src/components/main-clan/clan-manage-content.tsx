@@ -17,7 +17,6 @@ import { loadClanManagementStats } from "@/lib/clan/stats/load-clan-stats";
 import { ClanManageNotices, ClanManageRules } from "./clan-manage-notices";
 import { ClanBannerSettingsForm } from "./clan-banner-settings-form";
 import { ClanBalanceAutoCloseSettings } from "./clan-balance-auto-close-settings";
-import { ClanAuctionItemSettings } from "./clan-auction-item-settings";
 import { ManageJoinRequestsPanel } from "./manage-join-requests-panel";
 import { ManageMembersTable, type ManageMemberRow } from "./manage-members-table";
 import { ClanParticipantData } from "./clan-participant-data";
@@ -169,13 +168,9 @@ async function Members({ ctx }: Pick<Props, "ctx">) {
 
 async function BalanceSettings({ ctx }: Pick<Props, "ctx">) {
   const svc = createServiceRoleClient();
-  const client = await getRequestClient();
-  const [profile, items] = await Promise.all([
-    svc.from("clans").select("balance_auto_close_enabled,balance_auto_close_hours").eq("id", ctx.clanId).single(),
-    client.from("clan_auction_items").select("id,name,description,cost,enabled").eq("clan_id", ctx.clanId).order("created_at"),
-  ]);
+  const profile = await svc.from("clans").select("balance_auto_close_enabled,balance_auto_close_hours").eq("id", ctx.clanId).single();
   if (profile.error) throw new Error("내전 설정을 불러오지 못했습니다.");
-  return <div className="space-y-4"><ClanBalanceAutoCloseSettings key={`${ctx.clanId}:${ctx.role}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} initialEnabled={profile.data.balance_auto_close_enabled} initialHours={profile.data.balance_auto_close_hours} /><ClanAuctionItemSettings gameSlug={ctx.gameSlug} clanId={ctx.clanId} items={items.data ?? []} loadError={!!items.error} /></div>;
+  return <ClanBalanceAutoCloseSettings key={`${ctx.clanId}:${ctx.role}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} initialEnabled={profile.data.balance_auto_close_enabled} initialHours={profile.data.balance_auto_close_hours} />;
 }
 
 async function Insights({ ctx }: Pick<Props, "ctx">) {

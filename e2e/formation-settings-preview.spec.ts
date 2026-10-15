@@ -226,23 +226,25 @@ test("formation previews support readable pacing, seeking and every screen flow 
     await page.clock.runFor(200);
     await expect(title).toHaveText("추첨 발표");
     await expect(screen.locator('[data-revealed="true"]')).toHaveCount(1);
-    await expect(preview.getByTestId("formation-preview-step")).toHaveText("4 / 5");
+    await expect(preview.getByTestId("formation-preview-step")).toHaveText("4 / 6");
     await page.clock.runFor(1000);
     await expect(screen.locator('[data-preview-player="8"]')).toHaveAttribute("data-preview-team", "B");
     await expect(screen.locator('[data-preview-player="8"]')).toContainText("지원");
     await preview.getByRole("button", { name: "미리보기 일시정지", exact: true }).click();
     await page.clock.runFor(2000);
     await expect(screen.locator('[data-revealed="true"]')).toHaveCount(4);
-    await expect(preview.getByTestId("formation-preview-step")).toHaveText("4 / 5");
+    await expect(preview.getByTestId("formation-preview-step")).toHaveText("4 / 6");
     await page.screenshot({ animations: "disabled", path: test.info().outputPath("auto-timeline-preview.png") });
     await play();
     await page.clock.runFor(1600);
     await expect(screen.locator('[data-revealed="true"]')).toHaveCount(10);
     await expect(title).toHaveText("추첨 발표");
-    await expect(preview.getByTestId("formation-preview-step")).toHaveText("4 / 5");
+    await expect(preview.getByTestId("formation-preview-step")).toHaveText("4 / 6");
     await page.clock.runFor(1000);
     await expect(screen).toHaveAttribute("data-screen", "complete");
     await expectTeams();
+    await page.clock.runFor(4000);
+    await expect(title).toHaveText("팀 밸런스 조정");
     await page.clock.runFor(4000);
     await expect(screen).toHaveAttribute("data-screen", "preference");
 
@@ -317,6 +319,7 @@ test("formation previews support readable pacing, seeking and every screen flow 
     await expect(preview.getByTestId("preview-credits-0")).toHaveText("880 cr");
     await expect(preview.getByTestId("preview-credits-1")).toHaveText("900 cr");
     await dialog.getByRole("checkbox", { name: "전략 아이템 사용" }).check();
+    await dialog.getByRole("button", { name: "편성 미리보기", exact: true }).click();
     await chapter("전략 준비");
     await expect(screen).toHaveAttribute("data-screen", "strategy");
     await chapter("아이템 선택");

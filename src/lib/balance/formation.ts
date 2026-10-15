@@ -411,7 +411,7 @@ export function createFormation(
     state.nextLotAt = readyAt;
     if (settings.auctionItemsEnabled) {
       if (auctionItems.length < 3)
-        throw new Error("클랜 내전 관리 설정에서 사용할 경매 아이템을 3개 이상 등록하세요.");
+        throw new Error("경기 설정의 전략 아이템 구성에서 아이템을 3개 이상 선택하세요.");
       state.strategy = {
         items: structuredClone(shuffle(auctionItems, random).slice(0, 3)),
         startedAt: readyAt,

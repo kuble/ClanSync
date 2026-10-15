@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
+import { createAndEnterBalanceRoom, createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
 test("운영진이 경매 아이템 예시·수정·사용 여부·추가·삭제를 관리한다", async ({ page }) => {
   test.setTimeout(120_000);
@@ -8,6 +8,16 @@ test("운영진이 경매 아이템 예시·수정·사용 여부·추가·삭�
     await loginIsolatedBalanceUser(page, fixture.users[0]);
     const managePath = `/games/overwatch/clan/${fixture.clanId}/manage?tab=balance`;
     await page.goto(managePath);
+    await expect(page.locator("#auction-items")).toHaveCount(0);
+    const { url } = await createAndEnterBalanceRoom(page, fixture.path, "기본 아이템 관리");
+    const openCatalog = async () => {
+      await page.getByRole("button", { name: "경기 설정", exact: true }).click();
+      const dialog = page.getByRole("dialog", { name: "경기 설정", exact: true });
+      await dialog.getByLabel("팀원 선발 방식", { exact: true }).selectOption("auction");
+      await dialog.getByRole("checkbox", { name: "전략 아이템 사용", exact: true }).check();
+      await dialog.getByRole("button", { name: "기본 아이템 관리", exact: true }).click();
+    };
+    await openCatalog();
     const catalog = page.locator("#auction-items");
     await expect(catalog.getByRole("button", { name: "예시 아이템 추가", exact: true })).toHaveCount(0);
     await expect(catalog.getByText("사용 중 3개", { exact: true })).toBeVisible();
@@ -33,7 +43,8 @@ test("운영진이 경매 아이템 예시·수정·사용 여부·추가·삭�
     await create.getByRole("button", { name: "아이템 저장", exact: true }).click();
     await expect(create).toBeHidden();
     await expect(catalog.getByRole("listitem")).toHaveCount(4);
-    await page.reload();
+    await page.goto(url);
+    await openCatalog();
     await expect(catalog.getByRole("listitem")).toHaveCount(4);
     await expect(catalog.getByRole("switch", { name: "맵 선정권 사용", exact: true })).toHaveAttribute("aria-checked", "false");
 

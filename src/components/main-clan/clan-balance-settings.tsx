@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,6 +29,7 @@ import { BalanceFormationPreview, type PreviewSettingFocus, type PreviewSettingF
 import { BalanceDisplaySettings, BalanceBanSettings } from "./balance-settings-options";
 import styles from "./clan-balance-settings.module.css";
 import { HelpText } from "./help-text";
+import { BalanceAuctionItemSettings } from "./balance-auction-item-settings";
 
 export const TEAM_MODE_LABELS = {
   keep: "현재 팀 유지",
@@ -82,6 +82,7 @@ export function ClanBalanceSettings({
   const router = useRouter();
   const [draft, setDraft] = useState(settings);
   const [previewFocus, setPreviewFocus] = useState<PreviewSettingFocus | null>(null);
+  const [itemEditorOpen, setItemEditorOpen] = useState(settings.auctionItemsEnabled);
   const [map, setMap] = useState(mapBan);
   const [hero, setHero] = useState(heroBan);
   const [banDraft, setBanDraft] = useState(banSettings);
@@ -125,6 +126,7 @@ export function ClanBalanceSettings({
   const names = new Map(pool.map((p) => [p.user_id, p.nickname]));
   const locked = !editable || pending || Boolean(savedRules) || rulesChanged;
   function focusPreview(field: PreviewSettingField, value = draft[field]) {
+    setItemEditorOpen(false);
     setPreviewFocus({ field, previousValue: initialRules.settings[field], value });
   }
   function changePreviewSetting(field: PreviewSettingField, value: number) {
@@ -279,7 +281,11 @@ export function ClanBalanceSettings({
             </select>
           </fieldset>
             <div className={styles.preview}>
-              <BalanceFormationPreview key={`${draft.roles}:${draft.teams}:${draft.auctionItemsEnabled}`} settings={draft} focus={previewFocus} />
+              {draft.teams === "auction" && draft.auctionItemsEnabled && itemEditorOpen ? (
+                <BalanceAuctionItemSettings gameSlug={gameSlug} clanId={clanId} roundId={roundId} value={draft.auctionCatalog}
+                  onChange={(auctionCatalog) => setDraft({ ...draft, auctionCatalog })} disabled={locked || !formationEditable}
+                  onPreview={() => setItemEditorOpen(false)} />
+              ) : <BalanceFormationPreview key={`${draft.roles}:${draft.teams}:${draft.auctionItemsEnabled}`} settings={draft} focus={previewFocus} />}
             </div>
           <fieldset disabled={locked || !formationEditable}>
             {["draft", "auction"].includes(draft.teams) ? (
@@ -389,9 +395,9 @@ export function ClanBalanceSettings({
               </div>
             ) : null}
             {draft.teams === "auction" ? <div className="mt-4 space-y-3 rounded-lg border bg-background/50 p-3">
-              <div className="flex items-center justify-between gap-3 text-sm font-medium"><HelpText label="전략 아이템 사용" help="활성 아이템을 3개 이상 등록해 주세요. 효과는 운영진이 경기 규칙에 직접 적용합니다." /><input type="checkbox" aria-label="전략 아이템 사용" className="size-4 accent-primary" checked={draft.auctionItemsEnabled} onChange={(event) => { setPreviewFocus(null); setDraft({ ...draft, auctionItemsEnabled: event.target.checked }); }} /></div>
+              <div className="flex items-center justify-between gap-3 text-sm font-medium"><HelpText label="전략 아이템 사용" help="아이템을 3개 이상 선택해 주세요. 켜면 아이템 구성 화면이 열립니다. 효과는 운영진이 경기 규칙에 직접 적용합니다." /><input type="checkbox" aria-label="전략 아이템 사용" className="size-4 accent-primary" checked={draft.auctionItemsEnabled} onChange={(event) => { setPreviewFocus(null); setItemEditorOpen(event.target.checked); setDraft({ ...draft, auctionItemsEnabled: event.target.checked }); }} /></div>
               {draft.auctionItemsEnabled ? <label className="block text-xs">전략 준비 시간(초)<input type="number" aria-label="전략 준비 시간(초)" min={10} max={120} step={1} className={field} value={draft.strategySeconds} onFocus={() => focusPreview("strategySeconds")} onChange={(event) => changePreviewSetting("strategySeconds", Number(event.target.value))} /></label> : null}
-              <Link href={`/games/${gameSlug}/clan/${clanId}/manage?tab=balance#auction-items`} className="inline-block text-xs font-semibold text-primary underline underline-offset-4">클랜 전략 아이템 관리</Link>
+              {draft.auctionItemsEnabled && <Button variant="outline" size="sm" className="w-full" onClick={() => setItemEditorOpen(true)}>아이템 구성</Button>}
             </div> : null}
           </fieldset>
           </div>
