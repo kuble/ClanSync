@@ -6,6 +6,7 @@ import { Check, ExternalLink } from "lucide-react";
 import { listClanDiscordChannelsAction, updateClanEventNotifyAction } from "@/app/actions/clan-event-notify";
 import { DISCORD_NOTIFICATION_TYPES, type DiscordNotificationRoutes } from "@/lib/clan/discord-notification-settings";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DiscordBenefitsGallery } from "./discord-benefits-gallery";
 import { HelpText } from "./help-text";
 import { useAutosave, AutosaveStatus } from "@/components/ui/use-autosave";
@@ -67,18 +68,23 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div><div className="flex items-center gap-2"><h4 className="font-semibold">Discord</h4><span className="rounded-md bg-muted px-2 py-1 text-[10px] text-muted-foreground">{status}</span></div>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{connection ? `${connection.guild_name}${connection.channel_name ? ` · #${connection.channel_name}` : ""}` : "일정과 소식을 우리 서버에 자동으로 전달하세요."}</p></div>
+        <div className="flex flex-wrap items-center gap-2">
+        <Dialog><DialogTrigger render={<Button size="sm" variant="outline" aria-label="Discord 활용 예시" />}>활용 예시</DialogTrigger>
+          <DialogContent className="board-scroll max-h-[85dvh] overflow-y-auto sm:max-w-5xl"><DialogHeader className="pr-8"><DialogTitle>Discord 활용 예시</DialogTitle><DialogDescription>알림 종류별 메시지와 연결되는 화면을 확인하세요.</DialogDescription></DialogHeader><DiscordBenefitsGallery /></DialogContent>
+        </Dialog>
         {canEdit && premium && <Button size="sm" nativeButton={!botConfigured} variant={connection ? "outline" : "default"} disabled={!botConfigured} render={botConfigured ? <a href={`/api/discord/connect?clanId=${encodeURIComponent(clanId)}`} /> : undefined}>
           <ExternalLink className="size-3.5" />{connection ? "서버 다시 연결" : "Discord 연결하기"}
         </Button>}
+        </div>
       </div>
       {!premium && <p className="mt-4 text-xs text-muted-foreground">자동 알림은 Premium 클랜에서 사용할 수 있습니다. <Link href={`/games/${gameSlug}/clan/${clanId}/manage?tab=subscription`} className="font-medium text-primary underline">플랜 보기</Link></p>}
       {!canEdit && <p className="mt-4 text-xs text-muted-foreground">연결과 알림 설정은 클랜장이 변경할 수 있습니다.</p>}
-      {!botConfigured && <p className="mt-4 text-xs text-muted-foreground">ClanSync 공용 봇 연결을 준비 중입니다. 아래에서 활용 예시를 확인하세요.</p>}
+      {!botConfigured && <p className="mt-4 text-xs text-muted-foreground">ClanSync 공용 봇 연결을 준비 중입니다. 활용 예시에서 알림 화면을 확인하세요.</p>}
     </section>
-    {connection ? <details className="rounded-xl border border-border bg-card p-4"><summary className="cursor-pointer text-xs font-medium">Discord 활용 예시</summary><div className="mt-4"><DiscordBenefitsGallery /></div></details> : <DiscordBenefitsGallery />}
     <form onSubmit={(event) => event.preventDefault()} className="space-y-4">
       <fieldset className="space-y-4">
-        <section className="rounded-xl border border-border bg-card p-5">
+        <section className="overflow-hidden rounded-xl border border-border bg-card" aria-label="Discord 알림 설정">
+          <div className="border-b border-border p-5">
           <div className="flex items-center justify-between gap-4"><h4 className="text-sm font-semibold"><HelpText label="Discord 알림 사용" help="이 설정은 클랜 전체에 적용됩니다." /></h4><Toggle name="discord_enabled" label="Discord 알림 사용" checked={enabled} onChange={(value) => autosave.update((current) => ({ ...current, enabled: value }))} disabled={!canEdit || !premium || !connection || !botConfigured && !enabled} /></div>
           <div className="mt-5 space-y-2"><div id="discord-channel-label" className="text-xs font-medium"><HelpText label="기본 알림 채널" help="봇에 채널 보기·메시지 보내기·링크 임베드 권한이 있는 채널을 선택하세요. 종류별 채널 분리는 선택 사항입니다. 기존 봇에 권한이 없다면 서버 다시 연결로 추가할 수 있습니다." /></div>
             <select aria-labelledby="discord-channel-label" id="discord-channel" name="discord_channel_id" value={channelId} onChange={(event) => autosave.update((current) => ({ ...current, channelId: event.target.value }))} disabled={channelDisabled} className={selectClass}>
@@ -88,8 +94,8 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
             </select>
             {loadError && <p role="alert" className="text-xs text-destructive">{loadError} <button type="button" className="underline" onClick={() => { setLoading(true); setLoadError(""); setRefresh((value) => value + 1); }}>다시 불러오기</button></p>}
           </div>
-        </section>
-        <section className="overflow-hidden rounded-xl border border-border bg-card" aria-label="종류별 알림">
+          </div>
+          <section aria-label="종류별 알림">
           <div className="border-b border-border px-5 py-4"><h4 className="text-sm font-semibold"><HelpText label="필요한 소식만 보내세요" help="전체 멘션 없이 전달합니다. 개인 수신은 Discord의 채널 알림 설정에서 조절하세요." /></h4></div>
           {DISCORD_NOTIFICATION_TYPES.map(({ id, label, description }) => <div key={id} className="space-y-3 border-b border-border p-5 last:border-b-0">
             <div className="flex items-start justify-between gap-4"><div className="text-[13px] font-semibold"><HelpText label={label} help={description} /></div>
@@ -102,6 +108,7 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
             </select>
             {id === "polls" && <div className="flex flex-wrap gap-5">{([['created', '시작 알림'], ['ended', '종료·결과 알림']] as const).map(([key, text]) => <label key={key} className="flex items-center gap-2 text-xs"><input type="checkbox" name={`discord_polls_${key}`} disabled={!canEdit || !premium} checked={routes.polls[key]} onChange={(event) => autosave.update((current) => ({ ...current, routes: { ...current.routes, polls: { ...current.routes.polls, [key]: event.target.checked } } }))} className="size-4 accent-primary" />{text}</label>)}</div>}
           </div>)}
+          </section>
         </section>
       </fieldset>
       {canEdit && premium && <AutosaveStatus {...autosave} />}
