@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import {
   rejectClanJoinRequestAction,
@@ -89,12 +90,10 @@ export function ManageJoinRequestsPanel({
         >
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="font-medium">
-                {row.nickname}
-                <span className="text-muted-foreground ml-2 text-sm font-normal">
-                  {row.gameTag ?? "배틀태그 미등록"} · {row.gameVerified ? "게임 인증 완료" : "게임 미인증"}
-                </span>
-              </p>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <p className="break-words font-semibold">{row.gameTag?.split("#")[0] ?? row.nickname}<span className="ml-1 text-sm font-normal text-muted-foreground">{row.gameTag?.includes("#") ? `#${row.gameTag.split("#")[1]}` : ""}</span></p>
+                <span className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] ${row.gameVerified ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}><ShieldCheck size={12} aria-hidden="true" />{row.gameVerified ? "게임 인증 완료" : "게임 미인증"}</span>
+              </div>
               <p className="text-muted-foreground mt-1 text-xs">
                 신청일{" "}
                 {new Date(Date.parse(row.appliedAt) + 9 * 60 * 60 * 1000).toISOString().slice(0, 16).replace("T", " ")}
@@ -113,7 +112,7 @@ export function ManageJoinRequestsPanel({
                 data-testid={`manage-join-approve-${row.id}`}
                 onClick={() => setApproving(row)}
               >
-                승인
+                가입 승인
               </Button>
               <Button
                 type="button"

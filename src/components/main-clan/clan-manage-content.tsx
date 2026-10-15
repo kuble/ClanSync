@@ -1,4 +1,5 @@
 import "server-only";
+import { profileBattleTag } from "@/lib/game-auth/battle-tag";
 import Link from "next/link";
 import { ArrowUpRight, CalendarDays, Clock, ImageIcon, Trophy } from "lucide-react";
 import type { MainClanContext } from "@/lib/clan/load-main-clan-context";
@@ -134,12 +135,12 @@ async function Requests({ ctx }: Pick<Props, "ctx">) {
   const ids = [...new Set(requests.data.map((row) => row.user_id))];
   const [profiles, gameProfiles] = await Promise.all([
     ids.length ? svc.from("users").select("id,nickname").in("id", ids) : { data: [], error: null },
-    ids.length ? svc.from("user_game_profiles").select("user_id,game_uid,is_verified,games!inner(slug)").in("user_id", ids).eq("games.slug", ctx.gameSlug) : { data: [], error: null },
+    ids.length ? svc.from("user_game_profiles").select("user_id,game_uid,battle_tag,is_verified,games!inner(slug)").in("user_id", ids).eq("games.slug", ctx.gameSlug) : { data: [], error: null },
   ]);
   if (profiles.error || gameProfiles.error) throw new Error("신청자 정보를 불러오지 못했습니다.");
   const byId = new Map((profiles.data ?? []).map((row) => [row.id, row]));
   const gamesById = new Map((gameProfiles.data ?? []).map((row) => [row.user_id, row]));
-  return <section className={panel}><p className="mb-4 text-xs text-muted-foreground">{requests.data.length}건 대기</p><ManageJoinRequestsPanel gameSlug={ctx.gameSlug} clanId={ctx.clanId} rows={requests.data.map((row) => ({ id: row.id, userId: row.user_id, message: row.message ?? "", appliedAt: row.applied_at, nickname: byId.get(row.user_id)?.nickname ?? "—", gameTag: gamesById.get(row.user_id)?.game_uid.includes("#") ? gamesById.get(row.user_id)!.game_uid : null, gameVerified: gamesById.get(row.user_id)?.is_verified ?? false }))} /></section>;
+  return <section className={panel}><p className="mb-4 text-xs text-muted-foreground">{requests.data.length}건 대기</p><ManageJoinRequestsPanel gameSlug={ctx.gameSlug} clanId={ctx.clanId} rows={requests.data.map((row) => ({ id: row.id, userId: row.user_id, message: row.message ?? "", appliedAt: row.applied_at, nickname: byId.get(row.user_id)?.nickname ?? "—", gameTag: profileBattleTag(gamesById.get(row.user_id)), gameVerified: gamesById.get(row.user_id)?.is_verified ?? false }))} /></section>;
 }
 
 async function Members({ ctx }: Pick<Props, "ctx">) {
@@ -152,7 +153,7 @@ async function Members({ ctx }: Pick<Props, "ctx">) {
   const ids = members.data.map((row) => row.user_id);
   const [profiles, gameProfiles, participantNames, links] = await Promise.all([
     ids.length ? svc.from("users").select("id,nickname").in("id", ids) : { data: [], error: null },
-    ids.length ? svc.from("user_game_profiles").select("user_id,game_uid,is_verified,games!inner(slug)").in("user_id", ids).eq("games.slug", ctx.gameSlug) : { data: [], error: null },
+    ids.length ? svc.from("user_game_profiles").select("user_id,game_uid,battle_tag,is_verified,games!inner(slug)").in("user_id", ids).eq("games.slug", ctx.gameSlug) : { data: [], error: null },
     (await getRequestClient()).rpc("clan_peer_nicknames", { p_clan_id: ctx.clanId }),
     (await getRequestClient()).from("clan_participants").select("user_id").eq("clan_id", ctx.clanId).eq("is_guest", true).not("user_id", "is", null),
   ]);
@@ -163,7 +164,7 @@ async function Members({ ctx }: Pick<Props, "ctx">) {
   const gamesById = new Map((gameProfiles.data ?? []).map((row) => [row.user_id, row]));
   const linkedCounts = new Map<string, number>();
   for (const link of links.data ?? []) if (link.user_id) linkedCounts.set(link.user_id, (linkedCounts.get(link.user_id) ?? 0) + 1);
-  const rows: ManageMemberRow[] = members.data.map((row) => ({ userId: row.user_id, nickname: byId.get(row.user_id)?.nickname ?? labels.get(row.user_id) ?? "—", gameTag: gamesById.get(row.user_id)?.game_uid.includes("#") ? gamesById.get(row.user_id)!.game_uid : null, linkedCount: linkedCounts.get(row.user_id) ?? 0, gameVerified: verified.has(row.user_id), role: row.role, joinedLabel: new Date(row.joined_at).toLocaleDateString("ko-KR"), lastActivityAt: row.last_activity_at ?? row.joined_at, actions: { canKick: row.role === "leader" ? false : row.role === "officer" ? kickOfficer : kickMember, canPromote: row.role === "member" && ctx.role === "leader", canDemote: row.role === "officer" && ctx.role === "leader" } }));
+  const rows: ManageMemberRow[] = members.data.map((row) => ({ userId: row.user_id, nickname: byId.get(row.user_id)?.nickname ?? labels.get(row.user_id) ?? "—", gameTag: profileBattleTag(gamesById.get(row.user_id)), linkedCount: linkedCounts.get(row.user_id) ?? 0, gameVerified: verified.has(row.user_id), role: row.role, joinedLabel: new Date(row.joined_at).toLocaleDateString("ko-KR"), lastActivityAt: row.last_activity_at ?? row.joined_at, actions: { canKick: row.role === "leader" ? false : row.role === "officer" ? kickOfficer : kickMember, canPromote: row.role === "member" && ctx.role === "leader", canDemote: row.role === "officer" && ctx.role === "leader" } }));
   return <div className="space-y-4"><section className={panel}><p className="mb-4 text-xs text-muted-foreground">활동 멤버 {rows.length}명</p><ManageMembersTable gameSlug={ctx.gameSlug} clanId={ctx.clanId} rows={rows} /></section><ClanParticipantData clanId={ctx.clanId} gameSlug={ctx.gameSlug} /></div>;
 }
 

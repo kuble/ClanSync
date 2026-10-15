@@ -79,9 +79,9 @@ test("guest records accumulate, require staff approval and revert without moving
       p_record: { playedAt: "2026-10-01T10:00:00Z", occurredAt: "2026-10-01T10:00:00Z", mapLabel: "일리오스", outcome: "team1", players: [{ userId: f.users[1].id, team: 1, role: "tank" }, { userId: f.users[0].id, team: 2, role: "tank" }] } as Json }));
     await page.reload();
     await page.getByRole("button", { name: `${f.users[1].nickname} 이전 기록 관리`, exact: true }).first().click();
-    const dialog = page.getByRole("dialog", { name: "이전 내전 기록 연결", exact: true });
+    const dialog = page.getByRole("dialog", { name: "이전 내전 기록", exact: true });
     await dialog.getByRole("button", { name: "연결 해제", exact: true }).click();
-    await page.getByRole("dialog", { name: "기록 연결 해제", exact: true }).getByRole("button", { name: "연결 해제", exact: true }).click();
+    await page.getByRole("dialog", { name: "이전 기록 연결을 해제할까요?", exact: true }).getByRole("button", { name: "연결 해제", exact: true }).click();
     await expect(page.getByRole("dialog")).toBeHidden();
     expect(await played(guest!)).toBe(2);
     expect(await played(f.users[1].id)).toBe(2);
@@ -105,7 +105,7 @@ test("guest registration is reusable in the live roster and conflicting identiti
     const dialog = page.getByRole("dialog", { name: "미가입 참가자 추가", exact: true });
     await dialog.getByLabel("참가자 게임 닉네임").fill("AIMZERO");
     await expect(dialog.getByRole("textbox")).toHaveCount(1);
-    await dialog.getByRole("button", { name: "참가자 저장", exact: true }).click(); await expect(dialog).toBeHidden();
+    await dialog.getByRole("button", { name: "참가자 추가", exact: true }).click(); await expect(dialog).toBeHidden();
     const guest = (await ok(f.service.from("clan_participants").select("id").eq("clan_id", f.clanId).eq("nickname", "AIMZERO").single()))!;
     const leader = await f.memberClient(0), member = await f.memberClient(1);
     const currentRound = await f.activeRound();

@@ -68,7 +68,7 @@ export function ManageMembersTable({
   const filtered = rows.filter(
     (row) =>
       (filter === "all" || activity(row) === filter) &&
-      row.nickname
+      `${row.nickname} ${row.gameTag ?? ""}`
         .toLocaleLowerCase()
         .includes(query.toLocaleLowerCase()),
   );
@@ -210,6 +210,7 @@ export function ManageMembersTable({
                   >
                     {m.nickname}
                   </Link>
+                  {m.gameTag && <p className="mt-1 text-xs font-normal text-muted-foreground">{m.gameTag}</p>}
                 </td>
                 <td className="px-3 py-2 text-xs">
                   <span className={`whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-medium ${m.gameVerified ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{m.gameVerified ? "인증 완료" : "미인증"}</span>
