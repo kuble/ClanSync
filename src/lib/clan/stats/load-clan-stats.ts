@@ -19,6 +19,8 @@ import { canViewPersonalRecords, restrictPersonalStats, type PersonalScore, type
 import type { ClanMemberRole } from "../permission-defaults";
 import { readStatsSummary, readStatsRecords, EMPTY_STATS_AGGREGATE, type StatsAggregate, type StatsSummary } from "./stats-read-model";
 import { collectHofEmblems, type HofEmblem } from "./hof-emblems";
+import { profileBattleTag } from "@/lib/game-auth/battle-tag";
+import type { PlayerProfile } from "../player-profile";
 import { personalPredictions, predictionTotals, predictionPointHistory, type PredictionRecord, type PredictionPointDay } from "./clan-prediction-stats";
 
 import {
@@ -124,7 +126,7 @@ export type ClanStatsPageModel = {
   personal: {
     viewerId: string;
     canSeePeers: boolean;
-    people: { userId: string; nickname: string; lastPlayedAt?: string | null; matches: PersonalMatch[]; scores?: PersonalScore[]; visibleSections?: PersonalStatsSection[]; predictions: ReturnType<typeof personalPredictions>; predictionPoints: PredictionPointDay[]; emblems?: HofEmblem[] }[];
+    people: { userId: string; nickname: string; profile?: PlayerProfile; lastPlayedAt?: string | null; matches: PersonalMatch[]; scores?: PersonalScore[]; visibleSections?: PersonalStatsSection[]; predictions: ReturnType<typeof personalPredictions>; predictionPoints: PredictionPointDay[]; emblems?: HofEmblem[] }[];
   };
   summary: {
     totalMatches: number;
@@ -429,7 +431,7 @@ async function loadClanStatsSource(
     await Promise.all([
       supabase
         .from("clans")
-        .select("id, created_at")
+        .select("id, game_id, created_at")
         .eq("id", clanId)
         .maybeSingle(),
       supabase
@@ -544,6 +546,25 @@ async function loadClanStatsSource(
 }
 
 type StatsSource = NonNullable<Awaited<ReturnType<typeof loadClanStatsSource>>>;
+
+/** Call only after personalAccess has limited IDs to this viewer's permitted people. */
+async function loadPersonalProfiles(source: StatsSource, ids: string[]) {
+  const profiles = new Map<string, PlayerProfile>();
+  if (!ids.length) return profiles;
+  const svc = createServiceRoleClient();
+  for (let offset = 0; offset < ids.length; offset += 200) {
+    const batch = ids.slice(offset, offset + 200);
+    const [users, games] = await Promise.all([
+      svc.from("users").select("id,birth_year,gender").in("id", batch),
+      svc.from("user_game_profiles").select("user_id,battle_tag,game_uid").eq("game_id", source.clan.game_id).in("user_id", batch),
+    ]);
+    if (users.error || games.error) throw new Error("플레이어 정보를 불러오지 못했습니다.");
+    const tags = new Map(games.data.map((row) => [row.user_id, profileBattleTag(row)]));
+    for (const user of users.data) profiles.set(user.id, { battleTag: tags.get(user.id) ?? null, birthYear: user.birth_year, gender: user.gender });
+  }
+  return profiles;
+}
+
 export type ClanPersonalStats = ClanStatsPageModel["personal"]["people"][number];
 export type ClanStatsDetail = { kind: "personal"; person: ClanPersonalStats }
   | { kind: "archive"; archive: ClanStatsPageModel["archive"] }
@@ -637,7 +658,7 @@ export async function loadClanStatsDetail(supabase: SupabaseClient<Database>, us
   const access = personalAccess(source, userId, nick);
   if (!access.peopleIds.includes(personId)) return null;
   const historyClient: SupabaseClient<Database> = createServiceRoleClient();
-  const [records, picks, ledger, emblems] = await Promise.all([
+  const [records, picks, ledger, emblems, profiles] = await Promise.all([
     readStatsRecords(clanId, { userId: personId }),
     loadAllStatsRows((from, to) => historyClient.from("balance_session_predictions")
       .select("user_id,pick_team,pool_settlement,balance_sessions!inner(id,clan_id,opened_at,resolved_map_label,match_outcome,balance_session_series!inner(opened_at,balance_rooms!inner(kind)))")
@@ -645,6 +666,7 @@ export async function loadClanStatsDetail(supabase: SupabaseClient<Database>, us
       .eq("balance_sessions.balance_session_series.balance_rooms.kind", "regular").order("session_id").range(from, to)),
     loadPredictionLedger(supabase, clanId, personId, source.role !== "member"),
     loadPersonalEmblems(source, clanId, personId),
+    loadPersonalProfiles(source, [personId]),
   ]);
   const predictions: PredictionRecord[] = picks.map((pick) => ({
     userId: personId, sessionId: pick.balance_sessions.id, pickTeam: pick.pick_team,
@@ -653,7 +675,7 @@ export async function loadClanStatsDetail(supabase: SupabaseClient<Database>, us
   }));
   const matches = buildPersonalMatches(records, personId, nick, source.permissions.viewSynergy && source.role !== "member");
   return { kind: "personal", person: personalForViewer(source, userId, {
-    userId: personId, nickname: nick.get(personId) ?? "나", lastPlayedAt: matches[0]?.occurredAt ?? null, matches,
+    userId: personId, nickname: nick.get(personId) ?? "나", profile: profiles.get(personId), lastPlayedAt: matches[0]?.occurredAt ?? null, matches,
     predictions: personalPredictions(predictions, personId), predictionPoints: predictionPointHistory(predictions, ledger, personId), emblems,
   }) };
 }
@@ -733,12 +755,13 @@ async function loadClanStatsOverview(supabase: SupabaseClient<Database>, userId:
   const { periods, directory } = await readStatsSummary(clanId, ["all", String(year), monthKey]);
   const all = periods.all ?? EMPTY_STATS_AGGREGATE;
   const nick = buildNickMap(source.nickRows), access = personalAccess(source, userId, nick);
+  const profiles = await loadPersonalProfiles(source, access.peopleIds);
   const lastPlayed = new Map(all.players.map((p) => [p.userId, p.lastPlayedAt]));
   return {
     clanId, statsSettings: statsSettings(source), deferredDetails: true, deferredPeriods: true, periodDirectory: directory,
     intra: buildIntraStats([], []), intraPeriods: source.permissions.viewIntraStats ? { all: all.overview, ...Object.fromEntries(Object.entries(periods).map(([key, value]) => [key, value.overview])) } : {},
     personal: { viewerId: userId, canSeePeers: source.permissions.viewSynergy && source.role !== "member", people: access.peopleIds.map((id) => personalForViewer(source, userId, {
-      userId: id, nickname: nick.get(id) ?? (id === userId ? "나" : "탈퇴한 멤버"), lastPlayedAt: lastPlayed.get(id) ?? null,
+      userId: id, nickname: nick.get(id) ?? (id === userId ? "나" : "탈퇴한 멤버"), profile: profiles.get(id), lastPlayedAt: lastPlayed.get(id) ?? null,
       matches: [], predictions: [], predictionPoints: [],
     })) },
     summary: { ...all.summary, memberCount: source.memberCount ?? 0, clanCreatedAt: source.clan.created_at },
@@ -879,9 +902,11 @@ export async function loadClanStatsPageFromRecords(
   for (const match of matches.filter(isCompletedIntra)) for (const player of match.match_players) {
     if (!lastPlayed.has(player.user_id)) lastPlayed.set(player.user_id, match.occurred_at);
   }
+  const profiles = await loadPersonalProfiles(source, peopleIds);
   const personal = peopleIds.map((id) => ({
     userId: id,
     nickname: nick.get(id) ?? (id === userId ? "나" : "탈퇴한 멤버"),
+    profile: profiles.get(id),
     lastPlayedAt: lastPlayed.get(id) ?? null,
     matches: options?.deferDetails ? [] : buildPersonalMatches(matches, id, nick, viewSynergy && role !== "member", peerCache),
     // peopleIds restricts peers to authorized staff; the ledger RPC itself
