@@ -38,7 +38,7 @@ test("join approval recommends BattleTag candidates, searches old names, links r
     await page.getByRole("button", { name: "미가입 참가자 추가", exact: true }).click();
     let dialog = page.getByRole("dialog", { name: "미가입 참가자 추가", exact: true });
     await expect(dialog.getByRole("textbox")).toHaveCount(1);
-    await dialog.getByLabel("참가자 게임 닉네임").fill("AIMZERO");
+    await dialog.getByLabel("인게임 닉네임").fill("AIMZERO");
     await dialog.getByRole("button", { name: "참가자 추가", exact: true }).click();
     await expect(dialog).toBeHidden();
     const first = (await ok(f.service.from("clan_participants").select("id,alias").eq("clan_id", f.clanId).eq("nickname", "AIMZERO").single()))!;
@@ -48,7 +48,7 @@ test("join approval recommends BattleTag candidates, searches old names, links r
     await expect(edit.locator("svg")).toHaveCount(1);
     await edit.click();
     const editor = page.getByRole("dialog", { name: "참가자 닉네임 수정", exact: true });
-    await expect(editor.getByLabel("참가자 게임 닉네임")).toHaveValue("AIMZERO");
+    await expect(editor.getByLabel("인게임 닉네임")).toHaveValue("AIMZERO");
     await editor.getByRole("button", { name: "취소", exact: true }).click();
     const duplicate = (await ok(leader.rpc("save_clan_participant", { p_clan_id: f.clanId, p_id: nil, p_nickname: "aimzero", p_alias: nil })))!;
     const renamed = (await ok(leader.rpc("save_clan_participant", { p_clan_id: f.clanId, p_id: nil, p_nickname: "오래전이름", p_alias: nil })))!;

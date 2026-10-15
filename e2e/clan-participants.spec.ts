@@ -103,7 +103,7 @@ test("guest registration is reusable in the live roster and conflicting identiti
     await createAndEnterBalanceRoom(page, f.path);
     await page.getByRole("button", { name: "미가입 참가자 추가", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "미가입 참가자 추가", exact: true });
-    await dialog.getByLabel("참가자 게임 닉네임").fill("AIMZERO");
+    await dialog.getByLabel("인게임 닉네임").fill("AIMZERO");
     await expect(dialog.getByRole("textbox")).toHaveCount(1);
     await dialog.getByRole("button", { name: "참가자 추가", exact: true }).click(); await expect(dialog).toBeHidden();
     const guest = (await ok(f.service.from("clan_participants").select("id").eq("clan_id", f.clanId).eq("nickname", "AIMZERO").single()))!;
