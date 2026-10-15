@@ -87,13 +87,16 @@ test("room ownership, reservations, delegation and scheduler stay scoped", async
     const roster = { team1: { tank: ids[0], dmg: ids.slice(1, 3), sup: ids.slice(3, 5) }, team2: { tank: ids[5], dmg: ids.slice(6, 8), sup: ids.slice(8, 10) } };
     assert.equal((await ok(creator.client.from("balance_sessions").update({ roster }).eq("id", ownedRound.id).select("id"))).length, 1);
     let current = await ok(readRound(owned.series_id));
+    const auctionCatalog = { excludedItemIds: [], items: [{ id: randomUUID(), name: "깜짝 전용 선택권", description: "이 방에서만 사용", cost: 70, enabled: true }] };
     const settingsArgs = { p_round_id: current.id, p_clan_id: clanId, p_revision: current.formation_revision,
-      p_settings: current.formation_settings, p_map_ban: false, p_hero_ban: false, p_map_ban_seconds: 25, p_hero_ban_seconds: 30, p_map_types: ["hybrid"] };
+      p_settings: { ...current.formation_settings, auctionCatalog }, p_map_ban: false, p_hero_ban: false, p_map_ban_seconds: 25, p_hero_ban_seconds: 30, p_map_types: ["hybrid"] };
     await denied(other.client.rpc("set_balance_prematch_settings", settingsArgs));
     assert.equal(await ok(creator.client.rpc("set_balance_prematch_settings", settingsArgs)), true);
     current = await ok(readRound(owned.series_id));
     const state = { version: 1, mode: "keep", stage: "complete", players: ids.map((id) => ({ id })), order: ids, captains: [], roster, sourceRoster: roster, remaining: [], log: [] };
     assert.equal(await ok(svc.rpc("commit_balance_formation", { p_round_id: current.id, p_clan_id: clanId, p_revision: current.formation_revision, p_state: state, p_roster: roster, p_actor_id: creator.id, p_command: "start" })), true);
+    const locked = await ok(readRound(owned.series_id));
+    await denied(creator.client.rpc("set_balance_prematch_settings", { ...settingsArgs, p_revision: locked.formation_revision, p_settings: { ...locked.formation_settings, auctionCatalog: { ...auctionCatalog, items: [] } } }));
     await ok(creator.client.from("balance_sessions").update({ resolved_map_label: "왕의 길" }).eq("id", current.id));
     await ok(creator.client.from("balance_sessions").update({ phase: "match_live" }).eq("id", current.id));
     assert.equal((await ok(other.client.rpc("set_balance_match_outcome", { p_session_id: current.id, p_outcome: "void" }))).ok, false);
@@ -102,6 +105,7 @@ test("room ownership, reservations, delegation and scheduler stay scoped", async
     assert.equal(nexts.filter((r) => !r.error).length, 1);
     current = await ok(readRound(owned.series_id));
     assert.equal(current.round_number, 2);
+    assert.deepEqual(current.formation_settings.auctionCatalog, auctionCatalog);
     assert.equal(current.map_ban_seconds, 25);
     assert.deepEqual(current.map_types, ["hybrid"]);
     await ok(creator.client.rpc("close_balance_session_series", { p_clan_id: clanId, p_round_id: current.id }));

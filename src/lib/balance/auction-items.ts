@@ -8,6 +8,45 @@ export type AuctionItem = {
 
 export type ClanAuctionItem = AuctionItem & { enabled: boolean };
 
+/** Stored per room; shared catalog entries stay authoritative. */
+export type RoundAuctionCatalog = { excludedItemIds: string[]; items: ClanAuctionItem[] };
+
+const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export function validateRoundAuctionCatalog(value: unknown): asserts value is RoundAuctionCatalog | undefined {
+  if (value === undefined) return;
+  const catalog = value as RoundAuctionCatalog | null;
+  if (!catalog || typeof catalog !== "object" || !Array.isArray(catalog.items) ||
+    !Array.isArray(catalog.excludedItemIds) || catalog.items.length > 30 || catalog.excludedItemIds.length > 100 ||
+    catalog.excludedItemIds.some((id) => typeof id !== "string" || !uuid.test(id)) ||
+    new Set(catalog.excludedItemIds).size !== catalog.excludedItemIds.length ||
+    catalog.items.some((item) => !item || typeof item.id !== "string" || !uuid.test(item.id) || auctionItemValidationError(item)) ||
+    new Set(catalog.items.map((item) => item.id)).size !== catalog.items.length ||
+    new Set(catalog.items.map((item) => item.name.trim().toLowerCase())).size !== catalog.items.length)
+    throw new Error("아이템 목록을 확인하세요. 내전 전용 아이템은 최대 30개까지 등록할 수 있습니다.");
+}
+
+export function normalizeRoundAuctionCatalog(catalog: RoundAuctionCatalog): RoundAuctionCatalog {
+  return {
+    excludedItemIds: [...catalog.excludedItemIds].sort(),
+    items: catalog.items.map(({ id, name, description, cost, enabled }) => ({
+      id, name: name.trim(), description: description.trim(), cost, enabled,
+    })).sort((a, b) => a.id.localeCompare(b.id)),
+  };
+}
+
+export function sameRoundAuctionCatalog(a?: RoundAuctionCatalog, b?: RoundAuctionCatalog) {
+  const empty = { items: [], excludedItemIds: [] };
+  return JSON.stringify(normalizeRoundAuctionCatalog(a ?? empty)) === JSON.stringify(normalizeRoundAuctionCatalog(b ?? empty));
+}
+
+export function effectiveAuctionItems(shared: ClanAuctionItem[], catalog?: RoundAuctionCatalog): AuctionItem[] {
+  const excluded = new Set(catalog?.excludedItemIds);
+  const sharedIds = new Set(shared.map((item) => item.id));
+  if (catalog?.items.some((item) => sharedIds.has(item.id))) throw new Error("기본 아이템의 내용은 내전 전용 아이템으로 덮어쓸 수 없습니다.");
+  return [...shared.filter((item) => item.enabled && !excluded.has(item.id)), ...(catalog?.items.filter((item) => item.enabled) ?? [])]
+    .map(({ id, name, description, cost }) => ({ id, name, description, cost }));
+}
+
 export const AUCTION_ITEM_EXAMPLES: Omit<ClanAuctionItem, "id">[] = [
   {
     name: "맵 선정권",

@@ -3,7 +3,7 @@ import {
   rosterAssignedUserIds,
   type BalanceRoster,
 } from "./roster-schema";
-import type { AuctionItem } from "./auction-items";
+import { sameRoundAuctionCatalog, validateRoundAuctionCatalog, type AuctionItem, type RoundAuctionCatalog } from "./auction-items";
 
 export type Role = "tank" | "dmg" | "sup";
 export type Team = "team1" | "team2";
@@ -29,6 +29,7 @@ export type FormationSetup = {
   auctionPreparationSeconds?: number;
   bidExtensionSeconds?: number;
   auctionItemsEnabled?: boolean;
+  auctionCatalog?: RoundAuctionCatalog;
   strategySeconds?: number;
 };
 export type FormationSettings = Omit<FormationSetup, "preferences" | "showPlayerCardScore" | "showPlayerCardInfo" | "showTeamComparisonSummary" | "teamComparisonMode" | "showPlayerSessionSummary" | "playerCardInfo"> & {
@@ -86,6 +87,7 @@ export function sameFormationSettings(left: unknown, right: unknown): boolean {
     a.auctionPreparationSeconds === b.auctionPreparationSeconds &&
     a.bidExtensionSeconds === b.bidExtensionSeconds &&
     a.auctionItemsEnabled === b.auctionItemsEnabled &&
+    sameRoundAuctionCatalog(a.auctionCatalog, b.auctionCatalog) &&
     a.strategySeconds === b.strategySeconds &&
     a.showPlayerCardScore === b.showPlayerCardScore &&
     a.showPlayerCardInfo === b.showPlayerCardInfo &&
@@ -101,6 +103,7 @@ export function sameFormationSettings(left: unknown, right: unknown): boolean {
 }
 
 export function validateFormationSettings(value: FormationSettings): void {
+  validateRoundAuctionCatalog(value.auctionCatalog);
   if (!Number.isSafeInteger(value.predictionMinutes) || value.predictionMinutes < 1 || value.predictionMinutes > 10)
     throw new Error("승부예측 마감 시간은 1~10분 사이 정수로 입력하세요.");
   if (

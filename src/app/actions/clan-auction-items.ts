@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
+import { canManageRound } from "@/lib/balance/room-access";
 import {
   AUCTION_ITEM_EXAMPLES,
   auctionItemValidationError,
@@ -10,6 +11,28 @@ import {
 } from "@/lib/balance/auction-items";
 
 type Result = { ok: true } | { ok: false; error: string };
+
+export async function loadRoundAuctionCatalogAction(gameSlug: string, clanId: string, roundId: string): Promise<
+  { ok: true; items: ClanAuctionItem[]; flash: boolean; canEditShared: boolean } | { ok: false; error: string }
+> {
+  try {
+    const client = await createClient();
+    const { data: { user } } = await client.auth.getUser();
+    if (!user || !await canManageRound(client, user.id, clanId, roundId))
+      return { ok: false, error: "이 내전을 관리할 권한이 없습니다." };
+    const { data: round } = await client.from("balance_sessions").select("series_id").eq("id", roundId).eq("clan_id", clanId).single();
+    if (!round) return { ok: false, error: "내전을 찾을 수 없습니다." };
+    const [room, catalog, ctx] = await Promise.all([
+      client.from("balance_rooms").select("kind").eq("id", round.series_id).eq("clan_id", clanId).single(),
+      client.from("clan_auction_items").select("id,name,description,cost,enabled").eq("clan_id", clanId).order("created_at"),
+      loadMainClanContext(client, user.id, gameSlug, clanId),
+    ]);
+    if (room.error || catalog.error || !ctx) throw new Error("아이템 목록을 불러오지 못했습니다.");
+    return { ok: true, items: catalog.data, flash: room.data.kind === "flash", canEditShared: room.data.kind === "regular" && ctx.role !== "member" };
+  } catch {
+    return { ok: false, error: "아이템 목록을 불러오지 못했습니다. 다시 시도해 주세요." };
+  }
+}
 
 async function officerContext(gameSlug: string, clanId: string) {
   const supabase = await createClient();

@@ -22,6 +22,7 @@ import {
   type BanSettings,
 } from "@/lib/balance/prematch";
 import { canManageRound } from "@/lib/balance/room-access";
+import { effectiveAuctionItems, normalizeRoundAuctionCatalog } from "@/lib/balance/auction-items";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import type { Json } from "@/lib/supabase/database.types";
@@ -147,8 +148,8 @@ export async function updateFormationAction(
       const { data: auctionItems, error: itemsError } =
         settings.teams === "auction" && settings.auctionItemsEnabled
           ? await client.from("clan_auction_items")
-              .select("id,name,description,cost")
-              .eq("clan_id", clanId).eq("enabled", true)
+              .select("id,name,description,cost,enabled")
+              .eq("clan_id", clanId)
           : { data: [], error: null };
       if (itemsError) throw new Error("경매 아이템을 불러오지 못했습니다.");
       next = createFormation(
@@ -162,7 +163,7 @@ export async function updateFormationAction(
             settings.roles === "lottery" ? ROLE_DRAW_DURATION_MS : 4000,
           roleMode: settings.roles,
         },
-        auctionItems ?? [],
+        effectiveAuctionItems(auctionItems ?? [], settings.auctionCatalog),
       );
       if (next.players.some((p) => !valid.has(p.id)))
         throw new Error("탈퇴 또는 게임 연결이 해제된 출전자를 교체하세요.");
@@ -287,6 +288,7 @@ export async function updateFormationSettingsAction(
       predictionMinutes: settings.predictionMinutes,
       playerCardInfo: settings.playerCardInfo,
       ...(settings.captains ? { captains: settings.captains } : {}),
+      ...(settings.auctionCatalog ? { auctionCatalog: normalizeRoundAuctionCatalog(settings.auctionCatalog) } : {}),
     };
     const nextBans = banSettings ?? parseBanSettings(round);
     const banError = validateBanSettings(nextBans);

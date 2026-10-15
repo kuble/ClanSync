@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { computeBalancePredictionDeadlineIso } from "../src/lib/balance/prediction-deadline";
+import { effectiveAuctionItems, validateRoundAuctionCatalog } from "../src/lib/balance/auction-items";
 import {
   advanceFormation,
   AUCTION_AWARD_DURATION_MS,
@@ -31,6 +32,25 @@ const member = { id: "member", manager: false };
 const keepOrder = (max: number) => max - 1;
 const chooseFirst = () => 0;
 const startTime = 100_000;
+
+test("room item choices keep shared prices authoritative and snapshot custom items", () => {
+  const id = (n: number) => `10000000-0000-0000-0000-${String(n).padStart(12, "0")}`;
+  const shared = [1, 2, 3, 4].map((n) => ({ id: id(n), name: `shared ${n}`, description: "shared rules", cost: n * 10, enabled: n !== 4 }));
+  const custom = { id: id(5), name: "room", description: "room rules", cost: 70, enabled: true };
+  const catalog = { excludedItemIds: [id(2)], items: [custom] };
+  validateRoundAuctionCatalog(catalog);
+  const selected = effectiveAuctionItems(shared, catalog);
+  expect(selected.map((item) => item.id)).toEqual([id(1), id(3), id(5)]);
+  const state = createFormation(roster, { roles: "manual", teams: "auction", auctionItemsEnabled: true, auctionCatalog: catalog }, keepOrder, undefined, selected);
+  shared[0].cost = 900;
+  custom.cost = 800;
+  expect(state.strategy!.items.map((item) => item.cost)).toEqual([10, 30, 70]);
+  expect(sameFormationSettings({ auctionCatalog: catalog }, { auctionCatalog: { ...catalog, items: [{ ...custom, cost: 90 }] } })).toBe(false);
+  expect(sameFormationSettings({}, { auctionCatalog: { excludedItemIds: [], items: [] } })).toBe(true);
+  expect(() => effectiveAuctionItems(shared, { ...catalog, items: [{ ...custom, id: id(1) }] })).toThrow(/덮어쓸/);
+  for (const invalid of [null, {}, { ...catalog, items: [{ ...custom, cost: 15 }] }, { ...catalog, items: [custom, custom] }, { ...catalog, excludedItemIds: ["invalid"] }, { ...catalog, items: [{ ...custom, name: " " }] }])
+    expect(() => validateRoundAuctionCatalog(invalid)).toThrow(/아이템/);
+});
 
 test("settings baseline compares rule values independently of JSON property order", () => {
   const left = { roles: "manual", teams: "auction", auctionBudget: 2000, minBid: 50, durationSeconds: 30, captains: ["a", "b"] };

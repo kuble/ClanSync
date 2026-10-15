@@ -20,6 +20,7 @@ test("auction item catalog isolates clans and limits writes to active officers",
   const users = [];
   const clanIds = [];
   t.after(async () => {
+    for (const id of clanIds) await ok(svc.from("balance_sessions").delete().eq("clan_id", id));
     for (const id of clanIds) await ok(svc.from("clans").delete().eq("id", id));
     for (const user of users) {
       await ok(user.client.auth.signOut());
@@ -85,4 +86,43 @@ test("auction item catalog isolates clans and limits writes to active officers",
   assert.deepEqual(await ok(officer.client.from("clan_auction_items").update({ cost: 0 }).eq("id", created.id).select("id")), []);
   assert.deepEqual(await ok(officer.client.from("clan_auction_items").delete().eq("id", created.id).select("id")), []);
   assert.equal((await ok(leader.client.from("clan_auction_items").delete().eq("id", created.id).select("id"))).length, 1);
+
+  await t.test("flash hosts configure room items without changing shared defaults or other rooms", async () => {
+    const shared = await ok(leader.client.from("clan_auction_items").insert(values).select("id,name,description,cost,enabled").single());
+    const createRoom = (client, kind) => ok(client.rpc("create_balance_room", { p_clan_id: clanId, p_kind: kind, p_title: `Item-${kind}-${tag}` }));
+    const flash = await createRoom(member.client, "flash");
+    const regular = await createRoom(leader.client, "regular");
+    const read = (series) => ok(svc.from("balance_sessions").select("*").eq("series_id", series).is("closed_at", null).single());
+    const save = async (catalog, client = member.client, series = flash.series_id, revision) => {
+      const row = await read(series);
+      return client.rpc("set_balance_prematch_settings", {
+        p_round_id: row.id, p_clan_id: clanId, p_revision: revision ?? row.formation_revision,
+        p_settings: { ...row.formation_settings, auctionCatalog: catalog },
+        p_map_ban: row.map_ban_enabled, p_hero_ban: row.hero_ban_enabled,
+        p_map_ban_seconds: row.map_ban_seconds, p_hero_ban_seconds: row.hero_ban_seconds,
+        p_hero_bans_per_team: row.hero_bans_per_team, p_map_types: row.map_types,
+      });
+    };
+    const item = { id: randomUUID(), name: "깜짝 전용", description: "이 방에서만 사용", cost: 70, enabled: true };
+    const catalog = { excludedItemIds: [shared.id], items: [item] };
+    const before = await read(flash.series_id);
+    assert.equal(await ok(save(catalog)), true);
+    assert.deepEqual((await read(flash.series_id)).formation_settings.auctionCatalog, catalog);
+    assert.equal(await ok(save({ ...catalog, items: [] }, member.client, flash.series_id, before.formation_revision)), false);
+    assert.ok((await save(catalog, outsider.client)).error);
+    assert.ok((await save(catalog, leader.client, regular.series_id)).error);
+    for (const invalid of [null, {}, { ...catalog, items: [{ ...item, cost: 15 }] }, { ...catalog, items: [{ ...item, id: shared.id }] },
+      { ...catalog, items: [item, item] }, { ...catalog, excludedItemIds: ["invalid"] }, { ...catalog, items: [{ ...item, name: " " }] },
+      { ...catalog, items: Array.from({ length: 31 }, (_, n) => ({ ...item, id: randomUUID(), name: `item${n}` })) }]) {
+      assert.ok((await save(invalid)).error, JSON.stringify(invalid));
+    }
+    const second = await createRoom(member.client, "flash");
+    assert.equal((await read(second.series_id)).formation_settings.auctionCatalog, undefined);
+    await ok(svc.from("clan_members").update({ role: "member", status: "active" }).eq("clan_id", clanId).eq("user_id", officer.id));
+    const hostRound = await read(flash.series_id);
+    assert.equal(await ok(officer.client.rpc("can_manage_balance_round", { p_round_id: hostRound.id, p_clan_id: clanId })), false);
+    assert.ok((await save(catalog, officer.client)).error);
+    assert.deepEqual(await ok(member.client.from("clan_auction_items").select("id,name,description,cost,enabled").eq("clan_id", clanId)), [shared]);
+    assert.ok((await member.client.from("clan_auction_items").update({ cost: 0 }).eq("id", shared.id).select("id")).data.length === 0);
+  });
 });
