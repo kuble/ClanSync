@@ -196,7 +196,9 @@ test("management sections preserve navigation, pending counts and officer/member
     await expect(nav.getByRole("link", { name: "가입 요청 1", exact: true })).toBeVisible();
     await nav.getByRole("link", { name: "가입 요청 1", exact: true }).click();
     await page.getByTestId(`manage-join-approve-${request.data!.id}`).click();
-    await page.getByRole("dialog", { name: "클랜 가입 승인", exact: true }).getByRole("button", { name: "가입 승인", exact: true }).click();
+    const joinDialog = page.getByRole("dialog", { name: "클랜 가입 승인", exact: true });
+    await joinDialog.getByRole("radio", { name: "연결 없이 가입", exact: true }).check();
+    await joinDialog.getByRole("button", { name: "가입 승인", exact: true }).click();
     await expect(page.getByText("대기 중인 가입 신청이 없습니다.", { exact: true })).toBeVisible();
     await expect(nav.getByRole("link", { name: "가입 요청", exact: true })).toBeVisible();
     await expect.poll(async () => (await f.service.from("clan_members").select("status").eq("clan_id", f.clanId).eq("user_id", f.users[2].id).single()).data?.status).toBe("active");

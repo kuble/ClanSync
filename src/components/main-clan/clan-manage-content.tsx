@@ -134,13 +134,13 @@ async function Requests({ ctx }: Pick<Props, "ctx">) {
   if (requests.error) throw new Error("가입 요청을 불러오지 못했습니다.");
   const ids = [...new Set(requests.data.map((row) => row.user_id))];
   const [profiles, gameProfiles] = await Promise.all([
-    ids.length ? svc.from("users").select("id,nickname").in("id", ids) : { data: [], error: null },
+    ids.length ? svc.from("users").select("id,nickname,birth_year,gender").in("id", ids) : { data: [], error: null },
     ids.length ? svc.from("user_game_profiles").select("user_id,game_uid,battle_tag,is_verified,games!inner(slug)").in("user_id", ids).eq("games.slug", ctx.gameSlug) : { data: [], error: null },
   ]);
   if (profiles.error || gameProfiles.error) throw new Error("신청자 정보를 불러오지 못했습니다.");
   const byId = new Map((profiles.data ?? []).map((row) => [row.id, row]));
   const gamesById = new Map((gameProfiles.data ?? []).map((row) => [row.user_id, row]));
-  return <section className={panel}><p className="mb-4 text-xs text-muted-foreground">{requests.data.length}건 대기</p><ManageJoinRequestsPanel gameSlug={ctx.gameSlug} clanId={ctx.clanId} rows={requests.data.map((row) => ({ id: row.id, userId: row.user_id, message: row.message ?? "", appliedAt: row.applied_at, nickname: byId.get(row.user_id)?.nickname ?? "—", gameTag: profileBattleTag(gamesById.get(row.user_id)), gameVerified: gamesById.get(row.user_id)?.is_verified ?? false }))} /></section>;
+  return <section className={panel}><p className="mb-4 text-xs text-muted-foreground">{requests.data.length}건 대기</p><ManageJoinRequestsPanel gameSlug={ctx.gameSlug} clanId={ctx.clanId} rows={requests.data.map((row) => ({ id: row.id, userId: row.user_id, message: row.message ?? "", appliedAt: row.applied_at, nickname: byId.get(row.user_id)?.nickname ?? "—", gameTag: profileBattleTag(gamesById.get(row.user_id)), gameVerified: gamesById.get(row.user_id)?.is_verified ?? false, profile: { birthYear: byId.get(row.user_id)?.birth_year ?? null, gender: byId.get(row.user_id)?.gender ?? null } }))} /></section>;
 }
 
 async function Members({ ctx }: Pick<Props, "ctx">) {

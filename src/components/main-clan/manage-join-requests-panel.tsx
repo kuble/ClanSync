@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ParticipantRecordDialog } from "./participant-record-dialog";
+import { playerProfileDetails, type PlayerDemographics } from "@/lib/clan/player-profile";
 
 const MANAGE_TOAST_DURATION_MS = 4800;
 const MANAGE_REFRESH_DELAY_MS = 2600;
@@ -23,6 +24,7 @@ export type ManageJoinRequestRow = {
   userId: string;
   gameTag: string | null;
   gameVerified: boolean;
+  profile: PlayerDemographics;
 };
 
 export function ManageJoinRequestsPanel({
@@ -94,6 +96,7 @@ export function ManageJoinRequestsPanel({
                 <p className="break-words font-semibold">{row.gameTag?.split("#")[0] ?? row.nickname}<span className="ml-1 text-sm font-normal text-muted-foreground">{row.gameTag?.includes("#") ? `#${row.gameTag.split("#")[1]}` : ""}</span></p>
                 <span className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] ${row.gameVerified ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}><ShieldCheck size={12} aria-hidden="true" />{row.gameVerified ? "게임 인증 완료" : "게임 미인증"}</span>
               </div>
+              <p className="mt-1 text-xs text-muted-foreground">{playerProfileDetails(row.profile)}</p>
               <p className="text-muted-foreground mt-1 text-xs">
                 신청일{" "}
                 {new Date(Date.parse(row.appliedAt) + 9 * 60 * 60 * 1000).toISOString().slice(0, 16).replace("T", " ")}
@@ -163,6 +166,6 @@ export function ManageJoinRequestsPanel({
           ) : null}
         </li>
       ))}
-    </ul>{approving && <ParticipantRecordDialog key={approving.id} clanId={clanId} gameSlug={gameSlug} userId={approving.userId} nickname={approving.nickname} gameTag={approving.gameTag} requestId={approving.id} onClose={() => setApproving(null)} />}</>
+    </ul>{approving && <ParticipantRecordDialog key={approving.id} clanId={clanId} gameSlug={gameSlug} userId={approving.userId} nickname={approving.nickname} gameTag={approving.gameTag} requestId={approving.id} profile={approving.profile} onClose={() => setApproving(null)} />}</>
   );
 }
