@@ -90,7 +90,9 @@ export function ClanAuctionItemSettings({ gameSlug, clanId, items, loadError = f
                 </div>
                 <span className="shrink-0 text-sm font-bold tabular-nums">{item.cost.toLocaleString("ko-KR")}<span className="ml-0.5 text-xs font-normal text-muted-foreground">pt</span></span>
                 <div className="col-span-2 flex items-center justify-end gap-1 sm:col-span-1">
-                  <button type="button" role="switch" aria-label={`${item.name} 사용`} aria-checked={item.enabled} disabled={pending} className={cn("rounded-md px-2 py-1 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50", item.enabled ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground")} onClick={() => run(() => saveClanAuctionItemAction(gameSlug, clanId, item.id, { name: item.name, description: item.description, cost: item.cost, enabled: !item.enabled }), item.enabled ? "아이템 사용을 껐습니다." : "아이템 사용을 켰습니다.")}>{item.enabled ? "사용 중" : "사용 안 함"}</button>
+                  <button type="button" role="switch" aria-label={`${item.name} 사용`} aria-checked={item.enabled} disabled={pending} className={cn("relative mr-1 h-6 w-11 shrink-0 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50", item.enabled ? "border-primary bg-primary" : "border-input bg-muted")} onClick={() => run(() => saveClanAuctionItemAction(gameSlug, clanId, item.id, { name: item.name, description: item.description, cost: item.cost, enabled: !item.enabled }), item.enabled ? "아이템 사용을 껐습니다." : "아이템 사용을 켰습니다.")}>
+                    <span aria-hidden="true" className={cn("absolute left-0.5 top-0.5 size-4 rounded-full bg-white shadow-sm transition-transform", item.enabled ? "translate-x-5" : "translate-x-0")} />
+                  </button>
                   <Button variant="ghost" size="icon-sm" aria-label={`${item.name} 수정`} disabled={pending} onClick={() => { setEditor(item); setDeleteId(null); }}><Pencil className="size-3.5" aria-hidden="true" /></Button>
                   <Button variant="ghost" size="icon-sm" aria-label={`${item.name} 삭제`} disabled={pending} onClick={() => setDeleteId(item.id)}><Trash2 className="size-3.5" aria-hidden="true" /></Button>
                 </div>
@@ -110,7 +112,6 @@ export function ClanAuctionItemSettings({ gameSlug, clanId, items, loadError = f
           <div className="flex flex-wrap items-center justify-between gap-3"><label className="flex items-center gap-2 text-sm"><input name="enabled" type="checkbox" className="accent-primary" defaultChecked={editor === "new" || editor.enabled} disabled={pending} />경매에 사용</label><div className="flex gap-2"><Button variant="ghost" type="button" disabled={pending} onClick={() => setEditor(null)}>취소</Button><Button type="submit" disabled={pending}>{pending ? "저장 중…" : "아이템 저장"}</Button></div></div>
         </form>
       )}
-      <p className="mt-4 text-xs leading-relaxed text-muted-foreground">변경 내용은 다음 경매부터 적용됩니다. 아이템 효과는 양 팀이 확인한 뒤 운영진이 직접 적용합니다.</p>
     </section>
   );
 }
