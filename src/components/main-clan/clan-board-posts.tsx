@@ -1,5 +1,4 @@
 "use client";
-import { HelpText } from "./help-text";
 import Image from "next/image";
 import Link from "next/link";
 import {useState} from "react";
@@ -13,19 +12,19 @@ import type {ClanCoach} from "@/lib/clan/coaching";
 import {cn} from "@/lib/utils";
 import styles from "./clan-collection.module.css";
 
-export function ClanBoardPosts({base,gameSlug,clanId,kind,title,description,posts,coaches=[],userId}:{base:string;gameSlug:string;clanId:string;kind:BoardKind;title:string;description:string;posts:BoardListPost[];coaches?:ClanCoach[];userId:string}){
+export function ClanBoardPosts({base,gameSlug,clanId,kind,title,posts,coaches=[],userId}:{base:string;gameSlug:string;clanId:string;kind:BoardKind;title:string;posts:BoardListPost[];coaches?:ClanCoach[];userId:string}){
   const [editing,setEditing]=useState(false),[coachId,setCoachId]=useState("");
   const available=coaches.filter(c=>c.userId!==userId&&c.accepting);
   const request=(id:string)=>{setCoachId(id);setEditing(true);};
-  return <div className="space-y-5">
-    <header className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-lg font-semibold tracking-tight"><HelpText label={title} help={description} /></h3></div><Button size="sm" disabled={kind==="feedback"&&!available.length} onClick={()=>{setCoachId("");setEditing(true);}}><Plus className="size-4" aria-hidden/>{kind==="memories"?"추억 남기기":kind==="feedback"?"피드백 신청":kind==="channels"?"채널 등록":"글 작성"}</Button></header>
+  return <section className="space-y-5" aria-label={title}>
+    <div className="flex justify-end"><Button size="sm" disabled={kind==="feedback"&&!available.length} onClick={()=>{setCoachId("");setEditing(true);}}><Plus className="size-4" aria-hidden/>{kind==="memories"?"추억 남기기":kind==="feedback"?"피드백 신청":kind==="channels"?"채널 등록":"글 작성"}</Button></div>
     {kind==="feedback"&&<ClanCoachDirectory coaches={coaches} userId={userId} gameSlug={gameSlug} clanId={clanId} onRequest={request}/>}
     {!posts.length?<div className={cn("flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-card p-6 text-center",kind==="memories"?"min-h-96":"min-h-64")}>{kind==="memories"?<Camera className="size-6 text-muted-foreground" aria-hidden/>:kind==="channels"?<Radio className="size-6 text-muted-foreground" aria-hidden/>:<MessageSquare className="size-6 text-muted-foreground" aria-hidden/>}<p className="text-sm">아직 등록된 {kind==="memories"?"추억":kind==="feedback"?"신청":kind==="channels"?"채널":"글"}이 없어요.</p><p className="text-xs text-muted-foreground">{kind==="feedback"?"선생님을 선택해 첫 피드백을 요청해 보세요.":kind==="channels"?"첫 방송 채널을 등록해 주세요.":"첫 이야기를 남겨 주세요."}</p></div>
       :kind==="memories"?<MemoryGallery base={base} posts={posts}/>
       :kind==="channels"?<div className="grid gap-4 lg:grid-cols-2">{posts.map(p=>{const d=boardDetails(p.details);return <article key={p.id} className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card"><div className="space-y-4 p-5"><div className="flex flex-wrap items-center justify-between gap-2"><ClanChannelStatus live={d.isLive===true}/><span className="text-[11px] text-muted-foreground">{boardChannels(d).length}개 플랫폼</span></div><Link prefetch={false} className="block break-words text-lg font-semibold leading-7 tracking-tight hover:text-primary" href={base+"/board/channels/"+p.id}>{p.title}</Link><div className="flex items-center gap-2 text-xs text-muted-foreground"><UserRound className="size-3.5 shrink-0" aria-hidden/><span className="truncate">{p.author}</span></div><div className="flex items-start gap-2 text-sm leading-6"><Clock3 className="mt-1 size-3.5 shrink-0 text-muted-foreground" aria-hidden/><p className="break-words">{d.schedule||"방송 시간 자유"}</p></div></div><div className="mt-auto border-t border-border bg-muted/15 p-4"><ClanChannelLinks channels={boardChannels(d)}/></div></article>;})}</div>
       :<BoardPostRows base={base} kind={kind} posts={posts}/>}
     {editing&&<ClanBoardEditor gameSlug={gameSlug} clanId={clanId} kind={kind} coaches={coaches.filter(c=>c.userId!==userId)} initialCoachId={coachId} onClose={()=>setEditing(false)}/>}
-  </div>;
+  </section>;
 }
 function BoardPostRows({base,kind,posts}:{base:string;kind:BoardKind;posts:BoardListPost[]}){
   const feedback=kind==="feedback";

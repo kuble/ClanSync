@@ -8,7 +8,7 @@ import {ArrowLeft,ArrowUpRight,Clock3,Heart,MessageSquare,Pencil,Send,Trash2} fr
 import {Button} from "@/components/ui/button";
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription,DialogFooter} from "@/components/ui/dialog";
 import {deleteBoardPostAction,saveBoardCommentAction,deleteBoardCommentAction,setBoardReactionAction,setBoardStatusAction,setChannelLiveAction} from "@/app/actions/clan-board";
-import {BOARD_SECTIONS,boardChannels,boardDetails,boardImageUrl,boardDate,safeBoardUrl,FEEDBACK_STATUS,type BoardKind,type BoardPost,type BoardComment} from "@/lib/clan/board";
+import {boardChannels,boardDetails,boardImageUrl,boardDate,safeBoardUrl,FEEDBACK_STATUS,type BoardKind,type BoardPost,type BoardComment} from "@/lib/clan/board";
 import {ClanBoardEditor} from "./clan-board-editor";
 import type {ClanCoach} from "@/lib/clan/coaching";
 import {ClanChannelLinks,ClanChannelStatus} from "./clan-channel-links";
@@ -29,7 +29,6 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
     </div>
     <article className="overflow-hidden rounded-xl border border-border bg-card">
       <header className="border-b border-border px-5 py-6 sm:px-7">
-        <p className="mb-3 text-xs font-medium text-primary">{BOARD_SECTIONS.find(s=>s.key===kind)?.label}</p>
         <h3 className="break-words text-xl font-semibold leading-8 tracking-tight sm:text-2xl">{post.title}</h3>
         <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"><span className="font-medium">{post.author}</span><span className="text-border" aria-hidden>|</span><time dateTime={post.created_at} className="text-muted-foreground">{boardDate(post.created_at,true)}</time></div>
       </header>
