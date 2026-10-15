@@ -1,12 +1,11 @@
 .memoryStage { position:relative; min-height:390px; overflow:hidden; perspective:1100px; touch-action:pan-y; }
-.polaroid { display:flex; flex-direction:column; min-width:0; padding:12px 12px 22px; background:#f6f3e9; color:#27372f; box-shadow:0 10px 24px #0003; border:1px solid #d4d3c9; text-align:center; }
-.memoryImage { width:100%; height:190px; object-fit:cover; background:#dce0d7; pointer-events:none; }
+.polaroid { display:flex; flex-direction:column; min-width:0; padding:12px 12px 22px; background:color-mix(in oklch,var(--card) 94%,#c4bfae); color:var(--foreground); box-shadow:0 8px 18px #0003,inset 0 1px 0 #ffffff06; border:1px solid color-mix(in oklch,var(--border) 86%,#a2ab97); text-align:center; }
+.polaroid:focus-visible { outline:2px solid var(--primary); outline-offset:4px; }
+.memoryImage { width:100%; height:190px; object-fit:cover; background:var(--muted); pointer-events:none; }
 .memoryCaption { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; margin-top:14px; font-size:14px; line-height:1.7; white-space:pre-wrap; overflow-wrap:anywhere; }
-.memoryDate { display:block; margin-top:8px; color:#626d62; font-size:11px; }
-.memoryAdd { cursor:pointer; }
-.memoryAddPhoto { display:grid; place-items:center; height:190px; background:#e5e8de; border:1px dashed #9cae9f; color:#5b7261; }
-.memoryAdd:hover .memoryAddPhoto { background:#dde7dc; border-color:#587663; }
-.memoryAdd:focus-visible { outline:2px solid var(--primary); outline-offset:4px; }
+.memoryDate { display:block; margin-top:8px; color:var(--muted-foreground); font-size:11px; }
+.collectionAction { position:fixed; right:max(28px,calc((100vw - 1344px)/2)); bottom:calc(24px + env(safe-area-inset-bottom,0px)); z-index:30; height:40px; padding:0 16px; border:1px solid color-mix(in oklch,var(--primary) 35%,var(--border)); border-radius:999px; box-shadow:0 4px 16px #0005; }
+@media(max-width:768px) { .collectionAction { right:16px; bottom:calc(16px + env(safe-area-inset-bottom,0px)); } }
 .memoryCenter,.memoryLeft,.memoryRight { position:absolute; top:36px; left:50%; width:min(260px,65%); transition:transform .32s ease; }
 .memoryCenter { z-index:2; transform:translateX(-50%); }
 .memoryLeft { transform:translateX(calc(-50% - 230px)) rotateY(16deg) rotate(-6deg) scale(.88); }
