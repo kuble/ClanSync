@@ -54,7 +54,8 @@ test("five routes: role checks, room timing/reschedule/cancel, notices once, pol
     for (const row of batches.filter((row) => row.room_id !== flash.room_id)) await ok(f.service.rpc("finalize_discord_bot_notification", { p_log_id: row.log_id, p_ok: true, p_error: "" }));
     await ok(f.service.from("clan_polls").update({ closed_at: new Date().toISOString() }).eq("id", poll.id));
     await ok(f.service.rpc("maint_cancel_poll_notifications_past_deadline"));
-    const ended = await claim() as { log_id: string; slot_kind: string }[];
+    let ended: { log_id: string; slot_kind: string }[] = [];
+    await expect.poll(async () => { ended = await claim() as typeof ended; return ended.length; }).toBe(1);
     expect(ended).toHaveLength(1); expect(ended[0].slot_kind).toBe("poll_ended");
     await ok(f.service.rpc("finalize_discord_bot_notification", { p_log_id: ended[0].log_id, p_ok: true, p_error: "" }));
     await ok(f.service.from("clan_polls").update({ title: "종료 후 수정" }).eq("id", poll.id));
@@ -124,8 +125,8 @@ test("settings: leader saves kinds while bot is unavailable; officers read, memb
     await page.getByRole("switch", { name: "Discord 알림 사용", exact: true }).uncheck();
     await page.getByRole("switch", { name: "깜짝 내전 알림", exact: true }).uncheck();
     await page.getByRole("checkbox", { name: "종료·결과 알림", exact: true }).uncheck();
-    await page.getByRole("button", { name: "설정 저장", exact: true }).click();
-    await expect(page.getByText("알림 설정을 저장했습니다.", { exact: true })).toBeVisible();
+    await expect(page.getByText("자동 저장됨", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "설정 저장", exact: true })).toHaveCount(0);
     const settings = (await ok(f.service.from("clan_settings").select("event_notify").eq("clan_id", f.clanId).single())).event_notify;
     expect(settings).toMatchObject({ discord_enabled: false, discord_routes: { flash: { enabled: false }, polls: { ended: false } } });
     await ok(f.service.from("clan_members").update({ role: "officer" }).eq("clan_id", f.clanId).eq("user_id", f.users[1].id));
@@ -157,7 +158,8 @@ test("settings: leader saves kinds while bot is unavailable; officers read, memb
     await expect(page.getByRole("dialog", { name: "캘린더 화면" })).toBeVisible();
     await expect.poll(() => page.getByRole("dialog").getByRole("img").evaluate((image) => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
     await page.keyboard.press("Escape");
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await expect(page.getByRole("dialog")).toBeHidden();
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await officerContext.clearCookies(); await loginIsolatedBalanceUser(officer, f.users[2]); await officer.goto(path);
     await expect(officer.getByTestId("clan-event-notify-settings")).toHaveCount(0);
   } finally { await officerContext.close(); await f.cleanup(); }
@@ -211,8 +213,8 @@ test("off periods skip past notices/closures, restore future reservations; match
     const start = new Date(Date.now()+3_600_000).toISOString(), leader = await f.memberClient(0);
     const room = await ok(leader.rpc("create_balance_room", { p_clan_id: f.clanId, p_kind: "regular", p_title: "일치 내전", p_scheduled_at: start })) as { room_id: string };
     const event = await ok(f.service.from("clan_events").insert({ clan_id: f.clanId, title: "일치 내전", kind: "intra", start_at: start, created_by: f.users[0].id, discord_notify: { enabled: true, announce: false, slots: ["event_t_minus_10min"] } }).select("id").single());
-    await ok(f.service.from("notification_log").insert({ event_id: event.id, recipient_user_id: f.users[0].id, channel: "discord", slot_kind: "event_t_minus_10min", scheduled_at: new Date().toISOString(), dedup_key: `test-${event.id}` }));
-    await ok(f.service.from("notification_log").update({ scheduled_at: new Date().toISOString() }).eq("room_id", room.room_id));
+    await ok(f.service.from("notification_log").insert({ event_id: event.id, recipient_user_id: f.users[0].id, channel: "discord", slot_kind: "event_t_minus_10min", scheduled_at: new Date(Date.now() - 5000).toISOString(), dedup_key: `test-${event.id}` }));
+    await ok(f.service.from("notification_log").update({ scheduled_at: new Date(Date.now() - 5000).toISOString() }).eq("room_id", room.room_id));
     const claim = () => ok(f.service.rpc("claim_discord_bot_notification_batch", { p_limit: 100, p_clan_id: f.clanId }));
     const rows = await claim() as { log_id: string; room_id: string | null }[];
     expect(rows).toHaveLength(1); expect(rows[0].room_id).toBe(room.room_id);
@@ -220,7 +222,7 @@ test("off periods skip past notices/closures, restore future reservations; match
     await ok(f.service.rpc("set_clan_discord_notification_preferences", { ...prefs, p_enabled: false }));
     const poll = await ok(f.service.from("clan_polls").insert({ clan_id: f.clanId, title: "꺼 둔 투표", deadline_at: start, created_by: f.users[0].id }).select("id").single());
     await ok(f.service.from("poll_options").insert([{ poll_id: poll.id, label: "A", sort_order: 0 }, { poll_id: poll.id, label: "B", sort_order: 1 }]));
-    await ok(f.service.from("clan_polls").update({ closed_at: new Date().toISOString() }).eq("id", poll.id));
+    await ok(f.service.from("clan_polls").update({ closed_at: new Date(Date.now() - 5000).toISOString() }).eq("id", poll.id));
     await ok(f.service.from("clan_notices").insert({ clan_id: f.clanId, title: "꺼 둔 공지", content: "본문", created_by: f.users[0].id }));
     const futureRoom = await ok(leader.rpc("create_balance_room", { p_clan_id: f.clanId, p_kind: "regular", p_title: "복구 예약", p_scheduled_at: start })) as { room_id: string };
     await ok(f.service.rpc("set_clan_discord_notification_preferences", prefs));
@@ -248,7 +250,7 @@ test("notification links survive sign-in/sign-up, game verification and clan app
     await expect(page.locator('input[name="next"]')).toHaveValue(target);
     await page.getByLabel("이메일").fill(f.users[0].email); await page.getByLabel("비밀번호", { exact: true }).fill(f.users[0].password);
     await page.getByRole("button", { name: "로그인", exact: true }).click();
-    await expect(page.getByRole("dialog", { name: "내전 정보" })).toBeVisible();
+    await expect(page.getByRole("dialog", { name: "내전 정보" })).toBeVisible({ timeout: 20_000 });
     await expect(page.getByRole("dialog", { name: "내전 정보" }).getByRole("textbox", { name: "내전 이름", exact: true })).toHaveValue("링크 예약");
     await page.keyboard.press("Escape");
     const notice = await ok(f.service.from("clan_notices").insert({ clan_id: f.clanId, title: "링크 공지", content: "정확한 공지 본문", created_by: f.users[0].id }).select("id").single());

@@ -1549,6 +1549,7 @@ export type Database = {
           notify_hour: number
           notify_repeat: Database["public"]["Enums"]["poll_notify_repeat"]
           post_to_notice: boolean
+          starts_at: string
           title: string
         }
         Insert: {
@@ -1563,6 +1564,7 @@ export type Database = {
           notify_hour?: number
           notify_repeat?: Database["public"]["Enums"]["poll_notify_repeat"]
           post_to_notice?: boolean
+          starts_at?: string
           title: string
         }
         Update: {
@@ -1577,6 +1579,7 @@ export type Database = {
           notify_hour?: number
           notify_repeat?: Database["public"]["Enums"]["poll_notify_repeat"]
           post_to_notice?: boolean
+          starts_at?: string
           title?: string
         }
         Relationships: [

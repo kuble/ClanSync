@@ -64,6 +64,13 @@ export async function createClanPollAction(
     return { ok: false, error: "마감은 현재 시각 이후여야 합니다." };
   }
 
+  const startLocal = String(formData.get("start_local") ?? "").trim();
+  const startsAt = startLocal ? new Date(startLocal) : createdFloor;
+  if (!Number.isFinite(startsAt.getTime()) || startLocal && startsAt.getTime() <= createdFloor.getTime()) {
+    return { ok: false, error: "예약 시작은 현재 시각 이후여야 합니다." };
+  }
+  if (startsAt.getTime() >= deadlineAt.getTime()) return { ok: false, error: "마감은 시작 시각 이후여야 합니다." };
+
   const anonymous = formData.get("anonymous") === "on";
   const multipleChoice = formData.get("multiple_choice") === "on";
 
@@ -82,7 +89,7 @@ export async function createClanPollAction(
     notifyRepeat = "none";
   }
 
-  const nowMs = Date.now();
+  const nowMs = startsAt.getTime();
   const deadlineMs = deadlineAt.getTime();
   const nv = validatePollNotifyAgainstDeadline(nowMs, deadlineMs, notifyRepeat);
   if (!nv.ok) {
@@ -108,13 +115,14 @@ export async function createClanPollAction(
       title,
       anonymous,
       multiple_choice: multipleChoice,
+      ...(startLocal ? { starts_at: startsAt.toISOString() } : {}),
       deadline_at: deadlineAt.toISOString(),
       notify_repeat: notifyRepeat,
       notify_hour: notifyHour,
       post_to_notice: false,
       created_by: user.id,
     })
-    .select("id, created_at")
+    .select("id, starts_at")
     .single();
 
   if (insPollErr || !pollRow?.id) {
@@ -122,7 +130,6 @@ export async function createClanPollAction(
   }
 
   const pollId = pollRow.id as string;
-  const createdAt = new Date(pollRow.created_at as string);
 
   const optionPayload = labels.map((label, i) => ({
     poll_id: pollId,
@@ -139,7 +146,7 @@ export async function createClanPollAction(
 
   if (notifyRepeat !== "none") {
     const slots = buildPollNotificationSlots(
-      createdAt,
+      new Date(pollRow.starts_at),
       deadlineAt,
       notifyRepeat,
       notifyHour,
@@ -244,7 +251,7 @@ export async function voteClanPollAction(
 
   const { data: poll, error: pollErr } = await svc
     .from("clan_polls")
-    .select("id, clan_id, deadline_at, closed_at, multiple_choice")
+    .select("id, clan_id, starts_at, deadline_at, closed_at, multiple_choice")
     .eq("id", pollId)
     .maybeSingle();
 
@@ -257,6 +264,8 @@ export async function voteClanPollAction(
   if (new Date(poll.deadline_at as string).getTime() <= Date.now()) {
     return { ok: false, error: "마감된 투표입니다." };
   }
+
+  if (new Date(poll.starts_at).getTime() > Date.now()) return { ok: false, error: "아직 시작하지 않은 투표입니다." };
 
   if (!(poll.multiple_choice as boolean) && optionIds.length !== 1) {
     return { ok: false, error: "한 가지 선택지만 고를 수 있습니다." };

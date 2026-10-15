@@ -3,7 +3,7 @@ import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
-test.use({ timezoneId: "Asia/Seoul" });
+test.use({ timezoneId: "Asia/Seoul", actionTimeout: 20_000 });
 
 async function ok<T>(request: PromiseLike<{ data: T; error: unknown }>): Promise<T> {
   const { data, error } = await request;
@@ -31,6 +31,7 @@ test("투표 목록·선택·변경·결과·직접 링크와 모바일 복수 �
         deadline_at: expired ? new Date(Date.now() - 60_000).toISOString() : deadline,
         closed_at: closed ? new Date().toISOString() : null, created_by: f.users[0].id,
         created_at: new Date(Date.now() - (expired ? 120_000 : 1000)).toISOString(),
+        starts_at: new Date(Date.now() - (expired ? 120_000 : 1000)).toISOString(),
       }).select("id").single());
       if (!poll) throw new Error("Test poll was not returned");
       const options = await ok(f.service.from("poll_options").insert(labels.map((label, index) => ({ poll_id: poll.id, label, sort_order: index }))).select("id, label, sort_order").order("sort_order"));
@@ -51,9 +52,11 @@ test("투표 목록·선택·변경·결과·직접 링크와 모바일 복수 �
     await loginIsolatedBalanceUser(page, f.users[0]);
     const events = f.path.replace(/balance$/, "events") + "?tab=polls";
     await page.goto(events);
-    await expect(page.getByRole("region", { name: "진행 중인 투표", exact: true }).getByRole("button")).toHaveCount(2);
-    await expect(page.getByRole("radio")).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "활성 투표", exact: true }).getByRole("button")).toHaveCount(2);
+    await expect(page.getByRole("radiogroup", { name: "투표 상태" })).toBeVisible();
+    await page.getByRole("radio", { name: "종료된 투표", exact: true }).click();
     await expect(page.getByRole("region", { name: "종료된 투표", exact: true }).getByRole("button")).toHaveCount(2);
+    await page.getByRole("radio", { name: "활성 투표", exact: true }).click();
     await capture(page, "poll-list-desktop.png");
     await page.getByRole("button", { name: "이번 주 내전은 언제 할까요? 투표하기", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "이번 주 내전은 언제 할까요?", exact: true });
@@ -73,7 +76,9 @@ test("투표 목록·선택·변경·결과·직접 링크와 모바일 복수 �
     expect(await readVote()).toEqual([{ option_id: single.options[1].id }]);
     await dialog.getByRole("button", { name: "투표 변경", exact: true }).click();
     await dialog.getByRole("radio", { name: "일요일 오후 8시", exact: true }).press("Space");
+    await expect(dialog.getByRole("radio", { name: "일요일 오후 8시", exact: true })).toBeChecked();
     await dialog.getByRole("button", { name: "변경 저장", exact: true }).click();
+    await expect.poll(readVote).toEqual([{ option_id: single.options[2].id }]);
     await expect(results.getByRole("listitem").filter({ hasText: "일요일 오후 8시" })).toContainText("내 선택");
     expect(await readVote()).toEqual([{ option_id: single.options[2].id }]);
     await dialog.getByRole("button", { name: "투표 변경", exact: true }).click();
@@ -110,6 +115,7 @@ test("투표 목록·선택·변경·결과·직접 링크와 모바일 복수 �
     page.once("dialog", (confirmation) => confirmation.accept());
     await multiDialog.getByRole("button", { name: "조기 종료", exact: true }).click();
     await expect(multiDialog.getByText("최종 결과", { exact: true })).toBeVisible();
+    await expect(multiDialog.getByText("익명 투표로 참여자 정보를 표시하지 않습니다.")).toBeVisible();
     await expect(multiDialog.getByText("공동 1위", { exact: true })).toHaveCount(2);
     await expect(multiDialog.getByRole("button", { name: "투표 변경", exact: true })).toHaveCount(0);
     await page.keyboard.press("Escape");
@@ -120,10 +126,13 @@ test("투표 목록·선택·변경·결과·직접 링크와 모바일 복수 �
     await expect(finalDialog).toBeVisible();
     await expect(finalDialog.getByText("공동 1위", { exact: true })).toHaveCount(2);
     await expect(finalDialog.getByRole("radio")).toHaveCount(0);
+    await finalDialog.getByRole("button", { name: "금요일 오후 9시 참여자 보기", exact: true }).hover();
+    await expect(finalDialog.getByRole("region", { name: "투표 결과" }).locator('[aria-label="선택지 참여자"]')).toContainText(f.users[1].nickname);
     await expect(finalDialog.getByRole("region", { name: "투표 결과", exact: true }).getByRole("listitem").first()).toContainText("금요일 오후 9시");
     await capture(page, "poll-results-desktop.png");
     if (process.env.POLL_GALLERY_CAPTURE === "1") await page.screenshot({ path: "public/images/discord/polls.jpg", type: "jpeg", quality: 85, clip: { x: 80, y: 75, width: 1210, height: 756 } });
     await page.keyboard.press("Escape");
+    await page.getByRole("radio", { name: "종료된 투표", exact: true }).click();
     await page.getByRole("button", { name: "마감된 빈 투표 결과 보기", exact: true }).click();
     const emptyDialog = page.getByRole("dialog", { name: "마감된 빈 투표", exact: true });
     await expect(emptyDialog.getByText("참여한 표가 없습니다.", { exact: true })).toBeVisible();

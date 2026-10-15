@@ -79,6 +79,7 @@ export async function loadClanDashboard(
       .eq("post_to_notice", true)
       .is("closed_at", null)
       .gt("deadline_at", now.toISOString())
+      .lte("starts_at", now.toISOString())
       .order("created_at", { ascending: false })
       .limit(3),
     eventClient

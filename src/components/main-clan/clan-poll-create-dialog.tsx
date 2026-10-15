@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { type FormEvent, useRef, useState, useTransition } from "react";
 import { Bell, CalendarDays, Clock, Plus, X } from "lucide-react";
 import { toast } from "sonner";
@@ -16,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { HelpText } from "./help-text";
 import { cn } from "@/lib/utils";
 
 function deadlineAfter(hours: number) {
@@ -31,12 +31,12 @@ const reminderHints: Record<Exclude<PollNotifyRepeat, "none">, string> = {
   until_deadline_daily: "마감 전 24시간 동안 선택한 시각에 알려요. 마감까지 최소 24시간이 필요합니다.",
 };
 
-export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange }: {
+export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange, onCreated }: {
   gameSlug: string;
   clanId: string;
   onOpenChange: (open: boolean) => void;
+  onCreated?: (scheduled: boolean) => void;
 }) {
-  const router = useRouter();
   const [pending, start] = useTransition();
   const [title, setTitle] = useState("");
   const [options, setOptions] = useState([{ id: 0, label: "" }, { id: 1, label: "" }]);
@@ -44,6 +44,8 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange }: {
   const focusOptionId = useRef<number | null>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const [scheduled, setScheduled] = useState(false);
+  const [startsAt, setStartsAt] = useState(() => deadlineAfter(1));
   const [deadline, setDeadline] = useState(() => deadlineAfter(48));
   const [deadlineDay = "", deadlineTime = ""] = deadline.split("T");
   const [multipleChoice, setMultipleChoice] = useState(false);
@@ -103,6 +105,8 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange }: {
       else if (labels.has(label)) nextErrors[`poll-option-${option.id}`] = "다른 선택지와 같은 내용입니다. 내용을 바꿔 주세요.";
       labels.add(label);
     }
+    const startDate = scheduled ? new Date(startsAt) : new Date();
+    if (scheduled && (!Number.isFinite(startDate.getTime()) || startDate.getTime() <= Date.now())) nextErrors["poll-start"] = "예약 시작은 현재 시각 이후여야 합니다.";
     const deadlineDate = new Date(deadline);
     if (!deadlineDay) {
       nextErrors["poll-deadline-date"] = "마감 날짜를 선택해 주세요.";
@@ -110,8 +114,10 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange }: {
       nextErrors["poll-deadline-time"] = "마감 시간을 입력해 주세요.";
     } else if (Number.isNaN(deadlineDate.getTime())) {
       nextErrors["poll-deadline-date"] = "마감 날짜와 시간을 확인해 주세요.";
+    } else if (scheduled && deadlineDate.getTime() <= startDate.getTime()) {
+      nextErrors["poll-deadline-date"] = "마감은 시작 시각 이후여야 합니다.";
     } else {
-      const validation = validatePollNotifyAgainstDeadline(Date.now(), deadlineDate.getTime(), notifyEnabled ? notifyRepeat : "none");
+      const validation = validatePollNotifyAgainstDeadline(startDate.getTime(), deadlineDate.getTime(), notifyEnabled ? notifyRepeat : "none");
       if (!validation.ok) nextErrors["poll-deadline-date"] = validation.error;
     }
     setErrors(nextErrors);
@@ -125,6 +131,7 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange }: {
     const data = new FormData(event.currentTarget);
     data.set("title", title.trim());
     data.set("deadline_local", deadlineDate.toISOString());
+    if (scheduled) data.set("start_local", startDate.toISOString());
     data.set("notify_repeat", notifyEnabled ? notifyRepeat : "none");
     data.set("notify_hour", notifyHour);
     if (multipleChoice) data.set("multiple_choice", "on");
@@ -136,9 +143,9 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange }: {
           setSubmitError(result.error);
           return;
         }
-        toast.success("투표가 시작되었습니다.");
+        toast.success(scheduled ? "투표를 예약했습니다." : "투표가 시작되었습니다.");
+        onCreated?.(scheduled);
         onOpenChange(false);
-        router.refresh();
       } catch {
         setSubmitError("투표를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.");
       }
@@ -155,7 +162,7 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange }: {
       <DialogContent initialFocus={titleRef} showCloseButton={false} className="flex max-h-[90dvh] flex-col gap-0 overflow-hidden p-0 sm:max-w-[600px]">
         <DialogHeader className="shrink-0 border-b px-5 py-5 pr-12 sm:px-6">
           <DialogTitle className="text-lg font-semibold">투표 만들기</DialogTitle>
-          <DialogDescription className="text-xs">질문과 선택지를 작성해 보세요. 만들면 바로 투표가 시작됩니다.</DialogDescription>
+          <DialogDescription className="text-xs">질문과 선택지를 작성하고 시작·마감 시각을 정하세요.</DialogDescription>
         </DialogHeader>
         <Button type="button" variant="ghost" size="icon-sm" className="absolute right-3 top-4" disabled={pending} onClick={() => onOpenChange(false)} aria-label="닫기">
           <X className="size-4" aria-hidden />
@@ -196,9 +203,14 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange }: {
                 <span className="text-[11px] tabular-nums text-muted-foreground">{options.length}/12</span>
               </Button>
               <div className="space-y-3 border-t pt-4">
-                <PollToggle id="poll-multiple-choice" name="multiple_choice" label="중복 투표" description="여러 선택지를 함께 고를 수 있어요." checked={multipleChoice} onChange={setMultipleChoice} />
+                <PollToggle id="poll-multiple-choice" name="multiple_choice" label="다중 선택" description="여러 선택지를 함께 고를 수 있어요." checked={multipleChoice} onChange={setMultipleChoice} />
                 <PollToggle id="poll-anonymous" name="anonymous" label="익명 투표" description="누가 투표했는지 이름을 공개하지 않아요." checked={anonymous} onChange={setAnonymous} />
               </div>
+            </section>
+
+            <section className="space-y-3" aria-label="시작 설정">
+              <PollToggle id="poll-scheduled" name="scheduled" label="시작 예약" description="지정한 시각부터 투표에 참여할 수 있습니다." checked={scheduled} onChange={(value) => { setScheduled(value); clearError("poll-start"); }} />
+              {scheduled && <div className="space-y-2"><Label htmlFor="poll-start">시작 일시</Label><Input id="poll-start" type="datetime-local" value={startsAt} onChange={(event) => { setStartsAt(event.target.value); clearError("poll-start"); clearDeadlineError(); }} {...inputErrorProps("poll-start")} /><FieldError id="poll-start" errors={errors} /></div>}
             </section>
 
             <section className="space-y-3 border-t pt-5" aria-label="마감 설정">
@@ -269,7 +281,7 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange }: {
             {submitError ? <p role="alert" className="text-xs text-destructive">{submitError}</p> : null}
             <div className="flex items-center justify-end gap-2">
               <Button type="button" variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>취소</Button>
-              <Button type="submit" disabled={pending}>{pending ? "투표 만드는 중…" : "투표 시작하기"}</Button>
+              <Button type="submit" disabled={pending}>{pending ? "투표 만드는 중…" : scheduled ? "투표 예약하기" : "투표 시작하기"}</Button>
             </div>
           </div>
         </form>
@@ -286,13 +298,13 @@ function PollToggle({ id, name, label, description, checked, onChange }: {
   id: string; name: string; label: string; description: string; checked: boolean; onChange: (checked: boolean) => void;
 }) {
   return (
-    <label htmlFor={id} className="flex cursor-pointer items-center justify-between gap-4 py-1">
-      <span className="space-y-1"><span className="block text-sm font-medium">{label}</span><span id={`${id}-description`} className="block text-xs leading-relaxed text-muted-foreground">{description}</span></span>
+    <div className="flex items-center justify-between gap-4 py-1">
+      <HelpText label={label} help={description} className="text-sm font-medium" />
       <span className="relative flex h-6 w-11 shrink-0 items-center">
-        <input id={id} type="checkbox" role="switch" name={name} checked={checked} onChange={(event) => onChange(event.target.checked)} aria-label={label} aria-describedby={`${id}-description`} className="peer absolute inset-0 z-10 m-0 size-full cursor-pointer opacity-0 disabled:cursor-not-allowed" />
+        <input id={id} type="checkbox" role="switch" name={name} checked={checked} onChange={(event) => onChange(event.target.checked)} aria-label={label} className="peer absolute inset-0 z-10 m-0 size-full cursor-pointer opacity-0 disabled:cursor-not-allowed" />
         <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full bg-muted transition-colors peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background peer-disabled:opacity-50" />
         <span aria-hidden className="pointer-events-none absolute left-1 size-4 rounded-full bg-foreground/70 transition-transform peer-checked:translate-x-5 peer-checked:bg-primary-foreground peer-disabled:opacity-50" />
       </span>
-    </label>
+    </div>
   );
 }

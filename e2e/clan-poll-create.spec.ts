@@ -26,7 +26,7 @@ test("투표 생성: 선택지 편집·검증·알림 기본값·저장과 모�
     const addOption = dialog.getByRole("button", { name: /^선택지 추가/ });
     const submit = dialog.getByRole("button", { name: "투표 시작하기", exact: true });
     const notify = dialog.getByRole("switch", { name: "참여 알림 보내기", exact: true });
-    const multipleChoice = dialog.getByRole("switch", { name: "중복 투표", exact: true });
+    const multipleChoice = dialog.getByRole("switch", { name: "다중 선택", exact: true });
     const deadlineDay = dialog.getByLabel("마감 날짜", { exact: true });
     const deadlineTime = dialog.getByLabel("마감 시간", { exact: true });
     await expect(title).toBeFocused();

@@ -1,18 +1,26 @@
 "use client";
 
-import { type FormEvent, useEffect, useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowRight, Check, CheckCircle2, Clock, Plus, Trophy, Vote } from "lucide-react";
+import { type FormEvent, useEffect, useRef, useState, useTransition } from "react";
+import { ArrowRight, Check, CheckCircle2, Clock, Plus, Vote } from "lucide-react";
 import { toast } from "sonner";
 import { closeClanPollAction, voteClanPollAction } from "@/app/actions/clan-polls";
 import type { SerializedClanPoll } from "@/lib/clan/load-clan-polls";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ClanPollCreateDialog } from "@/components/main-clan/clan-poll-create-dialog";
+import { RubberSegment } from "@/components/ui/rubber-segment";
+import { ClanPollResults } from "./clan-poll-results";
 import { cn } from "@/lib/utils";
 
 function pollIsOpen(poll: SerializedClanPoll, now: number) {
-  return !poll.closed_at && new Date(poll.deadline_at).getTime() > now;
+  return pollStatus(poll, now) === "active";
+}
+
+type PollStatus = "active" | "upcoming" | "ended";
+const statusLabels = { active: "활성 투표", upcoming: "예정 투표", ended: "종료된 투표" } as const;
+function pollStatus(poll: SerializedClanPoll, now: number): PollStatus {
+  if (poll.closed_at || new Date(poll.deadline_at).getTime() <= now) return "ended";
+  return new Date(poll.starts_at).getTime() > now ? "upcoming" : "active";
 }
 
 function totalVotes(poll: SerializedClanPoll) {
@@ -34,8 +42,8 @@ function remainingTime(poll: SerializedClanPoll, now: number) {
 
 function PollModes({ poll }: { poll: SerializedClanPoll }) {
   return <div className="flex flex-wrap gap-1.5 text-[11px] text-muted-foreground">
-    <span className="rounded-md bg-muted px-2 py-1">{poll.multiple_choice ? "여러 개 선택" : "한 개 선택"}</span>
-    {poll.anonymous && <span className="rounded-md bg-muted px-2 py-1">익명 투표</span>}
+    <span className="rounded-md bg-muted px-2 py-1">{poll.multiple_choice ? "다중 선택" : "단일 선택"}</span>
+    <span>{poll.anonymous ? "익명 투표" : "공개 투표"}</span>
   </div>;
 }
 
@@ -51,55 +59,44 @@ export function ClanEventsPollsTab({ gameSlug, clanId, polls, canManagePolls, vi
     return () => clearInterval(timer);
   }, []);
 
-  const { openPolls, closedPolls } = useMemo(() => ({
-    openPolls: polls.filter((poll) => pollIsOpen(poll, now)),
-    closedPolls: polls.filter((poll) => !pollIsOpen(poll, now)),
-  }), [polls, now]);
+  const [filter, setFilter] = useState<PollStatus>(() => {
+    const initial = polls.find((poll) => poll.id === initialPollId);
+    return initial ? pollStatus(initial, now) : polls.some((poll) => pollStatus(poll, now) === "active") ? "active" : polls.some((poll) => pollStatus(poll, now) === "upcoming") ? "upcoming" : "ended";
+  });
+  const items = polls.filter((poll) => pollStatus(poll, now) === filter);
   const selectedPoll = polls.find((poll) => poll.id === selectedPollId);
-
-  function pollList(items: SerializedClanPoll[], open: boolean) {
-    return <ul className="grid gap-3 md:grid-cols-2">
-      {items.map((poll) => {
-        const voted = poll.my_option_ids.length > 0;
-        const total = totalVotes(poll);
-        const top = Math.max(0, ...poll.options.map((option) => option.vote_count));
-        const leaders = poll.options.filter((option) => top > 0 && option.vote_count === top);
-        return <li key={poll.id} id={`poll-${poll.id}`}>
-          <button type="button" aria-haspopup="dialog" aria-label={`${poll.title} ${open ? voted ? "내 투표 보기" : "투표하기" : "결과 보기"}`}
-            onClick={() => setSelectedPollId(poll.id)}
-            className="group flex h-full w-full flex-col gap-4 rounded-2xl border border-border bg-card p-5 text-left transition-colors hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-              <span className={cn("rounded-full px-2.5 py-1 font-medium", open ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground")}>{open ? "진행 중" : "종료"}</span>
-              {open && voted ? <span className="flex items-center gap-1 text-primary"><CheckCircle2 className="size-3.5" aria-hidden />참여 완료</span>
-                : open ? <span className="text-muted-foreground">{remainingTime(poll, now)}</span> : null}
-            </div>
-            <h4 className="break-words text-base font-semibold leading-relaxed">{poll.title}</h4>
-            <PollModes poll={poll} />
-            <div className="min-h-12 rounded-xl bg-background/50 px-3 py-2.5 text-xs leading-relaxed">
-              {open ? <p className="line-clamp-2 break-words text-muted-foreground">{poll.options.slice(0, 2).map((option) => option.label).join(" · ")}{poll.options.length > 2 ? ` 외 ${poll.options.length - 2}개` : ""}</p>
-                : leaders.length ? <><p className="mb-1 flex items-center gap-1.5 font-medium text-primary"><Trophy className="size-3.5" aria-hidden />{leaders.length > 1 ? `공동 1위 · ${leaders.length}개 선택지` : "최다 득표"}</p><p className="line-clamp-2 break-words font-medium">{leaders.map((option) => option.label).join(" · ")}</p></>
-                  : <p className="text-muted-foreground">참여한 표가 없습니다.</p>}
-            </div>
-            <p className="flex items-start gap-1.5 text-[11px] leading-relaxed text-muted-foreground"><Clock className="mt-0.5 size-3 shrink-0" aria-hidden />{open ? "마감" : "종료"} {pollTime(open ? poll.deadline_at : poll.closed_at ?? poll.deadline_at)}</p>
-            <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-3 text-xs">
-              <span className="text-muted-foreground">선택지 {poll.options.length}개 · 총 {total}표</span>
-              <span className="flex shrink-0 items-center gap-1.5 font-semibold text-primary">{open ? voted ? "내 투표 보기" : "투표하기" : "결과 보기"}<ArrowRight className="size-3.5" aria-hidden /></span>
-            </div>
-          </button>
-        </li>;
-      })}
-    </ul>;
-  }
-
   return <div className="space-y-6">
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <p className="text-sm text-muted-foreground">궁금한 투표를 열고, 우리 클랜의 다음 결정을 함께 정하세요.</p>
+      <RubberSegment label="투표 상태" labelPosition="hidden" value={filter} onChange={setFilter} options={(["active", "upcoming", "ended"] as const).map((id) => ({ id, label: statusLabels[id], badge: <span className="opacity-70">{polls.filter((poll) => pollStatus(poll, now) === id).length}</span> }))} />
       {canManagePolls && <Button type="button" size="sm" onClick={() => setCreateOpen(true)}><Plus className="size-4" aria-hidden />투표 만들기</Button>}
     </div>
-    {createOpen && <ClanPollCreateDialog gameSlug={gameSlug} clanId={clanId} onOpenChange={setCreateOpen} />}
-    {!polls.length && <div className="rounded-2xl border border-dashed bg-card px-6 py-12 text-center"><Vote className="mx-auto mb-3 size-7 text-muted-foreground" aria-hidden /><p className="text-sm font-medium">아직 등록된 투표가 없습니다.</p><p className="mt-1 text-xs text-muted-foreground">{canManagePolls ? "투표 만들기로 클랜원에게 질문해 보세요." : "새로운 투표가 열리면 여기에서 참여할 수 있어요."}</p></div>}
-    {openPolls.length > 0 && <section aria-label="진행 중인 투표" className="space-y-3"><h3 className="flex items-center gap-2 text-sm font-semibold"><Vote className="size-4 text-primary" aria-hidden />진행 중<span className="text-xs font-normal text-muted-foreground">{openPolls.length}</span></h3>{pollList(openPolls, true)}</section>}
-    {closedPolls.length > 0 && <section aria-label="종료된 투표" className="space-y-3"><h3 className="flex items-center gap-2 text-sm font-semibold">종료된 투표<span className="text-xs font-normal text-muted-foreground">{closedPolls.length}</span></h3>{pollList(closedPolls, false)}</section>}
+    {createOpen && <ClanPollCreateDialog gameSlug={gameSlug} clanId={clanId} onCreated={(scheduled) => setFilter(scheduled ? "upcoming" : "active")} onOpenChange={setCreateOpen} />}
+    <section aria-label={statusLabels[filter]} className="min-h-64">
+      {items.length ? <ul className="grid gap-3 md:grid-cols-2">
+        {items.map((poll) => {
+          const status = pollStatus(poll, now), voted = poll.my_option_ids.length > 0;
+          const action = status === "active" ? voted ? "내 투표 보기" : "투표하기" : status === "upcoming" ? "시작 예정 보기" : "결과 보기";
+          const top = Math.max(0, ...poll.options.map((option) => option.vote_count));
+          const leaders = poll.options.filter((option) => top > 0 && option.vote_count === top);
+          return <li key={poll.id} id={`poll-${poll.id}`}>
+            <button type="button" aria-haspopup="dialog" aria-label={`${poll.title} ${action}`} onClick={() => setSelectedPollId(poll.id)}
+              className="group flex h-full w-full flex-col rounded-xl border border-border bg-card p-5 text-left transition-colors hover:border-primary/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+              <div className="mb-3 flex items-center justify-between gap-3 text-[11px] text-muted-foreground">
+                <span className={cn("inline-flex items-center gap-1.5 font-medium", status === "active" && "text-primary")}><span className={cn("size-1.5 rounded-full", status === "active" ? "bg-primary" : "bg-muted-foreground/50")} />{status === "active" ? "진행 중" : status === "upcoming" ? "시작 예정" : "종료"}</span>
+                <span className="tabular-nums">{status === "active" ? remainingTime(poll, now) : status === "upcoming" ? `시작 ${pollTime(poll.starts_at)}` : pollTime(poll.closed_at ?? poll.deadline_at)}</span>
+              </div>
+              <h4 className="line-clamp-2 break-words text-base font-semibold leading-relaxed">{poll.title}</h4>
+              <div className="mb-4 mt-2"><PollModes poll={poll} /></div>
+              <p className="mb-4 line-clamp-1 min-h-5 break-words text-xs text-muted-foreground">{status === "ended" ? leaders.length ? `${leaders.length > 1 ? "공동 1위" : "최다 득표"} · ${leaders.map((option) => option.label).join(" · ")}` : "참여한 표가 없습니다." : poll.options.map((option) => option.label).join(" · ")}</p>
+              <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-3 text-xs">
+                <span className="inline-flex items-center gap-1.5 text-muted-foreground">{voted ? <CheckCircle2 className="size-3.5 text-primary" aria-hidden /> : <Vote className="size-3.5" aria-hidden />}선택지 {poll.options.length}개 · 총 {totalVotes(poll)}표</span>
+                <span className="inline-flex shrink-0 items-center gap-1.5 font-medium text-primary">{action}<ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden /></span>
+              </div>
+            </button>
+          </li>;
+        })}
+      </ul> : <div className="flex min-h-64 flex-col items-center justify-center rounded-xl border border-dashed text-center"><Vote className="mb-3 size-6 text-muted-foreground" aria-hidden /><p className="text-sm text-muted-foreground">{filter === "active" ? "진행 중인 투표가 없습니다." : filter === "upcoming" ? "예정된 투표가 없습니다." : "종료된 투표가 없습니다."}</p></div>}
+    </section>
     {selectedPoll && <PollDialog key={selectedPoll.id} poll={selectedPoll} gameSlug={gameSlug} clanId={clanId} now={now} canManage={canManagePolls} canVote={!!viewerUserId} onClose={() => setSelectedPollId(null)} />}
   </div>;
 }
@@ -108,12 +105,13 @@ function PollDialog({ poll, gameSlug, clanId, now, canManage, canVote, onClose }
   poll: SerializedClanPoll; gameSlug: string; clanId: string; now: number;
   canManage: boolean; canVote: boolean; onClose: () => void;
 }) {
-  const router = useRouter();
+  const titleRef = useRef<HTMLHeadingElement>(null);
   const [pending, start] = useTransition();
   const [editing, setEditing] = useState(!poll.my_option_ids.length);
   const [picked, setPicked] = useState(poll.my_option_ids);
   const [error, setError] = useState("");
   const open = pollIsOpen(poll, now);
+  const upcoming = pollStatus(poll, now) === "upcoming";
   const results = !open || !editing || !canVote;
 
   function editVote() {
@@ -133,7 +131,6 @@ function PollDialog({ poll, gameSlug, clanId, now, canManage, canVote, onClose }
         if (!result.ok) { setError(result.error); return; }
         setEditing(false);
         toast.success("투표했습니다.");
-        router.refresh();
       } catch { setError("투표를 저장하지 못했습니다. 선택한 항목을 유지했으니 다시 시도해 주세요."); }
     });
   }
@@ -146,23 +143,22 @@ function PollDialog({ poll, gameSlug, clanId, now, canManage, canVote, onClose }
         const result = await closeClanPollAction(gameSlug, clanId, poll.id);
         if (!result.ok) { setError(result.error); return; }
         toast.success("투표를 종료했습니다.");
-        router.refresh();
       } catch { setError("투표를 종료하지 못했습니다. 잠시 후 다시 시도해 주세요."); }
     });
   }
 
   return <Dialog open onOpenChange={(value) => { if (!value && !pending) onClose(); }}>
-    <DialogContent showCloseButton={!pending} className="flex max-h-[min(90dvh,860px)] min-h-0 flex-col gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-xl">
+    <DialogContent initialFocus={titleRef} showCloseButton={!pending} className="flex max-h-[min(90dvh,860px)] min-h-0 flex-col gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-xl">
       <DialogHeader className="shrink-0 border-b border-border p-5 sm:p-6">
-        <div className="mb-2 flex items-center gap-2 text-xs"><span className={cn("rounded-full px-2.5 py-1 font-medium", open ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground")}>{open ? "진행 중인 투표" : "투표 종료"}</span>{open && poll.my_option_ids.length > 0 && <span className="flex items-center gap-1 text-primary"><CheckCircle2 className="size-3.5" aria-hidden />참여 완료</span>}</div>
-        <DialogTitle className="break-words pr-5 text-lg font-semibold leading-relaxed sm:text-xl">{poll.title}</DialogTitle>
-        <DialogDescription className="text-xs leading-relaxed">{open ? "마감" : "종료"} {pollTime(open ? poll.deadline_at : poll.closed_at ?? poll.deadline_at)}</DialogDescription>
+        <div className="mb-2 flex items-center gap-2 text-xs"><span className={cn("rounded-full px-2.5 py-1 font-medium", open ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground")}>{open ? "진행 중인 투표" : upcoming ? "시작 예정" : "투표 종료"}</span>{open && poll.my_option_ids.length > 0 && <span className="flex items-center gap-1 text-primary"><CheckCircle2 className="size-3.5" aria-hidden />참여 완료</span>}</div>
+        <DialogTitle ref={titleRef} tabIndex={-1} className="break-words pr-5 text-lg font-semibold leading-relaxed outline-none sm:text-xl">{poll.title}</DialogTitle>
+        <DialogDescription className="text-xs leading-relaxed">{upcoming ? "시작" : open ? "마감" : "종료"} {pollTime(upcoming ? poll.starts_at : open ? poll.deadline_at : poll.closed_at ?? poll.deadline_at)}</DialogDescription>
         <PollModes poll={poll} />
       </DialogHeader>
       <form onSubmit={submitVote} className="flex min-h-0 flex-1 flex-col" aria-busy={pending}>
         <input type="hidden" name="poll_id" value={poll.id} />
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5 sm:p-6">
-          {results ? <PollResults poll={poll} closed={!open} /> : <fieldset disabled={pending} className="space-y-3">
+          {upcoming ? <section className="space-y-4"><h3 className="inline-flex items-center gap-2 text-sm font-semibold"><Clock className="size-4 text-primary" aria-hidden />시작 시각부터 참여할 수 있습니다.</h3><p className="text-xs text-muted-foreground">마감 {pollTime(poll.deadline_at)}</p><ol className="divide-y divide-border">{poll.options.map((option) => <li key={option.id} className="py-3 text-sm">{option.label}</li>)}</ol></section> : results ? <ClanPollResults poll={poll} closed={!open} /> : <fieldset disabled={pending} className="space-y-3">
             <legend className="mb-3 text-sm font-semibold">{poll.multiple_choice ? "원하는 선택지를 모두 골라 주세요" : "한 가지를 골라 주세요"}</legend>
             {poll.options.map((option, index) => {
               const checked = picked.includes(option.id);
@@ -190,31 +186,4 @@ function PollDialog({ poll, gameSlug, clanId, now, canManage, canVote, onClose }
       </form>
     </DialogContent>
   </Dialog>;
-}
-
-function PollResults({ poll, closed }: { poll: SerializedClanPoll; closed: boolean }) {
-  const total = totalVotes(poll);
-  const highest = Math.max(0, ...poll.options.map((option) => option.vote_count));
-  const leaders = poll.options.filter((option) => highest > 0 && option.vote_count === highest);
-  const options = closed ? [...poll.options].sort((a, b) => b.vote_count - a.vote_count || a.sort_order - b.sort_order) : poll.options;
-  return <section aria-label="투표 결과" className="space-y-4">
-    <div className="flex items-center justify-between gap-3"><h3 className="text-sm font-semibold">{closed ? "최종 결과" : "현재 결과"}</h3><span className="text-xs tabular-nums text-muted-foreground">총 {total}표</span></div>
-    {!total && <p className="rounded-xl bg-muted/40 p-4 text-center text-sm text-muted-foreground">{closed ? "참여한 표가 없습니다." : "아직 투표한 사람이 없습니다. 첫 표를 남겨 보세요."}</p>}
-    <ol className="space-y-3">
-      {options.map((option) => {
-        const percent = total ? Math.round(option.vote_count / total * 100) : 0;
-        const winner = closed && highest > 0 && option.vote_count === highest;
-        const mine = poll.my_option_ids.includes(option.id);
-        return <li key={option.id} className={cn("relative isolate overflow-hidden rounded-xl border p-4", winner ? "border-primary/50 bg-primary/5" : "border-border bg-card")}>
-          <div aria-hidden className={cn("absolute inset-y-0 left-0 -z-10", winner ? "bg-primary/15" : "bg-muted/50")} style={{ width: `${percent}%` }} />
-          {(winner || mine) && <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px]">
-            {winner && <span className="flex items-center gap-1 font-semibold text-primary"><Trophy className="size-3.5" aria-hidden />{leaders.length > 1 ? "공동 1위" : "최다 득표"}</span>}
-            {mine && <span className="flex items-center gap-1 rounded-md bg-background/80 px-1.5 py-0.5 text-primary"><Check className="size-3" aria-hidden />내 선택</span>}
-          </div>}
-          <div className="flex items-start justify-between gap-4"><p className="min-w-0 flex-1 break-words text-sm font-medium leading-relaxed">{option.label}</p><div className="shrink-0 text-right"><p className={cn("text-base font-semibold tabular-nums", winner && "text-primary")}>{percent}%</p><p className="mt-1 text-[11px] tabular-nums text-muted-foreground">{option.vote_count}표</p></div></div>
-        </li>;
-      })}
-    </ol>
-    {poll.multiple_choice && <p className="text-[11px] leading-relaxed text-muted-foreground">여러 개를 선택할 수 있는 투표입니다. 비율은 전체 선택 수를 기준으로 표시합니다.</p>}
-  </section>;
 }
