@@ -1,7 +1,6 @@
 "use client";
 
 import { cloneElement, useId, useState, type ReactElement, type ReactNode } from "react";
-import { Mic, MicOff } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { MaEntry } from "@/lib/balance/ma-snapshot";
 import type { PlayerSessionInfo } from "@/lib/balance/player-session-stats";
@@ -42,7 +41,6 @@ export function BalancePlayerDetails({ children, nickname, info, score, premium 
           {premium ? <div><dt className="opacity-65">{SCORE_LABEL.a}</dt><dd className="mt-1 font-bold tabular-nums">{formatBalanceScore(score.a)}</dd></div> : null}
           {sample ? <dd className="col-span-2 text-[10px] opacity-60">화면 확인용 샘플 점수</dd> : null}
         </dl> : null}
-        <p className="mt-3 border-t border-current/15 pt-3 text-xs">마이크 <strong className="float-right">{info?.micAvailable === true ? "사용" : info?.micAvailable === false ? "미사용" : "미설정"}</strong></p>
       </TooltipContent>
     </Tooltip>
   );
@@ -75,7 +73,6 @@ export function BalancePlayerCardContent({ nickname, info, score, showScore, sho
       <span className="block truncate text-xs font-bold sm:text-sm">{nickname}</span>
       {infoVisible && info ? <span className={cn("mt-1 flex items-center gap-2 text-[10px] tabular-nums text-muted-foreground sm:text-xs", centered ? "justify-center" : mirrored && "sm:justify-end")}>
         <span>{infoLabel}</span>
-        {info.micAvailable === true ? <Mic className="size-3" aria-label="마이크 사용" /> : info.micAvailable === false ? <MicOff className="size-3" aria-label="마이크 미사용" /> : null}
       </span> : null}
     </span>
     {scoreVisible ? scoreControl ?? <span aria-label={`${SCORE_LABEL[mode]} ${formatBalanceScore(score?.[mode])}`} className="shrink-0 rounded-lg border border-current/10 bg-background/50 px-2 py-2 text-sm font-bold tabular-nums sm:min-w-16 sm:text-base">{formatBalanceScore(score?.[mode]).replace(/점$/, "")}</span> : null}

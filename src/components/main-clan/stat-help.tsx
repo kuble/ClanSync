@@ -16,6 +16,7 @@ export function StatTooltip({ label, children, description, className, render, h
     onPointerEnter={(event) => { touch.current = event.pointerType === "touch"; }}
     onPointerDown={(event) => { touch.current = event.pointerType === "touch"; }}
     onPointerLeave={(event) => { if (!hoverable && event.pointerType !== "touch") setOpen(false); }}
+    onKeyDownCapture={(event) => { if (event.key === "Escape" && open) { event.stopPropagation(); setOpen(false); } }}
     onFocus={() => { if (!touch.current) setOpen(true); }} onBlur={() => setOpen(false)} onClick={() => { if (touch.current) setOpen((value) => !value); }}
     className={className}>{children}</TooltipTrigger><TooltipContent id={id} role="tooltip" side="right" sideOffset={8} collisionPadding={8} collisionAvoidance={{ side: "flip", align: "shift", fallbackAxisSide: "end" }} className={`${hoverable ? "pointer-events-auto" : "pointer-events-none"} max-w-[min(18rem,calc(100vw-1rem))] text-pretty leading-relaxed`}>{description}</TooltipContent></Tooltip>;
 }

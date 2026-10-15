@@ -1,20 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { FormationSettings } from "@/lib/balance/formation";
 import type { BanSettings } from "@/lib/balance/prematch";
 import { BalanceDisplayPreview, BalanceBanPreview, type BanPreviewStage } from "./balance-settings-preview";
 import styles from "./clan-balance-settings.module.css";
+import { HelpText } from "./help-text";
 
 const field = "mt-2 min-h-11 w-full rounded-lg border bg-background px-3 text-sm";
 
 function Toggle({ label, name = label, hint, checked, disabled, onChange }: {
   label: string; name?: string; hint?: string; checked: boolean; disabled?: boolean; onChange: (checked: boolean) => void;
 }) {
-  return <label className="flex items-center justify-between gap-4 py-2 text-sm">
-    <span className="min-w-0"><span className="font-medium">{label}</span>{hint ? <span className="mt-1 block text-xs text-muted-foreground">{hint}</span> : null}</span>
-    <input type="checkbox" aria-label={name} className="size-4 shrink-0 accent-primary disabled:opacity-40" checked={checked} disabled={disabled} onChange={(event) => onChange(event.target.checked)} />
-  </label>;
+  const id = useId();
+  return <div className="flex items-center justify-between gap-4 py-2 text-sm">
+    <span className="min-w-0 font-medium">{hint ? <HelpText label={label} help={hint} /> : <label htmlFor={id}>{label}</label>}</span>
+    <input id={id} type="checkbox" aria-label={name} className="size-4 shrink-0 accent-primary disabled:opacity-40" checked={checked} disabled={disabled} onChange={(event) => onChange(event.target.checked)} />
+  </div>;
 }
 
 export function BalanceDisplaySettings({ settings, onChange, locked, premium, regularRoom }: {
@@ -22,9 +24,8 @@ export function BalanceDisplaySettings({ settings, onChange, locked, premium, re
 }) {
   return <div className="space-y-5">
     <div className={styles.preview}><BalanceDisplayPreview settings={settings} premium={premium} regularRoom={regularRoom} /></div>
-    <p className="text-xs text-muted-foreground">편성 화면의 카드와 팀 비교에 적용됩니다.</p>
     <fieldset disabled={locked} className="rounded-xl border bg-muted/10 p-4">
-      <legend className="px-1 text-sm font-semibold">닉네임 카드</legend>
+      <legend className="px-1 text-sm font-semibold"><HelpText label="닉네임 카드" help="편성 화면의 선수 카드에 표시할 정보를 선택합니다." /></legend>
       <Toggle label="점수" name="선수 카드 점수 표시" hint="카드 오른쪽의 평가·분석 점수" checked={settings.showPlayerCardScore} onChange={(checked) => onChange({ ...settings, showPlayerCardScore: checked })} />
       <Toggle label="닉네임 아래 정보" name="선수 카드 보조 정보 표시" checked={settings.showPlayerCardInfo} onChange={(checked) => onChange({ ...settings, showPlayerCardInfo: checked })} />
       {settings.showPlayerCardInfo ? <label className="mb-2 ml-3 block border-l pl-3 text-xs text-muted-foreground">표시 내용
@@ -32,16 +33,15 @@ export function BalanceDisplaySettings({ settings, onChange, locked, premium, re
           <option value="record">세션 전적</option><option value="streak">현재 연승·연패</option>
         </select>
       </label> : null}
-      <Toggle label="마우스 오버 상세 정보" name="플레이어 세션 정보 요약 표시" hint="전적·승률·점수·마이크 상태" checked={settings.showPlayerSessionSummary} onChange={(checked) => onChange({ ...settings, showPlayerSessionSummary: checked })} />
+      <Toggle label="마우스 오버 상세 정보" name="플레이어 세션 정보 요약 표시" hint="선수 카드에 마우스를 올리면 세션 전적·승률·점수를 표시합니다." checked={settings.showPlayerSessionSummary} onChange={(checked) => onChange({ ...settings, showPlayerSessionSummary: checked })} />
     </fieldset>
     <fieldset disabled={locked} className="rounded-xl border bg-muted/10 p-4">
-      <legend className="px-1 text-sm font-semibold">팀 비교</legend>
-      <label className="block text-sm font-medium">그래프 기준
+      <legend className="px-1 text-sm font-semibold"><HelpText label="팀 비교" help="편성 화면의 두 팀을 비교하는 그래프와 상세 정보에 적용됩니다." /></legend>
+      <div className="text-sm font-medium"><HelpText label="그래프 기준" help="점수 합계와 예측 승률 중 그래프에 표시할 값을 선택합니다. 예측 승률은 Premium 정규 내전에서 표시합니다." />
         <select aria-label="팀 비교 그래프" className={field} value={premium && regularRoom ? settings.teamComparisonMode : "score"} onChange={(event) => onChange({ ...settings, teamComparisonMode: event.target.value as FormationSettings["teamComparisonMode"] })}>
           <option value="score">점수 합계</option><option value="prediction" disabled={!premium || !regularRoom}>예측 승률</option>
         </select>
-      </label>
-      {!premium || !regularRoom ? <p className="mt-2 text-xs text-muted-foreground">예측 승률은 Premium 정규 내전에서 표시합니다.</p> : null}
+      </div>
       <Toggle label="마우스 오버 비교 요약" name="팀 비교 요약 표시" checked={settings.showTeamComparisonSummary} onChange={(checked) => onChange({ ...settings, showTeamComparisonSummary: checked })} />
     </fieldset>
   </div>;
@@ -70,10 +70,9 @@ export function BalanceBanSettings({ gameSlug, map, hero, onMapChange, onHeroCha
       </section>
       <section className="rounded-xl border bg-muted/10 px-4 py-2" aria-label="관전자 이벤트">
         <Toggle label="승부예측 사용" hint={!premium ? "Premium 클랜 전용" : !regularRoom ? "정규 내전 전용" : "관전자 코인 풀"} disabled={!premium || !regularRoom} checked={premium && regularRoom && formation.predictionEnabled} onChange={(checked) => { onFormationChange({ ...formation, predictionEnabled: checked }); setStage("match"); }} />
-        {premium && regularRoom && formation.predictionEnabled ? <label className="mb-2 block border-t pt-3 text-xs">마감 시간(분)
+        {premium && regularRoom && formation.predictionEnabled ? <div className="mb-2 border-t pt-3 text-xs"><HelpText label="마감 시간(분)" help="경기 현황에 진입한 시점부터 계산합니다. 1~10분 사이로 설정할 수 있습니다." />
           <input type="number" inputMode="numeric" aria-label="승부예측 마감 시간(분)" min={1} max={10} step={1} className={`${field} ${styles.numberInput}`} value={formation.predictionMinutes} onFocus={() => setStage("match")} onChange={(event) => { onFormationChange({ ...formation, predictionMinutes: Number(event.target.value) }); setStage("match"); }} />
-          <span className="mt-2 block text-muted-foreground">경기 현황 진입부터 · 1~10분</span>
-        </label> : null}
+        </div> : null}
       </section>
     </fieldset>
   </div>;

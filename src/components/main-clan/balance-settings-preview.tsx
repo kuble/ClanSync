@@ -17,6 +17,7 @@ import { BalanceTeamHeading } from "./clan-balance-roster-board";
 import { ScoreModeToggle } from "./balance-team-insights";
 import { BalanceMapImage } from "./clan-balance-map-image";
 import styles from "./clan-balance-settings.module.css";
+import { HelpText } from "./help-text";
 
 // These examples stay local to the settings dialog and never submit game input.
 const names = ["네온", "달빛", "새벽", "루나", "바람", "에임", "여우", "구름", "모찌", "감자"];
@@ -34,7 +35,7 @@ export function BalanceDisplayPreview({ settings, premium, regularRoom }: {
   const scoreMode = premium ? mode : "m";
   return <section aria-label="화면 표시 미리보기" className="overflow-hidden rounded-xl border bg-background" data-testid="balance-display-preview">
     <header className="flex items-center justify-between gap-3 border-b px-4 py-3">
-      <h3 className="text-sm font-semibold">화면 표시 미리보기</h3>
+      <h3 className="text-sm font-semibold"><HelpText label="화면 표시 미리보기" help="카드와 팀 그래프에 마우스를 올려 상세 정보를 확인하세요. 예시 화면이며 설정 적용 전에는 실제 경기에 반영되지 않습니다." /></h3>
       <span className="text-xs text-muted-foreground">편성 화면</span>
     </header>
     <div className="space-y-5 p-4 sm:p-6">
@@ -55,9 +56,7 @@ export function BalanceDisplayPreview({ settings, premium, regularRoom }: {
           </button>
         </BalancePlayerDetails>)}
       </div>
-      <p className="text-xs leading-relaxed text-muted-foreground">카드와 팀 그래프에 마우스를 올려 상세 정보도 확인하세요.</p>
     </div>
-    <footer className="border-t bg-muted/15 px-4 py-3 text-xs text-muted-foreground">예시 화면 · 설정 적용 전에는 실제 경기에 반영되지 않습니다.</footer>
   </section>;
 }
 
@@ -82,7 +81,7 @@ export function BalanceBanPreview({ gameSlug, mapEnabled, heroEnabled, settings,
   ];
   return <section aria-label="밴픽 미리보기" className="overflow-hidden rounded-xl border bg-background" data-testid="balance-ban-preview" data-stage={activeStage}>
     <header className="flex items-center justify-between gap-3 border-b px-4 py-3">
-      <h3 className="text-sm font-semibold">밴픽 미리보기</h3>
+      <h3 className="text-sm font-semibold"><HelpText label="밴픽 미리보기" help="예시 화면입니다. 여기서 선택한 투표와 영웅 밴은 저장되지 않습니다." /></h3>
       <span className="text-xs text-muted-foreground">출전자 화면</span>
     </header>
     <nav aria-label="밴픽 진행 순서" className="flex flex-wrap items-center gap-2 border-b px-4 py-3">
@@ -123,6 +122,5 @@ export function BalanceBanPreview({ gameSlug, mapEnabled, heroEnabled, settings,
         {predictionEnabled ? <p className="text-xs text-primary">관전자 승부예측 · 경기 시작 후 {predictionMinutes}분 마감</p> : null}
       </>}
     </div>
-    <footer className="border-t bg-muted/15 px-4 py-3 text-xs text-muted-foreground">예시 화면 · 투표와 밴 선택은 저장되지 않습니다.</footer>
   </section>;
 }

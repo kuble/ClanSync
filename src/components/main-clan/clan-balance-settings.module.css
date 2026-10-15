@@ -5,7 +5,7 @@
 .previewTeamHeading > div { grid-template-columns: minmax(0, 1fr) minmax(110px, 2fr) minmax(0, 1fr); }
 .previewTeamHeading [data-testid="team-comparison-graph"] { width: 100%; max-width: 220px; }
 
-@media (min-width: 1100px) {
+@media (min-width: 840px) {
   .sheet[data-side="right"] {
     width: 100%;
     max-width: none;
@@ -27,8 +27,8 @@
   .preview {
     position: fixed;
     top: 50%;
-    left: 32px;
-    right: 472px;
+    left: 24px;
+    right: 464px;
     transform: translateY(-50%);
     display: flex;
     justify-content: center;
@@ -37,6 +37,7 @@
   .preview > section {
     --preview-scale: 1.4;
     width: 100%;
+    min-width: 0;
     max-width: 660px;
     margin-top: 0;
     pointer-events: auto;

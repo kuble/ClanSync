@@ -88,7 +88,7 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await expect(playerInfo).toContainText(/1\s*연패/);
     await expect(playerInfo).toContainText("평가 점수");
     await expect(playerInfo).toContainText("분석 점수");
-    await expect(playerInfo).toContainText(/마이크\s*미설정/);
+    await expect(playerInfo).not.toContainText("마이크");
     await expect(playerInfo).toHaveCSS("pointer-events", "none");
     await expect(playerInfo.locator("..")).toHaveCSS("pointer-events", "none");
     await page.screenshot({ path: test.info().outputPath("player-session-details.png"), fullPage: true });

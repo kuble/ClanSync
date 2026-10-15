@@ -29,6 +29,7 @@ import type { BalanceRoster } from "@/lib/balance/roster-schema";
 import { BalanceFormationPreview, type PreviewSettingFocus, type PreviewSettingField } from "./balance-formation-preview";
 import { BalanceDisplaySettings, BalanceBanSettings } from "./balance-settings-options";
 import styles from "./clan-balance-settings.module.css";
+import { HelpText } from "./help-text";
 
 export const TEAM_MODE_LABELS = {
   keep: "현재 팀 유지",
@@ -187,12 +188,8 @@ export function ClanBalanceSettings({
       >
         <div className={styles.panel} data-testid="balance-settings-panel">
         <SheetHeader>
-          <SheetTitle>경기 설정</SheetTitle>
-          <SheetDescription>
-            {editable
-              ? "편성, 화면 표시와 경기 구성을 관리합니다."
-              : "경기가 시작되어 설정이 잠겼습니다."}
-          </SheetDescription>
+          <SheetTitle><HelpText label="경기 설정" help="편성, 화면 표시와 경기 구성을 관리합니다. 설정 적용을 누르면 현재 내전에 반영합니다." /></SheetTitle>
+          {!editable && <SheetDescription>경기가 시작되어 설정이 잠겼습니다.</SheetDescription>}
         </SheetHeader>
         <div className="space-y-7 px-5 pb-6">
           {rulesChanged ? (
@@ -392,10 +389,9 @@ export function ClanBalanceSettings({
               </div>
             ) : null}
             {draft.teams === "auction" ? <div className="mt-4 space-y-3 rounded-lg border bg-background/50 p-3">
-              <label className="flex items-center justify-between gap-3 text-sm font-medium">전략 아이템 사용<input type="checkbox" className="size-4 accent-primary" checked={draft.auctionItemsEnabled} onChange={(event) => { setPreviewFocus(null); setDraft({ ...draft, auctionItemsEnabled: event.target.checked }); }} /></label>
+              <div className="flex items-center justify-between gap-3 text-sm font-medium"><HelpText label="전략 아이템 사용" help="활성 아이템을 3개 이상 등록해 주세요. 효과는 운영진이 경기 규칙에 직접 적용합니다." /><input type="checkbox" aria-label="전략 아이템 사용" className="size-4 accent-primary" checked={draft.auctionItemsEnabled} onChange={(event) => { setPreviewFocus(null); setDraft({ ...draft, auctionItemsEnabled: event.target.checked }); }} /></div>
               {draft.auctionItemsEnabled ? <label className="block text-xs">전략 준비 시간(초)<input type="number" aria-label="전략 준비 시간(초)" min={10} max={120} step={1} className={field} value={draft.strategySeconds} onFocus={() => focusPreview("strategySeconds")} onChange={(event) => changePreviewSetting("strategySeconds", Number(event.target.value))} /></label> : null}
               <Link href={`/games/${gameSlug}/clan/${clanId}/manage?tab=balance#auction-items`} className="inline-block text-xs font-semibold text-primary underline underline-offset-4">클랜 전략 아이템 관리</Link>
-              <p className="text-[11px] text-muted-foreground">활성 아이템을 3개 이상 등록해 주세요. 효과는 운영진이 경기 규칙에 직접 적용합니다.</p>
             </div> : null}
           </fieldset>
           </div>
