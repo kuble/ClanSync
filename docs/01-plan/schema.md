@@ -40,7 +40,7 @@ ClanMember ──< CoinTransaction
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | id | uuid PK | auth.users 연동 |
-| nickname | varchar(20) UNIQUE NOT NULL | 닉네임 |
+| nickname | varchar(20) NOT NULL | 표시 이름. 신규 가입 시 `새 회원`, 오버워치 연동 후 배틀태그 이름. 동명 허용(D-AUTH-08) |
 | email | citext UNIQUE NOT NULL | 이메일 (대소문자 무시 매칭) |
 | language | enum('ko','en','ja') | 언어 설정 |
 | birth_year | int NOT NULL | 출생연도(가입 폼). 상한 `currentYear-10`, 하한 1950 (D-AUTH-03) |
@@ -131,7 +131,8 @@ ClanMember ──< CoinTransaction
 | id | uuid PK | |
 | user_id | uuid FK → users | |
 | game_id | uuid FK → games | |
-| game_uid | varchar NOT NULL | 게임 내 고유 ID (배틀태그 등) |
+| game_uid | varchar NOT NULL | 제공자의 불변 계정 ID. 배틀태그 이름 변경 시에도 유지 |
+| battle_tag | text NULL | 서버가 기록한 전체 배틀태그. 인증 계정은 게임별 대소문자 무시 중복 금지. 레거시 행은 NULL 유지 |
 | is_verified | boolean DEFAULT false | 인증 완료 여부 |
 | verified_at | timestamptz | 인증 시각 |
 | UNIQUE(user_id, game_id) | | 게임당 1계정 |
