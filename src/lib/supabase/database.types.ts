@@ -3199,6 +3199,14 @@ export type Database = {
         }
         Returns: Json
       }
+      approve_clan_join_with_participant: {
+        Args: {
+          p_clan_id: string
+          p_participant_id?: string
+          p_request_id: string
+        }
+        Returns: undefined
+      }
       balance_roster_contains_user: {
         Args: { p_roster: Json; p_uid: string }
         Returns: boolean
@@ -3334,10 +3342,25 @@ export type Database = {
         Args: { p_clan_id: string; p_id: string }
         Returns: string
       }
+      link_clan_participant: {
+        Args: { p_clan_id: string; p_participant_id: string; p_user_id: string }
+        Returns: undefined
+      }
       list_balance_roster_pool: {
         Args: { p_clan_id: string }
         Returns: {
           nickname: string
+          user_id: string
+        }[]
+      }
+      list_clan_guest_records: {
+        Args: { p_clan_id: string }
+        Returns: {
+          id: string
+          last_played: string
+          nickname: string
+          played: number
+          recent_matches: Json
           user_id: string
         }[]
       }
@@ -3640,6 +3663,10 @@ export type Database = {
       }
       submit_clan_poll_vote: {
         Args: { p_clan_id: string; p_option_ids: string[]; p_poll_id: string }
+        Returns: undefined
+      }
+      unlink_clan_participant: {
+        Args: { p_clan_id: string; p_participant_id: string }
         Returns: undefined
       }
       update_balance_auto_close_settings: {
