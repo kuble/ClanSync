@@ -74,7 +74,7 @@ export function ParticipantRecordDialog({ clanId, gameSlug, userId, nickname, ga
       <div className="space-y-4 border-b px-5 py-5 sm:px-6">
       <DialogHeader>
         <DialogTitle>{unlink ? "이전 기록 연결을 해제할까요?" : requestId ? "클랜 가입 승인" : "이전 내전 기록"}</DialogTitle>
-        <DialogDescription>{unlink ? "선택한 과거 기록만 계정에서 분리됩니다." : requestId ? joinMode === "link" ? "연결할 이전 내전 기록을 선택해 주세요." : "가입 전 내전 기록을 연결할지 선택해 주세요." : "가입 전 기록을 연결하거나 잘못 연결한 기록을 해제하세요."}</DialogDescription>
+        {(unlink || !requestId) && <DialogDescription>{unlink ? "선택한 과거 기록만 계정에서 분리됩니다." : "가입 전 기록을 연결하거나 잘못 연결한 기록을 해제하세요."}</DialogDescription>}
       </DialogHeader>
       <div className="flex items-center gap-3">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><UserRound size={19} aria-hidden="true" /></span>
