@@ -1,4 +1,5 @@
 "use client";
+import { HelpText } from "./help-text";
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -88,11 +89,8 @@ export function ClanManageNotices({
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 id="manage-notices-title" className="text-sm font-bold">
-            클랜 공지
+            <HelpText label="클랜 공지" help="중요한 소식을 클랜원에게 전하세요. 고정한 공지가 먼저 표시됩니다." />
           </h3>
-          <p className="mt-1 text-xs text-muted-foreground">
-            중요한 소식을 클랜원에게 전하세요. 고정한 공지가 먼저 표시됩니다.
-          </p>
         </div>
         {canManage && <Button
           type="button"
@@ -390,13 +388,10 @@ function ClanRulesEditor({
   return (
     <section className={panel} id="rules" aria-labelledby="manage-rules-title">
       <h3 id="manage-rules-title" className="text-sm font-bold">
-        클랜 규칙
+        <HelpText label="클랜 규칙" help="우리 클랜이 함께 지킬 약속을 적어주세요." />
       </h3>
-      <p className="mb-4 mt-1 text-xs text-muted-foreground">
-        우리 클랜이 함께 지킬 약속을 적어주세요.
-      </p>
       <form
-        className="space-y-3"
+        className="mt-4 space-y-3"
         onSubmit={(event) => {
           event.preventDefault();
           start(async () => {

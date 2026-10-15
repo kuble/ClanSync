@@ -1,4 +1,5 @@
 "use client";
+import { HelpText } from "./help-text";
 import Image from "next/image";
 import Link from "next/link";
 import {useState} from "react";
@@ -17,7 +18,7 @@ export function ClanBoardPosts({base,gameSlug,clanId,kind,title,description,post
   const available=coaches.filter(c=>c.userId!==userId&&c.accepting);
   const request=(id:string)=>{setCoachId(id);setEditing(true);};
   return <div className="space-y-5">
-    <header className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-lg font-semibold tracking-tight">{title}</h3><p className="mt-1.5 text-xs leading-5 text-muted-foreground">{description}</p></div><Button size="sm" disabled={kind==="feedback"&&!available.length} onClick={()=>{setCoachId("");setEditing(true);}}><Plus className="size-4" aria-hidden/>{kind==="memories"?"추억 남기기":kind==="feedback"?"피드백 신청":kind==="channels"?"채널 등록":"글 작성"}</Button></header>
+    <header className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-lg font-semibold tracking-tight"><HelpText label={title} help={description} /></h3></div><Button size="sm" disabled={kind==="feedback"&&!available.length} onClick={()=>{setCoachId("");setEditing(true);}}><Plus className="size-4" aria-hidden/>{kind==="memories"?"추억 남기기":kind==="feedback"?"피드백 신청":kind==="channels"?"채널 등록":"글 작성"}</Button></header>
     {kind==="feedback"&&<ClanCoachDirectory coaches={coaches} userId={userId} gameSlug={gameSlug} clanId={clanId} onRequest={request}/>}
     {!posts.length?<div className={cn("flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-card p-6 text-center",kind==="memories"?"min-h-96":"min-h-64")}>{kind==="memories"?<Camera className="size-6 text-muted-foreground" aria-hidden/>:kind==="channels"?<Radio className="size-6 text-muted-foreground" aria-hidden/>:<MessageSquare className="size-6 text-muted-foreground" aria-hidden/>}<p className="text-sm">아직 등록된 {kind==="memories"?"추억":kind==="feedback"?"신청":kind==="channels"?"채널":"글"}이 없어요.</p><p className="text-xs text-muted-foreground">{kind==="feedback"?"선생님을 선택해 첫 피드백을 요청해 보세요.":kind==="channels"?"첫 방송 채널을 등록해 주세요.":"첫 이야기를 남겨 주세요."}</p></div>
       :kind==="memories"?<MemoryGallery base={base} posts={posts}/>

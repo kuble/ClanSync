@@ -1,12 +1,9 @@
 "use client";
 
-import type { FormEvent } from "react";
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Clock3 } from "lucide-react";
-import { toast } from "sonner";
 import { updateBalanceAutoCloseSettingsAction } from "@/app/actions/clan-balance-settings";
-import { Button } from "@/components/ui/button";
+import { useAutosave, AutosaveStatus } from "@/components/ui/use-autosave";
+import { HelpText } from "./help-text";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -22,29 +19,12 @@ export function ClanBalanceAutoCloseSettings({
   initialEnabled: boolean;
   initialHours: number;
 }) {
-  const router = useRouter();
-  const [enabled, setEnabled] = useState(initialEnabled);
-  const [pending, startTransition] = useTransition();
-
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const hours = Number(formData.get("hours"));
-    startTransition(async () => {
-      const result = await updateBalanceAutoCloseSettingsAction(
-        gameSlug,
-        clanId,
-        enabled,
-        hours,
-      );
-      if (!result.ok) {
-        toast.error(result.error);
-        return;
-      }
-      toast.success("자동 종료 설정을 저장했습니다.");
-      router.refresh();
-    });
-  }
+  const autosave = useAutosave({ enabled: initialEnabled, hours: String(initialHours) }, async (draft) => {
+    const hours = Number(draft.hours);
+    if (!Number.isInteger(hours) || hours < 1 || hours > 168) return { ok: false, error: "자동 종료 시간은 1~168시간 사이의 정수로 입력해 주세요." };
+    return updateBalanceAutoCloseSettingsAction(gameSlug, clanId, draft.enabled, hours);
+  });
+  const { enabled, hours } = autosave.value;
 
   return (
     <section className="rounded-xl border border-border bg-card p-5">
@@ -53,28 +33,22 @@ export function ClanBalanceAutoCloseSettings({
           <Clock3 className="size-4" aria-hidden="true" />
         </span>
         <div>
-          <h3 className="text-sm font-bold">세션 자동 종료</h3>
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            마지막 편성·투표·예측 입력 후 설정한 시간 동안 활동이 없으면 진행
-            중인 세션을 종료합니다.
-          </p>
+          <h3 className="text-sm font-bold"><HelpText label="세션 자동 종료" help="마지막 편성·투표·예측 입력 후 설정한 시간 동안 활동이 없으면 진행 중인 세션을 종료합니다. 새 클랜은 기본 3시간으로 사용합니다." /></h3>
         </div>
       </div>
 
-      <form onSubmit={onSubmit} className="mt-5 space-y-5">
+      <form onSubmit={(event) => event.preventDefault()} className="mt-5 space-y-5">
         <div className="flex items-center justify-between gap-4 rounded-lg border border-border px-4 py-3">
           <div>
             <Label htmlFor="balance-auto-close-toggle">자동 종료 사용</Label>
-            <p className="mt-1 text-xs text-muted-foreground">
-              새 클랜은 기본 3시간으로 사용합니다.
-            </p>
+
           </div>
           <button
             id="balance-auto-close-toggle"
             type="button"
             role="switch"
             aria-checked={enabled}
-            onClick={() => setEnabled((value) => !value)}
+            onClick={() => autosave.update((current) => ({ ...current, enabled: !current.enabled }))}
             className={cn(
               "relative h-6 w-11 shrink-0 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               enabled
@@ -103,7 +77,8 @@ export function ClanBalanceAutoCloseSettings({
               max={168}
               step={1}
               placeholder="1~168시간"
-              defaultValue={initialHours}
+              value={hours}
+              onChange={(event) => autosave.update((current) => ({ ...current, hours: event.target.value }))}
               required
               className="w-24 tabular-nums"
             />
@@ -111,9 +86,7 @@ export function ClanBalanceAutoCloseSettings({
           </div>
         </div>
 
-        <Button type="submit" disabled={pending}>
-          {pending ? "저장 중…" : "설정 저장"}
-        </Button>
+        <AutosaveStatus {...autosave} />
       </form>
     </section>
   );

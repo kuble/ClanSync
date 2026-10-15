@@ -55,7 +55,7 @@ test("운영 현황의 회차·배지·중복 제거와 대시보드 공지 3개
     await expect(counts.getByText("정규 내전", { exact: true }).locator("..")).toContainText("100회");
     await expect(counts.getByText("깜짝 내전", { exact: true }).locator("..")).toContainText("1회");
     await expect(page.getByRole("link", { name: "구성원 2명", exact: true })).toContainText("28자리 여유");
-    await expect(page.getByRole("navigation", { name: "클랜 관리 항목", exact: true }).getByRole("link", { name: "가입 요청 1", exact: true })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "클랜 관리 분류", exact: true }).getByRole("link", { name: "구성원 관리 1", exact: true })).toBeVisible();
     await expect(page.getByText(/기다리고 있습니다/)).toHaveCount(0);
     await expect(page.getByRole("region", { name: "클랜 기본 정보", exact: true })).toHaveCount(0);
     await expect(page.getByRole("region", { name: "운영 바로가기", exact: true })).toHaveCount(0);

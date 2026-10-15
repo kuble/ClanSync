@@ -54,7 +54,7 @@ async function NotificationSettings({ ctx, connectionResult }: Pick<Props, "ctx"
   ]);
   if (settings.error || connection.error) throw new Error("알림 설정을 불러오지 못했습니다.");
   const notify = readClanEventNotifySettings(settings.data.event_notify);
-  return <ClanDiscordSettings gameSlug={ctx.gameSlug} clanId={ctx.clanId} canEdit={ctx.role === "leader"} premium={ctx.plan === "premium"}
+  return <ClanDiscordSettings key={`${ctx.clanId}:${ctx.role}:${ctx.plan}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} canEdit={ctx.role === "leader"} premium={ctx.plan === "premium"}
     botConfigured={discordBotConfigured()} connection={connection.data} discordEnabled={notify.discord_enabled}
     routes={readDiscordNotificationRoutes(settings.data.event_notify)} connectionResult={connectionResult} />;
 }
@@ -157,7 +157,7 @@ async function BalanceSettings({ ctx }: Pick<Props, "ctx">) {
     client.from("clan_auction_items").select("id,name,description,cost,enabled").eq("clan_id", ctx.clanId).order("created_at"),
   ]);
   if (profile.error) throw new Error("내전 설정을 불러오지 못했습니다.");
-  return <div className="space-y-4"><ClanBalanceAutoCloseSettings gameSlug={ctx.gameSlug} clanId={ctx.clanId} initialEnabled={profile.data.balance_auto_close_enabled} initialHours={profile.data.balance_auto_close_hours} /><ClanAuctionItemSettings gameSlug={ctx.gameSlug} clanId={ctx.clanId} items={items.data ?? []} loadError={!!items.error} /></div>;
+  return <div className="space-y-4"><ClanBalanceAutoCloseSettings key={`${ctx.clanId}:${ctx.role}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} initialEnabled={profile.data.balance_auto_close_enabled} initialHours={profile.data.balance_auto_close_hours} /><ClanAuctionItemSettings gameSlug={ctx.gameSlug} clanId={ctx.clanId} items={items.data ?? []} loadError={!!items.error} /></div>;
 }
 
 async function Insights({ ctx }: Pick<Props, "ctx">) {

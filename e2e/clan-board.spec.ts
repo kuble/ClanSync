@@ -82,7 +82,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     await expect(page.getByRole("button",{name:"편집",exact:true})).toHaveCount(0);
     await expect(page.getByRole("button",{name:"댓글 편집",exact:true})).toHaveCount(0);
     await page.setViewportSize({width:390,height:844});await page.goto(base+"/board/free");
-    await expect(page.getByRole("combobox",{name:"게시판 공간",exact:true})).toBeVisible();
+    await expect(page.getByRole("navigation",{name:"게시판 목차",exact:true})).toBeVisible();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await ok(f.service.from("clan_members").update({status:"left"}).eq("clan_id",f.clanId).eq("user_id",f.users[2].id));
     await page.goto(base+"/board/free/"+freeId);

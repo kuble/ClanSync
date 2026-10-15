@@ -1,4 +1,5 @@
 "use client";
+import { HelpText } from "./help-text";
 
 import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -62,8 +63,7 @@ export function ClanAuctionItemSettings({ gameSlug, clanId, items, loadError = f
         <div className="flex min-w-0 flex-1 items-start gap-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><Gift className="size-4" aria-hidden="true" /></span>
           <div>
-            <h3 className="text-sm font-bold">경매 아이템</h3>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">사용 중인 아이템 중 3개를 경매 전에 공개합니다. 팀원 경매 후 남은 포인트로 선택합니다.</p>
+            <h3 className="text-sm font-bold"><HelpText label="경매 아이템" help="사용 중인 아이템 중 3개를 경매 전에 공개합니다. 팀원 경매 후 남은 포인트로 선택합니다. 사용 여부는 편성 설정에서 선택하며, 변경 내용은 다음 경매부터 적용됩니다." /></h3>
           </div>
         </div>
         <Button variant="outline" size="sm" disabled={pending || loadError} onClick={() => { setEditor("new"); setDeleteId(null); }}><Plus className="size-3.5" aria-hidden="true" />아이템 추가</Button>

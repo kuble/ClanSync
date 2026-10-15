@@ -1,4 +1,5 @@
 "use client";
+import { HelpText } from "./help-text";
 
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -41,11 +42,7 @@ export function ClanBannerSettingsForm({
       className="bg-card space-y-4 rounded-xl border p-4 shadow-sm"
     >
       <div>
-        <h3 className="text-sm font-medium">클랜 배너</h3>
-        <p className="text-muted-foreground mt-1 text-xs">
-          배너로 사용할 이미지의 https:// 주소를 입력해 주세요. 주소를 비우면
-          배너가 표시되지 않습니다.
-        </p>
+        <h3 className="text-sm font-medium"><HelpText label="클랜 배너" help="배너로 사용할 이미지의 https:// 주소를 입력해 주세요. 주소를 비우면 배너가 표시되지 않습니다." /></h3>
       </div>
       <div className="space-y-2">
         <Label htmlFor="banner-url">배너 이미지 주소</Label>

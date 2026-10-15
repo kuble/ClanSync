@@ -1,4 +1,5 @@
 "use client";
+import { HelpText } from "./help-text";
 import {useState,useTransition} from "react";
 import {toast} from "sonner";
 import {GraduationCap} from "lucide-react";
@@ -12,7 +13,7 @@ import type {ClanCoach} from "@/lib/clan/coaching";
 export function ClanCoachDirectory({coaches,userId,gameSlug,clanId,onRequest}:{coaches:ClanCoach[];userId:string;gameSlug:string;clanId:string;onRequest:(id:string)=>void}){
   const [open,setOpen]=useState(false),mine=coaches.find(c=>c.userId===userId);
   return <section className="space-y-4 rounded-xl border border-border bg-card p-5" aria-label="코칭 선생님">
-    <div className="flex flex-wrap items-center justify-between gap-3"><div><h4 className="flex items-center gap-2 text-sm font-semibold"><GraduationCap className="size-5 text-primary"/>코칭 선생님</h4><p className="mt-2 text-xs text-muted-foreground">선생님을 골라 리플레이 피드백을 요청하세요. 클랜원 누구나 선생님으로 등록할 수 있어요.</p></div><Button size="sm" variant="outline" onClick={()=>setOpen(true)}>{mine?"내 코칭 프로필":"코칭 선생님 등록"}</Button></div>
+    <div className="flex flex-wrap items-center justify-between gap-3"><div><h4 className="flex items-center gap-2 text-sm font-semibold"><GraduationCap className="size-5 text-primary" aria-hidden/><HelpText label="코칭 선생님" help="선생님을 골라 리플레이 피드백을 요청하세요. 클랜원 누구나 선생님으로 등록할 수 있어요." /></h4></div><Button size="sm" variant="outline" onClick={()=>setOpen(true)}>{mine?"내 코칭 프로필":"코칭 선생님 등록"}</Button></div>
     {!coaches.length?<p className="py-6 text-center text-sm text-muted-foreground">아직 등록된 선생님이 없어요.</p>:<div className="grid gap-3 sm:grid-cols-2">{coaches.map(c=><article key={c.userId} className="flex min-w-0 flex-col gap-3 rounded-lg border border-border bg-background/30 p-4"><div className="flex items-center gap-3"><div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><GraduationCap className="size-4" aria-hidden/></div><div className="min-w-0"><h5 className="truncate text-sm font-semibold">{c.name}</h5><p className="mt-1 text-[11px] text-muted-foreground">{c.accepting?"신청 가능":"신청 잠시 중단"}</p></div></div><p className="break-words text-sm font-medium leading-6 text-primary">{c.expertise}</p>{c.bio&&<p className="line-clamp-2 whitespace-pre-wrap break-words text-xs leading-6 text-muted-foreground">{c.bio}</p>}{c.userId!==userId&&<Button size="sm" variant="outline" className="mt-auto" disabled={!c.accepting} onClick={()=>onRequest(c.userId)}>{c.name} 선생님께 신청</Button>}</article>)}</div>}
     {open&&<CoachEditor mine={mine} gameSlug={gameSlug} clanId={clanId} onClose={()=>setOpen(false)}/>}
   </section>;
