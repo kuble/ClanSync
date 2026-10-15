@@ -61,8 +61,9 @@ export function useAutosave<T extends object>(initial: T, save: (value: T) => Pr
 }
 
 export function AutosaveStatus({ status, error, retry }: { status: SaveStatus; error: string; retry: () => void }) {
+  if (status === "idle") return null;
   return <div className="flex min-h-7 items-center justify-end gap-2 text-xs text-muted-foreground">
     {status === "error" ? <><span role="alert" className="text-destructive">{error}</span><Button size="sm" variant="ghost" onClick={retry}>다시 시도</Button></>
-      : <span role="status" aria-live="polite">{status === "saving" ? "변경 사항 저장 중…" : status === "saved" ? "자동 저장됨" : "변경 시 자동 저장"}</span>}
+      : <span role="status" aria-live="polite">{status === "saving" ? "변경 사항 저장 중…" : "자동 저장됨"}</span>}
   </div>;
 }
