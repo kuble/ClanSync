@@ -4,7 +4,7 @@ import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Search, ChevronLeft, ChevronRight, ShieldPlus, ShieldMinus, UserRoundMinus } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, ChevronsUp, ShieldMinus, UserRoundMinus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
@@ -249,7 +249,7 @@ export function ManageMembersTable({
                           aria-label={`${m.nickname} 운영진 승격`}
                           title="운영진 승격"
                         >
-                          <ShieldPlus aria-hidden="true" />
+                          <ChevronsUp aria-hidden="true" />
                         </Button>
                       </form>
                     ) : null}
