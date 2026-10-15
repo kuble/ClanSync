@@ -5,10 +5,12 @@ import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 
 export default async function ClanStatsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ gameSlug: string; clanId: string }>;
+  searchParams: Promise<{ player?: string | string[] }>;
 }) {
-  const { gameSlug, clanId } = await params;
+  const [{ gameSlug, clanId }, query] = await Promise.all([params, searchParams]);
   const supabase = await getRequestClient();
   const user = await getRequestUser();
 
@@ -21,5 +23,5 @@ export default async function ClanStatsPage({
     redirect(`/games/${gameSlug}/clan`);
   }
 
-  return <ClanStatsExperience gameSlug={gameSlug} clanId={clanId} model={model} />;
+  return <ClanStatsExperience gameSlug={gameSlug} clanId={clanId} model={model} initialPlayer={typeof query.player === "string" ? query.player : undefined} />;
 }

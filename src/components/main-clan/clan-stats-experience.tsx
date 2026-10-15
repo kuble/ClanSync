@@ -15,10 +15,11 @@ const IntraClanStats = dynamic(() => import("./clan-intra-stats").then((module) 
 const ClanMatchHistory = dynamic(() => import("./clan-match-history").then((module) => module.ClanMatchHistory));
 const PersonalStats = dynamic(() => import("./clan-personal-stats").then((module) => module.PersonalStats));
 
-export function ClanStatsExperience({ gameSlug, clanId, model }: { gameSlug: string; clanId: string; model: ClanStatsPageModel }) {
-  const [tab, setTab] = useState("hof");
-  const [personId, setPersonId] = useState<string | null>(null);
+export function ClanStatsExperience({ gameSlug, clanId, model, initialPlayer }: { gameSlug: string; clanId: string; model: ClanStatsPageModel; initialPlayer?: string }) {
   const showPersonalTab = model.permissions.viewPersonalRecords || (model.permissions.isStaff && model.permissions.setHofRules);
+  const initialPerson = model.personal.people.find((person) => person.userId === initialPlayer);
+  const [tab, setTab] = useState(initialPlayer && showPersonalTab ? "personal" : "hof");
+  const [personId, setPersonId] = useState<string | null>(initialPerson?.userId ?? null);
   const settingsFor = (scope: "hof" | "intra" | "records" | "personal") => <ClanStatsSettings scope={scope} model={model} gameSlug={gameSlug} clanId={clanId} />;
   // A refreshed model (score edit, settings change, or navigation) discards old detail responses.
   const { requests: cache } = useMemo(() => ({ model, requests: new Map() as StatsDetailCache }), [model]);

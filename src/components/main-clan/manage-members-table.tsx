@@ -1,17 +1,11 @@
 "use client";
 
 import type { FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
   kickClanMemberAction,
@@ -22,7 +16,7 @@ import { Button } from "@/components/ui/button";
 export type ManageMemberRow = {
   userId: string;
   nickname: string;
-  email: string;
+  gameVerified: boolean;
   role: "leader" | "officer" | "member";
   joinedLabel: string;
   lastActivityAt?: string | null;
@@ -47,7 +41,6 @@ export function ManageMembersTable({
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [pageIndex, setPageIndex] = useState(0);
-  const [detail, setDetail] = useState<ManageMemberRow | null>(null);
   const [now] = useState(() => Date.now());
   function activity(row: ManageMemberRow) {
     if (!row.lastActivityAt) return "unknown";
@@ -72,7 +65,7 @@ export function ManageMembersTable({
   const filtered = rows.filter(
     (row) =>
       (filter === "all" || activity(row) === filter) &&
-      `${row.nickname} ${row.email}`
+      row.nickname
         .toLocaleLowerCase()
         .includes(query.toLocaleLowerCase()),
   );
@@ -163,7 +156,7 @@ export function ManageMembersTable({
           />
           <Input
             aria-label="구성원 검색"
-            placeholder="닉네임·이메일 검색"
+            placeholder="닉네임 검색"
             value={query}
             onChange={(event) => {
               setQuery(event.target.value);
@@ -195,6 +188,7 @@ export function ManageMembersTable({
           <thead className="bg-muted/50 text-muted-foreground border-b text-xs font-medium uppercase">
             <tr>
               <th className="px-3 py-2">닉네임</th>
+              <th className="px-3 py-2">게임 인증</th>
               <th className="px-3 py-2">활동 상태</th>
               <th className="px-3 py-2">역할</th>
               <th className="px-3 py-2">가입</th>
@@ -205,16 +199,17 @@ export function ManageMembersTable({
             {visible.map((m) => (
               <tr key={m.userId} className="border-b last:border-0">
                 <td className="px-3 py-3 font-medium">
-                  <button
-                    type="button"
-                    className="text-left hover:text-primary"
-                    onClick={() => setDetail(m)}
+                  <Link
+                    href={`/games/${gameSlug}/clan/${clanId}/stats?player=${encodeURIComponent(m.userId)}`}
+                    prefetch={false}
+                    aria-label={`${m.nickname} 개인 기록`}
+                    className="rounded-sm text-left hover:text-primary focus-visible:outline-2 focus-visible:outline-ring"
                   >
                     {m.nickname}
-                  </button>
-                  <p className="mt-1 text-[11px] font-normal text-muted-foreground">
-                    {m.email}
-                  </p>
+                  </Link>
+                </td>
+                <td className="px-3 py-2 text-xs">
+                  <span className={`whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-medium ${m.gameVerified ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{m.gameVerified ? "인증 완료" : "미인증"}</span>
                 </td>
                 <td className="text-muted-foreground px-3 py-2 text-xs">
                   <span
@@ -327,38 +322,6 @@ export function ManageMembersTable({
           <ChevronRight />
         </Button>
       </div>
-      <Dialog
-        open={detail !== null}
-        onOpenChange={(open) => {
-          if (!open) setDetail(null);
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{detail?.nickname}</DialogTitle>
-            <DialogDescription>클랜 구성원 정보</DialogDescription>
-          </DialogHeader>
-          {detail && (
-            <dl className="grid grid-cols-[6rem_1fr] gap-y-4 text-sm">
-              <dt className="text-muted-foreground">역할</dt>
-              <dd>{roleLabel(detail.role)}</dd>
-              <dt className="text-muted-foreground">이메일</dt>
-              <dd className="break-all">{detail.email}</dd>
-              <dt className="text-muted-foreground">가입일</dt>
-              <dd>{detail.joinedLabel}</dd>
-              <dt className="text-muted-foreground">최근 활동</dt>
-              <dd>
-                {detail.lastActivityAt
-                  ? new Intl.DateTimeFormat("ko-KR", {
-                      timeZone: "Asia/Seoul",
-                      dateStyle: "medium",
-                    }).format(new Date(detail.lastActivityAt))
-                  : "활동 기록이 없습니다."}
-              </dd>
-            </dl>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
