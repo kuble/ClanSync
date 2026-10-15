@@ -58,3 +58,7 @@
 - 모든 계열 최고/최초/복귀 판정, 주년 상세 배치/전환·대표 중복/승급·키보드/모바일: `e2e/clan-badge-series.spec.ts`
 - DB/권한: `scripts/clan-boards-db.test.mjs`; 브라우저: `e2e/clan-board.spec.ts`, `clan-management-overview.spec.ts`, `clan-management.spec.ts`, 공지 링크 관련 `clan-discord-notifications.spec.ts`
 - 실제 수행한 검증과 제한은 [Phase 2 현황](../../TODO_Phase2.md)에 기록한다.
+
+## 2026-10-15 공간 탐색
+
+게시판의 다섯 공간은 가로 탭 링크로 전환한다. 모바일은 같은 행을 스크롤하며, 상세 경로에서도 현재 공간을 표시한다. 제목 아래 보충 설명은 제목의 도움말로 제공한다. 공통 탭 경계 스타일은 디자인 선택 후 통일한다.
