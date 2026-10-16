@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition, type FormEvent } from "react";
+import { useEffect, useId, useState, useTransition, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Dialog as GuideDialog } from "@base-ui/react/dialog";
@@ -219,6 +219,7 @@ function RoomDetailSheet({ room, members, serverNow, leader, canManage, pending,
   onClose: () => void; onUpdate: (input: UpdateInput) => void; onOpen: () => void; onCancel: () => void; onDelegate: (id: string | null) => void; onSchedule: (enabled: boolean) => void;
   onNextReservation?: () => void;
 }) {
+  const formId = useId();
   const [title, setTitle] = useState(room.title);
   const [date, setDate] = useState(kstInput(room.scheduled_at));
   const [rsvp, setRsvp] = useState(room.rsvp_opens_at !== null || room.rsvp_days !== null);
@@ -237,16 +238,17 @@ function RoomDetailSheet({ room, members, serverNow, leader, canManage, pending,
   }
   return (
     <Sheet open onOpenChange={(open) => { if (!open && !pending) onClose(); }}>
-      <SheetContent className="overflow-y-auto data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]" showCloseButton={!pending}>
-        <SheetHeader><SheetTitle>내전 정보</SheetTitle><SheetDescription className="text-xs">{room.kind === "regular" ? "정규" : "깜짝"} · {STATUS[room.status]} · {room.creatorNickname}</SheetDescription></SheetHeader>
-        <div className="space-y-6 px-4 pb-5">
+      <SheetContent className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]" showCloseButton={!pending}>
+        <SheetHeader className="shrink-0 px-5 pb-5"><SheetTitle>내전 정보</SheetTitle><SheetDescription className="text-xs">{room.kind === "regular" ? "정규" : "깜짝"} · {STATUS[room.status]} · {room.creatorNickname}</SheetDescription></SheetHeader>
+        <div className="board-scroll min-h-0 min-w-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-5 pb-6">
           {onNextReservation ? <Button variant="outline" size="sm" onClick={onNextReservation}>다음 예약 보기</Button> : null}
-          {editable ? <form onSubmit={save} className="space-y-4"><fieldset disabled={pending} className="space-y-4"><label className="block text-xs font-semibold">내전 이름<input required maxLength={80} value={title} onChange={(event) => setTitle(event.target.value)} className={field} /></label><BalanceSchedulePicker value={date} onChange={setDate} serverNow={serverNow} weekly={recurring} disabled={pending} />{room.kind === "flash" ? <RsvpFields enabled={rsvp} value={pollDate} onEnabled={setRsvp} onChange={setPollDate} serverNow={serverNow} /> : null}</fieldset><Button type="submit" variant="outline" className="w-full" disabled={pending || !title.trim()}>예약 변경 저장</Button></form> : <div className="space-y-2"><h3 className="font-semibold">{room.title}</h3><p className="text-xs text-muted-foreground">{displayStart(room.scheduled_at)} · 한국 시간</p></div>}
+          {editable ? <form id={formId} onSubmit={save}><fieldset disabled={pending} className="space-y-6"><label className="block text-xs font-semibold">내전 이름<input required maxLength={80} value={title} onChange={(event) => setTitle(event.target.value)} className={field} /></label><fieldset className="rounded-xl border bg-muted/10 p-4"><legend className="px-1 text-sm font-semibold">시작</legend><div className={styles.dependentSettings}><BalanceSchedulePicker value={date} onChange={setDate} serverNow={serverNow} weekly={recurring} disabled={pending} /></div></fieldset>{room.kind === "flash" ? <RsvpFields enabled={rsvp} value={pollDate} onEnabled={setRsvp} onChange={setPollDate} serverNow={serverNow} /> : null}</fieldset></form> : <div className="space-y-2"><h3 className="font-semibold">{room.title}</h3><p className="text-xs text-muted-foreground">{displayStart(room.scheduled_at)} · 한국 시간</p></div>}
 
-          {leader && room.kind === "regular" && !ended ? <section className="space-y-3 border-t pt-4"><label className="block text-xs font-semibold">임시 진행 운영진<select value={delegate} onChange={(event) => setDelegate(event.target.value)} disabled={pending} className={field}><option value="">위임 없음</option>{members.filter((member) => member.role === "officer").map((member) => <option key={member.user_id} value={member.user_id}>{member.nickname}</option>)}</select></label><p className="text-[11px] text-muted-foreground">이 방이 종료되면 위임이 해제됩니다.</p><Button variant="outline" size="sm" disabled={pending || delegate === (room.delegated_to ?? "")} onClick={() => onDelegate(delegate || null)}>{delegate ? "진행 운영진 지정" : "위임 해제"}</Button></section> : room.delegateNickname ? <p className="text-xs text-muted-foreground">진행 운영진 · {room.delegateNickname}</p> : null}
-          {canManage && room.schedule_id ? <label className="flex items-center justify-between border-t pt-4 text-sm"><span className="flex items-center gap-2"><Repeat2 className="size-4" aria-hidden="true" />반복 예약 유지</span><input type="checkbox" checked={room.scheduleEnabled !== false} disabled={pending} onChange={(event) => onSchedule(event.target.checked)} className="size-4 accent-primary" /></label> : null}
+          {leader && room.kind === "regular" && !ended ? <section className="space-y-3 rounded-xl border bg-muted/10 p-4"><label className="block text-xs font-semibold">임시 진행 운영진<select value={delegate} onChange={(event) => setDelegate(event.target.value)} disabled={pending} className={field}><option value="">위임 없음</option>{members.filter((member) => member.role === "officer").map((member) => <option key={member.user_id} value={member.user_id}>{member.nickname}</option>)}</select></label><p className="text-[11px] text-muted-foreground">이 방이 종료되면 위임이 해제됩니다.</p><Button variant="outline" size="sm" disabled={pending || delegate === (room.delegated_to ?? "")} onClick={() => onDelegate(delegate || null)}>{delegate ? "진행 운영진 지정" : "위임 해제"}</Button></section> : room.delegateNickname ? <p className="text-xs text-muted-foreground">진행 운영진 · {room.delegateNickname}</p> : null}
+          {canManage && room.schedule_id ? <label className="flex items-center justify-between rounded-xl border bg-muted/10 p-4 text-sm"><span className="flex items-center gap-2"><Repeat2 className="size-4" aria-hidden="true" />반복 예약 유지</span><input type="checkbox" checked={room.scheduleEnabled !== false} disabled={pending} onChange={(event) => onSchedule(event.target.checked)} className="size-4 accent-primary" /></label> : null}
           {canManage && room.status === "scheduled" ? <div className="space-y-3 border-t pt-4"><Button className="w-full" disabled={pending} onClick={onOpen}>지금 열기<ArrowUpRight className="size-4" aria-hidden="true" /></Button>{confirmCancel ? <div className="rounded-lg border border-destructive/30 p-3"><p className="text-xs">이 내전 예약을 취소할까요?</p><div className="mt-3 flex justify-end gap-2"><Button variant="ghost" size="sm" disabled={pending} onClick={() => setConfirmCancel(false)}>돌아가기</Button><Button variant="destructive" size="sm" disabled={pending} onClick={onCancel}>취소 확정</Button></div></div> : <Button variant="ghost" className="w-full text-muted-foreground" disabled={pending} onClick={() => setConfirmCancel(true)}>이번 내전 취소</Button>}</div> : null}
         </div>
+        {editable ? <div className="shrink-0 border-t px-5 py-4"><Button type="submit" form={formId} className="w-full" disabled={pending || !title.trim()}>예약 변경 저장</Button></div> : null}
       </SheetContent>
     </Sheet>
   );

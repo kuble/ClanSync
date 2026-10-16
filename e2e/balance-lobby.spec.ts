@@ -170,6 +170,7 @@ test("로비 간소화: 예약 휠·주간 단일 행·바로 참여", async ({ 
     await expect(detail.getByRole("listbox", { name: "요일", exact: true })).toBeVisible();
     await expect(detail.getByRole("listbox", { name: "날짜", exact: true })).toHaveCount(0);
     await expect(detail.getByRole("listbox", { name: "초", exact: true })).toHaveCount(0);
+    await expect(detail.locator(".board-scroll")).toHaveCSS("scrollbar-width", "thin");
     const minutes = detail.getByRole("listbox", { name: "분", exact: true });
     await minutes.press("Home");
     const box = await minutes.boundingBox();
@@ -207,6 +208,26 @@ test("로비 간소화: 예약 휠·주간 단일 행·바로 참여", async ({ 
     await expect(flashRow).toContainText("참여 0");
     await flashRow.getByRole("button", { name: "참여", exact: true }).click();
     await expect(flashRow).toContainText("참여 1");
+    const flashDetail = await details(page, flash.id);
+    const content = flashDetail.locator(".board-scroll");
+    const save = flashDetail.getByRole("button", { name: "예약 변경 저장", exact: true });
+    await flashDetail.getByRole("textbox", { name: "내전 이름", exact: true }).fill("디자인 통일 확인");
+    for (const width of [1304, 390, 320]) {
+      await page.setViewportSize({ width, height: 884 });
+      expect(await flashDetail.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+      await expect(content).toHaveCSS("scrollbar-width", "thin");
+      await content.evaluate(el => { el.scrollTop = 0; });
+      const headerY = (await flashDetail.getByRole("heading", { name: "내전 정보", exact: true }).boundingBox())!.y;
+      const saveY = (await save.boundingBox())!.y;
+      await content.evaluate(el => { el.scrollTop = el.scrollHeight; });
+      await expect(flashDetail.getByRole("button", { name: "이번 내전 취소", exact: true })).toBeInViewport();
+      expect((await flashDetail.getByRole("heading", { name: "내전 정보", exact: true }).boundingBox())!.y).toBe(headerY);
+      expect((await save.boundingBox())!.y).toBe(saveY);
+      await page.screenshot({ path: test.info().outputPath(`reservation-edit-${width}.png`) });
+    }
+    await save.click();
+    await expect(flashDetail).toBeHidden();
+    expect((await readRoom(fixture, flash.id)).title).toBe("디자인 통일 확인");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole("button", { name: "내전 추가", exact: true }).click();
     const create = page.getByRole("dialog", { name: "내전 만들기", exact: true });
