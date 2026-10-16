@@ -128,7 +128,7 @@ const GUIDES: Record<
     {
       target: "board",
       title: "진행 중인 경기",
-      text: "승리한 팀을 누르고 팝업에서 확정하세요. 점수를 누르면 평가 점수를 직접 수정합니다.",
+      text: "승리한 팀을 누르고 팝업에서 확정하세요.",
     },
     {
       target: "history",
@@ -142,10 +142,12 @@ export function ClanBalanceGuide({
   open,
   onOpenChange,
   stage,
+  canEditMscore,
 }: {
   open: boolean;
   onOpenChange: (value: boolean) => void;
   stage: BalanceGuideStage;
+  canEditMscore: boolean;
 }) {
   const [step, setStep] = useState(0);
   const [rect, setRect] = useState<{
@@ -211,6 +213,7 @@ export function ClanBalanceGuide({
           </Primitive.Title>
           <Primitive.Description className="mt-3 text-sm leading-relaxed text-muted-foreground">
             {current.text}
+            {stage === "match" && current.target === "board" && canEditMscore ? " 점수를 누르면 평가 점수를 직접 수정합니다." : null}
           </Primitive.Description>
           <div className="mt-5 flex justify-between gap-2">
             <Button

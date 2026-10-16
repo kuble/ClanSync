@@ -35,24 +35,24 @@ export function BalanceDisplayPreview({ settings, premium, regularRoom }: {
   const scoreMode = premium ? mode : "m";
   return <section aria-label="화면 표시 미리보기" className="overflow-hidden rounded-xl border bg-background" data-testid="balance-display-preview">
     <header className="flex items-center justify-between gap-3 border-b px-4 py-3">
-      <h3 className="text-sm font-semibold"><HelpText label="화면 표시 미리보기" help="카드와 팀 그래프에 마우스를 올려 상세 정보를 확인하세요. 예시 화면이며 설정 적용 전에는 실제 경기에 반영되지 않습니다." /></h3>
+      <h3 className="text-sm font-semibold"><HelpText label="화면 표시 미리보기" help={regularRoom ? "카드와 팀 그래프에 마우스를 올려 상세 정보를 확인하세요. 예시 화면이며 설정 적용 전에는 실제 경기에 반영되지 않습니다." : "카드에 마우스를 올려 이번 세션 전적을 확인하세요. 예시 화면이며 설정 적용 전에는 실제 경기에 반영되지 않습니다."} /></h3>
       <span className="text-xs text-muted-foreground">편성 화면</span>
     </header>
     <div className="space-y-5 p-4 sm:p-6">
-      <ScoreModeToggle value={scoreMode} onChange={setMode} premium={premium} />
+      {regularRoom && <ScoreModeToggle value={scoreMode} onChange={setMode} premium={premium} />}
       <div className={styles.previewTeamHeading} data-testid="display-preview-team-heading">
-        <BalanceTeamHeading roster={roster} scores={scores} mode={scoreMode} premium={premium}
-          showPrediction={premium && regularRoom} samplePrediction showSummary={settings.showTeamComparisonSummary}
+        <BalanceTeamHeading roster={roster} scores={regularRoom ? scores : undefined} mode={scoreMode} premium={premium}
+          showPrediction={premium && regularRoom} samplePrediction showSummary={regularRoom && settings.showTeamComparisonSummary}
           comparisonMode={settings.teamComparisonMode} />
       </div>
       <div className="grid grid-cols-2 gap-3">
-        {[0, 5].map((index) => <BalancePlayerDetails key={index} nickname={names[index]} info={info} score={scores[String(index)]}
+        {[0, 5].map((index) => <BalancePlayerDetails key={index} nickname={names[index]} info={info} score={regularRoom ? scores[String(index)] : undefined}
           premium={premium} enabled={settings.showPlayerSessionSummary}>
           <button type="button" aria-label={`${names[index]} 카드 미리보기`} data-testid={`display-preview-card-${index}`}
             className={cn("flex min-h-24 min-w-0 items-center rounded-xl border p-3 text-left focus-visible:outline-2 focus-visible:outline-ring sm:p-4",
               index === 0 ? "border-sky-500/40 bg-sky-500/10" : "border-rose-500/40 bg-rose-500/10")}>
-            <BalancePlayerCardContent nickname={names[index]} info={info} score={scores[String(index)]} mode={scoreMode}
-              showScore={settings.showPlayerCardScore} showInfo={settings.showPlayerCardInfo} infoMode={settings.playerCardInfo} mirrored={index === 5} />
+            <BalancePlayerCardContent nickname={names[index]} info={info} score={regularRoom ? scores[String(index)] : undefined} mode={scoreMode}
+              showScore={regularRoom && settings.showPlayerCardScore} showInfo={settings.showPlayerCardInfo} infoMode={settings.playerCardInfo} mirrored={index === 5} />
           </button>
         </BalancePlayerDetails>)}
       </div>

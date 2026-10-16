@@ -38,7 +38,7 @@ export type PreviewStep = {
     extended?: boolean;
   };
 };
-function buildSteps(settings: FormationSettings): PreviewStep[] {
+function buildSteps(settings: FormationSettings, regularRoom: boolean): PreviewStep[] {
   const teams: (number | null)[] = players.map((_, index) => settings.teams === "keep" ? index % 2 : null);
   const budget = Number.isFinite(settings.auctionBudget) ? Math.max(40, settings.auctionBudget) : 1000;
   const bid = Number.isFinite(settings.minBid) ? Math.max(1, Math.min(settings.minBid, Math.floor(budget / 6))) : 10;
@@ -83,7 +83,7 @@ function buildSteps(settings: FormationSettings): PreviewStep[] {
     }
     }
     add("팀 구성 완료", "각 팀에 돌격 1 · 공격 2 · 지원 2명! 역할 정원을 유지해요.", [], { scene: { kind: "complete" } });
-    if (settings.roles === "lottery") add("팀 밸런스 조정", "추첨 후 같은 역할끼리 팀을 교환하고 점수와 승률을 확인해요. 다음 단계를 눌러야 경기 준비로 넘어가요.");
+    if (settings.roles === "lottery") add("팀 밸런스 조정", regularRoom ? "추첨 후 같은 역할끼리 팀을 교환하고 점수와 승률을 확인해요. 다음 단계를 눌러야 경기 준비로 넘어가요." : "추첨 후 같은 역할끼리 팀을 교환할 수 있어요. 다음 단계를 눌러야 경기 준비로 넘어가요.");
   } else {
     teams[0] = 0; teams[1] = 1;
     add("양 팀 주장 배치", settings.roles === "lottery"
@@ -164,9 +164,9 @@ function focusedStep(sequence: PreviewStep[], field: PreviewSettingField) {
   return index < 0 ? null : index;
 }
 
-export function BalanceFormationPreview({ settings, focus = null }: { settings: FormationSettings; focus?: PreviewSettingFocus | null }) {
+export function BalanceFormationPreview({ settings, regularRoom, focus = null }: { settings: FormationSettings; regularRoom: boolean; focus?: PreviewSettingFocus | null }) {
   const reducedMotion = useSyncExternalStore(subscribeMotion, motionSnapshot, () => false);
-  const sequence = useMemo(() => buildSteps(settings), [settings]);
+  const sequence = useMemo(() => buildSteps(settings, regularRoom), [settings, regularRoom]);
   const [playback, setPlayback] = useState({ step: 0, playing: true, elapsed: 0, selected: false, focusRequest: null as PreviewSettingFocus | null, highlighted: false });
   if (playback.focusRequest !== focus) {
     const index = focus && settings.teams === "auction" ? focusedStep(sequence, focus.field) : null;

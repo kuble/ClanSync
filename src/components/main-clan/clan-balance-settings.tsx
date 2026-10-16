@@ -285,7 +285,7 @@ export function ClanBalanceSettings({
                 <BalanceAuctionItemSettings gameSlug={gameSlug} clanId={clanId} roundId={roundId} value={draft.auctionCatalog}
                   onChange={(auctionCatalog) => setDraft({ ...draft, auctionCatalog })} disabled={locked || !formationEditable}
                   onPreview={() => setItemEditorOpen(false)} />
-              ) : <BalanceFormationPreview key={`${draft.roles}:${draft.teams}:${draft.auctionItemsEnabled}`} settings={draft} focus={previewFocus} />}
+              ) : <BalanceFormationPreview key={`${draft.roles}:${draft.teams}:${draft.auctionItemsEnabled}`} settings={draft} regularRoom={regularRoom} focus={previewFocus} />}
             </div>
           <fieldset disabled={locked || !formationEditable}>
             {["draft", "auction"].includes(draft.teams) ? (

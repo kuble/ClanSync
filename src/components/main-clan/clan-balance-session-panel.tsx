@@ -306,7 +306,7 @@ export function ClanBalanceSessionPanel({
       data-formation-transition={awaitingFormation || preparingMatch ? "true" : undefined}
     >
       <Dialog open={confirmEnd} onOpenChange={(open) => { if (!pending) setConfirmEnd(open); }}>
-        <DialogContent><DialogHeader><DialogTitle>내전을 종료할까요?</DialogTitle><DialogDescription>{flash ? "깜짝 내전의 모든 경기·참여·점수·투표 기록이 삭제되며 복구할 수 없습니다." : "현재 세션을 종료합니다. 정규 내전 기록은 보존됩니다."}</DialogDescription></DialogHeader>
+        <DialogContent><DialogHeader><DialogTitle>내전을 종료할까요?</DialogTitle><DialogDescription>{flash ? "깜짝 내전의 모든 경기·참여·투표 기록이 삭제되며 복구할 수 없습니다." : "현재 세션을 종료합니다. 정규 내전 기록은 보존됩니다."}</DialogDescription></DialogHeader>
           <div className="flex justify-end gap-2"><Button variant="outline" disabled={pending} onClick={() => setConfirmEnd(false)}>돌아가기</Button><Button variant="destructive" disabled={pending} onClick={() => {
             if (!session) return;
             runAction("세션을 종료했습니다.", async () => {
@@ -335,6 +335,7 @@ export function ClanBalanceSessionPanel({
           onOpenChange={setGuideOpen}
           key={guideStage}
           stage={guideStage}
+          canEditMscore={canEditMscore}
         />
       ) : null}
       <div className="fixed right-3 top-1/2 z-40 flex -translate-y-1/2 flex-col items-stretch gap-2" data-testid="balance-drawer-shortcuts">
