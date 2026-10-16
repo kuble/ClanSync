@@ -27,6 +27,7 @@ export function ClanBalanceAutoCloseSettings({
   const { enabled, hours } = autosave.value;
 
   return (
+    <div className="space-y-4">
     <section className="rounded-xl border border-border bg-card p-5">
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
@@ -85,8 +86,9 @@ export function ClanBalanceAutoCloseSettings({
         </div>
         </div>
 
-        <AutosaveStatus {...autosave} />
       </form>
     </section>
+    <AutosaveStatus {...autosave} />
+    </div>
   );
 }
