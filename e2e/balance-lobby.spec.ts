@@ -46,7 +46,7 @@ async function scheduledRoom(
   if (kind === "regular") {
     await create.getByRole("checkbox", { name: "매주 같은 요일·시각", exact: true }).check();
   } else {
-    await create.getByRole("checkbox", { name: "참석 투표 자동 개설", exact: true }).check();
+    await create.getByRole("switch", { name: "참석 투표 자동 개설", exact: true }).check();
   }
   await create.locator("form").getByRole("button", { name: "내전 만들기", exact: true }).click();
   await expect(create).toBeHidden();
@@ -209,6 +209,15 @@ test("로비 간소화: 예약 휠·주간 단일 행·바로 참여", async ({ 
     await flashRow.getByRole("button", { name: "참여", exact: true }).click();
     await expect(flashRow).toContainText("참여 1");
     const flashDetail = await details(page, flash.id);
+    const pollToggle = flashDetail.getByRole("switch", { name: "참석 투표 자동 개설", exact: true });
+    const pollTiming = flashDetail.getByRole("group", { name: "투표 개설 날짜·시각 (한국 시간)", exact: true });
+    await expect(pollToggle).toBeChecked();
+    await pollToggle.press("Space");
+    await expect(pollToggle).not.toBeChecked();
+    await expect(pollTiming).toHaveCount(0);
+    await pollToggle.press("Space");
+    await expect(pollToggle).toBeChecked();
+    await expect(pollTiming).toBeVisible();
     const content = flashDetail.locator(".board-scroll");
     const save = flashDetail.getByRole("button", { name: "예약 변경 저장", exact: true });
     await flashDetail.getByRole("textbox", { name: "내전 이름", exact: true }).fill("디자인 통일 확인");

@@ -72,7 +72,7 @@ test("member creates a minute-based reservation and attendance poll, then event 
     await expect(create.getByRole("listbox", { name: "초", exact: true })).toHaveCount(0);
     await expect(create.getByText("위아래로 드래그하거나 스크롤해 선택하세요.", { exact: true })).toHaveCount(0);
     await expect(create.getByText("응답은 출전 명단에 자동 등록되지 않습니다.", { exact: true })).toHaveCount(0);
-    const toggle = create.getByRole("checkbox", { name: "참석 투표 자동 개설", exact: true });
+    const toggle = create.getByRole("switch", { name: "참석 투표 자동 개설", exact: true });
     const timing = create.getByRole("group", { name: "투표 개설 날짜·시각 (한국 시간)", exact: true });
     await toggle.uncheck(); await expect(timing).toHaveCount(0); await toggle.check();
     await create.getByRole("button", { name: "참석 투표 자동 개설", exact: true }).focus();

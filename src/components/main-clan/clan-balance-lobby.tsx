@@ -210,7 +210,17 @@ function CreateRoomSheet({ staff, serverNow, pending, onClose, onSubmit }: { sta
 }
 
 function RsvpFields({ enabled, value, onEnabled, onChange, serverNow }: { enabled: boolean; value: string; onEnabled: (value: boolean) => void; onChange: (value: string) => void; serverNow: number }) {
-  return <section className="rounded-xl border bg-muted/10 p-4" aria-label="참석 투표 설정"><div className="flex items-center justify-between gap-3 text-sm font-medium"><HelpText label="참석 투표 자동 개설" help="선택한 시각에 이벤트의 참석·불참 투표가 시작됩니다. 투표 결과와 내전 참여 현황은 함께 갱신되고, 내전을 열면 투표가 마감됩니다. 출전 명단은 직접 편성합니다." /><input type="checkbox" aria-label="참석 투표 자동 개설" checked={enabled} onChange={(event) => onEnabled(event.target.checked)} className="size-4 shrink-0 accent-primary" /></div>{enabled ? <div className={`${styles.dependentSettings} mt-4`}><BalanceSchedulePicker label="투표 개설 날짜·시각" value={value} onChange={onChange} serverNow={serverNow} /></div> : null}</section>;
+  const detailsId = useId();
+  return <section className="rounded-xl border bg-muted/10 p-4" aria-label="참석 투표 설정">
+    <div className="flex items-center justify-between gap-3 text-sm font-medium">
+      <HelpText label="참석 투표 자동 개설" help="선택한 시각에 이벤트의 참석·불참 투표가 시작됩니다. 투표 결과와 내전 참여 현황은 함께 갱신되고, 내전을 열면 투표가 마감됩니다. 출전 명단은 직접 편성합니다." />
+      <button type="button" role="switch" aria-label="참석 투표 자동 개설" aria-checked={enabled} aria-controls={detailsId} onClick={() => onEnabled(!enabled)}
+        className={cn("relative h-6 w-11 shrink-0 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", enabled ? "border-primary bg-primary" : "border-input bg-muted")}>
+        <span aria-hidden className={cn("absolute left-0.5 top-0.5 size-4 rounded-full bg-white shadow-sm transition-transform", enabled ? "translate-x-5" : "translate-x-0")} />
+      </button>
+    </div>
+    {enabled ? <div id={detailsId} className={`${styles.dependentSettings} mt-4`}><BalanceSchedulePicker label="투표 개설 날짜·시각" value={value} onChange={onChange} serverNow={serverNow} /></div> : null}
+  </section>;
 }
 
 type UpdateInput = { title: string; scheduledAt: string; rsvpStartsAt: string | null };
