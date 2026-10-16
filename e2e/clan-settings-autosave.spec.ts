@@ -8,7 +8,10 @@ test("자동 저장은 실패 시 입력을 유지하고 재시도·저장 중 �
   try {
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.goto(f.path.replace(/balance$/, "manage?tab=balance"));
+    const panel = page.getByTestId("balance-automation-settings");
     const hours = page.getByLabel("활동이 없을 때", { exact: true });
+    const minutes = page.getByLabel("예약 시각", { exact: true });
+    const readMinutes = async () => (await f.service.from("clans").select("balance_auto_open_minutes").eq("id", f.clanId).single()).data?.balance_auto_open_minutes;
     await expect(page.getByRole("button", { name: "설정 저장", exact: true })).toHaveCount(0);
     let fail = true, hold = false;
     let notifyArrival: (() => void) | undefined;
@@ -26,6 +29,10 @@ test("자동 저장은 실패 시 입력을 유지하고 재시도·저장 중 �
     await hours.fill("4");
     await expect(page.getByRole("alert").filter({ hasText: "변경 사항을 저장하지 못했습니다." })).toBeVisible();
     await expect(hours).toHaveValue("4");
+    await minutes.fill("20");
+    await expect.poll(readMinutes).toBe(20);
+    await expect(panel.getByRole("alert")).toContainText("변경 사항을 저장하지 못했습니다.");
+    await expect(panel.getByText("자동 저장됨", { exact: true })).toHaveCount(0);
     await page.getByRole("button", { name: "다시 시도", exact: true }).click();
     await expect(page.getByText("자동 저장됨", { exact: true })).toBeVisible();
     const readHours = async () => (await f.service.from("clans").select("balance_auto_close_hours").eq("id", f.clanId).single()).data?.balance_auto_close_hours;
@@ -35,10 +42,15 @@ test("자동 저장은 실패 시 입력을 유지하고 재시도·저장 중 �
     await hours.fill("5");
     await arrived;
     await hours.fill("6");
+    await minutes.fill("25");
+    await expect(minutes).toHaveValue("25");
+    await expect(panel.getByRole("status")).toHaveCount(1);
+    await expect(panel.getByRole("status")).toHaveText("변경 사항 저장 중…");
     release!();
     await expect(page.getByText("자동 저장됨", { exact: true })).toBeVisible();
     await expect(hours).toHaveValue("6");
     await expect.poll(readHours).toBe(6);
+    await expect.poll(readMinutes).toBe(25);
     await hours.fill("0");
     await expect(page.getByRole("alert").filter({ hasText: "1~168시간" })).toBeVisible();
     await expect.poll(readHours).toBe(6);
@@ -64,5 +76,19 @@ test("자동 저장은 실패 시 입력을 유지하고 재시도·저장 중 �
     await expect.poll(() => page.locator("#balance-auto-close-details").evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
     await page.getByRole("button", { name: "내전 자동 종료", exact: true }).hover();
     await expect(page.getByRole("tooltip")).toContainText("마지막 편성");
+    await page.getByRole("button", { name: "예약된 내전 자동 생성", exact: true }).hover();
+    const openHelp = page.getByRole("tooltip").filter({ hasText: "예약 시각보다" });
+    await expect(openHelp).toBeVisible();
+    await expect(openHelp).not.toContainText("기본값");
+    await page.mouse.move(0, 0);
+    await toggle.click();
+    await page.getByRole("switch", { name: "예약된 내전 자동 생성", exact: true }).click();
+    await expect(panel.getByRole("status")).toHaveText("자동 저장됨");
+    await expect(panel.getByRole("status")).toHaveCount(1);
+    const cards = panel.locator(":scope > section");
+    await expect(cards).toHaveCount(2);
+    expect((await cards.nth(0).boundingBox())!.height).toBe((await cards.nth(1).boundingBox())!.height);
+    await expect(cards.getByRole("status")).toHaveCount(0);
+    await page.screenshot({ path: test.info().outputPath("automation-off-mobile.png") });
   } finally { release?.(); await f.cleanup(); }
 });

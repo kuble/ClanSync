@@ -12,8 +12,8 @@ test("automatic room opening honors the clan toggle, lead time, permissions and 
   try {
     const leader = await f.memberClient(0), member = await f.memberClient(1);
     const prefs = { p_clan_id: f.clanId, p_enabled: false, p_minutes: 10 };
-    const defaults = await ok(f.service.from("clans").select("balance_auto_open_enabled,balance_auto_open_minutes").eq("id", f.clanId).single());
-    expect(defaults).toEqual({ balance_auto_open_enabled: true, balance_auto_open_minutes: 10 });
+    const defaults = await ok(f.service.from("clans").select("balance_auto_open_enabled,balance_auto_open_minutes,balance_auto_close_enabled").eq("id", f.clanId).single());
+    expect(defaults).toEqual({ balance_auto_open_enabled: true, balance_auto_open_minutes: 10, balance_auto_close_enabled: true });
     expect((await member.rpc("update_balance_auto_open_settings", prefs)).error?.code).toBe("42501");
     expect((await member.rpc("materialize_balance_rooms", { p_clan_id: f.clanId })).error).not.toBeNull();
     for (const minutes of [0, 1441]) expect((await leader.rpc("update_balance_auto_open_settings", { ...prefs, p_minutes: minutes })).error).not.toBeNull();
@@ -43,16 +43,17 @@ test("automatic opening settings autosave, hide dependent minutes and retain the
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.goto(f.path.replace(/balance$/, "manage?tab=balance"));
     await expect(page.getByRole("switch", { name: "내전 자동 종료", exact: true })).toBeVisible();
+    const panel = page.getByTestId("balance-automation-settings");
     const section = page.getByTestId("balance-auto-open-settings");
     const toggle = section.getByRole("switch", { name: "예약된 내전 자동 생성", exact: true });
     const minutes = section.getByLabel("예약 시각", { exact: true });
     await expect(minutes).toHaveValue("10");
-    await minutes.fill("20"); await expect(section.getByText("자동 저장됨", { exact: true })).toBeVisible();
+    await minutes.fill("20"); await expect(panel.getByText("자동 저장됨", { exact: true })).toBeVisible();
     const settings = () => ok(f.service.from("clans").select("balance_auto_open_enabled,balance_auto_open_minutes").eq("id", f.clanId).single());
     expect(await settings()).toEqual({ balance_auto_open_enabled: true, balance_auto_open_minutes: 20 });
-    await minutes.fill("0"); await expect(section.getByRole("alert")).toContainText("1~1440분");
+    await minutes.fill("0"); await expect(panel.getByRole("alert")).toContainText("1~1440분");
     expect((await settings()).balance_auto_open_minutes).toBe(20);
-    await minutes.fill("10"); await expect(section.getByText("자동 저장됨", { exact: true })).toBeVisible();
+    await minutes.fill("10"); await expect(panel.getByText("자동 저장됨", { exact: true })).toBeVisible();
     await toggle.click(); await expect(minutes).toHaveCount(0);
     await expect.poll(async () => (await settings()).balance_auto_open_enabled).toBe(false);
     await page.reload(); await expect(toggle).toHaveAttribute("aria-checked", "false");
@@ -63,7 +64,7 @@ test("automatic opening settings autosave, hide dependent minutes and retain the
       expect(await section.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
       await page.screenshot({ path: test.info().outputPath(`automation-${width}.png`) });
     }
-    await expect(section.locator(":scope > section").getByRole("status")).toHaveCount(0);
-    await expect(section.getByRole("status")).toBeVisible();
+    await expect(section.getByRole("status")).toHaveCount(0);
+    await expect(panel.getByRole("status")).toHaveCount(1);
   } finally { await f.cleanup(); }
 });

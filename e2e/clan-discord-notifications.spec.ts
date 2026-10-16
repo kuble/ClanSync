@@ -133,10 +133,14 @@ test("new clan success offers optional Discord setup and skip", async ({ page })
     await page.getByRole("button", { name: "클랜 만들기", exact: true }).click();
     await expect(page.getByRole("heading", { name: "클랜을 만들었어요" })).toBeVisible();
     newClanId = (await ok(f.service.from("clan_members").select("clan_id").eq("user_id", f.users[1].id).eq("status", "active").single())).clan_id;
+    expect(await ok(f.service.from("clans").select("balance_auto_open_enabled,balance_auto_close_enabled").eq("id", newClanId).single())).toEqual({ balance_auto_open_enabled: true, balance_auto_close_enabled: true });
     await expect(page.getByRole("region", { name: "Discord 활용 갤러리" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Discord 알림 설정" })).toBeVisible();
     await page.getByRole("link", { name: "나중에", exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/clan/${newClanId}$`));
+    await page.goto(`/games/overwatch/clan/${newClanId}/manage?tab=balance`);
+    await expect(page.getByRole("switch", { name: "예약된 내전 자동 생성", exact: true })).toHaveAttribute("aria-checked", "true");
+    await expect(page.getByRole("switch", { name: "내전 자동 종료", exact: true })).toHaveAttribute("aria-checked", "true");
   } finally {
     if (!newClanId) newClanId = (await f.service.from("clan_members").select("clan_id").eq("user_id", f.users[1].id).eq("status", "active").maybeSingle()).data?.clan_id;
     if (newClanId && newClanId !== f.clanId) await ok(f.service.from("clans").delete().eq("id", newClanId));
