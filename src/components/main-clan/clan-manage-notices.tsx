@@ -26,6 +26,8 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
+
 export type ManagedClanNotice = {
   id: string;
   title: string;
@@ -197,15 +199,15 @@ export function ClanManageNotices({
         </ul>
       )}
 
-      <Dialog
+      <Sheet
         open={editor !== null}
         onOpenChange={(open) => {
           if (!open && !pending) setEditor(null);
         }}
       >
-        <DialogContent
+        <SheetContent
           ref={editorPopup}
-          className="board-scroll max-h-[90dvh] overflow-y-auto sm:max-w-xl"
+          className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[600px]"
           initialFocus={(interactionType) => {
             const popup = editorPopup.current;
             if (!popup || popup.contains(popup.ownerDocument.activeElement)) {
@@ -221,17 +223,17 @@ export function ClanManageNotices({
           finalFocus={editorReturnFocus}
           showCloseButton={!pending}
         >
-          <DialogHeader>
-            <DialogTitle>
+          <SheetHeader className="shrink-0 px-5 pb-5 pr-12">
+            <SheetTitle>
               {editor === "new" ? "공지 작성" : "공지 편집"}
-            </DialogTitle>
-            <DialogDescription>
+            </SheetTitle>
+            <SheetDescription>
               활동 중인 클랜원에게만 공개됩니다.
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
           <form
             key={typeof editor === "object" ? editor?.id : "new"}
-            className="space-y-4"
+            className="flex min-h-0 flex-1 flex-col"
             onSubmit={(event) => {
               event.preventDefault();
               const data = new FormData(event.currentTarget);
@@ -243,6 +245,7 @@ export function ClanManageNotices({
               );
             }}
           >
+            <fieldset disabled={pending} className="board-scroll min-h-0 min-w-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-5 pb-5">
             <div className="space-y-2">
               <Label htmlFor="notice-title">제목</Label>
               <Input
@@ -270,7 +273,8 @@ export function ClanManageNotices({
                 placeholder="공지 내용을 입력해 주세요."
               />
             </div>
-            <label className="flex items-center gap-2 text-xs">
+            <label className="flex items-center justify-between gap-3 text-sm">
+              대시보드 상단에 고정
               <Switch
                 name="is_pinned"
                 defaultChecked={
@@ -278,9 +282,9 @@ export function ClanManageNotices({
                 }
                 disabled={pending}
               />
-              대시보드 상단에 고정
             </label>
-            <DialogFooter>
+            </fieldset>
+            <SheetFooter className="mt-0 shrink-0 flex-row justify-end border-t px-5 py-4">
               <Button
                 type="button"
                 variant="outline"
@@ -292,10 +296,10 @@ export function ClanManageNotices({
               <Button type="submit" disabled={pending}>
                 {pending ? "저장 중…" : "공지 저장"}
               </Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
       <Dialog
         open={removing !== null}
         onOpenChange={(open) => {
