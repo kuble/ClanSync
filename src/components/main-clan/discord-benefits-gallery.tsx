@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { buildDiscordNotificationCard, type DiscordNotificationRow } from "@/lib/notifications/discord-message";
 
 const benefits = [
-  { id: "room", icon: Swords, title: "내전 링크, 매번 공유하지 않아도", description: "시작 10분 전에 입장 링크를 자동으로 전달합니다. 로그인되어 있으면 바로 내전으로 연결돼요.", channel: "내전-알림", screen: "내전 화면", image: "balance" },
+  { id: "room", icon: Swords, title: "내전 링크, 매번 공유하지 않아도", description: "정규·깜짝 내전을 구분해 예약은 시작 10분 전, 바로 열면 시작 알림을 보냅니다. 링크를 누르면 해당 내전으로 연결돼요.", channel: "내전-알림", screen: "내전 화면", image: "balance" },
   { id: "calendar", icon: CalendarDays, title: "함께할 일정을 놓치지 않도록", description: "등록한 일정마다 원하는 알림 시점을 선택하세요. 반복 일정도 같은 시간에 알려줍니다.", channel: "일정-알림", screen: "캘린더 화면", image: "calendar" },
   { id: "notice", icon: Megaphone, title: "새 공지가 채팅에 묻히지 않게", description: "새 공지의 제목과 본문을 Discord에도 전달합니다. 링크를 누르면 해당 공지를 열 수 있어요.", channel: "클랜-공지", screen: "공지 화면", image: "notices" },
   { id: "poll", icon: Vote, title: "투표 시작부터 결과까지", description: "참여할 때와 결과를 확인할 때, 각각 한 번씩. 시작·종료 알림은 따로 켜고 끌 수 있습니다.", channel: "일정-알림", screen: "투표 화면", image: "polls" },
@@ -16,7 +16,7 @@ const benefits = [
 
 const example: DiscordNotificationRow = { log_id: "example", event_id: null, poll_id: null, title: "", slot_kind: "", start_at: null, deadline_at: null, game_slug: "overwatch", clan_id: "example", channel_id: "example" };
 const samples: DiscordNotificationRow[] = [
-  { ...example, room_id: "example", title: "토요일 정규 내전", slot_kind: "room_t_minus_10min", start_at: "2026-10-12T12:00:00Z" },
+  { ...example, room_id: "example", room_kind: "regular", room_status: "scheduled", title: "토요일 정규 내전", slot_kind: "room_t_minus_10min", start_at: "2026-10-12T10:10:00Z" },
   { ...example, event_id: "example", title: "수요 듀오 연습회", slot_kind: "event_t_minus_1h", start_at: "2026-10-12T11:00:00Z" },
   { ...example, notice_id: "example", title: "이번 주 내전 운영 안내", slot_kind: "notice_created", notice_content: "토요일 21시에 정규 내전이 열립니다.\n시작 10분 전에 입장 링크가 올라와요. 참가하실 분은 미리 참석 응답을 남겨 주세요." },
   { ...example, poll_id: "example", title: "다음 내전 시간", slot_kind: "poll_ended", deadline_at: "2026-10-12T12:00:00Z" },

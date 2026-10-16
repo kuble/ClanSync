@@ -9,6 +9,40 @@ async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>) {
   const result = await query; expect(result.error, JSON.stringify(result.error)).toBeNull(); return result.data as NonNullable<T>;
 }
 
+test("room delivery distinguishes regular and flash, scheduled reminders and open starts", async () => {
+  const f = await createIsolatedBalanceFixture(1);
+  const original = globalThis.fetch, token = process.env.DISCORD_BOT_TOKEN;
+  try {
+    await ok(f.service.rpc("connect_clan_discord_bot", { p_actor_id: f.users[0].id, p_clan_id: f.clanId, p_guild_id: guild, p_guild_name: "QA Discord" }));
+    await ok(f.service.rpc("set_clan_discord_notification_preferences", { p_actor_id: f.users[0].id, p_clan_id: f.clanId, p_guild_id: guild, p_channel_id: channel, p_channel_name: "기본", p_enabled: true, p_routes: readDiscordNotificationRoutes(null) }));
+    const leader = await f.memberClient(0);
+    const rooms: { id: string; kind: string; scheduled: boolean }[] = [];
+    for (const kind of ["regular", "flash"]) {
+      for (const scheduled of [true, false]) {
+        const room = await ok(leader.rpc("create_balance_room", { p_clan_id: f.clanId, p_kind: kind, p_title: "같은 이름", ...(scheduled ? { p_scheduled_at: new Date(Date.now() + 7 * 60_000).toISOString() } : {}) })) as { room_id: string };
+        rooms.push({ id: room.room_id, kind, scheduled });
+      }
+    }
+    const sent = new Map<string, { author: { name: string }; title: string; description: string }>();
+    process.env.DISCORD_BOT_TOKEN = "isolated-test-token";
+    globalThis.fetch = async (url, init) => {
+      if (!String(url).startsWith("https://discord.com/")) return original(url, init);
+      const embed = JSON.parse(String(init?.body)).embeds[0];
+      sent.set(new URL(embed.url).searchParams.get("room")!, embed);
+      return Response.json({ id: "mock-message" });
+    };
+    expect(await dispatchDiscordBotNotifications(f.service, 100, undefined, f.clanId)).toMatchObject({ sent: 4, failed: 0 });
+    for (const room of rooms) {
+      const card = sent.get(room.id)!;
+      expect(card.author.name).toBe(room.kind === "regular" ? "⚔️ 정규 내전" : "⚡ 깜짝 내전");
+      expect(card.title).toBe(`같은 이름 · ${room.scheduled ? "곧 시작돼요" : "시작됐어요"}`);
+      expect(card.description).toContain(room.scheduled ? "시작 7분 전" : "진행 중 · 지금 입장할 수 있어요");
+      expect(card.description).not.toContain("10분 전");
+    }
+    expect(await dispatchDiscordBotNotifications(f.service, 100, undefined, f.clanId)).toMatchObject({ sent: 0 });
+  } finally { globalThis.fetch = original; if (token === undefined) delete process.env.DISCORD_BOT_TOKEN; else process.env.DISCORD_BOT_TOKEN = token; await f.cleanup(); }
+});
+
 test("five routes: role checks, room timing/reschedule/cancel, notices once, poll closure, live recheck and channel reset", async () => {
   test.setTimeout(180_000);
   const f = await createIsolatedBalanceFixture(2);

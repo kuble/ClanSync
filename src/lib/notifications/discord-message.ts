@@ -1,6 +1,7 @@
 /** Shared by the Discord sender and the settings gallery. No server credentials here. */
 export type DiscordNotificationRow = {
   log_id: string; event_id: string | null; poll_id: string | null; room_id?: string | null;
+  room_kind?: string; room_status?: string;
   notice_id?: string | null; notice_content?: string | null; attempt_count?: number;
   slot_kind: string; title: string; start_at: string | null; deadline_at: string | null;
   clan_id: string; game_slug: string; channel_id: string;
@@ -50,9 +51,11 @@ export function buildDiscordNotificationCard(row: DiscordNotificationRow, option
     body = row.notice_content?.trim() ?? "";
     action = "공지 읽기";
   } else if (row.room_id) {
-    category = "⚔️ 내전";
-    title = `${row.title}이 곧 시작돼요`;
-    body = [formatTime(row.start_at, now), "시작 10분 전"].filter(Boolean).join(" · ");
+    category = row.room_kind === "flash" ? "⚡ 깜짝 내전" : "⚔️ 정규 내전";
+    const started = row.room_status === "open";
+    const minutes = row.start_at ? Math.ceil((Date.parse(row.start_at) - now.getTime()) / 60_000) : 0;
+    title = `${row.title} · ${started ? "시작됐어요" : "곧 시작돼요"}`;
+    body = started ? "진행 중 · 지금 입장할 수 있어요" : [formatTime(row.start_at, now), minutes > 0 ? `시작 ${minutes}분 전` : "시작 예정"].filter(Boolean).join(" · ");
     action = "내전으로 이동";
   } else if (row.poll_id) {
     category = "🗳️ 투표";

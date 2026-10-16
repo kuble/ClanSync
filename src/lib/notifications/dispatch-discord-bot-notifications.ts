@@ -21,7 +21,15 @@ export async function dispatchDiscordBotNotifications(svc: SupabaseClient<Databa
       const current = fresh as unknown as Row;
       let ok = false;
       try {
-        if (current.notice_id) {
+        if (current.room_id) {
+          const { data: room, error } = await svc.from("balance_rooms").select("title,kind,status,scheduled_at")
+            .eq("id", current.room_id).eq("clan_id", current.clan_id).in("status", ["scheduled", "open"]).maybeSingle();
+          if (error || !room) throw new Error("Discord room source unavailable");
+          current.title = room.title;
+          current.room_kind = room.kind;
+          current.room_status = room.status;
+          current.start_at = room.scheduled_at;
+        } else if (current.notice_id) {
           const { data: notice, error } = await svc.from("clan_notices").select("title,content")
             .eq("id", current.notice_id).eq("clan_id", current.clan_id).maybeSingle();
           if (error || !notice) throw new Error("Discord notice source unavailable");
