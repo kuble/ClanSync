@@ -194,8 +194,10 @@ test("management sections preserve navigation, pending counts and officer/member
     }
     await page.getByRole("navigation", { name: "클랜 관리 분류" }).getByRole("link", { name: /^구성원 관리/ }).click();
     await expect(page).toHaveURL(/tab=members$/);
+    await expect(page.getByText(/^활동 멤버 \d+명$/)).toHaveCount(0);
     await expect(nav.getByRole("link")).toHaveText(["구성원", "가입 요청1"]);
     await nav.getByRole("link", { name: "가입 요청 1", exact: true }).click();
+    await expect(page.getByText(/^\d+건 대기$/)).toHaveCount(0);
     await page.getByTestId(`manage-join-approve-${request.data!.id}`).click();
     const joinDialog = page.getByRole("dialog", { name: "클랜 가입 승인", exact: true });
     await joinDialog.getByRole("radio", { name: "연결 없이 가입", exact: true }).check();
@@ -204,7 +206,7 @@ test("management sections preserve navigation, pending counts and officer/member
     await expect(nav.getByRole("link", { name: "가입 요청", exact: true })).toBeVisible();
     await expect.poll(async () => (await f.service.from("clan_members").select("status").eq("clan_id", f.clanId).eq("user_id", f.users[2].id).single()).data?.status).toBe("active");
 
-    for (const [label, heading] of [["클랜 꾸미기", "클랜 배너"], ["내전", "내전 자동 종료"], ["운영 통계", "내전 운영 통계"], ["코인·플랜", "구독·플랜"]]) {
+    for (const [label, heading] of [["클랜 꾸미기", "클랜 배너"], ["내전", "내전 자동 종료"], ["운영 통계", "클랜 페이지"], ["코인·플랜", "구독·플랜"]]) {
       await selectSection({ "클랜 꾸미기": "appearance", "내전": "balance", "운영 통계": "insights", "코인·플랜": "subscription" }[label]!);
       await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
     }
@@ -216,6 +218,8 @@ test("management sections preserve navigation, pending counts and officer/member
     await expect(page.getByRole("navigation", { name: "클랜 관리 분류" }).getByRole("link", { name: "클랜 운영", exact: true })).toHaveAttribute("aria-current", "page");
     await expect(nav.getByRole("link")).toHaveText(["운영 현황", "클랜 꾸미기", "운영 통계"]);
     await expect(page.getByText("클랜 페이지", { exact: true })).toBeVisible();
+    await expect(page.getByRole("region", { name: "편성 점수 차이", exact: true })).toBeVisible();
+    await expect(page.getByRole("region", { name: "내전 운영 통계", exact: true })).toHaveCount(0);
     await expect(page.getByText("사이트 이용 통계", { exact: true })).toHaveCount(0);
     const usage = page.getByRole("region", { name: "클랜 페이지", exact: true });
     const usageNode = await usage.elementHandle();
