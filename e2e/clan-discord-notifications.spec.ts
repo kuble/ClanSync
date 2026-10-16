@@ -110,7 +110,7 @@ test("new clan success offers optional Discord setup and skip", async ({ page })
   }
 });
 
-test("settings: leader saves kinds while bot is unavailable; officers read, members cannot manage; gallery works on mobile", async ({ page, browser }) => {
+test("settings: master toggle groups channels, preserves choices and saves offline; officers read, members cannot manage; mobile gallery", async ({ page, browser }) => {
   test.setTimeout(150_000);
   const f = await createIsolatedBalanceFixture(3), officerContext = await browser.newContext();
   try {
@@ -121,17 +121,38 @@ test("settings: leader saves kinds while bot is unavailable; officers read, memb
     const path = f.path.replace(/balance$/, "manage?tab=notifications");
     await page.goto(path);
     const notificationCard = page.getByRole("region", { name: "Discord 알림 설정", exact: true });
-    await expect(notificationCard.getByRole("switch", { name: "Discord 알림 사용", exact: true })).toBeVisible();
+    const masterToggle = notificationCard.getByRole("switch", { name: "Discord 알림 사용", exact: true });
+    const details = notificationCard.locator("#discord-notification-details");
+    await expect(masterToggle).toBeVisible();
+    await expect(masterToggle).toHaveAttribute("aria-controls", "discord-notification-details");
+    await expect(details).toBeVisible();
     await expect(notificationCard.getByRole("region", { name: "종류별 알림", exact: true })).toBeVisible();
     await expect(page.getByText(/카카오 알림톡/)).toHaveCount(0);
     await expect(page.locator('input[name="kakao_notifications_opt_in"]')).toHaveCount(0);
-    await page.getByRole("switch", { name: "Discord 알림 사용", exact: true }).uncheck();
     await page.getByRole("switch", { name: "깜짝 내전 알림", exact: true }).uncheck();
     await page.getByRole("checkbox", { name: "종료·결과 알림", exact: true }).uncheck();
+    await masterToggle.uncheck();
+    await expect(details).toBeHidden();
+    await expect(page.getByRole("combobox", { name: "기본 알림 채널", exact: true })).toHaveCount(0);
     await expect(page.getByText("자동 저장됨", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "설정 저장", exact: true })).toHaveCount(0);
     const settings = (await ok(f.service.from("clan_settings").select("event_notify").eq("clan_id", f.clanId).single())).event_notify;
     expect(settings).toMatchObject({ discord_enabled: false, discord_routes: { flash: { enabled: false }, polls: { ended: false } } });
+    await page.reload();
+    await expect(masterToggle).not.toBeChecked();
+    await expect(details).toBeHidden();
+    // The E2E server has no bot credentials, so restore enabled state through
+    // this isolated fixture instead of contacting a real Discord server.
+    await ok(f.service.rpc("set_clan_discord_notification_preferences", { ...prefs, p_routes: readDiscordNotificationRoutes(settings) }));
+    await page.reload();
+    await expect(masterToggle).toBeChecked();
+    await expect(details).toBeVisible();
+    await expect(page.getByRole("combobox", { name: "기본 알림 채널", exact: true })).toHaveValue(channel);
+    await expect(page.getByRole("switch", { name: "깜짝 내전 알림", exact: true })).not.toBeChecked();
+    await expect(page.getByRole("checkbox", { name: "종료·결과 알림", exact: true })).not.toBeChecked();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect.poll(() => notificationCard.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+    await page.setViewportSize({ width: 1280, height: 720 });
     await ok(f.service.from("clan_members").update({ role: "officer" }).eq("clan_id", f.clanId).eq("user_id", f.users[1].id));
     const officer = await officerContext.newPage(); await loginIsolatedBalanceUser(officer, f.users[1]); await officer.goto(path);
     await expect(officer.getByRole("switch", { name: "정규 내전 알림", exact: true })).toBeDisabled();
