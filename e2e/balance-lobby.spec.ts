@@ -44,7 +44,7 @@ async function scheduledRoom(
     await reservation.getByRole("listbox", { name: label, exact: true }).getByRole("option", { name: value, exact: true }).click();
   }
   if (kind === "regular") {
-    await create.getByRole("checkbox", { name: "매주 같은 요일·시각", exact: true }).check();
+    await create.getByRole("switch", { name: "매주 같은 요일·시각", exact: true }).check();
   } else {
     await create.getByRole("switch", { name: "참석 투표 자동 개설", exact: true }).check();
   }
@@ -241,8 +241,16 @@ test("로비 간소화: 예약 휠·주간 단일 행·바로 참여", async ({ 
     await page.getByRole("button", { name: "내전 추가", exact: true }).click();
     const create = page.getByRole("dialog", { name: "내전 만들기", exact: true });
     await create.getByRole("radio", { name: "예약", exact: true }).check();
-    await create.getByRole("checkbox", { name: "매주 같은 요일·시각", exact: true }).check();
+    await create.getByRole("switch", { name: "매주 같은 요일·시각", exact: true }).check();
     await expect(create.getByRole("listbox", { name: "날짜", exact: true })).toHaveCount(0);
+    await expect(create.getByRole("listbox", { name: "요일", exact: true })).toBeVisible();
+    const weekly = create.getByRole("switch", { name: "매주 같은 요일·시각", exact: true });
+    await weekly.press("Space");
+    await expect(weekly).not.toBeChecked();
+    await expect(create.getByRole("listbox", { name: "날짜", exact: true })).toBeVisible();
+    await expect(create.getByRole("listbox", { name: "요일", exact: true })).toHaveCount(0);
+    await weekly.press("Space");
+    await expect(weekly).toBeChecked();
     await expect(create.getByRole("listbox", { name: "요일", exact: true })).toBeVisible();
     await expect(create.locator('input[type="datetime-local"]')).toHaveCount(0);
     expect(await create.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
@@ -276,19 +284,20 @@ test("정규 내전 예약: 주간 반복·임시 진행자 저장과 예약 방
     await detail.getByRole("button", { name: "진행 운영진 지정", exact: true }).click();
     await expect.poll(async () => (await readRoom(fixture, room.id)).delegated_to)
       .toBe(fixture.users[1].id);
-    const repeat = detail.getByRole("checkbox", { name: "반복 예약 유지", exact: true });
-    await repeat.click();
+    const repeat = detail.getByRole("switch", { name: "반복 예약 유지", exact: true });
+    await expect(repeat).toBeEnabled();
+    await repeat.press("Space");
     await expect.poll(async () => (await readSchedule()).enabled).toBe(false);
     await expect(repeat).not.toBeChecked();
     await page.reload();
     detail = await details(page, room.id);
     await expect(detail.getByRole("combobox", { name: "임시 진행 운영진", exact: true }))
       .toHaveValue(fixture.users[1].id);
-    await expect(detail.getByRole("checkbox", { name: "반복 예약 유지", exact: true }))
+    await expect(detail.getByRole("switch", { name: "반복 예약 유지", exact: true }))
       .not.toBeChecked();
-    await detail.getByRole("checkbox", { name: "반복 예약 유지", exact: true }).click();
+    await detail.getByRole("switch", { name: "반복 예약 유지", exact: true }).click();
     await expect.poll(async () => (await readSchedule()).enabled).toBe(true);
-    await expect(detail.getByRole("checkbox", { name: "반복 예약 유지", exact: true })).toBeChecked();
+    await expect(detail.getByRole("switch", { name: "반복 예약 유지", exact: true })).toBeChecked();
     await detail.getByRole("button", { name: "지금 열기", exact: true }).click();
     await page.waitForURL((url) => url.searchParams.get("room") === room.id);
     const panel = page.getByTestId("clan-balance-session-panel");
