@@ -34,21 +34,21 @@ async function scheduledRoom(
   await create.getByRole("textbox", { name: "내전 이름", exact: true }).fill(title);
   await create.getByRole("radio", { name: "예약", exact: true }).check();
   // The form explicitly accepts KST regardless of browser/server time zone.
-  const kstStart = new Date(Date.now() + (48 + 9) * 60 * 60 * 1000).toISOString().slice(0, 19);
-  const dateWheel = create.getByRole("listbox", { name: "날짜", exact: true });
+  const kstStart = new Date(Date.now() + (48 + 9) * 60 * 60 * 1000).toISOString().slice(0, 16);
+  const reservation = create.getByRole("group", { name: "예약 날짜·시각 (한국 시간)", exact: true });
+  const dateWheel = reservation.getByRole("listbox", { name: "날짜", exact: true });
   await dateWheel.press("Home");
   await dateWheel.press("ArrowDown");
   await dateWheel.press("ArrowDown");
-  for (const [label, value] of [["시", kstStart.slice(11, 13)], ["분", kstStart.slice(14, 16)], ["초", kstStart.slice(17, 19)]]) {
-    await create.getByRole("listbox", { name: label, exact: true }).getByRole("option", { name: value, exact: true }).click();
+  for (const [label, value] of [["시", kstStart.slice(11, 13)], ["분", kstStart.slice(14, 16)]]) {
+    await reservation.getByRole("listbox", { name: label, exact: true }).getByRole("option", { name: value, exact: true }).click();
   }
   if (kind === "regular") {
     await create.getByRole("checkbox", { name: "매주 같은 요일·시각", exact: true }).check();
   } else {
-    await create.getByRole("checkbox", { name: "참석 응답 받기", exact: true }).check();
-    await create.getByRole("spinbutton", { name: "참석 응답 시작 일수", exact: true }).fill("3");
+    await create.getByRole("checkbox", { name: "참석 투표 자동 개설", exact: true }).check();
   }
-  await create.getByRole("button", { name: "내전 만들기", exact: true }).click();
+  await create.locator("form").getByRole("button", { name: "내전 만들기", exact: true }).click();
   await expect(create).toBeHidden();
   const row = page.getByTestId("balance-lobby-room").filter({
     hasText: title,
@@ -73,7 +73,7 @@ async function details(page: Page, roomId: string) {
 async function addPlayer(panel: Locator, nickname: string) {
   await panel.getByRole("region", { name: "참가 가능 클랜원", exact: true })
     .getByRole("button", { name: `${nickname} 출전 명단에 추가`, exact: true }).click();
-  await expect(panel.locator('[data-roster-slot="team1:d0"]')).toHaveText(nickname);
+  await expect(panel.locator('[data-roster-slot="team1:d0"]')).toHaveAccessibleName(`1팀 딜러 1: ${nickname}`);
 }
 
 test("내전 기록 권한: 아이콘 숨김·깜짝 자기 세션·종료 삭제", async ({ page, browser }) => {
@@ -169,19 +169,21 @@ test("로비 간소화: 예약 휠·주간 단일 행·바로 참여", async ({ 
     const detail = await details(page, regular.id);
     await expect(detail.getByRole("listbox", { name: "요일", exact: true })).toBeVisible();
     await expect(detail.getByRole("listbox", { name: "날짜", exact: true })).toHaveCount(0);
-    const seconds = detail.getByRole("listbox", { name: "초", exact: true });
-    await seconds.press("Home");
-    const box = await seconds.boundingBox();
+    await expect(detail.getByRole("listbox", { name: "초", exact: true })).toHaveCount(0);
+    const minutes = detail.getByRole("listbox", { name: "분", exact: true });
+    await minutes.press("Home");
+    const box = await minutes.boundingBox();
     if (!box) throw new Error("Missing time wheel");
     await page.mouse.move(box.x + box.width / 2, box.y + 95);
     await page.mouse.down();
     await page.mouse.move(box.x + box.width / 2, box.y + 23, { steps: 8 });
     await page.mouse.up();
-    await expect(seconds.getByRole("option", { selected: true })).toHaveText("02");
+    await expect(minutes.getByRole("option", { selected: true })).toHaveText("02");
     await detail.getByRole("button", { name: "예약 변경 저장", exact: true }).click();
     await expect(detail).toBeHidden();
     const movedRoom = await readRoom(fixture, regular.id);
-    expect(new Date(movedRoom.scheduled_at).getUTCSeconds()).toBe(2);
+    expect(new Date(movedRoom.scheduled_at).getUTCMinutes()).toBe(2);
+    expect(new Date(movedRoom.scheduled_at).getUTCSeconds()).toBe(0);
     if (!regular.schedule_id) throw new Error("Weekly reservation is missing its schedule");
     const { data: movedSchedule, error: movedScheduleError } = await fixture.service.from("balance_room_schedules")
       .select("title,next_run_at").eq("id", regular.schedule_id).single();
@@ -301,7 +303,8 @@ test("깜짝 내전: 클랜원 개설·참석 응답과 출전 명단 분리·�
     const beforeRsvp = await fixture.activeRound(regular.roomId);
     const flash = await scheduledRoom(owner, fixture, "flash", "클랜원 깜짝 방");
     expect(flash.created_by).toBe(fixture.users[1].id);
-    expect(flash.rsvp_days).toBe(3);
+    expect(flash.rsvp_days).toBeNull();
+    expect(flash.rsvp_opens_at).not.toBeNull();
     await visitor.goto(fixture.path);
     await expect(roomRow(visitor, regular.roomId)).toBeVisible();
     await expect(roomRow(visitor, flash.id)).toBeVisible();
@@ -349,7 +352,7 @@ test("깜짝 내전: 클랜원 개설·참석 응답과 출전 명단 분리·�
     await expect(page).toHaveURL(regular.url);
     await expect(owner).toHaveURL(flashUrl);
     await expect(regularPanel.locator('[data-roster-slot="team1:d0"]')).toContainText(fixture.users[0].nickname);
-    await expect(flashPanel.locator('[data-roster-slot="team1:d0"]')).toHaveText(fixture.users[1].nickname);
+    await expect(flashPanel.locator('[data-roster-slot="team1:d0"]')).toHaveAccessibleName(`1팀 딜러 1: ${fixture.users[1].nickname}`);
     await visitor.goto(flashUrl);
     const visitorPanel = visitor.getByTestId("clan-balance-session-panel");
     await expect(visitorPanel.locator('[data-board-slot="team1:d0"]')).toContainText(fixture.users[1].nickname);

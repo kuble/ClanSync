@@ -293,6 +293,7 @@ export async function voteClanPollAction(
 
   dispatchClanDiscordAfter(clanId);
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);
+  revalidatePath(`/games/${gameSlug}/clan/${clanId}/balance`);
   return { ok: true };
 }
 
@@ -326,6 +327,10 @@ export async function closeClanPollAction(
   if (!clanRow || g?.slug !== gameSlug) {
     return { ok: false, error: "클랜을 찾을 수 없습니다." };
   }
+
+  const { data: poll, error: pollError } = await svc.from("clan_polls").select("balance_room_id").eq("id", pollId).eq("clan_id", clanId).maybeSingle();
+  if (pollError || !poll) return { ok: false, error: "투표를 찾을 수 없습니다." };
+  if (poll.balance_room_id) return { ok: false, error: "참석 투표는 내전 정보에서 변경하세요." };
 
   const { error } = await svc
     .from("clan_polls")

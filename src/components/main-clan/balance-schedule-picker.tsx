@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, type PointerEvent } from "react";
+import { useEffect, useId, useMemo, useRef, type PointerEvent } from "react";
 import { cn } from "@/lib/utils";
 
 const DAY = 86_400_000;
@@ -12,7 +12,7 @@ const hours = numbers(24);
 const minutes = numbers(60);
 
 export function kstInput(iso: string | number) {
-  return new Date(new Date(iso).getTime() + KST).toISOString().slice(0, 19);
+  return new Date(new Date(iso).getTime() + KST).toISOString().slice(0, 16);
 }
 
 export function nextWeeklyDate(weekday: number, time: string, now: number) {
@@ -27,6 +27,7 @@ function Wheel({ label, options, value, onChange, disabled }: {
   label: string; options: readonly { value: string; label: string }[]; value: string;
   onChange: (value: string) => void; disabled: boolean;
 }) {
+  const id = useId();
   const ref = useRef<HTMLDivElement>(null);
   const drag = useRef<{ y: number; top: number; moved: boolean } | null>(null);
   const index = Math.max(0, options.findIndex((option) => option.value === value));
@@ -53,7 +54,7 @@ function Wheel({ label, options, value, onChange, disabled }: {
     <div className="relative rounded-lg bg-muted/30">
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-[72px] h-9 rounded-md border-y border-primary/30 bg-primary/10" />
       <div ref={ref} role="listbox" aria-label={label} aria-disabled={disabled} tabIndex={disabled ? -1 : 0}
-        aria-activedescendant={`schedule-${label}-${index}`}
+        aria-activedescendant={`${id}-${index}`}
         className={cn("relative h-[180px] snap-y snap-mandatory overflow-y-auto overscroll-contain py-[72px] text-center outline-none select-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden focus-visible:ring-2 focus-visible:ring-ring", disabled && "pointer-events-none opacity-50")}
         onKeyDown={(event) => {
           const next = event.key === "ArrowDown" ? index + 1 : event.key === "ArrowUp" ? index - 1 : event.key === "Home" ? 0 : event.key === "End" ? options.length - 1 : null;
@@ -78,18 +79,18 @@ function Wheel({ label, options, value, onChange, disabled }: {
             event.currentTarget.scrollTop = drag.current.top + delta;
           }
         }} onPointerUp={finish} onPointerCancel={finish} onPointerLeave={(event) => { if (!drag.current?.moved) finish(event); }}>
-        {options.map((option, i) => <div key={option.value} id={`schedule-${label}-${i}`} role="option" aria-selected={i === index}
+        {options.map((option, i) => <div key={option.value} id={`${id}-${i}`} role="option" aria-selected={i === index}
           onClick={() => select(i)} className={cn("relative flex h-9 shrink-0 snap-center cursor-pointer items-center justify-center whitespace-nowrap text-xs tabular-nums", i === index ? "font-semibold text-foreground" : "text-muted-foreground/60")}>{option.label}</div>)}
       </div>
     </div>
   </div>;
 }
 
-export function BalanceSchedulePicker({ value, onChange, serverNow, weekly = false, disabled = false }: {
-  value: string; onChange: (value: string) => void; serverNow: number; weekly?: boolean; disabled?: boolean;
+export function BalanceSchedulePicker({ value, onChange, serverNow, weekly = false, disabled = false, label }: {
+  value: string; onChange: (value: string) => void; serverNow: number; weekly?: boolean; disabled?: boolean; label?: string;
 }) {
   const [date, time] = value.split("T");
-  const [hour, minute, second = "00"] = time.split(":");
+  const [hour, minute] = time.split(":");
   const weekday = new Date(`${date}T00:00:00Z`).getUTCDay();
   const anchor = kstInput(serverNow).slice(0, 10);
   const dates = useMemo(() => {
@@ -101,20 +102,17 @@ export function BalanceSchedulePicker({ value, onChange, serverNow, weekly = fal
     });
   }, [anchor]);
   const dateOptions = dates.some((option) => option.value === date) ? dates : [...dates, { value: date, label: date }].sort((a, b) => a.value.localeCompare(b.value));
-  function changeTime(h: string, m: string, s: string) {
-    const nextTime = `${h}:${m}:${s}`;
+  function changeTime(h: string, m: string) {
+    const nextTime = `${h}:${m}`;
     onChange(weekly ? nextWeeklyDate(weekday, nextTime, serverNow) : `${date}T${nextTime}`);
   }
   return <fieldset className="space-y-2" disabled={disabled}>
-    <legend className="text-xs font-semibold">{weekly ? "매주 요일·시각" : "예약 날짜·시각"} (한국 시간)</legend>
-    <div className="grid grid-cols-[minmax(0,1.8fr)_repeat(3,minmax(0,1fr))] gap-2">
+    <legend className="text-xs font-semibold">{label ?? (weekly ? "매주 요일·시각" : "예약 날짜·시각")} (한국 시간)</legend>
+    <div className="grid grid-cols-[minmax(0,1.8fr)_repeat(2,minmax(0,1fr))] gap-2">
       <Wheel label={weekly ? "요일" : "날짜"} options={weekly ? weekdays.map((label, i) => ({ value: String(i), label })) : dateOptions} value={weekly ? String(weekday) : date} disabled={disabled}
-        onChange={(next) => onChange(weekly ? nextWeeklyDate(Number(next), time, serverNow) : `${next}T${time}`)} />
-      <Wheel label="시" options={hours} value={hour} disabled={disabled} onChange={(next) => changeTime(next, minute, second)} />
-      <Wheel label="분" options={minutes} value={minute} disabled={disabled} onChange={(next) => changeTime(hour, next, second)} />
-      <Wheel label="초" options={minutes} value={second} disabled={disabled} onChange={(next) => changeTime(hour, minute, next)} />
+        onChange={(next) => onChange(weekly ? nextWeeklyDate(Number(next), `${hour}:${minute}`, serverNow) : `${next}T${hour}:${minute}`)} />
+      <Wheel label="시" options={hours} value={hour} disabled={disabled} onChange={(next) => changeTime(next, minute)} />
+      <Wheel label="분" options={minutes} value={minute} disabled={disabled} onChange={(next) => changeTime(hour, next)} />
     </div>
-    <p className="text-[11px] text-muted-foreground">{weekly ? "요일과 시각을 고르면 가장 가까운 다음 일정부터 매주 열립니다." : "위아래로 드래그하거나 스크롤해 선택하세요."}</p>
-    <p className="text-xs tabular-nums text-muted-foreground">{weekly ? "첫 예약 · " : ""}{date} {hour}:{minute}:{second}</p>
   </fieldset>;
 }

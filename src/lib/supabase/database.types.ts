@@ -216,6 +216,7 @@ export type Database = {
           id: string
           kind: string
           rsvp_days: number | null
+          rsvp_opens_at: string | null
           schedule_id: string | null
           scheduled_at: string
           series_id: string | null
@@ -232,6 +233,7 @@ export type Database = {
           id?: string
           kind: string
           rsvp_days?: number | null
+          rsvp_opens_at?: string | null
           schedule_id?: string | null
           scheduled_at?: string
           series_id?: string | null
@@ -248,6 +250,7 @@ export type Database = {
           id?: string
           kind?: string
           rsvp_days?: number | null
+          rsvp_opens_at?: string | null
           schedule_id?: string | null
           scheduled_at?: string
           series_id?: string | null
@@ -1693,6 +1696,7 @@ export type Database = {
       clan_polls: {
         Row: {
           anonymous: boolean
+          balance_room_id: string | null
           clan_id: string
           closed_at: string | null
           created_at: string
@@ -1708,6 +1712,7 @@ export type Database = {
         }
         Insert: {
           anonymous?: boolean
+          balance_room_id?: string | null
           clan_id: string
           closed_at?: string | null
           created_at?: string
@@ -1723,6 +1728,7 @@ export type Database = {
         }
         Update: {
           anonymous?: boolean
+          balance_room_id?: string | null
           clan_id?: string
           closed_at?: string | null
           created_at?: string
@@ -1737,6 +1743,13 @@ export type Database = {
           title?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "clan_polls_balance_room_id_fkey"
+            columns: ["balance_room_id"]
+            isOneToOne: true
+            referencedRelation: "balance_rooms"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "clan_polls_clan_id_fkey"
             columns: ["clan_id"]
@@ -3305,6 +3318,7 @@ export type Database = {
           p_kind: string
           p_repeat_every_days?: number
           p_rsvp_days?: number
+          p_rsvp_opens_at?: string
           p_scheduled_at?: string
           p_title: string
         }
@@ -3700,6 +3714,7 @@ export type Database = {
           p_clan_id: string
           p_room_id: string
           p_rsvp_days?: number
+          p_rsvp_opens_at?: string
           p_scheduled_at: string
           p_title: string
         }

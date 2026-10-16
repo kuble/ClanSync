@@ -47,13 +47,14 @@ function payload(data: Json | null, error: { message: string } | null): Record<s
 
 function invalidate(gameSlug: string, clanId: string) {
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/balance`);
+  revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);
   dispatchClanDiscordAfter(clanId);
 }
 
 export async function createBalanceRoomAction(
   gameSlug: string,
   clanId: string,
-  input: { kind: "regular" | "flash"; title: string; scheduledAt?: string | null; rsvpDays?: number | null; repeatEveryDays?: number | null },
+  input: { kind: "regular" | "flash"; title: string; scheduledAt?: string | null; rsvpStartsAt?: string | null; repeatEveryDays?: number | null },
 ): Promise<OpenRoomResult> {
   try {
     const client = await roomClient(gameSlug, clanId);
@@ -62,7 +63,7 @@ export async function createBalanceRoomAction(
       p_kind: input.kind,
       p_title: input.title.trim(),
       p_scheduled_at: dateInput(input.scheduledAt),
-      p_rsvp_days: input.rsvpDays ?? undefined,
+      p_rsvp_opens_at: dateInput(input.rsvpStartsAt),
       p_repeat_every_days: input.repeatEveryDays ?? undefined,
     });
     const result = payload(data, error);
@@ -85,14 +86,14 @@ export async function openBalanceRoomAction(gameSlug: string, clanId: string, ro
 
 export async function updateBalanceRoomAction(
   gameSlug: string, clanId: string, roomId: string,
-  input: { title: string; scheduledAt: string; rsvpDays: number | null },
+  input: { title: string; scheduledAt: string; rsvpStartsAt: string | null },
 ): Promise<RoomResult> {
   try {
     const client = await roomClient(gameSlug, clanId);
     const at = dateInput(input.scheduledAt);
     if (!at) throw new Error("예약 시각을 확인하세요.");
     const { data, error } = await client.rpc("update_balance_room", {
-      p_clan_id: clanId, p_room_id: roomId, p_title: input.title.trim(), p_scheduled_at: at, p_rsvp_days: input.rsvpDays ?? undefined,
+      p_clan_id: clanId, p_room_id: roomId, p_title: input.title.trim(), p_scheduled_at: at, p_rsvp_opens_at: dateInput(input.rsvpStartsAt),
     });
     payload(data, error);
     invalidate(gameSlug, clanId);

@@ -1,6 +1,7 @@
 "use client";
 
 import { type FormEvent, useEffect, useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { ArrowRight, Check, CheckCircle2, Clock, Plus, Vote } from "lucide-react";
 import { toast } from "sonner";
 import { closeClanPollAction, voteClanPollAction } from "@/app/actions/clan-polls";
@@ -180,7 +181,7 @@ function PollDialog({ poll, gameSlug, clanId, now, canManage, canVote, onClose }
             <div className="flex gap-2"><Button type="button" variant="outline" className="min-h-11" disabled={pending} onClick={() => { setError(""); setEditing(false); }}>{poll.my_option_ids.length ? "변경 취소" : "현재 결과 보기"}</Button><Button type="submit" className="min-h-11 flex-1" disabled={pending || !picked.length}><Check className="size-4" aria-hidden />{pending ? "저장 중…" : poll.my_option_ids.length ? "변경 저장" : "투표하기"}</Button></div>
           </> : open && canVote ? <Button type="button" className="min-h-11 w-full" disabled={pending} onClick={editVote}>{poll.my_option_ids.length ? "투표 변경" : "투표하기"}<ArrowRight className="size-4" aria-hidden /></Button>
             : <Button type="button" variant="outline" className="min-h-11 w-full" disabled={pending} onClick={onClose}>목록으로</Button>}
-          {open && canManage && <div className="flex items-center justify-between gap-2 border-t border-border pt-3"><span className="text-[11px] text-muted-foreground">운영진 관리</span><Button type="button" variant="ghost" size="sm" disabled={pending} onClick={closePoll} className="text-muted-foreground">조기 종료</Button></div>}
+          {poll.balance_room_id ? <Link href={`/games/${gameSlug}/clan/${clanId}/balance?room=${poll.balance_room_id}`} className="inline-flex items-center gap-1 text-xs text-primary">내전 정보<ArrowRight className="size-3" aria-hidden /></Link> : open && canManage && <div className="flex items-center justify-between gap-2 border-t border-border pt-3"><span className="text-[11px] text-muted-foreground">운영진 관리</span><Button type="button" variant="ghost" size="sm" disabled={pending} onClick={closePoll} className="text-muted-foreground">조기 종료</Button></div>}
           {!canVote && <p className="text-xs text-muted-foreground">로그인 후 투표할 수 있습니다.</p>}
         </div>
       </form>

@@ -14,6 +14,7 @@ export type SerializedClanPollOption = {
 export type SerializedClanPoll = {
   id: string;
   title: string;
+  balance_room_id?: string | null;
   anonymous: boolean;
   multiple_choice: boolean;
   starts_at: string;
@@ -37,7 +38,7 @@ export async function loadSerializedClanPolls(
   const { data: polls, error: pErr } = await svc
     .from("clan_polls")
     .select(
-      "id, title, anonymous, multiple_choice, starts_at, deadline_at, closed_at, created_at",
+      "id, title, balance_room_id, anonymous, multiple_choice, starts_at, deadline_at, closed_at, created_at",
     )
     .eq("clan_id", clanId)
     .order("created_at", { ascending: false })
@@ -108,6 +109,7 @@ export async function loadSerializedClanPolls(
     return {
       id: pid,
       title: p.title as string,
+      balance_room_id: p.balance_room_id,
       anonymous: Boolean(p.anonymous),
       multiple_choice: Boolean(p.multiple_choice),
       starts_at: p.starts_at,

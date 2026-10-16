@@ -165,7 +165,7 @@ export async function createAndEnterBalanceRoom(
     exact: true,
   }).check();
   await create.getByRole("textbox", { name: "내전 이름", exact: true }).fill(title);
-  await create.getByRole("button", { name: "내전 만들기", exact: true }).click();
+  await create.locator("form").getByRole("button", { name: "내전 만들기", exact: true }).click();
   await expect(create).toBeHidden({ timeout: 20_000 });
   const row = page.getByTestId("balance-lobby-room").filter({
     hasText: title,
