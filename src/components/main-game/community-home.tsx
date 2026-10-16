@@ -1,3 +1,4 @@
+import { formatCommunityDate } from "@/lib/main-game/format-community-date";
 import Link from "next/link";
 import {
   ArrowUpRight,
@@ -116,14 +117,7 @@ export function CommunityHome({
                   {s.clan_a_name} <b>vs</b> {s.clan_b_name || "상대 클랜"}
                 </span>
                 <small>
-                  {new Date(s.scheduled_at).toLocaleString("ko-KR", {
-                    timeZone: "Asia/Seoul",
-                    month: "long",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}{" "}
-                  · KST
+                  {formatCommunityDate(s.scheduled_at)}
                 </small>
               </button>
             ))}

@@ -73,6 +73,7 @@ export default async function MainGamePage({
   return (
     <MainGameCommunityTabs
       gameSlug={gameSlug}
+      serverNow={new Date().toISOString()}
       gameName={game.name_ko}
       clanLabel={
         state.clanName ??

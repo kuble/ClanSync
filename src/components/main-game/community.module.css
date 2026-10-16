@@ -112,6 +112,7 @@
   padding: 88px 28px 36px 92px;
   width: 100%;
   min-width: 0;
+  overflow-wrap: anywhere;
 }
 .inner {
   max-width: 1280px;
