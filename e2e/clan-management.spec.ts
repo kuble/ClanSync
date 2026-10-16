@@ -188,7 +188,7 @@ test("management sections preserve navigation, pending counts and officer/member
     const nav = page.getByRole("navigation", { name: "클랜 관리 항목", exact: true });
     async function selectSection(key: string) {
       const group = ["overview", "appearance", "insights"].includes(key) ? "클랜 운영" : ["requests", "members"].includes(key) ? "구성원 관리" : "운영 설정";
-      const label = { overview: "운영 현황", appearance: "클랜 꾸미기", requests: "가입 요청", members: "구성원", balance: "내전·경매", notifications: "알림·연동", insights: "운영 통계", subscription: "코인·플랜" }[key]!;
+      const label = { overview: "운영 현황", appearance: "클랜 꾸미기", requests: "가입 요청", members: "구성원", balance: "내전", notifications: "알림·연동", insights: "운영 통계", subscription: "코인·플랜" }[key]!;
       await page.getByRole("navigation", { name: "클랜 관리 분류" }).getByRole("link", { name: new RegExp(`^${group}`) }).click();
       await nav.getByRole("link", { name: new RegExp(`^${label}`) }).click();
     }
@@ -204,13 +204,13 @@ test("management sections preserve navigation, pending counts and officer/member
     await expect(nav.getByRole("link", { name: "가입 요청", exact: true })).toBeVisible();
     await expect.poll(async () => (await f.service.from("clan_members").select("status").eq("clan_id", f.clanId).eq("user_id", f.users[2].id).single()).data?.status).toBe("active");
 
-    for (const [label, heading] of [["클랜 꾸미기", "클랜 배너"], ["내전·경매", "세션 자동 종료"], ["운영 통계", "내전 운영 통계"], ["코인·플랜", "구독·플랜"]]) {
-      await selectSection({ "클랜 꾸미기": "appearance", "내전·경매": "balance", "운영 통계": "insights", "코인·플랜": "subscription" }[label]!);
+    for (const [label, heading] of [["클랜 꾸미기", "클랜 배너"], ["내전", "세션 자동 종료"], ["운영 통계", "내전 운영 통계"], ["코인·플랜", "구독·플랜"]]) {
+      await selectSection({ "클랜 꾸미기": "appearance", "내전": "balance", "운영 통계": "insights", "코인·플랜": "subscription" }[label]!);
       await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
     }
     await page.goBack();
-    await expect(nav.getByRole("link", { name: "내전·경매", exact: true })).toHaveAttribute("aria-current", "page");
-    await expect(nav.getByRole("link")).toHaveText(["내전·경매", "알림·연동", "코인·플랜"]);
+    await expect(nav.getByRole("link", { name: "내전", exact: true })).toHaveAttribute("aria-current", "page");
+    await expect(nav.getByRole("link")).toHaveText(["내전", "알림·연동", "코인·플랜"]);
     await page.goBack();
     await expect(nav.getByRole("link", { name: "운영 통계", exact: true })).toHaveAttribute("aria-current", "page");
     await expect(page.getByRole("navigation", { name: "클랜 관리 분류" }).getByRole("link", { name: "클랜 운영", exact: true })).toHaveAttribute("aria-current", "page");
