@@ -48,7 +48,7 @@ test("자동 저장은 실패 시 입력을 유지하고 재시도·저장 중 �
     await expect.poll(readHours).toBe(7);
     await page.getByRole("navigation", { name: "클랜 관리 항목" }).getByRole("link", { name: "내전·경매", exact: true }).click();
     await expect(hours).toHaveValue("7");
-    const toggle = page.getByRole("switch", { name: "자동 종료 사용", exact: true });
+    const toggle = page.getByRole("switch", { name: "세션 자동 종료", exact: true });
     await toggle.click();
     await expect(hours).toBeHidden();
     await expect(page.getByText("자동 저장됨", { exact: true })).toBeVisible();

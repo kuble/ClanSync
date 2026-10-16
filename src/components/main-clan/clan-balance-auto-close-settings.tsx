@@ -28,25 +28,20 @@ export function ClanBalanceAutoCloseSettings({
 
   return (
     <section className="rounded-xl border border-border bg-card p-5">
-      <div className="flex items-start gap-3">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Clock3 className="size-4" aria-hidden="true" />
         </span>
         <div>
           <h3 className="text-sm font-bold"><HelpText label="세션 자동 종료" help="마지막 편성·투표·예측 입력 후 설정한 시간 동안 활동이 없으면 진행 중인 세션을 종료합니다. 새 클랜은 기본 3시간으로 사용합니다." /></h3>
         </div>
-      </div>
-
-      <form onSubmit={(event) => event.preventDefault()} className="mt-5 space-y-5">
-        <div className="flex items-center justify-between gap-4 rounded-lg border border-border px-4 py-3">
-          <div>
-            <Label htmlFor="balance-auto-close-toggle">자동 종료 사용</Label>
-
-          </div>
+        </div>
           <button
             id="balance-auto-close-toggle"
             type="button"
             role="switch"
+            aria-label="세션 자동 종료"
             aria-checked={enabled}
             aria-controls="balance-auto-close-details"
             onClick={() => autosave.update((current) => ({ ...current, enabled: !current.enabled }))}
@@ -63,9 +58,10 @@ export function ClanBalanceAutoCloseSettings({
                 enabled ? "translate-x-5" : "translate-x-0",
               )}
             />
-            <span className="sr-only">{enabled ? "사용 중" : "사용 안 함"}</span>
           </button>
-        </div>
+      </div>
+
+      <form onSubmit={(event) => event.preventDefault()} className="mt-5 space-y-5">
 
         <div id="balance-auto-close-details" hidden={!enabled} className="ml-4 border-l-2 border-primary/25 pl-4 sm:pl-5">
         <div className="max-w-xs space-y-2 rounded-lg border border-border/70 bg-background/30 p-4">
