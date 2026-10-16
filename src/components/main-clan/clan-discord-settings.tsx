@@ -90,7 +90,7 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
           </div>
           <div id="discord-notification-details" hidden={!enabled} className="mx-5 mb-5 border-l-2 border-primary/25 pl-4 sm:pl-5">
           <div className="overflow-hidden rounded-lg border border-border/70 bg-background/30">
-          <div className="space-y-2 border-b border-border/70 p-4"><div id="discord-channel-label" className="text-xs font-medium"><HelpText label="기본 알림 채널" help="봇에 채널 보기·메시지 보내기·링크 임베드 권한이 있는 채널을 선택하세요. 종류별 채널 분리는 선택 사항입니다. 기존 봇에 권한이 없다면 서버 다시 연결로 추가할 수 있습니다." /></div>
+          <div className="space-y-2 border-b border-border/70 p-4"><div id="discord-channel-label" className="text-[13px] font-semibold"><HelpText label="기본 알림 채널" help="봇에 채널 보기·메시지 보내기·링크 임베드 권한이 있는 채널을 선택하세요. 종류별 채널 분리는 선택 사항입니다. 기존 봇에 권한이 없다면 서버 다시 연결로 추가할 수 있습니다." /></div>
             <div className="flex items-center justify-between gap-4">
             <select aria-labelledby="discord-channel-label" id="discord-channel" name="discord_channel_id" value={channelId} onChange={(event) => autosave.update((current) => ({ ...current, channelId: event.target.value }))} disabled={channelDisabled} className={selectClass}>
               <option value="">{loading ? "채널 불러오는 중…" : "채널 선택"}</option>
@@ -101,9 +101,8 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
             {loadError && <p role="alert" className="text-xs text-destructive">{loadError} <button type="button" className="underline" onClick={() => { setLoading(true); setLoadError(""); setRefresh((value) => value + 1); }}>다시 불러오기</button></p>}
           </div>
           <section aria-label="종류별 알림">
-          <div className="border-b border-border/70 px-4 py-3"><h4 className="text-sm font-semibold"><HelpText label="세부 알림 채널" help="전체 멘션 없이 전달합니다. 개인 수신은 Discord의 채널 알림 설정에서 조절하세요." /></h4></div>
           {DISCORD_NOTIFICATION_TYPES.map(({ id, label, description }) => <div key={id} className="space-y-3 border-b border-border/70 p-4 last:border-b-0">
-            <div className="text-[13px] font-semibold"><HelpText label={label} help={description} /></div>
+            <div className="text-[13px] font-semibold"><HelpText label={id === "announcements" ? "공지 채널" : `${label} 채널`} help={description} /></div>
             <div className="flex flex-wrap items-center justify-between gap-4">
             <select aria-label={`${label} 알림 채널`} name={`discord_${id}_channel`} value={routes[id].channel_id} onChange={(event) => autosave.update((current) => ({ ...current, routes: { ...current.routes, [id]: { ...current.routes[id], channel_id: event.target.value } } }))} disabled={channelDisabled} className={selectClass}>
               <option value="">기본 채널 사용</option>
