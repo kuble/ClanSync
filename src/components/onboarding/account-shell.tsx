@@ -2,13 +2,14 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { Check, Gamepad2, UserRound } from "lucide-react";
 import { EntryBrand } from "@/components/entry/entry-brand";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import styles from "./onboarding.module.css";
 
 export function AccountShell({ children }: { children: ReactNode }) {
   return <div className={styles.shell}>
     <header className={styles.navbar}><div className={styles.navbarInner}>
       <EntryBrand />
-      <nav aria-label="계정 메뉴"><Link href="/games"><Gamepad2 size={16} aria-hidden="true" />게임 선택</Link><Link href="/profile"><UserRound size={16} aria-hidden="true" />프로필</Link></nav>
+      <nav aria-label="계정 메뉴"><Link href="/games"><Gamepad2 size={16} aria-hidden="true" />게임 선택</Link><Link href="/profile"><UserRound size={16} aria-hidden="true" />프로필</Link><ThemeToggle /></nav>
     </div></header>
     {children}
   </div>;

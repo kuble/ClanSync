@@ -31,6 +31,7 @@ import type { ClanInAppNotificationVM } from "@/lib/clan/load-clan-inapp-notific
 import type { MainClanContext } from "@/lib/clan/load-main-clan-context";
 import { cn } from "@/lib/utils";
 import { NavigationIcon } from "@/components/ui/navigation-icon";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import styles from "./main-clan-shell.module.css";
 
 type NavItem = {
@@ -238,6 +239,7 @@ export function MainClanShell({
           </nav>
         </div>
         <div className={styles.headerRight}>
+          <ThemeToggle />
           {ctx.plan === "premium" ? (
             <span className={styles.plan}>Premium</span>
           ) : null}

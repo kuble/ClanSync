@@ -1,6 +1,7 @@
 "use client"
 
 import { useSyncExternalStore } from "react"
+import { useTheme } from "next-themes"
 import { createPortal } from "react-dom"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
@@ -15,6 +16,7 @@ const serverSnapshot = () => false;
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const mounted = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot)
+  const { resolvedTheme } = useTheme()
 
   if (!mounted) return null
 
@@ -26,7 +28,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       */}
       <span id="clansync-toaster-mount-marker" hidden aria-hidden />
       <Sonner
-        theme="dark"
+        theme={resolvedTheme === "light" ? "light" : "dark"}
         position="top-center"
         offset={72}
         visibleToasts={5}

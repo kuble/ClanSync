@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { EntryBrand } from "./entry-brand";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import styles from "./entry.module.css";
 
 export function AuthShell({ children, mode }: { children: ReactNode; mode: "sign-in" | "sign-up" }) {
@@ -7,6 +8,7 @@ export function AuthShell({ children, mode }: { children: ReactNode; mode: "sign
     <main className={styles.authShell}>
       <div className={styles.authPanel}>
         <div className={styles.authBrand}><EntryBrand /></div>
+        <ThemeToggle className="absolute right-6 top-6" />
         <div className={styles.authForm}>{children}</div>
       </div>
       <aside className={styles.authAside} aria-label="ClanSync 소개">

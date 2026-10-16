@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/sheet";
 import type { MainGameCommunityTab } from "@/lib/main-game/main-game-community-tab";
 import { NavigationIcon } from "@/components/ui/navigation-icon";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import styles from "./community.module.css";
 
 const navigation: {
@@ -152,6 +153,7 @@ export function CommunityFrame({
           <NavigationIcon icon={Shield} label={clanLabel} size={15} />
           <span>{clanLabel}</span>
         </Link>
+        <ThemeToggle />
       </header>
       <aside className={styles.rail} aria-label="커뮤니티 탐색">
         <TabsList

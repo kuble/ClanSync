@@ -3,6 +3,7 @@ import { ArrowRight, Check } from "lucide-react";
 import { EntryBrand } from "@/components/entry/entry-brand";
 import { LandingPreview } from "@/components/entry/landing-preview";
 import { LandingFeatures } from "@/components/entry/landing-features";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import styles from "@/components/entry/entry.module.css";
 
 export default function RootPage() {
@@ -17,6 +18,7 @@ export default function RootPage() {
             <a href="#pricing">요금제</a>
           </nav>
           <div className={styles.navActions}>
+            <ThemeToggle />
             <Link href="/sign-in" className={styles.ghostButton}>로그인</Link>
             <Link href="/sign-up" className={styles.button}>가입하기</Link>
           </div>

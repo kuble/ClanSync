@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ChevronDown, LogOut, UserRound } from "lucide-react";
 import { GameCardGrid } from "@/components/games/game-card-grid";
 import { EntryBrand } from "@/components/entry/entry-brand";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import type { ClanStatus, GameCardState } from "@/lib/routing/game-card-router";
 import { signOutAction } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -82,7 +83,7 @@ export default async function GamesPage() {
       <header className={styles.navbar}>
         <div className={styles.navbarInner}>
           <EntryBrand />
-          <details className={styles.profileMenu}>
+          <div className={styles.navActions}><ThemeToggle /><details className={styles.profileMenu}>
             <summary className={styles.profileSummary} aria-label="프로필 메뉴">
               <span className={styles.avatar}>{nickname.slice(0, 1)}</span><ChevronDown size={14} aria-hidden="true" />
             </summary>
@@ -91,7 +92,7 @@ export default async function GamesPage() {
               <Link href="/profile"><UserRound size={16} aria-hidden="true" />프로필</Link>
               <form action={signOutAction}><button type="submit"><LogOut size={16} aria-hidden="true" />로그아웃</button></form>
             </div>
-          </details>
+          </details></div>
         </div>
       </header>
       <main className={styles.gamesContent}>
