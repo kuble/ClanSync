@@ -145,9 +145,9 @@ async function Requests({ ctx }: Pick<Props, "ctx">) {
 
 async function Members({ ctx }: Pick<Props, "ctx">) {
   const svc = createServiceRoleClient();
-  const [members, kickMember, kickOfficer] = await Promise.all([
+  const [members, kickMember, kickOfficer, viewer] = await Promise.all([
     svc.from("clan_members").select("user_id,role,status,joined_at,last_activity_at,departed_at,departure_kind").eq("clan_id", ctx.clanId).in("status", ["active", "left", "banned"]).order("role").order("joined_at"),
-    hasRequestClanPermission(ctx.clanId, "kick_member"), hasRequestClanPermission(ctx.clanId, "kick_officer"),
+    hasRequestClanPermission(ctx.clanId, "kick_member"), hasRequestClanPermission(ctx.clanId, "kick_officer"), getRequestUser(),
   ]);
   if (members.error) throw new Error("구성원을 불러오지 못했습니다.");
   const ids = members.data.map((row) => row.user_id);
@@ -164,7 +164,9 @@ async function Members({ ctx }: Pick<Props, "ctx">) {
   const gamesById = new Map((gameProfiles.data ?? []).map((row) => [row.user_id, row]));
   const linkedCounts = new Map<string, number>();
   for (const link of links.data ?? []) if (link.user_id) linkedCounts.set(link.user_id, (linkedCounts.get(link.user_id) ?? 0) + 1);
-  const rows: ManageMemberRow[] = members.data.map((row) => ({ userId: row.user_id, status: row.status === "banned" ? "banned" : row.status === "left" ? "left" : "active", departureKind: row.departure_kind, departedLabel: row.departed_at ? new Date(row.departed_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "—", nickname: byId.get(row.user_id)?.nickname ?? labels.get(row.user_id) ?? "—", gameTag: profileBattleTag(gamesById.get(row.user_id)), linkedCount: linkedCounts.get(row.user_id) ?? 0, gameVerified: verified.has(row.user_id), role: row.role, joinedLabel: new Date(row.joined_at).toLocaleDateString("ko-KR"), lastActivityAt: row.last_activity_at ?? row.joined_at, actions: { canKick: row.status === "active" && (row.role === "officer" ? kickOfficer : row.role === "member" && kickMember), canPromote: row.status === "active" && row.role === "member" && ctx.role === "leader", canDemote: row.status === "active" && row.role === "officer" && ctx.role === "leader", canAllowRejoin: row.status === "banned" && row.role !== "leader" && (ctx.role === "leader" || row.role === "member") } }));
+  // The current request is activity, even before the layout's after() persists it.
+  const visitedAt = new Date().toISOString();
+  const rows: ManageMemberRow[] = members.data.map((row) => ({ userId: row.user_id, status: row.status === "banned" ? "banned" : row.status === "left" ? "left" : "active", departureKind: row.departure_kind, departedLabel: row.departed_at ? new Date(row.departed_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "—", nickname: byId.get(row.user_id)?.nickname ?? labels.get(row.user_id) ?? "—", gameTag: profileBattleTag(gamesById.get(row.user_id)), linkedCount: linkedCounts.get(row.user_id) ?? 0, gameVerified: verified.has(row.user_id), role: row.role, joinedLabel: new Date(row.joined_at).toLocaleDateString("ko-KR"), lastActivityAt: row.status === "active" && row.user_id === viewer?.id ? visitedAt : row.last_activity_at ?? row.joined_at, actions: { canKick: row.status === "active" && (row.role === "officer" ? kickOfficer : row.role === "member" && kickMember), canPromote: row.status === "active" && row.role === "member" && ctx.role === "leader", canDemote: row.status === "active" && row.role === "officer" && ctx.role === "leader", canAllowRejoin: row.status === "banned" && row.role !== "leader" && (ctx.role === "leader" || row.role === "member") } }));
   return <div className="space-y-4"><section className={panel}><p className="mb-4 text-xs text-muted-foreground">활동 멤버 {rows.filter((row) => row.status === "active").length}명</p><ManageMembersTable gameSlug={ctx.gameSlug} clanId={ctx.clanId} rows={rows} /></section><ClanParticipantData clanId={ctx.clanId} gameSlug={ctx.gameSlug} /></div>;
 }
 
