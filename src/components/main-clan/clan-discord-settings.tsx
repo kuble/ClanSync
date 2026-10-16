@@ -109,7 +109,7 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
               {routes[id].channel_id && !channels.some((channel) => channel.id === routes[id].channel_id) && <option value={routes[id].channel_id}>기존 채널 (권한 확인 필요)</option>}
               {channels.map((channel) => <option key={channel.id} value={channel.id}>#{channel.name}</option>)}
             </select>
-            {id === "polls" && <div className="flex flex-wrap gap-x-5 gap-y-2">{([['created', '시작 알림'], ['ended', '종료·결과 알림']] as const).map(([key, text]) => <label key={key} className="flex items-center gap-2 whitespace-nowrap text-xs"><Switch name={`discord_polls_${key}`} disabled={!canEdit || !premium} checked={routes.polls[key]} onChange={(event) => autosave.update((current) => ({ ...current, routes: { ...current.routes, polls: { ...current.routes.polls, [key]: event.target.checked } } }))} />{text}</label>)}</div>}
+            {id === "polls" && <div className="space-y-3">{([['created', '시작 알림'], ['ended', '종료·결과 알림']] as const).map(([key, text]) => <label key={key} className="flex items-center justify-between gap-3 text-xs">{text}<Switch name={`discord_polls_${key}`} disabled={!canEdit || !premium} checked={routes.polls[key]} onChange={(event) => autosave.update((current) => ({ ...current, routes: { ...current.routes, polls: { ...current.routes.polls, [key]: event.target.checked } } }))} /></label>)}</div>}
             </div>
           </div>)}
           </section>

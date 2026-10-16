@@ -21,13 +21,13 @@ import {
 } from "@/app/actions/bracket-tournaments";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { SerializedBracketTournament } from "@/lib/clan/load-bracket-tournaments";
@@ -180,7 +180,7 @@ export function ClanEventsBracketTab({
         <div className="mb-5 rounded-2xl bg-amber-500/10 p-5">
           <GitBranch className="size-8 text-amber-500" aria-hidden="true" />
         </div>
-        <span className="mb-3 flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-1 text-[10px] font-bold text-amber-700 dark:text-amber-300">
+        <span className="mb-3 flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-700 dark:text-amber-300">
           <LockKeyhole className="size-3" aria-hidden="true" />
           Premium
         </span>
@@ -222,18 +222,20 @@ export function ClanEventsBracketTab({
         ) : null}
       </div>
 
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent
-          showCloseButton
+      <Sheet open={createOpen} onOpenChange={(open) => { if (!pending) setCreateOpen(open); }}>
+        <SheetContent
+          showCloseButton={!pending}
+          className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]"
           data-testid="bracket-create-draft-dialog"
         >
-          <DialogHeader>
-            <DialogTitle>대진표 초안</DialogTitle>
-            <DialogDescription>
+          <SheetHeader className="shrink-0 px-5 pb-5 pr-12">
+            <SheetTitle>대진표 초안</SheetTitle>
+            <SheetDescription>
               대회 이름과 경기 형식, 참가 팀 수를 정하세요.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={onCreateSubmit} className="space-y-4">
+            </SheetDescription>
+          </SheetHeader>
+          <form onSubmit={onCreateSubmit} className="flex min-h-0 flex-1 flex-col">
+            <fieldset disabled={pending} className="board-scroll min-h-0 min-w-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-5 pb-5">
             <div className="space-y-2">
               <Label htmlFor="bt-title">대회명</Label>
               <Input
@@ -271,10 +273,12 @@ export function ClanEventsBracketTab({
                 <option value="16">16</option>
               </select>
             </div>
-            <DialogFooter className="gap-2">
+            </fieldset>
+            <SheetFooter className="mt-0 shrink-0 flex-row justify-end border-t px-5 py-4">
               <Button
                 type="button"
                 variant="ghost"
+                disabled={pending}
                 onClick={() => setCreateOpen(false)}
               >
                 취소
@@ -282,10 +286,10 @@ export function ClanEventsBracketTab({
               <Button type="submit" disabled={pending}>
                 {pending ? "저장 중…" : "저장"}
               </Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
       {!tournaments.length ? (
         <p className="text-muted-foreground rounded-2xl border border-dashed bg-card p-12 text-center text-sm">
@@ -305,14 +309,14 @@ export function ClanEventsBracketTab({
             >
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h3 className="flex items-center gap-2 text-base font-semibold">
+                  <h3 className="flex min-w-0 max-w-full items-center gap-2 text-base font-semibold">
                     <Trophy
-                      className="size-4 text-primary"
+                      className="size-4 shrink-0 text-primary"
                       aria-hidden="true"
                     />
-                    {t.title}
+                    <span className="min-w-0 break-words">{t.title}</span>
                   </h3>
-                  <span className="rounded-full bg-muted px-2.5 py-1 text-[10px] font-semibold">
+                  <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-semibold">
                     {statusLabelKo(t.status)}
                   </span>
                 </div>
@@ -404,7 +408,7 @@ function BracketPreview({
               key={index}
               className="min-w-44 overflow-hidden rounded-lg border bg-card"
             >
-              <div className="border-b bg-muted/25 px-3 py-2 text-[10px] font-semibold tracking-wider text-muted-foreground">
+              <div className="border-b bg-muted/25 px-3 py-2 text-xs font-semibold tracking-wider text-muted-foreground">
                 MATCH {String(index + 1).padStart(2, "0")}
               </div>
               {pair.map((label, slot) => (
@@ -440,7 +444,7 @@ function BracketPreview({
           </div>
         ) : null}
       </div>
-      <p className="border-t px-4 py-2.5 text-[10px] leading-relaxed text-muted-foreground">
+      <p className="border-t px-4 py-2.5 text-xs leading-relaxed text-muted-foreground">
         저장한 팀 슬롯 순서에 따른 미리보기입니다. 경기 결과와 진출 팀은 아직
         기록되지 않았습니다.
       </p>

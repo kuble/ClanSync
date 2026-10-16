@@ -12,8 +12,8 @@ import {
 } from "@/lib/clan/poll-notify-validation";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle,
+} from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { HelpText } from "./help-text";
@@ -159,17 +159,17 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange, onCreated
   });
 
   return (
-    <Dialog open onOpenChange={(open) => { if (!pending) onOpenChange(open); }}>
-      <DialogContent initialFocus={titleRef} showCloseButton={false} className="flex max-h-[90dvh] flex-col gap-0 overflow-hidden p-0 sm:max-w-[600px]">
-        <DialogHeader className="shrink-0 border-b px-5 py-5 pr-12 sm:px-6">
-          <DialogTitle className="text-lg font-semibold">투표 만들기</DialogTitle>
-          <DialogDescription className="text-xs">질문과 선택지를 작성하고 시작·마감 시각을 정하세요.</DialogDescription>
-        </DialogHeader>
+    <Sheet open onOpenChange={(open) => { if (!pending) onOpenChange(open); }}>
+      <SheetContent initialFocus={titleRef} showCloseButton={false} className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[600px]">
+        <SheetHeader className="shrink-0 border-b px-5 py-5 pr-12 sm:px-6">
+          <SheetTitle className="text-lg font-semibold">투표 만들기</SheetTitle>
+          <SheetDescription className="text-xs">질문과 선택지를 작성하고 시작·마감 시각을 정하세요.</SheetDescription>
+        </SheetHeader>
         <Button type="button" variant="ghost" size="icon-sm" className="absolute right-3 top-4" disabled={pending} onClick={() => onOpenChange(false)} aria-label="닫기">
           <X className="size-4" aria-hidden />
         </Button>
         <form ref={formRef} noValidate onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div className="board-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain">
           <fieldset disabled={pending} className="min-w-0 space-y-6 px-5 py-5 sm:px-6">
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
@@ -286,8 +286,8 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange, onCreated
             </div>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 

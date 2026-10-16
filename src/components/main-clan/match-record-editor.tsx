@@ -3,6 +3,7 @@
 import { useId, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import type { ClanArchiveMatch, ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { editClanMatchRecord, type MatchRecordInput } from "@/app/actions/clan-match-records";
 import { mapPoolForGameSlug } from "@/lib/balance/map-pools";
@@ -10,7 +11,7 @@ import { mapPoolForGameSlug } from "@/lib/balance/map-pools";
 type Role = MatchRecordInput["players"][number]["role"];
 const roles: Role[] = ["tank", "dmg", "dmg", "sup", "sup"];
 const kstTime = (iso: string) => new Date(Date.parse(iso) + 9 * 60 * 60 * 1000).toISOString().slice(0, 19);
-const field = "h-9 w-full min-w-0 rounded-lg border bg-background px-2 text-xs text-foreground";
+const field = "h-9 w-full min-w-0 rounded-lg border bg-background px-2 text-sm text-foreground";
 
 export function MatchRecordEditor({ clanId, match, day, members, mode, onClose, onReload, onSaved }: {
   clanId: string; match?: ClanArchiveMatch; day: string; members: { userId: string; nickname: string }[];
@@ -31,10 +32,15 @@ export function MatchRecordEditor({ clanId, match, day, members, mode, onClose, 
   const mapOptions = useId();
   const people = [...new Map([...members, ...(match?.players ?? [])].map((p) => [p.userId, { userId: p.userId, nickname: p.nickname }])).values()].sort((a, b) => a.nickname.localeCompare(b.nickname, "ko"));
   const title = mode === "create" ? "경기 기록 추가" : mode === "update" ? "경기 기록 수정" : "경기 기록 제거";
-  return <Dialog open onOpenChange={(open) => { if (!open && !pending) onClose(); }}>
-    <DialogContent className="max-h-[88dvh] overflow-y-auto [scrollbar-color:var(--muted-foreground)_var(--background)] [scrollbar-width:thin] sm:max-w-2xl" showCloseButton={!pending}>
-      <DialogHeader><DialogTitle>{title}</DialogTitle><DialogDescription>{mode === "delete" ? "이 경기를 통계에서 제거합니다. 원본 경기와 코인 정산 내역은 보존됩니다." : "날짜·맵·결과와 양 팀 출전자를 기록합니다. 저장하면 당일 전적과 클랜 통계가 함께 갱신됩니다."}</DialogDescription></DialogHeader>
-      <form className="space-y-5" onSubmit={(event) => {
+  const EditorRoot = mode === "delete" ? Dialog : Sheet;
+  const EditorContent = mode === "delete" ? DialogContent : SheetContent;
+  const EditorHeader = mode === "delete" ? DialogHeader : SheetHeader;
+  const EditorTitle = mode === "delete" ? DialogTitle : SheetTitle;
+  const EditorDescription = mode === "delete" ? DialogDescription : SheetDescription;
+  return <EditorRoot open onOpenChange={(open) => { if (!open && !pending) onClose(); }}>
+    <EditorContent className={mode === "delete" ? "flex max-h-[90dvh] min-h-0 flex-col gap-0 overflow-hidden p-0 sm:max-w-lg" : "gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[640px]"} showCloseButton={!pending}>
+      <EditorHeader className="shrink-0 px-5 pb-5 pt-5 pr-12"><EditorTitle>{title}</EditorTitle><EditorDescription>{mode === "delete" ? "이 경기를 통계에서 제거합니다. 원본 경기와 코인 정산 내역은 보존됩니다." : "날짜·맵·결과와 양 팀 출전자를 기록합니다. 저장하면 당일 전적과 클랜 통계가 함께 갱신됩니다."}</EditorDescription></EditorHeader>
+      <form className="flex min-h-0 flex-1 flex-col" onSubmit={(event) => {
         event.preventDefault(); setError("");
         const players = slots.filter((slot) => slot.userId);
         if (mode !== "delete" && (new Set(players.map((p) => p.userId)).size !== players.length || !players.some((p) => p.team === 1) || !players.some((p) => p.team === 2))) { setError("양 팀에 출전자를 한 명 이상 선택하세요. 같은 출전자는 중복 선택할 수 없습니다."); return; }
@@ -49,6 +55,7 @@ export function MatchRecordEditor({ clanId, match, day, members, mode, onClose, 
           } catch { setError("저장 결과를 확인하지 못했습니다. 최신 기록을 확인한 뒤 다시 시도하세요."); }
         });
       }}>
+        <div className="board-scroll min-h-0 min-w-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-5 pb-5">
         {mode === "delete" ? <p className="rounded-lg border p-4 text-sm">{match?.mapLabel ?? "맵 미기록"} · {day}</p> : <fieldset disabled={pending} className="space-y-5">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="space-y-1 text-xs">내전 날짜<input className={field} type="date" min="2000-01-01" max="2100-12-31" required value={date} onChange={(e) => { const next = e.target.value; if (time.startsWith(date)) setTime(next + time.slice(10)); setDate(next); }} /></label>
@@ -63,11 +70,11 @@ export function MatchRecordEditor({ clanId, match, day, members, mode, onClose, 
               <select className={field} aria-label={`${team}팀 ${i % 5 + 1}번 출전자`} value={slot.userId} onChange={(e) => setSlots((old) => old.map((s, index) => index === i ? { ...s, userId: e.target.value } : s))}><option value="">출전자 없음</option>{people.map((p) => <option key={p.userId} value={p.userId} disabled={p.userId !== slot.userId && slots.some((s) => s.userId === p.userId)}>{p.nickname}</option>)}</select>
             </div>)}
           </fieldset>)}</div>
-          <p className="text-[11px] text-muted-foreground">출전자를 확인할 수 없는 슬롯은 비워 둘 수 있습니다. 기록 정정은 승부예측 정산을 변경하지 않습니다.</p>
+          <p className="text-xs text-muted-foreground">출전자를 확인할 수 없는 슬롯은 비워 둘 수 있습니다. 기록 정정은 승부예측 정산을 변경하지 않습니다.</p>
         </fieldset>}
         {error && <div className="space-y-2"><p role="alert" className="text-xs text-destructive">{error}</p><Button type="button" size="sm" variant="outline" disabled={pending} onClick={onReload}>최신 기록 확인</Button></div>}
-        <div className="flex justify-end gap-2"><Button type="button" variant="outline" size="sm" disabled={pending} onClick={onClose}>취소</Button><Button type="submit" size="sm" variant={mode === "delete" ? "destructive" : "default"} disabled={pending}>{pending ? "저장 중…" : mode === "delete" ? "기록 제거" : "기록 저장"}</Button></div>
+        </div><div className="flex shrink-0 justify-end gap-2 border-t px-5 py-4"><Button type="button" variant="outline" size="sm" disabled={pending} onClick={onClose}>취소</Button><Button type="submit" size="sm" variant={mode === "delete" ? "destructive" : "default"} disabled={pending}>{pending ? "저장 중…" : mode === "delete" ? "기록 제거" : "기록 저장"}</Button></div>
       </form>
-    </DialogContent>
-  </Dialog>;
+    </EditorContent>
+  </EditorRoot>;
 }
