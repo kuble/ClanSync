@@ -48,6 +48,20 @@ test("자동 저장은 실패 시 입력을 유지하고 재시도·저장 중 �
     await expect.poll(readHours).toBe(7);
     await page.getByRole("navigation", { name: "클랜 관리 항목" }).getByRole("link", { name: "내전·경매", exact: true }).click();
     await expect(hours).toHaveValue("7");
+    const toggle = page.getByRole("switch", { name: "자동 종료 사용", exact: true });
+    await toggle.click();
+    await expect(hours).toBeHidden();
+    await expect(page.getByText("자동 저장됨", { exact: true })).toBeVisible();
+    await expect.poll(readHours).toBe(7);
+    await page.reload();
+    await expect(toggle).toHaveAttribute("aria-checked", "false");
+    await expect(hours).toBeHidden();
+    await toggle.click();
+    await expect(hours).toBeVisible();
+    await expect(hours).toHaveValue("7");
+    await expect(page.getByText("자동 저장됨", { exact: true })).toBeVisible();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect.poll(() => page.locator("#balance-auto-close-details").evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
     await page.getByRole("button", { name: "세션 자동 종료", exact: true }).hover();
     await expect(page.getByRole("tooltip")).toContainText("마지막 편성");
   } finally { release?.(); await f.cleanup(); }

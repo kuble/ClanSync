@@ -48,6 +48,7 @@ export function ClanBalanceAutoCloseSettings({
             type="button"
             role="switch"
             aria-checked={enabled}
+            aria-controls="balance-auto-close-details"
             onClick={() => autosave.update((current) => ({ ...current, enabled: !current.enabled }))}
             className={cn(
               "relative h-6 w-11 shrink-0 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -66,7 +67,8 @@ export function ClanBalanceAutoCloseSettings({
           </button>
         </div>
 
-        <div className="max-w-xs space-y-2">
+        <div id="balance-auto-close-details" hidden={!enabled} className="ml-4 border-l-2 border-primary/25 pl-4 sm:pl-5">
+        <div className="max-w-xs space-y-2 rounded-lg border border-border/70 bg-background/30 p-4">
           <Label htmlFor="balance-auto-close-hours">활동이 없을 때</Label>
           <div className="flex items-center gap-2">
             <Input
@@ -84,6 +86,7 @@ export function ClanBalanceAutoCloseSettings({
             />
             <span className="text-sm text-muted-foreground">시간 후 종료</span>
           </div>
+        </div>
         </div>
 
         <AutosaveStatus {...autosave} />
