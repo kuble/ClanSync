@@ -80,9 +80,16 @@ test("member creates a minute-based reservation and attendance poll, then event 
     await expect(help).toBeVisible(); await page.keyboard.press("Escape"); await expect(create).toBeVisible();
     const allIds = await create.locator('[role="option"]').evaluateAll(nodes => nodes.map(n => n.id));
     expect(new Set(allIds).size).toBe(allIds.length);
+    const content = create.locator("form > fieldset");
+    const submit = create.locator("form").getByRole("button", { name: "내전 만들기", exact: true });
     for (const width of [320, 390, 1304]) {
       await page.setViewportSize({ width, height: 884 });
       expect(await create.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+      await expect(content).toHaveCSS("scrollbar-width", "thin");
+      const footerY = (await submit.boundingBox())!.y;
+      await content.evaluate(el => { el.scrollTop = el.scrollHeight; });
+      await expect(toggle).toBeInViewport();
+      expect((await submit.boundingBox())!.y).toBe(footerY);
       await page.screenshot({ path: test.info().outputPath(`create-room-${width}.png`) });
     }
     await create.locator("form").getByRole("button", { name: "내전 만들기", exact: true }).click(); await expect(create).toBeHidden();
