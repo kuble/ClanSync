@@ -109,9 +109,10 @@ async function loadMainClanContextData(
       .eq("status", "active"),
     supabase
       .from("balance_sessions")
-      .select("id", { count: "exact", head: true })
+      .select("id")
       .eq("clan_id", clanId)
-      .is("closed_at", null),
+      .is("closed_at", null)
+      .limit(1),
   ]);
   const canStartBalance = role === "leader" || role === "officer" || role === "member";
   const styles = {
@@ -136,7 +137,7 @@ async function loadMainClanContextData(
     tags: clan.tags ?? [],
     canStartBalance,
     sidebarDots: {
-      balance: !balance.error && (balance.count ?? 0) > 0,
+      balance: !balance.error && (balance.data?.length ?? 0) > 0,
       events: false,
       manage: (requests.count ?? 0) > 0,
     },
