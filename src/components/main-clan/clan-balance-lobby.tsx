@@ -20,6 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { activeLobbyRooms } from "@/lib/balance/lobby-rooms";
+import { BalanceLobbyRealtime } from "./balance-lobby-realtime";
 import { BalanceSchedulePicker, kstInput, nextWeeklyDate } from "./balance-schedule-picker";
 import { ClanBalanceHistoryDrawer } from "./clan-balance-history-drawer";
 import { HelpText } from "./help-text";
@@ -79,18 +80,6 @@ export function ClanBalanceLobby({ gameSlug, clanId, userId, clanRole, rooms, me
     ? rooms.filter((room) => room.schedule_id === detail.schedule_id && room.status === "scheduled").sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at))[0] : null;
   const roomPath = (id: string) => `/games/${gameSlug}/clan/${clanId}/balance?room=${id}`;
 
-  useEffect(() => {
-    const refresh = () => {
-      if (document.visibilityState === "visible") router.refresh();
-    };
-    const timer = window.setInterval(refresh, 5_000);
-    document.addEventListener("visibilitychange", refresh);
-    return () => {
-      window.clearInterval(timer);
-      document.removeEventListener("visibilitychange", refresh);
-    };
-  }, [router]);
-
   function run(action: () => Promise<ActionResult>, message: string, after?: () => void) {
     start(async () => {
       try {
@@ -144,6 +133,7 @@ export function ClanBalanceLobby({ gameSlug, clanId, userId, clanRole, rooms, me
 
   return (
     <section className="space-y-4" aria-label="내전 로비" data-testid="clan-balance-lobby">
+      <BalanceLobbyRealtime clanId={clanId} roomIds={rooms.map((room) => room.id)} />
       <div className="flex items-center justify-between gap-3">
         <span className="text-xs tabular-nums text-muted-foreground">진행·예약 {active.length}개</span>
         <div className="flex items-center gap-1">
