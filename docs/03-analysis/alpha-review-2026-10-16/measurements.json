@@ -1,0 +1,348 @@
+{
+  "date": "2026-10-16",
+  "baselineCommit": "1f1a619",
+  "environment": "Windows local production webpack Next 16.2.0, QA DB, 3010, Chromium, QA leader. Five navigations per route; not a controlled statistical A/B test. Final after sample ran without another test against the 3010 server.",
+  "bytes": "Uncompressed JavaScript response body sum across 5 loads. Not billed transfer bytes.",
+  "before": [
+    {
+      "route": "/games/overwatch/clan/73441bc9-2ffd-4789-8da4-f50423073706/balance",
+      "timings": [
+        {
+          "ttfbMs": 337,
+          "documentBytes": 138081
+        },
+        {
+          "ttfbMs": 138,
+          "documentBytes": 138081
+        },
+        {
+          "ttfbMs": 93,
+          "documentBytes": 138081
+        },
+        {
+          "ttfbMs": 81,
+          "documentBytes": 137798
+        },
+        {
+          "ttfbMs": 144,
+          "documentBytes": 138081
+        }
+      ],
+      "scriptDecodedBytesAcross5Loads": 6401455
+    },
+    {
+      "route": "/games/overwatch/clan/73441bc9-2ffd-4789-8da4-f50423073706/manage?tab=balance",
+      "timings": [
+        {
+          "ttfbMs": 91,
+          "documentBytes": 53154
+        },
+        {
+          "ttfbMs": 152,
+          "documentBytes": 53154
+        },
+        {
+          "ttfbMs": 99,
+          "documentBytes": 53154
+        },
+        {
+          "ttfbMs": 81,
+          "documentBytes": 53154
+        },
+        {
+          "ttfbMs": 100,
+          "documentBytes": 53154
+        }
+      ],
+      "scriptDecodedBytesAcross5Loads": 5537900
+    },
+    {
+      "route": "/games/overwatch/clan/73441bc9-2ffd-4789-8da4-f50423073706/stats",
+      "timings": [
+        {
+          "ttfbMs": 87,
+          "documentBytes": 139745
+        },
+        {
+          "ttfbMs": 119,
+          "documentBytes": 139745
+        },
+        {
+          "ttfbMs": 82,
+          "documentBytes": 139745
+        },
+        {
+          "ttfbMs": 81,
+          "documentBytes": 139745
+        },
+        {
+          "ttfbMs": 85,
+          "documentBytes": 139745
+        }
+      ],
+      "scriptDecodedBytesAcross5Loads": 5664580
+    },
+    {
+      "route": "/games/overwatch/clan/73441bc9-2ffd-4789-8da4-f50423073706/events",
+      "timings": [
+        {
+          "ttfbMs": 98,
+          "documentBytes": 97173
+        },
+        {
+          "ttfbMs": 117,
+          "documentBytes": 97173
+        },
+        {
+          "ttfbMs": 123,
+          "documentBytes": 97173
+        },
+        {
+          "ttfbMs": 193,
+          "documentBytes": 97173
+        },
+        {
+          "ttfbMs": 78,
+          "documentBytes": 97173
+        }
+      ],
+      "scriptDecodedBytesAcross5Loads": 5130065
+    }
+  ],
+  "after": [
+    {
+      "route": "/games/overwatch/clan/73441bc9-2ffd-4789-8da4-f50423073706/balance",
+      "timings": [
+        {
+          "ttfbMs": 312,
+          "documentBytes": 137532
+        },
+        {
+          "ttfbMs": 94,
+          "documentBytes": 137532
+        },
+        {
+          "ttfbMs": 121,
+          "documentBytes": 137532
+        },
+        {
+          "ttfbMs": 80,
+          "documentBytes": 137532
+        },
+        {
+          "ttfbMs": 73,
+          "documentBytes": 137532
+        }
+      ],
+      "scriptDecodedBytesAcross5Loads": 5980160
+    },
+    {
+      "route": "/games/overwatch/clan/73441bc9-2ffd-4789-8da4-f50423073706/manage?tab=balance",
+      "timings": [
+        {
+          "ttfbMs": 95,
+          "documentBytes": 53161
+        },
+        {
+          "ttfbMs": 129,
+          "documentBytes": 53161
+        },
+        {
+          "ttfbMs": 81,
+          "documentBytes": 53161
+        },
+        {
+          "ttfbMs": 80,
+          "documentBytes": 53161
+        },
+        {
+          "ttfbMs": 75,
+          "documentBytes": 53161
+        }
+      ],
+      "scriptDecodedBytesAcross5Loads": 5544940
+    },
+    {
+      "route": "/games/overwatch/clan/73441bc9-2ffd-4789-8da4-f50423073706/stats",
+      "timings": [
+        {
+          "ttfbMs": 109,
+          "documentBytes": 139870
+        },
+        {
+          "ttfbMs": 126,
+          "documentBytes": 139870
+        },
+        {
+          "ttfbMs": 109,
+          "documentBytes": 139870
+        },
+        {
+          "ttfbMs": 95,
+          "documentBytes": 139870
+        },
+        {
+          "ttfbMs": 82,
+          "documentBytes": 139870
+        }
+      ],
+      "scriptDecodedBytesAcross5Loads": 5692800
+    },
+    {
+      "route": "/games/overwatch/clan/73441bc9-2ffd-4789-8da4-f50423073706/events",
+      "timings": [
+        {
+          "ttfbMs": 101,
+          "documentBytes": 97168
+        },
+        {
+          "ttfbMs": 89,
+          "documentBytes": 97168
+        },
+        {
+          "ttfbMs": 108,
+          "documentBytes": 97168
+        },
+        {
+          "ttfbMs": 77,
+          "documentBytes": 97168
+        },
+        {
+          "ttfbMs": 82,
+          "documentBytes": 97168
+        }
+      ],
+      "scriptDecodedBytesAcross5Loads": 5137085
+    }
+  ],
+  "database": {
+    "count": {
+      "executionMs": 10.42,
+      "planningMs": 1.729,
+      "sharedHitBlocks": 651,
+      "actualRows": 1,
+      "rootNode": "Aggregate"
+    },
+    "exists": {
+      "executionMs": 10.656,
+      "planningMs": 5.125,
+      "sharedHitBlocks": 645,
+      "actualRows": 1,
+      "rootNode": "Limit"
+    }
+  },
+  "lobby": {
+    "idleObservedSeconds": 11,
+    "idleRscRequests": 0,
+    "rsvpVisibleMs": 928,
+    "fallbackDeletion": true,
+    "onlineRecovery": true,
+    "previousRsvpVisibleMs": 1961
+  },
+  "intermediateAfter": [
+    {
+      "route": "/games/overwatch/clan/73441bc9-2ffd-4789-8da4-f50423073706/balance",
+      "timings": [
+        {
+          "ttfbMs": 700,
+          "documentBytes": 137532
+        },
+        {
+          "ttfbMs": 107,
+          "documentBytes": 137532
+        },
+        {
+          "ttfbMs": 87,
+          "documentBytes": 137532
+        },
+        {
+          "ttfbMs": 100,
+          "documentBytes": 137532
+        },
+        {
+          "ttfbMs": 148,
+          "documentBytes": 137532
+        }
+      ],
+      "scriptDecodedBytesAcross5Loads": 5980195
+    },
+    {
+      "route": "/games/overwatch/clan/73441bc9-2ffd-4789-8da4-f50423073706/manage?tab=balance",
+      "timings": [
+        {
+          "ttfbMs": 86,
+          "documentBytes": 53161
+        },
+        {
+          "ttfbMs": 77,
+          "documentBytes": 53161
+        },
+        {
+          "ttfbMs": 101,
+          "documentBytes": 53161
+        },
+        {
+          "ttfbMs": 114,
+          "documentBytes": 53161
+        },
+        {
+          "ttfbMs": 86,
+          "documentBytes": 53161
+        }
+      ],
+      "scriptDecodedBytesAcross5Loads": 5544940
+    },
+    {
+      "route": "/games/overwatch/clan/73441bc9-2ffd-4789-8da4-f50423073706/stats",
+      "timings": [
+        {
+          "ttfbMs": 84,
+          "documentBytes": 139870
+        },
+        {
+          "ttfbMs": 254,
+          "documentBytes": 139870
+        },
+        {
+          "ttfbMs": 99,
+          "documentBytes": 139870
+        },
+        {
+          "ttfbMs": 107,
+          "documentBytes": 139870
+        },
+        {
+          "ttfbMs": 89,
+          "documentBytes": 139870
+        }
+      ],
+      "scriptDecodedBytesAcross5Loads": 5692800
+    },
+    {
+      "route": "/games/overwatch/clan/73441bc9-2ffd-4789-8da4-f50423073706/events",
+      "timings": [
+        {
+          "ttfbMs": 88,
+          "documentBytes": 97168
+        },
+        {
+          "ttfbMs": 95,
+          "documentBytes": 97168
+        },
+        {
+          "ttfbMs": 79,
+          "documentBytes": 97168
+        },
+        {
+          "ttfbMs": 116,
+          "documentBytes": 97168
+        },
+        {
+          "ttfbMs": 94,
+          "documentBytes": 97168
+        }
+      ],
+      "scriptDecodedBytesAcross5Loads": 5137085
+    }
+  ]
+}
