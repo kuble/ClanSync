@@ -113,10 +113,13 @@ test("화면 표시·밴픽 미리보기와 종속 설정은 초안만 반영하
     expect((await fixture.activeRound(roomId)).map_ban_enabled).toBe(false);
     expect((await fixture.activeRound(roomId)).resolved_map_label).toBe("부산");
     await page.screenshot({ path: test.info().outputPath("ban-settings-preview-desktop.png") });
-    await page.setViewportSize({ width: 390, height: 844 });
-    await bans.scrollIntoViewIfNeeded();
-    expect(await bans.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      await bans.scrollIntoViewIfNeeded();
+      expect(await bans.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+      expect(await options.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    }
     await page.screenshot({ path: test.info().outputPath("ban-settings-preview-mobile.png") });
     await dialog.getByRole("tab", { name: "화면 표시", exact: true }).click();
     for (const width of [320, 390]) {

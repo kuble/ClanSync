@@ -396,8 +396,10 @@ export function ClanBalanceSettings({
             ) : null}
             {draft.teams === "auction" ? <div className="mt-4 space-y-3 rounded-lg border bg-background/50 p-3">
               <div className="flex items-center justify-between gap-3 text-sm font-medium"><HelpText label="전략 아이템 사용" help="아이템을 3개 이상 선택해 주세요. 켜면 아이템 구성 화면이 열립니다. 효과는 운영진이 경기 규칙에 직접 적용합니다." /><input type="checkbox" aria-label="전략 아이템 사용" className="size-4 accent-primary" checked={draft.auctionItemsEnabled} onChange={(event) => { setPreviewFocus(null); setItemEditorOpen(event.target.checked); setDraft({ ...draft, auctionItemsEnabled: event.target.checked }); }} /></div>
-              {draft.auctionItemsEnabled ? <label className="block text-xs">전략 준비 시간(초)<input type="number" aria-label="전략 준비 시간(초)" min={10} max={120} step={1} className={field} value={draft.strategySeconds} onFocus={() => focusPreview("strategySeconds")} onChange={(event) => changePreviewSetting("strategySeconds", Number(event.target.value))} /></label> : null}
-              {draft.auctionItemsEnabled && <Button variant="outline" size="sm" className="w-full" onClick={() => setItemEditorOpen(true)}>아이템 구성</Button>}
+              {draft.auctionItemsEnabled ? <div className={`${styles.dependentSettings} space-y-3`}>
+                <label className="block text-xs">전략 준비 시간(초)<input type="number" aria-label="전략 준비 시간(초)" min={10} max={120} step={1} className={field} value={draft.strategySeconds} onFocus={() => focusPreview("strategySeconds")} onChange={(event) => changePreviewSetting("strategySeconds", Number(event.target.value))} /></label>
+                <Button variant="outline" size="sm" className="w-full" onClick={() => setItemEditorOpen(true)}>아이템 구성</Button>
+              </div> : null}
             </div> : null}
           </fieldset>
           </div>
