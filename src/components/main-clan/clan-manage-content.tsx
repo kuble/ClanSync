@@ -172,9 +172,9 @@ async function Members({ ctx }: Pick<Props, "ctx">) {
 
 async function BalanceSettings({ ctx }: Pick<Props, "ctx">) {
   const svc = createServiceRoleClient();
-  const profile = await svc.from("clans").select("balance_auto_close_enabled,balance_auto_close_hours").eq("id", ctx.clanId).single();
+  const profile = await svc.from("clans").select("balance_auto_close_enabled,balance_auto_close_hours,balance_auto_open_enabled,balance_auto_open_minutes").eq("id", ctx.clanId).single();
   if (profile.error) throw new Error("내전 설정을 불러오지 못했습니다.");
-  return <ClanBalanceAutoCloseSettings key={`${ctx.clanId}:${ctx.role}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} initialEnabled={profile.data.balance_auto_close_enabled} initialHours={profile.data.balance_auto_close_hours} />;
+  return <ClanBalanceAutoCloseSettings key={`${ctx.clanId}:${ctx.role}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} initialEnabled={profile.data.balance_auto_close_enabled} initialHours={profile.data.balance_auto_close_hours} initialOpenEnabled={profile.data.balance_auto_open_enabled} initialOpenMinutes={profile.data.balance_auto_open_minutes} />;
 }
 
 async function Insights({ ctx }: Pick<Props, "ctx">) {

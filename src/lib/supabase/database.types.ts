@@ -1815,6 +1815,8 @@ export type Database = {
         Row: {
           balance_auto_close_enabled: boolean
           balance_auto_close_hours: number
+          balance_auto_open_enabled: boolean
+          balance_auto_open_minutes: number
           banner_url: string | null
           coin_balance: number
           created_at: string
@@ -1842,6 +1844,8 @@ export type Database = {
         Insert: {
           balance_auto_close_enabled?: boolean
           balance_auto_close_hours?: number
+          balance_auto_open_enabled?: boolean
+          balance_auto_open_minutes?: number
           banner_url?: string | null
           coin_balance?: number
           created_at?: string
@@ -1869,6 +1873,8 @@ export type Database = {
         Update: {
           balance_auto_close_enabled?: boolean
           balance_auto_close_hours?: number
+          balance_auto_open_enabled?: boolean
+          balance_auto_open_minutes?: number
           banner_url?: string | null
           coin_balance?: number
           created_at?: string
@@ -3409,7 +3415,10 @@ export type Database = {
         Args: { p_clan_id: string }
         Returns: number
       }
-      materialize_balance_rooms: { Args: { p_limit?: number }; Returns: Json }
+      materialize_balance_rooms: {
+        Args: { p_clan_id?: string; p_limit?: number }
+        Returns: Json
+      }
       my_active_clan_for_game: {
         Args: { p_game_id: string }
         Returns: {
@@ -3698,6 +3707,10 @@ export type Database = {
       }
       update_balance_auto_close_settings: {
         Args: { p_clan_id: string; p_enabled: boolean; p_hours: number }
+        Returns: Json
+      }
+      update_balance_auto_open_settings: {
+        Args: { p_clan_id: string; p_enabled: boolean; p_minutes: number }
         Returns: Json
       }
       update_balance_history_mscore: {

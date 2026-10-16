@@ -204,7 +204,7 @@ test("management sections preserve navigation, pending counts and officer/member
     await expect(nav.getByRole("link", { name: "가입 요청", exact: true })).toBeVisible();
     await expect.poll(async () => (await f.service.from("clan_members").select("status").eq("clan_id", f.clanId).eq("user_id", f.users[2].id).single()).data?.status).toBe("active");
 
-    for (const [label, heading] of [["클랜 꾸미기", "클랜 배너"], ["내전", "세션 자동 종료"], ["운영 통계", "내전 운영 통계"], ["코인·플랜", "구독·플랜"]]) {
+    for (const [label, heading] of [["클랜 꾸미기", "클랜 배너"], ["내전", "내전 자동 종료"], ["운영 통계", "내전 운영 통계"], ["코인·플랜", "구독·플랜"]]) {
       await selectSection({ "클랜 꾸미기": "appearance", "내전": "balance", "운영 통계": "insights", "코인·플랜": "subscription" }[label]!);
       await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
     }

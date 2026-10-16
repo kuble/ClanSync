@@ -225,12 +225,12 @@ test("room ownership, reservations, delegation and scheduler stay scoped", async
     await ok(leader.client.rpc("set_balance_room_schedule_enabled", { ...scheduleArgs, p_enabled: false }));
     assert.equal((await ok(readRoom(nextReservation.id))).status, "scheduled");
     await ok(svc.from("balance_rooms").update({ scheduled_at: new Date(Date.now() - 60_000).toISOString() }).eq("id", nextReservation.id));
-    await Promise.all([ok(svc.rpc("materialize_balance_rooms", {})), ok(svc.rpc("materialize_balance_rooms", {}))]);
+    await Promise.all([ok(svc.rpc("materialize_balance_rooms", { p_clan_id: clanId })), ok(svc.rpc("materialize_balance_rooms", { p_clan_id: clanId }))]);
     assert.equal((await ok(readRoom(nextReservation.id))).status, "open");
     assert.equal((await ok(svc.from("balance_session_series").select("id").eq("id", nextReservation.id))).length, 1);
     assert.equal((await ok(svc.from("balance_rooms").select("id").eq("schedule_id", scheduleId).eq("status", "scheduled"))).length, 0);
     await ok(leader.client.rpc("set_balance_room_schedule_enabled", { ...scheduleArgs, p_enabled: true }));
-    await ok(svc.rpc("materialize_balance_rooms", {}));
+    await ok(svc.rpc("materialize_balance_rooms", { p_clan_id: clanId }));
     assert.equal((await ok(svc.from("balance_rooms").select("id").eq("schedule_id", scheduleId).eq("status", "scheduled"))).length, 1);
   });
 
@@ -239,7 +239,7 @@ test("room ownership, reservations, delegation and scheduler stay scoped", async
     const room = await ok(readRoom(reservation.room_id));
     await ok(svc.from("clan_members").update({ role: "member" }).eq("clan_id", clanId).eq("user_id", officer.id));
     await ok(svc.from("balance_rooms").update({ scheduled_at: new Date(Date.now() - 60_000).toISOString() }).eq("id", room.id));
-    await ok(svc.rpc("materialize_balance_rooms", {}));
+    await ok(svc.rpc("materialize_balance_rooms", { p_clan_id: clanId }));
     const after = await ok(readRoom(room.id));
     assert.equal(after.status, "cancelled");
     assert.equal(after.series_id, null);

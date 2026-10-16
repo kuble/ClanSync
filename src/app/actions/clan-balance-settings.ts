@@ -7,6 +7,17 @@ export type UpdateBalanceAutoCloseResult =
   | { ok: true }
   | { ok: false; error: string };
 
+export async function updateBalanceAutoOpenSettingsAction(gameSlug: string, clanId: string, enabled: boolean, minutes: number): Promise<UpdateBalanceAutoCloseResult> {
+  if (!Number.isInteger(minutes) || minutes < 1 || minutes > 1440) return { ok: false, error: "자동 생성 시점은 1~1440분으로 설정해 주세요." };
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "로그인이 필요합니다." };
+  const { error } = await supabase.rpc("update_balance_auto_open_settings", { p_clan_id: clanId, p_enabled: enabled, p_minutes: minutes });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath(`/games/${gameSlug}/clan/${clanId}/manage`);
+  return { ok: true };
+}
+
 export async function updateBalanceAutoCloseSettingsAction(
   gameSlug: string,
   clanId: string,
