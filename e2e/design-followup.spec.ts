@@ -33,7 +33,7 @@ async function checkEditor(page: Page, dialog: Locator, action: string, capture:
   await page.screenshot({ path: test.info().outputPath(capture), animations: "disabled" });
 }
 
-test("remaining pages fit 390px and 320px without document overflow", async ({ page }) => {
+test("remaining pages fit desktop and mobile without document overflow", async ({ page }) => {
   test.setTimeout(480_000);
   const f = await createIsolatedBalanceFixture(2), base = f.path.replace(/\/balance$/, "");
   try {
@@ -44,14 +44,21 @@ test("remaining pages fit 390px and 320px without document overflow", async ({ p
       ...["overview", "appearance", "members", "requests", "balance", "notifications", "insights", "subscription"].map((tab) => `${base}/manage?tab=${tab}`),
       ...["notices", "free", "feedback", "channels", "memories"].map((section) => `${base}/board/${section}`),
     ];
-    for (const width of [390, 320]) {
+    for (const width of [1304, 390, 320]) {
       await page.setViewportSize({ width, height: 720 });
       for (const path of paths) {
         await test.step(`${width}px ${path.replace(f.clanId, "fixture")}`, async () => {
           const response = await page.goto(path);
           expect(response?.status()).toBeLessThan(400);
-          await expect(page.locator("main")).toBeVisible();
+          await expect(page.getByRole("main")).toHaveCount(1);
+          await expect(page.getByRole("main")).toBeVisible();
+          await expect(page.getByRole("main").getByRole("status").filter({ hasText: /불러오는 중/ })).toHaveCount(0, { timeout: 30_000 });
+          await expect(page.getByRole("main").locator('[data-slot="skeleton"]')).toHaveCount(0, { timeout: 30_000 });
           await noPageOverflow(page);
+          if (path === base) {
+            await expect(page.getByRole("region", { name: "클랜 소개", exact: true })).toBeVisible();
+            await page.screenshot({ path: test.info().outputPath(`dashboard-${width}.png`), animations: "disabled" });
+          }
         });
       }
     }
@@ -138,6 +145,11 @@ test("community composers keep their actions visible and preserve real post subm
           await expect(dialog).toBeHidden();
           await expect(page.getByRole("link", { name: longTitle, exact: true })).toBeVisible();
           await noPageOverflow(page);
+          await page.getByRole("link", { name: longTitle, exact: true }).click();
+          await page.waitForURL(/\/board\/[^/]+$/);
+          await expect(page.getByRole("heading", { name: longTitle, exact: true })).toBeVisible();
+          await noPageOverflow(page);
+          await page.screenshot({ path: test.info().outputPath("community-detail-320.png"), animations: "disabled" });
         } else {
           await dialog.getByRole("button", { name: "닫기", exact: true }).last().click();
           await expect(dialog).toBeHidden();
