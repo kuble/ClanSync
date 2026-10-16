@@ -1,6 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import {
@@ -33,9 +34,8 @@ import { BalancePredictionCountdown } from "./balance-prediction-countdown";
 import { BalancePlayerScoreEditor } from "./balance-player-score-editor";
 import { ClanBalanceMapBanClient } from "./clan-balance-map-ban-client";
 import { ClanBalanceRosterBoard } from "./clan-balance-roster-board";
-import { ClanBalanceGuide, type BalanceGuideStage } from "./clan-balance-guide";
+import type { BalanceGuideStage } from "./clan-balance-guide";
 import { updateFormationAction } from "@/app/actions/clan-balance-formation";
-import { ClanBalanceSettings } from "./clan-balance-settings";
 import { ClanBalancePrematchControls } from "./clan-balance-prematch-controls";
 import { BalanceEditorMap, BalanceMatchMapBanner } from "./balance-editor-map";
 import { BalanceAutoStartMatch } from "./balance-auto-start-match";
@@ -77,6 +77,15 @@ import { contextualScores, type AnalysisContext } from "@/lib/balance/analysis-c
 import type { PlayerSessionInfoMap } from "@/lib/balance/player-session-stats";
 import type { PredictionPool } from "@/lib/balance/prediction-pool";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+
+const ClanBalanceSettings = dynamic(() =>
+  import("./clan-balance-settings").then((module) => module.ClanBalanceSettings),
+  { loading: () => <p role="status" className="sr-only">경기 설정을 불러오는 중입니다.</p> },
+);
+const ClanBalanceGuide = dynamic(() =>
+  import("./clan-balance-guide").then((module) => module.ClanBalanceGuide),
+  { loading: () => <p role="status" className="sr-only">내전 안내를 불러오는 중입니다.</p> },
+);
 
 type BalanceSession = Database["public"]["Tables"]["balance_sessions"]["Row"];
 type MapVote = Database["public"]["Tables"]["balance_session_map_votes"]["Row"];
@@ -329,7 +338,7 @@ export function ClanBalanceSessionPanel({
             : "none"
         }
       />
-      {canManage ? (
+      {canManage && guideOpen ? (
         <ClanBalanceGuide
           open={guideOpen}
           onOpenChange={setGuideOpen}
