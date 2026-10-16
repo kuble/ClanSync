@@ -15,6 +15,20 @@
 - `node --test docs/03-analysis/alpha-review-2026-10-16/economics.test.mjs`: 2건 통과.
 - `node scripts/serve-alpha-review.mjs --self-test`: `.env.local`·소스·경로 우회에 대한 파일 allowlist 확인.
 
+## 디자인 6항목 후속 검증
+
+D1–D6 변경 후 별도 QA 개발 서버(webpack, 3010)와 임시 클랜·계정으로 **5개 시나리오**를 확인했다. 사용자 3011 서버와 활성 QA 명단은 유지했고 자신의 임시 데이터만 정리했다.
+
+- 변경 소스·테스트 ESLint와 `npx tsc --noEmit` 통과.
+- `design-consistency.spec.ts`: UTC / America/Los_Angeles에서 한국 시간 00:15 등록 → UTC 저장 → 편집 시 복원 → 23:45 변경, 매주/매월 반복 저장, 페이지 오류 없음. 390×720 패널에서 본문 스크롤 전후 헤더·하단 버튼 위치 유지.
+- 같은 파일의 관리 화면 시나리오: 1304 / 390 / 320px 로비 행의 가로 넘침 없음, 작업 버튼 표시, 12px 시각 정보, 생성 창 열기. 구독 카드와 개인 기록 설정 캡처, 명예의 전당 공개 토글 저장 확인.
+- `event-calendar-layout.spec.ts`: 데스크톱 목록·상세 높이, 등록·편집 열기, 모바일 드로워·키보드 이동 회귀 통과.
+- `event-discord-bot.spec.ts`의 events UI: 알림·연동 이동, 미연결 토글 비활성·하위 옵션 숨김, 일정 시각·알림 설정 저장과 기존 접근 거부 흐름 통과.
+
+초기 미국 서부 브라우저 검증에서 발견한 캘린더 날짜의 서버/브라우저 불일치는 서버 기준 시각 전달과 한국 시간 날짜 구분으로 수정했다. UI 검증의 도움말 팝업 닫기, 개설자 자동 참석 표시와 첫 개발 컴파일 대기는 실제 화면 조건에 맞춰 정리한 뒤 해당 시나리오를 재실행했다. 최종 5건은 분리 실행을 포함한 결과다. 실제 Discord 외부 발송, 전체 브라우저·테마·접근성 전수 검사와 전체 빌드는 이번 UI 변경에서 반복하지 않았다. 기존 UTC 레코드·DB 스키마·권한은 변경하지 않았다.
+
+재현: `E2E_SKIP_SEED=1 npx playwright test e2e/design-consistency.spec.ts e2e/event-calendar-layout.spec.ts e2e/event-discord-bot.spec.ts --grep 'event sheets|management cards|calendar:|events UI:'`. Windows QA 검증은 별도 webpack 개발 서버 설정을 사용했다.
+
 ## 성능 재현
 
 `scripts/measure-alpha-pages.mjs`는 QA 리더를 이용해 3010의 네 경로를 각각 5회 탐색하고 `.supabase-test/alpha-{label}.json`을 쓴다. `.env.e2e.local`과 별도 QA 프로덕션 빌드를 준비한 상태에서 `node scripts/measure-alpha-pages.mjs latest`로 실행한다. 운영 서버를 대상으로 할 수 없고 새로 만든 인증 세션만 local signOut한다. 기준/변경 버전을 비교할 때는 각 버전을 별도 checkout·동일 빌드 옵션으로 준비해야 한다. 현재 사용자 작업 폴더를 강제로 reset하지 않는다.
