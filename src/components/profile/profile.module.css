@@ -301,8 +301,6 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  max-height: 45svh;
-  overflow-y: auto;
   padding: 3px;
 }
 .badgeOption {
@@ -327,7 +325,7 @@
 }
 .badgeOption > small {
   color: var(--muted-foreground);
-  font-size: 10px;
+  font-size: 12px;
 }
 .badgeOption[aria-pressed="true"] {
   background: #46af751a;

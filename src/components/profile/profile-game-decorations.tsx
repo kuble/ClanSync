@@ -21,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { AltAccountRow } from "@/components/profile/profile-game-alt-accounts";
 import { ProfileGameAltAccounts } from "@/components/profile/profile-game-alt-accounts";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import styles from "./profile.module.css";
 
 const NP_LABEL: Record<NameplateCategory, string> = {
@@ -325,9 +325,9 @@ function GameDecorationPanel({
       </div>
       <p className={styles.nameplateNote}>앞쪽에 선택한 뱃지부터 네임카드에 표시됩니다.</p>
     </section>
-    <Dialog open={nameplateOpen} onOpenChange={setNameplateOpen}>
-      <DialogContent className="sm:max-w-lg"><DialogHeader><DialogTitle>네임카드 꾸미기</DialogTitle><DialogDescription>보유한 꾸미기를 선택하면 바로 저장됩니다.</DialogDescription></DialogHeader>
-        <div className={styles.caseFields}>{NP_ORDER.map((category) => {
+    <Sheet open={nameplateOpen} onOpenChange={setNameplateOpen}>
+      <SheetContent showCloseButton={!pending} className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]"><SheetHeader className="shrink-0 px-5 pb-5 pr-12"><SheetTitle>네임카드 꾸미기</SheetTitle><SheetDescription>보유한 꾸미기를 선택하면 바로 저장됩니다.</SheetDescription></SheetHeader>
+        <div className="board-scroll min-h-0 min-w-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-5 pb-5"><div className={styles.caseFields}>{NP_ORDER.map((category) => {
           const options = optionsForCategory(category);
           const value = selectionForGame[category] ?? defaultOptionId(nameplateOptions, game.gameId, category) ?? "";
           return <label key={category}>{NP_LABEL[category]}<select value={value} disabled={options.length === 0 || pending} onChange={(event) => onNameplateChange(category, event.target.value)}>
@@ -335,12 +335,12 @@ function GameDecorationPanel({
             {options.map((option) => <option key={option.id} value={option.id}>{option.name_ko}{option.unlock_source !== "default" ? " (보유)" : ""}</option>)}
           </select></label>;
         })}</div>
-        <DialogFooter><Button type="button" variant="outline" onClick={() => setNameplateOpen(false)}>닫기</Button></DialogFooter>
-      </DialogContent>
-    </Dialog>
-    <Dialog open={badgesOpen} onOpenChange={(open) => { if (pending) return; setBadgesOpen(open); if (!open) setPickState(initialPicks); }}>
-      <DialogContent className="sm:max-w-lg"><DialogHeader><DialogTitle>뱃지 케이스</DialogTitle><DialogDescription>대표 뱃지를 최대 5개까지 선택하세요. 선택한 순서대로 표시됩니다.</DialogDescription></DialogHeader>
-        <div className={styles.caseHeader}><span className="text-muted-foreground text-xs">선택 {pickState.length} / 5</span><Button type="button" size="sm" variant="ghost" disabled={pending} onClick={() => setPickState([])}>선택 초기화</Button></div>
+        </div><SheetFooter className="mt-0 shrink-0 flex-row justify-end border-t px-5 py-4"><Button type="button" variant="outline" onClick={() => setNameplateOpen(false)}>닫기</Button></SheetFooter>
+      </SheetContent>
+    </Sheet>
+    <Sheet open={badgesOpen} onOpenChange={(open) => { if (pending) return; setBadgesOpen(open); if (!open) setPickState(initialPicks); }}>
+      <SheetContent showCloseButton={!pending} className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]"><SheetHeader className="shrink-0 px-5 pb-5 pr-12"><SheetTitle>뱃지 케이스</SheetTitle><SheetDescription>대표 뱃지를 최대 5개까지 선택하세요. 선택한 순서대로 표시됩니다.</SheetDescription></SheetHeader>
+        <div className="board-scroll min-h-0 min-w-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-5 pb-5"><div className={styles.caseHeader}><span className="text-muted-foreground text-xs">선택 {pickState.length} / 5</span><Button type="button" size="sm" variant="ghost" disabled={pending} onClick={() => setPickState([])}>선택 초기화</Button></div>
         {badges.length ? <div className={styles.caseGrid}>{badges.map((badge) => {
           const available = equippable(badge, unlocked);
           const order = pickState.indexOf(badge.id);
@@ -348,8 +348,8 @@ function GameDecorationPanel({
             <span aria-hidden="true">{badge.icon}</span><strong>{badge.name_ko}</strong><small>{!available ? <span className="inline-flex items-center gap-1"><LockKeyhole size={10} aria-hidden="true" />미해금</span> : order >= 0 ? `${order + 1}번째 표시` : "보유"}</small>
           </button>;
         })}</div> : <p className={styles.empty}>아직 등록된 뱃지가 없습니다.</p>}
-        <DialogFooter><Button type="button" variant="outline" disabled={pending} onClick={() => { setPickState(initialPicks); setBadgesOpen(false); }}>취소</Button><Button type="button" disabled={pending} onClick={savePicks}>{pending ? "저장 중…" : "스트립 저장"}</Button></DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div><SheetFooter className="mt-0 shrink-0 flex-row justify-end border-t px-5 py-4"><Button type="button" variant="outline" disabled={pending} onClick={() => { setPickState(initialPicks); setBadgesOpen(false); }}>취소</Button><Button type="button" disabled={pending} onClick={savePicks}>{pending ? "저장 중…" : "스트립 저장"}</Button></SheetFooter>
+      </SheetContent>
+    </Sheet>
   </>;
 }
