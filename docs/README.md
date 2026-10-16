@@ -4,6 +4,8 @@
 
 [100명 이하 알파 점검: 디자인 화면 링크·성능 측정·OCR 검토·운영 손익](03-analysis/alpha-review-2026-10-16/README.md) · `node scripts/serve-alpha-review.mjs`로 클릭형 보드를 연다.
 
+테마·모바일 재점검: [테마 전환](../src/components/ui/theme-toggle.tsx) · [라이트 검증](../e2e/light-theme.spec.ts) · [실제 저장 선택을 적용하는 Playwright 프로필](../playwright.light.config.ts) · [검증 범위](03-analysis/alpha-review-2026-10-16/verification.md#라이트-테마모바일-점검).
+
 ## 기능별 코드·테스트 진입점
 
 검증 범위는 [변경 위험도 기준](../.cursor/rules/agent-auto-tasks.mdc), 실행 명령은 [E2E 안내](../e2e/README.md)를 따릅니다. 아래는 관련 파일을 찾는 지도이며 매번 전부 읽거나 실행하는 목록이 아닙니다.

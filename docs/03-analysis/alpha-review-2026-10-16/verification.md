@@ -44,6 +44,23 @@ D7–D13은 별도 QA 개발 서버(webpack, 3010), `E2E_SKIP_SEED=1`과 임시 
 
 재현 대상: `e2e/design-followup.spec.ts`, `e2e/clan-management.spec.ts`, `e2e/clan-coaching.spec.ts`, `e2e/clan-match-record-editing.spec.ts`, `e2e/clan-poll-create.spec.ts`. Windows 검증에서는 별도 webpack 개발 서버 설정으로 실행했다. 실제 모바일 기기·Safari·전체 테마·모든 권한 조합은 확인하지 않았으며, 이번 UI 변경에서는 전체 빌드·전체 DB 회귀를 반복하지 않았다.
 
+## 라이트 테마·모바일 점검
+
+기본 다크를 유지하면서 `clansync-theme`의 실제 저장 선택으로 라이트를 적용했다. 설치된 `next-themes`를 연결했으며 새 의존성은 없다. 별도 3010 webpack QA 서버, `E2E_SKIP_SEED=1`과 생성·정리되는 임시 계정·클랜을 사용했다.
+
+- 기본 문구용 8개 토큰 × 기본 배경 4종의 대비 32조합이 **4.5:1 이상**이며 입력 경계 4조합은 **3:1 이상**이다. 로그인·연동·프로필의 기본 입력도 같은 경계 토큰을 사용한다. 반투명 합성·사진·차트까지 포함한 WCAG 전수 판정은 아니다.
+- `light-theme.spec.ts`: 랜딩·로그인·회원가입·잘못된 기록 연결 링크를 1304 / 390 / 320px에서 확인했다. 테마 선택의 새로고침 유지·저장값 없는 기본 다크 복귀, 자동 로그인 토글의 폼 값, 브라우저 콘솔 오류 없음도 확인했다.
+- 주요 26경로 × 데스크톱 1304px·모바일 390 / 320px의 **78조건**에서 로딩 상태·스켈레톤이 끝난 본문을 확인했다. 게시판 진입 리다이렉트, 동적 글 상세, 계정 연동·클랜 가입/생성·환영·기록 연결 만료 화면도 추가했다. 기본·빈 결과와 임시 데이터가 대상이며 모든 권한·데이터 조합의 전수 검사는 아니다.
+- 320×568px의 게시판·코칭·프로필·기록 편집, 1304 / 390 / 320px 커뮤니티 작성·긴 제목 저장·상세, 통계 설정 4종·예약 하위 설정·경기 설정 3탭을 검사했다. 모바일 클랜 소개 버튼과 경로 표시도 정리했다.
+- 관련 실제 동작: 자동 로그인 선택 저장과 기존 프로필 보존, 경기 기록 추가·정정·제거, 투표 저장, 한국 시간 일정 등록·편집, 명예의 전당 공개 저장, 경기 설정 미리보기·설정 적용과 재생 조작을 통과했다.
+- 집중 검증은 **UI 시나리오 13건 + 날짜 검사 1건**이다. 변경 파일 ESLint와 `npx tsc --noEmit`도 확인했다. 분리 재실행을 포함한다.
+
+점검 중 발견한 테마 버튼의 초기 ARIA 상태 불일치는 서버 스냅샷을 사용해 수정했다. 중첩 예약 폼의 fieldset은 예약된 스크롤 여백으로 생기던 10px 가로 넘침을 없애고 날짜 입력의 최소 너비를 줄였다. 모바일 경기 설정은 전체 너비를 사용한다. 코칭·날짜·권한·정산 로직은 변경하지 않았다.
+
+검사의 계정 전환은 쿠키를 비운 뒤 수행하며, 페이지 순회는 숨겨진 이전 라우트와 구분해 현재 main 영역이 준비된 뒤 검사한다. 공개 화면 캡처는 hydration 전에 입력 DOM을 바꾸는 도구의 caret 숨김을 끄고 콘솔 오류를 확인했다. 실제 모바일 기기·Safari·가상 키보드·모든 권한 조합은 미검증이고 전체 빌드·DB 회귀·운영 적용은 반복하지 않았다.
+
+재현: `E2E_SKIP_SEED=1 npx playwright test e2e/light-theme.spec.ts e2e/design-followup.spec.ts e2e/design-consistency.spec.ts e2e/formation-settings-preview.spec.ts e2e/clan-poll-create.spec.ts e2e/clan-match-record-editing.spec.ts e2e/auth-performance.spec.ts --grep-invert 'America/Los_Angeles|login still restores|an active login lock|an expired login lock' --config playwright.light.config.ts`. 이번 Windows 실행에서는 같은 라이트 프로필에 별도의 webpack 개발 서버 설정을 사용했다.
+
 ## 성능 재현
 
 `scripts/measure-alpha-pages.mjs`는 QA 리더를 이용해 3010의 네 경로를 각각 5회 탐색하고 `.supabase-test/alpha-{label}.json`을 쓴다. `.env.e2e.local`과 별도 QA 프로덕션 빌드를 준비한 상태에서 `node scripts/measure-alpha-pages.mjs latest`로 실행한다. 운영 서버를 대상으로 할 수 없고 새로 만든 인증 세션만 local signOut한다. 기준/변경 버전을 비교할 때는 각 버전을 별도 checkout·동일 빌드 옵션으로 준비해야 한다. 현재 사용자 작업 폴더를 강제로 reset하지 않는다.
