@@ -56,10 +56,10 @@ async function settings(
     .selectOption(mode);
   await dialog.getByRole("tab", { name: "경기 구성", exact: true }).click();
   await dialog
-    .getByRole("checkbox", { name: "맵 투표 사용", exact: true })
+    .getByRole("switch", { name: "맵 투표 사용", exact: true })
     .uncheck();
   await dialog
-    .getByRole("checkbox", { name: "영웅 밴 사용", exact: true })
+    .getByRole("switch", { name: "영웅 밴 사용", exact: true })
     .uncheck();
   await dialog.getByRole("button", { name: "설정 적용", exact: true }).click();
   await expect(dialog).toBeHidden({ timeout: 20_000 });

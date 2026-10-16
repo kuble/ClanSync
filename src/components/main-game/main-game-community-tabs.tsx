@@ -1,4 +1,5 @@
 "use client";
+import { Switch } from "@/components/ui/switch";
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -767,8 +768,7 @@ export function MainGameCommunityTabs({
                     />
                   </label>
                   <label className="flex items-center gap-2 text-xs">
-                    <input
-                      type="checkbox"
+                    <Switch
                       checked={lfgMic}
                       disabled={pending}
                       onChange={(e) => setLfgMic(e.target.checked)}

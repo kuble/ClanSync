@@ -6,6 +6,7 @@ import type { BanSettings } from "@/lib/balance/prematch";
 import { BalanceDisplayPreview, BalanceBanPreview, type BanPreviewStage } from "./balance-settings-preview";
 import styles from "./clan-balance-settings.module.css";
 import { HelpText } from "./help-text";
+import { Switch } from "@/components/ui/switch";
 
 const field = "mt-2 min-h-11 w-full rounded-lg border bg-background px-3 text-sm";
 
@@ -15,7 +16,7 @@ function Toggle({ label, name = label, hint, checked, disabled, onChange }: {
   const id = useId();
   return <div className="flex items-center justify-between gap-4 py-2 text-sm">
     <span className="min-w-0 font-medium">{hint ? <HelpText label={label} help={hint} /> : <label htmlFor={id}>{label}</label>}</span>
-    <input id={id} type="checkbox" aria-label={name} className="size-4 shrink-0 accent-primary disabled:opacity-40" checked={checked} disabled={disabled} onChange={(event) => onChange(event.target.checked)} />
+    <Switch id={id} aria-label={name} checked={checked} disabled={disabled} onChange={(event) => onChange(event.target.checked)} />
   </div>;
 }
 

@@ -14,7 +14,7 @@ test("운영진이 경매 아이템 예시·수정·사용 여부·추가·삭�
       await page.getByRole("button", { name: "경기 설정", exact: true }).click();
       const dialog = page.getByRole("dialog", { name: "경기 설정", exact: true });
       await dialog.getByLabel("팀원 선발 방식", { exact: true }).selectOption("auction");
-      await dialog.getByRole("checkbox", { name: "전략 아이템 사용", exact: true }).check();
+      await dialog.getByRole("switch", { name: "전략 아이템 사용", exact: true }).check();
       await dialog.getByRole("button", { name: "기본 아이템 관리", exact: true }).click();
     };
     await openCatalog();
@@ -40,9 +40,11 @@ test("운영진이 경매 아이템 예시·수정·사용 여부·추가·삭�
     await create.getByLabel("아이템 이름", { exact: true }).fill("진영 선택권");
     await create.getByLabel("가격 (pt)", { exact: true }).fill("50");
     await create.getByLabel("설명과 적용 방법", { exact: true }).fill("공격 또는 수비 시작 진영을 선택합니다.");
+    await create.getByRole("switch", { name: "경매에 사용", exact: true }).uncheck();
     await create.getByRole("button", { name: "아이템 저장", exact: true }).click();
     await expect(create).toBeHidden();
     await expect(catalog.getByRole("listitem")).toHaveCount(4);
+    await expect(catalog.getByRole("switch", { name: "진영 선택권 사용", exact: true })).toHaveAttribute("aria-checked", "false");
     await page.goto(url);
     await openCatalog();
     await expect(catalog.getByRole("listitem")).toHaveCount(4);

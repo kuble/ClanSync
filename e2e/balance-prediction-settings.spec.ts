@@ -42,7 +42,7 @@ test("승부예측 마감 시간: 기본 2분·세부 입력·초안 미리보�
     await minutes.fill("3");
     const preview = page.getByTestId("balance-ban-preview");
     await expect(preview).toContainText("경기 시작 후 3분 마감");
-    const toggle = settings.getByRole("checkbox", { name: "승부예측 사용", exact: true });
+    const toggle = settings.getByRole("switch", { name: "승부예측 사용", exact: true });
     await toggle.uncheck();
     await expect(minutes).toHaveCount(0);
     await expect(preview).not.toContainText("관전자 승부예측");
@@ -103,7 +103,7 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
       expect((await fixture.service.from("clans").update({ subscription_tier: "free" }).eq("id", fixture.clanId)).error).toBeNull();
       await page.reload();
       let settings = await openSettings(page);
-      const freeToggle = settings.getByRole("checkbox", { name: "승부예측 사용", exact: true });
+      const freeToggle = settings.getByRole("switch", { name: "승부예측 사용", exact: true });
       await expect(freeToggle).toBeDisabled();
       await expect(freeToggle).not.toBeChecked();
       await expect(settings).toContainText("Premium");
@@ -111,15 +111,15 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
       expect((await fixture.service.from("clans").update({ subscription_tier: "premium" }).eq("id", fixture.clanId)).error).toBeNull();
       await page.reload();
       settings = await openSettings(page);
-      await settings.getByRole("checkbox", { name: "승부예측 사용", exact: true }).uncheck();
+      await settings.getByRole("switch", { name: "승부예측 사용", exact: true }).uncheck();
       await saveSettings(settings);
       await expect.poll(async () => (await fixture.activeRound(room.roomId)).formation_settings).toMatchObject({ predictionEnabled: false });
       settings = await openSettings(page);
-      await expect(settings.getByRole("checkbox", { name: "승부예측 사용", exact: true })).not.toBeChecked();
-      await settings.getByRole("checkbox", { name: "승부예측 사용", exact: true }).check();
-      await settings.getByRole("checkbox", { name: "맵 투표 사용", exact: true }).check();
+      await expect(settings.getByRole("switch", { name: "승부예측 사용", exact: true })).not.toBeChecked();
+      await settings.getByRole("switch", { name: "승부예측 사용", exact: true }).check();
+      await settings.getByRole("switch", { name: "맵 투표 사용", exact: true }).check();
       await settings.getByRole("spinbutton", { name: "맵 투표 시간(초)", exact: true }).fill("5");
-      await settings.getByRole("checkbox", { name: "영웅 밴 사용", exact: true }).uncheck();
+      await settings.getByRole("switch", { name: "영웅 밴 사용", exact: true }).uncheck();
       await saveSettings(settings);
       await expect.poll(async () => (await fixture.activeRound(room.roomId)).formation_settings).toMatchObject({
         predictionEnabled: true, showPlayerCardScore: true, showPlayerCardInfo: true,
@@ -261,9 +261,9 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
       expect((await fixture.service.from("balance_sessions").update({ roster }).eq("id", offRound.id)).error).toBeNull();
       await page.reload();
       const settings = await openSettings(page);
-      await settings.getByRole("checkbox", { name: "승부예측 사용", exact: true }).uncheck();
-      await settings.getByRole("checkbox", { name: "맵 투표 사용", exact: true }).uncheck();
-      await settings.getByRole("checkbox", { name: "영웅 밴 사용", exact: true }).uncheck();
+      await settings.getByRole("switch", { name: "승부예측 사용", exact: true }).uncheck();
+      await settings.getByRole("switch", { name: "맵 투표 사용", exact: true }).uncheck();
+      await settings.getByRole("switch", { name: "영웅 밴 사용", exact: true }).uncheck();
       await saveSettings(settings);
       const mapPicker = page.getByRole("dialog", { name: "경기 맵 선택", exact: true });
       await expect(mapPicker).toBeVisible();

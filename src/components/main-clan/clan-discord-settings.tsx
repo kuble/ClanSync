@@ -6,6 +6,7 @@ import { Check, ExternalLink } from "lucide-react";
 import { listClanDiscordChannelsAction, updateClanEventNotifyAction } from "@/app/actions/clan-event-notify";
 import { DISCORD_NOTIFICATION_TYPES, type DiscordNotificationRoutes } from "@/lib/clan/discord-notification-settings";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DiscordBenefitsGallery } from "./discord-benefits-gallery";
 import { HelpText } from "./help-text";
@@ -19,11 +20,7 @@ type Props = {
 };
 
 function Toggle({ name, label, checked, onChange, disabled, controls }: { name: string; label: string; checked: boolean; onChange: (value: boolean) => void; disabled?: boolean; controls?: string }) {
-  return <label className="relative inline-flex shrink-0 cursor-pointer items-center">
-    <input type="checkbox" role="switch" name={name} aria-label={label} aria-controls={controls} checked={checked} onChange={(event) => onChange(event.target.checked)} disabled={disabled} className="peer absolute inset-0 z-10 m-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed" />
-    <span aria-hidden className="h-6 w-11 rounded-full border border-border bg-muted transition-colors peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-40" />
-    <span aria-hidden className="pointer-events-none absolute left-1 size-4 rounded-full bg-foreground/70 transition-transform peer-checked:translate-x-5 peer-checked:bg-primary-foreground" />
-  </label>;
+  return <Switch name={name} aria-label={label} aria-controls={controls} checked={checked} onChange={(event) => onChange(event.target.checked)} disabled={disabled} />;
 }
 
 export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit, premium, botConfigured, connection, routes: initialRoutes, connectionResult }: Props) {
@@ -109,7 +106,7 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
               {routes[id].channel_id && !channels.some((channel) => channel.id === routes[id].channel_id) && <option value={routes[id].channel_id}>기존 채널 (권한 확인 필요)</option>}
               {channels.map((channel) => <option key={channel.id} value={channel.id}>#{channel.name}</option>)}
             </select>
-            {id === "polls" && <div className="order-3 flex w-full flex-wrap gap-x-5 gap-y-2 sm:order-none sm:w-auto sm:flex-1">{([['created', '시작 알림'], ['ended', '종료·결과 알림']] as const).map(([key, text]) => <label key={key} className="flex items-center gap-2 whitespace-nowrap text-xs"><input type="checkbox" name={`discord_polls_${key}`} disabled={!canEdit || !premium} checked={routes.polls[key]} onChange={(event) => autosave.update((current) => ({ ...current, routes: { ...current.routes, polls: { ...current.routes.polls, [key]: event.target.checked } } }))} className="size-4 accent-primary" />{text}</label>)}</div>}
+            {id === "polls" && <div className="order-3 flex w-full flex-wrap gap-x-5 gap-y-2 sm:order-none sm:w-auto sm:flex-1">{([['created', '시작 알림'], ['ended', '종료·결과 알림']] as const).map(([key, text]) => <label key={key} className="flex items-center gap-2 whitespace-nowrap text-xs"><Switch name={`discord_polls_${key}`} disabled={!canEdit || !premium} checked={routes.polls[key]} onChange={(event) => autosave.update((current) => ({ ...current, routes: { ...current.routes, polls: { ...current.routes.polls, [key]: event.target.checked } } }))} />{text}</label>)}</div>}
             <Toggle name={`discord_${id}_enabled`} label={`${label} 알림`} checked={routes[id].enabled} disabled={!canEdit || !premium} onChange={(value) => autosave.update((current) => ({ ...current, routes: { ...current.routes, [id]: { ...current.routes[id], enabled: value } } }))} />
             </div>
           </div>)}

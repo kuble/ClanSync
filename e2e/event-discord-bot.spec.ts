@@ -137,7 +137,7 @@ test("events UI: settings icon, registration notification fields, local time and
     await page.goto(path);
     await page.getByRole("button", { name: "일정 등록", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "일정 등록" });
-    await expect(dialog.getByRole("checkbox", { name: "Discord 알림", exact: true })).toBeDisabled();
+    await expect(dialog.getByRole("switch", { name: "Discord 알림", exact: true })).toBeDisabled();
     await dialog.getByLabel("제목", { exact: true }).fill("격리 UI 일정");
     // Browser timezone is UTC here; convert local wall time into its explicit UTC instant.
     const instant = new Date(Date.now() + 172_800_000); instant.setSeconds(0, 0);

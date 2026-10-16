@@ -68,7 +68,7 @@ test("중앙 팀 그래프의 점수 토글·승률 설정 저장·모바일 표
     await expect(graph).toHaveAttribute("data-mode", "prediction");
     await openSettings();
     await expect(settings.getByRole("combobox", { name: "팀 비교 그래프", exact: true })).toHaveValue("prediction");
-    await settings.getByRole("checkbox", { name: "팀 비교 요약 표시", exact: true }).uncheck();
+    await settings.getByRole("switch", { name: "팀 비교 요약 표시", exact: true }).uncheck();
     await settings.getByRole("button", { name: "설정 적용", exact: true }).click();
     await expect(settings).toBeHidden();
     await expect(panel.locator('[aria-label="팀 비교 요약 보기"]')).toHaveCount(0);

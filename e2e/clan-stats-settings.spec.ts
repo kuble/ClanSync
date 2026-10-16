@@ -135,7 +135,7 @@ test("stats settings: tab scopes, granular record grants and private payloads", 
     await page.getByRole("button", { name: "개인 기록 설정", exact: true }).click();
     dialog = page.getByRole("dialog", { name: "개인 기록 설정", exact: true });
     await dialog.getByRole("radio", { name: "멤버", exact: true }).click();
-    await dialog.getByRole("checkbox", { name: "분석 점수", exact: false }).check();
+    await dialog.getByRole("switch", { name: "분석 점수", exact: false }).check();
     await dialog.getByRole("button", { name: "저장", exact: true }).click();
     await expect(dialog).toBeHidden();
     stored = await ok(f.service.from("clan_settings").select("hof_config,expose_hof").eq("clan_id", f.clanId).single());

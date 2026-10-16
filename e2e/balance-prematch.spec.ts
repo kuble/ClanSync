@@ -78,8 +78,8 @@ async function openAndForm(
   await settings.getByRole("tab", { name: "경기 구성", exact: true }).click();
   const mapBan = options.mapBan ?? true;
   const heroBan = options.heroBan ?? true;
-  await settings.getByRole("checkbox", { name: "맵 투표 사용", exact: true }).setChecked(mapBan);
-  await settings.getByRole("checkbox", { name: "영웅 밴 사용", exact: true }).setChecked(heroBan);
+  await settings.getByRole("switch", { name: "맵 투표 사용", exact: true }).setChecked(mapBan);
+  await settings.getByRole("switch", { name: "영웅 밴 사용", exact: true }).setChecked(heroBan);
   if (mapBan && options.mapBanSeconds !== undefined)
     await settings
       .getByRole("spinbutton", { name: "맵 투표 시간(초)", exact: true })

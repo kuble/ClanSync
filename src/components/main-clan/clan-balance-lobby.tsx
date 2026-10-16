@@ -16,6 +16,7 @@ import {
   updateBalanceRoomAction,
 } from "@/app/actions/clan-balance-rooms";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { activeLobbyRooms } from "@/lib/balance/lobby-rooms";
@@ -210,10 +211,7 @@ function CreateRoomSheet({ staff, serverNow, pending, onClose, onSubmit }: { sta
 }
 
 function RoomToggle({ label, checked, disabled, controls, onChange }: { label: string; checked: boolean; disabled?: boolean; controls?: string; onChange: (checked: boolean) => void }) {
-  return <button type="button" role="switch" aria-label={label} aria-checked={checked} aria-controls={controls} disabled={disabled} onClick={() => onChange(!checked)}
-    className={cn("relative h-6 w-11 shrink-0 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", checked ? "border-primary bg-primary" : "border-input bg-muted")}>
-    <span aria-hidden className={cn("absolute left-0.5 top-0.5 size-4 rounded-full bg-white shadow-sm transition-transform", checked ? "translate-x-5" : "translate-x-0")} />
-  </button>;
+  return <Switch aria-label={label} checked={checked} aria-controls={controls} disabled={disabled} onChange={event => onChange(event.target.checked)} />;
 }
 
 function RsvpFields({ enabled, value, onEnabled, onChange, serverNow }: { enabled: boolean; value: string; onEnabled: (value: boolean) => void; onChange: (value: string) => void; serverNow: number }) {

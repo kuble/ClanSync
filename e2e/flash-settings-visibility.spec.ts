@@ -47,7 +47,7 @@ test("flash rooms hide scores and unavailable settings for member hosts and clan
       await expect(preview).not.toContainText(/점수|승률/);
 
       await dialog.getByRole("tab", { name: "화면 표시", exact: true }).click();
-      await expect(dialog.getByRole("checkbox", { name: "선수 카드 점수 표시", exact: true, includeHidden: true })).toHaveCount(0);
+      await expect(dialog.getByRole("switch", { name: "선수 카드 점수 표시", exact: true, includeHidden: true })).toHaveCount(0);
       await expect(dialog.getByRole("group", { name: "팀 비교", exact: true, includeHidden: true })).toHaveCount(0);
       await expect(dialog.getByRole("combobox", { name: "팀 비교 그래프", exact: true, includeHidden: true })).toHaveCount(0);
       const display = dialog.getByTestId("balance-display-preview");
@@ -73,16 +73,16 @@ test("flash rooms hide scores and unavailable settings for member hosts and clan
       await view.setViewportSize({ width: 1244, height: 884 });
       await dialog.getByRole("tab", { name: "경기 구성", exact: true }).click();
       await expect(dialog.getByRole("region", { name: "관전자 이벤트", exact: true, includeHidden: true })).toHaveCount(0);
-      await expect(dialog.getByRole("checkbox", { name: "승부예측 사용", exact: true, includeHidden: true })).toHaveCount(0);
-      await expect(dialog.getByRole("checkbox", { name: "맵 투표 사용", exact: true })).toBeVisible();
-      await expect(dialog.getByRole("checkbox", { name: "영웅 밴 사용", exact: true })).toBeVisible();
+      await expect(dialog.getByRole("switch", { name: "승부예측 사용", exact: true, includeHidden: true })).toHaveCount(0);
+      await expect(dialog.getByRole("switch", { name: "맵 투표 사용", exact: true })).toBeVisible();
+      await expect(dialog.getByRole("switch", { name: "영웅 밴 사용", exact: true })).toBeVisible();
       await dialog.getByRole("button", { name: "닫기", exact: true }).click();
     }
     expect((await f.activeRound(room.roomId)).formation_settings).toEqual(before);
     await page.getByRole("button", { name: "경기 설정", exact: true }).click();
     const settings = page.getByRole("dialog", { name: "경기 설정", exact: true });
     await settings.getByRole("tab", { name: "화면 표시", exact: true }).click();
-    await settings.getByRole("checkbox", { name: "선수 카드 보조 정보 표시", exact: true }).uncheck();
+    await settings.getByRole("switch", { name: "선수 카드 보조 정보 표시", exact: true }).uncheck();
     await settings.getByRole("button", { name: "설정 적용", exact: true }).click();
     await expect(settings).toBeHidden();
     await expect.poll(async () => (await f.activeRound(room.roomId)).formation_settings).toMatchObject({ showPlayerCardInfo: false });

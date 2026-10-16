@@ -13,6 +13,7 @@ import {
   saveClanRulesAction,
 } from "@/app/actions/clan-notices";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -270,14 +271,12 @@ export function ClanManageNotices({
               />
             </div>
             <label className="flex items-center gap-2 text-xs">
-              <input
-                type="checkbox"
+              <Switch
                 name="is_pinned"
                 defaultChecked={
                   editor && editor !== "new" ? editor.isPinned : false
                 }
                 disabled={pending}
-                className="size-4 accent-primary"
               />
               대시보드 상단에 고정
             </label>

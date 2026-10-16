@@ -1,4 +1,5 @@
 "use client";
+import { Switch } from "@/components/ui/switch";
 import { HelpText } from "./help-text";
 
 import { useState, useTransition, type FormEvent } from "react";
@@ -131,7 +132,7 @@ export function ClanAuctionItemSettings({ gameSlug, clanId, items, loadError = f
             <div className="space-y-2"><Label htmlFor="auction-item-cost">가격 (pt)</Label><Input id="auction-item-cost" name="cost" type="number" min={0} max={100000} step={10} required defaultValue={editor === "new" ? 100 : editor.cost} disabled={pending} /></div>
           </div>
           <div className="space-y-2"><Label htmlFor="auction-item-description">설명과 적용 방법</Label><textarea id="auction-item-description" name="description" maxLength={500} rows={3} defaultValue={editor === "new" ? "" : editor.description} placeholder="권한의 범위와 적용 방법을 적어 주세요." disabled={pending} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50" /></div>
-          <div className="flex flex-wrap items-center justify-between gap-3"><label className="flex items-center gap-2 text-sm"><input name="enabled" type="checkbox" className="accent-primary" defaultChecked={editor === "new" || editor.enabled} disabled={pending} />경매에 사용</label><div className="flex gap-2"><Button variant="ghost" type="button" disabled={pending} onClick={() => setEditor(null)}>취소</Button><Button type="submit" disabled={pending}>{pending ? "저장 중…" : "아이템 저장"}</Button></div></div>
+          <div className="flex flex-wrap items-center justify-between gap-3"><label className="flex items-center gap-2 text-sm"><Switch name="enabled" defaultChecked={editor === "new" || editor.enabled} disabled={pending} />경매에 사용</label><div className="flex gap-2"><Button variant="ghost" type="button" disabled={pending} onClick={() => setEditor(null)}>취소</Button><Button type="submit" disabled={pending}>{pending ? "저장 중…" : "아이템 저장"}</Button></div></div>
         </form>
       )}
     </section>

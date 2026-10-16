@@ -13,6 +13,7 @@ test("화면 표시·밴픽 미리보기와 종속 설정은 초안만 반영하
     const picker = page.getByRole("dialog", { name: "경기 맵 선택", exact: true });
     await picker.getByRole("button", { name: "부산 선택", exact: true }).click();
     await expect(picker).toBeHidden();
+    await expect.poll(async () => (await fixture.activeRound(roomId)).resolved_map_label).toBe("부산");
     const before = await fixture.activeRound(roomId);
     await page.setViewportSize({ width: 1054, height: 884 });
     await page.getByRole("button", { name: "경기 설정", exact: true }).click();
@@ -34,8 +35,8 @@ test("화면 표시·밴픽 미리보기와 종속 설정은 초안만 반영하
     }
     await page.setViewportSize({ width: 1054, height: 884 });
     await expect(dialog.getByRole("region", { name: "편성 방식 미리보기", exact: true })).toBeHidden();
-    await expect(options.getByRole("group", { name: "닉네임 카드", exact: true }).getByRole("checkbox")).toHaveCount(3);
-    await expect(options.getByRole("group", { name: "팀 비교", exact: true }).getByRole("checkbox")).toHaveCount(1);
+    await expect(options.getByRole("group", { name: "닉네임 카드", exact: true }).getByRole("switch")).toHaveCount(3);
+    await expect(options.getByRole("group", { name: "팀 비교", exact: true }).getByRole("switch")).toHaveCount(1);
     await expect(options.getByText("카드 오른쪽의 평가·분석 점수", { exact: true })).toHaveCount(0);
     const help = page.getByRole("tooltip").and(page.locator("[data-open]"));
     await options.getByRole("button", { name: "점수", exact: true }).hover();
@@ -58,17 +59,17 @@ test("화면 표시·밴픽 미리보기와 종속 설정은 초안만 반영하
     expect(Math.abs(titleBox!.y + titleBox!.height / 2 - firstScore!.y - firstScore!.height / 2)).toBeLessThan(2);
     expect(titleBox!.x).toBeGreaterThanOrEqual(firstScore!.x + firstScore!.width);
     expect(titleBox!.x + titleBox!.width).toBeLessThanOrEqual(secondScore!.x);
-    await options.getByRole("checkbox", { name: "선수 카드 점수 표시", exact: true }).uncheck();
+    await options.getByRole("switch", { name: "선수 카드 점수 표시", exact: true }).uncheck();
     await expect(card).not.toContainText("+1.2");
-    await options.getByRole("checkbox", { name: "선수 카드 점수 표시", exact: true }).check();
+    await options.getByRole("switch", { name: "선수 카드 점수 표시", exact: true }).check();
     await display.getByRole("button", { name: "분석 점수", exact: true }).click();
     await expect(card).toContainText("+2.1");
     await options.getByRole("combobox", { name: "선수 카드 보조 정보", exact: true }).selectOption("streak");
     await expect(card).toContainText("2연승");
-    await options.getByRole("checkbox", { name: "선수 카드 보조 정보 표시", exact: true }).uncheck();
+    await options.getByRole("switch", { name: "선수 카드 보조 정보 표시", exact: true }).uncheck();
     await expect(card).not.toContainText("2연승");
     await expect(options.getByRole("combobox", { name: "선수 카드 보조 정보", exact: true })).toHaveCount(0);
-    await options.getByRole("checkbox", { name: "선수 카드 보조 정보 표시", exact: true }).check();
+    await options.getByRole("switch", { name: "선수 카드 보조 정보 표시", exact: true }).check();
     await expect(options.getByRole("combobox", { name: "선수 카드 보조 정보", exact: true })).toHaveValue("streak");
     await options.getByRole("combobox", { name: "팀 비교 그래프", exact: true }).selectOption("prediction");
     await expect(display.getByTestId("team-comparison-graph")).toHaveAttribute("data-mode", "prediction");
@@ -76,7 +77,7 @@ test("화면 표시·밴픽 미리보기와 종속 설정은 초안만 반영하
     await expect(page.getByRole("tooltip").filter({ hasText: "이번 세션 전적" })).toBeVisible();
     await expect(page.getByRole("tooltip").filter({ hasText: "이번 세션 전적" })).not.toContainText("마이크");
     await expect(card.locator('[aria-label^="마이크"]')).toHaveCount(0);
-    await options.getByRole("checkbox", { name: "플레이어 세션 정보 요약 표시", exact: true }).uncheck();
+    await options.getByRole("switch", { name: "플레이어 세션 정보 요약 표시", exact: true }).uncheck();
     await card.hover();
     await expect(page.getByRole("tooltip").filter({ hasText: "이번 세션 전적" })).toHaveCount(0);
     await page.screenshot({ path: test.info().outputPath("display-settings-preview-desktop.png") });
@@ -90,13 +91,13 @@ test("화면 표시·밴픽 미리보기와 종속 설정은 초안만 반영하
     await expect(options.getByRole("spinbutton", { name: "영웅 밴 시간(초)", exact: true })).toHaveCount(0);
     await expect(options.getByRole("combobox", { name: "팀별 영웅 밴 개수", exact: true })).toHaveCount(0);
     await expect(bans.getByRole("navigation", { name: "밴픽 진행 순서", exact: true }).getByRole("button")).toHaveCount(1);
-    await options.getByRole("checkbox", { name: "맵 투표 사용", exact: true }).check();
+    await options.getByRole("switch", { name: "맵 투표 사용", exact: true }).check();
     await options.getByRole("spinbutton", { name: "맵 투표 시간(초)", exact: true }).fill("45");
     expect(await options.getByRole("spinbutton", { name: "맵 투표 시간(초)", exact: true }).evaluate((input) => getComputedStyle(input).appearance)).toBe("textfield");
     await expect(bans.getByTestId("ban-preview-map-time")).toHaveText("45초");
     await bans.getByRole("button", { name: "오아시스 미리보기 투표", exact: true }).click();
     await expect(bans.getByRole("button", { name: "오아시스 미리보기 투표", exact: true })).toHaveAttribute("aria-pressed", "true");
-    await options.getByRole("checkbox", { name: "영웅 밴 사용", exact: true }).check();
+    await options.getByRole("switch", { name: "영웅 밴 사용", exact: true }).check();
     await expect(bans).toHaveAttribute("data-stage", "hero");
     await options.getByRole("combobox", { name: "팀별 영웅 밴 개수", exact: true }).selectOption("1");
     await expect(bans).toContainText("팀당 최대 1명");
@@ -105,9 +106,9 @@ test("화면 표시·밴픽 미리보기와 종속 설정은 초안만 반영하
     await bans.getByRole("button", { name: "아나 미리보기 밴", exact: true }).click();
     await expect(bans.getByRole("button", { name: "아나 미리보기 밴", exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(bans.getByRole("button", { name: "트레이서 미리보기 밴", exact: true })).toHaveAttribute("aria-pressed", "false");
-    await options.getByRole("checkbox", { name: "영웅 밴 사용", exact: true }).uncheck();
+    await options.getByRole("switch", { name: "영웅 밴 사용", exact: true }).uncheck();
     await expect(options.getByRole("spinbutton", { name: "영웅 밴 시간(초)", exact: true })).toHaveCount(0);
-    await options.getByRole("checkbox", { name: "영웅 밴 사용", exact: true }).check();
+    await options.getByRole("switch", { name: "영웅 밴 사용", exact: true }).check();
     await expect(options.getByRole("spinbutton", { name: "영웅 밴 시간(초)", exact: true })).toHaveValue("35");
     expect((await fixture.activeRound(roomId)).formation_settings).toEqual(before.formation_settings);
     expect((await fixture.activeRound(roomId)).map_ban_enabled).toBe(false);
@@ -321,7 +322,7 @@ test("formation previews support readable pacing, seeking and every screen flow 
     await expectTeams();
     await expect(preview.getByTestId("preview-credits-0")).toHaveText("880 cr");
     await expect(preview.getByTestId("preview-credits-1")).toHaveText("900 cr");
-    await dialog.getByRole("checkbox", { name: "전략 아이템 사용" }).check();
+    await dialog.getByRole("switch", { name: "전략 아이템 사용" }).check();
     await dialog.getByRole("button", { name: "편성 미리보기", exact: true }).click();
     await chapter("전략 준비");
     await expect(screen).toHaveAttribute("data-screen", "strategy");

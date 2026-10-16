@@ -1,4 +1,5 @@
 "use client";
+import { Switch } from "@/components/ui/switch";
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -51,7 +52,7 @@ function StatsAccessSettings({ model, gameSlug, clanId, scope, onDone }: {
         <thead><tr className="border-b text-xs text-muted-foreground"><th scope="col" className="p-3 text-left">권한</th>{["클랜장", "운영진", "멤버"].map((label) => <th scope="col" className="p-2" key={label}>{label}</th>)}</tr></thead>
         <tbody>{rows.map(({ key, label, roles }) => {
           const selected = scope === "records" ? model.statsSettings?.recordRoles[key] ?? roles : model.statsSettings?.intraRoles ?? roles;
-          return <tr key={key} className="border-b last:border-b-0"><th scope="row" className="p-3 text-left font-medium">{label}</th>{([{ id: "leader", label: "클랜장" }, { id: "officer", label: "운영진" }, { id: "member", label: "멤버" }] as const).map((role) => <td key={role.id} className="p-2 text-center"><input type="checkbox" name={key} value={role.id} aria-label={`${label} ${role.label}`} defaultChecked={role.id === "leader" || selected.includes(role.id)} disabled={role.id === "leader"} className="size-4 accent-primary" />{role.id === "leader" && <input type="hidden" name={key} value="leader" />}</td>)}</tr>;
+          return <tr key={key} className="border-b last:border-b-0"><th scope="row" className="p-3 text-left font-medium">{label}</th>{([{ id: "leader", label: "클랜장" }, { id: "officer", label: "운영진" }, { id: "member", label: "멤버" }] as const).map((role) => <td key={role.id} className="p-2 text-center"><Switch name={key} value={role.id} aria-label={`${label} ${role.label}`} defaultChecked={role.id === "leader" || selected.includes(role.id)} disabled={role.id === "leader"} />{role.id === "leader" && <input type="hidden" name={key} value="leader" />}</td>)}</tr>;
         })}</tbody>
       </table>
       <p className="mt-3 text-xs leading-relaxed text-muted-foreground">클랜장은 항상 허용됩니다.{scope === "records" && " 추가·편집·삭제 권한을 가진 사람도 경기 열람이 허용되어야 작업할 수 있습니다."}</p>

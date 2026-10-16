@@ -6,6 +6,7 @@ import { ClanStatsArchive } from "./clan-stats-archive";
 import { saveClanHofConfigFormAction } from "@/app/actions/clan-stats-hof";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { RubberSegment } from "@/components/ui/rubber-segment";
 import { PeriodSelect } from "@/components/ui/period-select";
 import {
@@ -127,7 +128,7 @@ export function HofSettingsForm({
         <input type="hidden" name="personal_record_min_role" value={personalMinimum} />
         <RubberSegment label="기록 공개" labelPosition="hidden" options={PERSONAL_RECORD_ACCESS_OPTIONS} value={personalMinimum} onChange={setPersonalMinimum} />
         <p className="text-xs leading-relaxed text-muted-foreground">선택한 역할과 그 상위 역할이 열람할 수 있습니다. 포인트 수익·손실은 본인과 운영진만 볼 수 있습니다.</p>
-      </section><section className="space-y-4 rounded-xl border p-4" aria-label="공개할 통계"><h4 className="text-sm font-semibold">공개할 통계</h4>{PERSONAL_STATS_SECTIONS.map(({ id, label, description }) => <label key={id} className="flex cursor-pointer items-start gap-3 text-sm"><input type="checkbox" name="member_personal_sections" value={id} defaultChecked={cfg.memberPersonalSections.includes(id)} className="mt-1 size-4 accent-primary" /><span>{label}<span className="mt-1 block text-xs text-muted-foreground">{description}</span></span></label>)}<p className="text-xs text-muted-foreground">선택한 통계가 없으면 멤버에게 개인 기록 탭이 표시되지 않습니다.</p></section></div> : <Tabs defaultValue={scope === "hof" ? "ranking" : "access"} className="min-h-0 flex-1 gap-4">
+      </section><section className="space-y-4 rounded-xl border p-4" aria-label="공개할 통계"><h4 className="text-sm font-semibold">공개할 통계</h4>{PERSONAL_STATS_SECTIONS.map(({ id, label, description }) => <label key={id} className="flex cursor-pointer items-start gap-3 text-sm"><Switch name="member_personal_sections" value={id} defaultChecked={cfg.memberPersonalSections.includes(id)} className="mt-1" /><span>{label}<span className="mt-1 block text-xs text-muted-foreground">{description}</span></span></label>)}<p className="text-xs text-muted-foreground">선택한 통계가 없으면 멤버에게 개인 기록 탭이 표시되지 않습니다.</p></section></div> : <Tabs defaultValue={scope === "hof" ? "ranking" : "access"} className="min-h-0 flex-1 gap-4">
         <TabsList className={`grid h-10 w-full shrink-0 ${scope === "hof" ? "grid-cols-2" : "grid-cols-3"}`} aria-label="명예의 전당 설정 영역">
           {scope === "all" && <TabsTrigger value="access">열람·공개</TabsTrigger>}
           <TabsTrigger value="ranking">순위 공개</TabsTrigger>
@@ -138,11 +139,11 @@ export function HofSettingsForm({
       <section aria-labelledby="hof-access-title" className="space-y-3 rounded-xl border p-4">
       <h4 id="hof-access-title" className="text-sm font-semibold">열람·공개</h4>
       <label className="flex cursor-pointer items-start gap-3 text-sm">
-        <input type="checkbox" name="member_personal_records" defaultChecked={cfg.memberPersonalRecords} className="mt-1 size-4 accent-primary" />
+        <Switch name="member_personal_records" defaultChecked={cfg.memberPersonalRecords} className="mt-1" />
         <span>멤버의 본인 개인 기록 열람 허용<span className="mt-1 block text-xs text-muted-foreground">기본은 운영진만 열람합니다. 켜면 멤버가 자신의 기록을 볼 수 있습니다.</span></span>
       </label>
       {isLeader && <label className="flex cursor-pointer items-start gap-3 border-t pt-3 text-sm">
-        <input type="checkbox" name="expose_hof" defaultChecked={exposeHof} className="mt-1 size-4 accent-primary" />
+        <Switch name="expose_hof" defaultChecked={exposeHof} className="mt-1" />
         <span>명예의 전당을 클랜 프로필에 공개<span className="mt-1 block text-xs text-muted-foreground">클랜 프로필을 방문한 사람에게 공개합니다.</span></span>
       </label>}
       </section>
@@ -151,7 +152,7 @@ export function HofSettingsForm({
       {scope === "hof" && isLeader && <section className="space-y-3 rounded-xl border p-4" aria-label="프로필 공개">
         <h4 className="text-sm font-semibold">프로필 공개</h4>
         <label className="flex cursor-pointer items-start gap-3 text-sm">
-          <input type="checkbox" name="expose_hof" defaultChecked={exposeHof} className="mt-1 size-4 accent-primary" />
+          <Switch name="expose_hof" defaultChecked={exposeHof} className="mt-1" />
           <span>명예의 전당을 클랜 프로필에 공개<span className="mt-1 block text-xs text-muted-foreground">클랜 프로필을 방문한 사람에게 공개합니다.</span></span>
         </label>
       </section>}

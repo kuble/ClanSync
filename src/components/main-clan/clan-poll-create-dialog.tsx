@@ -1,4 +1,5 @@
 "use client";
+import { Switch } from "@/components/ui/switch";
 
 import Link from "next/link";
 import { type FormEvent, useRef, useState, useTransition } from "react";
@@ -300,11 +301,7 @@ function PollToggle({ id, name, label, description, checked, onChange }: {
   return (
     <div className="flex items-center justify-between gap-4 py-1">
       <HelpText label={label} help={description} className="text-sm font-medium" />
-      <span className="relative flex h-6 w-11 shrink-0 items-center">
-        <input id={id} type="checkbox" role="switch" name={name} checked={checked} onChange={(event) => onChange(event.target.checked)} aria-label={label} className="peer absolute inset-0 z-10 m-0 size-full cursor-pointer opacity-0 disabled:cursor-not-allowed" />
-        <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full bg-muted transition-colors peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background peer-disabled:opacity-50" />
-        <span aria-hidden className="pointer-events-none absolute left-1 size-4 rounded-full bg-foreground/70 transition-transform peer-checked:translate-x-5 peer-checked:bg-primary-foreground peer-disabled:opacity-50" />
-      </span>
+      <Switch id={id} name={name} checked={checked} onChange={(event) => onChange(event.target.checked)} aria-label={label} />
     </div>
   );
 }

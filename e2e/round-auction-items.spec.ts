@@ -14,7 +14,7 @@ test("깜짝 내전 호스트가 기본 아이템을 선택하고 내전 전용 
       await page.getByRole("button", { name: "경기 설정", exact: true }).click();
       const dialog = page.getByRole("dialog", { name: "경기 설정", exact: true });
       await dialog.getByLabel("팀원 선발 방식", { exact: true }).selectOption("auction");
-      await dialog.getByRole("checkbox", { name: "전략 아이템 사용", exact: true }).check();
+      await dialog.getByRole("switch", { name: "전략 아이템 사용", exact: true }).check();
       return dialog;
     };
     const dialog = await open();
@@ -58,7 +58,7 @@ test("깜짝 내전 호스트가 기본 아이템을 선택하고 내전 전용 
     await open();
     await expect(config.getByRole("checkbox", { name: "맵 선정권 선택", exact: true })).not.toBeChecked();
     await expect(config.getByRole("listitem").filter({ hasText: "깜짝 진영 선택권" })).toContainText("120pt");
-    await dialog.getByRole("checkbox", { name: "전략 아이템 사용", exact: true }).scrollIntoViewIfNeeded();
+    await dialog.getByRole("switch", { name: "전략 아이템 사용", exact: true }).scrollIntoViewIfNeeded();
     await page.screenshot({ path: test.info().outputPath("flash-item-settings.png"), animations: "disabled" });
     await config.getByRole("button", { name: "깜짝 진영 선택권 삭제", exact: true }).click();
     await config.getByRole("listitem").filter({ hasText: "깜짝 진영 선택권" }).getByRole("button", { name: "삭제", exact: true }).click();

@@ -168,7 +168,7 @@ test("settings: master toggle groups channels, preserves choices and saves offli
     await expect(page.getByText(/카카오 알림톡/)).toHaveCount(0);
     await expect(page.locator('input[name="kakao_notifications_opt_in"]')).toHaveCount(0);
     await page.getByRole("switch", { name: "깜짝 내전 알림", exact: true }).uncheck();
-    await page.getByRole("checkbox", { name: "종료·결과 알림", exact: true }).uncheck();
+    await page.getByRole("switch", { name: "종료·결과 알림", exact: true }).uncheck();
     await masterToggle.uncheck();
     await expect(details).toBeHidden();
     await expect(page.getByRole("combobox", { name: "기본 알림 채널", exact: true })).toHaveCount(0);
@@ -187,7 +187,7 @@ test("settings: master toggle groups channels, preserves choices and saves offli
     await expect(details).toBeVisible();
     await expect(page.getByRole("combobox", { name: "기본 알림 채널", exact: true })).toHaveValue(channel);
     await expect(page.getByRole("switch", { name: "깜짝 내전 알림", exact: true })).not.toBeChecked();
-    await expect(page.getByRole("checkbox", { name: "종료·결과 알림", exact: true })).not.toBeChecked();
+    await expect(page.getByRole("switch", { name: "종료·결과 알림", exact: true })).not.toBeChecked();
     await page.setViewportSize({ width: 390, height: 844 });
     await expect.poll(() => notificationCard.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
     await page.setViewportSize({ width: 1280, height: 720 });

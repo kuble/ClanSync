@@ -31,7 +31,7 @@ test("officers manage real notices and rules across management and dashboard", a
       .getByLabel("본문", { exact: true })
       .fill("이번 주에도 즐겁게 게임해요.");
     await editor
-      .getByRole("checkbox", { name: "대시보드 상단에 고정" })
+      .getByRole("switch", { name: "대시보드 상단에 고정" })
       .check();
     await editor
       .getByRole("button", { name: "공지 저장", exact: true })
