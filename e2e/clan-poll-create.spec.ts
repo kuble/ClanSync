@@ -65,9 +65,16 @@ test("투표 생성: 선택지 편집·검증·알림 기본값·저장과 모�
     await deadlineTime.fill(initialTime);
 
     await notify.check();
+    const notifyDetails = dialog.locator("#poll-notify-settings");
+    await expect(notify).toHaveAttribute("aria-controls", "poll-notify-settings");
+    expect((await dialog.getByLabel("알림 빈도", { exact: true }).boundingBox())!.x).toBeGreaterThan((await dialog.getByRole("region", { name: "참여 알림 설정", exact: true }).boundingBox())!.x + 12);
     await expect(dialog.getByLabel("알림 빈도", { exact: true })).toHaveValue("once");
     await expect(dialog.getByLabel("알림 시각 (한국 시간)", { exact: true })).toHaveCount(0);
     await dialog.getByLabel("알림 빈도", { exact: true }).selectOption("daily");
+    await notify.uncheck();
+    await expect(notifyDetails).toBeHidden();
+    await notify.check();
+    await expect(dialog.getByLabel("알림 빈도", { exact: true })).toHaveValue("daily");
     const deadlineDays = await page.evaluate(() => {
       const dayAfter = (days: number) => {
         const date = new Date(Date.now() + days * 86_400_000);

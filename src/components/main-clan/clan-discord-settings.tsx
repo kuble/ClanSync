@@ -99,15 +99,17 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
           </div>
           <section aria-label="종류별 알림">
           {DISCORD_NOTIFICATION_TYPES.map(({ id, label, description }) => <div key={id} className="space-y-3 border-b border-border/70 p-4 last:border-b-0">
-            <div className="text-[13px] font-semibold"><HelpText label={id === "announcements" ? "공지 채널" : `${label} 채널`} help={description} /></div>
-            <div className="flex flex-wrap items-center justify-between gap-4">
-            <select aria-label={`${label} 알림 채널`} name={`discord_${id}_channel`} value={routes[id].channel_id} onChange={(event) => autosave.update((current) => ({ ...current, routes: { ...current.routes, [id]: { ...current.routes[id], channel_id: event.target.value } } }))} disabled={channelDisabled} className={selectClass}>
+            <div className="flex items-center justify-between gap-4">
+              <div className="text-[13px] font-semibold"><HelpText label={id === "announcements" ? "공지 채널" : `${label} 채널`} help={description} /></div>
+              <Toggle name={`discord_${id}_enabled`} label={`${label} 알림`} controls={`discord-${id}-details`} checked={routes[id].enabled} disabled={!canEdit || !premium} onChange={(value) => autosave.update((current) => ({ ...current, routes: { ...current.routes, [id]: { ...current.routes[id], enabled: value } } }))} />
+            </div>
+            <div id={`discord-${id}-details`} hidden={!routes[id].enabled} className="ml-3 space-y-3 border-l-2 border-primary/25 pl-3">
+            <select aria-label={`${label} 알림 채널`} name={`discord_${id}_channel`} value={routes[id].channel_id} onChange={(event) => autosave.update((current) => ({ ...current, routes: { ...current.routes, [id]: { ...current.routes[id], channel_id: event.target.value } } }))} disabled={channelDisabled} className={`${selectClass} w-full`}>
               <option value="">기본 채널 사용</option>
               {routes[id].channel_id && !channels.some((channel) => channel.id === routes[id].channel_id) && <option value={routes[id].channel_id}>기존 채널 (권한 확인 필요)</option>}
               {channels.map((channel) => <option key={channel.id} value={channel.id}>#{channel.name}</option>)}
             </select>
-            {id === "polls" && <div className="order-3 flex w-full flex-wrap gap-x-5 gap-y-2 sm:order-none sm:w-auto sm:flex-1">{([['created', '시작 알림'], ['ended', '종료·결과 알림']] as const).map(([key, text]) => <label key={key} className="flex items-center gap-2 whitespace-nowrap text-xs"><Switch name={`discord_polls_${key}`} disabled={!canEdit || !premium} checked={routes.polls[key]} onChange={(event) => autosave.update((current) => ({ ...current, routes: { ...current.routes, polls: { ...current.routes.polls, [key]: event.target.checked } } }))} />{text}</label>)}</div>}
-            <Toggle name={`discord_${id}_enabled`} label={`${label} 알림`} checked={routes[id].enabled} disabled={!canEdit || !premium} onChange={(value) => autosave.update((current) => ({ ...current, routes: { ...current.routes, [id]: { ...current.routes[id], enabled: value } } }))} />
+            {id === "polls" && <div className="flex flex-wrap gap-x-5 gap-y-2">{([['created', '시작 알림'], ['ended', '종료·결과 알림']] as const).map(([key, text]) => <label key={key} className="flex items-center gap-2 whitespace-nowrap text-xs"><Switch name={`discord_polls_${key}`} disabled={!canEdit || !premium} checked={routes.polls[key]} onChange={(event) => autosave.update((current) => ({ ...current, routes: { ...current.routes, polls: { ...current.routes.polls, [key]: event.target.checked } } }))} />{text}</label>)}</div>}
             </div>
           </div>)}
           </section>

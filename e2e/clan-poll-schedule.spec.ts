@@ -24,6 +24,8 @@ test("예약 생성·상태 필터·시작 전 DB 차단·알림 시각·시작 
     await editor.getByLabel("선택지 1", { exact: true }).fill("금요일");
     await editor.getByLabel("선택지 2", { exact: true }).fill("토요일");
     await editor.getByRole("switch", { name: "시작 예약", exact: true }).check();
+    const startField = editor.getByLabel("시작 일시", { exact: true });
+    expect((await startField.boundingBox())!.x).toBeGreaterThan((await editor.getByRole("region", { name: "시작 설정", exact: true }).boundingBox())!.x + 12);
     await editor.getByRole("switch", { name: "참여 알림 보내기", exact: true }).check();
     await editor.getByRole("button", { name: "투표 예약하기", exact: true }).click();
     await expect(editor).toBeHidden();

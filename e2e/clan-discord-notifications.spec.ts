@@ -168,7 +168,15 @@ test("settings: master toggle groups channels, preserves choices and saves offli
     await expect(page.getByText(/카카오 알림톡/)).toHaveCount(0);
     await expect(page.locator('input[name="kakao_notifications_opt_in"]')).toHaveCount(0);
     await page.getByRole("switch", { name: "깜짝 내전 알림", exact: true }).uncheck();
+    await expect(notificationCard.locator("#discord-flash-details")).toBeHidden();
     await page.getByRole("switch", { name: "종료·결과 알림", exact: true }).uncheck();
+    const pollToggle = page.getByRole("switch", { name: "투표 알림", exact: true });
+    const pollDetails = notificationCard.locator("#discord-polls-details");
+    expect((await pollDetails.boundingBox())!.x).toBeGreaterThan((await pollDetails.locator("..").boundingBox())!.x);
+    await pollToggle.uncheck();
+    await expect(pollDetails).toBeHidden();
+    await pollToggle.check();
+    await expect(page.getByRole("switch", { name: "종료·결과 알림", exact: true })).not.toBeChecked();
     await masterToggle.uncheck();
     await expect(details).toBeHidden();
     await expect(page.getByRole("combobox", { name: "기본 알림 채널", exact: true })).toHaveCount(0);

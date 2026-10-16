@@ -210,8 +210,8 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange, onCreated
             </section>
 
             <section className="space-y-3" aria-label="시작 설정">
-              <PollToggle id="poll-scheduled" name="scheduled" label="시작 예약" description="지정한 시각부터 투표에 참여할 수 있습니다." checked={scheduled} onChange={(value) => { setScheduled(value); clearError("poll-start"); }} />
-              {scheduled && <div className="space-y-2"><Label htmlFor="poll-start">시작 일시</Label><Input id="poll-start" type="datetime-local" value={startsAt} onChange={(event) => { setStartsAt(event.target.value); clearError("poll-start"); clearDeadlineError(); }} {...inputErrorProps("poll-start")} /><FieldError id="poll-start" errors={errors} /></div>}
+              <PollToggle id="poll-scheduled" name="scheduled" label="시작 예약" description="지정한 시각부터 투표에 참여할 수 있습니다." controls="poll-start-settings" checked={scheduled} onChange={(value) => { setScheduled(value); clearError("poll-start"); }} />
+              {scheduled && <div id="poll-start-settings" className="ml-3 space-y-2 border-l-2 border-primary/25 pl-3"><Label htmlFor="poll-start">시작 일시</Label><Input id="poll-start" type="datetime-local" value={startsAt} onChange={(event) => { setStartsAt(event.target.value); clearError("poll-start"); clearDeadlineError(); }} {...inputErrorProps("poll-start")} /><FieldError id="poll-start" errors={errors} /></div>}
             </section>
 
             <section className="space-y-3 border-t pt-5" aria-label="마감 설정">
@@ -248,9 +248,9 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange, onCreated
             </section>
 
             <section className="space-y-3 border-t pt-4" aria-label="참여 알림 설정">
-              <PollToggle id="poll-notify-enabled" name="poll_notify_enabled" label="참여 알림 보내기" description="클랜 멤버에게 사이트 알림으로 참여를 알려요." checked={notifyEnabled} onChange={(enabled) => { setNotifyEnabled(enabled); clearDeadlineError(); }} />
+              <PollToggle id="poll-notify-enabled" name="poll_notify_enabled" label="참여 알림 보내기" description="클랜 멤버에게 사이트 알림으로 참여를 알려요." controls="poll-notify-settings" checked={notifyEnabled} onChange={(enabled) => { setNotifyEnabled(enabled); clearDeadlineError(); }} />
               {notifyEnabled ? (
-                <div className="space-y-3 rounded-lg border bg-muted/20 p-3">
+                <div id="poll-notify-settings" className="ml-3 space-y-3 border-l-2 border-primary/25 pl-3">
                   <div className="flex items-center gap-2 text-xs font-medium"><Bell className="size-3.5 text-muted-foreground" aria-hidden />사이트 알림</div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-2">
@@ -295,13 +295,13 @@ function FieldError({ id, errors, className }: { id: string; errors: Record<stri
   return errors[id] ? <p id={`${id}-error`} role="alert" className={cn("text-xs text-destructive", className)}>{errors[id]}</p> : null;
 }
 
-function PollToggle({ id, name, label, description, checked, onChange }: {
-  id: string; name: string; label: string; description: string; checked: boolean; onChange: (checked: boolean) => void;
+function PollToggle({ id, name, label, description, controls, checked, onChange }: {
+  id: string; name: string; label: string; description: string; controls?: string; checked: boolean; onChange: (checked: boolean) => void;
 }) {
   return (
     <div className="flex items-center justify-between gap-4 py-1">
       <HelpText label={label} help={description} className="text-sm font-medium" />
-      <Switch id={id} name={name} checked={checked} onChange={(event) => onChange(event.target.checked)} aria-label={label} />
+      <Switch id={id} name={name} checked={checked} onChange={(event) => onChange(event.target.checked)} aria-label={label} aria-controls={controls} />
     </div>
   );
 }
