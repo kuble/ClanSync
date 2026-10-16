@@ -15,8 +15,8 @@ test("calendar: fixed desktop list/detail panel and mobile drawer keep the selec
   try {
     const { error } = await f.service.from("clan_events").insert([
       { clan_id: f.clanId, created_by: f.users[0].id, title: "단일 일정", start_at: `${singleKey}T09:00:00Z`, kind: "event" },
-      { clan_id: f.clanId, created_by: f.users[0].id, title: "오전 일정", start_at: `${dayKey}T09:00:00Z`, kind: "event" },
-      { clan_id: f.clanId, created_by: f.users[0].id, title: "오후 일정", start_at: `${dayKey}T17:00:00Z`, kind: "intra" },
+      { clan_id: f.clanId, created_by: f.users[0].id, title: "오전 일정", start_at: `${dayKey}T00:00:00Z`, kind: "event" },
+      { clan_id: f.clanId, created_by: f.users[0].id, title: "오후 일정", start_at: `${dayKey}T08:00:00Z`, kind: "intra" },
       ...Array.from({ length: 12 }, (_, i) => ({
         clan_id: f.clanId,
         created_by: f.users[0].id,
@@ -54,9 +54,11 @@ test("calendar: fixed desktop list/detail panel and mobile drawer keep the selec
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await page.getByRole("button", { name: "일정 등록", exact: true }).click();
     const create = page.getByRole("dialog", { name: "일정 등록" });
-    await expect(create.getByLabel("시작 (로컬 시각)")).toHaveValue(`${dayKey}T20:00`);
+    await expect(create.getByRole("listbox", { name: "날짜", exact: true }).getByRole("option", { selected: true })).toContainText(".15 (");
+    await expect(create.getByRole("listbox", { name: "시", exact: true }).getByRole("option", { selected: true })).toHaveText("20");
     await create.getByLabel("제목", { exact: true }).fill("추가 일정");
-    await create.getByLabel("시작 (로컬 시각)").fill(`${dayKey}T13:00`);
+    // 13:00 Korean wall time stays between the 09:00 and 17:00 events.
+    await create.getByRole("listbox", { name: "시", exact: true }).getByRole("option", { name: "13", exact: true }).click();
     await create.getByRole("button", { name: "등록", exact: true }).click();
     await expect(create).not.toBeVisible();
     await expect(scheduleList.getByRole("button")).toHaveCount(3);
@@ -125,7 +127,8 @@ test("calendar: fixed desktop list/detail panel and mobile drawer keep the selec
     await expect(day).toBeFocused();
     await page.getByRole("button", { name: "일정 등록", exact: true }).click();
     await expect(create).toBeVisible();
-    await expect(create.getByLabel("시작 (로컬 시각)")).toHaveValue(`${dayKey}T20:00`);
+    await expect(create.getByRole("listbox", { name: "날짜", exact: true }).getByRole("option", { selected: true })).toContainText(".15 (");
+    await expect(create.getByRole("listbox", { name: "시", exact: true }).getByRole("option", { selected: true })).toHaveText("20");
     await page.keyboard.press("Escape");
     await day.click();
     await expect(drawer).toBeVisible();
@@ -142,7 +145,8 @@ test("calendar: fixed desktop list/detail panel and mobile drawer keep the selec
     await emptyDrawer.getByRole("button", { name: "닫기", exact: true }).click();
     await page.getByRole("button", { name: "일정 등록", exact: true }).click();
     await expect(create).toBeVisible();
-    await expect(create.getByLabel("시작 (로컬 시각)")).toHaveValue(`${emptyKey}T20:00`);
+    await expect(create.getByRole("listbox", { name: "날짜", exact: true }).getByRole("option", { selected: true })).toContainText(".16 (");
+    await expect(create.getByRole("listbox", { name: "시", exact: true }).getByRole("option", { selected: true })).toHaveText("20");
     await page.keyboard.press("Escape");
 
     await day.click();

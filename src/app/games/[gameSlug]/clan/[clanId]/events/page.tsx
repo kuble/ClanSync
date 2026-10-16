@@ -116,6 +116,7 @@ export default async function ClanEventsPage({
       <ClanEventsView
         gameSlug={gameSlug}
         clanId={clanId}
+        serverNow={new Date().toISOString()}
         events={events}
         canManageEvents={canManage}
         planIsPremium={ctx?.plan === "premium"}

@@ -28,15 +28,8 @@ import { ClanEventsBracketTab } from "@/components/main-clan/clan-events-bracket
 import { ClanEventsPollsTab } from "@/components/main-clan/clan-events-polls-tab";
 import { CreateClanEventForm } from "@/components/main-clan/create-clan-event-form";
 import { EventDiscordFields } from "@/components/main-clan/event-discord-fields";
+import { BalanceSchedulePicker, kstInput } from "@/components/main-clan/balance-schedule-picker";
 import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -55,7 +48,7 @@ import type {
 import {
   clanEventRsvpKey,
   dateKeyLocalFromDate,
-  expandClanEventsForLocalCalendarMonth,
+  expandClanEventsForMonth,
   repeatSummaryKo,
 } from "@/lib/clan/expand-clan-event-occurrences";
 import type { SerializedBracketTournament } from "@/lib/clan/load-bracket-tournaments";
@@ -64,13 +57,6 @@ import { cn } from "@/lib/utils";
 import { koreanCalendarDate } from "@/lib/clan/event-timezone";
 
 const WD_EDIT_LABEL = ["월", "화", "수", "목", "금", "토", "일"];
-
-function isoToDatetimeLocal(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 
 function kindLabel(kind: string): string {
   if (kind === "intra") return "내전";
@@ -121,7 +107,7 @@ function kindsOnDay(
   const seen = new Set<string>();
   const order = ["intra", "scrim", "event"];
   for (const o of occurrences) {
-    if (dateKeyLocalFromDate(o.displayAt) !== dayKey) continue;
+    if (kstInput(o.displayAt.toISOString()).slice(0, 10) !== dayKey) continue;
     seen.add(o.template.kind);
   }
   return order.filter((k) => seen.has(k));
@@ -130,6 +116,7 @@ function kindsOnDay(
 export function ClanEventsView({
   gameSlug,
   clanId,
+  serverNow,
   events,
   canManageEvents,
   planIsPremium,
@@ -147,6 +134,7 @@ export function ClanEventsView({
 }: {
   gameSlug: string;
   clanId: string;
+  serverNow: string;
   events: SerializedClanEvent[];
   canManageEvents: boolean;
   planIsPremium: boolean;
@@ -177,17 +165,18 @@ export function ClanEventsView({
     const date = new Date(initialEventAt || template.start_at);
     if (!Number.isFinite(date.getTime())) return null;
     const kst = koreanCalendarDate(date);
-    return expandClanEventsForLocalCalendarMonth([template], kst.getUTCFullYear(), kst.getUTCMonth())
+    return expandClanEventsForMonth([template], kst.getUTCFullYear(), kst.getUTCMonth())
       .find((occurrence) => occurrence.displayAt.getTime() === date.getTime()) ?? null;
   });
-  const now = new Date();
+  const todayKey = kstInput(serverNow).slice(0, 10);
+  const now = koreanCalendarDate(new Date(serverNow));
   const linkedMonth = linkedOccurrence ? koreanCalendarDate(linkedOccurrence.displayAt) : null;
   const [cursor, setCursor] = useState({
-    y: linkedMonth?.getUTCFullYear() ?? now.getFullYear(),
-    m: linkedMonth?.getUTCMonth() ?? now.getMonth(),
+    y: linkedMonth?.getUTCFullYear() ?? now.getUTCFullYear(),
+    m: linkedMonth?.getUTCMonth() ?? now.getUTCMonth(),
   });
   const [selectedKey, setSelectedKey] = useState(() =>
-    dateKeyLocalFromDate(linkedOccurrence?.displayAt ?? new Date()),
+    linkedOccurrence ? kstInput(linkedOccurrence.displayAt.toISOString()).slice(0, 10) : todayKey,
   );
   const [dayDrawerOpen, setDayDrawerOpen] = useState(false);
 
@@ -243,6 +232,7 @@ export function ClanEventsView({
   }, [activeOccurrence, canManageEvents, gameSlug, clanId]);
 
   const [editOpen, setEditOpen] = useState(false);
+  const [editStart, setEditStart] = useState("");
   const [editRepeat, setEditRepeat] =
     useState<SerializedClanEvent["repeat"]>("none");
 
@@ -257,14 +247,14 @@ export function ClanEventsView({
   }, [activeOccurrence, editOpen]);
 
   const occurrences = useMemo(
-    () => expandClanEventsForLocalCalendarMonth(events, cursor.y, cursor.m),
+    () => expandClanEventsForMonth(events, cursor.y, cursor.m),
     [events, cursor.y, cursor.m],
   );
 
   const slotOccurrences = useMemo(
     () =>
       occurrences.filter(
-        (o) => dateKeyLocalFromDate(o.displayAt) === selectedKey,
+        (o) => kstInput(o.displayAt.toISOString()).slice(0, 10) === selectedKey,
       ),
     [occurrences, selectedKey],
   );
@@ -393,13 +383,7 @@ export function ClanEventsView({
     e.preventDefault();
     const form = e.currentTarget;
     const fd = new FormData(form);
-    const local = String(fd.get("start_at_local") ?? "");
-    if (local) {
-      const d = new Date(local);
-      if (!Number.isNaN(d.getTime())) {
-        fd.set("start_at", d.toISOString());
-      }
-    }
+    fd.set("start_at", new Date(`${editStart}:00+09:00`).toISOString());
     fd.set("repeat", editRepeat);
     start(async () => {
       const r = await updateClanEventAction(gameSlug, clanId, fd);
@@ -605,6 +589,7 @@ export function ClanEventsView({
                 setEditRepeat(
                   activeOccurrence.template.repeat ?? "none",
                 );
+                setEditStart(kstInput(activeOccurrence.template.start_at));
                 setEditOpen(true);
                 setSheetOpen(false);
               }}
@@ -812,9 +797,9 @@ export function ClanEventsView({
                   {cells.slice(week * 7, week * 7 + 7).map(({ date, inMonth }) => {
                     const key = dateKeyLocalFromDate(date);
                     const selected = key === selectedKey;
-                    const today = key === dateKeyLocalFromDate(now);
+                    const today = key === todayKey;
                     const dayOccurrences = occurrences.filter(
-                      (o) => dateKeyLocalFromDate(o.displayAt) === key,
+                      (o) => kstInput(o.displayAt.toISOString()).slice(0, 10) === key,
                     );
                     const kinds = kindsOnDay(key, occurrences);
                     return (
@@ -1039,14 +1024,14 @@ export function ClanEventsView({
         </Sheet>
 
         {canManageEvents ? (
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle>일정 등록</DialogTitle>
-                <DialogDescription>
+          <Sheet open={createOpen} onOpenChange={setCreateOpen}>
+            <SheetContent className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]">
+              <SheetHeader className="shrink-0 px-5 pb-5 pr-12">
+                <SheetTitle>일정 등록</SheetTitle>
+                <SheetDescription>
                   클랜 멤버와 함께할 내전이나 이벤트를 등록하세요.
-                </DialogDescription>
-              </DialogHeader>
+                </SheetDescription>
+              </SheetHeader>
               <CreateClanEventForm
                 gameSlug={gameSlug}
                 clanId={clanId}
@@ -1055,8 +1040,8 @@ export function ClanEventsView({
                 discordChannelName={discordChannelName}
                 onCreated={() => setCreateOpen(false)}
               />
-            </DialogContent>
-          </Dialog>
+            </SheetContent>
+          </Sheet>
         ) : null}
       </TabsContent>
 
@@ -1111,14 +1096,16 @@ export function ClanEventsView({
         </SheetContent>
       </Sheet>
 
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent showCloseButton className="max-h-[90vh] overflow-y-auto">
+      <Sheet open={editOpen} onOpenChange={setEditOpen}>
+        <SheetContent showCloseButton={!pending} className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]">
           {activeOccurrence ? (
             <>
-            <DialogHeader>
-              <DialogTitle>일정 편집</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={onEditSubmit} className="space-y-4">
+            <SheetHeader className="shrink-0 px-5 pb-5 pr-12">
+              <SheetTitle>일정 편집</SheetTitle>
+              <SheetDescription className="sr-only">일정과 반복·알림 설정을 변경합니다.</SheetDescription>
+            </SheetHeader>
+            <form onSubmit={onEditSubmit} className="flex min-h-0 flex-1 flex-col">
+              <fieldset disabled={pending} className="board-scroll min-h-0 min-w-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-5 pb-5">
               <input
                 type="hidden"
                 name="event_id"
@@ -1192,18 +1179,7 @@ export function ClanEventsView({
                   </div>
                 </div>
               ) : null}
-              <div className="space-y-2">
-                <Label htmlFor="edit-start">시작 (로컬 시각)</Label>
-                <Input
-                  id="edit-start"
-                  name="start_at_local"
-                  type="datetime-local"
-                  required
-                  defaultValue={isoToDatetimeLocal(
-                    activeOccurrence.template.start_at,
-                  )}
-                />
-              </div>
+              <BalanceSchedulePicker disabled={pending} value={editStart} onChange={setEditStart} serverNow={Date.parse(`${kstInput(activeOccurrence.template.start_at).slice(0, 10)}T00:00:00+09:00`)} label="시작 날짜·시각" />
               <div className="space-y-2">
                 <Label htmlFor="edit-place">장소·메모 (선택)</Label>
                 <Input
@@ -1214,23 +1190,26 @@ export function ClanEventsView({
                 />
               </div>
               <EventDiscordFields available={discordAvailable} channelName={discordChannelName} value={activeOccurrence.template.discord_notify} settingsHref={`/games/${gameSlug}/clan/${clanId}/manage?tab=notifications`} />
-              <DialogFooter className="gap-2 sm:gap-2">
+              </fieldset>
+              <SheetFooter className="mt-0 shrink-0 flex-row border-t px-5 py-4">
                 <Button
                   type="button"
                   variant="ghost"
+                  className="flex-1"
+                  disabled={pending}
                   onClick={() => setEditOpen(false)}
                 >
                   닫기
                 </Button>
-                <Button type="submit" disabled={pending}>
+                <Button type="submit" className="flex-1" disabled={pending}>
                   {pending ? "저장 중…" : "저장"}
                 </Button>
-              </DialogFooter>
+              </SheetFooter>
             </form>
             </>
           ) : null}
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </Tabs>
   );
 }

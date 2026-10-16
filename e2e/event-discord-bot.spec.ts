@@ -121,7 +121,7 @@ test("QA bot connection permissions, atomic reminders, retries, channel changes 
   } finally { globalThis.fetch = original; if (token === undefined) delete process.env.DISCORD_BOT_TOKEN; else process.env.DISCORD_BOT_TOKEN = token; await f.cleanup(); }
 });
 
-test("events UI: settings icon, registration notification fields, local time and OAuth denials", async ({ page, browser }) => {
+test("events UI: settings icon, registration notification fields, Korean time and OAuth denials", async ({ page, browser }) => {
   test.setTimeout(150_000);
   const f = await createIsolatedBalanceFixture(2), memberContext = await browser.newContext();
   try {
@@ -131,6 +131,7 @@ test("events UI: settings icon, registration notification fields, local time and
     await expect(page.getByText("함께할 다음 약속.", { exact: false })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "오늘", exact: true })).toHaveCount(0);
     await page.getByRole("link", { name: "클랜 알림 설정", exact: true }).click();
+    await expect(page).toHaveURL(/\/manage\?tab=notifications$/, { timeout: 30_000 });
     const settings = page.getByTestId("clan-event-notify-settings");
     await expect(settings.getByText("Discord 연결하기", { exact: true })).toBeVisible();
     await expect(settings.getByText("웹훅 URL")).toHaveCount(0);
@@ -138,12 +139,18 @@ test("events UI: settings icon, registration notification fields, local time and
     await page.getByRole("button", { name: "일정 등록", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "일정 등록" });
     await expect(dialog.getByRole("switch", { name: "Discord 알림", exact: true })).toBeDisabled();
-    await expect(dialog.locator('fieldset:has(input[name="event_discord_announce"])')).toBeHidden();
+    await expect(dialog.getByRole("region", { name: "일정 Discord 알림", exact: true }).locator("fieldset")).toBeHidden();
     await dialog.getByLabel("제목", { exact: true }).fill("격리 UI 일정");
-    // Browser timezone is UTC here; convert local wall time into its explicit UTC instant.
+    // Korean wall time is converted to the same instant in every browser timezone.
     const instant = new Date(Date.now() + 172_800_000); instant.setSeconds(0, 0);
-    const local = await page.evaluate((iso) => { const d = new Date(iso); const pad = (n: number) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; }, instant.toISOString());
-    await dialog.getByLabel("시작 (로컬 시각)").fill(local);
+    const local = new Date(instant.getTime() + 9 * 3_600_000).toISOString().slice(0, 16);
+    const dateWheel = dialog.getByRole("listbox", { name: "날짜", exact: true });
+    await dateWheel.press("Home");
+    await dateWheel.press("ArrowDown");
+    await dateWheel.press("ArrowDown");
+    for (const [label, value] of [["시", local.slice(11, 13)], ["분", local.slice(14, 16)]]) {
+      await dialog.getByRole("listbox", { name: label, exact: true }).getByRole("option", { name: value, exact: true }).click();
+    }
     await dialog.getByRole("button", { name: "등록", exact: true }).click();
     await expect(dialog).not.toBeVisible();
     const event = await ok(f.service.from("clan_events").select("start_at,discord_notify").eq("clan_id", f.clanId).single());

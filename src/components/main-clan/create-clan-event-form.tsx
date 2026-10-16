@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EventDiscordFields } from "./event-discord-fields";
+import { BalanceSchedulePicker } from "./balance-schedule-picker";
 const WD_LABEL = ["월", "화", "수", "목", "금", "토", "일"];
 
 export function CreateClanEventForm({
@@ -21,13 +22,14 @@ export function CreateClanEventForm({
 }: {
   gameSlug: string;
   clanId: string;
-  defaultDate?: string;
+  defaultDate: string;
   onCreated?: () => void;
   discordAvailable?: boolean;
   discordChannelName?: string | null;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
+  const [startAt, setStartAt] = useState(`${defaultDate}T20:00`);
   const [repeatMode, setRepeatMode] = useState<"none" | "weekly" | "monthly">(
     "none",
   );
@@ -36,13 +38,7 @@ export function CreateClanEventForm({
     e.preventDefault();
     const form = e.currentTarget;
     const fd = new FormData(form);
-    const local = String(fd.get("start_at_local") ?? "");
-    if (local) {
-      const d = new Date(local);
-      if (!Number.isNaN(d.getTime())) {
-        fd.set("start_at", d.toISOString());
-      }
-    }
+    fd.set("start_at", new Date(`${startAt}:00+09:00`).toISOString());
     fd.set("repeat", repeatMode);
     start(async () => {
       const r = await createClanEventAction(gameSlug, clanId, fd);
@@ -59,7 +55,8 @@ export function CreateClanEventForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
+      <fieldset disabled={pending} className="board-scroll min-h-0 min-w-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-5 pb-5">
       <div className="space-y-2">
         <Label htmlFor="evt-title">제목</Label>
         <Input id="evt-title" name="title" required maxLength={120} />
@@ -69,7 +66,7 @@ export function CreateClanEventForm({
         <select
           id="evt-kind"
           name="kind"
-          className="border-input bg-background h-9 w-full max-w-xs rounded-md border px-2 text-sm"
+          className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm"
           defaultValue="event"
         >
           <option value="intra">내전</option>
@@ -87,7 +84,7 @@ export function CreateClanEventForm({
           onChange={(ev) =>
             setRepeatMode(ev.target.value as "none" | "weekly" | "monthly")
           }
-          className="border-input bg-background h-9 w-full max-w-xs rounded-md border px-2 text-sm"
+          className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm"
         >
           <option value="none">없음 (일회)</option>
           <option value="weekly">매주</option>
@@ -120,24 +117,18 @@ export function CreateClanEventForm({
           </div>
         </div>
       ) : null}
-      <div className="space-y-2">
-        <Label htmlFor="evt-start">시작 (로컬 시각)</Label>
-        <Input
-          id="evt-start"
-          name="start_at_local"
-          type="datetime-local"
-          defaultValue={defaultDate ? `${defaultDate}T20:00` : undefined}
-          required
-        />
-      </div>
+      <BalanceSchedulePicker disabled={pending} value={startAt} onChange={setStartAt} serverNow={Date.parse(`${defaultDate}T00:00:00+09:00`)} label="시작 날짜·시각" />
       <div className="space-y-2">
         <Label htmlFor="evt-place">장소·메모 (선택)</Label>
         <Input id="evt-place" name="place" maxLength={500} />
       </div>
       <EventDiscordFields available={discordAvailable} channelName={discordChannelName} settingsHref={`/games/${gameSlug}/clan/${clanId}/manage?tab=notifications`} />
-      <Button type="submit" disabled={pending}>
+      </fieldset>
+      <div className="shrink-0 border-t px-5 py-4">
+      <Button type="submit" className="w-full" disabled={pending}>
         {pending ? "저장 중…" : "등록"}
       </Button>
+      </div>
     </form>
   );
 }
