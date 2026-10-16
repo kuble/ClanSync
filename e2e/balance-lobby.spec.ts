@@ -26,7 +26,7 @@ async function scheduledRoom(
   title: string,
 ) {
   await page.goto(fixture.path);
-  await page.getByRole("button", { name: "내전 추가", exact: true }).click();
+  await page.getByRole("button", { name: "내전 만들기", exact: true }).click();
   const create = page.getByRole("dialog", { name: "내전 만들기", exact: true });
   await create.getByRole("radio", {
     name: kind === "regular" ? "정규 내전" : "깜짝 내전", exact: true,
@@ -238,7 +238,7 @@ test("로비 간소화: 예약 휠·주간 단일 행·바로 참여", async ({ 
     await expect(flashDetail).toBeHidden();
     expect((await readRoom(fixture, flash.id)).title).toBe("디자인 통일 확인");
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.getByRole("button", { name: "내전 추가", exact: true }).click();
+    await page.getByRole("button", { name: "내전 만들기", exact: true }).click();
     const create = page.getByRole("dialog", { name: "내전 만들기", exact: true });
     await create.getByRole("radio", { name: "예약", exact: true }).check();
     await create.getByRole("switch", { name: "매주 같은 요일·시각", exact: true }).check();

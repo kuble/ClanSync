@@ -158,7 +158,7 @@ export async function createAndEnterBalanceRoom(
   kind: "regular" | "flash" = "regular",
 ) {
   await page.goto(path);
-  await page.getByRole("button", { name: "내전 추가", exact: true }).click();
+  await page.getByRole("button", { name: "내전 만들기", exact: true }).click();
   const create = page.getByRole("dialog", { name: "내전 만들기", exact: true });
   await create.getByRole("radio", {
     name: kind === "regular" ? "정규 내전" : "깜짝 내전",

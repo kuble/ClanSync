@@ -101,23 +101,23 @@ export function ClanBalanceLobby({ gameSlug, clanId, userId, clanRole, rooms, me
     const participationHint = rsvpStart === null ? "참여 신청을 받지 않는 내전입니다." : serverNow >= startAt ? "참여 신청이 마감되었습니다." : serverNow < rsvpStart ? `${displayStart(new Date(rsvpStart).toISOString())}부터 참여할 수 있습니다.` : "참석 투표와 참여 현황이 함께 갱신됩니다.";
     const KindIcon = room.kind === "regular" ? CalendarDays : Zap;
     return (
-      <li key={room.id} data-testid="balance-lobby-room" data-room-id={room.id} className={cn("flex items-center gap-3 px-4 py-3.5 sm:gap-4 sm:px-5", endedRoom && "opacity-65")}>
+      <li key={room.id} data-testid="balance-lobby-room" data-room-id={room.id} className={cn("grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2 px-4 py-3.5 sm:flex sm:gap-4 sm:px-5", endedRoom && "opacity-65")}>
         <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-xl", room.kind === "regular" ? "bg-primary/10 text-primary" : "bg-amber-500/10 text-amber-600 dark:text-amber-400")}><KindIcon className="size-4" aria-hidden="true" /></span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="truncate text-left text-sm font-semibold">{room.title}</span>
-            <span className="text-[10px] text-muted-foreground">{room.kind === "regular" ? "정규" : "깜짝"}</span>
-            <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", room.status === "open" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "bg-muted text-muted-foreground")}>{room.status === "open" ? "열림" : STATUS[room.status]}</span>
+            <span className="text-xs text-muted-foreground">{room.kind === "regular" ? "정규" : "깜짝"}</span>
+            <span className={cn("rounded-full px-2 py-0.5 text-xs font-medium", room.status === "open" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "bg-muted text-muted-foreground")}>{room.status === "open" ? "열림" : STATUS[room.status]}</span>
           </div>
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1"><Clock3 className="size-3" aria-hidden="true" /><time dateTime={room.scheduled_at}>{displayStart(room.scheduled_at)}</time></span>
             <span>{room.delegateNickname ?? room.creatorNickname}</span>
             {room.schedule_id && room.scheduleEnabled !== false ? <span className="inline-flex items-center gap-1"><Repeat2 className="size-3" aria-hidden="true" />{room.repeatEveryDays === 7 || !room.repeatEveryDays ? "매주" : `${room.repeatEveryDays}일마다`}</span> : null}
             {room.kind === "flash" ? <span className="inline-flex items-center gap-1"><UsersRound className="size-3" aria-hidden="true" />참여 {room.rsvpCounts.going}</span> : null}
           </div>
-          {room.kind === "flash" && room.status === "scheduled" && !rsvpOpen ? <p className="mt-1 text-[11px] text-muted-foreground">{participationHint}</p> : null}
+          {room.kind === "flash" && room.status === "scheduled" && !rsvpOpen ? <p className="mt-1 text-xs text-muted-foreground">{participationHint}</p> : null}
         </div>
-        <div className="grid shrink-0 grid-cols-[2rem_5rem] items-center gap-1" data-testid="balance-room-actions">
+        <div className="col-start-2 grid shrink-0 grid-cols-[2rem_5rem] items-center justify-self-end gap-1" data-testid="balance-room-actions">
           <div className="flex size-8 items-center justify-center">
             {room.kind === "regular" || canManage ? <Button size="icon-sm" variant="ghost" aria-label={`${room.title} 방 정보`} title="방 정보" onClick={() => setDetailId(room.id)}><MoreHorizontal className="size-4" aria-hidden="true" /></Button> : null}
           </div>
@@ -139,7 +139,7 @@ export function ClanBalanceLobby({ gameSlug, clanId, userId, clanRole, rooms, me
         <div className="flex items-center gap-1">
           {staff ? <Button size="icon-sm" variant="ghost" aria-label="내전 기록" title="내전 기록" onClick={() => setHistoryOpen(true)}><History className="size-4" aria-hidden="true" /></Button> : null}
           <Button size="icon-sm" variant="ghost" aria-label="로비 안내" title="로비 안내" onClick={() => setGuideOpen(true)}><CircleHelp className="size-4" aria-hidden="true" /></Button>
-          {canCreate ? <Button size="icon-sm" aria-label="내전 추가" title="내전 추가" data-lobby-guide="add" onClick={() => setCreateOpen(true)}><Plus className="size-4" aria-hidden="true" /></Button> : null}
+          {canCreate ? <Button size="sm" className="w-7 px-0 sm:w-auto sm:px-3" aria-label="내전 만들기" title="내전 만들기" data-lobby-guide="add" onClick={() => setCreateOpen(true)}><Plus className="size-4" aria-hidden="true" /><span className="hidden sm:inline">내전 만들기</span></Button> : null}
         </div>
       </div>
       <div data-lobby-guide="list" className="overflow-hidden rounded-xl border bg-card">
@@ -260,7 +260,7 @@ function LobbyGuide({ canCreate, onClose }: { canCreate: boolean; onClose: () =>
   const [step, setStep] = useState(0);
   const [rect, setRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
   const steps = canCreate ? [
-    { target: "add", title: "내전 추가", text: "+에서 지금 열거나 예약할 내전을 만드세요. 깜짝 내전은 클랜원이 직접 진행할 수 있습니다." },
+    { target: "add", title: "내전 만들기", text: "내전 만들기에서 지금 열거나 예약할 내전을 만드세요. 깜짝 내전은 클랜원이 직접 진행할 수 있습니다." },
     { target: "list", title: "목록에서 입장", text: "열린 내전은 입장하고, 깜짝 내전은 목록에서 참여하세요. 방 정보에서 진행 설정을 관리할 수 있습니다." },
   ] : [{ target: "list", title: "목록에서 입장", text: "열린 내전의 입장을 누르면 해당 내전 화면으로 이동합니다. 예약 보기에서 시작 시각을 확인할 수 있습니다." }];
   const current = steps[step];

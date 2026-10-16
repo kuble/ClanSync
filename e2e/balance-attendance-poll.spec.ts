@@ -65,7 +65,7 @@ test("member creates a minute-based reservation and attendance poll, then event 
   try {
     await loginIsolatedBalanceUser(page, f.users[1]);
     await page.goto(f.path);
-    await page.getByRole("button", { name: "내전 추가", exact: true }).click();
+    await page.getByRole("button", { name: "내전 만들기", exact: true }).click();
     const create = page.getByRole("dialog", { name: "내전 만들기", exact: true });
     await create.getByRole("textbox", { name: "내전 이름", exact: true }).fill("UI 참석 연동");
     await create.getByRole("radio", { name: "예약", exact: true }).check();

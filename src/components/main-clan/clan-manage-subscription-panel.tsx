@@ -45,8 +45,8 @@ export function ClanManageSubscriptionPanel({
   }
 
   return (
-    <section className="space-y-3 rounded-lg border bg-muted/20 p-4">
-      <h3 className="text-sm font-medium tracking-tight">구독·플랜</h3>
+    <section className="space-y-3 rounded-xl border bg-card p-5">
+      <h3 className="text-sm font-semibold tracking-tight">구독·플랜</h3>
       <p className="text-sm">
         현재 플랜: <span className="font-medium">{tierLabel}</span>
       </p>
