@@ -21,6 +21,22 @@
 
 이번 시각 점검은 데스크톱의 이벤트·통계·코인 플랜·프로필과 내전 코드 대조 중심이다. 모바일·라이트 테마·모든 팝업의 전수 접근성 검사는 별도 범위다. 프로필이 공용 계정 헤더를 쓰는 것은 클랜 화면과 목적이 달라 단순 불일치로 분류하지 않았다.
 
+### 추가 페이지·설정 창 점검
+
+D7–D13은 후속 재점검에서 같은 기준으로 정리했다. 작성·편집 패널은 모바일 전체 너비, 고정 헤더·하단 작업, `board-scroll` 본문을 사용한다. 내용에 따라 데스크톱 너비는 440 / 600 / 640px로 구분한다.
+
+| ID | 반영한 변경 | 화면 열기 / 위치 |
+|---|---|---|
+| D7 | 공지·자유 글·피드백·방송·추억·코칭 프로필, 커뮤니티 홍보·LFG·스크림, 투표·대진표·경기 기록 작성/편집을 우측 패널로 정리했다. 코칭·공지·LFG 토글은 문구 오른쪽이다. | [게시판](http://localhost:3011/games/overwatch/clan/73441bc9-2ffd-4789-8da4-f50423073706/board), [커뮤니티](http://localhost:3011/games/overwatch?tab=lfg), [이벤트](http://localhost:3011/games/overwatch/clan/73441bc9-2ffd-4789-8da4-f50423073706/events), [경기 기록](http://localhost:3011/games/overwatch/clan/73441bc9-2ffd-4789-8da4-f50423073706/stats) |
+| D8 | 네임카드 꾸미기·뱃지 케이스도 같은 패널을 사용한다. 뱃지의 별도 높이 제한을 제거해 본문 스크롤 하나와 고정 저장 영역을 사용한다. | [프로필](http://localhost:3011/profile) → 꾸미기 / 뱃지 케이스 |
+| D9 | 이전 기록 연결 창은 제목·하단 작업을 고정하고 검색·선택 본문을 스크롤한다. | [구성원](http://localhost:3011/games/overwatch/clan/73441bc9-2ffd-4789-8da4-f50423073706/manage?tab=members) → 이전 기록 관리 |
+| D10 | 공통 확인·안내 창에 화면 높이 제한과 공통 스크롤 스타일을 적용했다. 짧은 확인과 자료 선택 창의 중앙 배치는 유지한다. | [스토어](http://localhost:3011/games/overwatch/clan/73441bc9-2ffd-4789-8da4-f50423073706/store), [프로필](http://localhost:3011/profile), 기존 안내·확인 창 |
+| D11 | Discord의 투표 시작 / 종료·결과 알림도 들여쓴 영역의 세로 행과 문구 우측 토글로 정렬했다. | [알림·연동](http://localhost:3011/games/overwatch/clan/73441bc9-2ffd-4789-8da4-f50423073706/manage?tab=notifications) → 투표 채널 |
+| D12 | 커뮤니티 날짜 표기를 한국 시간의 동일한 형식으로 통일하고 스크림 달력의 날짜 구분도 맞췄다. 서버·브라우저의 날짜 차이로 화면이 다시 그려지던 문제를 수정했다. | [커뮤니티](http://localhost:3011/games/overwatch?tab=scrim) → 스크림 / 홍보 / LFG |
+| D13 | 커뮤니티·대진표·경기 기록·뱃지의 작은 부가 정보를 12px 이상으로 정리했다. 긴 공백 없는 제목도 모바일 너비 안에서 줄바꿈한다. | [대진표](http://localhost:3011/games/overwatch/clan/73441bc9-2ffd-4789-8da4-f50423073706/events?tab=bracket), [커뮤니티](http://localhost:3011/games/overwatch?tab=promo), [프로필](http://localhost:3011/profile) |
+
+저장 값·기한 해석·경기 원본의 초 단위·권한 검증은 유지했다. 복수 선택·동의 체크박스는 On/Off 설정과 구분한다. 모바일·기능 검증의 실제 범위는 [추가 점검 기록](verification.md#추가-페이지설정-창-점검)에 둔다.
+
 ## 2. 성능: 도입한 변경과 검증
 
 ### 이번 변경

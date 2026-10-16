@@ -29,6 +29,21 @@ D1–D6 변경 후 별도 QA 개발 서버(webpack, 3010)와 임시 클랜·계�
 
 재현: `E2E_SKIP_SEED=1 npx playwright test e2e/design-consistency.spec.ts e2e/event-calendar-layout.spec.ts e2e/event-discord-bot.spec.ts --grep 'event sheets|management cards|calendar:|events UI:'`. Windows QA 검증은 별도 webpack 개발 서버 설정을 사용했다.
 
+## 추가 페이지·설정 창 점검
+
+D7–D13은 별도 QA 개발 서버(webpack, 3010), `E2E_SKIP_SEED=1`과 임시 클랜·계정으로 검증했다. 사용자 3011 서버와 기존 QA 명단은 유지하고 생성한 임시 데이터만 정리했다.
+
+- 변경 소스·테스트 ESLint, `npx tsc --noEmit` 통과.
+- `design-followup.spec.ts`의 주요 **26개 경로 × 320 / 390px**에서 정상 응답과 페이지 가로 넘침 없음을 확인했다. 기본·빈 결과 상태를 포함하며 모든 데이터·권한 조합의 검사는 아니다.
+- 같은 파일의 **320×568px** 편집 창 검사: 공지·자유 글·코칭·피드백·방송(플랫폼 4개)·추억·대진표·경기 기록·프로필 꾸미기·뱃지의 헤더와 하단 작업이 본문 스크롤 후에도 같은 위치에 있다. 이전 기록 연결 창의 하단 작업도 화면 안에 표시된다.
+- 커뮤니티 홍보·LFG·스크림 작성 창은 **1304 / 390 / 320px**, 높이 568px에서 같은 배치로 확인했다. 대진표와 홍보 글의 긴 공백 없는 제목을 실제 저장한 후 가로 넘침이 없고, 커뮤니티 탐색·작성 중 페이지 오류는 0건이다.
+- 기존 `clan-management.spec.ts` 2건, `clan-coaching.spec.ts` 1건, `clan-match-record-editing.spec.ts` 1건, `clan-poll-create.spec.ts` 1건 통과. 공지·코칭 저장, 경기 기록 추가·정정·제거 및 권한, 투표 검증·저장·모바일 하단 작업의 회귀를 확인했다.
+- 날짜 함수의 순수 검사 1건은 UTC 날짜·연도 경계와 잘못된 입력을 확인했다. 총 **UI 시나리오 8건 + 날짜 검사 1건** 통과이며, 수정한 시나리오의 분리 재실행을 포함한다.
+
+실제 검증에서 발견한 커뮤니티 날짜의 서버/브라우저 불일치는 동일한 한국 시간 형식과 서버 기준 시각 전달로 수정했다. 테스트용 코칭 선생님 데이터와 프로필의 게임별 탭 선택 누락은 픽스처·진입 동작을 수정한 뒤 통과했다. 커뮤니티 입력의 저장 시각 해석, 경기 기록의 초 단위, DB 스키마·권한은 변경하지 않았다.
+
+재현 대상: `e2e/design-followup.spec.ts`, `e2e/clan-management.spec.ts`, `e2e/clan-coaching.spec.ts`, `e2e/clan-match-record-editing.spec.ts`, `e2e/clan-poll-create.spec.ts`. Windows 검증에서는 별도 webpack 개발 서버 설정으로 실행했다. 실제 모바일 기기·Safari·전체 테마·모든 권한 조합은 확인하지 않았으며, 이번 UI 변경에서는 전체 빌드·전체 DB 회귀를 반복하지 않았다.
+
 ## 성능 재현
 
 `scripts/measure-alpha-pages.mjs`는 QA 리더를 이용해 3010의 네 경로를 각각 5회 탐색하고 `.supabase-test/alpha-{label}.json`을 쓴다. `.env.e2e.local`과 별도 QA 프로덕션 빌드를 준비한 상태에서 `node scripts/measure-alpha-pages.mjs latest`로 실행한다. 운영 서버를 대상으로 할 수 없고 새로 만든 인증 세션만 local signOut한다. 기준/변경 버전을 비교할 때는 각 버전을 별도 checkout·동일 빌드 옵션으로 준비해야 한다. 현재 사용자 작업 폴더를 강제로 reset하지 않는다.
