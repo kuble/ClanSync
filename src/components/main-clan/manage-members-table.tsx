@@ -70,7 +70,7 @@ export function ManageMembersTable({
     unknown: "활동 기록 없음",
   };
   const activityClass: Record<string, string> = {
-    active: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    active: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
     inactive: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
     dormant: "bg-muted text-muted-foreground",
     unknown: "text-muted-foreground",

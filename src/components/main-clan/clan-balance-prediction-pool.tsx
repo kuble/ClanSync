@@ -90,7 +90,7 @@ export function ClanBalancePredictionPool({ gameSlug, clanId, sessionId, initial
           return <button key={label} type="button" aria-label={label} aria-pressed={pick === team}
             disabled={!canBet || pending} onClick={() => setPick(team)}
             className={cn("flex min-h-24 min-w-0 flex-col items-center justify-center gap-1 rounded-xl border px-1 text-xs font-semibold focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-default",
-              team === 1 ? "border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-300" : team === 2 ? "border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-300" : "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-300",
+              team === 1 ? "border-sky-500/30 bg-sky-500/10 text-team-blue" : team === 2 ? "border-rose-500/30 bg-rose-500/10 text-team-red" : "border-amber-500/30 bg-amber-500/10 text-warning",
               pick === team && "ring-2 ring-current")}>
             <span>{label}</span><strong className="text-base tabular-nums">{multiplier === null ? "—" : multiplier.toFixed(2) + "배"}</strong><span className="text-[10px] tabular-nums">{number(pool.teams[index]!)} 코인</span>
           </button>;
@@ -121,7 +121,7 @@ export function ClanBalancePredictionPool({ gameSlug, clanId, sessionId, initial
         <tbody>{pool.ranking.map((entry) => <tr key={entry.user_id} className="border-t">
           <th className="truncate px-3 py-3 text-left font-medium" title={entry.nickname}>{entry.nickname}</th>
           <td className="px-1 py-3 text-right">{Math.round(entry.hits / entry.played * 100)}%<span className="block text-[10px] text-muted-foreground">{entry.hits}/{entry.played}</span></td>
-          <td className={cn("wrap-anywhere px-3 py-3 text-right font-semibold",entry.profit > 0 ? "text-primary" : entry.profit < 0 ? "text-rose-400" : "text-muted-foreground")}>{entry.profit > 0 ? "+" : ""}{number(entry.profit)}</td>
+          <td className={cn("wrap-anywhere px-3 py-3 text-right font-semibold",entry.profit > 0 ? "text-primary" : entry.profit < 0 ? "text-team-red" : "text-muted-foreground")}>{entry.profit > 0 ? "+" : ""}{number(entry.profit)}</td>
         </tr>)}</tbody>
       </table></div> : <p className="rounded-xl border px-3 py-4 text-xs text-muted-foreground">정산된 예측이 없습니다.</p>}
     </section>

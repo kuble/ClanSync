@@ -1,4 +1,5 @@
-.panel { height: 100%; overflow-y: auto; scrollbar-color: var(--muted-foreground) var(--background); scrollbar-width: thin; }
+.sheet[data-side="right"] { width: 100%; max-width: 440px; }
+.panel { min-width: 0; height: 100%; overflow-y: auto; scrollbar-color: var(--muted-foreground) var(--background); scrollbar-width: thin; }
 .dependentSettings { margin: 0.5rem 0 0.5rem 0.75rem; border-left: 2px solid color-mix(in oklab, var(--primary) 25%, transparent); padding-left: 0.75rem; }
 .numberInput { appearance: textfield; }
 .numberInput::-webkit-inner-spin-button, .numberInput::-webkit-outer-spin-button { appearance: none; margin: 0; }

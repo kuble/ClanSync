@@ -53,14 +53,14 @@ export function BalanceTeamHeading({ roster, scores, mode = "m", premium = false
   const Label = onTeamSelect ? "button" : "span";
   return (
     <div className="mb-3 grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1fr)] items-center gap-2 text-center sm:grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)]">
-      <Label type={onTeamSelect ? "button" : undefined} disabled={onTeamSelect ? selectionDisabled : undefined} onClick={onTeamSelect ? () => onTeamSelect("team1") : undefined} aria-pressed={onTeamSelect ? result.team1Won : undefined} className="inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-bold tracking-wider text-sky-600 focus-visible:outline-2 focus-visible:outline-ring dark:text-sky-300" aria-label={onTeamSelect ? "블루 승" : result.team1Won ? "1팀 승리" : undefined}>
+      <Label type={onTeamSelect ? "button" : undefined} disabled={onTeamSelect ? selectionDisabled : undefined} onClick={onTeamSelect ? () => onTeamSelect("team1") : undefined} aria-pressed={onTeamSelect ? result.team1Won : undefined} className="inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-bold tracking-wider text-team-blue focus-visible:outline-2 focus-visible:outline-ring" aria-label={onTeamSelect ? "블루 승" : result.team1Won ? "1팀 승리" : undefined}>
         {result.team1Won ? <Crown className="size-4 text-amber-400" aria-hidden="true" /> : null}
         1팀
       </Label>
       <span className="text-base font-black italic text-muted-foreground/60">
-        {result.centerLabel === "무승부" ? <span className="flex flex-col items-center text-[10px] not-italic tracking-normal text-amber-300"><Equal className="size-5" aria-hidden="true" />무승부</span> : result.centerLabel === "무효" ? <span className="flex flex-col items-center text-[10px] not-italic"><RotateCcw className="size-4" aria-hidden="true" />무효</span> : result.centerLabel}
+        {result.centerLabel === "무승부" ? <span className="flex flex-col items-center text-[10px] not-italic tracking-normal text-warning"><Equal className="size-5" aria-hidden="true" />무승부</span> : result.centerLabel === "무효" ? <span className="flex flex-col items-center text-[10px] not-italic"><RotateCcw className="size-4" aria-hidden="true" />무효</span> : result.centerLabel}
       </span>
-      <Label type={onTeamSelect ? "button" : undefined} disabled={onTeamSelect ? selectionDisabled : undefined} onClick={onTeamSelect ? () => onTeamSelect("team2") : undefined} aria-pressed={onTeamSelect ? result.team2Won : undefined} className="inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-bold tracking-wider text-rose-600 focus-visible:outline-2 focus-visible:outline-ring dark:text-rose-300" aria-label={onTeamSelect ? "레드 승" : result.team2Won ? "2팀 승리" : undefined}>
+      <Label type={onTeamSelect ? "button" : undefined} disabled={onTeamSelect ? selectionDisabled : undefined} onClick={onTeamSelect ? () => onTeamSelect("team2") : undefined} aria-pressed={onTeamSelect ? result.team2Won : undefined} className="inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-bold tracking-wider text-team-red focus-visible:outline-2 focus-visible:outline-ring" aria-label={onTeamSelect ? "레드 승" : result.team2Won ? "2팀 승리" : undefined}>
         2팀
         {result.team2Won ? <Crown className="size-4 text-amber-400" aria-hidden="true" /> : null}
       </Label>

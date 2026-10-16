@@ -61,7 +61,7 @@ function SynergyRing({ peer, relation }: { peer: SynergyPeer | undefined; relati
   const percentage = Math.round(peer.wins / peer.matches * 1000) / 10;
   return <aside aria-label="시너지 승률 차트" className="flex min-h-64 flex-col items-center justify-center rounded-xl border bg-muted/15 px-3 py-4 text-center">
     <h3 className="mb-2 max-w-full truncate px-1 text-sm font-semibold" title={peer.nickname}>{peer.nickname}</h3>
-    <div className="relative size-44 text-rose-400">
+    <div className="relative size-44 text-team-red">
       <svg viewBox="0 0 180 180" role="img" aria-label={`${peer.nickname} ${relation === "ally" ? "같은 팀" : "상대 팀"} 승률 ${percentage}%, ${peer.matches}경기`} className="size-full overflow-visible">
         <circle cx="90" cy="90" r="68" fill="none" stroke="var(--muted-foreground)" strokeOpacity=".4" strokeWidth="15" />
         <circle cx="90" cy="90" r="68" fill="none" stroke="currentColor" strokeWidth="15" pathLength="100" strokeDasharray={`${percentage} 100`} transform="rotate(-90 90 90)" className="transition-[stroke-dasharray] duration-300 motion-reduce:transition-none" />
@@ -71,7 +71,7 @@ function SynergyRing({ peer, relation }: { peer: SynergyPeer | undefined; relati
       </div>
     </div>
     <strong className="-mt-1 text-2xl tabular-nums">{percentage}%</strong>
-    <p className="mt-1 text-sm font-semibold text-rose-400">{synergyVerdict(percentage, relation)}</p>
+    <p className="mt-1 text-sm font-semibold text-team-red">{synergyVerdict(percentage, relation)}</p>
     <p className="mt-1 text-[11px] text-muted-foreground">{peer.matches}경기 · {peer.wins}승 {peer.draws}무 {peer.losses}패</p>
   </aside>;
 }
@@ -152,7 +152,7 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
             </div>
           </section>
           <div className="grid gap-4 border-t pt-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-            <div className="min-w-0"><div className="flex flex-wrap items-center gap-2 text-sm font-semibold"><span>최근 흐름</span><span className={`text-xs ${streak.count ? streak.result === "win" ? "text-sky-400" : "text-rose-400" : "text-muted-foreground"}`}>{streak.count ? `${streak.count}연${streak.result === "win" ? "승" : "패"}` : "현재 연속 기록 없음"}</span></div><div className="mt-3 flex flex-wrap gap-1.5">{person.matches.slice(0, 10).map((match) => <span key={match.id} title={`${match.date} ${match.map ?? "맵 미기록"}`} className={`rounded px-2 py-1 text-xs ${match.result === "win" ? "bg-sky-500/15 text-sky-400" : match.result === "loss" ? "bg-rose-500/15 text-rose-400" : "bg-muted"}`}>{RESULT_LABEL[match.result]}</span>)}{!person.matches.length && <span className="text-sm text-muted-foreground">기록 없음</span>}</div></div>
+            <div className="min-w-0"><div className="flex flex-wrap items-center gap-2 text-sm font-semibold"><span>최근 흐름</span><span className={`text-xs ${streak.count ? streak.result === "win" ? "text-team-blue" : "text-team-red" : "text-muted-foreground"}`}>{streak.count ? `${streak.count}연${streak.result === "win" ? "승" : "패"}` : "현재 연속 기록 없음"}</span></div><div className="mt-3 flex flex-wrap gap-1.5">{person.matches.slice(0, 10).map((match) => <span key={match.id} title={`${match.date} ${match.map ?? "맵 미기록"}`} className={`rounded px-2 py-1 text-xs ${match.result === "win" ? "bg-sky-500/15 text-team-blue" : match.result === "loss" ? "bg-rose-500/15 text-team-red" : "bg-muted"}`}>{RESULT_LABEL[match.result]}</span>)}{!person.matches.length && <span className="text-sm text-muted-foreground">기록 없음</span>}</div></div>
             <div className="grid grid-cols-2 gap-3">{([{ label: "최장 연승", row: bestWin }, { label: "최장 연패", row: bestLoss }] as const).map(({ label, row }) => <div key={label} className="min-w-0 rounded-xl border bg-muted/10 p-3"><p className="text-xs text-muted-foreground">{label}</p><strong className="mt-2 block text-lg tabular-nums">{row.count ? `${row.count}경기` : "기록 없음"}</strong></div>)}</div>
           </div>
         </CardContent>
@@ -197,7 +197,7 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
       </CardContent></Card>}
       {(visible("predictions") || canViewPredictionPoints) && <Card size="sm"><CardHeader><CardTitle><StatTitle title="승부예측 기록" help="무효 경기를 제외한 예측의 적중 확률입니다. 본인과 운영진에게 실제 정산 포인트의 일별 누적 흐름을 표시합니다." /></CardTitle></CardHeader><CardContent className="space-y-3">
         {visible("predictions") && <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground tabular-nums" aria-label="승부예측 요약"><span>예측 참여 {picks.length}회</span><span>적중 {correct}회</span><span>실패 {incorrect}회</span><strong className="text-foreground">적중력 {rate(predictionRate)}</strong><span>무승부 적중 {picks.filter((pick) => pick.outcome === "draw" && pick.result === "correct").length}회 · 무효 {picks.filter((pick) => pick.result === "void").length}회</span></div>}
-        {canViewPredictionPoints && <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs tabular-nums"><span className="text-emerald-400">수익 +{earned.toLocaleString()}pt</span><span className="text-rose-400">손실 −{lost.toLocaleString()}pt</span><strong>순수익 {earned - lost > 0 ? "+" : ""}{(earned - lost).toLocaleString()}pt</strong></div>}
+        {canViewPredictionPoints && <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs tabular-nums"><span className="text-primary">수익 +{earned.toLocaleString()}pt</span><span className="text-team-red">손실 −{lost.toLocaleString()}pt</span><strong>순수익 {earned - lost > 0 ? "+" : ""}{(earned - lost).toLocaleString()}pt</strong></div>}
         {canViewPredictionPoints ? <><p className="text-xs text-muted-foreground">획득·차감 포인트를 반영한 일별 누적 흐름</p><StatsSignedTrendChart label="승부예측 누적 포인트 그래프" unit="pt" points={predictionTrend} empty="선택한 기간에 승부예측 기록이 없습니다." /></> : <p className="rounded-lg border border-dashed p-4 text-xs text-muted-foreground">{ownPrediction ? "클랜의 공개 설정에 따라 포인트 통계가 제공되지 않습니다." : "포인트 수익·손실은 본인과 운영진만 볼 수 있습니다."}</p>}
       </CardContent></Card>}
       </div>

@@ -20,9 +20,9 @@ const ROLES = [
 ] as const;
 
 const HERO_PLACEHOLDER_TONES: Record<OwHero["role"], string> = {
-  tank: "bg-sky-950 text-sky-200",
-  dps: "bg-rose-950 text-rose-200",
-  support: "bg-emerald-950 text-emerald-200",
+  tank: "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-200",
+  dps: "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200",
+  support: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200",
 };
 
 function HeroPortrait({ hero, className }: { hero: OwHero; className: string }) {
@@ -71,7 +71,7 @@ export function ClanBalanceHeroBanClient({ gameSlug, clanId, sessionId, deadline
   return <div className="space-y-6" data-testid="hero-ban-selection">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div>
-        <h4 className="flex items-center gap-2 text-base font-bold"><Ban className="size-5 text-amber-400" />영웅 밴</h4>
+        <h4 className="flex items-center gap-2 text-base font-bold"><Ban className="size-5 text-warning" />영웅 밴</h4>
         <p className="mt-2 text-xs text-muted-foreground">팀당 최대 {bansPerTeam}명 · 팀 내 득표순으로 결정됩니다. 선택하지 않으면 기권합니다.</p>
       </div>
       <span role="timer" className="flex items-center gap-2 rounded-lg border px-3 py-2 font-bold tabular-nums"><Timer className="size-4" />{expired ? "투표 종료" : remain + "s"}</span>
@@ -80,7 +80,7 @@ export function ClanBalanceHeroBanClient({ gameSlug, clanId, sessionId, deadline
       {(["team1", "team2"] as const).map((team, index) => <section key={team} aria-label={(index + 1) + "팀 밴 현황"}
         className={cn("rounded-xl border p-3", index === 0 ? "border-sky-500/30 bg-sky-500/5" : "border-rose-500/30 bg-rose-500/5")}>
         <div className="mb-3 flex items-center justify-between text-xs">
-          <strong className={index === 0 ? "text-sky-400" : "text-rose-400"}>{index + 1}팀 {myTeam === team ? "· 내 팀" : ""}</strong>
+          <strong className={index === 0 ? "text-team-blue" : "text-team-red"}>{index + 1}팀 {myTeam === team ? "· 내 팀" : ""}</strong>
           <span className="text-muted-foreground">{allVotes.filter((vote) => heroVoteTeam(roster, vote.user_id) === team).length} / 5명 선택</span>
         </div>
         <div className="flex gap-2">

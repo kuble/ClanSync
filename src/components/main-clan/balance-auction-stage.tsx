@@ -7,14 +7,14 @@ import { cn } from "@/lib/utils";
 import { AUCTION_AWARD_DURATION_MS, ROLE_LABEL, TEAM_LABEL, canFit, maxBid, type FormationCommand, type FormationState, type Team } from "@/lib/balance/formation";
 
 const teams = ["team1", "team2"] as const;
-const teamColor = (team: Team) => team === "team1" ? "text-sky-400" : "text-rose-400";
+const teamColor = (team: Team) => team === "team1" ? "text-team-blue" : "text-team-red";
 
 function Countdown({ deadline, startedAt, now, paused }: { deadline: number; startedAt: number; now: number; paused: boolean }) {
   const remaining = Math.max(0, deadline - now);
   const seconds = Math.ceil(remaining / 1000);
   const ratio = Math.min(1, remaining / Math.max(1, deadline - startedAt));
   return <div className="space-y-3" data-testid="auction-countdown">
-    <div className={cn("flex items-center justify-center gap-2 font-bold tabular-nums", seconds <= 5 && !paused ? "text-amber-400" : "text-muted-foreground")}>
+    <div className={cn("flex items-center justify-center gap-2 font-bold tabular-nums", seconds <= 5 && !paused ? "text-warning" : "text-muted-foreground")}>
       <Timer className={cn("size-5", seconds <= 5 && !paused && "motion-safe:animate-pulse")} aria-hidden="true" />
       <span className="text-3xl">{seconds}<span className="ml-1 text-xs font-medium">초</span></span>
       {paused ? <span className="text-xs">일시정지</span> : null}
@@ -28,7 +28,7 @@ function Countdown({ deadline, startedAt, now, paused }: { deadline: number; sta
 export function AuctionPurchases({ state }: { state: FormationState | null }) {
   if (!state?.strategy || !state.itemChoices || !teams.some((team) => state.itemChoices?.[team])) return null;
   return <aside className="space-y-3 rounded-xl border border-amber-500/25 bg-amber-500/5 p-4" aria-label="구매한 전략 아이템">
-    <h4 className="flex items-center gap-2 text-sm font-semibold"><Gift className="size-4 text-amber-400" aria-hidden="true" />구매한 전략 아이템</h4>
+    <h4 className="flex items-center gap-2 text-sm font-semibold"><Gift className="size-4 text-warning" aria-hidden="true" />구매한 전략 아이템</h4>
     <div className="grid gap-3 sm:grid-cols-2">
       {teams.map((team) => {
         const item = state.strategy!.items.find((candidate) => candidate.id === state.itemChoices?.[team]);
@@ -75,7 +75,7 @@ export function BalanceAuctionStage({ state, now, pending, revealing, name, canT
     </div>
 
     {revealing ? <div className="rounded-xl border bg-muted/10 p-6 text-center text-sm text-muted-foreground">역할 공개가 끝나면 경매가 자동으로 시작됩니다.</div> : strategyStage && state.strategy ? <div className="space-y-4 rounded-xl border border-amber-500/30 bg-amber-500/5 p-5 text-center">
-      <p className="text-xs font-semibold uppercase tracking-widest text-amber-400">전략 준비</p>
+      <p className="text-xs font-semibold uppercase tracking-widest text-warning">전략 준비</p>
       <h4 className="text-xl font-bold">이번 경매의 전략 아이템</h4>
       <p className="text-xs leading-relaxed text-muted-foreground">선수 영입 후 남은 포인트로 팀당 아이템 하나를 구매할 수 있습니다.<br />아이템 가격을 확인하고 영입 예산을 계획하세요.</p>
       <Countdown deadline={state.strategy.deadline} startedAt={state.strategy.startedAt} now={clock} paused={frozen} />
@@ -114,7 +114,7 @@ export function BalanceAuctionStage({ state, now, pending, revealing, name, canT
 
     {state.strategy && !revealing ? <div className="grid gap-3 sm:grid-cols-3" aria-label="이번 경매 아이템">
       {state.strategy.items.map((item) => <div key={item.id} className={cn("flex min-w-0 flex-col gap-3 rounded-xl border p-4", strategyStage || itemStage ? "border-amber-500/25 bg-amber-500/5" : "bg-muted/10")}>
-        <div className="flex items-center justify-between gap-2"><Gift className="size-4 shrink-0 text-amber-400" aria-hidden="true" /><strong className="text-sm tabular-nums text-amber-400">{item.cost.toLocaleString()}pt</strong></div>
+        <div className="flex items-center justify-between gap-2"><Gift className="size-4 shrink-0 text-warning" aria-hidden="true" /><strong className="text-sm tabular-nums text-warning">{item.cost.toLocaleString()}pt</strong></div>
         <h5 className="break-words text-sm font-semibold">{item.name}</h5>
         <p className="flex-1 break-words text-xs leading-relaxed text-muted-foreground">{item.description || "운영진이 경기 규칙에 직접 적용합니다."}</p>
         {itemStage ? controlledTeams.map((team) => {

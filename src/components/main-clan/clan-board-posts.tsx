@@ -32,7 +32,7 @@ export function ClanBoardPosts({base,gameSlug,clanId,kind,title,posts,coaches=[]
 function BoardPostRows({base,kind,posts,action}:{base:string;kind:BoardKind;posts:BoardListPost[];action?:ReactNode}){
   const feedback=kind==="feedback";
   const columns=feedback?"md:grid-cols-[72px_minmax(0,1fr)_132px_48px]":"md:grid-cols-[minmax(0,1fr)_48px]";
-  const status=(p:BoardListPost)=><span className={cn("inline-flex min-w-12 items-center justify-center rounded-md px-2 py-1 text-[11px] font-medium",p.status==="complete"?"bg-primary/10 text-primary":p.status==="answering"?"bg-sky-500/10 text-sky-400":"bg-muted text-muted-foreground")}>{FEEDBACK_STATUS[p.status as keyof typeof FEEDBACK_STATUS]}</span>;
+  const status=(p:BoardListPost)=><span className={cn("inline-flex min-w-12 items-center justify-center rounded-md px-2 py-1 text-[11px] font-medium",p.status==="complete"?"bg-primary/10 text-primary":p.status==="answering"?"bg-sky-500/10 text-team-blue":"bg-muted text-muted-foreground")}>{FEEDBACK_STATUS[p.status as keyof typeof FEEDBACK_STATUS]}</span>;
   return <section className="min-h-64 overflow-hidden rounded-xl border border-border bg-card" aria-label={feedback?"피드백 신청 목록":"게시글 목록"}>
     {feedback?<div aria-hidden className={cn("hidden items-center gap-3 border-b border-border bg-muted/20 px-4 py-2.5 text-[11px] text-muted-foreground md:grid",columns)}><span className="text-center">상태</span><span>신청 내용</span><span>담당 선생님</span><span className="text-center">댓글</span></div>:<div className="flex min-h-12 items-center justify-between gap-3 border-b border-border bg-muted/20 px-4 py-2"><span className="text-[11px] text-muted-foreground">글 제목</span>{action}</div>}
     <ul className="divide-y divide-border">{posts.map(p=><li key={p.id}>

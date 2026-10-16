@@ -47,7 +47,7 @@ export function BalanceAuctionItemSettings({ gameSlug, clanId, roundId, value, o
         <ClanAuctionItemSettings gameSlug={gameSlug} clanId={clanId} items={loaded.items} onSaved={refresh} disabled={disabled} />
       </> : <>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className={`text-xs font-medium ${available < 3 ? "text-amber-500" : "text-primary"}`} role="status">선택한 아이템 {available}개{available < 3 ? " · 3개 이상 선택해 주세요." : " · 경매마다 3개 추첨"}</p>
+          <p className={`text-xs font-medium ${available < 3 ? "text-warning" : "text-primary"}`} role="status">선택한 아이템 {available}개{available < 3 ? " · 3개 이상 선택해 주세요." : " · 경매마다 3개 추첨"}</p>
           {loaded.canEditShared && <Button variant="outline" size="sm" disabled={disabled} onClick={() => setManaging(true)}><Settings2 className="size-3.5" />기본 아이템 관리</Button>}
         </div>
         <section className="space-y-3" aria-label="클랜 기본 아이템 선택">

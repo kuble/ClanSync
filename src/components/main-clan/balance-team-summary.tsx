@@ -10,11 +10,11 @@ import { BalanceComparisonBar, isValidBalanceEstimate, predictionContext, sample
 
 function TeamLabels({ comparison }: { comparison: ReactNode }) {
   return <>
-    <span className="text-xs font-bold tracking-wider text-sky-600 dark:text-sky-300">
+    <span className="text-xs font-bold tracking-wider text-team-blue">
       1팀
     </span>
     {comparison}
-    <span className="text-xs font-bold tracking-wider text-rose-600 dark:text-rose-300">
+    <span className="text-xs font-bold tracking-wider text-team-red">
       2팀
     </span>
   </>;
@@ -48,9 +48,9 @@ export function BalanceTeamSummary({ roster, scores, mode, premium, showPredicti
   const labels = prediction ? [predictedTeam1 == null ? "—" : `${predictedTeam1}%`, predictedTeam1 == null ? "—" : `${100 - predictedTeam1}%`] : totals[mode].map(formatBalanceScore);
   const comparison = <div data-testid="team-comparison-graph" data-mode={prediction ? "prediction" : mode} data-score-mode={mode} aria-label={`${title}: 1팀 ${labels[0]}, 2팀 ${labels[1]}${prediction ? `, ${predictionStatus}` : ""}`} aria-live="polite" className="w-[clamp(110px,32cqw,220px)] min-w-0 justify-self-center space-y-0.5">
     <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1 text-[11px] font-bold tabular-nums">
-      <span data-testid={prediction ? undefined : "team1-score-total"} aria-label={`1팀 ${title}`} className="text-left text-sky-600 dark:text-sky-300">{labels[0]}</span>
+      <span data-testid={prediction ? undefined : "team1-score-total"} aria-label={`1팀 ${title}`} className="text-left text-team-blue">{labels[0]}</span>
       <p className="text-center text-[10px] font-medium leading-tight text-muted-foreground">{title}</p>
-      <span data-testid={prediction ? undefined : "team2-score-total"} aria-label={`2팀 ${title}`} className="text-right text-rose-600 dark:text-rose-300">{labels[1]}</span>
+      <span data-testid={prediction ? undefined : "team2-score-total"} aria-label={`2팀 ${title}`} className="text-right text-team-red">{labels[1]}</span>
     </div>
     <div className="flex h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true">{share == null ? null : <><span data-testid="team-comparison-blue-bar" className="bg-sky-500" style={{ width: `${share}%` }} /><span className="flex-1 bg-rose-500" /></>}</div>
     {prediction && !(validEstimate && samplePrediction) ? <p className="text-[9px] leading-3 text-muted-foreground">{predictionStatus}</p> : null}

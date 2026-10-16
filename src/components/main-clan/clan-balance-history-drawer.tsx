@@ -122,7 +122,7 @@ function HistoryMatches({ rounds, pool }: {
         <div className="flex items-center gap-3 border-b px-4 py-3">
           <span className="shrink-0 font-bold">{round.round_number}경기<span className="mt-0.5 block text-[10px] font-normal text-muted-foreground">{timeLabel(round.opened_at)}</span></span>
           <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{round.resolved_map_label ?? "맵 미지정"}</span>
-          <span className={cn("shrink-0 text-xs font-semibold", round.match_outcome === "team1" && "text-sky-600 dark:text-sky-300", round.match_outcome === "team2" && "text-rose-600 dark:text-rose-300")}>{outcomeLabel(round)}</span>
+          <span className={cn("shrink-0 text-xs font-semibold", round.match_outcome === "team1" && "text-team-blue", round.match_outcome === "team2" && "text-team-red")}>{outcomeLabel(round)}</span>
         </div>
         <div className="space-y-3 p-3 [&_[data-board-slot]]:min-h-12 [&_[data-board-slot]]:py-2 sm:p-4">
           <ClanBalanceRosterBoard roster={round.roster} pool={pool} outcome={round.match_outcome} showPlayerSessionSummary={false} />
@@ -356,9 +356,9 @@ function HistoryContent({
                             className={cn(
                               "wrap-anywhere px-1 py-3 text-right",
                               member.currentStreak > 0 &&
-                                "text-sky-600 dark:text-sky-300",
+                                "text-team-blue",
                               member.currentStreak < 0 &&
-                                "text-rose-600 dark:text-rose-300",
+                                "text-team-red",
                             )}
                           >
                             {member.currentStreak === 0

@@ -106,7 +106,7 @@ export function BalanceSchedulePicker({ value, onChange, serverNow, weekly = fal
     const nextTime = `${h}:${m}`;
     onChange(weekly ? nextWeeklyDate(weekday, nextTime, serverNow) : `${date}T${nextTime}`);
   }
-  return <fieldset className="space-y-2" disabled={disabled}>
+  return <fieldset className="min-w-0 space-y-2" disabled={disabled}>
     <legend className="text-xs font-semibold">{label ?? (weekly ? "매주 요일·시각" : "예약 날짜·시각")} (한국 시간)</legend>
     <div className="grid grid-cols-[minmax(0,1.8fr)_repeat(2,minmax(0,1fr))] gap-2">
       <Wheel label={weekly ? "요일" : "날짜"} options={weekly ? weekdays.map((label, i) => ({ value: String(i), label })) : dateOptions} value={weekly ? String(weekday) : date} disabled={disabled}

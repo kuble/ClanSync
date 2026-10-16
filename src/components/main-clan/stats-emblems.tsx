@@ -24,7 +24,7 @@ const emblemLabel = (emblem: Emblem) => `${emblem.date} ${emblem.period === "mon
 
 function EmblemGlyph({ emblem, compact = false }: { emblem: Emblem; compact?: boolean }) {
   const { Icon, shape } = DESIGNS[emblem.category];
-  return <span aria-hidden="true" className={`relative flex shrink-0 items-center justify-center ${compact ? "size-12" : "size-20"} ${emblem.rank === 1 ? "text-amber-400" : emblem.rank === 2 ? "text-slate-300" : "text-orange-400"}`}>
+  return <span aria-hidden="true" className={`relative flex shrink-0 items-center justify-center ${compact ? "size-12" : "size-20"} ${emblem.rank === 1 ? "text-pro-gold" : emblem.rank === 2 ? "text-slate-700 dark:text-slate-300" : "text-orange-700 dark:text-orange-400"}`}>
     <svg viewBox="0 0 64 64" className="absolute inset-1 h-[calc(100%-0.5rem)] w-[calc(100%-0.5rem)]"><path d={shape} fill="currentColor" fillOpacity=".12" stroke="currentColor" strokeWidth="1.5" />{emblem.period === "year" && <path d={shape} transform="translate(6.4 6.4) scale(.8)" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="2 2" />}</svg>
     <Icon className={`relative -mt-1 ${compact ? "size-4" : "size-7"}`} strokeWidth={1.7} />
     <span className={`absolute rounded-full border border-current/30 bg-card px-1 text-[9px] font-black leading-3 ${compact ? "bottom-0.5" : "bottom-2"}`}>{emblem.rank}</span>

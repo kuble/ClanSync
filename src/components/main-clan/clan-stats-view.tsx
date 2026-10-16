@@ -427,7 +427,7 @@ export function ClanStatsView({
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center justify-between text-xs text-muted-foreground">
                   구성원
-                  <Users className="size-5 text-sky-500" aria-hidden="true" />
+                  <Users className="size-5 text-team-blue" aria-hidden="true" />
                 </CardTitle>
                 <CardDescription>현재 클랜 소속 인원</CardDescription>
               </CardHeader>

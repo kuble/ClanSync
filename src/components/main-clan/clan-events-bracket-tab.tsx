@@ -419,7 +419,7 @@ function BracketPreview({
                   <Shield
                     className={cn(
                       "size-3.5 shrink-0",
-                      slot === 0 ? "text-sky-500" : "text-rose-500",
+                      slot === 0 ? "text-team-blue" : "text-team-red",
                     )}
                     aria-hidden="true"
                   />

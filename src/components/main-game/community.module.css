@@ -84,7 +84,7 @@
 }
 .rail .navItem[data-active] {
   background: #46af7514;
-  color: #a0cfb1;
+  color: var(--accent-foreground);
   border-left-color: var(--primary);
   box-shadow: none;
 }

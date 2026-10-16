@@ -779,8 +779,8 @@ export function ClanEventsView({
                       role="columnheader"
                       className={cn(
                         "py-3 text-center text-[11px] font-semibold text-muted-foreground",
-                        index === 5 && "text-sky-600 dark:text-sky-400",
-                        index === 6 && "text-rose-600 dark:text-rose-400",
+                        index === 5 && "text-team-blue",
+                        index === 6 && "text-team-red",
                       )}
                     >
                       {weekday}
@@ -867,7 +867,7 @@ export function ClanEventsView({
                               !today &&
                                 !selected &&
                                 date.getDay() === 0 &&
-                                "text-rose-600 dark:text-rose-400",
+                                "text-team-red",
                             )}
                           >
                             {date.getDate()}

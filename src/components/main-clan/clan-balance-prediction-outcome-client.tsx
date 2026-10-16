@@ -105,9 +105,9 @@ export function ClanBalancePredictionClient({
               className={cn(
                 "flex min-h-20 flex-col items-center justify-center gap-2 rounded-xl border text-xs font-semibold focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-60",
                 team === 1
-                  ? "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300"
+                  ? "border-sky-500/30 bg-sky-500/10 text-team-blue"
                   : team === 2
-                    ? "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300"
+                    ? "border-rose-500/30 bg-rose-500/10 text-team-red"
                     : "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
                 myPickTeam === team && "ring-2 ring-current",
               )}

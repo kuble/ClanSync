@@ -47,7 +47,7 @@ function StatsAccessSettings({ model, gameSlug, clanId, scope, onDone }: {
     catch { toast.error("설정을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요."); }
   })}>
     <input type="hidden" name="settings_scope" value={scope} />
-    <fieldset disabled={pending} className="min-h-0 flex-1 overflow-y-auto px-5">
+    <fieldset disabled={pending} className="board-scroll min-h-0 min-w-0 flex-1 overflow-y-auto px-5">
       <table className="w-full rounded-xl border text-sm" aria-label="역할별 권한">
         <thead><tr className="border-b text-xs text-muted-foreground"><th scope="col" className="p-3 text-left">권한</th>{["클랜장", "운영진", "멤버"].map((label) => <th scope="col" className="p-2" key={label}>{label}</th>)}</tr></thead>
         <tbody>{rows.map(({ key, label, roles }) => {

@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { AuthMessageState } from "@/app/actions/auth";
 import { signInAction } from "@/app/actions/auth";
 import { PasswordInput } from "@/components/entry/password-input";
+import { Switch } from "@/components/ui/switch";
 import styles from "@/components/entry/entry.module.css";
 
 function SubmitButton() {
@@ -32,8 +33,8 @@ export function SignInForm({ nextPath }: { nextPath: string }) {
         </div>
         <div>
           <label className={styles.remember}>
-            <input type="checkbox" name="remember" aria-describedby="remember-hint" />
             <span>자동 로그인</span>
+            <Switch name="remember" aria-describedby="remember-hint" />
           </label>
           <p id="remember-hint" className={styles.inputHint}>약 30일 동안 유지됩니다. 공용 PC에서는 해제해 주세요.</p>
         </div>

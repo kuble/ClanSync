@@ -140,9 +140,9 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
               className={cn(
                 "flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold",
                 match.outcome === "team1"
-                  ? "bg-sky-500/10 text-sky-700 dark:text-sky-300"
+                  ? "bg-sky-500/10 text-team-blue"
                   : match.outcome === "team2"
-                    ? "bg-rose-500/10 text-rose-700 dark:text-rose-300"
+                    ? "bg-rose-500/10 text-team-red"
                     : "bg-muted text-muted-foreground",
               )}
             >
@@ -159,8 +159,8 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
                   className={cn(
                     "mb-2 flex items-center gap-1.5 text-xs font-bold",
                     team === 1
-                      ? "text-sky-600 dark:text-sky-300"
-                      : "text-rose-600 dark:text-rose-300",
+                      ? "text-team-blue"
+                      : "text-team-red",
                   )}
                 >
                   <Crown className={cn("size-3.5", match.winnerTeam !== team && "invisible")} aria-label={match.winnerTeam === team ? "승리 팀" : undefined} />

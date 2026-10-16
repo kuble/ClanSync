@@ -9,6 +9,8 @@
   scrollbar-color: color-mix(in srgb, var(--muted-foreground) 55%, transparent) transparent;
   scrollbar-gutter: stable;
 }
+/* Fieldset's anonymous content box can overflow a reserved scrollbar gutter. */
+fieldset.board-scroll { scrollbar-gutter: auto; }
 .board-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
 .board-scroll::-webkit-scrollbar-track { background: transparent; }
 .board-scroll::-webkit-scrollbar-thumb {
@@ -38,6 +40,10 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  --color-info: var(--info);
+  --color-warning: var(--warning);
+  --color-team-blue: var(--team-blue);
+  --color-team-red: var(--team-red);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -71,23 +77,27 @@
   --card-foreground: #0f1720;
   --popover: #ffffff;
   --popover-foreground: #0f1720;
-  --primary: #2b8a57;
+  --primary: #267a4e;
   --primary-foreground: #ffffff;
   --secondary: #e8efec;
   --secondary-foreground: #334155;
   --muted: #e8efec;
-  --muted-foreground: #70808d;
+  --muted-foreground: #586b63;
   --accent: #e1ece5;
   --accent-foreground: #245e3b;
-  --destructive: #d9363e;
+  --destructive: #bd242c;
+  --info: #1d4ed8;
+  --warning: #92400e;
+  --team-blue: #0369a1;
+  --team-red: #be123c;
   --border: #d5dfda;
-  --input: #c8d5cd;
-  --ring: #46af75;
+  --input: #778b7f;
+  --ring: #267a4e;
   --radius: 0.875rem;
-  --brand-primary: #2b8a57;
+  --brand-primary: var(--primary);
   --brand-accent: #46af75;
   --text-secondary: #334155;
-  --pro-gold: #d97706;
+  --pro-gold: #854d0e;
   --sidebar: #eef3f1;
   --sidebar-foreground: #334155;
   --sidebar-primary: #2b8a57;
@@ -120,6 +130,10 @@
   --accent: #1b3023;
   --accent-foreground: #86d8a6;
   --destructive: #f87171;
+  --info: #93c5fd;
+  --warning: #fbbf24;
+  --team-blue: #7dd3fc;
+  --team-red: #fda4af;
   --border: #282c2a;
   --input: #353b37;
   --ring: #46af75;

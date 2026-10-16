@@ -92,7 +92,7 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings }: {
                       const rank = row.rank === undefined ? index + 1 : row.rank;
                       const unqualified = rank === null;
                       const content = <>
-                        <span className={`flex w-12 shrink-0 flex-col items-center font-black tabular-nums ${rank === 1 ? "text-amber-300" : rank === 2 ? "text-slate-300" : rank === 3 ? "text-orange-300" : "text-muted-foreground"}`}>
+                        <span className={`flex w-12 shrink-0 flex-col items-center font-black tabular-nums ${rank === 1 ? "text-pro-gold" : rank === 2 ? "text-slate-700 dark:text-slate-300" : rank === 3 ? "text-orange-700 dark:text-orange-300" : "text-muted-foreground"}`}>
                           {rank !== null && rank <= 3 && <Crown className="mb-0.5 size-3.5" aria-hidden="true" />}
                           <span className="text-2xl leading-none">{rank === null ? "--" : String(rank).padStart(2, "0")}<span className="sr-only">{unqualified ? "순위 제외" : "위"}</span></span>
                         </span>

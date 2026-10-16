@@ -66,7 +66,7 @@
   min-width: 0;
 }
 .label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted-foreground);
   margin-bottom: 5px;
 }
@@ -95,7 +95,7 @@
   background: var(--background);
 }
 .metric dt {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted-foreground);
   margin-bottom: 7px;
 }
@@ -105,7 +105,7 @@
   font-variant-numeric: tabular-nums;
 }
 .metric:first-child dd {
-  color: #e5c781;
+  color: var(--pro-gold);
 }
 .accountDetails {
   margin-top: 22px;
@@ -123,7 +123,7 @@
   gap: 18px 24px;
 }
 .detailGrid dt {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted-foreground);
   margin-bottom: 5px;
 }
@@ -164,7 +164,7 @@
   font-size: 12px;
 }
 .gameChips > button[data-active] {
-  color: #95dfb1;
+  color: var(--accent-foreground);
   border-color: #46af7580;
   background: #46af751a;
 }
@@ -193,14 +193,14 @@
   display: inline-flex;
   gap: 5px;
   align-items: center;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted-foreground);
   padding: 4px 8px;
   border: 1px solid var(--border);
   border-radius: 99px;
 }
 .connected {
-  color: #8ee2ae;
+  color: var(--primary);
   border-color: #46af754d;
 }
 .sectionHeader {
@@ -213,7 +213,7 @@
 .sectionHeader h4 {
   color: var(--muted-foreground);
   font-weight: 500;
-  font-size: 11px;
+  font-size: 12px;
 }
 .nameplate {
   display: flex;
@@ -249,14 +249,14 @@
   color: #eff7f0;
 }
 .nameplateSubtitle {
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.5;
   color: #a5c5b0;
   overflow-wrap: anywhere;
 }
 .nameplateNote {
   margin-top: 9px;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted-foreground);
 }
 .badgeSection {
@@ -320,7 +320,7 @@
   font-size: 26px;
 }
 .badgeOption > strong {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 }
 .badgeOption > small {
@@ -351,7 +351,7 @@
   padding: 10px 12px;
   color: var(--foreground);
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--input);
   border-radius: 5px;
   font-size: 13px;
   width: 100%;
@@ -383,7 +383,7 @@
   font-size: 12px;
 }
 .altRow p {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted-foreground);
   margin-top: 6px;
   overflow-wrap: anywhere;
@@ -392,7 +392,7 @@
 .notice {
   border-left: 2px solid var(--primary);
   padding-left: 12px;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.8;
   color: var(--muted-foreground);
 }
@@ -425,7 +425,7 @@
   font-weight: 600;
 }
 .requestRow p {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted-foreground);
   margin-top: 6px;
   line-height: 1.7;
@@ -434,19 +434,19 @@
 .requestStatus {
   display: inline-flex;
   align-items: center;
-  font-size: 10px;
+  font-size: 12px;
   padding: 3px 7px;
   border-radius: 4px;
   background: #46af751a;
-  color: #94dba9;
+  color: var(--primary);
   margin-left: 8px;
 }
 .requestStatus[data-status="pending"] {
-  color: #edca87;
+  color: var(--warning);
   background: #f59e0b14;
 }
 .requestStatus[data-status="rejected"] {
-  color: #f3a5a5;
+  color: var(--destructive);
   background: #ef444414;
 }
 .requestStatus[data-status="canceled"] {
@@ -461,7 +461,7 @@
   margin-top: 24px;
 }
 .error {
-  color: #fca5a5;
+  color: var(--destructive);
   font-size: 13px;
   line-height: 1.7;
 }
@@ -483,7 +483,7 @@
 }
 .pendingBanner strong {
   font-size: 12px;
-  color: #91dbaa;
+  color: var(--primary);
 }
 .pendingBanner p {
   font-size: 12px;

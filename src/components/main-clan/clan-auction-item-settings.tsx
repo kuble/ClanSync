@@ -93,7 +93,7 @@ export function ClanAuctionItemSettings({ gameSlug, clanId, items, loadError = f
         <Button variant="outline" size="sm" disabled={pending || loadError} onClick={() => { setEditor("new"); setDeleteId(null); }}><Plus className="size-3.5" aria-hidden="true" />아이템 추가</Button>
       </div>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs">
-        <span className={cn("font-medium", !onChange && activeCount < 3 ? "text-amber-500" : "text-primary")}>사용 중 {activeCount}개{!onChange && activeCount < 3 && " · 3개 이상 등록하면 사용할 수 있습니다."}</span>
+        <span className={cn("font-medium", !onChange && activeCount < 3 ? "text-warning" : "text-primary")}>사용 중 {activeCount}개{!onChange && activeCount < 3 && " · 3개 이상 등록하면 사용할 수 있습니다."}</span>
       </div>
       {loadError ? (
         <p className="mt-4 text-sm text-destructive" role="alert">아이템 목록을 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요.</p>

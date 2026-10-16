@@ -53,7 +53,7 @@ async function fillSignIn(page: Page, user: AuthUser, remember = false) {
   await page.goto("/sign-in");
   await page.getByLabel("이메일", { exact: true }).fill(user.email);
   await page.getByLabel("비밀번호", { exact: true }).fill(user.password);
-  await page.getByRole("checkbox", { name: "자동 로그인", exact: true }).setChecked(remember);
+  await page.getByRole("switch", { name: "자동 로그인", exact: true }).setChecked(remember);
 }
 
 test("successful login preserves the existing profile, clears failure count and persists remember choice", async ({ page, authUser }) => {
@@ -73,7 +73,7 @@ test("successful login preserves the existing profile, clears failure count and 
   // an error response. Re-enter the full login attempt as a user would.
   await page.getByLabel("이메일", { exact: true }).fill(email);
   await page.getByLabel("비밀번호", { exact: true }).fill(authUser.password);
-  await page.getByRole("checkbox", { name: "자동 로그인", exact: true }).check();
+  await page.getByRole("switch", { name: "자동 로그인", exact: true }).check();
   await page.getByRole("button", { name: "로그인", exact: true }).click();
   await expect(page).toHaveURL(/\/games$/);
   const [profile, cleared] = await Promise.all([

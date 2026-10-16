@@ -4,7 +4,8 @@ import { buttonVariants } from "@/components/ui/button-variants";
 import { loadBoardPostDetail } from "@/lib/main-game/load-main-game-hub";
 import { loadGameOnboarding } from "@/lib/onboarding/load-game-onboarding";
 import { createClient } from "@/lib/supabase/server";
-import { EntryBrand } from "@/components/entry/entry-brand";
+import { AccountShell } from "@/components/onboarding/account-shell";
+import { formatCommunityDate } from "@/lib/main-game/format-community-date";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -45,15 +46,8 @@ export default async function BoardPostDetailPage({
   const typeLabel = row.post_type === "scrim" ? "스크림" : "홍보";
 
   return (
-    <div className="min-h-dvh bg-surface">
-      <header className="flex h-[60px] items-center gap-4 border-b px-5">
-        <EntryBrand href="/games" />
-        <span className="text-sm text-muted-foreground">/</span>
-        <Link href={base} className="text-sm font-medium">
-          {game.name_ko}
-        </Link>
-      </header>
-      <main className="mx-auto max-w-4xl px-4 py-8 md:px-8">
+    <AccountShell>
+      <main className="mx-auto w-full min-w-0 max-w-4xl wrap-anywhere px-4 py-8 md:px-8">
         <nav className="text-muted-foreground mb-6 text-xs">
           <Link
             href={`${base}?tab=promo`}
@@ -67,17 +61,17 @@ export default async function BoardPostDetailPage({
         </nav>
 
         <article
-          className="bg-card rounded-3xl border p-6 shadow-sm sm:p-8"
+          className="bg-card rounded-xl border p-5 shadow-sm sm:p-7"
           data-board-post-detail={gameSlug}
           data-board-post-id={row.id}
         >
           <header className="border-b pb-4">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-muted-foreground text-[11px] font-medium uppercase">
+              <span className="text-muted-foreground text-xs font-medium uppercase">
                 게시판 · {typeLabel}
               </span>
               {row.is_pinned ? (
-                <span className="bg-primary/15 text-primary rounded px-2 py-0.5 text-[11px] font-medium">
+                <span className="bg-primary/15 text-primary rounded px-2 py-0.5 text-xs font-medium">
                   상단 고정
                 </span>
               ) : null}
@@ -88,7 +82,7 @@ export default async function BoardPostDetailPage({
             <div className="text-muted-foreground mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
               <span>작성: {row.author_nickname}</span>
               <span>
-                게시 시각 {new Date(row.created_at).toLocaleString("ko-KR")}
+                게시 시각 {formatCommunityDate(row.created_at)}
               </span>
               <Link
                 href={`${base}/clan/${row.clan_id}`}
@@ -111,6 +105,6 @@ export default async function BoardPostDetailPage({
           </p>
         ) : null}
       </main>
-    </div>
+    </AccountShell>
   );
 }
