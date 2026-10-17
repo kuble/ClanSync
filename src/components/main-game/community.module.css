@@ -10,7 +10,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 0 24px;
+  padding: 0 24px 0 12px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   font-size: 13px;
@@ -19,8 +19,8 @@
   color: var(--muted-foreground);
 }
 .brand {
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
   flex-shrink: 0;

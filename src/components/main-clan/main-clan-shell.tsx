@@ -228,7 +228,7 @@ export function MainClanShell({
             </SheetContent>
           </Sheet>
           <Link href="/games" className={styles.brand} aria-label="게임 선택">
-            <NavigationIcon icon={BrandSymbol} label="게임 선택" size={28} />
+            <NavigationIcon icon={BrandSymbol} label="게임 선택" size={32} />
           </Link>
           <nav aria-label="현재 위치" className={styles.breadcrumbs}>
             <span aria-hidden>/</span>

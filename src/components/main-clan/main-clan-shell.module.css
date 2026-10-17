@@ -1,6 +1,6 @@
 .shell { min-height: 100dvh; background: var(--surface); }
-.header { height: 60px; position: fixed; z-index: 40; inset: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 24px; background: var(--surface); border-bottom: 1px solid var(--border); }
-.brand { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex-shrink: 0; }
+.header { height: 60px; position: fixed; z-index: 40; inset: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 24px 0 12px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.brand { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex-shrink: 0; }
 .breadcrumbs { display: flex; min-width: 0; overflow: hidden; align-items: center; gap: 14px; font-size: 13px; color: var(--muted-foreground); }
 .breadcrumbs > a:last-of-type { min-width: 0; color: var(--foreground); font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .breadcrumbs > a:first-of-type, .breadcrumbs > span { flex-shrink: 0; }
