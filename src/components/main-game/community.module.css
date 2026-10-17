@@ -21,6 +21,8 @@
 .brand {
   width: 40px;
   height: 40px;
+  /* Match the visible spacing while preserving the larger hit area. */
+  margin-right: -8px;
   display: grid;
   place-items: center;
   flex-shrink: 0;

@@ -1,7 +1,8 @@
 .shell { min-height: 100dvh; background: var(--surface); }
 .header { height: 60px; position: fixed; z-index: 40; inset: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 24px 0 12px; background: var(--surface); border-bottom: 1px solid var(--border); }
-.brand { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex-shrink: 0; }
-.breadcrumbs { display: flex; min-width: 0; overflow: hidden; align-items: center; gap: 14px; font-size: 13px; color: var(--muted-foreground); }
+/* Compensate for the 8px inset around the 24px logo inside its 40px hit area. */
+.brand { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin-right: -8px; flex-shrink: 0; }
+.breadcrumbs { display: flex; min-width: 0; overflow: hidden; align-items: center; gap: 16px; font-size: 13px; color: var(--muted-foreground); }
 .breadcrumbs > a:last-of-type { min-width: 0; color: var(--foreground); font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .breadcrumbs > a:first-of-type, .breadcrumbs > span { flex-shrink: 0; }
 .pageTitle { flex-shrink: 0; font-size: inherit; font-weight: 600; color: var(--foreground); white-space: nowrap; }
@@ -44,7 +45,7 @@
 .skipLink:focus { top: 8px; }
 @media (max-width: 768px) {
   .header { padding: 0 16px; gap: 8px; }
-  .headerLeft { gap: 10px; }
+  .headerLeft { gap: 8px; }
   .headerRight { gap: 6px; }
   .breadcrumbs { gap: 8px; font-size: 12px; }
   .breadcrumbs > a:first-of-type, .breadcrumbs > span:first-of-type { display: none; }
