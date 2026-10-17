@@ -1,0 +1,9 @@
+.logo { display: inline-flex; align-items: center; gap: .36em; line-height: 1; flex-shrink: 0; }
+.symbol, .wordmark { display: inline-block; position: relative; overflow: hidden; flex-shrink: 0; }
+.symbol { width: 1em; aspect-ratio: 678 / 662; }
+.wordmark { width: 4.4514em; height: 1em; }
+.image { position: absolute; max-width: none; height: auto; user-select: none; }
+/* Frame the approved PNG artwork without resampling or changing the original files. */
+.symbolImage { width: 184.9558%; left: -46.1652%; top: -46.8278%; }
+.wordmarkImage { width: 108.7955%; left: -4.6499%; top: -57.1072%; }
+:global(.dark) .image { filter: brightness(0) invert(1); }

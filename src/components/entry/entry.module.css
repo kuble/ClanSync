@@ -10,7 +10,6 @@
 }
 .landing a, .authShell a, .gamesPage a { text-decoration: none; }
 .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--foreground); font-size: 28px; font-weight: 800; line-height: 1; letter-spacing: -.04em; flex-shrink: 0; }
-.brandMark { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; color: #052218; background: linear-gradient(135deg, #34d399, #10b981); border-radius: 7px; }
 .brand:focus-visible, .landing a:focus-visible, .authShell a:focus-visible, .gamesPage a:focus-visible { outline: 2px solid #34d399; outline-offset: 5px; }
 .navbar { border-bottom: 1px solid var(--entry-border); background: var(--entry-bg); height: 64px; }
 .navbarInner { max-width: 1100px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 100%; }
@@ -175,7 +174,6 @@
 @media (max-width: 560px) {
   .navbarInner { padding-inline: 16px; gap: 10px; }
   .brand { font-size: 23px; gap: 8px; }
-  .brandMark { width: 27px; height: 27px; }
   .navActions { gap: 2px; }
   .navActions a { font-size: 12px; padding: 8px 10px; min-height: 36px; }
   .hero { padding-inline: 16px; }

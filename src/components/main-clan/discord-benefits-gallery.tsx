@@ -2,7 +2,8 @@
 
 import { useId, useState } from "react";
 import Image from "next/image";
-import { ArrowUpRight, CalendarDays, ChevronDown, Layers3, Megaphone, Swords, Vote } from "lucide-react";
+import { ArrowUpRight, CalendarDays, ChevronDown, Megaphone, Swords, Vote } from "lucide-react";
+import { BrandSymbol } from "@/components/ui/brand-logo";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { buildDiscordNotificationCard, type DiscordNotificationRow } from "@/lib/notifications/discord-message";
@@ -30,7 +31,7 @@ function Preview({ index }: { index: number }) {
   return <><div className="overflow-hidden rounded-xl border border-border bg-background" role="region" aria-label={`${item.title} 활용 예시`}>
     <div className="flex items-center justify-between border-b border-border px-4 py-3 text-xs"><span className="font-medium text-muted-foreground">#{item.channel}</span><span className="rounded-md bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">발송 예시</span></div>
     {item.id === "poll" && <div className="flex gap-2 px-4 pt-3">{[{ ended: false, label: "시작 알림" }, { ended: true, label: "종료 알림" }].map(({ ended, label }) => <button key={label} type="button" aria-pressed={pollEnded === ended} onClick={() => setPollEnded(ended)} className={cn("rounded-md px-2.5 py-1 text-xs focus-visible:outline-2 focus-visible:outline-ring", pollEnded === ended ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-muted")}>{label}</button>)}</div>}
-    <div className="flex gap-3 p-4"><span role="img" aria-label="ClanSync 프로필" className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"><Layers3 className="size-5" aria-hidden /></span>
+    <div className="flex gap-3 p-4"><span role="img" aria-label="ClanSync 프로필" className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-background"><BrandSymbol size={22} /></span>
       <div className="min-w-0 flex-1"><p className="text-xs font-semibold">ClanSync<span className="ml-2 rounded bg-primary/15 px-1.5 py-0.5 text-[9px] text-primary">앱</span></p>
         <div className="mt-2 border-l-2 bg-muted/40 p-3" style={{ borderColor: `#${card.color.toString(16)}` }}><p className="mb-1.5 text-[11px] font-medium text-muted-foreground">{card.category}</p><p className="text-[13px] font-semibold leading-relaxed">{card.title}</p><p className="mt-1.5 whitespace-pre-wrap break-words text-xs text-muted-foreground">{card.body}</p><span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary">{card.action}<ArrowUpRight className="size-3" aria-hidden /></span></div>
       </div>

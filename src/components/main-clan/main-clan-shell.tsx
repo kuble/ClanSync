@@ -8,7 +8,6 @@ import {
   Calendar,
   Globe2,
   Home,
-  Layers3,
   Menu,
   MessagesSquare,
   Scale,
@@ -31,6 +30,7 @@ import type { ClanInAppNotificationVM } from "@/lib/clan/load-clan-inapp-notific
 import type { MainClanContext } from "@/lib/clan/load-main-clan-context";
 import { cn } from "@/lib/utils";
 import { NavigationIcon } from "@/components/ui/navigation-icon";
+import { BrandSymbol } from "@/components/ui/brand-logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import styles from "./main-clan-shell.module.css";
 
@@ -228,7 +228,7 @@ export function MainClanShell({
             </SheetContent>
           </Sheet>
           <Link href="/games" className={styles.brand} aria-label="게임 선택">
-            <NavigationIcon icon={Layers3} label="게임 선택" />
+            <NavigationIcon icon={BrandSymbol} label="게임 선택" size={28} />
           </Link>
           <nav aria-label="현재 위치" className={styles.breadcrumbs}>
             <span aria-hidden>/</span>

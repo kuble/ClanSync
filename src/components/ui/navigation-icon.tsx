@@ -1,7 +1,8 @@
 "use client";
 
 import { useLinkStatus } from "next/link";
-import { LoaderCircle, type LucideIcon } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
+import type { ComponentType } from "react";
 
 /** Keep the icon's space stable while its parent Link is awaiting navigation. */
 export function NavigationIcon({
@@ -9,7 +10,7 @@ export function NavigationIcon({
   label,
   size = 18,
 }: {
-  icon: LucideIcon;
+  icon: ComponentType<{ size?: number; "aria-hidden"?: boolean }>;
   label: string;
   size?: number;
 }) {
@@ -24,7 +25,7 @@ export function NavigationIcon({
           aria-hidden="true"
         />
       ) : (
-        <Icon size={size} aria-hidden="true" />
+        <Icon size={size} aria-hidden={true} />
       )}
       <span className="sr-only" role="status">
         {pending ? `${label} 페이지로 이동 중` : ""}

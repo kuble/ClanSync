@@ -6,7 +6,6 @@ import {
   BarChart3,
   Gamepad2,
   Home,
-  Layers3,
   Megaphone,
   Menu,
   Search,
@@ -24,6 +23,7 @@ import {
 } from "@/components/ui/sheet";
 import type { MainGameCommunityTab } from "@/lib/main-game/main-game-community-tab";
 import { NavigationIcon } from "@/components/ui/navigation-icon";
+import { BrandSymbol } from "@/components/ui/brand-logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import styles from "./community.module.css";
 
@@ -141,7 +141,7 @@ export function CommunityFrame({
           </SheetContent>
         </Sheet>
         <Link href="/games" className={styles.brand} aria-label="게임 선택">
-          <NavigationIcon icon={Layers3} label="게임 선택" />
+          <NavigationIcon icon={BrandSymbol} label="게임 선택" size={28} />
         </Link>
         <span aria-hidden>/</span>
         <Link href={`/games/${encodeURIComponent(gameSlug)}`}>{gameName}</Link>
