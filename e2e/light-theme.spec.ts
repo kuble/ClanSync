@@ -28,7 +28,8 @@ async function dialogFits(page: Page, dialog: Locator, image: string) {
 }
 
 function luminance(hex: string) {
-  const rgb = hex.replace("#", "").match(/../g)!.map(v => parseInt(v, 16) / 255).map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4);
+  const normalized = hex.replace(/^#([\da-f])([\da-f])([\da-f])$/i, "#$1$1$2$2$3$3");
+  const rgb = normalized.replace("#", "").match(/../g)!.map(v => parseInt(v, 16) / 255).map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4);
   return .2126 * rgb[0] + .7152 * rgb[1] + .0722 * rgb[2];
 }
 
