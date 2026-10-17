@@ -226,6 +226,27 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         () => document.documentElement.scrollWidth <= window.innerWidth,
       ),
     ).toBe(true);
+    for (const theme of ["dark", "light"]) {
+      const toggle = page.getByRole("button", { name: "라이트 테마", exact: true });
+      if ((await toggle.getAttribute("aria-pressed")) !== String(theme === "light")) await toggle.click();
+      await expect(page.locator("html")).toHaveClass(new RegExp(`\\b${theme}\\b`));
+      for (const width of [1304, 900, 390, 320]) {
+        await page.setViewportSize({ width, height: 844 });
+        expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+        const noticeBox = (await page.getByRole("region", { name: "클랜 공지사항", exact: true }).boundingBox())!;
+        const eventBox = (await page.getByRole("region", { name: "다가오는 일정", exact: true }).boundingBox())!;
+        expect(eventBox.y - noticeBox.y - noticeBox.height).toBeCloseTo(24, 0);
+        const mvp = page.getByRole("region", { name: "지난달 MVP", exact: true });
+        const winners = await mvp.locator("section").evaluateAll(els => els.map(el => ({ x: el.getBoundingClientRect().x, y: el.getBoundingClientRect().y })));
+        expect(new Set(winners.map(box => box.y)).size).toBe(width >= 900 ? 1 : 3);
+        if (width === 320 || width === 1304) {
+          await page.getByRole("heading", { name: "클랜 공지사항", exact: true }).scrollIntoViewIfNeeded();
+          await page.screenshot({ path: test.info().outputPath(`dashboard-${width}-${theme}.png`) });
+          await mvp.scrollIntoViewIfNeeded();
+          await page.screenshot({ path: test.info().outputPath(`mvp-${width}-${theme}.png`) });
+        }
+      }
+    }
   } finally {
     const cleanup = await Promise.all([
       svc.from("clan_events").delete().eq("id", eventId),
