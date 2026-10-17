@@ -6,4 +6,11 @@
 /* Frame the approved PNG artwork without resampling or changing the original files. */
 .symbolImage { width: 184.9558%; left: -46.1652%; top: -46.8278%; }
 .wordmarkImage { width: 108.7955%; left: -4.6499%; top: -57.1072%; }
-:global(.dark) .image { filter: brightness(0) invert(1); }
+.darkImage { display: none; }
+/* D1 contains both pieces; frame each from the same cached image. */
+.darkSymbolImage { width: 485.906%; left: -19.0157%; top: -34.4988%; }
+.darkWordmarkImage { width: 142.4262%; left: -36.8525%; top: -68.546%; }
+:global(.dark) .lightImage { display: none; }
+:global(.dark) .darkImage { display: block; }
+:global(.dark) .symbol { aspect-ratio: 447 / 429; }
+:global(.dark) .wordmark { width: 4.5252em; }
