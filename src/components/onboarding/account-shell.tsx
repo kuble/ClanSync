@@ -9,7 +9,7 @@ export function AccountShell({ children }: { children: ReactNode }) {
   return <div className={styles.shell}>
     <header className={styles.navbar}><div className={styles.navbarInner}>
       <EntryBrand />
-      <nav aria-label="계정 메뉴"><Link href="/games"><Gamepad2 size={16} aria-hidden="true" />게임 선택</Link><Link href="/profile"><UserRound size={16} aria-hidden="true" />프로필</Link><ThemeToggle /></nav>
+      <nav aria-label="계정 메뉴"><Link href="/games" aria-label="게임 선택" title="게임 선택"><Gamepad2 size={16} aria-hidden="true" /><span className={styles.navLabel}>게임 선택</span></Link><Link href="/profile" aria-label="프로필" title="프로필"><UserRound size={16} aria-hidden="true" /><span className={styles.navLabel}>프로필</span></Link><ThemeToggle /></nav>
     </div></header>
     {children}
   </div>;

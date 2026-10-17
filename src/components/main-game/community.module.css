@@ -36,6 +36,9 @@
   align-items: center;
   gap: 8px;
   color: var(--muted-foreground);
+  min-height: 40px;
+  min-width: 40px;
+  justify-content: center;
 }
 .rail {
   position: fixed;
@@ -358,6 +361,7 @@
 }
 .mobileTrigger {
   display: none;
+  flex-shrink: 0;
 }
 .drawerNav {
   display: flex;
@@ -392,7 +396,8 @@
   }
   .header {
     padding: 0 16px;
-    gap: 10px;
+    gap: 8px;
+    font-size: 12px;
   }
   .mobileTrigger {
     display: inline-flex;

@@ -25,6 +25,8 @@ import type { MainGameCommunityTab } from "@/lib/main-game/main-game-community-t
 import { NavigationIcon } from "@/components/ui/navigation-icon";
 import { BrandSymbol } from "@/components/ui/brand-logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { buttonVariants } from "@/components/ui/button-variants";
+import { cn } from "@/lib/utils";
 import styles from "./community.module.css";
 
 const navigation: {
@@ -110,7 +112,7 @@ export function CommunityFrame({
       </a>
       <header className={styles.header}>
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetTrigger className={styles.mobileTrigger} aria-label="메뉴 열기">
+          <SheetTrigger className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), styles.mobileTrigger)} aria-label="메뉴 열기">
             <Menu size={20} />
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">

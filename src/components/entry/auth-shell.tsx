@@ -7,8 +7,7 @@ export function AuthShell({ children, mode }: { children: ReactNode; mode: "sign
   return (
     <main className={styles.authShell}>
       <div className={styles.authPanel}>
-        <div className={styles.authBrand}><EntryBrand /></div>
-        <ThemeToggle className="absolute right-6 top-6" />
+        <header className={styles.authHeader}><EntryBrand /><ThemeToggle /></header>
         <div className={styles.authForm}>{children}</div>
       </div>
       <aside className={styles.authAside} aria-label="ClanSync 소개">

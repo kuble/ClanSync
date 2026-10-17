@@ -1,8 +1,8 @@
 .shell { min-height: 100svh; background: var(--background); color: var(--foreground); }
-.navbar { height: 64px; border-bottom: 1px solid var(--border); }
-.navbarInner { height: 100%; max-width: 960px; padding-inline: 24px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-.navbar nav { display: flex; align-items: center; gap: 12px; }
-.navbar nav a { display: flex; gap: 7px; align-items: center; font-size: 13px; color: var(--muted-foreground); }
+.navbar { height: 60px; border-bottom: 1px solid var(--border); }
+.navbarInner { height: 100%; max-width: 960px; padding-inline: 24px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.navbar nav { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.navbar nav a { display: flex; gap: 8px; align-items: center; justify-content: center; min-width: 40px; min-height: 40px; font-size: 13px; font-weight: 700; color: var(--foreground); white-space: nowrap; }
 .navbar nav a:hover { color: var(--foreground); }
 .content { width: 100%; max-width: 850px; margin: 0 auto; padding: 56px 24px 72px; }
 .authContent { max-width: 560px; }
@@ -93,11 +93,12 @@
 .detailBody p { font-size: 13px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
 .detailBody a { font-size: 13px; color: var(--primary); display: inline-flex; align-items: center; gap: 6px; margin-right: 18px; }
 .shell a:focus-visible, .shell button:focus-visible, .shell input:focus-visible, .shell textarea:focus-visible, .shell select:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
-@media (max-width: 600px) {
-  .navbarInner { padding-inline: 16px; gap: 10px; }
+@media (max-width: 768px) {
+  .navbarInner { padding-inline: 16px; gap: 8px; }
   .navbar nav { gap: 8px; }
-  .navbar nav a { font-size: 12px; }
-  .navbar nav a svg { display: none; }
+  .navLabel { display: none; }
+}
+@media (max-width: 600px) {
   .content { padding: 36px 16px 52px; }
   .authCard { padding: 24px 20px; }
   .steps li { gap: 6px; font-size: 12px; }
