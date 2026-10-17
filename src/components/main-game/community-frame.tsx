@@ -141,7 +141,7 @@ export function CommunityFrame({
           </SheetContent>
         </Sheet>
         <Link href="/games" className={styles.brand} aria-label="게임 선택">
-          <NavigationIcon icon={BrandSymbol} label="게임 선택" size={24} />
+          <NavigationIcon icon={BrandSymbol} label="게임 선택" size={22} />
         </Link>
         <span aria-hidden>/</span>
         <Link href={`/games/${encodeURIComponent(gameSlug)}`}>{gameName}</Link>
