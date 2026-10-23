@@ -13,9 +13,23 @@
 .pinArtwork { position:absolute; inset:4%; pointer-events:none; filter:drop-shadow(0 4px 3px #0005); }
 .artworkImage { width:100%; height:100%; object-fit:contain; }
 .filterDefs { position:absolute; overflow:hidden; pointer-events:none; }
+.pageLayout { container-type:inline-size; display:grid; gap:20px; min-width:0; }
+.featuredSection { display:grid; gap:10px; min-width:0; }
+.pageCase {
+  --emblem-columns:3;
+  --emblem-gap:clamp(12px,2cqi,20px);
+  --case-padding:clamp(12px,3cqi,24px);
+  --emblem-size:min(136px,calc((100cqi - 12px - var(--case-padding) * 2 - var(--emblem-gap) * (var(--emblem-columns) - 1)) / var(--emblem-columns)));
+  width:100%; min-width:0; padding:var(--case-padding); border-width:6px; border-radius:16px;
+}
+.pageCase .pageGrid { grid-template-columns:repeat(var(--emblem-columns),var(--emblem-size)); justify-content:center; gap:var(--emblem-gap); min-height:0; }
+.pageCase .featuredPageGrid { grid-template-columns:repeat(3,var(--emblem-size)); }
+.pageCase .groupHeading { margin-bottom:var(--emblem-gap); }
+.toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; min-width:0; }
 .controls { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
-.collectionFrame { min-height:320px; }
-.groups { display:grid; gap:20px; }
+.collectionFrame { min-height:calc(var(--emblem-size) + var(--case-padding) * 2 + 72px); }
+.pageCase .empty { min-height:var(--emblem-size); }
+.groups { display:grid; gap:28px; }
 .groupHeading { margin:0 0 10px; color:#c6cfc3; font-size:12px; font-weight:600; }
 .historyEntry { min-width:0; }
 .historyCaption { margin:8px 0 0; color:#c6cfc3; font-size:11px; line-height:1.5; text-align:center; white-space:pre-line; overflow-wrap:anywhere; }
@@ -25,3 +39,4 @@
 .empty { display:grid; place-items:center; min-height:230px; padding:16px; color:#c6cfc3; font-size:12px; text-align:center; }
 .progress { display:block; width:100%; height:7px; accent-color:var(--primary); }
 @media(max-width:359px) { .controls { gap:8px; } }
+@container(min-width:760px) { .pageCase { --emblem-columns:5; } }

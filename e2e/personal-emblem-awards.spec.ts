@@ -99,6 +99,47 @@ test("award cases prefer the best recent grade and filter full history by gold, 
     await expect(monthlyWin).toBeFocused();
     await expect(monthlyWin).toHaveAttribute("data-emblem-key", `month-${previousYear}-02-승률`);
     await expect(collection.locator('[aria-busy="true"]')).toHaveCount(0);
+    for (const width of [320, 390, 568, 640, 685, 768, 1024, 1304]) {
+      await page.setViewportSize({ width, height: 1004 });
+      const featuredBounds = await tray.locator('[data-featured-emblem-key]').boundingBox();
+      expect(featuredBounds).not.toBeNull();
+      const featuredImageBounds = await tray.locator('[data-featured-emblem-key] img').boundingBox();
+      expect(featuredImageBounds).not.toBeNull();
+      const frameBounds = await collection.locator('[aria-busy]').evaluateAll(elements => elements.map(element => {
+        const bounds = element.getBoundingClientRect();
+        return { x: bounds.x, width: bounds.width };
+      }));
+      expect(Math.abs(frameBounds[0].x - frameBounds[1].x)).toBeLessThan(1);
+      expect(Math.abs(frameBounds[0].width - frameBounds[1].width)).toBeLessThan(1);
+      for (const category of ["전체", "수상", "달성"]) {
+        await filters.getByRole("radio", { name: category, exact: true }).click();
+        const sizes = await collection.locator('[data-emblem-key]').evaluateAll(elements => elements.map(element => {
+          const bounds = element.getBoundingClientRect();
+          return { width: bounds.width, height: bounds.height, left: bounds.left, right: bounds.right };
+        }));
+        expect(sizes.length).toBeGreaterThan(0);
+        for (const size of sizes) {
+          expect(Math.abs(size.width - featuredBounds!.width)).toBeLessThan(1);
+          expect(Math.abs(size.height - featuredBounds!.height)).toBeLessThan(1);
+          expect(size.left).toBeGreaterThanOrEqual(0);
+          expect(size.right).toBeLessThanOrEqual(width);
+        }
+        const artworkSizes = await collection.locator('[data-emblem-key] img').evaluateAll(elements => elements.map(element => {
+          const bounds = element.getBoundingClientRect();
+          return { width: bounds.width, height: bounds.height };
+        }));
+        for (const size of artworkSizes) {
+          expect(Math.abs(size.width - featuredImageBounds!.width)).toBeLessThan(1);
+          expect(Math.abs(size.height - featuredImageBounds!.height)).toBeLessThan(1);
+        }
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      if ([568, 685].includes(width)) {
+        await filters.getByRole("radio", { name: "수상", exact: true }).click();
+        await collection.screenshot({ animations: "disabled", path: info.outputPath(`personal-emblem-grid-${width}.png`) });
+      }
+    }
+    await filters.getByRole("radio", { name: "수상", exact: true }).click();
     await collection.screenshot({ animations: "disabled", path: info.outputPath("personal-emblem-awards-desktop.png") });
     const featuredPin = tray.locator('[data-featured-emblem-key]');
     await featuredPin.click();

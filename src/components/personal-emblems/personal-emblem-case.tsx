@@ -189,11 +189,11 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
   }
 
   return <Dialog open={detailOpen && !!selected} onOpenChange={next => { setDetailOpen(next); if (next) { setRankFilter("all"); refresh(); } }}>
-    <div data-personal-emblem-case className="space-y-4">
-      <section className={cn(styles.launcher, styles.profile, "space-y-2")} aria-label="대표 엠블럼 진열">
+    <div data-personal-emblem-case className={styles.pageLayout}>
+      <section className={styles.featuredSection} aria-label="대표 엠블럼 진열">
         <h3 className="text-sm font-semibold">대표 엠블럼</h3>
-        <div className={cn(caseStyles.case, styles.tray)} aria-busy={pending}>
-          <div className={cn(caseStyles.caseGrid, styles.featuredGrid)} role="group" aria-label="선택한 대표 엠블럼 3칸">
+        <div className={cn(caseStyles.case, styles.pageCase)} aria-busy={pending}>
+          <div className={cn(caseStyles.caseGrid, styles.pageGrid, styles.featuredPageGrid)} role="group" aria-label="선택한 대표 엠블럼 3칸">
             {[0, 1, 2].map(index => {
               const emblem = featured[index];
               const className = cn(caseStyles.pin, emblem && caseStyles.artworkSocket, styles.pin);
@@ -206,24 +206,24 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
           </div>
         </div>
       </section>
-      <div className={styles.controls}>
+      <div className={styles.toolbar}>
         <RubberSegment label="엠블럼 분류" labelPosition="hidden" options={filters} value={filter} onChange={setFilter} />
+        <div className={styles.feedback} role={error ? "alert" : "status"} aria-live="polite">
+          {pending ? "엠블럼을 불러오는 중…" : error ?? emblems.filter(emblem => emblem.earned).length + "개의 획득 기록"}
+          {error && <Button type="button" variant="ghost" size="xs" onClick={() => { setDetailOpen(false); setSelection(undefined); refresh(); }}>다시 불러오기</Button>}
+        </div>
       </div>
-      <div className={styles.feedback} role={error ? "alert" : "status"} aria-live="polite">
-        {pending ? "엠블럼을 불러오는 중…" : error ?? emblems.filter(emblem => emblem.earned).length + "개의 획득 기록"}
-        {error && <Button type="button" variant="ghost" size="xs" onClick={() => { setDetailOpen(false); setSelection(undefined); refresh(); }}>다시 불러오기</Button>}
-      </div>
-      <div className={cn(caseStyles.case, styles.collectionFrame)} aria-busy={pending}>
+      <div className={cn(caseStyles.case, styles.pageCase, styles.collectionFrame)} aria-busy={pending}>
         <div className={caseStyles.casePlate}>{initialCollection.clanName} · {initialCollection.nickname}</div>
         <div className={styles.groups}>
           {awards.length > 0 && <section aria-label="종류별 수상 엠블럼">
             <h3 className={styles.groupHeading}>수상</h3>
-            <div className={caseStyles.caseGrid}>{awards.map(emblem => <DialogTrigger key={emblem.key}
+            <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{awards.map(emblem => <DialogTrigger key={emblem.key}
               render={renderPin(emblem, false, () => inspect(emblem))} />)}</div>
           </section>}
           {milestones.length > 0 && <section aria-label="누적 달성 엠블럼">
             <h3 className={styles.groupHeading}>개인의 성장</h3>
-            <div className={caseStyles.caseGrid}>{milestones.map(emblem => <DialogTrigger key={emblem.key}
+            <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{milestones.map(emblem => <DialogTrigger key={emblem.key}
               render={renderPin(emblem, false, () => inspect(emblem))} />)}</div>
           </section>}
           {!awards.length && !milestones.length && <p className={styles.empty}>{pending ? "획득 기록을 확인하고 있습니다." : error ? "다시 불러오면 엠블럼을 확인할 수 있습니다." : "아직 획득한 엠블럼이 없습니다."}</p>}
