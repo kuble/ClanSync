@@ -1,0 +1,408 @@
+{
+  "date": "2026-10-23",
+  "assets": [
+    {
+      "file": "awards/month/victory-gold.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1060335,
+      "sha256": "7032a8a92683a958ff1eab9673ec21831e43661a25a7e865352128a719912080",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/month/victory-silver.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1084513,
+      "sha256": "f8106ed7b8dcf778092fda2098054ffa7548909ce0808d3d4a3c5c34cb48fab9",
+      "cornerAlphaMax": 1
+    },
+    {
+      "file": "awards/month/victory-bronze.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1333378,
+      "sha256": "0033d8b644bc48db97d76e8b6fe0160a0b9ac40e241518d5404fbaa76cb7c23d",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/month/participation-gold.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1014291,
+      "sha256": "d061017bfcda4112cf957d43dc8b6d67090ee04265dcca8cfad9f47d26899d11",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/month/participation-silver.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1027183,
+      "sha256": "a9b74284b992d8839d7638b729b057684907e43b5fce24e90d924c134b47eff4",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/month/participation-bronze.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1046102,
+      "sha256": "c0bd32fcf7baac0e69e88a89171c6a6261acd7a5e362a7c9fcba7f4df259ea1b",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/month/appearances-gold.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 922534,
+      "sha256": "deadd24e9a3159940bac6b25239c995e5b55203055851527fc4f549564de1ad0",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/month/appearances-silver.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 943656,
+      "sha256": "88b37900befb834cb32132b26078395a6ce222afeba872d9853cf11d64d4e4a8",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/month/appearances-bronze.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 906896,
+      "sha256": "70dbd703595cbfb2462696c2a1b69c2c201b44e56f6a4c9145391a4da4086bd4",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/month/streak-gold.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1184713,
+      "sha256": "0d2fec1e7f623d332313f71b1153e0069464d82b890acfda7718604e0e1d6821",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/month/streak-silver.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1189712,
+      "sha256": "794a5b05786544430e7a6d9c1d90fcd6020be9e8c6f11c54f587e069ca11cda0",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/month/streak-bronze.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1161425,
+      "sha256": "d6a2193dd0aed9d0c8ab1cef0a0150b63d127776d4c48859bbf3a6b4a244a1ed",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/month/prediction-gold.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1110898,
+      "sha256": "67b22363dd038fa6b517be4a27210fd15ca2664b9eee119f13754017d6b5b3bf",
+      "cornerAlphaMax": 1
+    },
+    {
+      "file": "awards/month/prediction-silver.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1109721,
+      "sha256": "ac74f4ca54f6c9352ac6e73d63d3f824d86384764820cecdf46357089d846c92",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/month/prediction-bronze.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1103890,
+      "sha256": "f8b1277f25c4c1714b6f4068085e7a232dab31a60acf83338e1388daa47181ab",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/year/victory-gold.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1641864,
+      "sha256": "5ac1bf9bd36a89dbf8ecfdc19384628964128308d0e5ca29ce56bec4e399e25a",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/year/victory-silver.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1665481,
+      "sha256": "6d2fd238704ed17ddc6e43fef5d6cb9d7c9302c0033f3b23eef3b1ac9779f416",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/year/victory-bronze.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1622947,
+      "sha256": "5701cddee8e713fce8c5b7fe5160049aa09542e1a666319919b71df4ff5c41dc",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/year/participation-gold.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1772957,
+      "sha256": "9b361fc53e034716205d6781991946a85772aeecc1e4963512e7c7347507824f",
+      "cornerAlphaMax": 1
+    },
+    {
+      "file": "awards/year/participation-silver.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1812035,
+      "sha256": "8fc46b2106b8238d8ab0f7ad894785479aba8a7feac6edb26f045e3a55fe8c63",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/year/participation-bronze.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1712582,
+      "sha256": "3fa1f565c9572c022918e75a0810b14403a2048ab2f3081efd71fef51526a295",
+      "cornerAlphaMax": 1
+    },
+    {
+      "file": "awards/year/appearances-gold.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1354265,
+      "sha256": "c163f2b41a199de32a2c432c1b64d5ccb9c4ad7f8dd4431ba737874eb3baa1de",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/year/appearances-silver.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1430879,
+      "sha256": "026281d18c3f5b05e35e8f1e2a333525983402475042aff5014341109e66bd0a",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/year/appearances-bronze.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1392243,
+      "sha256": "c746b1949c249a9d659b97bcdf9728548f5bba9b4bee06977fa95716c036a688",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/year/streak-gold.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1269331,
+      "sha256": "108dc5b96daaf6379694ef7efc195cd3660183f28a42edbc79d52a5f5f7fd428",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/year/streak-silver.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1310762,
+      "sha256": "cc5d3d984dd8942fd02814af179bc891037f5f4e7f8586eec9dd69044025b04d",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/year/streak-bronze.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1312837,
+      "sha256": "8a230eabd4241b8d25721969dd974af05da7512e333e9e510b264611438533b3",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/year/prediction-gold.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1453589,
+      "sha256": "f573f299a3fdc50bb5ce1471dfa1f15463a7636da23575de8e56e0d3f9bf2a88",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/year/prediction-silver.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1494040,
+      "sha256": "2db79b0a1a1c757d83b97e29a65333bf9230c222fc007c71a143e0c4526e479e",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "awards/year/prediction-bronze.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1459166,
+      "sha256": "239eca57a3c027e88376eb3a01e8ca88bfe344cba94c156f11e47fa94938445d",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "milestones/sessions-1.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1482599,
+      "sha256": "0996aab404aebb2d133fcb8793b12d9140fb0a070b2bd6da483a531a9050aa4c",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "milestones/sessions-2.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1461910,
+      "sha256": "4cffd52ca7fec5c894144cdbaf1229456e5078de9d91b065c8d3703a7064f5d3",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "milestones/sessions-3.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1574050,
+      "sha256": "148341c4e5cf728f44e2c4d55e6987c9d56e99bdb867d9a9dc080930bcf8f863",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "milestones/sessions-4.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2013218,
+      "sha256": "e0fbccc90a101e657a43356ffdac7b1b0c7463052ae9681dbd3c5924ac5afd38",
+      "cornerAlphaMax": 1
+    },
+    {
+      "file": "milestones/matches-1.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 434210,
+      "sha256": "45c3c1e6a005b47d7016c1ef7b2a2273df68b5ca1b7e2209b65ac3ee3fd55621",
+      "cornerAlphaMax": 1
+    },
+    {
+      "file": "milestones/matches-2.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 613924,
+      "sha256": "c285044177e71e2a73d283c5b8822511aa9fa7d3a5a7be56f551a472203797d1",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "milestones/matches-3.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1166086,
+      "sha256": "97d5b102e1c1cdc997157972b9640459870b54858327bfaeb1b21157f333fed7",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "milestones/matches-4.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1533224,
+      "sha256": "47b8e1dd9b94aa6c7b2f06da6217163b030ac66dd797d6e37ed0e104b8faf158",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "milestones/wins-1.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 835718,
+      "sha256": "294d707afec868f3f86b6c43cd52315ab21ca8f293d5a17e4d44970772b94492",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "milestones/wins-2.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 857468,
+      "sha256": "447f59b93a65c28e6ec02bb6bea4cedb5a524439d0d36fb98ad38433ad6f4205",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "milestones/wins-3.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1192114,
+      "sha256": "ae05fd314e71aaaf4f45d018e5a7bc3242b0b8e929760179216b0c00700e31fa",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "milestones/wins-4.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1330961,
+      "sha256": "838c4a7e5aeca97e7e075ecc863baebf7dfa5b06a5562b57062b88db786b65e3",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "milestones/streak-1.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 639900,
+      "sha256": "6884ca112bb78eb938c531e9b5a5ff2b8b21708bec8c0e1df1452eb63562efa2",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "milestones/streak-2.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 735000,
+      "sha256": "6d36f5556778d80c408870c452d474f2a6c8497596671d65f7524212df171fe6",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "milestones/streak-3.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1134442,
+      "sha256": "cc5fda5905125be9bbdfc1a7900709ffa5c84fd7bd2ec7cbb3da0c9a8c820a52",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "milestones/streak-4.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1321568,
+      "sha256": "5bdb3fae6a0bde1d587aefca0ecf8c4d9ed5008accf261dfc254415684bef3fd",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "milestones/prediction-1.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 772197,
+      "sha256": "b4ad93d656b93f822e25df8e617734e90742f3c25c62dbeb0535fb2555f0a515",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "milestones/prediction-2.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1074018,
+      "sha256": "76c669316114d04ce2f26e16019b1fe9c8a706310e621e90de15192e07d352fb",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "milestones/prediction-3.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1397451,
+      "sha256": "92fbf64a9a1f4bb47f01e43308b69a618a73a1d11d592b1b7331027b1d77c021",
+      "cornerAlphaMax": 0
+    },
+    {
+      "file": "milestones/prediction-4.png",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1416072,
+      "sha256": "fd9c9b03c54b4bd066bdd70825670da9ca6a5a34fdb5a37c0f07b08c2fed8e35",
+      "cornerAlphaMax": 1
+    }
+  ],
+  "sourceCopies": "50/50 identical to generated originals",
+  "dateColors": "12 monthly / 6 yearly, 2026 anchor",
+  "enamelMask": "gold/silver/bronze/ivory unaffected in channel checks"
+}
