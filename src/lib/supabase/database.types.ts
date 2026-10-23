@@ -14,6 +14,32 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_personal_emblem_picks: {
+        Row: {
+          emblem_keys: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          emblem_keys?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          emblem_keys?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_personal_emblem_picks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auth_failed_logins: {
         Row: {
           attempted_at: string

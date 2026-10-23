@@ -44,10 +44,6 @@ export function ProfileIdentity({ userId, intro, memberships, readOnly = false }
         <div className={styles.clanProfileGame}><GameLogo slug={membership.gameSlug} name={membership.gameName} /><span>{membership.gameName}</span><small>{membership.role === "leader" ? "클랜장" : membership.role === "officer" ? "운영진" : "멤버"}</small></div>
         <Link href={`/games/${membership.gameSlug}/clan/${membership.clanId}`} className={styles.playerClanLink}>{membership.clanName}</Link>
         <p className={styles.clanAccountId}><span>{membership.gameSlug === "overwatch" ? "배틀태그" : ["valorant", "lol"].includes(membership.gameSlug) ? "라이엇 ID" : "게임 ID"}</span><strong>{membership.accountId || "게임 계정 미연동"}</strong></p>
-        {(!readOnly || membership.showEmblems) && <section className={styles.playerEmblems} aria-label="대표 엠블럼">
-        <h2>대표 엠블럼</h2>
-        <PersonalEmblemCaseLauncher variant="profile" gameSlug={membership.gameSlug} clanId={membership.clanId} userId={userId} nickname={membership.accountId || "플레이어"} />
-        </section>}
       </article>)}
       </div>
       {memberships.length > 1 && <div className={styles.clanNavigation}>
@@ -56,6 +52,10 @@ export function ProfileIdentity({ userId, intro, memberships, readOnly = false }
         <button type="button" aria-label="다음 클랜" aria-controls={trackId} disabled={current === memberships.length - 1} onClick={() => showClan(current + 1)}><ChevronRight size={16} aria-hidden="true" /></button>
       </div>}
     </div> : !readOnly ? <div className={styles.playerClan}><p>클랜에서 함께한 기록이 이곳에 쌓입니다.</p><Link href="/games" className={styles.playerClanLink}>클랜 찾아보기</Link></div> : null}
+    {(!readOnly || memberships.some(membership => membership.showEmblems)) && <section className={styles.playerEmblems} aria-label="대표 엠블럼">
+      <h2>대표 엠블럼</h2>
+      <PersonalEmblemCaseLauncher variant="profile" userId={userId} nickname="플레이어" />
+    </section>}
     {!readOnly && <Link href="/profile/emblems" className={styles.playerClanLink}>내 엠블럼 케이스 보기</Link>}
   </section>;
 }

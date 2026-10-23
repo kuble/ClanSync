@@ -20,9 +20,9 @@ test("개인 엠블럼은 프로필 경로·탐색을 사용하고 클랜별 열
     await loginIsolatedBalanceUser(page, owner);
     await page.goto("/profile");
     const launcher = page.getByRole("region", { name: "플레이어 소개", exact: true }).getByRole("link", { name: "플레이어 엠블럼 케이스 열기", exact: true });
-    await expect(launcher).toHaveAttribute("href", path);
+    await expect(launcher).toHaveAttribute("href", `/profile/${owner.id}/emblems`);
     await launcher.click();
-    await expect(page).toHaveURL(path);
+    await expect(page).toHaveURL(`/profile/${owner.id}/emblems`);
     await expect(page.getByRole("heading", { name: "개인 엠블럼 케이스", exact: true })).toBeVisible();
     const breadcrumb = page.getByRole("navigation", { name: "현재 위치", exact: true });
     await expect(breadcrumb.getByRole("link", { name: "프로필", exact: true })).toHaveAttribute("href", "/profile");

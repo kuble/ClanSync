@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { awardEmblems, getAwardHistory, getAwardRepresentatives, milestoneEmblems, resolveFeaturedKeys } from "../src/lib/personal-emblems/catalog";
+import { awardEmblems, getAwardHistory, getAwardRepresentatives, milestoneEmblems, resolveFeaturedKeys, resolveAccountFeaturedKeys } from "../src/lib/personal-emblems/catalog";
 const history = (...keys: string[]) => new Map(keys.map((key) => [key, "2025-07-01T15:30:00Z"]));
 
 test("마감 수상은 기간·금속에 맞는 원본으로 변환하고 기존 수상키를 보존한다", () => {
@@ -79,4 +79,19 @@ test("달성형 대표는 계열별 최고 획득 단계로 올라가며 같은 
   expect(resolveFeaturedKeys(entries, ["milestone-sessions-1", "milestone-sessions-2", "milestone-matches-1"]))
     .toEqual(["milestone-sessions-2", "milestone-matches-3"]);
   expect(resolveFeaturedKeys(entries, ["milestone-sessions-4", "milestone-prediction-1"])).toEqual([]);
+});
+
+
+test("계정 대표는 게임·클랜을 섞어 세 칸의 순서를 유지하고 달성 단계는 출처별로 올린다", () => {
+  const source = (clanId: string, gameSlug: string, earned: string[]) => ({
+    clanId, clanName: clanId, gameSlug, userId: "owner", viewerId: "owner", nickname: "나", canFeature: true, featuredKeys: [],
+    emblems: milestoneEmblems({ sessions: 0, matches: 0, wins: 0, streak: 0, prediction: 0 }, history(...earned)),
+  });
+  const sources = [source("ow", "overwatch", ["milestone-wins-1", "milestone-wins-2"]),
+    source("val", "valorant", ["milestone-wins-1"]), source("old", "overwatch", ["milestone-sessions-1"])];
+  const keys = ["val:milestone-wins-1", "ow:milestone-wins-1", "old:milestone-sessions-1"];
+  expect(resolveAccountFeaturedKeys(sources, keys)).toEqual([keys[0], "ow:milestone-wins-2", keys[2]]);
+  expect(resolveAccountFeaturedKeys(sources, [])).toEqual([]);
+  expect(resolveAccountFeaturedKeys(sources, ["unknown:milestone-wins-1", "ow:milestone-wins-4", ...keys, ...keys])).toHaveLength(3);
+  expect(resolveAccountFeaturedKeys(sources, [keys[1], "ow:milestone-wins-2", keys[0]])).toEqual(["ow:milestone-wins-2", keys[0]]);
 });

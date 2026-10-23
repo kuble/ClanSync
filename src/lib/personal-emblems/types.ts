@@ -30,6 +30,8 @@ export type PersonalEmblemCollection = {
   emblems: PersonalEmblem[];
   /** null uses recent earned emblems; an empty array deliberately displays no picks. */
   featuredKeys: string[] | null;
-  /** Owner-only unified case; each source keeps its original clan keys and picks. */
+  /** Account-wide selection, encoded as clan UUID + ':' + the original emblem key. */
+  accountFeaturedKeys?: string[];
+  /** Sources restricted to the actor's ownership or permitted profile disclosure. */
   sources?: PersonalEmblemCollection[];
 };

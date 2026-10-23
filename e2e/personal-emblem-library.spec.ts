@@ -149,7 +149,7 @@ test("one personal case keeps cross-game clan records after leaving, with source
     await valEntry.locator("[data-emblem-feature-key]").hover();
     await valEntry.locator("[data-emblem-feature-key]").click();
     await expect(valEntry.locator("[data-emblem-feature-key]")).toHaveAttribute("aria-pressed", "true");
-    expect((await ok(f.service.from("clan_personal_emblem_picks").select("emblem_keys").eq("clan_id", valClan).eq("user_id", owner.id).single())).emblem_keys).toEqual([key]);
+    expect((await ok(f.service.from("account_personal_emblem_picks").select("emblem_keys").eq("user_id", owner.id).single())).emblem_keys).toEqual([valClan + ":" + key]);
     expect((await ok(f.service.from("clan_personal_emblem_picks").select("emblem_keys").eq("clan_id", f.clanId).eq("user_id", owner.id).single())).emblem_keys).toEqual([]);
     await expect(details.getByRole("radiogroup", { name: "엠블럼 게임", exact: true })).toHaveCount(0);
     const grades = details.getByRole("radiogroup", { name: "수상 등급", exact: true });
@@ -191,7 +191,7 @@ test("one personal case keeps cross-game clan records after leaving, with source
     await expect(caseView).toBeVisible();
     await ok(f.service.from("clan_members").update({ status: "active" }).eq("clan_id", f.clanId).eq("user_id", owner.id));
     const rejoined = await read();
-    expect(rejoined.sources?.find(source => source.clanId === f.clanId)?.featuredKeys).toEqual(["milestone-wins-1"]);
+    expect(rejoined.accountFeaturedKeys).toEqual([valClan + ":" + key, f.clanId + ":milestone-wins-1"]);
     expect(rejoined.sources?.flatMap(source => source.emblems.filter(emblem => emblem.earned).map(emblem => source.clanId + ":" + emblem.key)).sort()).toEqual(originalKeys);
     expect((await page.request.get("/api/personal-emblems?clan=invalid")).status()).toBe(400);
   } finally {

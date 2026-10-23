@@ -27,7 +27,7 @@ test("award cases prefer the best recent grade and filter full history by gold, 
       ...(index === 3 ? [{ match_id: match.id, user_id: isolated.users[2].id, team: 1 }] : []),
     ])));
     await ok(isolated.service.from("match_results").insert(matches.map(match => ({ match_id: match.id, winner_team: 1 }))));
-    await ok(isolated.service.from("clan_personal_emblem_picks").upsert({ clan_id: isolated.clanId, user_id: user.id, emblem_keys: [] }));
+    await ok(isolated.service.from("account_personal_emblem_picks").upsert({ user_id: user.id, emblem_keys: [] }));
     await loginIsolatedBalanceUser(page, user);
     await page.goto(statsUrl);
     const trigger = page.getByRole("region", { name: "플레이어 배너", exact: true })
@@ -88,7 +88,7 @@ test("award cases prefer the best recent grade and filter full history by gold, 
     await selectedStar().focus();
     await selectedStar().click();
     await expect(selectedStar()).toBeEnabled();
-    expect((await isolated.service.from("clan_personal_emblem_picks").select("emblem_keys").eq("clan_id", isolated.clanId).eq("user_id", user.id).single()).data?.emblem_keys)
+    expect((await isolated.service.from("account_personal_emblem_picks").select("emblem_keys").eq("user_id", user.id).single()).data?.emblem_keys.map(key => key.slice(37)))
       .toEqual([`month-${previousYear - 1}-06-승률`]);
     await expect(tray.locator('[data-featured-emblem-key]')).toHaveCount(1);
     await selectedStar().focus();
@@ -231,8 +231,8 @@ test("award cases prefer the best recent grade and filter full history by gold, 
     await expect(star).toHaveAttribute("aria-pressed", "true");
     await expect(star).toBeEnabled();
     const originalPicks = [`month-${previousYear - 1}-06-승률`, `month-${previousYear}-02-승률`, `year-${previousYear - 1}-승률`];
-    const persistedPicks = async () => (await isolated.service.from("clan_personal_emblem_picks").select("emblem_keys")
-      .eq("clan_id", isolated.clanId).eq("user_id", user.id).single()).data?.emblem_keys;
+    const persistedPicks = async () => (await isolated.service.from("account_personal_emblem_picks").select("emblem_keys")
+      .eq("user_id", user.id).single()).data?.emblem_keys.map(key => key.slice(37));
     expect(await persistedPicks()).toEqual(originalPicks);
     await page.keyboard.press("Escape");
     await monthlyWin.click();

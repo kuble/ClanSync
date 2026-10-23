@@ -46,7 +46,7 @@ test("공통 엠블럼 케이스: 공개 권한·계열 성장·대표 저장·�
     expect((await f.service.from("clan_members").delete().eq("clan_id", f.clanId).eq("user_id", f.users[2].id)).error).toBeNull();
     expect(await loadClanPersonalEmblemCollection(outsider, f.users[2].id, f.clanId)).toBeNull();
     expect(await loadClanPersonalEmblemCollection(leader, f.users[0].id, f.clanId, f.users[2].id)).toBeNull();
-    expect((await f.service.from("clan_personal_emblem_picks").upsert({ clan_id: f.clanId, user_id: f.users[0].id, emblem_keys: [] })).error).toBeNull();
+    expect((await f.service.from("account_personal_emblem_picks").upsert({ user_id: f.users[0].id, emblem_keys: [] })).error).toBeNull();
 
     const apiPath = `/api/clans/${f.clanId}/personal-emblems`;
     expect((await page.request.get(apiPath)).status()).toBe(401);
@@ -55,7 +55,7 @@ test("공통 엠블럼 케이스: 공개 권한·계열 성장·대표 저장·�
     expect((await page.request.get(apiPath + "?player=" + f.users[2].id)).status()).toBe(403);
     await page.goto("/profile");
     const casePath = f.path.replace(/balance$/, "emblems");
-    const ownCaseUrl = `/profile/${f.users[0].id}/emblems?clan=${f.clanId}`;
+    const ownCaseUrl = `/profile/${f.users[0].id}/emblems`;
     const trigger = page.getByRole("region", { name: "플레이어 소개", exact: true }).getByRole("link", { name: "플레이어 엠블럼 케이스 열기", exact: true });
     await expect(trigger).toHaveAttribute("href", ownCaseUrl);
     await trigger.click();
@@ -83,7 +83,7 @@ test("공통 엠블럼 케이스: 공개 권한·계열 성장·대표 저장·�
     await selectedStar().focus();
     await selectedStar().click();
     await expect(selectedStar()).toHaveAttribute("aria-pressed", "true");
-    expect((await f.service.from("clan_personal_emblem_picks").select("emblem_keys").eq("clan_id", f.clanId).eq("user_id", f.users[0].id).single()).data?.emblem_keys)
+    expect((await f.service.from("account_personal_emblem_picks").select("emblem_keys").eq("user_id", f.users[0].id).single()).data?.emblem_keys.map(key => key.slice(37)))
       .toEqual(["milestone-wins-1"]);
     await stages.locator('[data-emblem-key="milestone-wins-2"]').click();
     await expect(page.getByRole("dialog", { name: "50승 달성", exact: true })).toBeVisible();
@@ -149,7 +149,7 @@ test("공통 엠블럼 케이스: 공개 권한·계열 성장·대표 저장·�
     await expect(collection.locator("[data-emblem-key]")).toHaveCount(0);
     await expect(page.getByRole("dialog").locator("[data-emblem-artwork]")).toHaveCount(0);
     expect((await f.service.from("clan_settings").update({ hof_config: config }).eq("clan_id", f.clanId)).error).toBeNull();
-    await page.goto(ownCaseUrl);
+    await page.goto(`/profile/${f.users[0].id}/emblems?clan=${f.clanId}`);
     await expect(collection.locator("[data-emblem-key]").first()).toBeVisible();
     const foreignClan = await f.service.from("clans").insert({
       game_id: f.gameId, name: `엠블럼접근거부-${f.clanId.slice(0, 6)}`, subscription_tier: "premium",

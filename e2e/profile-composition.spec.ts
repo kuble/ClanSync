@@ -52,8 +52,8 @@ test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소
 
     const slots = intro.getByRole("group", { name: "대표 엠블럼 3칸", exact: true });
     await expect(slots.getByRole("link")).toHaveCount(3);
-    const caseLink = intro.getByRole("link", { name: `${battleTag} 엠블럼 케이스 열기`, exact: true });
-    const caseHref = `/profile/${user.id}/emblems?clan=${fixture.clanId}`;
+    const caseLink = intro.getByRole("link", { name: "플레이어 엠블럼 케이스 열기", exact: true });
+    const caseHref = `/profile/${user.id}/emblems`;
     await expect(caseLink).toHaveAttribute("href", caseHref);
 
     await intro.getByRole("button", { name: "한 줄 소개를 남겨보세요", exact: true }).click();
@@ -136,7 +136,7 @@ test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소
     await caseLink.click();
     await expect(page).toHaveURL(caseHref);
     await expect(page.getByRole("heading", { name: "개인 엠블럼 케이스", exact: true })).toBeVisible();
-    const emblemApi = `**/api/clans/${fixture.clanId}/personal-emblems?player=${user.id}`;
+    const emblemApi = `**/api/personal-emblems/featured?player=${user.id}`;
     await page.route(emblemApi, (route) => route.abort("failed"));
     await page.goto("/profile");
     await expect(intro.getByText("함께 즐기는 게임과 작은 방.", { exact: true })).toBeVisible();
@@ -152,7 +152,7 @@ test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소
     await page.reload();
     await expect(hero.getByRole("heading", { name: user.nickname, level: 1, exact: true })).toHaveCount(0);
     await expect(intro.getByText(battleTag, { exact: true })).toHaveCount(0);
-    await expect(intro.locator("[data-personal-emblem-launcher]")).toHaveCount(0);
+    await expect(intro.locator("[data-personal-emblem-launcher]")).toHaveCount(1);
     await expect(housing).toBeVisible();
     for (const width of [1280, 320]) await expectComposition(page, intro, housing, width);
     expect(pageErrors).toEqual([]);

@@ -776,13 +776,14 @@ export async function loadClanPersonalEmblemCollection(
   ]);
   if (membership.error || metadata.error) throw new Error("엠블럼 조회 권한을 확인하지 못했습니다.");
   if (!membership.data || !metadata.data) return null;
-  const [summary, picks, awards, milestoneDates] = await Promise.all([
+  const [summary, picks, awards, milestoneDates, accountPicks] = await Promise.all([
     readStatsSummary(clanId, ["all"]),
     service.from("clan_personal_emblem_picks").select("emblem_keys").eq("clan_id", clanId).eq("user_id", personId).maybeSingle(),
     loadPersonalEmblems(source, clanId, personId),
     service.from("clan_personal_emblem_milestones").select("emblem_key,earned_at").eq("clan_id", clanId).eq("user_id", personId),
+    service.from("account_personal_emblem_picks").select("emblem_keys").eq("user_id", personId).maybeSingle(),
   ]);
-  if (picks.error) throw new Error("대표 엠블럼을 불러오지 못했습니다.");
+  if (picks.error || accountPicks.error) throw new Error("대표 엠블럼을 불러오지 못했습니다.");
   if (milestoneDates.error) throw new Error("달성일을 불러오지 못했습니다.");
   const all = summary.periods.all ?? EMPTY_STATS_AGGREGATE;
   const player = all.players.find((entry) => entry.userId === personId);
@@ -798,7 +799,9 @@ export async function loadClanPersonalEmblemCollection(
   return {
     clanId, clanName: metadata.data.name, gameSlug: game.slug, gameName: game.name_ko, userId: personId, viewerId: userId,
     nickname: nick.get(personId) ?? "플레이어", canFeature: personId === userId, emblems,
-    featuredKeys: picks.data ? resolveFeaturedKeys(emblems, picks.data.emblem_keys) : null,
+    featuredKeys: accountPicks.data ? resolveFeaturedKeys(emblems, accountPicks.data.emblem_keys.filter(key => key.startsWith(clanId + ":")).map(key => key.slice(37)))
+      : picks.data ? resolveFeaturedKeys(emblems, picks.data.emblem_keys) : null,
+    accountFeaturedKeys: accountPicks.data ? resolveFeaturedKeys(emblems, accountPicks.data.emblem_keys.filter(key => key.startsWith(clanId + ":")).map(key => key.slice(37))).map(key => clanId + ":" + key) : undefined,
   };
 }
 

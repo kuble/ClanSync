@@ -4,7 +4,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service";
 import { finalizeClanPersonalEmblemAwards } from "@/lib/clan/stats/load-clan-stats";
 import { readStatsSummary } from "@/lib/clan/stats/stats-read-model";
 import type { HofEmblem } from "@/lib/clan/stats/hof-emblems";
-import { awardEmblems, awardFamilies, milestoneEmblems, resolveFeaturedKeys } from "./catalog";
+import { awardEmblems, awardFamilies, milestoneEmblems, resolveFeaturedKeys, resolveAccountFeaturedKeys } from "./catalog";
 import type { PersonalEmblemCollection } from "./types";
 
 async function allRows<T>(read: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>) {
@@ -21,19 +21,20 @@ async function allRows<T>(read: (from: number, to: number) => PromiseLike<{ data
 export async function loadOwnedPersonalEmblemCase(supabase: SupabaseClient<Database>, contextClanId?: string): Promise<PersonalEmblemCollection | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
-  const service = createServiceRoleClient();
+  const service: SupabaseClient<Database> = createServiceRoleClient();
   const membership = await service.from("clan_members").select("clan_id,status").eq("user_id", user.id);
   if (membership.error) throw new Error("소속 기록을 불러오지 못했습니다.");
   const active = new Set(membership.data.filter(row => row.status === "active").map(row => row.clan_id));
   await Promise.all([...active].map(clanId => finalizeClanPersonalEmblemAwards(clanId)));
-  const [awards, milestones, picks] = await Promise.all([
+  const [awards, milestones, picks, accountPicks] = await Promise.all([
     allRows((from, to) => service.from("clan_personal_emblem_awards").select("clan_id,emblem_key,family,rank,period_type,period_key")
       .eq("user_id", user.id).order("clan_id").order("emblem_key").range(from, to)),
     allRows((from, to) => service.from("clan_personal_emblem_milestones").select("clan_id,emblem_key,earned_at,target,family")
       .eq("user_id", user.id).order("clan_id").order("emblem_key").range(from, to)),
-    service.from("clan_personal_emblem_picks").select("clan_id,emblem_keys").eq("user_id", user.id),
+    service.from("clan_personal_emblem_picks").select("clan_id,emblem_keys").eq("user_id", user.id).order("updated_at", { ascending: false }).order("clan_id"),
+    service.from("account_personal_emblem_picks").select("emblem_keys").eq("user_id", user.id).maybeSingle(),
   ]);
-  if (picks.error) throw new Error("대표 엠블럼을 불러오지 못했습니다.");
+  if (picks.error || accountPicks.error) throw new Error("대표 엠블럼을 불러오지 못했습니다.");
   const clanIds = [...new Set([...membership.data.map(row => row.clan_id), ...awards.map(row => row.clan_id), ...milestones.map(row => row.clan_id)])];
   if (contextClanId && !clanIds.includes(contextClanId)) return null;
   const metadata = clanIds.length ? await service.from("clans").select("id,name,games(slug,name_ko)").in("id", clanIds) : { data: [], error: null };
@@ -62,5 +63,7 @@ export async function loadOwnedPersonalEmblemCase(supabase: SupabaseClient<Datab
   }));
   sources.sort((a, b) => Number(b.active) - Number(a.active) || a.gameSlug.localeCompare(b.gameSlug) || a.clanId.localeCompare(b.clanId));
   const context = sources.find(source => source.clanId === contextClanId) ?? sources[0];
-  return { ...(context ?? { clanId: "", clanName: "", gameSlug: "", userId: user.id, viewerId: user.id, nickname: "나", canFeature: true, emblems: [], featuredKeys: [] }), sources };
+  const saved = accountPicks.data?.emblem_keys ?? (picks.data.length ? picks.data.flatMap(row => row.emblem_keys.map(key => row.clan_id + ":" + key)) : null);
+  return { ...(context ?? { clanId: "", clanName: "", gameSlug: "", userId: user.id, viewerId: user.id, nickname: "나", canFeature: true, emblems: [], featuredKeys: [] }),
+    sources, accountFeaturedKeys: resolveAccountFeaturedKeys(sources, saved) };
 }

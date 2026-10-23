@@ -1,5 +1,13 @@
 import type { HofEmblem } from "../clan/stats/hof-emblems";
-import type { AwardFamily, MilestoneFamily, PersonalEmblem } from "./types";
+import type { AwardFamily, MilestoneFamily, PersonalEmblem, PersonalEmblemCollection } from "./types";
+
+export type CaseEmblem = PersonalEmblem & { localKey: string; source: PersonalEmblemCollection };
+export function caseEmblems(sources: readonly PersonalEmblemCollection[]): CaseEmblem[] {
+  return sources.flatMap(source => source.emblems.map(emblem => ({ ...emblem, localKey: emblem.key, key: source.clanId + ":" + emblem.key, source })));
+}
+export function resolveAccountFeaturedKeys(sources: readonly PersonalEmblemCollection[], keys: readonly string[] | null): string[] {
+  return resolveFeaturedKeys(caseEmblems(sources), keys, emblem => emblem.source.clanId + ":" + emblem.family);
+}
 
 const artworkRoot = "/personal-emblems/v1";
 export const awardFamilies: Record<HofEmblem["category"], AwardFamily> = {
@@ -55,20 +63,20 @@ export function getAwardRepresentatives<T extends PersonalEmblem>(entries: reado
 }
 
 /** Explicit empty picks stay empty; hidden records are excluded and earned milestones advance to their highest stage. */
-export function resolveFeaturedKeys(entries: readonly PersonalEmblem[], keys: readonly string[] | null): string[] {
+export function resolveFeaturedKeys<T extends PersonalEmblem>(entries: readonly T[], keys: readonly string[] | null, familyOf: (entry: T) => string = entry => entry.family): string[] {
   const earned = entries.filter((entry) => entry.earned);
-  const highest = new Map<string, PersonalEmblem>();
-  for (const entry of earned) if (entry.kind === "milestone" && (!highest.has(entry.family) || (entry.stage ?? 0) > (highest.get(entry.family)?.stage ?? 0))) highest.set(entry.family, entry);
+  const highest = new Map<string, T>();
+  for (const entry of earned) if (entry.kind === "milestone" && (!highest.has(familyOf(entry)) || (entry.stage ?? 0) > (highest.get(familyOf(entry))?.stage ?? 0))) highest.set(familyOf(entry), entry);
   if (keys !== null) {
     const available = new Map(earned.map((entry) => [entry.key, entry]));
     const canonical = keys.flatMap((key) => {
       const entry = available.get(key);
-      return !entry ? [] : [entry.kind === "milestone" ? highest.get(entry.family)!.key : entry.key];
+      return !entry ? [] : [entry.kind === "milestone" ? highest.get(familyOf(entry))!.key : entry.key];
     });
     return [...new Set(canonical)].slice(0, 3);
   }
   // December and that year's annual award close together; bare year strings sort too far back.
-  return earned.filter((entry) => entry.kind === "award" || highest.get(entry.family)?.key === entry.key)
+  return earned.filter((entry) => entry.kind === "award" || highest.get(familyOf(entry))?.key === entry.key)
     .sort((a, b) => Number(a.kind === "milestone") - Number(b.kind === "milestone") || closingPeriod(b).localeCompare(closingPeriod(a))
     || (a.rank ?? 4) - (b.rank ?? 4) || Number(b.period === "year") - Number(a.period === "year") || (b.stage ?? 0) - (a.stage ?? 0))
     .slice(0, 3).map((entry) => entry.key);
