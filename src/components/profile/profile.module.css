@@ -519,10 +519,10 @@
 .clanNavigation { display:flex; align-items:center; justify-content:center; gap:2px; margin-top:8px; }
 .clanNavigation button { display:grid; place-items:center; width:32px; height:32px; border:0; border-radius:50%; background:transparent; cursor:pointer; }
 .clanNavigation button:focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
-.clanNavigation button > span { width:6px; height:6px; border-radius:50%; background:var(--muted-foreground); opacity:.4; }
-.clanNavigation button[aria-current="page"] > span { width:8px; height:8px; background:var(--primary); opacity:1; }
+.clanNavigation button > span { width:7px; height:7px; border-radius:999px; background:var(--muted-foreground); opacity:.55; transition:width .18s ease,background-color .18s ease,opacity .18s ease; }
+.clanNavigation button[aria-current="page"] > span { width:20px; background:var(--foreground); opacity:1; }
 @media(pointer:coarse) { .clanNavigation button { width:44px; height:44px; } }
-@media(prefers-reduced-motion:reduce) { .clanTrack { scroll-behavior:auto; } }
+@media(prefers-reduced-motion:reduce) { .clanTrack { scroll-behavior:auto; } .clanNavigation button > span { transition:none; } }
 .clanProfileGame { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:8px; font-size:11px; color:var(--muted-foreground); }
 .clanProfileGame small { margin-left:auto; font-size:10px; }
 .clanAccountId { display:grid; gap:5px; margin-top:14px; overflow-wrap:anywhere; }
