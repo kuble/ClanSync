@@ -352,10 +352,10 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
             <div><dt>획득 조건</dt><dd>{selected.kind === "award"
               ? `${selected.period === "month" ? "월간" : "연간"} 명예의 전당에서 ${awardCriteria[selected.family as AwardFamily]} 상위 3위 안에 들면 획득합니다.`
               : `${selected.description} 시 획득합니다.`}</dd></div>
-            {selected.kind === "milestone" && selected.source.active !== false && <div><dt>현재 진행</dt><dd>{(selected.progress ?? 0).toLocaleString("ko-KR")} / {(selected.target ?? 0).toLocaleString("ko-KR")} {selected.unit}</dd></div>}
+            {selected.kind === "milestone" && selected.progress !== undefined && selected.source.active !== false && <div><dt>현재 진행</dt><dd>{(selected.progress ?? 0).toLocaleString("ko-KR")} / {(selected.target ?? 0).toLocaleString("ko-KR")} {selected.unit}</dd></div>}
           </dl>
           {selected.kind === "award" && !selected.earned && <p className="text-xs leading-relaxed text-muted-foreground">클랜의 집계·참여 기준을 충족해야 하며, 기간 마감 후 순위에 따라 금·은·동 엠블럼을 획득합니다.</p>}
-          {selected.kind === "milestone" && selected.source.active !== false && <progress className={styles.progress} aria-label={selected.description + " 진행도"}
+          {selected.kind === "milestone" && selected.progress !== undefined && selected.source.active !== false && <progress className={styles.progress} aria-label={selected.description + " 진행도"}
             max={selected.target ?? 1} value={Math.min(selected.progress ?? 0, selected.target ?? 1)} />}
           {collection?.canFeature && selected.earned && !canPickSelected && <p className="text-xs text-muted-foreground">최고 획득 단계만 대표로 지정할 수 있습니다.</p>}
         </section>

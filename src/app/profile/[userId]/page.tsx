@@ -24,6 +24,6 @@ export default async function PlayerRoomPage({ params }: { params: Promise<{ use
     {profile ? <div className={styles.profileHero} data-testid="profile-hero">
       <ProfileIdentity readOnly userId={profile.userId} intro={profile.intro ?? ""} memberships={profile.memberships} />
       <ProfileRoomVisit housing={profile.housing} />
-    </div> : <section className={styles.empty}><h2>방문할 수 없는 미니룸입니다</h2><p>공개하지 않았거나 더 이상 이용할 수 없는 프로필입니다.</p></section>}
+    </div> : <section className={styles.empty}><h2>방문할 수 없는 미니룸입니다</h2><p>존재하지 않거나 더 이상 이용할 수 없는 프로필입니다.</p></section>}
   </main></AccountShell>;
 }

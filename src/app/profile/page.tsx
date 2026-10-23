@@ -7,8 +7,6 @@ import {
 import { ProfileDeleteAccountButton } from "@/components/profile/profile-delete-account-button";
 import { ProfileJoinRequests } from "@/components/profile/profile-join-requests";
 import { ProfileIdentity, type ProfileMembership } from "@/components/profile/profile-identity";
-import { ProfileVisibility } from "@/components/profile/profile-visibility";
-import { DEFAULT_PROFILE_VISIBILITY } from "@/lib/profile/visibility";
 import type { AltAccountRow } from "@/components/profile/profile-game-alt-accounts";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
@@ -70,7 +68,6 @@ export default async function ProfilePage() {
     { data: altRowsRaw },
     { data: rolePreferences },
     housing,
-    visibilityResult,
   ] = await Promise.all([
     supabase
       .from("users")
@@ -92,7 +89,6 @@ export default async function ProfilePage() {
       .order("alt_nick"),
     supabase.from("profile_role_preferences").select("game_id, ranking").eq("user_id", user.id),
     loadHousingState(),
-    supabase.from("profile_visibility").select("room_public,show_intro,show_games,show_clan,show_emblems").eq("user_id", user.id).maybeSingle(),
   ]);
 
   const { data: rawJoinFlat, error: rawJoinFlatErr } =
@@ -265,7 +261,6 @@ export default async function ProfilePage() {
           <div><dt>언어</dt><dd>{({ ko: "한국어", en: "English", ja: "日本語" } as Record<string, string>)[row.language] ?? row.language}</dd></div>
           <div><dt>가입일</dt><dd>{row.created_at ? new Date(row.created_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "—"}</dd></div>
         </dl><ProfileAutoLogin key={user.id} initial={getSessionMaxAge((await cookies()).getAll()) === REMEMBERED_SESSION_SECONDS} /></section> : <p className={styles.error} role="alert">계정 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>}
-        <ProfileVisibility key={user.id} initial={visibilityResult.data ?? DEFAULT_PROFILE_VISIBILITY} userId={user.id} loadFailed={Boolean(visibilityResult.error)} />
         <div className={styles.accountActions}><form action={signOutAction}><Button type="submit" variant="outline" size="sm">로그아웃</Button></form><ProfileDeleteAccountButton /></div>
 
       </div>
