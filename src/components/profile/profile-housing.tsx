@@ -4,13 +4,13 @@ import Link from "next/link";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { useEffect, useRef, useState, useSyncExternalStore, useTransition, type ReactNode, type RefObject } from "react";
-import { Coins, Grip, Package, Paintbrush, Pencil, ShoppingBag, X, Undo2, Save } from "lucide-react";
+import { Coins, Grip, Package, Check, Pencil, ShoppingBag, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
-import { toast } from "sonner";
 import { loadHousingAction, saveHousingRoomAction } from "@/app/actions/profile-housing";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { HousingAutosave, housingInput } from "@/lib/housing/autosave";
 import { canPlaceHousingItem, HOUSING_GRID_SIZE } from "@/lib/housing/domain";
 import type { HousingInventoryItem, HousingPlacement, HousingResult, HousingState, HousingSurface } from "@/lib/housing/types";
 import { FurniturePreview } from "./housing-furniture-preview";
@@ -27,8 +27,8 @@ function placementsOf(inventory: HousingInventoryItem[]): HousingPlacement[] {
   return inventory.flatMap((item) => item.x !== null && item.y !== null ? [{ inventoryId: item.id, x: item.x, y: item.y, rotation: item.rotation, surface: item.surface ?? "floor" }] : []);
 }
 
-export function ProfileHousing({ initial, embedded = false }: {
-  initial: HousingResult; embedded?: boolean;
+export function ProfileHousing({ initial, userId, embedded = false }: {
+  initial: HousingResult; userId: string; embedded?: boolean;
 }) {
   const [state, setState] = useState<HousingState | null>(initial.ok ? initial.state : null);
   const [incomingCoins, setIncomingCoins] = useState(initial.ok ? initial.state.coinBalance : null);
@@ -36,24 +36,35 @@ export function ProfileHousing({ initial, embedded = false }: {
     setIncomingCoins(initial.state.coinBalance);
     setState((previous) => previous && ({ ...previous, coinBalance: initial.state.coinBalance }));
   }
-  const [draft, setDraft] = useState(initial.ok ? initial.state.inventory : []);
-  const [wallpaper, setWallpaper] = useState(initial.ok ? initial.state.room.wallpaper : "cream");
-  const [floor, setFloor] = useState(initial.ok ? initial.state.room.floor : "oak");
+  const [autosave] = useState(() => new HousingAutosave(initial.ok ? housingInput(initial.state) : { revision: 0, wallpaper: "cream", floor: "oak", placements: [] }, async (input) => {
+    const result = await saveHousingRoomAction(input, userId);
+    if (result.ok) setState(result.state);
+    return result;
+  }));
+  const saved = useSyncExternalStore(autosave.subscribe, autosave.getSnapshot, autosave.getSnapshot);
+  const { wallpaper, floor, placements } = saved.input;
+  const [finishing, setFinishing] = useState(false);
+  const [category, setCategory] = useState<"furniture" | "wallpaper" | "floor">("furniture");
   const [editing, setEditing] = useState(false);
-  const [panel, setPanel] = useState<"inventory" | "appearance" | null>(null);
+  const [panel, setPanel] = useState<"inventory" | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { resolvedTheme } = useTheme();
   const mounted = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot);
   const room = useRef<HousingRoomHandle>(null);
   const inventoryOpener = useRef<HTMLButtonElement>(null);
   const dialogContainer = useRef<HTMLDivElement>(null);
-  const [discard, setDiscard] = useState<"cancel" | "reload" | null>(null);
+  const [discard, setDiscard] = useState(false);
   const [error, setError] = useState(initial.ok ? "" : initial.error);
-  const [pending, startTransition] = useTransition();
-  const inventory = editing ? draft : state?.inventory ?? [];
+  const [loading, startTransition] = useTransition();
+  const pending = loading || finishing;
+  const inventory = (state?.inventory ?? []).map(item => { const placed = placements.find(p => p.inventoryId === item.id); return placed ? { ...item, ...placed } : { ...item, x: null, y: null }; });
+  const draft = inventory;
   const selected = inventory.find((item) => item.id === selectedId);
-  const placements = placementsOf(draft);
-  const dirty = !!state && (wallpaper !== state.room.wallpaper || floor !== state.room.floor || JSON.stringify(draft) !== JSON.stringify(state.inventory));
+  const dirty = saved.dirty || saved.saving;
+  const displayError = error || saved.error;
+  const saveStatus = saved.error ? "저장 실패" : saved.saving ? "저장 중…" : saved.dirty ? "저장 대기 중" : "자동 저장됨";
+  function setDraft(next: HousingInventoryItem[]) { autosave.edit({ wallpaper, floor, placements: placementsOf(next) }); }
+  useEffect(() => () => { void autosave.flush(); }, [autosave]);
 
   useEffect(() => {
     if (!dirty) return;
@@ -64,7 +75,7 @@ export function ProfileHousing({ initial, embedded = false }: {
 
   function apply(next: HousingState) {
     room.current?.dismissMenu();
-    setState(next); setDraft(next.inventory); setWallpaper(next.room.wallpaper); setFloor(next.room.floor); setError("");
+    setState(next); autosave.reset(housingInput(next)); setError("");
   }
 
   function select(item: HousingInventoryItem) {
@@ -72,10 +83,9 @@ export function ProfileHousing({ initial, embedded = false }: {
     setSelectedId(item.id); setError("");
   }
 
-  function begin(nextPanel: "inventory" | "appearance" | null) {
+  function begin(nextPanel: "inventory" | null) {
     if (!state) return;
     room.current?.dismissMenu();
-    if (!editing) { setDraft(state.inventory); setWallpaper(state.room.wallpaper); setFloor(state.room.floor); }
     setEditing(true); setPanel(nextPanel); setError("");
   }
 
@@ -121,43 +131,33 @@ export function ProfileHousing({ initial, embedded = false }: {
 
   function reload() {
     startTransition(async () => {
-      try { const result = await loadHousingAction(); if (result.ok) { apply(result.state); setSelectedId(null); setDiscard(null); } else setError(result.error); }
+      try { const result = await loadHousingAction(); if (result.ok) { apply(result.state); setSelectedId(null); setDiscard(false); } else setError(result.error); }
       catch { setError("방을 불러오지 못했습니다. 다시 시도해 주세요."); }
     });
   }
 
-  function cancel() {
-    if (!state) return;
-    apply(state); setEditing(false); setPanel(null); setSelectedId(null); setDiscard(null);
-  }
-
-  function save() {
-    if (!state) return;
-    startTransition(async () => {
-      try {
-        const result = await saveHousingRoomAction({ revision: state.room.revision, wallpaper, floor, placements });
-        if (result.ok) { apply(result.state); setEditing(false); setPanel(null); setSelectedId(null); toast.success("방을 저장했습니다."); }
-        else setError(result.error);
-      } catch { setError("방을 저장하지 못했습니다. 변경 내용은 유지됩니다. 다시 시도해 주세요."); }
-    });
+  async function finish() {
+    setFinishing(true);
+    try { if (await autosave.flush()) { room.current?.dismissMenu(); setEditing(false); setPanel(null); setSelectedId(null); } }
+    finally { setFinishing(false); }
   }
 
   return <section className={styles.housing} data-embedded={embedded} aria-label="프로필 하우징" aria-busy={pending}>
     {!state ? <div className={styles.loadError}><p role="alert">{error}</p><Button variant="outline" onClick={reload} disabled={pending}>{pending ? "불러오는 중…" : "다시 불러오기"}</Button></div> : <HousingRoom ref={room} inventory={inventory} catalog={state.catalog} selectedId={selectedId} editing={editing} pending={pending}
-      theme={mounted && resolvedTheme === "light" ? "light" : "dark"} wallpaper={editing ? wallpaper : state.room.wallpaper} floor={editing ? floor : state.room.floor}
+      theme={mounted && resolvedTheme === "light" ? "light" : "dark"} wallpaper={wallpaper} floor={floor}
       onBeginMove={(item) => { begin(null); setSelectedId(item.id); }} onSelect={select} onMove={move} onDrop={place} onRotate={rotate} onStore={store}>
       <div className={styles.roomHud} data-room-ui="true" data-editing={editing}>
         <header className={styles.roomHeading}><h2>나의 방</h2><span className={styles.balance}><Coins size={14} aria-hidden="true" /><span className={styles.srOnly}>개인 코인</span><strong data-testid="housing-coin-balance">{state.coinBalance.toLocaleString("ko-KR")}</strong></span></header>
         <div className={styles.roomToolbar} role="toolbar" aria-label="방 꾸미기 도구" data-editing={editing}>
-          {editing ? <><Button ref={inventoryOpener} size="sm" variant={panel === "inventory" ? "secondary" : "ghost"} aria-pressed={panel === "inventory"} onClick={() => setPanel(panel === "inventory" ? null : "inventory")}><Package aria-hidden="true" /><span>내 가구</span></Button><Button size="icon-sm" variant={panel === "appearance" ? "secondary" : "ghost"} aria-label="방 분위기" aria-pressed={panel === "appearance"} onClick={() => setPanel(panel === "appearance" ? null : "appearance")}><Paintbrush aria-hidden="true" /><span className={styles.roomActionLabel}>분위기</span></Button><span className={styles.toolbarDivider} /><Button size="icon-sm" variant="ghost" aria-label="편집 취소" onClick={() => dirty ? setDiscard("cancel") : cancel()} disabled={pending}><Undo2 aria-hidden="true" /><span className={styles.roomActionLabel}>취소</span></Button><Button size="sm" onClick={save} disabled={pending || !dirty}><Save aria-hidden="true" />{pending ? "저장 중" : "방 저장"}</Button></> : <>
+          {editing ? <><Button ref={inventoryOpener} size="sm" variant={panel === "inventory" ? "secondary" : "ghost"} aria-pressed={panel === "inventory"} onClick={() => setPanel(panel === "inventory" ? null : "inventory")}><Package aria-hidden="true" /><span>내 가구</span></Button><span className={styles.autosaveStatus} role="status" aria-label="방 저장 상태">{saveStatus}</span><Button size="sm" onClick={() => void finish()} disabled={pending}><Check aria-hidden="true" />완료</Button></> : <>
             <Tooltip><TooltipTrigger render={<Link href="/store" aria-label="개인 상점" className={buttonVariants({ variant: "ghost", size: "icon" })} />}><ShoppingBag aria-hidden="true" /><span className={styles.roomActionLabel}>개인 상점</span></TooltipTrigger><TooltipContent role="tooltip">개인 상점</TooltipContent></Tooltip>
             <Tooltip><TooltipTrigger render={<Button size="icon" aria-label="방 꾸미기" onClick={() => begin(null)} disabled={pending} />}><Pencil aria-hidden="true" /><span className={styles.roomActionLabel}>방 꾸미기</span></TooltipTrigger><TooltipContent role="tooltip">방 꾸미기</TooltipContent></Tooltip>
           </>}
         </div>
-        <span className={styles.srOnly} role="status">{dirty ? "저장하지 않은 변경" : "모든 변경이 저장되었습니다"}</span>
-        {editing && panel && <section className={styles.roomPanel} aria-label={panel === "inventory" ? "내 가구 보관함" : "방 분위기"} data-panel={panel}>
-          <div className={styles.panelHeader}><h3>{panel === "inventory" ? "내 가구" : "방 분위기"}</h3><Button size="icon-sm" variant="ghost" aria-label="패널 닫기" onClick={() => setPanel(null)}><X aria-hidden="true" /></Button></div>
-          {panel === "inventory" && <ul className={styles.inventory} aria-label="보유 가구">{draft.map((owned) => {
+        {editing && panel && <section className={styles.roomPanel} aria-label="내 가구 보관함" data-panel={panel}>
+          <div className={styles.panelHeader}><h3>내 가구</h3><Button size="icon-sm" variant="ghost" aria-label="패널 닫기" onClick={() => setPanel(null)}><X aria-hidden="true" /></Button></div>
+          <div className={styles.categories} role="group" aria-label="내 가구 분류">{([["furniture", "가구"], ["wallpaper", "벽지"], ["floor", "바닥"]] as const).map(([id, name]) => <button key={id} type="button" aria-pressed={category === id} onClick={() => setCategory(id)}>{name}</button>)}</div>
+          {category === "furniture" && <ul className={styles.inventory} aria-label="보유 가구">{draft.map((owned) => {
             const item = state.catalog.find((entry) => entry.id === owned.catalogId);
             if (!item) return null;
             return <li key={owned.id} className={styles.inventoryCard} data-stored={owned.x === null}>
@@ -167,13 +167,18 @@ export function ProfileHousing({ initial, embedded = false }: {
               <div className={styles.inventoryActions}>{owned.x === null && <Button size="sm" variant="outline" onClick={() => takeOut(owned)} disabled={pending} aria-label={item.name + " 꺼내기"}>꺼내기</Button>}<button type="button" className={styles.dragHandle} disabled={pending} aria-label={item.name + " 끌어서 배치"} onPointerDown={(event) => room.current?.startInventoryDrag(event, owned)} onClick={(event) => { if (event.detail === 0) { select(owned); setPanel(null); } }}><Grip size={12} aria-hidden="true" />끌어놓기</button></div>
             </li>;
           })}</ul>}
-          {panel === "appearance" && <fieldset className={styles.appearance} disabled={pending}><legend className={styles.srOnly}>방 분위기</legend><label>벽지<select aria-label="방 벽지" value={wallpaper} onChange={(event) => setWallpaper(event.target.value)}>{WALLPAPERS.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label>바닥<select aria-label="방 바닥" value={floor} onChange={(event) => setFloor(event.target.value)}>{FLOORS.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label></fieldset>}
+          {category !== "furniture" && <ul className={styles.inventory} aria-label={category === "wallpaper" ? "벽지 목록" : "바닥 목록"}>{(category === "wallpaper" ? WALLPAPERS : FLOORS).map(item => {
+            const active = (category === "wallpaper" ? wallpaper : floor) === item.id;
+            return <li key={item.id} className={styles.inventoryCard}><button type="button" className={styles.materialItem} aria-label={item.name + (category === "wallpaper" ? " 벽지 적용" : " 바닥 적용")} aria-pressed={active} disabled={pending} onClick={() => autosave.edit({ wallpaper, floor, placements, [category]: item.id })}>
+              <span className={styles.materialArt} aria-hidden="true"><span className={styles.materialSample} data-material={category} data-code={item.id} /></span><strong>{item.name}</strong><span>{active ? "사용 중" : "적용"}</span>
+            </button></li>;
+          })}</ul>}
         </section>}
-        {error && <div className={styles.roomError}><p role="alert">{error}</p><Button size="sm" variant="ghost" disabled={pending} onClick={() => dirty ? setDiscard("reload") : reload()}>최신 방 불러오기</Button><Button size="icon-sm" variant="ghost" aria-label="오류 닫기" onClick={() => setError("")}><X aria-hidden="true" /></Button></div>}
+        {displayError && <div className={styles.roomError}><p role="alert">{displayError}</p>{saved.error && <Button size="sm" variant="outline" disabled={pending || saved.saving} onClick={() => void autosave.retry()}>자동 저장 다시 시도</Button>}<Button size="sm" variant="ghost" disabled={pending || saved.saving} onClick={() => dirty ? setDiscard(true) : reload()}>최신 방 불러오기</Button>{!saved.error && <Button size="icon-sm" variant="ghost" aria-label="오류 닫기" onClick={() => setError("")}><X aria-hidden="true" /></Button>}</div>}
       </div>
       <div ref={dialogContainer} className={styles.dialogLayer} data-room-ui="true" />
     </HousingRoom>}
-    <Dialog open={!!discard} onOpenChange={(open) => { if (!open && !pending) setDiscard(null); }}><HousingDialogContent container={dialogContainer}><DialogHeader><DialogTitle>변경 내용을 버릴까요?</DialogTitle><DialogDescription>저장하지 않은 배치와 방 분위기 변경을 취소합니다. 구매한 가구는 보관함에 유지됩니다.</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" onClick={() => setDiscard(null)} disabled={pending}>계속 꾸미기</Button><Button onClick={() => discard === "reload" ? reload() : cancel()} disabled={pending}>변경 내용 버리기</Button></DialogFooter></HousingDialogContent></Dialog>
+    <Dialog open={!!discard} onOpenChange={(open) => { if (!open && !pending) setDiscard(false); }}><HousingDialogContent container={dialogContainer}><DialogHeader><DialogTitle>변경 내용을 버릴까요?</DialogTitle><DialogDescription>자동 저장되지 않은 배치·벽지·바닥 변경을 버리고 최신 방을 불러옵니다.</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" onClick={() => setDiscard(false)} disabled={pending}>계속 꾸미기</Button><Button onClick={() => reload()} disabled={pending}>변경 내용 버리기</Button></DialogFooter></HousingDialogContent></Dialog>
   </section>;
 }
 

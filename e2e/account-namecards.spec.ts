@@ -43,7 +43,7 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await page.unroute("**/profile");
 
     await expect(page.getByRole("button", { name: "칭호 상점", exact: true })).toHaveCount(0);
-    // Switching profile tabs keeps the unsaved layout; purchases live in the personal shop.
+    // Switching profile tabs keeps the current layout; purchases live in the personal shop.
     const housing = page.getByRole("region", { name: "프로필 하우징", exact: true });
     await page.getByRole("tab", { name: "3D 미니룸", exact: true }).click();
     await housing.getByRole("button", { name: "방 꾸미기", exact: true }).click();
@@ -54,8 +54,7 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await accountTab.click();
     await page.getByRole("tab", { name: "3D 미니룸", exact: true }).click();
     await expect(plant).toHaveCount(0);
-    await housing.getByRole("button", { name: "편집 취소", exact: true }).click();
-    await page.getByRole("dialog", { name: "변경 내용을 버릴까요?", exact: true }).getByRole("button", { name: "변경 내용 버리기", exact: true }).click();
+    await housing.getByRole("button", { name: "완료", exact: true }).click();
     await page.getByRole("link", { name: "개인 상점", exact: true }).click();
     const filters = page.getByRole("group", { name: "개인 꾸미기 분류", exact: true });
     await expect(page.getByRole("heading", { name: "낮은 원목 테이블", exact: true })).toBeVisible();

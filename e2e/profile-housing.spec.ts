@@ -7,11 +7,7 @@ import {
 test.use({ actionTimeout: 20_000 });
 
 async function expectNoHorizontalOverflow(page: Page) {
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= window.innerWidth + 1,
-    ),
-  ).toBe(true);
+  await expect.poll(() => page.evaluate(() => ({ overflow: document.documentElement.scrollWidth > innerWidth + 1, content: document.documentElement.scrollWidth, viewport: innerWidth }))).toMatchObject({ overflow: false });
 }
 
 function sceneFurniture(housing: Locator, inventoryId: string) {
@@ -176,7 +172,7 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     await sceneFurniture(housing, ownedDesk.id).focus();
     await sceneFurniture(housing, ownedDesk.id).press("r");
     await expect(sceneFurniture(housing, ownedDesk.id)).toHaveAttribute("data-rotation", "1");
-    await housing.getByRole("button", { name: "방 저장", exact: true }).click();
+    await housing.getByRole("button", { name: "완료", exact: true }).click();
     await expect(housing.getByRole("button", { name: "방 꾸미기", exact: true })).toBeVisible();
     await page.reload();
     await expect(sceneFurniture(housing, ownedDesk.id)).toHaveAttribute("data-rotation", "1");
@@ -191,7 +187,7 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
       await housing.getByRole("button", { name: "방 꾸미기", exact: true }).click();
       await openInventory(housing);
       await expectNoHorizontalOverflow(page);
-      await housing.getByRole("button", { name: "편집 취소", exact: true }).click();
+      await housing.getByRole("button", { name: "완료", exact: true }).click();
     }
     await page.setViewportSize({ width: 1280, height: 900 });
 
@@ -200,17 +196,7 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     await sceneFurniture(housing, ownedDesk.id).press("Enter");
     await sceneFurniture(housing, ownedDesk.id).press("Delete");
     await expect(sceneFurniture(housing, ownedDesk.id)).toHaveCount(0);
-    await housing.getByRole("button", { name: "편집 취소", exact: true }).click();
-    await page
-      .getByRole("dialog", { name: "변경 내용을 버릴까요?", exact: true })
-      .getByRole("button", { name: "변경 내용 버리기", exact: true })
-      .click();
-    await expect(sceneFurniture(housing, ownedDesk.id)).toBeVisible();
-    await housing.getByRole("button", { name: "방 꾸미기", exact: true }).click();
-    await sceneFurniture(housing, ownedDesk.id).focus();
-    await sceneFurniture(housing, ownedDesk.id).press("Enter");
-    await sceneFurniture(housing, ownedDesk.id).press("Delete");
-    await housing.getByRole("button", { name: "방 저장", exact: true }).click();
+    await housing.getByRole("button", { name: "완료", exact: true }).click();
     await expect(housing.getByRole("button", { name: "방 꾸미기", exact: true })).toBeVisible();
     await page.reload();
     await expect(sceneFurniture(housing, ownedDesk.id)).toHaveCount(0);
@@ -293,6 +279,7 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     await poorPage.mouse.click(behindPlantBounds!.x + behindPlantBounds!.width / 2, behindPlantBounds!.y + behindPlantBounds!.height / 2);
     await expect(sceneFurniture(poorHousing, plantId)).toHaveAttribute("data-x", "3");
     await expect(sceneFurniture(poorHousing, plantId)).toHaveAttribute("data-y", "0");
+    await sceneFurniture(poorHousing, plantId).press("Enter");
     const corner = poorHousing.getByRole("button", { name: "배치 위치 1열 6행", exact: true });
     await corner.focus();
     await corner.press("Enter");
@@ -307,8 +294,8 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     await expect(poorScene.locator("canvas")).toHaveCount(0);
     await expect(sceneFurniture(poorHousing, plantId)).toHaveAttribute("data-x", "0");
     await expect(sceneFurniture(poorHousing, plantId)).toHaveAttribute("data-y", "5");
-    await expect(poorHousing.getByRole("button", { name: "방 저장", exact: true })).toBeEnabled();
-    await poorHousing.getByRole("button", { name: "방 저장", exact: true }).click();
+    await expect(poorHousing.getByRole("button", { name: "완료", exact: true })).toBeEnabled();
+    await poorHousing.getByRole("button", { name: "완료", exact: true }).click();
     await expect(poorHousing.getByRole("button", { name: "방 꾸미기", exact: true })).toBeVisible();
     await poorPage.reload();
     await expectWebglRoom(poorHousing);

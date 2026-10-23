@@ -22,7 +22,7 @@ test("프로필은 방·네임카드의 아이콘에서 상점과 편집을 열�
     await page.mouse.move(0, 0);
     await editRoom.click();
     await expect(housing.getByRole("button", { name: "내 가구", exact: true })).toBeVisible();
-    await housing.getByRole("button", { name: "편집 취소", exact: true }).click();
+    await housing.getByRole("button", { name: "완료", exact: true }).click();
     await expect(editRoom).toBeVisible();
     await roomShop.click();
     await expect(page).toHaveURL(/\/store$/);

@@ -27,7 +27,7 @@ export async function purchaseHousingFurnitureAction(input: { catalogId: string 
   }
 }
 
-export async function saveHousingRoomAction(input: SaveHousingRoomInput): Promise<HousingResult> {
+export async function saveHousingRoomAction(input: SaveHousingRoomInput, expectedUserId: string): Promise<HousingResult> {
   if (!input || !Number.isSafeInteger(input.revision) || input.revision < 0
     || !(HOUSING_WALLPAPERS as readonly string[]).includes(input.wallpaper)
     || !(HOUSING_FLOORS as readonly string[]).includes(input.floor)
@@ -45,6 +45,7 @@ export async function saveHousingRoomAction(input: SaveHousingRoomInput): Promis
     const client = await createClient();
     const { data: { user } } = await client.auth.getUser();
     if (!user) return { ok: false, error: "로그인이 필요합니다." };
+    if (user.id !== expectedUserId) return { ok: false, error: "로그인한 계정이 변경되었습니다. 프로필을 다시 열어 주세요." };
     const { data, error } = await client.rpc("save_my_housing_room", {
       p_revision: input.revision,
       p_wallpaper: input.wallpaper,

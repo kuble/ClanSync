@@ -71,13 +71,14 @@ test("방 안에서 벽 가구를 옮기고 우클릭으로 회전·보관하며
 
     await stage.getByRole("button", { name: "방 꾸미기", exact: true }).click();
     await expect(stage.getByRole("button", { name: "가구 상점", exact: true })).toHaveCount(0);
-    for (const name of ["내 가구", "방 분위기", "방 저장", "편집 취소"]) {
+    for (const name of ["내 가구", "완료"]) {
       await inside(stage, stage.getByRole("button", { name, exact: true }));
     }
-    await stage.getByRole("button", { name: "방 분위기", exact: true }).click();
-    const wallpaper = stage.getByRole("combobox", { name: "방 벽지", exact: true });
+    await stage.getByRole("button", { name: "내 가구", exact: true }).click();
+    await stage.getByRole("group", { name: "내 가구 분류", exact: true }).getByRole("button", { name: "벽지", exact: true }).click();
+    const wallpaper = stage.getByRole("button", { name: "미드나잇 벽지 적용", exact: true });
     await inside(stage, wallpaper);
-    await wallpaper.selectOption("midnight");
+    await wallpaper.click();
     await expect(stage).toHaveAttribute("data-wallpaper", "midnight");
     await expect(stage).toHaveAttribute("data-lighting", "day");
     await stage.getByRole("button", { name: "패널 닫기", exact: true }).click();
@@ -100,6 +101,7 @@ test("방 안에서 벽 가구를 옮기고 우클릭으로 회전·보관하며
     await context.getByRole("menuitem", { name: "가구 보관", exact: true }).click();
     await expect(model(clock.id)).toHaveCount(0);
     await stage.getByRole("button", { name: "내 가구", exact: true }).click();
+    await stage.getByRole("group", { name: "내 가구 분류", exact: true }).getByRole("button", { name: "가구", exact: true }).click();
     const owned = stage.getByRole("list", { name: "보유 가구", exact: true });
     await inside(stage, owned);
     await owned.getByRole("button", { name: `${clockName} 꺼내기`, exact: true }).click();
@@ -133,7 +135,7 @@ test("방 안에서 벽 가구를 옮기고 우클릭으로 회전·보관하며
     await expect(model(clock.id)).toHaveAttribute("data-y", String(anchor.y));
     await expect(model(clock.id)).toHaveAttribute("aria-pressed", "false");
 
-    await stage.getByRole("button", { name: "방 저장", exact: true }).click();
+    await stage.getByRole("button", { name: "완료", exact: true }).click();
     await expect(stage.getByRole("button", { name: "방 꾸미기", exact: true })).toBeVisible();
     await page.reload();
     await expect(model(clock.id)).toHaveAttribute("data-surface", targetSurface);

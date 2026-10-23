@@ -150,7 +150,7 @@ export function HousingRoom(props: Props) {
     if (!active.moved) return;
     if (commit && active.candidate?.valid && current.current.editing && !current.current.pending) {
       current.current.onDrop(active.item.id, active.candidate.x, active.candidate.y, active.candidate.surface);
-      setDragMessage("가구를 놓았습니다. 방 저장을 누르면 배치가 저장됩니다.");
+      setDragMessage("가구를 놓았습니다. 변경 내용은 자동 저장됩니다.");
     } else setDragMessage(commit ? "놓을 수 없는 위치입니다. 기존 위치를 유지합니다." : "이동을 취소했습니다. 기존 위치를 유지합니다.");
   }, []);
 

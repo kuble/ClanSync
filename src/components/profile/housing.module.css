@@ -62,7 +62,6 @@
 .roomPanel { position:absolute; left:18px; right:18px; bottom:18px; max-height:55%; border:1px solid var(--border); border-radius:14px; background:color-mix(in srgb,var(--background) 97%,transparent); box-shadow:0 10px 35px #00000024; padding:10px 12px 12px; display:flex; flex-direction:column; min-height:0; }
 .panelHeader { display:flex; justify-content:space-between; align-items:center; min-height:28px; flex-shrink:0; margin-bottom:3px; }
 .panelHeader h3 { font-size:12px; font-weight:650; padding-left:3px; }
-.roomPanel[data-panel="appearance"] { left:auto; width:300px; }
 .roomPanel[data-panel="shop"] { max-height:62%; }
 .inventory,.catalog { display:flex; gap:8px; overflow-x:auto; overscroll-behavior-x:contain; padding:2px 2px 5px; scrollbar-width:thin; list-style:none; min-height:0; }
 .inventoryCard { flex:0 0 132px; min-width:0; border:1px solid var(--border); border-radius:9px; background:var(--card); overflow:hidden; }
@@ -129,9 +128,34 @@
   .roomToolbar :is(a,button) { width:auto; min-height:44px; padding-inline:10px; gap:6px; }
   .roomPanel { bottom:74px; }
 }
-@media(max-width:420px) {
-  .roomToolbar[data-editing="true"] { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; padding:6px; }
-  .roomToolbar[data-editing="true"] button { width:100%; }
-  .roomToolbar[data-editing="true"] .toolbarDivider { display:none; }
-  .scene[data-editing="true"] :is(.roomPanel,.selectionPill,.dragFeedback) { bottom:132px; }
+
+.autosaveStatus { color:var(--muted-foreground); font-size:11px; white-space:nowrap; padding-inline:6px; }
+.categories button { min-height:36px; padding-inline:14px; }
+.materialItem { display:grid; justify-items:center; gap:4px; padding:8px; width:100%; min-height:132px; border-radius:8px; cursor:pointer; }
+.materialItem[aria-pressed="true"] { box-shadow:inset 0 0 0 2px var(--primary); background:color-mix(in srgb,var(--primary) 7%,var(--card)); }
+.materialItem:focus-visible { outline:2px solid var(--ring); outline-offset:-3px; }
+.materialItem strong { font-size:12px; font-weight:600; }
+.materialItem>span:last-child { font-size:11px; color:var(--muted-foreground); }
+.materialItem[aria-pressed="true"]>span:last-child { color:var(--primary); }
+.materialArt { display:grid; place-items:center; width:100%; height:82px; }
+.materialSample { --sample:#e8e6d5; position:relative; display:block; width:60px; height:64px; background:var(--sample); box-shadow:3px 5px 6px #0003; }
+.materialSample[data-code="sage"] { --sample:#c4d0b9; }
+.materialSample[data-code="rose"] { --sample:#e1c6bb; }
+.materialSample[data-code="midnight"] { --sample:#606f72; }
+.materialSample[data-material="wallpaper"] { border-radius:8px 8px 2px 2px; transform:rotate(-6deg); background:linear-gradient(90deg,#0001,transparent 30%),var(--sample); }
+.materialSample[data-material="wallpaper"]::before { content:""; position:absolute; top:-3px; left:-3px; width:66px; height:15px; border-radius:9px; background:linear-gradient(#fff8,var(--sample) 50%,#0003),var(--sample); box-shadow:0 2px 2px #0002; }
+.materialSample[data-material="wallpaper"]::after { content:""; position:absolute; right:-5px; top:-3px; width:12px; height:15px; border:3px solid var(--sample); border-radius:50%; background:#333b35; }
+.materialSample[data-material="floor"] { width:70px; height:70px; transform:rotateX(42deg) rotateZ(-30deg); border:1px solid #0002; background:repeating-linear-gradient(90deg,transparent 0 21px,#72522d66 22px 23px),repeating-linear-gradient(0deg,#c8a779 0 17px,#dfc7a1 18px 35px); }
+.materialSample[data-code="walnut"] { background:repeating-linear-gradient(90deg,transparent 0 21px,#61412477 22px 23px),repeating-linear-gradient(0deg,#9b7759 0 17px,#b18e6d 18px 35px); }
+.materialSample[data-code="ivory"] { background:repeating-linear-gradient(90deg,transparent 0 21px,#b6ad9588 22px 23px),repeating-linear-gradient(0deg,#eee5d2 0 21px,#b6ad9588 22px 23px); }
+@media(max-width:640px) {
+  .roomToolbar[data-editing="true"] { left:auto; right:12px; bottom:12px; gap:2px; padding:4px; }
+  .roomPanel { bottom:76px; max-height:calc(100% - 88px); }
+  .categories button { min-height:44px; }
+  .autosaveStatus { font-size:10px; padding-inline:2px; }
 }
+@media(max-width:420px) {
+  .scene[data-editing="true"] :is(.roomPanel,.selectionPill,.dragFeedback) { bottom:76px; }
+}
+
+.categories button:focus-visible { outline:2px solid var(--ring); outline-offset:-2px; }

@@ -250,7 +250,7 @@ export default async function ProfilePage() {
     <ProfilePanels room={
       <div className={styles.profileHero} data-testid="profile-hero">
       <ProfileIdentity key={`identity:${user.id}`} userId={user.id} intro={intro} memberships={memberships} />
-      <ProfileHousing key={`room:${user.id}`} embedded initial={housing} />
+      <ProfileHousing key={`room:${user.id}`} userId={user.id} embedded initial={housing} />
     </div>
     } account={<><section className={styles.namecardSection}><ProfileNamecard key={user.id} initial={namecard} /></section><div className={styles.accountLayout}>
       <div className={`${styles.accountColumn} ${styles.accountSettings}`}>
