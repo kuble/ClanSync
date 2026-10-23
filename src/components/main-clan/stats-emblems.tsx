@@ -1,6 +1,7 @@
 "use client";
 
 import { UserRound } from "lucide-react";
+import Link from "next/link";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { playerProfileDetails, type PlayerProfile } from "@/lib/clan/player-profile";
 import { collectHofEmblems, type HofEmblem } from "@/lib/clan/stats/hof-emblems";
@@ -20,6 +21,6 @@ export function StatsPlayerBanner({ clanId, hof, userId, nickname, profile, awar
       <span className="grid size-12 shrink-0 place-items-center rounded-xl border border-primary/25 bg-primary/10 text-primary"><UserRound className="size-6" aria-hidden="true" /></span>
       <div className="min-w-0"><p className="mb-1 text-xs text-muted-foreground">개인 기록</p><h3 className="break-words text-lg font-bold" aria-label={`개인 기록 · ${displayName}`}>{displayName}</h3>{details && <p className="mt-1 text-xs text-muted-foreground">{details}</p>}{profile && !profile.battleTag && <p className="mt-1 text-xs text-muted-foreground">배틀태그 미등록</p>}</div>
     </div>
-    {showEmblems && <PersonalEmblemCaseLauncher key={clanId + userId} clanId={clanId} userId={userId} nickname={nickname} initialAwards={emblems} />}
+    <div className="flex flex-wrap items-center gap-4"><Link href={`/profile/${userId}`} className="text-xs font-medium text-primary underline-offset-4 hover:underline">미니룸 방문</Link>{showEmblems && <PersonalEmblemCaseLauncher key={clanId + userId} clanId={clanId} userId={userId} nickname={nickname} initialAwards={emblems} />}</div>
   </section>;
 }

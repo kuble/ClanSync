@@ -5,10 +5,10 @@ import { EntryBrand } from "@/components/entry/entry-brand";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import styles from "./onboarding.module.css";
 
-export function AccountShell({ children }: { children: ReactNode }) {
+export function AccountShell({ children, context }: { children: ReactNode; context?: string }) {
   return <div className={styles.shell}>
     <header className={styles.navbar}><div className={styles.navbarInner}>
-      <EntryBrand />
+      <div className={styles.brandContext}><EntryBrand />{context && <span className={styles.contextLabel}>{context}</span>}</div>
       <nav aria-label="계정 메뉴"><Link href="/games" aria-label="게임 선택" title="게임 선택"><Gamepad2 size={16} aria-hidden="true" /><span className={styles.navLabel}>게임 선택</span></Link><Link href="/profile" aria-label="프로필" title="프로필"><UserRound size={16} aria-hidden="true" /><span className={styles.navLabel}>프로필</span></Link><ThemeToggle /></nav>
     </div></header>
     {children}

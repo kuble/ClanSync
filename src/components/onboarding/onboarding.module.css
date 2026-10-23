@@ -109,3 +109,6 @@
   .fieldGrid { grid-template-columns: 1fr; }
   .pendingTop { flex-wrap: wrap; }
 }
+.brandContext { display:flex; min-width:0; align-items:center; gap:16px; }
+.contextLabel { border-left:1px solid var(--border); padding-left:16px; font-size:14px; font-weight:600; white-space:nowrap; }
+@media(max-width:400px) { .brandContext { gap:10px; } .contextLabel { padding-left:10px; font-size:12px; } }

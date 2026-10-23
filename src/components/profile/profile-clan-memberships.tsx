@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { toast } from "sonner";
 
 type Membership = { clanId: string; clanName: string; gameSlug: string; gameName: string; role: string };
-export function ProfileClanMemberships({ rows }: { rows: Membership[] }) {
+export function ProfileClanMemberships({ rows, userId }: { rows: Membership[]; userId: string }) {
   const [leaving, setLeaving] = useState<Membership | null>(null);
   const [error, setError] = useState("");
   const [pending, start] = useTransition();
@@ -20,7 +20,7 @@ export function ProfileClanMemberships({ rows }: { rows: Membership[] }) {
     <h2 className="text-sm font-semibold">내 클랜</h2>
     <ul className="mt-3 divide-y">{rows.map((row) => <li key={row.clanId} className="flex flex-wrap items-center justify-between gap-3 py-3">
       <div><Link className="text-sm font-semibold hover:text-primary" href={`/games/${row.gameSlug}/clan/${row.clanId}`}>{row.clanName}</Link><p className="mt-1 text-xs text-muted-foreground">{row.gameName} · {row.role === "leader" ? "클랜장" : row.role === "officer" ? "운영진" : "멤버"}</p></div>
-      <Button variant="ghost" size="sm" onClick={() => { setError(""); setLeaving(row); }} aria-label={`${row.clanName} 클랜 탈퇴`}><LogOut className="size-3.5" />클랜 탈퇴</Button>
+      <div className="flex flex-wrap items-center gap-3"><Link className="text-xs text-primary hover:underline" href={`/games/${row.gameSlug}/clan/${row.clanId}/stats?player=${encodeURIComponent(userId)}`}>개인 기록 보기</Link><Button variant="ghost" size="sm" onClick={() => { setError(""); setLeaving(row); }} aria-label={`${row.clanName} 클랜 탈퇴`}><LogOut className="size-3.5" />클랜 탈퇴</Button></div>
     </li>)}</ul>
     <Dialog open={!!leaving} onOpenChange={(open) => { if (!open && !pending) setLeaving(null); }}>
       <DialogContent showCloseButton={!pending}><DialogHeader><DialogTitle>클랜을 탈퇴할까요?</DialogTitle><DialogDescription>{leaving?.clanName}에서 나가도 지금까지의 내전 기록과 통계는 남습니다.</DialogDescription></DialogHeader>

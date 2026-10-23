@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { signOutAction } from "@/app/actions/auth";
 import {
   ProfileGameDecorations,
-  type BadgeRow,
   type DecorationGame,
   type NameplateOptionRow,
 } from "@/components/profile/profile-game-decorations";
@@ -11,7 +10,8 @@ import { ProfileDeleteAccountButton } from "@/components/profile/profile-delete-
 import { ProfileJoinRequests } from "@/components/profile/profile-join-requests";
 import { ProfileClanMemberships } from "@/components/profile/profile-clan-memberships";
 import { ProfileIdentity, type ProfileMembership } from "@/components/profile/profile-identity";
-import { ProfileSettings } from "@/components/profile/profile-settings";
+import { ProfileVisibility } from "@/components/profile/profile-visibility";
+import { DEFAULT_PROFILE_VISIBILITY } from "@/lib/profile/visibility";
 import type { AltAccountRow } from "@/components/profile/profile-game-alt-accounts";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
@@ -68,11 +68,10 @@ export default async function ProfilePage() {
     { data: ugpRows },
     { data: inv },
     { data: sel },
-    { data: unl },
-    { data: picks },
     { data: altRowsRaw },
     { data: rolePreferences },
     housing,
+    visibilityResult,
   ] = await Promise.all([
     supabase
       .from("users")
@@ -90,12 +89,6 @@ export default async function ProfilePage() {
       .from("user_nameplate_selections")
       .select("game_id, category, option_id")
       .eq("user_id", user.id),
-    supabase.from("user_badge_unlocks").select("badge_id").eq("user_id", user.id),
-    supabase
-      .from("user_badge_picks")
-      .select("game_id, badge_id, slot_index")
-      .eq("user_id", user.id)
-      .order("slot_index", { ascending: true }),
     supabase
       .from("user_alt_accounts")
       .select("id, game_id, alt_nick, note")
@@ -103,6 +96,7 @@ export default async function ProfilePage() {
       .order("alt_nick"),
     supabase.from("profile_role_preferences").select("game_id, ranking").eq("user_id", user.id),
     loadHousingState(),
+    supabase.from("profile_visibility").select("room_public,show_intro,show_games,show_clan,show_emblems").eq("user_id", user.id).maybeSingle(),
   ]);
 
   const { data: rawJoinFlat, error: rawJoinFlatErr } =
@@ -189,25 +183,9 @@ export default async function ProfilePage() {
 
   const gameIds = linkedGames.map((g) => g.gameId);
 
-  const [{ data: npOpts }, { data: badgeRows }] = await Promise.all([
-    gameIds.length
-      ? supabase
-          .from("nameplate_options")
-          .select("id, game_id, category, name_ko, unlock_source")
-          .in("game_id", gameIds)
-          .eq("is_active", true)
-      : Promise.resolve({
-          data: [] as NameplateOptionRow[],
-          error: null as null,
-        }),
-    gameIds.length
-      ? supabase
-          .from("badges")
-          .select("id, game_id, name_ko, icon, unlock_source, unlock_condition")
-          .in("game_id", gameIds)
-          .eq("is_active", true)
-      : Promise.resolve({ data: [] as BadgeRow[], error: null as null }),
-  ]);
+  const { data: npOpts } = gameIds.length
+    ? await supabase.from("nameplate_options").select("id, game_id, category, name_ko, unlock_source").in("game_id", gameIds).eq("is_active", true)
+    : { data: [] as NameplateOptionRow[] };
 
   const nameplateOptions: NameplateOptionRow[] = (npOpts ?? []).map((o) => ({
     id: o.id,
@@ -217,15 +195,6 @@ export default async function ProfilePage() {
     unlock_source: o.unlock_source,
   }));
 
-  const badges: BadgeRow[] = (badgeRows ?? []).map((b) => ({
-    id: b.id,
-    game_id: b.game_id,
-    name_ko: b.name_ko,
-    icon: b.icon,
-    unlock_source: b.unlock_source,
-    unlock_condition: b.unlock_condition,
-  }));
-
   const ownedOptionIds = (inv ?? []).map((i) => i.option_id);
   const selections =
     (sel ?? []) as Array<{
@@ -233,13 +202,6 @@ export default async function ProfilePage() {
       category: NameplateCategory;
       option_id: string;
     }>;
-  const unlockedBadgeIds = (unl ?? []).map((u) => u.badge_id);
-  const pickRows = (picks ?? []) as Array<{
-    game_id: string;
-    badge_id: string;
-    slot_index: number;
-  }>;
-
   const verifiedGameIds = [
     ...new Set(
       (ugpRows ?? [])
@@ -320,10 +282,16 @@ export default async function ProfilePage() {
     return game ? [{ clanId: membership.clan_id, clanName: clan.name, gameSlug: game.slug, gameName: game.name_ko, role: membership.role }] : [];
   });
 
-  return <AccountShell><main className={styles.page}>
-    <div className={styles.profileBar}><span className={styles.pageLabel}>플레이어 프로필</span>
-      <ProfileSettings>
-        {row ? <section className={styles.settingsAccount} aria-label="계정 정보"><h2>내 계정</h2><dl className={styles.detailGrid}>
+  return <AccountShell context="프로필"><main className={styles.page}>
+    <ProfilePanels room={
+      <div className={styles.profileHero} data-testid="profile-hero">
+      <ProfileIdentity key={`identity:${user.id}`} userId={user.id} nickname={nickname} intro={intro} memberships={memberships} games={linkedGames} />
+      <ProfileHousing key={`room:${user.id}`} embedded initial={housing} nickname={nickname} clanName={firstClan?.name} gameNames={linkedGames.map((game) => game.nameKo)} />
+    </div>
+    } account={<div className={styles.accountLayout}>
+      <div className={styles.accountColumn}>
+        <ProfileVisibility initial={visibilityResult.data ?? DEFAULT_PROFILE_VISIBILITY} userId={user.id} loadFailed={Boolean(visibilityResult.error)} />
+        {row ? <section className={`${styles.settingsAccount} ${styles.accountSection}`} aria-label="내 계정"><h2>내 계정</h2><dl className={styles.detailGrid}>
           <div><dt>표시 이름</dt><dd>{nickname}</dd></div>
           <div><dt>이메일</dt><dd>{row.email || user.email}</dd></div>
           <div><dt>출생연도</dt><dd>{row.birth_year ?? "미등록"}</dd></div>
@@ -332,29 +300,26 @@ export default async function ProfilePage() {
           <div><dt>자동 로그인</dt><dd>{row.auto_login ? "켜짐" : "꺼짐"}</dd></div>
           <div><dt>가입일</dt><dd>{row.created_at ? new Date(row.created_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "—"}</dd></div>
         </dl></section> : <p className={styles.error} role="alert">계정 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>}
-        <div className={styles.settingsGameLink}><Link href="/games" className={buttonVariants({ variant: "outline", size: "sm" })}>게임 계정 연결</Link></div>
-        <ProfileClanMemberships rows={memberships} />
-        <ProfileJoinRequests rows={joinRequests} loadFailed={joinRequestsFetchFailed} />
         <div className={styles.accountActions}><form action={signOutAction}><Button type="submit" variant="outline" size="sm">로그아웃</Button></form><ProfileDeleteAccountButton /></div>
-      </ProfileSettings>
-    </div>
-    <div className={styles.profileHero} data-testid="profile-hero">
-      <ProfileIdentity key={user.id} userId={user.id} nickname={nickname} intro={intro} memberships={memberships} gameNames={linkedGames.map((game) => game.nameKo)} />
-      <ProfileHousing key={user.id} embedded initial={housing} nickname={nickname} clanName={firstClan?.name} gameNames={linkedGames.map((game) => game.nameKo)} />
-    </div>
+
+      </div>
+      <div className={styles.accountColumn}>
+        <section className={styles.accountSection} aria-label="게임 프로필 관리">
+          <div className={styles.sectionHeader}><h2 className={styles.sectionHeading}>게임 프로필</h2><Link href="/games" className={buttonVariants({ variant: "outline", size: "sm" })}>게임 계정 연결</Link></div>
+          <ProfileGameDecorations nickname={nickname} games={linkedGames} verifiedGameIds={verifiedGameIds} altAccountsByGame={altAccountsByGame} nameplateOptions={nameplateOptions} ownedOptionIds={ownedOptionIds} selections={selections} />
+          <ProfileRolePreferences games={linkedGames} preferences={rolePreferences ?? []} />
+          {storeHref && <Link href={storeHref} className={buttonVariants({ variant: "ghost", size: "sm" })}>개인 꾸미기 상점</Link>}
+        </section>
+        <div className={styles.clanManagement}>
+          <ProfileClanMemberships rows={memberships} userId={user.id} />
     {pendingForBanner.length > 0 && !joinRequestsFetchFailed ? <section className={styles.pendingBanner} aria-label="진행 중인 가입 신청 요약">
       <strong>진행 중인 가입 신청 {pendingForBanner.length}건</strong>
       {pendingForBanner.map((request) => <p key={request.id}>「{request.clans?.name ?? "클랜"}」 ({request.games?.name_ko ?? "게임"}) · 검토 중</p>)}
     </section> : null}
-    <ProfilePanels summary={<section aria-label="플레이 게임"><div className={styles.sectionHeader}><h2 className={styles.sectionHeading}>플레이 게임</h2>{storeHref && <Link href={storeHref} className={buttonVariants({ variant: "ghost", size: "sm" })}>개인 꾸미기</Link>}</div>
-      {linkedGames.length ? <ul className={styles.playGames}>{linkedGames.map((game) => {
-        const clans = memberships.filter((membership) => membership.gameSlug === game.slug);
-        return <li key={game.gameId} className={styles.playGame}>
-          <div className={styles.playGameName}><h3>{game.nameKo}</h3><span className={styles.pill}>{verifiedGameIds.includes(game.gameId) ? "계정 연동됨" : "계정 확인 대기"}</span></div>
-          <p className={styles.gameNickname}>{game.accountId || "게임 닉네임 미등록"}</p>
-          {clans.length ? <ul className={styles.gameClans}>{clans.map((clan) => <li key={clan.clanId}><Link href={"/games/" + clan.gameSlug + "/clan/" + clan.clanId}>{clan.clanName}</Link><Link href={"/games/" + clan.gameSlug + "/clan/" + clan.clanId + "/stats?player=" + encodeURIComponent(user.id)}>개인 기록 보기</Link></li>)}</ul> : <Link href={"/games/" + game.slug} className={styles.gameDiscover}>함께할 클랜 찾기</Link>}
-        </li>;
-      })}</ul> : <div className={styles.empty}><p>플레이하는 게임을 연결하고 함께할 클랜을 찾아보세요.</p><Link href="/games" className={buttonVariants({ variant: "outline", size: "sm" })}>게임 선택</Link></div>}
-    </section>} games={<><ProfileRolePreferences games={linkedGames} preferences={rolePreferences ?? []} /><ProfileGameDecorations nickname={nickname} games={linkedGames} verifiedGameIds={verifiedGameIds} altAccountsByGame={altAccountsByGame} nameplateOptions={nameplateOptions} ownedOptionIds={ownedOptionIds} selections={selections} badges={badges} unlockedBadgeIds={unlockedBadgeIds} picks={pickRows} /></>} />
+
+          <ProfileJoinRequests rows={joinRequests} loadFailed={joinRequestsFetchFailed} />
+        </div>
+      </div>
+    </div>} />
   </main></AccountShell>;
 }

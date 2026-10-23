@@ -377,9 +377,9 @@
 .accountActions {
   display: flex;
   gap: 10px;
-  justify-content: flex-end;
+  justify-content: flex-start;
   align-items: center;
-  margin-top: 24px;
+  margin-top: 0;
 }
 .error {
   color: var(--destructive);
@@ -436,8 +436,6 @@
   }
 }
 
-.profileBar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
-.pageLabel { color:var(--muted-foreground); font-size:12px; font-weight:550; }
 .profileHero { display:grid; grid-template-columns:minmax(260px, .3fr) minmax(0, .7fr); background:#e6ebdf; border:1px solid var(--border); border-radius:22px; overflow:hidden; margin-bottom:28px; }
 :global(.dark) .profileHero { background:#151e2d; }
 .playerIdentity { min-width:0; padding:30px 24px 24px; display:flex; flex-direction:column; align-items:stretch; border-right:1px solid #52634516; }
@@ -471,5 +469,31 @@
 .empty a { margin-top:12px; }
 @media(max-width:1000px) { .profileHero { grid-template-columns:260px minmax(0,1fr); } .playerIdentity { padding:24px 18px; } }
 @media(max-width:760px) { .profileHero { grid-template-columns:minmax(0,1fr); } .playerIdentity { border-right:0; padding:24px; } .playerName { flex-direction:row; align-items:center; } .playerName h1 { font-size:24px; } .playerEmblems [data-personal-emblem-launcher] { max-width:230px; } .playGames { grid-template-columns:minmax(0,1fr); } }
-@media(max-width:600px) { .profileCard { padding:0; } .profileBar { margin-bottom:12px; } .profileHero { border-radius:16px; margin-bottom:22px; } .playerIdentity { padding:20px; } .playerName { gap:12px; } .playerAvatar { width:52px; height:52px; font-size:24px; border-radius:16px; } .playerClan,.playerEmblems { margin-top:18px; } .detailGrid { gap:18px 14px; } }
+@media(max-width:600px) { .profileCard { padding:0; } .profileHero { border-radius:16px; margin-bottom:22px; } .playerIdentity { padding:20px; } .playerName { gap:12px; } .playerAvatar { width:52px; height:52px; font-size:24px; border-radius:16px; } .playerClan,.playerEmblems { margin-top:18px; } .detailGrid { gap:18px 14px; } }
 @media(max-width:600px) { .playerClan { margin-top:12px; } .playerSectionLabel { display:none; } .playerClan p { display:inline; margin-left:8px; } .playerEmblems { display:flex; align-items:center; gap:12px; margin-top:14px; } .playerEmblems h2 { flex:0 0 54px; line-height:1.7; margin:0; } .playerEmblems [data-personal-emblem-launcher] { flex:1; min-width:0; max-width:230px; } }
+.panel[hidden] { display:none; }
+.accountLayout { display:grid; grid-template-columns:minmax(280px,.85fr) minmax(0,1.45fr); gap:24px; align-items:start; }
+.accountColumn { min-width:0; display:grid; gap:24px; }
+.accountSection { padding:24px; border:1px solid var(--border); background:var(--card); border-radius:16px; min-width:0; }
+.accountSection > .sectionHeader { margin-bottom:16px; }
+.accountSection > section[aria-labelledby="deco-heading"] > h2,
+.accountSection > section[aria-labelledby="deco-heading"] > p { display:none; }
+.accountSection .gameBundle { background:transparent; border:0; padding:0; margin-top:16px; }
+.accountActions { justify-content:flex-start; margin:0; flex-wrap:wrap; }
+.clanManagement > section { margin-top:0; margin-bottom:24px; border-radius:16px; padding:24px; }
+.visibilityRow { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:16px 0; border-top:1px solid var(--border); cursor:pointer; }
+.visibilityRow > span:first-child { min-width:0; }
+.visibilityRow strong { display:block; font-size:13px; font-weight:600; }
+.visibilityRow small { display:block; margin-top:5px; font-size:12px; line-height:1.65; color:var(--muted-foreground); }
+.visibilityFields[data-disabled="true"] { opacity:.55; }
+.visibilityFields + a { margin-top:8px; }
+.accountSection > [role="status"] { display:block; min-height:20px; margin-top:8px; }
+.identityGames { flex-wrap:wrap; }
+.identityGames > span { display:inline-flex; align-items:center; gap:6px; }
+.overwatchLogo { width:16px; height:16px; background:currentColor; mask:url('/images/overwatch/logo.svg') center / contain no-repeat; flex:none; }
+.visitorIntro { margin-top:20px; font-size:13px; line-height:1.8; overflow-wrap:anywhere; }
+.visitHeading { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; gap:16px; }
+.visitHeading h1 { font-size:16px; font-weight:650; }
+.visitHeading a { font-size:12px; color:var(--primary); }
+@media(max-width:900px) { .accountLayout { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:600px) { .accountLayout,.accountColumn { gap:16px; } .accountSection,.clanManagement > section { padding:20px; } .topTabs > button { min-width:0; padding-inline:18px; } }

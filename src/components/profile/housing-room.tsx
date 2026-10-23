@@ -15,6 +15,7 @@ export type HousingRoomHandle = {
 };
 type Props = RoomView & {
   ref?: Ref<HousingRoomHandle>;
+  readOnly?: boolean;
   pending: boolean;
   onBeginMove: (item: HousingInventoryItem) => void;
   onSelect: (item: HousingInventoryItem) => void;
@@ -74,6 +75,7 @@ export function HousingRoom(props: Props) {
 
   function startDrag(event: PointerStart, item: HousingInventoryItem, fromInventory: boolean, fromHold = false) {
     const latest = current.current;
+    if (latest.readOnly) return;
     if ((!latest.editing && !fromHold) || latest.pending || drag.current || !event.isPrimary || event.button !== 0 || !surface.current) return;
     const info = latest.catalog.find((entry) => entry.id === item.catalogId);
     if (!info) return;
@@ -225,6 +227,7 @@ export function HousingRoom(props: Props) {
   }
   return <div ref={surface} className={styles.scene} data-testid="housing-room-stage" data-lighting={theme === "light" ? "day" : "night"} data-wallpaper={wallpaper} data-floor={floor} data-editing={editing} data-dragging={!!dragPreview} data-renderer={ready ? "webgl" : fallback ? "fallback" : "loading"} role="group" aria-label="나의 방"
     onPointerDownCapture={(event) => {
+      if (props.readOnly) return;
       cancelHold();
       if ((event.target as HTMLElement).closest("[role=menu]")) return;
       if ((event.target as HTMLElement).closest("[data-room-ui]")) { setMenu(null); return; }
@@ -294,7 +297,7 @@ export function HousingRoom(props: Props) {
       const x = item.x! + size.width / 2, y = item.y! + size.depth / 2;
       const point = ready ? projection.furniture[item.id] : null;
       const fallback = fallbackPoint(x, y, item.surface ?? "floor");
-      return <button key={item.id} type="button" className={`${styles.furniture} ${ready ? styles.furnitureHit : ""}`} data-selected={item.id === selectedId} data-inventory-id={item.id} data-surface={item.surface ?? "floor"} data-x={item.x} data-y={item.y} data-rotation={item.rotation} aria-label={`${info.name} 선택`} aria-pressed={item.id === selectedId} disabled={pending}
+      return <button key={item.id} type="button" className={`${styles.furniture} ${ready ? styles.furnitureHit : ""}`} data-selected={item.id === selectedId} data-inventory-id={item.id} data-surface={item.surface ?? "floor"} data-x={item.x} data-y={item.y} data-rotation={item.rotation} aria-label={`${info.name} 선택`} aria-pressed={item.id === selectedId} disabled={pending || props.readOnly}
         style={point ? { left: `${point.left}%`, top: `${point.top}%`, width: `${point.width}%`, height: `${point.height}%`, transform: "none", zIndex: 10 + item.x! + item.y! } : { left: fallback.left + "%", top: fallback.top + "%", transform: item.surface !== "floor" ? "translate(-50%,-50%)" : undefined, width: `${13 + (Math.max(size.width, size.depth) - 1) * 6}%`, zIndex: 10 + item.x! + item.y! }} onClick={() => onSelect(item)} onKeyDown={(event) => {
           if (!editing || pending) return;
           if (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10")) { event.preventDefault(); openMenu(item); return; }

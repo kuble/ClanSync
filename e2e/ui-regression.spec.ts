@@ -42,8 +42,8 @@ test.describe("UI 회귀 — MainClan (QA 리더)", () => {
     await expect(page.getByRole("region", { name: "플레이어 소개" })).toBeVisible({
       timeout: 15_000,
     });
-    await page.getByRole("button", { name: "프로필 설정", exact: true }).click();
-    await expect(page.getByRole("dialog", { name: "프로필 설정", exact: true }).getByRole("heading", { name: "내 계정", exact: true })).toBeVisible();
+    await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
+    await expect(page.getByRole("tabpanel", { name: "계정 정보", exact: true }).getByRole("heading", { name: "내 계정", exact: true })).toBeVisible();
     await page.keyboard.press("Escape");
 
     await page.goto(base);
