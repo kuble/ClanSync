@@ -116,7 +116,17 @@ test("permanent personal emblem history preserves closed awards and first thresh
     assert.equal(await ok(finalize("2026-08", [{ ...candidate, user_id: predictor.id, rank: 3 }])), false);
     assert.deepEqual(await awards(), savedAwards); assert.deepEqual(await milestones(), savedMilestones);
   });
-  await t.test("pending work includes empty previous periods and disappears after every required marker", async () => {
+  await t.test("pending skips emptied history, preserves empty previous periods and resumes after closure", async () => {
+    const ghostId = await ok(svc.rpc("edit_clan_match_record", { p_clan_id: clanId, p_actor_id: winner.id, p_id: null, p_operation: "create", p_revision: null,
+      p_record: { playedAt: "2001-02-01T10:00:00Z", occurredAt: "2001-02-01T10:00:00Z", mapLabel: "부산", outcome: "team1",
+        players: [{ userId: winner.id, team: 1, role: "tank" }, { userId: loser.id, team: 2, role: "tank" }] } }));
+    const [ghost] = await ok(svc.rpc("read_clan_stats_records", { p_clan_id: clanId, p_day: "2001-02-01" }));
+    await ok(svc.rpc("edit_clan_match_record", { p_clan_id: clanId, p_actor_id: winner.id, p_id: ghostId, p_operation: "delete", p_revision: ghost.payload._revision, p_record: null }));
+    const emptyHistory = await ok(svc.rpc("read_clan_stats_summary", { p_clan_id: clanId, p_periods: ["2001", "2001-02"] }));
+    assert.equal(emptyHistory.periods["2001"].totals.days, 0);
+    assert.equal(emptyHistory.periods["2001-02"].totals.days, 0);
+    assert.equal(emptyHistory.directory["2001"], undefined);
+    assert.equal(emptyHistory.directory["2001-02"], undefined);
     const openSeries = await ok(svc.from("balance_session_series").insert({ clan_id: clanId, game_id: game.id, host_user_id: winner.id, opened_at: "2026-04-15T12:00:00Z" }).select("id").single());
     assert.equal(await ok(finalize("2026-04", [])), false);
     assert.deepEqual(await ok(svc.from("clan_personal_emblem_award_periods").select("*").eq("clan_id", clanId).eq("period_key", "2026-04")), []);
