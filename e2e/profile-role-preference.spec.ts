@@ -15,6 +15,7 @@ test("프로필 선호는 연속 저장 후 즉시 다시 편집되며 실패 �
     await loginIsolatedBalanceUser(page, fixture.users[0]);
     await page.goto("/profile");
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
+    await page.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
     const preference = page.getByRole("region", { name: "게임별 선호 역할" });
     const roleButtons = preference
       .getByRole("list", { name: "역할 선호 순위" })
@@ -90,6 +91,7 @@ test("프로필 선호는 연속 저장 후 즉시 다시 편집되며 실패 �
     await page.unroute("**/profile");
     await page.reload();
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
+    await page.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
     await expect(role("딜러")).toHaveAccessibleName("1순위 딜러");
     await expect(role("탱커")).toHaveAccessibleName("2순위 탱커");
     await expect(role("힐러")).toHaveAccessibleName("3순위 힐러");

@@ -1,20 +1,16 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { signOutAction } from "@/app/actions/auth";
 import {
   ProfileGameDecorations,
   type DecorationGame,
-  type NameplateOptionRow,
 } from "@/components/profile/profile-game-decorations";
 import { ProfileDeleteAccountButton } from "@/components/profile/profile-delete-account-button";
 import { ProfileJoinRequests } from "@/components/profile/profile-join-requests";
-import { ProfileClanMemberships } from "@/components/profile/profile-clan-memberships";
 import { ProfileIdentity, type ProfileMembership } from "@/components/profile/profile-identity";
 import { ProfileVisibility } from "@/components/profile/profile-visibility";
 import { DEFAULT_PROFILE_VISIBILITY } from "@/lib/profile/visibility";
 import type { AltAccountRow } from "@/components/profile/profile-game-alt-accounts";
 import { Button } from "@/components/ui/button";
-import { buttonVariants } from "@/components/ui/button-variants";
 import { createClient } from "@/lib/supabase/server";
 import { fetchMyClanJoinRequests } from "@/lib/clan/fetch-my-clan-join-requests";
 import {
@@ -22,10 +18,14 @@ import {
   viewAltAudience,
   viewAltAudienceCaption,
 } from "@/lib/clan/view-alt-disclosure";
-import type { Database } from "@/lib/supabase/database.types";
 import { AccountShell } from "@/components/onboarding/account-shell";
 import { ProfilePanels } from "@/components/profile/profile-panels";
-import { ProfileRolePreferences } from "@/components/profile/profile-role-preferences";
+import { ProfileNamecard } from "@/components/profile/profile-namecard";
+import { ProfileAutoLogin } from "@/components/profile/profile-auto-login";
+import { loadNamecard } from "@/lib/profile/load-namecard";
+import { profileBattleTag } from "@/lib/game-auth/battle-tag";
+import { cookies } from "next/headers";
+import { getSessionMaxAge, REMEMBERED_SESSION_SECONDS } from "@/lib/supabase/session-cookies";
 import { ProfileHousing } from "@/components/profile/profile-housing";
 import { loadHousingState } from "@/lib/housing/load";
 import styles from "@/components/profile/profile.module.css";
@@ -33,7 +33,6 @@ import styles from "@/components/profile/profile.module.css";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "플레이어 프로필 · ClanSync" };
 
-type NameplateCategory = Database["public"]["Enums"]["nameplate_category"];
 
 function genderLabel(g: string): string {
   if (g === "male") return "남성";
@@ -66,8 +65,8 @@ export default async function ProfilePage() {
   const [
     { data: row },
     { data: ugpRows },
-    { data: inv },
-    { data: sel },
+    { data: gameCatalog },
+    namecard,
     { data: altRowsRaw },
     { data: rolePreferences },
     housing,
@@ -82,13 +81,10 @@ export default async function ProfilePage() {
       .maybeSingle(),
     supabase
       .from("user_game_profiles")
-      .select("game_id, game_uid, battle_tag, is_verified, games ( id, slug, name_ko )")
+      .select("game_id, game_uid, battle_tag, riot_id, is_verified, games ( id, slug, name_ko )")
       .eq("user_id", user.id),
-    supabase.from("user_nameplate_inventory").select("option_id").eq("user_id", user.id),
-    supabase
-      .from("user_nameplate_selections")
-      .select("game_id, category, option_id")
-      .eq("user_id", user.id),
+    supabase.from("games").select("id,slug,name_ko,is_active").order("slug"),
+    loadNamecard(user.id),
     supabase
       .from("user_alt_accounts")
       .select("id, game_id, alt_nick, note")
@@ -177,31 +173,10 @@ export default async function ProfilePage() {
         | null;
       const g = Array.isArray(gRaw) ? gRaw[0] : gRaw;
       if (!g) return null;
-      return { gameId: g.id, slug: g.slug, nameKo: g.name_ko, accountId: r.battle_tag ?? String(r.game_uid ?? "") };
+      return { gameId: g.id, slug: g.slug, nameKo: g.name_ko, accountId: g.slug === "overwatch" ? profileBattleTag(r) ?? undefined : r.riot_id ?? undefined, linked: true };
     })
     .filter((x): x is DecorationGame => x !== null);
 
-  const gameIds = linkedGames.map((g) => g.gameId);
-
-  const { data: npOpts } = gameIds.length
-    ? await supabase.from("nameplate_options").select("id, game_id, category, name_ko, unlock_source").in("game_id", gameIds).eq("is_active", true)
-    : { data: [] as NameplateOptionRow[] };
-
-  const nameplateOptions: NameplateOptionRow[] = (npOpts ?? []).map((o) => ({
-    id: o.id,
-    game_id: o.game_id,
-    category: o.category as NameplateCategory,
-    name_ko: o.name_ko,
-    unlock_source: o.unlock_source,
-  }));
-
-  const ownedOptionIds = (inv ?? []).map((i) => i.option_id);
-  const selections =
-    (sel ?? []) as Array<{
-      game_id: string;
-      category: NameplateCategory;
-      option_id: string;
-    }>;
   const verifiedGameIds = [
     ...new Set(
       (ugpRows ?? [])
@@ -268,12 +243,6 @@ export default async function ProfilePage() {
     };
   }
 
-  const firstMembership = membershipRows[0];
-  const firstClanRaw = firstMembership?.clans;
-  const firstClan = Array.isArray(firstClanRaw) ? firstClanRaw[0] : firstClanRaw;
-  const firstClanGame = linkedGames.find((game) => game.gameId === firstClan?.game_id);
-  const storeHref = firstMembership && firstClanGame ? `/games/${firstClanGame.slug}/clan/${firstMembership.clan_id}/store` : null;
-
   const nickname = row?.nickname || "플레이어";
   const intro = typeof user.user_metadata?.profile_intro === "string" ? user.user_metadata.profile_intro.slice(0, 120) : "";
   const memberships: ProfileMembership[] = membershipRows.flatMap((membership) => {
@@ -286,32 +255,24 @@ export default async function ProfilePage() {
     <ProfilePanels room={
       <div className={styles.profileHero} data-testid="profile-hero">
       <ProfileIdentity key={`identity:${user.id}`} userId={user.id} nickname={nickname} intro={intro} memberships={memberships} games={linkedGames} />
-      <ProfileHousing key={`room:${user.id}`} embedded initial={housing} nickname={nickname} clanName={firstClan?.name} gameNames={linkedGames.map((game) => game.nameKo)} />
+      <ProfileHousing key={`room:${user.id}`} embedded initial={housing} nickname={nickname} gameNames={linkedGames.map((game) => game.nameKo)} />
     </div>
-    } account={<div className={styles.accountLayout}>
-      <div className={styles.accountColumn}>
-        <ProfileVisibility initial={visibilityResult.data ?? DEFAULT_PROFILE_VISIBILITY} userId={user.id} loadFailed={Boolean(visibilityResult.error)} />
+    } account={<><section className={styles.namecardSection}><ProfileNamecard key={user.id} initial={namecard} /></section><div className={styles.accountLayout}>
+      <div className={`${styles.accountColumn} ${styles.accountSettings}`}>
         {row ? <section className={`${styles.settingsAccount} ${styles.accountSection}`} aria-label="내 계정"><h2>내 계정</h2><dl className={styles.detailGrid}>
-          <div><dt>표시 이름</dt><dd>{nickname}</dd></div>
           <div><dt>이메일</dt><dd>{row.email || user.email}</dd></div>
           <div><dt>출생연도</dt><dd>{row.birth_year ?? "미등록"}</dd></div>
           <div><dt>성별</dt><dd>{genderLabel(String(row.gender))}</dd></div>
           <div><dt>언어</dt><dd>{({ ko: "한국어", en: "English", ja: "日本語" } as Record<string, string>)[row.language] ?? row.language}</dd></div>
-          <div><dt>자동 로그인</dt><dd>{row.auto_login ? "켜짐" : "꺼짐"}</dd></div>
           <div><dt>가입일</dt><dd>{row.created_at ? new Date(row.created_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "—"}</dd></div>
-        </dl></section> : <p className={styles.error} role="alert">계정 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>}
+        </dl><ProfileAutoLogin key={user.id} initial={getSessionMaxAge((await cookies()).getAll()) === REMEMBERED_SESSION_SECONDS} /></section> : <p className={styles.error} role="alert">계정 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>}
+        <ProfileVisibility key={user.id} initial={visibilityResult.data ?? DEFAULT_PROFILE_VISIBILITY} userId={user.id} loadFailed={Boolean(visibilityResult.error)} />
         <div className={styles.accountActions}><form action={signOutAction}><Button type="submit" variant="outline" size="sm">로그아웃</Button></form><ProfileDeleteAccountButton /></div>
 
       </div>
       <div className={styles.accountColumn}>
-        <section className={styles.accountSection} aria-label="게임 프로필 관리">
-          <div className={styles.sectionHeader}><h2 className={styles.sectionHeading}>게임 프로필</h2><Link href="/games" className={buttonVariants({ variant: "outline", size: "sm" })}>게임 계정 연결</Link></div>
-          <ProfileGameDecorations nickname={nickname} games={linkedGames} verifiedGameIds={verifiedGameIds} altAccountsByGame={altAccountsByGame} nameplateOptions={nameplateOptions} ownedOptionIds={ownedOptionIds} selections={selections} />
-          <ProfileRolePreferences games={linkedGames} preferences={rolePreferences ?? []} />
-          {storeHref && <Link href={storeHref} className={buttonVariants({ variant: "ghost", size: "sm" })}>개인 꾸미기 상점</Link>}
-        </section>
+        <ProfileGameDecorations games={(gameCatalog ?? []).map((game) => ({ gameId: game.id, slug: game.slug, nameKo: game.name_ko, isActive: game.is_active, ...linkedGames.find((linked) => linked.gameId === game.id) })).sort((a,b) => Number(b.linked ?? false) - Number(a.linked ?? false) || ["overwatch","valorant","lol","pubg"].indexOf(a.slug) - ["overwatch","valorant","lol","pubg"].indexOf(b.slug))} userId={user.id} memberships={memberships} preferences={rolePreferences ?? []} verifiedGameIds={verifiedGameIds} altAccountsByGame={altAccountsByGame} />
         <div className={styles.clanManagement}>
-          <ProfileClanMemberships rows={memberships} userId={user.id} />
     {pendingForBanner.length > 0 && !joinRequestsFetchFailed ? <section className={styles.pendingBanner} aria-label="진행 중인 가입 신청 요약">
       <strong>진행 중인 가입 신청 {pendingForBanner.length}건</strong>
       {pendingForBanner.map((request) => <p key={request.id}>「{request.clans?.name ?? "클랜"}」 ({request.games?.name_ko ?? "게임"}) · 검토 중</p>)}
@@ -320,6 +281,6 @@ export default async function ProfilePage() {
           <ProfileJoinRequests rows={joinRequests} loadFailed={joinRequestsFetchFailed} />
         </div>
       </div>
-    </div>} />
+    </div></>} />
   </main></AccountShell>;
 }

@@ -110,8 +110,9 @@ test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소
     await expect(plant).toBeVisible();
 
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
+    await page.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
     await expect(page.getByRole("region", { name: "게임별 선호 역할", exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "꾸미기", exact: true }).click();
+    await page.getByRole("button", { name: "네임카드 꾸미기", exact: true }).click();
     const nameplate = page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true });
     await expect(nameplate).toBeVisible();
     await page.keyboard.press("Escape");

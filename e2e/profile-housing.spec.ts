@@ -83,6 +83,7 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
 
     // Existing profile controls still work with the room above them.
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
+    await page.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
     await expect(page.getByRole("region", { name: "게임별 선호 역할" })).toBeVisible();
     await page.getByRole("tab", { name: "3D 미니룸", exact: true }).click();
     await expect(housing).toBeVisible();

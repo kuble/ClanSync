@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ProfileNamecard } from "@/components/profile/profile-namecard";
+import { loadNamecard } from "@/lib/profile/load-namecard";
 import { Store } from "lucide-react";
 import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { hasRequestClanPermission } from "@/lib/clan/request-clan-access";
@@ -23,7 +25,7 @@ export default async function ClanStorePage({
   const ctx = await getRequestMainClanContext(gameSlug, clanId);
   if (!ctx) redirect(`/games/${gameSlug}/clan`);
 
-  const [userBalance, clanBalance, canManageClanPool, catalog, personalPurchases, clanPurchases] = await Promise.all([
+  const [userBalance, clanBalance, canManageClanPool, catalog, personalPurchases, clanPurchases, namecard] = await Promise.all([
     supabase
       .from("users")
       .select("coin_balance")
@@ -52,6 +54,7 @@ export default async function ClanStorePage({
       .eq("clan_id", clanId)
       .eq("pool_source", "clan")
       .is("voided_at", null),
+    loadNamecard(user.id),
   ]);
   const userCoins = userBalance.data?.coin_balance ?? 0;
   const clanCoins = clanBalance.data?.coin_balance ?? 0;
@@ -138,6 +141,7 @@ export default async function ClanStorePage({
         </p>
       )}
 
+      <section className="rounded-2xl border bg-card p-5"><ProfileNamecard key={user.id} initial={namecard} shopOnly /></section>
       {user ? (
         <ClanStoreCoinHistory
           clanId={clanId}

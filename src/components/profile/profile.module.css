@@ -497,3 +497,29 @@
 .visitHeading a { font-size:12px; color:var(--primary); }
 @media(max-width:900px) { .accountLayout { grid-template-columns:minmax(0,1fr); } }
 @media(max-width:600px) { .accountLayout,.accountColumn { gap:16px; } .accountSection,.clanManagement > section { padding:20px; } .topTabs > button { min-width:0; padding-inline:18px; } }
+.namecardSection { padding:24px; border:1px solid var(--border); border-radius:16px; background:var(--card); margin-bottom:24px; }
+.accountLayout { grid-template-columns:minmax(0,1.45fr) minmax(280px,.85fr); }
+.accountSettings { grid-column:2; grid-row:1; }
+.accountLayout > .accountColumn:not(.accountSettings) { grid-column:1; grid-row:1; }
+.gameList { display:grid; gap:12px; }
+.gameAccount { min-width:0; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.gameHeader { display:flex; align-items:center; gap:12px; padding:14px 16px; }
+.gameHeader > button { display:flex; align-items:center; gap:10px; flex:1; min-width:0; min-height:36px; text-align:left; font-size:14px; font-weight:650; cursor:pointer; }
+.gameHeader > button:focus-visible { outline:2px solid var(--ring); outline-offset:4px; border-radius:3px; }
+.gameChevron { margin-left:auto; transition:transform .15s; }
+.gameChevron[data-open="true"] { transform:rotate(180deg); }
+.gameContent { padding:4px 16px 16px; border-top:1px solid var(--border); }
+.gameContent[hidden] { display:none; }
+.gameCallout { padding:18px; margin-top:16px; border:1px solid var(--border); border-radius:10px; background:color-mix(in srgb,var(--muted) 45%,var(--card)); }
+.mainAccount h3 { font-size:12px; color:var(--muted-foreground); }
+.mainAccount p { margin-top:8px; font-size:14px; font-weight:600; overflow-wrap:anywhere; }
+.gameCallout .altSection { margin-top:18px; padding-top:18px; }
+.gameContent > section[aria-labelledby="profile-role-preferences-heading"] { margin-top:20px; padding:18px 0 0; border:0; border-top:1px solid var(--border); border-radius:0; background:transparent; }
+.gameContent > section[aria-label="내 클랜"] { padding:18px 0 0; border:0; border-top:1px solid var(--border); border-radius:0; background:transparent; }
+.autoLogin { margin-top:24px; padding-top:20px; border-top:1px solid var(--border); }
+.autoLogin label { display:flex; align-items:center; justify-content:space-between; gap:20px; }
+.autoLogin strong { display:block; font-size:13px; font-weight:600; }
+.autoLogin small { display:block; margin-top:5px; font-size:12px; line-height:1.7; color:var(--muted-foreground); }
+.identityGames { justify-content:center; }
+@media(max-width:900px) { .accountLayout { grid-template-columns:minmax(0,1fr); } .accountSettings,.accountLayout > .accountColumn:not(.accountSettings) { grid-column:auto; grid-row:auto; } .accountSettings { order:2; } }
+@media(max-width:600px) { .namecardSection { padding:20px; margin-bottom:16px; } .gameHeader { padding:12px; gap:8px; } .gameHeader > button { gap:7px; } .gameContent { padding:4px 12px 16px; } .gameCallout { padding:14px; } }

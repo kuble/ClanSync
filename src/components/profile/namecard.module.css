@@ -1,0 +1,26 @@
+.card { display:flex; align-items:center; min-width:0; width:100%; min-height:84px; border:1px solid color-mix(in srgb,var(--primary) 35%,var(--border)); border-radius:12px; overflow:hidden; background:color-mix(in srgb,var(--primary) 8%,var(--card)); text-align:left; }
+.emblem { align-self:stretch; display:grid; place-items:center; flex:0 0 76px; color:var(--primary); background:color-mix(in srgb,var(--primary) 13%,transparent); }
+.identity { display:grid; gap:5px; min-width:0; padding:16px 20px; }
+.identity strong { display:block; font-size:17px; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.identity small { color:var(--muted-foreground); font-size:12px; overflow-wrap:anywhere; }
+.card[data-frame="entrance"] { border-color:#b58a47; box-shadow:inset 0 0 0 2px #b58a4726; }
+.card[data-compact="true"] { min-height:44px; border-radius:7px; }
+.card[data-compact="true"] .emblem { flex-basis:30px; }
+.card[data-compact="true"] .identity { padding:6px 8px; gap:2px; }
+.card[data-compact="true"] strong { font-size:12px; }
+.card[data-compact="true"] small { font-size:10px; }
+.header { display:flex; align-items:center; flex-wrap:wrap; justify-content:space-between; gap:16px; margin-bottom:20px; }
+.header h2 { font-size:15px; font-weight:650; }
+.header p { margin-top:5px; font-size:12px; line-height:1.7; color:var(--muted-foreground); }
+.actions { display:flex; flex-wrap:wrap; gap:8px; }
+.preview { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(220px,.8fr); align-items:center; gap:28px; }
+.note { color:var(--muted-foreground); font-size:12px; line-height:1.8; }
+.fields { display:grid; gap:20px; padding:20px; }
+.fields label { display:grid; gap:8px; font-size:13px; }
+.fields select { width:100%; min-height:42px; padding:8px 10px; border:1px solid var(--input); border-radius:8px; background:var(--background); color:var(--foreground); }
+.shop { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.item { display:flex; flex-direction:column; justify-content:space-between; gap:20px; min-width:0; padding:20px; border:1px solid var(--border); border-radius:12px; background:var(--card); }
+.item strong { font-size:14px; overflow-wrap:anywhere; }
+.item p { margin-top:10px; color:var(--muted-foreground); font-size:12px; }
+.error { margin-top:12px; font-size:13px; color:var(--destructive); }
+@media(max-width:700px) { .preview { grid-template-columns:minmax(0,1fr); gap:12px; } .shop { grid-template-columns:minmax(0,1fr); } .emblem { flex-basis:56px; } .identity { padding:14px; } }

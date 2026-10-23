@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, Crosshair, Plus, Shield } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,9 +14,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ROLE_LABEL, type Role } from "@/lib/balance/formation";
 import { cn } from "@/lib/utils";
+import { OverwatchRoleIcon } from "@/components/ui/overwatch-icons";
 
 const UNRANKED_ROLES: Role[] = ["tank", "dmg", "sup"];
-const ROLE_ICONS = { tank: Shield, dmg: Crosshair, sup: Plus };
+
 
 export function RolePreferencePicker({
   id,
@@ -119,7 +120,6 @@ export function RolePreferencePicker({
         ) : null}
         <ol aria-label="역할 선호 순위" className="flex gap-2">
           {roles.map((role, index) => {
-            const Icon = ROLE_ICONS[role];
             const label = hasRanking
               ? `${index + 1}순위 ${ROLE_LABEL[role]}`
               : `${ROLE_LABEL[role]} · 순위 미설정`;
@@ -180,7 +180,7 @@ export function RolePreferencePicker({
                   }}
                   onDragEnd={() => setDraggedRole(null)}
                 >
-                  <Icon className="size-5" aria-hidden="true" />
+                  <OverwatchRoleIcon role={role === "dmg" ? "damage" : role === "sup" ? "support" : "tank"} className="size-5" />
                   <span
                     aria-hidden="true"
                     className="absolute right-1 top-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground"
