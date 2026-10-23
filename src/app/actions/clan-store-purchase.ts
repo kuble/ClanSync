@@ -127,6 +127,7 @@ export async function purchaseStoreItemAction(
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/store`);
   revalidatePath(`/games/${gameSlug}/clan/${clanId}`);
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/manage`);
+  if (pool === "personal") { revalidatePath("/store"); revalidatePath("/profile"); }
   return { ok: true, purchaseId: parsed.purchase_id };
 }
 

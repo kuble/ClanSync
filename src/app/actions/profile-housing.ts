@@ -20,7 +20,7 @@ export async function purchaseHousingFurnitureAction(input: { catalogId: string 
     if (!user) return { ok: false, error: "로그인이 필요합니다." };
     const { data, error } = await client.rpc("purchase_housing_furniture", { p_catalog_id: input.catalogId });
     const result = housingRpcResult(data, error);
-    if (result.ok) revalidatePath("/profile");
+    if (result.ok) { revalidatePath("/profile"); revalidatePath("/store"); }
     return result;
   } catch {
     return { ok: false, error: "가구를 구매하지 못했습니다. 잠시 후 다시 시도해 주세요." };

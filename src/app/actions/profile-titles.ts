@@ -11,5 +11,6 @@ export async function purchaseProfileTitleAction(optionId: unknown): Promise<{ o
   if (error) return { ok: false, error: error.message.includes("title_insufficient_coins") ? "개인 코인이 부족합니다." : "칭호를 구매하지 못했습니다. 다시 시도해도 중복 차감되지 않습니다." };
   const result = data as { optionId: string; coinBalance: number };
   revalidatePath("/profile");
+  revalidatePath("/store");
   return { ok: true, ...result };
 }

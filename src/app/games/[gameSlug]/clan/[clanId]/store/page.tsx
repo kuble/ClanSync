@@ -1,14 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ProfileNamecard } from "@/components/profile/profile-namecard";
-import { loadNamecard } from "@/lib/profile/load-namecard";
 import { Store } from "lucide-react";
 import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { hasRequestClanPermission } from "@/lib/clan/request-clan-access";
 import {
-  ClanStorePanels,
+  StorePanels,
   type ClanStoreItemVM,
-} from "@/components/main-clan/clan-store-panels";
+} from "@/components/store/store-panels";
 import { ClanStoreCoinHistory } from "@/components/main-clan/clan-store-coin-history";
 import { MVP_STORE_SLUGS } from "@/lib/store/mvp-store-slugs";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
@@ -25,12 +23,7 @@ export default async function ClanStorePage({
   const ctx = await getRequestMainClanContext(gameSlug, clanId);
   if (!ctx) redirect(`/games/${gameSlug}/clan`);
 
-  const [userBalance, clanBalance, canManageClanPool, catalog, personalPurchases, clanPurchases, namecard] = await Promise.all([
-    supabase
-      .from("users")
-      .select("coin_balance")
-      .eq("id", user.id)
-      .maybeSingle(),
+  const [clanBalance, canManageClanPool, catalog, clanPurchases] = await Promise.all([
     supabase
       .from("clans")
       .select("coin_balance")
@@ -41,26 +34,18 @@ export default async function ClanStorePage({
       .from("store_items")
       .select("id, slug, name_ko, price_coins, pool_source, is_premium_only")
       .eq("is_active", true)
+      .eq("pool_source", "clan")
       .in("slug", [...MVP_STORE_SLUGS]),
-    supabase
-      .from("purchases")
-      .select("item_id")
-      .eq("user_id", user.id)
-      .eq("pool_source", "personal")
-      .is("voided_at", null),
     supabase
       .from("purchases")
       .select("item_id")
       .eq("clan_id", clanId)
       .eq("pool_source", "clan")
       .is("voided_at", null),
-    loadNamecard(user.id),
   ]);
-  const userCoins = userBalance.data?.coin_balance ?? 0;
   const clanCoins = clanBalance.data?.coin_balance ?? 0;
   const premium = ctx.plan === "premium";
   const bySlug = new Map((catalog.data ?? []).map((row) => [row.slug, row] as const));
-  const personalSet = new Set((personalPurchases.data ?? []).map((row) => row.item_id));
   const clanSet = new Set((clanPurchases.data ?? []).map((row) => row.item_id));
 
   const items: ClanStoreItemVM[] = [];
@@ -74,7 +59,7 @@ export default async function ClanStorePage({
     const pool = row.pool_source as "clan" | "personal";
     const isPrem = row.is_premium_only === true;
 
-    const purchased = pool === "clan" ? clanSet.has(id) : personalSet.has(id);
+    const purchased = clanSet.has(id);
 
     let canAttemptPurchase = false;
     let disabledReason: string | null = null;
@@ -88,12 +73,6 @@ export default async function ClanStorePage({
         disabledReason = "클랜 코인 지출 권한이 없습니다.";
       } else if (clanCoins < price) {
         disabledReason = "클랜 코인이 부족합니다.";
-      } else {
-        canAttemptPurchase = true;
-      }
-    } else {
-      if (userCoins < price) {
-        disabledReason = "개인 코인이 부족합니다.";
       } else {
         canAttemptPurchase = true;
       }
@@ -119,29 +98,24 @@ export default async function ClanStorePage({
         </span>
         <div>
           <p className="text-sm text-muted-foreground">
-            함께 모은 코인으로 클랜과 나만의 공간을 꾸며보세요.
+            함께 모은 클랜 코인으로 우리 클랜을 꾸며보세요.
           </p>
         </div>
+        <Link href="/store" className="ml-auto shrink-0 text-sm text-primary hover:underline">개인 상점</Link>
       </header>
 
-      {items.length > 0 ? (
-        <ClanStorePanels
+        <StorePanels
+          key={user.id}
           gameSlug={gameSlug}
           clanId={clanId}
           actorRole={ctx?.role ?? "member"}
           planIsPremium={premium}
           items={items}
-          userCoins={userCoins}
+          pool="clan"
+          userCoins={0}
           clanCoins={clanCoins}
           canManageClanPool={canManageClanPool}
         />
-      ) : (
-        <p className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
-          새로운 상품을 준비하고 있어요.
-        </p>
-      )}
-
-      <section className="rounded-2xl border bg-card p-5"><ProfileNamecard key={user.id} initial={namecard} shopOnly /></section>
       {user ? (
         <ClanStoreCoinHistory
           clanId={clanId}
@@ -168,14 +142,14 @@ export default async function ClanStorePage({
             >
               클랜 관리
             </Link>
-            에서, 개인 프레임은{" "}
+            에서 설정할 수 있습니다. 가구·칭호·개인 프레임은{" "}
             <Link
               className="text-primary underline-offset-4 hover:underline"
-              href="/profile"
+              href="/store"
             >
-              프로필 꾸미기
+              개인 상점
             </Link>
-            에서 설정할 수 있습니다.
+            에서 구매할 수 있습니다.
           </p>
         </div>
       </details>

@@ -19,7 +19,6 @@ import type { MvpStoreSlug } from "@/lib/store/mvp-store-slugs";
 import { StorePremiumPlanDialog } from "@/components/main-clan/store-premium-plan-dialog";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +28,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import type { HousingResult } from "@/lib/housing/types";
+import type { NamecardResult } from "@/lib/profile/namecard";
+import { PersonalStoreProducts, type PersonalStoreCategory } from "./personal-store-products";
 
 export type ClanStoreItemVM = {
   slug: MvpStoreSlug;
@@ -41,33 +43,40 @@ export type ClanStoreItemVM = {
   disabledReason: string | null;
 };
 
-export function ClanStorePanels({
+export function StorePanels({
   gameSlug,
   clanId,
-  actorRole,
+  actorRole = "member",
   planIsPremium,
   items,
   userCoins,
   clanCoins,
   canManageClanPool,
+  housing,
+  namecard,
+  pool,
 }: {
-  gameSlug: string;
-  clanId: string;
-  actorRole: ClanMemberRole;
+  gameSlug?: string;
+  clanId?: string;
+  actorRole?: ClanMemberRole;
   planIsPremium: boolean;
   items: ClanStoreItemVM[];
   userCoins: number;
   clanCoins: number;
   canManageClanPool: boolean;
+  housing?: HousingResult;
+  namecard?: NamecardResult;
+  pool: "clan" | "personal";
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [premiumOpen, setPremiumOpen] = useState(false);
   const [selected, setSelected] = useState<ClanStoreItemVM | null>(null);
-  const [pool, setPool] = useState("clan");
+  const [personalCategory, setPersonalCategory] = useState<PersonalStoreCategory>("all");
+  const category = pool;
 
   function buy() {
-    if (!selected || pending) return;
+    if (!selected || pending || !gameSlug || !clanId) return;
     start(async () => {
       const result = await purchaseStoreItemAction(
         gameSlug,
@@ -99,7 +108,7 @@ export function ClanStorePanels({
             balance: userCoins,
             icon: UserRound,
           },
-        ].map(({ key, label, balance, icon: Icon }) => (
+        ].filter(({ key }) => key === pool).map(({ key, label, balance, icon: Icon }) => (
           <div
             key={key}
             className={cn(
@@ -118,20 +127,7 @@ export function ClanStorePanels({
           </div>
         ))}
       </div>
-      <Tabs value={pool} onValueChange={(value) => setPool(String(value))}>
-        <TabsList
-          variant="line"
-          className="mb-4 h-auto w-full justify-start gap-6 border-b p-0 pb-3"
-        >
-          <TabsTrigger value="clan" className="flex-none px-1">
-            클랜 꾸미기
-          </TabsTrigger>
-          <TabsTrigger value="personal" className="flex-none px-1">
-            개인 꾸미기
-          </TabsTrigger>
-        </TabsList>
-        {(["clan", "personal"] as const).map((category) => (
-          <TabsContent key={category} value={category}>
+          <section aria-label={category === "personal" ? "개인 꾸미기" : "클랜 꾸미기"}>
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
               <p>
                 {category === "clan"
@@ -144,9 +140,10 @@ export function ClanStorePanels({
                 </Link>
               ) : null}
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {category === "personal" && <div role="group" aria-label="개인 꾸미기 분류" className="mb-5 flex flex-wrap gap-2">{([["all", "전체"], ["furniture", "가구"], ["title", "칭호"], ["frame", "프레임"]] as const).map(([value, label]) => <Button key={value} size="sm" variant={personalCategory === value ? "secondary" : "ghost"} aria-pressed={personalCategory === value} onClick={() => setPersonalCategory(value)}>{label}</Button>)}</div>}
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label={category === "personal" ? "개인 꾸미기 상품" : "클랜 꾸미기 상품"}>
               {items
-                .filter((it) => it.pool_source === category)
+                .filter((it) => it.pool_source === category && (category === "clan" || personalCategory === "all" || personalCategory === "frame"))
                 .map((it) => (
                   <article
                     key={it.slug}
@@ -232,7 +229,7 @@ export function ClanStorePanels({
                           <Check size={14} />
                           구매 완료 · 설정하기
                         </Link>
-                      ) : it.is_premium_only && !planIsPremium ? (
+                      ) : it.is_premium_only && !planIsPremium && gameSlug && clanId ? (
                         <Button
                           variant="outline"
                           className="w-full"
@@ -252,17 +249,16 @@ export function ClanStorePanels({
                     </div>
                   </article>
                 ))}
+              {category === "personal" && housing && namecard && <PersonalStoreProducts housing={housing} namecard={namecard} category={personalCategory} coins={userCoins} />}
             </div>
-          </TabsContent>
-        ))}
-      </Tabs>
-      <StorePremiumPlanDialog
+          </section>
+      {gameSlug && clanId && <StorePremiumPlanDialog
         open={premiumOpen}
         onOpenChange={setPremiumOpen}
         actorRole={actorRole}
         gameSlug={gameSlug}
         clanId={clanId}
-      />
+      />}
       <Dialog
         open={selected !== null}
         onOpenChange={(open) => {

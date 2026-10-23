@@ -76,8 +76,9 @@ test("관리 중복 행 제거·탭 설명·마우스/키보드/터치와 공통
     await page.getByRole("tab", { name: "내전 통계", exact: true }).click();
     await expect(page.getByRole("tab", { name: "내전 통계", exact: true })).toHaveAttribute("aria-selected", "true");
     await page.goto(`${base}/store`);
-    await page.getByRole("tab", { name: "개인 꾸미기", exact: true }).click();
-    await expect(page.getByRole("tab", { name: "개인 꾸미기", exact: true })).toHaveAttribute("aria-selected", "true");
+    await page.getByRole("link", { name: "개인 상점", exact: true }).click();
+    await expect(page).toHaveURL(/\/store$/);
+    await expect(page.getByRole("group", { name: "개인 꾸미기 분류", exact: true })).toBeVisible();
     await page.goto("/profile");
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
     await expect(page.getByRole("tab", { name: "계정 정보", exact: true })).toHaveAttribute("aria-selected", "true");

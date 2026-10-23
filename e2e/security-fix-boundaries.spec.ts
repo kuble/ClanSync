@@ -314,9 +314,10 @@ test("statistics use four sections and site usage appears in staff management", 
   const personalBalance = await ok(f.service.from("users").select("coin_balance").eq("id", f.users[0].id).single());
   const coins = page.getByLabel("보유 코인");
   await expect(coins.getByText("클랜 코인", { exact: true }).locator("..").locator("strong")).toHaveText(clanBalance.coin_balance.toLocaleString("ko-KR"));
+  await page.getByRole("link", { name: "개인 상점", exact: true }).click();
+  await expect(page).toHaveURL(/\/store$/);
   await expect(coins.getByText("내 코인", { exact: true }).locator("..").locator("strong")).toHaveText(personalBalance.coin_balance.toLocaleString("ko-KR"));
-  await page.getByRole("tab", { name: "개인 꾸미기", exact: true }).click();
-  await expect(page.getByRole("tab", { name: "개인 꾸미기", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("group", { name: "개인 꾸미기 분류", exact: true })).toBeVisible();
 });
 
 test("personal records are staff-only by default and member self-access follows the saved setting", async ({ page }) => {

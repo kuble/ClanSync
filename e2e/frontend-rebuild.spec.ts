@@ -137,7 +137,7 @@ test("390px community menu closes after navigation and browser history restores 
   await expectNoHorizontalOverflow(page);
 });
 
-test("store tabs show real coins, Free/Premium comparison and canceling purchase preserves balances", async ({ page }) => {
+test("separate stores show real coins, Free/Premium comparison and canceling purchase preserves balances", async ({ page }) => {
   const svc = qaService();
   const { base, clanId, userId } = await leaderContext(page, svc);
   const [clanResult, userResult, adminResult, catalogResult, clanPurchases, personalPurchases] = await Promise.all([
@@ -186,12 +186,12 @@ test("store tabs show real coins, Free/Premium comparison and canceling purchase
     const coinCards = page.locator('[aria-label="보유 코인"]');
     await expect(coinCards.getByText("클랜 코인", { exact: true }).locator("..").locator("strong"))
       .toHaveText(clanBalance.toLocaleString("ko-KR"));
-    await expect(coinCards.getByText("내 코인", { exact: true }).locator("..").locator("strong"))
-      .toHaveText(personalBalance.toLocaleString("ko-KR"));
-    await expect(page.getByRole("tab", { name: "클랜 꾸미기", exact: true })).toHaveAttribute("aria-selected", "true");
     await expect(page.getByRole("heading", { name: banner.name_ko, exact: true })).toBeVisible();
 
-    await page.getByRole("tab", { name: "개인 꾸미기", exact: true }).click();
+    await page.getByRole("link", { name: "개인 상점", exact: true }).click();
+    await expect(coinCards.getByText("내 코인", { exact: true }).locator("..").locator("strong"))
+      .toHaveText(personalBalance.toLocaleString("ko-KR"));
+    await page.getByRole("group", { name: "개인 꾸미기 분류", exact: true }).getByRole("button", { name: "프레임", exact: true }).click();
     await expect(page.getByRole("heading", { name: personal.name_ko, exact: true })).toBeVisible();
     await page.getByRole("button", { name: "플랜 비교 보기", exact: true }).click();
     const planDialog = page.getByRole("dialog", { name: "Free / Premium 플랜 비교", exact: true });
@@ -201,7 +201,7 @@ test("store tabs show real coins, Free/Premium comparison and canceling purchase
     await planDialog.locator('[data-slot="dialog-footer"]').getByRole("button", { name: "닫기", exact: true }).click();
     await expect(planDialog).toBeHidden();
 
-    await page.getByRole("tab", { name: "클랜 꾸미기", exact: true }).click();
+    await page.goto(`${base}/store`);
     const bannerCard = page.getByRole("article").filter({ has: page.getByRole("heading", { name: banner.name_ko, exact: true }) });
     await bannerCard.getByRole("button", { name: "구매", exact: true }).click();
     const purchaseDialog = page.getByRole("dialog", { name: "꾸미기 구매", exact: true });
