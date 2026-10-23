@@ -22,7 +22,7 @@ export default async function PlayerRoomPage({ params }: { params: Promise<{ use
   return <AccountShell context="프로필"><main className={styles.page}>
     <div className={styles.visitHeading}><h1>3D 미니룸</h1><Link href="/profile">내 프로필</Link></div>
     {profile ? <div className={styles.profileHero} data-testid="profile-hero">
-      <ProfileIdentity readOnly userId={profile.userId} intro={profile.intro ?? ""} memberships={profile.memberships} games={profile.games} />
+      <ProfileIdentity readOnly userId={profile.userId} intro={profile.intro ?? ""} memberships={profile.memberships} />
       <ProfileRoomVisit housing={profile.housing} />
     </div> : <section className={styles.empty}><h2>방문할 수 없는 미니룸입니다</h2><p>공개하지 않았거나 더 이상 이용할 수 없는 프로필입니다.</p></section>}
   </main></AccountShell>;

@@ -43,6 +43,7 @@ test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소
     const scene = housing.getByRole("group", { name: "나의 방", exact: true });
     await expect(hero.getByRole("heading", { name: user.nickname, level: 1, exact: true })).toHaveCount(0);
     await expect(intro.getByRole("article").getByText(battleTag, { exact: true })).toBeVisible();
+    await expect(intro.getByRole("button", { name: "다음 클랜", exact: true })).toHaveCount(0);
     await expect(hero.getByRole("region", { name: "플레이어 소개", exact: true })).toBeVisible();
     await expect(hero.getByRole("region", { name: "프로필 하우징", exact: true })).toBeVisible();
     await expect(page.getByText(user.email, { exact: true })).toBeHidden();

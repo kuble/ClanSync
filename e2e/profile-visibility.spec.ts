@@ -41,7 +41,8 @@ test("계정 탭의 공개 설정은 방문 화면에만 반영되고 계정·�
 
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
     await expect(page.getByRole("switch", { name: "미니룸 공개", exact: true })).toBeChecked();
-    for (const name of ["한 줄 소개 공개", "플레이 게임 공개", "함께하는 클랜 공개", "대표 엠블럼 공개"]) {
+    await expect(page.getByRole("switch", { name: "플레이 게임 공개", exact: true })).toHaveCount(0);
+    for (const name of ["한 줄 소개 공개", "함께하는 클랜 공개", "대표 엠블럼 공개"]) {
       const control = page.getByRole("switch", { name, exact: true });
       await expect(control).not.toBeChecked();
       await control.click();

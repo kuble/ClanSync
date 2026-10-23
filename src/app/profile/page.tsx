@@ -253,7 +253,7 @@ export default async function ProfilePage() {
   return <AccountShell context="프로필"><main className={styles.page}>
     <ProfilePanels room={
       <div className={styles.profileHero} data-testid="profile-hero">
-      <ProfileIdentity key={`identity:${user.id}`} userId={user.id} intro={intro} memberships={memberships} games={linkedGames} />
+      <ProfileIdentity key={`identity:${user.id}`} userId={user.id} intro={intro} memberships={memberships} />
       <ProfileHousing key={`room:${user.id}`} embedded initial={housing} />
     </div>
     } account={<><section className={styles.namecardSection}><ProfileNamecard key={user.id} initial={namecard} /></section><div className={styles.accountLayout}>
