@@ -34,7 +34,7 @@ test("award cases prefer the best recent grade and filter full history by gold, 
       .getByRole("link", { name: `${user.nickname} 엠블럼 케이스 열기`, exact: true });
     await expect(trigger).toHaveAttribute("href", `/profile/${user.id}/emblems?clan=${isolated.clanId}`);
     await trigger.click();
-    await expect(page.getByRole("heading", { name: "개인 엠블럼 케이스", level: 2, exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "엠블럼 케이스", level: 2, exact: true })).toBeVisible();
     const collection = page.locator('section[aria-label="개인 엠블럼"]');
     await expect(collection).toBeVisible();
     await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -306,7 +306,7 @@ test("award cases prefer the best recent grade and filter full history by gold, 
     await page.setViewportSize({ width: 1304, height: 1004 });
     const quickStar = collection.locator(`[data-emblem-feature-key="month-${previousYear}-02-승률"]`);
     await page.mouse.move(0, 0);
-    await page.getByRole("heading", { name: "개인 엠블럼 케이스", exact: true }).click();
+    await page.getByRole("heading", { name: "엠블럼 케이스", exact: true }).click();
     await expect(quickStar).toHaveCSS("opacity", "0");
     await monthlyWin.hover();
     await expect(quickStar).toHaveCSS("opacity", "1");

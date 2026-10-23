@@ -23,10 +23,10 @@ test("개인 엠블럼은 프로필 경로·탐색을 사용하고 클랜별 열
     await expect(launcher).toHaveAttribute("href", `/profile/${owner.id}/emblems`);
     await launcher.click();
     await expect(page).toHaveURL(`/profile/${owner.id}/emblems`);
-    await expect(page.getByRole("heading", { name: "개인 엠블럼 케이스", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "엠블럼 케이스", exact: true })).toBeVisible();
     const breadcrumb = page.getByRole("navigation", { name: "현재 위치", exact: true });
     await expect(breadcrumb.getByRole("link", { name: "프로필", exact: true })).toHaveAttribute("href", "/profile");
-    await expect(breadcrumb.locator('[aria-current="page"]')).toHaveText("개인 엠블럼");
+    await expect(breadcrumb.locator('[aria-current="page"]')).toHaveText("엠블럼");
     await expect(page.getByRole("navigation", { name: "클랜 메뉴", exact: true })).toHaveCount(0);
     for (const width of [1023, 390, 320]) {
       await page.setViewportSize({ width, height: 884 });
@@ -49,16 +49,16 @@ test("개인 엠블럼은 프로필 경로·탐색을 사용하고 클랜별 열
     await loginIsolatedBalanceUser(peer, member);
     await peer.goto(legacy + "?player=" + owner.id);
     await expect(peer).toHaveURL(path);
-    await expect(peer.getByRole("heading", { name: "개인 엠블럼 케이스", exact: true })).toBeVisible();
+    await expect(peer.getByRole("heading", { name: "엠블럼 케이스", exact: true })).toBeVisible();
     await expect(peer.getByRole("navigation", { name: "현재 위치", exact: true }).getByRole("link", { name: "프로필", exact: true })).toHaveAttribute("href", `/profile/${owner.id}`);
     await expect(peer.locator("[data-emblem-feature-key]")).toHaveCount(0);
     await loginIsolatedBalanceUser(outsider, other);
     await outsider.goto(path);
-    await expect(outsider.getByRole("heading", { name: "개인 엠블럼 케이스", exact: true })).toHaveCount(0);
+    await expect(outsider.getByRole("heading", { name: "엠블럼 케이스", exact: true })).toHaveCount(0);
     await expect(outsider.getByText("접근 권한이 없습니다", { exact: false })).toBeVisible();
     for (const url of [`/profile/${owner.id}/emblems?clan=invalid`, `/profile/${owner.id}/emblems?clan=${f.clanId}&clan=${f.clanId}`]) {
       await page.goto(url);
-      await expect(page.getByRole("heading", { name: "개인 엠블럼 케이스", exact: true })).toHaveCount(0);
+      await expect(page.getByRole("heading", { name: "엠블럼 케이스", exact: true })).toHaveCount(0);
     }
   } finally {
     await peerContext.close();

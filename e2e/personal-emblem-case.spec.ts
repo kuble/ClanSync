@@ -60,7 +60,7 @@ test("공통 엠블럼 케이스: 공개 권한·계열 성장·대표 저장·�
     await expect(trigger).toHaveAttribute("href", ownCaseUrl);
     await trigger.click();
     await expect(page).toHaveURL(ownCaseUrl);
-    await expect(page.getByRole("heading", { name: "개인 엠블럼 케이스", level: 2, exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "엠블럼 케이스", level: 2, exact: true })).toBeVisible();
     const collection = page.getByRole("region", { name: "개인 엠블럼", exact: true });
     await expect(collection).toBeVisible();
     await expect(page.getByRole("dialog")).toHaveCount(0);

@@ -33,7 +33,7 @@ test("프로필은 로그인한 다른 클랜에도 공개하고 계정 정보·
     const tray = visitor.getByRole("region", { name: "대표 엠블럼", exact: true });
     await expect(tray.locator("[data-featured-emblem-reference]")).toHaveCount(1);
     await tray.getByRole("link", { name: "플레이어 엠블럼 케이스 열기", exact: true }).click();
-    await expect(visitor.getByRole("heading", { name: "개인 엠블럼 케이스", exact: true })).toBeVisible();
+    await expect(visitor.getByRole("heading", { name: "엠블럼 케이스", exact: true })).toBeVisible();
     await expect(visitor.locator("[data-emblem-feature-key]")).toHaveCount(0);
     const api = await visitor.request.get("/api/personal-emblems/featured?player=" + owner.id);
     const collection = (await api.json()).collection;

@@ -276,8 +276,7 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
     <div data-personal-emblem-case className={styles.pageLayout}>
       <header className={styles.pageHeader}>
         <div className={styles.pageHeading}>
-          <h2 className="text-xl font-semibold">개인 엠블럼 케이스</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{initialCollection.sources ? "게임과 클랜에서 쌓은 수상과 성장 기록" : initialCollection.nickname + "님의 수상과 성장 기록"}</p>
+          <h2 className="text-xl font-semibold">엠블럼 케이스</h2>
         </div>
       <section className={styles.featuredSection} aria-label="대표 엠블럼 진열">
         <h3 className={styles.featuredLabel}>대표 엠블럼</h3>
