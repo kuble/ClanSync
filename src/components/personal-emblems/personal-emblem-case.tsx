@@ -11,7 +11,7 @@ import { RubberSegment } from "@/components/ui/rubber-segment";
 import { GameLogo } from "@/components/ui/game-logo";
 import { awardEmblems, awardFamilies, caseEmblems, getAwardHistory, getAwardRepresentatives, resolveFeaturedKeys, resolveAccountFeaturedKeys, type CaseEmblem } from "@/lib/personal-emblems/catalog";
 import type { HofEmblem } from "@/lib/clan/stats/hof-emblems";
-import type { PersonalEmblem, PersonalEmblemCollection } from "@/lib/personal-emblems/types";
+import type { AwardFamily, PersonalEmblem, PersonalEmblemCollection } from "@/lib/personal-emblems/types";
 import { cn } from "@/lib/utils";
 import { EmblemArtwork } from "./emblem-artwork";
 import caseStyles from "../main-clan/clan-collection.module.css";
@@ -27,6 +27,9 @@ const rankFilters: { id: RankFilter; label: string }[] = [
   { id: "all", label: "전체" }, { id: "1", label: "금" }, { id: "2", label: "은" }, { id: "3", label: "동" },
 ];
 const milestoneOrder = ["sessions", "matches", "wins", "streak", "prediction"];
+const awardCriteria: Record<AwardFamily, string> = {
+  victory: "승률", participation: "내전 참여율", appearances: "내전 출전 경기 수", streak: "최장 연승 기록", prediction: "승부예측 적중 횟수",
+};
 const achievementDate = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" });
 
 function periodLabel(emblem: PersonalEmblem) {
@@ -176,7 +179,7 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
   const [filter, setFilter] = useState<Filter>("all");
   const [rankFilter, setRankFilter] = useState<RankFilter>("all");
   const [gameFilter, setGameFilter] = useState("all");
-  const [selection, setSelection] = useState<{ target: string; key: string }>();
+  const [selection, setSelection] = useState<{ target: string; key: string; preview?: CaseEmblem }>();
   const [detailOpen, setDetailOpen] = useState(false);
   const [replacement, setReplacement] = useState<{ target: string; key: string }>();
   const featureButton = useRef<HTMLButtonElement>(null);
@@ -188,7 +191,8 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
   const representatives = sources.flatMap(source => milestoneRepresentatives(emblems.filter(emblem => emblem.source.clanId === source.clanId)));
   const awards = filter === "milestone" ? [] : getAwardRepresentatives(visibleEmblems);
   const milestones = filter === "all" || filter === "milestone" ? milestoneRepresentatives(visibleEmblems) : [];
-  const selected = selection?.target === target ? emblems.find(emblem => emblem.key === selection.key) : undefined;
+  const selected = selection?.target === target ? emblems.find(emblem => emblem.key === selection.key)
+    ?? (sources.some(source => source.clanId === selection.preview?.source.clanId) ? selection.preview : undefined) : undefined;
   const awardHistory = selected?.kind === "award" ? getAwardHistory(visibleEmblems).filter(emblem => emblem.family === selected.family && emblem.period === selected.period) : [];
   const filteredAwardHistory = awardHistory.filter(emblem => rankFilter === "all" || emblem.rank === Number(rankFilter));
   const stages = selected?.kind === "milestone" ? visibleEmblems.filter(emblem => emblem.kind === "milestone" && emblem.family === selected.family)
@@ -198,7 +202,7 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
   const replacementEmblem = replacement?.target === target ? emblems.find(emblem => emblem.key === replacement.key) : undefined;
   const replacing = !!(collection?.canFeature && replacementEmblem && canPick(replacementEmblem)
     && !featuredKeys.includes(replacementEmblem.key) && featuredKeys.length === 3);
-  const inspect = (emblem: CaseEmblem) => { setReplacement(undefined); setSelection({ target, key: emblem.key }); };
+  const inspect = (emblem: CaseEmblem) => { setReplacement(undefined); setSelection({ target, key: emblem.key, preview: !emblem.earned && emblem.kind === "award" ? emblem : undefined }); };
 
   const isFeatured = (emblem: CaseEmblem) => featuredKeys.includes(emblem.key);
   function changeGame(value: string) {
@@ -312,9 +316,12 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
                 <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{Object.entries(awardFamilies).map(([category, family]) => {
                   const emblem = entries.find(entry => entry.family === family);
                   const label = `${period === "month" ? "월간" : "연간"} ${category} 미획득`;
-                  return emblem ? catalogPin(emblem) : <span key={family} className={cn(caseStyles.pin, caseStyles.artworkSocket)}
-                    role="img" aria-label={label} title={label} data-unearned-award={period + ":" + family}
-                    style={socketStyle({ artwork: `/personal-emblems/v1/awards/${period}/${family}-gold.png` })}><Socket /></span>;
+                  const key = `preview-${period}-${family}`;
+                  const preview: CaseEmblem = { key, localKey: key, kind: "award", family, period, earned: false, date: null,
+                    description: `${period === "month" ? "월간" : "연간"} ${category}`, artwork: `/personal-emblems/v1/awards/${period}/${family}-gold.png`, source: visibleEmblems[0].source };
+                  return emblem ? catalogPin(emblem) : <DialogTrigger key={family} render={<button type="button" className={cn(caseStyles.pin, caseStyles.artworkSocket, styles.pin)}
+                    aria-label={label} title={label} data-unearned-award={period + ":" + family}
+                    style={socketStyle(preview)} onClick={() => inspect(preview)}><Socket /></button>} />;
                 })}</div>
               </section>;
             })}</div>
@@ -322,7 +329,7 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
           {milestones.length > 0 && <section aria-label="누적 달성 엠블럼">
             <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{milestones.map(emblem => catalogPin(emblem))}</div>
           </section>}
-          {!awards.length && !milestones.length && <p className={styles.empty}>{pending ? "획득 기록을 확인하고 있습니다." : error ? "다시 불러오면 엠블럼을 확인할 수 있습니다." : "아직 획득한 엠블럼이 없습니다."}</p>}
+          {!visibleEmblems.length && (pending || error) && <p className={styles.empty}>{pending ? "획득 기록을 확인하고 있습니다." : "다시 불러오면 엠블럼을 확인할 수 있습니다."}</p>}
         </div>
       </div>
     </div>
@@ -334,11 +341,20 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
           <DialogDescription className="sr-only">획득 조건과 수상·달성 기록</DialogDescription>
           <span className={cn(caseStyles.seriesStatus, selected.earned && caseStyles.earnedStatus)}>{selected.earned ? "획득" : "미획득 · 미리보기"}</span>
           <dl className={caseStyles.seriesFacts}>
+            {selected.kind === "award" && !selected.earned ? <>
+              <div><dt>수상 구분</dt><dd>{selected.period === "month" ? "월간" : "연간"}</dd></div>
+              <div><dt>등급</dt><dd>금 · 1위 / 은 · 2위 / 동 · 3위</dd></div>
+            </> : <>
             <div><dt>게임</dt><dd>{selected.source.gameName ?? selected.source.gameSlug}</dd></div>
             <div><dt>클랜</dt><dd>{selected.source.clanName}</dd></div>
             <div><dt>{selected.kind === "award" ? "수상 기간" : "달성일"}</dt><dd>{periodLabel(selected)}</dd></div>
+            </>}
+            <div><dt>획득 조건</dt><dd>{selected.kind === "award"
+              ? `${selected.period === "month" ? "월간" : "연간"} 명예의 전당에서 ${awardCriteria[selected.family as AwardFamily]} 상위 3위 안에 들면 획득합니다.`
+              : `${selected.description} 시 획득합니다.`}</dd></div>
             {selected.kind === "milestone" && selected.source.active !== false && <div><dt>현재 진행</dt><dd>{(selected.progress ?? 0).toLocaleString("ko-KR")} / {(selected.target ?? 0).toLocaleString("ko-KR")} {selected.unit}</dd></div>}
           </dl>
+          {selected.kind === "award" && !selected.earned && <p className="text-xs leading-relaxed text-muted-foreground">클랜의 집계·참여 기준을 충족해야 하며, 기간 마감 후 순위에 따라 금·은·동 엠블럼을 획득합니다.</p>}
           {selected.kind === "milestone" && selected.source.active !== false && <progress className={styles.progress} aria-label={selected.description + " 진행도"}
             max={selected.target ?? 1} value={Math.min(selected.progress ?? 0, selected.target ?? 1)} />}
           {collection?.canFeature && selected.earned && !canPickSelected && <p className="text-xs text-muted-foreground">최고 획득 단계만 대표로 지정할 수 있습니다.</p>}

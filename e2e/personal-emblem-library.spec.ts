@@ -17,14 +17,17 @@ test("게임 아이콘 필터와 월간·연간 진열은 키보드·모바일·
     const clan = await ok(f.service.from("clans").insert({ game_id: valorant.id, name: `Filter-${f.users[0].id.slice(0, 8)}` }).select("id").single());
     valClan = clan.id;
     await ok(f.service.from("clan_members").insert({ clan_id: valClan, user_id: f.users[0].id, role: "leader", status: "active" }));
+    await loginIsolatedBalanceUser(page, f.users[0]);
+    await page.goto("/profile/emblems");
+    await expect(page.locator("[data-unearned-award]")).toHaveCount(10);
+    await expect(page.getByText("아직 획득한 엠블럼이 없습니다.", { exact: true })).toHaveCount(0);
     for (const [index, clanId] of [f.clanId, valClan].entries()) await ok(f.service.rpc("finalize_clan_personal_emblem_awards", {
       p_clan_id: clanId, p_period_type: "month", p_period_key: "2024-02", p_awards: [{ user_id: f.users[0].id, family: "victory", rank: index + 1 }],
     }));
     await ok(f.service.rpc("finalize_clan_personal_emblem_awards", {
       p_clan_id: valClan, p_period_type: "year", p_period_key: "2024", p_awards: [{ user_id: f.users[0].id, family: "victory", rank: 1 }],
     }));
-    await loginIsolatedBalanceUser(page, f.users[0]);
-    await page.goto("/profile/emblems");
+    await page.reload();
     const view = page.locator("[data-personal-emblem-case]");
     const game = view.getByRole("radiogroup", { name: "엠블럼 게임", exact: true });
     const category = view.getByRole("radiogroup", { name: "엠블럼 분류", exact: true });
@@ -48,11 +51,22 @@ test("게임 아이콘 필터와 월간·연간 진열은 키보드·모바일·
     for (const row of [monthly, annual]) {
       await expect(row.locator("[data-unearned-award]")).toHaveCount(4);
       await expect(row.locator("[data-unearned-award] img, [data-unearned-award] button")).toHaveCount(0);
-      await expect(row.locator("[data-unearned-award]").first()).not.toHaveAttribute("tabindex");
+      await expect(row.locator("[data-unearned-award]").first()).toBeEnabled();
     }
-    const missingPrediction = annual.getByRole("img", { name: "연간 예측 적중 미획득", exact: true });
+    const missingPrediction = annual.getByRole("button", { name: "연간 예측 적중 미획득", exact: true });
     await expect(missingPrediction).toHaveAttribute("style", /year%2Fprediction-gold\.png/);
     await expect(view.getByRole("status")).toHaveText("3개의 획득 기록");
+    await expect(view.getByText("아직 획득한 엠블럼이 없습니다.", { exact: true })).toHaveCount(0);
+    await missingPrediction.focus();
+    await page.keyboard.press("Enter");
+    const preview = page.getByRole("dialog", { name: "연간 예측 적중", exact: true });
+    await expect(preview).toBeVisible();
+    await expect(preview.getByText("미획득 · 미리보기", { exact: true })).toBeVisible();
+    await expect(preview.getByText("연간 명예의 전당에서 승부예측 적중 횟수 상위 3위 안에 들면 획득합니다.", { exact: true })).toBeVisible();
+    await expect(preview.locator("[data-emblem-artwork] img")).toHaveAttribute("src", /prediction-gold/);
+    await expect(preview.locator("[data-emblem-feature-key]")).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await expect(missingPrediction).toBeFocused();
     await monthly.locator("[data-emblem-key]").click();
     const dialog = page.getByRole("dialog");
     await expect(dialog.getByRole("radiogroup", { name: "엠블럼 게임", exact: true })).toHaveCount(0);
@@ -72,11 +86,20 @@ test("게임 아이콘 필터와 월간·연간 진열은 키보드·모바일·
     await expect(annual.locator("[data-unearned-award]")).toHaveCount(5);
     await expect(annual.locator("[data-emblem-entry]")).toHaveCount(0);
     await expect(monthly.locator("[data-unearned-award]")).toHaveCount(4);
+    await category.getByRole("radio", { name: "달성", exact: true }).click();
+    const milestoneBounds = await view.getByRole("region", { name: "누적 달성 엠블럼", exact: true }).boundingBox();
+    const frameBounds = await view.locator('[aria-busy]').last().boundingBox();
+    expect(frameBounds!.y + frameBounds!.height - milestoneBounds!.y - milestoneBounds!.height).toBeLessThanOrEqual(36);
+    await category.getByRole("radio", { name: "수상", exact: true }).click();
     for (const width of [1023, 390, 320]) {
       await page.setViewportSize({ width, height: 884 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
       await expect(game.getByRole("radio", { name: valorant.name_ko, exact: true })).toBeVisible();
     }
+    await missingPrediction.click();
+    await expect(preview).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    await page.keyboard.press("Escape");
     await view.screenshot({ path: info.outputPath("emblem-icon-filters-mobile.png") });
   } finally {
     if (valClan) await ok(f.service.from("clans").delete().eq("id", valClan));
