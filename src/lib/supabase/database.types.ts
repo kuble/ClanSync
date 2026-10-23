@@ -1693,6 +1693,128 @@ export type Database = {
           },
         ]
       }
+      clan_personal_emblem_award_periods: {
+        Row: {
+          clan_id: string
+          finalized_at: string
+          period_key: string
+          period_type: string
+        }
+        Insert: {
+          clan_id: string
+          finalized_at?: string
+          period_key: string
+          period_type: string
+        }
+        Update: {
+          clan_id?: string
+          finalized_at?: string
+          period_key?: string
+          period_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_personal_emblem_award_periods_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_personal_emblem_awards: {
+        Row: {
+          clan_id: string
+          earned_at: string
+          emblem_key: string
+          family: string
+          period_key: string
+          period_type: string
+          rank: number
+          user_id: string
+        }
+        Insert: {
+          clan_id: string
+          earned_at: string
+          emblem_key: string
+          family: string
+          period_key: string
+          period_type: string
+          rank: number
+          user_id: string
+        }
+        Update: {
+          clan_id?: string
+          earned_at?: string
+          emblem_key?: string
+          family?: string
+          period_key?: string
+          period_type?: string
+          rank?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_personal_emblem_awards_clan_id_period_type_period_key_fkey"
+            columns: ["clan_id", "period_type", "period_key"]
+            isOneToOne: false
+            referencedRelation: "clan_personal_emblem_award_periods"
+            referencedColumns: ["clan_id", "period_type", "period_key"]
+          },
+          {
+            foreignKeyName: "clan_personal_emblem_awards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_personal_emblem_milestones: {
+        Row: {
+          clan_id: string
+          earned_at: string
+          emblem_key: string
+          family: string
+          stage: number
+          target: number
+          user_id: string
+        }
+        Insert: {
+          clan_id: string
+          earned_at: string
+          emblem_key: string
+          family: string
+          stage: number
+          target: number
+          user_id: string
+        }
+        Update: {
+          clan_id?: string
+          earned_at?: string
+          emblem_key?: string
+          family?: string
+          stage?: number
+          target?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_personal_emblem_milestones_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_personal_emblem_milestones_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_personal_emblem_picks: {
         Row: {
           clan_id: string
@@ -3534,6 +3656,16 @@ export type Database = {
         Args: { p_limit?: number }
         Returns: number
       }
+      finalize_clan_personal_emblem_awards: {
+        Args: {
+          p_awards: Json
+          p_clan_id: string
+          p_expected_summary?: Json
+          p_period_key: string
+          p_period_type: string
+        }
+        Returns: boolean
+      }
       finalize_discord_bot_notification: {
         Args: { p_error: string; p_log_id: string; p_ok: boolean }
         Returns: undefined
@@ -3624,6 +3756,12 @@ export type Database = {
         Args: { p_clan_id: string; p_hero_ban?: boolean; p_map_ban?: boolean }
         Returns: Json
       }
+      pending_clan_personal_emblem_awards: {
+        Args: { p_limit?: number }
+        Returns: {
+          clan_id: string
+        }[]
+      }
       place_balance_prediction_pool: {
         Args: { p_pick: number; p_session_id: string; p_stake: number }
         Returns: undefined
@@ -3650,6 +3788,10 @@ export type Database = {
         }[]
       }
       read_clan_participant_invite: { Args: { p_token: string }; Returns: Json }
+      read_clan_personal_emblem_award_source: {
+        Args: { p_clan_id: string }
+        Returns: Json
+      }
       read_clan_prediction_ledger: {
         Args: { p_clan_id: string }
         Returns: {
@@ -3689,6 +3831,10 @@ export type Database = {
         Returns: Json
       }
       record_clan_activity: { Args: { p_clan_id: string }; Returns: undefined }
+      refresh_clan_personal_emblem_milestones: {
+        Args: { p_clan_id: string }
+        Returns: number
+      }
       replace_event_discord_notifications: {
         Args: { p_actor_id: string; p_event_id: string; p_schedule: Json }
         Returns: undefined
