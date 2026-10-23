@@ -1,26 +1,14 @@
 .page {
   width: 100%;
-  max-width: 1120px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 36px 24px 64px;
-}
-.heading {
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  margin-bottom: 8px;
-}
-.lead {
-  font-size: 13px;
-  color: var(--muted-foreground);
-  line-height: 1.7;
-  margin-bottom: 24px;
+  padding: 24px 24px 64px;
 }
 .profileCard {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 20px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
 }
 .topTabs {
   min-height: 44px;
@@ -31,7 +19,8 @@
 }
 .topTabs > button {
   padding-inline: 22px;
-  flex: 1 1 0;
+  flex: 0 0 auto;
+  min-width: 96px;
   border-radius: 0;
 }
 .topTabs > button[data-active] {
@@ -44,78 +33,10 @@
 .panel {
   min-width: 0;
 }
-.identity {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-  padding: 4px 0 24px;
-}
-.avatar {
-  display: grid;
-  place-items: center;
-  width: 56px;
-  height: 56px;
-  flex-shrink: 0;
-  background: linear-gradient(135deg, #183927, #46af75);
-  color: #fff;
-  border-radius: 9px;
-  font-weight: 800;
-  font-size: 22px;
-}
-.identityInfo {
-  min-width: 0;
-}
 .label {
   font-size: 12px;
   color: var(--muted-foreground);
   margin-bottom: 5px;
-}
-.nickname {
-  font-size: 19px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  overflow-wrap: anywhere;
-}
-.email {
-  color: var(--muted-foreground);
-  font-size: 12px;
-  margin-top: 7px;
-  overflow-wrap: anywhere;
-}
-.metrics {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 22px;
-}
-.metric {
-  padding: 18px;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  background: var(--background);
-}
-.metric dt {
-  font-size: 12px;
-  color: var(--muted-foreground);
-  margin-bottom: 7px;
-}
-.metric dd {
-  font-size: 24px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-.metric:first-child dd {
-  color: var(--pro-gold);
-}
-.accountDetails {
-  margin-top: 22px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
-}
-.accountDetails h2 {
-  font-size: 14px;
-  font-weight: 650;
-  margin-bottom: 17px;
 }
 .detailGrid {
   display: grid;
@@ -496,19 +417,10 @@
     padding: 28px 16px 48px;
   }
   .profileCard {
-    padding: 16px;
+    padding: 0;
   }
   .gameBundle {
     padding: 14px;
-  }
-  .metrics {
-    gap: 9px;
-  }
-  .metric {
-    padding: 14px;
-  }
-  .metric dd {
-    font-size: 22px;
   }
   .caseFields {
     grid-template-columns: 1fr;
@@ -523,3 +435,41 @@
     width: 50px;
   }
 }
+
+.profileBar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+.pageLabel { color:var(--muted-foreground); font-size:12px; font-weight:550; }
+.profileHero { display:grid; grid-template-columns:minmax(260px, .3fr) minmax(0, .7fr); background:#e6ebdf; border:1px solid var(--border); border-radius:22px; overflow:hidden; margin-bottom:28px; }
+:global(.dark) .profileHero { background:#151e2d; }
+.playerIdentity { min-width:0; padding:30px 24px 24px; display:flex; flex-direction:column; align-items:stretch; border-right:1px solid #52634516; }
+:global(.dark) .playerIdentity { border-color:#b8cfed16; }
+.playerName { display:flex; flex-direction:column; gap:16px; }
+.playerAvatar { width:64px; height:64px; display:grid; place-items:center; border-radius:20px; background:#277c60; color:#f5fff9; font-size:28px; font-weight:750; flex:none; }
+.playerName h1 { font-size:28px; line-height:1.25; letter-spacing:-.04em; font-weight:750; overflow-wrap:anywhere; }
+.playerName p { display:flex; gap:6px; align-items:center; font-size:12px; color:var(--muted-foreground); margin-top:8px; line-height:1.6; overflow-wrap:anywhere; }
+.playerName svg { flex:none; }
+.playerClan { margin-top:24px; min-width:0; }
+.playerSectionLabel { display:flex; align-items:center; gap:6px; color:var(--muted-foreground); font-size:11px; margin-bottom:9px; }
+.playerClanLink { display:inline-block; font-size:14px; font-weight:650; line-height:1.6; overflow-wrap:anywhere; }
+.playerClanLink:hover { color:var(--primary); }
+.playerClan p { color:var(--muted-foreground); font-size:12px; line-height:1.7; margin-top:3px; }
+.playerClan select { width:100%; min-width:0; min-height:36px; border:1px solid var(--border); border-radius:6px; background:var(--background); color:var(--foreground); padding:6px 8px; font-size:12px; margin-bottom:10px; }
+.playerEmblems { margin-top:24px; min-width:0; }
+.playerEmblems h2 { color:var(--muted-foreground); font-size:11px; font-weight:500; margin-bottom:10px; }
+.playerEmblems [data-personal-emblem-launcher] { max-width:280px; }
+.settingsAccount h2 { font-size:15px; font-weight:650; margin-bottom:20px; }
+.settingsAccount dd { overflow-wrap:anywhere; }
+.settingsGameLink { margin-top:20px; }
+.playGames { list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 32px; }
+.playGame { min-width:0; padding:18px 0; border-bottom:1px solid var(--border); }
+.playGameName { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.playGameName h3 { font-size:17px; font-weight:650; }
+.gameNickname { font-size:14px; margin-top:10px; overflow-wrap:anywhere; }
+.gameClans { display:grid; gap:8px; padding:0; list-style:none; margin-top:18px; }
+.gameClans li { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px 18px; font-size:12px; }
+.gameClans a:last-child,.gameDiscover { color:var(--primary); font-size:12px; }
+.gameDiscover { display:inline-block; margin-top:18px; }
+.empty a { margin-top:12px; }
+@media(max-width:1000px) { .profileHero { grid-template-columns:260px minmax(0,1fr); } .playerIdentity { padding:24px 18px; } }
+@media(max-width:760px) { .profileHero { grid-template-columns:minmax(0,1fr); } .playerIdentity { border-right:0; padding:24px; } .playerName { flex-direction:row; align-items:center; } .playerName h1 { font-size:24px; } .playerEmblems [data-personal-emblem-launcher] { max-width:230px; } .playGames { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:600px) { .profileCard { padding:0; } .profileBar { margin-bottom:12px; } .profileHero { border-radius:16px; margin-bottom:22px; } .playerIdentity { padding:20px; } .playerName { gap:12px; } .playerAvatar { width:52px; height:52px; font-size:24px; border-radius:16px; } .playerClan,.playerEmblems { margin-top:18px; } .detailGrid { gap:18px 14px; } }
+@media(max-width:600px) { .playerClan { margin-top:12px; } .playerSectionLabel { display:none; } .playerClan p { display:inline; margin-left:8px; } .playerEmblems { display:flex; align-items:center; gap:12px; margin-top:14px; } .playerEmblems h2 { flex:0 0 54px; line-height:1.7; margin:0; } .playerEmblems [data-personal-emblem-launcher] { flex:1; min-width:0; max-width:230px; } }

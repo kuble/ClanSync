@@ -39,9 +39,12 @@ test.describe("UI 회귀 — MainClan (QA 리더)", () => {
 
     await page.goto(base);
     await page.getByRole("link", { name: "프로필" }).click();
-    await expect(page.getByRole("heading", { name: "내 계정" })).toBeVisible({
+    await expect(page.getByRole("region", { name: "플레이어 소개" })).toBeVisible({
       timeout: 15_000,
     });
+    await page.getByRole("button", { name: "프로필 설정", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "프로필 설정", exact: true }).getByRole("heading", { name: "내 계정", exact: true })).toBeVisible();
+    await page.keyboard.press("Escape");
 
     await page.goto(base);
     await page.getByRole("link", { name: "게임 선택" }).click();

@@ -128,7 +128,7 @@ export function PersonalEmblemCaseLauncher({ clanId, userId, nickname, gameSlug,
   clanId: string; userId: string; nickname: string; gameSlug?: string; variant?: "compact" | "profile"; initialAwards?: HofEmblem[];
 }) {
   const params = useParams();
-  const { collection, error } = useEmblemCollection(clanId, userId);
+  const { collection, error, pending, refresh } = useEmblemCollection(clanId, userId);
   const emblems = collection?.emblems ?? (!error && initialAwards ? awardEmblems(initialAwards) : []);
   const featuredKeys = resolveFeaturedKeys(emblems, collection?.featuredKeys ?? null);
   const featured = featuredKeys.flatMap(key => emblems.filter(emblem => emblem.key === key && emblem.earned));
@@ -150,6 +150,9 @@ export function PersonalEmblemCaseLauncher({ clanId, userId, nickname, gameSlug,
       </div>
     </div>
     {href && <Link href={href} className={styles.caseLink}>엠블럼 케이스 보기 →</Link>}
+    {variant === "profile" && <div className="mt-2 min-h-5 text-xs text-muted-foreground" role={error ? "alert" : "status"}>
+      {pending ? "대표 엠블럼을 불러오는 중…" : error ? <><span>{error}</span><Button size="sm" variant="ghost" aria-label="대표 엠블럼 다시 불러오기" onClick={refresh}>다시 불러오기</Button></> : !featured.length ? "획득한 엠블럼을 이곳에 전시할 수 있습니다." : null}
+    </div>}
   </div>;
 }
 

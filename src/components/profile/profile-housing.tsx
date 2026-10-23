@@ -25,8 +25,8 @@ function placementsOf(inventory: HousingInventoryItem[]): HousingPlacement[] {
   return inventory.flatMap((item) => item.x !== null && item.y !== null ? [{ inventoryId: item.id, x: item.x, y: item.y, rotation: item.rotation, surface: item.surface ?? "floor" }] : []);
 }
 
-export function ProfileHousing({ initial, nickname }: {
-  initial: HousingResult; nickname: string; clanName?: string; gameNames: string[];
+export function ProfileHousing({ initial, nickname, embedded = false }: {
+  initial: HousingResult; nickname: string; clanName?: string; gameNames: string[]; embedded?: boolean;
 }) {
   const [state, setState] = useState<HousingState | null>(initial.ok ? initial.state : null);
   const [draft, setDraft] = useState(initial.ok ? initial.state.inventory : []);
@@ -154,7 +154,7 @@ export function ProfileHousing({ initial, nickname }: {
     });
   }
 
-  return <section className={styles.housing} aria-label="프로필 하우징" aria-busy={pending}>
+  return <section className={styles.housing} data-embedded={embedded} aria-label="프로필 하우징" aria-busy={pending}>
     {!state ? <div className={styles.loadError}><p role="alert">{error}</p><Button variant="outline" onClick={reload} disabled={pending}>{pending ? "불러오는 중…" : "다시 불러오기"}</Button></div> : <HousingRoom ref={room} inventory={inventory} catalog={state.catalog} selectedId={selectedId} editing={editing} pending={pending}
       theme={mounted && resolvedTheme === "light" ? "light" : "dark"} wallpaper={editing ? wallpaper : state.room.wallpaper} floor={editing ? floor : state.room.floor}
       onBeginMove={(item) => { begin(null); setSelectedId(item.id); }} onSelect={select} onMove={move} onDrop={place} onRotate={rotate} onStore={store}>

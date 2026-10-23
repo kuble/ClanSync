@@ -10,7 +10,8 @@ import {
 import { ProfileDeleteAccountButton } from "@/components/profile/profile-delete-account-button";
 import { ProfileJoinRequests } from "@/components/profile/profile-join-requests";
 import { ProfileClanMemberships } from "@/components/profile/profile-clan-memberships";
-import { ProfileEmblemCollections } from "@/components/profile/profile-emblem-collections";
+import { ProfileIdentity, type ProfileMembership } from "@/components/profile/profile-identity";
+import { ProfileSettings } from "@/components/profile/profile-settings";
 import type { AltAccountRow } from "@/components/profile/profile-game-alt-accounts";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
@@ -311,40 +312,49 @@ export default async function ProfilePage() {
   const firstClanGame = linkedGames.find((game) => game.gameId === firstClan?.game_id);
   const storeHref = firstMembership && firstClanGame ? `/games/${firstClanGame.slug}/clan/${firstMembership.clan_id}/store` : null;
 
+  const nickname = row?.nickname || "플레이어";
+  const intro = typeof user.user_metadata?.profile_intro === "string" ? user.user_metadata.profile_intro.slice(0, 120) : "";
+  const memberships: ProfileMembership[] = membershipRows.flatMap((membership) => {
+    const clan = Array.isArray(membership.clans) ? membership.clans[0] : membership.clans;
+    const game = Array.isArray(clan?.games) ? clan.games[0] : clan?.games;
+    return game ? [{ clanId: membership.clan_id, clanName: clan.name, gameSlug: game.slug, gameName: game.name_ko, role: membership.role }] : [];
+  });
+
   return <AccountShell><main className={styles.page}>
-    <h1 className={styles.heading}>플레이어 프로필</h1>
-    <p className={styles.lead}>나만의 방을 꾸미고, 게임 속 취향과 함께한 시간을 담아보세요.</p>
-    <ProfileHousing key={user.id} initial={housing} nickname={row?.nickname || "플레이어"} clanName={firstClan?.name} gameNames={linkedGames.map((game) => game.nameKo)} />
+    <div className={styles.profileBar}><span className={styles.pageLabel}>플레이어 프로필</span>
+      <ProfileSettings>
+        {row ? <section className={styles.settingsAccount} aria-label="계정 정보"><h2>내 계정</h2><dl className={styles.detailGrid}>
+          <div><dt>표시 이름</dt><dd>{nickname}</dd></div>
+          <div><dt>이메일</dt><dd>{row.email || user.email}</dd></div>
+          <div><dt>출생연도</dt><dd>{row.birth_year ?? "미등록"}</dd></div>
+          <div><dt>성별</dt><dd>{genderLabel(String(row.gender))}</dd></div>
+          <div><dt>언어</dt><dd>{({ ko: "한국어", en: "English", ja: "日本語" } as Record<string, string>)[row.language] ?? row.language}</dd></div>
+          <div><dt>자동 로그인</dt><dd>{row.auto_login ? "켜짐" : "꺼짐"}</dd></div>
+          <div><dt>가입일</dt><dd>{row.created_at ? new Date(row.created_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "—"}</dd></div>
+        </dl></section> : <p className={styles.error} role="alert">계정 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>}
+        <div className={styles.settingsGameLink}><Link href="/games" className={buttonVariants({ variant: "outline", size: "sm" })}>게임 계정 연결</Link></div>
+        <ProfileClanMemberships rows={memberships} />
+        <ProfileJoinRequests rows={joinRequests} loadFailed={joinRequestsFetchFailed} />
+        <div className={styles.accountActions}><form action={signOutAction}><Button type="submit" variant="outline" size="sm">로그아웃</Button></form><ProfileDeleteAccountButton /></div>
+      </ProfileSettings>
+    </div>
+    <div className={styles.profileHero} data-testid="profile-hero">
+      <ProfileIdentity key={user.id} userId={user.id} nickname={nickname} intro={intro} memberships={memberships} gameNames={linkedGames.map((game) => game.nameKo)} />
+      <ProfileHousing key={user.id} embedded initial={housing} nickname={nickname} clanName={firstClan?.name} gameNames={linkedGames.map((game) => game.nameKo)} />
+    </div>
     {pendingForBanner.length > 0 && !joinRequestsFetchFailed ? <section className={styles.pendingBanner} aria-label="진행 중인 가입 신청 요약">
       <strong>진행 중인 가입 신청 {pendingForBanner.length}건</strong>
       {pendingForBanner.map((request) => <p key={request.id}>「{request.clans?.name ?? "클랜"}」 ({request.games?.name_ko ?? "게임"}) · 검토 중</p>)}
     </section> : null}
-    <ProfilePanels summary={row ? <>
-      <div className={styles.identity}><span className={styles.avatar} aria-hidden="true">{row.nickname?.slice(0, 1) || "P"}</span><div className={styles.identityInfo}><p className={styles.label}>ClanSync 표시 이름</p><p className={styles.nickname}>{row.nickname}</p><p className={styles.email}>{row.email || user.email}</p></div></div>
-      <dl className={styles.metrics}><div className={styles.metric}><dt>보유 코인</dt><dd>{(row.coin_balance ?? 0).toLocaleString("ko-KR")}</dd></div><div className={styles.metric}><dt>등록된 게임</dt><dd>{linkedGames.length}<span className="ml-1 text-sm font-normal">타이틀</span></dd></div></dl>
-      {storeHref ? <Link href={storeHref} className={buttonVariants({ variant: "outline", size: "sm" })}>클랜 스토어 · 개인 꾸미기</Link> : <Link href="/games" className={buttonVariants({ variant: "outline", size: "sm" })}>게임 선택</Link>}
-      <section className={styles.accountDetails}><h2>내 계정</h2><dl className={styles.detailGrid}>
-        <div><dt>출생연도</dt><dd>{row.birth_year ?? "미등록"}</dd></div>
-        <div><dt>성별</dt><dd>{genderLabel(String(row.gender))}</dd></div>
-        <div><dt>언어</dt><dd>{({ ko: "한국어", en: "English", ja: "日本語" } as Record<string, string>)[row.language] ?? row.language}</dd></div>
-        <div><dt>자동 로그인</dt><dd>{row.auto_login ? "켜짐" : "꺼짐"}</dd></div>
-        <div><dt>가입일</dt><dd>{row.created_at ? new Date(row.created_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "—"}</dd></div>
-      </dl></section>
-    </> : <p className={styles.error} role="alert">계정 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>} games={
-      <><ProfileRolePreferences games={linkedGames} preferences={rolePreferences ?? []} /><ProfileGameDecorations nickname={row?.nickname || "플레이어"} games={linkedGames} verifiedGameIds={verifiedGameIds} altAccountsByGame={altAccountsByGame} nameplateOptions={nameplateOptions} ownedOptionIds={ownedOptionIds} selections={selections} badges={badges} unlockedBadgeIds={unlockedBadgeIds} picks={pickRows} /></>
-    } />
-    <ProfileEmblemCollections userId={user.id} nickname={row?.nickname || "플레이어"} memberships={membershipRows.flatMap((membership) => {
-      const clan = Array.isArray(membership.clans) ? membership.clans[0] : membership.clans;
-      const game = Array.isArray(clan?.games) ? clan.games[0] : clan?.games;
-      return game ? [{ clanId: membership.clan_id, clanName: clan.name, gameSlug: game.slug, gameName: game.name_ko }] : [];
-    })} />
-    <ProfileClanMemberships rows={membershipRows.flatMap((membership) => {
-      const clan = Array.isArray(membership.clans) ? membership.clans[0] : membership.clans;
-      const game = Array.isArray(clan?.games) ? clan.games[0] : clan?.games;
-      if (!game) return [];
-      return [{ clanId: membership.clan_id, clanName: clan.name, gameSlug: game.slug, gameName: game.name_ko, role: membership.role }];
-    })} />
-    <ProfileJoinRequests rows={joinRequests} loadFailed={joinRequestsFetchFailed} />
-    <div className={styles.accountActions}><form action={signOutAction}><Button type="submit" variant="outline" size="sm">로그아웃</Button></form><ProfileDeleteAccountButton /></div>
+    <ProfilePanels summary={<section aria-label="플레이 게임"><div className={styles.sectionHeader}><h2 className={styles.sectionHeading}>플레이 게임</h2>{storeHref && <Link href={storeHref} className={buttonVariants({ variant: "ghost", size: "sm" })}>개인 꾸미기</Link>}</div>
+      {linkedGames.length ? <ul className={styles.playGames}>{linkedGames.map((game) => {
+        const clans = memberships.filter((membership) => membership.gameSlug === game.slug);
+        return <li key={game.gameId} className={styles.playGame}>
+          <div className={styles.playGameName}><h3>{game.nameKo}</h3><span className={styles.pill}>{verifiedGameIds.includes(game.gameId) ? "계정 연동됨" : "계정 확인 대기"}</span></div>
+          <p className={styles.gameNickname}>{game.accountId || "게임 닉네임 미등록"}</p>
+          {clans.length ? <ul className={styles.gameClans}>{clans.map((clan) => <li key={clan.clanId}><Link href={"/games/" + clan.gameSlug + "/clan/" + clan.clanId}>{clan.clanName}</Link><Link href={"/games/" + clan.gameSlug + "/clan/" + clan.clanId + "/stats?player=" + encodeURIComponent(user.id)}>개인 기록 보기</Link></li>)}</ul> : <Link href={"/games/" + game.slug} className={styles.gameDiscover}>함께할 클랜 찾기</Link>}
+        </li>;
+      })}</ul> : <div className={styles.empty}><p>플레이하는 게임을 연결하고 함께할 클랜을 찾아보세요.</p><Link href="/games" className={buttonVariants({ variant: "outline", size: "sm" })}>게임 선택</Link></div>}
+    </section>} games={<><ProfileRolePreferences games={linkedGames} preferences={rolePreferences ?? []} /><ProfileGameDecorations nickname={nickname} games={linkedGames} verifiedGameIds={verifiedGameIds} altAccountsByGame={altAccountsByGame} nameplateOptions={nameplateOptions} ownedOptionIds={ownedOptionIds} selections={selections} badges={badges} unlockedBadgeIds={unlockedBadgeIds} picks={pickRows} /></>} />
   </main></AccountShell>;
 }
