@@ -29,6 +29,11 @@ export function ProfileHousing({ initial, nickname, embedded = false }: {
   initial: HousingResult; nickname: string; clanName?: string; gameNames: string[]; embedded?: boolean;
 }) {
   const [state, setState] = useState<HousingState | null>(initial.ok ? initial.state : null);
+  const [incomingCoins, setIncomingCoins] = useState(initial.ok ? initial.state.coinBalance : null);
+  if (initial.ok && incomingCoins !== initial.state.coinBalance) {
+    setIncomingCoins(initial.state.coinBalance);
+    setState((previous) => previous && ({ ...previous, coinBalance: initial.state.coinBalance }));
+  }
   const [draft, setDraft] = useState(initial.ok ? initial.state.inventory : []);
   const [wallpaper, setWallpaper] = useState(initial.ok ? initial.state.room.wallpaper : "cream");
   const [floor, setFloor] = useState(initial.ok ? initial.state.room.floor : "oak");
