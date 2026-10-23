@@ -145,8 +145,10 @@
 .inventoryItem .catalogArt { height:76px; }
 .inventoryCard[data-stored="true"] .inventoryItem>span:last-child { color:var(--primary); }
 .inventoryActions { display:flex; align-items:center; justify-content:center; gap:4px; padding:2px 6px 8px; }
-.inventoryActions>button { flex:1; min-width:0; padding:5px 7px; font-size:11px; }
-.dragHandle { display:inline-flex; justify-content:center; align-items:center; gap:3px; min-height:30px; border:1px solid var(--border); border-radius:6px; color:var(--muted-foreground); background:var(--background); touch-action:none; user-select:none; cursor:grab; }
+.inventoryActions>button { flex:1; min-width:0; padding:5px 4px; font-size:11px; white-space:nowrap; }
+.inventoryActions>button:first-child:not(:last-child) { flex:0 0 auto; }
+.dragHandle { display:inline-flex; justify-content:center; align-items:center; gap:2px; min-height:30px; border:1px solid var(--border); border-radius:6px; color:var(--muted-foreground); background:var(--background); touch-action:none; user-select:none; cursor:grab; }
+.dragHandle svg { flex:none; width:11px; }
 .dragHandle:active { cursor:grabbing; }
 .dragHandle:focus-visible,.inventoryItem:focus-visible { outline:2px solid var(--ring); outline-offset:-2px; }
 .dragHandle:disabled { opacity:.5; cursor:default; }
