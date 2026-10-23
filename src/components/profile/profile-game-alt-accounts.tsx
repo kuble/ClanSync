@@ -1,4 +1,5 @@
 "use client";
+import { StatHelp } from "@/components/main-clan/stat-help";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Plus } from "lucide-react";
@@ -45,8 +46,7 @@ export function ProfileGameAltAccounts({ gameId, gameSlug, disclosureLines, init
     });
   }
   return <section className={styles.altSection} data-alt-accounts-panel={gameSlug}>
-    <div className={styles.sectionHeader}><h4>부계정 · 자기신고</h4><Button type="button" size="sm" variant="outline" onClick={() => { setError(null); setOpen(true); }}><Plus size={13} aria-hidden="true" />부계정 추가</Button></div>
-    {disclosureLines.length ? <div className={styles.notice}>{disclosureLines.map((line) => <p key={line}>{line}</p>)}</div> : <p className={styles.sectionText}>이 게임의 활성 클랜에 소속되어 있지 않으면 본인만 조회할 수 있습니다.</p>}
+    <div className={styles.sectionHeader}><h4 aria-label="부계정 · 자기신고"><StatHelp title="부계정 · 자기신고">{disclosureLines.length ? disclosureLines.join(" ") : "이 게임의 활성 클랜에 소속되어 있지 않으면 본인만 조회할 수 있습니다."}</StatHelp></h4><Button type="button" size="sm" variant="outline" onClick={() => { setError(null); setOpen(true); }}><Plus size={13} aria-hidden="true" />부계정 추가</Button></div>
     {initialRows.length ? <ul className={styles.altList}>{initialRows.map((row) => <li className={styles.altRow} key={row.id} data-alt-account-row={gameSlug}><div><strong>{row.alt_nick}</strong>{row.note ? <p>{row.note}</p> : null}</div><Button type="button" size="sm" variant="ghost" disabled={pending} onClick={() => { setError(null); setDeleting(row); }} aria-label={`${row.alt_nick} 부계정 삭제`}>삭제</Button></li>)}</ul> : <p className={styles.sectionText}>등록된 부계정이 없습니다.</p>}
     <Dialog open={open} onOpenChange={(value) => { if (!pending) { if (value) setOpen(true); else closeAdd(); } }}>
       <DialogContent className="sm:max-w-lg"><DialogHeader><DialogTitle>부계정 추가</DialogTitle><DialogDescription>같은 게임에서 사용하는 추가 계정의 닉네임을 기록하세요.</DialogDescription></DialogHeader>

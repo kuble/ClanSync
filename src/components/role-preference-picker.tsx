@@ -26,6 +26,7 @@ export function RolePreferencePicker({
   profileRanking,
   disabled = false,
   compact = false,
+  hideHelp = false,
   onChange,
 }: {
   id: string;
@@ -34,6 +35,7 @@ export function RolePreferencePicker({
   profileRanking?: Role[];
   disabled?: boolean;
   compact?: boolean;
+  hideHelp?: boolean;
   onChange: (ranking: Role[] | null) => void;
 }) {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
@@ -235,7 +237,7 @@ export function RolePreferencePicker({
       </div>
       <p
         id={`${id}-help`}
-        className={compact ? "sr-only" : "mt-2 text-xs text-muted-foreground"}
+        className={compact || hideHelp ? "sr-only" : "mt-2 text-xs text-muted-foreground"}
       >
         {selectedRole
           ? "교환할 아이콘을 누르세요. 다시 누르면 취소됩니다."

@@ -1,3 +1,4 @@
+import { StatHelp } from "@/components/main-clan/stat-help";
 import { cancelJoinRequestByIdFormAction } from "@/app/actions/game-clan-onboarding";
 import { Button } from "@/components/ui/button";
 import styles from "./profile.module.css";
@@ -11,8 +12,7 @@ function dateLabel(value: string) { return new Date(value).toLocaleDateString("k
 
 export function ProfileJoinRequests({ rows, loadFailed = false }: { rows: JoinRow[]; loadFailed?: boolean }) {
   return <section className={styles.requestSection} aria-labelledby="join-requests-heading">
-    <h2 id="join-requests-heading" className={styles.sectionHeading}>가입 신청{rows.length ? ` · ${rows.length}건` : ""}</h2>
-    <p className={styles.sectionText}>현재 대기 중인 신청과 최근 7일 이내의 처리 결과입니다.</p>
+    <h2 aria-label={"가입 신청" + (rows.length ? " · " + rows.length + "건" : "")} id="join-requests-heading" className={styles.sectionHeading}><StatHelp title="가입 신청">현재 대기 중인 신청과 최근 7일 이내의 처리 결과입니다.</StatHelp>{rows.length ? ` · ${rows.length}건` : ""}</h2>
     {loadFailed ? <p className={styles.error} role="alert">가입 신청 정보를 불러오지 못했습니다. 잠시 후 새로 고침해 주세요.</p> : rows.length ? <ul className={styles.requestList}>
       {rows.map((request) => <li key={request.id} className={styles.requestRow}>
         <div><strong>{request.clans?.name ?? "클랜"}</strong><span className={styles.requestStatus} data-status={request.status}>{STATUS[request.status]}</span>

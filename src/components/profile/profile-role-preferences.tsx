@@ -1,5 +1,6 @@
 "use client";
 
+import { StatHelp } from "@/components/main-clan/stat-help";
 import { useState } from "react";
 import { saveProfileRolePreferenceAction } from "@/app/actions/role-preferences";
 import type { Role } from "@/lib/balance/formation";
@@ -20,13 +21,9 @@ export function ProfileRolePreferences({
       className="mt-6 rounded-2xl border bg-card p-5"
       aria-labelledby="profile-role-preferences-heading"
     >
-      <h2 id="profile-role-preferences-heading" className="text-base font-bold">
-        게임별 선호 역할
+      <h2 aria-label="게임별 선호 역할" id="profile-role-preferences-heading" className="text-base font-bold">
+        <StatHelp title="게임별 선호 역할">내전 역할 추첨의 기본 선호입니다. 경기마다 다시 입력하지 않아도 됩니다. 끌어서 순위를 바꾸거나 두 아이콘을 눌러 교환하세요. 좌우 방향키로도 순위를 바꿀 수 있습니다.</StatHelp>
       </h2>
-      <p className="mt-1 text-sm text-muted-foreground">
-        내전 역할 추첨의 기본 선호입니다. 경기마다 다시 입력하지 않아도
-        됩니다.
-      </p>
       <div className="mt-4 space-y-4">
         {supported.map((game) => {
           const ranking = parseRoleRanking(
@@ -65,6 +62,7 @@ function GamePreference({
         {game.nameKo}
       </h3>
       <RolePreferencePicker
+        hideHelp
         id={`profile-role-${game.gameId}`}
         labelledBy={`profile-role-${game.gameId}-label`}
         value={value}
