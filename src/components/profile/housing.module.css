@@ -123,3 +123,32 @@
 @media(pointer:coarse) { .positionControls select,.appearance select { min-height:44px; font-size:16px; } .categories button { min-height:44px; } .editActions>button,.nudge>button { min-height:44px; min-width:44px; } }
 
 @media(pointer:coarse) { .headerActions button,.editor button,.editorFooter button,.sidebar>button { min-height:44px; } }
+
+.scene[data-editing="true"] { touch-action:pan-y pinch-zoom; }
+.scene[data-editing="true"] .furniture { touch-action:none; cursor:grab; user-select:none; }
+.scene[data-dragging="true"],.scene[data-dragging="true"] .furniture { cursor:grabbing; }
+.scene[data-dragging="true"] .furnitureLabel { display:none; }
+.dragFeedback { position:absolute; z-index:80; left:50%; bottom:12px; transform:translateX(-50%); max-width:90%; padding:9px 14px; border:1px solid #63864e; border-radius:9px; background:#edf5e8f5; color:#284520; font-size:12px; font-weight:600; text-align:center; pointer-events:none; box-shadow:0 3px 14px #27321b14; }
+.dragFeedback[data-valid="false"] { background:#fff0ebf5; border-color:#bd7464; color:#873d32; }
+.dragFeedback span { display:block; margin-top:3px; font-size:10px; font-weight:400; }
+.dragFallback { position:absolute; z-index:60; transform:translate(-50%,-84%); opacity:.65; pointer-events:none; filter:drop-shadow(0 0 4px #568943); }
+.dragFallback[data-valid="false"] { filter:drop-shadow(0 0 4px #c64332); }
+.dragFallback svg { width:100%; height:auto; }
+.dragAnnouncement { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.inventoryDock { margin-top:18px; padding:16px 20px 0; border-top:1px solid var(--border); background:var(--card); color:var(--foreground); }
+.inventoryDock .editorToolbar { margin-bottom:9px; }
+.inventoryHint { font-size:11px; color:var(--muted-foreground); line-height:1.6; margin-bottom:12px; }
+.inventory { display:flex; gap:9px; overflow-x:auto; overscroll-behavior-x:contain; padding:2px 2px 10px; scrollbar-width:thin; }
+.inventoryCard { flex:0 0 136px; min-width:0; border:1px solid var(--border); border-radius:10px; background:var(--background); overflow:hidden; }
+.inventoryItem { border:0; border-radius:9px; padding:6px 8px 8px; user-select:none; touch-action:pan-x pan-y pinch-zoom; }
+.inventoryItem[aria-pressed="true"] { box-shadow:inset 0 0 0 2px var(--primary); }
+.inventoryItem .catalogArt { height:76px; }
+.inventoryCard[data-stored="true"] .inventoryItem>span:last-child { color:var(--primary); }
+.inventoryActions { display:flex; align-items:center; justify-content:center; gap:4px; padding:2px 6px 8px; }
+.inventoryActions>button { flex:1; min-width:0; padding:5px 7px; font-size:11px; }
+.dragHandle { display:inline-flex; justify-content:center; align-items:center; gap:3px; min-height:30px; border:1px solid var(--border); border-radius:6px; color:var(--muted-foreground); background:var(--background); touch-action:none; user-select:none; cursor:grab; }
+.dragHandle:active { cursor:grabbing; }
+.dragHandle:focus-visible,.inventoryItem:focus-visible { outline:2px solid var(--ring); outline-offset:-2px; }
+.dragHandle:disabled { opacity:.5; cursor:default; }
+@media(max-width:640px) { .inventoryDock { padding:14px 12px 0; margin-top:14px; } .inventoryCard { flex-basis:128px; } .inventoryDock .editorToolbar { gap:7px; } .inventoryHint { font-size:10px; } }
+@media(pointer:coarse) { .inventoryActions>button,.inventoryDock .panelButtons>button { min-height:44px; } }

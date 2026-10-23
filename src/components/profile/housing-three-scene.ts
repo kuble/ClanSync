@@ -13,6 +13,7 @@ export type RoomView = {
 };
 export type ProjectedArea = { left: number; top: number; width: number; height: number; polygon?: string };
 export type RoomProjection = { furniture: Record<string, ProjectedArea>; tiles: ProjectedArea[] };
+export type HousingDragPreview = { inventoryId: string; x: number; y: number; valid: boolean };
 
 function dispose(root: THREE.Object3D) {
   const materials = new Set<THREE.Material>();
@@ -77,15 +78,73 @@ export function createHousingScene(host: HTMLDivElement, onProjection: (value: R
   const selection = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: 0x9ab57d, transparent: true, opacity: .35, depthWrite: false }));
   selection.rotation.x = -Math.PI / 2;
   scene.add(selection);
+  const dragFootprint = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: 0x72965b, transparent: true, opacity: .5, depthWrite: false }));
+  dragFootprint.rotation.x = -Math.PI / 2;
+  dragFootprint.visible = false;
+  scene.add(dragFootprint);
   let room: THREE.Group | undefined;
   let roomKey = "";
   let view: RoomView | undefined;
   let disposed = false;
   let failed = false;
   let frame = 0;
+  let dragPreview: HousingDragPreview | null = null;
+  let dragGhost: THREE.Group | undefined;
+  let dragGhostId: string | undefined;
   const objects = new Map<string, THREE.Group>();
   const raycaster = new THREE.Raycaster();
   const floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -.045);
+
+  function restoreSelection() {
+    const selectedId = view?.selectedId;
+    const item = view?.inventory.find((entry) => entry.id === selectedId);
+    const model = item ? objects.get(item.id) : undefined;
+    const catalog = item ? view?.catalog.find((entry) => entry.id === item.catalogId) : undefined;
+    selection.visible = !!(item && model && catalog);
+    if (!item || !model || !catalog) return;
+    const size = getHousingFootprint(catalog, item.rotation);
+    selection.scale.set(size.width - .05, size.depth - .05, 1);
+    selection.position.set(model.position.x, .05, model.position.z);
+  }
+  function clearPreview() {
+    dragPreview = null;
+    if (dragGhost) { scene.remove(dragGhost); dispose(dragGhost); }
+    dragGhost = undefined;
+    dragGhostId = undefined;
+    dragFootprint.visible = false;
+    objects.forEach((model) => { model.visible = true; });
+    restoreSelection();
+  }
+  function applyPreview() {
+    if (!dragPreview || !view?.editing) { clearPreview(); return; }
+    const preview = dragPreview;
+    const item = view.inventory.find((entry) => entry.id === preview.inventoryId);
+    const catalog = item ? view.catalog.find((entry) => entry.id === item.catalogId) : undefined;
+    if (!item || !catalog || !Number.isFinite(dragPreview.x) || !Number.isFinite(dragPreview.y)) { clearPreview(); return; }
+    if (dragGhostId !== item.id) {
+      if (dragGhost) { scene.remove(dragGhost); dispose(dragGhost); }
+      dragGhost = createFurniture(catalog.visualKey);
+      dragGhostId = item.id;
+      const materials = new Set<THREE.Material>();
+      dragGhost.traverse((object) => {
+        if (!(object instanceof THREE.Mesh)) return;
+        object.castShadow = false;
+        for (const material of Array.isArray(object.material) ? object.material : [object.material]) materials.add(material);
+      });
+      materials.forEach((material) => { material.transparent = true; material.opacity *= .75; material.depthWrite = false; });
+      scene.add(dragGhost);
+    }
+    // Original models remain in place for stable keyboard targets and picking.
+    objects.forEach((model, id) => { model.visible = id !== item.id; });
+    const size = getHousingFootprint(catalog, item.rotation);
+    dragGhost!.position.set(dragPreview.x + size.width / 2, .06, dragPreview.y + size.depth / 2);
+    dragGhost!.rotation.y = -item.rotation * Math.PI / 2;
+    dragFootprint.visible = true;
+    dragFootprint.scale.set(size.width - .03, size.depth - .03, 1);
+    dragFootprint.position.set(dragPreview.x + size.width / 2, .065, dragPreview.y + size.depth / 2);
+    dragFootprint.material.color.set(dragPreview.valid ? 0x72965b : 0xc96054);
+    selection.visible = false;
+  }
 
   function project(x: number, y: number, z: number) {
     const v = new THREE.Vector3(x, y, z).project(camera);
@@ -130,13 +189,27 @@ export function createHousingScene(host: HTMLDivElement, onProjection: (value: R
     } catch { fail(); }
   }
   function schedule() { if (!frame && !disposed && !failed) frame = requestAnimationFrame(draw); }
-  function fail() { if (!disposed && !failed) { failed = true; onFailure(); } }
+  function fail() { if (!disposed && !failed) { failed = true; clearPreview(); onFailure(); } }
   function contextLost(event: Event) { event.preventDefault(); fail(); }
   canvas.addEventListener("webglcontextlost", contextLost);
   const observer = new ResizeObserver(schedule);
   observer.observe(host);
 
   return {
+    floorPoint(clientX: number, clientY: number): { x: number; y: number } | null {
+      if (disposed || failed) return null;
+      const rect = canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height || clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) return null;
+      raycaster.setFromCamera(new THREE.Vector2((clientX - rect.left) / rect.width * 2 - 1, -(clientY - rect.top) / rect.height * 2 + 1), camera);
+      const point = raycaster.ray.intersectPlane(floorPlane, new THREE.Vector3());
+      return point ? { x: point.x, y: point.z } : null;
+    },
+    preview(next: HousingDragPreview | null) {
+      if (disposed || failed) return;
+      dragPreview = next;
+      applyPreview();
+      schedule();
+    },
     pick(clientX: number, clientY: number): { inventoryId: string } | { x: number; y: number } | null {
       if (disposed || failed) return null;
       const rect = canvas.getBoundingClientRect();
@@ -178,11 +251,6 @@ export function createHousingScene(host: HTMLDivElement, onProjection: (value: R
         model.position.set(item.x + size.width / 2, 0, item.y + size.depth / 2);
         model.rotation.y = -item.rotation * Math.PI / 2;
         for (let dx = 0; dx < size.width; dx++) for (let dz = 0; dz < size.depth; dz++) occupied.add(`${item.x + dx}/${item.y + dz}`);
-        if (item.id === next.selectedId) {
-          selection.visible = true;
-          selection.scale.set(size.width - .05, size.depth - .05, 1);
-          selection.position.set(model.position.x, .05, model.position.z);
-        }
       }
       objects.forEach((model, id) => { if (!placed.has(id)) { scene.remove(model); dispose(model); objects.delete(id); } });
       // The resident stands on a free tile, so furniture can occupy every tile.
@@ -190,6 +258,7 @@ export function createHousingScene(host: HTMLDivElement, onProjection: (value: R
       resident.visible = !!free;
       if (free) resident.position.set(free[0] + .5, 0, free[1] + .5);
       grid.visible = next.editing;
+      applyPreview();
       schedule();
     },
     dispose() {
@@ -197,6 +266,7 @@ export function createHousingScene(host: HTMLDivElement, onProjection: (value: R
       cancelAnimationFrame(frame);
       observer.disconnect();
       canvas.removeEventListener("webglcontextlost", contextLost);
+      clearPreview();
       dispose(scene);
       sun.shadow.dispose();
       renderer.dispose();

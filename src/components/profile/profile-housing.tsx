@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, Coins, House, Package, RotateCw, ShoppingBag } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, Coins, Grip, House, Package, RotateCw, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { loadHousingAction, purchaseHousingFurnitureAction, saveHousingRoomAction } from "@/app/actions/profile-housing";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { canPlaceHousingItem, getHousingFootprint, HOUSING_GRID_SIZE } from "@/lib/housing/domain";
 import type { HousingCatalogItem, HousingInventoryItem, HousingPlacement, HousingResult, HousingState } from "@/lib/housing/types";
 import { FurniturePreview } from "./housing-furniture-preview";
-import { HousingRoom } from "./housing-room";
+import { HousingRoom, type HousingRoomHandle } from "./housing-room";
 import styles from "./housing.module.css";
 
 const WALLPAPERS = [{ id: "cream", name: "크림" }, { id: "sage", name: "세이지" }, { id: "rose", name: "로즈" }, { id: "midnight", name: "미드나잇" }];
@@ -35,6 +35,7 @@ export function ProfileHousing({ initial, nickname, clanName, gameNames }: {
   const [row, setRow] = useState(0);
   const [purchase, setPurchase] = useState<HousingCatalogItem | null>(null);
   const purchaseOpener = useRef<HTMLButtonElement | null>(null);
+  const room = useRef<HousingRoomHandle>(null);
   const [discard, setDiscard] = useState<"cancel" | "reload" | null>(null);
   const [error, setError] = useState(initial.ok ? "" : initial.error);
   const [pending, startTransition] = useTransition();
@@ -65,13 +66,33 @@ export function ProfileHousing({ initial, nickname, clanName, gameNames }: {
     setEditing(true); setPanel(nextPanel); setError("");
   }
 
-  function move(x: number, y: number, rotation = selected?.rotation ?? 0) {
-    if (!state || !selected || pending) return;
-    if (!canPlaceHousingItem({ inventoryId: selected.id, x, y, rotation }, placements, draft, state.catalog)) {
+  function place(inventoryId: string, x: number, y: number, rotation?: number) {
+    const owned = draft.find((item) => item.id === inventoryId);
+    if (!state || !owned || !editing || pending) return;
+    const turn = rotation ?? owned.rotation;
+    if (!canPlaceHousingItem({ inventoryId, x, y, rotation: turn }, placements, draft, state.catalog)) {
       setError("가구가 겹치거나 방 밖으로 나갑니다. 다른 위치를 선택해 주세요."); return;
     }
-    setDraft(draft.map((item) => item.id === selected.id ? { ...item, x, y, rotation } : item));
-    setColumn(x); setRow(y); setError("");
+    setDraft(draft.map((item) => item.id === inventoryId ? { ...item, x, y, rotation: turn } : item));
+    setSelectedId(inventoryId); setColumn(x); setRow(y); setError("");
+  }
+
+  function move(x: number, y: number, rotation = selected?.rotation ?? 0) {
+    if (selected) place(selected.id, x, y, rotation);
+  }
+
+  function takeOut(item: HousingInventoryItem) {
+    if (!state || pending) return;
+    select(item);
+    for (let y = 0; y < HOUSING_GRID_SIZE; y++) for (let x = 0; x < HOUSING_GRID_SIZE; x++) {
+      if (canPlaceHousingItem({ inventoryId: item.id, x, y, rotation: item.rotation }, placements, draft, state.catalog)) {
+        place(item.id, x, y);
+        room.current?.scrollIntoView();
+        toast.success("빈자리에 꺼냈습니다. 끌어서 위치를 조정해 보세요.");
+        return;
+      }
+    }
+    setError("가구를 꺼낼 빈자리가 없습니다. 다른 가구를 보관하거나 위치를 바꿔 주세요.");
   }
 
   function rotate() {
@@ -135,9 +156,28 @@ export function ProfileHousing({ initial, nickname, clanName, gameNames }: {
     {!state ? <div className={styles.loadError}><p role="alert">{error}</p><Button variant="outline" onClick={reload} disabled={pending}>{pending ? "불러오는 중…" : "다시 불러오기"}</Button></div> : <>
       <div className={styles.roomLayout} data-editing={editing}>
         <div className={styles.sceneColumn}>
-          <HousingRoom inventory={inventory} catalog={state.catalog} selectedId={selectedId} editing={editing} pending={pending}
-            wallpaper={editing ? wallpaper : state.room.wallpaper} floor={editing ? floor : state.room.floor} onSelect={select} onMove={move} />
-          <div className={styles.sceneCaption}><span>{placementsOf(inventory).length}개 배치 · {inventory.length - placementsOf(inventory).length}개 보관</span><span>{editing ? "바닥을 눌러 배치 · 아래 위치 선택도 가능" : "개인 코인으로 채워가는 나만의 방"}</span></div>
+          <HousingRoom ref={room} inventory={inventory} catalog={state.catalog} selectedId={selectedId} editing={editing} pending={pending}
+            wallpaper={editing ? wallpaper : state.room.wallpaper} floor={editing ? floor : state.room.floor} onSelect={select} onMove={move} onDrop={place} />
+          <div className={styles.sceneCaption}><span>{placementsOf(inventory).length}개 배치 · {inventory.length - placementsOf(inventory).length}개 보관</span><span>{editing ? "가구를 끌어서 이동 · 바닥을 눌러 배치" : "개인 코인으로 채워가는 나만의 방"}</span></div>
+          {editing && <div className={styles.inventoryDock}>
+            <div className={styles.editorToolbar}><div className={styles.panelButtons}><Button size="sm" variant={panel === "inventory" ? "secondary" : "ghost"} aria-pressed={panel === "inventory"} onClick={() => setPanel("inventory")}><Package aria-hidden="true" />내 가구</Button><Button size="sm" variant={panel === "shop" ? "secondary" : "ghost"} aria-pressed={panel === "shop"} onClick={() => setPanel("shop")}><ShoppingBag aria-hidden="true" />가구 상점</Button></div><span className={styles.saveStatus} role="status">{dirty ? "저장하지 않은 변경" : "모든 변경이 저장되었습니다"}</span></div>
+            {panel === "inventory" && <>
+              <p className={styles.inventoryHint}>보관 중 {draft.filter((item) => item.x === null).length}개 · 꺼내기를 누르거나, 끌어놓기를 잡고 방으로 옮기세요.</p>
+              <ul className={styles.inventory} aria-label="보유 가구">{draft.map((owned) => {
+                const item = state.catalog.find((entry) => entry.id === owned.catalogId);
+                if (!item) return null;
+                return <li key={owned.id} className={styles.inventoryCard} data-stored={owned.x === null}>
+                  <button type="button" className={styles.inventoryItem} aria-label={item.name + " 선택"} aria-pressed={selectedId === owned.id} onClick={() => select(owned)} onPointerDown={(event) => { if (event.pointerType === "mouse") room.current?.startInventoryDrag(event, owned); }} disabled={pending}>
+                    <span className={styles.catalogArt}><FurniturePreview code={item.visualKey} rotation={owned.rotation} /></span><strong>{item.name}</strong><span>{owned.x === null ? "보관 중" : "배치됨"}</span>
+                  </button>
+                  <div className={styles.inventoryActions}>
+                    {owned.x === null && <Button size="sm" variant="outline" onClick={() => takeOut(owned)} disabled={pending} aria-label={item.name + " 꺼내기"}>꺼내기</Button>}
+                    <button type="button" className={styles.dragHandle} disabled={pending} aria-label={item.name + " 끌어서 배치"} onPointerDown={(event) => room.current?.startInventoryDrag(event, owned)} onClick={(event) => { if (event.detail === 0) { select(owned); room.current?.scrollIntoView(); } }}><Grip size={13} aria-hidden="true" />끌어놓기</button>
+                  </div>
+                </li>;
+              })}</ul>
+            </>}
+          </div>}
         </div>
         <aside className={styles.sidebar} aria-label={editing ? "선택한 가구 편집" : "방 소개"}>
           {editing ? <>
@@ -154,13 +194,7 @@ export function ProfileHousing({ initial, nickname, clanName, gameNames }: {
           </> : <><span className={styles.miniAvatar} aria-hidden="true">{nickname.slice(0, 1)}</span><h3>{nickname}</h3><p className={styles.clanName}>{clanName || "새로운 인연을 기다리는 중"}</p><div className={styles.introduction}><p className={styles.asideLabel}>플레이하는 게임</p><p>{gameNames.length ? gameNames.join(" · ") : "아래 게임별 탭에서 게임을 연결해 보세요."}</p></div>{selectedCatalog ? <div className={styles.selectedDescription}><p className={styles.asideLabel}>이 방의 가구</p><h3>{selectedCatalog.name}</h3><p>{selectedCatalog.description}</p></div> : <p className={styles.roomNote}>좋아하는 가구를 놓고<br />함께한 시간을 담아보세요.</p>}<Button variant="outline" size="sm" onClick={() => begin("inventory")}>내 가구 {state.inventory.length}개 보기</Button></>}
         </aside>
       </div>
-      {editing && <div className={styles.editor}>
-        <div className={styles.editorToolbar}><div className={styles.panelButtons}><Button size="sm" variant={panel === "inventory" ? "secondary" : "ghost"} aria-pressed={panel === "inventory"} onClick={() => setPanel("inventory")}><Package aria-hidden="true" />내 가구</Button><Button size="sm" variant={panel === "shop" ? "secondary" : "ghost"} aria-pressed={panel === "shop"} onClick={() => setPanel("shop")}><ShoppingBag aria-hidden="true" />가구 상점</Button></div><span className={styles.saveStatus} role="status">{dirty ? "저장하지 않은 변경" : "모든 변경이 저장되었습니다"}</span></div>
-        {panel === "inventory" ? <ul className={styles.inventory} aria-label="보유 가구">{state.inventory.map((owned) => {
-          const item = state.catalog.find((entry) => entry.id === owned.catalogId); const current = draft.find((entry) => entry.id === owned.id);
-          if (!item) return null;
-          return <li key={owned.id}><button type="button" className={styles.inventoryItem} aria-label={`${item.name} 선택`} aria-pressed={selectedId === owned.id} onClick={() => select(current ?? owned)} disabled={pending}><span className={styles.catalogArt}><FurniturePreview code={item.visualKey} rotation={current?.rotation ?? 0} /></span><strong>{item.name}</strong><span>{current?.x === null ? "보관 중" : "배치됨"}</span></button></li>;
-        })}</ul> : <>
+      {editing && panel === "shop" && <div className={styles.editor}>
           <p className={styles.shopNote}>개인 코인으로 구매한 가구는 클랜을 옮겨도 보관됩니다. 가구는 종류별로 하나씩 보유할 수 있어요.</p>
           <div className={styles.categories} aria-label="가구 분류">{Object.entries(CATEGORY_LABELS).map(([id, label]) => <button key={id} type="button" aria-pressed={category === id} onClick={() => setCategory(id)}>{label}</button>)}</div>
           {dirty && <p className={styles.purchaseHint}>가구를 구매하기 전에 꾸민 방을 저장해 주세요.</p>}
@@ -168,7 +202,6 @@ export function ProfileHousing({ initial, nickname, clanName, gameNames }: {
             const owned = state.inventory.some((entry) => entry.catalogId === item.id); const insufficient = state.coinBalance < item.price;
             return <li key={item.id} className={styles.catalogItem}><div className={styles.catalogArt}><FurniturePreview code={item.visualKey} /></div><div className={styles.catalogName}><h3>{item.name}</h3><span>{item.width} × {item.depth}칸</span></div><p>{item.description}</p><div className={styles.price}>{owned ? <><Check size={14} aria-hidden="true" />보유 중</> : <><Coins size={14} aria-hidden="true" />{item.price.toLocaleString("ko-KR")} 코인</>}</div><Button size="sm" variant="outline" className="w-full" disabled={owned || insufficient || dirty || pending} aria-label={`${item.name} 구매`} onClick={(event) => { purchaseOpener.current = event.currentTarget; setPurchase(item); setError(""); }}>{owned ? "보유 중" : insufficient ? "코인 부족" : "구매"}</Button></li>;
           })}</ul>
-        </>}
       </div>}
       {error && <div className={styles.error}><p role="alert">{error}</p><Button size="sm" variant="ghost" disabled={pending} onClick={() => dirty ? setDiscard("reload") : reload()}>최신 방 불러오기</Button></div>}
       {editing && <footer className={styles.editorFooter}><span>배치·회전·보관에는 코인이 들지 않아요.</span><div className={styles.buttons}><Button variant="outline" onClick={() => dirty ? setDiscard("cancel") : cancel()} disabled={pending}>편집 취소</Button><Button onClick={save} disabled={pending || !dirty}>{pending ? "처리 중…" : "방 저장"}</Button></div></footer>}
