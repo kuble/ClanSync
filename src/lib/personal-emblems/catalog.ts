@@ -38,6 +38,22 @@ export function milestoneEmblems(progress: Record<MilestoneFamily, number>, earn
   });
 }
 
+const closingPeriod = (entry: PersonalEmblem) => entry.kind === "award" && entry.period === "year" ? `${entry.date}-12` : entry.date ?? "";
+
+export function getAwardHistory(entries: readonly PersonalEmblem[]): PersonalEmblem[] {
+  return entries.filter(entry => entry.kind === "award" && entry.earned)
+    .sort((a, b) => closingPeriod(b).localeCompare(closingPeriod(a))
+      || Number(b.period === "year") - Number(a.period === "year") || (a.rank ?? 4) - (b.rank ?? 4) || a.key.localeCompare(b.key));
+}
+
+export function getAwardRepresentatives(entries: readonly PersonalEmblem[]): PersonalEmblem[] {
+  const history = getAwardHistory(entries);
+  return Object.values(awardFamilies).flatMap(family => {
+    const latest = history.find(entry => entry.family === family);
+    return latest ? [latest] : [];
+  });
+}
+
 /** Explicit empty picks stay empty; hidden records are excluded and earned milestones advance to their highest stage. */
 export function resolveFeaturedKeys(entries: readonly PersonalEmblem[], keys: readonly string[] | null): string[] {
   const earned = entries.filter((entry) => entry.earned);
@@ -52,7 +68,6 @@ export function resolveFeaturedKeys(entries: readonly PersonalEmblem[], keys: re
     return [...new Set(canonical)].slice(0, 3);
   }
   // December and that year's annual award close together; bare year strings sort too far back.
-  const closingPeriod = (entry: PersonalEmblem) => entry.kind === "award" && entry.period === "year" ? `${entry.date}-12` : entry.date ?? "";
   return earned.filter((entry) => entry.kind === "award" || highest.get(entry.family)?.key === entry.key)
     .sort((a, b) => Number(a.kind === "milestone") - Number(b.kind === "milestone") || closingPeriod(b).localeCompare(closingPeriod(a))
     || (a.rank ?? 4) - (b.rank ?? 4) || Number(b.period === "year") - Number(a.period === "year") || (b.stage ?? 0) - (a.stage ?? 0))

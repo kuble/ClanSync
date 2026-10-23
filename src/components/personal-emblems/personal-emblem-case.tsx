@@ -9,7 +9,7 @@ import { savePersonalEmblemPicksAction } from "@/app/actions/personal-emblems";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { RubberSegment } from "@/components/ui/rubber-segment";
-import { awardEmblems, resolveFeaturedKeys } from "@/lib/personal-emblems/catalog";
+import { awardEmblems, getAwardHistory, getAwardRepresentatives, resolveFeaturedKeys } from "@/lib/personal-emblems/catalog";
 import type { HofEmblem } from "@/lib/clan/stats/hof-emblems";
 import type { PersonalEmblem, PersonalEmblemCollection } from "@/lib/personal-emblems/types";
 import { cn } from "@/lib/utils";
@@ -169,11 +169,11 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
   const representatives = milestoneRepresentatives(emblems);
   const years = [...new Set(emblems.filter(emblem => emblem.kind === "award" && emblem.date).map(emblem => emblem.date!.slice(0, 4)))].sort().reverse();
   const selectedYear = yearState.target === target && (yearState.year === "all" || years.includes(yearState.year)) ? yearState.year : "all";
-  const awards = emblems.filter(emblem => emblem.kind === "award" && (filter === "all" || emblem.period === filter)
-    && (selectedYear === "all" || emblem.date?.startsWith(selectedYear)));
-  const awardGroups = [...new Set(awards.map(emblem => emblem.date + "|" + emblem.period))].sort().reverse();
+  const awards = getAwardRepresentatives(emblems.filter(emblem => emblem.kind === "award" && (filter === "all" || emblem.period === filter)
+    && (selectedYear === "all" || emblem.date?.startsWith(selectedYear))));
   const milestones = filter === "all" || filter === "milestone" ? representatives : [];
   const selected = selection?.target === target ? emblems.find(emblem => emblem.key === selection.key) : undefined;
+  const awardHistory = selected?.kind === "award" ? getAwardHistory(emblems).filter(emblem => emblem.family === selected.family) : [];
   const stages = selected?.kind === "milestone" ? emblems.filter(emblem => emblem.kind === "milestone" && emblem.family === selected.family)
     .sort((a, b) => (a.stage ?? 0) - (b.stage ?? 0)) : [];
   const canPickSelected = selected?.earned && (selected.kind === "award" || representatives.some(emblem => emblem.key === selected.key));
@@ -204,14 +204,11 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
       <div className={cn(caseStyles.case, styles.collectionFrame)} aria-busy={pending}>
         <div className={caseStyles.casePlate}>{initialCollection.clanName} · {initialCollection.nickname}</div>
         <div className={styles.groups}>
-          {awardGroups.map(group => {
-            const entries = awards.filter(emblem => emblem.date + "|" + emblem.period === group);
-            return <section key={group} aria-label={periodLabel(entries[0]) + " 수상"}>
-              <h3 className={styles.groupHeading}>{periodLabel(entries[0])}</h3>
-              <div className={caseStyles.caseGrid}>{entries.map(emblem => <DialogTrigger key={emblem.key}
-                render={renderPin(emblem, false, () => inspect(emblem))} />)}</div>
-            </section>;
-          })}
+          {awards.length > 0 && <section aria-label="종류별 최신 수상 엠블럼">
+            <h3 className={styles.groupHeading}>최근 수상</h3>
+            <div className={caseStyles.caseGrid}>{awards.map(emblem => <DialogTrigger key={emblem.key}
+              render={renderPin(emblem, false, () => inspect(emblem))} />)}</div>
+          </section>}
           {milestones.length > 0 && <section aria-label="누적 달성 엠블럼">
             <h3 className={styles.groupHeading}>개인의 성장</h3>
             <div className={caseStyles.caseGrid}>{milestones.map(emblem => <DialogTrigger key={emblem.key}
@@ -242,6 +239,15 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
           {collection?.canFeature && selected.earned && !canPickSelected && <p className="text-xs text-muted-foreground">최고 획득 단계만 대표로 지정할 수 있습니다.</p>}
         </section>
       </div>
+      {awardHistory.length > 0 && <section className="mt-2 space-y-3" aria-label="수상 이력">
+        <h3 className="text-sm font-semibold">수상 이력</h3>
+        <div className={caseStyles.case}><div className={caseStyles.caseGrid} role="group" aria-label="같은 종류의 수상 이력">
+          {awardHistory.map(emblem => <div key={emblem.key} className={styles.historyEntry}>
+            {renderPin(emblem, emblem.key === selected.key, () => inspect(emblem), detailsId)}
+            <p className={styles.historyCaption}>{periodLabel(emblem)}{"\n"}{rankNames[emblem.rank ?? 0]}</p>
+          </div>)}
+        </div></div>
+      </section>}
       {stages.length > 0 && <section className="mt-2 space-y-3" aria-label="성장의 기록">
         <h3 className="text-sm font-semibold">성장의 기록</h3>
         <div className={caseStyles.case}><div className={caseStyles.caseGrid} role="group" aria-label="단계별 엠블럼">
@@ -264,9 +270,10 @@ function Socket() {
 
 function renderPin(emblem: PersonalEmblem, selected: boolean, onClick: () => void, controls?: string) {
   return <button key={emblem.key} type="button" data-emblem-key={emblem.key} className={cn(caseStyles.pin, caseStyles.artworkSocket, styles.pin)}
-    style={socketStyle(emblem)} title={emblem.description}
-    aria-label={emblem.description + (emblem.stage ? " " + emblem.stage + "단계" : "") + " " + (emblem.earned ? "획득" : "미획득")}
+    style={socketStyle(emblem)} title={emblem.description + (emblem.kind === "award" ? " · " + periodLabel(emblem) : "")}
+    aria-label={emblem.description + (emblem.stage ? " " + emblem.stage + "단계" : "") + " " + (emblem.earned ? "획득" : "미획득")
+      + (controls && emblem.kind === "award" ? " · " + periodLabel(emblem) : "")}
     aria-pressed={selected} aria-controls={controls} onClick={onClick}>
-    <Socket />{emblem.earned && <EmblemArtwork emblem={emblem} className={styles.pinArtwork} />}
+    <Socket />{emblem.earned && <EmblemArtwork emblem={emblem} eager={!controls} className={styles.pinArtwork} />}
   </button>;
 }

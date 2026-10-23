@@ -20,6 +20,8 @@
 .collectionFrame { min-height:320px; }
 .groups { display:grid; gap:20px; }
 .groupHeading { margin:0 0 10px; color:#c6cfc3; font-size:12px; font-weight:600; }
+.historyEntry { min-width:0; }
+.historyCaption { margin:8px 0 0; color:#c6cfc3; font-size:11px; line-height:1.5; text-align:center; white-space:pre-line; overflow-wrap:anywhere; }
 .feedback { display:flex; align-items:center; flex-wrap:wrap; gap:8px; min-height:30px; color:var(--muted-foreground); font-size:12px; }
 .feedback[role="alert"] { color:var(--destructive); }
 .empty { display:grid; place-items:center; min-height:230px; padding:16px; color:#c6cfc3; font-size:12px; text-align:center; }

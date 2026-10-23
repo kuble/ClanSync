@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { awardEmblems, milestoneEmblems, resolveFeaturedKeys } from "../src/lib/personal-emblems/catalog";
+import { awardEmblems, getAwardHistory, getAwardRepresentatives, milestoneEmblems, resolveFeaturedKeys } from "../src/lib/personal-emblems/catalog";
 const history = (...keys: string[]) => new Map(keys.map((key) => [key, "2025-07-01T15:30:00Z"]));
 
 test("마감 수상은 기간·금속에 맞는 원본으로 변환하고 기존 수상키를 보존한다", () => {
@@ -47,6 +47,22 @@ test("연간 수상은 12월 수상과 같은 마감 시점으로 자동 대표�
     ...["12", "11", "10"].map((month) => ({ key: month, category: "승률" as const, date: `2025-${month}`, period: "month" as const, rank: 1 })),
   ]);
   expect(resolveFeaturedKeys(awards, null)).toEqual(["annual", "12", "11"]);
+});
+
+test("종류별 진열은 등급보다 최근 기간을 우선하고 전체 수상 이력을 보존한다", () => {
+  const awards = awardEmblems([
+    { key: "old-gold", category: "승률", date: "2025-12", period: "month", rank: 1 },
+    { key: "latest-bronze", category: "승률", date: "2026-02", period: "month", rank: 3 },
+    { key: "annual-silver", category: "승률", date: "2025", period: "year", rank: 2 },
+    { key: "appearances", category: "최다 출전", date: "2025-08", period: "month", rank: 1 },
+    { key: "earlier-victory", category: "승률", date: "2024-09", period: "month", rank: 1 },
+  ]);
+  expect(getAwardRepresentatives(awards).map(entry => entry.key)).toEqual(["latest-bronze", "appearances"]);
+  expect(getAwardRepresentatives(awards.filter(entry => entry.date?.startsWith("2025"))).map(entry => entry.key))
+    .toEqual(["annual-silver", "appearances"]);
+  expect(getAwardHistory(awards).map(entry => entry.key))
+    .toEqual(["latest-bronze", "annual-silver", "old-gold", "appearances", "earlier-victory"]);
+  expect(getAwardHistory(milestoneEmblems({ sessions: 0, matches: 0, wins: 0, streak: 0, prediction: 0 }))).toEqual([]);
 });
 
 test("달성형 대표는 계열별 최고 획득 단계로 올라가며 같은 계열은 한 슬롯만 차지한다", () => {
