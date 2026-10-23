@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState, type CSSProperties } from "react";
-import { Star } from "lucide-react";
+import { LayoutGrid, Star } from "lucide-react";
 import { toast } from "sonner";
 import { savePersonalEmblemPicksAction } from "@/app/actions/personal-emblems";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { RubberSegment } from "@/components/ui/rubber-segment";
+import { GameLogo } from "@/components/ui/game-logo";
 import { awardEmblems, getAwardHistory, getAwardRepresentatives, resolveFeaturedKeys } from "@/lib/personal-emblems/catalog";
 import type { HofEmblem } from "@/lib/clan/stats/hof-emblems";
 import type { PersonalEmblem, PersonalEmblemCollection } from "@/lib/personal-emblems/types";
@@ -204,11 +205,12 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
       && emblem.family === selected?.family && (rankFilter === "all" || emblem.kind === "milestone" || emblem.rank === Number(rankFilter)));
     if (selected && next && value !== "all" && selected.source.gameSlug !== value) inspect(next);
   }
-  function gameSelect() {
+  function gameSegment() {
     const games = [...new Map(sources.map(source => [source.gameSlug, source.gameName ?? source.gameSlug])).entries()];
-    return <label className={styles.gameFilter}>게임<select aria-label="엠블럼 게임" value={gameFilter} onChange={event => changeGame(event.target.value)}>
-      <option value="all">전체 게임</option>{games.map(([slug, name]) => <option key={slug} value={slug}>{name}</option>)}
-    </select></label>;
+    return <RubberSegment label="엠블럼 게임" labelPosition="hidden" value={gameFilter} onChange={changeGame} options={[
+      { id: "all", label: "전체 게임", icon: <LayoutGrid size={17} /> },
+      ...games.map(([slug, name]) => ({ id: slug, label: name, icon: <GameLogo slug={slug} name={name} className="size-[18px]" /> })),
+    ]} />;
   }
 
   function feature(emblem: CaseEmblem, button: HTMLButtonElement) {
@@ -290,22 +292,21 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
       </section>
       </header>
       <div className={styles.toolbar}>
-        <RubberSegment label="엠블럼 분류" labelPosition="hidden" options={filters} value={filter} onChange={setFilter} />
-        {gameSelect()}
+        <div className={styles.toolbarFilters}>
+          <RubberSegment label="엠블럼 분류" labelPosition="hidden" options={filters} value={filter} onChange={setFilter} />
+          {gameSegment()}
+        </div>
         <div className={styles.feedback} role={error ? "alert" : "status"} aria-live="polite">
           {pending ? "엠블럼을 불러오는 중…" : error ?? emblems.filter(emblem => emblem.earned).length + "개의 획득 기록"}
           {error && <Button type="button" variant="ghost" size="xs" onClick={() => { setDetailOpen(false); setSelection(undefined); refresh(); }}>다시 불러오기</Button>}
         </div>
       </div>
       <div className={cn(caseStyles.case, styles.pageCase, styles.collectionFrame)} aria-busy={pending}>
-        <div className={caseStyles.casePlate}>{initialCollection.sources ? "수상과 성장 기록" : initialCollection.clanName + " · " + initialCollection.nickname}</div>
         <div className={styles.groups}>
           {awards.length > 0 && <section aria-label="종류별 수상 엠블럼">
-            <h3 className={styles.groupHeading}>수상</h3>
             <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{awards.map(emblem => catalogPin(emblem))}</div>
           </section>}
           {milestones.length > 0 && <section aria-label="누적 달성 엠블럼">
-            <h3 className={styles.groupHeading}>개인의 성장</h3>
             <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{milestones.map(emblem => catalogPin(emblem))}</div>
           </section>}
           {!awards.length && !milestones.length && <p className={styles.empty}>{pending ? "획득 기록을 확인하고 있습니다." : error ? "다시 불러오면 엠블럼을 확인할 수 있습니다." : "아직 획득한 엠블럼이 없습니다."}</p>}
@@ -333,7 +334,7 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
       {awardHistory.length > 0 && <section className="mt-2 space-y-3" aria-label="수상 이력">
         <div className={styles.controls}>
           <h3 className="text-sm font-semibold">수상 이력</h3>
-          {gameSelect()}
+          {gameSegment()}
           <RubberSegment label="수상 등급" labelPosition="hidden" options={rankFilters} value={rankFilter} onChange={value => {
             setRankFilter(value);
             const next = awardHistory.find(emblem => value === "all" || emblem.rank === Number(value));
@@ -349,7 +350,7 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
         </div></div>
       </section>}
       {stages.length > 0 && <section className="mt-2 space-y-3" aria-label="성장의 기록">
-        <div className={styles.controls}><h3 className="text-sm font-semibold">성장의 기록</h3>{gameSelect()}</div>
+        <div className={styles.controls}><h3 className="text-sm font-semibold">성장의 기록</h3>{gameSegment()}</div>
         <div className={caseStyles.case}><div className={caseStyles.caseGrid} role="group" aria-label="단계별 엠블럼">
           {stages.map(emblem => <div key={emblem.key} className={styles.historyEntry}>{catalogPin(emblem, true)}
             {emblem.earned && <p className={styles.historyCaption}>{periodLabel(emblem)}</p>}

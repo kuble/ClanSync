@@ -40,8 +40,8 @@ test("award cases prefer the best recent grade and filter full history by gold, 
     await expect(page.getByRole("dialog")).toHaveCount(0);
     const filters = collection.getByRole("radiogroup", { name: "엠블럼 분류", exact: true });
     await expect(filters.getByRole("radio")).toHaveText(["전체", "수상", "달성"]);
-    await expect(collection.getByRole("combobox", { name: "엠블럼 게임", exact: true })).toHaveCount(1);
-    await expect(collection.getByRole("heading", { name: "수상", exact: true })).toBeVisible();
+    await expect(collection.getByRole("radiogroup", { name: "엠블럼 게임", exact: true })).toHaveCount(1);
+    await expect(collection.getByRole("heading", { name: "수상", exact: true })).toHaveCount(0);
     const tray = collection.locator('section[aria-label="대표 엠블럼 진열"]');
     await expect(tray.getByRole("img", { name: "빈 대표 엠블럼 칸", exact: true })).toHaveCount(3);
     await expect(collection.locator('[data-emblem-key="month-' + previousYear + '-02-승률"]')).toHaveCount(1);
