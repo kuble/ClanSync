@@ -16,10 +16,10 @@ const NAMEPLATE_CATEGORIES: NameplateCategory[] = [
 ];
 
 export async function saveNameplateSelectionAction(input: {
-  gameId: string;
   category: string;
   optionId: string;
 }): Promise<ActionResult> {
+  if (!input || typeof input.optionId !== "string" || !/^[0-9a-f-]{36}$/i.test(input.optionId)) return { ok: false, error: "선택한 꾸미기를 확인해 주세요." };
   const cat = input.category as NameplateCategory;
   if (!NAMEPLATE_CATEGORIES.includes(cat)) {
     return { ok: false, error: "잘못된 카테고리입니다." };
@@ -31,15 +31,14 @@ export async function saveNameplateSelectionAction(input: {
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
 
-  const { error } = await supabase.from("user_nameplate_selections").upsert(
+  const { error } = await supabase.from("user_namecard_selections").upsert(
     {
       user_id: user.id,
-      game_id: input.gameId,
       category: cat,
       option_id: input.optionId,
       updated_at: new Date().toISOString(),
     },
-    { onConflict: "user_id,game_id,category" },
+    { onConflict: "user_id,category" },
   );
 
   if (error) return { ok: false, error: error.message };

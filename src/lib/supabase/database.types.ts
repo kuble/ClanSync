@@ -2526,6 +2526,7 @@ export type Database = {
           linked_id: string | null
           name_en: string | null
           name_ko: string
+          price_coins: number
           unlock_source: Database["public"]["Enums"]["nameplate_unlock_source"]
         }
         Insert: {
@@ -2539,6 +2540,7 @@ export type Database = {
           linked_id?: string | null
           name_en?: string | null
           name_ko: string
+          price_coins?: number
           unlock_source?: Database["public"]["Enums"]["nameplate_unlock_source"]
         }
         Update: {
@@ -2552,6 +2554,7 @@ export type Database = {
           linked_id?: string | null
           name_en?: string | null
           name_ko?: string
+          price_coins?: number
           unlock_source?: Database["public"]["Enums"]["nameplate_unlock_source"]
         }
         Relationships: [
@@ -3277,6 +3280,7 @@ export type Database = {
           game_uid: string
           id: string
           is_verified: boolean
+          riot_id: string | null
           updated_at: string
           user_id: string
           verified_at: string | null
@@ -3288,6 +3292,7 @@ export type Database = {
           game_uid: string
           id?: string
           is_verified?: boolean
+          riot_id?: string | null
           updated_at?: string
           user_id: string
           verified_at?: string | null
@@ -3299,6 +3304,7 @@ export type Database = {
           game_uid?: string
           id?: string
           is_verified?: boolean
+          riot_id?: string | null
           updated_at?: string
           user_id?: string
           verified_at?: string | null
@@ -3408,6 +3414,42 @@ export type Database = {
             foreignKeyName: "user_housing_rooms_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_namecard_selections: {
+        Row: {
+          category: Database["public"]["Enums"]["nameplate_category"]
+          option_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["nameplate_category"]
+          option_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["nameplate_category"]
+          option_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_namecard_selections_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "nameplate_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_namecard_selections_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -3709,6 +3751,7 @@ export type Database = {
         Args: { p_error: string; p_log_id: string; p_ok: boolean }
         Returns: undefined
       }
+      get_clan_namecards: { Args: { p_clan_id: string }; Returns: Json }
       get_my_housing: { Args: never; Returns: Json }
       is_active_clan_member: { Args: { p_clan_id: string }; Returns: boolean }
       is_clan_officer_plus: { Args: { p_clan_id: string }; Returns: boolean }
@@ -3805,6 +3848,7 @@ export type Database = {
         Args: { p_catalog_id: string }
         Returns: Json
       }
+      purchase_profile_title: { Args: { p_option_id: string }; Returns: Json }
       read_balance_analysis_context: {
         Args: { p_clan_id: string; p_round_id: string }
         Returns: Json
