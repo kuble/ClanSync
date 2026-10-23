@@ -516,8 +516,8 @@
 .clanTrack::-webkit-scrollbar { display:none; }
 .clanTrack:focus-visible { outline:2px solid var(--ring); outline-offset:3px; }
 .clanProfile { min-width:0; padding:18px 14px; scroll-snap-align:start; scroll-snap-stop:always; border:1px solid color-mix(in srgb,var(--border) 80%,transparent); border-radius:12px; background:color-mix(in srgb,var(--background) 20%,transparent); }
-.clanNavigation { display:flex; align-items:center; justify-content:center; gap:2px; margin-top:8px; }
-.clanNavigation button { display:grid; place-items:center; width:32px; height:32px; border:0; border-radius:50%; background:transparent; cursor:pointer; }
+.clanNavigation { display:flex; align-items:center; justify-content:center; gap:0; margin-top:8px; }
+.clanNavigation button { display:grid; place-items:center; width:24px; height:32px; border:0; border-radius:50%; background:transparent; cursor:pointer; }
 .clanNavigation button:focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
 .clanNavigation button > span { width:7px; height:7px; border-radius:999px; background:var(--muted-foreground); opacity:.55; transition:width .18s ease,background-color .18s ease,opacity .18s ease; }
 .clanNavigation button[aria-current="page"] > span { width:20px; background:var(--foreground); opacity:1; }
