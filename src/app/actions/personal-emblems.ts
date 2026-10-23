@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { uuidPattern } from "@/lib/clan/board";
-import { loadClanPersonalEmblemCollection } from "@/lib/clan/stats/load-clan-stats";
+import { loadOwnedPersonalEmblemCase } from "@/lib/personal-emblems/load-owned-case";
 import { resolveFeaturedKeys } from "@/lib/personal-emblems/catalog";
 import type { PersonalEmblemCollection } from "@/lib/personal-emblems/types";
 
@@ -19,7 +19,7 @@ export async function savePersonalEmblemPicksAction(clanId: string, keys: string
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
   try {
-    const collection = await loadClanPersonalEmblemCollection(supabase, user.id, clanId);
+    const collection = await loadOwnedPersonalEmblemCase(supabase, clanId);
     if (!collection?.canFeature) return { ok: false, error: "대표 엠블럼을 변경할 수 없습니다." };
     const earned = new Set(collection.emblems.filter((emblem) => emblem.earned).map((emblem) => emblem.key));
     if (keys.some((key) => !earned.has(key))) return { ok: false, error: "현재 획득한 엠블럼만 선택할 수 있습니다." };
@@ -29,9 +29,11 @@ export async function savePersonalEmblemPicksAction(clanId: string, keys: string
     }, { onConflict: "clan_id,user_id" });
     if (error) return { ok: false, error: "대표 엠블럼을 저장하지 못했습니다. 다시 시도해 주세요." };
     revalidatePath("/profile");
+    revalidatePath("/profile/emblems");
     revalidatePath(`/games/${collection.gameSlug}/clan/${clanId}/stats`);
     revalidatePath(`/games/${collection.gameSlug}/clan/${clanId}/emblems`);
-    return { ok: true, collection: { ...collection, featuredKeys } };
+    return { ok: true, collection: { ...collection, featuredKeys,
+      sources: collection.sources?.map(source => source.clanId === clanId ? { ...source, featuredKeys } : source) } };
   } catch {
     return { ok: false, error: "대표 엠블럼을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요." };
   }

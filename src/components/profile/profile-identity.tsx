@@ -56,5 +56,6 @@ export function ProfileIdentity({ userId, intro, memberships, readOnly = false }
         <button type="button" aria-label="다음 클랜" aria-controls={trackId} disabled={current === memberships.length - 1} onClick={() => showClan(current + 1)}><ChevronRight size={16} aria-hidden="true" /></button>
       </div>}
     </div> : !readOnly ? <div className={styles.playerClan}><p>클랜에서 함께한 기록이 이곳에 쌓입니다.</p><Link href="/games" className={styles.playerClanLink}>클랜 찾아보기</Link></div> : null}
+    {!readOnly && <Link href="/profile/emblems" className={styles.playerClanLink}>내 엠블럼 케이스 보기</Link>}
   </section>;
 }

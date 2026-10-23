@@ -1,0 +1,141 @@
+import { expect, test } from "@playwright/test";
+import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
+import type { PersonalEmblemCollection } from "../src/lib/personal-emblems/types";
+
+async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>): Promise<NonNullable<T>> {
+  const result = await query;
+  expect(result.error, JSON.stringify(result.error)).toBeNull();
+  return result.data as NonNullable<T>;
+}
+
+test("one personal case keeps cross-game clan records after leaving, with source details and history stars", async ({ page, browser }, info) => {
+  test.setTimeout(180_000);
+  page.setDefaultTimeout(15_000);
+  const f = await createIsolatedBalanceFixture(3);
+  const owner = f.users[1];
+  const extraClans: string[] = [];
+  const period = "2024-02";
+  const key = `month-${period}-승률`;
+  try {
+    const valorant = await ok(f.service.from("games").select("id,name_ko").eq("slug", "valorant").single());
+    for (const [gameId, name, status] of [[valorant.id, "QA 다른 게임", "active"], [f.gameId, "QA 이전 클랜", "left"]] as const) {
+      const clan = await ok(f.service.from("clans").insert({ game_id: gameId, name, subscription_tier: "premium" }).select("id").single());
+      extraClans.push(clan.id);
+      await ok(f.service.from("clan_members").insert({ clan_id: clan.id, user_id: owner.id, role: "member", status }));
+    }
+    const [valClan, oldClan] = extraClans;
+    for (const [index, clanId] of [f.clanId, valClan, oldClan].entries()) {
+      await ok(f.service.rpc("finalize_clan_personal_emblem_awards", { p_clan_id: clanId, p_period_type: "month", p_period_key: period,
+        p_awards: [{ user_id: owner.id, family: "victory", rank: index + 1 }] }));
+      await ok(f.service.from("clan_personal_emblem_picks").upsert({ clan_id: clanId, user_id: owner.id, emblem_keys: [] }));
+    }
+    const matches = await ok(f.service.from("matches").insert(Array.from({ length: 10 }, () => ({
+      clan_id: f.clanId, game_id: f.gameId, created_by: f.users[0].id, match_type: "intra" as const,
+      status: "finished" as const, played_at: "2024-02-12T10:00:00Z", map_label: "네팔",
+    }))).select("id"));
+    await ok(f.service.from("match_players").insert(matches.flatMap(match => [
+      { match_id: match.id, user_id: owner.id, team: 1 }, { match_id: match.id, user_id: f.users[0].id, team: 2 },
+    ])));
+    await ok(f.service.from("match_results").insert(matches.map(match => ({ match_id: match.id, winner_team: 1 }))));
+    expect((await page.request.get("/api/personal-emblems")).status()).toBe(401);
+    await loginIsolatedBalanceUser(page, owner);
+    const read = async () => {
+      const response = await page.request.get("/api/personal-emblems");
+      expect(response.status()).toBe(200);
+      expect(response.headers()["cache-control"]).toContain("no-store");
+      return (await response.json()).collection as PersonalEmblemCollection;
+    };
+    const original = await read();
+    expect(original.sources).toHaveLength(3);
+    expect(original.sources?.every(source => source.userId === owner.id)).toBe(true);
+    const originalKeys = original.sources?.flatMap(source => source.emblems.filter(emblem => emblem.earned).map(emblem => source.clanId + ":" + emblem.key)).sort();
+    const originalWin = original.sources?.find(source => source.clanId === f.clanId)?.emblems.find(emblem => emblem.key === "milestone-wins-1");
+    expect(originalWin).toMatchObject({ earned: true, date: expect.stringMatching(/^2024-02-12/) });
+    const otherContext = await browser.newContext({ baseURL: new URL(page.url()).origin });
+    try {
+      const outsider = await otherContext.newPage();
+      await loginIsolatedBalanceUser(outsider, f.users[2]);
+      const otherRead = await outsider.request.get("/api/personal-emblems?player=" + owner.id);
+      const ownOnly = (await otherRead.json()).collection as PersonalEmblemCollection;
+      expect(ownOnly.userId).toBe(f.users[2].id);
+      expect(ownOnly.sources?.every(source => source.userId === f.users[2].id && source.clanId === f.clanId)).toBe(true);
+      expect((await outsider.request.get("/api/personal-emblems?clan=" + valClan)).status()).toBe(403);
+    } finally { await otherContext.close(); }
+
+    await page.goto("/profile");
+    await page.getByRole("link", { name: "내 엠블럼 케이스 보기", exact: true }).click();
+    const caseView = page.locator("[data-personal-emblem-case]");
+    await expect(caseView).toBeVisible();
+    const game = caseView.getByRole("combobox", { name: "엠블럼 게임", exact: true });
+    await expect(game.locator("option")).toHaveCount(3);
+    await caseView.getByRole("radio", { name: "수상", exact: true }).click();
+    await caseView.locator('[data-emblem-key$="-승률"]').first().click();
+    const details = page.getByRole("dialog");
+    const facts = details.getByRole("region", { name: "엠블럼 상세", exact: true });
+    const history = details.getByRole("group", { name: "같은 종류의 수상 이력", exact: true });
+    await expect(history.locator(`[data-emblem-key="${key}"]`)).toHaveCount(3);
+    await expect(details.getByText("순위", { exact: true })).toHaveCount(0);
+    await expect(details.getByText(/^[금은동] · [123]위$/)).toHaveCount(0);
+    await expect(details.getByText("별을 눌러 대표로 진열", { exact: true })).toHaveCount(0);
+    await expect(facts.getByText("오버워치", { exact: true })).toBeVisible();
+    const valEntry = history.locator(`[data-emblem-clan="${valClan}"]`);
+    await valEntry.locator("[data-emblem-key]").click();
+    await expect(facts.getByText(valorant.name_ko, { exact: true })).toBeVisible();
+    await expect(facts.getByText("QA 다른 게임", { exact: true })).toBeVisible();
+    await valEntry.locator("[data-emblem-feature-key]").hover();
+    await valEntry.locator("[data-emblem-feature-key]").click();
+    await expect(valEntry.locator("[data-emblem-feature-key]")).toHaveAttribute("aria-pressed", "true");
+    expect((await ok(f.service.from("clan_personal_emblem_picks").select("emblem_keys").eq("clan_id", valClan).eq("user_id", owner.id).single())).emblem_keys).toEqual([key]);
+    expect((await ok(f.service.from("clan_personal_emblem_picks").select("emblem_keys").eq("clan_id", f.clanId).eq("user_id", owner.id).single())).emblem_keys).toEqual([]);
+    const popupGame = details.getByRole("combobox", { name: "엠블럼 게임", exact: true });
+    await popupGame.selectOption("valorant");
+    await expect(history.locator("[data-emblem-key]")).toHaveCount(1);
+    const grades = details.getByRole("radiogroup", { name: "수상 등급", exact: true });
+    await grades.getByRole("radio", { name: "동", exact: true }).click();
+    await expect(history.getByRole("status")).toContainText("이 등급의 수상 이력이 없습니다.");
+    await grades.getByRole("radio", { name: "전체", exact: true }).click();
+    await popupGame.selectOption("overwatch");
+    await expect(history.locator(`[data-emblem-key="${key}"]`)).toHaveCount(2);
+    await popupGame.selectOption("all");
+    await expect(history.locator(`[data-emblem-key="${key}"]`)).toHaveCount(3);
+    await expect(page.getByText("대표 엠블럼을 저장했습니다.", { exact: true })).toHaveCount(0, { timeout: 8000 });
+    await details.screenshot({ path: info.outputPath("personal-emblem-library-detail.png") });
+    await page.keyboard.press("Escape");
+    await game.selectOption("valorant");
+    await expect(caseView.locator("[data-emblem-entry]")).toHaveCount(1);
+    await game.selectOption("all");
+
+    const member = await f.memberClient(1);
+    await ok(member.rpc("change_clan_membership", { p_clan_id: f.clanId, p_action: "leave" }));
+    const afterLeave = await read();
+    expect(afterLeave.sources?.flatMap(source => source.emblems.filter(emblem => emblem.earned).map(emblem => source.clanId + ":" + emblem.key)).sort()).toEqual(originalKeys);
+    expect(afterLeave.sources?.find(source => source.clanId === f.clanId)?.emblems.find(emblem => emblem.key === "milestone-wins-1")).toMatchObject({ earned: true, date: originalWin?.date });
+    expect(afterLeave.sources?.find(source => source.clanId === f.clanId)?.emblems.every(emblem => emblem.earned)).toBe(true);
+    await page.goto(f.path.replace(/balance$/, "emblems") + "?player=" + owner.id);
+    await expect(page).toHaveURL(new RegExp(`/profile/emblems\\?clan=${f.clanId}$`));
+    await expect(caseView).toBeVisible();
+    await caseView.getByRole("radio", { name: "달성", exact: true }).click();
+    await caseView.locator('[data-emblem-key="milestone-wins-1"]').click();
+    const winStar = details.locator(`[data-emblem-clan="${f.clanId}"] [data-emblem-feature-key="milestone-wins-1"]`);
+    await winStar.locator("..").hover();
+    await expect(winStar).toBeEnabled();
+    await winStar.click();
+    await expect(winStar).toHaveAttribute("aria-pressed", "true");
+    await page.keyboard.press("Escape");
+    await page.setViewportSize({ width: 320, height: 844 });
+    await expect(caseView.locator('[aria-busy="true"]')).toHaveCount(0);
+    await caseView.screenshot({ path: info.outputPath("personal-emblem-library-mobile.png") });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.goto("/profile");
+    await page.getByRole("link", { name: "내 엠블럼 케이스 보기", exact: true }).click();
+    await expect(caseView).toBeVisible();
+    await ok(f.service.from("clan_members").update({ status: "active" }).eq("clan_id", f.clanId).eq("user_id", owner.id));
+    const rejoined = await read();
+    expect(rejoined.sources?.find(source => source.clanId === f.clanId)?.featuredKeys).toEqual(["milestone-wins-1"]);
+    expect(rejoined.sources?.flatMap(source => source.emblems.filter(emblem => emblem.earned).map(emblem => source.clanId + ":" + emblem.key)).sort()).toEqual(originalKeys);
+    expect((await page.request.get("/api/personal-emblems?clan=invalid")).status()).toBe(400);
+  } finally {
+    for (const clanId of extraClans) await f.service.from("clans").delete().eq("id", clanId);
+    await f.cleanup();
+  }
+});

@@ -772,7 +772,7 @@ export async function loadClanPersonalEmblemCollection(
   const service: SupabaseClient<Database> = createServiceRoleClient();
   const [membership, metadata] = await Promise.all([
     service.from("clan_members").select("user_id").eq("clan_id", clanId).eq("user_id", personId).eq("status", "active").maybeSingle(),
-    supabase.from("clans").select("name,games(slug)").eq("id", clanId).maybeSingle(),
+    supabase.from("clans").select("name,games(slug,name_ko)").eq("id", clanId).maybeSingle(),
   ]);
   if (membership.error || metadata.error) throw new Error("엠블럼 조회 권한을 확인하지 못했습니다.");
   if (!membership.data || !metadata.data) return null;
@@ -796,7 +796,7 @@ export async function loadClanPersonalEmblemCollection(
   const game = Array.isArray(metadata.data.games) ? metadata.data.games[0] : metadata.data.games;
   if (!game) return null;
   return {
-    clanId, clanName: metadata.data.name, gameSlug: game.slug, userId: personId, viewerId: userId,
+    clanId, clanName: metadata.data.name, gameSlug: game.slug, gameName: game.name_ko, userId: personId, viewerId: userId,
     nickname: nick.get(personId) ?? "플레이어", canFeature: personId === userId, emblems,
     featuredKeys: picks.data ? resolveFeaturedKeys(emblems, picks.data.emblem_keys) : null,
   };

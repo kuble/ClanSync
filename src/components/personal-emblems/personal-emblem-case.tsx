@@ -19,6 +19,7 @@ import styles from "./personal-emblem-case.module.css";
 
 type Filter = "all" | "award" | "milestone";
 type RankFilter = "all" | "1" | "2" | "3";
+type CaseEmblem = PersonalEmblem & { localKey: string; source: PersonalEmblemCollection };
 type Snapshot = { target: string; initial?: PersonalEmblemCollection; collection?: PersonalEmblemCollection; error?: string; pending?: boolean };
 const filters: { id: Filter; label: string }[] = [
   { id: "all", label: "전체" }, { id: "award", label: "수상" }, { id: "milestone", label: "달성" },
@@ -27,7 +28,6 @@ const rankFilters: { id: RankFilter; label: string }[] = [
   { id: "all", label: "전체" }, { id: "1", label: "금" }, { id: "2", label: "은" }, { id: "3", label: "동" },
 ];
 const milestoneOrder = ["sessions", "matches", "wins", "streak", "prediction"];
-const rankNames = ["", "금 · 1위", "은 · 2위", "동 · 3위"];
 const achievementDate = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" });
 
 function periodLabel(emblem: PersonalEmblem) {
@@ -40,7 +40,7 @@ function periodLabel(emblem: PersonalEmblem) {
   return emblem.period === "year" ? emblem.date + "년 연간" : emblem.date.slice(0, 4) + "년 " + Number(emblem.date.slice(5, 7)) + "월";
 }
 
-function milestoneRepresentatives(emblems: PersonalEmblem[]) {
+function milestoneRepresentatives<T extends PersonalEmblem>(emblems: T[]) {
   return milestoneOrder.flatMap(family => {
     const stages = emblems.filter(emblem => emblem.kind === "milestone" && emblem.family === family)
       .sort((a, b) => (a.stage ?? 0) - (b.stage ?? 0));
@@ -70,11 +70,13 @@ function useEmblemCollection(clanId: string, userId: string, initial?: PersonalE
     const request = ++requests.current;
     const controller = new AbortController();
     let active = true;
-    fetch(`/api/clans/${clanId}/personal-emblems?player=${encodeURIComponent(userId)}`, { cache: "no-store", signal: controller.signal })
+    const url = initial?.sources ? `/api/personal-emblems${clanId ? "?clan=" + encodeURIComponent(clanId) : ""}`
+      : `/api/clans/${clanId}/personal-emblems?player=${encodeURIComponent(userId)}`;
+    fetch(url, { cache: "no-store", signal: controller.signal })
       .then(response => response.json()).then((result: { ok: true; collection: PersonalEmblemCollection } | { ok: false; error: string }) => {
       if (!active || requests.current !== request) return;
       if (!result.ok) deny(result.error);
-      else if (result.collection.clanId === clanId && result.collection.userId === userId
+      else if ((result.collection.clanId === clanId || (!clanId && initial?.sources)) && result.collection.userId === userId
         && (!initial || result.collection.viewerId === initial.viewerId)) setSnapshot({ target, initial, collection: result.collection });
       else deny("엠블럼 대상이 변경되었습니다. 다시 불러와 주세요.");
     }).catch(() => {
@@ -99,22 +101,24 @@ function useEmblemCollection(clanId: string, userId: string, initial?: PersonalE
     setAttempt(value => value + 1);
   }
 
-  async function save(keys: string[]) {
+  async function save(keys: string[], sourceClanId = clanId) {
     if (!collection?.canFeature || saving.current) return false;
     const save = ++saves.current;
     saving.current = true;
     setSavingState({ target, initial, pending: true });
     try {
-      const result = await savePersonalEmblemPicksAction(clanId, keys);
+      const result = await savePersonalEmblemPicksAction(sourceClanId, keys);
       if (saves.current !== save) return false;
       if (!result.ok) { deny(result.error); toast.error(result.error); return false; }
-      if (result.collection.clanId !== clanId || result.collection.userId !== userId
+      if (result.collection.clanId !== sourceClanId || result.collection.userId !== userId
         || (initial && result.collection.viewerId !== initial.viewerId)) {
         deny("엠블럼 대상이 변경되었습니다. 다시 불러와 주세요.");
         return false;
       }
       requests.current++;
-      setSnapshot({ target, initial, collection: result.collection });
+      const next = initial?.sources ? { ...collection, ...(result.collection.sources?.find(source => source.clanId === clanId) ?? {}), sources: result.collection.sources }
+        : result.collection;
+      setSnapshot({ target, initial, collection: next });
       toast.success("대표 엠블럼을 저장했습니다.");
       return true;
     } catch {
@@ -164,55 +168,79 @@ export function PersonalEmblemCaseLauncher({ clanId, userId, nickname, gameSlug,
 export function PersonalEmblemCase({ initialCollection }: { initialCollection: PersonalEmblemCollection }) {
   const { clanId, userId } = initialCollection;
   const { target, collection, error, pending, refresh, save, savePending } = useEmblemCollection(clanId, userId, initialCollection);
-  const emblems = collection?.emblems ?? [];
+  const sources = collection?.sources ?? (collection ? [collection] : []);
+  const emblems: CaseEmblem[] = sources.flatMap(source => source.emblems.map(emblem => ({ ...emblem,
+    localKey: emblem.key, key: source.clanId + ":" + emblem.key, source })));
   const [filter, setFilter] = useState<Filter>("all");
   const [rankFilter, setRankFilter] = useState<RankFilter>("all");
+  const [gameFilter, setGameFilter] = useState("all");
+  const [featuredClanId, setFeaturedClanId] = useState(clanId);
   const [selection, setSelection] = useState<{ target: string; key: string }>();
   const [detailOpen, setDetailOpen] = useState(false);
   const [replacement, setReplacement] = useState<{ target: string; key: string }>();
   const featureButton = useRef<HTMLButtonElement>(null);
   const detailsId = useId();
-  const featuredKeys = resolveFeaturedKeys(emblems, collection?.featuredKeys ?? null);
+  const visibleSources = sources.filter(source => gameFilter === "all" || source.gameSlug === gameFilter);
+  const visibleEmblems = emblems.filter(emblem => gameFilter === "all" || emblem.source.gameSlug === gameFilter);
+  const featuredSource = visibleSources.find(source => source.clanId === featuredClanId) ?? visibleSources[0];
+  const featuredKeys = featuredSource ? resolveFeaturedKeys(featuredSource.emblems, featuredSource.featuredKeys).map(key => featuredSource.clanId + ":" + key) : [];
   const featured = featuredKeys.flatMap(key => emblems.filter(emblem => emblem.key === key && emblem.earned));
-  const representatives = milestoneRepresentatives(emblems);
-  const awards = filter === "milestone" ? [] : getAwardRepresentatives(emblems);
-  const milestones = filter === "all" || filter === "milestone" ? representatives : [];
+  const representatives = sources.flatMap(source => milestoneRepresentatives(emblems.filter(emblem => emblem.source.clanId === source.clanId)));
+  const awards = filter === "milestone" ? [] : getAwardRepresentatives(visibleEmblems);
+  const milestones = filter === "all" || filter === "milestone" ? milestoneRepresentatives(visibleEmblems) : [];
   const selected = selection?.target === target ? emblems.find(emblem => emblem.key === selection.key) : undefined;
-  const awardHistory = selected?.kind === "award" ? getAwardHistory(emblems).filter(emblem => emblem.family === selected.family) : [];
+  const awardHistory = selected?.kind === "award" ? getAwardHistory(visibleEmblems).filter(emblem => emblem.family === selected.family) : [];
   const filteredAwardHistory = awardHistory.filter(emblem => rankFilter === "all" || emblem.rank === Number(rankFilter));
-  const stages = selected?.kind === "milestone" ? emblems.filter(emblem => emblem.kind === "milestone" && emblem.family === selected.family)
-    .sort((a, b) => (a.stage ?? 0) - (b.stage ?? 0)) : [];
-  const canPick = (emblem: PersonalEmblem) => emblem.earned && (emblem.kind === "award" || representatives.some(entry => entry.key === emblem.key));
+  const stages = selected?.kind === "milestone" ? visibleEmblems.filter(emblem => emblem.kind === "milestone" && emblem.family === selected.family)
+    .sort((a, b) => a.source.clanId.localeCompare(b.source.clanId) || (a.stage ?? 0) - (b.stage ?? 0)) : [];
+  const canPick = (emblem: CaseEmblem) => emblem.source.canFeature && emblem.earned && (emblem.kind === "award" || representatives.some(entry => entry.key === emblem.key));
   const canPickSelected = selected && canPick(selected);
   const replacementEmblem = replacement?.target === target ? emblems.find(emblem => emblem.key === replacement.key) : undefined;
   const replacing = !!(collection?.canFeature && replacementEmblem && canPick(replacementEmblem)
     && !featuredKeys.includes(replacementEmblem.key) && featuredKeys.length === 3);
-  const inspect = (emblem: PersonalEmblem) => { setReplacement(undefined); setSelection({ target, key: emblem.key }); };
+  const inspect = (emblem: CaseEmblem) => { setReplacement(undefined); setFeaturedClanId(emblem.source.clanId); setSelection({ target, key: emblem.key }); };
 
-  function feature(emblem: PersonalEmblem, button: HTMLButtonElement) {
+  const isFeatured = (emblem: CaseEmblem) => resolveFeaturedKeys(emblem.source.emblems, emblem.source.featuredKeys).includes(emblem.localKey);
+  function changeGame(value: string) {
+    setGameFilter(value);
+    const next = emblems.find(emblem => (value === "all" || emblem.source.gameSlug === value) && emblem.kind === selected?.kind
+      && emblem.family === selected?.family && (rankFilter === "all" || emblem.kind === "milestone" || emblem.rank === Number(rankFilter)));
+    if (selected && next && value !== "all" && selected.source.gameSlug !== value) inspect(next);
+  }
+  function gameSelect() {
+    const games = [...new Map(sources.map(source => [source.gameSlug, source.gameName ?? source.gameSlug])).entries()];
+    return <label className={styles.gameFilter}>게임<select aria-label="엠블럼 게임" value={gameFilter} onChange={event => changeGame(event.target.value)}>
+      <option value="all">전체 게임</option>{games.map(([slug, name]) => <option key={slug} value={slug}>{name}</option>)}
+    </select></label>;
+  }
+
+  function feature(emblem: CaseEmblem, button: HTMLButtonElement) {
     if (pending || savePending || !collection?.canFeature || !canPick(emblem)) return;
     featureButton.current = button;
-    const next = featuredKeys.includes(emblem.key) ? featuredKeys.filter(key => key !== emblem.key) : [...featuredKeys, emblem.key];
+    setFeaturedClanId(emblem.source.clanId);
+    const keys = resolveFeaturedKeys(emblem.source.emblems, emblem.source.featuredKeys);
+    const next = keys.includes(emblem.localKey) ? keys.filter(key => key !== emblem.localKey) : [...keys, emblem.localKey];
     if (next.length > 3) { setReplacement({ target, key: emblem.key }); return; }
-    void save(next);
+    void save(next, emblem.source.clanId);
   }
 
   async function replace(key: string) {
     if (!replacing || !replacementEmblem || pending || savePending || !featuredKeys.includes(key)) return;
-    if (await save(featuredKeys.map(current => current === key ? replacementEmblem.key : current))) setReplacement(undefined);
+    if (await save(featured.map(current => current.key === key ? replacementEmblem.localKey : current.localKey), replacementEmblem.source.clanId)) setReplacement(undefined);
   }
 
-  function catalogPin(emblem: PersonalEmblem) {
-    const isFeatured = featuredKeys.includes(emblem.key);
-    const label = emblem.description + " · " + periodLabel(emblem) + " · 대표 엠블럼 " + (isFeatured ? "해제" : "지정");
-    return <div key={emblem.key} className={styles.catalogEntry} data-emblem-entry={emblem.key}>
-      <DialogTrigger render={renderPin(emblem, false, () => inspect(emblem))} />
+  function catalogPin(emblem: CaseEmblem, inDetail = false) {
+    const picked = isFeatured(emblem);
+    const label = emblem.description + " · " + periodLabel(emblem) + " · 대표 엠블럼 " + (picked ? "해제" : "지정");
+    const pin = renderPin(emblem, inDetail && selected?.key === emblem.key, () => inspect(emblem), inDetail ? detailsId : undefined);
+    return <div key={emblem.key} className={styles.catalogEntry} data-emblem-entry={emblem.localKey} data-emblem-clan={emblem.source.clanId}>
+      {inDetail ? pin : <DialogTrigger render={pin} />}
       {collection?.canFeature && canPick(emblem) && <Button type="button" variant="outline" size="icon" className={cn(styles.featureStar, styles.quickStar)}
-        data-emblem-feature-key={emblem.key}
-        aria-label={label} title={label} aria-pressed={isFeatured} disabled={savePending || pending} focusableWhenDisabled
-        aria-haspopup={featuredKeys.length === 3 && !isFeatured ? "dialog" : undefined}
+        data-emblem-feature-key={emblem.localKey}
+        aria-label={label} title={label} aria-pressed={picked} disabled={savePending || pending} focusableWhenDisabled
+        aria-haspopup={resolveFeaturedKeys(emblem.source.emblems, emblem.source.featuredKeys).length === 3 && !picked ? "dialog" : undefined}
         onClick={event => feature(emblem, event.currentTarget)}>
-        <Star aria-hidden="true" className={cn("size-4", isFeatured && "fill-primary text-primary")} />
+        <Star aria-hidden="true" className={cn("size-4", picked && "fill-primary text-primary")} />
       </Button>}
     </div>;
   }
@@ -227,7 +255,7 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
       </div>}
       <div className={styles.replacementGrid} role="group" aria-label="교체할 대표 엠블럼">
         {featured.map(emblem => <button key={emblem.key} type="button" className={styles.replacementOption}
-          data-replace-emblem-key={emblem.key} disabled={savePending || pending}
+          data-replace-emblem-key={emblem.localKey} disabled={savePending || pending}
           aria-label={periodLabel(emblem) + " " + emblem.description + " 대신 진열"} onClick={() => void replace(emblem.key)}>
           <EmblemArtwork emblem={emblem} eager className={styles.replacementArtwork} />
           <span>{emblem.description}</span><span className="text-muted-foreground">{periodLabel(emblem)}</span>
@@ -245,17 +273,17 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
       <header className={styles.pageHeader}>
         <div className={styles.pageHeading}>
           <h2 className="text-xl font-semibold">개인 엠블럼 케이스</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{initialCollection.nickname}님의 수상과 성장 기록</p>
+          <p className="mt-1 text-sm text-muted-foreground">{initialCollection.sources ? "게임과 클랜에서 쌓은 수상과 성장 기록" : initialCollection.nickname + "님의 수상과 성장 기록"}</p>
         </div>
       <section className={styles.featuredSection} aria-label="대표 엠블럼 진열">
-        <h3 className={styles.featuredLabel}>대표 엠블럼</h3>
+        <h3 className={styles.featuredLabel}>{sources.length > 1 ? featuredSource?.clanName + " · " : ""}대표 엠블럼</h3>
         <div className={cn(caseStyles.case, styles.headerTray)} aria-busy={pending}>
           <div className={cn(caseStyles.caseGrid, styles.headerGrid)} role="group" aria-label="선택한 대표 엠블럼 3칸">
             {[0, 1, 2].map(index => {
               const emblem = featured[index];
               const className = cn(caseStyles.pin, emblem && caseStyles.artworkSocket, styles.pin);
               return emblem ? <DialogTrigger key={index} render={<button type="button" className={className} style={socketStyle(emblem)}
-                data-featured-emblem-key={emblem.key} aria-label={emblem.description + " · 대표 엠블럼 상세 열기"}
+                data-featured-emblem-key={emblem.localKey} aria-label={emblem.description + " · 대표 엠블럼 상세 열기"}
                 title={emblem.description + " · " + periodLabel(emblem)} onClick={() => inspect(emblem)}>
                 <Socket /><EmblemArtwork emblem={emblem} eager className={styles.pinArtwork} />
               </button>} /> : <span key={index} className={className} role="img" aria-label="빈 대표 엠블럼 칸"><Socket /></span>;
@@ -266,21 +294,22 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
       </header>
       <div className={styles.toolbar}>
         <RubberSegment label="엠블럼 분류" labelPosition="hidden" options={filters} value={filter} onChange={setFilter} />
+        {gameSelect()}
         <div className={styles.feedback} role={error ? "alert" : "status"} aria-live="polite">
           {pending ? "엠블럼을 불러오는 중…" : error ?? emblems.filter(emblem => emblem.earned).length + "개의 획득 기록"}
           {error && <Button type="button" variant="ghost" size="xs" onClick={() => { setDetailOpen(false); setSelection(undefined); refresh(); }}>다시 불러오기</Button>}
         </div>
       </div>
       <div className={cn(caseStyles.case, styles.pageCase, styles.collectionFrame)} aria-busy={pending}>
-        <div className={caseStyles.casePlate}>{initialCollection.clanName} · {initialCollection.nickname}</div>
+        <div className={caseStyles.casePlate}>{initialCollection.sources ? "수상과 성장 기록" : initialCollection.clanName + " · " + initialCollection.nickname}</div>
         <div className={styles.groups}>
           {awards.length > 0 && <section aria-label="종류별 수상 엠블럼">
             <h3 className={styles.groupHeading}>수상</h3>
-            <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{awards.map(catalogPin)}</div>
+            <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{awards.map(emblem => catalogPin(emblem))}</div>
           </section>}
           {milestones.length > 0 && <section aria-label="누적 달성 엠블럼">
             <h3 className={styles.groupHeading}>개인의 성장</h3>
-            <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{milestones.map(catalogPin)}</div>
+            <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{milestones.map(emblem => catalogPin(emblem))}</div>
           </section>}
           {!awards.length && !milestones.length && <p className={styles.empty}>{pending ? "획득 기록을 확인하고 있습니다." : error ? "다시 불러오면 엠블럼을 확인할 수 있습니다." : "아직 획득한 엠블럼이 없습니다."}</p>}
         </div>
@@ -294,28 +323,20 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
           <DialogDescription className="sr-only">획득 조건과 수상·달성 기록</DialogDescription>
           <span className={cn(caseStyles.seriesStatus, selected.earned && caseStyles.earnedStatus)}>{selected.earned ? "획득" : "미획득 · 미리보기"}</span>
           <dl className={caseStyles.seriesFacts}>
+            <div><dt>게임</dt><dd>{selected.source.gameName ?? selected.source.gameSlug}</dd></div>
+            <div><dt>클랜</dt><dd>{selected.source.clanName}</dd></div>
             <div><dt>{selected.kind === "award" ? "수상 기간" : "달성일"}</dt><dd>{periodLabel(selected)}</dd></div>
-            {selected.kind === "award" ? <div><dt>순위</dt><dd>{rankNames[selected.rank ?? 0]}</dd></div>
-              : <div><dt>현재 진행</dt><dd>{(selected.progress ?? 0).toLocaleString("ko-KR")} / {(selected.target ?? 0).toLocaleString("ko-KR")} {selected.unit}</dd></div>}
+            {selected.kind === "milestone" && selected.source.active !== false && <div><dt>현재 진행</dt><dd>{(selected.progress ?? 0).toLocaleString("ko-KR")} / {(selected.target ?? 0).toLocaleString("ko-KR")} {selected.unit}</dd></div>}
           </dl>
-          {selected.kind === "milestone" && <progress className={styles.progress} aria-label={selected.description + " 진행도"}
+          {selected.kind === "milestone" && selected.source.active !== false && <progress className={styles.progress} aria-label={selected.description + " 진행도"}
             max={selected.target ?? 1} value={Math.min(selected.progress ?? 0, selected.target ?? 1)} />}
-          {collection?.canFeature && canPickSelected && <div className={styles.featureControl}>
-            <Button type="button" variant="outline" size="icon" className={styles.featureStar}
-              aria-label={featuredKeys.includes(selected.key) ? "대표 엠블럼 해제" : "대표 엠블럼 지정"}
-              aria-pressed={featuredKeys.includes(selected.key)} aria-haspopup={featuredKeys.length === 3 && !featuredKeys.includes(selected.key) ? "dialog" : undefined}
-              title={featuredKeys.includes(selected.key) ? "대표 엠블럼 해제" : "대표 엠블럼 지정"}
-              disabled={savePending || pending} focusableWhenDisabled onClick={event => feature(selected, event.currentTarget)}>
-              <Star aria-hidden="true" className={cn("size-5", featuredKeys.includes(selected.key) && "fill-primary text-primary")} />
-            </Button>
-            <span className="text-xs text-muted-foreground" role="status">{savePending ? "저장 중…" : featuredKeys.includes(selected.key) ? "대표 엠블럼" : "별을 눌러 대표로 진열"}</span>
-          </div>}
           {collection?.canFeature && selected.earned && !canPickSelected && <p className="text-xs text-muted-foreground">최고 획득 단계만 대표로 지정할 수 있습니다.</p>}
         </section>
       </div>
       {awardHistory.length > 0 && <section className="mt-2 space-y-3" aria-label="수상 이력">
         <div className={styles.controls}>
           <h3 className="text-sm font-semibold">수상 이력</h3>
+          {gameSelect()}
           <RubberSegment label="수상 등급" labelPosition="hidden" options={rankFilters} value={rankFilter} onChange={value => {
             setRankFilter(value);
             const next = awardHistory.find(emblem => value === "all" || emblem.rank === Number(value));
@@ -324,16 +345,18 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
         </div>
         <div className={caseStyles.case}><div className={caseStyles.caseGrid} role="group" aria-label="같은 종류의 수상 이력">
           {filteredAwardHistory.map(emblem => <div key={emblem.key} className={styles.historyEntry}>
-            {renderPin(emblem, emblem.key === selected.key, () => inspect(emblem), detailsId)}
-            <p className={styles.historyCaption}>{periodLabel(emblem)}{"\n"}{rankNames[emblem.rank ?? 0]}</p>
+            {catalogPin(emblem, true)}
+            <p className={styles.historyCaption}>{periodLabel(emblem)}</p>
           </div>)}
           {!filteredAwardHistory.length && <p className={styles.historyEmpty} role="status">이 등급의 수상 이력이 없습니다.</p>}
         </div></div>
       </section>}
       {stages.length > 0 && <section className="mt-2 space-y-3" aria-label="성장의 기록">
-        <h3 className="text-sm font-semibold">성장의 기록</h3>
+        <div className={styles.controls}><h3 className="text-sm font-semibold">성장의 기록</h3>{gameSelect()}</div>
         <div className={caseStyles.case}><div className={caseStyles.caseGrid} role="group" aria-label="단계별 엠블럼">
-          {stages.map(emblem => renderPin(emblem, emblem.key === selected.key, () => inspect(emblem), detailsId))}
+          {stages.map(emblem => <div key={emblem.key} className={styles.historyEntry}>{catalogPin(emblem, true)}
+            {emblem.earned && <p className={styles.historyCaption}>{periodLabel(emblem)}</p>}
+          </div>)}
         </div></div>
       </section>}
       {replacementDialog}
@@ -351,8 +374,8 @@ function Socket() {
   </span>;
 }
 
-function renderPin(emblem: PersonalEmblem, selected: boolean, onClick: () => void, controls?: string) {
-  return <button key={emblem.key} type="button" data-emblem-key={emblem.key} className={cn(caseStyles.pin, caseStyles.artworkSocket, styles.pin)}
+function renderPin(emblem: CaseEmblem, selected: boolean, onClick: () => void, controls?: string) {
+  return <button key={emblem.key} type="button" data-emblem-key={emblem.localKey} className={cn(caseStyles.pin, caseStyles.artworkSocket, styles.pin)}
     style={socketStyle(emblem)} title={emblem.description + (emblem.kind === "award" ? " · " + periodLabel(emblem) : "")}
     aria-label={emblem.description + (emblem.stage ? " " + emblem.stage + "단계" : "") + " " + (emblem.earned ? "획득" : "미획득")
       + (controls && emblem.kind === "award" ? " · " + periodLabel(emblem) : "")}

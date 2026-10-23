@@ -9,6 +9,14 @@ export async function proxy(request: NextRequest) {
   const url = request.nextUrl;
   const path = url.pathname;
 
+  const emblemPath = path.match(/^\/games\/[^/]+\/clan\/([0-9a-f-]{36})\/emblems\/?$/i);
+  if (user && request.method === "GET" && emblemPath && (!url.searchParams.has("player") || url.searchParams.get("player") === user.id)) {
+    const membership = await supabase.rpc("select_my_clan_membership", { p_clan_id: emblemPath[1] });
+    if (!membership.error && membership.data?.[0]?.status !== "active") {
+      return mergeCookies(response, NextResponse.redirect(new URL(`/profile/emblems?clan=${emblemPath[1]}`, request.url)));
+    }
+  }
+
   // D-LANDING-04: 로그인된 사용자는 `/` → `/games` (단 `?from=logo` 예외). 프래그먼트는 서버 미전달.
   if (path === "/" && user) {
     if (url.searchParams.get("from") !== "logo") {

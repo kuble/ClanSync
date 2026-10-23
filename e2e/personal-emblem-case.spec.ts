@@ -76,17 +76,19 @@ test("공통 엠블럼 케이스: 공개 권한·계열 성장·대표 저장·�
     const details = page.getByRole("dialog");
     await expect(page.getByRole("dialog", { name: "10승 달성", exact: true })).toBeVisible();
     const stages = details.getByRole("group", { name: "단계별 엠블럼", exact: true });
-    await expect(stages.getByRole("button")).toHaveCount(4);
+    const selectedStar = () => details.locator('[data-emblem-key][aria-pressed="true"]').locator("..").locator("[data-emblem-feature-key]");
+    await expect(stages.locator("[data-emblem-key]")).toHaveCount(4);
     await expect(details.getByText("승리의 결정", { exact: true })).toHaveCount(0);
-    await expect(details.getByText("2025-07-01", { exact: true })).toBeVisible();
-    await details.getByRole("button", { name: "대표 엠블럼 지정", exact: true }).click();
-    await expect(details.getByRole("button", { name: "대표 엠블럼 해제", exact: true })).toBeVisible();
+    await expect(details.getByRole("region", { name: "엠블럼 상세", exact: true }).getByText("2025-07-01", { exact: true })).toBeVisible();
+    await selectedStar().focus();
+    await selectedStar().click();
+    await expect(selectedStar()).toHaveAttribute("aria-pressed", "true");
     expect((await f.service.from("clan_personal_emblem_picks").select("emblem_keys").eq("clan_id", f.clanId).eq("user_id", f.users[0].id).single()).data?.emblem_keys)
       .toEqual(["milestone-wins-1"]);
     await stages.locator('[data-emblem-key="milestone-wins-2"]').click();
     await expect(page.getByRole("dialog", { name: "50승 달성", exact: true })).toBeVisible();
     await expect(details.getByText("미획득 · 미리보기", { exact: true })).toBeVisible();
-    await expect(details.getByRole("button", { name: /대표 엠블럼 (지정|해제)/ })).toHaveCount(0);
+    await expect(selectedStar()).toHaveCount(0);
     await stages.locator('[data-emblem-key="milestone-wins-1"]').click();
     await expect(page.getByRole("dialog", { name: "10승 달성", exact: true })).toBeVisible();
     await details.screenshot({ path: info.outputPath("personal-emblem-detail-desktop.png") });
@@ -110,7 +112,7 @@ test("공통 엠블럼 케이스: 공개 권한·계열 성장·대표 저장·�
     await collection.locator('[data-emblem-key="milestone-sessions-1"]').click();
     await expect(page.getByRole("dialog", { name: "10회 참여 달성", exact: true })).toBeVisible();
     await expect(details.getByText("미획득 · 미리보기", { exact: true })).toBeVisible();
-    await expect(details.getByRole("button", { name: /대표 엠블럼 (지정|해제)/ })).toHaveCount(0);
+    await expect(selectedStar()).toHaveCount(0);
     await page.keyboard.press("Escape");
 
     await page.goto(f.path.replace(/balance$/, "stats") + "?player=" + f.users[0].id);
@@ -120,7 +122,7 @@ test("공통 엠블럼 케이스: 공개 권한·계열 성장·대표 저장·�
     await expect(collection).toBeVisible();
     await collection.getByRole("radio", { name: "달성", exact: true }).click();
     await winsPin.click();
-    await expect(details.getByRole("button", { name: "대표 엠블럼 해제", exact: true })).toBeVisible();
+    await expect(selectedStar()).toHaveAttribute("aria-pressed", "true");
     await page.keyboard.press("Escape");
     await expect(winsPin).toBeFocused();
     await page.goto(f.path.replace(/balance$/, "stats") + "?player=" + f.users[1].id);
@@ -129,7 +131,7 @@ test("공통 엠블럼 케이스: 공개 권한·계열 성장·대표 저장·�
     await collection.getByRole("radio", { name: "수상", exact: true }).click();
     await collection.locator("[data-emblem-key]").first().click();
     await expect(details).toBeVisible();
-    await expect(details.getByRole("button", { name: /대표 엠블럼 (지정|해제)/ })).toHaveCount(0);
+    await expect(selectedStar()).toHaveCount(0);
     await page.keyboard.press("Escape");
     await page.context().clearCookies();
     await loginIsolatedBalanceUser(page, f.users[1]);

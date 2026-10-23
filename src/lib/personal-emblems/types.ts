@@ -21,6 +21,8 @@ export type PersonalEmblemCollection = {
   clanId: string;
   clanName: string;
   gameSlug: string;
+  gameName?: string;
+  active?: boolean;
   userId: string;
   viewerId: string;
   nickname: string;
@@ -28,4 +30,6 @@ export type PersonalEmblemCollection = {
   emblems: PersonalEmblem[];
   /** null uses recent earned emblems; an empty array deliberately displays no picks. */
   featuredKeys: string[] | null;
+  /** Owner-only unified case; each source keeps its original clan keys and picks. */
+  sources?: PersonalEmblemCollection[];
 };

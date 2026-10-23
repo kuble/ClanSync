@@ -4,6 +4,7 @@ import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import { loadClanPersonalEmblemCollection } from "@/lib/clan/stats/load-clan-stats";
 import { PersonalEmblemCase } from "@/components/personal-emblems/personal-emblem-case";
 import { uuidPattern } from "@/lib/clan/board";
+import { loadOwnedPersonalEmblemCase } from "@/lib/personal-emblems/load-owned-case";
 
 export default async function EmblemPage({ params, searchParams }: {
   params: Promise<{ gameSlug: string; clanId: string }>;
@@ -16,7 +17,8 @@ export default async function EmblemPage({ params, searchParams }: {
   if (!ctx || !user) forbidden();
   const personId = query.player ?? user.id;
   if (typeof personId !== "string" || !uuidPattern.test(personId)) forbidden();
-  const collection = await loadClanPersonalEmblemCollection(client, user.id, clanId, personId);
+  const collection = personId === user.id ? await loadOwnedPersonalEmblemCase(client, clanId)
+    : await loadClanPersonalEmblemCollection(client, user.id, clanId, personId);
   if (!collection) forbidden();
   return <section className="space-y-5" aria-label="개인 엠블럼">
     <PersonalEmblemCase key={clanId + personId + user.id} initialCollection={collection} />

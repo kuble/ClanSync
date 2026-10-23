@@ -40,13 +40,13 @@ export function milestoneEmblems(progress: Record<MilestoneFamily, number>, earn
 
 const closingPeriod = (entry: PersonalEmblem) => entry.kind === "award" && entry.period === "year" ? `${entry.date}-12` : entry.date ?? "";
 
-export function getAwardHistory(entries: readonly PersonalEmblem[]): PersonalEmblem[] {
+export function getAwardHistory<T extends PersonalEmblem>(entries: readonly T[]): T[] {
   return entries.filter(entry => entry.kind === "award" && entry.earned)
     .sort((a, b) => closingPeriod(b).localeCompare(closingPeriod(a))
       || Number(b.period === "year") - Number(a.period === "year") || (a.rank ?? 4) - (b.rank ?? 4) || a.key.localeCompare(b.key));
 }
 
-export function getAwardRepresentatives(entries: readonly PersonalEmblem[]): PersonalEmblem[] {
+export function getAwardRepresentatives<T extends PersonalEmblem>(entries: readonly T[]): T[] {
   const history = getAwardHistory(entries).sort((a, b) => (a.rank ?? 4) - (b.rank ?? 4));
   return Object.values(awardFamilies).flatMap(family => {
     const latest = history.find(entry => entry.family === family);
