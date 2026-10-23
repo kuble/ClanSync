@@ -19,6 +19,8 @@ import { canViewPersonalRecords, restrictPersonalStats, type PersonalScore, type
 import type { ClanMemberRole } from "../permission-defaults";
 import { readStatsSummary, readStatsRecords, EMPTY_STATS_AGGREGATE, type StatsAggregate, type StatsSummary } from "./stats-read-model";
 import { collectHofEmblems, type HofEmblem } from "./hof-emblems";
+import { awardEmblems, milestoneEmblems, resolveFeaturedKeys } from "@/lib/personal-emblems/catalog";
+import type { PersonalEmblemCollection } from "@/lib/personal-emblems/types";
 import { profileBattleTag } from "@/lib/game-auth/battle-tag";
 import type { PlayerProfile } from "../player-profile";
 import { personalPredictions, predictionTotals, predictionPointHistory, type PredictionRecord, type PredictionPointDay } from "./clan-prediction-stats";
@@ -690,6 +692,55 @@ async function loadPersonalEmblems(source: StatsSource, clanId: string, userId: 
   const blocks = keys.map((key) => [key, aggregateHof(periods[key] ?? EMPTY_STATS_AGGREGATE, key, source, now)] as const);
   const history = { historyMonths: Object.fromEntries(blocks.filter(([key]) => key.length === 7)), historyYears: Object.fromEntries(blocks.filter(([key]) => key.length === 4)) };
   return [...collectHofEmblems(history, userId, "month"), ...collectHofEmblems(history, userId, "year")];
+}
+
+/** The shared case follows the same live membership and personal-record disclosure rules as stats. */
+export async function loadClanPersonalEmblemCollection(
+  supabase: SupabaseClient<Database>, userId: string, clanId: string, personId = userId,
+): Promise<PersonalEmblemCollection | null> {
+  const source = await loadClanStatsSource(supabase, clanId, "metadata");
+  if (!source) return null;
+  const nick = buildNickMap(source.nickRows);
+  if (!personalAccess(source, userId, nick).peopleIds.includes(personId)) return null;
+  const sections = source.role === "member" ? resolveHofConfig(source.settings?.hof_config).memberPersonalSections : null;
+  if (sections && !sections.includes("emblems")) return null;
+  const service: SupabaseClient<Database> = createServiceRoleClient();
+  const [membership, metadata] = await Promise.all([
+    service.from("clan_members").select("user_id").eq("clan_id", clanId).eq("user_id", personId).eq("status", "active").maybeSingle(),
+    supabase.from("clans").select("name,games(slug)").eq("id", clanId).maybeSingle(),
+  ]);
+  if (membership.error || metadata.error) throw new Error("엠블럼 조회 권한을 확인하지 못했습니다.");
+  if (!membership.data || !metadata.data) return null;
+  const [summary, picks] = await Promise.all([
+    readStatsSummary(clanId, ["all"]),
+    service.from("clan_personal_emblem_picks").select("emblem_keys").eq("clan_id", clanId).eq("user_id", personId).maybeSingle(),
+  ]);
+  if (picks.error) throw new Error("대표 엠블럼을 불러오지 못했습니다.");
+  const now = new Date(), current = currentKstYearMonth(now);
+  const monthKey = `${current.year}-${String(current.month).padStart(2, "0")}`;
+  const keys = Object.keys(summary.directory).filter((key) => /^\d{4}$/.test(key) ? key < String(current.year)
+    : /^\d{4}-(0[1-9]|1[0-2])$/.test(key) && key < monthKey);
+  const { periods } = keys.length ? await readStatsSummary(clanId, keys) : { periods: {} as StatsSummary["periods"] };
+  const blocks = keys.map((key) => [key, aggregateHof(periods[key] ?? EMPTY_STATS_AGGREGATE, key, source, now)] as const);
+  const history = {
+    historyMonths: Object.fromEntries(blocks.filter(([key]) => key.length === 7)),
+    historyYears: Object.fromEntries(blocks.filter(([key]) => key.length === 4)),
+  };
+  const all = summary.periods.all ?? EMPTY_STATS_AGGREGATE;
+  const player = all.players.find((entry) => entry.userId === personId);
+  const emblems = [
+    ...awardEmblems([...collectHofEmblems(history, personId, "month"), ...collectHofEmblems(history, personId, "year")]),
+    ...milestoneEmblems({ sessions: player?.sessions ?? 0, matches: player?.played ?? 0, wins: player?.wins ?? 0,
+      streak: player?.longest ?? 0, prediction: all.predictions.find((entry) => entry.userId === personId)?.correct ?? 0 })
+      .filter((emblem) => !sections || sections.includes(emblem.family === "prediction" ? "predictions" : "records")),
+  ];
+  const game = Array.isArray(metadata.data.games) ? metadata.data.games[0] : metadata.data.games;
+  if (!game) return null;
+  return {
+    clanId, clanName: metadata.data.name, gameSlug: game.slug, userId: personId, viewerId: userId,
+    nickname: nick.get(personId) ?? "플레이어", canFeature: personId === userId, emblems,
+    featuredKeys: picks.data ? resolveFeaturedKeys(emblems, picks.data.emblem_keys) : null,
+  };
 }
 
 /** Apply current disclosure rules to identity-neutral, precomputed counters. */

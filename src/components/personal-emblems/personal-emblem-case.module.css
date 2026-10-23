@@ -1,0 +1,62 @@
+.launcher { min-width:0; }
+.launcher .tray { padding:8px; border-width:4px; border-radius:12px; }
+.launcher .featuredGrid { grid-template-columns:repeat(3,minmax(0,1fr)); min-height:0; gap:8px; }
+.compact { width:150px; max-width:100%; }
+.compact .tray { padding:3px; border-width:3px; border-radius:9px; }
+.compact .featuredGrid { gap:2px; }
+.profile { width:100%; max-width:360px; }
+.profile .tray { padding:10px 14px; }
+.openButton { margin-top:8px; width:100%; }
+.pin { cursor:pointer; }
+.pin[aria-pressed="true"] { outline:2px solid #c3e5cd; outline-offset:2px; }
+.pinLabel { display:block; color:#e2e7e1; text-align:center; font-size:11px; line-height:1.45; overflow-wrap:anywhere; }
+.pinMeta { display:block; color:#aeb7ac; font-size:10px; margin-top:3px; }
+.pinCell { min-width:0; }
+.pinArtwork { position:absolute; inset:4%; pointer-events:none; filter:drop-shadow(0 4px 3px #0005); }
+.artworkImage { width:100%; height:100%; object-fit:contain; }
+.filterDefs { position:absolute; overflow:hidden; pointer-events:none; }
+.dialogHeader { padding-right:28px; }
+.controls { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+.yearControl { display:flex; align-items:center; gap:7px; color:var(--muted-foreground); font-size:12px; }
+.yearSelect { min-height:36px; max-width:150px; border:1px solid var(--border); border-radius:7px; padding:0 9px; background:var(--background); color:var(--foreground); }
+.yearSelect:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }
+.collectionFrame { height:320px; min-height:320px; overflow-y:auto; }
+.collectionFrame .grid { grid-template-columns:repeat(5,minmax(0,1fr)); gap:16px 14px; min-height:0; }
+.groups { display:grid; gap:20px; }
+.groupHeading { margin:0 0 10px; color:#c6cfc3; font-size:12px; font-weight:600; }
+.feedback { display:flex; align-items:center; flex-wrap:wrap; gap:8px; min-height:30px; color:var(--muted-foreground); font-size:12px; }
+.feedback[role="alert"] { color:var(--destructive); }
+.empty { display:grid; place-items:center; min-height:176px; padding:16px; color:#c6cfc3; font-size:12px; text-align:center; }
+.details { min-height:256px; border-top:1px solid var(--border); padding-top:16px; }
+.detailGrid { display:grid; grid-template-columns:190px minmax(0,1fr); align-items:center; gap:22px; }
+.detailArtwork { position:relative; display:block; width:190px; aspect-ratio:1; filter:drop-shadow(0 5px 6px #0003); }
+.unearned { filter:grayscale(1); opacity:.45; }
+.detailText { display:flex; flex-direction:column; align-items:flex-start; gap:10px; min-width:0; overflow-wrap:anywhere; }
+.detailName { font-size:18px; font-weight:600; }
+.detailDescription { color:var(--muted-foreground); font-size:12px; line-height:1.7; }
+.status { padding:3px 7px; border-radius:5px; background:var(--muted); color:var(--muted-foreground); font-size:11px; }
+.earned { color:var(--primary); background:color-mix(in oklch,var(--primary) 12%,transparent); }
+.facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 18px; width:100%; margin:0; font-size:12px; }
+.facts dt { margin-bottom:3px; color:var(--muted-foreground); font-size:11px; }
+.facts dd { line-height:1.5; }
+.progress { display:block; width:100%; height:7px; accent-color:var(--primary); }
+.stages { margin-top:18px; }
+.stagesHeading { margin-bottom:10px; font-size:12px; font-weight:600; }
+.stages .stageGrid { grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; min-height:0; }
+.detailEmpty { display:grid; min-height:230px; place-items:center; color:var(--muted-foreground); font-size:12px; }
+@media(max-width:640px) {
+  .collectionFrame { height:300px; min-height:300px; }
+  .collectionFrame .grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px 10px; }
+  .detailGrid { grid-template-columns:minmax(0,1fr); gap:12px; }
+  .detailArtwork { width:150px; justify-self:center; }
+  .detailText { gap:8px; }
+  .detailName { font-size:16px; }
+  .stages .stageGrid { grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
+  .stages .pinLabel { font-size:10px; }
+  .stages .pinMeta { font-size:9px; }
+}
+@media(max-width:359px) {
+  .controls { gap:8px; }
+  .collectionFrame .grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .facts { gap:8px 10px; }
+}

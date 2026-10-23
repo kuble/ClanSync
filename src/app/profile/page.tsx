@@ -10,6 +10,7 @@ import {
 import { ProfileDeleteAccountButton } from "@/components/profile/profile-delete-account-button";
 import { ProfileJoinRequests } from "@/components/profile/profile-join-requests";
 import { ProfileClanMemberships } from "@/components/profile/profile-clan-memberships";
+import { ProfileEmblemCollections } from "@/components/profile/profile-emblem-collections";
 import type { AltAccountRow } from "@/components/profile/profile-game-alt-accounts";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
@@ -332,6 +333,11 @@ export default async function ProfilePage() {
     </> : <p className={styles.error} role="alert">계정 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>} games={
       <><ProfileRolePreferences games={linkedGames} preferences={rolePreferences ?? []} /><ProfileGameDecorations nickname={row?.nickname || "플레이어"} games={linkedGames} verifiedGameIds={verifiedGameIds} altAccountsByGame={altAccountsByGame} nameplateOptions={nameplateOptions} ownedOptionIds={ownedOptionIds} selections={selections} badges={badges} unlockedBadgeIds={unlockedBadgeIds} picks={pickRows} /></>
     } />
+    <ProfileEmblemCollections userId={user.id} nickname={row?.nickname || "플레이어"} memberships={membershipRows.flatMap((membership) => {
+      const clan = Array.isArray(membership.clans) ? membership.clans[0] : membership.clans;
+      const game = Array.isArray(clan?.games) ? clan.games[0] : clan?.games;
+      return game ? [{ clanId: membership.clan_id, clanName: clan.name, gameName: game.name_ko }] : [];
+    })} />
     <ProfileClanMemberships rows={membershipRows.flatMap((membership) => {
       const clan = Array.isArray(membership.clans) ? membership.clans[0] : membership.clans;
       const game = Array.isArray(clan?.games) ? clan.games[0] : clan?.games;
