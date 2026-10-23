@@ -1,4 +1,9 @@
 {
+  "git": {
+    "deploymentEnabled": {
+      "codex/live-session-formation": false
+    }
+  },
   "regions": ["icn1"],
   "crons": [
     {
