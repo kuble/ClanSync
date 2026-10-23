@@ -1112,6 +1112,8 @@ function selectSingleChip(el, group) {
 
 ### D-PROFILE-01 — 네임플레이트 동기화 규약
 
+**2026-10-23 사용자 결정·QA 개정:** 게임별 선택과 브라우저 목업 저장을 계정 공통 서버 저장(`user_namecard_selections`)으로 대체한다. 기존 보유·원본 선택은 유지하고 카테고리별 최신 선택을 이관한다. 칭호는 개인 코인 구매·공통 장착이며 클랜에서는 전체 배틀태그/라이엇 ID를 사용한다. 편성자에게만 편성 중 장식을 숨기고 다른 참여자와 이후 단계에는 유지한다. 아래 2026-04-20 이벤트·셀렉터는 과거 목업 규약으로 남긴다. [실구현 정책](pages/14-Profile-Customization.md#2026-10-23--공통-네임카드게임별-계정-관리-qa).
+
 - **결정일**: 2026-04-20
 - **요지**: 프로필의 네임플레이트 선택은 4카테고리(emblem/namebar/sub/frame)를 게임별로 저장한다. 목업은 `localStorage`로 영속화하고 **CustomEvent**로 같은 탭 내부 구독자에게 즉시 전파한다. 다른 탭에는 즉시 반영하지 않는다(새 탭 진입 시 localStorage 재로드). BalanceMaker·MainClan에서는 본인 슬롯만 실시간 반영되고, 타 플레이어의 네임플레이트는 Phase 2+ 서버 전파(Supabase Realtime 또는 폴링)로 처리한다.
 
