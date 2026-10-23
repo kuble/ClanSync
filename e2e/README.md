@@ -2,6 +2,8 @@
 
 ## 테스트 환경
 
+동시 QA에서는 `PLAYWRIGHT_DEV_PORT`로 별도 포트를 지정한다. 지정 포트의 출력은 `.next-e2e-{포트}`로 분리되어 다른 작업의 서버·캐시를 공유하지 않는다. 기본값은 기존 3010·`.next-e2e`이며 사용자 QA의 3011은 사용하지 않는다.
+
 `clansync-test` (`moretvteewfcztxvwztw`, 서울 리전, Free)을 전용 QA DB로 사용합니다. 운영 데이터를 복사하지 않고 마이그레이션과 QA 픽스처로 구성했습니다.
 
 - `e2e/env.example`을 저장소 루트의 `.env.e2e.local`로 복사하고 **테스트 프로젝트**의 키와 DB 비밀번호를 채웁니다. 현재 개발 PC에는 설정되어 있습니다.
