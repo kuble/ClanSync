@@ -157,7 +157,7 @@ export function ProfileHousing({ initial, nickname }: {
   return <section className={styles.housing} aria-label="프로필 하우징" aria-busy={pending}>
     {!state ? <div className={styles.loadError}><p role="alert">{error}</p><Button variant="outline" onClick={reload} disabled={pending}>{pending ? "불러오는 중…" : "다시 불러오기"}</Button></div> : <HousingRoom ref={room} inventory={inventory} catalog={state.catalog} selectedId={selectedId} editing={editing} pending={pending}
       theme={mounted && resolvedTheme === "light" ? "light" : "dark"} wallpaper={editing ? wallpaper : state.room.wallpaper} floor={editing ? floor : state.room.floor}
-      onSelect={select} onMove={move} onDrop={place} onRotate={rotate} onStore={store}>
+      onBeginMove={(item) => { begin(null); setSelectedId(item.id); }} onSelect={select} onMove={move} onDrop={place} onRotate={rotate} onStore={store}>
       <div className={styles.roomHud} data-room-ui="true">
         <header className={styles.roomHeading}><h2>{nickname}의 방</h2><span className={styles.balance}><Coins size={14} aria-hidden="true" /><span className={styles.srOnly}>개인 코인</span><strong data-testid="housing-coin-balance">{state.coinBalance.toLocaleString("ko-KR")}</strong></span></header>
         <div className={styles.roomToolbar} role="toolbar" aria-label="방 꾸미기 도구">

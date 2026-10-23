@@ -72,6 +72,126 @@ async function expectPosition(housing: Locator, id: string, x: number, y: number
   await expect(furniture(housing, id)).toHaveAttribute("data-y", String(y));
 }
 
+test("보기 모드의 가구를 길게 누르면 같은 마우스·터치로 바로 이동하고, 짧은 탭·스크롤·취소는 편집을 시작하지 않는다", async ({ page, browser, baseURL }) => {
+  test.setTimeout(120_000);
+  const fixture = await createIsolatedBalanceFixture(1);
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  let mobile: Awaited<ReturnType<typeof browser.newContext>> | undefined;
+  try {
+    const owner = fixture.users[0];
+    await loginIsolatedBalanceUser(page, owner);
+    await page.goto("/profile");
+    const housing = page.getByRole("region", { name: "프로필 하우징", exact: true });
+    await expect(room(housing)).toHaveAttribute("data-renderer", "webgl");
+    const inventory = await fixture.service.from("user_housing_inventory").select("id,catalog_id").eq("user_id", owner.id);
+    expect(inventory.error).toBeNull();
+    const plantId = inventory.data!.find((item) => item.catalog_id === "small-plant")!.id;
+    const originalX = Number(await furniture(housing, plantId).getAttribute("data-x"));
+    const originalY = Number(await furniture(housing, plantId).getAttribute("data-y"));
+    await room(housing).scrollIntoViewIfNeeded();
+    const start = await point(furniture(housing, plantId), .8);
+    const stillViewing = async () => {
+      // Wait past the hold threshold so an orphaned timer cannot pass unnoticed.
+      await page.waitForTimeout(650);
+      await expect(room(housing)).toHaveAttribute("data-editing", "false");
+      await expect(housing.getByTestId("housing-drag-preview")).toHaveCount(0);
+      await expectPosition(housing, plantId, originalX, originalY);
+    };
+
+    await page.mouse.click(start.x, start.y);
+    await stillViewing();
+    await page.mouse.move(start.x, start.y);
+    await page.mouse.down();
+    await page.mouse.move(start.x + 12, start.y);
+    await stillViewing();
+    await page.mouse.up();
+
+    for (const cancel of ["escape", "blur"] as const) {
+      await page.mouse.move(start.x, start.y);
+      await page.mouse.down();
+      if (cancel === "escape") await page.keyboard.press("Escape");
+      else await page.evaluate(() => window.dispatchEvent(new Event("blur")));
+      await stillViewing();
+      await page.mouse.up();
+    }
+    const bounds = await room(housing).boundingBox();
+    await page.mouse.move(bounds!.x + 12, bounds!.y + bounds!.height - 12);
+    await page.mouse.down();
+    await stillViewing();
+    await page.mouse.up();
+
+    // The original pointer stays down across the mode change and the drop.
+    await page.mouse.move(start.x, start.y);
+    await page.mouse.down();
+    await expect(room(housing)).toHaveAttribute("data-editing", "true");
+    const mouseDrop = await dragPoints(housing, plantId, 4, 4);
+    await page.mouse.move(mouseDrop.end.x, mouseDrop.end.y, { steps: 12 });
+    await expect(housing.getByTestId("housing-drag-preview")).toHaveAttribute("data-valid", "true");
+    await page.mouse.up();
+    await expectPosition(housing, plantId, 4, 4);
+    await housing.getByRole("button", { name: "방 저장", exact: true }).click();
+    await expect(room(housing)).toHaveAttribute("data-editing", "false");
+    await page.reload();
+    await expectPosition(housing, plantId, 4, 4);
+
+    mobile = await browser.newContext({ baseURL, viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, storageState: await page.context().storageState() });
+    const touchPage = await mobile.newPage();
+    touchPage.on("pageerror", (error) => errors.push(error.message));
+    await touchPage.goto("/profile");
+    const touchHousing = touchPage.getByRole("region", { name: "프로필 하우징", exact: true });
+    await expect(room(touchHousing)).toHaveAttribute("data-renderer", "webgl");
+    const cdp = await mobile.newCDPSession(touchPage);
+    const touchDown = async (at: Point) => cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ ...at, id: 1, radiusX: 5, radiusY: 5 }] });
+    await room(touchHousing).scrollIntoViewIfNeeded();
+    const quickTouch = await point(furniture(touchHousing, plantId), .8);
+    await touchDown(quickTouch);
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await touchPage.waitForTimeout(650);
+    await expect(room(touchHousing)).toHaveAttribute("data-editing", "false");
+
+    await touchDown(quickTouch);
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
+    await touchPage.waitForTimeout(650);
+    await expect(room(touchHousing)).toHaveAttribute("data-editing", "false");
+
+    // An ordinary swipe over furniture must still scroll the page in view mode.
+    const scrollBeforeSwipe = await touchPage.evaluate(() => window.scrollY);
+    await touchDown(quickTouch);
+    for (let step = 1; step <= 6; step++) {
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: quickTouch.x, y: quickTouch.y - step * 15, id: 1, radiusX: 5, radiusY: 5 }] });
+    }
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await touchPage.waitForTimeout(650);
+    await expect(room(touchHousing)).toHaveAttribute("data-editing", "false");
+    expect(await touchPage.evaluate(() => window.scrollY)).toBeGreaterThan(scrollBeforeSwipe + 15);
+    await expectPosition(touchHousing, plantId, 4, 4);
+
+    await room(touchHousing).scrollIntoViewIfNeeded();
+    const touchStartPoint = await point(furniture(touchHousing, plantId), .8);
+    const scrollBeforeHold = await touchPage.evaluate(() => window.scrollY);
+    await touchDown(touchStartPoint);
+    await expect(room(touchHousing)).toHaveAttribute("data-editing", "true");
+    const touchDrop = await dragPoints(touchHousing, plantId, 4, 2);
+    for (let step = 1; step <= 12; step++) {
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: touchStartPoint.x + (touchDrop.end.x - touchStartPoint.x) * step / 12, y: touchStartPoint.y + (touchDrop.end.y - touchStartPoint.y) * step / 12, id: 1, radiusX: 5, radiusY: 5 }] });
+    }
+    await expect(touchHousing.getByTestId("housing-drag-preview")).toHaveAttribute("data-valid", "true");
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await expectPosition(touchHousing, plantId, 4, 2);
+    expect(Math.abs(await touchPage.evaluate(() => window.scrollY) - scrollBeforeHold)).toBeLessThan(2);
+    await touchHousing.getByRole("button", { name: "방 저장", exact: true }).tap();
+    await expect(room(touchHousing)).toHaveAttribute("data-editing", "false");
+    await touchPage.reload();
+    await expectPosition(touchHousing, plantId, 4, 2);
+    await expect(touchHousing.getByTestId("housing-coin-balance")).toHaveText("0");
+    expect(errors).toEqual([]);
+  } finally {
+    await mobile?.close();
+    await fixture.cleanup();
+  }
+});
+
 test("마우스·터치로 가구를 이동하고 보관함에서 다시 꺼내며 잘못된 드롭·취소는 원래 배치를 유지한다", async ({ page, browser, baseURL }) => {
   test.setTimeout(180_000);
   const fixture = await createIsolatedBalanceFixture(1);

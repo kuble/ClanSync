@@ -21,7 +21,7 @@
 .tile[data-valid="true"]:hover,.tile[data-valid="true"]:focus-visible { background:#e3f9c5c9; }
 .tile[data-valid="false"]:not(:disabled):hover { background:#e8a39b80; }
 .tile:focus-visible { outline:0; box-shadow:inset 0 0 0 4px #285a45; }
-.furniture { position:absolute; padding:0; border:0; background:none; transform:translate(-50%,-84%); cursor:pointer; border-radius:14px; }
+.furniture { position:absolute; padding:0; border:0; background:none; transform:translate(-50%,-84%); cursor:pointer; border-radius:14px; user-select:none; -webkit-touch-callout:none; }
 .furniture svg { display:block; width:100%; height:auto; overflow:visible; pointer-events:none; }
 .furniture[data-selected="true"] svg { filter:drop-shadow(0 0 3px #d2edb9) drop-shadow(0 0 2px #476b3b); }
 .furniture:focus-visible { outline:3px solid #f0efcf; outline-offset:3px; }
