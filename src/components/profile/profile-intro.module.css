@@ -1,0 +1,108 @@
+.intro {
+  min-width: 0;
+  width: 100%;
+  margin-top: 14px;
+}
+
+.summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding-top: 0.35rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.editButton {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.emptyButton {
+  justify-content: flex-start;
+  padding-inline: 0;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  white-space: normal;
+  text-align: left;
+}
+
+.form {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.input {
+  width: 100%;
+  min-width: 0;
+  resize: vertical;
+  min-height: 5.5rem;
+  max-height: 12rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--input);
+  border-radius: 0.6rem;
+  background: var(--background);
+  color: var(--foreground);
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.input:disabled {
+  opacity: 0.65;
+}
+
+.formFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.count {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.error {
+  margin: 0;
+  color: var(--destructive);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .input {
+    font-size: 1rem;
+  }
+
+  .editButton,
+  .emptyButton,
+  .actions button {
+    min-height: 2.75rem;
+  }
+}
