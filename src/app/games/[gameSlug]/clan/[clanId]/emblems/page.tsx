@@ -19,8 +19,6 @@ export default async function EmblemPage({ params, searchParams }: {
   const collection = await loadClanPersonalEmblemCollection(client, user.id, clanId, personId);
   if (!collection) forbidden();
   return <section className="space-y-5" aria-label="개인 엠블럼">
-    <header><h2 className="text-xl font-semibold">개인 엠블럼 케이스</h2>
-      <p className="mt-1 text-sm text-muted-foreground">{collection.nickname}님의 수상과 성장 기록</p></header>
     <PersonalEmblemCase key={clanId + personId + user.id} initialCollection={collection} />
   </section>;
 }

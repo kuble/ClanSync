@@ -190,10 +190,15 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
 
   return <Dialog open={detailOpen && !!selected} onOpenChange={next => { setDetailOpen(next); if (next) { setRankFilter("all"); refresh(); } }}>
     <div data-personal-emblem-case className={styles.pageLayout}>
+      <header className={styles.pageHeader}>
+        <div className={styles.pageHeading}>
+          <h2 className="text-xl font-semibold">개인 엠블럼 케이스</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{initialCollection.nickname}님의 수상과 성장 기록</p>
+        </div>
       <section className={styles.featuredSection} aria-label="대표 엠블럼 진열">
-        <h3 className="text-sm font-semibold">대표 엠블럼</h3>
-        <div className={cn(caseStyles.case, styles.pageCase)} aria-busy={pending}>
-          <div className={cn(caseStyles.caseGrid, styles.pageGrid, styles.featuredPageGrid)} role="group" aria-label="선택한 대표 엠블럼 3칸">
+        <h3 className={styles.featuredLabel}>대표 엠블럼</h3>
+        <div className={cn(caseStyles.case, styles.headerTray)} aria-busy={pending}>
+          <div className={cn(caseStyles.caseGrid, styles.headerGrid)} role="group" aria-label="선택한 대표 엠블럼 3칸">
             {[0, 1, 2].map(index => {
               const emblem = featured[index];
               const className = cn(caseStyles.pin, emblem && caseStyles.artworkSocket, styles.pin);
@@ -206,6 +211,7 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
           </div>
         </div>
       </section>
+      </header>
       <div className={styles.toolbar}>
         <RubberSegment label="엠블럼 분류" labelPosition="hidden" options={filters} value={filter} onChange={setFilter} />
         <div className={styles.feedback} role={error ? "alert" : "status"} aria-live="polite">
