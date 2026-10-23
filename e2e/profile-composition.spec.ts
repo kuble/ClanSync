@@ -26,9 +26,11 @@ test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소
   test.setTimeout(150_000);
   const fixture = await createIsolatedBalanceFixture(1);
   const [user] = fixture.users;
+  const battleTag = `Compose${user.id.slice(0, 8)}#1234`;
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
   try {
+    expect((await fixture.service.from("user_game_profiles").update({ battle_tag: battleTag }).eq("user_id", user.id).eq("game_id", fixture.gameId)).error).toBeNull();
     const metadataSetup = await fixture.service.auth.admin.updateUserById(user.id, {
       user_metadata: { profile_composition_sentinel: fixture.clanId },
     });
@@ -39,7 +41,8 @@ test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소
     const intro = page.getByRole("region", { name: "플레이어 소개", exact: true });
     const housing = page.getByRole("region", { name: "프로필 하우징", exact: true });
     const scene = housing.getByRole("group", { name: "나의 방", exact: true });
-    await expect(hero.getByRole("heading", { name: user.nickname, level: 1, exact: true })).toBeVisible();
+    await expect(hero.getByRole("heading", { name: user.nickname, level: 1, exact: true })).toHaveCount(0);
+    await expect(intro.getByRole("article").getByText(battleTag, { exact: true })).toBeVisible();
     await expect(hero.getByRole("region", { name: "플레이어 소개", exact: true })).toBeVisible();
     await expect(hero.getByRole("region", { name: "프로필 하우징", exact: true })).toBeVisible();
     await expect(page.getByText(user.email, { exact: true })).toBeHidden();
@@ -48,7 +51,7 @@ test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소
 
     const slots = intro.getByRole("group", { name: "대표 엠블럼 3칸", exact: true });
     await expect(slots.getByRole("link")).toHaveCount(3);
-    const caseLink = intro.getByRole("link", { name: `${user.nickname} 엠블럼 케이스 열기`, exact: true });
+    const caseLink = intro.getByRole("link", { name: `${battleTag} 엠블럼 케이스 열기`, exact: true });
     const caseHref = `/games/overwatch/clan/${fixture.clanId}/emblems?player=${user.id}`;
     await expect(caseLink).toHaveAttribute("href", caseHref);
 
@@ -118,7 +121,7 @@ test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소
     await page.keyboard.press("Escape");
     await expect(nameplate).toBeHidden();
     await page.getByRole("tab", { name: "3D 미니룸", exact: true }).click();
-    await expect(page.getByRole("img", { name: "오버워치 로고", exact: true })).toBeVisible();
+    await expect(intro.getByRole("img", { name: "오버워치 로고", exact: true }).first()).toBeVisible();
 
     for (const width of [1280, 390, 320]) {
       await expectComposition(page, intro, housing, width);
@@ -146,7 +149,8 @@ test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소
     expect((await fixture.service.from("clan_members").delete().eq("clan_id", fixture.clanId).eq("user_id", user.id)).error).toBeNull();
     expect((await fixture.service.from("user_game_profiles").delete().eq("user_id", user.id)).error).toBeNull();
     await page.reload();
-    await expect(hero.getByRole("heading", { name: user.nickname, level: 1, exact: true })).toBeVisible();
+    await expect(hero.getByRole("heading", { name: user.nickname, level: 1, exact: true })).toHaveCount(0);
+    await expect(intro.getByText(battleTag, { exact: true })).toHaveCount(0);
     await expect(intro.locator("[data-personal-emblem-launcher]")).toHaveCount(0);
     await expect(housing).toBeVisible();
     for (const width of [1280, 320]) await expectComposition(page, intro, housing, width);

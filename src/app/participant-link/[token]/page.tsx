@@ -10,16 +10,13 @@ export default async function ParticipantLinkPage({ params }: { params: Promise<
   const client = await createClient();
   const { data: { user } } = await client.auth.getUser();
   if (!user) redirect(`/sign-in?next=${encodeURIComponent(`/participant-link/${token}`)}`);
-  const [{ data, error }, profile] = await Promise.all([
-    client.rpc("read_clan_participant_invite", { p_token: token }),
-    client.from("users").select("nickname").eq("id", user.id).maybeSingle(),
-  ]);
+  const { data, error } = await client.rpc("read_clan_participant_invite", { p_token: token });
   if (error) throw new Error("연결 링크를 확인하지 못했습니다.");
   const info = data as { clanName: string; nickname: string; alias: string; requestStatus: string | null } | null;
   return <AccountShell><main className="mx-auto w-full max-w-lg space-y-5 break-words px-5 py-10">
     <section className="space-y-4 rounded-xl border bg-card p-5">
       <h1 className="text-lg font-bold">참가자 기록 연결</h1>
-      {info ? <><p className="text-xs text-muted-foreground">{info.clanName}</p><p className="text-base font-semibold">{info.nickname} · {info.alias}</p><p className="text-xs text-muted-foreground">현재 계정: {profile.data?.nickname ?? "로그인한 본인 계정"} · <span className="font-mono">{user.id.slice(0, 8)}</span></p><ClanParticipantClaim token={token} requested={info.requestStatus === "pending"} /></> : <p className="text-sm text-muted-foreground">만료되거나 이미 처리된 연결 링크입니다. 운영진에게 새 링크를 요청하세요.</p>}
+      {info ? <><p className="text-xs text-muted-foreground">{info.clanName}</p><p className="text-base font-semibold">{info.nickname} · {info.alias}</p><p className="text-xs text-muted-foreground">현재 계정: {user.email} · <span className="font-mono">{user.id.slice(0, 8)}</span></p><ClanParticipantClaim token={token} requested={info.requestStatus === "pending"} /></> : <p className="text-sm text-muted-foreground">만료되거나 이미 처리된 연결 링크입니다. 운영진에게 새 링크를 요청하세요.</p>}
     </section>
   </main></AccountShell>;
 }

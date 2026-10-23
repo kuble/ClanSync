@@ -24,8 +24,8 @@ function placementsOf(inventory: HousingInventoryItem[]): HousingPlacement[] {
   return inventory.flatMap((item) => item.x !== null && item.y !== null ? [{ inventoryId: item.id, x: item.x, y: item.y, rotation: item.rotation, surface: item.surface ?? "floor" }] : []);
 }
 
-export function ProfileHousing({ initial, nickname, embedded = false }: {
-  initial: HousingResult; nickname: string; clanName?: string; gameNames: string[]; embedded?: boolean;
+export function ProfileHousing({ initial, embedded = false }: {
+  initial: HousingResult; embedded?: boolean;
 }) {
   const [state, setState] = useState<HousingState | null>(initial.ok ? initial.state : null);
   const [incomingCoins, setIncomingCoins] = useState(initial.ok ? initial.state.coinBalance : null);
@@ -144,7 +144,7 @@ export function ProfileHousing({ initial, nickname, embedded = false }: {
       theme={mounted && resolvedTheme === "light" ? "light" : "dark"} wallpaper={editing ? wallpaper : state.room.wallpaper} floor={editing ? floor : state.room.floor}
       onBeginMove={(item) => { begin(null); setSelectedId(item.id); }} onSelect={select} onMove={move} onDrop={place} onRotate={rotate} onStore={store}>
       <div className={styles.roomHud} data-room-ui="true">
-        <header className={styles.roomHeading}><h2>{nickname}의 방</h2><span className={styles.balance}><Coins size={14} aria-hidden="true" /><span className={styles.srOnly}>개인 코인</span><strong data-testid="housing-coin-balance">{state.coinBalance.toLocaleString("ko-KR")}</strong></span></header>
+        <header className={styles.roomHeading}><h2>나의 방</h2><span className={styles.balance}><Coins size={14} aria-hidden="true" /><span className={styles.srOnly}>개인 코인</span><strong data-testid="housing-coin-balance">{state.coinBalance.toLocaleString("ko-KR")}</strong></span></header>
         <div className={styles.roomToolbar} role="toolbar" aria-label="방 꾸미기 도구">
           {editing ? <><Button ref={inventoryOpener} size="sm" variant={panel === "inventory" ? "secondary" : "ghost"} aria-pressed={panel === "inventory"} onClick={() => setPanel(panel === "inventory" ? null : "inventory")}><Package aria-hidden="true" /><span>내 가구</span></Button><Button size="icon-sm" variant={panel === "appearance" ? "secondary" : "ghost"} aria-label="방 분위기" aria-pressed={panel === "appearance"} onClick={() => setPanel(panel === "appearance" ? null : "appearance")}><Paintbrush aria-hidden="true" /></Button><span className={styles.toolbarDivider} /><Button size="icon-sm" variant="ghost" aria-label="편집 취소" onClick={() => dirty ? setDiscard("cancel") : cancel()} disabled={pending}><Undo2 aria-hidden="true" /></Button><Button size="sm" onClick={save} disabled={pending || !dirty}><Save aria-hidden="true" />{pending ? "저장 중" : "방 저장"}</Button></> : <Button size="sm" onClick={() => begin(null)} disabled={pending}>방 꾸미기</Button>}
         </div>

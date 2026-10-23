@@ -75,7 +75,7 @@ export default async function ProfilePage() {
     supabase
       .from("users")
       .select(
-        "nickname, email, birth_year, gender, language, coin_balance, auto_login, created_at",
+        "email, birth_year, gender, language, coin_balance, auto_login, created_at",
       )
       .eq("id", user.id)
       .maybeSingle(),
@@ -173,7 +173,7 @@ export default async function ProfilePage() {
         | null;
       const g = Array.isArray(gRaw) ? gRaw[0] : gRaw;
       if (!g) return null;
-      return { gameId: g.id, slug: g.slug, nameKo: g.name_ko, accountId: g.slug === "overwatch" ? profileBattleTag(r) ?? undefined : r.riot_id ?? undefined, linked: true };
+      return { gameId: g.id, slug: g.slug, nameKo: g.name_ko, accountId: r.is_verified ? (g.slug === "overwatch" ? profileBattleTag(r) ?? undefined : r.riot_id ?? undefined) : undefined, linked: true };
     })
     .filter((x): x is DecorationGame => x !== null);
 
@@ -243,19 +243,18 @@ export default async function ProfilePage() {
     };
   }
 
-  const nickname = row?.nickname || "플레이어";
   const intro = typeof user.user_metadata?.profile_intro === "string" ? user.user_metadata.profile_intro.slice(0, 120) : "";
   const memberships: ProfileMembership[] = membershipRows.flatMap((membership) => {
     const clan = Array.isArray(membership.clans) ? membership.clans[0] : membership.clans;
     const game = Array.isArray(clan?.games) ? clan.games[0] : clan?.games;
-    return game ? [{ clanId: membership.clan_id, clanName: clan.name, gameSlug: game.slug, gameName: game.name_ko, role: membership.role }] : [];
+    return game ? [{ clanId: membership.clan_id, clanName: clan.name, gameSlug: game.slug, gameName: game.name_ko, role: membership.role, accountId: linkedGames.find((linked) => linked.gameId === clan.game_id)?.accountId ?? null }] : [];
   });
 
   return <AccountShell context="프로필"><main className={styles.page}>
     <ProfilePanels room={
       <div className={styles.profileHero} data-testid="profile-hero">
-      <ProfileIdentity key={`identity:${user.id}`} userId={user.id} nickname={nickname} intro={intro} memberships={memberships} games={linkedGames} />
-      <ProfileHousing key={`room:${user.id}`} embedded initial={housing} nickname={nickname} gameNames={linkedGames.map((game) => game.nameKo)} />
+      <ProfileIdentity key={`identity:${user.id}`} userId={user.id} intro={intro} memberships={memberships} games={linkedGames} />
+      <ProfileHousing key={`room:${user.id}`} embedded initial={housing} />
     </div>
     } account={<><section className={styles.namecardSection}><ProfileNamecard key={user.id} initial={namecard} /></section><div className={styles.accountLayout}>
       <div className={`${styles.accountColumn} ${styles.accountSettings}`}>

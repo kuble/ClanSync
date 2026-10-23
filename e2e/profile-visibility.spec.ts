@@ -7,6 +7,8 @@ test("계정 탭의 공개 설정은 방문 화면에만 반영되고 계정·�
   const visitorContext = await browser.newContext();
   const visitor = await visitorContext.newPage();
   try {
+    const battleTag = `Visit${f.users[0].id.slice(0, 8)}#1234`;
+    expect((await f.service.from("user_game_profiles").update({ battle_tag: battleTag }).eq("user_id", f.users[0].id).eq("game_id", f.gameId)).error).toBeNull();
     const intro = `공개 소개 ${f.users[0].nickname}`;
     expect((await f.service.auth.admin.updateUserById(f.users[0].id, { user_metadata: { profile_intro: intro } })).error).toBeNull();
     await loginIsolatedBalanceUser(page, f.users[0]);
@@ -21,8 +23,8 @@ test("계정 탭의 공개 설정은 방문 화면에만 반영되고 계정·�
     const response = await visitor.goto(visitUrl);
     expect(response?.status()).toBe(200);
     const html = await response!.text();
-    for (const value of [f.users[0].email, String(privateGame.data!.game_uid), intro, plant.data!.id, "coinBalance", "auto_login"]) expect(html).not.toContain(value);
-    await expect(visitor.getByRole("heading", { name: f.users[0].nickname, exact: true })).toBeVisible();
+    for (const value of [f.users[0].email, f.users[0].nickname, battleTag, String(privateGame.data!.game_uid), intro, plant.data!.id, "coinBalance", "auto_login"]) expect(html).not.toContain(value);
+    await expect(visitor.getByRole("heading", { name: f.users[0].nickname, exact: true })).toHaveCount(0);
     await expect(visitor.getByRole("tab", { name: "계정 정보", exact: true })).toHaveCount(0);
     await expect(visitor.getByRole("button", { name: "방 꾸미기", exact: true })).toHaveCount(0);
     await expect(visitor.getByRole("button", { name: "가구 상점", exact: true })).toHaveCount(0);
@@ -48,9 +50,14 @@ test("계정 탭의 공개 설정은 방문 화면에만 반영되고 계정·�
     }
     await visitor.reload();
     await expect(visitor.getByText(intro, { exact: true })).toBeVisible();
-    await expect(visitor.getByRole("img", { name: "오버워치 로고", exact: true })).toBeVisible();
+    await expect(visitor.getByRole("img", { name: "오버워치 로고", exact: true }).first()).toBeVisible();
+    await expect(visitor.getByRole("article").getByText(battleTag, { exact: true })).toBeVisible();
     await expect(visitor.getByRole("region", { name: "대표 엠블럼", exact: true })).toBeVisible();
     await expect(visitor.getByRole("region", { name: "플레이어 소개", exact: true }).getByRole("link", { name: new RegExp("^BalanceUI-") })).toBeVisible();
+    expect((await f.service.from("clan_members").delete().eq("clan_id", f.clanId).eq("user_id", f.users[1].id)).error).toBeNull();
+    await visitor.reload();
+    await expect(visitor.getByRole("article").getByText(battleTag, { exact: true })).toBeVisible();
+    await expect(visitor.getByRole("region", { name: "대표 엠블럼", exact: true })).toHaveCount(0);
     await page.reload();
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
     await expect(page.getByRole("switch", { name: "한 줄 소개 공개", exact: true })).toBeChecked();

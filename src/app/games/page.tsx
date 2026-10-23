@@ -25,18 +25,15 @@ export default async function GamesPage() {
     { data: ugRows, error: verificationError },
     { data: activeByGame, error: membershipError },
     { data: myJoinRows, error: pendingError },
-    { data: profile },
   ] = await Promise.all([
     supabase.from("games").select("id, slug, name_ko, is_active").order("slug"),
     supabase.from("user_game_profiles").select("game_id, is_verified").eq("user_id", user.id),
     supabase.rpc("my_active_clans_by_game"),
     fetchMyClanJoinRequests(supabase),
-    supabase.from("users").select("nickname").eq("id", user.id).maybeSingle(),
   ]);
 
   const loadError = gameError ?? verificationError ?? membershipError ?? pendingError;
   if (loadError) console.error("[games] 목록 조회 실패:", loadError.message);
-  const nickname = profile?.nickname || "플레이어";
   const verified = new Map((ugRows ?? []).map((row) => [row.game_id, row.is_verified === true]));
   const memberByGame = new Map<string, { clanId: string; clanName: string }>();
   for (const row of activeByGame ?? []) {
@@ -85,10 +82,10 @@ export default async function GamesPage() {
           <EntryBrand />
           <div className={styles.navActions}><ThemeToggle /><details className={styles.profileMenu}>
             <summary className={styles.profileSummary} aria-label="프로필 메뉴">
-              <span className={styles.avatar}>{nickname.slice(0, 1)}</span><ChevronDown size={14} aria-hidden="true" />
+              <span className={styles.avatar}><UserRound size={19} aria-hidden="true" /></span><ChevronDown size={14} aria-hidden="true" />
             </summary>
             <div className={styles.profileDropdown}>
-              <div className={styles.profileIdentity}><strong>{nickname}</strong><p>{user.email}</p></div>
+              <div className={styles.profileIdentity}><strong>내 계정</strong><p>{user.email}</p></div>
               <Link href="/profile"><UserRound size={16} aria-hidden="true" />프로필</Link>
               <form action={signOutAction}><button type="submit"><LogOut size={16} aria-hidden="true" />로그아웃</button></form>
             </div>
