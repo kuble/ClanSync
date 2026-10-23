@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { Star } from "lucide-react";
 import { toast } from "sonner";
@@ -133,16 +132,14 @@ function useEmblemCollection(clanId: string, userId: string, initial?: PersonalE
     savePending: savingState?.target === target && savingState.initial === initial && savingState.pending };
 }
 
-export function PersonalEmblemCaseLauncher({ clanId, userId, nickname, gameSlug, variant = "compact", initialAwards }: {
+export function PersonalEmblemCaseLauncher({ clanId, userId, nickname, variant = "compact", initialAwards }: {
   clanId: string; userId: string; nickname: string; gameSlug?: string; variant?: "compact" | "profile"; initialAwards?: HofEmblem[];
 }) {
-  const params = useParams();
   const { collection, error, pending, refresh } = useEmblemCollection(clanId, userId);
   const emblems = collection?.emblems ?? (!error && initialAwards ? awardEmblems(initialAwards) : []);
   const featuredKeys = resolveFeaturedKeys(emblems, collection?.featuredKeys ?? null);
   const featured = featuredKeys.flatMap(key => emblems.filter(emblem => emblem.key === key && emblem.earned));
-  const slug = gameSlug ?? (typeof params.gameSlug === "string" ? params.gameSlug : collection?.gameSlug);
-  const href = slug ? "/games/" + encodeURIComponent(slug) + "/clan/" + clanId + "/emblems?player=" + encodeURIComponent(userId) : undefined;
+  const href = `/profile/${encodeURIComponent(userId)}/emblems?clan=${encodeURIComponent(clanId)}`;
   return <div className={cn(styles.launcher, variant === "profile" ? styles.profile : styles.compact)} data-personal-emblem-launcher>
     <div className={cn(caseStyles.case, styles.tray)}>
       <div className={cn(caseStyles.caseGrid, styles.featuredGrid)} role="group" aria-label="대표 엠블럼 3칸">

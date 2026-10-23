@@ -30,7 +30,7 @@ import type { ClanInAppNotificationVM } from "@/lib/clan/load-clan-inapp-notific
 import type { MainClanContext } from "@/lib/clan/load-main-clan-context";
 import { cn } from "@/lib/utils";
 import { NavigationIcon } from "@/components/ui/navigation-icon";
-import { BrandSymbol } from "@/components/ui/brand-logo";
+import { HeaderBreadcrumbs } from "@/components/ui/header-breadcrumbs";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import styles from "./main-clan-shell.module.css";
 
@@ -227,16 +227,11 @@ export function MainClanShell({
               </nav>
             </SheetContent>
           </Sheet>
-          <Link href="/games" className={styles.brand} aria-label="게임 선택">
-            <NavigationIcon icon={BrandSymbol} label="게임 선택" size={22} />
-          </Link>
-          <nav aria-label="현재 위치" className={styles.breadcrumbs}>
-            <span aria-hidden>/</span>
-            <Link href={`/games/${ctx.gameSlug}`}>{ctx.gameName}</Link>
-            <span aria-hidden>/</span>
-            <Link href={basePath}>{ctx.clanName}</Link>
-            {pageTitle && <><span aria-hidden>/</span><h2 className={styles.pageTitle} aria-current="page">{pageTitle}</h2></>}
-          </nav>
+          <HeaderBreadcrumbs hideFirstOnMobile items={[
+            { label: ctx.gameName, href: `/games/${ctx.gameSlug}` },
+            { label: ctx.clanName, href: basePath },
+            ...(pageTitle ? [{ label: pageTitle }] : []),
+          ]} />
         </div>
         <div className={styles.headerRight}>
           <ThemeToggle />

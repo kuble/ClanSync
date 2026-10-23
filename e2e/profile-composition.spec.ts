@@ -53,7 +53,7 @@ test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소
     const slots = intro.getByRole("group", { name: "대표 엠블럼 3칸", exact: true });
     await expect(slots.getByRole("link")).toHaveCount(3);
     const caseLink = intro.getByRole("link", { name: `${battleTag} 엠블럼 케이스 열기`, exact: true });
-    const caseHref = `/games/overwatch/clan/${fixture.clanId}/emblems?player=${user.id}`;
+    const caseHref = `/profile/${user.id}/emblems?clan=${fixture.clanId}`;
     await expect(caseLink).toHaveAttribute("href", caseHref);
 
     await intro.getByRole("button", { name: "한 줄 소개를 남겨보세요", exact: true }).click();

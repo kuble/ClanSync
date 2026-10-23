@@ -17,6 +17,15 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  if (user && request.method === "GET" && emblemPath && url.searchParams.getAll("player").length <= 1) {
+    const playerId = url.searchParams.get("player") ?? user.id;
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(playerId)) {
+      const target = new URL(`/profile/${playerId}/emblems`, request.url);
+      target.searchParams.set("clan", emblemPath[1]);
+      return mergeCookies(response, NextResponse.redirect(target));
+    }
+  }
+
   // D-LANDING-04: 로그인된 사용자는 `/` → `/games` (단 `?from=logo` 예외). 프래그먼트는 서버 미전달.
   if (path === "/" && user) {
     if (url.searchParams.get("from") !== "logo") {

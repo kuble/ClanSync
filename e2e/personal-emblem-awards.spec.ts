@@ -32,7 +32,7 @@ test("award cases prefer the best recent grade and filter full history by gold, 
     await page.goto(statsUrl);
     const trigger = page.getByRole("region", { name: "플레이어 배너", exact: true })
       .getByRole("link", { name: `${user.nickname} 엠블럼 케이스 열기`, exact: true });
-    await expect(trigger).toHaveAttribute("href", isolated.path.replace(/balance$/, "emblems") + "?player=" + user.id);
+    await expect(trigger).toHaveAttribute("href", `/profile/${user.id}/emblems?clan=${isolated.clanId}`);
     await trigger.click();
     await expect(page.getByRole("heading", { name: "개인 엠블럼 케이스", level: 2, exact: true })).toBeVisible();
     const collection = page.locator('section[aria-label="개인 엠블럼"]');

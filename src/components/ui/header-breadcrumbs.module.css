@@ -1,0 +1,15 @@
+.group { display:flex; align-items:center; min-width:0; gap:16px; }
+/* Match the symbol inset and hit area used throughout the main clan header. */
+.brand { display:flex; align-items:center; justify-content:center; width:40px; height:40px; margin-right:-9px; flex-shrink:0; }
+.breadcrumbs { display:flex; min-width:0; overflow:hidden; align-items:center; gap:16px; font-size:13px; color:var(--muted-foreground); }
+.breadcrumbs > a,.current { color:var(--foreground); font-weight:700; }
+.breadcrumbs > a:last-of-type { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.breadcrumbs > a:first-of-type,.breadcrumbs > span { flex-shrink:0; }
+.current { flex-shrink:0; font-size:inherit; white-space:nowrap; }
+.breadcrumbs > a:hover { color:var(--primary); }
+.group a:focus-visible { outline:2px solid var(--primary); outline-offset:3px; }
+@media(max-width:768px) {
+  .group { gap:8px; }
+  .breadcrumbs { gap:8px; font-size:12px; }
+  .hideFirstOnMobile > a:first-of-type,.hideFirstOnMobile > span:first-of-type { display:none; }
+}

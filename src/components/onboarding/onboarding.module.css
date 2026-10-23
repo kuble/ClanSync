@@ -1,9 +1,9 @@
 .shell { min-height: 100svh; background: var(--background); color: var(--foreground); }
 .navbar { height: 60px; border-bottom: 1px solid var(--border); }
 .navbarInner { height: 100%; max-width: 960px; padding-inline: 24px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.navbar nav { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
-.navbar nav a { display: flex; gap: 8px; align-items: center; justify-content: center; min-width: 40px; min-height: 40px; font-size: 13px; font-weight: 700; color: var(--foreground); white-space: nowrap; }
-.navbar nav a:hover { color: var(--foreground); }
+.navbarInner > nav { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.navbarInner > nav a { display: flex; gap: 8px; align-items: center; justify-content: center; min-width: 40px; min-height: 40px; font-size: 13px; font-weight: 700; color: var(--foreground); white-space: nowrap; }
+.navbarInner > nav a:hover { color: var(--foreground); }
 .content { width: 100%; max-width: 850px; margin: 0 auto; padding: 56px 24px 72px; }
 .authContent { max-width: 560px; }
 .steps { display: flex; gap: 0; margin: 0 0 36px; padding: 0; list-style: none; }
@@ -95,7 +95,7 @@
 .shell a:focus-visible, .shell button:focus-visible, .shell input:focus-visible, .shell textarea:focus-visible, .shell select:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
 @media (max-width: 768px) {
   .navbarInner { padding-inline: 16px; gap: 8px; }
-  .navbar nav { gap: 8px; }
+  .navbarInner > nav { gap: 8px; }
   .navLabel { display: none; }
 }
 @media (max-width: 600px) {
@@ -111,4 +111,11 @@
 }
 .brandContext { display:flex; min-width:0; align-items:center; gap:16px; }
 .contextLabel { border-left:1px solid var(--border); padding-left:16px; font-size:14px; font-weight:600; white-space:nowrap; }
+.navbar[data-account-context="true"] { background:var(--surface); }
+.navbar[data-account-context="true"] .navbarInner { max-width:none; padding:0 24px 0 12px; }
+@media(max-width:600px) {
+  .navbar[data-account-context="true"] .navbarInner { padding-inline:8px; }
+  .navbar[data-account-context="true"] .navbarInner > nav { gap:0; }
+  .navbar[data-account-context="true"] .navbarInner > nav a { min-width:32px; }
+}
 @media(max-width:400px) { .brandContext { gap:10px; } .contextLabel { padding-left:10px; font-size:12px; } }

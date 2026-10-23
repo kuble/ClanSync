@@ -55,11 +55,11 @@ test("공통 엠블럼 케이스: 공개 권한·계열 성장·대표 저장·�
     expect((await page.request.get(apiPath + "?player=" + f.users[2].id)).status()).toBe(403);
     await page.goto("/profile");
     const casePath = f.path.replace(/balance$/, "emblems");
-    const ownCaseUrl = casePath + "?player=" + f.users[0].id;
+    const ownCaseUrl = `/profile/${f.users[0].id}/emblems?clan=${f.clanId}`;
     const trigger = page.getByRole("region", { name: "플레이어 소개", exact: true }).getByRole("link", { name: "플레이어 엠블럼 케이스 열기", exact: true });
     await expect(trigger).toHaveAttribute("href", ownCaseUrl);
     await trigger.click();
-    await expect(page).toHaveURL(new RegExp(`/emblems\\?player=${f.users[0].id}$`));
+    await expect(page).toHaveURL(ownCaseUrl);
     await expect(page.getByRole("heading", { name: "개인 엠블럼 케이스", level: 2, exact: true })).toBeVisible();
     const collection = page.getByRole("region", { name: "개인 엠블럼", exact: true });
     await expect(collection).toBeVisible();
