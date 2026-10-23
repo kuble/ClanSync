@@ -1693,6 +1693,42 @@ export type Database = {
           },
         ]
       }
+      clan_personal_emblem_picks: {
+        Row: {
+          clan_id: string
+          emblem_keys: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          clan_id: string
+          emblem_keys?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          clan_id?: string
+          emblem_keys?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_personal_emblem_picks_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_personal_emblem_picks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_polls: {
         Row: {
           anonymous: boolean
