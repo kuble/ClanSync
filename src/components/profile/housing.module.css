@@ -133,5 +133,5 @@
   .roomToolbar[data-editing="true"] { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; padding:6px; }
   .roomToolbar[data-editing="true"] button { width:100%; }
   .roomToolbar[data-editing="true"] .toolbarDivider { display:none; }
-  .roomHud[data-editing="true"] :is(.roomPanel,.selectionPill,.dragFeedback) { bottom:132px; }
+  .scene[data-editing="true"] :is(.roomPanel,.selectionPill,.dragFeedback) { bottom:132px; }
 }
