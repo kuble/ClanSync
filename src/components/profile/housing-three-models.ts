@@ -146,10 +146,77 @@ function trophy(m: Model, x: number, y: number, z: number, scale = 1) {
 }
 
 /** Origin is the footprint center, +Y is up, +Z is the front of the furniture. */
-export function createFurniture(code: string): THREE.Group {
+export function createFurniture(code: string, theme: "light" | "dark" = "light"): THREE.Group {
   const m = new Model();
   m.group.name = code;
   switch (code) {
+    case "wall-window": {
+      const night = theme === "dark";
+      m.box([1.82, 1.3, .075], [0, 0, .015], C.oak, .008);
+      m.box([1.66, 1.15, .015], [0, 0, .06], night ? "#182b48" : "#d3e5e2", .001);
+      m.box([1.64, .4, .018], [0, -.36, .071], night ? "#263a40" : "#c0d1aa", .001);
+      for (let i = 0; i < 6; i++) {
+        const shrub = m.sphere([.2, .22 + (i % 3) * .06, .013], [-.69 + i * .275, -.31, .087], night ? (i % 2 ? "#314a4b" : "#2b4146") : (i % 2 ? "#a9c397" : "#9ab68c"));
+        shrub.castShadow = false;
+      }
+      if (night) {
+        const moon = m.sphere([.105, .105, .008], [.47, .32, .085], "#f0eccb");
+        (moon.material as THREE.MeshStandardMaterial).emissive.set("#d4d9bd");
+        (moon.material as THREE.MeshStandardMaterial).emissiveIntensity = .5;
+        for (const [x, y] of [[-.55, .39], [-.22, .18], [.11, .43], [.65, .1], [-.4, -.04]]) {
+          m.sphere([.012, .012, .004], [x, y, .087], "#d3dded").castShadow = false;
+        }
+      }
+      for (const x of [-.83, 0, .83]) m.box([.05, 1.17, .065], [x, 0, .12], C.ivory, .006);
+      for (const y of [-.575, 0, .575]) m.box([1.7, .05, .065], [0, y, .12], C.ivory, .006);
+      m.box([1.94, .055, .24], [0, -.66, .13], C.lightOak, .012);
+      break;
+    }
+    case "wall-curtains": {
+      m.rod([-.96, .65, .08], [.96, .65, .08], .022, C.oak);
+      for (const side of [-1, 1]) {
+        m.sphere([.035, .035, .035], [side * .98, .65, .08], C.gold);
+        for (let i = 0; i < 4; i++) {
+          const curtain = m.box([.095, 1.23, .055], [side * (.68 + i * .065), -.02, .12 + (i % 2) * .035], i % 2 ? C.linen : C.ivory, .022);
+          curtain.castShadow = false;
+          const ring = m.ring(.032, .006, [side * (.68 + i * .065), .62, .08], C.gold);
+          ring.rotation.y = Math.PI / 2;
+        }
+        m.rod([side * .67, -.17, .18], [side * .9, -.17, .18], .014, C.gold);
+      }
+      break;
+    }
+    case "wall-shelf": {
+      m.box([1.73, .065, .33], [0, -.16, .12], C.lightOak, .012);
+      for (const x of [-.57, .57]) m.rod([x, -.34, .01], [x, -.195, .23], .015, C.gold);
+      bookRow(m, -.64, -.12, .12, 4, .72);
+      plant(m, .63, -.12, .13, .33, C.ivory);
+      const photo = wallFrame(.35, .31, 3);
+      photo.position.set(.2, .04, .15);
+      photo.rotation.x = -.08;
+      m.group.add(photo);
+      break;
+    }
+    case "wall-clock": {
+      m.cylinder(.2, .2, .045, [0, 0, .015], C.lightOak, 40).rotation.x = Math.PI / 2;
+      m.cylinder(.174, .174, .005, [0, 0, .04], C.ivory, 40).rotation.x = Math.PI / 2;
+      for (let i = 0; i < 12; i++) {
+        const angle = i * Math.PI / 6;
+        m.sphere([.006, .006, .003], [Math.sin(angle) * .145, Math.cos(angle) * .145, .047], C.edge);
+      }
+      m.rod([0, 0, .05], [0, .112, .05], .007, C.olive);
+      m.rod([0, 0, .052], [.086, -.022, .052], .009, C.olive);
+      break;
+    }
+    case "wall-art-botanical":
+      m.group.add(wallFrame(.54, .59, 0));
+      break;
+    case "wall-art-sun":
+      m.group.add(wallFrame(.43, .5, 1));
+      break;
+    case "wall-art-mini":
+      m.group.add(wallFrame(.34, .4, 3));
+      break;
     case "mint-sofa": {
       legs(m, 1.5, .58, .21);
       m.box([1.82, .22, .85], [0, .3, 0], C.sageDark, .09);
@@ -453,59 +520,12 @@ export function createRoomShell(wallpaper: string, floor: string): THREE.Group {
       }
     }
   }
-  m.box([6.2, 2.8, .15], [3, 1.4, -.065], wallColor, .018);
-  m.box([.15, 2.8, 6.2], [-.065, 1.4, 3], wallColor, .018);
+  m.box([6.2, 3.2, .15], [3, 1.6, -.065], wallColor, .018);
+  m.box([.15, 3.2, 6.2], [-.065, 1.6, 3], wallColor, .018);
   m.box([6.05, .115, .055], [3, .105, .035], C.ivory, .008);
   m.box([.055, .115, 6.05], [.035, .105, 3], C.ivory, .008);
-  m.box([6.17, .055, .19], [3, 2.806, -.06], C.linen, .009);
-  m.box([.19, .055, 6.17], [-.06, 2.806, 3], C.linen, .009);
-
-  // A recessed, glazed garden window: its view is modeled, never downloaded.
-  const wx = 2.04;
-  m.box([1.88, 1.67, .075], [wx, 1.72, .05], C.oak, .008);
-  m.box([1.72, 1.51, .015], [wx, 1.72, .094], "#d9e4d4", .001);
-  m.box([1.7, .61, .018], [wx, 1.28, .105], "#c8d3ac", .001);
-  for (let i = 0; i < 6; i++) {
-    const shrub = m.sphere([.21, .28 + (i % 3) * .08, .013], [wx - .71 + i * .29, 1.34, .121], i % 2 ? "#b1c29b" : "#a4b893");
-    shrub.castShadow = false;
-  }
-  for (const x of [wx - .86, wx, wx + .86]) m.box([.055, 1.51, .065], [x, 1.72, .154], C.ivory, .006);
-  for (const y of [.98, 1.72, 2.46]) m.box([1.76, .055, .065], [wx, y, .154], C.ivory, .006);
-  m.box([2.02, .06, .3], [wx, .93, .16], C.lightOak, .015);
-  m.rod([wx - 1.08, 2.6, .19], [wx + 1.08, 2.6, .19], .022, C.oak);
-  for (const side of [-1, 1]) {
-    for (let i = 0; i < 4; i++) {
-      const curtain = m.box([.1, 1.62, .055], [wx + side * (.83 + i * .065), 1.77, .22 + (i % 2) * .03], i % 2 ? C.linen : C.ivory, .022);
-      curtain.castShadow = false;
-    }
-  }
-
-  const shelf = new Model();
-  shelf.box([1.73, .07, .33], [0, 0, 0], C.lightOak, .012);
-  for (const x of [-.57, .57]) shelf.rod([x, -.2, -.11], [x, -.035, .11], .015, C.gold);
-  bookRow(shelf, -.64, .04, 0, 4, .72);
-  plant(shelf, .63, .04, .015, .33, C.ivory);
-  const photo = wallFrame(.35, .31, 3);
-  photo.position.set(.2, .2, .03);
-  photo.rotation.x = -.08;
-  shelf.group.add(photo);
-  shelf.group.position.set(4.56, 1.97, .17);
-  m.group.add(shelf.group);
-
-  for (const [z, y, width, height, variant] of [[2.18, 1.96, .63, .82, 0], [3.13, 1.91, .4, .49, 1], [4.05, 1.54, .32, .43, 3]]) {
-    const frame = wallFrame(width, height, variant);
-    frame.rotation.y = Math.PI / 2;
-    frame.position.set(.06, y, z);
-    m.group.add(frame);
-  }
-  const clock = new Model();
-  clock.cylinder(.18, .18, .045, [0, 0, 0], C.lightOak, 40).rotation.x = Math.PI / 2;
-  clock.cylinder(.154, .154, .005, [0, 0, .025], C.ivory, 40).rotation.x = Math.PI / 2;
-  clock.rod([0, 0, .033], [0, .102, .033], .007, C.olive);
-  clock.rod([0, 0, .034], [.076, -.022, .034], .009, C.olive);
-  clock.group.rotation.y = Math.PI / 2;
-  clock.group.position.set(.06, 2.27, 1.14);
-  m.group.add(clock.group);
+  m.box([6.17, .055, .19], [3, 3.206, -.06], C.linen, .009);
+  m.box([.19, .055, 6.17], [-.06, 3.206, 3], C.linen, .009);
   return m.group;
 }
 

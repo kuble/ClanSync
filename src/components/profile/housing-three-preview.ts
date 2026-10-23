@@ -71,10 +71,10 @@ function contactShadow(width: number, depth: number) {
   return shadow;
 }
 
-function frameCamera(bounds: THREE.Box3) {
+function frameCamera(bounds: THREE.Box3, wallMounted = false) {
   const center = bounds.getCenter(new THREE.Vector3());
   const camera = new THREE.OrthographicCamera(-2, 2, 2, -2, 0.1, 100);
-  camera.position.copy(center).add(new THREE.Vector3(8, 6.4, 8));
+  camera.position.copy(center).add(wallMounted ? new THREE.Vector3(2.8, 1.5, 9) : new THREE.Vector3(8, 6.4, 8));
   camera.lookAt(center);
   camera.updateMatrixWorld();
   const projected = new THREE.Box3();
@@ -99,6 +99,7 @@ function frameCamera(bounds: THREE.Box3) {
 function renderPreview(code: string, rotation: number) {
   const previewRenderer = getRenderer();
   const scene = new THREE.Scene();
+  const wallMounted = code.startsWith("wall-");
   try {
     const model = createFurniture(code);
     model.rotation.y = -rotation * Math.PI / 2;
@@ -126,14 +127,16 @@ function renderPreview(code: string, rotation: number) {
     const fill = new THREE.DirectionalLight(0xe8f0df, 1.2);
     fill.position.set(8, 5, -2);
     scene.add(fill);
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(span * 5, span * 5), new THREE.ShadowMaterial({ color: 0x6c6951, opacity: 0.2 }));
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -0.005;
-    ground.receiveShadow = true;
-    scene.add(ground);
-    const contact = contactShadow(size.x, size.z);
-    if (contact) scene.add(contact);
-    previewRenderer.render(scene, frameCamera(bounds));
+    if (!wallMounted) {
+      const ground = new THREE.Mesh(new THREE.PlaneGeometry(span * 5, span * 5), new THREE.ShadowMaterial({ color: 0x6c6951, opacity: 0.2 }));
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = -0.005;
+      ground.receiveShadow = true;
+      scene.add(ground);
+      const contact = contactShadow(size.x, size.z);
+      if (contact) scene.add(contact);
+    }
+    previewRenderer.render(scene, frameCamera(bounds, wallMounted));
     if (previewRenderer.getContext().isContextLost()) throw new Error("Furniture preview context lost");
     return previewRenderer.domElement.toDataURL("image/png");
   } finally {

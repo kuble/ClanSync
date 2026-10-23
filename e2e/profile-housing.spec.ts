@@ -28,6 +28,17 @@ async function expectWebglRoom(housing: Locator) {
   expect(await canvas.evaluate((element: HTMLCanvasElement) => element.width > 0 && element.height > 0)).toBe(true);
 }
 
+async function openInventory(housing: Locator) {
+  if (!await housing.getByRole("list", { name: "보유 가구", exact: true }).isVisible()) {
+    await housing.getByRole("button", { name: "내 가구", exact: true }).click();
+  }
+}
+
+async function closePanel(housing: Locator) {
+  const close = housing.getByRole("button", { name: "패널 닫기", exact: true });
+  if (await close.isVisible()) await close.click();
+}
+
 test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지되고 잔액 부족은 차감되지 않는다", async ({
   page,
   browser,
@@ -51,9 +62,6 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     await page.goto("/profile");
     const housing = page.getByRole("region", { name: "프로필 하우징" });
     const wallet = housing.getByTestId("housing-coin-balance");
-    await expect(
-      housing.getByRole("heading", { name: `${buyer.nickname}의 방`, exact: true }),
-    ).toBeVisible();
     await expect(wallet).toContainText("1,000");
     await expectWebglRoom(housing);
 
@@ -67,10 +75,10 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     expect(desk.price).toBe(180);
     const starterResult = await fixture.service
       .from("user_housing_inventory")
-      .select("id,catalog_id,x,y,rotation")
+      .select("id,catalog_id,x,y,rotation,surface")
       .eq("user_id", buyer.id);
     expect(starterResult.error).toBeNull();
-    expect(starterResult.data).toHaveLength(3);
+    expect(starterResult.data).toHaveLength(10);
     expect(starterResult.data!.every((item) => item.x !== null && item.y !== null)).toBe(true);
 
     // Existing profile controls still work with the room above them.
@@ -115,17 +123,19 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     expect(ownedDesk.x).toBeNull();
     expect(ownedDesk.y).toBeNull();
 
-    await housing.getByRole("button", { name: "내 가구", exact: true }).click();
+    await openInventory(housing);
     await housing
       .getByRole("list", { name: "보유 가구", exact: true })
       .getByRole("button", { name: `${desk.name} 선택`, exact: true })
       .click();
+    await closePanel(housing);
 
     // Reserve a 2x2 area so placing and rotating a 2x1 desk are both valid.
     const catalog = await fixture.service.from("housing_catalog").select("id,width,depth");
     expect(catalog.error).toBeNull();
     const occupied = new Set<string>();
     for (const item of starterResult.data!) {
+      if (item.surface !== "floor") continue;
       const shape = catalog.data!.find((entry) => entry.id === item.catalog_id)!;
       const width = item.rotation % 2 ? shape.depth : shape.width;
       const depth = item.rotation % 2 ? shape.width : shape.depth;
@@ -156,7 +166,8 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     await targetCell.press("Enter");
     await expect(sceneFurniture(housing, ownedDesk.id)).toHaveAttribute("data-x", String(x));
     await expect(sceneFurniture(housing, ownedDesk.id)).toHaveAttribute("data-y", String(y));
-    await housing.getByRole("button", { name: "가구 회전", exact: true }).click();
+    await sceneFurniture(housing, ownedDesk.id).focus();
+    await sceneFurniture(housing, ownedDesk.id).press("r");
     await expect(sceneFurniture(housing, ownedDesk.id)).toHaveAttribute("data-rotation", "1");
     await housing.getByRole("button", { name: "방 저장", exact: true }).click();
     await expect(housing.getByRole("button", { name: "방 꾸미기", exact: true })).toBeVisible();
@@ -180,7 +191,7 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     await housing.getByRole("button", { name: "방 꾸미기", exact: true }).click();
     await sceneFurniture(housing, ownedDesk.id).focus();
     await sceneFurniture(housing, ownedDesk.id).press("Enter");
-    await housing.getByRole("button", { name: "가구 보관", exact: true }).click();
+    await sceneFurniture(housing, ownedDesk.id).press("Delete");
     await expect(sceneFurniture(housing, ownedDesk.id)).toHaveCount(0);
     await housing.getByRole("button", { name: "편집 취소", exact: true }).click();
     await page
@@ -191,7 +202,7 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     await housing.getByRole("button", { name: "방 꾸미기", exact: true }).click();
     await sceneFurniture(housing, ownedDesk.id).focus();
     await sceneFurniture(housing, ownedDesk.id).press("Enter");
-    await housing.getByRole("button", { name: "가구 보관", exact: true }).click();
+    await sceneFurniture(housing, ownedDesk.id).press("Delete");
     await housing.getByRole("button", { name: "방 저장", exact: true }).click();
     await expect(housing.getByRole("button", { name: "방 꾸미기", exact: true })).toBeVisible();
     await page.reload();
@@ -250,10 +261,11 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     const plantResult = await fixture.service.from("user_housing_inventory").select("id").eq("user_id", poorUser.id).eq("catalog_id", "small-plant").single();
     expect(plantResult.error).toBeNull();
     const plantId = plantResult.data!.id;
-    await poorHousing.getByRole("button", { name: "내 가구", exact: true }).click();
+    await openInventory(poorHousing);
     const plantButton = poorHousing.getByRole("list", { name: "보유 가구", exact: true }).getByRole("button", { name: "작은 화분 선택", exact: true });
     await plantButton.focus();
     await plantButton.press("Enter");
+    await closePanel(poorHousing);
     // The plant's rectangular overlay overlaps this empty tile. A real pointer
     // must reach the floor instead of selecting the surrounding empty hitbox.
     const behindPlant = poorHousing.getByRole("button", { name: "배치 위치 4열 1행", exact: true });
@@ -263,9 +275,9 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     await poorPage.mouse.click(behindPlantBounds!.x + behindPlantBounds!.width / 2, behindPlantBounds!.y + behindPlantBounds!.height / 2);
     await expect(sceneFurniture(poorHousing, plantId)).toHaveAttribute("data-x", "3");
     await expect(sceneFurniture(poorHousing, plantId)).toHaveAttribute("data-y", "0");
-    await poorHousing.getByRole("combobox", { name: "가구 위치 열", exact: true }).selectOption("0");
-    await poorHousing.getByRole("combobox", { name: "가구 위치 행", exact: true }).selectOption("5");
-    await poorHousing.getByRole("button", { name: "선택 위치에 놓기", exact: true }).click();
+    const corner = poorHousing.getByRole("button", { name: "배치 위치 1열 6행", exact: true });
+    await corner.focus();
+    await corner.press("Enter");
     await expect(sceneFurniture(poorHousing, plantId)).toHaveAttribute("data-y", "5");
     const poorScene = poorHousing.getByRole("group", { name: "나의 방", exact: true });
     await poorScene.locator("canvas").evaluate((canvas: HTMLCanvasElement) => {
@@ -277,7 +289,7 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     await expect(poorScene.locator("canvas")).toHaveCount(0);
     await expect(sceneFurniture(poorHousing, plantId)).toHaveAttribute("data-x", "0");
     await expect(sceneFurniture(poorHousing, plantId)).toHaveAttribute("data-y", "5");
-    await expect(poorHousing.getByRole("status")).toContainText("저장하지 않은 변경");
+    await expect(poorHousing.getByRole("button", { name: "방 저장", exact: true })).toBeEnabled();
     await poorHousing.getByRole("button", { name: "방 저장", exact: true }).click();
     await expect(poorHousing.getByRole("button", { name: "방 꾸미기", exact: true })).toBeVisible();
     await poorPage.reload();
@@ -303,7 +315,7 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     await fallbackPlant.focus();
     await fallbackPlant.press("Enter");
     await expect(fallbackPlant).toHaveAttribute("aria-pressed", "true");
-    await fallbackHousing.getByRole("button", { name: "가구 회전", exact: true }).press("Enter");
+    await fallbackPlant.press("r");
     await expect(fallbackPlant).toHaveAttribute("data-rotation", "1");
     await expect(fallbackHousing.getByTestId("housing-coin-balance")).toHaveText("0");
     expect(pageErrors).toEqual([]);

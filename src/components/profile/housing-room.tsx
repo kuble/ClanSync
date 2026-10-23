@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useImperativeHandle, useRef, useState, type PointerEvent as ReactPointerEvent, type Ref } from "react";
+import { useCallback, useEffect, useImperativeHandle, useRef, useState, type PointerEvent as ReactPointerEvent, type Ref, type ReactNode } from "react";
 import { canPlaceHousingItem, getHousingFootprint } from "@/lib/housing/domain";
-import type { HousingCatalogItem, HousingInventoryItem } from "@/lib/housing/types";
+import type { HousingCatalogItem, HousingInventoryItem, HousingSurface } from "@/lib/housing/types";
+import { MoreHorizontal, Package, RotateCw } from "lucide-react";
 import type { HousingDragPreview, RoomProjection, RoomView, createHousingScene } from "./housing-three-scene";
 import { FurnitureArt } from "./housing-furniture-art";
 import styles from "./housing.module.css";
@@ -10,13 +11,17 @@ import styles from "./housing.module.css";
 export type HousingRoomHandle = {
   startInventoryDrag: (event: ReactPointerEvent<HTMLElement>, item: HousingInventoryItem) => void;
   scrollIntoView: () => void;
+  dismissMenu: () => void;
 };
 type Props = RoomView & {
   ref?: Ref<HousingRoomHandle>;
   pending: boolean;
   onSelect: (item: HousingInventoryItem) => void;
-  onMove: (x: number, y: number) => void;
-  onDrop: (inventoryId: string, x: number, y: number) => void;
+  onMove: (x: number, y: number, surface?: HousingSurface) => void;
+  onDrop: (inventoryId: string, x: number, y: number, surface: HousingSurface) => void;
+  onRotate: (inventoryId: string) => void;
+  onStore: (inventoryId: string) => void;
+  children?: ReactNode;
 };
 type Drag = {
   pointerId: number; item: HousingInventoryItem; startX: number; startY: number;
@@ -30,22 +35,29 @@ export function HousingRoom(props: Props) {
   const engine = useRef<ReturnType<typeof createHousingScene> | null>(null);
   const rendererReady = useRef(false);
   const drag = useRef<Drag | null>(null);
-  const scrollFrame = useRef(0);
   const suppressClick = useRef(false);
   const [dragPreview, setDragPreview] = useState<{ item: HousingInventoryItem; candidate: HousingDragPreview | null } | null>(null);
   const [dragMessage, setDragMessage] = useState("");
+  const [menu, setMenu] = useState<{ inventoryId: string; left: number; top: number } | null>(null);
   const [projection, setProjection] = useState<RoomProjection | null>(null);
   const [fallback, setFallback] = useState(false);
-  const { inventory, catalog, selectedId, editing, pending, wallpaper, floor, onSelect, onMove, onDrop } = props;
+  const { inventory, catalog, selectedId, editing, pending, wallpaper, floor, theme, onSelect, onMove, onDrop, onRotate, onStore } = props;
   const current = useRef(props);
 
-  function groundPoint(clientX: number, clientY: number) {
-    if (rendererReady.current && engine.current) return engine.current.floorPoint(clientX, clientY);
+  function groundPoint(clientX: number, clientY: number, mount: "floor" | "wall" = "floor") {
+    if (rendererReady.current && engine.current) return engine.current.placementPoint(clientX, clientY, mount);
     const rect = surface.current?.getBoundingClientRect();
     if (!rect || clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) return null;
+    if (mount === "wall") {
+      const left = (clientX - rect.left) / rect.width * 100, top = (clientY - rect.top) / rect.height * 100;
+      const surface: HousingSurface = left < 50 ? "wall-left" : "wall-right";
+      const x = surface === "wall-left" ? (left - 8) / 7 : (left - 50) / 7;
+      const y = ((surface === "wall-left" ? 62 - x * (22 / 6) : 40 + x * (22 / 6)) - top) / (37 / 4);
+      return { x, y, surface };
+    }
     const u = ((clientX - rect.left) / rect.width * 100 - 50) / 7;
     const v = ((clientY - rect.top) / rect.height * 100 - 40) / (22 / 6);
-    return { x: (u + v) / 2, y: (v - u) / 2 };
+    return { x: (u + v) / 2, y: (v - u) / 2, surface: "floor" as const };
   }
 
   function startDrag(event: ReactPointerEvent<HTMLElement>, item: HousingInventoryItem, fromInventory: boolean) {
@@ -54,8 +66,9 @@ export function HousingRoom(props: Props) {
     const info = latest.catalog.find((entry) => entry.id === item.catalogId);
     if (!info) return;
     const size = getHousingFootprint(info, item.rotation);
-    const point = groundPoint(event.clientX, event.clientY);
+    const point = groundPoint(event.clientX, event.clientY, info.mount);
     event.preventDefault();
+    setMenu(null);
     suppressClick.current = false;
     drag.current = {
       pointerId: event.pointerId, item, startX: event.clientX, startY: event.clientY,
@@ -76,13 +89,14 @@ export function HousingRoom(props: Props) {
     const alreadyMoved = active.moved;
     active.moved = true;
     const latest = current.current;
-    const point = groundPoint(clientX, clientY);
+    const info = latest.catalog.find((entry) => entry.id === active.item.catalogId);
+    const point = groundPoint(clientX, clientY, info?.mount);
     let candidate: HousingDragPreview | null = null;
     if (point) {
       const x = Math.round(point.x - active.offsetX), y = Math.round(point.y - active.offsetY);
-      const placed = latest.inventory.flatMap((item) => item.x !== null && item.y !== null ? [{ inventoryId: item.id, x: item.x, y: item.y, rotation: item.rotation }] : []);
-      const valid = canPlaceHousingItem({ inventoryId: active.item.id, x, y, rotation: active.item.rotation }, placed, latest.inventory, latest.catalog);
-      candidate = { inventoryId: active.item.id, x, y, valid };
+      const placed = latest.inventory.flatMap((item) => item.x !== null && item.y !== null ? [{ inventoryId: item.id, x: item.x, y: item.y, rotation: item.rotation, surface: item.surface ?? "floor" }] : []);
+      const valid = canPlaceHousingItem({ inventoryId: active.item.id, x, y, rotation: active.item.rotation, surface: point.surface }, placed, latest.inventory, latest.catalog);
+      candidate = { inventoryId: active.item.id, x, y, surface: point.surface, valid };
     }
     if (alreadyMoved && JSON.stringify(active.candidate) === JSON.stringify(candidate)) return;
     active.candidate = candidate;
@@ -90,53 +104,39 @@ export function HousingRoom(props: Props) {
     setDragPreview({ item: active.item, candidate });
   }
 
-  function scrollTowardRoom() {
-    scrollFrame.current = 0;
-    const active = drag.current;
-    if (!active?.moved || !active.fromInventory) return;
-    const top = surface.current?.getBoundingClientRect().top ?? 0;
-    if (active.clientY < 64 && top < 64 && window.scrollY > 0) {
-      const distance = Math.min(14, 64 - top, window.scrollY);
-      window.scrollBy({ top: -distance, behavior: "instant" });
-      updateDragAt(active.clientX, active.clientY);
-    }
-    scrollFrame.current = requestAnimationFrame(scrollTowardRoom);
-  }
-
   function updateDrag(event: ReactPointerEvent<HTMLDivElement>) {
     if (drag.current?.pointerId !== event.pointerId) return;
     event.preventDefault();
     updateDragAt(event.clientX, event.clientY);
-    if (drag.current?.moved && drag.current.fromInventory && !scrollFrame.current) scrollFrame.current = requestAnimationFrame(scrollTowardRoom);
   }
 
   const finishDrag = useCallback((commit: boolean) => {
     const active = drag.current;
     if (!active) return;
     drag.current = null;
-    cancelAnimationFrame(scrollFrame.current); scrollFrame.current = 0;
-    if (active.moved || !commit) suppressClick.current = true;
+    if (active.moved || active.fromInventory || !commit) suppressClick.current = true;
     engine.current?.preview(null);
     setDragPreview(null);
     if (surface.current?.hasPointerCapture(active.pointerId)) surface.current.releasePointerCapture(active.pointerId);
     if (!active.moved) return;
     if (commit && active.candidate?.valid && current.current.editing && !current.current.pending) {
-      current.current.onDrop(active.item.id, active.candidate.x, active.candidate.y);
+      current.current.onDrop(active.item.id, active.candidate.x, active.candidate.y, active.candidate.surface);
       setDragMessage("가구를 놓았습니다. 방 저장을 누르면 배치가 저장됩니다.");
     } else setDragMessage(commit ? "놓을 수 없는 위치입니다. 기존 위치를 유지합니다." : "이동을 취소했습니다. 기존 위치를 유지합니다.");
   }, []);
 
   useEffect(() => {
-    current.current = { inventory, catalog, selectedId, editing, pending, wallpaper, floor, onSelect, onMove, onDrop };
+    current.current = { inventory, catalog, selectedId, editing, pending, wallpaper, floor, theme, onSelect, onMove, onDrop, onRotate, onStore };
     engine.current?.update(current.current);
     const active = drag.current;
     const item = active && inventory.find((entry) => entry.id === active.item.id);
-    if (active && (!editing || pending || !item || item.x !== active.item.x || item.y !== active.item.y || item.rotation !== active.item.rotation)) finishDrag(false);
-  }, [inventory, catalog, selectedId, editing, pending, wallpaper, floor, onSelect, onMove, onDrop, finishDrag]);
+    if (active && (!editing || pending || !item || item.x !== active.item.x || item.y !== active.item.y || item.rotation !== active.item.rotation || item.surface !== active.item.surface)) finishDrag(false);
+  }, [inventory, catalog, selectedId, editing, pending, wallpaper, floor, theme, onSelect, onMove, onDrop, onRotate, onStore, finishDrag]);
 
   useImperativeHandle(props.ref, () => ({
     startInventoryDrag: (event, item) => startDrag(event, item, true),
     scrollIntoView: () => surface.current?.scrollIntoView({ behavior: "smooth", block: "center" }),
+    dismissMenu: () => setMenu(null),
   }));
 
   useEffect(() => {
@@ -165,7 +165,6 @@ export function HousingRoom(props: Props) {
       cancelled = true;
       const active = drag.current;
       drag.current = null;
-      cancelAnimationFrame(scrollFrame.current); scrollFrame.current = 0;
       if (active && element?.hasPointerCapture(active.pointerId)) element.releasePointerCapture(active.pointerId);
       engine.current?.dispose(); engine.current = null; rendererReady.current = false;
     };
@@ -173,9 +172,28 @@ export function HousingRoom(props: Props) {
 
   const ready = !!projection && !fallback;
   const selected = inventory.find((item) => item.id === selectedId);
-  const placements = inventory.flatMap((item) => item.x !== null && item.y !== null ? [{ inventoryId: item.id, x: item.x, y: item.y, rotation: item.rotation }] : []);
-  return <div ref={surface} className={styles.scene} data-wallpaper={wallpaper} data-floor={floor} data-editing={editing} data-dragging={!!dragPreview} data-renderer={ready ? "webgl" : fallback ? "fallback" : "loading"} role="group" aria-label="나의 방"
+  const placements = inventory.flatMap((item) => item.x !== null && item.y !== null ? [{ inventoryId: item.id, x: item.x, y: item.y, rotation: item.rotation, surface: item.surface ?? "floor" }] : []);
+  const selectedCatalog = catalog.find((item) => item.id === selected?.catalogId);
+  function openMenu(item: HousingInventoryItem, clientX?: number, clientY?: number) {
+    if (!editing || pending || item.x === null) return;
+    onSelect(item);
+    const rect = surface.current?.getBoundingClientRect();
+    if (!rect) return;
+    const point = projection?.furniture[item.id];
+    const left = clientX === undefined ? (point ? (point.left + point.width / 2) * rect.width / 100 : rect.width / 2) : clientX - rect.left;
+    const top = clientY === undefined ? (point ? (point.top + point.height) * rect.height / 100 : rect.height / 2) : clientY - rect.top;
+    setMenu({ inventoryId: item.id, left: Math.max(8, Math.min(left, rect.width - 188)), top: Math.max(64, Math.min(top, rect.height - 156)) });
+  }
+  function fallbackPoint(x: number, y: number, mount: HousingSurface) {
+    if (mount === "wall-left") return { left: 8 + x * 7, top: 62 - x * (22 / 6) - y * (37 / 4) };
+    if (mount === "wall-right") return { left: 50 + x * 7, top: 40 + x * (22 / 6) - y * (37 / 4) };
+    return { left: 50 + (x - y) * 7, top: 40 + (x + y) * (22 / 6) };
+  }
+  return <div ref={surface} className={styles.scene} data-testid="housing-room-stage" data-lighting={theme === "light" ? "day" : "night"} data-wallpaper={wallpaper} data-floor={floor} data-editing={editing} data-dragging={!!dragPreview} data-renderer={ready ? "webgl" : fallback ? "fallback" : "loading"} role="group" aria-label="나의 방"
     onPointerDownCapture={(event) => {
+      if ((event.target as HTMLElement).closest("[role=menu]")) return;
+      if ((event.target as HTMLElement).closest("[data-room-ui]")) { setMenu(null); return; }
+      setMenu(null);
       if (!editing || pending || !event.isPrimary || event.button !== 0) return;
       if (!drag.current) suppressClick.current = false;
       if (ready) {
@@ -195,6 +213,7 @@ export function HousingRoom(props: Props) {
     onPointerCancel={(event) => { if (drag.current?.pointerId === event.pointerId) finishDrag(false); }}
     onLostPointerCapture={(event) => { if (drag.current?.pointerId === event.pointerId) finishDrag(false); }}
     onClickCapture={(event) => {
+    if ((event.target as HTMLElement).closest("[data-room-ui]")) return;
     if (event.detail > 0 && suppressClick.current) { suppressClick.current = false; event.preventDefault(); event.stopPropagation(); return; }
     // Geometry picking lets clicks pass through a model's empty bounding-box area.
     // Keyboard activation still uses the ordinary, named DOM buttons below.
@@ -205,26 +224,51 @@ export function HousingRoom(props: Props) {
     if (hit && "inventoryId" in hit) {
       const item = inventory.find((entry) => entry.id === hit.inventoryId);
       if (item) onSelect(item);
-    } else if (hit && selected) onMove(hit.x, hit.y);
-  }}>
+    } else if (selected) {
+      const point = groundPoint(event.clientX, event.clientY, selectedCatalog?.mount);
+      if (point) onMove(Math.floor(point.x), Math.floor(point.y), point.surface);
+    }
+  }} onContextMenu={(event) => {
+      if (!editing || (event.target as HTMLElement).closest("[data-room-ui]")) return;
+      event.preventDefault();
+      const hit = ready ? engine.current?.pick(event.clientX, event.clientY) : null;
+      const id = hit && "inventoryId" in hit ? hit.inventoryId : !ready ? (event.target as HTMLElement).closest<HTMLElement>("[data-inventory-id]")?.dataset.inventoryId : undefined;
+      const item = inventory.find((entry) => entry.id === id);
+      if (item) openMenu(item, event.clientX, event.clientY); else setMenu(null);
+    }}>
     <div ref={host} className={styles.webglHost} aria-hidden="true" />
-    {!ready && <><div className={styles.wallLeft} aria-hidden="true" /><div className={styles.wallRight} aria-hidden="true" /><div className={styles.floor} aria-hidden="true" /><div className={styles.window} aria-hidden="true"><span /></div></>}
-    <div className={styles.roomCorner} aria-hidden="true"><span>MY LITTLE ROOM</span><span>{wallpaper === "midnight" ? "깊은 밤의 여유" : "햇살이 머무는 자리"}</span></div>
+    {!ready && <><div className={styles.wallLeft} aria-hidden="true" /><div className={styles.wallRight} aria-hidden="true" /><div className={styles.floor} aria-hidden="true" /></>}
     {editing && Array.from({ length: 36 }, (_, index) => {
       const x = index % 6, y = Math.floor(index / 6);
-      const valid = selected && canPlaceHousingItem({ inventoryId: selected.id, x, y, rotation: selected.rotation }, placements, inventory, catalog);
+      const valid = selected && canPlaceHousingItem({ inventoryId: selected.id, x, y, rotation: selected.rotation, surface: "floor" }, placements, inventory, catalog);
       const point = ready ? projection.tiles[index] : null;
-      return <button key={index} type="button" className={styles.tile} aria-label={`배치 위치 ${x + 1}열 ${y + 1}행`} disabled={!selected || pending} data-valid={!!valid}
-        style={point ? { left: `${point.left}%`, top: `${point.top}%`, width: `${point.width}%`, height: `${point.height}%`, clipPath: point.polygon, transform: "none" } : { left: `${50 + (x - y) * 7}%`, top: `${40 + (x + y + 1) * (22 / 6)}%` }} onClick={() => onMove(x, y)} />;
+      return <button key={index} type="button" className={styles.tile} aria-label={`배치 위치 ${x + 1}열 ${y + 1}행`} disabled={!selected || selectedCatalog?.mount === "wall" || pending} data-valid={!!valid}
+        style={point ? { left: `${point.left}%`, top: `${point.top}%`, width: `${point.width}%`, height: `${point.height}%`, clipPath: point.polygon, transform: "none" } : { left: `${50 + (x - y) * 7}%`, top: `${40 + (x + y + 1) * (22 / 6)}%` }} onClick={() => onMove(x, y, "floor")} />;
     })}
+    {editing && selectedCatalog?.mount === "wall" && (["wall-left", "wall-right"] as const).flatMap((wall) => Array.from({ length: 24 }, (_, index) => {
+      const x = index % 6, y = Math.floor(index / 6);
+      const valid = selected && canPlaceHousingItem({ inventoryId: selected.id, x, y, rotation: 0, surface: wall }, placements, inventory, catalog);
+      const point = ready ? projection.wallTiles[wall][index] : null;
+      const fallback = fallbackPoint(x + .5, y + .5, wall);
+      return <button key={wall + index} type="button" className={styles.wallTile} aria-label={`${wall === "wall-left" ? "왼쪽" : "오른쪽"} 벽 배치 위치 ${x + 1}열 ${y + 1}행`} disabled={pending} data-valid={!!valid}
+        style={point ? { left: point.left + "%", top: point.top + "%", width: point.width + "%", height: point.height + "%", clipPath: point.polygon } : { left: fallback.left + "%", top: fallback.top + "%", width: "7%", height: "10%", transform: "translate(-50%,-50%)" }} onClick={() => onMove(x, y, wall)} />;
+    }))}
     {inventory.filter((item) => item.x !== null && item.y !== null).sort((a, b) => (a.x! + a.y!) - (b.x! + b.y!)).map((item) => {
       const info: HousingCatalogItem | undefined = catalog.find((entry) => entry.id === item.catalogId);
       if (!info) return null;
       const size = getHousingFootprint(info, item.rotation);
       const x = item.x! + size.width / 2, y = item.y! + size.depth / 2;
       const point = ready ? projection.furniture[item.id] : null;
-      return <button key={item.id} type="button" className={`${styles.furniture} ${ready ? styles.furnitureHit : ""}`} data-selected={item.id === selectedId} data-inventory-id={item.id} data-x={item.x} data-y={item.y} data-rotation={item.rotation} aria-label={`${info.name} 선택`} aria-pressed={item.id === selectedId} disabled={pending}
-        style={point ? { left: `${point.left}%`, top: `${point.top}%`, width: `${point.width}%`, height: `${point.height}%`, transform: "none", zIndex: 10 + item.x! + item.y! } : { left: `${50 + (x - y) * 7}%`, top: `${40 + (x + y) * (22 / 6)}%`, width: `${13 + (Math.max(size.width, size.depth) - 1) * 6}%`, zIndex: 10 + item.x! + item.y! }} onClick={() => onSelect(item)}>
+      const fallback = fallbackPoint(x, y, item.surface ?? "floor");
+      return <button key={item.id} type="button" className={`${styles.furniture} ${ready ? styles.furnitureHit : ""}`} data-selected={item.id === selectedId} data-inventory-id={item.id} data-surface={item.surface ?? "floor"} data-x={item.x} data-y={item.y} data-rotation={item.rotation} aria-label={`${info.name} 선택`} aria-pressed={item.id === selectedId} disabled={pending}
+        style={point ? { left: `${point.left}%`, top: `${point.top}%`, width: `${point.width}%`, height: `${point.height}%`, transform: "none", zIndex: 10 + item.x! + item.y! } : { left: fallback.left + "%", top: fallback.top + "%", transform: item.surface !== "floor" ? "translate(-50%,-50%)" : undefined, width: `${13 + (Math.max(size.width, size.depth) - 1) * 6}%`, zIndex: 10 + item.x! + item.y! }} onClick={() => onSelect(item)} onKeyDown={(event) => {
+          if (!editing || pending) return;
+          if (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10")) { event.preventDefault(); openMenu(item); return; }
+          const direction = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, item.surface === "floor" ? -1 : 1], ArrowDown: [0, item.surface === "floor" ? 1 : -1] }[event.key];
+          if (direction) { event.preventDefault(); onDrop(item.id, item.x! + direction[0], item.y! + direction[1], item.surface ?? "floor"); }
+          if (event.key.toLowerCase() === "r") { event.preventDefault(); onRotate(item.id); }
+          if (event.key === "Delete" || event.key === "Backspace") { event.preventDefault(); onStore(item.id); }
+        }}>
         {!ready && <FurnitureArt code={info.visualKey} rotation={item.rotation} />}
         <span className={styles.furnitureLabel}>{info.name}</span>
       </button>;
@@ -232,16 +276,34 @@ export function HousingRoom(props: Props) {
     {!ready && <div className={styles.avatar} aria-hidden="true"><span className={styles.avatarHead} /><span className={styles.avatarBody} /><span className={styles.avatarShadow} /></div>}
     {dragPreview && <div className={styles.dragFeedback} data-testid="housing-drag-preview" data-valid={!!dragPreview.candidate?.valid} aria-live="polite">
       {dragPreview.candidate?.valid ? "여기에 놓기" : dragPreview.candidate ? "가구가 겹치거나 방 밖이에요" : "방 안으로 끌어 놓으세요"}
-      <span>놓으면 배치 · Esc로 취소</span>
     </div>}
     {!ready && dragPreview?.candidate && (() => {
       const item = catalog.find((entry) => entry.id === dragPreview.item.catalogId);
       if (!item) return null;
       const size = getHousingFootprint(item, dragPreview.item.rotation);
       const x = dragPreview.candidate.x + size.width / 2, y = dragPreview.candidate.y + size.depth / 2;
-      return <div className={styles.dragFallback} data-valid={dragPreview.candidate.valid} style={{ left: `${50 + (x - y) * 7}%`, top: `${40 + (x + y) * (22 / 6)}%`, width: `${13 + (Math.max(size.width, size.depth) - 1) * 6}%` }}><FurnitureArt code={item.visualKey} rotation={dragPreview.item.rotation} /></div>;
+      const fallback = fallbackPoint(x, y, dragPreview.candidate.surface);
+      return <div className={styles.dragFallback} data-valid={dragPreview.candidate.valid} style={{ left: fallback.left + "%", top: fallback.top + "%", width: `${13 + (Math.max(size.width, size.depth) - 1) * 6}%` }}><FurnitureArt code={item.visualKey} rotation={dragPreview.item.rotation} /></div>;
+    })()}
+    {props.children}
+    {editing && selected && selected.x !== null && !dragPreview && !menu && <div className={styles.selectionPill} data-room-ui="true"><span>{selectedCatalog?.name}</span><button type="button" aria-label="가구 메뉴 열기" aria-haspopup="menu" onClick={() => openMenu(selected)} disabled={pending}><MoreHorizontal size={20} aria-hidden="true" /></button></div>}
+    {editing && menu && !dragPreview && (() => {
+      const item = inventory.find((entry) => entry.id === menu.inventoryId);
+      if (!item || item.x === null) return null;
+      const info = catalog.find((entry) => entry.id === item.catalogId);
+      return <FurnitureMenu name={info?.name ?? "가구"} left={menu.left} top={menu.top} canRotate={info?.mount !== "wall"} pending={pending} onClose={() => { setMenu(null); surface.current?.querySelector<HTMLButtonElement>(`[data-inventory-id="${item.id}"]`)?.focus({ preventScroll: true }); }} onRotate={() => { onRotate(item.id); setMenu(null); surface.current?.querySelector<HTMLButtonElement>(`[data-inventory-id="${item.id}"]`)?.focus({ preventScroll: true }); }} onStore={() => { onStore(item.id); setMenu(null); }} />;
     })()}
     <span className={styles.dragAnnouncement} aria-live="polite">{dragMessage}</span>
     {fallback && <span className={styles.fallbackNote}>간편 보기 · 가구 편집 가능</span>}
   </div>;
+}
+
+function FurnitureMenu({ name, left, top, canRotate, pending, onClose, onRotate, onStore }: { name: string; left: number; top: number; canRotate: boolean; pending: boolean; onClose: () => void; onRotate: () => void; onStore: () => void }) {
+  const menu = useRef<HTMLDivElement>(null);
+  useEffect(() => { menu.current?.querySelector<HTMLButtonElement>("button:not(:disabled)")?.focus({ preventScroll: true }); }, []);
+  return <div ref={menu} className={styles.furnitureMenu} role="menu" aria-label={name + " 메뉴"} data-room-ui="true" style={{ left, top }} onKeyDown={(event) => {
+    if (event.key === "Escape" || event.key === "Tab") { if (event.key === "Escape") event.preventDefault(); onClose(); return; }
+    const buttons = Array.from(menu.current?.querySelectorAll<HTMLButtonElement>("button:not(:disabled)") ?? []);
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); const next = (buttons.indexOf(document.activeElement as HTMLButtonElement) + (event.key === "ArrowDown" ? 1 : -1) + buttons.length) % buttons.length; buttons[next]?.focus(); }
+  }}><span className={styles.menuTitle}>{name}</span>{canRotate && <button type="button" role="menuitem" disabled={pending} onClick={onRotate}><RotateCw size={15} aria-hidden="true" />가구 회전</button>}<button type="button" role="menuitem" disabled={pending} onClick={onStore}><Package size={15} aria-hidden="true" />가구 보관</button><button type="button" role="menuitem" onClick={onClose}>닫기</button></div>;
 }

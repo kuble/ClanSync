@@ -63,6 +63,49 @@ function Trophy({ x = 67, y = 71, scale = 1 }: { x?: number; y?: number; scale?:
 
 function Furniture({ code, rear }: { code: string; rear: boolean }): ReactNode {
   switch (code) {
+    case "wall-window": return <g strokeLinejoin="round">
+      <path d="M21 27 96 23v83l-75 5Z" fill="#b18a62" stroke="#98724e" strokeWidth="3" />
+      <path d="M27 33 90 30v70l-63 4Z" fill="#cee1df" />
+      <path d="M27 80q9-17 18-4 9-22 20-4 14-16 25-4v32l-63 4Z" fill="#a6bd94" />
+      <path d="M59 32v70M27 66l63-3" stroke="#f3efdc" strokeWidth="5" />
+      <path d="M19 108 98 103l7 7-80 6Z" fill="#e0c6a0" stroke="#b18a62" strokeWidth="1.5" />
+      <path d="M31 39v19m5-21v14" stroke="#ecf5ec" strokeWidth="2" opacity=".8" />
+    </g>;
+    case "wall-curtains": return <>
+      <path d="M14 29h92" stroke="#a67d53" strokeWidth="4" strokeLinecap="round" />
+      <circle cx="13" cy="29" r="4" fill="#c7ab6f" /><circle cx="107" cy="29" r="4" fill="#c7ab6f" />
+      <path d="M20 33h25q-12 34-4 78H18q6-35 2-78ZM75 33h25q-4 43 2 78H79q8-44-4-78Z" fill="#eee6d2" stroke="#d6ccb4" strokeWidth="1.5" />
+      <path d="M26 36q3 36-1 71m9-71q-5 36-2 71m54-71q5 36 2 71m7-71q-3 36 1 71" fill="none" stroke="#d8ceb8" strokeWidth="2" />
+      <path d="M20 78h20m40 0h20" stroke="#c6a765" strokeWidth="3" strokeLinecap="round" />
+      <path d="M23 27v9m12-9v9m50-9v9m12-9v9" stroke="#d6bd8b" strokeWidth="2" />
+    </>;
+    case "wall-shelf": return <>
+      <path d="M17 93v15l13-15m60 0 13 15V93" fill="none" stroke="#b99e64" strokeWidth="3" />
+      <path d="M12 89h95l-8 8H20Z" fill="#e0c39b" stroke="#b58e61" strokeWidth="1.5" />
+      <g transform="translate(-25 9)"><Books x={52} y={79} /></g>
+      <path d="M59 88V62h21v26Z" fill="#b89268" /><path d="M62 85V65h15v20Z" fill="#f4e9ce" /><circle cx="69.5" cy="72" r="4" fill="#d1a182" />
+      <g transform="translate(64 36) scale(.37)"><Plant /></g>
+    </>;
+    case "wall-clock": return <>
+      <circle cx="60" cy="70" r="34" fill="#b88e61" /><circle cx="60" cy="68" r="32" fill="#dac09a" />
+      <circle cx="60" cy="68" r="27" fill="#f6efdc" />
+      <path d="M60 45v4m0 38v4M37 68h4m38 0h4m-39-16 3 3m26 26 3 3m0-32-3 3M47 81l-3 3" stroke="#9a8a6b" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M60 50v18l14 5" fill="none" stroke="#64705d" strokeWidth="3" strokeLinecap="round" /><circle cx="60" cy="68" r="2.8" fill="#a78c57" />
+    </>;
+    case "wall-art-botanical": return <>
+      <rect x="29" y="28" width="62" height="83" rx="2" fill="#b68e64" /><rect x="34" y="33" width="52" height="73" fill="#f4ecd6" />
+      <path d="M60 94V47" stroke="#839477" strokeWidth="2" />
+      <path d="M60 79Q35 79 43 64q15 0 17 15m0-12q22-1 17-15-14 2-17 15m0-9q-20-5-12-17 13 4 12 17m0 29q21-2 16-15-13 1-16 15" fill="#9cad87" />
+      <path d="M46 99h28" stroke="#c7ba97" strokeWidth="1" />
+    </>;
+    case "wall-art-sun": return <>
+      <rect x="32" y="33" width="56" height="73" rx="2" fill="#a9805c" /><rect x="37" y="38" width="46" height="63" fill="#f5ebd5" />
+      <circle cx="60" cy="62" r="13" fill="#d9a28b" /><path d="M45 85h30m-23 6h16" stroke="#b79975" strokeWidth="2" />
+    </>;
+    case "wall-art-mini": return <>
+      <rect x="37" y="40" width="46" height="62" rx="2" fill="#b38c64" /><rect x="41" y="44" width="38" height="54" fill="#f7edd7" />
+      <circle cx="60" cy="65" r="10" fill="#cf9a83" /><path d="M48 84h24m-18 5h12" stroke="#b79a75" strokeWidth="1.5" />
+    </>;
     case "mint-sofa": return <>
       <Legs y={119} tall={13} spread={32} />
       <Block x={64} y={111} w={42} d={49} h={19} material={mint} rear={rear} />
@@ -170,7 +213,7 @@ function Furniture({ code, rear }: { code: string; rear: boolean }): ReactNode {
 export function FurnitureArt({ code, rotation = 0, className }: { code: string; rotation?: number; className?: string }) {
   const direction = ((rotation % 4) + 4) % 4;
   return <svg viewBox="0 0 120 140" className={className} aria-hidden="true" role="presentation" focusable="false">
-    <ellipse cx="61" cy="120" rx="42" ry="13" fill="#514437" opacity=".13" />
+    {!code.startsWith("wall-") && <ellipse cx="61" cy="120" rx="42" ry="13" fill="#514437" opacity=".13" />}
     <g transform={direction % 2 ? "translate(120 0) scale(-1 1)" : undefined}>
       <Furniture code={code} rear={direction >= 2} />
     </g>

@@ -13,6 +13,24 @@ function furniture(housing: Locator, id: string) {
   return room(housing).locator(`[data-inventory-id="${id}"]`);
 }
 
+async function openInventory(housing: Locator) {
+  if (!await housing.getByRole("list", { name: "보유 가구", exact: true }).isVisible()) {
+    await housing.getByRole("button", { name: "내 가구", exact: true }).click();
+  }
+}
+
+async function closePanel(housing: Locator) {
+  const close = housing.getByRole("button", { name: "패널 닫기", exact: true });
+  if (await close.isVisible()) await close.click();
+}
+
+async function storeFromMenu(housing: Locator, touch = false) {
+  const open = housing.getByRole("button", { name: "가구 메뉴 열기", exact: true });
+  const store = housing.getByRole("menuitem", { name: "가구 보관", exact: true });
+  if (touch) { await open.tap(); await store.tap(); }
+  else { await open.click(); await store.click(); }
+}
+
 async function point(locator: Locator, vertical = .5): Promise<Point> {
   const bounds = await locator.boundingBox();
   expect(bounds).not.toBeNull();
@@ -70,6 +88,7 @@ test("마우스·터치로 가구를 이동하고 보관함에서 다시 꺼내�
     expect(inventory.error).toBeNull();
     const plantId = inventory.data!.find((item) => item.catalog_id === "small-plant")!.id;
     await housing.getByRole("button", { name: "방 꾸미기", exact: true }).click();
+    await closePanel(housing);
     await room(housing).scrollIntoViewIfNeeded();
 
     // Real model picking and pointer capture preserve the original grab offset.
@@ -101,11 +120,14 @@ test("마우스·터치로 가구를 이동하고 보관함에서 다시 꺼내�
     await expect(housing.getByTestId("housing-drag-preview")).toHaveCount(0);
 
     // A stored item can be retrieved directly without choosing coordinates.
-    await housing.getByRole("button", { name: "가구 보관", exact: true }).click();
+    await storeFromMenu(housing);
     await expect(furniture(housing, plantId)).toHaveCount(0);
+    await openInventory(housing);
     await housing.getByRole("button", { name: "작은 화분 꺼내기", exact: true }).click();
+    await closePanel(housing);
     await expect(furniture(housing, plantId)).toBeVisible();
-    await housing.getByRole("button", { name: "가구 보관", exact: true }).click();
+    await storeFromMenu(housing);
+    await openInventory(housing);
     const handle = housing.getByRole("button", { name: "작은 화분 끌어서 배치", exact: true });
     await handle.scrollIntoViewIfNeeded();
     const handleStart = await point(handle);
@@ -126,6 +148,7 @@ test("마우스·터치로 가구를 이동하고 보관함에서 다시 꺼내�
     const touchHousing = touchPage.getByRole("region", { name: "프로필 하우징", exact: true });
     await expect(room(touchHousing)).toHaveAttribute("data-renderer", "webgl");
     await touchHousing.getByRole("button", { name: "방 꾸미기", exact: true }).tap();
+    await closePanel(touchHousing);
     await room(touchHousing).scrollIntoViewIfNeeded();
     const cdp = await mobile.newCDPSession(touchPage);
     const touch = await dragPoints(touchHousing, plantId, 4, 2);
@@ -142,28 +165,38 @@ test("마우스·터치로 가구를 이동하고 보관함에서 다시 꺼내�
     await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
     await expectPosition(touchHousing, plantId, 4, 2);
     await expect(touchHousing.getByTestId("housing-drag-preview")).toHaveCount(0);
+    await touchHousing.getByRole("button", { name: "가구 메뉴 열기", exact: true }).tap();
+    await touchHousing.getByRole("menuitem", { name: "가구 회전", exact: true }).tap();
+    await expect(furniture(touchHousing, plantId)).toHaveAttribute("data-rotation", "1");
 
     await touchHousing.getByRole("button", { name: "방 저장", exact: true }).tap();
     await touchHousing.getByRole("button", { name: "방 꾸미기", exact: true }).tap();
+    await expect(touchHousing.getByRole("menu")).toHaveCount(0);
+    await openInventory(touchHousing);
     await touchHousing.getByRole("list", { name: "보유 가구", exact: true }).getByRole("button", { name: "작은 화분 선택", exact: true }).tap();
+    await closePanel(touchHousing);
 
-    await touchHousing.getByRole("button", { name: "가구 보관", exact: true }).tap();
+    await storeFromMenu(touchHousing, true);
     await expect(furniture(touchHousing, plantId)).toHaveCount(0);
+    await openInventory(touchHousing);
     await touchHousing.getByRole("button", { name: "작은 화분 꺼내기", exact: true }).tap();
+    await closePanel(touchHousing);
     await expect(furniture(touchHousing, plantId)).toBeVisible();
 
-    // A short phone viewport cannot show the shelf and the whole room together.
-    // Holding the actual touch at the upper edge brings the room into reach.
+    // Inventory and its touch grip stay within the room on short phone screens.
     await touchPage.setViewportSize({ width: 390, height: 568 });
-    await touchHousing.getByRole("button", { name: "가구 보관", exact: true }).tap();
+    await storeFromMenu(touchHousing, true);
+    await openInventory(touchHousing);
     const touchHandle = touchHousing.getByRole("button", { name: "작은 화분 끌어서 배치", exact: true });
     await touchHandle.scrollIntoViewIfNeeded();
     const shelfStart = await point(touchHandle);
-    expect((await room(touchHousing).boundingBox())!.y).toBeLessThan(0);
-    await touchStart(cdp, shelfStart, { x: shelfStart.x, y: 12 });
-    await expect.poll(async () => (await room(touchHousing).boundingBox())!.y).toBeGreaterThanOrEqual(60);
+    const stage = await room(touchHousing).boundingBox();
+    expect(shelfStart.x).toBeGreaterThan(stage!.x);
+    expect(shelfStart.x).toBeLessThan(stage!.x + stage!.width);
+    expect(shelfStart.y).toBeGreaterThan(stage!.y);
+    expect(shelfStart.y).toBeLessThan(stage!.y + stage!.height);
     const dropPoint = await point(tile(touchHousing, 4, 4));
-    await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ ...dropPoint, id: 1, radiusX: 5, radiusY: 5 }] });
+    await touchStart(cdp, shelfStart, dropPoint);
     await expect(touchHousing.getByTestId("housing-drag-preview")).toHaveAttribute("data-valid", "true");
     await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
     await expectPosition(touchHousing, plantId, 4, 4);
@@ -175,6 +208,7 @@ test("마우스·터치로 가구를 이동하고 보관함에서 다시 꺼내�
     await touchPage.reload();
     await expect(furniture(touchHousing, plantId)).toHaveAttribute("data-x", restoredX!);
     await expect(furniture(touchHousing, plantId)).toHaveAttribute("data-y", restoredY!);
+    await expect(furniture(touchHousing, plantId)).toHaveAttribute("data-rotation", "1");
     expect(await touchPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     await expect(touchHousing.getByTestId("housing-coin-balance")).toHaveText("0");
     const ledger = await fixture.service.from("coin_transactions").select("id").eq("user_id", owner.id);
