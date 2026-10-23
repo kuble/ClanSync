@@ -173,16 +173,30 @@ export function createFurniture(code: string, theme: "light" | "dark" = "light")
       break;
     }
     case "wall-curtains": {
-      m.rod([-.96, .65, .08], [.96, .65, .08], .022, C.oak);
+      // The brackets touch the wall while the cloth clears the window frame.
+      m.rod([-.97, .72, .22], [.97, .72, .22], .022, C.oak);
       for (const side of [-1, 1]) {
-        m.sphere([.035, .035, .035], [side * .98, .65, .08], C.gold);
-        for (let i = 0; i < 4; i++) {
-          const curtain = m.box([.095, 1.23, .055], [side * (.68 + i * .065), -.02, .12 + (i % 2) * .035], i % 2 ? C.linen : C.ivory, .022);
-          curtain.castShadow = false;
-          const ring = m.ring(.032, .006, [side * (.68 + i * .065), .62, .08], C.gold);
+        m.box([.055, .085, .018], [side * .91, .72, .007], C.gold, .005);
+        m.rod([side * .91, .72, .015], [side * .91, .72, .22], .012, C.gold);
+        m.sphere([.035, .035, .035], [side * .99, .72, .22], C.gold);
+        const cloth = new THREE.PlaneGeometry(.34, 1.32, 24, 20);
+        const vertices = cloth.getAttribute("position");
+        for (let i = 0; i < vertices.count; i++) {
+          const x = vertices.getX(i);
+          const y = vertices.getY(i);
+          const tied = Math.exp(-(((y + .18) / .2) ** 2));
+          const width = 1 - tied * .28;
+          vertices.setXYZ(i, side * .79 + x * width, y - .01, .215 + Math.cos((x / .34 + .5) * Math.PI * 8) * .018);
+        }
+        cloth.computeVertexNormals();
+        const curtain = m.mesh(cloth, C.ivory, [0, 0, 0]);
+        (curtain.material as THREE.MeshStandardMaterial).side = THREE.DoubleSide;
+        curtain.castShadow = false;
+        for (let i = 0; i < 5; i++) {
+          const ring = m.ring(.026, .005, [side * .79 - .136 + i * .068, .691, .22], C.gold);
           ring.rotation.y = Math.PI / 2;
         }
-        m.rod([side * .67, -.17, .18], [side * .9, -.17, .18], .014, C.gold);
+        m.rod([side * .67, -.18, .24], [side * .91, -.18, .24], .01, C.gold);
       }
       break;
     }
@@ -462,6 +476,11 @@ export function createFurniture(code: string, theme: "light" | "dark" = "light")
     default:
       m.box([.65, .6, .65], [0, .3, 0], C.lightOak, .06);
   }
+  if (code.startsWith("wall-")) {
+    m.group.traverse((object) => {
+      if (object instanceof THREE.Mesh) object.castShadow = false;
+    });
+  }
   return m.group;
 }
 
@@ -486,6 +505,21 @@ function wallFrame(width: number, height: number, variant: number) {
   return m.group;
 }
 
+/** A continuous L section has closed, flush corners without overlapping caps. */
+function wallSection(outer: number, inner: number, end: number, height: number) {
+  const outline = new THREE.Shape();
+  outline.moveTo(outer, -outer);
+  outline.lineTo(end, -outer);
+  outline.lineTo(end, -inner);
+  outline.lineTo(inner, -inner);
+  outline.lineTo(inner, -end);
+  outline.lineTo(outer, -end);
+  outline.closePath();
+  const geometry = new THREE.ExtrudeGeometry(outline, { depth: height, bevelEnabled: false, steps: 1, curveSegments: 1 });
+  geometry.rotateX(-Math.PI / 2);
+  return geometry;
+}
+
 export function createRoomShell(wallpaper: string, floor: string): THREE.Group {
   const m = new Model();
   m.group.name = "room-shell";
@@ -497,8 +531,9 @@ export function createRoomShell(wallpaper: string, floor: string): THREE.Group {
   };
   const colors = floorColors[floor] ?? floorColors.oak;
   const wallColor = wallColors[wallpaper] ?? wallColors.cream;
-  m.box([6.24, .22, 6.24], [3, -.18, 3], C.edge, .035);
-  m.box([6.18, .09, 6.18], [3, -.035, 3], C.lightOak, .015);
+  // Floor and both cutaway wall ends share the exact same outer boundary.
+  m.box([6.12, .22, 6.12], [2.94, -.18, 2.94], C.edge, .015);
+  m.box([6.12, .09, 6.12], [2.94, -.035, 2.94], C.lightOak, .008);
   if (floor === "ivory") {
     m.box([6, .015, 6], [3, .016, 3], "#d8d0bb", .001);
     for (let row = 0; row < 12; row++) {
@@ -520,12 +555,16 @@ export function createRoomShell(wallpaper: string, floor: string): THREE.Group {
       }
     }
   }
-  m.box([6.2, 3.2, .15], [3, 1.6, -.065], wallColor, .018);
-  m.box([.15, 3.2, 6.2], [-.065, 1.6, 3], wallColor, .018);
-  m.box([6.05, .115, .055], [3, .105, .035], C.ivory, .008);
-  m.box([.055, .115, 6.05], [.035, .105, 3], C.ivory, .008);
-  m.box([6.17, .055, .19], [3, 3.206, -.06], C.linen, .009);
-  m.box([.19, .055, 6.17], [-.06, 3.206, 3], C.linen, .009);
+  const walls = [
+    m.mesh(wallSection(-.12, 0, 6, 3.2), wallColor, [0, 0, 0]),
+    m.mesh(wallSection(-.12, 0, 6, .035), C.linen, [0, 3.2, 0]),
+    m.mesh(wallSection(-.005, .045, 6, .11), C.ivory, [0, .035, 0]),
+  ];
+  walls.forEach((wall) => { wall.receiveShadow = false; });
+  // The cutaway room is an interior scene: its shell does not cast a sun shadow.
+  m.group.traverse((object) => {
+    if (object instanceof THREE.Mesh) object.castShadow = false;
+  });
   return m.group;
 }
 

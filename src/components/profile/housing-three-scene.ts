@@ -29,7 +29,8 @@ function surfacePosition(surface: HousingSurface, x: number, y: number, offset =
 function positionFurniture(model: THREE.Group, item: { x: number; y: number; rotation: number; surface: HousingSurface }, catalog: HousingCatalogItem, ghost = false) {
   const size = getHousingFootprint(catalog, item.rotation);
   const isWall = item.surface !== "floor";
-  const offset = isWall ? (catalog.wallLayer === "curtain" ? .2 : .035) : 0;
+  // Every wall item uses the same mounting plane; layering lives in the model.
+  const offset = isWall ? .025 : 0;
   model.position.copy(surfacePosition(item.surface, item.x + size.width / 2, item.y + size.depth / 2, offset + (ghost ? .035 : 0)));
   model.rotation.set(0, item.surface === "wall-left" ? Math.PI / 2 : isWall ? 0 : -item.rotation * Math.PI / 2, 0);
 }
@@ -90,11 +91,6 @@ export function createHousingScene(host: HTMLDivElement, onProjection: (value: R
   const nightLamp = new THREE.PointLight(0xffc58a, 0, 9, 1.5);
   nightLamp.position.set(3.3, 2.9, 3.7);
   scene.add(nightLamp);
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.ShadowMaterial({ opacity: .12 }));
-  ground.rotation.x = -Math.PI / 2;
-  ground.position.y = -.31;
-  ground.receiveShadow = true;
-  scene.add(ground);
   const grid = new THREE.GridHelper(6, 6, 0x82927b, 0xa0ac94);
   grid.position.set(3, .045, 3);
   const gridMaterial = grid.material as THREE.Material;
@@ -311,7 +307,6 @@ export function createHousingScene(host: HTMLDivElement, onProjection: (value: R
       fill.color.set(night ? 0xffc58a : 0xe8f0df);
       fill.intensity = night ? .9 : 1.2;
       nightLamp.intensity = night ? 5 : 0;
-      ground.material.opacity = night ? .26 : .12;
       const nextRoomKey = `${next.wallpaper}/${next.floor}`;
       if (roomKey !== nextRoomKey) {
         if (room) { scene.remove(room); dispose(room); }
