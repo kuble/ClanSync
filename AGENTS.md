@@ -12,8 +12,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # `/개발시작` 단축 명령
 
-사용자가 `/개발시작`이라고 입력하면 `npm run dev:qa`로 QA 서버를 실행한 뒤 내전 로비를 두 탭으로 연다.
+사용자가 `/개발시작` 또는 `개발 시작`이라고 입력하면 `npm run dev:qa`로 QA 서버를 실행한 뒤 **GPT 앱 안의 내장 브라우저**에 내전 로비를 두 탭으로 연다.
 
+- 브라우저 대상은 `iab`, 탭은 `visible: true`로 열어 사용자에게 표시한다. 외부 Chrome·Edge 탭으로 대신 열지 않는다. 두 탭은 응답이 끝나도 유지되도록 `markDeliverable()`로 표시한다.
 - 리더 버전: `http://localhost:3011`에서 `QA_Leader_01`로 로그인한다.
 - 멤버 버전: `http://127.0.0.1:3011`에서 `QA_Member_02`로 로그인한다.
 - 두 탭 모두 `QA_01_Clan`의 `/games/overwatch/clan/{clanId}/balance`로 연결한다. 호스트별 쿠키를 분리해 두 계정을 동시에 유지한다.
