@@ -13,7 +13,6 @@ export const PROFILE_VISIBILITY_KEYS = Object.keys(DEFAULT_PROFILE_VISIBILITY) a
 
 export type PlayerProfileVisit = {
   userId: string;
-  nickname: string;
   intro: string | null;
   games: { slug: string; nameKo: string }[];
   memberships: (ProfileMembership & { showEmblems: boolean })[];
