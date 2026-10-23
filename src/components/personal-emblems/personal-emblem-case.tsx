@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { RubberSegment } from "@/components/ui/rubber-segment";
 import { GameLogo } from "@/components/ui/game-logo";
-import { awardEmblems, caseEmblems, getAwardHistory, getAwardRepresentatives, resolveFeaturedKeys, resolveAccountFeaturedKeys, type CaseEmblem } from "@/lib/personal-emblems/catalog";
+import { awardEmblems, awardFamilies, caseEmblems, getAwardHistory, getAwardRepresentatives, resolveFeaturedKeys, resolveAccountFeaturedKeys, type CaseEmblem } from "@/lib/personal-emblems/catalog";
 import type { HofEmblem } from "@/lib/clan/stats/hof-emblems";
 import type { PersonalEmblem, PersonalEmblemCollection } from "@/lib/personal-emblems/types";
 import { cn } from "@/lib/utils";
@@ -305,11 +305,17 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
       </div>
       <div className={cn(caseStyles.case, styles.pageCase, styles.collectionFrame)} aria-busy={pending}>
         <div className={styles.groups}>
-          {awards.length > 0 && <section aria-label="종류별 수상 엠블럼">
+          {filter !== "milestone" && visibleEmblems.length > 0 && <section aria-label="종류별 수상 엠블럼">
             <div className={styles.groups}>{(["month", "year"] as const).map(period => {
               const entries = awards.filter(emblem => emblem.period === period);
-              return entries.length > 0 && <section key={period} aria-label={period === "month" ? "월간 수상 엠블럼" : "연간 수상 엠블럼"}>
-                <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{entries.map(emblem => catalogPin(emblem))}</div>
+              return <section key={period} aria-label={period === "month" ? "월간 수상 엠블럼" : "연간 수상 엠블럼"}>
+                <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{Object.entries(awardFamilies).map(([category, family]) => {
+                  const emblem = entries.find(entry => entry.family === family);
+                  const label = `${period === "month" ? "월간" : "연간"} ${category} 미획득`;
+                  return emblem ? catalogPin(emblem) : <span key={family} className={cn(caseStyles.pin, caseStyles.artworkSocket)}
+                    role="img" aria-label={label} title={label} data-unearned-award={period + ":" + family}
+                    style={socketStyle({ artwork: `/personal-emblems/v1/awards/${period}/${family}-gold.png` })}><Socket /></span>;
+                })}</div>
               </section>;
             })}</div>
           </section>}
@@ -368,7 +374,7 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
   </Dialog>{!detailOpen && replacementDialog}</>;
 }
 
-function socketStyle(emblem: PersonalEmblem): CSSProperties {
+function socketStyle(emblem: Pick<PersonalEmblem, "artwork">): CSSProperties {
   return { "--badge-mask": 'url("/_next/image?url=' + encodeURIComponent(emblem.artwork) + '&w=256&q=75")' } as CSSProperties;
 }
 

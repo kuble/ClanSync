@@ -45,6 +45,14 @@ test("게임 아이콘 필터와 월간·연간 진열은 키보드·모바일·
     const annual = view.getByRole("region", { name: "연간 수상 엠블럼", exact: true });
     await expect(monthly.locator("[data-emblem-entry]")).toHaveAttribute("data-emblem-clan", valClan);
     await expect(annual.locator("[data-emblem-entry]")).toHaveAttribute("data-emblem-clan", valClan);
+    for (const row of [monthly, annual]) {
+      await expect(row.locator("[data-unearned-award]")).toHaveCount(4);
+      await expect(row.locator("[data-unearned-award] img, [data-unearned-award] button")).toHaveCount(0);
+      await expect(row.locator("[data-unearned-award]").first()).not.toHaveAttribute("tabindex");
+    }
+    const missingPrediction = annual.getByRole("img", { name: "연간 예측 적중 미획득", exact: true });
+    await expect(missingPrediction).toHaveAttribute("style", /year%2Fprediction-gold\.png/);
+    await expect(view.getByRole("status")).toHaveText("3개의 획득 기록");
     await monthly.locator("[data-emblem-key]").click();
     const dialog = page.getByRole("dialog");
     await expect(dialog.getByRole("radiogroup", { name: "엠블럼 게임", exact: true })).toHaveCount(0);
@@ -60,6 +68,10 @@ test("게임 아이콘 필터와 월간·연간 진열은 키보드·모바일·
     await game.getByRole("radio", { name: "오버워치", exact: true }).focus();
     await page.keyboard.press("Home");
     await expect(game.getByRole("radio", { name: "전체 게임", exact: true })).toBeChecked();
+    await game.getByRole("radio", { name: "오버워치", exact: true }).click();
+    await expect(annual.locator("[data-unearned-award]")).toHaveCount(5);
+    await expect(annual.locator("[data-emblem-entry]")).toHaveCount(0);
+    await expect(monthly.locator("[data-unearned-award]")).toHaveCount(4);
     for (const width of [1023, 390, 320]) {
       await page.setViewportSize({ width, height: 884 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);

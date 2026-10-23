@@ -366,7 +366,6 @@ test("award cases prefer the best recent grade and filter full history by gold, 
         expect(bounds!.height).toBeGreaterThanOrEqual(44);
       }
       await expect(quickPage.locator('[data-emblem-entry^="milestone-"] [data-emblem-feature-key]')).toHaveCount(0);
-      await quickPage.locator("[data-personal-emblem-case]").screenshot({ path: info.outputPath("personal-emblem-hover-star-mobile.png") });
       // Select a different award directly from the case on a touch device.
       const candidate = quickPage.locator('[data-emblem-feature-key][aria-pressed="false"]').first();
       const candidateKey = await candidate.getAttribute("data-emblem-feature-key");
@@ -378,6 +377,7 @@ test("award cases prefer the best recent grade and filter full history by gold, 
       await touchReplacement.locator("[data-replace-emblem-key]").first().tap();
       await expect(touchReplacement).toHaveCount(0);
       await expect(quickPage.locator(`[data-emblem-feature-key="${candidateKey}"]`)).toHaveAttribute("aria-pressed", "true");
+      await quickPage.locator("[data-personal-emblem-case]").screenshot({ path: info.outputPath("personal-emblem-hover-star-mobile.png") });
       expect(await persistedPicks()).toEqual([candidateKey, ...quickPicks.slice(1)]);
       expect(await quickPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     } finally { await quickTouchContext.close(); }
