@@ -187,7 +187,7 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
   const awards = filter === "milestone" ? [] : getAwardRepresentatives(visibleEmblems);
   const milestones = filter === "all" || filter === "milestone" ? milestoneRepresentatives(visibleEmblems) : [];
   const selected = selection?.target === target ? emblems.find(emblem => emblem.key === selection.key) : undefined;
-  const awardHistory = selected?.kind === "award" ? getAwardHistory(visibleEmblems).filter(emblem => emblem.family === selected.family) : [];
+  const awardHistory = selected?.kind === "award" ? getAwardHistory(visibleEmblems).filter(emblem => emblem.family === selected.family && emblem.period === selected.period) : [];
   const filteredAwardHistory = awardHistory.filter(emblem => rankFilter === "all" || emblem.rank === Number(rankFilter));
   const stages = selected?.kind === "milestone" ? visibleEmblems.filter(emblem => emblem.kind === "milestone" && emblem.family === selected.family)
     .sort((a, b) => a.source.clanId.localeCompare(b.source.clanId) || (a.stage ?? 0) - (b.stage ?? 0)) : [];
@@ -304,7 +304,12 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
       <div className={cn(caseStyles.case, styles.pageCase, styles.collectionFrame)} aria-busy={pending}>
         <div className={styles.groups}>
           {awards.length > 0 && <section aria-label="종류별 수상 엠블럼">
-            <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{awards.map(emblem => catalogPin(emblem))}</div>
+            <div className={styles.groups}>{(["month", "year"] as const).map(period => {
+              const entries = awards.filter(emblem => emblem.period === period);
+              return entries.length > 0 && <section key={period} aria-label={period === "month" ? "월간 수상 엠블럼" : "연간 수상 엠블럼"}>
+                <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{entries.map(emblem => catalogPin(emblem))}</div>
+              </section>;
+            })}</div>
           </section>}
           {milestones.length > 0 && <section aria-label="누적 달성 엠블럼">
             <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{milestones.map(emblem => catalogPin(emblem))}</div>
@@ -334,7 +339,6 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
       {awardHistory.length > 0 && <section className="mt-2 space-y-3" aria-label="수상 이력">
         <div className={styles.controls}>
           <h3 className="text-sm font-semibold">수상 이력</h3>
-          {gameSegment()}
           <RubberSegment label="수상 등급" labelPosition="hidden" options={rankFilters} value={rankFilter} onChange={value => {
             setRankFilter(value);
             const next = awardHistory.find(emblem => value === "all" || emblem.rank === Number(value));
@@ -350,7 +354,7 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
         </div></div>
       </section>}
       {stages.length > 0 && <section className="mt-2 space-y-3" aria-label="성장의 기록">
-        <div className={styles.controls}><h3 className="text-sm font-semibold">성장의 기록</h3>{gameSegment()}</div>
+        <div className={styles.controls}><h3 className="text-sm font-semibold">성장의 기록</h3></div>
         <div className={caseStyles.case}><div className={caseStyles.caseGrid} role="group" aria-label="단계별 엠블럼">
           {stages.map(emblem => <div key={emblem.key} className={styles.historyEntry}>{catalogPin(emblem, true)}
             {emblem.earned && <p className={styles.historyCaption}>{periodLabel(emblem)}</p>}

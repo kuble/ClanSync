@@ -67,20 +67,20 @@ test("award cases prefer the best recent grade and filter full history by gold, 
     await expect(details.getByRole("region", { name: "엠블럼 상세", exact: true }).getByText("금 · 1위", { exact: true })).toHaveCount(0);
     const history = details.getByRole("group", { name: "같은 종류의 수상 이력", exact: true });
     const selectedStar = () => history.locator('[data-emblem-key][aria-pressed="true"]').locator("..").locator("[data-emblem-feature-key]");
-    await expect(history.locator("[data-emblem-key]")).toHaveCount(6);
+    await expect(history.locator("[data-emblem-key]")).toHaveCount(4);
     const grades = details.getByRole("radiogroup", { name: "수상 등급", exact: true });
     await grades.getByRole("radio", { name: "금", exact: true }).click();
-    await expect(history.locator("[data-emblem-key]")).toHaveCount(3);
-    await expect(history.locator("[data-emblem-key]").and(history.getByRole("button", { name: /1위 획득/ }))).toHaveCount(3);
+    await expect(history.locator("[data-emblem-key]")).toHaveCount(2);
+    await expect(history.locator("[data-emblem-key]").and(history.getByRole("button", { name: /1위 획득/ }))).toHaveCount(2);
     await grades.getByRole("radio", { name: "은", exact: true }).click();
     await expect(history.locator("[data-emblem-key]")).toHaveCount(1);
     await expect(details.getByRole("heading", { name: "월간 승률 2위", exact: true })).toBeVisible();
     await expect(details.getByRole("region", { name: "엠블럼 상세", exact: true }).getByText(`${previousYear}년 4월`, { exact: true })).toBeVisible();
     await grades.getByRole("radio", { name: "동", exact: true }).click();
-    await expect(history.locator("[data-emblem-key]")).toHaveCount(2);
-    await expect(history.locator("[data-emblem-key]").and(history.getByRole("button", { name: /3위 획득/ }))).toHaveCount(2);
+    await expect(history.locator("[data-emblem-key]")).toHaveCount(1);
+    await expect(history.locator("[data-emblem-key]").and(history.getByRole("button", { name: /3위 획득/ }))).toHaveCount(1);
     await grades.getByRole("radio", { name: "전체", exact: true }).click();
-    await expect(history.locator("[data-emblem-key]")).toHaveCount(6);
+    await expect(history.locator("[data-emblem-key]")).toHaveCount(4);
     const earlier = history.locator(`[data-emblem-key="month-${previousYear - 1}-06-승률"]`);
     await earlier.click();
     await expect(earlier).toHaveAttribute("aria-pressed", "true");
@@ -164,17 +164,19 @@ test("award cases prefer the best recent grade and filter full history by gold, 
     await featuredPin.click();
     await expect(details.getByRole("region", { name: "엠블럼 상세", exact: true }).getByText(`${previousYear - 1}년 6월`, { exact: true })).toBeVisible();
     await expect(grades.getByRole("radio", { name: "전체", exact: true })).toBeChecked();
-    await history.locator(`[data-emblem-key="year-${previousYear - 1}-승률"]`).click();
+    await page.keyboard.press("Escape");
+    const annualPin = collection.getByRole("button", { name: "연간 승률 1위 획득", exact: true });
+    await annualPin.click();
     const yearlyImage = await details.getByRole("region", { name: "엠블럼 상세", exact: true }).locator("..").locator("img").first().getAttribute("src");
     expect(decodeURIComponent(yearlyImage ?? "")).toContain("/awards/year/victory-gold.png");
     expect(yearlyImage).not.toBe(monthlyImage);
     await expect(page.getByRole("dialog", { name: "연간 승률 1위", exact: true })).toBeVisible();
     await expect(details.getByRole("heading", { name: "연간 승률 1위", exact: true })).toBeVisible();
-    await expect(history.locator("[data-emblem-key]")).toHaveCount(6);
+    await expect(history.locator("[data-emblem-key]")).toHaveCount(2);
     await expect(details.getByRole("region", { name: "엠블럼 상세", exact: true }).getByText(`${previousYear - 1}년 연간`, { exact: true })).toBeVisible();
     await details.getByRole("button", { name: "닫기", exact: true }).click();
     await expect(details).toHaveCount(0);
-    await expect(featuredPin).toBeFocused();
+    await expect(annualPin).toBeFocused();
 
     const touchContext = await browser.newContext({ baseURL: new URL(page.url()).origin,
       hasTouch: true, viewport: { width: 320, height: 844 }, storageState: await page.context().storageState() });
@@ -193,12 +195,12 @@ test("award cases prefer the best recent grade and filter full history by gold, 
       await expect(touchDetails.getByRole("heading", { name: "월간 승률 1위", exact: true })).toBeVisible();
       await expect(touchDetails.getByRole("region", { name: "엠블럼 상세", exact: true }).getByText(`${previousYear}년 2월`, { exact: true })).toBeVisible();
       const touchHistory = touchDetails.getByRole("group", { name: "같은 종류의 수상 이력", exact: true });
-      await expect(touchHistory.locator("[data-emblem-key]")).toHaveCount(6);
+      await expect(touchHistory.locator("[data-emblem-key]")).toHaveCount(4);
       const touchGrades = touchDetails.getByRole("radiogroup", { name: "수상 등급", exact: true });
       await touchGrades.getByRole("radio", { name: "동", exact: true }).tap();
-      await expect(touchHistory.locator("[data-emblem-key]")).toHaveCount(2);
+      await expect(touchHistory.locator("[data-emblem-key]")).toHaveCount(1);
       await touchGrades.getByRole("radio", { name: "금", exact: true }).tap();
-      await expect(touchHistory.locator("[data-emblem-key]")).toHaveCount(3);
+      await expect(touchHistory.locator("[data-emblem-key]")).toHaveCount(2);
       await touchHistory.locator(`[data-emblem-key="month-${previousYear}-02-승률"]`).tap();
       await expect(touchDetails.getByRole("region", { name: "엠블럼 상세", exact: true }).getByText(`${previousYear}년 2월`, { exact: true })).toBeVisible();
       expect(await touchPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -222,7 +224,8 @@ test("award cases prefer the best recent grade and filter full history by gold, 
     await star.click();
     await expect(star).toHaveAttribute("aria-pressed", "true");
     await expect(star).toBeEnabled();
-    await history.locator(`[data-emblem-key="year-${previousYear - 1}-승률"]`).click();
+    await page.keyboard.press("Escape");
+    await annualPin.click();
     await star.focus();
     await star.click();
     await expect(star).toHaveAttribute("aria-pressed", "true");
@@ -231,6 +234,8 @@ test("award cases prefer the best recent grade and filter full history by gold, 
     const persistedPicks = async () => (await isolated.service.from("clan_personal_emblem_picks").select("emblem_keys")
       .eq("clan_id", isolated.clanId).eq("user_id", user.id).single()).data?.emblem_keys;
     expect(await persistedPicks()).toEqual(originalPicks);
+    await page.keyboard.press("Escape");
+    await monthlyWin.click();
     await history.locator(`[data-emblem-key="month-${previousYear}-04-승률"]`).click();
     await star.focus();
     await star.click();

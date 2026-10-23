@@ -8,7 +8,7 @@ async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>): Promise<N
   return result.data as NonNullable<T>;
 }
 
-test("게임 아이콘 필터는 분류 옆에서 키보드·모바일·상세를 함께 갱신한다", async ({ page }, info) => {
+test("게임 아이콘 필터와 월간·연간 진열은 키보드·모바일·상세 이력을 유지한다", async ({ page }, info) => {
   test.setTimeout(90_000);
   const f = await createIsolatedBalanceFixture(1);
   let valClan: string | undefined;
@@ -19,6 +19,9 @@ test("게임 아이콘 필터는 분류 옆에서 키보드·모바일·상세�
     await ok(f.service.from("clan_members").insert({ clan_id: valClan, user_id: f.users[0].id, role: "leader", status: "active" }));
     for (const [index, clanId] of [f.clanId, valClan].entries()) await ok(f.service.rpc("finalize_clan_personal_emblem_awards", {
       p_clan_id: clanId, p_period_type: "month", p_period_key: "2024-02", p_awards: [{ user_id: f.users[0].id, family: "victory", rank: index + 1 }],
+    }));
+    await ok(f.service.rpc("finalize_clan_personal_emblem_awards", {
+      p_clan_id: valClan, p_period_type: "year", p_period_key: "2024", p_awards: [{ user_id: f.users[0].id, family: "victory", rank: 1 }],
     }));
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.goto("/profile/emblems");
@@ -38,11 +41,21 @@ test("게임 아이콘 필터는 분류 옆에서 키보드·모바일·상세�
     await game.getByRole("radio", { name: "전체 게임", exact: true }).focus();
     await page.keyboard.press("End");
     await expect(game.getByRole("radio", { name: valorant.name_ko, exact: true })).toBeChecked();
-    await expect(view.locator("[data-emblem-entry]")).toHaveAttribute("data-emblem-clan", valClan);
-    await view.locator("[data-emblem-entry] [data-emblem-key]").click();
+    const monthly = view.getByRole("region", { name: "월간 수상 엠블럼", exact: true });
+    const annual = view.getByRole("region", { name: "연간 수상 엠블럼", exact: true });
+    await expect(monthly.locator("[data-emblem-entry]")).toHaveAttribute("data-emblem-clan", valClan);
+    await expect(annual.locator("[data-emblem-entry]")).toHaveAttribute("data-emblem-clan", valClan);
+    await monthly.locator("[data-emblem-key]").click();
     const dialog = page.getByRole("dialog");
-    await dialog.getByRole("radiogroup", { name: "엠블럼 게임", exact: true }).getByRole("radio", { name: "오버워치", exact: true }).click();
-    await expect(dialog.getByRole("region", { name: "엠블럼 상세", exact: true }).getByText("오버워치", { exact: true })).toBeVisible();
+    await expect(dialog.getByRole("radiogroup", { name: "엠블럼 게임", exact: true })).toHaveCount(0);
+    await expect(dialog.locator("[data-emblem-entry]")).toHaveCount(1);
+    await expect(dialog.locator("[data-emblem-key]")).toHaveAttribute("data-emblem-key", "month-2024-02-승률");
+    await expect(dialog.getByRole("region", { name: "엠블럼 상세", exact: true }).getByText("발로란트", { exact: true })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await annual.locator("[data-emblem-key]").click();
+    await expect(dialog.getByRole("heading", { name: "연간 승률 1위", exact: true })).toBeVisible();
+    await expect(dialog.locator("[data-emblem-entry]")).toHaveCount(1);
+    await expect(dialog.locator("[data-emblem-key]")).toHaveAttribute("data-emblem-key", "year-2024-승률");
     await page.keyboard.press("Escape");
     await game.getByRole("radio", { name: "오버워치", exact: true }).focus();
     await page.keyboard.press("Home");
@@ -138,16 +151,12 @@ test("one personal case keeps cross-game clan records after leaving, with source
     await expect(valEntry.locator("[data-emblem-feature-key]")).toHaveAttribute("aria-pressed", "true");
     expect((await ok(f.service.from("clan_personal_emblem_picks").select("emblem_keys").eq("clan_id", valClan).eq("user_id", owner.id).single())).emblem_keys).toEqual([key]);
     expect((await ok(f.service.from("clan_personal_emblem_picks").select("emblem_keys").eq("clan_id", f.clanId).eq("user_id", owner.id).single())).emblem_keys).toEqual([]);
-    const popupGame = details.getByRole("radiogroup", { name: "엠블럼 게임", exact: true });
-    await popupGame.getByRole("radio", { name: "발로란트", exact: true }).click();
-    await expect(history.locator("[data-emblem-key]")).toHaveCount(1);
+    await expect(details.getByRole("radiogroup", { name: "엠블럼 게임", exact: true })).toHaveCount(0);
     const grades = details.getByRole("radiogroup", { name: "수상 등급", exact: true });
     await grades.getByRole("radio", { name: "동", exact: true }).click();
-    await expect(history.getByRole("status")).toContainText("이 등급의 수상 이력이 없습니다.");
+    await expect(history.locator("[data-emblem-key]")).toHaveCount(1);
+    await expect(facts.getByText("QA 이전 클랜", { exact: true })).toBeVisible();
     await grades.getByRole("radio", { name: "전체", exact: true }).click();
-    await popupGame.getByRole("radio", { name: "오버워치", exact: true }).click();
-    await expect(history.locator(`[data-emblem-key="${key}"]`)).toHaveCount(2);
-    await popupGame.getByRole("radio", { name: "전체 게임", exact: true }).click();
     await expect(history.locator(`[data-emblem-key="${key}"]`)).toHaveCount(3);
     await expect(page.getByText("대표 엠블럼을 저장했습니다.", { exact: true })).toHaveCount(0, { timeout: 8000 });
     await details.screenshot({ path: info.outputPath("personal-emblem-library-detail.png") });

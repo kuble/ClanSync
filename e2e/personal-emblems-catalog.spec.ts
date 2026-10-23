@@ -49,7 +49,7 @@ test("연간 수상은 12월 수상과 같은 마감 시점으로 자동 대표�
   expect(resolveFeaturedKeys(awards, null)).toEqual(["annual", "12", "11"]);
 });
 
-test("종류별 진열은 최고 등급 중 최신 수상을 우선하고 전체 이력은 최신순을 유지한다", () => {
+test("월간·연간은 각각 최고 등급 중 최신 수상을 진열하고 전체 이력은 최신순을 유지한다", () => {
   const awards = awardEmblems([
     { key: "old-gold", category: "승률", date: "2025-12", period: "month", rank: 1 },
     { key: "latest-bronze", category: "승률", date: "2026-02", period: "month", rank: 3 },
@@ -58,9 +58,9 @@ test("종류별 진열은 최고 등급 중 최신 수상을 우선하고 전체
     { key: "appearances", category: "최다 출전", date: "2025-08", period: "month", rank: 1 },
     { key: "earlier-victory", category: "승률", date: "2024-09", period: "month", rank: 1 },
   ]);
-  expect(getAwardRepresentatives(awards).map(entry => entry.key)).toEqual(["recent-gold", "appearances"]);
+  expect(getAwardRepresentatives(awards).map(entry => entry.key)).toEqual(["recent-gold", "appearances", "annual-silver"]);
   expect(getAwardRepresentatives(awards.filter(entry => entry.date?.startsWith("2025"))).map(entry => entry.key))
-    .toEqual(["old-gold", "appearances"]);
+    .toEqual(["old-gold", "appearances", "annual-silver"]);
   expect(getAwardHistory(awards).map(entry => entry.key))
     .toEqual(["latest-bronze", "recent-gold", "annual-silver", "old-gold", "appearances", "earlier-victory"]);
   const fallback = awardEmblems([
@@ -68,7 +68,7 @@ test("종류별 진열은 최고 등급 중 최신 수상을 우선하고 전체
     { key: "newer-bronze", category: "승률", date: "2026-09", period: "month", rank: 3 },
     { key: "bronze-only", category: "최다 출전", date: "2025-08", period: "month", rank: 3 },
   ]);
-  expect(getAwardRepresentatives(fallback).map(entry => entry.key)).toEqual(["silver", "bronze-only"]);
+  expect(getAwardRepresentatives(fallback).map(entry => entry.key)).toEqual(["newer-bronze", "bronze-only", "silver"]);
   expect(getAwardHistory(milestoneEmblems({ sessions: 0, matches: 0, wins: 0, streak: 0, prediction: 0 }))).toEqual([]);
 });
 

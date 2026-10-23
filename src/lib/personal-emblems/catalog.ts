@@ -48,10 +48,10 @@ export function getAwardHistory<T extends PersonalEmblem>(entries: readonly T[])
 
 export function getAwardRepresentatives<T extends PersonalEmblem>(entries: readonly T[]): T[] {
   const history = getAwardHistory(entries).sort((a, b) => (a.rank ?? 4) - (b.rank ?? 4));
-  return Object.values(awardFamilies).flatMap(family => {
-    const latest = history.find(entry => entry.family === family);
+  return (["month", "year"] as const).flatMap(period => Object.values(awardFamilies).flatMap(family => {
+    const latest = history.find(entry => entry.family === family && entry.period === period);
     return latest ? [latest] : [];
-  });
+  }));
 }
 
 /** Explicit empty picks stay empty; hidden records are excluded and earned milestones advance to their highest stage. */
