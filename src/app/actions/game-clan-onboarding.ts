@@ -1,4 +1,5 @@
 "use server";
+import { parseRiotId } from "@/lib/game-auth/riot-id";
 import { safeNextPath } from "@/lib/auth/safe-next-path";
 
 import { revalidatePath } from "next/cache";
@@ -42,6 +43,7 @@ export type ActionResult = { ok: true } | { ok: false; error: string };
 export async function linkGameAccountDevAction(
   gameSlug: string,
   battleTag?: string,
+  riotId?: string,
 ): Promise<ActionResult> {
   if (!allowDevGameLink(process.env)) {
     return { ok: false, error: "이 환경에서는 시뮬레이션 연동을 사용할 수 없습니다." };
@@ -72,6 +74,8 @@ export async function linkGameAccountDevAction(
   if (gameSlug === "overwatch" && !tag) {
     return { ok: false, error: "배틀태그 전체를 입력해 주세요. 예: AimZero#12345" };
   }
+  const riot = gameSlug === "valorant" ? parseRiotId(riotId ?? "") : null;
+  if (gameSlug === "valorant" && !riot) return { ok: false, error: "라이엇 ID 전체를 입력해 주세요. 예: Player#KR1" };
 
   const stamp = new Date().toISOString();
   const svcWrap = tryCreateServiceRoleClient();
@@ -85,6 +89,7 @@ export async function linkGameAccountDevAction(
       game_id: game.id,
       game_uid: existing.data?.game_uid ?? `dev:${game.slug}:${user.id.slice(0, 8)}`,
       ...(tag ? { battle_tag: tag } : {}),
+      ...(riot ? { riot_id: riot } : {}),
       is_verified: true,
       verified_at: stamp,
       updated_at: stamp,
@@ -93,7 +98,7 @@ export async function linkGameAccountDevAction(
   );
 
   if (error) return { ok: false, error: error.code === "23505"
-    ? "이미 다른 계정에 연결된 배틀태그입니다. #번호까지 확인해 주세요."
+    ? "이미 다른 계정에 연결된 게임 ID입니다. #뒷부분까지 확인해 주세요."
     : "계정을 연결하지 못했습니다. 잠시 후 다시 시도해 주세요." };
 
   revalidatePath("/games");
@@ -116,7 +121,7 @@ export async function linkGameAccountDevSubmitAction(
   const nextRaw = formData.get("nextPath");
   const nextPath = safeNextPath(nextRaw, "") || undefined;
 
-  const r = await linkGameAccountDevAction(gameSlug, String(formData.get("battleTag") ?? ""));
+  const r = await linkGameAccountDevAction(gameSlug, String(formData.get("battleTag") ?? ""), String(formData.get("riotId") ?? ""));
   if (!r.ok) return { error: r.error };
 
   const target =
