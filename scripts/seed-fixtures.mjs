@@ -11,6 +11,7 @@ import {
   QA_SEED_ACCOUNTS,
   QA_SEED_CLANS,
   qaFixtureEmail,
+  qaFixtureBattleTag,
 } from "./fixtures/qa-fixtures.mjs";
 
 Object.assign(process.env, loadTestEnv());
@@ -106,13 +107,14 @@ async function ensureVerifiedGameProfiles(ids, gameSlug) {
     process.exit(1);
   }
 
-  for (const uid of ids) {
+  for (const [index, uid] of ids.entries()) {
     const suffix = uid.replace(/-/g, "").slice(0, 12);
     const { error } = await supabase.from("user_game_profiles").upsert(
       {
         user_id: uid,
         game_id: game.id,
         game_uid: `qa_seed_${suffix}`,
+        ...(gameSlug === "overwatch" ? { battle_tag: qaFixtureBattleTag(QA_SEED_ACCOUNTS[index].rolePascal, QA_SEED_ACCOUNTS[index].numbering) } : {}),
         is_verified: true,
         verified_at: new Date().toISOString(),
       },

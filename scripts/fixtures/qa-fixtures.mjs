@@ -32,6 +32,13 @@ export const QA_SEED_ACCOUNTS = [
   }),
 ];
 
+/** Display-only QA identity. Never changes the provider ID or touches non-fixture accounts. */
+export function qaFixtureBattleTag(rolePascal, numbering) {
+  if (!QA_SEED_ACCOUNTS.some((a) => a.rolePascal === rolePascal && a.numbering === numbering)) throw new Error("Unknown QA fixture account");
+  const prefix = { Leader: 1_000, Member: 2_000, Admin: 3_000 }[rolePascal];
+  return `QA${rolePascal}${numbering}#${prefix + Number(numbering)}`;
+}
+
 export const QA_SEED_CLANS = [
   {
     gameSlug: "overwatch",
