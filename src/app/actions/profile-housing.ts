@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { housingRpcResult, loadHousingState } from "@/lib/housing/load";
-import { HOUSING_FLOORS, HOUSING_WALLPAPERS } from "@/lib/housing/domain";
+import { HOUSING_FLOORS, HOUSING_SURFACES, HOUSING_WALLPAPERS } from "@/lib/housing/domain";
 import type { HousingResult, SaveHousingRoomInput } from "@/lib/housing/types";
 
 export async function loadHousingAction(): Promise<HousingResult> {
@@ -36,7 +36,9 @@ export async function saveHousingRoomAction(input: SaveHousingRoomInput): Promis
       || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(placement.inventoryId)
       || ![placement.x, placement.y, placement.rotation].every(Number.isInteger)
       || placement.x < 0 || placement.x > 5 || placement.y < 0 || placement.y > 5
-      || placement.rotation < 0 || placement.rotation > 3)) {
+      || placement.rotation < 0 || placement.rotation > 3
+      || (placement.surface !== undefined && !HOUSING_SURFACES.includes(placement.surface))
+      || (placement.surface !== undefined && placement.surface !== "floor" && (placement.y > 3 || placement.rotation !== 0)))) {
     return { ok: false, error: "가구의 위치와 회전을 확인해 주세요." };
   }
   try {

@@ -11,6 +11,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   housing_item_not_owned: "보유한 가구만 배치할 수 있습니다.",
   housing_overlap: "가구가 겹치지 않도록 배치해 주세요.",
   housing_out_of_bounds: "가구가 방 안에 들어오도록 배치해 주세요.",
+  housing_invalid_surface: "벽 가구는 벽에, 바닥 가구는 바닥에 배치해 주세요.",
   housing_stale_revision: "다른 탭에서 방이 변경되었습니다. 새로 불러온 뒤 다시 꾸며 주세요.",
 };
 
@@ -26,7 +27,12 @@ export function housingRpcResult(data: unknown, error: { message?: string; code?
     || !Number.isInteger((data as HousingState).room.revision) || !Number.isInteger((data as HousingState).coinBalance)) {
     return { ok: false, error: "방 정보를 불러오지 못했습니다. 다시 시도해 주세요." };
   }
-  return { ok: true, state: data as HousingState };
+  const state = data as HousingState;
+  return { ok: true, state: {
+    ...state,
+    catalog: state.catalog.map((item) => ({ ...item, mount: item.mount ?? "floor", wallLayer: item.wallLayer ?? null })),
+    inventory: state.inventory.map((item) => ({ ...item, surface: item.surface ?? "floor" })),
+  } };
 }
 
 export async function loadHousingState(): Promise<HousingResult> {

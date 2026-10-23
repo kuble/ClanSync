@@ -1,4 +1,6 @@
 export type HousingCategory = "seating" | "table" | "storage" | "decor" | "lighting";
+export type HousingSurface = "floor" | "wall-left" | "wall-right";
+export type HousingWallLayer = "decor" | "window" | "curtain";
 
 export type HousingCatalogItem = {
   id: string;
@@ -10,6 +12,8 @@ export type HousingCatalogItem = {
   depth: number;
   visualKey: string;
   isStarter: boolean;
+  mount: "floor" | "wall";
+  wallLayer: HousingWallLayer | null;
 };
 
 export type HousingInventoryItem = {
@@ -18,6 +22,7 @@ export type HousingInventoryItem = {
   x: number | null;
   y: number | null;
   rotation: number;
+  surface?: HousingSurface;
 };
 
 export type HousingPlacement = {
@@ -25,6 +30,7 @@ export type HousingPlacement = {
   x: number;
   y: number;
   rotation: number;
+  surface?: HousingSurface;
 };
 
 export type HousingState = {

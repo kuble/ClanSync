@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { createIsolatedBalanceFixture } from "../e2e/isolated-balance-fixture.ts";
 import { loadTestEnv } from "./test-env.mjs";
+import { canPlaceHousingItem } from "../src/lib/housing/domain.ts";
 
 async function ok(query) {
   const { data, error } = await query;
@@ -36,17 +37,32 @@ test("housing preserves personal coin accounting, ownership and atomic revisione
   let state;
   let otherState;
 
-  await t.test("initialization is idempotent, owns three placed starters and never grants or spends coins", async () => {
+  await t.test("initialization grants ten starters once and preserves an existing room's layout and revision", async () => {
+    await ok(f.service.from("user_housing_rooms").insert({ user_id: f.users[1].id, revision: 7, wallpaper: "rose", floor: "ivory" }));
+    await ok(f.service.from("user_housing_inventory").insert([
+      { user_id: f.users[1].id, catalog_id: "mint-sofa", acquired_price: 0, x: 4, y: 4, rotation: 1 },
+      { user_id: f.users[1].id, catalog_id: "low-table", acquired_price: 0, x: null, y: null, rotation: 2 },
+      { user_id: f.users[1].id, catalog_id: "small-plant", acquired_price: 0, x: 0, y: 0, rotation: 0 },
+    ]));
     const states = await Promise.all([read(), read()]);
     assert.deepEqual(states[0], states[1]);
     state = states[0];
     otherState = await read(other);
-    assert.equal(state.catalog.length, 16);
+    assert.equal(state.catalog.length, 23);
     assert.equal(state.coinBalance, 1000);
     assert.equal(otherState.coinBalance, 0);
     assert.equal(state.room.revision, 0);
-    assert.deepEqual(state.inventory.map((i) => i.catalogId).sort(), ["low-table", "mint-sofa", "small-plant"]);
+    assert.equal(state.inventory.length, 10);
+    assert.deepEqual(state.inventory.filter((i) => i.surface === "floor").map((i) => i.catalogId).sort(), ["low-table", "mint-sofa", "small-plant"]);
     assert.ok(state.inventory.every((i) => i.x !== null && i.y !== null && i.rotation === 0));
+    assert.equal(state.inventory.filter((i) => i.surface !== "floor").length, 7);
+    assert.equal(state.catalog.filter((i) => i.mount === "wall" && i.isStarter && i.price === 0).length, 7);
+    assert.deepEqual(otherState.room, { revision: 7, wallpaper: "rose", floor: "ivory" });
+    assert.deepEqual(otherState.inventory.filter((i) => i.surface === "floor").map(({ catalogId, x, y, rotation }) => ({ catalogId, x, y, rotation })).sort((a, b) => a.catalogId.localeCompare(b.catalogId)), [
+      { catalogId: "low-table", x: null, y: null, rotation: 2 },
+      { catalogId: "mint-sofa", x: 4, y: 4, rotation: 1 },
+      { catalogId: "small-plant", x: 0, y: 0, rotation: 0 },
+    ]);
     assert.deepEqual(await ledger(), []);
     assert.deepEqual(await ledger(1), []);
   });
@@ -95,7 +111,7 @@ test("housing preserves personal coin accounting, ownership and atomic revisione
     assert.equal(entries.length, 1);
     assert.equal(100 + entries[0].amount, otherState.coinBalance);
     assert.equal(entries[0].balance_after, otherState.coinBalance);
-    assert.equal(otherState.inventory.length, 4);
+    assert.equal(otherState.inventory.length, 11);
     assert.deepEqual(await read(), state);
   });
 
@@ -150,7 +166,7 @@ test("housing preserves personal coin accounting, ownership and atomic revisione
     assert.deepEqual(state.room, { revision: 1, wallpaper: "sage", floor: "walnut" });
     assert.deepEqual(state.inventory.find((i) => i.id === desk.id), { ...desk, x: 5, y: 0, rotation: 1 });
     assert.deepEqual(state.inventory.find((i) => i.id === bed.id), { ...bed, x: 2, y: 3, rotation: 1 });
-    assert.equal(state.inventory.filter((i) => i.x === null && i.y === null).length, 3);
+    assert.equal(state.inventory.filter((i) => i.x === null && i.y === null).length, 10);
     assert.equal(state.coinBalance, 560);
     assert.deepEqual(await ledger(), entries);
     assert.deepEqual(await read(other), otherState);
@@ -211,5 +227,52 @@ test("housing preserves personal coin accounting, ownership and atomic revisione
     assert.equal((await ledger()).length, 2);
     assert.equal(state.coinBalance, 560);
     assert.equal((await ok(f.service.from("clans").select("coin_balance").eq("id", f.clanId).single())).coin_balance, clanBefore);
+  });
+
+  await t.test("wall placement validates surface, height, layers and ownership atomically and matches client previews", async () => {
+    const item = (id) => state.inventory.find((i) => i.catalogId === id);
+    const placement = (id, surface, x = 1, y = 1) => ({ inventoryId: item(id).id, surface, x, y, rotation: 0 });
+    const window = placement("wall-window", "wall-left");
+    const curtain = placement("wall-curtains", "wall-left");
+    const clock = placement("wall-clock", "wall-right");
+    const floor = placement("mint-sofa", "floor");
+    const layouts = [
+      { valid: true, value: [window, curtain, clock, floor] },
+      { valid: true, value: [curtain, window, clock, floor] },
+      { valid: true, value: [window, { ...clock, surface: "wall-right", x: 1, y: 1 }] },
+      { valid: true, value: [placement("wall-shelf", "wall-right", 4, 3)] },
+      { valid: true, value: [{ ...floor, surface: undefined }] },
+      { valid: false, value: [window, { ...clock, surface: "wall-left" }] },
+      { valid: false, value: [window, curtain, { ...clock, surface: "wall-left" }] },
+      { valid: false, value: [{ ...clock, surface: "wall-left" }, curtain, window] },
+      { valid: false, value: [placement("wall-window", "wall-right", 5, 0)] },
+      { valid: false, value: [placement("wall-window", "wall-right", 0, 3)] },
+      { valid: false, value: [placement("wall-clock", "wall-right", 0, 4)] },
+      { valid: false, value: [{ ...window, rotation: 1 }] },
+      { valid: false, value: [{ ...window, surface: "floor" }] },
+      { valid: false, value: [{ ...floor, surface: "wall-left" }] },
+      { valid: false, value: [{ ...window, surface: "ceiling" }] },
+      { valid: false, value: [{ ...window, surface: null }] },
+      { valid: false, value: [{ ...floor, surface: null }] },
+      { valid: false, value: [{ ...window, surface: undefined }] },
+      { valid: false, value: [{ ...window, x: .5 }] },
+      { valid: false, value: [{ ...window, inventoryId: otherState.inventory.find((i) => i.catalogId === "wall-window").id }] },
+    ];
+    const entries = await ledger();
+    for (const { valid, value } of layouts) {
+      assert.equal(value.every((candidate) => canPlaceHousingItem(candidate, value, state.inventory, state.catalog)), valid, `Client parity: ${JSON.stringify(value)}`);
+      const before = state;
+      const result = await save(state.room.revision, value);
+      assert.equal(!result.error, valid, result.error?.message ?? `Unexpected acceptance: ${JSON.stringify(value)}`);
+      if (valid) state = result.data;
+      else assert.deepEqual(await read(), before);
+    }
+    state = await ok(save(state.room.revision, [window, curtain]));
+    assert.equal(state.inventory.find((i) => i.id === window.inventoryId).surface, "wall-left");
+    assert.deepEqual(await read(), state);
+    state = await ok(save(state.room.revision, []));
+    assert.ok(state.inventory.every((i) => i.x === null && i.y === null));
+    assert.deepEqual(await read(), state, "Stored window and curtain must not be restored by initialization");
+    assert.deepEqual(await ledger(), entries);
   });
 });

@@ -1,6 +1,8 @@
-import type { HousingCatalogItem, HousingInventoryItem, HousingPlacement } from "./types";
+import type { HousingCatalogItem, HousingInventoryItem, HousingPlacement, HousingSurface } from "./types";
 
 export const HOUSING_GRID_SIZE = 6;
+export const HOUSING_WALL_HEIGHT = 4;
+export const HOUSING_SURFACES: readonly HousingSurface[] = ["floor", "wall-left", "wall-right"];
 export const HOUSING_WALLPAPERS = ["cream", "sage", "rose", "midnight"] as const;
 export const HOUSING_FLOORS = ["oak", "walnut", "ivory"] as const;
 
@@ -22,13 +24,20 @@ export function canPlaceHousingItem(
   const owned = inventory.find((entry) => entry.id === candidate.inventoryId);
   const item = catalog.find((entry) => entry.id === owned?.catalogId);
   if (!item) return false;
+  const surface = candidate.surface === undefined ? "floor" : candidate.surface;
+  if (!HOUSING_SURFACES.includes(surface)
+    || (item.mount === "wall" ? surface === "floor" || candidate.rotation !== 0 : surface !== "floor")) return false;
   const size = getHousingFootprint(item, candidate.rotation);
-  if (candidate.x + size.width > HOUSING_GRID_SIZE || candidate.y + size.depth > HOUSING_GRID_SIZE) return false;
+  if (candidate.x + size.width > HOUSING_GRID_SIZE
+    || candidate.y + size.depth > (surface === "floor" ? HOUSING_GRID_SIZE : HOUSING_WALL_HEIGHT)) return false;
   return placements.every((other) => {
     if (other.inventoryId === candidate.inventoryId) return true;
+    if ((other.surface ?? "floor") !== surface) return true;
     const otherOwned = inventory.find((entry) => entry.id === other.inventoryId);
     const otherItem = catalog.find((entry) => entry.id === otherOwned?.catalogId);
     if (!otherItem) return false;
+    if (surface !== "floor" && ((item.wallLayer === "window" && otherItem.wallLayer === "curtain")
+      || (item.wallLayer === "curtain" && otherItem.wallLayer === "window"))) return true;
     const otherSize = getHousingFootprint(otherItem, other.rotation);
     return candidate.x + size.width <= other.x || other.x + otherSize.width <= candidate.x
       || candidate.y + size.depth <= other.y || other.y + otherSize.depth <= candidate.y;

@@ -2102,10 +2102,12 @@ export type Database = {
           id: string
           is_active: boolean
           is_starter: boolean
+          mount: string
           name: string
           price: number
           sort_order: number
           visual_key: string
+          wall_layer: string | null
           width: number
         }
         Insert: {
@@ -2115,10 +2117,12 @@ export type Database = {
           id: string
           is_active?: boolean
           is_starter?: boolean
+          mount?: string
           name: string
           price: number
           sort_order: number
           visual_key: string
+          wall_layer?: string | null
           width: number
         }
         Update: {
@@ -2128,10 +2132,12 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_starter?: boolean
+          mount?: string
           name?: string
           price?: number
           sort_order?: number
           visual_key?: string
+          wall_layer?: string | null
           width?: number
         }
         Relationships: []
@@ -3165,6 +3171,7 @@ export type Database = {
           coin_transaction_id: string | null
           id: string
           rotation: number
+          surface: string
           user_id: string
           x: number | null
           y: number | null
@@ -3176,6 +3183,7 @@ export type Database = {
           coin_transaction_id?: string | null
           id?: string
           rotation?: number
+          surface?: string
           user_id: string
           x?: number | null
           y?: number | null
@@ -3187,6 +3195,7 @@ export type Database = {
           coin_transaction_id?: string | null
           id?: string
           rotation?: number
+          surface?: string
           user_id?: string
           x?: number | null
           y?: number | null
