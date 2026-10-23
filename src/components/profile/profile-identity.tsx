@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useId, useRef, useState } from "react";
-import { UserRound } from "lucide-react";
 import { GameLogo } from "@/components/ui/game-logo";
 import { PersonalEmblemCaseLauncher } from "@/components/personal-emblems/personal-emblem-case";
 import { ProfileIntro } from "./profile-intro";
@@ -22,11 +21,6 @@ export function ProfileIdentity({ userId, intro, memberships, readOnly = false }
     if (card) track.current?.scrollTo({ left: card.offsetLeft });
   }
   return <section className={styles.playerIdentity} aria-label="플레이어 소개">
-    <div className={styles.playerName}>
-      <span className={styles.playerAvatar} aria-hidden="true"><UserRound size={30} strokeWidth={1.6} /></span>
-      <h1 className="sr-only">플레이어 프로필</h1>
-    </div>
-    {readOnly ? intro && <p className={styles.visitorIntro}>{intro}</p> : <ProfileIntro initialIntro={intro} />}
     {memberships.length ? <div className={styles.clanProfiles} role="region" aria-label="클랜 프로필" aria-roledescription="캐러셀">
       <div id={trackId} ref={track} className={styles.clanTrack} tabIndex={memberships.length > 1 ? 0 : undefined} aria-label="좌우로 넘겨 클랜 보기"
         onScroll={(event) => {
@@ -54,6 +48,7 @@ export function ProfileIdentity({ userId, intro, memberships, readOnly = false }
         <span className="sr-only" role="status" aria-label="현재 클랜" aria-live="polite">{current + 1} / {memberships.length}</span>
       </nav>}
     </div> : !readOnly ? <div className={styles.playerClan}><p>클랜에서 함께한 기록이 이곳에 쌓입니다.</p><Link href="/games" className={styles.playerClanLink}>클랜 찾아보기</Link></div> : null}
+    {readOnly ? intro && <p className={styles.visitorIntro}>{intro}</p> : <ProfileIntro initialIntro={intro} />}
     <section className={styles.playerEmblems} aria-label="대표 엠블럼">
       <h2>대표 엠블럼</h2>
       <PersonalEmblemCaseLauncher variant="profile" userId={userId} nickname="플레이어" />

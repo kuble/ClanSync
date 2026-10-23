@@ -14,15 +14,27 @@ async function expectComposition(page: Page, intro: Locator, housing: Locator, w
   const [identity, room] = await Promise.all([intro.boundingBox(), housing.boundingBox()]);
   expect(identity).not.toBeNull();
   expect(room).not.toBeNull();
-  if (width >= 1024) {
+  if (width > 760) {
     expect(identity!.x + identity!.width).toBeLessThanOrEqual(room!.x + 1);
     expect(Math.abs(identity!.y - room!.y)).toBeLessThan(80);
   } else {
     expect(identity!.y + identity!.height).toBeLessThanOrEqual(room!.y + 1);
   }
+  const emblems = intro.getByRole("region", { name: "대표 엠블럼", exact: true });
+  const heading = await emblems.getByRole("heading", { name: "대표 엠블럼", exact: true }).boundingBox();
+  const launcher = await emblems.locator("[data-personal-emblem-launcher]").boundingBox();
+  const summary = await intro.getByRole("button", { name: "한 줄 소개 편집", exact: true }).locator("..").boundingBox();
+  expect(summary!.y + summary!.height).toBeLessThanOrEqual(heading!.y);
+  expect(heading!.y + heading!.height).toBeLessThanOrEqual(launcher!.y);
+  expect(Math.abs(heading!.x - launcher!.x)).toBeLessThan(1);
+  const clans = intro.getByRole("region", { name: "클랜 프로필", exact: true });
+  if (await clans.isVisible()) {
+    const cards = await clans.boundingBox();
+    expect(cards!.y + cards!.height).toBeLessThanOrEqual(summary!.y);
+  }
 }
 
-test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소개 저장은 꾸미기 초안을 보존한다", async ({ page }) => {
+test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소개 저장은 꾸미기 초안을 보존한다", async ({ page }, info) => {
   test.setTimeout(150_000);
   const fixture = await createIsolatedBalanceFixture(1);
   const [user] = fixture.users;
@@ -42,6 +54,7 @@ test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소
     const housing = page.getByRole("region", { name: "프로필 하우징", exact: true });
     const scene = housing.getByRole("group", { name: "나의 방", exact: true });
     await expect(hero.getByRole("heading", { name: user.nickname, level: 1, exact: true })).toHaveCount(0);
+    await expect(hero.getByRole("heading", { name: "플레이어 프로필", exact: true })).toHaveCount(0);
     await expect(intro.getByRole("article").getByText(battleTag, { exact: true })).toBeVisible();
     await expect(intro.getByRole("navigation", { name: "클랜 페이지", exact: true })).toHaveCount(0);
     await expect(hero.getByRole("region", { name: "플레이어 소개", exact: true })).toBeVisible();
@@ -124,8 +137,24 @@ test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소
     await page.getByRole("tab", { name: "3D 미니룸", exact: true }).click();
     await expect(intro.getByRole("img", { name: "오버워치 로고", exact: true }).first()).toBeVisible();
 
-    for (const width of [1280, 390, 320]) {
+    for (const width of [1280, 908, 509, 390, 320]) {
       await expectComposition(page, intro, housing, width);
+      if (width <= 640) {
+        const toolbar = housing.getByRole("toolbar", { name: "방 꾸미기 도구", exact: true });
+        await expect(toolbar.getByText("개인 상점", { exact: true })).toBeVisible();
+        await expect(toolbar.getByText("방 꾸미기", { exact: true })).toBeVisible();
+        expect((await toolbar.boundingBox())!.width).toBeLessThan((await housing.boundingBox())!.width - 24);
+        await toolbar.getByRole("button", { name: "방 꾸미기", exact: true }).click();
+        for (const name of ["내 가구", "방 분위기", "편집 취소", "방 저장"]) {
+          expect((await toolbar.getByRole("button", { name, exact: true }).boundingBox())!.height).toBeGreaterThanOrEqual(44);
+        }
+        await toolbar.getByRole("button", { name: "방 분위기", exact: true }).click();
+        const panel = await housing.getByRole("region", { name: "방 분위기", exact: true }).boundingBox();
+        expect(panel!.y + panel!.height).toBeLessThan((await toolbar.boundingBox())!.y);
+        await toolbar.getByRole("button", { name: "편집 취소", exact: true }).click();
+        await expect(toolbar.getByRole("button", { name: "방 꾸미기", exact: true })).toBeVisible();
+        if (width === 509 || width === 320) await hero.screenshot({ path: info.outputPath(`profile-layout-${width}.png`) });
+      }
       await accountTab.click();
       await expect(settings).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);

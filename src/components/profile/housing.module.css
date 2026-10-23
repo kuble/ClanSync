@@ -57,6 +57,7 @@
 .balance strong { color:var(--foreground); font-variant-numeric:tabular-nums; font-weight:600; }
 .roomToolbar { position:absolute; right:18px; top:18px; display:flex; align-items:center; gap:4px; padding:5px; border:1px solid var(--border); background:color-mix(in srgb,var(--background) 94%,transparent); border-radius:12px; box-shadow:0 3px 16px #00000012; }
 .roomToolbar button { font-size:12px; }
+.roomActionLabel { display:none; }
 .toolbarDivider { width:1px; height:20px; background:var(--border); margin:0 3px; }
 .roomPanel { position:absolute; left:18px; right:18px; bottom:18px; max-height:55%; border:1px solid var(--border); border-radius:14px; background:color-mix(in srgb,var(--background) 97%,transparent); box-shadow:0 10px 35px #00000024; padding:10px 12px 12px; display:flex; flex-direction:column; min-height:0; }
 .panelHeader { display:flex; justify-content:space-between; align-items:center; min-height:28px; flex-shrink:0; margin-bottom:3px; }
@@ -122,3 +123,15 @@
 @media(max-width:640px) { .housing[data-embedded="true"] .scene { height:clamp(360px,52svh,450px); } }
 
 @media(pointer:coarse) { .roomToolbar :is(a,button[aria-label="방 꾸미기"]) { min-width:44px; min-height:44px; } }
+@media(max-width:640px) {
+  .roomActionLabel { display:inline; }
+  .roomToolbar[data-editing="false"] { left:auto; right:12px; bottom:12px; gap:6px; padding:6px; }
+  .roomToolbar :is(a,button) { width:auto; min-height:44px; padding-inline:10px; gap:6px; }
+  .roomPanel { bottom:74px; }
+}
+@media(max-width:420px) {
+  .roomToolbar[data-editing="true"] { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; padding:6px; }
+  .roomToolbar[data-editing="true"] button { width:100%; }
+  .roomToolbar[data-editing="true"] .toolbarDivider { display:none; }
+  .roomHud[data-editing="true"] :is(.roomPanel,.selectionPill,.dragFeedback) { bottom:132px; }
+}
