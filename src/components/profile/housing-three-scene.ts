@@ -9,6 +9,7 @@ export type RoomView = {
   wallpaper: string;
   floor: string;
   selectedId: string | null;
+  carryingId?: string | null;
   editing: boolean;
   theme: "light" | "dark";
 };
@@ -156,7 +157,7 @@ export function createHousingScene(host: HTMLDivElement, onProjection: (value: R
     const item = view?.inventory.find((entry) => entry.id === selectedId);
     const model = item ? objects.get(item.id) : undefined;
     const catalog = item ? view?.catalog.find((entry) => entry.id === item.catalogId) : undefined;
-    selection.visible = !!(item && model && catalog);
+    selection.visible = !view?.carryingId && !!(item && model && catalog);
     if (!item || !model || !catalog) return;
     const size = getHousingFootprint(catalog, item.rotation);
     positionFootprint(selection, item.surface ?? "floor", item.x!, item.y!, size.width, size.depth);
@@ -167,7 +168,7 @@ export function createHousingScene(host: HTMLDivElement, onProjection: (value: R
     dragGhost = undefined;
     dragGhostKey = undefined;
     dragFootprint.visible = false;
-    objects.forEach((model) => { model.visible = true; });
+    objects.forEach((model, id) => { model.visible = id !== view?.carryingId; });
     restoreSelection();
   }
   function applyPreview() {

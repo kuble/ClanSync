@@ -5,6 +5,7 @@
 .furnitureHit:focus-visible { outline:2px solid #52714a; outline-offset:3px; background:#f1f6d81f; }
 .furnitureLabel { display:none; position:absolute; bottom:100%; left:50%; transform:translate(-50%,-6px); padding:5px 9px; border-radius:5px; background:#354331ee; color:#fff; font-size:11px; white-space:nowrap; pointer-events:none; }
 .furniture:hover .furnitureLabel,.furniture:focus-visible .furnitureLabel { display:block; }
+.furnitureLabel small { display:block; font-size:10px; opacity:.75; margin-top:2px; }
 .scene[data-wallpaper="sage"] { --wall-left:#bac6ae; --wall-right:#96a48c; }
 .scene[data-wallpaper="rose"] { --wall-left:#dfc3bd; --wall-right:#b99b96; }
 .scene[data-wallpaper="midnight"] { --wall-left:#5b6b81; --wall-right:#3b4a62; }
@@ -102,8 +103,6 @@
 .wallTile[data-valid="false"]:hover { background:#df8e8560; }
 .dragFeedback { position:absolute; z-index:95; left:50%; bottom:18px; transform:translateX(-50%); max-width:90%; padding:8px 13px; border:1px solid #63864e; border-radius:9px; background:#edf5e8f5; color:#284520; font-size:12px; text-align:center; pointer-events:none; }
 .dragFeedback[data-valid="false"] { background:#fff0ebf5; border-color:#bd7464; color:#873d32; }
-.scene[data-dragging="true"] .roomPanel,.scene[data-dragging="true"] .roomToolbar { opacity:0; pointer-events:none; }
-.scene[data-dragging="true"] .roomPanel *,.scene[data-dragging="true"] .roomToolbar * { pointer-events:none; }
 .roomError { position:absolute; left:18px; right:18px; top:76px; display:flex; align-items:center; gap:8px; border:1px solid var(--destructive); border-radius:10px; padding:8px 12px; background:var(--background); color:var(--destructive); font-size:12px; z-index:2; }
 .roomError p { flex:1; }
 .fallbackNote { position:absolute; top:70px; left:22px; font-size:10px; color:var(--muted-foreground); }
@@ -129,7 +128,6 @@
   .roomPanel { bottom:74px; }
 }
 
-.autosaveStatus { color:var(--muted-foreground); font-size:11px; white-space:nowrap; padding-inline:6px; }
 .categories button { min-height:36px; padding-inline:14px; }
 .materialItem { display:grid; justify-items:center; gap:4px; padding:8px; width:100%; min-height:132px; border-radius:8px; cursor:pointer; }
 .materialItem[aria-pressed="true"] { box-shadow:inset 0 0 0 2px var(--primary); background:color-mix(in srgb,var(--primary) 7%,var(--card)); }
@@ -152,10 +150,37 @@
   .roomToolbar[data-editing="true"] { left:auto; right:12px; bottom:12px; gap:2px; padding:4px; }
   .roomPanel { bottom:76px; max-height:calc(100% - 88px); }
   .categories button { min-height:44px; }
-  .autosaveStatus { font-size:10px; padding-inline:2px; }
 }
 @media(max-width:420px) {
   .scene[data-editing="true"] :is(.roomPanel,.selectionPill,.dragFeedback) { bottom:76px; }
 }
 
 .categories button:focus-visible { outline:2px solid var(--ring); outline-offset:-2px; }
+
+.roomPanel { left:0; right:0; bottom:0; padding:8px 16px 12px; max-height:60%; border-radius:18px 18px 0 0; border-bottom:0; box-shadow:0 -8px 32px #0002; animation:drawerIn .18s ease-out; }
+.drawerGrip { flex:none; width:32px; height:4px; margin:0 auto 2px; border-radius:4px; background:var(--muted-foreground); opacity:.4; }
+.storeTarget { flex:none; display:flex; justify-content:center; align-items:center; gap:10px; min-height:56px; border:1px dashed var(--primary); border-radius:12px; color:var(--primary); background:color-mix(in srgb,var(--primary) 10%,var(--card)); font-size:12px; }
+.storeTarget:focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
+.scene[data-storing="true"] .storeTarget { border-style:solid; background:color-mix(in srgb,var(--primary) 22%,var(--card)); box-shadow:inset 0 0 0 1px var(--primary); }
+.scene[data-dragging="true"] .roomPanel :is(.categories,.inventory) { display:none; }
+.scene[data-dragging="true"] .roomPanel { padding:6px 8px; }
+.scene[data-dragging="true"] .drawerGrip,.scene[data-dragging="true"] .panelHeader h3 { display:none; }
+.scene[data-dragging="true"] .panelHeader { min-height:0; height:0; margin:0; }
+.scene[data-dragging="true"] .panelHeader button { position:absolute; right:8px; top:10px; min-width:44px; min-height:44px; }
+.scene[data-dragging="true"] .storeTarget { min-height:52px; margin-right:48px; }
+.scene[data-dragging="true"] .roomToolbar { opacity:.45; pointer-events:none; }
+.scene[data-dragging="true"] .roomToolbar * { pointer-events:none; }
+.scene[data-dragging="true"] .dragFeedback { bottom:76px; }
+.carriedFurniture { position:absolute; z-index:115; width:76px; height:76px; pointer-events:none; transform:translate(-50%,-100%); transform-origin:50% 0; filter:drop-shadow(0 8px 6px #0004); animation:furnitureSway .65s ease-in-out infinite alternate; }
+.carriedFurniture svg { width:100%; height:100%; }
+.scene[data-dragging="true"] .furniture[data-selected="true"] { opacity:0; }
+@keyframes furnitureSway { from { transform:translate(-50%,-100%) rotate(-7deg); } to { transform:translate(-50%,-100%) rotate(7deg); } }
+@keyframes drawerIn { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+@media(max-width:640px) {
+  .roomToolbar,.roomToolbar[data-editing="false"],.roomToolbar[data-editing="true"] { top:56px; bottom:auto; left:10px; right:auto; gap:4px; padding:4px; }
+  .roomPanel,.scene[data-editing="true"] .roomPanel { bottom:0; left:0; right:0; max-height:70%; padding:6px 10px 10px; }
+  .roomPanel .panelHeader button { min-width:44px; min-height:36px; }
+  .scene[data-dragging="true"] .dragFeedback { bottom:76px; font-size:11px; }
+  .carriedFurniture { width:64px; height:64px; }
+}
+@media(prefers-reduced-motion:reduce) { .roomPanel,.carriedFurniture { animation:none; } }

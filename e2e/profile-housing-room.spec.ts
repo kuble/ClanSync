@@ -69,9 +69,8 @@ test("방 안에서 벽 가구를 옮기고 우클릭으로 회전·보관하며
     await expect(async () => expect((await stage.locator("canvas").screenshot()).equals(daylight)).toBe(false)).toPass();
     await setLightTheme(page, true);
 
-    await stage.getByRole("button", { name: "방 꾸미기", exact: true }).click();
     await expect(stage.getByRole("button", { name: "가구 상점", exact: true })).toHaveCount(0);
-    for (const name of ["내 가구", "완료"]) {
+    for (const name of ["내 가구"]) {
       await inside(stage, stage.getByRole("button", { name, exact: true }));
     }
     await stage.getByRole("button", { name: "내 가구", exact: true }).click();
@@ -105,12 +104,8 @@ test("방 안에서 벽 가구를 옮기고 우클릭으로 회전·보관하며
     const owned = stage.getByRole("list", { name: "보유 가구", exact: true });
     await inside(stage, owned);
     await owned.getByRole("button", { name: `${clockName} 꺼내기`, exact: true }).click();
-    const closePanel = stage.getByRole("button", { name: "패널 닫기", exact: true });
-    if (await closePanel.isVisible()) await closePanel.click();
-    await expect(model(clock.id)).toHaveAttribute("data-rotation", "0");
-    await model(clock.id).press("Enter");
-
-    const clockSurface = await model(clock.id).getAttribute("data-surface");
+    await expect(model(clock.id)).toHaveCount(0);
+    const clockSurface = clock.surface;
     const targetSurface: Surface = clockSurface === "wall-left" ? "wall-right" : "wall-left";
     const occupied = new Set<string>();
     for (const item of inventory.filter((entry) => entry.id !== clock.id && entry.surface === targetSurface)) {
@@ -123,20 +118,14 @@ test("방 안에서 벽 가구를 옮기고 우클릭으로 회전·보관하며
     expect(anchor).toBeDefined();
     const wallName = targetSurface === "wall-left" ? "왼쪽 벽" : "오른쪽 벽";
     const target = stage.getByRole("button", { name: `${wallName} 배치 위치 ${anchor.x + 1}열 ${anchor.y + 1}행`, exact: true });
-    const start = await center(model(clock.id));
-    const end = await center(target);
-    await page.mouse.move(start.x, start.y);
-    await page.mouse.down();
-    await page.mouse.move(end.x, end.y, { steps: 15 });
-    await expect(stage.getByTestId("housing-drag-preview")).toHaveAttribute("data-valid", "true");
-    await page.mouse.up();
+    await target.focus(); await target.press("Enter");
     await expect(model(clock.id)).toHaveAttribute("data-surface", targetSurface);
     await expect(model(clock.id)).toHaveAttribute("data-x", String(anchor.x));
     await expect(model(clock.id)).toHaveAttribute("data-y", String(anchor.y));
     await expect(model(clock.id)).toHaveAttribute("aria-pressed", "false");
 
-    await stage.getByRole("button", { name: "완료", exact: true }).click();
-    await expect(stage.getByRole("button", { name: "방 꾸미기", exact: true })).toBeVisible();
+    await expect(stage).toHaveAttribute("data-editing", "false");
+    await expect.poll(async () => (await fixture.service.from("user_housing_inventory").select("surface,x,y").eq("id", clock.id).single()).data).toEqual({ surface: targetSurface, x: anchor.x, y: anchor.y });
     await page.reload();
     await expect(model(clock.id)).toHaveAttribute("data-surface", targetSurface);
     await expect(model(clock.id)).toHaveAttribute("data-x", String(anchor.x));

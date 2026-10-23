@@ -14,16 +14,15 @@ test("프로필은 방·네임카드의 아이콘에서 상점과 편집을 열�
     await expect(page.getByRole("navigation", { name: "게임별 클랜", exact: true })).toHaveCount(0);
     const housing = page.getByRole("region", { name: "프로필 하우징", exact: true });
     const roomTools = housing.getByRole("toolbar", { name: "방 꾸미기 도구", exact: true });
-    const editRoom = roomTools.getByRole("button", { name: "방 꾸미기", exact: true });
+    const inventory = roomTools.getByRole("button", { name: "내 가구", exact: true });
     const roomShop = roomTools.getByRole("link", { name: "개인 상점", exact: true });
-    await expect(editRoom.locator("svg")).toBeVisible();
+    await expect(inventory.locator("svg")).toBeVisible();
     await expect(roomShop).toHaveAttribute("href", "/store");
-    await editRoom.hover(); await expect(page.locator('[role="tooltip"][data-open]')).toHaveText("방 꾸미기");
-    await page.mouse.move(0, 0);
-    await editRoom.click();
-    await expect(housing.getByRole("button", { name: "내 가구", exact: true })).toBeVisible();
-    await housing.getByRole("button", { name: "완료", exact: true }).click();
-    await expect(editRoom).toBeVisible();
+    await expect(roomTools.getByRole("button", { name: "방 꾸미기", exact: true })).toHaveCount(0);
+    await inventory.click();
+    await expect(housing.getByRole("region", { name: "내 가구 보관함", exact: true })).toBeVisible();
+    await housing.getByRole("button", { name: "패널 닫기", exact: true }).click();
+    await expect(inventory).toBeVisible();
     await roomShop.click();
     await expect(page).toHaveURL(/\/store$/);
     await expect(page.getByRole("heading", { name: "나를 꾸미는 상점", exact: true })).toBeVisible();
@@ -48,7 +47,7 @@ test("프로필은 방·네임카드의 아이콘에서 상점과 편집을 열�
       for (const icon of [editCard, cardShop]) { const b = await icon.boundingBox(); expect(b!.width).toBeGreaterThanOrEqual(44); expect(b!.height).toBeGreaterThanOrEqual(44); }
       await page.screenshot({ path: info.outputPath("profile-icon-account-" + width + ".png") });
       await page.getByRole("tab", { name: "3D 미니룸", exact: true }).click();
-      for (const icon of [editRoom, roomShop]) { const b = await icon.boundingBox(); expect(b!.width).toBeGreaterThanOrEqual(44); expect(b!.height).toBeGreaterThanOrEqual(44); }
+      for (const icon of [inventory, roomShop]) { const b = await icon.boundingBox(); expect(b!.width).toBeGreaterThanOrEqual(44); expect(b!.height).toBeGreaterThanOrEqual(44); }
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
       await page.screenshot({ path: info.outputPath("profile-icon-room-" + width + ".png") });
       await page.getByRole("tab", { name: "계정 정보", exact: true }).click();

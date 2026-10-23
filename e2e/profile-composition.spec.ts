@@ -93,12 +93,11 @@ test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소
     const plantResult = await fixture.service.from("user_housing_inventory").select("id,x,y").eq("user_id", user.id).eq("catalog_id", "small-plant").single();
     expect(plantResult.error).toBeNull();
     const plant = scene.locator(`[data-inventory-id="${plantResult.data!.id}"]`);
-    await housing.getByRole("button", { name: "방 꾸미기", exact: true }).click();
     await plant.focus();
     await plant.press("Enter");
     await plant.press("Delete");
     await expect(plant).toHaveCount(0);
-    await expect(housing.getByRole("button", { name: "완료", exact: true })).toBeEnabled();
+    await expect(scene).toHaveAttribute("data-editing", "false");
     const accountTab = page.getByRole("tab", { name: "계정 정보", exact: true });
     const roomTab = page.getByRole("tab", { name: "3D 미니룸", exact: true });
     const settings = page.getByRole("tabpanel", { name: "계정 정보", exact: true });
@@ -111,7 +110,7 @@ test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소
     await roomTab.click();
     await expect(settings).toBeHidden();
     await expect(plant).toHaveCount(0);
-    await expect(housing.getByRole("button", { name: "완료", exact: true })).toBeEnabled();
+    await expect(scene).toHaveAttribute("data-editing", "false");
 
     await intro.getByRole("button", { name: "한 줄 소개 편집", exact: true }).click();
     await input.fill("  함께 즐기는   게임과 작은 방.  ");
@@ -119,11 +118,10 @@ test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소
     await expect(input).toBeHidden();
     await expect(intro.getByText("함께 즐기는 게임과 작은 방.", { exact: true })).toBeVisible();
     await expect(plant).toHaveCount(0);
-    await expect(housing.getByRole("status", { name: "방 저장 상태", exact: true })).toHaveText("자동 저장됨");
+    await expect.poll(async () => (await fixture.service.from("user_housing_inventory").select("x,y").eq("id", plantResult.data!.id).single()).data).toEqual({ x: null, y: null });
     const untouchedPlant = await fixture.service.from("user_housing_inventory").select("x,y").eq("id", plantResult.data!.id).single();
     expect(untouchedPlant.error).toBeNull();
     expect(untouchedPlant.data).toEqual({ x: null, y: null });
-    await housing.getByRole("button", { name: "완료", exact: true }).click();
     await expect(plant).toHaveCount(0);
 
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
@@ -142,18 +140,20 @@ test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소
       if (width <= 640) {
         const toolbar = housing.getByRole("toolbar", { name: "방 꾸미기 도구", exact: true });
         await expect(toolbar.getByText("개인 상점", { exact: true })).toBeVisible();
-        await expect(toolbar.getByText("방 꾸미기", { exact: true })).toBeVisible();
+        await expect(toolbar.getByText("내 가구", { exact: true })).toBeVisible();
         expect((await toolbar.boundingBox())!.width).toBeLessThan((await housing.boundingBox())!.width - 24);
-        await toolbar.getByRole("button", { name: "방 꾸미기", exact: true }).click();
-        for (const name of ["내 가구", "완료"]) {
+        for (const name of ["내 가구"]) {
           expect((await toolbar.getByRole("button", { name, exact: true }).boundingBox())!.height).toBeGreaterThanOrEqual(44);
         }
         await toolbar.getByRole("button", { name: "내 가구", exact: true }).click();
         await housing.getByRole("group", { name: "내 가구 분류", exact: true }).getByRole("button", { name: "벽지", exact: true }).click();
-        const panel = await housing.getByRole("region", { name: "내 가구 보관함", exact: true }).boundingBox();
-        expect(panel!.y + panel!.height).toBeLessThan((await toolbar.boundingBox())!.y);
-        await toolbar.getByRole("button", { name: "완료", exact: true }).click();
-        await expect(toolbar.getByRole("button", { name: "방 꾸미기", exact: true })).toBeVisible();
+        await expect.poll(async () => {
+          const panel = await housing.getByRole("region", { name: "내 가구 보관함", exact: true }).boundingBox();
+          const bounds = await scene.boundingBox();
+          return Math.abs(panel!.y + panel!.height - bounds!.y - bounds!.height);
+        }).toBeLessThan(2);
+        await housing.getByRole("button", { name: "패널 닫기", exact: true }).click();
+        await expect(toolbar.getByRole("button", { name: "내 가구", exact: true })).toBeVisible();
         if (width === 509 || width === 320) await hero.screenshot({ path: info.outputPath(`profile-layout-${width}.png`) });
       }
       await accountTab.click();

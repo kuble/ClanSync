@@ -9,13 +9,13 @@ test("내 가구의 벽지·바닥 샘플을 적용하고 자동 저장·실패 
     await loginIsolatedBalanceUser(page, f.users[0]); await page.goto("/profile");
     const housing = page.getByRole("region", { name: "프로필 하우징", exact: true });
     const stage = housing.getByTestId("housing-room-stage");
-    await housing.getByRole("button", { name: "방 꾸미기", exact: true }).click();
+    await expect(housing.getByRole("button", { name: "방 꾸미기", exact: true })).toHaveCount(0);
     await expect(housing.getByRole("button", { name: "방 저장", exact: true })).toHaveCount(0);
     await expect(housing.getByRole("button", { name: "방 분위기", exact: true })).toHaveCount(0);
     await housing.getByRole("button", { name: "내 가구", exact: true }).click();
     const panel = housing.getByRole("region", { name: "내 가구 보관함", exact: true });
     const categories = panel.getByRole("group", { name: "내 가구 분류", exact: true });
-    const status = housing.getByRole("status", { name: "방 저장 상태", exact: true });
+    await expect(housing.getByRole("status", { name: "방 저장 상태", exact: true })).toHaveCount(0);
     const read = async () => (await f.service.from("user_housing_rooms").select("revision,wallpaper,floor").eq("user_id", f.users[0].id).single()).data!;
     await categories.getByRole("button", { name: "벽지", exact: true }).click();
     await expect(panel.getByRole("list", { name: "벽지 목록", exact: true }).getByRole("button")).toHaveCount(4);
@@ -24,8 +24,7 @@ test("내 가구의 벽지·바닥 샘플을 적용하고 자동 저장·실패 
     await panel.getByRole("button", { name: "로즈 벽지 적용", exact: true }).click();
     await categories.getByRole("button", { name: "바닥", exact: true }).click();
     await panel.getByRole("button", { name: "아이보리 타일 바닥 적용", exact: true }).click();
-    await expect(status).toHaveText("자동 저장됨");
-    expect(await read()).toMatchObject({ wallpaper: "rose", floor: "ivory" });
+    await expect.poll(read).toMatchObject({ wallpaper: "rose", floor: "ivory" });
 
     let fail = true, hold = false; let arrival: (() => void) | undefined;
     await page.route("**/profile", async route => {
@@ -41,7 +40,7 @@ test("내 가구의 벽지·바닥 샘플을 적용하고 자동 저장·실패 
     await expect(stage).toHaveAttribute("data-wallpaper", "sage");
     expect((await read()).wallpaper).toBe("rose");
     await housing.getByRole("button", { name: "자동 저장 다시 시도", exact: true }).click();
-    await expect(status).toHaveText("자동 저장됨"); expect((await read()).wallpaper).toBe("sage");
+    await expect.poll(read).toMatchObject({ wallpaper: "sage" });
 
     hold = true; const arrived = new Promise<void>(done => { arrival = done; });
     await panel.getByRole("button", { name: "미드나잇 벽지 적용", exact: true }).click(); await arrived;
@@ -50,8 +49,7 @@ test("내 가구의 벽지·바닥 샘플을 적용하고 자동 저장·실패 
     await expect(walnut).toBeEnabled(); await walnut.click();
     await expect(stage).toHaveAttribute("data-floor", "walnut");
     release!(); release = undefined;
-    await expect(status).toHaveText("자동 저장됨");
-    expect(await read()).toMatchObject({ wallpaper: "midnight", floor: "walnut" });
+    await expect.poll(read).toMatchObject({ wallpaper: "midnight", floor: "walnut" });
     await page.unroute("**/profile");
 
     const revision = (await read()).revision;
@@ -62,7 +60,7 @@ test("내 가구의 벽지·바닥 샘플을 적용하고 자동 저장·실패 
     await expect(stage).toHaveAttribute("data-wallpaper", "rose");
     await housing.getByRole("button", { name: "최신 방 불러오기", exact: true }).click();
     await page.getByRole("dialog", { name: "변경 내용을 버릴까요?", exact: true }).getByRole("button", { name: "변경 내용 버리기", exact: true }).click();
-    await expect(status).toHaveText("자동 저장됨"); await expect(stage).toHaveAttribute("data-wallpaper", "cream");
+    await expect(stage).toHaveAttribute("data-wallpaper", "cream");
     await expect(housing.getByRole("alert")).toHaveCount(0);
 
     for (const width of [1280, 802, 390, 320]) {
@@ -76,7 +74,7 @@ test("내 가구의 벽지·바닥 샘플을 적용하고 자동 저장·실패 
       await categories.getByRole("button", { name: "바닥", exact: true }).click();
       await page.screenshot({ path: info.outputPath("room-floor-" + width + ".png") });
     }
-    await housing.getByRole("button", { name: "완료", exact: true }).click();
+    await housing.getByRole("button", { name: "패널 닫기", exact: true }).click();
     await page.reload(); await expect(stage).toHaveAttribute("data-wallpaper", "cream"); await expect(stage).toHaveAttribute("data-floor", "walnut");
   } finally { release?.(); await f.cleanup(); }
 });
@@ -87,12 +85,11 @@ test("계정 전환 뒤 이전 화면의 자동 저장은 새 계정의 방을 �
   try {
     await loginIsolatedBalanceUser(page, f.users[0]); await page.goto("/profile");
     const housing = page.getByRole("region", { name: "프로필 하우징", exact: true });
-    await housing.getByRole("button", { name: "방 꾸미기", exact: true }).click();
     await housing.getByRole("button", { name: "내 가구", exact: true }).click();
     await housing.getByRole("group", { name: "내 가구 분류", exact: true }).getByRole("button", { name: "벽지", exact: true }).click();
     const second = await other.newPage();
     await loginIsolatedBalanceUser(second, f.users[1]); await second.goto("/profile");
-    await expect(second.getByRole("button", { name: "방 꾸미기", exact: true })).toBeVisible();
+    await expect(second.getByRole("button", { name: "내 가구", exact: true })).toBeVisible();
     const read = async () => (await f.service.from("user_housing_rooms").select("revision,wallpaper,floor").eq("user_id", f.users[1].id).single()).data!;
     const before = await read();
     // Replace only the session; retain the previous account's mounted editor.
