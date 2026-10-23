@@ -118,8 +118,8 @@
 .dialogClose { position:absolute; right:8px; top:8px; }
 .housing[data-embedded="true"] { border:0; border-radius:0; margin:0; min-width:0; background:transparent; }
 .housing[data-embedded="true"] .scene { height:clamp(540px,66svh,650px); }
-.housing[data-embedded="true"] .roomHeading h2 { display:none; }
-.housing[data-embedded="true"] .roomHeading { gap:0; }
+.housing[data-embedded="true"] .roomHeading h2 { font-size:12px; }
+.housing[data-embedded="true"] .roomHeading { gap:12px; }
 @media(max-width:640px) { .housing[data-embedded="true"] .scene { height:clamp(360px,52svh,450px); } }
 
 @media(pointer:coarse) { .roomToolbar :is(a,button[aria-label="방 꾸미기"]) { min-width:44px; min-height:44px; } }

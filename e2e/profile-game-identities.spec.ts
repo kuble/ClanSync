@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
-test("클랜별 게임 ID를 캐러셀로 넘기고 중복 안내 없이 모바일·키보드로 탐색한다", async ({ page }) => {
+test("게임 이름으로 클랜을 선택하고 모바일·스와이프·키보드로 탐색한다", async ({ page }) => {
   test.setTimeout(90_000);
   await page.emulateMedia({ reducedMotion: "reduce" });
   const f = await createIsolatedBalanceFixture(1);
@@ -26,10 +26,12 @@ test("클랜별 게임 ID를 캐러셀로 넘기고 중복 안내 없이 모바�
     const val = cards.filter({ hasText: riotId });
     const carousel = identity.getByRole("region", { name: "클랜 프로필", exact: true });
     const track = carousel.getByLabel("좌우로 넘겨 클랜 보기", { exact: true });
-    const dots = carousel.getByRole("navigation", { name: "클랜 페이지", exact: true }).getByRole("button");
+    const dots = carousel.getByRole("navigation", { name: "게임별 클랜", exact: true }).getByRole("button");
     const previous = dots.nth(0);
     const next = dots.nth(1);
     await expect(dots).toHaveCount(2);
+    await expect(dots.filter({ hasText: "오버워치" })).toHaveCount(1);
+    await expect(dots.filter({ hasText: "발로란트" })).toHaveCount(1);
     await expect(cards).toHaveCount(2);
     await expect(identity.getByRole("article")).toHaveCount(1);
     await expect(ow.getByText("배틀태그", { exact: true })).toHaveCount(1);
@@ -43,6 +45,7 @@ test("클랜별 게임 ID를 캐러셀로 넘기고 중복 안내 없이 모바�
     for (const width of [1280, 1023, 390, 320]) {
       await page.setViewportSize({ width, height: 1000 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+      for (const button of await dots.all()) { const bounds = await button.boundingBox(); expect(bounds!.height).toBeGreaterThanOrEqual(44); }
       await track.focus();
       await track.press("Home");
       await expect(carousel.getByRole("status", { name: "현재 클랜", exact: true })).toHaveText("1 / 2");
@@ -59,9 +62,14 @@ test("클랜별 게임 ID를 캐러셀로 넘기고 중복 안내 없이 모바�
       await track.press("ArrowRight");
       await expect(carousel.getByRole("status", { name: "현재 클랜", exact: true })).toHaveText("2 / 2");
     }
-    await page.screenshot({ path: test.info().outputPath("profile-clan-identities-mobile.png"), fullPage: true });
+    await page.setViewportSize({ width: 320, height: 1400 });
+    await track.press("End");
+    await expect(cards.nth(1)).toBeInViewport({ ratio: .95 });
+    await page.screenshot({ path: test.info().outputPath("profile-clan-identities-mobile.png") });
     await page.setViewportSize({ width: 1280, height: 1000 });
-    await page.screenshot({ path: test.info().outputPath("profile-clan-identities.png"), fullPage: true });
+    await track.press("End");
+    await expect(cards.nth(1)).toBeInViewport({ ratio: .95 });
+    await page.screenshot({ path: test.info().outputPath("profile-clan-identities.png") });
     await page.setViewportSize({ width: 390, height: 1000 });
     await track.focus();
     await track.press("Home");

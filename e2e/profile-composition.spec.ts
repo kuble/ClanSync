@@ -56,7 +56,7 @@ test("소개·대표 엠블럼과 방이 한 화면을 이루며 탭 전환·소
     await expect(hero.getByRole("heading", { name: user.nickname, level: 1, exact: true })).toHaveCount(0);
     await expect(hero.getByRole("heading", { name: "플레이어 프로필", exact: true })).toHaveCount(0);
     await expect(intro.getByRole("article").getByText(battleTag, { exact: true })).toBeVisible();
-    await expect(intro.getByRole("navigation", { name: "클랜 페이지", exact: true })).toHaveCount(0);
+    await expect(intro.getByRole("navigation", { name: "게임별 클랜", exact: true })).toHaveCount(0);
     await expect(hero.getByRole("region", { name: "플레이어 소개", exact: true })).toBeVisible();
     await expect(hero.getByRole("region", { name: "프로필 하우징", exact: true })).toBeVisible();
     await expect(page.getByText(user.email, { exact: true })).toBeHidden();

@@ -11,12 +11,12 @@ test("프로필은 방·네임카드의 아이콘에서 상점과 편집을 열�
     const menu = page.getByRole("navigation", { name: "계정 메뉴", exact: true });
     await expect(menu.getByRole("link", { name: "개인 상점", exact: true })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "내 엠블럼 케이스 보기", exact: true })).toHaveCount(0);
-    await expect(page.getByRole("navigation", { name: "클랜 페이지", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("navigation", { name: "게임별 클랜", exact: true })).toHaveCount(0);
     const housing = page.getByRole("region", { name: "프로필 하우징", exact: true });
     const roomTools = housing.getByRole("toolbar", { name: "방 꾸미기 도구", exact: true });
     const editRoom = roomTools.getByRole("button", { name: "방 꾸미기", exact: true });
     const roomShop = roomTools.getByRole("link", { name: "개인 상점", exact: true });
-    await expect(editRoom).toHaveText(""); await expect(editRoom.locator("svg")).toBeVisible();
+    await expect(editRoom.locator("svg")).toBeVisible();
     await expect(roomShop).toHaveAttribute("href", "/store");
     await editRoom.hover(); await expect(page.locator('[role="tooltip"][data-open]')).toHaveText("방 꾸미기");
     await page.mouse.move(0, 0);

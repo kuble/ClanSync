@@ -18,10 +18,17 @@ export function ProfileIdentity({ userId, intro, memberships, readOnly = false }
   const current = Math.min(selected, Math.max(0, memberships.length - 1));
   function showClan(index: number) {
     const card = track.current?.children[index] as HTMLElement | undefined;
-    if (card) track.current?.scrollTo({ left: card.offsetLeft });
+    if (card) track.current?.scrollTo({ left: card.offsetLeft, behavior: "instant" });
   }
   return <section className={styles.playerIdentity} aria-label="플레이어 소개">
     {memberships.length ? <div className={styles.clanProfiles} role="region" aria-label="클랜 프로필" aria-roledescription="캐러셀">
+      <h2 className={styles.identityHeading}>게임 프로필</h2>
+      {memberships.length > 1 && <nav className={styles.clanNavigation} aria-label="게임별 클랜">
+        {memberships.map((membership, index) => <button key={membership.clanId} type="button"
+          aria-label={membership.gameName + " · " + membership.clanName} aria-controls={trackId}
+          aria-current={index === current ? "page" : undefined}
+          onClick={() => showClan(index)}><GameLogo slug={membership.gameSlug} name={membership.gameName} className="size-4" /><span>{membership.gameName}</span></button>)}
+      </nav>}
       <div id={trackId} ref={track} className={styles.clanTrack} tabIndex={memberships.length > 1 ? 0 : undefined} aria-label="좌우로 넘겨 클랜 보기"
         onScroll={(event) => {
           const container = event.currentTarget;
@@ -40,15 +47,9 @@ export function ProfileIdentity({ userId, intro, memberships, readOnly = false }
         <p className={styles.clanAccountId}><span>{membership.gameSlug === "overwatch" ? "배틀태그" : ["valorant", "lol"].includes(membership.gameSlug) ? "라이엇 ID" : "게임 ID"}</span><strong>{membership.accountId || "게임 계정 미연동"}</strong></p>
       </article>)}
       </div>
-      {memberships.length > 1 && <nav className={styles.clanNavigation} aria-label="클랜 페이지">
-        {memberships.map((membership, index) => <button key={membership.clanId} type="button"
-          aria-label={(index + 1) + "번째 클랜 · " + membership.clanName} aria-controls={trackId}
-          aria-current={index === current ? "page" : undefined} title={membership.gameName + " · " + membership.clanName}
-          onClick={() => showClan(index)}><span aria-hidden="true" /></button>)}
-        <span className="sr-only" role="status" aria-label="현재 클랜" aria-live="polite">{current + 1} / {memberships.length}</span>
-      </nav>}
-    </div> : !readOnly ? <div className={styles.playerClan}><p>클랜에서 함께한 기록이 이곳에 쌓입니다.</p><Link href="/games" className={styles.playerClanLink}>클랜 찾아보기</Link></div> : null}
-    {readOnly ? intro && <p className={styles.visitorIntro}>{intro}</p> : <ProfileIntro initialIntro={intro} />}
+      <span className="sr-only" role="status" aria-label="현재 클랜" aria-live="polite">{current + 1} / {memberships.length}</span>
+    </div> : !readOnly ? <div className={styles.playerClan}><h2 className={styles.identityHeading}>게임 프로필</h2><p>클랜에서 함께한 기록이 이곳에 쌓입니다.</p><Link href="/games" className={styles.playerClanLink}>클랜 찾아보기</Link></div> : null}
+    {(!readOnly || intro) && <section className={styles.identityIntro} aria-label="한 줄 소개"><h2 className={styles.identityHeading}>한 줄 소개</h2>{readOnly ? <p className={styles.visitorIntro}>{intro}</p> : <ProfileIntro initialIntro={intro} />}</section>}
     <section className={styles.playerEmblems} aria-label="대표 엠블럼">
       <h2>대표 엠블럼</h2>
       <PersonalEmblemCaseLauncher variant="profile" userId={userId} nickname="플레이어" />
