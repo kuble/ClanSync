@@ -169,7 +169,7 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
   const [rankFilter, setRankFilter] = useState<RankFilter>("all");
   const [selection, setSelection] = useState<{ target: string; key: string }>();
   const [detailOpen, setDetailOpen] = useState(false);
-  const [replacementKey, setReplacementKey] = useState<string>();
+  const [replacement, setReplacement] = useState<{ target: string; key: string }>();
   const featureButton = useRef<HTMLButtonElement>(null);
   const detailsId = useId();
   const featuredKeys = resolveFeaturedKeys(emblems, collection?.featuredKeys ?? null);
@@ -182,24 +182,65 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
   const filteredAwardHistory = awardHistory.filter(emblem => rankFilter === "all" || emblem.rank === Number(rankFilter));
   const stages = selected?.kind === "milestone" ? emblems.filter(emblem => emblem.kind === "milestone" && emblem.family === selected.family)
     .sort((a, b) => (a.stage ?? 0) - (b.stage ?? 0)) : [];
-  const canPickSelected = selected?.earned && (selected.kind === "award" || representatives.some(emblem => emblem.key === selected.key));
-  const replacing = !!(detailOpen && collection?.canFeature && canPickSelected && selected?.key === replacementKey
-    && !featuredKeys.includes(selected.key) && featuredKeys.length === 3);
-  const inspect = (emblem: PersonalEmblem) => { setReplacementKey(undefined); setSelection({ target, key: emblem.key }); };
+  const canPick = (emblem: PersonalEmblem) => emblem.earned && (emblem.kind === "award" || representatives.some(entry => entry.key === emblem.key));
+  const canPickSelected = selected && canPick(selected);
+  const replacementEmblem = replacement?.target === target ? emblems.find(emblem => emblem.key === replacement.key) : undefined;
+  const replacing = !!(collection?.canFeature && replacementEmblem && canPick(replacementEmblem)
+    && !featuredKeys.includes(replacementEmblem.key) && featuredKeys.length === 3);
+  const inspect = (emblem: PersonalEmblem) => { setReplacement(undefined); setSelection({ target, key: emblem.key }); };
 
-  function feature(emblem: PersonalEmblem) {
-    if (pending || savePending || !collection?.canFeature || !emblem.earned || (emblem.kind === "milestone" && !representatives.some(entry => entry.key === emblem.key))) return;
+  function feature(emblem: PersonalEmblem, button: HTMLButtonElement) {
+    if (pending || savePending || !collection?.canFeature || !canPick(emblem)) return;
+    featureButton.current = button;
     const next = featuredKeys.includes(emblem.key) ? featuredKeys.filter(key => key !== emblem.key) : [...featuredKeys, emblem.key];
-    if (next.length > 3) { setReplacementKey(emblem.key); return; }
+    if (next.length > 3) { setReplacement({ target, key: emblem.key }); return; }
     void save(next);
   }
 
   async function replace(key: string) {
-    if (!replacing || !selected || pending || savePending || !featuredKeys.includes(key)) return;
-    if (await save(featuredKeys.map(current => current === key ? selected.key : current))) setReplacementKey(undefined);
+    if (!replacing || !replacementEmblem || pending || savePending || !featuredKeys.includes(key)) return;
+    if (await save(featuredKeys.map(current => current === key ? replacementEmblem.key : current))) setReplacement(undefined);
   }
 
-  return <Dialog open={detailOpen && !!selected} onOpenChange={next => { setDetailOpen(next); setReplacementKey(undefined); if (next) { setRankFilter("all"); refresh(); } }}>
+  function catalogPin(emblem: PersonalEmblem) {
+    const isFeatured = featuredKeys.includes(emblem.key);
+    const label = emblem.description + " · " + periodLabel(emblem) + " · 대표 엠블럼 " + (isFeatured ? "해제" : "지정");
+    return <div key={emblem.key} className={styles.catalogEntry} data-emblem-entry={emblem.key}>
+      <DialogTrigger render={renderPin(emblem, false, () => inspect(emblem))} />
+      {collection?.canFeature && canPick(emblem) && <Button type="button" variant="outline" size="icon" className={cn(styles.featureStar, styles.quickStar)}
+        data-emblem-feature-key={emblem.key}
+        aria-label={label} title={label} aria-pressed={isFeatured} disabled={savePending || pending} focusableWhenDisabled
+        aria-haspopup={featuredKeys.length === 3 && !isFeatured ? "dialog" : undefined}
+        onClick={event => feature(emblem, event.currentTarget)}>
+        <Star aria-hidden="true" className={cn("size-4", isFeatured && "fill-primary text-primary")} />
+      </Button>}
+    </div>;
+  }
+
+  const replacementDialog = <Dialog open={replacing} onOpenChange={open => { if (!open) setReplacement(undefined); }}>
+    <DialogContent className="sm:max-w-md" finalFocus={featureButton}>
+      <DialogTitle>대표 엠블럼 교체</DialogTitle>
+      <DialogDescription>세 칸이 모두 찼습니다. 교체할 엠블럼을 선택해 주세요.</DialogDescription>
+      {replacementEmblem && <div className={styles.replacementPreview}>
+        <EmblemArtwork emblem={replacementEmblem} eager className={styles.replacementArtwork} />
+        <div><p className="font-semibold">{replacementEmblem.description}</p><p className="text-xs text-muted-foreground">{periodLabel(replacementEmblem)} · 새로 진열</p></div>
+      </div>}
+      <div className={styles.replacementGrid} role="group" aria-label="교체할 대표 엠블럼">
+        {featured.map(emblem => <button key={emblem.key} type="button" className={styles.replacementOption}
+          data-replace-emblem-key={emblem.key} disabled={savePending || pending}
+          aria-label={periodLabel(emblem) + " " + emblem.description + " 대신 진열"} onClick={() => void replace(emblem.key)}>
+          <EmblemArtwork emblem={emblem} eager className={styles.replacementArtwork} />
+          <span>{emblem.description}</span><span className="text-muted-foreground">{periodLabel(emblem)}</span>
+        </button>)}
+      </div>
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-xs text-muted-foreground" role="status">{savePending ? "교체 중…" : "선택한 한 칸만 교체됩니다."}</span>
+        <Button type="button" variant="outline" size="sm" onClick={() => setReplacement(undefined)}>취소</Button>
+      </div>
+    </DialogContent>
+  </Dialog>;
+
+  return <><Dialog open={detailOpen && !!selected} onOpenChange={next => { setDetailOpen(next); setReplacement(undefined); if (next) { setRankFilter("all"); refresh(); } }}>
     <div data-personal-emblem-case className={styles.pageLayout}>
       <header className={styles.pageHeader}>
         <div className={styles.pageHeading}>
@@ -235,13 +276,11 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
         <div className={styles.groups}>
           {awards.length > 0 && <section aria-label="종류별 수상 엠블럼">
             <h3 className={styles.groupHeading}>수상</h3>
-            <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{awards.map(emblem => <DialogTrigger key={emblem.key}
-              render={renderPin(emblem, false, () => inspect(emblem))} />)}</div>
+            <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{awards.map(catalogPin)}</div>
           </section>}
           {milestones.length > 0 && <section aria-label="누적 달성 엠블럼">
             <h3 className={styles.groupHeading}>개인의 성장</h3>
-            <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{milestones.map(emblem => <DialogTrigger key={emblem.key}
-              render={renderPin(emblem, false, () => inspect(emblem))} />)}</div>
+            <div className={cn(caseStyles.caseGrid, styles.pageGrid)}>{milestones.map(catalogPin)}</div>
           </section>}
           {!awards.length && !milestones.length && <p className={styles.empty}>{pending ? "획득 기록을 확인하고 있습니다." : error ? "다시 불러오면 엠블럼을 확인할 수 있습니다." : "아직 획득한 엠블럼이 없습니다."}</p>}
         </div>
@@ -262,11 +301,11 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
           {selected.kind === "milestone" && <progress className={styles.progress} aria-label={selected.description + " 진행도"}
             max={selected.target ?? 1} value={Math.min(selected.progress ?? 0, selected.target ?? 1)} />}
           {collection?.canFeature && canPickSelected && <div className={styles.featureControl}>
-            <Button ref={featureButton} type="button" variant="outline" size="icon" className={styles.featureStar}
+            <Button type="button" variant="outline" size="icon" className={styles.featureStar}
               aria-label={featuredKeys.includes(selected.key) ? "대표 엠블럼 해제" : "대표 엠블럼 지정"}
               aria-pressed={featuredKeys.includes(selected.key)} aria-haspopup={featuredKeys.length === 3 && !featuredKeys.includes(selected.key) ? "dialog" : undefined}
               title={featuredKeys.includes(selected.key) ? "대표 엠블럼 해제" : "대표 엠블럼 지정"}
-              disabled={savePending || pending} onClick={() => feature(selected)}>
+              disabled={savePending || pending} focusableWhenDisabled onClick={event => feature(selected, event.currentTarget)}>
               <Star aria-hidden="true" className={cn("size-5", featuredKeys.includes(selected.key) && "fill-primary text-primary")} />
             </Button>
             <span className="text-xs text-muted-foreground" role="status">{savePending ? "저장 중…" : featuredKeys.includes(selected.key) ? "대표 엠블럼" : "별을 눌러 대표로 진열"}</span>
@@ -297,30 +336,9 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
           {stages.map(emblem => renderPin(emblem, emblem.key === selected.key, () => inspect(emblem), detailsId))}
         </div></div>
       </section>}
-      <Dialog open={replacing} onOpenChange={open => { if (!open) setReplacementKey(undefined); }}>
-        <DialogContent className="sm:max-w-md" finalFocus={featureButton}>
-          <DialogTitle>대표 엠블럼 교체</DialogTitle>
-          <DialogDescription>세 칸이 모두 찼습니다. 교체할 엠블럼을 선택해 주세요.</DialogDescription>
-          <div className={styles.replacementPreview}>
-            <EmblemArtwork emblem={selected} eager className={styles.replacementArtwork} />
-            <div><p className="font-semibold">{selected.description}</p><p className="text-xs text-muted-foreground">{periodLabel(selected)} · 새로 진열</p></div>
-          </div>
-          <div className={styles.replacementGrid} role="group" aria-label="교체할 대표 엠블럼">
-            {featured.map(emblem => <button key={emblem.key} type="button" className={styles.replacementOption}
-              data-replace-emblem-key={emblem.key} disabled={savePending || pending}
-              aria-label={periodLabel(emblem) + " " + emblem.description + " 대신 진열"} onClick={() => void replace(emblem.key)}>
-              <EmblemArtwork emblem={emblem} eager className={styles.replacementArtwork} />
-              <span>{emblem.description}</span><span className="text-muted-foreground">{periodLabel(emblem)}</span>
-            </button>)}
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-xs text-muted-foreground" role="status">{savePending ? "교체 중…" : "선택한 한 칸만 교체됩니다."}</span>
-            <Button type="button" variant="outline" size="sm" onClick={() => setReplacementKey(undefined)}>취소</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {replacementDialog}
     </DialogContent>}
-  </Dialog>;
+  </Dialog>{!detailOpen && replacementDialog}</>;
 }
 
 function socketStyle(emblem: PersonalEmblem): CSSProperties {

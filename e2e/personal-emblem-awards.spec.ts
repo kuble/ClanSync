@@ -9,6 +9,7 @@ async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>): Promise<N
 
 test("award cases prefer the best recent grade and filter full history by gold, silver and bronze", async ({ page, browser }, info) => {
   test.setTimeout(120_000);
+  page.setDefaultTimeout(15_000);
   const isolated = await createIsolatedBalanceFixture(3);
   const previousYear = new Date().getUTCFullYear() - 1;
   const user = isolated.users[0];
@@ -175,6 +176,7 @@ test("award cases prefer the best recent grade and filter full history by gold, 
       hasTouch: true, viewport: { width: 320, height: 844 }, storageState: await page.context().storageState() });
     try {
       const touchPage = await touchContext.newPage();
+      touchPage.setDefaultTimeout(15_000);
       await touchPage.goto(statsUrl);
       await touchPage.getByRole("region", { name: "플레이어 배너", exact: true })
         .getByRole("link", { name: `${user.nickname} 엠블럼 케이스 열기`, exact: true }).tap();
@@ -281,5 +283,98 @@ test("award cases prefer the best recent grade and filter full history by gold, 
     await expect(star).toHaveAttribute("aria-pressed", "true");
     await expect(star).toBeEnabled();
     expect(await persistedPicks()).toEqual([...replacedPicks.slice(1), `month-${previousYear}-12-승률`]);
+
+    await page.keyboard.press("Escape");
+    await expect(details).toHaveCount(0);
+    await page.setViewportSize({ width: 1304, height: 1004 });
+    const quickStar = collection.locator(`[data-emblem-feature-key="month-${previousYear}-02-승률"]`);
+    await page.mouse.move(0, 0);
+    await page.getByRole("heading", { name: "개인 엠블럼 케이스", exact: true }).click();
+    await expect(quickStar).toHaveCSS("opacity", "0");
+    await monthlyWin.hover();
+    await expect(quickStar).toHaveCSS("opacity", "1");
+    const quickBounds = await quickStar.boundingBox();
+    const pinBounds = await monthlyWin.boundingBox();
+    expect(Math.abs(quickBounds!.x + quickBounds!.width - pinBounds!.x - pinBounds!.width)).toBeLessThan(1);
+    expect(Math.abs(quickBounds!.y - pinBounds!.y)).toBeLessThan(1);
+    await collection.screenshot({ path: info.outputPath("personal-emblem-hover-star-desktop.png") });
+    await page.mouse.move(0, 0);
+    await monthlyWin.focus();
+    await page.keyboard.press("Tab");
+    await expect(quickStar).toBeFocused();
+    await expect(quickStar).toHaveCSS("opacity", "1");
+    await page.keyboard.press("Enter");
+    await expect(replacement).toBeVisible();
+    await expect(page.locator("[data-personal-emblem-detail]")).toHaveCount(0);
+    await expect(page.getByRole("dialog")).toHaveCount(1);
+    await page.keyboard.press("Escape");
+    await expect(replacement).toHaveCount(0);
+    await expect(quickStar).toBeFocused();
+    const beforeQuickReplace = await persistedPicks();
+    await quickStar.click();
+    await replacement.getByRole("button", { name: "취소", exact: true }).click();
+    await expect(quickStar).toBeFocused();
+    expect(await persistedPicks()).toEqual(beforeQuickReplace);
+    await quickStar.click();
+    await replacement.locator(`[data-replace-emblem-key="month-${previousYear}-12-승률"]`).click();
+    await expect(replacement).toHaveCount(0);
+    await expect(quickStar).toBeFocused();
+    await expect(quickStar).toHaveAttribute("aria-pressed", "true");
+    const quickPicks = [replacedPicks[1], replacedPicks[2], `month-${previousYear}-02-승률`];
+    expect(await persistedPicks()).toEqual(quickPicks);
+    await quickStar.click();
+    await expect(quickStar).toHaveAttribute("aria-pressed", "false");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    expect(await persistedPicks()).toEqual(quickPicks.slice(0, 2));
+    await expect(quickStar).toBeEnabled();
+    await quickStar.click();
+    await expect(quickStar).toHaveAttribute("aria-pressed", "true");
+    await expect(quickStar).toBeEnabled();
+    await monthlyWin.click();
+    await expect(page.getByRole("dialog", { name: "월간 승률 1위", exact: true })).toBeVisible();
+    await page.keyboard.press("Escape");
+
+    const quickTouchContext = await browser.newContext({ baseURL: new URL(page.url()).origin,
+      hasTouch: true, viewport: { width: 320, height: 844 }, storageState: await page.context().storageState() });
+    try {
+      const quickPage = await quickTouchContext.newPage();
+      quickPage.setDefaultTimeout(15_000);
+      await quickPage.goto(isolated.path.replace(/balance$/, "emblems") + "?player=" + user.id);
+      const touchStars = quickPage.locator("[data-emblem-feature-key]");
+      await expect(touchStars.first()).toBeEnabled();
+      for (const button of await touchStars.all()) {
+        await expect(button).toHaveCSS("opacity", "1");
+        const bounds = await button.boundingBox();
+        expect(bounds!.width).toBeGreaterThanOrEqual(44);
+        expect(bounds!.height).toBeGreaterThanOrEqual(44);
+      }
+      await expect(quickPage.locator('[data-emblem-entry^="milestone-"] [data-emblem-feature-key]')).toHaveCount(0);
+      await quickPage.locator("[data-personal-emblem-case]").screenshot({ path: info.outputPath("personal-emblem-hover-star-mobile.png") });
+      // Select a different award directly from the case on a touch device.
+      const candidate = quickPage.locator('[data-emblem-feature-key][aria-pressed="false"]').first();
+      const candidateKey = await candidate.getAttribute("data-emblem-feature-key");
+      expect(candidateKey).toBeTruthy();
+      await candidate.tap();
+      const touchReplacement = quickPage.getByRole("dialog", { name: "대표 엠블럼 교체", exact: true });
+      await expect(touchReplacement).toBeVisible();
+      await expect(quickPage.locator("[data-personal-emblem-detail]")).toHaveCount(0);
+      await touchReplacement.locator("[data-replace-emblem-key]").first().tap();
+      await expect(touchReplacement).toHaveCount(0);
+      await expect(quickPage.locator(`[data-emblem-feature-key="${candidateKey}"]`)).toHaveAttribute("aria-pressed", "true");
+      expect(await persistedPicks()).toEqual([candidateKey, ...quickPicks.slice(1)]);
+      expect(await quickPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    } finally { await quickTouchContext.close(); }
+
+    const viewerContext = await browser.newContext({ baseURL: new URL(page.url()).origin });
+    try {
+      await ok(isolated.service.from("clan_settings").update({ hof_config: {
+        personal_record_min_role: "member", member_personal_sections: ["emblems", "records"],
+      } }).eq("clan_id", isolated.clanId));
+      const viewer = await viewerContext.newPage();
+      await loginIsolatedBalanceUser(viewer, isolated.users[1]);
+      await viewer.goto(isolated.path.replace(/balance$/, "emblems") + "?player=" + user.id);
+      await expect(viewer.locator("[data-emblem-key]").first()).toBeVisible();
+      await expect(viewer.locator("[data-emblem-feature-key]")).toHaveCount(0);
+    } finally { await viewerContext.close(); }
   } finally { await isolated.cleanup(); }
 });

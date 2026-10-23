@@ -45,6 +45,11 @@
 .featureControl { display:flex; align-items:center; gap:8px; }
 .featureControl .featureStar { width:44px; height:44px; flex-shrink:0; }
 .featureStar[aria-pressed="true"] { border-color:var(--primary); background:color-mix(in srgb,var(--primary) 10%,transparent); }
+.featureStar[data-disabled] { opacity:.5; cursor:wait; }
+.catalogEntry { position:relative; min-width:0; }
+.catalogEntry .quickStar { position:absolute; top:0; right:0; z-index:1; opacity:0; pointer-events:none; background:var(--background); }
+.catalogEntry:hover .quickStar, .catalogEntry:focus-within .quickStar { opacity:1; pointer-events:auto; }
+@media(hover:none), (pointer:coarse) { .catalogEntry .quickStar { top:-12px; right:-6px; width:44px; height:44px; opacity:1; pointer-events:auto; } }
 .replacementPreview { display:flex; align-items:center; gap:12px; min-width:0; padding:8px; border-radius:8px; background:var(--muted); }
 .replacementArtwork { width:64px; height:64px; flex-shrink:0; }
 .replacementGrid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
