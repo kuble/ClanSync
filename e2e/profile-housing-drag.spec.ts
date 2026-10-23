@@ -130,6 +130,7 @@ test("보기 모드의 가구를 길게 누르면 같은 마우스·터치로 �
     await expect(housing.getByTestId("housing-drag-preview")).toHaveAttribute("data-valid", "true");
     await page.mouse.up();
     await expectPosition(housing, plantId, 4, 4);
+    await expect(furniture(housing, plantId)).toHaveAttribute("aria-pressed", "false");
     await housing.getByRole("button", { name: "방 저장", exact: true }).click();
     await expect(room(housing)).toHaveAttribute("data-editing", "false");
     await page.reload();
@@ -218,12 +219,29 @@ test("마우스·터치로 가구를 이동하고 보관함에서 다시 꺼내�
     await page.mouse.up();
     await expectPosition(housing, plantId, 4, 4);
     await expect(housing.getByTestId("housing-drag-preview")).toHaveCount(0);
+    await expect(furniture(housing, plantId)).toHaveAttribute("aria-pressed", "false");
+    await expect(housing.getByRole("button", { name: "가구 메뉴 열기", exact: true })).toHaveCount(0);
+    await expect(tile(housing, 3, 4)).toBeDisabled();
+    const empty = await point(tile(housing, 3, 4));
+    await page.mouse.click(empty.x, empty.y);
+    await expectPosition(housing, plantId, 4, 4);
+
+    // Keyboard placement also ends selection; the focused furniture remains movable.
+    await furniture(housing, plantId).press("Enter");
+    await tile(housing, 3, 4).focus();
+    await tile(housing, 3, 4).press("Enter");
+    await expectPosition(housing, plantId, 3, 4);
+    await expect(furniture(housing, plantId)).toHaveAttribute("aria-pressed", "false");
+    await furniture(housing, plantId).press("ArrowRight");
+    await expectPosition(housing, plantId, 4, 4);
+    await expect(furniture(housing, plantId)).toHaveAttribute("aria-pressed", "false");
 
     const overlap = await dragPoints(housing, plantId, 1, 1);
     await mouseStart(page, overlap.start, overlap.end);
     await expect(housing.getByTestId("housing-drag-preview")).toHaveAttribute("data-valid", "false");
     await page.mouse.up();
     await expectPosition(housing, plantId, 4, 4);
+    await expect(furniture(housing, plantId)).toHaveAttribute("aria-pressed", "true");
 
     const outsideStart = await point(furniture(housing, plantId), .8);
     const sceneBounds = await room(housing).boundingBox();
@@ -246,6 +264,8 @@ test("마우스·터치로 가구를 이동하고 보관함에서 다시 꺼내�
     await housing.getByRole("button", { name: "작은 화분 꺼내기", exact: true }).click();
     await closePanel(housing);
     await expect(furniture(housing, plantId)).toBeVisible();
+    await expect(furniture(housing, plantId)).toHaveAttribute("aria-pressed", "false");
+    await furniture(housing, plantId).press("Enter");
     await storeFromMenu(housing);
     await openInventory(housing);
     const handle = housing.getByRole("button", { name: "작은 화분 끌어서 배치", exact: true });
@@ -277,6 +297,8 @@ test("마우스·터치로 가구를 이동하고 보관함에서 다시 꺼내�
     await expect(touchHousing.getByTestId("housing-drag-preview")).toHaveAttribute("data-valid", "true");
     await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
     await expectPosition(touchHousing, plantId, 4, 2);
+    await expect(furniture(touchHousing, plantId)).toHaveAttribute("aria-pressed", "false");
+    await expect(touchHousing.getByRole("button", { name: "가구 메뉴 열기", exact: true })).toHaveCount(0);
     expect(Math.abs(await touchPage.evaluate(() => window.scrollY) - scrollBefore)).toBeLessThan(2);
 
     const cancelled = await dragPoints(touchHousing, plantId, 4, 4);
@@ -285,9 +307,11 @@ test("마우스·터치로 가구를 이동하고 보관함에서 다시 꺼내�
     await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
     await expectPosition(touchHousing, plantId, 4, 2);
     await expect(touchHousing.getByTestId("housing-drag-preview")).toHaveCount(0);
+    await expect(furniture(touchHousing, plantId)).toHaveAttribute("aria-pressed", "true");
     await touchHousing.getByRole("button", { name: "가구 메뉴 열기", exact: true }).tap();
     await touchHousing.getByRole("menuitem", { name: "가구 회전", exact: true }).tap();
     await expect(furniture(touchHousing, plantId)).toHaveAttribute("data-rotation", "1");
+    await expect(furniture(touchHousing, plantId)).toHaveAttribute("aria-pressed", "true");
 
     await touchHousing.getByRole("button", { name: "방 저장", exact: true }).tap();
     await touchHousing.getByRole("button", { name: "방 꾸미기", exact: true }).tap();
@@ -302,6 +326,9 @@ test("마우스·터치로 가구를 이동하고 보관함에서 다시 꺼내�
     await touchHousing.getByRole("button", { name: "작은 화분 꺼내기", exact: true }).tap();
     await closePanel(touchHousing);
     await expect(furniture(touchHousing, plantId)).toBeVisible();
+
+    await expect(furniture(touchHousing, plantId)).toHaveAttribute("aria-pressed", "false");
+    await furniture(touchHousing, plantId).press("Enter");
 
     // Inventory and its touch grip stay within the room on short phone screens.
     await touchPage.setViewportSize({ width: 390, height: 568 });
@@ -320,6 +347,7 @@ test("마우스·터치로 가구를 이동하고 보관함에서 다시 꺼내�
     await expect(touchHousing.getByTestId("housing-drag-preview")).toHaveAttribute("data-valid", "true");
     await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
     await expectPosition(touchHousing, plantId, 4, 4);
+    await expect(furniture(touchHousing, plantId)).toHaveAttribute("aria-pressed", "false");
 
     const restoredX = await furniture(touchHousing, plantId).getAttribute("data-x");
     const restoredY = await furniture(touchHousing, plantId).getAttribute("data-y");

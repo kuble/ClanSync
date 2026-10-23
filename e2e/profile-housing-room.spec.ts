@@ -106,6 +106,7 @@ test("방 안에서 벽 가구를 옮기고 우클릭으로 회전·보관하며
     const closePanel = stage.getByRole("button", { name: "패널 닫기", exact: true });
     if (await closePanel.isVisible()) await closePanel.click();
     await expect(model(clock.id)).toHaveAttribute("data-rotation", "0");
+    await model(clock.id).press("Enter");
 
     const clockSurface = await model(clock.id).getAttribute("data-surface");
     const targetSurface: Surface = clockSurface === "wall-left" ? "wall-right" : "wall-left";
@@ -130,6 +131,7 @@ test("방 안에서 벽 가구를 옮기고 우클릭으로 회전·보관하며
     await expect(model(clock.id)).toHaveAttribute("data-surface", targetSurface);
     await expect(model(clock.id)).toHaveAttribute("data-x", String(anchor.x));
     await expect(model(clock.id)).toHaveAttribute("data-y", String(anchor.y));
+    await expect(model(clock.id)).toHaveAttribute("aria-pressed", "false");
 
     await stage.getByRole("button", { name: "방 저장", exact: true }).click();
     await expect(stage.getByRole("button", { name: "방 꾸미기", exact: true })).toBeVisible();

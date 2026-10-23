@@ -87,7 +87,7 @@ export function ProfileHousing({ initial, embedded = false }: {
       setError("가구가 겹치거나 방 밖으로 나갑니다. 다른 위치를 선택해 주세요."); return;
     }
     setDraft(draft.map((item) => item.id === inventoryId ? { ...item, x, y, rotation: turn, surface } : item));
-    setSelectedId(inventoryId); setError("");
+    setSelectedId(rotation === undefined ? null : inventoryId); setError("");
   }
 
   function move(x: number, y: number, surface: HousingSurface = selected?.surface ?? "floor") {
