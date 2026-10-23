@@ -24,6 +24,8 @@ import type { Database } from "@/lib/supabase/database.types";
 import { AccountShell } from "@/components/onboarding/account-shell";
 import { ProfilePanels } from "@/components/profile/profile-panels";
 import { ProfileRolePreferences } from "@/components/profile/profile-role-preferences";
+import { ProfileHousing } from "@/components/profile/profile-housing";
+import { loadHousingState } from "@/lib/housing/load";
 import styles from "@/components/profile/profile.module.css";
 
 export const dynamic = "force-dynamic";
@@ -68,6 +70,7 @@ export default async function ProfilePage() {
     { data: picks },
     { data: altRowsRaw },
     { data: rolePreferences },
+    housing,
   ] = await Promise.all([
     supabase
       .from("users")
@@ -97,6 +100,7 @@ export default async function ProfilePage() {
       .eq("user_id", user.id)
       .order("alt_nick"),
     supabase.from("profile_role_preferences").select("game_id, ranking").eq("user_id", user.id),
+    loadHousingState(),
   ]);
 
   const { data: rawJoinFlat, error: rawJoinFlatErr } =
@@ -308,7 +312,8 @@ export default async function ProfilePage() {
 
   return <AccountShell><main className={styles.page}>
     <h1 className={styles.heading}>플레이어 프로필</h1>
-    <p className={styles.lead}>내 계정과 게임별 꾸미기, 가입 신청을 한곳에서 관리하세요.</p>
+    <p className={styles.lead}>나만의 방을 꾸미고, 게임 속 취향과 함께한 시간을 담아보세요.</p>
+    <ProfileHousing key={user.id} initial={housing} nickname={row?.nickname || "플레이어"} clanName={firstClan?.name} gameNames={linkedGames.map((game) => game.nameKo)} />
     {pendingForBanner.length > 0 && !joinRequestsFetchFailed ? <section className={styles.pendingBanner} aria-label="진행 중인 가입 신청 요약">
       <strong>진행 중인 가입 신청 {pendingForBanner.length}건</strong>
       {pendingForBanner.map((request) => <p key={request.id}>「{request.clans?.name ?? "클랜"}」 ({request.games?.name_ko ?? "게임"}) · 검토 중</p>)}
