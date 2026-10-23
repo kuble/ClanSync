@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { canPlaceHousingItem, getHousingFootprint, HOUSING_GRID_SIZE } from "@/lib/housing/domain";
 import type { HousingCatalogItem, HousingInventoryItem, HousingPlacement, HousingResult, HousingState } from "@/lib/housing/types";
-import { FurnitureArt } from "./housing-furniture-art";
+import { FurniturePreview } from "./housing-furniture-preview";
+import { HousingRoom } from "./housing-room";
 import styles from "./housing.module.css";
 
 const WALLPAPERS = [{ id: "cream", name: "크림" }, { id: "sage", name: "세이지" }, { id: "rose", name: "로즈" }, { id: "midnight", name: "미드나잇" }];
@@ -132,31 +133,17 @@ export function ProfileHousing({ initial, nickname, clanName, gameNames }: {
       </div>
     </header>
     {!state ? <div className={styles.loadError}><p role="alert">{error}</p><Button variant="outline" onClick={reload} disabled={pending}>{pending ? "불러오는 중…" : "다시 불러오기"}</Button></div> : <>
-      <div className={styles.roomLayout}>
+      <div className={styles.roomLayout} data-editing={editing}>
         <div className={styles.sceneColumn}>
-          <div className={styles.scene} data-wallpaper={editing ? wallpaper : state.room.wallpaper} data-floor={editing ? floor : state.room.floor} data-editing={editing} role="group" aria-label="나의 방">
-            <div className={styles.wallLeft} aria-hidden="true" /><div className={styles.wallRight} aria-hidden="true" /><div className={styles.floor} aria-hidden="true" /><div className={styles.window} aria-hidden="true"><span /></div>
-            {editing && Array.from({ length: 36 }, (_, index) => {
-              const x = index % 6; const y = Math.floor(index / 6);
-              const valid = selected && canPlaceHousingItem({ inventoryId: selected.id, x, y, rotation: selected.rotation }, placements, draft, state.catalog);
-              return <button key={index} type="button" className={styles.tile} aria-label={`배치 위치 ${x + 1}열 ${y + 1}행`} disabled={!selected || pending} data-valid={!!valid} style={{ left: `${50 + (x - y) * 7}%`, top: `${40 + (x + y + 1) * (22 / 6)}%` }} onClick={() => move(x, y)} />;
-            })}
-            {inventory.filter((item) => item.x !== null && item.y !== null).sort((a, b) => (a.x! + a.y!) - (b.x! + b.y!)).map((item) => {
-              const catalog = state.catalog.find((entry) => entry.id === item.catalogId);
-              if (!catalog) return null;
-              const size = getHousingFootprint(catalog, item.rotation);
-              const x = item.x! + size.width / 2; const y = item.y! + size.depth / 2;
-              return <button key={item.id} type="button" className={styles.furniture} data-selected={item.id === selectedId} data-inventory-id={item.id} data-x={item.x} data-y={item.y} data-rotation={item.rotation} aria-label={`${catalog.name} 선택`} aria-pressed={item.id === selectedId} disabled={pending} style={{ left: `${50 + (x - y) * 7}%`, top: `${40 + (x + y) * (22 / 6)}%`, width: `${13 + (Math.max(size.width, size.depth) - 1) * 6}%`, zIndex: 10 + item.x! + item.y! }} onClick={() => select(item)}><FurnitureArt code={catalog.visualKey} rotation={item.rotation} /></button>;
-            })}
-            <div className={styles.avatar} aria-hidden="true"><span className={styles.avatarHead} /><span className={styles.avatarBody} /><span className={styles.avatarShadow} /></div>
-          </div>
+          <HousingRoom inventory={inventory} catalog={state.catalog} selectedId={selectedId} editing={editing} pending={pending}
+            wallpaper={editing ? wallpaper : state.room.wallpaper} floor={editing ? floor : state.room.floor} onSelect={select} onMove={move} />
           <div className={styles.sceneCaption}><span>{placementsOf(inventory).length}개 배치 · {inventory.length - placementsOf(inventory).length}개 보관</span><span>{editing ? "바닥을 눌러 배치 · 아래 위치 선택도 가능" : "개인 코인으로 채워가는 나만의 방"}</span></div>
         </div>
         <aside className={styles.sidebar} aria-label={editing ? "선택한 가구 편집" : "방 소개"}>
           {editing ? <>
             <p className={styles.asideLabel}>선택한 가구</p>
             {selected && selectedCatalog ? <>
-              <div className={styles.selectedArt}><FurnitureArt code={selectedCatalog.visualKey} rotation={selected.rotation} /></div>
+              <div className={styles.selectedArt}><FurniturePreview code={selectedCatalog.visualKey} rotation={selected.rotation} /></div>
               <h3>{selectedCatalog.name}</h3><p className={styles.description}>{selectedCatalog.description}</p>
               <p className={styles.position}>{selected.x === null ? "보관 중" : `${selected.x + 1}열 ${selected.y! + 1}행`} · {getHousingFootprint(selectedCatalog, selected.rotation).width} × {getHousingFootprint(selectedCatalog, selected.rotation).depth}칸 · {selected.rotation * 90}°</p>
               <fieldset disabled={pending} className={styles.positionControls}><legend>배치 위치</legend><label>열<select aria-label="가구 위치 열" value={column} onChange={(event) => setColumn(Number(event.target.value))}>{Array.from({ length: HOUSING_GRID_SIZE }, (_, i) => <option key={i} value={i}>{i + 1}열</option>)}</select></label><label>행<select aria-label="가구 위치 행" value={row} onChange={(event) => setRow(Number(event.target.value))}>{Array.from({ length: HOUSING_GRID_SIZE }, (_, i) => <option key={i} value={i}>{i + 1}행</option>)}</select></label><Button size="sm" variant="outline" onClick={() => move(column, row)}>선택 위치에 놓기</Button></fieldset>
@@ -172,21 +159,21 @@ export function ProfileHousing({ initial, nickname, clanName, gameNames }: {
         {panel === "inventory" ? <ul className={styles.inventory} aria-label="보유 가구">{state.inventory.map((owned) => {
           const item = state.catalog.find((entry) => entry.id === owned.catalogId); const current = draft.find((entry) => entry.id === owned.id);
           if (!item) return null;
-          return <li key={owned.id}><button type="button" className={styles.inventoryItem} aria-label={`${item.name} 선택`} aria-pressed={selectedId === owned.id} onClick={() => select(current ?? owned)} disabled={pending}><span className={styles.catalogArt}><FurnitureArt code={item.visualKey} rotation={current?.rotation ?? 0} /></span><strong>{item.name}</strong><span>{current?.x === null ? "보관 중" : "배치됨"}</span></button></li>;
+          return <li key={owned.id}><button type="button" className={styles.inventoryItem} aria-label={`${item.name} 선택`} aria-pressed={selectedId === owned.id} onClick={() => select(current ?? owned)} disabled={pending}><span className={styles.catalogArt}><FurniturePreview code={item.visualKey} rotation={current?.rotation ?? 0} /></span><strong>{item.name}</strong><span>{current?.x === null ? "보관 중" : "배치됨"}</span></button></li>;
         })}</ul> : <>
           <p className={styles.shopNote}>개인 코인으로 구매한 가구는 클랜을 옮겨도 보관됩니다. 가구는 종류별로 하나씩 보유할 수 있어요.</p>
           <div className={styles.categories} aria-label="가구 분류">{Object.entries(CATEGORY_LABELS).map(([id, label]) => <button key={id} type="button" aria-pressed={category === id} onClick={() => setCategory(id)}>{label}</button>)}</div>
           {dirty && <p className={styles.purchaseHint}>가구를 구매하기 전에 꾸민 방을 저장해 주세요.</p>}
           <ul className={styles.catalog} aria-label="가구 상품">{state.catalog.filter((item) => category === "all" || item.category === category).map((item) => {
             const owned = state.inventory.some((entry) => entry.catalogId === item.id); const insufficient = state.coinBalance < item.price;
-            return <li key={item.id} className={styles.catalogItem}><div className={styles.catalogArt}><FurnitureArt code={item.visualKey} /></div><div className={styles.catalogName}><h3>{item.name}</h3><span>{item.width} × {item.depth}칸</span></div><p>{item.description}</p><div className={styles.price}>{owned ? <><Check size={14} aria-hidden="true" />보유 중</> : <><Coins size={14} aria-hidden="true" />{item.price.toLocaleString("ko-KR")} 코인</>}</div><Button size="sm" variant="outline" className="w-full" disabled={owned || insufficient || dirty || pending} aria-label={`${item.name} 구매`} onClick={(event) => { purchaseOpener.current = event.currentTarget; setPurchase(item); setError(""); }}>{owned ? "보유 중" : insufficient ? "코인 부족" : "구매"}</Button></li>;
+            return <li key={item.id} className={styles.catalogItem}><div className={styles.catalogArt}><FurniturePreview code={item.visualKey} /></div><div className={styles.catalogName}><h3>{item.name}</h3><span>{item.width} × {item.depth}칸</span></div><p>{item.description}</p><div className={styles.price}>{owned ? <><Check size={14} aria-hidden="true" />보유 중</> : <><Coins size={14} aria-hidden="true" />{item.price.toLocaleString("ko-KR")} 코인</>}</div><Button size="sm" variant="outline" className="w-full" disabled={owned || insufficient || dirty || pending} aria-label={`${item.name} 구매`} onClick={(event) => { purchaseOpener.current = event.currentTarget; setPurchase(item); setError(""); }}>{owned ? "보유 중" : insufficient ? "코인 부족" : "구매"}</Button></li>;
           })}</ul>
         </>}
       </div>}
       {error && <div className={styles.error}><p role="alert">{error}</p><Button size="sm" variant="ghost" disabled={pending} onClick={() => dirty ? setDiscard("reload") : reload()}>최신 방 불러오기</Button></div>}
       {editing && <footer className={styles.editorFooter}><span>배치·회전·보관에는 코인이 들지 않아요.</span><div className={styles.buttons}><Button variant="outline" onClick={() => dirty ? setDiscard("cancel") : cancel()} disabled={pending}>편집 취소</Button><Button onClick={save} disabled={pending || !dirty}>{pending ? "처리 중…" : "방 저장"}</Button></div></footer>}
     </>}
-    <Dialog open={!!purchase} onOpenChange={(open) => { if (!open && !pending) setPurchase(null); }}><DialogContent showCloseButton={!pending} finalFocus={purchaseOpener}><DialogHeader><DialogTitle>가구 구매</DialogTitle><DialogDescription>{purchase?.name}을 개인 코인으로 구매합니다. 구매 후 보관함에서 방에 배치할 수 있어요.</DialogDescription></DialogHeader>{purchase && <><div className={styles.purchaseArt}><FurnitureArt code={purchase.visualKey} /></div><p className={styles.purchaseTerms}>사용 코인 {purchase.price.toLocaleString("ko-KR")} · 구매 후 잔액 {((state?.coinBalance ?? 0) - purchase.price).toLocaleString("ko-KR")} 코인</p><p className={styles.purchaseTerms}>구매한 가구는 영구 보유하며 환불은 지원되지 않습니다.</p></>}<DialogFooter><Button variant="outline" disabled={pending} onClick={() => setPurchase(null)}>취소</Button><Button disabled={pending} onClick={buy}>{pending ? "구매 중…" : `${purchase?.price.toLocaleString("ko-KR")} 코인으로 구매`}</Button></DialogFooter></DialogContent></Dialog>
+    <Dialog open={!!purchase} onOpenChange={(open) => { if (!open && !pending) setPurchase(null); }}><DialogContent showCloseButton={!pending} finalFocus={purchaseOpener}><DialogHeader><DialogTitle>가구 구매</DialogTitle><DialogDescription>{purchase?.name}을 개인 코인으로 구매합니다. 구매 후 보관함에서 방에 배치할 수 있어요.</DialogDescription></DialogHeader>{purchase && <><div className={styles.purchaseArt}><FurniturePreview code={purchase.visualKey} /></div><p className={styles.purchaseTerms}>사용 코인 {purchase.price.toLocaleString("ko-KR")} · 구매 후 잔액 {((state?.coinBalance ?? 0) - purchase.price).toLocaleString("ko-KR")} 코인</p><p className={styles.purchaseTerms}>구매한 가구는 영구 보유하며 환불은 지원되지 않습니다.</p></>}<DialogFooter><Button variant="outline" disabled={pending} onClick={() => setPurchase(null)}>취소</Button><Button disabled={pending} onClick={buy}>{pending ? "구매 중…" : `${purchase?.price.toLocaleString("ko-KR")} 코인으로 구매`}</Button></DialogFooter></DialogContent></Dialog>
     <Dialog open={!!discard} onOpenChange={(open) => { if (!open && !pending) setDiscard(null); }}><DialogContent><DialogHeader><DialogTitle>변경 내용을 버릴까요?</DialogTitle><DialogDescription>저장하지 않은 배치와 방 분위기 변경을 취소합니다. 구매한 가구는 보관함에 유지됩니다.</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" onClick={() => setDiscard(null)} disabled={pending}>계속 꾸미기</Button><Button onClick={() => discard === "reload" ? reload() : cancel()} disabled={pending}>변경 내용 버리기</Button></DialogFooter></DialogContent></Dialog>
   </section>;
 }
