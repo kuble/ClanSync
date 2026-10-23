@@ -42,7 +42,8 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await auto.click(); await expect(own.getByRole("alert")).toBeVisible(); await expect(auto).not.toBeChecked();
     await page.unroute("**/profile");
 
-    // Spending on a title refreshes the room balance without replacing its unsaved layout.
+    await expect(page.getByRole("button", { name: "칭호 상점", exact: true })).toHaveCount(0);
+    // Switching profile tabs keeps the unsaved layout; purchases live in the personal shop.
     const housing = page.getByRole("region", { name: "프로필 하우징", exact: true });
     await page.getByRole("tab", { name: "3D 미니룸", exact: true }).click();
     await housing.getByRole("button", { name: "방 꾸미기", exact: true }).click();
@@ -51,27 +52,44 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await plant.focus(); await plant.press("Enter"); await plant.press("Delete");
     await expect(plant).toHaveCount(0);
     await accountTab.click();
-
-    await card.getByRole("button", { name: "칭호 상점", exact: true }).click();
-    const shop = page.getByRole("dialog", { name: "칭호 상점", exact: true });
-    const title = shop.getByRole("article", { name: "함께하는 플레이어", exact: true });
-    await title.getByRole("button", { name: "구매", exact: true }).click();
-    const checkout = page.getByRole("dialog", { name: "칭호를 구매할까요?", exact: true });
-    await checkout.getByRole("button", { name: "취소", exact: true }).click();
-    await expect(title.getByRole("button", { name: "구매", exact: true })).toBeFocused();
-    await title.getByRole("button", { name: "구매", exact: true }).click();
-    await checkout.getByRole("button", { name: "구매 확정", exact: true }).click();
-    await expect(checkout).toBeHidden();
-    await expect(shop).toContainText("개인 코인 410");
-    await title.getByRole("button", { name: "사용하기", exact: true }).click();
-    await expect(title.getByRole("button", { name: "사용 중", exact: true })).toBeVisible();
-    await page.keyboard.press("Escape"); await expect(shop).toBeHidden();
-    await expect(card.getByText("함께하는 플레이어", { exact: true })).toBeVisible();
     await page.getByRole("tab", { name: "3D 미니룸", exact: true }).click();
-    await expect(housing.getByTestId("housing-coin-balance")).toHaveText("410");
     await expect(plant).toHaveCount(0);
     await housing.getByRole("button", { name: "편집 취소", exact: true }).click();
     await page.getByRole("dialog", { name: "변경 내용을 버릴까요?", exact: true }).getByRole("button", { name: "변경 내용 버리기", exact: true }).click();
+    await page.getByRole("link", { name: "개인 상점", exact: true }).click();
+    const filters = page.getByRole("group", { name: "개인 꾸미기 분류", exact: true });
+    await expect(page.getByRole("heading", { name: "낮은 원목 테이블", exact: true })).toBeVisible();
+    await filters.getByRole("button", { name: "칭호", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "낮은 원목 테이블", exact: true })).toHaveCount(0);
+    const title = page.getByRole("article", { name: "함께하는 플레이어", exact: true });
+    const buyTitle = title.getByRole("button", { name: "함께하는 플레이어 구매", exact: true });
+    await buyTitle.click();
+    const checkout = page.getByRole("dialog", { name: "칭호 구매", exact: true });
+    await checkout.getByRole("button", { name: "취소", exact: true }).click();
+    await expect(buyTitle).toBeFocused();
+    await buyTitle.click();
+    await page.route("**/store", (route) => route.request().method() === "POST" ? route.abort("failed") : route.continue());
+    await checkout.getByRole("button", { name: "구매 확정", exact: true }).click();
+    await expect(checkout.getByRole("alert")).toBeVisible();
+    await page.unroute("**/store");
+    await checkout.getByRole("button", { name: "구매 확정", exact: true }).click();
+    await expect(checkout).toBeHidden();
+    await expect(page.locator('[aria-label="보유 코인"] strong')).toHaveText("410");
+    await expect(title.getByRole("link", { name: "보유 중 · 설정하기", exact: true })).toBeVisible();
+    for (const width of [1280, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    }
+    await page.screenshot({ path: test.info().outputPath("personal-store-mobile.png"), fullPage: true });
+    await page.setViewportSize({ width: 1280, height: 1000 });
+    await page.goto("/profile");
+    await expect(housing.getByTestId("housing-coin-balance")).toHaveText("410");
+    await accountTab.click();
+    await card.getByRole("button", { name: "네임카드 꾸미기", exact: true }).click();
+    const editor = page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true });
+    await editor.getByRole("combobox", { name: "네임카드 칭호", exact: true }).selectOption({ label: "함께하는 플레이어" });
+    await expect(editor.getByRole("status")).toContainText("저장했습니다");
+    await page.keyboard.press("Escape");
     await page.reload(); await accountTab.click();
     await expect(card.getByText("함께하는 플레이어", { exact: true })).toBeVisible();
     for (const width of [1280, 1074, 390, 320]) {
@@ -91,7 +109,9 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await expect(page.getByRole("region", { name: "발로란트 관리", exact: true }).getByText("RiotCard#KR1", { exact: true })).toBeVisible();
 
     await page.goto(`/games/overwatch/clan/${f.clanId}/store`);
-    await expect(page.getByRole("region", { name: "칭호 상점", exact: true }).getByRole("article", { name: "함께하는 플레이어", exact: true }).getByRole("button", { name: "사용 중", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "함께하는 플레이어", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "낮은 원목 테이블 구매", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "개인 상점", exact: true })).toBeVisible();
     const room = await createAndEnterBalanceRoom(page, f.path);
     const session = await f.activeRound();
     const roster = { team1: { tank: f.users[0].id, dmg: [f.users[1].id, f.users[2].id], sup: [f.users[3].id, f.users[4].id] }, team2: { tank: f.users[5].id, dmg: [f.users[6].id, f.users[7].id], sup: [f.users[8].id, f.users[9].id] } };

@@ -70,7 +70,8 @@ test("방 안에서 벽 가구를 옮기고 우클릭으로 회전·보관하며
     await setLightTheme(page, true);
 
     await stage.getByRole("button", { name: "방 꾸미기", exact: true }).click();
-    for (const name of ["내 가구", "가구 상점", "방 분위기", "방 저장", "편집 취소"]) {
+    await expect(stage.getByRole("button", { name: "가구 상점", exact: true })).toHaveCount(0);
+    for (const name of ["내 가구", "방 분위기", "방 저장", "편집 취소"]) {
       await inside(stage, stage.getByRole("button", { name, exact: true }));
     }
     await stage.getByRole("button", { name: "방 분위기", exact: true }).click();

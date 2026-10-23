@@ -88,10 +88,11 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     await page.getByRole("tab", { name: "3D 미니룸", exact: true }).click();
     await expect(housing).toBeVisible();
 
-    await housing.getByRole("button", { name: "방 꾸미기", exact: true }).click();
-    await housing.getByRole("button", { name: "가구 상점", exact: true }).click();
-    const buy = housing.getByRole("button", { name: `${desk.name} 구매`, exact: true });
-    const deskCard = housing.getByRole("list", { name: "가구 상품", exact: true }).getByRole("listitem").filter({ has: page.getByRole("button", { name: `${desk.name} 구매`, exact: true }) });
+    await expect(housing.getByRole("button", { name: "가구 상점", exact: true })).toHaveCount(0);
+    await page.getByRole("link", { name: "개인 상점", exact: true }).click();
+    await page.getByRole("group", { name: "개인 꾸미기 분류", exact: true }).getByRole("button", { name: "가구", exact: true }).click();
+    const buy = page.getByRole("button", { name: `${desk.name} 구매`, exact: true });
+    const deskCard = page.getByRole("article", { name: desk.name, exact: true });
     await deskCard.scrollIntoViewIfNeeded();
     const deskPreview = deskCard.locator('[data-preview-state="ready"] img');
     await expect(deskPreview).toBeVisible();
@@ -104,14 +105,16 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     await page.keyboard.press("Escape");
     await expect(purchase).toBeHidden();
     await expect(buy).toBeFocused();
-    await expect(wallet).toContainText("1,000");
+    const shopWallet = page.locator('[aria-label="보유 코인"] strong');
+    await expect(shopWallet).toHaveText("1,000");
 
     await buy.click();
     await purchase
-      .getByRole("button", { name: "180 코인으로 구매", exact: true })
+      .getByRole("button", { name: "구매 확정", exact: true })
       .click();
     await expect(purchase).toBeHidden();
-    await expect(wallet).toContainText("820");
+    await expect(shopWallet).toHaveText("820");
+    await expect(deskCard.getByRole("link", { name: "보유 중 · 설정하기", exact: true })).toBeVisible();
     const inventoryResult = await fixture.service
       .from("user_housing_inventory")
       .select("id,catalog_id,x,y,rotation,acquired_price,coin_transaction_id")
@@ -124,6 +127,9 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     expect(ownedDesk.x).toBeNull();
     expect(ownedDesk.y).toBeNull();
 
+    await page.goto("/profile");
+    await expect(wallet).toContainText("820");
+    await housing.getByRole("button", { name: "방 꾸미기", exact: true }).click();
     await openInventory(housing);
     await housing
       .getByRole("list", { name: "보유 가구", exact: true })
@@ -183,7 +189,7 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
       await expectWebglRoom(housing);
       await expectNoHorizontalOverflow(page);
       await housing.getByRole("button", { name: "방 꾸미기", exact: true }).click();
-      await housing.getByRole("button", { name: "가구 상점", exact: true }).click();
+      await openInventory(housing);
       await expectNoHorizontalOverflow(page);
       await housing.getByRole("button", { name: "편집 취소", exact: true }).click();
     }
@@ -233,12 +239,12 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     const poorPage = await poorContext.newPage();
     poorPage.on("pageerror", (error) => pageErrors.push(error.message));
     await loginIsolatedBalanceUser(poorPage, poorUser);
-    await poorPage.goto("/profile");
-    const poorHousing = poorPage.getByRole("region", { name: "프로필 하우징" });
-    await poorHousing.getByRole("button", { name: "방 꾸미기", exact: true }).click();
-    await poorHousing.getByRole("button", { name: "가구 상점", exact: true }).click();
+    // The personal shop also works without any clan membership.
+    expect((await fixture.service.from("clan_members").delete().eq("user_id", poorUser.id).eq("clan_id", fixture.clanId)).error).toBeNull();
+    await poorPage.goto("/store");
+    await poorPage.getByRole("group", { name: "개인 꾸미기 분류", exact: true }).getByRole("button", { name: "가구", exact: true }).click();
     await expect(
-      poorHousing.getByRole("button", { name: `${desk.name} 구매`, exact: true }),
+      poorPage.getByRole("button", { name: `${desk.name} 구매`, exact: true }),
     ).toBeDisabled();
     const poorClient = await fixture.memberClient(1);
     const insufficient = await poorClient.rpc("purchase_housing_furniture", {
@@ -257,6 +263,17 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     expect(poorLedger.error).toBeNull();
     expect(poorLedger.data).toEqual([]);
 
+    expect((await fixture.service.from("users").update({ coin_balance: 100 }).eq("id", poorUser.id)).error).toBeNull();
+    await poorPage.reload();
+    await poorPage.getByRole("group", { name: "개인 꾸미기 분류", exact: true }).getByRole("button", { name: "칭호", exact: true }).click();
+    await poorPage.getByRole("button", { name: "함께하는 플레이어 구매", exact: true }).click();
+    await poorPage.getByRole("dialog", { name: "칭호 구매", exact: true }).getByRole("button", { name: "구매 확정", exact: true }).click();
+    await expect(poorPage.locator('[aria-label="보유 코인"] strong')).toHaveText("10");
+    expect((await fixture.service.from("coin_transactions").select("amount,reason,clan_id").eq("user_id", poorUser.id)).data).toEqual([{ amount: -90, reason: "purchase_title", clan_id: null }]);
+
+    await poorPage.goto("/profile");
+    const poorHousing = poorPage.getByRole("region", { name: "프로필 하우징" });
+    await poorHousing.getByRole("button", { name: "방 꾸미기", exact: true }).click();
     // A lost GPU context must preserve the unsaved room and its keyboard controls.
     await expectWebglRoom(poorHousing);
     const plantResult = await fixture.service.from("user_housing_inventory").select("id").eq("user_id", poorUser.id).eq("catalog_id", "small-plant").single();
@@ -318,7 +335,15 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     await expect(fallbackPlant).toHaveAttribute("aria-pressed", "true");
     await fallbackPlant.press("r");
     await expect(fallbackPlant).toHaveAttribute("data-rotation", "1");
-    await expect(fallbackHousing.getByTestId("housing-coin-balance")).toHaveText("0");
+    await expect(fallbackHousing.getByTestId("housing-coin-balance")).toHaveText("10");
+    await unsupportedPage.goto("/store");
+    await unsupportedPage.getByRole("group", { name: "개인 꾸미기 분류", exact: true }).getByRole("button", { name: "가구", exact: true }).click();
+    const fallbackPreview = unsupportedPage.getByRole("article", { name: "민트 소파", exact: true }).locator('[data-preview-state="fallback"]');
+    const [previewBox, svgBox] = await Promise.all([fallbackPreview.boundingBox(), fallbackPreview.locator("svg").boundingBox()]);
+    expect(previewBox).not.toBeNull();
+    expect(svgBox).not.toBeNull();
+    expect(svgBox!.width).toBeLessThanOrEqual(previewBox!.width + 1);
+    expect(svgBox!.height).toBeLessThanOrEqual(previewBox!.height + 1);
     expect(pageErrors).toEqual([]);
     await poorClient.auth.signOut();
   } finally {
