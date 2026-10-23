@@ -206,5 +206,80 @@ test("award cases prefer the best recent grade and filter full history by gold, 
       await expect(touchCollection.locator('[data-featured-emblem-key]')).toHaveCount(1);
       await touchCollection.screenshot({ animations: "disabled", path: info.outputPath("personal-emblem-awards-mobile.png") });
     } finally { await touchContext.close(); }
+
+    // A full tray swaps one slot without removing or navigating to the old emblem.
+    await monthlyWin.click();
+    const star = details.getByRole("button", { name: /대표 엠블럼 (지정|해제)/ });
+    await expect(star).toHaveAttribute("aria-pressed", "false");
+    await expect(star).toBeEnabled();
+    await star.click();
+    await expect(star).toHaveAttribute("aria-pressed", "true");
+    await expect(star).toBeEnabled();
+    await history.locator(`[data-emblem-key="year-${previousYear - 1}-승률"]`).click();
+    await star.click();
+    await expect(star).toHaveAttribute("aria-pressed", "true");
+    await expect(star).toBeEnabled();
+    const originalPicks = [`month-${previousYear - 1}-06-승률`, `month-${previousYear}-02-승률`, `year-${previousYear - 1}-승률`];
+    const persistedPicks = async () => (await isolated.service.from("clan_personal_emblem_picks").select("emblem_keys")
+      .eq("clan_id", isolated.clanId).eq("user_id", user.id).single()).data?.emblem_keys;
+    expect(await persistedPicks()).toEqual(originalPicks);
+    await history.locator(`[data-emblem-key="month-${previousYear}-04-승률"]`).click();
+    await star.click();
+    const replacement = page.getByRole("dialog", { name: "대표 엠블럼 교체", exact: true });
+    const options = replacement.getByRole("group", { name: "교체할 대표 엠블럼", exact: true }).getByRole("button");
+    await expect(replacement).toBeVisible();
+    await expect(options).toHaveCount(3);
+    expect(await options.evaluateAll(elements => elements.map(element => element.getAttribute("data-replace-emblem-key")))).toEqual(originalPicks);
+    await replacement.screenshot({ path: info.outputPath("personal-emblem-replace-desktop.png") });
+    await page.keyboard.press("Escape");
+    await expect(replacement).toHaveCount(0);
+    await expect(star).toBeFocused();
+    expect(await persistedPicks()).toEqual(originalPicks);
+    await star.click();
+    await replacement.getByRole("button", { name: "취소", exact: true }).click();
+    await expect(replacement).toHaveCount(0);
+    await expect(star).toBeFocused();
+    await star.click();
+    await page.route("**/emblems?*", route => route.request().headers()["next-action"] ? route.abort("failed") : route.continue());
+    await replacement.locator(`[data-replace-emblem-key="${originalPicks[1]}"]`).click();
+    await expect(page.getByText("대표 엠블럼을 저장하지 못했습니다. 다시 시도해 주세요.", { exact: true })).toBeVisible();
+    await expect(replacement).toBeVisible();
+    await expect(options.first()).toBeEnabled();
+    expect(await persistedPicks()).toEqual(originalPicks);
+    await page.unroute("**/emblems?*");
+    await replacement.locator(`[data-replace-emblem-key="${originalPicks[1]}"]`).click();
+    await expect(replacement).toHaveCount(0);
+    await expect(star).toHaveAttribute("aria-pressed", "true");
+    await expect(star).toBeFocused();
+    const replacedPicks = [originalPicks[0], `month-${previousYear}-04-승률`, originalPicks[2]];
+    expect(await persistedPicks()).toEqual(replacedPicks);
+    await expect(tray.locator('[data-featured-emblem-key]')).toHaveCount(3);
+
+    await history.locator(`[data-emblem-key="month-${previousYear}-12-승률"]`).click();
+    await page.setViewportSize({ width: 320, height: 844 });
+    await star.click();
+    await expect(replacement).toBeVisible();
+    const replacementBounds = await replacement.boundingBox();
+    expect(replacementBounds!.x).toBeGreaterThanOrEqual(0);
+    expect(replacementBounds!.x + replacementBounds!.width).toBeLessThanOrEqual(320);
+    for (const option of await options.all()) {
+      const bounds = await option.boundingBox();
+      expect(bounds!.width).toBeGreaterThanOrEqual(44);
+      expect(bounds!.height).toBeGreaterThanOrEqual(44);
+    }
+    await replacement.screenshot({ path: info.outputPath("personal-emblem-replace-mobile.png") });
+    await options.first().click();
+    await expect(replacement).toHaveCount(0);
+    await expect(star).toHaveAttribute("aria-pressed", "true");
+    await expect(star).toBeEnabled();
+    expect(await persistedPicks()).toEqual([`month-${previousYear}-12-승률`, ...replacedPicks.slice(1)]);
+    await star.click();
+    await expect(star).toHaveAttribute("aria-pressed", "false");
+    await expect(star).toBeEnabled();
+    expect(await persistedPicks()).toEqual(replacedPicks.slice(1));
+    await star.click();
+    await expect(star).toHaveAttribute("aria-pressed", "true");
+    await expect(star).toBeEnabled();
+    expect(await persistedPicks()).toEqual([...replacedPicks.slice(1), `month-${previousYear}-12-승률`]);
   } finally { await isolated.cleanup(); }
 });
