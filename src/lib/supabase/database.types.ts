@@ -2829,6 +2829,41 @@ export type Database = {
           },
         ]
       }
+      profile_visibility: {
+        Row: {
+          room_public: boolean
+          show_clan: boolean
+          show_emblems: boolean
+          show_games: boolean
+          show_intro: boolean
+          user_id: string
+        }
+        Insert: {
+          room_public?: boolean
+          show_clan?: boolean
+          show_emblems?: boolean
+          show_games?: boolean
+          show_intro?: boolean
+          user_id: string
+        }
+        Update: {
+          room_public?: boolean
+          show_clan?: boolean
+          show_emblems?: boolean
+          show_games?: boolean
+          show_intro?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_visibility_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       purchases: {
         Row: {
           approved_by: string | null
@@ -3826,6 +3861,7 @@ export type Database = {
         }
         Returns: Json
       }
+      read_player_profile: { Args: { p_user_id: string }; Returns: Json }
       recheck_clan_discord_notification: {
         Args: { p_attempt: number; p_log_id: string }
         Returns: Json
