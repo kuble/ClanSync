@@ -11,6 +11,7 @@
 
 ## 2026-10-23 개인 엠블럼 공통 케이스
 
+- 대표 선택: 상세의 별 토글로 추가/해제하며3칸이 차 있으면 이미지·설명·기간을 보고 한 칸만 즉시 교체한다. PC/320px 교체·슬롯 순서/다른2칸 보존·취소/Esc 초점 복귀·통신 실패 후 같은 창 재시도·별 토글 저장과 기존 프로필/개인 기록 공유·열람 권한을 집중2건·변경 ESLint·타입으로 확인했다([PC](design/personal-emblems/production-v1/personal-emblem-replace-desktop.png)·[모바일](design/personal-emblems/production-v1/personal-emblem-replace-mobile.png)). 공유 서버 설정 변경과 겹친 회귀1건은 새 서버에서 재실행해 통과했다. 전체 빌드·DB 변경은 없다.
 - 제목·대표 배치: 대표3칸을 제목·부제목 오른쪽의 셀44px·전체158px 표시로 축소했다. 좁은 화면에서는 제목 아래 오른쪽으로 내려간다. 목록은 진열 영역760px 미만3열/이상5열·셀 최대136px와 기존 분류/수상 규칙을 유지한다. 집중2건·변경 ESLint와320/390/568/640/685/768/1024/1074/1304px에서 우측 정렬·줄바꿈·목록 크기/넘침·저장/상세/권한을 확인했다([1074px](design/personal-emblems/production-v1/header-1074.png)·[568px](design/personal-emblems/production-v1/grid-568.png)·[685px](design/personal-emblems/production-v1/grid-685.png)).
 - 진열·분류: 전체/수상/달성으로 분류하고 날짜 필터를 제거했다. 수상은 종류별 보유 최고 등급(금→은→동) 중 최신1개를 표시하며 표제는 `수상`이다. 팝업에는 전체 월간·연간 이력과 전체/금/은/동 필터를 제공한다. 페이지 상단의 대표3칸은 지정·해제를 즉시 반영하고 각 대표의 상세를 연다. 등급별 전환·과거 수상 저장·대표 진열 갱신/재열기·초점 복귀·320px 터치와 기존 기간/달성/공개 권한을 집중9건·변경 ESLint·타입으로 검증했다([진열](design/personal-emblems/production-v1/award-case-desktop.png)·[이력 PC](design/personal-emblems/production-v1/award-history-desktop.png)·[이력 모바일](design/personal-emblems/production-v1/award-history-mobile.png)). 전체 빌드는 반복하지 않았다.
 - 프로필의 활성 게임·클랜별 영역과 개인 기록 배너가 같은 이미지 케이스를 연다. 수상형30장·달성형20장과 월12색/연6색·날짜를 적용했다. 전체/수상/달성 분류, 계열별 최고 달성 한 슬롯, 조건·진척·금은동·수상 기간과 관련4단계 상세를 제공한다.
