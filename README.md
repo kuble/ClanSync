@@ -62,7 +62,7 @@ Discord 연결은 클랜 관리의 `알림·연동`에서 설정합니다. 기�
 
 영상 촬영용 QA 대시보드는 `node scripts/add-qa-dashboard-demo.mjs`로 추가량을 확인하고 `--apply`로 적용합니다. `QA_01_Clan`에 공지 3개·주간 일정 3개·빈 클랜 규칙만 추가하며, 고정 ID로 중복을 막고 기존 계정·명단·경기·코인을 보존합니다. 사용자 편집 후 재실행해도 기존 공지·일정·규칙을 덮어쓰지 않습니다.
 
-배너·게임 닉네임은 `node scripts/style-qa-demo.mjs`로 미리 확인하고 `--apply`로 QA에 반영합니다. 리더 표시 이름은 **새벽별**, `QA_Member_02`는 **달빛고양이**이며 로그인 이메일·비밀번호·사용자 ID·전적은 유지합니다. 과거 기록 추가 도구는 표시 이름 대신 기존 이메일로 대상·순서를 확인합니다. [배너 출처·생성 프롬프트·닉네임 대응](docs/qa-demo-assets.md).
+QA 게임 ID는 `node scripts/qa-game-identities.mjs`로 미리 확인하고 `--apply`로 허용된 14계정의 비어 있는 ID만 채웁니다. 리더는 `QALeader01#1001`, `QA_Member_02`는 `QAMember02#2002`이며 기존 제공자 ID·코인·방/가구를 보존합니다. 활성 QA 명단을 시드로 다시 만들지 않습니다. [표시 규칙·보정 내역](docs/03-analysis/profile-game-identity-audit-2026-10-23.md). 예전 시연용 표시 이름은 현재 식별 규칙으로 사용하지 않으며 [배너 출처·생성 프롬프트](docs/qa-demo-assets.md)는 참고 자료입니다.
 
 클랜 페이지 응답 시간은 QA 서버 실행 후 `node scripts/measure-qa-pages.mjs`로 측정합니다. 기존 QA 리더로 홈·로비·통계·이벤트·관리·상점을 3회 요청하며 최초 응답·본문 완료 시간과 압축 해제 후 본문 크기를 출력합니다. 시드·브라우저 렌더 측정은 수행하지 않습니다.
 
