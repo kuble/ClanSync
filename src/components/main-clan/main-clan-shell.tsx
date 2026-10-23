@@ -176,7 +176,7 @@ export function MainClanShell({
     { href: `/games/${ctx.gameSlug}`, label: "커뮤니티", icon: Globe2 },
     { href: "/profile", label: "프로필", icon: UserRound },
   ];
-  const pageTitle = pathname === basePath + "/badges" ? "클랜 배지" : [...items, ...bottomItems].find(({ href }) =>
+  const pageTitle = pathname === basePath + "/badges" ? "클랜 배지" : pathname === basePath + "/emblems" ? "개인 엠블럼" : [...items, ...bottomItems].find(({ href }) =>
     pathname === href || (href.startsWith(basePath + "/") && pathname.startsWith(href + "/")),
   )?.label;
 

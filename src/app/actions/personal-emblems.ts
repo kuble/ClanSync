@@ -10,21 +10,6 @@ import type { PersonalEmblemCollection } from "@/lib/personal-emblems/types";
 
 type EmblemResult = { ok: true; collection: PersonalEmblemCollection } | { ok: false; error: string };
 
-export async function loadPersonalEmblemsAction(clanId: string, personId?: string): Promise<EmblemResult> {
-  if (typeof clanId !== "string" || !uuidPattern.test(clanId)
-    || (personId !== undefined && (typeof personId !== "string" || !uuidPattern.test(personId))))
-    return { ok: false, error: "클랜과 멤버 정보를 확인해 주세요." };
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
-  try {
-    const collection = await loadClanPersonalEmblemCollection(supabase, user.id, clanId, personId ?? user.id);
-    return collection ? { ok: true, collection } : { ok: false, error: "이 멤버의 엠블럼을 볼 수 없습니다." };
-  } catch {
-    return { ok: false, error: "엠블럼을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요." };
-  }
-}
-
 export async function savePersonalEmblemPicksAction(clanId: string, keys: string[]): Promise<EmblemResult> {
   if (typeof clanId !== "string" || !uuidPattern.test(clanId) || !Array.isArray(keys) || keys.length > 3
     || keys.some((key) => typeof key !== "string" || key.length === 0 || key.length > 160)
@@ -45,6 +30,7 @@ export async function savePersonalEmblemPicksAction(clanId: string, keys: string
     if (error) return { ok: false, error: "대표 엠블럼을 저장하지 못했습니다. 다시 시도해 주세요." };
     revalidatePath("/profile");
     revalidatePath(`/games/${collection.gameSlug}/clan/${clanId}/stats`);
+    revalidatePath(`/games/${collection.gameSlug}/clan/${clanId}/emblems`);
     return { ok: true, collection: { ...collection, featuredKeys } };
   } catch {
     return { ok: false, error: "대표 엠블럼을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요." };

@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { resolveClanPermission } from "@/lib/clan/clan-access-snapshot";
 import type { ClanPermissionKey } from "@/lib/clan/permission-defaults";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Database, Json } from "@/lib/supabase/database.types";
 import {
   currentKstYearMonth,
   isHofMonthTabUndisclosed,
@@ -18,8 +18,8 @@ import { buildIntraOverviewPeriods, EMPTY_INTRA_OVERVIEW, type IntraOverview } f
 import { canViewPersonalRecords, restrictPersonalStats, type PersonalScore, type PersonalStatsSection } from "./personal-visibility";
 import type { ClanMemberRole } from "../permission-defaults";
 import { readStatsSummary, readStatsRecords, EMPTY_STATS_AGGREGATE, type StatsAggregate, type StatsSummary } from "./stats-read-model";
-import { collectHofEmblems, type HofEmblem } from "./hof-emblems";
-import { awardEmblems, milestoneEmblems, resolveFeaturedKeys } from "@/lib/personal-emblems/catalog";
+import type { HofEmblem } from "./hof-emblems";
+import { awardEmblems, awardFamilies, milestoneEmblems, resolveFeaturedKeys } from "@/lib/personal-emblems/catalog";
 import type { PersonalEmblemCollection } from "@/lib/personal-emblems/types";
 import { profileBattleTag } from "@/lib/game-auth/battle-tag";
 import type { PlayerProfile } from "../player-profile";
@@ -682,16 +682,81 @@ export async function loadClanStatsDetail(supabase: SupabaseClient<Database>, us
   }) };
 }
 
-async function loadPersonalEmblems(source: StatsSource, clanId: string, userId: string) {
-  const now = new Date(), { year, month } = currentKstYearMonth(now);
-  const monthKey = `${year}-${String(month).padStart(2, "0")}`;
+/** Trusted server/worker entry point: freeze complete periods before applying viewer disclosure. */
+export async function finalizeClanPersonalEmblemAwards(clanId: string, now = new Date()): Promise<void> {
+  const service: SupabaseClient<Database> = createServiceRoleClient();
   const { directory } = await readStatsSummary(clanId, []);
-  const keys = Object.keys(directory).filter((key) => key.length === 4 ? key < String(year) : key.length === 7 && key < monthKey);
-  if (!keys.length) return [];
-  const { periods } = await readStatsSummary(clanId, keys);
-  const blocks = keys.map((key) => [key, aggregateHof(periods[key] ?? EMPTY_STATS_AGGREGATE, key, source, now)] as const);
-  const history = { historyMonths: Object.fromEntries(blocks.filter(([key]) => key.length === 7)), historyYears: Object.fromEntries(blocks.filter(([key]) => key.length === 4)) };
-  return [...collectHofEmblems(history, userId, "month"), ...collectHofEmblems(history, userId, "year")];
+  const { year, month } = currentKstYearMonth(now), monthKey = `${year}-${String(month).padStart(2, "0")}`;
+  const previousMonth = month === 1 ? `${year - 1}-12` : `${year}-${String(month - 1).padStart(2, "0")}`;
+  const keys = [...new Set([...Object.keys(directory).filter((key) => /^\d{4}$/.test(key) ? key < String(year)
+    : /^\d{4}-(0[1-9]|1[0-2])$/.test(key) && key < monthKey), previousMonth, String(year - 1)])];
+  const { data: finalized, error: finalizedError } = await service.from("clan_personal_emblem_award_periods")
+    .select("period_key").eq("clan_id", clanId);
+  if (finalizedError) throw new Error("수상 보관 상태를 불러오지 못했습니다.", { cause: finalizedError });
+  const closed = new Set(finalized?.map((row) => row.period_key));
+  const pending = keys.filter((key) => !closed.has(key));
+  if (!pending.length) return;
+  const [{ data: rawSource, error: sourceError }, { periods }] = await Promise.all([
+    service.rpc("read_clan_personal_emblem_award_source", { p_clan_id: clanId }),
+    readStatsSummary(clanId, pending),
+  ]);
+  if (sourceError || !rawSource) throw new Error("수상 기준을 불러오지 못했습니다.", { cause: sourceError });
+  const source = rawSource as unknown as { hof_config: Json; nicknames: { user_id: string; nickname: string }[]; user_ids: string[] };
+  const canonical = { nickRows: source.nicknames, settings: { hof_config: source.hof_config }, role: "leader" as const };
+  const users = new Set(source.user_ids);
+  for (const key of pending.sort()) {
+    const period = key.length === 4 ? "year" : "month";
+    const summary = periods[key] ?? EMPTY_STATS_AGGREGATE;
+    const block = aggregateHof(summary, key, canonical, now);
+    const candidates = ([ ["승률", block.winRate], ["최다 참여", block.participation], ["최다 출전", block.cumulative],
+      ["최장 연승", block.streaks], ["예측 적중", block.predictionCorrect] ] as const)
+      .flatMap(([category, rows]) => rows.slice(0, 3).flatMap((row, index) => users.has(row.userId)
+        ? [{ user_id: row.userId, family: awardFamilies[category], rank: index + 1 }] : []));
+    const { error } = await service.rpc("finalize_clan_personal_emblem_awards", {
+      p_clan_id: clanId, p_period_type: period, p_period_key: key, p_awards: candidates,
+      p_expected_summary: { totals: summary.totals, players: summary.players, predictions: summary.predictions, hof_config: source.hof_config },
+    });
+    if (error) throw new Error("마감 수상을 보관하지 못했습니다.", { cause: error });
+  }
+}
+
+/** The existing cron and a case read both catch up missed KST month/year boundaries. */
+export async function finalizePendingPersonalEmblemAwards(limit = 10): Promise<number> {
+  const service: SupabaseClient<Database> = createServiceRoleClient();
+  const { data, error } = await service.rpc("pending_clan_personal_emblem_awards", { p_limit: limit });
+  if (error) throw new Error("마감할 수상 목록을 불러오지 못했습니다.", { cause: error });
+  let failed = 0;
+  for (const row of data ?? []) {
+    try { await finalizeClanPersonalEmblemAwards(row.clan_id); }
+    catch { failed++; }
+  }
+  if (failed) throw new Error(`${failed}개 클랜의 수상 보관을 다시 시도해야 합니다.`);
+  return data?.length ?? 0;
+}
+
+async function loadPersonalEmblems(source: StatsSource, clanId: string, userId: string): Promise<HofEmblem[]> {
+  return (await loadArchivedPersonalEmblems(source, clanId, [userId])).get(userId) ?? [];
+}
+
+async function loadArchivedPersonalEmblems(source: StatsSource, clanId: string, userIds: string[]): Promise<Map<string, HofEmblem[]>> {
+  const result = new Map<string, HofEmblem[]>();
+  if (!userIds.length) return result;
+  await finalizeClanPersonalEmblemAwards(clanId);
+  const service: SupabaseClient<Database> = createServiceRoleClient();
+  const rows = await loadAllStatsRows((from, to) => service.from("clan_personal_emblem_awards")
+    .select("user_id,emblem_key,family,rank,period_type,period_key").eq("clan_id", clanId).in("user_id", userIds)
+    .order("period_key", { ascending: false }).order("family").order("user_id").range(from, to));
+  const cfg = resolveHofConfig(source.settings?.hof_config);
+  const visible = { victory: cfg.winRateVisibleTop, participation: cfg.participationVisibleTop, appearances: cfg.cumulativeVisibleTop,
+    streak: cfg.streakVisibleTop, prediction: cfg.predictionVisibleTop };
+  for (const row of rows) {
+    const family = row.family as keyof typeof visible;
+    const category = (Object.keys(awardFamilies) as HofEmblem["category"][]).find((key) => awardFamilies[key] === family);
+    if (!category || (row.period_type !== "month" && row.period_type !== "year") || (source.role === "member" && !visible[family])) continue;
+    if (!result.has(row.user_id)) result.set(row.user_id, []);
+    result.get(row.user_id)!.push({ key: row.emblem_key, category, rank: row.rank, period: row.period_type, date: row.period_key });
+  }
+  return result;
 }
 
 /** The shared case follows the same live membership and personal-record disclosure rules as stats. */
@@ -711,27 +776,21 @@ export async function loadClanPersonalEmblemCollection(
   ]);
   if (membership.error || metadata.error) throw new Error("엠블럼 조회 권한을 확인하지 못했습니다.");
   if (!membership.data || !metadata.data) return null;
-  const [summary, picks] = await Promise.all([
+  const [summary, picks, awards, milestoneDates] = await Promise.all([
     readStatsSummary(clanId, ["all"]),
     service.from("clan_personal_emblem_picks").select("emblem_keys").eq("clan_id", clanId).eq("user_id", personId).maybeSingle(),
+    loadPersonalEmblems(source, clanId, personId),
+    service.from("clan_personal_emblem_milestones").select("emblem_key,earned_at").eq("clan_id", clanId).eq("user_id", personId),
   ]);
   if (picks.error) throw new Error("대표 엠블럼을 불러오지 못했습니다.");
-  const now = new Date(), current = currentKstYearMonth(now);
-  const monthKey = `${current.year}-${String(current.month).padStart(2, "0")}`;
-  const keys = Object.keys(summary.directory).filter((key) => /^\d{4}$/.test(key) ? key < String(current.year)
-    : /^\d{4}-(0[1-9]|1[0-2])$/.test(key) && key < monthKey);
-  const { periods } = keys.length ? await readStatsSummary(clanId, keys) : { periods: {} as StatsSummary["periods"] };
-  const blocks = keys.map((key) => [key, aggregateHof(periods[key] ?? EMPTY_STATS_AGGREGATE, key, source, now)] as const);
-  const history = {
-    historyMonths: Object.fromEntries(blocks.filter(([key]) => key.length === 7)),
-    historyYears: Object.fromEntries(blocks.filter(([key]) => key.length === 4)),
-  };
+  if (milestoneDates.error) throw new Error("달성일을 불러오지 못했습니다.");
   const all = summary.periods.all ?? EMPTY_STATS_AGGREGATE;
   const player = all.players.find((entry) => entry.userId === personId);
   const emblems = [
-    ...awardEmblems([...collectHofEmblems(history, personId, "month"), ...collectHofEmblems(history, personId, "year")]),
+    ...awardEmblems(awards),
     ...milestoneEmblems({ sessions: player?.sessions ?? 0, matches: player?.played ?? 0, wins: player?.wins ?? 0,
-      streak: player?.longest ?? 0, prediction: all.predictions.find((entry) => entry.userId === personId)?.correct ?? 0 })
+      streak: player?.longest ?? 0, prediction: all.predictions.find((entry) => entry.userId === personId)?.correct ?? 0 },
+    new Map(milestoneDates.data?.map((row) => [row.emblem_key, row.earned_at])))
       .filter((emblem) => !sections || sections.includes(emblem.family === "prediction" ? "predictions" : "records")),
   ];
   const game = Array.isArray(metadata.data.games) ? metadata.data.games[0] : metadata.data.games;
@@ -744,7 +803,7 @@ export async function loadClanPersonalEmblemCollection(
 }
 
 /** Apply current disclosure rules to identity-neutral, precomputed counters. */
-function aggregateHof(data: StatsAggregate, key: string, source: StatsSource, now: Date): HofPeriodPayload {
+function aggregateHof(data: StatsAggregate, key: string, source: Pick<StatsSource, "nickRows" | "role"> & { settings: Pick<NonNullable<StatsSource["settings"]>, "hof_config"> | null }, now: Date): HofPeriodPayload {
   const nick = buildNickMap(source.nickRows), cfg = resolveHofConfig(source.settings?.hof_config);
   const current = currentKstYearMonth(now), staff = source.role !== "member";
   const currentKey = key.length === 4 ? String(current.year) : `${current.year}-${String(current.month).padStart(2, "0")}`;
@@ -997,6 +1056,7 @@ export async function loadClanStatsPageFromRecords(
   const historyYears = Object.fromEntries(historicalYears.map((key) => [
     key, buildHofPeriod(matchPeriods.get(key) ?? [], "year", cfg, nick, new Date(`${key}-06-15T12:00:00+09:00`), sessionPeriods.get(key) ?? [], role !== "member", true, predictionPeriods.get(key) ?? []),
   ]));
+  const archivedEmblems = await loadArchivedPersonalEmblems(source, clanId, peopleIds);
 
   return {
     clanId,
@@ -1004,7 +1064,7 @@ export async function loadClanStatsPageFromRecords(
     deferredDetails: options?.deferDetails,
     intra: source.permissions.viewIntraStats ? intra : buildIntraStats([], []),
     intraPeriods: source.permissions.viewIntraStats ? buildIntraOverviewPeriods(records, hofSessions) : {},
-    personal: { viewerId: userId, canSeePeers: viewSynergy && role !== "member", people: personal.map((person) => personalForViewer(source, userId, { ...person, emblems: [...collectHofEmblems({ historyMonths, historyYears }, person.userId, "month"), ...collectHofEmblems({ historyMonths, historyYears }, person.userId, "year")] })) },
+    personal: { viewerId: userId, canSeePeers: viewSynergy && role !== "member", people: personal.map((person) => personalForViewer(source, userId, { ...person, emblems: archivedEmblems.get(person.userId) ?? [] })) },
     summary: {
       totalMatches: matches.filter((m) => m.status === "finished").length,
       intraCount,

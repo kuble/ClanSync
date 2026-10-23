@@ -1,6 +1,7 @@
 import { awards, milestones, metals, monthColors, yearColors, awardColor, enamelFilter } from "./catalog.mjs";
 let serial = 0;
 const metalNames = { gold: "금 · 1위", silver: "은 · 2위", bronze: "동 · 3위" };
+const awardDescription = (award, period, metal) => (period === "month" ? "월간 " : "연간 ") + award.category + " " + (metals.indexOf(metal) + 1) + "위";
 function artwork(file, title, color) {
   const id = "enamel-" + serial++;
   return color
@@ -12,14 +13,16 @@ function figure(file, title, subtitle, color) {
 }
 function renderAwards(period, date, element) {
   const original = document.querySelector("#original").checked;
-  const [name, hex] = awardColor(period, date);
+  const [colorName, hex] = awardColor(period, date);
   if (!element.children.length) element.innerHTML = metals.map((metal) => '<h3>' + metalNames[metal] + '</h3><div class="grid">' +
-    awards.map((award) => figure("./awards/" + period + "/" + award.id + "-" + metal + ".png", award.name,
-      date + (period === "month" ? " 월간 · " : " 연간 · ") + award.category + " · " + name, original ? null : hex)).join("") + '</div>').join("");
+    awards.map((award) => figure("./awards/" + period + "/" + award.id + "-" + metal + ".png", awardDescription(award, period, metal),
+      date + " · " + colorName, original ? null : hex)).join("") + '</div>').join("");
   element.querySelectorAll("figure").forEach((card, index) => {
     const award = awards[index % awards.length], metal = metals[Math.floor(index / awards.length)];
-    card.querySelector(".art").outerHTML = artwork("./awards/" + period + "/" + award.id + "-" + metal + ".png", award.name, original ? null : hex);
-    card.querySelector("figcaption span").textContent = date + (period === "month" ? " 월간 · " : " 연간 · ") + award.category + " · " + name;
+    const description = awardDescription(award, period, metal);
+    card.querySelector(".art").outerHTML = artwork("./awards/" + period + "/" + award.id + "-" + metal + ".png", description, original ? null : hex);
+    card.querySelector("figcaption strong").textContent = description;
+    card.querySelector("figcaption span").textContent = date + " · " + colorName;
   });
 }
 function update() {
@@ -35,8 +38,9 @@ document.querySelector("#theme").addEventListener("click", (event) => {
   const dark = document.body.classList.toggle("dark");
   event.target.textContent = dark ? "밝은 배경으로 보기" : "어두운 배경으로 보기";
 });
-document.querySelector("#milestones").innerHTML = milestones.map((series) => '<h3>' + series.name + '</h3><div class="growth">' +
-  series.targets.map((value, index) => figure("./milestones/" + series.id + "-" + (index + 1) + ".png", (index + 1) + "단계", value + series.unit)).join("") + '</div>').join("");
+document.querySelector("#milestones").innerHTML = milestones.map((series) => '<div class="growth">' +
+  series.targets.map((value, index) => figure("./milestones/" + series.id + "-" + (index + 1) + ".png",
+    (series.id === "prediction" ? "예측 " : "") + value + series.unit + " 달성", (index + 1) + "단계")).join("") + '</div>').join("");
 document.querySelector("#month-colors").innerHTML = monthColors.map(([name, hex], index) =>
   figure("./awards/month/victory-gold.png", (index + 1) + "월 · " + name, "2026-" + String(index + 1).padStart(2, "0"), hex)).join("");
 document.querySelector("#year-colors").innerHTML = yearColors.map(([name, hex], index) =>

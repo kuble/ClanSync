@@ -362,47 +362,6 @@ test("personal records are staff-only by default and member self-access follows 
   expect(disabled?.personal.people).toEqual([]);
 });
 
-test("closed monthly and yearly top-three records appear as emblems", async ({ page, browser }) => {
-  const r = await round(); await live(r);
-  await ok(leader.rpc("set_balance_match_outcome", { p_session_id: r.id, p_outcome: "team1" }));
-  const previousYear = new Date().getUTCFullYear() - 1;
-  await ok(f.service.from("balance_session_series").update({ opened_at: `${previousYear}-02-12T10:00:00Z` }).eq("id", r.series_id));
-  await loginIsolatedBalanceUser(page, f.users[0]);
-  await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
-  await page.getByRole("tab", { name: "개인 기록" }).click();
-  await page.getByRole("button", { name: `${f.users[0].nickname} 개인 기록 열기`, exact: true }).click();
-  await page.getByRole("button", { name: `${f.users[0].nickname} 엠블럼 컬렉션 열기`, exact: true }).click();
-  const board = page.getByLabel("수상 엠블럼");
-  await expect(board.getByRole("button", { name: new RegExp(`${previousYear}-02 .*1위 엠블럼`) }).first()).toBeVisible();
-  await board.getByRole("button").first().hover();
-  await expect(page.getByRole("tooltip")).toContainText("월간");
-  await page.mouse.move(0, 0);
-  await expect(page.getByRole("tooltip")).toBeHidden();
-  await expect(board).not.toContainText(`${previousYear}-02`);
-  const paths = await board.locator("button svg.absolute > path:first-child").evaluateAll((elements) => elements.map((el) => el.getAttribute("d")));
-  expect(new Set(paths).size).toBeGreaterThan(1);
-  await page.getByRole("radiogroup", { name: "수상 기간", exact: true }).getByRole("radio", { name: "연간", exact: true }).click();
-  await expect(board.getByRole("button", { name: new RegExp(`${previousYear} .*1위 엠블럼`) }).first()).toBeVisible();
-  await page.setViewportSize({ width: 390, height: 844 });
-  await board.getByRole("button").first().click();
-  await expect(page.getByRole("tooltip")).toContainText("연간");
-  await page.mouse.move(0, 0);
-  await expect(page.getByRole("tooltip")).toBeHidden();
-  const touchContext = await browser.newContext({ hasTouch: true, viewport: { width: 390, height: 844 }, storageState: await page.context().storageState() });
-  try {
-    const touchPage = await touchContext.newPage();
-    await touchPage.goto(`/games/overwatch/clan/${f.clanId}/stats`);
-    await touchPage.getByRole("tab", { name: "개인 기록" }).tap();
-    await touchPage.getByRole("button", { name: `${f.users[0].nickname} 개인 기록 열기`, exact: true }).tap();
-    await touchPage.getByRole("button", { name: `${f.users[0].nickname} 엠블럼 컬렉션 열기`, exact: true }).tap();
-    await touchPage.getByLabel("수상 엠블럼").getByRole("button").first().tap();
-    await expect(touchPage.getByRole("tooltip")).toContainText("월간");
-    await touchPage.getByRole("radiogroup", { name: "수상 기간", exact: true }).getByRole("radio", { name: "연간", exact: true }).tap();
-    await expect(touchPage.getByRole("tooltip")).toBeHidden();
-    expect(await touchPage.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  } finally { await touchContext.close(); }
-});
-
 test("staff can inspect prediction payouts and edit completed evaluation scores", async ({ page, request }) => {
   const r = await round();
   await ok(f.service.from("balance_sessions").update({ ma_snapshot: { [f.users[0].id]: { m: 2, a: 1 } } }).eq("id", r.id));

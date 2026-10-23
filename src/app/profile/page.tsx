@@ -336,7 +336,7 @@ export default async function ProfilePage() {
     <ProfileEmblemCollections userId={user.id} nickname={row?.nickname || "플레이어"} memberships={membershipRows.flatMap((membership) => {
       const clan = Array.isArray(membership.clans) ? membership.clans[0] : membership.clans;
       const game = Array.isArray(clan?.games) ? clan.games[0] : clan?.games;
-      return game ? [{ clanId: membership.clan_id, clanName: clan.name, gameName: game.name_ko }] : [];
+      return game ? [{ clanId: membership.clan_id, clanName: clan.name, gameSlug: game.slug, gameName: game.name_ko }] : [];
     })} />
     <ProfileClanMemberships rows={membershipRows.flatMap((membership) => {
       const clan = Array.isArray(membership.clans) ? membership.clans[0] : membership.clans;

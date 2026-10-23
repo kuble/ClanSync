@@ -5,7 +5,6 @@ export type PersonalEmblem = {
   key: string;
   kind: "award" | "milestone";
   family: AwardFamily | MilestoneFamily;
-  name: string;
   description: string;
   artwork: string;
   earned: boolean;

@@ -2,46 +2,43 @@ import type { HofEmblem } from "../clan/stats/hof-emblems";
 import type { AwardFamily, MilestoneFamily, PersonalEmblem } from "./types";
 
 const artworkRoot = "/personal-emblems/v1";
-const awardFamilies: Record<HofEmblem["category"], { family: AwardFamily; name: string }> = {
-  "승률": { family: "victory", name: "승리의 별" },
-  "최다 참여": { family: "participation", name: "약속의 태양" },
-  "최다 출전": { family: "appearances", name: "전장의 기사" },
-  "최장 연승": { family: "streak", name: "불사조" },
-  "예측 적중": { family: "prediction", name: "선견의 나침반" },
+export const awardFamilies: Record<HofEmblem["category"], AwardFamily> = {
+  "승률": "victory", "최다 참여": "participation", "최다 출전": "appearances", "최장 연승": "streak", "예측 적중": "prediction",
 };
-const milestoneFamilies: { family: MilestoneFamily; name: string; targets: number[]; unit: string }[] = [
-  { family: "sessions", name: "동행의 길", targets: [10, 50, 100, 300], unit: "회 참여" },
-  { family: "matches", name: "전장의 수호자", targets: [10, 50, 100, 500], unit: "경기 출전" },
-  { family: "wins", name: "승리의 결정", targets: [10, 50, 100, 300], unit: "승" },
-  { family: "streak", name: "꺼지지 않는 불씨", targets: [3, 5, 7, 10], unit: "연승" },
-  { family: "prediction", name: "궤도의 관측자", targets: [10, 50, 100, 300], unit: "회 적중" },
+const milestoneFamilies: { family: MilestoneFamily; targets: number[]; unit: string }[] = [
+  { family: "sessions", targets: [10, 50, 100, 300], unit: "회 참여" },
+  { family: "matches", targets: [10, 50, 100, 500], unit: "경기 출전" },
+  { family: "wins", targets: [10, 50, 100, 300], unit: "승" },
+  { family: "streak", targets: [3, 5, 7, 10], unit: "연승" },
+  { family: "prediction", targets: [10, 50, 100, 300], unit: "회 적중" },
 ];
 
 export function awardEmblems(awards: readonly HofEmblem[]): PersonalEmblem[] {
   return awards.filter(({ rank }) => Number.isInteger(rank) && rank >= 1 && rank <= 3).map((award) => {
-    const { family, name } = awardFamilies[award.category];
+    const family = awardFamilies[award.category];
     return {
-      key: award.key, kind: "award", family, name,
-      description: `${award.date} ${award.period === "month" ? "월간" : "연간"} · ${award.category} ${award.rank}위`,
+      key: award.key, kind: "award", family,
+      description: `${award.period === "month" ? "월간" : "연간"} ${award.category} ${award.rank}위`,
       artwork: `${artworkRoot}/awards/${award.period}/${family}-${["gold", "silver", "bronze"][award.rank - 1]}.png`,
       earned: true, date: award.date, period: award.period, rank: award.rank,
     };
   });
 }
 
-export function milestoneEmblems(progress: Record<MilestoneFamily, number>): PersonalEmblem[] {
-  return milestoneFamilies.flatMap(({ family, name, targets, unit }) => {
+export function milestoneEmblems(progress: Record<MilestoneFamily, number>, earnedDates: ReadonlyMap<string, string> = new Map()): PersonalEmblem[] {
+  return milestoneFamilies.flatMap(({ family, targets, unit }) => {
     const current = Number.isFinite(progress[family]) ? Math.max(0, Math.floor(progress[family])) : 0;
     return targets.map((target, index) => ({
-      key: `milestone-${family}-${index + 1}`, kind: "milestone", family, name,
-      description: `${target.toLocaleString("ko-KR")}${unit} 달성`,
+      key: `milestone-${family}-${index + 1}`, kind: "milestone", family,
+      description: `${family === "prediction" ? "예측 " : ""}${target.toLocaleString("ko-KR")}${unit} 달성`,
       artwork: `${artworkRoot}/milestones/${family}-${index + 1}.png`,
-      earned: current >= target, date: null, stage: index + 1, target, progress: current, unit,
+      earned: earnedDates.has(`milestone-${family}-${index + 1}`), date: earnedDates.get(`milestone-${family}-${index + 1}`) ?? null,
+      stage: index + 1, target, progress: current, unit,
     }));
   });
 }
 
-/** Explicit empty picks stay empty; records invalidated by corrections disappear from saved picks. */
+/** Explicit empty picks stay empty; hidden records are excluded and earned milestones advance to their highest stage. */
 export function resolveFeaturedKeys(entries: readonly PersonalEmblem[], keys: readonly string[] | null): string[] {
   const earned = entries.filter((entry) => entry.earned);
   const highest = new Map<string, PersonalEmblem>();
@@ -54,8 +51,10 @@ export function resolveFeaturedKeys(entries: readonly PersonalEmblem[], keys: re
     });
     return [...new Set(canonical)].slice(0, 3);
   }
+  // December and that year's annual award close together; bare year strings sort too far back.
+  const closingPeriod = (entry: PersonalEmblem) => entry.kind === "award" && entry.period === "year" ? `${entry.date}-12` : entry.date ?? "";
   return earned.filter((entry) => entry.kind === "award" || highest.get(entry.family)?.key === entry.key)
-    .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? "")
-    || (a.rank ?? 4) - (b.rank ?? 4) || (b.stage ?? 0) - (a.stage ?? 0))
+    .sort((a, b) => Number(a.kind === "milestone") - Number(b.kind === "milestone") || closingPeriod(b).localeCompare(closingPeriod(a))
+    || (a.rank ?? 4) - (b.rank ?? 4) || Number(b.period === "year") - Number(a.period === "year") || (b.stage ?? 0) - (a.stage ?? 0))
     .slice(0, 3).map((entry) => entry.key);
 }

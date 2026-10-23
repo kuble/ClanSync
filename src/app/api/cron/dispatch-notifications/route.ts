@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { dispatchDiscordBotNotifications } from "@/lib/notifications/dispatch-discord-bot-notifications";
 import { createServiceRoleClient } from "@/lib/supabase/service";
+import { finalizePendingPersonalEmblemAwards } from "@/lib/clan/stats/load-clan-stats";
 
 /**
  * LFG 만료 정리(notification_log 적재 포함) 후 due in-app(notification_log→notifications) 디스패치,
@@ -24,6 +25,13 @@ export async function GET(request: Request) {
   }
 
   const svc = createServiceRoleClient();
+  let emblem_clans = 0;
+  let emblem_note: string | null = null;
+  try {
+    emblem_clans = await finalizePendingPersonalEmblemAwards(10);
+  } catch {
+    emblem_note = "personal_emblem_finalization_failed";
+  }
 
   let lfg_expired = 0;
   let lfg_note: string | null = null;
@@ -51,6 +59,8 @@ export async function GET(request: Request) {
         error: error.message,
         lfg_expired,
         lfg_note,
+        emblem_clans,
+        emblem_note,
       },
       { status: 500 },
     );
@@ -77,5 +87,7 @@ export async function GET(request: Request) {
     discord_note,
     lfg_expired,
     lfg_note,
+    emblem_clans,
+    emblem_note,
   });
 }

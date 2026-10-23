@@ -18,7 +18,7 @@ do {
     });
     if (!response.ok) throw new Error(`Dispatch HTTP ${response.status}`);
     const result = await response.json();
-    if (!result.ok || result.discord_note) throw new Error("Dispatch did not complete");
+    if (!result.ok || result.discord_note || result.emblem_note) throw new Error("Dispatch did not complete");
     console.log(new Date().toISOString(), "Discord dispatch", JSON.stringify(result.discord));
   } catch (error) {
     // Do not log URLs, credentials, response bodies or underlying network errors.
