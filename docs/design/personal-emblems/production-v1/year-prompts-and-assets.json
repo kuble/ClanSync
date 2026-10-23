@@ -1,0 +1,433 @@
+{
+  "created": "2026-10-23",
+  "generator": "built-in image_gen",
+  "scope": "15 annual award transparent PNG masters (5 families x 3 ranks)",
+  "design_notes": [
+    "Annual medals add thick flanking laurels and a small star above the short ribbon.",
+    "Rank changes metal only: champagne gold, neutral grey silver, reddish copper bronze. Emerald/jade enamel and ivory remain.",
+    "Full silhouettes are intact. Requested 12 percent padding varies in generated outputs; actual alpha bounds are recorded separately during validation.",
+    "Date labels and period palette are rendered outside these source PNGs."
+  ],
+  "assets": [
+    {
+      "family": "victory",
+      "period": "year",
+      "rank": "gold",
+      "prompt": "Use case: precise-object-edit. Asset type: annual clan personal award emblem transparent PNG. Reference image is the APPROVED concept sheet; select only the specified top-row emblem and faithfully reproduce its central shape and sculpted enamel style as ONE standalone annual medal. Keep a short top ribbon with jade/ivory enamel stripes and the little diamond connector seen in the reference. Annual distinction: add thick sculptural symmetrical laurel branches around BOTH sides of the central motif and a tiny metal star above the ribbon, tasteful but visible at 64px. Finish is richly sculpted polished metal with deep emerald/jade enamel and small ivory enamel details, bevelled tactile handmade luxury game medal rendering. Front-on orthographic centred view. Square canvas. Entire silhouette fits with at least 12% truly transparent padding on all four sides. No cast ground shadow, no backdrop, no checkerboard drawn into the image. No text, date, number, letters, logos, watermark or extra badge. Broad clear shapes readable at 64px. Gold metal must be champagne gold across every metal border, central relief, laurel, ribbon trim, highlights; emerald enamel remains emerald. Reference target: TOP ROW emblem 01, victory star: a two-handled trophy cup with one bold five-point star on its jade front and a small cup foot. Preserve this recognisable cup silhouette and emerald/ivory centre, with the thicker annual laurels framing it.",
+      "reference": "docs/design/personal-emblems/proposal-v1/concept-sheet-v1.png",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-a988421f-d97e-4379-9b21-fdcbba294c27.png",
+      "destination": "public/personal-emblems/v1/awards/year/victory-gold.png",
+      "transparent_background": true,
+      "postprocessing": "none; generated source copied byte-for-byte",
+      "visually_reviewed": true,
+      "sha256": "5ac1bf9bd36a89dbf8ecfdc19384628964128308d0e5ca29ce56bec4e399e25a",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_validation": {
+        "fully_transparent_pixels": 869492,
+        "pixels_above_alpha_16": 672187,
+        "subject_bounds_alpha_gt_16": [
+          100,
+          44,
+          1154,
+          1176
+        ],
+        "alpha_present": true
+      }
+    },
+    {
+      "family": "victory",
+      "period": "year",
+      "rank": "silver",
+      "prompt": "Use case: precise-object-edit. This is the approved GOLD annual clan award emblem. Create its SILVER second-place metal variant. Change ONLY ALL golden metallic material to neutral cool polished SILVER: silvery white highlights and charcoal grey recesses, neutral RGB greys, every laurel leaf, outer border, central metal relief, star, ribbon trim, details and bottom embellishment. No gold tint anywhere in metal. Silver must NOT appear green, teal, cyan or mint. Keep original emerald/jade ENAMEL green and ivory enamel unchanged; their green does not tint the metal. INVARIANTS: exactly preserve the reference's trophy/calendar/swords/phoenix/compass subject as given, silhouette, geometry, orientation, number/shape of leaves, top star and ribbon, materials, engraving, view and transparent cutout. Keep original image composition and centred alignment; do not add or remove anything. ONE standalone pin only, square canvas, entirely truly transparent background and generous transparent margin, no text, number, date, logo, floor shadow or watermark. Preserve genuine alpha.",
+      "reference": "public/personal-emblems/v1/awards/year/victory-gold.png",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-97c83b9e-e642-4c68-b0fe-c8f27d7fb70d.png",
+      "destination": "public/personal-emblems/v1/awards/year/victory-silver.png",
+      "transparent_background": true,
+      "postprocessing": "none; generated source copied byte-for-byte",
+      "visually_reviewed": true,
+      "sha256": "6d2fd238704ed17ddc6e43fef5d6cb9d7c9302c0033f3b23eef3b1ac9779f416",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_validation": {
+        "fully_transparent_pixels": 864801,
+        "pixels_above_alpha_16": 679715,
+        "subject_bounds_alpha_gt_16": [
+          98,
+          43,
+          1156,
+          1177
+        ],
+        "alpha_present": true
+      }
+    },
+    {
+      "family": "victory",
+      "period": "year",
+      "rank": "bronze",
+      "prompt": "Use case: precise-object-edit. This is the approved GOLD annual clan award emblem. Create its BRONZE third-place metal variant. Change ONLY ALL golden metallic material to richly polished COPPER BRONZE: unmistakable warm reddish russet copper base, soft copper highlights and dark brown recesses, all laurel leaves, outer borders, central metallic relief, star, ribbon trim and bottom embellishment. No yellow-gold metal remains; bronze must be clearly darker and redder than champagne gold. Keep original emerald/jade ENAMEL green and ivory enamel unchanged. INVARIANTS: exactly preserve the reference's trophy/calendar/swords/phoenix/compass subject as given, complete silhouette, geometry, orientation, number and shape of leaves, top star and ribbon, enamel areas, view and transparent cutout. Keep original composition and centred alignment; do not add/remove anything. ONE standalone pin only, square canvas, full silhouette with transparent breathing space, entirely truly transparent background, no text/number/date/logo/floor shadow/watermark. Preserve genuine alpha.",
+      "reference": "public/personal-emblems/v1/awards/year/victory-gold.png",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-d440e78c-5e60-49cd-8eb7-b1e1b89cfc3f.png",
+      "destination": "public/personal-emblems/v1/awards/year/victory-bronze.png",
+      "transparent_background": true,
+      "postprocessing": "none; generated source copied byte-for-byte",
+      "visually_reviewed": true,
+      "sha256": "5701cddee8e713fce8c5b7fe5160049aa09542e1a666319919b71df4ff5c41dc",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_validation": {
+        "fully_transparent_pixels": 863543,
+        "pixels_above_alpha_16": 684457,
+        "subject_bounds_alpha_gt_16": [
+          96,
+          40,
+          1156,
+          1179
+        ],
+        "alpha_present": true
+      }
+    },
+    {
+      "family": "participation",
+      "period": "year",
+      "rank": "gold",
+      "prompt": "Use case: precise-object-edit. Asset type: annual clan personal award emblem transparent PNG. Reference image is the APPROVED concept sheet; select only the specified top-row emblem and faithfully reproduce its central shape and sculpted enamel style as ONE standalone annual medal. Keep a short top ribbon with jade/ivory enamel stripes and the little diamond connector seen in the reference. Annual distinction: add thick sculptural symmetrical laurel branches around BOTH sides of the central motif and a tiny metal star above the ribbon, tasteful but visible at 64px. Finish is richly sculpted polished metal with deep emerald/jade enamel and small ivory enamel details, bevelled tactile handmade luxury game medal rendering. Front-on orthographic centred view. Square canvas. Entire silhouette fits with at least 12% truly transparent padding on all four sides. No cast ground shadow, no backdrop, no checkerboard drawn into the image. No text, date, number, letters, logos, watermark or extra badge. Broad clear shapes readable at 64px. Gold metal must be champagne gold across every metal border, central relief, laurel, ribbon trim, highlights; emerald enamel remains emerald. Reference target: TOP ROW emblem 02, participation sun: a compact rounded shield shaped calendar with THREE top calendar rings, an emerald face and a bold radiating sun disc. Preserve this centre. Add the thick annual laurels outside its sides.",
+      "reference": "docs/design/personal-emblems/proposal-v1/concept-sheet-v1.png",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-328b6b92-2d61-43d0-abfe-8badebc9fe19.png",
+      "destination": "public/personal-emblems/v1/awards/year/participation-gold.png",
+      "transparent_background": true,
+      "postprocessing": "none; generated source copied byte-for-byte",
+      "visually_reviewed": true,
+      "sha256": "9b361fc53e034716205d6781991946a85772aeecc1e4963512e7c7347507824f",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_validation": {
+        "fully_transparent_pixels": 779504,
+        "pixels_above_alpha_16": 723098,
+        "subject_bounds_alpha_gt_16": [
+          88,
+          39,
+          1165,
+          1187
+        ],
+        "alpha_present": true
+      }
+    },
+    {
+      "family": "participation",
+      "period": "year",
+      "rank": "silver",
+      "prompt": "Use case: precise-object-edit. This is the approved GOLD annual clan award emblem. Create its SILVER second-place metal variant. Change ONLY ALL golden metallic material to neutral cool polished SILVER: silvery white highlights and charcoal grey recesses, neutral RGB greys, every laurel leaf, outer border, central metal relief, star, ribbon trim, details and bottom embellishment. No gold tint anywhere in metal. Silver must NOT appear green, teal, cyan or mint. Keep original emerald/jade ENAMEL green and ivory enamel unchanged; their green does not tint the metal. INVARIANTS: exactly preserve the reference's trophy/calendar/swords/phoenix/compass subject as given, silhouette, geometry, orientation, number/shape of leaves, top star and ribbon, materials, engraving, view and transparent cutout. Keep original image composition and centred alignment; do not add or remove anything. ONE standalone pin only, square canvas, entirely truly transparent background and generous transparent margin, no text, number, date, logo, floor shadow or watermark. Preserve genuine alpha.",
+      "reference": "public/personal-emblems/v1/awards/year/participation-gold.png",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-b9c37060-e850-4cbe-aaf0-3f279ec97aa3.png",
+      "destination": "public/personal-emblems/v1/awards/year/participation-silver.png",
+      "transparent_background": true,
+      "postprocessing": "none; generated source copied byte-for-byte",
+      "visually_reviewed": true,
+      "sha256": "8fc46b2106b8238d8ab0f7ad894785479aba8a7feac6edb26f045e3a55fe8c63",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_validation": {
+        "fully_transparent_pixels": 793217,
+        "pixels_above_alpha_16": 737487,
+        "subject_bounds_alpha_gt_16": [
+          85,
+          38,
+          1168,
+          1188
+        ],
+        "alpha_present": true
+      }
+    },
+    {
+      "family": "participation",
+      "period": "year",
+      "rank": "bronze",
+      "prompt": "Use case: precise-object-edit. This is the approved GOLD annual clan award emblem. Create its BRONZE third-place metal variant. Change ONLY ALL golden metallic material to richly polished COPPER BRONZE: unmistakable warm reddish russet copper base, soft copper highlights and dark brown recesses, all laurel leaves, outer borders, central metallic relief, star, ribbon trim and bottom embellishment. No yellow-gold metal remains; bronze must be clearly darker and redder than champagne gold. Keep original emerald/jade ENAMEL green and ivory enamel unchanged. INVARIANTS: exactly preserve the reference's trophy/calendar/swords/phoenix/compass subject as given, complete silhouette, geometry, orientation, number and shape of leaves, top star and ribbon, enamel areas, view and transparent cutout. Keep original composition and centred alignment; do not add/remove anything. ONE standalone pin only, square canvas, full silhouette with transparent breathing space, entirely truly transparent background, no text/number/date/logo/floor shadow/watermark. Preserve genuine alpha.",
+      "reference": "public/personal-emblems/v1/awards/year/participation-gold.png",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-82fc81ee-8604-4345-bbd3-02aca0bd4ccb.png",
+      "destination": "public/personal-emblems/v1/awards/year/participation-bronze.png",
+      "transparent_background": true,
+      "postprocessing": "none; generated source copied byte-for-byte",
+      "visually_reviewed": true,
+      "sha256": "3fa1f565c9572c022918e75a0810b14403a2048ab2f3081efd71fef51526a295",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_validation": {
+        "fully_transparent_pixels": 809909,
+        "pixels_above_alpha_16": 733628,
+        "subject_bounds_alpha_gt_16": [
+          86,
+          38,
+          1168,
+          1188
+        ],
+        "alpha_present": true
+      }
+    },
+    {
+      "family": "appearances",
+      "period": "year",
+      "rank": "gold",
+      "prompt": "Use case: precise-object-edit. Asset type: annual clan personal award emblem transparent PNG. Reference image is the APPROVED concept sheet; select only the specified top-row emblem and faithfully reproduce its central shape and sculpted enamel style as ONE standalone annual medal. Keep a short top ribbon with jade/ivory enamel stripes and the little diamond connector seen in the reference. Annual distinction: add thick sculptural symmetrical laurel branches around BOTH sides of the central motif and a tiny metal star above the ribbon, tasteful but visible at 64px. Finish is richly sculpted polished metal with deep emerald/jade enamel and small ivory enamel details, bevelled tactile handmade luxury game medal rendering. Front-on orthographic centred view. Square canvas. Entire silhouette fits with at least 12% truly transparent padding on all four sides. No cast ground shadow, no backdrop, no checkerboard drawn into the image. No text, date, number, letters, logos, watermark or extra badge. Broad clear shapes readable at 64px. Gold metal must be champagne gold across every metal border, central relief, laurel, ribbon trim, highlights; emerald enamel remains emerald. Reference target: TOP ROW emblem 03, crossed swords: two bold crossed ivory-bladed swords with emerald grips across a compact angular jade shield; keep only this central motif. Tiny star above the short ribbon should be a FIVE-point star, annual laurels symmetrically wrap both sides. Framing requirement: full pin should occupy only 74 percent of canvas height and no more than 74 percent width, with generous 13 percent empty transparent margin ABOVE star and BELOW medal. Scale down the emblem; do not crop any decoration.",
+      "reference": "docs/design/personal-emblems/proposal-v1/concept-sheet-v1.png",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-03a54a3a-781c-46f1-b164-93965e04971d.png",
+      "destination": "public/personal-emblems/v1/awards/year/appearances-gold.png",
+      "transparent_background": true,
+      "postprocessing": "none; generated source copied byte-for-byte",
+      "visually_reviewed": true,
+      "sha256": "c163f2b41a199de32a2c432c1b64d5ccb9c4ad7f8dd4431ba737874eb3baa1de",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_validation": {
+        "fully_transparent_pixels": 1010742,
+        "pixels_above_alpha_16": 518937,
+        "subject_bounds_alpha_gt_16": [
+          176,
+          82,
+          1076,
+          1126
+        ],
+        "alpha_present": true
+      }
+    },
+    {
+      "family": "appearances",
+      "period": "year",
+      "rank": "silver",
+      "prompt": "Use case: precise-object-edit. This is the approved GOLD annual clan award emblem. Create its SILVER second-place metal variant. Change ONLY ALL golden metallic material to neutral cool polished SILVER: silvery white highlights and charcoal grey recesses, neutral RGB greys, every laurel leaf, outer border, central metal relief, star, ribbon trim, details and bottom embellishment. No gold tint anywhere in metal. Silver must NOT appear green, teal, cyan or mint. Keep original emerald/jade ENAMEL green and ivory enamel unchanged; their green does not tint the metal. INVARIANTS: exactly preserve the reference's trophy/calendar/swords/phoenix/compass subject as given, silhouette, geometry, orientation, number/shape of leaves, top star and ribbon, materials, engraving, view and transparent cutout. Keep original image composition and centred alignment; do not add or remove anything. ONE standalone pin only, square canvas, entirely truly transparent background and generous transparent margin, no text, number, date, logo, floor shadow or watermark. Preserve genuine alpha.",
+      "reference": "public/personal-emblems/v1/awards/year/appearances-gold.png",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-a73fcd6b-ad54-42f0-844a-848fc14d6c6a.png",
+      "destination": "public/personal-emblems/v1/awards/year/appearances-silver.png",
+      "transparent_background": true,
+      "postprocessing": "none; generated source copied byte-for-byte",
+      "visually_reviewed": true,
+      "sha256": "026281d18c3f5b05e35e8f1e2a333525983402475042aff5014341109e66bd0a",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_validation": {
+        "fully_transparent_pixels": 1011911,
+        "pixels_above_alpha_16": 528314,
+        "subject_bounds_alpha_gt_16": [
+          175,
+          80,
+          1079,
+          1130
+        ],
+        "alpha_present": true
+      }
+    },
+    {
+      "family": "appearances",
+      "period": "year",
+      "rank": "bronze",
+      "prompt": "Use case: precise-object-edit. This is the approved GOLD annual clan award emblem. Create its BRONZE third-place metal variant. Change ONLY ALL golden metallic material to richly polished COPPER BRONZE: unmistakable warm reddish russet copper base, soft copper highlights and dark brown recesses, all laurel leaves, outer borders, central metallic relief, star, ribbon trim and bottom embellishment. No yellow-gold metal remains; bronze must be clearly darker and redder than champagne gold. Keep original emerald/jade ENAMEL green and ivory enamel unchanged. INVARIANTS: exactly preserve the reference's trophy/calendar/swords/phoenix/compass subject as given, complete silhouette, geometry, orientation, number and shape of leaves, top star and ribbon, enamel areas, view and transparent cutout. Keep original composition and centred alignment; do not add/remove anything. ONE standalone pin only, square canvas, full silhouette with transparent breathing space, entirely truly transparent background, no text/number/date/logo/floor shadow/watermark. Preserve genuine alpha.",
+      "reference": "public/personal-emblems/v1/awards/year/appearances-gold.png",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-2fc02512-bf2f-43ca-8476-f3b21af59e98.png",
+      "destination": "public/personal-emblems/v1/awards/year/appearances-bronze.png",
+      "transparent_background": true,
+      "postprocessing": "none; generated source copied byte-for-byte",
+      "visually_reviewed": true,
+      "sha256": "c746b1949c249a9d659b97bcdf9728548f5bba9b4bee06977fa95716c036a688",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_validation": {
+        "fully_transparent_pixels": 1008788,
+        "pixels_above_alpha_16": 532949,
+        "subject_bounds_alpha_gt_16": [
+          174,
+          78,
+          1079,
+          1129
+        ],
+        "alpha_present": true
+      }
+    },
+    {
+      "family": "streak",
+      "period": "year",
+      "rank": "gold",
+      "prompt": "Use case: precise-object-edit. Asset type: annual clan personal award emblem transparent PNG. Reference image is the APPROVED concept sheet; select only the specified top-row emblem and faithfully reproduce its central shape and sculpted enamel style as ONE standalone annual medal. Keep a short top ribbon with jade/ivory enamel stripes and the little diamond connector seen in the reference. Annual distinction: add thick sculptural symmetrical laurel branches around BOTH sides of the central motif and a tiny metal star above the ribbon, tasteful but visible at 64px. Finish is richly sculpted polished metal with deep emerald/jade enamel and small ivory enamel details, bevelled tactile handmade luxury game medal rendering. Front-on orthographic centred view. Square canvas. Entire silhouette fits with at least 12% truly transparent padding on all four sides. No cast ground shadow, no backdrop, no checkerboard drawn into the image. No text, date, number, letters, logos, watermark or extra badge. Broad clear shapes readable at 64px. Gold metal must be champagne gold across every metal border, central relief, laurel, ribbon trim, highlights; emerald enamel remains emerald. Reference target: TOP ROW emblem 04, phoenix: an elegant ivory phoenix with upward flaring emerald-and-ivory flame wings outlined in gold, distinct bird head and beak, wide symmetrical flowing tail. Keep the bird shape, add the short top ribbon and FIVE-point small star, annual laurel branches outside both wings. Framing requirement: full pin should occupy only 74 percent of canvas height and no more than 74 percent width, with generous 13 percent empty transparent margin ABOVE star and BELOW medal. Scale down the emblem; do not crop any decoration.",
+      "reference": "docs/design/personal-emblems/proposal-v1/concept-sheet-v1.png",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-5ead7621-bcdd-45ef-87af-f1ba38da9f49.png",
+      "destination": "public/personal-emblems/v1/awards/year/streak-gold.png",
+      "transparent_background": true,
+      "postprocessing": "none; generated source copied byte-for-byte",
+      "visually_reviewed": true,
+      "sha256": "108dc5b96daaf6379694ef7efc195cd3660183f28a42edbc79d52a5f5f7fd428",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_validation": {
+        "fully_transparent_pixels": 1065980,
+        "pixels_above_alpha_16": 474407,
+        "subject_bounds_alpha_gt_16": [
+          195,
+          90,
+          1058,
+          1105
+        ],
+        "alpha_present": true
+      }
+    },
+    {
+      "family": "streak",
+      "period": "year",
+      "rank": "silver",
+      "prompt": "Use case: precise-object-edit. This is the approved GOLD annual clan award emblem. Create its SILVER second-place metal variant. Change ONLY ALL golden metallic material to neutral cool polished SILVER: silvery white highlights and charcoal grey recesses, neutral RGB greys, every laurel leaf, outer border, central metal relief, star, ribbon trim, details and bottom embellishment. No gold tint anywhere in metal. Silver must NOT appear green, teal, cyan or mint. Keep original emerald/jade ENAMEL green and ivory enamel unchanged; their green does not tint the metal. INVARIANTS: exactly preserve the reference's trophy/calendar/swords/phoenix/compass subject as given, silhouette, geometry, orientation, number/shape of leaves, top star and ribbon, materials, engraving, view and transparent cutout. Keep original image composition and centred alignment; do not add or remove anything. ONE standalone pin only, square canvas, entirely truly transparent background and generous transparent margin, no text, number, date, logo, floor shadow or watermark. Preserve genuine alpha.",
+      "reference": "public/personal-emblems/v1/awards/year/streak-gold.png",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-6f990968-7b6a-4b80-99fc-8f21088989b9.png",
+      "destination": "public/personal-emblems/v1/awards/year/streak-silver.png",
+      "transparent_background": true,
+      "postprocessing": "none; generated source copied byte-for-byte",
+      "visually_reviewed": true,
+      "sha256": "cc5d3d984dd8942fd02814af179bc891037f5f4e7f8586eec9dd69044025b04d",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_validation": {
+        "fully_transparent_pixels": 1060853,
+        "pixels_above_alpha_16": 485154,
+        "subject_bounds_alpha_gt_16": [
+          194,
+          87,
+          1059,
+          1107
+        ],
+        "alpha_present": true
+      }
+    },
+    {
+      "family": "streak",
+      "period": "year",
+      "rank": "bronze",
+      "prompt": "Use case: precise-object-edit. This is the approved GOLD annual clan award emblem. Create its BRONZE third-place metal variant. Change ONLY ALL golden metallic material to richly polished COPPER BRONZE: unmistakable warm reddish russet copper base, soft copper highlights and dark brown recesses, all laurel leaves, outer borders, central metallic relief, star, ribbon trim and bottom embellishment. No yellow-gold metal remains; bronze must be clearly darker and redder than champagne gold. Keep original emerald/jade ENAMEL green and ivory enamel unchanged. INVARIANTS: exactly preserve the reference's trophy/calendar/swords/phoenix/compass subject as given, complete silhouette, geometry, orientation, number and shape of leaves, top star and ribbon, enamel areas, view and transparent cutout. Keep original composition and centred alignment; do not add/remove anything. ONE standalone pin only, square canvas, full silhouette with transparent breathing space, entirely truly transparent background, no text/number/date/logo/floor shadow/watermark. Preserve genuine alpha.",
+      "reference": "public/personal-emblems/v1/awards/year/streak-gold.png",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-d197cc58-75b6-4e01-83b0-63740619e85c.png",
+      "destination": "public/personal-emblems/v1/awards/year/streak-bronze.png",
+      "transparent_background": true,
+      "postprocessing": "none; generated source copied byte-for-byte",
+      "visually_reviewed": true,
+      "sha256": "8a230eabd4241b8d25721969dd974af05da7512e333e9e510b264611438533b3",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_validation": {
+        "fully_transparent_pixels": 1014643,
+        "pixels_above_alpha_16": 534331,
+        "subject_bounds_alpha_gt_16": [
+          174,
+          66,
+          1081,
+          1129
+        ],
+        "alpha_present": true
+      }
+    },
+    {
+      "family": "prediction",
+      "period": "year",
+      "rank": "gold",
+      "prompt": "Use case: precise-object-edit. Asset type: annual clan personal award emblem transparent PNG. Reference image is the APPROVED concept sheet; select only the specified top-row emblem and faithfully reproduce its central shape and sculpted enamel style as ONE standalone annual medal. Keep a short top ribbon with jade/ivory enamel stripes and the little diamond connector seen in the reference. Annual distinction: add thick sculptural symmetrical laurel branches around BOTH sides of the central motif and a tiny metal star above the ribbon, tasteful but visible at 64px. Finish is richly sculpted polished metal with deep emerald/jade enamel and small ivory enamel details, bevelled tactile handmade luxury game medal rendering. Front-on orthographic centred view. Square canvas. Entire silhouette fits with at least 12% truly transparent padding on all four sides. No cast ground shadow, no backdrop, no checkerboard drawn into the image. No text, date, number, letters, logos, watermark or extra badge. Broad clear shapes readable at 64px. Gold metal must be champagne gold across every metal border, central relief, laurel, ribbon trim, highlights; emerald enamel remains emerald. Reference target: TOP ROW emblem 05, compass: a round jade-and-ivory compass rose with a diamond emerald gemstone at its centre, four bold spearpoint cardinal directions, small diamond accents. Preserve compass silhouette, add FIVE-point star above the short top ribbon and thick annual laurels framing sides. Framing requirement: full pin should occupy only 74 percent of canvas height and no more than 74 percent width, with generous 13 percent empty transparent margin ABOVE star and BELOW medal. Scale down the emblem; do not crop any decoration.",
+      "reference": "docs/design/personal-emblems/proposal-v1/concept-sheet-v1.png",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-40df2093-0d78-47b0-9e5f-5512c7ff6d35.png",
+      "destination": "public/personal-emblems/v1/awards/year/prediction-gold.png",
+      "transparent_background": true,
+      "postprocessing": "none; generated source copied byte-for-byte",
+      "visually_reviewed": true,
+      "sha256": "f573f299a3fdc50bb5ce1471dfa1f15463a7636da23575de8e56e0d3f9bf2a88",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_validation": {
+        "fully_transparent_pixels": 989206,
+        "pixels_above_alpha_16": 547953,
+        "subject_bounds_alpha_gt_16": [
+          174,
+          81,
+          1080,
+          1121
+        ],
+        "alpha_present": true
+      }
+    },
+    {
+      "family": "prediction",
+      "period": "year",
+      "rank": "silver",
+      "prompt": "Use case: precise-object-edit. This is the approved GOLD annual clan award emblem. Create its SILVER second-place metal variant. Change ONLY ALL golden metallic material to neutral cool polished SILVER: silvery white highlights and charcoal grey recesses, neutral RGB greys, every laurel leaf, outer border, central metal relief, star, ribbon trim, details and bottom embellishment. No gold tint anywhere in metal. Silver must NOT appear green, teal, cyan or mint. Keep original emerald/jade ENAMEL green and ivory enamel unchanged; their green does not tint the metal. INVARIANTS: exactly preserve the reference's trophy/calendar/swords/phoenix/compass subject as given, silhouette, geometry, orientation, number/shape of leaves, top star and ribbon, materials, engraving, view and transparent cutout. Keep original image composition and centred alignment; do not add or remove anything. ONE standalone pin only, square canvas, entirely truly transparent background and generous transparent margin, no text, number, date, logo, floor shadow or watermark. Preserve genuine alpha.",
+      "reference": "public/personal-emblems/v1/awards/year/prediction-gold.png",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-ae6ea229-5dbb-475a-889e-ce1d8e5cbe43.png",
+      "destination": "public/personal-emblems/v1/awards/year/prediction-silver.png",
+      "transparent_background": true,
+      "postprocessing": "none; generated source copied byte-for-byte",
+      "visually_reviewed": true,
+      "sha256": "2db79b0a1a1c757d83b97e29a65333bf9230c222fc007c71a143e0c4526e479e",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_validation": {
+        "fully_transparent_pixels": 983730,
+        "pixels_above_alpha_16": 563947,
+        "subject_bounds_alpha_gt_16": [
+          171,
+          78,
+          1083,
+          1125
+        ],
+        "alpha_present": true
+      }
+    },
+    {
+      "family": "prediction",
+      "period": "year",
+      "rank": "bronze",
+      "prompt": "Use case: precise-object-edit. This is the approved GOLD annual clan award emblem. Create its BRONZE third-place metal variant. Change ONLY ALL golden metallic material to richly polished COPPER BRONZE: unmistakable warm reddish russet copper base, soft copper highlights and dark brown recesses, all laurel leaves, outer borders, central metallic relief, star, ribbon trim and bottom embellishment. No yellow-gold metal remains; bronze must be clearly darker and redder than champagne gold. Keep original emerald/jade ENAMEL green and ivory enamel unchanged. INVARIANTS: exactly preserve the reference's trophy/calendar/swords/phoenix/compass subject as given, complete silhouette, geometry, orientation, number and shape of leaves, top star and ribbon, enamel areas, view and transparent cutout. Keep original composition and centred alignment; do not add/remove anything. ONE standalone pin only, square canvas, full silhouette with transparent breathing space, entirely truly transparent background, no text/number/date/logo/floor shadow/watermark. Preserve genuine alpha.",
+      "reference": "public/personal-emblems/v1/awards/year/prediction-gold.png",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-db1b-77a3-81a3-7ce70dec257c\\exec-765d5b39-9073-4718-b0f8-c81945fdb977.png",
+      "destination": "public/personal-emblems/v1/awards/year/prediction-bronze.png",
+      "transparent_background": true,
+      "postprocessing": "none; generated source copied byte-for-byte",
+      "visually_reviewed": true,
+      "sha256": "239eca57a3c027e88376eb3a01e8ca88bfe344cba94c156f11e47fa94938445d",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "alpha_validation": {
+        "fully_transparent_pixels": 985816,
+        "pixels_above_alpha_16": 559210,
+        "subject_bounds_alpha_gt_16": [
+          171,
+          81,
+          1083,
+          1124
+        ],
+        "alpha_present": true
+      }
+    }
+  ]
+}

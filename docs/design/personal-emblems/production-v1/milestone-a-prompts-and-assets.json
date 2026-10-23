@@ -1,0 +1,333 @@
+{
+  "createdAt": "2026-10-23",
+  "tool": "image_gen.imagegen (built-in)",
+  "assetType": "production transparent personal achievement hard-enamel pins",
+  "scope": {
+    "sessions": "동행의 길: 10·50·100·300회",
+    "matches": "전장의 수호자: 10·50·100·500경기",
+    "wins": "승리의 결정: 10·50·100·300승"
+  },
+  "conceptReference": "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
+  "generatedSeparately": true,
+  "imageEditing": "None. Each selected generated PNG was copied byte-for-byte; no CLI/Python image editing.",
+  "validation": {
+    "visualInspection": "All 12 files viewed individually. Reviewed family motif, stage growth, palette, entire outline, and absence of text/numerals/background.",
+    "binaryInspection": "System.Drawing.Bitmap read-only width/height/pixelFormat, four corner alpha samples and maximum alpha across the four outer edges. SHA-256 of source and copied destination compared.",
+    "marginNote": "Prompts request approximately 12% clear margin; numerical margin width was not measured. Source output framing preserved."
+  },
+  "assets": [
+    {
+      "family": "sessions",
+      "stage": 1,
+      "condition": 10,
+      "prompt": "Use case: stylized-concept.\nAsset type: production transparent PNG personal achievement collectible hard-enamel pin for the ClanSync app.\nInput image 1: approved design sheet, used ONLY as visual style and family motif reference. Create ONE isolated individual pin, no sheet, no labels, no ribbon medal hanger.\nStyle: premium dimensional hard-enamel object with polished raised warm champagne-gold metal outlines, bevelled gold partitions, emerald/jade green, pale mint and warm ivory enamel. ALL stages use exactly these same materials; stages show growing artwork, never bronze/silver/gold rank swaps. Sculptural but restrained highlights, strong broad shapes legible at 64px. Straight-on front view, entire outline visible, centered on a square canvas with approximately 12% fully transparent clear margin on every side. True RGBA transparency outside the pin; no background color, checkerboard, scene, stand, backplate, text, digits, lettering, logos, watermarks, glow or cast shadow outside the pin.\n\nSubject: STAGE 1 of 'The Companion Path', concept 06 (bottom-left on sheet). A modest beginning: ONE broad low ivory stepping stone inside a simple low gold-edged emerald winding-path loop. Behind it, a small low emerald horizon arc with a fine mint inlay. One small pointed emerald leaf on each side, contained in the outline. Keep this first stage visibly simple and compact with a large readable stone. The visual theme is walking together toward a horizon. No star needed at this first stage.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-819a42f0-7d86-4b08-b1a7-66fd667a38f5.png",
+      "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\sessions-1.png",
+      "references": [
+        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png"
+      ],
+      "transparentBackground": true,
+      "width": 1254,
+      "height": 1254,
+      "pixelFormat": "Format32bppArgb",
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "edgeMaximumAlpha": 1,
+      "bytes": 1482599,
+      "sha256": "0996AAB404AEBB2D133FCB8793B12D9140FB0A070B2BD6DA483A531A9050AA4C",
+      "matchesSource": true
+    },
+    {
+      "family": "matches",
+      "stage": 1,
+      "condition": 10,
+      "prompt": "Use case: stylized-concept.\nAsset type: production transparent PNG personal achievement collectible hard-enamel pin for the ClanSync app.\nInput image 1: approved design sheet, used ONLY as visual style and family motif reference. Create ONE isolated individual pin, no sheet, no labels, no ribbon medal hanger.\nStyle: premium dimensional hard-enamel object with polished raised warm champagne-gold metal outlines, bevelled gold partitions, emerald/jade green, pale mint and warm ivory enamel. ALL stages use exactly these same materials; stages show growing artwork, never bronze/silver/gold rank swaps. Sculptural but restrained highlights, strong broad shapes legible at 64px. Straight-on front view, entire outline visible, centered on a square canvas with approximately 12% fully transparent clear margin on every side. True RGBA transparency outside the pin; no background color, checkerboard, scene, stand, backplate, text, digits, lettering, logos, watermarks, glow or cast shadow outside the pin.\n\nSubject: STAGE 1 of 'Battlefield Guardian', concept 07 (second item of bottom row). ONE bold upright sword as the entire pin silhouette, blade pointing down. The broad ivory enamel blade has a polished gold edge and a narrow jade center ridge; a compact champagne-gold crossguard and dark emerald handle end in one small mint/emerald diamond gemstone at the top. No shield, wings or laurel at this early stage. Elegant, friendly fantasy collectible; retain the exact gold/emerald/ivory craft style of concept 07.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-c5d2a67b-a4d4-4495-a06f-f639caf591fe.png",
+      "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\matches-1.png",
+      "references": [
+        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png"
+      ],
+      "transparentBackground": true,
+      "width": 1254,
+      "height": 1254,
+      "pixelFormat": "Format32bppArgb",
+      "cornerAlpha": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "edgeMaximumAlpha": 1,
+      "bytes": 434210,
+      "sha256": "45C3C1E6A005B47D7016C1EF7B2A2273DF68B5CA1B7E2209B65AC3EE3FD55621",
+      "matchesSource": true
+    },
+    {
+      "family": "wins",
+      "stage": 1,
+      "condition": 10,
+      "prompt": "Use case: stylized-concept.\nAsset type: production transparent PNG personal achievement collectible hard-enamel pin for the ClanSync app.\nInput image 1: approved design sheet, used ONLY as visual style and family motif reference. Create ONE isolated individual pin, no sheet, no labels, no ribbon medal hanger.\nStyle: premium dimensional hard-enamel object with polished raised warm champagne-gold metal outlines, bevelled gold partitions, emerald/jade green, pale mint and warm ivory enamel. ALL stages use exactly these same materials; stages show growing artwork, never bronze/silver/gold rank swaps. Sculptural but restrained highlights, strong broad shapes legible at 64px. Straight-on front view, entire outline visible, centered on a square canvas with approximately 12% fully transparent clear margin on every side. True RGBA transparency outside the pin; no background color, checkerboard, scene, stand, backplate, text, digits, lettering, logos, watermarks, glow or cast shadow outside the pin.\n\nSubject: STAGE 1 of 'Victory Crystals', concept 08 (middle item of bottom row). ONE substantial pointed emerald crystal in the center, with three broad geometric emerald and mint enamel facets separated by raised gold ridges. It rests in a tiny warm ivory low rocky cradle outlined in gold. The actual silhouette follows the crystal and its small base. Keep this beginning stage simple with one crystal only; no star, surrounding leaves or extra crystal at this stage. Calm jewel-like luminosity, no glow.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-754786e0-6a6e-401b-9c3d-06d6a6f7e715.png",
+      "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\wins-1.png",
+      "references": [
+        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png"
+      ],
+      "transparentBackground": true,
+      "width": 1254,
+      "height": 1254,
+      "pixelFormat": "Format32bppArgb",
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "edgeMaximumAlpha": 1,
+      "bytes": 835718,
+      "sha256": "294D707AFEC868F3F86B6C43CD52315AB21CA8F293D5A17E4D44970772B94492",
+      "matchesSource": true
+    },
+    {
+      "family": "sessions",
+      "stage": 2,
+      "condition": 50,
+      "prompt": "Use case: stylized-concept.\nAsset type: production transparent PNG personal achievement collectible hard-enamel pin for the ClanSync app.\nInput image 1: approved design sheet, used ONLY as visual style and family motif reference. Create ONE isolated individual pin, no sheet, no labels, no ribbon medal hanger.\nStyle: premium dimensional hard-enamel object with polished raised warm champagne-gold metal outlines, bevelled gold partitions, emerald/jade green, pale mint and warm ivory enamel. ALL stages use exactly these same materials; stages show growing artwork, never bronze/silver/gold rank swaps. Sculptural but restrained highlights, strong broad shapes legible at 64px. Straight-on front view, entire outline visible, centered on a square canvas with approximately 12% fully transparent clear margin on every side. True RGBA transparency outside the pin; no background color, checkerboard, scene, stand, backplate, text, digits, lettering, logos, watermarks, glow or cast shadow outside the pin.\n\nInput image 2: the finished stage-1 Companion Path pin. Preserve its exact material craft, gold thickness, jade/mint/ivory palette, soft lighting and front-facing treatment. Create the NEXT growth stage, not a copy.\nSubject: STAGE 2 of Companion Path, concept 06: THREE clearly separated ivory stepping stones follow a short curving gold-edged emerald path upward from a broad foreground stone to two smaller stones toward a low rounded horizon arch. The arch is low and modest; two pairs of small green leaves flank the path within the outline. Keep the path and THREE stones bold and immediately readable. This is more developed than image 2 but simpler than the finished concept-06 arch; do not add a hanging medal ribbon, words or numerals.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-41b6def8-df6e-4de2-8cae-7707a63ee062.png",
+      "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\sessions-2.png",
+      "references": [
+        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
+        "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\sessions-1.png"
+      ],
+      "transparentBackground": true,
+      "width": 1254,
+      "height": 1254,
+      "pixelFormat": "Format32bppArgb",
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "edgeMaximumAlpha": 0,
+      "bytes": 1461910,
+      "sha256": "4CFFD52CA7FEC5C894144CDBAF1229456E5078DE9D91B065C8D3703A7064F5D3",
+      "matchesSource": true
+    },
+    {
+      "family": "matches",
+      "stage": 2,
+      "condition": 50,
+      "prompt": "Use case: stylized-concept.\nAsset type: production transparent PNG personal achievement collectible hard-enamel pin for the ClanSync app.\nInput image 1: approved design sheet, used ONLY as visual style and family motif reference. Create ONE isolated individual pin, no sheet, no labels, no ribbon medal hanger.\nStyle: premium dimensional hard-enamel object with polished raised warm champagne-gold metal outlines, bevelled gold partitions, emerald/jade green, pale mint and warm ivory enamel. ALL stages use exactly these same materials; stages show growing artwork, never bronze/silver/gold rank swaps. Sculptural but restrained highlights, strong broad shapes legible at 64px. Straight-on front view, entire outline visible, centered on a square canvas with approximately 12% fully transparent clear margin on every side. True RGBA transparency outside the pin; no background color, checkerboard, scene, stand, backplate, text, digits, lettering, logos, watermarks, glow or cast shadow outside the pin.\n\nInput image 2: the finished stage-1 Battlefield Guardian sword pin. Preserve the exact sword's design language, ivory blade, dark emerald handle, small diamond gem, gold thickness, bevels and front-facing treatment. Create the NEXT growth stage, not a copy.\nSubject: STAGE 2 of Battlefield Guardian, concept 07: that upright sword remains central and points downward, now in front of ONE small broad emerald shield with a gold rim. The shield sits behind the lower blade/crossguard and creates a compact protective silhouette. No wing plates, no laurel at this second stage. The sword and small shield are the only major shapes. Exactly the same warm gold/green/ivory materials as the reference sword, no silver or bronze.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-7ea76ab3-3844-4fb4-a30b-0d0b0885d24f.png",
+      "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\matches-2.png",
+      "references": [
+        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
+        "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\matches-1.png"
+      ],
+      "transparentBackground": true,
+      "width": 1254,
+      "height": 1254,
+      "pixelFormat": "Format32bppArgb",
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "edgeMaximumAlpha": 1,
+      "bytes": 613924,
+      "sha256": "C285044177E71E2A73D283C5B8822511AA9FA7D3A5A7BE56F551A472203797D1",
+      "matchesSource": true
+    },
+    {
+      "family": "wins",
+      "stage": 2,
+      "condition": 50,
+      "prompt": "Use case: stylized-concept.\nAsset type: production transparent PNG personal achievement collectible hard-enamel pin for the ClanSync app.\nInput image 1: approved design sheet, used ONLY as visual style and family motif reference. Create ONE isolated individual pin, no sheet, no labels, no ribbon medal hanger.\nStyle: premium dimensional hard-enamel object with polished raised warm champagne-gold metal outlines, bevelled gold partitions, emerald/jade green, pale mint and warm ivory enamel. ALL stages use exactly these same materials; stages show growing artwork, never bronze/silver/gold rank swaps. Sculptural but restrained highlights, strong broad shapes legible at 64px. Straight-on front view, entire outline visible, centered on a square canvas with approximately 12% fully transparent clear margin on every side. True RGBA transparency outside the pin; no background color, checkerboard, scene, stand, backplate, text, digits, lettering, logos, watermarks, glow or cast shadow outside the pin.\n\nInput image 2: the finished stage-1 Victory Crystals pin. Preserve the same long pointed jade crystal design, bold gold facet seams, mint highlights, ivory rocky base materials and front-facing treatment. Create the NEXT growth stage, not a copy.\nSubject: STAGE 2 of Victory Crystals, concept 08: TWO unmistakably separate pointed crystals, one tall central crystal and one shorter crystal rising from the left, rooted in a modest ivory rocky base. Large readable jade/emerald/mint facets bounded by dimensional warm gold. Exactly TWO green crystals, no third crystal and no star at this second stage. The base remains small and simple, more developed than stage 1 but simpler than concept 08.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-e25c439c-c356-4be0-bc9d-d8904763d30b.png",
+      "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\wins-2.png",
+      "references": [
+        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
+        "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\wins-1.png"
+      ],
+      "transparentBackground": true,
+      "width": 1254,
+      "height": 1254,
+      "pixelFormat": "Format32bppArgb",
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "edgeMaximumAlpha": 0,
+      "bytes": 857468,
+      "sha256": "447F59B93A65C28E6EC02BB6BEA4CEDB5A524439D0D36FB98AD38433AD6F4205",
+      "matchesSource": true
+    },
+    {
+      "family": "sessions",
+      "stage": 3,
+      "condition": 100,
+      "prompt": "Use case: stylized-concept.\nAsset type: production transparent PNG personal achievement collectible hard-enamel pin for the ClanSync app.\nInput image 1: approved design sheet, used ONLY as visual style and family motif reference. Create ONE isolated individual pin, no sheet, no labels, no ribbon medal hanger.\nStyle: premium dimensional hard-enamel object with polished raised warm champagne-gold metal outlines, bevelled gold partitions, emerald/jade green, pale mint and warm ivory enamel. ALL stages use exactly these same materials; stages show growing artwork, never bronze/silver/gold rank swaps. Sculptural but restrained highlights, strong broad shapes legible at 64px. Straight-on front view, entire outline visible, centered on a square canvas with approximately 12% fully transparent clear margin on every side. True RGBA transparency outside the pin; no background color, checkerboard, scene, stand, backplate, text, digits, lettering, logos, watermarks, glow or cast shadow outside the pin.\n\nInput image 2: stage-1 Companion Path pin. Retain the same dimensional materials, gold partitions, enamel palette, calm lighting and front-facing craftsmanship. Create the third growth stage following approved concept 06 in image 1.\nSubject: STAGE 3 of Companion Path: a full curved S-shaped gold-edged path with EXACTLY THREE ivory stepping stones, foreground large, middle medium, upper small. Beyond them a clearly TALLER emerald arched horizon creates a strong rounded silhouette; one small gold four-point guiding star above the horizon. THREE broad emerald/mint leaves rise on each side of the path. Match the lower-left concept-06 pin, but render it by itself on true transparency with no label. Do not draw four stones; show exactly three distinct ivory stones.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-d7505bff-d88a-44fe-b28f-e26e6cefa6d6.png",
+      "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\sessions-3.png",
+      "references": [
+        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
+        "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\sessions-1.png"
+      ],
+      "transparentBackground": true,
+      "width": 1254,
+      "height": 1254,
+      "pixelFormat": "Format32bppArgb",
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "edgeMaximumAlpha": 1,
+      "bytes": 1574050,
+      "sha256": "148341C4E5CF728F44E2C4D55E6987C9D56E99BDB867D9A9DC080930BCF8F863",
+      "matchesSource": true
+    },
+    {
+      "family": "matches",
+      "stage": 3,
+      "condition": 100,
+      "prompt": "Use case: stylized-concept.\nAsset type: production transparent PNG personal achievement collectible hard-enamel pin for the ClanSync app.\nInput image 1: approved design sheet, used ONLY as visual style and family motif reference. Create ONE isolated individual pin, no sheet, no labels, no ribbon medal hanger.\nStyle: premium dimensional hard-enamel object with polished raised warm champagne-gold metal outlines, bevelled gold partitions, emerald/jade green, pale mint and warm ivory enamel. ALL stages use exactly these same materials; stages show growing artwork, never bronze/silver/gold rank swaps. Sculptural but restrained highlights, strong broad shapes legible at 64px. Straight-on front view, entire outline visible, centered on a square canvas with approximately 12% fully transparent clear margin on every side. True RGBA transparency outside the pin; no background color, checkerboard, scene, stand, backplate, text, digits, lettering, logos, watermarks, glow or cast shadow outside the pin.\n\nInput image 2: stage-1 Battlefield Guardian sword. Preserve the sword's broad ivory enamel blade pointing downward, mint/emerald handle, diamond jewel, gold thickness and lighting. Create the third growth stage following concept 07 in image 1.\nSubject: STAGE 3 of Battlefield Guardian: upright central sword in front of a substantial emerald shield with gold rim. Behind the shield, a fan of THREE broad stepped GOLD metal wing-like plates forms the upper shoulder silhouette, one at center and one on each side. Two short pointed emerald/mint leaves support the shield's lower sides, contained inside the whole pin silhouette. Strong protection motif. No laurel crown yet. No ribbon hanger; it is a single wearable pin. Bold wings and shield remain clearly visible at 64px.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-8caa0729-7a0d-41ef-b2bc-def5bb51485f.png",
+      "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\matches-3.png",
+      "references": [
+        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
+        "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\matches-1.png"
+      ],
+      "transparentBackground": true,
+      "width": 1254,
+      "height": 1254,
+      "pixelFormat": "Format32bppArgb",
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "edgeMaximumAlpha": 0,
+      "bytes": 1166086,
+      "sha256": "97D5B102E1C1CDC997157972B9640459870B54858327BFAEB1B21157F333FED7",
+      "matchesSource": true
+    },
+    {
+      "family": "wins",
+      "stage": 3,
+      "condition": 100,
+      "prompt": "Use case: stylized-concept.\nAsset type: production transparent PNG personal achievement collectible hard-enamel pin for the ClanSync app.\nInput image 1: approved design sheet, used ONLY as visual style and family motif reference. Create ONE isolated individual pin, no sheet, no labels, no ribbon medal hanger.\nStyle: premium dimensional hard-enamel object with polished raised warm champagne-gold metal outlines, bevelled gold partitions, emerald/jade green, pale mint and warm ivory enamel. ALL stages use exactly these same materials; stages show growing artwork, never bronze/silver/gold rank swaps. Sculptural but restrained highlights, strong broad shapes legible at 64px. Straight-on front view, entire outline visible, centered on a square canvas with approximately 12% fully transparent clear margin on every side. True RGBA transparency outside the pin; no background color, checkerboard, scene, stand, backplate, text, digits, lettering, logos, watermarks, glow or cast shadow outside the pin.\n\nInput image 2: stage-1 Victory Crystals pin. Preserve its exact raised gold seams, broad emerald/jade/mint crystal facets, bright warm ivory rock, quiet lighting and front-facing craftsmanship. Create the third growth stage following concept 08 in image 1.\nSubject: STAGE 3 of Victory Crystals: EXACTLY THREE distinct upright pointed green crystals, a tall center crystal and two shorter side crystals of different heights, growing from a larger faceted warm-ivory rocky base. Two restrained green/gold leaf forms cradle the sides of the rock. ONE small connected gold four-point star above and to the right of the tallest crystal. Match the approved middle-bottom concept 08 design. Rich gem craft without glow, one unified pin object, no fourth crystal.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-03c5d476-f053-41e4-be7f-169d510f5a5e.png",
+      "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\wins-3.png",
+      "references": [
+        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
+        "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\wins-1.png"
+      ],
+      "transparentBackground": true,
+      "width": 1254,
+      "height": 1254,
+      "pixelFormat": "Format32bppArgb",
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "edgeMaximumAlpha": 1,
+      "bytes": 1192114,
+      "sha256": "AE05FD314E71AAAF4F45D018E5A7BC3242B0B8E929760179216B0C00700E31FA",
+      "matchesSource": true
+    },
+    {
+      "family": "sessions",
+      "stage": 4,
+      "condition": 300,
+      "prompt": "Use case: stylized-concept.\nAsset type: production transparent PNG personal achievement collectible hard-enamel pin for the ClanSync app.\nInput image 1: approved design sheet, used ONLY as visual style and family motif reference. Create ONE isolated individual pin, no sheet, no labels, no ribbon medal hanger.\nStyle: premium dimensional hard-enamel object with polished raised warm champagne-gold metal outlines, bevelled gold partitions, emerald/jade green, pale mint and warm ivory enamel. ALL stages use exactly these same materials; stages show growing artwork, never bronze/silver/gold rank swaps. Sculptural but restrained highlights, strong broad shapes legible at 64px. Straight-on front view, entire outline visible, centered on a square canvas with approximately 12% fully transparent clear margin on every side. True RGBA transparency outside the pin; no background color, checkerboard, scene, stand, backplate, text, digits, lettering, logos, watermarks, glow or cast shadow outside the pin.\n\nInput image 2: first Companion Path stage, establishes fixed materials. Input image 3: stage-3 Companion Path pin, the growth starting point. Make a clearly fuller FINAL stage while retaining the same family silhouette and imagery.\nSubject: STAGE 4 of Companion Path. A GRAND tall rounded emerald horizon arch with a broad DOUBLE polished-gold rim and mint inner band; a large gentle curved S path sweeps toward the horizon, bearing EXACTLY THREE broad ivory stepping stones, large foreground, medium middle, small upper. Add FIVE broad overlapping emerald/mint leaf blades on each side, rising higher along the outer arch like a flourishing leafy gateway. A bright but restrained gold four-point guiding star sits at the upper horizon with a few wide engraved light rays. The arch and sweeping path must be conspicuously larger and more developed than image 3, with a wider oval gold path foundation. Do not add extra stars or stones, no medal hanger or ribbon.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-9799c37c-c2db-4c0b-9b29-8d88c65e4577.png",
+      "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\sessions-4.png",
+      "references": [
+        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
+        "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\sessions-1.png",
+        "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\sessions-3.png"
+      ],
+      "transparentBackground": true,
+      "width": 1254,
+      "height": 1254,
+      "pixelFormat": "Format32bppArgb",
+      "cornerAlpha": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "edgeMaximumAlpha": 1,
+      "bytes": 2013218,
+      "sha256": "E0FBCCC90A101E657A43356FFDAC7B1B0C7463052AE9681DBD3C5924AC5AFD38",
+      "matchesSource": true
+    },
+    {
+      "family": "matches",
+      "stage": 4,
+      "condition": 500,
+      "prompt": "Use case: stylized-concept.\nAsset type: production transparent PNG personal achievement collectible hard-enamel pin for the ClanSync app.\nInput image 1: approved design sheet, used ONLY as visual style and family motif reference. Create ONE isolated individual pin, no sheet, no labels, no ribbon medal hanger.\nStyle: premium dimensional hard-enamel object with polished raised warm champagne-gold metal outlines, bevelled gold partitions, emerald/jade green, pale mint and warm ivory enamel. ALL stages use exactly these same materials; stages show growing artwork, never bronze/silver/gold rank swaps. Sculptural but restrained highlights, strong broad shapes legible at 64px. Straight-on front view, entire outline visible, centered on a square canvas with approximately 12% fully transparent clear margin on every side. True RGBA transparency outside the pin; no background color, checkerboard, scene, stand, backplate, text, digits, lettering, logos, watermarks, glow or cast shadow outside the pin.\n\nInput image 2: first Battlefield Guardian sword, establishes fixed materials and sword geometry. Input image 3: stage-3 sword-and-shield pin, the growth starting point. Make a clearly grander FINAL stage while keeping the same family identity.\nSubject: STAGE 4 of Battlefield Guardian. The same broad upright ivory sword points down at center, emerald handle and diamond pommel preserved. Behind it is a noticeably LARGER emerald shield with a DOUBLE gold rim and subtle mint inset panels. Layered stepped GOLD metal wing plates fan out broadly behind the shield, THREE clearly separated broad plates on EACH side at graduated heights. A restrained short gold-and-emerald laurel sprig of FOUR broad leaves hugs each LOWER side, giving a completed guardian silhouette without surrounding the sword head. Keep the central sword blade and large shield dominant. No ribbon hanger, crown or tiny filigree.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-a19dabbd-cbca-4dd3-bd18-bcc4b238b4dd.png",
+      "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\matches-4.png",
+      "references": [
+        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
+        "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\matches-1.png",
+        "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\matches-3.png"
+      ],
+      "transparentBackground": true,
+      "width": 1254,
+      "height": 1254,
+      "pixelFormat": "Format32bppArgb",
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "edgeMaximumAlpha": 1,
+      "bytes": 1533224,
+      "sha256": "47B8E1DD9B94AA6C7B2F06DA6217163B030AC66DD797D6E37ED0E104B8FAF158",
+      "matchesSource": true
+    },
+    {
+      "family": "wins",
+      "stage": 4,
+      "condition": 300,
+      "prompt": "Use case: stylized-concept.\nAsset type: production transparent PNG personal achievement collectible hard-enamel pin for the ClanSync app.\nInput image 1: approved design sheet, used ONLY as visual style and family motif reference. Create ONE isolated individual pin, no sheet, no labels, no ribbon medal hanger.\nStyle: premium dimensional hard-enamel object with polished raised warm champagne-gold metal outlines, bevelled gold partitions, emerald/jade green, pale mint and warm ivory enamel. ALL stages use exactly these same materials; stages show growing artwork, never bronze/silver/gold rank swaps. Sculptural but restrained highlights, strong broad shapes legible at 64px. Straight-on front view, entire outline visible, centered on a square canvas with approximately 12% fully transparent clear margin on every side. True RGBA transparency outside the pin; no background color, checkerboard, scene, stand, backplate, text, digits, lettering, logos, watermarks, glow or cast shadow outside the pin.\n\nInput image 2: first Victory Crystals pin, establishes fixed materials and bold crystal facet geometry. Input image 3: stage-3 three-crystal pin, the growth starting point. Make a clearly abundant FINAL stage while keeping the same family identity.\nSubject: STAGE 4 of Victory Crystals. EXACTLY FIVE separately readable pointed emerald/jade crystals form a rich ascending fan, tallest center, two intermediate-height side crystals, two smaller outer crystals; all have broad mint highlights and raised polished gold facet partitions. They grow from a more substantial angular bright-IVORY rocky foundation cradled by three broad green/gold leaves on each side. ONE striking polished GOLD four-point summit star sits just above the central highest crystal, joined by a small gold metal link so the entire emblem is one physical pin. No second star, no sixth crystal, no floating glitter. Clearly fuller and more triumphant than image 3 without becoming cluttered.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a1674e-522d-70b3-bcf4-848279bbd885\\exec-f40a7f8d-1f3b-4c31-b35f-6a889ca3e4f8.png",
+      "destination": "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\wins-4.png",
+      "references": [
+        "C:\\Projects\\ClanSync\\docs\\design\\personal-emblems\\proposal-v1\\concept-sheet-v1.png",
+        "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\wins-1.png",
+        "C:\\Projects\\ClanSync\\public\\personal-emblems\\v1\\milestones\\wins-3.png"
+      ],
+      "transparentBackground": true,
+      "width": 1254,
+      "height": 1254,
+      "pixelFormat": "Format32bppArgb",
+      "cornerAlpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "edgeMaximumAlpha": 0,
+      "bytes": 1330961,
+      "sha256": "838C4A7E5AECA97E7E075ECC863BAEBF7DFA5B06A5562B57062B88DB786B65E3",
+      "matchesSource": true
+    }
+  ]
+}
+

@@ -1,0 +1,489 @@
+{
+  "created_at": "2026-10-23",
+  "scope": "monthly award emblems, five categories x three metals",
+  "generator": "built-in image_gen",
+  "postprocessing": "None. Generated source PNG copied byte-for-byte into project.",
+  "color_policy": {
+    "gold": "champagne gold",
+    "silver": "neutral cool polished silver with RGB gray highlights/shadows; no green metal tint",
+    "bronze": "warm copper/bronze",
+    "enamel": "emerald/jade green plus ivory fixed in base assets; date palette is applied by parent rendering"
+  },
+  "inspection_summary": {
+    "assets": 15,
+    "width": 1254,
+    "height": 1254,
+    "format": "32-bit RGBA PNG",
+    "alpha": "All assets have an alpha channel. Corner alpha values are 0 except prediction-gold bottom-left and victory-silver top-left, which are 1/255 (generated residual alpha). Original alpha is preserved.",
+    "visual_review": "All 15 assets inspected with view_image; no labels/dates/logos; all are single monthly award pins; metal colors visibly distinct."
+  },
+  "assets": [
+    {
+      "id": "victory-gold",
+      "prompt": "Use case: stylized-concept. Asset type: one production clan personal emblem game UI pin. Input image is a design reference sheet, not the output layout. Create a SINGLE isolated monthly award emblem matching the specified top-row concept of that sheet. Refined metal relief with glossy deep emerald/jade-green and warm ivory enamel; front-facing orthographic view; clean strong icon shapes readable at 64 pixels; polished sculpted collectible quality. A SHORT emerald-and-ivory striped ribbon hanger above the emblem, small diamond jewel linking hanger to main subject. MONTHLY VERSION: keep that short ribbon; do not add an annual surround, new outer laurel frame, crown, banner, decorative wings, plate or pedestal. Champagne gold metal borders and raised relief. All five monthly categories should be one coherent family. Square image, complete silhouette centered, about 12% empty transparent margin on every edge. Background genuinely transparent with clean alpha. No background color, texture, pattern or scenery; no ground, cast shadow, glow or drop shadow; no letters, dates, numbers, labels, logo or watermark. Do not produce a grid, contact sheet, variants or more than one emblem. Preserve the central subject from the reference without adding unrelated objects.\nReference: TOP ROW FIRST design, 01. Main subject is a trophy cup with a large five-pointed star on the green bowl, curved handles, slim stem and foot. Keep the two small laurel sprigs attached to the lower sides of the trophy, as in the concept; these belong to the trophy, not an added surrounding annual frame.\nEDIT: Use case: precise-object-edit. Input image is the edit target. Preserve the identical monthly trophy-and-star award emblem design, gold metal, emerald and ivory colors, ribbon hanger, laurel sprigs, all shapes, arrangement and details. Change ONLY composition scale: reduce the entire pin uniformly to 76 percent of canvas height centered on a square transparent canvas, leaving 12 percent transparent empty margin above and below and ample transparent margin at both sides. Complete silhouette. Do not redraw, recolor or add anything. Genuinely transparent background, no shadow, no text, no date, no number, no logo.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-aea0-7df0-9763-7dad035332a8\\exec-d41e8a34-5b2d-40aa-b50b-2e0bf52ea9f8.png",
+      "destination": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/victory-gold.png",
+      "reference": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-aea0-7df0-9763-7dad035332a8\\exec-c1974938-b6e0-4bf2-9aac-6e86bbb92529.png",
+      "original_reference": "C:/Projects/ClanSync/docs/design/personal-emblems/proposal-v1/concept-sheet-v1.png",
+      "transparent_background": true,
+      "inspection": {
+        "id": "victory-gold",
+        "width": 1254,
+        "height": 1254,
+        "pixelFormat": "Format32bppArgb",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sha256": "7032a8a92683a958ff1eab9673ec21831e43661a25a7e865352128a719912080",
+        "bytes": 1060335
+      },
+      "visual_review": {
+        "single_emblem": true,
+        "correct_monthly_ribbon": true,
+        "emerald_and_ivory_enamel": true,
+        "no_text_dates_numbers": true,
+        "metal_rank_distinct": true,
+        "geometry_reference_preserved": true,
+        "notes": null
+      }
+    },
+    {
+      "id": "participation-gold",
+      "prompt": "Use case: stylized-concept. Asset type: one production clan personal emblem game UI pin. Input image is a design reference sheet, not the output layout. Create a SINGLE isolated monthly award emblem matching the specified top-row concept of that sheet. Refined metal relief with glossy deep emerald/jade-green and warm ivory enamel; front-facing orthographic view; clean strong icon shapes readable at 64 pixels; polished sculpted collectible quality. A SHORT emerald-and-ivory striped ribbon hanger above the emblem, small diamond jewel linking hanger to main subject. MONTHLY VERSION: keep that short ribbon; do not add an annual surround, new outer laurel frame, crown, banner, decorative wings, plate or pedestal. Champagne gold metal borders and raised relief. All five monthly categories should be one coherent family. Square image, complete silhouette centered, about 12% empty transparent margin on every edge. Background genuinely transparent with clean alpha. No background color, texture, pattern or scenery; no ground, cast shadow, glow or drop shadow; no letters, dates, numbers, labels, logo or watermark. Do not produce a grid, contact sheet, variants or more than one emblem. Preserve the central subject from the reference without adding unrelated objects.\nReference: TOP ROW SECOND design, 02. Main subject is an emerald calendar-shaped shield with rounded rectangular top and pointed lower edge, exactly three gold rounded calendar binding loops along its top, and a large shining sun face with twelve alternating long/short rays. Centered sun and clear calendar identity; no numerals or grid.\nCRITICAL COMPOSITION: the whole emblem including ribbon must fit inside x=14%..86% and y=14%..86% of the square canvas; leave a generous continuous transparent border on all four edges. Reduce the pin to 72% of canvas height. Never crop.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-aea0-7df0-9763-7dad035332a8\\exec-78565d23-ec98-427b-bcc5-be20dcf022dd.png",
+      "destination": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/participation-gold.png",
+      "reference": "C:/Projects/ClanSync/docs/design/personal-emblems/proposal-v1/concept-sheet-v1.png",
+      "transparent_background": true,
+      "inspection": {
+        "id": "participation-gold",
+        "width": 1254,
+        "height": 1254,
+        "pixelFormat": "Format32bppArgb",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sha256": "d061017bfcda4112cf957d43dc8b6d67090ee04265dcca8cfad9f47d26899d11",
+        "bytes": 1014291
+      },
+      "visual_review": {
+        "single_emblem": true,
+        "correct_monthly_ribbon": true,
+        "emerald_and_ivory_enamel": true,
+        "no_text_dates_numbers": true,
+        "metal_rank_distinct": true,
+        "geometry_reference_preserved": true,
+        "notes": null
+      }
+    },
+    {
+      "id": "appearances-gold",
+      "prompt": "Use case: stylized-concept. Asset type: one production clan personal emblem game UI pin. Input image is a design reference sheet, not the output layout. Create a SINGLE isolated monthly award emblem matching the specified top-row concept of that sheet. Refined metal relief with glossy deep emerald/jade-green and warm ivory enamel; front-facing orthographic view; clean strong icon shapes readable at 64 pixels; polished sculpted collectible quality. A SHORT emerald-and-ivory striped ribbon hanger above the emblem, small diamond jewel linking hanger to main subject. MONTHLY VERSION: keep that short ribbon; do not add an annual surround, new outer laurel frame, crown, banner, decorative wings, plate or pedestal. Champagne gold metal borders and raised relief. All five monthly categories should be one coherent family. Square image, complete silhouette centered, about 12% empty transparent margin on every edge. Background genuinely transparent with clean alpha. No background color, texture, pattern or scenery; no ground, cast shadow, glow or drop shadow; no letters, dates, numbers, labels, logo or watermark. Do not produce a grid, contact sheet, variants or more than one emblem. Preserve the central subject from the reference without adding unrelated objects.\nReference: TOP ROW THIRD design, 03. Main subject is two broad ivory-enamel swords crossed diagonally over an emerald diamond-shaped shield, gold edges and emerald grip sections, and one small four-point star at the upper center of the shield. Keep the swords simple and symmetrical.\nCRITICAL COMPOSITION: the whole emblem including ribbon must fit inside x=14%..86% and y=14%..86% of the square canvas; leave a generous continuous transparent border on all four edges. Reduce the pin to 72% of canvas height. Never crop.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-aea0-7df0-9763-7dad035332a8\\exec-292f8313-39c4-41a7-88bf-099ed04c072d.png",
+      "destination": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/appearances-gold.png",
+      "reference": "C:/Projects/ClanSync/docs/design/personal-emblems/proposal-v1/concept-sheet-v1.png",
+      "transparent_background": true,
+      "inspection": {
+        "id": "appearances-gold",
+        "width": 1254,
+        "height": 1254,
+        "pixelFormat": "Format32bppArgb",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sha256": "deadd24e9a3159940bac6b25239c995e5b55203055851527fc4f549564de1ad0",
+        "bytes": 922534
+      },
+      "visual_review": {
+        "single_emblem": true,
+        "correct_monthly_ribbon": true,
+        "emerald_and_ivory_enamel": true,
+        "no_text_dates_numbers": true,
+        "metal_rank_distinct": true,
+        "geometry_reference_preserved": true,
+        "notes": null
+      }
+    },
+    {
+      "id": "streak-gold",
+      "prompt": "Use case: stylized-concept. Asset type: one production clan personal emblem game UI pin. Input image is a design reference sheet, not the output layout. Create a SINGLE isolated monthly award emblem matching the specified top-row concept of that sheet. Refined metal relief with glossy deep emerald/jade-green and warm ivory enamel; front-facing orthographic view; clean strong icon shapes readable at 64 pixels; polished sculpted collectible quality. A SHORT emerald-and-ivory striped ribbon hanger above the emblem, small diamond jewel linking hanger to main subject. MONTHLY VERSION: keep that short ribbon; do not add an annual surround, new outer laurel frame, crown, banner, decorative wings, plate or pedestal. Champagne gold metal borders and raised relief. All five monthly categories should be one coherent family. Square image, complete silhouette centered, about 12% empty transparent margin on every edge. Background genuinely transparent with clean alpha. No background color, texture, pattern or scenery; no ground, cast shadow, glow or drop shadow; no letters, dates, numbers, labels, logo or watermark. Do not produce a grid, contact sheet, variants or more than one emblem. Preserve the central subject from the reference without adding unrelated objects.\nReference: TOP ROW FOURTH design, 04. Main subject is an elegant front-facing phoenix formed from rising curved emerald, ivory and gold flame feathers, wings raised, a small central ivory bird body and beak. Flame tips upward, symmetric flowing silhouette, as in the concept.\nCRITICAL COMPOSITION: fit the entire emblem inside central 72% of the square canvas; leave a generous continuous transparent border on all four edges. Complete silhouette. Never crop.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-aea0-7df0-9763-7dad035332a8\\exec-0b1f6541-342f-4cb1-bffd-5144ac34572d.png",
+      "destination": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/streak-gold.png",
+      "reference": "C:/Projects/ClanSync/docs/design/personal-emblems/proposal-v1/concept-sheet-v1.png",
+      "transparent_background": true,
+      "inspection": {
+        "id": "streak-gold",
+        "width": 1254,
+        "height": 1254,
+        "pixelFormat": "Format32bppArgb",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sha256": "0d2fec1e7f623d332313f71b1153e0069464d82b890acfda7718604e0e1d6821",
+        "bytes": 1184713
+      },
+      "visual_review": {
+        "single_emblem": true,
+        "correct_monthly_ribbon": true,
+        "emerald_and_ivory_enamel": true,
+        "no_text_dates_numbers": true,
+        "metal_rank_distinct": true,
+        "geometry_reference_preserved": true,
+        "notes": null
+      }
+    },
+    {
+      "id": "prediction-gold",
+      "prompt": "Use case: stylized-concept. Asset type: one production clan personal emblem game UI pin. Input image is a design reference sheet, not the output layout. Create a SINGLE isolated monthly award emblem matching the specified top-row concept of that sheet. Refined metal relief with glossy deep emerald/jade-green and warm ivory enamel; front-facing orthographic view; clean strong icon shapes readable at 64 pixels; polished sculpted collectible quality. A SHORT emerald-and-ivory striped ribbon hanger above the emblem, small diamond jewel linking hanger to main subject. MONTHLY VERSION: keep that short ribbon; do not add an annual surround, new outer laurel frame, crown, banner, decorative wings, plate or pedestal. Champagne gold metal borders and raised relief. All five monthly categories should be one coherent family. Square image, complete silhouette centered, about 12% empty transparent margin on every edge. Background genuinely transparent with clean alpha. No background color, texture, pattern or scenery; no ground, cast shadow, glow or drop shadow; no letters, dates, numbers, labels, logo or watermark. Do not produce a grid, contact sheet, variants or more than one emblem. Preserve the central subject from the reference without adding unrelated objects.\nReference: TOP ROW FIFTH design, 05. Main subject is a round emerald-and-ivory compass medal with four large cardinal gold points, a central faceted emerald diamond jewel, and small clear star facets around the compass ring. Strong four-direction compass geometry.\nCRITICAL COMPOSITION: fit the entire emblem inside central 72% of the square canvas; leave a generous continuous transparent border on all four edges. Complete silhouette. Never crop.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-aea0-7df0-9763-7dad035332a8\\exec-2c1687f0-be50-4166-b0e0-952d0c3f1912.png",
+      "destination": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/prediction-gold.png",
+      "reference": "C:/Projects/ClanSync/docs/design/personal-emblems/proposal-v1/concept-sheet-v1.png",
+      "transparent_background": true,
+      "inspection": {
+        "id": "prediction-gold",
+        "width": 1254,
+        "height": 1254,
+        "pixelFormat": "Format32bppArgb",
+        "cornerAlpha": [
+          0,
+          0,
+          1,
+          0
+        ],
+        "sha256": "67b22363dd038fa6b517be4a27210fd15ca2664b9eee119f13754017d6b5b3bf",
+        "bytes": 1110898
+      },
+      "visual_review": {
+        "single_emblem": true,
+        "correct_monthly_ribbon": true,
+        "emerald_and_ivory_enamel": true,
+        "no_text_dates_numbers": true,
+        "metal_rank_distinct": true,
+        "geometry_reference_preserved": true,
+        "notes": null
+      }
+    },
+    {
+      "id": "victory-silver",
+      "prompt": "Use case: precise-object-edit. The input image is the actual production monthly award emblem to edit. CHANGE ONLY ITS GOLD METAL TO SILVER. Replace every champagne-gold metallic surface, raised relief, border, line, star, ray, hilt and attachment with NEUTRAL COOL POLISHED SILVER: white highlights and neutral light/mid/dark RGB-gray metal shadows, zero green or gold metal tint. The emerald/jade green enamel and jewels must remain exactly emerald/jade green; the ivory enamel must remain exactly ivory. Metallic parts may not be painted emerald, teal or ivory. Preserve the exact existing emblem geometry, subject shape, silhouette, number and location of ornaments, ribbon hanger, all sizes, line widths, composition scale and position. Do not add or remove anything; do not redesign. Maintain square canvas, full silhouette, same transparent border. Genuinely transparent background, no ground or cast shadow, no letters, no numbers, no date, no logo, no watermark. One emblem only. IMPORTANT: the silver central relief must be clearly neutral gray/silver and visually distinct from green enamel.\nIdentity to preserve: Reference: TOP ROW FIRST design, 01. Main subject is a trophy cup with a large five-pointed star on the green bowl, curved handles, slim stem and foot. Keep the two small laurel sprigs attached to the lower sides of the trophy, as in the concept; these belong to the trophy, not an added surrounding annual frame.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-aea0-7df0-9763-7dad035332a8\\exec-9bfc68d1-3c23-4fed-9b4e-866e4ecc8925.png",
+      "destination": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/victory-silver.png",
+      "reference": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/victory-gold.png",
+      "transparent_background": true,
+      "inspection": {
+        "id": "victory-silver",
+        "width": 1254,
+        "height": 1254,
+        "pixelFormat": "Format32bppArgb",
+        "cornerAlpha": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "sha256": "f8106ed7b8dcf778092fda2098054ffa7548909ce0808d3d4a3c5c34cb48fab9",
+        "bytes": 1084513
+      },
+      "visual_review": {
+        "single_emblem": true,
+        "correct_monthly_ribbon": true,
+        "emerald_and_ivory_enamel": true,
+        "no_text_dates_numbers": true,
+        "metal_rank_distinct": true,
+        "geometry_reference_preserved": true,
+        "notes": null
+      }
+    },
+    {
+      "id": "participation-silver",
+      "prompt": "Use case: precise-object-edit. The input image is the actual production monthly award emblem to edit. CHANGE ONLY ITS GOLD METAL TO SILVER. Replace every champagne-gold metallic surface, raised relief, border, line, star, ray, hilt and attachment with NEUTRAL COOL POLISHED SILVER: white highlights and neutral light/mid/dark RGB-gray metal shadows, zero green or gold metal tint. The emerald/jade green enamel and jewels must remain exactly emerald/jade green; the ivory enamel must remain exactly ivory. Metallic parts may not be painted emerald, teal or ivory. Preserve the exact existing emblem geometry, subject shape, silhouette, number and location of ornaments, ribbon hanger, all sizes, line widths, composition scale and position. Do not add or remove anything; do not redesign. Maintain square canvas, full silhouette, same transparent border. Genuinely transparent background, no ground or cast shadow, no letters, no numbers, no date, no logo, no watermark. One emblem only. IMPORTANT: the silver central relief must be clearly neutral gray/silver and visually distinct from green enamel.\nIdentity to preserve: Reference: TOP ROW SECOND design, 02. Main subject is an emerald calendar-shaped shield with rounded rectangular top and pointed lower edge, exactly three gold rounded calendar binding loops along its top, and a large shining sun face with twelve alternating long/short rays. Centered sun and clear calendar identity; no numerals or grid.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-aea0-7df0-9763-7dad035332a8\\exec-96c852ab-cb24-4c7e-83f4-8739fd6f0453.png",
+      "destination": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/participation-silver.png",
+      "reference": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/participation-gold.png",
+      "transparent_background": true,
+      "inspection": {
+        "id": "participation-silver",
+        "width": 1254,
+        "height": 1254,
+        "pixelFormat": "Format32bppArgb",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sha256": "a9b74284b992d8839d7638b729b057684907e43b5fce24e90d924c134b47eff4",
+        "bytes": 1027183
+      },
+      "visual_review": {
+        "single_emblem": true,
+        "correct_monthly_ribbon": true,
+        "emerald_and_ivory_enamel": true,
+        "no_text_dates_numbers": true,
+        "metal_rank_distinct": true,
+        "geometry_reference_preserved": true,
+        "notes": null
+      }
+    },
+    {
+      "id": "appearances-silver",
+      "prompt": "Use case: precise-object-edit. The input image is the actual production monthly award emblem to edit. CHANGE ONLY ITS GOLD METAL TO SILVER. Replace every champagne-gold metallic surface, raised relief, border, line, star, ray, hilt and attachment with NEUTRAL COOL POLISHED SILVER: white highlights and neutral light/mid/dark RGB-gray metal shadows, zero green or gold metal tint. The emerald/jade green enamel and jewels must remain exactly emerald/jade green; the ivory enamel must remain exactly ivory. Metallic parts may not be painted emerald, teal or ivory. Preserve the exact existing emblem geometry, subject shape, silhouette, number and location of ornaments, ribbon hanger, all sizes, line widths, composition scale and position. Do not add or remove anything; do not redesign. Maintain square canvas, full silhouette, same transparent border. Genuinely transparent background, no ground or cast shadow, no letters, no numbers, no date, no logo, no watermark. One emblem only. IMPORTANT: the silver central relief must be clearly neutral gray/silver and visually distinct from green enamel.\nIdentity to preserve: Reference: TOP ROW THIRD design, 03. Main subject is two broad ivory-enamel swords crossed diagonally over an emerald diamond-shaped shield, gold edges and emerald grip sections, and one small four-point star at the upper center of the shield. Keep the swords simple and symmetrical.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-aea0-7df0-9763-7dad035332a8\\exec-020634c7-f9bd-49b5-ab70-06879b6e4a0c.png",
+      "destination": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/appearances-silver.png",
+      "reference": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/appearances-gold.png",
+      "transparent_background": true,
+      "inspection": {
+        "id": "appearances-silver",
+        "width": 1254,
+        "height": 1254,
+        "pixelFormat": "Format32bppArgb",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sha256": "88b37900befb834cb32132b26078395a6ce222afeba872d9853cf11d64d4e4a8",
+        "bytes": 943656
+      },
+      "visual_review": {
+        "single_emblem": true,
+        "correct_monthly_ribbon": true,
+        "emerald_and_ivory_enamel": true,
+        "no_text_dates_numbers": true,
+        "metal_rank_distinct": true,
+        "geometry_reference_preserved": true,
+        "notes": null
+      }
+    },
+    {
+      "id": "streak-silver",
+      "prompt": "Use case: precise-object-edit. The input image is the actual production monthly award emblem to edit. CHANGE ONLY ITS GOLD METAL TO SILVER. Replace every champagne-gold metallic surface, raised relief, border, line, star, ray, hilt and attachment with NEUTRAL COOL POLISHED SILVER: white highlights and neutral light/mid/dark RGB-gray metal shadows, zero green or gold metal tint. The emerald/jade green enamel and jewels must remain exactly emerald/jade green; the ivory enamel must remain exactly ivory. Metallic parts may not be painted emerald, teal or ivory. Preserve the exact existing emblem geometry, subject shape, silhouette, number and location of ornaments, ribbon hanger, all sizes, line widths, composition scale and position. Do not add or remove anything; do not redesign. Maintain square canvas, full silhouette, same transparent border. Genuinely transparent background, no ground or cast shadow, no letters, no numbers, no date, no logo, no watermark. One emblem only. IMPORTANT: the silver central relief must be clearly neutral gray/silver and visually distinct from green enamel.\nIdentity to preserve: Reference: TOP ROW FOURTH design, 04. Main subject is an elegant front-facing phoenix formed from rising curved emerald, ivory and gold flame feathers, wings raised, a small central ivory bird body and beak. Flame tips upward, symmetric flowing silhouette, as in the concept.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-aea0-7df0-9763-7dad035332a8\\exec-92ca9039-e218-47a1-92ed-a8ff12c92458.png",
+      "destination": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/streak-silver.png",
+      "reference": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/streak-gold.png",
+      "transparent_background": true,
+      "inspection": {
+        "id": "streak-silver",
+        "width": 1254,
+        "height": 1254,
+        "pixelFormat": "Format32bppArgb",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sha256": "794a5b05786544430e7a6d9c1d90fcd6020be9e8c6f11c54f587e069ca11cda0",
+        "bytes": 1189712
+      },
+      "visual_review": {
+        "single_emblem": true,
+        "correct_monthly_ribbon": true,
+        "emerald_and_ivory_enamel": true,
+        "no_text_dates_numbers": true,
+        "metal_rank_distinct": true,
+        "geometry_reference_preserved": true,
+        "notes": null
+      }
+    },
+    {
+      "id": "prediction-silver",
+      "prompt": "Use case: precise-object-edit. The input image is the actual production monthly award emblem to edit. CHANGE ONLY ITS GOLD METAL TO SILVER. Replace every champagne-gold metallic surface, raised relief, border, line, star, ray, hilt and attachment with NEUTRAL COOL POLISHED SILVER: white highlights and neutral light/mid/dark RGB-gray metal shadows, zero green or gold metal tint. The emerald/jade green enamel and jewels must remain exactly emerald/jade green; the ivory enamel must remain exactly ivory. Metallic parts may not be painted emerald, teal or ivory. Preserve the exact existing emblem geometry, subject shape, silhouette, number and location of ornaments, ribbon hanger, all sizes, line widths, composition scale and position. Do not add or remove anything; do not redesign. Maintain square canvas, full silhouette, same transparent border. Genuinely transparent background, no ground or cast shadow, no letters, no numbers, no date, no logo, no watermark. One emblem only. IMPORTANT: the silver central relief must be clearly neutral gray/silver and visually distinct from green enamel.\nIdentity to preserve: Reference: TOP ROW FIFTH design, 05. Main subject is a round emerald-and-ivory compass medal with four large cardinal gold points, a central faceted emerald diamond jewel, and small clear star facets around the compass ring. Strong four-direction compass geometry.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-aea0-7df0-9763-7dad035332a8\\exec-ccffaefa-5554-4569-bd8d-4f3e375f3122.png",
+      "destination": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/prediction-silver.png",
+      "reference": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/prediction-gold.png",
+      "transparent_background": true,
+      "inspection": {
+        "id": "prediction-silver",
+        "width": 1254,
+        "height": 1254,
+        "pixelFormat": "Format32bppArgb",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sha256": "ac74f4ca54f6c9352ac6e73d63d3f824d86384764820cecdf46357089d846c92",
+        "bytes": 1109721
+      },
+      "visual_review": {
+        "single_emblem": true,
+        "correct_monthly_ribbon": true,
+        "emerald_and_ivory_enamel": true,
+        "no_text_dates_numbers": true,
+        "metal_rank_distinct": true,
+        "geometry_reference_preserved": true,
+        "notes": null
+      }
+    },
+    {
+      "id": "victory-bronze",
+      "prompt": "Use case: precise-object-edit. The input image is the actual production monthly award emblem to edit. CHANGE ONLY ITS GOLD METAL TO WARM COPPER-BRONZE. Replace every champagne-gold metallic surface, raised relief, border, line, star, ray, hilt and attachment with polished WARM COPPER/BRONZE metal: reddish-brown midtones, warm pale copper highlights, deep brown metal shadows. It must read as bronze third prize, visibly darker and redder than champagne gold. The emerald/jade green enamel and jewels must remain exactly emerald/jade green; ivory enamel must remain exactly ivory. Preserve the exact existing emblem geometry, subject shape, silhouette, number and location of ornaments, ribbon hanger, all sizes, line widths, composition scale and position. Do not add or remove anything; do not redesign. Maintain square canvas, full silhouette, same transparent border. Genuinely transparent background, no ground or cast shadow, no letters, no numbers, no date, no logo, no watermark. One emblem only.\nIdentity to preserve: Reference: TOP ROW FIRST design, 01. Main subject is a trophy cup with a large five-pointed star on the green bowl, curved handles, slim stem and foot. Keep the two small laurel sprigs attached to the lower sides of the trophy, as in the concept; these belong to the trophy, not an added surrounding annual frame.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-aea0-7df0-9763-7dad035332a8\\exec-9638a7cb-152a-4e97-afff-61c54b024dfa.png",
+      "destination": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/victory-bronze.png",
+      "reference": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/victory-gold.png",
+      "transparent_background": true,
+      "inspection": {
+        "id": "victory-bronze",
+        "width": 1254,
+        "height": 1254,
+        "pixelFormat": "Format32bppArgb",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sha256": "0033d8b644bc48db97d76e8b6fe0160a0b9ac40e241518d5404fbaa76cb7c23d",
+        "bytes": 1333378
+      },
+      "visual_review": {
+        "single_emblem": true,
+        "correct_monthly_ribbon": true,
+        "emerald_and_ivory_enamel": true,
+        "no_text_dates_numbers": true,
+        "metal_rank_distinct": true,
+        "geometry_reference_preserved": false,
+        "notes": "Subject and decorations preserved; generated scale is slightly larger than gold reference."
+      }
+    },
+    {
+      "id": "participation-bronze",
+      "prompt": "Use case: precise-object-edit. The input image is the actual production monthly award emblem to edit. CHANGE ONLY ITS GOLD METAL TO WARM COPPER-BRONZE. Replace every champagne-gold metallic surface, raised relief, border, line, star, ray, hilt and attachment with polished WARM COPPER/BRONZE metal: reddish-brown midtones, warm pale copper highlights, deep brown metal shadows. It must read as bronze third prize, visibly darker and redder than champagne gold. The emerald/jade green enamel and jewels must remain exactly emerald/jade green; ivory enamel must remain exactly ivory. Preserve the exact existing emblem geometry, subject shape, silhouette, number and location of ornaments, ribbon hanger, all sizes, line widths, composition scale and position. Do not add or remove anything; do not redesign. Maintain square canvas, full silhouette, same transparent border. Genuinely transparent background, no ground or cast shadow, no letters, no numbers, no date, no logo, no watermark. One emblem only.\nIdentity to preserve: Reference: TOP ROW SECOND design, 02. Main subject is an emerald calendar-shaped shield with rounded rectangular top and pointed lower edge, exactly three gold rounded calendar binding loops along its top, and a large shining sun face with twelve alternating long/short rays. Centered sun and clear calendar identity; no numerals or grid.\nCritical scale invariant: retain exactly the input image object size and same transparent margins; do not zoom in or enlarge.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-aea0-7df0-9763-7dad035332a8\\exec-e9fef789-27b1-43e1-be30-56677ea3b84c.png",
+      "destination": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/participation-bronze.png",
+      "reference": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/participation-gold.png",
+      "transparent_background": true,
+      "inspection": {
+        "id": "participation-bronze",
+        "width": 1254,
+        "height": 1254,
+        "pixelFormat": "Format32bppArgb",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sha256": "c0bd32fcf7baac0e69e88a89171c6a6261acd7a5e362a7c9fcba7f4df259ea1b",
+        "bytes": 1046102
+      },
+      "visual_review": {
+        "single_emblem": true,
+        "correct_monthly_ribbon": true,
+        "emerald_and_ivory_enamel": true,
+        "no_text_dates_numbers": true,
+        "metal_rank_distinct": true,
+        "geometry_reference_preserved": true,
+        "notes": null
+      }
+    },
+    {
+      "id": "appearances-bronze",
+      "prompt": "Use case: precise-object-edit. The input image is the actual production monthly award emblem to edit. CHANGE ONLY ITS GOLD METAL TO WARM COPPER-BRONZE. Replace every champagne-gold metallic surface, raised relief, border, line, star, ray, hilt and attachment with polished WARM COPPER/BRONZE metal: reddish-brown midtones, warm pale copper highlights, deep brown metal shadows. It must read as bronze third prize, visibly darker and redder than champagne gold. The emerald/jade green enamel and jewels must remain exactly emerald/jade green; ivory enamel must remain exactly ivory. Preserve the exact existing emblem geometry, subject shape, silhouette, number and location of ornaments, ribbon hanger, all sizes, line widths, composition scale and position. Do not add or remove anything; do not redesign. Maintain square canvas, full silhouette, same transparent border. Genuinely transparent background, no ground or cast shadow, no letters, no numbers, no date, no logo, no watermark. One emblem only.\nIdentity to preserve: Reference: TOP ROW THIRD design, 03. Main subject is two broad ivory-enamel swords crossed diagonally over an emerald diamond-shaped shield, gold edges and emerald grip sections, and one small four-point star at the upper center of the shield. Keep the swords simple and symmetrical.\nCritical scale invariant: retain exactly the input image object size and same transparent margins; do not zoom in or enlarge.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-aea0-7df0-9763-7dad035332a8\\exec-8a076a6a-5bca-4a06-8545-04ed1238ae9c.png",
+      "destination": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/appearances-bronze.png",
+      "reference": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/appearances-gold.png",
+      "transparent_background": true,
+      "inspection": {
+        "id": "appearances-bronze",
+        "width": 1254,
+        "height": 1254,
+        "pixelFormat": "Format32bppArgb",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sha256": "70dbd703595cbfb2462696c2a1b69c2c201b44e56f6a4c9145391a4da4086bd4",
+        "bytes": 906896
+      },
+      "visual_review": {
+        "single_emblem": true,
+        "correct_monthly_ribbon": true,
+        "emerald_and_ivory_enamel": true,
+        "no_text_dates_numbers": true,
+        "metal_rank_distinct": true,
+        "geometry_reference_preserved": true,
+        "notes": null
+      }
+    },
+    {
+      "id": "streak-bronze",
+      "prompt": "Use case: precise-object-edit. The input image is the actual production monthly award emblem to edit. CHANGE ONLY ITS GOLD METAL TO WARM COPPER-BRONZE. Replace every champagne-gold metallic surface, raised relief, border, line, star, ray, hilt and attachment with polished WARM COPPER/BRONZE metal: reddish-brown midtones, warm pale copper highlights, deep brown metal shadows. It must read as bronze third prize, visibly darker and redder than champagne gold. The emerald/jade green enamel and jewels must remain exactly emerald/jade green; ivory enamel must remain exactly ivory. Preserve the exact existing emblem geometry, subject shape, silhouette, number and location of ornaments, ribbon hanger, all sizes, line widths, composition scale and position. Do not add or remove anything; do not redesign. Maintain square canvas, full silhouette, same transparent border. Genuinely transparent background, no ground or cast shadow, no letters, no numbers, no date, no logo, no watermark. One emblem only.\nIdentity to preserve: Reference: TOP ROW FOURTH design, 04. Main subject is an elegant front-facing phoenix formed from rising curved emerald, ivory and gold flame feathers, wings raised, a small central ivory bird body and beak. Flame tips upward, symmetric flowing silhouette, as in the concept.\nCritical scale invariant: retain exactly the input image object size and same transparent margins; do not zoom in or enlarge.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-aea0-7df0-9763-7dad035332a8\\exec-6bb912a2-e2a1-4da6-b56b-1f278a12583d.png",
+      "destination": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/streak-bronze.png",
+      "reference": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/streak-gold.png",
+      "transparent_background": true,
+      "inspection": {
+        "id": "streak-bronze",
+        "width": 1254,
+        "height": 1254,
+        "pixelFormat": "Format32bppArgb",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sha256": "d6a2193dd0aed9d0c8ab1cef0a0150b63d127776d4c48859bbf3a6b4a244a1ed",
+        "bytes": 1161425
+      },
+      "visual_review": {
+        "single_emblem": true,
+        "correct_monthly_ribbon": true,
+        "emerald_and_ivory_enamel": true,
+        "no_text_dates_numbers": true,
+        "metal_rank_distinct": true,
+        "geometry_reference_preserved": true,
+        "notes": null
+      }
+    },
+    {
+      "id": "prediction-bronze",
+      "prompt": "Use case: precise-object-edit. The input image is the actual production monthly award emblem to edit. CHANGE ONLY ITS GOLD METAL TO WARM COPPER-BRONZE. Replace every champagne-gold metallic surface, raised relief, border, line, star, ray, hilt and attachment with polished WARM COPPER/BRONZE metal: reddish-brown midtones, warm pale copper highlights, deep brown metal shadows. It must read as bronze third prize, visibly darker and redder than champagne gold. The emerald/jade green enamel and jewels must remain exactly emerald/jade green; ivory enamel must remain exactly ivory. Preserve the exact existing emblem geometry, subject shape, silhouette, number and location of ornaments, ribbon hanger, all sizes, line widths, composition scale and position. Do not add or remove anything; do not redesign. Maintain square canvas, full silhouette, same transparent border. Genuinely transparent background, no ground or cast shadow, no letters, no numbers, no date, no logo, no watermark. One emblem only.\nIdentity to preserve: Reference: TOP ROW FIFTH design, 05. Main subject is a round emerald-and-ivory compass medal with four large cardinal gold points, a central faceted emerald diamond jewel, and small clear star facets around the compass ring. Strong four-direction compass geometry.\nCritical scale invariant: retain exactly the input image object size and same transparent margins; do not zoom in or enlarge.",
+      "source": "C:\\Users\\cw628\\.codex\\generated_images\\01a16757-aea0-7df0-9763-7dad035332a8\\exec-7d2245dd-4c4a-43f5-9645-87c9c69358ee.png",
+      "destination": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/prediction-bronze.png",
+      "reference": "C:/Projects/ClanSync/public/personal-emblems/v1/awards/month/prediction-gold.png",
+      "transparent_background": true,
+      "inspection": {
+        "id": "prediction-bronze",
+        "width": 1254,
+        "height": 1254,
+        "pixelFormat": "Format32bppArgb",
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sha256": "f8b1277f25c4c1714b6f4068085e7a232dab31a60acf83338e1388daa47181ab",
+        "bytes": 1103890
+      },
+      "visual_review": {
+        "single_emblem": true,
+        "correct_monthly_ribbon": true,
+        "emerald_and_ivory_enamel": true,
+        "no_text_dates_numbers": true,
+        "metal_rank_distinct": true,
+        "geometry_reference_preserved": true,
+        "notes": null
+      }
+    }
+  ]
+}
+
