@@ -274,10 +274,10 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     try {
       await casePage.goto(caseUrl!);
       const collection = casePage.getByRole("region", { name: "개인 엠블럼", exact: true });
-      await collection.getByRole("radio", { name: "연간", exact: true }).click();
-      const pin = collection.getByRole("button", { name: /^연간 승률 [123]위 획득$/ }).first();
+      await collection.getByRole("radio", { name: "수상", exact: true }).click();
+      const pin = collection.getByRole("button", { name: /^(월간|연간) 승률 [123]위 획득$/ }).first();
       await pin.click();
-      const detail = casePage.getByRole("dialog", { name: /^연간 승률 [123]위$/ });
+      const detail = casePage.getByRole("dialog", { name: /^(월간|연간) 승률 [123]위$/ });
       await expect(detail).toBeVisible();
       await casePage.keyboard.press("Escape");
       await expect(detail).toBeHidden();

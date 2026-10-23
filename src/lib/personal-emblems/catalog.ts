@@ -47,7 +47,7 @@ export function getAwardHistory(entries: readonly PersonalEmblem[]): PersonalEmb
 }
 
 export function getAwardRepresentatives(entries: readonly PersonalEmblem[]): PersonalEmblem[] {
-  const history = getAwardHistory(entries);
+  const history = getAwardHistory(entries).sort((a, b) => (a.rank ?? 4) - (b.rank ?? 4));
   return Object.values(awardFamilies).flatMap(family => {
     const latest = history.find(entry => entry.family === family);
     return latest ? [latest] : [];

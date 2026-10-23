@@ -126,7 +126,7 @@ test("공통 엠블럼 케이스: 공개 권한·계열 성장·대표 저장·�
     await page.goto(f.path.replace(/balance$/, "stats") + "?player=" + f.users[1].id);
     await page.getByRole("region", { name: "플레이어 배너", exact: true }).getByRole("link", { name: f.users[1].nickname + " 엠블럼 케이스 열기", exact: true }).click();
     await expect(collection).toBeVisible();
-    await collection.getByRole("radio", { name: "월간", exact: true }).click();
+    await collection.getByRole("radio", { name: "수상", exact: true }).click();
     await collection.locator("[data-emblem-key]").first().click();
     await expect(details).toBeVisible();
     await expect(details.getByRole("button", { name: /대표 엠블럼 (지정|해제)/ })).toHaveCount(0);

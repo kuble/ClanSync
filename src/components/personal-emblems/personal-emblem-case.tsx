@@ -17,11 +17,14 @@ import { EmblemArtwork } from "./emblem-artwork";
 import caseStyles from "../main-clan/clan-collection.module.css";
 import styles from "./personal-emblem-case.module.css";
 
-type Filter = "all" | "month" | "year" | "milestone";
+type Filter = "all" | "award" | "milestone";
+type RankFilter = "all" | "1" | "2" | "3";
 type Snapshot = { target: string; initial?: PersonalEmblemCollection; collection?: PersonalEmblemCollection; error?: string; pending?: boolean };
 const filters: { id: Filter; label: string }[] = [
-  { id: "all", label: "전체" }, { id: "month", label: "월간" },
-  { id: "year", label: "연간" }, { id: "milestone", label: "달성" },
+  { id: "all", label: "전체" }, { id: "award", label: "수상" }, { id: "milestone", label: "달성" },
+];
+const rankFilters: { id: RankFilter; label: string }[] = [
+  { id: "all", label: "전체" }, { id: "1", label: "금" }, { id: "2", label: "은" }, { id: "3", label: "동" },
 ];
 const milestoneOrder = ["sessions", "matches", "wins", "streak", "prediction"];
 const rankNames = ["", "금 · 1위", "은 · 2위", "동 · 3위"];
@@ -161,19 +164,18 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
   const { target, collection, error, pending, refresh, save, savePending } = useEmblemCollection(clanId, userId, initialCollection);
   const emblems = collection?.emblems ?? [];
   const [filter, setFilter] = useState<Filter>("all");
-  const [yearState, setYearState] = useState({ target, year: "all" });
+  const [rankFilter, setRankFilter] = useState<RankFilter>("all");
   const [selection, setSelection] = useState<{ target: string; key: string }>();
   const [detailOpen, setDetailOpen] = useState(false);
   const detailsId = useId();
   const featuredKeys = resolveFeaturedKeys(emblems, collection?.featuredKeys ?? null);
+  const featured = featuredKeys.flatMap(key => emblems.filter(emblem => emblem.key === key && emblem.earned));
   const representatives = milestoneRepresentatives(emblems);
-  const years = [...new Set(emblems.filter(emblem => emblem.kind === "award" && emblem.date).map(emblem => emblem.date!.slice(0, 4)))].sort().reverse();
-  const selectedYear = yearState.target === target && (yearState.year === "all" || years.includes(yearState.year)) ? yearState.year : "all";
-  const awards = getAwardRepresentatives(emblems.filter(emblem => emblem.kind === "award" && (filter === "all" || emblem.period === filter)
-    && (selectedYear === "all" || emblem.date?.startsWith(selectedYear))));
+  const awards = filter === "milestone" ? [] : getAwardRepresentatives(emblems);
   const milestones = filter === "all" || filter === "milestone" ? representatives : [];
   const selected = selection?.target === target ? emblems.find(emblem => emblem.key === selection.key) : undefined;
   const awardHistory = selected?.kind === "award" ? getAwardHistory(emblems).filter(emblem => emblem.family === selected.family) : [];
+  const filteredAwardHistory = awardHistory.filter(emblem => rankFilter === "all" || emblem.rank === Number(rankFilter));
   const stages = selected?.kind === "milestone" ? emblems.filter(emblem => emblem.kind === "milestone" && emblem.family === selected.family)
     .sort((a, b) => (a.stage ?? 0) - (b.stage ?? 0)) : [];
   const canPickSelected = selected?.earned && (selected.kind === "award" || representatives.some(emblem => emblem.key === selected.key));
@@ -186,16 +188,26 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
     void save(next);
   }
 
-  return <Dialog open={detailOpen && !!selected} onOpenChange={next => { setDetailOpen(next); if (next) refresh(); }}>
+  return <Dialog open={detailOpen && !!selected} onOpenChange={next => { setDetailOpen(next); if (next) { setRankFilter("all"); refresh(); } }}>
     <div data-personal-emblem-case className="space-y-4">
+      <section className={cn(styles.launcher, styles.profile, "space-y-2")} aria-label="대표 엠블럼 진열">
+        <h3 className="text-sm font-semibold">대표 엠블럼</h3>
+        <div className={cn(caseStyles.case, styles.tray)} aria-busy={pending}>
+          <div className={cn(caseStyles.caseGrid, styles.featuredGrid)} role="group" aria-label="선택한 대표 엠블럼 3칸">
+            {[0, 1, 2].map(index => {
+              const emblem = featured[index];
+              const className = cn(caseStyles.pin, emblem && caseStyles.artworkSocket, styles.pin);
+              return emblem ? <DialogTrigger key={index} render={<button type="button" className={className} style={socketStyle(emblem)}
+                data-featured-emblem-key={emblem.key} aria-label={emblem.description + " · 대표 엠블럼 상세 열기"}
+                title={emblem.description + " · " + periodLabel(emblem)} onClick={() => inspect(emblem)}>
+                <Socket /><EmblemArtwork emblem={emblem} eager className={styles.pinArtwork} />
+              </button>} /> : <span key={index} className={className} role="img" aria-label="빈 대표 엠블럼 칸"><Socket /></span>;
+            })}
+          </div>
+        </div>
+      </section>
       <div className={styles.controls}>
         <RubberSegment label="엠블럼 분류" labelPosition="hidden" options={filters} value={filter} onChange={setFilter} />
-        <label className={styles.yearControl}>연도
-          <select aria-label="엠블럼 연도" className={styles.yearSelect} value={selectedYear} disabled={filter === "milestone" || !years.length}
-            onChange={event => setYearState({ target, year: event.target.value })}>
-            <option value="all">전체 연도</option>{years.map(year => <option key={year} value={year}>{year}년</option>)}
-          </select>
-        </label>
       </div>
       <div className={styles.feedback} role={error ? "alert" : "status"} aria-live="polite">
         {pending ? "엠블럼을 불러오는 중…" : error ?? emblems.filter(emblem => emblem.earned).length + "개의 획득 기록"}
@@ -204,8 +216,8 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
       <div className={cn(caseStyles.case, styles.collectionFrame)} aria-busy={pending}>
         <div className={caseStyles.casePlate}>{initialCollection.clanName} · {initialCollection.nickname}</div>
         <div className={styles.groups}>
-          {awards.length > 0 && <section aria-label="종류별 최신 수상 엠블럼">
-            <h3 className={styles.groupHeading}>최근 수상</h3>
+          {awards.length > 0 && <section aria-label="종류별 수상 엠블럼">
+            <h3 className={styles.groupHeading}>수상</h3>
             <div className={caseStyles.caseGrid}>{awards.map(emblem => <DialogTrigger key={emblem.key}
               render={renderPin(emblem, false, () => inspect(emblem))} />)}</div>
           </section>}
@@ -214,7 +226,7 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
             <div className={caseStyles.caseGrid}>{milestones.map(emblem => <DialogTrigger key={emblem.key}
               render={renderPin(emblem, false, () => inspect(emblem))} />)}</div>
           </section>}
-          {!awards.length && !milestones.length && <p className={styles.empty}>{pending ? "획득 기록을 확인하고 있습니다." : error ? "다시 불러오면 엠블럼을 확인할 수 있습니다." : "아직 이 기간에 획득한 엠블럼이 없습니다."}</p>}
+          {!awards.length && !milestones.length && <p className={styles.empty}>{pending ? "획득 기록을 확인하고 있습니다." : error ? "다시 불러오면 엠블럼을 확인할 수 있습니다." : "아직 획득한 엠블럼이 없습니다."}</p>}
         </div>
       </div>
     </div>
@@ -240,12 +252,20 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
         </section>
       </div>
       {awardHistory.length > 0 && <section className="mt-2 space-y-3" aria-label="수상 이력">
-        <h3 className="text-sm font-semibold">수상 이력</h3>
+        <div className={styles.controls}>
+          <h3 className="text-sm font-semibold">수상 이력</h3>
+          <RubberSegment label="수상 등급" labelPosition="hidden" options={rankFilters} value={rankFilter} onChange={value => {
+            setRankFilter(value);
+            const next = awardHistory.find(emblem => value === "all" || emblem.rank === Number(value));
+            if (next && value !== "all" && selected.rank !== Number(value)) inspect(next);
+          }} />
+        </div>
         <div className={caseStyles.case}><div className={caseStyles.caseGrid} role="group" aria-label="같은 종류의 수상 이력">
-          {awardHistory.map(emblem => <div key={emblem.key} className={styles.historyEntry}>
+          {filteredAwardHistory.map(emblem => <div key={emblem.key} className={styles.historyEntry}>
             {renderPin(emblem, emblem.key === selected.key, () => inspect(emblem), detailsId)}
             <p className={styles.historyCaption}>{periodLabel(emblem)}{"\n"}{rankNames[emblem.rank ?? 0]}</p>
           </div>)}
+          {!filteredAwardHistory.length && <p className={styles.historyEmpty} role="status">이 등급의 수상 이력이 없습니다.</p>}
         </div></div>
       </section>}
       {stages.length > 0 && <section className="mt-2 space-y-3" aria-label="성장의 기록">
