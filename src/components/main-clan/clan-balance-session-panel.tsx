@@ -1,4 +1,5 @@
 "use client";
+import { BalanceNamecardMode } from "@/components/profile/clan-namecards";
 
 import type { FormEvent } from "react";
 import dynamic from "next/dynamic";
@@ -308,7 +309,7 @@ export function ClanBalanceSessionPanel({
     <BalanceEditorMap key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id} selectedMap={session.resolved_map_label} canManage={canManage && !busyFormation && !pending} beforeSelect={flushRoster} autoOpen={!formation} /> : null;
 
   return (
-    <div
+    <BalanceNamecardMode hide={Boolean(canManage && editingScreen)}><div
       className="space-y-5"
       data-testid="clan-balance-session-panel"
       data-balance-phase={session?.phase ?? "none"}
@@ -779,6 +780,6 @@ export function ClanBalanceSessionPanel({
         )}
         {session && session.phase !== "editing" && session.phase !== "match_live" ? <div className="px-5 pb-3">{endSessionControl}</div> : null}
       </section>
-    </div>
+    </div></BalanceNamecardMode>
   );
 }

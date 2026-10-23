@@ -216,6 +216,7 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
     await loginIsolatedBalanceUser(member, fixture.users[1]);
     await member.goto("/profile");
     await member.getByRole("tab", { name: "계정 정보", exact: true }).click();
+    await member.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
     const profilePreference = member.getByRole("region", {
       name: "게임별 선호 역할",
     });

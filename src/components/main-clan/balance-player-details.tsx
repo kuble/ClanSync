@@ -6,6 +6,7 @@ import type { MaEntry } from "@/lib/balance/ma-snapshot";
 import type { PlayerSessionInfo } from "@/lib/balance/player-session-stats";
 import { formatBalanceScore, SCORE_LABEL, type ScoreMode } from "@/lib/balance/score-display";
 import type { PlayerCardInfoMode } from "@/lib/balance/formation";
+import { ClanPlayerNamecard } from "@/components/profile/clan-namecards";
 import { cn } from "@/lib/utils";
 
 export function BalancePlayerDetails({ children, nickname, info, score, premium = false, sample = false, enabled = true }: {
@@ -46,7 +47,8 @@ export function BalancePlayerDetails({ children, nickname, info, score, premium 
   );
 }
 
-export function BalancePlayerCardContent({ nickname, info, score, showScore, showInfo = true, infoMode = "record", mode = "m", mirrored = false, scoreControl }: {
+export function BalancePlayerCardContent({ userId, nickname, info, score, showScore, showInfo = true, infoMode = "record", mode = "m", mirrored = false, scoreControl }: {
+  userId?: string | null;
   nickname: string;
   info?: PlayerSessionInfo;
   score?: MaEntry;
@@ -70,7 +72,7 @@ export function BalancePlayerCardContent({ nickname, info, score, showScore, sho
     !centered && (mirrored ? "sm:flex-row-reverse" : "sm:flex-row"),
   )}>
     <span className={cn("min-w-0", centered ? "text-center" : "flex-1 text-left", !centered && mirrored && "sm:text-right")}>
-      <span className="block truncate text-xs font-bold sm:text-sm">{nickname}</span>
+      <ClanPlayerNamecard userId={userId} fallback={nickname} />
       {infoVisible && info ? <span className={cn("mt-1 flex items-center gap-2 text-[10px] tabular-nums text-muted-foreground sm:text-xs", centered ? "justify-center" : mirrored && "sm:justify-end")}>
         <span>{infoLabel}</span>
       </span> : null}

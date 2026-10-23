@@ -457,7 +457,7 @@ export function ClanBalanceRosterEditor({
                       }}
                     >
                       {draggedMember && userId && dropSlot === key ? <span className="absolute right-2 top-1 text-[10px] font-semibold text-primary">교체</span> : null}
-                      <BalancePlayerCardContent nickname={nickname} info={userId ? playerSessionInfo?.[userId] : undefined} score={userId ? displayScores?.[userId] : undefined} showScore={Boolean(showPlayerCardScore && displayScores && userId)} showInfo={showPlayerCardInfo} infoMode={playerCardInfo} mode={scoreMode} mirrored={team === "team2"} />
+                      <BalancePlayerCardContent userId={userId} nickname={nickname} info={userId ? playerSessionInfo?.[userId] : undefined} score={userId ? displayScores?.[userId] : undefined} showScore={Boolean(showPlayerCardScore && displayScores && userId)} showInfo={showPlayerCardInfo} infoMode={playerCardInfo} mode={scoreMode} mirrored={team === "team2"} />
                     </button>
                     </BalancePlayerDetails>
                   </div>

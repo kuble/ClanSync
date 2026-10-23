@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { after } from "next/server";
+import { ClanNamecardsProvider } from "@/components/profile/clan-namecards";
+import type { ClanNamecards } from "@/lib/profile/namecard";
 import { MainClanShell } from "@/components/main-clan/main-clan-shell";
 import { loadClanInAppNotifications } from "@/lib/clan/load-clan-inapp-notifications";
 import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
@@ -20,9 +22,10 @@ export default async function MainClanLayout({
     redirect(`/sign-in?next=/games/${gameSlug}/clan/${clanId}`);
   }
 
-  const [ctx, inAppNotifications] = await Promise.all([
+  const [ctx, inAppNotifications, namecards] = await Promise.all([
     getRequestMainClanContext(gameSlug, clanId),
     loadClanInAppNotifications(supabase, clanId),
+    supabase.rpc("get_clan_namecards", { p_clan_id: clanId }),
   ]);
   if (!ctx) {
     redirect(`/games/${gameSlug}/clan`);
@@ -41,7 +44,7 @@ export default async function MainClanLayout({
       ctx={ctx}
       inAppNotifications={inAppNotifications}
     >
-      {children}
+      <ClanNamecardsProvider cards={(namecards.data ?? {}) as ClanNamecards}>{children}</ClanNamecardsProvider>
     </MainClanShell>
   );
 }

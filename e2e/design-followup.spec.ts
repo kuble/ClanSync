@@ -107,7 +107,7 @@ test("board, coaching, brackets, records and profile editors share fixed actions
     await page.goto("/profile");
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
     await noPageOverflow(page);
-    for (const [trigger, title, action] of [["꾸미기", "네임카드 꾸미기", "닫기"]]) {
+    for (const [trigger, title, action] of [["네임카드 꾸미기", "네임카드 꾸미기", "닫기"]]) {
       await page.getByRole("button", { name: trigger, exact: true }).first().click();
       dialog = page.getByRole("dialog", { name: title, exact: true });
       await checkEditor(page, dialog, action, `${title}-mobile.png`);

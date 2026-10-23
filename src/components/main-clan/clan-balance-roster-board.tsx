@@ -150,7 +150,7 @@ export function ClanBalanceRosterBoard({
                     <span className="sr-only">
                       {team === "team1" ? "1팀" : "2팀"} {slot.label}
                     </span>
-                    <BalancePlayerCardContent nickname={nickname} info={info} score={score} showScore={Boolean(showPlayerCardScore && snapshot && userId)} showInfo={showPlayerCardInfo} infoMode={playerCardInfo} mode={mode} mirrored={team === "team2"} scoreControl={userId ? renderScore?.(userId) : undefined} />
+                    <BalancePlayerCardContent userId={userId} nickname={nickname} info={info} score={score} showScore={Boolean(showPlayerCardScore && snapshot && userId)} showInfo={showPlayerCardInfo} infoMode={playerCardInfo} mode={mode} mirrored={team === "team2"} scoreControl={userId ? renderScore?.(userId) : undefined} />
                     {!userId ? (
                       <span className="text-[10px] text-muted-foreground">
                         참가자 대기
