@@ -120,3 +120,5 @@
 .housing[data-embedded="true"] .roomHeading h2 { display:none; }
 .housing[data-embedded="true"] .roomHeading { gap:0; }
 @media(max-width:640px) { .housing[data-embedded="true"] .scene { height:clamp(360px,52svh,450px); } }
+
+@media(pointer:coarse) { .roomToolbar :is(a,button[aria-label="방 꾸미기"]) { min-width:44px; min-height:44px; } }

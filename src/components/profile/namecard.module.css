@@ -26,3 +26,5 @@
 @media(max-width:700px) { .shop { grid-template-columns:minmax(0,1fr); } .emblem { flex-basis:56px; } .identity { padding:14px; } }
 
 .header h2 > button { min-height:24px; }
+
+@media(pointer:coarse) { .actions :is(button,a) { min-width:44px; min-height:44px; } }

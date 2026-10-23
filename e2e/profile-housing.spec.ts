@@ -89,7 +89,7 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     await expect(housing).toBeVisible();
 
     await expect(housing.getByRole("button", { name: "가구 상점", exact: true })).toHaveCount(0);
-    await page.getByRole("link", { name: "개인 상점", exact: true }).click();
+    await housing.getByRole("link", { name: "개인 상점", exact: true }).click();
     await page.getByRole("group", { name: "개인 꾸미기 분류", exact: true }).getByRole("button", { name: "가구", exact: true }).click();
     const buy = page.getByRole("button", { name: `${desk.name} 구매`, exact: true });
     const deskCard = page.getByRole("article", { name: desk.name, exact: true });

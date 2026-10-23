@@ -1,7 +1,10 @@
 "use client";
 
+import Link from "next/link";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { useEffect, useRef, useState, useSyncExternalStore, useTransition, type ReactNode, type RefObject } from "react";
-import { Coins, Grip, Package, Paintbrush, X, Undo2, Save } from "lucide-react";
+import { Coins, Grip, Package, Paintbrush, Pencil, ShoppingBag, X, Undo2, Save } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { toast } from "sonner";
@@ -146,7 +149,10 @@ export function ProfileHousing({ initial, embedded = false }: {
       <div className={styles.roomHud} data-room-ui="true">
         <header className={styles.roomHeading}><h2>나의 방</h2><span className={styles.balance}><Coins size={14} aria-hidden="true" /><span className={styles.srOnly}>개인 코인</span><strong data-testid="housing-coin-balance">{state.coinBalance.toLocaleString("ko-KR")}</strong></span></header>
         <div className={styles.roomToolbar} role="toolbar" aria-label="방 꾸미기 도구">
-          {editing ? <><Button ref={inventoryOpener} size="sm" variant={panel === "inventory" ? "secondary" : "ghost"} aria-pressed={panel === "inventory"} onClick={() => setPanel(panel === "inventory" ? null : "inventory")}><Package aria-hidden="true" /><span>내 가구</span></Button><Button size="icon-sm" variant={panel === "appearance" ? "secondary" : "ghost"} aria-label="방 분위기" aria-pressed={panel === "appearance"} onClick={() => setPanel(panel === "appearance" ? null : "appearance")}><Paintbrush aria-hidden="true" /></Button><span className={styles.toolbarDivider} /><Button size="icon-sm" variant="ghost" aria-label="편집 취소" onClick={() => dirty ? setDiscard("cancel") : cancel()} disabled={pending}><Undo2 aria-hidden="true" /></Button><Button size="sm" onClick={save} disabled={pending || !dirty}><Save aria-hidden="true" />{pending ? "저장 중" : "방 저장"}</Button></> : <Button size="sm" onClick={() => begin(null)} disabled={pending}>방 꾸미기</Button>}
+          {editing ? <><Button ref={inventoryOpener} size="sm" variant={panel === "inventory" ? "secondary" : "ghost"} aria-pressed={panel === "inventory"} onClick={() => setPanel(panel === "inventory" ? null : "inventory")}><Package aria-hidden="true" /><span>내 가구</span></Button><Button size="icon-sm" variant={panel === "appearance" ? "secondary" : "ghost"} aria-label="방 분위기" aria-pressed={panel === "appearance"} onClick={() => setPanel(panel === "appearance" ? null : "appearance")}><Paintbrush aria-hidden="true" /></Button><span className={styles.toolbarDivider} /><Button size="icon-sm" variant="ghost" aria-label="편집 취소" onClick={() => dirty ? setDiscard("cancel") : cancel()} disabled={pending}><Undo2 aria-hidden="true" /></Button><Button size="sm" onClick={save} disabled={pending || !dirty}><Save aria-hidden="true" />{pending ? "저장 중" : "방 저장"}</Button></> : <>
+            <Tooltip><TooltipTrigger render={<Link href="/store" aria-label="개인 상점" className={buttonVariants({ variant: "ghost", size: "icon" })} />}><ShoppingBag aria-hidden="true" /></TooltipTrigger><TooltipContent role="tooltip">개인 상점</TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger render={<Button size="icon" aria-label="방 꾸미기" onClick={() => begin(null)} disabled={pending} />}><Pencil aria-hidden="true" /></TooltipTrigger><TooltipContent role="tooltip">방 꾸미기</TooltipContent></Tooltip>
+          </>}
         </div>
         <span className={styles.srOnly} role="status">{dirty ? "저장하지 않은 변경" : "모든 변경이 저장되었습니다"}</span>
         {editing && panel && <section className={styles.roomPanel} aria-label={panel === "inventory" ? "내 가구 보관함" : "방 분위기"} data-panel={panel}>

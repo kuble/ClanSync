@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useId, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
 import { GameLogo } from "@/components/ui/game-logo";
 import { PersonalEmblemCaseLauncher } from "@/components/personal-emblems/personal-emblem-case";
 import { ProfileIntro } from "./profile-intro";
@@ -46,16 +46,17 @@ export function ProfileIdentity({ userId, intro, memberships, readOnly = false }
         <p className={styles.clanAccountId}><span>{membership.gameSlug === "overwatch" ? "배틀태그" : ["valorant", "lol"].includes(membership.gameSlug) ? "라이엇 ID" : "게임 ID"}</span><strong>{membership.accountId || "게임 계정 미연동"}</strong></p>
       </article>)}
       </div>
-      {memberships.length > 1 && <div className={styles.clanNavigation}>
-        <button type="button" aria-label="이전 클랜" aria-controls={trackId} disabled={current === 0} onClick={() => showClan(current - 1)}><ChevronLeft size={16} aria-hidden="true" /></button>
-        <span role="status" aria-label="현재 클랜" aria-live="polite">{current + 1} / {memberships.length}</span>
-        <button type="button" aria-label="다음 클랜" aria-controls={trackId} disabled={current === memberships.length - 1} onClick={() => showClan(current + 1)}><ChevronRight size={16} aria-hidden="true" /></button>
-      </div>}
+      {memberships.length > 1 && <nav className={styles.clanNavigation} aria-label="클랜 페이지">
+        {memberships.map((membership, index) => <button key={membership.clanId} type="button"
+          aria-label={(index + 1) + "번째 클랜 · " + membership.clanName} aria-controls={trackId}
+          aria-current={index === current ? "page" : undefined} title={membership.gameName + " · " + membership.clanName}
+          onClick={() => showClan(index)}><span aria-hidden="true" /></button>)}
+        <span className="sr-only" role="status" aria-label="현재 클랜" aria-live="polite">{current + 1} / {memberships.length}</span>
+      </nav>}
     </div> : !readOnly ? <div className={styles.playerClan}><p>클랜에서 함께한 기록이 이곳에 쌓입니다.</p><Link href="/games" className={styles.playerClanLink}>클랜 찾아보기</Link></div> : null}
     <section className={styles.playerEmblems} aria-label="대표 엠블럼">
       <h2>대표 엠블럼</h2>
       <PersonalEmblemCaseLauncher variant="profile" userId={userId} nickname="플레이어" />
     </section>
-    {!readOnly && <Link href="/profile/emblems" className={styles.playerClanLink}>내 엠블럼 케이스 보기</Link>}
   </section>;
 }

@@ -64,7 +64,7 @@ test("계정 대표 세 칸은 다른 게임·탈퇴 클랜을 섞고 프로필�
     await expect(profileTray.locator("[data-featured-emblem-reference]")).toHaveCount(3);
     const profileRefs = () => profileTray.locator("[data-featured-emblem-reference]").evaluateAll(nodes => nodes.map(n => n.getAttribute("data-featured-emblem-reference")));
     expect(await profileRefs()).toEqual(expected);
-    await page.getByRole("button", { name: "다음 클랜", exact: true }).click();
+    await page.getByRole("navigation", { name: "클랜 페이지", exact: true }).getByRole("button").nth(1).click();
     await expect(page.getByRole("status", { name: "현재 클랜", exact: true })).toHaveText("2 / 2");
     expect(await profileRefs()).toEqual(expected);
     await page.screenshot({ path: info.outputPath("account-emblem-profile.png"), fullPage: true });
@@ -74,7 +74,7 @@ test("계정 대표 세 칸은 다른 게임·탈퇴 클랜을 섞고 프로필�
     expect(allowed.status()).toBe(200);
     expect((await allowed.json()).collection.accountFeaturedKeys).toEqual(expected);
     await visitor.goto(`/profile/${owner.id}/emblems`);
-    await expect(visitor.getByRole("heading", { name: "개인 엠블럼 케이스", exact: true })).toBeVisible();
+    await expect(visitor.getByRole("heading", { name: "엠블럼 케이스", exact: true })).toBeVisible();
     await expect(visitor.locator("[data-emblem-feature-key]")).toHaveCount(0);
     await ok(f.service.from("clan_members").update({ status: "left" }).eq("user_id", owner.id));
     await page.goto("/profile");

@@ -162,7 +162,7 @@ test("one personal case keeps cross-game clan records after leaving, with source
     } finally { await otherContext.close(); }
 
     await page.goto("/profile");
-    await page.getByRole("link", { name: "내 엠블럼 케이스 보기", exact: true }).click();
+    await page.getByRole("region", { name: "대표 엠블럼", exact: true }).getByRole("link", { name: "플레이어 엠블럼 케이스 열기", exact: true }).click();
     const caseView = page.locator("[data-personal-emblem-case]");
     await expect(caseView).toBeVisible();
     const game = caseView.getByRole("radiogroup", { name: "엠블럼 게임", exact: true });
@@ -222,7 +222,7 @@ test("one personal case keeps cross-game clan records after leaving, with source
     await caseView.screenshot({ path: info.outputPath("personal-emblem-library-mobile.png") });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.goto("/profile");
-    await page.getByRole("link", { name: "내 엠블럼 케이스 보기", exact: true }).click();
+    await page.getByRole("region", { name: "대표 엠블럼", exact: true }).getByRole("link", { name: "플레이어 엠블럼 케이스 열기", exact: true }).click();
     await expect(caseView).toBeVisible();
     await ok(f.service.from("clan_members").update({ status: "active" }).eq("clan_id", f.clanId).eq("user_id", owner.id));
     const rejoined = await read();

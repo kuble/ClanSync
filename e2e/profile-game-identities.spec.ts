@@ -26,8 +26,10 @@ test("클랜별 게임 ID를 캐러셀로 넘기고 중복 안내 없이 모바�
     const val = cards.filter({ hasText: riotId });
     const carousel = identity.getByRole("region", { name: "클랜 프로필", exact: true });
     const track = carousel.getByLabel("좌우로 넘겨 클랜 보기", { exact: true });
-    const previous = carousel.getByRole("button", { name: "이전 클랜", exact: true });
-    const next = carousel.getByRole("button", { name: "다음 클랜", exact: true });
+    const dots = carousel.getByRole("navigation", { name: "클랜 페이지", exact: true }).getByRole("button");
+    const previous = dots.nth(0);
+    const next = dots.nth(1);
+    await expect(dots).toHaveCount(2);
     await expect(cards).toHaveCount(2);
     await expect(identity.getByRole("article")).toHaveCount(1);
     await expect(ow.getByText("배틀태그", { exact: true })).toHaveCount(1);
@@ -44,11 +46,11 @@ test("클랜별 게임 ID를 캐러셀로 넘기고 중복 안내 없이 모바�
       await track.focus();
       await track.press("Home");
       await expect(carousel.getByRole("status", { name: "현재 클랜", exact: true })).toHaveText("1 / 2");
-      await expect(previous).toBeDisabled();
+      await expect(previous).toHaveAttribute("aria-current", "page");
       await expect(cards.nth(0)).toBeInViewport({ ratio: .95 });
       await next.click();
       await expect(carousel.getByRole("status", { name: "현재 클랜", exact: true })).toHaveText("2 / 2");
-      await expect(next).toBeDisabled();
+      await expect(next).toHaveAttribute("aria-current", "page");
       await expect(cards.nth(1)).toBeInViewport({ ratio: .95 });
       await expect(identity.getByRole("article")).toHaveCount(1);
       await previous.click();
