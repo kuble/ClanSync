@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 import { itemPosition, placementRail, shelfGeometry, type ShowcaseCabinet, type ShowcaseItem, type ShowcaseProduct } from "@/lib/showcase/domain";
 import { showcaseArtRatio, showcaseDisplayWidth } from "@/lib/showcase/art";
 import { ShowcaseArt } from "./showcase-art";
-import { ShowcaseWallpaper } from "./showcase-wallpaper";
+import { ShowcaseBackdrop } from "./showcase-wallpaper";
 import styles from "./showcase.module.css";
 
 export function contains(bounds: DOMRect | undefined, x: number, y: number) {
@@ -48,8 +48,7 @@ export function ShowcaseScene({ cabinet, catalog, selected, select, move, sceneR
   }
   const items = preview ? [...cabinet.items, preview] : cabinet.items;
   return <div ref={scene} className={`${styles.scene} ${styles[cabinet.background]} ${cabinet.template === "focus" ? styles.focus : ""}`} data-testid="showcase-scene" aria-label="취향 전시">
-    <div className={styles.backboard} aria-hidden="true" />
-    <ShowcaseWallpaper template={cabinet.template} background={cabinet.background} />
+    <ShowcaseBackdrop template={cabinet.template} background={cabinet.background} />
     <div className={styles.ambient} aria-hidden="true" />
     {items.map(original => {
       const product = catalog.find(p => p.id === original.catalogId);

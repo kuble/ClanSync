@@ -19,6 +19,10 @@ test("진열장: 호버 보관함·필터·놓는 순간 자동 저장·실패 �
     const outside=async()=>{await page.mouse.move(0,0);await expect(drawer).toHaveAttribute("data-open","false");};
     const read=async()=>{const result=await f.service.from("user_showcase_libraries").select("revision,document").eq("user_id",f.users[0].id).maybeSingle();expect(result.error).toBeNull();return result.data;};
     await expect(scene).toBeVisible();await outside();
+    const wallpaperLayer=scene.getByTestId("showcase-wallpaper"),frameLayer=scene.getByTestId("showcase-frame");
+    await expect(wallpaperLayer).toHaveCSS("filter","none");await expect(frameLayer).toHaveCSS("filter","none");
+    expect(await frameLayer.evaluate(el=>el.previousElementSibling?.getAttribute("data-testid"))).toBe("showcase-wallpaper");
+    await expect(frameLayer).toHaveCSS("background-image",/cabinet-frame-focus-v1/);
     const intro=page.getByRole("region",{name:"플레이어 소개",exact:true});
     const panelColor=await intro.evaluate(el=>getComputedStyle(el).backgroundColor);
     await expect(showcase).toHaveCSS("background-color",panelColor);await expect(drawer).toHaveCSS("background-color",panelColor);
@@ -77,10 +81,14 @@ test("진열장: 호버 보관함·필터·놓는 순간 자동 저장·실패 �
         const pixel=(data:Buffer,x:number,y:number)=>{const offset=(Math.floor(y*original.info.height)*original.info.width+Math.floor(x*original.info.width))*3;return [...data.subarray(offset,offset+3)];};
         for(const [x,y] of [[.015,.5],[.985,.5],[.5,.015],[.5,.98],...(template==="중앙 강조형"?[[.5,.07],[.5,.90]]:[[.2,.36]])]){
           const before=pixel(original.data,x,y),after=pixel(changed.data,x,y);
-          // Allow one level of compositing rounding over translucent shelf highlights.
-          expect(Math.max(...after.map((channel,index)=>Math.abs(channel-before[index]))),`${template} ${wallpaper}: wood at ${x},${y}`).toBeLessThanOrEqual(1);
+          // The cutout's almost-opaque alpha and shelf highlights permit 3/255 compositing variation.
+          expect(Math.max(...after.map((channel,index)=>Math.abs(channel-before[index]))),`${template} ${wallpaper}: wood at ${x},${y}`).toBeLessThanOrEqual(3);
         }
         expect(pixel(changed.data,.25,.8)).not.toEqual(pixel(original.data,.25,.8));
+        if(wallpaper==="크림"){
+          // Exposed plaster beside the frame stays light; baked black halos must not return.
+          for(const x of [.1,.9])expect(Math.min(...pixel(changed.data,x,.065))).toBeGreaterThan(180);
+        }
       }
     }
     // Styles live inside the inventory and persist without a separate save button.
