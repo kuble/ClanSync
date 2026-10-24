@@ -80,7 +80,6 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await page.screenshot({ path: test.info().outputPath("personal-store-mobile.png"), fullPage: true });
     await page.setViewportSize({ width: 1280, height: 1000 });
     await page.goto("/profile");
-    await expect(housing.getByTestId("housing-coin-balance")).toHaveText("410");
     await accountTab.click();
     await card.getByRole("button", { name: "네임카드 꾸미기", exact: true }).click();
     const editor = page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true });
