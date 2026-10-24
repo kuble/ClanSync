@@ -436,9 +436,9 @@
   }
 }
 
-.profileHero { display:grid; grid-template-columns:320px minmax(0,1fr); background:#e6ebdf; border:1px solid var(--border); border-radius:22px; overflow:hidden; margin-bottom:28px; }
-:global(.dark) .profileHero { background:#151e2d; }
-.playerIdentity { min-width:0; padding:24px; display:flex; flex-direction:column; align-items:stretch; gap:24px; background:color-mix(in srgb,var(--card) 55%,transparent); border-right:1px solid #52634516; }
+.profileHero { --profile-panel-background:color-mix(in srgb,var(--card) 55%,#e6ebdf); --showcase-border:0; --showcase-radius:0; display:grid; grid-template-columns:320px minmax(0,1fr); background:var(--profile-panel-background); border:1px solid var(--border); border-radius:22px; overflow:hidden; margin-bottom:28px; }
+:global(.dark) .profileHero { --profile-panel-background:color-mix(in srgb,var(--card) 55%,#151e2d); }
+.playerIdentity { min-width:0; padding:24px; display:flex; flex-direction:column; align-items:stretch; gap:24px; background:var(--profile-panel-background); border-right:1px solid #52634516; }
 :global(.dark) .playerIdentity { border-color:#b8cfed16; }
 .playerClan { min-width:0; }
 .playerSectionLabel { display:flex; align-items:center; gap:6px; color:var(--muted-foreground); font-size:11px; margin-bottom:9px; }

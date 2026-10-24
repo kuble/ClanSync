@@ -9,7 +9,7 @@ import type { PlayerProfileVisit } from "@/lib/profile/visibility";
 import styles from "@/components/profile/profile.module.css";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "플레이어 취향 진열장 · ClanSync", robots: { index: false, follow: false } };
+export const metadata = { title: "플레이어 진열장 · ClanSync", robots: { index: false, follow: false } };
 
 export default async function PlayerRoomPage({ params }: { params: Promise<{ userId: string }> }) {
   const { userId } = await params;
@@ -22,7 +22,7 @@ export default async function PlayerRoomPage({ params }: { params: Promise<{ use
   const profile = data as PlayerProfileVisit | null;
   const showcase = profile ? await loadShowcase(userId, false) : null;
   return <AccountShell context="프로필"><main className={styles.page}>
-    <div className={styles.visitHeading}><h1>취향 진열장</h1><Link href="/profile">내 프로필</Link></div>
+    <div className={styles.visitHeading}><h1>진열장</h1><Link href="/profile">내 프로필</Link></div>
     {profile ? <div className={styles.profileHero} data-testid="profile-hero">
       <ProfileIdentity readOnly userId={profile.userId} intro={profile.intro ?? ""} memberships={profile.memberships} />
       {showcase && <ProfileShowcase readOnly initial={showcase} userId={userId} />}

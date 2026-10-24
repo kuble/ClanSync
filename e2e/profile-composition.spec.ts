@@ -51,14 +51,14 @@ test("소개·대표 엠블럼과 진열장이 한 화면을 이루며 탭 전�
     await page.goto("/profile");
     const hero = page.getByTestId("profile-hero");
     const intro = page.getByRole("region", { name: "플레이어 소개", exact: true });
-    const housing = page.getByRole("region", { name: "취향 진열장", exact: true });
+    const housing = page.getByRole("region", { name: "진열장", exact: true });
 
     await expect(hero.getByRole("heading", { name: user.nickname, level: 1, exact: true })).toHaveCount(0);
     await expect(hero.getByRole("heading", { name: "플레이어 프로필", exact: true })).toHaveCount(0);
     await expect(intro.getByRole("article").getByText(battleTag, { exact: true })).toBeVisible();
     await expect(intro.getByRole("navigation", { name: "게임별 클랜", exact: true })).toHaveCount(0);
     await expect(hero.getByRole("region", { name: "플레이어 소개", exact: true })).toBeVisible();
-    await expect(hero.getByRole("region", { name: "취향 진열장", exact: true })).toBeVisible();
+    await expect(hero.getByRole("region", { name: "진열장", exact: true })).toBeVisible();
     await expect(page.getByText(user.email, { exact: true })).toBeHidden();
     await expect(page.getByText("자동 로그인", { exact: true })).toBeHidden();
     await expect(page.getByRole("button", { name: "탈퇴", exact: true })).toBeHidden();
@@ -89,11 +89,13 @@ test("소개·대표 엠블럼과 진열장이 한 화면을 이루며 탭 전�
     await input.press("Escape");
     await expect(intro.getByText(boundaryIntro, { exact: true })).toBeVisible();
 
-    // Account navigation and intro saves must preserve an unsaved showcase draft.
-    await housing.getByRole("button", { name: "꾸미기", exact: true }).click();
-    await housing.getByLabel("진열장 이름", { exact: true }).fill("탭 전환 중인 취향");
+    // Account navigation and intro saves must preserve the automatically saved showcase.
+    await housing.getByRole("button", { name: "보관함", exact: true }).hover();
+    await housing.getByRole("button", { name: "벽지", exact: true }).click();
+    await housing.getByRole("button", { name: "크림 벽지 적용", exact: true }).click();
+    await expect(housing.getByTestId("showcase-save-status")).toHaveText("저장 완료");
     const accountTab = page.getByRole("tab", { name: "계정 정보", exact: true });
-    const roomTab = page.getByRole("tab", { name: "취향 진열장", exact: true });
+    const roomTab = page.getByRole("tab", { name: "진열장", exact: true });
     const settings = page.getByRole("tabpanel", { name: "계정 정보", exact: true });
     await accountTab.click();
     await expect(settings).toBeVisible();
@@ -103,7 +105,7 @@ test("소개·대표 엠블럼과 진열장이 한 화면을 이루며 탭 전�
     await expect(settings.getByText("대표 뱃지 (최대 5개)", { exact: true })).toHaveCount(0);
     await roomTab.click();
     await expect(settings).toBeHidden();
-    await expect(housing.getByLabel("진열장 이름", { exact: true })).toHaveValue("탭 전환 중인 취향");
+    await expect(housing.getByTestId("showcase-scene")).toHaveClass(/cream/);
 
 
     await intro.getByRole("button", { name: "한 줄 소개 편집", exact: true }).click();
@@ -111,7 +113,7 @@ test("소개·대표 엠블럼과 진열장이 한 화면을 이루며 탭 전�
     await intro.getByRole("button", { name: "소개 저장", exact: true }).click();
     await expect(input).toBeHidden();
     await expect(intro.getByText("함께 즐기는 게임과 작은 방.", { exact: true })).toBeVisible();
-    await expect(housing.getByLabel("진열장 이름", { exact: true })).toHaveValue("탭 전환 중인 취향");
+    await expect(housing.getByTestId("showcase-scene")).toHaveClass(/cream/);
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
     await page.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
     await expect(page.getByRole("region", { name: "게임별 선호 역할", exact: true })).toBeVisible();
@@ -120,7 +122,7 @@ test("소개·대표 엠블럼과 진열장이 한 화면을 이루며 탭 전�
     await expect(nameplate).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(nameplate).toBeHidden();
-    await page.getByRole("tab", { name: "취향 진열장", exact: true }).click();
+    await page.getByRole("tab", { name: "진열장", exact: true }).click();
     await expect(intro.getByRole("img", { name: "오버워치 로고", exact: true }).first()).toBeVisible();
 
     for (const width of [1280, 908, 509, 390, 320]) {
@@ -133,8 +135,7 @@ test("소개·대표 엠블럼과 진열장이 한 화면을 이루며 탭 전�
       await expect(settings).toBeHidden();
     }
     await page.setViewportSize({ width: 1280, height: 900 });
-    await housing.getByRole("button", { name: "저장하고 닫기", exact: true }).first().click();
-    await expect(housing.getByRole("button", { name: "꾸미기", exact: true })).toBeVisible();
+    await expect(housing.getByTestId("showcase-save-status")).toHaveText("저장 완료");
     await caseLink.click();
     await expect(page).toHaveURL(caseHref);
     await expect(page.getByRole("heading", { name: "엠블럼 케이스", exact: true })).toBeVisible();
