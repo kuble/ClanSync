@@ -47,10 +47,10 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     const showcase = page.getByRole("region", { name: "취향 진열장", exact: true });
     await page.getByRole("tab", { name: "취향 진열장", exact: true }).click();
     await showcase.getByRole("button", { name: "꾸미기", exact: true }).click();
-    await showcase.getByLabel("진열장 이름", { exact: true }).fill("나의 네임카드 취향");
+    await showcase.getByLabel("진열장 배경", { exact: true }).selectOption("cream");
     await accountTab.click();
     await page.getByRole("tab", { name: "취향 진열장", exact: true }).click();
-    await expect(showcase.getByLabel("진열장 이름", { exact: true })).toHaveValue("나의 네임카드 취향");
+    await expect(showcase.getByLabel("진열장 배경", { exact: true })).toHaveValue("cream");
     await showcase.getByRole("button", { name: "저장하고 닫기", exact: true }).first().click();
     await expect(showcase.getByRole("button", { name: "꾸미기", exact: true })).toBeVisible();
     await showcase.getByRole("link", { name: "새로운 굿즈 둘러보기", exact: true }).click();

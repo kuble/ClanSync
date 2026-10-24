@@ -1,12 +1,12 @@
 import { showcaseDisplayWidth } from "./art";
 
-export type ShowcaseProduct = { id: string; name: string; kind: "goods" | "edge" | "light" | "label"; sprite: number; image_path?: string | null; width: number; starter: boolean; available: boolean };
+export type ShowcaseProduct = { id: string; name: string; kind: "goods" | "edge" | "light" | "label" | "template"; sprite: number; image_path?: string | null; width: number; starter: boolean; available: boolean };
 export type ShowcaseItem = { id: string; catalogId: string; shelf: number; x: number; layer: number; text?: string };
-export type ShowcaseCabinet = { id: string; name: string; template: "classic" | "focus"; background: "forest" | "cream" | "midnight"; items: ShowcaseItem[] };
+export type ShowcaseCabinet = { id: string; name: string; template: "classic" | "focus" | "offset" | "steps"; background: "forest" | "cream" | "midnight"; items: ShowcaseItem[] };
 export type ShowcaseDocument = { representative: string; cabinets: ShowcaseCabinet[] };
 export type ShowcaseState = { revision: number; document: ShowcaseDocument; catalog: ShowcaseProduct[]; owned: Record<string, number> };
 export type ShowcaseResult = { ok: true; state: ShowcaseState } | { ok: false; error: string };
-export const TEMPLATES = [{ id: "classic", name: "기본 3단형" }, { id: "focus", name: "중앙 강조형" }] as const;
+export const TEMPLATES = [{ id: "classic", name: "기본 3단형", productId: null }, { id: "focus", name: "중앙 강조형", productId: null }, { id: "offset", name: "엇갈림형", productId: "shelf-offset" }, { id: "steps", name: "계단형", productId: "shelf-steps" }] as const;
 export const BACKGROUNDS = [{ id: "forest", name: "숲빛" }, { id: "cream", name: "크림" }, { id: "midnight", name: "밤하늘" }] as const;
 export const QA_CABINET_LIMIT = 12;
 export function defaultShowcase(): ShowcaseDocument {
@@ -18,9 +18,10 @@ export function defaultShowcase(): ShowcaseDocument {
 }
 // The template defines shelf geometry; goods keep shelf-relative positions on switches.
 export function shelfGeometry(template: ShowcaseCabinet["template"], shelf: number) {
-  return template === "classic"
-    ? { left: 7, width: 86, top: [35, 62, 88][shelf] }
-    : [{ left: 29, width: 42, top: 45 }, { left: 18, width: 64, top: 72 }, { left: 30, width: 40, top: 89 }][shelf];
+  if (template === "classic") return { left: 7, width: 86, top: [35, 62, 88][shelf] };
+  if (template === "offset") return [{ left: 8, width: 54, top: 35 }, { left: 39, width: 54, top: 62 }, { left: 13, width: 74, top: 88 }][shelf];
+  if (template === "steps") return [{ left: 8, width: 42, top: 42 }, { left: 29, width: 42, top: 65 }, { left: 50, width: 42, top: 88 }][shelf];
+  return [{ left: 29, width: 42, top: 45 }, { left: 18, width: 64, top: 72 }, { left: 30, width: 40, top: 89 }][shelf];
 }
 export function placementRail(template: ShowcaseCabinet["template"], shelf: number, kind: ShowcaseProduct["kind"]) {
   if (kind !== "light") return shelfGeometry(template, shelf);
