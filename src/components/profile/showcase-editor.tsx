@@ -105,7 +105,7 @@ export function ShowcaseEditor({ initial, userId, readOnly }: { initial: Showcas
   useEffect(()=>{
     const cancel=()=>{if(inventoryDrag.current?.moved)suppressClick.current=true;inventoryDrag.current=null;setDragPoint(null);setPreview(null);setHovered(false);setFocused(false);setTouchOpen(false);};
     const key=(event:KeyboardEvent)=>{if(event.key==="Escape")cancel();};
-    const outside=(event:PointerEvent)=>{if(event.pointerType!=="mouse" && event.target instanceof Node && !drawerRef.current?.contains(event.target))setTouchOpen(false);};
+    const outside=(event:PointerEvent)=>{if(event.target instanceof Node && !drawerRef.current?.contains(event.target))setTouchOpen(false);};
     window.addEventListener("keydown",key);window.addEventListener("blur",cancel);window.document.addEventListener("pointerdown",outside);
     return ()=>{window.removeEventListener("keydown",key);window.removeEventListener("blur",cancel);window.document.removeEventListener("pointerdown",outside);};
   },[]);
@@ -142,19 +142,21 @@ export function ShowcaseEditor({ initial, userId, readOnly }: { initial: Showcas
       select={readOnly?undefined:setSelected} move={readOnly?undefined:(id,x,shelf)=>updateItem(id,{x,shelf})} onDrag={trackDrag}
       storeAt={(id,x,y)=>{if(inDrawer(x,y)){storeItem(id);return true;}return false;}}/>
     {!readOnly && <div ref={drawerRef} className={`${styles.drawer} ${dragPoint?.overDrawer?styles.drawerTarget:""}`} data-testid="showcase-drawer" data-open={drawerOpen} aria-label="보관함"
-      onPointerEnter={event=>{if(event.pointerType==="mouse"){setHovered(true);setTouchOpen(false);}}}
-      onPointerLeave={event=>{if(event.pointerType==="mouse"){setHovered(false);setFocused(false);setTouchOpen(false);}}}
+      onPointerEnter={event=>{if(event.pointerType==="mouse")setHovered(true);}}
+      onPointerLeave={event=>{if(event.pointerType==="mouse"){setHovered(false);setFocused(false);}}}
       onFocusCapture={event=>{if(event.target.matches(":focus-visible"))setFocused(true);}}
       onBlurCapture={event=>{if(!event.currentTarget.contains(event.relatedTarget))setFocused(false);}}>
       <div className={styles.inventoryHeading}>
-        <button type="button" className={styles.drawerToggle} aria-expanded={drawerOpen} aria-controls="showcase-inventory-panel" onClick={event=>{if(pointerType.current!=="mouse" || event.detail===0){setTouchOpen(open=>!open);setFocused(false);setHovered(false);}else setHovered(true);}}><Package size={17}/><strong>보관함</strong><ChevronDown size={15} style={{transform:drawerOpen?"rotate(180deg)":undefined}}/></button>
+        <button type="button" className={styles.drawerToggle} aria-expanded={drawerOpen} aria-controls="showcase-inventory-panel" onPointerUp={event=>{if(event.pointerType!=="mouse"){setTouchOpen(open=>!open);setFocused(false);setHovered(false);}}} onClick={event=>{if(event.detail===0){setTouchOpen(open=>!open);setFocused(false);setHovered(false);}else if(pointerType.current==="mouse"){setTouchOpen(false);setHovered(true);}}}><Package size={17}/><strong>보관함</strong><ChevronDown size={15} style={{transform:drawerOpen?"rotate(180deg)":undefined}}/></button>
         <span className={styles.drawerHint}>{dragPoint && !dragPoint.fromInventory?"여기에 놓아 보관하기":"굿즈 · 벽지 · 선반"}</span>
         <button className={styles.manageButton} type="button" aria-label="진열장 관리" onClick={()=>setManager(true)}><Layers size={17}/></button>
         <Link href="/store#showcase" aria-label="선반·굿즈 상점"><ShoppingBag size={17}/><span>상점</span></Link>
       </div>
       <div ref={drawerPanelRef} id="showcase-inventory-panel" className={styles.drawerContent} aria-hidden={!drawerOpen} inert={!drawerOpen && !dragPoint?.fromInventory}>
+        <div className={styles.inventoryToolbar}>
         <div className={styles.filters} role="group" aria-label="보관함 분류">{FILTERS.map(f=><button key={f.id} type="button" aria-pressed={category===f.id} onClick={()=>setCategory(f.id)}>{f.name}</button>)}</div>
         <div className={styles.inventorySearch}><input aria-label="보관함 검색" placeholder="이름으로 찾기" value={query} onChange={event=>setQuery(event.target.value)}/><select aria-label="보관함 배치 상태" value={availability} onChange={event=>setAvailability(event.target.value)}><option value="all">전체 상태</option><option value="stored">보관 중</option><option value="placed">전시 중</option></select><button type="button" aria-label="이전 보관함 항목" onClick={()=>inventoryRef.current?.scrollBy({left:-280,behavior:"smooth"})}><ChevronLeft size={16}/></button><button type="button" aria-label="다음 보관함 항목" onClick={()=>inventoryRef.current?.scrollBy({left:280,behavior:"smooth"})}><ChevronRight size={16}/></button></div>
+        </div>
         <div ref={inventoryRef} className={styles.inventory}>
           {products.map(product=>{
             const spare=(initial.owned[product.id]??0)-usedQuantity(document,product.id);

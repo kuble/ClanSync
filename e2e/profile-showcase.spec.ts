@@ -1,4 +1,5 @@
 import { expect,test } from "@playwright/test";
+import sharp from "sharp";
 import { createIsolatedBalanceFixture,loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 import type { ShowcaseDocument } from "../src/lib/showcase/domain";
 
@@ -32,6 +33,7 @@ test("진열장: 호버 보관함·필터·놓는 순간 자동 저장·실패 �
     await open("굿즈");
     expect(await page.evaluate(()=>document.documentElement.scrollHeight)).toBe(closedHeight);
     const openedPanel=(await page.locator("#showcase-inventory-panel").boundingBox())!;
+    expect(openedPanel.height).toBeLessThan(190);
     expect(openedPanel.y+openedPanel.height).toBeLessThanOrEqual((await drawer.boundingBox())!.y+1);
     await expect(drawer.getByRole("button",{name:"초록 화분 꺼내기",exact:true})).toBeVisible();
     await drawer.getByLabel("보관함 검색").fill("없는 상품");await expect(drawer.getByText("해당하는 항목이 없어요.")).toBeVisible();
@@ -63,6 +65,20 @@ test("진열장: 호버 보관함·필터·놓는 순간 자동 저장·실패 �
     await open();const again=(await plant.boundingBox())!;const board=(await scene.boundingBox())!;
     await page.mouse.move(again.x+again.width/2,again.y+20);await page.mouse.down();await page.mouse.move(board.x+board.width*.5,board.y+board.height*.45,{steps:8});await page.keyboard.press("Escape");await page.mouse.up();
     expect((await read())!.revision).toBe(before);
+    // Wallpaper changes must leave the wood frame and shelves pixel-identical.
+    for(const template of ["중앙 강조형","기본 3단형"]){
+      await open("선반");await drawer.getByRole("button",{name:template+" 선반 적용",exact:true}).click();await saved();
+      await open("벽지");await drawer.getByRole("button",{name:"숲빛 벽지 적용",exact:true}).click();await saved();await outside();
+      const original=await sharp(await scene.screenshot()).removeAlpha().raw().toBuffer({resolveWithObject:true});
+      for(const wallpaper of ["크림","밤하늘"]){
+        await open("벽지");await drawer.getByRole("button",{name:wallpaper+" 벽지 적용",exact:true}).click();await saved();await outside();
+        const changed=await sharp(await scene.screenshot({path:info.outputPath(`wallpaper-${template}-${wallpaper}.png`)})).removeAlpha().raw().toBuffer({resolveWithObject:true});
+        expect(changed.info).toEqual(original.info);
+        const pixel=(data:Buffer,x:number,y:number)=>{const offset=(Math.floor(y*original.info.height)*original.info.width+Math.floor(x*original.info.width))*3;return [...data.subarray(offset,offset+3)];};
+        for(const [x,y] of [[.015,.5],[.985,.5],[.5,.015],[.5,.98],...(template==="중앙 강조형"?[[.5,.07],[.5,.90]]:[[.2,.36]])])expect(pixel(changed.data,x,y),`${template} ${wallpaper}: wood at ${x},${y}`).toEqual(pixel(original.data,x,y));
+        expect(pixel(changed.data,.25,.8)).not.toEqual(pixel(original.data,.25,.8));
+      }
+    }
     // Styles live inside the inventory and persist without a separate save button.
     await open("벽지");await drawer.getByRole("button",{name:"크림 벽지 적용",exact:true}).click();await saved();
     await open("선반");await expect(drawer.getByRole("button",{name:"계단형 선반 적용",exact:true})).toHaveCount(0);
@@ -102,9 +118,17 @@ test("진열장: 호버 보관함·필터·놓는 순간 자동 저장·실패 �
     const mobileFrom=(await plant.boundingBox())!,mobileTo=(await scene.boundingBox())!;
     await touch.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x:mobileFrom.x+mobileFrom.width/2,y:mobileFrom.y+20,id:1}]});
     for(let step=1;step<=8;step++)await touch.send("Input.dispatchTouchEvent",{type:"touchMove",touchPoints:[{x:mobileFrom.x+mobileFrom.width/2+(mobileTo.x+mobileTo.width*.2-mobileFrom.x-mobileFrom.width/2)*step/8,y:mobileFrom.y+20+(mobileTo.y+mobileTo.height*.88-mobileFrom.y-20)*step/8,id:1}]});
-    await touch.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});await saved();await touch.detach();
+    await touch.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});await saved();
     await expect(scene.getByRole("button",{name:"초록 화분 선택",exact:true})).toHaveCount(1);
-    await open("벽지");await page.screenshot({path:info.outputPath("showcase-hover-mobile.png"),fullPage:true});
+    const mobileToggle=(await drawer.getByRole("button",{name:"보관함",exact:true}).boundingBox())!;
+    await tap(mobileToggle.x+20,mobileToggle.y+15);await expect(drawer).toHaveAttribute("data-open","true");
+    const wallpaperTab=(await drawer.getByRole("button",{name:"벽지",exact:true}).boundingBox())!;
+    await tap(wallpaperTab.x+15,wallpaperTab.y+15);await expect(drawer).toHaveAttribute("data-open","true");
+    expect((await page.locator("#showcase-inventory-panel").boundingBox())!.height).toBeLessThan(250);
+    await page.screenshot({path:info.outputPath("showcase-hover-mobile.png"),fullPage:true});
+    await expect(drawer).toHaveAttribute("data-open","true");
+    await tap(mobileToggle.x+20,mobileToggle.y+15);await expect(drawer).toHaveAttribute("data-open","false");
+    await touch.send("Emulation.setTouchEmulationEnabled",{enabled:false});await touch.detach();
     for(const width of [802,390,320]){await page.setViewportSize({width,height:950});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
     const visiting=await visitor.newPage();await loginIsolatedBalanceUser(visiting,f.users[1]);await visiting.goto(`/profile/${f.users[0].id}`);
     await expect(visiting.getByRole("region",{name:"진열장",exact:true})).toBeVisible();await expect(visiting.getByTestId("showcase-drawer")).toHaveCount(0);
