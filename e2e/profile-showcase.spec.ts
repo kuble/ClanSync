@@ -7,11 +7,16 @@ test("취향 진열장: 기본형·겹침·장식·수량·저장 실패·방문
   const owner=await f.memberClient(0);
   const visitor=await browser.newContext();
   try{
-    for(const catalogId of ["wood-label","trailing-ivy","brass-light","potted-plant","pastel-books","star-mug"]){const {error}=await owner.rpc("claim_showcase_product",{p_catalog_id:catalogId});expect(error).toBeNull();}
-    await loginIsolatedBalanceUser(page,f.users[0]);await page.goto("/profile");
+    for(const catalogId of ["wood-label","trailing-ivy","potted-plant","pastel-books","star-mug"]){const {error}=await owner.rpc("claim_showcase_product",{p_catalog_id:catalogId});expect(error).toBeNull();}
+    await loginIsolatedBalanceUser(page,f.users[0]);
+    await page.goto("/store");
+    await page.getByRole("button",{name:"황동 조명 1개 받기",exact:true}).click();
+    await expect(page.getByRole("article",{name:"황동 조명",exact:true})).toContainText("보유 1개");
+    await page.goto("/profile");
     const showcase=page.getByRole("region",{name:"취향 진열장",exact:true});
     await expect(showcase.getByTestId("showcase-scene")).toBeVisible();
     await expect(showcase.locator("canvas")).toHaveCount(0);
+    await expect(showcase.getByTestId("showcase-light-beam")).toHaveCount(0);
     const keyboard=showcase.getByRole("img",{name:"세이지 키보드",exact:true});
     const keyboardBounds=await keyboard.boundingBox();
     expect(keyboardBounds!.width/keyboardBounds!.height).toBeGreaterThan(4);
@@ -28,6 +33,37 @@ test("취향 진열장: 기본형·겹침·장식·수량·저장 실패·방문
     });
     await page.screenshot({path:info.outputPath("showcase-focus.png"),fullPage:true});
     await showcase.getByRole("button",{name:"꾸미기",exact:true}).click();
+    await showcase.getByRole("button",{name:"황동 조명 꺼내기",exact:true}).click();
+    const lamp=showcase.getByRole("button",{name:"황동 조명 선택",exact:true});
+    const beams=showcase.getByTestId("showcase-light-beam");
+    await expect(beams).toHaveCount(1);
+    await expect(showcase.getByRole("button",{name:"황동 조명 꺼내기",exact:true})).toBeDisabled();
+    await showcase.getByLabel("조명 설치 위치",{exact:true}).selectOption("0");
+    const upperLamp=await lamp.boundingBox();
+    await showcase.getByLabel("조명 설치 위치",{exact:true}).selectOption("1");
+    expect((await lamp.boundingBox())!.y).toBeGreaterThan(upperLamp!.y+50);
+    const oldBeam=await beams.boundingBox();
+    await showcase.getByLabel("굿즈 좌우 위치",{exact:true}).fill("15");
+    expect((await beams.boundingBox())!.x).toBeLessThan(oldBeam!.x);
+    await showcase.getByTestId("showcase-scene").scrollIntoViewIfNeeded();
+    const lampBox=(await lamp.boundingBox())!;
+    const sceneBox=(await showcase.getByTestId("showcase-scene").boundingBox())!;
+    await page.mouse.move(lampBox.x+lampBox.width/2,lampBox.y+lampBox.height/2);
+    await page.mouse.down();
+    await page.mouse.move(sceneBox.x+sceneBox.width*.5,sceneBox.y+sceneBox.height*.76,{steps:8});
+    await page.mouse.up();
+    await expect(showcase.getByLabel("조명 설치 위치",{exact:true})).toHaveValue("2");
+    await showcase.getByLabel("조명 설치 위치",{exact:true}).selectOption("0");
+    await showcase.getByLabel("굿즈 좌우 위치",{exact:true}).fill("50");
+    await showcase.getByRole("button",{name:"저장하고 닫기",exact:true}).first().click();
+    await page.reload();
+    await expect(beams).toHaveCount(1);
+    await page.screenshot({path:info.outputPath("showcase-light-focus.png"),fullPage:true});
+    await showcase.getByRole("button",{name:"꾸미기",exact:true}).click();
+    await lamp.click();
+    await showcase.getByRole("button",{name:"보관함에 넣기",exact:true}).click();
+    await expect(beams).toHaveCount(0);
+    await expect(showcase.getByRole("button",{name:"황동 조명 꺼내기",exact:true})).toBeEnabled();
     await showcase.getByLabel("진열장 이름",{exact:true}).fill("나의 초록 취향");
     await showcase.getByLabel("선반 모양",{exact:true}).selectOption("classic");
     await page.getByRole("dialog").getByRole("button",{name:"이 모양 적용"}).click();
@@ -51,6 +87,7 @@ test("취향 진열장: 기본형·겹침·장식·수량·저장 실패·방문
     await showcase.getByRole("button",{name:"새 진열장",exact:true}).click();
     await showcase.getByLabel("진열장 이름",{exact:true}).fill("두 번째 취향");
     await expect(showcase.getByRole("button",{name:"작은 여우 꺼내기",exact:true})).toBeDisabled();
+    await expect(showcase.getByRole("button",{name:"황동 조명 꺼내기",exact:true})).toBeDisabled();
     await showcase.getByRole("button",{name:"대표로 설정",exact:true}).click();
     let fail=true;
     await page.route("**/profile",async route=>{if(fail&&route.request().method()==="POST"){fail=false;return route.abort("failed");}return route.continue();});

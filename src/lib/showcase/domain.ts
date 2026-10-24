@@ -22,11 +22,19 @@ export function shelfGeometry(template: ShowcaseCabinet["template"], shelf: numb
     ? { left: 7, width: 86, top: [35, 62, 88][shelf] }
     : [{ left: 29, width: 42, top: 45 }, { left: 18, width: 64, top: 72 }, { left: 30, width: 40, top: 89 }][shelf];
 }
+export function placementRail(template: ShowcaseCabinet["template"], shelf: number, kind: ShowcaseProduct["kind"]) {
+  if (kind !== "light") return shelfGeometry(template, shelf);
+  if (shelf === 0) return template === "focus" ? { left: 10, width: 80, top: 10 } : { left: 7, width: 86, top: 4 };
+  const above = shelfGeometry(template, shelf - 1);
+  return { ...above, top: above.top + (template === "focus" && shelf === 2 ? 3.7 : 3) };
+}
 export function itemPosition(cabinet: ShowcaseCabinet, item: ShowcaseItem, product: ShowcaseProduct) {
-  const shelf = shelfGeometry(cabinet.template, item.shelf);
+  const shelf = placementRail(cabinet.template, item.shelf, product.kind);
   const width = Math.min(showcaseDisplayWidth(product), shelf.width);
-  return { width, left: shelf.left + width / 2 + (shelf.width - width) * item.x / 100,
-    top: product.kind === "light" ? 6 : shelf.top + (product.kind === "edge" ? 0 : product.kind === "label" ? 3 : .4 + item.layer * .18) };
+  const left = shelf.left + width / 2 + (shelf.width - width) * item.x / 100;
+  // The upper rail follows the focus cabinet's arch, keeping the fixture attached.
+  const arch = cabinet.template === "focus" && item.shelf === 0 ? 35 * ((left - 50) / 44) ** 2 : 0;
+  return { width, left, top: shelf.top + (product.kind === "light" ? arch : product.kind === "edge" ? 0 : product.kind === "label" ? 3 : .4 + item.layer * .18) };
 }
 
 export function usedQuantity(document: ShowcaseDocument, catalogId: string) {

@@ -1,14 +1,15 @@
 .container{min-width:0;border:1px solid var(--border);border-radius:18px;background:var(--card);overflow:hidden;align-self:start}
 .heading{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 24px}.heading p{font-size:11px;color:var(--muted-foreground);margin-bottom:5px}.heading h2{display:flex;align-items:center;gap:8px;font-size:19px;font-weight:650;overflow-wrap:anywhere}.heading svg{color:#b9945b}.scene{position:relative;isolation:isolate;aspect-ratio:1.3;overflow:hidden;background:#17251b;container-type:inline-size}
-.backboard{position:absolute;inset:0;background:url('/images/showcase/cabinet-v2.webp') center/100% 100% no-repeat;pointer-events:none}
-.focus .backboard{background-image:url('/images/showcase/cabinet-focus-v2.webp')}
+.backboard{position:absolute;inset:0;background:url('/images/showcase/cabinet-unlit-v3.webp') center/100% 100% no-repeat;pointer-events:none}
+.focus .backboard{background-image:url('/images/showcase/cabinet-focus-unlit-v3.webp')}
 .forest{background-color:#17251b}
 .cream .backboard{filter:saturate(.55) brightness(1.5)}
 .midnight .backboard{filter:hue-rotate(115deg) saturate(.55) brightness(.7)}
 .ambient{position:absolute;inset:0;background:linear-gradient(0deg,#080b071c,transparent 55%);pointer-events:none}
 .shelf{position:absolute;height:4%;transform:translateY(-26%);filter:drop-shadow(0 1.2cqw .7cqw #05080399);z-index:2;pointer-events:none}
 .shelf svg{display:block;width:100%;height:100%;overflow:hidden}
-.focus .shelf:nth-of-type(4){height:5%}
+.focus .shelf[data-shelf="1"]{height:5%}
+.lightBeam{position:absolute;transform:translateX(-50%);z-index:80;pointer-events:none;background:radial-gradient(ellipse 50% 100% at 50% 0,#fff0b89c 0,#ffcd7259 25%,#e7b65b1a 62%,transparent 100%);mask-image:linear-gradient(transparent,#000 12%,#000 80%,transparent);mix-blend-mode:screen}
 .art{display:block;width:100%;height:100%;overflow:hidden;pointer-events:none}
 .customArt{background-size:contain;background-position:center bottom;background-repeat:no-repeat}
 .item{position:absolute;transform:translate(-50%,-100%);border:0;background:transparent;padding:0;filter:drop-shadow(0 .3cqw .22cqw #0a080860)}

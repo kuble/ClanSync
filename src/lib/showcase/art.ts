@@ -19,6 +19,6 @@ export function showcaseArtRatio(sprite: number, imagePath?: string | null) {
 
 export function showcaseDisplayWidth(product: { width: number; sprite: number; image_path?: string | null }) {
   // Keep ornaments compact after removing atlas padding; include the keyboard mat.
-  const scale = product.image_path ? 1 : ({ 0: .85, 2: 1.35, 6: .6, 7: .5 } as Record<number, number>)[product.sprite] ?? 1;
+  const scale = product.image_path ? 1 : ({ 0: .85, 2: 1.35, 6: .6, 7: .35 } as Record<number, number>)[product.sprite] ?? 1;
   return product.width * scale;
 }

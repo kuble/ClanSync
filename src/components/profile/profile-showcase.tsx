@@ -7,7 +7,7 @@ import { Check, ChevronLeft, ChevronRight, Package, Plus, ShoppingBag, Star } fr
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { saveShowcaseAction } from "@/app/actions/profile-showcase";
-import { BACKGROUNDS, TEMPLATES, QA_CABINET_LIMIT, itemPosition, shelfGeometry, usedQuantity, type ShowcaseCabinet, type ShowcaseItem, type ShowcaseResult, type ShowcaseProduct } from "@/lib/showcase/domain";
+import { BACKGROUNDS, TEMPLATES, QA_CABINET_LIMIT, itemPosition, placementRail, shelfGeometry, usedQuantity, type ShowcaseCabinet, type ShowcaseItem, type ShowcaseResult, type ShowcaseProduct } from "@/lib/showcase/domain";
 import { ShowcaseArt } from "./showcase-art";
 import { showcaseArtRatio, showcaseDisplayWidth } from "@/lib/showcase/art";
 import styles from "./showcase.module.css";
@@ -23,18 +23,30 @@ function ShowcaseScene({ cabinet, catalog, selected, select, move }: {
     const bounds = scene.current?.getBoundingClientRect();
     const item = cabinet.items.find(i => i.id === id);
     const product = catalog.find(p => p.id === item?.catalogId);
-    if (!bounds || !product) return null;
+    if (!bounds || !product || !item) return null;
     const y = (clientY - bounds.top) / bounds.height * 100;
-    const shelf = [0, 1, 2].reduce((best, candidate) => Math.abs(shelfGeometry(cabinet.template, candidate).top - y) < Math.abs(shelfGeometry(cabinet.template, best).top - y) ? candidate : best, 0);
-    const geometry = shelfGeometry(cabinet.template, shelf);
-    const width = Math.min(showcaseDisplayWidth(product), geometry.width);
-    const x = geometry.width === width ? 50 : Math.min(100, Math.max(0, (((clientX - bounds.left) / bounds.width * 100) - geometry.left - width / 2) / (geometry.width - width) * 100));
-    return { id, x: Math.round(x), shelf };
+    const candidates = [0, 1, 2].map(shelf => {
+      const geometry = placementRail(cabinet.template, shelf, product.kind);
+      const width = Math.min(showcaseDisplayWidth(product), geometry.width);
+      const x = geometry.width === width ? 50 : Math.min(100, Math.max(0, (((clientX - bounds.left) / bounds.width * 100) - geometry.left - width / 2) / (geometry.width - width) * 100));
+      const position = itemPosition(cabinet, { ...item, shelf, x }, product);
+      return { shelf, x: Math.round(x), distance: Math.abs(position.top - y) };
+    });
+    const closest = candidates.reduce((best, candidate) => candidate.distance < best.distance ? candidate : best);
+    return { id, x: closest.x, shelf: closest.shelf };
   }
   return <div ref={scene} className={`${styles.scene} ${styles[cabinet.background]} ${cabinet.template === "focus" ? styles.focus : ""}`} data-testid="showcase-scene" aria-label={`${cabinet.name} 전시`}>
     <div className={styles.backboard} aria-hidden="true" />
     <div className={styles.ambient} aria-hidden="true" />
-    {[0, 1, 2].map(index => { const shelf = shelfGeometry(cabinet.template, index); return <div key={index} className={styles.shelf} style={{ left: `${shelf.left}%`, width: `${shelf.width}%`, top: `${shelf.top}%` }} aria-hidden="true"><svg viewBox="10 148 1180 134" preserveAspectRatio="none"><image href="/images/showcase/shelf-v2.webp" width="1200" height="400" /></svg></div>; })}
+    {cabinet.items.map(original => {
+      const product = catalog.find(p => p.id === original.catalogId);
+      if (product?.kind !== "light") return null;
+      const item = dragPosition?.id === original.id ? { ...original, ...dragPosition } : original;
+      const position = itemPosition(cabinet, item, product);
+      const top = position.top + position.width / showcaseArtRatio(product.sprite, product.image_path) * 1.3 * .83;
+      return <div key={item.id} aria-hidden="true" data-testid="showcase-light-beam" className={styles.lightBeam} style={{ left: `${position.left}%`, top: `${top}%`, width: `${position.width * 5}%`, height: `${Math.max(5, shelfGeometry(cabinet.template, item.shelf).top - top + 2)}%` }} />;
+    })}
+    {[0, 1, 2].map(index => { const shelf = shelfGeometry(cabinet.template, index); return <div key={index} className={styles.shelf} data-shelf={index} style={{ left: `${shelf.left}%`, width: `${shelf.width}%`, top: `${shelf.top}%` }} aria-hidden="true"><svg viewBox="10 148 1180 134" preserveAspectRatio="none"><image href="/images/showcase/shelf-v2.webp" width="1200" height="400" /></svg></div>; })}
     {cabinet.items.map(original => {
       const product = catalog.find(p => p.id === original.catalogId);
       if (!product) return null;
@@ -137,7 +149,7 @@ function ShowcaseEditor({ initial, userId, readOnly }: { initial: Extract<Showca
       <h3 className={styles.listHeading}>이 진열장에 놓인 물건</h3>
       <div className={styles.placedList}>{cabinet.items.map(item => <button type="button" key={item.id} aria-pressed={selected===item.id} onClick={() => setSelected(item.id)}>{initial.catalog.find(p=>p.id===item.catalogId)?.name} <small>{item.shelf+1}단</small></button>)}</div>
       {selectedItem && selectedProduct && <div className={styles.controls} aria-label="선택한 굿즈 조절"><strong>{selectedProduct.name}</strong>
-        <label>선반<select aria-label="굿즈 선반" value={selectedItem.shelf} onChange={e=>updateItem(selectedItem.id,{shelf:Number(e.target.value)})}>{[0,1,2].map(s=><option key={s} value={s}>{s+1}단</option>)}</select></label>
+        <label>{selectedProduct.kind === "light" ? "설치 위치" : "선반"}<select aria-label={selectedProduct.kind === "light" ? "조명 설치 위치" : "굿즈 선반"} value={selectedItem.shelf} onChange={e=>updateItem(selectedItem.id,{shelf:Number(e.target.value)})}>{[0,1,2].map(s=><option key={s} value={s}>{selectedProduct.kind === "light" ? s === 0 ? "상단 프레임 · 1단 비추기" : `${s}단 아래 · ${s+1}단 비추기` : `${s+1}단`}</option>)}</select></label>
         <label>좌우 위치<input aria-label="굿즈 좌우 위치" type="range" min={0} max={100} value={selectedItem.x} onChange={e=>updateItem(selectedItem.id,{x:Number(e.target.value)})}/></label>
         <label>겹침 순서<select aria-label="굿즈 겹침 순서" value={selectedItem.layer} onChange={e=>updateItem(selectedItem.id,{layer:Number(e.target.value)})}>{Array.from({length:9},(_,i)=><option key={i} value={i}>{i===0 ? "맨 뒤" : i===8 ? "맨 앞" : `${i+1}번째`}</option>)}</select></label>
         {selectedProduct.kind==="label" && <label>주제 문구<input aria-label="명패 문구" maxLength={20} value={selectedItem.text??""} onChange={e=>updateItem(selectedItem.id,{text:e.target.value})}/></label>}
