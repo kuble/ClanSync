@@ -4,7 +4,7 @@
 .focus .backboard{background-image:url('/images/showcase/cabinet-focus-bare-v4.webp')}
 .forest{background-color:#17251b}
 .wallpaper{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.cream .wallpaper,.cream.wallpaperSwatch .backboard{filter:saturate(.55) brightness(1.5)}
+.cream .wallpaper,.cream.wallpaperSwatch .backboard{filter:grayscale(1) contrast(.28) brightness(2.05) sepia(.24) saturate(1.25)}
 .midnight .wallpaper,.midnight.wallpaperSwatch .backboard{filter:hue-rotate(115deg) saturate(.55) brightness(.7)}
 .ambient{position:absolute;inset:0;background:linear-gradient(0deg,#080b071c,transparent 55%);pointer-events:none}
 .shelf{position:absolute;height:4%;transform:translateY(-26%);filter:drop-shadow(0 1.2cqw .7cqw #05080399);z-index:2;pointer-events:none}

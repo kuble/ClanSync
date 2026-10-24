@@ -75,7 +75,11 @@ test("진열장: 호버 보관함·필터·놓는 순간 자동 저장·실패 �
         const changed=await sharp(await scene.screenshot({path:info.outputPath(`wallpaper-${template}-${wallpaper}.png`)})).removeAlpha().raw().toBuffer({resolveWithObject:true});
         expect(changed.info).toEqual(original.info);
         const pixel=(data:Buffer,x:number,y:number)=>{const offset=(Math.floor(y*original.info.height)*original.info.width+Math.floor(x*original.info.width))*3;return [...data.subarray(offset,offset+3)];};
-        for(const [x,y] of [[.015,.5],[.985,.5],[.5,.015],[.5,.98],...(template==="중앙 강조형"?[[.5,.07],[.5,.90]]:[[.2,.36]])])expect(pixel(changed.data,x,y),`${template} ${wallpaper}: wood at ${x},${y}`).toEqual(pixel(original.data,x,y));
+        for(const [x,y] of [[.015,.5],[.985,.5],[.5,.015],[.5,.98],...(template==="중앙 강조형"?[[.5,.07],[.5,.90]]:[[.2,.36]])]){
+          const before=pixel(original.data,x,y),after=pixel(changed.data,x,y);
+          // Allow one level of compositing rounding over translucent shelf highlights.
+          expect(Math.max(...after.map((channel,index)=>Math.abs(channel-before[index]))),`${template} ${wallpaper}: wood at ${x},${y}`).toBeLessThanOrEqual(1);
+        }
         expect(pixel(changed.data,.25,.8)).not.toEqual(pixel(original.data,.25,.8));
       }
     }

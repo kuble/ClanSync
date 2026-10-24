@@ -12,6 +12,7 @@ export function ShowcaseWallpaper({ template, background }: Pick<ShowcaseCabinet
       <filter id={`${id}-plaster`} colorInterpolationFilters="sRGB" x="0" y="0" width="100%" height="100%">
         {/* Green minus red isolates both wall areas around the arch, excluding warm wood. */}
         <feColorMatrix type="matrix" values="-32 32 0 0 -.04  -32 32 0 0 -.04  -32 32 0 0 -.04  0 0 0 1 0" />
+        <feGaussianBlur stdDeviation="1.5" />
       </filter>
       <mask id={`${id}-wall`} maskUnits="userSpaceOnUse" x="0" y="0" width="1200" height="923" style={{ maskType: "luminance" }}>
         <image href={image} width="1200" height="923" preserveAspectRatio="none" filter={`url(#${id}-plaster)`} />
