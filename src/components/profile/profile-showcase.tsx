@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { saveShowcaseAction } from "@/app/actions/profile-showcase";
 import { BACKGROUNDS, TEMPLATES, QA_CABINET_LIMIT, itemPosition, shelfGeometry, usedQuantity, type ShowcaseCabinet, type ShowcaseItem, type ShowcaseResult, type ShowcaseProduct } from "@/lib/showcase/domain";
 import { ShowcaseArt } from "./showcase-art";
+import { showcaseArtRatio, showcaseDisplayWidth } from "@/lib/showcase/art";
 import styles from "./showcase.module.css";
 
 function ShowcaseScene({ cabinet, catalog, selected, select, move }: {
@@ -26,14 +27,14 @@ function ShowcaseScene({ cabinet, catalog, selected, select, move }: {
     const y = (clientY - bounds.top) / bounds.height * 100;
     const shelf = [0, 1, 2].reduce((best, candidate) => Math.abs(shelfGeometry(cabinet.template, candidate).top - y) < Math.abs(shelfGeometry(cabinet.template, best).top - y) ? candidate : best, 0);
     const geometry = shelfGeometry(cabinet.template, shelf);
-    const width = Math.min(product.width, geometry.width);
-    const x = Math.min(100, Math.max(0, (((clientX - bounds.left) / bounds.width * 100) - geometry.left - width / 2) / (geometry.width - width) * 100));
+    const width = Math.min(showcaseDisplayWidth(product), geometry.width);
+    const x = geometry.width === width ? 50 : Math.min(100, Math.max(0, (((clientX - bounds.left) / bounds.width * 100) - geometry.left - width / 2) / (geometry.width - width) * 100));
     return { id, x: Math.round(x), shelf };
   }
   return <div ref={scene} className={`${styles.scene} ${styles[cabinet.background]} ${cabinet.template === "focus" ? styles.focus : ""}`} data-testid="showcase-scene" aria-label={`${cabinet.name} 전시`}>
-    <div className={styles.backboard} />
-    <div className={styles.ambient} />
-    {[0, 1, 2].map(index => { const shelf = shelfGeometry(cabinet.template, index); return <div key={index} className={styles.shelf} style={{ left: `${shelf.left}%`, width: `${shelf.width}%`, top: `${shelf.top}%` }} />; })}
+    <div className={styles.backboard} aria-hidden="true" />
+    <div className={styles.ambient} aria-hidden="true" />
+    {[0, 1, 2].map(index => { const shelf = shelfGeometry(cabinet.template, index); return <div key={index} className={styles.shelf} style={{ left: `${shelf.left}%`, width: `${shelf.width}%`, top: `${shelf.top}%` }} aria-hidden="true"><svg viewBox="10 148 1180 134" preserveAspectRatio="none"><image href="/images/showcase/shelf-v2.webp" width="1200" height="400" /></svg></div>; })}
     {cabinet.items.map(original => {
       const product = catalog.find(p => p.id === original.catalogId);
       if (!product) return null;
@@ -41,7 +42,7 @@ function ShowcaseScene({ cabinet, catalog, selected, select, move }: {
       const position = itemPosition(cabinet, item, product);
       const visual = <><ShowcaseArt sprite={product.sprite} imagePath={product.image_path} />{product.kind === "label" && <span className={styles.labelText}>{item.text || "나의 취향"}</span>}</>;
       const className = `${styles.item} ${styles[product.kind]} ${selected === item.id ? styles.selected : ""}`;
-      const style = { left: `${position.left}%`, top: `${position.top}%`, width: `${position.width}%`, zIndex: (product.kind === "goods" ? 10 : 30) + item.shelf * 10 + item.layer };
+      const style = { left: `${position.left}%`, top: `${position.top}%`, width: `${position.width}%`, aspectRatio: showcaseArtRatio(product.sprite, product.image_path), zIndex: (product.kind === "goods" ? 10 : 30) + item.shelf * 10 + item.layer };
       return select ? <button key={item.id} type="button" className={className} style={style} aria-label={`${product.name} 선택`} aria-pressed={selected === item.id}
         onClick={() => select(item.id)}
         onPointerDown={event => { if (!move || (event.pointerType === "mouse" && event.button !== 0)) return; event.currentTarget.setPointerCapture(event.pointerId); drag.current = { id: item.id, startX: event.clientX, startY: event.clientY, moved: false }; }}

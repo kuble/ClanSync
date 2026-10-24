@@ -7,24 +7,47 @@ test("취향 진열장: 기본형·겹침·장식·수량·저장 실패·방문
   const owner=await f.memberClient(0);
   const visitor=await browser.newContext();
   try{
-    for(const catalogId of ["wood-label","trailing-ivy","brass-light"]){const {error}=await owner.rpc("claim_showcase_product",{p_catalog_id:catalogId});expect(error).toBeNull();}
+    for(const catalogId of ["wood-label","trailing-ivy","brass-light","potted-plant","pastel-books","star-mug"]){const {error}=await owner.rpc("claim_showcase_product",{p_catalog_id:catalogId});expect(error).toBeNull();}
     await loginIsolatedBalanceUser(page,f.users[0]);await page.goto("/profile");
     const showcase=page.getByRole("region",{name:"취향 진열장",exact:true});
     await expect(showcase.getByTestId("showcase-scene")).toBeVisible();
     await expect(showcase.locator("canvas")).toHaveCount(0);
+    const keyboard=showcase.getByRole("img",{name:"세이지 키보드",exact:true});
+    const keyboardBounds=await keyboard.boundingBox();
+    expect(keyboardBounds!.width/keyboardBounds!.height).toBeGreaterThan(4);
+    // Wait for both CSS backgrounds and SVG image assets before visual evidence.
+    await page.evaluate(async()=>{
+      const scene=document.querySelector('[data-testid="showcase-scene"]')!;
+      const urls=new Set<string>();
+      scene.querySelectorAll("*").forEach(element=>{
+        if(element.tagName==="image") urls.add(element.getAttribute("href")!);
+        const match=getComputedStyle(element).backgroundImage.match(/url\(["']?([^"')]+)["']?\)/);
+        if(match) urls.add(match[1]);
+      });
+      await Promise.all([...urls].map(async src=>{const image=new Image();image.src=src;await image.decode();}));
+    });
     await page.screenshot({path:info.outputPath("showcase-focus.png"),fullPage:true});
     await showcase.getByRole("button",{name:"꾸미기",exact:true}).click();
     await showcase.getByLabel("진열장 이름",{exact:true}).fill("나의 초록 취향");
     await showcase.getByLabel("선반 모양",{exact:true}).selectOption("classic");
     await page.getByRole("dialog").getByRole("button",{name:"이 모양 적용"}).click();
+    await page.screenshot({path:info.outputPath("showcase-classic-three.png"),fullPage:true});
+    for(const [name,x] of [["초록 화분","10"],["취향의 책","50"],["별빛 머그","90"]]){
+      await showcase.getByRole("button",{name:`${name} 꺼내기`,exact:true}).click();
+      await showcase.getByLabel("굿즈 선반",{exact:true}).selectOption("2");
+      await showcase.getByLabel("굿즈 좌우 위치",{exact:true}).fill(x);
+    }
     await showcase.getByRole("button",{name:"작은 여우 선택",exact:true}).click();
     await showcase.getByLabel("굿즈 선반",{exact:true}).selectOption("0");
     await showcase.getByLabel("굿즈 겹침 순서",{exact:true}).selectOption("8");
     await showcase.getByLabel("굿즈 좌우 위치",{exact:true}).fill("50");
     await showcase.getByRole("button",{name:"나무 주제 명패 꺼내기",exact:true}).click();
     await showcase.getByLabel("명패 문구",{exact:true}).fill("나의 작은 숲");
+    await showcase.getByLabel("굿즈 좌우 위치",{exact:true}).fill("10");
     await showcase.getByRole("button",{name:"늘어진 이파리 꺼내기",exact:true}).click();
+    await showcase.getByLabel("굿즈 좌우 위치",{exact:true}).fill("95");
     await showcase.getByRole("button",{name:"황동 조명 꺼내기",exact:true}).click();
+    await showcase.getByLabel("굿즈 좌우 위치",{exact:true}).fill("85");
     await showcase.getByRole("button",{name:"새 진열장",exact:true}).click();
     await showcase.getByLabel("진열장 이름",{exact:true}).fill("두 번째 취향");
     await expect(showcase.getByRole("button",{name:"작은 여우 꺼내기",exact:true})).toBeDisabled();

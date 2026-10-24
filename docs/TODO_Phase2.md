@@ -1,5 +1,10 @@
 # Phase 2 — Next.js `src/` · Supabase · RLS
 
+## 2026-10-24 취향 진열장 시각 품질 보정
+
+- 시안 기준 목재·숲빛 벽·정적 조명, 낮은 시점의 매트 키보드와 받침대 여우를 적용했다. `art.ts`의 물체 영역과 밑면을 표시/드래그 양쪽에 적용하며 굿즈 겹침은 선반 상판 범위에 맞춘다. 모바일도 장면 비율을 유지한다.
+- 기본 3개·9종 겹침/장식·공개 방문·저장/수량·802/390/320px 집중 E2E, lint와 타입 검사 통과. 실제 캡처·파일 용량·프롬프트는 [v2 제작/검증](design/profile-showcase-2026-10-24/production-v2.md)에 보관했다. DB 스키마·소유·저장 문서는 변경하지 않았다.
+
 > **허브**: [TODO.md](./TODO.md) · **Phase 1(종료)**: [TODO_Phase1.md](./TODO_Phase1.md) · **세션 로그**: [TODO_LOG.md](./TODO_LOG.md)  
 > **기획 기준**: [pages.md](./01-plan/pages.md) (라우트 요구) · [schema.md](./01-plan/schema.md) (DB 설계) · [FEATURE_INDEX.md](./01-plan/FEATURE_INDEX.md) (슬라이스)
 > **실제 구현**: `src/` · `supabase/migrations/`와 대조한다. 아래 `live`는 구현 표기이며 원격 배포·품질 게이트 통과를 보증하지 않는다. 시연은 [QA_시나리오.md](./QA_시나리오.md) 참조.
