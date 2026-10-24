@@ -44,16 +44,16 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
 
     await expect(page.getByRole("button", { name: "칭호 상점", exact: true })).toHaveCount(0);
     // Switching profile tabs keeps the current layout; purchases live in the personal shop.
-    const housing = page.getByRole("region", { name: "프로필 하우징", exact: true });
-    await page.getByRole("tab", { name: "3D 미니룸", exact: true }).click();
-    const plantId = await f.service.from("user_housing_inventory").select("id").eq("user_id", f.users[0].id).eq("catalog_id", "small-plant").single();
-    const plant = housing.locator(`[data-inventory-id="${plantId.data!.id}"]`);
-    await plant.focus(); await plant.press("Enter"); await plant.press("Delete");
-    await expect(plant).toHaveCount(0);
+    const showcase = page.getByRole("region", { name: "취향 진열장", exact: true });
+    await page.getByRole("tab", { name: "취향 진열장", exact: true }).click();
+    await showcase.getByRole("button", { name: "꾸미기", exact: true }).click();
+    await showcase.getByLabel("진열장 이름", { exact: true }).fill("나의 네임카드 취향");
     await accountTab.click();
-    await page.getByRole("tab", { name: "3D 미니룸", exact: true }).click();
-    await expect(plant).toHaveCount(0);
-    await page.getByRole("link", { name: "개인 상점", exact: true }).click();
+    await page.getByRole("tab", { name: "취향 진열장", exact: true }).click();
+    await expect(showcase.getByLabel("진열장 이름", { exact: true })).toHaveValue("나의 네임카드 취향");
+    await showcase.getByRole("button", { name: "저장하고 닫기", exact: true }).first().click();
+    await expect(showcase.getByRole("button", { name: "꾸미기", exact: true })).toBeVisible();
+    await showcase.getByRole("link", { name: "새로운 굿즈 둘러보기", exact: true }).click();
     const filters = page.getByRole("group", { name: "개인 꾸미기 분류", exact: true });
     await expect(page.getByRole("heading", { name: "낮은 원목 테이블", exact: true })).toBeVisible();
     await filters.getByRole("button", { name: "칭호", exact: true }).click();

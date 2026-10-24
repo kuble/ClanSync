@@ -3124,6 +3124,39 @@ export type Database = {
           },
         ]
       }
+      showcase_catalog: {
+        Row: {
+          available: boolean
+          id: string
+          image_path: string | null
+          kind: string
+          name: string
+          sprite: number
+          starter: boolean
+          width: number
+        }
+        Insert: {
+          available?: boolean
+          id: string
+          image_path?: string | null
+          kind: string
+          name: string
+          sprite: number
+          starter?: boolean
+          width: number
+        }
+        Update: {
+          available?: boolean
+          id?: string
+          image_path?: string | null
+          kind?: string
+          name?: string
+          sprite?: number
+          starter?: boolean
+          width?: number
+        }
+        Relationships: []
+      }
       store_items: {
         Row: {
           asset_url: string | null
@@ -3560,6 +3593,71 @@ export type Database = {
           },
         ]
       }
+      user_showcase_inventory: {
+        Row: {
+          acquired_at: string
+          catalog_id: string
+          quantity: number
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          catalog_id: string
+          quantity?: number
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          catalog_id?: string
+          quantity?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_showcase_inventory_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "showcase_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_showcase_inventory_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_showcase_libraries: {
+        Row: {
+          document: Json
+          revision: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          document: Json
+          revision?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          document?: Json
+          revision?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_showcase_libraries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           auto_login: boolean
@@ -3669,6 +3767,10 @@ export type Database = {
       claim_discord_poll_notification_batch: {
         Args: { p_limit: number }
         Returns: Json
+      }
+      claim_showcase_product: {
+        Args: { p_catalog_id: string }
+        Returns: number
       }
       clan_active_member_counts: {
         Args: { p_clan_ids: string[] }
@@ -4027,6 +4129,10 @@ export type Database = {
       save_round_role_preference: {
         Args: { p_ranking?: string[]; p_round_id: string }
         Returns: undefined
+      }
+      save_showcase_library: {
+        Args: { p_document: Json; p_revision: number }
+        Returns: number
       }
       select_my_clan_join_requests: {
         Args: never

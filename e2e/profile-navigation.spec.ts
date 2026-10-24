@@ -12,19 +12,16 @@ test("프로필은 방·네임카드의 아이콘에서 상점과 편집을 열�
     await expect(menu.getByRole("link", { name: "개인 상점", exact: true })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "내 엠블럼 케이스 보기", exact: true })).toHaveCount(0);
     await expect(page.getByRole("navigation", { name: "게임별 클랜", exact: true })).toHaveCount(0);
-    const housing = page.getByRole("region", { name: "프로필 하우징", exact: true });
-    const roomTools = housing.getByRole("toolbar", { name: "방 꾸미기 도구", exact: true });
-    const inventory = roomTools.getByRole("button", { name: "내 가구", exact: true });
-    const roomShop = roomTools.getByRole("link", { name: "개인 상점", exact: true });
-    await expect(inventory.locator("svg")).toBeVisible();
-    await expect(roomShop).toHaveAttribute("href", "/store");
-    await expect(roomTools.getByRole("button", { name: "방 꾸미기", exact: true })).toHaveCount(0);
+    const housing = page.getByRole("region", { name: "취향 진열장", exact: true });
+    const inventory = housing.getByRole("button", { name: "꾸미기", exact: true });
+    const roomShop = housing.getByRole("link", { name: "새로운 굿즈 둘러보기", exact: true });
+    await expect(roomShop).toHaveAttribute("href", "/store#showcase");
     await inventory.click();
-    await expect(housing.getByRole("region", { name: "내 가구 보관함", exact: true })).toBeVisible();
-    await housing.getByRole("button", { name: "패널 닫기", exact: true }).click();
+    await expect(housing.getByRole("heading", { name: "내 굿즈", exact: true })).toBeVisible();
+    await housing.getByRole("button", { name: "편집 취소", exact: true }).click();
     await expect(inventory).toBeVisible();
     await roomShop.click();
-    await expect(page).toHaveURL(/\/store$/);
+    await expect(page).toHaveURL(/\/store(?:#showcase)?$/);
     await expect(page.getByRole("heading", { name: "나를 꾸미는 상점", exact: true })).toBeVisible();
     await menu.getByRole("link", { name: "프로필", exact: true }).click();
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
@@ -46,13 +43,13 @@ test("프로필은 방·네임카드의 아이콘에서 상점과 편집을 열�
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
       for (const icon of [editCard, cardShop]) { const b = await icon.boundingBox(); expect(b!.width).toBeGreaterThanOrEqual(44); expect(b!.height).toBeGreaterThanOrEqual(44); }
       await page.screenshot({ path: info.outputPath("profile-icon-account-" + width + ".png") });
-      await page.getByRole("tab", { name: "3D 미니룸", exact: true }).click();
-      for (const icon of [inventory, roomShop]) { const b = await icon.boundingBox(); expect(b!.width).toBeGreaterThanOrEqual(44); expect(b!.height).toBeGreaterThanOrEqual(44); }
+      await page.getByRole("tab", { name: "취향 진열장", exact: true }).click();
+      await expect(inventory).toBeVisible(); await expect(roomShop).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
       await page.screenshot({ path: info.outputPath("profile-icon-room-" + width + ".png") });
       await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
     }
-    await cardShop.click(); await expect(page).toHaveURL(/\/store$/);
+    await cardShop.click(); await expect(page).toHaveURL(/\/store(?:#showcase)?$/);
     await page.goto(`/profile/${f.users[0].id}/emblems`);
     const breadcrumbs = page.getByRole("navigation", { name: "현재 위치", exact: true });
     await expect(breadcrumbs.locator('[aria-current="page"]')).toHaveText("엠블럼");

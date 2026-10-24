@@ -88,8 +88,8 @@ test("게임 이름으로 클랜을 선택하고 모바일·스와이프·키보
     await expect(namecard.getByText("Player#1234", { exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     await page.goto("/games");
-    await page.locator('summary[aria-label="프로필 메뉴"]').click();
-    await expect(page.getByText("내 계정", { exact: true })).toBeVisible();
+    await page.locator('summary[aria-label="프로필 메뉴"]:visible').click();
+    await expect(page.locator('summary[aria-label="프로필 메뉴"]:visible').locator("..").getByText("내 계정", { exact: true })).toBeVisible();
     await expect(page.getByText(f.users[0].nickname, { exact: true })).toHaveCount(0);
   } finally {
     if (otherCreated) expect((await f.service.from("clans").delete().eq("id", otherClanId)).error).toBeNull();

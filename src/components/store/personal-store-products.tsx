@@ -65,7 +65,7 @@ export function PersonalStoreProducts({ housing, namecard, category, coins }: {
         <p className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><Tag size={12} aria-hidden />{item.kind === "furniture" ? "3D 미니룸 가구" : "공통 칭호"}</p>
         <div><h3 className="text-base font-bold">{item.name}</h3><p className="mt-2 text-xs leading-relaxed text-muted-foreground">{item.description}</p></div>
         <strong className="mt-auto flex items-center gap-1.5 pt-2 text-lg tabular-nums"><Coins size={16} className="text-pro-gold" aria-hidden />{item.price.toLocaleString("ko-KR")}<span className="text-xs font-normal text-muted-foreground">개인 코인</span></strong>
-        {item.owned ? <Link href="/profile" className={buttonVariants({ variant: "secondary" })}><Check size={14} aria-hidden />보유 중 · 설정하기</Link> : <Button disabled={pending || coins < item.price} aria-label={`${item.name} 구매`} onClick={() => { setError(""); setSelected(item); }}>{coins < item.price ? "코인 부족" : "구매"}</Button>}
+        {item.owned ? <Link href={item.kind === "furniture" ? "/profile/miniroom" : "/profile"} className={buttonVariants({ variant: "secondary" })}><Check size={14} aria-hidden />보유 중 · 설정하기</Link> : <Button disabled={pending || coins < item.price} aria-label={`${item.name} 구매`} onClick={() => { setError(""); setSelected(item); }}>{coins < item.price ? "코인 부족" : "구매"}</Button>}
       </div>
     </article>)}
     <Dialog open={!!selected} onOpenChange={(open) => { if (!open && !pending) setSelected(null); }}><DialogContent showCloseButton={!pending}>

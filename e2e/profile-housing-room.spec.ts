@@ -36,7 +36,7 @@ test("방 안에서 벽 가구를 옮기고 우클릭으로 회전·보관하며
   try {
     const owner = fixture.users[0];
     await loginIsolatedBalanceUser(page, owner);
-    await page.goto("/profile");
+    await page.goto("/profile/miniroom");
     const housing = page.getByRole("region", { name: "프로필 하우징", exact: true });
     const stage = housing.getByTestId("housing-room-stage");
     await expect(stage).toHaveAttribute("data-renderer", "webgl");

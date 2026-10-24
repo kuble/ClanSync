@@ -24,8 +24,8 @@ import { loadNamecard } from "@/lib/profile/load-namecard";
 import { profileBattleTag } from "@/lib/game-auth/battle-tag";
 import { cookies } from "next/headers";
 import { getSessionMaxAge, REMEMBERED_SESSION_SECONDS } from "@/lib/supabase/session-cookies";
-import { ProfileHousing } from "@/components/profile/profile-housing";
-import { loadHousingState } from "@/lib/housing/load";
+import { ProfileShowcase } from "@/components/profile/profile-showcase";
+import { loadShowcase } from "@/lib/showcase/load";
 import styles from "@/components/profile/profile.module.css";
 
 export const dynamic = "force-dynamic";
@@ -67,7 +67,7 @@ export default async function ProfilePage() {
     namecard,
     { data: altRowsRaw },
     { data: rolePreferences },
-    housing,
+    showcase,
   ] = await Promise.all([
     supabase
       .from("users")
@@ -88,7 +88,7 @@ export default async function ProfilePage() {
       .eq("user_id", user.id)
       .order("alt_nick"),
     supabase.from("profile_role_preferences").select("game_id, ranking").eq("user_id", user.id),
-    loadHousingState(),
+    loadShowcase(user.id),
   ]);
 
   const { data: rawJoinFlat, error: rawJoinFlatErr } =
@@ -250,7 +250,7 @@ export default async function ProfilePage() {
     <ProfilePanels room={
       <div className={styles.profileHero} data-testid="profile-hero">
       <ProfileIdentity key={`identity:${user.id}`} userId={user.id} intro={intro} memberships={memberships} />
-      <ProfileHousing key={`room:${user.id}`} userId={user.id} embedded initial={housing} />
+      <ProfileShowcase key={`showcase:${user.id}`} userId={user.id} initial={showcase} />
     </div>
     } account={<><section className={styles.namecardSection}><ProfileNamecard key={user.id} initial={namecard} /></section><div className={styles.accountLayout}>
       <div className={`${styles.accountColumn} ${styles.accountSettings}`}>

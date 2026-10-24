@@ -55,7 +55,7 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     expect(balanceSetup.error).toBeNull();
 
     await loginIsolatedBalanceUser(page, buyer);
-    await page.goto("/profile");
+    await page.goto("/profile/miniroom");
     const housing = page.getByRole("region", { name: "프로필 하우징" });
     const wallet = housing.getByTestId("housing-coin-balance");
     await expect(wallet).toContainText("1,000");
@@ -77,11 +77,12 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     expect(starterResult.data).toHaveLength(10);
     expect(starterResult.data!.every((item) => item.x !== null && item.y !== null)).toBe(true);
 
-    // Existing profile controls still work with the room above them.
+    // Account controls remain available through the profile.
+    await page.goto("/profile");
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
     await page.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
     await expect(page.getByRole("region", { name: "게임별 선호 역할" })).toBeVisible();
-    await page.getByRole("tab", { name: "3D 미니룸", exact: true }).click();
+    await page.goto("/profile/miniroom");
     await expect(housing).toBeVisible();
 
     await expect(housing.getByRole("button", { name: "가구 상점", exact: true })).toHaveCount(0);
@@ -123,7 +124,7 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     expect(ownedDesk.x).toBeNull();
     expect(ownedDesk.y).toBeNull();
 
-    await page.goto("/profile");
+    await page.goto("/profile/miniroom");
     await expect(wallet).toContainText("820");
     await openInventory(housing);
     await housing
@@ -255,7 +256,7 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     await expect(poorPage.locator('[aria-label="보유 코인"] strong')).toHaveText("10");
     expect((await fixture.service.from("coin_transactions").select("amount,reason,clan_id").eq("user_id", poorUser.id)).data).toEqual([{ amount: -90, reason: "purchase_title", clan_id: null }]);
 
-    await poorPage.goto("/profile");
+    await poorPage.goto("/profile/miniroom");
     const poorHousing = poorPage.getByRole("region", { name: "프로필 하우징" });
     // A lost GPU context must preserve the unsaved room and its keyboard controls.
     await expectWebglRoom(poorHousing);
@@ -307,7 +308,7 @@ test("개인 코인 가구 구매·배치·회전·보관은 저장 후 유지�
     const unsupportedPage = await unsupportedContext.newPage();
     unsupportedPage.on("pageerror", (error) => pageErrors.push(error.message));
     await loginIsolatedBalanceUser(unsupportedPage, poorUser);
-    await unsupportedPage.goto("/profile");
+    await unsupportedPage.goto("/profile/miniroom");
     const fallbackHousing = unsupportedPage.getByRole("region", { name: "프로필 하우징" });
     await expect(fallbackHousing.getByRole("group", { name: "나의 방", exact: true })).toHaveAttribute("data-renderer", "fallback");
     const fallbackPlant = sceneFurniture(fallbackHousing, plantId);

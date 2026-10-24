@@ -70,7 +70,7 @@ test("보기 모드의 가구를 길게 누르면 같은 마우스·터치로 �
   try {
     const owner = fixture.users[0];
     await loginIsolatedBalanceUser(page, owner);
-    await page.goto("/profile");
+    await page.goto("/profile/miniroom");
     const housing = page.getByRole("region", { name: "프로필 하우징", exact: true });
     await expect(room(housing)).toHaveAttribute("data-renderer", "webgl");
     const inventory = await fixture.service.from("user_housing_inventory").select("id,catalog_id").eq("user_id", owner.id);
@@ -128,7 +128,7 @@ test("보기 모드의 가구를 길게 누르면 같은 마우스·터치로 �
     mobile = await browser.newContext({ baseURL, viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, storageState: await page.context().storageState() });
     const touchPage = await mobile.newPage();
     touchPage.on("pageerror", (error) => errors.push(error.message));
-    await touchPage.goto("/profile");
+    await touchPage.goto("/profile/miniroom");
     const touchHousing = touchPage.getByRole("region", { name: "프로필 하우징", exact: true });
     await expect(room(touchHousing)).toHaveAttribute("data-renderer", "webgl");
     const cdp = await mobile.newCDPSession(touchPage);
@@ -187,7 +187,7 @@ test("겹침·방 밖은 저장하지 않고 Esc·창 전환·터치 취소로 �
   const f = await createIsolatedBalanceFixture(1);
   let mobile: Awaited<ReturnType<typeof browser.newContext>> | undefined;
   try {
-    await loginIsolatedBalanceUser(page, f.users[0]); await page.goto("/profile");
+    await loginIsolatedBalanceUser(page, f.users[0]); await page.goto("/profile/miniroom");
     const housing = page.getByRole("region", { name: "프로필 하우징", exact: true });
     const stage = room(housing);
     await expect(stage).toHaveAttribute("data-renderer", "webgl");
@@ -216,7 +216,7 @@ test("겹침·방 밖은 저장하지 않고 Esc·창 전환·터치 취소로 �
     await expect.poll(read).toMatchObject({ x: null, y: null });
 
     mobile = await browser.newContext({ baseURL, hasTouch: true, isMobile: true, viewport: { width: 390, height: 568 }, storageState: await page.context().storageState() });
-    const phone = await mobile.newPage(); await phone.goto("/profile");
+    const phone = await mobile.newPage(); await phone.goto("/profile/miniroom");
     const h = phone.getByRole("region", { name: "프로필 하우징", exact: true });
     await expect(room(h)).toHaveAttribute("data-renderer", "webgl");
     await room(h).scrollIntoViewIfNeeded(); await openInventory(h);

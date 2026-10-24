@@ -17,6 +17,9 @@ test("프로필은 로그인한 다른 클랜에도 공개하고 계정 정보·
     await ok(f.service.from("account_personal_emblem_picks").insert({ user_id: owner.id, emblem_keys: [f.clanId + ":" + key] }));
     await loginIsolatedBalanceUser(page, owner);
     await page.goto("/profile");
+    const ownerClient = await f.memberClient(0);
+    await ok(ownerClient.rpc("get_my_housing"));
+    await ownerClient.auth.signOut();
     const stored = await ok(f.service.from("user_housing_inventory").select("id").eq("user_id", owner.id).eq("catalog_id", "small-plant").single());
     await ok(f.service.from("user_housing_inventory").update({ x: null, y: null }).eq("id", stored.id));
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
@@ -43,8 +46,8 @@ test("프로필은 로그인한 다른 클랜에도 공개하고 계정 정보·
     await visitor.goto(visitUrl);
     await expect(visitor.getByText(intro, { exact: true })).toBeVisible();
     await expect(tray.locator("[data-featured-emblem-reference]")).toHaveCount(1);
-    await expect(visitor.getByRole("button", { name: "방 꾸미기", exact: true })).toHaveCount(0);
-    await expect(visitor.getByRole("button", { name: "민트 소파 선택", exact: true })).toBeDisabled();
+    await expect(visitor.getByRole("button", { name: "꾸미기", exact: true })).toHaveCount(0);
+    await expect(visitor.getByRole("img", { name: "작은 여우", exact: true })).toBeVisible();
     for (const width of [1023, 320]) {
       await visitor.setViewportSize({ width, height: 884 });
       expect(await visitor.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);

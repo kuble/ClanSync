@@ -17,7 +17,7 @@ test("길게 집은 가구를 커서로 옮기고 하단 보관함에 넣거나 
   test.setTimeout(90_000);
   const f = await createIsolatedBalanceFixture(1);
   try {
-    await loginIsolatedBalanceUser(page, f.users[0]); await page.goto("/profile");
+    await loginIsolatedBalanceUser(page, f.users[0]); await page.goto("/profile/miniroom");
     const housing = page.getByRole("region", { name: "프로필 하우징", exact: true });
     const stage = housing.getByTestId("housing-room-stage");
     await expect(stage).toHaveAttribute("data-renderer", "webgl");
@@ -82,7 +82,7 @@ test("모바일 길게 누르기·보관함 꺼내기와 짧은 터치 취소, �
   const f = await createIsolatedBalanceFixture(1);
   try {
     await page.setViewportSize({ width: 390, height: 844 });
-    await loginIsolatedBalanceUser(page, f.users[0]); await page.goto("/profile");
+    await loginIsolatedBalanceUser(page, f.users[0]); await page.goto("/profile/miniroom");
     const housing = page.getByRole("region", { name: "프로필 하우징", exact: true });
     const stage = housing.getByTestId("housing-room-stage");
     await expect(stage).toHaveAttribute("data-renderer", "webgl"); await stage.scrollIntoViewIfNeeded();
