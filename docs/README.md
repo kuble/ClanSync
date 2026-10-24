@@ -2,6 +2,8 @@
 
 시작할 때는 **[TODO](TODO.md) → 아래 기능별 진입점 → 필요한 명세**만 읽습니다. 기획 전체·완료 이력은 해당 결정의 근거가 필요할 때만 찾습니다. 제안·확정 요구·구현·검증 완료 상태를 구분합니다.
 
+[프로필 취향 진열장 기획](01-plan/profile-showcase.md) — 미니룸 대체 방향, 무료 기본형 2종, 겹치기·장식·상점 확장·여러 진열장 저장과 비교 시안. 기획 확정·구현 전.
+
 [100명 이하 알파 점검: 디자인 화면 링크·성능 측정·OCR 검토·운영 손익](03-analysis/alpha-review-2026-10-16/README.md) · `node scripts/serve-alpha-review.mjs`로 클릭형 보드를 연다.
 
 테마·모바일 재점검: [테마 전환](../src/components/ui/theme-toggle.tsx) · [라이트 검증](../e2e/light-theme.spec.ts) · [실제 저장 선택을 적용하는 Playwright 프로필](../playwright.light.config.ts) · [검증 범위](03-analysis/alpha-review-2026-10-16/verification.md#라이트-테마모바일-점검).
