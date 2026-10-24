@@ -43,3 +43,11 @@
 ![밤하늘 벽지·기본형 목재 보존](verification/showcase-wallpaper-classic-midnight.png)
 
 ![밤하늘 벽지·중앙 강조형 목재 보존](verification/showcase-wallpaper-focus-midnight.png)
+
+## 크림 벽지 경계 보정
+
+크림 벽지는 어두운 벽면까지 연속적으로 분리하고 밝기 곡선으로 접촉 그림자를 유지한다. 기존 대비 필터가 검은 영역을 남기며 만들던 얼룩/불규칙 테두리를 줄였다. 기본형·중앙 강조형의 실제 화면과 목재 색 보존 E2E, 변경 소스 ESLint를 확인했다.
+
+![기본형 크림 경계](verification/showcase-cream-classic-clean-edge.png)
+
+![중앙 강조형 크림 경계](verification/showcase-cream-focus-clean-edge.png)
