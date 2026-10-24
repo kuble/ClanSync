@@ -5,6 +5,8 @@
 > **D-LANDING-03** (DECIDED 2026-04-20) — 약관 3종 정적 MDX + `/contact`는 내부 폼(`contact_requests` 테이블). [§D-LANDING-03](../decisions.md#d-landing-03--약관개인정보api-tos문의-페이지-구현-방식).  
 > **D-LANDING-04** (DECIDED 2026-04-20) — 로그인된 사용자의 `/` 진입은 **`/games` 자동 리다이렉트**(`?from=logo` · 앵커 포함은 건너뜀). [§D-LANDING-04](../decisions.md#d-landing-04--로그인된-사용자의-랜딩-진입-처리).
 
+2026-10-24 [랜딩 상세 재설계안](../../02-design/entry-experience/00-landing.md). 새 구도·문구·상태는 구현 전 제안이며, 아래 기존 정책·목업 기록과 구분한다.
+
 ## 한 줄 요약
 서비스를 처음 접하는 비로그인 사용자에게 ClanSync가 무엇인지 보여주고 로그인/가입으로 유도하는 첫 화면.
 
