@@ -17,7 +17,7 @@ async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>) {
   return data as NonNullable<T>;
 }
 
-test("개인 기록 기본값과 항상 공개 엠블럼·서버장 ON 표시·역할 전환 초안을 유지한다", async ({ page }, info) => {
+test("개인 기록 기본값과 항상 공개 엠블럼·멤버 전용 설정·역할 전환 초안을 유지한다", async ({ page }, info) => {
   test.setTimeout(120_000);
   expect(resolveHofConfig({}).memberPersonalSections).toEqual(["predictions", "prediction_points", "emblems"]);
   expect(resolvePersonalSections([])).toEqual(["emblems"]);
@@ -42,8 +42,12 @@ test("개인 기록 기본값과 항상 공개 엠블럼·서버장 ON 표시·�
     await dialog.getByRole("switch", { name: "평가 점수", exact: true }).check();
     await dialog.getByRole("radio", { name: "서버장", exact: true }).click();
     await expect(dialog.getByRole("switch")).toHaveCount(0);
-    await expect(dialog.getByText("ON", { exact: true })).toHaveCount(5);
+    await expect(dialog.getByRole("region", { name: "공개할 통계", exact: true })).toHaveCount(0);
+    await expect(dialog.getByText("선택한 역할과 그 상위 역할이 열람할 수 있습니다.", { exact: false })).toHaveCount(0);
     await page.screenshot({ path: info.outputPath("personal-settings-leader-on.png") });
+    await dialog.getByRole("radio", { name: "운영진", exact: true }).click();
+    await expect(dialog.getByRole("region", { name: "공개할 통계", exact: true })).toHaveCount(0);
+    await expect(dialog.getByRole("switch")).toHaveCount(0);
     await dialog.getByRole("radio", { name: "멤버", exact: true }).click();
     await expect(dialog.getByRole("switch", { name: "평가 점수", exact: true })).toBeChecked();
     await expect(dialog.getByRole("switch", { name: "경기 전적", exact: true })).not.toBeChecked();
@@ -173,7 +177,6 @@ test("stats settings: tab scopes, granular record grants and private payloads", 
     expect((await edit("create")).error?.code).toBe("42501");
     expect(await loadClanStatsDetail(member, f.users[1].id, f.clanId)).toBeNull();
     await memberPage.getByRole("tab", { name: "개인 기록", exact: true }).click();
-    await memberPage.getByRole("button", { name: `${f.users[1].nickname} 개인 기록 열기`, exact: true }).click();
     await expect(memberPage.getByText("점수 변동 이력", { exact: true })).toBeVisible();
     await expect(memberPage.getByRole("radio", { name: "평가 점수", exact: true })).toBeVisible();
     await expect(memberPage.getByRole("radio", { name: "분석 점수", exact: true })).toHaveCount(0);
@@ -203,7 +206,7 @@ test("stats settings: tab scopes, granular record grants and private payloads", 
       await dialog.getByRole("radio", { name: label, exact: true }).click();
       if (minimum === "leader") {
         await expect(dialog.getByRole("switch")).toHaveCount(0);
-        await expect(dialog.getByText("ON", { exact: true })).toHaveCount(5);
+        await expect(dialog.getByRole("region", { name: "공개할 통계", exact: true })).toHaveCount(0);
       }
       await dialog.getByRole("button", { name: "저장", exact: true }).click();
       await expect(dialog).toBeHidden();
@@ -260,7 +263,6 @@ test("stats settings: tab scopes, granular record grants and private payloads", 
     expect(emblemsOnly?.kind === "personal" && emblemsOnly.person).toMatchObject({ visibleSections: ["emblems"], matches: [], scores: [], predictions: [], predictionPoints: [] });
     await memberPage.reload();
     await memberPage.getByRole("tab", { name: "개인 기록", exact: true }).click();
-    await memberPage.getByRole("button", { name: `${f.users[1].nickname} 개인 기록 열기`, exact: true }).click();
     await expect(memberPage.getByRole("region", { name: "플레이어 배너", exact: true }).getByRole("link", { name: / 엠블럼 케이스 열기$/ })).toBeVisible();
   } finally { await Promise.allSettled([officerContext.close(), memberContext.close()]); await f.cleanup(); }
 });

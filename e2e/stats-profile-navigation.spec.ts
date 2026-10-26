@@ -19,6 +19,10 @@ test("개인 기록의 공통 네임카드는 해당 플레이어 소개로, 엠
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.goto(statsUrl);
     const banner = page.getByRole("region", { name: "플레이어 배너", exact: true });
+    const filter = page.getByRole("region", { name: "개인 기록 기간", exact: true });
+    await expect(banner).toBeVisible();
+    const filterBounds = (await filter.boundingBox())!, bannerBounds = (await banner.boundingBox())!;
+    expect(filterBounds.y + filterBounds.height).toBeLessThanOrEqual(bannerBounds.y);
     const card = banner.getByRole("link", { name: `${battleTag} 프로필 보기`, exact: true });
     const namecard = banner.locator("[data-namecard]");
     await expect(namecard).toContainText(battleTag);
@@ -48,6 +52,7 @@ test("개인 기록의 공통 네임카드는 해당 플레이어 소개로, 엠
     await page.goto(statsUrl);
     await card.press("Enter");
     await expect(page).toHaveURL("/profile/" + player.id);
+    await expect(page.getByRole("heading", { name: `${battleTag}의 프로필`, exact: true })).toBeVisible();
     const identity = page.getByRole("region", { name: "플레이어 소개", exact: true });
     await expect(identity.locator("[data-namecard]")).toContainText(battleTag);
     await expect(identity.locator("[data-namecard]")).toContainText(title.name_ko);
@@ -67,5 +72,44 @@ test("개인 기록의 공통 네임카드는 해당 플레이어 소개로, 엠
     await page.goto(statsUrl);
     await card.tap();
     await expect(page).toHaveURL("/profile/" + player.id);
+  } finally { await f.cleanup(); }
+});
+
+test("일반 멤버는 개인 기록에 본인부터 진입하고 서버장·운영진은 멤버를 선택한다", async ({ page }, info) => {
+  test.setTimeout(150_000);
+  const f = await createIsolatedBalanceFixture(3);
+  const tags = ["StaffEntry#1111", "MemberEntry#2222", "OfficerEntry#3333"];
+  const statsUrl = f.path.replace(/balance$/, "stats");
+  try {
+    expect((await f.service.from("clan_settings").update({ hof_config: { personal_record_min_role: "member" } }).eq("clan_id", f.clanId)).error).toBeNull();
+    expect((await f.service.from("clan_members").update({ role: "officer" }).eq("clan_id", f.clanId).eq("user_id", f.users[2].id)).error).toBeNull();
+    for (let i = 0; i < f.users.length; i++) expect((await f.service.from("user_game_profiles").update({ battle_tag: tags[i] }).eq("user_id", f.users[i].id).eq("game_id", f.gameId)).error).toBeNull();
+    const picker = page.getByRole("region", { name: "개인 기록 멤버 목록", exact: true });
+    const banner = page.getByRole("region", { name: "플레이어 배너", exact: true });
+    for (const index of [0, 1, 2]) {
+      await page.context().clearCookies();
+      await loginIsolatedBalanceUser(page, f.users[index]);
+      await page.goto(statsUrl);
+      await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
+      if (index !== 1) {
+        await expect(picker).toBeVisible();
+        await expect(banner).toHaveCount(0);
+        continue;
+      }
+      await expect(banner).toContainText(tags[index]);
+      await expect(picker).toHaveCount(0);
+      await page.getByRole("tab", { name: "내전 통계", exact: true }).click();
+      await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
+      await expect(banner).toContainText(tags[index]);
+      await expect(picker).toHaveCount(0);
+      await page.screenshot({ path: info.outputPath("personal-member-entry.png") });
+      await page.goto(statsUrl + "?player=" + f.users[0].id);
+      await expect(banner).toContainText(tags[0]);
+      await page.reload();
+      await expect(banner).toContainText(tags[0]);
+      await page.goto(statsUrl);
+      await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
+      await expect(banner).toContainText(tags[index]);
+    }
   } finally { await f.cleanup(); }
 });

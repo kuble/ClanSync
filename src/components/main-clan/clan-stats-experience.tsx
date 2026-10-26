@@ -18,8 +18,9 @@ const PersonalStats = dynamic(() => import("./clan-personal-stats").then((module
 export function ClanStatsExperience({ gameSlug, clanId, model, initialPlayer }: { gameSlug: string; clanId: string; model: ClanStatsPageModel; initialPlayer?: string }) {
   const showPersonalTab = model.permissions.viewPersonalRecords || (model.permissions.isStaff && model.permissions.setHofRules);
   const initialPerson = model.personal.people.find((person) => person.userId === initialPlayer);
+  const defaultPersonId = !model.permissions.isStaff && model.personal.people.some(person => person.userId === model.personal.viewerId) ? model.personal.viewerId : null;
   const [tab, setTab] = useState(initialPlayer && showPersonalTab ? "personal" : "hof");
-  const [personId, setPersonId] = useState<string | null>(initialPerson?.userId ?? null);
+  const [personId, setPersonId] = useState<string | null>(initialPerson?.userId ?? defaultPersonId);
   const settingsFor = (scope: "hof" | "intra" | "records" | "personal") => <ClanStatsSettings scope={scope} model={model} gameSlug={gameSlug} clanId={clanId} />;
   // A refreshed model (score edit, settings change, or navigation) discards old detail responses.
   const { requests: cache } = useMemo(() => ({ model, requests: new Map() as StatsDetailCache }), [model]);
@@ -29,7 +30,7 @@ export function ClanStatsExperience({ gameSlug, clanId, model, initialPlayer }: 
     setTab("personal");
   };
   return <div className="mx-auto w-full max-w-[1120px] space-y-6">
-    <Tabs value={tab} onValueChange={(value) => { setTab(value); if (value === "personal") setPersonId(null); }} className="w-full gap-4"><div className="flex items-center gap-2 border-b"><TabsList variant="line" className="h-auto min-w-0 flex-1 justify-start gap-0 [&_button]:gap-1 [&_button]:px-1 [&_button]:text-xs sm:[&_button]:text-sm [&_svg]:hidden sm:[&_svg]:block"><TabsTrigger value="hof"><Crown className="size-4" aria-hidden="true" /> 명예의 전당</TabsTrigger>{model.permissions.viewIntraStats !== false && <TabsTrigger value="intra"><Swords className="size-4" aria-hidden="true" /> 내전 통계</TabsTrigger>}{model.permissions.viewMatchRecords && <TabsTrigger value="records"><History className="size-4" aria-hidden="true" /> 경기 기록</TabsTrigger>}{showPersonalTab && <TabsTrigger value="personal"><UserRound className="size-4" aria-hidden="true" /> 개인 기록</TabsTrigger>}</TabsList>{model.hof.exposeHof && <Badge variant="secondary" className="hidden sm:inline-flex">명예의 전당 공개 중</Badge>}</div>
+    <Tabs value={tab} onValueChange={(value) => { setTab(value); if (value === "personal") setPersonId(defaultPersonId); }} className="w-full gap-4"><div className="flex items-center gap-2 border-b"><TabsList variant="line" className="h-auto min-w-0 flex-1 justify-start gap-0 [&_button]:gap-1 [&_button]:px-1 [&_button]:text-xs sm:[&_button]:text-sm [&_svg]:hidden sm:[&_svg]:block"><TabsTrigger value="hof"><Crown className="size-4" aria-hidden="true" /> 명예의 전당</TabsTrigger>{model.permissions.viewIntraStats !== false && <TabsTrigger value="intra"><Swords className="size-4" aria-hidden="true" /> 내전 통계</TabsTrigger>}{model.permissions.viewMatchRecords && <TabsTrigger value="records"><History className="size-4" aria-hidden="true" /> 경기 기록</TabsTrigger>}{showPersonalTab && <TabsTrigger value="personal"><UserRound className="size-4" aria-hidden="true" /> 개인 기록</TabsTrigger>}</TabsList>{model.hof.exposeHof && <Badge variant="secondary" className="hidden sm:inline-flex">명예의 전당 공개 중</Badge>}</div>
       <TabsContent value="hof"><HallOfFame model={model} clanId={clanId} onChoosePerson={choosePerson} settings={settingsFor("hof")} /></TabsContent>
       {model.permissions.viewIntraStats !== false && <TabsContent value="intra"><IntraClanStats model={model} settings={settingsFor("intra")} /></TabsContent>}
       {model.permissions.viewMatchRecords && <TabsContent value="records">{model.deferredDetails
