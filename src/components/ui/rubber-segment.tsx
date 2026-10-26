@@ -51,7 +51,7 @@ export function RubberSegment<T extends string>({ options, value, onChange, labe
     {labelPosition !== "hidden" && <span className="shrink-0 text-[11px] text-muted-foreground">{label}</span>}
     <div ref={viewport} className="min-w-0 max-w-full overflow-x-auto rounded-lg [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <div ref={track} role="radiogroup" aria-label={label} className="relative flex w-max items-center rounded-lg border bg-muted/30 p-[3px]">
-        <span ref={thumb} aria-hidden className={`${styles.thumb} pointer-events-none absolute inset-y-[3px] z-0 rounded-[7px] bg-primary/80 opacity-0 shadow-sm`}>
+        <span ref={thumb} aria-hidden className={`${styles.thumb} pointer-events-none absolute inset-y-[3px] z-0 rounded-[calc(var(--radius-lg)-4px)] bg-primary/80 opacity-0 shadow-sm`}>
           <span key={value} className={`${styles.pulse} block size-full rounded-[inherit]`} />
         </span>
         {options.map((option, i) => <button key={option.id} ref={(node) => { buttons.current[i] = node; }} type="button" role="radio"
@@ -63,7 +63,7 @@ export function RubberSegment<T extends string>({ options, value, onChange, labe
                 : ["ArrowLeft", "ArrowUp"].includes(event.key) ? i - 1 : null;
             if (next !== null) { event.preventDefault(); choose(next); }
           }}
-          className={`relative z-10 min-h-8 min-w-12 whitespace-nowrap rounded-md px-3 text-xs font-semibold tabular-nums transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${i === index ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+          className={`relative z-10 min-h-8 min-w-12 whitespace-nowrap rounded-[calc(var(--radius-lg)-4px)] px-3 text-xs font-semibold tabular-nums transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${i === index ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
           <span className="inline-flex items-center justify-center gap-1.5">
             {option.icon ? <span aria-hidden="true" className="flex items-center justify-center">{option.icon}</span> : option.label}
             {option.badge}
