@@ -436,9 +436,14 @@
   }
 }
 
-.profileHero { max-width:720px; background:var(--card); border:1px solid var(--border); border-radius:22px; overflow:hidden; margin-bottom:28px; }
-.playerIdentity { min-width:0; padding:24px; display:flex; flex-direction:column; align-items:stretch; gap:24px; }
-.identityFacts { padding-bottom:24px; border-bottom:1px solid var(--border); }
+.profileHero { width:100%; background:var(--card); border:1px solid var(--border); border-radius:22px; overflow:hidden; margin-bottom:28px; }
+.playerIdentity { min-width:0; padding:24px; display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); align-items:start; gap:28px; }
+.identityMain,.identityAside { min-width:0; display:flex; flex-direction:column; gap:24px; }
+.identityAside { padding-left:28px; border-left:1px solid var(--border); }
+.identityAside .identityIntro { padding-top:0; border-top:0; }
+.playerIdentity[data-read-only] { grid-template-columns:minmax(0,1fr); }
+.playerIdentity[data-read-only] .identityAside { padding-left:0; border-left:0; }
+.identityFacts { padding-top:20px; border-top:1px solid var(--border); }
 .identityFacts dl { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0; }
 .identityFacts dt { font-size:11px; color:var(--muted-foreground); }
 .identityFacts dd { margin:6px 0 0; font-size:13px; line-height:1.6; font-weight:600; overflow-wrap:anywhere; }
@@ -465,7 +470,7 @@
 .gameClans a:last-child,.gameDiscover { color:var(--primary); font-size:12px; }
 .gameDiscover { display:inline-block; margin-top:18px; }
 .empty a { margin-top:12px; }
-@media(max-width:1000px) { .playerIdentity { padding:24px 20px; } }
+@media(max-width:1000px) { .playerIdentity { grid-template-columns:minmax(0,1fr); padding:24px 20px; } .identityAside { padding:20px 0 0; border-left:0; border-top:1px solid var(--border); } }
 @media(max-width:760px) { .playerIdentity { padding:20px; gap:18px; } .playerEmblems [data-personal-emblem-launcher] { max-width:230px; } .playGames { grid-template-columns:minmax(0,1fr); } }
 @media(max-width:600px) { .profileCard { padding:0; } .profileHero { border-radius:16px; margin-bottom:22px; } .playerIdentity { padding:20px; } .playerClan { margin-top:0; } .detailGrid { gap:18px 14px; } }
 @media(max-width:600px) { .playerSectionLabel { display:none; } .playerClan p { display:inline; margin-left:8px; } }
@@ -523,10 +528,11 @@
 .clanProfileGame { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:8px; font-size:11px; color:var(--muted-foreground); }
 .clanProfileGame small { margin-left:auto; font-size:10px; }
 .clanAccountId { display:grid; gap:5px; margin-top:14px; overflow-wrap:anywhere; }
-.clanAccountId > span { color:var(--muted-foreground); font-size:10px; }
+.clanAccountId > span:not([data-namecard]) { color:var(--muted-foreground); font-size:10px; }
 .clanAccountId > strong { font-size:17px; font-weight:650; line-height:1.5; overflow-wrap:anywhere; }
 @media(max-width:760px) {
   .playerIdentity { padding:16px; gap:16px; }
+  .identityMain,.identityAside { gap:16px; }
   .clanProfiles { gap:8px; }
   .clanProfile { padding:12px; }
   .clanAccountId { margin-top:8px; gap:2px; }

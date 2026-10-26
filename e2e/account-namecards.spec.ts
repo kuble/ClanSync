@@ -16,7 +16,7 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await page.goto("/profile");
     const accountTab = page.getByRole("tab", { name: "계정 정보", exact: true });
     const card = page.getByRole("region", { name: "공통 네임카드", exact: true });
-    await expect(card.getByText("Player#1234", { exact: true })).toBeVisible();
+    await expect(card.locator("[data-namecard]").getByText(battleTag, { exact: true })).toBeVisible();
     await accountTab.click();
     const own = page.getByRole("region", { name: "내 계정", exact: true });
     await expect(own.getByText("표시 이름", { exact: true })).toHaveCount(0);
@@ -80,7 +80,7 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await expect(card.getByText("함께하는 플레이어", { exact: true })).toBeVisible();
     for (const width of [1280, 1074, 390, 320]) {
       await page.setViewportSize({ width, height: 900 });
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     }
     await page.screenshot({ path: test.info().outputPath("account-mobile.png"), fullPage: true });
     await page.setViewportSize({ width: 1280, height: 1000 });
@@ -94,6 +94,12 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await accountTab.click();
     await page.getByRole("button", { name: "발로란트 게임 정보", exact: true }).click();
     await expect(page.getByRole("region", { name: "발로란트 관리", exact: true }).getByText("RiotCard#KR1", { exact: true })).toBeVisible();
+    await page.getByRole("tab", { name: "플레이어 소개", exact: true }).click();
+    await page.getByRole("navigation", { name: "게임별 클랜", exact: true }).getByRole("button", { name: "발로란트", exact: true }).click();
+    const gameCard = page.getByRole("region", { name: "플레이어 소개", exact: true }).getByRole("article").locator("[data-namecard]");
+    await expect(gameCard).toContainText("RiotCard#KR1");
+    await expect(gameCard).toContainText("함께하는 플레이어");
+    await expect(page.getByRole("toolbar", { name: "네임카드 도구", exact: true })).toHaveCount(1);
 
     await page.goto(`/games/overwatch/clan/${f.clanId}/store`);
     await expect(page.getByRole("heading", { name: "함께하는 플레이어", exact: true })).toHaveCount(0);

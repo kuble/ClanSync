@@ -23,9 +23,15 @@ async function expectComposition(page: Page, intro: Locator, width: number) {
   expect(card!.y + card!.height).toBeLessThanOrEqual(facts!.y);
   if (await clans.isVisible()) {
     const cards = await clans.boundingBox();
-    expect(facts!.y + facts!.height).toBeLessThanOrEqual(cards!.y);
-    expect(cards!.y + cards!.height).toBeLessThanOrEqual(summary!.y);
+    expect(cards!.y + cards!.height).toBeLessThanOrEqual(facts!.y);
   }
+  if (width > 1000) {
+    expect(card!.x + card!.width).toBeLessThan(summary!.x);
+    expect(Math.abs(card!.y - summary!.y)).toBeLessThan(48);
+  } else expect(facts!.y + facts!.height).toBeLessThanOrEqual(summary!.y);
+  const hero = await page.getByTestId("profile-hero").boundingBox();
+  const panel = await page.getByRole("tabpanel", { name: "플레이어 소개", exact: true }).boundingBox();
+  expect(Math.abs(hero!.width - panel!.width)).toBeLessThan(2);
 }
 
 test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프로필을 표시한다", async ({ page }, info) => {
@@ -150,6 +156,7 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     await expect(hero.getByRole("heading", { name: user.nickname, level: 1, exact: true })).toHaveCount(0);
     await expect(intro.getByText(battleTag, { exact: true })).toHaveCount(0);
     await expect(intro.locator("[data-personal-emblem-launcher]")).toHaveCount(1);
+    await expect(intro.locator("[data-namecard]").getByText("Player", { exact: true })).toBeVisible();
     await expect(intro).toBeVisible();
     for (const width of [1280, 320]) await expectComposition(page, intro, width);
     expect(pageErrors).toEqual([]);

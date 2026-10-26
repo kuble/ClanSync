@@ -18,7 +18,6 @@ import {
 } from "@/lib/clan/view-alt-disclosure";
 import { AccountShell } from "@/components/onboarding/account-shell";
 import { ProfilePanels } from "@/components/profile/profile-panels";
-import { ProfileNamecard } from "@/components/profile/profile-namecard";
 import { ProfileAutoLogin } from "@/components/profile/profile-auto-login";
 import { loadNamecard } from "@/lib/profile/load-namecard";
 import { profileBattleTag } from "@/lib/game-auth/battle-tag";
@@ -245,8 +244,8 @@ export default async function ProfilePage() {
   return <AccountShell context="프로필"><main className={styles.page}>
     <ProfilePanels overview={
       <div className={styles.profileHero} data-testid="profile-hero">
-      <ProfileIdentity key={`identity:${user.id}`} userId={user.id} intro={intro} memberships={memberships}>
-        <ProfileNamecard key={user.id} initial={namecard} />
+      <ProfileIdentity key={`identity:${user.id}`} userId={user.id} intro={intro} memberships={memberships} namecard={namecard}
+        games={linkedGames.map((game) => ({ gameSlug: game.slug, gameName: game.nameKo, accountId: game.accountId }))}>
         {row && <section className={styles.identityFacts} aria-label="기본 정보"><dl>
           <div><dt>성별</dt><dd>{genderLabel(String(row.gender))}</dd></div>
           <div><dt>출생 연도</dt><dd>{row.birth_year ?? "미등록"}</dd></div>
