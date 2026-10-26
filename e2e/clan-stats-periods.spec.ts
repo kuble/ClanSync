@@ -62,6 +62,7 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     const detailRequests: string[] = [];
     page.on("request", (request) => { if (request.url().includes(`/api/clans/${f.clanId}/stats?`)) detailRequests.push(request.url()); });
     const initialResponse = await page.goto(f.path.replace(/balance$/, "stats"));
+    expect(initialResponse!.status(), page.url()).toBe(200);
     await expect(page.getByText("3경기 이상 출전", { exact: true })).toBeVisible();
     expect(await initialResponse!.text()).not.toContain(rows[0].id);
     expect(detailRequests).toHaveLength(0);
@@ -269,7 +270,7 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     const banner = page.getByRole("region", { name: "플레이어 배너", exact: true });
     const emblems = banner.getByRole("link", { name: f.users[0].nickname + " 엠블럼 케이스 열기", exact: true });
     const caseUrl = await emblems.getAttribute("href");
-    expect(caseUrl).toContain("/emblems?player=");
+    expect(caseUrl).toBe(`/profile/${f.users[0].id}/emblems?clan=${f.clanId}`);
     const casePage = await page.context().newPage();
     try {
       await casePage.goto(caseUrl!);

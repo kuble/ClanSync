@@ -17,11 +17,13 @@ export function ClanNamecardsProvider({ cards, children }: { cards: ClanNamecard
 export function BalanceNamecardMode({ hide, profileLinks = false, children }: { hide: boolean; profileLinks?: boolean; children: ReactNode }) {
   return <HideDecoration.Provider value={hide}><ProfileLinks.Provider value={profileLinks}>{children}</ProfileLinks.Provider></HideDecoration.Provider>;
 }
+export function useClanNamecard(userId?: string | null) {
+  return useContext(Cards)[userId ?? ""];
+}
 export function ClanPlayerNamecard({ userId, fallback }: { userId?: string | null; fallback: string }) {
-  const cards = useContext(Cards);
+  const card = useClanNamecard(userId);
   const hide = useContext(HideDecoration);
   const profileLinks = useContext(ProfileLinks);
-  const card = userId ? cards[userId] : undefined;
   if (!card) return <span className="block truncate text-xs font-bold sm:text-sm">{fallback}</span>;
   const content = hide ? <span data-namecard-plain="true" className="block truncate text-xs font-bold sm:text-sm" title={card.displayName}>{card.displayName}</span> : <Namecard displayName={card.displayName} title={card.title} frame={card.frame} compact />;
   return profileLinks && userId ? <Link href={`/profile/${userId}`} prefetch={false} aria-label={`${card.displayName} 프로필 보기`}

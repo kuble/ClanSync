@@ -1,9 +1,10 @@
 "use client";
 
-import { UserRound } from "lucide-react";
 import Link from "next/link";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
-import { playerProfileDetails, type PlayerProfile } from "@/lib/clan/player-profile";
+import type { PlayerProfile } from "@/lib/clan/player-profile";
+import { useClanNamecard } from "@/components/profile/clan-namecards";
+import { Namecard } from "@/components/profile/namecard";
 import { collectHofEmblems, type HofEmblem } from "@/lib/clan/stats/hof-emblems";
 import { PersonalEmblemCaseLauncher } from "@/components/personal-emblems/personal-emblem-case";
 
@@ -12,15 +13,13 @@ type Hof = ClanStatsPageModel["hof"];
 export function StatsPlayerBanner({ clanId, hof, userId, nickname, profile, awards, showEmblems = true }: {
   clanId: string; showEmblems?: boolean; hof: Hof; userId: string; nickname: string; profile?: PlayerProfile; awards?: HofEmblem[];
 }) {
-  const displayName = profile?.battleTag ?? nickname;
-  const details = playerProfileDetails(profile);
+  const card = useClanNamecard(userId);
+  const displayName = card?.displayName ?? profile?.battleTag ?? "Player";
   const emblems = awards ?? [...collectHofEmblems(hof, userId, "month"), ...collectHofEmblems(hof, userId, "year")];
-  return <section aria-label="플레이어 배너" className="relative isolate flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-primary/20 bg-card px-5 py-5 sm:px-6">
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 rounded-2xl bg-linear-to-r from-primary/15 via-primary/5 to-transparent" />
-    <div className="flex min-w-0 max-w-full items-center gap-4">
-      <span className="grid size-12 shrink-0 place-items-center rounded-xl border border-primary/25 bg-primary/10 text-primary"><UserRound className="size-6" aria-hidden="true" /></span>
-      <div className="min-w-0"><p className="mb-1 text-xs text-muted-foreground">개인 기록</p><h3 className="break-words text-lg font-bold" aria-label={`개인 기록 · ${displayName}`}>{displayName}</h3>{details && <p className="mt-1 text-xs text-muted-foreground">{details}</p>}{profile && !profile.battleTag && <p className="mt-1 text-xs text-muted-foreground">배틀태그 미등록</p>}</div>
-    </div>
-    <div className="flex flex-wrap items-center gap-4"><Link href={`/profile/${userId}`} className="text-xs font-medium text-primary underline-offset-4 hover:underline">미니룸 방문</Link>{showEmblems && <PersonalEmblemCaseLauncher key={clanId + userId} clanId={clanId} userId={userId} nickname={nickname} initialAwards={emblems} />}</div>
+  return <section aria-label="플레이어 배너" className="flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
+    <Link href={`/profile/${userId}`} prefetch={false} aria-label={`${displayName} 프로필 보기`} className="min-w-0 flex-1 basis-48 rounded-xl hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+      <Namecard displayName={displayName} title={card?.title} frame={card?.frame} />
+    </Link>
+    {showEmblems && <div className="ml-auto shrink-0"><PersonalEmblemCaseLauncher key={clanId + userId} clanId={clanId} userId={userId} nickname={nickname} initialAwards={emblems} /></div>}
   </section>;
 }
