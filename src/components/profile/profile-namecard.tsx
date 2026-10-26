@@ -76,7 +76,7 @@ export function ProfileNamecard({ initial, displayName, children }: {
           <div className={styles.designGrid} role="group" aria-label={`네임카드 ${label} 디자인`}>
             {available.map(item => {
               const selected = selectedId === item.id;
-              const name = category === "sub" && item.unlock_source === "default" ? "칭호 없음" : item.name_ko;
+              const name = category === "sub" && item.code.endsWith("-sub-default") ? "칭호 없음" : item.name_ko;
               const preview = namecardAppearance(state.catalog, [...state.selections.filter(selection => selection.category !== category), { category, option_id: item.id }]);
               return <button key={item.id} type="button" className={styles.designOption} aria-label={`${label} ${name} 적용`} aria-pressed={selected} disabled={pending} onClick={() => { if (!selected) void equip(category, item.id); }}>
                 <span aria-hidden="true"><Namecard displayName={displayName} compact {...preview} /></span>

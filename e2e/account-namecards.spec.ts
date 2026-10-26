@@ -84,6 +84,28 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await card.getByRole("button", { name: "네임카드 꾸미기", exact: true }).click();
     const editor = page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true });
     await expect(editor.getByRole("combobox")).toHaveCount(0);
+    const currentCard = editor.getByRole("region", { name: "현재 네임카드", exact: true }).locator("[data-namecard]");
+    await expect(editor.getByRole("group", { name: "네임카드 프레임 디자인", exact: true }).getByRole("button")).toHaveCount(7);
+    await editor.getByRole("button", { name: "프레임 듀얼 라인 적용", exact: true }).click();
+    await expect(editor.getByRole("status")).toContainText("저장했습니다");
+    await expect(currentCard).toHaveAttribute("data-frame", "starter-frame-double");
+    const categories = editor.getByRole("group", { name: "네임카드 꾸미기 분류", exact: true });
+    await categories.getByRole("button", { name: "이름표", exact: true }).click();
+    await expect(editor.getByRole("group", { name: "네임카드 이름표 디자인", exact: true }).getByRole("button")).toHaveCount(7);
+    await editor.getByRole("button", { name: "이름표 오로라 적용", exact: true }).click();
+    await expect(editor.getByRole("status")).toContainText("저장했습니다");
+    await expect(currentCard).toHaveAttribute("data-namebar", "starter-namebar-aurora");
+    await page.screenshot({ path: test.info().outputPath("namecard-starter-backgrounds.png"), fullPage: false });
+    await categories.getByRole("button", { name: "칭호", exact: true }).click();
+    await editor.getByRole("button", { name: "칭호 즐겜러 적용", exact: true }).click();
+    await expect(editor.getByRole("status")).toContainText("저장했습니다");
+    await expect(currentCard).toContainText("즐겜러");
+    const starterProfile = await page.request.get(`/api/player-profiles/${f.users[0].id}`);
+    expect(starterProfile.status()).toBe(200);
+    expect((await starterProfile.json()).profile.appearance).toMatchObject({ title: "즐겜러", frame: "starter-frame-double", namebar: "starter-namebar-aurora" });
+    await editor.getByRole("button", { name: "칭호 칭호 없음 적용", exact: true }).click();
+    await expect(editor.getByRole("status")).toContainText("저장했습니다");
+    await expect(currentCard).toContainText("칭호 없음");
     await expect(editor.getByRole("link", { name: "개인 상점에서 더 보기", exact: true })).toBeVisible();
     const help = editor.getByRole("button", { name: "디자인 선택 안내", exact: true });
     await help.focus();
@@ -141,6 +163,8 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await expect(gameCard).toContainText("RiotCard#KR1");
     await expect(gameCard).toContainText("함께하는 플레이어");
     await expect(gameCard.locator('[data-symbol="symbol-crown"]')).toBeVisible();
+    await expect(gameCard).toHaveAttribute("data-frame", "starter-frame-double");
+    await expect(gameCard).toHaveAttribute("data-namebar", "starter-namebar-aurora");
     await expect(page.getByRole("toolbar", { name: "네임카드 도구", exact: true })).toHaveCount(1);
 
     await page.goto(`/games/overwatch/clan/${f.clanId}/store`);
@@ -159,6 +183,7 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await expect(member.getByTestId("clan-balance-session-panel").locator("[data-namecard]").getByText(battleTag, { exact: true })).toBeVisible();
     await expect(member.getByTestId("clan-balance-session-panel").locator("[data-namecard]").getByText("함께하는 플레이어", { exact: true })).toBeVisible();
     await expect(member.getByTestId("clan-balance-session-panel").locator('[data-namecard] [data-symbol="symbol-crown"]')).toBeVisible();
+    await expect(member.getByTestId("clan-balance-session-panel").locator('[data-namecard][data-frame="starter-frame-double"][data-namebar="starter-namebar-aurora"]')).toBeVisible();
     expect((await f.service.from("balance_sessions").update({ phase: "match_live", resolved_map_label: "부산" }).eq("id", session.id)).error).toBeNull();
     await page.reload();
     await expect(panel.locator("[data-namecard]").getByText(battleTag, { exact: true })).toBeVisible();

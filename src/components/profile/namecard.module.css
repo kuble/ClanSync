@@ -10,6 +10,18 @@
 .identity strong { display:block; font-size:17px; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .identity small { color:var(--muted-foreground); font-size:12px; overflow-wrap:anywhere; }
 .card[data-frame="entrance"] { border-color:#b58a47; box-shadow:inset 0 0 0 2px #b58a4726; }
+.card[data-frame="starter-frame-silver"] { border-color:color-mix(in srgb,var(--foreground) 45%,var(--border)); box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--foreground) 12%,transparent); }
+.card[data-frame="starter-frame-gold"] { border-color:#b58a47; box-shadow:inset 0 0 0 1px #b58a4755; }
+.card[data-frame="starter-frame-ice"] { border-color:#6aa7c4; box-shadow:inset 0 0 0 1px #6aa7c444; }
+.card[data-frame="starter-frame-rose"] { border-color:#b87b97; box-shadow:inset 0 0 0 1px #b87b9744; }
+.card[data-frame="starter-frame-double"] { border-color:var(--primary); box-shadow:inset 0 0 0 3px var(--card),inset 0 0 0 4px color-mix(in srgb,var(--primary) 50%,transparent); }
+.card[data-frame="starter-frame-stitch"] { border-style:dashed; border-color:color-mix(in srgb,var(--foreground) 45%,var(--border)); outline:1px dashed color-mix(in srgb,var(--foreground) 18%,transparent); outline-offset:-5px; }
+.card[data-namebar="starter-namebar-midnight"] { background:color-mix(in srgb,#4b72b4 18%,var(--card)); }
+.card[data-namebar="starter-namebar-forest"] { background:color-mix(in srgb,#327b58 18%,var(--card)); }
+.card[data-namebar="starter-namebar-sunset"] { background:linear-gradient(115deg,color-mix(in srgb,#d47647 22%,var(--card)),color-mix(in srgb,#b15d78 16%,var(--card))); }
+.card[data-namebar="starter-namebar-aurora"] { background:linear-gradient(115deg,color-mix(in srgb,#429b83 24%,var(--card)),color-mix(in srgb,#567ab9 16%,var(--card)),color-mix(in srgb,#9464aa 20%,var(--card))); }
+.card[data-namebar="starter-namebar-checker"] { background-color:var(--card); background-image:conic-gradient(color-mix(in srgb,var(--primary) 10%,transparent) 25%,transparent 0 50%,color-mix(in srgb,var(--primary) 10%,transparent) 0 75%,transparent 0); background-size:20px 20px; }
+.card[data-namebar="starter-namebar-blueprint"] { background-color:color-mix(in srgb,#4b72b4 10%,var(--card)); background-image:linear-gradient(color-mix(in srgb,var(--foreground) 6%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--foreground) 6%,transparent) 1px,transparent 1px); background-size:16px 16px; }
 .card[data-compact="true"] { min-height:44px; border-radius:7px; }
 .card[data-compact="true"] .emblem { flex-basis:30px; }
 .card[data-compact="true"] .identity { padding:6px 8px; gap:2px; }

@@ -8,5 +8,5 @@ export type NamecardResult = { ok: true; state: NamecardState } | { ok: false; e
 export function namecardAppearance(catalog: NamecardOption[], selections: NamecardState["selections"]): NamecardAppearance {
   const selected = (category: NamecardCategory) => catalog.find((option) => option.id === selections.find((item) => item.category === category)?.option_id);
   const title = selected("sub");
-  return { title: title && title.unlock_source !== "default" ? title.name_ko : null, frame: selected("frame")?.code ?? null, namebar: selected("namebar")?.code ?? null, emblem: selected("emblem")?.code ?? null };
+  return { title: title && !title.code.endsWith("-sub-default") ? title.name_ko : null, frame: selected("frame")?.code ?? null, namebar: selected("namebar")?.code ?? null, emblem: selected("emblem")?.code ?? null };
 }

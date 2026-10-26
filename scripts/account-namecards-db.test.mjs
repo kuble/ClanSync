@@ -18,7 +18,7 @@ test("account namecards share one appearance across games and titles debit perso
   let valorantClan;
   t.after(async () => { if (valorantClan) await ok(f.service.from("clans").delete().eq("id", valorantClan)); await Promise.all([owner, member, outsider].map((c) => c.auth.signOut())); await f.cleanup(); });
   await ok(f.service.from("clan_members").delete().eq("clan_id", f.clanId).eq("user_id", f.users[2].id));
-  const catalog = await ok(owner.from("nameplate_options").select("id,game_id,category,code,price_coins,unlock_source"));
+  const catalog = await ok(owner.from("nameplate_options").select("id,game_id,category,code,name_ko,price_coins,unlock_source"));
   const title = catalog.find((item) => item.code === "title-dawn-strategist");
   const free = catalog.find((item) => item.code === "ow-emblem-default");
   const read = (client = member, clanId = f.clanId) => ok(client.rpc("get_clan_namecards", { p_clan_id: clanId }));
@@ -40,12 +40,29 @@ test("account namecards share one appearance across games and titles debit perso
     assert.equal((await ok(owner.from("users").select("coin_balance").eq("id", f.users[0].id).single())).coin_balance, 500);
   });
 
+  await t.test("starter frames, namebars and titles remain free and visible in shared cards", async () => {
+    const starters = catalog.filter(item => item.code.startsWith("starter-"));
+    assert.deepEqual(["frame", "namebar", "sub"].map(category => starters.filter(item => item.category === category).length), [6, 6, 8]);
+    for (const item of starters) {
+      assert.equal(item.unlock_source, "default");
+      assert.equal(item.price_coins, 0);
+      await ok(equip(item.category, item.id));
+      const card = (await read())[f.users[0].id];
+      assert.equal(card[item.category === "sub" ? "title" : item.category], item.category === "sub" ? item.name_ko : item.code);
+    }
+    const emptyTitle = catalog.find(item => item.code === "ow-sub-default");
+    await ok(equip("sub", emptyTitle.id));
+    assert.equal((await read())[f.users[0].id].title, null);
+    assert.deepEqual(await ok(owner.from("user_nameplate_inventory").select("option_id").eq("user_id", f.users[0].id).in("option_id", starters.map(item => item.id))), []);
+    assert.equal((await ok(owner.from("users").select("coin_balance").eq("id", f.users[0].id).single())).coin_balance, 500);
+  });
+
   await t.test("unowned, mismatched and foreign selections are rejected", async () => {
     assert.ok((await equip("sub", title.id)).error);
     assert.ok((await equip("frame", free.id)).error);
     assert.ok((await equip("emblem", free.id, member)).error);
     await ok(equip("emblem", free.id));
-    assert.equal((await ok(owner.from("user_namecard_selections").select("*").eq("user_id", f.users[0].id))).length, 1);
+    assert.equal((await ok(owner.from("user_namecard_selections").select("*").eq("user_id", f.users[0].id).eq("category", "emblem"))).length, 1);
     assert.deepEqual(await ok(member.from("user_namecard_selections").select("*").eq("user_id", f.users[0].id)), []);
   });
   await t.test("concurrent repeat purchases charge once; prices, actor, refunds and inventory cannot be forged", async () => {
