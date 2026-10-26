@@ -30,13 +30,23 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await expect(page.getByRole("button", { name: "발로란트 게임 정보", exact: true })).toBeVisible();
 
     const auto = page.getByRole("switch", { name: "자동 로그인", exact: true });
+    async function toggleAutoLogin(checked: boolean) {
+      // Verify cookie changes on the next request, after the profile tabs remount.
+      await Promise.all([
+        page.waitForResponse(response => response.request().method() === "POST" && new URL(response.url()).pathname === "/profile"),
+        auto.click(),
+      ]);
+      await page.reload();
+      await accountTab.click();
+      await expect(auto).toBeChecked({ checked });
+    }
     await expect(auto).not.toBeChecked();
-    await auto.click(); await expect(auto).toBeChecked();
+    await toggleAutoLogin(true);
     const remembered = (await page.context().cookies()).filter((cookie) => /^sb-.+-auth-token/.test(cookie.name));
     expect(remembered.length).toBeGreaterThan(0);
     for (const cookie of remembered) expect(cookie.expires - Date.now() / 1000).toBeGreaterThan(29 * 86400);
     await page.reload(); await accountTab.click(); await expect(auto).toBeChecked();
-    await auto.click(); await expect(auto).not.toBeChecked();
+    await toggleAutoLogin(false);
     for (const cookie of (await page.context().cookies()).filter((cookie) => /^sb-.+-auth-token/.test(cookie.name))) expect(cookie.expires - Date.now() / 1000).toBeLessThan(86460);
     await page.route("**/profile", (route) => route.request().method() === "POST" ? route.abort("failed") : route.continue());
     await auto.click(); await expect(own.getByRole("alert")).toBeVisible(); await expect(auto).not.toBeChecked();
@@ -73,8 +83,23 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await page.goto("/profile");
     await card.getByRole("button", { name: "네임카드 꾸미기", exact: true }).click();
     const editor = page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true });
-    await editor.getByRole("combobox", { name: "네임카드 칭호", exact: true }).selectOption({ label: "함께하는 플레이어" });
+    await expect(editor.getByRole("combobox")).toHaveCount(0);
+    await editor.getByRole("group", { name: "네임카드 꾸미기 분류", exact: true }).getByRole("button", { name: "칭호", exact: true }).click();
+    const titleDesign = editor.getByRole("button", { name: "칭호 함께하는 플레이어 적용", exact: true });
+    await expect(titleDesign.locator("[data-namecard]")).toContainText(battleTag);
+    await expect(titleDesign.locator("[data-namecard]")).toContainText("함께하는 플레이어");
+    await page.route("**/profile", route => route.request().method() === "POST" ? route.abort("failed") : route.continue());
+    await titleDesign.click();
+    await expect(editor.getByRole("alert")).toBeVisible();
+    await expect(titleDesign).toHaveAttribute("aria-pressed", "false");
+    await expect(editor.getByRole("region", { name: "현재 네임카드", exact: true })).not.toContainText("함께하는 플레이어");
+    await page.unroute("**/profile");
+    await titleDesign.click();
     await expect(editor.getByRole("status")).toContainText("저장했습니다");
+    await expect(titleDesign).toHaveAttribute("aria-pressed", "true");
+    await page.setViewportSize({ width: 320, height: 884 });
+    expect(await editor.evaluate(node => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
+    await page.screenshot({ path: test.info().outputPath("namecard-design-picker-mobile.png"), fullPage: false });
     await page.keyboard.press("Escape");
     await page.reload();
     await expect(card.getByText("함께하는 플레이어", { exact: true })).toBeVisible();
