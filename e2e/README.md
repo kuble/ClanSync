@@ -115,6 +115,8 @@ try {
 - `balance-prematch.spec.ts`: 독립 QA 클랜의 편성 후 밴 설정·타이머 변경, 맵 유형 중복 선택, 두 클라이언트 가중 추첨·공유 결과·자동 영웅 밴, 수동 맵 저장, 초상화 선택·팀별 밴·기권·밴 확정과 경기 시작
 - `balance-member-preference.spec.ts`: 같은 브라우저의 localhost 운영진/127.0.0.1 멤버 로그인 분리·선호 없음/순서 변경/새로고침/프로필 복귀·관리 UI 숨김
 - `profile-role-preference.spec.ts`: 별도 임시 사용자의 프로필 선호 연속 저장·즉시 재편집·실패 시 마지막 확정값 복구
+- `stats-profile-navigation.spec.ts`: 개인 기록 공통 네임카드의 프로필 이동·대상 엠블럼 케이스 분리·키보드/터치·모바일
+- `profile-visibility.spec.ts`: 타 클랜 방문의 공통 외형·연동 게임·미인증/내부 ID 숨김·본인 전용 정보/편집 제외·탈퇴/없는 대상
 - `draw-presentation.spec.ts`: 역할 공개 시간·재접속 진행률·득표 가중 강조·무득표 예외
 - `formation-rules.spec.ts`: 역할 정원·공통 순서·snake 지명·경매 예산/기한/무입찰
 - `roster-autosave.spec.ts`: 빠른 연속 입력·편성 전 flush·동시 저장·연결 실패·revision 충돌·최신 명단 복구
