@@ -56,7 +56,7 @@ test("내전의 출전자·관전자는 네임카드로 프로필을 방문하�
     await profile.focus();
     await profile.press("Enter");
     await expect(memberPage).toHaveURL(profilePath);
-    await expect(memberPage.getByRole("heading", { name: "플레이어 프로필", exact: true })).toBeVisible();
+    await expect(memberPage.getByRole("region", { name: "플레이어 소개", exact: true })).toBeVisible();
     await expect(memberPage.getByRole("tab", { name: "계정 정보", exact: true })).toHaveCount(0);
 
     await spectatorPage.goto(regular.url);

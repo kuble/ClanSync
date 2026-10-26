@@ -485,9 +485,6 @@
 .accountSection > [role="status"] { display:block; min-height:20px; margin-top:8px; }
 .overwatchLogo { width:16px; height:16px; background:currentColor; mask:url('/images/overwatch/logo.svg') center / contain no-repeat; flex:none; }
 .visitorIntro { margin-top:8px; font-size:13px; line-height:1.8; overflow-wrap:anywhere; }
-.visitHeading { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; gap:16px; }
-.visitHeading h1 { font-size:16px; font-weight:650; }
-.visitHeading a { font-size:12px; color:var(--primary); }
 @media(max-width:900px) { .accountLayout { grid-template-columns:minmax(0,1fr); } }
 @media(max-width:600px) { .accountLayout,.accountColumn { gap:16px; } .accountSection,.clanManagement > section { padding:20px; } .topTabs > button { min-width:0; padding-inline:18px; } }
 .accountLayout { grid-template-columns:minmax(0,1.45fr) minmax(280px,.85fr); }

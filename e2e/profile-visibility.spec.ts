@@ -40,6 +40,9 @@ test("프로필은 로그인한 다른 클랜에도 공개하고 계정 정보·
     const response = await visitor.goto(visitUrl), html = await response!.text();
     for (const value of [owner.email, owner.nickname, stored.id, privateId, "private-provider-id", "coinBalance", "auto_login", "birth_year"]) expect(html).not.toContain(value);
     const visitorIntro = visitor.getByRole("region", { name: "한 줄 소개", exact: true }).getByText(intro, { exact: true });
+    await expect(visitor.getByRole("heading", { name: `${battleTag}의 프로필`, exact: true })).toBeVisible();
+    await expect(visitor.getByRole("heading", { name: "플레이어 프로필", exact: true })).toHaveCount(0);
+    await expect(visitor.getByRole("link", { name: "내 프로필", exact: true })).toHaveCount(0);
     await expect(visitorIntro).toBeVisible();
     await expect(visitor.getByRole("article").getByText(battleTag, { exact: true })).toBeVisible();
     await expect(visitor.getByRole("tab", { name: "계정 정보", exact: true })).toHaveCount(0);

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AccountShell } from "@/components/onboarding/account-shell";
 import { ProfileIdentity } from "@/components/profile/profile-identity";
@@ -37,8 +36,8 @@ export default async function PlayerProfilePage({ params }: { params: Promise<{ 
     gameSlug: game.games.slug, gameName: game.games.name_ko,
     accountId: game.is_verified ? (game.games.slug === "overwatch" ? parseBattleTag(game.battle_tag || game.game_uid) : ["valorant", "lol"].includes(game.games.slug) ? game.riot_id : null) : null,
   }] : []);
-  return <AccountShell context="프로필"><main className={styles.page}>
-    <div className={styles.visitHeading}><h1>플레이어 프로필</h1><Link href="/profile">내 프로필</Link></div>
+  const displayName = profile?.memberships.find(membership => membership.accountId)?.accountId || games.find(game => game.accountId)?.accountId || "Player";
+  return <AccountShell context="프로필" profileName={profile ? displayName : undefined}><main className={styles.page}>
     {profile ? <div className={styles.profileHero} data-testid="profile-hero">
       <ProfileIdentity readOnly userId={profile.userId} intro={profile.intro ?? ""} memberships={profile.memberships} games={games} publicAppearance={appearance} />
     </div> : <section className={styles.empty}><h2>방문할 수 없는 프로필입니다</h2><p>존재하지 않거나 더 이상 이용할 수 없는 프로필입니다.</p></section>}
