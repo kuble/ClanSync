@@ -27,6 +27,19 @@ test("account namecards share one appearance across games and titles debit perso
   await ok(f.service.from("users").update({ coin_balance: 500 }).eq("id", f.users[0].id));
   await ok(f.service.from("users").update({ coin_balance: 0 }).eq("id", f.users[1].id));
 
+  await t.test("starter symbols are free and shared without inventory grants", async () => {
+    const symbols = catalog.filter(item => item.code.startsWith("symbol-"));
+    assert.equal(symbols.length, 5);
+    for (const symbol of symbols) {
+      assert.equal(symbol.unlock_source, "default");
+      assert.equal(symbol.price_coins, 0);
+      await ok(equip("emblem", symbol.id));
+      assert.equal((await read())[f.users[0].id].emblem, symbol.code);
+    }
+    assert.deepEqual(await ok(owner.from("user_nameplate_inventory").select("option_id").eq("user_id", f.users[0].id).in("option_id", symbols.map(item => item.id))), []);
+    assert.equal((await ok(owner.from("users").select("coin_balance").eq("id", f.users[0].id).single())).coin_balance, 500);
+  });
+
   await t.test("unowned, mismatched and foreign selections are rejected", async () => {
     assert.ok((await equip("sub", title.id)).error);
     assert.ok((await equip("frame", free.id)).error);

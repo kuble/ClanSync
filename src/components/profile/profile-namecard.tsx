@@ -1,10 +1,10 @@
 "use client";
-import { StatHelp } from "@/components/main-clan/stat-help";
+import { StatHelp, StatTooltip } from "@/components/main-clan/stat-help";
 import { useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { buttonVariants } from "@/components/ui/button-variants";
-import { Check, Pencil, ShoppingBag } from "lucide-react";
+import { Check, Info, Pencil, ShoppingBag } from "lucide-react";
 import { saveNameplateSelectionAction } from "@/app/actions/profile-decorations";
 import { namecardAppearance, type NamecardAppearance, type NamecardCategory, type NamecardOption, type NamecardResult } from "@/lib/profile/namecard";
 import { CLANSYNC_NAMEPLATE_CHANGED } from "@/lib/profile-decoration-sync";
@@ -38,7 +38,7 @@ export function ProfileNamecard({ initial, displayName, children }: {
   function options(category: NamecardCategory) {
     const unique = new Map<string, NamecardOption>();
     for (const option of state!.catalog.filter((item) => item.category === category && (item.unlock_source === "default" || state!.owned.includes(item.id)))) {
-      const key = option.unlock_source === "default" ? "default" : option.name_ko;
+      const key = option.name_ko;
       if (!unique.has(key) || state!.selections.some((item) => item.option_id === option.id)) unique.set(key, option);
     }
     return [...unique.values()];
@@ -84,7 +84,10 @@ export function ProfileNamecard({ initial, displayName, children }: {
               </button>;
             })}
           </div>
-          <p className={styles.note}>보유한 디자인을 실제 네임카드 모습으로 비교할 수 있습니다. <Link href="/store" className="text-primary underline underline-offset-4">개인 상점에서 더 보기</Link></p>
+          <div className={styles.editorTools} role="group" aria-label="꾸미기 안내">
+            <StatTooltip label="디자인 선택 안내" description="보유한 디자인을 실제 네임카드 모습으로 비교할 수 있습니다. 디자인을 누르면 모든 게임에 바로 적용됩니다." className={buttonVariants({ variant: "ghost", size: "icon" })}><Info aria-hidden="true" /></StatTooltip>
+            <Tooltip><TooltipTrigger render={<Link href="/store" aria-label="개인 상점에서 더 보기" className={buttonVariants({ variant: "ghost", size: "icon" })} />}><ShoppingBag aria-hidden="true" /></TooltipTrigger><TooltipContent>개인 상점에서 더 보기</TooltipContent></Tooltip>
+          </div>
           {error && <p role="alert" className={styles.error}>{error}</p>}
           <p role="status" className={styles.note}>{pending ? "네임카드를 저장하는 중…" : status}</p>
         </div>

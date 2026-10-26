@@ -1,5 +1,11 @@
 .card { position:relative; display:flex; align-items:center; min-width:0; width:100%; min-height:84px; border:1px solid color-mix(in srgb,var(--primary) 35%,var(--border)); border-radius:12px; overflow:hidden; background:color-mix(in srgb,var(--primary) 8%,var(--card)); text-align:left; }
 .emblem { align-self:stretch; display:grid; place-items:center; flex:0 0 76px; color:var(--primary); background:color-mix(in srgb,var(--primary) 13%,transparent); }
+.emblem[data-symbol^="symbol-"] { background:color-mix(in srgb,currentColor 12%,transparent); }
+.emblem[data-symbol="symbol-crown"] { color:#dfb957; }
+.emblem[data-symbol="symbol-flame"] { color:#ec9166; }
+.emblem[data-symbol="symbol-bolt"] { color:#80b5e4; }
+.emblem[data-symbol="symbol-star"] { color:#b79bdc; }
+.emblem[data-symbol="symbol-gamepad"] { color:#77c9ac; }
 .identity { display:grid; gap:5px; min-width:0; padding:16px 20px; }
 .identity strong { display:block; font-size:17px; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .identity small { color:var(--muted-foreground); font-size:12px; overflow-wrap:anywhere; }
@@ -34,6 +40,8 @@
 .designCaption strong { min-width:0; overflow-wrap:anywhere; font-weight:600; }
 .designCaption > span { display:inline-flex; align-items:center; flex-shrink:0; gap:4px; color:var(--muted-foreground); font-size:11px; }
 .designOption[aria-pressed="true"] .designCaption > span { color:var(--primary); }
+.editorTools { display:flex; justify-content:flex-end; gap:4px; }
+.editorTools :is(button,a) { min-width:44px; min-height:44px; }
 @media(max-width:600px) { .designGrid { grid-template-columns:minmax(0,1fr); } }
 .shop { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
 .item { display:flex; flex-direction:column; justify-content:space-between; gap:20px; min-width:0; padding:20px; border:1px solid var(--border); border-radius:12px; background:var(--card); }

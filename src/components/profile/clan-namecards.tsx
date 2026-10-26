@@ -27,7 +27,7 @@ export function ClanPlayerNamecard({ userId, fallback }: { userId?: string | nul
   const profileLinks = useContext(ProfileLinks);
   const recordPath = useContext(RecordPath);
   if (!card) return <span className="block truncate text-xs font-bold sm:text-sm">{fallback}</span>;
-  const content = hide ? <span data-namecard-plain="true" className="block truncate text-xs font-bold sm:text-sm" title={card.displayName}>{card.displayName}</span> : <Namecard displayName={card.displayName} title={card.title} frame={card.frame} compact />;
+  const content = hide ? <span data-namecard-plain="true" className="block truncate text-xs font-bold sm:text-sm" title={card.displayName}>{card.displayName}</span> : <Namecard {...card} compact />;
   return profileLinks && userId && recordPath ? <Link href={`${recordPath}?player=${userId}`} prefetch={false} aria-label={`${card.displayName} 프로필 보기`}
     className="block min-w-0 rounded-lg hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     onClick={(event) => event.stopPropagation()}>{content}</Link> : content;

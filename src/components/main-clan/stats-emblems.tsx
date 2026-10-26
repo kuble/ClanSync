@@ -48,7 +48,7 @@ export function StatsPlayerBanner({ gameSlug, clanId, hof, userId, nickname, pro
         <div><dt>클랜 가입일</dt><dd>{profile.clanJoinedAt ? new Date(profile.clanJoinedAt).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "미등록"}</dd></div>
       </dl></section>}
     </ProfileIdentity>
-      : <div className="space-y-4 p-4"><Namecard displayName={displayName} title={card?.title} frame={card?.frame} />{!current?.error && <p role="status" className="text-xs text-muted-foreground">플레이어 소개를 불러오는 중…</p>}{emblemCase}</div>}
+      : <div className="space-y-4 p-4"><Namecard {...card} displayName={displayName} />{!current?.error && <p role="status" className="text-xs text-muted-foreground">플레이어 소개를 불러오는 중…</p>}{emblemCase}</div>}
     {current?.error && <p role="alert" className="px-4 pb-4 text-sm">{current.error}<button className="ml-3 underline" onClick={() => setAttempt(value => value + 1)}>다시 불러오기</button></p>}
   </section>;
 }
