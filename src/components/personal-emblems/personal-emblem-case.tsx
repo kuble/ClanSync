@@ -160,7 +160,7 @@ export function PersonalEmblemCaseLauncher({ clanId = "", userId, nickname, vari
       {contents}
     </Link> : <span key={index} className={className} style={emblem ? socketStyle(emblem) : undefined} data-featured-emblem-reference={reference} title={title}>{contents}</span>;
   });
-  if (variant === "namecard") return <Link href={href} className={cn(styles.launcher, styles.compact, styles.embeddedCase)} data-personal-emblem-launcher aria-label={nickname + " 엠블럼 케이스 열기"}>
+  if (variant === "namecard") return <Link href={href} className={cn(styles.launcher, styles.embeddedCase)} data-personal-emblem-launcher aria-label={nickname + " 엠블럼 케이스 열기"}>
     <span className={cn(caseStyles.case, styles.tray)}><span className={cn(caseStyles.caseGrid, styles.featuredGrid)} role="group" aria-label="대표 엠블럼 3칸">{slots}</span></span>
   </Link>;
   return <div className={cn(styles.launcher, variant === "profile" ? styles.profile : styles.compact)} data-personal-emblem-launcher>

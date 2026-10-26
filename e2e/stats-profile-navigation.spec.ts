@@ -52,11 +52,12 @@ test("개인 기록의 공통 네임카드는 해당 플레이어 소개로, 엠
     await expect(banner.locator("a a")).toHaveCount(0);
     await expect(caseLink).toHaveAttribute("href", `/profile/${player.id}/emblems`);
     const cardBounds = (await namecard.boundingBox())!, caseBounds = (await caseLink.boundingBox())!;
+    expect(caseBounds.width).toBeGreaterThanOrEqual(300);
     const introBounds = (await banner.getByRole("region", { name: "한 줄 소개", exact: true }).boundingBox())!;
     expect(caseBounds.y).toBeGreaterThanOrEqual(introBounds.y + introBounds.height);
     expect(caseBounds.y + caseBounds.height > cardBounds.y + cardBounds.height || caseBounds.x > cardBounds.x + cardBounds.width).toBe(true);
     await page.screenshot({ path: info.outputPath("stats-player-namecard.png"), fullPage: false });
-    await caseLink.click({ position: { x: 2, y: 2 } });
+    await caseLink.click({ position: { x: 6, y: 6 } });
     await expect(page).toHaveURL(new RegExp(`/profile/${player.id}/emblems`));
     await expect(page.getByRole("heading", { name: "엠블럼 케이스", level: 2, exact: true })).toBeVisible();
     const api = await page.request.get("/api/personal-emblems/featured?player=" + player.id);
@@ -79,6 +80,7 @@ test("개인 기록의 공통 네임카드는 해당 플레이어 소개로, 엠
     await expect(caseLink).toBeVisible();
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     const mobileCard = (await namecard.boundingBox())!, mobileCase = (await caseLink.boundingBox())!;
+    expect(mobileCase.width).toBeGreaterThanOrEqual(200);
     expect(mobileCase.height).toBeGreaterThanOrEqual(44);
     expect(mobileCase.y).toBeGreaterThan(mobileCard.y + mobileCard.height);
     expect(mobileCase.y).toBeGreaterThanOrEqual((await banner.getByRole("region", { name: "한 줄 소개", exact: true }).boundingBox())!.y);

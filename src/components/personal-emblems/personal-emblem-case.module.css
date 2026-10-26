@@ -56,8 +56,7 @@
 @media(max-width:359px) { .controls { gap:8px; } }
 @container(min-width:760px) { .pageCase { --emblem-columns:5; } }
 
-.embeddedCase { display:block; border-radius:9px; }
+.embeddedCase { display:block; width:100%; max-width:420px; border-radius:12px; }
 .embeddedCase .tray { display:block; }
 .embeddedCase:hover { filter:brightness(1.1); }
 .embeddedCase:focus-visible { outline:2px solid var(--ring); outline-offset:3px; }
-@media(max-width:600px) { .embeddedCase { width:96px; } .embeddedCase .tray { padding-block:6px; } }

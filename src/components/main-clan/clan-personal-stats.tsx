@@ -18,7 +18,7 @@ import { currentStreak, longestStreak, recordTotals, relationRows, type Personal
 
 import { StatsPeriodFilter } from "./stats-period-filter";
 import { statsPeriodKey, type StatsPeriod } from "@/lib/clan/stats/intra-overview";
-import { OverwatchRoleIcon } from "@/components/ui/overwatch-icons";
+import { OverwatchMapIcon, OverwatchRoleIcon } from "@/components/ui/overwatch-icons";
 const ROLE_OPTIONS = [
   { id: "all", label: "전체" },
   { id: "tank", label: "돌격", icon: <OverwatchRoleIcon role="tank" /> },
@@ -26,7 +26,7 @@ const ROLE_OPTIONS = [
   { id: "sup", label: "지원", icon: <OverwatchRoleIcon role="support" /> },
 ] as const;
 const RESULT_LABEL = { win: "승", draw: "무", loss: "패" } as const;
-const MAP_TYPE_OPTIONS = [{ id: "all", label: "전체" }, ...MAP_TYPES] as const;
+const MAP_TYPE_OPTIONS = [{ id: "all", label: "전체" }, ...MAP_TYPES.map(type => ({ ...type, icon: <OverwatchMapIcon type={type.id} /> }))] as const;
 
 function rate(value: number | null) {
   return value === null ? "기록 없음" : `${value}%`;
@@ -144,14 +144,14 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
             <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <table className="w-full min-w-[400px] text-sm tabular-nums">
                 <thead className="border-b text-xs text-muted-foreground"><tr><th scope="col" className="px-3 py-2 text-left font-semibold">역할</th><th scope="col" className="px-3 py-2 text-right font-semibold">승률</th><th scope="col" className="px-3 py-2 text-right font-semibold">승/무/패</th><th scope="col" className="px-3 py-2 text-right font-semibold">경기</th></tr></thead>
-                <tbody>{roleRows.map((row) => <tr key={row.id} className="border-b last:border-b-0">
+                <tbody>{roleRows.map((row) => <tr key={row.id} className="border-b">
                   <th scope="row" className="px-3 py-2.5 text-left font-semibold"><span className="inline-flex items-center gap-2">{"icon" in row && row.icon}{row.label}</span></th>
                   <td className="px-3 py-2.5 text-right font-semibold">{rate(row.rate)}</td><td className="px-3 py-2.5 text-right">{row.wins}/{row.draws}/{row.losses}</td><td className="px-3 py-2.5 text-right">{row.matches}</td>
                 </tr>)}</tbody>
               </table>
             </div>
           </section>
-          <div className="grid gap-4 border-t pt-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
             <div className="min-w-0"><div className="flex flex-wrap items-center gap-2 text-sm font-semibold"><span>최근 흐름</span><span className={`text-xs ${streak.count ? streak.result === "win" ? "text-team-blue" : "text-team-red" : "text-muted-foreground"}`}>{streak.count ? `${streak.count}연${streak.result === "win" ? "승" : "패"}` : "현재 연속 기록 없음"}</span></div><div className="mt-3 flex flex-wrap gap-1.5">{person.matches.slice(0, 10).map((match) => <span key={match.id} title={`${match.date} ${match.map ?? "맵 미기록"}`} className={`rounded px-2 py-1 text-xs ${match.result === "win" ? "bg-sky-500/15 text-team-blue" : match.result === "loss" ? "bg-rose-500/15 text-team-red" : "bg-muted"}`}>{RESULT_LABEL[match.result]}</span>)}{!person.matches.length && <span className="text-sm text-muted-foreground">기록 없음</span>}</div></div>
             <div className="grid grid-cols-2 gap-3">{([{ label: "최장 연승", row: bestWin }, { label: "최장 연패", row: bestLoss }] as const).map(({ label, row }) => <div key={label} className="min-w-0 rounded-xl border bg-muted/10 p-3"><p className="text-xs text-muted-foreground">{label}</p><strong className="mt-2 block text-lg tabular-nums">{row.count ? `${row.count}경기` : "기록 없음"}</strong></div>)}</div>
           </div>
