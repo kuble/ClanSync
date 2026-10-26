@@ -3,7 +3,7 @@ export type PlayerDemographics = {
   gender: "male" | "female" | "undisclosed" | null;
 };
 
-export type PlayerProfile = PlayerDemographics & { battleTag: string | null };
+export type PlayerProfile = PlayerDemographics & { battleTag: string | null; clanJoinedAt?: string | null };
 
 export function playerProfileDetails(profile?: PlayerDemographics): string {
   if (!profile) return "";

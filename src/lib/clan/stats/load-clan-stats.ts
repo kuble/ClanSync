@@ -556,13 +556,15 @@ async function loadPersonalProfiles(source: StatsSource, ids: string[]) {
   const svc = createServiceRoleClient();
   for (let offset = 0; offset < ids.length; offset += 200) {
     const batch = ids.slice(offset, offset + 200);
-    const [users, games] = await Promise.all([
+    const [users, games, memberships] = await Promise.all([
       svc.from("users").select("id,birth_year,gender").in("id", batch),
       svc.from("user_game_profiles").select("user_id,battle_tag,game_uid").eq("game_id", source.clan.game_id).in("user_id", batch),
+      svc.from("clan_members").select("user_id,joined_at").eq("clan_id", source.clan.id).in("user_id", batch),
     ]);
-    if (users.error || games.error) throw new Error("플레이어 정보를 불러오지 못했습니다.");
+    if (users.error || games.error || memberships.error) throw new Error("플레이어 정보를 불러오지 못했습니다.");
     const tags = new Map(games.data.map((row) => [row.user_id, profileBattleTag(row)]));
-    for (const user of users.data) profiles.set(user.id, { battleTag: tags.get(user.id) ?? null, birthYear: user.birth_year, gender: user.gender });
+    const joined = new Map(memberships.data.map(row => [row.user_id, row.joined_at]));
+    for (const user of users.data) profiles.set(user.id, { battleTag: tags.get(user.id) ?? null, birthYear: user.birth_year, gender: user.gender, clanJoinedAt: joined.get(user.id) ?? null });
   }
   return profiles;
 }

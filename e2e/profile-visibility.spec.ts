@@ -32,7 +32,7 @@ test("통합 소개 API는 로그인 방문자에게 공개 정보만 제공하�
       expect(response.status()).toBe(200);
       expect(response.headers()["cache-control"]).toBe("private, no-store");
       const body = await response.text();
-      for (const value of [owner.email, owner.nickname, "UnverifiedPublic#KR1", "private-provider-id", "coinBalance", "auto_login", "birth_year", "housing", "inventory"])
+      for (const value of [owner.email, owner.nickname, "UnverifiedPublic#KR1", "private-provider-id", "coinBalance", "auto_login", "birth_year", "birthYear", "gender", "clanJoinedAt", "housing", "inventory"])
         expect(body).not.toContain(value);
       return JSON.parse(body).profile;
     }

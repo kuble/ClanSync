@@ -10,6 +10,10 @@ test("개인 기록의 공통 네임카드는 해당 플레이어 소개로, 엠
   async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>) { const r = await query; expect(r.error).toBeNull(); return r.data!; }
   try {
     await ok(f.service.from("user_game_profiles").update({ battle_tag: battleTag }).eq("user_id", player.id).eq("game_id", f.gameId));
+    await ok(f.service.from("users").update({ gender: "female", birth_year: 1998 }).eq("id", player.id));
+    await ok(f.service.from("clan_members").update({ joined_at: "2021-04-05T23:30:00Z" }).eq("clan_id", f.clanId).eq("user_id", player.id));
+    const otherGame = await ok(f.service.from("games").select("id").eq("slug", "valorant").single());
+    await ok(f.service.from("user_game_profiles").insert({ user_id: player.id, game_id: otherGame.id, game_uid: "different-game-provider", riot_id: "OtherGame#KR1", is_verified: true }));
     expect((await f.service.auth.admin.updateUserById(player.id, { user_metadata: { profile_intro: "함께 즐기는 플레이어" } })).error).toBeNull();
     const title = await ok(f.service.from("nameplate_options").select("id,name_ko").eq("code", "title-team-player").single());
     await ok(f.service.from("user_nameplate_inventory").insert({ user_id: player.id, option_id: title.id }));
@@ -33,15 +37,24 @@ test("개인 기록의 공통 네임카드는 해당 플레이어 소개로, 엠
 
     await expect(banner.getByRole("link", { name: "미니룸 방문", exact: true })).toHaveCount(0);
     await expect(banner.getByRole("link", { name: "엠블럼 케이스 보기 →", exact: true })).toHaveCount(0);
-    const caseLink = namecard.getByRole("link", { name: / 엠블럼 케이스 열기$/ });
+    const facts = banner.getByRole("region", { name: "기본 정보", exact: true });
+    await expect(facts.getByRole("term")).toHaveText(["성별", "출생 연도", "클랜 가입일"]);
+    await expect(facts.getByRole("definition")).toHaveText(["여성", "1998", "2021. 4. 6."]);
+    await expect(banner.getByRole("article")).toHaveCount(1);
+    await expect(banner.getByRole("navigation", { name: "게임별 클랜", exact: true })).toHaveCount(0);
+    await expect(banner).not.toContainText("OtherGame#KR1");
+    await expect(banner.getByRole("link", { name: /^BalanceUI-/ })).toHaveCount(0);
+    await expect(banner.getByText("멤버", { exact: true })).toHaveCount(0);
+    await expect(namecard.getByRole("link")).toHaveCount(0);
+    const tray = banner.getByRole("region", { name: "대표 엠블럼", exact: true });
+    const caseLink = tray.getByRole("link", { name: / 엠블럼 케이스 열기$/ });
 
     await expect(banner.locator("a a")).toHaveCount(0);
     await expect(caseLink).toHaveAttribute("href", `/profile/${player.id}/emblems`);
     const cardBounds = (await namecard.boundingBox())!, caseBounds = (await caseLink.boundingBox())!;
-    expect(caseBounds.x).toBeGreaterThan(cardBounds.x + cardBounds.width / 2);
-    expect(caseBounds.x + caseBounds.width).toBeLessThan(cardBounds.x + cardBounds.width);
-    expect(caseBounds.y).toBeGreaterThan(cardBounds.y);
-    expect(caseBounds.y + caseBounds.height).toBeLessThan(cardBounds.y + cardBounds.height);
+    const introBounds = (await banner.getByRole("region", { name: "한 줄 소개", exact: true }).boundingBox())!;
+    expect(caseBounds.y).toBeGreaterThanOrEqual(introBounds.y + introBounds.height);
+    expect(caseBounds.y + caseBounds.height > cardBounds.y + cardBounds.height || caseBounds.x > cardBounds.x + cardBounds.width).toBe(true);
     await page.screenshot({ path: info.outputPath("stats-player-namecard.png"), fullPage: false });
     await caseLink.click({ position: { x: 2, y: 2 } });
     await expect(page).toHaveURL(new RegExp(`/profile/${player.id}/emblems`));
@@ -67,12 +80,16 @@ test("개인 기록의 공통 네임카드는 해당 플레이어 소개로, 엠
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     const mobileCard = (await namecard.boundingBox())!, mobileCase = (await caseLink.boundingBox())!;
     expect(mobileCase.height).toBeGreaterThanOrEqual(44);
-    expect(mobileCase.x + mobileCase.width).toBeLessThan(mobileCard.x + mobileCard.width);
-    expect(mobileCase.y + mobileCase.height).toBeLessThan(mobileCard.y + mobileCard.height);
+    expect(mobileCase.y).toBeGreaterThan(mobileCard.y + mobileCard.height);
+    expect(mobileCase.y).toBeGreaterThanOrEqual((await banner.getByRole("region", { name: "한 줄 소개", exact: true }).boundingBox())!.y);
     await caseLink.tap();
     await expect(page).toHaveURL(new RegExp(`/profile/${player.id}/emblems`));
     await page.goto(statsUrl);
     await expect(identity).toBeVisible();
+    await ok(f.service.from("users").update({ gender: "undisclosed" }).eq("id", player.id));
+    await ok(f.service.from("clan_members").update({ joined_at: null }).eq("clan_id", f.clanId).eq("user_id", player.id));
+    await page.reload();
+    await expect(facts.getByRole("definition")).toHaveText(["비공개", "1998", "미등록"]);
   } finally { await f.cleanup(); }
 });
 
@@ -122,6 +139,7 @@ test("일반 멤버는 개인 기록에 본인부터 진입하고 서버장·운
     await page.goto(statsUrl + "?player=" + f.users[0].id);
     await expect(banner.getByRole("region", { name: "플레이어 소개", exact: true })).toBeVisible();
     await expect(page.getByText("개인 기록 열람이 제한되어 있습니다.", { exact: true })).toBeVisible();
+    await expect(banner.getByRole("region", { name: "기본 정보", exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "멤버 선택", exact: true })).toHaveCount(0);
     expect((await page.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`)).status()).toBe(403);
   } finally { await f.cleanup(); }
