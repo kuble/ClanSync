@@ -525,8 +525,8 @@
 .clanNavigation button[aria-current="page"] { color:var(--primary); background:color-mix(in srgb,var(--primary) 12%,var(--card)); border-color:color-mix(in srgb,var(--primary) 50%,var(--border)); }
 .clanNavigation button:focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
 @media(prefers-reduced-motion:reduce) { .clanTrack { scroll-behavior:auto; } .clanNavigation button { transition:none; } }
-.clanProfileGame { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:8px; font-size:11px; color:var(--muted-foreground); }
-.clanProfileGame small { margin-left:auto; font-size:10px; }
+.clanProfileHeading { display:flex; align-items:baseline; flex-wrap:wrap; gap:8px; }
+.clanProfileHeading small { font-size:10px; color:var(--muted-foreground); }
 .clanAccountId { display:grid; gap:5px; margin-top:14px; overflow-wrap:anywhere; }
 .clanAccountId > span:not([data-namecard]) { color:var(--muted-foreground); font-size:10px; }
 .clanAccountId > strong { font-size:17px; font-weight:650; line-height:1.5; overflow-wrap:anywhere; }

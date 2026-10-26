@@ -47,8 +47,7 @@ export function ProfileIdentity({ userId, intro, memberships, games = [], nameca
           if (index !== null) { event.preventDefault(); showClan(index); }
         }}>
       {profiles.map((membership, index) => <article key={membership.clanId ?? membership.gameSlug} className={styles.clanProfile} aria-label={`${membership.clanName ?? membership.gameName} 클랜 프로필`} aria-roledescription="슬라이드" aria-hidden={index !== current} inert={index !== current}>
-        <div className={styles.clanProfileGame}><GameLogo slug={membership.gameSlug} name={membership.gameName} /><span>{membership.gameName}</span>{membership.role && <small>{membership.role === "leader" ? "클랜장" : membership.role === "officer" ? "운영진" : "멤버"}</small>}</div>
-        {membership.clanId && <Link href={`/games/${membership.gameSlug}/clan/${membership.clanId}`} className={styles.playerClanLink}>{membership.clanName}</Link>}
+        {membership.clanId && <div className={styles.clanProfileHeading}><Link href={`/games/${membership.gameSlug}/clan/${membership.clanId}`} className={styles.playerClanLink}>{membership.clanName}</Link>{membership.role && <small>{membership.role === "leader" ? "클랜장" : membership.role === "officer" ? "운영진" : "멤버"}</small>}</div>}
         <div className={styles.clanAccountId}><span>{membership.gameSlug === "overwatch" ? "배틀태그" : ["valorant", "lol"].includes(membership.gameSlug) ? "라이엇 ID" : "게임 ID"}</span>{appearance ? <Namecard displayName={membership.accountId || "Player"} {...appearance} /> : <strong>{membership.accountId || "게임 계정 미연동"}</strong>}</div>
       </article>)}
       </div>

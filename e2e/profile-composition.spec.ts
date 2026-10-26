@@ -124,7 +124,8 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     await page.keyboard.press("Escape");
     await expect(nameplate).toBeHidden();
     await overviewTab.click();
-    await expect(intro.getByRole("img", { name: "오버워치 로고", exact: true }).first()).toBeVisible();
+    await expect(intro.getByRole("article").getByRole("img", { name: "오버워치 로고", exact: true })).toHaveCount(0);
+    await expect(intro.getByRole("article").getByRole("link").locator("..")).toContainText("클랜장");
 
     for (const width of [1280, 908, 509, 390, 320]) {
       await expectComposition(page, intro, width);
