@@ -91,62 +91,6 @@ export type Database = {
         }
         Relationships: []
       }
-      badges: {
-        Row: {
-          category: Database["public"]["Enums"]["badge_strip_category"]
-          code: string
-          created_at: string
-          description: string
-          game_id: string
-          icon: string
-          id: string
-          is_active: boolean
-          linked_id: string | null
-          name_en: string | null
-          name_ko: string
-          unlock_condition: Json
-          unlock_source: Database["public"]["Enums"]["badge_unlock_kind"]
-        }
-        Insert: {
-          category: Database["public"]["Enums"]["badge_strip_category"]
-          code: string
-          created_at?: string
-          description: string
-          game_id: string
-          icon: string
-          id?: string
-          is_active?: boolean
-          linked_id?: string | null
-          name_en?: string | null
-          name_ko: string
-          unlock_condition?: Json
-          unlock_source: Database["public"]["Enums"]["badge_unlock_kind"]
-        }
-        Update: {
-          category?: Database["public"]["Enums"]["badge_strip_category"]
-          code?: string
-          created_at?: string
-          description?: string
-          game_id?: string
-          icon?: string
-          id?: string
-          is_active?: boolean
-          linked_id?: string | null
-          name_en?: string | null
-          name_ko?: string
-          unlock_condition?: Json
-          unlock_source?: Database["public"]["Enums"]["badge_unlock_kind"]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "badges_game_id_fkey"
-            columns: ["game_id"]
-            isOneToOne: false
-            referencedRelation: "games"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       balance_room_rsvps: {
         Row: {
           response: string
@@ -1548,29 +1492,6 @@ export type Database = {
           },
         ]
       }
-      clan_notification_secrets: {
-        Row: {
-          clan_id: string
-          discord_webhook_url: string
-        }
-        Insert: {
-          clan_id: string
-          discord_webhook_url: string
-        }
-        Update: {
-          clan_id?: string
-          discord_webhook_url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "clan_notification_secrets_clan_id_fkey"
-            columns: ["clan_id"]
-            isOneToOne: true
-            referencedRelation: "clans"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       clan_participant_invites: {
         Row: {
           clan_id: string
@@ -2858,41 +2779,6 @@ export type Database = {
           },
         ]
       }
-      profile_visibility: {
-        Row: {
-          room_public: boolean
-          show_clan: boolean
-          show_emblems: boolean
-          show_games: boolean
-          show_intro: boolean
-          user_id: string
-        }
-        Insert: {
-          room_public?: boolean
-          show_clan?: boolean
-          show_emblems?: boolean
-          show_games?: boolean
-          show_intro?: boolean
-          user_id: string
-        }
-        Update: {
-          room_public?: boolean
-          show_clan?: boolean
-          show_emblems?: boolean
-          show_games?: boolean
-          show_intro?: boolean
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "profile_visibility_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       purchases: {
         Row: {
           approved_by: string | null
@@ -3124,39 +3010,6 @@ export type Database = {
           },
         ]
       }
-      showcase_catalog: {
-        Row: {
-          available: boolean
-          id: string
-          image_path: string | null
-          kind: string
-          name: string
-          sprite: number
-          starter: boolean
-          width: number
-        }
-        Insert: {
-          available?: boolean
-          id: string
-          image_path?: string | null
-          kind: string
-          name: string
-          sprite: number
-          starter?: boolean
-          width: number
-        }
-        Update: {
-          available?: boolean
-          id?: string
-          image_path?: string | null
-          kind?: string
-          name?: string
-          sprite?: number
-          starter?: boolean
-          width?: number
-        }
-        Relationships: []
-      }
       store_items: {
         Row: {
           asset_url: string | null
@@ -3242,88 +3095,6 @@ export type Database = {
           },
           {
             foreignKeyName: "user_alt_accounts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_badge_picks: {
-        Row: {
-          badge_id: string
-          game_id: string
-          slot_index: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          badge_id: string
-          game_id: string
-          slot_index: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          badge_id?: string
-          game_id?: string
-          slot_index?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_badge_picks_badge_id_fkey"
-            columns: ["badge_id"]
-            isOneToOne: false
-            referencedRelation: "badges"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_badge_picks_game_id_fkey"
-            columns: ["game_id"]
-            isOneToOne: false
-            referencedRelation: "games"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_badge_picks_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_badge_unlocks: {
-        Row: {
-          badge_id: string
-          source_detail: Json | null
-          unlocked_at: string
-          user_id: string
-        }
-        Insert: {
-          badge_id: string
-          source_detail?: Json | null
-          unlocked_at?: string
-          user_id: string
-        }
-        Update: {
-          badge_id?: string
-          source_detail?: Json | null
-          unlocked_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_badge_unlocks_badge_id_fkey"
-            columns: ["badge_id"]
-            isOneToOne: false
-            referencedRelation: "badges"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_badge_unlocks_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -3547,117 +3318,6 @@ export type Database = {
           },
         ]
       }
-      user_nameplate_selections: {
-        Row: {
-          category: Database["public"]["Enums"]["nameplate_category"]
-          game_id: string
-          option_id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          category: Database["public"]["Enums"]["nameplate_category"]
-          game_id: string
-          option_id: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          category?: Database["public"]["Enums"]["nameplate_category"]
-          game_id?: string
-          option_id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_nameplate_selections_game_id_fkey"
-            columns: ["game_id"]
-            isOneToOne: false
-            referencedRelation: "games"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_nameplate_selections_option_id_fkey"
-            columns: ["option_id"]
-            isOneToOne: false
-            referencedRelation: "nameplate_options"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_nameplate_selections_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_showcase_inventory: {
-        Row: {
-          acquired_at: string
-          catalog_id: string
-          quantity: number
-          user_id: string
-        }
-        Insert: {
-          acquired_at?: string
-          catalog_id: string
-          quantity?: number
-          user_id: string
-        }
-        Update: {
-          acquired_at?: string
-          catalog_id?: string
-          quantity?: number
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_showcase_inventory_catalog_id_fkey"
-            columns: ["catalog_id"]
-            isOneToOne: false
-            referencedRelation: "showcase_catalog"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_showcase_inventory_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_showcase_libraries: {
-        Row: {
-          document: Json
-          revision: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          document: Json
-          revision?: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          document?: Json
-          revision?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_showcase_libraries_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       users: {
         Row: {
           auto_login: boolean
@@ -3764,14 +3424,6 @@ export type Database = {
         Args: { p_clan_id?: string; p_event_id?: string; p_limit: number }
         Returns: Json
       }
-      claim_discord_poll_notification_batch: {
-        Args: { p_limit: number }
-        Returns: Json
-      }
-      claim_showcase_product: {
-        Args: { p_catalog_id: string }
-        Returns: number
-      }
       clan_active_member_counts: {
         Args: { p_clan_ids: string[] }
         Returns: {
@@ -3872,10 +3524,6 @@ export type Database = {
         Returns: boolean
       }
       finalize_discord_bot_notification: {
-        Args: { p_error: string; p_log_id: string; p_ok: boolean }
-        Returns: undefined
-      }
-      finalize_discord_notification_dispatch: {
         Args: { p_error: string; p_log_id: string; p_ok: boolean }
         Returns: undefined
       }
@@ -4109,10 +3757,6 @@ export type Database = {
         }
         Returns: string
       }
-      save_my_badge_picks: {
-        Args: { p_game_id: string; p_ordered_badge_ids: string[] }
-        Returns: undefined
-      }
       save_my_housing_room: {
         Args: {
           p_floor: string
@@ -4129,10 +3773,6 @@ export type Database = {
       save_round_role_preference: {
         Args: { p_ranking?: string[]; p_round_id: string }
         Returns: undefined
-      }
-      save_showcase_library: {
-        Args: { p_document: Json; p_revision: number }
-        Returns: number
       }
       select_my_clan_join_requests: {
         Args: never
@@ -4306,13 +3946,6 @@ export type Database = {
         | "unknown_email"
         | "locked"
         | "oauth_denied"
-      badge_strip_category:
-        | "battle"
-        | "participation"
-        | "event"
-        | "clan"
-        | "clansync"
-      badge_unlock_kind: "achievement" | "event" | "store"
       balance_match_outcome: "pending" | "team1" | "team2" | "void" | "draw"
       balance_session_phase: "editing" | "map_ban" | "hero_ban" | "match_live"
       board_post_type: "promotion" | "scrim"
@@ -4518,14 +4151,6 @@ export const Constants = {
         "locked",
         "oauth_denied",
       ],
-      badge_strip_category: [
-        "battle",
-        "participation",
-        "event",
-        "clan",
-        "clansync",
-      ],
-      badge_unlock_kind: ["achievement", "event", "store"],
       balance_match_outcome: ["pending", "team1", "team2", "void", "draw"],
       balance_session_phase: ["editing", "map_ban", "hero_ban", "match_live"],
       board_post_type: ["promotion", "scrim"],

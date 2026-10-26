@@ -55,8 +55,9 @@ test("legacy webhook APIs are retired, secrets stay private and users cannot inj
   const args = { p_clan_id: f.clanId, p_enabled: true, p_url: "https://discord.com/api/webhooks/123/isolated_test" };
   expect((await retiredSettings(member, args)).error).not.toBeNull();
   expect((await retiredSettings(leader, args)).error).not.toBeNull();
-  expect((await member.from("clan_notification_secrets").select("*").eq("clan_id", f.clanId)).error).not.toBeNull();
-  expect((await leader.from("clan_notification_secrets").select("*").eq("clan_id", f.clanId)).error).not.toBeNull();
+  const retiredSecrets = (client: Client) => (client as SupabaseClient).from("clan_notification_secrets").select("*").eq("clan_id", f.clanId);
+  expect((await retiredSecrets(member)).error).not.toBeNull();
+  expect((await retiredSecrets(leader)).error).not.toBeNull();
   const settings = await ok(member.from("clan_settings").select("event_notify").eq("clan_id", f.clanId).single());
   expect(JSON.stringify(settings)).not.toContain("isolated_test");
   expect(JSON.stringify(settings)).not.toContain("discord_webhook_url");
@@ -65,7 +66,7 @@ test("legacy webhook APIs are retired, secrets stay private and users cannot inj
     expect((await leader.from("clan_settings").update({ event_notify: { discord_webhook_url: url } }).eq("clan_id", f.clanId)).error).not.toBeNull();
   }
   expect((await retiredSettings(leader, { ...args, p_enabled: false, p_url: undefined })).error).not.toBeNull();
-  expect(await ok(f.service.from("clan_notification_secrets").select("clan_id").eq("clan_id", f.clanId))).toHaveLength(0);
+  expect((await retiredSecrets(f.service)).error).not.toBeNull();
 });
 
 test("alternate accounts require a shared clan for the same game; owners retain access", async () => {

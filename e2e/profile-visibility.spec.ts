@@ -12,7 +12,6 @@ test("프로필은 로그인한 다른 클랜에도 공개하고 계정 정보·
     await ok(f.service.from("clan_members").delete().eq("clan_id", f.clanId).eq("user_id", f.users[1].id));
     await ok(f.service.from("user_game_profiles").update({ battle_tag: battleTag }).eq("user_id", owner.id).eq("game_id", f.gameId));
     expect((await f.service.auth.admin.updateUserById(owner.id, { user_metadata: { profile_intro: intro } })).error).toBeNull();
-    await ok(f.service.from("profile_visibility").insert({ user_id: owner.id, room_public: false, show_intro: false, show_games: false, show_clan: false, show_emblems: false }));
     await ok(f.service.rpc("finalize_clan_personal_emblem_awards", { p_clan_id: f.clanId, p_period_type: "month", p_period_key: "2024-02", p_awards: [{ user_id: owner.id, family: "victory", rank: 1 }] }));
     await ok(f.service.from("account_personal_emblem_picks").insert({ user_id: owner.id, emblem_keys: [f.clanId + ":" + key] }));
     await loginIsolatedBalanceUser(page, owner);

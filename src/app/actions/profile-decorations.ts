@@ -46,24 +46,3 @@ export async function saveNameplateSelectionAction(input: {
   revalidatePath("/profile");
   return { ok: true };
 }
-
-export async function saveBadgePicksAction(input: {
-  gameId: string;
-  orderedBadgeIds: string[];
-}): Promise<ActionResult> {
-  const ids = [...new Set(input.orderedBadgeIds)].slice(0, 5);
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "로그인이 필요합니다." };
-
-  const { error } = await supabase.rpc("save_my_badge_picks", {
-    p_game_id: input.gameId,
-    p_ordered_badge_ids: ids,
-  });
-  if (error) return { ok: false, error: error.message };
-
-  revalidatePath("/profile");
-  return { ok: true };
-}

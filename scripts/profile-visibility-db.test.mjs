@@ -38,15 +38,6 @@ test("signed-in visitors see public profiles without exposing private account or
     assert.deepEqual(await ok(outsider.from("user_housing_inventory").select("id").eq("user_id", userId)), []);
     assert.deepEqual(await ok(outsider.from("user_housing_rooms").select("user_id").eq("user_id", userId)), []);
   });
-  await t.test("retired false preferences no longer hide a profile and authenticated clients cannot edit them", async () => {
-    await ok(f.service.from("profile_visibility").upsert({ user_id: userId, room_public: false, show_intro: false, show_games: false, show_clan: false, show_emblems: false }));
-    assert.equal((await visit()).intro, intro);
-    assert.equal((await visit(owner)).memberships[0].accountId, battleTag);
-    for (const client of [owner, member, outsider]) {
-      assert.equal((await client.from("profile_visibility").select("*")).error?.code, "42501");
-      assert.equal((await client.from("profile_visibility").upsert({ user_id: userId, room_public: false })).error?.code, "42501");
-    }
-  });
   await t.test("each current clan shares its verified game identity and unverified/provider identifiers stay excluded", async () => {
     const game = await ok(f.service.from("games").select("id").eq("slug", "valorant").single());
     const clanId = randomUUID(), riotId = "PublicRiot#QA1";

@@ -64,7 +64,7 @@ Discord 연결은 클랜 관리의 `알림·연동`에서 설정합니다. 기�
 
 QA 게임 ID는 `node scripts/qa-game-identities.mjs`로 미리 확인하고 `--apply`로 허용된 14계정의 비어 있는 ID만 채웁니다. 리더는 `QALeader01#1001`, `QA_Member_02`는 `QAMember02#2002`이며 기존 제공자 ID·코인·방/가구를 보존합니다. 활성 QA 명단을 시드로 다시 만들지 않습니다. [표시 규칙·보정 내역](docs/03-analysis/profile-game-identity-audit-2026-10-23.md). 예전 시연용 표시 이름은 현재 식별 규칙으로 사용하지 않으며 [배너 출처·생성 프롬프트](docs/qa-demo-assets.md)는 참고 자료입니다.
 
-리더의 다중 게임 클랜 카드 확인용 데이터는 `node scripts/add-qa-valorant-profile.mjs`로 미리 확인하고 `--apply`로 추가합니다. `QA_01_Valorant_Clan`과 임시 라이엇 ID `QALeader01#QA1`을 사용하며 QA에서만 인증 완료로 표시합니다. 기존 발로란트 소속·인증 ID는 재사용하고 덮어쓰지 않습니다. 기존 게임 연동·소속·계정/잔액·방/가구·네임카드·공개 설정의 보존을 검증하며 시드는 실행하지 않습니다.
+리더의 다중 게임 클랜 카드 확인용 데이터는 `node scripts/add-qa-valorant-profile.mjs`로 미리 확인하고 `--apply`로 추가합니다. `QA_01_Valorant_Clan`과 임시 라이엇 ID `QALeader01#QA1`을 사용하며 QA에서만 인증 완료로 표시합니다. 기존 발로란트 소속·인증 ID는 재사용하고 덮어쓰지 않습니다. 기존 게임 연동·소속·계정/잔액·방/가구·네임카드의 보존을 검증하며 시드는 실행하지 않습니다.
 
 클랜 페이지 응답 시간은 QA 서버 실행 후 `node scripts/measure-qa-pages.mjs`로 측정합니다. 기존 QA 리더로 홈·로비·통계·이벤트·관리·상점을 3회 요청하며 최초 응답·본문 완료 시간과 압축 해제 후 본문 크기를 출력합니다. 시드·브라우저 렌더 측정은 수행하지 않습니다.
 

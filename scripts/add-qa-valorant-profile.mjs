@@ -38,7 +38,6 @@ const preserved = async () => Promise.all([
   checked(db.from("user_housing_rooms").select("*").eq("user_id", leader.id)),
   checked(db.from("user_housing_inventory").select("*").eq("user_id", leader.id).order("id")),
   checked(db.from("user_namecard_selections").select("*").eq("user_id", leader.id).order("category")),
-  checked(db.from("profile_visibility").select("*").eq("user_id", leader.id)),
   checked(db.from("clans").select("*").in("id", memberships.map((member) => member.clan_id)).order("id")),
 ]);
 console.log(JSON.stringify({ mode: apply ? "apply" : "preview", clan: existingClan?.name ?? demoClanName,
@@ -59,6 +58,6 @@ if (apply) {
   assert.equal(afterMemberships.length, memberships.length + Number(!valorantMembership));
   assert(afterProfiles.some((row) => row.game_id === game.id && row.is_verified && row.riot_id === (existingProfile?.riot_id ?? demoRiotId)));
   assert(afterMemberships.some((row) => row.clan_id === clanId && row.status === "active"));
-  assert.deepEqual(await preserved(), before, "Existing account, coins, clans, room, inventory, namecard and privacy must be preserved");
+  assert.deepEqual(await preserved(), before, "Existing account, coins, clans, room, inventory and namecard must be preserved");
   console.log("Verified Valorant clan/profile addition; existing account, game profiles, memberships, coins and room data preserved.");
 }

@@ -119,7 +119,7 @@ try {
 
 온보딩 계정만 바꾸려면 `.env.e2e.local` 또는 CI에 `E2E_EMAIL`과 `E2E_PASSWORD`를 모두 설정합니다. 환경 확인은 `npm run test:e2e:env-check`, 운영 대상 차단 검증은 `node --test scripts/test-env.test.mjs`입니다. 비밀번호 값은 출력하지 않습니다.
 
-`npm run test:db`는 `scripts/review-db.test.mjs`, `clan-notices-db.test.mjs`, `profile-badge-db.test.mjs`를 순서대로 실행합니다. 동일한 테스트 URL 허용 목록을 사용하고 임시 사용자·클랜·모집·일정을 생성한 뒤 정리합니다. 서비스 RPC 직접 호출 차단, 잔액·게임 인증 위조 거부, RLS, LFG·가입 동시 승인, 알림 재예약, 공지·규칙 권한, 대표 배지 교체의 롤백·동시성을 확인합니다. 별도 앱 서버는 필요 없습니다.
+`npm run test:db`는 서비스 권한·원장·알림·공지와 현재 프로필·엠블럼 등 DB 회귀를 순서대로 실행합니다. 개별 파일은 `package.json`을 참조합니다. 동일한 테스트 URL 허용 목록과 별도 임시 데이터를 사용합니다. 폐기 저장소의 삭제 확인과 현재 계정 꾸미기의 환급은 `scripts/retired-storage-db.test.mjs`로 검증합니다. 별도 앱 서버는 필요 없습니다.
 
 세션·편성 DB 회귀는 `session-round-db.test.mjs`, `formation-db.test.mjs`도 `test:db`에서 실행한다. 동시 저장, 탈퇴·강등, 잘못된 명단, 단계 역행과 마감 이후 변경을 검증한다. 이어서 `role-preferences-db.test.mjs`가 본인 전용 프로필/라운드 선호, 설정 권한·이전 버전 거부, 선호와 편성 시작의 경합, 초기화 후 공개 이력 보존, 다음 라운드 복사 규칙을 임시 데이터로 확인한다.
 

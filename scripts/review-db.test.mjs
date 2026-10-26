@@ -64,7 +64,7 @@ test("review defects: direct API permissions, transactions and notification life
       ["void_personal_store_purchase", { p_actor_id: leader.id, p_context_clan_id: cid, p_purchase_id: randomUUID(), p_reason: "review" }],
       ["dispatch_inapp_notification_batch", { p_limit: 1 }],
       ["expire_open_lfg_posts_batch", { p_limit: 1 }],
-      ["claim_discord_poll_notification_batch", { p_limit: 1 }],
+      ["claim_discord_bot_notification_batch", { p_limit: 1 }],
       ["replace_event_inapp_notifications", { p_event_id: randomUUID(), p_schedule: [] }],
     ];
     for (const client of [anon, ...users.map(u => u.client)]) {
