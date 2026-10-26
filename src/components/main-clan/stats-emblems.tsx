@@ -35,10 +35,10 @@ export function StatsPlayerBanner({ clanId, hof, userId, nickname, profile, awar
   const displayName = card?.displayName ?? profile?.battleTag ?? "Player";
   const emblems = awards ?? [...collectHofEmblems(hof, userId, "month"), ...collectHofEmblems(hof, userId, "year")];
   const accessory = showEmblems ? <PersonalEmblemCaseLauncher key={clanId + userId} variant="namecard" accountWide clanId={clanId} userId={userId} nickname={nickname} initialAwards={emblems} /> : undefined;
-  return <section aria-label="플레이어 배너" className="min-h-36 min-w-0">
-    {current?.identity ? <ProfileIdentity variant="record" readOnly userId={userId} intro={current.identity.intro} memberships={current.identity.memberships}
+  return <section aria-label="플레이어 배너" className="min-h-48 min-w-0 overflow-hidden rounded-xl border bg-card">
+    {current?.identity ? <ProfileIdentity readOnly userId={userId} intro={current.identity.intro} memberships={current.identity.memberships}
       games={current.identity.games} publicAppearance={current.identity.appearance} namecardAccessory={accessory} />
-      : <div className="space-y-2"><Namecard displayName={displayName} title={card?.title} frame={card?.frame}>{accessory}</Namecard>{!current?.error && <p role="status" className="text-xs text-muted-foreground">플레이어 소개를 불러오는 중…</p>}</div>}
-    {current?.error && <p role="alert" className="pb-2 text-sm">{current.error}<button className="ml-3 underline" onClick={() => setAttempt(value => value + 1)}>다시 불러오기</button></p>}
+      : <div className="space-y-4 p-4"><Namecard displayName={displayName} title={card?.title} frame={card?.frame}>{accessory}</Namecard>{!current?.error && <p role="status" className="text-xs text-muted-foreground">플레이어 소개를 불러오는 중…</p>}</div>}
+    {current?.error && <p role="alert" className="px-4 pb-4 text-sm">{current.error}<button className="ml-3 underline" onClick={() => setAttempt(value => value + 1)}>다시 불러오기</button></p>}
   </section>;
 }

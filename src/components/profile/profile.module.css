@@ -539,11 +539,3 @@
 @media(max-width:600px) { .gameHeader { padding:12px; gap:8px; } .gameHeader > button { gap:7px; } .gameContent { padding:4px 12px 16px; } .gameCallout { padding:14px; } }
 
 .sectionHeading > button, .sectionHeader h4 > button, .autoLogin strong > button { min-height:24px; }
-
-.playerIdentity[data-variant="record"] { grid-template-columns:minmax(0,1fr); gap:10px; padding:0; }
-.playerIdentity[data-variant="record"] .identityMain { gap:0; }
-.playerIdentity[data-variant="record"] .identityAside { gap:0; padding:0; border:0; }
-.playerIdentity[data-variant="record"] .clanProfile { padding:0; border:0; border-radius:0; background:transparent; }
-.playerIdentity[data-variant="record"] .clanTrack { border-radius:0; }
-.playerIdentity[data-variant="record"] .clanAccountId { margin-top:8px; }
-.playerIdentity[data-variant="record"] .visitorIntro { margin:0; font-size:12px; line-height:1.6; color:var(--muted-foreground); }

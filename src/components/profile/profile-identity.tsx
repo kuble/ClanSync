@@ -14,8 +14,8 @@ export type ProfileGameIdentity = { gameSlug: string; gameName: string; accountI
 export type ProfileMembership = ProfileGameIdentity & { clanId: string; clanName: string; role: string };
 type ProfileSlide = ProfileGameIdentity & Partial<Pick<ProfileMembership, "clanId" | "clanName" | "role">>;
 
-export function ProfileIdentity({ userId, intro, memberships, games = [], namecard, publicAppearance, readOnly = false, namecardAccessory, variant = "profile", children }: {
-  userId: string; intro: string; memberships: ProfileMembership[]; games?: ProfileGameIdentity[]; namecard?: NamecardResult; publicAppearance?: NamecardAppearance; readOnly?: boolean; namecardAccessory?: ReactNode; variant?: "profile" | "record"; children?: ReactNode;
+export function ProfileIdentity({ userId, intro, memberships, games = [], namecard, publicAppearance, readOnly = false, namecardAccessory, children }: {
+  userId: string; intro: string; memberships: ProfileMembership[]; games?: ProfileGameIdentity[]; namecard?: NamecardResult; publicAppearance?: NamecardAppearance; readOnly?: boolean; namecardAccessory?: ReactNode; children?: ReactNode;
 }) {
   const trackId = useId();
   const track = useRef<HTMLDivElement>(null);
@@ -27,7 +27,7 @@ export function ProfileIdentity({ userId, intro, memberships, games = [], nameca
     if (card) track.current?.scrollTo({ left: card.offsetLeft, behavior: "instant" });
   }
   const gameProfiles = (appearance = publicAppearance, tools?: ReactNode) => profiles.length ? <div className={styles.clanProfiles} role="region" aria-label="클랜 프로필" aria-roledescription="캐러셀">
-      {!namecard && variant !== "record" && <h2 className={styles.identityHeading}>게임 프로필</h2>}
+      {!namecard && <h2 className={styles.identityHeading}>게임 프로필</h2>}
       {profiles.length > 1 && <nav className={styles.clanNavigation} aria-label="게임별 클랜">
         {profiles.map((membership, index) => <button key={membership.clanId ?? membership.gameSlug} type="button"
           aria-label={membership.gameName + (membership.clanName ? " · " + membership.clanName : "")} aria-controls={trackId}
@@ -51,18 +51,18 @@ export function ProfileIdentity({ userId, intro, memberships, games = [], nameca
           {membership.clanId && <div className={styles.clanProfileName}><Link href={`/games/${membership.gameSlug}/clan/${membership.clanId}`} className={styles.playerClanLink}>{membership.clanName}</Link>{membership.role && <small>{membership.role === "leader" ? "클랜장" : membership.role === "officer" ? "운영진" : "멤버"}</small>}</div>}
           {index === current && tools}
         </div>}
-        <div className={styles.clanAccountId}>{variant !== "record" && <span>{membership.gameSlug === "overwatch" ? "배틀태그" : ["valorant", "lol"].includes(membership.gameSlug) ? "라이엇 ID" : "게임 ID"}</span>}<Namecard displayName={membership.accountId || "Player"} {...appearance}>{index === current && namecardAccessory}</Namecard></div>
+        <div className={styles.clanAccountId}><span>{membership.gameSlug === "overwatch" ? "배틀태그" : ["valorant", "lol"].includes(membership.gameSlug) ? "라이엇 ID" : "게임 ID"}</span><Namecard displayName={membership.accountId || "Player"} {...appearance}>{index === current && namecardAccessory}</Namecard></div>
       </article>)}
       </div>
       <span className="sr-only" role="status" aria-label="현재 클랜" aria-live="polite">{current + 1} / {profiles.length}</span>
-    </div> : <div className={styles.playerClan}>{!namecard && variant !== "record" && <h2 className={styles.identityHeading}>게임 프로필</h2>}{tools && <div className={styles.clanProfileHeading}>{tools}</div>}<Namecard displayName="Player" {...appearance}>{namecardAccessory}</Namecard>{!readOnly && <><p>클랜에서 함께한 기록이 이곳에 쌓입니다.</p><Link href="/games" className={styles.playerClanLink}>클랜 찾아보기</Link></>}</div>;
-  return <section className={styles.playerIdentity} data-read-only={readOnly || undefined} data-variant={variant} aria-label="플레이어 소개">
+    </div> : <div className={styles.playerClan}>{!namecard && <h2 className={styles.identityHeading}>게임 프로필</h2>}{tools && <div className={styles.clanProfileHeading}>{tools}</div>}<Namecard displayName="Player" {...appearance}>{namecardAccessory}</Namecard>{!readOnly && <><p>클랜에서 함께한 기록이 이곳에 쌓입니다.</p><Link href="/games" className={styles.playerClanLink}>클랜 찾아보기</Link></>}</div>;
+  return <section className={styles.playerIdentity} data-read-only={readOnly || undefined} aria-label="플레이어 소개">
     <div className={styles.identityMain}>
       {namecard && !readOnly ? <ProfileNamecard initial={namecard} displayName={profiles[current]?.accountId || "Player"}>{gameProfiles}</ProfileNamecard> : gameProfiles()}
       {children}
     </div>
     <div className={styles.identityAside}>
-    <section className={styles.identityIntro} aria-label="한 줄 소개">{variant !== "record" && <h2 className={styles.identityHeading}>한 줄 소개</h2>}{readOnly ? <p className={styles.visitorIntro}>{intro || "아직 작성한 소개가 없습니다."}</p> : <ProfileIntro initialIntro={intro} />}</section>
+    <section className={styles.identityIntro} aria-label="한 줄 소개"><h2 className={styles.identityHeading}>한 줄 소개</h2>{readOnly ? <p className={styles.visitorIntro}>{intro || "아직 작성한 소개가 없습니다."}</p> : <ProfileIntro initialIntro={intro} />}</section>
     {!namecardAccessory && <section className={styles.playerEmblems} aria-label="대표 엠블럼">
       <h2>대표 엠블럼</h2>
       <PersonalEmblemCaseLauncher variant="profile" userId={userId} nickname="플레이어" />

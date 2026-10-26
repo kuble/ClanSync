@@ -26,19 +26,10 @@ test("개인 기록의 공통 네임카드는 해당 플레이어 소개로, 엠
     expect(filterBounds.y + filterBounds.height).toBeLessThanOrEqual(bannerBounds.y);
     const identity = banner.getByRole("region", { name: "플레이어 소개", exact: true });
     await expect(identity).toBeVisible();
-    await expect(identity.getByRole("heading", { name: "게임 프로필", exact: true })).toHaveCount(0);
-    await expect(identity.getByRole("heading", { name: "한 줄 소개", exact: true })).toHaveCount(0);
     await expect(banner.getByRole("link", { name: /프로필 보기$/ })).toHaveCount(0);
     const namecard = banner.locator("[data-namecard]");
     await expect(namecard).toContainText(battleTag);
     await expect(namecard).toContainText(title.name_ko);
-    const clan = (await identity.getByRole("article").getByRole("link", { name: /^BalanceUI-/ }).boundingBox())!, cardTop = (await namecard.boundingBox())!;
-    const intro = (await identity.getByRole("region", { name: "한 줄 소개", exact: true }).boundingBox())!;
-    expect(cardTop.y - clan.y - clan.height).toBeGreaterThanOrEqual(0);
-    expect(cardTop.y - clan.y - clan.height).toBeLessThanOrEqual(12);
-    expect(intro.y - cardTop.y - cardTop.height).toBeGreaterThanOrEqual(0);
-    expect(intro.y - cardTop.y - cardTop.height).toBeLessThanOrEqual(16);
-    expect((await banner.boundingBox())!.height).toBeLessThan(180);
 
     await expect(banner.getByRole("link", { name: "미니룸 방문", exact: true })).toHaveCount(0);
     await expect(banner.getByRole("link", { name: "엠블럼 케이스 보기 →", exact: true })).toHaveCount(0);
