@@ -309,7 +309,7 @@ export function ClanBalanceSessionPanel({
     <BalanceEditorMap key={session.id} gameSlug={gameSlug} clanId={clanId} sessionId={session.id} selectedMap={session.resolved_map_label} canManage={canManage && !busyFormation && !pending} beforeSelect={flushRoster} autoOpen={!formation} /> : null;
 
   return (
-    <BalanceNamecardMode hide={Boolean(canManage && editingScreen)}><div
+    <BalanceNamecardMode hide={Boolean(canManage && editingScreen)} profileLinks={!canManage}><div
       className="space-y-5"
       data-testid="clan-balance-session-panel"
       data-balance-phase={session?.phase ?? "none"}

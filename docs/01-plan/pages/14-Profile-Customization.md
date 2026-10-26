@@ -60,6 +60,7 @@
 
 ## 공개 범위와 데이터
 
+- 내전의 비운영 화면에서 플레이어 네임카드를 누르면 해당 계정의 `/profile/{userId}` 방문 화면을 연다. 프로필 링크는 네임카드 영역에만 적용하며 점수·운영 조작과 분리한다.
 - 로그인 방문자에게 현재 클랜·인증된 게임 ID·한 줄 소개·획득 엠블럼을 기본 공개한다. 별도의 공개 토글이나 공개 설정 저장소는 없다.
 - 이메일·제공자 내부 ID·잔액·계정 정보·편집 권한은 방문 화면에 제공하지 않는다. 누락·탈퇴 계정은 방문 불가, 비로그인 사용자는 로그인 후 원래 경로로 돌아간다.
 - 게임별 꾸미기 선택과 수동 5칸 배지, 과거 공개 설정은 QA DB에서 제거됐다. 현재 테이블은 [스키마](../schema.md)의 계정 공통 선택과 [삭제·보존 감사](../../03-analysis/retired-db-storage-2026-10-26.md)를 기준으로 한다.
@@ -68,6 +69,7 @@
 
 - [본인 프로필](../../../src/app/profile/page.tsx) · [방문](../../../src/app/profile/[userId]/page.tsx) · [소개](../../../src/components/profile/profile-identity.tsx) · [네임카드](../../../src/components/profile/profile-namecard.tsx).
 - [소개·탭·반응형](../../../e2e/profile-composition.spec.ts) · [다중 게임](../../../e2e/profile-game-identities.spec.ts) · [네임카드](../../../e2e/account-namecards.spec.ts) · [공개 방문](../../../e2e/profile-visibility.spec.ts) · [도움말](../../../e2e/profile-account-help.spec.ts).
+- [내전에서 프로필 방문·운영 조작 보존](../../../e2e/balance-profile-navigation.spec.ts).
 - [공개 DB](../../../scripts/profile-visibility-db.test.mjs) · [계정 꾸미기 DB](../../../scripts/account-namecards-db.test.mjs) · [폐기 저장소·환급](../../../scripts/retired-storage-db.test.mjs) · [하우징 DB](../../../scripts/profile-housing-db.test.mjs).
 - [미니룸 조작](../../../e2e/profile-housing-carry.spec.ts) · [드래그](../../../e2e/profile-housing-drag.spec.ts) · [자동 저장](../../../e2e/profile-housing-autosave.spec.ts) · [자동 저장 단위](../../../e2e/housing-autosave.spec.ts).
 
