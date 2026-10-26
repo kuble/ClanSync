@@ -21,6 +21,7 @@ test("진열장: 호버 보관함·필터·놓는 순간 자동 저장·실패 �
     await expect(scene).toBeVisible();await outside();
     const wallpaperLayer=scene.getByTestId("showcase-wallpaper"),frameLayer=scene.getByTestId("showcase-frame");
     await expect(wallpaperLayer).toHaveCSS("filter","none");await expect(frameLayer).toHaveCSS("filter","none");
+    await expect(scene.getByTestId("showcase-recess")).toHaveCSS("pointer-events","none");
     expect(await frameLayer.evaluate(el=>el.previousElementSibling?.getAttribute("data-testid"))).toBe("showcase-wallpaper");
     await expect(frameLayer).toHaveCSS("background-image",/cabinet-frame-focus-v1/);
     const intro=page.getByRole("region",{name:"플레이어 소개",exact:true});
@@ -86,8 +87,8 @@ test("진열장: 호버 보관함·필터·놓는 순간 자동 저장·실패 �
         }
         expect(pixel(changed.data,.25,.8)).not.toEqual(pixel(original.data,.25,.8));
         if(wallpaper==="크림"){
-          // Exposed plaster beside the frame stays light; baked black halos must not return.
-          for(const x of [.1,.9])expect(Math.min(...pixel(changed.data,x,.065))).toBeGreaterThan(180);
+          // The backboard stays cream beyond the intentional wood returns and corner shadows.
+          for(const x of [.15,.85])expect(Math.min(...pixel(changed.data,x,.8))).toBeGreaterThan(160);
         }
       }
     }
@@ -98,6 +99,30 @@ test("진열장: 호버 보관함·필터·놓는 순간 자동 저장·실패 �
     await page.reload();await expect(scene).toHaveClass(/cream/);
     await open("선반");await expect(drawer.getByRole("button",{name:"엇갈림형 선반 적용",exact:true})).toHaveAttribute("aria-pressed","true");
     await page.screenshot({path:info.outputPath("showcase-hover-shelves.png"),fullPage:true});
+    // All four shapes retain their saved rails beneath the deeper visual surfaces.
+    expect((await owner.rpc("claim_showcase_product",{p_catalog_id:"shelf-steps"})).error).toBeNull();
+    await page.reload();
+    for(const [id,name] of [["classic","기본 3단형"],["focus","중앙 강조형"],["offset","엇갈림형"],["steps","계단형"]]){
+      await open("선반");await drawer.getByRole("button",{name:name+" 선반 적용",exact:true}).click();await saved();await outside();
+      const frame=scene.getByRole("button",{name:"산빛 액자 선택",exact:true});
+      const goods=(await frame.boundingBox())!,surface=(await scene.locator('[data-shelf="0"]').boundingBox())!;
+      if(((await read())!.document as ShowcaseDocument).cabinets[0].items.find(i=>i.catalogId==="mountain-frame")!.shelf===0){
+        expect(goods.y+goods.height).toBeGreaterThan(surface.y);
+        expect(goods.y+goods.height).toBeLessThan(surface.y+surface.height*.6);
+      }
+      await page.screenshot({path:info.outputPath(`showcase-depth-${id}.png`),fullPage:true});
+      const board=(await scene.boundingBox())!;
+      await page.mouse.move(goods.x+goods.width/2,goods.y+goods.height/2);await page.mouse.down();
+      await page.mouse.move(board.x+board.width*.6,board.y+board.height*.88,{steps:8});
+      await expect(frame).toHaveClass(/lifted/);await page.mouse.up();await saved();await expect(frame).not.toHaveClass(/lifted/);
+      const moved=((await read())!.document as ShowcaseDocument).cabinets[0].items.find(i=>i.catalogId==="mountain-frame")!;
+      expect(moved.shelf).toBe(2);
+      const bottom=(await scene.locator('[data-shelf="2"]').boundingBox())!,placedFrame=(await frame.boundingBox())!;
+      expect(placedFrame.y+placedFrame.height).toBeGreaterThan(bottom.y);
+      expect(placedFrame.y+placedFrame.height).toBeLessThan(bottom.y+bottom.height*.6);
+      await frame.focus();await page.keyboard.press("ArrowRight");await saved();
+      expect(((await read())!.document as ShowcaseDocument).cabinets[0].items.find(i=>i.catalogId==="mountain-frame")!.x).toBe(Math.min(100,moved.x+2));
+    }
     await open("벽지");await drawer.getByRole("button",{name:"숲빛 벽지 적용",exact:true}).click();await saved();
     await open("장식");await drawer.getByRole("button",{name:"늘어진 이파리 꺼내기",exact:true}).click();await saved();
     await drawer.getByRole("button",{name:"나무 주제 명패 꺼내기",exact:true}).click();await saved();

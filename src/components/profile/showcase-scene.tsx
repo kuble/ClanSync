@@ -4,6 +4,7 @@ import { itemPosition, placementRail, shelfGeometry, type ShowcaseCabinet, type 
 import { showcaseArtRatio, showcaseDisplayWidth } from "@/lib/showcase/art";
 import { ShowcaseArt } from "./showcase-art";
 import { ShowcaseBackdrop } from "./showcase-wallpaper";
+import { ShowcaseShelf } from "./showcase-shelf";
 import styles from "./showcase.module.css";
 
 export function contains(bounds: DOMRect | undefined, x: number, y: number) {
@@ -58,14 +59,14 @@ export function ShowcaseScene({ cabinet, catalog, selected, select, move, sceneR
       const top = position.top + position.width / showcaseArtRatio(product.sprite, product.image_path) * 1.3 * .83;
       return <div key={item.id} aria-hidden="true" data-testid="showcase-light-beam" className={styles.lightBeam} style={{ left: `${position.left}%`, top: `${top}%`, width: `${position.width * 5}%`, height: `${Math.max(5, shelfGeometry(cabinet.template, item.shelf).top - top + 2)}%` }} />;
     })}
-    {[0, 1, 2].map(index => { const shelf = shelfGeometry(cabinet.template, index); return <div key={index} className={styles.shelf} data-shelf={index} style={{ left: `${shelf.left}%`, width: `${shelf.width}%`, top: `${shelf.top}%` }} aria-hidden="true"><svg viewBox="10 148 1180 134" preserveAspectRatio="none"><image href="/images/showcase/shelf-v2.webp" width="1200" height="400" /></svg></div>; })}
+    {[0, 1, 2].map(index => <ShowcaseShelf key={index} template={cabinet.template} index={index} />)}
     {items.map(original => {
       const product = catalog.find(p => p.id === original.catalogId);
       if (!product) return null;
       const item = dragPosition?.id === original.id ? { ...original, ...dragPosition } : original;
       const position = itemPosition(cabinet, item, product);
       const visual = <><ShowcaseArt sprite={product.sprite} imagePath={product.image_path} />{product.kind === "label" && <span className={styles.labelText}>{item.text || "나의 취향"}</span>}</>;
-      const className = `${styles.item} ${styles[product.kind]} ${selected === item.id ? styles.selected : ""} ${item.id === "preview" ? styles.dropPreview : ""}`;
+      const className = `${styles.item} ${styles[product.kind]} ${selected === item.id ? styles.selected : ""} ${item.id === "preview" ? styles.dropPreview : ""} ${dragPosition?.id === item.id ? styles.lifted : ""}`;
       const style = { left: `${position.left}%`, top: `${position.top}%`, width: `${position.width}%`, aspectRatio: showcaseArtRatio(product.sprite, product.image_path), zIndex: (product.kind === "goods" ? 10 : 30) + item.shelf * 10 + item.layer };
       return select && item.id !== "preview" ? <button key={item.id} type="button" className={className} style={style} aria-label={`${product.name} 선택`} aria-pressed={selected === item.id}
         onClick={() => select(item.id)}

@@ -1,23 +1,37 @@
 .container{min-width:0;border:var(--showcase-border,1px solid var(--border));border-radius:var(--showcase-radius,18px);background:var(--profile-panel-background,var(--card));overflow:hidden;align-self:start}
 .heading{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 24px}.heading h2{display:flex;align-items:center;gap:8px;font-size:19px;font-weight:650;overflow-wrap:anywhere}.heading svg{color:#b9945b}.scene{position:relative;isolation:isolate;aspect-ratio:1.3;overflow:hidden;background:#17251b;container-type:inline-size}
 .wallpaper{position:absolute;inset:0;pointer-events:none}
-.frame{position:absolute;inset:0;background:url('/images/showcase/cabinet-frame-classic-v1.webp') center/100% 100% no-repeat;pointer-events:none}
+.frame{position:absolute;inset:0;z-index:1;background:url('/images/showcase/cabinet-frame-classic-v1.webp') center/100% 100% no-repeat;pointer-events:none}
 .focusFrame{background-image:url('/images/showcase/cabinet-frame-focus-v1.webp')}
+.recess{position:absolute;inset:0;pointer-events:none}
+.innerLeft,.innerRight,.innerTop,.innerBottom{position:absolute;background-color:#75401f;background-image:url('/images/showcase/cabinet-frame-classic-v1.webp');background-repeat:no-repeat}
+.innerLeft,.innerRight{top:4%;bottom:6%;width:6%;background-size:2200% 100%;background-position:left center}
+.innerLeft{left:3%;clip-path:polygon(0 0,100% 6%,100% 94%,0 100%);box-shadow:inset -1.1cqw 0 1.6cqw #160b0066}
+.innerRight{right:3%;clip-path:polygon(100% 0,0 6%,0 94%,100% 100%);box-shadow:inset 1.4cqw 0 1.8cqw #160b0090}
+.innerTop,.innerBottom{left:3%;right:3%;background-size:100% 2200%}
+.innerTop{top:4%;height:5.5%;clip-path:polygon(0 0,100% 0,93.6% 100%,6.4% 100%);box-shadow:inset 0 -1.5cqw 1.8cqw #160b0070}
+.innerBottom{bottom:6%;height:5.5%;clip-path:polygon(6.4% 0,93.6% 0,100% 100%,0 100%);background-position:center bottom;box-shadow:inset 0 1cqw 1.2cqw #160b004a}
+.backShadow{position:absolute;inset:9.4% 8.9% 11.3%;box-shadow:inset .7cqw .9cqw 1.8cqw #24130038,inset -.4cqw 0 1.1cqw #24130020}
+.focus .backShadow{inset:7% 9% 7%;border-radius:50% 50% 0 0 / 46% 46% 0 0}
 .wallpaper,.wallpaperSwatch{background-image:url('/images/showcase/wallpaper-grain.svg'),linear-gradient(135deg,#ffffff08,#00000008)}
 .forest{background-color:#19392a}
 .cream{background-color:#eee4cf}
 .midnight{background-color:#242732}
 .ambient{position:absolute;inset:0;background:linear-gradient(0deg,#080b071c,transparent 55%);pointer-events:none}
-.shelf{position:absolute;height:4%;transform:translateY(-26%);filter:drop-shadow(0 1.2cqw .7cqw #05080399);z-index:2;pointer-events:none}
+.shelf{position:absolute;transform:translateY(-15%);filter:drop-shadow(.2cqw .7cqw .65cqw #21100050) drop-shadow(0 .1cqw .1cqw #21100050);z-index:2;pointer-events:none}
 .shelf svg{display:block;width:100%;height:100%;overflow:hidden}
-.focus .shelf[data-shelf="1"]{height:5%}
 .lightBeam{position:absolute;transform:translateX(-50%);z-index:80;pointer-events:none;background:radial-gradient(ellipse 50% 100% at 50% 0,#fff0b89c 0,#ffcd7259 25%,#e7b65b1a 62%,transparent 100%);mask-image:linear-gradient(transparent,#000 12%,#000 80%,transparent);mix-blend-mode:screen}
 .art{display:block;width:100%;height:100%;overflow:hidden;pointer-events:none}
 .customArt{background-size:contain;background-position:center bottom;background-repeat:no-repeat}
-.item{position:absolute;transform:translate(-50%,-100%);border:0;background:transparent;padding:0;filter:drop-shadow(0 .3cqw .22cqw #0a080860)}
-.goods::after{content:"";position:absolute;bottom:-.1cqw;left:9%;right:9%;height:.5cqw;border-radius:50%;background:#08060266;filter:blur(.22cqw);z-index:-1;pointer-events:none}
+.item{position:absolute;transform:translate(-50%,-100%);border:0;background:transparent;padding:0}
+.item>.art{position:relative;z-index:1;filter:drop-shadow(.35cqw .4cqw .3cqw #20100050)}
+.goods>.art{filter:drop-shadow(.6cqw .45cqw .4cqw #20100048)}
+.goods::after{content:"";position:absolute;bottom:-.18cqw;left:8%;right:8%;height:.65cqw;border-radius:50%;background:#1d0e0080;filter:blur(.2cqw);pointer-events:none}
 .goods:has(.customArt){transform:translate(-50%,-90%)}
 .goods:has(.customArt)::after{bottom:10%}
+.lifted>.art{transform:translateY(-.7cqw);filter:drop-shadow(.8cqw 1cqw .7cqw #20100050)}
+.lifted::after{opacity:.35;filter:blur(.45cqw)}
+button.lifted{cursor:grabbing}
 button.item{cursor:grab;touch-action:none}
 .item:focus-visible,.selected{outline:1px solid #efd79e;outline-offset:5px;border-radius:4px}
 .edge{transform:translate(-50%,-5%)}

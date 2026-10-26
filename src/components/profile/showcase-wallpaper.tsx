@@ -6,5 +6,12 @@ export function ShowcaseBackdrop({ template, background }: Pick<ShowcaseCabinet,
   return <>
     <div className={styles.wallpaper+" "+styles[background]} data-testid="showcase-wallpaper" aria-hidden="true" />
     <div className={styles.frame+(template === "focus" ? " "+styles.focusFrame : "")} data-testid="showcase-frame" aria-hidden="true" />
+    <div className={styles.recess} data-testid="showcase-recess" aria-hidden="true">
+      <span className={styles.innerLeft} />
+      <span className={styles.innerRight} />
+      <span className={styles.innerTop} />
+      <span className={styles.innerBottom} />
+      <span className={styles.backShadow} />
+    </div>
   </>;
 }
