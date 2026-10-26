@@ -47,7 +47,7 @@ test("프로필은 로그인한 다른 클랜에도 공개하고 계정 정보·
     await expect(visitor.getByText(intro, { exact: true })).toBeVisible();
     await expect(tray.locator("[data-featured-emblem-reference]")).toHaveCount(1);
     await expect(visitor.getByRole("button", { name: "꾸미기", exact: true })).toHaveCount(0);
-    await expect(visitor.getByRole("img", { name: "작은 여우", exact: true })).toBeVisible();
+    await expect(visitor.getByRole("region", { name: "진열장", exact: true })).toHaveCount(0);
     for (const width of [1023, 320]) {
       await visitor.setViewportSize({ width, height: 884 });
       expect(await visitor.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);

@@ -4,8 +4,6 @@
 
 [서비스 진입 변경 기획](01-plan/entry-experience-redesign.md) → [공통·화면별 상세 설계](02-design/entry-experience/README.md) — 랜딩·로그인·회원가입·게임 선택·게임 인증/재연동·클랜 가입 6개 화면과 이메일 확인·클랜 생성·리더 환영의 구도, 문구, 상태·복귀, 데이터·검증 기준. 검토용 설계안이며 구현 전.
 
-[프로필 취향 진열장 기획](01-plan/profile-showcase.md) — 기본 편집·저장 QA 적용, 무료 기본형 2종, 겹치기·장식·상점 확장·여러 진열장 저장과 비교 시안. 유료 판매·운영 전환 전.
-
 [100명 이하 알파 점검: 디자인 화면 링크·성능 측정·OCR 검토·운영 손익](03-analysis/alpha-review-2026-10-16/README.md) · `node scripts/serve-alpha-review.mjs`로 클릭형 보드를 연다.
 
 테마·모바일 재점검: [테마 전환](../src/components/ui/theme-toggle.tsx) · [라이트 검증](../e2e/light-theme.spec.ts) · [실제 저장 선택을 적용하는 Playwright 프로필](../playwright.light.config.ts) · [검증 범위](03-analysis/alpha-review-2026-10-16/verification.md#라이트-테마모바일-점검).
@@ -18,7 +16,6 @@
 
 | 기능 | 코드 시작점 | 관련 테스트 |
 |---|---|---|
-| 취향 진열장 | [편집·방문](../src/components/profile/profile-showcase.tsx) · [호버 보관함](../src/components/profile/showcase-editor.tsx) · [자동 저장 큐](../src/lib/showcase/autosave.ts) · [배치 규칙](../src/lib/showcase/domain.ts) · [저장·체험 수령](../src/app/actions/profile-showcase.ts) · [상점](../src/components/store/showcase-products.tsx) · [이미지 규격](design/profile-showcase-2026-10-24/assets.md) | [배치·필터·자동 저장·실패·방문·모바일](../e2e/profile-showcase.spec.ts) · [자동 저장 단위](../scripts/showcase-autosave.test.mjs) · [수량·권한·동시 저장·기존 데이터 보존](../scripts/showcase-db.test.mjs) |
 | 개인·클랜 상점 | [개인 상점](../src/app/store/page.tsx) · [클랜 상점](../src/app/games/[gameSlug]/clan/[clanId]/store/page.tsx) · [상품 목록/분류](../src/components/store/store-panels.tsx) · [가구·칭호 구매](../src/components/store/personal-store-products.tsx) | [다중 게임·프레임·공용 잔액 보존](../e2e/personal-store.spec.ts) · [칭호·프로필 장착](../e2e/account-namecards.spec.ts) · [가구 구매·배치·미가입 구매](../e2e/profile-housing.spec.ts) |
 | 플레이어 소개·하우징 | [소개](../src/components/profile/profile-identity.tsx) · [방문](../src/app/profile/[userId]/page.tsx) · [기본 공개 조회](../src/lib/profile/visibility.ts) · [하우징 화면](../src/components/profile/profile-housing.tsx) · [방 자동 저장](../src/lib/housing/autosave.ts) · [입체 방](../src/components/profile/housing-three-scene.ts) · [가구 모델](../src/components/profile/housing-three-models.ts) · [구매·저장](../src/app/actions/profile-housing.ts) · [명세](01-plan/pages/14-Profile-Customization.md) | [공통 카드·칭호·로그인·게임 계정 UI](../e2e/account-namecards.spec.ts) · [공통 카드/칭호 DB](../scripts/account-namecards-db.test.mjs) · [소개·계정 탭·방 통합](../e2e/profile-composition.spec.ts) · [기본 공개·방문 UI](../e2e/profile-visibility.spec.ts) · [제목 도움말·모바일 폭](../e2e/profile-account-help.spec.ts) · [기본 공개 DB/RLS](../scripts/profile-visibility-db.test.mjs) · [구매·편집·입체/간편 보기 UI](../e2e/profile-housing.spec.ts) · [길게 집기·커서·하단 드로워](../e2e/profile-housing-carry.spec.ts) · [마우스·터치 드래그/꺼내기](../e2e/profile-housing-drag.spec.ts) · [방 안 조작·벽 가구·낮/밤](../e2e/profile-housing-room.spec.ts) · [자동 저장 단위](../e2e/housing-autosave.spec.ts) · [재질 보관함·자동 저장·계정 전환](../e2e/profile-housing-autosave.spec.ts) · [금액·권한·동시성 DB](../scripts/profile-housing-db.test.mjs) |
 | 클랜 게시판·사진 앨범 | [목록/입력 규칙](../src/lib/clan/board.ts) · [저장 액션](../src/app/actions/clan-board.ts) · [화면](../src/components/main-clan/clan-board-posts.tsx) · [명세](01-plan/pages/15-Clan-Board.md) | [작성·상태·사진·권한](../e2e/clan-board.spec.ts) · [목록 전송량·배치](../e2e/clan-board-list.spec.ts) · [DB/RLS](../scripts/clan-boards-db.test.mjs) · [공지 이동](../e2e/clan-management.spec.ts) |

@@ -135,7 +135,7 @@
 | D-PROFILE-02 | DECIDED (2026-04-20) | "가입 신청 대기 목록" 데이터 출처·취소 액션 | `clan_join_requests` (D-CLAN-02)에서 본인 `status IN ('pending','approved','rejected')` 필터. pending 항시 노출, approved/rejected는 **7일 후 자동 숨김**. pending 일 때만 "취소" 가능. [§D-PROFILE-02](#d-profile-02--가입-신청-대기-목록-데이터-출처) |
 | D-PROFILE-03 | DECIDED (2026-04-20) | 뱃지 케이스 ↔ 프로필 스트립 동기화 (모달에서 고른 5개가 메인 카드에 반영) | **compact** 픽(5슬롯, dense-from-front · 해제 시 뒤 항목 앞으로 shift). 셀렉터 `[data-badge-strip="{game}"]` + `[data-badge-strip-slot="{i}"]`, 본인 구독 `[data-badge-strip-self]`. 저장 `localStorage` `clansync-mock-badge-picks-v1`, 이벤트 `clansync:badge:picks:changed`. [§D-PROFILE-03](#d-profile-03--뱃지-케이스--프로필-스트립-동기화) |
 | D-PROFILE-04 | DECIDED (2026-04-20) | 뱃지 해금 출처 (스토어 / 업적 / 이벤트) 정의 | `badges.unlock_source enum('achievement','event','store')` + `unlock_condition jsonb` + `linked_id uuid NULL`. store 구매는 **개인 코인만**(클랜 코인 불가). 카테고리 × 출처는 독립 축. [§D-PROFILE-04](#d-profile-04--뱃지-해금-출처) |
-| D-PROFILE-05 | DECIDED (2026-10-24) | 미니룸을 취향 진열장으로 대체 | 기본 3단형·중앙 강조형 무료 제공, 겹치기·선반 장식·상품 확장·여러 구성 저장. **보유 1개당 전체 구성에서 1개만 배치**한다. [기획·QA 반영·미정 정책](profile-showcase.md). 기본 편집·저장 QA 적용, 유료 가격·저장 슬롯 정책·기존 구매품 이전은 후속. |
+| D-PROFILE-05 | REMOVED (2026-10-26) | 진열장 기능 제거 | 사용자 요청으로 본인/방문 프로필의 진열장·보관함·전용 상점·코드·에셋을 제거하고 개발을 종료했다. 기존 미니룸은 별도 경로로 유지한다. [과거 기획](profile-showcase.md). |
 
 ## 랜딩 · 마케팅 (LANDING)
 
