@@ -15,11 +15,11 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await loginIsolatedBalanceUser(member, f.users[1]);
     await page.goto("/profile");
     const accountTab = page.getByRole("tab", { name: "계정 정보", exact: true });
+    const card = page.getByRole("region", { name: "공통 네임카드", exact: true });
+    await expect(card.getByText("Player#1234", { exact: true })).toBeVisible();
     await accountTab.click();
     const own = page.getByRole("region", { name: "내 계정", exact: true });
     await expect(own.getByText("표시 이름", { exact: true })).toHaveCount(0);
-    const card = page.getByRole("region", { name: "공통 네임카드", exact: true });
-    await expect(card.getByText("Player#1234", { exact: true })).toBeVisible();
     const ow = page.getByRole("region", { name: "오버워치 관리", exact: true });
     await expect(ow.getByRole("button", { name: "오버워치 게임 정보", exact: true })).toHaveAttribute("aria-expanded", "false");
     await ow.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
@@ -43,6 +43,7 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await page.unroute("**/profile");
 
     await expect(page.getByRole("button", { name: "칭호 상점", exact: true })).toHaveCount(0);
+    await page.getByRole("tab", { name: "플레이어 소개", exact: true }).click();
     await card.getByRole("link", { name: "개인 상점", exact: true }).click();
     const filters = page.getByRole("group", { name: "개인 꾸미기 분류", exact: true });
     await expect(page.getByRole("heading", { name: "낮은 원목 테이블", exact: true })).toBeVisible();
@@ -70,13 +71,12 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await page.screenshot({ path: test.info().outputPath("personal-store-mobile.png"), fullPage: true });
     await page.setViewportSize({ width: 1280, height: 1000 });
     await page.goto("/profile");
-    await accountTab.click();
     await card.getByRole("button", { name: "네임카드 꾸미기", exact: true }).click();
     const editor = page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true });
     await editor.getByRole("combobox", { name: "네임카드 칭호", exact: true }).selectOption({ label: "함께하는 플레이어" });
     await expect(editor.getByRole("status")).toContainText("저장했습니다");
     await page.keyboard.press("Escape");
-    await page.reload(); await accountTab.click();
+    await page.reload();
     await expect(card.getByText("함께하는 플레이어", { exact: true })).toBeVisible();
     for (const width of [1280, 1074, 390, 320]) {
       await page.setViewportSize({ width, height: 900 });
@@ -84,6 +84,7 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     }
     await page.screenshot({ path: test.info().outputPath("account-mobile.png"), fullPage: true });
     await page.setViewportSize({ width: 1280, height: 1000 });
+    await accountTab.click();
     await ow.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
     await page.screenshot({ path: test.info().outputPath("account-desktop.png"), fullPage: true });
     await page.getByRole("link", { name: "발로란트 계정 연결", exact: true }).click();

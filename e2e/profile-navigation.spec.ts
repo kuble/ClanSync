@@ -15,7 +15,6 @@ test("프로필은 소개·계정 정보와 네임카드 상점·편집 및 엠�
     await expect(page.getByRole("region", { name: "플레이어 소개", exact: true })).toBeVisible();
     await expect(page.getByRole("region", { name: "진열장", exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "보관함", exact: true })).toHaveCount(0);
-    await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
     const card = page.getByRole("region", { name: "공통 네임카드", exact: true });
     const cardTools = card.getByRole("toolbar", { name: "네임카드 도구", exact: true });
     const editCard = cardTools.getByRole("button", { name: "네임카드 꾸미기", exact: true });
@@ -33,12 +32,13 @@ test("프로필은 소개·계정 정보와 네임카드 상점·편집 및 엠�
       await page.mouse.move(0, 0); await editCard.blur();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
       for (const icon of [editCard, cardShop]) { const b = await icon.boundingBox(); expect(b!.width).toBeGreaterThanOrEqual(44); expect(b!.height).toBeGreaterThanOrEqual(44); }
-      await page.screenshot({ path: info.outputPath("profile-icon-account-" + width + ".png") });
+      await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
+      await expect(page.getByRole("region", { name: "내 계정", exact: true })).toBeVisible();
+      await page.screenshot({ path: info.outputPath("profile-account-" + width + ".png") });
       await page.getByRole("tab", { name: "플레이어 소개", exact: true }).click();
       await expect(page.getByRole("region", { name: "플레이어 소개", exact: true })).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
       await page.screenshot({ path: info.outputPath("profile-overview-" + width + ".png") });
-      await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
     }
     await cardShop.click(); await expect(page).toHaveURL(/\/store$/);
     await expect(page.getByRole("heading", { name: "나를 꾸미는 상점", exact: true })).toBeVisible();

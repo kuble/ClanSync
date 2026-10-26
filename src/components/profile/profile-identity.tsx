@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useRef, useState } from "react";
+import { useId, useRef, useState, type ReactNode } from "react";
 import { GameLogo } from "@/components/ui/game-logo";
 import { PersonalEmblemCaseLauncher } from "@/components/personal-emblems/personal-emblem-case";
 import { ProfileIntro } from "./profile-intro";
@@ -9,8 +9,8 @@ import styles from "./profile.module.css";
 
 export type ProfileMembership = { clanId: string; clanName: string; gameSlug: string; gameName: string; role: string; accountId?: string | null };
 
-export function ProfileIdentity({ userId, intro, memberships, readOnly = false }: {
-  userId: string; intro: string; memberships: ProfileMembership[]; readOnly?: boolean;
+export function ProfileIdentity({ userId, intro, memberships, readOnly = false, children }: {
+  userId: string; intro: string; memberships: ProfileMembership[]; readOnly?: boolean; children?: ReactNode;
 }) {
   const trackId = useId();
   const track = useRef<HTMLDivElement>(null);
@@ -21,6 +21,7 @@ export function ProfileIdentity({ userId, intro, memberships, readOnly = false }
     if (card) track.current?.scrollTo({ left: card.offsetLeft, behavior: "instant" });
   }
   return <section className={styles.playerIdentity} aria-label="플레이어 소개">
+    {children}
     {memberships.length ? <div className={styles.clanProfiles} role="region" aria-label="클랜 프로필" aria-roledescription="캐러셀">
       <h2 className={styles.identityHeading}>게임 프로필</h2>
       {memberships.length > 1 && <nav className={styles.clanNavigation} aria-label="게임별 클랜">

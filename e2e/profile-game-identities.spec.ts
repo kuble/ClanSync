@@ -84,6 +84,7 @@ test("게임 이름으로 클랜을 선택하고 모바일·스와이프·키보
     await cdp.detach();
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
     await expect(page.getByText("미리보기용 ID입니다.", { exact: false })).toHaveCount(0);
+    await page.getByRole("tab", { name: "플레이어 소개", exact: true }).click();
     const namecard = page.getByRole("region", { name: "공통 네임카드", exact: true });
     await expect(namecard.getByText("Player#1234", { exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);

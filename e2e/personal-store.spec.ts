@@ -10,6 +10,7 @@ test("개인 상점은 여러 게임 클랜의 공통 잔액을 사용하고 프
     const user = f.users[0];
     const game = await f.service.from("games").select("id").eq("slug", "valorant").single();
     expect(game.error).toBeNull();
+    expect((await f.service.from("user_game_profiles").insert({ user_id: user.id, game_id: game.data!.id, game_uid: `provider:${randomUUID()}`, riot_id: "StorePlayer#1234", is_verified: true })).error).toBeNull();
     expect((await f.service.from("clans").insert({ id: otherClanId, game_id: game.data!.id, name: `StoreUI-${user.id.slice(0, 8)}`, subscription_tier: "free" })).error).toBeNull();
     otherCreated = true;
     expect((await f.service.from("clan_members").insert({ clan_id: otherClanId, user_id: user.id, role: "member", status: "active" })).error).toBeNull();
@@ -35,7 +36,6 @@ test("개인 상점은 여러 게임 클랜의 공통 잔액을 사용하고 프
     const ownedFrame = inventory.data!.find((row) => row.nameplate_options?.code.startsWith("pf_entrance_store:"));
     expect(ownedFrame).toBeDefined();
     await page.getByRole("link", { name: "프로필", exact: true }).click();
-    await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
     await page.getByRole("button", { name: "네임카드 꾸미기", exact: true }).click();
     const editor = page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true });
     await editor.getByRole("combobox", { name: "네임카드 프레임", exact: true }).selectOption(ownedFrame!.option_id);

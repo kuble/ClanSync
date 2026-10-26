@@ -18,8 +18,12 @@ async function expectComposition(page: Page, intro: Locator, width: number) {
   expect(heading!.y + heading!.height).toBeLessThanOrEqual(launcher!.y);
   expect(Math.abs(heading!.x - launcher!.x)).toBeLessThan(1);
   const clans = intro.getByRole("region", { name: "클랜 프로필", exact: true });
+  const card = await intro.getByRole("region", { name: "공통 네임카드", exact: true }).boundingBox();
+  const facts = await intro.getByRole("region", { name: "기본 정보", exact: true }).boundingBox();
+  expect(card!.y + card!.height).toBeLessThanOrEqual(facts!.y);
   if (await clans.isVisible()) {
     const cards = await clans.boundingBox();
+    expect(facts!.y + facts!.height).toBeLessThanOrEqual(cards!.y);
     expect(cards!.y + cards!.height).toBeLessThanOrEqual(summary!.y);
   }
 }
@@ -33,6 +37,7 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
   page.on("pageerror", (error) => pageErrors.push(error.message));
   try {
     expect((await fixture.service.from("user_game_profiles").update({ battle_tag: battleTag }).eq("user_id", user.id).eq("game_id", fixture.gameId)).error).toBeNull();
+    expect((await fixture.service.from("users").update({ gender: "female", birth_year: 1998 }).eq("id", user.id)).error).toBeNull();
     const metadataSetup = await fixture.service.auth.admin.updateUserById(user.id, {
       user_metadata: { profile_composition_sentinel: fixture.clanId },
     });
@@ -41,6 +46,11 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     await page.goto("/profile");
     const hero = page.getByTestId("profile-hero");
     const intro = page.getByRole("region", { name: "플레이어 소개", exact: true });
+    const facts = intro.getByRole("region", { name: "기본 정보", exact: true });
+    await expect(facts).toContainText("여성");
+    await expect(facts).toContainText("1998");
+    await expect(facts.getByRole("term")).toHaveText(["성별", "출생 연도", "가입일"]);
+    await expect(intro.getByRole("region", { name: "공통 네임카드", exact: true })).toBeVisible();
 
     await expect(hero.getByRole("heading", { name: user.nickname, level: 1, exact: true })).toHaveCount(0);
     await expect(hero.getByRole("heading", { name: "플레이어 프로필", exact: true })).toHaveCount(0);
@@ -84,6 +94,8 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     await accountTab.click();
     await expect(settings).toBeVisible();
     await expect(settings.getByText(user.email, { exact: true })).toBeVisible();
+    await expect(settings.getByRole("region", { name: "공통 네임카드", exact: true })).toHaveCount(0);
+    for (const label of ["성별", "출생 연도", "가입일"]) await expect(settings.getByRole("term").filter({ hasText: label })).toHaveCount(0);
     await expect(settings.getByText("자동 로그인", { exact: true })).toBeVisible();
     await expect(settings.getByRole("button", { name: "탈퇴", exact: true })).toBeVisible();
     await expect(settings.getByText("대표 뱃지 (최대 5개)", { exact: true })).toHaveCount(0);
@@ -99,6 +111,7 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
     await page.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
     await expect(page.getByRole("region", { name: "게임별 선호 역할", exact: true })).toBeVisible();
+    await overviewTab.click();
     await page.getByRole("button", { name: "네임카드 꾸미기", exact: true }).click();
     const nameplate = page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true });
     await expect(nameplate).toBeVisible();

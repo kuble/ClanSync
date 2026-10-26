@@ -245,16 +245,20 @@ export default async function ProfilePage() {
   return <AccountShell context="프로필"><main className={styles.page}>
     <ProfilePanels overview={
       <div className={styles.profileHero} data-testid="profile-hero">
-      <ProfileIdentity key={`identity:${user.id}`} userId={user.id} intro={intro} memberships={memberships} />
+      <ProfileIdentity key={`identity:${user.id}`} userId={user.id} intro={intro} memberships={memberships}>
+        <ProfileNamecard key={user.id} initial={namecard} />
+        {row && <section className={styles.identityFacts} aria-label="기본 정보"><dl>
+          <div><dt>성별</dt><dd>{genderLabel(String(row.gender))}</dd></div>
+          <div><dt>출생 연도</dt><dd>{row.birth_year ?? "미등록"}</dd></div>
+          <div><dt>가입일</dt><dd>{row.created_at ? new Date(row.created_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "—"}</dd></div>
+        </dl></section>}
+      </ProfileIdentity>
     </div>
-    } account={<><section className={styles.namecardSection}><ProfileNamecard key={user.id} initial={namecard} /></section><div className={styles.accountLayout}>
+    } account={<div className={styles.accountLayout}>
       <div className={`${styles.accountColumn} ${styles.accountSettings}`}>
         {row ? <section className={`${styles.settingsAccount} ${styles.accountSection}`} aria-label="내 계정"><h2>내 계정</h2><dl className={styles.detailGrid}>
           <div><dt>이메일</dt><dd>{row.email || user.email}</dd></div>
-          <div><dt>출생연도</dt><dd>{row.birth_year ?? "미등록"}</dd></div>
-          <div><dt>성별</dt><dd>{genderLabel(String(row.gender))}</dd></div>
           <div><dt>언어</dt><dd>{({ ko: "한국어", en: "English", ja: "日本語" } as Record<string, string>)[row.language] ?? row.language}</dd></div>
-          <div><dt>가입일</dt><dd>{row.created_at ? new Date(row.created_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "—"}</dd></div>
         </dl><ProfileAutoLogin key={user.id} initial={getSessionMaxAge((await cookies()).getAll()) === REMEMBERED_SESSION_SECONDS} /></section> : <p className={styles.error} role="alert">계정 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>}
         <div className={styles.accountActions}><form action={signOutAction}><Button type="submit" variant="outline" size="sm">로그아웃</Button></form><ProfileDeleteAccountButton /></div>
 
@@ -270,6 +274,6 @@ export default async function ProfilePage() {
           <ProfileJoinRequests rows={joinRequests} loadFailed={joinRequestsFetchFailed} />
         </div>
       </div>
-    </div></>} />
+    </div>} />
   </main></AccountShell>;
 }

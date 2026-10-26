@@ -29,9 +29,12 @@ test("프로필은 로그인한 다른 클랜에도 공개하고 계정 정보·
     const visitUrl = "/profile/" + owner.id;
     const response = await visitor.goto(visitUrl), html = await response!.text();
     for (const value of [owner.email, owner.nickname, stored.id, "coinBalance", "auto_login", "birth_year"]) expect(html).not.toContain(value);
-    await expect(visitor.getByText(intro, { exact: true })).toBeVisible();
+    const visitorIntro = visitor.getByRole("region", { name: "한 줄 소개", exact: true }).getByText(intro, { exact: true });
+    await expect(visitorIntro).toBeVisible();
     await expect(visitor.getByRole("article").getByText(battleTag, { exact: true })).toBeVisible();
     await expect(visitor.getByRole("tab", { name: "계정 정보", exact: true })).toHaveCount(0);
+    await expect(visitor.getByRole("region", { name: "기본 정보", exact: true })).toHaveCount(0);
+    await expect(visitor.getByRole("region", { name: "공통 네임카드", exact: true })).toHaveCount(0);
     const tray = visitor.getByRole("region", { name: "대표 엠블럼", exact: true });
     await expect(tray.locator("[data-featured-emblem-reference]")).toHaveCount(1);
     await tray.getByRole("link", { name: "플레이어 엠블럼 케이스 열기", exact: true }).click();
@@ -43,7 +46,7 @@ test("프로필은 로그인한 다른 클랜에도 공개하고 계정 정보·
     expect(collection.sources.every((source: { emblems: { earned: boolean; progress?: number }[] }) => source.emblems.every(e => e.earned && e.progress === undefined))).toBe(true);
     await ok(f.service.from("clan_members").update({ status: "left" }).eq("user_id", owner.id));
     await visitor.goto(visitUrl);
-    await expect(visitor.getByText(intro, { exact: true })).toBeVisible();
+    await expect(visitorIntro).toBeVisible();
     await expect(tray.locator("[data-featured-emblem-reference]")).toHaveCount(1);
     await expect(visitor.getByRole("button", { name: "꾸미기", exact: true })).toHaveCount(0);
     await expect(visitor.getByRole("region", { name: "진열장", exact: true })).toHaveCount(0);
