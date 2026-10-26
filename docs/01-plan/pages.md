@@ -84,7 +84,7 @@
 | 12 | [12-Clan-Manage.md](./pages/12-Clan-Manage.md) | `/games/[gameSlug]/clan/[clanId]/manage` | 07 가드 + officer+ (구성원 직접 접근은 403 또는 클랜 홈) | officer+ 전체. 구독결제 탭은 leader 전용(D-MANAGE-01) | URL 해시 `#manage` | 가입 요청 처리, 구성원 상세, 권한 변경 |
 | 13 | [13-Clan-Store.md](./pages/13-Clan-Store.md) | `/games/[gameSlug]/clan/[clanId]/store` | 07 가드 | 클랜 풀 결제: leader. 개인 풀 충전·구매: 본인 | URL 해시 `#store` | 코인 충전, 아이템 구매 확인, Premium 업셀 |
 | 08 | [08-MainGame.md](./pages/08-MainGame.md) | `/games/[gameSlug]` | 1) 비로그인 → `/sign-in` · 2) 게임 인증 없음 → `.../auth` (클랜 미가입은 허용) | 스크림 자동 매칭: officer+. 스크림 평판 열람: leader | **`?promoSort=`**(newest/space)·**`?tab=`**(home/promo/lfg/rank/scrim)·목업 레퍼런스 `#…` 등 | 홍보·LFG·순위·스크림 MVP, 게임 허브 전역 알림(`clan_id` null)·LFG 만료 깊링크 |
-| 14 | [14-Profile-Customization.md](./pages/14-Profile-Customization.md) | `/profile` | 비로그인 → `/sign-in` (게임/클랜 가드 없음) | 일부 프리셋: premium | `localStorage.clansync_nameplate_state`, `clansync_badge_case_state` (게임 단위) | 네임카드 케이스, 뱃지 케이스 모달 |
+| 14 | [14-Profile-Customization.md](./pages/14-Profile-Customization.md) | `/profile` | 비로그인 → `/sign-in` (게임/클랜 가드 없음) | 기존 개인 프레임만 Premium 조건 유지 | DB의 계정 공통 네임카드·대표 엠블럼 | 소개·계정 탭, 별도 엠블럼 케이스·미니룸 |
 
 > ※ 위 storage 키는 **목업 전용**. 실제 구현 시 대응 테이블·세션·서버 캐시로 옮긴다. 키 이름은 `mockup/scripts/*.js`의 사용처를 기준으로 한 인용이며, 일부는 정확 매칭이 아닐 수 있어 구현 진입 시 grep로 재확인 필요.
 
@@ -185,8 +185,9 @@ S01 쉘·온보딩·전역 프로필은 아래 파일이 **단일 목업**으로
 - 클랜/개인 코인 풀 · 클랜 꾸미기·개인 꾸미기 탭 · Premium 잠금 카드 · 꾸미기는 **서비스 프리셋만**(업로드 없음).
 
 ### 플레이어 프로필 · 꾸미기 (`/profile`)
-- `mockup/pages/profile.html` + partials(`player-profile-modal`·`badge-case-modal`·`nameplate-case-modal`) + `app.js`: **게임별** 네임카드 미리보기·뱃지 케이스(표시 **최대 5개**·게임 키별 상태). 네임플레이트는 **프리셋만** — 밸런스 경기 화면과 동일 정책(`pages/09-BalanceMaker.md` §참가자 네임플레이트).
-- **실구현(Phase 2)**: 게임별 탭에 **연동 인증 완료** 게임만 부계동(자기신고) 카드 동의·등록 (`user_alt_accounts` · 상세 [`14-Profile-Customization`](./pages/14-Profile-Customization.md)).
+
+- 현재 소개·계정 정보와 로그인 방문, 공통 네임카드·개인 대표 엠블럼을 제공한다. 미니룸은 별도 경로다. [프로필 명세](./pages/14-Profile-Customization.md)를 기준으로 한다.
+- 구 게임별 꾸미기·수동 5칸 배지 목업과 저장소는 제거했다.
 
 ### MainGame (/games/[gameSlug])
 - 클랜 홍보 게시판

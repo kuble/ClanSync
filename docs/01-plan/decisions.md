@@ -131,11 +131,11 @@
 
 | 코드 | 상태 | 항목 | 메모 |
 |------|------|------|------|
-| D-PROFILE-01 | DECIDED (2026-04-20) | 프로필에서 고른 네임플레이트가 BalanceMaker 매치 슬롯에 전파되는 규약 (공통 셀렉터/이벤트) | 셀렉터 `[data-nameplate-preview="{game}"]` + 본인 구독용 `[data-nameplate-self]`. 저장 `localStorage` `clansync-mock-nameplate-state-v1`, 이벤트 `clansync:nameplate:changed`. 같은 탭 내부만 즉시 반영. [§D-PROFILE-01](#d-profile-01--네임플레이트-동기화-규약) |
+| D-PROFILE-01 | DECIDED (2026-10-26 갱신) | 계정 공통 네임카드 | 카테고리별 보유 옵션 한 개를 계정 공통으로 선택한다. 게임 ID·역할은 조회 문맥에서 결합한다. [현재 명세](pages/14-Profile-Customization.md). |
 | D-PROFILE-02 | DECIDED (2026-04-20) | "가입 신청 대기 목록" 데이터 출처·취소 액션 | `clan_join_requests` (D-CLAN-02)에서 본인 `status IN ('pending','approved','rejected')` 필터. pending 항시 노출, approved/rejected는 **7일 후 자동 숨김**. pending 일 때만 "취소" 가능. [§D-PROFILE-02](#d-profile-02--가입-신청-대기-목록-데이터-출처) |
-| D-PROFILE-03 | DECIDED (2026-04-20) | 뱃지 케이스 ↔ 프로필 스트립 동기화 (모달에서 고른 5개가 메인 카드에 반영) | **compact** 픽(5슬롯, dense-from-front · 해제 시 뒤 항목 앞으로 shift). 셀렉터 `[data-badge-strip="{game}"]` + `[data-badge-strip-slot="{i}"]`, 본인 구독 `[data-badge-strip-self]`. 저장 `localStorage` `clansync-mock-badge-picks-v1`, 이벤트 `clansync:badge:picks:changed`. [§D-PROFILE-03](#d-profile-03--뱃지-케이스--프로필-스트립-동기화) |
-| D-PROFILE-04 | DECIDED (2026-04-20) | 뱃지 해금 출처 (스토어 / 업적 / 이벤트) 정의 | `badges.unlock_source enum('achievement','event','store')` + `unlock_condition jsonb` + `linked_id uuid NULL`. store 구매는 **개인 코인만**(클랜 코인 불가). 카테고리 × 출처는 독립 축. [§D-PROFILE-04](#d-profile-04--뱃지-해금-출처) |
-| D-PROFILE-05 | REMOVED (2026-10-26) | 진열장 기능 제거 | 사용자 요청으로 본인/방문 프로필의 진열장·보관함·전용 상점·코드·에셋을 제거하고 개발을 종료했다. 기존 미니룸은 별도 경로로 유지한다. [과거 기획](profile-showcase.md). |
+| D-PROFILE-03 | REMOVED (2026-10-26) | 수동 5칸 배지 제거 | 현재는 계정 공통 대표 엠블럼 3개를 사용한다. [현재 명세](pages/14-Profile-Customization.md). |
+| D-PROFILE-04 | REMOVED (2026-10-26) | 구 배지 해금 저장소 제거 | 현재 개인 엠블럼·클랜 배지의 획득 원장은 보존한다. [삭제·보존 감사](../03-analysis/retired-db-storage-2026-10-26.md). |
+| D-PROFILE-05 | REMOVED (2026-10-26) | 진열장 기능 제거 | 화면·전용 상점·코드·에셋·기획·QA 저장소를 제거했다. 기존 미니룸은 별도 경로로 유지한다. [삭제·보존 감사](../03-analysis/retired-db-storage-2026-10-26.md). |
 
 ## 랜딩 · 마케팅 (LANDING)
 
@@ -1113,43 +1113,9 @@ function selectSingleChip(el, group) {
 
 ### D-PROFILE-01 — 네임플레이트 동기화 규약
 
-**2026-10-23 구매 동선 추가 결정:** 여러 게임·클랜 가입에 관계없이 가구·칭호·프레임은 `/store` 개인 상점에서 계정 공통 개인 코인으로 구매한다. 클랜 상점은 해당 클랜의 공동 아이템 전용이며, 프로필에는 보유 가구 배치·네임카드 장착만 남긴다. 기존 프레임의 Premium 조건과 구매 검증은 유지한다.
+네임카드는 `user_namecard_selections`에서 사용자·카테고리별로 저장한다. 보유 옵션과 카탈로그의 카테고리를 서버에서 검증한다. 게임별 선택 테이블은 제거했다.
 
-**2026-10-23 사용자 결정·QA 개정:** 게임별 선택과 브라우저 목업 저장을 계정 공통 서버 저장(`user_namecard_selections`)으로 대체한다. 기존 보유·원본 선택은 유지하고 카테고리별 최신 선택을 이관한다. 칭호는 개인 코인 구매·공통 장착이며 클랜에서는 전체 배틀태그/라이엇 ID를 사용한다. 편성자에게만 편성 중 장식을 숨기고 다른 참여자와 이후 단계에는 유지한다. 아래 2026-04-20 이벤트·셀렉터는 과거 목업 규약으로 남긴다. [실구현 정책](pages/14-Profile-Customization.md#2026-10-23--공통-네임카드게임별-계정-관리-qa).
-
-- **결정일**: 2026-04-20
-- **요지**: 프로필의 네임플레이트 선택은 4카테고리(emblem/namebar/sub/frame)를 게임별로 저장한다. 목업은 `localStorage`로 영속화하고 **CustomEvent**로 같은 탭 내부 구독자에게 즉시 전파한다. 다른 탭에는 즉시 반영하지 않는다(새 탭 진입 시 localStorage 재로드). BalanceMaker·MainClan에서는 본인 슬롯만 실시간 반영되고, 타 플레이어의 네임플레이트는 Phase 2+ 서버 전파(Supabase Realtime 또는 폴링)로 처리한다.
-
-**공통 규약**
-
-| 항목 | 값 |
-|------|-----|
-| 상태 저장 키 | `localStorage["clansync-mock-nameplate-state-v1"]` |
-| 상태 구조 | `{ ow: { emblem, namebar, sub, frame }, val: { emblem, namebar, sub, frame } }` |
-| 프리뷰 셀렉터 | `[data-nameplate-preview="{game}"]` (기존 유지) |
-| 본인 구독 셀렉터 | 위 셀렉터에 **부가로** `data-nameplate-self` 속성 추가. BalanceMaker·MainClan 본인 행·슬롯에 부여 |
-| 변경 이벤트 | `window.dispatchEvent(new CustomEvent('clansync:nameplate:changed', { detail: { game, state } }))` |
-| 구독 방법 | `window.addEventListener('clansync:nameplate:changed', (e) => { if (e.detail.game === myGame) rerender(); })` |
-| 초기 동기화 | 페이지 로드 시 `mockNameplateRestoreFromStorage()` 호출 → `[data-nameplate-preview][data-nameplate-self]`에 적용 |
-
-**스키마 영향 (운영)**
-
-- `user_nameplate_selections` 신설: `(user_id, game_id, category, option_id)` + `UNIQUE(user_id, game_id, category)`. RLS: 본인만 SELECT/UPDATE.
-- `nameplate_options` (카탈로그): `(id, game_id, category, name, icon_class, unlock_source, linked_id)` — 보유 판정용.
-- `user_nameplate_inventory`: `(user_id, game_id, option_id)` — 사용자가 보유한 옵션.
-
-**적용 범위**
-
-- [profile.html](../../mockup/pages/profile.html) 네임카드 미리보기: `[data-nameplate-preview="ow"]`, `[data-nameplate-preview="val"]`.
-- [main-clan.html](../../mockup/pages/main-clan.html) 구성원 카드 본인 행: 기존 프리뷰에 `data-nameplate-self` 추가.
-- [BalanceMaker](./pages/09-BalanceMaker.md) 매치 슬롯: 본인 슬롯(`data-nameplate-self`)만 로컬 상태 구독. 다른 슬롯은 서버 데이터.
-- 플레이어 모달([player-profile-modal](../../mockup/partials/player-profile-modal.html))에서 본인 ID일 때만 로컬 상태 적용.
-
-**연관 문서**
-
-- [pages/14-Profile-Customization.md §데이터·연동](./pages/14-Profile-Customization.md#데이터연동)
-- [pages/09-BalanceMaker.md §데이터·연동](./pages/09-BalanceMaker.md)
-- [schema.md §user_nameplate_selections](./schema.md)
+현재 프로필·명단·네임카드는 같은 계정 선택을 사용하며 게임 ID·역할을 해당 게임/클랜에서 결합한다. [현재 프로필 명세](pages/14-Profile-Customization.md)와 [스키마](schema.md#user_namecard_selections-계정-공통-선택)를 따른다.
 
 ### D-PROFILE-02 — 가입 신청 대기 목록 데이터 출처
 
@@ -1194,119 +1160,16 @@ ORDER BY r.created_at DESC;
 
 **연관 문서**
 
-- [pages/14-Profile-Customization.md §가입 신청 대기 목록](./pages/14-Profile-Customization.md#가입-신청-대기-목록-d-profile-02)
+- [pages/14-Profile-Customization.md §가입 신청 대기 목록](./pages/14-Profile-Customization.md#계정-정보와-공통-네임카드)
 - [decisions.md §D-CLAN-02](#d-clan-02--클랜-가입-신청-플로우)
 
 ### D-PROFILE-03 — 뱃지 케이스 ↔ 프로필 스트립 동기화
 
-- **결정일**: 2026-04-20
-- **요지**: 뱃지 픽은 **고정 길이 5 · compact(dense-from-front)** 배열로 관리한다. 앞에서부터 순서대로 채우고, 뱃지를 해제하면 **뒷 항목이 앞으로 shift**되어 빈 슬롯이 항상 뒤쪽에 몰린다. 픽 변경은 `localStorage` 저장 + CustomEvent dispatch로 프로필 스트립 + MainClan 본인 행 + BalanceMaker 본인 슬롯에 즉시 반영된다.
-
-> 초기안은 sparse(slot_index 고정·중간 null 허용)였으나, 2026-04-20 검토에서 UX 혼란(빈 슬롯이 중간에 생겨 사용자가 재배치를 강제로 의식해야 함)을 이유로 **compact로 정정**했다. 실제 스트립은 앞쪽이 우선 노출되므로 "앞쪽 = 중요한 뱃지"라는 사용자 직관과도 일치한다.
-
-**공통 규약**
-
-| 항목 | 값 |
-|------|-----|
-| 상태 저장 키 | `localStorage["clansync-mock-badge-picks-v1"]` |
-| 상태 구조 | `{ ow: [id, id, id, id, id], val: [...] }` — 항상 길이 5, **앞쪽부터 연속**으로 채우고 남는 뒤쪽은 `null` |
-| 불변식 | 배열 중간에 `null`이 나오면 비정규 상태. 다음 저장·로드 시 자동으로 compact 정규화 |
-| 스트립 컨테이너 셀렉터 | `[data-badge-strip="{game}"]` |
-| 스트립 슬롯 셀렉터 | `[data-badge-strip-slot="{0..4}"]` |
-| 본인 구독 셀렉터 | 컨테이너에 `data-badge-strip-self` 속성 추가 |
-| 변경 이벤트 | `window.dispatchEvent(new CustomEvent('clansync:badge:picks:changed', { detail: { game, picks } }))` |
-
-**Compact 규칙**
-
-- **추가**: 현재 채워진 개수(= 첫 `null` 인덱스) 위치에 append. 5개가 다 차 있으면 alert + 차단.
-- **해제**: 해당 slot의 뱃지를 제거하고 **그 뒤 슬롯들을 한 칸씩 앞으로 shift**. 마지막 슬롯은 `null`.
-- **표시**: 앞쪽부터 아이콘이 연속 노출되고 남는 슬롯은 "비어 있음" placeholder(프로필 스트립에서는 회색/반투명).
-- **운영 매핑**: `user_badge_picks(user_id, game_id, slot_index, badge_id)` + `UNIQUE(user_id, game_id, slot_index)`. 해제·추가 시 서버는 해당 사용자·게임의 slot_index를 **0..(n-1)로 재할당**하는 UPSERT를 수행한다(트랜잭션 권장). `badge_id IS NULL` 행은 만들지 않는다 — 대신 slot_index가 채워진 개수보다 크면 해당 행을 DELETE.
-
-**적용 범위**
-
-- [profile.html](../../mockup/pages/profile.html) 네임카드 뱃지 스트립.
-- [main-clan.html](../../mockup/pages/main-clan.html) 구성원 카드 본인 행의 뱃지 스트립.
-- [BalanceMaker](./pages/09-BalanceMaker.md) 본인 매치 슬롯의 뱃지 표시.
-- [player-profile-modal](../../mockup/partials/player-profile-modal.html) 본인 미리보기.
-
-**목업 구현 변경**
-
-- `mockup/scripts/app.js`의 `mockBadgeCaseTogglePick`:
-  - 이미 픽된 id → `arr[i..end-1] = arr[i+1..end]` 좌측 shift + 마지막 슬롯 null.
-  - 빈 슬롯 있음 → 가장 앞의 null 위치에 append.
-  - 꽉 참 → alert 차단.
-- `mockBadgeEnsureCompactArray()`가 저장/복원 시 중간 null·중복을 자동 정규화.
-- 픽 변경 직후 `clansync:badge:picks:changed` dispatch + localStorage 저장.
-- 외부 스트립(`[data-badge-strip]`)은 이벤트 구독으로 `mockBadgeApplyToStrips(game)` 호출.
-
-**연관 문서**
-
-- [pages/14-Profile-Customization.md §모달 1 — 뱃지 케이스](./pages/14-Profile-Customization.md#모달-1--뱃지-케이스-mock-badge-case-modal)
-- [decisions.md §D-PROFILE-04](#d-profile-04--뱃지-해금-출처) (해금 출처 정의)
-- [schema.md §user_badge_picks](./schema.md)
+2026-10-26 제거. 구 수동 5칸 스트립·선택 액션·저장소는 사용하지 않는다. 현재는 [개인 엠블럼](pages/14-Profile-Customization.md#개인-엠블럼)의 계정 공통 대표 3개를 사용한다.
 
 ### D-PROFILE-04 — 뱃지 해금 출처
 
-- **결정일**: 2026-04-20
-- **요지**: 뱃지 해금 출처는 `achievement` / `event` / `store` 세 가지 enum으로 분류한다. 카테고리(전투·승률 / 참여·활동 / 이벤트·시즌 / 클랜·스크림 / ClanSync)와는 **독립 축**이며, 한 카테고리 안에 출처가 다른 뱃지가 혼재해도 된다. store 구매는 **개인 코인만** 사용 가능하며, 클랜 코인으로는 뱃지를 구매할 수 없다(클랜 코인은 클랜 단위 혜택·스크림 옵션용).
-
-**스키마**
-
-```
-badges (
-  id          uuid PK,
-  game_id     text NOT NULL,       -- 'ow','val'
-  category    text NOT NULL,       -- 'battle','participation','event','clan','clansync'
-  code        text UNIQUE NOT NULL,-- e.g. 'ow-battle-1'
-  name        text NOT NULL,
-  description text NOT NULL,
-  icon        text NOT NULL,       -- emoji 또는 아이콘 클래스
-  unlock_source enum('achievement','event','store') NOT NULL,
-  unlock_condition jsonb NOT NULL, -- 출처별 구조 다름 (아래)
-  linked_id   uuid NULL,           -- event_id · store_item_id
-  is_active   boolean DEFAULT true,
-  created_at  timestamptz DEFAULT now()
-)
-
-user_badge_unlocks (
-  user_id     uuid FK → users,
-  badge_id    uuid FK → badges,
-  unlocked_at timestamptz DEFAULT now(),
-  PRIMARY KEY (user_id, badge_id)
-)
-```
-
-**unlock_condition 구조**
-
-| unlock_source | unlock_condition 예시 | 해금 트리거 |
-|---------------|------------------------|-------------|
-| `achievement` | `{ "metric": "scrim_wins", "threshold": 10, "game_id": "ow" }` | 통계 집계 크론/트리거에서 임계치 도달 시 INSERT `user_badge_unlocks` |
-| `event` | `{ "event_code": "spring-cup-2026", "participation": "complete" }` | 이벤트 완료 시점에 서버에서 INSERT (이벤트 기간 외 획득 불가) |
-| `store` | `{ "coin_type": "personal", "price": 500 }` | 스토어 구매 플로우에서 INSERT + 개인 코인 차감 |
-
-**store 구매 규칙**
-
-- `coin_type = 'personal'` 고정 (클랜 코인 불가).
-- 구매 직후 `user_badge_unlocks` INSERT + `user_coin_ledger` 차감 (개인 풀).
-- 환불 없음. 구매 즉시 영구 해금.
-- 스토어 노출은 D-STORE-01(스토어 구성)에서 확정.
-
-**잠금 UI 카피 (뱃지 케이스 모달 툴팁)**
-
-| unlock_source | 카피 템플릿 |
-|---------------|--------------|
-| `achievement` | "진행도 **{current}/{threshold}** — {metric_label} 달성 시 자동 해금" |
-| `event` | "**{event_name}** 기간 한정 (~{end_date})" |
-| `store` | "스토어에서 **{price} 개인 코인**으로 해금 가능" |
-
-**연관 문서**
-
-- [pages/14-Profile-Customization.md §모달 1 — 뱃지 케이스](./pages/14-Profile-Customization.md#모달-1--뱃지-케이스-mock-badge-case-modal)
-- [pages/13-Clan-Store.md](./pages/13-Clan-Store.md) (store 출처 뱃지의 구매 진입점)
-- [decisions.md §D-STORE-01](#d-store-01--코인-적립차감-트리거-매트릭스) · [§D-ECON-01](#d-econ-01--코인-수치-베이스라인) · [§D-ECON-02](#d-econ-02--코인-세탁-방지-정책)
-
----
+2026-10-26 제거. 구 배지 카탈로그·해금·선택 테이블과 전용 enum을 QA에서 삭제했다. 현재 개인 엠블럼·클랜 배지의 획득 원장은 유지한다. [삭제·보존 감사](../03-analysis/retired-db-storage-2026-10-26.md).
 
 ### D-STORE-01 — 코인 적립/차감 트리거 매트릭스
 
@@ -1326,7 +1189,6 @@ user_badge_unlocks (
 | 적립 | 승부예측 배당·반환 | `balance_session_predictions` | `(경기, 사용자, settle/edit 요청)` | 2026-10-09 새 경기 코인 풀·원금 포함 배당 |
 | 차감 | 승부예측 참여 | `balance_session_predictions` | `(경기, 사용자, edit 요청)` | 개인 잔액 예약 차감·마감 전 취소 가능 |
 | 차감 | 개인 꾸미기 구매 | `purchases(pool_source='personal')` | `(purchase_id)` | 네임카드·네임플레이트·뱃지 테두리 등 |
-| 차감 | store 뱃지 구매 | `user_badge_unlocks(unlock_source='store')` (D-PROFILE-04) | `(user_id, badge_id)` | **개인 코인만**, 클랜 코인 불가 |
 
 **승부예측 변경 결정 (2026-10-09, QA 적용):** 새 경기부터 관전자 개인 코인으로 전체 풀을 만들고 적중자의 참여 금액 비율로 원금 포함 배당한다. 편성 편집부터 접수하고 경기 현황 전환 후 공통 5분에 마감한다. 무효·적중자 없음은 전액 반환한다. 현재 내전 안의 닉네임·적중률·누적 순이익만 멤버에게 공개한다. 기존 경기의 고정 보상은 유지한다. 상세 규칙은 [편성 명세](../02-design/formation-modes.md#관전자-코인-풀공개-순위-2026-10-09)를 따른다.
 
@@ -1624,7 +1486,7 @@ user_badge_unlocks (
 - [schema.md 「클랜 순위·통계 지표」](./schema.md#클랜-순위통계-지표-승률-등-경쟁-지표-제외)
 - [slices/slice-05-clan-stats.md](./slices/slice-05-clan-stats.md)
 - [decisions.md §D-RANK-01](#d-rank-01--클랜-홍보-인기-정렬-폐기) (DECIDED 2026-04-21) · [§D-STATS-01~04](#) (OPEN)
-- [pages/10-Clan-Rank.md](./pages/10-Clan-Rank.md) (해당 파일 있을 경우)
+- [클랜 통계](./pages/10-Clan-Stats.md)
 
 ---
 

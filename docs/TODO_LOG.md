@@ -1,57 +1,24 @@
 # 구현 진행도 — 작업 세션 로그
 
+### 2026-10-26 — 보안 E2E 완료·폐기 문서 정리
+
+- 제외했던 보안 E2E의 실행 환경·현재 규칙·사용자별 세션을 수정해 17개와 관련 규칙 4개 모두 통과했다. 진열장 전용 문서 8개·이미지 26개를 삭제하고 프로필·스키마·권한·결정·참조 링크를 현행화했다. 변경 lint·타입·문서 링크 통과. [검증 결과](03-analysis/retired-db-storage-2026-10-26.md#보안-e2e문서-후속-정리-2026-10-26).
+
 ### 2026-10-26 — 폐기 기능 DB 정리
 
 - 9개 테이블·24행의 영구 삭제 승인을 받아 QA에 적용했다. 관련 함수 8개·enum 2개도 제거하고 나머지 70개 테이블의 데이터 동일성을 확인했다. 현재 네임카드 환급 참조를 갱신했다. [대상·검증·보존 근거](03-analysis/retired-db-storage-2026-10-26.md).
 
 ### 2026-10-26 — 진열장 기능 제거
 
-- 사용자 요청으로 본인/방문 프로필·보관함·진열장 관리·상점의 전용 상품과 관련 코드/이미지·전용 테스트를 제거했다. 프로필은 플레이어 소개와 계정 정보로 정리했다. 기존 DB 데이터·미니룸·네임카드·엠블럼은 보존한다.
-
-### 2026-10-26 — 원목 수집장 깊이·그림자
-
-- 선택 시안을 바탕으로 안쪽 목재 면·선반 깊이·굿즈 그림자를 적용했다. 벽지·4종 선반 교체, 드래그/키보드·터치·자동 저장·방문을 임시 QA 계정으로 검증했다. [실제 화면·검증 범위](design/profile-showcase-2026-10-26/depth-and-shadows.md).
-
-### 2026-10-25 — 벽지와 투명 프레임의 실제 레이어 분리
-
-- 크림 벽지의 검은 경계를 남기던 합성 뒤판·색상 추출 필터를 제거했다. 벽지를 먼저 그리고 별도 투명 프레임·선반·굿즈를 얹는다. [소재·결정·검증](design/profile-showcase-2026-10-25/separate-wall-and-frame.md).
-
-### 2026-10-25 — 보관함 밀도·벽지 색상 보정
-
-- 필터/검색을 한 줄로 묶고 보관함 높이를 약 40% 줄였다. 벽지 변경이 목재까지 물들이던 전체 이미지 필터를 벽면 마스크로 한정했다. 기본형/중앙 강조형의 목재 색 보존을 실제 화면 픽셀로 검증한다. [결정·실제 화면](design/profile-showcase-2026-10-25/hover-inventory.md#밀도벽지-색상-보정).
-
-### 2026-10-25 — 위로 열리는 보관함·자동 저장
-
-- 상시 설정/저장 UI를 제거하고 보관함에 분류·검색·벽지·선반 선택을 통합했다. 놓기/반환 즉시 저장하며 연속 조작·실패 초안·충돌을 보호한다. 보관함은 진열장 위로 열리고 좌측 소개와 색상·이음매를 통일했다. [동작·검증](design/profile-showcase-2026-10-25/hover-inventory.md).
-
-### 2026-10-25 — 하단 보관함 드래그·선반 상품 확장
-
-- 마우스·터치 양방향 드래그/회수와 얇게 접히는 드로워, 이름 없는 구성 전환, 상점 선반 2종·미보유 저장 제한을 적용했다. 고정 이파리는 제거하고 별도 장식 배치로 통일했다. QA 무료 체험·기존 보유/배치 보존. [결정·실제 캡처·검증](design/profile-showcase-2026-10-25/drawer-and-shelves.md).
-
-### 2026-10-25 — 진열장 조명을 독립 배치 상품으로 분리
-
-- 두 기본형의 고정 조명·빛을 제거하고 상점 황동 조명의 상단/선반 아래 설치·좌우 이동·드래그·보관과 빛을 연결했다. 1개당 전체 진열장 한 곳 배치를 유지한다. [제작·실제 캡처·검증](design/profile-showcase-2026-10-25/lighting.md). QA 무료 체험 정책 유지, 유료 가격·코인 차감·운영 적용 없음.
-
-### 2026-10-24 — 취향 진열장 시안과 실제 화면의 재질·접지 통일
-
-- 기본형 2종의 목재 뒤판·선반·조명과 매트 키보드·받침대 여우를 재제작하고, 굿즈별 밑면·비율·그림자와 모바일 비율을 보정했다. [실제 캡처·제작 프롬프트·검증](design/profile-showcase-2026-10-24/production-v2.md). 집중 E2E·lint·타입 통과, 기존 사용자 편집/소유·QA 데이터 보존, 운영 변경 없음.
+- 사용자 요청으로 본인/방문 프로필·보관함·진열장 관리·상점의 전용 상품과 관련 코드/이미지·전용 테스트를 제거했다. 프로필은 플레이어 소개와 계정 정보로 정리했다. 미니룸·네임카드·엠블럼은 유지한다. 전용 DB 저장소는 이후 승인된 정리에서 삭제했다.
 
 ### 2026-10-24 — 게임 인증 포함 전체 진입 상세 설계
 
 - [공통·화면별 상세 설계](02-design/entry-experience/README.md) 7개 문서에 6개 주요 화면과 이메일 확인·클랜 생성·리더 환영의 배치·문구·상태·복귀·데이터·수용 기준을 정리하고 변경 기획/기존 페이지 명세에서 연결했다. 게임 인증의 최초 연결·재연동·운영 미제공과 QA 시뮬레이터를 구분했다. 내용·링크·문서 정합성만 검증했으며 구현·앱/DB 테스트·운영 반영은 하지 않았다.
 
-### 2026-10-24 — 취향 진열장 QA 구현·보유 수량 확정
-
-- 기본형 2종·겹치기·장식·여러 구성/대표 전시·상점 무료 체험을 QA에 연결했다. 사용자 확정대로 보유 1개당 전체 진열장에 1개만 배치하며, 복사·삭제·보관에서도 수량을 보존한다. 기존 미니룸은 별도 경로로 유지했다. [구현 범위·후속](TODO_Phase2.md#2026-10-24-취향-진열장-qa).
-- 새 UI 집중 시나리오와 소개/계정 탭·게임 프로필·방문·미니룸 자동 저장/계정 변경·탐색 등 총 7개 시나리오, 새 DB 회귀, 변경 lint·타입·빌드 통과. 실패한 상점 중복 key와 기존 반응형 메뉴 테스트의 중복 선택을 수정하고 해당 범위 재검증했다. QA 보안 advisor의 진열장 관련 경고 0건(기존 다른 항목 28건은 이번 범위 밖). 시드·운영 DB·배포 변경 없음.
-
 ### 2026-10-24 — 가입·로그인·서비스 진입 재설계 기획
 
 - [재설계안](01-plan/entry-experience-redesign.md)에 클랜·프로필 기준의 랜딩/인증/게임 선택/클랜 가입 구도, 유지·제거 요소, 모바일 상세·신청 대기·실패 처리와 구현 순서를 정리했다. 검토용 제안·구현 전이며 QA 화면/소스 대조와 문서 링크를 확인했다. 앱 코드·DB·기존 QA 데이터·배포 변경은 없다.
-
-### 2026-10-24 — 취향 진열장 대체 기획
-
-- [기획 문서](01-plan/profile-showcase.md)에 무료 기본 3단형·중앙 강조형, 굿즈 겹치기, 구매 가능한 선반 장식, 상품 등록 확장, 여러 진열장 저장을 정리하고 비교 시안 4종을 보존했다. 확정 방향·세부 설계안·미정 정책을 구분했다. 문서와 참조 경로만 검증했으며 기능·DB·기존 QA 데이터·배포 변경은 없다.
 
 ### 2026-10-23 — 가구 직접 집기·하단 보관함 드로워
 
@@ -103,7 +70,7 @@
 
 ### 2026-10-23 — 엠블럼 프로필 경로·헤더 일관성
 
-- 케이스 진입을 프로필 경로로 옮기고 예전 클랜 링크를 연결했다. 클랜·프로필·상점의 심벌/슬래시/글자/간격을 공통 헤더로 통일했다. 프로덕션 빌드·관련3개 시나리오·모바일과 기존 권한을 확인했다([경로·검증](01-plan/pages/14-Profile-Customization.md#2026-10-23--개인-엠블럼-경로헤더-통일)).
+- 케이스 진입을 프로필 경로로 옮기고 예전 클랜 링크를 연결했다. 클랜·프로필·상점의 심벌/슬래시/글자/간격을 공통 헤더로 통일했다. 프로덕션 빌드·관련3개 시나리오·모바일과 기존 권한을 확인했다([경로·검증](01-plan/pages/14-Profile-Customization.md#개인-엠블럼)).
 
 ### 2026-10-23 — 게임별 통합 엠블럼·탈퇴 후 열람
 
@@ -2132,7 +2099,6 @@
   - `mockBadgeCaseTogglePick` 재작성: 이미 픽된 id는 좌측 shift + 마지막 슬롯 null, 없으면 첫 null 위치(=현재 채워진 개수)에 append, 5개 꽉 차면 alert 차단.
   - `mockBadgeCaseGetPicks`·`mockBadgeCaseInitDefaultPicks` 내부 호출도 ensureCompactArray로 갱신.
 - [x] `docs/01-plan/decisions.md` D-PROFILE-03: 표 요약을 "compact 픽(dense-from-front · 해제 시 뒤 항목 앞으로 shift)"으로 교체. 상세 블록에 정정 사유 블록쿼트 추가, 상태 구조·불변식·Compact 규칙(추가/해제/표시/운영 매핑) 표 재작성. 운영 시 slot_index 재할당 트랜잭션 + 빈 슬롯 DELETE 정책 명시.
-- [x] `docs/01-plan/schema.md` `user_badge_picks`: `badge_id NOT NULL`로 조임(빈 슬롯은 행을 만들지 않음), `slot_index 0..n-1 연속` 제약 설명, 해제 시 slot_index 재할당 트랜잭션 예시 추가.
 - [x] `docs/01-plan/pages/14-Profile-Customization.md`: 모달 스트립 동기화 절 · 데이터·연동 뱃지 픽 블록 · 동기화 셀렉터 표 · 결정 필요 D-PROFILE-03 삭선 문구를 전부 compact 표현으로 교체.
 - 영향 범위: 이미 저장된 localStorage 상태(sparse로 저장되었을 수 있음)는 다음 로드 시 `mockBadgeEnsureCompactArray`가 자동 정규화해 그대로 호환. 운영 데이터베이스는 아직 없으므로 영향 없음.
 
@@ -2140,13 +2106,11 @@
 - [x] **정책 확정**
   - D-PROFILE-01: 네임플레이트 동기화 — 상태 키 `clansync-mock-nameplate-state-v1` / 이벤트 `clansync:nameplate:changed` / 셀렉터 `[data-nameplate-preview="{game}"]` + 본인 구독용 `[data-nameplate-self]`. **같은 탭 내부만** 실시간 반영(다른 탭은 새 진입·새로고침 시 localStorage에서 재로드).
   - D-PROFILE-02: 가입 신청 대기 목록 — `clan_join_requests`(D-CLAN-02) 단일 소스. pending 항시 노출, approved/rejected는 7일 후 자동 숨김, canceled/expired는 목록 비노출. **취소는 pending에서만**(resolved_by='self').
-  - D-PROFILE-03: 뱃지 스트립 동기화 — **sparse 5슬롯**(null 허용, 해제 시 뒷 항목 shift 없음). 상태 키 `clansync-mock-badge-picks-v1` / 이벤트 `clansync:badge:picks:changed` / 셀렉터 `[data-badge-strip="{game}"]` + `[data-badge-strip-slot="{0..4}"]` + 본인 `[data-badge-strip-self]`.
   - D-PROFILE-04: 뱃지 해금 출처 — `unlock_source enum('achievement','event','store')` + `unlock_condition jsonb` + `linked_id`. **store는 개인 코인만**(클랜 코인 불가). 카테고리 × 출처는 독립 축.
 - [x] `docs/01-plan/decisions.md`: D-PROFILE-01~04 표 4행 OPEN→DECIDED 갱신, 하단에 상세 블록 4개 추가(셀렉터·이벤트·스키마 영향·store 제약 등). 각 블록에 스키마·페이지 문서 링크 연결.
 - [x] `docs/01-plan/schema.md`
   - 관계도에 `User ──< UserNameplateSelection >── NameplateOption`, `User ──< UserNameplateInventory`, `User ──< UserBadgePick >── Badge`, `User ──< UserBadgeUnlock >── Badge` 4줄 추가.
-  - 신규: `nameplate_options`(카탈로그·4카테고리·unlock_source), `user_nameplate_inventory`(PK `(user_id, option_id)`), `user_nameplate_selections`(PK `(user_id, game_id, category)` · 서버 재검증 메모).
-  - 신규: `badges`(unlock_source·unlock_condition jsonb·`CHECK (store ⇒ coin_type='personal')`), `user_badge_unlocks`(PK `(user_id, badge_id)`), `user_badge_picks`(PK `(user_id, game_id, slot_index)` · slot 0~4 · null 허용).
+  - 신규: `nameplate_options`(카탈로그·4카테고리·unlock_source), `user_nameplate_inventory`(PK `(user_id, option_id)`), 현재 선택은 이후 계정 공통으로 전환하고 구 게임별 선택 저장소는 제거했다.
 - [x] `docs/01-plan/pages/14-Profile-Customization.md`
   - 스트립 동기화 섹션에 sparse + localStorage 키 + 이벤트명 + 셀렉터 표 명시, 네임플레이트 적용 범위도 동일 포맷으로 재작성.
   - 가입 신청 대기 목록을 D-PROFILE-02 확정본으로 재작성(데이터 출처·상태 뱃지·취소 액션·게임당 pending 1건 제약).

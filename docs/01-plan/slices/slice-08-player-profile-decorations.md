@@ -1,31 +1,10 @@
 # S08 — 플레이어 프로필·꾸미기
 
-## 결정 참조
+현재 요구·경로·권한·검증은 [프로필 명세](../pages/14-Profile-Customization.md)를 기준으로 한다.
 
-- 네임플레이트·뱃지 스트립·해금 출처: **[D-PROFILE-01](../decisions.md#d-profile-01--네임플레이트-동기화-규약)** · **[D-PROFILE-02](../decisions.md#d-profile-02--가입-신청-대기-목록-데이터-출처)** · **[D-PROFILE-03](../decisions.md#d-profile-03--뱃지-케이스--프로필-스트립-동기화)** · **[D-PROFILE-04](../decisions.md#d-profile-04--뱃지-해금-출처)**.
-- 부계정 열람은 **[D-PERM-01](../decisions.md#d-perm-01--클랜-권한-매트릭스-모델-도입)** 권한 키 `view_alt_accounts`(D-MANAGE-03 흡수, 기본 leader/officer/member 허용). 개인 통계 오버라이드는 **[D-PRIV-01](../decisions.md#d-priv-01--개인-단위-프라이버시-오버라이드-프리셋-α)** (부계정 키 제외).
+- 플레이어 소개: 게임별 인증 ID·클랜·역할, 한 줄 소개, 계정 공통 대표 엠블럼 3개.
+- 계정 정보: 공통 네임카드, 게임별 계정·클랜 관리, 가입 신청, 자동 로그인. 본인 전용이다.
+- 로그인 방문: 소개와 획득 엠블럼을 공개하며 계정·잔액·편집 정보는 제외한다.
+- 기존 미니룸은 `/profile/miniroom`, 가구·칭호·프레임 구매는 `/store`에서 제공한다.
 
-## 스코프
-
-- 전역 프로필 (`profile.html` 또는 모달 주입)
-- 뱃지 케이스·네임플레이트 프리뷰 — `app.js` + `mockup/partials/*`
-- 게임별 칩 전환(OW/VAL 등 목업)
-
-## 수용 기준
-
-- [x] 장착 뱃지 최대 개수(5)·게임별 `mockBadgeCaseGetPicks()` 목업이 `profile.html`·뱃지 케이스·`app.js` `MOCK_BADGE_NAMEPLATE_MAX`와 일치
-- [x] 사용자 이미지 업로드로 네임플레이트 대체 **없음** — `nameplate-case-modal` 하단·`docs/01-plan/pages/09-BalanceMaker.md` §참가자 네임플레이트·프로필 상단 안내와 정합
-
-## 목업
-
-| 경로 |
-|------|
-| `mockup/pages/profile.html` |
-| `mockup/partials/player-profile-modal.html` |
-| `mockup/partials/badge-case-modal.html` |
-| `mockup/partials/nameplate-case-modal.html` |
-| `mockup/scripts/app.js` |
-
-## 백로그
-
-- 가입 신청 목록: [../BACKLOG.md](../BACKLOG.md)
+진열장·구 수동 배지·게임별 꾸미기 선택은 제거됐다. [QA 저장소 정리 결과](../../03-analysis/retired-db-storage-2026-10-26.md).

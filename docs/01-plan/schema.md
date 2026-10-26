@@ -14,10 +14,9 @@ User ──< ClanJoinRequest >── Clan         -- 가입 신청 (D-CLAN-02)
 User ──< ClanReport >── Clan              -- 신고 (D-CLAN-03)
 User ──< AuthFailedLogin                  -- 로그인 실패 감사 (D-AUTH-06, email FK 없음·citext 문자열)
 User ──< PasswordReset                    -- 비밀번호 재설정 토큰 (D-AUTH-04)
-User ──< UserNameplateSelection >── NameplateOption  -- 네임플레이트 선택 (D-PROFILE-01)
+User ──< UserNamecardSelection >── NameplateOption   -- 계정 공통 선택 (D-PROFILE-01)
 User ──< UserNameplateInventory  >── NameplateOption -- 사용자 보유 옵션 (D-PROFILE-01)
-User ──< UserBadgePick >── Badge          -- 뱃지 스트립 픽 (D-PROFILE-03, slot 0..4)
-User ──< UserBadgeUnlock >── Badge        -- 해금된 뱃지 (D-PROFILE-04)
+User ── AccountPersonalEmblemPicks       -- 획득 원장에서 대표 엠블럼 최대 3개 선택
 Clan ──< Match ──< MatchPlayer
 Match ──< MatchResult
 Clan ──< ClanEvent
@@ -490,7 +489,7 @@ ClanMember ──< CoinTransaction
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | id | uuid PK | |
-| game_id | text NOT NULL | 'ow','val' |
+| game_id | uuid FK → games | 카탈로그 출처 게임 |
 | category | enum(`emblem`,`namebar`,`sub`,`frame`) NOT NULL | 4카테고리 |
 | code | text UNIQUE NOT NULL | 예: `ow-e1`, `val-nb2` (목업 key와 동일) |
 | name_ko | text NOT NULL | |
@@ -499,6 +498,7 @@ ClanMember ──< CoinTransaction
 | unlock_source | enum(`default`,`event`,`store`,`achievement`) NOT NULL DEFAULT 'default' | 보유 판정용 |
 | linked_id | uuid NULL | event/store 출처 연결 |
 | is_active | boolean DEFAULT true | |
+| price_coins | integer NOT NULL DEFAULT 0 | 0 이상, 서버 구매 가격 |
 
 ### user_nameplate_inventory (보유 옵션)
 > **D-PROFILE-01** — 사용자가 보유한 네임플레이트 옵션. `default` 소스는 기본 보유로 간주하므로 별도 행 불필요.
@@ -510,80 +510,21 @@ ClanMember ──< CoinTransaction
 | acquired_at | timestamptz DEFAULT now() | |
 | PRIMARY KEY | (user_id, option_id) | |
 
-- RLS: 본인만 SELECT. 서버 Edge Function이 INSERT(이벤트 보상·스토어 구매 시).
+- RLS: 본인만 SELECT. 권한을 검증하는 서버 RPC가 지급·구매·환급을 처리한다.
 
-### user_nameplate_selections (현재 선택)
-> **D-PROFILE-01** — 게임×카테고리별 **단일** 선택. 목업은 localStorage, 운영은 이 테이블.
-
-| 컬럼 | 타입 | 설명 |
-|------|------|------|
-| user_id | uuid FK → users | |
-| game_id | text NOT NULL | |
-| category | enum(`emblem`,`namebar`,`sub`,`frame`) NOT NULL | |
-| option_id | uuid FK → nameplate_options | |
-| updated_at | timestamptz DEFAULT now() | |
-| PRIMARY KEY | (user_id, game_id, category) | |
-
-**제약·RLS 메모**
-
-- UPDATE 시 서버가 `user_nameplate_inventory` 또는 기본 옵션인지 재검증(보유하지 않은 옵션 선택 차단).
-- RLS: SELECT는 본인 + 같은 클랜 구성원 공개(클랜 내 네임카드 표시용). UPDATE/DELETE는 본인만.
-- 실시간 전파: Phase 2+에서 Supabase Realtime 구독 또는 BalanceMaker 매치 진입 시 일괄 로드.
-
-### badges (뱃지 카탈로그)
-> **D-PROFILE-04** (DECIDED 2026-04-20) — 뱃지 해금 출처 3분류. [decisions.md §D-PROFILE-04](./decisions.md#d-profile-04--뱃지-해금-출처).
+### user_namecard_selections (계정 공통 선택)
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
-| id | uuid PK | |
-| game_id | text NOT NULL | 'ow','val' |
-| category | enum(`battle`,`participation`,`event`,`clan`,`clansync`) NOT NULL | 카테고리 (UI 탭 매핑) |
-| code | text UNIQUE NOT NULL | 예: `ow-battle-1` |
-| name_ko | text NOT NULL | |
-| name_en | text | |
-| description | text NOT NULL | |
-| icon | text NOT NULL | emoji 또는 아이콘 클래스 |
-| unlock_source | enum(`achievement`,`event`,`store`) NOT NULL | |
-| unlock_condition | jsonb NOT NULL | 출처별 구조 (§D-PROFILE-04) |
-| linked_id | uuid NULL | event_id 또는 store_item_id |
-| is_active | boolean DEFAULT true | |
-| created_at | timestamptz DEFAULT now() | |
+| user_id | uuid FK → users | 소유자 |
+| category | nameplate_category | emblem / namebar / sub / frame |
+| option_id | uuid FK → nameplate_options | 보유한 동일 카테고리 옵션 |
+| updated_at | timestamptz | 마지막 변경 시각 |
+| PRIMARY KEY | (user_id, category) | 계정·카테고리별 한 개 |
 
-**제약**
+본인만 읽고 변경하며 `private.enforce_account_namecard`가 보유·카테고리를 검증한다. 클랜 명단은 `get_clan_namecards`를 통해 허용된 표시 정보만 조회한다. 환급 시 현재 선택도 해제한다.
 
-- `CHECK (unlock_source = 'store' ⇒ (unlock_condition->>'coin_type') = 'personal')` — store 뱃지는 개인 코인만 (D-PROFILE-04).
-- 인덱스: `(game_id, category)` — 뱃지 케이스 카테고리 조회.
-
-### user_badge_unlocks (해금 이력)
-> **D-PROFILE-04** — 해금된 뱃지 기록. 해금은 영구(환불/소멸 없음).
-
-| 컬럼 | 타입 | 설명 |
-|------|------|------|
-| user_id | uuid FK → users | |
-| badge_id | uuid FK → badges | |
-| unlocked_at | timestamptz DEFAULT now() | |
-| source_detail | jsonb NULL | 해금 시점 스냅샷 (이벤트 회차·구매 내역 등) |
-| PRIMARY KEY | (user_id, badge_id) | |
-
-### user_badge_picks (스트립 픽, 최대 5)
-> **D-PROFILE-03** (DECIDED 2026-04-20) — compact 픽(dense-from-front, slot_index 0..n-1). 해제 시 뒷 슬롯을 앞으로 shift. [decisions.md §D-PROFILE-03](./decisions.md#d-profile-03--뱃지-케이스--프로필-스트립-동기화).
-
-| 컬럼 | 타입 | 설명 |
-|------|------|------|
-| user_id | uuid FK → users | |
-| game_id | text NOT NULL | |
-| slot_index | int NOT NULL | 0..4 — **앞에서부터 연속**으로 사용. 중간 구멍 없음 |
-| badge_id | uuid FK → badges NOT NULL | 빈 슬롯은 행을 만들지 않는다 |
-| updated_at | timestamptz DEFAULT now() | |
-| PRIMARY KEY | (user_id, game_id, slot_index) | |
-
-**제약·RLS 메모**
-
-- `CHECK (slot_index BETWEEN 0 AND 4)`.
-- 해제/재배치 시 서버는 트랜잭션으로 **slot_index를 0..(n-1)로 재할당**한다(이후 불필요한 뒤쪽 행은 DELETE). 예: slot 1 해제 → slot 2·3 을 1·2로 UPDATE, 기존 slot 3 DELETE.
-- UPSERT 시 서버가 `user_badge_unlocks` 보유 확인(해금되지 않은 뱃지 픽 차단).
-- RLS: SELECT는 본인 + 같은 클랜 구성원 공개(스트립 렌더용). UPDATE/DELETE는 본인만.
-- 조회 순서: `ORDER BY slot_index ASC`. 클라이언트는 n개 아이콘 + (5-n)개 빈 placeholder를 렌더.
+개인 대표 엠블럼은 별도 `account_personal_emblem_picks`에 최대 3개를 저장한다. 현재·탈퇴 클랜의 획득 원장과 검증 규칙은 [프로필 명세](pages/14-Profile-Customization.md#개인-엠블럼)를 따른다. 구 게임별 선택·수동 5칸 배지 저장소는 제거됐다([삭제·보존 감사](../03-analysis/retired-db-storage-2026-10-26.md)).
 
 ### coin_transactions
 > **D-STORE-01 / D-ECON-01 / D-ECON-02** (DECIDED 2026-04-20) — INSERT-only 원장. 풀 간 이전 불가, 멱등성 키로 중복 차단, 정정은 반대 부호 거래로만. [decisions.md §D-STORE-01](./decisions.md#d-store-01--코인-적립차감-트리거-매트릭스) · [§D-ECON-02](./decisions.md#d-econ-02--코인-세탁-방지-정책).

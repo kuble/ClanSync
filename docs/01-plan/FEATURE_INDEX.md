@@ -13,7 +13,7 @@
 | S05 | 클랜 통계 | 명예의 전당·내전 통계·개인 기록 (D-STATS-05 기획 확정·구현 대기) | [slices/slice-05-clan-stats.md](./slices/slice-05-clan-stats.md) |
 | S06 | 이벤트·관리·스토어 | 캘린더, 클랜 관리, 스토어·코인 | [slices/slice-06-events-manage-store.md](./slices/slice-06-events-manage-store.md) |
 | S07 | MainGame 커뮤니티 | 홍보·스크림·LFG 등 | [slices/slice-07-main-game-community.md](./slices/slice-07-main-game-community.md) |
-| S08 | 프로필·꾸미기 | 플레이어 프로필, 뱃지·네임플레이트 목업 | [slices/slice-08-player-profile-decorations.md](./slices/slice-08-player-profile-decorations.md) |
+| S08 | 프로필·꾸미기 | 플레이어 소개·계정, 공통 네임카드·개인 엠블럼 | [slices/slice-08-player-profile-decorations.md](./slices/slice-08-player-profile-decorations.md) |
 
 ### 심층 참고 (슬라이스에서만 `@`한다)
 
