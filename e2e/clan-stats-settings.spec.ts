@@ -6,12 +6,59 @@ import { loadClanStatsDetail, loadClanStatsPage, loadClanStatsPeriod } from "../
 import { resolveClanPermission } from "../src/lib/clan/clan-access-snapshot";
 import { loadTestEnv } from "../scripts/test-env.mjs";
 import type { Json } from "../src/lib/supabase/database.types";
+import { resolveHofConfig } from "../src/lib/clan/stats/hof-config";
+import { resolvePersonalSections, restrictPersonalStats } from "../src/lib/clan/stats/personal-visibility";
+
+test.use({ actionTimeout: 20_000 });
 
 async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>) {
   const { data, error } = await query;
   expect(error, JSON.stringify(error)).toBeNull();
   return data as NonNullable<T>;
 }
+
+test("개인 기록 기본값과 항상 공개 엠블럼·서버장 ON 표시·역할 전환 초안을 유지한다", async ({ page }, info) => {
+  test.setTimeout(120_000);
+  expect(resolveHofConfig({}).memberPersonalSections).toEqual(["predictions", "prediction_points", "emblems"]);
+  expect(resolvePersonalSections([])).toEqual(["emblems"]);
+  expect(resolvePersonalSections(null)).toEqual(["emblems"]);
+  expect(resolvePersonalSections(["records", "unknown"])).toEqual(["records", "emblems"]);
+  expect(restrictPersonalStats({ matches: [], predictions: ["hidden"], predictionPoints: ["private"], emblems: ["public"] }, [])).toMatchObject({
+    visibleSections: ["emblems"], predictions: [], predictionPoints: [], emblems: ["public"],
+  });
+  const f = await createIsolatedBalanceFixture(1);
+  try {
+    await ok(f.service.from("clan_settings").update({ hof_config: { personal_record_min_role: "member" } }).eq("clan_id", f.clanId));
+    await loginIsolatedBalanceUser(page, f.users[0]);
+    await page.goto(f.path.replace(/balance$/, "stats"));
+    await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
+    await page.getByRole("button", { name: "개인 기록 설정", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "개인 기록 설정", exact: true });
+    for (const label of ["경기 전적", "평가 점수", "분석 점수"]) await expect(dialog.getByRole("switch", { name: label, exact: true })).not.toBeChecked();
+    for (const label of ["승부예측 적중", "승부예측 포인트"]) await expect(dialog.getByRole("switch", { name: label, exact: true })).toBeChecked();
+    await expect(dialog.getByRole("switch")).toHaveCount(5);
+    await expect(dialog.getByRole("switch", { name: /엠블럼/ })).toHaveCount(0);
+    await page.screenshot({ path: info.outputPath("personal-settings-defaults.png") });
+    await dialog.getByRole("switch", { name: "평가 점수", exact: true }).check();
+    await dialog.getByRole("radio", { name: "서버장", exact: true }).click();
+    await expect(dialog.getByRole("switch")).toHaveCount(0);
+    await expect(dialog.getByText("ON", { exact: true })).toHaveCount(5);
+    await page.screenshot({ path: info.outputPath("personal-settings-leader-on.png") });
+    await dialog.getByRole("radio", { name: "멤버", exact: true }).click();
+    await expect(dialog.getByRole("switch", { name: "평가 점수", exact: true })).toBeChecked();
+    await expect(dialog.getByRole("switch", { name: "경기 전적", exact: true })).not.toBeChecked();
+    await dialog.getByRole("radio", { name: "서버장", exact: true }).click();
+    await dialog.getByRole("button", { name: "저장", exact: true }).click();
+    await expect(dialog).toBeHidden();
+    const stored = await ok(f.service.from("clan_settings").select("hof_config").eq("clan_id", f.clanId).single());
+    expect(stored.hof_config).toMatchObject({ personal_record_min_role: "leader", member_personal_sections: ["evaluation", "predictions", "prediction_points"] });
+    await page.getByRole("button", { name: "개인 기록 설정", exact: true }).click();
+    await expect(dialog.getByRole("switch")).toHaveCount(0);
+    await dialog.getByRole("radio", { name: "멤버", exact: true }).click();
+    await expect(dialog.getByRole("switch", { name: "평가 점수", exact: true })).toBeChecked();
+    await expect(dialog.getByRole("switch", { name: "경기 전적", exact: true })).not.toBeChecked();
+  } finally { await f.cleanup(); }
+});
 
 test("stats settings: tab scopes, granular record grants and private payloads", async ({ page, browser }) => {
   test.setTimeout(240_000);
@@ -59,15 +106,16 @@ test("stats settings: tab scopes, granular record grants and private payloads", 
     await ok(f.service.from("balance_sessions").update({ phase: "match_live", map_ban_deadline_at: null, match_outcome: "team1", resolved_map_label: "부산", closed_at: "2025-08-02T11:30:00Z", predictions_settled_at: "2025-08-02T11:20:00Z", banned_heroes: ["ana"] }).eq("id", matchId));
     let detail = await loadClanStatsDetail(member, f.users[1].id, f.clanId, f.users[1].id);
     expect(detail?.kind === "personal" && detail.person).toMatchObject({
-      matches: [], predictions: [], predictionPoints: [], emblems: [], lastPlayedAt: null,
-      scores: [{ evaluation: -0.5, analysis: null }], visibleSections: ["evaluation"],
+      matches: [], predictions: [], predictionPoints: [], lastPlayedAt: null,
+      scores: [{ evaluation: -0.5, analysis: null }], visibleSections: ["evaluation", "emblems"],
     });
+    expect(detail?.kind === "personal" && detail.person.emblems?.length).toBeGreaterThan(0);
     expect(await loadClanStatsDetail(member, f.users[1].id, f.clanId, f.users[0].id)).toBeNull();
     const full = await loadClanStatsPage(member, f.users[1].id, f.clanId);
     expect(full?.personal.people[0]).toEqual(detail?.kind === "personal" ? detail.person : null);
     await ok(save(f.users[0].id, "personal", { member_personal_audience: "clan", member_personal_sections: ["records", "prediction_points"] }));
     detail = await loadClanStatsDetail(member, f.users[1].id, f.clanId, f.users[0].id);
-    expect(detail?.kind === "personal" && detail.person).toMatchObject({ scores: [], predictionPoints: [], visibleSections: ["records"] });
+    expect(detail?.kind === "personal" && detail.person).toMatchObject({ scores: [], predictionPoints: [], visibleSections: ["records", "emblems"] });
     expect(detail?.kind === "personal" && detail.person.matches[0]).toMatchObject({ evaluation: null, analysis: null, peers: [], map: "부산" });
     await ok(save(f.users[0].id, "personal", { member_personal_audience: "own", member_personal_sections: ["evaluation"] }));
     // Compatibility grants survive until an individual operation gets an explicit value.
@@ -153,12 +201,21 @@ test("stats settings: tab scopes, granular record grants and private payloads", 
       await page.getByRole("button", { name: "개인 기록 설정", exact: true }).click();
       dialog = page.getByRole("dialog", { name: "개인 기록 설정", exact: true });
       await dialog.getByRole("radio", { name: label, exact: true }).click();
+      if (minimum === "leader") {
+        await expect(dialog.getByRole("switch")).toHaveCount(0);
+        await expect(dialog.getByText("ON", { exact: true })).toHaveCount(5);
+      }
       await dialog.getByRole("button", { name: "저장", exact: true }).click();
       await expect(dialog).toBeHidden();
       for (const [index, client] of [leader, officer, member].entries()) {
         const viewerId = f.users[index === 1 ? 2 : index === 2 ? 1 : 0].id;
         const personal = await loadClanStatsDetail(client, viewerId, f.clanId, f.users[0].id);
         expect(personal !== null, `${minimum}: viewer ${index}`).toBe(allowed[index]);
+        if (index === 0 && personal?.kind === "personal") {
+          expect(personal.person.matches).toHaveLength(1);
+          expect(personal.person.matches[0].evaluation).toBe(1.25);
+          expect(personal.person.visibleSections).toBeUndefined();
+        }
         const overview = await loadClanStatsPage(client, viewerId, f.clanId, { deferDetails: true });
         expect(overview?.permissions.viewPersonalRecords).toBe(allowed[index]);
         if (!allowed[index]) {
@@ -199,6 +256,11 @@ test("stats settings: tab scopes, granular record grants and private payloads", 
     await memberPage.reload();
     await expect(memberPage.getByRole("tab", { name: "내전 통계", exact: true })).toHaveCount(0);
     await ok(save(f.users[0].id, "personal", { member_personal_sections: [] }));
-    expect(await loadClanStatsDetail(member, f.users[1].id, f.clanId, f.users[1].id)).toBeNull();
-  } finally { await officerContext.close(); await memberContext.close(); await f.cleanup(); }
+    const emblemsOnly = await loadClanStatsDetail(member, f.users[1].id, f.clanId, f.users[1].id);
+    expect(emblemsOnly?.kind === "personal" && emblemsOnly.person).toMatchObject({ visibleSections: ["emblems"], matches: [], scores: [], predictions: [], predictionPoints: [] });
+    await memberPage.reload();
+    await memberPage.getByRole("tab", { name: "개인 기록", exact: true }).click();
+    await memberPage.getByRole("button", { name: `${f.users[1].nickname} 개인 기록 열기`, exact: true }).click();
+    await expect(memberPage.getByRole("region", { name: "플레이어 배너", exact: true }).getByRole("link", { name: / 엠블럼 케이스 열기$/ })).toBeVisible();
+  } finally { await Promise.allSettled([officerContext.close(), memberContext.close()]); await f.cleanup(); }
 });

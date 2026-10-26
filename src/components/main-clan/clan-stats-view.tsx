@@ -103,6 +103,7 @@ export function HofSettingsForm({
 }) {
   const [pending, start] = useTransition();
   const [personalMinimum, setPersonalMinimum] = useState(cfg.personalRecordMinRole ?? (cfg.memberPersonalRecords ? "member" : "officer"));
+  const [personalSections, setPersonalSections] = useState(cfg.memberPersonalSections);
   const draft = useHofEligibilityDraft(cfg);
   return (
     <form
@@ -128,7 +129,16 @@ export function HofSettingsForm({
         <input type="hidden" name="personal_record_min_role" value={personalMinimum} />
         <RubberSegment label="기록 공개" labelPosition="hidden" options={PERSONAL_RECORD_ACCESS_OPTIONS} value={personalMinimum} onChange={setPersonalMinimum} />
         <p className="text-xs leading-relaxed text-muted-foreground">선택한 역할과 그 상위 역할이 열람할 수 있습니다. 포인트 수익·손실은 본인과 운영진만 볼 수 있습니다.</p>
-      </section><section className="space-y-4 rounded-xl border p-4" aria-label="공개할 통계"><h4 className="text-sm font-semibold">공개할 통계</h4>{PERSONAL_STATS_SECTIONS.map(({ id, label, description }) => <label key={id} className="flex cursor-pointer items-start justify-between gap-3 text-sm"><span>{label}<span className="mt-1 block text-xs text-muted-foreground">{description}</span></span><Switch name="member_personal_sections" value={id} defaultChecked={cfg.memberPersonalSections.includes(id)} className="mt-1" /></label>)}<p className="text-xs text-muted-foreground">선택한 통계가 없으면 멤버에게 개인 기록 탭이 표시되지 않습니다.</p></section></div> : <Tabs defaultValue={scope === "hof" ? "ranking" : "access"} className="min-h-0 flex-1 gap-4">
+      </section><section className="space-y-4 rounded-xl border p-4" aria-label="공개할 통계">
+        <h4 className="text-sm font-semibold">공개할 통계</h4>
+        {PERSONAL_STATS_SECTIONS.map(({ id, label, description }) => <div key={id} className="flex items-start justify-between gap-3 text-sm">
+          <span>{label}<span className="mt-1 block text-xs text-muted-foreground">{description}</span></span>
+          {personalSections.includes(id) && <input type="hidden" name="member_personal_sections" value={id} />}
+          {personalMinimum === "leader" ? <span className="mt-1 text-xs font-semibold text-primary" aria-label={`${label} ON`}>ON</span>
+            : <Switch aria-label={label} checked={personalSections.includes(id)} onChange={event => { const checked = event.currentTarget.checked; setPersonalSections(current => checked ? [...current, id] : current.filter(section => section !== id)); }} className="mt-1" />}
+        </div>)}
+        <p className="text-xs text-muted-foreground">{personalMinimum === "leader" ? "서버장은 모든 통계를 볼 수 있습니다. " : ""}엠블럼은 항상 기본으로 표시됩니다.</p>
+      </section></div> : <Tabs defaultValue={scope === "hof" ? "ranking" : "access"} className="min-h-0 flex-1 gap-4">
         <TabsList className={`grid h-10 w-full shrink-0 ${scope === "hof" ? "grid-cols-2" : "grid-cols-3"}`} aria-label="명예의 전당 설정 영역">
           {scope === "all" && <TabsTrigger value="access">열람·공개</TabsTrigger>}
           <TabsTrigger value="ranking">순위 공개</TabsTrigger>

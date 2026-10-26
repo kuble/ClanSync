@@ -38,8 +38,8 @@ test("공통 엠블럼 케이스: 공개 권한·계열 성장·대표 저장·�
     expect(recordsVisible?.emblems.filter((emblem) => emblem.kind === "milestone")).toHaveLength(16);
     expect(recordsVisible?.emblems.some((emblem) => emblem.kind === "milestone" && emblem.family === "prediction")).toBe(false);
     expect((await f.service.from("clan_settings").update({ hof_config: { ...config, member_personal_sections: ["records"] } }).eq("clan_id", f.clanId)).error).toBeNull();
-    expect(await loadClanPersonalEmblemCollection(member, f.users[1].id, f.clanId)).toBeNull();
-    expect(await loadClanPersonalEmblemCollection(member, f.users[1].id, f.clanId, f.users[0].id)).toBeNull();
+    expect(await loadClanPersonalEmblemCollection(member, f.users[1].id, f.clanId)).not.toBeNull();
+    expect((await loadClanPersonalEmblemCollection(member, f.users[1].id, f.clanId, f.users[0].id))?.emblems.some(emblem => emblem.kind === "award")).toBe(true);
     expect((await f.service.from("clan_settings").update({ hof_config: { ...config, personal_record_min_role: "leader" } }).eq("clan_id", f.clanId)).error).toBeNull();
     expect(await loadClanPersonalEmblemCollection(member, f.users[1].id, f.clanId)).toBeNull();
     expect((await f.service.from("clan_settings").update({ hof_config: config }).eq("clan_id", f.clanId)).error).toBeNull();
@@ -140,14 +140,9 @@ test("공통 엠블럼 케이스: 공개 권한·계열 성장·대표 저장·�
     await memberTrigger.click();
     await expect(collection.locator("[data-emblem-key]").first()).toBeVisible();
     expect((await f.service.from("clan_settings").update({ hof_config: { ...config, member_personal_sections: [] } }).eq("clan_id", f.clanId)).error).toBeNull();
-    await collection.locator("[data-emblem-key]").first().click();
-    await expect(collection.getByRole("alert")).toContainText("이 멤버의 엠블럼을 볼 수 없습니다.");
-    await expect(collection.locator("[data-emblem-key]")).toHaveCount(0);
-    await expect(page.getByRole("dialog").locator("[data-emblem-artwork]")).toHaveCount(0);
-    await collection.getByRole("button", { name: "다시 불러오기", exact: true }).click();
-    await expect(collection.getByRole("alert")).toContainText("이 멤버의 엠블럼을 볼 수 없습니다.");
-    await expect(collection.locator("[data-emblem-key]")).toHaveCount(0);
-    await expect(page.getByRole("dialog").locator("[data-emblem-artwork]")).toHaveCount(0);
+    await page.reload();
+    await expect(collection.locator("[data-emblem-key]").first()).toBeVisible();
+    expect((await page.request.get(apiPath + "?player=" + f.users[0].id)).status()).toBe(200);
     expect((await f.service.from("clan_settings").update({ hof_config: config }).eq("clan_id", f.clanId)).error).toBeNull();
     await page.goto(`/profile/${f.users[0].id}/emblems?clan=${f.clanId}`);
     await expect(collection.locator("[data-emblem-key]").first()).toBeVisible();

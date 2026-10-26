@@ -577,7 +577,7 @@ function personalAccess(source: StatsSource, userId: string, nick: Map<string, s
   const cfg = resolveHofConfig(source.settings?.hof_config);
   const canSeeOthers = cfg.personalRecordMinRole !== null || (role === "member" ? cfg.memberPersonalAudience === "clan" : p.viewMonthly && p.viewYearly && p.viewMaps && p.viewSynergy && p.viewMscore);
   const roleAllowed = cfg.personalRecordMinRole !== null ? canViewPersonalRecords(role, cfg.personalRecordMinRole) : role !== "member" || cfg.memberPersonalRecords;
-  const viewPersonalRecords = roleAllowed && (role !== "member" || cfg.memberPersonalSections.length > 0);
+  const viewPersonalRecords = roleAllowed;
   return { canSeeOthers, viewPersonalRecords, peopleIds: !viewPersonalRecords ? [] : canSeeOthers ? [...new Set([userId, ...nick.keys()])] : [userId] };
 }
 
@@ -768,7 +768,6 @@ export async function loadClanPersonalEmblemCollection(
   const nick = buildNickMap(source.nickRows);
   if (!personalAccess(source, userId, nick).peopleIds.includes(personId)) return null;
   const sections = source.role === "member" ? resolveHofConfig(source.settings?.hof_config).memberPersonalSections : null;
-  if (sections && !sections.includes("emblems")) return null;
   const service: SupabaseClient<Database> = createServiceRoleClient();
   const [membership, metadata] = await Promise.all([
     service.from("clan_members").select("user_id").eq("clan_id", clanId).eq("user_id", personId).eq("status", "active").maybeSingle(),
