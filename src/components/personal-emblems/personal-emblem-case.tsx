@@ -138,7 +138,7 @@ function useEmblemCollection(clanId: string, userId: string, initial?: PersonalE
 }
 
 export function PersonalEmblemCaseLauncher({ clanId = "", userId, nickname, variant = "compact", initialAwards }: {
-  clanId?: string; userId: string; nickname: string; gameSlug?: string; variant?: "compact" | "profile"; initialAwards?: HofEmblem[];
+  clanId?: string; userId: string; nickname: string; gameSlug?: string; variant?: "compact" | "profile" | "namecard"; initialAwards?: HofEmblem[];
 }) {
   const { collection, error, pending, refresh } = useEmblemCollection(clanId, userId, undefined, variant === "profile");
   const emblems = collection?.emblems ?? (!error && initialAwards ? awardEmblems(initialAwards) : []);
@@ -147,21 +147,26 @@ export function PersonalEmblemCaseLauncher({ clanId = "", userId, nickname, vari
   const featured = collection?.accountFeaturedKeys ? collection.accountFeaturedKeys.flatMap(key => entries.filter(emblem => emblem.key === key && emblem.earned))
     : featuredKeys.flatMap(key => emblems.filter(emblem => emblem.key === key && emblem.earned));
   const href = `/profile/${encodeURIComponent(userId)}/emblems${variant === "profile" ? "" : "?clan=" + encodeURIComponent(clanId)}`;
+  const slots = [0, 1, 2].map(index => {
+    const emblem = featured[index];
+    const className = cn(caseStyles.pin, emblem && caseStyles.artworkSocket, styles.pin);
+    const title = emblem ? emblem.description + " · " + periodLabel(emblem)
+      + ("source" in emblem ? " · " + (emblem.source as PersonalEmblemCollection).gameName + " · " + (emblem.source as PersonalEmblemCollection).clanName : "") : "빈 대표 엠블럼 칸";
+    const contents = <><Socket />{emblem && <EmblemArtwork emblem={emblem} eager className={styles.pinArtwork} />}</>;
+    const reference = emblem && "localKey" in emblem ? emblem.key : undefined;
+    return variant !== "namecard" ? <Link key={index} href={href} className={className} style={emblem ? socketStyle(emblem) : undefined}
+      data-featured-emblem-reference={reference}
+      aria-label={nickname + " 엠블럼 케이스 열기" + (index ? " · " + (index + 1) + "번째 칸" : "")} title={title}>
+      {contents}
+    </Link> : <span key={index} className={className} style={emblem ? socketStyle(emblem) : undefined} data-featured-emblem-reference={reference} title={title}>{contents}</span>;
+  });
+  if (variant === "namecard") return <Link href={href} className={cn(styles.launcher, styles.compact, styles.embeddedCase)} data-personal-emblem-launcher aria-label={nickname + " 엠블럼 케이스 열기"}>
+    <span className={cn(caseStyles.case, styles.tray)}><span className={cn(caseStyles.caseGrid, styles.featuredGrid)} role="group" aria-label="대표 엠블럼 3칸">{slots}</span></span>
+  </Link>;
   return <div className={cn(styles.launcher, variant === "profile" ? styles.profile : styles.compact)} data-personal-emblem-launcher>
     <div className={cn(caseStyles.case, styles.tray)}>
       <div className={cn(caseStyles.caseGrid, styles.featuredGrid)} role="group" aria-label="대표 엠블럼 3칸">
-        {[0, 1, 2].map(index => {
-          const emblem = featured[index];
-          const className = cn(caseStyles.pin, emblem && caseStyles.artworkSocket, styles.pin);
-          const title = emblem ? emblem.description + " · " + periodLabel(emblem)
-            + ("source" in emblem ? " · " + (emblem.source as PersonalEmblemCollection).gameName + " · " + (emblem.source as PersonalEmblemCollection).clanName : "") : "빈 대표 엠블럼 칸";
-          const contents = <><Socket />{emblem && <EmblemArtwork emblem={emblem} eager className={styles.pinArtwork} />}</>;
-          return href ? <Link key={index} href={href} className={className} style={emblem ? socketStyle(emblem) : undefined}
-            data-featured-emblem-reference={emblem && "localKey" in emblem ? emblem.key : undefined}
-            aria-label={nickname + " 엠블럼 케이스 열기" + (index ? " · " + (index + 1) + "번째 칸" : "")} title={title}>
-            {contents}
-          </Link> : <span key={index} className={className} style={emblem ? socketStyle(emblem) : undefined} title={title}>{contents}</span>;
-        })}
+        {slots}
       </div>
     </div>
     {href && <Link href={href} className={styles.caseLink}>엠블럼 케이스 보기 →</Link>}

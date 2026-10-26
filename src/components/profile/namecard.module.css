@@ -1,4 +1,4 @@
-.card { display:flex; align-items:center; min-width:0; width:100%; min-height:84px; border:1px solid color-mix(in srgb,var(--primary) 35%,var(--border)); border-radius:12px; overflow:hidden; background:color-mix(in srgb,var(--primary) 8%,var(--card)); text-align:left; }
+.card { position:relative; display:flex; align-items:center; min-width:0; width:100%; min-height:84px; border:1px solid color-mix(in srgb,var(--primary) 35%,var(--border)); border-radius:12px; overflow:hidden; background:color-mix(in srgb,var(--primary) 8%,var(--card)); text-align:left; }
 .emblem { align-self:stretch; display:grid; place-items:center; flex:0 0 76px; color:var(--primary); background:color-mix(in srgb,var(--primary) 13%,transparent); }
 .identity { display:grid; gap:5px; min-width:0; padding:16px 20px; }
 .identity strong { display:block; font-size:17px; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -28,3 +28,15 @@
 .header h2 > button { min-height:24px; }
 
 @media(pointer:coarse) { .actions :is(button,a) { min-width:44px; min-height:44px; } }
+
+.profileLink { position:absolute; inset:0; border-radius:inherit; }
+.profileLink:hover { background:color-mix(in srgb,var(--primary) 5%,transparent); }
+.profileLink:focus-visible { outline:2px solid var(--ring); outline-offset:-2px; }
+.accessory { position:relative; flex-shrink:0; margin-left:auto; padding:12px; }
+.card:has(.accessory) .identity { flex:1; }
+@media(max-width:600px) {
+  .card:has(.accessory) .emblem { flex-basis:40px; }
+  .card:has(.accessory) .identity { padding:12px 8px; }
+  .card:has(.accessory) .identity strong { font-size:13px; }
+  .accessory { padding:8px; }
+}
