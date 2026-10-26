@@ -17,6 +17,8 @@ async function expectComposition(page: Page, intro: Locator, width: number) {
   expect(summary!.y + summary!.height).toBeLessThanOrEqual(heading!.y);
   expect(heading!.y + heading!.height).toBeLessThanOrEqual(launcher!.y);
   expect(Math.abs(heading!.x - launcher!.x)).toBeLessThan(1);
+  const emblemBounds = await emblems.boundingBox();
+  expect(Math.abs(launcher!.width - Math.min(420, emblemBounds!.width))).toBeLessThan(2);
   const clans = intro.getByRole("region", { name: "클랜 프로필", exact: true });
   const card = await intro.getByRole("region", { name: "공통 네임카드", exact: true }).boundingBox();
   const facts = await intro.getByRole("region", { name: "기본 정보", exact: true }).boundingBox();
@@ -125,7 +127,7 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     await expect(nameplate).toBeHidden();
     await overviewTab.click();
     await expect(intro.getByRole("article").getByRole("img", { name: "오버워치 로고", exact: true })).toHaveCount(0);
-    await expect(intro.getByRole("article").getByRole("link").locator("..")).toContainText("클랜장");
+    await expect(intro.getByRole("article").locator('a[href*="/clan/"]').locator("..")).toContainText("클랜장");
 
     for (const width of [1280, 908, 509, 390, 320]) {
       await expectComposition(page, intro, width);

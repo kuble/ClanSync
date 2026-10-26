@@ -34,8 +34,8 @@ test("게임 이름으로 클랜을 선택하고 모바일·스와이프·키보
     await expect(dots.filter({ hasText: "발로란트" })).toHaveCount(1);
     await expect(cards).toHaveCount(2);
     await expect(cards.getByRole("img")).toHaveCount(0);
-    await expect(ow.getByRole("link").locator("..")).toContainText("클랜장");
-    await expect(val.locator("a").locator("..")).toContainText("멤버");
+    await expect(ow.locator('a[href*="/clan/"]').locator("..")).toContainText("클랜장");
+    await expect(val.locator('a[href*="/clan/"]').locator("..")).toContainText("멤버");
     await expect(identity.getByRole("article")).toHaveCount(1);
     await expect(ow.getByText("배틀태그", { exact: true })).toHaveCount(1);
     await expect(val.getByText("라이엇 ID", { exact: true })).toHaveCount(1);

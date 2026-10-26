@@ -16,7 +16,7 @@ import styles from "./namecard.module.css";
 const CATEGORIES: [NamecardCategory, string][] = [["emblem", "엠블럼"], ["namebar", "이름표"], ["sub", "칭호"], ["frame", "프레임"]];
 
 export function ProfileNamecard({ initial, displayName, children }: {
-  initial: NamecardResult; displayName: string; children: (appearance: NamecardAppearance) => ReactNode;
+  initial: NamecardResult; displayName: string; children: (appearance: NamecardAppearance, tools?: ReactNode) => ReactNode;
 }) {
   const [state, setState] = useState(initial.ok ? initial.state : null);
   const [open, setOpen] = useState(false);
@@ -53,12 +53,13 @@ export function ProfileNamecard({ initial, displayName, children }: {
     } catch { setError("네임카드를 저장하지 못했습니다. 다시 시도해 주세요."); }
     finally { busy.current = false; setPending(false); }
   }
-  return <section aria-label="공통 네임카드">
-    <div className={styles.header}><div><h2 aria-label="게임 프로필"><StatHelp title="게임 프로필">한 번 꾸미면 모든 게임에서 함께 사용합니다.</StatHelp></h2></div><div className={styles.actions} role="toolbar" aria-label="네임카드 도구">
+  const tools = <div className={styles.actions} role="toolbar" aria-label="네임카드 도구">
       <Tooltip><TooltipTrigger render={<Link href="/store" aria-label="개인 상점" className={buttonVariants({ variant: "outline", size: "icon" })} />}><ShoppingBag aria-hidden="true" /></TooltipTrigger><TooltipContent role="tooltip">개인 상점</TooltipContent></Tooltip>
       <Tooltip><TooltipTrigger render={<Button size="icon" aria-label="네임카드 꾸미기" onClick={() => { setError(""); setOpen(true); }} />}><Pencil aria-hidden="true" /></TooltipTrigger><TooltipContent role="tooltip">네임카드 꾸미기</TooltipContent></Tooltip>
-    </div></div>
-    {children(appearance)}
+    </div>;
+  return <section aria-label="공통 네임카드">
+    <div className={styles.header}><h2 aria-label="게임 프로필"><StatHelp title="게임 프로필">한 번 꾸미면 모든 게임에서 함께 사용합니다.</StatHelp></h2></div>
+    {children(appearance, tools)}
     <Sheet open={open} onOpenChange={(next) => { if (!pending) setOpen(next); }}><SheetContent initialFocus={firstOption} showCloseButton={!pending} className="overflow-y-auto data-[side=right]:w-full data-[side=right]:sm:max-w-[680px]"><SheetHeader><SheetTitle aria-label="네임카드 꾸미기"><StatHelp title="네임카드 꾸미기">보유한 꾸미기를 선택하면 계정 공통으로 바로 저장됩니다.</StatHelp></SheetTitle><SheetDescription className="sr-only">보유한 꾸미기를 선택하면 계정 공통으로 바로 저장됩니다.</SheetDescription></SheetHeader><div className={styles.fields}><Namecard displayName={displayName} {...appearance} />{CATEGORIES.map(([category, label]) => { const available = options(category); return <label key={category}>{label}<select ref={category === "emblem" ? firstOption : undefined} aria-label={`네임카드 ${label}`} value={state.selections.find((item) => item.category === category)?.option_id ?? available[0]?.id ?? ""} disabled={pending || !available.length} onChange={(event) => void equip(category, event.target.value)}>{available.map((item) => <option key={item.id} value={item.id}>{category === "sub" && item.unlock_source === "default" ? "칭호 없음" : item.name_ko}</option>)}</select></label>; })}{error && <p role="alert" className={styles.error}>{error}</p>}<p role="status" className={styles.note}>{status}</p></div></SheetContent></Sheet>
     <p role="status" className={styles.note}>{!open ? status : ""}</p>
   </section>;

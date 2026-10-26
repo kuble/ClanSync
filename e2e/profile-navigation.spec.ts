@@ -19,6 +19,8 @@ test("프로필은 소개·계정 정보와 네임카드 상점·편집 및 엠�
     const cardTools = card.getByRole("toolbar", { name: "네임카드 도구", exact: true });
     const editCard = cardTools.getByRole("button", { name: "네임카드 꾸미기", exact: true });
     const cardShop = cardTools.getByRole("link", { name: "개인 상점", exact: true });
+    const clanRow = cardTools.locator("..");
+    await expect(clanRow.getByText("클랜장", { exact: true })).toBeVisible();
     await expect(cardTools.getByRole("link")).toHaveCount(1);
     await expect(editCard).toHaveText(""); await expect(editCard.locator("svg")).toBeVisible();
     await cardShop.focus(); await page.keyboard.press("Tab"); await expect(editCard).toBeFocused(); await expect(page.locator('[role="tooltip"][data-open]')).toHaveText("네임카드 꾸미기");
@@ -32,6 +34,8 @@ test("프로필은 소개·계정 정보와 네임카드 상점·편집 및 엠�
       await page.mouse.move(0, 0); await editCard.blur();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
       for (const icon of [editCard, cardShop]) { const b = await icon.boundingBox(); expect(b!.width).toBeGreaterThanOrEqual(44); expect(b!.height).toBeGreaterThanOrEqual(44); }
+      const [rowBounds, toolBounds] = await Promise.all([clanRow.boundingBox(), cardTools.boundingBox()]);
+      expect(Math.abs(rowBounds!.x + rowBounds!.width - toolBounds!.x - toolBounds!.width)).toBeLessThan(2);
       await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
       await expect(page.getByRole("region", { name: "내 계정", exact: true })).toBeVisible();
       await page.screenshot({ path: info.outputPath("profile-account-" + width + ".png") });
