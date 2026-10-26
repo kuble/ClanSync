@@ -41,7 +41,8 @@ async function round(kind: "regular" | "flash" = "regular", owner = leader) {
   const row = await ok(f.service.from("balance_sessions").select("*").eq("series_id", id).is("closed_at", null).single());
   const ids = f.users.slice(0, 10).map(u => u.id);
   const roster = { team1: { tank: ids[0], dmg: ids.slice(1, 3), sup: ids.slice(3, 5) }, team2: { tank: ids[5], dmg: ids.slice(6, 8), sup: ids.slice(8, 10) } };
-  await ok(f.service.from("balance_sessions").update({ roster }).eq("id", row.id));
+  // Each scenario chooses its own ban flow; room defaults can inherit prior rounds.
+  await ok(f.service.from("balance_sessions").update({ roster, map_ban_enabled: false, hero_ban_enabled: false }).eq("id", row.id));
   return { ...row, roster };
 }
 async function live(row: Awaited<ReturnType<typeof round>>) {
@@ -116,14 +117,19 @@ test("history RLS preserves live access and staff/own-open-flash history only", 
 
 test("delegated score editors persist only allowed fields and cannot modify other round state", async () => {
   const r = await round(); await live(r);
+  const before = await ok(f.service.from("balance_sessions").select("ma_snapshot,match_outcome").eq("id", r.id).single());
   const args = { p_round_id: r.id, p_clan_id: f.clanId, p_snapshot: { [f.users[1].id]: { m: -10, a: 10 } } };
   expect((await member.rpc("set_balance_scores", args)).error).not.toBeNull();
   await ok(leader.from("clan_settings").update({ permissions: { edit_mscore: ["leader", "member"] } }).eq("clan_id", f.clanId));
   await ok(member.rpc("set_balance_scores", args));
-  expect((await ok(f.service.from("balance_sessions").select("ma_snapshot").eq("id", r.id).single())).ma_snapshot).toEqual(args.p_snapshot);
+  const snapshot = before.ma_snapshot as Record<string, { m: number; a: number | null }>;
+  expect((await ok(f.service.from("balance_sessions").select("ma_snapshot").eq("id", r.id).single())).ma_snapshot).toEqual({
+    ...snapshot, [f.users[1].id]: { ...snapshot[f.users[1].id], m: -10 },
+  });
   expect((await member.rpc("set_balance_scores", { ...args, p_snapshot: { [f.users[1].id]: { m: 11, a: 0 } } })).error).not.toBeNull();
   expect((await member.rpc("set_balance_scores", { ...args, p_snapshot: { [f.users[11].id]: { m: 0, a: 0 } } })).error).not.toBeNull();
   expect((await member.from("balance_sessions").update({ match_outcome: "team1" }).eq("id", r.id)).error).not.toBeNull();
+  expect((await ok(f.service.from("balance_sessions").select("match_outcome").eq("id", r.id).single())).match_outcome).toBe(before.match_outcome);
   await ok(leader.from("clan_settings").update({ permissions: {} }).eq("clan_id", f.clanId));
   expect((await member.rpc("set_balance_scores", args)).error).not.toBeNull();
 });
@@ -212,13 +218,17 @@ test("member dashboard and statistics retain aggregate totals without historical
   const r = await round(); await live(r);
   await ok(leader.rpc("set_balance_match_outcome", { p_session_id: r.id, p_outcome: "team1" }));
   await ok(leader.rpc("close_balance_session_series", { p_clan_id: f.clanId, p_round_id: r.id }));
-  const [leaderDashboard, memberDashboard, stats] = await Promise.all([
+  const [leaderDashboard, memberDashboard, stats, staffStats] = await Promise.all([
     loadClanDashboard(leader, f.clanId, "premium"), loadClanDashboard(member, f.clanId, "premium"),
     loadClanStatsPage(member, f.users[1].id, f.clanId),
+    loadClanStatsPage(leader, f.users[0].id, f.clanId),
   ]);
   expect(memberDashboard?.completedIntraCount).toBeGreaterThan(0);
   expect(memberDashboard?.completedIntraCount).toBe(leaderDashboard?.completedIntraCount);
-  expect(stats?.summary.intraCount).toBe(memberDashboard?.completedIntraCount);
+  // The dashboard counts closed regular series; statistics count played matches.
+  expect(stats?.summary.intraCount).toBeGreaterThan(0);
+  expect(stats?.summary).toEqual(staffStats?.summary);
+  expect(stats?.intra.completed).toBe(staffStats?.intra.completed);
   expect(stats?.intra.completed).toBeGreaterThan(0);
   expect(stats?.intra.recent).toEqual([]);
   expect(stats?.intra.scoreGaps).toEqual([]);
@@ -272,14 +282,17 @@ test("pool prediction picks are private while aggregate totals remain shared", a
   expect(myStats?.hof.periods.all.predictionCorrect).toEqual([]);
   expect(staffStats?.hof.periods.all.predictionCorrect.some((row) => row.userId === f.users[10].id)).toBe(true);
   const selected = staffStats?.personal.people.find((person) => person.userId === f.users[10].id);
-  expect(selected?.predictions).toMatchObject([{ sessionId: r.id, result: "correct" }]);
-  expect(selected?.predictionPoints.reduce((sum, day) => sum + day.net, 0)).toBe(0);
+  expect(selected?.predictions).toEqual(expect.arrayContaining([expect.objectContaining({ sessionId: r.id, result: "correct" })]));
+  const ledger = await ok(f.service.from("coin_transactions").select("amount,reference_id").eq("user_id", f.users[10].id).eq("pool_type", "personal").in("reference_type", ["balance_session", "balance_prediction_pool"]));
+  const net = ledger.reduce((sum, row) => sum + row.amount, 0);
+  expect(ledger.filter((row) => row.reference_id === r.id).reduce((sum, row) => sum + row.amount, 0)).toBe(0);
+  expect(selected?.predictionPoints.reduce((sum, day) => sum + day.net, 0)).toBe(net);
   await loginIsolatedBalanceUser(page, f.users[0]);
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
   await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
   await page.getByRole("button", { name: `${f.users[10].nickname} 개인 기록 열기`, exact: true }).click();
   await expect(page.getByLabel("승부예측 요약")).toContainText("적중력 100%");
-  await expect(page.getByText("순수익 0pt", { exact: true })).toBeVisible();
+  await expect(page.getByText(`순수익 ${net > 0 ? "+" : ""}${net.toLocaleString()}pt`, { exact: true })).toBeVisible();
   await expect(page.getByRole("img", { name: "승부예측 누적 포인트 그래프" })).toBeVisible();
   await expect(page.getByText("내 승부예측", { exact: true })).toHaveCount(0);
 });
@@ -321,50 +334,60 @@ test("statistics use four sections and site usage appears in staff management", 
   await expect(page.getByRole("group", { name: "개인 꾸미기 분류", exact: true })).toBeVisible();
 });
 
-test("personal records are staff-only by default and member self-access follows the saved setting", async ({ page }) => {
-  await loginIsolatedBalanceUser(page, f.users[1]);
-  await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
-  await expect(page.getByRole("tab", { name: "개인 기록" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "설정", exact: true })).toHaveCount(0);
-  await page.context().clearCookies();
-  await loginIsolatedBalanceUser(page, f.users[0]);
-  await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
-  await page.getByRole("button", { name: "설정", exact: true }).click();
-  const dialog = page.getByRole("dialog");
-  await dialog.getByRole("checkbox", { name: /멤버의 본인 개인 기록/ }).check();
-  await dialog.getByRole("button", { name: /저장/ }).click();
-  await expect(dialog).toBeHidden();
-  const enabled = await loadClanStatsPage(member, f.users[1].id, f.clanId);
-  expect(enabled?.permissions.viewPersonalRecords).toBe(true);
-  expect(enabled?.personal.people.map((person) => person.userId)).toEqual([f.users[1].id]);
-  expect(enabled?.personal.canSeePeers).toBe(false);
-  await page.context().clearCookies();
-  await loginIsolatedBalanceUser(page, f.users[1]);
-  await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
-  await page.getByRole("tab", { name: "개인 기록" }).click();
-  await expect(page.getByRole("region", { name: "개인 기록 멤버 목록", exact: true }).getByRole("button")).toHaveCount(1);
-  await page.getByRole("button", { name: `${f.users[1].nickname} 개인 기록 열기`, exact: true }).click();
-  await page.getByRole("button", { name: `${f.users[1].nickname} 엠블럼 컬렉션 열기`, exact: true }).click();
-  await expect(page.getByText("엠블럼 컬렉션", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "엠블럼 컬렉션 닫기" }).click();
-  await expect(page.getByText("선택 기간·역할 조건을 적용한 최근 기록입니다.")).toHaveCount(0);
-  await page.getByRole("button", { name: "최근 흐름 도움말" }).focus();
-  await expect(page.getByRole("tooltip")).toContainText("현재 연속");
-  const period = page.getByRole("region", { name: "개인 기록 기간", exact: true });
-  await period.getByRole("radio", { name: "월별", exact: true }).click();
-  await expect(period.getByRole("radio", { checked: true })).toHaveText("월별");
-  await page.context().clearCookies();
-  await loginIsolatedBalanceUser(page, f.users[0]);
-  await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
-  await page.getByRole("button", { name: "설정", exact: true }).click();
-  await page.getByRole("dialog").getByRole("checkbox", { name: /멤버의 본인 개인 기록/ }).uncheck();
-  await page.getByRole("dialog").getByRole("button", { name: /저장/ }).click();
-  await expect(page.getByRole("dialog")).toBeHidden();
-  const disabled = await loadClanStatsPage(member, f.users[1].id, f.clanId);
-  expect(disabled?.personal.people).toEqual([]);
+test("personal records default to staff and saved minimum role controls member access", async ({ page, browser }) => {
+  const memberContext = await browser.newContext();
+  const memberPage = await memberContext.newPage();
+  try {
+    await loginIsolatedBalanceUser(memberPage, f.users[1]);
+    await memberPage.goto(`/games/overwatch/clan/${f.clanId}/stats`);
+    await expect(memberPage.getByRole("tab", { name: "개인 기록" })).toHaveCount(0);
+    await expect(memberPage.getByRole("button", { name: /^(명예의 전당|개인 기록|경기 기록|내전 통계) 설정$/ })).toHaveCount(0);
+
+    await loginIsolatedBalanceUser(page, f.users[0]);
+    await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
+    await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
+    await page.getByRole("button", { name: "개인 기록 설정", exact: true }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("radiogroup", { name: "기록 공개", exact: true }).getByRole("radio", { name: "멤버", exact: true }).click();
+    await dialog.getByRole("button", { name: /저장/ }).click();
+    await expect(dialog).toBeHidden();
+    const enabled = await loadClanStatsPage(member, f.users[1].id, f.clanId);
+    expect(enabled?.permissions.viewPersonalRecords).toBe(true);
+    expect(enabled?.personal.people.map((person) => person.userId).sort()).toEqual(f.users.map((user) => user.id).sort());
+    expect(enabled?.personal.people.filter((person) => person.userId !== f.users[1].id).every((person) => person.predictionPoints.length === 0 && person.matches.every((match) => match.peers.length === 0))).toBe(true);
+    expect(enabled?.personal.canSeePeers).toBe(false);
+
+    await memberPage.goto(`/games/overwatch/clan/${f.clanId}/stats`);
+    await memberPage.getByRole("tab", { name: "개인 기록" }).click();
+    await expect(memberPage.getByRole("region", { name: "개인 기록 멤버 목록", exact: true }).getByRole("button")).toHaveCount(f.users.length);
+    await memberPage.getByRole("button", { name: `${f.users[1].nickname} 개인 기록 열기`, exact: true }).click();
+    const caseUrl = await memberPage.getByRole("link", { name: `${f.users[1].nickname} 엠블럼 케이스 열기`, exact: true }).getAttribute("href");
+    expect(caseUrl).toBe(`/profile/${f.users[1].id}/emblems?clan=${f.clanId}`);
+    const casePage = await memberPage.context().newPage();
+    try {
+      await casePage.goto(caseUrl!);
+      await expect(casePage.getByRole("region", { name: "개인 엠블럼", exact: true })).toBeVisible();
+    } finally { await casePage.close(); }
+    await expect(memberPage.getByText("선택 기간·역할 조건을 적용한 최근 기록입니다.")).toHaveCount(0);
+    await expect(memberPage.getByRole("region", { name: "플레이어 요약", exact: true })).toContainText("최근 흐름");
+    const period = memberPage.getByRole("region", { name: "개인 기록 기간", exact: true });
+    await period.getByRole("radio", { name: "월별", exact: true }).click();
+    await expect(period.getByRole("radio", { checked: true })).toHaveText("월별");
+
+    await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
+    await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
+    await page.getByRole("button", { name: "개인 기록 설정", exact: true }).click();
+    await page.getByRole("dialog").getByRole("radiogroup", { name: "기록 공개", exact: true }).getByRole("radio", { name: "운영진", exact: true }).click();
+    await page.getByRole("dialog").getByRole("button", { name: /저장/ }).click();
+    await expect(page.getByRole("dialog")).toBeHidden();
+    const disabled = await loadClanStatsPage(member, f.users[1].id, f.clanId);
+    expect(disabled?.personal.people).toEqual([]);
+    await memberPage.reload();
+    await expect(memberPage.getByRole("tab", { name: "개인 기록", exact: true })).toHaveCount(0);
+  } finally { await memberContext.close(); }
 });
 
-test("staff can inspect prediction payouts and edit completed evaluation scores", async ({ page, request }) => {
+test("staff can inspect prediction payouts and edit completed evaluation scores", async ({ page, request, browser }) => {
   const r = await round();
   await ok(f.service.from("balance_sessions").update({ ma_snapshot: { [f.users[0].id]: { m: 2, a: 1 } } }).eq("id", r.id));
   await live(r);
@@ -374,14 +397,18 @@ test("staff can inspect prediction payouts and edit completed evaluation scores"
   await ok(otherSpectator.rpc("place_balance_prediction_pool", { p_session_id: r.id, p_pick: 2, p_stake: 5 }));
   await ok(leader.rpc("set_balance_match_outcome", { p_session_id: r.id, p_outcome: "team1" }));
   const current = await ok(f.service.from("clan_settings").select("hof_config").eq("clan_id", f.clanId).single());
-  await ok(f.service.from("clan_settings").update({ hof_config: { ...(current.hof_config as Record<string, unknown>), member_personal_records: true } }).eq("clan_id", f.clanId));
+  // Exercise legacy owner-only grants independently of the previous UI role threshold.
+  await ok(f.service.from("clan_settings").update({ hof_config: { ...(current.hof_config as Record<string, unknown>), personal_record_min_role: undefined, member_personal_audience: "own", member_personal_records: true } }).eq("clan_id", f.clanId));
   const own = await loadClanStatsPage(spectator, f.users[11].id, f.clanId);
   const paid = await ok(spectator.from("coin_transactions").select("amount").eq("reference_id", r.id).eq("user_id", f.users[11].id));
   expect(paid.length).toBeGreaterThan(0);
-  expect(own?.personal.people[0].predictionPoints.reduce((sum, day) => sum + day.net, 0)).toBe(paid.reduce((sum, row) => sum + row.amount, 0));
   expect(own?.personal.people).toHaveLength(1);
   const staff = await loadClanStatsPage(leader, f.users[0].id, f.clanId);
-  expect(staff?.personal.people.find((person) => person.userId === f.users[11].id)?.predictionPoints.reduce((sum, day) => sum + day.net, 0)).toBe(5);
+  expect(paid.reduce((sum, row) => sum + row.amount, 0)).toBe(5);
+  const predictionLedger = await ok(f.service.from("coin_transactions").select("amount").eq("user_id", f.users[11].id).eq("pool_type", "personal").in("reference_type", ["balance_session", "balance_prediction_pool"]));
+  const predictionNet = predictionLedger.reduce((sum, row) => sum + row.amount, 0);
+  expect(own?.personal.people[0].predictionPoints.reduce((sum, day) => sum + day.net, 0)).toBe(predictionNet);
+  expect(staff?.personal.people.find((person) => person.userId === f.users[11].id)?.predictionPoints.reduce((sum, day) => sum + day.net, 0)).toBe(predictionNet);
   expect((await member.rpc("read_clan_prediction_ledger", { p_clan_id: f.clanId })).error).not.toBeNull();
   expect((await leader.rpc("read_clan_prediction_ledger", { p_clan_id: randomUUID() })).error).not.toBeNull();
   expect((await member.rpc("update_balance_history_mscore", { p_round_id: r.id, p_clan_id: f.clanId, p_user_id: f.users[0].id, p_score: 9 })).error).not.toBeNull();
@@ -399,13 +426,13 @@ test("staff can inspect prediction payouts and edit completed evaluation scores"
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
   await page.getByRole("tab", { name: "개인 기록" }).click();
   await page.getByRole("button", { name: `${f.users[0].nickname} 개인 기록 열기`, exact: true }).click();
-  const chart = page.getByRole("img", { name: /점수 이력 그래프/ });
+  const chart = page.getByRole("img", { name: /점수 변동 이력 그래프/ });
   await expect(chart).toBeVisible();
   await chart.press("End");
-  await expect(page.getByRole("status", { name: "점수 이력 그래프 선택 값" })).toContainText("평가 점수");
-  await expect(page.getByRole("status", { name: "점수 이력 그래프 선택 값" })).toContainText("2점");
+  await expect(page.getByRole("status", { name: "점수 변동 이력 그래프 선택 값" })).toContainText("평가 점수");
+  await expect(page.getByRole("status", { name: "점수 변동 이력 그래프 선택 값" })).toContainText("2점");
   await chart.press("Escape");
-  await expect(page.getByRole("status", { name: "점수 이력 그래프 선택 값" })).toBeHidden();
+  await expect(page.getByRole("status", { name: "점수 변동 이력 그래프 선택 값" })).toBeHidden();
   await page.getByRole("button", { name: "평가 점수 수정" }).click();
   const scoreDialog = page.getByRole("dialog", { name: "평가 점수 수정" });
   await scoreDialog.getByRole("combobox", { name: "수정할 경기" }).selectOption(r.id);
@@ -418,12 +445,12 @@ test("staff can inspect prediction payouts and edit completed evaluation scores"
   await (await refreshedDetail).finished();
   await expect(chart).toBeVisible();
   await chart.press("End");
-  await expect(page.getByRole("status", { name: "점수 이력 그래프 선택 값" })).toContainText("3.5점");
+  await expect(page.getByRole("status", { name: "점수 변동 이력 그래프 선택 값" })).toContainText("3.5점");
   await chart.press("Escape");
   await page.getByRole("button", { name: "멤버 선택", exact: true }).click();
   await page.getByRole("textbox", { name: "멤버 이름 검색" }).fill(f.users[11].nickname);
   await page.getByRole("button", { name: `${f.users[11].nickname} 개인 기록 열기`, exact: true }).click();
-  await expect(page.getByText("순수익 +5pt", { exact: true })).toBeVisible();
+  await expect(page.getByText(`순수익 ${predictionNet > 0 ? "+" : ""}${predictionNet.toLocaleString()}pt`, { exact: true })).toBeVisible();
   await expect(page.getByRole("img", { name: "승부예측 누적 포인트 그래프" })).toBeVisible();
   await ok(f.service.from("clan_members").update({ role: "officer" }).eq("clan_id", f.clanId).eq("user_id", f.users[1].id));
   try {
@@ -435,20 +462,23 @@ test("staff can inspect prediction payouts and edit completed evaluation scores"
     await ok(f.service.from("clan_settings").update({ permissions: {} }).eq("clan_id", f.clanId));
     await ok(f.service.from("clan_members").update({ role: "member" }).eq("clan_id", f.clanId).eq("user_id", f.users[1].id));
   }
-  await page.context().clearCookies();
-  await loginIsolatedBalanceUser(page, f.users[11]);
-  expect((await page.request.get(detailUrl)).status()).toBe(200);
-  expect((await page.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`)).status()).toBe(403);
-  expect((await page.request.get(`/api/clans/${f.clanId}/stats?section=archive`)).status()).toBe(403);
-  await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
-  await page.getByRole("tab", { name: "개인 기록" }).click();
-  await page.getByRole("button", { name: `${f.users[11].nickname} 개인 기록 열기`, exact: true }).click();
-  await expect(page.getByRole("button", { name: "평가 점수 수정" })).toHaveCount(0);
-  await expect(page.getByText("순수익 +5pt", { exact: true })).toBeVisible();
-  await ok(f.service.from("clan_settings").update({ hof_config: { ...(current.hof_config as Record<string, unknown>), member_personal_records: false } }).eq("clan_id", f.clanId));
-  expect((await page.request.get(detailUrl)).status()).toBe(403);
-  await page.reload();
-  await expect(page.getByRole("tab", { name: "개인 기록" })).toHaveCount(0);
+  const ownContext = await browser.newContext();
+  const ownPage = await ownContext.newPage();
+  try {
+    await loginIsolatedBalanceUser(ownPage, f.users[11]);
+    expect((await ownPage.request.get(detailUrl)).status()).toBe(200);
+    expect((await ownPage.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`)).status()).toBe(403);
+    expect((await ownPage.request.get(`/api/clans/${f.clanId}/stats?section=archive`)).status()).toBe(403);
+    await ownPage.goto(`/games/overwatch/clan/${f.clanId}/stats`);
+    await ownPage.getByRole("tab", { name: "개인 기록" }).click();
+    await ownPage.getByRole("button", { name: `${f.users[11].nickname} 개인 기록 열기`, exact: true }).click();
+    await expect(ownPage.getByRole("button", { name: "평가 점수 수정" })).toHaveCount(0);
+    await expect(ownPage.getByText(`순수익 ${predictionNet > 0 ? "+" : ""}${predictionNet.toLocaleString()}pt`, { exact: true })).toBeVisible();
+    await ok(f.service.from("clan_settings").update({ hof_config: current.hof_config }).eq("clan_id", f.clanId));
+    expect((await ownPage.request.get(detailUrl)).status()).toBe(403);
+    await ownPage.reload();
+    await expect(ownPage.getByRole("tab", { name: "개인 기록" })).toHaveCount(0);
+  } finally { await ownContext.close(); }
 });
 
 test("UTC calendar can select a month-end Korean occurrence", async ({ browser }) => {
@@ -456,14 +486,17 @@ test("UTC calendar can select a month-end Korean occurrence", async ({ browser }
   const page = await context.newPage();
   const now = new Date();
   const instant = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 15, 30));
-  const date = instant.toISOString().slice(0, 10);
+  // 15:30 UTC on the last day is 00:30 KST on the first day of next month.
+  const date = new Date(instant.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const title = `month-boundary-${randomUUID().slice(0, 6)}`;
   await ok(f.service.from("clan_events").insert({ clan_id: f.clanId, title, kind: "event", start_at: instant.toISOString(), created_by: f.users[0].id }));
   try {
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.goto(`/games/overwatch/clan/${f.clanId}/events`);
+    await page.getByRole("button", { name: "다음 달", exact: true }).click();
     await page.locator(`[data-date="${date}"]`).click();
     await page.getByRole("button", { name: new RegExp(title) }).click();
-    await expect(page.getByRole("dialog")).toContainText(title);
+    await expect(page.getByRole("region", { name: "일정 상세", exact: true })).toContainText(title);
+    await expect(page.getByRole("region", { name: "일정 상세", exact: true })).toContainText("00:30");
   } finally { await context.close(); }
 });

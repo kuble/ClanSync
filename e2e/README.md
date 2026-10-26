@@ -28,6 +28,20 @@ try {
 
 파일은 아래 시나리오 목록에서 골라 바꿉니다. 한 파일 안에서는 `--grep "테스트 제목"`으로 필요한 시나리오를 선택할 수 있습니다. 변경 소스 린트는 `npx eslint <변경 파일>`, 타입 검사는 `npx tsc --noEmit`입니다.
 
+보안 경계·규칙 회귀는 아래처럼 실행합니다. `security-fix-boundaries.spec.ts`는 임시 사용자·클랜만 생성하고 종료 시 정리합니다.
+
+```powershell
+$env:E2E_SKIP_SEED = "1"
+$env:PLAYWRIGHT_DEV_PORT = "3017"
+try {
+  npm run test:e2e -- e2e/security-fix-boundaries.spec.ts e2e/security-fix-rules.spec.ts
+} finally {
+  Remove-Item Env:E2E_SKIP_SEED, Env:PLAYWRIGHT_DEV_PORT
+}
+```
+
+Playwright는 `tsconfig.playwright.json`을 사용합니다. Node에서 서버 조회 함수를 직접 검증할 때 `server-only`를 Next 내장 빈 모듈로 해석하며, 앱의 `tsconfig.json`과 서버/클라이언트 경계 검사는 그대로 유지합니다. 앱 코드의 `server-only` 선언을 제거하거나 테스트를 제외하지 않습니다.
+
 `balance-session-live.spec.ts`는 `isolated-balance-fixture.ts`로 임시 사용자 12명·Premium 클랜을 생성하고 종료 시 해당 데이터만 정리합니다. 시드 생략만으로 데이터가 격리되지는 않습니다. 다른 기존 시나리오에는 공유 픽스처를 변경하는 테스트도 있으므로 활성 QA 세션·명단을 건드리지 않는 범위를 선택하고, 쓰기 검증은 별도 임시 데이터를 사용합니다.
 
 ### 최초 환경 구성

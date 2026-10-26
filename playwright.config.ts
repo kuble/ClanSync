@@ -18,6 +18,8 @@ const defaultBase = `http://127.0.0.1:${E2E_PORT}`;
  */
 export default defineConfig({
   testDir: "./e2e",
+  // Node-side loader assertions use Next's server marker without changing app resolution.
+  tsconfig: "./tsconfig.playwright.json",
   fullyParallel: false,
   forbidOnly: isCi,
   retries: isCi ? 2 : 0,
