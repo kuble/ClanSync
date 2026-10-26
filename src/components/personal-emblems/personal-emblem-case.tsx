@@ -137,16 +137,16 @@ function useEmblemCollection(clanId: string, userId: string, initial?: PersonalE
     savePending: savingState?.target === target && savingState.initial === initial && savingState.pending };
 }
 
-export function PersonalEmblemCaseLauncher({ clanId = "", userId, nickname, variant = "compact", initialAwards }: {
-  clanId?: string; userId: string; nickname: string; gameSlug?: string; variant?: "compact" | "profile" | "namecard"; initialAwards?: HofEmblem[];
+export function PersonalEmblemCaseLauncher({ clanId = "", userId, nickname, variant = "compact", initialAwards, accountWide = false }: {
+  clanId?: string; userId: string; nickname: string; gameSlug?: string; variant?: "compact" | "profile" | "namecard"; initialAwards?: HofEmblem[]; accountWide?: boolean;
 }) {
-  const { collection, error, pending, refresh } = useEmblemCollection(clanId, userId, undefined, variant === "profile");
+  const { collection, error, pending, refresh } = useEmblemCollection(clanId, userId, undefined, (variant === "profile" || accountWide));
   const emblems = collection?.emblems ?? (!error && initialAwards ? awardEmblems(initialAwards) : []);
   const featuredKeys = resolveFeaturedKeys(emblems, collection?.featuredKeys ?? null);
   const entries = caseEmblems(collection?.sources ?? (collection ? [collection] : []));
   const featured = collection?.accountFeaturedKeys ? collection.accountFeaturedKeys.flatMap(key => entries.filter(emblem => emblem.key === key && emblem.earned))
     : featuredKeys.flatMap(key => emblems.filter(emblem => emblem.key === key && emblem.earned));
-  const href = `/profile/${encodeURIComponent(userId)}/emblems${variant === "profile" ? "" : "?clan=" + encodeURIComponent(clanId)}`;
+  const href = `/profile/${encodeURIComponent(userId)}/emblems${variant === "profile" || accountWide ? "" : "?clan=" + encodeURIComponent(clanId)}`;
   const slots = [0, 1, 2].map(index => {
     const emblem = featured[index];
     const className = cn(caseStyles.pin, emblem && caseStyles.artworkSocket, styles.pin);

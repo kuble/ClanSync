@@ -29,9 +29,6 @@
 
 @media(pointer:coarse) { .actions :is(button,a) { min-width:44px; min-height:44px; } }
 
-.profileLink { position:absolute; inset:0; border-radius:inherit; }
-.profileLink:hover { background:color-mix(in srgb,var(--primary) 5%,transparent); }
-.profileLink:focus-visible { outline:2px solid var(--ring); outline-offset:-2px; }
 .accessory { position:relative; flex-shrink:0; margin-left:auto; padding:12px; }
 .card:has(.accessory) .identity { flex:1; }
 @media(max-width:600px) {

@@ -18,8 +18,8 @@ test("내전의 출전자·관전자는 네임카드로 프로필을 방문하�
   }
   const ids = f.users.slice(0, 10).map((user) => user.id);
   const roster = { team1: { tank: ids[0], dmg: ids.slice(1, 3), sup: ids.slice(3, 5) }, team2: { tank: ids[5], dmg: ids.slice(6, 8), sup: ids.slice(8, 10) } };
-  const profilePath = `/profile/${f.users[0].id}`;
-  const links = 'a[href^="/profile/"]';
+  const profilePath = f.path.replace(/balance$/, "stats") + "?player=" + f.users[0].id;
+  const links = 'a[href*="/stats?player="]';
   try {
     const leader = await f.memberClient(0), member = await f.memberClient(1);
     async function openRoom(actor: typeof leader, kind: "regular" | "flash") {

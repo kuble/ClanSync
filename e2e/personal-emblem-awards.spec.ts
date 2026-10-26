@@ -32,7 +32,7 @@ test("award cases prefer the best recent grade and filter full history by gold, 
     await page.goto(statsUrl);
     const trigger = page.getByRole("region", { name: "플레이어 배너", exact: true })
       .getByRole("link", { name: `${user.nickname} 엠블럼 케이스 열기`, exact: true });
-    await expect(trigger).toHaveAttribute("href", `/profile/${user.id}/emblems?clan=${isolated.clanId}`);
+    await expect(trigger).toHaveAttribute("href", `/profile/${user.id}/emblems`);
     await trigger.click();
     await expect(page.getByRole("heading", { name: "엠블럼 케이스", level: 2, exact: true })).toBeVisible();
     const collection = page.locator('section[aria-label="개인 엠블럼"]');
@@ -256,13 +256,13 @@ test("award cases prefer the best recent grade and filter full history by gold, 
     await expect(star).toBeFocused();
     await star.focus();
     await star.click();
-    await page.route("**/emblems?*", route => route.request().headers()["next-action"] ? route.abort("failed") : route.continue());
+    await page.route(/\/emblems(?:\?.*)?$/, route => route.request().headers()["next-action"] ? route.abort("failed") : route.continue());
     await replacement.locator(`[data-replace-emblem-key="${originalPicks[1]}"]`).click();
     await expect(page.getByText("대표 엠블럼을 저장하지 못했습니다. 다시 시도해 주세요.", { exact: true })).toBeVisible();
     await expect(replacement).toBeVisible();
     await expect(options.first()).toBeEnabled();
     expect(await persistedPicks()).toEqual(originalPicks);
-    await page.unroute("**/emblems?*");
+    await page.unroute(/\/emblems(?:\?.*)?$/);
     await replacement.locator(`[data-replace-emblem-key="${originalPicks[1]}"]`).click();
     await expect(replacement).toHaveCount(0);
     await expect(star).toHaveAttribute("aria-pressed", "true");

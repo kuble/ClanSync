@@ -10,6 +10,7 @@ test("개인 기록의 공통 네임카드는 해당 플레이어 소개로, 엠
   async function ok<T>(query: PromiseLike<{ data: T; error: unknown }>) { const r = await query; expect(r.error).toBeNull(); return r.data!; }
   try {
     await ok(f.service.from("user_game_profiles").update({ battle_tag: battleTag }).eq("user_id", player.id).eq("game_id", f.gameId));
+    expect((await f.service.auth.admin.updateUserById(player.id, { user_metadata: { profile_intro: "함께 즐기는 플레이어" } })).error).toBeNull();
     const title = await ok(f.service.from("nameplate_options").select("id,name_ko").eq("code", "title-team-player").single());
     await ok(f.service.from("user_nameplate_inventory").insert({ user_id: player.id, option_id: title.id }));
     const cardOwner = await f.memberClient(1);
@@ -23,18 +24,19 @@ test("개인 기록의 공통 네임카드는 해당 플레이어 소개로, 엠
     await expect(banner).toBeVisible();
     const filterBounds = (await filter.boundingBox())!, bannerBounds = (await banner.boundingBox())!;
     expect(filterBounds.y + filterBounds.height).toBeLessThanOrEqual(bannerBounds.y);
-    const card = banner.getByRole("link", { name: `${battleTag} 프로필 보기`, exact: true });
+    const identity = banner.getByRole("region", { name: "플레이어 소개", exact: true });
+    await expect(identity).toBeVisible();
+    await expect(banner.getByRole("link", { name: /프로필 보기$/ })).toHaveCount(0);
     const namecard = banner.locator("[data-namecard]");
     await expect(namecard).toContainText(battleTag);
     await expect(namecard).toContainText(title.name_ko);
-    await expect(card).toHaveAttribute("href", "/profile/" + player.id);
-    await expect(card.getByRole("link")).toHaveCount(0);
+
     await expect(banner.getByRole("link", { name: "미니룸 방문", exact: true })).toHaveCount(0);
     await expect(banner.getByRole("link", { name: "엠블럼 케이스 보기 →", exact: true })).toHaveCount(0);
     const caseLink = namecard.getByRole("link", { name: / 엠블럼 케이스 열기$/ });
-    await expect(banner.getByRole("link")).toHaveCount(2);
+
     await expect(banner.locator("a a")).toHaveCount(0);
-    await expect(caseLink).toHaveAttribute("href", `/profile/${player.id}/emblems?clan=${f.clanId}`);
+    await expect(caseLink).toHaveAttribute("href", `/profile/${player.id}/emblems`);
     const cardBounds = (await namecard.boundingBox())!, caseBounds = (await caseLink.boundingBox())!;
     expect(caseBounds.x).toBeGreaterThan(cardBounds.x + cardBounds.width / 2);
     expect(caseBounds.x + caseBounds.width).toBeLessThan(cardBounds.x + cardBounds.width);
@@ -50,17 +52,17 @@ test("개인 기록의 공통 네임카드는 해당 플레이어 소개로, 엠
     expect(collection.canFeature).toBe(false);
     expect(collection.sources.some((source: { emblems: { earned: boolean }[] }) => source.emblems.some(emblem => emblem.earned))).toBe(true);
     await page.goto(statsUrl);
-    await card.press("Enter");
-    await expect(page).toHaveURL("/profile/" + player.id);
-    await expect(page.getByRole("heading", { name: `${battleTag}의 프로필`, exact: true })).toBeVisible();
-    const identity = page.getByRole("region", { name: "플레이어 소개", exact: true });
+    await expect(identity).toBeVisible();
+    await page.goto("/profile/" + player.id);
+    await expect(page).toHaveURL(statsUrl);
+    await expect(identity).toBeVisible();
     await expect(identity.locator("[data-namecard]")).toContainText(battleTag);
     await expect(identity.locator("[data-namecard]")).toContainText(title.name_ko);
-    await expect(identity.getByText("아직 작성한 소개가 없습니다.", { exact: true })).toBeVisible();
+    await expect(identity.getByText("함께 즐기는 플레이어", { exact: true })).toBeVisible();
     await expect(page.getByRole("toolbar", { name: "네임카드 도구", exact: true })).toHaveCount(0);
     await page.setViewportSize({ width: 320, height: 884 });
     await page.goto(statsUrl);
-    await expect(card).toBeVisible();
+    await expect(identity).toBeVisible();
     await expect(caseLink).toBeVisible();
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     const mobileCard = (await namecard.boundingBox())!, mobileCase = (await caseLink.boundingBox())!;
@@ -70,8 +72,7 @@ test("개인 기록의 공통 네임카드는 해당 플레이어 소개로, 엠
     await caseLink.tap();
     await expect(page).toHaveURL(new RegExp(`/profile/${player.id}/emblems`));
     await page.goto(statsUrl);
-    await card.tap();
-    await expect(page).toHaveURL("/profile/" + player.id);
+    await expect(identity).toBeVisible();
   } finally { await f.cleanup(); }
 });
 
@@ -94,13 +95,17 @@ test("일반 멤버는 개인 기록에 본인부터 진입하고 서버장·운
       if (index !== 1) {
         await expect(picker).toBeVisible();
         await expect(banner).toHaveCount(0);
+        await picker.getByRole("button").first().click();
+        await expect(page.getByRole("button", { name: "멤버 선택", exact: true })).toBeVisible();
         continue;
       }
       await expect(banner).toContainText(tags[index]);
+      await expect(page.getByRole("button", { name: "멤버 선택", exact: true })).toHaveCount(0);
       await expect(picker).toHaveCount(0);
       await page.getByRole("tab", { name: "내전 통계", exact: true }).click();
       await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
       await expect(banner).toContainText(tags[index]);
+      await expect(page.getByRole("button", { name: "멤버 선택", exact: true })).toHaveCount(0);
       await expect(picker).toHaveCount(0);
       await page.screenshot({ path: info.outputPath("personal-member-entry.png") });
       await page.goto(statsUrl + "?player=" + f.users[0].id);
@@ -111,5 +116,13 @@ test("일반 멤버는 개인 기록에 본인부터 진입하고 서버장·운
       await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
       await expect(banner).toContainText(tags[index]);
     }
+    expect((await f.service.from("clan_settings").update({ hof_config: { personal_record_min_role: "leader" } }).eq("clan_id", f.clanId)).error).toBeNull();
+    await page.context().clearCookies();
+    await loginIsolatedBalanceUser(page, f.users[1]);
+    await page.goto(statsUrl + "?player=" + f.users[0].id);
+    await expect(banner.getByRole("region", { name: "플레이어 소개", exact: true })).toBeVisible();
+    await expect(page.getByText("개인 기록 열람이 제한되어 있습니다.", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "멤버 선택", exact: true })).toHaveCount(0);
+    expect((await page.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`)).status()).toBe(403);
   } finally { await f.cleanup(); }
 });

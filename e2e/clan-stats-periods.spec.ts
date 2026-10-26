@@ -270,7 +270,7 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     const banner = page.getByRole("region", { name: "플레이어 배너", exact: true });
     const emblems = banner.getByRole("link", { name: f.users[0].nickname + " 엠블럼 케이스 열기", exact: true });
     const caseUrl = await emblems.getAttribute("href");
-    expect(caseUrl).toBe(`/profile/${f.users[0].id}/emblems?clan=${f.clanId}`);
+    expect(caseUrl).toBe(`/profile/${f.users[0].id}/emblems`);
     const casePage = await page.context().newPage();
     try {
       await casePage.goto(caseUrl!);

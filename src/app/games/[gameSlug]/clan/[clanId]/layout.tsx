@@ -44,7 +44,7 @@ export default async function MainClanLayout({
       ctx={ctx}
       inAppNotifications={inAppNotifications}
     >
-      <ClanNamecardsProvider cards={(namecards.data ?? {}) as ClanNamecards}>{children}</ClanNamecardsProvider>
+      <ClanNamecardsProvider recordPath={`/games/${gameSlug}/clan/${clanId}/stats`} cards={(namecards.data ?? {}) as ClanNamecards}>{children}</ClanNamecardsProvider>
     </MainClanShell>
   );
 }
