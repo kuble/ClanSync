@@ -1,4 +1,4 @@
-.card { --portrait-slot:88px; --portrait-size:72px; --symbol-size:38px; --symbol-art-size:64px; position:relative; display:flex; align-items:center; min-width:0; width:100%; min-height:84px; border:2px solid color-mix(in srgb,var(--primary) 35%,var(--border)); border-radius:12px; overflow:hidden; background:color-mix(in srgb,var(--primary) 8%,var(--card)); text-align:left; }
+.card { --portrait-slot:88px; --portrait-size:72px; --symbol-art-size:64px; position:relative; display:flex; align-items:center; min-width:0; width:100%; min-height:84px; border:2px solid color-mix(in srgb,var(--primary) 35%,var(--border)); border-radius:12px; overflow:hidden; background:color-mix(in srgb,var(--primary) 8%,var(--card)); text-align:left; }
 .emblem { align-self:stretch; display:grid; place-items:center; flex:0 0 var(--portrait-slot); color:var(--primary); background:color-mix(in srgb,var(--primary) 13%,transparent); }
 .emblem[data-symbol^="symbol-"] { background:color-mix(in srgb,currentColor 12%,transparent); }
 .emblem[data-symbol="symbol-crown"] { color:#dfb957; }
@@ -7,7 +7,6 @@
 .emblem[data-symbol="symbol-star"] { color:#b79bdc; }
 .emblem[data-symbol="symbol-gamepad"] { color:#77c9ac; }
 .portrait { position:relative; display:grid; place-items:center; width:var(--portrait-size); height:var(--portrait-size); }
-.symbol { width:var(--symbol-size); height:var(--symbol-size); filter:drop-shadow(0 2px 2px #0008); }
 .symbolArt { width:var(--symbol-art-size); height:var(--symbol-art-size); object-fit:contain; }
 .portraitFrame { position:absolute; top:-4px; left:-4px; width:calc(100% + 8px); height:calc(100% + 8px); overflow:hidden; pointer-events:none; }
 .identity { display:grid; gap:5px; min-width:0; padding:16px 20px; }
@@ -26,7 +25,7 @@
 .card[data-namebar="starter-namebar-aurora"] { background:linear-gradient(115deg,color-mix(in srgb,#429b83 24%,var(--card)),color-mix(in srgb,#567ab9 16%,var(--card)),color-mix(in srgb,#9464aa 20%,var(--card))); }
 .card[data-namebar="starter-namebar-checker"] { background-color:var(--card); background-image:conic-gradient(color-mix(in srgb,var(--primary) 10%,transparent) 25%,transparent 0 50%,color-mix(in srgb,var(--primary) 10%,transparent) 0 75%,transparent 0); background-size:20px 20px; }
 .card[data-namebar="starter-namebar-blueprint"] { background-color:color-mix(in srgb,#4b72b4 10%,var(--card)); background-image:linear-gradient(color-mix(in srgb,var(--foreground) 6%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--foreground) 6%,transparent) 1px,transparent 1px); background-size:16px 16px; }
-.card[data-compact="true"] { --portrait-slot:44px; --portrait-size:34px; --symbol-size:19px; --symbol-art-size:30px; min-height:44px; border-radius:7px; }
+.card[data-compact="true"] { --portrait-slot:44px; --portrait-size:34px; --symbol-art-size:30px; min-height:44px; border-radius:7px; }
 .card[data-compact="true"] .portraitFrame { top:-2px; left:-2px; width:calc(100% + 4px); height:calc(100% + 4px); }
 .card[data-compact="true"] .identity { padding:6px 8px; gap:2px; }
 .card[data-compact="true"] strong { font-size:12px; }
@@ -69,7 +68,7 @@
 .item strong { font-size:14px; overflow-wrap:anywhere; }
 .item p { margin-top:10px; color:var(--muted-foreground); font-size:12px; }
 .error { margin-top:12px; font-size:13px; color:var(--destructive); }
-@media(max-width:700px) { .shop { grid-template-columns:minmax(0,1fr); } .card { --portrait-slot:72px; --portrait-size:56px; --symbol-size:32px; --symbol-art-size:50px; } .identity { padding:14px; } }
+@media(max-width:700px) { .shop { grid-template-columns:minmax(0,1fr); } .card { --portrait-slot:72px; --portrait-size:56px; --symbol-art-size:50px; } .identity { padding:14px; } }
 
 .header h2 > button { min-height:24px; }
 

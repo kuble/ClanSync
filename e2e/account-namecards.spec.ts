@@ -118,7 +118,7 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await expect(symbols.getByRole("button")).toHaveCount(6);
     for (const name of ["왕관", "불꽃", "번개", "별", "게임패드"]) await expect(symbols.getByRole("button", { name: `심벌 ${name} 적용`, exact: true })).toBeVisible();
     const crown = symbols.getByRole("button", { name: "심벌 왕관 적용", exact: true });
-    await expect(crown.locator('[data-symbol="symbol-crown"] svg')).toHaveClass(/lucide-crown/);
+    await expect(crown.locator('[data-symbol="symbol-crown"] img[data-symbol-art="crown"]')).toBeVisible();
     await crown.click();
     await expect(editor.getByRole("status")).toContainText("저장했습니다");
     await expect(editor.getByRole("region", { name: "현재 네임카드", exact: true }).locator('[data-symbol="symbol-crown"]')).toBeVisible();

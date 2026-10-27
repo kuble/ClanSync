@@ -37,6 +37,17 @@ test("그림 테마의 원자적 저장·심벌/초상 프레임 교차 조합·
       }
     }
     await page.setViewportSize({ width: 1280, height: 1000 });
+    await categories.getByRole("button", { name: "심벌", exact: true }).click();
+    for (const [id, name] of [["crown", "왕관"], ["flame", "불꽃"], ["bolt", "번개"], ["star", "별"], ["gamepad", "게임패드"]]) {
+      const design = editor.getByRole("button", { name: `심벌 ${name} 적용`, exact: true });
+      await expect(design.locator(`img[data-symbol-art="${id}"]`)).toBeVisible();
+      await expect.poll(() => design.locator("img").evaluate(node => (node as HTMLImageElement).complete && (node as HTMLImageElement).naturalWidth > 0)).toBe(true);
+      await design.click();
+      await expect(current.locator(`img[data-symbol-art="${id}"]`)).toBeVisible();
+      await expect(editor.getByRole("status")).toContainText("저장했습니다");
+    }
+    await page.screenshot({ path: info.outputPath("illustrated-symbols-desktop.png") });
+    await categories.getByRole("button", { name: "테마", exact: true }).click();
     for (const [id, name] of themes) {
       await editor.getByRole("button", { name: `${name} 테마 적용`, exact: true }).click();
       await expect(editor.getByRole("status")).toContainText("저장했습니다");
