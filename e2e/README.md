@@ -114,6 +114,7 @@ try {
 - `balance-session-live.spec.ts`: 독립 12명 클랜의 명단 자동 저장·개인 선호·실시간 반영·설정 적용 직후 시작·공유 추첨·주장 지명·경매·결과·기록·다음 라운드·종료
 - `balance-prematch.spec.ts`: 독립 QA 클랜의 편성 후 밴 설정·타이머 변경, 맵 유형 중복 선택, 두 클라이언트 가중 추첨·공유 결과·자동 영웅 밴, 수동 맵 저장, 초상화 선택·팀별 밴·기권·밴 확정과 경기 시작
 - `balance-member-preference.spec.ts`: 같은 브라우저의 localhost 운영진/127.0.0.1 멤버 로그인 분리·선호 없음/순서 변경/새로고침/프로필 복귀·관리 UI 숨김
+- `profile-withdrawal-data.spec.ts`: 임시 계정의 실제 클랜/계정 탈퇴·개인 데이터 삭제·공동 기록 보존·작성자 연결 해제·삭제 제한 원자성·로그인 차단·기존 QA 데이터 동일성과 정리
 - `profile-role-preference.spec.ts`: 별도 임시 사용자의 프로필 선호 연속 저장·즉시 재편집·실패 시 마지막 확정값 복구
 - `stats-profile-navigation.spec.ts`: 개인 기록 안의 소개·게임 계정·대표 케이스 통합·이전 주소 이동·멤버 버튼 숨김·키보드/터치·모바일
 - `profile-visibility.spec.ts`: 공개 소개 API의 인증·최소 필드·타 클랜 조회·미인증/내부 ID 제외·탈퇴/없는 대상과 이전 주소 이동
