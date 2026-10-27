@@ -110,16 +110,13 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
       <div className={styles.results}><p role="status">{filtered.length}개 디자인 <span>· {currentPage} / {totalPages} 페이지</span></p><span>구매·적용은 모든 게임에 공통</span></div>
       <div className={styles.grid} aria-label="개인 꾸미기 상품" aria-busy={pending}>
         {shown.map(product => <article key={product.id} className={styles.product} aria-label={product.name}>
+          <div className={styles.productHeading}><h3>{product.name}</h3>{product.premium && <span className={styles.premium}><Crown size={12} aria-hidden />Premium</span>}{applied(product) && <span className={styles.applied}><Check size={12} aria-hidden />적용 중</span>}</div>
           <div className={styles.preview}>{preview(product)}</div>
-          <div className={styles.productBody}>
-            <div className={styles.productType}><span>{STORE_CATEGORIES.find(c => c.id === product.category)?.label}</span>{product.premium && <span className={styles.premium}><Crown size={12} aria-hidden />Premium</span>}{applied(product) && <span className={styles.applied}><Check size={12} aria-hidden />적용 중</span>}</div>
-            <h3>{product.name}</h3><p>{product.description}</p>
             <div className={styles.productFooter}><strong>{product.available ? product.price === 0 ? "기본 제공" : "보유 중" : <><Coins size={14} aria-hidden />{product.price.toLocaleString("ko-KR")}<small>코인</small></>}</strong>
               {product.available ? <Button size="sm" variant={applied(product) ? "secondary" : "default"} disabled={pending || applied(product)} onClick={() => apply(product)} aria-label={`${product.name} 적용`}>{applied(product) ? "적용 중" : product.category === "theme" ? "세트 적용" : "적용"}</Button>
                 : <Button size="sm" disabled={pending || !!reason(product)} onClick={() => { setSelected(product); setError(""); }} aria-label={`${product.name} 구매`}>{reason(product) ? product.premium && !offer?.eligible ? "Premium 필요" : "코인 부족" : "구매"}</Button>}
             </div>
             {reason(product) && <p className={styles.reason}>{reason(product)}</p>}
-          </div>
         </article>)}
         {!shown.length && <div className={styles.empty}><Search size={28} aria-hidden /><h3>조건에 맞는 디자인이 없습니다.</h3><p>다른 검색어나 분류를 선택해 보세요.</p><Button variant="outline" onClick={() => { setCategory("all"); setQuery(""); setOwnership("all"); setPage(1); }}>필터 초기화</Button></div>}
       </div>
