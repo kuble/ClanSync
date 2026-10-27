@@ -12,10 +12,10 @@
 .current h2 { font-size: 13px; font-weight: 650; }
 .current p { font-size: 11px; color: var(--muted-foreground); margin-top: 6px; }
 .catalog { min-width: 0; }
-.filters { display: grid; gap: 16px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
-.tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.filters { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+.tools { display: flex; align-items: center; margin-left: auto; min-width: 0; width: min(320px, 100%); }
 .search { display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--muted-foreground); }
-.search { margin-right: auto; width: min(320px, 100%); }
+.search { width: 100%; }
 .search input { min-width: 0; width: 100%; outline: none; background: transparent; color: var(--foreground); font-size: 12px; }
 .search:focus-within { outline: 2px solid var(--primary); outline-offset: 2px; }
 .results { display: flex; justify-content: space-between; gap: 12px; margin: 18px 0 14px; font-size: 12px; }
@@ -50,7 +50,7 @@
   .wallet > svg { width: 16px; }
   .current { grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 14px; }
   .grid { grid-template-columns: minmax(0, 1fr); min-height: 708px; }
-  .search { width: 100%; }
+  .tools { width: 100%; }
   .results > span { display: none; }
   .preview { padding: 16px 12px; }
   .shop { gap: 20px; }
