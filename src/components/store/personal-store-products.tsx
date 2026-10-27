@@ -137,7 +137,6 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
         <Button variant="outline" size="icon" aria-label="다음 페이지" disabled={currentPage >= totalPages} onClick={() => setPage(currentPage + 1)}><ChevronRight size={16} /></Button>
       </nav>
     </section>
-    <p className={styles.notice}>구매한 디자인은 계정에 영구 보관됩니다. 개인 코인만 사용하며, 구매 후 일반 환불은 지원되지 않습니다.</p>
     <Dialog open={!!selected} onOpenChange={open => { if (!open && !busy.current) setSelected(null); }}><DialogContent showCloseButton={!pending}>
       <DialogHeader><DialogTitle>네임카드 디자인 구매</DialogTitle><DialogDescription>{selected?.name}을 개인 코인으로 구매합니다. 구매 후 적용할 수 있습니다.</DialogDescription></DialogHeader>
       {selected && <div className={styles.modalPreview}>{preview(selected, true)}</div>}
