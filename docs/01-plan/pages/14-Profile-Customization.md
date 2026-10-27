@@ -1,6 +1,6 @@
 # 14 Profile Customization · 프로필 / 꾸미기
 
-기준일: 2026-10-26. QA 현재 동작을 기준으로 한다. 운영 DB·배포는 별도 승인 전까지 보류한다.
+기준일: 2026-10-27. QA 현재 동작을 기준으로 한다. 운영 DB·배포는 별도 승인 전까지 보류한다.
 
 ## 화면과 경로
 
@@ -11,8 +11,7 @@
 | `/games/{gameSlug}/clan/{clanId}/stats?player={userId}` | 플레이어 소개·개인 기록 통합 | 클랜 구성원; 통계는 기존 열람 권한 적용 |
 | `/profile/{userId}/emblems` | 개인 엠블럼 케이스 | 로그인 방문자; 대표 저장은 본인만 |
 | `/profile/emblems` | 본인의 현재·탈퇴 클랜 획득 기록 통합 | 본인 |
-| `/profile/miniroom` | 기존 미니룸 가구 배치·보관 | 본인 |
-| `/store` | 개인 코인으로 가구·칭호·프레임 구매 | 본인 |
+| `/store` | 네임카드 디자인 비교·구매·공통 적용 | 본인 |
 
 프로필의 진열장·굿즈 보관함·진열장 관리·전용 상점은 제거했다. 해당 기획과 시안은 Git 이력에서 확인한다. [DB 정리 대상과 결과](../../03-analysis/retired-db-storage-2026-10-26.md).
 
@@ -63,13 +62,14 @@
 - 수상형/달성형의 분류·실루엣·계열별 최고 단계·관련 단계 상세와 날짜 색상을 사용한다. 고유 별명 대신 `10승 달성`과 같은 조건 설명을 표시한다.
 - `clan_personal_emblem_picks`는 현재 클랜별 통계 조회와 기존 대표 선택의 출처로 사용한다. 폐기된 수동 5칸 배지 테이블을 다시 사용하지 않는다.
 
-## 기존 미니룸
+## 개인 상점
 
-- `/profile/miniroom`에서 기존 방·가구를 유지한다. `housing_catalog`, `user_housing_rooms`, `user_housing_inventory`와 본인 전용 RPC를 사용한다.
-- 가구를 길게 집어 배치·회전·보관하고 하단 드로워에서 꺼낸다. 벽지·바닥은 견본 선택으로 바꾼다. 별도 편집/완료 버튼은 사용하지 않는다.
-- 키보드 집기/배치·R 회전·Delete 보관·Escape 취소, 모바일 44px 조작과 간편 보기를 제공한다. 모션 감소 설정을 존중한다.
-- 유효한 조작과 재질 변경은 자동 저장 큐에서 순차 처리한다. 계속 편집할 수 있고 실패한 초안을 유지한다. revision 충돌·계정 변경·이동 중 저장을 검증한다.
-- 가구 구매는 개인 코인·서버 가격·보유·원장을 함께 검증한다. 공개 방문 응답은 계정/구매 정보나 보관 중 가구를 노출하지 않는다. 현재 방문 화면에는 미니룸을 렌더링하지 않는다.
+- 현재 적용 중인 네임카드와 실제 연동 게임 ID(없으면 Player)로 모든 디자인을 미리 본다. 오버워치 인증 ID를 우선하고 다른 인증 게임 ID를 차례로 사용한다.
+- 전체/테마/심벌/초상 프레임/배경/카드 프레임/칭호 분류, 이름·설명 검색, 보유 전체/사용 가능/미보유 필터, 추천/가격/이름 정렬과 6개 단위 페이지 이동을 제공한다. 조건 변경은 첫 페이지로 돌아가며 구매·적용 후 조건은 유지한다.
+- 무료·보유 디자인은 바로 적용한다. 테마는 배경·카드 프레임·초상 프레임 3개를 함께 적용하고 심벌·칭호는 유지한다. 개별 부품도 자유롭게 조합한다.
+- 유료 칭호와 기존 Premium 프레임은 서버의 현재 가격·구매 조건을 유지한다. 프레임 표시 이름은 실제 동작에 맞게 ‘프리미엄 골드 프레임’으로 정리하고 기존 SKU/보유권은 보존한다. 구매 확인에는 실제 미리보기·사용 코인·남은 잔액을 표시하며, 구매 후 별도 적용한다. 개인 코인만 사용하며 중복/동시 구매·권한 검증은 기존 서버 정책을 따른다.
+- 구매·적용 중 중복 요청을 차단한다. 실패는 구매 확인 안에 표시하고, 목록·필터·미리보기 영역은 유지한다. 최초 조회도 최종 카드 배치의 자리 표시자를 사용한다.
+- 미니룸·가구 상품·배치 기능·전용 경로는 제거했다. QA에서 housing_catalog/user_housing_rooms/user_housing_inventory 3개 테이블(91행)과 전용 함수 8개를 제거했다. 기존 코인 원장·현재 잔액·구매·네임카드·클랜 정보는 유지하며 자동 환급은 없다. 운영 DB 적용은 보류한다.
 
 ## 공개 범위와 데이터
 
@@ -82,16 +82,17 @@
 
 ## 코드·검증 진입점
 
+- [개인 상점](../../../src/app/store/page.tsx) · [디자인 목록·필터·구매·적용](../../../src/components/store/personal-store-products.tsx) · [상점 회귀](../../../e2e/personal-store.spec.ts).
+
 - [본인 프로필](../../../src/app/profile/page.tsx) · [이전 주소 이동](../../../src/app/profile/[userId]/page.tsx) · [공개 소개 조회](../../../src/lib/profile/load-player-identity.ts) · [소개](../../../src/components/profile/profile-identity.tsx) · [네임카드](../../../src/components/profile/profile-namecard.tsx).
 - [소개·탭·반응형](../../../e2e/profile-composition.spec.ts) · [다중 게임](../../../e2e/profile-game-identities.spec.ts) · [네임카드](../../../e2e/account-namecards.spec.ts) · [공개 방문](../../../e2e/profile-visibility.spec.ts) · [도움말](../../../e2e/profile-account-help.spec.ts).
 - [개인 기록 네임카드·프로필/엠블럼 분리](../../../e2e/stats-profile-navigation.spec.ts).
 - [내전에서 프로필 방문·운영 조작 보존](../../../e2e/balance-profile-navigation.spec.ts).
-- [공개 DB](../../../scripts/profile-visibility-db.test.mjs) · [계정 꾸미기 DB](../../../scripts/account-namecards-db.test.mjs) · [폐기 저장소·환급](../../../scripts/retired-storage-db.test.mjs) · [하우징 DB](../../../scripts/profile-housing-db.test.mjs).
-- [미니룸 조작](../../../e2e/profile-housing-carry.spec.ts) · [드래그](../../../e2e/profile-housing-drag.spec.ts) · [자동 저장](../../../e2e/profile-housing-autosave.spec.ts) · [자동 저장 단위](../../../e2e/housing-autosave.spec.ts).
+- [공개 DB](../../../scripts/profile-visibility-db.test.mjs) · [계정 꾸미기 DB](../../../scripts/account-namecards-db.test.mjs) · [폐기 저장소·환급](../../../scripts/retired-storage-db.test.mjs).
 
 ## 후속 범위
 
-실제 게임 OAuth, 유료 결제, 방 안 업적 전시는 별도다. 제거된 진열장과 수동 배지 개발은 재개 대상으로 두지 않는다.
+실제 게임 OAuth와 유료 결제는 별도다. 제거된 진열장·미니룸·수동 배지 개발은 재개 대상으로 두지 않는다.
 
 ### 탈퇴 확인 안내 (2026-10-27)
 
