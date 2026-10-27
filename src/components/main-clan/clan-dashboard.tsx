@@ -175,7 +175,7 @@ function NoticeRow({
 }
 
 function UpcomingEvents(props: { model: ClanDashboardModel; base: string }) {
-  return <div role="region" tabIndex={0} className="board-scroll h-80 overflow-y-auto overscroll-contain focus-visible:outline-2 focus-visible:outline-ring" aria-label="다가오는 일정 목록"><UpcomingEventsContent {...props} /></div>;
+  return <div role="region" className="min-h-52 min-w-0 flex-1" aria-label="다가오는 일정 목록"><UpcomingEventsContent {...props} /></div>;
 }
 
 function UpcomingEventsContent({
@@ -192,12 +192,12 @@ function UpcomingEventsContent({
     ? model.events
         .flatMap((event) =>
           listUpcomingOccurrenceStarts(event, now, {
-            maxOccurrences: 4,
+            maxOccurrences: 2,
             maxMonths: 12,
           }).map((at) => ({ event, at })),
         )
         .sort((a, b) => a.at - b.at)
-        .slice(0, 4)
+        .slice(0, 2)
     : [];
   if (model.errors.events)
     return (
@@ -409,8 +409,8 @@ export function ClanDashboard({
     <>
       <h2 className="sr-only">클랜 대시보드</h2>
       <div className="space-y-8" data-testid="clan-dashboard-grid">
-        <div className="grid items-start gap-6 min-[1101px]:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-          <div className="min-w-0 space-y-6">
+        <div className="grid items-stretch gap-6 min-[1101px]:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] min-[1101px]:grid-rows-[auto_auto]">
+          <div className="grid min-w-0 gap-6 min-[1101px]:row-span-2 min-[1101px]:grid-rows-subgrid">
             <section
               className={card}
               aria-labelledby="dashboard-notices-heading"
@@ -452,7 +452,7 @@ export function ClanDashboard({
               )}
             </section>
             <section
-              className={card}
+              className={cn(card, "flex flex-col")}
               aria-labelledby="dashboard-events-heading"
             >
               <div className="mb-4 flex items-center justify-between gap-2">
@@ -467,7 +467,7 @@ export function ClanDashboard({
               <UpcomingEvents model={model} base={base} />
             </section>
           </div>
-          <div className="grid min-w-0 items-start gap-6 min-[700px]:grid-cols-2 min-[1101px]:grid-cols-1">
+          <div className="grid min-w-0 items-stretch gap-6 min-[700px]:grid-cols-2 min-[1101px]:row-span-2 min-[1101px]:grid-cols-1 min-[1101px]:grid-rows-subgrid">
             <section className={cn(card, "bg-background/25 shadow-none")} aria-labelledby="dashboard-rules-heading">
               <div className="mb-4 flex items-center justify-between gap-2">
                 <h3 id="dashboard-rules-heading" className={cardHeading}>

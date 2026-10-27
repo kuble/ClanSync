@@ -140,6 +140,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
     await expect(
       page.getByRole("heading", { name: "클랜 공지사항", exact: true }),
     ).toBeVisible();
+    await expect(page.getByRole("region", { name: "다가오는 일정 목록", exact: true }).getByRole("link")).toHaveCount(2);
     await expect(
       page.getByRole("link", { name: new RegExp(`${title} 모임 투표`) }),
     ).toHaveAttribute("href", /events\?tab=polls$/);
@@ -236,6 +237,11 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         const noticeBox = (await page.getByRole("region", { name: "클랜 공지사항", exact: true }).boundingBox())!;
         const eventBox = (await page.getByRole("region", { name: "다가오는 일정", exact: true }).boundingBox())!;
         expect(eventBox.y - noticeBox.y - noticeBox.height).toBeCloseTo(24, 0);
+        if (width >= 1101) {
+          const badgesBox = (await page.getByRole("region", { name: "클랜 배지", exact: true }).boundingBox())!;
+          expect(eventBox.y).toBeCloseTo(badgesBox.y, 0);
+          expect(eventBox.height).toBeCloseTo(badgesBox.height, 0);
+        }
         const mvp = page.getByRole("region", { name: "지난달 MVP", exact: true });
         const winners = await mvp.locator("section").evaluateAll(els => els.map(el => ({ x: el.getBoundingClientRect().x, y: el.getBoundingClientRect().y })));
         expect(new Set(winners.map(box => box.y)).size).toBe(width >= 900 ? 1 : 3);
