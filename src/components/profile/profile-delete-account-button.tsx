@@ -16,7 +16,7 @@ export function ProfileDeleteAccountButton() {
     });
   }
   return <>
-    <Button type="button" variant="ghost" size="sm" className="text-muted-foreground" onClick={() => { setError(null); setOpen(true); }}>탈퇴</Button>
+    <Button type="button" variant="destructive" size="sm" onClick={() => { setError(null); setOpen(true); }}>클랜싱크 탈퇴</Button>
     <Dialog open={open} onOpenChange={(value) => { if (!pending) setOpen(value); }}>
       <DialogContent><DialogHeader><DialogTitle>ClanSync에서 탈퇴할까요?</DialogTitle><DialogDescription>계정과 연결된 데이터가 삭제되며 되돌릴 수 없습니다. 유지할 정보가 있는지 확인해 주세요.</DialogDescription></DialogHeader>
         {error ? <p className="text-destructive text-sm" role="alert">{error}</p> : null}

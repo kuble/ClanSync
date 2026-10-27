@@ -570,6 +570,5 @@
 .accountClanName a { overflow-wrap:anywhere; }
 .accountClanRole { border-radius:5px; padding:3px 6px; background:var(--muted); color:var(--muted-foreground); font-size:10px; line-height:1.4; }
 .accountClanActions { display:flex; align-items:center; gap:6px; margin-left:auto; }
-.accountClanActions > button { color:var(--muted-foreground); }
 .accountRecordLink { display:inline-flex; align-items:center; gap:4px; min-height:36px; padding:6px; border-radius:6px; font-size:12px; color:var(--primary); }
 .accountRecordLink:hover { background:var(--muted); }

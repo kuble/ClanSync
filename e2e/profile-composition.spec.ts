@@ -68,7 +68,7 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     await expect(page.getByRole("region", { name: "진열장", exact: true })).toHaveCount(0);
     await expect(page.getByText(user.email, { exact: true })).toBeHidden();
     await expect(page.getByText("자동 로그인", { exact: true })).toBeHidden();
-    await expect(page.getByRole("button", { name: "탈퇴", exact: true })).toBeHidden();
+    await expect(page.getByRole("button", { name: "클랜싱크 탈퇴", exact: true })).toBeHidden();
 
     const slots = intro.getByRole("group", { name: "대표 엠블럼 3칸", exact: true });
     await expect(slots.getByRole("link")).toHaveCount(0);
@@ -110,7 +110,7 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     await expect(settings.getByRole("region", { name: "공통 네임카드", exact: true })).toHaveCount(0);
     for (const label of ["성별", "출생 연도", "가입일"]) await expect(settings.getByRole("term").filter({ hasText: label })).toHaveCount(0);
     await expect(settings.getByText("자동 로그인", { exact: true })).toBeVisible();
-    await expect(settings.getByRole("button", { name: "탈퇴", exact: true })).toBeVisible();
+    await expect(settings.getByRole("button", { name: "클랜싱크 탈퇴", exact: true })).toBeVisible();
     await expect(settings.getByText("대표 뱃지 (최대 5개)", { exact: true })).toHaveCount(0);
     await overviewTab.click();
     await expect(settings).toBeHidden();
