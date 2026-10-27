@@ -37,6 +37,9 @@ test("통합 소개 API는 로그인 방문자에게 공개 정보만 제공하�
       return JSON.parse(body).profile;
     }
     let identity = await read();
+    const scopedResponse = await visitor.request.get(endpoint + "?clanId=" + f.clanId);
+    expect(scopedResponse.status()).toBe(200);
+    expect((await scopedResponse.json()).profile.clanProfile).toBeUndefined();
     expect(Object.keys(identity).sort()).toEqual(["appearance", "games", "intro", "memberships", "userId"]);
     expect(identity).toMatchObject({ userId: owner.id, intro, appearance: { title: title.name_ko } });
     expect(identity.games).toEqual(expect.arrayContaining([{ gameSlug: "overwatch", gameName: "오버워치", accountId: battleTag }, { gameSlug: "valorant", gameName: "발로란트", accountId: null }]));
@@ -59,6 +62,7 @@ test("통합 소개 API는 로그인 방문자에게 공개 정보만 제공하�
     try {
       const guest = await guestContext.newPage();
       expect((await guest.request.get(endpoint)).status()).toBe(401);
+      expect((await guest.request.get(endpoint + "?clanId=" + f.clanId)).status()).toBe(401);
       await guest.goto("/profile/" + owner.id); await expect(guest).toHaveURL(/\/sign-in\?next=/);
     } finally { await guestContext.close(); }
     expect((await visitor.request.get("/api/player-profiles/not-a-player")).status()).toBe(400);

@@ -140,13 +140,34 @@ test("일반 멤버는 본인 기록부터 열고 공개 범위 안에서 다른
       await expect(banner).toContainText(tags[index]);
     }
     expect((await f.service.from("clan_settings").update({ hof_config: { personal_record_min_role: "leader" } }).eq("clan_id", f.clanId)).error).toBeNull();
+    expect((await f.service.from("users").update({ gender: "male", birth_year: 1991 }).eq("id", f.users[0].id)).error).toBeNull();
+    expect((await f.service.from("clan_members").update({ joined_at: "2021-04-05T23:30:00Z" }).eq("clan_id", f.clanId).eq("user_id", f.users[0].id)).error).toBeNull();
     await page.context().clearCookies();
     await loginIsolatedBalanceUser(page, f.users[1]);
-    await page.goto(statsUrl + "?player=" + f.users[0].id);
+    let release = () => {};
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    const endpoint = `/api/player-profiles/${f.users[0].id}?clanId=${f.clanId}`;
+    await page.route(`**${endpoint}`, async route => { await gate; await route.continue(); });
+    let before;
+    try {
+      await page.goto(statsUrl + "?player=" + f.users[0].id);
+      await expect(banner.getByRole("region", { name: "기본 정보", exact: true }).getByRole("definition")).toHaveText(["—", "—", "—"]);
+      before = await banner.boundingBox();
+    } finally { release(); }
     await expect(banner.getByRole("region", { name: "플레이어 소개", exact: true })).toBeVisible();
     await expect(page.getByText("개인 기록 열람이 제한되어 있습니다.", { exact: true })).toBeVisible();
-    await expect(banner.getByRole("region", { name: "기본 정보", exact: true })).toHaveCount(0);
+    const facts = banner.getByRole("region", { name: "기본 정보", exact: true });
+    await expect(facts.getByRole("definition")).toHaveText(["남성", "1991", "2021. 4. 6."]);
+    const after = await banner.boundingBox();
+    for (const axis of ["x", "y", "width", "height"] as const) expect(Math.abs(before![axis] - after![axis])).toBeLessThan(1);
+    await page.screenshot({ path: info.outputPath("restricted-stats-public-facts.png") });
     await expect(page.getByRole("button", { name: "멤버 선택", exact: true })).toHaveCount(0);
     expect((await page.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`)).status()).toBe(403);
+    const identity = (await (await page.request.get(endpoint)).json()).profile;
+    expect(identity.clanProfile).toEqual({ gender: "male", birthYear: 1991, clanJoinedAt: "2021-04-05T23:30:00+00:00" });
+    expect(JSON.stringify(identity)).not.toContain(f.users[0].email);
+    expect((await page.request.get(`/api/player-profiles/${f.users[0].id}?clanId=invalid`)).status()).toBe(400);
+    expect((await f.service.from("clan_members").update({ status: "left" }).eq("clan_id", f.clanId).eq("user_id", f.users[0].id)).error).toBeNull();
+    expect((await (await page.request.get(endpoint)).json()).profile.clanProfile).toBeUndefined();
   } finally { await f.cleanup(); }
 });

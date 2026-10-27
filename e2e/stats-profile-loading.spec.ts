@@ -5,7 +5,7 @@ test("개인 소개 지연·실패·재시도에도 데스크톱과 모바일 �
   test.setTimeout(120_000);
   const f = await createIsolatedBalanceFixture(2), player = f.users[1];
   const intro = "함께 즐기는 플레이어입니다. ".repeat(6).slice(0, 120);
-  const profileUrl = `**/api/player-profiles/${player.id}`;
+  const profileUrl = `**/api/player-profiles/${player.id}?clanId=${f.clanId}`;
   let release = () => {};
   let gate = Promise.resolve();
   let fail = false;
