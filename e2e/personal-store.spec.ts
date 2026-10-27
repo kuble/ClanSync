@@ -63,12 +63,19 @@ test("디자인 검색·분류·페이지·미리보기 적용과 무료·부족
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.goto("/store");
     await expect(page.getByRole("heading", { name: "네임카드 상점", exact: true })).toBeVisible();
+    const categories = page.getByRole("radiogroup", { name: "개인 꾸미기 분류" });
+    await expect(categories.getByRole("radio", { name: "전체", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("article")).toHaveCount(3);
+    const firstTheme = (await page.getByRole("article").first().boundingBox())!;
+    const lastTheme = (await page.getByRole("article").last().boundingBox())!;
+    expect(lastTheme.width).toBeCloseTo(firstTheme.width, 0);
+    expect(lastTheme.x).toBeCloseTo(firstTheme.x, 0);
+    await categories.getByRole("radio", { name: "배경", exact: true }).click();
     await expect(page.getByRole("article")).toHaveCount(6);
     const first = await page.getByRole("article").first().getAttribute("aria-label");
     await page.getByRole("button", { name: "다음 페이지", exact: true }).click();
     await expect(page.getByRole("button", { name: "2 페이지", exact: true })).toHaveAttribute("aria-current", "page");
     expect(await page.getByRole("article").first().getAttribute("aria-label")).not.toBe(first);
-    const categories = page.getByRole("radiogroup", { name: "개인 꾸미기 분류" });
     for (const [label, images, frames] of [["심벌", 1, 0], ["배경", 0, 0], ["카드 프레임", 0, 0], ["칭호", 0, 0]] as const) {
       await categories.getByRole("radio", { name: label, exact: true }).click();
       const sample = page.getByRole("article").first().locator("[data-namecard]");
@@ -110,7 +117,7 @@ test("디자인 검색·분류·페이지·미리보기 적용과 무료·부족
     await expect(page.getByRole("article").first().getByRole("button", { name: /구매$/ })).toHaveText("코인 부족");
     await page.getByRole("combobox", { name: "보유 상태", exact: true }).selectOption("available");
     await expect(page.getByRole("article").first().getByRole("button", { name: /적용$/ })).toHaveText(/적용/);
-    await categories.getByRole("radio", { name: "전체", exact: true }).click();
+    await categories.getByRole("radio", { name: "테마", exact: true }).click();
     await page.screenshot({ path: "test-results/personal-store-desktop.png", fullPage: true, animations: "disabled" });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.screenshot({ path: "test-results/personal-store-mobile.png", fullPage: true, animations: "disabled" });
@@ -128,11 +135,14 @@ test("클랜 미가입자도 칭호를 구매·적용하며 Premium 프레임은
     expect((await f.service.from("users").update({ coin_balance: 100 }).eq("id", user.id)).error).toBeNull();
     await loginIsolatedBalanceUser(page, user);
     await page.goto("/store");
+    const categories = page.getByRole("radiogroup", { name: "개인 꾸미기 분류" });
+    await categories.getByRole("radio", { name: "카드 프레임", exact: true }).click();
     const search = page.getByRole("textbox", { name: "디자인 검색" });
     await search.fill("프리미엄 골드");
     const premium = page.getByRole("article", { name: "프리미엄 골드 프레임", exact: true });
     await expect(premium.getByRole("button", { name: "프리미엄 골드 프레임 구매", exact: true })).toBeDisabled();
     await expect(premium).toContainText("Premium 필요");
+    await categories.getByRole("radio", { name: "칭호", exact: true }).click();
     await search.fill("함께하는 플레이어");
     const product = page.getByRole("article", { name: "함께하는 플레이어", exact: true });
     await product.getByRole("button", { name: "함께하는 플레이어 구매", exact: true }).click();

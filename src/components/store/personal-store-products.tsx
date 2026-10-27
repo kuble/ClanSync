@@ -23,7 +23,7 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
   const router = useRouter();
   const [pending, start] = useTransition();
   const busy = useRef(false);
-  const [category, setCategory] = useState<StoreCategory>("all");
+  const [category, setCategory] = useState<StoreCategory>("theme");
   const [query, setQuery] = useState("");
   const [ownership, setOwnership] = useState("all");
   const [sort, setSort] = useState("recommended");
@@ -39,10 +39,10 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
   const products = namecardProducts({ ...state, selections }, offer).map(p => ({ ...p, available: p.available || purchased.includes(p.id) }));
   const candidate = products.find(product => product.id === previewId) ?? null;
   const current = namecardAppearance(state.catalog, candidate ? withProduct(selections, candidate) : selections);
-  const layout = category === "emblem" || category === "portrait" ? "compact" : category === "sub" ? "label" : "mixed";
-  const pageSize = layout === "mixed" ? 6 : 12;
+  const layout = category === "emblem" || category === "portrait" ? "compact" : category === "sub" ? "label" : "wide";
+  const pageSize = layout === "wide" ? 6 : 12;
   const filtered = products.filter(p => !((p.category === "frame" || p.category === "portrait") && p.available)
-    && (category === "all" || p.category === category)
+    && p.category === category
     && (ownership === "all" || (ownership === "available" ? p.available : !p.available))
     && `${p.name} ${p.description}`.toLocaleLowerCase("ko-KR").includes(query.trim().toLocaleLowerCase("ko-KR")));
   if (sort !== "recommended") filtered.sort((a, b) => sort === "name" ? a.name.localeCompare(b.name, "ko") : sort === "price-asc" ? a.price - b.price : b.price - a.price);
@@ -136,7 +136,7 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
             </div>
             {reason(product) && <p className={styles.reason}>{reason(product)}</p>}
         </article>)}
-        {!shown.length && <div className={styles.empty}><Search size={28} aria-hidden /><h3>조건에 맞는 디자인이 없습니다.</h3><p>다른 검색어나 분류를 선택해 보세요.</p><Button variant="outline" onClick={() => { setCategory("all"); setQuery(""); setOwnership("all"); setPage(1); }}>필터 초기화</Button></div>}
+        {!shown.length && <div className={styles.empty}><Search size={28} aria-hidden /><h3>조건에 맞는 디자인이 없습니다.</h3><p>다른 검색어나 분류를 선택해 보세요.</p><Button variant="outline" onClick={() => { setCategory("theme"); setQuery(""); setOwnership("all"); setPage(1); }}>필터 초기화</Button></div>}
       </div>
       <nav aria-label="상품 페이지" className={styles.pagination}>
         <Button variant="outline" size="icon" aria-label="이전 페이지" disabled={currentPage <= 1} onClick={() => setPage(currentPage - 1)}><ChevronLeft size={16} /></Button>

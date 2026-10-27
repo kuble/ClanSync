@@ -1,13 +1,13 @@
 import { NAMECARD_THEMES, namecardThemeSelections, type NamecardCategory, type NamecardState } from "../profile/namecard";
 
 export const STORE_CATEGORIES = [
-  { id: "all", label: "전체" }, { id: "theme", label: "테마" },
+  { id: "theme", label: "테마" },
   { id: "emblem", label: "심벌" }, { id: "portrait", label: "초상 프레임" },
   { id: "namebar", label: "배경" }, { id: "frame", label: "카드 프레임" }, { id: "sub", label: "칭호" },
 ] as const;
 export type StoreCategory = typeof STORE_CATEGORIES[number]["id"];
 export type NamecardProduct = {
-  id: string; category: Exclude<StoreCategory, "all">; name: string; description: string;
+  id: string; category: StoreCategory; name: string; description: string;
   price: number; available: boolean; premium: boolean; legacy: boolean;
   selections: NamecardState["selections"];
 };
