@@ -63,7 +63,7 @@ export const DEFAULT_FORMATION_SETTINGS: FormationSettings = {
   strategySeconds: 30,
   showPlayerCardScore: true,
   showPlayerCardInfo: true,
-  nicknameOnly: false,
+  nicknameOnly: true,
   showTeamComparisonSummary: true,
   teamComparisonMode: "score",
   showPlayerSessionSummary: true,

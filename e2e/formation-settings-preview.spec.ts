@@ -37,6 +37,9 @@ test("화면 표시·밴픽 미리보기와 종속 설정은 초안만 반영하
     await expect(dialog.getByRole("region", { name: "편성 방식 미리보기", exact: true })).toBeHidden();
     await expect(options.getByRole("group", { name: "닉네임 카드", exact: true }).getByRole("switch")).toHaveCount(4);
     const nicknameOnly = options.getByRole("switch", { name: "닉네임만 표시", exact: true });
+    await expect(nicknameOnly).toBeChecked();
+    await expect(card).not.toContainText("#1001");
+    await nicknameOnly.uncheck();
     await expect(card).toContainText("네온#1001");
     await nicknameOnly.check();
     await expect(card).not.toContainText("#1001");

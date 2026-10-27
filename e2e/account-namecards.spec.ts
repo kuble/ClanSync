@@ -186,7 +186,7 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     const room = await createAndEnterBalanceRoom(page, f.path);
     const session = await f.activeRound();
     const roster = { team1: { tank: f.users[0].id, dmg: [f.users[1].id, f.users[2].id], sup: [f.users[3].id, f.users[4].id] }, team2: { tank: f.users[5].id, dmg: [f.users[6].id, f.users[7].id], sup: [f.users[8].id, f.users[9].id] } };
-    expect((await f.service.from("balance_sessions").update({ roster, map_ban_enabled: false, hero_ban_enabled: false }).eq("id", session.id)).error).toBeNull();
+    expect((await f.service.from("balance_sessions").update({ roster, formation_settings: { ...(session.formation_settings as object), nicknameOnly: false }, map_ban_enabled: false, hero_ban_enabled: false }).eq("id", session.id)).error).toBeNull();
     // Changing ban rules clears a previously selected map; select it afterwards.
     expect((await f.service.from("balance_sessions").update({ resolved_map_label: "부산" }).eq("id", session.id)).error).toBeNull();
     await page.reload();

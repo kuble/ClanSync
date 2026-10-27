@@ -14,6 +14,8 @@ test("nickname-only defaults, saves and rejects invalid values and member writes
     return actor.rpc("set_balance_prematch_settings", { p_round_id: round.id, p_clan_id: f.clanId, p_revision: round.formation_revision, p_settings: { ...settings, ...extra }, p_map_ban: false, p_hero_ban: false, p_map_ban_seconds: 30, p_hero_ban_seconds: 30, p_map_types: ["control"], p_hero_bans_per_team: 1 });
   }
   assert.equal((await save({})).error, null);
+  assert.equal((await f.activeRound()).formation_settings.nicknameOnly, true);
+  assert.equal((await save({ nicknameOnly: false })).error, null);
   assert.equal((await f.activeRound()).formation_settings.nicknameOnly, false);
   assert.equal((await save({ nicknameOnly: true })).error, null);
   assert.equal((await f.activeRound()).formation_settings.nicknameOnly, true);
