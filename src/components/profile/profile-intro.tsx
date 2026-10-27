@@ -87,18 +87,18 @@ export function ProfileIntro({ initialIntro }: { initialIntro: string }) {
         </form>
       ) : (
         <div className={styles.summary}>
-          {intro && <p className={styles.text}>{intro}</p>}
+          <p className={styles.text}>{intro || "한 줄 소개를 남겨보세요"}</p>
           <Button
             ref={editButtonRef}
             type="button"
             variant="ghost"
-            size={intro ? "icon" : "default"}
-            className={intro ? styles.editButton : styles.emptyButton}
-            aria-label={intro ? "한 줄 소개 편집" : "한 줄 소개를 남겨보세요"}
+            size="icon"
+            className={styles.editButton}
+            aria-label="한 줄 소개 편집"
+            title="한 줄 소개 편집"
             onClick={beginEditing}
           >
             <Pencil aria-hidden="true" />
-            {!intro && "한 줄 소개를 남겨보세요"}
           </Button>
         </div>
       )}

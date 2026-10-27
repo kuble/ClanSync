@@ -76,7 +76,7 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     const caseHref = `/profile/${user.id}/emblems`;
     await expect(caseLink).toHaveAttribute("href", caseHref);
 
-    await intro.getByRole("button", { name: "한 줄 소개를 남겨보세요", exact: true }).click();
+    await intro.getByRole("button", { name: "한 줄 소개 편집", exact: true }).click();
     const input = intro.getByRole("textbox", { name: "한 줄 소개", exact: true });
     await expect(input).toHaveAttribute("maxlength", "120");
     const boundaryIntro = "함".repeat(120);
