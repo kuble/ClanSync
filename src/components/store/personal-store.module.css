@@ -23,7 +23,7 @@
 .results { display: flex; justify-content: space-between; gap: 12px; margin: 18px 0 14px; font-size: 12px; }
 .results span { color: var(--muted-foreground); font-size: 11px; }
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: 16px; min-height: 708px; }
-.product { display: flex; flex-direction: column; min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
+.product { display: flex; flex-direction: column; min-width: 0; overflow: hidden; border: 1px solid color-mix(in srgb, var(--foreground) 22%, var(--border)); border-radius: 12px; background: var(--card); box-shadow: 0 3px 12px #00000018; }
 .preview { display: flex; align-items: center; padding: 18px 14px; min-height: 122px; background: color-mix(in srgb, var(--background) 60%, var(--card)); border-bottom: 1px solid var(--border); }
 .productHeading { display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 12px 14px; }
 .productHeading h3 { min-width: 0; overflow-wrap: anywhere; }
@@ -31,7 +31,7 @@
 .premium { color: var(--pro-gold, #d5ad58); }
 .applied { margin-left: auto; color: var(--primary); }
 .product h3 { font-size: 14px; font-weight: 700; }
-.productFooter { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding: 12px 14px; }
+.productFooter { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding: 12px 14px; border-top: 1px solid color-mix(in srgb, var(--foreground) 16%, var(--border)); background: color-mix(in srgb, var(--primary) 7%, var(--card)); }
 .productFooter strong { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-variant-numeric: tabular-nums; }
 .productFooter strong svg { color: var(--pro-gold, #d5ad58); }
 .productFooter small { font-weight: 400; font-size: 10px; color: var(--muted-foreground); }

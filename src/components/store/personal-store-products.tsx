@@ -45,7 +45,11 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const shown = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-  const preview = (product: NamecardProduct) => <Namecard displayName={displayName} {...namecardAppearance(state.catalog, withProduct(selections, product))} fill />;
+  const preview = (product: NamecardProduct, complete = false) => {
+    const wholeCard = complete || product.category === "theme";
+    const appearance = namecardAppearance(state.catalog, wholeCard ? withProduct(selections, product) : product.selections);
+    return <Namecard displayName={displayName} {...appearance} previewPart={complete || product.category === "theme" ? undefined : product.category} fill />;
+  };
   const applied = (p: NamecardProduct) => p.selections.every(next => selections.some(s => s.category === next.category && s.option_id === next.option_id));
   const reason = (p: NamecardProduct) => p.available ? null : p.premium && !offer?.eligible ? "Premium 클랜 가입 시 구매 가능" : coins < p.price ? "코인 부족" : null;
 
@@ -129,7 +133,7 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
     <p className={styles.notice}>구매한 디자인은 계정에 영구 보관됩니다. 개인 코인만 사용하며, 구매 후 일반 환불은 지원되지 않습니다.</p>
     <Dialog open={!!selected} onOpenChange={open => { if (!open && !busy.current) setSelected(null); }}><DialogContent showCloseButton={!pending}>
       <DialogHeader><DialogTitle>네임카드 디자인 구매</DialogTitle><DialogDescription>{selected?.name}을 개인 코인으로 구매합니다. 구매 후 적용할 수 있습니다.</DialogDescription></DialogHeader>
-      {selected && <div className={styles.modalPreview}>{preview(selected)}</div>}
+      {selected && <div className={styles.modalPreview}>{preview(selected, true)}</div>}
       <dl className={styles.checkout}><div><dt>사용 코인</dt><dd>{selected?.price.toLocaleString("ko-KR")}</dd></div><div><dt>구매 후 잔액</dt><dd>{(coins - (selected?.price ?? 0)).toLocaleString("ko-KR")}</dd></div></dl>
       <p className="text-xs text-muted-foreground">구매한 디자인은 영구 보유하며 일반 환불은 지원되지 않습니다.</p>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}

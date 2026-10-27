@@ -118,3 +118,16 @@
   .card[data-fill="true"] strong { font-size:12px; }
   .card[data-fill="true"] .accessory { padding:6px; }
 }
+
+/* Shop samples show a single purchasable layer; normal/profile cards are unchanged. */
+.card[data-namecard][data-preview-part] { height:86px; min-height:86px; justify-content:center; }
+.card[data-preview-part="emblem"],.card[data-preview-part="portrait"],.card[data-preview-part="sub"] { border:0; background:transparent; box-shadow:none; }
+.card[data-namecard][data-preview-part="emblem"],.card[data-namecard][data-preview-part="portrait"] { --portrait-slot:96px; --portrait-size:76px; --symbol-art-size:70px; }
+.card[data-preview-part] .emblem { align-self:center; background:transparent; }
+.card[data-namecard][data-preview-part="portrait"] .portrait { background:transparent; }
+.card[data-preview-part="portrait"][data-portrait="default"] .portrait { border:1px dashed var(--muted-foreground); border-radius:8px; }
+.card[data-preview-part="namebar"] { border:0; border-radius:10px; box-shadow:none; }
+.card[data-preview-part="namebar"]::before { background-image:var(--namecard-art); background-position:center; }
+.card[data-preview-part="frame"] { background:transparent; }
+.card[data-preview-part="sub"] .identity { flex:none; padding:12px; text-align:center; }
+.card[data-preview-part="sub"] small { color:var(--foreground); font-size:18px; font-weight:650; }

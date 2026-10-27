@@ -67,6 +67,16 @@ test("디자인 검색·분류·페이지·미리보기 적용과 무료·부족
     await expect(page.getByRole("button", { name: "2 페이지", exact: true })).toHaveAttribute("aria-current", "page");
     expect(await page.getByRole("article").first().getAttribute("aria-label")).not.toBe(first);
     const categories = page.getByRole("radiogroup", { name: "개인 꾸미기 분류" });
+    for (const [label, images, frames] of [["심벌", 1, 0], ["초상 프레임", 0, 1], ["배경", 0, 0], ["카드 프레임", 0, 0], ["칭호", 0, 0]] as const) {
+      await categories.getByRole("radio", { name: label, exact: true }).click();
+      const sample = (label === "초상 프레임" ? page.getByRole("article", { name: "심야 아케이드", exact: true }) : page.getByRole("article").first()).locator("[data-namecard]");
+      await expect(sample.locator("strong")).toHaveCount(0);
+      await expect(sample.locator("img")).toHaveCount(images);
+      await expect(sample.locator("svg")).toHaveCount(frames);
+      if (label === "칭호") await expect(sample.locator("small")).toBeVisible();
+      else await expect(sample).toHaveText("");
+      await page.screenshot({ path: test.info().outputPath(label + ".png"), fullPage: false, animations: "disabled" });
+    }
     await categories.getByRole("radio", { name: "테마", exact: true }).click();
     await expect(page.getByRole("article")).toHaveCount(3);
     await page.getByRole("article", { name: "성운 항해", exact: true }).getByRole("button", { name: "성운 항해 적용", exact: true }).click();
