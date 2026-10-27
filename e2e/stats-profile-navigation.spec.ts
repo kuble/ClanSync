@@ -155,7 +155,7 @@ test("일반 멤버는 본인 기록부터 열고 공개 범위 안에서 다른
       before = await banner.boundingBox();
     } finally { release(); }
     await expect(banner.getByRole("region", { name: "플레이어 소개", exact: true })).toBeVisible();
-    await expect(page.getByText("개인 기록 열람이 제한되어 있습니다.", { exact: true })).toBeVisible();
+    await expect(page.getByRole("tabpanel", { name: "개인 기록", exact: true }).getByText("개인 기록 열람이 제한되어 있습니다.", { exact: true })).toBeVisible();
     const facts = banner.getByRole("region", { name: "기본 정보", exact: true });
     await expect(facts.getByRole("definition")).toHaveText(["남성", "1991", "2021. 4. 6."]);
     const after = await banner.boundingBox();
