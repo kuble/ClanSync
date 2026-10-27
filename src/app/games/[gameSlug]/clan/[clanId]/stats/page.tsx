@@ -23,5 +23,6 @@ export default async function ClanStatsPage({
     redirect(`/games/${gameSlug}/clan`);
   }
 
-  return <ClanStatsExperience gameSlug={gameSlug} clanId={clanId} model={model} initialPlayer={typeof query.player === "string" ? query.player : undefined} />;
+  const initialPlayer = typeof query.player === "string" ? query.player : undefined;
+  return <ClanStatsExperience key={initialPlayer ?? "clan"} gameSlug={gameSlug} clanId={clanId} model={model} initialPlayer={initialPlayer} />;
 }

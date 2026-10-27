@@ -95,7 +95,7 @@ test("개인 기록의 공통 네임카드는 해당 플레이어 소개로, 엠
   } finally { await f.cleanup(); }
 });
 
-test("일반 멤버는 개인 기록에 본인부터 진입하고 서버장·운영진은 멤버를 선택한다", async ({ page }, info) => {
+test("일반 멤버는 본인 기록부터 열고 공개 범위 안에서 다른 멤버도 선택한다", async ({ page }, info) => {
   test.setTimeout(150_000);
   const f = await createIsolatedBalanceFixture(3);
   const tags = ["StaffEntry#1111", "MemberEntry#2222", "OfficerEntry#3333"];
@@ -119,13 +119,17 @@ test("일반 멤버는 개인 기록에 본인부터 진입하고 서버장·운
         continue;
       }
       await expect(banner).toContainText(tags[index]);
-      await expect(page.getByRole("button", { name: "멤버 선택", exact: true })).toHaveCount(0);
+      await expect(page.getByRole("button", { name: "멤버 선택", exact: true })).toBeVisible();
       await expect(picker).toHaveCount(0);
       await page.getByRole("tab", { name: "내전 통계", exact: true }).click();
       await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
       await expect(banner).toContainText(tags[index]);
-      await expect(page.getByRole("button", { name: "멤버 선택", exact: true })).toHaveCount(0);
+      await expect(page.getByRole("button", { name: "멤버 선택", exact: true })).toBeVisible();
       await expect(picker).toHaveCount(0);
+      await page.getByRole("button", { name: "멤버 선택", exact: true }).click();
+      await expect(picker).toBeVisible();
+      await picker.getByRole("button", { name: `${tags[0].split("#")[0]} 개인 기록 열기`, exact: true }).click();
+      await expect(banner).toContainText(tags[0]);
       await page.screenshot({ path: info.outputPath("personal-member-entry.png") });
       await page.goto(statsUrl + "?player=" + f.users[0].id);
       await expect(banner).toContainText(tags[0]);
