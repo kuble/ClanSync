@@ -311,7 +311,7 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
           {error && <Button type="button" variant="ghost" size="xs" onClick={() => { setDetailOpen(false); setSelection(undefined); refresh(); }}>다시 불러오기</Button>}
         </div>
       </div>
-      <div className={cn(caseStyles.case, styles.pageCase, styles.collectionFrame)} aria-busy={pending}>
+      <div role="region" tabIndex={0} aria-label="엠블럼 목록" className={cn(caseStyles.case, styles.pageCase, styles.collectionFrame)} aria-busy={pending}>
         <div className={styles.groups}>
           {filter !== "milestone" && visibleEmblems.length > 0 && <section aria-label="종류별 수상 엠블럼">
             <div className={styles.groups}>{(["month", "year"] as const).map(period => {

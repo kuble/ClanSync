@@ -41,8 +41,8 @@ export function BalanceAuctionItemSettings({ gameSlug, clanId, roundId, value, o
       <h3 className="text-sm font-bold"><HelpText label="전략 아이템 구성" help="선택한 목록에서 경매 시작 시 3개를 뽑습니다. 변경한 구성은 오른쪽 설정 적용을 눌러 저장합니다." /></h3>
       <Button variant="ghost" size="sm" onClick={onPreview}>편성 미리보기</Button>
     </header>
-    <div className="min-h-60 space-y-4 p-5">
-      {!loaded ? <p className="py-8 text-center text-sm text-muted-foreground" role="status">아이템을 불러오는 중…</p> : !loaded.ok ? <div role="alert" className="space-y-3 text-sm"><p>{loaded.error}</p><Button size="sm" variant="outline" onClick={() => { setLoaded(null); setReload((n) => n + 1); }}>다시 시도</Button></div> : managing && loaded.canEditShared ? <>
+    <div tabIndex={0} className="board-scroll h-[min(32rem,60dvh)] space-y-4 overflow-y-auto overscroll-contain p-5 focus-visible:outline-2 focus-visible:outline-ring" aria-label="전략 아이템 목록" aria-busy={!loaded}>
+      {!loaded ? <div role="status" className="space-y-4"><span className="sr-only">아이템을 불러오는 중…</span><h4 className="text-sm font-semibold">클랜 기본 아이템</h4>{[0, 1, 2].map(index => <div key={index} aria-hidden="true" className="h-20 rounded-xl border bg-muted/30 motion-safe:animate-pulse" />)}</div> : !loaded.ok ? <div role="alert" className="space-y-3 text-sm"><p>{loaded.error}</p><Button size="sm" variant="outline" onClick={() => { setLoaded(null); setReload((n) => n + 1); }}>다시 시도</Button></div> : managing && loaded.canEditShared ? <>
         <Button size="sm" variant="ghost" onClick={() => setManaging(false)}><ArrowLeft className="size-4" />아이템 선택으로</Button>
         <ClanAuctionItemSettings gameSlug={gameSlug} clanId={clanId} items={loaded.items} onSaved={refresh} disabled={disabled} />
       </> : <>

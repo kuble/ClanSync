@@ -13,7 +13,7 @@ import { ArchiveDayTable } from "./archive-day-table";
 import { StatsDetailLoader, type StatsDetailCache } from "./stats-detail-loader";
 import { MatchRecordEditor } from "./match-record-editor";
 
-export function ClanStatsArchive({ archive, clanId, canEdit = false, canCreate = canEdit, canUpdate = canEdit, canDelete = canEdit, periodKey = "all", filters, mapFilter = "all", participantSearch = "" }: {
+export function ClanStatsArchive({ archive, clanId, canEdit = false, canCreate = canEdit, canUpdate = canEdit, canDelete = canEdit, periodKey = "all", filters, mapFilter = "all", participantSearch = "", loading = false }: {
   archive: ClanStatsPageModel["archive"];
   clanId?: string;
   canEdit?: boolean;
@@ -22,6 +22,7 @@ export function ClanStatsArchive({ archive, clanId, canEdit = false, canCreate =
   filters?: ReactNode;
   mapFilter?: string;
   participantSearch?: string;
+  loading?: boolean;
 }) {
   const router = useRouter();
   const [selection, setSelectedDay] = useState<string>();
@@ -38,7 +39,7 @@ export function ClanStatsArchive({ archive, clanId, canEdit = false, canCreate =
       {filters}
     </div>
     <StatsDetailLoader cache={cache} url={fetchDay ? `/api/clans/${clanId}/stats?section=archive&day=${selectedDay}` : undefined} initial={{ kind: "archive", archive: { ...current, sampleByDate: { [selectedDay]: dayRecords } } }}>
-      {(detail, pending) => detail.kind === "archive" && <ArchiveDay dayRecords={detail.archive.sampleByDate[selectedDay] ?? []} mapFilter={mapFilter} participantSearch={participantSearch} pending={pending} editor={clanId && (canCreate || canUpdate || canDelete) ? { canCreate, canUpdate, canDelete, clanId, day: selectedDay, members: current.members ?? [], onSaved, onReload: () => router.refresh() } : undefined} />}
+      {(detail, pending) => detail.kind === "archive" && <ArchiveDay dayRecords={detail.archive.sampleByDate[selectedDay] ?? []} mapFilter={mapFilter} participantSearch={participantSearch} pending={loading || pending} editor={clanId && (canCreate || canUpdate || canDelete) ? { canCreate, canUpdate, canDelete, clanId, day: selectedDay, members: current.members ?? [], onSaved, onReload: () => router.refresh() } : undefined} />}
     </StatsDetailLoader>
   </div>;
 }
@@ -50,7 +51,7 @@ function ArchiveDay({ dayRecords, mapFilter, participantSearch, pending, editor 
   const records = dayRecords.filter((row) => (mapFilter === "all" || row.mapLabel === mapFilter) && (!term || row.players.some((player) => player.nickname.toLocaleLowerCase("ko").includes(term))));
   return <div className="grid items-stretch gap-4 min-[1100px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <ArchiveRecords records={records} dayRecords={dayRecords} editor={editor} pending={pending} emptyText={dayRecords.length ? "선택한 조건에 맞는 경기가 없습니다." : "이 날짜에는 기록된 경기가 없습니다."} />
-      <ArchiveDayTable records={dayRecords} />
+      <ArchiveDayTable records={dayRecords} pending={pending} />
   </div>;
 }
 

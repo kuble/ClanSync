@@ -87,7 +87,7 @@ export function ParticipantRecordDialog({ clanId, gameSlug, userId, nickname, ga
         <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-4"><Unlink size={18} className="shrink-0 text-muted-foreground" aria-hidden="true" /><div><p className="text-sm font-semibold">{unlink.nickname}</p><p className="mt-1 text-xs text-muted-foreground">이전 내전 {unlink.played}경기</p></div></div>
         <p className="text-sm leading-relaxed">이 기록은 다시 <strong>{unlink.nickname}</strong> 이름으로 남으며, 나중에 올바른 계정에 연결할 수 있습니다.</p>
         <p className="text-xs leading-relaxed text-muted-foreground">{displayName}의 클랜 가입 상태와 가입 후 경기·코인은 그대로 유지됩니다.</p>
-      </div> : <div className="space-y-4 px-5 py-5 sm:px-6">
+      </div> : <div tabIndex={0} aria-label="이전 기록 내용" className="board-scroll h-[min(32rem,55dvh)] min-h-0 space-y-4 overflow-y-auto overscroll-contain px-5 py-5 focus-visible:outline-2 focus-visible:outline-ring sm:px-6">
         {requestId && returningMember && <div className="rounded-lg border border-primary/25 bg-primary/5 p-4"><p className="text-sm font-semibold">기존 계정으로 돌아오는 구성원입니다.</p><p className="mt-2 text-xs leading-relaxed text-muted-foreground">이전 내전 기록을 그대로 이어 쓰며 일반 멤버로 가입합니다.</p></div>}
         {requestId && !returningMember && joinMode !== "link" && <fieldset className="space-y-2" disabled={pending}>
           <legend className="mb-3 text-sm font-semibold">이전 내전 기록을 연결할까요?</legend>
@@ -107,7 +107,7 @@ export function ParticipantRecordDialog({ clanId, gameSlug, userId, nickname, ga
         <label className="flex flex-col gap-2 text-xs font-semibold">{linked.length ? "다른 기록 찾기" : "연결할 이전 기록"}
           <span className="relative block"><Search size={16} className="pointer-events-none absolute left-3 top-3 text-muted-foreground" aria-hidden="true" /><input aria-label="기존 참가자 검색" autoFocus={Boolean(requestId && joinMode === "link")} placeholder="예전에 쓰던 닉네임으로 검색" value={query} onChange={(e) => { setQuery(e.target.value); setSelected(null); }} disabled={pending} className="h-10 w-full rounded-lg border bg-background pl-9 pr-3 text-sm font-normal" /></span>
         </label>
-        <div className="board-scroll min-h-40 max-h-64 space-y-2 overflow-y-auto" aria-label="기존 참가자 검색 결과" aria-busy={loading}>
+        <div className="board-scroll h-64 space-y-2 overflow-y-auto" aria-label="기존 참가자 검색 결과" aria-busy={loading}>
           {loading ? <p className="p-4 text-sm text-muted-foreground" role="status">이전 기록을 불러오는 중…</p> : candidates.length ? candidates.map((record) => <div key={record.id} className={`rounded-lg border p-3 transition-colors ${selected === record.id ? "border-primary bg-primary/5" : "hover:border-primary/40"}`} data-participant-candidate={record.id}>
             <label className="flex cursor-pointer items-start gap-3">
               <span className="relative mt-0.5 flex size-5 shrink-0"><input type="radio" name="previous-record" className="peer absolute inset-0 z-10 m-0 size-5 cursor-pointer opacity-0" checked={selected === record.id} onChange={() => setSelected(record.id)} disabled={pending} aria-label={`${record.nickname} 기록 선택`} /><span className="flex size-5 items-center justify-center rounded-full border peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring">{selected === record.id && <Check size={13} aria-hidden="true" />}</span></span>
@@ -121,7 +121,7 @@ export function ParticipantRecordDialog({ clanId, gameSlug, userId, nickname, ga
         </div>
         </>}
       </div>}
-      {error && <p role="alert" className="px-5 pb-4 text-xs text-destructive sm:px-6">{error}</p>}
+      <p role={error ? "alert" : undefined} tabIndex={error ? 0 : undefined} className="h-12 shrink-0 overflow-y-auto px-5 pb-4 text-xs text-destructive sm:px-6">{error}</p>
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t bg-background px-5 py-4 sm:px-6">
         {!unlink && <p className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-xs leading-relaxed text-muted-foreground">{chosen && linkRecords ? <><span className="font-semibold text-foreground">{chosen.nickname} · {chosen.played}경기</span><ArrowRight size={14} aria-hidden="true" /><span>{displayName}에게 연결</span></> : requestId && returningMember ? "기존 기록을 이어서 재가입을 승인합니다." : requestId && joinMode === "new" ? "이전 기록을 연결하지 않고 클랜 가입을 승인합니다." : requestId && !joinMode ? "먼저 이전 기록을 연결할지 선택해 주세요." : "연결할 기록을 선택해 주세요."}</p>}
         <div className="ml-auto flex shrink-0 justify-end gap-2">

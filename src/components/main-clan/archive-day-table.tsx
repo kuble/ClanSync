@@ -16,7 +16,7 @@ const columns: { key: ArchiveDaySortKey; label: string; accessibleLabel?: string
   { key: "maxLossStreak", label: "연패", accessibleLabel: "당일 최장 연패" },
 ];
 
-export function ArchiveDayTable({ records }: { records: ClanArchiveMatch[] }) {
+export function ArchiveDayTable({ records, pending = false }: { records: ClanArchiveMatch[]; pending?: boolean }) {
   const [sort, setSort] = useState<{ key: ArchiveDaySortKey; direction: "asc" | "desc" }>({ key: "rate", direction: "desc" });
   const totals = useMemo(() => buildArchiveDayStats(records), [records]);
   const rows = sortArchiveDayStats(totals, sort.key, sort.direction);
@@ -45,7 +45,7 @@ export function ArchiveDayTable({ records }: { records: ClanArchiveMatch[] }) {
             {row.currentStreak === 0 ? "—" : `${Math.abs(row.currentStreak)}${row.currentStreak > 0 ? "연승" : "연패"}`}
           </td>
           <td className="text-center">{row.maxWinStreak}</td><td className="text-center">{row.maxLossStreak}</td>
-        </tr>)}{!rows.length && <tr><td colSpan={6} className="px-4 py-8 text-center text-xs text-muted-foreground">집계할 내전 결과가 없습니다.</td></tr>}</tbody>
+        </tr>)}{!rows.length && <tr><td colSpan={6} className="px-4 py-8 text-center text-xs text-muted-foreground"><span role={pending ? "status" : undefined}>{pending ? "내전 결과를 불러오는 중…" : "집계할 내전 결과가 없습니다."}</span></td></tr>}</tbody>
       </table>
     </div>
   </aside>;

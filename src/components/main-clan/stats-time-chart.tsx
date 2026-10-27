@@ -7,7 +7,7 @@ type Line = { label: string; color: string; points: Point[] };
 const dateLabel = (at: string) => new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(at));
 
 /** Time-proportional x-axis. Missing snapshots break the line rather than imply a score. */
-export function StatsTimeChart({ label, lines, unit, empty = "기록이 없습니다." }: { label: string; lines: Line[]; unit: string; empty?: string }) {
+export function StatsTimeChart({ label, lines, unit, empty = "기록이 없습니다.", busy = false }: { label: string; lines: Line[]; unit: string; empty?: string; busy?: boolean }) {
   const root = useRef<HTMLDivElement>(null);
   const description = useId();
   const [width, setWidth] = useState(640);
@@ -35,7 +35,7 @@ export function StatsTimeChart({ label, lines, unit, empty = "기록이 없습�
   const ticks = first === last ? [first] : Array.from({ length: width < 420 ? 3 : 5 }, (_, index) => index);
   const dateTicks = first === last ? ticks : ticks.map((_, index) => first + (last - first) * index / (ticks.length - 1));
   return <div ref={root} className="relative w-full min-w-0">
-    {!values.length ? <p className="py-10 text-center text-sm text-muted-foreground">{empty}</p> : <>
+    {busy || !values.length ? <p role={busy ? "status" : undefined} className={`flex items-center justify-center text-sm text-muted-foreground ${lines.length > 1 ? "h-[232px]" : "h-52"}`}>{busy ? "기록을 불러오는 중…" : empty}</p> : <>
       {lines.length > 1 && <div className="mb-2 flex gap-4 text-xs">{lines.map((line) => <span key={line.label} className="flex items-center gap-1.5"><span className="size-2 rounded-full" style={{ background: line.color }} />{line.label}</span>)}</div>}
       <svg viewBox={`0 0 ${width} 208`} className="h-52 w-full touch-pan-y outline-none focus-visible:ring-2 focus-visible:ring-primary" role="img" tabIndex={0}
         aria-label={`${label}. 좌우 방향키로 날짜별 값 확인`} aria-describedby={selected === null ? undefined : description}
@@ -73,8 +73,8 @@ export function StatsTimeChart({ label, lines, unit, empty = "기록이 없습�
 }
 
 /** A cumulative timeline split at zero, with the same pointer and keyboard access as score history. */
-export function StatsSignedTrendChart({ label, points, unit, empty = "기록이 없습니다." }: {
-  label: string; points: { at: string; value: number }[]; unit: string; empty?: string;
+export function StatsSignedTrendChart({ label, points, unit, empty = "기록이 없습니다.", busy = false }: {
+  label: string; points: { at: string; value: number }[]; unit: string; empty?: string; busy?: boolean;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const clipId = useId();
@@ -104,7 +104,7 @@ export function StatsSignedTrendChart({ label, points, unit, empty = "기록이 
   const tickCount = width < 420 ? 3 : 5;
   const ticks = first === last ? [first] : Array.from({ length: tickCount }, (_, index) => first + (last - first) * index / (tickCount - 1));
   return <div ref={root} className="relative w-full min-w-0">
-    {!sorted.length ? <p className="py-10 text-center text-sm text-muted-foreground">{empty}</p> : <>
+    {busy || !sorted.length ? <p role={busy ? "status" : undefined} className="flex h-52 items-center justify-center text-sm text-muted-foreground">{busy ? "기록을 불러오는 중…" : empty}</p> : <>
       <svg viewBox={`0 0 ${width} 208`} className="h-52 w-full touch-pan-y outline-none focus-visible:ring-2 focus-visible:ring-primary" role="img" tabIndex={0}
         aria-label={`${label}. 0${unit} 기준. 좌우 방향키로 날짜별 값 확인`} aria-describedby={selected ? description : undefined}
         onPointerMove={(event) => {

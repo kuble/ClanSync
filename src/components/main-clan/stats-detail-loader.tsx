@@ -29,11 +29,11 @@ export function StatsDetailLoader({ url, cache, initial, children }: { url?: str
   }, [url, cache, attempt]);
   const current = result?.cache === cache && result.url === url ? result : undefined;
   if (current?.detail || initial) return <div className="relative" aria-busy={!!url && !current?.detail}>
+    <div role={url && !current?.detail ? current?.error ? "alert" : "status" : undefined} className="flex h-7 items-center justify-end gap-2 px-2 text-xs text-muted-foreground">
+      {url && !current?.detail && <><span className="min-w-0 truncate" title={current?.error}>{current?.error ?? "기록을 불러오는 중…"}</span>{current?.error && <button type="button" className="shrink-0 underline" onClick={() => setAttempt((n) => n + 1)}>다시 불러오기</button>}</>}
+    </div>
     {children(current?.detail ?? initial!, !!url && !current?.detail)}
-    {url && !current?.detail && <div role={current?.error ? "alert" : "status"} className="absolute right-4 top-3 z-10 rounded-md bg-card px-2 py-1 text-xs text-muted-foreground">
-      {current?.error ?? "기록을 불러오는 중…"}{current?.error && <button type="button" className="ml-2 underline" onClick={() => setAttempt((n) => n + 1)}>다시 불러오기</button>}
-    </div>}
   </div>;
-  if (current?.error) return <div role="alert" className="rounded-xl border p-6 text-sm"><p>{current.error}</p><Button className="mt-3" variant="outline" size="sm" onClick={() => { setResult(undefined); setAttempt((n) => n + 1); }}>다시 불러오기</Button></div>;
+  if (current?.error) return <div role="alert" className="min-h-64 rounded-xl border p-6 text-sm"><p>{current.error}</p><Button className="mt-3" variant="outline" size="sm" onClick={() => { setResult(undefined); setAttempt((n) => n + 1); }}>다시 불러오기</Button></div>;
   return <div role="status" className="min-h-64 space-y-4 rounded-xl border p-6"><p className="text-sm text-muted-foreground">통계 기록을 불러오는 중…</p><div className="h-8 animate-pulse rounded bg-muted motion-reduce:animate-none" /><div className="h-32 animate-pulse rounded bg-muted motion-reduce:animate-none" /></div>;
 }

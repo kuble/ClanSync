@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import dynamic from "next/dynamic";
 import { Crown, Swords, UserRound, History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,9 +11,9 @@ import { StatsMemberPicker } from "./stats-member-picker";
 import { StatsDetailLoader, type StatsDetailCache } from "./stats-detail-loader";
 import { ClanStatsSettings } from "./clan-stats-settings";
 
-const IntraClanStats = dynamic(() => import("./clan-intra-stats").then((module) => module.IntraClanStats));
-const ClanMatchHistory = dynamic(() => import("./clan-match-history").then((module) => module.ClanMatchHistory));
-const PersonalStats = dynamic(() => import("./clan-personal-stats").then((module) => module.PersonalStats));
+import { IntraClanStats } from "./clan-intra-stats";
+import { ClanMatchHistory } from "./clan-match-history";
+import { PersonalStats } from "./clan-personal-stats";
 
 export function ClanStatsExperience({ gameSlug, clanId, model, initialPlayer }: { gameSlug: string; clanId: string; model: ClanStatsPageModel; initialPlayer?: string }) {
   const requestedPersonId = /^[\da-f]{8}(-[\da-f]{4}){3}-[\da-f]{12}$/i.test(initialPlayer ?? "") ? initialPlayer : undefined;
@@ -36,10 +35,10 @@ export function ClanStatsExperience({ gameSlug, clanId, model, initialPlayer }: 
       <TabsContent value="hof"><HallOfFame model={model} clanId={clanId} onChoosePerson={choosePerson} settings={settingsFor("hof")} /></TabsContent>
       {model.permissions.viewIntraStats !== false && <TabsContent value="intra"><IntraClanStats model={model} settings={settingsFor("intra")} /></TabsContent>}
       {model.permissions.viewMatchRecords && <TabsContent value="records">{model.deferredDetails
-        ? <StatsDetailLoader cache={cache} initial={{ kind: "archive", archive: model.archive }} url={`/api/clans/${clanId}/stats?section=archive`}>{(detail) => detail.kind === "archive" && <ClanMatchHistory model={{ ...model, archive: detail.archive }} settings={settingsFor("records")} />}</StatsDetailLoader>
+        ? <StatsDetailLoader cache={cache} initial={{ kind: "archive", archive: model.archive }} url={`/api/clans/${clanId}/stats?section=archive`}>{(detail, pending) => detail.kind === "archive" && <ClanMatchHistory pending={pending} model={{ ...model, archive: detail.archive }} settings={settingsFor("records")} />}</StatsDetailLoader>
         : <ClanMatchHistory model={model} settings={settingsFor("records")} />}</TabsContent>}
       {showPersonalTab && <TabsContent value="personal">{!canViewSelectedStats ? <div className="space-y-5">{personId && <StatsPlayerBanner gameSlug={gameSlug} clanId={clanId} hof={model.hof} userId={personId} nickname="플레이어" />}<section className="flex items-center justify-between gap-3 rounded-xl border bg-muted/20 p-4"><p className="text-sm text-muted-foreground">개인 기록 열람이 제한되어 있습니다.</p>{settingsFor("personal")}</section></div> : personId ? model.deferredDetails
-        ? <StatsDetailLoader cache={cache} url={`/api/clans/${clanId}/stats?section=personal&userId=${personId}`}>{(detail) => detail.kind === "personal" && <PersonalStats key={personId} model={{ ...model, personal: { ...model.personal, people: [detail.person] } }} selectedId={personId} onBack={() => setPersonId(null)} gameSlug={gameSlug} clanId={clanId} settings={settingsFor("personal")} />}</StatsDetailLoader>
+        ? <StatsDetailLoader cache={cache} initial={{ kind: "personal", person: model.personal.people.find(person => person.userId === personId)! }} url={`/api/clans/${clanId}/stats?section=personal&userId=${personId}`}>{(detail, pending) => detail.kind === "personal" && <PersonalStats key={personId} pending={pending} model={{ ...model, personal: { ...model.personal, people: [detail.person] } }} selectedId={personId} onBack={() => setPersonId(null)} gameSlug={gameSlug} clanId={clanId} settings={settingsFor("personal")} />}</StatsDetailLoader>
         : <PersonalStats key={personId} model={model} selectedId={personId} onBack={() => setPersonId(null)} gameSlug={gameSlug} clanId={clanId} settings={settingsFor("personal")} />
         : <StatsMemberPicker people={model.personal.people} onSelect={choosePerson} settings={settingsFor("personal")} />}</TabsContent>}
     </Tabs>

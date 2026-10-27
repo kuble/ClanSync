@@ -174,7 +174,11 @@ function NoticeRow({
   );
 }
 
-function UpcomingEvents({
+function UpcomingEvents(props: { model: ClanDashboardModel; base: string }) {
+  return <div role="region" tabIndex={0} className="board-scroll h-80 overflow-y-auto overscroll-contain focus-visible:outline-2 focus-visible:outline-ring" aria-label="다가오는 일정 목록"><UpcomingEventsContent {...props} /></div>;
+}
+
+function UpcomingEventsContent({
   model,
   base,
 }: {

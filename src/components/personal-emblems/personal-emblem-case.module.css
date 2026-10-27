@@ -28,16 +28,19 @@
   width:100%; min-width:0; padding:var(--case-padding); border-width:6px; border-radius:16px;
 }
 .pageCase .pageGrid { grid-template-columns:repeat(var(--emblem-columns),var(--emblem-size)); justify-content:center; gap:var(--emblem-gap); min-height:0; }
-.toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; min-width:0; }
-.toolbarFilters { display:flex; align-items:center; flex-wrap:wrap; gap:8px 12px; min-width:0; max-width:100%; }
+.toolbar { display:grid; gap:8px; min-width:0; }
+.toolbarFilters { display:grid; gap:8px 12px; min-width:0; max-width:100%; }
+@media(min-width:760px) { .toolbarFilters { grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; } }
 .controls { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
-.collectionFrame { min-height:calc(var(--emblem-size) + var(--case-padding) * 2 + 12px); }
+.collectionFrame { height:clamp(320px,60dvh,560px); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; }
+.collectionFrame:focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
 .pageCase .empty { min-height:var(--emblem-size); }
 .groups { display:grid; gap:28px; }
 .historyEntry { min-width:0; }
 .historyCaption { margin:8px 0 0; color:#c6cfc3; font-size:11px; line-height:1.5; text-align:center; white-space:pre-line; overflow-wrap:anywhere; }
 .historyEmpty { display:grid; place-items:center; grid-column:1/-1; min-height:160px; color:#c6cfc3; font-size:12px; text-align:center; }
-.feedback { display:flex; align-items:center; flex-wrap:wrap; gap:8px; min-height:30px; color:var(--muted-foreground); font-size:12px; }
+.feedback { display:flex; align-items:center; flex-wrap:wrap; gap:8px; height:60px; overflow-y:auto; color:var(--muted-foreground); font-size:12px; }
+@media(min-width:600px) { .feedback { height:30px; } }
 .feedback[role="alert"] { color:var(--destructive); }
 .empty { display:grid; place-items:center; min-height:230px; padding:16px; color:#c6cfc3; font-size:12px; text-align:center; }
 .progress { display:block; width:100%; height:7px; accent-color:var(--primary); }
