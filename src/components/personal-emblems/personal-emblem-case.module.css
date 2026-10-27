@@ -35,7 +35,7 @@
 .pageCase .pageGrid { grid-template-columns:repeat(var(--emblem-columns),var(--emblem-size)); justify-content:center; gap:var(--emblem-gap); min-height:0; }
 .toolbar { display:grid; gap:8px; min-width:0; }
 .toolbarFilters { display:grid; gap:8px 12px; min-width:0; max-width:100%; }
-@media(min-width:760px) { .toolbarFilters { grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; } }
+@media(min-width:760px) { .toolbarFilters { grid-template-columns:minmax(0,1fr) auto; align-items:center; } }
 .controls { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
 .collectionFrame { height:clamp(320px,60dvh,560px); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; }
 .collectionFrame:focus-visible { outline:2px solid var(--ring); outline-offset:2px; }

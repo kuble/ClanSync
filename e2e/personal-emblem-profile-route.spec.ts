@@ -24,6 +24,10 @@ test("개인 엠블럼은 프로필 경로·탐색을 사용하고 클랜별 열
     await launcher.click();
     await expect(page).toHaveURL(`/profile/${owner.id}/emblems`);
     await expect(page.getByRole("heading", { name: "엠블럼 케이스", exact: true })).toBeVisible();
+    const gameFilter = page.getByRole("radiogroup", { name: "엠블럼 게임", exact: true });
+    const filterBounds = await gameFilter.boundingBox();
+    const toolbarBounds = await gameFilter.locator("xpath=../../..").boundingBox();
+    expect(filterBounds && toolbarBounds && Math.abs(filterBounds.x + filterBounds.width - toolbarBounds.x - toolbarBounds.width)).toBeLessThan(2);
     const breadcrumb = page.getByRole("navigation", { name: "현재 위치", exact: true });
     await expect(breadcrumb.getByRole("link", { name: "프로필", exact: true })).toHaveAttribute("href", "/profile");
     await expect(breadcrumb.locator('[aria-current="page"]')).toHaveText("엠블럼");
