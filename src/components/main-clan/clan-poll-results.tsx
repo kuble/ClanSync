@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPercent } from "@/lib/format-percent";
 import { useState } from "react";
 import { Check, Trophy } from "lucide-react";
 import type { SerializedClanPoll } from "@/lib/clan/load-clan-polls";
@@ -55,7 +56,7 @@ export function ClanPollResults({ poll, closed }: { poll: SerializedClanPoll; cl
                 {poll.my_option_ids.includes(option.id) && <span className="inline-flex items-center gap-1"><Check className="size-3" aria-hidden />내 선택</span>}
               </span>
             </span>
-            <span className="shrink-0 text-right tabular-nums"><span className="block text-sm font-semibold">{total ? Math.round(option.vote_count / total * 100) : 0}%</span><span className="text-[11px] text-muted-foreground">{option.vote_count}표</span></span>
+            <span className="shrink-0 text-right tabular-nums"><span className="block text-sm font-semibold">{formatPercent(total ? option.vote_count / total * 100 : 0)}</span><span className="text-[11px] text-muted-foreground">{option.vote_count}표</span></span>
           </button>
         </li>;
       })}

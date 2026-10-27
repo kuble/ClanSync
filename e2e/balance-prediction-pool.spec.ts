@@ -54,7 +54,7 @@ test("내전 개설 관전자는 코인 없이 예측 저장·변경·취소하�
     await page.getByRole("button", { name: "승부예측", exact: true }).click();
     await expect(drawer).toContainText("적중 · 코인 참여 없음");
     const ranking = drawer.getByRole("table").getByRole("row").filter({ hasText: f.users[0].nickname });
-    await expect(ranking).toContainText("100%");
+    await expect(ranking).toContainText("100.0%");
     await expect(ranking.getByRole("cell").last()).toHaveText("0");
     expect((await f.service.from("users").select("coin_balance").eq("id", f.users[0].id).single()).data?.coin_balance).toBe(100);
     await page.screenshot({ path: test.info().outputPath("host-prediction-accuracy-only.png") });

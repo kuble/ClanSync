@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPercent } from "@/lib/format-percent";
 import { Button } from "@/components/ui/button";
 import type { BalanceRoster } from "@/lib/balance/roster-schema";
 import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
@@ -56,11 +57,11 @@ function EstimateRow({ title, context, estimate, ready, waiting, sample = false 
   title: string; context: string; estimate?: BalanceEstimate; ready: boolean; waiting: string; sample?: boolean;
 }) {
   const valid = isValidBalanceEstimate(estimate, context, ready);
-  const team1 = valid ? Math.round(estimate!.team1) : null;
+  const team1 = valid ? estimate!.team1 : null;
   return <div aria-label="예측 승률"><BalanceComparisonBar
     title={title}
-    team1Label={team1 == null ? "—" : `${team1}%`}
-    team2Label={team1 == null ? "—" : `${100 - team1}%`}
+    team1Label={team1 == null ? "—" : formatPercent(team1)}
+    team2Label={team1 == null ? "—" : formatPercent(100 - team1)}
     team1Share={team1}
     status={valid ? sample ? "샘플" : `신뢰도 ${estimate!.confidence} · ${estimate!.sampleSize}경기` : waiting}
     testId="balance-win-probability"

@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPercent } from "@/lib/format-percent";
 import { useEffect, useRef, useState, useTransition, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Map, Timer } from "lucide-react";
@@ -179,7 +180,7 @@ export function ClanBalanceMapBanClient({
           const highlighted = revealing ? mapDrawHighlight(tallies, draw.tick) === idx : displayedMap ? winner : selected;
           const excluded = total > 0 && tallies[idx] === 0;
           const count = tallies[idx] ?? 0;
-          const share = total ? Math.round((count / total) * 100) : 0;
+          const share = total ? (count / total) * 100 : 0;
           return (
             <button
               key={idx + "-" + label}
@@ -216,7 +217,7 @@ export function ClanBalanceMapBanClient({
                 <div>
                   <div className="mb-2 flex items-center justify-between text-[11px]">
                     <span className="text-muted-foreground">{count}표</span>
-                    <strong className="tabular-nums">{share}%</strong>
+                    <strong className="tabular-nums">{formatPercent(share)}</strong>
                   </div>
                   <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                     <div

@@ -1,3 +1,4 @@
+import { formatPercent } from "@/lib/format-percent";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import type { MainClanPlan } from "@/lib/clan/load-main-clan-context";
@@ -267,7 +268,7 @@ export async function loadClanDashboard(
     model.mvp.winRate = {
       nickname: nick.get(win.userId)!,
       detail: `${win.played}경기 참여 · ${win.wins}승 ${win.decided - win.wins}패`,
-      highlight: `승률 ${Math.round((win.wins / win.decided) * 1000) / 10}%`,
+      highlight: `승률 ${formatPercent(win.wins / win.decided * 100)}`,
       tiedCount: byWin.filter(
         (score) =>
           score.wins / score.decided === win.wins / win.decided &&
@@ -279,7 +280,7 @@ export async function loadClanDashboard(
     model.mvp.participation = {
       nickname: nick.get(participant.userId)!,
       detail: `클랜 내전 ${monthly.length}경기 중 ${participant.played}경기 참여`,
-      highlight: `참여율 ${Math.round((participant.played / monthly.length) * 1000) / 10}%`,
+      highlight: `참여율 ${formatPercent(participant.played / monthly.length * 100)}`,
       tiedCount: byParticipation.filter(
         (score) => score.played === participant.played,
       ).length,
@@ -315,7 +316,7 @@ export async function loadClanDashboard(
     model.mvp.prediction = {
       nickname: nick.get(prediction.userId)!,
       detail: `${prediction.total}회 예측 · ${prediction.correct}회 적중`,
-      highlight: `적중률 ${Math.round((prediction.correct / prediction.total) * 1000) / 10}%`,
+      highlight: `적중률 ${formatPercent(prediction.correct / prediction.total * 100)}`,
       tiedCount: rankedPredictions.filter(
         (score) =>
           score.correct === prediction.correct &&

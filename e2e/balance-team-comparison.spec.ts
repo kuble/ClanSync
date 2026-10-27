@@ -22,7 +22,7 @@ test("중앙 팀 그래프의 점수 토글·승률 설정 저장·모바일 표
     const panel = page.getByTestId("clan-balance-session-panel");
     const header = panel.getByTestId("balance-round-header");
     await expect(header.getByRole("heading", { name: "팀 그래프 검증", exact: true })).toBeVisible();
-    await expect(header).toContainText("정규 내전");
+    await expect(header).toContainText("밸런스 편집");
     await expect(header).toContainText(`호스트 · ${fixture.users[0].nickname}`);
     const graph = panel.getByTestId("team-comparison-graph");
     await expect(graph).toHaveAttribute("aria-label", /평가 점수 합계.*-5점.*-15점/);
@@ -59,10 +59,10 @@ test("중앙 팀 그래프의 점수 토글·승률 설정 저장·모바일 표
     await settings.getByRole("combobox", { name: "팀 비교 그래프", exact: true }).selectOption("prediction");
     await settings.getByRole("button", { name: "설정 적용", exact: true }).click();
     await expect(settings).toBeHidden();
-    await expect(graph).toContainText(/\d+%.*예측 승률.*\d+%/);
+    await expect(graph).toContainText(/\d+\.\d%.*예측 승률.*\d+\.\d%/);
     await toggle.getByRole("button", { name: "분석 점수", exact: true }).click();
     await expect(graph).toHaveAttribute("data-score-mode", "a");
-    await expect(graph).toContainText(/\d+%.*예측 승률.*\d+%/);
+    await expect(graph).toContainText(/\d+\.\d%.*예측 승률.*\d+\.\d%/);
     await expect.poll(async () => (await fixture.activeRound(roomId)).formation_settings).toMatchObject({ teamComparisonMode: "prediction" });
     await page.reload();
     await expect(graph).toHaveAttribute("data-mode", "prediction");

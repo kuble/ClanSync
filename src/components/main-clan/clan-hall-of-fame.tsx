@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPercent } from "@/lib/format-percent";
 import { useState, type ReactNode } from "react";
 import { RubberSegment } from "@/components/ui/rubber-segment";
 import { StatTitle } from "./stat-help";
@@ -52,14 +53,14 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings }: {
       ...block.winRate.map((row, index) => ({ ...row, rank: index + 1, shortfall: 0 })),
       ...(model.permissions.isStaff ? block.unqualified.map((row) => ({ ...row, rank: null, shortfall: Math.max(0, block.minimumGames - row.wins - row.draws - row.losses) })) : []),
     ].sort((a, b) => (b.ratePct ?? -1) - (a.ratePct ?? -1) || b.wins - a.wins || a.userId.localeCompare(b.userId))
-      .map((row) => ({ ...row, value: row.ratePct === null ? "—" : `${row.ratePct}%`, detail: `${row.wins}승 / ${row.draws}무 / ${row.losses}패 · ${row.wins + row.draws + row.losses}경기` })),
+      .map((row) => ({ ...row, value: row.ratePct === null ? "—" : formatPercent(row.ratePct), detail: `${row.wins}승 / ${row.draws}무 / ${row.losses}패 · ${row.wins + row.draws + row.losses}경기` })),
     attendance: [
       ...block.participation.map((row, index) => ({ ...row, rank: index + 1, shortfall: 0 })),
       ...(model.permissions.isStaff ? block.unqualifiedParticipation.map((row) => ({ ...row, rank: null, shortfall: Math.max(0, block.minimumSessions - row.played) })) : []),
     ].sort((a, b) => b.ratePct - a.ratePct || b.played - a.played || a.userId.localeCompare(b.userId))
-      .map((row) => ({ ...row, value: `${row.played}회`, detail: `전체 정규 내전 ${totals.sessions}회 중 ${row.played}회 참여 · 참여율 ${row.ratePct}%` })),
+      .map((row) => ({ ...row, value: `${row.played}회`, detail: `전체 정규 내전 ${totals.sessions}회 중 ${row.played}회 참여 · 참여율 ${formatPercent(row.ratePct)}` })),
     appearances: block.cumulative.map((row) => ({ ...row, value: `${row.played}경기`, detail: `전체 ${totals.matches}경기 중 ${row.played}경기 출전 · 내전 ${totals.sessions}회` })),
-    prediction: block.predictionCorrect.map((row) => ({ ...row, value: `${row.correct}회`, detail: `${row.valid}회 예측 중 ${row.correct}회 적중 · 적중률 ${row.ratePct ?? 0}%` })),
+    prediction: block.predictionCorrect.map((row) => ({ ...row, value: `${row.correct}회`, detail: `${row.valid}회 예측 중 ${row.correct}회 적중 · 적중률 ${formatPercent(row.ratePct ?? 0)}` })),
   };
   const available = RANKINGS.filter(({ id }) => visible[id]);
   const active = available.find(({ id }) => id === ranking) ?? available[0];

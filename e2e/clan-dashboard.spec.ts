@@ -152,12 +152,12 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
     await expect(
       page
         .getByRole("region", { name: "지난달 승률 MVP", exact: true })
-        .getByText("승률 100%", { exact: true }),
+        .getByText("승률 100.0%", { exact: true }),
     ).toBeVisible();
     await expect(
       page
         .getByRole("region", { name: "지난달 참여율 MVP", exact: true })
-        .getByText("참여율 100%", { exact: true }),
+        .getByText("참여율 100.0%", { exact: true }),
     ).toBeVisible();
     await expect(
       page

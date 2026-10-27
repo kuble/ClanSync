@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPercent } from "@/lib/format-percent";
 import { useState, type ReactNode } from "react";
 import { RubberSegment } from "@/components/ui/rubber-segment";
 import { StatTitle } from "./stat-help";
@@ -29,7 +30,7 @@ const RESULT_LABEL = { win: "승", draw: "무", loss: "패" } as const;
 const MAP_TYPE_OPTIONS = [{ id: "all", label: "전체" }, ...MAP_TYPES.map(type => ({ ...type, icon: <OverwatchMapIcon type={type.id} /> }))] as const;
 
 function rate(value: number | null) {
-  return value === null ? "기록 없음" : `${value}%`;
+  return formatPercent(value, "기록 없음");
 }
 
 function FilterButtons<T extends string>({ options, value, onChange, label }: {
@@ -62,7 +63,7 @@ function SynergyRing({ peer, relation }: { peer: SynergyPeer | undefined; relati
   return <aside aria-label="시너지 승률 차트" className="flex min-h-64 flex-col items-center justify-center rounded-xl border bg-muted/15 px-3 py-4 text-center">
     <h3 className="mb-2 max-w-full truncate px-1 text-sm font-semibold" title={peer.nickname}>{peer.nickname}</h3>
     <div className="relative size-44 text-team-red">
-      <svg viewBox="0 0 180 180" role="img" aria-label={`${peer.nickname} ${relation === "ally" ? "같은 팀" : "상대 팀"} 승률 ${percentage}%, ${peer.matches}경기`} className="size-full overflow-visible">
+      <svg viewBox="0 0 180 180" role="img" aria-label={`${peer.nickname} ${relation === "ally" ? "같은 팀" : "상대 팀"} 승률 ${formatPercent(percentage)}, ${peer.matches}경기`} className="size-full overflow-visible">
         <circle cx="90" cy="90" r="68" fill="none" stroke="var(--muted-foreground)" strokeOpacity=".4" strokeWidth="15" />
         <circle cx="90" cy="90" r="68" fill="none" stroke="currentColor" strokeWidth="15" pathLength="100" strokeDasharray={`${percentage} 100`} transform="rotate(-90 90 90)" className="transition-[stroke-dasharray] duration-300 motion-reduce:transition-none" />
       </svg>
@@ -70,7 +71,7 @@ function SynergyRing({ peer, relation }: { peer: SynergyPeer | undefined; relati
         <span aria-label="기본 프로필 이미지" className="absolute inset-0 grid place-items-center"><UserRound className="size-16" aria-hidden="true" /></span>
       </div>
     </div>
-    <strong className="-mt-1 text-2xl tabular-nums">{percentage}%</strong>
+    <strong className="-mt-1 text-2xl tabular-nums">{formatPercent(percentage)}</strong>
     <p className="mt-1 text-sm font-semibold text-team-red">{synergyVerdict(percentage, relation)}</p>
     <p className="mt-1 text-[11px] text-muted-foreground">{peer.matches}경기 · {peer.wins}승 {peer.draws}무 {peer.losses}패</p>
   </aside>;
@@ -178,7 +179,7 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
                 </tr></thead>
                 <tbody>{relations.map((row) => <tr key={row.id} className="border-b">
                   <th scope="row" className="p-2 text-left"><button type="button" className="rounded-sm text-left font-medium underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-primary" aria-pressed={selectedPeer?.id === row.id} onPointerEnter={() => setPeerId(row.id)} onFocus={() => setPeerId(row.id)} onClick={() => setPeerId(row.id)}>{row.nickname}</button></th>
-                  <td className="p-2 text-right tabular-nums">{Math.round(row.wins / row.matches * 1000) / 10}%</td>
+                  <td className="p-2 text-right tabular-nums">{formatPercent(row.wins / row.matches * 100)}</td>
                   <td className="whitespace-nowrap p-2 text-right tabular-nums">{row.wins}승 / {row.draws}무 / {row.losses}패</td>
                   <td className="p-2 text-right tabular-nums">{row.matches}</td>
                 </tr>)}</tbody>

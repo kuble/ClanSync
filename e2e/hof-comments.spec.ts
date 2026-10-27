@@ -173,7 +173,7 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await expect(rankCard.getByText("--순위 제외", { exact: true })).toHaveCount(1);
     const rankRows = rankCard.getByRole("listitem");
     await expect(rankRows.nth(0)).toContainText(f.users[1].nickname);
-    await expect(rankRows.nth(0)).toContainText("100%");
+    await expect(rankRows.nth(0)).toContainText("100.0%");
     await expect(rankRows.nth(1)).toContainText(f.users[0].nickname);
     await expect(rankRows.nth(1)).toContainText("01");
     await expect(page.getByText(/규정 미달 ·/)).toHaveCount(0);

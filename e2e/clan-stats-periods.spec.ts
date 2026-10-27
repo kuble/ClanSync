@@ -254,7 +254,7 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     await page.getByRole("radiogroup", { name: "팀 관계" }).getByRole("radio", { name: "상대 팀" }).click();
     await synergy.getByRole("button", { name: f.users[1].nickname, exact: true }).hover();
     await expect(synergy.getByRole("row").filter({ hasText: f.users[1].nickname })).toContainText("1승 / 0무 / 0패");
-    await expect(synergyChart.getByRole("img", { name: new RegExp(`${f.users[1].nickname} 상대 팀 승률 100%`) })).toBeVisible();
+    await expect(synergyChart.getByRole("img", { name: new RegExp(`${f.users[1].nickname} 상대 팀 승률 100.0%`) })).toBeVisible();
     await expect(synergyChart.locator('svg[role="img"] > circle')).toHaveCount(2);
     const ring = (await synergyChart.locator('svg[role="img"]').boundingBox())!;
     const avatar = (await synergyChart.getByLabel("기본 프로필 이미지").boundingBox())!;
@@ -330,11 +330,11 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     await expect(totalMatches).toHaveText("1");
     const recordMaps = page.getByRole("region", { name: "맵별 승률 목록" });
     await expect(roleTable.getByRole("columnheader")).toHaveText(["역할", "승률", "승/무/패", "경기"]);
-    await expect(roleTable.getByRole("row").filter({ hasText: "전체" }).getByRole("cell")).toHaveText(["100%", "1/0/0", "1"]);
+    await expect(roleTable.getByRole("row").filter({ hasText: "전체" }).getByRole("cell")).toHaveText(["100.0%", "1/0/0", "1"]);
     await expect(roleTable.getByRole("row").filter({ hasText: "돌격" }).getByRole("cell")).toHaveText(["기록 없음", "0/0/0", "0"]);
     await expect(recordMaps).toContainText("부산");
-    await expect(recordMaps.getByRole("img", { name: /맵별 승률, 선택 맵 부산 승률 100%/ })).toBeVisible();
-    await expect(page.getByRole("list", { name: "맵별 승률 비중" })).toContainText("100% (1경기)");
+    await expect(recordMaps.getByRole("img", { name: /맵별 승률, 선택 맵 부산 승률 100.0%/ })).toBeVisible();
+    await expect(page.getByRole("list", { name: "맵별 승률 비중" })).toContainText("100.0% (1경기)");
     await expect(page.getByRole("region", { name: "맵별 승률 전체 목록" })).toHaveCSS("overflow-y", "auto");
     await expect(page.getByRole("region", { name: "맵별 승률 전체 목록" })).toHaveCSS("scrollbar-width", "none");
     const mapHeightWithData = (await mapCard.boundingBox())!.height;
@@ -352,7 +352,7 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     await expect(totalMatches).toHaveText("9");
     await expect(roleTable.getByRole("row").filter({ hasText: "지원" }).getByRole("cell")).toHaveText(["기록 없음", "0/0/0", "0"]);
     await expect(recordMaps).not.toContainText("부산");
-    await expect(recordMaps.getByRole("img", { name: /맵별 승률, 선택 맵 네팔 승률 100%/ })).toBeVisible();
+    await expect(recordMaps.getByRole("img", { name: /맵별 승률, 선택 맵 네팔 승률 100.0%/ })).toBeVisible();
     await expect(playerSummary).toContainText("10연승");
     const role = page.getByRole("radiogroup", { name: "내 역할", exact: true });
     await role.getByRole("radio", { name: "돌격", exact: true }).click();

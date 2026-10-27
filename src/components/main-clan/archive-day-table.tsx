@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPercent } from "@/lib/format-percent";
 import { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, Trophy } from "lucide-react";
 import type { ClanArchiveMatch } from "@/lib/clan/stats/load-clan-stats";
@@ -39,7 +40,7 @@ export function ArchiveDayTable({ records }: { records: ClanArchiveMatch[] }) {
         <tbody className="divide-y">{rows.map((row) => <tr key={row.userId} className="hover:bg-muted/40">
           <th scope="row" className="break-all px-3 py-3 text-left font-medium" title={row.nickname}>{row.nickname}</th>
           <td className="text-center whitespace-nowrap"><span className="text-team-blue">{row.wins}</span><span className="text-muted-foreground">/{row.draws}/</span><span className="text-team-red">{row.losses}</span></td>
-          <td className="text-center font-semibold">{row.rate === null ? "—" : `${Math.round(row.rate * 1000) / 10}%`}</td>
+          <td className="text-center font-semibold">{row.rate === null ? "—" : formatPercent(row.rate * 100)}</td>
           <td className={cn("text-center", row.currentStreak > 0 ? "text-team-blue" : row.currentStreak < 0 ? "text-team-red" : "text-muted-foreground")}>
             {row.currentStreak === 0 ? "—" : `${Math.abs(row.currentStreak)}${row.currentStreak > 0 ? "연승" : "연패"}`}
           </td>

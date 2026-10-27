@@ -291,7 +291,7 @@ test("pool prediction picks are private while aggregate totals remain shared", a
   await page.goto(`/games/overwatch/clan/${f.clanId}/stats`);
   await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
   await page.getByRole("button", { name: `${f.users[10].nickname} 개인 기록 열기`, exact: true }).click();
-  await expect(page.getByLabel("승부예측 요약")).toContainText("적중력 100%");
+  await expect(page.getByLabel("승부예측 요약")).toContainText("적중력 100.0%");
   await expect(page.getByText(`순수익 ${net > 0 ? "+" : ""}${net.toLocaleString()}pt`, { exact: true })).toBeVisible();
   await expect(page.getByRole("img", { name: "승부예측 누적 포인트 그래프" })).toBeVisible();
   await expect(page.getByText("내 승부예측", { exact: true })).toHaveCount(0);

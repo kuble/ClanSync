@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPercent } from "@/lib/format-percent";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, History, LoaderCircle, RefreshCw } from "lucide-react";
 import { loadBalanceHistoryAction } from "@/app/actions/clan-balance-history";
@@ -350,7 +351,7 @@ function HistoryContent({
                           <td className="wrap-anywhere px-1 py-3 text-right">
                             {member.winRate === null
                               ? "—"
-                              : `${Math.round(member.winRate)}%`}
+                              : formatPercent(member.winRate)}
                           </td>
                           <td
                             className={cn(

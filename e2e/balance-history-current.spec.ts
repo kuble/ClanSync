@@ -44,7 +44,7 @@ test("현재 내전 기록: 호버 닫힘·좌측 요약·모바일 순서·좌�
     await expect(rows.first()).toContainText(fixture.users[2].nickname);
     const leader = rows.filter({ hasText: fixture.users[0].nickname });
     await expect(leader).toContainText("1/0/1");
-    await expect(leader).toContainText("50%");
+    await expect(leader).toContainText("50.0%");
     await expect(leader).toContainText("1연패");
     await expect(history.getByRole("columnheader", { name: /승수/ })).toContainText("승/무/패");
     await expect(history.getByRole("columnheader")).toHaveCount(5);

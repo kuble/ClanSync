@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPercent } from "@/lib/format-percent";
 import { cloneElement, useId, useState, type ReactElement, type ReactNode } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { MaEntry } from "@/lib/balance/ma-snapshot";
@@ -33,7 +34,7 @@ export function BalancePlayerDetails({ children, nickname, info, score, premium 
           <p className="mt-3 text-[10px] opacity-65">이번 세션 전적</p>
           <p className="mt-1 text-base font-semibold tabular-nums">{info.wins}승 {info.draws}무 {info.losses}패</p>
           <dl className="mt-2 grid grid-cols-2 gap-2 text-xs">
-            <div><dt className="opacity-65">승률</dt><dd className="mt-1 font-semibold tabular-nums">{info.winRate == null ? "기록 없음" : `${Math.round(info.winRate * 10) / 10}%`}</dd></div>
+            <div><dt className="opacity-65">승률</dt><dd className="mt-1 font-semibold tabular-nums">{info.winRate == null ? "기록 없음" : formatPercent(info.winRate)}</dd></div>
             <div><dt className="opacity-65">현재 흐름</dt><dd className="mt-1 font-semibold">{streak > 0 ? `${streak}연승` : streak < 0 ? `${-streak}연패` : info.wins + info.draws + info.losses ? "연속 기록 없음" : "첫 경기 전"}</dd></div>
           </dl>
         </> : null}

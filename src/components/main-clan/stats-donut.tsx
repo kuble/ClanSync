@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPercent } from "@/lib/format-percent";
 import { useState } from "react";
 import Image from "next/image";
 import { StatsScrollArea } from "./stats-scroll-area";
@@ -8,7 +9,7 @@ const COLORS = ["var(--primary)", "#d6ac62", "#9a92ce", "#db8296", "#79b6bb", "#
 type DonutRow = { name: string; value: number; image?: string; detail?: string; wins?: number; draws?: number; losses?: number; rate?: number | null };
 
 function share(value: number, total: number) {
-  return `${Number((value / total * 100).toFixed(1))}%`;
+  return formatPercent(total ? value / total * 100 : 0);
 }
 
 function DonutImage({ src, size, className = "object-cover" }: { src: string; size: number; className?: string }) {
@@ -29,7 +30,7 @@ export function StatsDonut({ rows, label, unit, showImages = false, preserveOrde
   const featured = selected ?? (showImages ? ordered[0] : null);
   const highlighted = active ?? (showImages ? 0 : null);
   const color = (index: number) => COLORS[index % COLORS.length];
-  const centerValue = (row: DonutRow) => mapResults ? (row.rate === null || row.rate === undefined ? "기록 없음" : `${row.rate}%`) : row.value.toLocaleString();
+  const centerValue = (row: DonutRow) => mapResults ? (row.rate === null || row.rate === undefined ? "기록 없음" : formatPercent(row.rate)) : row.value.toLocaleString();
   const legend = <ul className="space-y-1" aria-label={`${label} 비중`}>
     {slices.map((slice, i) => <li key={slice.name}><button type="button" onPointerEnter={() => setActive(i)} onPointerLeave={() => setActive(null)} onFocus={() => setActive(i)} onBlur={() => setActive(null)} onClick={() => setActive(active === i ? null : i)} className={`flex w-full items-center gap-2 rounded-md px-1 py-1.5 text-left text-xs hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary ${showImages && highlighted === i ? "bg-muted/40" : ""}`}>
       {showImages ? <span aria-hidden="true" className="flex shrink-0 items-center gap-1.5">
@@ -38,7 +39,7 @@ export function StatsDonut({ rows, label, unit, showImages = false, preserveOrde
           {slice.image ? <DonutImage key={slice.image} src={slice.image} size={28} /> : <span className="grid grid-cols-2 gap-0.5 opacity-70">{[0, 1, 2, 3].map((cell) => <span key={cell} className="size-1 rounded-[1px]" style={{ background: color(i) }} />)}</span>}
         </span>
       </span> : <span className="size-2 shrink-0 rounded-sm" style={{ background: color(i) }} />}
-      {mapResults ? <><span className="min-w-0 flex-1"><span className="block truncate font-semibold">{slice.name}</span><span className="mt-0.5 block text-[10px] text-muted-foreground">{share(slice.value, total)} ({slice.value}{unit})</span></span><span className="shrink-0 text-right tabular-nums"><span className="block font-semibold">승률 {centerValue(slice)}</span><span className="mt-0.5 block text-[10px] text-muted-foreground">{slice.wins}/{slice.draws}/{slice.losses}</span></span></> : <><span className="min-w-0 flex-1 truncate">{slice.name}{slice.detail && <span className="mt-0.5 block text-[10px] font-normal text-muted-foreground">{slice.detail}</span>}</span><span className="tabular-nums text-muted-foreground">{(slice.value / total * 100).toFixed(1)}%</span><strong className="min-w-12 text-right tabular-nums">{slice.value}{unit}</strong></>}</button></li>)}
+      {mapResults ? <><span className="min-w-0 flex-1"><span className="block truncate font-semibold">{slice.name}</span><span className="mt-0.5 block text-[10px] text-muted-foreground">{share(slice.value, total)} ({slice.value}{unit})</span></span><span className="shrink-0 text-right tabular-nums"><span className="block font-semibold">승률 {centerValue(slice)}</span><span className="mt-0.5 block text-[10px] text-muted-foreground">{slice.wins}/{slice.draws}/{slice.losses}</span></span></> : <><span className="min-w-0 flex-1 truncate">{slice.name}{slice.detail && <span className="mt-0.5 block text-[10px] font-normal text-muted-foreground">{slice.detail}</span>}</span><span className="tabular-nums text-muted-foreground">{formatPercent(slice.value / total * 100)}</span><strong className="min-w-12 text-right tabular-nums">{slice.value}{unit}</strong></>}</button></li>)}
   </ul>;
   return <div className={horizontal ? "grid items-start gap-5 sm:grid-cols-[240px_minmax(0,1fr)]" : "space-y-4"}>
     <div className={horizontal ? "space-y-4 sm:sticky sm:top-20" : "space-y-4"}>

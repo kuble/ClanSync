@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPercent } from "@/lib/format-percent";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Coins, Timer } from "lucide-react";
@@ -120,7 +121,7 @@ export function ClanBalancePredictionPool({ gameSlug, clanId, sessionId, initial
         <thead className="bg-muted/35 text-muted-foreground"><tr><th className="px-3 py-3 text-left">닉네임</th><th className="px-1 py-3 text-right">적중률</th><th className="px-3 py-3 text-right">순이익</th></tr></thead>
         <tbody>{pool.ranking.map((entry) => <tr key={entry.user_id} className="border-t">
           <th className="truncate px-3 py-3 text-left font-medium" title={entry.nickname}>{entry.nickname}</th>
-          <td className="px-1 py-3 text-right">{Math.round(entry.hits / entry.played * 100)}%<span className="block text-[10px] text-muted-foreground">{entry.hits}/{entry.played}</span></td>
+          <td className="px-1 py-3 text-right">{formatPercent(entry.played ? entry.hits / entry.played * 100 : null)}<span className="block text-[10px] text-muted-foreground">{entry.hits}/{entry.played}</span></td>
           <td className={cn("wrap-anywhere px-3 py-3 text-right font-semibold",entry.profit > 0 ? "text-primary" : entry.profit < 0 ? "text-team-red" : "text-muted-foreground")}>{entry.profit > 0 ? "+" : ""}{number(entry.profit)}</td>
         </tr>)}</tbody>
       </table></div> : <p className="rounded-xl border px-3 py-4 text-xs text-muted-foreground">정산된 예측이 없습니다.</p>}

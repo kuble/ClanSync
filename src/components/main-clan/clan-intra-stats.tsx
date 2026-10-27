@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPercent } from "@/lib/format-percent";
 import { useState, type ReactNode } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RubberSegment } from "@/components/ui/rubber-segment";
@@ -42,7 +43,7 @@ export function IntraClanStats({ model, settings }: { model: ClanStatsPageModel;
       <CardContent className="grid min-w-0 gap-5 min-[900px]:grid-cols-[minmax(0,1fr)_220px]">
         <StatsTrend points={intraTrendPoints(model.periodDirectory ?? model.intraPeriods, period, metric)} label={activeMetric.label} unit={activeMetric.unit} />
         <div className="grid grid-cols-1 gap-2 sm:max-[899px]:grid-cols-3" aria-label="선택 기간 요약">
-          {METRICS.map((item) => <button key={item.id} type="button" onClick={() => setMetric(item.id)} aria-pressed={metric === item.id} className={`rounded-lg border px-4 py-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-primary ${metric === item.id ? "border-primary/50 bg-primary/5" : "hover:bg-muted/50"}`}><span className="text-xs text-muted-foreground">{item.label}</span><strong className="mt-1 block text-2xl tabular-nums">{loaded.pending ? "—" : stats[item.id].toLocaleString()}<span className="ml-1 text-xs font-normal text-muted-foreground">{item.unit}</span></strong><span className="mt-1 block text-[11px] text-muted-foreground">{loaded.pending ? "집계 중…" : item.id === "sessions" ? `내전당 평균 ${stats.averageMatchesPerSession ?? "—"}경기` : item.id === "completed" ? `무승부 ${stats.draws}경기 · ${stats.completed ? (stats.draws / stats.completed * 100).toFixed(1) : 0}%` : `내전당 평균 ${stats.averageParticipantsPerSession ?? "—"}명`}</span></button>)}
+          {METRICS.map((item) => <button key={item.id} type="button" onClick={() => setMetric(item.id)} aria-pressed={metric === item.id} className={`rounded-lg border px-4 py-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-primary ${metric === item.id ? "border-primary/50 bg-primary/5" : "hover:bg-muted/50"}`}><span className="text-xs text-muted-foreground">{item.label}</span><strong className="mt-1 block text-2xl tabular-nums">{loaded.pending ? "—" : stats[item.id].toLocaleString()}<span className="ml-1 text-xs font-normal text-muted-foreground">{item.unit}</span></strong><span className="mt-1 block text-[11px] text-muted-foreground">{loaded.pending ? "집계 중…" : item.id === "sessions" ? `내전당 평균 ${stats.averageMatchesPerSession ?? "—"}경기` : item.id === "completed" ? `무승부 ${stats.draws}경기 · ${formatPercent(stats.completed ? stats.draws / stats.completed * 100 : 0)}` : `내전당 평균 ${stats.averageParticipantsPerSession ?? "—"}명`}</span></button>)}
         </div>
       </CardContent>
     </Card>

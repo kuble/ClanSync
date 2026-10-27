@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPercent } from "@/lib/format-percent";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { ClanStatsArchive } from "./clan-stats-archive";
@@ -569,7 +570,7 @@ export function ClanStatsView({
                                     <td className="px-3 py-2 text-right tabular-nums">
                                       {r.ratePct == null
                                         ? "—"
-                                        : `${r.ratePct}%`}
+                                        : formatPercent(r.ratePct)}
                                     </td>
                                   </tr>
                                 ))}
@@ -616,7 +617,7 @@ export function ClanStatsView({
                                       {r.played}
                                     </td>
                                     <td className="px-3 py-2 text-right tabular-nums">
-                                      {r.ratePct}%
+                                      {formatPercent(r.ratePct)}
                                     </td>
                                   </tr>
                                 ))}
