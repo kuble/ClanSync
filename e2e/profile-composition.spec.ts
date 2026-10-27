@@ -124,6 +124,8 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
     await page.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
     await expect(page.getByRole("region", { name: "게임별 선호 역할", exact: true })).toBeVisible();
+    await expect(settings.getByLabel("오버워치 계정", { exact: true })).toHaveCount(0);
+    await expect(settings.getByRole("button", { name: "부계정 추가", exact: true })).toHaveCount(0);
     await overviewTab.click();
     await page.getByRole("button", { name: "네임카드 꾸미기", exact: true }).click();
     const nameplate = page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true });

@@ -511,10 +511,6 @@
 .gameChevron[data-open="true"] { transform:rotate(180deg); }
 .gameContent { padding:4px 16px 16px; border-top:1px solid var(--border); }
 .gameContent[hidden] { display:none; }
-.gameCallout { padding:18px; margin-top:16px; border:1px solid var(--border); border-radius:10px; background:color-mix(in srgb,var(--muted) 45%,var(--card)); }
-.mainAccount h3 { font-size:12px; color:var(--muted-foreground); }
-.mainAccount p { margin-top:8px; font-size:14px; font-weight:600; overflow-wrap:anywhere; }
-.gameCallout .altSection { margin-top:18px; padding-top:18px; }
 .gameContent > section[aria-labelledby="profile-role-preferences-heading"] { margin-top:20px; padding:18px 0 0; border:0; border-top:1px solid var(--border); border-radius:0; background:transparent; }
 .gameContent > section[aria-label="내 클랜"] { padding:18px 0 0; border:0; border-top:1px solid var(--border); border-radius:0; background:transparent; }
 .autoLogin { margin-top:24px; padding-top:20px; border-top:1px solid var(--border); }
@@ -558,6 +554,6 @@
   .identityIntro,.playerEmblems { padding-top:14px; }
 }
 @media(max-width:900px) { .accountLayout { grid-template-columns:minmax(0,1fr); } .accountSettings,.accountLayout > .accountColumn:not(.accountSettings) { grid-column:auto; grid-row:auto; } .accountSettings { order:2; } }
-@media(max-width:600px) { .gameHeader { padding:12px; gap:8px; } .gameHeader > button { gap:7px; } .gameContent { padding:4px 12px 16px; } .gameCallout { padding:14px; } }
+@media(max-width:600px) { .gameHeader { padding:12px; gap:8px; } .gameHeader > button { gap:7px; } .gameContent { padding:4px 12px 16px; } }
 
 .sectionHeading > button, .sectionHeader h4 > button, .autoLogin strong > button { min-height:24px; }

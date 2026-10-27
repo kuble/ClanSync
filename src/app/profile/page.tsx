@@ -7,15 +7,9 @@ import {
 import { ProfileDeleteAccountButton } from "@/components/profile/profile-delete-account-button";
 import { ProfileJoinRequests } from "@/components/profile/profile-join-requests";
 import { ProfileIdentity, type ProfileMembership } from "@/components/profile/profile-identity";
-import type { AltAccountRow } from "@/components/profile/profile-game-alt-accounts";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { fetchMyClanJoinRequests } from "@/lib/clan/fetch-my-clan-join-requests";
-import {
-  effectiveViewAltAccountRoles,
-  viewAltAudience,
-  viewAltAudienceCaption,
-} from "@/lib/clan/view-alt-disclosure";
 import { AccountShell } from "@/components/onboarding/account-shell";
 import { ProfilePanels } from "@/components/profile/profile-panels";
 import { ProfileAutoLogin } from "@/components/profile/profile-auto-login";
@@ -80,7 +74,7 @@ export default async function ProfilePage() {
     loadNamecard(user.id),
     supabase
       .from("user_alt_accounts")
-      .select("id, game_id, alt_nick, note")
+      .select("game_id, alt_nick")
       .eq("user_id", user.id)
       .order("alt_nick"),
     supabase.from("profile_role_preferences").select("game_id, ranking").eq("user_id", user.id),
@@ -185,55 +179,6 @@ export default async function ProfilePage() {
   const { data: membershipRowsRaw } = await membershipRowsPromise;
   const membershipRows = membershipRowsRaw ?? [];
 
-  const memClanIds = [...new Set(membershipRows.map((m) => m.clan_id))];
-  const { data: clanSettingsRows } =
-    memClanIds.length > 0 ?
-      await supabase
-        .from("clan_settings")
-        .select("clan_id, permissions")
-        .in("clan_id", memClanIds)
-    : { data: [] as { clan_id: string; permissions: unknown }[] };
-
-  const permissionsByClan = new Map<string, Record<string, unknown>>();
-  for (const cs of clanSettingsRows ?? []) {
-    permissionsByClan.set(
-      cs.clan_id,
-      (cs.permissions as Record<string, unknown> | null) ?? {},
-    );
-  }
-
-  const altAccountsByGameList: AltAccountRow[] = (altRowsRaw ?? []).map((x) => ({
-    id: x.id,
-    game_id: x.game_id,
-    alt_nick: x.alt_nick,
-    note: x.note ?? null,
-  }));
-
-  type AltAccountsBundle = { rows: AltAccountRow[]; disclosureLines: string[] };
-  const altAccountsByGame: Record<string, AltAccountsBundle> = {};
-
-  for (const gid of verifiedGameIds) {
-    const disclosureLines: string[] = [];
-    for (const m of membershipRows) {
-      const clanRaw = m.clans as
-        | { name: string; game_id: string }
-        | { name: string; game_id: string }[]
-        | null;
-      const clan = Array.isArray(clanRaw) ? clanRaw[0] : clanRaw;
-      if (!clan || clan.game_id !== gid) continue;
-      const roles = effectiveViewAltAccountRoles(
-        permissionsByClan.get(m.clan_id),
-      );
-      disclosureLines.push(
-        `「${clan.name}」${viewAltAudienceCaption(viewAltAudience(roles))}`,
-      );
-    }
-    altAccountsByGame[gid] = {
-      rows: altAccountsByGameList.filter((a) => a.game_id === gid),
-      disclosureLines,
-    };
-  }
-
   const intro = typeof user.user_metadata?.profile_intro === "string" ? user.user_metadata.profile_intro.slice(0, 120) : "";
   const memberships: ProfileMembership[] = membershipRows.flatMap((membership) => {
     const clan = Array.isArray(membership.clans) ? membership.clans[0] : membership.clans;
@@ -263,7 +208,7 @@ export default async function ProfilePage() {
 
       </div>
       <div className={styles.accountColumn}>
-        <ProfileGameDecorations games={(gameCatalog ?? []).map((game) => ({ gameId: game.id, slug: game.slug, nameKo: game.name_ko, isActive: game.is_active, ...linkedGames.find((linked) => linked.gameId === game.id) })).sort((a,b) => Number(b.linked ?? false) - Number(a.linked ?? false) || ["overwatch","valorant","lol","pubg"].indexOf(a.slug) - ["overwatch","valorant","lol","pubg"].indexOf(b.slug))} userId={user.id} memberships={memberships} preferences={rolePreferences ?? []} verifiedGameIds={verifiedGameIds} altAccountsByGame={altAccountsByGame} />
+        <ProfileGameDecorations games={(gameCatalog ?? []).map((game) => ({ gameId: game.id, slug: game.slug, nameKo: game.name_ko, isActive: game.is_active, ...linkedGames.find((linked) => linked.gameId === game.id) })).sort((a,b) => Number(b.linked ?? false) - Number(a.linked ?? false) || ["overwatch","valorant","lol","pubg"].indexOf(a.slug) - ["overwatch","valorant","lol","pubg"].indexOf(b.slug))} userId={user.id} memberships={memberships} preferences={rolePreferences ?? []} verifiedGameIds={verifiedGameIds} />
         <div className={styles.clanManagement}>
     {pendingForBanner.length > 0 && !joinRequestsFetchFailed ? <section className={styles.pendingBanner} aria-label="진행 중인 가입 신청 요약">
       <strong>진행 중인 가입 신청 {pendingForBanner.length}건</strong>
