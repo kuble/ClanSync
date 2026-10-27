@@ -14,8 +14,8 @@ export type ProfileGameIdentity = { gameSlug: string; gameName: string; accountI
 export type ProfileMembership = ProfileGameIdentity & { clanId: string; clanName: string; role: string };
 type ProfileSlide = ProfileGameIdentity & Partial<Pick<ProfileMembership, "clanId" | "clanName" | "role">>;
 
-export function ProfileIdentity({ userId, intro, memberships, games = [], namecard, publicAppearance, readOnly = false, emblemCase, children }: {
-  userId: string; intro: string; memberships: ProfileMembership[]; games?: ProfileGameIdentity[]; namecard?: NamecardResult; publicAppearance?: NamecardAppearance; readOnly?: boolean; emblemCase?: ReactNode; children?: ReactNode;
+export function ProfileIdentity({ userId, intro, memberships, games = [], namecard, publicAppearance, readOnly = false, introPlaceholder, emblemCase, children }: {
+  userId: string; intro: string; memberships: ProfileMembership[]; games?: ProfileGameIdentity[]; namecard?: NamecardResult; publicAppearance?: NamecardAppearance; readOnly?: boolean; introPlaceholder?: ReactNode; emblemCase?: ReactNode; children?: ReactNode;
 }) {
   const trackId = useId();
   const track = useRef<HTMLDivElement>(null);
@@ -62,7 +62,7 @@ export function ProfileIdentity({ userId, intro, memberships, games = [], nameca
       {children}
     </div>
     <div className={styles.identityAside}>
-    <section className={styles.identityIntro} aria-label="한 줄 소개"><h2 className={styles.identityHeading}>한 줄 소개</h2>{readOnly ? <p className={styles.visitorIntro}>{intro || "아직 작성한 소개가 없습니다."}</p> : <ProfileIntro initialIntro={intro} />}</section>
+    <section className={styles.identityIntro} aria-label="한 줄 소개"><h2 className={styles.identityHeading}>한 줄 소개</h2>{readOnly ? <div className={styles.visitorIntro} data-profile-intro tabIndex={0}>{introPlaceholder ?? (intro || "아직 작성한 소개가 없습니다.")}</div> : <ProfileIntro initialIntro={intro} />}</section>
     <section className={styles.playerEmblems} aria-label="대표 엠블럼">
       <h2>대표 엠블럼</h2>
       {emblemCase ?? <PersonalEmblemCaseLauncher variant="profile" userId={userId} nickname="플레이어" />}
