@@ -34,6 +34,7 @@ import type { MaSnapshot } from "@/lib/balance/ma-snapshot";
 import type { ScoreMode } from "./balance-team-insights";
 import type { PlayerSessionInfoMap } from "@/lib/balance/player-session-stats";
 import { BalancePlayerCardContent, BalancePlayerDetails } from "./balance-player-details";
+import playerStyles from "./balance-player-details.module.css";
 import { BalanceRosterDock } from "./balance-roster-dock";
 import { ClanParticipantEditor } from "./clan-participant-editor";
 import type { PlayerCardInfoMode, TeamComparisonMode } from "@/lib/balance/formation";
@@ -400,6 +401,7 @@ export function ClanBalanceRosterEditor({
                       aria-pressed={activeSlot === key}
                       aria-describedby={helpId}
                       className={cn(
+                        playerStyles.slot,
                         "relative flex min-h-20 min-w-0 flex-col gap-1 select-none items-center justify-center rounded-xl border px-2 py-3 text-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:px-3",
                         team === "team1"
                           ? "border-sky-500/35 bg-sky-500/[0.08]"

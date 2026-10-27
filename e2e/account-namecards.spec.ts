@@ -194,6 +194,19 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await expect(member.getByTestId("clan-balance-session-panel").locator('[data-namecard] [data-symbol="symbol-crown"]')).toBeVisible();
     await expect(member.getByTestId("clan-balance-session-panel").locator('[data-namecard][data-art="nebula"][data-portrait="nebula"]')).toBeVisible();
     await expect(member.getByTestId("clan-balance-session-panel").locator('[data-namecard][data-frame="theme-nebula-frame"][data-namebar="theme-nebula-namebar"]')).toBeVisible();
+    const memberPanel = member.getByTestId("clan-balance-session-panel");
+    const filledSlot = memberPanel.locator("[data-board-slot]").filter({ has: member.locator("[data-namecard]").getByText(battleTag, { exact: true }) });
+    const filledCard = filledSlot.locator("[data-namecard]");
+    for (const width of [1280, 390, 320]) {
+      await member.setViewportSize({ width, height: 1000 });
+      const slotBounds = (await filledSlot.boundingBox())!, cardBounds = (await filledCard.boundingBox())!;
+      expect(cardBounds.width).toBeCloseTo(slotBounds.width, 0);
+      expect(cardBounds.height).toBeCloseTo(slotBounds.height, 0);
+      expect(cardBounds.height).toBeGreaterThanOrEqual(80);
+      expect(await filledCard.evaluate(node => getComputedStyle(node).borderRadius)).toBe("12px");
+      expect(await member.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    }
+    await member.screenshot({ path: test.info().outputPath("balance-full-namecard-mobile.png"), fullPage: false });
     expect((await f.service.from("balance_sessions").update({ phase: "match_live", resolved_map_label: "부산" }).eq("id", session.id)).error).toBeNull();
     await page.reload();
     await expect(panel.locator("[data-namecard]").getByText(battleTag, { exact: true })).toBeVisible();

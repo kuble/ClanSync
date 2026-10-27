@@ -1,0 +1,6 @@
+.slot:has([data-namecard][data-fill="true"]) {
+  padding:0;
+  border-width:0;
+  border-radius:12px;
+  background:transparent;
+}

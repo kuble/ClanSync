@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import type { ScoreMode } from "@/lib/balance/score-display";
 import type { PlayerSessionInfoMap } from "@/lib/balance/player-session-stats";
 import { BalancePlayerCardContent, BalancePlayerDetails } from "./balance-player-details";
+import playerStyles from "./balance-player-details.module.css";
 import { BalanceTeamSummary } from "./balance-team-summary";
 import type { PlayerCardInfoMode, TeamComparisonMode } from "@/lib/balance/formation";
 
@@ -138,6 +139,7 @@ export function ClanBalanceRosterBoard({
                     title={!onTeamSelect && !info && !score ? nickname : undefined}
                     data-board-slot={`${team}:${slot.key}`}
                     className={cn(
+                      playerStyles.slot,
                       "flex min-h-20 min-w-0 flex-col items-center justify-center gap-1 rounded-xl border px-3 py-3 text-center focus-visible:outline-2 focus-visible:outline-ring sm:px-4",
                       team === "team1"
                         ? "border-sky-500/35 bg-sky-500/[0.06]"

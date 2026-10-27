@@ -6,7 +6,7 @@ import type { MaEntry } from "@/lib/balance/ma-snapshot";
 import type { PlayerSessionInfo } from "@/lib/balance/player-session-stats";
 import { formatBalanceScore, SCORE_LABEL, type ScoreMode } from "@/lib/balance/score-display";
 import type { PlayerCardInfoMode } from "@/lib/balance/formation";
-import { ClanPlayerNamecard } from "@/components/profile/clan-namecards";
+import { ClanPlayerNamecard, useClanNamecard, useNamecardDecorationHidden } from "@/components/profile/clan-namecards";
 import { cn } from "@/lib/utils";
 
 export function BalancePlayerDetails({ children, nickname, info, score, premium = false, sample = false, enabled = true }: {
@@ -60,12 +60,21 @@ export function BalancePlayerCardContent({ userId, nickname, info, score, showSc
   scoreControl?: ReactNode;
 }) {
   const scoreVisible = Boolean(showScore);
+  const card = useClanNamecard(userId);
+  const hideDecoration = useNamecardDecorationHidden();
   const infoVisible = Boolean(showInfo && info);
   const centered = !scoreVisible;
   const streak = info?.currentStreak ?? 0;
   const infoLabel = infoMode === "record"
     ? info ? `${info.wins}승 ${info.draws}무 ${info.losses}패` : ""
     : streak > 0 ? `${streak}연승` : streak < 0 ? `${-streak}연패` : info && info.wins + info.draws + info.losses ? "연속 기록 없음" : "첫 경기 전";
+  // Keep score-editing controls outside artwork clipping and team-selection overlays.
+  if (card && !hideDecoration && !scoreControl) return <ClanPlayerNamecard userId={userId} fallback={nickname} fill>
+    {scoreVisible || infoVisible ? <span className="flex flex-col items-end gap-1">
+      {infoVisible && <span className="text-[10px] tabular-nums text-muted-foreground">{infoLabel}</span>}
+      {scoreVisible && <span aria-label={`${SCORE_LABEL[mode]} ${formatBalanceScore(score?.[mode])}`} className="rounded-lg border border-current/10 bg-background/70 px-2 py-1 text-xs font-bold tabular-nums">{formatBalanceScore(score?.[mode]).replace(/점$/, "")}</span>}
+    </span> : null}
+  </ClanPlayerNamecard>;
   return <span className={cn(
     "flex w-full min-w-0 flex-col",
     centered ? "items-center justify-center" : "items-stretch gap-2 sm:items-center sm:gap-3",

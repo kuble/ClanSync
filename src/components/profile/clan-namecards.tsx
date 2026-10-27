@@ -21,14 +21,15 @@ export function BalanceNamecardMode({ hide, profileLinks = false, children }: { 
 export function useClanNamecard(userId?: string | null) {
   return useContext(Cards)[userId ?? ""];
 }
-export function ClanPlayerNamecard({ userId, fallback }: { userId?: string | null; fallback: string }) {
+export function useNamecardDecorationHidden() { return useContext(HideDecoration); }
+export function ClanPlayerNamecard({ userId, fallback, fill = false, children }: { userId?: string | null; fallback: string; fill?: boolean; children?: ReactNode }) {
   const card = useClanNamecard(userId);
   const hide = useContext(HideDecoration);
   const profileLinks = useContext(ProfileLinks);
   const recordPath = useContext(RecordPath);
   if (!card) return <span className="block truncate text-xs font-bold sm:text-sm">{fallback}</span>;
-  const content = hide ? <span data-namecard-plain="true" className="block truncate text-xs font-bold sm:text-sm" title={card.displayName}>{card.displayName}</span> : <Namecard {...card} compact />;
+  const content = hide ? <span data-namecard-plain="true" className="block truncate text-xs font-bold sm:text-sm" title={card.displayName}>{card.displayName}</span> : <Namecard {...card} compact fill={fill}>{children}</Namecard>;
   return profileLinks && userId && recordPath ? <Link href={`${recordPath}?player=${userId}`} prefetch={false} aria-label={`${card.displayName} 프로필 보기`}
-    className="block min-w-0 rounded-lg hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+    className={`block min-w-0 hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${fill ? "h-full w-full rounded-xl" : "rounded-lg"}`}
     onClick={(event) => event.stopPropagation()}>{content}</Link> : content;
 }
