@@ -26,7 +26,7 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     const ow = page.getByRole("region", { name: "오버워치 관리", exact: true });
     await expect(ow.getByRole("button", { name: "오버워치 게임 정보", exact: true })).toHaveAttribute("aria-expanded", "false");
     await ow.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
-    await expect(ow.getByText(battleTag, { exact: true })).toBeVisible();
+    await expect(ow.getByText(battleTag, { exact: true })).toHaveCount(0);
     await expect(ow.getByRole("region", { name: "내 클랜", exact: true })).toBeVisible();
     await expect(ow.getByRole("img", { name: "오버워치 계정 연동됨", exact: true })).toBeVisible();
     expect(await ow.getByRole("button", { name: /딜러/ }).locator("[style]").getAttribute("style")).toContain("damage.svg");
@@ -58,14 +58,15 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await expect(page.getByRole("button", { name: "칭호 상점", exact: true })).toHaveCount(0);
     await page.getByRole("tab", { name: "플레이어 소개", exact: true }).click();
     await card.getByRole("link", { name: "개인 상점", exact: true }).click();
-    const filters = page.getByRole("group", { name: "개인 꾸미기 분류", exact: true });
-    await expect(page.getByRole("heading", { name: "낮은 원목 테이블", exact: true })).toBeVisible();
-    await filters.getByRole("button", { name: "칭호", exact: true }).click();
+    const filters = page.getByRole("radiogroup", { name: "개인 꾸미기 분류", exact: true });
+    await expect(page.getByRole("heading", { name: "네임카드 상점", exact: true })).toBeVisible();
+    await filters.getByRole("radio", { name: "칭호", exact: true }).click();
     await expect(page.getByRole("heading", { name: "낮은 원목 테이블", exact: true })).toHaveCount(0);
+    await page.getByRole("textbox", { name: "디자인 검색" }).fill("함께하는 플레이어");
     const title = page.getByRole("article", { name: "함께하는 플레이어", exact: true });
     const buyTitle = title.getByRole("button", { name: "함께하는 플레이어 구매", exact: true });
     await buyTitle.click();
-    const checkout = page.getByRole("dialog", { name: "칭호 구매", exact: true });
+    const checkout = page.getByRole("dialog", { name: "네임카드 디자인 구매", exact: true });
     await checkout.getByRole("button", { name: "취소", exact: true }).click();
     await expect(buyTitle).toBeFocused();
     await buyTitle.click();
@@ -76,7 +77,7 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await checkout.getByRole("button", { name: "구매 확정", exact: true }).click();
     await expect(checkout).toBeHidden();
     await expect(page.locator('[aria-label="보유 코인"] strong')).toHaveText("410");
-    await expect(title.getByRole("link", { name: "보유 중 · 설정하기", exact: true })).toBeVisible();
+    await expect(title.getByRole("button", { name: "함께하는 플레이어 적용", exact: true })).toBeVisible();
     for (const width of [1280, 390, 320]) {
       await page.setViewportSize({ width, height: 900 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
@@ -158,9 +159,10 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await page.getByRole("textbox", { name: "테스트 라이엇 ID", exact: true }).fill(riotId);
     await page.locator("form").getByRole("button", { name: /계속하기/ }).click();
     await page.waitForURL((url) => url.pathname === "/profile");
+    await expect(card.locator("[data-namecard]").getByText(riotId, { exact: true })).toHaveCount(1);
     await accountTab.click();
     await page.getByRole("button", { name: "발로란트 게임 정보", exact: true }).click();
-    await expect(page.getByRole("region", { name: "발로란트 관리", exact: true }).getByText(riotId, { exact: true })).toBeVisible();
+    await expect(page.getByRole("region", { name: "발로란트 관리", exact: true }).getByText(riotId, { exact: true })).toHaveCount(0);
     await page.getByRole("tab", { name: "플레이어 소개", exact: true }).click();
     await page.getByRole("navigation", { name: "게임별 클랜", exact: true }).getByRole("button", { name: "발로란트", exact: true }).click();
     const gameCard = page.getByRole("region", { name: "플레이어 소개", exact: true }).getByRole("article").locator("[data-namecard]");

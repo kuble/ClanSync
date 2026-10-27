@@ -111,8 +111,6 @@ export default async function ClanStorePage({
           actorRole={ctx?.role ?? "member"}
           planIsPremium={premium}
           items={items}
-          pool="clan"
-          userCoins={0}
           clanCoins={clanCoins}
           canManageClanPool={canManageClanPool}
         />
@@ -142,7 +140,7 @@ export default async function ClanStorePage({
             >
               클랜 관리
             </Link>
-            에서 설정할 수 있습니다. 가구·칭호·개인 프레임은{" "}
+            에서 설정할 수 있습니다. 네임카드 디자인은{" "}
             <Link
               className="text-primary underline-offset-4 hover:underline"
               href="/store"

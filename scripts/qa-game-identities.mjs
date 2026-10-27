@@ -31,8 +31,6 @@ async function main() {
   console.log(JSON.stringify({ apply: process.argv.includes("--apply"), accounts: users.length, changes: changes.map(({ profile, patch }) => ({ game: profile.games.slug, ...patch })) }));
   if (!process.argv.includes("--apply")) return;
   const snapshot = () => Promise.all([
-    ok(db.from("user_housing_rooms").select("*").in("user_id", ids).order("user_id")),
-    ok(db.from("user_housing_inventory").select("*").in("user_id", ids).order("id")),
     ok(db.from("users").select("id,coin_balance").in("id", ids).order("id")),
   ]);
   const before = await snapshot();
@@ -49,8 +47,8 @@ async function main() {
     const change = changes.find((c) => c.profile === old);
     for (const [key, value] of Object.entries(change?.patch ?? {})) assert.equal(current[key], value);
   }
-  assert.deepEqual(await snapshot(), before, "Balances and room/inventory must stay unchanged");
-  console.log(`Verified ${changes.length} QA identity updates; provider IDs, coins and housing preserved.`);
+  assert.deepEqual(await snapshot(), before, "Balances must stay unchanged");
+  console.log(`Verified ${changes.length} QA identity updates; provider IDs and coins preserved.`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await main();

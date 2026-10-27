@@ -9,8 +9,6 @@ import {
   Crown,
   ImageIcon,
   Shield,
-  Sparkles,
-  UserRound,
 } from "lucide-react";
 import { toast } from "sonner";
 import { purchaseStoreItemAction } from "@/app/actions/clan-store-purchase";
@@ -28,9 +26,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import type { HousingResult } from "@/lib/housing/types";
-import type { NamecardResult } from "@/lib/profile/namecard";
-import { PersonalStoreProducts, type PersonalStoreCategory } from "./personal-store-products";
 
 export type ClanStoreItemVM = {
   slug: MvpStoreSlug;
@@ -49,31 +44,21 @@ export function StorePanels({
   actorRole = "member",
   planIsPremium,
   items,
-  userCoins,
   clanCoins,
   canManageClanPool,
-  housing,
-  namecard,
-  pool,
 }: {
   gameSlug?: string;
   clanId?: string;
   actorRole?: ClanMemberRole;
   planIsPremium: boolean;
   items: ClanStoreItemVM[];
-  userCoins: number;
   clanCoins: number;
   canManageClanPool: boolean;
-  housing?: HousingResult;
-  namecard?: NamecardResult;
-  pool: "clan" | "personal";
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [premiumOpen, setPremiumOpen] = useState(false);
   const [selected, setSelected] = useState<ClanStoreItemVM | null>(null);
-  const [personalCategory, setPersonalCategory] = useState<PersonalStoreCategory>("all");
-  const category = pool;
 
   function buy() {
     if (!selected || pending || !gameSlug || !clanId) return;
@@ -88,9 +73,7 @@ export function StorePanels({
         return;
       }
       toast.success(
-        selected.slug === "profile_entrance_fx"
-          ? "구매가 완료되었습니다. 프로필에서 프레임을 선택해 주세요."
-          : "구매가 완료되었습니다. 클랜 관리에서 배너를 설정해 주세요.",
+         "구매가 완료되었습니다. 클랜 관리에서 배너를 설정해 주세요.",
       );
       setSelected(null);
       router.refresh();
@@ -102,18 +85,12 @@ export function StorePanels({
       <div className="flex flex-wrap gap-3" aria-label="보유 코인">
         {[
           { key: "clan", label: "클랜 코인", balance: clanCoins, icon: Shield },
-          {
-            key: "personal",
-            label: "내 코인",
-            balance: userCoins,
-            icon: UserRound,
-          },
-        ].filter(({ key }) => key === pool).map(({ key, label, balance, icon: Icon }) => (
+        ].map(({ key, label, balance, icon: Icon }) => (
           <div
             key={key}
             className={cn(
               "flex min-w-44 items-center gap-3 rounded-2xl border bg-card px-5 py-4",
-              pool === key && "border-primary/40 bg-primary/5",
+              "border-primary/40 bg-primary/5",
             )}
           >
             <Icon size={18} className="text-muted-foreground" aria-hidden />
@@ -127,23 +104,16 @@ export function StorePanels({
           </div>
         ))}
       </div>
-          <section aria-label={category === "personal" ? "개인 꾸미기" : "클랜 꾸미기"}>
+          <section aria-label={"클랜 꾸미기"}>
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
               <p>
-                {category === "clan"
-                  ? "클랜원 모두가 함께 사용하는 꾸미기"
-                  : "내 프로필에 특별함을 더하는 꾸미기"}
+                클랜원 모두가 함께 사용하는 꾸미기
               </p>
-              {category === "personal" ? (
-                <Link href="/profile" className="text-primary hover:underline">
-                  내 꾸미기 보기 →
-                </Link>
-              ) : null}
+
             </div>
-            {category === "personal" && <div role="group" aria-label="개인 꾸미기 분류" className="mb-5 flex flex-wrap gap-2">{([["all", "전체"], ["furniture", "가구"], ["title", "칭호"], ["frame", "프레임"]] as const).map(([value, label]) => <Button key={value} size="sm" variant={personalCategory === value ? "secondary" : "ghost"} aria-pressed={personalCategory === value} onClick={() => setPersonalCategory(value)}>{label}</Button>)}</div>}
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label={category === "personal" ? "개인 꾸미기 상품" : "클랜 꾸미기 상품"}>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label={"클랜 꾸미기 상품"}>
               {items
-                .filter((it) => it.pool_source === category && (category === "clan" || personalCategory === "all" || personalCategory === "frame"))
+                .filter((it) => it.pool_source === "clan")
                 .map((it) => (
                   <article
                     key={it.slug}
@@ -152,24 +122,17 @@ export function StorePanels({
                     <div
                       className={cn(
                         "relative flex h-36 items-center justify-center border-b bg-surface",
-                        it.slug === "profile_entrance_fx"
-                          ? "text-pro-gold"
-                          : "text-primary",
+                        "text-primary",
                       )}
                     >
-                      {it.slug === "clan_banner_slot" ? (
+
                         <div className="flex h-20 w-4/5 items-end gap-2 rounded-xl border border-primary/30 bg-gradient-to-br from-primary/15 to-primary/5 p-3">
                           <Shield className="size-9 rounded-lg border border-primary/30 p-1.5" />
                           <span className="mb-1 text-xs font-bold">
                             CLAN HOME
                           </span>
                         </div>
-                      ) : (
-                        <div className="flex items-center gap-3 rounded-xl border-2 border-pro-gold/60 bg-pro-gold/5 px-6 py-4">
-                          <Sparkles size={24} />
-                          <span className="text-sm font-semibold">PLAYER</span>
-                        </div>
-                      )}
+
                       {it.is_premium_only ? (
                         <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-pro-gold/15 px-2 py-1 text-[10px] font-bold text-pro-gold">
                           <Crown size={11} />
@@ -179,20 +142,14 @@ export function StorePanels({
                     </div>
                     <div className="flex flex-1 flex-col gap-3 p-5">
                       <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                        {category === "clan" ? (
-                          <ImageIcon size={12} />
-                        ) : (
-                          <Sparkles size={12} />
-                        )}
-                        {category === "clan" ? "클랜 전용" : "개인 전용"} ·
+                        <ImageIcon size={12} />
+                        클랜 전용 ·
                         꾸미기
                       </div>
                       <div>
                         <h3 className="text-base font-bold">{it.name_ko}</h3>
                         <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                          {it.slug === "clan_banner_slot"
-                            ? "클랜의 분위기를 담은 이미지를 홈 배너로 설정하세요."
-                            : "프로필 네임카드에 장착할 수 있는 프레임을 추가하세요."}
+                          클랜의 분위기를 담은 이미지를 홈 배너로 설정하세요.
                         </p>
                       </div>
                       <strong className="mt-auto flex items-center gap-1.5 pt-2 text-lg tabular-nums">
@@ -208,7 +165,6 @@ export function StorePanels({
                         </p>
                       ) : null}
                       {it.purchased &&
-                      category === "clan" &&
                       !canManageClanPool ? (
                         <Button disabled variant="secondary">
                           <Check size={14} />
@@ -220,11 +176,7 @@ export function StorePanels({
                             buttonVariants({ variant: "secondary" }),
                             "w-full",
                           )}
-                          href={
-                            category === "clan"
-                              ? `/games/${gameSlug}/clan/${clanId}/manage`
-                              : "/profile"
-                          }
+                          href={`/games/${gameSlug}/clan/${clanId}/manage`}
                         >
                           <Check size={14} />
                           구매 완료 · 설정하기
@@ -249,7 +201,6 @@ export function StorePanels({
                     </div>
                   </article>
                 ))}
-              {category === "personal" && housing && namecard && <PersonalStoreProducts housing={housing} namecard={namecard} category={personalCategory} coins={userCoins} />}
             </div>
           </section>
       {gameSlug && clanId && <StorePremiumPlanDialog
@@ -275,9 +226,7 @@ export function StorePanels({
           <div className="rounded-xl border bg-surface p-4 text-sm">
             <p className="flex justify-between">
               <span>
-                {selected?.pool_source === "clan"
-                  ? "클랜 코인 사용"
-                  : "개인 코인 사용"}
+                클랜 코인 사용
               </span>
               <strong>
                 {selected?.price_coins.toLocaleString("ko-KR")} 코인

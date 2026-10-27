@@ -33,9 +33,6 @@ test("실제 클랜·계정 탈퇴는 개인 데이터 삭제와 공동 기록 �
     const option = await ok(f.service.from("nameplate_options").select("id,category").eq("is_active", true).eq("price_coins", 0).limit(1).single());
     await ok(f.service.from("user_nameplate_inventory").insert({ user_id: subject.id, option_id: option.id }));
     await ok(client.from("user_namecard_selections").insert({ user_id: subject.id, option_id: option.id, category: option.category }));
-    await ok(f.service.from("user_housing_rooms").upsert({ user_id: subject.id }));
-    const furniture = await ok(f.service.from("housing_catalog").select("id").eq("is_active", true).limit(1).single());
-    await ok(f.service.from("user_housing_inventory").insert({ user_id: subject.id, catalog_id: furniture.id, acquired_price: 0 }));
     await ok(f.service.from("coin_transactions").insert({ user_id: subject.id, pool_type: "personal", amount: 321, reason: "withdrawal fixture", reference_type: "test", reference_id: randomUUID(), balance_after: 321 }));
     const item = await ok(f.service.from("store_items").select("id").limit(1).single());
     const purchaseLedger = await ok(f.service.from("coin_transactions").insert({ user_id: subject.id, pool_type: "personal", amount: -10, reason: "withdrawal purchase fixture", reference_type: "test", reference_id: randomUUID(), balance_after: 321 }).select("id").single());
@@ -53,7 +50,7 @@ test("실제 클랜·계정 탈퇴는 개인 데이터 삭제와 공동 기록 �
     const correctedId = await ok(f.service.rpc("edit_clan_match_record", { p_clan_id: f.clanId, p_actor_id: keeper.id, p_operation: "create", p_id: null as unknown as string, p_revision: null as unknown as string, p_record: { playedAt: "2026-10-01T10:00:00Z", occurredAt: "2026-10-01T10:00:00Z", mapLabel: "부산", outcome: "team1", players: [{ userId: subject.id, team: 1, role: "tank" }, { userId: keeper.id, team: 2, role: "tank" }] } }));
     const readRecords = () => ok(f.service.rpc("read_clan_stats_records", { p_clan_id: f.clanId, p_user_id: keeper.id }));
     const recordsBefore = await readRecords();
-    const personalTables = ["user_game_profiles", "user_alt_accounts", "profile_role_preferences", "user_nameplate_inventory", "user_namecard_selections", "user_housing_rooms", "user_housing_inventory", "purchases", "coin_transactions", "clan_personal_emblem_awards", "account_personal_emblem_picks"] as const;
+    const personalTables = ["user_game_profiles", "user_alt_accounts", "profile_role_preferences", "user_nameplate_inventory", "user_namecard_selections", "purchases", "coin_transactions", "clan_personal_emblem_awards", "account_personal_emblem_picks"] as const;
     const readPersonal = async () => Object.fromEntries(await Promise.all(personalTables.map(async table => [table, await ok(f.service.from(table).select("*").eq("user_id", subject.id))] as const)));
     const personalBefore = await readPersonal();
     for (const rows of Object.values(personalBefore)) expect(rows.length).toBeGreaterThan(0);

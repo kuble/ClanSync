@@ -10,11 +10,14 @@ async function ok(query) { const {data,error}=await query; assert.equal(error,nu
 test("retired tables and RPCs are absent even to the service role",async()=>{
   const env=loadTestEnv();
   const db=createClient(env.NEXT_PUBLIC_SUPABASE_URL,env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
-  for(const table of ["showcase_catalog","user_showcase_inventory","user_showcase_libraries","profile_visibility","clan_notification_secrets","badges","user_badge_unlocks","user_badge_picks","user_nameplate_selections"]){
+  for(const table of ["showcase_catalog","user_showcase_inventory","user_showcase_libraries","profile_visibility","clan_notification_secrets","badges","user_badge_unlocks","user_badge_picks","user_nameplate_selections","housing_catalog","user_housing_rooms","user_housing_inventory"]){
     const {error}=await db.from(table).select("*").limit(1);
     assert.ok(["PGRST205","42P01"].includes(error?.code),`${table}: ${JSON.stringify(error)}`);
   }
   for(const [name,args] of [
+    ["get_my_housing",{}],
+    ["purchase_housing_furniture",{p_catalog_id:"small-plant"}],
+    ["save_my_housing_room",{p_revision:0,p_wallpaper:"cream",p_floor:"oak",p_placements:[]}],
     ["save_showcase_library",{p_revision:-1,p_document:{}}],
     ["claim_showcase_product",{p_catalog_id:"fox-figure"}],
     ["save_my_badge_picks",{p_game_id:randomUUID(),p_ordered_badge_ids:[]}],

@@ -35,8 +35,6 @@ if (existingClan) {
 
 const preserved = async () => Promise.all([
   checked(db.from("users").select("*").eq("id", leader.id).single()),
-  checked(db.from("user_housing_rooms").select("*").eq("user_id", leader.id)),
-  checked(db.from("user_housing_inventory").select("*").eq("user_id", leader.id).order("id")),
   checked(db.from("user_namecard_selections").select("*").eq("user_id", leader.id).order("category")),
   checked(db.from("clans").select("*").in("id", memberships.map((member) => member.clan_id)).order("id")),
 ]);

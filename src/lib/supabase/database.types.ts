@@ -2190,54 +2190,6 @@ export type Database = {
         }
         Relationships: []
       }
-      housing_catalog: {
-        Row: {
-          category: string
-          depth: number
-          description: string
-          id: string
-          is_active: boolean
-          is_starter: boolean
-          mount: string
-          name: string
-          price: number
-          sort_order: number
-          visual_key: string
-          wall_layer: string | null
-          width: number
-        }
-        Insert: {
-          category: string
-          depth: number
-          description: string
-          id: string
-          is_active?: boolean
-          is_starter?: boolean
-          mount?: string
-          name: string
-          price: number
-          sort_order: number
-          visual_key: string
-          wall_layer?: string | null
-          width: number
-        }
-        Update: {
-          category?: string
-          depth?: number
-          description?: string
-          id?: string
-          is_active?: boolean
-          is_starter?: boolean
-          mount?: string
-          name?: string
-          price?: number
-          sort_order?: number
-          visual_key?: string
-          wall_layer?: string | null
-          width?: number
-        }
-        Relationships: []
-      }
       lfg_applications: {
         Row: {
           applicant_user_id: string
@@ -3192,99 +3144,6 @@ export type Database = {
           },
         ]
       }
-      user_housing_inventory: {
-        Row: {
-          acquired_at: string
-          acquired_price: number
-          catalog_id: string
-          coin_transaction_id: string | null
-          id: string
-          rotation: number
-          surface: string
-          user_id: string
-          x: number | null
-          y: number | null
-        }
-        Insert: {
-          acquired_at?: string
-          acquired_price: number
-          catalog_id: string
-          coin_transaction_id?: string | null
-          id?: string
-          rotation?: number
-          surface?: string
-          user_id: string
-          x?: number | null
-          y?: number | null
-        }
-        Update: {
-          acquired_at?: string
-          acquired_price?: number
-          catalog_id?: string
-          coin_transaction_id?: string | null
-          id?: string
-          rotation?: number
-          surface?: string
-          user_id?: string
-          x?: number | null
-          y?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_housing_inventory_catalog_id_fkey"
-            columns: ["catalog_id"]
-            isOneToOne: false
-            referencedRelation: "housing_catalog"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_housing_inventory_coin_transaction_id_fkey"
-            columns: ["coin_transaction_id"]
-            isOneToOne: false
-            referencedRelation: "coin_transactions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_housing_inventory_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_housing_rooms: {
-        Row: {
-          floor: string
-          revision: number
-          updated_at: string
-          user_id: string
-          wallpaper: string
-        }
-        Insert: {
-          floor?: string
-          revision?: number
-          updated_at?: string
-          user_id: string
-          wallpaper?: string
-        }
-        Update: {
-          floor?: string
-          revision?: number
-          updated_at?: string
-          user_id?: string
-          wallpaper?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_housing_rooms_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       user_namecard_selections: {
         Row: {
           category: Database["public"]["Enums"]["nameplate_category"]
@@ -3564,7 +3423,6 @@ export type Database = {
         Returns: undefined
       }
       get_clan_namecards: { Args: { p_clan_id: string }; Returns: Json }
-      get_my_housing: { Args: never; Returns: Json }
       is_active_clan_member: { Args: { p_clan_id: string }; Returns: boolean }
       is_clan_officer_plus: { Args: { p_clan_id: string }; Returns: boolean }
       is_member_of_balance_session: {
@@ -3655,10 +3513,6 @@ export type Database = {
       place_balance_prediction_pool: {
         Args: { p_pick: number; p_session_id: string; p_stake: number }
         Returns: undefined
-      }
-      purchase_housing_furniture: {
-        Args: { p_catalog_id: string }
-        Returns: Json
       }
       purchase_profile_title: { Args: { p_option_id: string }; Returns: Json }
       read_balance_analysis_context: {
@@ -3792,15 +3646,6 @@ export type Database = {
           p_schedule: Json
         }
         Returns: string
-      }
-      save_my_housing_room: {
-        Args: {
-          p_floor: string
-          p_placements: Json
-          p_revision: number
-          p_wallpaper: string
-        }
-        Returns: Json
       }
       save_profile_role_preference: {
         Args: { p_game_id: string; p_ranking: string[] }
