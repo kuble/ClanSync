@@ -12,6 +12,7 @@ export type StoredClanMatch = Pick<
 > & {
   match_players: { user_id: string; team: number; role?: ClanMatchPlayer["role"]; m?: number | null; a?: number | null }[] | null;
   occurred_at?: string;
+  operator_name?: string | null;
   series_id?: string | null;
   outcome?: ClanMatchRecord["outcome"];
   banned_heroes?: string[] | null;
@@ -32,7 +33,7 @@ export type CompletedBalanceSession = Pick<
   | "roster"
   | "ma_snapshot"
   | "match_outcome"
-> & Partial<Pick<SessionTable, "series_id" | "formation_settings" | "banned_heroes" | "map_candidates" | "hero_ban_enabled">> & {
+> & { operator_name?: string | null } & Partial<Pick<SessionTable, "series_id" | "formation_settings" | "banned_heroes" | "map_candidates" | "hero_ban_enabled">> & {
   balance_session_series?: { opened_at: string } | null;
   balance_session_map_votes?: { choice_idx: number }[] | null;
   balance_session_predictions?: { user_id: string; pick_team: number; pool_settlement?: string | null }[] | null;
@@ -50,6 +51,7 @@ export type ClanMatchPlayer = {
 export type ClanMatchRecord = {
   id: string;
   revision?: string;
+  operator_name?: string | null;
   series_id: string | null;
   source: "match" | "balance";
   played_at: string;
@@ -113,6 +115,7 @@ export function normalizeClanMatchRecords(
       id: match.id,
       series_id: match.series_id ?? null,
       source: "match",
+      ...(match.operator_name ? { operator_name: match.operator_name } : {}),
       played_at: match.played_at,
       occurred_at: match.occurred_at ?? match.played_at,
       match_type: match.match_type,
@@ -154,6 +157,7 @@ export function normalizeClanMatchRecords(
       id: session.id,
       series_id: session.series_id ?? null,
       source: "balance",
+      ...(session.operator_name ? { operator_name: session.operator_name } : {}),
       played_at:
         session.balance_session_series?.opened_at ??
         session.predictions_settled_at ??

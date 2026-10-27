@@ -155,7 +155,7 @@ export async function signOutAction(): Promise<void> {
   redirect("/");
 }
 
-/** 본인 계정 삭제(Auth+public.users 연쇄). 개발 단계 — RESTRICT FK가 남아 있으면 실패할 수 있음. */
+/** 본인 계정 삭제. 공동 운영 기록은 작성자 연결만 해제하고 표시 이름을 보존한다. */
 export async function deleteAccountAction(): Promise<{ error: string } | void> {
   const supabase = await createAuthActionClient(60 * 60 * 24);
   const {
@@ -177,7 +177,7 @@ export async function deleteAccountAction(): Promise<{ error: string } | void> {
     return {
       error:
         delErr.message ||
-        "계정을 삭제하지 못했습니다. 다른 데이터(예: 만든 일정·글)가 남아 있을 수 있습니다.",
+        "계정을 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.",
     };
   }
 

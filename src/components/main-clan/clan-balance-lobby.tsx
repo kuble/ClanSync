@@ -32,7 +32,7 @@ export type LobbyRoom = {
   id: string;
   kind: RoomKind;
   title: string;
-  created_by: string;
+  created_by: string | null;
   scheduled_at: string;
   status: "scheduled" | "open" | "closed" | "cancelled";
   series_id: string | null;

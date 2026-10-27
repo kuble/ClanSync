@@ -219,7 +219,7 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
               </div>
             ))}
           </div>
-          <p className="flex items-center gap-1.5 border-t pt-3 text-[10px] text-muted-foreground">
+          <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 border-t pt-3 text-[10px] text-muted-foreground">
             <Clock className="size-3" aria-hidden="true" />
             {match.source === "balance" ? "결과 확정" : "경기 시간"} ·{" "}
             {new Date(match.occurredAt).toLocaleString("ko-KR", {
@@ -227,6 +227,7 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
               dateStyle: "medium",
               timeStyle: "short",
             })}
+            <span className="min-w-0 break-all">· 운영 {match.operatorName || "운영자 정보 없음"}</span>
           </p>
         </div> : <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center"><Swords className="size-7 text-muted-foreground/30" aria-hidden="true" /><p role="status" className="text-sm text-muted-foreground">{pending ? "경기 기록을 불러오는 중…" : emptyText}</p></div>}
         </div>

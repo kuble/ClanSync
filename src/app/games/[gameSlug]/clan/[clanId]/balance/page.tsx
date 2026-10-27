@@ -51,7 +51,7 @@ export default async function BalancePage({ params, searchParams }: {
     return {
       ...room,
       kind: room.kind as LobbyRoom["kind"], status: room.status as LobbyRoom["status"],
-      creatorNickname: members.find((member) => member.user_id === room.created_by)?.nickname ?? "이전 클랜원",
+      creatorNickname: members.find((member) => member.user_id === room.created_by)?.nickname ?? room.operator_name ?? "운영자 정보 없음",
       delegateNickname: members.find((member) => member.user_id === room.delegated_to)?.nickname ?? null,
       rsvpCounts: { going: responses.filter((row) => row.response === "going").length, maybe: responses.filter((row) => row.response === "maybe").length, no: responses.filter((row) => row.response === "no").length },
       myRsvp: (responses.find((row) => row.user_id === user.id)?.response ?? null) as LobbyRoom["myRsvp"],

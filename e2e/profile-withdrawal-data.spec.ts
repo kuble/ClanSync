@@ -10,11 +10,14 @@ async function ok<T extends { data: unknown; error: unknown }>(query: PromiseLik
 
 test("실제 클랜·계정 탈퇴는 개인 데이터 삭제와 공동 기록 보존 안내에 일치한다", async ({ page }, info) => {
   test.setTimeout(180_000);
-  const f = await createIsolatedBalanceFixture(2);
-  const [keeper, subject] = f.users;
+  const f = await createIsolatedBalanceFixture(3);
+  const [keeper, subject, observer] = f.users;
   let otherClanId: string | undefined;
   try {
     const client = await f.memberClient(1);
+    const ordinary = await f.memberClient(2);
+    const hostName = "WithdrawalHost#4321";
+    await ok(f.service.from("user_game_profiles").update({ battle_tag: hostName }).eq("user_id", subject.id).eq("game_id", f.gameId));
     const baseline = await ok(f.service.from("users").select("*").like("email", "qa_%@clansync-qa.local").order("id"));
     expect(baseline.length).toBeGreaterThan(0);
     const peerBefore = await ok(f.service.from("users").select("*").eq("id", keeper.id).single());
@@ -76,19 +79,33 @@ test("실제 클랜·계정 탈퇴는 개인 데이터 삭제와 공동 기록 �
     for (const [table, row] of [["clan_board_posts", post], ["clan_board_comments", comment], ["clan_notices", notice], ["clan_hof_comments", hof], ["matches", match]] as const)
       expect(await ok(f.service.from(table).select("*").eq("id", row.id).single())).toEqual(row);
 
-    // A real restrictive reference must reject the entire deletion without losing personal rows.
-    const blocker = await ok(f.service.from("clan_events").insert({ clan_id: other.id, created_by: subject.id, title: "탈퇴 제한 검증 일정", start_at: "2026-11-01T12:00:00Z" }).select("id").single());
+    // Every former restrictive operational reference stays present during UI deletion.
+    // Restore the temporary membership for a separate, active-host account deletion.
+    await ok(f.service.from("clan_members").update({ status: "active", role: "officer" }).eq("id", memberBefore.id));
+    const future = new Date(Date.now() + 86_400_000).toISOString();
+    const event = await ok(f.service.from("clan_events").insert({ clan_id: other.id, created_by: subject.id, title: "보존할 일정", start_at: future }).select("*").single());
+    const poll = await ok(f.service.from("clan_polls").insert({ clan_id: f.clanId, created_by: subject.id, title: "보존할 투표", deadline_at: future }).select("*").single());
+    const bracket = await ok(f.service.from("bracket_tournaments").insert({ host_clan_id: f.clanId, created_by: subject.id, title: "보존할 대진표", team_count: 2 }).select("*").single());
+    const promotion = await ok(f.service.from("board_posts").insert({ clan_id: f.clanId, game_id: f.gameId, created_by: subject.id, title: "보존할 모집글", content: "본문" }).select("*").single());
+    const scrim = await ok(f.service.from("scrim_rooms").insert({ clan_a_id: f.clanId, clan_b_id: other.id, status: "matched", created_by: subject.id, scheduled_at: future }).select("*").single());
+    const confirmation = await ok(f.service.from("scrim_room_confirmations").insert({ scrim_room_id: scrim.id, side: "host", confirmed_by: subject.id }).select("*").single());
+    const schedule = await ok(f.service.from("balance_room_schedules").insert({ clan_id: f.clanId, created_by: subject.id, title: "보존할 반복 내전", interval_days: 7, next_run_at: future }).select("*").single());
+    const reservation = await ok(f.service.from("balance_rooms").insert({ clan_id: f.clanId, game_id: f.gameId, created_by: subject.id, delegated_to: subject.id, title: "보존할 예약", kind: "regular", schedule_id: schedule.id, scheduled_at: future }).select("*").single());
+    const series = await ok(f.service.from("balance_session_series").insert({ clan_id: f.clanId, game_id: f.gameId, host_user_id: subject.id, opened_at: "2026-10-02T10:00:00Z", closed_at: "2026-10-02T11:00:00Z" }).select("*").single());
+    const round = await ok(f.service.from("balance_sessions").insert({ clan_id: f.clanId, game_id: f.gameId, host_user_id: subject.id, series_id: series.id, round_number: 1, opened_at: "2026-10-02T10:00:00Z", closed_at: "2026-10-02T11:00:00Z", predictions_settled_at: "2026-10-02T11:00:00Z", match_outcome: "team1", resolved_map_label: "네팔", roster: { team1: { tank: keeper.id, dmg: [], sup: [] }, team2: { tank: subject.id, dmg: [], sup: [] } } }).select("*").single());
+    const operationRows = [
+      ["clan_events", event, "created_by"], ["clan_polls", poll, "created_by"], ["bracket_tournaments", bracket, "created_by"],
+      ["board_posts", promotion, "created_by"], ["scrim_rooms", scrim, "created_by"], ["scrim_room_confirmations", confirmation, "confirmed_by"],
+      ["balance_room_schedules", schedule, "created_by"], ["balance_rooms", reservation, "created_by"],
+      ["balance_session_series", series, "host_user_id"], ["balance_sessions", round, "host_user_id"],
+    ] as const;
+    for (const [, row] of operationRows) expect(row.operator_name).toBe(hostName);
+    await ok(f.service.from("clan_events").update({ operator_name: "forged" }).eq("id", event.id));
+    expect((await ok(f.service.from("clan_events").select("operator_name").eq("id", event.id).single())).operator_name).toBe(hostName);
     await page.reload();
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
     await page.getByRole("button", { name: "클랜싱크 탈퇴", exact: true }).click();
     const deletion = page.getByRole("dialog", { name: "클랜싱크를 탈퇴할까요?", exact: true });
-    await deletion.getByRole("button", { name: "클랜싱크 탈퇴하기", exact: true }).click();
-    await expect(deletion.getByRole("alert")).toBeVisible();
-    expect(await readPersonal()).toEqual(personalBefore);
-    expect(await ok(f.service.from("clan_board_posts").select("author_id,content").eq("id", post.id).single())).toEqual({ author_id: subject.id, content: post.content });
-    expect((await ok(f.service.auth.admin.getUserById(subject.id))).user!.id).toBe(subject.id);
-    await ok(f.service.from("clan_events").delete().eq("id", blocker.id));
-
     await deletion.getByRole("button", { name: "클랜싱크 탈퇴하기", exact: true }).click();
     await expect(page).toHaveURL(/\/$/);
     f.users.splice(1, 1); // Successful UI deletion already removed this fixture user.
@@ -106,16 +123,31 @@ test("실제 클랜·계정 탈퇴는 개인 데이터 삭제와 공동 기록 �
     expect(await ok(f.service.from("clans").select("id,name,coin_balance,rules").eq("id", f.clanId).single())).toEqual(clan);
     expect(await ok(f.service.from("users").select("*").eq("id", keeper.id).single())).toEqual(peerBefore);
     expect(await ok(f.service.from("users").select("*").like("email", "qa_%@clansync-qa.local").order("id"))).toEqual(baseline);
+    for (const [table, row, actor] of operationRows) {
+      const preserved = await ok(f.service.from(table).select("*").eq("id", row.id).single());
+      expect(preserved).toMatchObject({ ...row, [actor]: null, ...("updated_at" in row ? { updated_at: expect.any(String) } : {}), ...(table === "balance_rooms" ? { delegated_to: null } : {}) });
+      expect(preserved.operator_name).toBe(hostName);
+    }
+    expect((await ok(f.service.from("balance_rooms").select("delegate_name").eq("id", reservation.id).single())).delegate_name).toBe(hostName);
+    expect((await ordinary.rpc("open_balance_room", { p_clan_id: f.clanId, p_room_id: reservation.id })).error).not.toBeNull();
+    expect((await ordinary.rpc("read_clan_stats_records", { p_clan_id: f.clanId, p_day: "2026-10-02" })).error).not.toBeNull();
+    const operatorRecord = (await readRecords()).find(row => (row.payload as { id: string }).id === round.id);
+    expect((operatorRecord?.payload as { operator_name: string }).operator_name).toBe(hostName);
     const login = await client.auth.signInWithPassword({ email: subject.email, password: subject.password });
     expect(login.error).not.toBeNull();
     await page.goto("/profile");
     await expect(page).toHaveURL(/\/sign-in/);
-    await info.attach("withdrawal-result", { body: JSON.stringify({ clanWithdrawal: "membership ended; personal assets, records and posts preserved; member-only access denied", blockedAccountDeletion: "atomic rejection; personal rows retained", accountDeletion: "auth, public user, memberships and populated personal tables removed; shared records retained and authors nulled", existingQaAccounts: baseline.length, cleanup: "temporary fixture only" }, null, 2), contentType: "application/json" });
+    await loginIsolatedBalanceUser(page, keeper);
+    await page.goto(f.path.replace(/balance$/, "stats"));
+    await page.getByRole("tab", { name: "경기 기록", exact: true }).click();
+    await expect(page.getByText("· 운영 " + hostName, { exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: hostName, exact: true })).toHaveCount(0);
+    await info.attach("withdrawal-result", { body: JSON.stringify({ clanWithdrawal: "membership ended; personal assets, records and posts preserved; member-only access denied", operationalRecords: "all former blocking references retained with null account IDs and stable operator text", accountDeletion: "auth, public user, memberships and populated personal tables removed; shared records retained and authors nulled", existingQaAccounts: baseline.length, cleanup: "temporary fixture only" }, null, 2), contentType: "application/json" });
   } finally {
     if (otherClanId) await ok(f.service.from("clans").delete().eq("id", otherClanId));
     await f.cleanup();
   }
-  expect(await ok(f.service.from("users").select("id").in("id", [keeper.id, subject.id]))).toEqual([]);
+  expect(await ok(f.service.from("users").select("id").in("id", [keeper.id, subject.id, observer.id]))).toEqual([]);
   expect(await ok(f.service.from("clans").select("id").in("id", [f.clanId, otherClanId!]))).toEqual([]);
-  for (const user of [keeper, subject]) expect((await f.service.auth.admin.getUserById(user.id)).data.user).toBeNull();
+  for (const user of [keeper, subject, observer]) expect((await f.service.auth.admin.getUserById(user.id)).data.user).toBeNull();
 });

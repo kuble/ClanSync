@@ -132,8 +132,8 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
       ? supabase.rpc("read_balance_prediction_pool", { p_session_id: session.id })
       : Promise.resolve({ data: null, error: null }),
     supabase.rpc("list_balance_roster_pool", { p_clan_id: clanId }),
-    session.host_user_id
-      ? supabase.from("users").select("nickname").eq("id", room.delegated_to ?? room.created_by).maybeSingle()
+    (room.delegated_to ?? room.created_by)
+      ? supabase.from("users").select("nickname").eq("id", (room.delegated_to ?? room.created_by)!).maybeSingle()
       : Promise.resolve({ data: null }),
     supabase.from("clan_participants").select("id,user_id").eq("clan_id", clanId).eq("is_guest", true).not("user_id", "is", null),
   ]);
@@ -191,7 +191,7 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
     for (const score of Object.values(visibleSessionScores)) score.a = null;
   }
 
-  const hostNickname = hostRow?.nickname ?? null;
+  const hostNickname = hostRow?.nickname ?? session.operator_name ?? null;
 
   // Request-time clock aligns the initial reveal on this authenticated server page.
   // eslint-disable-next-line react-hooks/purity

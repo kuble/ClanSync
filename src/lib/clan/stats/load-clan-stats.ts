@@ -53,6 +53,7 @@ async function loadAllStatsRows<T>(
 
 export type ClanArchiveMatch = {
   id: string;
+  operatorName?: string | null;
   seriesId?: string | null;
   sessionNumber?: number;
   sessionOpenedAt?: string;
@@ -493,6 +494,7 @@ async function loadClanStatsSource(
         match_type,
         status,
         map_label,
+        operator_name,
         match_players ( user_id, team ),
         match_results ( winner_team )
       `,
@@ -505,12 +507,12 @@ async function loadClanStatsSource(
     loadAllStatsRows<CompletedBalanceSession>((from, to) => {
       const table = historyClient.from("balance_sessions");
       const query = scope === "management"
-        ? table.select("id,series_id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,formation_settings,formation_state,banned_heroes,hero_ban_enabled,map_candidates,match_outcome,balance_session_map_votes(choice_idx),balance_session_series!inner(opened_at,balance_rooms!inner(kind))")
+        ? table.select("id,series_id,operator_name,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,formation_settings,formation_state,banned_heroes,hero_ban_enabled,map_candidates,match_outcome,balance_session_map_votes(choice_idx),balance_session_series!inner(opened_at,balance_rooms!inner(kind))")
         : scope === "full"
-        ? table.select("id,series_id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,formation_settings,formation_state,banned_heroes,hero_ban_enabled,map_candidates,match_outcome,balance_session_map_votes(choice_idx),balance_session_predictions(user_id,pick_team,pool_settlement),balance_session_series!inner(opened_at,balance_rooms!inner(kind))")
+        ? table.select("id,series_id,operator_name,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,formation_settings,formation_state,banned_heroes,hero_ban_enabled,map_candidates,match_outcome,balance_session_map_votes(choice_idx),balance_session_predictions(user_id,pick_team,pool_settlement),balance_session_series!inner(opened_at,balance_rooms!inner(kind))")
         : scope === "overview"
-          ? table.select("id,series_id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,banned_heroes,hero_ban_enabled,map_candidates,match_outcome,balance_session_map_votes(choice_idx),balance_session_predictions(user_id,pick_team,pool_settlement),balance_session_series!inner(opened_at,balance_rooms!inner(kind))")
-          : table.select("id,series_id,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,match_outcome,balance_session_predictions(user_id,pick_team,pool_settlement),balance_session_series!inner(opened_at,balance_rooms!inner(kind))");
+          ? table.select("id,series_id,operator_name,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,banned_heroes,hero_ban_enabled,map_candidates,match_outcome,balance_session_map_votes(choice_idx),balance_session_predictions(user_id,pick_team,pool_settlement),balance_session_series!inner(opened_at,balance_rooms!inner(kind))")
+          : table.select("id,series_id,operator_name,opened_at,closed_at,predictions_settled_at,resolved_map_label,roster,ma_snapshot,match_outcome,balance_session_predictions(user_id,pick_team,pool_settlement),balance_session_series!inner(opened_at,balance_rooms!inner(kind))");
       return query
         .eq("clan_id", clanId)
         .eq("balance_session_series.balance_rooms.kind", "regular")
@@ -618,7 +620,7 @@ function buildArchive(records: readonly ClanMatchRecord[], nick: Map<string, str
     const date = isoToKstYmd(m.played_at);
     (sampleByDate[date] ??= []).push({
       id: m.id, seriesId: m.series_id, ...(m.series_id ? sessionInfo.get(m.series_id) : {}), revision: m.revision, matchType: m.match_type, mapLabel: m.map_label, playedAt: m.played_at,
-      occurredAt: m.occurred_at, source: m.source, outcome: m.outcome, winnerTeam: getWinnerTeam(m),
+      occurredAt: m.occurred_at, operatorName: m.operator_name ?? null, source: m.source, outcome: m.outcome, winnerTeam: getWinnerTeam(m),
       players: m.match_players.map((p) => ({ userId: p.user_id, nickname: nick.get(p.user_id) ?? "탈퇴한 멤버", team: p.team, role: p.role, m: viewMscore ? p.m : null, a: viewMscore ? p.a : null })),
     });
   }

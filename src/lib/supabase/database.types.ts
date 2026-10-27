@@ -131,31 +131,34 @@ export type Database = {
         Row: {
           clan_id: string
           created_at: string
-          created_by: string
+          created_by: string | null
           enabled: boolean
           id: string
           interval_days: number
           next_run_at: string
+          operator_name: string | null
           title: string
         }
         Insert: {
           clan_id: string
           created_at?: string
-          created_by: string
+          created_by?: string | null
           enabled?: boolean
           id?: string
           interval_days: number
           next_run_at: string
+          operator_name?: string | null
           title: string
         }
         Update: {
           clan_id?: string
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           enabled?: boolean
           id?: string
           interval_days?: number
           next_run_at?: string
+          operator_name?: string | null
           title?: string
         }
         Relationships: [
@@ -180,11 +183,13 @@ export type Database = {
           clan_id: string
           closed_at: string | null
           created_at: string
-          created_by: string
+          created_by: string | null
+          delegate_name: string | null
           delegated_to: string | null
           game_id: string
           id: string
           kind: string
+          operator_name: string | null
           rsvp_days: number | null
           rsvp_opens_at: string | null
           schedule_id: string | null
@@ -197,11 +202,13 @@ export type Database = {
           clan_id: string
           closed_at?: string | null
           created_at?: string
-          created_by: string
+          created_by?: string | null
+          delegate_name?: string | null
           delegated_to?: string | null
           game_id: string
           id?: string
           kind: string
+          operator_name?: string | null
           rsvp_days?: number | null
           rsvp_opens_at?: string | null
           schedule_id?: string | null
@@ -214,11 +221,13 @@ export type Database = {
           clan_id?: string
           closed_at?: string | null
           created_at?: string
-          created_by?: string
+          created_by?: string | null
+          delegate_name?: string | null
           delegated_to?: string | null
           game_id?: string
           id?: string
           kind?: string
+          operator_name?: string | null
           rsvp_days?: number | null
           rsvp_opens_at?: string | null
           schedule_id?: string | null
@@ -433,30 +442,33 @@ export type Database = {
           clan_id: string
           closed_at: string | null
           game_id: string
-          host_user_id: string
+          host_user_id: string | null
           id: string
           last_activity_at: string
           opened_at: string
+          operator_name: string | null
           session_date: string | null
         }
         Insert: {
           clan_id: string
           closed_at?: string | null
           game_id: string
-          host_user_id: string
+          host_user_id?: string | null
           id?: string
           last_activity_at?: string
           opened_at?: string
+          operator_name?: string | null
           session_date?: string | null
         }
         Update: {
           clan_id?: string
           closed_at?: string | null
           game_id?: string
-          host_user_id?: string
+          host_user_id?: string | null
           id?: string
           last_activity_at?: string
           opened_at?: string
+          operator_name?: string | null
           session_date?: string | null
         }
         Relationships: [
@@ -498,7 +510,7 @@ export type Database = {
           hero_ban_enabled: boolean
           hero_ban_seconds: number
           hero_bans_per_team: number
-          host_user_id: string
+          host_user_id: string | null
           id: string
           ma_snapshot: Json
           map_ban_deadline_at: string | null
@@ -508,6 +520,7 @@ export type Database = {
           map_types: string[]
           match_outcome: Database["public"]["Enums"]["balance_match_outcome"]
           opened_at: string
+          operator_name: string | null
           phase: Database["public"]["Enums"]["balance_session_phase"]
           prediction_deadline_at: string | null
           prediction_pool_enabled: boolean
@@ -531,7 +544,7 @@ export type Database = {
           hero_ban_enabled?: boolean
           hero_ban_seconds?: number
           hero_bans_per_team?: number
-          host_user_id: string
+          host_user_id?: string | null
           id?: string
           ma_snapshot?: Json
           map_ban_deadline_at?: string | null
@@ -541,6 +554,7 @@ export type Database = {
           map_types?: string[]
           match_outcome?: Database["public"]["Enums"]["balance_match_outcome"]
           opened_at?: string
+          operator_name?: string | null
           phase?: Database["public"]["Enums"]["balance_session_phase"]
           prediction_deadline_at?: string | null
           prediction_pool_enabled?: boolean
@@ -564,7 +578,7 @@ export type Database = {
           hero_ban_enabled?: boolean
           hero_ban_seconds?: number
           hero_bans_per_team?: number
-          host_user_id?: string
+          host_user_id?: string | null
           id?: string
           ma_snapshot?: Json
           map_ban_deadline_at?: string | null
@@ -574,6 +588,7 @@ export type Database = {
           map_types?: string[]
           match_outcome?: Database["public"]["Enums"]["balance_match_outcome"]
           opened_at?: string
+          operator_name?: string | null
           phase?: Database["public"]["Enums"]["balance_session_phase"]
           prediction_deadline_at?: string | null
           prediction_pool_enabled?: boolean
@@ -619,10 +634,11 @@ export type Database = {
           clan_id: string
           content: string
           created_at: string
-          created_by: string
+          created_by: string | null
           game_id: string
           id: string
           is_pinned: boolean
+          operator_name: string | null
           post_type: Database["public"]["Enums"]["board_post_type"]
           title: string
         }
@@ -630,10 +646,11 @@ export type Database = {
           clan_id: string
           content?: string
           created_at?: string
-          created_by: string
+          created_by?: string | null
           game_id: string
           id?: string
           is_pinned?: boolean
+          operator_name?: string | null
           post_type?: Database["public"]["Enums"]["board_post_type"]
           title: string
         }
@@ -641,10 +658,11 @@ export type Database = {
           clan_id?: string
           content?: string
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           game_id?: string
           id?: string
           is_pinned?: boolean
+          operator_name?: string | null
           post_type?: Database["public"]["Enums"]["board_post_type"]
           title?: string
         }
@@ -676,13 +694,14 @@ export type Database = {
         Row: {
           cancelled_at: string | null
           created_at: string
-          created_by: string
+          created_by: string | null
           entry_coin_transaction_id: string | null
           finished_at: string | null
           format: Database["public"]["Enums"]["bracket_format"]
           host_clan_id: string
           host_coin_transaction_id: string | null
           id: string
+          operator_name: string | null
           snapshot: Json
           started_at: string | null
           status: Database["public"]["Enums"]["bracket_status"]
@@ -694,13 +713,14 @@ export type Database = {
         Insert: {
           cancelled_at?: string | null
           created_at?: string
-          created_by: string
+          created_by?: string | null
           entry_coin_transaction_id?: string | null
           finished_at?: string | null
           format?: Database["public"]["Enums"]["bracket_format"]
           host_clan_id: string
           host_coin_transaction_id?: string | null
           id?: string
+          operator_name?: string | null
           snapshot?: Json
           started_at?: string | null
           status?: Database["public"]["Enums"]["bracket_status"]
@@ -712,13 +732,14 @@ export type Database = {
         Update: {
           cancelled_at?: string | null
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           entry_coin_transaction_id?: string | null
           finished_at?: string | null
           format?: Database["public"]["Enums"]["bracket_format"]
           host_clan_id?: string
           host_coin_transaction_id?: string | null
           id?: string
+          operator_name?: string | null
           snapshot?: Json
           started_at?: string | null
           status?: Database["public"]["Enums"]["bracket_status"]
@@ -1145,11 +1166,12 @@ export type Database = {
           cancelled_at: string | null
           clan_id: string
           created_at: string
-          created_by: string
+          created_by: string | null
           discord_notify: Json
           finished_at: string | null
           id: string
           kind: Database["public"]["Enums"]["clan_event_kind"]
+          operator_name: string | null
           place: string | null
           repeat: Database["public"]["Enums"]["clan_event_repeat"]
           repeat_time: string | null
@@ -1164,11 +1186,12 @@ export type Database = {
           cancelled_at?: string | null
           clan_id: string
           created_at?: string
-          created_by: string
+          created_by?: string | null
           discord_notify?: Json
           finished_at?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["clan_event_kind"]
+          operator_name?: string | null
           place?: string | null
           repeat?: Database["public"]["Enums"]["clan_event_repeat"]
           repeat_time?: string | null
@@ -1183,11 +1206,12 @@ export type Database = {
           cancelled_at?: string | null
           clan_id?: string
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           discord_notify?: Json
           finished_at?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["clan_event_kind"]
+          operator_name?: string | null
           place?: string | null
           repeat?: Database["public"]["Enums"]["clan_event_repeat"]
           repeat_time?: string | null
@@ -1805,12 +1829,13 @@ export type Database = {
           clan_id: string
           closed_at: string | null
           created_at: string
-          created_by: string
+          created_by: string | null
           deadline_at: string
           id: string
           multiple_choice: boolean
           notify_hour: number
           notify_repeat: Database["public"]["Enums"]["poll_notify_repeat"]
+          operator_name: string | null
           post_to_notice: boolean
           starts_at: string
           title: string
@@ -1821,12 +1846,13 @@ export type Database = {
           clan_id: string
           closed_at?: string | null
           created_at?: string
-          created_by: string
+          created_by?: string | null
           deadline_at: string
           id?: string
           multiple_choice?: boolean
           notify_hour?: number
           notify_repeat?: Database["public"]["Enums"]["poll_notify_repeat"]
+          operator_name?: string | null
           post_to_notice?: boolean
           starts_at?: string
           title: string
@@ -1837,12 +1863,13 @@ export type Database = {
           clan_id?: string
           closed_at?: string | null
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           deadline_at?: string
           id?: string
           multiple_choice?: boolean
           notify_hour?: number
           notify_repeat?: Database["public"]["Enums"]["poll_notify_repeat"]
+          operator_name?: string | null
           post_to_notice?: boolean
           starts_at?: string
           title?: string
@@ -2412,6 +2439,7 @@ export type Database = {
           id: string
           map_label: string | null
           match_type: Database["public"]["Enums"]["clan_match_type"]
+          operator_name: string | null
           played_at: string
           status: Database["public"]["Enums"]["clan_match_status"]
         }
@@ -2423,6 +2451,7 @@ export type Database = {
           id?: string
           map_label?: string | null
           match_type?: Database["public"]["Enums"]["clan_match_type"]
+          operator_name?: string | null
           played_at?: string
           status?: Database["public"]["Enums"]["clan_match_status"]
         }
@@ -2434,6 +2463,7 @@ export type Database = {
           id?: string
           map_label?: string | null
           match_type?: Database["public"]["Enums"]["clan_match_type"]
+          operator_name?: string | null
           played_at?: string
           status?: Database["public"]["Enums"]["clan_match_status"]
         }
@@ -2870,22 +2900,25 @@ export type Database = {
       scrim_room_confirmations: {
         Row: {
           confirmed_at: string
-          confirmed_by: string
+          confirmed_by: string | null
           id: string
+          operator_name: string | null
           scrim_room_id: string
           side: Database["public"]["Enums"]["scrim_confirm_side"]
         }
         Insert: {
           confirmed_at?: string
-          confirmed_by: string
+          confirmed_by?: string | null
           id?: string
+          operator_name?: string | null
           scrim_room_id: string
           side: Database["public"]["Enums"]["scrim_confirm_side"]
         }
         Update: {
           confirmed_at?: string
-          confirmed_by?: string
+          confirmed_by?: string | null
           id?: string
+          operator_name?: string | null
           scrim_room_id?: string
           side?: Database["public"]["Enums"]["scrim_confirm_side"]
         }
@@ -2918,11 +2951,12 @@ export type Database = {
             | null
           confirmed_at: string | null
           created_at: string
-          created_by: string
+          created_by: string | null
           finished_at: string | null
           id: string
           memo: string | null
           mode: string | null
+          operator_name: string | null
           place: string | null
           scheduled_at: string
           status: Database["public"]["Enums"]["scrim_room_status"]
@@ -2942,11 +2976,12 @@ export type Database = {
             | null
           confirmed_at?: string | null
           created_at?: string
-          created_by: string
+          created_by?: string | null
           finished_at?: string | null
           id?: string
           memo?: string | null
           mode?: string | null
+          operator_name?: string | null
           place?: string | null
           scheduled_at: string
           status?: Database["public"]["Enums"]["scrim_room_status"]
@@ -2966,11 +3001,12 @@ export type Database = {
             | null
           confirmed_at?: string | null
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           finished_at?: string | null
           id?: string
           memo?: string | null
           mode?: string | null
+          operator_name?: string | null
           place?: string | null
           scheduled_at?: string
           status?: Database["public"]["Enums"]["scrim_room_status"]
