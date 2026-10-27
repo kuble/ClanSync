@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, Coins, Crown, Eye, RotateCcw, Search } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Coins, Crown, Eye, RotateCcw, Search } from "lucide-react";
 import { toast } from "sonner";
 import { purchaseProfileTitleAction } from "@/app/actions/profile-titles";
 import { purchaseStoreItemAction } from "@/app/actions/clan-store-purchase";
@@ -99,10 +98,8 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
   }
 
   return <div className={styles.shop}>
-    <header className={styles.header}>
-      <div><Link href="/profile" className={styles.back}><ArrowLeft size={14} aria-hidden />내 프로필</Link><h1>네임카드 상점</h1><p>디자인을 비교하고, 나만의 조합을 완성하세요.</p></div>
-      <div className={styles.wallet} aria-label="보유 코인"><Coins size={22} aria-hidden /><div><span>내 코인</span><strong>{coins.toLocaleString("ko-KR")}</strong></div></div>
-    </header>
+    <h1 className="sr-only">네임카드 상점</h1>
+    <div className={styles.previewRow}>
     <section className={styles.current} aria-label="현재 네임카드">
       <h2 className="sr-only">네임카드 미리보기</h2>
       <Namecard displayName={displayName} {...current} fill />
@@ -112,6 +109,8 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
         {candidate && (candidate.available ? <Button size="sm" disabled={pending || applied(candidate)} onClick={() => apply(candidate)} aria-label={candidate.name + " 적용"}>{applied(candidate) ? "적용 중" : "적용"}</Button> : <Button size="sm" disabled={pending || !!reason(candidate)} onClick={() => { setSelected(candidate); setError(""); }} aria-label={candidate.name + " 구매"}>{reason(candidate) ? candidate.premium && !offer?.eligible ? "Premium 필요" : "코인 부족" : "구매"}</Button>)}
       </div>
     </section>
+    <div className={styles.wallet} aria-label="보유 코인"><Coins size={22} aria-hidden /><div><span>내 코인</span><strong>{coins.toLocaleString("ko-KR")}</strong></div></div>
+    </div>
     <section className={styles.catalog} aria-label="네임카드 디자인">
       <div className={styles.filters}>
         <RubberSegment label="개인 꾸미기 분류" labelPosition="hidden" options={STORE_CATEGORIES} value={category} onChange={value => { setCategory(value); setPage(1); }} />
