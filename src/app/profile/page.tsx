@@ -238,14 +238,14 @@ export default async function ProfilePage() {
   const memberships: ProfileMembership[] = membershipRows.flatMap((membership) => {
     const clan = Array.isArray(membership.clans) ? membership.clans[0] : membership.clans;
     const game = Array.isArray(clan?.games) ? clan.games[0] : clan?.games;
-    return game ? [{ clanId: membership.clan_id, clanName: clan.name, gameSlug: game.slug, gameName: game.name_ko, role: membership.role, accountId: linkedGames.find((linked) => linked.gameId === clan.game_id)?.accountId ?? null, altAccounts: (altRowsRaw ?? []).filter(alt => alt.game_id === clan.game_id).map(alt => alt.alt_nick) }] : [];
+    return game ? [{ clanId: membership.clan_id, clanName: clan.name, gameSlug: game.slug, gameName: game.name_ko, role: membership.role, accountId: linkedGames.find((linked) => linked.gameId === clan.game_id)?.accountId ?? null, altAccounts: (altRowsRaw ?? []).filter(alt => alt.game_id === clan.game_id).map(alt => alt.alt_nick), canManageAlts: verifiedGameIds.includes(clan.game_id) }] : [];
   });
 
   return <AccountShell context="프로필"><main className={styles.page}>
     <ProfilePanels overview={
       <div className={styles.profileHero} data-testid="profile-hero">
       <ProfileIdentity key={`identity:${user.id}`} userId={user.id} intro={intro} memberships={memberships} namecard={namecard}
-        games={linkedGames.map((game) => ({ gameSlug: game.slug, gameName: game.nameKo, accountId: game.accountId, altAccounts: (altRowsRaw ?? []).filter(alt => alt.game_id === game.gameId).map(alt => alt.alt_nick) }))}>
+        games={linkedGames.map((game) => ({ gameSlug: game.slug, gameName: game.nameKo, accountId: game.accountId, altAccounts: (altRowsRaw ?? []).filter(alt => alt.game_id === game.gameId).map(alt => alt.alt_nick), canManageAlts: verifiedGameIds.includes(game.gameId) }))}>
         {row && <section className={styles.identityFacts} aria-label="기본 정보"><dl>
           <div><dt>성별</dt><dd>{genderLabel(String(row.gender))}</dd></div>
           <div><dt>출생 연도</dt><dd>{row.birth_year ?? "미등록"}</dd></div>

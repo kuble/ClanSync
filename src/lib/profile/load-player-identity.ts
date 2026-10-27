@@ -12,17 +12,18 @@ export async function loadPlayerIdentity(db: SupabaseClient<Database>, userId: s
   if (error) throw new Error("플레이어 소개를 불러오지 못했습니다.");
   const profile = data as PlayerProfileVisit | null;
   if (!profile) return null;
+  const membership = profile.memberships.find(item => item.clanId === clanId);
   const service: SupabaseClient<Database> = createServiceRoleClient();
   const [catalog, selections, linkedGames, clanProfile] = await Promise.all([
     service.from("nameplate_options").select("id,category,code,name_ko,unlock_source,price_coins").eq("is_active", true),
     service.from("user_namecard_selections").select("category,option_id").eq("user_id", profile.userId),
     service.from("user_game_profiles").select("battle_tag,game_uid,riot_id,is_verified,games(slug,name_ko)").eq("user_id", profile.userId),
-    clanId && profile.memberships.some(membership => membership.clanId === clanId) ? loadClanProfile(db, service, userId, clanId, profile.memberships.find(membership => membership.clanId === clanId)!.gameSlug, viewerId) : undefined,
+    clanId && membership ? loadClanProfile(db, service, userId, clanId, membership.gameSlug, viewerId) : undefined,
   ]);
   if (catalog.error || selections.error || linkedGames.error) throw new Error("플레이어 소개를 불러오지 못했습니다.");
   return {
     userId: profile.userId, intro: profile.intro ?? "", memberships: profile.memberships,
-    ...(clanProfile ? { clanProfile } : {}),
+    ...(clanProfile ? { clanProfile: { ...clanProfile, ...(viewerId === userId && linkedGames.data.some(game => game.is_verified && game.games?.slug === membership?.gameSlug) ? { canManageAlts: true as const } : {}) } } : {}),
     appearance: namecardAppearance(catalog.data, selections.data),
     games: linkedGames.data.flatMap(game => game.games ? [{ gameSlug: game.games.slug, gameName: game.games.name_ko,
       accountId: game.is_verified ? (game.games.slug === "overwatch" ? parseBattleTag(game.battle_tag || game.game_uid) : ["valorant", "lol"].includes(game.games.slug) ? game.riot_id : null) : null,

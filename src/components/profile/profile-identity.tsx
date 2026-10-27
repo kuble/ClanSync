@@ -8,15 +8,16 @@ import { PersonalEmblemCaseLauncher } from "@/components/personal-emblems/person
 import { ProfileIntro } from "./profile-intro";
 import { ProfileNamecard } from "./profile-namecard";
 import { Namecard } from "./namecard";
+import { ProfileAltAccountsEditor } from "./profile-alt-accounts-editor";
 import type { NamecardAppearance, NamecardResult } from "@/lib/profile/namecard";
 import styles from "./profile.module.css";
 
-export type ProfileGameIdentity = { gameSlug: string; gameName: string; accountId?: string | null; altAccounts?: string[] };
+export type ProfileGameIdentity = { gameSlug: string; gameName: string; accountId?: string | null; altAccounts?: string[]; canManageAlts?: boolean };
 export type ProfileMembership = ProfileGameIdentity & { clanId: string; clanName: string; role: string };
 type ProfileSlide = ProfileGameIdentity & Partial<Pick<ProfileMembership, "clanId" | "clanName" | "role">>;
 
-export function ProfileIdentity({ userId, intro, memberships, games = [], namecard, publicAppearance, readOnly = false, introPlaceholder, emblemCase, children }: {
-  userId: string; intro: string; memberships: ProfileMembership[]; games?: ProfileGameIdentity[]; namecard?: NamecardResult; publicAppearance?: NamecardAppearance; readOnly?: boolean; introPlaceholder?: ReactNode; emblemCase?: ReactNode; children?: ReactNode;
+export function ProfileIdentity({ userId, intro, memberships, games = [], namecard, publicAppearance, readOnly = false, introPlaceholder, emblemCase, children, onAltAccountsChanged }: {
+  userId: string; intro: string; memberships: ProfileMembership[]; games?: ProfileGameIdentity[]; namecard?: NamecardResult; publicAppearance?: NamecardAppearance; readOnly?: boolean; introPlaceholder?: ReactNode; emblemCase?: ReactNode; children?: ReactNode; onAltAccountsChanged?: () => void;
 }) {
   const trackId = useId();
   const track = useRef<HTMLDivElement>(null);
@@ -53,7 +54,7 @@ export function ProfileIdentity({ userId, intro, memberships, games = [], nameca
           {index === current && tools}
         </div>}
         <div className={styles.clanAccountId}><span>{membership.gameSlug === "overwatch" ? "배틀태그" : ["valorant", "lol"].includes(membership.gameSlug) ? "라이엇 ID" : "게임 ID"}</span><Namecard displayName={membership.accountId || "Player"} {...appearance} /></div>
-        <div className={styles.profileAlts} role="region" aria-label="부계정" tabIndex={0} data-empty={!membership.altAccounts?.length || undefined}><span><UsersRound size={14} aria-hidden="true" />부계정</span><div>{membership.altAccounts?.length ? membership.altAccounts.map(nickname => <span key={nickname} className={styles.altTag}>{nickname}</span>) : <span className={styles.altEmpty}>{membership.altAccounts === undefined ? "불러오는 중…" : readOnly ? "공개된 부계정 없음" : "등록된 부계정 없음"}</span>}</div></div>
+        <div className={styles.profileAlts} role="region" aria-label="부계정" tabIndex={0} data-empty={!membership.altAccounts?.length || undefined} data-editable={membership.canManageAlts || undefined}><span><UsersRound size={14} aria-hidden="true" />부계정</span><div>{membership.altAccounts?.length ? membership.altAccounts.map(nickname => <span key={nickname} className={styles.altTag}>{nickname}</span>) : <span className={styles.altEmpty}>{membership.altAccounts === undefined ? "불러오는 중…" : readOnly ? "공개된 부계정 없음" : "등록된 부계정 없음"}</span>}</div>{membership.canManageAlts && <ProfileAltAccountsEditor key={userId + membership.gameSlug} gameSlug={membership.gameSlug} onChanged={onAltAccountsChanged} />}</div>
       </article>)}
       </div>
       <span className="sr-only" role="status" aria-label="현재 클랜" aria-live="polite">{current + 1} / {profiles.length}</span>

@@ -40,7 +40,7 @@ export function StatsPlayerBanner({ gameSlug, clanId, hof, userId, nickname, pro
   const emblemCase = showEmblems ? <PersonalEmblemCaseLauncher key={clanId + userId} variant="namecard" accountWide clanId={clanId} userId={userId} nickname={nickname} initialAwards={emblems} /> : undefined;
   const linkedGame = current?.identity?.games.find(game => game.gameSlug === gameSlug);
   const membership = current?.identity?.memberships.find(clan => clan.clanId === clanId);
-  const game = { ...(linkedGame ?? { gameSlug, gameName: membership?.gameName ?? gameSlug, accountId: membership?.accountId ?? displayName }), altAccounts: current?.identity ? current.identity.clanProfile?.altAccounts ?? [] : undefined };
+  const game = { ...(linkedGame ?? { gameSlug, gameName: membership?.gameName ?? gameSlug, accountId: membership?.accountId ?? displayName }), altAccounts: current?.identity ? current.identity.clanProfile?.altAccounts ?? [] : undefined, canManageAlts: current?.identity?.clanProfile?.canManageAlts };
   const loading = !current?.identity && !current?.error;
   const introPlaceholder = current?.error ? <>
     {current.identity?.intro && <p>{current.identity.intro}</p>}
@@ -50,7 +50,7 @@ export function StatsPlayerBanner({ gameSlug, clanId, hof, userId, nickname, pro
     <span aria-hidden="true" className="grid gap-2 pt-1.5 motion-safe:animate-pulse"><span className="h-3 w-4/5 rounded bg-muted" /><span className="h-3 w-3/5 rounded bg-muted" /></span>
   </span> : undefined;
   return <section aria-label="플레이어 배너" aria-busy={loading} className={`min-h-48 min-w-0 overflow-hidden rounded-xl border bg-card ${styles.banner}`}>
-    <ProfileIdentity readOnly userId={userId} intro={current?.identity?.intro ?? ""} introPlaceholder={introPlaceholder} memberships={[]}
+    <ProfileIdentity readOnly userId={userId} intro={current?.identity?.intro ?? ""} introPlaceholder={introPlaceholder} memberships={[]} onAltAccountsChanged={() => setAttempt(value => value + 1)}
       games={[game]} publicAppearance={current?.identity?.appearance ?? card} emblemCase={emblemCase}>
       <section className={profileStyles.identityFacts} aria-label="기본 정보" aria-busy={loading && !facts}><dl>
         <div><dt>성별</dt><dd>{facts ? facts.gender === "male" ? "남성" : facts.gender === "female" ? "여성" : "비공개" : "—"}</dd></div>

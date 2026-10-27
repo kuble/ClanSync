@@ -300,8 +300,10 @@
   padding: 12px;
   background: var(--surface);
 }
+.altRow > div:first-child { min-width:0; }
 .altRow strong {
   font-size: 12px;
+    overflow-wrap:anywhere;
 }
 .altRow p {
   font-size: 12px;
@@ -457,8 +459,10 @@
 .profileAlts > span { display:inline-flex; align-items:center; gap:5px; flex-shrink:0; padding-top:6px; color:var(--muted-foreground); font-size:11px; font-weight:600; }
 .profileAlts > div { display:flex; flex:1; align-items:center; flex-wrap:wrap; min-width:0; min-height:32px; padding-left:10px; border-left:1px solid var(--border); gap:4px 6px; }
 .altTag { padding:1px 7px; border:1px solid color-mix(in srgb,var(--primary) 25%,transparent); border-radius:5px; background:color-mix(in srgb,var(--primary) 8%,transparent); color:var(--foreground); overflow-wrap:anywhere; }
-.altEmpty { color:var(--muted-foreground); }
+.altEmpty { min-width:0; max-width:100%; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; color:var(--muted-foreground); }
 .profileAlts[data-empty] { background:transparent; }
+.profileAlts[data-editable] { position:relative; padding-right:52px; }
+.altEditButton { position:absolute; right:3px; top:3px; width:44px; height:44px; color:var(--muted-foreground); }
 .profileAlts:focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
 .identityIntro { min-width:0; padding-top:20px; border-top:1px solid var(--border); }
 .playerEmblems { display:grid; gap:12px; margin-top:0; padding-top:20px; border-top:1px solid var(--border); min-width:0; }
