@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { ArrowUpRight, LogOut } from "lucide-react";
 import { leaveClanAction } from "@/app/actions/clan-manage-members";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import styles from "./profile.module.css";
 
 type Membership = { clanId: string; clanName: string; gameSlug: string; gameName: string; role: string };
 export function ProfileClanMemberships({ rows, userId }: { rows: Membership[]; userId: string }) {
@@ -16,11 +17,11 @@ export function ProfileClanMemberships({ rows, userId }: { rows: Membership[]; u
   const [pending, start] = useTransition();
   const router = useRouter();
   if (!rows.length) return null;
-  return <section className="mt-6 rounded-xl border bg-card p-5" aria-label="내 클랜">
-    <h2 className="text-sm font-semibold">내 클랜</h2>
-    <ul className="mt-3 divide-y">{rows.map((row) => <li key={row.clanId} className="flex flex-wrap items-center justify-between gap-3 py-3">
-      <div><Link className="text-sm font-semibold hover:text-primary" href={`/games/${row.gameSlug}/clan/${row.clanId}`}>{row.clanName}</Link><p className="mt-1 text-xs text-muted-foreground">{row.gameName} · {row.role === "leader" ? "클랜장" : row.role === "officer" ? "운영진" : "멤버"}</p></div>
-      <div className="flex flex-wrap items-center gap-3"><Link className="text-xs text-primary hover:underline" href={`/games/${row.gameSlug}/clan/${row.clanId}/stats?player=${encodeURIComponent(userId)}`}>개인 기록 보기</Link><Button variant="ghost" size="sm" onClick={() => { setError(""); setLeaving(row); }} aria-label={`${row.clanName} 클랜 탈퇴`}><LogOut className="size-3.5" />클랜 탈퇴</Button></div>
+  return <section className={styles.accountClans} aria-label="내 클랜">
+    <h2 className={styles.accountSubheading}>내 클랜</h2>
+    <ul className={styles.accountClanList}>{rows.map((row) => <li key={row.clanId} className={styles.accountClanRow}>
+      <div className={styles.accountClanName}><Link className="text-sm font-semibold hover:text-primary" href={`/games/${row.gameSlug}/clan/${row.clanId}`}>{row.clanName}</Link><span className={styles.accountClanRole}>{row.role === "leader" ? "클랜장" : row.role === "officer" ? "운영진" : "멤버"}</span></div>
+      <div className={styles.accountClanActions}><Link className={styles.accountRecordLink} href={`/games/${row.gameSlug}/clan/${row.clanId}/stats?player=${encodeURIComponent(userId)}`}>개인 기록 보기<ArrowUpRight size={14} aria-hidden="true" /></Link><Button variant="ghost" size="icon" title="클랜 탈퇴" onClick={() => { setError(""); setLeaving(row); }} aria-label={`${row.clanName} 클랜 탈퇴`}><LogOut className="size-3.5" aria-hidden="true" /></Button></div>
     </li>)}</ul>
     <Dialog open={!!leaving} onOpenChange={(open) => { if (!open && !pending) setLeaving(null); }}>
       <DialogContent showCloseButton={!pending}><DialogHeader><DialogTitle>클랜을 탈퇴할까요?</DialogTitle><DialogDescription>{leaving?.clanName}에서 나가도 지금까지의 내전 기록과 통계는 남습니다.</DialogDescription></DialogHeader>

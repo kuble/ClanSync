@@ -509,10 +509,8 @@
 .gameHeader > button:focus-visible { outline:2px solid var(--ring); outline-offset:4px; border-radius:3px; }
 .gameChevron { margin-left:auto; transition:transform .15s; }
 .gameChevron[data-open="true"] { transform:rotate(180deg); }
-.gameContent { padding:4px 16px 16px; border-top:1px solid var(--border); }
+.gameContent { padding:20px 16px 16px; border-top:1px solid var(--border); }
 .gameContent[hidden] { display:none; }
-.gameContent > section[aria-labelledby="profile-role-preferences-heading"] { margin-top:20px; padding:18px 0 0; border:0; border-top:1px solid var(--border); border-radius:0; background:transparent; }
-.gameContent > section[aria-label="내 클랜"] { padding:18px 0 0; border:0; border-top:1px solid var(--border); border-radius:0; background:transparent; }
 .autoLogin { margin-top:24px; padding-top:20px; border-top:1px solid var(--border); }
 .autoLoginRow { display:flex; align-items:center; justify-content:space-between; gap:20px; }
 .autoLogin strong { display:block; font-size:13px; font-weight:600; }
@@ -554,6 +552,26 @@
   .identityIntro,.playerEmblems { padding-top:14px; }
 }
 @media(max-width:900px) { .accountLayout { grid-template-columns:minmax(0,1fr); } .accountSettings,.accountLayout > .accountColumn:not(.accountSettings) { grid-column:auto; grid-row:auto; } .accountSettings { order:2; } }
-@media(max-width:600px) { .gameHeader { padding:12px; gap:8px; } .gameHeader > button { gap:7px; } .gameContent { padding:4px 12px 16px; } }
+@media(max-width:600px) { .gameHeader { padding:12px; gap:8px; } .gameHeader > button { gap:7px; } .gameContent { padding:16px 12px; } }
 
 .sectionHeading > button, .sectionHeader h4 > button, .autoLogin strong > button { min-height:24px; }
+
+.accountSubheading { font-size:13px; font-weight:650; line-height:1.5; }
+.accountHint { margin-top:4px; font-size:12px; line-height:1.6; color:var(--muted-foreground); }
+.accountRolePicker { margin-top:14px; }
+.accountRolePicker ol { gap:8px; }
+.accountRolePicker ol button { width:64px; height:56px; border-style:solid; border-radius:10px; background:var(--muted); }
+.accountRolePicker ol button:hover { background:color-mix(in srgb,var(--primary) 8%,var(--muted)); }
+.accountRolePicker ol button[aria-pressed="true"] { background:color-mix(in srgb,var(--primary) 16%,var(--muted)); }
+.roleSaveStatus { min-height:18px; margin-top:10px; color:var(--muted-foreground); font-size:11px; line-height:18px; }
+.accountClans { margin-top:20px; padding-top:18px; border-top:1px solid var(--border); }
+.accountClanList { margin-top:10px; }
+.accountClanRow { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; padding:10px 0; }
+.accountClanRow + .accountClanRow { border-top:1px solid var(--border); }
+.accountClanName { display:flex; align-items:center; flex-wrap:wrap; gap:8px; min-width:0; }
+.accountClanName a { overflow-wrap:anywhere; }
+.accountClanRole { border-radius:5px; padding:3px 6px; background:var(--muted); color:var(--muted-foreground); font-size:10px; line-height:1.4; }
+.accountClanActions { display:flex; align-items:center; gap:6px; margin-left:auto; }
+.accountClanActions > button { color:var(--muted-foreground); }
+.accountRecordLink { display:inline-flex; align-items:center; gap:4px; min-height:36px; padding:6px; border-radius:6px; font-size:12px; color:var(--primary); }
+.accountRecordLink:hover { background:var(--muted); }

@@ -8,7 +8,7 @@ test.use({ actionTimeout: 20_000 });
 
 test("프로필 선호는 연속 저장 후 즉시 다시 편집되며 실패 시 마지막 확정값으로 복구된다", async ({
   page,
-}) => {
+}, info) => {
   test.setTimeout(90_000);
   const fixture = await createIsolatedBalanceFixture(1);
   try {
@@ -23,6 +23,12 @@ test("프로필 선호는 연속 저장 후 즉시 다시 편집되며 실패 �
     const role = (name: string) =>
       preference.getByRole("button", { name: new RegExp(name) });
     await expect(roleButtons).toHaveCount(3);
+    for (const width of [1054, 320]) {
+      await page.setViewportSize({ width, height: 884 });
+      await page.screenshot({ path: info.outputPath(`game-settings-${width}.png`), fullPage: true });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    }
+    await page.setViewportSize({ width: 1054, height: 884 });
     await expect(preference.getByRole("combobox")).toHaveCount(0);
     await expect(
       preference.getByRole("button", { name: "선호 없음", exact: true }),
