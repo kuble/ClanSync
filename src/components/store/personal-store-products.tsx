@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, Coins, Crown, Search, SlidersHorizontal } from "lucide-react";
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, Coins, Crown, Eye, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { purchaseProfileTitleAction } from "@/app/actions/profile-titles";
 import { purchaseStoreItemAction } from "@/app/actions/clan-store-purchase";
@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import styles from "./personal-store.module.css";
 
-const PAGE_SIZE = 6;
 export function PersonalStoreProducts({ state, displayName, offer }: {
   state: NamecardState; displayName: string; offer: PremiumFrameOffer | null;
 }) {
@@ -29,6 +28,7 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
   const [ownership, setOwnership] = useState("all");
   const [sort, setSort] = useState("recommended");
   const [page, setPage] = useState(1);
+  const [previewId, setPreviewId] = useState<string | null>(null);
   const [selected, setSelected] = useState<NamecardProduct | null>(null);
   const [error, setError] = useState("");
   const [purchased, setPurchased] = useState<string[]>([]);
@@ -36,15 +36,19 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
   const [selectionOverride, setSelectionOverride] = useState<NamecardState["selections"] | null>(null);
   const selections = selectionOverride ?? state.selections;
   const coins = coinOverride ?? state.coinBalance;
-  const current = namecardAppearance(state.catalog, selections);
   const products = namecardProducts({ ...state, selections }, offer).map(p => ({ ...p, available: p.available || purchased.includes(p.id) }));
-  const filtered = products.filter(p => (category === "all" || p.category === category)
+  const candidate = products.find(product => product.id === previewId) ?? null;
+  const current = namecardAppearance(state.catalog, candidate ? withProduct(selections, candidate) : selections);
+  const layout = category === "emblem" || category === "portrait" ? "compact" : category === "sub" ? "label" : "mixed";
+  const pageSize = layout === "mixed" ? 6 : 12;
+  const filtered = products.filter(p => !((p.category === "frame" || p.category === "portrait") && p.available)
+    && (category === "all" || p.category === category)
     && (ownership === "all" || (ownership === "available" ? p.available : !p.available))
     && `${p.name} ${p.description}`.toLocaleLowerCase("ko-KR").includes(query.trim().toLocaleLowerCase("ko-KR")));
   if (sort !== "recommended") filtered.sort((a, b) => sort === "name" ? a.name.localeCompare(b.name, "ko") : sort === "price-asc" ? a.price - b.price : b.price - a.price);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
-  const shown = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const shown = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const preview = (product: NamecardProduct, complete = false) => {
     const wholeCard = complete || product.category === "theme";
     const appearance = namecardAppearance(state.catalog, wholeCard ? withProduct(selections, product) : product.selections);
@@ -63,6 +67,7 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
           : await saveNameplateSelectionAction({ category: first.category, optionId: first.option_id });
         if (!result.ok) { toast.error(result.error); return; }
         setSelectionOverride(withProduct(selections, product));
+        setPreviewId(product.id);
         window.dispatchEvent(new CustomEvent(CLANSYNC_NAMEPLATE_CHANGED));
         toast.success("모든 게임의 네임카드에 적용했습니다.");
         router.refresh();
@@ -88,6 +93,7 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
           setCoinOverride(result.coinBalance);
         }
         setPurchased(ids => [...ids, product.id]);
+        setPreviewId(product.id);
         setSelected(null);
         toast.success("구매했습니다. 적용 버튼으로 네임카드에 장착해 보세요.");
         router.refresh();
@@ -101,7 +107,15 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
       <div><Link href="/profile" className={styles.back}><ArrowLeft size={14} aria-hidden />내 프로필</Link><h1>네임카드 상점</h1><p>디자인을 비교하고, 나만의 조합을 완성하세요.</p></div>
       <div className={styles.wallet} aria-label="보유 코인"><Coins size={22} aria-hidden /><div><span>내 코인</span><strong>{coins.toLocaleString("ko-KR")}</strong></div></div>
     </header>
-    <section className={styles.current} aria-label="현재 네임카드"><div><h2>현재 적용 모습</h2><p>게임마다 같은 디자인으로 표시됩니다.</p></div><Namecard displayName={displayName} {...current} fill /></section>
+    <section className={styles.current} aria-label="현재 네임카드">
+      <h2 className="sr-only">네임카드 미리보기</h2>
+      <Namecard displayName={displayName} {...current} fill />
+      <div className={styles.previewControls}>
+        <span className={styles.previewState} title={candidate && !applied(candidate) ? candidate.name + " 미리보기 · 아직 저장되지 않았습니다" : "현재 적용된 네임카드"}>{candidate && !applied(candidate) ? <Eye size={18} aria-hidden /> : <Check size={18} aria-hidden />}<span className="sr-only" role="status">{candidate && !applied(candidate) ? candidate.name + " 미리보기" : "현재 적용 중"}</span></span>
+        <Button size="icon" variant="ghost" aria-label="미리보기 초기화" title="미리보기 초기화" disabled={!candidate || pending} onClick={() => setPreviewId(null)}><RotateCcw size={16} aria-hidden /></Button>
+        {candidate && (candidate.available ? <Button size="sm" disabled={pending || applied(candidate)} onClick={() => apply(candidate)} aria-label={candidate.name + " 적용"}>{applied(candidate) ? "적용 중" : "적용"}</Button> : <Button size="sm" disabled={pending || !!reason(candidate)} onClick={() => { setSelected(candidate); setError(""); }} aria-label={candidate.name + " 구매"}>{reason(candidate) ? candidate.premium && !offer?.eligible ? "Premium 필요" : "코인 부족" : "구매"}</Button>)}
+      </div>
+    </section>
     <section className={styles.catalog} aria-label="네임카드 디자인">
       <div className={styles.filters}>
         <RubberSegment label="개인 꾸미기 분류" labelPosition="hidden" options={STORE_CATEGORIES} value={category} onChange={value => { setCategory(value); setPage(1); }} />
@@ -112,10 +126,10 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
         </div>
       </div>
       <div className={styles.results}><p role="status">{filtered.length}개 디자인 <span>· {currentPage} / {totalPages} 페이지</span></p><span>구매·적용은 모든 게임에 공통</span></div>
-      <div className={styles.grid} aria-label="개인 꾸미기 상품" aria-busy={pending}>
-        {shown.map(product => <article key={product.id} className={styles.product} aria-label={product.name}>
+      <div className={styles.grid} data-layout={layout} aria-label="개인 꾸미기 상품" aria-busy={pending}>
+        {shown.map(product => <article key={product.id} className={styles.product} data-kind={product.category} data-previewed={candidate?.id === product.id || undefined} aria-label={product.name}>
           <div className={styles.productHeading}><h3>{product.name}</h3>{product.premium && <span className={styles.premium}><Crown size={12} aria-hidden />Premium</span>}{applied(product) && <span className={styles.applied}><Check size={12} aria-hidden />적용 중</span>}</div>
-          <div className={styles.preview}>{preview(product)}</div>
+          <button type="button" className={styles.preview} aria-label={product.name + " 미리보기"} aria-pressed={candidate?.id === product.id} onClick={() => setPreviewId(product.id)}>{preview(product)}</button>
             <div className={styles.productFooter}><strong>{product.available ? product.price === 0 ? "기본 제공" : "보유 중" : <><Coins size={14} aria-hidden />{product.price.toLocaleString("ko-KR")}<small>코인</small></>}</strong>
               {product.available ? <Button size="sm" variant={applied(product) ? "secondary" : "default"} disabled={pending || applied(product)} onClick={() => apply(product)} aria-label={`${product.name} 적용`}>{applied(product) ? "적용 중" : product.category === "theme" ? "세트 적용" : "적용"}</Button>
                 : <Button size="sm" disabled={pending || !!reason(product)} onClick={() => { setSelected(product); setError(""); }} aria-label={`${product.name} 구매`}>{reason(product) ? product.premium && !offer?.eligible ? "Premium 필요" : "코인 부족" : "구매"}</Button>}

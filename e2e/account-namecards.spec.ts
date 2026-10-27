@@ -40,6 +40,7 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
         auto.click(),
       ]);
       await page.reload();
+      await expect(card.locator("[data-namecard]").getByText(battleTag, { exact: true })).toBeVisible();
       await accountTab.click();
       await expect(auto).toBeChecked({ checked });
     }
@@ -48,7 +49,9 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     const remembered = (await page.context().cookies()).filter((cookie) => /^sb-.+-auth-token/.test(cookie.name));
     expect(remembered.length).toBeGreaterThan(0);
     for (const cookie of remembered) expect(cookie.expires - Date.now() / 1000).toBeGreaterThan(29 * 86400);
-    await page.reload(); await accountTab.click(); await expect(auto).toBeChecked();
+    await page.reload();
+    await expect(card.locator("[data-namecard]").getByText(battleTag, { exact: true })).toBeVisible();
+    await accountTab.click(); await expect(auto).toBeChecked();
     await toggleAutoLogin(false);
     for (const cookie of (await page.context().cookies()).filter((cookie) => /^sb-.+-auth-token/.test(cookie.name))) expect(cookie.expires - Date.now() / 1000).toBeLessThan(86460);
     await page.route("**/profile", (route) => route.request().method() === "POST" ? route.abort("failed") : route.continue());

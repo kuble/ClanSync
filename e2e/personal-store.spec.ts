@@ -31,8 +31,10 @@ test("개인 상점은 여러 게임 클랜의 공통 잔액을 사용하고 프
     await product.getByRole("button", { name: "프리미엄 골드 프레임 구매", exact: true }).click();
     await page.getByRole("dialog", { name: "네임카드 디자인 구매", exact: true }).getByRole("button", { name: "구매 확정", exact: true }).click();
     await expect(page.locator('[aria-label="보유 코인"] strong')).toHaveText((1_000 - frame.data!.price_coins).toLocaleString("ko-KR"));
-    await product.getByRole("button", { name: "프리미엄 골드 프레임 적용", exact: true }).click();
-    await expect(product.getByRole("button", { name: "프리미엄 골드 프레임 적용", exact: true })).toHaveText("적용 중");
+    await expect(product).toHaveCount(0);
+    const previewRegion = page.getByRole("region", { name: "현재 네임카드" });
+    await previewRegion.getByRole("button", { name: "프리미엄 골드 프레임 적용", exact: true }).click();
+    await expect(previewRegion.getByRole("button", { name: "프리미엄 골드 프레임 적용", exact: true })).toHaveText("적용 중");
 
     const inventory = await f.service.from("user_nameplate_inventory").select("option_id,nameplate_options(category,code)").eq("user_id", user.id);
     expect(inventory.error).toBeNull();
@@ -67,9 +69,9 @@ test("디자인 검색·분류·페이지·미리보기 적용과 무료·부족
     await expect(page.getByRole("button", { name: "2 페이지", exact: true })).toHaveAttribute("aria-current", "page");
     expect(await page.getByRole("article").first().getAttribute("aria-label")).not.toBe(first);
     const categories = page.getByRole("radiogroup", { name: "개인 꾸미기 분류" });
-    for (const [label, images, frames] of [["심벌", 1, 0], ["초상 프레임", 0, 1], ["배경", 0, 0], ["카드 프레임", 0, 0], ["칭호", 0, 0]] as const) {
+    for (const [label, images, frames] of [["심벌", 1, 0], ["배경", 0, 0], ["카드 프레임", 0, 0], ["칭호", 0, 0]] as const) {
       await categories.getByRole("radio", { name: label, exact: true }).click();
-      const sample = (label === "초상 프레임" ? page.getByRole("article", { name: "심야 아케이드", exact: true }) : page.getByRole("article").first()).locator("[data-namecard]");
+      const sample = page.getByRole("article").first().locator("[data-namecard]");
       await expect(sample.locator("strong")).toHaveCount(0);
       await expect(sample.locator("img")).toHaveCount(images);
       await expect(sample.locator("svg")).toHaveCount(frames);
@@ -77,6 +79,23 @@ test("디자인 검색·분류·페이지·미리보기 적용과 무료·부족
       else await expect(sample).toHaveText("");
       await page.screenshot({ path: test.info().outputPath(label + ".png"), fullPage: false, animations: "disabled" });
     }
+    await categories.getByRole("radio", { name: "초상 프레임", exact: true }).click();
+    await expect(page.getByRole("article")).toHaveCount(0);
+    await categories.getByRole("radio", { name: "심벌", exact: true }).click();
+    const crown = page.getByRole("article", { name: "왕관", exact: true });
+    const current = page.getByRole("region", { name: "현재 네임카드" });
+    await crown.getByRole("button", { name: "왕관 미리보기", exact: true }).click();
+    await expect(current.locator('[data-symbol="symbol-crown"]')).toBeVisible();
+    const beforeApply = await f.service.from("user_namecard_selections").select("option_id").eq("user_id", f.users[0].id);
+    expect(beforeApply.data).toEqual([]);
+    const crownBounds = (await crown.boundingBox())!;
+    const boltBounds = (await page.getByRole("article", { name: "번개", exact: true }).boundingBox())!;
+    expect(Math.abs(crownBounds.y - boltBounds.y)).toBeLessThan(2);
+    await current.getByRole("button", { name: "미리보기 초기화", exact: true }).click();
+    await expect(current.locator('[data-symbol="symbol-crown"]')).toHaveCount(0);
+    await crown.getByRole("button", { name: "왕관 미리보기", exact: true }).click();
+    await current.getByRole("button", { name: "왕관 적용", exact: true }).click();
+    await expect(current.getByRole("button", { name: "왕관 적용", exact: true })).toHaveText("적용 중");
     await categories.getByRole("radio", { name: "테마", exact: true }).click();
     await expect(page.getByRole("article")).toHaveCount(3);
     await page.getByRole("article", { name: "성운 항해", exact: true }).getByRole("button", { name: "성운 항해 적용", exact: true }).click();
@@ -88,9 +107,9 @@ test("디자인 검색·분류·페이지·미리보기 적용과 무료·부족
     await page.getByRole("button", { name: "필터 초기화" }).click();
     await categories.getByRole("radio", { name: "칭호", exact: true }).click();
     await page.getByRole("combobox", { name: "보유 상태", exact: true }).selectOption("unowned");
-    await expect(page.getByRole("article").first().getByRole("button")).toHaveText("코인 부족");
+    await expect(page.getByRole("article").first().getByRole("button", { name: /구매$/ })).toHaveText("코인 부족");
     await page.getByRole("combobox", { name: "보유 상태", exact: true }).selectOption("available");
-    await expect(page.getByRole("article").first().getByRole("button")).toHaveText(/적용/);
+    await expect(page.getByRole("article").first().getByRole("button", { name: /적용$/ })).toHaveText(/적용/);
     await categories.getByRole("radio", { name: "전체", exact: true }).click();
     await page.screenshot({ path: "test-results/personal-store-desktop.png", fullPage: true, animations: "disabled" });
     await page.setViewportSize({ width: 390, height: 844 });
@@ -112,7 +131,7 @@ test("클랜 미가입자도 칭호를 구매·적용하며 Premium 프레임은
     const search = page.getByRole("textbox", { name: "디자인 검색" });
     await search.fill("프리미엄 골드");
     const premium = page.getByRole("article", { name: "프리미엄 골드 프레임", exact: true });
-    await expect(premium.getByRole("button")).toBeDisabled();
+    await expect(premium.getByRole("button", { name: "프리미엄 골드 프레임 구매", exact: true })).toBeDisabled();
     await expect(premium).toContainText("Premium 필요");
     await search.fill("함께하는 플레이어");
     const product = page.getByRole("article", { name: "함께하는 플레이어", exact: true });
@@ -121,6 +140,7 @@ test("클랜 미가입자도 칭호를 구매·적용하며 Premium 프레임은
     await expect(page.locator('[aria-label="보유 코인"] strong')).toHaveText("10");
     await expect(search).toHaveValue("함께하는 플레이어");
     await product.getByRole("button", { name: "함께하는 플레이어 적용", exact: true }).click();
+    await expect(product.getByRole("button", { name: "함께하는 플레이어 적용", exact: true })).toHaveText("적용 중");
     await expect(page.getByRole("region", { name: "현재 네임카드" })).toContainText("함께하는 플레이어");
     await page.reload();
     await expect(page.getByRole("region", { name: "현재 네임카드" })).toContainText("함께하는 플레이어");
