@@ -38,7 +38,7 @@ export function ClanStatsArchive({ archive, clanId, canEdit = false, canCreate =
       <ArchiveDatePicker value={selectedDay} onChange={setSelectedDay} dates={current.datesKst} periodKey={periodKey} />
       {filters}
     </div>
-    <StatsDetailLoader cache={cache} url={fetchDay ? `/api/clans/${clanId}/stats?section=archive&day=${selectedDay}` : undefined} initial={{ kind: "archive", archive: { ...current, sampleByDate: { [selectedDay]: dayRecords } } }}>
+    <StatsDetailLoader compact cache={cache} url={fetchDay ? `/api/clans/${clanId}/stats?section=archive&day=${selectedDay}` : undefined} initial={{ kind: "archive", archive: { ...current, sampleByDate: { [selectedDay]: dayRecords } } }}>
       {(detail, pending) => detail.kind === "archive" && <ArchiveDay dayRecords={detail.archive.sampleByDate[selectedDay] ?? []} mapFilter={mapFilter} participantSearch={participantSearch} pending={loading || pending} editor={clanId && (canCreate || canUpdate || canDelete) ? { canCreate, canUpdate, canDelete, clanId, day: selectedDay, members: current.members ?? [], onSaved, onReload: () => router.refresh() } : undefined} />}
     </StatsDetailLoader>
   </div>;
@@ -49,7 +49,7 @@ type EditorContext = { canCreate: boolean; canUpdate: boolean; canDelete: boolea
 function ArchiveDay({ dayRecords, mapFilter, participantSearch, pending, editor }: { dayRecords: ClanArchiveMatch[]; mapFilter: string; participantSearch: string; pending: boolean; editor?: EditorContext }) {
   const term = participantSearch.trim().toLocaleLowerCase("ko");
   const records = dayRecords.filter((row) => (mapFilter === "all" || row.mapLabel === mapFilter) && (!term || row.players.some((player) => player.nickname.toLocaleLowerCase("ko").includes(term))));
-  return <div className="grid items-stretch gap-4 min-[1100px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+  return <div className="grid items-stretch gap-3 min-[1100px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <ArchiveRecords records={records} dayRecords={dayRecords} editor={editor} pending={pending} emptyText={dayRecords.length ? "선택한 조건에 맞는 경기가 없습니다." : "이 날짜에는 기록된 경기가 없습니다."} />
       <ArchiveDayTable records={dayRecords} pending={pending} />
   </div>;
@@ -85,7 +85,7 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
             { label: "내전 회차", value: summary.number === null ? "—" : `${summary.number.toLocaleString()}회`, title: "클랜에서 열린 전체 내전의 누적 회차" },
             { label: "참여 인원", value: `${summary.participants}명`, title: "이 내전의 기록에 출전한 고유 인원" },
             { label: "활성 시간", value: sessionDurationLabel(summary.activeMinutes), title: "내전 시작부터 마지막 경기 기록까지" },
-          ].map((item) => <div key={item.label} title={item.title} className="flex min-h-20 min-w-0 flex-col items-center justify-center gap-1 rounded-xl border bg-background/40 px-2 py-3 text-center"><dt className="text-[10px] text-muted-foreground">{item.label}</dt><dd className="text-sm font-bold tabular-nums sm:text-lg">{pending ? "—" : item.value}</dd></div>)}
+          ].map((item) => <div key={item.label} title={item.title} className="flex min-h-18 min-w-0 flex-col items-center justify-center gap-1 rounded-xl border bg-background/40 px-2 py-2 text-center"><dt className="text-[10px] text-muted-foreground">{item.label}</dt><dd className="text-sm font-bold tabular-nums sm:text-lg">{pending ? "—" : item.value}</dd></div>)}
         </dl>
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border bg-card">
         <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1 border-b bg-muted/20 px-2 py-2 sm:px-3">
@@ -126,7 +126,7 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
           </div>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden focus-visible:outline-2 focus-visible:outline-ring" tabIndex={0} aria-label="경기 상세 내용">
-        {match ? <div className="space-y-5 p-4">
+        {match ? <div className="space-y-4 p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               {match.matchType !== "intra" && <span className="text-[10px] font-semibold text-muted-foreground">
