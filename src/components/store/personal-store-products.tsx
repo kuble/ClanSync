@@ -22,7 +22,7 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
   const router = useRouter();
   const [pending, start] = useTransition();
   const busy = useRef(false);
-  const [category, setCategory] = useState<StoreCategory>(() => namecardProducts(state, offer).find(product => !product.available)?.category ?? "theme");
+  const [category, setCategory] = useState<StoreCategory>(() => namecardProducts(state, offer)[0]?.category ?? "theme");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [previewId, setPreviewId] = useState<string | null>(null);
@@ -38,8 +38,7 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
   const current = namecardAppearance(state.catalog, candidate ? withProduct(selections, candidate) : selections);
   const layout = category === "emblem" || category === "portrait" ? "compact" : category === "sub" ? "label" : "wide";
   const pageSize = layout === "wide" ? 6 : 12;
-  const filtered = products.filter(p => !p.available
-    && p.category === category
+  const filtered = products.filter(p => p.category === category
     && `${p.name} ${p.description}`.toLocaleLowerCase("ko-KR").includes(query.trim().toLocaleLowerCase("ko-KR")));
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -129,7 +128,7 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
             </div>
             {reason(product) && <p className={styles.reason}>{reason(product)}</p>}
         </article>)}
-        {!shown.length && <div className={styles.empty}><Search size={28} aria-hidden /><h3>{query.trim() ? "검색 결과가 없습니다." : "새로 구매할 디자인이 없습니다."}</h3><p>보유한 디자인은 프로필 꾸미기에서 사용할 수 있습니다.</p>{query.trim() && <Button variant="outline" onClick={() => { setQuery(""); setPage(1); }}>검색 지우기</Button>}</div>}
+        {!shown.length && <div className={styles.empty}><Search size={28} aria-hidden /><h3>{query.trim() ? "검색 결과가 없습니다." : "표시할 디자인이 없습니다."}</h3><p>다른 분류나 검색어를 확인해 보세요.</p>{query.trim() && <Button variant="outline" onClick={() => { setQuery(""); setPage(1); }}>검색 지우기</Button>}</div>}
       </div>
       <nav aria-label="상품 페이지" className={styles.pagination}>
         <Button variant="outline" size="icon" aria-label="이전 페이지" disabled={currentPage <= 1} onClick={() => setPage(currentPage - 1)}><ChevronLeft size={16} /></Button>

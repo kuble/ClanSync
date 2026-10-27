@@ -80,7 +80,7 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await checkout.getByRole("button", { name: "구매 확정", exact: true }).click();
     await expect(checkout).toBeHidden();
     await expect(page.locator('[aria-label="보유 코인"] strong')).toHaveText("410");
-    await expect(title).toHaveCount(0);
+    await expect(title).toBeVisible();
     await expect(page.getByRole("region", { name: "현재 네임카드", exact: true }).getByRole("button", { name: "함께하는 플레이어 적용", exact: true })).toBeVisible();
     for (const width of [1280, 390, 320]) {
       await page.setViewportSize({ width, height: 900 });

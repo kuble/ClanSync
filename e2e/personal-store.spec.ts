@@ -31,7 +31,7 @@ test("개인 상점은 여러 게임 클랜의 공통 잔액을 사용하고 프
     await product.getByRole("button", { name: "프리미엄 골드 프레임 구매", exact: true }).click();
     await page.getByRole("dialog", { name: "네임카드 디자인 구매", exact: true }).getByRole("button", { name: "구매 확정", exact: true }).click();
     await expect(page.locator('[aria-label="보유 코인"] strong')).toHaveText((1_000 - frame.data!.price_coins).toLocaleString("ko-KR"));
-    await expect(product).toHaveCount(0);
+    await expect(product).toBeVisible();
     const previewRegion = page.getByRole("region", { name: "현재 네임카드" });
     await previewRegion.getByRole("button", { name: "프리미엄 골드 프레임 적용", exact: true }).click();
     await expect(previewRegion.getByRole("button", { name: "프리미엄 골드 프레임 적용", exact: true })).toHaveText("적용 중");
@@ -57,7 +57,7 @@ test("개인 상점은 여러 게임 클랜의 공통 잔액을 사용하고 프
 });
 
 
-test("상점은 미보유 상품만 실제 추가일 최신순으로 표시하고 선택 메뉴를 제공하지 않는다", async ({ page }) => {
+test("상점은 보유 상품도 실제 추가일 최신순으로 표시하고 선택 메뉴를 제공하지 않는다", async ({ page }) => {
   const f = await createIsolatedBalanceFixture(1);
   const prefix = "정렬QA" + randomUUID().slice(0, 8);
   const ids = Array.from({ length: 14 }, () => randomUUID());
@@ -75,34 +75,36 @@ test("상점은 미보유 상품만 실제 추가일 최신순으로 표시하�
     const categories = page.getByRole("radiogroup", { name: "개인 꾸미기 분류" });
     for (const label of ["테마", "심벌", "초상 프레임", "배경"]) {
       await categories.getByRole("radio", { name: label, exact: true }).click();
-      await expect(page.getByRole("article")).toHaveCount(0);
-      await expect(page.getByRole("heading", { name: "새로 구매할 디자인이 없습니다." })).toBeVisible();
+      await expect(page.getByRole("article").first()).toBeVisible();
     }
     await categories.getByRole("radio", { name: "칭호", exact: true }).click();
     const search = page.getByRole("textbox", { name: "디자인 검색" });
     await search.fill(prefix);
     const namesOnPage = () => page.getByRole("article").evaluateAll(nodes => nodes.map(node => node.getAttribute("aria-label")));
-    await expect.poll(namesOnPage).toEqual(names.slice(1, 13).reverse());
-    await expect(page.getByRole("article", { name: names[13], exact: true })).toHaveCount(0);
-    const newest = page.getByRole("article", { name: names[12], exact: true });
+    await expect.poll(namesOnPage).toEqual(names.slice(2).reverse());
+    await expect(page.getByRole("article", { name: names[13], exact: true })).toContainText("보유 중");
+    const newest = page.getByRole("article", { name: names[13], exact: true });
     const sample = newest.locator("[data-namecard]");
     await expect(sample.locator("img, svg, strong")).toHaveCount(0);
-    await newest.getByRole("button", { name: names[12] + " 미리보기", exact: true }).click();
+    await newest.getByRole("button", { name: names[13] + " 미리보기", exact: true }).click();
     const current = page.getByRole("region", { name: "현재 네임카드" });
-    await expect(current).toContainText(names[12]);
+    await expect(current).toContainText(names[13]);
     expect((await f.service.from("user_namecard_selections").select("option_id").eq("user_id", f.users[0].id)).data).toEqual([]);
     await current.getByRole("button", { name: "미리보기 초기화", exact: true }).click();
-    await expect(current).not.toContainText(names[12]);
+    await expect(current).not.toContainText(names[13]);
+    await newest.getByRole("button", { name: names[13] + " 적용", exact: true }).click();
+    await expect(newest.getByRole("button", { name: names[13] + " 적용", exact: true })).toHaveText("적용 중");
+    expect((await f.service.from("users").select("coin_balance").eq("id", f.users[0].id).single()).data?.coin_balance).toBe(0);
     const width = (await newest.boundingBox())!.width;
     await page.getByRole("button", { name: "다음 페이지", exact: true }).click();
-    await expect.poll(namesOnPage).toEqual([names[0]]);
+    await expect.poll(namesOnPage).toEqual([names[1], names[0]]);
     expect((await page.getByRole("article").first().boundingBox())!.width).toBeCloseTo(width, 0);
-    await search.fill(names[13]);
+    await search.fill(prefix + "-none");
     await expect(page.getByRole("article")).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "검색 결과가 없습니다." })).toBeVisible();
     await page.getByRole("button", { name: "검색 지우기" }).click();
     await expect(search).toHaveValue("");
-    await expect(page.getByRole("article", { name: "칭호 없음", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("article", { name: "칭호 없음", exact: true })).toBeVisible();
     await page.screenshot({ path: "test-results/personal-store-desktop.png", fullPage: true, animations: "disabled" });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.screenshot({ path: "test-results/personal-store-mobile.png", fullPage: true, animations: "disabled" });
@@ -135,7 +137,7 @@ test("클랜 미가입자도 칭호를 구매·적용하며 Premium 프레임은
     await page.getByRole("dialog", { name: "네임카드 디자인 구매", exact: true }).getByRole("button", { name: "구매 확정", exact: true }).click();
     await expect(page.locator('[aria-label="보유 코인"] strong')).toHaveText("10");
     await expect(search).toHaveValue("함께하는 플레이어");
-    await expect(product).toHaveCount(0);
+    await expect(product).toBeVisible();
     const current = page.getByRole("region", { name: "현재 네임카드" });
     await current.getByRole("button", { name: "함께하는 플레이어 적용", exact: true }).click();
     await expect(current.getByRole("button", { name: "함께하는 플레이어 적용", exact: true })).toHaveText("적용 중");
