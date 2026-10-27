@@ -23,9 +23,8 @@ export function ProfileRolePreferences({
       aria-labelledby="profile-role-preferences-heading"
     >
       <h2 aria-label="게임별 선호 역할" id="profile-role-preferences-heading" className={styles.accountSubheading}>
-        <StatHelp title="선호 역할">내전 역할 추첨의 기본 선호입니다. 경기마다 다시 입력하지 않아도 됩니다. 끌어서 순위를 바꾸거나 두 아이콘을 눌러 교환하세요. 좌우 방향키로도 순위를 바꿀 수 있습니다.</StatHelp>
+        <StatHelp title="선호 역할">내전 역할 추첨의 기본 선호입니다. 왼쪽 역할부터 우선하며, &gt;는 우선순위를 나타냅니다. 선호 없음이면 우선순위를 적용하지 않습니다. 끌어서 순위를 바꾸거나 두 아이콘을 눌러 교환하세요. 좌우 방향키로도 순위를 바꿀 수 있습니다.</StatHelp>
       </h2>
-      <p className={styles.accountHint}>내전에서 우선 배정받을 역할 순서를 정하세요.</p>
       <div className={styles.accountRolePicker}>
         {supported.map((game) => {
           const ranking = parseRoleRanking(
@@ -64,6 +63,7 @@ function GamePreference({
         {game.nameKo}
       </h3>
       <RolePreferencePicker
+        showPriority
         hideHelp
         id={`profile-role-${game.gameId}`}
         labelledBy={`profile-role-${game.gameId}-label`}
@@ -97,7 +97,7 @@ function GamePreference({
           }
         }}
       />
-      <p className={styles.roleSaveStatus} role="status">{pending ? "저장 중…" : "끌어서 순위 변경 · 두 아이콘을 눌러 교환"}</p>
+      <p className="sr-only" role="status">{pending ? "저장 중…" : ""}</p>
       {error ? (
         <p className="mt-1 text-xs text-destructive" role="alert">
           {error}

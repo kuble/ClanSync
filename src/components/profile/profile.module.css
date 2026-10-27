@@ -557,13 +557,11 @@
 .sectionHeading > button, .sectionHeader h4 > button, .autoLogin strong > button { min-height:24px; }
 
 .accountSubheading { font-size:13px; font-weight:650; line-height:1.5; }
-.accountHint { margin-top:4px; font-size:12px; line-height:1.6; color:var(--muted-foreground); }
 .accountRolePicker { margin-top:14px; }
-.accountRolePicker ol { gap:8px; }
-.accountRolePicker ol button { width:64px; height:56px; border-style:solid; border-radius:10px; background:var(--muted); }
+.accountRolePicker ol { gap:4px; }
+.accountRolePicker ol button { width:56px; height:56px; border-style:solid; border-radius:10px; background:var(--muted); }
 .accountRolePicker ol button:hover { background:color-mix(in srgb,var(--primary) 8%,var(--muted)); }
 .accountRolePicker ol button[aria-pressed="true"] { background:color-mix(in srgb,var(--primary) 16%,var(--muted)); }
-.roleSaveStatus { min-height:18px; margin-top:10px; color:var(--muted-foreground); font-size:11px; line-height:18px; }
 .accountClans { margin-top:20px; padding-top:18px; border-top:1px solid var(--border); }
 .accountClanList { margin-top:10px; }
 .accountClanRow { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; padding:10px 0; }

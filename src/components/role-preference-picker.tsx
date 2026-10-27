@@ -27,6 +27,7 @@ export function RolePreferencePicker({
   disabled = false,
   compact = false,
   hideHelp = false,
+  showPriority = false,
   onChange,
 }: {
   id: string;
@@ -36,6 +37,7 @@ export function RolePreferencePicker({
   disabled?: boolean;
   compact?: boolean;
   hideHelp?: boolean;
+  showPriority?: boolean;
   onChange: (ranking: Role[] | null) => void;
 }) {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
@@ -126,7 +128,8 @@ export function RolePreferencePicker({
               ? `${index + 1}순위 ${ROLE_LABEL[role]}`
               : `${ROLE_LABEL[role]} · 순위 미설정`;
             return (
-              <li key={role}>
+              <li key={role} className={showPriority ? "flex items-center gap-1" : undefined}>
+                {showPriority && index > 0 && <span aria-hidden="true" data-priority-separator className={cn("w-3 text-center text-sm text-muted-foreground", !hasRanking && "invisible")}>{">"}</span>}
                 <button
                   type="button"
                   aria-label={label}

@@ -23,6 +23,10 @@ test("프로필 선호는 연속 저장 후 즉시 다시 편집되며 실패 �
     const role = (name: string) =>
       preference.getByRole("button", { name: new RegExp(name) });
     await expect(roleButtons).toHaveCount(3);
+    await expect(preference.locator("[data-priority-separator]").first()).toBeHidden();
+    await preference.getByRole("button", { name: "선호 역할 도움말" }).hover();
+    await expect(page.getByRole("tooltip")).toContainText("왼쪽 역할부터 우선");
+    await page.mouse.move(0, 0);
     for (const width of [1054, 320]) {
       await page.setViewportSize({ width, height: 884 });
       await page.screenshot({ path: info.outputPath(`game-settings-${width}.png`), fullPage: true });
@@ -79,6 +83,7 @@ test("프로필 선호는 연속 저장 후 즉시 다시 편집되며 실패 �
         .toBe(ranking);
       await expect(roleButtons.first()).toBeEnabled({ timeout: 15_000 });
       await expect(roleButtons).toHaveText(["1", "2", "3"]);
+      await expect(preference.locator("[data-priority-separator]").first()).toBeVisible();
       await expect(preference.getByRole("alert")).toHaveCount(0);
     }
     // Abort only the next preference action, without touching another QA session.
