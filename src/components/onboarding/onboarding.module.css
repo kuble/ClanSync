@@ -4,6 +4,9 @@
 .navbarInner > nav { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
 .navbarInner > nav a { display: flex; gap: 8px; align-items: center; justify-content: center; min-width: 40px; min-height: 40px; font-size: 13px; font-weight: 700; color: var(--foreground); white-space: nowrap; }
 .navbarInner > nav a:hover { color: var(--foreground); }
+.gameTrigger { display:flex; align-items:center; justify-content:center; gap:8px; min-width:44px; min-height:44px; padding:0 4px; border:0; border-radius:8px; background:transparent; color:var(--foreground); font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap; }
+.gameTrigger:hover,.gameTrigger[data-popup-open] { background:var(--muted); }
+.gameTrigger:focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
 .content { width: 100%; max-width: 850px; margin: 0 auto; padding: 56px 24px 72px; }
 .authContent { max-width: 560px; }
 .steps { display: flex; gap: 0; margin: 0 0 36px; padding: 0; list-style: none; }
