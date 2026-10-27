@@ -27,6 +27,7 @@ export function BalanceDisplaySettings({ settings, onChange, locked, premium, re
     <div className={styles.preview}><BalanceDisplayPreview settings={settings} premium={premium} regularRoom={regularRoom} /></div>
     <fieldset disabled={locked} className="rounded-xl border bg-muted/10 p-4">
       <legend className="px-1 text-sm font-semibold"><HelpText label="닉네임 카드" help="편성 화면의 선수 카드에 표시할 정보를 선택합니다." /></legend>
+      <Toggle label="닉네임만 표시" hint="배틀태그·라이엇 ID의 # 뒤 태그를 숨깁니다." checked={settings.nicknameOnly} onChange={(checked) => onChange({ ...settings, nicknameOnly: checked })} />
       {regularRoom && <Toggle label="점수" name="선수 카드 점수 표시" hint="카드 오른쪽의 평가·분석 점수" checked={settings.showPlayerCardScore} onChange={(checked) => onChange({ ...settings, showPlayerCardScore: checked })} />}
       <Toggle label="닉네임 아래 정보" name="선수 카드 보조 정보 표시" checked={settings.showPlayerCardInfo} onChange={(checked) => onChange({ ...settings, showPlayerCardInfo: checked })} />
       {settings.showPlayerCardInfo ? <label className={`${styles.dependentSettings} block text-xs text-muted-foreground`}>표시 내용

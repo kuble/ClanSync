@@ -35,7 +35,12 @@ test("화면 표시·밴픽 미리보기와 종속 설정은 초안만 반영하
     }
     await page.setViewportSize({ width: 1054, height: 884 });
     await expect(dialog.getByRole("region", { name: "편성 방식 미리보기", exact: true })).toBeHidden();
-    await expect(options.getByRole("group", { name: "닉네임 카드", exact: true }).getByRole("switch")).toHaveCount(3);
+    await expect(options.getByRole("group", { name: "닉네임 카드", exact: true }).getByRole("switch")).toHaveCount(4);
+    const nicknameOnly = options.getByRole("switch", { name: "닉네임만 표시", exact: true });
+    await expect(card).toContainText("네온#1001");
+    await nicknameOnly.check();
+    await expect(card).not.toContainText("#1001");
+    await expect(card).toContainText("네온");
     await expect(options.getByRole("group", { name: "팀 비교", exact: true }).getByRole("switch")).toHaveCount(1);
     await expect(options.getByText("카드 오른쪽의 평가·분석 점수", { exact: true })).toHaveCount(0);
     const help = page.getByRole("tooltip").and(page.locator("[data-open]"));
@@ -137,7 +142,7 @@ test("화면 표시·밴픽 미리보기와 종속 설정은 초안만 반영하
     await page.screenshot({ path: test.info().outputPath("display-settings-preview-mobile.png") });
     await options.getByRole("button", { name: "설정 적용", exact: true }).click();
     await expect(dialog).toBeHidden();
-    await expect.poll(async () => (await fixture.activeRound(roomId)).formation_settings).toMatchObject({ playerCardInfo: "streak", teamComparisonMode: "prediction", showPlayerSessionSummary: false });
+    await expect.poll(async () => (await fixture.activeRound(roomId)).formation_settings).toMatchObject({ nicknameOnly: true, playerCardInfo: "streak", teamComparisonMode: "prediction", showPlayerSessionSummary: false });
     const saved = await fixture.activeRound(roomId);
     expect(saved).toMatchObject({ map_ban_enabled: true, hero_ban_enabled: true, map_ban_seconds: 45, hero_ban_seconds: 35, hero_bans_per_team: 1 });
     await page.reload();

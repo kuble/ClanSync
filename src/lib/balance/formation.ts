@@ -15,6 +15,7 @@ export type FormationSetup = {
   teams: TeamMode;
   showPlayerCardScore?: boolean;
   showPlayerCardInfo?: boolean;
+  nicknameOnly?: boolean;
   showTeamComparisonSummary?: boolean;
   teamComparisonMode?: TeamComparisonMode;
   showPlayerSessionSummary?: boolean;
@@ -32,7 +33,7 @@ export type FormationSetup = {
   auctionCatalog?: RoundAuctionCatalog;
   strategySeconds?: number;
 };
-export type FormationSettings = Omit<FormationSetup, "preferences" | "showPlayerCardScore" | "showPlayerCardInfo" | "showTeamComparisonSummary" | "teamComparisonMode" | "showPlayerSessionSummary" | "playerCardInfo"> & {
+export type FormationSettings = Omit<FormationSetup, "preferences" | "showPlayerCardScore" | "showPlayerCardInfo" | "nicknameOnly" | "showTeamComparisonSummary" | "teamComparisonMode" | "showPlayerSessionSummary" | "playerCardInfo"> & {
   auctionBudget: number;
   minBid: number;
   durationSeconds: number;
@@ -42,6 +43,7 @@ export type FormationSettings = Omit<FormationSetup, "preferences" | "showPlayer
   strategySeconds: number;
   showPlayerCardScore: boolean;
   showPlayerCardInfo: boolean;
+  nicknameOnly: boolean;
   showTeamComparisonSummary: boolean;
   teamComparisonMode: TeamComparisonMode;
   showPlayerSessionSummary: boolean;
@@ -61,6 +63,7 @@ export const DEFAULT_FORMATION_SETTINGS: FormationSettings = {
   strategySeconds: 30,
   showPlayerCardScore: true,
   showPlayerCardInfo: true,
+  nicknameOnly: false,
   showTeamComparisonSummary: true,
   teamComparisonMode: "score",
   showPlayerSessionSummary: true,
@@ -91,6 +94,7 @@ export function sameFormationSettings(left: unknown, right: unknown): boolean {
     a.strategySeconds === b.strategySeconds &&
     a.showPlayerCardScore === b.showPlayerCardScore &&
     a.showPlayerCardInfo === b.showPlayerCardInfo &&
+    a.nicknameOnly === b.nicknameOnly &&
     a.showTeamComparisonSummary === b.showTeamComparisonSummary &&
     a.teamComparisonMode === b.teamComparisonMode &&
     a.showPlayerSessionSummary === b.showPlayerSessionSummary &&
@@ -111,6 +115,7 @@ export function validateFormationSettings(value: FormationSettings): void {
     !["keep", "random", "draft", "auction"].includes(value.teams) ||
     typeof value.showPlayerCardScore !== "boolean" ||
     typeof value.showPlayerCardInfo !== "boolean" ||
+    typeof value.nicknameOnly !== "boolean" ||
     typeof value.showTeamComparisonSummary !== "boolean" ||
     !["score", "prediction"].includes(value.teamComparisonMode) ||
     typeof value.showPlayerSessionSummary !== "boolean" ||
@@ -350,6 +355,7 @@ export function createFormation(
       strategySeconds: settings.strategySeconds,
       showPlayerCardScore: settings.showPlayerCardScore,
       showPlayerCardInfo: settings.showPlayerCardInfo,
+      nicknameOnly: settings.nicknameOnly,
       showTeamComparisonSummary: settings.showTeamComparisonSummary,
       teamComparisonMode: settings.teamComparisonMode,
       showPlayerSessionSummary: settings.showPlayerSessionSummary,

@@ -281,6 +281,7 @@ export async function updateFormationSettingsAction(
       strategySeconds: settings.strategySeconds,
       showPlayerCardScore: settings.showPlayerCardScore,
       showPlayerCardInfo: settings.showPlayerCardInfo,
+      nicknameOnly: settings.nicknameOnly,
       showTeamComparisonSummary: settings.showTeamComparisonSummary,
       teamComparisonMode: settings.teamComparisonMode,
       showPlayerSessionSummary: settings.showPlayerSessionSummary,

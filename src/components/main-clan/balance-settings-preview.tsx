@@ -18,6 +18,7 @@ import { ScoreModeToggle } from "./balance-team-insights";
 import { BalanceMapImage } from "./clan-balance-map-image";
 import styles from "./clan-balance-settings.module.css";
 import { HelpText } from "./help-text";
+import { BalanceNamecardMode } from "@/components/profile/clan-namecards";
 
 // These examples stay local to the settings dialog and never submit game input.
 const names = ["네온", "달빛", "새벽", "루나", "바람", "에임", "여우", "구름", "모찌", "감자"];
@@ -33,7 +34,7 @@ export function BalanceDisplayPreview({ settings, premium, regularRoom }: {
 }) {
   const [mode, setMode] = useState<ScoreMode>("m");
   const scoreMode = premium ? mode : "m";
-  return <section aria-label="화면 표시 미리보기" className="overflow-hidden rounded-xl border bg-background" data-testid="balance-display-preview">
+  return <BalanceNamecardMode hide={false} nicknameOnly={settings.nicknameOnly}><section aria-label="화면 표시 미리보기" className="overflow-hidden rounded-xl border bg-background" data-testid="balance-display-preview">
     <header className="flex items-center justify-between gap-3 border-b px-4 py-3">
       <h3 className="text-sm font-semibold"><HelpText label="화면 표시 미리보기" help={regularRoom ? "카드와 팀 그래프에 마우스를 올려 상세 정보를 확인하세요. 예시 화면이며 설정 적용 전에는 실제 경기에 반영되지 않습니다." : "카드에 마우스를 올려 이번 세션 전적을 확인하세요. 예시 화면이며 설정 적용 전에는 실제 경기에 반영되지 않습니다."} /></h3>
       <span className="text-xs text-muted-foreground">편성 화면</span>
@@ -51,13 +52,13 @@ export function BalanceDisplayPreview({ settings, premium, regularRoom }: {
           <button type="button" aria-label={`${names[index]} 카드 미리보기`} data-testid={`display-preview-card-${index}`}
             className={cn("flex min-h-24 min-w-0 items-center rounded-xl border p-3 text-left focus-visible:outline-2 focus-visible:outline-ring sm:p-4",
               index === 0 ? "border-sky-500/40 bg-sky-500/10" : "border-rose-500/40 bg-rose-500/10")}>
-            <BalancePlayerCardContent nickname={names[index]} info={info} score={regularRoom ? scores[String(index)] : undefined} mode={scoreMode}
+            <BalancePlayerCardContent nickname={`${names[index]}#${index === 0 ? "1001" : "2002"}`} info={info} score={regularRoom ? scores[String(index)] : undefined} mode={scoreMode}
               showScore={regularRoom && settings.showPlayerCardScore} showInfo={settings.showPlayerCardInfo} infoMode={settings.playerCardInfo} mirrored={index === 5} />
           </button>
         </BalancePlayerDetails>)}
       </div>
     </div>
-  </section>;
+  </section></BalanceNamecardMode>;
 }
 
 export type BanPreviewStage = "map" | "hero" | "match";
