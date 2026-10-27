@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useId, useRef, useState, type ReactNode } from "react";
+import { UsersRound } from "lucide-react";
 import { GameLogo } from "@/components/ui/game-logo";
 import { PersonalEmblemCaseLauncher } from "@/components/personal-emblems/personal-emblem-case";
 import { ProfileIntro } from "./profile-intro";
@@ -52,7 +53,7 @@ export function ProfileIdentity({ userId, intro, memberships, games = [], nameca
           {index === current && tools}
         </div>}
         <div className={styles.clanAccountId}><span>{membership.gameSlug === "overwatch" ? "배틀태그" : ["valorant", "lol"].includes(membership.gameSlug) ? "라이엇 ID" : "게임 ID"}</span><Namecard displayName={membership.accountId || "Player"} {...appearance} /></div>
-        <div className={styles.profileAlts} role="region" aria-label="부계정" tabIndex={0}><span>부계정</span><div>{membership.altAccounts?.length ? membership.altAccounts.map(nickname => <span key={nickname} className={styles.altTag}>{nickname}</span>) : <span className={styles.altEmpty}>{membership.altAccounts === undefined ? "불러오는 중…" : readOnly ? "공개된 부계정이 없습니다." : "등록된 부계정이 없습니다."}</span>}</div></div>
+        <div className={styles.profileAlts} role="region" aria-label="부계정" tabIndex={0} data-empty={!membership.altAccounts?.length || undefined}><span><UsersRound size={14} aria-hidden="true" />부계정</span><div>{membership.altAccounts?.length ? membership.altAccounts.map(nickname => <span key={nickname} className={styles.altTag}>{nickname}</span>) : <span className={styles.altEmpty}>{membership.altAccounts === undefined ? "불러오는 중…" : readOnly ? "공개된 부계정 없음" : "등록된 부계정 없음"}</span>}</div></div>
       </article>)}
       </div>
       <span className="sr-only" role="status" aria-label="현재 클랜" aria-live="polite">{current + 1} / {profiles.length}</span>

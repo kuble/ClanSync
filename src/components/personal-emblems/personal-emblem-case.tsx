@@ -154,7 +154,7 @@ export function PersonalEmblemCaseLauncher({ clanId = "", userId, nickname, vari
       + ("source" in emblem ? " · " + (emblem.source as PersonalEmblemCollection).gameName + " · " + (emblem.source as PersonalEmblemCollection).clanName : "") : "빈 대표 엠블럼 칸";
     const contents = <><Socket />{emblem && <EmblemArtwork emblem={emblem} eager className={styles.pinArtwork} />}</>;
     const reference = emblem && "localKey" in emblem ? emblem.key : undefined;
-    return variant !== "namecard" ? <Link key={index} href={href} className={className} style={emblem ? socketStyle(emblem) : undefined}
+    return variant === "compact" ? <Link key={index} href={href} className={className} style={emblem ? socketStyle(emblem) : undefined}
       data-featured-emblem-reference={reference}
       aria-label={nickname + " 엠블럼 케이스 열기" + (index ? " · " + (index + 1) + "번째 칸" : "")} title={title}>
       {contents}
@@ -163,16 +163,21 @@ export function PersonalEmblemCaseLauncher({ clanId = "", userId, nickname, vari
   if (variant === "namecard") return <Link href={href} className={cn(styles.launcher, styles.embeddedCase)} data-personal-emblem-launcher aria-label={nickname + " 엠블럼 케이스 열기"}>
     <span className={cn(caseStyles.case, styles.tray)}><span className={cn(caseStyles.caseGrid, styles.featuredGrid)} role="group" aria-label="대표 엠블럼 3칸">{slots}</span></span>
   </Link>;
-  return <div className={cn(styles.launcher, variant === "profile" ? styles.profile : styles.compact)} data-personal-emblem-launcher>
+  if (variant === "profile") return <div className={cn(styles.launcher, styles.profile)} data-personal-emblem-launcher>
+    <Link href={href} className={styles.profileCase} aria-label={nickname + " 엠블럼 케이스 열기"}>
+      <span className={cn(caseStyles.case, styles.tray)}><span className={cn(caseStyles.caseGrid, styles.featuredGrid)} role="group" aria-label="대표 엠블럼 3칸">{slots}</span></span>
+    </Link>
+    <div className={error ? styles.launcherFeedback : "sr-only"} role={error ? "alert" : "status"}>
+      {pending ? "대표 엠블럼을 불러오는 중…" : error ? <><span>{error}</span><Button size="sm" variant="ghost" aria-label="대표 엠블럼 다시 불러오기" onClick={refresh}>다시 불러오기</Button></> : !featured.length ? "획득한 엠블럼을 이곳에 전시할 수 있습니다." : null}
+    </div>
+  </div>;
+  return <div className={cn(styles.launcher, styles.compact)} data-personal-emblem-launcher>
     <div className={cn(caseStyles.case, styles.tray)}>
       <div className={cn(caseStyles.caseGrid, styles.featuredGrid)} role="group" aria-label="대표 엠블럼 3칸">
         {slots}
       </div>
     </div>
     {href && <Link href={href} className={styles.caseLink}>엠블럼 케이스 보기 →</Link>}
-    {variant === "profile" && <div className="mt-2 min-h-5 text-xs text-muted-foreground" role={error ? "alert" : "status"}>
-      {pending ? "대표 엠블럼을 불러오는 중…" : error ? <><span>{error}</span><Button size="sm" variant="ghost" aria-label="대표 엠블럼 다시 불러오기" onClick={refresh}>다시 불러오기</Button></> : !featured.length ? "획득한 엠블럼을 이곳에 전시할 수 있습니다." : null}
-    </div>}
   </div>;
 }
 

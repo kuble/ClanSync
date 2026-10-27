@@ -39,7 +39,7 @@ test("소개의 부계정은 게임과 공개 권한을 따르고 비공개 통�
     await page.getByRole("button", { name: "FindPlayer 개인 기록 열기", exact: true }).click();
     const banner = page.getByRole("region", { name: "플레이어 배너", exact: true });
     await expect(banner).toContainText("FindPlayer#1111");
-    await expect(banner.getByRole("region", { name: "부계정", exact: true })).toContainText("공개된 부계정이 없습니다.");
+    await expect(banner.getByRole("region", { name: "부계정", exact: true })).toContainText("공개된 부계정 없음");
     expect((await page.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${owner.id}`)).status()).toBe(403);
     const endpoint = `/api/player-profiles/${owner.id}?clanId=${f.clanId}`;
     const hidden = await (await page.request.get(endpoint)).json();

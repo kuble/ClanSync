@@ -71,10 +71,15 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     await expect(page.getByRole("button", { name: "탈퇴", exact: true })).toBeHidden();
 
     const slots = intro.getByRole("group", { name: "대표 엠블럼 3칸", exact: true });
-    await expect(slots.getByRole("link")).toHaveCount(3);
+    await expect(slots.getByRole("link")).toHaveCount(0);
     const caseLink = intro.getByRole("link", { name: "플레이어 엠블럼 케이스 열기", exact: true });
     const caseHref = `/profile/${user.id}/emblems`;
     await expect(caseLink).toHaveAttribute("href", caseHref);
+    await expect(intro.getByText("엠블럼 케이스 보기 →", { exact: true })).toHaveCount(0);
+    await expect(intro.locator("a a")).toHaveCount(0);
+    const emptyAlts = intro.getByRole("region", { name: "부계정", exact: true });
+    await expect(emptyAlts).toContainText("등록된 부계정 없음");
+    await expect(emptyAlts).toHaveCSS("border-top-width", "1px");
 
     await intro.getByRole("button", { name: "한 줄 소개 편집", exact: true }).click();
     const input = intro.getByRole("textbox", { name: "한 줄 소개", exact: true });
@@ -139,7 +144,7 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
       await expect(settings).toBeHidden();
     }
     await page.setViewportSize({ width: 1280, height: 900 });
-    await caseLink.click();
+    await caseLink.click({ position: { x: 6, y: 6 } });
     await expect(page).toHaveURL(caseHref);
     await expect(page.getByRole("heading", { name: "엠블럼 케이스", exact: true })).toBeVisible();
     const emblemApi = `**/api/personal-emblems/featured?player=${user.id}`;
@@ -150,7 +155,7 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     await page.unroute(emblemApi);
     await intro.getByRole("button", { name: "대표 엠블럼 다시 불러오기", exact: true }).click();
     await expect(intro.getByRole("alert")).toHaveCount(0);
-    await expect(slots.getByRole("link")).toHaveCount(3);
+    await expect(slots.getByRole("link")).toHaveCount(0);
 
     // The same isolated user also covers a profile with no game or clan, without touching QA people.
     expect((await fixture.service.from("clan_members").delete().eq("clan_id", fixture.clanId).eq("user_id", user.id)).error).toBeNull();

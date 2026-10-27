@@ -4,8 +4,13 @@
 .compact { width:150px; max-width:100%; }
 .compact .tray { padding:3px; border-width:3px; border-radius:9px; }
 .compact .featuredGrid { gap:2px; }
-.profile { width:100%; max-width:360px; }
+.profile { position:relative; width:100%; max-width:360px; }
 .profile .tray { padding:10px 14px; }
+.profileCase { display:block; border-radius:12px; color:inherit; }
+.profileCase .tray { display:block; }
+.profileCase:focus-visible { outline:2px solid var(--ring); outline-offset:3px; }
+.launcherFeedback { position:absolute; inset:auto 8px 8px; display:flex; align-items:center; justify-content:space-between; gap:6px; padding:6px 8px; border:1px solid var(--border); border-radius:8px; background:var(--card); color:var(--muted-foreground); font-size:11px; }
+.launcherFeedback button { flex-shrink:0; min-height:44px; }
 .caseLink { display:inline-flex; margin-top:8px; color:var(--primary); font-size:12px; font-weight:500; }
 .caseLink:focus-visible { outline:2px solid var(--primary); outline-offset:4px; border-radius:2px; }
 .pin { cursor:pointer; }
