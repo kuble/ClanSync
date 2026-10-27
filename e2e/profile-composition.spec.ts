@@ -110,7 +110,15 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     await expect(settings.getByRole("region", { name: "공통 네임카드", exact: true })).toHaveCount(0);
     for (const label of ["성별", "출생 연도", "가입일"]) await expect(settings.getByRole("term").filter({ hasText: label })).toHaveCount(0);
     await expect(settings.getByText("자동 로그인", { exact: true })).toBeVisible();
-    await expect(settings.getByRole("button", { name: "클랜싱크 탈퇴", exact: true })).toBeVisible();
+    await settings.getByRole("button", { name: "클랜싱크 탈퇴", exact: true }).click();
+    const accountLeave = page.getByRole("dialog", { name: "클랜싱크를 탈퇴할까요?", exact: true });
+    await expect(accountLeave.getByRole("region", { name: "클랜싱크 탈퇴 시 삭제되는 항목" })).toContainText("모든 클랜의 소속 정보");
+    await expect(accountLeave.getByRole("region", { name: "클랜싱크 탈퇴 후 남는 항목" })).toContainText("작성자 계정 연결을 해제");
+    await page.setViewportSize({ width: 320, height: 884 });
+    await expect(accountLeave.getByRole("button", { name: "취소", exact: true })).toBeInViewport();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    await accountLeave.getByRole("button", { name: "취소", exact: true }).click();
+    await page.setViewportSize({ width: 1054, height: 884 });
     await expect(settings.getByText("대표 뱃지 (최대 5개)", { exact: true })).toHaveCount(0);
     await overviewTab.click();
     await expect(settings).toBeHidden();
@@ -126,6 +134,11 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     await expect(page.getByRole("region", { name: "게임별 선호 역할", exact: true })).toBeVisible();
     await expect(settings.getByLabel("오버워치 계정", { exact: true })).toHaveCount(0);
     await expect(settings.getByRole("button", { name: "부계정 추가", exact: true })).toHaveCount(0);
+    await settings.getByRole("region", { name: "내 클랜", exact: true }).getByRole("button").click();
+    const clanLeave = page.getByRole("dialog", { name: "클랜을 탈퇴할까요?", exact: true });
+    await expect(clanLeave.getByRole("region", { name: "클랜 탈퇴 시 종료되는 항목" })).toContainText("멤버 자격");
+    await expect(clanLeave.getByRole("region", { name: "클랜 탈퇴 시 유지되는 항목" })).toContainText("내전 기록과 통계");
+    await clanLeave.getByRole("button", { name: "취소", exact: true }).click();
     await overviewTab.click();
     await page.getByRole("button", { name: "네임카드 꾸미기", exact: true }).click();
     const nameplate = page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true });

@@ -18,9 +18,12 @@ export function ProfileDeleteAccountButton() {
   return <>
     <Button type="button" variant="destructive" size="sm" onClick={() => { setError(null); setOpen(true); }}>클랜싱크 탈퇴</Button>
     <Dialog open={open} onOpenChange={(value) => { if (!pending) setOpen(value); }}>
-      <DialogContent><DialogHeader><DialogTitle>ClanSync에서 탈퇴할까요?</DialogTitle><DialogDescription>계정과 연결된 데이터가 삭제되며 되돌릴 수 없습니다. 유지할 정보가 있는지 확인해 주세요.</DialogDescription></DialogHeader>
+      <DialogContent className="sm:max-w-lg"><DialogHeader><DialogTitle>클랜싱크를 탈퇴할까요?</DialogTitle><DialogDescription>클랜 하나에서 나가는 것이 아니라 클랜싱크 계정 전체를 삭제합니다. 완료 후 복구할 수 없습니다.</DialogDescription></DialogHeader>
+        <section aria-label="클랜싱크 탈퇴 시 삭제되는 항목" className="rounded-lg border p-3"><h3 className="text-sm font-semibold text-destructive">탈퇴 완료 시 삭제되는 정보</h3><ul className="mt-2 list-disc space-y-1 pl-4 text-xs leading-relaxed text-muted-foreground"><li>로그인 계정과 이메일·성별·출생 연도·한 줄 소개 등 개인 정보</li><li>게임 연동 정보·등록한 부계정·선호 역할과 모든 클랜의 소속 정보</li><li>보유 코인·개인 구매 내역·꾸미기 아이템·개인 엠블럼과 설정</li></ul></section>
+        <section aria-label="클랜싱크 탈퇴 후 남는 항목" className="rounded-lg border p-3"><h3 className="text-sm font-semibold">삭제되지 않고 남는 정보</h3><ul className="mt-2 list-disc space-y-1 pl-4 text-xs leading-relaxed text-muted-foreground"><li>클랜 자체와 다른 멤버의 정보, 공동 경기 기록</li><li>클랜 게시판 글·댓글, 공지·규칙, 명예의 전당 댓글은 작성자 계정 연결을 해제하고 보관</li><li>연동한 게임사의 계정과 게임 내 데이터</li></ul><p className="mt-2 text-xs leading-relaxed text-muted-foreground">공동 기록·게시물에 적힌 이름이나 본문까지 자동 삭제되지는 않습니다. 삭제할 게시물은 탈퇴 전에 정리해 주세요.</p></section>
+        <p className="text-xs leading-relaxed text-muted-foreground">생성한 일정·투표·내전 운영 기록 등이 연결되어 있으면 탈퇴가 제한될 수 있습니다. 처리되지 않으면 오류를 안내합니다. 재가입해도 삭제된 개인 데이터는 복구되지 않습니다.</p>
         {error ? <p className="text-destructive text-sm" role="alert">{error}</p> : null}
-        <DialogFooter><Button type="button" variant="outline" disabled={pending} onClick={() => setOpen(false)}>취소</Button><Button type="button" variant="destructive" disabled={pending} onClick={confirmDelete}>{pending ? "처리 중…" : "탈퇴하기"}</Button></DialogFooter>
+        <DialogFooter><Button type="button" variant="outline" disabled={pending} onClick={() => setOpen(false)}>취소</Button><Button type="button" variant="destructive" disabled={pending} onClick={confirmDelete}>{pending ? "처리 중…" : "클랜싱크 탈퇴하기"}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   </>;
