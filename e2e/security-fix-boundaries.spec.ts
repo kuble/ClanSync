@@ -340,7 +340,7 @@ test("personal records default to staff and saved minimum role controls member a
   try {
     await loginIsolatedBalanceUser(memberPage, f.users[1]);
     await memberPage.goto(`/games/overwatch/clan/${f.clanId}/stats`);
-    await expect(memberPage.getByRole("tab", { name: "개인 기록" })).toHaveCount(0);
+    await expect(memberPage.getByRole("tab", { name: "개인 기록" })).toBeVisible();
     await expect(memberPage.getByRole("button", { name: /^(명예의 전당|개인 기록|경기 기록|내전 통계) 설정$/ })).toHaveCount(0);
 
     await loginIsolatedBalanceUser(page, f.users[0]);
@@ -349,6 +349,7 @@ test("personal records default to staff and saved minimum role controls member a
     await page.getByRole("button", { name: "개인 기록 설정", exact: true }).click();
     const dialog = page.getByRole("dialog");
     await dialog.getByRole("radiogroup", { name: "기록 공개", exact: true }).getByRole("radio", { name: "멤버", exact: true }).click();
+    await dialog.getByRole("switch", { name: "경기 전적", exact: false }).check();
     await dialog.getByRole("button", { name: /저장/ }).click();
     await expect(dialog).toBeHidden();
     const enabled = await loadClanStatsPage(member, f.users[1].id, f.clanId);
@@ -362,7 +363,7 @@ test("personal records default to staff and saved minimum role controls member a
     await expect(memberPage.getByRole("region", { name: "개인 기록 멤버 목록", exact: true }).getByRole("button")).toHaveCount(f.users.length);
     await memberPage.getByRole("button", { name: `${f.users[1].nickname} 개인 기록 열기`, exact: true }).click();
     const caseUrl = await memberPage.getByRole("link", { name: `${f.users[1].nickname} 엠블럼 케이스 열기`, exact: true }).getAttribute("href");
-    expect(caseUrl).toBe(`/profile/${f.users[1].id}/emblems?clan=${f.clanId}`);
+    expect(caseUrl).toBe(`/profile/${f.users[1].id}/emblems`);
     const casePage = await memberPage.context().newPage();
     try {
       await casePage.goto(caseUrl!);
@@ -383,7 +384,7 @@ test("personal records default to staff and saved minimum role controls member a
     const disabled = await loadClanStatsPage(member, f.users[1].id, f.clanId);
     expect(disabled?.personal.people).toEqual([]);
     await memberPage.reload();
-    await expect(memberPage.getByRole("tab", { name: "개인 기록", exact: true })).toHaveCount(0);
+    await expect(memberPage.getByRole("tab", { name: "개인 기록", exact: true })).toBeVisible();
   } finally { await memberContext.close(); }
 });
 
@@ -477,7 +478,7 @@ test("staff can inspect prediction payouts and edit completed evaluation scores"
     await ok(f.service.from("clan_settings").update({ hof_config: current.hof_config }).eq("clan_id", f.clanId));
     expect((await ownPage.request.get(detailUrl)).status()).toBe(403);
     await ownPage.reload();
-    await expect(ownPage.getByRole("tab", { name: "개인 기록" })).toHaveCount(0);
+    await expect(ownPage.getByRole("tab", { name: "개인 기록" })).toBeVisible();
   } finally { await ownContext.close(); }
 });
 

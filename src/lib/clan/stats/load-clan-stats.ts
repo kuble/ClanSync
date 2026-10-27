@@ -128,6 +128,7 @@ export type ClanStatsPageModel = {
   personal: {
     viewerId: string;
     canSeePeers: boolean;
+    profilePeople?: { userId: string; nickname: string; lastPlayedAt?: string | null }[];
     people: { userId: string; nickname: string; profile?: PlayerProfile; lastPlayedAt?: string | null; matches: PersonalMatch[]; scores?: PersonalScore[]; visibleSections?: PersonalStatsSection[]; predictions: ReturnType<typeof personalPredictions>; predictionPoints: PredictionPointDay[]; emblems?: HofEmblem[] }[];
   };
   summary: {
@@ -874,7 +875,7 @@ async function loadClanStatsOverview(supabase: SupabaseClient<Database>, userId:
   return {
     clanId, statsSettings: statsSettings(source), deferredDetails: true, deferredPeriods: true, periodDirectory: directory,
     intra: buildIntraStats([], []), intraPeriods: source.permissions.viewIntraStats ? { all: all.overview, ...Object.fromEntries(Object.entries(periods).map(([key, value]) => [key, value.overview])) } : {},
-    personal: { viewerId: userId, canSeePeers: source.permissions.viewSynergy && source.role !== "member", people: access.peopleIds.map((id) => personalForViewer(source, userId, {
+    personal: { viewerId: userId, canSeePeers: source.permissions.viewSynergy && source.role !== "member", profilePeople: [...nick].map(([id, nickname]) => ({ userId: id, nickname, lastPlayedAt: access.peopleIds.includes(id) ? lastPlayed.get(id) ?? null : null })), people: access.peopleIds.map((id) => personalForViewer(source, userId, {
       userId: id, nickname: nick.get(id) ?? (id === userId ? "나" : "탈퇴한 멤버"), profile: profiles.get(id), lastPlayedAt: lastPlayed.get(id) ?? null,
       matches: [], predictions: [], predictionPoints: [],
     })) },
@@ -1068,7 +1069,7 @@ export async function loadClanStatsPageFromRecords(
     deferredDetails: options?.deferDetails,
     intra: source.permissions.viewIntraStats ? intra : buildIntraStats([], []),
     intraPeriods: source.permissions.viewIntraStats ? buildIntraOverviewPeriods(records, hofSessions) : {},
-    personal: { viewerId: userId, canSeePeers: viewSynergy && role !== "member", people: personal.map((person) => personalForViewer(source, userId, { ...person, emblems: archivedEmblems.get(person.userId) ?? [] })) },
+    personal: { viewerId: userId, canSeePeers: viewSynergy && role !== "member", profilePeople: [...nick].map(([id, nickname]) => ({ userId: id, nickname })), people: personal.map((person) => personalForViewer(source, userId, { ...person, emblems: archivedEmblems.get(person.userId) ?? [] })) },
     summary: {
       totalMatches: matches.filter((m) => m.status === "finished").length,
       intraCount,

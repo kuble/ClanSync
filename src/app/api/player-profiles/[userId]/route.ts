@@ -11,7 +11,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
   const { data: { user } } = await db.auth.getUser();
   if (!user) return Response.json({ error: "로그인이 필요합니다." }, { status: 401, headers });
   try {
-    const profile = await loadPlayerIdentity(db, userId, clanId);
+    const profile = await loadPlayerIdentity(db, userId, clanId, user.id);
     return profile ? Response.json({ profile }, { headers }) : Response.json({ error: "존재하지 않는 플레이어입니다." }, { status: 404, headers });
   } catch {
     return Response.json({ error: "플레이어 소개를 불러오지 못했습니다." }, { status: 500, headers });

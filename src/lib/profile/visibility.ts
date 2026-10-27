@@ -3,7 +3,7 @@ import type { ProfileGameIdentity, ProfileMembership } from "@/components/profil
 import type { NamecardAppearance } from "./namecard";
 import type { PlayerProfile } from "@/lib/clan/player-profile";
 
-export type PlayerIdentity = { userId: string; intro: string; memberships: ProfileMembership[]; games: ProfileGameIdentity[]; appearance: NamecardAppearance; clanProfile?: Pick<PlayerProfile, "gender" | "birthYear" | "clanJoinedAt"> };
+export type PlayerIdentity = { userId: string; intro: string; memberships: ProfileMembership[]; games: ProfileGameIdentity[]; appearance: NamecardAppearance; clanProfile?: Pick<PlayerProfile, "gender" | "birthYear" | "clanJoinedAt"> & { altAccounts: string[] } };
 
 export type PlayerProfileVisit = {
   userId: string;

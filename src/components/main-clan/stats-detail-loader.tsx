@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 export type StatsDetailCache = Map<string, Promise<ClanStatsDetail>>;
 
 /** Cache belongs to one mounted, authorized page model, never to a shared module. */
-export function StatsDetailLoader({ url, cache, initial, children }: { url?: string; cache: StatsDetailCache; initial?: ClanStatsDetail; children: (detail: ClanStatsDetail, pending: boolean) => ReactNode }) {
+export function StatsDetailLoader({ url, cache, initial, children, compact = false }: { url?: string; cache: StatsDetailCache; initial?: ClanStatsDetail; compact?: boolean; children: (detail: ClanStatsDetail, pending: boolean) => ReactNode }) {
   const [result, setResult] = useState<{ cache: StatsDetailCache; url: string; detail?: ClanStatsDetail; error?: string }>();
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
@@ -29,7 +29,7 @@ export function StatsDetailLoader({ url, cache, initial, children }: { url?: str
   }, [url, cache, attempt]);
   const current = result?.cache === cache && result.url === url ? result : undefined;
   if (current?.detail || initial) return <div className="relative" aria-busy={!!url && !current?.detail}>
-    <div role={url && !current?.detail ? current?.error ? "alert" : "status" : undefined} className="flex h-7 items-center justify-end gap-2 px-2 text-xs text-muted-foreground">
+    <div role={url && !current?.detail ? current?.error ? "alert" : "status" : undefined} className={`flex items-center justify-end gap-2 px-2 text-xs text-muted-foreground ${compact ? "absolute inset-x-0 -top-4 h-4" : "h-7"}`}>
       {url && !current?.detail && <><span className="min-w-0 truncate" title={current?.error}>{current?.error ?? "기록을 불러오는 중…"}</span>{current?.error && <button type="button" className="shrink-0 underline" onClick={() => setAttempt((n) => n + 1)}>다시 불러오기</button>}</>}
     </div>
     {children(current?.detail ?? initial!, !!url && !current?.detail)}

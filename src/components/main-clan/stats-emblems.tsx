@@ -40,7 +40,7 @@ export function StatsPlayerBanner({ gameSlug, clanId, hof, userId, nickname, pro
   const emblemCase = showEmblems ? <PersonalEmblemCaseLauncher key={clanId + userId} variant="namecard" accountWide clanId={clanId} userId={userId} nickname={nickname} initialAwards={emblems} /> : undefined;
   const linkedGame = current?.identity?.games.find(game => game.gameSlug === gameSlug);
   const membership = current?.identity?.memberships.find(clan => clan.clanId === clanId);
-  const game = linkedGame ?? { gameSlug, gameName: membership?.gameName ?? gameSlug, accountId: membership?.accountId ?? displayName };
+  const game = { ...(linkedGame ?? { gameSlug, gameName: membership?.gameName ?? gameSlug, accountId: membership?.accountId ?? displayName }), altAccounts: current?.identity ? current.identity.clanProfile?.altAccounts ?? [] : undefined };
   const loading = !current?.identity && !current?.error;
   const introPlaceholder = current?.error ? <>
     {current.identity?.intro && <p>{current.identity.intro}</p>}

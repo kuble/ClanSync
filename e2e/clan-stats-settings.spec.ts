@@ -177,6 +177,7 @@ test("stats settings: tab scopes, granular record grants and private payloads", 
     expect((await edit("create")).error?.code).toBe("42501");
     expect(await loadClanStatsDetail(member, f.users[1].id, f.clanId)).toBeNull();
     await memberPage.getByRole("tab", { name: "개인 기록", exact: true }).click();
+    await memberPage.getByRole("button", { name: `${f.users[1].nickname} 개인 기록 열기`, exact: true }).click();
     await expect(memberPage.getByText("점수 변동 이력", { exact: true })).toBeVisible();
     await expect(memberPage.getByRole("radio", { name: "평가 점수", exact: true })).toBeVisible();
     await expect(memberPage.getByRole("radio", { name: "분석 점수", exact: true })).toHaveCount(0);
@@ -227,15 +228,15 @@ test("stats settings: tab scopes, granular record grants and private payloads", 
         }
       }
       await memberPage.reload();
-      await expect(memberPage.getByRole("tab", { name: "개인 기록", exact: true })).toHaveCount(minimum === "member" ? 1 : 0);
+      await expect(memberPage.getByRole("tab", { name: "개인 기록", exact: true })).toBeVisible();
       const response = await memberPage.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`);
       expect(response.status()).toBe(minimum === "member" ? 200 : 403);
       await officerPage.reload();
       await officerPage.getByRole("tab", { name: "개인 기록", exact: true }).click();
       expect((await officerPage.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`)).status()).toBe(minimum === "leader" ? 403 : 200);
       if (minimum === "leader") {
-        await expect(officerPage.getByText("개인 기록 열람이 제한되어 있습니다.", { exact: true })).toBeVisible();
-        await expect(officerPage.getByRole("button", { name: `${f.users[0].nickname} 개인 기록 열기`, exact: true })).toHaveCount(0);
+        await officerPage.getByRole("button", { name: `${f.users[0].nickname} 개인 기록 열기`, exact: true }).click();
+        await expect(officerPage.getByRole("tabpanel", { name: "개인 기록", exact: true }).getByText("개인 기록 열람이 제한되어 있습니다.", { exact: true })).toBeVisible();
         await officerPage.getByRole("button", { name: "개인 기록 설정", exact: true }).click();
         const officerDialog = officerPage.getByRole("dialog", { name: "개인 기록 설정", exact: true });
         await expect(officerDialog.getByRole("radio", { name: "서버장", exact: true })).toBeChecked();
@@ -263,6 +264,7 @@ test("stats settings: tab scopes, granular record grants and private payloads", 
     expect(emblemsOnly?.kind === "personal" && emblemsOnly.person).toMatchObject({ visibleSections: ["emblems"], matches: [], scores: [], predictions: [], predictionPoints: [] });
     await memberPage.reload();
     await memberPage.getByRole("tab", { name: "개인 기록", exact: true }).click();
+    await memberPage.getByRole("button", { name: `${f.users[1].nickname} 개인 기록 열기`, exact: true }).click();
     await expect(memberPage.getByRole("region", { name: "플레이어 배너", exact: true }).getByRole("link", { name: / 엠블럼 케이스 열기$/ })).toBeVisible();
   } finally { await Promise.allSettled([officerContext.close(), memberContext.close()]); await f.cleanup(); }
 });

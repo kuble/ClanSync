@@ -95,7 +95,7 @@ test("개인 기록의 공통 네임카드는 해당 플레이어 소개로, 엠
   } finally { await f.cleanup(); }
 });
 
-test("일반 멤버는 본인 기록부터 열고 공개 범위 안에서 다른 멤버도 선택한다", async ({ page }, info) => {
+test("모든 역할은 멤버 검색으로 시작하고 통계 제한 대상도 소개를 연다", async ({ page }, info) => {
   test.setTimeout(150_000);
   const f = await createIsolatedBalanceFixture(3);
   const tags = ["StaffEntry#1111", "MemberEntry#2222", "OfficerEntry#3333"];
@@ -111,23 +111,9 @@ test("일반 멤버는 본인 기록부터 열고 공개 범위 안에서 다른
       await loginIsolatedBalanceUser(page, f.users[index]);
       await page.goto(statsUrl);
       await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
-      if (index !== 1) {
-        await expect(picker).toBeVisible();
-        await expect(banner).toHaveCount(0);
-        await picker.getByRole("button").first().click();
-        await expect(page.getByRole("button", { name: "멤버 선택", exact: true })).toBeVisible();
-        continue;
-      }
-      await expect(banner).toContainText(tags[index]);
-      await expect(page.getByRole("button", { name: "멤버 선택", exact: true })).toBeVisible();
-      await expect(picker).toHaveCount(0);
-      await page.getByRole("tab", { name: "내전 통계", exact: true }).click();
-      await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
-      await expect(banner).toContainText(tags[index]);
-      await expect(page.getByRole("button", { name: "멤버 선택", exact: true })).toBeVisible();
-      await expect(picker).toHaveCount(0);
-      await page.getByRole("button", { name: "멤버 선택", exact: true }).click();
       await expect(picker).toBeVisible();
+      await expect(banner).toHaveCount(0);
+      await page.getByRole("textbox", { name: "멤버 이름 검색", exact: true }).fill(tags[0].split("#")[0]);
       await picker.getByRole("button", { name: `${tags[0].split("#")[0]} 개인 기록 열기`, exact: true }).click();
       await expect(banner).toContainText(tags[0]);
       await page.screenshot({ path: info.outputPath("personal-member-entry.png") });
@@ -137,7 +123,7 @@ test("일반 멤버는 본인 기록부터 열고 공개 범위 안에서 다른
       await expect(banner).toContainText(tags[0]);
       await page.goto(statsUrl);
       await page.getByRole("tab", { name: "개인 기록", exact: true }).click();
-      await expect(banner).toContainText(tags[index]);
+      await expect(picker).toBeVisible();
     }
     expect((await f.service.from("clan_settings").update({ hof_config: { personal_record_min_role: "leader" } }).eq("clan_id", f.clanId)).error).toBeNull();
     expect((await f.service.from("users").update({ gender: "male", birth_year: 1991 }).eq("id", f.users[0].id)).error).toBeNull();
@@ -161,10 +147,10 @@ test("일반 멤버는 본인 기록부터 열고 공개 범위 안에서 다른
     const after = await banner.boundingBox();
     for (const axis of ["x", "y", "width", "height"] as const) expect(Math.abs(before![axis] - after![axis])).toBeLessThan(1);
     await page.screenshot({ path: info.outputPath("restricted-stats-public-facts.png") });
-    await expect(page.getByRole("button", { name: "멤버 선택", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "멤버 선택", exact: true })).toBeVisible();
     expect((await page.request.get(`/api/clans/${f.clanId}/stats?section=personal&userId=${f.users[0].id}`)).status()).toBe(403);
     const identity = (await (await page.request.get(endpoint)).json()).profile;
-    expect(identity.clanProfile).toEqual({ gender: "male", birthYear: 1991, clanJoinedAt: "2021-04-05T23:30:00+00:00" });
+    expect(identity.clanProfile).toEqual({ gender: "male", birthYear: 1991, clanJoinedAt: "2021-04-05T23:30:00+00:00", altAccounts: [] });
     expect(JSON.stringify(identity)).not.toContain(f.users[0].email);
     expect((await page.request.get(`/api/player-profiles/${f.users[0].id}?clanId=invalid`)).status()).toBe(400);
     expect((await f.service.from("clan_members").update({ status: "left" }).eq("clan_id", f.clanId).eq("user_id", f.users[0].id)).error).toBeNull();
