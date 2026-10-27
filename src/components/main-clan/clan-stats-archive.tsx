@@ -2,8 +2,9 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, MapPin, Clock, Crown, Crosshair, Shield, Plus, Pencil, Trash2, Swords } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Clock, Crown, Plus, Pencil, Trash2, Swords } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { OverwatchRoleIcon } from "@/components/ui/overwatch-icons";
 import type { ClanStatsPageModel, ClanArchiveMatch } from "@/lib/clan/stats/load-clan-stats";
 import { isoToKstYmd } from "@/lib/clan/stats/kst";
 import { archiveSessionSummary, sessionDurationLabel } from "@/lib/clan/stats/archive-session-summary";
@@ -171,13 +172,13 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
                   {match.players
                     .filter((player) => player.team === team)
                     .map((player) => {
-                      const Icon =
+                      const role =
                         player.role === "tank"
-                          ? Shield
+                          ? "tank"
                           : player.role === "dmg"
-                            ? Crosshair
+                            ? "damage"
                             : player.role === "sup"
-                              ? Plus
+                              ? "support"
                               : null;
                       return (
                         <li
@@ -189,9 +190,10 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
                               : "border-rose-500/25 bg-rose-500/[0.04]",
                           )}
                         >
-                          {Icon ? (
-                            <Icon
-                              className="size-3.5 shrink-0 text-muted-foreground"
+                          {role ? (
+                            <span
+                              role="img"
+                              className="inline-flex shrink-0 text-muted-foreground"
                               aria-label={
                                 player.role === "tank"
                                   ? "탱커"
@@ -199,7 +201,7 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
                                     ? "딜러"
                                     : "힐러"
                               }
-                            />
+                            ><OverwatchRoleIcon role={role} className="size-4" /></span>
                           ) : null}
                           <span
                             className="min-w-0 flex-1 break-all font-medium leading-relaxed"
