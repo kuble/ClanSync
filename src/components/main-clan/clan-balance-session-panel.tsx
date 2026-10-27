@@ -513,7 +513,7 @@ export function ClanBalanceSessionPanel({
           )
         ) : (
           <div className={cn("px-4 pt-2 sm:px-6", session.phase === "match_live" ? "pb-2 sm:pb-3" : "pb-4 sm:pb-6")}>
-            {editorMap && !(canManage && !formation) ? <div className="mb-3 max-w-sm">{editorMap}</div> : null}
+            {editorMap && !(canManage && !formation) ? <div data-testid="balance-roster-map" className="mx-auto mb-4 w-full max-w-sm">{editorMap}</div> : null}
             {editingScreen && !(canManage && !formation) ? (
               <div className="flex items-center justify-between gap-2">
                 {scoreControl ?? <span />}
