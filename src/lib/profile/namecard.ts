@@ -1,5 +1,5 @@
 export type NamecardCategory = "emblem" | "namebar" | "sub" | "frame" | "portrait";
-export type NamecardOption = { id: string; category: NamecardCategory; code: string; name_ko: string; unlock_source: string; price_coins: number };
+export type NamecardOption = { id: string; category: NamecardCategory; code: string; name_ko: string; unlock_source: string; price_coins: number; created_at?: string };
 export type NamecardAppearance = { title: string | null; frame: string | null; namebar: string | null; emblem: string | null; portrait: string | null };
 export type ClanNamecards = Record<string, NamecardAppearance & { displayName: string }>;
 export type NamecardState = { catalog: NamecardOption[]; owned: string[]; selections: { category: NamecardCategory; option_id: string }[]; coinBalance: number };

@@ -5,7 +5,7 @@ import type { NamecardResult } from "./namecard";
 export async function loadNamecard(userId: string): Promise<NamecardResult> {
   const db = await createClient();
   const [catalog, owned, selections, balance] = await Promise.all([
-    db.from("nameplate_options").select("id,category,code,name_ko,unlock_source,price_coins").eq("is_active", true).order("code"),
+    db.from("nameplate_options").select("id,category,code,name_ko,unlock_source,price_coins,created_at").eq("is_active", true).order("code"),
     db.from("user_nameplate_inventory").select("option_id").eq("user_id", userId),
     db.from("user_namecard_selections").select("category,option_id").eq("user_id", userId),
     db.from("users").select("coin_balance").eq("id", userId).single(),

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, Coins, Crown, Eye, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, Coins, Crown, Eye, RotateCcw, Search } from "lucide-react";
 import { toast } from "sonner";
 import { purchaseProfileTitleAction } from "@/app/actions/profile-titles";
 import { purchaseStoreItemAction } from "@/app/actions/clan-store-purchase";
@@ -23,10 +23,8 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
   const router = useRouter();
   const [pending, start] = useTransition();
   const busy = useRef(false);
-  const [category, setCategory] = useState<StoreCategory>("theme");
+  const [category, setCategory] = useState<StoreCategory>(() => namecardProducts(state, offer).find(product => !product.available)?.category ?? "theme");
   const [query, setQuery] = useState("");
-  const [ownership, setOwnership] = useState("all");
-  const [sort, setSort] = useState("recommended");
   const [page, setPage] = useState(1);
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [selected, setSelected] = useState<NamecardProduct | null>(null);
@@ -41,11 +39,9 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
   const current = namecardAppearance(state.catalog, candidate ? withProduct(selections, candidate) : selections);
   const layout = category === "emblem" || category === "portrait" ? "compact" : category === "sub" ? "label" : "wide";
   const pageSize = layout === "wide" ? 6 : 12;
-  const filtered = products.filter(p => !((p.category === "frame" || p.category === "portrait") && p.available)
+  const filtered = products.filter(p => !p.available
     && p.category === category
-    && (ownership === "all" || (ownership === "available" ? p.available : !p.available))
     && `${p.name} ${p.description}`.toLocaleLowerCase("ko-KR").includes(query.trim().toLocaleLowerCase("ko-KR")));
-  if (sort !== "recommended") filtered.sort((a, b) => sort === "name" ? a.name.localeCompare(b.name, "ko") : sort === "price-asc" ? a.price - b.price : b.price - a.price);
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const shown = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
@@ -121,11 +117,9 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
         <RubberSegment label="개인 꾸미기 분류" labelPosition="hidden" options={STORE_CATEGORIES} value={category} onChange={value => { setCategory(value); setPage(1); }} />
         <div className={styles.tools}>
           <label className={styles.search}><Search size={16} aria-hidden /><input aria-label="디자인 검색" placeholder="디자인 검색" value={query} onChange={e => { setQuery(e.target.value); setPage(1); }} /></label>
-          <label className={styles.select}><SlidersHorizontal size={14} aria-hidden /><select aria-label="보유 상태" value={ownership} onChange={e => { setOwnership(e.target.value); setPage(1); }}><option value="all">보유 전체</option><option value="available">사용 가능</option><option value="unowned">미보유</option></select></label>
-          <select className={styles.sort} aria-label="디자인 정렬" value={sort} onChange={e => { setSort(e.target.value); setPage(1); }}><option value="recommended">추천순</option><option value="price-asc">가격 낮은순</option><option value="price-desc">가격 높은순</option><option value="name">이름순</option></select>
         </div>
       </div>
-      <div className={styles.results}><p role="status">{filtered.length}개 디자인 <span>· {currentPage} / {totalPages} 페이지</span></p><span>구매·적용은 모든 게임에 공통</span></div>
+      <div className={styles.results}><p role="status">{filtered.length}개 디자인 <span>· {currentPage} / {totalPages} 페이지</span></p><span>최근 추가순</span></div>
       <div className={styles.grid} data-layout={layout} aria-label="개인 꾸미기 상품" aria-busy={pending}>
         {shown.map(product => <article key={product.id} className={styles.product} data-kind={product.category} data-previewed={candidate?.id === product.id || undefined} aria-label={product.name}>
           <div className={styles.productHeading}><h3>{product.name}</h3>{product.premium && <span className={styles.premium}><Crown size={12} aria-hidden />Premium</span>}{applied(product) && <span className={styles.applied}><Check size={12} aria-hidden />적용 중</span>}</div>
@@ -136,7 +130,7 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
             </div>
             {reason(product) && <p className={styles.reason}>{reason(product)}</p>}
         </article>)}
-        {!shown.length && <div className={styles.empty}><Search size={28} aria-hidden /><h3>조건에 맞는 디자인이 없습니다.</h3><p>다른 검색어나 분류를 선택해 보세요.</p><Button variant="outline" onClick={() => { setCategory("theme"); setQuery(""); setOwnership("all"); setPage(1); }}>필터 초기화</Button></div>}
+        {!shown.length && <div className={styles.empty}><Search size={28} aria-hidden /><h3>{query.trim() ? "검색 결과가 없습니다." : "새로 구매할 디자인이 없습니다."}</h3><p>보유한 디자인은 프로필 꾸미기에서 사용할 수 있습니다.</p>{query.trim() && <Button variant="outline" onClick={() => { setQuery(""); setPage(1); }}>검색 지우기</Button>}</div>}
       </div>
       <nav aria-label="상품 페이지" className={styles.pagination}>
         <Button variant="outline" size="icon" aria-label="이전 페이지" disabled={currentPage <= 1} onClick={() => setPage(currentPage - 1)}><ChevronLeft size={16} /></Button>

@@ -23,7 +23,7 @@ test("개인 상점은 여러 게임 클랜의 공통 잔액을 사용하고 프
     await loginIsolatedBalanceUser(page, user);
     await page.goto("/store");
     await expect(page.getByRole("heading", { name: "네임카드 상점", exact: true })).toBeVisible();
-    await expect(page.getByRole("combobox")).toHaveCount(2);
+    await expect(page.getByRole("combobox")).toHaveCount(0);
     await expect(page.getByRole("region", { name: "현재 네임카드" })).toContainText("StorePlayer#1234");
     await page.getByRole("radiogroup", { name: "개인 꾸미기 분류", exact: true }).getByRole("radio", { name: "카드 프레임", exact: true }).click();
     await page.getByRole("textbox", { name: "디자인 검색" }).fill("프리미엄 골드");
@@ -57,74 +57,60 @@ test("개인 상점은 여러 게임 클랜의 공통 잔액을 사용하고 프
 });
 
 
-test("디자인 검색·분류·페이지·미리보기 적용과 무료·부족 코인 상태", async ({ page }) => {
+test("상점은 미보유 상품만 실제 추가일 최신순으로 표시하고 선택 메뉴를 제공하지 않는다", async ({ page }) => {
   const f = await createIsolatedBalanceFixture(1);
+  const prefix = "정렬QA" + randomUUID().slice(0, 8);
+  const ids = Array.from({ length: 14 }, () => randomUUID());
+  const names = ids.map((_, index) => prefix + "-" + String(index).padStart(2, "0"));
   try {
+    expect((await f.service.from("nameplate_options").insert(ids.map((id, index) => ({
+      id, game_id: f.gameId, category: "sub" as const, code: "title-e2e-" + id, name_ko: names[index],
+      unlock_source: "store" as const, price_coins: 20, is_active: true,
+      created_at: new Date(Date.UTC(2026, 0, index + 1)).toISOString(),
+    })))).error).toBeNull();
+    expect((await f.service.from("user_nameplate_inventory").insert({ user_id: f.users[0].id, option_id: ids[13] })).error).toBeNull();
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.goto("/store");
-    await expect(page.getByRole("heading", { name: "네임카드 상점", exact: true })).toBeVisible();
+    await expect(page.getByRole("combobox")).toHaveCount(0);
     const categories = page.getByRole("radiogroup", { name: "개인 꾸미기 분류" });
-    await expect(categories.getByRole("radio", { name: "전체", exact: true })).toHaveCount(0);
-    await expect(page.getByRole("article")).toHaveCount(3);
-    const firstTheme = (await page.getByRole("article").first().boundingBox())!;
-    const lastTheme = (await page.getByRole("article").last().boundingBox())!;
-    expect(lastTheme.width).toBeCloseTo(firstTheme.width, 0);
-    expect(lastTheme.x).toBeCloseTo(firstTheme.x, 0);
-    await categories.getByRole("radio", { name: "배경", exact: true }).click();
-    await expect(page.getByRole("article")).toHaveCount(6);
-    const first = await page.getByRole("article").first().getAttribute("aria-label");
-    await page.getByRole("button", { name: "다음 페이지", exact: true }).click();
-    await expect(page.getByRole("button", { name: "2 페이지", exact: true })).toHaveAttribute("aria-current", "page");
-    expect(await page.getByRole("article").first().getAttribute("aria-label")).not.toBe(first);
-    for (const [label, images, frames] of [["심벌", 1, 0], ["배경", 0, 0], ["카드 프레임", 0, 0], ["칭호", 0, 0]] as const) {
+    for (const label of ["테마", "심벌", "초상 프레임", "배경"]) {
       await categories.getByRole("radio", { name: label, exact: true }).click();
-      const sample = page.getByRole("article").first().locator("[data-namecard]");
-      await expect(sample.locator("strong")).toHaveCount(0);
-      await expect(sample.locator("img")).toHaveCount(images);
-      await expect(sample.locator("svg")).toHaveCount(frames);
-      if (label === "칭호") await expect(sample.locator("small")).toBeVisible();
-      else await expect(sample).toHaveText("");
-      await page.screenshot({ path: test.info().outputPath(label + ".png"), fullPage: false, animations: "disabled" });
+      await expect(page.getByRole("article")).toHaveCount(0);
+      await expect(page.getByRole("heading", { name: "새로 구매할 디자인이 없습니다." })).toBeVisible();
     }
-    await categories.getByRole("radio", { name: "초상 프레임", exact: true }).click();
-    await expect(page.getByRole("article")).toHaveCount(0);
-    await categories.getByRole("radio", { name: "심벌", exact: true }).click();
-    const crown = page.getByRole("article", { name: "왕관", exact: true });
-    const current = page.getByRole("region", { name: "현재 네임카드" });
-    await crown.getByRole("button", { name: "왕관 미리보기", exact: true }).click();
-    await expect(current.locator('[data-symbol="symbol-crown"]')).toBeVisible();
-    const beforeApply = await f.service.from("user_namecard_selections").select("option_id").eq("user_id", f.users[0].id);
-    expect(beforeApply.data).toEqual([]);
-    const crownBounds = (await crown.boundingBox())!;
-    const boltBounds = (await page.getByRole("article", { name: "번개", exact: true }).boundingBox())!;
-    expect(Math.abs(crownBounds.y - boltBounds.y)).toBeLessThan(2);
-    await current.getByRole("button", { name: "미리보기 초기화", exact: true }).click();
-    await expect(current.locator('[data-symbol="symbol-crown"]')).toHaveCount(0);
-    await crown.getByRole("button", { name: "왕관 미리보기", exact: true }).click();
-    await current.getByRole("button", { name: "왕관 적용", exact: true }).click();
-    await expect(current.getByRole("button", { name: "왕관 적용", exact: true })).toHaveText("적용 중");
-    await categories.getByRole("radio", { name: "테마", exact: true }).click();
-    await expect(page.getByRole("article")).toHaveCount(3);
-    await page.getByRole("article", { name: "성운 항해", exact: true }).getByRole("button", { name: "성운 항해 적용", exact: true }).click();
-    await expect(page.getByRole("region", { name: "현재 네임카드" }).locator('[data-art="nebula"]')).toBeVisible();
-    await page.reload();
-    await expect(page.getByRole("region", { name: "현재 네임카드" }).locator('[data-art="nebula"]')).toBeVisible();
-    await page.getByRole("textbox", { name: "디자인 검색" }).fill("no-design-xyz");
-    await expect(page.getByRole("heading", { name: "조건에 맞는 디자인이 없습니다." })).toBeVisible();
-    await page.getByRole("button", { name: "필터 초기화" }).click();
     await categories.getByRole("radio", { name: "칭호", exact: true }).click();
-    await page.getByRole("combobox", { name: "보유 상태", exact: true }).selectOption("unowned");
-    await expect(page.getByRole("article").first().getByRole("button", { name: /구매$/ })).toHaveText("코인 부족");
-    await page.getByRole("combobox", { name: "보유 상태", exact: true }).selectOption("available");
-    await expect(page.getByRole("article").first().getByRole("button", { name: /적용$/ })).toHaveText(/적용/);
-    await categories.getByRole("radio", { name: "테마", exact: true }).click();
+    const search = page.getByRole("textbox", { name: "디자인 검색" });
+    await search.fill(prefix);
+    const namesOnPage = () => page.getByRole("article").evaluateAll(nodes => nodes.map(node => node.getAttribute("aria-label")));
+    await expect.poll(namesOnPage).toEqual(names.slice(1, 13).reverse());
+    await expect(page.getByRole("article", { name: names[13], exact: true })).toHaveCount(0);
+    const newest = page.getByRole("article", { name: names[12], exact: true });
+    const sample = newest.locator("[data-namecard]");
+    await expect(sample.locator("img, svg, strong")).toHaveCount(0);
+    await newest.getByRole("button", { name: names[12] + " 미리보기", exact: true }).click();
+    const current = page.getByRole("region", { name: "현재 네임카드" });
+    await expect(current).toContainText(names[12]);
+    expect((await f.service.from("user_namecard_selections").select("option_id").eq("user_id", f.users[0].id)).data).toEqual([]);
+    await current.getByRole("button", { name: "미리보기 초기화", exact: true }).click();
+    await expect(current).not.toContainText(names[12]);
+    const width = (await newest.boundingBox())!.width;
+    await page.getByRole("button", { name: "다음 페이지", exact: true }).click();
+    await expect.poll(namesOnPage).toEqual([names[0]]);
+    expect((await page.getByRole("article").first().boundingBox())!.width).toBeCloseTo(width, 0);
+    await search.fill(names[13]);
+    await expect(page.getByRole("article")).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "검색 결과가 없습니다." })).toBeVisible();
+    await page.getByRole("button", { name: "검색 지우기" }).click();
+    await expect(search).toHaveValue("");
+    await expect(page.getByRole("article", { name: "칭호 없음", exact: true })).toHaveCount(0);
     await page.screenshot({ path: "test-results/personal-store-desktop.png", fullPage: true, animations: "disabled" });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.screenshot({ path: "test-results/personal-store-mobile.png", fullPage: true, animations: "disabled" });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    await page.goto("/profile/miniroom");
-    await expect(page.getByRole("heading", { name: "404", exact: true })).toBeVisible();
-  } finally { await f.cleanup(); }
+  } finally {
+    await f.cleanup();
+    expect((await f.service.from("nameplate_options").delete().in("id", ids)).error).toBeNull();
+  }
 });
 
 test("클랜 미가입자도 칭호를 구매·적용하며 Premium 프레임은 구매할 수 없다", async ({ page }) => {
@@ -149,8 +135,10 @@ test("클랜 미가입자도 칭호를 구매·적용하며 Premium 프레임은
     await page.getByRole("dialog", { name: "네임카드 디자인 구매", exact: true }).getByRole("button", { name: "구매 확정", exact: true }).click();
     await expect(page.locator('[aria-label="보유 코인"] strong')).toHaveText("10");
     await expect(search).toHaveValue("함께하는 플레이어");
-    await product.getByRole("button", { name: "함께하는 플레이어 적용", exact: true }).click();
-    await expect(product.getByRole("button", { name: "함께하는 플레이어 적용", exact: true })).toHaveText("적용 중");
+    await expect(product).toHaveCount(0);
+    const current = page.getByRole("region", { name: "현재 네임카드" });
+    await current.getByRole("button", { name: "함께하는 플레이어 적용", exact: true }).click();
+    await expect(current.getByRole("button", { name: "함께하는 플레이어 적용", exact: true })).toHaveText("적용 중");
     await expect(page.getByRole("region", { name: "현재 네임카드" })).toContainText("함께하는 플레이어");
     await page.reload();
     await expect(page.getByRole("region", { name: "현재 네임카드" })).toContainText("함께하는 플레이어");
