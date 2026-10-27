@@ -527,6 +527,11 @@
 .clanAccountId { display:grid; gap:5px; margin-top:14px; overflow-wrap:anywhere; }
 .clanAccountId > span:not([data-namecard]) { color:var(--muted-foreground); font-size:10px; }
 .clanAccountId > strong { font-size:17px; font-weight:650; line-height:1.5; overflow-wrap:anywhere; }
+.playerIdentity[data-read-only] .clanProfile { padding:0; border:0; border-radius:0; background:transparent; }
+.playerIdentity[data-read-only] .clanAccountId { margin-top:0; }
+.playerIdentity[data-read-only] .clanProfiles { gap:8px; }
+.playerIdentity[data-read-only] .identityMain { gap:16px; }
+.playerIdentity[data-read-only] .identityFacts { padding-top:14px; }
 @media(max-width:760px) {
   .playerIdentity { padding:16px; gap:16px; }
   .identityMain,.identityAside { gap:16px; }
