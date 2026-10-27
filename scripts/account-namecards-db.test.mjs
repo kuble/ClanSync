@@ -65,6 +65,33 @@ test("account namecards share one appearance across games and titles debit perso
     assert.equal((await ok(owner.from("user_namecard_selections").select("*").eq("user_id", f.users[0].id).eq("category", "emblem"))).length, 1);
     assert.deepEqual(await ok(member.from("user_namecard_selections").select("*").eq("user_id", f.users[0].id)), []);
   });
+  await t.test("art themes and portrait frames compose independently and a rejected set rolls back atomically", async () => {
+    const themes = ["arcade", "tactical", "nebula"];
+    const categories = ["frame", "namebar", "portrait"];
+    for (const theme of themes) {
+      const pieces = categories.map(category => catalog.find(item => item.code === `theme-${theme}-${category}`));
+      assert.equal(pieces.length, 3);
+      for (const piece of pieces) { assert.ok(piece); assert.equal(piece.unlock_source, "default"); assert.equal(piece.price_coins, 0); }
+      await ok(owner.from("user_namecard_selections").upsert(pieces.map(piece => ({ user_id: f.users[0].id, category: piece.category, option_id: piece.id }))));
+      const card = (await read())[f.users[0].id];
+      for (const category of categories) assert.equal(card[category], `theme-${theme}-${category}`);
+    }
+    await ok(equip("emblem", catalog.find(item => item.code === "symbol-crown").id));
+    await ok(equip("namebar", catalog.find(item => item.code === "theme-tactical-namebar").id));
+    assert.equal((await read())[f.users[0].id].portrait, "theme-nebula-portrait");
+    assert.equal((await read())[f.users[0].id].emblem, "symbol-crown");
+    const before = await ok(owner.from("user_namecard_selections").select("category,option_id").order("category"));
+    const rejected = await owner.from("user_namecard_selections").upsert([
+      { user_id: f.users[0].id, category: "frame", option_id: catalog.find(item => item.code === "theme-arcade-frame").id },
+      { user_id: f.users[0].id, category: "portrait", option_id: free.id },
+    ]);
+    assert.ok(rejected.error);
+    assert.deepEqual(await ok(owner.from("user_namecard_selections").select("category,option_id").order("category")), before);
+    assert.ok((await equip("portrait", catalog.find(item => item.code === "theme-nebula-portrait").id, member)).error);
+    await ok(equip("portrait", catalog.find(item => item.code === "portrait-default").id));
+    assert.equal((await read())[f.users[0].id].portrait, "portrait-default");
+    assert.equal((await ok(owner.from("users").select("coin_balance").eq("id", f.users[0].id).single())).coin_balance, 500);
+  });
   await t.test("concurrent repeat purchases charge once; prices, actor, refunds and inventory cannot be forged", async () => {
     const results = await Promise.all([buy(), buy(), buy()]);
     for (const result of results) { assert.equal(result.error, null, result.error?.message); assert.equal(result.data.coinBalance, 320); }

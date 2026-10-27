@@ -6,6 +6,7 @@
 .emblem[data-symbol="symbol-bolt"] { color:#80b5e4; }
 .emblem[data-symbol="symbol-star"] { color:#b79bdc; }
 .emblem[data-symbol="symbol-gamepad"] { color:#77c9ac; }
+.portrait { position:relative; display:grid; place-items:center; width:100%; height:100%; }
 .identity { display:grid; gap:5px; min-width:0; padding:16px 20px; }
 .identity strong { display:block; font-size:17px; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .identity small { color:var(--muted-foreground); font-size:12px; overflow-wrap:anywhere; }
@@ -41,10 +42,15 @@
 .categories button[aria-pressed="true"] { background:color-mix(in srgb,var(--primary) 12%,transparent); color:var(--primary); }
 .categories button:focus-visible,.designOption:focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
 .categories button:disabled,.designOption:disabled { cursor:wait; }
+.categories { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
 .designHeading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .designHeading h3 { font-size:13px; font-weight:650; }
 .designHeading > span { color:var(--muted-foreground); font-size:12px; }
 .designGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.themeGrid { display:grid; gap:12px; }
+.themeGrid .designOption { padding:10px; }
+.designCaption > span:has(small) { display:grid; gap:4px; flex-shrink:1; color:var(--foreground); }
+.designCaption small { color:var(--muted-foreground); font-size:11px; font-weight:400; }
 .designOption { display:grid; gap:14px; min-width:0; padding:14px; border:1px solid var(--border); border-radius:12px; background:var(--card); text-align:left; cursor:pointer; }
 .designOption[aria-pressed="true"] { border-color:var(--primary); box-shadow:inset 0 0 0 1px var(--primary); }
 .designOption:hover:not(:disabled) { background:var(--muted); }
@@ -73,4 +79,41 @@
   .card:has(.accessory) .identity { padding:12px 8px; }
   .card:has(.accessory) .identity strong { font-size:13px; }
   .accessory { padding:8px; }
+}
+
+/* Artwork, outer frame, portrait frame and symbol are independent layers. */
+.card[data-art] { min-height:96px; isolation:isolate; background:#080d19; color:#f6f7fb; }
+.card[data-art]::before { content:""; position:absolute; inset:0; z-index:-1; background-image:linear-gradient(90deg,#030711b3 0%,#03071185 45%,transparent 75%),var(--namecard-art); background-size:100% 100%,cover; background-position:center,right 40%; pointer-events:none; }
+.card[data-art] .emblem { flex-basis:88px; background:transparent; color:#d8e5f7; }
+.card[data-art] .identity { max-width:calc(100% - 88px); padding:14px 12px; text-shadow:0 1px 4px #000; }
+.card[data-art] small { color:#d4dce9; }
+.card[data-art] .identity strong { font-weight:750; }
+.card[data-portrait]:not([data-portrait="default"]) .emblem { flex:0 0 88px; padding:8px; background:transparent; }
+.card[data-portrait]:not([data-portrait="default"]) .portrait { width:72px; height:72px; background:#111827d9; color:#dbe6f8; }
+.card[data-portrait="nebula"] .portrait { border-radius:50%; }
+.card[data-portrait]:not([data-portrait="default"]) .portrait::after { content:""; position:absolute; inset:-4px; background-image:url('/namecards/v1/portraits.webp'); background-size:300% 100%; background-repeat:no-repeat; pointer-events:none; }
+.card[data-portrait="arcade"] .portrait::after { background-position:left center; }
+.card[data-portrait="tactical"] .portrait::after { background-position:center; }
+.card[data-portrait="nebula"] .portrait::after { background-position:right center; }
+.card[data-portrait]:not([data-portrait="default"]) .portrait svg { width:38px; height:38px; filter:drop-shadow(0 2px 2px #0008); }
+.card[data-portrait] .emblem[data-symbol="symbol-crown"] .portrait { color:#f5ce6c; }
+.card[data-portrait] .emblem[data-symbol="symbol-flame"] .portrait { color:#ffad7c; }
+.card[data-portrait] .emblem[data-symbol="symbol-bolt"] .portrait { color:#a6d8ff; }
+.card[data-portrait] .emblem[data-symbol="symbol-star"] .portrait { color:#d6b8ff; }
+.card[data-portrait] .emblem[data-symbol="symbol-gamepad"] .portrait { color:#9bf4d0; }
+.card[data-frame="theme-arcade-frame"] { border:2px solid #555183; border-radius:9px; box-shadow:inset 0 0 0 2px #141a35,inset 0 3px 0 #a34ec488,inset 0 -3px 0 #42c6de66; }
+.card[data-frame="theme-tactical-frame"] { border:3px ridge #737872; border-radius:4px; box-shadow:inset 0 0 0 2px #171d17,inset 0 5px 0 #c6a25c66,inset 0 -5px 0 #0d1415; }
+.card[data-frame="theme-nebula-frame"] { border:2px solid #cbaa68; border-radius:12px; box-shadow:inset 0 0 0 2px #172440,inset 0 0 0 3px #cbaa6844; }
+.card[data-art][data-compact="true"] { min-height:48px; }
+.card[data-compact="true"][data-art] .identity { padding:6px 8px; max-width:calc(100% - 44px); }
+.card[data-compact="true"][data-art] .emblem { flex-basis:44px; }
+.card[data-compact="true"][data-portrait]:not([data-portrait="default"]) .emblem { flex-basis:44px; padding:5px; }
+.card[data-compact="true"][data-portrait]:not([data-portrait="default"]) .portrait { width:34px; height:34px; }
+.card[data-compact="true"][data-portrait]:not([data-portrait="default"]) .portrait::after { inset:-2px; }
+.card[data-compact="true"][data-portrait]:not([data-portrait="default"]) .portrait svg { width:19px; height:19px; }
+@media(max-width:600px) {
+  .card[data-art] { min-height:84px; }
+  .card[data-art] .identity { padding:12px 8px; }
+  .card[data-art] .identity strong { font-size:14px; }
+  .themeGrid .designCaption { font-size:12px; }
 }

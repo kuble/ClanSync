@@ -38,7 +38,8 @@ test("개인 상점은 여러 게임 클랜의 공통 잔액을 사용하고 프
     await page.getByRole("link", { name: "프로필", exact: true }).click();
     await page.getByRole("button", { name: "네임카드 꾸미기", exact: true }).click();
     const editor = page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true });
-    const frameDesign = editor.getByRole("group", { name: "네임카드 프레임 디자인", exact: true }).getByRole("button").filter({ has: page.locator('[data-frame="entrance"]') });
+    await editor.getByRole("group", { name: "네임카드 꾸미기 분류", exact: true }).getByRole("button", { name: "카드 프레임", exact: true }).click();
+    const frameDesign = editor.getByRole("group", { name: "네임카드 카드 프레임 디자인", exact: true }).getByRole("button").filter({ has: page.locator('[data-frame="entrance"]') });
     await expect(frameDesign).toHaveAttribute("aria-pressed", "false");
     await frameDesign.click();
     await expect(editor.getByRole("status")).toContainText("저장했습니다");

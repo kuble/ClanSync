@@ -85,14 +85,15 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     const editor = page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true });
     await expect(editor.getByRole("combobox")).toHaveCount(0);
     const currentCard = editor.getByRole("region", { name: "현재 네임카드", exact: true }).locator("[data-namecard]");
-    await expect(editor.getByRole("group", { name: "네임카드 프레임 디자인", exact: true }).getByRole("button")).toHaveCount(7);
-    await editor.getByRole("button", { name: "프레임 듀얼 라인 적용", exact: true }).click();
+    await editor.getByRole("group", { name: "네임카드 꾸미기 분류", exact: true }).getByRole("button", { name: "카드 프레임", exact: true }).click();
+    await expect(editor.getByRole("group", { name: "네임카드 카드 프레임 디자인", exact: true }).getByRole("button")).toHaveCount(10);
+    await editor.getByRole("button", { name: "카드 프레임 듀얼 라인 적용", exact: true }).click();
     await expect(editor.getByRole("status")).toContainText("저장했습니다");
     await expect(currentCard).toHaveAttribute("data-frame", "starter-frame-double");
     const categories = editor.getByRole("group", { name: "네임카드 꾸미기 분류", exact: true });
-    await categories.getByRole("button", { name: "이름표", exact: true }).click();
-    await expect(editor.getByRole("group", { name: "네임카드 이름표 디자인", exact: true }).getByRole("button")).toHaveCount(7);
-    await editor.getByRole("button", { name: "이름표 오로라 적용", exact: true }).click();
+    await categories.getByRole("button", { name: "배경", exact: true }).click();
+    await expect(editor.getByRole("group", { name: "네임카드 배경 디자인", exact: true }).getByRole("button")).toHaveCount(10);
+    await editor.getByRole("button", { name: "배경 오로라 적용", exact: true }).click();
     await expect(editor.getByRole("status")).toContainText("저장했습니다");
     await expect(currentCard).toHaveAttribute("data-namebar", "starter-namebar-aurora");
     await page.screenshot({ path: test.info().outputPath("namecard-starter-backgrounds.png"), fullPage: false });
@@ -167,6 +168,14 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await expect(gameCard).toHaveAttribute("data-namebar", "starter-namebar-aurora");
     await expect(page.getByRole("toolbar", { name: "네임카드 도구", exact: true })).toHaveCount(1);
 
+    await page.getByRole("button", { name: "네임카드 꾸미기", exact: true }).click();
+    await editor.getByRole("group", { name: "네임카드 꾸미기 분류", exact: true }).getByRole("button", { name: "테마", exact: true }).click();
+    await editor.getByRole("button", { name: "성운 항해 테마 적용", exact: true }).click();
+    await expect(currentCard).toHaveAttribute("data-portrait", "nebula");
+    await expect(currentCard.locator('[data-symbol="symbol-crown"]')).toBeVisible();
+    await expect(currentCard).toContainText("함께하는 플레이어");
+    await page.keyboard.press("Escape");
+
     await page.goto(`/games/overwatch/clan/${f.clanId}/store`);
     await expect(page.getByRole("heading", { name: "함께하는 플레이어", exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "낮은 원목 테이블 구매", exact: true })).toHaveCount(0);
@@ -183,7 +192,8 @@ test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 
     await expect(member.getByTestId("clan-balance-session-panel").locator("[data-namecard]").getByText(battleTag, { exact: true })).toBeVisible();
     await expect(member.getByTestId("clan-balance-session-panel").locator("[data-namecard]").getByText("함께하는 플레이어", { exact: true })).toBeVisible();
     await expect(member.getByTestId("clan-balance-session-panel").locator('[data-namecard] [data-symbol="symbol-crown"]')).toBeVisible();
-    await expect(member.getByTestId("clan-balance-session-panel").locator('[data-namecard][data-frame="starter-frame-double"][data-namebar="starter-namebar-aurora"]')).toBeVisible();
+    await expect(member.getByTestId("clan-balance-session-panel").locator('[data-namecard][data-art="nebula"][data-portrait="nebula"]')).toBeVisible();
+    await expect(member.getByTestId("clan-balance-session-panel").locator('[data-namecard][data-frame="theme-nebula-frame"][data-namebar="theme-nebula-namebar"]')).toBeVisible();
     expect((await f.service.from("balance_sessions").update({ phase: "match_live", resolved_map_label: "부산" }).eq("id", session.id)).error).toBeNull();
     await page.reload();
     await expect(panel.locator("[data-namecard]").getByText(battleTag, { exact: true })).toBeVisible();

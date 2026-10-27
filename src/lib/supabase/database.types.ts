@@ -3973,7 +3973,7 @@ export type Database = {
         | "canceled"
         | "expired"
       lfg_post_status: "open" | "filled" | "expired" | "canceled"
-      nameplate_category: "emblem" | "namebar" | "sub" | "frame"
+      nameplate_category: "emblem" | "namebar" | "sub" | "frame" | "portrait"
       nameplate_unlock_source: "default" | "event" | "store" | "achievement"
       notification_channel: "inapp" | "discord" | "kakao" | "web_push"
       notification_slot_kind:
@@ -4179,7 +4179,7 @@ export const Constants = {
         "expired",
       ],
       lfg_post_status: ["open", "filled", "expired", "canceled"],
-      nameplate_category: ["emblem", "namebar", "sub", "frame"],
+      nameplate_category: ["emblem", "namebar", "sub", "frame", "portrait"],
       nameplate_unlock_source: ["default", "event", "store", "achievement"],
       notification_channel: ["inapp", "discord", "kakao", "web_push"],
       notification_slot_kind: [
