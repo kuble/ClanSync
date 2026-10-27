@@ -18,6 +18,25 @@ test("그림 테마의 원자적 저장·심벌/초상 프레임 교차 조합·
     await expect(current).toContainText(battleTag);
     const categories = editor.getByRole("group", { name: "네임카드 꾸미기 분류", exact: true });
     const themes = [["arcade", "심야 아케이드"], ["tactical", "전술 기록"], ["nebula", "성운 항해"]];
+    for (const width of [1280, 390, 320]) {
+      await page.setViewportSize({ width, height: 1000 });
+      const previews = editor.getByRole("group", { name: "네임카드 테마 디자인", exact: true }).locator("[data-namecard]");
+      await expect(previews.locator('[data-symbol-art="shield"]')).toHaveCount(3);
+      await expect.poll(() => previews.locator("img").evaluateAll(images => images.every(node => (node as HTMLImageElement).complete && (node as HTMLImageElement).naturalWidth > 0))).toBe(true);
+      const geometry = await previews.evaluateAll(cards => cards.map(card => {
+        const bounds = card.getBoundingClientRect(), symbol = card.querySelector('[data-symbol-art]')!.getBoundingClientRect(), frame = card.querySelector('[data-portrait-frame]')!.getBoundingClientRect();
+        return { radius: getComputedStyle(card).borderTopLeftRadius, border: getComputedStyle(card).borderLeftWidth, height: bounds.height,
+          x: symbol.x + symbol.width / 2 - bounds.x, y: symbol.y + symbol.height / 2 - bounds.y,
+          frameX: frame.x + frame.width / 2 - bounds.x, frameY: frame.y + frame.height / 2 - bounds.y,
+          nameX: card.querySelector("strong")!.getBoundingClientRect().x - bounds.x };
+      }));
+      for (const value of geometry) {
+        expect(value.radius).toBe("12px"); expect(value.border).toBe("2px");
+        for (const key of ["height", "x", "y", "frameX", "frameY", "nameX"] as const) expect(value[key]).toBeCloseTo(geometry[0][key], 1);
+        expect(value.x).toBeCloseTo(value.frameX, 1); expect(value.y).toBeCloseTo(value.frameY, 1);
+      }
+    }
+    await page.setViewportSize({ width: 1280, height: 1000 });
     for (const [id, name] of themes) {
       await editor.getByRole("button", { name: `${name} 테마 적용`, exact: true }).click();
       await expect(editor.getByRole("status")).toContainText("저장했습니다");
