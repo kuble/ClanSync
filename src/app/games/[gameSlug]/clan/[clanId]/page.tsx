@@ -31,7 +31,7 @@ export default async function MainClanDashboardPage({
   }
   return (
     <>
-      <ClanHero ctx={ctx} basePath={`/games/${gameSlug}/clan/${clanId}`} showLobbyAction={false} communityLinks={<ClanCommunityLinks links={model.communityLinks} />}>
+      <ClanHero ctx={ctx} basePath={`/games/${gameSlug}/clan/${clanId}`} showLobbyAction={false} communityLinks={<ClanCommunityLinks links={model.communityLinks} discordEntryHref={model.discordConnected !== false ? `/games/${gameSlug}/clan/${clanId}/discord` : undefined} />}>
         <ClanHeroBadges collection={badgeCollection} href={`/games/${gameSlug}/clan/${clanId}/badges`} />
       </ClanHero>
       <ClanDashboard

@@ -38,6 +38,7 @@ export type ClanDashboardModel = {
   completedIntraCount: number | null;
   previousMonth: string;
   communityLinks: ClanCommunityLinks;
+  discordConnected: boolean | null;
   mvp: {
     winRate: DashboardMvp[];
     participation: DashboardMvp[];
@@ -77,7 +78,7 @@ export async function loadClanDashboard(
   const monthStart = new Date(Date.UTC(y, m - 2, 1, -9));
   const monthEnd = new Date(Date.UTC(y, m - 1, 1, -9));
   const month = toKstParts(monthStart);
-  const [clan, polls, events, settings, notices, history] = await Promise.all([
+  const [clan, polls, events, settings, notices, history, discord] = await Promise.all([
     supabase
       .from("clans")
       .select("rules, created_at, discord_url, kakao_url")
@@ -116,6 +117,7 @@ export async function loadClanDashboard(
       .order("created_at", { ascending: false })
       .limit(3),
     loadClanHistory(eventClient, clanId),
+    eventClient.from("clan_discord_connections").select("clan_id").eq("clan_id", clanId).maybeSingle(),
   ]);
   if (!clan.data) return null;
 
@@ -151,6 +153,7 @@ export async function loadClanDashboard(
     completedIntraCount: history.completedRegular,
     previousMonth: `${month.y}년 ${month.m}월`,
     communityLinks: readClanCommunityLinks(settings.data?.community_links, settings.data ? clan.data : undefined),
+    discordConnected: discord.error ? null : !!discord.data,
     mvp: { winRate: [], participation: [], prediction: [] },
     errors: {
       notices: !!polls.error || !!notices.error,

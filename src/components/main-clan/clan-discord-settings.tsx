@@ -87,7 +87,7 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
           </div>
           <div id="discord-notification-details" hidden={!enabled} className="mx-5 mb-5 border-l-2 border-primary/25 pl-4 sm:pl-5">
           <div className="overflow-hidden rounded-lg border border-border/70 bg-background/30">
-          <div className="space-y-2 border-b border-border/70 p-4"><div id="discord-channel-label" className="text-[13px] font-semibold"><HelpText label="기본 알림 채널" help="봇에 채널 보기·메시지 보내기·링크 임베드 권한이 있는 채널을 선택하세요. 종류별 채널 분리는 선택 사항입니다. 기존 봇에 권한이 없다면 서버 다시 연결로 추가할 수 있습니다." /></div>
+          <div className="space-y-2 border-b border-border/70 p-4"><div id="discord-channel-label" className="text-[13px] font-semibold"><HelpText label="기본 알림 채널" help="봇에 채널 보기·메시지 보내기·링크 임베드 권한이 있는 채널을 선택하세요. Discord 자동 입장에도 이 채널을 사용하며 초대 생성 권한이 필요합니다. 권한이 없다면 서버 다시 연결로 추가할 수 있습니다." /></div>
             <div className="flex items-center justify-between gap-4">
             <select aria-labelledby="discord-channel-label" id="discord-channel" name="discord_channel_id" value={channelId} onChange={(event) => autosave.update((current) => ({ ...current, channelId: event.target.value }))} disabled={channelDisabled} className={selectClass}>
               <option value="">{loading ? "채널 불러오는 중…" : "채널 선택"}</option>

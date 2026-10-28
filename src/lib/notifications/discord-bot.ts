@@ -4,6 +4,8 @@ const API = "https://discord.com/api/v10";
 export const isDiscordId = (value: string) => /^\d{17,20}$/.test(value);
 // View Channel + Send Messages + Embed Links, including channel overwrites.
 export const DISCORD_SEND_PERMISSIONS = BigInt(19456);
+export const DISCORD_CONNECT_PERMISSIONS = DISCORD_SEND_PERMISSIONS | BigInt(1);
+const DISCORD_INVITE_PERMISSIONS = BigInt(1025); // View Channel + Create Instant Invite.
 
 export function discordBotConfigured() {
   return !!(process.env.DISCORD_BOT_TOKEN && process.env.DISCORD_CLIENT_SECRET &&
@@ -27,7 +29,7 @@ type Overwrite = { id: string; type: number; allow: string; deny: string };
 export type DiscordChannel = { id: string; name: string; type: number; guild_id?: string; permission_overwrites?: Overwrite[] };
 
 /** Discord's everyone → combined role overwrites → member overwrite hierarchy. */
-export function canBotSend(guildId: string, botId: string, memberRoles: string[], roles: Role[], channel: DiscordChannel) {
+function hasBotChannelPermissions(guildId: string, botId: string, memberRoles: string[], roles: Role[], channel: DiscordChannel, required: bigint) {
   if (![0, 5].includes(channel.type)) return false;
   const ownRoles = new Set([guildId, ...memberRoles]);
   let permissions = roles.filter((role) => ownRoles.has(role.id)).reduce((bits, role) => bits | BigInt(role.permissions), BigInt(0));
@@ -41,10 +43,14 @@ export function canBotSend(guildId: string, botId: string, memberRoles: string[]
   permissions = permissions & ~deny | allow;
   const member = overwrites.find((entry) => entry.type === 1 && entry.id === botId);
   if (member) permissions = permissions & ~BigInt(member.deny) | BigInt(member.allow);
-  return (permissions & DISCORD_SEND_PERMISSIONS) === DISCORD_SEND_PERMISSIONS;
+  return (permissions & required) === required;
 }
 
-export async function listDiscordBotChannels(guildId: string) {
+export function canBotSend(guildId: string, botId: string, memberRoles: string[], roles: Role[], channel: DiscordChannel) {
+  return hasBotChannelPermissions(guildId, botId, memberRoles, roles, channel, DISCORD_SEND_PERMISSIONS);
+}
+
+async function listBotChannels(guildId: string, required: bigint) {
   if (!isDiscordId(guildId)) throw new Error("Invalid Discord guild");
   const auth = botAuthorization();
   const bot = await request<{ id: string }>("/users/@me", auth);
@@ -53,8 +59,31 @@ export async function listDiscordBotChannels(guildId: string) {
     request<{ roles: string[] }>(`/guilds/${guildId}/members/${bot.id}`, auth),
     request<DiscordChannel[]>(`/guilds/${guildId}/channels`, auth),
   ]);
-  return { guildName: guild.name, channels: channels.filter((channel) => canBotSend(guildId, bot.id, member.roles, guild.roles, channel))
+  return { guildName: guild.name, channels: channels.filter((channel) => hasBotChannelPermissions(guildId, bot.id, member.roles, guild.roles, channel, required))
     .map(({ id, name }) => ({ id, name })) };
+}
+
+export async function listDiscordBotChannels(guildId: string) {
+  return listBotChannels(guildId, DISCORD_SEND_PERMISSIONS);
+}
+
+export async function createDiscordGuildInvite(guildId: string, preferredChannelId: string | null) {
+  if (!isDiscordId(guildId) || (preferredChannelId !== null && !isDiscordId(preferredChannelId))) throw new Error("Invalid Discord destination");
+  let channelId = preferredChannelId;
+  if (channelId) {
+    const channel = await request<DiscordChannel>(`/channels/${channelId}`, botAuthorization());
+    if (channel.id !== channelId || channel.guild_id !== guildId || ![0, 5].includes(channel.type)) throw new Error("Invalid Discord destination");
+  } else {
+    channelId = (await listBotChannels(guildId, DISCORD_INVITE_PERMISSIONS)).channels[0]?.id ?? null;
+  }
+  if (!channelId || !isDiscordId(channelId)) throw new Error("Discord invite permission required");
+  // Discord reuses a matching valid invite; expired/deleted invites are recreated on entry.
+  const invite = await request<{ code: string; guild: { id: string }; channel: { id: string } }>(`/channels/${channelId}/invites`, botAuthorization(), {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ max_age: 86400, max_uses: 0, temporary: false, unique: false }),
+  });
+  if (typeof invite.code !== "string" || !/^[\w-]{1,100}$/.test(invite.code) || invite.guild?.id !== guildId || invite.channel?.id !== channelId) throw new Error("Invalid Discord invite");
+  return `https://discord.gg/${invite.code}`;
 }
 
 export async function exchangeDiscordBotCode(code: string) {

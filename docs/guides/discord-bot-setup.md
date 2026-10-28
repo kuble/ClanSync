@@ -13,8 +13,14 @@ QA에 공용 봇 연결, 기본/종류별 채널, 내전·일정·공지·투표
 1. [Discord Developer Portal](https://discord.com/developers/applications)에서 ClanSync 앱의 Bot을 준비한다. Public Bot과 OAuth2 Code Grant를 설정한다. REST 발송이므로 Gateway와 Message Content Intent는 필요하지 않다.
 2. OAuth2 Redirects에 `{사이트 주소}/api/discord/callback`을 등록한다. QA 리더는 `http://localhost:3011/api/discord/callback`이다. 초대 시작·콜백 호스트가 같아야 로그인/state 쿠키가 유지된다.
 3. 서버에 `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_BOT_TOKEN`, `DISCORD_REDIRECT_URI`를 설정한다. `NEXT_PUBLIC_SITE_URL`에는 수신자가 접속할 실제 사이트 주소를 설정한다. localhost 링크는 개발 PC에서만 열린다. 비밀값은 NEXT_PUBLIC 변수·채팅·문서·커밋에 넣지 않는다.
-4. 클랜장이 `Discord 연결하기`에서 서버를 선택한다. `bot guilds` 범위와 View Channel + Send Messages + Embed Links(19456)를 요청하며 콜백에서 클랜장 및 Discord 서버 관리 권한을 다시 확인한다. 기존 연결에 링크 임베드 권한이 없다면 `서버 다시 연결`로 권한을 추가하거나 Discord에서 해당 봇/채널 권한을 설정한다.
+4. 클랜장이 `Discord 연결하기`에서 서버를 선택한다. `bot guilds` 범위와 Create Instant Invite + View Channel + Send Messages + Embed Links(19457)를 요청하며 콜백에서 클랜장 및 Discord 서버 관리 권한을 다시 확인한다. 기존 연결에 초대 생성·링크 임베드 권한이 없다면 `서버 다시 연결`로 권한을 추가하거나 Discord에서 해당 봇/채널 권한을 설정한다.
 5. `Discord 알림 사용` 오른쪽 토글을 켜면 들여쓰기와 연결선 아래에 기본 채널·세부 알림 설정이 펼쳐진다. 기본 채널 하나를 선택하고 원하는 종류만 별도 채널로 분리하거나 토글을 끈다. 끄면 하위 설정을 접으며 채널·종류별 선택은 보존한다. 발송 가능한 텍스트/공지 채널만 표시하고 자동 저장 시 모든 채널 권한을 확인한다. 봇/채널 조회 실패 중에도 알림 끄기는 가능하다. 다른 Discord 서버로 변경하면 이전 종류별 채널 선택을 초기화한다.
+
+## 대시보드 자동 입장
+
+봇 연결이 있는 클랜의 Discord 아이콘과 채팅방 설정의 `봇 연결됨 · 자동 입장`은 고정된 클랜 내부 주소를 연다. 로그인·활성 클랜원 확인 후 기본 알림 채널(미지정이면 초대 생성이 가능한 첫 텍스트/공지 채널)에 24시간·횟수 무제한 초대를 요청해 Discord로 이동한다. `unique:false`로 기존 초대를 재사용하며 만료·삭제되면 다음 입장 때 새로 만든다. Discord 초대 수락은 사용자가 진행한다. 알림 토글이 꺼져 있어도 입장은 가능하다.
+
+미연결 클랜은 직접 등록한 링크를 사용한다. 자동 입장 중에는 수동 입력란을 숨기되 저장된 주소는 보관한다. 봇/채널 권한 부족·API 장애는 재시도 화면으로 안내하며 다른 서버일 수 있는 수동 주소로 우회하지 않는다. 별도 초대 저장 테이블·갱신 워커·운영 DB 변경은 없다.
 
 ## 종류별 발송
 

@@ -5,8 +5,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { ChatServiceIcon } from "./chat-service-icon";
 import styles from "./main-clan-shell.module.css";
 
-export function ClanCommunityLinks({ links }: { links: ClanCommunityLinks }) {
+export function ClanCommunityLinks({ links, discordEntryHref }: { links: ClanCommunityLinks; discordEntryHref?: string }) {
   const safeLinks = readClanCommunityLinks(links);
+  if (discordEntryHref) safeLinks.discord = discordEntryHref;
   const services = CHAT_SERVICES.filter(({ id }) => safeLinks[id]);
   if (!services.length) return null;
   return <nav aria-label="클랜 채팅방" className="mt-2 flex max-w-full flex-wrap items-center gap-1.5">

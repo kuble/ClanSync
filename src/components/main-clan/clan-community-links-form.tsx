@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ChatServiceIcon } from "./chat-service-icon";
 
-export function ClanCommunityLinksForm({ gameSlug, clanId, initialLinks, canEdit }: { gameSlug: string; clanId: string; initialLinks: ClanCommunityLinks; canEdit: boolean }) {
+export function ClanCommunityLinksForm({ gameSlug, clanId, initialLinks, canEdit, discordConnected }: { gameSlug: string; clanId: string; initialLinks: ClanCommunityLinks; canEdit: boolean; discordConnected: boolean }) {
   const [links, setLinks] = useState(initialLinks);
   const [saved, setSaved] = useState(initialLinks);
   const [error, setError] = useState("");
@@ -39,6 +39,10 @@ export function ClanCommunityLinksForm({ gameSlug, clanId, initialLinks, canEdit
     <form onSubmit={submit} className="mt-5 space-y-4" noValidate>
       <div className="grid gap-4 lg:grid-cols-2">
         {CHAT_SERVICES.map(({ id, label, example }) => {
+          if (id === "discord" && discordConnected) return <div key={id} className="min-w-0 space-y-2">
+            <div className="flex items-center gap-2 text-xs font-medium"><ChatServiceIcon service="discord" />Discord</div>
+            <a href={`/games/${gameSlug}/clan/${clanId}/discord`} target="_blank" rel="noopener noreferrer" aria-label="Discord 열기" className="flex h-8 items-center justify-between gap-2 rounded-lg border border-input bg-muted/30 px-3 text-xs text-primary hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"><span>봇 연결됨 · 자동 입장</span><ExternalLink className="size-3.5 shrink-0" aria-hidden /></a>
+          </div>;
           const href = normalizeChatInviteUrl(id, links[id]);
           return <div key={id} className="min-w-0 space-y-2">
             <Label htmlFor={`chat-${id}`} className="flex items-center gap-2 text-xs"><ChatServiceIcon service={id} />{label}</Label>

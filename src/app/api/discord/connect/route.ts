@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { discordBotConfigured, DISCORD_SEND_PERMISSIONS } from "@/lib/notifications/discord-bot";
+import { discordBotConfigured, DISCORD_CONNECT_PERMISSIONS } from "@/lib/notifications/discord-bot";
 import { discordConnectionLeader } from "@/lib/notifications/discord-connection";
 
 export async function GET(request: Request) {
@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   const state = randomUUID();
   const target = new URL("https://discord.com/oauth2/authorize");
   target.search = new URLSearchParams({ client_id: process.env.DISCORD_CLIENT_ID!, scope: "bot guilds", response_type: "code",
-    redirect_uri: process.env.DISCORD_REDIRECT_URI!, permissions: DISCORD_SEND_PERMISSIONS.toString(), state, integration_type: "0" }).toString();
+    redirect_uri: process.env.DISCORD_REDIRECT_URI!, permissions: DISCORD_CONNECT_PERMISSIONS.toString(), state, integration_type: "0" }).toString();
   const response = NextResponse.redirect(target);
   response.cookies.set("clansync-discord-state", JSON.stringify({ state, clanId, actorId: actor.user.id, gameSlug: actor.gameSlug }),
     { httpOnly: true, sameSite: "lax", secure: new URL(request.url).protocol === "https:", path: "/api/discord", maxAge: 600 });

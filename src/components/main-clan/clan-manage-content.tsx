@@ -59,7 +59,7 @@ async function NotificationSettings({ ctx, connectionResult }: Pick<Props, "ctx"
   if (settings.error || connection.error || profile.error) throw new Error("알림 설정을 불러오지 못했습니다.");
   const notify = readClanEventNotifySettings(settings.data.event_notify);
   return <div className="space-y-5">
-    <ClanCommunityLinksForm key={`${ctx.clanId}:${ctx.role}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} canEdit={ctx.role === "leader"} initialLinks={readClanCommunityLinks(settings.data.community_links, profile.data)} />
+    <ClanCommunityLinksForm key={`${ctx.clanId}:${ctx.role}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} canEdit={ctx.role === "leader"} initialLinks={readClanCommunityLinks(settings.data.community_links, profile.data)} discordConnected={!!connection.data} />
     <ClanDiscordSettings key={`${ctx.clanId}:${ctx.role}:${ctx.plan}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} canEdit={ctx.role === "leader"} premium={ctx.plan === "premium"}
     botConfigured={discordBotConfigured()} connection={connection.data} discordEnabled={notify.discord_enabled}
     routes={readDiscordNotificationRoutes(settings.data.event_notify)} connectionResult={connectionResult} />
