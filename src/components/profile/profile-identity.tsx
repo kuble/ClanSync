@@ -16,8 +16,8 @@ export type ProfileGameIdentity = { gameSlug: string; gameName: string; accountI
 export type ProfileMembership = ProfileGameIdentity & { clanId: string; clanName: string; role: string };
 type ProfileSlide = ProfileGameIdentity & Partial<Pick<ProfileMembership, "clanId" | "clanName" | "role">>;
 
-export function ProfileIdentity({ userId, intro, memberships, games = [], namecard, publicAppearance, readOnly = false, introPlaceholder, emblemCase, children, onAltAccountsChanged }: {
-  userId: string; intro: string; memberships: ProfileMembership[]; games?: ProfileGameIdentity[]; namecard?: NamecardResult; publicAppearance?: NamecardAppearance; readOnly?: boolean; introPlaceholder?: ReactNode; emblemCase?: ReactNode; children?: ReactNode; onAltAccountsChanged?: () => void;
+export function ProfileIdentity({ userId, intro, memberships, games = [], namecard, publicAppearance, readOnly = false, introPlaceholder, emblemCase, photoSettings, children, onAltAccountsChanged }: {
+  userId: string; intro: string; memberships: ProfileMembership[]; games?: ProfileGameIdentity[]; namecard?: NamecardResult; publicAppearance?: NamecardAppearance; readOnly?: boolean; introPlaceholder?: ReactNode; emblemCase?: ReactNode; photoSettings?: ReactNode; children?: ReactNode; onAltAccountsChanged?: () => void;
 }) {
   const trackId = useId();
   const track = useRef<HTMLDivElement>(null);
@@ -61,6 +61,7 @@ export function ProfileIdentity({ userId, intro, memberships, games = [], nameca
     </div> : <div className={styles.playerClan}>{!namecard && <h2 className={styles.identityHeading}>게임 프로필</h2>}{tools && <div className={styles.clanProfileHeading}>{tools}</div>}<Namecard displayName="Player" {...appearance} />{!readOnly && <><p>클랜에서 함께한 기록이 이곳에 쌓입니다.</p><Link href="/games" className={styles.playerClanLink}>클랜 찾아보기</Link></>}</div>;
   return <section className={styles.playerIdentity} data-read-only={readOnly || undefined} aria-label="플레이어 소개">
     <div className={styles.identityMain}>
+      {photoSettings}
       {namecard && !readOnly ? <ProfileNamecard initial={namecard} displayName={profiles[current]?.accountId || "Player"}>{gameProfiles}</ProfileNamecard> : gameProfiles()}
       {children}
     </div>

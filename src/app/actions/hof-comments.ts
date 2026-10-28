@@ -41,7 +41,7 @@ export async function listHofCommentsAction(thread: HofCommentThread, cursor: Cu
   const last = rows.at(-1);
   return {
     ok: true,
-    comments: rows.map((row) => ({ id: row.id, content: row.content, createdAt: row.created_at,
+    comments: rows.map((row) => ({ id: row.id, content: row.content, createdAt: row.created_at, authorId: row.author_id,
       nickname: row.author_id ? nicknames.get(row.author_id) ?? "이전 멤버" : "탈퇴한 멤버",
       isMine: row.author_id === ctx.user.id, canDelete: ctx.isStaff || row.author_id === ctx.user.id, reactions: reactions.get(row.id) ?? [],emojiReactions:custom.data!.filter(r=>r.target_id===row.id).map(r=>({emoji_id:r.emoji_id,total:Number(r.total),mine:r.mine})) })),
     nextCursor: result.data.length > HOF_COMMENT_PAGE_SIZE && last ? { createdAt: last.created_at, id: last.id } : null,
@@ -58,7 +58,7 @@ export async function addHofCommentAction(thread: HofCommentThread, content: str
     .select("id, content, created_at").single();
   if (error) return { ok: false, error: "댓글을 등록하지 못했습니다. 다시 시도해 주세요." };
   const { data: profile } = await ctx.supabase.from("users").select("nickname").eq("id", ctx.user.id).maybeSingle();
-  return { ok: true, comment: { id: data.id, content: data.content, createdAt: data.created_at, nickname: profile?.nickname ?? "나", isMine: true, canDelete: true, reactions: [], emojiReactions:[] } };
+  return { ok: true, comment: { id: data.id, content: data.content, createdAt: data.created_at, authorId: ctx.user.id, nickname: profile?.nickname ?? "나", isMine: true, canDelete: true, reactions: [], emojiReactions:[] } };
 }
 
 async function readReactions(supabase: SupabaseClient<Database>, commentIds: string[]) {

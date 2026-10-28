@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { ClanNamecards } from "@/lib/profile/namecard";
 import { CLANSYNC_NAMEPLATE_CHANGED } from "@/lib/profile-decoration-sync";
 import { Namecard } from "./namecard";
+import { PlayerAvatar } from "./player-avatar";
 
 const RecordPath = createContext<string | null>(null);
 const Cards = createContext<ClanNamecards>({});
@@ -23,6 +24,10 @@ export function useClanNamecard(userId?: string | null) {
   return useContext(Cards)[userId ?? ""];
 }
 export function useNamecardDecorationHidden() { return useContext(HideDecoration); }
+export function ClanPlayerAvatar({ userId, label }: { userId?: string | null; label: string }) {
+  const card = useClanNamecard(userId);
+  return <PlayerAvatar photoUrl={card?.photoUrl} emblem={card?.emblem} label={label}/>;
+}
 export function ClanPlayerNamecard({ userId, fallback, fill = false, children }: { userId?: string | null; fallback: string; fill?: boolean; children?: ReactNode }) {
   const card = useClanNamecard(userId);
   const hide = useContext(HideDecoration);

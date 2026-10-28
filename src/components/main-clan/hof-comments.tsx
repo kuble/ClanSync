@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatsScrollArea } from "./stats-scroll-area";
 import { ClanEmojiInput, ClanEmojiText } from "./clan-emoji-content";
 import { ClanEmojiReactions, EmojiReactionButton } from "./clan-emoji-reactions";
+import { ClanPlayerAvatar } from "@/components/profile/clan-namecards";
 
 const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric", weekday: "long" });
 const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" });
@@ -125,7 +126,7 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
         {comments.length ? <ol className="space-y-5">{chronological.map(({ comment, day }, index) => <li key={comment.id} className="space-y-3">
           {(index === 0 || chronological[index - 1].day !== day) && <div role="separator" aria-label={day} className="flex items-center gap-3 py-1 text-[10px] text-muted-foreground"><span className="h-px flex-1 bg-border"/><span>{day}</span><span className="h-px flex-1 bg-border"/></div>}
           <div data-comment-row className={`flex items-start gap-2.5 ${comment.isMine ? "flex-row-reverse" : ""}`}>
-          <span aria-hidden="true" className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-xs font-black text-primary">{Array.from(comment.nickname)[0]}</span>
+          <ClanPlayerAvatar userId={comment.authorId} label={comment.nickname}/>
           <div className="min-w-0 flex-1 space-y-1.5">
             <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] ${comment.isMine ? "justify-end" : ""}`}><strong className="max-w-full truncate text-xs">{comment.nickname}</strong><time dateTime={comment.createdAt} title={`${day} ${timeFormat.format(new Date(comment.createdAt))}`} className="text-muted-foreground">{timeFormat.format(new Date(comment.createdAt))}</time>{comment.canDelete && <Button type="button" variant="ghost" size="icon-xs" className={`${comment.isMine ? "" : "ml-auto"} text-muted-foreground hover:text-destructive`} disabled={busy} aria-label={`${comment.nickname} 댓글 삭제`} title="댓글 삭제" onClick={() => setConfirmDelete(comment.id)}><Trash2 className="size-3.5" aria-hidden="true"/></Button>}</div>
             <p className={`w-fit max-w-[85%] whitespace-pre-wrap break-words rounded-xl border px-3 py-2.5 text-sm leading-relaxed [overflow-wrap:anywhere] ${comment.isMine ? "ml-auto rounded-tr-sm border-primary/25 bg-primary/15" : "rounded-tl-sm bg-background/50"}`}><ClanEmojiText text={comment.content}/></p>

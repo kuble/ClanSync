@@ -1,14 +1,13 @@
 import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
-import { NAMECARD_THEMES, type NamecardAppearance, type NamecardCategory } from "@/lib/profile/namecard";
+import { NAMECARD_THEMES, namecardSymbol, type NamecardAppearance, type NamecardCategory } from "@/lib/profile/namecard";
 import styles from "./namecard.module.css";
 
-const SYMBOLS: Record<string, string> = { "symbol-crown": "crown", "symbol-flame": "flame", "symbol-bolt": "bolt", "symbol-star": "star", "symbol-gamepad": "gamepad" };
 // Transparent atlas cells have unequal margins; center the visible rims rather than the cells.
 const PORTRAIT_BOUNDS = { arcade: "46 10 675 675", tactical: "748 8.5 676 676", nebula: "1438 -1.5 700 700" };
 
 export function Namecard({ displayName, title, frame, namebar, emblem, portrait, compact = false, fill = false, previewPart, children }: Partial<NamecardAppearance> & { displayName: string; compact?: boolean; fill?: boolean; previewPart?: NamecardCategory; children?: ReactNode }) {
-  const symbol = SYMBOLS[emblem ?? ""] ?? "shield";
+  const symbol = namecardSymbol(emblem);
   const art = NAMECARD_THEMES.find(theme => namebar === `theme-${theme.id}-namebar`);
   const portraitTheme = NAMECARD_THEMES.find(theme => portrait === `theme-${theme.id}-portrait`);
   const themedFrame = NAMECARD_THEMES.some(theme => frame === `theme-${theme.id}-frame`);
