@@ -323,7 +323,8 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         expect(bronze.x).toBeCloseTo(gold.x, 0);
         expect(gold.bottom).toBeLessThanOrEqual(silver.y);
         expect(silver.bottom).toBeLessThanOrEqual(bronze.y);
-        expect(gold.valueSize).toBeGreaterThan(silver.valueSize * 1.8);
+        expect(gold.valueSize).toBeGreaterThan(silver.valueSize * 1.4);
+        expect(gold.valueSize).toBeLessThan(silver.valueSize * 1.9);
         expect(silver.valueRight).toBeCloseTo(bronze.valueRight, 0);
         expect(await mvp.locator("[data-mvp-name], [data-mvp-value]").evaluateAll(elements => elements.every(element => element.scrollWidth <= element.clientWidth + 1))).toBe(true);
         if (width === 320 || width === 1304) {

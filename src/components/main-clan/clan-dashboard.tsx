@@ -259,8 +259,8 @@ function MvpCard({
       <h4><Link href={href} className={cn(headingLink, styles.mvpHeading)}><Icon className={styles.mvpCategoryIcon} aria-hidden="true" />{title}<ChevronRight className={styles.mvpArrow} aria-hidden="true" /></Link></h4>
       {premiumLocked ? (
         <div className={cn(styles.mvpStatus, "flex flex-wrap content-center items-center gap-x-2 gap-y-1.5")}>
-          <Crown className="size-5 shrink-0 text-amber-500" aria-hidden="true" />
-          <p className="text-[13px] font-bold text-amber-700 dark:text-amber-300">
+          <Crown className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <p className="text-xs font-medium text-muted-foreground">
             Premium 전용
           </p>
           <p className="order-last w-full text-xs text-muted-foreground">
@@ -282,7 +282,7 @@ function MvpCard({
             <Icon className="size-5" aria-hidden="true" />
           </span>
           <div>
-            <p className="text-[13px] font-semibold">
+            <p className="text-xs font-medium text-muted-foreground">
               {model.errors.rankings
                 ? "순위를 불러오지 못했어요"
                 : "아직 선정된 MVP가 없어요"}
