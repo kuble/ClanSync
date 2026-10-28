@@ -13,7 +13,7 @@ async function expectComposition(page: Page, intro: Locator, width: number) {
   const emblems = intro.getByRole("region", { name: "대표 엠블럼", exact: true });
   const heading = await emblems.getByRole("heading", { name: "대표 엠블럼", exact: true }).boundingBox();
   const launcher = await emblems.locator("[data-personal-emblem-launcher]").boundingBox();
-  const summary = await intro.getByRole("button", { name: "한 줄 소개 편집", exact: true }).locator("..").boundingBox();
+  const summary = await intro.getByRole("button", { name: "한 줄 소개 편집", exact: true }).boundingBox();
   expect(summary!.y + summary!.height).toBeLessThanOrEqual(heading!.y);
   expect(heading!.y + heading!.height).toBeLessThanOrEqual(launcher!.y);
   expect(Math.abs(heading!.x - launcher!.x)).toBeLessThan(1);
@@ -81,8 +81,9 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     await expect(emptyAlts).toContainText("등록된 부계정 없음");
     await expect(emptyAlts).toHaveCSS("border-top-width", "1px");
 
-    await intro.getByRole("button", { name: "한 줄 소개 편집", exact: true }).click();
+    await intro.getByRole("button", { name: "한 줄 소개 편집", exact: true }).click({ position: { x: 16, y: 70 } });
     const input = intro.getByRole("textbox", { name: "한 줄 소개", exact: true });
+    await expect(input).toBeFocused();
     await expect(input).toHaveAttribute("maxlength", "120");
     const boundaryIntro = "함".repeat(120);
     await input.fill(boundaryIntro);
@@ -96,10 +97,12 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     expect(saved.data.user?.user_metadata.profile_composition_sentinel).toBe(fixture.clanId);
     await page.reload();
     await expect(intro.getByText(boundaryIntro, { exact: true })).toBeVisible();
-    await intro.getByRole("button", { name: "한 줄 소개 편집", exact: true }).click();
+    await intro.getByRole("button", { name: "한 줄 소개 편집", exact: true }).press("Enter");
+    await expect(input).toBeFocused();
     await input.fill("취소할 소개");
     await input.press("Escape");
     await expect(intro.getByText(boundaryIntro, { exact: true })).toBeVisible();
+    await expect(intro.getByRole("button", { name: "한 줄 소개 편집", exact: true })).toBeFocused();
 
     const accountTab = page.getByRole("tab", { name: "계정 정보", exact: true });
     const overviewTab = page.getByRole("tab", { name: "플레이어 소개", exact: true });
@@ -136,8 +139,8 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     await expect(settings.getByRole("button", { name: "부계정 추가", exact: true })).toHaveCount(0);
     await settings.getByRole("region", { name: "내 클랜", exact: true }).getByRole("button").click();
     const clanLeave = page.getByRole("dialog", { name: "클랜을 탈퇴할까요?", exact: true });
-    await expect(clanLeave.getByRole("region", { name: "클랜 탈퇴 시 종료되는 항목" })).toContainText("멤버 자격");
-    await expect(clanLeave.getByRole("region", { name: "클랜 탈퇴 시 유지되는 항목" })).toContainText("내전 기록과 통계");
+    await expect(clanLeave).toContainText("멤버 권한이 종료됩니다.");
+    await expect(clanLeave).toContainText("내전 기록과 통계는 남습니다.");
     await clanLeave.getByRole("button", { name: "취소", exact: true }).click();
     await overviewTab.click();
     await page.getByRole("button", { name: "네임카드 꾸미기", exact: true }).click();

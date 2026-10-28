@@ -17,6 +17,17 @@
   border:1px solid var(--border);
   border-radius:12px;
   background:color-mix(in srgb,var(--muted) 20%,transparent);
+  text-align:left;
+  cursor:pointer;
+}
+
+.summary:hover {
+  border-color:var(--primary);
+}
+
+.summary:focus-visible {
+  outline:2px solid var(--ring);
+  outline-offset:2px;
 }
 
 .text {
@@ -30,12 +41,17 @@
   overflow-wrap: anywhere;
 }
 
-.editButton {
+.editIcon {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
   flex-shrink: 0;
   color: var(--muted-foreground);
-  min-width:44px;
-  min-height:44px;
+  width:44px;
+  height:44px;
 }
+
+.editIcon svg { width:16px; height:16px; }
 
 .form {
   display: grid;
@@ -102,7 +118,6 @@
     font-size: 1rem;
   }
 
-  .editButton,
   .actions button {
     min-height: 2.75rem;
   }

@@ -86,21 +86,19 @@ export function ProfileIntro({ initialIntro }: { initialIntro: string }) {
           {error && <p id={`${inputId}-error`} className={styles.error} role="alert">{error}</p>}
         </form>
       ) : (
-        <div className={styles.summary}>
-          <p className={styles.text}>{intro || "한 줄 소개를 남겨보세요"}</p>
-          <Button
-            ref={editButtonRef}
-            type="button"
-            variant="ghost"
-            size="icon"
-            className={styles.editButton}
-            aria-label="한 줄 소개 편집"
-            title="한 줄 소개 편집"
-            onClick={beginEditing}
-          >
+        <button
+          ref={editButtonRef}
+          type="button"
+          className={styles.summary}
+          aria-label="한 줄 소개 편집"
+          title="한 줄 소개 편집"
+          onClick={beginEditing}
+        >
+          <span className={styles.text}>{intro || "한 줄 소개를 남겨보세요"}</span>
+          <span className={styles.editIcon}>
             <Pencil aria-hidden="true" />
-          </Button>
-        </div>
+          </span>
+        </button>
       )}
       <span role="status" className="sr-only">{status}</span>
     </div>
