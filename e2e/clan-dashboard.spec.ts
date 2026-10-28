@@ -148,9 +148,10 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
     await expect(grid).toBeVisible();
     const ticker = page.getByRole("region", { name: "클랜 규칙", exact: true });
     const ruleText = ticker.locator("[data-rule-text]");
-    await expect(ticker.getByLabel("1 / 16", { exact: true })).toBeVisible();
+    await expect(ticker.getByRole("button")).toHaveCount(0);
+    await expect(ticker.getByRole("link", { name: /^규칙 1:/ })).toBeVisible();
     await page.clock.fastForward(8100);
-    await expect(ticker.getByLabel("2 / 16", { exact: true })).toBeVisible();
+    await expect(ticker.getByRole("link", { name: /^규칙 2:/ })).toBeVisible();
     await ticker.hover();
     const heldText = await ruleText.textContent();
     await page.clock.fastForward(16000);
@@ -159,21 +160,14 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
     await ticker.getByRole("link", { name: "클랜 규칙", exact: true }).focus();
     await page.clock.fastForward(16000);
     await expect(ruleText).toHaveText(heldText!);
-    await ticker.getByRole("button", { name: "다음 클랜 규칙", exact: true }).click();
-    await expect(ticker.getByLabel("3 / 16", { exact: true })).toBeVisible();
-    await ticker.getByRole("button", { name: "이전 클랜 규칙", exact: true }).click();
-    await expect(ticker.getByLabel("2 / 16", { exact: true })).toBeVisible();
-    await page.clock.fastForward(16000);
-    await expect(ticker.getByLabel("2 / 16", { exact: true })).toBeVisible();
-    await ticker.getByRole("button", { name: "규칙 자동 넘김 재생", exact: true }).click();
-    await page.locator("h1").hover();
+    await page.getByRole("link", { name: "내전 로비 열기", exact: true }).focus();
     await page.clock.fastForward(8100);
-    await expect(ticker.getByLabel("3 / 16", { exact: true })).toBeVisible();
+    await expect(ticker.getByRole("link", { name: /^규칙 3:/ })).toBeVisible();
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.reload();
-    await expect(ticker.getByLabel("1 / 16", { exact: true })).toBeVisible();
+    await expect(ticker.getByRole("link", { name: /^규칙 1:/ })).toBeVisible();
     await page.clock.fastForward(16000);
-    await expect(ticker.getByLabel("1 / 16", { exact: true })).toBeVisible();
+    await expect(ticker.getByRole("link", { name: /^규칙 1:/ })).toBeVisible();
     expect(await ruleText.evaluate(element => getComputedStyle(element).animationName)).toBe("none");
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await expect(
