@@ -311,20 +311,25 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         const mvp = page.getByRole("region", { name: "지난달 MVP", exact: true });
         expect(await grid.locator(":scope > section").last().getAttribute("aria-label")).toBe("지난달 MVP");
         await expect(mvp.locator("[data-namecard]")).toHaveCount(0);
-        const winners = await mvp.locator("section").evaluateAll(els => els.map(el => ({ x: el.getBoundingClientRect().x, y: el.getBoundingClientRect().y })));
+        const winners = await mvp.locator("section").evaluateAll(els => els.map(el => ({ x: el.getBoundingClientRect().x, y: el.getBoundingClientRect().y, height: el.getBoundingClientRect().height })));
         expect(new Set(winners.map(box => box.y)).size).toBe(width >= 800 ? 1 : 3);
+        expect(winners.every(box => box.height < 200)).toBe(true);
         const ranking = page.getByRole("region", { name: "지난달 승률 MVP", exact: true }).getByRole("listitem");
         const [gold, silver, bronze] = await ranking.evaluateAll(items => items.map(item => {
           const box = item.getBoundingClientRect();
           const value = item.querySelector("[data-mvp-value]")!;
-          return { x:box.x, y:box.y, bottom:box.bottom, valueRight:value.getBoundingClientRect().right, valueSize:parseFloat(getComputedStyle(value).fontSize) };
+          const valueBox = value.getBoundingClientRect();
+          const nameBox = item.querySelector("[data-mvp-name]")!.getBoundingClientRect();
+          return { x:box.x, y:box.y, bottom:box.bottom, valueRight:valueBox.right, valueSize:parseFloat(getComputedStyle(value).fontSize), valueCenter:valueBox.y + valueBox.height / 2, nameCenter:nameBox.y + nameBox.height / 2 };
         }));
         expect(silver.x).toBeCloseTo(gold.x, 0);
         expect(bronze.x).toBeCloseTo(gold.x, 0);
         expect(gold.bottom).toBeLessThanOrEqual(silver.y);
         expect(silver.bottom).toBeLessThanOrEqual(bronze.y);
-        expect(gold.valueSize).toBeGreaterThan(silver.valueSize * 1.4);
-        expect(gold.valueSize).toBeLessThan(silver.valueSize * 1.9);
+        expect(gold.valueSize).toBeGreaterThan(silver.valueSize);
+        expect(gold.valueSize).toBeLessThan(silver.valueSize * 1.4);
+        expect(gold.valueCenter).toBeCloseTo(gold.nameCenter, 0);
+        expect(gold.valueRight).toBeCloseTo(silver.valueRight, 0);
         expect(silver.valueRight).toBeCloseTo(bronze.valueRight, 0);
         expect(await mvp.locator("[data-mvp-name], [data-mvp-value]").evaluateAll(elements => elements.every(element => element.scrollWidth <= element.clientWidth + 1))).toBe(true);
         if (width === 320 || width === 1304) {

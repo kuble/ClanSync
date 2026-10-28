@@ -229,7 +229,6 @@ function MvpPlace({ value, position }: { value: DashboardMvp | undefined; positi
       <p className={styles.mvpValue} data-mvp-value>
         {percentage.endsWith("%") ? <>{percentage.slice(0, -1)}<span>%</span></> : percentage}
       </p>
-      {value && rank === 1 && <Trophy className={styles.mvpTrophy} aria-hidden="true" />}
     </li>
   );
 }
