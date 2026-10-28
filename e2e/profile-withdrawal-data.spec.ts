@@ -101,9 +101,9 @@ test("실제 클랜·계정 탈퇴는 개인 데이터 삭제와 공동 기록 �
     expect((await ok(f.service.from("clan_events").select("operator_name").eq("id", event.id).single())).operator_name).toBe(hostName);
     await page.reload();
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
-    await page.getByRole("button", { name: "클랜싱크 탈퇴", exact: true }).click();
-    const deletion = page.getByRole("dialog", { name: "클랜싱크를 탈퇴할까요?", exact: true });
-    await deletion.getByRole("button", { name: "클랜싱크 탈퇴하기", exact: true }).click();
+    await page.getByRole("button", { name: "ClanSync 탈퇴", exact: true }).click();
+    const deletion = page.getByRole("dialog", { name: "ClanSync를 탈퇴할까요?", exact: true });
+    await deletion.getByRole("button", { name: "ClanSync 탈퇴하기", exact: true }).click();
     await expect(page).toHaveURL(/\/$/);
     f.users.splice(1, 1); // Successful UI deletion already removed this fixture user.
     expect((await f.service.auth.admin.getUserById(subject.id)).data.user).toBeNull();

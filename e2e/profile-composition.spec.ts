@@ -68,7 +68,7 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     await expect(page.getByRole("region", { name: "진열장", exact: true })).toHaveCount(0);
     await expect(page.getByText(user.email, { exact: true })).toBeHidden();
     await expect(page.getByText("자동 로그인", { exact: true })).toBeHidden();
-    await expect(page.getByRole("button", { name: "클랜싱크 탈퇴", exact: true })).toBeHidden();
+    await expect(page.getByRole("button", { name: "ClanSync 탈퇴", exact: true })).toBeHidden();
 
     const slots = intro.getByRole("group", { name: "대표 엠블럼 3칸", exact: true });
     await expect(slots.getByRole("link")).toHaveCount(0);
@@ -110,10 +110,10 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     await expect(settings.getByRole("region", { name: "공통 네임카드", exact: true })).toHaveCount(0);
     for (const label of ["성별", "출생 연도", "가입일"]) await expect(settings.getByRole("term").filter({ hasText: label })).toHaveCount(0);
     await expect(settings.getByText("자동 로그인", { exact: true })).toBeVisible();
-    await settings.getByRole("button", { name: "클랜싱크 탈퇴", exact: true }).click();
-    const accountLeave = page.getByRole("dialog", { name: "클랜싱크를 탈퇴할까요?", exact: true });
-    await expect(accountLeave.getByRole("region", { name: "클랜싱크 탈퇴 시 삭제되는 항목" })).toContainText("모든 클랜의 소속 정보");
-    await expect(accountLeave.getByRole("region", { name: "클랜싱크 탈퇴 후 남는 항목" })).toContainText("작성자 계정 연결을 해제");
+    await settings.getByRole("button", { name: "ClanSync 탈퇴", exact: true }).click();
+    const accountLeave = page.getByRole("dialog", { name: "ClanSync를 탈퇴할까요?", exact: true });
+    await expect(accountLeave).toContainText("계정과 개인정보, 게임 연동, 보유 코인·아이템·엠블럼이 삭제되며 복구할 수 없습니다.");
+    await expect(accountLeave).toContainText("클랜의 공동 기록과 작성한 글·댓글, 기록에 남은 이름은 유지됩니다.");
     await page.setViewportSize({ width: 320, height: 884 });
     await expect(accountLeave.getByRole("button", { name: "취소", exact: true })).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
