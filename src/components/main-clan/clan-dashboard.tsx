@@ -248,7 +248,7 @@ function MvpCard({
 }) {
   return (
     <section
-      className={cn(card, "flex min-h-40 flex-col p-4 shadow-none sm:p-5")}
+      className={cn(card, "flex min-h-40 flex-col bg-background/25 p-4 shadow-none sm:p-5")}
       aria-label={title}
     >
       <h4 className="text-sm font-semibold text-muted-foreground"><Link href={href} className={cn(headingLink, "min-h-6")}>{title}<ChevronRight className="size-4 shrink-0" aria-hidden="true" /></Link></h4>
@@ -415,7 +415,7 @@ export function ClanDashboard({
             />
           </div>
         </section>
-        <section className={cn(card, styles.rules, "bg-background/25 shadow-none")} aria-labelledby="dashboard-rules-heading">
+        <section className={cn(card, styles.rules, "shadow-none")} aria-labelledby="dashboard-rules-heading">
           <DashboardHeading id="dashboard-rules-heading" href={`${base}/board/notices#rules`} title="클랜 규칙" />
           {model.rules ? (
             <p data-rules-preview className="line-clamp-2 whitespace-pre-line break-words text-sm leading-7 text-muted-foreground">{model.rules}</p>
@@ -427,7 +427,7 @@ export function ClanDashboard({
             />
           )}
         </section>
-        <section className={cn(card, styles.badges, "bg-background/25 shadow-none")} aria-labelledby="dashboard-badges-heading">
+        <section className={cn(card, styles.badges, "shadow-none")} aria-labelledby="dashboard-badges-heading">
           <DashboardHeading id="dashboard-badges-heading" href={`${base}/badges`} title="클랜 배지" />
           {badgeCollection ? <ClanBadges collection={badgeCollection} gameSlug={gameSlug} clanId={clanId} compact previewOnly /> : <p role="alert" className="flex min-h-52 items-center justify-center text-sm text-muted-foreground">배지 기록을 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</p>}
         </section>
