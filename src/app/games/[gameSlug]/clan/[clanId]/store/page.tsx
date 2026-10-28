@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Store } from "lucide-react";
 import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { hasRequestClanPermission } from "@/lib/clan/request-clan-access";
 import {
@@ -8,7 +7,7 @@ import {
   type ClanStoreItemVM,
 } from "@/components/store/store-panels";
 import { ClanStoreCoinHistory } from "@/components/main-clan/clan-store-coin-history";
-import { MVP_STORE_SLUGS } from "@/lib/store/mvp-store-slugs";
+import { MVP_STORE_SLUGS, isMvpStoreSlug } from "@/lib/store/mvp-store-slugs";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 
 export default async function ClanStorePage({
@@ -35,7 +34,7 @@ export default async function ClanStorePage({
       .select("id, slug, name_ko, price_coins, pool_source, is_premium_only, asset_url")
       .eq("is_active", true)
       .eq("pool_source", "clan")
-      .in("slug", [...MVP_STORE_SLUGS]),
+      .in("slug", [...MVP_STORE_SLUGS]).order("released_at", { ascending: false }).order("slug"),
     supabase
       .from("purchases")
       .select("item_id")
@@ -45,14 +44,13 @@ export default async function ClanStorePage({
   ]);
   const clanCoins = clanBalance.data?.coin_balance ?? 0;
   const premium = ctx.plan === "premium";
-  const bySlug = new Map((catalog.data ?? []).map((row) => [row.slug, row] as const));
   const clanSet = new Set((clanPurchases.data ?? []).map((row) => row.item_id));
 
   const items: ClanStoreItemVM[] = [];
 
-  for (const slug of MVP_STORE_SLUGS) {
-    const row = bySlug.get(slug);
-    if (!row) continue;
+  for (const row of catalog.data ?? []) {
+    const slug = row.slug;
+    if (!isMvpStoreSlug(slug)) continue;
 
     const id = row.id as string;
     const price = row.price_coins as number;
@@ -93,22 +91,14 @@ export default async function ClanStorePage({
 
   return (
     <div className="space-y-8">
-      <header className="flex items-center gap-3">
-        <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
-          <Store size={21} aria-hidden />
-        </span>
-        <div>
-          <p className="text-sm text-muted-foreground">
-            함께 모은 클랜 코인으로 우리 클랜을 꾸며보세요.
-          </p>
-        </div>
-        <Link href="/store" className="ml-auto shrink-0 text-sm text-primary hover:underline">개인 상점</Link>
-      </header>
 
         <StorePanels
           key={user.id}
           gameSlug={gameSlug}
           clanId={clanId}
+          clanName={ctx.clanName}
+          iconUrl={ctx.iconUrl}
+          bannerUrl={ctx.bannerUrl}
           actorRole={ctx?.role ?? "member"}
           planIsPremium={premium}
           items={items}
@@ -141,14 +131,7 @@ export default async function ClanStorePage({
             >
               클랜 관리
             </Link>
-            에서 설정할 수 있습니다. 네임카드 디자인은{" "}
-            <Link
-              className="text-primary underline-offset-4 hover:underline"
-              href="/store"
-            >
-              개인 상점
-            </Link>
-            에서 구매할 수 있습니다.
+            에서 설정할 수 있습니다.
           </p>
         </div>
       </details>

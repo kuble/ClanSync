@@ -188,7 +188,7 @@ test("separate stores show real coins, Free/Premium comparison and canceling pur
       .toHaveText(clanBalance.toLocaleString("ko-KR"));
     await expect(page.getByRole("heading", { name: banner.name_ko, exact: true })).toBeVisible();
 
-    await page.getByRole("link", { name: "개인 상점", exact: true }).click();
+    await page.goto("/store");
     await expect(coinCards.getByText("내 코인", { exact: true }).locator("..").locator("strong"))
       .toHaveText(personalBalance.toLocaleString("ko-KR"));
     await page.getByRole("group", { name: "개인 꾸미기 분류", exact: true }).getByRole("button", { name: "프레임", exact: true }).click();
