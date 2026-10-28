@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { ChevronRight, ScrollText } from "lucide-react";
+import { parseClanRules } from "@/lib/clan/rules";
 import styles from "./clan-dashboard.module.css";
 
 function subscribeMotion(callback: () => void) {
@@ -14,7 +15,7 @@ const motionSnapshot = () => window.matchMedia("(prefers-reduced-motion: reduce)
 const serverMotion = () => false;
 
 export function ClanRulesTicker({ rules, href, failed }: { rules: string | null; href: string; failed: boolean }) {
-  const items = (rules ?? "").split(/\r?\n/).map(line => line.trim().replace(/^(?:\d+[.)]|[-*•])\s+/, "")).filter(Boolean);
+  const items = parseClanRules(rules);
   const [index, setIndex] = useState(0);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);

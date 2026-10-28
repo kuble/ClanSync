@@ -80,13 +80,11 @@ test("officers manage real notices and rules across management and dashboard", a
         return result.data?.is_pinned;
       })
       .toBe(false);
-    await page
-      .getByRole("textbox", { name: "클랜 규칙", exact: true })
-      .fill(`${title} 규칙\n서로 존중하며 플레이해요.`);
-    await page.getByRole("button", { name: "규칙 저장", exact: true }).click();
-    await expect(
-      page.getByText("클랜 규칙을 저장했습니다.", { exact: true }),
-    ).toBeVisible();
+    for (const rule of [`${title} 규칙`, "서로 존중하며 플레이해요."]) {
+      await page.getByRole("textbox", { name: "새 규칙", exact: true }).fill(rule);
+      await page.getByRole("button", { name: "규칙 추가", exact: true }).click();
+      await expect(page.getByRole("list", { name: "클랜 규칙 목록", exact: true }).getByText(rule, { exact: true })).toBeVisible();
+    }
 
     await page.goto(base);
     await page
@@ -99,12 +97,12 @@ test("officers manage real notices and rules across management and dashboard", a
     ).toBeVisible();
     await page.goto(base);
     await page
-      .getByRole("button", { name: "클랜 규칙 전체 보기", exact: true })
+      .getByRole("region", { name: "클랜 규칙", exact: true })
+      .getByRole("link", { name: "클랜 규칙", exact: true })
       .click();
     await expect(
-      page.getByRole("dialog").getByText(`${title} 규칙`, { exact: false }),
+      page.getByRole("list", { name: "클랜 규칙 목록", exact: true }).getByText(`${title} 규칙`, { exact: true }),
     ).toBeVisible();
-    await page.keyboard.press("Escape");
 
     await page.goto(`${base}/manage?tab=members`);
     await expect(

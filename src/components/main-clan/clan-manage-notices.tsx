@@ -10,12 +10,13 @@ import {
   saveClanNoticeAction,
   deleteClanNoticeAction,
   setClanNoticePinnedAction,
-  saveClanRulesAction,
 } from "@/app/actions/clan-notices";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ClanRulesEditor } from "@/components/main-clan/clan-rules-editor";
+import { parseClanRules } from "@/lib/clan/rules";
 import {
   Dialog,
   DialogContent,
@@ -371,69 +372,12 @@ export function ClanManageRules({
       </section>
     );
   }
-  if (!canManage) return <section className={panel} id="rules" aria-labelledby="manage-rules-title"><h3 id="manage-rules-title" className="text-sm font-bold">클랜 규칙</h3><div className="mt-4 min-h-24 whitespace-pre-wrap break-words text-sm leading-7">{initialRules || "아직 등록된 규칙이 없습니다."}</div></section>;
+  if (!canManage) {
+    const rules = parseClanRules(initialRules);
+    return <section className={panel} id="rules" aria-labelledby="manage-rules-title"><h3 id="manage-rules-title" className="text-sm font-bold">클랜 규칙</h3>
+      {rules.length ? <ol aria-label="클랜 규칙 목록" className="mt-4 divide-y divide-border">{rules.map((rule, index) => <li key={index} className="flex gap-3 py-3 text-sm leading-6"><span aria-hidden="true" className="w-5 shrink-0 text-muted-foreground">{index + 1}.</span><p className="min-w-0 flex-1 break-words">{rule}</p></li>)}</ol> : <p className="mt-4 text-sm text-muted-foreground">등록된 규칙이 없습니다.</p>}
+    </section>;
+  }
   // Mount the editor only after a successful read, including after a retry.
-  return <ClanRulesEditor gameSlug={gameSlug} clanId={clanId} initialRules={initialRules} />;
-}
-
-function ClanRulesEditor({
-  gameSlug,
-  clanId,
-  initialRules,
-}: {
-  gameSlug: string;
-  clanId: string;
-  initialRules: string | null;
-}) {
-  const router = useRouter();
-  const [rules, setRules] = useState(initialRules ?? "");
-  const [pending, start] = useTransition();
-  return (
-    <section className={panel} id="rules" aria-labelledby="manage-rules-title">
-      <h3 id="manage-rules-title" className="text-sm font-bold">
-        <HelpText label="클랜 규칙" help="우리 클랜이 함께 지킬 약속을 적어주세요." />
-      </h3>
-      <form
-        className="mt-4 space-y-3"
-        onSubmit={(event) => {
-          event.preventDefault();
-          start(async () => {
-            try {
-              const result = await saveClanRulesAction(gameSlug, clanId, rules);
-              if (!result.ok) {
-                toast.error(result.error);
-                return;
-              }
-              toast.success("클랜 규칙을 저장했습니다.");
-              router.refresh();
-            } catch {
-              toast.error("규칙을 저장하지 못했습니다. 다시 시도해 주세요.");
-            }
-          });
-        }}
-      >
-        <Label htmlFor="clan-rules" className="sr-only">
-          클랜 규칙
-        </Label>
-        <textarea
-          id="clan-rules"
-          rows={7}
-          maxLength={20000}
-          value={rules}
-          onChange={(event) => setRules(event.target.value)}
-          disabled={pending}
-          placeholder="예: 서로 존중하며 플레이해요. 내전 일정은 미리 알려주세요."
-          className="board-scroll max-h-80 w-full resize-y rounded-lg border border-input bg-background p-4 text-base leading-7 outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-sm"
-        />
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-[11px] text-muted-foreground">
-            {rules.length.toLocaleString()} / 20,000자
-          </span>
-          <Button type="submit" size="sm" disabled={pending}>
-            {pending ? "저장 중…" : "규칙 저장"}
-          </Button>
-        </div>
-      </form>
-    </section>
-  );
+  return <ClanRulesEditor key={clanId} gameSlug={gameSlug} clanId={clanId} initialRules={initialRules} />;
 }

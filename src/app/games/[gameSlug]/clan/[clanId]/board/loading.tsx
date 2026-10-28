@@ -29,8 +29,10 @@ export default function BoardLoading() {
         <div className={panel}><Skeleton className="h-5 w-24" /><PostRows /></div>
       </> : section === "notices" ? <>
         <div className={panel}>
-          <Skeleton className="h-5 w-24" /><Skeleton className="h-52 w-full rounded-xl" />
-          <div className="flex justify-between"><Skeleton className="h-3 w-24" /><Skeleton className="h-8 w-20" /></div>
+          <Skeleton className="h-5 w-24" />
+          <div className="divide-y divide-border">{[0, 1, 2].map(row => <div key={row} className="flex items-center gap-3 py-3"><Skeleton className="h-4 w-5 shrink-0" /><Skeleton className="h-4 min-w-0 flex-1" /><Skeleton className="size-7 shrink-0" /><Skeleton className="size-7 shrink-0" /></div>)}</div>
+          <div className="flex gap-2"><Skeleton className="h-9 min-w-0 flex-1" /><Skeleton className="h-9 w-24" /></div>
+          <Skeleton className="h-3 w-24" />
         </div>
         <div className={panel}>
           <div className="flex justify-between"><Skeleton className="h-5 w-24" /><Skeleton className="h-8 w-24" /></div>
