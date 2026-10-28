@@ -95,7 +95,7 @@
 | D-MANAGE-01 | DECIDED (2026-04-20) → D-PERM-01 흡수 (2026-04-21) | 구독·결제 탭 접근 권한 | officer는 **열람**(금액·일시 포함). **플랜 변경·결제 수단·환불·영수증 상세·환불**은 leader 전용. → 권한 키 `manage_subscription`(잠김)으로 일반화. [§D-MANAGE-01](#d-manage-01--구독결제-탭-접근-권한) |
 | D-MANAGE-02 | DECIDED (2026-04-20) → D-PERM-01 흡수 (2026-04-21) | 구성원 개인 상세 편집 권한 + 휴면 일괄 강퇴 | 역할 변경·officer 강퇴·휴면 일괄 강퇴·leader 위임은 **leader 전용**. member 강퇴·가입 요청 승인/거절은 officer 허용. **M점수 편집**은 클랜 설정 토글. → 권한 키 `delegate_leader`/`kick_officer`/`bulk_kick_dormant`(잠김), `kick_member`/`approve_join_requests`/`edit_mscore`(토글)로 일반화. [§D-MANAGE-02](#d-manage-02--구성원-개인-상세-편집-권한과-m점수-토글) |
 | D-MANAGE-03 | DECIDED (2026-04-20) → D-PERM-01 흡수 (2026-04-21) | 부계정 조회 정책 | 자기신고 방식 유지. 조회 범위는 **클랜 설정 토글** → 권한 키 `view_alt_accounts`(개인 정보 카테고리, **기본 ✓/✓/✓**)로 일반화. 기본값이 운영진→멤버까지로 확장됨. [§D-MANAGE-03](#d-manage-03--부계정-조회-정책과-공개-범위-토글) |
-| D-MANAGE-04 | DECIDED (2026-04-20) | 클랜 배너·아이콘 업로드 제약 | 배너 **3MB** / 아이콘 **2MB**. MIME `image/jpeg·png·webp`. 애니메이션 불가. 서버 자동 리사이즈·썸네일. [§D-MANAGE-04](#d-manage-04--클랜-배너아이콘-업로드-제약) |
+| D-MANAGE-04 | DECIDED (2026-10-28 변경) | 클랜 프로필 업로드·배너 구매 | 프로필 **2MB**·정적 `image/jpeg·png·webp`, 서버 정사각형 변환. 배너는 상점 제공 디자인 구매·선택. [§D-MANAGE-04](#d-manage-04--클랜-배너아이콘-업로드-제약) |
 
 ## 권한 (PERM)
 
@@ -1075,6 +1075,8 @@ function selectSingleChip(el, group) {
 - `clan_settings.alt_accounts_visibility text NOT NULL DEFAULT 'officers' CHECK (alt_accounts_visibility IN ('officers','clan_members'))`.
 
 ### D-MANAGE-04 — 클랜 배너·아이콘 업로드 제약
+
+- **2026-10-28 사용자 변경:** 배너는 클랜 상점의 제공 디자인을 구매·선택하며 직접 업로드하지 않는다. 프로필 아이콘은 정적 JPG·PNG·WebP·2MB 제한을 유지하고 중앙 정사각형·최대 512px WebP 한 장으로 저장한다(최대 입력 1,600만 픽셀). 아래 배너 업로드·원본 해상도 범위·다단계 썸네일은 이전 기획이며 현행 구현은 [클랜 꾸미기](pages/12-Clan-Manage.md)를 따른다.
 
 - **결정일**: 2026-04-20
 - **요지**: 모바일 업로드 실패율을 고려해 **배너 3MB / 아이콘 2MB** 로 여유 있게 설정. 정적 이미지만 허용.

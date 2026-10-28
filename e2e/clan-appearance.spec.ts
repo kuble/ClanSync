@@ -1,0 +1,142 @@
+import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { expect, test } from "@playwright/test";
+import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
+
+test("clan officers upload profiles and apply only purchased banners without changing other clan data", async ({ page, browser, request }) => {
+  test.setTimeout(180_000);
+  const fixture = await createIsolatedBalanceFixture(3);
+  const { service: svc, clanId, users } = fixture;
+  const base = `/games/overwatch/clan/${clanId}`;
+  const endpoint = `/api/games/overwatch/clans/${clanId}/profile-image`;
+  const image = { name: "profile.png", mimeType: "image/png", buffer: readFileSync("public/brand/clansync-symbol.png") };
+  const readClan = async () => (await svc.from("clans").select("icon_url,banner_url,coin_balance").eq("id", clanId).single()).data!;
+  try {
+    expect((await svc.from("clans").update({ subscription_tier: "free", coin_balance: 500 }).eq("id", clanId)).error).toBeNull();
+    expect((await svc.from("clan_members").update({ role: "officer" }).eq("clan_id", clanId).eq("user_id", users[1].id)).error).toBeNull();
+    const catalog = await svc.from("store_items").select("id,slug,name_ko,asset_url,price_coins").in("slug", ["clan_banner_slot", "clan_banner_midnight", "clan_banner_sunset"]);
+    expect(catalog.error).toBeNull(); expect(catalog.data).toHaveLength(3);
+    const emerald = catalog.data!.find(item => item.slug === "clan_banner_slot")!;
+    const midnight = catalog.data!.find(item => item.slug === "clan_banner_midnight")!;
+    const notOwned = await svc.rpc("set_clan_banner", { p_actor_id: users[0].id, p_clan_id: clanId, p_item_slug: midnight.slug });
+    expect(notOwned.data).toEqual({ ok: false, error: "not_owned" });
+    expect((await request.post(endpoint, { multipart: { image } })).status()).toBe(401);
+    await loginIsolatedBalanceUser(page, users[0]);
+    await page.goto(base + "/manage?tab=appearance");
+    const profiles = page.getByRole("region", { name: "클랜 프로필 이미지", exact: true });
+    const banners = page.getByRole("region", { name: "클랜 배너", exact: true });
+    await expect(profiles.getByRole("button", { name: "이미지 저장", exact: true })).toBeDisabled();
+    await expect(banners.getByRole("group", { name: "보유 배너 선택" }).getByRole("button")).toHaveCount(1);
+    expect((await page.request.post(endpoint, { headers: { Origin: "https://evil.example" }, multipart: { image } })).status()).toBe(403);
+    expect((await page.request.post(endpoint.replace("overwatch", "valorant"), { multipart: { image } })).status()).toBe(404);
+    expect((await page.request.post(endpoint, { multipart: { image: { ...image, buffer: Buffer.from("<svg xmlns='http://www.w3.org/2000/svg'/>") } } })).status()).toBe(400);
+    expect((await page.request.post(endpoint, { multipart: { image: { ...image, buffer: Buffer.alloc(4 * 1024 * 1024) } } })).status()).toBe(413);
+    await profiles.getByLabel("클랜 프로필 이미지 파일").setInputFiles(image);
+    const savedResponse = page.waitForResponse(response => response.url().endsWith(endpoint) && response.request().method() === "POST");
+    await profiles.getByRole("button", { name: "이미지 저장", exact: true }).click();
+    const saved = await savedResponse;
+    expect(saved.status(), await saved.text()).toBe(200);
+    await expect.poll(async () => (await readClan()).icon_url).toContain("/clan-profiles/" + clanId + "/");
+    const oldIcon = (await readClan()).icon_url!;
+    await expect(profiles.getByRole("img", { name: "클랜 프로필 미리보기" })).toHaveAttribute("src", oldIcon);
+    const uploaded = await page.request.post(endpoint, { multipart: { image } });
+    expect(uploaded.ok()).toBe(true);
+    const currentIcon = (await uploaded.json()).url as string;
+    expect(currentIcon).not.toBe(oldIcon);
+    await expect.poll(async () => (await svc.storage.from("clan-profiles").list(clanId)).data?.length).toBe(1);
+    const downloaded = await svc.storage.from("clan-profiles").download(clanId + "/" + currentIcon.split("/").pop());
+    expect(downloaded.error).toBeNull(); expect(downloaded.data?.type).toBe("image/webp");
+    await page.reload();
+
+    await banners.getByRole("link", { name: "클랜 상점", exact: true }).click();
+    const product = (name: string) => page.getByRole("article").filter({ has: page.getByRole("heading", { name, exact: true }) });
+    await expect(page.getByRole("img", { name: /배너 미리보기$/ })).toHaveCount(3);
+    await page.screenshot({ path: test.info().outputPath("clan-banner-shop.png") });
+    await product(emerald.name_ko).getByRole("button", { name: "구매", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "꾸미기 구매", exact: true });
+    await dialog.getByRole("button", { name: "취소", exact: true }).click();
+    expect((await readClan()).coin_balance).toBe(500);
+    await product(emerald.name_ko).getByRole("button", { name: "구매", exact: true }).click();
+    await dialog.getByRole("button", { name: "구매 확정", exact: true }).click();
+    await expect.poll(async () => (await readClan()).coin_balance).toBe(500 - emerald.price_coins);
+    await product(emerald.name_ko).getByRole("link", { name: "구매 완료 · 설정하기", exact: true }).click();
+    await banners.getByRole("button", { name: emerald.name_ko, exact: true }).click();
+    await banners.getByRole("button", { name: "배너 적용", exact: true }).click();
+    await expect.poll(async () => (await readClan()).banner_url).toBe(emerald.asset_url);
+    const repeat = await svc.rpc("apply_store_purchase", { p_actor_id: users[0].id, p_context_clan_id: clanId, p_item_slug: emerald.slug, p_checkout_id: randomUUID() });
+    expect(repeat.data).toEqual({ ok: false, error: "already_purchased" });
+    await page.goto(base + "/store");
+    await product(midnight.name_ko).getByRole("button", { name: "구매", exact: true }).click();
+    await dialog.getByRole("button", { name: "구매 확정", exact: true }).click();
+    await expect.poll(async () => (await readClan()).coin_balance).toBe(500 - emerald.price_coins - midnight.price_coins);
+    await product(midnight.name_ko).getByRole("link", { name: "구매 완료 · 설정하기", exact: true }).click();
+    await banners.getByRole("button", { name: midnight.name_ko, exact: true }).click();
+    await banners.getByRole("button", { name: "배너 적용", exact: true }).click();
+    await expect.poll(async () => (await readClan()).banner_url).toBe(midnight.asset_url);
+    await expect(banners.getByRole("button", { name: "배너 적용", exact: true })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Close toast", exact: true })).toHaveCount(0, { timeout: 8000 });
+    await page.setViewportSize({ width: 1280, height: 1000 });
+    await profiles.getByRole("heading").scrollIntoViewIfNeeded();
+    await page.screenshot({ path: test.info().outputPath("clan-appearance-desktop.png") });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await profiles.getByRole("heading").scrollIntoViewIfNeeded();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: test.info().outputPath("clan-appearance-mobile.png") });
+
+    const memberContext = await browser.newContext();
+    try {
+      const member = await memberContext.newPage();
+      await loginIsolatedBalanceUser(member, users[2]);
+      await member.goto(base);
+      const hero = member.getByRole("region", { name: "클랜 소개", exact: true });
+      await expect(hero.locator(`img[src="${midnight.asset_url}"]`)).toBeVisible();
+      await expect(hero.locator(`img[src="${currentIcon}"]`)).toBeVisible();
+      expect((await member.request.post(endpoint, { multipart: { image } })).status()).toBe(403);
+      expect((await member.request.delete(endpoint)).status()).toBe(403);
+      await member.goto(base + "/manage?tab=appearance");
+      await expect(member.getByText("접근 권한이 없습니다", { exact: false })).toBeVisible();
+    } finally { await memberContext.close(); }
+    const memberClient = await fixture.memberClient(2);
+    expect((await memberClient.rpc("set_clan_banner", { p_actor_id: users[0].id, p_clan_id: clanId, p_item_slug: midnight.slug })).error).not.toBeNull();
+    expect((await memberClient.storage.from("clan-profiles").upload(`${clanId}/forged.webp`, image.buffer, { contentType: "image/webp" })).error).not.toBeNull();
+    const direct = await memberClient.from("clans").update({ icon_url: "https://evil.example/image.png", banner_url: emerald.asset_url }).eq("id", clanId).select("id");
+    expect(direct.data ?? []).toHaveLength(0);
+
+    await banners.getByRole("button", { name: "기본 배너", exact: true }).click();
+    await banners.getByRole("button", { name: "배너 적용", exact: true }).click();
+    await expect.poll(async () => (await readClan()).banner_url).toBeNull();
+    await banners.getByRole("button", { name: midnight.name_ko, exact: true }).click();
+    await banners.getByRole("button", { name: "배너 적용", exact: true }).click();
+    await expect.poll(async () => (await readClan()).banner_url).toBe(midnight.asset_url);
+
+    const purchases = await svc.from("purchases").select("id,item_id").eq("clan_id", clanId).is("voided_at", null);
+    for (const item of [emerald, midnight]) {
+      const purchase = purchases.data!.find(p => p.item_id === item.id)!;
+      const refundPromise = svc.rpc("void_clan_store_purchase", { p_actor_id: users[1].id, p_purchase_id: purchase.id, p_reason: "격리 픽스처 배너 정정" });
+      const [refund] = item === midnight ? await Promise.all([refundPromise, svc.rpc("set_clan_banner", { p_actor_id: users[0].id, p_clan_id: clanId, p_item_slug: item.slug })]) : [await refundPromise];
+      expect(refund.error).toBeNull(); expect(refund.data).toEqual({ ok: true });
+      expect((await readClan()).banner_url).toBe(item === emerald ? midnight.asset_url : null);
+    }
+    expect((await readClan()).coin_balance).toBe(500);
+    expect((await svc.rpc("set_clan_banner", { p_actor_id: users[0].id, p_clan_id: clanId, p_item_slug: midnight.slug })).data).toEqual({ ok: false, error: "not_owned" });
+    expect((await svc.from("clan_settings").update({ permissions: { manage_clan_pool: ["leader"] } }).eq("clan_id", clanId)).error).toBeNull();
+    const officerContext = await browser.newContext();
+    try {
+      const officer = await officerContext.newPage();
+      await loginIsolatedBalanceUser(officer, users[1]);
+      expect((await officer.request.post(endpoint, { multipart: { image } })).status()).toBe(403);
+      await officer.goto(base + "/manage?tab=appearance");
+      await expect(officer.getByRole("button", { name: "이미지 선택", exact: true })).toBeDisabled();
+      await expect(officer.getByRole("button", { name: "배너 적용", exact: true })).toBeDisabled();
+    } finally { await officerContext.close(); }
+    await page.reload();
+    await profiles.getByRole("button", { name: "기본 이미지로", exact: true }).click();
+    await expect.poll(async () => (await readClan()).icon_url).toBeNull();
+    expect((await svc.storage.from("clan-profiles").list(clanId)).data).toHaveLength(0);
+  } finally {
+    const objects = await svc.storage.from("clan-profiles").list(clanId);
+    if (objects.data?.length) expect((await svc.storage.from("clan-profiles").remove(objects.data.map(file => `${clanId}/${file.name}`))).error).toBeNull();
+    expect((await svc.from("purchases").delete().eq("clan_id", clanId)).error).toBeNull();
+    await fixture.cleanup();
+  }
+});

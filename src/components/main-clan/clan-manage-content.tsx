@@ -1,7 +1,7 @@
 import "server-only";
 import { profileBattleTag } from "@/lib/game-auth/battle-tag";
 import Link from "next/link";
-import { CalendarDays, Clock, Coins, ImageIcon, Swords, Trophy, Users } from "lucide-react";
+import { CalendarDays, Clock, Coins, Swords, Trophy, Users } from "lucide-react";
 import type { MainClanContext } from "@/lib/clan/load-main-clan-context";
 import type { ManageTab } from "@/lib/clan/manage-sections";
 import { loadClanHistory } from "@/lib/clan/load-clan-history";
@@ -10,12 +10,12 @@ import { loadClanBadges } from "@/lib/clan/load-clan-badges";
 import { hasRequestClanPermission } from "@/lib/clan/request-clan-access";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import { createServiceRoleClient } from "@/lib/supabase/service";
-import { clanHasActivePurchaseForItemSlug } from "@/lib/store/store-purchase-queries";
+import { MVP_STORE_SLUGS } from "@/lib/store/mvp-store-slugs";
 import { loadClanSiteVisits } from "@/lib/clan/stats/clan-site-usage";
 import { loadClanPeerNames } from "@/lib/clan/load-clan-peer-names";
 import { loadClanManagementStats } from "@/lib/clan/stats/load-clan-stats";
 import { ClanManageNotices, ClanManageRules } from "./clan-manage-notices";
-import { ClanBannerSettingsForm } from "./clan-banner-settings-form";
+import { ClanAppearanceSettings } from "./clan-appearance-settings";
 import { ClanBalanceAutoCloseSettings } from "./clan-balance-auto-close-settings";
 import { ManageJoinRequestsPanel } from "./manage-join-requests-panel";
 import { ManageMembersTable, type ManageMemberRow } from "./manage-members-table";
@@ -126,13 +126,14 @@ async function Notices({ ctx }: Pick<Props, "ctx">) {
 
 async function Appearance({ ctx }: Pick<Props, "ctx">) {
   const svc = createServiceRoleClient();
-  const [hasSlot, canManage, profile] = await Promise.all([
-    clanHasActivePurchaseForItemSlug(svc, ctx.clanId, "clan_banner_slot"),
+  const [catalog, canManage, purchases] = await Promise.all([
+    svc.from("store_items").select("id,slug,name_ko,asset_url").eq("is_active", true).eq("pool_source", "clan").in("slug", [...MVP_STORE_SLUGS]).order("released_at"),
     hasRequestClanPermission(ctx.clanId, "manage_clan_pool"),
-    svc.from("clans").select("banner_url").eq("id", ctx.clanId).single(),
+    svc.from("purchases").select("item_id").eq("clan_id", ctx.clanId).eq("pool_source", "clan").is("voided_at", null),
   ]);
-  if (profile.error) throw new Error("클랜 배너를 불러오지 못했습니다.");
-  return hasSlot && canManage ? <ClanBannerSettingsForm gameSlug={ctx.gameSlug} clanId={ctx.clanId} initialBannerUrl={profile.data.banner_url} /> : <section className={`${panel} space-y-3`}><div className="flex items-center gap-2"><ImageIcon className="size-4 text-muted-foreground" aria-hidden /><h4 className="text-sm font-semibold">클랜 배너</h4></div><p className="text-xs leading-relaxed text-muted-foreground">{hasSlot ? "배너를 변경하려면 클랜 꾸미기 관리 권한이 필요합니다." : "클랜 스토어에서 배너 슬롯을 구매하면 배너를 등록할 수 있습니다."}</p><Link href={`/games/${ctx.gameSlug}/clan/${ctx.clanId}/store`} className="inline-flex min-h-9 items-center rounded-lg border border-border px-3 text-xs font-semibold hover:bg-muted">클랜 스토어</Link></section>;
+  if (catalog.error || purchases.error) throw new Error("클랜 꾸미기를 불러오지 못했습니다.");
+  const owned = new Set(purchases.data.map(row => row.item_id));
+  return <ClanAppearanceSettings key={`${ctx.clanId}:${ctx.role}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} clanName={ctx.clanName} initialIconUrl={ctx.iconUrl} initialBannerUrl={ctx.bannerUrl} canManage={canManage} banners={catalog.data.flatMap(row => row.asset_url ? [{ slug: row.slug, name: row.name_ko, url: row.asset_url, owned: owned.has(row.id) }] : [])} />;
 }
 
 async function Requests({ ctx }: Pick<Props, "ctx">) {

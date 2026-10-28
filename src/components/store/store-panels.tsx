@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -30,6 +31,7 @@ import { cn } from "@/lib/utils";
 export type ClanStoreItemVM = {
   slug: MvpStoreSlug;
   name_ko: string;
+  asset_url: string | null;
   price_coins: number;
   pool_source: "clan" | "personal";
   is_premium_only: boolean;
@@ -125,13 +127,12 @@ export function StorePanels({
                         "text-primary",
                       )}
                     >
-
-                        <div className="flex h-20 w-4/5 items-end gap-2 rounded-xl border border-primary/30 bg-gradient-to-br from-primary/15 to-primary/5 p-3">
+                      {it.asset_url ? <Image src={it.asset_url} alt={`${it.name_ko} 배너 미리보기`} fill sizes="(max-width: 640px) 100vw, 400px" className="object-cover" /> : <div className="flex h-20 w-4/5 items-end gap-2 rounded-xl border border-primary/30 bg-gradient-to-br from-primary/15 to-primary/5 p-3">
                           <Shield className="size-9 rounded-lg border border-primary/30 p-1.5" />
                           <span className="mb-1 text-xs font-bold">
                             CLAN HOME
                           </span>
-                        </div>
+                        </div>}
 
                       {it.is_premium_only ? (
                         <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-pro-gold/15 px-2 py-1 text-[10px] font-bold text-pro-gold">
@@ -176,7 +177,7 @@ export function StorePanels({
                             buttonVariants({ variant: "secondary" }),
                             "w-full",
                           )}
-                          href={`/games/${gameSlug}/clan/${clanId}/manage`}
+                          href={`/games/${gameSlug}/clan/${clanId}/manage?tab=appearance`}
                         >
                           <Check size={14} />
                           구매 완료 · 설정하기

@@ -32,7 +32,7 @@ export default async function ClanStorePage({
     hasRequestClanPermission(clanId, "manage_clan_pool"),
     supabase
       .from("store_items")
-      .select("id, slug, name_ko, price_coins, pool_source, is_premium_only")
+      .select("id, slug, name_ko, price_coins, pool_source, is_premium_only, asset_url")
       .eq("is_active", true)
       .eq("pool_source", "clan")
       .in("slug", [...MVP_STORE_SLUGS]),
@@ -81,6 +81,7 @@ export default async function ClanStorePage({
     items.push({
       slug,
       name_ko: row.name_ko as string,
+      asset_url: row.asset_url,
       price_coins: price,
       pool_source: pool,
       is_premium_only: isPrem,
@@ -136,7 +137,7 @@ export default async function ClanStorePage({
             구매한 클랜 배너는{" "}
             <Link
               className="text-primary underline-offset-4 hover:underline"
-              href={`/games/${gameSlug}/clan/${clanId}/manage`}
+              href={`/games/${gameSlug}/clan/${clanId}/manage?tab=appearance`}
             >
               클랜 관리
             </Link>
