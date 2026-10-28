@@ -101,3 +101,5 @@
 `PHASE2_EXPERIENCE.md`의 중복 상태표·옛 데모는 제거하고 진행도·QA 문서로 연결했습니다. 페이지 명세·정책 결정·법무 검토는 고유한 요구사항을 담으므로 유지합니다.
 
 구독 표시 용어는 **Free / Premium**으로 통일합니다. 기존 `pro-*` 코드 식별자는 별도입니다.
+
+공용 반응·사진 꾸미기: [권한/규격](../src/lib/clan/cosmetics.ts) · [이모티콘 API](../src/app/api/games/[gameSlug]/clans/[clanId]/emojis/route.ts) · [관리](../src/components/main-clan/clan-emoji-settings.tsx) · [사진 표시](../src/components/main-clan/memory-photo.tsx) · [격리 구매/업로드/RLS/꾸미기/모달 검증](../e2e/clan-cosmetics.spec.ts).

@@ -9,6 +9,8 @@ import {loadClanCoaches} from "@/lib/clan/load-clan-coaches";
 import { BOARD_SECTIONS, BOARD_PAGE_SIZE, isBoardKind } from "@/lib/clan/board";
 import { ClanManageNotices,ClanManageRules } from "@/components/main-clan/clan-manage-notices";
 import { ClanBoardPosts } from "@/components/main-clan/clan-board-posts";
+import { loadClanCosmeticAccess } from "@/lib/clan/load-clan-cosmetics";
+import { NO_CLAN_COSMETICS } from "@/lib/clan/cosmetics";
 export default async function BoardSectionPage({params,searchParams}:{params:Promise<{gameSlug:string;clanId:string;section:string}>;searchParams:Promise<{page?:string}>}) {
   const [{gameSlug,clanId,section},query]=await Promise.all([params,searchParams]);
   const room=BOARD_SECTIONS.find(s=>s.key===section);
@@ -28,8 +30,8 @@ export default async function BoardSectionPage({params,searchParams}:{params:Pro
   }
   if(!isBoardKind(section))notFound();
   const page=/^[1-9]\d{0,4}$/.test(query.page??"")?Number(query.page):1;
-  const [data,coaches]=await Promise.all([loadClanBoard(clanId,section,page),section==="feedback"?loadClanCoaches(clanId):Promise.resolve([])]);
+  const [data,coaches,cosmeticAccess]=await Promise.all([loadClanBoard(clanId,section,page),section==="feedback"?loadClanCoaches(clanId):Promise.resolve([]),section==="memories"?loadClanCosmeticAccess(clanId):Promise.resolve(NO_CLAN_COSMETICS)]);
   if(!data)throw new Error("게시글을 불러오지 못했습니다.");
   const pages=Math.max(1,Math.ceil(data.total/BOARD_PAGE_SIZE));
-  return <div className="space-y-5"><ClanBoardPosts key={data.userId+section} base={base} gameSlug={gameSlug} clanId={clanId} kind={section} title={room.label} posts={data.posts} coaches={coaches} userId={data.userId}/>{pages>1&&<nav className="flex items-center justify-center gap-4 text-sm" aria-label="게시글 페이지">{page>1&&<Link href={base+"/board/"+section+"?page="+(page-1)}>이전</Link>}<span>{page} / {pages}</span>{page<pages&&<Link href={base+"/board/"+section+"?page="+(page+1)}>다음</Link>}</nav>}</div>;
+  return <div className="space-y-5"><ClanBoardPosts key={data.userId+section} base={base} gameSlug={gameSlug} clanId={clanId} kind={section} cosmeticAccess={cosmeticAccess} title={room.label} posts={data.posts} coaches={coaches} userId={data.userId}/>{pages>1&&<nav className="flex items-center justify-center gap-4 text-sm" aria-label="게시글 페이지">{page>1&&<Link href={base+"/board/"+section+"?page="+(page-1)}>이전</Link>}<span>{page} / {pages}</span>{page<pages&&<Link href={base+"/board/"+section+"?page="+(page+1)}>다음</Link>}</nav>}</div>;
 }

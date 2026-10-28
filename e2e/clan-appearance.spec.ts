@@ -62,13 +62,14 @@ test("clan officers upload profiles and apply only purchased banners without cha
     await expect(history).toContainText("아직 클랜 코인 거래가 없습니다.");
     await history.locator("summary").click();
     await page.getByRole("radio", { name: "보유", exact: true }).click();
-    await expect(page.getByText("보유한 배너가 없습니다.", { exact: true })).toBeVisible();
+    await expect(page.getByText("보유한 상품이 없습니다.", { exact: true })).toBeVisible();
     await page.getByRole("radio", { name: "전체", exact: true }).click();
     await page.getByRole("textbox", { name: "디자인 검색", exact: true }).fill("미드나잇");
     await expect(page.getByRole("article")).toHaveCount(1);
     await page.getByRole("textbox", { name: "디자인 검색", exact: true }).fill("없는 디자인");
     await expect(page.getByText("검색 결과가 없습니다.", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "검색 지우기", exact: true }).click();
+    await page.getByRole("radio", { name: "배너", exact: true }).click();
     await expect(page.getByRole("article")).toHaveCount(3);
     await product(emerald.name_ko).getByRole("button", { name: emerald.name_ko + " 미리보기", exact: true }).click();
     const preview = page.getByRole("dialog", { name: emerald.name_ko + " 미리보기", exact: true });

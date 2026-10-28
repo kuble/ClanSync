@@ -16,6 +16,7 @@ import { loadClanPeerNames } from "@/lib/clan/load-clan-peer-names";
 import { loadClanManagementStats } from "@/lib/clan/stats/load-clan-stats";
 import { ClanManageNotices, ClanManageRules } from "./clan-manage-notices";
 import { ClanAppearanceSettings } from "./clan-appearance-settings";
+import { ClanEmojiSettings } from "./clan-emoji-settings";
 import { ClanBalanceAutoCloseSettings } from "./clan-balance-auto-close-settings";
 import { ManageJoinRequestsPanel } from "./manage-join-requests-panel";
 import { ManageMembersTable, type ManageMemberRow } from "./manage-members-table";
@@ -126,14 +127,16 @@ async function Notices({ ctx }: Pick<Props, "ctx">) {
 
 async function Appearance({ ctx }: Pick<Props, "ctx">) {
   const svc = createServiceRoleClient();
-  const [catalog, canManage, purchases] = await Promise.all([
+  const [catalog, canManage, purchases, emojis] = await Promise.all([
     svc.from("store_items").select("id,slug,name_ko,asset_url").eq("is_active", true).eq("pool_source", "clan").in("slug", [...MVP_STORE_SLUGS]).order("released_at"),
     hasRequestClanPermission(ctx.clanId, "manage_clan_pool"),
     svc.from("purchases").select("item_id").eq("clan_id", ctx.clanId).eq("pool_source", "clan").is("voided_at", null),
+    svc.from("clan_emojis").select("id,name").eq("clan_id",ctx.clanId).order("created_at"),
   ]);
-  if (catalog.error || purchases.error) throw new Error("클랜 꾸미기를 불러오지 못했습니다.");
+  if (catalog.error || purchases.error || emojis.error) throw new Error("클랜 꾸미기를 불러오지 못했습니다.");
   const owned = new Set(purchases.data.map(row => row.item_id));
-  return <ClanAppearanceSettings key={`${ctx.clanId}:${ctx.role}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} clanName={ctx.clanName} initialIconUrl={ctx.iconUrl} initialBannerUrl={ctx.bannerUrl} canManage={canManage} banners={catalog.data.flatMap(row => row.asset_url ? [{ slug: row.slug, name: row.name_ko, url: row.asset_url, owned: owned.has(row.id) }] : [])} />;
+  const emojiPack=catalog.data.find(row=>row.slug==="clan_emoji_slots_10");
+  return <div className="space-y-5"><ClanAppearanceSettings key={`${ctx.clanId}:${ctx.role}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} clanName={ctx.clanName} initialIconUrl={ctx.iconUrl} initialBannerUrl={ctx.bannerUrl} canManage={canManage} banners={catalog.data.flatMap(row => row.asset_url&&row.slug.startsWith("clan_banner_") ? [{ slug: row.slug, name: row.name_ko, url: row.asset_url, owned: owned.has(row.id) }] : [])} /><ClanEmojiSettings gameSlug={ctx.gameSlug} clanId={ctx.clanId} canEdit={canManage} emojis={emojis.data} slots={emojiPack&&owned.has(emojiPack.id)?10:0}/></div>;
 }
 
 async function Requests({ ctx }: Pick<Props, "ctx">) {

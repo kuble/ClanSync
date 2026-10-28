@@ -153,7 +153,6 @@ export function MainClanShell({
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const basePath = `/games/${ctx.gameSlug}/clan/${ctx.clanId}`;
-  const showHero = pathname === basePath + "/store";
   const items: NavItem[] = [
     { href: basePath, label: "대시보드", icon: Home },
     {
@@ -268,7 +267,6 @@ export function MainClanShell({
       </aside>
       <main id="main-content" className={styles.content}>
         <div className={styles.inner}>
-          {showHero ? <ClanHero ctx={ctx} basePath={basePath} showLobbyAction={false} /> : null}
           {children}
         </div>
       </main>

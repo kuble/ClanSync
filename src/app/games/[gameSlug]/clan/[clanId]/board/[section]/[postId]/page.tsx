@@ -7,6 +7,7 @@ import { loadBoardArticle } from "@/lib/clan/load-clan-board";
 import {loadClanCoaches} from "@/lib/clan/load-clan-coaches";
 import { isBoardKind,uuidPattern } from "@/lib/clan/board";
 import { ClanBoardArticle } from "@/components/main-clan/clan-board-article";
+import { loadClanCosmeticAccess } from "@/lib/clan/load-clan-cosmetics";
 export default async function PostPage({params,searchParams}:{params:Promise<{gameSlug:string;clanId:string;section:string;postId:string}>;searchParams:Promise<{comments?:string}>}) {
   const [{gameSlug,clanId,section,postId},query]=await Promise.all([params,searchParams]);
   if(!uuidPattern.test(postId))notFound();
@@ -25,5 +26,7 @@ export default async function PostPage({params,searchParams}:{params:Promise<{ga
   const data=await loadBoardArticle(clanId,section,postId,commentPage);
   if(!data)notFound();
   const coaches=section==="feedback"&&data.post.canManage?await loadClanCoaches(clanId):[];
-  return <ClanBoardArticle key={data.userId+postId} base={base} gameSlug={gameSlug} clanId={clanId} kind={section} {...data} commentPage={commentPage} coaches={coaches}/>;
+  const client=await getRequestClient();
+  const [cosmeticAccess,emojis,emojiReactions]=await Promise.all([loadClanCosmeticAccess(clanId),client.from("clan_emojis").select("id,name").eq("clan_id",clanId).order("created_at"),client.rpc("clan_emoji_reaction_counts",{p_post_id:postId})]);
+  return <ClanBoardArticle key={data.userId+postId} base={base} gameSlug={gameSlug} clanId={clanId} kind={section} {...data} commentPage={commentPage} coaches={coaches} cosmeticAccess={cosmeticAccess} emojis={emojis.data??[]} emojiReactions={emojiReactions.data??[]}/>;
 }

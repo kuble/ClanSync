@@ -94,13 +94,7 @@ export default async function ClanStorePage({
 
         <StorePanels
           key={user.id}
-          gameSlug={gameSlug}
-          clanId={clanId}
-          clanName={ctx.clanName}
-          iconUrl={ctx.iconUrl}
-          bannerUrl={ctx.bannerUrl}
-          actorRole={ctx?.role ?? "member"}
-          planIsPremium={premium}
+          ctx={ctx}
           items={items}
           clanCoins={clanCoins}
           canManageClanPool={canManageClanPool}

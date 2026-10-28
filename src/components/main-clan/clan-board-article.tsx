@@ -13,12 +13,16 @@ import {ClanBoardEditor} from "./clan-board-editor";
 import type {ClanCoach} from "@/lib/clan/coaching";
 import {ClanChannelLinks,ClanChannelStatus} from "./clan-channel-links";
 import {cn} from "@/lib/utils";
+import { MemoryPhoto } from "./memory-photo";
+import { ClanEmojiReactions } from "./clan-emoji-reactions";
+import { NO_CLAN_COSMETICS, memoryStyle, type ClanCosmeticAccess, type ClanEmoji, type ClanEmojiReaction } from "@/lib/clan/cosmetics";
 
-export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reactions,liked,commentPage,coaches=[]}:{base:string;gameSlug:string;clanId:string;kind:BoardKind;post:BoardPost;comments:BoardComment[];reactions:number;liked:boolean;commentPage:number;userId:string;coaches?:ClanCoach[]}){
+export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reactions,liked,commentPage,coaches=[],cosmeticAccess=NO_CLAN_COSMETICS,emojis=[],emojiReactions=[]}:{base:string;gameSlug:string;clanId:string;kind:BoardKind;post:BoardPost;comments:BoardComment[];reactions:number;liked:boolean;commentPage:number;userId:string;coaches?:ClanCoach[];cosmeticAccess?:ClanCosmeticAccess;emojis?:ClanEmoji[];emojiReactions?:ClanEmojiReaction[]}){
   const router=useRouter();
   const [editing,setEditing]=useState(false),[remove,setRemove]=useState<string|null>(null),[comment,setComment]=useState(""),[commentEdit,setCommentEdit]=useState<BoardComment|null>(null);
   const [pending,start]=useTransition();
   const details=boardDetails(post.details),video=safeBoardUrl(details.video),live=details.isLive===true;
+  const photo=memoryStyle(details,cosmeticAccess);
   function mutate(action:()=>Promise<{ok:true;warning?:string}|{ok:false;error:string}>,done?:()=>void){
     start(async()=>{try{const result=await action();if(!result.ok){toast.error(result.error);return;}if(result.warning)toast.warning(result.warning);done?.();}catch{toast.error("저장하지 못했습니다. 작성 내용은 유지됩니다.");}});
   }
@@ -49,10 +53,10 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
           </div>
           <div className="grid gap-4 sm:grid-cols-2"><div className="flex items-start gap-3 rounded-lg bg-muted/30 p-4"><Clock3 className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden/><div className="min-w-0"><h4 className="text-xs text-muted-foreground">방송 시간</h4><p className="mt-1 break-words text-sm font-medium leading-6">{details.schedule||"방송 시간 자유"}</p></div></div><div className="min-w-0 space-y-3 rounded-lg bg-muted/30 p-4"><h4 className="text-xs text-muted-foreground">방송 플랫폼</h4><ClanChannelLinks channels={boardChannels(details)}/></div></div>
         </section>}
-        {post.image_path&&<a href={boardImageUrl(base,post.id)} target="_blank" rel="noopener noreferrer" aria-label="사진 원본 보기" className="block overflow-hidden rounded-lg bg-muted/20"><Image unoptimized src={boardImageUrl(base,post.id)} width={1600} height={1200} alt={post.content||post.title} className="mx-auto max-h-[70dvh] w-auto max-w-full object-contain"/></a>}
+        {post.image_path&&<a href={boardImageUrl(base,post.id)} target="_blank" rel="noopener noreferrer" aria-label="사진 원본 보기" className="block overflow-hidden rounded-lg bg-muted/20">{kind==="memories"?<div className="mx-auto max-w-xl p-4"><MemoryPhoto src={boardImageUrl(base,post.id)} caption="" alt={post.content||post.title} frame={photo.photoFrame} sticker={photo.photoSticker}/></div>:<Image unoptimized src={boardImageUrl(base,post.id)} width={1600} height={1200} alt={post.content||post.title} className="mx-auto max-h-[70dvh] w-auto max-w-full object-contain"/>}</a>}
         {kind!=="channels"&&<div className="max-w-[68ch] whitespace-pre-wrap break-words text-[15px] leading-8">{post.content}</div>}
       </div>
-      <footer className="flex items-center justify-between gap-3 border-t border-border px-5 py-4 sm:px-7"><Button variant="outline" size="sm" aria-pressed={liked} disabled={pending} onClick={()=>mutate(()=>setBoardReactionAction(gameSlug,clanId,post.id,!liked))}><Heart className={liked?"size-4 fill-primary text-primary":"size-4"} aria-hidden/>공감 {reactions}</Button><span className="flex items-center gap-1.5 text-xs text-muted-foreground"><MessageSquare className="size-4" aria-hidden/>댓글 {post.commentCount}</span></footer>
+      <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-5 py-4 sm:px-7"><Button variant="outline" size="sm" aria-pressed={liked} disabled={pending} onClick={()=>mutate(()=>setBoardReactionAction(gameSlug,clanId,post.id,!liked))}><Heart className={liked?"size-4 fill-primary text-primary":"size-4"} aria-hidden/>공감 {reactions}</Button><ClanEmojiReactions gameSlug={gameSlug} clanId={clanId} postId={post.id} emojis={emojis} reactions={emojiReactions}/><span className="flex items-center gap-1.5 text-xs text-muted-foreground"><MessageSquare className="size-4" aria-hidden/>댓글 {post.commentCount}</span></footer>
     </article>
     <section id="comments" className="min-h-64 rounded-xl border border-border bg-card p-5 sm:p-6" aria-label="게시글 댓글">
       <h4 className="flex items-center gap-2 text-sm font-semibold">댓글 <span className="rounded-md bg-muted px-2 py-0.5 text-xs tabular-nums text-muted-foreground">{post.commentCount}</span></h4>
@@ -64,7 +68,7 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
         <div className="flex flex-wrap items-center justify-between gap-2"><span className="text-[11px] tabular-nums text-muted-foreground">{comment.length} / 1,000</span><div className="flex gap-2">{commentEdit&&<Button type="button" variant="outline" disabled={pending} onClick={()=>{setCommentEdit(null);setComment("");}}>편집 취소</Button>}<Button type="submit" size="sm" disabled={pending}><Send className="size-3.5" aria-hidden/>{pending?"저장 중…":commentEdit?"댓글 수정":"댓글 등록"}</Button></div></div>
       </form>
     </section>
-    {editing&&<ClanBoardEditor gameSlug={gameSlug} clanId={clanId} kind={kind} post={post} coaches={coaches} onClose={()=>setEditing(false)}/>}
+    {editing&&<ClanBoardEditor gameSlug={gameSlug} clanId={clanId} kind={kind} post={post} cosmeticAccess={cosmeticAccess} coaches={coaches} onClose={()=>setEditing(false)}/>}
     <Dialog open={remove!==null} onOpenChange={open=>{if(!open&&!pending)setRemove(null);}}><DialogContent><DialogHeader><DialogTitle>{remove==="post"?"글을 삭제할까요?":"댓글을 삭제할까요?"}</DialogTitle><DialogDescription>삭제한 내용은 복구할 수 없습니다.</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" disabled={pending} onClick={()=>setRemove(null)}>취소</Button><Button variant="destructive" disabled={pending} onClick={()=>{if(remove==="post")mutate(()=>deleteBoardPostAction(gameSlug,clanId,post.id),()=>{setRemove(null);router.push(base+"/board/"+kind);});else if(remove)mutate(()=>deleteBoardCommentAction(gameSlug,clanId,post.id,remove),()=>setRemove(null));}}>{pending?"삭제 중…":"삭제"}</Button></DialogFooter></DialogContent></Dialog>
   </div>;
 }

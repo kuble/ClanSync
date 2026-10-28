@@ -1,0 +1,15 @@
+.photo { position:relative; min-width:0; padding:12px 12px 20px; background:color-mix(in srgb,var(--card) 94%,#c4bfae); border:1px solid var(--border); box-shadow:0 6px 18px #0002; }
+.image { display:grid; place-items:center; aspect-ratio:4/3; overflow:hidden; background:var(--muted); }
+.image img { width:100%; height:100%; object-fit:cover; }
+.caption { margin-top:12px; white-space:pre-wrap; overflow-wrap:anywhere; text-align:center; font-size:13px; line-height:1.7; }
+.footer { margin-top:8px; text-align:center; color:var(--muted-foreground); font-size:11px; }
+.film { padding:18px 24px 20px; background:#17191c; border-color:#393b40; color:#fafafa; }
+.film::before,.film::after { position:absolute; top:12px; bottom:12px; width:7px; content:""; background:repeating-linear-gradient(to bottom,#b9b8ae 0 7px,transparent 7px 16px); }
+.film::before { left:7px; }.film::after { right:7px; }
+.film .footer { color:#b8b8b8; }
+.tape { margin-top:12px; background:#f1e9d5; color:#3c3933; border-color:#d4cab6; }
+.tape::before { position:absolute; z-index:2; top:-10px; left:calc(50% - 40px); width:80px; height:26px; content:""; transform:rotate(-6deg); background:#d4b577b0; border:1px solid #c3a96b80; }
+.tape .footer { color:#716b5f; }
+.sticker { position:absolute; right:5px; top:8px; z-index:2; display:grid; place-items:center; width:46px; height:46px; transform:rotate(12deg); border:3px solid #fff; border-radius:14px; box-shadow:0 2px 6px #0003; }
+.sticker svg { width:27px; height:27px; }
+.sparkle { background:#f8d66c; color:#614c14; }.heart { background:#f5a8b4; color:#92344f; }.heart svg { fill:currentColor; }.gg { background:#b8e3c8; color:#205e41; font-size:20px; font-weight:800; letter-spacing:-1px; }
