@@ -41,7 +41,7 @@ const cardHeading =
 const headingLink = "flex min-h-6 w-full items-center gap-1.5 rounded-sm transition-colors hover:text-primary after:absolute after:inset-0 after:z-10 after:rounded-xl after:content-[''] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-primary";
 
 function DashboardHeading({ id, href, title, icon: Icon }: { id: string; href: string; title: string; icon: typeof Megaphone }) {
-  return <h3 id={id} className={cn(cardHeading, "mb-3")}><Link href={href} className={headingLink}><Icon className="size-4 shrink-0 text-primary" aria-hidden="true" />{title}<ChevronRight className="size-4 shrink-0" aria-hidden="true" /></Link></h3>;
+  return <h3 id={id} className={cn(cardHeading, "mb-3")}><Link href={href} className={headingLink}><Icon className="size-4 shrink-0 text-primary" aria-hidden="true" />{title}<ChevronRight className="ml-auto size-4 shrink-0" aria-hidden="true" /></Link></h3>;
 }
 
 function EmptyCard({
