@@ -562,7 +562,7 @@
 .accountRolePicker ol button { width:56px; height:56px; border-style:solid; border-radius:10px; background:var(--muted); }
 .accountRolePicker ol button:hover { background:color-mix(in srgb,var(--primary) 8%,var(--muted)); }
 .accountRolePicker ol button[aria-pressed="true"] { background:color-mix(in srgb,var(--primary) 16%,var(--muted)); }
-.accountClans { margin-top:20px; padding-top:18px; border-top:1px solid var(--border); }
+.accountClans:not(:first-child) { margin-top:20px; padding-top:18px; border-top:1px solid var(--border); }
 .accountClanList { margin-top:10px; }
 .accountClanRow { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; padding:10px 0; }
 .accountClanRow + .accountClanRow { border-top:1px solid var(--border); }
