@@ -3732,6 +3732,10 @@ export type Database = {
         Args: { p_clan_id: string; p_round_id: string; p_snapshot: Json }
         Returns: undefined
       }
+      set_clan_banner: {
+        Args: { p_actor_id: string; p_clan_id: string; p_item_slug?: string }
+        Returns: Json
+      }
       set_clan_discord_bot_settings: {
         Args: {
           p_actor_id: string
