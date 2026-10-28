@@ -226,17 +226,20 @@ function UpcomingEventsContent({
   );
 }
 
-function MvpStep({ value, position }: { value: DashboardMvp | undefined; position: number }) {
+function MvpPlace({ value, position }: { value: DashboardMvp | undefined; position: number }) {
   const rank = value?.rank ?? position;
   const displayName = value?.nickname;
-  return <li className={styles.podiumStep} data-position={position} data-rank={rank} aria-label={value ? `${value.tiedCount > 1 ? "공동 " : ""}${rank}위 ${displayName}` : `${position}위 기록 없음`}>
-    <div className={styles.podiumPlayer}>
-      <div className={cn(styles.podiumRank, !value && "opacity-40")}><Trophy className="size-5 shrink-0" aria-hidden="true" /><span className="sr-only">{value && value.tiedCount > 1 ? "공동 " : ""}{rank}위</span></div>
-      <p className="w-full truncate text-center text-xs font-semibold" title={displayName}>{displayName ?? "—"}</p>
-      <p className="text-center text-sm font-bold tabular-nums">{value ? formatPercent(value.percentage) : "—"}</p>
-    </div>
-    <div className={styles.podiumBase} aria-hidden="true">{rank}</div>
-  </li>;
+  const percentage = formatPercent(value?.percentage);
+  return (
+    <li className={cn(styles.mvpPlace, !value && styles.mvpMissing)} data-rank={rank} aria-label={value ? `${value.tiedCount > 1 ? "공동 " : ""}${rank}위 ${displayName}` : `${position}위 기록 없음`}>
+      <span className={styles.mvpRank} data-mvp-rank aria-hidden="true">{rank}</span>
+      <p className={styles.mvpName} data-mvp-name>{displayName ?? "—"}</p>
+      <p className={styles.mvpValue} data-mvp-value>
+        {percentage.endsWith("%") ? <>{percentage.slice(0, -1)}<span>%</span></> : percentage}
+      </p>
+      {value && rank === 1 && <Trophy className={styles.mvpTrophy} aria-hidden="true" />}
+    </li>
+  );
 }
 
 function MvpCard({
@@ -258,12 +261,12 @@ function MvpCard({
 }) {
   return (
     <section
-      className={cn(card, "flex min-h-36 flex-col bg-background/25 p-3 shadow-none")}
+      className={cn(card, styles.mvpCard)}
       aria-label={title}
     >
-      <h4 className="text-sm font-semibold text-muted-foreground"><Link href={href} className={cn(headingLink, "min-h-5")}>{title}<ChevronRight className="size-4 shrink-0" aria-hidden="true" /></Link></h4>
+      <h4><Link href={href} className={cn(headingLink, styles.mvpHeading)}><Icon className={styles.mvpCategoryIcon} aria-hidden="true" />{title}<ChevronRight className={styles.mvpArrow} aria-hidden="true" /></Link></h4>
       {premiumLocked ? (
-        <div className="mt-2 flex flex-1 flex-wrap content-center items-center gap-x-2 gap-y-1.5">
+        <div className={cn(styles.mvpStatus, "flex flex-wrap content-center items-center gap-x-2 gap-y-1.5")}>
           <Crown className="size-5 shrink-0 text-amber-500" aria-hidden="true" />
           <p className="text-[13px] font-bold text-amber-700 dark:text-amber-300">
             Premium 전용
@@ -274,15 +277,15 @@ function MvpCard({
           <button
             type="button"
             onClick={onUpgrade}
-            className="relative z-20 ml-auto rounded-md bg-gradient-to-r from-amber-500 to-orange-500 px-2 py-1 text-xs font-semibold text-white transition hover:brightness-105"
+            className={styles.mvpPremiumButton}
           >
             Premium 알아보기
           </button>
         </div>
       ) : values.length ? (
-        <ol className={styles.podium} aria-label={`${title} 순위`}>{[0, 1, 2].map(index => <MvpStep key={index} value={values[index]} position={index + 1} />)}</ol>
+        <ol className={styles.mvpPlaces} aria-label={`${title} 순위`}>{[0, 1, 2].map(index => <MvpPlace key={index} value={values[index]} position={index + 1} />)}</ol>
       ) : (
-        <div className="flex flex-1 items-center gap-3.5 py-5">
+        <div className={cn(styles.mvpStatus, "flex items-center gap-3.5")}>
           <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground/50">
             <Icon className="size-5" aria-hidden="true" />
           </span>

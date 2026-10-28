@@ -180,7 +180,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         await expect(places.nth(index)).toContainText(fixture.users[index].nickname);
         await expect(places.nth(index).getByText(`${percentage.toFixed(1)}%`, { exact: true })).toBeVisible();
       }
-      expect(new Set(await places.locator("svg").evaluateAll(icons => icons.map(icon => getComputedStyle(icon).color))).size).toBe(3);
+      expect(new Set(await places.locator("[data-mvp-rank]").evaluateAll(ranks => ranks.map(rank => getComputedStyle(rank).color))).size).toBe(3);
       await expect(winner.locator("[data-namecard]")).toHaveCount(0);
       await expect(winner.getByRole("meter")).toHaveCount(0);
     }
@@ -313,13 +313,19 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         await expect(mvp.locator("[data-namecard]")).toHaveCount(0);
         const winners = await mvp.locator("section").evaluateAll(els => els.map(el => ({ x: el.getBoundingClientRect().x, y: el.getBoundingClientRect().y })));
         expect(new Set(winners.map(box => box.y)).size).toBe(width >= 800 ? 1 : 3);
-        const podium = page.getByRole("region", { name: "지난달 승률 MVP", exact: true }).getByRole("listitem");
-        const [gold, silver, bronze] = await podium.evaluateAll(items => items.map(item => { const box = item.getBoundingClientRect(); return { x: box.x, y: box.y, bottom: box.bottom }; }));
-        expect(silver.x).toBeLessThan(gold.x);
-        expect(gold.x).toBeLessThan(bronze.x);
-        expect(gold.y).toBeLessThan(silver.y);
-        expect(silver.y).toBeLessThan(bronze.y);
-        expect(gold.bottom).toBeCloseTo(bronze.bottom, 0);
+        const ranking = page.getByRole("region", { name: "지난달 승률 MVP", exact: true }).getByRole("listitem");
+        const [gold, silver, bronze] = await ranking.evaluateAll(items => items.map(item => {
+          const box = item.getBoundingClientRect();
+          const value = item.querySelector("[data-mvp-value]")!;
+          return { x:box.x, y:box.y, bottom:box.bottom, valueRight:value.getBoundingClientRect().right, valueSize:parseFloat(getComputedStyle(value).fontSize) };
+        }));
+        expect(silver.x).toBeCloseTo(gold.x, 0);
+        expect(bronze.x).toBeCloseTo(gold.x, 0);
+        expect(gold.bottom).toBeLessThanOrEqual(silver.y);
+        expect(silver.bottom).toBeLessThanOrEqual(bronze.y);
+        expect(gold.valueSize).toBeGreaterThan(silver.valueSize * 1.8);
+        expect(silver.valueRight).toBeCloseTo(bronze.valueRight, 0);
+        expect(await mvp.locator("[data-mvp-name], [data-mvp-value]").evaluateAll(elements => elements.every(element => element.scrollWidth <= element.clientWidth + 1))).toBe(true);
         if (width === 320 || width === 1304) {
           await page.getByRole("heading", { name: "클랜 공지사항", exact: true }).scrollIntoViewIfNeeded();
           await page.screenshot({ path: test.info().outputPath(`dashboard-${width}-${theme}.png`) });
