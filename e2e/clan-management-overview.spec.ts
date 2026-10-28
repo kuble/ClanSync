@@ -164,7 +164,7 @@ test("운영 현황의 회차·배지·중복 제거와 대시보드 공지 3개
     await notices.getByRole("link", { name: /먼저 확인할 고정 공지/ }).click();
     await expect(page.getByText("공지 내용 0", { exact: true })).toBeVisible();
     await page.goto(base);
-    await expect(page.getByRole("region", { name: "클랜 배지", exact: true }).getByRole("link", { name: "배지 케이스 보기 →" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "클랜 배지", exact: true }).getByRole("link", { name: "클랜 배지", exact: true })).toBeVisible();
     await capture(page, "dashboard-notices-desktop.png");
     await page.setViewportSize({ width: 390, height: 844 });
     expect(await notices.evaluate((node) => node.scrollHeight <= node.clientHeight)).toBe(true);

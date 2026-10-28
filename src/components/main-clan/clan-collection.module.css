@@ -27,7 +27,8 @@
   overflow-wrap:anywhere;
 }
 .caseGrid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:20px 18px; min-height:120px; }
-.compactGrid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.compactCase { padding-block:20px; }
+.compactGrid { grid-template-columns:repeat(3,minmax(0,1fr)); min-height:0; align-items:center; }
 .pin {
   --socket-shape:polygon(15% 5%,85% 5%,97% 30%,86% 73%,50% 98%,14% 73%,3% 30%);
   position:relative; display:block; width:100%; min-width:0; aspect-ratio:1;
@@ -90,7 +91,8 @@
   .seriesFacts { grid-template-columns:1fr 1fr; gap:16px; width:100%; }
   .case { padding:16px 14px; border-width:6px; border-radius:16px; }
   .caseGrid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 12px; }
-  .compactGrid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; min-height:70px; }
+  .compactCase { padding-block:16px; }
+  .compactGrid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; min-height:0; }
   .casePlate { font-size:11px; margin-bottom:10px; }
   .enamel { inset:3px; }
   .memoryLeft,.memoryRight {display:none;}

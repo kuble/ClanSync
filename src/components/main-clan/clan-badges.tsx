@@ -59,10 +59,10 @@ function acquisitionMethod(badge: ClanBadge) {
 }
 
 export function ClanBadges({
-  collection, gameSlug, clanId, compact = false, canManage = false, className,
+  collection, gameSlug, clanId, compact = false, canManage = false, previewOnly = false, className,
 }: {
   collection: ClanBadgeCollection; gameSlug: string; clanId: string;
-  compact?: boolean; canManage?: boolean; className?: string;
+  compact?: boolean; canManage?: boolean; previewOnly?: boolean; className?: string;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -150,21 +150,21 @@ export function ClanBadges({
     }
   }
 
-  return <Dialog open={seriesOpen} onOpenChange={setSeriesOpen}><div className={cn("space-y-4", className)}>
+  return <Dialog open={seriesOpen} onOpenChange={setSeriesOpen}><div inert={previewOnly} aria-hidden={previewOnly || undefined} className={cn("space-y-4", className)}>
     {!compact && <RubberSegment label="배지 컬렉션" labelPosition="hidden" value={group} onChange={setGroup}
       options={categories.map(category => {
         const hasNew = unread.some(b => category.id === "전체" || category.groups.includes(b.group));
         return { id: category.id, label: category.id, description: hasNew ? "새로 획득한 배지가 있습니다." : undefined, badge: hasNew ?
           <span data-new-badges aria-label="새 배지" className="inline-flex size-3.5 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold leading-none text-white">N</span> : undefined };
       })} />}
-    <div className={styles.case}>
+    <div data-badge-case className={cn(styles.case, compact && styles.compactCase)}>
       <div className={styles.casePlate}>{collection.clanName}</div>
       <div ref={caseRef} className={cn(styles.caseGrid, compact && styles.compactGrid)} role="group" aria-label="배지 진열">
         {badges.map(b => <DialogTrigger key={b.key} render={renderPin(b, compact, seriesOpen && seriesKey === b.key, () => inspect(b), undefined, true)} />)}
         {badges.length === 0 && <p className={styles.caseEmpty}>대표 배지를 지정해 주세요.</p>}
       </div>
     </div>
-    {compact && <Link href={"/games/" + gameSlug + "/clan/" + clanId + "/badges"} className="inline-flex text-xs font-medium text-primary">배지 케이스 보기 →</Link>}
+    {compact && !previewOnly && <Link href={"/games/" + gameSlug + "/clan/" + clanId + "/badges"} className="inline-flex text-xs font-medium text-primary">배지 케이스 보기 →</Link>}
     {seriesSelected && seriesRepresentative && <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto p-5 sm:max-w-3xl sm:p-7">
       <div className={styles.seriesHeader}>
         <div className={cn(styles.pin, styles.seriesArtwork, styles[seriesSelected.icon], !seriesSelected.earned && styles.unearnedPreview)}>

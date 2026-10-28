@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
 import {
-  ArrowUpRight,
   CalendarDays,
   ChevronRight,
   Crown,
@@ -37,18 +36,13 @@ const subscribe = () => () => {};
 const clientReady = () => true;
 const serverReady = () => false;
 const card =
-  "min-w-0 rounded-xl border border-border bg-card p-5 shadow-[0_4px_16px_rgba(0,0,0,0.04)] sm:p-6";
+  "relative min-w-0 rounded-xl border border-border bg-card p-5 shadow-[0_4px_16px_rgba(0,0,0,0.04)] sm:p-6";
 const cardHeading =
   "text-[15px] font-bold leading-6 tracking-tight text-foreground";
-const smallLink =
-  "inline-flex min-h-8 shrink-0 items-center gap-1 rounded-md border border-border bg-background/40 px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
+const headingLink = "flex min-h-8 w-full items-center gap-1.5 rounded-sm transition-colors hover:text-primary after:absolute after:inset-0 after:z-10 after:rounded-xl after:content-[''] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-primary";
 
-function RulesPreview({ rules, onRead }: { rules: string; onRead: () => void }) {
-  return <button type="button" aria-label="클랜 규칙 전체 보기" onClick={onRead}
-    className="group w-full rounded-lg text-left transition focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">
-    <span className="line-clamp-2 whitespace-pre-line break-words text-sm leading-7 text-muted-foreground">{rules}</span>
-    <span className="mt-3 inline-flex min-h-9 items-center gap-1 text-sm font-semibold text-primary group-hover:underline">전체 보기<ChevronRight className="size-4" aria-hidden="true" /></span>
-  </button>;
+function DashboardHeading({ id, href, title }: { id: string; href: string; title: string }) {
+  return <h3 id={id} className={cn(cardHeading, "mb-4")}><Link href={href} className={headingLink}>{title}<ChevronRight className="size-4 shrink-0" aria-hidden="true" /></Link></h3>;
 }
 
 function EmptyCard({
@@ -112,7 +106,7 @@ function NoticeRow({
     </>
   );
   const className = cn(
-    "flex w-full items-start gap-3 rounded-lg border border-transparent bg-muted/45 px-4 py-4 text-left transition hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+    "relative z-20 flex w-full items-start gap-3 rounded-lg border border-transparent bg-muted/45 px-4 py-4 text-left transition hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
     notice.isPinned && "border-primary/25 bg-primary/5",
   );
   return (
@@ -181,7 +175,7 @@ function UpcomingEventsContent({
           <Link
             key={`${event.id}:${at}`}
             href={`${base}/events`}
-            className="group flex items-center gap-4 border-b border-border/70 py-4 first:pt-0 last:border-0 last:pb-0"
+            className="group relative z-20 flex items-center gap-4 border-b border-border/70 py-4 first:pt-0 last:border-0 last:pb-0"
           >
             <span className={cn("flex w-12 shrink-0 flex-col items-center rounded-lg py-2", today ? "bg-primary/10" : "bg-muted/70")}>
               <span className="text-xl font-bold leading-tight text-foreground">
@@ -240,6 +234,7 @@ function MvpCard({
   model,
   premiumLocked = false,
   onUpgrade,
+  href,
 }: {
   title: string;
   value: DashboardMvp | null;
@@ -248,13 +243,14 @@ function MvpCard({
   model: ClanDashboardModel;
   premiumLocked?: boolean;
   onUpgrade?: () => void;
+  href: string;
 }) {
   return (
     <section
       className={cn(card, "relative flex min-h-44 flex-col shadow-none")}
       aria-label={title}
     >
-      <h4 className="text-sm font-semibold text-muted-foreground">{title}</h4>
+      <h4 className="text-sm font-semibold text-muted-foreground"><Link href={href} className={headingLink}>{title}<ChevronRight className="size-4 shrink-0" aria-hidden="true" /></Link></h4>
       {premiumLocked ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-2 py-4 text-center">
           <Crown className="size-7 text-amber-500" aria-hidden="true" />
@@ -267,7 +263,7 @@ function MvpCard({
           <button
             type="button"
             onClick={onUpgrade}
-            className="mt-1 rounded-md bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:brightness-105"
+            className="relative z-20 mt-1 rounded-md bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:brightness-105"
           >
             Premium 알아보기
           </button>
@@ -347,12 +343,6 @@ export function ClanDashboard({
     description: string;
   } | null>(initialNotice ? { ...initialNotice, description: "클랜 공지사항" } : null);
   const [premiumOpen, setPremiumOpen] = useState(false);
-  const readRules = () =>
-    setReading({
-      title: "클랜 규칙",
-      content: model.rules ?? "",
-      description: "함께 즐기기 위한 우리 클랜의 약속",
-    });
   return (
     <>
       <h2 className="sr-only">클랜 대시보드</h2>
@@ -363,17 +353,7 @@ export function ClanDashboard({
               className={card}
               aria-labelledby="dashboard-notices-heading"
             >
-              <div className="mb-4 flex items-center justify-between gap-2">
-                <h3 id="dashboard-notices-heading" className={cardHeading}>
-                  클랜 공지사항
-                </h3>
-                {actorRole !== "member" && (
-                  <Link href={`${base}/board/notices`} className={smallLink}>
-                    공지 관리
-                    <ArrowUpRight className="size-3" aria-hidden="true" />
-                  </Link>
-                )}
-              </div>
+              <DashboardHeading id="dashboard-notices-heading" href={`${base}/board/notices`} title="클랜 공지사항" />
               {model.errors.notices ? (
                 <EmptyCard
                   icon={Megaphone}
@@ -403,30 +383,15 @@ export function ClanDashboard({
               className={cn(card, "flex flex-col")}
               aria-labelledby="dashboard-events-heading"
             >
-              <div className="mb-4 flex items-center justify-between gap-2">
-                <h3 id="dashboard-events-heading" className={cardHeading}>
-                  다가오는 일정
-                </h3>
-                <Link href={`${base}/events`} className={smallLink}>
-                  이벤트
-                  <ChevronRight className="size-3" aria-hidden="true" />
-                </Link>
-              </div>
+              <DashboardHeading id="dashboard-events-heading" href={`${base}/events`} title="다가오는 일정" />
               <UpcomingEvents model={model} base={base} />
             </section>
           </div>
           <div className="grid min-w-0 items-start gap-6 min-[700px]:grid-cols-2 min-[1101px]:grid-cols-1">
             <section className={cn(card, "bg-background/25 shadow-none")} aria-labelledby="dashboard-rules-heading">
-              <div className="mb-4 flex items-center justify-between gap-2">
-                <h3 id="dashboard-rules-heading" className={cardHeading}>
-                  클랜 규칙
-                </h3>
-                {actorRole !== "member" ? (
-                  <Link href={`${base}/board/notices#rules`} className={smallLink}>편집</Link>
-                ) : null}
-              </div>
+              <DashboardHeading id="dashboard-rules-heading" href={`${base}/board/notices#rules`} title="클랜 규칙" />
               {model.rules ? (
-                <RulesPreview rules={model.rules} onRead={readRules} />
+                <p data-rules-preview className="line-clamp-2 whitespace-pre-line break-words text-sm leading-7 text-muted-foreground">{model.rules}</p>
               ) : (
                 <EmptyCard
                   icon={ScrollText}
@@ -436,26 +401,15 @@ export function ClanDashboard({
               )}
             </section>
             <section className={cn(card, "bg-background/25 shadow-none")} aria-labelledby="dashboard-badges-heading">
-              <div className="mb-4 flex items-center justify-between gap-2">
-                <h3 id="dashboard-badges-heading" className={cardHeading}>
-                  클랜 배지
-                </h3>
-                <Trophy
-                  className="size-3.5 text-muted-foreground"
-                  aria-hidden="true"
-                />
-              </div>
-              {badgeCollection ? <ClanBadges collection={badgeCollection} gameSlug={gameSlug} clanId={clanId} compact /> : <p role="alert" className="flex min-h-52 items-center justify-center text-sm text-muted-foreground">배지 기록을 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</p>}
+              <DashboardHeading id="dashboard-badges-heading" href={`${base}/badges`} title="클랜 배지" />
+              {badgeCollection ? <ClanBadges collection={badgeCollection} gameSlug={gameSlug} clanId={clanId} compact previewOnly /> : <p role="alert" className="flex min-h-52 items-center justify-center text-sm text-muted-foreground">배지 기록을 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</p>}
             </section>
           </div>
         </div>
-        <section className="border-t border-border pt-6" aria-labelledby="dashboard-mvp-heading">
-          <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
-            <h3 id="dashboard-mvp-heading" className="text-base font-bold text-foreground">지난달 MVP</h3>
-            <p className="text-xs text-muted-foreground">{model.previousMonth} · 내전 기록 기준</p>
-          </div>
+        <section aria-label="지난달 MVP">
           <div className="grid gap-4 min-[640px]:grid-cols-2 min-[900px]:grid-cols-3">
             <MvpCard
+              href={`${base}/stats`}
               title="지난달 승률 MVP"
               icon={Target}
               tone="bg-gradient-to-br from-amber-400 to-orange-600"
@@ -463,6 +417,7 @@ export function ClanDashboard({
               model={model}
             />
             <MvpCard
+              href={`${base}/stats`}
               title="지난달 참여율 MVP"
               icon={Users}
               tone="bg-gradient-to-br from-emerald-400 to-green-700"
@@ -470,6 +425,7 @@ export function ClanDashboard({
               model={model}
             />
             <MvpCard
+              href={`${base}/stats`}
               title="지난달 승부예측 MVP"
               icon={Trophy}
               tone="bg-gradient-to-br from-violet-500 to-blue-600"

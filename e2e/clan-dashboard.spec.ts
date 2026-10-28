@@ -181,17 +181,26 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
     expect(rules!.x).toBeGreaterThan(notices!.x + notices!.width);
     expect(notices!.width).toBeGreaterThan(rules!.width * 1.8);
 
-    const rulesTrigger = page.getByRole("button", {
-      name: "클랜 규칙 전체 보기",
-      exact: true,
-    });
-    await rulesTrigger.click();
-    await expect(
-      page.getByRole("dialog").getByText(`${title} 규칙`, { exact: false }),
-    ).toBeVisible();
-    await page.keyboard.press("Escape");
-    await expect(page.getByRole("dialog")).toHaveCount(0);
-    await expect(rulesTrigger).toBeFocused();
+    await expect(page.getByRole("heading", { name: "지난달 MVP", exact: true })).toHaveCount(0);
+    await expect(grid.getByRole("link", { name: /공지 관리|배지 케이스 보기|^이벤트$/ })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "클랜 규칙 전체 보기", exact: true })).toHaveCount(0);
+    const destinations = [
+      ["클랜 공지사항", "/board/notices"], ["클랜 규칙", "/board/notices#rules"],
+      ["다가오는 일정", "/events"], ["클랜 배지", "/badges"],
+      ["지난달 승률 MVP", "/stats"], ["지난달 참여율 MVP", "/stats"], ["지난달 승부예측 MVP", "/stats"],
+    ] as const;
+    for (const [name, path] of destinations) {
+      await expect(page.getByRole("region", { name, exact: true }).getByRole("link", { name, exact: true })).toHaveAttribute("href", base + path);
+    }
+    // Click non-title space to verify the card link, including the inert badge preview.
+    for (const [name, path] of destinations.slice(0, 5)) {
+      const region = page.getByRole("region", { name, exact: true });
+      const bounds = (await region.boundingBox())!;
+      await region.click({ position: { x: bounds.width - 12, y: bounds.height - 12 } });
+      await expect(page).toHaveURL(base + path);
+      await page.goto(base);
+      await expect(page.getByTestId("clan-dashboard-grid")).toBeVisible();
+    }
     await page
       .getByRole("button", { name: "Premium 알아보기", exact: true })
       .click();
@@ -241,8 +250,14 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
           const badgesBox = (await page.getByRole("region", { name: "클랜 배지", exact: true }).boundingBox())!;
           const rulesBox = (await page.getByRole("region", { name: "클랜 규칙", exact: true }).boundingBox())!;
           expect(badgesBox.y - rulesBox.y - rulesBox.height).toBeCloseTo(24, 0);
-          expect((await rulesTrigger.locator("span").first().boundingBox())!.height).toBeLessThanOrEqual(56);
+          expect((await page.locator("[data-rules-preview]").boundingBox())!.height).toBeLessThanOrEqual(56);
         }
+        const caseSpacing = await page.getByRole("region", { name: "클랜 배지", exact: true }).locator("[data-badge-case]").evaluate((element) => {
+          const box = element.getBoundingClientRect(), style = getComputedStyle(element);
+          const plate = element.firstElementChild!.getBoundingClientRect(), pins = element.lastElementChild!.getBoundingClientRect();
+          return { top: plate.top - box.top - parseFloat(style.borderTopWidth), bottom: box.bottom - pins.bottom - parseFloat(style.borderBottomWidth) };
+        });
+        expect(Math.abs(caseSpacing.top - caseSpacing.bottom)).toBeLessThan(2);
         const mvp = page.getByRole("region", { name: "지난달 MVP", exact: true });
         const winners = await mvp.locator("section").evaluateAll(els => els.map(el => ({ x: el.getBoundingClientRect().x, y: el.getBoundingClientRect().y })));
         expect(new Set(winners.map(box => box.y)).size).toBe(width >= 900 ? 1 : 3);
