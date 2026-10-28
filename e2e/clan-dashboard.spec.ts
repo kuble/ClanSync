@@ -239,8 +239,9 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         expect(eventBox.y - noticeBox.y - noticeBox.height).toBeCloseTo(24, 0);
         if (width >= 1101) {
           const badgesBox = (await page.getByRole("region", { name: "클랜 배지", exact: true }).boundingBox())!;
-          expect(eventBox.y).toBeCloseTo(badgesBox.y, 0);
-          expect(eventBox.height).toBeCloseTo(badgesBox.height, 0);
+          const rulesBox = (await page.getByRole("region", { name: "클랜 규칙", exact: true }).boundingBox())!;
+          expect(badgesBox.y - rulesBox.y - rulesBox.height).toBeCloseTo(24, 0);
+          expect((await rulesTrigger.locator("span").first().boundingBox())!.height).toBeLessThanOrEqual(56);
         }
         const mvp = page.getByRole("region", { name: "지난달 MVP", exact: true });
         const winners = await mvp.locator("section").evaluateAll(els => els.map(el => ({ x: el.getBoundingClientRect().x, y: el.getBoundingClientRect().y })));

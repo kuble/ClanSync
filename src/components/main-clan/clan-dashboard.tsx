@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import {
   ArrowUpRight,
   CalendarDays,
@@ -43,64 +43,12 @@ const cardHeading =
 const smallLink =
   "inline-flex min-h-8 shrink-0 items-center gap-1 rounded-md border border-border bg-background/40 px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
 
-function RulesPreview({
-  rules,
-  onRead,
-  paused,
-}: {
-  rules: string;
-  onRead: () => void;
-  paused: boolean;
-}) {
-  const ref = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    const element = ref.current;
-    if (!element || paused) return;
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let position = element.scrollTop;
-    let direction = 1;
-    let resumeAt = performance.now() + 2000;
-    let previous = performance.now();
-    // Keep fractional pixels so the slow movement works on high refresh displays.
-    const timer = window.setInterval(() => {
-      const now = performance.now();
-      const elapsed = Math.min(now - previous, 100);
-      previous = now;
-      const maximum = element.scrollHeight - element.clientHeight;
-      if (
-        maximum <= 0 || reducedMotion.matches || document.hidden ||
-        element.matches(":hover, :focus") || now < resumeAt
-      ) {
-        position = element.scrollTop;
-        return;
-      }
-      position = Math.max(0, Math.min(maximum, position + direction * elapsed * 0.01));
-      element.scrollTop = position;
-      if (position === maximum || position === 0) {
-        direction *= -1;
-        resumeAt = now + 2000;
-      }
-    }, 50);
-    const pauseAfterInput = () => { resumeAt = performance.now() + 5000; };
-    element.addEventListener("wheel", pauseAfterInput, { passive: true });
-    element.addEventListener("touchstart", pauseAfterInput, { passive: true });
-    return () => {
-      window.clearInterval(timer);
-      element.removeEventListener("wheel", pauseAfterInput);
-      element.removeEventListener("touchstart", pauseAfterInput);
-    };
-  }, [rules, paused]);
-  return (
-    <button
-      ref={ref}
-      type="button"
-      aria-label="클랜 규칙 전체 보기"
-      onClick={onRead}
-      className="max-h-52 w-full overflow-y-auto whitespace-pre-wrap break-words rounded-lg p-1 text-left text-[13px] leading-7 text-foreground/80 transition hover:bg-muted/50 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-    >
-      {rules}
-    </button>
-  );
+function RulesPreview({ rules, onRead }: { rules: string; onRead: () => void }) {
+  return <button type="button" aria-label="클랜 규칙 전체 보기" onClick={onRead}
+    className="group w-full rounded-lg text-left transition focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">
+    <span className="line-clamp-2 whitespace-pre-line break-words text-sm leading-7 text-muted-foreground">{rules}</span>
+    <span className="mt-3 inline-flex min-h-9 items-center gap-1 text-sm font-semibold text-primary group-hover:underline">전체 보기<ChevronRight className="size-4" aria-hidden="true" /></span>
+  </button>;
 }
 
 function EmptyCard({
@@ -409,8 +357,8 @@ export function ClanDashboard({
     <>
       <h2 className="sr-only">클랜 대시보드</h2>
       <div className="space-y-8" data-testid="clan-dashboard-grid">
-        <div className="grid items-stretch gap-6 min-[1101px]:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] min-[1101px]:grid-rows-[auto_auto]">
-          <div className="grid min-w-0 gap-6 min-[1101px]:row-span-2 min-[1101px]:grid-rows-subgrid">
+        <div className="grid items-start gap-6 min-[1101px]:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <div className="grid min-w-0 gap-6">
             <section
               className={card}
               aria-labelledby="dashboard-notices-heading"
@@ -467,7 +415,7 @@ export function ClanDashboard({
               <UpcomingEvents model={model} base={base} />
             </section>
           </div>
-          <div className="grid min-w-0 items-stretch gap-6 min-[700px]:grid-cols-2 min-[1101px]:row-span-2 min-[1101px]:grid-cols-1 min-[1101px]:grid-rows-subgrid">
+          <div className="grid min-w-0 items-start gap-6 min-[700px]:grid-cols-2 min-[1101px]:grid-cols-1">
             <section className={cn(card, "bg-background/25 shadow-none")} aria-labelledby="dashboard-rules-heading">
               <div className="mb-4 flex items-center justify-between gap-2">
                 <h3 id="dashboard-rules-heading" className={cardHeading}>
@@ -475,14 +423,10 @@ export function ClanDashboard({
                 </h3>
                 {actorRole !== "member" ? (
                   <Link href={`${base}/board/notices#rules`} className={smallLink}>편집</Link>
-                ) : model.rules ? (
-                  <button type="button" className={smallLink} onClick={readRules}>
-                    전체 보기
-                  </button>
                 ) : null}
               </div>
               {model.rules ? (
-                <RulesPreview rules={model.rules} onRead={readRules} paused={reading !== null} />
+                <RulesPreview rules={model.rules} onRead={readRules} />
               ) : (
                 <EmptyCard
                   icon={ScrollText}
