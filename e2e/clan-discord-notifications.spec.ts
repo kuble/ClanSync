@@ -159,12 +159,16 @@ test("settings: master toggle groups channels, preserves choices and saves offli
     const path = f.path.replace(/balance$/, "manage?tab=notifications");
     await page.goto(path);
     const notificationCard = page.getByRole("region", { name: "Discord 알림 설정", exact: true });
+    await expect(page.getByRole("navigation", { name: "클랜 관리 항목", exact: true }).getByRole("link")).toHaveText(["알림·연동", "내전", "코인·플랜"]);
+    await expect(notificationCard.getByRole("heading", { name: "Discord", exact: true })).toBeVisible();
+    await expect(notificationCard.getByRole("button", { name: "Discord 활용 예시", exact: true })).toBeVisible();
     const masterToggle = notificationCard.getByRole("switch", { name: "Discord 알림 사용", exact: true });
     const details = notificationCard.locator("#discord-notification-details");
     await expect(masterToggle).toBeVisible();
     await expect(masterToggle).toHaveAttribute("aria-controls", "discord-notification-details");
     await expect(details).toBeVisible();
     await expect(notificationCard.getByRole("region", { name: "종류별 알림", exact: true })).toBeVisible();
+    await page.screenshot({ path: test.info().outputPath("discord-unified-settings.png") });
     await expect(page.getByText(/카카오 알림톡/)).toHaveCount(0);
     await expect(page.locator('input[name="kakao_notifications_opt_in"]')).toHaveCount(0);
     await page.getByRole("switch", { name: "깜짝 내전 알림", exact: true }).uncheck();
@@ -240,6 +244,10 @@ test("settings: master toggle groups channels, preserves choices and saves offli
     await expect(examplesDialog).toBeHidden();
     await expect(examplesButton).toBeFocused();
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.setViewportSize({ width: 320, height: 844 });
+    await expect(masterToggle).toBeVisible();
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: test.info().outputPath("discord-unified-card-mobile.png") });
     await officerContext.clearCookies(); await loginIsolatedBalanceUser(officer, f.users[2]); await officer.goto(path);
     await expect(officer.getByTestId("clan-event-notify-settings")).toHaveCount(0);
   } finally { await officerContext.close(); await f.cleanup(); }
