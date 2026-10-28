@@ -371,7 +371,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
     await expect(tied.getByRole("listitem").nth(2)).toHaveAttribute("data-rank", "3");
     await page.goto(base + "/store");
     await expect(page.getByRole("region", { name: "클랜 소개", exact: true })).toHaveCount(1);
-    await expect(page.getByRole("link", { name: "내전 로비 열기", exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "내전 로비 열기", exact: true })).toHaveCount(0);
     for (const rulesValue of ["한 가지 규칙", null]) {
       expect((await svc.from("clans").update({ rules: rulesValue }).eq("id", clanId)).error).toBeNull();
       await page.goto(base);

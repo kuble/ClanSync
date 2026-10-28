@@ -52,6 +52,7 @@ test("clan officers upload profiles and apply only purchased banners without cha
     const product = (name: string) => page.getByRole("article").filter({ has: page.getByRole("heading", { name, exact: true }) });
     await expect(page.getByRole("img", { name: /배너 미리보기$/ })).toHaveCount(3);
     await expect(page.getByRole("heading", { name: "클랜 스토어", exact: true, level: 1 })).toBeVisible();
+    await expect(page.getByRole("link", { name: "내전 로비 열기", exact: true })).toHaveCount(0);
     await expect(page.getByLabel("보유 코인").locator("strong")).toHaveText("500");
     await expect(page.getByText("내 코인 최근 내역", { exact: true })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "개인 상점", exact: true })).toHaveCount(0);
@@ -77,6 +78,8 @@ test("clan officers upload profiles and apply only purchased banners without cha
     for (const width of [1280, 768, 390, 320]) {
       await page.setViewportSize({ width, height: 900 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      const cards = await page.getByLabel("클랜 꾸미기 상품", { exact: true }).getByRole("article").evaluateAll(elements => elements.map(element => ({ y: element.getBoundingClientRect().y })));
+      expect(new Set(cards.map(card => card.y)).size).toBe(width >= 1024 ? 1 : width >= 640 ? 2 : 3);
     }
     await page.getByRole("heading", { name: "클랜 스토어", exact: true, level: 1 }).scrollIntoViewIfNeeded();
     await page.screenshot({ path: test.info().outputPath("clan-banner-shop-mobile.png") });

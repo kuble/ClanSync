@@ -50,19 +50,18 @@ export function StorePanels({ gameSlug, clanId, clanName, iconUrl, bannerUrl, ac
     });
   }
 
-  return <div className={styles.shop}>
+  return <div className={cn(styles.shop, clanStyles.shop)}>
     <header className={clanStyles.header}>
       <h1><Store className="size-5 text-primary" aria-hidden />클랜 스토어</h1>
-      <div className={styles.wallet} aria-label="보유 코인"><Coins size={22} aria-hidden /><div><span>클랜 코인</span><strong>{clanCoins.toLocaleString("ko-KR")}</strong></div></div>
+      <div className={clanStyles.balance} aria-label="보유 코인"><Coins size={16} aria-hidden /><span>클랜 코인</span><strong>{clanCoins.toLocaleString("ko-KR")}</strong></div>
     </header>
     <section className={styles.catalog} aria-label="클랜 꾸미기">
-      <div className={styles.filters}>
-        <RubberSegment label="클랜 꾸미기 분류" labelPosition="hidden" options={[{ id: "all", label: "전체" }, { id: "owned", label: "보유" }]} value={filter} onChange={setFilter} />
-        <div className={styles.tools}><label className={styles.search}><Search size={16} aria-hidden /><input aria-label="디자인 검색" placeholder="디자인 검색" value={query} onChange={event => setQuery(event.target.value)} /></label></div>
+      <div className={cn(styles.filters, clanStyles.filters)}>
+        <div className={clanStyles.filterTabs}><RubberSegment label="클랜 꾸미기 분류" labelPosition="hidden" options={[{ id: "all", label: "전체" }, { id: "owned", label: "보유" }]} value={filter} onChange={setFilter} /><span role="status">{shown.length}개 디자인</span></div>
+        <div className={cn(styles.tools, clanStyles.tools)}><label className={styles.search}><Search size={16} aria-hidden /><input aria-label="디자인 검색" placeholder="디자인 검색" value={query} onChange={event => setQuery(event.target.value)} /></label></div>
       </div>
-      <div className={styles.results}><p role="status">{shown.length}개 디자인</p><span>최근 추가순</span></div>
-      <div className={styles.grid} aria-label="클랜 꾸미기 상품" aria-busy={pending}>
-        {shown.map(item => <article key={item.slug} className={styles.product} data-previewed={preview?.slug === item.slug || undefined} aria-label={item.name_ko}>
+      <div className={cn(styles.grid, clanStyles.grid)} aria-label="클랜 꾸미기 상품" aria-busy={pending}>
+        {shown.map(item => <article key={item.slug} className={cn(styles.product, clanStyles.product)} data-previewed={preview?.slug === item.slug || undefined} aria-label={item.name_ko}>
           <div className={styles.productHeading}><h3>{item.name_ko}</h3>{item.is_premium_only && <span className={styles.premium}><Crown size={12} aria-hidden />Premium</span>}{bannerUrl && item.asset_url === bannerUrl && <span className={styles.applied}><Check size={12} aria-hidden />적용 중</span>}</div>
           <button type="button" className={cn(styles.preview, clanStyles.preview)} aria-label={`${item.name_ko} 미리보기`} aria-pressed={preview?.slug === item.slug} onClick={() => setPreview(item)}>
             {item.asset_url && <Image src={item.asset_url} alt={`${item.name_ko} 배너 미리보기`} fill sizes="(max-width: 640px) 100vw, 600px" className="object-cover" />}
@@ -72,9 +71,8 @@ export function StorePanels({ gameSlug, clanId, clanName, iconUrl, bannerUrl, ac
             <strong>{item.purchased ? "보유 중" : <><Coins size={14} aria-hidden />{item.price_coins.toLocaleString("ko-KR")}<small>코인</small></>}</strong>
             {item.purchased ? canManageClanPool ? <Link href={settingsPath} className={buttonVariants({ size: "sm", variant: "secondary" })} aria-label="구매 완료 · 설정하기">설정하기</Link> : <Button size="sm" variant="secondary" disabled>구매 완료</Button>
               : item.is_premium_only && !planIsPremium ? <Button size="sm" variant="outline" onClick={() => setPremiumOpen(true)}>플랜 비교 보기</Button>
-              : <Button size="sm" disabled={pending || !item.canAttemptPurchase} onClick={() => setSelected(item)}>구매</Button>}
+              : <Button size="sm" title={item.disabledReason ?? undefined} disabled={pending || !item.canAttemptPurchase} onClick={() => setSelected(item)}>{item.canAttemptPurchase ? "구매" : canManageClanPool ? "코인 부족" : "권한 필요"}</Button>}
           </div>
-          {item.disabledReason && !item.purchased && <p className={styles.reason}>{item.disabledReason}</p>}
         </article>)}
         {!shown.length && <div className={styles.empty}><Search size={28} aria-hidden /><h3>{query.trim() ? "검색 결과가 없습니다." : filter === "owned" ? "보유한 배너가 없습니다." : "표시할 디자인이 없습니다."}</h3><p>다른 분류나 검색어를 확인해 보세요.</p>{query.trim() && <Button variant="outline" onClick={() => setQuery("")}>검색 지우기</Button>}</div>}
       </div>

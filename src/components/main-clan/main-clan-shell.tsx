@@ -268,7 +268,7 @@ export function MainClanShell({
       </aside>
       <main id="main-content" className={styles.content}>
         <div className={styles.inner}>
-          {showHero ? <ClanHero ctx={ctx} basePath={basePath} /> : null}
+          {showHero ? <ClanHero ctx={ctx} basePath={basePath} showLobbyAction={false} /> : null}
           {children}
         </div>
       </main>
