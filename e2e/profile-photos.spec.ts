@@ -3,6 +3,26 @@ import sharp from "sharp";
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 import { PROFILE_PHOTO_BUCKET as bucket } from "../src/lib/profile/photo";
+import { processProfilePhoto } from "../src/lib/profile/process-profile-photo";
+import { squareCrop } from "../src/lib/images/square-crop";
+
+test("profile photo crop validates bounds and uses EXIF-oriented square coordinates", async () => {
+  const left = await sharp({ create: { width: 120, height: 120, channels: 3, background: "#ff0000" } }).png().toBuffer();
+  const input = await sharp({ create: { width: 240, height: 120, channels: 3, background: "#0000ff" } }).composite([{ input: left, left: 0, top: 0 }]).png().toBuffer();
+  expect(squareCrop(240, 120, 2, { x: 999, y: -999 })).toEqual({ x: 180, y: 0, size: 60 });
+  const checkBlue = async (bytes: Buffer) => {
+    const meta = await sharp(bytes).metadata();
+    expect(meta).toMatchObject({ width: 256, height: 256, format: "webp" });
+    expect(meta.orientation).toBeUndefined();
+    const pixel = await sharp(bytes).extract({ left: 8, top: 128, width: 1, height: 1 }).raw().toBuffer();
+    expect(pixel[2]).toBeGreaterThan(240); expect(pixel[0]).toBeLessThan(10);
+  };
+  await checkBlue(await processProfilePhoto(input, { x: 150, y: 20, size: 60 }));
+  const rotated = await sharp(input).jpeg({ quality: 100 }).withMetadata({ orientation: 6 }).toBuffer();
+  await checkBlue(await processProfilePhoto(rotated, { x: 0, y: 140, size: 100 }));
+  expect(await sharp(await processProfilePhoto(input)).metadata()).toMatchObject({ width: 256, height: 256 });
+  for (const crop of [{ x: -1, y: 0, size: 50 }, { x: 0, y: 0, size: 1000 }, { x: .5, y: 0, size: 20 }, { x: 0, y: 0, size: 0 }, { x: 0, y: 100, size: 30 }, {}]) await expect(processProfilePhoto(input, crop)).rejects.toThrow("자르기 영역");
+});
 
 test("account photo is shared by discussion avatars, preserves symbols and restricts reads/writes", async ({ page, browser, request }) => {
   test.setTimeout(180_000);
@@ -11,7 +31,8 @@ test("account photo is shared by discussion avatars, preserves symbols and restr
   const peerContext = await browser.newContext(), peerPage = await peerContext.newPage();
   peerPage.setDefaultTimeout(15_000);
   const base = f.path.replace(/\/balance$/, ""), endpoint = "/api/profile-photo";
-  const image = { name: "avatar.png", mimeType: "image/png", buffer: await sharp({ create: { width: 180, height: 120, channels: 4, background: "#5ba7ce" } }).png().toBuffer() };
+  const left = await sharp({ create: { width: 120, height: 120, channels: 4, background: "#ef4d4d" } }).png().toBuffer();
+  const image = { name: "avatar.png", mimeType: "image/png", buffer: await sharp({ create: { width: 240, height: 120, channels: 4, background: "#5ba7ce" } }).composite([{ input: left, left: 0, top: 0 }]).png().toBuffer() };
   const photo = async () => (await svc.from("account_profile_photos").select("image_path").eq("user_id", actor.id).single()).data?.image_path;
   try {
     expect((await svc.from("clan_members").update({ status: "left" }).eq("clan_id", f.clanId).eq("user_id", f.users[2].id)).error).toBeNull();
@@ -27,14 +48,39 @@ test("account photo is shared by discussion avatars, preserves symbols and restr
     await page.reload();
     await expect(settings.getByRole("img", { name: "내 프로필 심볼", exact: true })).toHaveAttribute("src", /crown/);
     await settings.getByLabel("프로필 사진 파일", { exact: true }).setInputFiles(image);
-    await expect(settings.getByRole("img", { name: "내 프로필 사진", exact: true })).toHaveAttribute("src", /^blob:/);
-    await settings.getByRole("button", { name: "사진 저장", exact: true }).click();
+    const cropDialog = page.getByRole("dialog", { name: "프로필 사진 편집", exact: true });
+    const zoom = cropDialog.getByRole("slider", { name: "프로필 사진 확대", exact: true });
+    await expect(zoom).toBeEnabled();
+    await zoom.fill("2");
+    await cropDialog.getByRole("button", { name: "자르기 초기화", exact: true }).click();
+    await expect(zoom).toHaveValue("1");
+    await zoom.fill("2");
+    const square = cropDialog.getByRole("group", { name: "이미지 자르기 영역", exact: true });
+    const box = (await square.boundingBox())!;
+    await page.mouse.move(box.x + box.width * .8, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * .1, box.y + box.height / 2, { steps: 8 });
+    await page.mouse.up();
+    await square.press("ArrowRight");
+    for (const [width, height] of [[1100, 900], [390, 844], [740, 360]]) {
+      await page.setViewportSize({ width, height });
+      expect(await cropDialog.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
+      expect((await square.boundingBox())!.width).toBeCloseTo((await square.boundingBox())!.height, 0);
+      await page.screenshot({ path: test.info().outputPath(`profile-crop-${width}.png`), animations: "disabled" });
+      await cropDialog.getByRole("button", { name: "사진 저장", exact: true }).scrollIntoViewIfNeeded();
+      await expect(cropDialog.getByRole("button", { name: "사진 저장", exact: true })).toBeInViewport();
+    }
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await cropDialog.getByRole("button", { name: "사진 저장", exact: true }).click();
+    await expect(cropDialog).toBeHidden();
     const saved = settings.getByRole("img", { name: "내 프로필 사진", exact: true });
     await expect(saved).toHaveAttribute("src", /\/api\/profile-photo\//);
     const firstUrl = new URL((await saved.getAttribute("src"))!, page.url()).pathname, firstPath = (await photo())!;
     const original = await svc.storage.from(bucket).download(firstPath);
     expect(original.error).toBeNull();
     expect(await sharp(Buffer.from(await original.data!.arrayBuffer())).metadata()).toMatchObject({ format: "webp", width: 256, height: 256 });
+    const pixel = await sharp(Buffer.from(await original.data!.arrayBuffer())).extract({ left: 8, top: 128, width: 1, height: 1 }).raw().toBuffer();
+    expect(pixel[0]).toBeLessThan(120); expect(pixel[2]).toBeGreaterThan(180);
     expect((await page.request.get(firstUrl)).headers()["cache-control"]).toBe("private, no-store");
     expect((await request.get(firstUrl)).status()).toBe(401);
     expect((await request.post(endpoint, { multipart: { image } })).status()).toBe(401);
@@ -48,6 +94,14 @@ test("account photo is shared by discussion avatars, preserves symbols and restr
     ]) expect((await page.request.post(endpoint, { multipart: { image: file } })).status()).toBe(400);
     expect([400, 413]).toContain((await page.request.post(endpoint, { multipart: { image: { ...image, buffer: Buffer.alloc(2 * 1024 * 1024 + 100000) } } })).status());
     expect(await photo()).toBe(firstPath);
+    for (const crop of ['{"x":-1,"y":0,"size":50}', '{"x":0,"y":0,"size":1000}', '{"x":0,"y":0,"size":0}', 'invalid']) expect((await page.request.post(endpoint, { multipart: { image, crop } })).status()).toBe(400);
+    expect(await photo()).toBe(firstPath);
+
+    await settings.getByLabel("프로필 사진 파일", { exact: true }).setInputFiles(image);
+    await expect(cropDialog).toBeVisible();
+    await cropDialog.getByRole("button", { name: "취소", exact: true }).click();
+    await expect(cropDialog).toBeHidden();
+    expect(await photo()).toBe(firstPath);
 
     const [self, peer, outsider] = await Promise.all([f.memberClient(0), f.memberClient(1), f.memberClient(2)]);
     expect((await self.from("account_profile_photos").update({ image_path: null }).eq("user_id", actor.id)).error).not.toBeNull();
@@ -60,12 +114,20 @@ test("account photo is shared by discussion avatars, preserves symbols and restr
 
     // A failed save keeps the pending selection and the stored photo for retry.
     await settings.getByLabel("프로필 사진 파일", { exact: true }).setInputFiles(image);
+    await expect(zoom).toBeEnabled();
+    await zoom.fill("2");
+    await square.press("ArrowLeft");
+    const position = await cropDialog.getByRole("img", { name: "자르기 미리보기", exact: true }).getAttribute("style");
     await page.route("**/api/profile-photo", route => route.fulfill({ status: 500, json: { ok: false, error: "사진 저장 실패 테스트" } }), { times: 1 });
-    await settings.getByRole("button", { name: "사진 저장", exact: true }).click();
+    await cropDialog.getByRole("button", { name: "사진 저장", exact: true }).click();
     await expect(page.getByText("사진 저장 실패 테스트", { exact: true })).toBeVisible();
-    await expect(saved).toHaveAttribute("src", /^blob:/);
+    await expect(cropDialog).toBeVisible();
+    await expect(zoom).toHaveValue("2");
+    await expect(cropDialog.getByRole("img", { name: "자르기 미리보기", exact: true })).toHaveAttribute("style", position!);
+    await expect(page.getByRole("region", { name: "공통 프로필 사진", exact: true, includeHidden: true }).getByRole("img", { name: "내 프로필 사진", exact: true, includeHidden: true })).toHaveAttribute("src", new RegExp(firstUrl + "$"));
     expect(await photo()).toBe(firstPath);
-    await settings.getByRole("button", { name: "사진 저장", exact: true }).click();
+    await cropDialog.getByRole("button", { name: "사진 저장", exact: true }).click();
+    await expect(cropDialog).toBeHidden();
     await expect(saved).toHaveAttribute("src", /\/api\/profile-photo\//);
     expect(await photo()).not.toBe(firstPath);
     expect((await page.request.get(firstUrl)).status()).toBe(404);

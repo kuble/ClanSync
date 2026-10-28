@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
-import sharp from "sharp";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { PROFILE_PHOTO_BUCKET as bucket, PROFILE_PHOTO_LIMIT as limit, profilePhotoUrl } from "@/lib/profile/photo";
+import { processProfilePhoto } from "@/lib/profile/process-profile-photo";
 
 export const runtime = "nodejs";
 const fail = (error: string, status: number) => Response.json({ ok: false, error }, { status });
@@ -61,11 +61,9 @@ export async function POST(request: Request) {
     const form = await new Response(Buffer.concat(chunks), { headers: { "Content-Type": request.headers.get("content-type") ?? "" } }).formData();
     const file = form.get("image");
     if (!(file instanceof File) || !file.size || file.size > limit || !["image/jpeg", "image/png", "image/webp"].includes(file.type)) return fail("JPG·PNG·WebP 사진을 2MB 이내로 선택해 주세요.", 400);
-    const image = sharp(Buffer.from(await file.arrayBuffer()), { limitInputPixels: 16_000_000 });
-    const metadata = await image.metadata();
-    if (!metadata.format || !["jpeg", "png", "webp"].includes(metadata.format) || (metadata.pages ?? 1) > 1) return fail("정적인 JPG·PNG·WebP 사진을 선택해 주세요.", 400);
-    output = await image.rotate().resize(256, 256, { fit: "cover" }).webp({ quality: 85 }).toBuffer();
-  } catch { return fail("사진을 읽지 못했습니다. 다른 이미지를 선택해 주세요.", 400); }
+    const crop = form.get("crop");
+    output = await processProfilePhoto(Buffer.from(await file.arrayBuffer()), crop === null ? null : JSON.parse(String(crop)));
+  } catch (error) { return fail(error instanceof Error && ["이미지 자르기 영역을 확인해 주세요.", "정적인 JPG·PNG·WebP 사진을 선택해 주세요."].includes(error.message) ? error.message : "사진을 읽지 못했습니다. 다른 이미지를 선택해 주세요.", 400); }
   const path = `${ctx.userId}/${randomUUID()}.webp`;
   const { error } = await ctx.svc.storage.from(bucket).upload(path, output, { contentType: "image/webp", upsert: false });
   if (error) return fail("사진을 업로드하지 못했습니다. 다시 시도해 주세요.", 500);

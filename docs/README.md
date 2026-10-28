@@ -52,7 +52,7 @@
 
 클랜 프로필·배너: [설정 UI](../src/components/main-clan/clan-appearance-settings.tsx) · [프로필 업로드 API](../src/app/api/games/[gameSlug]/clans/[clanId]/profile-image/route.ts) · [배너 적용](../src/app/actions/clan-banner-settings.ts) · [구매·권한 검증](../e2e/clan-appearance.spec.ts).
 
-계정 공통 프로필 사진: [설정 UI](../src/components/profile/profile-photo-settings.tsx) · [업로드 API](../src/app/api/profile-photo/route.ts) · [댓글 아바타](../src/components/profile/player-avatar.tsx) · [공유·권한·정리 검증](../e2e/profile-photos.spec.ts).
+계정 공통 프로필 사진: [설정 UI](../src/components/profile/profile-photo-settings.tsx) · [공통 정사각형 편집기](../src/components/ui/square-image-cropper.tsx) · [업로드 API](../src/app/api/profile-photo/route.ts) · [변환/좌표 검증](../src/lib/profile/process-profile-photo.ts) · [댓글 아바타](../src/components/profile/player-avatar.tsx) · [자르기·공유·권한·정리 검증](../e2e/profile-photos.spec.ts).
 
 | 목적 | 기준 문서 |
 |------|-----------|
