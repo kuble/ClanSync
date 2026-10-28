@@ -147,6 +147,16 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     await page.setViewportSize({ width: 1217, height: 910 });
     const datePicker = page.getByRole("button", { name: /^경기 기록 날짜 선택,/ });
     await expect(datePicker).toContainText("2025년 8월 2일");
+    const archiveFilters = page.getByRole("region", { name: "경기 기록 날짜 및 필터", exact: true });
+    for (const width of [1217, 390]) {
+      await page.setViewportSize({ width, height: 620 });
+      await page.evaluate(() => window.scrollTo(0, 220));
+      await expect.poll(async () => Math.abs((await archiveFilters.boundingBox())!.y - 60)).toBeLessThan(2);
+      await expect(archiveFilters.getByRole("searchbox", { name: "경기 참가자 검색" })).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    }
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.setViewportSize({ width: 1217, height: 910 });
     const detail = page.getByRole("region", { name: "경기 상세", exact: true });
     const daily = page.getByRole("complementary", { name: "선택한 날짜 내전 기록" });
     const detailBox = await detail.boundingBox(), dailyBox = await daily.boundingBox();

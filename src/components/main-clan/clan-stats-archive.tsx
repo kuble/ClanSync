@@ -35,7 +35,7 @@ export function ClanStatsArchive({ archive, clanId, canEdit = false, canCreate =
   const fetchDay = clanId && current.deferredDays && current.datesKst.includes(selectedDay) && !current.sampleByDate[selectedDay];
   const onSaved = (data: typeof archive, day: string) => { setSaved({ base: archive, data }); setSelectedDay(day); router.refresh(); };
   return <div className="space-y-4">
-    <div className="flex flex-wrap items-end justify-between gap-3" aria-label="경기 기록 날짜 및 필터">
+    <div className="sticky top-[60px] z-30 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80" role="region" aria-label="경기 기록 날짜 및 필터">
       <ArchiveDatePicker value={selectedDay} onChange={setSelectedDay} dates={current.datesKst} periodKey={periodKey} />
       {filters}
     </div>
