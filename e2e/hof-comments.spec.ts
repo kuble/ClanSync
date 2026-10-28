@@ -86,9 +86,11 @@ test("HoF comments RLS: membership, author, disclosure and thread boundaries", a
 
 test("HoF reactions: persist, separate category/period, paginate and moderate", async ({ page, browser }) => {
   test.setTimeout(150_000);
+  page.setDefaultTimeout(15_000);
   const f = await createIsolatedBalanceFixture(2);
   const leaderContext = await browser.newContext();
   const leaderPage = await leaderContext.newPage();
+  leaderPage.setDefaultTimeout(15_000);
   const path = f.path.replace(/balance$/, "stats");
   const draft = "이번 승률도 응원합니다!";
   const content = draft + "👏";
@@ -124,7 +126,7 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await page.getByLabel("순위 보고 한마디").fill(draft);
     await panel.getByRole("button", { name: "댓글 이모티콘 선택", exact: true }).click();
     await page.getByRole("button", { name: "박수 이모티콘", exact: true }).click();
-    await expect(page.getByLabel("순위 보고 한마디")).toHaveValue(content);
+    await expect(page.getByLabel("순위 보고 한마디")).toHaveText(content);
     await page.getByRole("button", { name: "댓글 등록", exact: true }).click();
     await expect(panel.getByText(content, { exact: true })).toBeVisible();
     const reply = panel.getByRole("listitem").filter({ has: page.getByText(content, { exact: true }) });
@@ -177,13 +179,13 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await expect(rankRows.nth(1)).toContainText(f.users[0].nickname);
     await expect(rankRows.nth(1)).toContainText("01");
     await expect(page.getByText(/규정 미달 ·/)).toHaveCount(0);
-    await leaderPage.getByRole("button", { name: "설정", exact: true }).click();
-    const settings = leaderPage.getByRole("dialog", { name: "통계 공개 설정" });
-    await expect(settings.getByRole("heading", { name: "열람·공개", exact: true })).toBeVisible();
+    await leaderPage.getByRole("button", { name: "명예의 전당 설정", exact: true }).click();
+    const settings = leaderPage.getByRole("dialog", { name: "명예의 전당 설정" });
+    await expect(settings.getByRole("heading", { name: "프로필 공개", exact: true })).toBeVisible();
     await settings.getByRole("tab", { name: "순위 공개", exact: true }).click();
     for (const name of ["순위 공개 범위", "공개 시점"]) await expect(settings.getByRole("heading", { name, exact: true })).toBeVisible();
     await settings.getByRole("tab", { name: "등재 기준", exact: true }).click();
-    await expect(settings.getByRole("heading", { name: "순위 등재 기준", exact: true })).toBeVisible();
+    await expect(settings.getByRole("spinbutton", { name: "기준 전환점", exact: true })).toBeVisible();
     await settings.getByRole("button", { name: "취소", exact: true }).click();
     await leaderPage.getByRole("button", { name: `${f.users[1].nickname} 댓글 삭제`, exact: true }).click();
     await leaderPage.getByRole("button", { name: "삭제 확인", exact: true }).click();
@@ -194,7 +196,6 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await expect(page.getByLabel("순위 보고 한마디")).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   } finally {
-    await leaderContext.close();
-    await f.cleanup();
+    try { await leaderContext.close(); } finally { await f.cleanup(); }
   }
 });

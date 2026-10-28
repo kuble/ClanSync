@@ -1,4 +1,5 @@
 "use client";
+import { ClanEmojiInput } from "./clan-emoji-content";
 import { HelpText } from "./help-text";
 
 import { useRef, useState, useTransition } from "react";
@@ -55,6 +56,7 @@ export function ClanManageNotices({
   const router = useRouter();
   const [pending, start] = useTransition();
   const [editor, setEditor] = useState<ManagedClanNotice | "new" | null>(null);
+  const [noticeContent,setNoticeContent] = useState("");
   const [removing, setRemoving] = useState<ManagedClanNotice | null>(null);
   const editorReturnFocus = useRef<HTMLElement | null>(null);
   const editorPopup = useRef<HTMLDivElement | null>(null);
@@ -62,6 +64,7 @@ export function ClanManageNotices({
 
   function edit(value: ManagedClanNotice | "new", trigger: HTMLElement) {
     editorReturnFocus.current = trigger;
+    setNoticeContent(value === "new" ? "" : value.content);
     setEditor(value);
   }
   function mutate(
@@ -263,17 +266,7 @@ export function ClanManageNotices({
             </div>
             <div className="space-y-2">
               <Label htmlFor="notice-content">본문</Label>
-              <textarea
-                id="notice-content"
-                name="content"
-                required
-                maxLength={20000}
-                rows={9}
-                defaultValue={editor && editor !== "new" ? editor.content : ""}
-                disabled={pending}
-                className="board-scroll max-h-[40vh] w-full resize-y rounded-lg border border-input bg-background p-4 text-base leading-7 outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-sm"
-                placeholder="공지 내용을 입력해 주세요."
-              />
+              <ClanEmojiInput id="notice-content" name="content" label="본문" value={noticeContent} onChange={setNoticeContent} maxLength={20000} disabled={pending} placeholder="공지 내용을 입력해 주세요." className="min-h-48"/>
             </div>
             <label className="flex items-center justify-between gap-3 text-sm">
               대시보드 상단에 고정

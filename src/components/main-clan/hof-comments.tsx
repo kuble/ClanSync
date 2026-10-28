@@ -7,16 +7,11 @@ import { HOF_COMMENT_MAX_LENGTH, HOF_REACTIONS, type HofComment, type HofComment
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatsScrollArea } from "./stats-scroll-area";
-import { HofEmojiPicker } from "./hof-emoji-picker";
+import { ClanEmojiInput, ClanEmojiText } from "./clan-emoji-content";
+import { ClanEmojiReactions } from "./clan-emoji-reactions";
 
 const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
 const reactionOptions = HOF_REACTIONS.map((option) => ({ ...option, value: option.kind }));
-const emojiOptions = [
-  ...HOF_REACTIONS.map((option) => ({ ...option, value: option.emoji })),
-  { value: "😊", emoji: "😊", label: "미소" }, { value: "🎉", emoji: "🎉", label: "축하" },
-  { value: "🔥", emoji: "🔥", label: "불꽃" }, { value: "💪", emoji: "💪", label: "응원" },
-  { value: "🏆", emoji: "🏆", label: "우승" }, { value: "🙏", emoji: "🙏", label: "감사" },
-];
 
 /** Preserve the card and controls; only a thread's draft/replies reset on a scope change. */
 export function HofComments({ clanId, ranking, periodKey, label }: HofCommentThread & { label: string }) {
@@ -42,7 +37,7 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
-  const input = useRef<HTMLTextAreaElement>(null);
+  const input = useRef<HTMLDivElement>(null);
   const viewport = useRef<HTMLDivElement>(null);
   const scrollUpdate = useRef<"latest" | { height: number; top: number } | null>("latest");
   const thread = { clanId, ranking, periodKey };
@@ -103,14 +98,6 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
     finally { setBusy(false); }
   }
 
-  function insertEmoji(emoji: string) {
-    const start = input.current?.selectionStart ?? draft.length;
-    const end = input.current?.selectionEnd ?? start;
-    const next = draft.slice(0, start) + emoji + draft.slice(end);
-    if (next.length > HOF_COMMENT_MAX_LENGTH) { setError("댓글은 500자까지 입력할 수 있습니다."); return; }
-    setDraft(next);
-    requestAnimationFrame(() => input.current?.setSelectionRange(start + emoji.length, start + emoji.length));
-  }
 
   async function loadMore() {
     if (busy || loading || !cursor) return;
@@ -136,7 +123,7 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
           <span aria-hidden="true" className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-xs font-black text-primary">{Array.from(comment.nickname)[0]}</span>
           <div className="min-w-0 flex-1 space-y-1.5">
             <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] ${comment.isMine ? "justify-end" : ""}`}><strong className="max-w-full truncate text-xs">{comment.nickname}</strong><time dateTime={comment.createdAt} className="text-muted-foreground">{dateFormat.format(new Date(comment.createdAt))}</time>{comment.canDelete && <button type="button" className={`${comment.isMine ? "" : "ml-auto"} text-muted-foreground hover:text-foreground`} disabled={busy} aria-label={`${comment.nickname} 댓글 삭제`} onClick={() => setConfirmDelete(comment.id)}>삭제</button>}</div>
-            <p className={`w-fit max-w-[85%] whitespace-pre-wrap break-words rounded-xl border px-3 py-2.5 text-sm leading-relaxed [overflow-wrap:anywhere] ${comment.isMine ? "ml-auto rounded-tr-sm border-primary/25 bg-primary/15" : "rounded-tl-sm bg-background/50"}`}>{comment.content}</p>
+            <p className={`w-fit max-w-[85%] whitespace-pre-wrap break-words rounded-xl border px-3 py-2.5 text-sm leading-relaxed [overflow-wrap:anywhere] ${comment.isMine ? "ml-auto rounded-tr-sm border-primary/25 bg-primary/15" : "rounded-tl-sm bg-background/50"}`}><ClanEmojiText text={comment.content}/></p>
             <div className={`flex flex-wrap items-center gap-1 ${comment.isMine ? "justify-end" : ""}`} aria-label={`${comment.nickname} 댓글 공감`}>
               {HOF_REACTIONS.map((option) => {
                 const reaction = comment.reactions.find(({ kind }) => kind === option.kind);
@@ -145,22 +132,16 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
                   className={`flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] tabular-nums hover:border-primary/50 focus-visible:outline-2 focus-visible:outline-primary ${reaction.mine ? "border-primary/40 bg-primary/10 text-primary" : "bg-background/40 text-muted-foreground"}`}
                   onClick={() => void react(comment, option.kind)}><span aria-hidden="true">{option.emoji}</span>{reaction.count}</button>;
               })}
-              <HofEmojiPicker label={`${comment.nickname} 댓글 공감 선택`} title="공감 선택" options={reactionOptions} disabled={busy || loading}
-                onSelect={(value) => { const option = HOF_REACTIONS.find(({ kind }) => kind === value); if (option) void react(comment, option.kind); }} />
+              <ClanEmojiReactions pickerLabel={`${comment.nickname} 댓글 공감 선택`} clanId={clanId} target={{kind:"hof_comment",id:comment.id}} reactions={comment.emojiReactions??[]} standardOptions={reactionOptions} onStandardSelect={value=>{const option=HOF_REACTIONS.find(row=>row.kind===value);if(option)void react(comment,option.kind);}}/>
             </div>
             {confirmDelete === comment.id && <div className={`flex flex-wrap items-center gap-2 text-xs ${comment.isMine ? "justify-end" : ""}`}><span>이 댓글을 삭제할까요?</span><Button type="button" size="xs" variant="destructive" disabled={busy} onClick={() => void remove(comment.id)}>삭제 확인</Button><Button type="button" size="xs" variant="ghost" disabled={busy} onClick={() => setConfirmDelete(null)}>취소</Button></div>}
           </div>
         </li>)}</ol> : !error && <div className="flex min-h-60 flex-col items-center justify-center gap-3 text-center"><MessageSquare className="size-8 text-primary/50" aria-hidden="true" /><p className="text-sm font-semibold">이번 순위, 할 말 있죠?</p><p className="text-xs text-muted-foreground">아직 조용하네요. 첫 한마디를 남겨보세요.</p></div>}
         </>}
       </StatsScrollArea>
-      <form onSubmit={submit} className="shrink-0 overflow-hidden rounded-xl border bg-background/50 focus-within:border-primary/60">
+      <form onSubmit={submit} className="shrink-0">
         <label htmlFor="hof-comment" className="sr-only">순위 보고 한마디</label>
-        <textarea ref={input} id="hof-comment" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={HOF_COMMENT_MAX_LENGTH} rows={2} placeholder="순위 보고 한마디" className="block min-h-20 w-full resize-none bg-transparent px-3 pt-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none" disabled={busy} />
-        <div className="flex items-center gap-2 px-2 py-2">
-          <HofEmojiPicker label="댓글 이모티콘 선택" title="이모티콘 선택" options={emojiOptions} disabled={busy} onSelect={insertEmoji} finalFocus={input} />
-          <span className="text-[10px] tabular-nums text-muted-foreground">{draft.length} / {HOF_COMMENT_MAX_LENGTH}</span>
-          <Button type="submit" className="ml-auto" size="sm" disabled={busy || loading || !draft.trim()}><Send className="size-3.5" aria-hidden="true" />댓글 등록</Button>
-        </div>
+        <ClanEmojiInput pickerLabel="댓글 이모티콘 선택" id="hof-comment" editorRef={input} label="순위 보고 한마디" value={draft} onChange={setDraft} maxLength={HOF_COMMENT_MAX_LENGTH} disabled={busy} placeholder="이번 순위에 한마디 남겨보세요." className="min-h-20 max-h-32" actions={<Button type="submit" size="sm" disabled={busy||loading||!draft.trim()}><Send className="size-3.5" aria-hidden/>댓글 등록</Button>}/>
       </form>
     </CardContent>
   );

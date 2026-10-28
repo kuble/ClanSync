@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { ClanEmojiText } from "./clan-emoji-content";
 import Link from "next/link";
 import {useState,type ReactNode} from "react";
 import {Camera,Clock3,GraduationCap,MessageSquare,Plus,Radio,UserRound} from "lucide-react";
@@ -40,7 +41,7 @@ function BoardPostRows({base,kind,posts,action}:{base:string;kind:BoardKind;post
     <ul className="divide-y divide-border">{posts.map(p=><li key={p.id}>
       <Link href={base+"/board/"+kind+"/"+p.id} prefetch={false} className={cn("group grid min-h-20 grid-cols-[minmax(0,1fr)_48px] items-center gap-x-3 gap-y-1 px-4 py-3 transition-colors hover:bg-muted/30 focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-[-2px]",columns)}>
         {feedback&&<div className="hidden justify-center md:flex">{status(p)}</div>}
-        <div className="min-w-0"><div className="flex min-w-0 items-center gap-2">{feedback&&<span className="shrink-0 md:hidden">{status(p)}</span>}<p className="truncate text-sm font-semibold group-hover:text-primary">{p.title}</p>{p.image_path&&<Image unoptimized src={boardImageUrl(base,p.id,true)} width={36} height={36} alt="첨부 사진" className="size-9 shrink-0 rounded-md object-cover"/>}</div><p className="mt-1.5 flex min-w-0 items-center gap-2 text-[11px] text-muted-foreground"><span className="truncate">{p.author}</span><span aria-hidden>·</span><time className="shrink-0" dateTime={p.created_at}>{boardDate(p.created_at)}</time></p></div>
+        <div className="min-w-0"><div className="flex min-w-0 items-center gap-2">{feedback&&<span className="shrink-0 md:hidden">{status(p)}</span>}<p className="truncate text-sm font-semibold group-hover:text-primary"><ClanEmojiText text={p.title} large={false}/></p>{p.image_path&&<Image unoptimized src={boardImageUrl(base,p.id,true)} width={36} height={36} alt="첨부 사진" className="size-9 shrink-0 rounded-md object-cover"/>}</div><p className="mt-1.5 flex min-w-0 items-center gap-2 text-[11px] text-muted-foreground"><span className="truncate">{p.author}</span><span aria-hidden>·</span><time className="shrink-0" dateTime={p.created_at}>{boardDate(p.created_at)}</time></p></div>
         {feedback&&<div className="col-start-1 row-start-2 flex min-w-0 items-center gap-1.5 text-xs md:col-auto md:row-auto"><GraduationCap className="size-3.5 shrink-0 text-muted-foreground" aria-hidden/><span className={cn("truncate",p.coachName?"text-primary":"text-muted-foreground")}>{p.coachName||"미지정"}</span></div>}
         <span aria-label={"댓글 "+p.commentCount} className="col-start-2 row-start-1 row-span-2 flex items-center justify-center gap-1.5 rounded-md bg-muted/40 px-1 py-2 text-xs tabular-nums text-muted-foreground md:col-auto md:row-auto md:row-span-1"><MessageSquare className="size-3.5" aria-hidden/><span>{p.commentCount}</span></span>
       </Link>

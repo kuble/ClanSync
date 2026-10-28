@@ -41,12 +41,14 @@ export async function loadBoardArticle(clanId: string, kind: BoardKind, postId: 
     loadClanPeerNames(clanId),
   ]);
   if (comments.error || reactions.error || mine.error || names.error) throw new Error("글의 댓글과 공감을 불러오지 못했습니다.");
+  const custom = await client.rpc("list_clan_emoji_reactions",{p_board_comment_ids:comments.data.map(row=>row.id)});
+  if(custom.error)throw new Error("댓글 공감을 불러오지 못했습니다.");
   const staff = access.membership.role !== "member";
   const nicknames = new Map(names.data.map(row=>[row.user_id,row.nickname]));
   const name = (id: string | null) => id ? nicknames.get(id) ?? "이전 멤버" : "탈퇴한 멤버";
   return {
     post:{ ...post.data,content:kind==="channels"?"":post.data.content,author:name(post.data.author_id),canManage:staff || post.data.author_id===user.id,canReplaceImage:post.data.author_id===user.id,commentCount:comments.count ?? 0,coachName:post.data.coach_id?name(post.data.coach_id):undefined,canSetStatus:staff||post.data.author_id===user.id||post.data.coach_id===user.id,canSetChannelLive:kind==="channels"&&post.data.author_id===user.id } satisfies BoardPost,
-    comments:comments.data.map((row): BoardComment=>({...row,author:name(row.author_id),canManage:staff || row.author_id===user.id})),
+    comments:comments.data.map((row): BoardComment=>({...row,author:name(row.author_id),canManage:staff || row.author_id===user.id,emojiReactions:custom.data.filter(r=>r.target_id===row.id).map(r=>({emoji_id:r.emoji_id,total:Number(r.total),mine:r.mine}))})),
     reactions:reactions.count ?? 0,liked:!!mine.data,userId:user.id,
   };
 }

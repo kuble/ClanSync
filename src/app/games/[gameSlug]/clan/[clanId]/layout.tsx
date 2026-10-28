@@ -1,3 +1,4 @@
+import { ClanEmojiProvider } from "@/components/main-clan/clan-emoji-content";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { ClanNamecardsProvider } from "@/components/profile/clan-namecards";
@@ -22,10 +23,11 @@ export default async function MainClanLayout({
     redirect(`/sign-in?next=/games/${gameSlug}/clan/${clanId}`);
   }
 
-  const [ctx, inAppNotifications, namecards] = await Promise.all([
+  const [ctx, inAppNotifications, namecards, emojis] = await Promise.all([
     getRequestMainClanContext(gameSlug, clanId),
     loadClanInAppNotifications(supabase, clanId),
     supabase.rpc("get_clan_namecards", { p_clan_id: clanId }),
+    supabase.from("clan_emojis").select("id,name").eq("clan_id",clanId).order("created_at"),
   ]);
   if (!ctx) {
     redirect(`/games/${gameSlug}/clan`);
@@ -44,7 +46,7 @@ export default async function MainClanLayout({
       ctx={ctx}
       inAppNotifications={inAppNotifications}
     >
-      <ClanNamecardsProvider recordPath={`/games/${gameSlug}/clan/${clanId}/stats`} cards={(namecards.data ?? {}) as ClanNamecards}>{children}</ClanNamecardsProvider>
+      <ClanEmojiProvider key={user.id+clanId} clanId={clanId} gameSlug={gameSlug} emojis={emojis.data??[]}><ClanNamecardsProvider recordPath={`/games/${gameSlug}/clan/${clanId}/stats`} cards={(namecards.data ?? {}) as ClanNamecards}>{children}</ClanNamecardsProvider></ClanEmojiProvider>
     </MainClanShell>
   );
 }

@@ -36,14 +36,14 @@ export async function listHofCommentsAction(thread: HofCommentThread, cursor: Cu
   if (result.error || names.error) return { ok: false, error: "반응을 불러오지 못했습니다. 다시 시도해 주세요." };
   const nicknames = new Map(names.data.map((row) => [row.user_id, row.nickname]));
   const rows = result.data.slice(0, HOF_COMMENT_PAGE_SIZE);
-  const reactions = await readReactions(ctx.supabase, rows.map((row) => row.id));
-  if (!reactions) return { ok: false, error: "반응을 불러오지 못했습니다. 다시 시도해 주세요." };
+  const [reactions,custom] = await Promise.all([readReactions(ctx.supabase,rows.map(row=>row.id)),ctx.supabase.rpc("list_clan_emoji_reactions",{p_hof_comment_ids:rows.map(row=>row.id)})]);
+  if (!reactions || custom.error) return { ok: false, error: "반응을 불러오지 못했습니다. 다시 시도해 주세요." };
   const last = rows.at(-1);
   return {
     ok: true,
     comments: rows.map((row) => ({ id: row.id, content: row.content, createdAt: row.created_at,
       nickname: row.author_id ? nicknames.get(row.author_id) ?? "이전 멤버" : "탈퇴한 멤버",
-      isMine: row.author_id === ctx.user.id, canDelete: ctx.isStaff || row.author_id === ctx.user.id, reactions: reactions.get(row.id) ?? [] })),
+      isMine: row.author_id === ctx.user.id, canDelete: ctx.isStaff || row.author_id === ctx.user.id, reactions: reactions.get(row.id) ?? [],emojiReactions:custom.data!.filter(r=>r.target_id===row.id).map(r=>({emoji_id:r.emoji_id,total:Number(r.total),mine:r.mine})) })),
     nextCursor: result.data.length > HOF_COMMENT_PAGE_SIZE && last ? { createdAt: last.created_at, id: last.id } : null,
   };
 }
@@ -58,7 +58,7 @@ export async function addHofCommentAction(thread: HofCommentThread, content: str
     .select("id, content, created_at").single();
   if (error) return { ok: false, error: "댓글을 등록하지 못했습니다. 다시 시도해 주세요." };
   const { data: profile } = await ctx.supabase.from("users").select("nickname").eq("id", ctx.user.id).maybeSingle();
-  return { ok: true, comment: { id: data.id, content: data.content, createdAt: data.created_at, nickname: profile?.nickname ?? "나", isMine: true, canDelete: true, reactions: [] } };
+  return { ok: true, comment: { id: data.id, content: data.content, createdAt: data.created_at, nickname: profile?.nickname ?? "나", isMine: true, canDelete: true, reactions: [], emojiReactions:[] } };
 }
 
 async function readReactions(supabase: SupabaseClient<Database>, commentIds: string[]) {

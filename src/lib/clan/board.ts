@@ -23,7 +23,7 @@ export function isBoardKind(value: unknown): value is BoardKind {
 export type BoardPost = Database["public"]["Tables"]["clan_board_posts"]["Row"] & {
   author: string; canManage: boolean; canReplaceImage: boolean; commentCount: number; coachName?: string; canSetStatus?: boolean; canSetChannelLive?: boolean;
 };
-export type BoardComment = Database["public"]["Tables"]["clan_board_comments"]["Row"] & { author: string; canManage: boolean };
+export type BoardComment = Database["public"]["Tables"]["clan_board_comments"]["Row"] & { author: string; canManage: boolean; emojiReactions?: {emoji_id:string;total:number;mine:boolean}[] };
 export type BoardListPost=Pick<BoardPost,"id"|"title"|"content"|"details"|"status"|"image_path"|"created_at"|"author"|"commentCount"|"coachName">;
 export const STREAM_PLATFORMS = ["YouTube","CHZZK","Twitch","SOOP"] as const;
 export type BoardChannel = {platform:string;url:string};

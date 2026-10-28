@@ -1163,26 +1163,59 @@ export type Database = {
       }
       clan_emoji_reactions: {
         Row: {
+          board_comment_id: string | null
           emoji_id: string
-          post_id: string
+          hof_comment_id: string | null
+          id: string
+          notice_id: string | null
+          post_id: string | null
           user_id: string
         }
         Insert: {
+          board_comment_id?: string | null
           emoji_id: string
-          post_id: string
+          hof_comment_id?: string | null
+          id?: string
+          notice_id?: string | null
+          post_id?: string | null
           user_id?: string
         }
         Update: {
+          board_comment_id?: string | null
           emoji_id?: string
-          post_id?: string
+          hof_comment_id?: string | null
+          id?: string
+          notice_id?: string | null
+          post_id?: string | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "clan_emoji_reactions_board_comment_id_fkey"
+            columns: ["board_comment_id"]
+            isOneToOne: false
+            referencedRelation: "clan_board_comments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "clan_emoji_reactions_emoji_id_fkey"
             columns: ["emoji_id"]
             isOneToOne: false
             referencedRelation: "clan_emojis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_emoji_reactions_hof_comment_id_fkey"
+            columns: ["hof_comment_id"]
+            isOneToOne: false
+            referencedRelation: "clan_hof_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_emoji_reactions_notice_id_fkey"
+            columns: ["notice_id"]
+            isOneToOne: false
+            referencedRelation: "clan_notices"
             referencedColumns: ["id"]
           },
           {
@@ -3391,6 +3424,16 @@ export type Database = {
         Args: { p_clan_id: string; p_round_id: string }
         Returns: boolean
       }
+      can_use_clan_emoji_target: {
+        Args: {
+          p_board_comment_id: string
+          p_emoji_id: string
+          p_hof_comment_id: string
+          p_notice_id: string
+          p_post_id: string
+        }
+        Returns: boolean
+      }
       cancel_balance_room: {
         Args: { p_clan_id: string; p_room_id: string }
         Returns: Json
@@ -3536,6 +3579,21 @@ export type Database = {
         Returns: {
           nickname: string
           user_id: string
+        }[]
+      }
+      list_clan_emoji_reactions: {
+        Args: {
+          p_board_comment_ids?: string[]
+          p_hof_comment_ids?: string[]
+          p_notice_ids?: string[]
+          p_post_ids?: string[]
+        }
+        Returns: {
+          emoji_id: string
+          mine: boolean
+          target_id: string
+          target_kind: string
+          total: number
         }[]
       }
       list_clan_guest_records: {
