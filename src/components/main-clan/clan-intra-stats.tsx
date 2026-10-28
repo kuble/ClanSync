@@ -2,11 +2,12 @@
 
 import { formatPercent } from "@/lib/format-percent";
 import { useState, type ReactNode } from "react";
+import { Ban, Compass, Map as MapIcon, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RubberSegment } from "@/components/ui/rubber-segment";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
-import { EMPTY_INTRA_OVERVIEW, intraTrendPoints, statsPeriodKey, statsPeriodLabel, type StatsPeriod } from "@/lib/clan/stats/intra-overview";
+import { EMPTY_INTRA_OVERVIEW, intraTrendPoints, statsPeriodKey, type StatsPeriod } from "@/lib/clan/stats/intra-overview";
 import { MAP_TYPES, mapDetailsForLabel } from "@/lib/balance/map-pools";
 import { OW_HERO_PORTRAITS } from "@/lib/balance/ow-hero-portraits";
 import { StatsPeriodFilter } from "./stats-period-filter";
@@ -39,7 +40,7 @@ export function IntraClanStats({ model, settings }: { model: ClanStatsPageModel;
     <section aria-label="내전 통계 기간" className="sticky top-[60px] z-30 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80"><div className="flex items-center justify-between gap-1.5 sm:flex-wrap sm:gap-3"><StatsPeriodFilter value={period} onChange={setPeriod} years={years} />{settings}</div></section>
     <div className="relative">
     {loaded.feedback}
-    <Card size="sm"><CardHeader><CardTitle className="font-semibold group-data-[size=sm]/card:text-base">참여 추이</CardTitle><p className="text-xs text-muted-foreground">{statsPeriodLabel(period)} · {activeMetric.label}</p></CardHeader>
+    <Card size="sm"><CardHeader><CardTitle className="flex items-center gap-2 font-semibold group-data-[size=sm]/card:text-base"><TrendingUp className="size-4 shrink-0 text-primary" aria-hidden="true" />참여 추이</CardTitle></CardHeader>
       <CardContent className="grid min-w-0 gap-5 min-[900px]:grid-cols-[minmax(0,1fr)_220px]">
         <StatsTrend points={intraTrendPoints(model.periodDirectory ?? model.intraPeriods, period, metric)} label={activeMetric.label} unit={activeMetric.unit} />
         <div className="grid grid-cols-1 gap-2 sm:max-[899px]:grid-cols-3" aria-label="선택 기간 요약">
@@ -49,15 +50,15 @@ export function IntraClanStats({ model, settings }: { model: ClanStatsPageModel;
     </Card>
     </div>
     <div className="grid items-stretch gap-4 min-[800px]:grid-cols-2 min-[1200px]:grid-cols-3">
-      <Card size="sm" className="min-w-0"><CardHeader><CardTitle className="font-semibold group-data-[size=sm]/card:text-base">맵별 경기</CardTitle></CardHeader><CardContent className="space-y-4">
+      <Card size="sm" className="min-w-0"><CardHeader><CardTitle className="flex items-center gap-2 font-semibold group-data-[size=sm]/card:text-base"><MapIcon className="size-4 shrink-0 text-primary" aria-hidden="true" />맵별 경기</CardTitle></CardHeader><CardContent className="space-y-4">
         <div className="min-h-16"><RubberSegment label="맵 유형" labelPosition="top" options={MAP_OPTIONS} value={mapType} onChange={setMapType} /></div>
         <StatsDonut rows={maps} label="맵별 경기" unit="경기" showImages={DONUT_IMAGE_PREVIEW} fixedLegend busy={loaded.pending} />
       </CardContent></Card>
-      <Card size="sm" className="min-w-0"><CardHeader><CardTitle className="font-semibold group-data-[size=sm]/card:text-base">영웅 밴</CardTitle></CardHeader><CardContent className="space-y-4">
+      <Card size="sm" className="min-w-0"><CardHeader><CardTitle className="flex items-center gap-2 font-semibold group-data-[size=sm]/card:text-base"><Ban className="size-4 shrink-0 text-primary" aria-hidden="true" />영웅 밴</CardTitle></CardHeader><CardContent className="space-y-4">
         <div className="min-h-16"><RubberSegment label="영웅 역할" labelPosition="top" options={[{ id: "all", label: "전체" }, { id: "tank", label: "돌격", icon: <OverwatchRoleIcon role="tank" /> }, { id: "dps", label: "공격", icon: <OverwatchRoleIcon role="damage" /> }, { id: "support", label: "지원", icon: <OverwatchRoleIcon role="support" /> }]} value={banRole} onChange={setBanRole} /></div>
         <StatsDonut rows={bans} label="영웅 밴" unit="건" showImages={DONUT_IMAGE_PREVIEW} fixedLegend busy={loaded.pending} />
       </CardContent></Card>
-      <Card size="sm" className="min-w-0"><CardHeader><CardTitle className="font-semibold group-data-[size=sm]/card:text-base">선호 맵</CardTitle></CardHeader><CardContent className="space-y-4">
+      <Card size="sm" className="min-w-0"><CardHeader><CardTitle className="flex items-center gap-2 font-semibold group-data-[size=sm]/card:text-base"><Compass className="size-4 shrink-0 text-primary" aria-hidden="true" />선호 맵</CardTitle></CardHeader><CardContent className="space-y-4">
         <div className="min-h-16"><RubberSegment label="맵 유형" labelPosition="top" options={MAP_OPTIONS} value={preferredMapType} onChange={setPreferredMapType} /></div>
         <StatsDonut rows={preferredMaps} label="선호 맵" unit="표" showImages={DONUT_IMAGE_PREVIEW} fixedLegend busy={loaded.pending} />
       </CardContent></Card>

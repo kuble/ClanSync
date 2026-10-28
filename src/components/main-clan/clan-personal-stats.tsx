@@ -10,7 +10,7 @@ import { MAP_TYPES, mapDetailsForLabel, type MapType } from "@/lib/balance/map-p
 import { StatsScrollArea } from "./stats-scroll-area";
 import { StatsScoreEditor } from "./stats-score-editor";
 import { StatsSignedTrendChart, StatsTimeChart } from "./stats-time-chart";
-import { UserRound } from "lucide-react";
+import { Map as MapIcon, Target, TrendingUp, UserRound, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
@@ -139,7 +139,7 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
       <section aria-label="개인 기록 기간" className="sticky top-[60px] z-30 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80"><div className="flex items-center justify-between gap-1.5 sm:flex-wrap sm:gap-3"><StatsPeriodFilter value={period} onChange={(next) => { setPeriod(next); setPeerId(null); }} years={years} /><div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2"><Button type="button" variant="outline" size="sm" className="size-8 px-0 sm:h-7 sm:w-auto sm:px-2.5" aria-label="멤버 선택" title="멤버 선택" onClick={onBack}><UserRound className="size-3.5 sm:hidden" aria-hidden="true" /><span className="hidden sm:inline">멤버 선택</span></Button>{settings}</div></div></section>
       <StatsPlayerBanner gameSlug={gameSlug} clanId={clanId} awards={person.emblems} showEmblems={visible("emblems")} hof={model.hof} userId={person.userId} nickname={person.nickname} profile={person.profile} />
       {visible("records") && <><Card size="sm" role="region" aria-label="플레이어 요약">
-        <CardHeader><CardTitle>플레이어 요약</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2"><UserRound className="size-4 shrink-0 text-primary" aria-hidden="true" />플레이어 요약</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <section aria-label="역할별 승률" className="min-w-0">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-semibold">역할별 승률</h3><span className="text-xs text-muted-foreground">참여 내전 {value(totals.sessions)}회</span></div>
@@ -159,12 +159,12 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
           </div>
         </CardContent>
       </Card>
-      <Card size="sm" role="region" aria-label="맵별 승률"><CardHeader><CardTitle>맵별 승률</CardTitle></CardHeader><CardContent className="space-y-4">
+      <Card size="sm" role="region" aria-label="맵별 승률"><CardHeader><CardTitle className="flex items-center gap-2"><MapIcon className="size-4 shrink-0 text-primary" aria-hidden="true" />맵별 승률</CardTitle></CardHeader><CardContent className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3"><div className="flex min-w-0 flex-wrap items-end gap-3"><FilterButtons label="역할" options={ROLE_OPTIONS} value={mapRole} onChange={setMapRole} /><FilterButtons label="맵 형식" options={MAP_TYPE_OPTIONS} value={mapType} onChange={setMapType} /></div><FilterButtons label="맵 정렬" options={[{ id: "matches", label: "출전순" }, { id: "rate", label: "승률순" }]} value={mapSort} onChange={setMapSort} /></div>
         <section aria-label="맵별 승률 목록"><StatsDonut busy={pending} label="맵별 승률" unit="경기" showImages horizontal preserveOrder mapResults rows={maps.map((row) => ({ name: row.name, value: row.matches, image: mapDetailsForLabel(row.name)?.image, wins: row.wins, draws: row.draws, losses: row.losses, rate: row.rate }))} /></section>
       </CardContent></Card>
       </>}
-      {model.personal.canSeePeers && <Card size="sm"><CardHeader><CardTitle><StatTitle title="시너지" help={<>내 역할과 상대 역할, 팀 관계를 함께 선택합니다.</>} /></CardTitle></CardHeader><CardContent className="space-y-4">
+      {model.personal.canSeePeers && <Card size="sm"><CardHeader><CardTitle className="flex items-center gap-2"><Users className="size-4 shrink-0 text-primary" aria-hidden="true" /><StatTitle title="시너지" help={<>내 역할과 상대 역할, 팀 관계를 함께 선택합니다.</>} /></CardTitle></CardHeader><CardContent className="space-y-4">
         {model.personal.canSeePeers ? <>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2"><FilterButtons label="내 역할" options={ROLE_OPTIONS} value={role} onChange={(value) => { setRole(value); setPeerId(null); }} /><FilterButtons label="팀 관계" options={[{ id: "ally", label: "같은 팀" }, { id: "enemy", label: "상대 팀" }]} value={relation} onChange={(value) => { setRelation(value); setPeerId(null); }} />
           <div><FilterButtons label="상대 역할" options={ROLE_OPTIONS} value={peerRole} onChange={(value) => { setPeerRole(value); setPeerId(null); }} /></div></div>
@@ -193,11 +193,11 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
         </> : <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">상대별 전적은 클랜의 관계 통계 열람 권한에 따라 제공됩니다.</p>}
       </CardContent></Card>}
       <div className={`grid min-w-0 gap-4 ${(visible("evaluation") || visible("analysis")) && (visible("predictions") || canViewPredictionPoints) ? "lg:grid-cols-2" : ""}`} aria-label="개인 기록 그래프">
-      {(visible("evaluation") || visible("analysis")) && <Card size="sm" className="min-w-0"><CardHeader><CardTitle>점수 변동 이력</CardTitle></CardHeader><CardContent className="space-y-3">
+      {(visible("evaluation") || visible("analysis")) && <Card size="sm" className="min-w-0"><CardHeader><CardTitle className="flex items-center gap-2"><TrendingUp className="size-4 shrink-0 text-primary" aria-hidden="true" />점수 변동 이력</CardTitle></CardHeader><CardContent className="space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-2"><FilterButtons label="점수 종류" options={([{ id: "evaluation", label: "평가 점수" }, { id: "analysis", label: "분석 점수" }] as const).filter(({ id }) => visible(id))} value={activeScoreKind} onChange={setScoreKind} />{activeScoreKind === "evaluation" && model.permissions.editMscore && <StatsScoreEditor key={periodKey + person.userId} gameSlug={gameSlug} clanId={clanId} playerId={person.userId} matches={matches} />}</div>
         <StatsTimeChart busy={pending} label="점수 변동 이력 그래프" unit="점" lines={[{ label: activeScoreKind === "evaluation" ? "평가 점수" : "분석 점수", color: "var(--primary)", points: scorePoints }]} empty="저장된 점수 변동 이력이 없습니다." />
       </CardContent></Card>}
-      {(visible("predictions") || canViewPredictionPoints) && <Card size="sm"><CardHeader><CardTitle><StatTitle title="승부예측 기록" help="무효 경기를 제외한 예측의 적중 확률입니다. 본인과 운영진에게 실제 정산 포인트의 일별 누적 흐름을 표시합니다." /></CardTitle></CardHeader><CardContent className="space-y-3">
+      {(visible("predictions") || canViewPredictionPoints) && <Card size="sm"><CardHeader><CardTitle className="flex items-center gap-2"><Target className="size-4 shrink-0 text-primary" aria-hidden="true" /><StatTitle title="승부예측 기록" help="무효 경기를 제외한 예측의 적중 확률입니다. 본인과 운영진에게 실제 정산 포인트의 일별 누적 흐름을 표시합니다." /></CardTitle></CardHeader><CardContent className="space-y-3">
         {visible("predictions") && <div className="flex h-16 flex-wrap content-start gap-x-5 gap-y-1 overflow-y-auto text-xs text-muted-foreground tabular-nums sm:h-10" aria-label="승부예측 요약"><span>예측 참여 {value(picks.length)}회</span><span>적중 {value(correct)}회</span><span>실패 {value(incorrect)}회</span><strong className="text-foreground">적중력 {value(rate(predictionRate))}</strong><span>무승부 적중 {value(picks.filter((pick) => pick.outcome === "draw" && pick.result === "correct").length)}회 · 무효 {value(picks.filter((pick) => pick.result === "void").length)}회</span></div>}
         {canViewPredictionPoints && <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs tabular-nums"><span className="text-primary">수익 {value(`+${earned.toLocaleString()}`)}pt</span><span className="text-team-red">손실 {value(`−${lost.toLocaleString()}`)}pt</span><strong>순수익 {value(`${earned - lost > 0 ? "+" : ""}${(earned - lost).toLocaleString()}`)}pt</strong></div>}
         {canViewPredictionPoints ? <><p className="text-xs text-muted-foreground">획득·차감 포인트를 반영한 일별 누적 흐름</p><StatsSignedTrendChart busy={pending} label="승부예측 누적 포인트 그래프" unit="pt" points={predictionTrend} empty="선택한 기간에 승부예측 기록이 없습니다." /></> : <p className="rounded-lg border border-dashed p-4 text-xs text-muted-foreground">{ownPrediction ? "클랜의 공개 설정에 따라 포인트 통계가 제공되지 않습니다." : "포인트 수익·손실은 본인과 운영진만 볼 수 있습니다."}</p>}
