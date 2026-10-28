@@ -97,6 +97,17 @@ test("custom emojis compose posts, board/stat comments and all reaction targets 
     const hof=talk.getByRole("listitem").last();await expect(hof.getByRole("img",{name:":응원:",exact:true})).toBeVisible();
     await choose(hof,`${f.users[0].nickname} 댓글 공감 선택`);await expect(hof.getByRole("button",{name:"응원 공감 1명",exact:true})).toBeVisible();
     await page.reload();await expect(hof.getByRole("button",{name:"응원 공감 1명",exact:true})).toBeVisible();
+    await hof.getByRole("button",{name:`${f.users[0].nickname} 댓글 공감 선택`,exact:true}).click();
+    await page.getByRole("button",{name:"기본",exact:true}).click();
+    await page.getByRole("button",{name:"하트 공감",exact:true}).click();
+    const standard=hof.getByRole("button",{name:"하트 공감 1명",exact:true});
+    const custom=hof.getByRole("button",{name:"응원 공감 1명",exact:true});
+    await expect(standard).toHaveAttribute("aria-pressed","true");
+    await expect(custom).toBeVisible();
+    const [standardBox,customBox]=await Promise.all([standard.boundingBox(),custom.boundingBox()]);
+    expect(standardBox!.height).toBe(32);expect(customBox!.height).toBe(standardBox!.height);
+    expect(customBox!.width).toBe(standardBox!.width);expect(customBox!.y).toBe(standardBox!.y);
+    await expect(custom.locator("img")).toHaveCSS("width","20px");
     await expect.poll(()=>hof.getByRole("img").evaluateAll(nodes=>nodes.every(node=>(node as HTMLImageElement).naturalWidth>0))).toBe(true);
     await page.screenshot({path:test.info().outputPath("emoji-stat-comments.png"),animations:"disabled"});
     const hofRow=(await svc.from("clan_hof_comments").select("id").eq("clan_id",f.clanId).single()).data!;

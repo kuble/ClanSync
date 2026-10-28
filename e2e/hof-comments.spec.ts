@@ -103,8 +103,11 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     ]));
     await ok(f.service.from("match_results").insert(matches.map((match) => ({ match_id: match.id, winner_team: 1 }))));
     // Same timestamp exercises the ID tie-breaker in keyset pagination.
-    const seeded = await ok(f.service.from("clan_hof_comments").insert(Array.from({ length: 31 }, (_, i) => ({ clan_id: f.clanId, ranking: "rate", period_key: "all", content: `기존 반응 ${i + 1}`, author_id: f.users[0].id, created_at: "2025-01-01T00:00:00Z" }))).select("id, content"));
-    const chronological = seeded.sort((a, b) => a.id.localeCompare(b.id)).map((row) => row.content);
+    const seeded = await ok(f.service.from("clan_hof_comments").insert([
+      ...Array.from({ length: 31 }, (_, i) => ({ clan_id: f.clanId, ranking: "rate", period_key: "all", content: `기존 반응 ${i + 1}`, author_id: f.users[0].id, created_at: "2025-01-01T00:00:00Z" })),
+      ...["2024-12-31T14:59:00Z", "2024-12-31T15:00:00Z"].map((created_at, i) => ({ clan_id: f.clanId, ranking: "rate", period_key: "all", content: `한국 자정 ${i === 0 ? "이전" : "이후"}`, author_id: f.users[0].id, created_at })),
+    ]).select("id, content, created_at"));
+    const chronological = seeded.sort((a, b) => a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id)).map((row) => row.content);
     await loginIsolatedBalanceUser(page, f.users[1]);
     await page.goto(path);
     await expect(page.getByRole("heading", { name: "누적 순위 변동" })).toHaveCount(0);
@@ -113,15 +116,19 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     const viewport = panel.getByRole("region", { name: "순위 댓글 목록", exact: true });
     await expect(viewport).toHaveAttribute("data-more-below", "false");
     await expect(viewport).toHaveAttribute("data-more-above", "true");
-    await expect(panel.getByRole("listitem").locator("p")).toHaveText(chronological.slice(1));
+    await expect(panel.getByRole("listitem").locator("p")).toHaveText(chronological.slice(3));
+    await expect(panel.getByRole("separator")).toHaveCount(1);
     const more = panel.getByRole("button", { name: "이전 댓글 더 보기" });
     await more.scrollIntoViewIfNeeded();
-    const anchor = panel.getByText(chronological[1], { exact: true });
+    const anchor = panel.getByText(chronological[3], { exact: true });
     const anchorY = (await anchor.boundingBox())!.y;
     await more.click();
-    await expect(panel.getByRole("listitem")).toHaveCount(31);
+    await expect(panel.getByRole("listitem")).toHaveCount(33);
     await expect(panel.getByRole("listitem").locator("p")).toHaveText(chronological);
     expect(Math.abs((await anchor.boundingBox())!.y - anchorY)).toBeLessThan(2);
+    await expect(panel.getByRole("separator")).toHaveText(["2024년 12월 31일 화요일", "2025년 1월 1일 수요일"]);
+    await expect(panel.getByRole("listitem").filter({ hasText: "한국 자정 이전" }).locator("time")).toHaveText("오후 11:59");
+    await expect(panel.getByRole("listitem").filter({ hasText: "한국 자정 이후" }).locator("time")).toHaveText("오전 12:00");
     await expect(panel.getByRole("button", { name: /댓글 삭제/ })).toHaveCount(0);
     await page.getByLabel("순위 보고 한마디").fill(draft);
     await panel.getByRole("button", { name: "댓글 이모티콘 선택", exact: true }).click();
@@ -131,8 +138,12 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await expect(panel.getByText(content, { exact: true })).toBeVisible();
     const reply = panel.getByRole("listitem").filter({ has: page.getByText(content, { exact: true }) });
     await expect(panel.getByRole("listitem").last()).toContainText(content);
-    await expect(reply).toHaveCSS("flex-direction", "row-reverse");
-    await expect(panel.getByRole("listitem").first()).toHaveCSS("flex-direction", "row");
+    await expect(reply.locator("[data-comment-row]")).toHaveCSS("flex-direction", "row-reverse");
+    await expect(panel.getByRole("listitem").first().locator("[data-comment-row]")).toHaveCSS("flex-direction", "row");
+    await expect(panel.getByRole("separator")).toHaveCount(3);
+    await expect(reply.locator("time")).toHaveText(/^(오전|오후) \d{2}:\d{2}$/);
+    await expect(reply.getByRole("button", { name: `${f.users[1].nickname} 댓글 삭제`, exact: true })).toHaveText("");
+    await expect(reply.getByRole("button", { name: `${f.users[1].nickname} 댓글 삭제`, exact: true }).locator("svg")).toBeVisible();
     await expect(viewport).toHaveAttribute("data-more-below", "false");
     await reply.getByRole("button", { name: `${f.users[1].nickname} 댓글 공감 선택`, exact: true }).click();
     await page.getByRole("button", { name: "하트 공감", exact: true }).click();
@@ -140,7 +151,7 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await page.reload();
     await expect(panel.getByText(content, { exact: true })).toBeVisible();
     await expect(panel.getByRole("listitem").last()).toContainText(content);
-    await expect(reply).toHaveCSS("flex-direction", "row-reverse");
+    await expect(reply.locator("[data-comment-row]")).toHaveCSS("flex-direction", "row-reverse");
     await expect(reply.getByRole("button", { name: "하트 공감 1명", exact: true })).toHaveAttribute("aria-pressed", "true");
     await reply.getByRole("button", { name: "하트 공감 1명", exact: true }).click();
     await expect(reply.getByRole("button", { name: "하트 공감 1명", exact: true })).toHaveCount(0);
@@ -163,8 +174,8 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await leaderPage.goto(path);
     await expect(leaderPage.getByText(content, { exact: true })).toBeVisible();
     const staffComments = leaderPage.getByLabel("전체 기간 · 승률 반응", { exact: true }).getByRole("listitem");
-    await expect(staffComments.last()).toHaveCSS("flex-direction", "row");
-    await expect(staffComments.first()).toHaveCSS("flex-direction", "row-reverse");
+    await expect(staffComments.last().locator("[data-comment-row]")).toHaveCSS("flex-direction", "row");
+    await expect(staffComments.first().locator("[data-comment-row]")).toHaveCSS("flex-direction", "row-reverse");
     await expect(leaderPage.getByRole("button", { name: "클랜 통계 도움말", exact: true })).toHaveCount(0);
     await expect(leaderPage.getByRole("button", { name: "명예의 전당 도움말", exact: true })).toHaveCount(0);
     const rankCard = leaderPage.getByLabel("승률 순위", { exact: true });
