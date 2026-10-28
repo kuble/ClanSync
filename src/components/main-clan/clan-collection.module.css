@@ -29,6 +29,18 @@
 .caseGrid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:20px 18px; min-height:120px; }
 .compactCase { padding-block:20px; }
 .compactGrid { grid-template-columns:repeat(3,minmax(0,1fr)); min-height:0; align-items:center; }
+.heroBadges { position:relative; min-width:0; }
+.heroBadgesLink { display:flex; align-items:center; gap:12px; padding:6px 12px; border:1px solid #ffffff24; border-radius:12px; color:#f1f5f2; background:#07130ed9; backdrop-filter:blur(10px); transition:background .15s; }
+.heroBadgesLink:hover { background:#142d21ed; }
+.heroBadgesLink:focus-visible { outline:2px solid var(--primary); outline-offset:3px; }
+.heroBadgesLabel { display:flex; align-items:center; gap:3px; font-size:11px; white-space:nowrap; }
+.heroBadgePins { display:flex; align-items:center; gap:4px; min-height:48px; }
+.heroPin { position:relative; display:block; width:48px; height:48px; }
+@media(max-width:479px) {
+  .heroBadgesLink { justify-content:space-between; padding-block:2px; }
+  .heroBadgePins { min-height:40px; }
+  .heroPin { width:40px; height:40px; }
+}
 .pin {
   --socket-shape:polygon(15% 5%,85% 5%,97% 30%,86% 73%,50% 98%,14% 73%,3% 30%);
   position:relative; display:block; width:100%; min-width:0; aspect-ratio:1;

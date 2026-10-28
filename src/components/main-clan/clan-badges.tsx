@@ -4,13 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useId, useRef, useState, useSyncExternalStore, useTransition, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
-import { Flame, ShieldCheck, Sparkles, Swords, Star } from "lucide-react";
+import { ChevronRight, Flame, ShieldCheck, Sparkles, Swords, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { RubberSegment } from "@/components/ui/rubber-segment";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { setFeaturedBadgesAction, acknowledgeBadgesAction } from "@/app/actions/clan-badges";
-import { CLAN_BADGES, CLAN_BADGE_ARTWORK, CLAN_BADGE_SERIES_NAMES, getClanBadgeRepresentatives, type ClanBadge, type ClanBadgeCollection, type ClanBadgeKey } from "@/lib/clan/badges";
+import { CLAN_BADGES, CLAN_BADGE_ARTWORK, CLAN_BADGE_SERIES_NAMES, getClanBadgeRepresentatives, getFeaturedClanBadgeKeys, type ClanBadge, type ClanBadgeCollection, type ClanBadgeKey } from "@/lib/clan/badges";
 import { cn } from "@/lib/utils";
 import styles from "./clan-collection.module.css";
 
@@ -73,11 +73,7 @@ export function ClanBadges({
   const checkedKey = `clansync:badge-checked:v1:${collection.userId}:${clanId}`;
   const checked = parseChecked(useSyncExternalStore(subscribeChecked, () => checkedSnapshot(checkedKey), () => "{}"));
   const displayBadges = getClanBadgeRepresentatives(collection.badges);
-  const storedFeatured = collection.featured ?? displayBadges.filter(b => b.earned).slice(0, 3).map(b => b.key);
-  const featured = [...new Set(storedFeatured.map(key => {
-    const badge = collection.badges.find(b => b.key === key);
-    return badge && "series" in badge ? displayBadges.find(b => "series" in b && b.series === badge.series)?.key ?? key : key;
-  }))];
+  const featured = getFeaturedClanBadgeKeys(collection);
   const badges = compact
     ? featured.flatMap(key => displayBadges.filter(b => b.key === key && b.earned))
     : displayBadges.filter(b => group === "전체" || categories.find(c => c.id === group)?.groups.includes(b.group));
@@ -224,6 +220,23 @@ function renderPin(badge: ClanBadge, compact: boolean, selected: boolean, onClic
     </span>
     {badge.earned && <BadgeEmblem badge={badge} compact={compact} eager={eager} />}
   </button>;
+}
+
+export function ClanHeroBadges({ collection, href }: { collection: ClanBadgeCollection | null; href: string }) {
+  const representatives = collection ? getClanBadgeRepresentatives(collection.badges) : [];
+  const selected = collection ? getFeaturedClanBadgeKeys(collection) : [];
+  const badges = selected.flatMap(key => representatives.filter(badge => badge.key === key && badge.earned)).slice(0, 3);
+  return <section aria-label="클랜 배지" className={styles.heroBadges}>
+    <Link href={href} aria-label="클랜 배지" className={styles.heroBadgesLink}>
+      <span className={styles.heroBadgesLabel}>클랜 배지 <ChevronRight size={12} aria-hidden="true" /></span>
+      <span className={styles.heroBadgePins}>
+        {badges.map(badge => <span key={badge.key} className={styles.heroPin} data-badge={badge.key} title={badge.name}>
+          <span className="sr-only">{badge.name}</span><BadgeEmblem badge={badge} compact />
+        </span>)}
+        {!badges.length && <span className="text-xs">{collection ? "대표 배지 없음" : "배지를 불러오지 못했어요"}</span>}
+      </span>
+    </Link>
+  </section>;
 }
 
 function BadgeEmblem({ badge, compact, eager = false }: { badge: ClanBadge; compact: boolean; eager?: boolean }) {

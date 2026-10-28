@@ -1,31 +1,51 @@
 .bento {
   display:grid;
   grid-template-columns:minmax(0,1fr);
-  grid-template-areas:"notices" "events" "rules" "badges" "mvps";
+  grid-template-areas:"notices" "events" "mvps";
   gap:12px;
   align-items:stretch;
 }
-.notices { grid-area:notices; }
+.notices { grid-area:notices; display:flex; flex-direction:column; }
 .events { grid-area:events; }
 .notices > h3,.events > h3 { font-size:18px; }
-.rules { grid-area:rules; display:flex; flex-direction:column; }
-.rulesPreview {
-  flex:1;
-  min-height:56px;
-  /* Long rules must not increase the grid row height. */
-  contain:size;
-  display:-webkit-box;
-  -webkit-box-orient:vertical;
-  overflow:hidden;
-}
-.badges { grid-area:badges; }
+.notices > ul { display:grid; grid-auto-rows:minmax(96px,1fr); gap:12px; flex:1; }
+.notices > ul > li { margin:0; display:flex; }
+.notices > ul > li > a { align-items:center; padding:16px; }
+.events > [role="region"] { display:flex; }
+.events > [role="region"] > div:has(> a) { display:grid; grid-auto-rows:minmax(96px,1fr); gap:12px; flex:1; }
+.events > [role="region"] > div > a { padding:16px; }
 .mvps { grid-area:mvps; min-width:0; }
 .mvpGrid { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; height:100%; }
+
+.rulesTicker { display:flex; align-items:center; gap:12px; min-width:0; height:52px; margin-bottom:16px; padding:0 12px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+.rulesLabel { display:flex; align-items:center; gap:6px; flex-shrink:0; color:var(--muted-foreground); font-size:12px; font-weight:600; }
+.rulesLabel:hover,.ruleWindow:hover { color:var(--primary); }
+.rulesLabel:focus-visible,.ruleWindow:focus-visible,.ruleControls button:focus-visible { outline:2px solid var(--primary); outline-offset:3px; border-radius:4px; }
+.ruleWindow { display:block; flex:1; min-width:0; perspective:500px; overflow:hidden; font-size:13px; font-weight:500; }
+.ruleFace { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; transform-origin:center; animation:ruleFlip .48s cubic-bezier(.2,.7,.2,1) both; }
+.ruleCount { display:flex; align-items:center; gap:5px; flex-shrink:0; font-size:11px; font-variant-numeric:tabular-nums; }
+.counterDigit { position:relative; display:grid; place-items:center; width:27px; height:28px; border:1px solid var(--border); border-radius:4px; background:var(--background); font-size:13px; font-weight:700; animation:ruleFlip .48s cubic-bezier(.2,.7,.2,1) both; }
+.counterDigit::after { content:""; position:absolute; inset:50% 0 auto; border-top:1px solid color-mix(in srgb,var(--border) 70%,transparent); }
+.ruleTotal { color:var(--muted-foreground); }
+.ruleControls { display:flex; align-items:center; gap:2px; }
+.ruleControls button { display:grid; place-items:center; width:28px; height:32px; color:var(--muted-foreground); border-radius:5px; }
+.ruleControls button:hover { color:var(--foreground); background:var(--muted); }
+@keyframes ruleFlip {
+  from { transform:rotateX(-75deg) translateY(-25%); opacity:.2; }
+  to { transform:rotateX(0) translateY(0); opacity:1; }
+}
+@media(prefers-reduced-motion:reduce) { .ruleFace,.counterDigit { animation:none; } }
+@media(max-width:639px) {
+  .rulesTicker { gap:8px; padding-inline:10px; }
+  .rulesLabel span,.rulesLabel > svg:last-child,.rulePrevious { display:none !important; }
+  .ruleCount { gap:3px; }
+  .counterDigit { width:22px; height:26px; font-size:12px; }
+}
 
 @media(min-width:640px) {
   .bento {
     grid-template-columns:repeat(2,minmax(0,1fr));
-    grid-template-areas:"notices notices" "events events" "rules badges" "mvps mvps";
+    grid-template-areas:"notices notices" "events events" "mvps mvps";
     gap:16px;
   }
   .mvpGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -36,7 +56,6 @@
     grid-template-columns:repeat(6,minmax(0,1fr));
     grid-template-areas:
       "notices notices events events events events"
-      "rules rules rules badges badges badges"
       "mvps mvps mvps mvps mvps mvps";
   }
 }
@@ -47,11 +66,8 @@
 @media(min-width:1024px) {
   .bento {
     grid-template-columns:repeat(12,minmax(0,1fr));
-    grid-template-rows:auto auto;
     grid-template-areas:
-      "notices notices notices notices events events events events events mvps mvps mvps"
-      "rules rules rules rules badges badges badges badges badges mvps mvps mvps";
+      "notices notices notices notices events events events events events mvps mvps mvps";
   }
   .mvpGrid { grid-template-columns:minmax(0,1fr); grid-template-rows:repeat(3,minmax(0,1fr)); }
-  .badges > [inert] { width:100%; max-width:280px; margin-inline:auto; }
 }

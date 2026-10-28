@@ -81,3 +81,12 @@ export function getClanBadgeRepresentatives(badges:ClanBadge[]) {
   }
   return badges.filter(badge=>!("series" in badge)||series.get(badge.series)?.key===badge.key);
 }
+
+export function getFeaturedClanBadgeKeys(collection: ClanBadgeCollection) {
+  const representatives = getClanBadgeRepresentatives(collection.badges);
+  const selected = collection.featured ?? representatives.filter(badge => badge.earned).slice(0, 3).map(badge => badge.key);
+  return [...new Set(selected.map(key => {
+    const badge = collection.badges.find(badge => badge.key === key);
+    return badge && "series" in badge ? representatives.find(item => "series" in item && item.series === badge.series)?.key ?? key : key;
+  }))];
+}

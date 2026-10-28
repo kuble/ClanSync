@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import {
   CalendarDays,
   ChevronRight,
   Crown,
   Megaphone,
-  ScrollText,
   Target,
   Trophy,
   Users,
@@ -20,10 +19,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ClanBadges } from "@/components/main-clan/clan-badges";
+import { ClanRulesTicker } from "@/components/main-clan/clan-rules-ticker";
 import { useClanNamecard } from "@/components/profile/clan-namecards";
 import { Namecard } from "@/components/profile/namecard";
-import type { ClanBadgeCollection } from "@/lib/clan/badges";
 import { StorePremiumPlanDialog } from "@/components/main-clan/store-premium-plan-dialog";
 import { listUpcomingOccurrenceStarts } from "@/lib/clan/expand-clan-event-occurrences";
 import type { ClanMemberRole } from "@/lib/clan/permission-defaults";
@@ -46,22 +44,6 @@ const headingLink = "flex min-h-6 w-full items-center gap-1.5 rounded-sm transit
 
 function DashboardHeading({ id, href, title }: { id: string; href: string; title: string }) {
   return <h3 id={id} className={cn(cardHeading, "mb-3")}><Link href={href} className={headingLink}>{title}<ChevronRight className="size-4 shrink-0" aria-hidden="true" /></Link></h3>;
-}
-
-function RulesPreview({ rules }: { rules: string }) {
-  const ref = useRef<HTMLParagraphElement>(null);
-  const [lines, setLines] = useState(2);
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-    const observer = new ResizeObserver(([entry]) => {
-      const lineHeight = parseFloat(getComputedStyle(element).lineHeight);
-      setLines(Math.max(2, Math.floor((entry.contentRect.height + 0.5) / lineHeight)));
-    });
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-  return <p ref={ref} data-rules-preview className={cn(styles.rulesPreview, "whitespace-pre-line break-words text-sm leading-7 text-muted-foreground")} style={{ WebkitLineClamp: lines }}>{rules}</p>;
 }
 
 function EmptyCard({
@@ -328,7 +310,6 @@ export function ClanDashboard({
   isPremium,
   actorRole,
   initialNotice,
-  badgeCollection,
 }: {
   model: ClanDashboardModel;
   gameSlug: string;
@@ -336,7 +317,6 @@ export function ClanDashboard({
   isPremium: boolean;
   actorRole: ClanMemberRole;
   initialNotice?: { title: string; content: string };
-  badgeCollection: ClanBadgeCollection | null;
 }) {
   const base = `/games/${gameSlug}/clan/${clanId}`;
   const [reading, setReading] = useState<{
@@ -348,6 +328,7 @@ export function ClanDashboard({
   return (
     <>
       <h2 className="sr-only">클랜 대시보드</h2>
+      <ClanRulesTicker rules={model.rules} failed={model.errors.rules} href={`${base}/board/notices#rules`} />
       <div className={styles.bento} data-testid="clan-dashboard-grid">
         <section
           className={cn(card, styles.notices)}
@@ -385,22 +366,6 @@ export function ClanDashboard({
         >
           <DashboardHeading id="dashboard-events-heading" href={`${base}/events`} title="다가오는 일정" />
           <UpcomingEvents model={model} base={base} />
-        </section>
-        <section className={cn(card, styles.rules, "shadow-none")} aria-labelledby="dashboard-rules-heading">
-          <DashboardHeading id="dashboard-rules-heading" href={`${base}/board/notices#rules`} title="클랜 규칙" />
-          {model.rules ? (
-            <RulesPreview rules={model.rules} />
-          ) : (
-            <EmptyCard
-              icon={ScrollText}
-              title="등록된 규칙이 없어요"
-              description="서로를 배려하는 즐거운 클랜을 함께 만들어가요."
-            />
-          )}
-        </section>
-        <section className={cn(card, styles.badges, "shadow-none")} aria-labelledby="dashboard-badges-heading">
-          <DashboardHeading id="dashboard-badges-heading" href={`${base}/badges`} title="클랜 배지" />
-          {badgeCollection ? <ClanBadges collection={badgeCollection} gameSlug={gameSlug} clanId={clanId} compact previewOnly /> : <p role="alert" className="flex min-h-52 items-center justify-center text-sm text-muted-foreground">배지 기록을 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</p>}
         </section>
         <section className={styles.mvps} aria-label="지난달 MVP">
           <div className={styles.mvpGrid}>

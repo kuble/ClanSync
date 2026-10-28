@@ -30,6 +30,7 @@
 .hero:has(.heroImage) .clanMeta { color: #c7ccd1; }
 .clanMeta span { display: inline-flex; align-items: center; gap: 5px; }
 .heroAction { position: relative; flex-shrink: 0; }
+.heroAside { position:relative; display:flex; flex-direction:column; align-items:flex-end; justify-content:flex-end; gap:10px; flex-shrink:0; }
 .mobileTrigger { display: none; }
 .drawer { width: min(248px,76vw); padding: 0; }
 .drawer .navLink { padding-left: 18px; gap: 12px; }
@@ -48,5 +49,11 @@
   .clanInfo h1 { font-size: 18px; }
   .clanMeta { font-size: 11px; }
   .heroAction { width: 100%; margin-left: 0; }
+  .heroAside { width:100%; flex-direction:row; align-items:center; justify-content:space-between; }
+  .heroAside:has(> section) .heroAction { width:auto; }
   .plan { display: none; }
+}
+@media (max-width: 479px) {
+  .heroAside { flex-direction:column; align-items:stretch; }
+  .heroAside .heroAction { width:100%; }
 }

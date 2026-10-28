@@ -142,9 +142,40 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
     ).toBeNull();
 
     await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.clock.install();
     await page.goto(base);
     const grid = page.getByTestId("clan-dashboard-grid");
     await expect(grid).toBeVisible();
+    const ticker = page.getByRole("region", { name: "클랜 규칙", exact: true });
+    const ruleText = ticker.locator("[data-rule-text]");
+    await expect(ticker.getByLabel("1 / 16", { exact: true })).toBeVisible();
+    await page.clock.fastForward(8100);
+    await expect(ticker.getByLabel("2 / 16", { exact: true })).toBeVisible();
+    await ticker.hover();
+    const heldText = await ruleText.textContent();
+    await page.clock.fastForward(16000);
+    await expect(ruleText).toHaveText(heldText!);
+    await page.locator("h1").hover();
+    await ticker.getByRole("link", { name: "클랜 규칙", exact: true }).focus();
+    await page.clock.fastForward(16000);
+    await expect(ruleText).toHaveText(heldText!);
+    await ticker.getByRole("button", { name: "다음 클랜 규칙", exact: true }).click();
+    await expect(ticker.getByLabel("3 / 16", { exact: true })).toBeVisible();
+    await ticker.getByRole("button", { name: "이전 클랜 규칙", exact: true }).click();
+    await expect(ticker.getByLabel("2 / 16", { exact: true })).toBeVisible();
+    await page.clock.fastForward(16000);
+    await expect(ticker.getByLabel("2 / 16", { exact: true })).toBeVisible();
+    await ticker.getByRole("button", { name: "규칙 자동 넘김 재생", exact: true }).click();
+    await page.locator("h1").hover();
+    await page.clock.fastForward(8100);
+    await expect(ticker.getByLabel("3 / 16", { exact: true })).toBeVisible();
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.reload();
+    await expect(ticker.getByLabel("1 / 16", { exact: true })).toBeVisible();
+    await page.clock.fastForward(16000);
+    await expect(ticker.getByLabel("1 / 16", { exact: true })).toBeVisible();
+    expect(await ruleText.evaluate(element => getComputedStyle(element).animationName)).toBe("none");
+    await page.emulateMedia({ reducedMotion: "no-preference" });
     await expect(
       page.getByRole("heading", { name: "클랜 공지사항", exact: true }),
     ).toBeVisible();
@@ -192,7 +223,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
       .getByRole("region", { name: "클랜 규칙", exact: true })
       .boundingBox();
     expect(rules!.x).toBeCloseTo(notices!.x, 0);
-    expect(rules!.y).toBeGreaterThan(notices!.y + notices!.height);
+    expect(rules!.y + rules!.height).toBeLessThan(notices!.y);
 
     await expect(page.getByRole("heading", { name: "지난달 MVP", exact: true })).toHaveCount(0);
     await expect(grid.getByRole("link", { name: /공지 관리|배지 케이스 보기|^이벤트$/ })).toHaveCount(0);
@@ -206,7 +237,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
       await expect(page.getByRole("region", { name, exact: true }).getByRole("link", { name, exact: true })).toHaveAttribute("href", base + path);
     }
     // Click non-title space to verify the card link, including the inert badge preview.
-    for (const [name, path] of destinations.slice(0, 5)) {
+    for (const [name, path] of destinations.slice(0, 5).filter(([name]) => name !== "클랜 규칙")) {
       const region = page.getByRole("region", { name, exact: true });
       const bounds = (await region.boundingBox())!;
       await region.click({ position: { x: bounds.width - 12, y: bounds.height - 12 } });
@@ -241,9 +272,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
     const mobileRules = await page
       .getByRole("region", { name: "클랜 규칙", exact: true })
       .boundingBox();
-    expect(mobileRules!.y).toBeGreaterThan(
-      mobileNotice!.y + mobileNotice!.height,
-    );
+    expect(mobileRules!.y + mobileRules!.height).toBeLessThan(mobileNotice!.y);
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -260,6 +289,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         const eventBox = (await page.getByRole("region", { name: "다가오는 일정", exact: true }).boundingBox())!;
         const badgesBox = (await page.getByRole("region", { name: "클랜 배지", exact: true }).boundingBox())!;
         const rulesBox = (await page.getByRole("region", { name: "클랜 규칙", exact: true }).boundingBox())!;
+        const heroBox = (await page.getByRole("region", { name: "클랜 소개", exact: true }).boundingBox())!;
         const mvpBox = (await page.getByRole("region", { name: "지난달 MVP", exact: true }).boundingBox())!;
         const gap = width >= 640 ? 16 : 12;
         if (width >= 800) {
@@ -270,42 +300,28 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         if (width >= 1024) {
           expect(mvpBox.y).toBeCloseTo(noticeBox.y, 0);
           expect(mvpBox.x - eventBox.x - eventBox.width).toBeCloseTo(gap, 0);
-          expect(rulesBox.x).toBeCloseTo(noticeBox.x, 0);
-          expect(rulesBox.y - noticeBox.y - noticeBox.height).toBeCloseTo(gap, 0);
-          expect(badgesBox.x).toBeCloseTo(eventBox.x, 0);
-          expect(badgesBox.y).toBeCloseTo(rulesBox.y, 0);
-          expect(mvpBox.y + mvpBox.height).toBeCloseTo(badgesBox.y + badgesBox.height, 0);
+          expect(mvpBox.y + mvpBox.height).toBeCloseTo(eventBox.y + eventBox.height, 0);
         } else {
-          expect(rulesBox.y - Math.max(eventBox.y + eventBox.height, noticeBox.y + noticeBox.height)).toBeCloseTo(gap, 0);
-          if (width >= 640) expect(badgesBox.y).toBeCloseTo(rulesBox.y, 0);
-          else expect(badgesBox.y - rulesBox.y - rulesBox.height).toBeCloseTo(gap, 0);
-          expect(mvpBox.y - Math.max(rulesBox.y + rulesBox.height, badgesBox.y + badgesBox.height)).toBeCloseTo(gap, 0);
+          expect(mvpBox.y - Math.max(eventBox.y + eventBox.height, noticeBox.y + noticeBox.height)).toBeCloseTo(gap, 0);
         }
-        const preview = page.locator("[data-rules-preview]");
-        await expect.poll(() => preview.evaluate((element) => {
-          const box = element.getBoundingClientRect(), style = getComputedStyle(element);
-          return Number(style.webkitLineClamp) === Math.floor((box.height + 0.5) / parseFloat(style.lineHeight));
-        })).toBe(true);
-        const previewBox = (await preview.boundingBox())!;
-        expect(rulesBox.y + rulesBox.height - previewBox.y - previewBox.height).toBeCloseTo(17, 0);
-        if (width >= 640) expect(previewBox.height).toBeGreaterThan(84);
-        expect(await preview.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
+        expect(rulesBox.height).toBeCloseTo(52, 0);
+        expect(rulesBox.y - heroBox.y - heroBox.height).toBeCloseTo(20, 0);
+        expect(noticeBox.y - rulesBox.y - rulesBox.height).toBeCloseTo(16, 0);
+        expect(badgesBox.x).toBeGreaterThanOrEqual(heroBox.x);
+        expect(badgesBox.y).toBeGreaterThanOrEqual(heroBox.y);
+        expect(badgesBox.y + badgesBox.height).toBeLessThanOrEqual(heroBox.y + heroBox.height);
+        expect(await ticker.locator("[data-rule-text]").evaluate(element => element.getBoundingClientRect().height)).toBeLessThan(24);
         const eventList = page.getByRole("region", { name: "다가오는 일정 목록", exact: true });
         expect(await eventList.locator("[data-event-title], time").evaluateAll((elements) => elements.every((element) => element.scrollWidth <= element.clientWidth + 1 && element.scrollHeight <= element.clientHeight + 1))).toBe(true);
         await expect(eventList.locator("time").first()).toContainText("20:00");
         const eventRows = await eventList.getByRole("link").evaluateAll((elements) => elements.map((element) => { const rect = element.getBoundingClientRect(); return { y: rect.y, height: rect.height }; }));
         expect(eventRows).toHaveLength(3);
-        expect(eventRows[1].y - eventRows[0].y - eventRows[0].height).toBeCloseTo(8, 0);
+        expect(eventRows[0].height).toBeGreaterThanOrEqual(96);
+        expect(eventRows[1].y - eventRows[0].y - eventRows[0].height).toBeCloseTo(12, 0);
         if (width >= 1024) {
-          const listHeight = eventRows.reduce((sum, row) => sum + row.height, 0) + 16;
+          const listHeight = eventRows.reduce((sum, row) => sum + row.height, 0) + 24;
           expect(eventBox.height - listHeight).toBeLessThan(80);
         }
-        const caseSpacing = await page.getByRole("region", { name: "클랜 배지", exact: true }).locator("[data-badge-case]").evaluate((element) => {
-          const box = element.getBoundingClientRect(), style = getComputedStyle(element);
-          const plate = element.firstElementChild!.getBoundingClientRect(), pins = element.lastElementChild!.getBoundingClientRect();
-          return { top: plate.top - box.top - parseFloat(style.borderTopWidth), bottom: box.bottom - pins.bottom - parseFloat(style.borderBottomWidth) };
-        });
-        expect(Math.abs(caseSpacing.top - caseSpacing.bottom)).toBeLessThan(2);
         const mvp = page.getByRole("region", { name: "지난달 MVP", exact: true });
         expect(await grid.locator(":scope > section").last().getAttribute("aria-label")).toBe("지난달 MVP");
         expect(await mvp.locator("[data-namecard]").evaluateAll((cards) => cards.every((card) => card.getBoundingClientRect().width <= card.parentElement!.getBoundingClientRect().width + 1))).toBe(true);
@@ -339,6 +355,15 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
     const fillRatio = await predictor.getByRole("meter").evaluate((meter) => meter.firstElementChild!.getBoundingClientRect().width / meter.getBoundingClientRect().width);
     expect(fillRatio).toBeCloseTo(0.5, 2);
     await page.screenshot({ path: test.info().outputPath("dashboard-premium-namecards.png") });
+    await page.goto(base + "/store");
+    await expect(page.getByRole("region", { name: "클랜 소개", exact: true })).toHaveCount(1);
+    await expect(page.getByRole("link", { name: "내전 로비 열기", exact: true })).toBeVisible();
+    for (const rulesValue of ["한 가지 규칙", null]) {
+      expect((await svc.from("clans").update({ rules: rulesValue }).eq("id", clanId)).error).toBeNull();
+      await page.goto(base);
+      await expect(ticker.getByRole("button")).toHaveCount(0);
+      await expect(ruleText).toHaveText(rulesValue ?? "등록된 규칙이 없습니다.");
+    }
   } finally {
     const cleanup = await Promise.all([
       svc.from("clan_events").delete().eq("id", eventId),

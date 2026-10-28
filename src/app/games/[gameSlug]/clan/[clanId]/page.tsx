@@ -1,5 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { ClanDashboard } from "@/components/main-clan/clan-dashboard";
+import { ClanHero } from "@/components/main-clan/main-clan-shell";
+import { ClanHeroBadges } from "@/components/main-clan/clan-badges";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { loadClanDashboard } from "@/lib/clan/load-clan-dashboard";
@@ -27,14 +29,18 @@ export default async function MainClanDashboardPage({
     if (data) initialNotice = data;
   }
   return (
-    <ClanDashboard
-      model={model}
-      badgeCollection={badgeCollection}
-      gameSlug={gameSlug}
-      clanId={clanId}
-      isPremium={ctx.plan === "premium"}
-      actorRole={ctx.role}
-      initialNotice={initialNotice}
-    />
+    <>
+      <ClanHero ctx={ctx} basePath={`/games/${gameSlug}/clan/${clanId}`}>
+        <ClanHeroBadges collection={badgeCollection} href={`/games/${gameSlug}/clan/${clanId}/badges`} />
+      </ClanHero>
+      <ClanDashboard
+        model={model}
+        gameSlug={gameSlug}
+        clanId={clanId}
+        isPremium={ctx.plan === "premium"}
+        actorRole={ctx.role}
+        initialNotice={initialNotice}
+      />
+    </>
   );
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   BarChart3,
   Calendar,
@@ -78,12 +78,14 @@ function NavLinks({
   );
 }
 
-function ClanHero({
+export function ClanHero({
   ctx,
   basePath,
+  children,
 }: {
   ctx: MainClanContext;
   basePath: string;
+  children?: ReactNode;
 }) {
   return (
     <section className={styles.hero} aria-label="클랜 소개">
@@ -118,15 +120,18 @@ function ClanHero({
           ))}
         </div>
       </div>
-      {ctx.canStartBalance ? (
-        <Link
-          href={basePath + "/balance"}
-          className={cn(buttonVariants({ size: "sm" }), styles.heroAction)}
-        >
-          <NavigationIcon icon={Scale} label="내전 로비" />
-          내전 로비 열기
-        </Link>
-      ) : null}
+      <div className={styles.heroAside}>
+        {children}
+        {ctx.canStartBalance ? (
+          <Link
+            href={basePath + "/balance"}
+            className={cn(buttonVariants({ size: "sm" }), styles.heroAction)}
+          >
+            <NavigationIcon icon={Scale} label="내전 로비" />
+            내전 로비 열기
+          </Link>
+        ) : null}
+      </div>
     </section>
   );
 }
@@ -143,7 +148,7 @@ export function MainClanShell({
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const basePath = `/games/${ctx.gameSlug}/clan/${ctx.clanId}`;
-  const showHero = pathname === basePath || pathname === basePath + "/store";
+  const showHero = pathname === basePath + "/store";
   const items: NavItem[] = [
     { href: basePath, label: "대시보드", icon: Home },
     {
