@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { loadMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { BOARD_IMAGE_BUCKET, boardChannels, boardDetails, boardThumbnail, isBoardKind, uuidPattern, validateBoardInput, type BoardDetails } from "@/lib/clan/board";
+import { readCosmeticAccess } from "@/lib/clan/cosmetics";
 
 type Result = { ok: true; id?: string; warning?: string } | { ok: false; error: string };
 async function actor(gameSlug: string, clanId: string) {
@@ -24,6 +25,11 @@ export async function saveBoardPostAction(gameSlug: string, clanId: string, inpu
   if (error) return { ok:false,error };
   const ctx = await actor(gameSlug,clanId);
   if (!ctx) return { ok:false,error:"활성 클랜원만 글을 작성할 수 있습니다." };
+  if (input.kind === "memories") {
+    const owned = await ctx.supabase.rpc("clan_cosmetic_access", { p_clan_id: clanId });
+    const access = readCosmeticAccess(owned.data);
+    if (owned.error || ((input.details.photoFrame ?? "classic") !== "classic" && !access.frames) || ((input.details.photoSticker ?? "none") !== "none" && !access.stickers)) return { ok:false,error:"클랜에서 구매한 사진 꾸미기만 사용할 수 있습니다." };
+  }
   const old = input.editing ? await ctx.supabase.from("clan_board_posts").select("id,author_id,image_path,coach_id,details,updated_at").eq("id",input.id).eq("clan_id",clanId).eq("kind",input.kind).maybeSingle() : null;
   if (input.editing && (old?.error || !old?.data || (old.data.author_id !== ctx.user.id && ctx.ctx.role === "member"))) return { ok:false,error:"이 글을 편집할 권한이 없습니다." };
   const coachId=input.kind==="feedback"?(input.coachId??old?.data?.coach_id??null):null;
@@ -47,7 +53,7 @@ export async function saveBoardPostAction(gameSlug: string, clanId: string, inpu
   if (input.kind === "memories" && !input.imagePath) return { ok:false,error:"추억 사진을 한 장 선택해 주세요." };
   const details: BoardDetails = input.kind === "feedback" ? { role:input.details.role?.trim(), replay:input.details.replay?.trim().toUpperCase(), video:input.details.video?.trim(), moment:input.details.moment?.trim() }
     : input.kind === "channels" ? { channels:boardChannels(input.details).map(c=>({platform:c.platform,url:c.url.trim()})), schedule:input.details.schedule?.trim(), isLive:boardDetails(old?.data?.details??{}).isLive===true }
-    : input.kind === "memories" ? { takenAt:boardDetails(old?.data?.details??{}).takenAt } : {};
+    : input.kind === "memories" ? { takenAt:boardDetails(old?.data?.details??{}).takenAt, photoFrame:input.details.photoFrame??"classic", photoSticker:input.details.photoSticker??"none" } : {};
   // Channel edits retain legacy introductions without displaying or overwriting them.
   const values = { title:input.title.trim(),...(input.kind==="channels" ? input.editing?{}:{content:""} : {content:input.content.trim()}),details:JSON.parse(JSON.stringify(details)),image_path:input.imagePath,coach_id:coachId };
   const query = input.editing ? ctx.supabase.from("clan_board_posts").update(values).eq("id",input.id).eq("clan_id",clanId).eq("kind",input.kind)

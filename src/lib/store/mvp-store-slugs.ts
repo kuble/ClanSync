@@ -2,6 +2,9 @@ export const MVP_STORE_SLUGS = [
   "clan_banner_slot",
   "clan_banner_midnight",
   "clan_banner_sunset",
+  "clan_emoji_slots_10",
+  "clan_photo_frames",
+  "clan_photo_stickers",
   "profile_entrance_fx",
 ] as const;
 

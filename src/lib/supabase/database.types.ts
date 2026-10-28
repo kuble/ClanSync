@@ -1161,6 +1161,78 @@ export type Database = {
           },
         ]
       }
+      clan_emoji_reactions: {
+        Row: {
+          emoji_id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          emoji_id: string
+          post_id: string
+          user_id?: string
+        }
+        Update: {
+          emoji_id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_emoji_reactions_emoji_id_fkey"
+            columns: ["emoji_id"]
+            isOneToOne: false
+            referencedRelation: "clan_emojis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_emoji_reactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "clan_board_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_emoji_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_emojis: {
+        Row: {
+          clan_id: string
+          created_at: string
+          id: string
+          image_path: string
+          name: string
+        }
+        Insert: {
+          clan_id: string
+          created_at?: string
+          id: string
+          image_path: string
+          name: string
+        }
+        Update: {
+          clan_id?: string
+          created_at?: string
+          id?: string
+          image_path?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_emojis_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_events: {
         Row: {
           cancelled_at: string | null
@@ -3272,6 +3344,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_clan_emoji: {
+        Args: {
+          p_actor_id: string
+          p_clan_id: string
+          p_id: string
+          p_image_path: string
+          p_name: string
+        }
+        Returns: Json
+      }
       apply_lfg_post: {
         Args: { p_message?: string; p_post_id: string }
         Returns: string
@@ -3327,6 +3409,15 @@ export type Database = {
         Returns: {
           clan_id: string
           n: number
+        }[]
+      }
+      clan_cosmetic_access: { Args: { p_clan_id: string }; Returns: Json }
+      clan_emoji_reaction_counts: {
+        Args: { p_post_id: string }
+        Returns: {
+          emoji_id: string
+          mine: boolean
+          total: number
         }[]
       }
       clan_peer_nicknames: {
