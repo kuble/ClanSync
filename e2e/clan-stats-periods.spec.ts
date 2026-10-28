@@ -148,6 +148,11 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     const datePicker = page.getByRole("button", { name: /^경기 기록 날짜 선택,/ });
     await expect(datePicker).toContainText("2025년 8월 2일");
     const archiveFilters = page.getByRole("region", { name: "경기 기록 날짜 및 필터", exact: true });
+    expect(await archiveFilters.evaluate((element) => element.closest('[data-slot="card"]') === null)).toBe(true);
+    const recordsPanel = (await page.getByRole("tabpanel", { name: "경기 기록", exact: true }).boundingBox())!;
+    const filtersBox = (await archiveFilters.boundingBox())!;
+    expect(Math.abs(filtersBox.x - recordsPanel.x)).toBeLessThan(2);
+    expect(Math.abs(filtersBox.width - recordsPanel.width)).toBeLessThan(2);
     for (const width of [1217, 390]) {
       await page.setViewportSize({ width, height: 620 });
       await page.evaluate(() => window.scrollTo(0, 220));
@@ -157,6 +162,7 @@ test("stats: period-wide filters, popup selectors, tooltip, record tab and staff
     }
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.setViewportSize({ width: 1217, height: 910 });
+    await page.screenshot({ path: test.info().outputPath("archive-independent-filters.png") });
     const detail = page.getByRole("region", { name: "경기 상세", exact: true });
     const daily = page.getByRole("complementary", { name: "선택한 날짜 내전 기록" });
     const detailBox = await detail.boundingBox(), dailyBox = await daily.boundingBox();
