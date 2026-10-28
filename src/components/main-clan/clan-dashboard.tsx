@@ -197,11 +197,11 @@ function UpcomingEventsContent({
             className="group relative z-20 flex min-h-16 items-center gap-3 rounded-lg border border-transparent bg-muted/45 px-3 py-2.5 transition hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <span className={cn("flex w-10 shrink-0 flex-col items-center rounded-lg py-1", today ? "bg-primary/10" : "bg-muted/70")}>
-              <span className="text-lg font-bold leading-5 text-foreground">
-                {date.getDate()}
-              </span>
-              <span className="mt-0.5 text-[10px] leading-3 text-muted-foreground">
+              <span className="text-[10px] leading-3 text-muted-foreground">
                 {String(date.getMonth() + 1).padStart(2, "0")}월
+              </span>
+              <span className="mt-0.5 text-lg font-bold leading-5 text-foreground">
+                {date.getDate()}
               </span>
             </span>
             <span className="min-w-0 flex-1">
