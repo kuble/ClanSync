@@ -5,7 +5,7 @@
   gap:16px;
   align-items:stretch;
 }
-.notices { grid-area:notices; min-height:296px; }
+.notices { grid-area:notices; }
 .events { grid-area:events; min-height:296px; }
 .events [aria-label="다가오는 일정 목록"] { display:flex; flex-direction:column; }
 .events [aria-label="다가오는 일정 목록"] > div { display:flex; flex:1; flex-direction:column; }
@@ -29,7 +29,7 @@
   .bento {
     grid-template-columns:repeat(6,minmax(0,1fr));
     grid-template-areas:
-      "notices notices notices notices events events"
+      "notices notices events events events events"
       "mvps mvps mvps mvps mvps mvps"
       "rules rules rules badges badges badges";
   }
@@ -43,8 +43,8 @@
     grid-template-columns:repeat(12,minmax(0,1fr));
     grid-template-rows:minmax(144px,auto) minmax(200px,auto) auto;
     grid-template-areas:
-      "notices notices notices notices notices notices events events events rules rules rules"
-      "notices notices notices notices notices notices events events events badges badges badges"
+      "notices notices notices notices events events events events events rules rules rules"
+      "notices notices notices notices events events events events events badges badges badges"
       "mvps mvps mvps mvps mvps mvps mvps mvps mvps mvps mvps mvps";
   }
 }

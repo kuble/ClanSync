@@ -187,17 +187,17 @@ function UpcomingEventsContent({
               </span>
             </span>
             <span className="min-w-0 flex-1">
-              <span className="line-clamp-2 text-sm font-semibold leading-6 group-hover:text-primary">
+              <span data-event-title className="block break-words text-sm font-semibold leading-6 group-hover:text-primary">
                 {event.title}
               </span>
-              <span className="mt-1 block truncate text-xs text-muted-foreground">
-                {new Intl.DateTimeFormat("ko-KR", {
+              <span className="mt-1 flex flex-wrap gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                <time dateTime={date.toISOString()} className="shrink-0 whitespace-nowrap font-medium text-foreground/80">{new Intl.DateTimeFormat("ko-KR", {
                   weekday: "long",
                   hour: "2-digit",
                   minute: "2-digit",
                   hour12: false,
-                }).format(date)}
-                {event.place ? ` · ${event.place}` : ""}
+                }).format(date)}</time>
+                {event.place && <span className="break-words">{event.place}</span>}
               </span>
             </span>
             <span

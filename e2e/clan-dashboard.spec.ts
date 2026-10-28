@@ -179,7 +179,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
       .getByRole("region", { name: "클랜 규칙", exact: true })
       .boundingBox();
     expect(rules!.x).toBeGreaterThan(notices!.x + notices!.width);
-    expect(notices!.width).toBeGreaterThan(rules!.width * 1.8);
+    expect(notices!.width).toBeGreaterThan(rules!.width * 1.2);
 
     await expect(page.getByRole("heading", { name: "지난달 MVP", exact: true })).toHaveCount(0);
     await expect(grid.getByRole("link", { name: /공지 관리|배지 케이스 보기|^이벤트$/ })).toHaveCount(0);
@@ -252,7 +252,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         if (width >= 800) {
           expect(eventBox.y).toBeCloseTo(noticeBox.y, 0);
           expect(eventBox.height).toBeCloseTo(noticeBox.height, 0);
-          expect(noticeBox.width).toBeGreaterThan(eventBox.width * 1.8);
+          expect(eventBox.width).toBeGreaterThan(noticeBox.width * (width >= 1200 ? 1.2 : 1.8));
         } else expect(eventBox.y - noticeBox.y - noticeBox.height).toBeCloseTo(gap, 0);
         expect(mvpBox.y - Math.max(eventBox.y + eventBox.height, noticeBox.y + noticeBox.height)).toBeCloseTo(gap, 0);
         if (width >= 1200) {
@@ -266,6 +266,9 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
           else expect(badgesBox.y - rulesBox.y - rulesBox.height).toBeCloseTo(gap, 0);
         }
         expect((await page.locator("[data-rules-preview]").boundingBox())!.height).toBeLessThanOrEqual(56);
+        const eventList = page.getByRole("region", { name: "다가오는 일정 목록", exact: true });
+        expect(await eventList.locator("[data-event-title], time").evaluateAll((elements) => elements.every((element) => element.scrollWidth <= element.clientWidth + 1 && element.scrollHeight <= element.clientHeight + 1))).toBe(true);
+        await expect(eventList.locator("time").first()).toContainText("20:00");
         const caseSpacing = await page.getByRole("region", { name: "클랜 배지", exact: true }).locator("[data-badge-case]").evaluate((element) => {
           const box = element.getBoundingClientRect(), style = getComputedStyle(element);
           const plate = element.firstElementChild!.getBoundingClientRect(), pins = element.lastElementChild!.getBoundingClientRect();
