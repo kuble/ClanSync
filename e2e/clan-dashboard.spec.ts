@@ -45,7 +45,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
   const unrecordedMatchId = crypto.randomUUID();
   const secondWinMatchId = crypto.randomUUID();
   const seriesId = crypto.randomUUID();
-  const roundIds = [crypto.randomUUID(), crypto.randomUUID()];
+  const roundIds = Array.from({ length: 4 }, () => crypto.randomUUID());
   try {
     expect(
       (
@@ -329,21 +329,28 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
       }
     }
 
-    // Prediction shows only the actual ranked player, with empty remaining places.
+    // Accuracy takes priority over correct counts; correct counts break equal accuracy.
     expect((await svc.from("clans").update({ subscription_tier: "premium" }).eq("id", clanId)).error).toBeNull();
     expect((await svc.from("balance_session_series").insert({ id: seriesId, clan_id: clanId, game_id: clan!.game_id, host_user_id: leader!.user_id, opened_at: local.previous, closed_at: local.previous })).error).toBeNull();
     expect((await svc.from("balance_rooms").update({ kind: "regular", status: "closed" }).eq("id", seriesId)).error).toBeNull();
     for (const [index, id] of roundIds.entries()) {
       expect((await svc.from("balance_sessions").insert({ id, series_id: seriesId, round_number: index + 1, clan_id: clanId, game_id: clan!.game_id, host_user_id: leader!.user_id, opened_at: local.previous, phase: "map_ban", match_outcome: "pending", prediction_pool_enabled: false, map_ban_deadline_at: new Date(Date.now() + 60_000).toISOString() })).error).toBeNull();
-      expect((await svc.from("balance_session_predictions").insert({ session_id: id, user_id: fixture.users[1].id, pick_team: 1 })).error).toBeNull();
+      expect((await svc.from("balance_session_predictions").insert([
+        { session_id: id, user_id: fixture.users[1].id, pick_team: index === 2 ? 2 : 1 },
+        ...(index === 0 ? [{ session_id: id, user_id: fixture.users[0].id, pick_team: 1 }] : []),
+        ...(index < 2 ? [{ session_id: id, user_id: fixture.users[2].id, pick_team: index ? 2 : 1 }] : []),
+      ])).error).toBeNull();
       expect((await svc.from("balance_sessions").update({ phase: "match_live", map_ban_deadline_at: null, resolved_map_label: "부산", match_outcome: index ? "team2" : "team1", closed_at: local.previous, predictions_settled_at: local.previous }).eq("id", id)).error).toBeNull();
     }
     await page.setViewportSize({ width: 1304, height: 844 });
     await page.goto(base);
     const predictor = page.getByRole("region", { name: "지난달 승부예측 MVP", exact: true });
-    await expect(predictor.getByRole("listitem").first()).toContainText(fixture.users[1].nickname);
-    await expect(predictor.getByText("50.0%", { exact: true })).toBeVisible();
-    await expect(predictor.getByRole("listitem", { name: /기록 없음/ })).toHaveCount(2);
+    for (const [index, userIndex] of [2, 0, 1].entries()) {
+      const place = predictor.getByRole("listitem").nth(index);
+      await expect(place).toHaveAttribute("data-rank", String(index + 1));
+      await expect(place).toContainText(fixture.users[userIndex].nickname);
+      await expect(place.getByText(index < 2 ? "100.0%" : "50.0%", { exact: true })).toBeVisible();
+    }
     await page.screenshot({ path: test.info().outputPath("dashboard-premium-podiums.png") });
     expect((await svc.from("match_players").update({ team: 1 }).eq("match_id", matchId).eq("user_id", fixture.users[1].id)).error).toBeNull();
     await page.goto(base);

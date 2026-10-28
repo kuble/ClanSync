@@ -305,8 +305,8 @@ export async function loadClanDashboard(
     .filter((score) => score.correct > 0 && nick.has(score.userId))
     .sort(
       (a, b) =>
-        b.correct - a.correct ||
         b.correct / b.total - a.correct / a.total ||
+        b.correct - a.correct ||
         a.userId.localeCompare(b.userId),
     );
   model.mvp.prediction = topMvpRanks(rankedPredictions,
