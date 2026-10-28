@@ -140,7 +140,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
     await expect(
       page.getByRole("heading", { name: "클랜 공지사항", exact: true }),
     ).toBeVisible();
-    await expect(page.getByRole("region", { name: "다가오는 일정 목록", exact: true }).getByRole("link")).toHaveCount(2);
+    await expect(page.getByRole("region", { name: "다가오는 일정 목록", exact: true }).getByRole("link")).toHaveCount(3);
     await expect(
       page.getByRole("link", { name: new RegExp(`${title} 모임 투표`) }),
     ).toHaveAttribute("href", /events\?tab=polls$/);
@@ -248,7 +248,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         const badgesBox = (await page.getByRole("region", { name: "클랜 배지", exact: true }).boundingBox())!;
         const rulesBox = (await page.getByRole("region", { name: "클랜 규칙", exact: true }).boundingBox())!;
         const mvpBox = (await page.getByRole("region", { name: "지난달 MVP", exact: true }).boundingBox())!;
-        const gap = width >= 640 ? 20 : 16;
+        const gap = width >= 640 ? 16 : 12;
         if (width >= 800) {
           expect(eventBox.y).toBeCloseTo(noticeBox.y, 0);
           expect(eventBox.height).toBeCloseTo(noticeBox.height, 0);
@@ -272,6 +272,13 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         const eventList = page.getByRole("region", { name: "다가오는 일정 목록", exact: true });
         expect(await eventList.locator("[data-event-title], time").evaluateAll((elements) => elements.every((element) => element.scrollWidth <= element.clientWidth + 1 && element.scrollHeight <= element.clientHeight + 1))).toBe(true);
         await expect(eventList.locator("time").first()).toContainText("20:00");
+        const eventRows = await eventList.getByRole("link").evaluateAll((elements) => elements.map((element) => { const rect = element.getBoundingClientRect(); return { y: rect.y, height: rect.height }; }));
+        expect(eventRows).toHaveLength(3);
+        expect(eventRows[1].y - eventRows[0].y - eventRows[0].height).toBeCloseTo(8, 0);
+        if (width >= 1024) {
+          const listHeight = eventRows.reduce((sum, row) => sum + row.height, 0) + 16;
+          expect(eventBox.height - listHeight).toBeLessThan(80);
+        }
         const caseSpacing = await page.getByRole("region", { name: "클랜 배지", exact: true }).locator("[data-badge-case]").evaluate((element) => {
           const box = element.getBoundingClientRect(), style = getComputedStyle(element);
           const plate = element.firstElementChild!.getBoundingClientRect(), pins = element.lastElementChild!.getBoundingClientRect();

@@ -37,13 +37,13 @@ const subscribe = () => () => {};
 const clientReady = () => true;
 const serverReady = () => false;
 const card =
-  "relative min-w-0 rounded-xl border border-border bg-card p-5 shadow-[0_4px_16px_rgba(0,0,0,0.04)] sm:p-6";
+  "relative min-w-0 rounded-xl border border-border bg-card p-4 shadow-[0_4px_16px_rgba(0,0,0,0.04)]";
 const cardHeading =
   "text-[15px] font-bold leading-6 tracking-tight text-foreground";
-const headingLink = "flex min-h-8 w-full items-center gap-1.5 rounded-sm transition-colors hover:text-primary after:absolute after:inset-0 after:z-10 after:rounded-xl after:content-[''] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-primary";
+const headingLink = "flex min-h-6 w-full items-center gap-1.5 rounded-sm transition-colors hover:text-primary after:absolute after:inset-0 after:z-10 after:rounded-xl after:content-[''] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-primary";
 
 function DashboardHeading({ id, href, title }: { id: string; href: string; title: string }) {
-  return <h3 id={id} className={cn(cardHeading, "mb-4")}><Link href={href} className={headingLink}>{title}<ChevronRight className="size-4 shrink-0" aria-hidden="true" /></Link></h3>;
+  return <h3 id={id} className={cn(cardHeading, "mb-3")}><Link href={href} className={headingLink}>{title}<ChevronRight className="size-4 shrink-0" aria-hidden="true" /></Link></h3>;
 }
 
 function EmptyCard({
@@ -107,7 +107,7 @@ function NoticeRow({
     </>
   );
   const className = cn(
-    "relative z-20 flex w-full items-start gap-3 rounded-lg border border-transparent bg-muted/45 px-4 py-4 text-left transition hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+    "relative z-20 flex w-full items-start gap-3 rounded-lg border border-transparent bg-muted/45 px-3 py-2.5 min-h-16 text-left transition hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
     notice.isPinned && "border-primary/25 bg-primary/5",
   );
   return (
@@ -135,12 +135,12 @@ function UpcomingEventsContent({
     ? model.events
         .flatMap((event) =>
           listUpcomingOccurrenceStarts(event, now, {
-            maxOccurrences: 2,
+            maxOccurrences: 3,
             maxMonths: 12,
           }).map((at) => ({ event, at })),
         )
         .sort((a, b) => a.at - b.at)
-        .slice(0, 2)
+        .slice(0, 3)
     : [];
   if (model.errors.events)
     return (
@@ -168,7 +168,7 @@ function UpcomingEventsContent({
       />
     );
   return (
-    <div>
+    <div className="grid gap-2">
       {upcoming.map(({ event, at }) => {
         const date = new Date(at);
         const today = date.toDateString() === now.toDateString();
@@ -176,13 +176,13 @@ function UpcomingEventsContent({
           <Link
             key={`${event.id}:${at}`}
             href={`${base}/events`}
-            className="group relative z-20 flex items-center gap-4 border-b border-border/70 py-4 first:pt-0 last:border-0 last:pb-0"
+            className="group relative z-20 flex min-h-16 items-center gap-3 rounded-lg border border-transparent bg-muted/45 px-3 py-2.5 transition hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
-            <span className={cn("flex w-12 shrink-0 flex-col items-center rounded-lg py-2", today ? "bg-primary/10" : "bg-muted/70")}>
-              <span className="text-xl font-bold leading-tight text-foreground">
+            <span className={cn("flex w-10 shrink-0 flex-col items-center rounded-lg py-1", today ? "bg-primary/10" : "bg-muted/70")}>
+              <span className="text-lg font-bold leading-5 text-foreground">
                 {date.getDate()}
               </span>
-              <span className="mt-0.5 text-xs text-muted-foreground">
+              <span className="mt-0.5 text-[10px] leading-3 text-muted-foreground">
                 {String(date.getMonth() + 1).padStart(2, "0")}월
               </span>
             </span>
@@ -248,12 +248,12 @@ function MvpCard({
 }) {
   return (
     <section
-      className={cn(card, "flex min-h-40 flex-col bg-background/25 p-4 shadow-none sm:p-5")}
+      className={cn(card, "flex min-h-36 flex-col bg-background/25 p-4 shadow-none")}
       aria-label={title}
     >
       <h4 className="text-sm font-semibold text-muted-foreground"><Link href={href} className={cn(headingLink, "min-h-6")}>{title}<ChevronRight className="size-4 shrink-0" aria-hidden="true" /></Link></h4>
       {premiumLocked ? (
-        <div className="mt-3 flex flex-1 flex-wrap content-center items-center gap-x-2 gap-y-1.5">
+        <div className="mt-2 flex flex-1 flex-wrap content-center items-center gap-x-2 gap-y-1.5">
           <Crown className="size-5 shrink-0 text-amber-500" aria-hidden="true" />
           <p className="text-[13px] font-bold text-amber-700 dark:text-amber-300">
             Premium 전용
@@ -270,7 +270,7 @@ function MvpCard({
           </button>
         </div>
       ) : value ? (
-        <div className="mt-3 flex items-center gap-3">
+        <div className="mt-2 flex items-center gap-3">
           <span
             className={cn(
               "flex size-10 shrink-0 items-center justify-center rounded-full text-base font-bold text-white",
@@ -291,7 +291,7 @@ function MvpCard({
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
               {value.detail}
             </p>
-            <p className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/8 px-2 py-1 text-xs font-semibold text-primary">
+            <p className="mt-1.5 inline-flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/8 px-2 py-0.5 text-xs font-semibold text-primary">
               <Icon className="size-3.5" aria-hidden="true" />
               {value.highlight}
             </p>
@@ -360,7 +360,7 @@ export function ClanDashboard({
               description="잠시 후 새로고침해 주세요."
             />
           ) : model.notices.length ? (
-            <ul aria-label="최근 클랜 공지" className="space-y-2.5">
+            <ul aria-label="최근 클랜 공지" className="space-y-2">
               {model.notices.map((notice) => (
                 <li key={`${notice.kind}:${notice.id}`}>
                 <NoticeRow
