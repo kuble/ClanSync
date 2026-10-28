@@ -38,13 +38,14 @@
   .mvpGrid { grid-template-columns:repeat(3,minmax(0,1fr)); }
   .mvpGrid > :last-child { grid-column:auto; }
 }
-@media(min-width:1200px) {
+@media(min-width:1024px) {
   .bento {
     grid-template-columns:repeat(12,minmax(0,1fr));
-    grid-template-rows:minmax(144px,auto) minmax(200px,auto) auto;
+    grid-template-rows:minmax(296px,auto) minmax(200px,auto);
     grid-template-areas:
-      "notices notices notices notices events events events events events rules rules rules"
-      "notices notices notices notices events events events events events badges badges badges"
-      "mvps mvps mvps mvps mvps mvps mvps mvps mvps mvps mvps mvps";
+      "notices notices notices notices events events events events events mvps mvps mvps"
+      "rules rules rules rules badges badges badges badges badges mvps mvps mvps";
   }
+  .mvpGrid { grid-template-columns:minmax(0,1fr); grid-template-rows:repeat(3,minmax(0,1fr)); }
+  .badges > [inert] { width:100%; max-width:320px; margin-inline:auto; }
 }
