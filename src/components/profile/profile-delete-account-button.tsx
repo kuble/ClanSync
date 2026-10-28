@@ -1,5 +1,6 @@
 "use client";
 import { useState, useTransition } from "react";
+import { LogOut } from "lucide-react";
 import { deleteAccountAction } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,7 +17,7 @@ export function ProfileDeleteAccountButton() {
     });
   }
   return <>
-    <Button type="button" variant="destructive" size="sm" onClick={() => { setError(null); setOpen(true); }}>클랜싱크 탈퇴</Button>
+    <Button type="button" variant="destructive" size="sm" onClick={() => { setError(null); setOpen(true); }}><LogOut className="size-3.5" aria-hidden="true" />클랜싱크 탈퇴</Button>
     <Dialog open={open} onOpenChange={(value) => { if (!pending) setOpen(value); }}>
       <DialogContent showCloseButton={!pending} className="gap-0 p-0 sm:max-w-md" style={{ scrollbarGutter: "auto" }}>
         <div className="min-w-0 space-y-4 break-keep p-5 sm:p-6">
