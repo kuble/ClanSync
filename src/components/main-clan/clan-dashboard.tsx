@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   CalendarDays,
   ChevronRight,
@@ -46,6 +46,22 @@ const headingLink = "flex min-h-6 w-full items-center gap-1.5 rounded-sm transit
 
 function DashboardHeading({ id, href, title }: { id: string; href: string; title: string }) {
   return <h3 id={id} className={cn(cardHeading, "mb-3")}><Link href={href} className={headingLink}>{title}<ChevronRight className="size-4 shrink-0" aria-hidden="true" /></Link></h3>;
+}
+
+function RulesPreview({ rules }: { rules: string }) {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [lines, setLines] = useState(2);
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const observer = new ResizeObserver(([entry]) => {
+      const lineHeight = parseFloat(getComputedStyle(element).lineHeight);
+      setLines(Math.max(2, Math.floor((entry.contentRect.height + 0.5) / lineHeight)));
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+  return <p ref={ref} data-rules-preview className={cn(styles.rulesPreview, "whitespace-pre-line break-words text-sm leading-7 text-muted-foreground")} style={{ WebkitLineClamp: lines }}>{rules}</p>;
 }
 
 function EmptyCard({
@@ -373,7 +389,7 @@ export function ClanDashboard({
         <section className={cn(card, styles.rules, "shadow-none")} aria-labelledby="dashboard-rules-heading">
           <DashboardHeading id="dashboard-rules-heading" href={`${base}/board/notices#rules`} title="클랜 규칙" />
           {model.rules ? (
-            <p data-rules-preview className="line-clamp-2 whitespace-pre-line break-words text-sm leading-7 text-muted-foreground">{model.rules}</p>
+            <RulesPreview rules={model.rules} />
           ) : (
             <EmptyCard
               icon={ScrollText}

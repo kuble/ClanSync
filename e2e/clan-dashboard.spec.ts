@@ -57,7 +57,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         await svc
           .from("clans")
           .update({
-            rules: `${title} 규칙\n서로 존중하고 즐겁게 게임해요.`,
+            rules: Array.from({ length: 16 }, (_, index) => `${index + 1}. ${title} 규칙: 서로 존중하고 즐겁게 게임해요.`).join("\n"),
             subscription_tier: "free",
           })
           .eq("id", clanId)
@@ -281,7 +281,15 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
           else expect(badgesBox.y - rulesBox.y - rulesBox.height).toBeCloseTo(gap, 0);
           expect(mvpBox.y - Math.max(rulesBox.y + rulesBox.height, badgesBox.y + badgesBox.height)).toBeCloseTo(gap, 0);
         }
-        expect((await page.locator("[data-rules-preview]").boundingBox())!.height).toBeLessThanOrEqual(56);
+        const preview = page.locator("[data-rules-preview]");
+        await expect.poll(() => preview.evaluate((element) => {
+          const box = element.getBoundingClientRect(), style = getComputedStyle(element);
+          return Number(style.webkitLineClamp) === Math.floor((box.height + 0.5) / parseFloat(style.lineHeight));
+        })).toBe(true);
+        const previewBox = (await preview.boundingBox())!;
+        expect(rulesBox.y + rulesBox.height - previewBox.y - previewBox.height).toBeCloseTo(17, 0);
+        if (width >= 640) expect(previewBox.height).toBeGreaterThan(84);
+        expect(await preview.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
         const eventList = page.getByRole("region", { name: "다가오는 일정 목록", exact: true });
         expect(await eventList.locator("[data-event-title], time").evaluateAll((elements) => elements.every((element) => element.scrollWidth <= element.clientWidth + 1 && element.scrollHeight <= element.clientHeight + 1))).toBe(true);
         await expect(eventList.locator("time").first()).toContainText("20:00");

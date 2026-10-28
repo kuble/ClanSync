@@ -8,7 +8,16 @@
 .notices { grid-area:notices; }
 .events { grid-area:events; }
 .notices > h3,.events > h3 { font-size:18px; }
-.rules { grid-area:rules; }
+.rules { grid-area:rules; display:flex; flex-direction:column; }
+.rulesPreview {
+  flex:1;
+  min-height:56px;
+  /* Long rules must not increase the grid row height. */
+  contain:size;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
 .badges { grid-area:badges; }
 .mvps { grid-area:mvps; min-width:0; }
 .mvpGrid { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; height:100%; }
