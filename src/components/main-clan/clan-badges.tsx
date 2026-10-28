@@ -160,7 +160,6 @@ export function ClanBadges({
         {badges.length === 0 && <p className={styles.caseEmpty}>대표 배지를 지정해 주세요.</p>}
       </div>
     </div>
-    {compact && !previewOnly && <Link href={"/games/" + gameSlug + "/clan/" + clanId + "/badges"} className="inline-flex text-xs font-medium text-primary">배지 케이스 보기 →</Link>}
     {seriesSelected && seriesRepresentative && <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto p-5 sm:max-w-3xl sm:p-7">
       <div className={styles.seriesHeader}>
         <div className={cn(styles.pin, styles.seriesArtwork, styles[seriesSelected.icon], !seriesSelected.earned && styles.unearnedPreview)}>

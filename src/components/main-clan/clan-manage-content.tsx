@@ -1,7 +1,7 @@
 import "server-only";
 import { profileBattleTag } from "@/lib/game-auth/battle-tag";
 import Link from "next/link";
-import { ArrowUpRight, CalendarDays, Clock, ImageIcon, Trophy } from "lucide-react";
+import { CalendarDays, Clock, Coins, ImageIcon, Swords, Trophy, Users } from "lucide-react";
 import type { MainClanContext } from "@/lib/clan/load-main-clan-context";
 import type { ManageTab } from "@/lib/clan/manage-sections";
 import { loadClanHistory } from "@/lib/clan/load-clan-history";
@@ -63,25 +63,30 @@ async function NotificationSettings({ ctx, connectionResult }: Pick<Props, "ctx"
 async function Overview({ ctx }: Pick<Props, "ctx">) {
   const svc = createServiceRoleClient();
   const [profile, history, badges] = await Promise.all([
-    svc.from("clans").select("created_at,coin_balance,max_members").eq("id", ctx.clanId).single(),
+    svc.from("clans").select("created_at,coin_balance").eq("id", ctx.clanId).single(),
     loadClanHistory(svc, ctx.clanId),
     loadClanBadges(ctx.clanId).catch(() => null),
   ]);
   if (profile.error) throw new Error("클랜 정보를 불러오지 못했습니다.");
-  const base = `/games/${ctx.gameSlug}/clan/${ctx.clanId}`;
   const dateLabel = (value: string) => new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric" }).format(new Date(value));
   const facts = [
-    { label: "구성원", value: ctx.memberCount == null ? "—" : `${ctx.memberCount}명`, detail: ctx.memberCount == null ? `정원 ${profile.data.max_members}명` : `정원 ${profile.data.max_members}명 · ${Math.max(0, profile.data.max_members - ctx.memberCount)}자리 여유`, href: `${base}/manage?tab=members` },
-    { label: "총 내전", value: history.total == null ? "—" : `${history.total.toLocaleString()}회`, detail: "정규·깜짝 내전 개설 회차", href: `${base}/balance` },
-    { label: "클랜 코인", value: Number(profile.data.coin_balance).toLocaleString(), detail: "잔액·플랜", href: `${base}/manage?tab=subscription` },
+    { label: "구성원", value: ctx.memberCount == null ? "—" : `${ctx.memberCount}명`, icon: Users },
+    { label: "총 내전", value: history.total == null ? "—" : `${history.total.toLocaleString()}회`, icon: Swords },
+    { label: "클랜 코인", value: Number(profile.data.coin_balance).toLocaleString(), icon: Coins },
   ];
   return <div className="space-y-5">
-    <div className="grid grid-cols-3 gap-2 sm:gap-3">
-      {facts.map(({ label, value, detail, href }) => (
-        <Link key={label} href={href} prefetch={false} aria-label={`${label} ${value}`} className="group min-w-0 rounded-xl border border-border bg-card p-3 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-5">
-          <div className="flex items-center justify-between gap-1"><p className="text-[11px] text-muted-foreground sm:text-xs">{label}</p><ArrowUpRight className="size-3 shrink-0 text-muted-foreground/60 group-hover:text-primary" aria-hidden /></div>
-          {label === "총 내전" ? <><dl className="mt-3 grid grid-cols-2 gap-2"><div><dt className="text-[11px] text-muted-foreground">정규 내전</dt><dd className="mt-1 text-lg font-semibold tabular-nums sm:text-xl">{history.regular == null ? "확인 필요" : history.regular.toLocaleString()+"회"}</dd></div><div><dt className="text-[11px] text-muted-foreground">깜짝 내전</dt><dd className="mt-1 text-lg font-semibold tabular-nums sm:text-xl">{history.flash == null ? "확인 필요" : history.flash.toLocaleString()+"회"}</dd></div></dl><p className="mt-2 text-[11px] text-muted-foreground">총 {value} · 개설 회차{history.regular != null && history.flash != null && history.total != null && history.regular+history.flash!==history.total ? " · 분류 확인 필요":""}</p></> : <><p className="mt-3 break-words text-xl font-semibold tabular-nums sm:text-2xl">{value}</p><p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{detail}</p></>}
-        </Link>
+    <div role="group" aria-label="클랜 운영 요약" className="grid grid-cols-3 gap-2 sm:gap-3">
+      {facts.map(({ label, value, icon: Icon }) => (
+        <section key={label} aria-label={`${label} ${value}`} className="min-w-0 rounded-xl border border-border bg-card p-3 sm:p-5">
+          <h4 className="flex items-center gap-1.5 text-xs font-semibold sm:gap-2 sm:text-sm"><Icon className="size-4 shrink-0 text-primary" aria-hidden />{label}</h4>
+          {label === "총 내전" ? <>
+            <dl className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div><dt className="text-[11px] text-muted-foreground">정규 내전</dt><dd className="mt-1 break-words text-lg font-semibold tabular-nums sm:text-xl">{history.regular == null ? "확인 필요" : history.regular.toLocaleString()+"회"}</dd></div>
+              <div><dt className="text-[11px] text-muted-foreground">깜짝 내전</dt><dd className="mt-1 break-words text-lg font-semibold tabular-nums sm:text-xl">{history.flash == null ? "확인 필요" : history.flash.toLocaleString()+"회"}</dd></div>
+            </dl>
+            {history.regular != null && history.flash != null && history.total != null && history.regular + history.flash !== history.total && <p role="status" className="mt-2 text-[11px] text-muted-foreground">분류 확인 필요</p>}
+          </> : <p className="mt-3 break-words text-xl font-semibold tabular-nums sm:text-2xl">{value}</p>}
+        </section>
       ))}
     </div>
     <section className={panel} aria-label="클랜 기록">

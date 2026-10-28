@@ -50,11 +50,18 @@ test("운영 현황의 회차·배지·중복 제거와 대시보드 공지 3개
     await page.setViewportSize({ width: 1100, height: 884 });
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.goto(`${base}/manage`);
-    await expect(page.getByRole("link", { name: "총 내전 101회", exact: true })).toBeVisible();
-    const counts = page.getByRole("link", { name: "총 내전 101회", exact: true });
+    await expect(page.getByRole("region", { name: "총 내전 101회", exact: true })).toBeVisible();
+    const counts = page.getByRole("region", { name: "총 내전 101회", exact: true });
     await expect(counts.getByText("정규 내전", { exact: true }).locator("..")).toContainText("100회");
     await expect(counts.getByText("깜짝 내전", { exact: true }).locator("..")).toContainText("1회");
-    await expect(page.getByRole("link", { name: "구성원 2명", exact: true })).toContainText("28자리 여유");
+    await expect(page.getByRole("region", { name: "구성원 2명", exact: true })).toContainText("2명");
+    const summary = page.getByRole("group", { name: "클랜 운영 요약", exact: true });
+    await expect(summary.getByRole("link")).toHaveCount(0);
+    await expect(summary.getByText(/자리 여유|정원 \d+|개설 회차|잔액·플랜/)).toHaveCount(0);
+    for (const label of ["구성원", "총 내전", "클랜 코인"]) await expect(summary.getByRole("heading", { name: label, exact: true }).locator("svg")).toHaveCount(1);
+    const overviewUrl = page.url();
+    await summary.getByRole("region", { name: "구성원 2명", exact: true }).click();
+    await expect(page).toHaveURL(overviewUrl);
     await expect(page.getByRole("navigation", { name: "클랜 관리 분류", exact: true }).getByRole("link", { name: "구성원 관리 1", exact: true })).toBeVisible();
     await expect(page.getByText(/기다리고 있습니다/)).toHaveCount(0);
     await expect(page.getByRole("region", { name: "클랜 기본 정보", exact: true })).toHaveCount(0);
@@ -64,7 +71,7 @@ test("운영 현황의 회차·배지·중복 제거와 대시보드 공지 3개
     await expect(history).toContainText("2025년 9월 15일");
     await expect(history).toContainText("2026년 10월 12일");
     const badges = page.getByRole("region", { name: "클랜 배지", exact: true });
-    await expect(badges.getByRole("link", { name: "배지 케이스 보기 →", exact: true })).toBeVisible();
+    await expect(badges.getByRole("link", { name: "배지 케이스 보기 →", exact: true })).toHaveCount(0);
     await capture(page, "manage-overview-desktop.png");
     await page.goto(base+"/badges");
     const mainCase = page.getByRole("group", { name:"배지 진열",exact:true });
@@ -153,7 +160,7 @@ test("운영 현황의 회차·배지·중복 제거와 대시보드 공지 3개
     await dialog.getByRole("button", { name:"닫기",exact:true }).click();
     await page.goto(base+"/manage");
     await expect(mainCase.locator('[data-badge="anniversary-5"]')).toBeVisible();
-    await expect(page.getByRole("link",{name:"총 내전 101회",exact:true})).toBeVisible();
+    await expect(page.getByRole("region",{name:"총 내전 101회",exact:true})).toBeVisible();
     await page.goto(base);
     const notices = page.getByRole("list", { name: "최근 클랜 공지", exact: true });
     await expect(notices.getByRole("listitem")).toHaveCount(3);
@@ -170,8 +177,12 @@ test("운영 현황의 회차·배지·중복 제거와 대시보드 공지 3개
     expect(await notices.evaluate((node) => node.scrollHeight <= node.clientHeight)).toBe(true);
     await expect(notices.getByRole("listitem")).toHaveCount(3);
     await page.goto(`${base}/manage`);
-    await expect(page.getByRole("link", { name: "총 내전 101회", exact: true })).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await expect(page.getByRole("region", { name: "총 내전 101회", exact: true })).toBeVisible();
+    for (const width of [698, 390, 320]) {
+      await page.setViewportSize({ width, height: 844 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+      for (const label of ["구성원", "총 내전", "클랜 코인"]) await expect(summary.getByRole("heading", { name: label, exact: true })).toBeVisible();
+    }
     await capture(page, "manage-overview-mobile.png");
   } finally { await f.cleanup(); }
 });
