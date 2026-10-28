@@ -31,6 +31,7 @@ import type {
   DashboardNotice,
 } from "@/lib/clan/load-clan-dashboard";
 import { cn } from "@/lib/utils";
+import styles from "./clan-dashboard.module.css";
 
 const subscribe = () => () => {};
 const clientReady = () => true;
@@ -247,29 +248,29 @@ function MvpCard({
 }) {
   return (
     <section
-      className={cn(card, "relative flex min-h-44 flex-col shadow-none")}
+      className={cn(card, "flex min-h-40 flex-col p-4 shadow-none sm:p-5")}
       aria-label={title}
     >
-      <h4 className="text-sm font-semibold text-muted-foreground"><Link href={href} className={headingLink}>{title}<ChevronRight className="size-4 shrink-0" aria-hidden="true" /></Link></h4>
+      <h4 className="text-sm font-semibold text-muted-foreground"><Link href={href} className={cn(headingLink, "min-h-6")}>{title}<ChevronRight className="size-4 shrink-0" aria-hidden="true" /></Link></h4>
       {premiumLocked ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 py-4 text-center">
-          <Crown className="size-7 text-amber-500" aria-hidden="true" />
+        <div className="mt-3 flex flex-1 flex-wrap content-center items-center gap-x-2 gap-y-1.5">
+          <Crown className="size-5 shrink-0 text-amber-500" aria-hidden="true" />
           <p className="text-[13px] font-bold text-amber-700 dark:text-amber-300">
             Premium 전용
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="order-last w-full text-xs text-muted-foreground">
             우리 클랜의 예측왕을 만나보세요.
           </p>
           <button
             type="button"
             onClick={onUpgrade}
-            className="relative z-20 mt-1 rounded-md bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:brightness-105"
+            className="relative z-20 ml-auto rounded-md bg-gradient-to-r from-amber-500 to-orange-500 px-2 py-1 text-xs font-semibold text-white transition hover:brightness-105"
           >
             Premium 알아보기
           </button>
         </div>
       ) : value ? (
-        <div className="mt-5 flex items-center gap-3.5">
+        <div className="mt-3 flex items-center gap-3">
           <span
             className={cn(
               "flex size-10 shrink-0 items-center justify-center rounded-full text-base font-bold text-white",
@@ -279,7 +280,7 @@ function MvpCard({
             {value.nickname.slice(0, 1)}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-lg font-bold">
+            <p className="truncate text-base font-bold">
               {value.nickname}
               {value.tiedCount > 1 ? (
                 <span className="ml-1 text-[10px] font-medium text-muted-foreground">
@@ -290,7 +291,7 @@ function MvpCard({
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
               {value.detail}
             </p>
-            <p className="mt-2.5 inline-flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/8 px-2.5 py-1.5 text-xs font-semibold text-primary">
+            <p className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/8 px-2 py-1 text-xs font-semibold text-primary">
               <Icon className="size-3.5" aria-hidden="true" />
               {value.highlight}
             </p>
@@ -346,68 +347,46 @@ export function ClanDashboard({
   return (
     <>
       <h2 className="sr-only">클랜 대시보드</h2>
-      <div className="space-y-8" data-testid="clan-dashboard-grid">
-        <div className="grid items-start gap-6 min-[1101px]:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-          <div className="grid min-w-0 gap-6">
-            <section
-              className={card}
-              aria-labelledby="dashboard-notices-heading"
-            >
-              <DashboardHeading id="dashboard-notices-heading" href={`${base}/board/notices`} title="클랜 공지사항" />
-              {model.errors.notices ? (
-                <EmptyCard
-                  icon={Megaphone}
-                  title="공지사항을 불러오지 못했어요"
-                  description="잠시 후 새로고침해 주세요."
+      <div className={styles.bento} data-testid="clan-dashboard-grid">
+        <section
+          className={cn(card, styles.notices)}
+          aria-labelledby="dashboard-notices-heading"
+        >
+          <DashboardHeading id="dashboard-notices-heading" href={`${base}/board/notices`} title="클랜 공지사항" />
+          {model.errors.notices ? (
+            <EmptyCard
+              icon={Megaphone}
+              title="공지사항을 불러오지 못했어요"
+              description="잠시 후 새로고침해 주세요."
+            />
+          ) : model.notices.length ? (
+            <ul aria-label="최근 클랜 공지" className="space-y-2.5">
+              {model.notices.map((notice) => (
+                <li key={`${notice.kind}:${notice.id}`}>
+                <NoticeRow
+                  notice={notice}
+                  href={notice.kind === "poll" ? `${base}/events?tab=polls` : `${base}/board/notices/${notice.id}`}
                 />
-              ) : model.notices.length ? (
-                <ul aria-label="최근 클랜 공지" className="space-y-2.5">
-                  {model.notices.map((notice) => (
-                    <li key={`${notice.kind}:${notice.id}`}>
-                    <NoticeRow
-                      notice={notice}
-                      href={notice.kind === "poll" ? `${base}/events?tab=polls` : `${base}/board/notices/${notice.id}`}
-                    />
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <EmptyCard
-                  icon={Megaphone}
-                  title="새로운 공지사항이 없어요"
-                  description="클랜의 중요한 소식과 함께 참여할 투표를 이곳에서 확인하세요."
-                />
-              )}
-            </section>
-            <section
-              className={cn(card, "flex flex-col")}
-              aria-labelledby="dashboard-events-heading"
-            >
-              <DashboardHeading id="dashboard-events-heading" href={`${base}/events`} title="다가오는 일정" />
-              <UpcomingEvents model={model} base={base} />
-            </section>
-          </div>
-          <div className="grid min-w-0 items-start gap-6 min-[700px]:grid-cols-2 min-[1101px]:grid-cols-1">
-            <section className={cn(card, "bg-background/25 shadow-none")} aria-labelledby="dashboard-rules-heading">
-              <DashboardHeading id="dashboard-rules-heading" href={`${base}/board/notices#rules`} title="클랜 규칙" />
-              {model.rules ? (
-                <p data-rules-preview className="line-clamp-2 whitespace-pre-line break-words text-sm leading-7 text-muted-foreground">{model.rules}</p>
-              ) : (
-                <EmptyCard
-                  icon={ScrollText}
-                  title="등록된 규칙이 없어요"
-                  description="서로를 배려하는 즐거운 클랜을 함께 만들어가요."
-                />
-              )}
-            </section>
-            <section className={cn(card, "bg-background/25 shadow-none")} aria-labelledby="dashboard-badges-heading">
-              <DashboardHeading id="dashboard-badges-heading" href={`${base}/badges`} title="클랜 배지" />
-              {badgeCollection ? <ClanBadges collection={badgeCollection} gameSlug={gameSlug} clanId={clanId} compact previewOnly /> : <p role="alert" className="flex min-h-52 items-center justify-center text-sm text-muted-foreground">배지 기록을 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</p>}
-            </section>
-          </div>
-        </div>
-        <section aria-label="지난달 MVP">
-          <div className="grid gap-4 min-[640px]:grid-cols-2 min-[900px]:grid-cols-3">
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyCard
+              icon={Megaphone}
+              title="새로운 공지사항이 없어요"
+              description="클랜의 중요한 소식과 함께 참여할 투표를 이곳에서 확인하세요."
+            />
+          )}
+        </section>
+        <section
+          className={cn(card, styles.events, "flex flex-col")}
+          aria-labelledby="dashboard-events-heading"
+        >
+          <DashboardHeading id="dashboard-events-heading" href={`${base}/events`} title="다가오는 일정" />
+          <UpcomingEvents model={model} base={base} />
+        </section>
+        <section className={styles.mvps} aria-label="지난달 MVP">
+          <div className={styles.mvpGrid}>
             <MvpCard
               href={`${base}/stats`}
               title="지난달 승률 MVP"
@@ -435,6 +414,22 @@ export function ClanDashboard({
               onUpgrade={() => setPremiumOpen(true)}
             />
           </div>
+        </section>
+        <section className={cn(card, styles.rules, "bg-background/25 shadow-none")} aria-labelledby="dashboard-rules-heading">
+          <DashboardHeading id="dashboard-rules-heading" href={`${base}/board/notices#rules`} title="클랜 규칙" />
+          {model.rules ? (
+            <p data-rules-preview className="line-clamp-2 whitespace-pre-line break-words text-sm leading-7 text-muted-foreground">{model.rules}</p>
+          ) : (
+            <EmptyCard
+              icon={ScrollText}
+              title="등록된 규칙이 없어요"
+              description="서로를 배려하는 즐거운 클랜을 함께 만들어가요."
+            />
+          )}
+        </section>
+        <section className={cn(card, styles.badges, "bg-background/25 shadow-none")} aria-labelledby="dashboard-badges-heading">
+          <DashboardHeading id="dashboard-badges-heading" href={`${base}/badges`} title="클랜 배지" />
+          {badgeCollection ? <ClanBadges collection={badgeCollection} gameSlug={gameSlug} clanId={clanId} compact previewOnly /> : <p role="alert" className="flex min-h-52 items-center justify-center text-sm text-muted-foreground">배지 기록을 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</p>}
         </section>
       </div>
       <Dialog

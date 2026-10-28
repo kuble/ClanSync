@@ -240,18 +240,32 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
       const toggle = page.getByRole("button", { name: "라이트 테마", exact: true });
       if ((await toggle.getAttribute("aria-pressed")) !== String(theme === "light")) await toggle.click();
       await expect(page.locator("html")).toHaveClass(new RegExp(`\\b${theme}\\b`));
-      for (const width of [1304, 900, 390, 320]) {
+      for (const width of [1304, 1100, 900, 768, 390, 320]) {
         await page.setViewportSize({ width, height: 844 });
         expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
         const noticeBox = (await page.getByRole("region", { name: "클랜 공지사항", exact: true }).boundingBox())!;
         const eventBox = (await page.getByRole("region", { name: "다가오는 일정", exact: true }).boundingBox())!;
-        expect(eventBox.y - noticeBox.y - noticeBox.height).toBeCloseTo(24, 0);
-        if (width >= 1101) {
-          const badgesBox = (await page.getByRole("region", { name: "클랜 배지", exact: true }).boundingBox())!;
-          const rulesBox = (await page.getByRole("region", { name: "클랜 규칙", exact: true }).boundingBox())!;
-          expect(badgesBox.y - rulesBox.y - rulesBox.height).toBeCloseTo(24, 0);
-          expect((await page.locator("[data-rules-preview]").boundingBox())!.height).toBeLessThanOrEqual(56);
+        const badgesBox = (await page.getByRole("region", { name: "클랜 배지", exact: true }).boundingBox())!;
+        const rulesBox = (await page.getByRole("region", { name: "클랜 규칙", exact: true }).boundingBox())!;
+        const mvpBox = (await page.getByRole("region", { name: "지난달 MVP", exact: true }).boundingBox())!;
+        const gap = width >= 640 ? 20 : 16;
+        if (width >= 800) {
+          expect(eventBox.y).toBeCloseTo(noticeBox.y, 0);
+          expect(eventBox.height).toBeCloseTo(noticeBox.height, 0);
+          expect(noticeBox.width).toBeGreaterThan(eventBox.width * 1.8);
+        } else expect(eventBox.y - noticeBox.y - noticeBox.height).toBeCloseTo(gap, 0);
+        expect(mvpBox.y - Math.max(eventBox.y + eventBox.height, noticeBox.y + noticeBox.height)).toBeCloseTo(gap, 0);
+        if (width >= 1200) {
+          expect(rulesBox.y).toBeCloseTo(noticeBox.y, 0);
+          expect(rulesBox.x).toBeGreaterThan(eventBox.x + eventBox.width);
+          expect(badgesBox.y - rulesBox.y - rulesBox.height).toBeCloseTo(gap, 0);
+          expect(badgesBox.y + badgesBox.height).toBeCloseTo(noticeBox.y + noticeBox.height, 0);
+        } else {
+          expect(rulesBox.y - mvpBox.y - mvpBox.height).toBeCloseTo(gap, 0);
+          if (width >= 640) expect(badgesBox.y).toBeCloseTo(rulesBox.y, 0);
+          else expect(badgesBox.y - rulesBox.y - rulesBox.height).toBeCloseTo(gap, 0);
         }
+        expect((await page.locator("[data-rules-preview]").boundingBox())!.height).toBeLessThanOrEqual(56);
         const caseSpacing = await page.getByRole("region", { name: "클랜 배지", exact: true }).locator("[data-badge-case]").evaluate((element) => {
           const box = element.getBoundingClientRect(), style = getComputedStyle(element);
           const plate = element.firstElementChild!.getBoundingClientRect(), pins = element.lastElementChild!.getBoundingClientRect();
@@ -260,7 +274,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         expect(Math.abs(caseSpacing.top - caseSpacing.bottom)).toBeLessThan(2);
         const mvp = page.getByRole("region", { name: "지난달 MVP", exact: true });
         const winners = await mvp.locator("section").evaluateAll(els => els.map(el => ({ x: el.getBoundingClientRect().x, y: el.getBoundingClientRect().y })));
-        expect(new Set(winners.map(box => box.y)).size).toBe(width >= 900 ? 1 : 3);
+        expect(new Set(winners.map(box => box.y)).size).toBe(width >= 900 ? 1 : width >= 640 ? 2 : 3);
         if (width === 320 || width === 1304) {
           await page.getByRole("heading", { name: "클랜 공지사항", exact: true }).scrollIntoViewIfNeeded();
           await page.screenshot({ path: test.info().outputPath(`dashboard-${width}-${theme}.png`) });
