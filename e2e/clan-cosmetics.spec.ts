@@ -42,9 +42,11 @@ test("clan cosmetic purchases, bounded private emoji slots, reactions and shared
     expect((await page.request.post(endpoint, { multipart: { name: "환호", image: { ...image, buffer: Buffer.alloc(400000) } } })).status()).toBe(413);
     await page.goto(base + "/manage?tab=appearance#clan-emojis");
     const settings = page.getByRole("region", { name: "공용 이모티콘", exact: true });
-    await settings.getByLabel("이모티콘 이름", { exact: true }).fill("환호");
     await settings.getByLabel("이모티콘 이미지", { exact: true }).setInputFiles(image);
-    await settings.getByRole("button", { name: "이모티콘 추가", exact: true }).click();
+    const crop = page.getByRole("dialog",{name:"공용 이모티콘 추가",exact:true});
+    await crop.getByLabel("이모티콘 이름",{exact:true}).fill("환호");
+    await crop.getByRole("button",{name:"등록",exact:true}).click();
+    await expect(crop).toBeHidden();
     await expect(settings.getByRole("img", { name: "환호", exact: true })).toBeVisible();
     const first = (await svc.from("clan_emojis").select("id,image_path").eq("clan_id", f.clanId).single()).data!;
     emojiPaths.add(first.image_path);

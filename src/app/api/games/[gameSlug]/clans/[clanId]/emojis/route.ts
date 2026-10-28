@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import sharp from "sharp";
+import { processEmojiImage } from "@/lib/clan/process-emoji";
+import { CLAN_EMOJI_GIF_ENABLED } from "@/lib/clan/emoji-crop";
 import { revalidatePath } from "next/cache";
 import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { hasRequestClanPermission } from "@/lib/clan/request-clan-access";
@@ -48,12 +49,10 @@ export async function POST(request: Request, context: Context) {
     name = String(form.get("name") ?? "").trim();
     if (!emojiNamePattern.test(name)) return fail("이름은 한글·영문·숫자·밑줄로 2~32자 입력해 주세요.");
     const file = form.get("image");
-    if (!(file instanceof File) || !file.size || file.size > EMOJI_LIMIT || !["image/png", "image/webp", "image/jpeg"].includes(file.type)) return fail("정적 PNG·WebP·JPG 이미지를 256KB 이내로 선택해 주세요.");
-    const image = sharp(Buffer.from(await file.arrayBuffer()), { limitInputPixels: 4_194_304 });
-    const meta = await image.metadata();
-    if (!meta.format || !["png", "webp", "jpeg"].includes(meta.format) || (meta.pages ?? 1) > 1) return fail("정적인 이미지 파일을 선택해 주세요.");
-    output = await image.rotate().resize(128, 128, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } }).webp({ quality: 90 }).toBuffer();
-  } catch { return fail("이미지를 읽지 못했습니다. 다른 파일을 선택해 주세요."); }
+    if (!(file instanceof File) || !file.size || file.size > EMOJI_LIMIT || !["image/png", "image/webp", "image/jpeg",...(CLAN_EMOJI_GIF_ENABLED?["image/gif"]:[])].includes(file.type)) return fail("정적 PNG·WebP·JPG 이미지를 256KB 이내로 선택해 주세요.");
+    const crop=form.get("crop");
+    output = await processEmojiImage(Buffer.from(await file.arrayBuffer()),crop?JSON.parse(String(crop)):null);
+  } catch (error) { return fail(error instanceof Error && /선택해|확인해|크기가|넘습니다/.test(error.message) ? error.message : "이미지를 읽지 못했습니다. 다른 파일을 선택해 주세요."); }
   const id = randomUUID(), path = `${ctx.clanId}/${id}/${randomUUID()}.webp`;
   const upload = await ctx.svc.storage.from(EMOJI_BUCKET).upload(path, output, { contentType: "image/webp", upsert: false });
   if (upload.error) { await removeFile(ctx.svc, path); return fail("이미지 업로드에 실패했습니다.", 500); }
