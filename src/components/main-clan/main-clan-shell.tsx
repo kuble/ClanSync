@@ -83,11 +83,13 @@ export function ClanHero({
   basePath,
   children,
   showLobbyAction = true,
+  communityLinks,
 }: {
   ctx: MainClanContext;
   basePath: string;
   children?: ReactNode;
   showLobbyAction?: boolean;
+  communityLinks?: ReactNode;
 }) {
   return (
     <section className={styles.hero} aria-label="클랜 소개">
@@ -121,6 +123,7 @@ export function ClanHero({
             <span key={tag}>{tag}</span>
           ))}
         </div>
+        {communityLinks}
       </div>
       <div className={styles.heroAside}>
         {children}

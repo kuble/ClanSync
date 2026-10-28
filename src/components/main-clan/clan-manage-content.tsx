@@ -25,6 +25,8 @@ import { ClanManageStoreVoidPanel, type ManageStoreVoidRowVM } from "./clan-mana
 import { ClanFormationStats } from "./clan-formation-stats";
 import { ClanSiteUsagePanel } from "./clan-site-usage-panel";
 import { ClanDiscordSettings } from "./clan-discord-settings";
+import { ClanCommunityLinksForm } from "./clan-community-links-form";
+import { readClanCommunityLinks } from "@/lib/clan/community-links";
 import { discordBotConfigured } from "@/lib/notifications/discord-bot";
 import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
 import { readDiscordNotificationRoutes } from "@/lib/clan/discord-notification-settings";
@@ -49,15 +51,19 @@ export async function ClanManageContent({ ctx, selected, connectionResult }: Pro
 
 async function NotificationSettings({ ctx, connectionResult }: Pick<Props, "ctx" | "connectionResult">) {
   const svc = createServiceRoleClient();
-  const [settings, connection] = await Promise.all([
-    svc.from("clan_settings").select("event_notify").eq("clan_id", ctx.clanId).single(),
+  const [settings, connection, profile] = await Promise.all([
+    svc.from("clan_settings").select("event_notify,community_links").eq("clan_id", ctx.clanId).single(),
     svc.from("clan_discord_connections").select("guild_name,channel_id,channel_name").eq("clan_id", ctx.clanId).maybeSingle(),
+    svc.from("clans").select("discord_url,kakao_url").eq("id", ctx.clanId).single(),
   ]);
-  if (settings.error || connection.error) throw new Error("알림 설정을 불러오지 못했습니다.");
+  if (settings.error || connection.error || profile.error) throw new Error("알림 설정을 불러오지 못했습니다.");
   const notify = readClanEventNotifySettings(settings.data.event_notify);
-  return <ClanDiscordSettings key={`${ctx.clanId}:${ctx.role}:${ctx.plan}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} canEdit={ctx.role === "leader"} premium={ctx.plan === "premium"}
+  return <div className="space-y-5">
+    <ClanCommunityLinksForm key={`${ctx.clanId}:${ctx.role}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} canEdit={ctx.role === "leader"} initialLinks={readClanCommunityLinks(settings.data.community_links, profile.data)} />
+    <ClanDiscordSettings key={`${ctx.clanId}:${ctx.role}:${ctx.plan}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} canEdit={ctx.role === "leader"} premium={ctx.plan === "premium"}
     botConfigured={discordBotConfigured()} connection={connection.data} discordEnabled={notify.discord_enabled}
-    routes={readDiscordNotificationRoutes(settings.data.event_notify)} connectionResult={connectionResult} />;
+    routes={readDiscordNotificationRoutes(settings.data.event_notify)} connectionResult={connectionResult} />
+  </div>;
 }
 
 async function Overview({ ctx }: Pick<Props, "ctx">) {

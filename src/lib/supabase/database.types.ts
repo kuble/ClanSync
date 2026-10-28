@@ -1901,6 +1901,7 @@ export type Database = {
       clan_settings: {
         Row: {
           clan_id: string
+          community_links: Json
           event_notify: Json
           expose_hof: boolean
           hof_config: Json
@@ -1910,6 +1911,7 @@ export type Database = {
         }
         Insert: {
           clan_id: string
+          community_links?: Json
           event_notify?: Json
           expose_hof?: boolean
           hof_config?: Json
@@ -1919,6 +1921,7 @@ export type Database = {
         }
         Update: {
           clan_id?: string
+          community_links?: Json
           event_notify?: Json
           expose_hof?: boolean
           hof_config?: Json

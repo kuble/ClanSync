@@ -6,6 +6,7 @@ import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
 import { loadClanDashboard } from "@/lib/clan/load-clan-dashboard";
 import { loadClanBadges } from "@/lib/clan/load-clan-badges";
+import { ClanCommunityLinks } from "@/components/main-clan/clan-community-links";
 
 export default async function MainClanDashboardPage({
   params,
@@ -30,7 +31,7 @@ export default async function MainClanDashboardPage({
   }
   return (
     <>
-      <ClanHero ctx={ctx} basePath={`/games/${gameSlug}/clan/${clanId}`} showLobbyAction={false}>
+      <ClanHero ctx={ctx} basePath={`/games/${gameSlug}/clan/${clanId}`} showLobbyAction={false} communityLinks={<ClanCommunityLinks links={model.communityLinks} />}>
         <ClanHeroBadges collection={badgeCollection} href={`/games/${gameSlug}/clan/${clanId}/badges`} />
       </ClanHero>
       <ClanDashboard

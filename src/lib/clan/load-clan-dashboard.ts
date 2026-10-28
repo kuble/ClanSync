@@ -11,6 +11,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service";
 import { normalizeClanMatchRecords } from "@/lib/clan/stats/normalize-clan-match-records";
 import { loadDashboardRows } from "./load-dashboard-rows";
 import { loadClanHistory } from "./load-clan-history";
+import { readClanCommunityLinks, type ClanCommunityLinks } from "./community-links";
 
 export type DashboardNotice = {
   id: string;
@@ -36,6 +37,7 @@ export type ClanDashboardModel = {
   createdAt: string;
   completedIntraCount: number | null;
   previousMonth: string;
+  communityLinks: ClanCommunityLinks;
   mvp: {
     winRate: DashboardMvp[];
     participation: DashboardMvp[];
@@ -78,7 +80,7 @@ export async function loadClanDashboard(
   const [clan, polls, events, settings, notices, history] = await Promise.all([
     supabase
       .from("clans")
-      .select("rules, created_at")
+      .select("rules, created_at, discord_url, kakao_url")
       .eq("id", clanId)
       .maybeSingle(),
     eventClient
@@ -103,7 +105,7 @@ export async function loadClanDashboard(
       .limit(500),
     supabase
       .from("clan_settings")
-      .select("hof_config")
+      .select("hof_config,community_links")
       .eq("clan_id", clanId)
       .maybeSingle(),
     supabase
@@ -148,6 +150,7 @@ export async function loadClanDashboard(
     createdAt: clan.data.created_at,
     completedIntraCount: history.completedRegular,
     previousMonth: `${month.y}년 ${month.m}월`,
+    communityLinks: readClanCommunityLinks(settings.data?.community_links, settings.data ? clan.data : undefined),
     mvp: { winRate: [], participation: [], prediction: [] },
     errors: {
       notices: !!polls.error || !!notices.error,

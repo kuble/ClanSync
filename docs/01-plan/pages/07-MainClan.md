@@ -22,6 +22,23 @@
 
 **2026-10-17 대시보드 시각 위계:** 배치·간격은 위 중요도별 벤토를 따르며, 안쪽 16px(MVP 18px), 제목 15px·700 굵기와 본문 13~14px로 읽는 순서를 구분한다. 강조 테두리는 고정 공지에만 사용한다. MVP의 위계는 위 챔피언 포커스를 따르고 개별 제목만 사용하며 공통 제목·기간 행은 제거한다. 배너/규칙 바 다음 공지·일정, 마지막에 MVP를 배치한다. 데이터·권한·상세 이동은 유지한다.
 
+## 클랜 채팅방 링크 (2026-10-28)
+
+운영 설정 → 알림·연동에서 클랜장이 초대 링크를 등록·수정·삭제한다(Free 포함). 운영진은 읽기만 가능하고 활성 클랜원은 대시보드 배너의 서비스 아이콘으로 새 창에서 입장한다. 주소가 없는 서비스는 숨기며 아이콘에 툴팁·접근 가능한 이름을 제공한다. 기존 Discord 봇 연결·Premium 자동 알림과 별도다.
+
+`clan_settings.community_links`와 기존 활성 멤버 조회·클랜장 수정 RLS를 사용한다. 이전 클랜 생성 시 입력한 Discord·카카오 주소는 이어서 읽고, 명시적으로 비우면 다시 나타나지 않는다. 서버와 표시 단계에서 https·서비스별 호스트/초대 경로·길이를 검사하며 자격 증명·포트·제어문자를 거절한다. 저장할 때 외부 채팅방에 접속하지 않으며 만료 여부·실제 입장은 해당 서비스가 처리한다.
+
+공식 안내에서 공유 가능한 초대 링크를 확인한 여섯 서비스를 선정했다. 국가에 따라 자동으로 숨기지는 않는다.
+
+| 서비스 | 등록 형식·공식 근거 |
+| --- | --- |
+| Discord | `discord.gg/{code}`, `discord.com/invite/{code}` — [공식 초대 안내](https://support.discord.com/hc/en-us/articles/208866998-Invites-101) |
+| 카카오톡 오픈채팅 | `open.kakao.com/o/{code}` — 한국용 커뮤니티 선택지, [카카오톡 공식 소개](https://www.kakaocorp.com/page/service/service/KakaoTalk) |
+| LINE | `line.me/ti/g/{code}`, `line.me/ti/g2/{code}` 및 `/R/ti/g/` — 일본·아시아용 선택지, [그룹 초대](https://help.line.me/line/smartphone/?contentId=20008159&lang=en) · [OpenChat 링크 공유](https://openchat-jp.line.me/other/usage_guide_user) |
+| Telegram | `t.me/{username}`, `t.me/+{code}`, `t.me/joinchat/{code}` — [공식 초대 링크 형식](https://core.telegram.org/api/invites) |
+| WhatsApp | `chat.whatsapp.com/{code}` — [공식 그룹 초대 안내](https://faq.whatsapp.com/3242937609289432/) |
+| Steam 채팅 | `steamcommunity.com/chat/invite/{code}` — [공식 채팅 업데이트·외부 초대 링크](https://steamcommunity.com/updates/chatupdate?l=english) |
+
 ## 누가 / 언제 본다
 - 로그인 + 게임 인증 + 해당 클랜 소속 사용자.
 - 게임 선택에서 "클랜 가입됨" 카드 클릭, 또는 가입 승인 직후.

@@ -29,6 +29,10 @@
 .hero:has(.heroImage) .clanInfo h1 { color: #f3f4f6; }
 .hero:has(.heroImage) .clanMeta { color: #c7ccd1; }
 .clanMeta span { display: inline-flex; align-items: center; gap: 5px; }
+.communityLink { border-color:var(--border); background:var(--background); color:var(--foreground); }
+.communityLink:hover { background:var(--muted); color:var(--primary); }
+.hero:has(.heroImage) .communityLink { border-color:#ffffff26; background:#00000066; color:#f3f4f6; }
+.hero:has(.heroImage) .communityLink:hover { background:#000000a6; color:#fff; }
 .heroAction { position: relative; flex-shrink: 0; }
 .heroAside { position:relative; display:flex; flex-direction:column; align-items:flex-end; justify-content:flex-end; gap:10px; flex-shrink:0; }
 .mobileTrigger { display: none; }

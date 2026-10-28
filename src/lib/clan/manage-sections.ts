@@ -6,7 +6,7 @@ export const MANAGE_SECTIONS = [
   { key: "members", group: "구성원 관리", label: "구성원", description: "멤버의 활동과 운영 역할을 관리하세요." },
   { key: "requests", group: "구성원 관리", label: "가입 요청", description: "대기 중인 신청을 확인하고 승인하거나 거절하세요." },
   { key: "balance", group: "운영 설정", label: "내전", description: "내전 세션의 자동 종료 여부와 시간을 설정하세요." },
-  { key: "notifications", group: "운영 설정", label: "알림·연동", description: "Discord를 연결하고 필요한 소식과 알림 채널을 선택하세요." },
+  { key: "notifications", group: "운영 설정", label: "알림·연동", description: "클랜 채팅방 링크와 Discord 자동 알림을 관리하세요." },
   { key: "subscription", group: "운영 설정", label: "코인·플랜", description: "클랜 코인, 이용 플랜과 구매 정정을 관리하세요." },
 ] as const;
 
