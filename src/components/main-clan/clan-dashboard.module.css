@@ -15,7 +15,19 @@
 .events > [role="region"] > div:has(> a) { display:grid; grid-auto-rows:minmax(96px,1fr); gap:12px; flex:1; }
 .events > [role="region"] > div > a { padding:16px; }
 .mvps { grid-area:mvps; min-width:0; }
-.mvpGrid { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; height:100%; }
+.mvpGrid { display:grid; grid-template-columns:minmax(0,1fr); gap:16px; }
+.podium { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:end; gap:4px; margin-top:12px; }
+.podiumStep { --medal:#a56f43; grid-row:1; min-width:0; }
+.podiumStep[data-position="1"] { grid-column:2; }
+.podiumStep[data-position="2"] { grid-column:1; }
+.podiumStep[data-position="3"] { grid-column:3; }
+.podiumStep[data-rank="1"] { --medal:#b08121; }
+.podiumStep[data-rank="2"] { --medal:#8290a0; }
+.podiumPlayer { display:flex; flex-direction:column; align-items:center; gap:6px; padding:8px 2px; }
+.podiumRank { display:flex; align-items:center; justify-content:center; gap:6px; color:var(--medal); font-size:13px; font-weight:700; }
+.podiumBase { display:grid; place-items:center; height:24px; border:1px solid color-mix(in srgb,var(--medal) 35%,var(--border)); border-radius:8px 8px 0 0; color:var(--foreground); background:linear-gradient(180deg,color-mix(in srgb,var(--medal) 16%,var(--card)),color-mix(in srgb,var(--medal) 5%,var(--card))); font-size:16px; font-weight:800; font-variant-numeric:tabular-nums; }
+.podiumStep[data-rank="1"] .podiumBase { height:56px; }
+.podiumStep[data-rank="2"] .podiumBase { height:40px; }
 
 .rulesTicker { display:flex; align-items:center; gap:12px; min-width:0; height:52px; margin-bottom:16px; padding:0 12px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
 .rulesLabel { display:flex; align-items:center; gap:6px; flex-shrink:0; color:var(--muted-foreground); font-size:12px; font-weight:600; }
@@ -39,10 +51,9 @@
     grid-template-areas:"notices notices" "events events" "mvps mvps";
     gap:16px;
   }
-  .mvpGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .mvpGrid > :last-child { grid-column:1/-1; }
 }
 @media(min-width:800px) {
+  .mvpGrid { grid-template-columns:repeat(3,minmax(0,1fr)); }
   .bento {
     grid-template-columns:repeat(6,minmax(0,1fr));
     grid-template-areas:
@@ -50,15 +61,11 @@
       "mvps mvps mvps mvps mvps mvps";
   }
 }
-@media(min-width:900px) {
-  .mvpGrid { grid-template-columns:repeat(3,minmax(0,1fr)); }
-  .mvpGrid > :last-child { grid-column:auto; }
-}
 @media(min-width:1024px) {
   .bento {
     grid-template-columns:repeat(12,minmax(0,1fr));
     grid-template-areas:
-      "notices notices notices notices events events events events events mvps mvps mvps";
+      "notices notices notices notices notices events events events events events events events"
+      "mvps mvps mvps mvps mvps mvps mvps mvps mvps mvps mvps mvps";
   }
-  .mvpGrid { grid-template-columns:minmax(0,1fr); grid-template-rows:repeat(3,minmax(0,1fr)); }
 }

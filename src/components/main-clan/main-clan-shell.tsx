@@ -82,10 +82,12 @@ export function ClanHero({
   ctx,
   basePath,
   children,
+  showLobbyAction = true,
 }: {
   ctx: MainClanContext;
   basePath: string;
   children?: ReactNode;
+  showLobbyAction?: boolean;
 }) {
   return (
     <section className={styles.hero} aria-label="클랜 소개">
@@ -122,7 +124,7 @@ export function ClanHero({
       </div>
       <div className={styles.heroAside}>
         {children}
-        {ctx.canStartBalance ? (
+        {ctx.canStartBalance && showLobbyAction ? (
           <Link
             href={basePath + "/balance"}
             className={cn(buttonVariants({ size: "sm" }), styles.heroAction)}

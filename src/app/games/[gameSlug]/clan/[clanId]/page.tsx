@@ -30,7 +30,7 @@ export default async function MainClanDashboardPage({
   }
   return (
     <>
-      <ClanHero ctx={ctx} basePath={`/games/${gameSlug}/clan/${clanId}`}>
+      <ClanHero ctx={ctx} basePath={`/games/${gameSlug}/clan/${clanId}`} showLobbyAction={false}>
         <ClanHeroBadges collection={badgeCollection} href={`/games/${gameSlug}/clan/${clanId}/badges`} />
       </ClanHero>
       <ClanDashboard

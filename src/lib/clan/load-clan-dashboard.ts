@@ -1,4 +1,3 @@
-import { formatPercent } from "@/lib/format-percent";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import type { MainClanPlan } from "@/lib/clan/load-main-clan-context";
@@ -23,10 +22,9 @@ export type DashboardNotice = {
 };
 
 export type DashboardMvp = {
+  rank: number;
   userId: string;
   nickname: string;
-  detail: string;
-  highlight: string;
   percentage: number;
   tiedCount: number;
 };
@@ -39,9 +37,9 @@ export type ClanDashboardModel = {
   completedIntraCount: number | null;
   previousMonth: string;
   mvp: {
-    winRate: DashboardMvp | null;
-    participation: DashboardMvp | null;
-    prediction: DashboardMvp | null;
+    winRate: DashboardMvp[];
+    participation: DashboardMvp[];
+    prediction: DashboardMvp[];
   };
   errors: {
     notices: boolean;
@@ -51,6 +49,14 @@ export type ClanDashboardModel = {
   };
   now: string;
 };
+
+function topMvpRanks<T>(rows: T[], sameScore: (a: T, b: T) => boolean, describe: (row: T) => Omit<DashboardMvp, "rank" | "tiedCount">): DashboardMvp[] {
+  return rows.slice(0, 3).map(row => ({
+    ...describe(row),
+    rank: rows.findIndex(candidate => sameScore(candidate, row)) + 1,
+    tiedCount: rows.filter(candidate => sameScore(candidate, row)).length,
+  }));
+}
 
 /** Authenticate membership before reading the legacy server-only event tables. */
 export async function loadClanDashboard(
@@ -142,7 +148,7 @@ export async function loadClanDashboard(
     createdAt: clan.data.created_at,
     completedIntraCount: history.completedRegular,
     previousMonth: `${month.y}년 ${month.m}월`,
-    mvp: { winRate: null, participation: null, prediction: null },
+    mvp: { winRate: [], participation: [], prediction: [] },
     errors: {
       notices: !!polls.error || !!notices.error,
       rules: !!clan.error,
@@ -264,34 +270,20 @@ export async function loadClanDashboard(
   const byParticipation = eligible.toSorted(
     (a, b) => b.played - a.played || a.userId.localeCompare(b.userId),
   );
-  const win = byWin[0];
-  const participant = byParticipation[0];
-  if (win) {
-    model.mvp.winRate = {
+  model.mvp.winRate = topMvpRanks(byWin,
+    (a, b) => a.wins / a.decided === b.wins / b.decided && a.wins === b.wins,
+    win => ({
       userId: win.userId,
       nickname: nick.get(win.userId)!,
-      detail: `${win.played}경기 참여 · ${win.wins}승 ${win.decided - win.wins}패`,
-      highlight: `승률 ${formatPercent(win.wins / win.decided * 100)}`,
       percentage: win.wins / win.decided * 100,
-      tiedCount: byWin.filter(
-        (score) =>
-          score.wins / score.decided === win.wins / win.decided &&
-          score.wins === win.wins,
-      ).length,
-    };
-  }
-  if (participant) {
-    model.mvp.participation = {
+    }));
+  model.mvp.participation = topMvpRanks(byParticipation,
+    (a, b) => a.played === b.played,
+    participant => ({
       userId: participant.userId,
       nickname: nick.get(participant.userId)!,
-      detail: `클랜 내전 ${monthly.length}경기 중 ${participant.played}경기 참여`,
-      highlight: `참여율 ${formatPercent(participant.played / monthly.length * 100)}`,
       percentage: participant.played / monthly.length * 100,
-      tiedCount: byParticipation.filter(
-        (score) => score.played === participant.played,
-      ).length,
-    };
-  }
+    }));
   const predictionScores = new Map<
     string,
     { userId: string; correct: number; total: number }
@@ -317,20 +309,12 @@ export async function loadClanDashboard(
         b.correct / b.total - a.correct / a.total ||
         a.userId.localeCompare(b.userId),
     );
-  const prediction = rankedPredictions[0];
-  if (prediction) {
-    model.mvp.prediction = {
+  model.mvp.prediction = topMvpRanks(rankedPredictions,
+    (a, b) => a.correct === b.correct && a.total === b.total,
+    prediction => ({
       userId: prediction.userId,
       nickname: nick.get(prediction.userId)!,
-      detail: `${prediction.total}회 예측 · ${prediction.correct}회 적중`,
-      highlight: `적중률 ${formatPercent(prediction.correct / prediction.total * 100)}`,
       percentage: prediction.correct / prediction.total * 100,
-      tiedCount: rankedPredictions.filter(
-        (score) =>
-          score.correct === prediction.correct &&
-          score.total === prediction.total,
-      ).length,
-    };
-  }
+    }));
   return model;
 }

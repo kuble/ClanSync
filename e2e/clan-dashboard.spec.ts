@@ -9,7 +9,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
   browser,
 }) => {
   test.setTimeout(90_000);
-  const fixture = await createIsolatedBalanceFixture(2);
+  const fixture = await createIsolatedBalanceFixture(3);
   const svc = fixture.service;
   const clanId = fixture.clanId;
   const base = `/games/overwatch/clan/${clanId}`;
@@ -43,15 +43,10 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
   const matchId = crypto.randomUUID();
   const drawMatchId = crypto.randomUUID();
   const unrecordedMatchId = crypto.randomUUID();
+  const secondWinMatchId = crypto.randomUUID();
   const seriesId = crypto.randomUUID();
   const roundIds = [crypto.randomUUID(), crypto.randomUUID()];
-  const battleTag = "DashboardWinner#1001";
   try {
-    const { data: background, error: backgroundError } = await svc.from("nameplate_options").select("id").eq("code", "theme-nebula-namebar").single();
-    expect(backgroundError).toBeNull();
-    const member = await fixture.memberClient(0);
-    expect((await member.from("user_namecard_selections").upsert({ user_id: leader!.user_id, category: "namebar", option_id: background!.id }, { onConflict: "user_id,category" })).error).toBeNull();
-    expect((await svc.from("user_game_profiles").update({ battle_tag: battleTag }).eq("user_id", leader!.user_id).eq("game_id", clan!.game_id)).error).toBeNull();
     expect(
       (
         await svc
@@ -107,7 +102,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         post_to_notice: true,
       }),
       svc.from("matches").insert(
-        [matchId, drawMatchId, unrecordedMatchId].map((id) => ({
+        [matchId, drawMatchId, unrecordedMatchId, secondWinMatchId].map((id) => ({
           id,
           clan_id: clanId,
           game_id: clan!.game_id,
@@ -124,11 +119,13 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         await svc
           .from("match_players")
           .insert(
-            [matchId, drawMatchId, unrecordedMatchId].map((id) => ({
+            [...[matchId, drawMatchId, unrecordedMatchId, secondWinMatchId].map((id) => ({
               match_id: id,
               user_id: leader!.user_id,
               team: 1,
             })),
+            ...[matchId, drawMatchId, secondWinMatchId].map(id => ({ match_id: id, user_id: fixture.users[1].id, team: id === matchId ? 2 : 1 })),
+            ...[matchId, secondWinMatchId].map(id => ({ match_id: id, user_id: fixture.users[2].id, team: 2 }))],
           )
       ).error,
     ).toBeNull();
@@ -137,6 +134,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         await svc.from("match_results").insert([
           { match_id: matchId, winner_team: 1 },
           { match_id: drawMatchId, winner_team: null },
+          { match_id: secondWinMatchId, winner_team: 1 },
         ])
       ).error,
     ).toBeNull();
@@ -160,7 +158,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
     await ticker.getByRole("link", { name: "클랜 규칙", exact: true }).focus();
     await page.clock.fastForward(16000);
     await expect(ruleText).toHaveText(heldText!);
-    await page.getByRole("link", { name: "내전 로비 열기", exact: true }).focus();
+    await page.getByRole("link", { name: "클랜 공지사항", exact: true }).focus();
     await page.clock.fastForward(8100);
     await expect(ticker.getByRole("link", { name: /^규칙 3:/ })).toBeVisible();
     await page.emulateMedia({ reducedMotion: "reduce" });
@@ -173,11 +171,20 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
     await expect(
       page.getByRole("heading", { name: "클랜 공지사항", exact: true }),
     ).toBeVisible();
-    for (const name of ["지난달 승률 MVP", "지난달 참여율 MVP"]) {
+    for (const [name, ratios] of [["지난달 승률 MVP", [100, 50, 0]], ["지난달 참여율 MVP", [100, 75, 50]]] as const) {
       const winner = page.getByRole("region", { name, exact: true });
-      await expect(winner.locator('[data-namecard][data-namebar="theme-nebula-namebar"]')).toContainText(battleTag);
-      await expect(winner.getByRole("meter", { name, exact: true })).toHaveAttribute("aria-valuenow", "100");
+      const places = winner.getByRole("listitem");
+      await expect(places).toHaveCount(3);
+      for (const [index, percentage] of ratios.entries()) {
+        await expect(places.nth(index)).toHaveAttribute("data-rank", String(index + 1));
+        await expect(places.nth(index)).toContainText(fixture.users[index].nickname);
+        await expect(places.nth(index).getByText(`${percentage.toFixed(1)}%`, { exact: true })).toBeVisible();
+      }
+      expect(new Set(await places.locator("svg").evaluateAll(icons => icons.map(icon => getComputedStyle(icon).color))).size).toBe(3);
+      await expect(winner.locator("[data-namecard]")).toHaveCount(0);
+      await expect(winner.getByRole("meter")).toHaveCount(0);
     }
+    await expect(page.getByRole("link", { name: "내전 로비 열기", exact: true })).toHaveCount(0);
     await expect(page.getByRole("region", { name: "다가오는 일정 목록", exact: true }).getByRole("link")).toHaveCount(3);
     await expect(
       page.getByRole("link", { name: new RegExp(`${title} 모임 투표`) }),
@@ -191,23 +198,14 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
     await expect(
       page
         .getByRole("region", { name: "지난달 승률 MVP", exact: true })
-        .getByText("승률 100.0%", { exact: true }),
+        .getByText("100.0%", { exact: true }),
     ).toBeVisible();
     await expect(
       page
         .getByRole("region", { name: "지난달 참여율 MVP", exact: true })
-        .getByText("참여율 100.0%", { exact: true }),
+        .getByText("100.0%", { exact: true }),
     ).toBeVisible();
-    await expect(
-      page
-        .getByRole("region", { name: "지난달 참여율 MVP", exact: true })
-        .getByText("클랜 내전 3경기 중 3경기 참여", { exact: true }),
-    ).toBeVisible();
-    await expect(
-      page
-        .getByRole("region", { name: "지난달 승률 MVP", exact: true })
-        .getByText("3경기 참여 · 1승 0패", { exact: true }),
-    ).toBeVisible();
+    await expect(page.getByRole("region", { name: "지난달 MVP", exact: true }).getByText(/경기 참여|경기 중|칭호 없음/)).toHaveCount(0);
     await expect(page.getByText("세션 요약", { exact: true })).toHaveCount(0);
 
     const notices = await page
@@ -291,13 +289,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
           expect(eventBox.height).toBeCloseTo(noticeBox.height, 0);
           expect(eventBox.width).toBeGreaterThan(noticeBox.width * (width >= 1024 ? 1.2 : 1.8));
         } else expect(eventBox.y - noticeBox.y - noticeBox.height).toBeCloseTo(gap, 0);
-        if (width >= 1024) {
-          expect(mvpBox.y).toBeCloseTo(noticeBox.y, 0);
-          expect(mvpBox.x - eventBox.x - eventBox.width).toBeCloseTo(gap, 0);
-          expect(mvpBox.y + mvpBox.height).toBeCloseTo(eventBox.y + eventBox.height, 0);
-        } else {
-          expect(mvpBox.y - Math.max(eventBox.y + eventBox.height, noticeBox.y + noticeBox.height)).toBeCloseTo(gap, 0);
-        }
+        expect(mvpBox.y - Math.max(eventBox.y + eventBox.height, noticeBox.y + noticeBox.height)).toBeCloseTo(gap, 0);
         expect(rulesBox.height).toBeCloseTo(52, 0);
         expect(rulesBox.y - heroBox.y - heroBox.height).toBeCloseTo(20, 0);
         expect(noticeBox.y - rulesBox.y - rulesBox.height).toBeCloseTo(16, 0);
@@ -318,10 +310,16 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         }
         const mvp = page.getByRole("region", { name: "지난달 MVP", exact: true });
         expect(await grid.locator(":scope > section").last().getAttribute("aria-label")).toBe("지난달 MVP");
-        expect(await mvp.locator("[data-namecard]").evaluateAll((cards) => cards.every((card) => card.getBoundingClientRect().width <= card.parentElement!.getBoundingClientRect().width + 1))).toBe(true);
+        await expect(mvp.locator("[data-namecard]")).toHaveCount(0);
         const winners = await mvp.locator("section").evaluateAll(els => els.map(el => ({ x: el.getBoundingClientRect().x, y: el.getBoundingClientRect().y })));
-        expect(new Set(winners.map(box => box.y)).size).toBe(width >= 1024 ? 3 : width >= 900 ? 1 : width >= 640 ? 2 : 3);
-        if (width >= 1024) expect(new Set(winners.map(box => box.x)).size).toBe(1);
+        expect(new Set(winners.map(box => box.y)).size).toBe(width >= 800 ? 1 : 3);
+        const podium = page.getByRole("region", { name: "지난달 승률 MVP", exact: true }).getByRole("listitem");
+        const [gold, silver, bronze] = await podium.evaluateAll(items => items.map(item => { const box = item.getBoundingClientRect(); return { x: box.x, y: box.y, bottom: box.bottom }; }));
+        expect(silver.x).toBeLessThan(gold.x);
+        expect(gold.x).toBeLessThan(bronze.x);
+        expect(gold.y).toBeLessThan(silver.y);
+        expect(silver.y).toBeLessThan(bronze.y);
+        expect(gold.bottom).toBeCloseTo(bronze.bottom, 0);
         if (width === 320 || width === 1304) {
           await page.getByRole("heading", { name: "클랜 공지사항", exact: true }).scrollIntoViewIfNeeded();
           await page.screenshot({ path: test.info().outputPath(`dashboard-${width}-${theme}.png`) });
@@ -331,7 +329,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
       }
     }
 
-    // A different player's prediction card must use their identity and a fractional graph.
+    // Prediction shows only the actual ranked player, with empty remaining places.
     expect((await svc.from("clans").update({ subscription_tier: "premium" }).eq("id", clanId)).error).toBeNull();
     expect((await svc.from("balance_session_series").insert({ id: seriesId, clan_id: clanId, game_id: clan!.game_id, host_user_id: leader!.user_id, opened_at: local.previous, closed_at: local.previous })).error).toBeNull();
     expect((await svc.from("balance_rooms").update({ kind: "regular", status: "closed" }).eq("id", seriesId)).error).toBeNull();
@@ -343,12 +341,15 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
     await page.setViewportSize({ width: 1304, height: 844 });
     await page.goto(base);
     const predictor = page.getByRole("region", { name: "지난달 승부예측 MVP", exact: true });
-    await expect(predictor.locator("[data-namecard]")).toContainText(fixture.users[1].nickname);
-    await expect(predictor.getByRole("meter")).toHaveAttribute("aria-valuenow", "50");
-    await expect(predictor.getByText("적중률 50.0%", { exact: true })).toBeVisible();
-    const fillRatio = await predictor.getByRole("meter").evaluate((meter) => meter.firstElementChild!.getBoundingClientRect().width / meter.getBoundingClientRect().width);
-    expect(fillRatio).toBeCloseTo(0.5, 2);
-    await page.screenshot({ path: test.info().outputPath("dashboard-premium-namecards.png") });
+    await expect(predictor.getByRole("listitem").first()).toContainText(fixture.users[1].nickname);
+    await expect(predictor.getByText("50.0%", { exact: true })).toBeVisible();
+    await expect(predictor.getByRole("listitem", { name: /기록 없음/ })).toHaveCount(2);
+    await page.screenshot({ path: test.info().outputPath("dashboard-premium-podiums.png") });
+    expect((await svc.from("match_players").update({ team: 1 }).eq("match_id", matchId).eq("user_id", fixture.users[1].id)).error).toBeNull();
+    await page.goto(base);
+    const tied = page.getByRole("region", { name: "지난달 승률 MVP", exact: true });
+    await expect(tied.getByRole("listitem", { name: /^공동 1위/ })).toHaveCount(2);
+    await expect(tied.getByRole("listitem").nth(2)).toHaveAttribute("data-rank", "3");
     await page.goto(base + "/store");
     await expect(page.getByRole("region", { name: "클랜 소개", exact: true })).toHaveCount(1);
     await expect(page.getByRole("link", { name: "내전 로비 열기", exact: true })).toBeVisible();
@@ -365,7 +366,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
       svc
         .from("matches")
         .delete()
-        .in("id", [matchId, drawMatchId, unrecordedMatchId]),
+        .in("id", [matchId, drawMatchId, unrecordedMatchId, secondWinMatchId]),
       svc
         .from("clans")
         .update({

@@ -50,6 +50,7 @@
   .clanMeta { font-size: 11px; }
   .heroAction { width: 100%; margin-left: 0; }
   .heroAside { width:100%; flex-direction:row; align-items:center; justify-content:space-between; }
+  .heroAside:has(> section:only-child) { justify-content:flex-end; }
   .heroAside:has(> section) .heroAction { width:auto; }
   .plan { display: none; }
 }

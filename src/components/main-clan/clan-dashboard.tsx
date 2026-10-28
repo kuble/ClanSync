@@ -20,8 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ClanRulesTicker } from "@/components/main-clan/clan-rules-ticker";
-import { useClanNamecard } from "@/components/profile/clan-namecards";
-import { Namecard } from "@/components/profile/namecard";
+import { formatPercent } from "@/lib/format-percent";
 import { StorePremiumPlanDialog } from "@/components/main-clan/store-premium-plan-dialog";
 import { listUpcomingOccurrenceStarts } from "@/lib/clan/expand-clan-event-occurrences";
 import type { ClanMemberRole } from "@/lib/clan/permission-defaults";
@@ -227,9 +226,22 @@ function UpcomingEventsContent({
   );
 }
 
+function MvpStep({ value, position }: { value: DashboardMvp | undefined; position: number }) {
+  const rank = value?.rank ?? position;
+  const displayName = value?.nickname;
+  return <li className={styles.podiumStep} data-position={position} data-rank={rank} aria-label={value ? `${value.tiedCount > 1 ? "공동 " : ""}${rank}위 ${displayName}` : `${position}위 기록 없음`}>
+    <div className={styles.podiumPlayer}>
+      <div className={cn(styles.podiumRank, !value && "opacity-40")}><Trophy className="size-5 shrink-0" aria-hidden="true" /><span className="sr-only">{value && value.tiedCount > 1 ? "공동 " : ""}{rank}위</span></div>
+      <p className="w-full truncate text-center text-xs font-semibold" title={displayName}>{displayName ?? "—"}</p>
+      <p className="text-center text-sm font-bold tabular-nums">{value ? formatPercent(value.percentage) : "—"}</p>
+    </div>
+    <div className={styles.podiumBase} aria-hidden="true">{rank}</div>
+  </li>;
+}
+
 function MvpCard({
   title,
-  value,
+  values,
   icon: Icon,
   model,
   premiumLocked = false,
@@ -237,14 +249,13 @@ function MvpCard({
   href,
 }: {
   title: string;
-  value: DashboardMvp | null;
+  values: DashboardMvp[];
   icon: typeof Trophy;
   model: ClanDashboardModel;
   premiumLocked?: boolean;
   onUpgrade?: () => void;
   href: string;
 }) {
-  const namecard = useClanNamecard(value?.userId);
   return (
     <section
       className={cn(card, "flex min-h-36 flex-col bg-background/25 p-3 shadow-none")}
@@ -268,18 +279,8 @@ function MvpCard({
             Premium 알아보기
           </button>
         </div>
-      ) : value ? (
-        <div className="mt-2 min-w-0">
-          <Namecard {...namecard} displayName={namecard?.displayName ?? value.nickname} compact />
-          {value.tiedCount > 1 && <p className="mt-1 text-[10px] text-muted-foreground">외 {value.tiedCount - 1}명 공동</p>}
-          <p className="mt-1 text-xs leading-4 text-muted-foreground">{value.detail}</p>
-          <div className="mt-1.5 flex items-center gap-2">
-            <div role="meter" aria-label={title} aria-valuemin={0} aria-valuemax={100} aria-valuenow={value.percentage} aria-valuetext={value.highlight} className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-primary/15">
-              <div className="h-full rounded-full bg-primary" style={{ width: `${value.percentage}%` }} />
-            </div>
-            <span className="shrink-0 text-xs font-semibold tabular-nums text-primary">{value.highlight}</span>
-          </div>
-        </div>
+      ) : values.length ? (
+        <ol className={styles.podium} aria-label={`${title} 순위`}>{[0, 1, 2].map(index => <MvpStep key={index} value={values[index]} position={index + 1} />)}</ol>
       ) : (
         <div className="flex flex-1 items-center gap-3.5 py-5">
           <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground/50">
@@ -373,21 +374,21 @@ export function ClanDashboard({
               href={`${base}/stats`}
               title="지난달 승률 MVP"
               icon={Target}
-              value={model.mvp.winRate}
+              values={model.mvp.winRate}
               model={model}
             />
             <MvpCard
               href={`${base}/stats`}
               title="지난달 참여율 MVP"
               icon={Users}
-              value={model.mvp.participation}
+              values={model.mvp.participation}
               model={model}
             />
             <MvpCard
               href={`${base}/stats`}
               title="지난달 승부예측 MVP"
               icon={Trophy}
-              value={model.mvp.prediction}
+              values={model.mvp.prediction}
               model={model}
               premiumLocked={!isPremium}
               onUpgrade={() => setPremiumOpen(true)}
