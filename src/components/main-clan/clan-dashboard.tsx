@@ -21,6 +21,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ClanBadges } from "@/components/main-clan/clan-badges";
+import { useClanNamecard } from "@/components/profile/clan-namecards";
+import { Namecard } from "@/components/profile/namecard";
 import type { ClanBadgeCollection } from "@/lib/clan/badges";
 import { StorePremiumPlanDialog } from "@/components/main-clan/store-premium-plan-dialog";
 import { listUpcomingOccurrenceStarts } from "@/lib/clan/expand-clan-event-occurrences";
@@ -231,7 +233,6 @@ function MvpCard({
   title,
   value,
   icon: Icon,
-  tone,
   model,
   premiumLocked = false,
   onUpgrade,
@@ -240,18 +241,18 @@ function MvpCard({
   title: string;
   value: DashboardMvp | null;
   icon: typeof Trophy;
-  tone: string;
   model: ClanDashboardModel;
   premiumLocked?: boolean;
   onUpgrade?: () => void;
   href: string;
 }) {
+  const namecard = useClanNamecard(value?.userId);
   return (
     <section
-      className={cn(card, "flex min-h-36 flex-col bg-background/25 p-4 shadow-none")}
+      className={cn(card, "flex min-h-36 flex-col bg-background/25 p-3 shadow-none")}
       aria-label={title}
     >
-      <h4 className="text-sm font-semibold text-muted-foreground"><Link href={href} className={cn(headingLink, "min-h-6")}>{title}<ChevronRight className="size-4 shrink-0" aria-hidden="true" /></Link></h4>
+      <h4 className="text-sm font-semibold text-muted-foreground"><Link href={href} className={cn(headingLink, "min-h-5")}>{title}<ChevronRight className="size-4 shrink-0" aria-hidden="true" /></Link></h4>
       {premiumLocked ? (
         <div className="mt-2 flex flex-1 flex-wrap content-center items-center gap-x-2 gap-y-1.5">
           <Crown className="size-5 shrink-0 text-amber-500" aria-hidden="true" />
@@ -270,31 +271,15 @@ function MvpCard({
           </button>
         </div>
       ) : value ? (
-        <div className="mt-2 flex items-center gap-3">
-          <span
-            className={cn(
-              "flex size-10 shrink-0 items-center justify-center rounded-full text-base font-bold text-white",
-              tone,
-            )}
-          >
-            {value.nickname.slice(0, 1)}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-base font-bold">
-              {value.nickname}
-              {value.tiedCount > 1 ? (
-                <span className="ml-1 text-[10px] font-medium text-muted-foreground">
-                  외 {value.tiedCount - 1}명 공동
-                </span>
-              ) : null}
-            </p>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              {value.detail}
-            </p>
-            <p className="mt-1.5 inline-flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/8 px-2 py-0.5 text-xs font-semibold text-primary">
-              <Icon className="size-3.5" aria-hidden="true" />
-              {value.highlight}
-            </p>
+        <div className="mt-2 min-w-0">
+          <Namecard {...namecard} displayName={namecard?.displayName ?? value.nickname} compact />
+          {value.tiedCount > 1 && <p className="mt-1 text-[10px] text-muted-foreground">외 {value.tiedCount - 1}명 공동</p>}
+          <p className="mt-1 text-xs leading-4 text-muted-foreground">{value.detail}</p>
+          <div className="mt-1.5 flex items-center gap-2">
+            <div role="meter" aria-label={title} aria-valuemin={0} aria-valuemax={100} aria-valuenow={value.percentage} aria-valuetext={value.highlight} className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-primary/15">
+              <div className="h-full rounded-full bg-primary" style={{ width: `${value.percentage}%` }} />
+            </div>
+            <span className="shrink-0 text-xs font-semibold tabular-nums text-primary">{value.highlight}</span>
           </div>
         </div>
       ) : (
@@ -385,36 +370,6 @@ export function ClanDashboard({
           <DashboardHeading id="dashboard-events-heading" href={`${base}/events`} title="다가오는 일정" />
           <UpcomingEvents model={model} base={base} />
         </section>
-        <section className={styles.mvps} aria-label="지난달 MVP">
-          <div className={styles.mvpGrid}>
-            <MvpCard
-              href={`${base}/stats`}
-              title="지난달 승률 MVP"
-              icon={Target}
-              tone="bg-gradient-to-br from-amber-400 to-orange-600"
-              value={model.mvp.winRate}
-              model={model}
-            />
-            <MvpCard
-              href={`${base}/stats`}
-              title="지난달 참여율 MVP"
-              icon={Users}
-              tone="bg-gradient-to-br from-emerald-400 to-green-700"
-              value={model.mvp.participation}
-              model={model}
-            />
-            <MvpCard
-              href={`${base}/stats`}
-              title="지난달 승부예측 MVP"
-              icon={Trophy}
-              tone="bg-gradient-to-br from-violet-500 to-blue-600"
-              value={model.mvp.prediction}
-              model={model}
-              premiumLocked={!isPremium}
-              onUpgrade={() => setPremiumOpen(true)}
-            />
-          </div>
-        </section>
         <section className={cn(card, styles.rules, "shadow-none")} aria-labelledby="dashboard-rules-heading">
           <DashboardHeading id="dashboard-rules-heading" href={`${base}/board/notices#rules`} title="클랜 규칙" />
           {model.rules ? (
@@ -430,6 +385,33 @@ export function ClanDashboard({
         <section className={cn(card, styles.badges, "shadow-none")} aria-labelledby="dashboard-badges-heading">
           <DashboardHeading id="dashboard-badges-heading" href={`${base}/badges`} title="클랜 배지" />
           {badgeCollection ? <ClanBadges collection={badgeCollection} gameSlug={gameSlug} clanId={clanId} compact previewOnly /> : <p role="alert" className="flex min-h-52 items-center justify-center text-sm text-muted-foreground">배지 기록을 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</p>}
+        </section>
+        <section className={styles.mvps} aria-label="지난달 MVP">
+          <div className={styles.mvpGrid}>
+            <MvpCard
+              href={`${base}/stats`}
+              title="지난달 승률 MVP"
+              icon={Target}
+              value={model.mvp.winRate}
+              model={model}
+            />
+            <MvpCard
+              href={`${base}/stats`}
+              title="지난달 참여율 MVP"
+              icon={Users}
+              value={model.mvp.participation}
+              model={model}
+            />
+            <MvpCard
+              href={`${base}/stats`}
+              title="지난달 승부예측 MVP"
+              icon={Trophy}
+              value={model.mvp.prediction}
+              model={model}
+              premiumLocked={!isPremium}
+              onUpgrade={() => setPremiumOpen(true)}
+            />
+          </div>
         </section>
       </div>
       <Dialog

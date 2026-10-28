@@ -43,7 +43,15 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
   const matchId = crypto.randomUUID();
   const drawMatchId = crypto.randomUUID();
   const unrecordedMatchId = crypto.randomUUID();
+  const seriesId = crypto.randomUUID();
+  const roundIds = [crypto.randomUUID(), crypto.randomUUID()];
+  const battleTag = "DashboardWinner#1001";
   try {
+    const { data: background, error: backgroundError } = await svc.from("nameplate_options").select("id").eq("code", "theme-nebula-namebar").single();
+    expect(backgroundError).toBeNull();
+    const member = await fixture.memberClient(0);
+    expect((await member.from("user_namecard_selections").upsert({ user_id: leader!.user_id, category: "namebar", option_id: background!.id }, { onConflict: "user_id,category" })).error).toBeNull();
+    expect((await svc.from("user_game_profiles").update({ battle_tag: battleTag }).eq("user_id", leader!.user_id).eq("game_id", clan!.game_id)).error).toBeNull();
     expect(
       (
         await svc
@@ -140,6 +148,11 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
     await expect(
       page.getByRole("heading", { name: "클랜 공지사항", exact: true }),
     ).toBeVisible();
+    for (const name of ["지난달 승률 MVP", "지난달 참여율 MVP"]) {
+      const winner = page.getByRole("region", { name, exact: true });
+      await expect(winner.locator('[data-namecard][data-namebar="theme-nebula-namebar"]')).toContainText(battleTag);
+      await expect(winner.getByRole("meter", { name, exact: true })).toHaveAttribute("aria-valuenow", "100");
+    }
     await expect(page.getByRole("region", { name: "다가오는 일정 목록", exact: true }).getByRole("link")).toHaveCount(3);
     await expect(
       page.getByRole("link", { name: new RegExp(`${title} 모임 투표`) }),
@@ -240,7 +253,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
       const toggle = page.getByRole("button", { name: "라이트 테마", exact: true });
       if ((await toggle.getAttribute("aria-pressed")) !== String(theme === "light")) await toggle.click();
       await expect(page.locator("html")).toHaveClass(new RegExp(`\\b${theme}\\b`));
-      for (const width of [1304, 1100, 900, 768, 390, 320]) {
+      for (const width of [1304, 1100, 900, 768, 698, 390, 320]) {
         await page.setViewportSize({ width, height: 844 });
         expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
         const noticeBox = (await page.getByRole("region", { name: "클랜 공지사항", exact: true }).boundingBox())!;
@@ -263,10 +276,10 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
           expect(badgesBox.y).toBeCloseTo(rulesBox.y, 0);
           expect(mvpBox.y + mvpBox.height).toBeCloseTo(badgesBox.y + badgesBox.height, 0);
         } else {
-          expect(mvpBox.y - Math.max(eventBox.y + eventBox.height, noticeBox.y + noticeBox.height)).toBeCloseTo(gap, 0);
-          expect(rulesBox.y - mvpBox.y - mvpBox.height).toBeCloseTo(gap, 0);
+          expect(rulesBox.y - Math.max(eventBox.y + eventBox.height, noticeBox.y + noticeBox.height)).toBeCloseTo(gap, 0);
           if (width >= 640) expect(badgesBox.y).toBeCloseTo(rulesBox.y, 0);
           else expect(badgesBox.y - rulesBox.y - rulesBox.height).toBeCloseTo(gap, 0);
+          expect(mvpBox.y - Math.max(rulesBox.y + rulesBox.height, badgesBox.y + badgesBox.height)).toBeCloseTo(gap, 0);
         }
         expect((await page.locator("[data-rules-preview]").boundingBox())!.height).toBeLessThanOrEqual(56);
         const eventList = page.getByRole("region", { name: "다가오는 일정 목록", exact: true });
@@ -286,6 +299,8 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         });
         expect(Math.abs(caseSpacing.top - caseSpacing.bottom)).toBeLessThan(2);
         const mvp = page.getByRole("region", { name: "지난달 MVP", exact: true });
+        expect(await grid.locator(":scope > section").last().getAttribute("aria-label")).toBe("지난달 MVP");
+        expect(await mvp.locator("[data-namecard]").evaluateAll((cards) => cards.every((card) => card.getBoundingClientRect().width <= card.parentElement!.getBoundingClientRect().width + 1))).toBe(true);
         const winners = await mvp.locator("section").evaluateAll(els => els.map(el => ({ x: el.getBoundingClientRect().x, y: el.getBoundingClientRect().y })));
         expect(new Set(winners.map(box => box.y)).size).toBe(width >= 1024 ? 3 : width >= 900 ? 1 : width >= 640 ? 2 : 3);
         if (width >= 1024) expect(new Set(winners.map(box => box.x)).size).toBe(1);
@@ -297,6 +312,25 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         }
       }
     }
+
+    // A different player's prediction card must use their identity and a fractional graph.
+    expect((await svc.from("clans").update({ subscription_tier: "premium" }).eq("id", clanId)).error).toBeNull();
+    expect((await svc.from("balance_session_series").insert({ id: seriesId, clan_id: clanId, game_id: clan!.game_id, host_user_id: leader!.user_id, opened_at: local.previous, closed_at: local.previous })).error).toBeNull();
+    expect((await svc.from("balance_rooms").update({ kind: "regular", status: "closed" }).eq("id", seriesId)).error).toBeNull();
+    for (const [index, id] of roundIds.entries()) {
+      expect((await svc.from("balance_sessions").insert({ id, series_id: seriesId, round_number: index + 1, clan_id: clanId, game_id: clan!.game_id, host_user_id: leader!.user_id, opened_at: local.previous, phase: "map_ban", match_outcome: "pending", prediction_pool_enabled: false, map_ban_deadline_at: new Date(Date.now() + 60_000).toISOString() })).error).toBeNull();
+      expect((await svc.from("balance_session_predictions").insert({ session_id: id, user_id: fixture.users[1].id, pick_team: 1 })).error).toBeNull();
+      expect((await svc.from("balance_sessions").update({ phase: "match_live", map_ban_deadline_at: null, resolved_map_label: "부산", match_outcome: index ? "team2" : "team1", closed_at: local.previous, predictions_settled_at: local.previous }).eq("id", id)).error).toBeNull();
+    }
+    await page.setViewportSize({ width: 1304, height: 844 });
+    await page.goto(base);
+    const predictor = page.getByRole("region", { name: "지난달 승부예측 MVP", exact: true });
+    await expect(predictor.locator("[data-namecard]")).toContainText(fixture.users[1].nickname);
+    await expect(predictor.getByRole("meter")).toHaveAttribute("aria-valuenow", "50");
+    await expect(predictor.getByText("적중률 50.0%", { exact: true })).toBeVisible();
+    const fillRatio = await predictor.getByRole("meter").evaluate((meter) => meter.firstElementChild!.getBoundingClientRect().width / meter.getBoundingClientRect().width);
+    expect(fillRatio).toBeCloseTo(0.5, 2);
+    await page.screenshot({ path: test.info().outputPath("dashboard-premium-namecards.png") });
   } finally {
     const cleanup = await Promise.all([
       svc.from("clan_events").delete().eq("id", eventId),

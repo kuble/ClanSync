@@ -1,7 +1,7 @@
 .bento {
   display:grid;
   grid-template-columns:minmax(0,1fr);
-  grid-template-areas:"notices" "events" "mvps" "rules" "badges";
+  grid-template-areas:"notices" "events" "rules" "badges" "mvps";
   gap:12px;
   align-items:stretch;
 }
@@ -16,7 +16,7 @@
 @media(min-width:640px) {
   .bento {
     grid-template-columns:repeat(2,minmax(0,1fr));
-    grid-template-areas:"notices notices" "events events" "mvps mvps" "rules badges";
+    grid-template-areas:"notices notices" "events events" "rules badges" "mvps mvps";
     gap:16px;
   }
   .mvpGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -27,8 +27,8 @@
     grid-template-columns:repeat(6,minmax(0,1fr));
     grid-template-areas:
       "notices notices events events events events"
-      "mvps mvps mvps mvps mvps mvps"
-      "rules rules rules badges badges badges";
+      "rules rules rules badges badges badges"
+      "mvps mvps mvps mvps mvps mvps";
   }
 }
 @media(min-width:900px) {

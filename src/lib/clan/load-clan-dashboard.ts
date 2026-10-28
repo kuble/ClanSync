@@ -23,9 +23,11 @@ export type DashboardNotice = {
 };
 
 export type DashboardMvp = {
+  userId: string;
   nickname: string;
   detail: string;
   highlight: string;
+  percentage: number;
   tiedCount: number;
 };
 
@@ -266,9 +268,11 @@ export async function loadClanDashboard(
   const participant = byParticipation[0];
   if (win) {
     model.mvp.winRate = {
+      userId: win.userId,
       nickname: nick.get(win.userId)!,
       detail: `${win.played}경기 참여 · ${win.wins}승 ${win.decided - win.wins}패`,
       highlight: `승률 ${formatPercent(win.wins / win.decided * 100)}`,
+      percentage: win.wins / win.decided * 100,
       tiedCount: byWin.filter(
         (score) =>
           score.wins / score.decided === win.wins / win.decided &&
@@ -278,9 +282,11 @@ export async function loadClanDashboard(
   }
   if (participant) {
     model.mvp.participation = {
+      userId: participant.userId,
       nickname: nick.get(participant.userId)!,
       detail: `클랜 내전 ${monthly.length}경기 중 ${participant.played}경기 참여`,
       highlight: `참여율 ${formatPercent(participant.played / monthly.length * 100)}`,
+      percentage: participant.played / monthly.length * 100,
       tiedCount: byParticipation.filter(
         (score) => score.played === participant.played,
       ).length,
@@ -314,9 +320,11 @@ export async function loadClanDashboard(
   const prediction = rankedPredictions[0];
   if (prediction) {
     model.mvp.prediction = {
+      userId: prediction.userId,
       nickname: nick.get(prediction.userId)!,
       detail: `${prediction.total}회 예측 · ${prediction.correct}회 적중`,
       highlight: `적중률 ${formatPercent(prediction.correct / prediction.total * 100)}`,
+      percentage: prediction.correct / prediction.total * 100,
       tiedCount: rankedPredictions.filter(
         (score) =>
           score.correct === prediction.correct &&
