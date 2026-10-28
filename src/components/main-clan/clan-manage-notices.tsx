@@ -5,7 +5,7 @@ import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Megaphone, Pin, PinOff, Plus, Pencil, Trash2 } from "lucide-react";
+import { Megaphone, Pin, PinOff, Plus, Pencil, ScrollText, Trash2 } from "lucide-react";
 import {
   saveClanNoticeAction,
   deleteClanNoticeAction,
@@ -92,7 +92,8 @@ export function ClanManageNotices({
     >
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 id="manage-notices-title" className="text-sm font-bold">
+          <h3 id="manage-notices-title" className="flex items-center gap-2 text-sm font-bold">
+            <Megaphone className="size-4 shrink-0 text-primary" aria-hidden="true" />
             <HelpText label="클랜 공지" help="중요한 소식을 클랜원에게 전하세요. 고정한 공지가 먼저 표시됩니다." />
           </h3>
         </div>
@@ -361,7 +362,7 @@ export function ClanManageRules({
   if (loadFailed) {
     return (
       <section className={panel} id="rules" aria-labelledby="manage-rules-title">
-        <h3 id="manage-rules-title" className="text-sm font-bold">클랜 규칙</h3>
+        <h3 id="manage-rules-title" className="flex items-center gap-2 text-sm font-bold"><ScrollText className="size-4 shrink-0 text-primary" aria-hidden="true" />클랜 규칙</h3>
         <p className="my-4 text-sm text-destructive" role="alert">
           기존 규칙을 불러오지 못했습니다. 다시 불러온 뒤 수정해 주세요.
         </p>
@@ -374,7 +375,7 @@ export function ClanManageRules({
   }
   if (!canManage) {
     const rules = parseClanRules(initialRules);
-    return <section className={panel} id="rules" aria-labelledby="manage-rules-title"><h3 id="manage-rules-title" className="text-sm font-bold">클랜 규칙</h3>
+    return <section className={panel} id="rules" aria-labelledby="manage-rules-title"><h3 id="manage-rules-title" className="flex items-center gap-2 text-sm font-bold"><ScrollText className="size-4 shrink-0 text-primary" aria-hidden="true" />클랜 규칙</h3>
       {rules.length ? <ol aria-label="클랜 규칙 목록" className="mt-4 divide-y divide-border">{rules.map((rule, index) => <li key={index} className="flex gap-3 py-3 text-sm leading-6"><span aria-hidden="true" className="w-5 shrink-0 text-muted-foreground">{index + 1}.</span><p className="min-w-0 flex-1 break-words">{rule}</p></li>)}</ol> : <p className="mt-4 text-sm text-muted-foreground">등록된 규칙이 없습니다.</p>}
     </section>;
   }

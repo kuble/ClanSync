@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, ScrollText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { saveClanRulesAction } from "@/app/actions/clan-notices";
 import { parseClanRules } from "@/lib/clan/rules";
@@ -40,7 +40,7 @@ export function ClanRulesEditor({ gameSlug, clanId, initialRules }: { gameSlug: 
   }
 
   return <section className="rounded-xl border border-border bg-card p-5 sm:p-6" id="rules" aria-labelledby="manage-rules-title" aria-busy={pending}>
-    <h3 id="manage-rules-title" className="text-sm font-bold">클랜 규칙</h3>
+    <h3 id="manage-rules-title" className="flex items-center gap-2 text-sm font-bold"><ScrollText className="size-4 shrink-0 text-primary" aria-hidden="true" />클랜 규칙</h3>
     {rules.length ? <ol aria-label="클랜 규칙 목록" className="mt-4 divide-y divide-border">
       {rules.map((rule, index) => <li key={index} className="flex items-start gap-3 py-3">
         <span aria-hidden="true" className="w-5 shrink-0 text-sm leading-6 tabular-nums text-muted-foreground">{index + 1}.</span>
