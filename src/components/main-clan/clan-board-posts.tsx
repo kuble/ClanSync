@@ -1,7 +1,7 @@
 "use client";
 import { ClanEmojiText } from "./clan-emoji-content";
 import Link from "next/link";
-import {useState,type ReactNode} from "react";
+import {useLayoutEffect,useRef,useState,type ReactNode} from "react";
 import {Camera,Clock3,GraduationCap,Image as ImageIcon,MessageSquare,Plus,Radio,UserRound} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {ClanBoardEditor} from "./clan-board-editor";
@@ -12,6 +12,7 @@ import type {ClanCoach} from "@/lib/clan/coaching";
 import {cn} from "@/lib/utils";
 import styles from "./clan-collection.module.css";
 import { MemoryPhoto } from "./memory-photo";
+import galleryStyles from "./memory-gallery.module.css";
 import { NO_CLAN_COSMETICS, memoryStyle, type ClanCosmeticAccess } from "@/lib/clan/cosmetics";
 
 export function ClanBoardPosts({base,gameSlug,clanId,kind,title,posts,total,page,coaches=[],userId,cosmeticAccess=NO_CLAN_COSMETICS}:{base:string;gameSlug:string;clanId:string;kind:BoardKind;title:string;posts:BoardListPost[];total:number;page:number;coaches?:ClanCoach[];userId:string;cosmeticAccess?:ClanCosmeticAccess}){
@@ -49,8 +50,35 @@ function BoardPostRows({base,kind,posts,startNumber,action}:{base:string;kind:Bo
   </section>;
 }
 function MemoryGallery({base,posts,cosmeticAccess}:{base:string;posts:BoardListPost[];cosmeticAccess:ClanCosmeticAccess}){
+  const gallery=useRef<HTMLDivElement>(null);
+  useLayoutEffect(()=>{
+    const root=gallery.current;if(!root)return;
+    const cards=Array.from(root.children) as HTMLElement[];
+    let frame=0,lastWidth=0;
+    function arrange(){
+      if(!root)return;
+      lastWidth=root.getBoundingClientRect().width;
+      const columns=Number(getComputedStyle(root).getPropertyValue("--columns"))||1;
+      const width=(lastWidth-(columns-1)*8)/columns,heights=Array<number>(columns).fill(0);
+      root.dataset.packed="true";
+      const sizes=cards.map(card=>card.getBoundingClientRect().height);
+      cards.forEach((card,index)=>{
+        const column=heights.indexOf(Math.min(...heights));
+        card.style.left=`${column*(width+8)}px`;card.style.top=`${heights[column]}px`;
+        heights[column]+=sizes[index]+8;
+      });
+      root.style.height=`${Math.max(0,Math.max(...heights)-8)}px`;
+    }
+    arrange();
+    const observer=new ResizeObserver(entries=>{
+      if(entries.every(entry=>entry.target===root&&Math.abs(entry.contentRect.width-lastWidth)<1))return;
+      cancelAnimationFrame(frame);frame=requestAnimationFrame(arrange);
+    });
+    observer.observe(root);cards.forEach(card=>observer.observe(card));
+    return()=>{observer.disconnect();cancelAnimationFrame(frame);};
+  },[posts]);
   return <section aria-label="추억 앨범">
-    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{posts.map((p,i)=>{const photo=memoryStyle(boardDetails(p.details),cosmeticAccess);return <Link key={p.id} prefetch={false} href={base+"/board/memories/"+p.id} className="min-w-0 focus-visible:outline-2 focus-visible:outline-primary" style={{transform:"rotate("+(i%3-1)*2+"deg)"}}>
+    <div ref={gallery} className={galleryStyles.grid}>{posts.map((p,i)=>{const photo=memoryStyle(boardDetails(p.details),cosmeticAccess);return <Link key={p.id} prefetch={false} href={base+"/board/memories/"+p.id} className={cn(galleryStyles.card,"focus-visible:outline-2 focus-visible:outline-primary")}>
       <MemoryPhoto src={boardImageUrl(base,p.id,true)} caption={p.content||p.title} footer={<><time dateTime={p.created_at}>{boardDate(p.created_at)}</time>{" · "+p.author}</>} frame={photo.photoFrame} sticker={photo.photoSticker} stickerPlacement={photo.photoStickerPlacement} stickers={photo.photoStickers} eager={i<2}/>
     </Link>;})}</div>
   </section>;

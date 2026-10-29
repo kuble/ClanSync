@@ -1,0 +1,6 @@
+.grid { --columns:1; --gaps:0px; position:relative; display:grid; grid-template-columns:repeat(var(--columns),minmax(0,1fr)); align-items:start; gap:8px; }
+.grid[data-packed=true] { display:block; }
+.card { display:flow-root; min-width:0; }
+.grid[data-packed=true] .card { position:absolute; width:calc((100% - var(--gaps))/var(--columns)); }
+@media(min-width:640px) { .grid { --columns:2; --gaps:8px; } }
+@media(min-width:1280px) { .grid { --columns:3; --gaps:16px; } }
