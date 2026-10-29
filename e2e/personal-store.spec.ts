@@ -21,7 +21,8 @@ test("기본 디자인과 공통 잔액은 여러 게임 클랜에서 동일하�
     await expect(page.getByRole("article",{name:"기본 카드 프레임",exact:true})).toBeVisible();
     await expect(page.getByRole("article",{name:"프리미엄 골드 프레임",exact:true})).toHaveCount(0);
     await page.goto("/games/valorant/clan/"+otherClanId+"/store");
-    await page.getByRole("link",{name:"프로필",exact:true}).click();
+    // The development indicator overlaps this lower sidebar icon; use keyboard navigation.
+    await page.getByRole("link",{name:"프로필",exact:true}).press("Enter");
     await page.getByRole("link",{name:"개인 상점",exact:true}).click();
     await expect(page.getByRole("main").getByLabel("보유 코인").locator("strong")).toHaveText("1,000");
     expect((await f.service.from("coin_transactions").select("id").eq("user_id",f.users[0].id)).data).toEqual([]);
@@ -59,11 +60,11 @@ test("상점은 보유 상품도 실제 추가일 최신순으로 표시하고 �
     const sample = newest.locator("[data-namecard]");
     await expect(sample.locator("img, svg, strong")).toHaveCount(0);
     await newest.getByRole("button", { name: names[13] + " 미리보기", exact: true }).click();
-    const current = page.getByRole("region", { name: "현재 네임카드" });
+    const current = page.getByRole("dialog", { name: names[13] + " 미리보기", exact: true });
     await expect(current).toContainText(names[13]);
     expect((await f.service.from("user_namecard_selections").select("option_id").eq("user_id", f.users[0].id)).data).toEqual([]);
-    await current.getByRole("button", { name: "미리보기 초기화", exact: true }).click();
-    await expect(current).not.toContainText(names[13]);
+    await current.getByRole("button", { name: "미리보기 닫기", exact: true }).click();
+    await expect(current).toBeHidden();
     await newest.getByRole("button", { name: names[13] + " 적용", exact: true }).click();
     await expect(newest.getByRole("button", { name: names[13] + " 적용", exact: true })).toHaveText("적용 중");
     expect((await f.service.from("users").select("coin_balance").eq("id", f.users[0].id).single()).data?.coin_balance).toBe(0);
@@ -106,16 +107,15 @@ test("클랜 미가입자도 임시 칭호를 구매·적용하며 삭제된 프
     await categories.getByRole("radio", { name: "칭호", exact: true }).click();
     await search.fill("함께하는 플레이어");
     const product = page.getByRole("article", { name: "함께하는 플레이어", exact: true });
-    await product.getByRole("button", { name: "함께하는 플레이어 구매", exact: true }).click();
+    await product.getByRole("button", { name: "함께하는 플레이어 미리보기", exact: true }).click();
+    await page.getByRole("dialog", { name: "함께하는 플레이어 미리보기", exact: true }).getByRole("button", { name: "함께하는 플레이어 구매", exact: true }).click();
     await page.getByRole("dialog", { name: "네임카드 디자인 구매", exact: true }).getByRole("button", { name: "구매 확정", exact: true }).click();
     await expect(page.locator('[aria-label="보유 코인"] strong')).toHaveText("10");
     await expect(search).toHaveValue("함께하는 플레이어");
     await expect(product).toBeVisible();
-    const current = page.getByRole("region", { name: "현재 네임카드" });
-    await current.getByRole("button", { name: "함께하는 플레이어 적용", exact: true }).click();
-    await expect(current.getByRole("button", { name: "함께하는 플레이어 적용", exact: true })).toHaveText("적용 중");
-    await expect(page.getByRole("region", { name: "현재 네임카드" })).toContainText("함께하는 플레이어");
+    await product.getByRole("button", { name: "함께하는 플레이어 적용", exact: true }).click();
+    await expect(product.getByRole("button", { name: "함께하는 플레이어 적용", exact: true })).toHaveText("적용 중");
     await page.reload();
-    await expect(page.getByRole("region", { name: "현재 네임카드" })).toContainText("함께하는 플레이어");
+    await expect(product.getByRole("button", { name: "함께하는 플레이어 적용", exact: true })).toHaveText("적용 중");
   } finally { await f.cleanup(); expect((await f.service.from("nameplate_options").delete().eq("id",titleId)).error).toBeNull(); }
 });

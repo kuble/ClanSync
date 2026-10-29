@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ChevronLeft, ChevronRight, Coins, Crown, Eye, RotateCcw, Search } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Coins, Crown, Search, Store } from "lucide-react";
 import { toast } from "sonner";
 import { purchaseProfileTitleAction } from "@/app/actions/profile-titles";
 import { purchaseStoreItemAction } from "@/app/actions/clan-store-purchase";
@@ -15,6 +15,8 @@ import { RubberSegment } from "@/components/ui/rubber-segment";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import styles from "./personal-store.module.css";
+import clanStyles from "./clan-store.module.css";
+import { cn } from "@/lib/utils";
 
 export function PersonalStoreProducts({ state, displayName, offer }: {
   state: NamecardState; displayName: string; offer: PremiumFrameOffer | null;
@@ -35,7 +37,6 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
   const coins = coinOverride ?? state.coinBalance;
   const products = namecardProducts({ ...state, selections }, offer).map(p => ({ ...p, available: p.available || purchased.includes(p.id) }));
   const candidate = products.find(product => product.id === previewId) ?? null;
-  const current = namecardAppearance(state.catalog, candidate ? withProduct(selections, candidate) : selections);
   const layout = category === "emblem" || category === "portrait" ? "compact" : category === "sub" ? "label" : "wide";
   const pageSize = layout === "wide" ? 6 : 12;
   const filtered = products.filter(p => p.category === category
@@ -61,7 +62,6 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
           : await saveNameplateSelectionAction({ category: first.category, optionId: first.option_id });
         if (!result.ok) { toast.error(result.error); return; }
         setSelectionOverride(withProduct(selections, product));
-        setPreviewId(product.id);
         window.dispatchEvent(new CustomEvent(CLANSYNC_NAMEPLATE_CHANGED));
         toast.success("모든 게임의 네임카드에 적용했습니다.");
         router.refresh();
@@ -87,7 +87,6 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
           setCoinOverride(result.coinBalance);
         }
         setPurchased(ids => [...ids, product.id]);
-        setPreviewId(product.id);
         setSelected(null);
         toast.success("구매했습니다. 적용 버튼으로 네임카드에 장착해 보십시오.");
         router.refresh();
@@ -96,31 +95,21 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
     });
   }
 
-  return <div className={styles.shop}>
-    <h1 className="sr-only">네임카드 상점</h1>
-    <div className={styles.previewRow}>
-    <section className={styles.current} aria-label="현재 네임카드">
-      <h2 className="sr-only">네임카드 미리보기</h2>
-      <Namecard displayName={displayName} {...current} fill />
-      <div className={styles.previewControls}>
-        <span className={styles.previewState} title={candidate && !applied(candidate) ? candidate.name + " 미리보기 · 아직 저장되지 않았습니다" : "현재 적용된 네임카드"}>{candidate && !applied(candidate) ? <Eye size={18} aria-hidden /> : <Check size={18} aria-hidden />}<span className="sr-only" role="status">{candidate && !applied(candidate) ? candidate.name + " 미리보기" : "현재 적용 중"}</span></span>
-        <Button size="icon" variant="ghost" aria-label="미리보기 초기화" title="미리보기 초기화" disabled={!candidate || pending} onClick={() => setPreviewId(null)}><RotateCcw size={16} aria-hidden /></Button>
-        {candidate && (candidate.available ? <Button size="sm" disabled={pending || applied(candidate)} onClick={() => apply(candidate)} aria-label={candidate.name + " 적용"}>{applied(candidate) ? "적용 중" : "적용"}</Button> : <Button size="sm" disabled={pending || !!reason(candidate)} onClick={() => { setSelected(candidate); setError(""); }} aria-label={candidate.name + " 구매"}>{reason(candidate) ? candidate.premium && !offer?.eligible ? "Premium 필요" : "코인 부족" : "구매"}</Button>)}
-      </div>
-    </section>
-    <div className={styles.wallet} aria-label="보유 코인"><Coins size={22} aria-hidden /><div><span>내 코인</span><strong>{coins.toLocaleString("ko-KR")}</strong></div></div>
-    </div>
+  return <div className={cn(styles.shop,clanStyles.shop)}>
+    <header className={clanStyles.header}>
+      <h1><Store className="size-5 text-primary" aria-hidden />개인 상점</h1>
+      <div className={clanStyles.balance} aria-label="보유 코인"><Coins size={16} aria-hidden /><span>내 코인</span><strong>{coins.toLocaleString("ko-KR")}</strong></div>
+    </header>
     <section className={styles.catalog} aria-label="네임카드 디자인">
-      <div className={styles.filters}>
-        <RubberSegment label="개인 꾸미기 분류" labelPosition="hidden" options={STORE_CATEGORIES} value={category} onChange={value => { setCategory(value); setPage(1); }} />
-        <div className={styles.tools}>
+      <div className={cn(styles.filters,clanStyles.filters)}>
+        <div className={clanStyles.filterTabs}><RubberSegment label="개인 꾸미기 분류" labelPosition="hidden" options={STORE_CATEGORIES} value={category} onChange={value => { setCategory(value); setPage(1); }} /><span role="status">{filtered.length}개 디자인 · {currentPage} / {totalPages} 페이지</span></div>
+        <div className={cn(styles.tools,clanStyles.tools)}>
           <label className={styles.search}><Search size={16} aria-hidden /><input aria-label="디자인 검색" placeholder="디자인 검색" value={query} onChange={e => { setQuery(e.target.value); setPage(1); }} /></label>
         </div>
       </div>
-      <div className={styles.results}><p role="status">{filtered.length}개 디자인 <span>· {currentPage} / {totalPages} 페이지</span></p><span>최근 추가순</span></div>
-      <div className={styles.grid} data-layout={layout} aria-label="개인 꾸미기 상품" aria-busy={pending}>
-        {shown.map(product => <article key={product.id} className={styles.product} data-kind={product.category} data-previewed={candidate?.id === product.id || undefined} aria-label={product.name}>
-          <div className={styles.productHeading}><h3>{product.name}</h3>{product.rarity === "normal" && <span className="text-xs text-muted-foreground">노말</span>}{product.premium && <span className={styles.premium}><Crown size={12} aria-hidden />Premium</span>}{applied(product) && <span className={styles.applied}><Check size={12} aria-hidden />적용 중</span>}</div>
+      <div className={cn(styles.grid,clanStyles.grid)} aria-label="개인 꾸미기 상품" aria-busy={pending}>
+        {shown.map(product => <article key={product.id} className={cn(styles.product,clanStyles.product)} data-kind={product.category} data-previewed={candidate?.id === product.id || undefined} aria-label={product.name}>
+          <div className={styles.productHeading}><h3>{product.name}</h3>{product.rarity === "normal" && <span className={clanStyles.rarity}>노말</span>}{product.premium && <span className={styles.premium}><Crown size={12} aria-hidden />Premium</span>}{applied(product) && <span className={styles.applied}><Check size={12} aria-hidden />적용 중</span>}</div>
           <button type="button" className={styles.preview} aria-label={product.name + " 미리보기"} aria-pressed={candidate?.id === product.id} onClick={() => setPreviewId(product.id)}>{preview(product)}</button>
             <div className={styles.productFooter}><strong>{product.available ? product.price === 0 ? "기본 제공" : "보유 중" : <><Coins size={14} aria-hidden />{product.price.toLocaleString("ko-KR")}<small>코인</small></>}</strong>
               {product.available ? <Button size="sm" variant={applied(product) ? "secondary" : "default"} disabled={pending || applied(product)} onClick={() => apply(product)} aria-label={`${product.name} 적용`}>{applied(product) ? "적용 중" : product.category === "theme" ? "세트 적용" : "적용"}</Button>
@@ -136,6 +125,11 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
         <Button variant="outline" size="icon" aria-label="다음 페이지" disabled={currentPage >= totalPages} onClick={() => setPage(currentPage + 1)}><ChevronRight size={16} /></Button>
       </nav>
     </section>
+    <Dialog open={!!candidate} onOpenChange={open=>{if(!open&&!busy.current)setPreviewId(null);}}><DialogContent showCloseButton={!pending} className="sm:max-w-3xl">
+      <DialogHeader><DialogTitle>{candidate?.name} 미리보기</DialogTitle><DialogDescription>{candidate?.description}</DialogDescription></DialogHeader>
+      {candidate&&<section aria-label="적용 미리보기" className={styles.modalPreview}>{preview(candidate,true)}</section>}
+      <DialogFooter><Button variant="outline" aria-label="미리보기 닫기" disabled={pending} onClick={()=>setPreviewId(null)}>닫기</Button>{candidate&&(candidate.available?<Button disabled={pending||applied(candidate)} onClick={()=>apply(candidate)} aria-label={candidate.name+" 적용"}>{applied(candidate)?"적용 중":"적용"}</Button>:<Button disabled={pending||!!reason(candidate)} onClick={()=>{setPreviewId(null);setSelected(candidate);setError("");}} aria-label={candidate.name+" 구매"}>{reason(candidate)?candidate.premium&&!offer?.eligible?"Premium 필요":"코인 부족":"구매"}</Button>)}</DialogFooter>
+    </DialogContent></Dialog>
     <Dialog open={!!selected} onOpenChange={open => { if (!open && !busy.current) setSelected(null); }}><DialogContent showCloseButton={!pending}>
       <DialogHeader><DialogTitle>네임카드 디자인 구매</DialogTitle><DialogDescription>{selected?.name}을 개인 코인으로 구매합니다. 구매 후 적용할 수 있습니다.</DialogDescription></DialogHeader>
       {selected && <div className={styles.modalPreview}>{preview(selected, true)}</div>}

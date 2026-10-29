@@ -20,8 +20,8 @@ test("기본 네임카드와 임시 칭호는 게임 간 공유되며 삭제한 
     await title.getByRole("button", { name: "검증용 칭호 구매", exact: true }).click();
     await page.getByRole("dialog", { name: "네임카드 디자인 구매" }).getByRole("button", { name: "구매 확정", exact: true }).click();
     await expect(page.getByLabel("보유 코인").locator("strong")).toHaveText("10");
-    await page.getByRole("region", { name: "현재 네임카드" }).getByRole("button", { name: "검증용 칭호 적용", exact: true }).click();
-    await expect(page.getByRole("region", { name: "현재 네임카드" })).toContainText("검증용 칭호");
+    await title.getByRole("button", { name: "검증용 칭호 적용", exact: true }).click();
+    await expect(title.getByRole("button", { name: "검증용 칭호 적용", exact: true })).toHaveText("적용 중");
 
     await page.goto("/profile");
     await page.getByRole("button", { name: "네임카드 꾸미기", exact: true }).click();
