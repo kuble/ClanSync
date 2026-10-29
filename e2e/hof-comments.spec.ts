@@ -167,7 +167,7 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
       else expect(time.x).toBeGreaterThanOrEqual(bubble.x + bubble.width);
       expect(time.y + time.height).toBeCloseTo(bubble.y + bubble.height, 0);
       expect(button.y + button.height).toBeLessThanOrEqual(time.y);
-      await expect(row.locator("[data-comment-row] > div > div").first().locator("time")).toHaveCount(0);
+      await expect(row.locator("time")).toHaveCount(1);
       if (mine) {
         const remove = row.getByRole("button", { name: `${nickname} 댓글 삭제`, exact: true });
         const removeBox = (await remove.boundingBox())!;

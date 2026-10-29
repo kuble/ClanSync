@@ -145,3 +145,65 @@ test("board and stats comments share basic and custom emoji behavior", async ({ 
     finally { await f.cleanup(); }
   }
 });
+
+test("comment groups share identity until the author or KST day changes", async ({ page, context }) => {
+  test.setTimeout(120_000);
+  const f = await createIsolatedBalanceFixture(2), svc = f.service, postId = randomUUID();
+  const base = f.path.replace(/\/balance$/, "");
+  const messages = [
+    { author_id: f.users[0].id, content: "어제 대화를 마무리해요.", created_at: "2026-10-28T14:59:00Z" },
+    { author_id: f.users[0].id, content: "오늘 첫 댓글이에요.", created_at: "2026-10-28T15:00:00Z" },
+    { author_id: f.users[0].id, content: "같은 사람이 이어서 남긴 댓글이에요.", created_at: "2026-10-28T15:01:00Z" },
+    { author_id: f.users[1].id, content: "다른 멤버가 이야기해요.", created_at: "2026-10-28T15:02:00Z" },
+    { author_id: f.users[1].id, content: "다른 멤버도 연속으로 이야기해요.", created_at: "2026-10-28T15:03:00Z" },
+    { author_id: f.users[0].id, content: "다시 대화에 참여해요.", created_at: "2026-10-28T15:04:00Z" },
+    { author_id: null, content: "연결이 해제된 작성자의 댓글 하나", created_at: "2026-10-28T15:05:00Z" },
+    { author_id: null, content: "연결이 해제된 작성자의 댓글 둘", created_at: "2026-10-28T15:06:00Z" },
+  ];
+  try {
+    expect((await svc.from("clan_board_posts").insert({ id: postId, clan_id: f.clanId, author_id: f.users[0].id, kind: "free", title: "연속 댓글", content: "대화를 묶어서 읽어요." })).error).toBeNull();
+    expect((await svc.from("clan_board_comments").insert(messages.map(message => ({ ...message, post_id: postId })))).error).toBeNull();
+    expect((await svc.from("clan_hof_comments").insert(messages.map(message => ({ ...message, clan_id: f.clanId, ranking: "rate", period_key: "all" })))).error).toBeNull();
+    await loginIsolatedBalanceUser(page, f.users[0]);
+    const board = await context.newPage();
+    await board.goto(`${base}/board/free/${postId}`);await page.goto(`${base}/stats?tab=hof`);
+    for (const surface of [{ page: board, scope: board.locator("#comments"), name: "board" }, { page, scope: page.getByLabel("전체 기간 · 승률 반응", { exact: true }), name: "stats" }]) {
+      const rows = messages.map(message => surface.scope.getByRole("listitem").filter({ hasText: message.content }));
+      await expect(rows[0]).toBeVisible();await expect(surface.scope.getByRole("separator")).toHaveCount(2);
+      for (const index of [0, 1, 3, 5, 6, 7]) {
+        await expect(rows[index].locator("strong")).toHaveCount(1);
+        await expect(rows[index].getByRole("img", { name: /프로필 (사진|심볼)$/ })).toHaveCount(1);
+      }
+      for (const index of [2, 4]) {
+        await expect(rows[index].locator("strong")).toHaveCount(0);
+        await expect(rows[index].getByRole("img", { name: /프로필 (사진|심볼)$/ })).toHaveCount(0);
+        await expect(rows[index].locator("time")).toHaveCount(1);
+        await rows[index].hover();
+        const current = (await rows[index].locator("p").boundingBox())!, previous = (await rows[index - 1].locator("p").boundingBox())!;
+        expect(current.y - previous.y - previous.height).toBeGreaterThanOrEqual(4);
+        expect(current.y - previous.y - previous.height).toBeLessThanOrEqual(8);
+        if (index === 2) expect(current.x + current.width).toBeCloseTo(previous.x + previous.width, 0);
+        else expect(current.x).toBeCloseTo(previous.x, 0);
+      }
+      await rows[2].hover();await rows[2].getByRole("button", { name: /댓글 공감 선택$/ }).click();
+      await surface.page.getByRole("button", { name: "좋아요 공감", exact: true }).click();
+      await expect(rows[2].getByRole("button", { name: "좋아요 공감 1명", exact: true })).toHaveAttribute("aria-pressed", "true");
+      await rows[3].hover();await rows[3].getByRole("button", { name: /댓글 삭제$/ }).click();
+      await rows[3].getByRole("button", { name: "삭제 확인", exact: true }).click();
+      await expect(rows[3]).toHaveCount(0);
+      await expect(rows[4].locator("strong")).toHaveCount(1);
+      await expect(rows[4].getByRole("img", { name: /프로필 (사진|심볼)$/ })).toHaveCount(1);
+      await rows[4].hover();await rows[4].getByRole("button", { name: /댓글 삭제$/ }).click();
+      await rows[4].getByRole("button", { name: "삭제 확인", exact: true }).click();
+      await expect(rows[4]).toHaveCount(0);
+      await expect(rows[5].locator("strong")).toHaveCount(0);
+      await expect(rows[5].getByRole("img", { name: /프로필 (사진|심볼)$/ })).toHaveCount(0);
+      await expect(rows[5].locator("time")).toHaveCount(1);
+      for (const width of [1015, 390]) {
+        await surface.page.setViewportSize({ width, height: 884 });await rows[1].hover();
+        expect(await surface.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+        await surface.page.screenshot({ path: test.info().outputPath(`${surface.name}-groups-${width}.png`), animations: "disabled" });
+      }
+    }
+  } finally { await f.cleanup(); }
+});

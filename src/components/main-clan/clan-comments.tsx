@@ -39,16 +39,17 @@ export function ClanComments<T extends ClanComment>({ comments, clanId, targetKi
   className?: string;
 }) {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
-  return <ol className={cn("space-y-5", className)}>{comments.map((comment, index) => {
+  return <ol className={cn(styles.list, className)}>{comments.map((comment, index) => {
     const date = new Date(comment.createdAt), day = dateFormat.format(date), time = timeFormat.format(date);
     const showDay = index === 0 || day !== dateFormat.format(new Date(comments[index - 1].createdAt));
+    const continuation = !showDay && !!comment.authorId && comments[index - 1].authorId === comment.authorId;
     const react = (kind: CommentReactionKind) => void onReact(comment, comment.reactions.some(reaction => reaction.kind === kind && reaction.mine) ? null : kind);
-    return <li key={comment.id} className="space-y-3">
+    return <li key={comment.id} className={cn("space-y-3", continuation && styles.continuation)}>
       {showDay && <div role="separator" aria-label={day} className={styles.date}><span /><span>{day}</span><span /></div>}
       <div data-comment-row className={cn(styles.comment, "flex items-start gap-2.5", comment.isMine && "flex-row-reverse")}>
-        <ClanPlayerAvatar userId={comment.authorId} label={comment.nickname} size={28} />
-        <div className="min-w-0 flex-1 space-y-1.5">
-          <div className={cn("flex", comment.isMine && "justify-end")}><strong className={styles.author}>{comment.nickname}</strong></div>
+        {continuation ? <span className="size-7 shrink-0" aria-hidden="true" /> : <ClanPlayerAvatar userId={comment.authorId} label={comment.nickname} size={28} />}
+        <div className={cn("min-w-0 flex-1", !continuation && "space-y-1.5")}>
+          {continuation ? <span className="sr-only">{comment.nickname}</span> : <div className={cn("flex", comment.isMine && "justify-end")}><strong className={styles.author}>{comment.nickname}</strong></div>}
           <div className={cn(styles.message, comment.isMine && styles.mine)}>
             <div className={styles.bubble}>
               <p className={styles.content}><ClanEmojiText text={comment.content} /></p>
