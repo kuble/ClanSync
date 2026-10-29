@@ -16,23 +16,37 @@ test("mobile members keep identity, activity and all actions inside the viewport
     await expect(table.getByRole("columnheader", { name: "활동", exact: true })).toBeVisible();
     await expect(table.getByRole("columnheader", { name: "활동 상태", exact: true })).toHaveCount(0);
     await expect(table.getByRole("columnheader")).toHaveCount(6);
+    // The surrounding panel can shrink without changing the viewport (for example, beside a sidebar).
+    await table.evaluate(el => { el.parentElement!.parentElement!.style.width = "620px"; });
+    await expect(table.getByRole("columnheader")).toHaveCount(2);
+    expect(await table.evaluate(el => el.parentElement!.scrollWidth <= el.parentElement!.clientWidth + 1)).toBe(true);
+    await table.evaluate(el => { el.parentElement!.parentElement!.style.removeProperty("width"); });
+    await expect(table.getByRole("columnheader")).toHaveCount(6);
     const row = (index: number) => table.getByRole("row").filter({ has: page.getByRole("link", { name: `${tags[index]} 개인 기록`, exact: true }) });
-    for (const width of [320,351,640]) {
+    for (const width of [320,351,640,767,768,797,820]) {
       await page.setViewportSize({ width, height: 884 });
-      await expect(table.getByRole("columnheader")).toHaveCount(2);
-      await expect(row(1).getByRole("cell")).toHaveCount(2);
+      const compact = await table.evaluate(el => el.parentElement!.parentElement!.getBoundingClientRect().width < 720);
+      if (width === 797) expect(compact).toBe(true);
+      await expect(table.getByRole("columnheader")).toHaveCount(compact ? 2 : 6);
+      await expect(row(1).getByRole("cell")).toHaveCount(compact ? 2 : 6);
       await expect(row(1).getByRole("link", { name: `${tags[1]} 개인 기록`, exact: true })).toHaveText(tags[1]);
       await expect(row(1).getByRole("img", { name: `${tags[1]} 활성`, exact: true })).toBeVisible();
       expect(await table.evaluate(el => el.parentElement!.scrollWidth <= el.parentElement!.clientWidth + 1)).toBe(true);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       const bounds = await table.boundingBox();
       for (const button of await row(1).getByRole("button").all()) {
-        await expect(button).toHaveCSS("width", "44px");
-        await expect(button).toHaveCSS("height", "44px");
+        await expect(button).toHaveCSS("width", compact ? "44px" : "28px");
+        await expect(button).toHaveCSS("height", compact ? "44px" : "28px");
         const box = await button.boundingBox();
-        expect(box?.width).toBeGreaterThanOrEqual(44); expect(box?.height).toBeGreaterThanOrEqual(44);
+        if (compact) { expect(box?.width).toBeGreaterThanOrEqual(44); expect(box?.height).toBeGreaterThanOrEqual(44); }
         expect(box!.x).toBeGreaterThanOrEqual(bounds!.x); expect(box!.x + box!.width).toBeLessThanOrEqual(bounds!.x + bounds!.width + 1);
       }
+      if (width === 797) await page.screenshot({ path: test.info().outputPath("members-panel-797.png"), animations: "disabled" });
+    }
+    for (const width of [900,921]) {
+      await page.setViewportSize({ width, height: 884 });
+      await expect(table.getByRole("columnheader")).toHaveCount(6);
+      expect(await table.evaluate(el => el.parentElement!.scrollWidth <= el.parentElement!.clientWidth + 1)).toBe(true);
     }
     await page.setViewportSize({ width: 351, height: 884 });
     await page.getByRole("button", { name: `${tags[0]} 클랜장 위임 후 멤버로 강등`, exact: true }).click();

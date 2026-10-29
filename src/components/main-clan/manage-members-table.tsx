@@ -147,7 +147,7 @@ export function ManageMembersTable({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="@container/members space-y-4">
       <RubberSegment label="구성원 구분" labelPosition="hidden" value={scope} onChange={(next) => { setScope(next); setFilter("all"); setPageIndex(0); }} options={[
         { id: "current", label: "현재 구성원", badge: rows.filter((row) => row.status === "active").length },
         { id: "former", label: "이전 구성원", badge: rows.filter((row) => row.status !== "active").length },
@@ -182,7 +182,7 @@ export function ManageMembersTable({
               setQuery(event.target.value);
               setPageIndex(0);
             }}
-            className="pl-9 max-md:h-[44px]"
+            className="pl-9 @max-[720px]/members:h-[44px]"
           />
         </div>
         <select
@@ -192,31 +192,31 @@ export function ManageMembersTable({
             setFilter(event.target.value);
             setPageIndex(0);
           }}
-          className="h-[44px] w-20 rounded-lg border border-input bg-background px-2 text-xs md:h-9 md:w-auto md:px-3"
+          className="h-[44px] w-20 rounded-lg border border-input bg-background px-2 text-xs @min-[720px]/members:h-9 @min-[720px]/members:w-auto @min-[720px]/members:px-3"
         >
           <option value="all">전체</option>
           {scope === "current" ? <><option value="active">활성만</option><option value="inactive">비활성만</option><option value="dormant">휴면만</option></> : <><option value="left">재가입 가능</option><option value="banned">재가입 차단</option></>}
         </select>
       </div>
       <div className="overflow-x-auto rounded-lg border">
-        <table className="w-full table-fixed text-left text-sm md:min-w-[640px] md:table-auto">
+        <table className="w-full table-fixed text-left text-sm @min-[720px]/members:min-w-[640px] @min-[720px]/members:table-auto">
           <thead className="bg-muted/50 text-muted-foreground border-b text-xs font-medium uppercase">
             <tr>
               <th className="px-3 py-2">{identityLabel}</th>
-              <th className="hidden px-3 py-2 md:table-cell">게임 인증</th>
-              <th className="hidden px-3 py-2 md:table-cell">{scope === "current" ? "활동" : "상태"}</th>
-              <th className="hidden px-3 py-2 md:table-cell">{scope === "current" ? "역할" : "이전 역할"}</th>
-              <th className="hidden px-3 py-2 md:table-cell">가입</th>
-              {scope === "former" && <th className="hidden whitespace-nowrap px-3 py-2 md:table-cell">탈퇴·강퇴일</th>}
-              <th className="w-[144px] px-1 py-2 text-right md:w-auto md:px-3">작업</th>
+              <th className="hidden px-3 py-2 @min-[720px]/members:table-cell">게임 인증</th>
+              <th className="hidden px-3 py-2 @min-[720px]/members:table-cell">{scope === "current" ? "활동" : "상태"}</th>
+              <th className="hidden px-3 py-2 @min-[720px]/members:table-cell">{scope === "current" ? "역할" : "이전 역할"}</th>
+              <th className="hidden px-3 py-2 @min-[720px]/members:table-cell">가입</th>
+              {scope === "former" && <th className="hidden whitespace-nowrap px-3 py-2 @min-[720px]/members:table-cell">탈퇴·강퇴일</th>}
+              <th className="w-[144px] px-1 py-2 text-right @min-[720px]/members:w-auto @min-[720px]/members:px-3">작업</th>
             </tr>
           </thead>
           <tbody>
             {visible.map((m) => (
               <tr key={m.userId} className="border-b last:border-0">
-                <td className="px-2 py-3 text-xs font-medium md:px-3 md:text-sm">
-                  <div className="flex items-start gap-1.5 md:block">
-                  {scope === "current" && <span role="img" aria-label={`${memberName(m)} ${activityLabels[activity(m)]}`} title={activityHint(m)} className={`mt-1 inline-block size-2 shrink-0 rounded-full md:hidden ${activityClass[activity(m)]}`} />}
+                <td className="px-2 py-3 text-xs font-medium @min-[720px]/members:px-3 @min-[720px]/members:text-sm">
+                  <div className="flex items-start gap-1.5 @min-[720px]/members:block">
+                  {scope === "current" && <span role="img" aria-label={`${memberName(m)} ${activityLabels[activity(m)]}`} title={activityHint(m)} className={`mt-1 inline-block size-2 shrink-0 rounded-full @min-[720px]/members:hidden ${activityClass[activity(m)]}`} />}
                   <Link
                     href={`/games/${gameSlug}/clan/${clanId}/stats?player=${encodeURIComponent(m.userId)}`}
                     prefetch={false}
@@ -226,21 +226,21 @@ export function ManageMembersTable({
                     {memberName(m)}
                   </Link>
                   </div>
-                  {scope === "former" && <span className="mt-1 block text-[10px] font-normal text-muted-foreground md:hidden">{m.status === "banned" ? "재가입 차단" : "재가입 가능"}</span>}
+                  {scope === "former" && <span className="mt-1 block text-[10px] font-normal text-muted-foreground @min-[720px]/members:hidden">{m.status === "banned" ? "재가입 차단" : "재가입 가능"}</span>}
                 </td>
-                <td className="hidden px-3 py-2 text-xs md:table-cell">
+                <td className="hidden px-3 py-2 text-xs @min-[720px]/members:table-cell">
                   <span className={`whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-medium ${m.gameVerified ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{m.gameVerified ? "인증 완료" : "미인증"}</span>
                 </td>
-                <td className="text-muted-foreground hidden px-3 py-2 text-xs md:table-cell">
+                <td className="text-muted-foreground hidden px-3 py-2 text-xs @min-[720px]/members:table-cell">
                   {scope === "current" ? <span role="img" aria-label={`${memberName(m)} ${activityLabels[activity(m)]}`} title={activityHint(m)} className={`inline-block size-2.5 rounded-full ring-2 ring-background ${activityClass[activity(m)]}`} /> : <span className={`whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-medium ${m.status === "banned" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>{m.status === "banned" ? "강퇴 · 재가입 차단" : m.departureKind === "kicked" ? "강퇴 · 재가입 허용" : m.departureKind === "left" ? "자진 탈퇴" : "탈퇴"}</span>}
                 </td>
-                <td className="hidden px-3 py-2 md:table-cell">{roleLabel(m.role)}</td>
-                <td className="text-muted-foreground hidden px-3 py-2 text-xs md:table-cell">
+                <td className="hidden px-3 py-2 @min-[720px]/members:table-cell">{roleLabel(m.role)}</td>
+                <td className="text-muted-foreground hidden px-3 py-2 text-xs @min-[720px]/members:table-cell">
                   {m.joinedLabel}
                 </td>
-                {scope === "former" && <td className="hidden px-3 py-2 text-xs text-muted-foreground md:table-cell">{m.departedLabel}</td>}
-                <td className="w-[144px] px-1 py-2 text-right md:w-auto md:px-3">
-                  <div className="flex items-center justify-end gap-0 md:flex-wrap md:gap-1 max-md:[&_button]:size-[44px]">
+                {scope === "former" && <td className="hidden px-3 py-2 text-xs text-muted-foreground @min-[720px]/members:table-cell">{m.departedLabel}</td>}
+                <td className="w-[144px] px-1 py-2 text-right @min-[720px]/members:w-auto @min-[720px]/members:px-3">
+                  <div className="flex items-center justify-end gap-0 @min-[720px]/members:flex-wrap @min-[720px]/members:gap-1 @max-[720px]/members:[&_button]:size-[44px]">
                     {m.status === "active" && <MemberRecordButton clanId={clanId} gameSlug={gameSlug} userId={m.userId} nickname={memberName(m)} gameTag={m.gameTag} linkedCount={m.linkedCount} />}
                     {m.actions.canAllowRejoin && <Button type="button" variant="ghost" size="icon-sm" disabled={pending} aria-label={`${memberName(m)} 재가입 허용`} title="재가입 허용" onClick={() => { setAllowError(""); setAllowing(m); }}><UserRoundCheck aria-hidden="true" /></Button>}
                     {m.actions.canTransferLeadership && <Button type="button" variant="ghost" size="icon-sm" disabled={pending} aria-label={`${memberName(m)} 클랜장 위임 후 멤버로 강등`} title="클랜장 위임 후 멤버로 강등" onClick={() => { setTransferError(""); setSuccessorId(""); setTransferring(m); }}><ShieldMinus aria-hidden="true" /></Button>}
