@@ -15,7 +15,7 @@ test("개인 기록의 공통 네임카드는 해당 플레이어 소개로, 엠
     const otherGame = await ok(f.service.from("games").select("id").eq("slug", "valorant").single());
     await ok(f.service.from("user_game_profiles").insert({ user_id: player.id, game_id: otherGame.id, game_uid: "different-game-provider", riot_id: "OtherGame#KR1", is_verified: true }));
     expect((await f.service.auth.admin.updateUserById(player.id, { user_metadata: { profile_intro: "함께 즐기는 플레이어" } })).error).toBeNull();
-    const title = await ok(f.service.from("nameplate_options").select("id,name_ko").eq("code", "title-team-player").single());
+    const title = await ok(f.service.from("nameplate_options").insert({ game_id: f.gameId, category: "sub", code: "title-fixture-" + f.clanId, name_ko: "함께하는 플레이어", unlock_source: "store", price_coins: 90 }).select("id,name_ko").single());
     await ok(f.service.from("user_nameplate_inventory").insert({ user_id: player.id, option_id: title.id }));
     const cardOwner = await f.memberClient(1);
     try { await ok(cardOwner.from("user_namecard_selections").insert({ user_id: player.id, category: "sub", option_id: title.id })); }
@@ -92,7 +92,7 @@ test("개인 기록의 공통 네임카드는 해당 플레이어 소개로, 엠
     await ok(f.service.from("clan_members").update({ joined_at: null }).eq("clan_id", f.clanId).eq("user_id", player.id));
     await page.reload();
     await expect(facts.getByRole("definition")).toHaveText(["비공개", "1998", "미등록"]);
-  } finally { await f.cleanup(); }
+  } finally { await f.cleanup(); expect((await f.service.from("nameplate_options").delete().eq("code", "title-fixture-" + f.clanId)).error).toBeNull(); }
 });
 
 test("모든 역할은 멤버 검색으로 시작하고 통계 제한 대상도 소개를 연다", async ({ page }, info) => {
@@ -155,5 +155,5 @@ test("모든 역할은 멤버 검색으로 시작하고 통계 제한 대상도 
     expect((await page.request.get(`/api/player-profiles/${f.users[0].id}?clanId=invalid`)).status()).toBe(400);
     expect((await f.service.from("clan_members").update({ status: "left" }).eq("clan_id", f.clanId).eq("user_id", f.users[0].id)).error).toBeNull();
     expect((await (await page.request.get(endpoint)).json()).profile.clanProfile).toBeUndefined();
-  } finally { await f.cleanup(); }
+  } finally { await f.cleanup(); expect((await f.service.from("nameplate_options").delete().eq("code", "title-fixture-" + f.clanId)).error).toBeNull(); }
 });

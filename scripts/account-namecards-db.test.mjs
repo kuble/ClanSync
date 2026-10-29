@@ -16,10 +16,11 @@ test("account namecards share one appearance across games and titles debit perso
   const f = await createIsolatedBalanceFixture(3);
   const [owner, member, outsider] = await Promise.all([f.memberClient(0), f.memberClient(1), f.memberClient(2)]);
   let valorantClan;
-  t.after(async () => { if (valorantClan) await ok(f.service.from("clans").delete().eq("id", valorantClan)); await Promise.all([owner, member, outsider].map((c) => c.auth.signOut())); await f.cleanup(); });
+  t.after(async () => { if (valorantClan) await ok(f.service.from("clans").delete().eq("id", valorantClan)); await Promise.all([owner, member, outsider].map((c) => c.auth.signOut())); await f.cleanup(); await ok(f.service.from("nameplate_options").delete().eq("code", "title-fixture-" + f.clanId)); });
   await ok(f.service.from("clan_members").delete().eq("clan_id", f.clanId).eq("user_id", f.users[2].id));
+  await ok(f.service.from("nameplate_options").insert({ game_id: f.gameId, category: "sub", code: "title-fixture-" + f.clanId, name_ko: "새벽의 전략가", unlock_source: "store", price_coins: 180 }));
   const catalog = await ok(owner.from("nameplate_options").select("id,game_id,category,code,name_ko,price_coins,unlock_source"));
-  const title = catalog.find((item) => item.code === "title-dawn-strategist");
+  const title = catalog.find((item) => item.code === "title-fixture-" + f.clanId);
   const free = catalog.find((item) => item.code === "ow-emblem-default");
   const read = (client = member, clanId = f.clanId) => ok(client.rpc("get_clan_namecards", { p_clan_id: clanId }));
   const equip = (category, optionId, client = owner) => client.from("user_namecard_selections").upsert({ user_id: f.users[0].id, category, option_id: optionId });
@@ -27,34 +28,17 @@ test("account namecards share one appearance across games and titles debit perso
   await ok(f.service.from("users").update({ coin_balance: 500 }).eq("id", f.users[0].id));
   await ok(f.service.from("users").update({ coin_balance: 0 }).eq("id", f.users[1].id));
 
-  await t.test("starter symbols are free and shared without inventory grants", async () => {
-    const symbols = catalog.filter(item => item.code.startsWith("symbol-"));
-    assert.equal(symbols.length, 5);
-    for (const symbol of symbols) {
-      assert.equal(symbol.unlock_source, "default");
-      assert.equal(symbol.price_coins, 0);
-      await ok(equip("emblem", symbol.id));
-      assert.equal((await read())[f.users[0].id].emblem, symbol.code);
-    }
-    assert.deepEqual(await ok(owner.from("user_nameplate_inventory").select("option_id").eq("user_id", f.users[0].id).in("option_id", symbols.map(item => item.id))), []);
-    assert.equal((await ok(owner.from("users").select("coin_balance").eq("id", f.users[0].id).single())).coin_balance, 500);
-  });
-
-  await t.test("starter frames, namebars and titles remain free and visible in shared cards", async () => {
-    const starters = catalog.filter(item => item.code.startsWith("starter-"));
-    assert.deepEqual(["frame", "namebar", "sub"].map(category => starters.filter(item => item.category === category).length), [6, 6, 8]);
-    for (const item of starters) {
-      assert.equal(item.unlock_source, "default");
-      assert.equal(item.price_coins, 0);
+  await t.test("only default designs remain available without inventory grants", async () => {
+    assert.equal(catalog.some(item => /^(symbol-|starter-|theme-|pf_entrance_store:)/.test(item.code)), false);
+    const defaults = catalog.filter(item => item.code === "portrait-default" || item.code.startsWith("ow-") && item.code.endsWith("-default"));
+    assert.equal(defaults.length, 5);
+    for (const item of defaults) {
+      assert.equal(item.unlock_source, "default"); assert.equal(item.price_coins, 0);
       await ok(equip(item.category, item.id));
       const card = (await read())[f.users[0].id];
-      assert.equal(card[item.category === "sub" ? "title" : item.category], item.category === "sub" ? item.name_ko : item.code);
+      assert.equal(card[item.category === "sub" ? "title" : item.category], item.category === "sub" ? null : item.code);
     }
-    const emptyTitle = catalog.find(item => item.code === "ow-sub-default");
-    await ok(equip("sub", emptyTitle.id));
-    assert.equal((await read())[f.users[0].id].title, null);
-    assert.deepEqual(await ok(owner.from("user_nameplate_inventory").select("option_id").eq("user_id", f.users[0].id).in("option_id", starters.map(item => item.id))), []);
-    assert.equal((await ok(owner.from("users").select("coin_balance").eq("id", f.users[0].id).single())).coin_balance, 500);
+    assert.deepEqual(await ok(owner.from("user_nameplate_inventory").select("option_id").eq("user_id", f.users[0].id)), []);
   });
 
   await t.test("unowned, mismatched and foreign selections are rejected", async () => {
@@ -65,32 +49,19 @@ test("account namecards share one appearance across games and titles debit perso
     assert.equal((await ok(owner.from("user_namecard_selections").select("*").eq("user_id", f.users[0].id).eq("category", "emblem"))).length, 1);
     assert.deepEqual(await ok(member.from("user_namecard_selections").select("*").eq("user_id", f.users[0].id)), []);
   });
-  await t.test("art themes and portrait frames compose independently and a rejected set rolls back atomically", async () => {
-    const themes = ["arcade", "tactical", "nebula"];
-    const categories = ["frame", "namebar", "portrait"];
-    for (const theme of themes) {
-      const pieces = categories.map(category => catalog.find(item => item.code === `theme-${theme}-${category}`));
-      assert.equal(pieces.length, 3);
-      for (const piece of pieces) { assert.ok(piece); assert.equal(piece.unlock_source, "default"); assert.equal(piece.price_coins, 0); }
-      await ok(owner.from("user_namecard_selections").upsert(pieces.map(piece => ({ user_id: f.users[0].id, category: piece.category, option_id: piece.id }))));
-      const card = (await read())[f.users[0].id];
-      for (const category of categories) assert.equal(card[category], `theme-${theme}-${category}`);
-    }
-    await ok(equip("emblem", catalog.find(item => item.code === "symbol-crown").id));
-    await ok(equip("namebar", catalog.find(item => item.code === "theme-tactical-namebar").id));
-    assert.equal((await read())[f.users[0].id].portrait, "theme-nebula-portrait");
-    assert.equal((await read())[f.users[0].id].emblem, "symbol-crown");
+  await t.test("a mismatched multi-layer selection rolls back atomically", async () => {
     const before = await ok(owner.from("user_namecard_selections").select("category,option_id").order("category"));
+    const frame = catalog.find(item => item.code === "ow-frame-default");
+    const portrait = catalog.find(item => item.code === "portrait-default");
     const rejected = await owner.from("user_namecard_selections").upsert([
-      { user_id: f.users[0].id, category: "frame", option_id: catalog.find(item => item.code === "theme-arcade-frame").id },
+      { user_id: f.users[0].id, category: "frame", option_id: frame.id },
       { user_id: f.users[0].id, category: "portrait", option_id: free.id },
     ]);
     assert.ok(rejected.error);
     assert.deepEqual(await ok(owner.from("user_namecard_selections").select("category,option_id").order("category")), before);
-    assert.ok((await equip("portrait", catalog.find(item => item.code === "theme-nebula-portrait").id, member)).error);
-    await ok(equip("portrait", catalog.find(item => item.code === "portrait-default").id));
+    assert.ok((await equip("portrait", portrait.id, member)).error);
+    await ok(equip("portrait", portrait.id));
     assert.equal((await read())[f.users[0].id].portrait, "portrait-default");
-    assert.equal((await ok(owner.from("users").select("coin_balance").eq("id", f.users[0].id).single())).coin_balance, 500);
   });
   await t.test("concurrent repeat purchases charge once; prices, actor, refunds and inventory cannot be forged", async () => {
     const results = await Promise.all([buy(), buy(), buy()]);

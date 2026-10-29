@@ -1,20 +1,12 @@
 import Image from "next/image";
-import type { CSSProperties, ReactNode } from "react";
-import { NAMECARD_THEMES, namecardSymbol, type NamecardAppearance, type NamecardCategory } from "@/lib/profile/namecard";
+import type { ReactNode } from "react";
+import type { NamecardAppearance, NamecardCategory } from "@/lib/profile/namecard";
 import styles from "./namecard.module.css";
 
-// Transparent atlas cells have unequal margins; center the visible rims rather than the cells.
-const PORTRAIT_BOUNDS = { arcade: "46 10 675 675", tactical: "748 8.5 676 676", nebula: "1438 -1.5 700 700" };
-
-export function Namecard({ displayName, title, frame, namebar, emblem, portrait, compact = false, fill = false, previewPart, children }: Partial<NamecardAppearance> & { displayName: string; compact?: boolean; fill?: boolean; previewPart?: NamecardCategory; children?: ReactNode }) {
-  const symbol = namecardSymbol(emblem);
-  const art = NAMECARD_THEMES.find(theme => namebar === `theme-${theme.id}-namebar`);
-  const portraitTheme = NAMECARD_THEMES.find(theme => portrait === `theme-${theme.id}-portrait`);
-  const themedFrame = NAMECARD_THEMES.some(theme => frame === `theme-${theme.id}-frame`);
-  return <span className={styles.card} data-namecard="true" data-preview-part={previewPart} data-compact={compact} data-fill={fill || undefined} data-art={art?.id} data-portrait={portraitTheme?.id ?? "default"} data-frame={themedFrame || frame?.startsWith("starter-frame-") ? frame : frame?.startsWith("pf_entrance_store:") ? "entrance" : "default"} data-namebar={art || namebar?.startsWith("starter-namebar-") ? namebar : "default"} style={art ? { "--namecard-art": `url("${art.artwork}")` } as CSSProperties : undefined}>
-    {(!previewPart || previewPart === "emblem" || previewPart === "portrait") && <span className={styles.emblem} data-symbol={emblem ?? "default"} aria-hidden="true"><span className={styles.portrait}>
-      {previewPart !== "portrait" && <Image className={styles.symbolArt} data-symbol-art={symbol} src={`/namecards/v1/${symbol}.webp`} width={72} height={72} alt="" />}
-      {previewPart !== "emblem" && portraitTheme && <svg className={styles.portraitFrame} data-portrait-frame={portraitTheme.id} viewBox={PORTRAIT_BOUNDS[portraitTheme.id]} aria-hidden="true"><image href="/namecards/v1/portraits.webp" width="2172" height="724" /></svg>}
+export function Namecard({ displayName, title, compact = false, fill = false, previewPart, children }: Partial<NamecardAppearance> & { displayName: string; compact?: boolean; fill?: boolean; previewPart?: NamecardCategory; children?: ReactNode }) {
+  return <span className={styles.card} data-namecard="true" data-preview-part={previewPart} data-compact={compact} data-fill={fill || undefined} data-portrait="default" data-frame="default" data-namebar="default">
+    {(!previewPart || previewPart === "emblem" || previewPart === "portrait") && <span className={styles.emblem} data-symbol="default" aria-hidden="true"><span className={styles.portrait}>
+      {previewPart !== "portrait" && <Image className={styles.symbolArt} data-symbol-art="shield" src="/namecards/v1/shield.webp" width={72} height={72} alt="" />}
     </span></span>}
     {(!previewPart || previewPart === "sub") && <span className={styles.identity}>{!previewPart && <strong title={displayName}>{displayName}</strong>}<small>{title || "칭호 없음"}</small></span>}
     {children && <span className={styles.accessory}>{children}</span>}

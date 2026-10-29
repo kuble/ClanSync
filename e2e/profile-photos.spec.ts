@@ -41,12 +41,12 @@ test("account photo is shared by discussion avatars, preserves symbols and restr
     await page.getByRole("button", { name: "네임카드 꾸미기", exact: true }).click();
     const editor = page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true });
     await editor.getByRole("button", { name: "심벌", exact: true }).click();
-    await editor.getByRole("button", { name: "심벌 왕관 적용", exact: true }).click();
-    await expect(editor.getByRole("status")).toContainText("저장했습니다");
+    await editor.getByRole("button", { name: "심벌 기본 엠블럼 적용", exact: true }).click();
+    await expect(editor.getByRole("button", { name: "심벌 기본 엠블럼 적용", exact: true })).toHaveAttribute("aria-pressed", "true");
     await page.keyboard.press("Escape");
     const settings = page.getByRole("region", { name: "공통 프로필 사진", exact: true });
     await page.reload();
-    await expect(settings.getByRole("img", { name: "내 프로필 심볼", exact: true })).toHaveAttribute("src", /crown/);
+    await expect(settings.getByRole("img", { name: "내 프로필 심볼", exact: true })).toHaveAttribute("src", /shield/);
     await settings.getByLabel("프로필 사진 파일", { exact: true }).setInputFiles(image);
     const cropDialog = page.getByRole("dialog", { name: "프로필 사진 편집", exact: true });
     const zoom = cropDialog.getByRole("slider", { name: "프로필 사진 확대", exact: true });
@@ -133,7 +133,7 @@ test("account photo is shared by discussion avatars, preserves symbols and restr
     expect((await page.request.get(firstUrl)).status()).toBe(404);
     expect((await svc.storage.from(bucket).list(actor.id, { search: firstPath.split("/")[1] })).data).toEqual([]);
     const currentUrl = new URL((await saved.getAttribute("src"))!, page.url()).pathname;
-    await expect(page.locator('[data-namecard] [data-symbol="symbol-crown"]').first()).toBeVisible();
+    await expect(page.locator('[data-namecard] [data-symbol="default"]').first()).toBeVisible();
     for (const width of [1280, 390]) {
       await page.setViewportSize({ width, height: 900 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -160,9 +160,9 @@ test("account photo is shared by discussion avatars, preserves symbols and restr
     expect((await svc.from("clan_members").update({ status: "active" }).eq("clan_id", f.clanId).eq("user_id", f.users[1].id)).error).toBeNull();
 
     await settings.getByRole("button", { name: "프로필 사진 제거", exact: true }).click();
-    await expect(settings.getByRole("img", { name: "내 프로필 심볼", exact: true })).toHaveAttribute("src", /crown/);
+    await expect(settings.getByRole("img", { name: "내 프로필 심볼", exact: true })).toHaveAttribute("src", /shield/);
     await peerPage.reload();
-    await expect(peerPage.getByRole("img", { name: `${actor.nickname} 프로필 심볼`, exact: true })).toHaveAttribute("src", /crown/);
+    await expect(peerPage.getByRole("img", { name: `${actor.nickname} 프로필 심볼`, exact: true })).toHaveAttribute("src", /shield/);
     expect((await peerPage.request.get(currentUrl)).status()).toBe(404);
 
     const results = await Promise.all([1, 2].map(() => page.request.post(endpoint, { multipart: { image } })));

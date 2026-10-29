@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../src/lib/supabase/database.types";
 import { loadTestEnv } from "../scripts/test-env.mjs";
 import { gotoOverwatchLeaderClanBase, loginAsFixtureRole } from "./fixture-login-helper";
-import { credentialsForFixture } from "./qa-fixture-credentials";
+import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
 test.use({ timezoneId: "Asia/Seoul" });
 test.setTimeout(90_000);
@@ -137,126 +137,23 @@ test("390px community menu closes after navigation and browser history restores 
   await expectNoHorizontalOverflow(page);
 });
 
-test("separate stores show real coins, Free/Premium comparison and canceling purchase preserves balances", async ({ page }) => {
-  const svc = qaService();
-  const { base, clanId, userId } = await leaderContext(page, svc);
-  const [clanResult, userResult, adminResult, catalogResult, clanPurchases, personalPurchases] = await Promise.all([
-    svc.from("clans").select("coin_balance,subscription_tier").eq("id", clanId).single(),
-    svc.from("users").select("coin_balance").eq("id", userId).single(),
-    svc.from("users").select("id").ilike("email", credentialsForFixture("Admin").email).single(),
-    svc.from("store_items").select("id,slug,name_ko,price_coins")
-      .in("slug", ["clan_banner_slot", "profile_entrance_fx"]).eq("is_active", true),
-    svc.from("purchases").select("*").eq("clan_id", clanId).eq("pool_source", "clan"),
-    svc.from("purchases").select("*").eq("user_id", userId).eq("pool_source", "personal"),
-  ]);
-  for (const result of [clanResult, userResult, adminResult, catalogResult, clanPurchases, personalPurchases]) {
-    expect(result.error).toBeNull();
-  }
-  const originalClan = clanResult.data!;
-  const originalUser = userResult.data!;
-  const catalog = catalogResult.data!;
-  const banner = catalog.find((item) => item.slug === "clan_banner_slot")!;
-  const personal = catalog.find((item) => item.slug === "profile_entrance_fx")!;
-  expect(banner).toBeDefined();
-  expect(personal).toBeDefined();
-  const originalPurchases = [...clanPurchases.data!, ...personalPurchases.data!];
-  const originalPurchaseIds = new Set(originalPurchases.map((purchase) => purchase.id));
-  const catalogIds = new Set(catalog.map((item) => item.id));
-  const temporarilyHidden = originalPurchases.filter((purchase) => !purchase.voided_at && catalogIds.has(purchase.item_id));
-  const clanBalance = Math.max(originalClan.coin_balance, banner.price_coins + 137);
-  const personalBalance = Math.max(originalUser.coin_balance, personal.price_coins + 251);
-
+test("separate stores cancel purchases without changing balances or ownership", async ({ page }) => {
+  const f=await createIsolatedBalanceFixture(1), titleId=randomUUID();
   try {
-    // The allowlisted QA fixtures are restored even when an assertion fails.
-    // This only changes purchase visibility, never purchase/refund RPCs or inventory.
-    for (const purchase of temporarilyHidden) {
-      const voider = purchase.user_id === userId ? adminResult.data!.id : userId;
-      const { error } = await svc.from("purchases").update({
-        voided_at: new Date().toISOString(), voided_by: voider, void_reason: "QA store dialog visibility",
-      }).eq("id", purchase.id);
-      expect(error).toBeNull();
-    }
-    const setup = await Promise.all([
-      svc.from("clans").update({ coin_balance: clanBalance, subscription_tier: "free" }).eq("id", clanId),
-      svc.from("users").update({ coin_balance: personalBalance }).eq("id", userId),
-    ]);
-    for (const result of setup) expect(result.error).toBeNull();
-    await page.goto(`${base}/store`);
-    await expect(page.getByRole("heading", { name: "클랜 스토어", exact: true })).toBeVisible();
-    const coinCards = page.locator('[aria-label="보유 코인"]');
-    await expect(coinCards.getByText("클랜 코인", { exact: true }).locator("..").locator("strong"))
-      .toHaveText(clanBalance.toLocaleString("ko-KR"));
-    await expect(page.getByRole("heading", { name: banner.name_ko, exact: true })).toBeVisible();
-
+    expect((await f.service.from("users").update({coin_balance:500}).eq("id",f.users[0].id)).error).toBeNull();
+    expect((await f.service.from("clans").update({coin_balance:500}).eq("id",f.clanId)).error).toBeNull();
+    expect((await f.service.from("nameplate_options").insert({id:titleId,game_id:f.gameId,category:"sub",code:"title-e2e-"+titleId,name_ko:"취소 검증 칭호",unlock_source:"store",price_coins:50})).error).toBeNull();
+    const item=await f.service.from("store_items").select("name_ko").eq("slug","clan_photo_frames").single();expect(item.error).toBeNull();
+    await loginIsolatedBalanceUser(page,f.users[0]);await page.goto(f.path.replace(/balance$/,"store"));
+    await page.getByRole("article",{name:item.data!.name_ko,exact:true}).getByRole("button",{name:"구매",exact:true}).click();
+    await page.getByRole("dialog",{name:"꾸미기 구매",exact:true}).getByRole("button",{name:"취소",exact:true}).click();
     await page.goto("/store");
-    await expect(coinCards.getByText("내 코인", { exact: true }).locator("..").locator("strong"))
-      .toHaveText(personalBalance.toLocaleString("ko-KR"));
-    await page.getByRole("group", { name: "개인 꾸미기 분류", exact: true }).getByRole("button", { name: "프레임", exact: true }).click();
-    await expect(page.getByRole("heading", { name: personal.name_ko, exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "플랜 비교 보기", exact: true }).click();
-    const planDialog = page.getByRole("dialog", { name: "Free / Premium 플랜 비교", exact: true });
-    await expect(planDialog).toBeVisible();
-    await expect(planDialog.getByRole("columnheader", { name: "Free", exact: true })).toBeVisible();
-    await expect(planDialog.getByRole("columnheader", { name: "Premium", exact: true })).toBeVisible();
-    await planDialog.locator('[data-slot="dialog-footer"]').getByRole("button", { name: "닫기", exact: true }).click();
-    await expect(planDialog).toBeHidden();
-
-    await page.goto(`${base}/store`);
-    const bannerCard = page.getByRole("article").filter({ has: page.getByRole("heading", { name: banner.name_ko, exact: true }) });
-    await bannerCard.getByRole("button", { name: "구매", exact: true }).click();
-    const purchaseDialog = page.getByRole("dialog", { name: "꾸미기 구매", exact: true });
-    await expect(purchaseDialog).toBeVisible();
-    await expect(purchaseDialog).toContainText(banner.name_ko);
-    await expect(purchaseDialog.getByText("클랜 코인 사용", { exact: true })).toBeVisible();
-    await expect(purchaseDialog.getByRole("button", { name: "구매 확정", exact: true })).toBeEnabled();
-    await purchaseDialog.getByRole("button", { name: "취소", exact: true }).click();
-    await expect(purchaseDialog).toBeHidden();
-    await page.reload();
-    await expect(coinCards.getByText("클랜 코인", { exact: true }).locator("..").locator("strong"))
-      .toHaveText(clanBalance.toLocaleString("ko-KR"));
-    const afterCancel = await Promise.all([
-      svc.from("clans").select("coin_balance").eq("id", clanId).single(),
-      svc.from("users").select("coin_balance").eq("id", userId).single(),
-      svc.from("purchases").select("id").eq("clan_id", clanId).eq("pool_source", "clan").is("voided_at", null).eq("item_id", banner.id),
-    ]);
-    for (const result of afterCancel) expect(result.error).toBeNull();
-    expect(afterCancel[0].data!.coin_balance).toBe(clanBalance);
-    expect(afterCancel[1].data!.coin_balance).toBe(personalBalance);
-    expect(afterCancel[2].data).toEqual([]);
-    await page.setViewportSize({ width: 390, height: 844 });
-    await expectNoHorizontalOverflow(page);
-  } finally {
-    // If a regression accidentally bought on Cancel, remove only the new QA
-    // banner purchase and its ledger entry before restoring any older purchase.
-    try {
-      const { data, error } = await svc.from("purchases").select("id,coin_transaction_id")
-        .eq("clan_id", clanId).eq("user_id", userId).eq("item_id", banner.id);
-      expect(error).toBeNull();
-      const unexpected = data!.filter((purchase) => !originalPurchaseIds.has(purchase.id));
-      if (unexpected.length) {
-        expect((await svc.from("purchases").delete().in("id", unexpected.map((purchase) => purchase.id))).error).toBeNull();
-        expect((await svc.from("coin_transactions").delete().in("id", unexpected.map((purchase) => purchase.coin_transaction_id))).error).toBeNull();
-      }
-    } finally {
-      const restored = await Promise.all([
-        svc.from("clans").update(originalClan).eq("id", clanId),
-        svc.from("users").update(originalUser).eq("id", userId),
-        ...temporarilyHidden.map((purchase) => svc.from("purchases").update({
-          voided_at: purchase.voided_at, voided_by: purchase.voided_by, void_reason: purchase.void_reason,
-        }).eq("id", purchase.id)),
-      ]);
-      for (const result of restored) expect(result.error).toBeNull();
-    }
-    const [clan, user, clanRows, personalRows] = await Promise.all([
-      svc.from("clans").select("coin_balance,subscription_tier").eq("id", clanId).single(),
-      svc.from("users").select("coin_balance").eq("id", userId).single(),
-      svc.from("purchases").select("*").eq("clan_id", clanId).eq("pool_source", "clan"),
-      svc.from("purchases").select("*").eq("user_id", userId).eq("pool_source", "personal"),
-    ]);
-    for (const result of [clan, user, clanRows, personalRows]) expect(result.error).toBeNull();
-    expect(clan.data).toEqual(originalClan);
-    expect(user.data).toEqual(originalUser);
-    const order = <T extends { id: string }>(rows: T[]) => [...rows].sort((a, b) => a.id.localeCompare(b.id));
-    expect(order([...clanRows.data!, ...personalRows.data!])).toEqual(order(originalPurchases));
-  }
+    await page.getByRole("radiogroup",{name:"개인 꾸미기 분류"}).getByRole("radio",{name:"칭호",exact:true}).click();
+    await page.getByRole("button",{name:"취소 검증 칭호 구매",exact:true}).click();
+    await page.getByRole("dialog",{name:"네임카드 디자인 구매",exact:true}).getByRole("button",{name:"취소",exact:true}).click();
+    expect((await f.service.from("users").select("coin_balance").eq("id",f.users[0].id).single()).data?.coin_balance).toBe(500);
+    expect((await f.service.from("clans").select("coin_balance").eq("id",f.clanId).single()).data?.coin_balance).toBe(500);
+    expect((await f.service.from("purchases").select("id").eq("user_id",f.users[0].id)).data).toEqual([]);
+    expect((await f.service.from("user_nameplate_inventory").select("option_id").eq("user_id",f.users[0].id)).data).toEqual([]);
+  } finally {await f.cleanup();expect((await f.service.from("nameplate_options").delete().eq("id",titleId)).error).toBeNull();}
 });

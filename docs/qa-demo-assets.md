@@ -1,24 +1,11 @@
-# 영상 촬영용 QA 꾸미기
+# 영상 촬영용 QA 꾸미기 정리
 
-- 적용 대상: QA DB의 `QA_01_Clan`, 기존 활성 멤버 12명. 운영 DB는 변경하지 않는다.
-- 배너: [qa-clan-banner.webp](../public/images/demo/qa-clan-banner.webp), 1800×600 WebP. 기본 내장 imagegen 도구로 새로 생성한 원본을 웹용으로 압축했다. 기존 게임 로고·공식 아트는 사용하지 않았다.
-- 적용 도구: `node scripts/style-qa-demo.mjs --apply`. 미리보기는 `--apply` 생략. 사용자 ID·로그인 이메일·코인·기존 전적은 유지하며 별도로 편집된 이름과 외부 계정의 닉네임 충돌은 차단한다.
+2026-10-29 이미지 교체 준비로 예전 QA 배너와 적용 스크립트를 제거했다. QA 배너·네임카드는 기본 상태이며, 게임 연동 ID·계정·클랜·경기·게시판은 유지한다. 과거 시연용 표시 이름과 제작 이력은 Git에서 확인한다.
 
-| 기존 표시 이름 | 영상용 표시 이름 |
-| --- | --- |
-| QA_Leader_01 | 새벽별 |
-| QA_Member_02 | 달빛고양이 |
-| QA_Member_03 | AimZero |
-| QA_Member_04 | 구름여우 |
-| QA_Member_05 | NeonPulse |
-| QA_Member_06 | 힐링모찌 |
-| QA_Member_07 | 한판더 |
-| QA_Member_08 | 감자에임 |
-| QA_Member_09 | Luna |
-| QA_Member_10 | BlueFox |
-| QA_Member_11 | 바람결 |
-| QA_Member_12 | Ctrl힐 |
+QA 꾸미기만 정리하는 도구:
 
-## 생성 프롬프트
+- 미리보기: `node scripts/reset-qa-cosmetics.mjs`
+- 롤백 검증: `node scripts/reset-qa-cosmetics.mjs --check`
+- 적용: `node scripts/reset-qa-cosmetics.mjs --apply`
 
-Create a polished panoramic esports gaming clan banner artwork for a Korean Overwatch community demo website. Ultra wide 3:1 landscape composition, cinematic stylized 3D concept art of a futuristic coastal city arena at blue hour, subtle emerald teal lights and warm sunset amber highlights, clean architectural silhouettes, a few small futuristic armored teammates walking toward an arena on the far right as anonymous silhouettes, quiet dark teal negative space across the left 55% for existing UI text overlay. Premium restrained look, attractive readable at a shallow website banner crop. Important objects within middle horizontal band. Original artwork only: no game logos, no lettering, no typography, no watermark, no interface, no collage. Save the output as a project banner image.
+QA 프로젝트 링크와 환경 허용 목록을 확인하고, 적용 전 꾸미기·구매·원장·잔액을 `.supabase-test/cosmetics-before-*.json`에 백업한다. 구매 차감 및 정정의 순액만 복원하고 관련 원장을 삭제하며, 기본 카탈로그·다른 원장·나머지 공개 테이블의 동일성을 트랜잭션 안에서 검증한다. 시드는 실행하지 않는다. 운영 DB에는 실행하지 않는다.

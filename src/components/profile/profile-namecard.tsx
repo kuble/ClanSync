@@ -23,7 +23,7 @@ export function ProfileNamecard({ initial, displayName, children }: {
   const [pending, setPending] = useState(false);
   const busy = useRef(false);
   const firstOption = useRef<HTMLButtonElement>(null);
-  const [category, setCategory] = useState<NamecardCategory | "theme">("theme");
+  const [category, setCategory] = useState<NamecardCategory | "theme">("emblem");
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const [source, setSource] = useState(initial);
@@ -74,6 +74,7 @@ export function ProfileNamecard({ initial, displayName, children }: {
         <div className={styles.fields} aria-busy={pending}>
           <div className={styles.designHeading}><h3>{label} 디자인</h3><span>{category === "theme" ? "심벌·칭호는 유지" : `보유 ${available.length}`}</span></div>
           {category === "theme" ? <div className={styles.themeGrid} role="group" aria-label="네임카드 테마 디자인">
+            {!NAMECARD_THEMES.length && <p className={styles.note}>등록된 테마가 없습니다.</p>}
             {NAMECARD_THEMES.map(theme => {
               const selections = namecardThemeSelections(state.catalog, theme.id);
               const ready = selections.length === 3 && selections.every(selection => options(selection.category).some(option => option.id === selection.option_id));

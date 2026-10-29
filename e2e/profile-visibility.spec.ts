@@ -12,7 +12,7 @@ test("통합 소개 API는 로그인 방문자에게 공개 정보만 제공하�
   try {
     await ok(f.service.from("clan_members").delete().eq("clan_id", f.clanId).eq("user_id", f.users[1].id));
     await ok(f.service.from("user_game_profiles").update({ battle_tag: battleTag }).eq("user_id", owner.id).eq("game_id", f.gameId));
-    const title = await ok(f.service.from("nameplate_options").select("id,name_ko").eq("code", "title-team-player").single());
+    const title = await ok(f.service.from("nameplate_options").insert({ game_id: f.gameId, category: "sub", code: "title-fixture-" + f.clanId, name_ko: "함께하는 플레이어", unlock_source: "store", price_coins: 90 }).select("id,name_ko").single());
     await ok(f.service.from("user_nameplate_inventory").insert({ user_id: owner.id, option_id: title.id }));
     const cardOwner = await f.memberClient(0);
     try { await ok(cardOwner.from("user_namecard_selections").insert({ user_id: owner.id, category: "sub", option_id: title.id })); }
@@ -67,5 +67,5 @@ test("통합 소개 API는 로그인 방문자에게 공개 정보만 제공하�
     } finally { await guestContext.close(); }
     expect((await visitor.request.get("/api/player-profiles/not-a-player")).status()).toBe(400);
     expect((await visitor.request.get("/api/player-profiles/" + f.clanId)).status()).toBe(404);
-  } finally { try { await visitorContext.close(); } finally { await f.cleanup(); } }
+  } finally { try { await visitorContext.close(); } finally { await f.cleanup(); await ok(f.service.from("nameplate_options").delete().eq("code", "title-fixture-" + f.clanId)); } }
 });

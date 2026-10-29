@@ -27,26 +27,29 @@ test("retired tables and RPCs are absent even to the service role",async()=>{
   ])assert.equal((await db.rpc(name,args)).error?.code,"PGRST202",name);
 });
 
-test("personal refunds clear account-wide frames without touching another player's namecard",async t=>{
+test("personal refunds and inventory revocation preserve another player's namecard",async t=>{
   const f=await createIsolatedBalanceFixture(2);
   const member=await f.memberClient(1),buyer=f.users[1].id;
+  let itemId, frameId;
   t.after(async()=>{
     await ok(f.service.from("purchases").delete().eq("user_id",buyer));
     await ok(f.service.from("coin_transactions").delete().eq("user_id",buyer).not("correction_of","is",null));
     await ok(f.service.from("coin_transactions").delete().eq("user_id",buyer));
     await member.auth.signOut();await f.cleanup();
+    if(frameId)await ok(f.service.from("nameplate_options").delete().eq("id",frameId));
+    if(itemId)await ok(f.service.from("store_items").delete().eq("id",itemId));
   });
-  const item=await ok(f.service.from("store_items").select("price_coins").eq("slug","profile_entrance_fx").single());
+  const item=await ok(f.service.from("store_items").insert({slug:"refund-"+randomUUID(),name_ko:"검증용 상품",item_type:"profile_deco",pool_source:"personal",price_coins:10}).select("id,slug,price_coins").single());itemId=item.id;
   await ok(f.service.from("users").update({coin_balance:item.price_coins}).eq("id",buyer));
-  const purchase=await ok(f.service.rpc("apply_store_purchase",{p_actor_id:buyer,p_context_clan_id:f.clanId,p_item_slug:"profile_entrance_fx",p_checkout_id:randomUUID()}));
+  const purchase=await ok(f.service.rpc("apply_store_purchase",{p_actor_id:buyer,p_context_clan_id:f.clanId,p_item_slug:item.slug,p_checkout_id:randomUUID()}));
   assert.equal(purchase.ok,true,JSON.stringify(purchase));
-  const options=await ok(member.from("nameplate_options").select("id,code").eq("game_id",f.gameId));
-  const frame=options.find(o=>o.code.startsWith("pf_entrance_store:"));
-  assert.ok(frame);
+  const frame=await ok(f.service.from("nameplate_options").insert({game_id:f.gameId,category:"frame",code:"qa-frame-"+randomUUID(),name_ko:"검증용 프레임",unlock_source:"store"}).select("id").single());frameId=frame.id;
+  await ok(f.service.from("user_nameplate_inventory").insert({user_id:buyer,option_id:frame.id}));
   await ok(member.from("user_namecard_selections").upsert({user_id:buyer,category:"frame",option_id:frame.id}));
   const unchanged=await ok(f.service.from("user_namecard_selections").select("*").eq("user_id",f.users[0].id));
   const refund=await ok(f.service.rpc("void_personal_store_purchase",{p_actor_id:f.users[0].id,p_context_clan_id:f.clanId,p_purchase_id:purchase.purchase_id,p_reason:"retired storage regression"}));
   assert.equal(refund.ok,true,JSON.stringify(refund));
+  await ok(f.service.from("user_nameplate_inventory").delete().eq("user_id",buyer).eq("option_id",frame.id));
   assert.deepEqual(await ok(member.from("user_namecard_selections").select("option_id").eq("category","frame")),[]);
   assert.deepEqual(await ok(member.from("user_nameplate_inventory").select("option_id").eq("option_id",frame.id)),[]);
   assert.deepEqual(await ok(f.service.from("user_namecard_selections").select("*").eq("user_id",f.users[0].id)),unchanged);

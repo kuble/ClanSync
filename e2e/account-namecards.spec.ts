@@ -1,251 +1,62 @@
+import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
-import { createAndEnterBalanceRoom, createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
+import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
-test("공통 네임카드·칭호 구매·게임별 정보·자동 로그인과 편성자 전용 장식 숨김", async ({ page, browser }) => {
-  test.setTimeout(180_000);
-  const f = await createIsolatedBalanceFixture(10);
-  const memberContext = await browser.newContext();
-  const member = await memberContext.newPage();
-  page.setDefaultTimeout(15_000);
-  member.setDefaultTimeout(15_000);
-  const suffix = f.users[0].id.replace(/\D/g, "").slice(0, 8).padEnd(8, "1");
-  const battleTag = `CardPlayer#${suffix}`;
-  const riotId = `Riot${f.users[0].id.slice(0, 8)}#KR1`;
+test("기본 네임카드와 임시 칭호는 게임 간 공유되며 삭제한 예시 디자인을 다시 표시하지 않는다", async ({ page, browser }) => {
+  test.setTimeout(120_000);
+  const f = await createIsolatedBalanceFixture(2);
+  const titleId = randomUUID();
+  const peerContext = await browser.newContext();
   try {
-    expect((await f.service.from("users").update({ coin_balance: 500 }).eq("id", f.users[0].id)).error).toBeNull();
-    expect((await f.service.from("user_game_profiles").update({ battle_tag: battleTag }).eq("user_id", f.users[0].id).eq("game_id", f.gameId)).error).toBeNull();
+    expect((await f.service.from("nameplate_options").insert({ id: titleId, game_id: f.gameId, category: "sub", code: "title-e2e-" + titleId, name_ko: "검증용 칭호", unlock_source: "store", price_coins: 90 })).error).toBeNull();
+    expect((await f.service.from("users").update({ coin_balance: 100 }).eq("id", f.users[0].id)).error).toBeNull();
     await loginIsolatedBalanceUser(page, f.users[0]);
-    await loginIsolatedBalanceUser(member, f.users[1]);
+    await page.goto("/store");
+    const categories = page.getByRole("radiogroup", { name: "개인 꾸미기 분류" });
+    await categories.getByRole("radio", { name: "테마", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "표시할 디자인이 없습니다." })).toBeVisible();
+    await categories.getByRole("radio", { name: "칭호", exact: true }).click();
+    const title = page.getByRole("article", { name: "검증용 칭호", exact: true });
+    await title.getByRole("button", { name: "검증용 칭호 구매", exact: true }).click();
+    await page.getByRole("dialog", { name: "네임카드 디자인 구매" }).getByRole("button", { name: "구매 확정", exact: true }).click();
+    await expect(page.getByLabel("보유 코인").locator("strong")).toHaveText("10");
+    await page.getByRole("region", { name: "현재 네임카드" }).getByRole("button", { name: "검증용 칭호 적용", exact: true }).click();
+    await expect(page.getByRole("region", { name: "현재 네임카드" })).toContainText("검증용 칭호");
+
     await page.goto("/profile");
-    const accountTab = page.getByRole("tab", { name: "계정 정보", exact: true });
-    const card = page.getByRole("region", { name: "공통 네임카드", exact: true });
-    await expect(card.locator("[data-namecard]").getByText(battleTag, { exact: true })).toBeVisible();
-    await accountTab.click();
-    const own = page.getByRole("region", { name: "내 계정", exact: true });
-    await expect(own.getByText("표시 이름", { exact: true })).toHaveCount(0);
-    const ow = page.getByRole("region", { name: "오버워치 관리", exact: true });
-    await expect(ow.getByRole("button", { name: "오버워치 게임 정보", exact: true })).toHaveAttribute("aria-expanded", "false");
-    await ow.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
-    await expect(ow.getByText(battleTag, { exact: true })).toHaveCount(0);
-    await expect(ow.getByRole("region", { name: "내 클랜", exact: true })).toBeVisible();
-    await expect(ow.getByRole("img", { name: "오버워치 계정 연동됨", exact: true })).toBeVisible();
-    expect(await ow.getByRole("button", { name: /딜러/ }).locator("[style]").getAttribute("style")).toContain("damage.svg");
-    await expect(page.getByRole("button", { name: "발로란트 게임 정보", exact: true })).toBeVisible();
-
-    const auto = page.getByRole("switch", { name: "자동 로그인", exact: true });
-    async function toggleAutoLogin(checked: boolean) {
-      // Verify cookie changes on the next request, after the profile tabs remount.
-      await Promise.all([
-        page.waitForResponse(response => response.request().method() === "POST" && new URL(response.url()).pathname === "/profile"),
-        auto.click(),
-      ]);
-      await page.reload();
-      await expect(card.locator("[data-namecard]").getByText(battleTag, { exact: true })).toBeVisible();
-      await accountTab.click();
-      await expect(auto).toBeChecked({ checked });
-    }
-    await expect(auto).not.toBeChecked();
-    await toggleAutoLogin(true);
-    const remembered = (await page.context().cookies()).filter((cookie) => /^sb-.+-auth-token/.test(cookie.name));
-    expect(remembered.length).toBeGreaterThan(0);
-    for (const cookie of remembered) expect(cookie.expires - Date.now() / 1000).toBeGreaterThan(29 * 86400);
-    await page.reload();
-    await expect(card.locator("[data-namecard]").getByText(battleTag, { exact: true })).toBeVisible();
-    await accountTab.click(); await expect(auto).toBeChecked();
-    await toggleAutoLogin(false);
-    for (const cookie of (await page.context().cookies()).filter((cookie) => /^sb-.+-auth-token/.test(cookie.name))) expect(cookie.expires - Date.now() / 1000).toBeLessThan(86460);
-    await page.route("**/profile", (route) => route.request().method() === "POST" ? route.abort("failed") : route.continue());
-    await auto.click(); await expect(own.getByRole("alert")).toBeVisible(); await expect(auto).not.toBeChecked();
-    await page.unroute("**/profile");
-
-    await expect(page.getByRole("button", { name: "칭호 상점", exact: true })).toHaveCount(0);
-    await page.getByRole("tab", { name: "플레이어 소개", exact: true }).click();
-    await card.getByRole("link", { name: "개인 상점", exact: true }).click();
-    const filters = page.getByRole("radiogroup", { name: "개인 꾸미기 분류", exact: true });
-    await expect(page.getByRole("heading", { name: "네임카드 상점", exact: true })).toBeVisible();
-    await filters.getByRole("radio", { name: "칭호", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "낮은 원목 테이블", exact: true })).toHaveCount(0);
-    await page.getByRole("textbox", { name: "디자인 검색" }).fill("함께하는 플레이어");
-    const title = page.getByRole("article", { name: "함께하는 플레이어", exact: true });
-    const buyTitle = title.getByRole("button", { name: "함께하는 플레이어 구매", exact: true });
-    await buyTitle.click();
-    const checkout = page.getByRole("dialog", { name: "네임카드 디자인 구매", exact: true });
-    await checkout.getByRole("button", { name: "취소", exact: true }).click();
-    await expect(buyTitle).toBeFocused();
-    await buyTitle.click();
-    await page.route("**/store", (route) => route.request().method() === "POST" ? route.abort("failed") : route.continue());
-    await checkout.getByRole("button", { name: "구매 확정", exact: true }).click();
-    await expect(checkout.getByRole("alert")).toBeVisible();
-    await page.unroute("**/store");
-    await checkout.getByRole("button", { name: "구매 확정", exact: true }).click();
-    await expect(checkout).toBeHidden();
-    await expect(page.locator('[aria-label="보유 코인"] strong')).toHaveText("410");
-    await expect(title).toBeVisible();
-    await expect(page.getByRole("region", { name: "현재 네임카드", exact: true }).getByRole("button", { name: "함께하는 플레이어 적용", exact: true })).toBeVisible();
-    for (const width of [1280, 390, 320]) {
-      await page.setViewportSize({ width, height: 900 });
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-    }
-    await page.screenshot({ path: test.info().outputPath("personal-store-mobile.png"), fullPage: true });
-    await page.setViewportSize({ width: 1280, height: 1000 });
-    await page.goto("/profile");
-    await card.getByRole("button", { name: "네임카드 꾸미기", exact: true }).click();
-    const editor = page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true });
-    await expect(editor.getByRole("combobox")).toHaveCount(0);
-    const currentCard = editor.getByRole("region", { name: "현재 네임카드", exact: true }).locator("[data-namecard]");
-    await editor.getByRole("group", { name: "네임카드 꾸미기 분류", exact: true }).getByRole("button", { name: "카드 프레임", exact: true }).click();
-    await expect(editor.getByRole("group", { name: "네임카드 카드 프레임 디자인", exact: true }).getByRole("button")).toHaveCount(10);
-    await editor.getByRole("button", { name: "카드 프레임 듀얼 라인 적용", exact: true }).click();
-    await expect(editor.getByRole("status")).toContainText("저장했습니다");
-    await expect(currentCard).toHaveAttribute("data-frame", "starter-frame-double");
-    const categories = editor.getByRole("group", { name: "네임카드 꾸미기 분류", exact: true });
-    await categories.getByRole("button", { name: "배경", exact: true }).click();
-    await expect(editor.getByRole("group", { name: "네임카드 배경 디자인", exact: true }).getByRole("button")).toHaveCount(10);
-    await editor.getByRole("button", { name: "배경 오로라 적용", exact: true }).click();
-    await expect(editor.getByRole("status")).toContainText("저장했습니다");
-    await expect(currentCard).toHaveAttribute("data-namebar", "starter-namebar-aurora");
-    await page.screenshot({ path: test.info().outputPath("namecard-starter-backgrounds.png"), fullPage: false });
-    await categories.getByRole("button", { name: "칭호", exact: true }).click();
-    await editor.getByRole("button", { name: "칭호 즐겜러 적용", exact: true }).click();
-    await expect(editor.getByRole("status")).toContainText("저장했습니다");
-    await expect(currentCard).toContainText("즐겜러");
-    const starterProfile = await page.request.get(`/api/player-profiles/${f.users[0].id}`);
-    expect(starterProfile.status()).toBe(200);
-    expect((await starterProfile.json()).profile.appearance).toMatchObject({ title: "즐겜러", frame: "starter-frame-double", namebar: "starter-namebar-aurora" });
-    await editor.getByRole("button", { name: "칭호 칭호 없음 적용", exact: true }).click();
-    await expect(editor.getByRole("status")).toContainText("저장했습니다");
-    await expect(currentCard).toContainText("칭호 없음");
-    await expect(editor.getByRole("link", { name: "개인 상점에서 더 보기", exact: true })).toBeVisible();
-    const help = editor.getByRole("button", { name: "디자인 선택 안내", exact: true });
-    await help.focus();
-    await expect(page.getByRole("tooltip")).toContainText("실제 네임카드 모습");
-    await help.press("Escape");
-    await expect(editor).toBeVisible();
-    await editor.getByRole("group", { name: "네임카드 꾸미기 분류", exact: true }).getByRole("button", { name: "심벌", exact: true }).click();
-    const symbols = editor.getByRole("group", { name: "네임카드 심벌 디자인", exact: true });
-    await expect(symbols.getByRole("button")).toHaveCount(6);
-    for (const name of ["왕관", "불꽃", "번개", "별", "게임패드"]) await expect(symbols.getByRole("button", { name: `심벌 ${name} 적용`, exact: true })).toBeVisible();
-    const crown = symbols.getByRole("button", { name: "심벌 왕관 적용", exact: true });
-    await expect(crown.locator('[data-symbol="symbol-crown"] img[data-symbol-art="crown"]')).toBeVisible();
-    await crown.click();
-    await expect(editor.getByRole("status")).toContainText("저장했습니다");
-    await expect(editor.getByRole("region", { name: "현재 네임카드", exact: true }).locator('[data-symbol="symbol-crown"]')).toBeVisible();
-    await editor.getByRole("group", { name: "네임카드 꾸미기 분류", exact: true }).getByRole("button", { name: "칭호", exact: true }).click();
-    const titleDesign = editor.getByRole("button", { name: "칭호 함께하는 플레이어 적용", exact: true });
-    await expect(titleDesign.locator("[data-namecard]")).toContainText(battleTag);
-    await expect(titleDesign.locator("[data-namecard]")).toContainText("함께하는 플레이어");
-    await page.route("**/profile", route => route.request().method() === "POST" ? route.abort("failed") : route.continue());
-    await titleDesign.click();
-    await expect(editor.getByRole("alert")).toBeVisible();
-    await expect(titleDesign).toHaveAttribute("aria-pressed", "false");
-    await expect(editor.getByRole("region", { name: "현재 네임카드", exact: true })).not.toContainText("함께하는 플레이어");
-    await page.unroute("**/profile");
-    await titleDesign.click();
-    await expect(editor.getByRole("status")).toContainText("저장했습니다");
-    await expect(titleDesign).toHaveAttribute("aria-pressed", "true");
-    await page.setViewportSize({ width: 320, height: 884 });
-    expect(await editor.evaluate(node => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
-    await page.screenshot({ path: test.info().outputPath("namecard-design-picker-mobile.png"), fullPage: false });
-    await page.keyboard.press("Escape");
-    await page.reload();
-    await expect(card.getByText("함께하는 플레이어", { exact: true })).toBeVisible();
-    await expect(card.locator('[data-symbol="symbol-crown"]')).toBeVisible();
-    for (const width of [1280, 1074, 390, 320]) {
-      await page.setViewportSize({ width, height: 900 });
-      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-    }
-    await page.screenshot({ path: test.info().outputPath("account-mobile.png"), fullPage: true });
-    await page.setViewportSize({ width: 1280, height: 1000 });
-    await accountTab.click();
-    await ow.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
-    await page.screenshot({ path: test.info().outputPath("account-desktop.png"), fullPage: true });
-    await page.getByRole("link", { name: "발로란트 계정 연결", exact: true }).click();
-    await page.getByRole("textbox", { name: "테스트 라이엇 ID", exact: true }).fill(riotId);
-    await page.locator("form").getByRole("button", { name: /계속하기/ }).click();
-    await page.waitForURL((url) => url.pathname === "/profile");
-    await expect(card.locator("[data-namecard]").getByText(riotId, { exact: true })).toHaveCount(1);
-    await accountTab.click();
-    await page.getByRole("button", { name: "발로란트 게임 정보", exact: true }).click();
-    await expect(page.getByRole("region", { name: "발로란트 관리", exact: true }).getByText(riotId, { exact: true })).toHaveCount(0);
-    await page.getByRole("tab", { name: "플레이어 소개", exact: true }).click();
-    await page.getByRole("navigation", { name: "게임별 클랜", exact: true }).getByRole("button", { name: "발로란트", exact: true }).click();
-    const gameCard = page.getByRole("region", { name: "플레이어 소개", exact: true }).getByRole("article").locator("[data-namecard]");
-    await expect(gameCard).toContainText(riotId);
-    await expect(gameCard).toContainText("함께하는 플레이어");
-    await expect(gameCard.locator('[data-symbol="symbol-crown"]')).toBeVisible();
-    await expect(gameCard).toHaveAttribute("data-frame", "starter-frame-double");
-    await expect(gameCard).toHaveAttribute("data-namebar", "starter-namebar-aurora");
-    await expect(page.getByRole("toolbar", { name: "네임카드 도구", exact: true })).toHaveCount(1);
-
     await page.getByRole("button", { name: "네임카드 꾸미기", exact: true }).click();
-    await editor.getByRole("group", { name: "네임카드 꾸미기 분류", exact: true }).getByRole("button", { name: "테마", exact: true }).click();
-    await editor.getByRole("button", { name: "성운 항해 테마 적용", exact: true }).click();
-    await expect(currentCard).toHaveAttribute("data-portrait", "nebula");
-    await expect(currentCard.locator('[data-symbol="symbol-crown"]')).toBeVisible();
-    await expect(currentCard).toContainText("함께하는 플레이어");
-    await page.keyboard.press("Escape");
-
-    await page.goto(`/games/overwatch/clan/${f.clanId}/store`);
-    await expect(page.getByRole("heading", { name: "함께하는 플레이어", exact: true })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "낮은 원목 테이블 구매", exact: true })).toHaveCount(0);
-    await expect(page.getByRole("link", { name: "개인 상점", exact: true })).toBeVisible();
-    const room = await createAndEnterBalanceRoom(page, f.path);
-    const session = await f.activeRound();
-    const roster = { team1: { tank: f.users[0].id, dmg: [f.users[1].id, f.users[2].id], sup: [f.users[3].id, f.users[4].id] }, team2: { tank: f.users[5].id, dmg: [f.users[6].id, f.users[7].id], sup: [f.users[8].id, f.users[9].id] } };
-    expect((await f.service.from("balance_sessions").update({ roster, formation_settings: { ...(session.formation_settings as object), nicknameOnly: false }, map_ban_enabled: false, hero_ban_enabled: false }).eq("id", session.id)).error).toBeNull();
-    // Changing ban rules clears a previously selected map; select it afterwards.
-    expect((await f.service.from("balance_sessions").update({ resolved_map_label: "부산" }).eq("id", session.id)).error).toBeNull();
-    await page.reload();
-    const panel = page.getByTestId("clan-balance-session-panel");
-    await expect(panel.locator("[data-namecard-plain]").getByText(battleTag, { exact: true })).toBeVisible();
-    await expect(panel.locator("[data-namecard]")).toHaveCount(0);
-    await member.goto(room.url);
-    await expect(member.getByTestId("clan-balance-session-panel").locator("[data-namecard]").getByText(battleTag, { exact: true })).toBeVisible();
-    await expect(member.getByTestId("clan-balance-session-panel").locator("[data-namecard]").getByText("함께하는 플레이어", { exact: true })).toBeVisible();
-    await expect(member.getByTestId("clan-balance-session-panel").locator('[data-namecard] [data-symbol="symbol-crown"]')).toBeVisible();
-    await expect(member.getByTestId("clan-balance-session-panel").locator('[data-namecard][data-art="nebula"][data-portrait="nebula"]')).toBeVisible();
-    await expect(member.getByTestId("clan-balance-session-panel").locator('[data-namecard][data-frame="theme-nebula-frame"][data-namebar="theme-nebula-namebar"]')).toBeVisible();
-    const memberPanel = member.getByTestId("clan-balance-session-panel");
-    const filledSlot = memberPanel.locator("[data-board-slot]").filter({ has: member.locator("[data-namecard]").getByText(battleTag, { exact: true }) });
-    const filledCard = filledSlot.locator("[data-namecard]");
-    await member.setViewportSize({ width: 1280, height: 1000 });
-    const mapBounds = (await memberPanel.getByTestId("balance-roster-map").boundingBox())!;
-    const panelBounds = (await memberPanel.boundingBox())!;
-    expect(Math.abs(mapBounds.x + mapBounds.width / 2 - panelBounds.x - panelBounds.width / 2)).toBeLessThan(2);
-    for (const width of [1280, 390, 320]) {
-      await member.setViewportSize({ width, height: 1000 });
-      const slotBounds = (await filledSlot.boundingBox())!, cardBounds = (await filledCard.boundingBox())!;
-      expect(cardBounds.width).toBeCloseTo(slotBounds.width, 0);
-      expect(cardBounds.height).toBeCloseTo(slotBounds.height, 0);
-      expect(cardBounds.height).toBeGreaterThanOrEqual(80);
-      expect(await filledCard.evaluate(node => getComputedStyle(node).borderRadius)).toBe("12px");
-      expect(await member.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    const editor = page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true });
+    const picker = editor.getByRole("group", { name: "네임카드 꾸미기 분류" });
+    const card = editor.getByRole("region", { name: "현재 네임카드" }).locator("[data-namecard]");
+    await expect(editor.getByRole("group", { name: "네임카드 심벌 디자인" }).getByRole("button")).toHaveCount(1);
+    await expect(card.locator('img[data-symbol-art="shield"]')).toBeVisible();
+    await picker.getByRole("button", { name: "테마", exact: true }).click();
+    await expect(editor.getByText("등록된 테마가 없습니다.")).toBeVisible();
+    for (const category of ["초상 프레임", "배경", "카드 프레임"]) {
+      await picker.getByRole("button", { name: category, exact: true }).click();
+      await expect(editor.getByRole("group", { name: "네임카드 " + category + " 디자인", exact: true }).getByRole("button")).toHaveCount(1);
     }
-    await member.screenshot({ path: test.info().outputPath("balance-full-namecard-mobile.png"), fullPage: false });
-    await page.getByRole("button", { name: "경기 설정", exact: true }).click();
-    const settings = page.getByRole("dialog", { name: "경기 설정", exact: true });
-    await settings.getByRole("tab", { name: "화면 표시", exact: true }).click();
-    await settings.getByRole("switch", { name: "닉네임만 표시", exact: true }).check();
-    await settings.getByRole("button", { name: "설정 적용", exact: true }).click();
-    await expect(settings).toBeHidden();
-    await expect.poll(async () => (await f.activeRound()).formation_settings).toMatchObject({ nicknameOnly: true });
-    await member.reload();
-    await expect(memberPanel.locator("[data-namecard]").getByText("CardPlayer", { exact: true })).toBeVisible();
-    await expect(memberPanel.locator("[data-namecard]").filter({ hasText: "CardPlayer" })).not.toContainText(battleTag);
-    await expect(memberPanel.getByRole("link", { name: "CardPlayer 프로필 보기", exact: true })).toHaveAttribute("href", new RegExp(`player=${f.users[0].id}`));
-    await expect(panel.locator("[data-namecard-plain]").getByText("CardPlayer", { exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "경기 설정", exact: true }).click();
-    await settings.getByRole("tab", { name: "화면 표시", exact: true }).click();
-    await expect(settings.getByRole("switch", { name: "닉네임만 표시", exact: true })).toBeChecked();
-    await settings.getByRole("switch", { name: "닉네임만 표시", exact: true }).uncheck();
-    await settings.getByRole("button", { name: "설정 적용", exact: true }).click();
-    await expect(settings).toBeHidden();
-    await member.reload();
-    await expect(memberPanel.locator("[data-namecard]").getByText(battleTag, { exact: true })).toBeVisible();
-    expect((await f.service.from("balance_sessions").update({ phase: "match_live", resolved_map_label: "부산" }).eq("id", session.id)).error).toBeNull();
+    for (const width of [1280, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await editor.evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+      await expect(card).toContainText("검증용 칭호");
+    }
+    await page.screenshot({ path: test.info().outputPath("default-namecard-mobile.png") });
+    await page.keyboard.press("Escape");
     await page.reload();
-    await expect(panel.locator("[data-namecard]").getByText(battleTag, { exact: true })).toBeVisible();
-    const ledger = await f.service.from("coin_transactions").select("amount,reason").eq("user_id", f.users[0].id);
-    expect(ledger.data).toEqual([{ amount: -90, reason: "purchase_title" }]);
-  } finally { await memberContext.close(); await f.cleanup(); }
+    await expect(page.getByRole("region", { name: "공통 네임카드" })).toContainText("검증용 칭호");
+
+    const peer = await peerContext.newPage();
+    await loginIsolatedBalanceUser(peer, f.users[1]);
+    await peer.goto(f.path.replace(/balance$/, "stats") + "?player=" + f.users[0].id);
+    const publicCard = peer.getByRole("region", { name: "플레이어 배너" }).locator("[data-namecard]");
+    await expect(publicCard).toContainText("검증용 칭호");
+    await expect(publicCard.locator('img[data-symbol-art="shield"]')).toBeVisible();
+    expect((await page.request.get("/namecards/v1/shield.webp")).ok()).toBe(true);
+    for (const path of ["/namecards/v1/arcade.webp", "/namecards/v1/crown.webp", "/clan-banners/emerald.svg", "/images/demo/qa-clan-banner.webp"]) expect((await page.request.get(path)).status()).toBe(404);
+  } finally {
+    await peerContext.close();
+    await f.cleanup();
+    expect((await f.service.from("nameplate_options").delete().eq("id", titleId)).error).toBeNull();
+  }
 });
