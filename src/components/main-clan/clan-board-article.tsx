@@ -22,6 +22,7 @@ import { NO_CLAN_COSMETICS, memoryStyle, type ClanCosmeticAccess, type ClanEmoji
 import { ClanCommentComposer, ClanComments } from "./clan-comments";
 import { ClanPlayerAvatar } from "@/components/profile/clan-namecards";
 import articleStyles from "./clan-board-article.module.css";
+import { StatsScrollArea } from "./stats-scroll-area";
 
 export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reactions,liked,commentPage,userId,coaches=[],cosmeticAccess=NO_CLAN_COSMETICS,emojis=[],emojiReactions=[],previousPostId=null,nextPostId=null}:{base:string;gameSlug:string;clanId:string;kind:BoardKind;post:BoardPost;comments:BoardComment[];reactions:number;liked:boolean;commentPage:number;userId:string;coaches?:ClanCoach[];cosmeticAccess?:ClanCosmeticAccess;emojis?:ClanEmoji[];emojiReactions?:ClanEmojiReaction[];previousPostId?:string|null;nextPostId?:string|null}){
   const router=useRouter();
@@ -68,11 +69,13 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
     </article>
     <section id="comments" className="min-h-64 rounded-xl border border-border bg-card p-5 sm:p-6" aria-label="게시글 댓글">
       <h4 className="flex items-center gap-2 text-sm font-semibold">댓글 <span className="rounded-md bg-muted px-2 py-0.5 text-xs tabular-nums text-muted-foreground">{post.commentCount}</span></h4>
-      <ClanComments comments={commentRows} clanId={clanId} targetKind="board_comment" className="mt-3" disabled={pending}
+      <StatsScrollArea label="게시글 댓글 목록" className="mt-3 max-h-[min(30rem,50dvh)] overscroll-y-contain">
+      <ClanComments comments={commentRows} clanId={clanId} targetKind="board_comment" disabled={pending}
         onDelete={c=>mutate(()=>deleteBoardCommentAction(gameSlug,clanId,post.id,c.id))}
         onReact={(c,reaction)=>mutate(()=>setBoardCommentReactionAction(gameSlug,clanId,c.id,reaction))}
         loadReactionPeople={(c,reaction)=>"kind" in reaction ? listBoardCommentStandardReactionPeopleAction(gameSlug,clanId,c.id,reaction.kind) : listBoardCommentReactionPeopleAction(gameSlug,clanId,c.id,reaction.emojiId)} />
       {!comments.length&&<p className="py-8 text-center text-sm text-muted-foreground">첫 댓글을 남겨 주십시오.</p>}
+      </StatsScrollArea>
       {post.commentCount>50&&<nav className="flex justify-center gap-4 py-4 text-sm" aria-label="댓글 페이지">{commentPage>1&&<Link href={"?comments="+(commentPage-1)}>이전 댓글</Link>}<span>{commentPage} / {Math.ceil(post.commentCount/50)}</span>{commentPage*50<post.commentCount&&<Link href={"?comments="+(commentPage+1)}>다음 댓글</Link>}</nav>}
       <ClanCommentComposer className="mt-5" label="댓글 내용" value={comment} onChange={setComment} maxLength={1000} disabled={pending} placeholder="클랜원에게 한마디 남겨보십시오."
         onSubmit={()=>mutate(()=>addBoardCommentAction(gameSlug,clanId,post.id,comment),()=>setComment(""))} />
