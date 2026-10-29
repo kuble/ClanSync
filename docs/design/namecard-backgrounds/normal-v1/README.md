@@ -20,6 +20,13 @@
 
 재생성·검증: `node scripts/build-normal-namecard-backgrounds.mjs`
 
+## 색상 바리에이션
+
+- 5개 패턴에 그래파이트·블루·그린·퍼플·로즈·앰버 6색을 공통 제공한다. 별도 상품·추가 비용 없이 상점 카드/미리보기에서 비교한 뒤 적용하며, 프로필 꾸미기에서는 현재 배경의 색상을 바로 저장한다.
+- 공통 `CosmeticColorPicker`와 팔레트를 재사용한다. 패턴은 `masks/*.svg` 한 장씩 유지하고 CSS 마스크로 칠한다. 패턴색 불투명도 40%로 모든 색상의 주/보조 글자 대비 4.5:1 이상을 검사한다.
+- 계정 선택의 `palette_id`에 색상을 저장하며, 미선택은 패턴별 기본색으로 표시한다. 본인·클랜원 조회 모두 같은 값을 사용한다. 미리보기만 변경하거나 닫으면 저장하지 않는다. QA 스키마만 적용하며 기존 선택·잔액·보유 내역은 바꾸지 않는다.
+- 검증: DB 10개·관련 브라우저 2개·5패턴×6색 전경 대비·ESLint·타입 포함 빌드 통과. [색상 선택 상점](palette-store-desktop.png) · [밝은 테마 모바일](palette-preview-mobile-light.png).
+
 QA 등록 검증: DB 9개·관련 브라우저 3개·ESLint·타입 포함 빌드 통과. [상점 화면](store-desktop.png) · [밝은 테마 모바일 적용](preview-mobile-light.png).
 
 ![네임카드 배경 5종](contact-sheet.png)

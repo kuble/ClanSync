@@ -16,7 +16,7 @@ export async function loadPlayerIdentity(db: SupabaseClient<Database>, userId: s
   const service: SupabaseClient<Database> = createServiceRoleClient();
   const [catalog, selections, linkedGames, clanProfile] = await Promise.all([
     service.from("nameplate_options").select("id,category,code,name_ko,unlock_source,price_coins").eq("is_active", true),
-    service.from("user_namecard_selections").select("category,option_id").eq("user_id", profile.userId),
+    service.from("user_namecard_selections").select("category,option_id,palette_id").eq("user_id", profile.userId),
     service.from("user_game_profiles").select("battle_tag,game_uid,riot_id,is_verified,games(slug,name_ko)").eq("user_id", profile.userId),
     clanId && membership ? loadClanProfile(db, service, userId, clanId, membership.gameSlug, viewerId) : undefined,
   ]);

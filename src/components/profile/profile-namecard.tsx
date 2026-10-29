@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Namecard } from "./namecard";
 import styles from "./namecard.module.css";
+import { namecardBackground } from "@/lib/profile/backgrounds";
+import { CosmeticColorPicker } from "@/components/cosmetics/cosmetic-color-picker";
 
 const CATEGORIES: [NamecardCategory | "theme", string][] = [["theme", "테마"], ["emblem", "심벌"], ["portrait", "초상 프레임"], ["namebar", "배경"], ["frame", "카드 프레임"], ["sub", "칭호"]];
 
@@ -33,6 +35,7 @@ export function ProfileNamecard({ initial, displayName, children }: {
   }
   if (!state) return <section aria-label="공통 네임카드"><p role="alert" className={styles.error}>{!initial.ok ? initial.error : "네임카드를 불러오지 못했습니다."}</p>{children(namecardAppearance([], []))}</section>;
   const appearance = namecardAppearance(state.catalog, state.selections);
+  const background = namecardBackground(appearance.namebar, appearance.backgroundPalette);
   const label = CATEGORIES.find(([key]) => key === category)![1];
   function options(category: NamecardCategory) {
     const unique = new Map<string, NamecardOption>();
@@ -48,7 +51,7 @@ export function ProfileNamecard({ initial, displayName, children }: {
     if (busy.current) return;
     busy.current = true; setPending(true); setError("");
     try {
-      const result = themeId ? await saveNamecardThemeAction(themeId) : await saveNameplateSelectionAction({ category: selections[0].category, optionId: selections[0].option_id });
+      const result = themeId ? await saveNamecardThemeAction(themeId) : await saveNameplateSelectionAction({ category: selections[0].category, optionId: selections[0].option_id, paletteId: selections[0].palette_id });
       if (!result.ok) { setError("네임카드를 저장하지 못했습니다. 다시 시도해 주십시오."); return; }
       setState((previous) => previous && ({ ...previous, selections: [...previous.selections.filter((item) => !selections.some(next => next.category === item.category)), ...selections] }));
       window.dispatchEvent(new CustomEvent(CLANSYNC_NAMEPLATE_CHANGED));
@@ -71,6 +74,10 @@ export function ProfileNamecard({ initial, displayName, children }: {
         </div>
         <div className={styles.fields} aria-busy={pending}>
           <div className={styles.designHeading}><h3>{label} 디자인</h3><span>{category === "theme" ? "심벌·칭호는 유지" : `보유 ${available.length}`}</span></div>
+          {category === "namebar" && background && <CosmeticColorPicker label="배경 색상" value={background.paletteId} disabled={pending} onChange={palette_id => {
+            const selection = state.selections.find(item => item.category === "namebar");
+            if (selection) void equip([{ ...selection, palette_id }]);
+          }} />}
           {category === "theme" ? <div className={styles.themeGrid} role="group" aria-label="네임카드 테마 디자인">
             {!NAMECARD_THEMES.length && <p className={styles.note}>등록된 테마가 없습니다.</p>}
             {NAMECARD_THEMES.map(theme => {
@@ -87,7 +94,8 @@ export function ProfileNamecard({ initial, displayName, children }: {
             {available.map(item => {
               const selected = selectedId === item.id;
               const name = category === "sub" && item.code.endsWith("-sub-default") ? "칭호 없음" : item.name_ko;
-              const preview = namecardAppearance(state.catalog, [...state.selections.filter(selection => selection.category !== category), { category, option_id: item.id }]);
+              const selection = { category, option_id: item.id, palette_id: selected ? state.selections.find(s => s.option_id === item.id)?.palette_id : null };
+              const preview = namecardAppearance(state.catalog, [...state.selections.filter(selection => selection.category !== category), selection]);
               return <button key={item.id} type="button" className={styles.designOption} aria-label={`${label} ${name} 적용`} aria-pressed={selected} disabled={pending} onClick={() => { if (!selected) void equip([{ category, option_id: item.id }]); }}>
                 <span aria-hidden="true"><Namecard displayName={displayName} compact {...preview} /></span>
                 <span className={styles.designCaption}><strong>{name}</strong><span>{selected ? <><Check size={14} aria-hidden="true" />적용 중</> : "선택"}</span></span>

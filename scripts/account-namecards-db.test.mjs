@@ -25,6 +25,18 @@ test("account namecards share one appearance across games and titles debit perso
   const read = (client = member, clanId = f.clanId) => ok(client.rpc("get_clan_namecards", { p_clan_id: clanId }));
   const equip = (category, optionId, client = owner) => client.from("user_namecard_selections").upsert({ user_id: f.users[0].id, category, option_id: optionId });
   const buy = (id = title.id, client = owner) => client.rpc("purchase_profile_title", { p_option_id: id });
+  await t.test("background palettes persist for peers and reject unknown colors, other categories and foreign writes", async () => {
+    const background = catalog.find(item => item.code === "background-normal-wave");
+    const row = { user_id: f.users[0].id, category: "namebar", option_id: background.id, palette_id: "rose" };
+    await ok(owner.from("user_namecard_selections").upsert(row));
+    assert.equal((await read())[f.users[0].id].backgroundPalette, "rose");
+    for (const client of [member, outsider]) assert.ok((await client.from("user_namecard_selections").upsert({ ...row, palette_id: "blue" })).error);
+    assert.ok((await owner.from("user_namecard_selections").upsert({ ...row, palette_id: "unknown" })).error);
+    assert.ok((await owner.from("user_namecard_selections").upsert({ ...row, category: "emblem", option_id: free.id })).error);
+    assert.equal((await read())[f.users[0].id].backgroundPalette, "rose");
+    await ok(owner.from("user_namecard_selections").upsert({ ...row, palette_id: null }));
+    assert.equal((await read())[f.users[0].id].backgroundPalette, null);
+  });
   await ok(f.service.from("users").update({ coin_balance: 500 }).eq("id", f.users[0].id));
   await ok(f.service.from("users").update({ coin_balance: 0 }).eq("id", f.users[1].id));
 

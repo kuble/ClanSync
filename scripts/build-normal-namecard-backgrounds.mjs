@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import sharp from "sharp";
+import { COSMETIC_COLOR_PRESETS } from "../src/lib/cosmetics/color-presets.ts";
 
 const root=fileURLToPath(new URL("../",import.meta.url));
 const docs=path.join(root,"docs/design/namecard-backgrounds/normal-v1");
@@ -11,6 +12,13 @@ function luminance(rgb){return rgb.map(v=>v/255).map(v=>v<=.04045?v/12.92:((v+.0
 function color(value){return [1,3,5].map(start=>parseInt(value.slice(start,start+2),16));}
 const textLuminance=[catalog.foreground,catalog.secondaryForeground].map(value=>luminance(color(value)));
 const pictures=[],layers=[];
+const maskDirectory=path.join(root,"public/namecard-backgrounds/normal-v1/masks");
+await mkdir(maskDirectory,{recursive:true});
+for(const palette of COSMETIC_COLOR_PRESETS){
+  const base=color(palette.background),pattern=color(palette.pattern);
+  const blended=base.map((v,i)=>v*.6+pattern[i]*.4);
+  for(const foreground of textLuminance) assert((foreground+.05)/(luminance(blended)+.05)>=4.5,`${palette.id}: unreadable namecard palette`);
+}
 let minimum=Infinity;
 for(const asset of catalog.assets){
   const svg=await readFile(path.join(root,`public/namecard-backgrounds/normal-v1/${asset.id}.svg`),"utf8");
@@ -18,6 +26,8 @@ for(const asset of catalog.assets){
   assert(!/<(?:script|image|animate|filter|linearGradient|radialGradient)\b|href=|url\(/i.test(svg));
   const colors=[...svg.matchAll(/(?:fill|stroke)="(#[0-9a-f]+)"/gi)].map(m=>m[1]);
   assert(colors.length&&colors.every(c=>[asset.base,asset.pattern].includes(c)));
+  const mask=svg.replace(/<path fill="#[A-Fa-f0-9]+" d="M0 0h960v240H0z"\s*\/>/,"").replace(/#[A-Fa-f0-9]{6}/g,"#ffffff");
+  await writeFile(path.join(maskDirectory,`${asset.id}.svg`),mask);
   const output=path.join(root,`public/namecard-backgrounds/normal-v1/${asset.id}.webp`);
   await sharp(Buffer.from(svg)).resize(1280,320).webp({lossless:true}).toFile(output);
   for(const [width,height] of [[1280,320],[264,44],[240,80]]){

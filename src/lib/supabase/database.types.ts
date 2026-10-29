@@ -3321,18 +3321,21 @@ export type Database = {
         Row: {
           category: Database["public"]["Enums"]["nameplate_category"]
           option_id: string
+          palette_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           category: Database["public"]["Enums"]["nameplate_category"]
           option_id: string
+          palette_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           category?: Database["public"]["Enums"]["nameplate_category"]
           option_id?: string
+          palette_id?: string | null
           updated_at?: string
           user_id?: string
         }
