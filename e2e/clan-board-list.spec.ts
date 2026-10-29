@@ -42,14 +42,21 @@ test('게시판 목록의 경량 데이터·정렬·밀도·모바일과 방송 
     await expect(freeRows).toHaveCount(3);
     await expect(freeRows.getByRole('img',{name:'이미지 첨부',exact:true})).toHaveCount(1);
     await expect(freeRows.locator('img')).toHaveCount(0);
-    for(const width of [1100,390,320]){
+    for(const width of [1100,887,390,320]){
       await page.setViewportSize({width,height:844});
       await expect(freeRows.first().getByLabel('게시글 번호 3',{exact:true})).toBeVisible();
       await expect(freeRows.last().getByLabel('게시글 번호 1',{exact:true})).toBeVisible();
       await expect(freeRows.first().getByRole('img',{name:'이미지 첨부',exact:true})).toBeVisible();
       await expect(freeRows.first().getByLabel('댓글 11',{exact:true})).toBeVisible();
-      const date=(await freeRows.first().locator('time').boundingBox())!,title=(await freeRows.first().getByText(freeTitle,{exact:true}).boundingBox())!,number=(await freeRows.first().getByLabel('게시글 번호 3',{exact:true}).boundingBox())!;
-      expect(date.y+date.height).toBeLessThanOrEqual(title.y);
+      const date=(await freeRows.first().locator('time').boundingBox())!,title=(await freeRows.first().locator('p').last().boundingBox())!,number=(await freeRows.first().getByLabel('게시글 번호 3',{exact:true}).boundingBox())!;
+      if(width>=768){
+        const author=(await freeRows.first().getByText(f.users[1].nickname,{exact:true}).boundingBox())!,count=(await freeRows.first().getByLabel('댓글 11',{exact:true}).boundingBox())!;
+        expect(title.x+title.width).toBeLessThan(author.x);
+        expect(author.x+author.width).toBeLessThan(date.x);
+        expect(date.x+date.width).toBeLessThan(count.x);
+        expect(Math.abs(date.y+date.height/2-title.y-title.height/2)).toBeLessThan(1);
+        expect((await freeRows.first().boundingBox())!.height).toBeLessThanOrEqual(66);
+      }else expect(date.y+date.height).toBeLessThanOrEqual(title.y);
       expect(number.x+number.width).toBeLessThan(title.x);
       expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
       await page.screenshot({path:test.info().outputPath(`free-list-${width}.png`),animations:'disabled'});
