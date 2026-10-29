@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { MessageSquare, RefreshCw, Send, Trash2 } from "lucide-react";
-import { addHofCommentAction, deleteHofCommentAction, listHofCommentsAction, setHofCommentReactionAction } from "@/app/actions/hof-comments";
+import { addHofCommentAction, deleteHofCommentAction, listHofCommentsAction, listHofCommentReactionPeopleAction, setHofCommentReactionAction } from "@/app/actions/hof-comments";
 import { HOF_COMMENT_MAX_LENGTH, HOF_REACTIONS, type HofComment, type HofCommentThread, type HofReactionKind } from "@/lib/clan/stats/hof-comments";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +13,7 @@ import { ClanPlayerAvatar } from "@/components/profile/clan-namecards";
 import styles from "./hof-comments.module.css";
 
 const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric", weekday: "long" });
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" });
+const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", hour: "numeric", minute: "2-digit" });
 const reactionOptions = HOF_REACTIONS.map((option) => ({ ...option, value: option.kind }));
 
 /** Preserve the card and controls; only a thread's draft/replies reset on a scope change. */
@@ -129,17 +129,22 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
           <div data-comment-row className={`${styles.comment} flex items-start gap-2.5 ${comment.isMine ? "flex-row-reverse" : ""}`}>
           <ClanPlayerAvatar userId={comment.authorId} label={comment.nickname}/>
           <div className="min-w-0 flex-1 space-y-1.5">
-            <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] ${comment.isMine ? "justify-end" : ""}`}><strong className="max-w-full truncate text-xs">{comment.nickname}</strong><time dateTime={comment.createdAt} title={`${day} ${timeFormat.format(new Date(comment.createdAt))}`} className="text-muted-foreground">{timeFormat.format(new Date(comment.createdAt))}</time>{comment.canDelete && <Button type="button" variant="ghost" size="icon-xs" className={`${comment.isMine ? "" : "ml-auto"} text-muted-foreground hover:text-destructive`} disabled={busy} aria-label={`${comment.nickname} 댓글 삭제`} title="댓글 삭제" onClick={() => setConfirmDelete(comment.id)}><Trash2 className="size-3.5" aria-hidden="true"/></Button>}</div>
+            <div className={`flex ${comment.isMine ? "justify-end" : ""}`}><strong className="max-w-full truncate text-xs">{comment.nickname}</strong></div>
             <div className={`${styles.message} ${comment.isMine ? styles.mine : ""}`}>
+            <div className={styles.bubble}>
             <p className={`w-fit whitespace-pre-wrap break-words rounded-xl border px-3 py-2.5 text-sm leading-relaxed [overflow-wrap:anywhere] ${comment.isMine ? "ml-auto rounded-tr-sm border-primary/25 bg-primary/15" : "rounded-tl-sm bg-background/50"}`}><ClanEmojiText text={comment.content}/></p>
+            <time dateTime={comment.createdAt} title={`${day} ${timeFormat.format(new Date(comment.createdAt))}`} className={styles.time}>{timeFormat.format(new Date(comment.createdAt))}</time>
+            </div>
             <div className={styles.reactions} aria-label={`${comment.nickname} 댓글 공감`}>
               {HOF_REACTIONS.map((option) => {
                 const reaction = comment.reactions.find(({ kind }) => kind === option.kind);
                 return reaction && <EmojiReactionButton key={option.kind} count={reaction.count} aria-pressed={reaction.mine} disabled={busy || loading}
                   aria-label={`${option.label} 공감 ${reaction.count}명`} title={`${option.label}${reaction.mine ? " 취소" : ""}`}
+                  loadPeople={() => listHofCommentReactionPeopleAction(thread, comment.id, { kind: option.kind })}
                   onClick={() => void react(comment, option.kind)}>{option.emoji}</EmojiReactionButton>;
               })}
-              <ClanEmojiReactions pickerLabel={`${comment.nickname} 댓글 공감 선택`} clanId={clanId} target={{kind:"hof_comment",id:comment.id}} reactions={comment.emojiReactions??[]} standardOptions={reactionOptions} onStandardSelect={value=>{const option=HOF_REACTIONS.find(row=>row.kind===value);if(option)void react(comment,option.kind);}}/>
+              <ClanEmojiReactions pickerLabel={`${comment.nickname} 댓글 공감 선택`} clanId={clanId} target={{kind:"hof_comment",id:comment.id}} reactions={comment.emojiReactions??[]} standardOptions={reactionOptions} onStandardSelect={value=>{const option=HOF_REACTIONS.find(row=>row.kind===value);if(option)void react(comment,option.kind);}} loadPeople={emojiId => listHofCommentReactionPeopleAction(thread, comment.id, { emojiId })}/>
+              {comment.canDelete && <Button type="button" variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive" disabled={busy} aria-label={`${comment.nickname} 댓글 삭제`} title="댓글 삭제" onClick={() => setConfirmDelete(comment.id)}><Trash2 className="size-3.5" aria-hidden="true"/></Button>}
             </div>
             </div>
             {confirmDelete === comment.id && <div className={`flex flex-wrap items-center gap-2 text-xs ${comment.isMine ? "justify-end" : ""}`}><span>이 댓글을 삭제할까요?</span><Button type="button" size="xs" variant="destructive" disabled={busy} onClick={() => void remove(comment.id)}>삭제 확인</Button><Button type="button" size="xs" variant="ghost" disabled={busy} onClick={() => setConfirmDelete(null)}>취소</Button></div>}

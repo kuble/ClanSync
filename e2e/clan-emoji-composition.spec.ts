@@ -104,6 +104,8 @@ test("custom emojis compose posts, board/stat comments and all reaction targets 
     const custom=hof.getByRole("button",{name:"응원 공감 1명",exact:true});
     await expect(standard).toHaveAttribute("aria-pressed","true");
     await expect(custom).toBeVisible();
+    await custom.hover();
+    await expect(page.getByRole("tooltip").getByRole("listitem")).toHaveText([f.users[0].nickname]);
     const [standardBox,customBox]=await Promise.all([standard.boundingBox(),custom.boundingBox()]);
     expect(standardBox!.height).toBe(32);expect(customBox!.height).toBe(standardBox!.height);
     expect(customBox!.width).toBe(standardBox!.width);expect(customBox!.y).toBe(standardBox!.y);

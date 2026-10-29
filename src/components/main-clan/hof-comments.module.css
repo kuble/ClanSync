@@ -1,11 +1,33 @@
 .message {
   position: relative;
   width: fit-content;
-  max-width: 85%;
+  max-width: calc(100% - 5rem);
 }
 
-.mine {
+.mine,
+.mine .bubble {
   margin-left: auto;
+}
+
+.bubble {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.time {
+  position: absolute;
+  bottom: 0;
+  left: calc(100% + 0.375rem);
+  white-space: nowrap;
+  font-size: 10px;
+  line-height: 1rem;
+  color: var(--muted-foreground);
+}
+
+.mine .time {
+  right: calc(100% + 0.375rem);
+  left: auto;
 }
 
 .reactions {
@@ -23,9 +45,11 @@
 /* Detect rendered pills so standard and locally updated custom reactions agree. */
 .reactions:not(:has(button[aria-pressed])) {
   position: absolute;
-  bottom: 0;
+  bottom: 1.125rem;
   left: calc(100% + 0.25rem);
   margin-top: 0;
+  flex-wrap: nowrap;
+  width: max-content;
 }
 
 .mine .reactions:not(:has(button[aria-pressed])) {
@@ -34,14 +58,15 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .reactions:not(:has(button[aria-pressed])) button[aria-haspopup="dialog"] {
+  .reactions:not(:has(button[aria-pressed])) button {
     opacity: 0;
     pointer-events: none;
   }
 
-  .comment:hover .reactions button[aria-haspopup="dialog"],
-  .comment:focus-within .reactions button[aria-haspopup="dialog"],
-  .reactions:not(:has(button[aria-pressed])) button[aria-expanded="true"] {
+  .comment:hover .reactions button,
+  .comment:focus-within .reactions button,
+  .reactions:not(:has(button[aria-pressed])):hover button,
+  .reactions:not(:has(button[aria-pressed])):has(button[aria-expanded="true"]) button {
     opacity: 1;
     pointer-events: auto;
   }

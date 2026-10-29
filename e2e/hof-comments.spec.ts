@@ -145,7 +145,7 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await expect(reply.locator("[data-comment-row]")).toHaveCSS("flex-direction", "row-reverse");
     await expect(panel.getByRole("listitem").first().locator("[data-comment-row]")).toHaveCSS("flex-direction", "row");
     await expect(panel.getByRole("separator")).toHaveCount(3);
-    await expect(reply.locator("time")).toHaveText(/^(오전|오후) \d{2}:\d{2}$/);
+    await expect(reply.locator("time")).toHaveText(/^(오전|오후) \d{1,2}:\d{2}$/);
     await expect(reply.getByRole("button", { name: `${f.users[1].nickname} 댓글 삭제`, exact: true })).toHaveText("");
     await expect(reply.getByRole("button", { name: `${f.users[1].nickname} 댓글 삭제`, exact: true }).locator("svg")).toBeVisible();
     await expect(viewport).toHaveAttribute("data-more-below", "false");
@@ -160,9 +160,21 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
       await row.hover();
       await expect(picker).toHaveCSS("opacity", "1");
       const bubble = (await row.locator("p").boundingBox())!, button = (await picker.boundingBox())!;
+      const time = (await row.locator("time").boundingBox())!;
       if (mine) expect(button.x + button.width).toBeLessThanOrEqual(bubble.x);
       else expect(button.x).toBeGreaterThanOrEqual(bubble.x + bubble.width);
-      expect(button.y + button.height).toBeCloseTo(bubble.y + bubble.height, 0);
+      if (mine) expect(time.x + time.width).toBeLessThanOrEqual(bubble.x);
+      else expect(time.x).toBeGreaterThanOrEqual(bubble.x + bubble.width);
+      expect(time.y + time.height).toBeCloseTo(bubble.y + bubble.height, 0);
+      expect(button.y + button.height).toBeLessThanOrEqual(time.y);
+      await expect(row.locator("[data-comment-row] > div > div").first().locator("time")).toHaveCount(0);
+      if (mine) {
+        const remove = row.getByRole("button", { name: `${nickname} 댓글 삭제`, exact: true });
+        const removeBox = (await remove.boundingBox())!;
+        expect(removeBox.y).toBeCloseTo(button.y, 0);
+        expect(removeBox.x - button.x - button.width).toBeGreaterThanOrEqual(0);
+        expect(removeBox.x - button.x - button.width).toBeLessThanOrEqual(8);
+      }
       await picker.click();
       await page.getByRole("heading", { name: "클랜 통계", exact: true }).hover();
       await expect(picker).toHaveCSS("opacity", "1");
@@ -183,7 +195,58 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await expect(panel.getByRole("listitem").last()).toContainText(content);
     await expect(reply.locator("[data-comment-row]")).toHaveCSS("flex-direction", "row-reverse");
     await expect(reply.getByRole("button", { name: "하트 공감 1명", exact: true })).toHaveAttribute("aria-pressed", "true");
-    await reply.getByRole("button", { name: "하트 공감 1명", exact: true }).click();
+    const commentId = (await ok(f.service.from("clan_hof_comments").select("id").eq("clan_id", f.clanId).eq("content", content).single())).id;
+    await ok(f.service.from("clan_hof_comment_reactions").insert({ comment_id: commentId, user_id: f.users[0].id, kind: "heart" }));
+    await page.getByRole("button", { name: "반응 새로고침", exact: true }).click();
+    const heart = reply.getByRole("button", { name: "하트 공감 2명", exact: true });
+    const peopleRequest = page.waitForRequest(request => request.headers()["next-action"] !== undefined && !!request.postData()?.includes('"kind":"heart"'));
+    await heart.hover();
+    const actionRequest = await peopleRequest;
+    const people = page.getByRole("tooltip");
+    await expect(people.getByRole("listitem")).toHaveText([f.users[0].nickname, f.users[1].nickname].sort((a, b) => a.localeCompare(b, "ko")));
+    const [thread, target, selector] = JSON.parse(actionRequest.postData()!);
+    const actionHeaders = { "next-action": actionRequest.headers()["next-action"], "content-type": actionRequest.headers()["content-type"], origin: new URL(page.url()).origin };
+    for (const args of [
+      [{ ...thread, periodKey: "1998" }, target, selector],
+      [thread, target, { kind: "invalid" }],
+      [thread, target, { ...selector, emojiId: target }],
+    ]) {
+      const denied = await page.request.post(path, { headers: actionHeaders, data: JSON.stringify(args) });
+      expect(await denied.text()).toContain('"ok":false');
+    }
+    const anonContext = await browser.newContext();
+    try {
+      const denied = await anonContext.request.post(new URL(path, page.url()).href, { headers: actionHeaders, data: actionRequest.postData()!, maxRedirects: 0 });
+      expect(denied.status()).toBe(307);
+      expect(denied.headers().location).toContain("/sign-in?next=");
+    } finally { await anonContext.close(); }
+    await ok(f.service.from("clan_settings").update({ hof_config: { eligibility_below_pct: 100, win_rate_visible_top: 0 } }).eq("clan_id", f.clanId));
+    const hidden = await page.request.post(path, { headers: actionHeaders, data: actionRequest.postData()! });
+    expect(await hidden.text()).toContain('"ok":false');
+    await ok(f.service.from("clan_settings").update({ hof_config: { eligibility_below_pct: 100 } }).eq("clan_id", f.clanId));
+    await page.getByLabel("순위 보고 한마디").focus();
+    await page.getByRole("heading", { name: "클랜 통계", exact: true }).hover();
+    const failPeople = async (route: import("@playwright/test").Route) => {
+      if (route.request().headers()["next-action"] === actionHeaders["next-action"]) await route.abort();
+      else await route.continue();
+    };
+    await page.route("**/stats", failPeople);
+    await heart.hover();
+    await expect(people).toContainText("공감한 멤버를 불러오지 못했습니다.");
+    await page.unroute("**/stats", failPeople);
+    await page.getByRole("heading", { name: "클랜 통계", exact: true }).hover();
+    await reply.getByRole("button", { name: `${f.users[1].nickname} 댓글 공감 선택`, exact: true }).focus();
+    await page.keyboard.press("Shift+Tab");
+    await expect(heart).toBeFocused();
+    await expect(people.getByRole("listitem")).toHaveCount(2);
+    await page.screenshot({ path: test.info().outputPath("hof-reaction-people.png"), animations: "disabled" });
+    await heart.click();
+    await expect(reply.getByRole("button", { name: "하트 공감 1명", exact: true })).toHaveAttribute("aria-pressed", "false");
+    await page.getByRole("heading", { name: "클랜 통계", exact: true }).hover();
+    await reply.getByRole("button", { name: "하트 공감 1명", exact: true }).hover();
+    await expect(people.getByRole("listitem")).toHaveText([f.users[0].nickname]);
+    await ok(f.service.from("clan_hof_comment_reactions").delete().eq("comment_id", commentId).eq("user_id", f.users[0].id));
+    await page.getByRole("button", { name: "반응 새로고침", exact: true }).click();
     await expect(reply.getByRole("button", { name: "하트 공감 1명", exact: true })).toHaveCount(0);
     await page.getByRole("radio", { name: "최다 참여", exact: true }).click();
     await expect(page.getByLabel("전체 기간 · 최다 참여 반응", { exact: true })).toBeVisible();
@@ -195,7 +258,12 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await page.getByLabel("순위 보고 한마디").fill(monthly);
     await page.getByRole("button", { name: "댓글 등록", exact: true }).click();
     await expect(page.getByText(monthly, { exact: true })).toBeVisible();
-    await page.getByRole("button", { name: `${f.users[1].nickname} 댓글 삭제`, exact: true }).click();
+    await page.getByText(monthly, { exact: true }).hover();
+    const monthlyDelete = page.getByRole("button", { name: `${f.users[1].nickname} 댓글 삭제`, exact: true });
+    const deleteBox = (await monthlyDelete.boundingBox())!;
+    await page.mouse.move(deleteBox.x + deleteBox.width / 2, deleteBox.y + deleteBox.height / 2);
+    await expect(monthlyDelete).toHaveCSS("opacity", "1");
+    await monthlyDelete.click();
     await page.getByRole("button", { name: "삭제 확인", exact: true }).click();
     await expect(page.getByText(monthly, { exact: true })).toHaveCount(0);
     await page.getByRole("radio", { name: "전체", exact: true }).click();
@@ -243,6 +311,7 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await settings.getByRole("tab", { name: "등재 기준", exact: true }).click();
     await expect(settings.getByRole("spinbutton", { name: "기준 전환점", exact: true })).toBeVisible();
     await settings.getByRole("button", { name: "취소", exact: true }).click();
+    await staffComments.last().hover();
     await leaderPage.getByRole("button", { name: `${f.users[1].nickname} 댓글 삭제`, exact: true }).click();
     await leaderPage.getByRole("button", { name: "삭제 확인", exact: true }).click();
     await expect(leaderPage.getByText(content, { exact: true })).toHaveCount(0);
