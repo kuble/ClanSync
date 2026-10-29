@@ -1,0 +1,15 @@
+{
+  "collection": "namecard-backgrounds-normal-v1",
+  "createdAt": "2026-10-29",
+  "status": "design-ready",
+  "canvas": { "width": 960, "height": 240, "rasterWidth": 1280, "rasterHeight": 320 },
+  "foreground": "#F1F5F3",
+  "secondaryForeground": "#C3D0CA",
+  "assets": [
+    { "id": "rail", "name": "레일", "englishName": "Rail", "rarity": "normal", "base": "#20282E", "pattern": "#38454E", "symbol": "orbit" },
+    { "id": "wave", "name": "웨이브", "englishName": "Wave", "rarity": "normal", "base": "#182A3B", "pattern": "#2E4B65", "symbol": "shift" },
+    { "id": "fold", "name": "폴드", "englishName": "Fold", "rarity": "normal", "base": "#1A3029", "pattern": "#315246", "symbol": "node" },
+    { "id": "step", "name": "스텝", "englishName": "Step", "rarity": "normal", "base": "#332B23", "pattern": "#534332", "symbol": "beacon" },
+    { "id": "tile", "name": "타일", "englishName": "Tile", "rarity": "normal", "base": "#302738", "pattern": "#4E3D5A", "symbol": "spark" }
+  ]
+}
