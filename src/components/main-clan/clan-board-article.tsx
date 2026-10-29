@@ -18,8 +18,12 @@ import { ClanEmojiInput, ClanEmojiText } from "./clan-emoji-content";
 import { ClanEmojiReactions } from "./clan-emoji-reactions";
 import { ClanPlayerAvatar } from "@/components/profile/clan-namecards";
 import { NO_CLAN_COSMETICS, memoryStyle, type ClanCosmeticAccess, type ClanEmoji, type ClanEmojiReaction } from "@/lib/clan/cosmetics";
+import commentStyles from "./clan-comment.module.css";
 
-export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reactions,liked,commentPage,coaches=[],cosmeticAccess=NO_CLAN_COSMETICS,emojis=[],emojiReactions=[]}:{base:string;gameSlug:string;clanId:string;kind:BoardKind;post:BoardPost;comments:BoardComment[];reactions:number;liked:boolean;commentPage:number;userId:string;coaches?:ClanCoach[];cosmeticAccess?:ClanCosmeticAccess;emojis?:ClanEmoji[];emojiReactions?:ClanEmojiReaction[]}){
+const commentDate = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric", weekday: "long" });
+const commentTime = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", hour: "numeric", minute: "2-digit" });
+
+export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reactions,liked,commentPage,userId,coaches=[],cosmeticAccess=NO_CLAN_COSMETICS,emojis=[],emojiReactions=[]}:{base:string;gameSlug:string;clanId:string;kind:BoardKind;post:BoardPost;comments:BoardComment[];reactions:number;liked:boolean;commentPage:number;userId:string;coaches?:ClanCoach[];cosmeticAccess?:ClanCosmeticAccess;emojis?:ClanEmoji[];emojiReactions?:ClanEmojiReaction[]}){
   const router=useRouter();
   const [editing,setEditing]=useState(false),[remove,setRemove]=useState<string|null>(null),[comment,setComment]=useState(""),[commentEdit,setCommentEdit]=useState<BoardComment|null>(null);
   const [pending,start]=useTransition();
@@ -62,7 +66,31 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
     </article>
     <section id="comments" className="min-h-64 rounded-xl border border-border bg-card p-5 sm:p-6" aria-label="게시글 댓글">
       <h4 className="flex items-center gap-2 text-sm font-semibold">댓글 <span className="rounded-md bg-muted px-2 py-0.5 text-xs tabular-nums text-muted-foreground">{post.commentCount}</span></h4>
-      <ul className="mt-3 divide-y divide-border">{comments.map(c=><li key={c.id} className="py-4"><div className="flex items-start gap-3"><ClanPlayerAvatar userId={c.author_id} label={c.author}/><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-3"><div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs"><span className="font-medium">{c.author}</span><time dateTime={c.created_at} className="text-[11px] text-muted-foreground">{boardDate(c.created_at,true)}</time></div>{c.canManage&&<div className="-mr-1 -mt-1 flex shrink-0 gap-1"><Button type="button" variant="ghost" size="icon-sm" aria-label="댓글 편집" title="댓글 편집" disabled={pending} className="text-muted-foreground" onClick={()=>{setCommentEdit(c);setComment(c.content);}}><Pencil className="size-3.5" aria-hidden/></Button><Button type="button" variant="ghost" size="icon-sm" aria-label="댓글 삭제" title="댓글 삭제" disabled={pending} className="text-muted-foreground hover:text-destructive" onClick={()=>setRemove(c.id)}><Trash2 className="size-3.5" aria-hidden/></Button></div>}</div><p className="mt-2 whitespace-pre-wrap break-words text-sm leading-7"><ClanEmojiText text={c.content}/></p><ClanEmojiReactions gameSlug={gameSlug} clanId={clanId} target={{kind:"board_comment",id:c.id}} reactions={c.emojiReactions??[]}/></div></div></li>)}</ul>
+      <ol className="mt-3 space-y-5">{comments.map((c,index)=>{
+        const mine=c.author_id===userId,day=commentDate.format(new Date(c.created_at));
+        return <li key={c.id} className="space-y-3">
+          {(index===0||commentDate.format(new Date(comments[index-1].created_at))!==day)&&<div role="separator" aria-label={day} className="flex items-center gap-3 py-1 text-[10px] text-muted-foreground"><span className="h-px flex-1 bg-border"/><span>{day}</span><span className="h-px flex-1 bg-border"/></div>}
+          <div data-comment-row className={cn(commentStyles.comment,"flex items-start gap-2.5",mine&&"flex-row-reverse",c.canManage&&commentStyles.editable)}>
+            <ClanPlayerAvatar userId={c.author_id} label={c.author}/>
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <div className={cn("flex",mine&&"justify-end")}><strong className="max-w-full truncate text-xs">{c.author}</strong></div>
+              <div className={cn(commentStyles.message,mine&&commentStyles.mine)}>
+                <div className={commentStyles.bubble}>
+                  <p className={cn("w-fit whitespace-pre-wrap break-words rounded-xl border px-3 py-2.5 text-sm leading-relaxed [overflow-wrap:anywhere]",mine?"ml-auto rounded-tr-sm border-primary/25 bg-primary/15":"rounded-tl-sm bg-background/50")}><ClanEmojiText text={c.content}/></p>
+                  <time dateTime={c.created_at} title={`${day} ${commentTime.format(new Date(c.created_at))}`} className={commentStyles.time}>{commentTime.format(new Date(c.created_at))}</time>
+                </div>
+                <div className={commentStyles.reactions} aria-label={`${c.author} 댓글 공감`}>
+                  <ClanEmojiReactions gameSlug={gameSlug} clanId={clanId} target={{kind:"board_comment",id:c.id}} reactions={c.emojiReactions??[]}/>
+                  {c.canManage&&<>
+                    <Button type="button" variant="ghost" size="icon-sm" aria-label="댓글 편집" title="댓글 편집" disabled={pending} className="text-muted-foreground" onClick={()=>{setCommentEdit(c);setComment(c.content);}}><Pencil className="size-3.5" aria-hidden/></Button>
+                    <Button type="button" variant="ghost" size="icon-sm" aria-label="댓글 삭제" title="댓글 삭제" disabled={pending} className="text-muted-foreground hover:text-destructive" onClick={()=>setRemove(c.id)}><Trash2 className="size-3.5" aria-hidden/></Button>
+                  </>}
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>;
+      })}</ol>
       {!comments.length&&<p className="py-8 text-center text-sm text-muted-foreground">첫 댓글을 남겨 주세요.</p>}
       {post.commentCount>50&&<nav className="flex justify-center gap-4 py-4 text-sm" aria-label="댓글 페이지">{commentPage>1&&<Link href={"?comments="+(commentPage-1)}>이전 댓글</Link>}<span>{commentPage} / {Math.ceil(post.commentCount/50)}</span>{commentPage*50<post.commentCount&&<Link href={"?comments="+(commentPage+1)}>다음 댓글</Link>}</nav>}
       <form className="mt-5" onSubmit={e=>{e.preventDefault();mutate(()=>saveBoardCommentAction(gameSlug,clanId,post.id,comment,commentEdit?.id??null),()=>{setComment("");setCommentEdit(null);});}}>

@@ -72,6 +72,7 @@ test("custom emojis compose posts, board/stat comments and all reaction targets 
     await page.getByRole("button",{name:"댓글 등록",exact:true}).click();
     const comment=page.locator("#comments li").first();
     await expect(comment.getByRole("img",{name:":응원:",exact:true})).toHaveAttribute("width","48");
+    await comment.hover();
     await choose(comment,"클랜 이모티콘 선택");await expect(comment.getByRole("button",{name:"응원 공감 1명",exact:true})).toHaveAttribute("aria-pressed","true");
     await page.reload();await expect(comment.getByRole("button",{name:"응원 공감 1명",exact:true})).toBeVisible();
     await expect.poll(()=>page.locator('img[alt=":응원:"]').evaluateAll(nodes=>nodes.every(node=>(node as HTMLImageElement).naturalWidth>0))).toBe(true);
@@ -81,6 +82,41 @@ test("custom emojis compose posts, board/stat comments and all reaction targets 
     expect((await member.from("clan_emoji_reactions").insert({board_comment_id:boardComment.id,emoji_id:emoji.id})).error).toBeNull();
     expect((await member.from("clan_emoji_reactions").delete().eq("board_comment_id",boardComment.id).eq("user_id",f.users[0].id).select()).data).toEqual([]);
     expect((await member.from("clan_emoji_reactions").insert({post_id:post.id,board_comment_id:boardComment.id,emoji_id:emoji.id})).error?.code).toBe("23514");
+    const peerComment=await svc.from("clan_board_comments").insert({post_id:post.id,author_id:f.users[1].id,content:emojiToken(emoji.id)}).select("id").single();
+    expect(peerComment.error).toBeNull();
+    expect((await svc.from("clan_emoji_reactions").insert({board_comment_id:peerComment.data!.id,emoji_id:emoji.id,user_id:f.users[0].id})).error).toBeNull();
+    await page.reload();
+    const peerRow=page.locator("#comments li").filter({hasText:f.users[1].nickname});
+    for(const {row,mine} of [{row:comment,mine:true},{row:peerRow,mine:false}]) {
+      const reaction=row.getByRole("button",{name:/응원 공감 \d+명/});
+      await reaction.scrollIntoViewIfNeeded();await row.hover();
+      const bubble=(await row.locator("p").boundingBox())!,pill=(await reaction.boundingBox())!;
+      const picker=(await row.getByRole("button",{name:"클랜 이모티콘 선택",exact:true}).boundingBox())!;
+      const edit=(await row.getByRole("button",{name:"댓글 편집",exact:true}).boundingBox())!,remove=(await row.getByRole("button",{name:"댓글 삭제",exact:true}).boundingBox())!;
+      if(mine) {
+        expect(pill.x+pill.width).toBeCloseTo(bubble.x+bubble.width,0);
+        expect(picker.x+picker.width).toBeLessThanOrEqual(pill.x);
+        expect(edit.x+edit.width).toBeLessThanOrEqual(picker.x);
+        expect(remove.x+remove.width).toBeLessThanOrEqual(edit.x);
+      } else {
+        expect(pill.x).toBeCloseTo(bubble.x,0);
+        expect(picker.x).toBeGreaterThanOrEqual(pill.x+pill.width);
+        expect(edit.x).toBeGreaterThanOrEqual(picker.x+picker.width);
+        expect(remove.x).toBeGreaterThanOrEqual(edit.x+edit.width);
+      }
+      await page.getByRole("textbox",{name:"댓글 내용",exact:true}).focus();
+      await row.scrollIntoViewIfNeeded();await page.mouse.move(5,5);
+      await expect(row.getByRole("button",{name:"클랜 이모티콘 선택",exact:true})).toHaveCSS("opacity","0");
+      await expect(row.getByRole("button",{name:"댓글 삭제",exact:true})).toHaveCSS("opacity","0");
+      await expect(reaction).toHaveCSS("opacity","1");
+    }
+    await comment.hover();
+    await page.screenshot({path:test.info().outputPath("board-comment-mirrored.png"),animations:"disabled"});
+    await page.setViewportSize({width:390,height:844});
+    await peerRow.scrollIntoViewIfNeeded();await peerRow.hover();
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    await page.screenshot({path:test.info().outputPath("board-comment-mobile.png"),animations:"disabled"});
+    await page.setViewportSize({width:1280,height:900});
     expect((await svc.from("clan_members").update({status:"left"}).eq("clan_id",f.clanId).eq("user_id",f.users[2].id)).error).toBeNull();
     expect((await outsider.from("clan_emoji_reactions").insert({board_comment_id:boardComment.id,emoji_id:emoji.id})).error).not.toBeNull();
     expect((await outsider.rpc("list_clan_emoji_reactions",{p_board_comment_ids:[boardComment.id]})).data).toEqual([]);
