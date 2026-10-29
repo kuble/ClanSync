@@ -25,7 +25,6 @@ export function ProfileNamecard({ initial, displayName, children }: {
   const firstOption = useRef<HTMLButtonElement>(null);
   const [category, setCategory] = useState<NamecardCategory | "theme">("emblem");
   const [error, setError] = useState("");
-  const [status, setStatus] = useState("");
   const [source, setSource] = useState(initial);
   if (source !== initial) {
     setSource(initial);
@@ -47,12 +46,11 @@ export function ProfileNamecard({ initial, displayName, children }: {
   const selectedId = state.selections.find(selection => selection.category === category)?.option_id ?? available[0]?.id;
   async function equip(selections: NamecardState["selections"], themeId?: string) {
     if (busy.current) return;
-    busy.current = true; setPending(true); setError(""); setStatus("");
+    busy.current = true; setPending(true); setError("");
     try {
       const result = themeId ? await saveNamecardThemeAction(themeId) : await saveNameplateSelectionAction({ category: selections[0].category, optionId: selections[0].option_id });
       if (!result.ok) { setError("네임카드를 저장하지 못했습니다. 다시 시도해 주십시오."); return; }
       setState((previous) => previous && ({ ...previous, selections: [...previous.selections.filter((item) => !selections.some(next => next.category === item.category)), ...selections] }));
-      setStatus("공통 네임카드를 저장했습니다.");
       window.dispatchEvent(new CustomEvent(CLANSYNC_NAMEPLATE_CHANGED));
     } catch { setError("네임카드를 저장하지 못했습니다. 다시 시도해 주십시오."); }
     finally { busy.current = false; setPending(false); }
@@ -101,10 +99,9 @@ export function ProfileNamecard({ initial, displayName, children }: {
             <Tooltip><TooltipTrigger render={<Link href="/store" aria-label="개인 상점에서 더 보기" className={buttonVariants({ variant: "ghost", size: "icon" })} />}><ShoppingBag aria-hidden="true" /></TooltipTrigger><TooltipContent>개인 상점에서 더 보기</TooltipContent></Tooltip>
           </div>
           {error && <p role="alert" className={styles.error}>{error}</p>}
-          <p role="status" className={styles.note}>{pending ? "네임카드를 저장하는 중…" : status}</p>
+          {pending && <p role="status" className={styles.note}>네임카드를 저장하는 중…</p>}
         </div>
       </SheetContent>
     </Sheet>
-    <p role="status" className={styles.note}>{!open ? status : ""}</p>
   </section>;
 }
