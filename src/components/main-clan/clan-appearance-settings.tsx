@@ -9,6 +9,10 @@ import { toast } from "sonner";
 import { updateClanBannerAction } from "@/app/actions/clan-banner-settings";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { clanBannerUrl, NORMAL_CLAN_BANNERS, readClanBannerUrl, sameClanBannerPattern } from "@/lib/clan/banner-catalog";
+import type { CosmeticColorPresetId } from "@/lib/cosmetics/color-presets";
+import { ClanBannerImage } from "@/components/cosmetics/clan-banner-image";
+import { CosmeticColorPicker } from "@/components/cosmetics/cosmetic-color-picker";
 
 export type ClanBannerOption = { slug: string; name: string; url: string; owned: boolean };
 
@@ -22,11 +26,13 @@ export function ClanAppearanceSettings({ gameSlug, clanId, clanName, initialIcon
   const [preview, setPreview] = useState<string | null>(null);
   const [iconUrl, setIconUrl] = useState(initialIconUrl);
   const [bannerUrl, setBannerUrl] = useState(initialBannerUrl);
-  const [selected, setSelected] = useState<string | null | undefined>(() => initialBannerUrl ? banners.find(b => b.url === initialBannerUrl)?.slug : null);
+  const [selected, setSelected] = useState<string | null | undefined>(() => initialBannerUrl ? banners.find(b => sameClanBannerPattern(b.url, initialBannerUrl))?.slug : null);
+  const [paletteId, setPaletteId] = useState<CosmeticColorPresetId>(() => readClanBannerUrl(initialBannerUrl)?.paletteId ?? "graphite");
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
   const owned = banners.filter(b => b.owned);
-  const nextBannerUrl = selected === undefined ? bannerUrl : selected === null ? null : banners.find(b => b.slug === selected)?.url;
+  const selectedDesign = NORMAL_CLAN_BANNERS.find(design => design.sku === selected);
+  const nextBannerUrl = selected === undefined ? bannerUrl : selected === null ? null : selectedDesign ? clanBannerUrl({ designId: selectedDesign.id, paletteId }) : banners.find(b => b.slug === selected)?.url;
   const base = `/games/${gameSlug}/clan/${clanId}`;
 
   function saveImage(remove = false) {
@@ -78,14 +84,15 @@ export function ClanAppearanceSettings({ gameSlug, clanId, clanName, initialIcon
         <Link href={base + "/store"} className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"><Store className="size-3.5" aria-hidden />클랜 상점</Link>
       </div>
       <div aria-label="클랜 배너 미리보기" className="relative mt-4 flex min-h-36 items-end gap-3 overflow-hidden rounded-xl border border-border bg-muted p-4 sm:min-h-44">
-        {nextBannerUrl && <Image src={nextBannerUrl} alt="선택한 클랜 배너" fill sizes="(max-width: 768px) 100vw, 900px" unoptimized className="object-cover" />}
+        {nextBannerUrl && <ClanBannerImage url={nextBannerUrl} alt="선택한 클랜 배너" sizes="(max-width: 768px) 100vw, 900px" />}
         <div className="absolute inset-0 bg-gradient-to-t from-black/65 to-transparent" />
         <span className="relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-primary text-primary-foreground">{preview || iconUrl ? <Image src={preview || iconUrl!} alt="" fill sizes="48px" unoptimized className="object-cover" /> : <Shield className="size-6" aria-hidden />}</span>
         <span className="relative text-sm font-semibold text-white">{clanName}</span>
       </div>
+      {selectedDesign && <div className="mt-4 space-y-1"><CosmeticColorPicker value={paletteId} onChange={setPaletteId} disabled={!canManage || pendingBanner} /><p className="text-xs text-muted-foreground">이 패턴의 모든 색상을 추가 코인 없이 사용할 수 있습니다.</p></div>}
       <div role="group" aria-label="보유 배너 선택" className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[{ slug: null, name: "기본 배너", url: null }, ...owned].map(banner => <button key={banner.slug ?? "default"} type="button" disabled={!canManage || pendingBanner} aria-pressed={selected === banner.slug} onClick={() => setSelected(banner.slug)} className={cn("min-w-0 overflow-hidden rounded-lg border text-left transition-colors disabled:cursor-not-allowed disabled:opacity-60", selected === banner.slug ? "border-primary bg-primary/5" : "border-border hover:bg-muted")}>
-          <span className="relative block aspect-[4/1] bg-muted">{banner.url && <Image src={banner.url} alt="" fill sizes="250px" className="object-cover" />}</span>
+          <span className="relative block aspect-[4/1] bg-muted">{banner.url && <ClanBannerImage url={banner.url} sizes="250px" />}</span>
           <span className="flex min-h-10 items-center justify-between gap-1 px-3 py-2 text-xs"><span>{banner.name}</span>{selected === banner.slug && <Check className="size-3.5 shrink-0 text-primary" aria-hidden />}</span>
         </button>)}
       </div>
@@ -93,7 +100,7 @@ export function ClanAppearanceSettings({ gameSlug, clanId, clanName, initialIcon
       {selected === undefined && <p className="mt-3 text-xs text-muted-foreground">기존 배너를 사용 중입니다. 보유 배너를 선택하면 변경할 수 있습니다.</p>}
       <div className="mt-4 flex justify-end"><Button size="sm" disabled={!canManage || pendingBanner || selected === undefined || nextBannerUrl === bannerUrl} onClick={() => startBanner(async () => {
         try {
-          const result = await updateClanBannerAction(gameSlug, clanId, selected ?? null);
+          const result = await updateClanBannerAction(gameSlug, clanId, selected ?? null, paletteId);
           if (!result.ok) { toast.error(result.error); return; }
           setBannerUrl(nextBannerUrl ?? null); toast.success("클랜 배너를 변경했습니다."); router.refresh();
         } catch { toast.error("배너 저장에 실패했습니다. 다시 시도해 주세요."); }

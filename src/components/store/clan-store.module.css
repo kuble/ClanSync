@@ -21,7 +21,8 @@
 .packPreview { min-height:124px; overflow:hidden; border-radius:8px; background:var(--muted); }
 .bannerStage { min-width:0; overflow:hidden; border:1px solid var(--border); border-radius:16px; }
 .bannerStage > section { margin-bottom:0; }
-.bannerOriginal { position:relative; width:100%; aspect-ratio:4/1; background:var(--muted); }
+.bannerOriginal { position:relative; width:100%; aspect-ratio:3/1; background:var(--muted); }
+.rarity { padding:2px 6px; border:1px solid var(--border); border-radius:4px; color:var(--muted-foreground); font-size:10px; white-space:nowrap; }
 @media(max-width:1023px) { .grid { grid-template-columns:repeat(2,minmax(0,1fr)); min-height:560px; } }
 @media(max-width:639px) {
   .header { gap:8px; } .header h1 { font-size:16px; }

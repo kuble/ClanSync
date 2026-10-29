@@ -11,7 +11,7 @@
 | `unique` | 유니크 | 일러스트레이터 원화 |
 | `legend` | 레전드 | 애니메이팅 되어있는 배너 |
 
-이번 10종은 모두 `normal`이다. 초기 WebP의 등급·생성 프롬프트는 [제작 목록](manifest.json), 개발 렌더러의 등급·패턴은 [런타임 카탈로그](../../../../src/lib/clan/banner-catalog.ts)에 기록한다. 가격·구매 조건·DB 상품 등록은 별도 작업이다. 기존 QA 보유·장착 상태를 바꾸지 않는다.
+이번 10종은 모두 `normal`이다. 초기 WebP의 등급·생성 프롬프트는 [제작 목록](manifest.json), 렌더러의 등급·패턴은 [런타임 카탈로그](../../../../src/lib/clan/banner-catalog.ts)에 기록한다. QA 상점에는 패턴당 10 클랜 코인으로 등록했다. 기존 QA 보유·장착 상태를 임의 변경하지 않는다.
 
 ## 제작 목록
 
@@ -47,11 +47,21 @@
 - [공통 색상 프리셋](../../../../src/lib/cosmetics/color-presets.ts): `background`(바탕)·`pattern`(무늬)·`swatch`(선택 버튼). 고정 ID로 참조한다.
 - [공통 색상 선택기](../../../../src/components/cosmetics/cosmetic-color-picker.tsx): `<CosmeticColorPicker value={selection.paletteId} onChange={...} />`.
 - [배너 렌더러](../../../../src/components/cosmetics/clan-banner-artwork.tsx): 위치·크기가 정해진 `position: relative` 부모 안에 `<ClanBannerArtwork selection={selection} />`을 배치한다. SVG 알파 마스크와 바탕/무늬 CSS 변수만 사용한다. 최초 마스크 로드 후 색상 전환 시에는 JS 이미지 생성·필터·추가 서버 요청이 없다. 3:1 미리보기와 4:1 목록에 같은 마스크를 쓴다.
-- [선택 데이터](../../../../src/lib/clan/banner-catalog.ts): `{ "designId": "forest-diagonal", "paletteId": "purple" }`. `readClanBannerSelection(unknown)`은 등록된 조합만 반환하고 잘못된 ID·배열·불완전한 쌍은 `null`이다. 개발 페이지는 기본 조합으로 복원한다. 현재 URL에만 반영하며 구매·장착 저장은 연결하지 않았다.
-- 새 패턴은 SVG 마스크와 런타임 카탈로그 한 항목을 추가한다. 새 팔레트는 공통 프리셋에 추가하면 모든 패턴에 적용된다. 상위 등급 원화·애니메이션은 색을 유지할 원본과 변경할 영역을 분리해 제작하며 실제 렌더러는 해당 등급 제작 시 확장한다.
+- [선택 데이터](../../../../src/lib/clan/banner-catalog.ts): `{ "designId": "forest-diagonal", "paletteId": "purple" }`. `readClanBannerSelection(unknown)`은 등록된 조합만 반환하고 잘못된 ID·배열·불완전한 쌍은 `null`이다. 개발 페이지는 기본 조합으로 복원한다. 실 장착은 `clanBannerUrl`이 만든 `/clan-banners/normal-v1/masks/forest-diagonal.svg?palette=purple`을 기존 `clans.banner_url`에 저장하고 `readClanBannerUrl`로 복원한다.
+- 새 패턴은 SVG 마스크·런타임 카탈로그·상점 마이그레이션을 추가한다. 새 팔레트는 공통 프리셋과 `set_clan_banner`의 허용 목록을 함께 갱신하면 기존 패턴 보유자도 추가 구매 없이 사용한다. 상위 등급 원화·애니메이션은 색을 유지할 원본과 변경할 영역을 분리해 제작하며 실제 렌더러는 해당 등급 제작 시 확장한다.
 
 검증: [집중 테스트](../../../../e2e/clan-banner-studio.spec.ts) 개발 모드 4개와 프로덕션 404 테스트 1개, ESLint·타입 검사·운영 모드 빌드 통과. 60개 조합의 ID 검증, 마스크 디코딩·투명도, 팔레트 흰 글자 대비 4.5:1 이상, 추가 이미지/API 요청 없는 색상 전환·DOM/영역 유지, 10개 패턴 재사용, 키보드·390px 터치·주소 복원·잘못된 입력을 확인했다. 운영 DB·배포는 변경하지 않았다.
 
 ![배너 스튜디오](studio-desktop.png)
 
 [모바일 확인 화면](studio-mobile.png)
+
+## QA 상점 등록
+
+2026-10-29 노말 패턴 10종을 각 10 클랜 코인·Free 포함으로 등록했다. `store_items.rarity`는 네 등급 중 하나이며 기존 기능 상품에는 등급을 강제하지 않는다. `clan_banner_normal_` SKU는 패턴 단위이며 색상 SKU·추가 구매 행은 없다. 한 패턴을 사면 제공되는 모든 색상을 보유하며 향후 팔레트 추가에도 재구매하지 않는다.
+
+상점·원본/실제 미리보기·관리의 보유 패턴/원형 색상 선택·대시보드가 같은 마스크 렌더러를 사용한다. 색상 선택 후 `배너 적용`을 눌러 저장한다. 소유권·운영진·클랜 지출 권한 검증과 기존 구매 원장·중복 차감 방지는 유지한다. 구매 무효화는 현재 적용한 패턴과 색상만 해제하고 다른 패턴은 유지한다. 일반 사용자 조회 권한은 기존 RLS를 유지한다.
+
+마이그레이션: `20261029044755_normal_clan_banner_store`, QA 적용·타입 생성 완료. 관련 DB 검증은 [패턴 구매·전체 색상·권한·동시/중복 결제·잔액 부족·무효화](../../../../scripts/clan-banner-store-db.test.mjs), 브라우저 검증은 [구매·색상 장착·새로고침·멤버 표시·모바일](../../../../e2e/clan-banner-store.spec.ts)과 [기본 배너·업로드 권한](../../../../e2e/clan-appearance.spec.ts)이다. 사용자 QA 명단을 시드하지 않으며 운영 DB·배포는 보류한다.
+
+DB 7개·운영 빌드 관련 검증 5개(개발 전용 UI 2개 제외)·lint·타입·빌드 통과. [상점 데스크톱 검증 화면](store-desktop.png) · [모바일 검증 화면](store-mobile.png).

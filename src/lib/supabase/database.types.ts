@@ -3140,6 +3140,7 @@ export type Database = {
           name_ko: string
           pool_source: Database["public"]["Enums"]["coin_pool_type"]
           price_coins: number
+          rarity: string | null
           released_at: string
           slug: string
         }
@@ -3153,6 +3154,7 @@ export type Database = {
           name_ko: string
           pool_source: Database["public"]["Enums"]["coin_pool_type"]
           price_coins: number
+          rarity?: string | null
           released_at?: string
           slug: string
         }
@@ -3166,6 +3168,7 @@ export type Database = {
           name_ko?: string
           pool_source?: Database["public"]["Enums"]["coin_pool_type"]
           price_coins?: number
+          rarity?: string | null
           released_at?: string
           slug?: string
         }
@@ -3905,7 +3908,12 @@ export type Database = {
         Returns: undefined
       }
       set_clan_banner: {
-        Args: { p_actor_id: string; p_clan_id: string; p_item_slug?: string }
+        Args: {
+          p_actor_id: string
+          p_clan_id: string
+          p_item_slug?: string
+          p_palette_id?: string
+        }
         Returns: Json
       }
       set_clan_discord_bot_settings: {

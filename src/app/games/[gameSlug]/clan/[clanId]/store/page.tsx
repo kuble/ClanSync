@@ -9,6 +9,7 @@ import {
 import { ClanStoreCoinHistory } from "@/components/main-clan/clan-store-coin-history";
 import { MVP_STORE_SLUGS, isMvpStoreSlug } from "@/lib/store/mvp-store-slugs";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
+import { BANNER_RARITIES } from "@/lib/clan/banner-catalog";
 
 export default async function ClanStorePage({
   params,
@@ -31,7 +32,7 @@ export default async function ClanStorePage({
     hasRequestClanPermission(clanId, "manage_clan_pool"),
     supabase
       .from("store_items")
-      .select("id, slug, name_ko, price_coins, pool_source, is_premium_only, asset_url")
+      .select("id, slug, name_ko, price_coins, pool_source, is_premium_only, asset_url, rarity")
       .eq("is_active", true)
       .eq("pool_source", "clan")
       .in("slug", [...MVP_STORE_SLUGS]).order("released_at", { ascending: false }).order("slug"),
@@ -86,6 +87,7 @@ export default async function ClanStorePage({
       purchased,
       canAttemptPurchase,
       disabledReason,
+      rarity: row.rarity && row.rarity in BANNER_RARITIES ? row.rarity as keyof typeof BANNER_RARITIES : null,
     });
   }
 

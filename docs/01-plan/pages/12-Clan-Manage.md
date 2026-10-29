@@ -81,7 +81,7 @@
    - 클랜 코인 현황 (잔액 + "스토어·이벤트와 연동" 캡션)
 2. **프로필 이미지 · 배너 카드** (운영진+)
    - 프로필 이미지 선택·저장·기본 이미지 복원, 형식·2MB 제한 안내
-   - 보유 배너 선택·적용·클랜 상점 링크. 구매와 적용은 분리하며 재적용 시 추가 차감 없음
+   - 보유 배너 선택·적용·클랜 상점 링크. 노말 패턴 10종은 각 10 클랜 코인에 한 번 구매하며 모든 제공 색상을 포함한다. 보유 패턴의 색상 선택·재적용에는 추가 차감 없음
 3. **클랜 공지 (게시글) 카드** (운영진+)
    - "+ 공지 작성"
    - 공지 게시글 리스트 (수정 / 삭제 / 핀 토글)
@@ -231,7 +231,7 @@
 - **위치**: `/games/[g]/clan/[id]/manage` 본문, 구독 카드 아래(또는 배너 설정 위). `manage_clan_pool` 권한이 있는 운영진에게만 노출된다.
 - **구역 1 — 클랜 풀**
   - **대상**: 이 클랜의 **클랜 풀**로 구매된 활성 구매(`purchases.pool_source=clan`, `clan_id` 일치, `voided_at` 없음).
-  - **처리**: RPC `void_clan_store_purchase` — 클랜 코인 잔액 환급, `coin_transactions`에 `correction_of` 연결된 반대 부호 거래, `purchases`에 무효 표시. 상품이 `clan_banner_slot`이면 `clans.banner_url`을 비운다.
+  - **처리**: RPC `void_clan_store_purchase` — 클랜 코인 잔액 환급, `coin_transactions`에 `correction_of` 연결된 반대 부호 거래, `purchases`에 무효 표시. 현재 적용 중인 배너 패턴이면 색상 선택을 포함해 `clans.banner_url`을 비우며 다른 패턴은 유지한다.
 - **구역 2 — 개인 풀**
   - **대상**: **이 클랜의 활동 멤버**가 산 **개인 풀** 활성 구매(`pool_source=personal`, `clan_id` NULL, `voided_at` 없음). 멤버가 여러 클랜에 속해 있어도 **해당 클랜 관리 화면**에서는 그 클랜 활동 멤버의 개인 구매만 목록에 나온다.
   - **처리**: RPC `void_personal_store_purchase` — **구매자 `users.coin_balance`** 환급, `coin_transactions`(`pool_type=personal`, `correction_of`), `purchases` 무효. 구매자가 **해당 `p_context_clan_id`에서 활동 멤버**가 아니면 RPC가 거절한다. 상품이 `profile_entrance_fx`이면 스토어 출처 네임플레이트 frame(`pf_entrance_store:%`)에 대한 **선택·보유(`user_namecard_selections`·`user_nameplate_inventory`)** 를 정리한다.

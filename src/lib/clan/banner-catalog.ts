@@ -18,7 +18,7 @@ export const NORMAL_CLAN_BANNERS = ([
   { id: "plum-herringbone", name: "헤링본", pattern: "작은 헤링본" },
   { id: "slate-dash", name: "대시", pattern: "짧은 점선" },
   { id: "olive-weave", name: "바스켓 위브", pattern: "잔잔한 직조선" },
-] as const).map(design => ({ ...design, rarity: "normal" as const, maskUrl: `/clan-banners/normal-v1/masks/${design.id}.svg` }));
+] as const).map(design => ({ ...design, rarity: "normal" as const, sku: `clan_banner_normal_${design.id.replaceAll("-", "_")}` as const, maskUrl: `/clan-banners/normal-v1/masks/${design.id}.svg` }));
 
 export type ClanBannerDesignId = typeof NORMAL_CLAN_BANNERS[number]["id"];
 export type ClanBannerSelection = { designId: ClanBannerDesignId; paletteId: CosmeticColorPresetId };
@@ -30,4 +30,28 @@ export function readClanBannerSelection(value: unknown): ClanBannerSelection | n
   const design = NORMAL_CLAN_BANNERS.find(item => item.id === designId);
   const palette = COSMETIC_COLOR_PRESETS.find(item => item.id === paletteId);
   return design && palette ? { designId: design.id, paletteId: palette.id } : null;
+}
+
+export function clanBannerUrl(selection: ClanBannerSelection): string {
+  const design = NORMAL_CLAN_BANNERS.find(item => item.id === selection.designId)!;
+  return `${design.maskUrl}?palette=${selection.paletteId}`;
+}
+
+export function readClanBannerUrl(value: string | null | undefined): ClanBannerSelection | null {
+  if (!value) return null;
+  const parts = value.split("?");
+  if (parts.length > 2) return null;
+  const [path, query = ""] = parts;
+  const design = NORMAL_CLAN_BANNERS.find(item => item.maskUrl === path);
+  if (!design) return null;
+  const params = new URLSearchParams(query);
+  if ([...params.keys()].some(key => key !== "palette") || params.getAll("palette").length > 1) return null;
+  return readClanBannerSelection({ designId: design.id, paletteId: params.get("palette") ?? "graphite" });
+}
+
+export function sameClanBannerPattern(a: string | null | undefined, b: string | null | undefined): boolean {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  const first = readClanBannerUrl(a), second = readClanBannerUrl(b);
+  return !!first && !!second && first.designId === second.designId;
 }

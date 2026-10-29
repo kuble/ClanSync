@@ -1,10 +1,21 @@
 import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import sharp from "sharp";
-import { DEFAULT_CLAN_BANNER_SELECTION, NORMAL_CLAN_BANNERS, readClanBannerSelection } from "@/lib/clan/banner-catalog";
+import { clanBannerUrl, DEFAULT_CLAN_BANNER_SELECTION, NORMAL_CLAN_BANNERS, readClanBannerSelection, readClanBannerUrl, sameClanBannerPattern } from "@/lib/clan/banner-catalog";
 import { COSMETIC_COLOR_PRESETS } from "@/lib/cosmetics/color-presets";
 
 test.use({ hasTouch: true });
+
+test("배너 URL은 패턴과 색상을 복원하며 잘못된 색상·중복 쿼리를 거절한다", () => {
+  for (const design of NORMAL_CLAN_BANNERS) for (const palette of COSMETIC_COLOR_PRESETS) {
+    const selection = { designId: design.id, paletteId: palette.id };
+    expect(readClanBannerUrl(clanBannerUrl(selection))).toEqual(selection);
+    expect(sameClanBannerPattern(clanBannerUrl(selection), design.maskUrl)).toBe(true);
+  }
+  const url = NORMAL_CLAN_BANNERS[0].maskUrl;
+  for (const invalid of [url + "?palette=bad", url + "?palette=rose&palette=blue", url + "?palette=rose?extra=1", url + "?redirect=1", "https://evil.example" + url, null]) expect(readClanBannerUrl(invalid)).toBeNull();
+  expect(sameClanBannerPattern(url, NORMAL_CLAN_BANNERS[1].maskUrl)).toBe(false);
+});
 
 test("배너 선택은 등록된 패턴·색상 쌍만 허용하고 마스크와 대비를 유지한다", async () => {
   expect(NORMAL_CLAN_BANNERS).toHaveLength(10);

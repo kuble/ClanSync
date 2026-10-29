@@ -1,4 +1,7 @@
+import { NORMAL_CLAN_BANNERS } from "@/lib/clan/banner-catalog";
+
 export const MVP_STORE_SLUGS = [
+  ...NORMAL_CLAN_BANNERS.map(design => design.sku),
   "clan_banner_slot",
   "clan_banner_midnight",
   "clan_banner_sunset",

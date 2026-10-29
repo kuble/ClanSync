@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ClanBannerImage } from "@/components/cosmetics/clan-banner-image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import {
@@ -95,8 +96,7 @@ export function ClanHero({
     <section className={styles.hero} aria-label="클랜 소개">
       {ctx.bannerUrl ? (
         <>
-          {/* eslint-disable-next-line @next/next/no-img-element -- clan-owned external image */}
-          <img className={styles.heroImage} src={ctx.bannerUrl} alt="" />
+          <ClanBannerImage url={ctx.bannerUrl} />
           <div className={styles.heroShade} />
         </>
       ) : null}
