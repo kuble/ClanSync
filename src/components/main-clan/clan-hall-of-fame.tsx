@@ -4,7 +4,7 @@ import { formatPercent } from "@/lib/format-percent";
 import { useState, type ReactNode } from "react";
 import { RubberSegment } from "@/components/ui/rubber-segment";
 import { StatTitle } from "./stat-help";
-import { Crown } from "lucide-react";
+import { Crown, Trophy } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ClanStatsPageModel } from "@/lib/clan/stats/load-clan-stats";
 import { currentKstYearMonth } from "@/lib/clan/stats/hof-config";
@@ -78,7 +78,7 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings }: {
     {block.undisclosed ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">{block.undisclosedHint}</p> : !active ? <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">공개된 통계 부문이 없습니다.</p> : <>
       <div className="grid items-stretch gap-4 min-[1000px]:grid-cols-2" aria-label="명예의 전당 순위와 반응">
           <Card size="sm" className="h-[36rem] min-w-0" aria-label={`${active.label} 순위`}>
-            <CardHeader><CardTitle><h4><StatTitle title={active.label} help={active.help} /></h4></CardTitle></CardHeader>
+            <CardHeader><CardTitle><h4 className="flex items-center gap-2"><Trophy className="size-4 text-primary" aria-hidden="true" /><StatTitle title={active.label} help={active.help} /></h4></CardTitle></CardHeader>
             <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
               <div className="space-y-2 rounded-lg border bg-background/40 px-3 py-2 text-xs">
                 <p className="text-[11px] text-muted-foreground">{periodLabel} · 정규 내전 <strong className="text-foreground">{loaded.pending ? "—" : totals.sessions}회</strong> · 개최 {loaded.pending ? "—" : totals.days}일 · 전체 {loaded.pending ? "—" : totals.matches}경기</p>
