@@ -9,6 +9,25 @@ import type { Database } from "@/lib/supabase/database.types";
 export async function setClanEmojiReaction(gameSlug: string, clanId: string, postId: string, emojiId: string, active: boolean) {
   return setClanEmojiTargetReaction(gameSlug,clanId,{kind:"post",id:postId},emojiId,active);
 }
+export async function listBoardCommentReactionPeopleAction(gameSlug: string, clanId: string, commentId: string, emojiId: string): Promise<{ ok: true; names: string[] } | { ok: false; error: string }> {
+  const denied = { ok: false as const, error: "공감 정보를 확인해 주세요." };
+  if (typeof gameSlug !== "string" || ![clanId,commentId,emojiId].every(value => typeof value === "string" && uuidPattern.test(value))) return denied;
+  const client: SupabaseClient<Database> = await createClient();
+  const { data: { user } } = await client.auth.getUser();
+  if (!user || !await loadMainClanContext(client,user.id,gameSlug,clanId)) return denied;
+  const failure = { ok: false as const, error: "공감한 멤버를 불러오지 못했습니다. 다시 시도해 주세요." };
+  const comment = await client.from("clan_board_comments").select("id,clan_board_posts!inner(clan_id)")
+    .eq("id",commentId).eq("clan_board_posts.clan_id",clanId).maybeSingle();
+  if (comment.error) return failure;
+  if (!comment.data) return denied;
+  const [people,names] = await Promise.all([
+    client.from("clan_emoji_reactions").select("user_id").eq("board_comment_id",commentId).eq("emoji_id",emojiId).order("user_id").limit(100),
+    client.rpc("clan_peer_nicknames",{p_clan_id:clanId}),
+  ]);
+  if (people.error || names.error) return failure;
+  const nicknames = new Map(names.data.map(row => [row.user_id,row.nickname]));
+  return { ok: true, names: people.data.map(row => nicknames.get(row.user_id) ?? "이전 멤버").sort((a,b) => a.localeCompare(b,"ko")) };
+}
 export async function setClanEmojiTargetReaction(gameSlug: string, clanId: string, target: EmojiReactionTarget, emojiId: string, active: boolean) {
   if (!target || !["post","board_comment","hof_comment","notice"].includes(target.kind) || ![clanId,target.id,emojiId].every(value => typeof value === "string" && uuidPattern.test(value)) || typeof active !== "boolean") return { ok: false, error: "공감 정보를 확인해 주세요." };
   const client:SupabaseClient<Database> = await createClient();

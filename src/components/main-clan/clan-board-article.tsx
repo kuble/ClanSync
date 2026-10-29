@@ -16,6 +16,7 @@ import {cn} from "@/lib/utils";
 import { MemoryPhoto } from "./memory-photo";
 import { ClanEmojiInput, ClanEmojiText } from "./clan-emoji-content";
 import { ClanEmojiReactions } from "./clan-emoji-reactions";
+import { listBoardCommentReactionPeopleAction } from "@/app/actions/clan-emoji-reactions";
 import { ClanPlayerAvatar } from "@/components/profile/clan-namecards";
 import { NO_CLAN_COSMETICS, memoryStyle, type ClanCosmeticAccess, type ClanEmoji, type ClanEmojiReaction } from "@/lib/clan/cosmetics";
 import commentStyles from "./clan-comment.module.css";
@@ -80,7 +81,7 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
                   <time dateTime={c.created_at} title={`${day} ${commentTime.format(new Date(c.created_at))}`} className={commentStyles.time}>{commentTime.format(new Date(c.created_at))}</time>
                 </div>
                 <div className={commentStyles.reactions} aria-label={`${c.author} 댓글 공감`}>
-                  <ClanEmojiReactions gameSlug={gameSlug} clanId={clanId} target={{kind:"board_comment",id:c.id}} reactions={c.emojiReactions??[]}/>
+                  <ClanEmojiReactions gameSlug={gameSlug} clanId={clanId} target={{kind:"board_comment",id:c.id}} reactions={c.emojiReactions??[]} loadPeople={emojiId=>listBoardCommentReactionPeopleAction(gameSlug,clanId,c.id,emojiId)}/>
                   {c.canManage&&<>
                     <Button type="button" variant="ghost" size="icon-sm" aria-label="댓글 편집" title="댓글 편집" disabled={pending} className="text-muted-foreground" onClick={()=>{setCommentEdit(c);setComment(c.content);}}><Pencil className="size-3.5" aria-hidden/></Button>
                     <Button type="button" variant="ghost" size="icon-sm" aria-label="댓글 삭제" title="댓글 삭제" disabled={pending} className="text-muted-foreground hover:text-destructive" onClick={()=>setRemove(c.id)}><Trash2 className="size-3.5" aria-hidden/></Button>
