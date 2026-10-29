@@ -87,6 +87,7 @@ test("HoF comments RLS: membership, author, disclosure and thread boundaries", a
 test("HoF reactions: persist, separate category/period, paginate and moderate", async ({ page, browser }) => {
   test.setTimeout(150_000);
   page.setDefaultTimeout(15_000);
+  await page.setViewportSize({ width: 1015, height: 884 });
   const f = await createIsolatedBalanceFixture(2);
   const leaderContext = await browser.newContext();
   const leaderPage = await leaderContext.newPage();
@@ -112,6 +113,9 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await page.goto(path);
     await expect(page.getByRole("heading", { name: "누적 순위 변동" })).toHaveCount(0);
     const panel = page.getByLabel("전체 기간 · 승률 반응", { exact: true });
+    await expect(panel.getByRole("heading", { name: "반응", exact: true })).toBeVisible();
+    await expect(panel.getByText("순위 토크", { exact: true })).toHaveCount(0);
+    await expect(panel.getByText("전체 기간 · 승률", { exact: true })).toHaveCount(0);
     await expect(panel.getByRole("listitem")).toHaveCount(30);
     const viewport = panel.getByRole("region", { name: "순위 댓글 목록", exact: true });
     await expect(viewport).toHaveAttribute("data-more-below", "false");
@@ -145,9 +149,35 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await expect(reply.getByRole("button", { name: `${f.users[1].nickname} 댓글 삭제`, exact: true })).toHaveText("");
     await expect(reply.getByRole("button", { name: `${f.users[1].nickname} 댓글 삭제`, exact: true }).locator("svg")).toBeVisible();
     await expect(viewport).toHaveAttribute("data-more-below", "false");
+    for (const { row, nickname, mine } of [
+      { row: reply, nickname: f.users[1].nickname, mine: true },
+      { row: panel.getByRole("listitem").nth(32), nickname: f.users[0].nickname, mine: false },
+    ]) {
+      const picker = row.getByRole("button", { name: `${nickname} 댓글 공감 선택`, exact: true });
+      await page.getByLabel("순위 보고 한마디").focus();
+      await page.getByRole("heading", { name: "클랜 통계", exact: true }).hover();
+      await expect(picker).toHaveCSS("opacity", "0");
+      await row.hover();
+      await expect(picker).toHaveCSS("opacity", "1");
+      const bubble = (await row.locator("p").boundingBox())!, button = (await picker.boundingBox())!;
+      if (mine) expect(button.x + button.width).toBeLessThanOrEqual(bubble.x);
+      else expect(button.x).toBeGreaterThanOrEqual(bubble.x + bubble.width);
+      expect(button.y + button.height).toBeCloseTo(bubble.y + bubble.height, 0);
+      await picker.click();
+      await page.getByRole("heading", { name: "클랜 통계", exact: true }).hover();
+      await expect(picker).toHaveCSS("opacity", "1");
+      await page.keyboard.press("Escape");
+      await expect(picker).toBeFocused();
+      await expect(picker).toHaveCSS("opacity", "1");
+    }
+    await reply.hover();
+    await page.screenshot({ path: test.info().outputPath("hof-comment-hover.png"), animations: "disabled" });
     await reply.getByRole("button", { name: `${f.users[1].nickname} 댓글 공감 선택`, exact: true }).click();
     await page.getByRole("button", { name: "하트 공감", exact: true }).click();
     await expect(reply.getByRole("button", { name: "하트 공감 1명", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await page.getByLabel("순위 보고 한마디").focus();
+    await page.getByRole("heading", { name: "클랜 통계", exact: true }).hover();
+    await expect(reply.getByRole("button", { name: `${f.users[1].nickname} 댓글 공감 선택`, exact: true })).toHaveCSS("opacity", "1");
     await page.reload();
     await expect(panel.getByText(content, { exact: true })).toBeVisible();
     await expect(panel.getByRole("listitem").last()).toContainText(content);
@@ -170,6 +200,20 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await expect(page.getByText(monthly, { exact: true })).toHaveCount(0);
     await page.getByRole("radio", { name: "전체", exact: true }).click();
     await expect(panel.getByText(content, { exact: true })).toBeVisible();
+    const touchContext = await browser.newContext({
+      viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
+      storageState: await page.context().storageState(),
+    });
+    try {
+      const touchPage = await touchContext.newPage();
+      await touchPage.goto(path);
+      const touchReply = touchPage.getByRole("listitem").filter({ has: touchPage.getByText(content, { exact: true }) });
+      const touchPicker = touchReply.getByRole("button", { name: `${f.users[1].nickname} 댓글 공감 선택`, exact: true });
+      await expect(touchPicker).toHaveCSS("opacity", "1");
+      await touchPicker.tap();
+      await expect(touchPage.getByRole("dialog", { name: "공감 선택", exact: true })).toBeVisible();
+      expect(await touchPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    } finally { await touchContext.close(); }
     await loginIsolatedBalanceUser(leaderPage, f.users[0]);
     await leaderPage.goto(path);
     await expect(leaderPage.getByText(content, { exact: true })).toBeVisible();
@@ -179,6 +223,7 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await expect(leaderPage.getByRole("button", { name: "클랜 통계 도움말", exact: true })).toHaveCount(0);
     await expect(leaderPage.getByRole("button", { name: "명예의 전당 도움말", exact: true })).toHaveCount(0);
     const rankCard = leaderPage.getByLabel("승률 순위", { exact: true });
+    await expect(rankCard.getByRole("heading").locator("svg")).toBeVisible();
     const talkCard = leaderPage.getByLabel("전체 기간 · 승률 반응", { exact: true });
     const [rankBox, talkBox] = await Promise.all([rankCard.boundingBox(), talkCard.boundingBox()]);
     expect(rankBox?.height).toBe(talkBox?.height);

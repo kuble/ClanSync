@@ -95,7 +95,7 @@ test("custom emojis compose posts, board/stat comments and all reaction targets 
     await expect(talk.getByRole("textbox",{name:"순위 보고 한마디",exact:true})).toBeVisible();
     await choose(talk,"댓글 이모티콘 선택");await talk.getByRole("button",{name:"댓글 등록",exact:true}).click();
     const hof=talk.getByRole("listitem").last();await expect(hof.getByRole("img",{name:":응원:",exact:true})).toBeVisible();
-    await choose(hof,`${f.users[0].nickname} 댓글 공감 선택`);await expect(hof.getByRole("button",{name:"응원 공감 1명",exact:true})).toBeVisible();
+    await hof.hover();await choose(hof,`${f.users[0].nickname} 댓글 공감 선택`);await expect(hof.getByRole("button",{name:"응원 공감 1명",exact:true})).toBeVisible();
     await page.reload();await expect(hof.getByRole("button",{name:"응원 공감 1명",exact:true})).toBeVisible();
     await hof.getByRole("button",{name:`${f.users[0].nickname} 댓글 공감 선택`,exact:true}).click();
     await page.getByRole("button",{name:"기본",exact:true}).click();
@@ -110,6 +110,13 @@ test("custom emojis compose posts, board/stat comments and all reaction targets 
     await expect(custom.locator("img")).toHaveCSS("width","20px");
     await expect.poll(()=>hof.getByRole("img").evaluateAll(nodes=>nodes.every(node=>(node as HTMLImageElement).naturalWidth>0))).toBe(true);
     await page.screenshot({path:test.info().outputPath("emoji-stat-comments.png"),animations:"disabled"});
+    await custom.click();await expect(custom).toHaveCount(0);
+    await standard.click();await expect(standard).toHaveCount(0);
+    await talk.getByRole("textbox",{name:"순위 보고 한마디",exact:true}).focus();
+    await page.getByRole("heading",{name:"클랜 통계",exact:true}).hover();
+    const hofPicker=hof.getByRole("button",{name:`${f.users[0].nickname} 댓글 공감 선택`,exact:true});
+    await expect(hofPicker).toHaveCSS("opacity","0");
+    await hof.hover();await expect(hofPicker).toHaveCSS("opacity","1");
     const hofRow=(await svc.from("clan_hof_comments").select("id").eq("clan_id",f.clanId).single()).data!;
     expect((await svc.from("clan_settings").update({hof_config:{win_rate_visible_top:0}}).eq("clan_id",f.clanId)).error).toBeNull();
     expect((await member.rpc("list_clan_emoji_reactions",{p_hof_comment_ids:[hofRow.id]})).data).toEqual([]);

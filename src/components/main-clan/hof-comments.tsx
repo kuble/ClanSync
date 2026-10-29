@@ -10,6 +10,7 @@ import { StatsScrollArea } from "./stats-scroll-area";
 import { ClanEmojiInput, ClanEmojiText } from "./clan-emoji-content";
 import { ClanEmojiReactions, EmojiReactionButton } from "./clan-emoji-reactions";
 import { ClanPlayerAvatar } from "@/components/profile/clan-namecards";
+import styles from "./hof-comments.module.css";
 
 const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric", weekday: "long" });
 const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" });
@@ -24,7 +25,7 @@ export function HofComments({ clanId, ranking, periodKey, label }: HofCommentThr
   const disabled = status?.key !== key || status.loading || status.busy;
   return <Card size="sm" className="h-[36rem] min-w-0 overflow-hidden" aria-label={label + " 반응"}>
     <CardHeader className="grid-cols-[1fr_auto] items-center border-b pb-3">
-      <CardTitle><h4 className="flex items-center gap-2"><MessageSquare className="size-4 text-primary" aria-hidden="true" />반응 <span className="text-[10px] font-normal tracking-wider text-muted-foreground">순위 토크</span></h4><p className="mt-2 text-xs font-normal text-muted-foreground">{label}</p></CardTitle>
+      <CardTitle><h4 className="flex items-center gap-2"><MessageSquare className="size-4 text-primary" aria-hidden="true" />반응</h4></CardTitle>
       <Button type="button" variant="ghost" size="icon-sm" aria-label="반응 새로고침" disabled={disabled} onClick={() => setRefresh((value) => value + 1)}><RefreshCw className="size-3.5" aria-hidden="true" /></Button>
     </CardHeader>
     <HofCommentsThread key={key} clanId={clanId} ranking={ranking} periodKey={periodKey} refresh={refresh} onStatus={onStatus} />
@@ -125,12 +126,13 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
         {cursor && <Button type="button" className="w-full" variant="outline" size="sm" disabled={busy} onClick={() => void loadMore()}>이전 댓글 더 보기</Button>}
         {comments.length ? <ol className="space-y-5">{chronological.map(({ comment, day }, index) => <li key={comment.id} className="space-y-3">
           {(index === 0 || chronological[index - 1].day !== day) && <div role="separator" aria-label={day} className="flex items-center gap-3 py-1 text-[10px] text-muted-foreground"><span className="h-px flex-1 bg-border"/><span>{day}</span><span className="h-px flex-1 bg-border"/></div>}
-          <div data-comment-row className={`flex items-start gap-2.5 ${comment.isMine ? "flex-row-reverse" : ""}`}>
+          <div data-comment-row className={`${styles.comment} flex items-start gap-2.5 ${comment.isMine ? "flex-row-reverse" : ""}`}>
           <ClanPlayerAvatar userId={comment.authorId} label={comment.nickname}/>
           <div className="min-w-0 flex-1 space-y-1.5">
             <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] ${comment.isMine ? "justify-end" : ""}`}><strong className="max-w-full truncate text-xs">{comment.nickname}</strong><time dateTime={comment.createdAt} title={`${day} ${timeFormat.format(new Date(comment.createdAt))}`} className="text-muted-foreground">{timeFormat.format(new Date(comment.createdAt))}</time>{comment.canDelete && <Button type="button" variant="ghost" size="icon-xs" className={`${comment.isMine ? "" : "ml-auto"} text-muted-foreground hover:text-destructive`} disabled={busy} aria-label={`${comment.nickname} 댓글 삭제`} title="댓글 삭제" onClick={() => setConfirmDelete(comment.id)}><Trash2 className="size-3.5" aria-hidden="true"/></Button>}</div>
-            <p className={`w-fit max-w-[85%] whitespace-pre-wrap break-words rounded-xl border px-3 py-2.5 text-sm leading-relaxed [overflow-wrap:anywhere] ${comment.isMine ? "ml-auto rounded-tr-sm border-primary/25 bg-primary/15" : "rounded-tl-sm bg-background/50"}`}><ClanEmojiText text={comment.content}/></p>
-            <div className={`flex flex-wrap items-center gap-1 ${comment.isMine ? "justify-end" : ""}`} aria-label={`${comment.nickname} 댓글 공감`}>
+            <div className={`${styles.message} ${comment.isMine ? styles.mine : ""}`}>
+            <p className={`w-fit whitespace-pre-wrap break-words rounded-xl border px-3 py-2.5 text-sm leading-relaxed [overflow-wrap:anywhere] ${comment.isMine ? "ml-auto rounded-tr-sm border-primary/25 bg-primary/15" : "rounded-tl-sm bg-background/50"}`}><ClanEmojiText text={comment.content}/></p>
+            <div className={styles.reactions} aria-label={`${comment.nickname} 댓글 공감`}>
               {HOF_REACTIONS.map((option) => {
                 const reaction = comment.reactions.find(({ kind }) => kind === option.kind);
                 return reaction && <EmojiReactionButton key={option.kind} count={reaction.count} aria-pressed={reaction.mine} disabled={busy || loading}
@@ -138,6 +140,7 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
                   onClick={() => void react(comment, option.kind)}>{option.emoji}</EmojiReactionButton>;
               })}
               <ClanEmojiReactions pickerLabel={`${comment.nickname} 댓글 공감 선택`} clanId={clanId} target={{kind:"hof_comment",id:comment.id}} reactions={comment.emojiReactions??[]} standardOptions={reactionOptions} onStandardSelect={value=>{const option=HOF_REACTIONS.find(row=>row.kind===value);if(option)void react(comment,option.kind);}}/>
+            </div>
             </div>
             {confirmDelete === comment.id && <div className={`flex flex-wrap items-center gap-2 text-xs ${comment.isMine ? "justify-end" : ""}`}><span>이 댓글을 삭제할까요?</span><Button type="button" size="xs" variant="destructive" disabled={busy} onClick={() => void remove(comment.id)}>삭제 확인</Button><Button type="button" size="xs" variant="ghost" disabled={busy} onClick={() => setConfirmDelete(null)}>취소</Button></div>}
           </div>
