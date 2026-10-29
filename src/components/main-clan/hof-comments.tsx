@@ -10,7 +10,7 @@ import { StatsScrollArea } from "./stats-scroll-area";
 import { ClanEmojiInput, ClanEmojiText } from "./clan-emoji-content";
 import { ClanEmojiReactions, EmojiReactionButton } from "./clan-emoji-reactions";
 import { ClanPlayerAvatar } from "@/components/profile/clan-namecards";
-import styles from "./hof-comments.module.css";
+import styles from "./clan-comment.module.css";
 
 const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric", weekday: "long" });
 const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", hour: "numeric", minute: "2-digit" });
