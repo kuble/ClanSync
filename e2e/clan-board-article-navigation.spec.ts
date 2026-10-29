@@ -1,18 +1,12 @@
 import { randomUUID } from "node:crypto";
-import sharp from "sharp";
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
-import { PROFILE_PHOTO_BUCKET } from "../src/lib/profile/photo";
 
 test("article metadata precedes its title and footer actions adapt to desktop and mobile", async ({ page }) => {
   test.setTimeout(120_000);
   const f = await createIsolatedBalanceFixture(2), other = await createIsolatedBalanceFixture(1);
   const base = f.path.replace(/\/balance$/, ""), ids = [randomUUID(), randomUUID(), randomUUID()].sort();
-  const imagePath = `${f.users[0].id}/${randomUUID()}.webp`;
   try {
-    const image = await sharp({ create: { width: 64, height: 64, channels: 4, background: "#31875f" } }).webp().toBuffer();
-    expect((await f.service.storage.from(PROFILE_PHOTO_BUCKET).upload(imagePath, image, { contentType: "image/webp" })).error).toBeNull();
-    expect((await f.service.from("account_profile_photos").upsert({ user_id: f.users[0].id, image_path: imagePath })).error).toBeNull();
     expect((await f.service.from("clan_board_posts").insert(ids.map((id, index) => ({ id, clan_id: f.clanId, author_id: f.users[0].id, kind: "free" as const, title: `동일 시각 게시글 ${index}`, content: "게시글 이동 검증", created_at: "2026-10-28T10:00:00Z" })))).error).toBeNull();
     expect((await f.service.from("clan_board_posts").insert({ id: randomUUID(), clan_id: f.clanId, author_id: f.users[0].id, kind: "channels", title: "다른 게시판", content: "", created_at: "2026-10-29T10:00:00Z" })).error).toBeNull();
     expect((await other.service.from("clan_board_posts").insert({ id: randomUUID(), clan_id: other.clanId, author_id: other.users[0].id, kind: "free", title: "다른 클랜", content: "경계 검증", created_at: "2026-10-27T10:00:00Z" })).error).toBeNull();
@@ -20,8 +14,8 @@ test("article metadata precedes its title and footer actions adapt to desktop an
     await page.setViewportSize({ width: 1015, height: 884 });
     await page.goto(`${base}/board/free/${ids[1]}`);
     const article = page.locator("article"), nav = article.getByRole("navigation", { name: "게시글 이동", exact: true });
-    const avatar = article.locator("header").getByRole("img", { name: `${f.users[0].nickname} 프로필 사진`, exact: true });
-    await expect(avatar).toHaveAttribute("src", /\/api\/profile-photo\//);
+    const avatar = article.locator("header").getByRole("img", { name: `${f.users[0].nickname} 프로필 심볼`, exact: true });
+    await expect.poll(async () => decodeURIComponent(await avatar.getAttribute("src") ?? "")).toContain("/symbols/normal-v1/");
     await expect.poll(() => avatar.evaluate(el => (el as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
     const actions = article.locator("footer").getByRole("group", { name: "게시글 관리", exact: true });
     await expect(article.locator("header").getByRole("button")).toHaveCount(0);
@@ -86,7 +80,6 @@ test("article metadata precedes its title and footer actions adapt to desktop an
       await page.screenshot({ path: test.info().outputPath(`board-tab-list-${width}.png`), animations: "disabled" });
     }
   } finally {
-    await f.service.storage.from(PROFILE_PHOTO_BUCKET).remove([imagePath]);
     await f.cleanup(); await other.cleanup();
   }
 });

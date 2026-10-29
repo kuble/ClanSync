@@ -54,7 +54,7 @@
 
 배너 제작·색상 프리셋: [개발 스튜디오](../src/app/dev/clan-banners/page.tsx) · [패턴·등급·선택 ID](../src/lib/clan/banner-catalog.ts) · [공통 6색](../src/lib/cosmetics/color-presets.ts) · [렌더러](../src/components/cosmetics/clan-banner-artwork.tsx) · [제작 가이드](design/clan-banners/normal-v1/README.md#색상-프리셋-개발-환경) · [집중 검증](../e2e/clan-banner-studio.spec.ts).
 
-계정 공통 프로필 사진: [설정 UI](../src/components/profile/profile-photo-settings.tsx) · [공통 정사각형 편집기](../src/components/ui/square-image-cropper.tsx) · [업로드 API](../src/app/api/profile-photo/route.ts) · [변환/좌표 검증](../src/lib/profile/process-profile-photo.ts) · [댓글 아바타](../src/components/profile/player-avatar.tsx) · [자르기·공유·권한·정리 검증](../e2e/profile-photos.spec.ts).
+프로필 아바타: [심벌 표시](../src/components/profile/player-avatar.tsx) · [프로필·이전 사진 미사용 검증](../e2e/profile-symbol-avatars.spec.ts).
 
 | 목적 | 기준 문서 |
 |------|-----------|

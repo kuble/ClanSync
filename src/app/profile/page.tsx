@@ -14,9 +14,6 @@ import { AccountShell } from "@/components/onboarding/account-shell";
 import { ProfilePanels } from "@/components/profile/profile-panels";
 import { ProfileAutoLogin } from "@/components/profile/profile-auto-login";
 import { loadNamecard } from "@/lib/profile/load-namecard";
-import { namecardAppearance } from "@/lib/profile/namecard";
-import { profilePhotoUrl } from "@/lib/profile/photo";
-import { ProfilePhotoSettings } from "@/components/profile/profile-photo-settings";
 import { profileBattleTag } from "@/lib/game-auth/battle-tag";
 import { cookies } from "next/headers";
 import { getSessionMaxAge, REMEMBERED_SESSION_SECONDS } from "@/lib/supabase/session-cookies";
@@ -61,7 +58,6 @@ export default async function ProfilePage() {
     namecard,
     { data: altRowsRaw },
     { data: rolePreferences },
-    { data: photo },
   ] = await Promise.all([
     supabase
       .from("users")
@@ -82,7 +78,6 @@ export default async function ProfilePage() {
       .eq("user_id", user.id)
       .order("alt_nick"),
     supabase.from("profile_role_preferences").select("game_id, ranking").eq("user_id", user.id),
-    supabase.from("account_profile_photos").select("image_path").eq("user_id", user.id).maybeSingle(),
   ]);
 
   const { data: rawJoinFlat, error: rawJoinFlatErr } =
@@ -195,7 +190,6 @@ export default async function ProfilePage() {
     <ProfilePanels overview={
       <div className={styles.profileHero} data-testid="profile-hero">
       <ProfileIdentity key={`identity:${user.id}`} userId={user.id} intro={intro} memberships={memberships} namecard={namecard}
-        photoSettings={<ProfilePhotoSettings key={photo?.image_path ?? "default"} initialUrl={profilePhotoUrl(photo?.image_path)} emblem={namecard.ok ? namecardAppearance(namecard.state.catalog, namecard.state.selections).emblem : null}/>}
         games={linkedGames.map((game) => ({ gameSlug: game.slug, gameName: game.nameKo, accountId: game.accountId, altAccounts: (altRowsRaw ?? []).filter(alt => alt.game_id === game.gameId).map(alt => alt.alt_nick), canManageAlts: verifiedGameIds.includes(game.gameId) }))}>
         {row && <section className={styles.identityFacts} aria-label="기본 정보"><dl>
           <div><dt>성별</dt><dd>{genderLabel(String(row.gender))}</dd></div>

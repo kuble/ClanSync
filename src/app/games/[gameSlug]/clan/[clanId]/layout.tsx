@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { ClanNamecardsProvider } from "@/components/profile/clan-namecards";
 import type { ClanNamecards } from "@/lib/profile/namecard";
-import { profilePhotoUrl } from "@/lib/profile/photo";
 import { MainClanShell } from "@/components/main-clan/main-clan-shell";
 import { loadClanInAppNotifications } from "@/lib/clan/load-clan-inapp-notifications";
 import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
@@ -34,12 +33,6 @@ export default async function MainClanLayout({
     redirect(`/games/${gameSlug}/clan`);
   }
   const cards = (namecards.data ?? {}) as ClanNamecards;
-  const memberIds = Object.keys(cards);
-  if (memberIds.length) {
-    const photos = await supabase.from("account_profile_photos").select("user_id,image_path").in("user_id", memberIds);
-    if (photos.error) console.error("Clan profile photos unavailable", photos.error.message);
-    for (const photo of photos.data ?? []) cards[photo.user_id].photoUrl = profilePhotoUrl(photo.image_path);
-  }
 
   // Capture the authenticated client during render; after() cannot read cookies here.
   after(async () => {
