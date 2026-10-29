@@ -4,7 +4,7 @@ import Link from "next/link";
 import {useState,useTransition} from "react";
 import {useRouter} from "next/navigation";
 import {toast} from "sonner";
-import {ChevronLeft,ChevronRight,ArrowUpRight,Clock3,Heart,MessageSquare,Pencil,Trash2} from "lucide-react";
+import {ChevronLeft,ChevronRight,ArrowUpRight,Clock3,Heart,Pencil,Trash2} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription,DialogFooter} from "@/components/ui/dialog";
 import {deleteBoardPostAction,addBoardCommentAction,deleteBoardCommentAction,setBoardReactionAction,setBoardStatusAction,setChannelLiveAction} from "@/app/actions/clan-board";
@@ -60,7 +60,7 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
         {kind!=="channels"&&<div className="max-w-[68ch] whitespace-pre-wrap break-words text-[15px] leading-8"><ClanEmojiText text={post.content}/></div>}
       </div>
       <footer className={articleStyles.footer}>
-        <div className={articleStyles.feedback}><Button variant="outline" size="sm" aria-pressed={liked} disabled={pending} onClick={()=>mutate(()=>setBoardReactionAction(gameSlug,clanId,post.id,!liked))}><Heart className={liked?"size-4 fill-primary text-primary":"size-4"} aria-hidden/>공감 {reactions}</Button><span><MessageSquare className="size-4" aria-hidden/>댓글 {post.commentCount}</span></div>
+        <div className={articleStyles.feedback}><Button variant="outline" size="sm" aria-pressed={liked} disabled={pending} onClick={()=>mutate(()=>setBoardReactionAction(gameSlug,clanId,post.id,!liked))}><Heart className={liked?"size-4 fill-primary text-primary":"size-4"} aria-hidden/>공감 {reactions}</Button></div>
         <nav className={articleStyles.navigation} aria-label="게시글 이동">{previousPostId?<Link prefetch={false} href={base+"/board/"+kind+"/"+previousPostId} aria-label="이전 글"><ChevronLeft className="size-3.5" aria-hidden/>이전</Link>:<span aria-disabled="true" aria-label="이전 글"><ChevronLeft className="size-3.5" aria-hidden/>이전</span>}<Link prefetch={false} href={base+"/board/"+kind}>목록으로</Link>{nextPostId?<Link prefetch={false} href={base+"/board/"+kind+"/"+nextPostId} aria-label="다음 글">다음<ChevronRight className="size-3.5" aria-hidden/></Link>:<span aria-disabled="true" aria-label="다음 글">다음<ChevronRight className="size-3.5" aria-hidden/></span>}</nav>
         {post.canManage&&<div className={articleStyles.actions} role="group" aria-label="게시글 관리"><Button variant="ghost" size="icon" aria-label="편집" title="편집" disabled={pending} className="text-muted-foreground" onClick={()=>setEditing(true)}><Pencil className="size-4" aria-hidden/></Button><Button variant="ghost" size="icon" aria-label="삭제" title="삭제" disabled={pending} className="text-muted-foreground hover:text-destructive" onClick={()=>setRemove(true)}><Trash2 className="size-4" aria-hidden/></Button></div>}
         {emojis.length>0&&<div className={articleStyles.custom}><ClanEmojiReactions gameSlug={gameSlug} clanId={clanId} postId={post.id} emojis={emojis} reactions={emojiReactions}/></div>}
