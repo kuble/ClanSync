@@ -16,10 +16,9 @@ import { NO_CLAN_COSMETICS, memoryStyle, type ClanCosmeticAccess } from "@/lib/c
 import { boardImageUrl } from "@/lib/clan/board";
 import { ClanEmojiInput } from "./clan-emoji-content";
 import Image from "next/image";
-import { MemoryPhoto } from "./memory-photo";
 import { MemoryStickerEditor } from "./memory-sticker-editor";
 import { MemoryCosmeticPicker } from "./memory-cosmetic-picker";
-import { DEFAULT_STICKER_PLACEMENT } from "@/lib/clan/photo-sticker";
+import { DEFAULT_STICKER_PLACEMENT, editablePhotoStickers, MAX_PHOTO_STICKERS, type PhotoStickerInstance } from "@/lib/clan/photo-sticker";
 
 
 async function thumbnail(file:File):Promise<Blob>{
@@ -38,7 +37,8 @@ export function ClanBoardEditor({gameSlug,clanId,kind,post,onClose,coaches=[],in
   const [id]=useState(()=>post?.id??crypto.randomUUID());
   const [title,setTitle]=useState(post?.title??"");
   const [content,setContent]=useState(post?.content??"");
-  const [details,setDetails]=useState<BoardDetails>(()=>{const old=post?boardDetails(post.details):{platform:"YouTube"};return {...old,...memoryStyle(old,cosmeticAccess)};});
+  const [details,setDetails]=useState<BoardDetails>(()=>{const old=post?boardDetails(post.details):{platform:"YouTube"};if(kind!=="memories")return old;const style=memoryStyle(old,cosmeticAccess);return {...old,...style,photoStickers:editablePhotoStickers(style)};});
+  const [selectedStickerId,setSelectedStickerId]=useState<string|null>(null);
   const [photoPreview,setPhotoPreview]=useState<string|null>(null);
   useEffect(()=>()=>{if(photoPreview)URL.revokeObjectURL(photoPreview);},[photoPreview]);
   const [channels,setChannels]=useState(()=>{const old=boardChannels(details);return old.length?old:[{platform:"YouTube",url:""}];});
@@ -51,7 +51,7 @@ export function ClanBoardEditor({gameSlug,clanId,kind,post,onClose,coaches=[],in
   const imageAllowed=(kind==="free"||kind==="memories")&&(!post||post.canReplaceImage);
   async function submit(){
     const realTitle=kind==="memories"?(title.trim()||content.trim().slice(0,80)||"추억 한 장"):title;
-    const requestDetails=kind==="channels"?{channels,schedule:details.schedule??""}:kind==="memories"?{photoFrame:details.photoFrame??"classic",photoSticker:details.photoSticker??"none",...(details.photoSticker&&details.photoSticker!=="none"?{photoStickerPlacement:details.photoStickerPlacement??DEFAULT_STICKER_PLACEMENT}:{})}:details;
+    const requestDetails=kind==="channels"?{channels,schedule:details.schedule??""}:kind==="memories"?{photoFrame:details.photoFrame??"classic",photoStickers:details.photoStickers??[]}:details;
     const invalid=validateBoardInput(kind,realTitle,content,requestDetails);
     if(invalid){toast.error(invalid);return;}
     if(kind==="memories"&&!file&&!post?.image_path){toast.error("추억 사진을 한 장 선택해 주십시오.");return;}
@@ -92,7 +92,15 @@ export function ClanBoardEditor({gameSlug,clanId,kind,post,onClose,coaches=[],in
     {kind==="feedback"&&<div className="space-y-2"><Label htmlFor="board-coach">코칭 선생님</Label><select id="board-coach" value={coachId} required disabled={pending} onChange={e=>setCoachId(e.target.value)} className="min-h-11 w-full rounded-lg border border-input bg-background px-3 text-sm"><option value="">선생님을 선택해 주십시오</option>{post?.coach_id&&!coaches.some(c=>c.userId===post.coach_id)&&<option value={post.coach_id}>{post.coachName||"이전 선생님"} · 기존 신청</option>}{coaches.filter(c=>c.accepting||c.userId===post?.coach_id).map(c=><option key={c.userId} value={c.userId}>{c.name} · {c.expertise}{!c.accepting?" (기존 신청)":""}</option>)}</select><p className="text-xs text-muted-foreground">신청하면 선생님에게 사이트 알림이 전달됩니다.</p></div>}
     {kind==="channels"&&<div className="space-y-4">{channels.map((c,i)=><div key={i} className="rounded-lg border border-border bg-muted/15 p-4"><div className="mb-3 flex items-center justify-between"><span className="text-xs font-medium text-muted-foreground">플랫폼 {i+1}</span>{channels.length>1&&<Button type="button" variant="ghost" size="icon-sm" disabled={pending} aria-label={"방송 채널 "+(i+1)+" 삭제"} title="방송 채널 삭제" className="-my-1 text-muted-foreground hover:text-destructive" onClick={()=>setChannels(old=>old.filter((_,n)=>n!==i))}><Trash2 className="size-3.5" aria-hidden/></Button>}</div><div className="grid gap-3 sm:grid-cols-[150px_minmax(0,1fr)]"><div className="space-y-2"><Label htmlFor={"board-platform-"+i}>방송 플랫폼 {i+1}</Label><select id={"board-platform-"+i} className="min-h-10 w-full rounded-lg border border-input bg-background px-3 text-sm" value={c.platform} onChange={e=>setChannels(old=>old.map((row,n)=>n===i?{...row,platform:e.target.value}:row))} disabled={pending}>{STREAM_PLATFORMS.map(v=><option key={v}>{v}</option>)}</select></div><div className="min-w-0 space-y-2"><Label htmlFor={"board-channel-"+i}>방송 채널 링크 {i+1}</Label><Input id={"board-channel-"+i} type="url" value={c.url} required maxLength={600} onChange={e=>setChannels(old=>old.map((row,n)=>n===i?{...row,url:e.target.value}:row))} disabled={pending} placeholder="https://"/></div></div></div>)}<Button type="button" size="sm" variant="outline" disabled={pending||channels.length>=4} onClick={()=>setChannels(old=>[...old,{platform:STREAM_PLATFORMS.find(p=>!old.some(c=>c.platform===p))??"YouTube",url:""}])}><Plus className="size-3.5" aria-hidden/>방송 플랫폼 추가</Button><div className="space-y-2"><Label htmlFor="board-schedule">방송 시간</Label><Input id="board-schedule" value={details.schedule??""} maxLength={100} onChange={e=>set("schedule",e.target.value)} disabled={pending} placeholder="화·목 저녁 8시"/></div></div>}
     {kind==="memories"&&attachment}
-    {kind==="memories"&&<section className="space-y-3" aria-label="사진 꾸미기"><div className="flex items-center justify-between gap-2"><h4 className="text-sm font-medium">사진 꾸미기</h4><Link className="text-xs text-primary hover:underline" href={`/games/${gameSlug}/clan/${clanId}/store`}>꾸미기 구매</Link></div><MemoryCosmeticPicker src={photoPreview||(post?boardImageUrl(`/games/${gameSlug}/clan/${clanId}`,post.id,true):null)} frame={details.photoFrame??"classic"} sticker={details.photoSticker??"none"} access={cosmeticAccess} onFrame={value=>set("photoFrame",value)} onSticker={value=>set("photoSticker",value)}/>{cosmeticAccess.stickers?<MemoryStickerEditor src={photoPreview||(post?boardImageUrl(`/games/${gameSlug}/clan/${clanId}`,post.id,true):null)} caption={content} frame={details.photoFrame} sticker={details.photoSticker??"none"} placement={details.photoStickerPlacement} onChange={placement=>setDetails(current=>({...current,photoStickerPlacement:placement}))}/>:<div className="mx-auto w-full max-w-72"><MemoryPhoto src={photoPreview||(post?boardImageUrl(`/games/${gameSlug}/clan/${clanId}`,post.id,true):null)} caption={content} frame={details.photoFrame}/></div>}</section>}
+    {kind==="memories"&&<section className="space-y-3" aria-label="사진 꾸미기"><div className="flex items-center justify-between gap-2"><h4 className="text-sm font-medium">사진 꾸미기</h4><Link className="text-xs text-primary hover:underline" href={`/games/${gameSlug}/clan/${clanId}/store`}>꾸미기 구매</Link></div>
+      <MemoryStickerEditor src={photoPreview||(post?boardImageUrl(`/games/${gameSlug}/clan/${clanId}`,post.id,true):null)} caption={content} frame={details.photoFrame} stickers={details.photoStickers??[]} selectedId={selectedStickerId} onSelect={setSelectedStickerId} onChange={photoStickers=>setDetails(current=>({...current,photoStickers}))}>
+        <MemoryCosmeticPicker src={photoPreview||(post?boardImageUrl(`/games/${gameSlug}/clan/${clanId}`,post.id,true):null)} frame={details.photoFrame??"classic"} stickers={details.photoStickers??[]} access={cosmeticAccess} onFrame={value=>set("photoFrame",value)} onClear={()=>{setDetails(current=>({...current,photoStickers:[]}));setSelectedStickerId(null);}} onAdd={sticker=>{
+          if((details.photoStickers?.length??0)>=MAX_PHOTO_STICKERS)return;
+          const item:PhotoStickerInstance={id:crypto.randomUUID(),sticker,placement:{...DEFAULT_STICKER_PLACEMENT,x:40+(details.photoStickers?.length??0)%4*10,y:40+(details.photoStickers?.length??0)%4*8}};
+          setDetails(current=>({...current,photoStickers:[...(current.photoStickers??[]),item]}));setSelectedStickerId(item.id);
+        }}/>
+      </MemoryStickerEditor>
+    </section>}
     {kind!=="channels"&&<div className="space-y-2"><Label className={kind==="free"?"sr-only":undefined} htmlFor="board-content">{kind==="memories"?"글":kind==="feedback"?"궁금한 점":"본문"}</Label><ClanEmojiInput id="board-content" label={kind==="memories"?"글":kind==="feedback"?"궁금한 점":"본문"} value={content} onChange={setContent} maxLength={kind==="memories"?100:20000} disabled={pending} variant={kind==="free"?"post":"comment"} placeholder={kind==="memories"?"사진에 담긴 이야기를 남겨보십시오.":kind==="feedback"?"어떤 점이 궁금합니까?":"오늘 클랜원과 나누고 싶은 이야기를 적어보십시오."} className={kind==="memories"?"min-h-20":undefined}/></div>}
     {kind==="free"&&attachment}
     </fieldset><div className="flex shrink-0 items-center justify-end gap-2 border-t border-border/60 bg-card/40 px-6 py-4"><Button type="button" variant="outline" disabled={pending} onClick={onClose}>취소</Button><Button type="submit" disabled={pending}>{pending?"저장 중…":"저장"}</Button></div>

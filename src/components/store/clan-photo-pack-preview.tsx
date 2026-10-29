@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { MemoryPhoto } from "@/components/main-clan/memory-photo";
 import { MemoryStickerEditor } from "@/components/main-clan/memory-sticker-editor";
-import { PhotoSticker } from "@/components/main-clan/photo-sticker";
-import { PHOTO_FRAMES, PHOTO_STICKERS } from "@/lib/clan/cosmetics";
-import { DEFAULT_STICKER_PLACEMENT } from "@/lib/clan/photo-sticker";
+import { MemoryCosmeticPicker } from "@/components/main-clan/memory-cosmetic-picker";
+import { DEFAULT_STICKER_PLACEMENT, MAX_PHOTO_STICKERS, type PhotoStickerInstance } from "@/lib/clan/photo-sticker";
 import styles from "./clan-photo-pack-preview.module.css";
 
 function SamplePhoto() {
@@ -15,15 +13,15 @@ function SamplePhoto() {
 
 export function ClanPhotoPackPreview({ kind }: { kind: "frames" | "stickers" }) {
   const [frame, setFrame] = useState("film");
-  const [sticker, setSticker] = useState("gg");
-  const [placement, setPlacement] = useState(DEFAULT_STICKER_PLACEMENT);
+  const [stickers, setStickers] = useState<PhotoStickerInstance[]>([{ id: "00000000-0000-0000-0000-000000000001", sticker: "gg", placement: { ...DEFAULT_STICKER_PLACEMENT } }]);
+  const [selectedId, setSelectedId] = useState<string | null>(stickers[0].id);
+  const picker = <MemoryCosmeticPicker src={null} frame={frame} stickers={stickers} access={{ frames: true, stickers: true, emojiSlots: 0 }} previewKind={kind} onFrame={setFrame} onClear={() => { setStickers([]); setSelectedId(null); }} onAdd={sticker => {
+    if (stickers.length >= MAX_PHOTO_STICKERS) return;
+    const item: PhotoStickerInstance = { id: crypto.randomUUID(), sticker, placement: { ...DEFAULT_STICKER_PLACEMENT, x: 40 + stickers.length % 4 * 10, y: 40 + stickers.length % 4 * 8 } };
+    setStickers(current => [...current, item]); setSelectedId(item.id);
+  }}/>;
   return <section className={styles.body} aria-label={kind === "stickers" ? "스티커 팩 체험" : "프레임 팩 체험"}>
-    <div className={styles.selection} role="group" aria-label={kind === "stickers" ? "미리보기 스티커" : "미리보기 프레임"}>
-      {(kind === "stickers" ? PHOTO_STICKERS.filter(option => option.id !== "none") : PHOTO_FRAMES.filter(option => option.id !== "classic")).map(option => <Button key={option.id} type="button" variant="outline" aria-pressed={(kind === "stickers" ? sticker : frame) === option.id} onClick={() => kind === "stickers" ? setSticker(option.id) : setFrame(option.id)}>
-        {kind === "stickers" && <span className={styles.selectionIcon} aria-hidden><PhotoSticker sticker={option.id}/></span>}{option.label}
-      </Button>)}
-    </div>
-    {kind === "stickers" ? <MemoryStickerEditor src={null} caption="함께한 순간을 내 취향대로" sticker={sticker} placement={placement} placeholder={<SamplePhoto/>} onChange={setPlacement}/>
-      : <div className={styles.frames}><MemoryPhoto src={null} caption="우리 클랜의 오늘" frame={frame} placeholder={<SamplePhoto/>}/></div>}
+    {kind === "stickers" ? <MemoryStickerEditor src={null} caption="함께한 순간을 내 취향대로" stickers={stickers} selectedId={selectedId} onSelect={setSelectedId} placeholder={<SamplePhoto/>} onChange={setStickers}>{picker}</MemoryStickerEditor>
+      : <div className={styles.frames}><MemoryPhoto src={null} caption="우리 클랜의 오늘" frame={frame} placeholder={<SamplePhoto/>}/><div className="mt-4">{picker}</div></div>}
   </section>;
 }

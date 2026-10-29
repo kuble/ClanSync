@@ -102,18 +102,21 @@ test("clan cosmetic purchases, bounded private emoji slots, reactions and shared
       await memberPage.getByRole("button", { name: "추억 남기기", exact: true }).click();
       const editor = memberPage.getByRole("dialog");
       await editor.getByLabel("사진", { exact: true }).setInputFiles(image);
-      await editor.getByRole("group", { name: "프레임", exact: true }).getByRole("radio", { name: "마스킹 테이프", exact: true }).check();
-      await editor.getByRole("group", { name: "스티커", exact: true }).getByRole("radio", { name: "GG", exact: true }).check();
+      await editor.getByRole("tab", { name: "추억 사진 프레임 팩", exact: true }).click();
+      await editor.getByRole("radio", { name: "마스킹 테이프", exact: true }).check();
+      await editor.getByRole("tab", { name: "스티커", exact: true }).click();
+      await editor.getByRole("tab", { name: "추억 사진 스티커 팩", exact: true }).click();
+      await editor.getByRole("button", { name: "GG 추가", exact: true }).click();
       await editor.getByLabel("글", { exact: true }).fill("함께한 순간");
       await memberPage.screenshot({ animations: "disabled", path: test.info().outputPath("photo-styling.png") });
       await editor.getByRole("button", { name: "저장", exact: true }).click();
       await expect(memberPage).toHaveURL(/\/board\/memories\/[0-9a-f-]{36}$/, { timeout: 30_000 });
       const saved = (await svc.from("clan_board_posts").select("id,image_path,details").eq("clan_id", f.clanId).eq("kind", "memories").single()).data!;
       photos.push(saved.image_path!, boardThumbnail(saved.image_path!));
-      expect(saved.details).toEqual({ photoFrame: "tape", photoSticker: "gg", photoStickerPlacement: { x: 80, y: 22, rotation: 12, flipX: false, flipY: false, scale: 1 } });
-      await expect(memberPage.locator('[data-photo-frame="tape"][data-photo-sticker="gg"]')).toBeVisible();
+      expect(saved.details).toEqual({ photoFrame: "tape", photoStickers: [{ id: expect.any(String), sticker: "gg", placement: { x: 40, y: 40, rotation: 12, flipX: false, flipY: false, scale: 1 } }] });
+      await expect(memberPage.locator('[data-photo-frame="tape"]').getByLabel("GG 스티커", { exact: true })).toBeVisible();
       await memberPage.goto(base + "/board/memories");
-      await expect(memberPage.locator('[data-photo-frame="tape"][data-photo-sticker="gg"]')).toBeVisible();
+      await expect(memberPage.locator('[data-photo-frame="tape"]').getByLabel("GG 스티커", { exact: true })).toBeVisible();
       await memberPage.screenshot({ animations: "disabled", path: test.info().outputPath("photo-gallery.png") });
       expect((await svc.from("clan_members").update({ status: "active", role: "officer" }).eq("clan_id", f.clanId).eq("user_id", f.users[2].id)).error).toBeNull();
       for (const p of (await svc.from("purchases").select("id").eq("clan_id", f.clanId).is("voided_at", null)).data!) {

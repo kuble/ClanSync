@@ -153,7 +153,7 @@ test("추억 사진 업로드·폴라로이드 목록·게시일·모바일·삭
     await expect(editor.getByLabel("촬영일",{exact:true})).toHaveCount(0);
     await editor.getByRole("button",{name:"저장",exact:true}).click();await expect(page).toHaveURL(/\/board\/memories\/[0-9a-f-]{36}$/,{timeout:20000});
     const first=await ok(f.service.from("clan_board_posts").select("id,image_path,created_at,details").eq("clan_id",f.clanId).eq("kind","memories").single());
-    expect(first.details).toEqual({photoFrame:"classic",photoSticker:"none"});
+    expect(first.details).toEqual({photoFrame:"classic",photoStickers:[]});
     paths.push(first.image_path!,boardThumbnail(first.image_path!));
     await expect(page.getByRole("img",{name:"첫 번째 함께한 날",exact:true})).toBeVisible();
     const photo=await requestPhoto(first.id);
@@ -180,7 +180,7 @@ test("추억 사진 업로드·폴라로이드 목록·게시일·모바일·삭
     await expect(editor).toBeHidden();
     await expect(page.getByText("수정해도 게시일 유지",{exact:true})).toBeVisible();
     const edited=await ok(f.service.from("clan_board_posts").select("created_at,details").eq("id",secondId).single());
-    expect(Date.parse(edited.created_at)).toBe(Date.parse(postedAt));expect(edited.details).toEqual({takenAt:"2020-01-01",photoFrame:"classic",photoSticker:"none"});
+    expect(Date.parse(edited.created_at)).toBe(Date.parse(postedAt));expect(edited.details).toEqual({takenAt:"2020-01-01",photoFrame:"classic",photoStickers:[]});
     await page.goto(base+"/board/memories");await expect(cards).toHaveCount(2);
     await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await page.goto(base+"/board/memories/"+first.id);

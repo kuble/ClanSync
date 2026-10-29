@@ -4,7 +4,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 import { boardDetails, boardThumbnail, validateBoardInput, type BoardDetails } from "../src/lib/clan/board";
 import { memoryStyle } from "../src/lib/clan/cosmetics";
-import { DEFAULT_STICKER_PLACEMENT, readPhotoStickerPlacement, stickerPlacementStyle, type PhotoStickerPlacement } from "../src/lib/clan/photo-sticker";
+import { DEFAULT_STICKER_PLACEMENT, readPhotoStickerPlacement, stickerPlacementStyle, type PhotoStickerPlacement, type PhotoStickerInstance, readPhotoStickers, editablePhotoStickers, MAX_PHOTO_STICKERS } from "../src/lib/clan/photo-sticker";
 
 test.use({ hasTouch: true });
 
@@ -25,7 +25,7 @@ test("sticker placement validates coordinates, angles and flips while preserving
 });
 
 async function placementOf(scope: Locator): Promise<PhotoStickerPlacement> {
-  const box = await scope.locator('[data-sticker-placement]').evaluate(el => { const s = (el as HTMLElement).style; return { x: parseFloat(s.left), y: parseFloat(s.top), rotation: Number(s.transform.match(/rotate\(([-\d.]+)deg\)/)?.[1]), scale: Number((parseFloat(s.width) / 18).toFixed(2)) }; });
+  const box = await scope.locator('[data-sticker-placement][data-selected=true]').evaluate(el => { const s = (el as HTMLElement).style; return { x: parseFloat(s.left), y: parseFloat(s.top), rotation: Number(s.transform.match(/rotate\(([-\d.]+)deg\)/)?.[1]), scale: Number((parseFloat(s.width) / 18).toFixed(2)) }; });
   return { ...box, flipX: await scope.getByRole("button", { name: "좌우 반전", exact: true }).getAttribute("aria-pressed") === "true", flipY: await scope.getByRole("button", { name: "상하 반전", exact: true }).getAttribute("aria-pressed") === "true" };
 }
 
@@ -36,7 +36,7 @@ async function expectPlacement(node: Locator, placement: PhotoStickerPlacement) 
 async function resizeSticker(page: Page, scope: Locator, factor: number) {
   const corner = scope.getByRole("button", { name: "스티커 크기 조절 왼쪽 위", exact: true });
   await corner.scrollIntoViewIfNeeded();
-  const box = (await scope.locator('[data-sticker-placement]').boundingBox())!, handle = (await corner.boundingBox())!;
+  const box = (await scope.locator('[data-sticker-placement][data-selected=true]').boundingBox())!, handle = (await corner.boundingBox())!;
   const cx = box.x + box.width / 2, cy = box.y + box.height / 2, x = handle.x + handle.width / 2, y = handle.y + handle.height / 2;
   await page.mouse.move(x,y); await page.mouse.down(); await page.mouse.move(cx+(x-cx)*factor,cy+(y-cy)*factor,{steps:6}); await page.mouse.up();
 }
@@ -44,7 +44,7 @@ async function resizeSticker(page: Page, scope: Locator, factor: number) {
 async function rotateSticker(page: Page, scope: Locator, degrees: number) {
   const corner = scope.getByRole("button", { name: "스티커 회전", exact: true });
   await corner.scrollIntoViewIfNeeded();
-  const box = (await scope.locator('[data-sticker-placement]').boundingBox())!, handle = (await corner.boundingBox())!;
+  const box = (await scope.locator('[data-sticker-placement][data-selected=true]').boundingBox())!, handle = (await corner.boundingBox())!;
   const cx=box.x+box.width/2,cy=box.y+box.height/2,x=handle.x+handle.width/2,y=handle.y+handle.height/2,r=degrees*Math.PI/180;
   await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(cx+(x-cx)*Math.cos(r)-(y-cy)*Math.sin(r),cy+(x-cx)*Math.sin(r)+(y-cy)*Math.cos(r),{steps:8});await page.mouse.up();
 }
@@ -60,115 +60,144 @@ async function touchDrag(page: Page, node: Locator, cancel = false, dx = 35, dy 
   } finally { await session.detach(); }
 }
 
-test("photo pack previews and saved memories share movable, rotated and mirrored stickers", async ({ page, browser }) => {
-  test.setTimeout(240_000);
-  page.setDefaultTimeout(15_000);
+test("multiple stickers validate identity, count, placement and legacy conversion", () => {
+  const item: PhotoStickerInstance = { id: randomUUID(), sticker: "gg", placement: { ...DEFAULT_STICKER_PLACEMENT } };
+  const details = { photoFrame: "classic", photoStickers: [item, { ...item, id: randomUUID() }] };
+  expect(readPhotoStickers(details.photoStickers)).toEqual(details.photoStickers);
+  expect(boardDetails(details)).toEqual(details);
+  expect(editablePhotoStickers({ photoSticker: "heart" })).toMatchObject([{ sticker: "heart", placement: DEFAULT_STICKER_PLACEMENT }]);
+  expect(editablePhotoStickers({ photoSticker: "heart", photoStickers: [] })).toEqual([]);
+  expect(validateBoardInput("memories", "사진", "", details)).toBeNull();
+  expect(validateBoardInput("free", "글", "본문", details)).not.toBeNull();
+  expect(memoryStyle(details, { frames: false, stickers: false, emojiSlots: 0 }).photoStickers).toEqual([]);
+  for (const photoStickers of [null, {}, [item, item], Array.from({ length: MAX_PHOTO_STICKERS + 1 }, () => ({ ...item, id: randomUUID() })), [{ ...item, id: "bad" }], [{ ...item, sticker: "fake" }], [{ ...item, extra: true }], [{ ...item, placement: { ...item.placement, scale: 4 } }]]) {
+    expect(readPhotoStickers(photoStickers)).toBeUndefined();
+    expect(validateBoardInput("memories", "사진", "", { photoStickers } as BoardDetails)).not.toBeNull();
+  }
+  expect(validateBoardInput("memories", "사진", "", { ...details, photoSticker: "heart" })).not.toBeNull();
+});
+
+test("photo packs and saved photos edit multiple stickers independently through two-level tabs", async ({ page, browser }) => {
+  test.setTimeout(240_000); page.setDefaultTimeout(15_000);
   const f = await createIsolatedBalanceFixture(2), svc = f.service, base = f.path.replace(/\/balance$/, "");
   const memberContext = await browser.newContext();
   try {
+    const client = await f.memberClient(1);
+    const forged = { id: randomUUID(), sticker: "gg", placement: DEFAULT_STICKER_PLACEMENT };
+    const fakeId = randomUUID(), fake = { id: fakeId, clan_id: f.clanId, kind: "memories" as const, title: "배치 경계", image_path: `${f.clanId}/${f.users[1].id}/${fakeId}/${randomUUID()}.png` };
+    expect((await client.from("clan_board_posts").insert({ ...fake, details: { photoStickers: [forged] } })).error?.code).toBe("23514");
+    expect((await client.from("clan_board_posts").insert({ ...fake, details: { photoStickers: [] } })).error).toBeNull();
+    expect((await client.from("clan_board_posts").delete().eq("id", fakeId)).error).toBeNull();
     expect((await svc.from("clans").update({ coin_balance: 1000 }).eq("id", f.clanId)).error).toBeNull();
-    await loginIsolatedBalanceUser(page, f.users[0]);
-    await page.setViewportSize({ width: 1015, height: 884 });
-    await page.goto(base + "/store");
-    await page.getByRole("radio", { name: "사진", exact: true }).click();
-    const stickerProduct = page.getByRole("article", { name: "추억 사진 스티커 팩", exact: true });
-    await stickerProduct.getByRole("button", { name: "추억 사진 스티커 팩 미리보기", exact: true }).click();
+    await loginIsolatedBalanceUser(page, f.users[0]); await page.setViewportSize({ width: 1015, height: 884 });
+    await page.goto(base + "/store"); await page.getByRole("radio", { name: "사진", exact: true }).click();
+    const product = page.getByRole("article", { name: "추억 사진 스티커 팩", exact: true });
+    await product.getByRole("button", { name: "추억 사진 스티커 팩 미리보기", exact: true }).click();
     const preview = page.getByRole("dialog", { name: "추억 사진 스티커 팩 미리보기", exact: true });
-    const handle = preview.getByRole("button", { name: "스티커 위치 조절", exact: true });
-    await expect(handle).toBeVisible();
-    await preview.getByRole("button", { name: "하트", exact: true }).click();
-    await expect(preview.getByRole("slider")).toHaveCount(0);
-    await handle.focus();for(let i=0;i<5;i++)await handle.press("Shift+ArrowLeft");for(let i=0;i<4;i++)await handle.press("Shift+ArrowDown");
-    await resizeSticker(page,preview,1.5);expect((await placementOf(preview)).scale).toBeGreaterThan(1);
-    const beforeRotation=(await placementOf(preview)).rotation;await rotateSticker(page,preview,35);expect((await placementOf(preview)).rotation).toBeCloseTo(beforeRotation+35,0);
+    const original = await placementOf(preview);
+    await preview.getByRole("button", { name: "하트 추가", exact: true }).click();
+    await expect(preview.locator('[data-sticker-id]')).toHaveCount(2);
+    await resizeSticker(page, preview, 1.4); await rotateSticker(page, preview, 35);
     await preview.getByRole("button", { name: "좌우 반전", exact: true }).click();
-    await preview.getByRole("button", { name: "상하 반전", exact: true }).click();
-    await expectPlacement(handle, await placementOf(preview));
-    const box = (await handle.boundingBox())!;
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await page.mouse.down(); await page.mouse.move(box.x + box.width / 2 + 60, box.y + box.height / 2 - 30, { steps: 5 }); await page.mouse.up();
-    expect((await placementOf(preview)).x).toBeGreaterThan(30);
-    await handle.focus(); const beforeKey = await placementOf(preview); await handle.press("Shift+ArrowDown");
-    expect((await placementOf(preview)).y).toBeCloseTo(beforeKey.y + 10, 2);
-    await page.screenshot({ path: test.info().outputPath("sticker-pack-desktop.png"), animations: "disabled" });
-    await page.setViewportSize({ width: 390, height: 844 });
-    const beforeTouch = await placementOf(preview); await touchDrag(page, handle);
-    expect((await placementOf(preview)).x).toBeGreaterThan(beforeTouch.x);
-    const beforeCancel = await placementOf(preview); await touchDrag(page, handle, true);
-    await expectPlacement(handle, beforeCancel);
-    expect(await placementOf(preview)).toEqual(beforeCancel);
-    await preview.getByRole("button", {name:"초기화",exact:true}).click();
-    await touchDrag(page,preview.getByRole("button",{name:"스티커 크기 조절 오른쪽 아래",exact:true}),false,15,10);
     expect((await placementOf(preview)).scale).toBeGreaterThan(1);
-    const buyBox = (await preview.getByRole("button", { name: "구매하기", exact: true }).boundingBox())!;
-    expect(buyBox.y + buyBox.height).toBeLessThanOrEqual(844);
+    await expectPlacement(preview.locator('[data-sticker-id]').first(), original);
+    await page.setViewportSize({ width: 390, height: 844 });
+    const handle = preview.getByRole("button", { name: "스티커 위치 조절 2", exact: true });
+    const beforeTouch = await placementOf(preview); await touchDrag(page, handle, false, 15, 8);
+    expect((await placementOf(preview)).x).toBeGreaterThan(beforeTouch.x);
+    const beforeCancel = await placementOf(preview); await touchDrag(page, handle, true); expect(await placementOf(preview)).toEqual(beforeCancel);
     expect(await preview.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
-    await page.screenshot({ path: test.info().outputPath("sticker-pack-mobile.png"), animations: "disabled" });
-    await preview.getByRole("button", { name: "초기화", exact: true }).click();
-    expect(await placementOf(preview)).toEqual(DEFAULT_STICKER_PLACEMENT);
+    await page.screenshot({ path: test.info().outputPath("multiple-stickers-mobile.png"), animations: "disabled" });
+    await preview.getByRole("button", { name: "선택한 스티커 삭제", exact: true }).click();
+    await expect(preview.locator('[data-sticker-id]')).toHaveCount(1);
     await preview.getByRole("button", { name: "닫기", exact: true }).click();
-    expect((await svc.from("purchases").select("id").eq("clan_id", f.clanId)).data).toEqual([]);
     await page.setViewportSize({ width: 1015, height: 884 });
     await page.getByRole("button", { name: "추억 사진 프레임 팩 미리보기", exact: true }).click();
     const frames = page.getByRole("dialog", { name: "추억 사진 프레임 팩 미리보기", exact: true });
-    await expect(frames.getByRole("button", {name:"기본",exact:true})).toHaveCount(0);
-    await expect(frames.getByText("선택한 프레임",{exact:true})).toHaveCount(0);
-    await expect(frames).toContainText("사진의 꾸미기 요소입니다.");
-    await frames.getByRole("button", { name: "마스킹 테이프", exact: true }).click();
-    await expect(frames.locator('[data-photo-frame="tape"]')).toBeVisible();
+    await expect(frames.getByRole("tab", { name: "기본", exact: true })).toHaveCount(0);
+    await frames.getByRole("radio", { name: "마스킹 테이프", exact: true }).check();
+    await expect(frames.locator('[data-photo-frame="tape"]').first()).toBeVisible();
     await frames.getByRole("button", { name: "닫기", exact: true }).click();
-    await stickerProduct.getByRole("button", { name: "추억 사진 스티커 팩 미리보기", exact: true }).click();
-    expect(await placementOf(preview)).toEqual(DEFAULT_STICKER_PLACEMENT);
-    await preview.getByRole("button", { name: "구매하기", exact: true }).click();
-    const checkout = page.getByRole("dialog", { name: "꾸미기 구매", exact: true });
-    await expect(checkout).toContainText("사진에 붙일 수 있는 스티커 팩입니다.");
-    await checkout.getByRole("button", { name: "구매 확정", exact: true }).click(); await expect(checkout).toBeHidden();
-    expect((await svc.rpc("apply_store_purchase", { p_actor_id: f.users[0].id, p_context_clan_id: f.clanId, p_item_slug: "clan_photo_frames", p_checkout_id: randomUUID() })).data).toMatchObject({ ok: true });
+    for (const slug of ["clan_photo_stickers", "clan_photo_frames"]) expect((await svc.rpc("apply_store_purchase", { p_actor_id: f.users[0].id, p_context_clan_id: f.clanId, p_item_slug: slug, p_checkout_id: randomUUID() })).data).toMatchObject({ ok: true });
     const stickerItem = (await svc.from("store_items").select("id").eq("slug", "clan_photo_stickers").single()).data!;
     const purchase = (await svc.from("purchases").select("id").eq("clan_id", f.clanId).eq("item_id", stickerItem.id).single()).data!;
     const member = await memberContext.newPage(); member.setDefaultTimeout(15_000); await loginIsolatedBalanceUser(member, f.users[1]);
     await member.goto(base + "/board/memories"); await member.getByRole("button", { name: "추억 남기기", exact: true }).click();
     const editor = member.getByRole("dialog", { name: "추억 남기기", exact: true });
-    const buffer = await sharp({ create: { width: 400, height: 300, channels: 4, background: "#6fae96" } }).png().toBuffer();
+    const buffer = await sharp({ create: { width: 640, height: 480, channels: 4, background: "#9bb7a5" } }).png().toBuffer();
     await editor.getByLabel("사진", { exact: true }).setInputFiles({ name: "memory.png", mimeType: "image/png", buffer });
-    await editor.getByRole("group", {name:"프레임",exact:true}).getByRole("radio",{name:"마스킹 테이프",exact:true}).check();
-    await editor.getByRole("group", {name:"스티커",exact:true}).getByRole("radio",{name:"GG",exact:true}).check();
-    await expect(editor.getByRole("slider")).toHaveCount(0);
-    const savedHandle=editor.getByRole("button",{name:"스티커 위치 조절",exact:true});await savedHandle.focus();
-    for(let i=0;i<4;i++)await savedHandle.press("Shift+ArrowLeft");for(let i=0;i<5;i++)await savedHandle.press("Shift+ArrowDown");
-    await resizeSticker(member,editor,1.3);await rotateSticker(member,editor,50);
-    await editor.getByRole("button", { name: "좌우 반전", exact: true }).click();
-    await editor.getByLabel("글", { exact: true }).fill("스티커 배치 검증");
-    const placement = await placementOf(editor);
-    const request = member.waitForRequest(req => req.headers()["next-action"] !== undefined && !!req.postData()?.includes("스티커 배치 검증"));
+    await editor.getByRole("tab", { name: "추억 사진 프레임 팩", exact: true }).click();
+    await editor.getByRole("radio", { name: "마스킹 테이프", exact: true }).check();
+    await editor.getByRole("tab", { name: "스티커", exact: true }).click();
+    await expect(editor.getByRole("radio", { name: "마스킹 테이프", exact: true })).toHaveCount(0);
+    await editor.getByRole("tab", { name: "추억 사진 스티커 팩", exact: true }).click();
+    await editor.getByRole("button", { name: "GG 추가", exact: true }).click();
+    const firstId = (await editor.locator('[data-sticker-id]').getAttribute("data-sticker-id"))!;
+    const firstHandle = editor.getByRole("button", { name: "스티커 위치 조절 1", exact: true });
+    await firstHandle.focus(); await firstHandle.press("Shift+ArrowLeft");
+    await resizeSticker(member, editor, 1.3); await rotateSticker(member, editor, 35);
+    const firstPlacement = await placementOf(editor);
+    await editor.getByRole("button", { name: "GG 추가", exact: true }).click();
+    await editor.getByRole("button", { name: "하트 추가", exact: true }).click();
+    await expect(editor.locator('[data-sticker-id]')).toHaveCount(3);
+    await editor.getByRole("button", { name: "스티커 위치 조절 3", exact: true }).press("Delete");
+    await expect(editor.locator('[data-sticker-id]')).toHaveCount(2);
+    const secondHandle = editor.getByRole("button", { name: "스티커 위치 조절 2", exact: true });
+    await editor.getByRole("button", { name: "붙인 스티커 2 선택", exact: true }).click(); await secondHandle.press("Shift+ArrowRight"); await secondHandle.press("Shift+ArrowDown");
+    await resizeSticker(member, editor, 0.8); await rotateSticker(member, editor, -25);
+    const secondPlacement = await placementOf(editor);
+    await expectPlacement(editor.locator(`[data-sticker-id="${firstId}"]`), firstPlacement);
+    await editor.getByRole("tab", { name: "프레임", exact: true }).click();
+    await expect(editor.getByRole("tab", { name: "추억 사진 프레임 팩", exact: true })).toHaveAttribute("aria-selected", "true");
+    await editor.getByRole("radio", { name: "필름", exact: true }).check();
+    await expectPlacement(editor.locator(`[data-sticker-id="${firstId}"]`), firstPlacement);
+    await editor.getByRole("tab", { name: "스티커", exact: true }).click();
+    for (let i = 2; i < MAX_PHOTO_STICKERS; i++) await editor.getByRole("button", { name: "하트 추가", exact: true }).click();
+    await expect(editor.getByRole("button", { name: "GG 추가", exact: true })).toBeDisabled();
+    for (let i = MAX_PHOTO_STICKERS; i > 2; i--) { await editor.getByRole("button", { name: `스티커 위치 조절 ${i}`, exact: true }).focus(); await editor.getByRole("button", { name: "선택한 스티커 삭제", exact: true }).click(); }
+    await editor.getByLabel("글", { exact: true }).fill("여러 스티커 배치 검증");
+    const tabsBox = (await editor.getByRole("tablist", { name: "사진 꾸미기 종류", exact: true }).boundingBox())!;
+    const photoBox = (await editor.locator('[data-photo-frame="film"]').first().boundingBox())!;
+    expect(tabsBox.y).toBeGreaterThan(photoBox.y + photoBox.height);
+    await member.screenshot({ path: test.info().outputPath("multiple-stickers-editor.png"), animations: "disabled" });
+    const request = member.waitForRequest(req => req.headers()["next-action"] !== undefined && !!req.postData()?.includes("여러 스티커 배치 검증"));
     await editor.getByRole("button", { name: "저장", exact: true }).click(); const call = await request;
     await expect(member).toHaveURL(/\/memories\/[0-9a-f-]{36}$/, { timeout: 30_000 });
     const saved = (await svc.from("clan_board_posts").select("id,details").eq("clan_id", f.clanId).eq("kind", "memories").single()).data!;
-    expect(saved.details).toEqual({ photoFrame: "tape", photoSticker: "gg", photoStickerPlacement: placement });
-    await expectPlacement(member.locator('[data-sticker-placement]'), placement); await member.reload(); await expectPlacement(member.locator('[data-sticker-placement]'), placement);
+    const items = (saved.details as unknown as BoardDetails).photoStickers!;
+    expect(items).toHaveLength(2); expect(items[0].placement).toEqual(firstPlacement); expect(items[1].placement).toEqual(secondPlacement);
+    const checkSaved = async () => { for (const item of items) await expectPlacement(member.locator(`[data-sticker-id="${item.id}"]`), item.placement); };
+    await checkSaved(); await member.reload(); await checkSaved();
     await member.getByRole("button", { name: "편집", exact: true }).click();
     const editing = member.getByRole("dialog", { name: "글 편집", exact: true });
-    expect(await placementOf(editing)).toEqual(placement); await editing.getByRole("button", { name: "취소", exact: true }).click();
-    await member.goto(base + "/board/memories"); await expectPlacement(member.locator('[data-sticker-placement]'), placement);
-    await member.setViewportSize({ width: 390, height: 844 }); await expectPlacement(member.locator('[data-sticker-placement]'), placement);
+    await expect(editing.locator('[data-sticker-id]')).toHaveCount(2);
+    await editing.getByRole("button", { name: "스티커 위치 조절 1", exact: true }).click(); await expect(editing.getByRole("button", { name: "스티커 회전", exact: true })).toHaveCount(1);
+    await editing.getByRole("button", { name: "취소", exact: true }).click();
+    await member.goto(base + "/board/memories"); await member.setViewportSize({ width: 390, height: 844 }); await checkSaved();
     await member.goto(base + "/board/memories/" + saved.id);
     const args = JSON.parse(call.postData()!); args[2].editing = true;
     const headers = { "next-action": call.headers()["next-action"], "content-type": call.headers()["content-type"] };
     const replay = (values: unknown[]) => member.evaluate(async ({ headers, values }) => (await (await fetch(location.href, { method: "POST", headers, body: JSON.stringify(values) })).text()), { headers, values });
     expect(await replay(args)).toContain('"ok":true');
-    for (const invalid of [{ ...placement, x: -1 }, { ...placement, rotation: 181 }, { ...placement, flipY: "yes" }, { ...placement, scale: 4 }]) {
-      expect(await replay([args[0], args[1], { ...args[2], details: { ...args[2].details, photoStickerPlacement: invalid } }])).toContain("스티커 위치와 회전을 확인해 주십시오.");
+    for (const invalid of [null, [items[0], items[0]], [{ ...items[0], sticker: "fake" }], [{ ...items[0], placement: { ...items[0].placement, scale: 4 } }], Array.from({ length: MAX_PHOTO_STICKERS + 1 }, () => ({ ...items[0], id: randomUUID() }))]) {
+      expect(await replay([args[0], args[1], { ...args[2], details: { photoStickers: invalid } }])).toContain("스티커 목록과 배치를 확인해 주십시오.");
+      expect((await client.from("clan_board_posts").update({ details: { photoStickers: invalid } }).eq("id", saved.id)).error?.code).toBe("23514");
     }
+    expect((await client.from("clan_board_posts").update({ kind: "free" }).eq("id", saved.id)).error?.code).toBe("42501");
+    expect((await svc.from("clan_board_posts").update({ kind: "free" }).eq("id", saved.id)).error?.code).toBe("23514");
     expect((await svc.from("clan_board_posts").select("details").eq("id", saved.id).single()).data?.details).toEqual(saved.details);
     expect((await svc.from("clan_board_posts").update({ details: { photoFrame: "film", photoSticker: "heart" } }).eq("id", saved.id)).error).toBeNull();
-    await member.reload(); await expect(member.getByLabel("하트 스티커", { exact: true })).toBeVisible(); await expect(member.locator('[data-sticker-placement]')).toHaveCount(0);
+    await member.reload(); await expect(member.getByLabel("하트 스티커", { exact: true })).toBeVisible();
+    await member.getByRole("button", { name: "편집", exact: true }).click();
+    const legacy = member.getByRole("dialog", { name: "글 편집", exact: true }); await expect(legacy.locator('[data-sticker-id]')).toHaveCount(1); await legacy.getByRole("button", { name: "취소", exact: true }).click();
     expect((await svc.from("clan_board_posts").update({ details: saved.details }).eq("id", saved.id)).error).toBeNull();
     expect((await svc.from("clan_members").update({ role: "officer" }).eq("clan_id", f.clanId).eq("user_id", f.users[1].id)).error).toBeNull();
-    expect((await svc.rpc("void_clan_store_purchase", { p_actor_id: f.users[1].id, p_purchase_id: purchase.id, p_reason: "격리 스티커 배치 검증" })).data).toEqual({ ok: true });
-    await member.reload(); await expect(member.locator('[data-photo-sticker="none"]')).toBeVisible();
+    expect((await svc.rpc("void_clan_store_purchase", { p_actor_id: f.users[1].id, p_purchase_id: purchase.id, p_reason: "격리 여러 스티커 검증" })).data).toEqual({ ok: true });
+    await member.reload(); await expect(member.locator('[data-sticker-id]')).toHaveCount(0);
     expect(await replay(args)).toContain("클랜에서 구매한 사진 꾸미기만 사용할 수 있습니다.");
-    expect((await svc.from("clan_board_posts").select("details").eq("id", saved.id).single()).data?.details).toEqual(saved.details);
+    expect((await client.from("clan_board_posts").update({ details: saved.details }).eq("id", saved.id)).error?.code).toBe("23514");
     expect((await svc.rpc("apply_store_purchase", { p_actor_id: f.users[0].id, p_context_clan_id: f.clanId, p_item_slug: "clan_photo_stickers", p_checkout_id: randomUUID() })).data).toMatchObject({ ok: true });
-    await member.reload(); await expectPlacement(member.locator('[data-sticker-placement]'), placement);
+    await member.reload(); await checkSaved();
   } finally {
     try { await memberContext.close(); } finally {
       const rows = (await svc.from("clan_board_posts").select("image_path").eq("clan_id", f.clanId).not("image_path", "is", null)).data ?? [];
