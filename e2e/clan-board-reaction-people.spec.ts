@@ -44,8 +44,19 @@ test("board comment reaction people: scoped names, keyboard, retry and access bo
     await expect(people.getByRole("listitem")).toHaveText(f.users.map(user => user.nickname).sort((a, b) => a.localeCompare(b, "ko")));
     const args = JSON.parse(call.postData()!), url = page.url();
     const headers = { "next-action": call.headers()["next-action"], "content-type": call.headers()["content-type"], origin: new URL(url).origin };
+    // Browser fetch preserves the Secure loopback cookies used by production sessions.
+    const replay = (values: unknown[]) => page.evaluate(async ({ url, headers, body }) => {
+      const response = await fetch(url, { method: "POST", headers, body, redirect: "manual" });
+      return { status: response.status, type: response.type, body: await response.text() };
+    }, { url, headers, body: JSON.stringify(values) });
+    const allowed = await replay(args);
+    expect(allowed.status).toBe(200);
+    expect(allowed.body).toContain('"ok":true');
+    for (const user of f.users) expect(allowed.body).toContain(user.nickname);
     for (const values of [[args[0], f.gameId, ownId, emojiId], [args[0], f.clanId, postId, emojiId], [args[0], f.clanId, ownId, "invalid"], ["valorant", f.clanId, ownId, emojiId]]) {
-      expect(await (await page.request.post(url, { headers, data: JSON.stringify(values) })).text()).toContain('"ok":false');
+      const denied = await replay(values);
+      expect(denied.status).toBe(200);
+      expect(denied.body).toContain('"ok":false');
     }
     const anon = await browser.newContext();
     try {
@@ -71,10 +82,12 @@ test("board comment reaction people: scoped names, keyboard, retry and access bo
     await expect(people.getByRole("listitem")).toHaveCount(2);
     await page.screenshot({ path: test.info().outputPath("board-comment-reaction-people.png"), animations: "disabled" });
     await ok(svc.from("clan_board_comments").delete().eq("id", ownId));
-    expect(await (await page.request.post(url, { headers, data: call.postData()! })).text()).toContain('"ok":false');
+    const deleted = await replay(args);
+    expect(deleted.status).toBe(200);
+    expect(deleted.body).toContain('"ok":false');
     await ok(svc.from("clan_members").update({ status: "left" }).eq("clan_id", f.clanId).eq("user_id", f.users[0].id));
-    const departed = await page.request.post(url, { headers, data: JSON.stringify([args[0], f.clanId, peerId, emojiId]), maxRedirects: 0 });
-    expect([303, 307, 403].includes(departed.status()) || (await departed.text()).includes('"ok":false')).toBe(true);
+    const departed = await replay([args[0], f.clanId, peerId, emojiId]);
+    expect(departed.type === "opaqueredirect" || departed.status === 403 || (departed.status === 200 && departed.body.includes('"ok":false'))).toBe(true);
   } finally {
     try {
       expect((await svc.storage.from("clan-emojis").remove([imagePath])).error).toBeNull();
