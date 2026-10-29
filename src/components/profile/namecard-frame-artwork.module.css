@@ -1,0 +1,18 @@
+.artwork { position:absolute; inset:0; z-index:1; pointer-events:none; color:var(--namecard-frame-color,var(--primary)); border-radius:inherit; }
+.artwork > span { position:absolute; inset:3px; border-radius:inherit; }
+.artwork > span + span { inset:7px; }
+.artwork[data-frame-kind="frame"][data-frame-design="line"] > span:first-child { border:1.5px solid currentColor; }
+.artwork[data-frame-kind="frame"][data-frame-design="double"] > span { border:1px solid currentColor; }
+.artwork[data-frame-kind="frame"][data-frame-design="double"] > span + span { opacity:.5; }
+.artwork[data-frame-kind="frame"][data-frame-design="corner"] > span:first-child,
+.artwork[data-frame-kind="portrait"][data-frame-design="bracket"] > span:first-child { border:2px solid currentColor; border-radius:3px; mask:conic-gradient(at 14px 14px,#0000 75%,#000 0) 0 0/calc(100% - 14px) calc(100% - 14px); }
+.artwork[data-frame-kind="frame"][data-frame-design="rail"] > span:first-child { border-block:2px solid currentColor; border-radius:0; }
+.artwork[data-frame-kind="frame"][data-frame-design="rail"] > span + span { inset:30% 3px; border-inline:3px solid currentColor; border-radius:0; }
+.artwork[data-frame-kind="frame"][data-frame-design="tab"] > span:first-child { border:1px solid currentColor; }
+.artwork[data-frame-kind="frame"][data-frame-design="tab"] > span + span { inset:3px; border-top:4px solid currentColor; border-bottom:4px solid currentColor; mask:linear-gradient(90deg,#000 24px,#0000 24px) top left/100% 50% no-repeat,linear-gradient(270deg,#000 24px,#0000 24px) bottom left/100% 50% no-repeat; }
+.artwork[data-frame-kind="portrait"][data-frame-design="ring"] > span:first-child { inset:2px; border:2px solid currentColor; border-radius:50%; }
+.artwork[data-frame-kind="portrait"][data-frame-design="orbit"] > span { inset:1px; border:1px solid currentColor; border-radius:50%; }
+.artwork[data-frame-kind="portrait"][data-frame-design="orbit"] > span + span { inset:5px; border-width:2px; opacity:.6; }
+.artwork[data-frame-kind="portrait"][data-frame-design="diamond"] > span:first-child { inset:15%; border:2px solid currentColor; border-radius:5px; transform:rotate(45deg); }
+.artwork[data-frame-kind="portrait"][data-frame-design="capsule"] > span:first-child { inset:3px 5px; border:1.5px solid currentColor; border-radius:30%; }
+.artwork[data-frame-kind="portrait"][data-frame-design="capsule"] > span + span { inset:38% 1px; border-inline:3px solid currentColor; border-radius:0; }
