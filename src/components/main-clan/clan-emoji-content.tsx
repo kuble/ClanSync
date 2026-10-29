@@ -6,7 +6,7 @@ import { Popover } from "@base-ui/react/popover";
 import { Search, SmilePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { clanEmojiUrl, type ClanEmoji } from "@/lib/clan/cosmetics";
-import { emojiToken, splitEmojiText } from "@/lib/clan/emoji-text";
+import { emojiToken, splitEmojiText, singleLineText } from "@/lib/clan/emoji-text";
 import { cn } from "@/lib/utils";
 import styles from "./clan-emoji-composer.module.css";
 
@@ -77,9 +77,10 @@ function readText(root: Node): string {
 export function ClanEmojiInput({ id, label, value, onChange, maxLength, disabled = false, placeholder, className, name, editorRef, pickerLabel, variant="comment", actions }: {
   id?: string; label: string; value: string; onChange: (value: string) => void; maxLength: number; disabled?: boolean;
   placeholder?: string; className?: string; name?: string; editorRef?: RefObject<HTMLDivElement | null>; pickerLabel?:string;
-  variant?:"comment"|"post"; actions?:ReactNode;
+  variant?:"comment"|"post"|"caption"; actions?:ReactNode;
 }) {
   const context = useClanEmojis();
+  const singleLine = variant === "caption";
   const ownRef = useRef<HTMLDivElement>(null), input = editorRef ?? ownRef;
   const last = useRef<string | null>(null), selection = useRef<Range | null>(null);
   const [error, setError] = useState("");
@@ -104,12 +105,14 @@ export function ClanEmojiInput({ id, label, value, onChange, maxLength, disabled
   const remember = () => { const current = window.getSelection(); if (current?.rangeCount && input.current?.contains(current.anchorNode)) selection.current = current.getRangeAt(0).cloneRange(); };
   function commit() {
     if (!input.current || disabled) return;
-    const next = readText(input.current);
+    const raw = readText(input.current), next = singleLine ? singleLineText(raw) : raw;
     if (next.length > maxLength) { input.current.replaceChildren(fragment(value)); setError(`최대 ${maxLength.toLocaleString("ko-KR")}자까지 입력할 수 있습니다.`); return; }
+    if (singleLine && raw !== next) input.current.replaceChildren(fragment(next));
     last.current = next; setError(""); onChange(next); remember();
   }
   function insert(text: string) {
     const root = input.current; if (!root || disabled) return;
+    if (singleLine) text = singleLineText(text);
     root.focus(); const current = window.getSelection();
     const range = selection.current && root.contains(selection.current.commonAncestorContainer) ? selection.current : document.createRange();
     if (!selection.current || !root.contains(range.commonAncestorContainer)) { range.selectNodeContents(root); range.collapse(false); }
@@ -118,11 +121,11 @@ export function ClanEmojiInput({ id, label, value, onChange, maxLength, disabled
     if (end) { range.setStartAfter(end); range.collapse(true); current?.removeAllRanges(); current?.addRange(range); }
     commit();
   }
-  return <div className={cn(styles.composer,variant==="post"&&styles.post)}>
+  return <div className={cn(styles.composer,variant==="post"&&styles.post,singleLine&&styles.caption)}>
     {name && <input type="hidden" name={name} value={value} />}
-    <div id={id} ref={input} role="textbox" aria-label={label} aria-multiline="true" aria-disabled={disabled} contentEditable={!disabled} suppressContentEditableWarning
+    <div id={id} ref={input} role="textbox" aria-label={label} aria-multiline={!singleLine} aria-disabled={disabled} contentEditable={!disabled} suppressContentEditableWarning
       data-placeholder={placeholder} data-empty={!value || undefined} className={cn("board-scroll",styles.editor,className)}
-      onInput={commit} onBlur={remember} onKeyUp={remember} onMouseUp={remember} onKeyDown={event=>{if((event.ctrlKey||event.metaKey)&&event.key==="Enter"&&!disabled){event.preventDefault();event.currentTarget.closest("form")?.requestSubmit();}}}
+      onInput={commit} onBlur={remember} onKeyUp={remember} onMouseUp={remember} onKeyDown={event=>{if(event.nativeEvent.isComposing)return;if(event.key==="Enter"&&!disabled){if(event.ctrlKey||event.metaKey){event.preventDefault();event.currentTarget.closest("form")?.requestSubmit();}else if(singleLine)event.preventDefault();}}}
       onPaste={event => { event.preventDefault(); remember(); insert(event.clipboardData.getData("text/plain")); }} onDrop={event => event.preventDefault()}
       onCopy={event => { const current = window.getSelection(); if (!current?.rangeCount) return; const wrapper = document.createElement("div"); wrapper.append(current.getRangeAt(0).cloneContents()); event.clipboardData.setData("text/plain", readText(wrapper)); event.preventDefault(); }} />
     <div className={styles.toolbar}><ClanEmojiPicker label={pickerLabel??`${label} 이모티콘 선택`} disabled={disabled} onOpen={remember} finalFocus={input} onSelect={insert} /><span className={styles.counter}>{value.length} / {maxLength.toLocaleString("ko-KR")}</span>{actions?<div className={styles.actions}>{actions}</div>:<span className={styles.hint}>Ctrl + Enter</span>}</div>

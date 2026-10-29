@@ -38,7 +38,7 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
     <article className="overflow-hidden rounded-xl border border-border bg-card">
       <header className="border-b border-border px-5 py-6 sm:px-7">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"><ClanPlayerAvatar userId={post.author_id} label={post.author} size={28}/><span className="font-medium">{post.author}</span><span className="text-border" aria-hidden>|</span><time dateTime={post.created_at} className="text-muted-foreground">{boardDate(post.created_at,true)}</time></div>
-        <h3 className="mt-4 min-w-0 break-words text-xl font-semibold leading-8 tracking-tight sm:text-2xl"><ClanEmojiText text={post.title} large={false}/></h3>
+        {kind!=="memories"&&<h3 className="mt-4 min-w-0 break-words text-xl font-semibold leading-8 tracking-tight sm:text-2xl"><ClanEmojiText text={post.title} large={false}/></h3>}
       </header>
       <div className="space-y-6 p-5 sm:p-7">
         {kind==="feedback"&&<section className="overflow-hidden rounded-lg border border-border bg-background/40" aria-label="코칭 신청 정보">
@@ -57,8 +57,8 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
           </div>
           <div className="grid gap-4 sm:grid-cols-2"><div className="flex items-start gap-3 rounded-lg bg-muted/30 p-4"><Clock3 className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden/><div className="min-w-0"><h4 className="text-xs text-muted-foreground">방송 시간</h4><p className="mt-1 break-words text-sm font-medium leading-6">{details.schedule||"방송 시간 자유"}</p></div></div><div className="min-w-0 space-y-3 rounded-lg bg-muted/30 p-4"><h4 className="text-xs text-muted-foreground">방송 플랫폼</h4><ClanChannelLinks channels={boardChannels(details)}/></div></div>
         </section>}
-        {post.image_path&&<a href={boardImageUrl(base,post.id)} target="_blank" rel="noopener noreferrer" aria-label="사진 원본 보기" className="block overflow-hidden rounded-lg bg-muted/20">{kind==="memories"?<div className="mx-auto max-w-xl p-4"><MemoryPhoto src={boardImageUrl(base,post.id)} caption="" alt={post.content||post.title} frame={photo.photoFrame} sticker={photo.photoSticker} stickerPlacement={photo.photoStickerPlacement} stickers={photo.photoStickers}/></div>:<Image unoptimized src={boardImageUrl(base,post.id)} width={1600} height={1200} alt={post.content||post.title} className="mx-auto max-h-[70dvh] w-auto max-w-full object-contain"/>}</a>}
-        {kind!=="channels"&&<div className="max-w-[68ch] whitespace-pre-wrap break-words text-[15px] leading-8"><ClanEmojiText text={post.content}/></div>}
+        {post.image_path&&<a href={boardImageUrl(base,post.id)} target="_blank" rel="noopener noreferrer" aria-label="사진 원본 보기" className="block overflow-hidden rounded-lg bg-muted/20">{kind==="memories"?<div className="mx-auto max-w-xl p-4"><MemoryPhoto src={boardImageUrl(base,post.id)} caption={post.content||post.title} alt={post.content||post.title} frame={photo.photoFrame} sticker={photo.photoSticker} stickerPlacement={photo.photoStickerPlacement} stickers={photo.photoStickers}/></div>:<Image unoptimized src={boardImageUrl(base,post.id)} width={1600} height={1200} alt={post.content||post.title} className="mx-auto max-h-[70dvh] w-auto max-w-full object-contain"/>}</a>}
+        {kind!=="channels"&&kind!=="memories"&&<div className="max-w-[68ch] whitespace-pre-wrap break-words text-[15px] leading-8"><ClanEmojiText text={post.content}/></div>}
       </div>
       <footer className={articleStyles.footer}>
         <div className={articleStyles.feedback}><Button variant="outline" size="sm" aria-pressed={liked} disabled={pending} onClick={()=>mutate(()=>setBoardReactionAction(gameSlug,clanId,post.id,!liked))}><Heart className={liked?"size-4 fill-primary text-primary":"size-4"} aria-hidden/>공감 {reactions}</Button></div>

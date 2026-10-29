@@ -55,6 +55,7 @@ export function boardImageUrl(base: string, postId: string, thumbnail = false) {
 export function validateBoardInput(kind: BoardKind, title: string, content: string, raw: BoardDetails) {
   if (!title.trim() || title.trim().length > 200) return "제목은 1~200자로 입력해 주십시오.";
   if (content.trim().length > (kind === "memories" ? 100 : 20000)) return kind === "memories" ? "글은 100자 이내로 입력해 주십시오." : "본문은 20,000자 이내로 입력해 주십시오.";
+  if (kind === "memories" && /[\r\n\u2028\u2029]/.test(content)) return "글은 한 줄로 입력해 주십시오.";
   if (kind === "free" && !content.trim()) return "본문을 입력해 주십시오.";
   if (kind === "memories" && ((raw.photoFrame && !PHOTO_FRAMES.some(option=>option.id===raw.photoFrame)) || (raw.photoSticker && !PHOTO_STICKERS.some(option=>option.id===raw.photoSticker)))) return "사진 꾸미기를 확인해 주십시오.";
   if (raw.photoStickers !== undefined && (kind !== "memories" || !readPhotoStickers(raw.photoStickers) || (raw.photoSticker && raw.photoSticker !== "none") || raw.photoStickerPlacement !== undefined)) return "스티커 목록과 배치를 확인해 주십시오.";

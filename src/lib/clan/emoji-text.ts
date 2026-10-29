@@ -16,3 +16,4 @@ export function splitEmojiText(text: string, emojis: ClanEmoji[]) {
   return parts;
 }
 export type EmojiReactionTarget = { kind: "post" | "board_comment" | "hof_comment" | "notice"; id: string };
+export function singleLineText(value: string) { return value.replace(/\s*[\r\n\u2028\u2029]+\s*/g, " "); }

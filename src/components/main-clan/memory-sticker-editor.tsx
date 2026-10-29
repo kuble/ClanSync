@@ -72,8 +72,8 @@ function StickerHandle({ item, index, selected, onSelect, onChange, onRemove }: 
   </div>;
 }
 
-export function MemoryStickerEditor({ src, caption = "", frame = "classic", stickers, selectedId, onSelect, placeholder, onChange, children }: {
-  src: string | null; caption?: string; frame?: string; stickers: PhotoStickerInstance[]; selectedId: string | null;
+export function MemoryStickerEditor({ src, caption = "", captionEditor, frame = "classic", stickers, selectedId, onSelect, placeholder, onChange, children }: {
+  src: string | null; caption?: string; captionEditor?: ReactNode; frame?: string; stickers: PhotoStickerInstance[]; selectedId: string | null;
   onSelect: (id: string | null) => void; placeholder?: ReactNode; onChange: (value: PhotoStickerInstance[]) => void; children?: ReactNode;
 }) {
   const selected = stickers.find(item => item.id === selectedId);
@@ -82,7 +82,7 @@ export function MemoryStickerEditor({ src, caption = "", frame = "classic", stic
   }
   function remove(id: string) { onChange(stickers.filter(item => item.id !== id)); if (id === selectedId) onSelect(null); }
   return <div className={styles.editor}>
-    <MemoryPhoto src={src} caption={caption} frame={frame} stickers={stickers} placeholder={placeholder} stickerOverlay={<>{stickers.map((item, index) => <StickerHandle key={item.id} item={item} index={index} selected={item.id === selectedId} onSelect={() => onSelect(item.id)} onChange={placement => onChange(stickers.map(current => current.id === item.id ? { ...current, placement } : current))} onRemove={() => remove(item.id)}/>)}</>}/>
+    <MemoryPhoto src={src} caption={caption} captionEditor={captionEditor} frame={frame} stickers={stickers} placeholder={placeholder} stickerOverlay={<>{stickers.map((item, index) => <StickerHandle key={item.id} item={item} index={index} selected={item.id === selectedId} onSelect={() => onSelect(item.id)} onChange={placement => onChange(stickers.map(current => current.id === item.id ? { ...current, placement } : current))} onRemove={() => remove(item.id)}/>)}</>}/>
     {stickers.length > 1 && <div className={styles.layers} role="group" aria-label="붙인 스티커">{stickers.map((item, index) => <button key={item.id} type="button" aria-label={`붙인 스티커 ${index + 1} 선택`} aria-pressed={item.id === selectedId} onClick={() => onSelect(item.id)}><span aria-hidden><PhotoSticker sticker={item.sticker}/></span><span>{index + 1}</span></button>)}</div>}
     <div className={styles.tools} role="group" aria-label="스티커 도구">
       <Button type="button" size="icon" variant="ghost" aria-label="좌우 반전" title="좌우 반전" disabled={!selected} aria-pressed={selected?.placement.flipX ?? false} onClick={() => selected && update({ ...selected.placement, flipX: !selected.placement.flipX })}><FlipHorizontal2 className="size-4" aria-hidden/></Button>
