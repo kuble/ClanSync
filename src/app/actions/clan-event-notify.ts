@@ -9,12 +9,12 @@ export async function listClanDiscordChannelsAction(gameSlug: string, clanId: st
   const actor = await discordConnectionLeader(clanId);
   if (!actor || actor.gameSlug !== gameSlug) return { ok: false as const, error: "알림 설정은 Premium 클랜의 클랜장만 변경할 수 있습니다." };
   const { data: connection } = await actor.svc.from("clan_discord_connections").select("guild_id,channel_id,channel_name").eq("clan_id", clanId).maybeSingle();
-  if (!connection || !discordBotConfigured()) return { ok: false as const, error: "공용 봇을 먼저 연결해 주세요." };
+  if (!connection || !discordBotConfigured()) return { ok: false as const, error: "공용 봇을 먼저 연결해 주십시오." };
   try {
     const result = await listDiscordBotChannels(connection.guild_id);
     return { ok: true as const, guildId: connection.guild_id, channels: result.channels };
   } catch {
-    return { ok: false as const, error: "채널을 불러오지 못했습니다. 서버의 봇 연결과 채널 권한을 확인해 주세요." };
+    return { ok: false as const, error: "채널을 불러오지 못했습니다. 서버의 봇 연결과 채널 권한을 확인해 주십시오." };
   }
 }
 
@@ -33,15 +33,15 @@ export async function updateClanEventNotifyAction(gameSlug: string, clanId: stri
   // The browser supplies an ID, never a destination URL or trusted channel name.
   let channelName = connection?.channel_name ?? "";
   if (enabled) {
-    if (!connection || !discordBotConfigured()) return { ok: false as const, error: "공용 봇을 먼저 연결해 주세요." };
+    if (!connection || !discordBotConfigured()) return { ok: false as const, error: "공용 봇을 먼저 연결해 주십시오." };
     try {
       const result = await listDiscordBotChannels(connection.guild_id);
       const channel = result.channels.find((entry) => entry.id === channelId);
-      if (!channel) return { ok: false as const, error: "봇이 메시지를 보낼 수 있는 채널을 선택해 주세요." };
-      if (Object.values(routes).some((route) => route.channel_id && !result.channels.some((entry) => entry.id === route.channel_id))) return { ok: false as const, error: "종류별 채널 권한을 확인해 주세요. 기본 채널 사용으로 변경할 수 있습니다." };
+      if (!channel) return { ok: false as const, error: "봇이 메시지를 보낼 수 있는 채널을 선택해 주십시오." };
+      if (Object.values(routes).some((route) => route.channel_id && !result.channels.some((entry) => entry.id === route.channel_id))) return { ok: false as const, error: "종류별 채널 권한을 확인해 주십시오. 기본 채널 사용으로 변경할 수 있습니다." };
       channelName = channel.name;
     } catch {
-      return { ok: false as const, error: "채널 권한을 확인하지 못했습니다. 잠시 후 다시 저장해 주세요." };
+      return { ok: false as const, error: "채널 권한을 확인하지 못했습니다. 잠시 후 다시 저장해 주십시오." };
     }
   }
   const { error } = await actor.svc.rpc("set_clan_discord_notification_preferences", {
@@ -50,7 +50,7 @@ export async function updateClanEventNotifyAction(gameSlug: string, clanId: stri
     p_enabled: enabled,
     p_routes: routes,
   });
-  if (error) return { ok: false as const, error: "알림 설정을 저장하지 못했습니다. 연결 상태를 확인해 주세요." };
+  if (error) return { ok: false as const, error: "알림 설정을 저장하지 못했습니다. 연결 상태를 확인해 주십시오." };
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/events`);
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/manage`);
   return { ok: true as const };

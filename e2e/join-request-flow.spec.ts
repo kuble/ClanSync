@@ -58,7 +58,7 @@ test.describe("가입 신청 · 리더 거절 토스트", () => {
       const clanRow = memberPage.locator("li").filter({ hasText: "QA_01_Clan" });
       if ((await clanRow.count()) === 0) {
         testInfo.attach("note", {
-          body: "목록에 QA_01_Clan 카드가 없습니다. 시드·검색 조건을 확인하세요.",
+          body: "목록에 QA_01_Clan 카드가 없습니다. 시드·검색 조건을 확인하십시오.",
           contentType: "text/plain",
         });
         return;
@@ -115,7 +115,7 @@ test.describe("가입 신청 · 리더 거절 토스트", () => {
       if ((await applicantRow.count()) === 0) {
         testInfo.attach("note", {
           body:
-            "관리 화면에 해당 멤버 대기 신청이 없습니다. 동일 DB·시드 여부를 확인하세요.",
+            "관리 화면에 해당 멤버 대기 신청이 없습니다. 동일 DB·시드 여부를 확인하십시오.",
           contentType: "text/plain",
         });
         return;

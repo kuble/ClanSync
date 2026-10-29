@@ -27,7 +27,7 @@ export function ClanRulesTicker({ rules, href, failed }: { rules: string | null;
     const timer = window.setInterval(() => setIndex(previous => (previous + 1) % items.length), 8000);
     return () => window.clearInterval(timer);
   }, [running, items.length]);
-  const text = items[active] ?? (failed ? "규칙을 불러오지 못했어요." : "등록된 규칙이 없습니다.");
+  const text = items[active] ?? (failed ? "규칙을 불러오지 못했습니다." : "등록된 규칙이 없습니다.");
   return <section aria-label="클랜 규칙" className={styles.rulesTicker}
     onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
     onFocusCapture={event => setFocused(event.target.matches(":focus-visible"))} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>

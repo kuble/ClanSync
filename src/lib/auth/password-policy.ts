@@ -9,5 +9,5 @@ export function isStrongPassword(password: string): boolean {
 }
 
 export function passwordPolicyHint(): string {
-  return "영문·숫자·특수문자를 각각 포함하고, 8~72자로 입력해 주세요.";
+  return "영문·숫자·특수문자를 각각 포함하고, 8~72자로 입력해 주십시오.";
 }

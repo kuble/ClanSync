@@ -101,7 +101,7 @@ export function ClanBalanceSettings({
       !sameBanSettings(banSettings, savedRules.banSettings)
     ) {
       toast.error(
-        "다른 운영진이 규칙을 다시 변경했습니다. 최신 설정을 확인하세요.",
+        "다른 운영진이 규칙을 다시 변경했습니다. 최신 설정을 확인하십시오.",
       );
     }
     onOpenChange(false);
@@ -173,7 +173,7 @@ export function ClanBalanceSettings({
         router.refresh();
       } catch {
         toast.error(
-          "설정을 저장하지 못했습니다. 연결을 확인하고 다시 시도하세요.",
+          "설정을 저장하지 못했습니다. 연결을 확인하고 다시 시도하십시오.",
         );
       }
     });
@@ -201,7 +201,7 @@ export function ClanBalanceSettings({
               className="rounded-lg border border-amber-500/40 p-3 text-sm"
             >
               다른 운영진이 규칙을 변경했습니다. 닫은 뒤 다시 열어 최신 설정을
-              확인하세요.
+              확인하십시오.
             </p>
           ) : null}
           <Tabs defaultValue="formation" className="gap-5">
@@ -396,7 +396,7 @@ export function ClanBalanceSettings({
               </div>
             ) : null}
             {draft.teams === "auction" ? <div className="mt-4 space-y-3 rounded-lg border bg-background/50 p-3">
-              <div className="flex items-center justify-between gap-3 text-sm font-medium"><HelpText label="전략 아이템 사용" help="아이템을 3개 이상 선택해 주세요. 켜면 아이템 구성 화면이 열립니다. 효과는 운영진이 경기 규칙에 직접 적용합니다." /><Switch aria-label="전략 아이템 사용" checked={draft.auctionItemsEnabled} onChange={(event) => { setPreviewFocus(null); setItemEditorOpen(event.target.checked); setDraft({ ...draft, auctionItemsEnabled: event.target.checked }); }} /></div>
+              <div className="flex items-center justify-between gap-3 text-sm font-medium"><HelpText label="전략 아이템 사용" help="아이템을 3개 이상 선택해 주십시오. 켜면 아이템 구성 화면이 열립니다. 효과는 운영진이 경기 규칙에 직접 적용합니다." /><Switch aria-label="전략 아이템 사용" checked={draft.auctionItemsEnabled} onChange={(event) => { setPreviewFocus(null); setItemEditorOpen(event.target.checked); setDraft({ ...draft, auctionItemsEnabled: event.target.checked }); }} /></div>
               {draft.auctionItemsEnabled ? <div className={`${styles.dependentSettings} space-y-3`}>
                 <label className="block text-xs">전략 준비 시간(초)<input type="number" aria-label="전략 준비 시간(초)" min={10} max={120} step={1} className={field} value={draft.strategySeconds} onFocus={() => focusPreview("strategySeconds")} onChange={(event) => changePreviewSetting("strategySeconds", Number(event.target.value))} /></label>
                 <Button variant="outline" size="sm" className="w-full" onClick={() => setItemEditorOpen(true)}>아이템 구성</Button>

@@ -39,31 +39,31 @@ const navigation: {
     value: "home",
     label: "홈",
     icon: Home,
-    description: "클랜 모집·파티·스크림·활동을 한눈에 확인하세요.",
+    description: "클랜 모집·파티·스크림·활동을 한눈에 확인하십시오.",
   },
   {
     value: "lfg",
     label: "LFG",
     icon: Search,
-    description: "같이 플레이할 팀원을 찾고 파티를 만들어보세요.",
+    description: "같이 플레이할 팀원을 찾고 파티를 만들어보십시오.",
   },
   {
     value: "scrim",
     label: "스크림",
     icon: Swords,
-    description: "상대 클랜을 찾고 함께 경기를 준비하세요.",
+    description: "상대 클랜을 찾고 함께 경기를 준비하십시오.",
   },
   {
     value: "promo",
     label: "홍보",
     icon: Megaphone,
-    description: "새로운 인연을 기다리는 클랜을 만나보세요.",
+    description: "새로운 인연을 기다리는 클랜을 만나보십시오.",
   },
   {
     value: "rank",
     label: "순위",
     icon: BarChart3,
-    description: "최근 활동을 기준으로 클랜들을 둘러보세요.",
+    description: "최근 활동을 기준으로 클랜들을 둘러보십시오.",
   },
 ];
 

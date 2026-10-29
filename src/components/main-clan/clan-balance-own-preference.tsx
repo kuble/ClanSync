@@ -74,7 +74,7 @@ function OwnPreferenceEditor({
             } catch {
               setValue(roundRanking);
               setError(
-                "선호를 저장하지 못했습니다. 연결을 확인하고 다시 선택하세요.",
+                "선호를 저장하지 못했습니다. 연결을 확인하고 다시 선택하십시오.",
               );
             } finally {
               onPendingChange?.(false);

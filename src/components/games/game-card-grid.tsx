@@ -38,7 +38,7 @@ export function GameCardGrid({ cards, basePath = "" }: {
   return (
     <>
       <header className={styles.gameHeader}>
-        <div><h1 className={styles.gameHeading}>게임 선택</h1><p className={styles.gameDescription}>플레이할 게임을 선택하세요.</p></div>
+        <div><h1 className={styles.gameHeading}>게임 선택</h1><p className={styles.gameDescription}>플레이할 게임을 선택하십시오.</p></div>
         <div className={styles.search}>
           <Search size={16} aria-hidden="true" />
           <input className={styles.input} type="search" aria-label="게임 검색" placeholder="게임 검색" value={query} onChange={(event) => setQuery(event.target.value)} />
@@ -61,7 +61,7 @@ export function GameCardGrid({ cards, basePath = "" }: {
               <Link key={card.slug} href={href} className={styles.gameCard}>{inner}</Link>;
           })}
         </div>
-      ) : <p className={styles.empty} role="status">“{query}”에 해당하는 게임이 없습니다. 다른 이름으로 검색해 주세요.</p>}
+      ) : <p className={styles.empty} role="status">“{query}”에 해당하는 게임이 없습니다. 다른 이름으로 검색해 주십시오.</p>}
     </>
   );
 }

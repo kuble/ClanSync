@@ -297,7 +297,7 @@ export function ClanBalanceSessionPanel({
           : session?.match_outcome === "draw" ? "무승부" : null;
   const endSessionControl = session && canManage ? <Button variant="destructive" size="sm"
     disabled={pending || busyFormation || (session.phase !== "editing" && session.match_outcome === "pending")}
-    title={session.phase !== "editing" && session.match_outcome === "pending" ? "경기 결과 또는 무효를 먼저 기록하세요." : undefined}
+    title={session.phase !== "editing" && session.match_outcome === "pending" ? "경기 결과 또는 무효를 먼저 기록하십시오." : undefined}
     onClick={() => setConfirmEnd(true)}>세션 종료</Button> : null;
   const sampleScores = canViewScores && qaPreviewEnabled;
   const baseScores = sampleScores ? previewScores(rosterPool.map((member) => member.user_id), scores) : scores;
@@ -316,12 +316,12 @@ export function ClanBalanceSessionPanel({
       data-formation-transition={awaitingFormation || preparingMatch ? "true" : undefined}
     >
       <Dialog open={confirmEnd} onOpenChange={(open) => { if (!pending) setConfirmEnd(open); }}>
-        <DialogContent><DialogHeader><DialogTitle>내전을 종료할까요?</DialogTitle><DialogDescription>{flash ? "깜짝 내전의 모든 경기·참여·투표 기록이 삭제되며 복구할 수 없습니다." : "현재 세션을 종료합니다. 정규 내전 기록은 보존됩니다."}</DialogDescription></DialogHeader>
+        <DialogContent><DialogHeader><DialogTitle>내전을 종료하시겠습니까?</DialogTitle><DialogDescription>{flash ? "깜짝 내전의 모든 경기·참여·투표 기록이 삭제되며 복구할 수 없습니다." : "현재 세션을 종료합니다. 정규 내전 기록은 보존됩니다."}</DialogDescription></DialogHeader>
           <div className="flex justify-end gap-2"><Button variant="outline" disabled={pending} onClick={() => setConfirmEnd(false)}>돌아가기</Button><Button variant="destructive" disabled={pending} onClick={() => {
             if (!session) return;
             runAction("세션을 종료했습니다.", async () => {
               const saved = await flushRoster();
-              if (!saved.ok) return { ok: false, error: "명단 저장을 완료한 뒤 다시 시도하세요." };
+              if (!saved.ok) return { ok: false, error: "명단 저장을 완료한 뒤 다시 시도하십시오." };
               const result = await closeBalanceSessionAction(gameSlug, clanId, session.id);
               if (result.ok) { setConfirmEnd(false); router.replace(`/games/${gameSlug}/clan/${clanId}/balance`); }
               return result;
@@ -483,7 +483,7 @@ export function ClanBalanceSessionPanel({
                 className="flex flex-wrap items-center justify-between gap-3"
               >
                 <p className="text-xs text-muted-foreground">
-                  세션을 열고 참가자와 경기 규칙을 정하세요.
+                  세션을 열고 참가자와 경기 규칙을 정하십시오.
                 </p>
                 <Button type="submit" disabled={pending}>
                   {pending ? "세션 여는 중…" : "세션 열기"}
@@ -499,7 +499,7 @@ export function ClanBalanceSessionPanel({
               <h4 className="text-lg font-semibold">경기를 준비 중입니다</h4>
               <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
                 운영진이 세션을 열면 팀 배치와 밴픽이 이곳에 표시됩니다. 잠시 후
-                함께 경기를 시작해 보세요.
+                함께 경기를 시작해 보십시오.
               </p>
               <Button
                 type="button"
@@ -671,7 +671,7 @@ export function ClanBalanceSessionPanel({
                     role="status"
                     className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground"
                   >
-                    맵 후보를 불러오지 못했습니다. 페이지를 새로고침해 주세요.
+                    맵 후보를 불러오지 못했습니다. 페이지를 새로고침해 주십시오.
                   </p>
                 )}
               </div>

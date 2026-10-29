@@ -137,8 +137,8 @@ function UpcomingEventsContent({
     return (
       <EmptyCard
         icon={CalendarDays}
-        title="일정을 불러오지 못했어요"
-        description="잠시 후 새로고침해 주세요."
+        title="일정을 불러오지 못했습니다"
+        description="잠시 후 새로고침해 주십시오."
       />
     );
   if (!ready)
@@ -147,15 +147,15 @@ function UpcomingEventsContent({
         className="flex min-h-44 items-center justify-center text-xs text-muted-foreground"
         role="status"
       >
-        일정을 불러오는 중이에요.
+        일정을 불러오는 중입니다.
       </div>
     );
   if (upcoming.length === 0)
     return (
       <EmptyCard
         icon={CalendarDays}
-        title="다가오는 일정이 없어요"
-        description="함께할 내전과 모임이 등록되면 여기에 표시돼요."
+        title="다가오는 일정이 없습니다"
+        description="함께할 내전과 모임이 등록되면 여기에 표시됩니다."
       />
     );
   return (
@@ -263,7 +263,7 @@ function MvpCard({
             Premium 전용
           </p>
           <p className="order-last w-full text-xs text-muted-foreground">
-            우리 클랜의 예측왕을 만나보세요.
+            우리 클랜의 예측왕을 만나보십시오.
           </p>
           <button
             type="button"
@@ -283,13 +283,13 @@ function MvpCard({
           <div>
             <p className="text-xs font-medium text-muted-foreground">
               {model.errors.rankings
-                ? "순위를 불러오지 못했어요"
-                : "아직 선정된 MVP가 없어요"}
+                ? "순위를 불러오지 못했습니다"
+                : "아직 선정된 MVP가 없습니다"}
             </p>
             <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
               {model.errors.rankings
-                ? "잠시 후 다시 확인해 주세요."
-                : `${model.previousMonth}의 기록에서 선정 기준을 충족한 멤버가 없어요.`}
+                ? "잠시 후 다시 확인해 주십시오."
+                : `${model.previousMonth}의 기록에서 선정 기준을 충족한 멤버가 없습니다.`}
             </p>
           </div>
         </div>
@@ -333,8 +333,8 @@ export function ClanDashboard({
           {model.errors.notices ? (
             <EmptyCard
               icon={Megaphone}
-              title="공지사항을 불러오지 못했어요"
-              description="잠시 후 새로고침해 주세요."
+              title="공지사항을 불러오지 못했습니다"
+              description="잠시 후 새로고침해 주십시오."
             />
           ) : model.notices.length ? (
             <ul aria-label="최근 클랜 공지" className="space-y-2">
@@ -350,8 +350,8 @@ export function ClanDashboard({
           ) : (
             <EmptyCard
               icon={Megaphone}
-              title="새로운 공지사항이 없어요"
-              description="클랜의 중요한 소식과 함께 참여할 투표를 이곳에서 확인하세요."
+              title="새로운 공지사항이 없습니다"
+              description="클랜의 중요한 소식과 함께 참여할 투표를 이곳에서 확인하십시오."
             />
           )}
         </section>

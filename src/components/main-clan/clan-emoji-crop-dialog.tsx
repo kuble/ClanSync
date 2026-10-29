@@ -10,7 +10,7 @@ import { emojiNamePattern } from "@/lib/clan/cosmetics";
 export function ClanEmojiCropDialog({ src, pending, onClose, onSave }: { src:string; pending:boolean; onClose:()=>void; onSave:(name:string,crop:EmojiCrop)=>void }) {
   const [name,setName] = useState("");
   return <Dialog open onOpenChange={value=>{if(!value&&!pending)onClose();}}><DialogContent showCloseButton={!pending} className="w-[calc(100vw-2rem)] min-w-0 gap-0 overflow-x-hidden p-0 sm:max-w-4xl">
-    <DialogHeader className="px-5 pb-4 pt-5 pr-12"><DialogTitle>공용 이모티콘 추가</DialogTitle><DialogDescription>보여줄 부분을 정사각형에 맞춰 주세요.</DialogDescription></DialogHeader>
+    <DialogHeader className="px-5 pb-4 pt-5 pr-12"><DialogTitle>공용 이모티콘 추가</DialogTitle><DialogDescription>보여줄 부분을 정사각형에 맞춰 주십시오.</DialogDescription></DialogHeader>
     <SquareImageCropper key={src} src={src} pending={pending} zoomLabel="이모티콘 확대">{({crop,ready,controls,preview}) => <form className="grid min-w-0 md:grid-cols-[minmax(0,1.35fr)_minmax(240px,1fr)]" onSubmit={event=>{event.preventDefault();if(ready&&!pending&&emojiNamePattern.test(name.trim()))onSave(name.trim(),crop);}}>
       {controls}
       <fieldset disabled={pending} className="flex min-w-0 flex-col gap-5 border-t p-5 md:border-l md:border-t-0">

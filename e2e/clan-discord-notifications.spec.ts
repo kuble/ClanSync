@@ -35,8 +35,8 @@ test("room delivery distinguishes regular and flash, scheduled reminders and ope
     for (const room of rooms) {
       const card = sent.get(room.id)!;
       expect(card.author.name).toBe(room.kind === "regular" ? "⚔️ 정규 내전" : "⚡ 깜짝 내전");
-      expect(card.title).toBe(`같은 이름 · ${room.scheduled ? "곧 시작돼요" : "시작됐어요"}`);
-      expect(card.description).toContain(room.scheduled ? "시작 7분 전" : "진행 중 · 지금 입장할 수 있어요");
+      expect(card.title).toBe(`같은 이름 · ${room.scheduled ? "곧 시작됩니다" : "시작되었습니다"}`);
+      expect(card.description).toContain(room.scheduled ? "시작 7분 전" : "진행 중 · 지금 입장할 수 있습니다");
       expect(card.description).not.toContain("10분 전");
     }
     expect(await dispatchDiscordBotNotifications(f.service, 100, undefined, f.clanId)).toMatchObject({ sent: 0 });
@@ -131,7 +131,7 @@ test("new clan success offers optional Discord setup and skip", async ({ page })
     await page.getByRole("tab", { name: "클랜 생성", exact: true }).click();
     await page.getByLabel("클랜명 *").fill(`알림온보딩-${f.clanId.slice(0,8)}`);
     await page.getByRole("button", { name: "클랜 만들기", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "클랜을 만들었어요" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "클랜을 만들었습니다" })).toBeVisible();
     newClanId = (await ok(f.service.from("clan_members").select("clan_id").eq("user_id", f.users[1].id).eq("status", "active").single())).clan_id;
     expect(await ok(f.service.from("clans").select("balance_auto_open_enabled,balance_auto_close_enabled").eq("id", newClanId).single())).toEqual({ balance_auto_open_enabled: true, balance_auto_close_enabled: true });
     await expect(page.getByRole("region", { name: "Discord 활용 갤러리" })).toBeVisible();
@@ -223,9 +223,9 @@ test("settings: master toggle groups channels, preserves choices and saves offli
     }
     await page.getByRole("button", { name: "투표 시작부터 결과까지", exact: true }).click();
     await page.getByRole("button", { name: "시작 알림", exact: true }).filter({ visible: true }).click();
-    await expect(page.getByText("다음 내전 시간 투표가 시작 됐어요", { exact: true }).filter({ visible: true })).toBeVisible();
+    await expect(page.getByText("다음 내전 시간 투표가 시작 되었습니다", { exact: true }).filter({ visible: true })).toBeVisible();
     await page.getByRole("button", { name: "종료 알림", exact: true }).filter({ visible: true }).click();
-    await expect(page.getByText("다음 내전 시간 투표가 종료 됐어요", { exact: true }).filter({ visible: true })).toBeVisible();
+    await expect(page.getByText("다음 내전 시간 투표가 종료 되었습니다", { exact: true }).filter({ visible: true })).toBeVisible();
     if (captureDir) {
       await page.getByRole("img", { name: "투표 화면 서비스 화면 예시", exact: true }).filter({ visible: true }).evaluate((image) => (image as HTMLImageElement).decode());
       await page.getByRole("region", { name: "Discord 활용 갤러리", exact: true }).screenshot({ path: `${captureDir}/discord-poll-preview.png` });
@@ -259,7 +259,7 @@ test("capture actual QA screens for the Discord benefits gallery", async ({ page
   const f = await createIsolatedBalanceFixture(4);
   try {
     await page.setViewportSize({ width: 1304, height: 884 });
-    await ok(f.service.from("clans").update({ name: "ClanSync 데모 클랜", rules: "서로 존중하고 즐겁게 플레이해요." }).eq("id", f.clanId));
+    await ok(f.service.from("clans").update({ name: "ClanSync 데모 클랜", rules: "서로 존중하고 즐겁게 플레이합니다." }).eq("id", f.clanId));
     await loginIsolatedBalanceUser(page, f.users[0]);
     await createAndEnterBalanceRoom(page, f.path, "토요일 정규 내전");
     const panel = page.getByTestId("clan-balance-session-panel"), candidates = panel.getByRole("region", { name: "참가 가능 클랜원" });
@@ -275,7 +275,7 @@ test("capture actual QA screens for the Discord benefits gallery", async ({ page
     await expect(page.getByRole("tab", { name: "캘린더", exact: true })).toBeVisible();
     await expect(page.getByText("수요 듀오 연습회", { exact: true }).first()).toBeVisible();
     await capture("calendar");
-    const notice = await ok(f.service.from("clan_notices").insert({ clan_id: f.clanId, title: "이번 주 내전 운영 안내", content: "토요일 21시에 정규 내전이 열립니다.\n\n시작 10분 전에 Discord에 입장 링크가 올라와요. 참가하실 분은 미리 참석 응답을 남겨 주세요.\n\n함께 즐거운 내전을 만들어 봐요!", is_pinned: true, created_by: f.users[0].id }).select("id").single());
+    const notice = await ok(f.service.from("clan_notices").insert({ clan_id: f.clanId, title: "이번 주 내전 운영 안내", content: "토요일 21시에 정규 내전이 열립니다.\n\n시작 10분 전에 Discord에 입장 링크가 올라옵니다. 참가하실 분은 미리 참석 응답을 남겨 주십시오.\n\n함께 즐거운 내전을 만들어 봐요!", is_pinned: true, created_by: f.users[0].id }).select("id").single());
     await page.goto(`${f.path.replace(/\/balance$/, "")}?notice=${notice.id}`);
     await expect(page.getByRole("dialog", { name: "이번 주 내전 운영 안내" })).toBeVisible();
     await capture("notices");

@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export async function purchaseProfileTitleAction(optionId: unknown): Promise<{ ok: true; optionId: string; coinBalance: number } | { ok: false; error: string }> {
-  if (typeof optionId !== "string" || !/^[0-9a-f-]{36}$/i.test(optionId)) return { ok: false, error: "구매할 칭호를 확인해 주세요." };
+  if (typeof optionId !== "string" || !/^[0-9a-f-]{36}$/i.test(optionId)) return { ok: false, error: "구매할 칭호를 확인해 주십시오." };
   const db = await createClient();
   const { data: { user } } = await db.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };

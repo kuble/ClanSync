@@ -43,7 +43,7 @@ export function ProfileIntro({ initialIntro }: { initialIntro: string }) {
       setStatus("소개를 저장했습니다.");
       finishEditing();
     } catch {
-      setError("소개를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      setError("소개를 저장하지 못했습니다. 잠시 후 다시 시도해 주십시오.");
     } finally {
       setSaving(false);
     }
@@ -94,7 +94,7 @@ export function ProfileIntro({ initialIntro }: { initialIntro: string }) {
           title="한 줄 소개 편집"
           onClick={beginEditing}
         >
-          <span className={styles.text}>{intro || "한 줄 소개를 남겨보세요"}</span>
+          <span className={styles.text}>{intro || "한 줄 소개를 남겨보십시오"}</span>
           <span className={styles.editIcon}>
             <Pencil aria-hidden="true" />
           </span>

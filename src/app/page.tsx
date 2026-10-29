@@ -28,7 +28,7 @@ export default function RootPage() {
         <section className={styles.hero}>
           <div className={styles.heroCopy}>
             <h1 className={styles.heroTitle}><span className="sr-only">ClanSync — </span><span>Archive Your History,</span><em>Stay in Sync</em></h1>
-            <p className={styles.heroSubtitle}>추억을 기록하고 클랜을 체계적으로 관리하세요.</p>
+            <p className={styles.heroSubtitle}>추억을 기록하고 클랜을 체계적으로 관리하십시오.</p>
             <div className={styles.heroActions}>
               <Link href="/sign-in" className={styles.secondaryButton}>로그인</Link>
               <Link href="/sign-up" className={styles.button}>가입하기 <ArrowRight size={16} aria-hidden="true" /></Link>

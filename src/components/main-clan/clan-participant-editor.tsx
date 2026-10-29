@@ -15,7 +15,7 @@ export function ClanParticipantEditor({ clanId, participant }: { clanId: string;
   const [pending, start] = useTransition();
   const nicknameRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const help = participant ? "이름을 바꿔도 지금까지의 내전 기록은 유지됩니다." : "홈페이지에 가입하지 않아도 기록을 남길 수 있어요. 나중에 가입하면 운영진이 계정에 연결할 수 있습니다.";
+  const help = participant ? "이름을 바꿔도 지금까지의 내전 기록은 유지됩니다." : "홈페이지에 가입하지 않아도 기록을 남길 수 있습니다. 나중에 가입하면 운영진이 계정에 연결할 수 있습니다.";
   return <>
     <Button type="button" size="icon-sm" variant={participant ? "ghost" : "outline"} onClick={() => { setError(""); setOpen(true); }} aria-label={participant ? `${participant.nickname} 닉네임 수정` : "미가입 참가자 추가"} title={participant ? "닉네임 수정" : "미가입 참가자 추가"}>{participant ? <Pencil aria-hidden="true" /> : <Plus aria-hidden="true" />}</Button>
     <Dialog open={open} onOpenChange={(next) => { if (!pending) setOpen(next); }}>

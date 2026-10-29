@@ -18,8 +18,8 @@ export function SignInForm({ nextPath }: { nextPath: string }) {
   const [state, formAction] = useActionState<AuthMessageState, FormData>(signInAction, null);
   return (
     <>
-      <h1 className={styles.authHeading}>다시 오신 걸 환영해요!</h1>
-      <p className={styles.authSubtitle}>ClanSync 계정으로 로그인하세요.</p>
+      <h1 className={styles.authHeading}>다시 오신 것을 환영합니다</h1>
+      <p className={styles.authSubtitle}>ClanSync 계정으로 로그인하십시오.</p>
       <form action={formAction} className={styles.form}>
         <input type="hidden" name="next" value={nextPath} />
         {state?.error ? <p className={styles.error} role="alert" aria-live="polite">{state.error}</p> : null}
@@ -29,18 +29,18 @@ export function SignInForm({ nextPath }: { nextPath: string }) {
         </div>
         <div className={styles.field}>
           <label htmlFor="password">비밀번호</label>
-          <PasswordInput id="password" name="password" autoComplete="current-password" required placeholder="비밀번호를 입력하세요" />
+          <PasswordInput id="password" name="password" autoComplete="current-password" required placeholder="비밀번호를 입력하십시오" />
         </div>
         <div>
           <label className={styles.remember}>
             <span>자동 로그인</span>
             <Switch name="remember" aria-describedby="remember-hint" />
           </label>
-          <p id="remember-hint" className={styles.inputHint}>약 30일 동안 유지됩니다. 공용 PC에서는 해제해 주세요.</p>
+          <p id="remember-hint" className={styles.inputHint}>약 30일 동안 유지됩니다. 공용 PC에서는 해제해 주십시오.</p>
         </div>
         <SubmitButton />
       </form>
-      <p className={styles.authFooter}>계정이 없으신가요? <Link href={`/sign-up?next=${encodeURIComponent(nextPath)}`}>회원가입</Link></p>
+      <p className={styles.authFooter}>계정이 없으십니까? <Link href={`/sign-up?next=${encodeURIComponent(nextPath)}`}>회원가입</Link></p>
     </>
   );
 }

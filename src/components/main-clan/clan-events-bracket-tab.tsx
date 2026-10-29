@@ -158,7 +158,7 @@ export function ClanEventsBracketTab({
   }
 
   function onDeleteDraft(id: string) {
-    if (!confirm("이 초안을 삭제할까요?")) return;
+    if (!confirm("이 초안을 삭제하시겠습니까?")) return;
     start(async () => {
       const r = await deleteBracketTournamentDraftAction(gameSlug, clanId, id);
       if (!r.ok) {
@@ -188,7 +188,7 @@ export function ClanEventsBracketTab({
           대진표 생성기는 Premium 플랜 전용입니다.
         </p>
         <p className="text-muted-foreground mt-2 text-sm">
-          대회 형식과 참가 팀을 정하고 우리 클랜만의 토너먼트를 준비해 보세요.
+          대회 형식과 참가 팀을 정하고 우리 클랜만의 토너먼트를 준비해 보십시오.
         </p>
         <Link
           href={manageUrl}
@@ -211,7 +211,7 @@ export function ClanEventsBracketTab({
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-muted-foreground max-w-prose text-sm">
-          대회 형식과 팀 이름을 설정해 초안을 준비하세요. 저장한 초안은 아래에서
+          대회 형식과 팀 이름을 설정해 초안을 준비하십시오. 저장한 초안은 아래에서
           다시 편집할 수 있습니다.
         </p>
         {canManageEvents ? (
@@ -231,7 +231,7 @@ export function ClanEventsBracketTab({
           <SheetHeader className="shrink-0 px-5 pb-5 pr-12">
             <SheetTitle>대진표 초안</SheetTitle>
             <SheetDescription>
-              대회 이름과 경기 형식, 참가 팀 수를 정하세요.
+              대회 이름과 경기 형식, 참가 팀 수를 정하십시오.
             </SheetDescription>
           </SheetHeader>
           <form onSubmit={onCreateSubmit} className="flex min-h-0 flex-1 flex-col">

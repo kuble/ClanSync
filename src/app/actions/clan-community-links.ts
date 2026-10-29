@@ -17,7 +17,7 @@ export async function updateClanCommunityLinksAction(gameSlug: string, clanId: s
   const parsed = parseClanCommunityLinks(Object.fromEntries(CHAT_SERVICES.map(({ id }) => [id, formData.get(id) ?? ""])));
   if (!parsed.ok) return parsed;
   const { error } = await client.from("clan_settings").update({ community_links: parsed.links, updated_by: user.id }).eq("clan_id", clanId).select("clan_id").single();
-  if (error) return { ok: false as const, error: "채팅방 링크를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요." };
+  if (error) return { ok: false as const, error: "채팅방 링크를 저장하지 못했습니다. 잠시 후 다시 시도해 주십시오." };
   revalidatePath(`/games/${gameSlug}/clan/${clanId}`);
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/manage`);
   return { ok: true as const, links: parsed.links };

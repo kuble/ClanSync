@@ -43,7 +43,7 @@ export function MatchRecordEditor({ clanId, match, day, members, mode, onClose, 
       <form className="flex min-h-0 flex-1 flex-col" onSubmit={(event) => {
         event.preventDefault(); setError("");
         const players = slots.filter((slot) => slot.userId);
-        if (mode !== "delete" && (new Set(players.map((p) => p.userId)).size !== players.length || !players.some((p) => p.team === 1) || !players.some((p) => p.team === 2))) { setError("양 팀에 출전자를 한 명 이상 선택하세요. 같은 출전자는 중복 선택할 수 없습니다."); return; }
+        if (mode !== "delete" && (new Set(players.map((p) => p.userId)).size !== players.length || !players.some((p) => p.team === 1) || !players.some((p) => p.team === 2))) { setError("양 팀에 출전자를 한 명 이상 선택하십시오. 같은 출전자는 중복 선택할 수 없습니다."); return; }
         startTransition(async () => {
           const selectedDay = mode === "delete" ? day : date;
           try {
@@ -52,7 +52,7 @@ export function MatchRecordEditor({ clanId, match, day, members, mode, onClose, 
             });
             if (!result.ok) { setError(result.error); return; }
             onSaved(result.archive, selectedDay);
-          } catch { setError("저장 결과를 확인하지 못했습니다. 최신 기록을 확인한 뒤 다시 시도하세요."); }
+          } catch { setError("저장 결과를 확인하지 못했습니다. 최신 기록을 확인한 뒤 다시 시도하십시오."); }
         });
       }}>
         <div className="board-scroll min-h-0 min-w-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-5 pb-5">

@@ -52,7 +52,7 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
       if (!active) return;
       if (result.ok) { scrollUpdate.current = "latest"; setComments(result.comments); setCursor(result.nextCursor); }
       else setError(result.error);
-    }).catch(() => { if (active) setError("반응을 불러오지 못했습니다. 다시 시도해 주세요."); })
+    }).catch(() => { if (active) setError("반응을 불러오지 못했습니다. 다시 시도해 주십시오."); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [clanId, ranking, periodKey, refresh]);
@@ -64,7 +64,7 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
       const result = await addHofCommentAction(thread, draft);
       if (result.ok) { scrollUpdate.current = "latest"; setComments((rows) => [result.comment, ...rows]); setDraft(""); }
       else setError(result.error);
-    } catch { setError("등록 결과를 확인하지 못했습니다. 새로고침으로 확인해 주세요."); }
+    } catch { setError("등록 결과를 확인하지 못했습니다. 새로고침으로 확인해 주십시오."); }
     finally { setBusy(false); }
   }
 
@@ -75,7 +75,7 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
       const result = await deleteHofCommentAction(thread, id);
       if (result.ok) setComments((rows) => rows.filter((row) => row.id !== id));
       else setError(result.error);
-    } catch { setError("삭제 결과를 확인하지 못했습니다. 새로고침으로 확인해 주세요."); }
+    } catch { setError("삭제 결과를 확인하지 못했습니다. 새로고침으로 확인해 주십시오."); }
     finally { setBusy(false); }
   }
 
@@ -86,7 +86,7 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
       const result = await setHofCommentReactionAction(thread, comment.id, kind);
       if (result.ok) setComments((rows) => rows.map((row) => row.id === comment.id ? { ...row, reactions: result.reactions } : row));
       else setError(result.error);
-    } catch { setError("공감 결과를 확인하지 못했습니다. 새로고침으로 확인해 주세요."); }
+    } catch { setError("공감 결과를 확인하지 못했습니다. 새로고침으로 확인해 주십시오."); }
     finally { setBusy(false); }
   }
 
@@ -101,7 +101,7 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
         setComments((rows) => [...rows, ...result.comments.filter((item) => !rows.some((row) => row.id === item.id))]);
         setCursor(result.nextCursor);
       } else setError(result.error);
-    } catch { setError("이전 댓글을 불러오지 못했습니다. 다시 시도해 주세요."); }
+    } catch { setError("이전 댓글을 불러오지 못했습니다. 다시 시도해 주십시오."); }
     finally { setBusy(false); }
   }
 
@@ -113,10 +113,10 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
       <StatsScrollArea label="순위 댓글 목록" className="min-h-0 flex-1" viewportRef={viewport}>
         {loading ? <p role="status" className="flex min-h-60 items-center justify-center text-sm text-muted-foreground">반응을 불러오는 중…</p> : <>
         {cursor && <Button type="button" className="w-full" variant="outline" size="sm" disabled={busy} onClick={() => void loadMore()}>이전 댓글 더 보기</Button>}
-        {comments.length ? <ClanComments comments={chronological} clanId={clanId} targetKind="hof_comment" disabled={busy || loading} onDelete={comment => remove(comment.id)} onReact={react} loadReactionPeople={(comment, reaction) => listHofCommentReactionPeopleAction(thread, comment.id, reaction)} /> : !error && <div className="flex min-h-60 flex-col items-center justify-center gap-3 text-center"><MessageSquare className="size-8 text-primary/50" aria-hidden="true" /><p className="text-sm font-semibold">이번 순위, 할 말 있죠?</p><p className="text-xs text-muted-foreground">아직 조용하네요. 첫 한마디를 남겨보세요.</p></div>}
+        {comments.length ? <ClanComments comments={chronological} clanId={clanId} targetKind="hof_comment" disabled={busy || loading} onDelete={comment => remove(comment.id)} onReact={react} loadReactionPeople={(comment, reaction) => listHofCommentReactionPeopleAction(thread, comment.id, reaction)} /> : !error && <div className="flex min-h-60 flex-col items-center justify-center gap-3 text-center"><MessageSquare className="size-8 text-primary/50" aria-hidden="true" /><p className="text-sm font-semibold">이번 순위에 대한 의견을 남길 수 있습니다.</p><p className="text-xs text-muted-foreground">아직 등록된 댓글이 없습니다. 첫 댓글을 남겨 주십시오.</p></div>}
         </>}
       </StatsScrollArea>
-      <ClanCommentComposer pickerLabel="댓글 이모티콘 선택" id="hof-comment" label="순위 보고 한마디" value={draft} onChange={setDraft} onSubmit={submit} maxLength={HOF_COMMENT_MAX_LENGTH} disabled={busy} submitDisabled={loading} placeholder="이번 순위에 한마디 남겨보세요." />
+      <ClanCommentComposer pickerLabel="댓글 이모티콘 선택" id="hof-comment" label="순위 보고 한마디" value={draft} onChange={setDraft} onSubmit={submit} maxLength={HOF_COMMENT_MAX_LENGTH} disabled={busy} submitDisabled={loading} placeholder="이번 순위에 한마디 남겨보십시오." />
     </CardContent>
   );
 }

@@ -385,13 +385,13 @@ export function MainGameCommunityTabs({
       let tierMax: number | null | undefined;
       if (t1 || t2) {
         if (!t1 || !t2) {
-          toast.error("티어 하한·상한을 함께 입력하거나 둘 다 비우세요.");
+          toast.error("티어 하한·상한을 함께 입력하거나 둘 다 비우십시오.");
           return;
         }
         const a = Number.parseInt(t1, 10);
         const b = Number.parseInt(t2, 10);
         if (!Number.isFinite(a) || !Number.isFinite(b)) {
-          toast.error("티어는 정수만 입력하세요.");
+          toast.error("티어는 정수만 입력하십시오.");
           return;
         }
         tierMin = a;
@@ -610,7 +610,7 @@ export function MainGameCommunityTabs({
         {!visiblePromos.length ? (
           <p className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
             {promos.length
-              ? "검색 조건에 맞는 홍보글이 없어요."
+              ? "검색 조건에 맞는 홍보글이 없습니다."
               : "등록된 홍보가 없습니다."}
           </p>
         ) : (
@@ -796,7 +796,7 @@ export function MainGameCommunityTabs({
         {!visibleLfgs.length ? (
           <p className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
             {lfgs.length
-              ? "검색 조건에 맞는 파티가 없어요."
+              ? "검색 조건에 맞는 파티가 없습니다."
               : "진행 중인 LFG가 없습니다."}
           </p>
         ) : (
@@ -1604,7 +1604,7 @@ export function MainGameCommunityTabs({
                                         onClick={() => {
                                           if (
                                             !window.confirm(
-                                              "이 스크림을 취소할까요? 연동된 클랜 일정이 해제됩니다.",
+                                              "이 스크림을 취소하시겠습니까? 연동된 클랜 일정이 해제됩니다.",
                                             )
                                           ) {
                                             return;

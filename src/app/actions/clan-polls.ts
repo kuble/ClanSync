@@ -53,7 +53,7 @@ export async function createClanPollAction(
 
   const deadlineLocal = String(formData.get("deadline_local") ?? "").trim();
   if (!deadlineLocal) {
-    return { ok: false, error: "마감 일시를 입력해 주세요." };
+    return { ok: false, error: "마감 일시를 입력해 주십시오." };
   }
   const deadlineAt = new Date(deadlineLocal);
   if (Number.isNaN(deadlineAt.getTime())) {
@@ -234,7 +234,7 @@ export async function voteClanPollAction(
   const picked = formData.getAll("option_id").map((x) => String(x).trim());
   const optionIds = [...new Set(picked)].filter(Boolean);
   if (optionIds.length === 0) {
-    return { ok: false, error: "선택지를 골라 주세요." };
+    return { ok: false, error: "선택지를 골라 주십시오." };
   }
 
   const svc = createServiceRoleClient();
@@ -330,7 +330,7 @@ export async function closeClanPollAction(
 
   const { data: poll, error: pollError } = await svc.from("clan_polls").select("balance_room_id").eq("id", pollId).eq("clan_id", clanId).maybeSingle();
   if (pollError || !poll) return { ok: false, error: "투표를 찾을 수 없습니다." };
-  if (poll.balance_room_id) return { ok: false, error: "참석 투표는 내전 정보에서 변경하세요." };
+  if (poll.balance_room_id) return { ok: false, error: "참석 투표는 내전 정보에서 변경하십시오." };
 
   const { error } = await svc
     .from("clan_polls")

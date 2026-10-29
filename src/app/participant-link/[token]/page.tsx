@@ -16,7 +16,7 @@ export default async function ParticipantLinkPage({ params }: { params: Promise<
   return <AccountShell><main className="mx-auto w-full max-w-lg space-y-5 break-words px-5 py-10">
     <section className="space-y-4 rounded-xl border bg-card p-5">
       <h1 className="text-lg font-bold">참가자 기록 연결</h1>
-      {info ? <><p className="text-xs text-muted-foreground">{info.clanName}</p><p className="text-base font-semibold">{info.nickname} · {info.alias}</p><p className="text-xs text-muted-foreground">현재 계정: {user.email} · <span className="font-mono">{user.id.slice(0, 8)}</span></p><ClanParticipantClaim token={token} requested={info.requestStatus === "pending"} /></> : <p className="text-sm text-muted-foreground">만료되거나 이미 처리된 연결 링크입니다. 운영진에게 새 링크를 요청하세요.</p>}
+      {info ? <><p className="text-xs text-muted-foreground">{info.clanName}</p><p className="text-base font-semibold">{info.nickname} · {info.alias}</p><p className="text-xs text-muted-foreground">현재 계정: {user.email} · <span className="font-mono">{user.id.slice(0, 8)}</span></p><ClanParticipantClaim token={token} requested={info.requestStatus === "pending"} /></> : <p className="text-sm text-muted-foreground">만료되거나 이미 처리된 연결 링크입니다. 운영진에게 새 링크를 요청하십시오.</p>}
     </section>
   </main></AccountShell>;
 }

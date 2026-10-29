@@ -156,7 +156,7 @@ test("photo pack previews and saved memories share movable, rotated and mirrored
     const replay = (values: unknown[]) => member.evaluate(async ({ headers, values }) => (await (await fetch(location.href, { method: "POST", headers, body: JSON.stringify(values) })).text()), { headers, values });
     expect(await replay(args)).toContain('"ok":true');
     for (const invalid of [{ ...placement, x: -1 }, { ...placement, rotation: 181 }, { ...placement, flipY: "yes" }, { ...placement, scale: 4 }]) {
-      expect(await replay([args[0], args[1], { ...args[2], details: { ...args[2].details, photoStickerPlacement: invalid } }])).toContain("스티커 위치와 회전을 확인해 주세요.");
+      expect(await replay([args[0], args[1], { ...args[2], details: { ...args[2].details, photoStickerPlacement: invalid } }])).toContain("스티커 위치와 회전을 확인해 주십시오.");
     }
     expect((await svc.from("clan_board_posts").select("details").eq("id", saved.id).single()).data?.details).toEqual(saved.details);
     expect((await svc.from("clan_board_posts").update({ details: { photoFrame: "film", photoSticker: "heart" } }).eq("id", saved.id)).error).toBeNull();

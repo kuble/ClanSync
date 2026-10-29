@@ -286,15 +286,15 @@ export function ClanBalanceRosterEditor({
   return (
     <div className="space-y-3">
       <p id={helpId} className="sr-only">
-        {teamAdjustment ? "배정된 역할을 유지하며 같은 역할의 두 선수를 끌거나 차례로 눌러 팀 배치를 교환하세요." : <>
+        {teamAdjustment ? "배정된 역할을 유지하며 같은 역할의 두 선수를 끌거나 차례로 눌러 팀 배치를 교환하십시오." : <>
         클랜원을 누르면 1팀부터 순서대로 빈자리에 들어가며, 원하는 자리로 끌어 넣을 수도 있습니다.
-        채워진 자리에 놓으면 기존 참여자는 클랜원 목록으로 돌아갑니다. 명단이 가득 찼을 때는 클랜원과 교체할 자리를 차례로 누르세요. 참여자를 끌어
+        채워진 자리에 놓으면 기존 참여자는 클랜원 목록으로 돌아갑니다. 명단이 가득 찼을 때는 클랜원과 교체할 자리를 차례로 누르십시오. 참여자를 끌어
         다른 자리로 이동하거나 교환할 수 있습니다. 키보드 또는 터치로는 참여자와
-        도착할 자리를 차례로 누르세요. 우클릭이나 Delete 키로 자리를 비우고
+        도착할 자리를 차례로 누르십시오. 우클릭이나 Delete 키로 자리를 비우고
         Escape 키로 이동 선택을 취소할 수 있습니다.
         </>}
       </p>
-      {teamAdjustment ? <p className="text-xs text-muted-foreground">같은 역할끼리 교환해 팀 밸런스를 조정하세요.</p> : null}
+      {teamAdjustment ? <p className="text-xs text-muted-foreground">같은 역할끼리 교환해 팀 밸런스를 조정하십시오.</p> : null}
       <BalanceRosterDock showMembers={!teamAdjustment} members={(handle) => (
       <div data-roster-sidebar className="flex flex-col gap-2">
       {rosterAside}
@@ -326,7 +326,7 @@ export function ClanBalanceRosterEditor({
               className="min-w-0 flex-1 bg-transparent text-xs outline-none"
             />
           </label>
-          {activeMember ? <p className="w-full text-xs text-primary" role="status">교체할 참여자 자리를 선택하세요.</p> : null}
+          {activeMember ? <p className="w-full text-xs text-primary" role="status">교체할 참여자 자리를 선택하십시오.</p> : null}
         </div>
         <div data-roster-members className="grid min-h-24 grid-cols-2 content-start gap-2 p-3 sm:grid-cols-3 sm:p-4">
           {visiblePool.length ? (

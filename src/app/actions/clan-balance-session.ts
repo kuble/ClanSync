@@ -182,7 +182,7 @@ async function savePrematchRound(
   if (error) throw new Error(error.message);
   if (!data)
     throw new Error(
-      "경기 상태가 변경되었습니다. 최신 화면에서 다시 시도하세요.",
+      "경기 상태가 변경되었습니다. 최신 화면에서 다시 시도하십시오.",
     );
 }
 
@@ -228,7 +228,7 @@ export async function startMapBanPhaseAction(
           if (saveError) throw new Error(saveError.message);
           if (!saved)
             throw new Error(
-              "설정이 변경되었습니다. 최신 화면에서 다시 시도하세요.",
+              "설정이 변경되었습니다. 최신 화면에서 다시 시도하십시오.",
             );
           // The settings write is a separate CAS; a concurrent start/settings edit
           // must not be silently adopted when committing this ballot.
@@ -278,12 +278,12 @@ export async function selectBalanceMapAction(
     true,
     async (client, round) => {
       if (round.map_ban_enabled)
-        throw new Error("맵 투표를 끈 뒤 직접 맵을 선택하세요.");
+        throw new Error("맵 투표를 끈 뒤 직접 맵을 선택하십시오.");
       if (
         typeof mapLabel !== "string" ||
         !mapPoolForGameSlug(gameSlug).includes(mapLabel)
       )
-        throw new Error("이 게임의 맵 목록에서 선택하세요.");
+        throw new Error("이 게임의 맵 목록에서 선택하십시오.");
       if (round.resolved_map_label === mapLabel) return;
       // The DB invalidates a hero ballot/result only when this map changes.
       await savePrematchRound(client, round, {
@@ -312,7 +312,7 @@ export async function startHeroBanPhaseAction(
         !round.resolved_map_label?.trim() ||
         round.map_ban_deadline_at
       )
-        throw new Error("맵을 먼저 선택하거나 확정한 뒤 영웅 밴을 시작하세요.");
+        throw new Error("맵을 먼저 선택하거나 확정한 뒤 영웅 밴을 시작하십시오.");
       await savePrematchRound(client, round, {
         phase: "hero_ban",
         banned_heroes: null,
@@ -337,12 +337,12 @@ export async function startBalanceMatchAction(
     true,
     async (client, round) => {
       if (!round.resolved_map_label?.trim() || round.map_ban_deadline_at)
-        throw new Error("경기를 시작하기 전에 맵을 선택하거나 확정하세요.");
+        throw new Error("경기를 시작하기 전에 맵을 선택하거나 확정하십시오.");
       if (
         round.hero_ban_enabled &&
         (round.banned_heroes === null || round.hero_ban_deadline_at)
       )
-        throw new Error("영웅 밴을 먼저 완료하세요.");
+        throw new Error("영웅 밴을 먼저 완료하십시오.");
       await savePrematchRound(client, round, {
         phase: "match_live",
         prediction_deadline_at: computeBalancePredictionDeadlineIso(round.formation_settings),
@@ -382,7 +382,7 @@ export async function submitMapVoteAction(
   if (!Number.isInteger(choiceIdx) || choiceIdx < 0 || choiceIdx > 2)
     return { ok: false, error: "잘못된 선택입니다." };
   if (typeof expectedDeadline !== "string" || !Number.isFinite(Date.parse(expectedDeadline)))
-    return { ok: false, error: "최신 맵 투표 화면을 확인하세요." };
+    return { ok: false, error: "최신 맵 투표 화면을 확인하십시오." };
   return withPrematchRound(
     gameSlug,
     clanId,
@@ -425,7 +425,7 @@ export async function resolveMapBanAction(
       )
         throw new Error("확정할 맵 투표가 없습니다.");
       if (Date.parse(round.map_ban_deadline_at) > Date.now())
-        throw new Error("맵 투표 마감 후 확정하세요.");
+        throw new Error("맵 투표 마감 후 확정하십시오.");
       const candidates = round.map_candidates;
       if (!candidates || candidates.length !== 3)
         throw new Error("맵 후보가 없습니다.");
@@ -464,10 +464,10 @@ export async function submitHeroBanVoteAction(
       error: "이 게임에서는 영웅 밴 투표를 지원하지 않습니다.",
     };
   if (typeof expectedDeadline !== "string" || !Number.isFinite(Date.parse(expectedDeadline)))
-    return { ok: false, error: "최신 영웅 밴 투표 화면을 확인하세요." };
+    return { ok: false, error: "최신 영웅 밴 투표 화면을 확인하십시오." };
   if (!Array.isArray(picks) || picks.length > 2 || new Set(picks).size !== picks.length ||
     picks.some((pick) => typeof pick !== "string" || !isValidOwHeroId(pick)))
-    return { ok: false, error: "서로 다른 영웅을 선택하세요." };
+    return { ok: false, error: "서로 다른 영웅을 선택하십시오." };
   return withPrematchRound(
     gameSlug,
     clanId,
@@ -482,7 +482,7 @@ export async function submitHeroBanVoteAction(
       )
         throw new Error("영웅 밴 투표가 마감되었습니다.");
       if (picks.length > round.hero_bans_per_team)
-        throw new Error("팀별 밴 개수 이내로 선택하세요.");
+        throw new Error("팀별 밴 개수 이내로 선택하십시오.");
       if (!rosterAssignedUserIds(parseRoster(round.roster)).includes(userId))
         throw new Error("출전 라인업에 포함된 멤버만 투표할 수 있습니다.");
       const { error } = await client.rpc("submit_balance_ban_vote", {
@@ -512,7 +512,7 @@ export async function resolveHeroBanAction(
         return;
       }
       if (!round.hero_ban_deadline_at || Date.parse(round.hero_ban_deadline_at) > Date.now())
-        throw new Error("영웅 밴 투표 마감 후 경기를 시작하세요.");
+        throw new Error("영웅 밴 투표 마감 후 경기를 시작하십시오.");
       const { data: ballot, error } = await client.rpc("read_closed_balance_ballot", {
         p_round_id: sessionId, p_clan_id: clanId, p_kind: "hero", p_expected_deadline: round.hero_ban_deadline_at,
       });
@@ -813,7 +813,7 @@ export async function submitBalancePredictionAction(
   }
   if (session.prediction_pool_enabled) {
     if (!Number.isSafeInteger(stakeCoins) || stakeCoins === undefined || stakeCoins < 0 || stakeCoins > 2_147_483_647) {
-      return { ok: false, error: "걸 코인은 1개 이상 정수로 입력하세요." };
+      return { ok: false, error: "걸 코인은 1개 이상 정수로 입력하십시오." };
     }
     const { error } = await supabase.rpc("place_balance_prediction_pool", { p_session_id: sessionId, p_pick: pickTeam, p_stake: stakeCoins });
     if (error) return { ok: false, error: error.message };
@@ -881,7 +881,7 @@ export async function setBalanceMatchOutcomeAction(
     const code = payload?.error;
     const message =
       code === "insufficient_clan_coins"
-        ? "클랜 코인이 부족합니다. 적중 보상(인원×5)만큼 풀을 채운 뒤 다시 확정해 주세요."
+        ? "클랜 코인이 부족합니다. 적중 보상(인원×5)만큼 풀을 채운 뒤 다시 확정해 주십시오."
         : (code ?? "결과를 확정할 수 없습니다.");
     return { ok: false, error: message };
   }

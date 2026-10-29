@@ -108,7 +108,7 @@ export function ClanBadges({
   function feature(key: ClanBadgeKey) {
     const next = featured.includes(key) ? featured.filter(k => k !== key) : [...featured, key];
     if (next.length > 3) {
-      toast.error("대표 배지는 최대 3개예요. 다른 배지를 먼저 해제해 주세요.");
+      toast.error("대표 배지는 최대 3개입니다. 다른 배지를 먼저 해제해 주십시오.");
       return;
     }
     start(async () => {
@@ -157,7 +157,7 @@ export function ClanBadges({
       <div className={styles.casePlate}>{collection.clanName}</div>
       <div ref={caseRef} className={cn(styles.caseGrid, compact && styles.compactGrid)} role="group" aria-label="배지 진열">
         {badges.map(b => <DialogTrigger key={b.key} render={renderPin(b, compact, seriesOpen && seriesKey === b.key, () => inspect(b), undefined, true)} />)}
-        {badges.length === 0 && <p className={styles.caseEmpty}>대표 배지를 지정해 주세요.</p>}
+        {badges.length === 0 && <p className={styles.caseEmpty}>대표 배지를 지정해 주십시오.</p>}
       </div>
     </div>
     {seriesSelected && seriesRepresentative && <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto p-5 sm:max-w-3xl sm:p-7">
@@ -232,7 +232,7 @@ export function ClanHeroBadges({ collection, href }: { collection: ClanBadgeColl
         {badges.map(badge => <span key={badge.key} className={styles.heroPin} data-badge={badge.key} title={badge.name}>
           <span className="sr-only">{badge.name}</span><BadgeEmblem badge={badge} compact />
         </span>)}
-        {!badges.length && <span className="text-xs">{collection ? "대표 배지 없음" : "배지를 불러오지 못했어요"}</span>}
+        {!badges.length && <span className="text-xs">{collection ? "대표 배지 없음" : "배지를 불러오지 못했습니다"}</span>}
       </span>
     </Link>
   </section>;

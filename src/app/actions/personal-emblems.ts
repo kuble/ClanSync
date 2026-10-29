@@ -14,7 +14,7 @@ export async function savePersonalEmblemPicksAction(keys: string[], contextClanI
   if ((contextClanId !== undefined && (typeof contextClanId !== "string" || !uuidPattern.test(contextClanId))) || !Array.isArray(keys) || keys.length > 3
     || keys.some((key) => typeof key !== "string" || key.length < 38 || key.length > 197 || !uuidPattern.test(key.slice(0, 36)) || key[36] !== ":")
     || new Set(keys).size !== keys.length)
-    return { ok: false, error: "서로 다른 대표 엠블럼을 최대 3개까지 선택해 주세요." };
+    return { ok: false, error: "서로 다른 대표 엠블럼을 최대 3개까지 선택해 주십시오." };
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
@@ -27,7 +27,7 @@ export async function savePersonalEmblemPicksAction(keys: string[], contextClanI
     const { error } = await createServiceRoleClient().from("account_personal_emblem_picks").upsert({
       user_id: user.id, emblem_keys: accountFeaturedKeys, updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
-    if (error) return { ok: false, error: "대표 엠블럼을 저장하지 못했습니다. 다시 시도해 주세요." };
+    if (error) return { ok: false, error: "대표 엠블럼을 저장하지 못했습니다. 다시 시도해 주십시오." };
     revalidatePath("/profile");
     revalidatePath("/profile/emblems");
     revalidatePath(`/profile/${user.id}`);
@@ -38,6 +38,6 @@ export async function savePersonalEmblemPicksAction(keys: string[], contextClanI
     }
     return { ok: true, collection: { ...collection, accountFeaturedKeys } };
   } catch {
-    return { ok: false, error: "대표 엠블럼을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요." };
+    return { ok: false, error: "대표 엠블럼을 저장하지 못했습니다. 잠시 후 다시 시도해 주십시오." };
   }
 }

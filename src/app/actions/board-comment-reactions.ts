@@ -27,10 +27,10 @@ export async function setBoardCommentReactionAction(gameSlug: string, clanId: st
   const ctx = await commentContext(gameSlug, clanId, commentId);
   if (!ctx) return denied;
   const saved = await ctx.client.rpc("set_board_comment_reaction", { p_comment_id: commentId, ...(kind === null ? {} : { p_kind: kind }) });
-  if (saved.error) return { ok: false, error: "공감을 저장하지 못했습니다. 다시 시도해 주세요." };
+  if (saved.error) return { ok: false, error: "공감을 저장하지 못했습니다. 다시 시도해 주십시오." };
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/board`, "layout");
   const result = await ctx.client.rpc("list_board_comment_reactions", { p_comment_ids: [commentId] });
-  if (result.error) return { ok: false, error: "공감 결과를 확인하지 못했습니다. 새로고침해 주세요." };
+  if (result.error) return { ok: false, error: "공감 결과를 확인하지 못했습니다. 새로고침해 주십시오." };
   const reactions = result.data.flatMap(row => {
     const option = COMMENT_REACTIONS.find(option => option.kind === row.kind);
     return option ? [{ kind: option.kind, count: Number(row.total), mine: row.mine }] : [];
@@ -46,7 +46,7 @@ export async function listBoardCommentStandardReactionPeopleAction(gameSlug: str
     ctx.client.from("clan_board_comment_reactions").select("user_id").eq("comment_id", commentId).eq("kind", kind).order("user_id").limit(100),
     ctx.client.rpc("clan_peer_nicknames", { p_clan_id: clanId }),
   ]);
-  if (people.error || names.error) return { ok: false, error: "공감한 멤버를 불러오지 못했습니다. 다시 시도해 주세요." };
+  if (people.error || names.error) return { ok: false, error: "공감한 멤버를 불러오지 못했습니다. 다시 시도해 주십시오." };
   const nicknames = new Map(names.data.map(row => [row.user_id, row.nickname]));
   return { ok: true, names: people.data.map(row => nicknames.get(row.user_id) ?? "이전 멤버").sort((a, b) => a.localeCompare(b, "ko")) };
 }

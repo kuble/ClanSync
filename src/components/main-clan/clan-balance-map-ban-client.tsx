@@ -77,7 +77,7 @@ export function ClanBalanceMapBanClient({
         const result = await action(gameSlug, clanId, sessionId);
         if (!result.ok) setAdvanceError(result.error);
       } catch {
-        setAdvanceError("다음 단계로 이동하지 못했습니다. 다시 시도해 주세요.");
+        setAdvanceError("다음 단계로 이동하지 못했습니다. 다시 시도해 주십시오.");
       } finally {
         advancing.current = false;
         router.refresh();
@@ -132,7 +132,7 @@ export function ClanBalanceMapBanClient({
         <div>
           <h4 className="flex items-center gap-2 text-base font-semibold">
             <Map className="size-5 text-primary" aria-hidden="true" />
-            {revealing ? "전장을 추첨하고 있습니다" : displayedMap ? "맵이 확정되었습니다" : "어디에서 승부할까요?"}
+            {revealing ? "전장을 추첨하고 있습니다" : displayedMap ? "맵이 확정되었습니다" : "어디에서 승부하시겠습니까?"}
           </h4>
           <p className="mt-2 text-xs text-muted-foreground">
             {revealing ? "득표 비율에 따라 전장이 선택됩니다." : displayedMap ? "잠시 후 다음 단계로 이동합니다." : "후보 3개 중 1곳에 투표합니다. 득표가 높을수록 선택될 확률이 올라갑니다."}

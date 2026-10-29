@@ -28,7 +28,7 @@ export default async function PersonalStorePage() {
     const game = Array.isArray(profile.games) ? profile.games[0] : profile.games;
     return { slug: game?.slug ?? "", name: game?.slug === "overwatch" ? profileBattleTag(profile) : profile.riot_id };
   }).sort((a, b) => (a.slug === "overwatch" ? -1 : b.slug === "overwatch" ? 1 : a.slug.localeCompare(b.slug)));
-  const error = !namecard.ok ? namecard.error : catalog.error || memberships.error || profiles.error ? "구매 정보를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요." : null;
+  const error = !namecard.ok ? namecard.error : catalog.error || memberships.error || profiles.error ? "구매 정보를 불러오지 못했습니다. 새로고침 후 다시 시도해 주십시오." : null;
   return <AccountShell context="개인 상점"><main className={styles.page}>
     {error || !namecard.ok ? <section className="min-h-96 rounded-xl border p-6" role="alert"><h1 className="text-xl font-bold">네임카드 상점</h1><p className="mt-4 text-sm text-destructive">{error}</p><a className="mt-4 inline-block text-primary underline" href="/store">다시 불러오기</a></section> : <PersonalStoreProducts key={user.id} state={namecard.state} displayName={identities.find(item => item.name)?.name ?? "Player"} offer={catalog.data ? {
       price: catalog.data.price_coins,

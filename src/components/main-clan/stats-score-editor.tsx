@@ -27,7 +27,7 @@ export function StatsScoreEditor({ gameSlug, clanId, playerId, matches }: {
   const save = () => {
     const value = Number(score);
     if (!score.trim() || !Number.isFinite(value) || value < MA_SCORE_MIN || value > MA_SCORE_MAX) {
-      setError(`평가 점수는 ${MA_SCORE_MIN}부터 ${MA_SCORE_MAX}까지 입력해 주세요.`);
+      setError(`평가 점수는 ${MA_SCORE_MIN}부터 ${MA_SCORE_MAX}까지 입력해 주십시오.`);
       return;
     }
     startTransition(async () => {

@@ -11,7 +11,7 @@ export async function saveProfileRolePreferenceAction(
   ranking: Role[],
 ): Promise<{ ok: true; ranking: Role[] } | { ok: false; error: string }> {
   if (!isRoleRanking(ranking))
-    return { ok: false, error: "역할 선호를 확인하세요." };
+    return { ok: false, error: "역할 선호를 확인하십시오." };
   const client = await createClient();
   const {
     data: { user },
@@ -34,7 +34,7 @@ export async function saveRoundRolePreferenceAction(
   ranking: Role[] | null,
 ): Promise<Result> {
   if (ranking !== null && !isRoleRanking(ranking))
-    return { ok: false, error: "역할 선호를 확인하세요." };
+    return { ok: false, error: "역할 선호를 확인하십시오." };
   const client = await createClient();
   const {
     data: { user },

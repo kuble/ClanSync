@@ -35,7 +35,7 @@ export function useAutosave<T extends object>(initial: T, save: (value: T) => Pr
     } catch {
       if (mounted.current) {
         setStatus("error");
-        setError("변경 사항을 저장하지 못했습니다. 연결을 확인하고 다시 시도해 주세요.");
+        setError("변경 사항을 저장하지 못했습니다. 연결을 확인하고 다시 시도해 주십시오.");
       }
     } finally { busy.current = false; }
   }, []);

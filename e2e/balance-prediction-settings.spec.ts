@@ -238,7 +238,7 @@ test("경기 화면 간소화·Premium 승부예측 설정·관전자 드로워�
       await panel.getByRole("button", { name: `${fixture.users[0].nickname} 평가 점수 수정`, exact: true }).click();
       await panel.getByRole("textbox", { name: `${fixture.users[0].nickname} 평가 점수`, exact: true }).fill("10.1");
       await panel.getByRole("button", { name: `${fixture.users[0].nickname} 점수 저장`, exact: true }).click();
-      await expect(page.getByText("평가 점수는 -10부터 10까지 입력해 주세요.", { exact: true })).toBeVisible();
+      await expect(page.getByText("평가 점수는 -10부터 10까지 입력해 주십시오.", { exact: true })).toBeVisible();
       expect((await fixture.activeRound(room.roomId)).ma_snapshot).toEqual(beforeInvalid);
       for (const [index, score] of [[0, -10], [5, 10]]) {
         const nickname = fixture.users[index].nickname;

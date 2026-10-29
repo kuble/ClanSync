@@ -131,7 +131,7 @@ test("join approval recommends BattleTag candidates, searches old names, links r
     await expect(dialog.getByRole("region", { name: "연결된 이전 기록" })).toContainText("오래전이름");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await dialog.getByRole("button", { name: "연결 해제", exact: true }).click();
-    await page.getByRole("dialog", { name: "이전 기록 연결을 해제할까요?", exact: true }).getByRole("button", { name: "연결 해제", exact: true }).click();
+    await page.getByRole("dialog", { name: "이전 기록 연결을 해제하시겠습니까?", exact: true }).getByRole("button", { name: "연결 해제", exact: true }).click();
     await expect(page.getByRole("dialog")).toBeHidden();
     await expect(oldRecord).toContainText("오래전이름");
     await expect(oldRecord.getByRole("button", { name: "오래전이름 닉네임 수정", exact: true })).toBeVisible();

@@ -52,7 +52,7 @@ function parseTierPair(
     return { ok: true, tier_min: null, tier_max: null };
   }
   if (minUnset || maxUnset) {
-    return { ok: false, error: "티어 하한·상한을 함께 입력하거나 둘 다 비우세요." };
+    return { ok: false, error: "티어 하한·상한을 함께 입력하거나 둘 다 비우십시오." };
   }
   if (!Number.isInteger(minIn) || !Number.isInteger(maxIn)) {
     return { ok: false, error: "티어는 정수만 입력할 수 있습니다." };
@@ -439,7 +439,7 @@ export async function updateScrimRoomDetailsAction(
   let tierMaxNum: number | null = null;
   if (minStr !== "" || maxStr !== "") {
     if (minStr === "" || maxStr === "") {
-      return { ok: false, error: "티어 하한·상한을 함께 입력하거나 둘 다 비우세요." };
+      return { ok: false, error: "티어 하한·상한을 함께 입력하거나 둘 다 비우십시오." };
     }
     tierMinNum = Number.parseInt(minStr, 10);
     tierMaxNum = Number.parseInt(maxStr, 10);

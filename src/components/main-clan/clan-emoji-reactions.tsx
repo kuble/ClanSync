@@ -63,7 +63,7 @@ export function ClanEmojiReactions({ gameSlug, clanId, postId, target, emojis: s
     try {
       const result=await setClanEmojiTargetReaction(gameSlug??context.gameSlug,clanId,scope,id,!rows.some(row=>row.emoji_id===id&&row.mine));
       if(!result.ok)toast.error(result.error); else if("reactions" in result)setUpdated({baseline,rows:result.reactions!});
-    } catch {toast.error("공감을 저장하지 못했습니다. 다시 시도해 주세요.");}
+    } catch {toast.error("공감을 저장하지 못했습니다. 다시 시도해 주십시오.");}
   }); }
   return <div className="flex flex-wrap items-center gap-1.5" aria-label="클랜 이모티콘 공감">
     {emojis.map(emoji=>{const row=rows.find(r=>r.emoji_id===emoji.id);return row&&<EmojiReactionButton key={emoji.id} count={row.total} disabled={disabled || pending} aria-pressed={row.mine} aria-label={`${emoji.name} 공감 ${row.total}명`} loadPeople={loadPeople ? () => loadPeople(emoji.id) : undefined} onClick={()=>toggle(emoji.id)}><Image unoptimized src={clanEmojiUrl(clanId,emoji.id)} alt="" width={20} height={20} className="size-5 object-contain"/></EmojiReactionButton>;})}

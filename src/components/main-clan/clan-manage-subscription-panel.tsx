@@ -38,7 +38,7 @@ export function ClanManageSubscriptionPanel({
         router.refresh();
       } catch {
         toast.error(
-          "플랜을 전환하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+          "플랜을 전환하지 못했습니다. 잠시 후 다시 시도해 주십시오.",
         );
       }
     });

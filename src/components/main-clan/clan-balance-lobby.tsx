@@ -88,7 +88,7 @@ export function ClanBalanceLobby({ gameSlug, clanId, userId, clanRole, rooms, me
         toast.success(message);
         after?.();
         router.refresh();
-      } catch { toast.error("요청을 처리하지 못했습니다. 다시 시도하세요."); }
+      } catch { toast.error("요청을 처리하지 못했습니다. 다시 시도하십시오."); }
     });
   }
 
@@ -182,7 +182,7 @@ function CreateRoomSheet({ staff, serverNow, pending, onClose, onSubmit }: { sta
   return (
     <Sheet open onOpenChange={(open) => { if (!open && !pending) onClose(); }}>
       <SheetContent className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[440px]" showCloseButton={!pending}>
-        <SheetHeader className="shrink-0 px-5 pb-5"><SheetTitle><HelpText label="내전 만들기" help={staff ? "정규 내전과 깜짝 내전을 열거나 예약하세요." : "직접 진행할 깜짝 내전을 열거나 예약하세요."} /></SheetTitle><SheetDescription className="sr-only">내전 종류와 시작 시각을 설정합니다.</SheetDescription></SheetHeader>
+        <SheetHeader className="shrink-0 px-5 pb-5"><SheetTitle><HelpText label="내전 만들기" help={staff ? "정규 내전과 깜짝 내전을 열거나 예약하십시오." : "직접 진행할 깜짝 내전을 열거나 예약하십시오."} /></SheetTitle><SheetDescription className="sr-only">내전 종류와 시작 시각을 설정합니다.</SheetDescription></SheetHeader>
         <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
           <fieldset disabled={pending} className="board-scroll min-h-0 min-w-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-5 pb-6">
             <fieldset className="rounded-xl border bg-muted/10 p-4"><legend className="px-1 text-sm font-semibold">종류</legend><div className="grid grid-cols-2 gap-2">{([{ value: "regular", label: "정규 내전", icon: CalendarDays }, { value: "flash", label: "깜짝 내전", icon: Zap }] as const).map(({ value, label, icon: Icon }) => <label key={value} className={cn("flex items-center gap-2 rounded-lg border p-3 text-sm", kind === value && "border-primary bg-primary/5", value === "regular" && !staff && "opacity-40")}><input type="radio" name="room-kind" value={value} checked={kind === value} disabled={value === "regular" && !staff} onChange={() => setKind(value)} className="accent-primary" /><Icon className="size-4 shrink-0" aria-hidden="true" />{label}</label>)}</div></fieldset>
@@ -248,7 +248,7 @@ function RoomDetailSheet({ room, members, serverNow, leader, canManage, pending,
 
           {leader && room.kind === "regular" && !ended ? <section className="space-y-3 rounded-xl border bg-muted/10 p-4"><label className="block text-xs font-semibold">임시 진행 운영진<select value={delegate} onChange={(event) => setDelegate(event.target.value)} disabled={pending} className={field}><option value="">위임 없음</option>{members.filter((member) => member.role === "officer").map((member) => <option key={member.user_id} value={member.user_id}>{member.nickname}</option>)}</select></label><p className="text-[11px] text-muted-foreground">이 방이 종료되면 위임이 해제됩니다.</p><Button variant="outline" size="sm" disabled={pending || delegate === (room.delegated_to ?? "")} onClick={() => onDelegate(delegate || null)}>{delegate ? "진행 운영진 지정" : "위임 해제"}</Button></section> : room.delegateNickname ? <p className="text-xs text-muted-foreground">진행 운영진 · {room.delegateNickname}</p> : null}
           {canManage && room.schedule_id ? <div className="flex items-center justify-between gap-3 rounded-xl border bg-muted/10 p-4 text-sm"><span className="flex items-center gap-2"><Repeat2 className="size-4" aria-hidden="true" />반복 예약 유지</span><RoomToggle label="반복 예약 유지" checked={room.scheduleEnabled !== false} disabled={pending} onChange={onSchedule} /></div> : null}
-          {canManage && room.status === "scheduled" ? <div className="space-y-3 border-t pt-4"><Button className="w-full" disabled={pending} onClick={onOpen}>지금 열기<ArrowUpRight className="size-4" aria-hidden="true" /></Button>{confirmCancel ? <div className="rounded-lg border border-destructive/30 p-3"><p className="text-xs">이 내전 예약을 취소할까요?</p><div className="mt-3 flex justify-end gap-2"><Button variant="ghost" size="sm" disabled={pending} onClick={() => setConfirmCancel(false)}>돌아가기</Button><Button variant="destructive" size="sm" disabled={pending} onClick={onCancel}>취소 확정</Button></div></div> : <Button variant="ghost" className="w-full text-muted-foreground" disabled={pending} onClick={() => setConfirmCancel(true)}>이번 내전 취소</Button>}</div> : null}
+          {canManage && room.status === "scheduled" ? <div className="space-y-3 border-t pt-4"><Button className="w-full" disabled={pending} onClick={onOpen}>지금 열기<ArrowUpRight className="size-4" aria-hidden="true" /></Button>{confirmCancel ? <div className="rounded-lg border border-destructive/30 p-3"><p className="text-xs">이 내전 예약을 취소하시겠습니까?</p><div className="mt-3 flex justify-end gap-2"><Button variant="ghost" size="sm" disabled={pending} onClick={() => setConfirmCancel(false)}>돌아가기</Button><Button variant="destructive" size="sm" disabled={pending} onClick={onCancel}>취소 확정</Button></div></div> : <Button variant="ghost" className="w-full text-muted-foreground" disabled={pending} onClick={() => setConfirmCancel(true)}>이번 내전 취소</Button>}</div> : null}
         </div>
         {editable ? <div className="shrink-0 border-t px-5 py-4"><Button type="submit" form={formId} className="w-full" disabled={pending || !title.trim()}>예약 변경 저장</Button></div> : null}
       </SheetContent>
@@ -260,8 +260,8 @@ function LobbyGuide({ canCreate, onClose }: { canCreate: boolean; onClose: () =>
   const [step, setStep] = useState(0);
   const [rect, setRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
   const steps = canCreate ? [
-    { target: "add", title: "내전 만들기", text: "내전 만들기에서 지금 열거나 예약할 내전을 만드세요. 깜짝 내전은 클랜원이 직접 진행할 수 있습니다." },
-    { target: "list", title: "목록에서 입장", text: "열린 내전은 입장하고, 깜짝 내전은 목록에서 참여하세요. 방 정보에서 진행 설정을 관리할 수 있습니다." },
+    { target: "add", title: "내전 만들기", text: "내전 만들기에서 지금 열거나 예약할 내전을 만드십시오. 깜짝 내전은 클랜원이 직접 진행할 수 있습니다." },
+    { target: "list", title: "목록에서 입장", text: "열린 내전은 입장하고, 깜짝 내전은 목록에서 참여하십시오. 방 정보에서 진행 설정을 관리할 수 있습니다." },
   ] : [{ target: "list", title: "목록에서 입장", text: "열린 내전의 입장을 누르면 해당 내전 화면으로 이동합니다. 예약 보기에서 시작 시각을 확인할 수 있습니다." }];
   const current = steps[step];
   useEffect(() => {

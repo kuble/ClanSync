@@ -28,7 +28,7 @@ async function verifyClanInGame(
 async function changeMembership(gameSlug: string, clanId: string, action: "leave" | "kick" | "allow_rejoin", targetUserId?: string): Promise<ClanManageMemberResult> {
   const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!/^[a-z0-9-]+$/.test(gameSlug) || !uuid.test(clanId) || (targetUserId !== undefined && !uuid.test(targetUserId)))
-    return { ok: false, error: "클랜과 구성원 정보를 확인해 주세요." };
+    return { ok: false, error: "클랜과 구성원 정보를 확인해 주십시오." };
   try {
     const client = await createClient();
     if (!(await client.auth.getUser()).data.user) return { ok: false, error: "로그인이 필요합니다." };
@@ -40,7 +40,7 @@ async function changeMembership(gameSlug: string, clanId: string, action: "leave
     revalidatePath(`/games/${gameSlug}/clan`);
     revalidatePath(`/games/${gameSlug}/clan/${clanId}`, "layout");
     return { ok: true };
-  } catch { return { ok: false, error: "처리하지 못했습니다. 연결을 확인하고 다시 시도해 주세요." }; }
+  } catch { return { ok: false, error: "처리하지 못했습니다. 연결을 확인하고 다시 시도해 주십시오." }; }
 }
 
 export async function kickClanMemberAction(gameSlug: string, clanId: string, targetUserId: string): Promise<ClanManageMemberResult> {

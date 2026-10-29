@@ -20,11 +20,11 @@ test("관리 중복 행 제거·탭 설명·마우스/키보드/터치와 공통
     await expect(page.getByRole("heading", { name: "운영 현황", exact: true })).toHaveCount(0);
     await expect(page.getByRole("region", { name: "운영 현황", exact: true })).toBeVisible();
     await overview.hover();
-    await expect(page.getByRole("tooltip")).toHaveText("클랜 정보와 처리할 일을 확인하세요.");
+    await expect(page.getByRole("tooltip")).toHaveText("클랜 정보와 처리할 일을 확인하십시오.");
     await page.mouse.move(820, 10);
     await expect(page.getByRole("tooltip")).toBeHidden();
     await overview.focus();
-    await expect(page.getByRole("tooltip")).toHaveText("클랜 정보와 처리할 일을 확인하세요.");
+    await expect(page.getByRole("tooltip")).toHaveText("클랜 정보와 처리할 일을 확인하십시오.");
     await page.keyboard.press("Escape");
     await expect(page.getByRole("tooltip")).toBeHidden();
     const appearance = nav.getByRole("link", { name: "클랜 꾸미기", exact: true });
@@ -36,7 +36,7 @@ test("관리 중복 행 제거·탭 설명·마우스/키보드/터치와 공통
     await expect(overview).toHaveAttribute("aria-current", "page");
     await page.setViewportSize({ width: 390, height: 844 });
     await overview.tap();
-    await expect(page.getByRole("tooltip")).toHaveText("클랜 정보와 처리할 일을 확인하세요.");
+    await expect(page.getByRole("tooltip")).toHaveText("클랜 정보와 처리할 일을 확인하십시오.");
     await page.getByRole("navigation", { name: "클랜 관리 분류" }).getByRole("link", { name: "운영 설정", exact: true }).tap();
     await nav.getByRole("link", { name: "코인·플랜", exact: true }).tap();
     await expect(page.getByRole("heading", { name: "구독·플랜", exact: true })).toBeVisible();

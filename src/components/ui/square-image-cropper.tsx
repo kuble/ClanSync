@@ -30,7 +30,7 @@ export function SquareImageCropper({ src, pending, zoomLabel, children }: {
       {/* eslint-disable-next-line @next/next/no-img-element -- local file preview */}
       <img src={src} alt="자르기 미리보기" draggable={false} className="pointer-events-none absolute select-none" style={imageStyle} onLoad={event => { setDimensions({ width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight }); setReady(true); setError(false); }} onError={() => { setReady(false); setError(true); }}/>
     </div>
-    {error && <p role="alert" className="text-xs text-destructive">이미지를 읽지 못했습니다. 다른 이미지를 선택해 주세요.</p>}
+    {error && <p role="alert" className="text-xs text-destructive">이미지를 읽지 못했습니다. 다른 이미지를 선택해 주십시오.</p>}
     <p className="text-center text-xs text-muted-foreground">드래그 또는 방향키로 위치 조절</p>
     <div className="mx-auto flex max-w-80 items-center gap-3"><Minus className="size-4 shrink-0 text-muted-foreground" aria-hidden/><input aria-label={zoomLabel} type="range" min={1} max={4} step={.05} value={zoom} disabled={pending || !ready} onChange={event => setZoom(Number(event.target.value))} className="min-w-0 flex-1 accent-[var(--primary)]"/><Plus className="size-4 shrink-0 text-muted-foreground" aria-hidden/><Button type="button" variant="ghost" size="icon-sm" aria-label="자르기 초기화" disabled={pending || !ready} onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}><RotateCcw className="size-4" aria-hidden/></Button></div>
   </fieldset>;

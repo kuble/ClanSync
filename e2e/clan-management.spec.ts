@@ -29,7 +29,7 @@ test("officers manage real notices and rules across management and dashboard", a
     await editor.getByLabel("제목", { exact: true }).fill(title);
     await editor
       .getByLabel("본문", { exact: true })
-      .fill("이번 주에도 즐겁게 게임해요.");
+      .fill("이번 주에도 즐겁게 게임합니다.");
     await editor
       .getByRole("switch", { name: "대시보드 상단에 고정" })
       .check();
@@ -52,7 +52,7 @@ test("officers manage real notices and rules across management and dashboard", a
     await editor.getByLabel("제목", { exact: true }).fill(editedTitle);
     await editor
       .getByLabel("본문", { exact: true })
-      .fill("모임 시작 10분 전에 접속해 주세요.");
+      .fill("모임 시작 10분 전에 접속해 주십시오.");
     await editor
       .getByRole("button", { name: "공지 저장", exact: true })
       .click();
@@ -65,7 +65,7 @@ test("officers manage real notices and rules across management and dashboard", a
     expect(edited.error).toBeNull();
     expect(edited.data).toEqual({
       title: editedTitle,
-      content: "모임 시작 10분 전에 접속해 주세요.",
+      content: "모임 시작 10분 전에 접속해 주십시오.",
     });
     await page
       .getByRole("button", { name: `${editedTitle} 고정 해제`, exact: true })
@@ -80,7 +80,7 @@ test("officers manage real notices and rules across management and dashboard", a
         return result.data?.is_pinned;
       })
       .toBe(false);
-    for (const rule of [`${title} 규칙`, "서로 존중하며 플레이해요."]) {
+    for (const rule of [`${title} 규칙`, "서로 존중하며 플레이합니다."]) {
       await page.getByRole("textbox", { name: "새 규칙", exact: true }).fill(rule);
       await page.getByRole("button", { name: "규칙 추가", exact: true }).click();
       await expect(page.getByRole("list", { name: "클랜 규칙 목록", exact: true }).getByText(rule, { exact: true })).toBeVisible();
@@ -93,7 +93,7 @@ test("officers manage real notices and rules across management and dashboard", a
       .click();
     await expect(
       page
-        .getByText("모임 시작 10분 전에 접속해 주세요.", { exact: true }),
+        .getByText("모임 시작 10분 전에 접속해 주십시오.", { exact: true }),
     ).toBeVisible();
     await page.goto(base);
     await page

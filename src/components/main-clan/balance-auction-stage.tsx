@@ -32,7 +32,7 @@ export function AuctionPurchases({ state }: { state: FormationState | null }) {
     <div className="grid gap-3 sm:grid-cols-2">
       {teams.map((team) => {
         const item = state.strategy!.items.find((candidate) => candidate.id === state.itemChoices?.[team]);
-        return item ? <div key={team} className="min-w-0 space-y-1 text-xs"><strong className={teamColor(team)}>{TEAM_LABEL[team]} · {item.name}</strong><p className="break-words text-muted-foreground">{item.description || "등록된 효과를 적용해 주세요."}</p></div> : null;
+        return item ? <div key={team} className="min-w-0 space-y-1 text-xs"><strong className={teamColor(team)}>{TEAM_LABEL[team]} · {item.name}</strong><p className="break-words text-muted-foreground">{item.description || "등록된 효과를 적용해 주십시오."}</p></div> : null;
       })}
     </div>
     <p className="text-[11px] text-muted-foreground">아이템 효과는 운영진이 경기 규칙에 직접 적용합니다.</p>
@@ -77,19 +77,19 @@ export function BalanceAuctionStage({ state, now, pending, revealing, name, canT
     {revealing ? <div className="rounded-xl border bg-muted/10 p-6 text-center text-sm text-muted-foreground">역할 공개가 끝나면 경매가 자동으로 시작됩니다.</div> : strategyStage && state.strategy ? <div className="space-y-4 rounded-xl border border-amber-500/30 bg-amber-500/5 p-5 text-center">
       <p className="text-xs font-semibold uppercase tracking-widest text-warning">전략 준비</p>
       <h4 className="text-xl font-bold">이번 경매의 전략 아이템</h4>
-      <p className="text-xs leading-relaxed text-muted-foreground">선수 영입 후 남은 포인트로 팀당 아이템 하나를 구매할 수 있습니다.<br />아이템 가격을 확인하고 영입 예산을 계획하세요.</p>
+      <p className="text-xs leading-relaxed text-muted-foreground">선수 영입 후 남은 포인트로 팀당 아이템 하나를 구매할 수 있습니다.<br />아이템 가격을 확인하고 영입 예산을 계획하십시오.</p>
       <Countdown deadline={state.strategy.deadline} startedAt={state.strategy.startedAt} now={clock} paused={frozen} />
     </div> : nextPlayer && award ? <div role="status" data-testid="auction-preparation" data-player-id={nextPlayer} className="space-y-4 rounded-xl border bg-background/40 p-6 text-center">
       <p className="text-xs font-semibold text-muted-foreground">다음 경매 선수 · {ROLE_LABEL[state.players.find((player) => player.id === nextPlayer)!.role]}</p>
       <h4 className="break-words text-3xl font-black">{name(nextPlayer)}</h4>
-      <p className="text-xs text-muted-foreground">입찰할 금액을 준비하세요.</p>
+      <p className="text-xs text-muted-foreground">입찰할 금액을 준비하십시오.</p>
       <Countdown deadline={award.endsAt} startedAt={award.startedAt} now={clock} paused={frozen} />
     </div> : award ? <div key={`${award.player}:${award.startedAt}`} role="status" data-testid="auction-award" data-player-id={award.player} className={cn("space-y-3 rounded-xl border p-6 text-center motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 motion-safe:duration-500", award.team === "team1" ? "border-sky-400/50 bg-sky-500/10" : "border-rose-400/50 bg-rose-500/10")}>
       <Gavel className={cn("mx-auto size-8", teamColor(award.team))} aria-hidden="true" />
       <p className={cn("text-sm font-bold", teamColor(award.team))}>{TEAM_LABEL[award.team]} {award.fallback ? "자동 배정" : "낙찰"}</p>
       <h4 className="break-words text-3xl font-black">{name(award.player)}</h4>
       <p className="text-xl font-bold tabular-nums">{award.amount.toLocaleString()}<span className="ml-1 text-xs">pt</span></p>
-      <p className="text-xs text-muted-foreground">{state.remaining.length ? "다음 입찰 금액을 준비하세요." : state.strategy ? "곧 아이템을 선택합니다." : "팀 편성을 마무리합니다."}</p>
+      <p className="text-xs text-muted-foreground">{state.remaining.length ? "다음 입찰 금액을 준비하십시오." : state.strategy ? "곧 아이템을 선택합니다." : "팀 편성을 마무리합니다."}</p>
       {state.remaining.length > 0 && <Countdown deadline={award.endsAt} startedAt={award.startedAt} now={clock} paused={state.pausedAt !== null} />}
     </div> : lot ? <div className="relative overflow-hidden rounded-xl border bg-background/40 p-4 text-center sm:p-6" data-testid="auction-player" data-player-id={lot.player}>
       <div className="mx-auto max-w-lg space-y-4">
@@ -110,7 +110,7 @@ export function BalanceAuctionStage({ state, now, pending, revealing, name, canT
           <p className="text-[11px] text-muted-foreground">{increment}pt 단위 · 남은 선수의 최소 영입 비용은 자동으로 남겨 둡니다.</p>
         </div> : <p className="text-xs text-muted-foreground">양 팀 주장이 입찰하고 있습니다.</p>}
       </div>
-    </div> : itemStage ? <div className="space-y-2 text-center"><h4 className="text-xl font-bold">남은 포인트로 전략을 완성하세요</h4><p className="text-xs text-muted-foreground">팀당 최대 1개 · 같은 아이템을 양 팀 모두 구매할 수 있습니다.</p></div> : <p role="status" className="p-4 text-center text-sm text-muted-foreground">다음 경매를 준비하고 있습니다.</p>}
+    </div> : itemStage ? <div className="space-y-2 text-center"><h4 className="text-xl font-bold">남은 포인트로 전략을 완성하십시오</h4><p className="text-xs text-muted-foreground">팀당 최대 1개 · 같은 아이템을 양 팀 모두 구매할 수 있습니다.</p></div> : <p role="status" className="p-4 text-center text-sm text-muted-foreground">다음 경매를 준비하고 있습니다.</p>}
 
     {state.strategy && !revealing ? <div className="grid gap-3 sm:grid-cols-3" aria-label="이번 경매 아이템">
       {state.strategy.items.map((item) => <div key={item.id} className={cn("flex min-w-0 flex-col gap-3 rounded-xl border p-4", strategyStage || itemStage ? "border-amber-500/25 bg-amber-500/5" : "bg-muted/10")}>

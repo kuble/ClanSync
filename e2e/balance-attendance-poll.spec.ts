@@ -70,7 +70,7 @@ test("member creates a minute-based reservation and attendance poll, then event 
     await create.getByRole("textbox", { name: "내전 이름", exact: true }).fill("UI 참석 연동");
     await create.getByRole("radio", { name: "예약", exact: true }).check();
     await expect(create.getByRole("listbox", { name: "초", exact: true })).toHaveCount(0);
-    await expect(create.getByText("위아래로 드래그하거나 스크롤해 선택하세요.", { exact: true })).toHaveCount(0);
+    await expect(create.getByText("위아래로 드래그하거나 스크롤해 선택하십시오.", { exact: true })).toHaveCount(0);
     await expect(create.getByText("응답은 출전 명단에 자동 등록되지 않습니다.", { exact: true })).toHaveCount(0);
     const toggle = create.getByRole("switch", { name: "참석 투표 자동 개설", exact: true });
     const timing = create.getByRole("group", { name: "투표 개설 날짜·시각 (한국 시간)", exact: true });

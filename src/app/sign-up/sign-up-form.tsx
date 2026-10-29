@@ -19,14 +19,14 @@ export function SignUpForm({ nextPath = "/games" }: { nextPath?: string }) {
   const years = Array.from({ length: maxYear - 1949 }, (_, index) => maxYear - index);
   if (state?.ok) return <div className="space-y-5">
     <span className="inline-flex size-12 items-center justify-center rounded-full bg-primary/10 text-2xl text-primary" aria-hidden="true">✓</span>
-    <h1 className={styles.authHeading}>이메일을 확인해 주세요</h1>
+    <h1 className={styles.authHeading}>이메일을 확인해 주십시오</h1>
     <p className={styles.authSubtitle} role="status">{state.ok}</p>
     <Link className={`${styles.submit} flex items-center justify-center`} href={`/sign-in?next=${encodeURIComponent(nextPath)}`}>로그인 화면으로</Link>
   </div>;
   return (
     <>
-      <h1 className={styles.authHeading}>ClanSync에 오신 걸 환영해요</h1>
-      <p className={styles.authSubtitle}>닉네임은 따로 만들지 않아요. 게임 연동 후 배틀태그 이름을 사용합니다.</p>
+      <h1 className={styles.authHeading}>ClanSync에 오신 것을 환영합니다</h1>
+      <p className={styles.authSubtitle}>닉네임은 따로 만들지 않습니다. 게임 연동 후 배틀태그 이름을 사용합니다.</p>
       <form action={formAction} className={styles.form} onReset={(event) => event.preventDefault()}>
         <input type="hidden" name="next" value={nextPath} />
         {state?.error ? <p className={styles.error} role="alert" aria-live="polite">{state.error}</p> : null}
@@ -54,7 +54,7 @@ export function SignUpForm({ nextPath = "/games" }: { nextPath?: string }) {
         <div className={styles.field}>
           <label htmlFor="password">비밀번호</label>
           <PasswordInput id="password" name="password" autoComplete="new-password" required minLength={8} maxLength={72} placeholder="영문 + 숫자 + 특수문자, 8~72자" aria-describedby="password-hint" />
-          <p id="password-hint" className={styles.inputHint}>영문·숫자·특수문자를 모두 포함해 8~72자로 입력해 주세요.</p>
+          <p id="password-hint" className={styles.inputHint}>영문·숫자·특수문자를 모두 포함해 8~72자로 입력해 주십시오.</p>
         </div>
         <label className={styles.terms}>
           <input type="checkbox" name="terms" required />
@@ -62,7 +62,7 @@ export function SignUpForm({ nextPath = "/games" }: { nextPath?: string }) {
         </label>
         <SubmitButton />
       </form>
-      <p className={styles.authFooter}>이미 계정이 있으신가요? <Link href={`/sign-in?next=${encodeURIComponent(nextPath)}`}>로그인</Link></p>
+      <p className={styles.authFooter}>이미 계정이 있으십니까? <Link href={`/sign-in?next=${encodeURIComponent(nextPath)}`}>로그인</Link></p>
     </>
   );
 }

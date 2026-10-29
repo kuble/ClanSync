@@ -37,7 +37,7 @@ export async function updateUserAltAccountAction(input: { id: string; altNick: s
   if (!/^[\da-f]{8}(-[\da-f]{4}){3}-[\da-f]{12}$/i.test(id)) return { ok: false, error: "수정 대상을 찾을 수 없습니다." };
   if (input.acknowledgedDisclosure !== true) return { ok: false, error: "공개 범위 안내와 동의를 확인해야 수정할 수 있습니다." };
   const nick = normalizeNick(typeof input.altNick === "string" ? input.altNick : "");
-  if (!nick.length || nick.length > ALT_NICK_MAX) return { ok: false, error: `부계정 닉네임은 1~${ALT_NICK_MAX}자로 입력해 주세요.` };
+  if (!nick.length || nick.length > ALT_NICK_MAX) return { ok: false, error: `부계정 닉네임은 1~${ALT_NICK_MAX}자로 입력해 주십시오.` };
   const db: SupabaseClient<Database> = await createClient();
   const { data: { user } } = await db.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
@@ -48,7 +48,7 @@ export async function updateUserAltAccountAction(input: { id: string; altNick: s
   const note = typeof input.note === "string" ? input.note.trim().slice(0, 500) : "";
   const updated = await db.from("user_alt_accounts").update({ alt_nick: nick, note: note || null }).eq("id", id).eq("user_id", user.id).eq("game_id", row.data.game_id).select("id");
   if (updated.error) return { ok: false, error: updated.error.code === "23505" ? "같은 게임에서 이미 같은 닉네임이 등록되어 있습니다." : "부계정을 수정하지 못했습니다." };
-  if (updated.data.length !== 1) return { ok: false, error: "부계정이 변경되었습니다. 다시 불러와 주세요." };
+  if (updated.data.length !== 1) return { ok: false, error: "부계정이 변경되었습니다. 다시 불러와 주십시오." };
   revalidatePath("/profile");
   return { ok: true };
 }
@@ -71,7 +71,7 @@ export async function addUserAltAccountAction(input: {
   if (nick.length < 1 || nick.length > ALT_NICK_MAX) {
     return {
       ok: false,
-      error: `부계정 닉네임은 1~${ALT_NICK_MAX}자로 입력해 주세요.`,
+      error: `부계정 닉네임은 1~${ALT_NICK_MAX}자로 입력해 주십시오.`,
     };
   }
 

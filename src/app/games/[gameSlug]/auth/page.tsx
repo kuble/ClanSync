@@ -37,14 +37,14 @@ export default async function GameAuthPage({ params, searchParams }: {
       <section className={styles.authCard}>
         <div className={styles.gameIcon}><Gamepad2 size={36} aria-hidden="true" /></div>
         <h1 className={styles.heading}>{cfg.title}</h1>
-        <p className={styles.description}>{gameSlug === "overwatch" ? <>배틀태그 이름으로 클랜에 참여해요.<br />같은 이름의 계정은 #번호로 구분합니다.</> : <>게임 계정을 연결하면 클랜에 가입하거나<br />새 클랜을 만들 수 있습니다.</>}</p>
+        <p className={styles.description}>{gameSlug === "overwatch" ? <>배틀태그 이름으로 클랜에 참여합니다.<br />같은 이름의 계정은 #번호로 구분합니다.</> : <>게임 계정을 연결하면 클랜에 가입하거나<br />새 클랜을 만들 수 있습니다.</>}</p>
         <div className={styles.provider}>
           <div className={styles.providerHeader}><ShieldCheck size={28} aria-hidden="true" /><div><h2>{cfg.providerLabel} 계정</h2><p>{devSimulator && cfg.oauthReady ? "테스트 계정 연결" : "현재 이 게임의 신규 계정 연동은 제공되지 않습니다."}</p></div></div>
           <GameAuthConnect gameSlug={gameSlug} ctaLabel={cfg.ctaLabel} oauthReady={cfg.oauthReady} devSimulatorAvailable={devSimulator} nextPath={nextPath} initialBattleTag={initialBattleTag} initialRiotId={initialRiotId} />
         </div>
         <p className={styles.notice}><Info size={16} aria-hidden="true" /><span>{devSimulator && cfg.oauthReady ? "QA 환경에서는 테스트 계정으로 연동 흐름을 확인할 수 있습니다." : "이미 연결된 계정은 게임 선택에서 클랜으로 이동할 수 있습니다. 신규 연동이 가능해지면 이 화면에서 안내합니다."}</span></p>
       </section>
-    </> : <section className={styles.authCard}><h1 className={styles.heading}>지원하지 않는 게임</h1><p className={styles.description}>게임 선택에서 이용 가능한 게임을 확인해 주세요.</p></section>}
+    </> : <section className={styles.authCard}><h1 className={styles.heading}>지원하지 않는 게임</h1><p className={styles.description}>게임 선택에서 이용 가능한 게임을 확인해 주십시오.</p></section>}
     <Link href={nextPath ?? "/games"} className={styles.back}><ArrowLeft size={15} aria-hidden="true" />돌아가기</Link>
   </main></AccountShell>;
 }

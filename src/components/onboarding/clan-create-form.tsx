@@ -26,16 +26,16 @@ export function ClanCreateForm({ gameSlug }: { gameSlug: string }) {
         if (!result.ok) { setError(result.error); return; }
         toast.success("클랜을 만들었습니다.");
         router.push(`/games/${gameSlug}/clan/${result.clanId}/welcome`);
-      } catch { setError("클랜을 만들지 못했습니다. 잠시 후 다시 시도해 주세요."); }
+      } catch { setError("클랜을 만들지 못했습니다. 잠시 후 다시 시도해 주십시오."); }
     });
   }
   return <form onSubmit={onSubmit} className={styles.createForm}>
-    <header className={styles.createIntro}><h2>우리만의 클랜 만들기</h2><p>클랜을 소개하고 함께할 멤버의 조건을 정해 주세요. 생성하면 클랜장이 됩니다.</p></header>
+    <header className={styles.createIntro}><h2>우리만의 클랜 만들기</h2><p>클랜을 소개하고 함께할 멤버의 조건을 정해 주십시오. 생성하면 클랜장이 됩니다.</p></header>
     {error ? <p className={`${styles.error} mb-5`} role="alert">{error}</p> : null}
     <fieldset className={styles.formSection} disabled={pending}><legend>기본 정보</legend>
-      <div className={styles.field}><label htmlFor="name">클랜명 *</label><input id="name" name="name" required maxLength={24} placeholder="클랜 이름을 입력하세요 (1~24자)" /></div>
-      <div className={styles.field}><label htmlFor="description">클랜 소개</label><textarea id="description" name="description" rows={3} placeholder="어떤 클랜인지, 주로 언제 함께 플레이하는지 소개해 주세요." /></div>
-      <div className={styles.field}><label htmlFor="rules">클랜 규칙</label><textarea id="rules" name="rules" rows={3} placeholder="클랜원들이 함께 지킬 약속을 적어 주세요." /></div>
+      <div className={styles.field}><label htmlFor="name">클랜명 *</label><input id="name" name="name" required maxLength={24} placeholder="클랜 이름을 입력하십시오 (1~24자)" /></div>
+      <div className={styles.field}><label htmlFor="description">클랜 소개</label><textarea id="description" name="description" rows={3} placeholder="어떤 클랜인지, 주로 언제 함께 플레이하는지 소개해 주십시오." /></div>
+      <div className={styles.field}><label htmlFor="rules">클랜 규칙</label><textarea id="rules" name="rules" rows={3} placeholder="클랜원들이 함께 지킬 약속을 적어 주십시오." /></div>
     </fieldset>
     <fieldset className={styles.formSection} disabled={pending}><legend>모집 조건</legend>
       <fieldset className={styles.choiceGroup}><legend>지향 (선택)</legend><div className={styles.chips}>{STYLES.map(([value, label]) => <label key={value}><input type="radio" name="style" value={value} />{label}</label>)}</div></fieldset>

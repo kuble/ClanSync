@@ -17,8 +17,8 @@ test("board standard comment reactions: no emoji purchase, replace/cancel, RLS a
   try {
     const [leader, member, outsider] = await Promise.all([f.memberClient(0), f.memberClient(1), f.memberClient(2)]);
     await ok(f.service.from("clan_members").update({ status: "left" }).eq("clan_id", f.clanId).eq("user_id", f.users[2].id));
-    const post = await ok(f.service.from("clan_board_posts").insert({ clan_id: f.clanId, author_id: f.users[0].id, kind: "free", title: "기본 공감 검사", content: "슬롯 구매 없이 공감해요." }).select("id").single());
-    const comment = await ok(f.service.from("clan_board_comments").insert({ post_id: post.id, author_id: f.users[0].id, content: "공감 종류와 권한을 확인해요." }).select("id").single());
+    const post = await ok(f.service.from("clan_board_posts").insert({ clan_id: f.clanId, author_id: f.users[0].id, kind: "free", title: "기본 공감 검사", content: "슬롯 구매 없이 공감합니다." }).select("id").single());
+    const comment = await ok(f.service.from("clan_board_comments").insert({ post_id: post.id, author_id: f.users[0].id, content: "공감 종류와 권한을 확인합니다." }).select("id").single());
     expect(await ok(f.service.from("purchases").select("id").eq("clan_id", f.clanId))).toEqual([]);
     const list = () => ok(member.rpc("list_board_comment_reactions", { p_comment_ids: [comment.id] }));
     await ok(member.rpc("set_board_comment_reaction", { p_comment_id: comment.id, p_kind: "like" }));

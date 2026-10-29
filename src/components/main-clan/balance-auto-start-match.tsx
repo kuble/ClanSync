@@ -22,7 +22,7 @@ export function BalanceAutoStartMatch({ gameSlug, clanId, sessionId, heroBan }: 
       if (!result.ok) setError(result.error);
       router.refresh();
     }).catch(() => {
-      if (!cancelled) setError("연결을 확인하고 다시 시도하세요.");
+      if (!cancelled) setError("연결을 확인하고 다시 시도하십시오.");
     });
     return () => { cancelled = true; };
   }, [gameSlug, clanId, sessionId, heroBan, router, retry]);

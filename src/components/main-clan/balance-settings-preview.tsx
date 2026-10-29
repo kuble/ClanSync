@@ -36,7 +36,7 @@ export function BalanceDisplayPreview({ settings, premium, regularRoom }: {
   const scoreMode = premium ? mode : "m";
   return <BalanceNamecardMode hide={false} nicknameOnly={settings.nicknameOnly}><section aria-label="화면 표시 미리보기" className="overflow-hidden rounded-xl border bg-background" data-testid="balance-display-preview">
     <header className="flex items-center justify-between gap-3 border-b px-4 py-3">
-      <h3 className="text-sm font-semibold"><HelpText label="화면 표시 미리보기" help={regularRoom ? "카드와 팀 그래프에 마우스를 올려 상세 정보를 확인하세요. 예시 화면이며 설정 적용 전에는 실제 경기에 반영되지 않습니다." : "카드에 마우스를 올려 이번 세션 전적을 확인하세요. 예시 화면이며 설정 적용 전에는 실제 경기에 반영되지 않습니다."} /></h3>
+      <h3 className="text-sm font-semibold"><HelpText label="화면 표시 미리보기" help={regularRoom ? "카드와 팀 그래프에 마우스를 올려 상세 정보를 확인하십시오. 예시 화면이며 설정 적용 전에는 실제 경기에 반영되지 않습니다." : "카드에 마우스를 올려 이번 세션 전적을 확인하십시오. 예시 화면이며 설정 적용 전에는 실제 경기에 반영되지 않습니다."} /></h3>
       <span className="text-xs text-muted-foreground">편성 화면</span>
     </header>
     <div className="space-y-5 p-4 sm:p-6">

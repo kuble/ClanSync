@@ -251,7 +251,7 @@ test("점수 토글·즉시 맵 비교·깜짝 결과 무보상과 데이터 삭
     await loginIsolatedBalanceUser(page, fixture.users[0]);
     await page.goto(regular.url);
     await panel.getByRole("button", { name: "무승부", exact: true }).click();
-    await page.getByRole("dialog", { name: "무승부로 확정할까요?", exact: true }).getByRole("button", { name: "확정", exact: true }).click();
+    await page.getByRole("dialog", { name: "무승부로 확정하시겠습니까?", exact: true }).getByRole("button", { name: "확정", exact: true }).click();
     await expect.poll(async () => (await fixture.activeRound(regular.roomId)).match_outcome).toBe("draw");
     await panel.locator('[data-board-slot="team1:tank"]').hover();
     const updatedPlayerInfo = page.getByRole("tooltip").filter({ hasText: "이번 세션 전적" });

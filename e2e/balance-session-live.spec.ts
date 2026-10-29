@@ -79,7 +79,7 @@ async function confirmResult(
       exact: true,
     })
     .click();
-  await panel.page().getByRole("dialog", { name: /로 확정할까요\?/ }).getByRole("button", { name: "확정", exact: true }).click();
+  await panel.page().getByRole("dialog", { name: /로 확정하시겠습니까\?/ }).getByRole("button", { name: "확정", exact: true }).click();
   await expect(
     panel.getByRole("button", { name: "다음 경기", exact: true }),
   ).toBeEnabled({ timeout: 20_000 });
@@ -478,7 +478,7 @@ test("독립 QA 세션: 자동 저장·개인 선호·화면 내 공유 추첨·
     await expect(history).toContainText("1팀 승리");
     await expect(history).toContainText("무효");
     await expect(history.locator("details")).toHaveCount(0);
-    await expect(history).not.toContainText("좌우로 끌어 다른 경기를 확인하세요.");
+    await expect(history).not.toContainText("좌우로 끌어 다른 경기를 확인하십시오.");
     await expect(
       history.getByRole("combobox", { name: "통계 정렬", exact: true }),
     ).toHaveCount(0);

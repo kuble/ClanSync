@@ -5,8 +5,8 @@ import { readPhotoStickerPlacement, type PhotoStickerPlacement } from "./photo-s
 export const BOARD_SECTIONS = [
   { key: "notices", label: "클랜 공지 및 규칙", description: "함께 지킬 약속과 중요한 소식" },
   { key: "free", label: "자유 게시판", description: "클랜원과 나누는 일상과 게임 이야기" },
-  { key: "feedback", label: "피드백 신청 게시판", description: "리플레이를 함께 보며 더 나은 플레이를 찾아요" },
-  { key: "channels", label: "방송 채널 홍보방", description: "우리 클랜원의 방송을 만나보세요" },
+  { key: "feedback", label: "피드백 신청 게시판", description: "리플레이를 함께 보며 더 나은 플레이를 찾습니다" },
+  { key: "channels", label: "방송 채널 홍보방", description: "우리 클랜원의 방송을 만나보십시오" },
   { key: "memories", label: "추억 열람방", description: "사진 한 장에 남기는 우리의 시간" },
 ] as const;
 export type BoardSection = (typeof BOARD_SECTIONS)[number]["key"];
@@ -50,33 +50,33 @@ export function boardImageUrl(base: string, postId: string, thumbnail = false) {
   return base + "/board/image/" + postId + (thumbnail ? "?thumb=1" : "");
 }
 export function validateBoardInput(kind: BoardKind, title: string, content: string, raw: BoardDetails) {
-  if (!title.trim() || title.trim().length > 200) return "제목은 1~200자로 입력해 주세요.";
-  if (content.trim().length > (kind === "memories" ? 100 : 20000)) return kind === "memories" ? "글은 100자 이내로 입력해 주세요." : "본문은 20,000자 이내로 입력해 주세요.";
-  if (kind === "free" && !content.trim()) return "본문을 입력해 주세요.";
-  if (kind === "memories" && ((raw.photoFrame && !["classic","film","tape"].includes(raw.photoFrame)) || (raw.photoSticker && !["none","sparkle","heart","gg"].includes(raw.photoSticker)))) return "사진 꾸미기를 확인해 주세요.";
-  if (raw.photoStickerPlacement !== undefined && (kind !== "memories" || !raw.photoSticker || raw.photoSticker === "none" || !readPhotoStickerPlacement(raw.photoStickerPlacement))) return "스티커 위치와 회전을 확인해 주세요.";
-  if (Object.entries(raw).some(([key,v]) => key==="isLive" ? kind!=="channels"||typeof v!=="boolean" : !["channels","photoStickerPlacement"].includes(key)&&(typeof v !== "string" || v.length > 1000))) return "입력 내용을 확인해 주세요.";
+  if (!title.trim() || title.trim().length > 200) return "제목은 1~200자로 입력해 주십시오.";
+  if (content.trim().length > (kind === "memories" ? 100 : 20000)) return kind === "memories" ? "글은 100자 이내로 입력해 주십시오." : "본문은 20,000자 이내로 입력해 주십시오.";
+  if (kind === "free" && !content.trim()) return "본문을 입력해 주십시오.";
+  if (kind === "memories" && ((raw.photoFrame && !["classic","film","tape"].includes(raw.photoFrame)) || (raw.photoSticker && !["none","sparkle","heart","gg"].includes(raw.photoSticker)))) return "사진 꾸미기를 확인해 주십시오.";
+  if (raw.photoStickerPlacement !== undefined && (kind !== "memories" || !raw.photoSticker || raw.photoSticker === "none" || !readPhotoStickerPlacement(raw.photoStickerPlacement))) return "스티커 위치와 회전을 확인해 주십시오.";
+  if (Object.entries(raw).some(([key,v]) => key==="isLive" ? kind!=="channels"||typeof v!=="boolean" : !["channels","photoStickerPlacement"].includes(key)&&(typeof v !== "string" || v.length > 1000))) return "입력 내용을 확인해 주십시오.";
   if (kind === "feedback") {
-    if (!raw.role?.trim() || raw.role.length > 100 || !content.trim()) return "역할·영웅과 궁금한 점을 입력해 주세요.";
-    if (raw.replay && !/^[a-z0-9]{6,12}$/i.test(raw.replay.trim())) return "리플레이 코드는 영문·숫자 6~12자로 입력해 주세요.";
-    if (!raw.replay?.trim() && !raw.video?.trim()) return "리플레이 코드 또는 영상 링크를 입력해 주세요.";
-    if (raw.video && !safeBoardUrl(raw.video)) return "영상은 https 링크를 입력해 주세요.";
-    if ((raw.moment?.length ?? 0) > 100) return "궁금한 장면은 100자 이내로 적어 주세요.";
+    if (!raw.role?.trim() || raw.role.length > 100 || !content.trim()) return "역할·영웅과 궁금한 점을 입력해 주십시오.";
+    if (raw.replay && !/^[a-z0-9]{6,12}$/i.test(raw.replay.trim())) return "리플레이 코드는 영문·숫자 6~12자로 입력해 주십시오.";
+    if (!raw.replay?.trim() && !raw.video?.trim()) return "리플레이 코드 또는 영상 링크를 입력해 주십시오.";
+    if (raw.video && !safeBoardUrl(raw.video)) return "영상은 https 링크를 입력해 주십시오.";
+    if ((raw.moment?.length ?? 0) > 100) return "궁금한 장면은 100자 이내로 적어 주십시오.";
   }
   if (kind === "channels") {
     const hosts: Record<string,string[]> = { YouTube:["youtube.com","youtu.be"], CHZZK:["chzzk.naver.com"], Twitch:["twitch.tv"], SOOP:["sooplive.co.kr","afreecatv.com"] };
     const channels=boardChannels(raw);
-    if(!Array.isArray(channels)||channels.length<1||channels.length>4)return "방송 채널을 1~4개 등록해 주세요.";
+    if(!Array.isArray(channels)||channels.length<1||channels.length>4)return "방송 채널을 1~4개 등록해 주십시오.";
     const platforms=new Set<string>();
     for(const entry of channels){
-      if(!entry||typeof entry.platform!=="string"||typeof entry.url!=="string"||entry.url.length>600)return "방송 채널 정보를 확인해 주세요.";
+      if(!entry||typeof entry.platform!=="string"||typeof entry.url!=="string"||entry.url.length>600)return "방송 채널 정보를 확인해 주십시오.";
       const url=safeBoardUrl(entry.url),allowed=hosts[entry.platform];
-      if(!url||!allowed?.some(h=>new URL(url).hostname===h||new URL(url).hostname.endsWith("."+h)))return "플랫폼에 맞는 방송 채널의 https 링크를 입력해 주세요.";
-      if(platforms.has(entry.platform))return "같은 방송 플랫폼은 한 번만 등록해 주세요.";
+      if(!url||!allowed?.some(h=>new URL(url).hostname===h||new URL(url).hostname.endsWith("."+h)))return "플랫폼에 맞는 방송 채널의 https 링크를 입력해 주십시오.";
+      if(platforms.has(entry.platform))return "같은 방송 플랫폼은 한 번만 등록해 주십시오.";
       platforms.add(entry.platform);
     }
-    if ((raw.schedule?.length ?? 0) > 100) return "방송 시간은 100자 이내로 적어 주세요.";
+    if ((raw.schedule?.length ?? 0) > 100) return "방송 시간은 100자 이내로 적어 주십시오.";
   }
-  if (raw.takenAt && (!/^\d{4}-\d{2}-\d{2}$/.test(raw.takenAt) || !Number.isFinite(Date.parse(raw.takenAt)) || new Date(raw.takenAt).toISOString().slice(0,10) !== raw.takenAt)) return "촬영일을 확인해 주세요.";
+  if (raw.takenAt && (!/^\d{4}-\d{2}-\d{2}$/.test(raw.takenAt) || !Number.isFinite(Date.parse(raw.takenAt)) || new Date(raw.takenAt).toISOString().slice(0,10) !== raw.takenAt)) return "촬영일을 확인해 주십시오.";
   return null;
 }

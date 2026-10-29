@@ -44,7 +44,7 @@ function StatsAccessSettings({ model, gameSlug, clanId, scope, onDone }: {
   ] : [{ key: "view_intra_stats", label: "통계 열람", roles: ["leader", "officer", "member"] }];
   return <form className="flex min-h-0 flex-1 flex-col" action={(fd) => start(async () => {
     try { await saveClanHofConfigFormAction(gameSlug, clanId, fd); toast.success("설정을 저장했습니다."); onDone(); }
-    catch { toast.error("설정을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요."); }
+    catch { toast.error("설정을 저장하지 못했습니다. 잠시 후 다시 시도해 주십시오."); }
   })}>
     <input type="hidden" name="settings_scope" value={scope} />
     <fieldset disabled={pending} className="board-scroll min-h-0 min-w-0 flex-1 overflow-y-auto px-5">

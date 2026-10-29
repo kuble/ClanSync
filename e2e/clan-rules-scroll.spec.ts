@@ -5,7 +5,7 @@ test("rules scroll slowly, pause while reading, and respect reduced motion", asy
   test.setTimeout(90_000);
   const fixture = await createIsolatedBalanceFixture(1);
   try {
-    const rules = Array.from({ length: 12 }, (_, i) => `${i + 1}. 서로 존중하고 즐겁게 게임해요.`).join("\n");
+    const rules = Array.from({ length: 12 }, (_, i) => `${i + 1}. 서로 존중하고 즐겁게 게임합니다.`).join("\n");
     const { error } = await fixture.service.from("clans").update({ rules }).eq("id", fixture.clanId);
     expect(error).toBeNull();
     await loginIsolatedBalanceUser(page, fixture.users[0]);

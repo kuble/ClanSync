@@ -29,7 +29,7 @@ async function roomClient(gameSlug: string, clanId: string): Promise<Client> {
 function dateInput(value: string | null | undefined): string | undefined {
   if (value == null || value === "") return undefined;
   const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) throw new Error("예약 시각을 확인하세요.");
+  if (!Number.isFinite(date.getTime())) throw new Error("예약 시각을 확인하십시오.");
   return date.toISOString();
 }
 
@@ -91,7 +91,7 @@ export async function updateBalanceRoomAction(
   try {
     const client = await roomClient(gameSlug, clanId);
     const at = dateInput(input.scheduledAt);
-    if (!at) throw new Error("예약 시각을 확인하세요.");
+    if (!at) throw new Error("예약 시각을 확인하십시오.");
     const { data, error } = await client.rpc("update_balance_room", {
       p_clan_id: clanId, p_room_id: roomId, p_title: input.title.trim(), p_scheduled_at: at, p_rsvp_opens_at: dateInput(input.rsvpStartsAt),
     });

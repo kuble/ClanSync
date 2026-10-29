@@ -8,7 +8,7 @@ export type UpdateBalanceAutoCloseResult =
   | { ok: false; error: string };
 
 export async function updateBalanceAutoOpenSettingsAction(gameSlug: string, clanId: string, enabled: boolean, minutes: number): Promise<UpdateBalanceAutoCloseResult> {
-  if (!Number.isInteger(minutes) || minutes < 1 || minutes > 1440) return { ok: false, error: "자동 생성 시점은 1~1440분으로 설정해 주세요." };
+  if (!Number.isInteger(minutes) || minutes < 1 || minutes > 1440) return { ok: false, error: "자동 생성 시점은 1~1440분으로 설정해 주십시오." };
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
@@ -25,7 +25,7 @@ export async function updateBalanceAutoCloseSettingsAction(
   hours: number,
 ): Promise<UpdateBalanceAutoCloseResult> {
   if (!Number.isInteger(hours) || hours < 1 || hours > 168) {
-    return { ok: false, error: "자동 종료 시간은 1~168시간으로 설정해 주세요." };
+    return { ok: false, error: "자동 종료 시간은 1~168시간으로 설정해 주십시오." };
   }
 
   const supabase = await createClient();

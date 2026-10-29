@@ -19,7 +19,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service";
 export type AuthMessageState = { error?: string; ok?: string } | null;
 
 const GENERIC_SIGN_IN_ERROR =
-  "이메일 또는 비밀번호가 올바르지 않거나, 잠시 후 다시 시도해 주세요.";
+  "이메일 또는 비밀번호가 올바르지 않거나, 잠시 후 다시 시도해 주십시오.";
 
 export async function signInAction(
   _prev: AuthMessageState,
@@ -60,14 +60,14 @@ export async function signInAction(
   ]);
 
   if (profile.error) {
-    return { error: "로그인 설정을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요." };
+    return { error: "로그인 설정을 저장하지 못했습니다. 잠시 후 다시 시도해 주십시오." };
   }
 
   if (!profile.data) {
     const ensured = await ensurePublicUserProfile(user.id, supabase, user);
     if (!ensured.ok) {
       return {
-        error: `프로필을 준비하지 못했습니다. 잠시 후 다시 시도해 주세요. (${ensured.error})`,
+        error: `프로필을 준비하지 못했습니다. 잠시 후 다시 시도해 주십시오. (${ensured.error})`,
       };
     }
     const { error: updateError } = await supabase
@@ -75,7 +75,7 @@ export async function signInAction(
       .update({ auto_login: remember })
       .eq("id", user.id);
     if (updateError) {
-      return { error: "로그인 설정을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요." };
+      return { error: "로그인 설정을 저장하지 못했습니다. 잠시 후 다시 시도해 주십시오." };
     }
   }
 
@@ -94,15 +94,15 @@ export async function signUpAction(
   const next = safeNextPath(formData.get("next"));
 
   if (!terms) {
-    return { error: "이용약관 및 개인정보 처리에 동의해 주세요." };
+    return { error: "이용약관 및 개인정보 처리에 동의해 주십시오." };
   }
   if (!Number.isFinite(birthYear)) {
-    return { error: "출생연도를 선택해 주세요." };
+    return { error: "출생연도를 선택해 주십시오." };
   }
 
   const y = new Date().getFullYear();
   if (birthYear < 1950 || birthYear > y - 10) {
-    return { error: "출생연도를 확인해 주세요. (만 10세 이상만 가입 가능)" };
+    return { error: "출생연도를 확인해 주십시오. (만 10세 이상만 가입 가능)" };
   }
 
   if (!isStrongPassword(password)) {
@@ -130,18 +130,18 @@ export async function signUpAction(
   });
 
   if (error) {
-    return { error: "가입하지 못했습니다. 이메일 주소를 확인하거나 잠시 후 다시 시도해 주세요." };
+    return { error: "가입하지 못했습니다. 이메일 주소를 확인하거나 잠시 후 다시 시도해 주십시오." };
   }
 
   if (!signData.session) {
-    return { ok: "입력한 주소로 온 가입 안내 메일을 확인해 주세요. 확인을 마친 뒤 로그인하면 게임 계정을 연결할 수 있습니다." };
+    return { ok: "입력한 주소로 온 가입 안내 메일을 확인해 주십시오. 확인을 마친 뒤 로그인하면 게임 계정을 연결할 수 있습니다." };
   }
 
   if (signData.user) {
     const ensured = await ensurePublicUserProfile(signData.user.id, supabase);
     if (!ensured.ok) {
       return {
-        error: `가입은 되었으나 프로필 행을 만들지 못했습니다. 관리자에게 문의해 주세요. (${ensured.error})`,
+        error: `가입은 되었으나 프로필 행을 만들지 못했습니다. 관리자에게 문의해 주십시오. (${ensured.error})`,
       };
     }
   }
@@ -177,7 +177,7 @@ export async function deleteAccountAction(): Promise<{ error: string } | void> {
     return {
       error:
         delErr.message ||
-        "계정을 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+        "계정을 삭제하지 못했습니다. 잠시 후 다시 시도해 주십시오.",
     };
   }
 

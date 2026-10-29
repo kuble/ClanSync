@@ -41,7 +41,7 @@ test('방송 작성자 수동 상태·권한·편집 보존과 게시판 입력 
     await page.context().clearCookies();await loginIsolatedBalanceUser(page,f.users[1]);await page.goto(path);await toggle.click();await expect(toggle).not.toBeChecked();await expect(page.getByText('방송 대기',{exact:true})).toBeVisible();
     await page.setViewportSize({width:390,height:844});await page.reload();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await page.goto(base+'/board/free');await page.getByRole('button',{name:'글 작성',exact:true}).click();
-    const body=editor.getByLabel('본문',{exact:true});await body.fill('긴 본문을 스크롤하며 읽어요.\n'.repeat(120));
+    const body=editor.getByLabel('본문',{exact:true});await body.fill('긴 본문을 스크롤하며 읽습니다.\n'.repeat(120));
     const style=await body.evaluate(e=>({width:getComputedStyle(e).scrollbarWidth,color:getComputedStyle(e).scrollbarColor,overflow:e.scrollHeight>e.clientHeight}));
     expect(style.width).toBe('thin');expect(style.color).not.toBe('auto');expect(style.overflow).toBe(true);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

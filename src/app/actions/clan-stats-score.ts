@@ -13,7 +13,7 @@ export async function updateHistoricalMscoreAction(
   score: number,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   if (!Number.isFinite(score) || score < MA_SCORE_MIN || score > MA_SCORE_MAX) {
-    return { ok: false, error: `평가 점수는 ${MA_SCORE_MIN}부터 ${MA_SCORE_MAX}까지 입력해 주세요.` };
+    return { ok: false, error: `평가 점수는 ${MA_SCORE_MIN}부터 ${MA_SCORE_MAX}까지 입력해 주십시오.` };
   }
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

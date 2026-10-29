@@ -18,12 +18,12 @@ async function cleanupPhotos(f:Awaited<ReturnType<typeof createIsolatedBalanceFi
 test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 채널·읽기 권한",async({page,browser})=>{
   test.setTimeout(240_000);const f=await createIsolatedBalanceFixture(3),base=f.path.replace(/\/balance$/,"");
   try{
-    await ok(f.service.from("clans").update({rules:"서로 존중하며 플레이해요."}).eq("id",f.clanId));
+    await ok(f.service.from("clans").update({rules:"서로 존중하며 플레이합니다."}).eq("id",f.clanId));
     await ok(f.service.from("clan_notices").insert({clan_id:f.clanId,created_by:f.users[0].id,title:"클랜 소식",content:"중요한 약속",is_pinned:true}));
     await ok(f.service.from("clan_board_coaches").insert({clan_id:f.clanId,user_id:f.users[0].id,expertise:"지원 · 아나"}));
     await loginIsolatedBalanceUser(page,f.users[1]);await page.goto(base+"/board");
     await expect(page).toHaveURL(/\/board\/notices$/);
-    await expect(page.getByText("서로 존중하며 플레이해요.",{exact:true})).toBeVisible();
+    await expect(page.getByText("서로 존중하며 플레이합니다.",{exact:true})).toBeVisible();
     await expect(page.getByRole("button",{name:"공지 작성",exact:true})).toHaveCount(0);
     await expect(page.getByRole("button",{name:"규칙 저장",exact:true})).toHaveCount(0);
     await page.getByRole("link",{name:"클랜 소식",exact:true}).click();await expect(page.getByText("중요한 약속",{exact:true})).toBeVisible();
@@ -31,13 +31,13 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     await page.getByRole("navigation",{name:"게시판 목차"}).getByRole("link",{name:"자유 게시판",exact:true}).click();
     await page.getByRole("button",{name:"글 작성",exact:true}).click();
     const editor=page.getByRole("dialog");
-    await editor.getByLabel("제목",{exact:true}).fill("다음 내전 같이 해요");
-    await editor.getByLabel("본문",{exact:true}).fill("같이 즐겁게 플레이해요.");
+    await editor.getByLabel("제목",{exact:true}).fill("다음 내전 같이 합니다");
+    await editor.getByLabel("본문",{exact:true}).fill("같이 즐겁게 플레이합니다.");
     await editor.getByRole("button",{name:"저장",exact:true}).click();
     await expect(page).toHaveURL(/\/board\/free\/[0-9a-f-]{36}$/);
-    await expect(page.getByRole("heading",{name:"다음 내전 같이 해요",exact:true})).toBeVisible();
+    await expect(page.getByRole("heading",{name:"다음 내전 같이 합니다",exact:true})).toBeVisible();
     const freeId=page.url().split("/").at(-1)!;
-    const peerContent="시간과 말풍선 확인을 위한 다른 멤버의 댓글이에요.";
+    const peerContent="시간과 말풍선 확인을 위한 다른 멤버의 댓글입니다.";
     await ok(f.service.from("clan_board_comments").insert({post_id:freeId,author_id:f.users[2].id,content:peerContent,created_at:"2026-10-28T15:04:00Z"}));
     await page.reload();
     const comments=page.locator("#comments"),peerComment=comments.getByRole("listitem").filter({hasText:peerContent});
@@ -45,9 +45,9 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     await expect(peerComment.locator("time")).toHaveAttribute("title",/2026.*10.*29/);
     await expect(peerComment.getByRole("button",{name:/댓글 편집$/})).toHaveCount(0);
     await expect(peerComment.getByRole("button",{name:/댓글 삭제$/})).toHaveCount(0);
-    await page.getByLabel("댓글 내용",{exact:true}).fill("좋아요, 같이 해요!");
+    await page.getByLabel("댓글 내용",{exact:true}).fill("좋아요, 같이 합니다!");
     await page.getByRole("button",{name:"댓글 등록",exact:true}).click();
-    const ownComment=comments.getByRole("listitem").filter({hasText:"좋아요, 같이 해요!"});
+    const ownComment=comments.getByRole("listitem").filter({hasText:"좋아요, 같이 합니다!"});
     await expect(ownComment).toBeVisible();
     await expect(ownComment.locator("time")).toHaveText(/^(오전|오후) \d{1,2}:\d{2}$/);
     await expect(ownComment.locator("time")).toHaveAttribute("title",/\d{4}.*\d{1,2}.*\d{1,2}/);
@@ -61,7 +61,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     await expect(ownComment.getByRole("button",{name:/댓글 편집$/})).toHaveCount(0);
     await expect(comments.getByRole("button",{name:"댓글 수정",exact:true})).toHaveCount(0);
     const deleteComment=ownComment.getByRole("button",{name:/댓글 삭제$/});
-    const postHeading=page.getByRole("heading",{name:"다음 내전 같이 해요",exact:true});
+    const postHeading=page.getByRole("heading",{name:"다음 내전 같이 합니다",exact:true});
     await page.getByLabel("댓글 내용",{exact:true}).focus();await postHeading.hover();
     await expect(deleteComment).toHaveCSS("opacity","0");
     await ownComment.hover();
@@ -78,7 +78,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     const touchContext=await browser.newContext({baseURL:new URL(page.url()).origin,storageState:await page.context().storageState(),viewport:{width:390,height:844},hasTouch:true});
     try{
       const touchPage=await touchContext.newPage();await touchPage.goto(base+"/board/free/"+freeId);
-      const touchComment=touchPage.locator("#comments li").filter({hasText:"좋아요, 같이 해요!"}),touchDelete=touchComment.getByRole("button",{name:/댓글 삭제$/});
+      const touchComment=touchPage.locator("#comments li").filter({hasText:"좋아요, 같이 합니다!"}),touchDelete=touchComment.getByRole("button",{name:/댓글 삭제$/});
       await expect(touchComment).toBeVisible();
       await touchComment.scrollIntoViewIfNeeded();
       await expect(touchComment.getByRole("button",{name:/댓글 편집$/})).toHaveCount(0);await expect(touchDelete).toHaveCSS("opacity","1");
@@ -130,7 +130,7 @@ test("클랜원 게시판 작성·댓글·공감·리플레이 상태·방송 �
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await ok(f.service.from("clan_members").update({status:"left"}).eq("clan_id",f.clanId).eq("user_id",f.users[2].id));
     await page.goto(base+"/board/free/"+freeId);
-    await expect(page.getByRole("heading",{name:"다음 내전 같이 해요",exact:true})).toHaveCount(0);
+    await expect(page.getByRole("heading",{name:"다음 내전 같이 합니다",exact:true})).toHaveCount(0);
   }finally{await cleanupPhotos(f);await f.cleanup();}
 });
 

@@ -24,7 +24,7 @@ export function ClanRulesEditor({ gameSlug, clanId, initialRules }: { gameSlug: 
   function save(next: string[], afterSave: () => void) {
     const serialized = next.join("\n");
     if (serialized.length > 20000) {
-      toast.error("전체 규칙은 20,000자 이내로 입력해 주세요.");
+      toast.error("전체 규칙은 20,000자 이내로 입력해 주십시오.");
       return;
     }
     start(async () => {
@@ -35,7 +35,7 @@ export function ClanRulesEditor({ gameSlug, clanId, initialRules }: { gameSlug: 
         afterSave();
         toast.success("클랜 규칙을 저장했습니다.");
         router.refresh();
-      } catch { toast.error("규칙을 저장하지 못했습니다. 다시 시도해 주세요."); }
+      } catch { toast.error("규칙을 저장하지 못했습니다. 다시 시도해 주십시오."); }
     });
   }
 
@@ -58,7 +58,7 @@ export function ClanRulesEditor({ gameSlug, clanId, initialRules }: { gameSlug: 
       save([...rules, rule], () => { setDraft(""); input.current?.focus(); });
     }}>
       <Label htmlFor="clan-rule-new" className="sr-only">새 규칙</Label>
-      <Input ref={input} id="clan-rule-new" value={draft} onChange={event => setDraft(event.target.value)} readOnly={pending} maxLength={20000} autoComplete="off" placeholder="규칙을 하나씩 입력해 주세요." className="h-9 flex-1" />
+      <Input ref={input} id="clan-rule-new" value={draft} onChange={event => setDraft(event.target.value)} readOnly={pending} maxLength={20000} autoComplete="off" placeholder="규칙을 하나씩 입력해 주십시오." className="h-9 flex-1" />
       <Button type="submit" size="lg" disabled={pending || !parseClanRules(draft).length}><Plus aria-hidden="true" />규칙 추가</Button>
     </form>
     <p className="mt-2 text-[11px] text-muted-foreground">{rules.join("\n").length.toLocaleString()} / 20,000자</p>
@@ -80,7 +80,7 @@ export function ClanRulesEditor({ gameSlug, clanId, initialRules }: { gameSlug: 
     </Dialog>
     <Dialog open={deleting !== null} onOpenChange={open => { if (!open && !pending) setDeleting(null); }}>
       <DialogContent className="sm:max-w-lg">
-        <DialogHeader><DialogTitle>이 규칙을 삭제할까요?</DialogTitle><DialogDescription className="max-h-40 overflow-y-auto break-words">{deleting !== null ? rules[deleting] : ""}</DialogDescription></DialogHeader>
+        <DialogHeader><DialogTitle>이 규칙을 삭제하시겠습니까?</DialogTitle><DialogDescription className="max-h-40 overflow-y-auto break-words">{deleting !== null ? rules[deleting] : ""}</DialogDescription></DialogHeader>
         <DialogFooter><DialogClose render={<Button type="button" variant="outline" disabled={pending}>취소</Button>} /><Button type="button" variant="destructive" disabled={pending} onClick={() => { if (deleting !== null) save(rules.filter((_, index) => index !== deleting), () => setDeleting(null)); }}>{pending ? "삭제 중…" : "삭제"}</Button></DialogFooter>
       </DialogContent>
     </Dialog>

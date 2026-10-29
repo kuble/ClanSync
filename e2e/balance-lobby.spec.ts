@@ -139,7 +139,7 @@ test("내전 기록 권한: 아이콘 숨김·깜짝 자기 세션·종료 삭�
     await expect(ownDrawer).toContainText("이 깜짝 내전의 기록만 표시합니다.");
     await member.keyboard.press("Escape");
     await member.getByTestId("balance-formation").getByRole("button", { name: "세션 종료", exact: true }).click();
-    const confirm = member.getByRole("dialog", { name: "내전을 종료할까요?" });
+    const confirm = member.getByRole("dialog", { name: "내전을 종료하시겠습니까?" });
     await expect(confirm).toContainText("복구할 수 없습니다.");
     await confirm.getByRole("button", { name: "종료 확정", exact: true }).click();
     await expect(member.getByTestId("clan-balance-lobby")).toBeVisible();

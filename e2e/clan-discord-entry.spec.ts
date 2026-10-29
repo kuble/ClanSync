@@ -101,7 +101,7 @@ test("connected clan members use automatic entry; disconnected clans keep their 
     await page.screenshot({ path: test.info().outputPath("discord-auto-entry-settings.png") });
     // The app server has no live bot token, so errors must stay inside the themed UI.
     await page.goto(base + "/discord");
-    await expect(page.getByRole("heading", { name: "Discord에 연결할 수 없어요" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Discord에 연결할 수 없습니다" })).toBeVisible();
     await expect(page.getByRole("link", { name: "다시 시도", exact: true })).toHaveAttribute("href", base + "/discord");
     await expect(page.getByText("private-bot-error")).toHaveCount(0);
     await page.screenshot({ path: test.info().outputPath("discord-entry-retry.png") });

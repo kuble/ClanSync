@@ -25,7 +25,7 @@ test("자진 탈퇴·이전 구성원·기록 유지 재가입·강퇴 후 허�
     await loginIsolatedBalanceUser(memberPage, f.users[1]);
     await memberPage.goto("/profile");
     await memberPage.getByRole("button", { name: `${clanName} 클랜 탈퇴`, exact: true }).click();
-    const leave = memberPage.getByRole("dialog", { name: "클랜을 탈퇴할까요?", exact: true });
+    const leave = memberPage.getByRole("dialog", { name: "클랜을 탈퇴하시겠습니까?", exact: true });
     await expect(leave).toContainText("내전 기록과 통계는 남습니다");
     await leave.getByRole("button", { name: "클랜 탈퇴", exact: true }).click();
     await expect(leave).toBeHidden();
@@ -72,7 +72,7 @@ test("자진 탈퇴·이전 구성원·기록 유지 재가입·강퇴 후 허�
     await apply(); await expect(memberPage.locator("p[role=alert]")).toContainText("재가입이 제한");
     expect((await f.service.from("clan_join_requests").select("id").eq("clan_id", f.clanId).eq("status", "pending")).data).toHaveLength(0);
     await page.getByRole("button", { name: `${f.users[1].nickname} 재가입 허용`, exact: true }).click();
-    const allow = page.getByRole("dialog", { name: "재가입을 허용할까요?", exact: true });
+    const allow = page.getByRole("dialog", { name: "재가입을 허용하시겠습니까?", exact: true });
     await expect(allow).toContainText("별도로 승인");
     await allow.getByRole("button", { name: "재가입 허용", exact: true }).click();
     await expect(allow).toBeHidden();

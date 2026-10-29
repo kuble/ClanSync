@@ -10,12 +10,12 @@ export async function setClanEmojiReaction(gameSlug: string, clanId: string, pos
   return setClanEmojiTargetReaction(gameSlug,clanId,{kind:"post",id:postId},emojiId,active);
 }
 export async function listBoardCommentReactionPeopleAction(gameSlug: string, clanId: string, commentId: string, emojiId: string): Promise<{ ok: true; names: string[] } | { ok: false; error: string }> {
-  const denied = { ok: false as const, error: "공감 정보를 확인해 주세요." };
+  const denied = { ok: false as const, error: "공감 정보를 확인해 주십시오." };
   if (typeof gameSlug !== "string" || ![clanId,commentId,emojiId].every(value => typeof value === "string" && uuidPattern.test(value))) return denied;
   const client: SupabaseClient<Database> = await createClient();
   const { data: { user } } = await client.auth.getUser();
   if (!user || !await loadMainClanContext(client,user.id,gameSlug,clanId)) return denied;
-  const failure = { ok: false as const, error: "공감한 멤버를 불러오지 못했습니다. 다시 시도해 주세요." };
+  const failure = { ok: false as const, error: "공감한 멤버를 불러오지 못했습니다. 다시 시도해 주십시오." };
   const comment = await client.from("clan_board_comments").select("id,clan_board_posts!inner(clan_id)")
     .eq("id",commentId).eq("clan_board_posts.clan_id",clanId).maybeSingle();
   if (comment.error) return failure;
@@ -29,7 +29,7 @@ export async function listBoardCommentReactionPeopleAction(gameSlug: string, cla
   return { ok: true, names: people.data.map(row => nicknames.get(row.user_id) ?? "이전 멤버").sort((a,b) => a.localeCompare(b,"ko")) };
 }
 export async function setClanEmojiTargetReaction(gameSlug: string, clanId: string, target: EmojiReactionTarget, emojiId: string, active: boolean) {
-  if (!target || !["post","board_comment","hof_comment","notice"].includes(target.kind) || ![clanId,target.id,emojiId].every(value => typeof value === "string" && uuidPattern.test(value)) || typeof active !== "boolean") return { ok: false, error: "공감 정보를 확인해 주세요." };
+  if (!target || !["post","board_comment","hof_comment","notice"].includes(target.kind) || ![clanId,target.id,emojiId].every(value => typeof value === "string" && uuidPattern.test(value)) || typeof active !== "boolean") return { ok: false, error: "공감 정보를 확인해 주십시오." };
   const client:SupabaseClient<Database> = await createClient();
   const { data: { user } } = await client.auth.getUser();
   if (!user || !await loadMainClanContext(client, user.id, gameSlug, clanId)) return { ok: false, error: "활성 클랜원만 사용할 수 있습니다." };
@@ -37,17 +37,17 @@ export async function setClanEmojiTargetReaction(gameSlug: string, clanId: strin
     : target.kind === "board_comment" ? await client.from("clan_board_comments").select("id,clan_board_posts!inner(clan_id)").eq("id",target.id).eq("clan_board_posts.clan_id",clanId).maybeSingle()
     : target.kind === "hof_comment" ? await client.from("clan_hof_comments").select("id").eq("id",target.id).eq("clan_id",clanId).maybeSingle()
     : await client.from("clan_notices").select("id").eq("id",target.id).eq("clan_id",clanId).maybeSingle();
-  if (!post.data || post.error) return { ok: false, error: "게시글을 확인해 주세요." };
+  if (!post.data || post.error) return { ok: false, error: "게시글을 확인해 주십시오." };
   const column = target.kind === "post" ? "post_id" : target.kind === "board_comment" ? "board_comment_id" : target.kind === "hof_comment" ? "hof_comment_id" : "notice_id";
   const values:Database["public"]["Tables"]["clan_emoji_reactions"]["Insert"]={emoji_id:emojiId};
   values[column]=target.id;
   const result = active ? await client.from("clan_emoji_reactions").insert(values) : await client.from("clan_emoji_reactions").delete().eq(column,target.id).eq("emoji_id",emojiId).eq("user_id",user.id);
-  if (result.error && result.error.code !== "23505") return { ok: false, error: "이 클랜에서 사용 가능한 이모티콘을 선택해 주세요." };
+  if (result.error && result.error.code !== "23505") return { ok: false, error: "이 클랜에서 사용 가능한 이모티콘을 선택해 주십시오." };
   revalidatePath(`/games/${gameSlug}/clan/${clanId}/${target.kind === "hof_comment" ? "stats" : "board"}`, "layout");
   const args:Database["public"]["Functions"]["list_clan_emoji_reactions"]["Args"]={};
   const argument=target.kind==="post"?"p_post_ids":target.kind==="board_comment"?"p_board_comment_ids":target.kind==="hof_comment"?"p_hof_comment_ids":"p_notice_ids";
   args[argument]=[target.id];
   const list = await client.rpc("list_clan_emoji_reactions",args);
-  if(list.error)return {ok:false,error:"공감 결과를 확인하지 못했습니다. 새로고침해 주세요."};
+  if(list.error)return {ok:false,error:"공감 결과를 확인하지 못했습니다. 새로고침해 주십시오."};
   return { ok: true, reactions:list.data.map(row=>({emoji_id:row.emoji_id,total:Number(row.total),mine:row.mine})) };
 }

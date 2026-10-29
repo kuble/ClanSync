@@ -72,17 +72,17 @@ export async function linkGameAccountDevAction(
 
   const tag = gameSlug === "overwatch" ? parseBattleTag(battleTag ?? "") : null;
   if (gameSlug === "overwatch" && !tag) {
-    return { ok: false, error: "배틀태그 전체를 입력해 주세요. 예: AimZero#12345" };
+    return { ok: false, error: "배틀태그 전체를 입력해 주십시오. 예: AimZero#12345" };
   }
   const riot = gameSlug === "valorant" ? parseRiotId(riotId ?? "") : null;
-  if (gameSlug === "valorant" && !riot) return { ok: false, error: "라이엇 ID 전체를 입력해 주세요. 예: Player#KR1" };
+  if (gameSlug === "valorant" && !riot) return { ok: false, error: "라이엇 ID 전체를 입력해 주십시오. 예: Player#KR1" };
 
   const stamp = new Date().toISOString();
   const svcWrap = tryCreateServiceRoleClient();
   if (!svcWrap.ok) return svcWrap;
   const existing = await svcWrap.client.from("user_game_profiles").select("game_uid")
     .eq("user_id", user.id).eq("game_id", game.id).maybeSingle();
-  if (existing.error) return { ok: false, error: "연결 정보를 불러오지 못했습니다. 다시 시도해 주세요." };
+  if (existing.error) return { ok: false, error: "연결 정보를 불러오지 못했습니다. 다시 시도해 주십시오." };
   const { error } = await svcWrap.client.from("user_game_profiles").upsert(
     {
       user_id: user.id,
@@ -98,8 +98,8 @@ export async function linkGameAccountDevAction(
   );
 
   if (error) return { ok: false, error: error.code === "23505"
-    ? "이미 다른 계정에 연결된 게임 ID입니다. #뒷부분까지 확인해 주세요."
-    : "계정을 연결하지 못했습니다. 잠시 후 다시 시도해 주세요." };
+    ? "이미 다른 계정에 연결된 게임 ID입니다. #뒷부분까지 확인해 주십시오."
+    : "계정을 연결하지 못했습니다. 잠시 후 다시 시도해 주십시오." };
 
   revalidatePath("/games");
   revalidatePath(`/games/${gameSlug}/auth`);
@@ -158,7 +158,7 @@ export async function createClanAndLeadAction(
     .eq("game_id", game.id)
     .maybeSingle();
   if (!ugp?.is_verified) {
-    return { ok: false, error: "먼저 게임 계정을 연동해 주세요." };
+    return { ok: false, error: "먼저 게임 계정을 연동해 주십시오." };
   }
 
   const name = String(formData.get("name") ?? "").trim();
@@ -280,7 +280,7 @@ export async function submitClanJoinRequestAction(
     .eq("game_id", game.id)
     .maybeSingle();
   if (!ugp?.is_verified) {
-    return { ok: false, error: "먼저 게임 계정을 연동해 주세요." };
+    return { ok: false, error: "먼저 게임 계정을 연동해 주십시오." };
   }
 
   const { data: clan } = await supabase
@@ -302,9 +302,9 @@ export async function submitClanJoinRequestAction(
   const msg = message.trim().slice(0, 2000);
 
   const membership = await supabase.rpc("select_my_clan_membership", { p_clan_id: clanId });
-  if (membership.error) return { ok: false, error: "클랜 소속 상태를 확인하지 못했습니다. 다시 시도해 주세요." };
+  if (membership.error) return { ok: false, error: "클랜 소속 상태를 확인하지 못했습니다. 다시 시도해 주십시오." };
   if (membership.data?.[0]?.status === "banned")
-    return { ok: false, error: "이 클랜은 재가입이 제한되어 있습니다. 운영진의 재가입 허용 후 신청해 주세요." };
+    return { ok: false, error: "이 클랜은 재가입이 제한되어 있습니다. 운영진의 재가입 허용 후 신청해 주십시오." };
 
   const { data: existing } = await supabase
     .from("clan_join_requests")

@@ -49,7 +49,7 @@ export function ClanAppearanceSettings({ gameSlug, clanId, clanName, initialIcon
         if (input.current) input.current.value = "";
         toast.success(remove ? "기본 프로필 이미지로 변경했습니다." : "프로필 이미지를 변경했습니다.");
         router.refresh();
-      } catch (error) { toast.error(error instanceof Error ? error.message : "잠시 후 다시 시도해 주세요."); }
+      } catch (error) { toast.error(error instanceof Error ? error.message : "잠시 후 다시 시도해 주십시오."); }
     });
   }
 
@@ -65,7 +65,7 @@ export function ClanAppearanceSettings({ gameSlug, clanId, clanName, initialIcon
           <input ref={input} id="clan-profile-upload" aria-label="클랜 프로필 이미지 파일" type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={!canManage || pendingImage} onChange={event => {
             const next = event.target.files?.[0];
             if (!next) return;
-            if (!next.size || next.size > 2 * 1024 * 1024 || !["image/jpeg", "image/png", "image/webp"].includes(next.type)) { toast.error("JPG·PNG·WebP 이미지를 2MB 이내로 선택해 주세요."); event.target.value = ""; return; }
+            if (!next.size || next.size > 2 * 1024 * 1024 || !["image/jpeg", "image/png", "image/webp"].includes(next.type)) { toast.error("JPG·PNG·WebP 이미지를 2MB 이내로 선택해 주십시오."); event.target.value = ""; return; }
             setFile(next); setPreview(URL.createObjectURL(next));
           }} />
           <div className="flex flex-wrap gap-2">
@@ -103,7 +103,7 @@ export function ClanAppearanceSettings({ gameSlug, clanId, clanName, initialIcon
           const result = await updateClanBannerAction(gameSlug, clanId, selected ?? null, paletteId);
           if (!result.ok) { toast.error(result.error); return; }
           setBannerUrl(nextBannerUrl ?? null); toast.success("클랜 배너를 변경했습니다."); router.refresh();
-        } catch { toast.error("배너 저장에 실패했습니다. 다시 시도해 주세요."); }
+        } catch { toast.error("배너 저장에 실패했습니다. 다시 시도해 주십시오."); }
       })}>{pendingBanner ? "적용 중…" : "배너 적용"}</Button></div>
     </section>
   </div>;

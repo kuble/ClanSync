@@ -403,7 +403,7 @@ export function ClanEventsView({
     if (!activeOccurrence) return;
     if (
       !confirm(
-        "이 일정을 취소할까요? 반복 일정은 이후 모든 회차가 함께 취소됩니다.",
+        "이 일정을 취소하시겠습니까? 반복 일정은 이후 모든 회차가 함께 취소됩니다.",
       )
     ) {
       return;
@@ -1015,7 +1015,7 @@ export function ClanEventsView({
                 <CalendarDays className="size-4 text-primary" aria-hidden="true" />
                 {selectedDateTitle} 일정
               </SheetTitle>
-              <SheetDescription className="sr-only">등록된 일정을 시간순으로 확인하세요.</SheetDescription>
+              <SheetDescription className="sr-only">등록된 일정을 시간순으로 확인하십시오.</SheetDescription>
             </SheetHeader>
             <div className="min-h-0 overflow-y-auto overscroll-contain">
               {daySchedule}
@@ -1029,7 +1029,7 @@ export function ClanEventsView({
               <SheetHeader className="shrink-0 px-5 pb-5 pr-12">
                 <SheetTitle>일정 등록</SheetTitle>
                 <SheetDescription>
-                  클랜 멤버와 함께할 내전이나 이벤트를 등록하세요.
+                  클랜 멤버와 함께할 내전이나 이벤트를 등록하십시오.
                 </SheetDescription>
               </SheetHeader>
               <CreateClanEventForm

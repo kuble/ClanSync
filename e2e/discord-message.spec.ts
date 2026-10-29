@@ -13,11 +13,11 @@ test("Discord sends rich cards for rooms, calendar, notices and both poll states
     process.env.DISCORD_BOT_TOKEN = "isolated-test-token";
     globalThis.fetch = async (_url, init) => { sent.push(JSON.parse(String(init?.body))); return Response.json({ id: "mock-message" }); };
     const cases = [
-      { source: { ...base, room_id: "room", room_kind: "regular", room_status: "scheduled", title: "토요일 정규 내전", slot_kind: "room_t_minus_10min", start_at: "2026-10-12T10:10:00Z" }, title: "토요일 정규 내전 · 곧 시작돼요", body: "오늘 19:10 · 시작 10분 전", action: "내전으로 이동", target: "/balance?room=room" },
+      { source: { ...base, room_id: "room", room_kind: "regular", room_status: "scheduled", title: "토요일 정규 내전", slot_kind: "room_t_minus_10min", start_at: "2026-10-12T10:10:00Z" }, title: "토요일 정규 내전 · 곧 시작됩니다", body: "오늘 19:10 · 시작 10분 전", action: "내전으로 이동", target: "/balance?room=room" },
       { source: { ...base, event_id: "event", title: "수요 듀오 연습회", slot_kind: "event_t_minus_1h", start_at: "2026-10-12T11:00:00Z" }, title: "수요 듀오 연습회", body: "오늘 20:00 · 1시간 전", action: "일정 확인", target: "/events?event=event&at=2026-10-12T11%3A00%3A00Z" },
-      { source: { ...base, notice_id: "notice", title: "이번 주 내전 운영 안내", slot_kind: "notice_created", notice_content: "토요일 21시에 정규 내전이 열립니다.\n미리 참석 응답을 남겨 주세요." }, title: "이번 주 내전 운영 안내", body: "토요일 21시에 정규 내전이 열립니다.\n미리 참석 응답을 남겨 주세요.", action: "공지 읽기", target: "/board/notices/notice" },
-      { source: { ...base, poll_id: "poll", title: "다음 내전 시간", slot_kind: "poll_created", deadline_at: "2026-10-12T12:00:00Z" }, title: "다음 내전 시간 투표가 시작 됐어요", body: "마감 오늘 21:00", action: "투표 참여하기", target: "/events?tab=polls&poll=poll" },
-      { source: { ...base, poll_id: "poll", title: "다음 내전 시간", slot_kind: "poll_ended" }, title: "다음 내전 시간 투표가 종료 됐어요", body: "투표 종료 · 결과 확인", action: "투표 결과 보기", target: "/events?tab=polls&poll=poll" },
+      { source: { ...base, notice_id: "notice", title: "이번 주 내전 운영 안내", slot_kind: "notice_created", notice_content: "토요일 21시에 정규 내전이 열립니다.\n미리 참석 응답을 남겨 주십시오." }, title: "이번 주 내전 운영 안내", body: "토요일 21시에 정규 내전이 열립니다.\n미리 참석 응답을 남겨 주십시오.", action: "공지 읽기", target: "/board/notices/notice" },
+      { source: { ...base, poll_id: "poll", title: "다음 내전 시간", slot_kind: "poll_created", deadline_at: "2026-10-12T12:00:00Z" }, title: "다음 내전 시간 투표가 시작 되었습니다", body: "마감 오늘 21:00", action: "투표 참여하기", target: "/events?tab=polls&poll=poll" },
+      { source: { ...base, poll_id: "poll", title: "다음 내전 시간", slot_kind: "poll_ended" }, title: "다음 내전 시간 투표가 종료 되었습니다", body: "투표 종료 · 결과 확인", action: "투표 결과 보기", target: "/events?tab=polls&poll=poll" },
     ];
     const categories = ["⚔️ 정규 내전", "📅 일정", "📣 공지", "🗳️ 투표", "🗳️ 투표"];
     for (const [index, item] of cases.entries()) {
@@ -38,12 +38,12 @@ test("Discord sends rich cards for rooms, calendar, notices and both poll states
 
 test("room cards distinguish kind and current status with accurate reservation timing", () => {
   for (const room_kind of ["regular", "flash"]) {
-    const row = { ...base, room_id: "room", room_kind, title: "함께해요", slot_kind: "room_t_minus_10min" };
+    const row = { ...base, room_id: "room", room_kind, title: "함께합니다", slot_kind: "room_t_minus_10min" };
     for (const room_status of ["scheduled", "open"]) {
       const card = buildDiscordBotMessage({ ...row, room_status, start_at: "2026-10-12T10:05:00Z" }, options).embeds![0];
       expect(card.author.name).toBe(room_kind === "regular" ? "⚔️ 정규 내전" : "⚡ 깜짝 내전");
-      expect(card.title).toBe(`함께해요 · ${room_status === "open" ? "시작됐어요" : "곧 시작돼요"}`);
-      expect(card.description).toContain(room_status === "open" ? "진행 중 · 지금 입장할 수 있어요" : "오늘 19:05 · 시작 5분 전");
+      expect(card.title).toBe(`함께합니다 · ${room_status === "open" ? "시작되었습니다" : "곧 시작됩니다"}`);
+      expect(card.description).toContain(room_status === "open" ? "진행 중 · 지금 입장할 수 있습니다" : "오늘 19:05 · 시작 5분 전");
       expect(card.description).not.toContain("10분 전");
     }
     const overdue = buildDiscordBotMessage({ ...row, room_status: "scheduled", start_at: "2026-10-12T09:59:00Z" }, options).embeds![0];

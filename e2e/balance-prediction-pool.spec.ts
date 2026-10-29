@@ -50,7 +50,7 @@ test("내전 개설 관전자는 코인 없이 예측 저장·변경·취소하�
     expect((await host.rpc("place_balance_prediction_pool", { p_session_id: round.id, p_pick: 1, p_stake: 10 })).error?.message).toContain("개설자는 코인을");
     await drawer.getByRole("button", { name: "닫기", exact: true }).click();
     await page.getByRole("button", { name: "1팀 승리 선택", exact: true }).click();
-    await page.getByRole("dialog", { name: /로 확정할까요\?/ }).getByRole("button", { name: "확정", exact: true }).click();
+    await page.getByRole("dialog", { name: /로 확정하시겠습니까\?/ }).getByRole("button", { name: "확정", exact: true }).click();
     await page.getByRole("button", { name: "승부예측", exact: true }).click();
     await expect(drawer).toContainText("적중 · 코인 참여 없음");
     const ranking = drawer.getByRole("table").getByRole("row").filter({ hasText: f.users[0].nickname });
@@ -129,7 +129,7 @@ test("관전자 코인 풀: 편성부터 참여·공유 마감·비례 정산·�
     await expect(drawer).toContainText("마감됨");
     await expect(drawer.getByRole("textbox", { name: "걸 코인", exact: true })).toHaveCount(0);
     await page.getByRole("button", { name: "1팀 승리 선택", exact: true }).click();
-    const confirm = page.getByRole("dialog", { name: /로 확정할까요\?/ });
+    const confirm = page.getByRole("dialog", { name: /로 확정하시겠습니까\?/ });
     await confirm.getByRole("button", { name: "확정", exact: true }).click();
     await expect(drawer).toContainText("적중 · 20코인 수령 · 순이익 +10");
     const ranking = drawer.getByRole("table");

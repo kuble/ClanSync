@@ -37,13 +37,13 @@ test("투표 생성: 선택지 편집·검증·알림 기본값·저장과 모�
     await expect(dialog.getByLabel("알림 빈도", { exact: true })).toHaveCount(0);
     await expect(dialog.getByRole("button", { name: "선택지 1 삭제", exact: true })).toBeDisabled();
     await submit.click();
-    await expect(dialog.getByText("투표 질문을 입력해 주세요.", { exact: true })).toBeVisible();
+    await expect(dialog.getByText("투표 질문을 입력해 주십시오.", { exact: true })).toBeVisible();
     await expect(title).toBeFocused();
-    await title.fill("이번 주 내전은 언제 할까요?");
+    await title.fill("이번 주 내전은 언제 하시겠습니까?");
     await dialog.getByRole("textbox", { name: "선택지 1", exact: true }).fill("금요일 오후 9시");
     await dialog.getByRole("textbox", { name: "선택지 2", exact: true }).fill("금요일 오후 9시");
     await submit.click();
-    await expect(dialog.getByText("다른 선택지와 같은 내용입니다. 내용을 바꿔 주세요.", { exact: true })).toBeVisible();
+    await expect(dialog.getByText("다른 선택지와 같은 내용입니다. 내용을 바꿔 주십시오.", { exact: true })).toBeVisible();
     await expect(dialog.getByRole("textbox", { name: "선택지 2", exact: true })).toBeFocused();
     await dialog.getByRole("textbox", { name: "선택지 2", exact: true }).fill("삭제할 항목");
     await addOption.click();
@@ -54,13 +54,13 @@ test("투표 생성: 선택지 편집·검증·알림 기본값·저장과 모�
     await expect(dialog.getByRole("textbox", { name: "선택지 2", exact: true })).toBeFocused();
     await addOption.click();
     await submit.click();
-    await expect(dialog.getByText("선택지를 입력하거나 이 항목을 삭제해 주세요.", { exact: true })).toBeVisible();
+    await expect(dialog.getByText("선택지를 입력하거나 이 항목을 삭제해 주십시오.", { exact: true })).toBeVisible();
     await dialog.getByRole("textbox", { name: "선택지 3", exact: true }).fill("일요일 오후 8시");
 
     const initialTime = await deadlineTime.inputValue();
     await deadlineTime.fill("");
     await submit.click();
-    await expect(dialog.getByText("마감 시간을 입력해 주세요.", { exact: true })).toBeVisible();
+    await expect(dialog.getByText("마감 시간을 입력해 주십시오.", { exact: true })).toBeVisible();
     await expect(deadlineTime).toBeFocused();
     await deadlineTime.fill(initialTime);
 
@@ -99,10 +99,10 @@ test("투표 생성: 선택지 편집·검증·알림 기본값·저장과 모�
     await capture(page, "poll-create-desktop.png");
     await submit.click();
     await expect(dialog).toBeHidden({ timeout: 30_000 });
-    await expect(page.getByText("이번 주 내전은 언제 할까요?", { exact: true })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText("이번 주 내전은 언제 하시겠습니까?", { exact: true })).toBeVisible({ timeout: 30_000 });
     const { data: poll, error: pollError } = await fixture.service.from("clan_polls").select("id, title, deadline_at, anonymous, multiple_choice, notify_repeat, notify_hour").eq("clan_id", fixture.clanId).single();
     expect(pollError).toBeNull();
-    expect(poll).toMatchObject({ title: "이번 주 내전은 언제 할까요?", anonymous: true, multiple_choice: true, notify_repeat: "daily", notify_hour: 21 });
+    expect(poll).toMatchObject({ title: "이번 주 내전은 언제 하시겠습니까?", anonymous: true, multiple_choice: true, notify_repeat: "daily", notify_hour: 21 });
     expect(new Date(poll!.deadline_at).toISOString()).toBe(expectedDeadline);
     const { data: choices, error: choicesError } = await fixture.service.from("poll_options").select("label").eq("poll_id", poll!.id).order("sort_order");
     expect(choicesError).toBeNull();
@@ -137,7 +137,7 @@ test("투표 생성: 선택지 편집·검증·알림 기본값·저장과 모�
     await createButton.click();
     await expect(dialog.getByRole("textbox", { name: /^선택지 \d+$/ })).toHaveCount(2);
     await expect(title).toHaveValue("");
-    await title.fill("이번 주 내전은 언제 할까요?");
+    await title.fill("이번 주 내전은 언제 하시겠습니까?");
     await dialog.getByRole("textbox", { name: "선택지 1", exact: true }).fill("금요일 오후 9시");
     await dialog.getByRole("textbox", { name: "선택지 2", exact: true }).fill("토요일 오후 8시");
     await title.focus();

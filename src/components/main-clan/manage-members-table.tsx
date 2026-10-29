@@ -94,7 +94,7 @@ export function ManageMembersTable({
   }
 
   function onKick(targetUserId: string, nickname: string) {
-    if (!window.confirm(`${nickname} 님을 클랜에서 내보냅니다. 계속할까요?`)) {
+    if (!window.confirm(`${nickname} 님을 클랜에서 내보냅니다. 계속하시겠습니까?`)) {
       return;
     }
     start(async () => {
@@ -113,7 +113,7 @@ export function ManageMembersTable({
     newRole: "officer" | "member",
     label: string,
   ) {
-    if (!window.confirm(`${label} 계속할까요?`)) return;
+    if (!window.confirm(`${label} 계속하시겠습니까?`)) return;
     start(async () => {
       const r = await setClanMemberRoleAction(
         gameSlug,
@@ -339,7 +339,7 @@ export function ManageMembersTable({
         </Button>
       </div>
       <Dialog open={!!allowing} onOpenChange={(open) => { if (!open && !pending) setAllowing(null); }}>
-        <DialogContent showCloseButton={!pending}><DialogHeader><DialogTitle>재가입을 허용할까요?</DialogTitle><DialogDescription>{allowing?.nickname} 님이 다시 가입 신청을 보낼 수 있습니다. 가입은 신청 후 운영진이 별도로 승인합니다.</DialogDescription></DialogHeader>
+        <DialogContent showCloseButton={!pending}><DialogHeader><DialogTitle>재가입을 허용하시겠습니까?</DialogTitle><DialogDescription>{allowing?.nickname} 님이 다시 가입 신청을 보낼 수 있습니다. 가입은 신청 후 운영진이 별도로 승인합니다.</DialogDescription></DialogHeader>
           {allowError && <p role="alert" className="text-xs text-destructive">{allowError}</p>}
           <div className="flex justify-end gap-2 border-t pt-4"><Button size="sm" variant="outline" disabled={pending} onClick={() => setAllowing(null)}>취소</Button><Button size="sm" disabled={pending} onClick={() => {
             if (!allowing) return;

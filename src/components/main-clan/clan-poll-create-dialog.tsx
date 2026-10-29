@@ -26,10 +26,10 @@ function deadlineAfter(hours: number) {
 }
 
 const reminderHints: Record<Exclude<PollNotifyRepeat, "none">, string> = {
-  once: "투표 시작 후와 마감 1시간 전에 알려요. 마감까지 최소 1시간이 필요합니다.",
-  daily: "매일 선택한 시각에 알려요. 마감까지 최소 48시간이 필요합니다.",
-  weekly: "매주 선택한 시각에 알려요. 마감까지 최소 14일이 필요합니다.",
-  until_deadline_daily: "마감 전 24시간 동안 선택한 시각에 알려요. 마감까지 최소 24시간이 필요합니다.",
+  once: "투표 시작 후와 마감 1시간 전에 알립니다. 마감까지 최소 1시간이 필요합니다.",
+  daily: "매일 선택한 시각에 알립니다. 마감까지 최소 48시간이 필요합니다.",
+  weekly: "매주 선택한 시각에 알립니다. 마감까지 최소 14일이 필요합니다.",
+  until_deadline_daily: "마감 전 24시간 동안 선택한 시각에 알립니다. 마감까지 최소 24시간이 필요합니다.",
 };
 
 export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange, onCreated }: {
@@ -96,25 +96,25 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange, onCreated
     event.preventDefault();
     if (pending) return;
     const nextErrors: Record<string, string> = {};
-    if (!title.trim()) nextErrors["poll-title"] = "투표 질문을 입력해 주세요.";
+    if (!title.trim()) nextErrors["poll-title"] = "투표 질문을 입력해 주십시오.";
     const labels = new Set<string>();
     for (const option of options) {
       const label = option.label.trim();
       if (!label) nextErrors[`poll-option-${option.id}`] = options.length > 2
-        ? "선택지를 입력하거나 이 항목을 삭제해 주세요."
-        : "선택지 내용을 입력해 주세요.";
-      else if (labels.has(label)) nextErrors[`poll-option-${option.id}`] = "다른 선택지와 같은 내용입니다. 내용을 바꿔 주세요.";
+        ? "선택지를 입력하거나 이 항목을 삭제해 주십시오."
+        : "선택지 내용을 입력해 주십시오.";
+      else if (labels.has(label)) nextErrors[`poll-option-${option.id}`] = "다른 선택지와 같은 내용입니다. 내용을 바꿔 주십시오.";
       labels.add(label);
     }
     const startDate = scheduled ? new Date(startsAt) : new Date();
     if (scheduled && (!Number.isFinite(startDate.getTime()) || startDate.getTime() <= Date.now())) nextErrors["poll-start"] = "예약 시작은 현재 시각 이후여야 합니다.";
     const deadlineDate = new Date(deadline);
     if (!deadlineDay) {
-      nextErrors["poll-deadline-date"] = "마감 날짜를 선택해 주세요.";
+      nextErrors["poll-deadline-date"] = "마감 날짜를 선택해 주십시오.";
     } else if (!deadlineTime) {
-      nextErrors["poll-deadline-time"] = "마감 시간을 입력해 주세요.";
+      nextErrors["poll-deadline-time"] = "마감 시간을 입력해 주십시오.";
     } else if (Number.isNaN(deadlineDate.getTime())) {
-      nextErrors["poll-deadline-date"] = "마감 날짜와 시간을 확인해 주세요.";
+      nextErrors["poll-deadline-date"] = "마감 날짜와 시간을 확인해 주십시오.";
     } else if (scheduled && deadlineDate.getTime() <= startDate.getTime()) {
       nextErrors["poll-deadline-date"] = "마감은 시작 시각 이후여야 합니다.";
     } else {
@@ -148,7 +148,7 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange, onCreated
         onCreated?.(scheduled);
         onOpenChange(false);
       } catch {
-        setSubmitError("투표를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.");
+        setSubmitError("투표를 만들지 못했습니다. 잠시 후 다시 시도해 주십시오.");
       }
     });
   }
@@ -163,7 +163,7 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange, onCreated
       <SheetContent initialFocus={titleRef} showCloseButton={false} className="gap-0 overflow-hidden data-[side=right]:w-full data-[side=right]:sm:max-w-[600px]">
         <SheetHeader className="shrink-0 border-b px-5 py-5 pr-12 sm:px-6">
           <SheetTitle className="text-lg font-semibold">투표 만들기</SheetTitle>
-          <SheetDescription className="text-xs">질문과 선택지를 작성하고 시작·마감 시각을 정하세요.</SheetDescription>
+          <SheetDescription className="text-xs">질문과 선택지를 작성하고 시작·마감 시각을 정하십시오.</SheetDescription>
         </SheetHeader>
         <Button type="button" variant="ghost" size="icon-sm" className="absolute right-3 top-4" disabled={pending} onClick={() => onOpenChange(false)} aria-label="닫기">
           <X className="size-4" aria-hidden />
@@ -176,7 +176,7 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange, onCreated
                 <Label htmlFor="poll-title" className="font-semibold">투표 질문</Label>
                 <span className="text-[11px] tabular-nums text-muted-foreground">{title.length}/120</span>
               </div>
-              <Input ref={titleRef} id="poll-title" name="title" value={title} onChange={(event) => { setTitle(event.target.value); clearError("poll-title"); }} maxLength={120} placeholder="예: 이번 주 내전은 언제 할까요?" className="h-11" {...inputErrorProps("poll-title")} />
+              <Input ref={titleRef} id="poll-title" name="title" value={title} onChange={(event) => { setTitle(event.target.value); clearError("poll-title"); }} maxLength={120} placeholder="예: 이번 주 내전 진행일은 언제입니까?" className="h-11" {...inputErrorProps("poll-title")} />
               <FieldError id="poll-title" errors={errors} />
             </div>
 
@@ -204,8 +204,8 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange, onCreated
                 <span className="text-[11px] tabular-nums text-muted-foreground">{options.length}/12</span>
               </Button>
               <div className="space-y-3 border-t pt-4">
-                <PollToggle id="poll-multiple-choice" name="multiple_choice" label="다중 선택" description="여러 선택지를 함께 고를 수 있어요." checked={multipleChoice} onChange={setMultipleChoice} />
-                <PollToggle id="poll-anonymous" name="anonymous" label="익명 투표" description="누가 투표했는지 이름을 공개하지 않아요." checked={anonymous} onChange={setAnonymous} />
+                <PollToggle id="poll-multiple-choice" name="multiple_choice" label="다중 선택" description="여러 선택지를 함께 고를 수 있습니다." checked={multipleChoice} onChange={setMultipleChoice} />
+                <PollToggle id="poll-anonymous" name="anonymous" label="익명 투표" description="누가 투표했는지 이름을 공개하지 않습니다." checked={anonymous} onChange={setAnonymous} />
               </div>
             </section>
 
@@ -248,7 +248,7 @@ export function ClanPollCreateDialog({ gameSlug, clanId, onOpenChange, onCreated
             </section>
 
             <section className="space-y-3 border-t pt-4" aria-label="참여 알림 설정">
-              <PollToggle id="poll-notify-enabled" name="poll_notify_enabled" label="참여 알림 보내기" description="클랜 멤버에게 사이트 알림으로 참여를 알려요." controls="poll-notify-settings" checked={notifyEnabled} onChange={(enabled) => { setNotifyEnabled(enabled); clearDeadlineError(); }} />
+              <PollToggle id="poll-notify-enabled" name="poll_notify_enabled" label="참여 알림 보내기" description="클랜 멤버에게 사이트 알림으로 참여를 알립니다." controls="poll-notify-settings" checked={notifyEnabled} onChange={(enabled) => { setNotifyEnabled(enabled); clearDeadlineError(); }} />
               {notifyEnabled ? (
                 <div id="poll-notify-settings" className="ml-3 space-y-3 border-l-2 border-primary/25 pl-3">
                   <div className="flex items-center gap-2 text-xs font-medium"><Bell className="size-3.5 text-muted-foreground" aria-hidden />사이트 알림</div>

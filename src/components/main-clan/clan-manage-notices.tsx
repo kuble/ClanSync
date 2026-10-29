@@ -83,7 +83,7 @@ export function ClanManageNotices({
         onDone?.();
         router.refresh();
       } catch {
-        toast.error("저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+        toast.error("저장하지 못했습니다. 잠시 후 다시 시도해 주십시오.");
       }
     });
   }
@@ -97,7 +97,7 @@ export function ClanManageNotices({
         <div>
           <h3 id="manage-notices-title" className="flex items-center gap-2 text-sm font-bold">
             <Megaphone className="size-4 shrink-0 text-primary" aria-hidden="true" />
-            <HelpText label="클랜 공지" help="중요한 소식을 클랜원에게 전하세요. 고정한 공지가 먼저 표시됩니다." />
+            <HelpText label="클랜 공지" help="중요한 소식을 클랜원에게 전하십시오. 고정한 공지가 먼저 표시됩니다." />
           </h3>
         </div>
         {canManage && <Button
@@ -114,7 +114,7 @@ export function ClanManageNotices({
           className="rounded-lg bg-destructive/5 p-5 text-sm text-destructive"
           role="alert"
         >
-          공지를 불러오지 못했습니다. 새로고침 후 확인해 주세요.
+          공지를 불러오지 못했습니다. 새로고침 후 확인해 주십시오.
         </p>
       ) : notices.length === 0 ? (
         <div className="flex flex-col items-center rounded-lg border border-dashed border-border py-10 text-center">
@@ -122,9 +122,9 @@ export function ClanManageNotices({
             className="mb-3 size-6 text-muted-foreground/60"
             aria-hidden="true"
           />
-          <p className="text-[13px] font-semibold">아직 등록된 공지가 없어요</p>
+          <p className="text-[13px] font-semibold">아직 등록된 공지가 없습니다</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            첫 공지로 클랜원에게 인사를 건네보세요.
+            첫 공지로 클랜원에게 인사를 건네보십시오.
           </p>
         </div>
       ) : (
@@ -266,7 +266,7 @@ export function ClanManageNotices({
             </div>
             <div className="space-y-2">
               <Label htmlFor="notice-content">본문</Label>
-              <ClanEmojiInput id="notice-content" name="content" label="본문" value={noticeContent} onChange={setNoticeContent} maxLength={20000} disabled={pending} placeholder="공지 내용을 입력해 주세요." className="min-h-48"/>
+              <ClanEmojiInput id="notice-content" name="content" label="본문" value={noticeContent} onChange={setNoticeContent} maxLength={20000} disabled={pending} placeholder="공지 내용을 입력해 주십시오." className="min-h-48"/>
             </div>
             <label className="flex items-center justify-between gap-3 text-sm">
               대시보드 상단에 고정
@@ -303,7 +303,7 @@ export function ClanManageNotices({
       >
         <DialogContent showCloseButton={!pending}>
           <DialogHeader>
-            <DialogTitle>공지를 삭제할까요?</DialogTitle>
+            <DialogTitle>공지를 삭제하시겠습니까?</DialogTitle>
             <DialogDescription>
               ‘{removing?.title}’ 공지가 삭제됩니다. 삭제한 공지는 복구할 수
               없습니다.
@@ -357,7 +357,7 @@ export function ClanManageRules({
       <section className={panel} id="rules" aria-labelledby="manage-rules-title">
         <h3 id="manage-rules-title" className="flex items-center gap-2 text-sm font-bold"><ScrollText className="size-4 shrink-0 text-primary" aria-hidden="true" />클랜 규칙</h3>
         <p className="my-4 text-sm text-destructive" role="alert">
-          기존 규칙을 불러오지 못했습니다. 다시 불러온 뒤 수정해 주세요.
+          기존 규칙을 불러오지 못했습니다. 다시 불러온 뒤 수정해 주십시오.
         </p>
         <Button type="button" variant="outline" size="sm" disabled={retrying}
           onClick={() => retry(() => router.refresh())}>

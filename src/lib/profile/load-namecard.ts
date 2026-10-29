@@ -10,6 +10,6 @@ export async function loadNamecard(userId: string): Promise<NamecardResult> {
     db.from("user_namecard_selections").select("category,option_id").eq("user_id", userId),
     db.from("users").select("coin_balance").eq("id", userId).single(),
   ]);
-  if (catalog.error || owned.error || selections.error || balance.error) return { ok: false, error: "네임카드를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요." };
+  if (catalog.error || owned.error || selections.error || balance.error) return { ok: false, error: "네임카드를 불러오지 못했습니다. 새로고침 후 다시 시도해 주십시오." };
   return { ok: true, state: { catalog: catalog.data ?? [], owned: (owned.data ?? []).map((item) => item.option_id), selections: selections.data ?? [], coinBalance: balance.data.coin_balance } };
 }

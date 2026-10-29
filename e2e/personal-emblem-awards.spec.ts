@@ -258,7 +258,7 @@ test("award cases prefer the best recent grade and filter full history by gold, 
     await star.click();
     await page.route(/\/emblems(?:\?.*)?$/, route => route.request().headers()["next-action"] ? route.abort("failed") : route.continue());
     await replacement.locator(`[data-replace-emblem-key="${originalPicks[1]}"]`).click();
-    await expect(page.getByText("대표 엠블럼을 저장하지 못했습니다. 다시 시도해 주세요.", { exact: true })).toBeVisible();
+    await expect(page.getByText("대표 엠블럼을 저장하지 못했습니다. 다시 시도해 주십시오.", { exact: true })).toBeVisible();
     await expect(replacement).toBeVisible();
     await expect(options.first()).toBeEnabled();
     expect(await persistedPicks()).toEqual(originalPicks);

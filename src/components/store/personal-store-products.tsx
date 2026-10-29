@@ -65,7 +65,7 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
         window.dispatchEvent(new CustomEvent(CLANSYNC_NAMEPLATE_CHANGED));
         toast.success("모든 게임의 네임카드에 적용했습니다.");
         router.refresh();
-      } catch { toast.error("적용하지 못했습니다. 다시 시도해 주세요."); }
+      } catch { toast.error("적용하지 못했습니다. 다시 시도해 주십시오."); }
       finally { busy.current = false; }
     });
   }
@@ -77,7 +77,7 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
       setError("");
       try {
         if (product.legacy) {
-          if (!offer?.gameSlug || !offer.clanId) { setError("Premium 클랜 가입 정보를 확인해 주세요."); return; }
+          if (!offer?.gameSlug || !offer.clanId) { setError("Premium 클랜 가입 정보를 확인해 주십시오."); return; }
           const result = await purchaseStoreItemAction(offer.gameSlug, offer.clanId, "profile_entrance_fx");
           if (!result.ok) { setError(result.error); return; }
           setCoinOverride(coins - product.price);
@@ -89,9 +89,9 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
         setPurchased(ids => [...ids, product.id]);
         setPreviewId(product.id);
         setSelected(null);
-        toast.success("구매했습니다. 적용 버튼으로 네임카드에 장착해 보세요.");
+        toast.success("구매했습니다. 적용 버튼으로 네임카드에 장착해 보십시오.");
         router.refresh();
-      } catch { setError("구매 결과를 확인하지 못했습니다. 새로고침 후 보유 여부를 확인해 주세요."); }
+      } catch { setError("구매 결과를 확인하지 못했습니다. 새로고침 후 보유 여부를 확인해 주십시오."); }
       finally { busy.current = false; }
     });
   }
@@ -128,7 +128,7 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
             </div>
             {reason(product) && <p className={styles.reason}>{reason(product)}</p>}
         </article>)}
-        {!shown.length && <div className={styles.empty}><Search size={28} aria-hidden /><h3>{query.trim() ? "검색 결과가 없습니다." : "표시할 디자인이 없습니다."}</h3><p>다른 분류나 검색어를 확인해 보세요.</p>{query.trim() && <Button variant="outline" onClick={() => { setQuery(""); setPage(1); }}>검색 지우기</Button>}</div>}
+        {!shown.length && <div className={styles.empty}><Search size={28} aria-hidden /><h3>{query.trim() ? "검색 결과가 없습니다." : "표시할 디자인이 없습니다."}</h3><p>다른 분류나 검색어를 확인해 보십시오.</p>{query.trim() && <Button variant="outline" onClick={() => { setQuery(""); setPage(1); }}>검색 지우기</Button>}</div>}
       </div>
       <nav aria-label="상품 페이지" className={styles.pagination}>
         <Button variant="outline" size="icon" aria-label="이전 페이지" disabled={currentPage <= 1} onClick={() => setPage(currentPage - 1)}><ChevronLeft size={16} /></Button>

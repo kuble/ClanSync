@@ -19,7 +19,7 @@ type Props = {
 };
 
 export function ProfileGameDecorations(props: Props) {
-  return <section className={styles.accountSection} aria-labelledby="games-title"><div className={styles.sectionHeader}><div><h2 aria-label="게임별 관리" id="games-title" className={styles.sectionHeading}><StatHelp title="게임별 관리">게임을 열어 계정과 클랜, 플레이 설정을 관리하세요.</StatHelp></h2></div></div>
+  return <section className={styles.accountSection} aria-labelledby="games-title"><div className={styles.sectionHeader}><div><h2 aria-label="게임별 관리" id="games-title" className={styles.sectionHeading}><StatHelp title="게임별 관리">게임을 열어 계정과 클랜, 플레이 설정을 관리하십시오.</StatHelp></h2></div></div>
     <div className={styles.gameList}>{props.games.map((game) => <GameAccount key={game.gameId} {...props} game={game} />)}</div>
   </section>;
 }

@@ -117,7 +117,7 @@ export function HofSettingsForm({
             onDone();
           } catch {
             toast.error(
-              "설정을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+              "설정을 저장하지 못했습니다. 잠시 후 다시 시도해 주십시오.",
             );
           }
         });
@@ -376,7 +376,7 @@ export function ClanStatsView({
         <div>
           <h2 className="text-xl font-bold tracking-tight">클랜 통계</h2>
           <p className="text-muted-foreground mt-2 text-xs">
-            함께 쌓아온 기록. 경기와 멤버의 활동을 한눈에 살펴보세요.
+            함께 쌓아온 기록. 경기와 멤버의 활동을 한눈에 살펴보십시오.
           </p>
         </div>
         {model.hof.exposeHof ? (
@@ -688,7 +688,7 @@ export function ClanStatsView({
                   </span>
                 </h3>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  날짜별로 종료된 경기를 확인하세요.
+                  날짜별로 종료된 경기를 확인하십시오.
                 </p>
               </div>
               <ClanStatsArchive archive={model.archive} />

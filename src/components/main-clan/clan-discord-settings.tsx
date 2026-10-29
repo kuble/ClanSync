@@ -30,7 +30,7 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
   const [refresh, setRefresh] = useState(0);
   const autosave = useAutosave({ channelId: connection?.channel_id ?? "", enabled: discordEnabled, routes: initialRoutes }, async (draft) => {
     if (!canEdit || !premium) return { ok: false, error: "알림 설정은 Premium 클랜의 클랜장만 변경할 수 있습니다." };
-    if (draft.enabled && !draft.channelId) return { ok: false, error: "기본 알림 채널을 선택해 주세요." };
+    if (draft.enabled && !draft.channelId) return { ok: false, error: "기본 알림 채널을 선택해 주십시오." };
     const form = new FormData();
     form.set("discord_channel_id", draft.channelId);
     form.set("discord_enabled", draft.enabled ? "on" : "off");
@@ -59,18 +59,18 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
   const status = !connection ? "연결 안 됨" : !channelId ? "채널 선택 필요" : !botConfigured ? "연결 확인 필요" : enabled ? "알림 사용 중" : "알림 꺼짐";
   const channelDisabled = !canEdit || !premium || !connection || !botConfigured || loading || !!loadError;
   return <div className="space-y-5" data-testid="clan-event-notify-settings">
-    {connectionResult === "failed" && <p role="alert" className="text-sm text-destructive">Discord 연결을 완료하지 못했습니다. 서버 관리 권한과 봇 초대를 확인해 주세요.</p>}
-    {connectionResult === "connected" && <p role="status" className="flex items-center gap-2 text-sm text-primary"><Check className="size-4" />서버를 연결했습니다. 기본 알림 채널을 선택해 주세요.</p>}
+    {connectionResult === "failed" && <p role="alert" className="text-sm text-destructive">Discord 연결을 완료하지 못했습니다. 서버 관리 권한과 봇 초대를 확인해 주십시오.</p>}
+    {connectionResult === "connected" && <p role="status" className="flex items-center gap-2 text-sm text-primary"><Check className="size-4" />서버를 연결했습니다. 기본 알림 채널을 선택해 주십시오.</p>}
     <section className="overflow-hidden rounded-xl border border-border bg-card" aria-label="Discord 알림 설정">
     <form onSubmit={(event) => event.preventDefault()}>
       <div className="p-5">
       <div className="flex items-start gap-4 sm:items-center">
       <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-4">
         <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h4 className="font-semibold"><HelpText label="Discord" help="자동 알림은 클랜 전체에 적용됩니다." /></h4><span className="rounded-md bg-muted px-2 py-1 text-[10px] text-muted-foreground">{status}</span></div>
-          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{connection ? `${connection.guild_name}${connection.channel_name ? ` · #${connection.channel_name}` : ""}` : "일정과 소식을 우리 서버에 자동으로 전달하세요."}</p></div>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{connection ? `${connection.guild_name}${connection.channel_name ? ` · #${connection.channel_name}` : ""}` : "일정과 소식을 우리 서버에 자동으로 전달하십시오."}</p></div>
         <div className="flex flex-wrap items-center gap-2">
         <Dialog><DialogTrigger render={<Button size="sm" variant="outline" aria-label="Discord 활용 예시" />}>활용 예시</DialogTrigger>
-          <DialogContent className="board-scroll max-h-[85dvh] overflow-y-auto sm:max-w-5xl"><DialogHeader className="pr-8"><DialogTitle>Discord 활용 예시</DialogTitle><DialogDescription>알림 종류별 메시지와 연결되는 화면을 확인하세요.</DialogDescription></DialogHeader><DiscordBenefitsGallery /></DialogContent>
+          <DialogContent className="board-scroll max-h-[85dvh] overflow-y-auto sm:max-w-5xl"><DialogHeader className="pr-8"><DialogTitle>Discord 활용 예시</DialogTitle><DialogDescription>알림 종류별 메시지와 연결되는 화면을 확인하십시오.</DialogDescription></DialogHeader><DiscordBenefitsGallery /></DialogContent>
         </Dialog>
         {canEdit && premium && <Button size="sm" nativeButton={!botConfigured} variant={connection ? "outline" : "default"} disabled={!botConfigured} render={botConfigured ? <a href={`/api/discord/connect?clanId=${encodeURIComponent(clanId)}`} /> : undefined}>
           <ExternalLink className="size-3.5" />{connection ? "서버 다시 연결" : "Discord 연결하기"}
@@ -81,11 +81,11 @@ export function ClanDiscordSettings({ gameSlug, clanId, discordEnabled, canEdit,
       </div>
       {!premium && <p className="mt-4 text-xs text-muted-foreground">자동 알림은 Premium 클랜에서 사용할 수 있습니다. <Link href={`/games/${gameSlug}/clan/${clanId}/manage?tab=subscription`} className="font-medium text-primary underline">플랜 보기</Link></p>}
       {!canEdit && <p className="mt-4 text-xs text-muted-foreground">연결과 알림 설정은 클랜장이 변경할 수 있습니다.</p>}
-      {!botConfigured && <p className="mt-4 text-xs text-muted-foreground">ClanSync 공용 봇 연결을 준비 중입니다. 활용 예시에서 알림 화면을 확인하세요.</p>}
+      {!botConfigured && <p className="mt-4 text-xs text-muted-foreground">ClanSync 공용 봇 연결을 준비 중입니다. 활용 예시에서 알림 화면을 확인하십시오.</p>}
       </div>
           <div id="discord-notification-details" hidden={!enabled} className="mx-5 mb-5 border-l-2 border-primary/25 pl-4 sm:pl-5">
           <div className="overflow-hidden rounded-lg border border-border/70 bg-background/30">
-          <div className="space-y-2 border-b border-border/70 p-4"><div id="discord-channel-label" className="text-[13px] font-semibold"><HelpText label="기본 알림 채널" help="봇에 채널 보기·메시지 보내기·링크 임베드 권한이 있는 채널을 선택하세요. Discord 자동 입장에도 이 채널을 사용하며 초대 생성 권한이 필요합니다. 권한이 없다면 서버 다시 연결로 추가할 수 있습니다." /></div>
+          <div className="space-y-2 border-b border-border/70 p-4"><div id="discord-channel-label" className="text-[13px] font-semibold"><HelpText label="기본 알림 채널" help="봇에 채널 보기·메시지 보내기·링크 임베드 권한이 있는 채널을 선택하십시오. Discord 자동 입장에도 이 채널을 사용하며 초대 생성 권한이 필요합니다. 권한이 없다면 서버 다시 연결로 추가할 수 있습니다." /></div>
             <div className="flex items-center justify-between gap-4">
             <select aria-labelledby="discord-channel-label" id="discord-channel" name="discord_channel_id" value={channelId} onChange={(event) => autosave.update((current) => ({ ...current, channelId: event.target.value }))} disabled={channelDisabled} className={selectClass}>
               <option value="">{loading ? "채널 불러오는 중…" : "채널 선택"}</option>

@@ -109,7 +109,7 @@ export function sameFormationSettings(left: unknown, right: unknown): boolean {
 export function validateFormationSettings(value: FormationSettings): void {
   validateRoundAuctionCatalog(value.auctionCatalog);
   if (!Number.isSafeInteger(value.predictionMinutes) || value.predictionMinutes < 1 || value.predictionMinutes > 10)
-    throw new Error("승부예측 마감 시간은 1~10분 사이 정수로 입력하세요.");
+    throw new Error("승부예측 마감 시간은 1~10분 사이 정수로 입력하십시오.");
   if (
     !["manual", "lottery"].includes(value.roles) ||
     !["keep", "random", "draft", "auction"].includes(value.teams) ||
@@ -123,7 +123,7 @@ export function validateFormationSettings(value: FormationSettings): void {
     typeof value.auctionItemsEnabled !== "boolean" ||
     !["record", "streak"].includes(value.playerCardInfo)
   )
-    throw new Error("편성 방식을 확인하세요.");
+    throw new Error("편성 방식을 확인하십시오.");
   if (
     !Number.isSafeInteger(value.minBid) ||
     value.minBid < 10 ||
@@ -146,14 +146,14 @@ export function validateFormationSettings(value: FormationSettings): void {
     value.strategySeconds < 10 ||
     value.strategySeconds > 120
   )
-    throw new Error("경매 예산·최소 입찰·시간을 확인하세요.");
+    throw new Error("경매 예산·최소 입찰·시간을 확인하십시오.");
   if (
     value.captains &&
     (value.captains.length !== 2 ||
       value.captains[0] === value.captains[1] ||
       value.captains.some((id) => typeof id !== "string" || !id))
   )
-    throw new Error("서로 다른 주장 두 명을 선택하세요.");
+    throw new Error("서로 다른 주장 두 명을 선택하십시오.");
   if (value.roles === "lottery" && value.captains)
     throw new Error("역할 추첨에서는 배정된 탱커 두 명이 주장이 됩니다.");
 }
@@ -298,12 +298,12 @@ export function createFormation(
   validateFormationSettings(settings);
   const players = rosterPlayers(roster);
   if (players.length !== 10 || new Set(players.map((p) => p.id)).size !== 10)
-    throw new Error("출전자 10명을 먼저 저장하세요.");
+    throw new Error("출전자 10명을 먼저 저장하십시오.");
   if (
     !["manual", "lottery"].includes(setup.roles) ||
     !["keep", "random", "draft", "auction"].includes(setup.teams)
   )
-    throw new Error("편성 방식을 확인하세요.");
+    throw new Error("편성 방식을 확인하십시오.");
   const order = shuffle(
     players.map((p) => p.id),
     random,
@@ -318,7 +318,7 @@ export function createFormation(
         new Set(ranking).size !== ranking.length ||
         ranking.some((r) => !ROLES.includes(r))
       )
-        throw new Error("역할 우선순위를 확인하세요.");
+        throw new Error("역할 우선순위를 확인하십시오.");
       // No preference: draw one of the remaining role slots, rather than
       // silently giving every unconfigured player the same role priority.
       const remainingSlots = ROLES.flatMap((role) =>
@@ -403,7 +403,7 @@ export function createFormation(
   const [a, b] = captainIds.map((id) => players.find((p) => p.id === id));
   if (captainIds.length !== 2 || !a || !b || a.id === b.id || a.role !== b.role)
     throw new Error(
-      "같은 역할의 주장 두 명을 선택하세요. 역할 추첨 시 기본 주장은 탱커입니다.",
+      "같은 역할의 주장 두 명을 선택하십시오. 역할 추첨 시 기본 주장은 탱커입니다.",
     );
   state.captains = [a.id, b.id];
   assign(state, "team1", a.id);
@@ -417,7 +417,7 @@ export function createFormation(
     state.nextLotAt = readyAt;
     if (settings.auctionItemsEnabled) {
       if (auctionItems.length < 3)
-        throw new Error("경기 설정의 전략 아이템 구성에서 아이템을 3개 이상 선택하세요.");
+        throw new Error("경기 설정의 전략 아이템 구성에서 아이템을 3개 이상 선택하십시오.");
       state.strategy = {
         items: structuredClone(shuffle(auctionItems, random).slice(0, 3)),
         startedAt: readyAt,
@@ -543,13 +543,13 @@ export function advanceFormation(
   if (command.type === "apply") {
     manager();
     if (state.stage !== "complete" && state.stage !== "review")
-      throw new Error("팀 편성을 먼저 완료하세요.");
+      throw new Error("팀 편성을 먼저 완료하십시오.");
     if (
       state.draw &&
       (state.draw.roleMode === "lottery" || state.mode === "random") &&
       now < state.draw.startedAt + state.draw.durationMs
     )
-      throw new Error("추첨 결과 공개가 끝난 뒤 편성을 적용하세요.");
+      throw new Error("추첨 결과 공개가 끝난 뒤 편성을 적용하십시오.");
     state.stage = "complete";
     state.appliedAt ??= now;
     return state;
@@ -561,7 +561,7 @@ export function advanceFormation(
     const players = rosterPlayers(command.roster);
     if (players.length !== 10 || new Set(players.map((player) => player.id)).size !== 10 ||
       players.some((player) => !state.players.some((assigned) => assigned.id === player.id && assigned.role === player.role)))
-      throw new Error("배정된 역할과 출전자 10명을 유지하며 같은 역할끼리 교환하세요.");
+      throw new Error("배정된 역할과 출전자 10명을 유지하며 같은 역할끼리 교환하십시오.");
     state.roster = structuredClone(command.roster);
     return state;
   }
@@ -598,8 +598,8 @@ export function advanceFormation(
     state.pausedAt = null;
     return state;
   }
-  if (state.pausedAt !== null) throw new Error("진행을 재개한 뒤 조작하세요.");
-  if (now < revealEnd(state)) throw new Error("추첨 결과 공개가 끝난 뒤 진행하세요.");
+  if (state.pausedAt !== null) throw new Error("진행을 재개한 뒤 조작하십시오.");
+  if (now < revealEnd(state)) throw new Error("추첨 결과 공개가 끝난 뒤 진행하십시오.");
   if (command.type === "choose-item") {
     if (state.stage !== "items" || !state.strategy)
       throw new Error("아이템 선택 단계가 아닙니다.");
@@ -634,13 +634,13 @@ export function advanceFormation(
   if (state.stage !== "auction") throw new Error("경매 단계가 아닙니다.");
   if (command.type === "lot") {
     manager();
-    if (state.auction) throw new Error("진행 중인 경매를 먼저 마감하세요.");
+    if (state.auction) throw new Error("진행 중인 경매를 먼저 마감하십시오.");
     if (state.award) throw new Error("낙찰 결과 공개가 끝난 뒤 다음 경매가 시작됩니다.");
     startAuctionLot(state, now);
     return state;
   }
   const lot = state.auction;
-  if (!lot) throw new Error("경매 선수를 먼저 공개하세요.");
+  if (!lot) throw new Error("경매 선수를 먼저 공개하십시오.");
   if (command.type === "bid") {
     if (!["team1", "team2"].includes(command.team))
       throw new Error("잘못된 팀입니다.");
@@ -648,7 +648,7 @@ export function advanceFormation(
       throw new Error("해당 팀 주장만 입찰할 수 있습니다.");
     if (now >= lot.deadline) throw new Error("입찰 시간이 종료되었습니다.");
     if (lot.team === command.team)
-      throw new Error("최고 입찰 중입니다. 상대 팀의 입찰을 기다리세요.");
+      throw new Error("최고 입찰 중입니다. 상대 팀의 입찰을 기다리십시오.");
     if (!canFit(state, command.team, lot.player))
       throw new Error("해당 역할 자리가 없습니다.");
     if (

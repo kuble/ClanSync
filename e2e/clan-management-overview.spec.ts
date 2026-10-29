@@ -103,7 +103,7 @@ test("운영 현황의 회차·배지·중복 제거와 대시보드 공지 3개
     await expect(description).toContainText("2026. 9. 15.");
     await expect(related.getByRole("button",{name:"3주년 미획득",exact:true})).toBeVisible();
     await dialog.getByRole("button", { name:"대표 배지 지정",exact:true }).click();
-    await expect(page.getByText("대표 배지는 최대 3개예요.",{exact:false})).toBeVisible();
+    await expect(page.getByText("대표 배지는 최대 3개입니다.",{exact:false})).toBeVisible();
     await dialog.getByRole("button", { name:"닫기",exact:true }).click();
     await mainCase.locator('[data-badge="founding"]').click();
     await page.getByRole("button", { name:"대표 배지 해제",exact:true }).click();

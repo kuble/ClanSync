@@ -88,7 +88,7 @@ test("flash rooms hide scores and unavailable settings for member hosts and clan
     await expect.poll(async () => (await f.activeRound(room.roomId)).formation_settings).toMatchObject({ showPlayerCardInfo: false });
     const panel = page.getByTestId("clan-balance-session-panel");
     await panel.getByRole("button", { name: "세션 종료", exact: true }).click();
-    const end = page.getByRole("dialog", { name: "내전을 종료할까요?", exact: true });
+    const end = page.getByRole("dialog", { name: "내전을 종료하시겠습니까?", exact: true });
     await expect(end).not.toContainText("점수");
     await end.getByRole("button", { name: "돌아가기", exact: true }).click();
     await panel.getByRole("button", { name: "다음 단계", exact: true }).click();

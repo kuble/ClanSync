@@ -26,7 +26,7 @@ test("경기 결과: 팀 전체 강조·확인 팝업·직접 점수 편집·무
       await expect(panel).toHaveAttribute("data-balance-phase", "match_live", { timeout: 20_000 });
       const result = panel.getByTestId("balance-match-result");
       await expect(result.getByRole("button", { name: "결과 확정", exact: true })).toHaveCount(0);
-      const dialog = page.getByRole("dialog", { name: /로 확정할까요\?/ });
+      const dialog = page.getByRole("dialog", { name: /로 확정하시겠습니까\?/ });
       const confirm = dialog.getByRole("button", { name: "확정", exact: true });
       const blue = result.getByRole("button", { name: "1팀 승리 선택", exact: true });
       await blue.hover();
@@ -145,7 +145,7 @@ test("경기 결과: 팀 전체 강조·확인 팝업·직접 점수 편집·무
       if (outcome === "void") {
         await panel.screenshot({ path: test.info().outputPath("match-result-void-mobile.png") });
         await panel.getByRole("button", { name: "세션 종료", exact: true }).click();
-        const closeSession = page.getByRole("dialog", { name: "내전을 종료할까요?", exact: true });
+        const closeSession = page.getByRole("dialog", { name: "내전을 종료하시겠습니까?", exact: true });
         await expect(closeSession).toBeVisible();
         await closeSession.getByRole("button", { name: "돌아가기", exact: true }).click();
         await page.getByRole("button", { name: "내전 기록 열기", exact: true }).click();

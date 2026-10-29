@@ -22,7 +22,7 @@ test("board comment reaction people: scoped names, keyboard, retry and access bo
     const image = await sharp({ create: { width: 128, height: 128, channels: 4, background: "#50b887" } }).webp().toBuffer();
     expect((await svc.storage.from("clan-emojis").upload(imagePath, image, { contentType: "image/webp" })).error).toBeNull();
     await ok(svc.from("clan_emojis").insert({ id: emojiId, clan_id: f.clanId, name: "응원", image_path: imagePath, slot_index: 1 }));
-    await ok(svc.from("clan_board_posts").insert({ id: postId, clan_id: f.clanId, author_id: f.users[0].id, kind: "free", title: "게시판 공감자", content: "댓글별 공감자를 확인해요." }));
+    await ok(svc.from("clan_board_posts").insert({ id: postId, clan_id: f.clanId, author_id: f.users[0].id, kind: "free", title: "게시판 공감자", content: "댓글별 공감자를 확인합니다." }));
     await ok(svc.from("clan_board_comments").insert([
       { id: ownId, post_id: postId, author_id: f.users[0].id, content: "내 댓글" },
       { id: peerId, post_id: postId, author_id: f.users[1].id, content: "다른 멤버 댓글" },

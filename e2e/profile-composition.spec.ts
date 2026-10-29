@@ -114,7 +114,7 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     for (const label of ["성별", "출생 연도", "가입일"]) await expect(settings.getByRole("term").filter({ hasText: label })).toHaveCount(0);
     await expect(settings.getByText("자동 로그인", { exact: true })).toBeVisible();
     await settings.getByRole("button", { name: "ClanSync 탈퇴", exact: true }).click();
-    const accountLeave = page.getByRole("dialog", { name: "ClanSync를 탈퇴할까요?", exact: true });
+    const accountLeave = page.getByRole("dialog", { name: "ClanSync를 탈퇴하시겠습니까?", exact: true });
     await expect(accountLeave).toContainText("계정과 개인정보, 게임 연동, 보유 코인·아이템·엠블럼이 삭제되며 복구할 수 없습니다.");
     await expect(accountLeave).toContainText("클랜의 공동 기록과 작성한 글·댓글, 기록에 남은 이름은 유지됩니다.");
     await page.setViewportSize({ width: 320, height: 884 });
@@ -138,7 +138,7 @@ test("소개·대표 엠블럼·계정 탭을 유지하고 진열장 없이 프�
     await expect(settings.getByLabel("오버워치 계정", { exact: true })).toHaveCount(0);
     await expect(settings.getByRole("button", { name: "부계정 추가", exact: true })).toHaveCount(0);
     await settings.getByRole("region", { name: "내 클랜", exact: true }).getByRole("button").click();
-    const clanLeave = page.getByRole("dialog", { name: "클랜을 탈퇴할까요?", exact: true });
+    const clanLeave = page.getByRole("dialog", { name: "클랜을 탈퇴하시겠습니까?", exact: true });
     await expect(clanLeave).toContainText("멤버 권한이 종료됩니다.");
     await expect(clanLeave).toContainText("내전 기록과 통계는 남습니다.");
     await clanLeave.getByRole("button", { name: "취소", exact: true }).click();

@@ -27,7 +27,7 @@ export function ProfileClanMemberships({ rows, userId }: { rows: Membership[]; u
       <DialogContent showCloseButton={!pending} className="gap-0 p-0 sm:max-w-md" style={{ scrollbarGutter: "auto" }}>
         <div className="min-w-0 space-y-4 break-keep p-5 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="pr-8 leading-6">클랜을 탈퇴할까요?</DialogTitle>
+            <DialogTitle className="pr-8 leading-6">클랜을 탈퇴하시겠습니까?</DialogTitle>
             <DialogDescription className="leading-relaxed [overflow-wrap:anywhere]">
               <span className="font-medium text-foreground">{leaving?.clanName}</span>에서 탈퇴하며 멤버 권한이 종료됩니다.
             </DialogDescription>

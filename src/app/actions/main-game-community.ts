@@ -45,7 +45,7 @@ export async function createPromotionPostAction(
 
   const t = title.trim().slice(0, 200);
   const body = content.trim().slice(0, 8000);
-  if (!t) return { ok: false, error: "제목을 입력해 주세요." };
+  if (!t) return { ok: false, error: "제목을 입력해 주십시오." };
 
   const { error } = await supabase.from("board_posts").insert({
     game_id: gid,

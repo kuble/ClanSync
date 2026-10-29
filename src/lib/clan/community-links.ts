@@ -31,14 +31,14 @@ export function normalizeChatInviteUrl(service: ChatServiceId, input: string): s
 }
 
 export function parseClanCommunityLinks(input: unknown): { ok: true; links: ClanCommunityLinks } | { ok: false; error: string } {
-  if (!input || typeof input !== "object" || Array.isArray(input)) return { ok: false, error: "채팅방 링크를 확인해 주세요." };
+  if (!input || typeof input !== "object" || Array.isArray(input)) return { ok: false, error: "채팅방 링크를 확인해 주십시오." };
   const source = input as Record<string, unknown>;
   if (Object.keys(source).some(key => !CHAT_SERVICES.some(service => service.id === key))) return { ok: false, error: "지원하지 않는 채팅 서비스입니다." };
   const links = {} as ClanCommunityLinks;
   for (const service of CHAT_SERVICES) {
     const value = source[service.id] ?? "";
     const normalized = typeof value === "string" ? normalizeChatInviteUrl(service.id, value) : null;
-    if (normalized === null) return { ok: false, error: `${service.label}의 올바른 https 초대 링크를 입력해 주세요.` };
+    if (normalized === null) return { ok: false, error: `${service.label}의 올바른 https 초대 링크를 입력해 주십시오.` };
     links[service.id] = normalized;
   }
   return { ok: true, links };

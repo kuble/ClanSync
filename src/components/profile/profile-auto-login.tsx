@@ -15,7 +15,7 @@ export function ProfileAutoLogin({ initial }: { initial: boolean }) {
     const next = event.target.checked;
     busy.current = true; setPending(true); setError("");
     try { const result = await saveAutoLoginAction(next); if (result.ok) setValue(result.value); else setError(result.error); }
-    catch { setError("자동 로그인 설정을 저장하지 못했습니다. 다시 시도해 주세요."); }
+    catch { setError("자동 로그인 설정을 저장하지 못했습니다. 다시 시도해 주십시오."); }
     finally { busy.current = false; setPending(false); }
   }} /></div><span role="status" className="sr-only">{pending ? "자동 로그인 설정 저장 중" : ""}</span>{error && <p role="alert" className={styles.error}>{error}</p>}</div>;
 }

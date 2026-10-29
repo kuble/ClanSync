@@ -414,7 +414,7 @@ test("formation previews support readable pacing, seeking and every screen flow 
     await page.screenshot({ animations: "disabled", path: test.info().outputPath("mobile-timeline-preview.png") });
     await mode.selectOption("draft");
     await chapter("지명");
-    const draftStatus = screen.getByText("0 / 8명 선발 · 역할 정원 안에서 선택해요.", { exact: true });
+    const draftStatus = screen.getByText("0 / 8명 선발 · 역할 정원 안에서 선택합니다.", { exact: true });
     expect(await draftStatus.evaluate((el) => el.getBoundingClientRect().bottom <= el.closest('[data-testid="formation-preview-screen"]')!.getBoundingClientRect().bottom)).toBe(true);
     await dialog.getByRole("tab", { name: "화면 표시", exact: true }).click();
     await page.clock.runFor(300);

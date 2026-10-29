@@ -40,7 +40,7 @@ export function ClanPollResults({ poll, closed }: { poll: SerializedClanPoll; cl
         <span className="mt-1 text-3xl font-semibold tabular-nums">{active ? active.vote_count : total}<span className="ml-1 text-sm font-normal text-muted-foreground">표</span></span>
       </div>
     </div>
-    {!total && <p className="text-center text-sm text-muted-foreground">{closed ? "참여한 표가 없습니다." : "아직 투표한 사람이 없습니다. 첫 표를 남겨 보세요."}</p>}
+    {!total && <p className="text-center text-sm text-muted-foreground">{closed ? "참여한 표가 없습니다." : "아직 투표한 사람이 없습니다. 첫 표를 남겨 보십시오."}</p>}
     <ol className="divide-y divide-border">
       {options.map((option) => {
         const winner = closed && highest > 0 && option.vote_count === highest;
@@ -62,7 +62,7 @@ export function ClanPollResults({ poll, closed }: { poll: SerializedClanPoll; cl
       })}
     </ol>
     <div className="min-h-20 rounded-lg border border-border bg-muted/20 p-3 text-xs" aria-live="polite" aria-label="선택지 참여자">
-      {poll.anonymous ? <p className="text-muted-foreground">익명 투표로 참여자 정보를 표시하지 않습니다.</p> : active ? <><p className="mb-2 font-medium">{active.label} · {active.voters.length}명</p><div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">{active.voters.length ? active.voters.map((name, index) => <span key={index} className="rounded-md bg-muted px-2 py-1">{name}</span>) : <span className="text-muted-foreground">이 선택지에 참여한 사람이 없습니다.</span>}</div></> : <p className="text-muted-foreground">차트나 선택지에 커서를 올리거나 눌러 참여자를 확인하세요.</p>}
+      {poll.anonymous ? <p className="text-muted-foreground">익명 투표로 참여자 정보를 표시하지 않습니다.</p> : active ? <><p className="mb-2 font-medium">{active.label} · {active.voters.length}명</p><div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">{active.voters.length ? active.voters.map((name, index) => <span key={index} className="rounded-md bg-muted px-2 py-1">{name}</span>) : <span className="text-muted-foreground">이 선택지에 참여한 사람이 없습니다.</span>}</div></> : <p className="text-muted-foreground">차트나 선택지에 커서를 올리거나 눌러 참여자를 확인하십시오.</p>}
     </div>
     {poll.multiple_choice && <p className="text-[11px] leading-relaxed text-muted-foreground">다중 선택 투표입니다. 비율은 전체 선택 수를 기준으로 표시합니다.</p>}
   </section>;

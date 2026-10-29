@@ -30,7 +30,7 @@ export function ClanCommunityLinksForm({ gameSlug, clanId, initialLinks, canEdit
         if (!result.ok) { setError(result.error); return; }
         setLinks(result.links); setSaved(result.links);
         toast.success("채팅방 링크를 저장했습니다.");
-      } catch { setError("채팅방 링크를 저장하지 못했습니다. 다시 시도해 주세요."); }
+      } catch { setError("채팅방 링크를 저장하지 못했습니다. 다시 시도해 주십시오."); }
     });
   }
   return <section aria-labelledby="clan-community-links-heading" className="rounded-xl border border-border bg-card p-4 sm:p-5">

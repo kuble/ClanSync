@@ -48,7 +48,7 @@ export function CommunityHome({
             <Megaphone />
             클랜 홍보
           </h2>
-          <span>함께할 클랜을 찾아보세요</span>
+          <span>함께할 클랜을 찾아보십시오</span>
         </header>
         {promos.length ? (
           <div className={styles.promoGrid}>
@@ -77,8 +77,8 @@ export function CommunityHome({
           </div>
         ) : (
           <Empty
-            text="아직 등록된 클랜 홍보가 없어요"
-            sub="우리 클랜을 소개하고 새로운 클랜원을 만나보세요."
+            text="아직 등록된 클랜 홍보가 없습니다"
+            sub="우리 클랜을 소개하고 새로운 클랜원을 만나보십시오."
           />
         )}
         <Button
@@ -124,8 +124,8 @@ export function CommunityHome({
           </div>
         ) : (
           <Empty
-            text="모집 중인 스크림이 없어요"
-            sub="상대 클랜을 찾고 함께 일정을 정해보세요."
+            text="모집 중인 스크림이 없습니다"
+            sub="상대 클랜을 찾고 함께 일정을 정해보십시오."
           />
         )}
         <Button
@@ -165,8 +165,8 @@ export function CommunityHome({
           </ul>
         ) : (
           <Empty
-            text="같이할 팀원을 기다리고 있어요"
-            sub="파티를 모집하고 함께 플레이하세요."
+            text="같이할 팀원을 기다리고 있습니다"
+            sub="파티를 모집하고 함께 플레이하십시오."
           />
         )}
         <Button
@@ -200,8 +200,8 @@ export function CommunityHome({
           </ol>
         ) : (
           <Empty
-            text="활동 기록을 기다리고 있어요"
-            sub="플레이가 쌓이면 클랜의 활동을 확인할 수 있어요."
+            text="활동 기록을 기다리고 있습니다"
+            sub="플레이가 쌓이면 클랜의 활동을 확인할 수 있습니다."
           />
         )}
         <Button

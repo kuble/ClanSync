@@ -38,8 +38,8 @@ test("투표 목록·선택·변경·결과·직접 링크와 모바일 복수 �
       if (!options) throw new Error("Test options were not returned");
       return { id: poll.id, options };
     }
-    const single = await makePoll("이번 주 내전은 언제 할까요?", ["금요일 오후 9시", "토요일 오후 8시", "일요일 오후 8시"]);
-    const multiple = await makePoll("참여하고 싶은 이벤트를 골라 주세요", Array.from({ length: 12 }, (_, index) => index === 11 ? "마지막 선택지도 잘리는 부분 없이 읽을 수 있도록 긴 이벤트 이름을 모두 표시해 주세요" : `이벤트 ${index + 1}`), true);
+    const single = await makePoll("이번 주 내전은 언제 하시겠습니까?", ["금요일 오후 9시", "토요일 오후 8시", "일요일 오후 8시"]);
+    const multiple = await makePoll("참여하고 싶은 이벤트를 골라 주십시오", Array.from({ length: 12 }, (_, index) => index === 11 ? "마지막 선택지도 잘리는 부분 없이 읽을 수 있도록 긴 이벤트 이름을 모두 표시해 주십시오" : `이벤트 ${index + 1}`), true);
     const tied = await makePoll("다음 내전 시간 투표", ["금요일 오후 9시", "토요일 오후 8시", "일요일 오후 8시"], false, true);
     const empty = await makePoll("마감된 빈 투표", ["첫 번째 선택지", "두 번째 선택지"], false, false, true);
     await ok(f.service.from("poll_votes").insert([
@@ -58,8 +58,8 @@ test("투표 목록·선택·변경·결과·직접 링크와 모바일 복수 �
     await expect(page.getByRole("region", { name: "종료된 투표", exact: true }).getByRole("button")).toHaveCount(2);
     await page.getByRole("radio", { name: "활성 투표", exact: true }).click();
     await capture(page, "poll-list-desktop.png");
-    await page.getByRole("button", { name: "이번 주 내전은 언제 할까요? 투표하기", exact: true }).click();
-    const dialog = page.getByRole("dialog", { name: "이번 주 내전은 언제 할까요?", exact: true });
+    await page.getByRole("button", { name: "이번 주 내전은 언제 하시겠습니까? 투표하기", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "이번 주 내전은 언제 하시겠습니까?", exact: true });
     const submit = dialog.getByRole("button", { name: "투표하기", exact: true });
     await expect(submit).toBeDisabled();
     await expect(dialog.getByRole("radio")).toHaveCount(3);
@@ -96,11 +96,11 @@ test("투표 목록·선택·변경·결과·직접 링크와 모바일 복수 �
     expect(await readVote()).toEqual([{ option_id: single.options[2].id }]);
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
-    await expect(page.getByRole("button", { name: "이번 주 내전은 언제 할까요? 내 투표 보기", exact: true })).toBeFocused();
+    await expect(page.getByRole("button", { name: "이번 주 내전은 언제 하시겠습니까? 내 투표 보기", exact: true })).toBeFocused();
 
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.getByRole("button", { name: "참여하고 싶은 이벤트를 골라 주세요 투표하기", exact: true }).click();
-    const multiDialog = page.getByRole("dialog", { name: "참여하고 싶은 이벤트를 골라 주세요", exact: true });
+    await page.getByRole("button", { name: "참여하고 싶은 이벤트를 골라 주십시오 투표하기", exact: true }).click();
+    const multiDialog = page.getByRole("dialog", { name: "참여하고 싶은 이벤트를 골라 주십시오", exact: true });
     await expect(multiDialog.getByRole("checkbox")).toHaveCount(12);
     await multiDialog.getByRole("checkbox", { name: "이벤트 1", exact: true }).press("Space");
     await capture(page, "poll-ballot-mobile.png");

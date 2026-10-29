@@ -81,7 +81,7 @@ test("guest records accumulate, require staff approval and revert without moving
     await page.getByRole("button", { name: `${f.users[1].nickname} 이전 기록 관리`, exact: true }).first().click();
     const dialog = page.getByRole("dialog", { name: "이전 내전 기록", exact: true });
     await dialog.getByRole("button", { name: "연결 해제", exact: true }).click();
-    await page.getByRole("dialog", { name: "이전 기록 연결을 해제할까요?", exact: true }).getByRole("button", { name: "연결 해제", exact: true }).click();
+    await page.getByRole("dialog", { name: "이전 기록 연결을 해제하시겠습니까?", exact: true }).getByRole("button", { name: "연결 해제", exact: true }).click();
     await expect(page.getByRole("dialog")).toBeHidden();
     expect(await played(guest!)).toBe(2);
     expect(await played(f.users[1].id)).toBe(2);

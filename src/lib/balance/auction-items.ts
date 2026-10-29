@@ -22,7 +22,7 @@ export function validateRoundAuctionCatalog(value: unknown): asserts value is Ro
     catalog.items.some((item) => !item || typeof item.id !== "string" || !uuid.test(item.id) || auctionItemValidationError(item)) ||
     new Set(catalog.items.map((item) => item.id)).size !== catalog.items.length ||
     new Set(catalog.items.map((item) => item.name.trim().toLowerCase())).size !== catalog.items.length)
-    throw new Error("아이템 목록을 확인하세요. 내전 전용 아이템은 최대 30개까지 등록할 수 있습니다.");
+    throw new Error("아이템 목록을 확인하십시오. 내전 전용 아이템은 최대 30개까지 등록할 수 있습니다.");
 }
 
 export function normalizeRoundAuctionCatalog(catalog: RoundAuctionCatalog): RoundAuctionCatalog {
@@ -70,14 +70,14 @@ export const AUCTION_ITEM_EXAMPLES: Omit<ClanAuctionItem, "id">[] = [
 
 export function auctionItemValidationError(item: Omit<ClanAuctionItem, "id">) {
   if (typeof item.name !== "string" || !item.name.trim() || item.name.trim().length > 80) {
-    return "아이템 이름은 1~80자로 입력해 주세요.";
+    return "아이템 이름은 1~80자로 입력해 주십시오.";
   }
   if (typeof item.description !== "string" || item.description.trim().length > 500) {
-    return "아이템 설명은 500자 이내로 입력해 주세요.";
+    return "아이템 설명은 500자 이내로 입력해 주십시오.";
   }
   if (!Number.isInteger(item.cost) || item.cost < 0 || item.cost > 100000 || item.cost % 10 !== 0) {
-    return "가격은 0~100,000pt 사이에서 10pt 단위로 입력해 주세요.";
+    return "가격은 0~100,000pt 사이에서 10pt 단위로 입력해 주십시오.";
   }
-  if (typeof item.enabled !== "boolean") return "아이템 사용 여부를 확인해 주세요.";
+  if (typeof item.enabled !== "boolean") return "아이템 사용 여부를 확인해 주십시오.";
   return null;
 }

@@ -29,7 +29,7 @@ export function BalanceEditorMap({ gameSlug, clanId, sessionId, selectedMap, can
       setMap(label);
       try {
         if (beforeSelect && !(await beforeSelect()).ok) {
-          toast.error("명단을 저장한 뒤 맵을 다시 선택하세요.");
+          toast.error("명단을 저장한 뒤 맵을 다시 선택하십시오.");
           setOpen(true);
           return;
         }
@@ -40,7 +40,7 @@ export function BalanceEditorMap({ gameSlug, clanId, sessionId, selectedMap, can
         }
         router.refresh();
       } catch {
-        toast.error("맵을 저장하지 못했습니다. 다시 선택하세요.");
+        toast.error("맵을 저장하지 못했습니다. 다시 선택하십시오.");
         setOpen(true);
       }
     });

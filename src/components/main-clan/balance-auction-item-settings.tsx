@@ -47,11 +47,11 @@ export function BalanceAuctionItemSettings({ gameSlug, clanId, roundId, value, o
         <ClanAuctionItemSettings gameSlug={gameSlug} clanId={clanId} items={loaded.items} onSaved={refresh} disabled={disabled} />
       </> : <>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className={`text-xs font-medium ${available < 3 ? "text-warning" : "text-primary"}`} role="status">선택한 아이템 {available}개{available < 3 ? " · 3개 이상 선택해 주세요." : " · 경매마다 3개 추첨"}</p>
+          <p className={`text-xs font-medium ${available < 3 ? "text-warning" : "text-primary"}`} role="status">선택한 아이템 {available}개{available < 3 ? " · 3개 이상 선택해 주십시오." : " · 경매마다 3개 추첨"}</p>
           {loaded.canEditShared && <Button variant="outline" size="sm" disabled={disabled} onClick={() => setManaging(true)}><Settings2 className="size-3.5" />기본 아이템 관리</Button>}
         </div>
         <section className="space-y-3" aria-label="클랜 기본 아이템 선택">
-          <h4 className="flex items-center gap-2 text-sm font-semibold"><HelpText label="클랜 기본 아이템" help="클랜에서 등록한 아이템입니다. 이 내전에서 쓸 항목을 선택하세요. 깜짝 내전에서는 내용과 가격을 수정할 수 없습니다." /><span className="rounded bg-muted px-2 py-0.5 text-[10px] font-normal text-muted-foreground">{loaded.flash ? "선택만 가능" : "클랜 공통"}</span></h4>
+          <h4 className="flex items-center gap-2 text-sm font-semibold"><HelpText label="클랜 기본 아이템" help="클랜에서 등록한 아이템입니다. 이 내전에서 쓸 항목을 선택하십시오. 깜짝 내전에서는 내용과 가격을 수정할 수 없습니다." /><span className="rounded bg-muted px-2 py-0.5 text-[10px] font-normal text-muted-foreground">{loaded.flash ? "선택만 가능" : "클랜 공통"}</span></h4>
           {loaded.items.length === 0 ? <p className="rounded-lg border border-dashed p-4 text-xs text-muted-foreground">등록된 기본 아이템이 없습니다.</p> : <ul className="divide-y rounded-xl border">
             {loaded.items.map((item) => <li key={item.id}><label className={`flex items-center gap-3 p-3 ${!item.enabled ? "opacity-50" : "cursor-pointer hover:bg-muted/40"}`}>
               <input type="checkbox" className="size-4 shrink-0 accent-primary" aria-label={`${item.name} 선택`} checked={item.enabled && !catalog.excludedItemIds.includes(item.id)} disabled={disabled || !item.enabled} onChange={(event) => onChange({ ...catalog, excludedItemIds: event.target.checked ? catalog.excludedItemIds.filter((id) => id !== item.id) : [...catalog.excludedItemIds, item.id] })} />

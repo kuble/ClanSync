@@ -57,7 +57,7 @@ function parseRepeatRule(
     const repeat_weekdays = [...set].sort((a, b) => a - b);
     if (repeat_weekdays.length === 0) {
       return {
-        error: "매주 반복일 때 요일을 하나 이상 선택해 주세요.",
+        error: "매주 반복일 때 요일을 하나 이상 선택해 주십시오.",
       };
     }
     return {

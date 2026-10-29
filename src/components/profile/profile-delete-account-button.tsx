@@ -22,10 +22,10 @@ export function ProfileDeleteAccountButton() {
       <DialogContent showCloseButton={!pending} className="gap-0 p-0 sm:max-w-md" style={{ scrollbarGutter: "auto" }}>
         <div className="min-w-0 space-y-4 break-keep p-5 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="pr-8 leading-6">ClanSync를 탈퇴할까요?</DialogTitle>
+            <DialogTitle className="pr-8 leading-6">ClanSync를 탈퇴하시겠습니까?</DialogTitle>
             <DialogDescription className="leading-relaxed">계정과 개인정보, 게임 연동, 보유 코인·아이템·엠블럼이 삭제되며 복구할 수 없습니다.</DialogDescription>
           </DialogHeader>
-          <p className="text-sm leading-relaxed text-muted-foreground">클랜의 공동 기록과 작성한 글·댓글, 기록에 남은 이름은 유지됩니다. 삭제할 게시물은 탈퇴 전에 정리해 주세요.</p>
+          <p className="text-sm leading-relaxed text-muted-foreground">클랜의 공동 기록과 작성한 글·댓글, 기록에 남은 이름은 유지됩니다. 삭제할 게시물은 탈퇴 전에 정리해 주십시오.</p>
           {error ? <p className="text-sm leading-relaxed text-destructive" role="alert">{error}</p> : null}
         </div>
         <DialogFooter className="m-0 px-5 py-4 sm:px-6"><Button type="button" className="h-11 sm:h-8" variant="outline" disabled={pending} onClick={() => setOpen(false)}>취소</Button><Button type="button" className="h-11 sm:h-8" variant="destructive" disabled={pending} onClick={confirmDelete}>{pending ? "처리 중…" : "ClanSync 탈퇴하기"}</Button></DialogFooter>

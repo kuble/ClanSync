@@ -17,7 +17,7 @@ export function StatsMemberPicker({ people, onSelect, settings }: { settings?: R
     return (sort === "recent" ? latest(b) - latest(a) : 0) || a.nickname.localeCompare(b.nickname, "ko");
   });
   return <section className="space-y-4" aria-label="개인 기록 멤버 선택">
-    <h3 className="text-lg font-bold">멤버를 선택하세요</h3>
+    <h3 className="text-lg font-bold">멤버를 선택하십시오</h3>
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="relative min-w-0 flex-1 sm:max-w-sm"><Search aria-hidden className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input aria-label="멤버 이름 검색" placeholder="멤버 이름 검색" value={query} onChange={(event) => setQuery(event.target.value)} className="pl-9" /></div>
       <div className="ml-auto flex min-w-0 items-center gap-2">

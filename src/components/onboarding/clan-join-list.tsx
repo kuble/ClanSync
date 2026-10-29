@@ -58,7 +58,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
         setBlockName(result.error.slice("PENDING_ELSEWHERE:".length)); setReplaceOpen(true);
       } else { setError(result.error); toast.error(result.error); }
     } catch {
-      setError("가입 신청을 보내지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      setError("가입 신청을 보내지 못했습니다. 잠시 후 다시 시도해 주십시오.");
     } finally { setBusy(false); }
   }
 
@@ -92,9 +92,9 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
 
   return <>
     {pinnedPendingClan ? <section aria-label="내가 신청한 클랜" className="mb-5" data-testid="clan-join-pinned-pending-section"><p className="text-primary mb-3 text-xs font-semibold">신청 진행 중인 클랜</p>{renderCard(pinnedPendingClan, true)}</section> : null}
-    {displayClans.length ? <ul className={styles.clanList}>{displayClans.map((clan) => <li key={clan.id}>{renderCard(clan)}</li>)}</ul> : <p className={styles.empty}>{pinnedPendingClan ? "검색 결과에 다른 클랜이 없습니다. 검색어와 필터를 바꿔 보세요." : "조건에 맞는 클랜이 없습니다. 검색어를 바꾸거나 새 클랜을 만들어 보세요."}</p>}
+    {displayClans.length ? <ul className={styles.clanList}>{displayClans.map((clan) => <li key={clan.id}>{renderCard(clan)}</li>)}</ul> : <p className={styles.empty}>{pinnedPendingClan ? "검색 결과에 다른 클랜이 없습니다. 검색어와 필터를 바꿔 보십시오." : "조건에 맞는 클랜이 없습니다. 검색어를 바꾸거나 새 클랜을 만들어 보십시오."}</p>}
     <Dialog open={replaceOpen} onOpenChange={(open) => { if (!busy) setReplaceOpen(open); }}>
-      <DialogContent><DialogHeader><DialogTitle>진행 중인 신청이 있습니다</DialogTitle><DialogDescription>현재 「{blockName}」에 가입 신청 중입니다. 취소하고 「{selected?.name}」에 새로 신청할까요?</DialogDescription></DialogHeader>
+      <DialogContent><DialogHeader><DialogTitle>진행 중인 신청이 있습니다</DialogTitle><DialogDescription>현재 「{blockName}」에 가입 신청 중입니다. 취소하고 「{selected?.name}」에 새로 신청하시겠습니까?</DialogDescription></DialogHeader>
         <label className="grid gap-2 text-xs">가입 메시지 (선택)<textarea className="border-border min-h-24 rounded-md border p-3 text-sm" value={message} maxLength={2000} disabled={busy} onChange={(event) => setMessage(event.target.value)} /></label>
         {error ? <p className={styles.error} role="alert">{error}</p> : null}
         <DialogFooter><Button type="button" variant="outline" disabled={busy} onClick={() => setReplaceOpen(false)}>아니오</Button><Button type="button" disabled={busy} onClick={() => void runSubmit(true)}>{busy ? "처리 중…" : "취소 후 새로 신청"}</Button></DialogFooter>
@@ -102,7 +102,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
     </Dialog>
     <Dialog open={details != null} onOpenChange={(open) => { if (!open) setDetails(null); }}>
       <DialogContent className="sm:max-w-xl">
-        <DialogHeader><div className={styles.detailHeading}><span className={styles.clanEmblem} aria-hidden="true">{details?.name.slice(0, 1)}</span><div><DialogTitle>{details?.name}</DialogTitle><DialogDescription className="mt-2">클랜 소개와 가입 정보를 확인하세요.</DialogDescription></div></div></DialogHeader>
+        <DialogHeader><div className={styles.detailHeading}><span className={styles.clanEmblem} aria-hidden="true">{details?.name.slice(0, 1)}</span><div><DialogTitle>{details?.name}</DialogTitle><DialogDescription className="mt-2">클랜 소개와 가입 정보를 확인하십시오.</DialogDescription></div></div></DialogHeader>
         {details ? <div className={styles.detailBody}>
           <section><h3>클랜 소개</h3><p>{details.description || "등록된 소개가 없습니다."}</p></section>
           <section><h3>클랜 규칙</h3><p>{details.rules || "등록된 규칙이 없습니다."}</p></section>

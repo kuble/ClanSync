@@ -66,7 +66,7 @@ export function ClanComments<T extends ClanComment>({ comments, clanId, targetKi
               {comment.canDelete && <Button type="button" variant="ghost" size="icon-sm" aria-label={`${comment.nickname} 댓글 삭제`} title="댓글 삭제" disabled={disabled} className="text-muted-foreground hover:text-destructive" onClick={() => setConfirmDelete(comment.id)}><Trash2 className="size-3.5" aria-hidden /></Button>}
             </div>
           </div>
-          {confirmDelete === comment.id && comment.canDelete && <div className={cn("flex flex-wrap items-center gap-2 text-xs", comment.isMine && "justify-end")}><span>이 댓글을 삭제할까요?</span><Button type="button" size="xs" variant="destructive" disabled={disabled} onClick={() => void onDelete(comment)}>삭제 확인</Button><Button type="button" size="xs" variant="ghost" disabled={disabled} onClick={() => setConfirmDelete(null)}>취소</Button></div>}
+          {confirmDelete === comment.id && comment.canDelete && <div className={cn("flex flex-wrap items-center gap-2 text-xs", comment.isMine && "justify-end")}><span>이 댓글을 삭제하시겠습니까?</span><Button type="button" size="xs" variant="destructive" disabled={disabled} onClick={() => void onDelete(comment)}>삭제 확인</Button><Button type="button" size="xs" variant="ghost" disabled={disabled} onClick={() => setConfirmDelete(null)}>취소</Button></div>}
         </div>
       </div>
     </li>;

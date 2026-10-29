@@ -13,12 +13,12 @@ export function ClanBalanceAutoCloseSettings({ gameSlug, clanId, initialEnabled,
 }) {
   const closeSave = useAutosave({ enabled: initialEnabled, hours: String(initialHours) }, async (draft) => {
     const hours = Number(draft.hours);
-    if (!Number.isInteger(hours) || hours < 1 || hours > 168) return { ok: false, error: "자동 종료 시간은 1~168시간 사이의 정수로 입력해 주세요." };
+    if (!Number.isInteger(hours) || hours < 1 || hours > 168) return { ok: false, error: "자동 종료 시간은 1~168시간 사이의 정수로 입력해 주십시오." };
     return updateBalanceAutoCloseSettingsAction(gameSlug, clanId, draft.enabled, hours);
   });
   const openSave = useAutosave({ enabled: initialOpenEnabled, minutes: String(initialOpenMinutes) }, async (draft) => {
     const minutes = Number(draft.minutes);
-    if (!Number.isInteger(minutes) || minutes < 1 || minutes > 1440) return { ok: false, error: "자동 생성 시점은 1~1440분 사이의 정수로 입력해 주세요." };
+    if (!Number.isInteger(minutes) || minutes < 1 || minutes > 1440) return { ok: false, error: "자동 생성 시점은 1~1440분 사이의 정수로 입력해 주십시오." };
     return updateBalanceAutoOpenSettingsAction(gameSlug, clanId, draft.enabled, minutes);
   });
   const saves = [openSave, closeSave];

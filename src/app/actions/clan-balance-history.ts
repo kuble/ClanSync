@@ -59,7 +59,7 @@ export async function loadBalanceHistoryAction(
     !gameSlug ||
     gameSlug.length > 80
   )
-    return { ok: false, error: "내전 기록 요청을 확인하세요." };
+    return { ok: false, error: "내전 기록 요청을 확인하십시오." };
   try {
     // The cookie-scoped client preserves clan membership RLS for every read.
     const client = await createClient();
@@ -163,7 +163,7 @@ export async function loadBalanceHistoryAction(
   } catch {
     return {
       ok: false,
-      error: "내전 기록을 불러오지 못했습니다. 다시 시도하세요.",
+      error: "내전 기록을 불러오지 못했습니다. 다시 시도하십시오.",
     };
   }
 }

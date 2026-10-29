@@ -38,7 +38,7 @@ function roleLeadCopy(role: ClanMemberRole): string {
   if (role === "officer") {
     return "Premium 전용 항목입니다. 플랜 변경은 클랜장이 진행합니다.";
   }
-  return "Premium 전용 항목입니다. 클랜장에게 문의해 주세요.";
+  return "Premium 전용 항목입니다. 클랜장에게 문의해 주십시오.";
 }
 
 export function StorePremiumPlanDialog({

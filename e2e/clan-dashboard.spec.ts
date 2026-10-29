@@ -52,7 +52,7 @@ test("clan dashboard shows real notices, rules, local repeats and member-only MV
         await svc
           .from("clans")
           .update({
-            rules: Array.from({ length: 16 }, (_, index) => `${index + 1}. ${title} 규칙: 서로 존중하고 즐겁게 게임해요.`).join("\n"),
+            rules: Array.from({ length: 16 }, (_, index) => `${index + 1}. ${title} 규칙: 서로 존중하고 즐겁게 게임합니다.`).join("\n"),
             subscription_tier: "free",
           })
           .eq("id", clanId)

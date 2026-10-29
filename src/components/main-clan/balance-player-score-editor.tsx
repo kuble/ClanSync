@@ -19,14 +19,14 @@ export function BalancePlayerScoreEditor({ gameSlug, clanId, sessionId, userId, 
   const editor = useRef<HTMLSpanElement>(null);
   function save() {
     const score = Number(draft);
-    if (!draft.trim() || !Number.isFinite(score) || score < MA_SCORE_MIN || score > MA_SCORE_MAX) { toast.error(`평가 점수는 ${MA_SCORE_MIN}부터 ${MA_SCORE_MAX}까지 입력해 주세요.`); return; }
+    if (!draft.trim() || !Number.isFinite(score) || score < MA_SCORE_MIN || score > MA_SCORE_MAX) { toast.error(`평가 점수는 ${MA_SCORE_MIN}부터 ${MA_SCORE_MAX}까지 입력해 주십시오.`); return; }
     start(async () => {
       try {
         const result = await updateBalanceMaSnapshotAction(gameSlug, clanId, sessionId, JSON.stringify({ [userId]: { m: score, a: null } }));
         if (!result.ok) { toast.error(result.error); return; }
         setEditing(false);
         router.refresh();
-      } catch { toast.error("점수를 저장하지 못했습니다. 다시 시도하세요."); }
+      } catch { toast.error("점수를 저장하지 못했습니다. 다시 시도하십시오."); }
     });
   }
   return <span ref={editor} data-score-editor={editing ? "editing" : "idle"} className={`pointer-events-auto relative shrink-0 ${editing ? "z-60 w-32 max-w-full" : "z-20"}`} onClick={(event) => event.stopPropagation()}>

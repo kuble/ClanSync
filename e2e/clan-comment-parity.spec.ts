@@ -32,7 +32,7 @@ test("board and stats comments share basic and custom emoji behavior", async ({ 
   test.setTimeout(120_000);
   const f = await createIsolatedBalanceFixture(2), svc = f.service;
   const postId = randomUUID(), boardId = randomUUID(), hofId = randomUUID(), emojiId = randomUUID();
-  const base = f.path.replace(/\/balance$/, ""), content = "상대가 들어오기 전에 위치를 먼저 잡아보세요.\n방벽 뒤에서 시야를 확보하면 다음 교전에 대응하기 쉬워요.";
+  const base = f.path.replace(/\/balance$/, ""), content = "상대가 들어오기 전에 위치를 먼저 잡아보십시오.\n방벽 뒤에서 시야를 확보하면 다음 교전에 대응하기 쉬워요.";
   const peerContent = "말씀하신 위치에서 다시 해볼게요. 궁극기는 다음 교전에 쓰면 될까요?";
   const imagePath = `${f.clanId}/${emojiId}/${randomUUID()}.webp`;
   try {
@@ -151,18 +151,18 @@ test("comment groups share identity until the author or KST day changes", async 
   const f = await createIsolatedBalanceFixture(2), svc = f.service, postId = randomUUID();
   const base = f.path.replace(/\/balance$/, "");
   const messages = [
-    { author_id: f.users[0].id, content: "어제 대화를 마무리해요.", created_at: "2026-10-28T14:59:00Z" },
-    { author_id: f.users[0].id, content: "오늘 첫 댓글이에요.", created_at: "2026-10-28T15:00:05Z" },
-    { author_id: f.users[0].id, content: "같은 사람이 이어서 남긴 댓글이에요.", created_at: "2026-10-28T15:00:45Z" },
-    { author_id: f.users[1].id, content: "다른 멤버가 이야기해요.", created_at: "2026-10-28T15:00:46Z" },
-    { author_id: f.users[1].id, content: "다른 멤버도 연속으로 이야기해요.", created_at: "2026-10-28T15:00:55Z" },
-    { author_id: f.users[0].id, content: "다시 대화에 참여해요.", created_at: "2026-10-28T15:00:59Z" },
+    { author_id: f.users[0].id, content: "어제 대화를 마무리합니다.", created_at: "2026-10-28T14:59:00Z" },
+    { author_id: f.users[0].id, content: "오늘 첫 댓글입니다.", created_at: "2026-10-28T15:00:05Z" },
+    { author_id: f.users[0].id, content: "같은 사람이 이어서 남긴 댓글입니다.", created_at: "2026-10-28T15:00:45Z" },
+    { author_id: f.users[1].id, content: "다른 멤버가 이야기합니다.", created_at: "2026-10-28T15:00:46Z" },
+    { author_id: f.users[1].id, content: "다른 멤버도 연속으로 이야기합니다.", created_at: "2026-10-28T15:00:55Z" },
+    { author_id: f.users[0].id, content: "다시 대화에 참여합니다.", created_at: "2026-10-28T15:00:59Z" },
     { author_id: f.users[0].id, content: "분이 바뀌면 시간을 다시 보여요.", created_at: "2026-10-28T15:01:00Z" },
     { author_id: null, content: "연결이 해제된 작성자의 댓글 하나", created_at: "2026-10-28T15:01:10Z" },
     { author_id: null, content: "연결이 해제된 작성자의 댓글 둘", created_at: "2026-10-28T15:01:20Z" },
   ];
   try {
-    expect((await svc.from("clan_board_posts").insert({ id: postId, clan_id: f.clanId, author_id: f.users[0].id, kind: "free", title: "연속 댓글", content: "대화를 묶어서 읽어요." })).error).toBeNull();
+    expect((await svc.from("clan_board_posts").insert({ id: postId, clan_id: f.clanId, author_id: f.users[0].id, kind: "free", title: "연속 댓글", content: "대화를 묶어서 읽습니다." })).error).toBeNull();
     expect((await svc.from("clan_board_comments").insert(messages.map(message => ({ ...message, post_id: postId })))).error).toBeNull();
     expect((await svc.from("clan_hof_comments").insert(messages.map(message => ({ ...message, clan_id: f.clanId, ranking: "rate", period_key: "all" })))).error).toBeNull();
     await loginIsolatedBalanceUser(page, f.users[0]);

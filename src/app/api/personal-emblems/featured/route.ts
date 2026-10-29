@@ -5,7 +5,7 @@ import { loadProfilePersonalEmblemCase } from "@/lib/personal-emblems/load-profi
 const headers = { "Cache-Control": "private, no-store" };
 export async function GET(request: Request) {
   const userId = new URL(request.url).searchParams.get("player");
-  if (!userId || !uuidPattern.test(userId)) return Response.json({ ok: false, error: "플레이어 정보를 확인해 주세요." }, { status: 400, headers });
+  if (!userId || !uuidPattern.test(userId)) return Response.json({ ok: false, error: "플레이어 정보를 확인해 주십시오." }, { status: 400, headers });
   const client = await createClient();
   const { data: { user } } = await client.auth.getUser();
   if (!user) return Response.json({ ok: false, error: "로그인이 필요합니다." }, { status: 401, headers });

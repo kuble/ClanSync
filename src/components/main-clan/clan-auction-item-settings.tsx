@@ -46,7 +46,7 @@ export function ClanAuctionItemSettings({ gameSlug, clanId, items, loadError = f
         toast.success(message);
         if (!onChange) router.refresh();
       } catch {
-        toast.error("연결을 확인한 뒤 다시 시도하세요. 입력한 내용은 유지됩니다.");
+        toast.error("연결을 확인한 뒤 다시 시도하십시오. 입력한 내용은 유지됩니다.");
       }
     });
   }
@@ -78,7 +78,7 @@ export function ClanAuctionItemSettings({ gameSlug, clanId, items, loadError = f
       cost: Number(data.get("cost")),
       enabled: data.get("enabled") === "on",
     };
-    run(() => saveItem(editor && editor !== "new" ? editor.id : null, item), onChange ? "구성에 반영했습니다. 설정 적용을 눌러 저장하세요." : "아이템을 저장했습니다.", true);
+    run(() => saveItem(editor && editor !== "new" ? editor.id : null, item), onChange ? "구성에 반영했습니다. 설정 적용을 눌러 저장하십시오." : "아이템을 저장했습니다.", true);
   }
 
   return (
@@ -96,10 +96,10 @@ export function ClanAuctionItemSettings({ gameSlug, clanId, items, loadError = f
         <span className={cn("font-medium", !onChange && activeCount < 3 ? "text-warning" : "text-primary")}>사용 중 {activeCount}개{!onChange && activeCount < 3 && " · 3개 이상 등록하면 사용할 수 있습니다."}</span>
       </div>
       {loadError ? (
-        <p className="mt-4 text-sm text-destructive" role="alert">아이템 목록을 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요.</p>
+        <p className="mt-4 text-sm text-destructive" role="alert">아이템 목록을 불러오지 못했습니다. 새로고침 후 다시 확인해 주십시오.</p>
       ) : items.length === 0 ? (
         <div className="mt-4 rounded-lg border border-dashed border-border px-4 py-5 text-center">
-          <p className="text-sm text-muted-foreground">{onChange ? "이 내전에서 쓸 아이템을 추가해 보세요." : "클랜만의 아이템과 가격을 등록해 보세요."}</p>
+          <p className="text-sm text-muted-foreground">{onChange ? "이 내전에서 쓸 아이템을 추가해 보십시오." : "클랜만의 아이템과 가격을 등록해 보십시오."}</p>
           {!onChange && <Button className="mt-3" variant="secondary" size="sm" disabled={pending} onClick={() => run(() => addClanAuctionItemExamplesAction(gameSlug, clanId), "예시 아이템 3개를 추가했습니다.")}>예시 아이템 추가</Button>}
         </div>
       ) : (
@@ -120,7 +120,7 @@ export function ClanAuctionItemSettings({ gameSlug, clanId, items, loadError = f
                   <Button variant="ghost" size="icon-sm" aria-label={`${item.name} 삭제`} disabled={pending} onClick={() => setDeleteId(item.id)}><Trash2 className="size-3.5" aria-hidden="true" /></Button>
                 </div>
               </div>
-              {deleteId === item.id && <div className="mt-3 flex flex-wrap items-center justify-end gap-2 text-xs"><span className="mr-auto text-muted-foreground">이 아이템을 삭제할까요?</span><Button variant="ghost" size="sm" disabled={pending} onClick={() => setDeleteId(null)}>취소</Button><Button variant="destructive" size="sm" disabled={pending} onClick={() => run(() => deleteItem(item.id), "아이템을 삭제했습니다.")}>삭제</Button></div>}
+              {deleteId === item.id && <div className="mt-3 flex flex-wrap items-center justify-end gap-2 text-xs"><span className="mr-auto text-muted-foreground">이 아이템을 삭제하시겠습니까?</span><Button variant="ghost" size="sm" disabled={pending} onClick={() => setDeleteId(null)}>취소</Button><Button variant="destructive" size="sm" disabled={pending} onClick={() => run(() => deleteItem(item.id), "아이템을 삭제했습니다.")}>삭제</Button></div>}
             </li>
           ))}
         </ul>
@@ -131,7 +131,7 @@ export function ClanAuctionItemSettings({ gameSlug, clanId, items, loadError = f
             <div className="space-y-2"><Label htmlFor="auction-item-name">아이템 이름</Label><Input id="auction-item-name" name="name" required maxLength={80} defaultValue={editor === "new" ? "" : editor.name} placeholder="예: 맵 선정권" disabled={pending} autoFocus /></div>
             <div className="space-y-2"><Label htmlFor="auction-item-cost">가격 (pt)</Label><Input id="auction-item-cost" name="cost" type="number" min={0} max={100000} step={10} required defaultValue={editor === "new" ? 100 : editor.cost} disabled={pending} /></div>
           </div>
-          <div className="space-y-2"><Label htmlFor="auction-item-description">설명과 적용 방법</Label><textarea id="auction-item-description" name="description" maxLength={500} rows={3} defaultValue={editor === "new" ? "" : editor.description} placeholder="권한의 범위와 적용 방법을 적어 주세요." disabled={pending} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50" /></div>
+          <div className="space-y-2"><Label htmlFor="auction-item-description">설명과 적용 방법</Label><textarea id="auction-item-description" name="description" maxLength={500} rows={3} defaultValue={editor === "new" ? "" : editor.description} placeholder="권한의 범위와 적용 방법을 적어 주십시오." disabled={pending} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50" /></div>
           <div className="flex flex-wrap items-center justify-between gap-3"><label className="flex items-center gap-2 text-sm"><Switch name="enabled" defaultChecked={editor === "new" || editor.enabled} disabled={pending} />경매에 사용</label><div className="flex gap-2"><Button variant="ghost" type="button" disabled={pending} onClick={() => setEditor(null)}>취소</Button><Button type="submit" disabled={pending}>{pending ? "저장 중…" : "아이템 저장"}</Button></div></div>
         </form>
       )}

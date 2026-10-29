@@ -24,7 +24,7 @@ test("rules are managed individually and shared with the ticker and member view"
     await input.fill("새로 추가한 규칙");
     await page.route("**/board/notices", route => route.request().method() === "POST" ? route.abort("failed") : route.continue());
     await add.click();
-    await expect(page.getByText("규칙을 저장하지 못했습니다. 다시 시도해 주세요.", { exact: true })).toBeVisible();
+    await expect(page.getByText("규칙을 저장하지 못했습니다. 다시 시도해 주십시오.", { exact: true })).toBeVisible();
     await expect(input).toHaveValue("새로 추가한 규칙");
     await expect(list.getByRole("listitem")).toHaveCount(3);
     await page.unroute("**/board/notices");
@@ -46,7 +46,7 @@ test("rules are managed individually and shared with the ticker and member view"
     await expect(list.getByRole("listitem").nth(1)).toContainText("수정한 두 번째 규칙");
 
     await region.getByRole("button", { name: "1번 규칙 삭제", exact: true }).click();
-    const remove = page.getByRole("dialog", { name: "이 규칙을 삭제할까요?", exact: true });
+    const remove = page.getByRole("dialog", { name: "이 규칙을 삭제하시겠습니까?", exact: true });
     await expect(remove).toContainText("첫 번째 규칙");
     await remove.getByRole("button", { name: "취소", exact: true }).click();
     await expect(list.getByRole("listitem")).toHaveCount(4);
@@ -59,7 +59,7 @@ test("rules are managed individually and shared with the ticker and member view"
 
     await input.fill("x".repeat(20000));
     await add.click();
-    await expect(page.getByText("전체 규칙은 20,000자 이내로 입력해 주세요.", { exact: true })).toBeVisible();
+    await expect(page.getByText("전체 규칙은 20,000자 이내로 입력해 주십시오.", { exact: true })).toBeVisible();
     await expect(list.getByRole("listitem")).toHaveCount(3);
     await input.fill("");
     for (const width of [1280, 698, 390, 320]) {

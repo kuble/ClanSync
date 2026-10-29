@@ -81,7 +81,7 @@ function useEmblemCollection(clanId: string, userId: string, initial?: PersonalE
       if (!result.ok) deny(result.error);
       else if ((result.collection.clanId === clanId || accountDisplay || (!clanId && initial?.sources)) && result.collection.userId === userId
         && (!initial || result.collection.viewerId === initial.viewerId)) setSnapshot({ target, initial, collection: result.collection });
-      else deny("엠블럼 대상이 변경되었습니다. 다시 불러와 주세요.");
+      else deny("엠블럼 대상이 변경되었습니다. 다시 불러와 주십시오.");
     }).catch(() => {
       if (active && requests.current === request) setSnapshot(previous => {
         const previousCurrent = previous?.target === target && previous.initial === initial ? previous : undefined;
@@ -115,7 +115,7 @@ function useEmblemCollection(clanId: string, userId: string, initial?: PersonalE
       if (!result.ok) { deny(result.error); toast.error(result.error); return false; }
       if ((clanId && result.collection.clanId !== clanId) || result.collection.userId !== userId
         || (initial && result.collection.viewerId !== initial.viewerId)) {
-        deny("엠블럼 대상이 변경되었습니다. 다시 불러와 주세요.");
+        deny("엠블럼 대상이 변경되었습니다. 다시 불러와 주십시오.");
         return false;
       }
       requests.current++;
@@ -126,7 +126,7 @@ function useEmblemCollection(clanId: string, userId: string, initial?: PersonalE
       toast.success("대표 엠블럼을 저장했습니다.");
       return true;
     } catch {
-      if (saves.current === save) toast.error("대표 엠블럼을 저장하지 못했습니다. 다시 시도해 주세요.");
+      if (saves.current === save) toast.error("대표 엠블럼을 저장하지 못했습니다. 다시 시도해 주십시오.");
       return false;
     } finally {
       if (saves.current === save) { saving.current = false; setSavingState({ target, initial, pending: false }); }
@@ -261,7 +261,7 @@ export function PersonalEmblemCase({ initialCollection }: { initialCollection: P
   const replacementDialog = <Dialog open={replacing} onOpenChange={open => { if (!open) setReplacement(undefined); }}>
     <DialogContent className="sm:max-w-md" finalFocus={featureButton}>
       <DialogTitle>대표 엠블럼 교체</DialogTitle>
-      <DialogDescription>세 칸이 모두 찼습니다. 교체할 엠블럼을 선택해 주세요.</DialogDescription>
+      <DialogDescription>세 칸이 모두 찼습니다. 교체할 엠블럼을 선택해 주십시오.</DialogDescription>
       {replacementEmblem && <div className={styles.replacementPreview}>
         <EmblemArtwork emblem={replacementEmblem} eager className={styles.replacementArtwork} />
         <div><p className="font-semibold">{replacementEmblem.description}</p><p className="text-xs text-muted-foreground">{periodLabel(replacementEmblem)} · 새로 진열</p></div>

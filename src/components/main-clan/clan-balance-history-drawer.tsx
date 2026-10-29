@@ -165,7 +165,7 @@ function HistoryContent({
           setResponse({
             key: requestKey,
             data: null,
-            error: "기록을 불러오지 못했습니다. 다시 시도하세요.",
+            error: "기록을 불러오지 못했습니다. 다시 시도하십시오.",
           });
       });
     return () => {

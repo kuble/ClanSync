@@ -30,9 +30,9 @@ function mapRpcError(code: string): string {
     case "officer_required":
       return "클랜 풀 지출은 운영진만 할 수 있습니다.";
     case "duplicate_checkout":
-      return "이미 처리된 결제 요청입니다. 새로고침 후 확인해 주세요.";
+      return "이미 처리된 결제 요청입니다. 새로고침 후 확인해 주십시오.";
     case "invalid_pool":
-      return "상품 설정 오류입니다. 관리자에게 문의해 주세요.";
+      return "상품 설정 오류입니다. 관리자에게 문의해 주십시오.";
     default:
       return "구매 처리에 실패했습니다.";
   }
@@ -140,7 +140,7 @@ function mapVoidRpcError(code: string): string {
     case "invalid_args":
       return "요청이 올바르지 않습니다.";
     case "reason_too_short":
-      return "무효화 사유를 네 글자 이상 입력해 주세요.";
+      return "무효화 사유를 네 글자 이상 입력해 주십시오.";
     case "not_found":
       return "구매 내역을 찾을 수 없습니다.";
     case "already_voided":
@@ -154,14 +154,14 @@ function mapVoidRpcError(code: string): string {
     case "invalid_purchase":
       return "구매 데이터가 올바르지 않습니다.";
     case "void_self_forbidden":
-      return "구매 당사자는 무효화할 수 없습니다. 다른 운영진에게 요청해 주세요.";
+      return "구매 당사자는 무효화할 수 없습니다. 다른 운영진에게 요청해 주십시오.";
     case "officer_required":
       return "운영진만 무효화할 수 있습니다.";
     case "ledger_missing":
     case "invalid_ledger":
-      return "코인 원장을 확인할 수 없습니다. 관리자에게 문의해 주세요.";
+      return "코인 원장을 확인할 수 없습니다. 관리자에게 문의해 주십시오.";
     case "duplicate_void":
-      return "이미 처리된 요청입니다. 새로고침 후 확인해 주세요.";
+      return "이미 처리된 요청입니다. 새로고침 후 확인해 주십시오.";
     default:
       return "무효화 처리에 실패했습니다.";
   }

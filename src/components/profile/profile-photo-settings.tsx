@@ -39,7 +39,7 @@ export function ProfilePhotoSettings({ initialUrl, emblem }: { initialUrl: strin
       <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" aria-label="프로필 사진 파일" className="hidden" disabled={pending} onChange={event => {
         const next = event.target.files?.[0];
         if (!next) return;
-        if (!next.size || next.size > PROFILE_PHOTO_LIMIT || !["image/jpeg", "image/png", "image/webp"].includes(next.type)) { toast.error("JPG·PNG·WebP 사진을 2MB 이내로 선택해 주세요."); event.target.value = ""; return; }
+        if (!next.size || next.size > PROFILE_PHOTO_LIMIT || !["image/jpeg", "image/png", "image/webp"].includes(next.type)) { toast.error("JPG·PNG·WebP 사진을 2MB 이내로 선택해 주십시오."); event.target.value = ""; return; }
         setFile(next); setPreview(URL.createObjectURL(next));
       }}/>
       <div className="flex flex-wrap gap-1.5">

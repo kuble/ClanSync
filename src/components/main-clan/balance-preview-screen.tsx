@@ -73,8 +73,8 @@ export function BalancePreviewScreen({ frame, settings, players, elapsed, remain
       <div key={scene.kind} className={styles.screenTransition} role="group" aria-label={screenNames[scene.kind]}>
         {scene.kind === "preference" ? <div className={styles.preferenceScreen}>
           <span className="text-xs text-muted-foreground">이번 경기 내 선호</span>
-          <h3 className="text-lg font-semibold">어떤 역할로 플레이할까요?</h3>
-          <p className="text-xs text-muted-foreground">원하는 역할을 앞순위로 바꿔요.</p>
+          <h3 className="text-lg font-semibold">어떤 역할로 플레이하시겠습니까?</h3>
+          <p className="text-xs text-muted-foreground">원하는 역할을 앞순위로 바꿉니다.</p>
           <div className={styles.preferencePicker}>
             <span className="flex items-center gap-1 text-xs text-muted-foreground">내 선호 <ChevronDown size={13} /></span>
             <ol className={styles.preferenceRanks} aria-label="예시 역할 선호 순위">
@@ -90,7 +90,7 @@ export function BalancePreviewScreen({ frame, settings, players, elapsed, remain
             </ol>
           </div>
           <p className={cn("flex items-center gap-1.5 text-xs", scene.preferenceChanged ? "text-primary" : "text-muted-foreground")}>
-            {scene.preferenceChanged ? <><Check size={15} /> 지원을 1순위로 변경했어요</> : "예시는 지원을 가장 선호하는 여우의 화면입니다."}
+            {scene.preferenceChanged ? <><Check size={15} /> 지원을 1순위로 변경했습니다</> : "예시는 지원을 가장 선호하는 여우의 화면입니다."}
           </p>
         </div> : scene.kind === "roster" ? <div className={styles.rosterScreen}>
           <div className="flex items-center justify-between text-xs"><strong>출전 선수</strong><span className="text-muted-foreground">10 / 10</span></div>
@@ -99,7 +99,7 @@ export function BalancePreviewScreen({ frame, settings, players, elapsed, remain
           </div>)}</div>
           <div className={styles.drawStart}><span>자동 배정 · 편성 시작</span><strong>추첨 시작 <MousePointer2 size={16} aria-hidden="true" /></strong></div>
         </div> : scene.kind === "captains" ? <div className={styles.centerScreen}>
-          <h3>양 팀 주장 선정</h3><p>같은 역할의 두 선수가 주장을 맡아요.</p>
+          <h3>양 팀 주장 선정</h3><p>같은 역할의 두 선수가 주장을 맡습니다.</p>
           <div className={styles.captainCards}>{[0, 1].map((team) => <div key={team} className={team === 0 ? styles.drawTeamA : styles.drawTeamB}>
             <Crown size={28} aria-hidden="true" /><strong>{team === 0 ? "A" : "B"}팀 · {players[team].name}</strong><span>돌격 · 주장</span>
           </div>)}</div>
@@ -114,7 +114,7 @@ export function BalancePreviewScreen({ frame, settings, players, elapsed, remain
               {frame.active.includes(index) && scene.turn === 0 && <MousePointer2 size={16} aria-hidden="true" />}
             </div>;
           })}</div>
-          <p className="text-xs text-muted-foreground">{assigned - 2} / 8명 선발 · 역할 정원 안에서 선택해요.</p>
+          <p className="text-xs text-muted-foreground">{assigned - 2} / 8명 선발 · 역할 정원 안에서 선택합니다.</p>
         </div> : scene.kind === "strategy" || scene.kind === "items" ? <div className={styles.centerScreen}>
           <h3>{scene.kind === "items" ? "남은 크레딧으로 아이템 선택" : "전략 아이템 공개 · 준비"}</h3>
           {creditCards}
@@ -127,15 +127,15 @@ export function BalancePreviewScreen({ frame, settings, players, elapsed, remain
             <div className={styles.auctionPlayer}><strong>{players[frame.auction.player].name}</strong><span>{roleNames[players[frame.auction.player].role]} · {scene.kind === "settlement" ? "낙찰 확정" : "경매 중인 선수"}</span></div>
             <SettingHighlight field="durationSeconds" focus={focus}><div className="flex items-center justify-between gap-2 text-xs"><span>{remaining === 0 ? "입찰 종료" : frame.auction.extended ? "연장된 시간" : "입찰 남은 시간"}</span><strong className="text-xl tabular-nums" data-testid="auction-preview-timer">{remaining}초</strong></div></SettingHighlight>
             <div className="h-1 rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, remaining / (frame.auction.extended ? settings.bidExtensionSeconds : settings.durationSeconds) * 100)}%` }} /></div>
-            <div className="flex items-center justify-between gap-2 text-xs"><span>{frame.auction.leader === null ? "아직 입찰이 없어요" : frame.auction.leader === 0 ? "내 팀이 최고 입찰 중" : "상대 팀이 최고 입찰 중"}</span><strong data-testid="auction-preview-price">{frame.auction.amount} cr</strong></div>
+            <div className="flex items-center justify-between gap-2 text-xs"><span>{frame.auction.leader === null ? "아직 입찰이 없습니다" : frame.auction.leader === 0 ? "내 팀이 최고 입찰 중" : "상대 팀이 최고 입찰 중"}</span><strong data-testid="auction-preview-price">{frame.auction.amount} cr</strong></div>
             <SettingHighlight field="bidExtensionSeconds" focus={focus}><p className="text-xs text-muted-foreground" data-testid="auction-preview-notice">{frame.auction.notice}</p></SettingHighlight>
             <SettingHighlight field="minBid" focus={focus}><div className={cn(styles.myBid, frame.auction.myAction && styles.bidClick)} key={frame.title}>
               {remaining === 0 ? `${frame.auction.leader === 0 ? "A" : "B"}팀 낙찰` : frame.auction.leader === 0 ? "최고 입찰 중 · 상대 팀 입찰 대기" : `내 입찰 ${frame.auction.nextBid} cr`}
               {frame.auction.myAction && <MousePointer2 size={18} className={styles.cursor} aria-hidden="true" />}
             </div></SettingHighlight>
           </> : <div className={styles.centerScreen}>
-            <Crown size={32} aria-hidden="true" /><h3>{scene.kind === "settlement" ? "선수 합류 · 크레딧 차감" : "A팀 주장 시점으로 보여드릴게요"}</h3>
-            {frame.preparationSeconds !== undefined ? <><p>다음 경매 선수 · {players[3].name} ({roleNames[players[3].role]})</p><p>입찰할 금액을 준비하세요.</p><SettingHighlight field="auctionPreparationSeconds" focus={focus}><strong data-testid="auction-preview-preparation">{remaining}초</strong></SettingHighlight></> : <p>선수 공개 → 내 입찰 → 상대 입찰 → 재입찰 → 낙찰</p>}
+            <Crown size={32} aria-hidden="true" /><h3>{scene.kind === "settlement" ? "선수 합류 · 크레딧 차감" : "A팀 주장 시점으로 보여드립니다"}</h3>
+            {frame.preparationSeconds !== undefined ? <><p>다음 경매 선수 · {players[3].name} ({roleNames[players[3].role]})</p><p>입찰할 금액을 준비하십시오.</p><SettingHighlight field="auctionPreparationSeconds" focus={focus}><strong data-testid="auction-preview-preparation">{remaining}초</strong></SettingHighlight></> : <p>선수 공개 → 내 입찰 → 상대 입찰 → 재입찰 → 낙찰</p>}
           </div>}
         </div> : <div className={styles.drawScreen}>
           <div className={styles.drawStatus}><strong>{scene.kind === "complete" ? "팀 구성 완료" : scene.kind === "manual" ? "명단에서 역할과 자리 배치" : scene.kind === "lineup" ? "선발된 팀원 합류" : visible.size ? "순서대로 역할과 자리를 공개합니다" : "추첨 순서를 섞고 있습니다"}</strong><span>{scene.kind === "manual" ? "10" : visible.size} / 10</span></div>

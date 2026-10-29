@@ -61,7 +61,7 @@ test("실제 클랜·계정 탈퇴는 개인 데이터 삭제와 공동 기록 �
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
     await page.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
     await page.getByRole("button", { name: `${clan.name} 클랜 탈퇴`, exact: true }).click();
-    const leave = page.getByRole("dialog", { name: "클랜을 탈퇴할까요?", exact: true });
+    const leave = page.getByRole("dialog", { name: "클랜을 탈퇴하시겠습니까?", exact: true });
     await leave.getByRole("button", { name: "클랜 탈퇴", exact: true }).click();
     await expect(leave).toBeHidden();
     const former = await ok(f.service.from("clan_members").select("*").eq("id", memberBefore.id).single());
@@ -102,7 +102,7 @@ test("실제 클랜·계정 탈퇴는 개인 데이터 삭제와 공동 기록 �
     await page.reload();
     await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
     await page.getByRole("button", { name: "ClanSync 탈퇴", exact: true }).click();
-    const deletion = page.getByRole("dialog", { name: "ClanSync를 탈퇴할까요?", exact: true });
+    const deletion = page.getByRole("dialog", { name: "ClanSync를 탈퇴하시겠습니까?", exact: true });
     await deletion.getByRole("button", { name: "ClanSync 탈퇴하기", exact: true }).click();
     await expect(page).toHaveURL(/\/$/);
     f.users.splice(1, 1); // Successful UI deletion already removed this fixture user.

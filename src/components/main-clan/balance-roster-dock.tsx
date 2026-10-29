@@ -40,7 +40,7 @@ export function BalanceRosterDock({ members, children, showMembers = true }: {
     </button>;
   if (!showMembers) return <>{children}</>;
   return <div className={styles.container}>
-    <p id={helpId} className="sr-only">손잡이를 참여자 목록의 위, 왼쪽, 오른쪽, 아래로 끌어 배치하세요. 손잡이를 누른 뒤 부착 위치를 선택하거나 방향키로도 옮길 수 있습니다.</p>
+    <p id={helpId} className="sr-only">손잡이를 참여자 목록의 위, 왼쪽, 오른쪽, 아래로 끌어 배치하십시오. 손잡이를 누른 뒤 부착 위치를 선택하거나 방향키로도 옮길 수 있습니다.</p>
     <div className={styles.layout} data-member-position={position}>
       <div className={cn(styles.members, dragging && "opacity-50")}>{members(handle)}</div>
       <div className={styles.board}>

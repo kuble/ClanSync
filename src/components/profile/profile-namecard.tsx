@@ -50,11 +50,11 @@ export function ProfileNamecard({ initial, displayName, children }: {
     busy.current = true; setPending(true); setError(""); setStatus("");
     try {
       const result = themeId ? await saveNamecardThemeAction(themeId) : await saveNameplateSelectionAction({ category: selections[0].category, optionId: selections[0].option_id });
-      if (!result.ok) { setError("네임카드를 저장하지 못했습니다. 다시 시도해 주세요."); return; }
+      if (!result.ok) { setError("네임카드를 저장하지 못했습니다. 다시 시도해 주십시오."); return; }
       setState((previous) => previous && ({ ...previous, selections: [...previous.selections.filter((item) => !selections.some(next => next.category === item.category)), ...selections] }));
       setStatus("공통 네임카드를 저장했습니다.");
       window.dispatchEvent(new CustomEvent(CLANSYNC_NAMEPLATE_CHANGED));
-    } catch { setError("네임카드를 저장하지 못했습니다. 다시 시도해 주세요."); }
+    } catch { setError("네임카드를 저장하지 못했습니다. 다시 시도해 주십시오."); }
     finally { busy.current = false; setPending(false); }
   }
   const tools = <div className={styles.actions} role="toolbar" aria-label="네임카드 도구">

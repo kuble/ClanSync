@@ -38,7 +38,7 @@ export function validatePollNotifyAgainstDeadline(
       return {
         ok: false,
         error:
-          "'한 번' 알림은 마감이 최소 1시간 이후여야 합니다. 마감을 늘리거나 알림을 끄세요.",
+          "'한 번' 알림은 마감이 최소 1시간 이후여야 합니다. 마감을 늘리거나 알림을 끄십시오.",
       };
     }
     return { ok: true, warn60d: span > 60 * MS_D };
@@ -49,7 +49,7 @@ export function validatePollNotifyAgainstDeadline(
       return {
         ok: false,
         error:
-          "48시간 이내 마감에는 '매일' 반복 알림을 사용할 수 없습니다. '한 번' 또는 '마감 전까지 매일'을 선택해 주세요.",
+          "48시간 이내 마감에는 '매일' 반복 알림을 사용할 수 없습니다. '한 번' 또는 '마감 전까지 매일'을 선택해 주십시오.",
       };
     }
     return { ok: true, warn60d: span > 60 * MS_D };

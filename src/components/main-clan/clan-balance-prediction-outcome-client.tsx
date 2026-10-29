@@ -155,7 +155,7 @@ export function ClanBalanceMatchOutcomeClient({ gameSlug, clanId, sessionId, ros
         toast.success(label + "로 확정했습니다.");
         setConfirmOpen(false);
         router.refresh();
-      } catch { toast.error("결과를 저장하지 못했습니다. 다시 시도하세요."); }
+      } catch { toast.error("결과를 저장하지 못했습니다. 다시 시도하십시오."); }
     });
   }
   function choose(value: Exclude<MatchOutcome, "pending">) { setOutcome(value); setConfirmOpen(true); }
@@ -172,7 +172,7 @@ export function ClanBalanceMatchOutcomeClient({ gameSlug, clanId, sessionId, ros
       <span className="hidden sm:block" aria-hidden="true" />
     </section>
     <Dialog open={confirmOpen} onOpenChange={(open) => { if (!pending) { setConfirmOpen(open); if (!open) setOutcome(null); } }}>
-      <DialogContent className="sm:max-w-sm"><DialogHeader><DialogTitle>{label}로 확정할까요?</DialogTitle><DialogDescription>{outcome === "void" ? "전적·예측 보상에서 제외됩니다." : "확정한 결과는 변경할 수 없습니다."}</DialogDescription></DialogHeader>
+      <DialogContent className="sm:max-w-sm"><DialogHeader><DialogTitle>{label}로 확정하시겠습니까?</DialogTitle><DialogDescription>{outcome === "void" ? "전적·예측 보상에서 제외됩니다." : "확정한 결과는 변경할 수 없습니다."}</DialogDescription></DialogHeader>
         <div className="flex justify-end gap-2"><Button variant="outline" disabled={pending} onClick={() => { setConfirmOpen(false); setOutcome(null); }}>취소</Button><Button disabled={pending || disabled} onClick={confirm}>{pending ? "확정 중…" : "확정"}</Button></div>
       </DialogContent>
     </Dialog>

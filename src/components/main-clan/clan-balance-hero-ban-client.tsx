@@ -57,7 +57,7 @@ export function ClanBalanceHeroBanClient({ gameSlug, clanId, sessionId, deadline
       try {
         const result = await submitHeroBanVoteAction(gameSlug, clanId, sessionId, next, deadlineIso);
         if (!result.ok) toast.error(result.error);
-      } catch { toast.error("투표를 저장하지 못했습니다. 다시 선택해 주세요."); }
+      } catch { toast.error("투표를 저장하지 못했습니다. 다시 선택해 주십시오."); }
       router.refresh();
     });
   }

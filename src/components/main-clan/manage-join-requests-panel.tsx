@@ -68,7 +68,7 @@ export function ManageJoinRequestsPanel({
       toast.dismiss(tid);
       console.error(e);
       toast.error(
-        "신청을 거절하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+        "신청을 거절하지 못했습니다. 잠시 후 다시 시도해 주십시오.",
         { duration: 7000 },
       );
     } finally {

@@ -8,7 +8,7 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const failed = (error: string) => ({ ok: false as const, error });
 
 export async function saveClanParticipant(input: { clanId: string; id?: string; nickname: string }) {
-  if (!input || !uuid.test(input.clanId) || (input.id && !uuid.test(input.id)) || typeof input.nickname !== "string" || !input.nickname.trim() || input.nickname.trim().length > 32) return failed("닉네임을 32자 이내로 입력하세요.");
+  if (!input || !uuid.test(input.clanId) || (input.id && !uuid.test(input.id)) || typeof input.nickname !== "string" || !input.nickname.trim() || input.nickname.trim().length > 32) return failed("닉네임을 32자 이내로 입력하십시오.");
   const client = await createClient();
   if (!(await client.auth.getUser()).data.user) return failed("로그인이 필요합니다.");
   // Preserve previously saved aliases; the new UI neither requires nor edits them.
@@ -73,7 +73,7 @@ export async function requestClanParticipantLink(token: string) {
 }
 
 export async function reviewClanParticipantLink(requestId: string, action: "approve" | "reject" | "revoke", note: string) {
-  if (!uuid.test(requestId) || !["approve", "reject", "revoke"].includes(action) || typeof note !== "string" || !note.trim() || note.trim().length > 300) return failed("확인 또는 취소 사유를 300자 이내로 입력하세요.");
+  if (!uuid.test(requestId) || !["approve", "reject", "revoke"].includes(action) || typeof note !== "string" || !note.trim() || note.trim().length > 300) return failed("확인 또는 취소 사유를 300자 이내로 입력하십시오.");
   const client = await createClient();
   if (!(await client.auth.getUser()).data.user) return failed("로그인이 필요합니다.");
   const { error } = await client.rpc("review_clan_participant_link", { p_request_id: requestId, p_action: action, p_note: note.trim() });

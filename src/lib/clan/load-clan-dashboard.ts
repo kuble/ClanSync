@@ -135,7 +135,7 @@ export async function loadClanDashboard(
         id: poll.id,
         title: poll.title,
         content:
-          "클랜원 여러분의 의견을 기다리고 있어요. 투표에서 내용을 확인하고 참여해 주세요.",
+          "클랜원 여러분의 의견을 기다리고 있습니다. 투표에서 내용을 확인하고 참여해 주십시오.",
         createdAt: poll.created_at,
         kind: "poll",
         isPinned: false,

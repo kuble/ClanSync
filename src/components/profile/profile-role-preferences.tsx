@@ -23,7 +23,7 @@ export function ProfileRolePreferences({
       aria-labelledby="profile-role-preferences-heading"
     >
       <h2 aria-label="게임별 선호 역할" id="profile-role-preferences-heading" className={styles.accountSubheading}>
-        <StatHelp title="선호 역할">내전 역할 추첨의 기본 선호입니다. 왼쪽 역할부터 우선하며, &gt;는 우선순위를 나타냅니다. 선호 없음이면 우선순위를 적용하지 않습니다. 끌어서 순위를 바꾸거나 두 아이콘을 눌러 교환하세요. 좌우 방향키로도 순위를 바꿀 수 있습니다.</StatHelp>
+        <StatHelp title="선호 역할">내전 역할 추첨의 기본 선호입니다. 왼쪽 역할부터 우선하며, &gt;는 우선순위를 나타냅니다. 선호 없음이면 우선순위를 적용하지 않습니다. 끌어서 순위를 바꾸거나 두 아이콘을 눌러 교환하십시오. 좌우 방향키로도 순위를 바꿀 수 있습니다.</StatHelp>
       </h2>
       <div className={styles.accountRolePicker}>
         {supported.map((game) => {
@@ -90,7 +90,7 @@ function GamePreference({
           } catch {
             setValue(confirmedValue);
             setError(
-              "선호를 저장하지 못했습니다. 연결을 확인하고 다시 선택하세요.",
+              "선호를 저장하지 못했습니다. 연결을 확인하고 다시 선택하십시오.",
             );
           } finally {
             setPending(false);

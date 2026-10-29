@@ -13,7 +13,7 @@ export function tryCreateServiceRoleClient(): ServiceRoleClientResult {
     return {
       ok: false,
       error:
-        "서버 설정 오류입니다. 로컬에서는 `.env.local`의 SUPABASE_SERVICE_ROLE_KEY와 NEXT_PUBLIC_SUPABASE_URL을 확인해 주세요.",
+        "서버 설정 오류입니다. 로컬에서는 `.env.local`의 SUPABASE_SERVICE_ROLE_KEY와 NEXT_PUBLIC_SUPABASE_URL을 확인해 주십시오.",
     };
   }
 }

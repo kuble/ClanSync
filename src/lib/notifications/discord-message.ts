@@ -13,7 +13,7 @@ export type DiscordMessagePayload = {
 };
 
 const LABEL: Record<string, string> = {
-  event_created: "일정이 등록됐어요", event_updated: "일정이 변경됐어요",
+  event_created: "일정이 등록되었습니다", event_updated: "일정이 변경되었습니다",
   event_t_minus_24h: "하루 전", event_t_minus_1h: "1시간 전",
   event_t_minus_10min: "시작 10분 전", event_t_0: "시작 시간",
   poll_daily: "투표 참여 안내", poll_weekly: "투표 참여 안내",
@@ -54,13 +54,13 @@ export function buildDiscordNotificationCard(row: DiscordNotificationRow, option
     category = row.room_kind === "flash" ? "⚡ 깜짝 내전" : "⚔️ 정규 내전";
     const started = row.room_status === "open";
     const minutes = row.start_at ? Math.ceil((Date.parse(row.start_at) - now.getTime()) / 60_000) : 0;
-    title = `${row.title} · ${started ? "시작됐어요" : "곧 시작돼요"}`;
-    body = started ? "진행 중 · 지금 입장할 수 있어요" : [formatTime(row.start_at, now), minutes > 0 ? `시작 ${minutes}분 전` : "시작 예정"].filter(Boolean).join(" · ");
+    title = `${row.title} · ${started ? "시작되었습니다" : "곧 시작됩니다"}`;
+    body = started ? "진행 중 · 지금 입장할 수 있습니다" : [formatTime(row.start_at, now), minutes > 0 ? `시작 ${minutes}분 전` : "시작 예정"].filter(Boolean).join(" · ");
     action = "내전으로 이동";
   } else if (row.poll_id) {
     category = "🗳️ 투표";
     const ended = row.slot_kind === "poll_ended";
-    title = `${row.title} 투표가 ${ended ? "종료" : "시작"} 됐어요`;
+    title = `${row.title} 투표가 ${ended ? "종료" : "시작"} 되었습니다`;
     const deadline = formatTime(row.deadline_at, now);
     body = ended ? "투표 종료 · 결과 확인" : [deadline ? `마감 ${deadline}` : "", LABEL[row.slot_kind]].filter(Boolean).join(" · ");
     action = ended ? "투표 결과 보기" : "투표 참여하기";

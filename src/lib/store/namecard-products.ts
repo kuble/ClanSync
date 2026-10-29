@@ -36,7 +36,7 @@ export function namecardProducts(state: NamecardState, offer: PremiumFrameOffer 
     const category = option.category as NamecardCategory;
     const label = STORE_CATEGORIES.find(c => c.id === category)?.label ?? "디자인";
     products.push({ id: option.id, category, name: legacy ? "프리미엄 골드 프레임" : option.code.endsWith("-default") ? ({ emblem: "기본 방패", portrait: "기본 초상 프레임", namebar: "기본 배경", frame: "기본 카드 프레임", sub: "칭호 없음" })[category] : option.name_ko,
-      description: category === "sub" ? "게임 ID 아래에 표시하는 공통 칭호" : `${label}만 바꿔 다른 디자인과 자유롭게 조합하세요.`,
+      description: category === "sub" ? "게임 ID 아래에 표시하는 공통 칭호" : `${label}만 바꿔 다른 디자인과 자유롭게 조합하십시오.`,
       price: legacy ? offer!.price : option.price_coins,
       addedAt: Date.parse(option.created_at ?? "") || 0, available: available(option.id), premium: legacy, legacy,
       selections: [{ category, option_id: option.id }],

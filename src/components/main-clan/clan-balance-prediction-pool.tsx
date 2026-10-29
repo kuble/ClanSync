@@ -56,7 +56,7 @@ export function ClanBalancePredictionPool({ gameSlug, clanId, sessionId, initial
     const stake = cancel || pool.hostOnly ? 0 : Number(amount);
     if (!cancel && !pick) return;
     if (!cancel && !pool.hostOnly && (!amount.trim() || !Number.isSafeInteger(stake) || stake < 1 || stake > available)) {
-      toast.error("사용 가능한 코인 안에서 1개 이상 정수로 입력하세요."); return;
+      toast.error("사용 가능한 코인 안에서 1개 이상 정수로 입력하십시오."); return;
     }
     start(async () => {
       try {
@@ -70,7 +70,7 @@ export function ClanBalancePredictionPool({ gameSlug, clanId, sessionId, initial
           ? cancel ? "예측을 취소했습니다." : "예측을 저장했습니다."
           : cancel ? "참여를 취소하고 코인을 돌려받았습니다." : "예측과 코인을 저장했습니다.");
         router.refresh();
-      } catch { toast.error("저장하지 못했습니다. 다시 시도하세요."); }
+      } catch { toast.error("저장하지 못했습니다. 다시 시도하십시오."); }
     });
   }
   const settlement = pool.mine?.settlement;

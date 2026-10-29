@@ -30,10 +30,10 @@ export function parseMaSnapshotForEdit(raw: unknown):
     }
     const { m, a } = entry as Record<string, unknown>;
     if (!isValidScore(m)) {
-      return { ok: false, error: `평가 점수는 ${MA_SCORE_MIN}부터 ${MA_SCORE_MAX}까지 입력해 주세요.` };
+      return { ok: false, error: `평가 점수는 ${MA_SCORE_MIN}부터 ${MA_SCORE_MAX}까지 입력해 주십시오.` };
     }
     if (a !== null && a !== undefined && !isValidScore(a)) {
-      return { ok: false, error: `분석 점수는 ${MA_SCORE_MIN}부터 ${MA_SCORE_MAX}까지 입력해 주세요.` };
+      return { ok: false, error: `분석 점수는 ${MA_SCORE_MIN}부터 ${MA_SCORE_MAX}까지 입력해 주십시오.` };
     }
     snapshot[id] = { m, a: a === null || a === undefined ? null : a as number };
   }
@@ -92,14 +92,14 @@ export function validateMaSnapshot(
     const e = snap[uid];
     if (!e) continue;
     if (!isValidScore(e.m)) {
-      return { ok: false, error: `평가 점수는 ${MA_SCORE_MIN}부터 ${MA_SCORE_MAX}까지 입력해 주세요.` };
+      return { ok: false, error: `평가 점수는 ${MA_SCORE_MIN}부터 ${MA_SCORE_MAX}까지 입력해 주십시오.` };
     }
     if (e.a !== null) {
       if (!opts.allowA) {
         return { ok: false, error: "분석 점수는 Premium 클랜에서만 저장할 수 있습니다." };
       }
       if (!isValidScore(e.a)) {
-        return { ok: false, error: `분석 점수는 ${MA_SCORE_MIN}부터 ${MA_SCORE_MAX}까지 입력해 주세요.` };
+        return { ok: false, error: `분석 점수는 ${MA_SCORE_MIN}부터 ${MA_SCORE_MAX}까지 입력해 주십시오.` };
       }
     }
   }

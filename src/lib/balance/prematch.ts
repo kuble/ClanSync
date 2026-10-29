@@ -43,13 +43,13 @@ export function validateBanSettings(value: BanSettings): string | null {
     value.heroBanSeconds < 5 ||
     value.heroBanSeconds > 300
   )
-    return "밴 투표 시간은 5~300초 사이의 정수로 입력하세요.";
+    return "밴 투표 시간은 5~300초 사이의 정수로 입력하십시오.";
   if (
     !Array.isArray(value.mapTypes) ||
     value.mapTypes.some((id) => !MAP_TYPES.some((type) => type.id === id)) ||
     new Set(value.mapTypes).size !== value.mapTypes.length
   )
-    return "맵 타입을 다시 선택하세요.";
+    return "맵 타입을 다시 선택하십시오.";
   return null;
 }
 

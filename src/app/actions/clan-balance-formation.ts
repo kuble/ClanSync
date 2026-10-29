@@ -60,7 +60,7 @@ export async function updateFormationAction(
       for (let attempt = 0; attempt < 2; attempt++) {
         const state = current.formation_state as unknown as FormationState | null;
         if (!command.expectedDrawId || state?.draw?.id !== command.expectedDrawId)
-          throw new Error("편성이 변경되었습니다. 최신 화면에서 아이템을 선택하세요.");
+          throw new Error("편성이 변경되었습니다. 최신 화면에서 아이템을 선택하십시오.");
         const next = advanceFormation(state, command, { id: user.id, manager }, Date.now(), randomInt);
         const { data: saved, error: saveError } = await createServiceRoleClient().rpc("commit_balance_formation", {
           p_round_id: roundId,
@@ -71,7 +71,7 @@ export async function updateFormationAction(
           p_state: next as unknown as Json,
           p_roster: next.roster as unknown as Json,
         });
-        if (saveError) throw new Error("아이템 선택을 저장하지 못했습니다. 잠시 후 다시 시도하세요.");
+        if (saveError) throw new Error("아이템 선택을 저장하지 못했습니다. 잠시 후 다시 시도하십시오.");
         if (saved) {
           revalidatePath(`/games/${gameSlug}/clan/${clanId}/balance`);
           return { ok: true };
@@ -81,7 +81,7 @@ export async function updateFormationAction(
         if (refreshError || !refreshed || refreshed.phase !== "editing") break;
         current = refreshed;
       }
-      throw new Error("아이템 선택이 변경되었습니다. 최신 화면에서 다시 시도하세요.");
+      throw new Error("아이템 선택이 변경되었습니다. 최신 화면에서 다시 시도하십시오.");
     }
     if (command.type === "tick" && round.formation_revision !== revision) {
       revalidatePath(`/games/${gameSlug}/clan/${clanId}/balance`);
@@ -89,7 +89,7 @@ export async function updateFormationAction(
     }
     if (command.type !== "start" && round.formation_revision !== revision)
       throw new Error(
-        "다른 조작이 먼저 반영되었습니다. 최신 화면에서 다시 시도하세요.",
+        "다른 조작이 먼저 반영되었습니다. 최신 화면에서 다시 시도하십시오.",
       );
     const previous = round.formation_state as unknown as FormationState | null;
     let next: FormationState | null;
@@ -101,8 +101,8 @@ export async function updateFormationAction(
         command.expectedBans?.mapBan !== round.map_ban_enabled ||
         command.expectedBans?.heroBan !== round.hero_ban_enabled
       )
-        throw new Error("밴픽 규칙이 변경되었습니다. 최신 설정을 확인하세요.");
-      if (previous) throw new Error("편성을 다시 시작하려면 초기화하세요.");
+        throw new Error("밴픽 규칙이 변경되었습니다. 최신 설정을 확인하십시오.");
+      if (previous) throw new Error("편성을 다시 시작하려면 초기화하십시오.");
       const drawHistoryLength = Array.isArray(round.draw_history)
         ? round.draw_history.length
         : 0;
@@ -111,7 +111,7 @@ export async function updateFormationAction(
         command.expectedDrawHistoryLength !== drawHistoryLength
       )
         throw new Error(
-          "편성 진행 이력이 변경되었습니다. 최신 화면을 확인하세요.",
+          "편성 진행 이력이 변경되었습니다. 최신 화면을 확인하십시오.",
         );
       if (
         !command.expectedRoster ||
@@ -120,7 +120,7 @@ export async function updateFormationAction(
         !sameFormationSettings(command.setup, round.formation_settings)
       )
         throw new Error(
-          "명단 또는 편성 규칙이 변경되었습니다. 최신 화면을 확인하세요.",
+          "명단 또는 편성 규칙이 변경되었습니다. 최신 화면을 확인하십시오.",
         );
       // A participant can save a preference while the operator's page is still
       // refreshing. Accept that newer revision only when its visible roster and
@@ -141,7 +141,7 @@ export async function updateFormationAction(
           { p_round_id: roundId },
         );
       if (preferenceError)
-        throw new Error("선호 역할을 불러오지 못했습니다. 다시 시도하세요.");
+        throw new Error("선호 역할을 불러오지 못했습니다. 다시 시도하십시오.");
       // Client-supplied rankings or rules are not trusted. Both are saved before
       // starting, and preference/settings changes invalidate this revision CAS.
       const settings = parseFormationSettings(round.formation_settings);
@@ -166,7 +166,7 @@ export async function updateFormationAction(
         effectiveAuctionItems(auctionItems ?? [], settings.auctionCatalog),
       );
       if (next.players.some((p) => !valid.has(p.id)))
-        throw new Error("탈퇴 또는 게임 연결이 해제된 출전자를 교체하세요.");
+        throw new Error("탈퇴 또는 게임 연결이 해제된 출전자를 교체하십시오.");
       roster = next.roster;
     } else if (command.type === "reset") {
       if (!manager || !previous)
@@ -174,7 +174,7 @@ export async function updateFormationAction(
       roster = previous.sourceRoster;
       next = null;
     } else {
-      if (!previous) throw new Error("편성을 먼저 시작하세요.");
+      if (!previous) throw new Error("편성을 먼저 시작하십시오.");
       next = advanceFormation(
         previous,
         command,
@@ -199,10 +199,10 @@ export async function updateFormationAction(
         p_roster: roster as unknown as Json,
       });
     if (saveError)
-      throw new Error("편성을 저장하지 못했습니다. 잠시 후 다시 시도하세요.");
+      throw new Error("편성을 저장하지 못했습니다. 잠시 후 다시 시도하십시오.");
     if (!saved && command.type !== "tick")
       throw new Error(
-        "경기가 변경되었습니다. 최신 화면에서 다시 시도하세요.",
+        "경기가 변경되었습니다. 최신 화면에서 다시 시도하십시오.",
       );
     revalidatePath(`/games/${gameSlug}/clan/${clanId}/balance`);
     return { ok: true };
@@ -267,7 +267,7 @@ export async function updateFormationSettingsAction(
         !sameBanSettings(parseBanSettings(round), expectedRules.banSettings))
     )
       throw new Error(
-        "다른 운영진이 규칙을 변경했습니다. 설정을 다시 열어 확인하세요.",
+        "다른 운영진이 규칙을 변경했습니다. 설정을 다시 열어 확인하십시오.",
       );
     const safeSettings = {
       roles: settings.roles,
@@ -309,7 +309,7 @@ export async function updateFormationSettingsAction(
     if (error) throw new Error(error.message);
     if (!data)
       throw new Error(
-        "명단 또는 편성 상태가 바뀌었습니다. 최신 화면에서 다시 설정하세요.",
+        "명단 또는 편성 상태가 바뀌었습니다. 최신 화면에서 다시 설정하십시오.",
       );
     revalidatePath(`/games/${gameSlug}/clan/${clanId}/balance`);
     return { ok: true };

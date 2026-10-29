@@ -132,19 +132,19 @@ function PollDialog({ poll, gameSlug, clanId, now, canManage, canVote, onClose }
         if (!result.ok) { setError(result.error); return; }
         setEditing(false);
         toast.success("투표했습니다.");
-      } catch { setError("투표를 저장하지 못했습니다. 선택한 항목을 유지했으니 다시 시도해 주세요."); }
+      } catch { setError("투표를 저장하지 못했습니다. 선택한 항목을 유지했으니 다시 시도해 주십시오."); }
     });
   }
 
   function closePoll() {
-    if (pending || !confirm("이 투표를 지금 종료할까요?")) return;
+    if (pending || !confirm("이 투표를 지금 종료하시겠습니까?")) return;
     setError("");
     start(async () => {
       try {
         const result = await closeClanPollAction(gameSlug, clanId, poll.id);
         if (!result.ok) { setError(result.error); return; }
         toast.success("투표를 종료했습니다.");
-      } catch { setError("투표를 종료하지 못했습니다. 잠시 후 다시 시도해 주세요."); }
+      } catch { setError("투표를 종료하지 못했습니다. 잠시 후 다시 시도해 주십시오."); }
     });
   }
 
@@ -160,7 +160,7 @@ function PollDialog({ poll, gameSlug, clanId, now, canManage, canVote, onClose }
         <input type="hidden" name="poll_id" value={poll.id} />
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5 sm:p-6">
           {upcoming ? <section className="space-y-4"><h3 className="inline-flex items-center gap-2 text-sm font-semibold"><Clock className="size-4 text-primary" aria-hidden />시작 시각부터 참여할 수 있습니다.</h3><p className="text-xs text-muted-foreground">마감 {pollTime(poll.deadline_at)}</p><ol className="divide-y divide-border">{poll.options.map((option) => <li key={option.id} className="py-3 text-sm">{option.label}</li>)}</ol></section> : results ? <ClanPollResults poll={poll} closed={!open} /> : <fieldset disabled={pending} className="space-y-3">
-            <legend className="mb-3 text-sm font-semibold">{poll.multiple_choice ? "원하는 선택지를 모두 골라 주세요" : "한 가지를 골라 주세요"}</legend>
+            <legend className="mb-3 text-sm font-semibold">{poll.multiple_choice ? "원하는 선택지를 모두 골라 주십시오" : "한 가지를 골라 주십시오"}</legend>
             {poll.options.map((option, index) => {
               const checked = picked.includes(option.id);
               return <label key={option.id} className={cn("flex min-h-16 cursor-pointer items-center gap-3 rounded-xl border p-4 transition-colors focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring", checked ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/40", pending && "cursor-wait opacity-70")}>
@@ -177,7 +177,7 @@ function PollDialog({ poll, gameSlug, clanId, now, canManage, canVote, onClose }
         </div>
         <div className="shrink-0 space-y-3 border-t border-border bg-background p-5 sm:px-6">
           {!results ? <>
-            <p aria-live="polite" className="text-xs text-muted-foreground">{picked.length ? `${picked.length}개 선택됨` : poll.multiple_choice ? "하나 이상의 선택지를 골라 주세요." : "선택지를 고르면 투표할 수 있어요."}</p>
+            <p aria-live="polite" className="text-xs text-muted-foreground">{picked.length ? `${picked.length}개 선택됨` : poll.multiple_choice ? "하나 이상의 선택지를 골라 주십시오." : "선택지를 고르면 투표할 수 있습니다."}</p>
             <div className="flex gap-2"><Button type="button" variant="outline" className="min-h-11" disabled={pending} onClick={() => { setError(""); setEditing(false); }}>{poll.my_option_ids.length ? "변경 취소" : "현재 결과 보기"}</Button><Button type="submit" className="min-h-11 flex-1" disabled={pending || !picked.length}><Check className="size-4" aria-hidden />{pending ? "저장 중…" : poll.my_option_ids.length ? "변경 저장" : "투표하기"}</Button></div>
           </> : open && canVote ? <Button type="button" className="min-h-11 w-full" disabled={pending} onClick={editVote}>{poll.my_option_ids.length ? "투표 변경" : "투표하기"}<ArrowRight className="size-4" aria-hidden /></Button>
             : <Button type="button" variant="outline" className="min-h-11 w-full" disabled={pending} onClick={onClose}>목록으로</Button>}

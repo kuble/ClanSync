@@ -243,7 +243,7 @@ export function RolePreferencePicker({
         className={compact || hideHelp ? "sr-only" : "mt-2 text-xs text-muted-foreground"}
       >
         {selectedRole
-          ? "교환할 아이콘을 누르세요. 다시 누르면 취소됩니다."
+          ? "교환할 아이콘을 누르십시오. 다시 누르면 취소됩니다."
           : "끌어서 순위 변경 · 두 아이콘을 눌러 교환"}
         <span className="sr-only">
           {" "}

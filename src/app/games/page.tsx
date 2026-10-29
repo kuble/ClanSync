@@ -94,7 +94,7 @@ export default async function GamesPage() {
       </header>
       <main className={styles.gamesContent}>
         {loadError ? (
-          <div className={styles.empty} role="alert"><h1 className={styles.gameHeading}>게임 목록을 불러오지 못했어요</h1><p className="mt-3">잠시 후 다시 시도해 주세요.</p><Link className={`${styles.secondaryButton} mt-5`} href="/games">다시 불러오기</Link></div>
+          <div className={styles.empty} role="alert"><h1 className={styles.gameHeading}>게임 목록을 불러오지 못했습니다</h1><p className="mt-3">잠시 후 다시 시도해 주십시오.</p><Link className={`${styles.secondaryButton} mt-5`} href="/games">다시 불러오기</Link></div>
         ) : cards.length ? <GameCardGrid cards={cards} /> : (
           <div className={styles.empty}><h1 className={styles.gameHeading}>게임 선택</h1><p className="mt-3">아직 등록된 게임이 없습니다.</p></div>
         )}

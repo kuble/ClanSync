@@ -21,7 +21,7 @@ export async function saveNameplateSelectionAction(input: {
   category: string;
   optionId: string;
 }): Promise<ActionResult> {
-  if (!input || typeof input.optionId !== "string" || !/^[0-9a-f-]{36}$/i.test(input.optionId)) return { ok: false, error: "선택한 꾸미기를 확인해 주세요." };
+  if (!input || typeof input.optionId !== "string" || !/^[0-9a-f-]{36}$/i.test(input.optionId)) return { ok: false, error: "선택한 꾸미기를 확인해 주십시오." };
   const cat = input.category as NameplateCategory;
   if (!NAMEPLATE_CATEGORIES.includes(cat)) {
     return { ok: false, error: "잘못된 카테고리입니다." };
@@ -50,19 +50,19 @@ export async function saveNameplateSelectionAction(input: {
 }
 
 export async function saveNamecardThemeAction(themeId: string): Promise<ActionResult> {
-  if (!NAMECARD_THEMES.some(theme => theme.id === themeId)) return { ok: false, error: "선택한 테마를 확인해 주세요." };
+  if (!NAMECARD_THEMES.some(theme => theme.id === themeId)) return { ok: false, error: "선택한 테마를 확인해 주십시오." };
   const db = await createClient();
   const { data: { user } } = await db.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
   const { data, error } = await db.from("nameplate_options").select("id,category,code,name_ko,unlock_source,price_coins")
     .eq("is_active", true).in("code", ["frame", "namebar", "portrait"].map(category => `theme-${themeId}-${category}`));
-  if (error || !data || data.length !== 3) return { ok: false, error: "테마를 불러오지 못했습니다. 다시 시도해 주세요." };
+  if (error || !data || data.length !== 3) return { ok: false, error: "테마를 불러오지 못했습니다. 다시 시도해 주십시오." };
   // A single upsert keeps the three pieces atomic; the existing ownership trigger checks each one.
   const { error: saveError } = await db.from("user_namecard_selections").upsert(
     namecardThemeSelections(data, themeId).map(selection => ({ user_id: user.id, ...selection, updated_at: new Date().toISOString() })),
     { onConflict: "user_id,category" },
   );
-  if (saveError) return { ok: false, error: "테마를 저장하지 못했습니다. 다시 시도해 주세요." };
+  if (saveError) return { ok: false, error: "테마를 저장하지 못했습니다. 다시 시도해 주십시오." };
   revalidatePath("/profile");
   return { ok: true };
 }

@@ -35,9 +35,9 @@ export async function saveClanNoticeAction(
   const content = String(formData.get("content") ?? "").trim();
   const isPinned = formData.get("is_pinned") === "on";
   if (!title || title.length > 200)
-    return { ok: false, error: "제목은 1~200자로 입력해 주세요." };
+    return { ok: false, error: "제목은 1~200자로 입력해 주십시오." };
   if (!content || content.length > 20000)
-    return { ok: false, error: "본문은 1~20,000자로 입력해 주세요." };
+    return { ok: false, error: "본문은 1~20,000자로 입력해 주십시오." };
   const actor = await officerContext(gameSlug, clanId);
   if (!actor)
     return { ok: false, error: "클랜 운영진만 공지를 관리할 수 있습니다." };
@@ -63,7 +63,7 @@ export async function saveClanNoticeAction(
   if (result.error || !result.data)
     return {
       ok: false,
-      error: "공지를 저장하지 못했습니다. 권한과 공지 상태를 확인해 주세요.",
+      error: "공지를 저장하지 못했습니다. 권한과 공지 상태를 확인해 주십시오.",
     };
   refreshClan(gameSlug, clanId);
   if (!noticeId) dispatchClanDiscordAfter(clanId);
@@ -80,7 +80,7 @@ export async function setClanNoticePinnedAction(
   if (!actor)
     return { ok: false, error: "클랜 운영진만 공지를 관리할 수 있습니다." };
   if (typeof pinned !== "boolean")
-    return { ok: false, error: "고정 상태를 확인해 주세요." };
+    return { ok: false, error: "고정 상태를 확인해 주십시오." };
   const result = await actor.supabase
     .from("clan_notices")
     .update({ is_pinned: pinned, updated_by: actor.user.id })
@@ -112,7 +112,7 @@ export async function deleteClanNoticeAction(
   if (result.error || !result.data)
     return {
       ok: false,
-      error: "공지를 삭제하지 못했습니다. 이미 삭제됐는지 확인해 주세요.",
+      error: "공지를 삭제하지 못했습니다. 이미 삭제됐는지 확인해 주십시오.",
     };
   refreshClan(gameSlug, clanId);
   return { ok: true };
@@ -124,7 +124,7 @@ export async function saveClanRulesAction(
   rules: string,
 ): Promise<Result> {
   if (typeof rules !== "string" || rules.length > 20000)
-    return { ok: false, error: "규칙은 20,000자 이내로 입력해 주세요." };
+    return { ok: false, error: "규칙은 20,000자 이내로 입력해 주십시오." };
   const actor = await officerContext(gameSlug, clanId);
   if (!actor)
     return { ok: false, error: "클랜 운영진만 규칙을 수정할 수 있습니다." };
@@ -135,7 +135,7 @@ export async function saveClanRulesAction(
   if (result.error)
     return {
       ok: false,
-      error: "규칙을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      error: "규칙을 저장하지 못했습니다. 잠시 후 다시 시도해 주십시오.",
     };
   refreshClan(gameSlug, clanId);
   return { ok: true };

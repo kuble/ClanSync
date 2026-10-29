@@ -103,7 +103,7 @@ export function BalanceManualMapPicker({
       {pool.length > 0 ? <>
       <div className="flex items-center justify-between gap-3 text-sm">
         <span className="text-muted-foreground">{MAP_TYPES.find((entry) => entry.id === type)?.label} · {pool.length}개 맵</span>
-        <span role="status" className="font-semibold text-primary">{value ? `${value} 선택됨` : "맵을 선택하세요"}</span>
+        <span role="status" className="font-semibold text-primary">{value ? `${value} 선택됨` : "맵을 선택하십시오"}</span>
       </div>
       <div className="flex flex-col gap-2 sm:h-80 sm:flex-row lg:h-96" onMouseLeave={() => setPreview(null)}>
         {pool.map((label) => {
