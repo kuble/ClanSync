@@ -36,13 +36,13 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
   const [purchased, setPurchased] = useState<string[]>([]);
   const [coinOverride, setCoinOverride] = useState<number | null>(null);
   const [selectionOverride, setSelectionOverride] = useState<NamecardState["selections"] | null>(null);
-  const [palettes, setPalettes] = useState<Record<string, CosmeticColorPresetId>>({});
+  const [palettes, setPalettes] = useState<Record<string, CosmeticColorPresetId | null>>({});
   const selections = selectionOverride ?? state.selections;
   const coins = coinOverride ?? state.coinBalance;
   const products = namecardProducts({ ...state, selections }, offer).map(p => {
-    const background = namecardBackground(state.catalog.find(option => option.id === p.id)?.code,
-      palettes[p.id] ?? selections.find(s => s.option_id === p.id)?.palette_id);
-    return { ...p, available: p.available || purchased.includes(p.id), selections: background ? p.selections.map(s => ({ ...s, palette_id: background.paletteId })) : p.selections };
+    const palette = palettes[p.id] !== undefined ? palettes[p.id] : selections.find(s => s.option_id === p.id)?.palette_id;
+    const background = namecardBackground(state.catalog.find(option => option.id === p.id)?.code, palette);
+    return { ...p, available: p.available || purchased.includes(p.id), selections: background || p.category === "emblem" ? p.selections.map(s => ({ ...s, palette_id: background?.paletteId ?? palette ?? null })) : p.selections };
   });
   const candidate = products.find(product => product.id === previewId) ?? null;
   const layout = category === "emblem" || category === "portrait" ? "compact" : category === "sub" ? "label" : "wide";
@@ -58,8 +58,11 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
     return <Namecard displayName={displayName} {...appearance} previewPart={complete || product.category === "theme" ? undefined : product.category} fill />;
   };
   const applied = (p: NamecardProduct) => p.selections.every(next => selections.some(s => s.category === next.category && s.option_id === next.option_id
-    && (!next.palette_id || namecardBackground(state.catalog.find(o => o.id === s.option_id)?.code, s.palette_id)?.paletteId === next.palette_id)));
+    && (p.category === "emblem" ? (s.palette_id ?? null) === (next.palette_id ?? null) : !next.palette_id || namecardBackground(state.catalog.find(o => o.id === s.option_id)?.code, s.palette_id)?.paletteId === next.palette_id)));
   const reason = (p: NamecardProduct) => p.available ? null : p.premium && !offer?.eligible ? "Premium 클랜 가입 시 구매 가능" : coins < p.price ? "코인 부족" : null;
+  const palettePicker = (product: NamecardProduct, compact = false) => product.category === "emblem"
+    ? <CosmeticColorPicker allowDefault compact={compact} label={compact ? `${product.name} 색상` : "심벌 색상"} value={product.selections[0]?.palette_id as CosmeticColorPresetId ?? null} disabled={pending} onChange={value => setPalettes(previous => ({ ...previous, [product.id]: value }))} />
+    : product.selections[0]?.palette_id ? <CosmeticColorPicker compact={compact} label={compact ? `${product.name} 색상` : "배경 색상"} value={product.selections[0].palette_id as CosmeticColorPresetId} disabled={pending} onChange={value => setPalettes(previous => ({ ...previous, [product.id]: value }))} /> : null;
 
   function apply(product: NamecardProduct) {
     if (busy.current || !product.available) return;
@@ -120,7 +123,7 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
         {shown.map(product => <article key={product.id} className={cn(styles.product,clanStyles.product)} data-kind={product.category} data-previewed={candidate?.id === product.id || undefined} aria-label={product.name}>
           <div className={styles.productHeading}><h3>{product.name}</h3>{product.rarity === "normal" && <span className={clanStyles.rarity}>노말</span>}{product.premium && <span className={styles.premium}><Crown size={12} aria-hidden />Premium</span>}{applied(product) && <span className={styles.applied}><Check size={12} aria-hidden />적용 중</span>}</div>
           <button type="button" className={styles.preview} aria-label={product.name + " 미리보기"} aria-pressed={candidate?.id === product.id} onClick={() => setPreviewId(product.id)}>{preview(product)}</button>
-          {product.selections[0]?.palette_id && <CosmeticColorPicker compact label={`${product.name} 색상`} value={product.selections[0].palette_id as CosmeticColorPresetId} disabled={pending} onChange={value => setPalettes(previous => ({ ...previous, [product.id]: value }))} />}
+          {palettePicker(product, true)}
             <div className={styles.productFooter}><strong>{product.available ? product.price === 0 ? "기본 제공" : "보유 중" : <><Coins size={14} aria-hidden />{product.price.toLocaleString("ko-KR")}<small>코인</small></>}</strong>
               {product.available ? <Button size="sm" variant={applied(product) ? "secondary" : "default"} disabled={pending || applied(product)} onClick={() => apply(product)} aria-label={`${product.name} 적용`}>{applied(product) ? "적용 중" : product.category === "theme" ? "세트 적용" : "적용"}</Button>
                 : <Button size="sm" disabled={pending || !!reason(product)} onClick={() => { setSelected(product); setError(""); }} aria-label={`${product.name} 구매`}>{reason(product) ? product.premium && !offer?.eligible ? "Premium 필요" : "코인 부족" : "구매"}</Button>}
@@ -138,7 +141,7 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
     <Dialog open={!!candidate} onOpenChange={open=>{if(!open&&!busy.current)setPreviewId(null);}}><DialogContent showCloseButton={!pending} className="sm:max-w-3xl">
       <DialogHeader><DialogTitle>{candidate?.name} 미리보기</DialogTitle><DialogDescription>{candidate?.description}</DialogDescription></DialogHeader>
       {candidate&&<section aria-label="적용 미리보기" className={styles.modalPreview}>{preview(candidate,true)}</section>}
-      {candidate?.selections[0]?.palette_id && <CosmeticColorPicker label="배경 색상" value={candidate.selections[0].palette_id as CosmeticColorPresetId} disabled={pending} onChange={value => setPalettes(previous => ({ ...previous, [candidate.id]: value }))} />}
+      {candidate && palettePicker(candidate)}
       <DialogFooter><Button variant="outline" aria-label="미리보기 닫기" disabled={pending} onClick={()=>setPreviewId(null)}>닫기</Button>{candidate&&(candidate.available?<Button disabled={pending||applied(candidate)} onClick={()=>apply(candidate)} aria-label={candidate.name+" 적용"}>{applied(candidate)?"적용 중":"적용"}</Button>:<Button disabled={pending||!!reason(candidate)} onClick={()=>{setPreviewId(null);setSelected(candidate);setError("");}} aria-label={candidate.name+" 구매"}>{reason(candidate)?candidate.premium&&!offer?.eligible?"Premium 필요":"코인 부족":"구매"}</Button>)}</DialogFooter>
     </DialogContent></Dialog>
     <Dialog open={!!selected} onOpenChange={open => { if (!open && !busy.current) setSelected(null); }}><DialogContent showCloseButton={!pending}>

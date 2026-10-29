@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Namecard } from "./namecard";
 import styles from "./namecard.module.css";
-import { namecardBackground } from "@/lib/profile/backgrounds";
+import { isNamecardPalette, namecardBackground } from "@/lib/profile/backgrounds";
 import { CosmeticColorPicker } from "@/components/cosmetics/cosmetic-color-picker";
 
 const CATEGORIES: [NamecardCategory | "theme", string][] = [["theme", "테마"], ["emblem", "심벌"], ["portrait", "초상 프레임"], ["namebar", "배경"], ["frame", "카드 프레임"], ["sub", "칭호"]];
@@ -77,6 +77,9 @@ export function ProfileNamecard({ initial, displayName, children }: {
           {category === "namebar" && background && <CosmeticColorPicker label="배경 색상" value={background.paletteId} disabled={pending} onChange={palette_id => {
             const selection = state.selections.find(item => item.category === "namebar");
             if (selection) void equip([{ ...selection, palette_id }]);
+          }} />}
+          {category === "emblem" && <CosmeticColorPicker allowDefault label="심벌 색상" value={isNamecardPalette(appearance.symbolPalette) ? appearance.symbolPalette : null} disabled={pending} onChange={palette_id => {
+            if (selectedId) void equip([{ category: "emblem", option_id: selectedId, palette_id }]);
           }} />}
           {category === "theme" ? <div className={styles.themeGrid} role="group" aria-label="네임카드 테마 디자인">
             {!NAMECARD_THEMES.length && <p className={styles.note}>등록된 테마가 없습니다.</p>}

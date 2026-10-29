@@ -32,10 +32,23 @@ test("account namecards share one appearance across games and titles debit perso
     assert.equal((await read())[f.users[0].id].backgroundPalette, "rose");
     for (const client of [member, outsider]) assert.ok((await client.from("user_namecard_selections").upsert({ ...row, palette_id: "blue" })).error);
     assert.ok((await owner.from("user_namecard_selections").upsert({ ...row, palette_id: "unknown" })).error);
-    assert.ok((await owner.from("user_namecard_selections").upsert({ ...row, category: "emblem", option_id: free.id })).error);
+    const portrait = catalog.find(item => item.code === "portrait-default");
+    assert.ok((await owner.from("user_namecard_selections").upsert({ ...row, category: "portrait", option_id: portrait.id })).error);
     assert.equal((await read())[f.users[0].id].backgroundPalette, "rose");
     await ok(owner.from("user_namecard_selections").upsert({ ...row, palette_id: null }));
     assert.equal((await read())[f.users[0].id].backgroundPalette, null);
+  });
+  await t.test("symbol colors persist independently and support resetting to the default color", async () => {
+    const row = { user_id: f.users[0].id, category: "emblem", option_id: free.id };
+    for (const palette of ["graphite", "blue", "green", "purple", "rose", "amber"]) {
+      await ok(owner.from("user_namecard_selections").upsert({ ...row, palette_id: palette }));
+      assert.equal((await read())[f.users[0].id].symbolPalette, palette);
+      assert.equal((await read())[f.users[0].id].backgroundPalette, null);
+    }
+    assert.ok((await member.from("user_namecard_selections").upsert({ ...row, palette_id: "rose" })).error);
+    assert.ok((await owner.from("user_namecard_selections").upsert({ ...row, palette_id: "unknown" })).error);
+    await ok(owner.from("user_namecard_selections").upsert({ ...row, palette_id: null }));
+    assert.equal((await read())[f.users[0].id].symbolPalette, null);
   });
   await ok(f.service.from("users").update({ coin_balance: 500 }).eq("id", f.users[0].id));
   await ok(f.service.from("users").update({ coin_balance: 0 }).eq("id", f.users[1].id));
@@ -43,8 +56,8 @@ test("account namecards share one appearance across games and titles debit perso
   await t.test("only default designs remain available without inventory grants", async () => {
     assert.equal(catalog.some(item => /^(starter-|theme-|pf_entrance_store:)/.test(item.code)), false);
     assert.equal(catalog.some(item => item.code === "ow-emblem-default"), false);
-    const defaults = catalog.filter(item => item.code.startsWith("symbol-normal-") || item.code.startsWith("background-normal-") || item.code === "portrait-default" || item.code.startsWith("ow-") && item.code.endsWith("-default"));
-    assert.equal(defaults.length, 14);
+    const defaults = catalog.filter(item => /^(symbol|background|portrait|frame)-normal-/.test(item.code) || item.code === "portrait-default" || item.code.startsWith("ow-") && item.code.endsWith("-default"));
+    assert.equal(defaults.length, 24);
     for (const item of defaults) {
       assert.equal(item.unlock_source, "default"); assert.equal(item.price_coins, 0);
       await ok(equip(item.category, item.id));
