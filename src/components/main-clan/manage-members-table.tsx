@@ -11,6 +11,7 @@ import {
   kickClanMemberAction,
   setClanMemberRoleAction,
   allowClanRejoinAction,
+  transferClanLeadershipAction,
 } from "@/app/actions/clan-manage-members";
 import { Button } from "@/components/ui/button";
 import { MemberRecordButton } from "./participant-record-dialog";
@@ -34,6 +35,7 @@ export type ManageMemberRow = {
     canPromote: boolean;
     canDemote: boolean;
     canAllowRejoin: boolean;
+    canTransferLeadership: boolean;
   };
 };
 
@@ -52,6 +54,10 @@ export function ManageMembersTable({
   const [scope, setScope] = useState<"current" | "former">("current");
   const [allowing, setAllowing] = useState<ManageMemberRow | null>(null);
   const [allowError, setAllowError] = useState("");
+  const [transferring, setTransferring] = useState<ManageMemberRow | null>(null);
+  const [successorId, setSuccessorId] = useState("");
+  const [transferError, setTransferError] = useState("");
+  const successors = rows.filter(row => row.status === "active" && row.role !== "leader");
   const [filter, setFilter] = useState("all");
   const [pageIndex, setPageIndex] = useState(0);
   const [now] = useState(() => Date.now());
@@ -242,6 +248,7 @@ export function ManageMembersTable({
                   <div className="flex flex-wrap items-center justify-end gap-1">
                     {m.status === "active" && <MemberRecordButton clanId={clanId} gameSlug={gameSlug} userId={m.userId} nickname={m.nickname} gameTag={m.gameTag} linkedCount={m.linkedCount} />}
                     {m.actions.canAllowRejoin && <Button type="button" variant="ghost" size="icon-sm" disabled={pending} aria-label={`${m.nickname} 재가입 허용`} title="재가입 허용" onClick={() => { setAllowError(""); setAllowing(m); }}><UserRoundCheck aria-hidden="true" /></Button>}
+                    {m.actions.canTransferLeadership && <Button type="button" variant="ghost" size="icon-sm" disabled={pending} aria-label={`${m.nickname} 클랜장 위임 후 멤버로 강등`} title="클랜장 위임 후 멤버로 강등" onClick={() => { setTransferError(""); setSuccessorId(""); setTransferring(m); }}><ShieldMinus aria-hidden="true" /></Button>}
                     {m.actions.canPromote ? (
                       <form onSubmit={onPromote} className="inline">
                         <input
@@ -338,6 +345,24 @@ export function ManageMembersTable({
           <ChevronRight />
         </Button>
       </div>
+      <Dialog open={!!transferring} onOpenChange={(open) => { if (!open && !pending) setTransferring(null); }}>
+        <DialogContent showCloseButton={!pending}><DialogHeader><DialogTitle>클랜장 위임 및 강등</DialogTitle><DialogDescription>새 클랜장을 선택하십시오. 위임 후 본인은 멤버로 변경되며 클랜장 전용 권한을 사용할 수 없습니다.</DialogDescription></DialogHeader>
+          <label className="grid gap-2 text-sm font-medium">새 클랜장<select className="min-h-11 min-w-0 rounded-md border bg-background px-3 text-sm" value={successorId} disabled={pending} onChange={event => { setSuccessorId(event.target.value); setTransferError(""); }}><option value="">구성원을 선택하십시오.</option>{successors.map(row => <option key={row.userId} value={row.userId}>{row.nickname} · {roleLabel(row.role)}</option>)}</select></label>
+          {!successors.length && <p className="text-sm text-muted-foreground">위임할 활성 구성원이 없습니다. 다른 구성원이 가입한 뒤 위임할 수 있습니다.</p>}
+          {transferError && <p role="alert" className="text-sm text-destructive">{transferError}</p>}
+          <div className="flex justify-end gap-2 border-t pt-4"><Button variant="outline" disabled={pending} onClick={() => setTransferring(null)}>취소</Button><Button disabled={pending || !successorId} onClick={() => {
+            if (!transferring || !successorId) return;
+            start(async () => {
+              try {
+                const result = await transferClanLeadershipAction(gameSlug, clanId, successorId);
+                if (!result.ok) { setTransferError(result.error); return; }
+                setTransferring(null); toast.success("클랜장을 위임했습니다. 본인의 역할은 멤버로 변경되었습니다.");
+                router.replace(`/games/${gameSlug}/clan/${clanId}`); router.refresh();
+              } catch { setTransferError("위임하지 못했습니다. 연결을 확인하고 다시 시도해 주십시오."); }
+            });
+          }}>{pending ? "위임 중…" : "위임하고 멤버로 변경"}</Button></div>
+        </DialogContent>
+      </Dialog>
       <Dialog open={!!allowing} onOpenChange={(open) => { if (!open && !pending) setAllowing(null); }}>
         <DialogContent showCloseButton={!pending}><DialogHeader><DialogTitle>재가입을 허용하시겠습니까?</DialogTitle><DialogDescription>{allowing?.nickname} 님이 다시 가입 신청을 보낼 수 있습니다. 가입은 신청 후 운영진이 별도로 승인합니다.</DialogDescription></DialogHeader>
           {allowError && <p role="alert" className="text-xs text-destructive">{allowError}</p>}

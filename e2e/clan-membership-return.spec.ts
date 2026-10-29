@@ -22,8 +22,13 @@ test("자진 탈퇴·이전 구성원·기록 유지 재가입·강퇴 후 허�
     await page.goto(`${manage}?tab=members`);
     memberContext = await browser.newContext({ baseURL: new URL(page.url()).origin });
     const memberPage = await memberContext.newPage();
+    memberPage.setDefaultTimeout(15_000);
     await loginIsolatedBalanceUser(memberPage, f.users[1]);
     await memberPage.goto("/profile");
+    await memberPage.waitForLoadState("networkidle");
+    const accountTab = memberPage.getByRole("tab", { name: "계정 정보", exact: true });
+    await expect(async () => { await accountTab.click(); await expect(accountTab).toHaveAttribute("aria-selected", "true", { timeout: 1000 }); }).toPass({ timeout: 15_000 });
+    await memberPage.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
     await memberPage.getByRole("button", { name: `${clanName} 클랜 탈퇴`, exact: true }).click();
     const leave = memberPage.getByRole("dialog", { name: "클랜을 탈퇴하시겠습니까?", exact: true });
     await expect(leave).toContainText("내전 기록과 통계는 남습니다");
@@ -87,5 +92,5 @@ test("자진 탈퇴·이전 구성원·기록 유지 재가입·강퇴 후 허�
     await expect(page.getByRole("link", { name: `${f.users[1].nickname} 개인 기록`, exact: true })).toHaveCount(0);
     await page.setViewportSize({ width: 390, height: 844 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  } finally { await memberContext?.close(); await f.cleanup(); }
+  } finally { try { await memberContext?.close(); } finally { await f.cleanup(); } }
 });
