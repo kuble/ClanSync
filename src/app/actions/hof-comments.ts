@@ -90,6 +90,27 @@ export async function setHofCommentReactionAction(thread: HofCommentThread, comm
   return { ok: true, reactions: reactions.get(commentId) ?? [] };
 }
 
+export async function listHofCommentReactionPeopleAction(thread: HofCommentThread, commentId: string, reaction: { kind: HofReactionKind } | { emojiId: string }): Promise<Failure | { ok: true; names: string[] }> {
+  if (typeof commentId !== "string" || !uuid.test(commentId) || !reaction || typeof reaction !== "object" || Array.isArray(reaction) || Object.keys(reaction).length !== 1) return denied;
+  if ("kind" in reaction) {
+    if (!HOF_REACTIONS.some((option) => option.kind === reaction.kind)) return denied;
+  } else if (!("emojiId" in reaction) || typeof reaction.emojiId !== "string" || !uuid.test(reaction.emojiId)) return denied;
+  const ctx = await threadContext(thread);
+  if (!ctx) return denied;
+  const failure: Failure = { ok: false, error: "공감한 멤버를 불러오지 못했습니다. 다시 시도해 주세요." };
+  const { data: comment, error: lookupError } = await ctx.supabase.from("clan_hof_comments").select("id")
+    .eq("id", commentId).eq("clan_id", thread.clanId).eq("ranking", thread.ranking).eq("period_key", thread.periodKey).maybeSingle();
+  if (lookupError) return failure;
+  if (!comment) return denied;
+  const query = "kind" in reaction
+    ? ctx.supabase.from("clan_hof_comment_reactions").select("user_id").eq("comment_id", commentId).eq("kind", reaction.kind).order("user_id").limit(100)
+    : ctx.supabase.from("clan_emoji_reactions").select("user_id").eq("hof_comment_id", commentId).eq("emoji_id", reaction.emojiId).order("user_id").limit(100);
+  const [people, names] = await Promise.all([query, ctx.supabase.rpc("clan_peer_nicknames", { p_clan_id: thread.clanId })]);
+  if (people.error || names.error) return failure;
+  const nicknames = new Map(names.data.map((row) => [row.user_id, row.nickname]));
+  return { ok: true, names: people.data.map((row) => nicknames.get(row.user_id) ?? "이전 멤버").sort((a, b) => a.localeCompare(b, "ko")) };
+}
+
 export async function deleteHofCommentAction(thread: HofCommentThread, commentId: string): Promise<Failure | { ok: true }> {
   if (typeof commentId !== "string" || !uuid.test(commentId)) return denied;
   const ctx = await threadContext(thread);
