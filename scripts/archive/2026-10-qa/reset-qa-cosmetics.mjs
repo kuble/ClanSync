@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { loadTestEnv, TEST_PROJECT_REF } from "./test-env.mjs";
-import { parseEnvFile } from "./parse-env-file.mjs";
+import { loadTestEnv, TEST_PROJECT_REF } from "../../test-env.mjs";
+import { parseEnvFile } from "../../parse-env-file.mjs";
 
 const apply = process.argv.includes("--apply");
 const check = process.argv.includes("--check");

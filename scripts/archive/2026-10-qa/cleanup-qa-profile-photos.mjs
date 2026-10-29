@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createClient } from "@supabase/supabase-js";
-import { loadTestEnv, TEST_PROJECT_REF } from "./test-env.mjs";
+import { loadTestEnv, TEST_PROJECT_REF } from "../../test-env.mjs";
 
 // QA only. --delete-bucket also retires the empty bucket through the Storage API.
 const env = loadTestEnv();

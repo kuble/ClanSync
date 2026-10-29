@@ -23,7 +23,7 @@
 
 - 2026-10-29: 계정 사진 기능을 제거하고 네임카드에서 선택한 심벌만 사용한다. 프로필의 사진 설정·업로드/조회 API·사진 우선 표시 및 조회를 제거했다. 후속 요청으로 QA 사진 레코드 2건을 삭제했고, 레코드·파일 각각 0건을 확인했다.
 - 2026-10-30: QA의 `account_profile_photos` 테이블(소속 RLS 정책 포함)과 `profile-photos` 버킷도 제거했다. 탈퇴 시 사진 정리 코드와 앱 DB 타입도 제거했다. 운영 DB·버킷은 변경하지 않았다.
-- [QA 정리 스크립트](../../../scripts/cleanup-qa-profile-photos.mjs)는 기본값으로 존재 여부·대상 건수만 표시한다. `--apply --delete-bucket`으로 파일·레코드를 정리한 뒤 Storage API로 빈 버킷을 제거한다. 이후 `db:test:push`로 테이블 제거를 적용하고 `db:test:types`로 타입을 확인한다. 연결은 기존 QA 허용 목록으로 제한하며 이미 제거된 대상은 안전하게 건너뛴다. 테이블 제거 마이그레이션은 잔여 데이터가 있으면 중단하고 CASCADE를 사용하지 않는다.
+- [QA 정리 스크립트](../../../scripts/archive/2026-10-qa/cleanup-qa-profile-photos.mjs)는 기본값으로 존재 여부·대상 건수만 표시한다. `--apply --delete-bucket`으로 파일·레코드를 정리한 뒤 Storage API로 빈 버킷을 제거한다. 이후 `db:test:push`로 테이블 제거를 적용하고 `db:test:types`로 타입을 확인한다. 연결은 기존 QA 허용 목록으로 제한하며 이미 제거된 대상은 안전하게 건너뛴다. 테이블 제거 마이그레이션은 잔여 데이터가 있으면 중단하고 CASCADE를 사용하지 않는다.
 - [테이블·버킷 제거 회귀](../../../scripts/profile-photo-retirement-db.test.mjs)는 서비스 역할로도 테이블과 버킷이 조회되지 않는지 확인한다.
 - 게시글 작성자·게시판 및 통계 댓글은 동일한 심벌을 사용하며 미선택 시 기본 심벌을 표시한다.
 - [아바타](../../../src/components/profile/player-avatar.tsx) · [검증](../../../e2e/profile-symbol-avatars.spec.ts).
