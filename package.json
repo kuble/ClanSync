@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "clean:local": "pwsh -NoProfile -File scripts/clean-local-artifacts.ps1",
+    "test:qa-startup": "node --test scripts/qa-startup-maintenance.test.mjs scripts/test-env.test.mjs && pwsh -NoProfile -File scripts/clean-local-artifacts.test.ps1",
     "db:schema:index": "node scripts/generate-db-schema-index.mjs",
     "db:reset": "supabase db reset",
     "db:push": "node scripts/with-dotenv-local.mjs db push",
