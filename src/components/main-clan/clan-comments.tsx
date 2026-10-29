@@ -43,6 +43,8 @@ export function ClanComments<T extends ClanComment>({ comments, clanId, targetKi
     const date = new Date(comment.createdAt), day = dateFormat.format(date), time = timeFormat.format(date);
     const showDay = index === 0 || day !== dateFormat.format(new Date(comments[index - 1].createdAt));
     const continuation = !showDay && !!comment.authorId && comments[index - 1].authorId === comment.authorId;
+    const next = comments[index + 1];
+    const showTime = !next || !comment.authorId || next.authorId !== comment.authorId || Math.floor(date.getTime() / 60_000) !== Math.floor(Date.parse(next.createdAt) / 60_000);
     const react = (kind: CommentReactionKind) => void onReact(comment, comment.reactions.some(reaction => reaction.kind === kind && reaction.mine) ? null : kind);
     return <li key={comment.id} className={cn("space-y-3", continuation && styles.continuation)}>
       {showDay && <div role="separator" aria-label={day} className={styles.date}><span /><span>{day}</span><span /></div>}
@@ -53,7 +55,7 @@ export function ClanComments<T extends ClanComment>({ comments, clanId, targetKi
           <div className={cn(styles.message, comment.isMine && styles.mine)}>
             <div className={styles.bubble}>
               <p className={styles.content}><ClanEmojiText text={comment.content} /></p>
-              <time dateTime={comment.createdAt} title={`${day} ${time}`} className={styles.time}>{time}</time>
+              {showTime && <time dateTime={comment.createdAt} title={`${day} ${time}`} className={styles.time}>{time}</time>}
             </div>
             <div className={styles.reactions} aria-label={`${comment.nickname} 댓글 공감`}>
               {COMMENT_REACTIONS.map(option => {
