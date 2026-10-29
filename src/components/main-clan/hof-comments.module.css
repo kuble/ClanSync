@@ -58,15 +58,15 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .reactions:not(:has(button[aria-pressed])) button {
+  .reactions button:not([aria-pressed]) {
     opacity: 0;
     pointer-events: none;
   }
 
-  .comment:hover .reactions button,
-  .comment:focus-within .reactions button,
-  .reactions:not(:has(button[aria-pressed])):hover button,
-  .reactions:not(:has(button[aria-pressed])):has(button[aria-expanded="true"]) button {
+  .comment:hover .reactions button:not([aria-pressed]),
+  .comment:has(:focus-visible) .reactions button:not([aria-pressed]),
+  .reactions:hover button:not([aria-pressed]),
+  .reactions:has(button[aria-expanded="true"]) button:not([aria-pressed]) {
     opacity: 1;
     pointer-events: auto;
   }
