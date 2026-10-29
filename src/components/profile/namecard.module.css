@@ -1,7 +1,8 @@
 .card { --portrait-slot:88px; --portrait-size:72px; --symbol-art-size:64px; position:relative; display:flex; align-items:center; min-width:0; width:100%; min-height:84px; border:2px solid color-mix(in srgb,var(--primary) 35%,var(--border)); border-radius:12px; overflow:hidden; background:color-mix(in srgb,var(--primary) 8%,var(--card)); text-align:left; }
 .emblem { align-self:stretch; display:grid; place-items:center; flex:0 0 var(--portrait-slot); color:var(--primary); background:color-mix(in srgb,var(--primary) 13%,transparent); }
 .portrait { position:relative; display:grid; place-items:center; width:var(--portrait-size); height:var(--portrait-size); }
-.symbolArt { width:var(--symbol-art-size); height:var(--symbol-art-size); object-fit:contain; }
+.symbolArt { width:var(--symbol-art-size); height:var(--symbol-art-size); object-fit:contain; filter:brightness(0); }
+:global(.dark) .symbolArt { filter:none; }
 .identity { display:grid; gap:5px; min-width:0; padding:16px 20px; }
 .identity strong { display:block; font-size:17px; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .identity small { color:var(--muted-foreground); font-size:12px; overflow-wrap:anywhere; }

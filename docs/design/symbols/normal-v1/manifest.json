@@ -1,7 +1,9 @@
 {
   "collection": "symbols-normal-v1",
   "createdAt": "2026-10-29",
-  "status": "design-ready",
+  "status": "qa-default-catalog",
+  "unlockSource": "default",
+  "priceCoins": 0,
   "plannedTotal": 10,
   "completed": 5,
   "canvas": { "width": 128, "height": 128, "background": "transparent", "ink": "#E8EFEC" },

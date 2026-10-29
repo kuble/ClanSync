@@ -1,4 +1,5 @@
 import { NAMECARD_THEMES, namecardThemeSelections, type NamecardCategory, type NamecardState } from "../profile/namecard";
+import { NORMAL_SYMBOLS } from "../profile/symbols";
 
 export const STORE_CATEGORIES = [
   { id: "theme", label: "테마" },
@@ -9,6 +10,7 @@ export type StoreCategory = typeof STORE_CATEGORIES[number]["id"];
 export type NamecardProduct = {
   id: string; category: StoreCategory; name: string; description: string;
   price: number; addedAt: number; available: boolean; premium: boolean; legacy: boolean;
+  rarity?: "normal";
   selections: NamecardState["selections"];
 };
 export type PremiumFrameOffer = { price: number; eligible: boolean; gameSlug?: string; clanId?: string };
@@ -35,9 +37,10 @@ export function namecardProducts(state: NamecardState, offer: PremiumFrameOffer 
     const legacy = option.code.startsWith("pf_entrance_store:");
     const category = option.category as NamecardCategory;
     const label = STORE_CATEGORIES.find(c => c.id === category)?.label ?? "디자인";
+    const symbol = NORMAL_SYMBOLS.find(item => option.code === `symbol-normal-${item.id}`);
     products.push({ id: option.id, category, name: legacy ? "프리미엄 골드 프레임" : option.code.endsWith("-default") ? ({ emblem: "기본 방패", portrait: "기본 초상 프레임", namebar: "기본 배경", frame: "기본 카드 프레임", sub: "칭호 없음" })[category] : option.name_ko,
-      description: category === "sub" ? "게임 ID 아래에 표시하는 공통 칭호" : `${label}만 바꿔 다른 디자인과 자유롭게 조합하십시오.`,
-      price: legacy ? offer!.price : option.price_coins,
+      description: symbol ? "노말 · 단색 도형 심벌 · 기본 제공" : category === "sub" ? "게임 ID 아래에 표시하는 공통 칭호" : `${label}만 바꿔 다른 디자인과 자유롭게 조합하십시오.`,
+      price: legacy ? offer!.price : option.price_coins, rarity: symbol ? "normal" : undefined,
       addedAt: Date.parse(option.created_at ?? "") || 0, available: available(option.id), premium: legacy, legacy,
       selections: [{ category, option_id: option.id }],
     });

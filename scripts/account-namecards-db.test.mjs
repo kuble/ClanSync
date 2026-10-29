@@ -19,9 +19,9 @@ test("account namecards share one appearance across games and titles debit perso
   t.after(async () => { if (valorantClan) await ok(f.service.from("clans").delete().eq("id", valorantClan)); await Promise.all([owner, member, outsider].map((c) => c.auth.signOut())); await f.cleanup(); await ok(f.service.from("nameplate_options").delete().eq("code", "title-fixture-" + f.clanId)); });
   await ok(f.service.from("clan_members").delete().eq("clan_id", f.clanId).eq("user_id", f.users[2].id));
   await ok(f.service.from("nameplate_options").insert({ game_id: f.gameId, category: "sub", code: "title-fixture-" + f.clanId, name_ko: "새벽의 전략가", unlock_source: "store", price_coins: 180 }));
-  const catalog = await ok(owner.from("nameplate_options").select("id,game_id,category,code,name_ko,price_coins,unlock_source"));
+  const catalog = await ok(owner.from("nameplate_options").select("id,game_id,category,code,name_ko,price_coins,unlock_source").eq("is_active",true));
   const title = catalog.find((item) => item.code === "title-fixture-" + f.clanId);
-  const free = catalog.find((item) => item.code === "ow-emblem-default");
+  const free = catalog.find((item) => item.code === "symbol-normal-orbit");
   const read = (client = member, clanId = f.clanId) => ok(client.rpc("get_clan_namecards", { p_clan_id: clanId }));
   const equip = (category, optionId, client = owner) => client.from("user_namecard_selections").upsert({ user_id: f.users[0].id, category, option_id: optionId });
   const buy = (id = title.id, client = owner) => client.rpc("purchase_profile_title", { p_option_id: id });
@@ -29,9 +29,10 @@ test("account namecards share one appearance across games and titles debit perso
   await ok(f.service.from("users").update({ coin_balance: 0 }).eq("id", f.users[1].id));
 
   await t.test("only default designs remain available without inventory grants", async () => {
-    assert.equal(catalog.some(item => /^(symbol-|starter-|theme-|pf_entrance_store:)/.test(item.code)), false);
-    const defaults = catalog.filter(item => item.code === "portrait-default" || item.code.startsWith("ow-") && item.code.endsWith("-default"));
-    assert.equal(defaults.length, 5);
+    assert.equal(catalog.some(item => /^(starter-|theme-|pf_entrance_store:)/.test(item.code)), false);
+    assert.equal(catalog.some(item => item.code === "ow-emblem-default"), false);
+    const defaults = catalog.filter(item => item.code.startsWith("symbol-normal-") || item.code === "portrait-default" || item.code.startsWith("ow-") && item.code.endsWith("-default"));
+    assert.equal(defaults.length, 9);
     for (const item of defaults) {
       assert.equal(item.unlock_source, "default"); assert.equal(item.price_coins, 0);
       await ok(equip(item.category, item.id));
@@ -86,7 +87,7 @@ test("account namecards share one appearance across games and titles debit perso
     assert.equal(ow.displayName, "NamecardQA#12345"); assert.equal(val.displayName, "RiotPlayer#KR1");
     assert.equal(ow.title, val.title); assert.equal(ow.title, "새벽의 전략가");
     for (const value of ["private-puuid", f.users[0].email, "coinBalance", "birth_year"]) assert.ok(!JSON.stringify(val).includes(value));
-    const alternative = catalog.find((item) => item.code === "val-emblem-default");
+    const alternative = catalog.find((item) => item.code === "symbol-normal-spark");
     await ok(equip("emblem", alternative.id));
     assert.equal((await read())[f.users[0].id].emblem, alternative.code);
     assert.equal((await read(member, clan.id))[f.users[0].id].emblem, alternative.code);
