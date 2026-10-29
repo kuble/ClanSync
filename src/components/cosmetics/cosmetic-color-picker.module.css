@@ -1,0 +1,9 @@
+.picker { min-width: 0; border: 0; padding: 0; margin: 0; }
+.picker legend { font-size: .8rem; color: var(--muted-foreground); }
+.picker legend strong { margin-left: .5rem; font-weight: 600; color: var(--foreground); }
+.options { display: flex; flex-wrap: wrap; gap: .125rem; margin-top: .25rem; }
+.option { display: grid; position: relative; width: 44px; height: 44px; place-items: center; cursor: pointer; }
+.option input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; z-index: 1; cursor: pointer; }
+.swatch { position: relative; display: block; width: 26px; height: 26px; border-radius: 50%; background: var(--swatch); box-shadow: inset 0 0 0 1px #ffffff24; }
+.option input:checked + .swatch::after { content: ""; position: absolute; inset: -4px; border: 2px solid var(--foreground); border-radius: 50%; }
+.option input:focus-visible + .swatch { outline: 2px solid var(--primary); outline-offset: 7px; }

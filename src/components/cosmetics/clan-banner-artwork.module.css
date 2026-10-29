@@ -1,0 +1,17 @@
+.artwork {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--banner-background);
+}
+
+.pattern {
+  position: absolute;
+  inset: 0;
+  background: var(--banner-pattern);
+  mask-image: var(--banner-mask);
+  mask-size: cover;
+  mask-position: center;
+  mask-repeat: no-repeat;
+}
