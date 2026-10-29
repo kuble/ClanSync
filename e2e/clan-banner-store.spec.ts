@@ -3,6 +3,62 @@ import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolat
 import { COSMETIC_COLOR_PRESETS } from "@/lib/cosmetics/color-presets";
 import { clanBannerUrl } from "@/lib/clan/banner-catalog";
 
+test("카드 색상을 독립적으로 미리 보고 배너 기본 탭과 분류·검색·모달을 유지한다", async ({ page }) => {
+  const f = await createIsolatedBalanceFixture(1);
+  const base = f.path.replace(/\/balance$/, "");
+  try {
+    await loginIsolatedBalanceUser(page, f.users[0]);
+    await page.goto(base + "/store");
+    await expect(page.getByRole("radio", { name: "전체", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("radio", { name: "배너", exact: true })).toBeChecked();
+    await expect(page.getByRole("article")).toHaveCount(10);
+    const diagonal = page.getByRole("article", { name: "사선", exact: true });
+    const other = page.getByRole("article", { name: "미니 도트", exact: true });
+    await expect(diagonal.getByRole("radio")).toHaveCount(6);
+    await page.waitForLoadState("networkidle");
+    const assetRequests: string[] = [], writes: string[] = [];
+    page.on("request", request => {
+      if (request.url().includes("/clan-banners/")) assetRequests.push(request.url());
+      if (request.method() === "POST") writes.push(request.url());
+    });
+    const before = await diagonal.boundingBox();
+    await diagonal.getByRole("radio", { name: "로즈", exact: true }).check();
+    await expect(diagonal.locator('[data-banner-palette="rose"]')).toBeVisible();
+    await expect(other.locator('[data-banner-palette="graphite"]')).toBeVisible();
+    expect(await diagonal.boundingBox()).toEqual(before);
+    expect(assetRequests).toEqual([]);
+    await diagonal.getByRole("button", { name: "사선 미리보기", exact: true }).click();
+    const modal = page.getByRole("dialog");
+    await expect(modal.getByRole("radio", { name: "로즈", exact: true })).toBeChecked();
+    await modal.getByRole("radio", { name: "블루", exact: true }).check();
+    await modal.getByRole("button", { name: "닫기", exact: true }).first().click();
+    await expect(diagonal.getByRole("radio", { name: "블루", exact: true })).toBeChecked();
+    await page.getByLabel("디자인 검색", { exact: true }).fill("사선");
+    await expect(page.getByRole("article")).toHaveCount(1);
+    await page.getByLabel("디자인 검색", { exact: true }).fill("");
+    for (const [category, count] of [["반응", 1], ["사진", 2], ["보유", 0]] as const) {
+      await page.getByRole("radio", { name: category, exact: true }).click();
+      await expect(page.getByRole("article")).toHaveCount(count);
+    }
+    await page.getByRole("radio", { name: "배너", exact: true }).click();
+    await expect(diagonal.getByRole("radio", { name: "블루", exact: true })).toBeChecked();
+    await other.getByRole("radio", { name: "앰버", exact: true }).check();
+    await page.screenshot({ path: test.info().outputPath("banner-card-colors-desktop.png"), fullPage: true });
+    for (const width of [390, 320]) {
+      await page.setViewportSize({ width, height: 844 });
+      await diagonal.getByRole("radio", { name: "퍼플", exact: true }).check();
+      await expect(diagonal.locator('[data-banner-palette="purple"]')).toBeVisible();
+      const hit = await diagonal.getByRole("radio", { name: "퍼플", exact: true }).boundingBox();
+      expect(hit!.width).toBeGreaterThanOrEqual(44);
+      expect(hit!.height).toBeGreaterThanOrEqual(44);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    }
+    await page.screenshot({ path: test.info().outputPath("banner-card-colors-mobile.png"), fullPage: true });
+    expect(writes).toEqual([]);
+    expect((await f.service.from("clans").select("banner_url").eq("id", f.clanId).single()).data!.banner_url).toBeNull();
+  } finally { await f.cleanup(); }
+});
+
 test("노말 패턴을 10코인에 한 번 구매한 뒤 모든 색상을 추가 차감 없이 적용한다", async ({ page, browser }) => {
   test.setTimeout(120_000);
   const f = await createIsolatedBalanceFixture(2);

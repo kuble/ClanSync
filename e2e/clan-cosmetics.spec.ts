@@ -14,6 +14,7 @@ test("clan cosmetic purchases, bounded private emoji slots, reactions and shared
   const balance = async () => (await svc.from("clans").select("coin_balance").eq("id", f.clanId).single()).data!.coin_balance;
   const buy = async (name: string) => {
     await page.goto(base + "/store");
+    await page.getByRole("radio", { name: name.includes("이모티콘") ? "반응" : "사진", exact: true }).click();
     await page.getByRole("article", { name, exact: true }).getByRole("button", { name: "구매", exact: true }).click();
     await page.getByRole("dialog", { name: "꾸미기 구매", exact: true }).getByRole("button", { name: "구매 확정", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "꾸미기 구매", exact: true })).toBeHidden();
@@ -127,13 +128,13 @@ test("clan cosmetic purchases, bounded private emoji slots, reactions and shared
     } finally { await memberContext.close(); }
     await page.goto(base + "/store");
     await expect(page.getByRole("region", { name: "클랜 소개", exact: true })).toHaveCount(0);
-    await expect(page.getByRole("article")).toHaveCount(6);
+    await expect(page.getByRole("article")).toHaveCount(10);
     await page.screenshot({ animations: "disabled", path: test.info().outputPath("clan-store-desktop.png"), fullPage: true });
     for (const [width, height] of [[1280, 900], [390, 844], [320, 640], [740, 360]]) {
       await page.setViewportSize({ width, height });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-      await page.getByRole("button", { name: "에메랄드 가드 미리보기", exact: true }).click();
-      const modal = page.getByRole("dialog", { name: "에메랄드 가드 미리보기", exact: true });
+      await page.getByRole("button", { name: "사선 미리보기", exact: true }).click();
+      const modal = page.getByRole("dialog", { name: "사선 미리보기", exact: true });
       await expect(modal.getByRole("region", { name: "클랜 소개", exact: true })).toBeVisible();
       const rect = (await modal.boundingBox())!;
       expect(rect.x).toBeGreaterThanOrEqual(0); expect(rect.x + rect.width).toBeLessThanOrEqual(width);
@@ -141,9 +142,9 @@ test("clan cosmetic purchases, bounded private emoji slots, reactions and shared
       expect(await modal.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
       await page.screenshot({ animations: "disabled", path: test.info().outputPath(`banner-preview-${width}.png`) });
       await modal.getByRole("radio", { name: "이미지 전체", exact: true }).click();
-      const original = modal.getByRole("img", { name: "배너 원본 전체", exact: true });
+      const original = modal.locator('[data-banner-design="forest-diagonal"]');
       const imageRect = (await original.boundingBox())!;
-      expect(imageRect.width / imageRect.height).toBeCloseTo(4, 1);
+      expect(imageRect.width / imageRect.height).toBeCloseTo(3, 1);
       await modal.locator('[data-slot="dialog-footer"]').getByRole("button", { name: "닫기", exact: true }).click();
       await expect(modal).toBeHidden();
     }
