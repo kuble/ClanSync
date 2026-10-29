@@ -3,7 +3,7 @@
 import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Search, ChevronLeft, ChevronRight, ChevronsUp, ShieldMinus, UserRoundMinus, UserRoundCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -29,7 +29,9 @@ export type ManageMemberRow = {
   departedLabel: string;
   role: "leader" | "officer" | "member";
   joinedLabel: string;
-  lastActivityAt?: string | null;
+  participationStatus: "active" | "inactive" | "dormant";
+  lastParticipatedAt: string | null;
+  participationCheckedOn: string | null;
   actions: {
     canKick: boolean;
     canPromote: boolean;
@@ -60,27 +62,17 @@ export function ManageMembersTable({
   const successors = rows.filter(row => row.status === "active" && row.role !== "leader");
   const [filter, setFilter] = useState("all");
   const [pageIndex, setPageIndex] = useState(0);
-  const [now] = useState(() => Date.now());
-  function activity(row: ManageMemberRow) {
-    if (!row.lastActivityAt) return "unknown";
-    const days = Math.max(
-      0,
-      (now - new Date(row.lastActivityAt).getTime()) / 86400000,
-    );
-    return days < 30 ? "active" : days < 60 ? "inactive" : "dormant";
+  useEffect(() => {
+    const timer = window.setInterval(() => router.refresh(), 5 * 60_000);
+    return () => window.clearInterval(timer);
+  }, [router]);
+  const activity = (row: ManageMemberRow) => row.participationStatus;
+  const activityLabels = { active: "활성", inactive: "비활성", dormant: "휴면" };
+  const activityClass = { active: "bg-emerald-500", inactive: "bg-amber-500", dormant: "bg-slate-400" };
+  function activityHint(row: ManageMemberRow) {
+    const last = row.lastParticipatedAt ? new Date(row.lastParticipatedAt).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "참여 이력 없음 · 가입일 기준";
+    return `${activityLabels[activity(row)]} · 마지막 내전: ${last} · ${row.participationCheckedOn ?? "다음 00:00"} 판정`;
   }
-  const activityLabels: Record<string, string> = {
-    active: "활성",
-    inactive: "비활성",
-    dormant: "휴면",
-    unknown: "활동 기록 없음",
-  };
-  const activityClass: Record<string, string> = {
-    active: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-    inactive: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
-    dormant: "bg-muted text-muted-foreground",
-    unknown: "text-muted-foreground",
-  };
   const identityLabel = gameSlug === "overwatch" ? "배틀태그" : "게임 ID";
   const memberName = (row: ManageMemberRow) => row.gameTag || row.nickname;
   const filtered = rows.filter(
@@ -164,14 +156,16 @@ export function ManageMembersTable({
         {(["active", "inactive", "dormant"] as const).map((key) => (
           <span
             key={key}
-            className={`rounded-full px-3 py-1.5 text-xs font-medium ${activityClass[key]}`}
+            className="inline-flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-muted-foreground"
+            aria-label={`${activityLabels[key]} ${rows.filter(row => row.status === "active" && activity(row) === key).length}명`}
+            title={activityLabels[key]}
           >
-            {activityLabels[key]}{" "}
+            <span aria-hidden="true" className={`size-2 rounded-full ${activityClass[key]}`} />
             {rows.filter((row) => row.status === "active" && activity(row) === key).length}명
           </span>
         ))}
         <span className="self-center text-[11px] text-muted-foreground">
-          최근 활동 기준 · 비활성 30일 · 휴면 60일
+          매일 00:00 내전 참여 기준 · 4주 비활성 · 8주 휴면
         </span>
       </div>}
       <div className="flex flex-wrap items-center gap-2">
@@ -234,11 +228,7 @@ export function ManageMembersTable({
                   <span className={`whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-medium ${m.gameVerified ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{m.gameVerified ? "인증 완료" : "미인증"}</span>
                 </td>
                 <td className="text-muted-foreground px-3 py-2 text-xs">
-                  <span
-                    className={`whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-medium ${scope === "current" ? activityClass[activity(m)] : m.status === "banned" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}
-                  >
-                    {scope === "current" ? activityLabels[activity(m)] : m.status === "banned" ? "강퇴 · 재가입 차단" : m.departureKind === "kicked" ? "강퇴 · 재가입 허용" : m.departureKind === "left" ? "자진 탈퇴" : "탈퇴"}
-                  </span>
+                  {scope === "current" ? <span role="img" aria-label={`${memberName(m)} ${activityLabels[activity(m)]}`} title={activityHint(m)} className={`inline-block size-2.5 rounded-full ring-2 ring-background ${activityClass[activity(m)]}`} /> : <span className={`whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-medium ${m.status === "banned" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>{m.status === "banned" ? "강퇴 · 재가입 차단" : m.departureKind === "kicked" ? "강퇴 · 재가입 허용" : m.departureKind === "left" ? "자진 탈퇴" : "탈퇴"}</span>}
                 </td>
                 <td className="px-3 py-2">{roleLabel(m.role)}</td>
                 <td className="text-muted-foreground px-3 py-2 text-xs">

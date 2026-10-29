@@ -1549,6 +1549,8 @@ export type Database = {
           joined_at: string | null
           last_activity_at: string | null
           last_participated_at: string | null
+          participation_checked_on: string | null
+          participation_status: string
           role: Database["public"]["Enums"]["clan_member_role"]
           status: Database["public"]["Enums"]["clan_member_status"]
           updated_at: string
@@ -1563,6 +1565,8 @@ export type Database = {
           joined_at?: string | null
           last_activity_at?: string | null
           last_participated_at?: string | null
+          participation_checked_on?: string | null
+          participation_status?: string
           role?: Database["public"]["Enums"]["clan_member_role"]
           status?: Database["public"]["Enums"]["clan_member_status"]
           updated_at?: string
@@ -1577,6 +1581,8 @@ export type Database = {
           joined_at?: string | null
           last_activity_at?: string | null
           last_participated_at?: string | null
+          participation_checked_on?: string | null
+          participation_status?: string
           role?: Database["public"]["Enums"]["clan_member_role"]
           status?: Database["public"]["Enums"]["clan_member_status"]
           updated_at?: string
@@ -3783,6 +3789,10 @@ export type Database = {
         Returns: Json
       }
       record_clan_activity: { Args: { p_clan_id: string }; Returns: undefined }
+      refresh_clan_member_participation: {
+        Args: { p_at?: string; p_clan_id: string }
+        Returns: number
+      }
       refresh_clan_personal_emblem_milestones: {
         Args: { p_clan_id: string }
         Returns: number

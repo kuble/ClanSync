@@ -286,7 +286,7 @@ ClanMember ──< CoinTransaction
 - 그 외: 차단
 
 ### clan_members
-> **D-CLAN-07** (DECIDED 2026-04-20) — 멤버 활성도 분류용 `last_activity_at` 추가. [decisions.md §D-CLAN-07](./decisions.md#d-clan-07--클랜-멤버-활성도-분류와-휴면-멤버-처리).
+> **D-CLAN-07** (2026-10-30 변경) — 방문과 확정 내전 참여 상태를 분리하고 KST 자정에 판정한다. [decisions.md §D-CLAN-07](./decisions.md#d-clan-07--클랜-멤버-활성도-분류와-휴면-멤버-처리).
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
@@ -296,26 +296,22 @@ ClanMember ──< CoinTransaction
 | role | enum('leader','officer','member') | 권한 |
 | status | enum('pending','active','left','banned') | 가입 상태 |
 | joined_at | timestamptz | 가입 승인일 |
-| last_participated_at | timestamptz | 최근 매치 참여일 (`match_players` INSERT 시점) |
-| **last_activity_at** | timestamptz | **D-CLAN-07**: 광범위 활동(로그인, 내전 참여, 게시글·댓글, 운영진 액션) 중 어느 하나라도 발생 시 NOW(). 활성도 분류 도출 기준 |
+| last_participated_at | timestamptz | 마지막 자정 판정에 사용한 확정 내전 출전 시각. 없으면 NULL |
+| last_activity_at | timestamptz | 클랜 페이지 방문 시각. 최소 5분 간격 갱신, 참여 상태와 별개 |
+| participation_status | text CHECK | active / inactive / dormant, 기본 active |
+| participation_checked_on | date | 마지막 판정일(KST), 새 구성원/재가입은 NULL |
 | UNIQUE(clan_id, user_id) | | |
 
-**활성도 분류 (도출, DB 저장 안 함)**
+**내전 참여 상태 (KST 매일 00:00 저장)**
 
-`last_activity_at` 기준 (D-CLAN-07):
-
-| 분류 | 조건 |
-|------|------|
-| `active` | `last_activity_at >= NOW() - INTERVAL '30 days'` |
-| `inactive` | `NOW() - INTERVAL '60 days' <= last_activity_at < NOW() - INTERVAL '30 days'` |
-| `dormant` | `last_activity_at < NOW() - INTERVAL '60 days'` |
+판정 시각에서 마지막 확정 출전까지 28일 미만이면 active, 28일 이상~56일 미만은 inactive, 56일 이상은 dormant다. 출전이 없으면 현재 joined_at, 가입일 누락 자료는 created_at을 기준으로 계산한다. 재가입하면 이전 참여 스냅샷을 초기화한다. 서비스 전용 refresh_clan_member_participation과 UTC 15:00의 일일 작업이 사용되며 조회/방문만으로 참여 상태를 갱신하지 않는다.
 
 **인덱스 권장**
 
-- `clan_members (clan_id, last_activity_at DESC)` — 활성도 그룹 카운트 쿼리 최적화
+- `clan_members (clan_id, last_activity_at DESC)` — 최근 방문 조회
 - `clan_members (user_id)` — 사용자별 소속 클랜 조회
 
-**휴면 멤버 정책 (D-CLAN-07)**
+**휴면 멤버 후속 정책 (D-CLAN-07 · 참여 상태 판정과 별도 범위)**
 
 - 휴면 멤버는 클랜 인원 한도(`clans.max_members`, 기본 200)에 카운트되지 않는다 — `active + inactive` 만 카운트.
 - 자동 탈퇴 없음 — 클랜장이 멤버 관리 페이지에서 체크박스로 일괄 수동 탈퇴 (`status='left'`로 마킹, 행 보존).

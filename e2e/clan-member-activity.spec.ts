@@ -4,43 +4,40 @@ import { loadTestEnv } from "../scripts/test-env.mjs";
 import { isoToKstYmd } from "../src/lib/clan/stats/kst";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
-test("member management shows the current visit immediately and persists activity for other viewers", async ({ page, browser, baseURL }) => {
-  test.setTimeout(150_000);
-  const f = await createIsolatedBalanceFixture(3);
-  const management = f.path.replace(/\/balance$/, "/manage?tab=members");
-  const memberContext = await browser.newContext({ baseURL });
+test("participation dots ignore visits and refresh the preserved member list every five minutes", async ({ page }) => {
+  test.setTimeout(120_000);
+  const f = await createIsolatedBalanceFixture(3), management = f.path.replace(/\/balance$/, "/manage?tab=members");
   try {
-    const stale = new Date(Date.now() - 65 * 86400000).toISOString();
-    expect((await f.service.from("clan_members").update({ joined_at: stale, last_activity_at: null }).eq("clan_id", f.clanId)).error).toBeNull();
-    const inactive = new Date(Date.now() - 35 * 86400000).toISOString();
-    expect((await f.service.from("clan_members").update({ last_activity_at: inactive }).eq("clan_id", f.clanId).eq("user_id", f.users[2].id)).error).toBeNull();
+    const cutoff = new Date(isoToKstYmd(new Date().toISOString()) + "T00:00:00+09:00").getTime();
+    for (const [index, days] of [[0, 28], [1, 56], [2, 2]]) expect((await f.service.from("clan_members").update({ joined_at: new Date(cutoff - days * 86400000).toISOString(), last_activity_at: null }).eq("clan_id", f.clanId).eq("user_id", f.users[index].id)).error).toBeNull();
+    expect((await f.service.rpc("refresh_clan_member_participation", { p_clan_id: f.clanId })).error).toBeNull();
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.goto(management);
-    const row = (nickname: string) => page.getByRole("row").filter({ hasText: nickname });
-    await expect(row(f.users[0].nickname).getByText("활성", { exact: true })).toBeVisible();
-    await expect(row(f.users[1].nickname).getByText("휴면", { exact: true })).toBeVisible();
-    await expect(row(f.users[2].nickname).getByText("비활성", { exact: true })).toBeVisible();
-    const activity = async (userId: string) => {
-      const result = await f.service.from("clan_members").select("last_activity_at").eq("clan_id", f.clanId).eq("user_id", userId).single();
-      expect(result.error).toBeNull();
-      return result.data!.last_activity_at;
-    };
-    await expect.poll(() => activity(f.users[0].id)).not.toBeNull();
-    const memberPage = await memberContext.newPage();
-    await loginIsolatedBalanceUser(memberPage, f.users[1]);
-    await memberPage.goto(f.path);
-    await expect(memberPage.getByRole("heading", { name: "내전 로비", exact: true })).toBeVisible();
-    await expect.poll(() => activity(f.users[1].id)).not.toBeNull();
+    const row = (index: number) => page.getByRole("row").filter({ hasText: f.users[index].nickname });
+    const dot = (index: number, label: string) => row(index).getByRole("img", { name: f.users[index].nickname + " " + label, exact: true });
+    await expect(dot(0, "비활성")).toHaveClass(/bg-amber-500/);
+    await expect(dot(1, "휴면")).toHaveClass(/bg-slate-400/);
+    await expect(dot(2, "활성")).toHaveClass(/bg-emerald-500/);
+    await expect(row(0).getByText("비활성", { exact: true })).toHaveCount(0);
+    await expect(row(1).getByText("휴면", { exact: true })).toHaveCount(0);
+    await expect(dot(0, "비활성")).toHaveAttribute("title", /참여 이력 없음/);
+    await expect(page.getByText("매일 00:00 내전 참여 기준 · 4주 비활성 · 8주 휴면", { exact: true })).toBeVisible();
+    await expect.poll(async () => (await f.service.from("clan_members").select("last_activity_at").eq("clan_id", f.clanId).eq("user_id", f.users[0].id).single()).data?.last_activity_at).not.toBeNull();
     await page.reload();
-    await expect(row(f.users[1].nickname).getByText("활성", { exact: true })).toBeVisible();
+    await expect(dot(0, "비활성")).toBeVisible();
     await page.getByRole("combobox", { name: "활동 상태", exact: true }).selectOption("inactive");
-    await expect(row(f.users[2].nickname)).toBeVisible();
-    await expect(row(f.users[0].nickname)).toHaveCount(0);
-    await expect(row(f.users[1].nickname)).toHaveCount(0);
-  } finally {
-    await memberContext.close();
-    await f.cleanup();
-  }
+    await expect(row(0)).toBeVisible(); await expect(row(1)).toHaveCount(0); await expect(row(2)).toHaveCount(0);
+    await page.getByRole("combobox", { name: "활동 상태", exact: true }).selectOption("all");
+    await page.setViewportSize({ width: 1142, height: 884 });
+    await page.screenshot({ path: test.info().outputPath("member-participation-dots.png"), animations: "disabled" });
+    await page.clock.install();
+    await page.reload();
+    await page.getByRole("textbox", { name: "구성원 검색", exact: true }).fill(f.users[0].nickname);
+    expect((await f.service.from("clan_members").update({ participation_status: "active" }).eq("clan_id", f.clanId).eq("user_id", f.users[0].id)).error).toBeNull();
+    await page.clock.fastForward(5 * 60_000);
+    await expect(dot(0, "활성")).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "구성원 검색", exact: true })).toHaveValue(f.users[0].nickname);
+  } finally { await f.cleanup(); }
 });
 
 test("activity RPC only updates the active caller, throttles repeat visits and keeps one KST person-day", async () => {
