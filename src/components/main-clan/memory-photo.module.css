@@ -11,8 +11,9 @@
 .tape::before { position:absolute; z-index:2; top:-10px; left:calc(50% - 40px); width:80px; height:26px; content:""; transform:rotate(-6deg); background:#d4b577b0; border:1px solid #c3a96b80; }
 .tape .footer { color:#716b5f; }
 .legacySticker { position:absolute; right:5px; top:8px; z-index:2; width:46px; height:46px; transform:rotate(12deg); }
-.placedSticker { position:absolute; z-index:3; width:18%; aspect-ratio:1; }
+.placedSticker { position:absolute; z-index:3; width:18%; aspect-ratio:1; container-type:inline-size; }
+.art { display:block; width:100%; height:100%; }
 .sticker { display:grid; place-items:center; width:100%; height:100%; border:3px solid #fff; border-radius:28%; box-shadow:0 2px 6px #0003; }
 .sticker svg { width:62%; height:62%; }
-.sparkle { background:#f8d66c; color:#614c14; }.heart { background:#f5a8b4; color:#92344f; }.heart svg { fill:currentColor; }.gg { background:#b8e3c8; color:#205e41; font-size:clamp(12px,5cqw,30px); font-weight:800; letter-spacing:-1px; }
+.sparkle { background:#f8d66c; color:#614c14; }.heart { background:#f5a8b4; color:#92344f; }.heart svg { fill:currentColor; }.gg { background:#b8e3c8; color:#205e41; font-size:clamp(10px,45cqw,100px); font-weight:800; letter-spacing:-1px; }
 .legacySticker .gg { font-size:20px; }

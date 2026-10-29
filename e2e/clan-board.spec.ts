@@ -149,7 +149,7 @@ test("추억 사진 업로드·폴라로이드 목록·게시일·모바일·삭
     const image=await page.screenshot();
     await page.getByRole("button",{name:"추억 남기기",exact:true}).click();
     const editor=page.getByRole("dialog");await editor.getByLabel("사진",{exact:true}).setInputFiles({name:"memory.png",mimeType:"image/png",buffer:image});
-    await editor.getByLabel("사진 아래 한마디",{exact:true}).fill("첫 번째 함께한 날");
+    await editor.getByLabel("글",{exact:true}).fill("첫 번째 함께한 날");
     await expect(editor.getByLabel("촬영일",{exact:true})).toHaveCount(0);
     await editor.getByRole("button",{name:"저장",exact:true}).click();await expect(page).toHaveURL(/\/board\/memories\/[0-9a-f-]{36}$/,{timeout:20000});
     const first=await ok(f.service.from("clan_board_posts").select("id,image_path,created_at,details").eq("clan_id",f.clanId).eq("kind","memories").single());
@@ -176,7 +176,7 @@ test("추억 사진 업로드·폴라로이드 목록·게시일·모바일·삭
     await cards.filter({hasText:"다시 만나자"}).click();
     await expect(page.locator("article header time")).toHaveText(boardDate(postedAt,true));
     await page.getByRole("button",{name:"편집",exact:true}).click();await expect(editor.getByLabel("촬영일",{exact:true})).toHaveCount(0);
-    await editor.getByLabel("사진 아래 한마디",{exact:true}).fill("수정해도 게시일 유지");await editor.getByRole("button",{name:"저장",exact:true}).click();
+    await editor.getByLabel("글",{exact:true}).fill("수정해도 게시일 유지");await editor.getByRole("button",{name:"저장",exact:true}).click();
     await expect(editor).toBeHidden();
     await expect(page.getByText("수정해도 게시일 유지",{exact:true})).toBeVisible();
     const edited=await ok(f.service.from("clan_board_posts").select("created_at,details").eq("id",secondId).single());

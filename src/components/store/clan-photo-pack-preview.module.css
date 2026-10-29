@@ -4,10 +4,7 @@
 .selection button[aria-pressed=true] { border-color:var(--primary); background:var(--accent); color:var(--accent-foreground); }
 .selectionIcon { display:block; width:24px; height:24px; }
 .selectionIcon > span { border-width:2px; font-size:12px; }
-.frames { display:grid; grid-template-columns:minmax(0,1fr) minmax(180px,210px); align-items:center; gap:24px; }
-.frames h3 { margin:10px 0; font-size:22px; font-weight:600; }
-.frames p { color:var(--muted-foreground); font-size:12px; line-height:1.9; }
-.eyebrow { color:var(--muted-foreground); font-size:11px; }
+.frames { width:100%; max-width:560px; margin-inline:auto; }
 .sample { position:absolute; inset:0; overflow:hidden; background:#aacbc0; }
 .sun { position:absolute; top:13%; left:18%; width:17%; aspect-ratio:1; border-radius:50%; background:#f6e9c4; }
 .mountains { position:absolute; inset:30% -1% -1%; background:#537f70; clip-path:polygon(0 65%,28% 5%,54% 60%,76% 20%,100% 75%,100% 100%,0 100%); }

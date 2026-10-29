@@ -1,0 +1,48 @@
+import { randomUUID } from "node:crypto";
+import sharp from "sharp";
+import { expect, test } from "@playwright/test";
+import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
+import { PROFILE_PHOTO_BUCKET } from "../src/lib/profile/photo";
+
+test("article author photo and centered navigation stay inside the current clan and board", async ({ page }) => {
+  test.setTimeout(120_000);
+  const f = await createIsolatedBalanceFixture(2), other = await createIsolatedBalanceFixture(1);
+  const base = f.path.replace(/\/balance$/, ""), ids = [randomUUID(), randomUUID(), randomUUID()].sort();
+  const imagePath = `${f.users[0].id}/${randomUUID()}.webp`;
+  try {
+    const image = await sharp({ create: { width: 64, height: 64, channels: 4, background: "#31875f" } }).webp().toBuffer();
+    expect((await f.service.storage.from(PROFILE_PHOTO_BUCKET).upload(imagePath, image, { contentType: "image/webp" })).error).toBeNull();
+    expect((await f.service.from("account_profile_photos").upsert({ user_id: f.users[0].id, image_path: imagePath })).error).toBeNull();
+    expect((await f.service.from("clan_board_posts").insert(ids.map((id, index) => ({ id, clan_id: f.clanId, author_id: f.users[0].id, kind: "free" as const, title: `동일 시각 게시글 ${index}`, content: "게시글 이동 검증", created_at: "2026-10-28T10:00:00Z" })))).error).toBeNull();
+    expect((await f.service.from("clan_board_posts").insert({ id: randomUUID(), clan_id: f.clanId, author_id: f.users[0].id, kind: "channels", title: "다른 게시판", content: "", created_at: "2026-10-29T10:00:00Z" })).error).toBeNull();
+    expect((await other.service.from("clan_board_posts").insert({ id: randomUUID(), clan_id: other.clanId, author_id: other.users[0].id, kind: "free", title: "다른 클랜", content: "경계 검증", created_at: "2026-10-27T10:00:00Z" })).error).toBeNull();
+    await loginIsolatedBalanceUser(page, f.users[0]);
+    await page.setViewportSize({ width: 1015, height: 884 });
+    await page.goto(`${base}/board/free/${ids[1]}`);
+    const article = page.locator("article"), nav = article.getByRole("navigation", { name: "게시글 이동", exact: true });
+    const avatar = article.locator("header").getByRole("img", { name: `${f.users[0].nickname} 프로필 사진`, exact: true });
+    await expect(avatar).toHaveAttribute("src", /\/api\/profile-photo\//);
+    await expect.poll(() => avatar.evaluate(el => (el as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    await expect(article.locator("header").getByRole("button", { name: "편집", exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "목록으로", exact: true })).toHaveCount(1);
+    await expect(nav.getByRole("link", { name: "이전 글", exact: true })).toHaveAttribute("href", `${base}/board/free/${ids[2]}`);
+    await expect(nav.getByRole("link", { name: "다음 글", exact: true })).toHaveAttribute("href", `${base}/board/free/${ids[0]}`);
+    const footer = (await article.locator("footer").boundingBox())!, middle = (await nav.boundingBox())!;
+    expect(Math.abs(middle.x + middle.width / 2 - footer.x - footer.width / 2)).toBeLessThan(2);
+    const like = (await article.getByRole("button", { name: "공감 0", exact: true }).boundingBox())!, comment = (await article.locator("footer").getByText("댓글 0", { exact: true }).boundingBox())!;
+    expect(like.x + like.width).toBeLessThanOrEqual(comment.x);
+    await page.screenshot({ path: test.info().outputPath("article-navigation-desktop.png"), animations: "disabled" });
+    await nav.getByRole("link", { name: "이전 글", exact: true }).click(); await expect(page).toHaveURL(`${base}/board/free/${ids[2]}`);
+    await expect(nav.getByLabel("이전 글", { exact: true })).toHaveAttribute("aria-disabled", "true");
+    await nav.getByRole("link", { name: "다음 글", exact: true }).click(); await expect(page).toHaveURL(`${base}/board/free/${ids[1]}`);
+    await nav.getByRole("link", { name: "다음 글", exact: true }).click(); await expect(page).toHaveURL(`${base}/board/free/${ids[0]}`);
+    await expect(nav.getByLabel("다음 글", { exact: true })).toHaveAttribute("aria-disabled", "true");
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(await article.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+    await page.screenshot({ path: test.info().outputPath("article-navigation-mobile.png"), animations: "disabled" });
+    await nav.getByRole("link", { name: "목록으로", exact: true }).click(); await expect(page).toHaveURL(base + "/board/free");
+  } finally {
+    await f.service.storage.from(PROFILE_PHOTO_BUCKET).remove([imagePath]);
+    await f.cleanup(); await other.cleanup();
+  }
+});

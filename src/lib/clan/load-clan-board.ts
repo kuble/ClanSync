@@ -34,14 +34,20 @@ export async function loadBoardArticle(clanId: string, kind: BoardKind, postId: 
   const post = await client.from("clan_board_posts").select("*").eq("clan_id",clanId).eq("kind",kind).eq("id",postId).maybeSingle();
   if (post.error) throw new Error("글을 불러오지 못했습니다.");
   if (!post.data) return null;
-  const [comments,reactions,mine,names] = await Promise.all([
+  const [comments,reactions,mine,names,previous,next] = await Promise.all([
     client.from("clan_board_comments").select("*",{count:"exact"}).eq("post_id",postId).order("created_at").order("id")
       .range((commentPage-1)*50,commentPage*50-1),
     client.from("clan_board_reactions").select("*",{count:"exact",head:true}).eq("post_id",postId),
     client.from("clan_board_reactions").select("post_id").eq("post_id",postId).eq("user_id",user.id).maybeSingle(),
     loadClanPeerNames(clanId),
+    client.from("clan_board_posts").select("id").eq("clan_id",clanId).eq("kind",kind)
+      .or(`created_at.gt.${post.data.created_at},and(created_at.eq.${post.data.created_at},id.gt.${postId})`)
+      .order("created_at",{ascending:true}).order("id",{ascending:true}).limit(1).maybeSingle(),
+    client.from("clan_board_posts").select("id").eq("clan_id",clanId).eq("kind",kind)
+      .or(`created_at.lt.${post.data.created_at},and(created_at.eq.${post.data.created_at},id.lt.${postId})`)
+      .order("created_at",{ascending:false}).order("id",{ascending:false}).limit(1).maybeSingle(),
   ]);
-  if (comments.error || reactions.error || mine.error || names.error) throw new Error("글의 댓글과 공감을 불러오지 못했습니다.");
+  if (comments.error || reactions.error || mine.error || names.error || previous.error || next.error) throw new Error("글의 댓글과 공감을 불러오지 못했습니다.");
   const ids=comments.data.map(row=>row.id);
   const [custom,standard] = await Promise.all([
     client.rpc("list_clan_emoji_reactions",{p_board_comment_ids:ids}),
@@ -56,6 +62,6 @@ export async function loadBoardArticle(clanId: string, kind: BoardKind, postId: 
     comments:comments.data.map((row): BoardComment=>({...row,author:name(row.author_id),canManage:staff || row.author_id===user.id,
       reactions:standard.data.filter(r=>r.comment_id===row.id).flatMap(r=>{const option=COMMENT_REACTIONS.find(option=>option.kind===r.kind);return option?[{kind:option.kind,count:Number(r.total),mine:r.mine}]:[];}),
       emojiReactions:custom.data.filter(r=>r.target_id===row.id).map(r=>({emoji_id:r.emoji_id,total:Number(r.total),mine:r.mine}))})),
-    reactions:reactions.count ?? 0,liked:!!mine.data,userId:user.id,
+    reactions:reactions.count ?? 0,liked:!!mine.data,userId:user.id,previousPostId:previous.data?.id??null,nextPostId:next.data?.id??null,
   };
 }

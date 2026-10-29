@@ -4,7 +4,7 @@ import Link from "next/link";
 import {useState,useTransition} from "react";
 import {useRouter} from "next/navigation";
 import {toast} from "sonner";
-import {ArrowLeft,ArrowUpRight,Clock3,Heart,MessageSquare,Pencil,Trash2} from "lucide-react";
+import {ChevronLeft,ChevronRight,ArrowUpRight,Clock3,Heart,MessageSquare,Pencil,Trash2} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription,DialogFooter} from "@/components/ui/dialog";
 import {deleteBoardPostAction,addBoardCommentAction,deleteBoardCommentAction,setBoardReactionAction,setBoardStatusAction,setChannelLiveAction} from "@/app/actions/clan-board";
@@ -20,8 +20,10 @@ import { listBoardCommentReactionPeopleAction } from "@/app/actions/clan-emoji-r
 import { listBoardCommentStandardReactionPeopleAction, setBoardCommentReactionAction } from "@/app/actions/board-comment-reactions";
 import { NO_CLAN_COSMETICS, memoryStyle, type ClanCosmeticAccess, type ClanEmoji, type ClanEmojiReaction } from "@/lib/clan/cosmetics";
 import { ClanCommentComposer, ClanComments } from "./clan-comments";
+import { ClanPlayerAvatar } from "@/components/profile/clan-namecards";
+import articleStyles from "./clan-board-article.module.css";
 
-export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reactions,liked,commentPage,userId,coaches=[],cosmeticAccess=NO_CLAN_COSMETICS,emojis=[],emojiReactions=[]}:{base:string;gameSlug:string;clanId:string;kind:BoardKind;post:BoardPost;comments:BoardComment[];reactions:number;liked:boolean;commentPage:number;userId:string;coaches?:ClanCoach[];cosmeticAccess?:ClanCosmeticAccess;emojis?:ClanEmoji[];emojiReactions?:ClanEmojiReaction[]}){
+export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reactions,liked,commentPage,userId,coaches=[],cosmeticAccess=NO_CLAN_COSMETICS,emojis=[],emojiReactions=[],previousPostId=null,nextPostId=null}:{base:string;gameSlug:string;clanId:string;kind:BoardKind;post:BoardPost;comments:BoardComment[];reactions:number;liked:boolean;commentPage:number;userId:string;coaches?:ClanCoach[];cosmeticAccess?:ClanCosmeticAccess;emojis?:ClanEmoji[];emojiReactions?:ClanEmojiReaction[];previousPostId?:string|null;nextPostId?:string|null}){
   const router=useRouter();
   const [editing,setEditing]=useState(false),[remove,setRemove]=useState(false),[comment,setComment]=useState("");
   const [pending,start]=useTransition();
@@ -32,14 +34,10 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
     start(async()=>{try{const result=await action();if(!result.ok){toast.error(result.error);return;}if(result.warning)toast.warning(result.warning);done?.();}catch{toast.error("저장하지 못했습니다. 작성 내용은 유지됩니다.");}});
   }
   return <div className="space-y-5">
-    <div className="flex items-center justify-between gap-3">
-      <Link href={base+"/board/"+kind} className="inline-flex min-h-10 items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground"><ArrowLeft className="size-4" aria-hidden/>목록으로</Link>
-      {post.canManage&&<div className="flex gap-1"><Button variant="ghost" size="icon" aria-label="편집" title="편집" disabled={pending} className="text-muted-foreground" onClick={()=>setEditing(true)}><Pencil className="size-4" aria-hidden/></Button><Button variant="ghost" size="icon" aria-label="삭제" title="삭제" disabled={pending} className="text-muted-foreground hover:text-destructive" onClick={()=>setRemove(true)}><Trash2 className="size-4" aria-hidden/></Button></div>}
-    </div>
     <article className="overflow-hidden rounded-xl border border-border bg-card">
       <header className="border-b border-border px-5 py-6 sm:px-7">
-        <h3 className="break-words text-xl font-semibold leading-8 tracking-tight sm:text-2xl"><ClanEmojiText text={post.title} large={false}/></h3>
-        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"><span className="font-medium">{post.author}</span><span className="text-border" aria-hidden>|</span><time dateTime={post.created_at} className="text-muted-foreground">{boardDate(post.created_at,true)}</time></div>
+        <div className="flex items-start justify-between gap-3"><h3 className="min-w-0 break-words text-xl font-semibold leading-8 tracking-tight sm:text-2xl"><ClanEmojiText text={post.title} large={false}/></h3>{post.canManage&&<div className="flex gap-1"><Button variant="ghost" size="icon" aria-label="편집" title="편집" disabled={pending} className="text-muted-foreground" onClick={()=>setEditing(true)}><Pencil className="size-4" aria-hidden/></Button><Button variant="ghost" size="icon" aria-label="삭제" title="삭제" disabled={pending} className="text-muted-foreground hover:text-destructive" onClick={()=>setRemove(true)}><Trash2 className="size-4" aria-hidden/></Button></div>}</div>
+        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"><ClanPlayerAvatar userId={post.author_id} label={post.author} size={28}/><span className="font-medium">{post.author}</span><span className="text-border" aria-hidden>|</span><time dateTime={post.created_at} className="text-muted-foreground">{boardDate(post.created_at,true)}</time></div>
       </header>
       <div className="space-y-6 p-5 sm:p-7">
         {kind==="feedback"&&<section className="overflow-hidden rounded-lg border border-border bg-background/40" aria-label="코칭 신청 정보">
@@ -61,7 +59,11 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
         {post.image_path&&<a href={boardImageUrl(base,post.id)} target="_blank" rel="noopener noreferrer" aria-label="사진 원본 보기" className="block overflow-hidden rounded-lg bg-muted/20">{kind==="memories"?<div className="mx-auto max-w-xl p-4"><MemoryPhoto src={boardImageUrl(base,post.id)} caption="" alt={post.content||post.title} frame={photo.photoFrame} sticker={photo.photoSticker} stickerPlacement={photo.photoStickerPlacement}/></div>:<Image unoptimized src={boardImageUrl(base,post.id)} width={1600} height={1200} alt={post.content||post.title} className="mx-auto max-h-[70dvh] w-auto max-w-full object-contain"/>}</a>}
         {kind!=="channels"&&<div className="max-w-[68ch] whitespace-pre-wrap break-words text-[15px] leading-8"><ClanEmojiText text={post.content}/></div>}
       </div>
-      <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-5 py-4 sm:px-7"><Button variant="outline" size="sm" aria-pressed={liked} disabled={pending} onClick={()=>mutate(()=>setBoardReactionAction(gameSlug,clanId,post.id,!liked))}><Heart className={liked?"size-4 fill-primary text-primary":"size-4"} aria-hidden/>공감 {reactions}</Button><ClanEmojiReactions gameSlug={gameSlug} clanId={clanId} postId={post.id} emojis={emojis} reactions={emojiReactions}/><span className="flex items-center gap-1.5 text-xs text-muted-foreground"><MessageSquare className="size-4" aria-hidden/>댓글 {post.commentCount}</span></footer>
+      <footer className={articleStyles.footer}>
+        <div className={articleStyles.feedback}><Button variant="outline" size="sm" aria-pressed={liked} disabled={pending} onClick={()=>mutate(()=>setBoardReactionAction(gameSlug,clanId,post.id,!liked))}><Heart className={liked?"size-4 fill-primary text-primary":"size-4"} aria-hidden/>공감 {reactions}</Button><span><MessageSquare className="size-4" aria-hidden/>댓글 {post.commentCount}</span></div>
+        <nav className={articleStyles.navigation} aria-label="게시글 이동">{previousPostId?<Link prefetch={false} href={base+"/board/"+kind+"/"+previousPostId} aria-label="이전 글"><ChevronLeft className="size-3.5" aria-hidden/>이전</Link>:<span aria-disabled="true" aria-label="이전 글"><ChevronLeft className="size-3.5" aria-hidden/>이전</span>}<Link prefetch={false} href={base+"/board/"+kind}>목록으로</Link>{nextPostId?<Link prefetch={false} href={base+"/board/"+kind+"/"+nextPostId} aria-label="다음 글">다음<ChevronRight className="size-3.5" aria-hidden/></Link>:<span aria-disabled="true" aria-label="다음 글">다음<ChevronRight className="size-3.5" aria-hidden/></span>}</nav>
+        <div className={articleStyles.custom}><ClanEmojiReactions gameSlug={gameSlug} clanId={clanId} postId={post.id} emojis={emojis} reactions={emojiReactions}/></div>
+      </footer>
     </article>
     <section id="comments" className="min-h-64 rounded-xl border border-border bg-card p-5 sm:p-6" aria-label="게시글 댓글">
       <h4 className="flex items-center gap-2 text-sm font-semibold">댓글 <span className="rounded-md bg-muted px-2 py-0.5 text-xs tabular-nums text-muted-foreground">{post.commentCount}</span></h4>
