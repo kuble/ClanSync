@@ -1,3 +1,4 @@
+import { readPhotoStickerPlacement, type PhotoStickerPlacement } from "./photo-sticker";
 export type ClanCosmeticAccess = { emojiSlots: number; frames: boolean; stickers: boolean };
 export const NO_CLAN_COSMETICS: ClanCosmeticAccess = { emojiSlots: 0, frames: false, stickers: false };
 export type ClanEmoji = { id: string; name: string; slot_index?: number };
@@ -18,6 +19,6 @@ export function readCosmeticAccess(value: unknown): ClanCosmeticAccess {
 export function clanProductKind(slug: string) {
   return isRepeatableClanProduct(slug) || slug === "clan_emoji_slots_10" ? "emojis" : slug === "clan_photo_frames" ? "frames" : slug === "clan_photo_stickers" ? "stickers" : "banner";
 }
-export function memoryStyle(details: { photoFrame?: string; photoSticker?: string }, access: ClanCosmeticAccess) {
-  return { photoFrame: access.frames && PHOTO_FRAMES.some(f => f.id === details.photoFrame) ? details.photoFrame : "classic", photoSticker: access.stickers && PHOTO_STICKERS.some(s => s.id === details.photoSticker) ? details.photoSticker : "none" };
+export function memoryStyle(details: { photoFrame?: string; photoSticker?: string; photoStickerPlacement?: PhotoStickerPlacement }, access: ClanCosmeticAccess) {
+  return { photoFrame: access.frames && PHOTO_FRAMES.some(f => f.id === details.photoFrame) ? details.photoFrame : "classic", photoSticker: access.stickers && PHOTO_STICKERS.some(s => s.id === details.photoSticker) ? details.photoSticker : "none", photoStickerPlacement: access.stickers ? readPhotoStickerPlacement(details.photoStickerPlacement) : undefined };
 }

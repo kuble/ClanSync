@@ -1,5 +1,6 @@
 import type { Database, Json } from "@/lib/supabase/database.types";
 import type { CommentReaction } from "./comment-reactions";
+import { readPhotoStickerPlacement, type PhotoStickerPlacement } from "./photo-sticker";
 
 export const BOARD_SECTIONS = [
   { key: "notices", label: "클랜 공지 및 규칙", description: "함께 지킬 약속과 중요한 소식" },
@@ -28,13 +29,15 @@ export type BoardComment = Database["public"]["Tables"]["clan_board_comments"]["
 export type BoardListPost=Pick<BoardPost,"id"|"title"|"content"|"details"|"status"|"image_path"|"created_at"|"author"|"commentCount"|"coachName">;
 export const STREAM_PLATFORMS = ["YouTube","CHZZK","Twitch","SOOP"] as const;
 export type BoardChannel = {platform:string;url:string};
-export type BoardDetails = { role?: string; replay?: string; video?: string; moment?: string; platform?: string; channel?: string; channels?: BoardChannel[]; schedule?: string; takenAt?: string; isLive?: boolean; photoFrame?: string; photoSticker?: string };
+export type BoardDetails = { role?: string; replay?: string; video?: string; moment?: string; platform?: string; channel?: string; channels?: BoardChannel[]; schedule?: string; takenAt?: string; isLive?: boolean; photoFrame?: string; photoSticker?: string; photoStickerPlacement?: PhotoStickerPlacement };
 export const FEEDBACK_STATUS = { requested: "신청", answering: "답변 중", complete: "완료" } as const;
 export function boardDetails(value: Json): BoardDetails {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   const details = Object.fromEntries(Object.entries(value).filter(([key, v]) => ["role","replay","video","moment","platform","channel","schedule","takenAt","photoFrame","photoSticker"].includes(key) && typeof v === "string")) as BoardDetails;
   if(Array.isArray(value.channels))details.channels=value.channels.filter((entry):entry is {platform:string;url:string}=>!!entry&&typeof entry==='object'&&!Array.isArray(entry)&&typeof entry.platform==='string'&&typeof entry.url==='string');
   if(typeof value.isLive==="boolean")details.isLive=value.isLive;
+  const placement=readPhotoStickerPlacement(value.photoStickerPlacement);
+  if(placement)details.photoStickerPlacement=placement;
   return details;
 }
 export function boardChannels(details:BoardDetails):BoardChannel[]{return details.channels??(details.platform&&details.channel?[{platform:details.platform,url:details.channel}]:[]);}
@@ -51,7 +54,8 @@ export function validateBoardInput(kind: BoardKind, title: string, content: stri
   if (content.trim().length > (kind === "memories" ? 100 : 20000)) return kind === "memories" ? "사진 아래 한마디는 100자 이내로 적어 주세요." : "본문은 20,000자 이내로 입력해 주세요.";
   if (kind === "free" && !content.trim()) return "본문을 입력해 주세요.";
   if (kind === "memories" && ((raw.photoFrame && !["classic","film","tape"].includes(raw.photoFrame)) || (raw.photoSticker && !["none","sparkle","heart","gg"].includes(raw.photoSticker)))) return "사진 꾸미기를 확인해 주세요.";
-  if (Object.entries(raw).some(([key,v]) => key==="isLive" ? kind!=="channels"||typeof v!=="boolean" : key!=="channels"&&(typeof v !== "string" || v.length > 1000))) return "입력 내용을 확인해 주세요.";
+  if (raw.photoStickerPlacement !== undefined && (kind !== "memories" || !raw.photoSticker || raw.photoSticker === "none" || !readPhotoStickerPlacement(raw.photoStickerPlacement))) return "스티커 위치와 회전을 확인해 주세요.";
+  if (Object.entries(raw).some(([key,v]) => key==="isLive" ? kind!=="channels"||typeof v!=="boolean" : !["channels","photoStickerPlacement"].includes(key)&&(typeof v !== "string" || v.length > 1000))) return "입력 내용을 확인해 주세요.";
   if (kind === "feedback") {
     if (!raw.role?.trim() || raw.role.length > 100 || !content.trim()) return "역할·영웅과 궁금한 점을 입력해 주세요.";
     if (raw.replay && !/^[a-z0-9]{6,12}$/i.test(raw.replay.trim())) return "리플레이 코드는 영문·숫자 6~12자로 입력해 주세요.";

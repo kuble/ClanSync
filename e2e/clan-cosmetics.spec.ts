@@ -110,7 +110,7 @@ test("clan cosmetic purchases, bounded private emoji slots, reactions and shared
       await expect(memberPage).toHaveURL(/\/board\/memories\/[0-9a-f-]{36}$/, { timeout: 30_000 });
       const saved = (await svc.from("clan_board_posts").select("id,image_path,details").eq("clan_id", f.clanId).eq("kind", "memories").single()).data!;
       photos.push(saved.image_path!, boardThumbnail(saved.image_path!));
-      expect(saved.details).toEqual({ photoFrame: "tape", photoSticker: "gg" });
+      expect(saved.details).toEqual({ photoFrame: "tape", photoSticker: "gg", photoStickerPlacement: { x: 80, y: 22, rotation: 12, flipX: false, flipY: false } });
       await expect(memberPage.locator('[data-photo-frame="tape"][data-photo-sticker="gg"]')).toBeVisible();
       await memberPage.goto(base + "/board/memories");
       await expect(memberPage.locator('[data-photo-frame="tape"][data-photo-sticker="gg"]')).toBeVisible();

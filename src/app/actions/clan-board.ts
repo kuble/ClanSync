@@ -53,7 +53,7 @@ export async function saveBoardPostAction(gameSlug: string, clanId: string, inpu
   if (input.kind === "memories" && !input.imagePath) return { ok:false,error:"추억 사진을 한 장 선택해 주세요." };
   const details: BoardDetails = input.kind === "feedback" ? { role:input.details.role?.trim(), replay:input.details.replay?.trim().toUpperCase(), video:input.details.video?.trim(), moment:input.details.moment?.trim() }
     : input.kind === "channels" ? { channels:boardChannels(input.details).map(c=>({platform:c.platform,url:c.url.trim()})), schedule:input.details.schedule?.trim(), isLive:boardDetails(old?.data?.details??{}).isLive===true }
-    : input.kind === "memories" ? { takenAt:boardDetails(old?.data?.details??{}).takenAt, photoFrame:input.details.photoFrame??"classic", photoSticker:input.details.photoSticker??"none" } : {};
+    : input.kind === "memories" ? { takenAt:boardDetails(old?.data?.details??{}).takenAt, photoFrame:input.details.photoFrame??"classic", photoSticker:input.details.photoSticker??"none", photoStickerPlacement:input.details.photoStickerPlacement } : {};
   // Channel edits retain legacy introductions without displaying or overwriting them.
   const values = { title:input.title.trim(),...(input.kind==="channels" ? input.editing?{}:{content:""} : {content:input.content.trim()}),details:JSON.parse(JSON.stringify(details)),image_path:input.imagePath,coach_id:coachId };
   const query = input.editing ? ctx.supabase.from("clan_board_posts").update(values).eq("id",input.id).eq("clan_id",clanId).eq("kind",input.kind)

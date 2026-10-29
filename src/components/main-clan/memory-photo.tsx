@@ -1,13 +1,17 @@
 import Image from "next/image";
 import { ClanEmojiText } from "./clan-emoji-content";
 import type { ReactNode } from "react";
-import { Camera, Heart, Sparkles } from "lucide-react";
+import { Camera } from "lucide-react";
+import { stickerPlacementStyle, type PhotoStickerPlacement } from "@/lib/clan/photo-sticker";
+import { PhotoSticker } from "./photo-sticker";
 import { cn } from "@/lib/utils";
 import styles from "./memory-photo.module.css";
-export function MemoryPhoto({ src, caption, alt, frame = "classic", sticker = "none", footer, eager = false }: { src: string | null; caption: string; alt?: string; frame?: string; sticker?: string; footer?: ReactNode; eager?: boolean }) {
+export function MemoryPhoto({ src, caption, alt, frame = "classic", sticker = "none", stickerPlacement, stickerOverlay, placeholder, footer, eager = false }: { src: string | null; caption: string; alt?: string; frame?: string; sticker?: string; stickerPlacement?: PhotoStickerPlacement; stickerOverlay?: ReactNode; placeholder?: ReactNode; footer?: ReactNode; eager?: boolean }) {
   return <div className={cn(styles.photo, styles[frame])} data-photo-frame={frame} data-photo-sticker={sticker}>
-    <div className={styles.image}>{src ? <Image src={src} alt={alt || caption || "추억 사진"} width={600} height={450} unoptimized loading={eager ? "eager" : "lazy"} /> : <Camera className="size-8 text-muted-foreground" aria-hidden />}</div>
-    {sticker !== "none" && <span className={cn(styles.sticker, styles[sticker])} aria-label={sticker === "sparkle" ? "반짝 스티커" : sticker === "heart" ? "하트 스티커" : "GG 스티커"}>{sticker === "sparkle" ? <Sparkles aria-hidden /> : sticker === "heart" ? <Heart aria-hidden /> : "GG"}</span>}
+    <div className={styles.image}>{src ? <Image src={src} alt={alt || caption || "추억 사진"} width={600} height={450} unoptimized loading={eager ? "eager" : "lazy"} /> : placeholder ?? <Camera className="size-8 text-muted-foreground" aria-hidden />}
+      {stickerOverlay ?? (sticker !== "none" && stickerPlacement ? <span className={styles.placedSticker} data-sticker-placement style={stickerPlacementStyle(stickerPlacement)}><PhotoSticker sticker={sticker}/></span> : null)}
+    </div>
+    {sticker !== "none" && !stickerPlacement && !stickerOverlay && <span className={styles.legacySticker}><PhotoSticker sticker={sticker}/></span>}
     {caption && <p className={styles.caption}><ClanEmojiText text={caption}/></p>}{footer && <p className={styles.footer}>{footer}</p>}
   </div>;
 }

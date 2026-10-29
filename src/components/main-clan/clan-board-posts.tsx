@@ -51,7 +51,7 @@ function BoardPostRows({base,kind,posts,action}:{base:string;kind:BoardKind;post
 function MemoryGallery({base,posts,cosmeticAccess}:{base:string;posts:BoardListPost[];cosmeticAccess:ClanCosmeticAccess}){
   return <section aria-label="추억 앨범">
     <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{posts.map((p,i)=>{const photo=memoryStyle(boardDetails(p.details),cosmeticAccess);return <Link key={p.id} prefetch={false} href={base+"/board/memories/"+p.id} className="min-w-0 focus-visible:outline-2 focus-visible:outline-primary" style={{transform:"rotate("+(i%3-1)*2+"deg)"}}>
-      <MemoryPhoto src={boardImageUrl(base,p.id,true)} caption={p.content||p.title} footer={<><time dateTime={p.created_at}>{boardDate(p.created_at)}</time>{" · "+p.author}</>} frame={photo.photoFrame} sticker={photo.photoSticker} eager={i<2}/>
+      <MemoryPhoto src={boardImageUrl(base,p.id,true)} caption={p.content||p.title} footer={<><time dateTime={p.created_at}>{boardDate(p.created_at)}</time>{" · "+p.author}</>} frame={photo.photoFrame} sticker={photo.photoSticker} stickerPlacement={photo.photoStickerPlacement} eager={i<2}/>
     </Link>;})}</div>
   </section>;
 }

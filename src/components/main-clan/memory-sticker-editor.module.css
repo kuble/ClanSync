@@ -1,0 +1,18 @@
+.editor { display:grid; grid-template-columns:minmax(0,1fr) minmax(180px,210px); align-items:start; gap:24px; min-width:0; }
+.canvas { min-width:0; }
+.handle { position:absolute; z-index:3; width:18%; aspect-ratio:1; padding:0; border:0; background:transparent; cursor:grab; touch-action:none; user-select:none; }
+.handle:active { cursor:grabbing; }
+.handle:focus-visible { outline:3px solid var(--primary); outline-offset:5px; border-radius:28%; }
+.hint { margin:12px 0 0; font-size:11px; line-height:1.7; color:var(--muted-foreground); }
+.controls { display:grid; gap:14px; min-width:0; padding:0; border:0; }
+.controls:disabled { opacity:.5; }
+.controlHeading { display:flex; align-items:center; justify-content:space-between; gap:6px; border-bottom:1px solid var(--border); padding-bottom:10px; font-size:12px; font-weight:600; }
+.slider { display:grid; gap:4px; min-width:0; font-size:12px; }
+.slider > span { display:flex; justify-content:space-between; gap:12px; }
+.slider output { color:var(--muted-foreground); font-variant-numeric:tabular-nums; }
+.slider input { width:100%; min-width:0; min-height:36px; accent-color:var(--primary); cursor:pointer; }
+.slider input:focus-visible { outline:2px solid var(--ring); outline-offset:2px; border-radius:4px; }
+.flipButtons { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.flipButtons button { min-height:40px; padding-inline:8px; font-size:11px; }
+.flipButtons button[aria-pressed=true] { border-color:var(--primary); background:var(--accent); color:var(--accent-foreground); }
+@media(max-width:639px) { .editor { grid-template-columns:minmax(0,1fr); gap:18px; } .controls { gap:12px; } .slider input { min-height:40px; } .flipButtons button { min-height:44px; } }

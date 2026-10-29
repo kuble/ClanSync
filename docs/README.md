@@ -106,6 +106,6 @@
 
 구독 표시 용어는 **Free / Premium**으로 통일합니다. 기존 `pro-*` 코드 식별자는 별도입니다.
 
-공용 반응·사진 꾸미기: [권한/규격](../src/lib/clan/cosmetics.ts) · [이모티콘 API](../src/app/api/games/[gameSlug]/clans/[clanId]/emojis/route.ts) · [관리](../src/components/main-clan/clan-emoji-settings.tsx) · [사진 표시](../src/components/main-clan/memory-photo.tsx) · [격리 구매/업로드/RLS/꾸미기/모달 검증](../e2e/clan-cosmetics.spec.ts).
+공용 반응·사진 꾸미기: [권한/규격](../src/lib/clan/cosmetics.ts) · [이모티콘 API](../src/app/api/games/[gameSlug]/clans/[clanId]/emojis/route.ts) · [관리](../src/components/main-clan/clan-emoji-settings.tsx) · [사진 표시](../src/components/main-clan/memory-photo.tsx) · [스티커 배치 조절](../src/components/main-clan/memory-sticker-editor.tsx) · [배치 형식/검증](../src/lib/clan/photo-sticker.ts) · [상점 체험](../src/components/store/clan-photo-pack-preview.tsx) · [스티커 위치/회전/반전·터치·저장](../e2e/memory-stickers.spec.ts) · [격리 구매/업로드/RLS/꾸미기/모달 검증](../e2e/clan-cosmetics.spec.ts).
 
 공용 이모티콘 작성/반응 확장: [공통 입력·표시·선택기](../src/components/main-clan/clan-emoji-content.tsx) · [정사각형 편집](../src/components/main-clan/clan-emoji-crop-dialog.tsx) · [이미지 변환](../src/lib/clan/process-emoji.ts) · [범용 반응 액션](../src/app/actions/clan-emoji-reactions.ts) · [조합·좌표/GIF·권한/디자인 검증](../e2e/clan-emoji-composition.spec.ts).
