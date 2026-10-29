@@ -65,7 +65,7 @@ test("board comment reaction people: scoped names, keyboard, retry and access bo
     await page.unroute(url, fail);
     await page.getByLabel("댓글 내용", { exact: true }).focus();
     await page.mouse.move(5, 5);
-    await own.getByRole("button", { name: "클랜 이모티콘 선택", exact: true }).focus();
+    await own.getByRole("button", { name: `${f.users[0].nickname} 댓글 공감 선택`, exact: true }).focus();
     await page.keyboard.press("Shift+Tab");
     await expect(ownReaction).toBeFocused();
     await expect(people.getByRole("listitem")).toHaveCount(2);

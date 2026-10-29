@@ -43,7 +43,7 @@ export async function setClanEmojiTargetReaction(gameSlug: string, clanId: strin
   values[column]=target.id;
   const result = active ? await client.from("clan_emoji_reactions").insert(values) : await client.from("clan_emoji_reactions").delete().eq(column,target.id).eq("emoji_id",emojiId).eq("user_id",user.id);
   if (result.error && result.error.code !== "23505") return { ok: false, error: "이 클랜에서 사용 가능한 이모티콘을 선택해 주세요." };
-  revalidatePath(`/games/${gameSlug}/clan/${clanId}/board`, "layout");
+  revalidatePath(`/games/${gameSlug}/clan/${clanId}/${target.kind === "hof_comment" ? "stats" : "board"}`, "layout");
   const args:Database["public"]["Functions"]["list_clan_emoji_reactions"]["Args"]={};
   const argument=target.kind==="post"?"p_post_ids":target.kind==="board_comment"?"p_board_comment_ids":target.kind==="hof_comment"?"p_hof_comment_ids":"p_notice_ids";
   args[argument]=[target.id];

@@ -1,4 +1,5 @@
 import type { Database, Json } from "@/lib/supabase/database.types";
+import type { CommentReaction } from "./comment-reactions";
 
 export const BOARD_SECTIONS = [
   { key: "notices", label: "클랜 공지 및 규칙", description: "함께 지킬 약속과 중요한 소식" },
@@ -23,7 +24,7 @@ export function isBoardKind(value: unknown): value is BoardKind {
 export type BoardPost = Database["public"]["Tables"]["clan_board_posts"]["Row"] & {
   author: string; canManage: boolean; canReplaceImage: boolean; commentCount: number; coachName?: string; canSetStatus?: boolean; canSetChannelLive?: boolean;
 };
-export type BoardComment = Database["public"]["Tables"]["clan_board_comments"]["Row"] & { author: string; canManage: boolean; emojiReactions?: {emoji_id:string;total:number;mine:boolean}[] };
+export type BoardComment = Database["public"]["Tables"]["clan_board_comments"]["Row"] & { author: string; canManage: boolean; reactions: CommentReaction[]; emojiReactions?: {emoji_id:string;total:number;mine:boolean}[] };
 export type BoardListPost=Pick<BoardPost,"id"|"title"|"content"|"details"|"status"|"image_path"|"created_at"|"author"|"commentCount"|"coachName">;
 export const STREAM_PLATFORMS = ["YouTube","CHZZK","Twitch","SOOP"] as const;
 export type BoardChannel = {platform:string;url:string};

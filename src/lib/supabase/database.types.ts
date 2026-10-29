@@ -977,6 +977,39 @@ export type Database = {
           },
         ]
       }
+      clan_board_comment_reactions: {
+        Row: {
+          comment_id: string
+          kind: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          kind: string
+          user_id?: string
+        }
+        Update: {
+          comment_id?: string
+          kind?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_board_comment_reactions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "clan_board_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_board_comment_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_board_comments: {
         Row: {
           author_id: string | null
@@ -3607,6 +3640,15 @@ export type Database = {
           user_id: string
         }[]
       }
+      list_board_comment_reactions: {
+        Args: { p_comment_ids: string[] }
+        Returns: {
+          comment_id: string
+          kind: string
+          mine: boolean
+          total: number
+        }[]
+      }
       list_clan_emoji_reactions: {
         Args: {
           p_board_comment_ids?: string[]
@@ -3905,6 +3947,10 @@ export type Database = {
       }
       set_balance_scores: {
         Args: { p_clan_id: string; p_round_id: string; p_snapshot: Json }
+        Returns: undefined
+      }
+      set_board_comment_reaction: {
+        Args: { p_comment_id: string; p_kind?: string }
         Returns: undefined
       }
       set_clan_banner: {

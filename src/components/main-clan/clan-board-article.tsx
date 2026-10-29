@@ -17,6 +17,7 @@ import { MemoryPhoto } from "./memory-photo";
 import { ClanEmojiText } from "./clan-emoji-content";
 import { ClanEmojiReactions } from "./clan-emoji-reactions";
 import { listBoardCommentReactionPeopleAction } from "@/app/actions/clan-emoji-reactions";
+import { listBoardCommentStandardReactionPeopleAction, setBoardCommentReactionAction } from "@/app/actions/board-comment-reactions";
 import { NO_CLAN_COSMETICS, memoryStyle, type ClanCosmeticAccess, type ClanEmoji, type ClanEmojiReaction } from "@/lib/clan/cosmetics";
 import { ClanCommentComposer, ClanComments } from "./clan-comments";
 
@@ -64,10 +65,11 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
     </article>
     <section id="comments" className="min-h-64 rounded-xl border border-border bg-card p-5 sm:p-6" aria-label="게시글 댓글">
       <h4 className="flex items-center gap-2 text-sm font-semibold">댓글 <span className="rounded-md bg-muted px-2 py-0.5 text-xs tabular-nums text-muted-foreground">{post.commentCount}</span></h4>
-      <ClanComments comments={commentRows} className="mt-3" disabled={pending}
+      <ClanComments comments={commentRows} clanId={clanId} targetKind="board_comment" className="mt-3" disabled={pending}
         onEdit={c=>{setCommentEdit(c);setComment(c.content);}}
         onDelete={c=>mutate(()=>deleteBoardCommentAction(gameSlug,clanId,post.id,c.id))}
-        renderReactions={c=><ClanEmojiReactions gameSlug={gameSlug} clanId={clanId} target={{kind:"board_comment",id:c.id}} reactions={c.emojiReactions??[]} loadPeople={emojiId=>listBoardCommentReactionPeopleAction(gameSlug,clanId,c.id,emojiId)}/>} />
+        onReact={(c,reaction)=>mutate(()=>setBoardCommentReactionAction(gameSlug,clanId,c.id,reaction))}
+        loadReactionPeople={(c,reaction)=>"kind" in reaction ? listBoardCommentStandardReactionPeopleAction(gameSlug,clanId,c.id,reaction.kind) : listBoardCommentReactionPeopleAction(gameSlug,clanId,c.id,reaction.emojiId)} />
       {!comments.length&&<p className="py-8 text-center text-sm text-muted-foreground">첫 댓글을 남겨 주세요.</p>}
       {post.commentCount>50&&<nav className="flex justify-center gap-4 py-4 text-sm" aria-label="댓글 페이지">{commentPage>1&&<Link href={"?comments="+(commentPage-1)}>이전 댓글</Link>}<span>{commentPage} / {Math.ceil(post.commentCount/50)}</span>{commentPage*50<post.commentCount&&<Link href={"?comments="+(commentPage+1)}>다음 댓글</Link>}</nav>}
       <ClanCommentComposer className="mt-5" label="댓글 내용" value={comment} onChange={setComment} maxLength={1000} disabled={pending} placeholder={commentEdit?"댓글을 수정해 주세요.":"클랜원에게 한마디 남겨보세요."}

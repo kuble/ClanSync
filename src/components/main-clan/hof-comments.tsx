@@ -3,14 +3,11 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { MessageSquare, RefreshCw } from "lucide-react";
 import { addHofCommentAction, deleteHofCommentAction, listHofCommentsAction, listHofCommentReactionPeopleAction, setHofCommentReactionAction } from "@/app/actions/hof-comments";
-import { HOF_COMMENT_MAX_LENGTH, HOF_REACTIONS, type HofComment, type HofCommentThread, type HofReactionKind } from "@/lib/clan/stats/hof-comments";
+import { HOF_COMMENT_MAX_LENGTH, type HofComment, type HofCommentThread, type HofReactionKind } from "@/lib/clan/stats/hof-comments";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatsScrollArea } from "./stats-scroll-area";
-import { ClanEmojiReactions, EmojiReactionButton } from "./clan-emoji-reactions";
 import { ClanCommentComposer, ClanComments } from "./clan-comments";
-
-const reactionOptions = HOF_REACTIONS.map((option) => ({ ...option, value: option.kind }));
 
 /** Preserve the card and controls; only a thread's draft/replies reset on a scope change. */
 export function HofComments({ clanId, ranking, periodKey, label }: HofCommentThread & { label: string }) {
@@ -82,12 +79,11 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
     finally { setBusy(false); }
   }
 
-  async function react(comment: HofComment, kind: HofReactionKind) {
+  async function react(comment: HofComment, kind: HofReactionKind | null) {
     if (busy || loading) return;
     setBusy(true); setError("");
     try {
-      const mine = comment.reactions.some((reaction) => reaction.kind === kind && reaction.mine);
-      const result = await setHofCommentReactionAction(thread, comment.id, mine ? null : kind);
+      const result = await setHofCommentReactionAction(thread, comment.id, kind);
       if (result.ok) setComments((rows) => rows.map((row) => row.id === comment.id ? { ...row, reactions: result.reactions } : row));
       else setError(result.error);
     } catch { setError("공감 결과를 확인하지 못했습니다. 새로고침으로 확인해 주세요."); }
@@ -117,16 +113,7 @@ function HofCommentsThread({ clanId, ranking, periodKey, refresh, onStatus }: Ho
       <StatsScrollArea label="순위 댓글 목록" className="min-h-0 flex-1" viewportRef={viewport}>
         {loading ? <p role="status" className="flex min-h-60 items-center justify-center text-sm text-muted-foreground">반응을 불러오는 중…</p> : <>
         {cursor && <Button type="button" className="w-full" variant="outline" size="sm" disabled={busy} onClick={() => void loadMore()}>이전 댓글 더 보기</Button>}
-        {comments.length ? <ClanComments comments={chronological} disabled={busy || loading} onDelete={comment => remove(comment.id)} renderReactions={comment => <>
-              {HOF_REACTIONS.map((option) => {
-                const reaction = comment.reactions.find(({ kind }) => kind === option.kind);
-                return reaction && <EmojiReactionButton key={option.kind} count={reaction.count} aria-pressed={reaction.mine} disabled={busy || loading}
-                  aria-label={`${option.label} 공감 ${reaction.count}명`} title={`${option.label}${reaction.mine ? " 취소" : ""}`}
-                  loadPeople={() => listHofCommentReactionPeopleAction(thread, comment.id, { kind: option.kind })}
-                  onClick={() => void react(comment, option.kind)}>{option.emoji}</EmojiReactionButton>;
-              })}
-              <ClanEmojiReactions pickerLabel={`${comment.nickname} 댓글 공감 선택`} clanId={clanId} target={{kind:"hof_comment",id:comment.id}} reactions={comment.emojiReactions??[]} standardOptions={reactionOptions} onStandardSelect={value=>{const option=HOF_REACTIONS.find(row=>row.kind===value);if(option)void react(comment,option.kind);}} loadPeople={emojiId => listHofCommentReactionPeopleAction(thread, comment.id, { emojiId })}/>
-            </>} /> : !error && <div className="flex min-h-60 flex-col items-center justify-center gap-3 text-center"><MessageSquare className="size-8 text-primary/50" aria-hidden="true" /><p className="text-sm font-semibold">이번 순위, 할 말 있죠?</p><p className="text-xs text-muted-foreground">아직 조용하네요. 첫 한마디를 남겨보세요.</p></div>}
+        {comments.length ? <ClanComments comments={chronological} clanId={clanId} targetKind="hof_comment" disabled={busy || loading} onDelete={comment => remove(comment.id)} onReact={react} loadReactionPeople={(comment, reaction) => listHofCommentReactionPeopleAction(thread, comment.id, reaction)} /> : !error && <div className="flex min-h-60 flex-col items-center justify-center gap-3 text-center"><MessageSquare className="size-8 text-primary/50" aria-hidden="true" /><p className="text-sm font-semibold">이번 순위, 할 말 있죠?</p><p className="text-xs text-muted-foreground">아직 조용하네요. 첫 한마디를 남겨보세요.</p></div>}
         </>}
       </StatsScrollArea>
       <ClanCommentComposer pickerLabel="댓글 이모티콘 선택" id="hof-comment" label="순위 보고 한마디" value={draft} onChange={setDraft} onSubmit={submit} maxLength={HOF_COMMENT_MAX_LENGTH} disabled={busy} submitDisabled={loading} placeholder="이번 순위에 한마디 남겨보세요." />

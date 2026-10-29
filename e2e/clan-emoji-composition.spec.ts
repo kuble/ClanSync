@@ -73,7 +73,7 @@ test("custom emojis compose posts, board/stat comments and all reaction targets 
     const comment=page.locator("#comments li").first();
     await expect(comment.getByRole("img",{name:":응원:",exact:true})).toHaveAttribute("width","48");
     await comment.hover();
-    await choose(comment,"클랜 이모티콘 선택");await expect(comment.getByRole("button",{name:"응원 공감 1명",exact:true})).toHaveAttribute("aria-pressed","true");
+    await choose(comment,`${f.users[0].nickname} 댓글 공감 선택`);await expect(comment.getByRole("button",{name:"응원 공감 1명",exact:true})).toHaveAttribute("aria-pressed","true");
     await page.reload();await expect(comment.getByRole("button",{name:"응원 공감 1명",exact:true})).toBeVisible();
     await expect.poll(()=>page.locator('img[alt=":응원:"]').evaluateAll(nodes=>nodes.every(node=>(node as HTMLImageElement).naturalWidth>0))).toBe(true);
     await page.screenshot({path:test.info().outputPath("emoji-board.png"),animations:"disabled"});
@@ -91,7 +91,7 @@ test("custom emojis compose posts, board/stat comments and all reaction targets 
       const reaction=row.getByRole("button",{name:/응원 공감 \d+명/});
       await reaction.scrollIntoViewIfNeeded();await row.hover();
       const bubble=(await row.locator("p").boundingBox())!,pill=(await reaction.boundingBox())!;
-      const picker=(await row.getByRole("button",{name:"클랜 이모티콘 선택",exact:true}).boundingBox())!;
+      const picker=(await row.getByRole("button",{name:/댓글 공감 선택$/}).boundingBox())!;
       const edit=(await row.getByRole("button",{name:/댓글 편집$/}).boundingBox())!,remove=(await row.getByRole("button",{name:/댓글 삭제$/}).boundingBox())!;
       if(mine) {
         expect(pill.x+pill.width).toBeCloseTo(bubble.x+bubble.width,0);
@@ -106,7 +106,7 @@ test("custom emojis compose posts, board/stat comments and all reaction targets 
       }
       await page.getByRole("textbox",{name:"댓글 내용",exact:true}).focus();
       await row.scrollIntoViewIfNeeded();await page.mouse.move(5,5);
-      await expect(row.getByRole("button",{name:"클랜 이모티콘 선택",exact:true})).toHaveCSS("opacity","0");
+      await expect(row.getByRole("button",{name:/댓글 공감 선택$/})).toHaveCSS("opacity","0");
       await expect(row.getByRole("button",{name:/댓글 삭제$/})).toHaveCSS("opacity","0");
       await expect(reaction).toHaveCSS("opacity","1");
     }
