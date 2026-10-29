@@ -4,7 +4,7 @@ import Link from "next/link";
 import {useState,useTransition} from "react";
 import {useRouter} from "next/navigation";
 import {toast} from "sonner";
-import {ArrowLeft,ArrowUpRight,Clock3,Heart,MessageSquare,Pencil,Send,Trash2} from "lucide-react";
+import {ArrowLeft,ArrowUpRight,Clock3,Heart,MessageSquare,Pencil,Trash2} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription,DialogFooter} from "@/components/ui/dialog";
 import {deleteBoardPostAction,saveBoardCommentAction,deleteBoardCommentAction,setBoardReactionAction,setBoardStatusAction,setChannelLiveAction} from "@/app/actions/clan-board";
@@ -14,29 +14,26 @@ import type {ClanCoach} from "@/lib/clan/coaching";
 import {ClanChannelLinks,ClanChannelStatus} from "./clan-channel-links";
 import {cn} from "@/lib/utils";
 import { MemoryPhoto } from "./memory-photo";
-import { ClanEmojiInput, ClanEmojiText } from "./clan-emoji-content";
+import { ClanEmojiText } from "./clan-emoji-content";
 import { ClanEmojiReactions } from "./clan-emoji-reactions";
 import { listBoardCommentReactionPeopleAction } from "@/app/actions/clan-emoji-reactions";
-import { ClanPlayerAvatar } from "@/components/profile/clan-namecards";
 import { NO_CLAN_COSMETICS, memoryStyle, type ClanCosmeticAccess, type ClanEmoji, type ClanEmojiReaction } from "@/lib/clan/cosmetics";
-import commentStyles from "./clan-comment.module.css";
-
-const commentDate = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric", weekday: "long" });
-const commentTime = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", hour: "numeric", minute: "2-digit" });
+import { ClanCommentComposer, ClanComments } from "./clan-comments";
 
 export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reactions,liked,commentPage,userId,coaches=[],cosmeticAccess=NO_CLAN_COSMETICS,emojis=[],emojiReactions=[]}:{base:string;gameSlug:string;clanId:string;kind:BoardKind;post:BoardPost;comments:BoardComment[];reactions:number;liked:boolean;commentPage:number;userId:string;coaches?:ClanCoach[];cosmeticAccess?:ClanCosmeticAccess;emojis?:ClanEmoji[];emojiReactions?:ClanEmojiReaction[]}){
   const router=useRouter();
-  const [editing,setEditing]=useState(false),[remove,setRemove]=useState<string|null>(null),[comment,setComment]=useState(""),[commentEdit,setCommentEdit]=useState<BoardComment|null>(null);
+  const [editing,setEditing]=useState(false),[remove,setRemove]=useState(false),[comment,setComment]=useState(""),[commentEdit,setCommentEdit]=useState<BoardComment|null>(null);
   const [pending,start]=useTransition();
   const details=boardDetails(post.details),video=safeBoardUrl(details.video),live=details.isLive===true;
   const photo=memoryStyle(details,cosmeticAccess);
+  const commentRows=comments.map(c=>({...c,authorId:c.author_id,nickname:c.author,createdAt:c.created_at,isMine:c.author_id===userId,canDelete:c.canManage,canEdit:c.canManage}));
   function mutate(action:()=>Promise<{ok:true;warning?:string}|{ok:false;error:string}>,done?:()=>void){
     start(async()=>{try{const result=await action();if(!result.ok){toast.error(result.error);return;}if(result.warning)toast.warning(result.warning);done?.();}catch{toast.error("저장하지 못했습니다. 작성 내용은 유지됩니다.");}});
   }
   return <div className="space-y-5">
     <div className="flex items-center justify-between gap-3">
       <Link href={base+"/board/"+kind} className="inline-flex min-h-10 items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground"><ArrowLeft className="size-4" aria-hidden/>목록으로</Link>
-      {post.canManage&&<div className="flex gap-1"><Button variant="ghost" size="icon" aria-label="편집" title="편집" disabled={pending} className="text-muted-foreground" onClick={()=>setEditing(true)}><Pencil className="size-4" aria-hidden/></Button><Button variant="ghost" size="icon" aria-label="삭제" title="삭제" disabled={pending} className="text-muted-foreground hover:text-destructive" onClick={()=>setRemove("post")}><Trash2 className="size-4" aria-hidden/></Button></div>}
+      {post.canManage&&<div className="flex gap-1"><Button variant="ghost" size="icon" aria-label="편집" title="편집" disabled={pending} className="text-muted-foreground" onClick={()=>setEditing(true)}><Pencil className="size-4" aria-hidden/></Button><Button variant="ghost" size="icon" aria-label="삭제" title="삭제" disabled={pending} className="text-muted-foreground hover:text-destructive" onClick={()=>setRemove(true)}><Trash2 className="size-4" aria-hidden/></Button></div>}
     </div>
     <article className="overflow-hidden rounded-xl border border-border bg-card">
       <header className="border-b border-border px-5 py-6 sm:px-7">
@@ -67,38 +64,17 @@ export function ClanBoardArticle({base,gameSlug,clanId,kind,post,comments,reacti
     </article>
     <section id="comments" className="min-h-64 rounded-xl border border-border bg-card p-5 sm:p-6" aria-label="게시글 댓글">
       <h4 className="flex items-center gap-2 text-sm font-semibold">댓글 <span className="rounded-md bg-muted px-2 py-0.5 text-xs tabular-nums text-muted-foreground">{post.commentCount}</span></h4>
-      <ol className="mt-3 space-y-5">{comments.map((c,index)=>{
-        const mine=c.author_id===userId,day=commentDate.format(new Date(c.created_at));
-        return <li key={c.id} className="space-y-3">
-          {(index===0||commentDate.format(new Date(comments[index-1].created_at))!==day)&&<div role="separator" aria-label={day} className="flex items-center gap-3 py-1 text-[10px] text-muted-foreground"><span className="h-px flex-1 bg-border"/><span>{day}</span><span className="h-px flex-1 bg-border"/></div>}
-          <div data-comment-row className={cn(commentStyles.comment,"flex items-start gap-2.5",mine&&"flex-row-reverse",c.canManage&&commentStyles.editable)}>
-            <ClanPlayerAvatar userId={c.author_id} label={c.author}/>
-            <div className="min-w-0 flex-1 space-y-1.5">
-              <div className={cn("flex",mine&&"justify-end")}><strong className="max-w-full truncate text-xs">{c.author}</strong></div>
-              <div className={cn(commentStyles.message,mine&&commentStyles.mine)}>
-                <div className={commentStyles.bubble}>
-                  <p className={cn("w-fit whitespace-pre-wrap break-words rounded-xl border px-3 py-2.5 text-sm leading-relaxed [overflow-wrap:anywhere]",mine?"ml-auto rounded-tr-sm border-primary/25 bg-primary/15":"rounded-tl-sm bg-background/50")}><ClanEmojiText text={c.content}/></p>
-                  <time dateTime={c.created_at} title={`${day} ${commentTime.format(new Date(c.created_at))}`} className={commentStyles.time}>{commentTime.format(new Date(c.created_at))}</time>
-                </div>
-                <div className={commentStyles.reactions} aria-label={`${c.author} 댓글 공감`}>
-                  <ClanEmojiReactions gameSlug={gameSlug} clanId={clanId} target={{kind:"board_comment",id:c.id}} reactions={c.emojiReactions??[]} loadPeople={emojiId=>listBoardCommentReactionPeopleAction(gameSlug,clanId,c.id,emojiId)}/>
-                  {c.canManage&&<>
-                    <Button type="button" variant="ghost" size="icon-sm" aria-label="댓글 편집" title="댓글 편집" disabled={pending} className="text-muted-foreground" onClick={()=>{setCommentEdit(c);setComment(c.content);}}><Pencil className="size-3.5" aria-hidden/></Button>
-                    <Button type="button" variant="ghost" size="icon-sm" aria-label="댓글 삭제" title="댓글 삭제" disabled={pending} className="text-muted-foreground hover:text-destructive" onClick={()=>setRemove(c.id)}><Trash2 className="size-3.5" aria-hidden/></Button>
-                  </>}
-                </div>
-              </div>
-            </div>
-          </div>
-        </li>;
-      })}</ol>
+      <ClanComments comments={commentRows} className="mt-3" disabled={pending}
+        onEdit={c=>{setCommentEdit(c);setComment(c.content);}}
+        onDelete={c=>mutate(()=>deleteBoardCommentAction(gameSlug,clanId,post.id,c.id))}
+        renderReactions={c=><ClanEmojiReactions gameSlug={gameSlug} clanId={clanId} target={{kind:"board_comment",id:c.id}} reactions={c.emojiReactions??[]} loadPeople={emojiId=>listBoardCommentReactionPeopleAction(gameSlug,clanId,c.id,emojiId)}/>} />
       {!comments.length&&<p className="py-8 text-center text-sm text-muted-foreground">첫 댓글을 남겨 주세요.</p>}
       {post.commentCount>50&&<nav className="flex justify-center gap-4 py-4 text-sm" aria-label="댓글 페이지">{commentPage>1&&<Link href={"?comments="+(commentPage-1)}>이전 댓글</Link>}<span>{commentPage} / {Math.ceil(post.commentCount/50)}</span>{commentPage*50<post.commentCount&&<Link href={"?comments="+(commentPage+1)}>다음 댓글</Link>}</nav>}
-      <form className="mt-5" onSubmit={e=>{e.preventDefault();mutate(()=>saveBoardCommentAction(gameSlug,clanId,post.id,comment,commentEdit?.id??null),()=>{setComment("");setCommentEdit(null);});}}>
-        <ClanEmojiInput label="댓글 내용" value={comment} onChange={setComment} maxLength={1000} disabled={pending} placeholder={commentEdit?"댓글을 수정해 주세요.":"클랜원에게 한마디 남겨보세요."} actions={<>{commentEdit&&<Button type="button" variant="ghost" size="sm" disabled={pending} onClick={()=>{setCommentEdit(null);setComment("");}}>편집 취소</Button>}<Button type="submit" size="sm" disabled={pending||!comment.trim()}><Send className="size-3.5" aria-hidden/>{pending?"저장 중…":commentEdit?"댓글 수정":"댓글 등록"}</Button></>}/>
-      </form>
+      <ClanCommentComposer className="mt-5" label="댓글 내용" value={comment} onChange={setComment} maxLength={1000} disabled={pending} placeholder={commentEdit?"댓글을 수정해 주세요.":"클랜원에게 한마디 남겨보세요."}
+        onCancelEdit={commentEdit?()=>{setCommentEdit(null);setComment("");}:undefined}
+        onSubmit={()=>mutate(()=>saveBoardCommentAction(gameSlug,clanId,post.id,comment,commentEdit?.id??null),()=>{setComment("");setCommentEdit(null);})} />
     </section>
     {editing&&<ClanBoardEditor gameSlug={gameSlug} clanId={clanId} kind={kind} post={post} cosmeticAccess={cosmeticAccess} coaches={coaches} onClose={()=>setEditing(false)}/>}
-    <Dialog open={remove!==null} onOpenChange={open=>{if(!open&&!pending)setRemove(null);}}><DialogContent><DialogHeader><DialogTitle>{remove==="post"?"글을 삭제할까요?":"댓글을 삭제할까요?"}</DialogTitle><DialogDescription>삭제한 내용은 복구할 수 없습니다.</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" disabled={pending} onClick={()=>setRemove(null)}>취소</Button><Button variant="destructive" disabled={pending} onClick={()=>{if(remove==="post")mutate(()=>deleteBoardPostAction(gameSlug,clanId,post.id),()=>{setRemove(null);router.push(base+"/board/"+kind);});else if(remove)mutate(()=>deleteBoardCommentAction(gameSlug,clanId,post.id,remove),()=>setRemove(null));}}>{pending?"삭제 중…":"삭제"}</Button></DialogFooter></DialogContent></Dialog>
+    <Dialog open={remove} onOpenChange={open=>{if(!open&&!pending)setRemove(false);}}><DialogContent><DialogHeader><DialogTitle>글을 삭제할까요?</DialogTitle><DialogDescription>삭제한 내용은 복구할 수 없습니다.</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" disabled={pending} onClick={()=>setRemove(false)}>취소</Button><Button variant="destructive" disabled={pending} onClick={()=>mutate(()=>deleteBoardPostAction(gameSlug,clanId,post.id),()=>{setRemove(false);router.push(base+"/board/"+kind);})}>{pending?"삭제 중…":"삭제"}</Button></DialogFooter></DialogContent></Dialog>
   </div>;
 }

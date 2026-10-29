@@ -92,7 +92,7 @@ test("custom emojis compose posts, board/stat comments and all reaction targets 
       await reaction.scrollIntoViewIfNeeded();await row.hover();
       const bubble=(await row.locator("p").boundingBox())!,pill=(await reaction.boundingBox())!;
       const picker=(await row.getByRole("button",{name:"클랜 이모티콘 선택",exact:true}).boundingBox())!;
-      const edit=(await row.getByRole("button",{name:"댓글 편집",exact:true}).boundingBox())!,remove=(await row.getByRole("button",{name:"댓글 삭제",exact:true}).boundingBox())!;
+      const edit=(await row.getByRole("button",{name:/댓글 편집$/}).boundingBox())!,remove=(await row.getByRole("button",{name:/댓글 삭제$/}).boundingBox())!;
       if(mine) {
         expect(pill.x+pill.width).toBeCloseTo(bubble.x+bubble.width,0);
         expect(picker.x+picker.width).toBeLessThanOrEqual(pill.x);
@@ -107,7 +107,7 @@ test("custom emojis compose posts, board/stat comments and all reaction targets 
       await page.getByRole("textbox",{name:"댓글 내용",exact:true}).focus();
       await row.scrollIntoViewIfNeeded();await page.mouse.move(5,5);
       await expect(row.getByRole("button",{name:"클랜 이모티콘 선택",exact:true})).toHaveCSS("opacity","0");
-      await expect(row.getByRole("button",{name:"댓글 삭제",exact:true})).toHaveCSS("opacity","0");
+      await expect(row.getByRole("button",{name:/댓글 삭제$/})).toHaveCSS("opacity","0");
       await expect(reaction).toHaveCSS("opacity","1");
     }
     await comment.hover();
