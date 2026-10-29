@@ -49,7 +49,7 @@ test("카드 색상을 독립적으로 미리 보고 배너 기본 탭과 분류
       await diagonal.getByRole("radio", { name: "퍼플", exact: true }).check();
       await expect(diagonal.locator('[data-banner-palette="purple"]')).toBeVisible();
       const hit = await diagonal.getByRole("radio", { name: "퍼플", exact: true }).boundingBox();
-      expect(hit!.width).toBeGreaterThanOrEqual(44);
+      expect(hit!.width).toBeGreaterThanOrEqual(32);
       expect(hit!.height).toBeGreaterThanOrEqual(44);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     }

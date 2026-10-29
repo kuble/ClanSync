@@ -9,5 +9,6 @@
 .option input:focus-visible + .swatch { outline: 2px solid var(--primary); outline-offset: 7px; }
 .picker:disabled { opacity: .5; }
 .picker:disabled .option, .picker:disabled input { cursor: not-allowed; }
-.compact .options { margin-top: 0; }
+.compact .options { margin-top: 0; gap: 0; }
+.compact .option { width: 32px; }
 .compact .swatch { width: 20px; height: 20px; }
