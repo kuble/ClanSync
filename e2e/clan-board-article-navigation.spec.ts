@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 import { PROFILE_PHOTO_BUCKET } from "../src/lib/profile/photo";
 
-test("article metadata precedes its title and footer actions share the navigation row", async ({ page }) => {
+test("article metadata precedes its title and footer actions adapt to desktop and mobile", async ({ page }) => {
   test.setTimeout(120_000);
   const f = await createIsolatedBalanceFixture(2), other = await createIsolatedBalanceFixture(1);
   const base = f.path.replace(/\/balance$/, ""), ids = [randomUUID(), randomUUID(), randomUUID()].sort();
@@ -51,12 +51,22 @@ test("article metadata precedes its title and footer actions share the navigatio
     await nav.getByRole("link", { name: "다음 글", exact: true }).click(); await expect(page).toHaveURL(`${base}/board/free/${ids[1]}`);
     await nav.getByRole("link", { name: "다음 글", exact: true }).click(); await expect(page).toHaveURL(`${base}/board/free/${ids[0]}`);
     await expect(nav.getByLabel("다음 글", { exact: true })).toHaveAttribute("aria-disabled", "true");
-    await page.setViewportSize({ width: 390, height: 844 });
-    expect(await article.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
-    const mobileNav = (await nav.boundingBox())!, mobileTools = (await actions.boundingBox())!;
-    expect(mobileTools.x).toBeGreaterThanOrEqual(mobileNav.x + mobileNav.width);
-    expect(Math.abs(mobileTools.y + mobileTools.height / 2 - mobileNav.y - mobileNav.height / 2)).toBeLessThan(2);
-    await page.screenshot({ path: test.info().outputPath("article-navigation-mobile.png"), animations: "disabled" });
+    for (const width of [390, 320]) {
+      await page.setViewportSize({ width, height: 844 });
+      expect(await article.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+      const mobileFooter = (await article.locator("footer").boundingBox())!, mobileNav = (await nav.boundingBox())!, mobileTools = (await actions.boundingBox())!, mobileLike = (await article.getByRole("button", { name: "공감 0", exact: true }).boundingBox())!;
+      expect(mobileNav.y).toBeGreaterThanOrEqual(mobileTools.y + mobileTools.height);
+      expect(Math.abs(mobileTools.y + mobileTools.height / 2 - mobileLike.y - mobileLike.height / 2)).toBeLessThan(2);
+      expect(mobileTools.x).toBeGreaterThanOrEqual(mobileLike.x + mobileLike.width);
+      const list = (await nav.getByRole("link", { name: "목록으로", exact: true }).boundingBox())!;
+      expect(Math.abs(list.x + list.width / 2 - mobileFooter.x - mobileFooter.width / 2)).toBeLessThan(2);
+      for (const control of [nav.getByRole("link", { name: "목록으로", exact: true }), actions.getByRole("button", { name: "편집", exact: true }), actions.getByRole("button", { name: "삭제", exact: true })]) {
+        const box = (await control.boundingBox())!;
+        expect(box.width).toBeGreaterThanOrEqual(44);
+        expect(box.height).toBeGreaterThanOrEqual(44);
+      }
+      await page.screenshot({ path: test.info().outputPath(`article-navigation-mobile-${width}.png`), animations: "disabled" });
+    }
     await nav.getByRole("link", { name: "목록으로", exact: true }).click(); await expect(page).toHaveURL(base + "/board/free");
     await page.context().clearCookies();
     await loginIsolatedBalanceUser(page, f.users[1]);
