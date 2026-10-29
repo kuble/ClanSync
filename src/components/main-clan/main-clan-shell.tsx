@@ -188,6 +188,7 @@ export function MainClanShell({
   const pageTitle = pathname === basePath + "/badges" ? "클랜 배지" : pathname === basePath + "/emblems" ? "개인 엠블럼" : [...items, ...bottomItems].find(({ href }) =>
     pathname === href || (href.startsWith(basePath + "/") && pathname.startsWith(href + "/")),
   )?.label;
+  const boardPage = pathname === basePath + "/board" || pathname.startsWith(basePath + "/board/");
 
   useEffect(() => {
     const desktop = window.matchMedia("(min-width: 769px)");
@@ -265,7 +266,7 @@ export function MainClanShell({
           </nav>
         </div>
       </aside>
-      <main id="main-content" className={styles.content}>
+      <main id="main-content" className={cn(styles.content, boardPage && styles.boardContent)}>
         <div className={styles.inner}>
           {children}
         </div>

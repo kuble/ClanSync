@@ -22,7 +22,7 @@ export function StatsScrollArea({ label, children, className = "max-h-72", viewp
   }, []);
   return <div ref={(el) => { root.current = el; if (viewportRef) viewportRef.current = el; }} role="region" aria-label={label} tabIndex={0} onScroll={measure}
     data-more-above={edges.top} data-more-below={edges.bottom}
-    className={`min-w-0 overflow-auto rounded-lg [scrollbar-width:none] [&::-webkit-scrollbar]:hidden focus-visible:outline-2 focus-visible:outline-primary ${className}`}
+    className={`relative min-w-0 overflow-auto rounded-lg [scrollbar-width:none] [&::-webkit-scrollbar]:hidden focus-visible:outline-2 focus-visible:outline-primary ${className}`}
     style={{ maskImage: `linear-gradient(to bottom, ${edges.top ? "rgb(0 0 0 / .25)" : "black"}, black 24px, black calc(100% - 24px), ${edges.bottom ? "rgb(0 0 0 / .25)" : "black"})` }}>
     <div ref={content} className="space-y-3 p-1">{children}</div>
   </div>;
