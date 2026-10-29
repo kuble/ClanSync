@@ -1,21 +1,47 @@
 import { randomUUID } from "node:crypto";
 import sharp from "sharp";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 import { emojiToken } from "../src/lib/clan/emoji-text";
+
+async function readableConversation(row: Locator) {
+  const result = await row.evaluate(root => {
+    const body = getComputedStyle(root.querySelector("p")!);
+    const author = getComputedStyle(root.querySelector("strong")!);
+    const time = getComputedStyle(root.querySelector("time")!);
+    const card = getComputedStyle(root).getPropertyValue("--card").trim();
+    const canvas = document.createElement("canvas");canvas.width = canvas.height = 1;
+    const ctx = canvas.getContext("2d")!;
+    function luminance(color: string) {
+      ctx.fillStyle = color;ctx.fillRect(0, 0, 1, 1);
+      const rgb = [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3).map(value => value / 255).map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4);
+      return .2126 * rgb[0] + .7152 * rgb[1] + .0722 * rgb[2];
+    }
+    function contrast(a: string, b: string) { const values = [luminance(a), luminance(b)].sort((x, y) => y - x);return (values[0] + .05) / (values[1] + .05); }
+    return { bodySize: parseFloat(body.fontSize), authorSize: parseFloat(author.fontSize), timeSize: parseFloat(time.fontSize), leading: parseFloat(body.lineHeight) / parseFloat(body.fontSize), bodyContrast: contrast(body.color, body.backgroundColor), authorContrast: contrast(author.color, card), timeContrast: contrast(time.color, card) };
+  });
+  expect(result.bodySize).toBeGreaterThan(result.authorSize);
+  expect(result.bodySize).toBeGreaterThan(result.timeSize);
+  expect(result.leading).toBeGreaterThanOrEqual(1.5);
+  expect(result.bodyContrast).toBeGreaterThanOrEqual(7);
+  expect(result.authorContrast).toBeGreaterThanOrEqual(4.5);
+  expect(result.timeContrast).toBeGreaterThanOrEqual(4.5);
+}
 
 test("board and stats comments share basic and custom emoji behavior", async ({ page, context }) => {
   test.setTimeout(120_000);
   const f = await createIsolatedBalanceFixture(2), svc = f.service;
   const postId = randomUUID(), boardId = randomUUID(), hofId = randomUUID(), emojiId = randomUUID();
-  const base = f.path.replace(/\/balance$/, ""), content = "같은 조건의 댓글입니다.";
+  const base = f.path.replace(/\/balance$/, ""), content = "상대가 들어오기 전에 위치를 먼저 잡아보세요.\n방벽 뒤에서 시야를 확보하면 다음 교전에 대응하기 쉬워요.";
+  const peerContent = "말씀하신 위치에서 다시 해볼게요. 궁극기는 다음 교전에 쓰면 될까요?";
   const imagePath = `${f.clanId}/${emojiId}/${randomUUID()}.webp`;
   try {
     expect((await svc.from("clan_board_posts").insert({ id: postId, clan_id: f.clanId, author_id: f.users[0].id, kind: "free", title: "댓글 비교", content })).error).toBeNull();
     expect((await svc.from("clan_board_comments").insert({ id: boardId, post_id: postId, author_id: f.users[0].id, content, created_at: "2026-10-28T15:04:00Z" })).error).toBeNull();
     expect((await svc.from("clan_hof_comments").insert({ id: hofId, clan_id: f.clanId, author_id: f.users[0].id, ranking: "rate", period_key: "all", content, created_at: "2026-10-28T15:04:00Z" })).error).toBeNull();
-    expect((await svc.from("clan_board_comments").insert({ post_id: postId, author_id: f.users[1].id, content: "상대 댓글입니다.", created_at: "2026-10-28T15:05:00Z" })).error).toBeNull();
-    expect((await svc.from("clan_hof_comments").insert({ clan_id: f.clanId, author_id: f.users[1].id, ranking: "rate", period_key: "all", content: "상대 댓글입니다.", created_at: "2026-10-28T15:05:00Z" })).error).toBeNull();
+    expect((await svc.from("clan_board_comments").insert({ post_id: postId, author_id: f.users[1].id, content: peerContent, created_at: "2026-10-28T15:05:00Z" })).error).toBeNull();
+    expect((await svc.from("clan_hof_comments").insert({ clan_id: f.clanId, author_id: f.users[1].id, ranking: "rate", period_key: "all", content: peerContent, created_at: "2026-10-28T15:05:00Z" })).error).toBeNull();
+    await context.addInitScript(() => localStorage.setItem("clansync-theme", "dark"));
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.setViewportSize({ width: 1015, height: 884 });
     const board = await context.newPage();
@@ -98,12 +124,20 @@ test("board and stats comments share basic and custom emoji behavior", async ({ 
       expect(pickerBox!.x + pickerBox!.width).toBeLessThanOrEqual(customBox!.x);
       await current.screenshot({ path: test.info().outputPath(`${surface.name}-desktop.png`), animations: "disabled" });
       await current.setViewportSize({ width: 390, height: 844 });
-      const peer = scope.getByRole("listitem").filter({ hasText: "상대 댓글입니다." });
+      const peer = scope.getByRole("listitem").filter({ hasText: peerContent });
       await peer.hover();const peerBubble = (await peer.locator("p").boundingBox())!, peerPicker = (await peer.getByRole("button", { name: /댓글 공감 선택$/ }).boundingBox())!;
       expect(peerPicker.x).toBeGreaterThanOrEqual(peerBubble.x + peerBubble.width);
       expect(await current.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await current.screenshot({ path: test.info().outputPath(`${surface.name}-mobile.png`), animations: "disabled" });
+      for (const row of [own, peer]) await readableConversation(row);
+      await current.getByRole("button", { name: "라이트 테마", exact: true }).click();
+      await expect(current.locator("html")).toHaveClass(/\blight\b/);
+      for (const row of [own, peer]) await readableConversation(row);
+      await peer.hover();
+      await current.screenshot({ path: test.info().outputPath(`${surface.name}-light-mobile.png`), animations: "disabled" });
       await current.setViewportSize({ width: 1015, height: 884 });
+      await own.hover();
+      await current.screenshot({ path: test.info().outputPath(`${surface.name}-light-desktop.png`), animations: "disabled" });
       await custom.click();await expect(custom).toHaveCount(0);
     }
   } finally {

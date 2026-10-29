@@ -24,9 +24,9 @@ export function useClanNamecard(userId?: string | null) {
   return useContext(Cards)[userId ?? ""];
 }
 export function useNamecardDecorationHidden() { return useContext(HideDecoration); }
-export function ClanPlayerAvatar({ userId, label }: { userId?: string | null; label: string }) {
+export function ClanPlayerAvatar({ userId, label, size = 32 }: { userId?: string | null; label: string; size?: number }) {
   const card = useClanNamecard(userId);
-  return <PlayerAvatar photoUrl={card?.photoUrl} emblem={card?.emblem} label={label}/>;
+  return <PlayerAvatar photoUrl={card?.photoUrl} emblem={card?.emblem} label={label} size={size}/>;
 }
 export function ClanPlayerNamecard({ userId, fallback, fill = false, children }: { userId?: string | null; fallback: string; fill?: boolean; children?: ReactNode }) {
   const card = useClanNamecard(userId);

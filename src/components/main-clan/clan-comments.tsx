@@ -44,14 +44,14 @@ export function ClanComments<T extends ClanComment>({ comments, clanId, targetKi
     const showDay = index === 0 || day !== dateFormat.format(new Date(comments[index - 1].createdAt));
     const react = (kind: CommentReactionKind) => void onReact(comment, comment.reactions.some(reaction => reaction.kind === kind && reaction.mine) ? null : kind);
     return <li key={comment.id} className="space-y-3">
-      {showDay && <div role="separator" aria-label={day} className="flex items-center gap-3 py-1 text-[10px] text-muted-foreground"><span className="h-px flex-1 bg-border" /><span>{day}</span><span className="h-px flex-1 bg-border" /></div>}
+      {showDay && <div role="separator" aria-label={day} className={styles.date}><span /><span>{day}</span><span /></div>}
       <div data-comment-row className={cn(styles.comment, "flex items-start gap-2.5", comment.isMine && "flex-row-reverse")}>
-        <ClanPlayerAvatar userId={comment.authorId} label={comment.nickname} />
+        <ClanPlayerAvatar userId={comment.authorId} label={comment.nickname} size={28} />
         <div className="min-w-0 flex-1 space-y-1.5">
-          <div className={cn("flex", comment.isMine && "justify-end")}><strong className="max-w-full truncate text-xs">{comment.nickname}</strong></div>
+          <div className={cn("flex", comment.isMine && "justify-end")}><strong className={styles.author}>{comment.nickname}</strong></div>
           <div className={cn(styles.message, comment.isMine && styles.mine)}>
             <div className={styles.bubble}>
-              <p className={cn("w-fit whitespace-pre-wrap break-words rounded-xl border px-3 py-2.5 text-sm leading-relaxed [overflow-wrap:anywhere]", comment.isMine ? "ml-auto rounded-tr-sm border-primary/25 bg-primary/15" : "rounded-tl-sm bg-background/50")}><ClanEmojiText text={comment.content} /></p>
+              <p className={styles.content}><ClanEmojiText text={comment.content} /></p>
               <time dateTime={comment.createdAt} title={`${day} ${time}`} className={styles.time}>{time}</time>
             </div>
             <div className={styles.reactions} aria-label={`${comment.nickname} 댓글 공감`}>
@@ -84,7 +84,7 @@ export function ClanCommentComposer({ label, value, onChange, onSubmit, maxLengt
   className?: string;
 }) {
   const cannotSubmit = disabled || submitDisabled || !value.trim();
-  return <form className={cn("shrink-0", className)} onSubmit={event => { event.preventDefault(); if (!cannotSubmit) void onSubmit(); }}>
+  return <form className={cn(styles.composer, "shrink-0", className)} onSubmit={event => { event.preventDefault(); if (!cannotSubmit) void onSubmit(); }}>
     <ClanEmojiInput id={id} label={label} pickerLabel={pickerLabel} value={value} onChange={onChange} maxLength={maxLength} disabled={disabled} placeholder={placeholder} className="min-h-20 max-h-32" actions={<Button type="submit" size="sm" disabled={cannotSubmit}><Send className="size-3.5" aria-hidden />댓글 등록</Button>} />
   </form>;
 }
