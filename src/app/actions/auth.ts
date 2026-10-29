@@ -181,15 +181,6 @@ export async function deleteAccountAction(): Promise<{ error: string } | void> {
     };
   }
 
-  // Delete after Auth succeeds; uploads racing account deletion fail their FK/CAS and clean up.
-  for (;;) {
-    const { data: photos, error: listError } = await svc.storage.from("profile-photos").list(user.id, { limit: 1000 });
-    if (listError) { console.error("Account profile photo cleanup failed", listError.message); break; }
-    if (!photos?.length) break;
-    const { error: removeError } = await svc.storage.from("profile-photos").remove(photos.map(photo => `${user.id}/${photo.name}`));
-    if (removeError) { console.error("Account profile photo cleanup failed", removeError.message); break; }
-  }
-
   await supabase.auth.signOut();
   redirect("/");
 }

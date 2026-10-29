@@ -40,29 +40,6 @@ export type Database = {
           },
         ]
       }
-      account_profile_photos: {
-        Row: {
-          image_path: string | null
-          user_id: string
-        }
-        Insert: {
-          image_path?: string | null
-          user_id: string
-        }
-        Update: {
-          image_path?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "account_profile_photos_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       auth_failed_logins: {
         Row: {
           attempted_at: string
@@ -3991,6 +3968,14 @@ export type Database = {
           p_enabled: boolean
           p_guild_id: string
           p_routes: Json
+        }
+        Returns: undefined
+      }
+      set_clan_member_role: {
+        Args: {
+          p_clan_id: string
+          p_role: Database["public"]["Enums"]["clan_member_role"]
+          p_user_id: string
         }
         Returns: undefined
       }
