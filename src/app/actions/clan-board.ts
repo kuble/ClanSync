@@ -107,15 +107,13 @@ export async function setBoardStatusAction(gameSlug: string, clanId: string, id:
   refresh(gameSlug,clanId); return { ok:true };
 }
 
-export async function saveBoardCommentAction(gameSlug: string, clanId: string, postId: string, content: string, commentId: string | null = null): Promise<Result> {
-  if (!uuidPattern.test(postId) || (commentId !== null && !uuidPattern.test(commentId)) || typeof content !== "string" || !content.trim() || content.trim().length>1000) return { ok:false,error:"댓글은 1~1,000자로 입력해 주세요." };
+export async function addBoardCommentAction(gameSlug: string, clanId: string, postId: string, content: string): Promise<Result> {
+  if (!uuidPattern.test(postId) || typeof content !== "string" || !content.trim() || content.trim().length>1000) return { ok:false,error:"댓글은 1~1,000자로 입력해 주세요." };
   const ctx = await actor(gameSlug,clanId);
   if (!ctx) return { ok:false,error:"활성 클랜원만 댓글을 작성할 수 있습니다." };
   const post = await ctx.supabase.from("clan_board_posts").select("id").eq("id",postId).eq("clan_id",clanId).maybeSingle();
   if (post.error || !post.data) return { ok:false,error:"이 글에 접근할 수 없습니다." };
-  const query = commentId ? ctx.supabase.from("clan_board_comments").update({content:content.trim()}).eq("id",commentId).eq("post_id",postId)
-    : ctx.supabase.from("clan_board_comments").insert({post_id:postId,content:content.trim()});
-  const saved = await query.select("id").maybeSingle();
+  const saved = await ctx.supabase.from("clan_board_comments").insert({post_id:postId,content:content.trim()}).select("id").maybeSingle();
   if (saved.error || !saved.data) return { ok:false,error:"댓글을 저장하지 못했습니다. 작성 내용은 유지됩니다." };
   refresh(gameSlug,clanId); return { ok:true };
 }

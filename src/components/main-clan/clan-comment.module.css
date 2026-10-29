@@ -1,11 +1,7 @@
 .message {
   position: relative;
   width: fit-content;
-  max-width: calc(100% - var(--comment-side-space, 5rem));
-}
-
-.editable {
-  --comment-side-space: 6.5rem;
+  max-width: calc(100% - 5rem);
 }
 
 .mine,

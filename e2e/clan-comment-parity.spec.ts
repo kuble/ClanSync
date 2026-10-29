@@ -34,6 +34,8 @@ test("board and stats comments share basic and custom emoji behavior", async ({ 
       const { page: current, own } = surface;
       const picker = own.getByRole("button", { name: `${f.users[0].nickname} 댓글 공감 선택`, exact: true });
       await expect(own).toBeVisible();
+      await expect(surface.scope.getByRole("button", { name: /댓글 편집$/ })).toHaveCount(0);
+      await expect(surface.scope.getByRole("button", { name: "댓글 수정", exact: true })).toHaveCount(0);
       await expect(own.locator("time")).toHaveText("오전 12:04");
       await own.hover();await picker.click();
       for (const label of ["좋아요", "하트", "웃음", "박수", "놀람", "슬픔"]) await expect(current.getByRole("button", { name: `${label} 공감`, exact: true })).toBeVisible();

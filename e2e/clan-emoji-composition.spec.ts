@@ -93,17 +93,16 @@ test("custom emojis compose posts, board/stat comments and all reaction targets 
       await reaction.scrollIntoViewIfNeeded();await row.hover();
       const bubble=(await row.locator("p").boundingBox())!,pill=(await reaction.boundingBox())!;
       const picker=(await row.getByRole("button",{name:/댓글 공감 선택$/}).boundingBox())!;
-      const edit=(await row.getByRole("button",{name:/댓글 편집$/}).boundingBox())!,remove=(await row.getByRole("button",{name:/댓글 삭제$/}).boundingBox())!;
+      const remove=(await row.getByRole("button",{name:/댓글 삭제$/}).boundingBox())!;
+      await expect(row.getByRole("button",{name:/댓글 편집$/})).toHaveCount(0);
       if(mine) {
         expect(pill.x+pill.width).toBeCloseTo(bubble.x+bubble.width,0);
         expect(picker.x+picker.width).toBeLessThanOrEqual(pill.x);
-        expect(edit.x+edit.width).toBeLessThanOrEqual(picker.x);
-        expect(remove.x+remove.width).toBeLessThanOrEqual(edit.x);
+        expect(remove.x+remove.width).toBeLessThanOrEqual(picker.x);
       } else {
         expect(pill.x).toBeCloseTo(bubble.x,0);
         expect(picker.x).toBeGreaterThanOrEqual(pill.x+pill.width);
-        expect(edit.x).toBeGreaterThanOrEqual(picker.x+picker.width);
-        expect(remove.x).toBeGreaterThanOrEqual(edit.x+edit.width);
+        expect(remove.x).toBeGreaterThanOrEqual(picker.x+picker.width);
       }
       await page.getByRole("textbox",{name:"댓글 내용",exact:true}).focus();
       await row.scrollIntoViewIfNeeded();await page.mouse.move(5,5);

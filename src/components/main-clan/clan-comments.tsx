@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Send, Trash2 } from "lucide-react";
+import { Send, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ClanPlayerAvatar } from "@/components/profile/clan-namecards";
 import { cn } from "@/lib/utils";
@@ -23,20 +23,18 @@ type ClanComment = {
   createdAt: string;
   isMine: boolean;
   canDelete: boolean;
-  canEdit?: boolean;
   reactions: CommentReaction[];
   emojiReactions?: ClanEmojiReaction[];
 };
 
 /** Shared comment UI; each surface supplies its data and reaction actions. */
-export function ClanComments<T extends ClanComment>({ comments, clanId, targetKind, onReact, loadReactionPeople, onDelete, onEdit, disabled = false, className }: {
+export function ClanComments<T extends ClanComment>({ comments, clanId, targetKind, onReact, loadReactionPeople, onDelete, disabled = false, className }: {
   comments: readonly T[];
   clanId: string;
   targetKind: "board_comment" | "hof_comment";
   onReact: (comment: T, kind: CommentReactionKind | null) => void | Promise<void>;
   loadReactionPeople: (comment: T, reaction: { kind: CommentReactionKind } | { emojiId: string }) => Promise<{ ok: true; names: string[] } | { ok: false; error: string }>;
   onDelete: (comment: T) => void | Promise<void>;
-  onEdit?: (comment: T) => void;
   disabled?: boolean;
   className?: string;
 }) {
@@ -47,7 +45,7 @@ export function ClanComments<T extends ClanComment>({ comments, clanId, targetKi
     const react = (kind: CommentReactionKind) => void onReact(comment, comment.reactions.some(reaction => reaction.kind === kind && reaction.mine) ? null : kind);
     return <li key={comment.id} className="space-y-3">
       {showDay && <div role="separator" aria-label={day} className="flex items-center gap-3 py-1 text-[10px] text-muted-foreground"><span className="h-px flex-1 bg-border" /><span>{day}</span><span className="h-px flex-1 bg-border" /></div>}
-      <div data-comment-row className={cn(styles.comment, "flex items-start gap-2.5", comment.isMine && "flex-row-reverse", comment.canEdit && onEdit && styles.editable)}>
+      <div data-comment-row className={cn(styles.comment, "flex items-start gap-2.5", comment.isMine && "flex-row-reverse")}>
         <ClanPlayerAvatar userId={comment.authorId} label={comment.nickname} />
         <div className="min-w-0 flex-1 space-y-1.5">
           <div className={cn("flex", comment.isMine && "justify-end")}><strong className="max-w-full truncate text-xs">{comment.nickname}</strong></div>
@@ -62,7 +60,6 @@ export function ClanComments<T extends ClanComment>({ comments, clanId, targetKi
                 return reaction && <EmojiReactionButton key={option.kind} count={reaction.count} aria-pressed={reaction.mine} disabled={disabled} aria-label={`${option.label} 공감 ${reaction.count}명`} loadPeople={() => loadReactionPeople(comment, { kind: option.kind })} onClick={() => react(option.kind)}>{option.emoji}</EmojiReactionButton>;
               })}
               <ClanEmojiReactions clanId={clanId} target={{ kind: targetKind, id: comment.id }} reactions={comment.emojiReactions ?? []} disabled={disabled} pickerLabel={`${comment.nickname} 댓글 공감 선택`} standardOptions={reactionOptions} onStandardSelect={value => { const option = COMMENT_REACTIONS.find(row => row.kind === value); if (option) react(option.kind); }} loadPeople={emojiId => loadReactionPeople(comment, { emojiId })} />
-              {comment.canEdit && onEdit && <Button type="button" variant="ghost" size="icon-sm" aria-label={`${comment.nickname} 댓글 편집`} title="댓글 편집" disabled={disabled} className="text-muted-foreground" onClick={() => onEdit(comment)}><Pencil className="size-3.5" aria-hidden /></Button>}
               {comment.canDelete && <Button type="button" variant="ghost" size="icon-sm" aria-label={`${comment.nickname} 댓글 삭제`} title="댓글 삭제" disabled={disabled} className="text-muted-foreground hover:text-destructive" onClick={() => setConfirmDelete(comment.id)}><Trash2 className="size-3.5" aria-hidden /></Button>}
             </div>
           </div>
@@ -73,7 +70,7 @@ export function ClanComments<T extends ClanComment>({ comments, clanId, targetKi
   })}</ol>;
 }
 
-export function ClanCommentComposer({ label, value, onChange, onSubmit, maxLength, disabled = false, submitDisabled = false, placeholder, onCancelEdit, pickerLabel, id, className }: {
+export function ClanCommentComposer({ label, value, onChange, onSubmit, maxLength, disabled = false, submitDisabled = false, placeholder, pickerLabel, id, className }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
@@ -82,16 +79,12 @@ export function ClanCommentComposer({ label, value, onChange, onSubmit, maxLengt
   disabled?: boolean;
   submitDisabled?: boolean;
   placeholder: string;
-  onCancelEdit?: () => void;
   pickerLabel?: string;
   id?: string;
   className?: string;
 }) {
   const cannotSubmit = disabled || submitDisabled || !value.trim();
   return <form className={cn("shrink-0", className)} onSubmit={event => { event.preventDefault(); if (!cannotSubmit) void onSubmit(); }}>
-    <ClanEmojiInput id={id} label={label} pickerLabel={pickerLabel} value={value} onChange={onChange} maxLength={maxLength} disabled={disabled} placeholder={placeholder} className="min-h-20 max-h-32" actions={<>
-      {onCancelEdit && <Button type="button" variant="ghost" size="sm" disabled={disabled} onClick={onCancelEdit}>편집 취소</Button>}
-      <Button type="submit" size="sm" disabled={cannotSubmit}><Send className="size-3.5" aria-hidden />{onCancelEdit ? "댓글 수정" : "댓글 등록"}</Button>
-    </>} />
+    <ClanEmojiInput id={id} label={label} pickerLabel={pickerLabel} value={value} onChange={onChange} maxLength={maxLength} disabled={disabled} placeholder={placeholder} className="min-h-20 max-h-32" actions={<Button type="submit" size="sm" disabled={cannotSubmit}><Send className="size-3.5" aria-hidden />댓글 등록</Button>} />
   </form>;
 }
