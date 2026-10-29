@@ -73,6 +73,17 @@ test("article metadata precedes its title and footer actions adapt to desktop an
     await page.goto(`${base}/board/free/${ids[1]}`);
     await expect(article.getByRole("heading", { name: "동일 시각 게시글 1", exact: true })).toBeVisible();
     await expect(actions).toHaveCount(0);
+    for (const width of [1015, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.goto(`${base}/board/free/${ids[1]}`);
+      const currentTab = page.getByRole("navigation", { name: "게시판 목차", exact: true }).getByRole("link", { name: "자유 게시판", exact: true });
+      await expect(currentTab).toHaveAttribute("aria-current", "page");
+      await currentTab.click();
+      await expect(page).toHaveURL(base + "/board/free");
+      await expect(article).toHaveCount(0);
+      await expect(page.locator(`a[href="${base}/board/free/${ids[1]}"]`)).toBeVisible();
+      await page.screenshot({ path: test.info().outputPath(`board-tab-list-${width}.png`), animations: "disabled" });
+    }
   } finally {
     await f.service.storage.from(PROFILE_PHOTO_BUCKET).remove([imagePath]);
     await f.cleanup(); await other.cleanup();
