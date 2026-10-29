@@ -1,6 +1,7 @@
 .photo { position:relative; min-width:0; padding:12px 12px 20px; background:color-mix(in srgb,var(--card) 94%,#c4bfae); border:1px solid var(--border); box-shadow:0 6px 18px #0002; }
-.image { position:relative; display:grid; place-items:center; aspect-ratio:4/3; overflow:hidden; background:var(--muted); container-type:inline-size; }
-.image img { width:100%; height:100%; object-fit:cover; }
+.image { position:relative; display:grid; place-items:center; overflow:hidden; background:var(--muted); container-type:inline-size; }
+.placeholder { aspect-ratio:4/3; }
+.image img { display:block; width:100%; height:auto; object-fit:contain; }
 .caption { margin-top:12px; white-space:pre-wrap; overflow-wrap:anywhere; text-align:center; font-size:13px; line-height:1.7; }
 .footer { margin-top:8px; text-align:center; color:var(--muted-foreground); font-size:11px; }
 .film { padding:18px 24px 20px; background:#17191c; border-color:#393b40; color:#fafafa; }
