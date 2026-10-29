@@ -60,6 +60,8 @@ Discord 연결은 클랜 관리의 `알림·연동`에서 설정합니다. 기�
 
 ## 검증
 
+로컬 캐시·검증 산출물은 `npm run clean:local`로 대상을 확인하고 `npm run clean:local -- -Apply`로 정리한다. 활성 검증 포트·QA 연결 설정·백업은 보존한다. [정리 기준](docs/maintenance.md) · [현재 DB 구조 색인](docs/02-design/database/current-schema.md). SQL 마이그레이션 이력은 유지한다.
+
 영상 촬영용 QA 대시보드는 `node scripts/add-qa-dashboard-demo.mjs`로 추가량을 확인하고 `--apply`로 적용합니다. `QA_01_Clan`에 공지 3개·주간 일정 3개·빈 클랜 규칙만 추가하며, 고정 ID로 중복을 막고 기존 계정·명단·경기·코인을 보존합니다. 사용자 편집 후 재실행해도 기존 공지·일정·규칙을 덮어쓰지 않습니다.
 
 QA 게임 ID는 `node scripts/qa-game-identities.mjs`로 미리 확인하고 `--apply`로 허용된 14계정의 비어 있는 ID만 채웁니다. 리더는 `QALeader01#1001`, `QA_Member_02`는 `QAMember02#2002`이며 기존 제공자 ID·코인을 보존합니다. 활성 QA 명단을 시드로 다시 만들지 않습니다. [표시 규칙·보정 내역](docs/03-analysis/profile-game-identity-audit-2026-10-23.md). 예전 시연용 표시 이름은 현재 식별 규칙으로 사용하지 않으며 예시 배너는 제거했습니다. [QA 꾸미기 정리](docs/qa-demo-assets.md).
