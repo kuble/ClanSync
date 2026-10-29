@@ -3,6 +3,10 @@
 .portrait { position:relative; display:grid; place-items:center; width:var(--portrait-size); height:var(--portrait-size); }
 .symbolArt { width:var(--symbol-art-size); height:var(--symbol-art-size); object-fit:contain; filter:brightness(0); }
 :global(.dark) .symbolArt { filter:none; }
+.card[data-namebar]:not([data-namebar="default"]) { background-size:cover; background-position:center; border-color:#ffffff30; color:#F1F5F3; }
+.card[data-namebar]:not([data-namebar="default"]) .identity small { color:#C3D0CA; }
+.card[data-namebar]:not([data-namebar="default"]) .emblem { background:transparent; }
+.card[data-namebar]:not([data-namebar="default"]) .symbolArt { filter:none; }
 .identity { display:grid; gap:5px; min-width:0; padding:16px 20px; }
 .identity strong { display:block; font-size:17px; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .identity small { color:var(--muted-foreground); font-size:12px; overflow-wrap:anywhere; }

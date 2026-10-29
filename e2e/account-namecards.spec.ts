@@ -34,7 +34,7 @@ test("기본 네임카드와 임시 칭호는 게임 간 공유되며 삭제한 
     await expect(editor.getByText("등록된 테마가 없습니다.")).toBeVisible();
     for (const category of ["초상 프레임", "배경", "카드 프레임"]) {
       await picker.getByRole("button", { name: category, exact: true }).click();
-      await expect(editor.getByRole("group", { name: "네임카드 " + category + " 디자인", exact: true }).getByRole("button")).toHaveCount(1);
+      await expect(editor.getByRole("group", { name: "네임카드 " + category + " 디자인", exact: true }).getByRole("button")).toHaveCount(category === "배경" ? 6 : 1);
     }
     for (const width of [1280, 390, 320]) {
       await page.setViewportSize({ width, height: 900 });

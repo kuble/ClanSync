@@ -31,8 +31,8 @@ test("account namecards share one appearance across games and titles debit perso
   await t.test("only default designs remain available without inventory grants", async () => {
     assert.equal(catalog.some(item => /^(starter-|theme-|pf_entrance_store:)/.test(item.code)), false);
     assert.equal(catalog.some(item => item.code === "ow-emblem-default"), false);
-    const defaults = catalog.filter(item => item.code.startsWith("symbol-normal-") || item.code === "portrait-default" || item.code.startsWith("ow-") && item.code.endsWith("-default"));
-    assert.equal(defaults.length, 9);
+    const defaults = catalog.filter(item => item.code.startsWith("symbol-normal-") || item.code.startsWith("background-normal-") || item.code === "portrait-default" || item.code.startsWith("ow-") && item.code.endsWith("-default"));
+    assert.equal(defaults.length, 14);
     for (const item of defaults) {
       assert.equal(item.unlock_source, "default"); assert.equal(item.price_coins, 0);
       await ok(equip(item.category, item.id));

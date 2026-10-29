@@ -29,6 +29,7 @@ test("five free symbols apply without purchases and follow the player into comme
       await dialog.getByRole("button",{name:"미리보기 닫기",exact:true}).click();
     }
     await page.reload();
+    await page.getByRole("radiogroup",{name:"개인 꾸미기 분류"}).getByRole("radio",{name:"심벌",exact:true}).click();
     await expect(page.getByRole("article",{name:"스파크",exact:true}).getByRole("button",{name:"스파크 적용",exact:true})).toBeDisabled();
     await expect(page.getByRole("main").getByLabel("보유 코인").locator("strong")).toHaveText("100");
     expect((await f.service.from("user_nameplate_inventory").select("option_id").eq("user_id",f.users[0].id)).data).toEqual([]);

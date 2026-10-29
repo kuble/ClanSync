@@ -1,7 +1,9 @@
 {
   "collection": "namecard-backgrounds-normal-v1",
   "createdAt": "2026-10-29",
-  "status": "design-ready",
+  "status": "qa-default-catalog",
+  "unlockSource": "default",
+  "priceCoins": 0,
   "canvas": { "width": 960, "height": 240, "rasterWidth": 1280, "rasterHeight": 320 },
   "foreground": "#F1F5F3",
   "secondaryForeground": "#C3D0CA",
