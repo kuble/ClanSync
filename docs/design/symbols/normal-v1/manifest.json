@@ -1,0 +1,21 @@
+{
+  "collection": "symbols-normal-v1",
+  "createdAt": "2026-10-29",
+  "status": "design-ready",
+  "plannedTotal": 10,
+  "completed": 5,
+  "canvas": { "width": 128, "height": 128, "background": "transparent", "ink": "#E8EFEC" },
+  "rarityDefinitions": {
+    "normal": "간단한 도형을 조합한 단색 디자인",
+    "rare": "장식과 세부 디자인을 더한 심벌",
+    "unique": "테마 네임카드에 들어가는 이미지 디자인",
+    "legend": "테마 네임카드에 들어가는 애니메이션 디자인"
+  },
+  "assets": [
+    { "id": "orbit", "number": "01", "name": "오비트", "englishName": "Orbit", "rarity": "normal", "animated": false, "construction": "열린 원형 링과 중심 원", "assetUrl": "/symbols/normal-v1/orbit.svg", "rasterUrl": "/symbols/normal-v1/orbit.webp" },
+    { "id": "shift", "number": "02", "name": "시프트", "englishName": "Shift", "rarity": "normal", "animated": false, "construction": "평행한 두 개의 사변형", "assetUrl": "/symbols/normal-v1/shift.svg", "rasterUrl": "/symbols/normal-v1/shift.webp" },
+    { "id": "node", "number": "03", "name": "노드", "englishName": "Node", "rarity": "normal", "animated": false, "construction": "세 개의 원과 Y형 연결선", "assetUrl": "/symbols/normal-v1/node.svg", "rasterUrl": "/symbols/normal-v1/node.webp" },
+    { "id": "beacon", "number": "04", "name": "비콘", "englishName": "Beacon", "rarity": "normal", "animated": false, "construction": "안쪽을 비운 삼각형", "assetUrl": "/symbols/normal-v1/beacon.svg", "rasterUrl": "/symbols/normal-v1/beacon.webp" },
+    { "id": "spark", "number": "05", "name": "스파크", "englishName": "Spark", "rarity": "normal", "animated": false, "construction": "네 방향 마름모와 중앙 음각", "assetUrl": "/symbols/normal-v1/spark.svg", "rasterUrl": "/symbols/normal-v1/spark.webp" }
+  ]
+}
