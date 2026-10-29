@@ -28,7 +28,7 @@ export async function saveNameplateSelectionAction(input: {
   if (!NAMEPLATE_CATEGORIES.includes(cat)) {
     return { ok: false, error: "잘못된 카테고리입니다." };
   }
-  if (input.paletteId != null && ((cat !== "namebar" && cat !== "emblem") || !isNamecardPalette(input.paletteId))) return { ok: false, error: "선택한 색상을 확인해 주십시오." };
+  if (input.paletteId != null && (cat === "sub" || !isNamecardPalette(input.paletteId))) return { ok: false, error: "선택한 색상을 확인해 주십시오." };
 
   const supabase = await createClient();
   const {

@@ -1,6 +1,6 @@
 export type NamecardCategory = "emblem" | "namebar" | "sub" | "frame" | "portrait";
 export type NamecardOption = { id: string; category: NamecardCategory; code: string; name_ko: string; unlock_source: string; price_coins: number; created_at?: string };
-export type NamecardAppearance = { title: string | null; frame: string | null; namebar: string | null; emblem: string | null; portrait: string | null; backgroundPalette?: string | null; symbolPalette?: string | null };
+export type NamecardAppearance = { title: string | null; frame: string | null; namebar: string | null; emblem: string | null; portrait: string | null; backgroundPalette?: string | null; symbolPalette?: string | null; portraitPalette?: string | null; framePalette?: string | null };
 export type ClanNamecards = Record<string, NamecardAppearance & { displayName: string }>;
 export type NamecardState = { catalog: NamecardOption[]; owned: string[]; selections: { category: NamecardCategory; option_id: string; palette_id?: string | null }[]; coinBalance: number };
 export type NamecardResult = { ok: true; state: NamecardState } | { ok: false; error: string };
@@ -8,7 +8,7 @@ export type NamecardResult = { ok: true; state: NamecardState } | { ok: false; e
 export function namecardAppearance(catalog: NamecardOption[], selections: NamecardState["selections"]): NamecardAppearance {
   const selected = (category: NamecardCategory) => catalog.find((option) => option.id === selections.find((item) => item.category === category)?.option_id);
   const title = selected("sub");
-  return { title: title && !title.code.endsWith("-sub-default") ? title.name_ko : null, frame: selected("frame")?.code ?? null, namebar: selected("namebar")?.code ?? null, backgroundPalette: selections.find(item => item.category === "namebar")?.palette_id ?? null, symbolPalette: selections.find(item => item.category === "emblem")?.palette_id ?? null, emblem: selected("emblem")?.code ?? null, portrait: selected("portrait")?.code ?? null };
+  return { title: title && !title.code.endsWith("-sub-default") ? title.name_ko : null, frame: selected("frame")?.code ?? null, namebar: selected("namebar")?.code ?? null, backgroundPalette: selections.find(item => item.category === "namebar")?.palette_id ?? null, symbolPalette: selections.find(item => item.category === "emblem")?.palette_id ?? null, portraitPalette: selections.find(item => item.category === "portrait")?.palette_id ?? null, framePalette: selections.find(item => item.category === "frame")?.palette_id ?? null, emblem: selected("emblem")?.code ?? null, portrait: selected("portrait")?.code ?? null };
 }
 
 export const NAMECARD_THEMES: readonly { id: string; name: string; description: string; artwork: string }[] = [];

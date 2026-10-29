@@ -39,10 +39,11 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
   const [palettes, setPalettes] = useState<Record<string, CosmeticColorPresetId | null>>({});
   const selections = selectionOverride ?? state.selections;
   const coins = coinOverride ?? state.coinBalance;
+  const hasInkPalette = (p: NamecardProduct) => p.category === "emblem" || (p.category === "portrait" || p.category === "frame") && p.rarity === "normal";
   const products = namecardProducts({ ...state, selections }, offer).map(p => {
     const palette = palettes[p.id] !== undefined ? palettes[p.id] : selections.find(s => s.option_id === p.id)?.palette_id;
     const background = namecardBackground(state.catalog.find(option => option.id === p.id)?.code, palette);
-    return { ...p, available: p.available || purchased.includes(p.id), selections: background || p.category === "emblem" ? p.selections.map(s => ({ ...s, palette_id: background?.paletteId ?? palette ?? null })) : p.selections };
+    return { ...p, available: p.available || purchased.includes(p.id), selections: background || hasInkPalette(p) ? p.selections.map(s => ({ ...s, palette_id: background?.paletteId ?? palette ?? null })) : p.selections };
   });
   const candidate = products.find(product => product.id === previewId) ?? null;
   const layout = category === "emblem" || category === "portrait" ? "compact" : category === "sub" ? "label" : "wide";
@@ -58,10 +59,10 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
     return <Namecard displayName={displayName} {...appearance} previewPart={complete || product.category === "theme" ? undefined : product.category} fill />;
   };
   const applied = (p: NamecardProduct) => p.selections.every(next => selections.some(s => s.category === next.category && s.option_id === next.option_id
-    && (p.category === "emblem" ? (s.palette_id ?? null) === (next.palette_id ?? null) : !next.palette_id || namecardBackground(state.catalog.find(o => o.id === s.option_id)?.code, s.palette_id)?.paletteId === next.palette_id)));
+    && (hasInkPalette(p) ? (s.palette_id ?? null) === (next.palette_id ?? null) : !next.palette_id || namecardBackground(state.catalog.find(o => o.id === s.option_id)?.code, s.palette_id)?.paletteId === next.palette_id)));
   const reason = (p: NamecardProduct) => p.available ? null : p.premium && !offer?.eligible ? "Premium 클랜 가입 시 구매 가능" : coins < p.price ? "코인 부족" : null;
-  const palettePicker = (product: NamecardProduct, compact = false) => product.category === "emblem"
-    ? <CosmeticColorPicker allowDefault compact={compact} label={compact ? `${product.name} 색상` : "심벌 색상"} value={product.selections[0]?.palette_id as CosmeticColorPresetId ?? null} disabled={pending} onChange={value => setPalettes(previous => ({ ...previous, [product.id]: value }))} />
+  const palettePicker = (product: NamecardProduct, compact = false) => hasInkPalette(product)
+    ? <CosmeticColorPicker allowDefault compact={compact} label={compact ? `${product.name} 색상` : `${STORE_CATEGORIES.find(c => c.id === product.category)?.label} 색상`} value={product.selections[0]?.palette_id as CosmeticColorPresetId ?? null} disabled={pending} onChange={value => setPalettes(previous => ({ ...previous, [product.id]: value }))} />
     : product.selections[0]?.palette_id ? <CosmeticColorPicker compact={compact} label={compact ? `${product.name} 색상` : "배경 색상"} value={product.selections[0].palette_id as CosmeticColorPresetId} disabled={pending} onChange={value => setPalettes(previous => ({ ...previous, [product.id]: value }))} /> : null;
 
   function apply(product: NamecardProduct) {

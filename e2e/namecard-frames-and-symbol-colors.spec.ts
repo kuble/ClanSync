@@ -37,6 +37,15 @@ test("symbol colors and ten free frames persist across cards, profiles and comme
         const dialog = page.getByRole("dialog", { name: `${design.name} 미리보기`, exact: true });
         await expect(dialog.locator(`[data-${category}="${design.id}"]`)).toBeVisible();
         await expect(dialog.locator('[data-symbol-palette="blue"]')).toBeVisible();
+        const frame = dialog.locator(`[data-frame-kind="${category}"]`);
+        const palettePicker = dialog.getByRole("group", { name: new RegExp(`${label} 색상`) });
+        if (design === designs[0]) for (const palette of COSMETIC_COLOR_PRESETS) {
+          await palettePicker.getByRole("radio", { name: palette.name, exact: true }).check();
+          await expect(frame).toHaveAttribute("data-frame-palette", palette.id);
+          const rgb = [1,3,5].map(start => parseInt(palette.swatch.slice(start,start+2),16));
+          await expect(frame).toHaveCSS("color", `rgb(${rgb.join(", ")})`);
+        }
+        await palettePicker.getByRole("radio", { name: category === "portrait" ? "로즈" : "앰버", exact: true }).check();
         await dialog.getByRole("button", { name: `${design.name} 적용`, exact: true }).click();
         await expect(dialog.getByRole("button", { name: `${design.name} 적용`, exact: true })).toBeDisabled();
         await dialog.getByRole("button", { name: "미리보기 닫기", exact: true }).click();
@@ -53,6 +62,8 @@ test("symbol colors and ten free frames persist across cards, profiles and comme
     const card = editor.getByRole("region", { name: "현재 네임카드" }).locator("[data-namecard]");
     await expect(card).toHaveAttribute("data-portrait", "capsule");
     await expect(card).toHaveAttribute("data-frame", "tab");
+    await expect(card.locator('[data-frame-kind="portrait"]')).toHaveAttribute("data-frame-palette", "rose");
+    await expect(card.locator('[data-frame-kind="frame"]')).toHaveAttribute("data-frame-palette", "amber");
     for (const width of [1100, 390, 320]) {
       await page.setViewportSize({ width, height: 844 });
       expect(await editor.evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
@@ -64,10 +75,22 @@ test("symbol colors and ten free frames persist across cards, profiles and comme
     const shared = peer.getByRole("region", { name: "플레이어 배너" }).locator("[data-namecard]");
     await expect(shared).toHaveAttribute("data-frame", "tab");
     await expect(shared).toHaveAttribute("data-portrait", "capsule");
+    await expect(shared.locator('[data-frame-kind="portrait"]')).toHaveAttribute("data-frame-palette", "rose");
+    await expect(shared.locator('[data-frame-kind="frame"]')).toHaveAttribute("data-frame-palette", "amber");
     await expect(shared.locator("[data-symbol-art]")).toHaveAttribute("data-symbol-palette", "blue");
     await peer.goto(f.path.replace(/balance$/, `board/free/${postId}`));
     await expect(peer.locator("#comments").getByRole("img", { name: `${f.users[0].nickname} 프로필 심볼`, exact: true })).toHaveAttribute("data-symbol-palette", "blue");
     await expect(peer.locator('#comments [data-frame-design="capsule"]')).toBeVisible();
+    await expect(peer.locator('#comments [data-frame-design="capsule"]')).toHaveAttribute("data-frame-palette", "rose");
+    for (const [label, category] of [["초상 프레임", "portrait"], ["카드 프레임", "frame"]] as const) {
+      await editor.getByRole("group", { name: "네임카드 꾸미기 분류" }).getByRole("button", { name: label, exact: true }).click();
+      const picker = editor.getByRole("group", { name: new RegExp(`${label} 색상`) });
+      await picker.getByRole("radio", { name: "블루", exact: true }).click();
+      await expect(card.locator(`[data-frame-kind="${category}"]`)).toHaveAttribute("data-frame-palette", "blue");
+      await picker.getByRole("radio", { name: "기본", exact: true }).click();
+      await expect(card.locator(`[data-frame-kind="${category}"]`)).toHaveAttribute("data-frame-palette", "default");
+    }
+    await editor.getByRole("group", { name: "네임카드 꾸미기 분류" }).getByRole("button", { name: "심벌", exact: true }).click();
     await editor.getByRole("group", { name: /심벌 색상/ }).getByRole("radio", { name: "기본", exact: true }).click();
     await expect(card.locator("img[data-symbol-art]")).toHaveAttribute("data-symbol-palette", "default");
     await page.reload();

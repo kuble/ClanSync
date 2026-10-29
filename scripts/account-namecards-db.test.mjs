@@ -32,8 +32,8 @@ test("account namecards share one appearance across games and titles debit perso
     assert.equal((await read())[f.users[0].id].backgroundPalette, "rose");
     for (const client of [member, outsider]) assert.ok((await client.from("user_namecard_selections").upsert({ ...row, palette_id: "blue" })).error);
     assert.ok((await owner.from("user_namecard_selections").upsert({ ...row, palette_id: "unknown" })).error);
-    const portrait = catalog.find(item => item.code === "portrait-default");
-    assert.ok((await owner.from("user_namecard_selections").upsert({ ...row, category: "portrait", option_id: portrait.id })).error);
+    const sub = catalog.find(item => item.code === "ow-sub-default");
+    assert.ok((await owner.from("user_namecard_selections").upsert({ ...row, category: "sub", option_id: sub.id })).error);
     assert.equal((await read())[f.users[0].id].backgroundPalette, "rose");
     await ok(owner.from("user_namecard_selections").upsert({ ...row, palette_id: null }));
     assert.equal((await read())[f.users[0].id].backgroundPalette, null);
@@ -49,6 +49,23 @@ test("account namecards share one appearance across games and titles debit perso
     assert.ok((await owner.from("user_namecard_selections").upsert({ ...row, palette_id: "unknown" })).error);
     await ok(owner.from("user_namecard_selections").upsert({ ...row, palette_id: null }));
     assert.equal((await read())[f.users[0].id].symbolPalette, null);
+  });
+  await t.test("portrait and card frame colors are independent, shared and resettable", async () => {
+    for (const category of ["portrait", "frame"]) {
+      const option = catalog.find(item => item.code === `${category}-normal-${category === "portrait" ? "ring" : "line"}`);
+      const row = { user_id: f.users[0].id, category, option_id: option.id };
+      for (const palette_id of ["graphite", "blue", "green", "purple", "rose", "amber"]) {
+        await ok(owner.from("user_namecard_selections").upsert({ ...row, palette_id }));
+        const card = (await read())[f.users[0].id];
+        assert.equal(card[`${category}Palette`], palette_id);
+        assert.equal(card.symbolPalette, null);
+        assert.equal(card.backgroundPalette, null);
+      }
+      assert.ok((await member.from("user_namecard_selections").upsert({ ...row, palette_id: "blue" })).error);
+      assert.ok((await owner.from("user_namecard_selections").upsert({ ...row, palette_id: "unknown" })).error);
+      await ok(owner.from("user_namecard_selections").upsert({ ...row, palette_id: null }));
+      assert.equal((await read())[f.users[0].id][`${category}Palette`], null);
+    }
   });
   await ok(f.service.from("users").update({ coin_balance: 500 }).eq("id", f.users[0].id));
   await ok(f.service.from("users").update({ coin_balance: 0 }).eq("id", f.users[1].id));
