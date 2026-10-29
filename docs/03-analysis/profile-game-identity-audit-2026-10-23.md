@@ -27,7 +27,7 @@
 | [clan-events](../../src/app/actions/clan-events.ts) 참석자 목록 | `user_game_profiles.nickname` 조회 후 `users.nickname` 대체값 사용 | 검증된 `battle_tag`/`riot_id`로 전환 |
 | [participant_label·clan_peer_nicknames](../../supabase/migrations/20261015101934_clan_participant_identity.sql) 공통 클랜 레이블 | `users.nickname` 호환 캐시·게스트 이름·구분 별칭으로 문자열 생성. 통계/로비/게시판 등 여러 호출자가 `nickname`이라는 반환 필드명을 공유 | 중앙 조회부터 게임별 출처로 바꾸되 기존 두 열 RPC 계약과 게스트/과거 기록의 식별자를 보존 |
 
-`nickname`이라는 코드 필드명을 전부 삭제하는 방식은 피한다. 게스트가 신고한 기록명·중복 구분 별칭, 과거 경기 스냅샷, 테스트 픽스처 식별자는 별도 의미가 있다. [미사용 ProfileEmblemCollections](../../src/components/profile/profile-emblem-collections.tsx)도 옛 `nickname` prop을 보유하지만 현재 화면의 호출자는 없다.
+`nickname`이라는 코드 필드명을 전부 삭제하는 방식은 피한다. 게스트가 신고한 기록명·중복 구분 별칭, 과거 경기 스냅샷, 테스트 픽스처 식별자는 별도 의미가 있다. 당시 미사용이던 `ProfileEmblemCollections`는 2026-10-30 참조 재확인 후 제거했다.
 
 ## DB 호환 필드
 
