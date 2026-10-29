@@ -89,7 +89,7 @@ export function ClanAppearanceSettings({ gameSlug, clanId, clanName, initialIcon
         <span className="relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-primary text-primary-foreground">{preview || iconUrl ? <Image src={preview || iconUrl!} alt="" fill sizes="48px" unoptimized className="object-cover" /> : <Shield className="size-6" aria-hidden />}</span>
         <span className="relative text-sm font-semibold text-white">{clanName}</span>
       </div>
-      {selectedDesign && <div className="mt-4 space-y-1"><CosmeticColorPicker value={paletteId} onChange={setPaletteId} disabled={!canManage || pendingBanner} /><p className="text-xs text-muted-foreground">이 패턴의 모든 색상을 추가 코인 없이 사용할 수 있습니다.</p></div>}
+      {selectedDesign && <div className="mt-4"><CosmeticColorPicker value={paletteId} onChange={setPaletteId} disabled={!canManage || pendingBanner} /></div>}
       <div role="group" aria-label="보유 배너 선택" className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[{ slug: null, name: "기본 배너", url: null }, ...owned].map(banner => <button key={banner.slug ?? "default"} type="button" disabled={!canManage || pendingBanner} aria-pressed={selected === banner.slug} onClick={() => setSelected(banner.slug)} className={cn("min-w-0 overflow-hidden rounded-lg border text-left transition-colors disabled:cursor-not-allowed disabled:opacity-60", selected === banner.slug ? "border-primary bg-primary/5" : "border-border hover:bg-muted")}>
           <span className="relative block aspect-[4/1] bg-muted">{banner.url && <ClanBannerImage url={banner.url} sizes="250px" />}</span>
