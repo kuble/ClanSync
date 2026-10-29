@@ -1297,6 +1297,7 @@ export type Database = {
           id: string
           image_path: string
           name: string
+          slot_index: number
         }
         Insert: {
           clan_id: string
@@ -1304,6 +1305,7 @@ export type Database = {
           id: string
           image_path: string
           name: string
+          slot_index: number
         }
         Update: {
           clan_id?: string
@@ -1311,6 +1313,7 @@ export type Database = {
           id?: string
           image_path?: string
           name?: string
+          slot_index?: number
         }
         Relationships: [
           {
@@ -2935,6 +2938,7 @@ export type Database = {
           pool_source: Database["public"]["Enums"]["coin_pool_type"]
           price_coins: number
           purchased_at: string
+          repeatable: boolean
           user_id: string
           void_reason: string | null
           voided_at: string | null
@@ -2949,6 +2953,7 @@ export type Database = {
           pool_source: Database["public"]["Enums"]["coin_pool_type"]
           price_coins: number
           purchased_at?: string
+          repeatable?: boolean
           user_id: string
           void_reason?: string | null
           voided_at?: string | null
@@ -2963,6 +2968,7 @@ export type Database = {
           pool_source?: Database["public"]["Enums"]["coin_pool_type"]
           price_coins?: number
           purchased_at?: string
+          repeatable?: boolean
           user_id?: string
           void_reason?: string | null
           voided_at?: string | null

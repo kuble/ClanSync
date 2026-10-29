@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { purchaseStoreItemAction } from "@/app/actions/clan-store-purchase";
 import type { MainClanContext } from "@/lib/clan/load-main-clan-context";
 import { ClanHero } from "@/components/main-clan/main-clan-shell";
-import { clanProductKind } from "@/lib/clan/cosmetics";
+import { clanProductKind, isRepeatableClanProduct, CLAN_EMOJI_PACK_SIZE } from "@/lib/clan/cosmetics";
 import { ClanProductPreview } from "./clan-product-preview";
 import type { MvpStoreSlug } from "@/lib/store/mvp-store-slugs";
 import { StorePremiumPlanDialog } from "@/components/main-clan/store-premium-plan-dialog";
@@ -97,8 +97,9 @@ export function StorePanels({ ctx, items, clanCoins, canManageClanPool }: {
           </button>
           {readClanBannerUrl(item.asset_url) && <CosmeticColorPicker compact label={`${item.name_ko} 색상`} value={paletteFor(item)} onChange={paletteId => setPalette(item, paletteId)} />}
           <div className={styles.productFooter}>
-            <strong>{item.purchased ? "보유 중" : <><Coins size={14} aria-hidden />{item.price_coins.toLocaleString("ko-KR")}<small>코인</small></>}</strong>
-            {item.purchased ? canManageClanPool || ["frames","stickers"].includes(clanProductKind(item.slug)) ? <Link href={settingsPath(item.slug)} className={buttonVariants({ size: "sm", variant: "secondary" })} aria-label={clanProductKind(item.slug)==="banner"?"구매 완료 · 설정하기":item.name_ko+" 사용하기"}>{clanProductKind(item.slug)==="banner"?"설정하기":clanProductKind(item.slug)==="emojis"?"등록하기":"사용하기"}</Link> : <Button size="sm" variant="secondary" disabled>구매 완료</Button>
+            <strong>{item.purchased && !isRepeatableClanProduct(item.slug) ? "보유 중" : <><Coins size={14} aria-hidden />{item.price_coins.toLocaleString("ko-KR")}<small>코인</small></>}</strong>
+            {isRepeatableClanProduct(item.slug) ? <div className="flex items-center gap-2">{item.purchased && canManageClanPool && <Link href={settingsPath(item.slug)} className={buttonVariants({ size: "sm", variant: "secondary" })}>등록하기</Link>}<Button size="sm" title={item.disabledReason ?? undefined} disabled={pending || !item.canAttemptPurchase} onClick={() => setSelected(item)}>{item.canAttemptPurchase ? item.purchased ? "추가 구매" : "구매" : canManageClanPool ? "코인 부족" : "권한 필요"}</Button></div>
+              : item.purchased ? canManageClanPool || ["frames","stickers"].includes(clanProductKind(item.slug)) ? <Link href={settingsPath(item.slug)} className={buttonVariants({ size: "sm", variant: "secondary" })} aria-label={clanProductKind(item.slug)==="banner"?"구매 완료 · 설정하기":item.name_ko+" 사용하기"}>{clanProductKind(item.slug)==="banner"?"설정하기":clanProductKind(item.slug)==="emojis"?"등록하기":"사용하기"}</Link> : <Button size="sm" variant="secondary" disabled>구매 완료</Button>
               : item.is_premium_only && !planIsPremium ? <Button size="sm" variant="outline" onClick={() => setPremiumOpen(true)}>플랜 비교 보기</Button>
               : <Button size="sm" title={item.disabledReason ?? undefined} disabled={pending || !item.canAttemptPurchase} onClick={() => setSelected(item)}>{item.canAttemptPurchase ? "구매" : canManageClanPool ? "코인 부족" : "권한 필요"}</Button>}
           </div>
@@ -107,12 +108,12 @@ export function StorePanels({ ctx, items, clanCoins, canManageClanPool }: {
       </div>
     </section>
     <StorePremiumPlanDialog open={premiumOpen} onOpenChange={setPremiumOpen} actorRole={actorRole} gameSlug={gameSlug} clanId={clanId} />
-    <Dialog open={!!preview} onOpenChange={open => { if (!open) setPreview(null); }}><DialogContent className="w-[calc(100vw-2rem)] min-w-0 overflow-x-hidden sm:max-w-5xl"><DialogHeader className="pr-10"><DialogTitle>{preview?.name_ko} 미리보기</DialogTitle><DialogDescription>{preview&&clanProductKind(preview.slug)==="banner"?"실제 대시보드 표시와 원본 이미지 전체를 비교하세요.":preview&&clanProductKind(preview.slug)==="emojis"?"10슬롯을 열고 클랜 이미지를 직접 업로드합니다. 정적 PNG·WebP·JPG · 256KB · 128×128px.":"클랜에서 구매하면 모든 클랜원이 추억 사진에 사용할 수 있습니다."}</DialogDescription></DialogHeader>
+    <Dialog open={!!preview} onOpenChange={open => { if (!open) setPreview(null); }}><DialogContent className="w-[calc(100vw-2rem)] min-w-0 overflow-x-hidden sm:max-w-5xl"><DialogHeader className="pr-10"><DialogTitle>{preview?.name_ko} 미리보기</DialogTitle><DialogDescription>{preview&&clanProductKind(preview.slug)==="banner"?"실제 대시보드 표시와 원본 이미지 전체를 비교하세요.":preview&&clanProductKind(preview.slug)==="emojis"?"구매할 때마다 3슬롯이 추가됩니다. 클랜 이미지를 직접 업로드합니다. 정적 PNG·WebP·JPG · 256KB · 128×128px.":"클랜에서 구매하면 모든 클랜원이 추억 사진에 사용할 수 있습니다."}</DialogDescription></DialogHeader>
       {preview&&clanProductKind(preview.slug)==="banner"?<><RubberSegment label="배너 미리보기 방식" labelPosition="hidden" options={[{id:"applied",label:"실제 적용"},{id:"original",label:"이미지 전체"}]} value={bannerView} onChange={setBannerView}/><div className={clanStyles.bannerStage}>{bannerView==="applied"?<ClanHero ctx={{...ctx,bannerUrl:previewUrl??null}} basePath={`/games/${gameSlug}/clan/${clanId}`} showLobbyAction={false}/>:<div className={clanStyles.bannerOriginal}>{previewUrl&&<ClanBannerImage url={previewUrl} alt="배너 원본 전체" sizes="1000px"/>}</div>}</div>{previewSelection && <><CosmeticColorPicker value={paletteFor(preview)} onChange={paletteId => setPalette(preview, paletteId)}/><p className="text-xs text-muted-foreground">패턴을 한 번 구매하면 모든 제공 색상을 사용할 수 있습니다.</p></>}</>:preview?<ClanProductPreview slug={preview.slug}/>:null}
       <DialogFooter><Button variant="outline" onClick={() => setPreview(null)}>닫기</Button></DialogFooter>
     </DialogContent></Dialog>
     <Dialog open={!!selected} onOpenChange={open => { if (!open && !pending) setSelected(null); }}><DialogContent showCloseButton={!pending}>
-      <DialogHeader><DialogTitle>꾸미기 구매</DialogTitle><DialogDescription>{selected?.name_ko}를 클랜 코인으로 구매합니다. {readClanBannerUrl(selected?.asset_url) ? "패턴 구매에 모든 제공 색상이 포함되며, 구매 후 설정에서 적용할 수 있습니다." : "구매 후 적용할 수 있습니다."}</DialogDescription></DialogHeader>
+      <DialogHeader><DialogTitle>꾸미기 구매</DialogTitle><DialogDescription>{selected?.name_ko}를 클랜 코인으로 구매합니다. {readClanBannerUrl(selected?.asset_url) ? "패턴 구매에 모든 제공 색상이 포함되며, 구매 후 설정에서 적용할 수 있습니다." : "구매 후 적용할 수 있습니다."}{selected && isRepeatableClanProduct(selected.slug) && <> 구매 후 공용 이모티콘 {CLAN_EMOJI_PACK_SIZE}슬롯이 추가됩니다.</>}</DialogDescription></DialogHeader>
       <dl className={styles.checkout}><div><dt>클랜 코인 사용</dt><dd>{selected?.price_coins.toLocaleString("ko-KR")} 코인</dd></div><div><dt>구매 후 잔액</dt><dd>{(clanCoins - (selected?.price_coins ?? 0)).toLocaleString("ko-KR")} 코인</dd></div></dl>
       <p className="text-xs text-muted-foreground">구매 후 일반 환불은 지원되지 않습니다.</p>
       <DialogFooter><Button variant="ghost" disabled={pending} onClick={() => setSelected(null)}>취소</Button><Button disabled={pending} onClick={buy}>{pending ? "구매 중…" : "구매 확정"}</Button></DialogFooter>

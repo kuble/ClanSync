@@ -10,6 +10,7 @@ import { ClanStoreCoinHistory } from "@/components/main-clan/clan-store-coin-his
 import { MVP_STORE_SLUGS, isMvpStoreSlug } from "@/lib/store/mvp-store-slugs";
 import { getRequestClient, getRequestUser } from "@/lib/supabase/request";
 import { BANNER_RARITIES } from "@/lib/clan/banner-catalog";
+import { isRepeatableClanProduct } from "@/lib/clan/cosmetics";
 
 export default async function ClanStorePage({
   params,
@@ -63,7 +64,7 @@ export default async function ClanStorePage({
     let canAttemptPurchase = false;
     let disabledReason: string | null = null;
 
-    if (purchased) {
+    if (purchased && !isRepeatableClanProduct(slug)) {
       disabledReason = null;
     } else if (isPrem && !premium) {
       disabledReason = "Premium 클랜에서만 구매할 수 있습니다.";

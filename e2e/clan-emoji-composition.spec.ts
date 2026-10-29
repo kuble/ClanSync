@@ -29,10 +29,11 @@ test("custom emojis compose posts, board/stat comments and all reaction targets 
   const choose=async(scope:Locator,label:string)=>{await scope.getByRole("button",{name:label,exact:true}).click();await page.getByRole("button",{name:"응원 이모티콘",exact:true}).click();};
   try {
     expect((await svc.from("clans").update({coin_balance:1000}).eq("id",f.clanId)).error).toBeNull();
-    expect((await svc.rpc("apply_store_purchase",{p_actor_id:f.users[0].id,p_context_clan_id:f.clanId,p_item_slug:"clan_emoji_slots_10",p_checkout_id:randomUUID()})).data).toMatchObject({ok:true});
+    expect((await svc.rpc("apply_store_purchase",{p_actor_id:f.users[0].id,p_context_clan_id:f.clanId,p_item_slug:"clan_emoji_slots_3",p_checkout_id:randomUUID()})).data).toMatchObject({ok:true});
     await loginIsolatedBalanceUser(page,f.users[0]);
     await page.goto(base+"/manage?tab=appearance#clan-emojis");
-    await page.getByLabel("이모티콘 이미지",{exact:true}).setInputFiles(image);
+    const [fileChooser]=await Promise.all([page.waitForEvent("filechooser"),page.getByRole("button",{name:"이모티콘 추가",exact:true}).click()]);
+    await fileChooser.setFiles(image);
     const crop=page.getByRole("dialog",{name:"공용 이모티콘 추가",exact:true});
     await crop.getByRole("slider",{name:"이모티콘 확대",exact:true}).fill("2");
     await crop.getByRole("group",{name:"이미지 자르기 영역",exact:true}).press("ArrowRight");

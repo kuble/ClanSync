@@ -18,10 +18,10 @@ test("board comment reaction people: scoped names, keyboard, retry and access bo
   const path = f.path.replace(/balance$/, `board/free/${postId}`);
   try {
     await ok(svc.from("clans").update({ coin_balance: 1000 }).eq("id", f.clanId));
-    expect(await ok(svc.rpc("apply_store_purchase", { p_actor_id: f.users[0].id, p_context_clan_id: f.clanId, p_item_slug: "clan_emoji_slots_10", p_checkout_id: randomUUID() }))).toMatchObject({ ok: true });
+    expect(await ok(svc.rpc("apply_store_purchase", { p_actor_id: f.users[0].id, p_context_clan_id: f.clanId, p_item_slug: "clan_emoji_slots_3", p_checkout_id: randomUUID() }))).toMatchObject({ ok: true });
     const image = await sharp({ create: { width: 128, height: 128, channels: 4, background: "#50b887" } }).webp().toBuffer();
     expect((await svc.storage.from("clan-emojis").upload(imagePath, image, { contentType: "image/webp" })).error).toBeNull();
-    await ok(svc.from("clan_emojis").insert({ id: emojiId, clan_id: f.clanId, name: "응원", image_path: imagePath }));
+    await ok(svc.from("clan_emojis").insert({ id: emojiId, clan_id: f.clanId, name: "응원", image_path: imagePath, slot_index: 1 }));
     await ok(svc.from("clan_board_posts").insert({ id: postId, clan_id: f.clanId, author_id: f.users[0].id, kind: "free", title: "게시판 공감자", content: "댓글별 공감자를 확인해요." }));
     await ok(svc.from("clan_board_comments").insert([
       { id: ownId, post_id: postId, author_id: f.users[0].id, content: "내 댓글" },

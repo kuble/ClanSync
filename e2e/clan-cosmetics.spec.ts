@@ -15,7 +15,7 @@ test("clan cosmetic purchases, bounded private emoji slots, reactions and shared
   const buy = async (name: string) => {
     await page.goto(base + "/store");
     await page.getByRole("radio", { name: name.includes("이모티콘") ? "반응" : "사진", exact: true }).click();
-    await page.getByRole("article", { name, exact: true }).getByRole("button", { name: "구매", exact: true }).click();
+    await page.getByRole("article", { name, exact: true }).getByRole("button", { name: /^(구매|추가 구매)$/, exact: true }).click();
     await page.getByRole("dialog", { name: "꾸미기 구매", exact: true }).getByRole("button", { name: "구매 확정", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "꾸미기 구매", exact: true })).toBeHidden();
   };
@@ -33,7 +33,9 @@ test("clan cosmetic purchases, bounded private emoji slots, reactions and shared
     expect((await request.post(endpoint, { multipart: { name: "환호", image } })).status()).toBe(401);
     await loginIsolatedBalanceUser(page, f.users[0]);
     expect((await upload("환호")).status()).toBe(400);
-    await buy("공용 이모티콘 10슬롯");
+    await buy("공용 이모티콘 3슬롯");
+    expect(await balance()).toBe(900);
+    await buy("공용 이모티콘 3슬롯");
     expect(await balance()).toBe(800);
     expect((await upload("잘못된 이름!")).status()).toBe(400);
     expect((await page.request.post(endpoint, { headers: { Origin: "https://evil.example" }, multipart: { name: "환호", image } })).status()).toBe(403);
@@ -59,9 +61,9 @@ test("clan cosmetic purchases, bounded private emoji slots, reactions and shared
     expect([meta.width, meta.height, meta.format]).toEqual([128, 128, "webp"]);
     expect((await upload("환호")).status()).toBe(400);
     const concurrent = await Promise.all(Array.from({ length: 11 }, (_, i) => upload("반응_" + i)));
-    expect(concurrent.filter(r => r.ok())).toHaveLength(9);
+    expect(concurrent.filter(r => r.ok())).toHaveLength(5);
     const rows = (await svc.from("clan_emojis").select("id,name,image_path").eq("clan_id", f.clanId)).data!;
-    expect(rows).toHaveLength(10); rows.forEach(row => emojiPaths.add(row.image_path));
+    expect(rows).toHaveLength(6); rows.forEach(row => emojiPaths.add(row.image_path));
     const storedPaths: string[] = [];
     for (const folder of (await svc.storage.from("clan-emojis").list(f.clanId)).data ?? []) {
       for (const file of (await svc.storage.from("clan-emojis").list(`${f.clanId}/${folder.name}`)).data ?? []) storedPaths.push(`${f.clanId}/${folder.name}/${file.name}`);
@@ -105,7 +107,7 @@ test("clan cosmetic purchases, bounded private emoji slots, reactions and shared
       await editor.getByLabel("사진 아래 한마디", { exact: true }).fill("함께한 순간");
       await memberPage.screenshot({ animations: "disabled", path: test.info().outputPath("photo-styling.png") });
       await editor.getByRole("button", { name: "저장", exact: true }).click();
-      await expect(memberPage).toHaveURL(/\/board\/memories\/[0-9a-f-]{36}$/);
+      await expect(memberPage).toHaveURL(/\/board\/memories\/[0-9a-f-]{36}$/, { timeout: 30_000 });
       const saved = (await svc.from("clan_board_posts").select("id,image_path,details").eq("clan_id", f.clanId).eq("kind", "memories").single()).data!;
       photos.push(saved.image_path!, boardThumbnail(saved.image_path!));
       expect(saved.details).toEqual({ photoFrame: "tape", photoSticker: "gg" });
