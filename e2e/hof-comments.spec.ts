@@ -172,8 +172,8 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
         const remove = row.getByRole("button", { name: `${nickname} 댓글 삭제`, exact: true });
         const removeBox = (await remove.boundingBox())!;
         expect(removeBox.y).toBeCloseTo(button.y, 0);
-        expect(removeBox.x - button.x - button.width).toBeGreaterThanOrEqual(0);
-        expect(removeBox.x - button.x - button.width).toBeLessThanOrEqual(8);
+        expect(button.x - removeBox.x - removeBox.width).toBeGreaterThanOrEqual(0);
+        expect(button.x - removeBox.x - removeBox.width).toBeLessThanOrEqual(8);
       }
       await picker.click();
       await page.getByRole("heading", { name: "클랜 통계", exact: true }).hover();
@@ -212,6 +212,28 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
     await ok(f.service.from("clan_hof_comment_reactions").insert({ comment_id: commentId, user_id: f.users[0].id, kind: "heart" }));
     await page.getByRole("button", { name: "반응 새로고침", exact: true }).click();
     const heart = reply.getByRole("button", { name: "하트 공감 2명", exact: true });
+    await loginIsolatedBalanceUser(leaderPage, f.users[0]);
+    await leaderPage.goto(path);
+    const otherReply = leaderPage.getByRole("listitem").filter({ has: leaderPage.getByText(content, { exact: true }) });
+    for (const { row, mine } of [{ row: reply, mine: true }, { row: otherReply, mine: false }]) {
+      const pill = row.getByRole("button", { name: "하트 공감 2명", exact: true });
+      await pill.scrollIntoViewIfNeeded();
+      await row.hover();
+      const bubble = (await row.locator("p").boundingBox())!, reaction = (await pill.boundingBox())!;
+      const picker = (await row.getByRole("button", { name: `${f.users[1].nickname} 댓글 공감 선택`, exact: true }).boundingBox())!;
+      const remove = (await row.getByRole("button", { name: `${f.users[1].nickname} 댓글 삭제`, exact: true }).boundingBox())!;
+      if (mine) {
+        expect(reaction.x + reaction.width).toBeCloseTo(bubble.x + bubble.width, 0);
+        expect(picker.x + picker.width).toBeLessThanOrEqual(reaction.x);
+        expect(remove.x + remove.width).toBeLessThanOrEqual(picker.x);
+      } else {
+        expect(reaction.x).toBeCloseTo(bubble.x, 0);
+        expect(picker.x).toBeGreaterThanOrEqual(reaction.x + reaction.width);
+        expect(remove.x).toBeGreaterThanOrEqual(picker.x + picker.width);
+      }
+    }
+    await reply.hover();
+    await page.screenshot({ path: test.info().outputPath("hof-reaction-mirrored.png"), animations: "disabled" });
     const peopleRequest = page.waitForRequest(request => request.headers()["next-action"] !== undefined && !!request.postData()?.includes('"kind":"heart"'));
     await heart.hover();
     const actionRequest = await peopleRequest;
@@ -297,7 +319,6 @@ test("HoF reactions: persist, separate category/period, paginate and moderate", 
       await expect(touchPage.getByRole("dialog", { name: "공감 선택", exact: true })).toBeVisible();
       expect(await touchPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     } finally { await touchContext.close(); }
-    await loginIsolatedBalanceUser(leaderPage, f.users[0]);
     await leaderPage.goto(path);
     await expect(leaderPage.getByText(content, { exact: true })).toBeVisible();
     const staffComments = leaderPage.getByLabel("전체 기간 · 승률 반응", { exact: true }).getByRole("listitem");

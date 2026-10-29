@@ -97,6 +97,7 @@ test("custom emojis compose posts, board/stat comments and all reaction targets 
     const hof=talk.getByRole("listitem").last();await expect(hof.getByRole("img",{name:":응원:",exact:true})).toBeVisible();
     await hof.hover();await choose(hof,`${f.users[0].nickname} 댓글 공감 선택`);await expect(hof.getByRole("button",{name:"응원 공감 1명",exact:true})).toBeVisible();
     await page.reload();await expect(hof.getByRole("button",{name:"응원 공감 1명",exact:true})).toBeVisible();
+    await hof.hover();
     await hof.getByRole("button",{name:`${f.users[0].nickname} 댓글 공감 선택`,exact:true}).click();
     await page.getByRole("button",{name:"기본",exact:true}).click();
     await page.getByRole("button",{name:"하트 공감",exact:true}).click();
@@ -109,6 +110,9 @@ test("custom emojis compose posts, board/stat comments and all reaction targets 
     const [standardBox,customBox]=await Promise.all([standard.boundingBox(),custom.boundingBox()]);
     expect(standardBox!.height).toBe(32);expect(customBox!.height).toBe(standardBox!.height);
     expect(customBox!.width).toBe(standardBox!.width);expect(customBox!.y).toBe(standardBox!.y);
+    expect(customBox!.x+customBox!.width).toBeLessThanOrEqual(standardBox!.x);
+    const pickerBox=(await hof.getByRole("button",{name:`${f.users[0].nickname} 댓글 공감 선택`,exact:true}).boundingBox())!;
+    expect(pickerBox.x+pickerBox.width).toBeLessThanOrEqual(customBox!.x);
     await expect(custom.locator("img")).toHaveCSS("width","20px");
     await expect.poll(()=>hof.getByRole("img").evaluateAll(nodes=>nodes.every(node=>(node as HTMLImageElement).naturalWidth>0))).toBe(true);
     await page.screenshot({path:test.info().outputPath("emoji-stat-comments.png"),animations:"disabled"});

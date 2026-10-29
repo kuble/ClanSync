@@ -39,7 +39,12 @@
 }
 
 .mine .reactions {
-  justify-content: flex-end;
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+
+.mine .reactions > div {
+  flex-direction: row-reverse;
 }
 
 /* Detect rendered pills so standard and locally updated custom reactions agree. */
