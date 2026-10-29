@@ -81,11 +81,13 @@ export function ManageMembersTable({
     dormant: "bg-muted text-muted-foreground",
     unknown: "text-muted-foreground",
   };
+  const identityLabel = gameSlug === "overwatch" ? "배틀태그" : "게임 ID";
+  const memberName = (row: ManageMemberRow) => row.gameTag || row.nickname;
   const filtered = rows.filter(
     (row) =>
       (scope === "current" ? row.status === "active" : row.status !== "active") &&
       (filter === "all" || (scope === "current" ? activity(row) : row.status) === filter) &&
-      `${row.nickname} ${row.gameTag ?? ""}`
+      memberName(row)
         .toLocaleLowerCase()
         .includes(query.toLocaleLowerCase()),
   );
@@ -180,7 +182,7 @@ export function ManageMembersTable({
           />
           <Input
             aria-label="구성원 검색"
-            placeholder="닉네임 검색"
+            placeholder={`${identityLabel} 검색`}
             value={query}
             onChange={(event) => {
               setQuery(event.target.value);
@@ -206,7 +208,7 @@ export function ManageMembersTable({
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="bg-muted/50 text-muted-foreground border-b text-xs font-medium uppercase">
             <tr>
-              <th className="px-3 py-2">닉네임</th>
+              <th className="px-3 py-2">{identityLabel}</th>
               <th className="px-3 py-2">게임 인증</th>
               <th className="px-3 py-2">{scope === "current" ? "활동 상태" : "상태"}</th>
               <th className="px-3 py-2">{scope === "current" ? "역할" : "이전 역할"}</th>
@@ -222,12 +224,11 @@ export function ManageMembersTable({
                   <Link
                     href={`/games/${gameSlug}/clan/${clanId}/stats?player=${encodeURIComponent(m.userId)}`}
                     prefetch={false}
-                    aria-label={`${m.nickname} 개인 기록`}
+                    aria-label={`${memberName(m)} 개인 기록`}
                     className="rounded-sm text-left hover:text-primary focus-visible:outline-2 focus-visible:outline-ring"
                   >
-                    {m.nickname}
+                    {memberName(m)}
                   </Link>
-                  {m.gameTag && <p className="mt-1 text-xs font-normal text-muted-foreground">{m.gameTag}</p>}
                 </td>
                 <td className="px-3 py-2 text-xs">
                   <span className={`whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-medium ${m.gameVerified ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{m.gameVerified ? "인증 완료" : "미인증"}</span>
@@ -246,9 +247,9 @@ export function ManageMembersTable({
                 {scope === "former" && <td className="px-3 py-2 text-xs text-muted-foreground">{m.departedLabel}</td>}
                 <td className="px-3 py-2 text-right">
                   <div className="flex flex-wrap items-center justify-end gap-1">
-                    {m.status === "active" && <MemberRecordButton clanId={clanId} gameSlug={gameSlug} userId={m.userId} nickname={m.nickname} gameTag={m.gameTag} linkedCount={m.linkedCount} />}
-                    {m.actions.canAllowRejoin && <Button type="button" variant="ghost" size="icon-sm" disabled={pending} aria-label={`${m.nickname} 재가입 허용`} title="재가입 허용" onClick={() => { setAllowError(""); setAllowing(m); }}><UserRoundCheck aria-hidden="true" /></Button>}
-                    {m.actions.canTransferLeadership && <Button type="button" variant="ghost" size="icon-sm" disabled={pending} aria-label={`${m.nickname} 클랜장 위임 후 멤버로 강등`} title="클랜장 위임 후 멤버로 강등" onClick={() => { setTransferError(""); setSuccessorId(""); setTransferring(m); }}><ShieldMinus aria-hidden="true" /></Button>}
+                    {m.status === "active" && <MemberRecordButton clanId={clanId} gameSlug={gameSlug} userId={m.userId} nickname={memberName(m)} gameTag={m.gameTag} linkedCount={m.linkedCount} />}
+                    {m.actions.canAllowRejoin && <Button type="button" variant="ghost" size="icon-sm" disabled={pending} aria-label={`${memberName(m)} 재가입 허용`} title="재가입 허용" onClick={() => { setAllowError(""); setAllowing(m); }}><UserRoundCheck aria-hidden="true" /></Button>}
+                    {m.actions.canTransferLeadership && <Button type="button" variant="ghost" size="icon-sm" disabled={pending} aria-label={`${memberName(m)} 클랜장 위임 후 멤버로 강등`} title="클랜장 위임 후 멤버로 강등" onClick={() => { setTransferError(""); setSuccessorId(""); setTransferring(m); }}><ShieldMinus aria-hidden="true" /></Button>}
                     {m.actions.canPromote ? (
                       <form onSubmit={onPromote} className="inline">
                         <input
@@ -259,14 +260,14 @@ export function ManageMembersTable({
                         <input
                           type="hidden"
                           name="nickname"
-                          value={m.nickname}
+                          value={memberName(m)}
                         />
                         <Button
                           type="submit"
                           variant="ghost"
                           size="icon-sm"
                           disabled={pending}
-                          aria-label={`${m.nickname} 운영진 승격`}
+                          aria-label={`${memberName(m)} 운영진 승격`}
                           title="운영진 승격"
                         >
                           <ChevronsUp aria-hidden="true" />
@@ -283,14 +284,14 @@ export function ManageMembersTable({
                         <input
                           type="hidden"
                           name="nickname"
-                          value={m.nickname}
+                          value={memberName(m)}
                         />
                         <Button
                           type="submit"
                           variant="ghost"
                           size="icon-sm"
                           disabled={pending}
-                          aria-label={`${m.nickname} 멤버로 강등`}
+                          aria-label={`${memberName(m)} 멤버로 강등`}
                           title="멤버로 강등"
                         >
                           <ShieldMinus aria-hidden="true" />
@@ -303,9 +304,9 @@ export function ManageMembersTable({
                         variant="destructive"
                         size="icon-sm"
                         disabled={pending}
-                        aria-label={`${m.nickname} 강퇴`}
+                        aria-label={`${memberName(m)} 강퇴`}
                         title="강퇴"
-                        onClick={() => onKick(m.userId, m.nickname)}
+                        onClick={() => onKick(m.userId, memberName(m))}
                       >
                         <UserRoundMinus aria-hidden="true" />
                       </Button>
@@ -347,7 +348,7 @@ export function ManageMembersTable({
       </div>
       <Dialog open={!!transferring} onOpenChange={(open) => { if (!open && !pending) setTransferring(null); }}>
         <DialogContent showCloseButton={!pending}><DialogHeader><DialogTitle>클랜장 위임 및 강등</DialogTitle><DialogDescription>새 클랜장을 선택하십시오. 위임 후 본인은 멤버로 변경되며 클랜장 전용 권한을 사용할 수 없습니다.</DialogDescription></DialogHeader>
-          <label className="grid gap-2 text-sm font-medium">새 클랜장<select className="min-h-11 min-w-0 rounded-md border bg-background px-3 text-sm" value={successorId} disabled={pending} onChange={event => { setSuccessorId(event.target.value); setTransferError(""); }}><option value="">구성원을 선택하십시오.</option>{successors.map(row => <option key={row.userId} value={row.userId}>{row.nickname} · {roleLabel(row.role)}</option>)}</select></label>
+          <label className="grid gap-2 text-sm font-medium">새 클랜장<select className="min-h-11 min-w-0 rounded-md border bg-background px-3 text-sm" value={successorId} disabled={pending} onChange={event => { setSuccessorId(event.target.value); setTransferError(""); }}><option value="">구성원을 선택하십시오.</option>{successors.map(row => <option key={row.userId} value={row.userId}>{memberName(row)} · {roleLabel(row.role)}</option>)}</select></label>
           {!successors.length && <p className="text-sm text-muted-foreground">위임할 활성 구성원이 없습니다. 다른 구성원이 가입한 뒤 위임할 수 있습니다.</p>}
           {transferError && <p role="alert" className="text-sm text-destructive">{transferError}</p>}
           <div className="flex justify-end gap-2 border-t pt-4"><Button variant="outline" disabled={pending} onClick={() => setTransferring(null)}>취소</Button><Button disabled={pending || !successorId} onClick={() => {
@@ -364,7 +365,7 @@ export function ManageMembersTable({
         </DialogContent>
       </Dialog>
       <Dialog open={!!allowing} onOpenChange={(open) => { if (!open && !pending) setAllowing(null); }}>
-        <DialogContent showCloseButton={!pending}><DialogHeader><DialogTitle>재가입을 허용하시겠습니까?</DialogTitle><DialogDescription>{allowing?.nickname} 님이 다시 가입 신청을 보낼 수 있습니다. 가입은 신청 후 운영진이 별도로 승인합니다.</DialogDescription></DialogHeader>
+        <DialogContent showCloseButton={!pending}><DialogHeader><DialogTitle>재가입을 허용하시겠습니까?</DialogTitle><DialogDescription>{allowing ? memberName(allowing) : ""} 님이 다시 가입 신청을 보낼 수 있습니다. 가입은 신청 후 운영진이 별도로 승인합니다.</DialogDescription></DialogHeader>
           {allowError && <p role="alert" className="text-xs text-destructive">{allowError}</p>}
           <div className="flex justify-end gap-2 border-t pt-4"><Button size="sm" variant="outline" disabled={pending} onClick={() => setAllowing(null)}>취소</Button><Button size="sm" disabled={pending} onClick={() => {
             if (!allowing) return;
