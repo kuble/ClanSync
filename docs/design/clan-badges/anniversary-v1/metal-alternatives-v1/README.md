@@ -8,7 +8,7 @@
 |---|---|
 | 1 | [블루 티타늄](01-blue-titanium.png) |
 | 2 | [바이올렛 티타늄](02-violet-titanium.png) |
-| 3 | [블랙 루테늄](03-black-ruthenium.png) |
+| 3 | [블랙 루테늄](../../../../../public/clan-badges/anniversary-growing-history-black-ruthenium.png) |
 
 - 블루 티타늄: 진한 코발트블루 금속에 청록/밝은 파랑 반사. 기존 동·은·금과 구분이 뚜렷한 추천안.
 - 바이올렛 티타늄: 보라 금속에 푸른 반사와 밝은 라벤더 하이라이트. 수집 배지의 특별함을 강조한 안.

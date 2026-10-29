@@ -9,7 +9,7 @@ Codex 내장 imagegen 도구로 각 후보를 개별 생성했다. 5개 모두 1
 | 번호 | 이름 | 이미지 | 상징 |
 |---|---|---|---|
 | 1 | 첫빛의 인장 | [PNG](01-first-light.png) | 클랜의 시작을 새벽빛으로 새긴 원형 인장. |
-| 2 | 첫 깃발 | [PNG](02-first-banner.png) | 우리 이름으로 처음 세운 깃발. |
+| 2 | 첫 깃발 | [PNG](../../../../public/clan-badges/founding-first-banner.png) | 우리 이름으로 처음 세운 깃발. |
 | 3 | 하나의 이름 | [PNG](03-one-name.png) | 서로 다른 사람들이 하나의 이름으로 연결되는 순간. |
 | 4 | 우리의 첫 장 | [PNG](04-first-chapter.png) | 함께 쓰기 시작한 첫 번째 이야기. |
 | 5 | 뿌리내린 약속 | [PNG](05-putting-down-roots.png) | 처음 맺은 약속이 뿌리를 내리고 자라는 모습. |

@@ -10,7 +10,7 @@
 
 두 검이 처음 맞닿은 순간을 기념한다.
 
-![첫 정규 내전 01 첫 교차](01.png)
+![첫 정규 내전 01 첫 교차](../../../../../public/clan-badges/expansion-v1/first-regular-1-v1.png)
 
 ## 02 · 첫 발자국
 

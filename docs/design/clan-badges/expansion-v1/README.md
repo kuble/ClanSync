@@ -11,7 +11,7 @@
 | [누적 정규 내전](01-regular/README.md) | 50회 · 100회 · 1,000회 · 10,000회 | [교차하는 검](01-regular/01.png) | [전장의 지도](01-regular/02.png) | [쌓인 연대기](01-regular/03.png) | [깃발 아래의 기록](01-regular/04.png) | [단련된 약속](01-regular/05.png) |
 | [누적 깜짝 내전](02-flash/README.md) | 10회 · 50회 · 100회 · 1,000회 | [모여든 번개](02-flash/01.png) | [번개의 코어](02-flash/02.png) | [즉흥의 불꽃](02-flash/03.png) | [튀어오른 스파크](02-flash/04.png) | [뜻밖의 소집](02-flash/05.png) |
 | [오래 함께한 열 동료](03-tenure/README.md) | 1년 · 3년 · 5년 · 10년 | [시간의 원탁](03-tenure/01.png) | [한 뿌리의 인연](03-tenure/02.png) | [열 이름의 결속](03-tenure/03.png) | [함께 켠 등불](03-tenure/04.png) | [같은 항로](03-tenure/05.png) |
-| [첫 정규 내전](04-first-regular/README.md) | 첫 결과 1회 | [첫 교차](04-first-regular/01.png) | [첫 발자국](04-first-regular/02.png) | [개막의 문](04-first-regular/03.png) | [첫 함성](04-first-regular/04.png) | [첫 합](04-first-regular/05.png) |
+| [첫 정규 내전](04-first-regular/README.md) | 첫 결과 1회 | [첫 교차](../../../../public/clan-badges/expansion-v1/first-regular-1-v1.png) | [첫 발자국](04-first-regular/02.png) | [개막의 문](04-first-regular/03.png) | [첫 함성](04-first-regular/04.png) | [첫 합](04-first-regular/05.png) |
 | [함께한 코칭](05-coaching/README.md) | 5회 · 10회 · 100회 · 1,000회 | [지식의 등불](05-coaching/01.png) | [열린 배움](05-coaching/02.png) | [성장의 나침반](05-coaching/03.png) | [길을 밝혀준 별](05-coaching/04.png) | [전략의 수](05-coaching/05.png) |
 | [우리의 게시글](06-posts/README.md) | 50개 · 100개 · 1,000개 · 10,000개 | [우리의 문장](06-posts/01.png) | [이어지는 이야기](06-posts/02.png) | [편지의 광장](06-posts/03.png) | [기록의 서가](06-posts/04.png) | [모인 목소리](06-posts/05.png) |
 

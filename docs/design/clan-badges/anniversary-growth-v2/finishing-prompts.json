@@ -6,7 +6,7 @@
   "outputs": [
     {
       "years": 1,
-      "file": "public/clan-badges/anniversary-growing-history-1y-gold-v2.png",
+      "file": "public/clan-badges/anniversary-growing-history-3y-gold-v3.png",
       "referenced_image_paths": [
         "intermediate growing-history 1-year PNG from prompts.json",
         "public/clan-badges/members-shared-citadel-10.png"
@@ -15,7 +15,7 @@
     },
     {
       "years": 3,
-      "file": "public/clan-badges/anniversary-growing-history-3y-gold-v2.png",
+      "file": "public/clan-badges/anniversary-growing-history-5y-gold-v3.png",
       "referenced_image_paths": [
         "intermediate growing-history 3-year PNG from prompts.json",
         "public/clan-badges/members-shared-citadel-10.png"

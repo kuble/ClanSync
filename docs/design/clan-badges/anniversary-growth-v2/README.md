@@ -8,8 +8,8 @@
 
 | 주년 | 성장 단계 | 적용 원본 |
 |---|---|---|
-| 1주년 | 잎 3개·가는 줄기·작은 뿌리의 묘목 | [1주년 PNG](../../../../public/clan-badges/anniversary-growing-history-1y-gold-v2.png) |
-| 3주년 | 잎 5개·가지가 뻗는 어린 나무 | [3주년 PNG](../../../../public/clan-badges/anniversary-growing-history-3y-gold-v2.png) |
+| 1주년 | 잎 3개·가는 줄기·작은 뿌리의 묘목 | [1주년 PNG](../../../../public/clan-badges/anniversary-growing-history-3y-gold-v3.png) |
+| 3주년 | 잎 5개·가지가 뻗는 어린 나무 | [3주년 PNG](../../../../public/clan-badges/anniversary-growing-history-5y-gold-v3.png) |
 | 5주년 | 잎 7개·굵어진 줄기와 넓어진 뿌리 | [5주년 PNG](../../../../public/clan-badges/anniversary-growing-history-5y-gold-v2.png) |
 | 10주년 | 잎 9개·풍성한 수관과 깊은 뿌리의 큰 나무 | [10주년 PNG](../../../../public/clan-badges/anniversary-growing-history-10y-gold-v2.png) |
 
