@@ -40,7 +40,7 @@ test("light entry pages and theme preference stay readable and fit narrow screen
   page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
   for (const width of [1304, 390, 320]) {
     await page.setViewportSize({ width, height: 568 });
-    for (const path of ["/", "/sign-in", "/sign-up", "/participant-link/invalid"]) {
+    for (const path of ["/", "/sign-in", "/sign-up", "/notices", "/terms", "/privacy", "/contact", "/participant-link/invalid"]) {
       await page.goto(path);
       await fits(page);
       if (path === "/sign-in" && width === 320) {

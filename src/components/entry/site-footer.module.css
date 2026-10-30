@@ -1,0 +1,18 @@
+.footer { margin-top: 76px; border-top: 1px solid color-mix(in srgb, var(--foreground) 11%, transparent); background: color-mix(in srgb, var(--surface) 35%, var(--background)); color: var(--muted-foreground); }
+.inner { max-width: 1152px; margin-inline: auto; padding: 36px 24px 28px; }
+.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 32px; }
+.top > a { margin-top: 10px; }
+.links { display: flex; flex-wrap: wrap; gap: 4px 28px; }
+.links a { display: inline-flex; align-items: center; min-height: 44px; font-size: 13px; line-height: 1.6; white-space: nowrap; }
+.links a:hover { color: var(--foreground); text-decoration: underline; text-underline-offset: 5px; }
+.links .privacy { color: var(--foreground); font-weight: 600; }
+.footer a:focus-visible { outline: 2px solid var(--primary); outline-offset: 5px; }
+.bottom { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 24px; margin-top: 28px; padding-top: 20px; border-top: 1px solid color-mix(in srgb, var(--foreground) 11%, transparent); font-size: 11px; line-height: 1.8; word-break: keep-all; }
+@media (max-width: 640px) {
+  .footer { margin-top: 48px; }
+  .inner { padding: 30px 20px 24px; }
+  .top { flex-direction: column; gap: 20px; }
+  .top > a { margin-top: 0; }
+  .links { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); width: 100%; gap: 0 20px; }
+  .bottom { flex-direction: column; gap: 6px; margin-top: 24px; padding-top: 18px; }
+}

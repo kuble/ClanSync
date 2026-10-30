@@ -21,6 +21,7 @@
 | 기능 | 코드 시작점 | 관련 테스트 |
 |---|---|---|
 | 랜딩 | [공개 경로](../src/app/page.tsx) · [공용 화면·미리보기](../src/components/entry/landing/landing-page.tsx) · [개발 미리보기](../src/app/dev/landing-preview/page.tsx) | [공개 랜딩·메뉴·기록·알림·로그인 스모크](../e2e/smoke.spec.ts) |
+| 공지·정책·문의 | [공지사항](../src/app/notices/page.tsx) · [이용약관 초안](../src/app/terms/page.tsx) · [개인정보 초안](../src/app/privacy/page.tsx) · [문의](../src/app/contact/page.tsx) · [공용 페이지](../src/components/entry/service-info-page.tsx) · [공용 푸터](../src/components/entry/site-footer.tsx) | [공개 이동·초안·홈 복귀](../e2e/service-info.spec.ts) · [테마·모바일](../e2e/light-theme.spec.ts) |
 | 로그인 화면 | [페이지](../src/app/sign-in/page.tsx) · [폼](../src/app/sign-in/sign-in-form.tsx) · [공용 셸](../src/components/entry/auth-shell.tsx) · [개발 미리보기](../src/app/dev/sign-in-preview/page.tsx) | [공개 스모크](../e2e/smoke.spec.ts) · [테마·모바일](../e2e/light-theme.spec.ts) · [로그인·실패·자동 로그인](../e2e/auth-performance.spec.ts) |
 | 회원가입 화면 | [페이지](../src/app/sign-up/page.tsx) · [폼](../src/app/sign-up/sign-up-form.tsx) · [공용 스타일](../src/components/entry/auth.module.css) · [명세](02-design/entry-experience/02-sign-up.md) | [가입 오류·입력 보존·새 프로필](../e2e/game-link.spec.ts) · [테마·모바일·입력](../e2e/light-theme.spec.ts) · [공개 문구](../e2e/formal-copy.spec.ts) |
 | 개인·클랜 상점 | [개인 상점](../src/app/store/page.tsx) · [디자인 목록/필터/구매/적용](../src/components/store/personal-store-products.tsx) · [클랜 상품](../src/components/store/store-panels.tsx) | [검색·페이지·구매·공용 잔액·반응형](../e2e/personal-store.spec.ts) · [칭호·프로필 장착](../e2e/account-namecards.spec.ts) · [클랜 검색·보유·미리보기·구매](../e2e/clan-appearance.spec.ts) |

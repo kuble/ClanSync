@@ -10,6 +10,7 @@ import type { BalanceRoster } from "@/lib/balance/roster-schema";
 import styles from "./preview.module.css";
 import { ClanActivityPreview } from "./clan-activity-preview";
 import { LandingSectionNav } from "./landing-section-nav";
+import { SiteFooter } from "@/components/entry/site-footer";
 
 // Local examples only: the read-only editor never loads or changes a QA roster.
 const pool = ["여울", "노을", "루나", "하루", "소다", "모카", "구름", "별빛", "라임", "우주", "단비", "나무"].map((nickname, index) => ({
@@ -102,25 +103,7 @@ export function LandingPage() {
           <Link href="/sign-up" className={styles.primary}>무료로 시작하기 <ArrowRight size={17} aria-hidden="true" /></Link>
         </section>
       </main>
-      <footer id="site-footer" className={styles.footer}>
-        <div className={styles.footerInner}>
-          <div className={styles.footerTop}>
-            <EntryBrand />
-            <div className={styles.footerMenu}>
-              <nav aria-label="하단 메뉴" className={styles.footerLinks}>
-                {["공지사항", "이용약관", "개인정보처리방침", "문의하기"].map((label) =>
-                  <button key={label} type="button" disabled aria-describedby="footer-menu-status" className={label === "개인정보처리방침" ? styles.footerPolicy : undefined}>{label}</button>,
-                )}
-              </nav>
-              <p id="footer-menu-status" className={styles.footerPending}>안내 페이지를 준비하고 있습니다.</p>
-            </div>
-          </div>
-          <div className={styles.footerBottom}>
-            <p>© {new Date().getFullYear()} ClanSync</p>
-            <p>Blizzard Entertainment와 공식 제휴 관계가 아닙니다.</p>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
