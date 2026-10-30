@@ -57,6 +57,12 @@ DB 마이그레이션(`*.sql`)과 **분리된** 시드 레이어에 둔다. 마�
 
 비밀번호는 **로컬·staging QA 픽스처만** 위 고정값을 쓴다. Production 시드는 실행하지 않는다.
 
+**별도 수동 QA 계정 (2026-10-30 생성)**
+
+- `QA_New_01@clansync-qa.local`: 회원가입 직후의 게임 선택·ID 등록 화면 확인용. 비밀번호는 기존 QA 공통 `FIXTURE_PASSWORD`를 사용한다.
+- QA 전용 Auth에 이메일 확인된 계정 하나만 생성했다. 로그인 성공과 `user_game_profiles`·`clan_members`·`clan_join_requests`가 모두 0건인 것을 생성 직후 확인했다.
+- 기본 시드 14계정에는 포함하지 않는다. 사용자가 진행한 게임 등록·가입 테스트를 자동으로 초기화하지 않는다.
+
 ### 2.3 클랜 — 최소 2개 (A / B)
 
 **현재 시드**: 오버워치에 `QA_01_Clan` 1개 + 리더 `QA_Leader_01` 활성 멤버십. 해당 클랜은 시드 후 **`subscription_tier = premium`** 으로 갱신되어 **Premium 전용 기능**(예: 클랜 이벤트 대진표 초안 탭)·Playwright 회귀를 한 경로에서 검증할 수 있다. 같은 클랜에 남아 있을 수 있는 **미종료 `balance_sessions` 행**은 시드 마지막에 **`closed_at` IS NULL 만 삭제**해 E2E·로컬이 “진행 중 세션 1개 제한” 규칙에 걸리지 않도록 한다.
