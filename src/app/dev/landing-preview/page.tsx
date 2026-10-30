@@ -6,7 +6,8 @@ import { EntryBrand } from "@/components/entry/entry-brand";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ClanBalanceRosterEditor } from "@/components/main-clan/clan-balance-roster-editor";
 import { BalanceTeamSummary } from "@/components/main-clan/balance-team-summary";
-import { ClanStatsArchive } from "@/components/main-clan/clan-stats-archive";
+import { RecordsPreview } from "./records-preview";
+import { PreviewPagination } from "./preview-pagination";
 import type { ClanArchiveMatch } from "@/lib/clan/stats/load-clan-stats";
 import type { BalanceRoster } from "@/lib/balance/roster-schema";
 import styles from "./preview.module.css";
@@ -81,7 +82,8 @@ export default function LandingPreviewPage() {
             <h2 id="workflow-title">내전 한 번을 열기까지,<br />챙길 일을 한곳에 모았습니다.</h2>
             <p>참가자를 모으고, 팀을 나누고,<br className={styles.desktopBreak} /> 경기 결과를 남겨보세요.</p>
           </div>
-          <div className={styles.preparation}>
+          <PreviewPagination label="내전 준비" slides={[
+            { id: "participants", label: "참가자 확인", content: <div className={styles.preparation}>
             <div className={styles.featureCopy}>
               <Users size={25} aria-hidden="true" />
               <h3>오늘 함께할 멤버를<br />한눈에.</h3>
@@ -96,8 +98,8 @@ export default function LandingPreviewPage() {
               </li>)}</ul>
               <figcaption>출전 10명 · 대기 2명<span>예시 명단</span></figcaption>
             </figure>
-          </div>
-          <div className={styles.adjustment}>
+          </div> },
+            { id: "teams", label: "팀 비교", content: <div className={styles.adjustment}>
             <div className={styles.featureCopy}>
               <Shuffle size={25} aria-hidden="true" />
               <h3>팀을 나누고,<br />우리 클랜에 맞게 조정합니다.</h3>
@@ -109,19 +111,17 @@ export default function LandingPreviewPage() {
               <div className={styles.teamRoles}>{[1, 2].map((team) => <div key={team}><strong>{team}팀</strong><p>탱커 1 · 딜러 2 · 힐러 2</p></div>)}</div>
               <figcaption>점수는 편성을 돕는 참고 기준입니다.<span>예시 점수</span></figcaption>
             </figure>
-          </div>
+          </div> },
+          ]} />
         </section>
         <section className={styles.recordsSection} aria-labelledby="records-title">
           <div className={styles.recordsInner}>
             <div className={styles.sectionIntro}>
               <History size={26} aria-hidden="true" />
               <h2 id="records-title">경기가 끝나도,<br />우리 클랜의 기록은 이어집니다.</h2>
-              <p>팀 구성과 승패부터<br className={styles.desktopBreak} /> 멤버별 성적까지 한눈에.</p>
+              <p>팀 구성과 승패부터<br className={styles.desktopBreak} /> 활동 추이와 개인 성적까지 한눈에.</p>
             </div>
-            <div className={styles.archive}>
-              <ClanStatsArchive archive={{ datesKst: ["2026-10-30"], sampleByDate: { "2026-10-30": records } }} />
-            </div>
-            <p className={styles.exampleNote}>예시 기록 · 경기 넘김과 멤버별 정렬을 체험해 보세요.</p>
+            <RecordsPreview records={records} />
           </div>
         </section>
         <ClanActivityPreview />
