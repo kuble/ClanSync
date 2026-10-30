@@ -39,6 +39,7 @@ export function ProfileIdentity({ userId, intro, memberships, games = [], nameca
       <div id={trackId} ref={track} className={styles.clanTrack} tabIndex={profiles.length > 1 ? 0 : undefined} aria-label="좌우로 넘겨 클랜 보기"
         onScroll={(event) => {
           const container = event.currentTarget;
+          if (!container.clientWidth) return;
           const cards = Array.from(container.children) as HTMLElement[];
           const closest = cards.reduce((best, card, index) => Math.abs(card.offsetLeft - container.scrollLeft) < Math.abs(cards[best].offsetLeft - container.scrollLeft) ? index : best, 0);
           setSelected(closest);
