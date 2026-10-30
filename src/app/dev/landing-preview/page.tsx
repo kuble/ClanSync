@@ -10,6 +10,7 @@ import { ClanStatsArchive } from "@/components/main-clan/clan-stats-archive";
 import type { ClanArchiveMatch } from "@/lib/clan/stats/load-clan-stats";
 import type { BalanceRoster } from "@/lib/balance/roster-schema";
 import styles from "./preview.module.css";
+import { ClanActivityPreview } from "./clan-activity-preview";
 
 export const metadata: Metadata = {
   title: "랜딩 중앙형 시안 · ClanSync",
@@ -123,6 +124,7 @@ export default function LandingPreviewPage() {
             <p className={styles.exampleNote}>예시 경기 기록입니다. 이전·다음 경기를 살펴보고 멤버별 기록을 정렬할 수 있습니다.</p>
           </div>
         </section>
+        <ClanActivityPreview />
         <section id="games" className={styles.information} aria-labelledby="information-title">
           <h2 id="information-title">시작하기 전,<br />궁금한 점을 모았습니다.</h2>
           <dl>
@@ -137,7 +139,7 @@ export default function LandingPreviewPage() {
           <Link href="/sign-up" className={styles.primary}>무료로 시작하기 <ArrowRight size={17} aria-hidden="true" /></Link>
         </section>
       </main>
-      <footer className={styles.footer}><span>© 2026 ClanSync</span><nav aria-label="하단 메뉴"><a href="#features">지원 기능</a><a href="#games">이용 안내</a><Link href="/sign-in">로그인</Link></nav><span>Blizzard Entertainment와 공식 제휴 관계가 아닙니다.</span></footer>
+      <footer className={styles.footer}><span>© 2026 ClanSync</span><nav aria-label="하단 메뉴"><a href="#features">지원 기능</a><a href="#clan-activity">클랜 활동</a><a href="#games">이용 안내</a><Link href="/sign-in">로그인</Link></nav><span>Blizzard Entertainment와 공식 제휴 관계가 아닙니다.</span></footer>
     </div>
   );
 }

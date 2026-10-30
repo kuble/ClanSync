@@ -67,7 +67,42 @@
 .closing .primary { margin-top: 28px; }
 .footer { flex-wrap: wrap; gap: 20px; line-height: 1.7; }
 .footer nav { display: flex; gap: 22px; }
+.activity { max-width: 1180px; margin: 0 auto; padding: 100px 32px 0; scroll-margin-top: 32px; }
+.activityLayout { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); gap: 48px; align-items: center; }
+.clanWindow { min-width: 0; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: var(--card); }
+.clanWindowHeading { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px; border-bottom: 1px solid var(--border); }
+.clanWindowHeading > div > span { font-size: 11px; color: var(--muted-foreground); }
+.clanWindowHeading h3 { margin-top: 5px; font-size: 18px; font-weight: 650; letter-spacing: -.03em; }
+.clanDashboard { padding: 16px; }
+.clanDashboard :global([data-testid="clan-dashboard-grid"]) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "notices events" "mvps mvps"; gap: 12px; }
+.clanWindow figcaption, .trendExample figcaption { padding: 16px 22px; border-top: 1px solid var(--border); font-size: 11px; line-height: 1.8; color: var(--muted-foreground); }
+.activityFeatures { display: grid; gap: 32px; }
+.activityFeatures > div + div { padding-top: 28px; border-top: 1px solid var(--border); }
+.activityFeatures svg { color: var(--primary); margin-bottom: 14px; }
+.activityFeatures h3 { font-size: 20px; line-height: 1.45; font-weight: 650; letter-spacing: -.035em; word-break: keep-all; }
+.activityFeatures p { margin-top: 12px; font-size: 14px; line-height: 1.85; color: var(--muted-foreground); word-break: keep-all; }
+.activityFeatures > div > span { display: block; margin-top: 14px; font-size: 11px; color: var(--primary); line-height: 1.7; }
+.activityStats { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 78px; align-items: center; margin-top: 72px; padding: 64px 0 76px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.activityStats .statsScope { font-size: 12px; color: var(--primary); }
+.trendExample { min-width: 0; padding: 24px 24px 0; background: var(--card); border: 1px solid var(--border); border-radius: 14px; }
+.trendExample figcaption { padding-inline: 0; }
+.statsTotals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 26px 0 16px; }
+.statsTotals > div + div { padding-left: 16px; border-left: 1px solid var(--border); }
+.statsTotals dt { font-size: 12px; color: var(--muted-foreground); }
+.statsTotals dd { margin-top: 7px; font-size: 28px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.statsTotals dd span { margin-left: 4px; font-size: 11px; font-weight: 400; color: var(--muted-foreground); }
+@media (max-width: 1000px) {
+  .activityLayout { grid-template-columns: 1fr; gap: 40px; }
+  .activityFeatures { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+  .activityFeatures > div + div { padding-top: 0; border-top: 0; }
+  .activityStats { gap: 36px; }
+}
 @media (max-width: 800px) {
+  .activity { padding: 64px 24px 0; }
+  .activityStats { grid-template-columns: 1fr; margin-top: 48px; padding: 48px 0; }
+  .activityFeatures { grid-template-columns: 1fr; }
+  .activityFeatures > div + div { padding-top: 24px; border-top: 1px solid var(--border); }
+  .clanDashboard :global([data-testid="clan-dashboard-grid"]) { grid-template-columns: minmax(0, 1fr); grid-template-areas: "notices" "events" "mvps"; }
   .workflow { margin-top: 75px; }
   .preparation, .adjustment, .information { grid-template-columns: 1fr; gap: 32px; }
   .adjustment .featureCopy, .adjustment .comparison { grid-column: auto; grid-row: auto; }
@@ -80,6 +115,12 @@
   .closing { padding: 58px 24px; }
 }
 @media (max-width: 640px) {
+  .activity { padding-inline: 16px; }
+  .clanDashboard { padding: 10px; }
+  .clanWindowHeading { padding: 18px 16px; }
+  .trendExample { padding: 18px 12px 0; }
+  .statsTotals dd { font-size: 24px; }
+  .statsTotals > div + div { padding-left: 10px; }
   .header { height: 72px; padding: 0 20px; }
   .nav { gap: 14px; }
   .smallButton { display: none; }
