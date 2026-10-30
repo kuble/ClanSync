@@ -28,11 +28,17 @@
 .clan [data-slot="card-title"] { font-size: 14px; }
 .clan :global(.size-44) { width: 140px; height: 140px; }
 .clan svg + div strong { font-size: 18px; }
-.archive [aria-label="경기 기록 날짜 및 필터"], .archive [aria-label="선택한 날짜 내전 기록"], .archive [aria-label="내전 요약"] { display: none; }
-.archive > div > div { grid-template-columns: 1fr; }
+.archive [aria-label="경기 기록 날짜 및 필터"], .archive [aria-label="내전 요약"] { display: none; }
+.archive :global(.grid):has(> [aria-label="경기 상세"]) { grid-template-columns: repeat(2,minmax(0,1fr)); }
 .archive [aria-label="경기 상세"] { height: auto; max-width: 760px; width: 100%; margin: auto; }
 .archive [aria-label="경기 상세 내용"] > div { padding: 12px; }
 .archive [aria-label$="팀 명단"] > li { min-height: 36px; padding-block: 6px; }
+.archive [aria-label="선택한 날짜 내전 기록"] { height: auto; }
+.archive [aria-label="선택한 날짜 내전 기록"] > div:first-child { padding: 12px; }
+.archive [aria-label="당일 기록 표 스크롤"] { overflow: visible; }
+.archive [aria-label="당일 내전 기록 정렬 표"] :is(col, th, td):nth-child(n+4) { display: none; }
+.archive [aria-label="당일 내전 기록 정렬 표"] col { width: 33.333%; }
+.archive [aria-label="당일 내전 기록 정렬 표"] tbody th { padding-block: 5px; }
 .personal [aria-label="개인 기록 기간"], .personal [aria-label="맵별 승률"], .personal [aria-label="시너지"], .personal [aria-label="개인 기록 그래프"] { display: none; }
 .personal { max-width: 840px; width: 100%; margin-inline: auto; }
 .personal [aria-label="플레이어 요약"] { margin: 0; }
@@ -57,6 +63,8 @@
   .clan { max-width: 360px; width: 100%; margin: auto; }
   .personal table th, .personal table td { padding-inline: 4px; font-size: 11px; }
   .personal :global(.overflow-x-auto) { height: auto; flex-wrap: wrap; }
+  .archive :global(.grid):has(> [aria-label="경기 상세"]) { grid-template-columns: 1fr; }
+  .archive [aria-label="당일 내전 기록 정렬 표"] tbody tr:nth-child(n+4) { display: none; }
   .photos { gap: 12px; }
   .events [role="gridcell"] > button { height: 48px; }
   .ban [data-testid="hero-ban-results"] img { height: 64px; width: 58px; }

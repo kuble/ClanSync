@@ -127,3 +127,6 @@
   .footer { margin-top: 24px; padding: 22px 20px; }
   .footer > span:last-child { flex-basis: 100%; }
 }
+@media (max-width: 360px) {
+  .paginationControls [role="tab"] { padding-inline: 6px; font-size: 10px; gap: 4px; white-space: nowrap; }
+}
