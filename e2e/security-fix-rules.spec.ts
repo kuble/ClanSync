@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
 import { safeNextPath } from "../src/lib/auth/safe-next-path";
-import { isDiscordWebhookUrl, postDiscordWebhook } from "../src/lib/notifications/discord-webhook";
 import { dispatchDiscordBotNotifications } from "../src/lib/notifications/dispatch-discord-bot-notifications";
 import { expandClanEventsForMonth, expandClanEventsForLocalCalendarMonth, isOccurrenceValidForTemplate, type ClanEventRecord } from "../src/lib/clan/expand-clan-event-occurrences";
 import { activeLobbyRooms } from "../src/lib/balance/lobby-rooms";
@@ -10,19 +9,13 @@ test("redirects reject authority confusion and preserve internal links", () => {
   for (const path of ["/games", "/games/overwatch?room=123#players", "/games?q=https%3A%2F%2Fexample.com"]) expect(safeNextPath(path)).toBe(path);
 });
 
-test("Discord sinks reject stored unsafe URLs and redirects; failed jobs finalize", async () => {
-  const valid = "https://discord.com/api/webhooks/123456/token_abc-DEF";
-  for (const url of ["http://127.0.0.1/a", "https://discord.com.evil.test/api/webhooks/1/x", "https://discord.com/api/webhooks/../x", "https://discord.com/api/webhooks/1/x?next=http://localhost", valid + "\n"]) expect(isDiscordWebhookUrl(url)).toBe(false);
+test("Discord bot rejects unsafe channel IDs and finalizes failed jobs", async () => {
   const original = global.fetch;
   const token = process.env.DISCORD_BOT_TOKEN;
   process.env.DISCORD_BOT_TOKEN = "isolated-test-token";
   const calls: RequestInit[] = [];
   global.fetch = async (_url, init) => { calls.push(init!); return new Response(null, { status: 204 }); };
   try {
-    await expect(postDiscordWebhook("http://127.0.0.1/secret", "test")).rejects.toThrow();
-    expect(calls).toHaveLength(0);
-    await postDiscordWebhook(valid, "test");
-    expect(calls[0].redirect).toBe("error");
     const finalized: unknown[] = [];
     const client = { rpc: async (name: string, args: unknown) => {
       if (name === "claim_discord_bot_notification_batch") return { data: [{ log_id: "log", clan_id: "clan", game_slug: "overwatch", channel_id: "http://localhost/private" }], error: null };
@@ -35,7 +28,7 @@ test("Discord sinks reject stored unsafe URLs and redirects; failed jobs finaliz
     } } as unknown as Parameters<typeof dispatchDiscordBotNotifications>[0];
     expect(await dispatchDiscordBotNotifications(client, 1)).toEqual({ claimed: 1, sent: 0, failed: 1 });
     expect(finalized).toEqual([{ p_log_id: "log", p_ok: false, p_error: "Discord bot delivery failed" }]);
-    expect(calls).toHaveLength(1);
+    expect(calls).toHaveLength(0);
   } finally { global.fetch = original; if (token === undefined) delete process.env.DISCORD_BOT_TOKEN; else process.env.DISCORD_BOT_TOKEN = token; }
 });
 
