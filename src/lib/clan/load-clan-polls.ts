@@ -1,4 +1,5 @@
 import "server-only";
+import { loadClanPlayerNames } from "@/lib/game-auth/load-game-player-names";
 import { getRequestClanAccess } from "./request-clan-access";
 import { getRequestUser } from "@/lib/supabase/request";
 import { createServiceRoleClient } from "@/lib/supabase/service";
@@ -69,12 +70,7 @@ export async function loadSerializedClanPolls(
   if (optionError) throw new Error("투표 선택지를 불러오지 못했습니다.");
   const publicPollIds = new Set(polls.filter((poll) => !poll.anonymous).map((poll) => poll.id));
   const publicUserIds = [...new Set(voteRows.filter((row) => publicPollIds.has(row.poll_id)).map((row) => row.user_id))];
-  const names = new Map<string, string>();
-  for (let offset = 0; offset < publicUserIds.length; offset += 500) {
-    const { data, error } = await svc.from("users").select("id,nickname").in("id", publicUserIds.slice(offset, offset + 500));
-    if (error) throw new Error("투표 참여자를 불러오지 못했습니다.");
-    for (const user of data ?? []) names.set(user.id, user.nickname);
-  }
+  const names = await loadClanPlayerNames(clanId, publicUserIds);
   const votersByOption = new Map<string, string[]>();
   const countByOption = new Map<string, number>();
   const myByPoll = new Map<string, Set<string>>();

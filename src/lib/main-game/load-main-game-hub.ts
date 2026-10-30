@@ -1,3 +1,4 @@
+import { loadGamePlayerNames } from "@/lib/game-auth/load-game-player-names";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/lib/supabase/database.types";
@@ -115,8 +116,8 @@ export async function loadBoardPostDetail(
       post_type,
       is_pinned,
       clan_id,
-      clans ( id, name ),
-      users!board_posts_created_by_fkey ( nickname )
+      created_by,
+      clans ( id, name )
     `,
     )
     .eq("id", postId)
@@ -127,11 +128,7 @@ export async function loadBoardPostDetail(
 
   const clan = normalizeClanRow(row.clans);
 
-  const uRaw = row.users as
-    | { nickname: string }
-    | { nickname: string }[]
-    | null;
-  const uone = Array.isArray(uRaw) ? uRaw[0] : uRaw;
+  const names = await loadGamePlayerNames(gameId, row.created_by ? [row.created_by] : []);
 
   return {
     id: row.id,
@@ -142,7 +139,7 @@ export async function loadBoardPostDetail(
     is_pinned: row.is_pinned,
     clan_id: row.clan_id,
     clan_name: clan?.name ?? "클랜",
-    author_nickname: uone?.nickname ?? "—",
+    author_nickname: names.get(row.created_by ?? "") ?? "게임 ID 미등록",
   };
 }
 
@@ -181,7 +178,7 @@ export async function loadOpenLfgPosts(
   const { data: posts, error } = await supabase
     .from("lfg_posts")
     .select(
-      "id, mode, format, slots, description, expires_at, start_time_hour, mic_required, status, created_at, creator_user_id, users ( nickname )",
+      "id, mode, format, slots, description, expires_at, start_time_hour, mic_required, status, created_at, creator_user_id",
     )
     .eq("game_id", gameId)
     .eq("status", "open")
@@ -215,6 +212,8 @@ export async function loadOpenLfgPosts(
     }
   }
 
+  const names = await loadGamePlayerNames(gameId, [...posts.map(p => p.creator_user_id), ...(apps ?? []).map(a => a.applicant_user_id)]);
+
   const creatorPostIds = posts
     .filter((p) => userId && p.creator_user_id === userId)
     .map((p) => p.id);
@@ -225,20 +224,19 @@ export async function loadOpenLfgPosts(
     const { data: pending } = await supabase
       .from("lfg_applications")
       .select(
-        "id, post_id, message, created_at, users!lfg_applications_applicant_user_id_fkey ( nickname )",
+        "id, post_id, message, created_at, applicant_user_id",
       )
       .in("post_id", creatorPostIds)
       .eq("status", "applied")
       .order("created_at", { ascending: true });
 
     for (const row of pending ?? []) {
-      const u = row.users as { nickname: string } | null;
       const list = applicantsByPost[row.post_id] ?? [];
       list.push({
         id: row.id,
         post_id: row.post_id,
         message: row.message,
-        applicant_nickname: u?.nickname ?? "—",
+        applicant_nickname: names.get(row.applicant_user_id) ?? "게임 ID 미등록",
         created_at: row.created_at,
       });
       applicantsByPost[row.post_id] = list;
@@ -246,8 +244,6 @@ export async function loadOpenLfgPosts(
   }
 
   const outPosts: LfgRowOut[] = posts.map((p) => {
-    const u = p.users as { nickname: string } | { nickname: string }[] | null;
-    const uone = Array.isArray(u) ? u[0] : u;
     return {
       id: p.id,
       mode: p.mode,
@@ -260,7 +256,7 @@ export async function loadOpenLfgPosts(
       status: p.status,
       created_at: p.created_at,
       creator_user_id: p.creator_user_id,
-      creator_nickname: uone?.nickname ?? "—",
+      creator_nickname: names.get(p.creator_user_id) ?? "게임 ID 미등록",
       applied_count: appliedCount.get(p.id) ?? 0,
       my_status: myStatus.get(p.id) ?? null,
       my_application_id: myAppId.get(p.id) ?? null,

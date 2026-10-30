@@ -1,5 +1,7 @@
 "use server";
 
+import { loadGamePlayerNames } from "@/lib/game-auth/load-game-player-names";
+
 import { randomUUID } from "node:crypto";
 import { koreanTime } from "@/lib/clan/event-timezone";
 import { parseEventStart } from "@/lib/clan/parse-event-start";
@@ -520,27 +522,10 @@ export async function listClanEventRsvpAttendeesAction(
   const ids = [...new Set((rsvpRows ?? []).map((r) => r.user_id as string))];
   if (ids.length === 0) return { ok: true, attendees: [] };
 
-  const { data: profiles } = await svc
-    .from("user_game_profiles")
-    .select("user_id, nickname")
-    .eq("game_id", gameId)
-    .in("user_id", ids);
-
-  const { data: users } = await svc
-    .from("users")
-    .select("id, nickname")
-    .in("id", ids);
-
-  const profileNick = new Map(
-    (profiles ?? []).map((p) => [p.user_id as string, p.nickname as string]),
-  );
-  const userNick = new Map(
-    (users ?? []).map((u) => [u.id as string, u.nickname as string]),
-  );
-
+  const names = await loadGamePlayerNames(gameId, ids);
   const attendees = ids.map((uid) => ({
     userId: uid,
-    nickname: profileNick.get(uid) ?? userNick.get(uid) ?? "알 수 없음",
+    nickname: names.get(uid) ?? "게임 ID 미등록",
   }));
 
   attendees.sort((a, b) => a.nickname.localeCompare(b.nickname, "ko"));

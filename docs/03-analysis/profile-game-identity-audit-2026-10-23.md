@@ -14,24 +14,26 @@
 | 공개 방문 | `미니룸 공개`와 `함께하는 클랜`을 켰을 때 모든 로그인 방문자에게 해당 클랜의 인증된 게임 ID 제공. 이메일·내부 제공자 ID·코인·보관함·계정 정보는 제외 |
 | 공통 네임카드 미리보기 | `Player#1234` 예시 유지. 클랜에서는 해당 게임의 실제 ID 표시 |
 
-## 다음 정리 대상으로 선별한 사용처
+## 2026-10-30 실제 표시 경로 전환
 
-아래는 `users.nickname` 직접 조회와 실제 표시로 이어지는 경로를 확인한 목록이다. 이번 작업에서 기능 전체를 일괄 변경하지 않았다. 계정 공통 캐시는 다른 게임의 클랜 이름으로 사용할 수 없으므로 게임별 ID 조회로 옮길 대상이다.
+10월 23일에는 프로필 중심으로 전환하고 아래 경로를 후속으로 남겼다. 당시 상태를 “레거시 닉네임을 모두 제거했다”로 설명한 것은 잘못이었다. 10월 30일 아래 경로의 실시간 조회도 해당 게임의 인증 ID로 전환했다.
 
-| 파일·구간 | 확인 내용 | 정리 방향 |
+| 파일·구간 | 이전 출처 | 현재 출처 |
 |---|---|---|
-| [clan-manage-content](../../src/components/main-clan/clan-manage-content.tsx) 공지·가입 신청·구성원·구매 이력 | 작성자/신청자/구성원/구매자 이름에 계정 닉네임을 조회하는 네 구간. 구성원 행은 현재 계정 값이 클랜 레이블보다 우선 | 해당 클랜 게임 ID 우선. 운영자 권한·탈퇴자와 기록 주체 ID는 유지 |
-| [clan-balance-room-data](../../src/components/main-clan/clan-balance-room-data.tsx) 방장 표시 | `hostRow.nickname` 사용 | 방의 클랜 게임 ID로 표시 |
-| [load-clan-polls](../../src/lib/clan/load-clan-polls.ts) 공개 투표 참여자 | `users.nickname`을 참여자 이름으로 매핑 | 투표의 클랜 게임 ID로 표시. 익명 투표의 비공개 정책 유지 |
-| [hof-comments](../../src/app/actions/hof-comments.ts) 댓글 저장 직후 | 저장 직후 계정 이름, 재조회 시 `clan_peer_nicknames`를 사용 | 두 경로의 표시 출처 통일 |
-| [clan-events](../../src/app/actions/clan-events.ts) 참석자 목록 | `user_game_profiles.nickname` 조회 후 `users.nickname` 대체값 사용 | 검증된 `battle_tag`/`riot_id`로 전환 |
-| [participant_label·clan_peer_nicknames](../../supabase/migrations/20261015101934_clan_participant_identity.sql) 공통 클랜 레이블 | `users.nickname` 호환 캐시·게스트 이름·구분 별칭으로 문자열 생성. 통계/로비/게시판 등 여러 호출자가 `nickname`이라는 반환 필드명을 공유 | 중앙 조회부터 게임별 출처로 바꾸되 기존 두 열 RPC 계약과 게스트/과거 기록의 식별자를 보존 |
+| [clan-manage-content](../../src/components/main-clan/clan-manage-content.tsx) 공지·가입 신청·구성원·구매 이력 | 계정 닉네임 | 해당 클랜 게임 ID. 권한·기록 주체 ID 유지 |
+| [clan-balance-room-data](../../src/components/main-clan/clan-balance-room-data.tsx) 방장 표시 | 계정 닉네임 | 방의 클랜 게임 ID |
+| [load-clan-polls](../../src/lib/clan/load-clan-polls.ts) 공개 투표 참여자 | 계정 닉네임 | 투표의 클랜 게임 ID. 익명 투표 비공개 유지 |
+| [hof-comments](../../src/app/actions/hof-comments.ts) 댓글 저장 직후 | 계정 이름 | 재조회와 동일한 게임별 ID |
+| [clan-events](../../src/app/actions/clan-events.ts) 참석자 목록 | 게임/계정 닉네임 | 검증된 `battle_tag`/`riot_id` |
+| [공통 클랜 이름·네임카드·엠블럼·새 운영자 스냅샷](../../supabase/migrations/20261030022000_game_identity_labels.sql) | 계정 호환 캐시 | 게임별 DB 이름 함수. 로비·통계·게시판 등 공통 호출자에 적용 |
+| [게임 커뮤니티 글·파티 모집/신청](../../src/lib/main-game/load-main-game-hub.ts) | 계정 닉네임 조인 | 게시글 게임 ID |
+| [승부예측 순위](../../supabase/migrations/20261030023000_prediction_game_identity_labels.sql) | 계정 닉네임 | 내전 클랜 게임 ID. 코인·적중·정산 집계 유지 |
 
-`nickname`이라는 코드 필드명을 전부 삭제하는 방식은 피한다. 게스트가 신고한 기록명·중복 구분 별칭, 과거 경기 스냅샷, 테스트 픽스처 식별자는 별도 의미가 있다. 당시 미사용이던 `ProfileEmblemCollections`는 2026-10-30 참조 재확인 후 제거했다.
+오버워치는 전체 배틀태그(이름+#번호), 발로란트/LoL은 Riot ID를 사용한다. 구형 `game_uid`는 배틀태그 형식인 경우에만 허용하며 제공자 내부 ID는 표시하지 않는다. 미인증·미등록 계정을 레거시 이름으로 대체하지 않는다. 게스트 기록명·구분 별칭과 기존 과거 기록 스냅샷은 보존한다. RPC의 `nickname` 반환 필드명은 호환 계약으로 유지하며 값의 출처만 변경한다.
 
 ## DB 호환 필드
 
-`users.nickname`은 아직 기존 기능의 호환 캐시다. [트리거](../../supabase/migrations/20261015140514_battletag_display_names.sql)가 기본값 `새 회원`을 만들고 오버워치 인증 시 배틀태그의 `#` 이전 부분으로 갱신한다. 가입 입력값이 없다는 이유로 지금 컬럼이나 기록을 지우면 기존 조회가 깨진다. 위 사용처를 바꾼 후 컬럼 정리를 별도로 판단한다.
+실시간 화면의 계정 닉네임 조회는 제거했다. **물리적인 `users.nickname`·`user_game_profiles.nickname` 컬럼 삭제는 이번 변경에 포함하지 않았다.** 기존 가입/QA 픽스처 호환을 위해 필드와 계정 캐시 동기화 트리거는 남아 있다. 이는 “DB에서 레거시 닉네임이 모두 삭제됐다”는 의미가 아니다. 컬럼 폐기는 가입·시드·검증 도구의 쓰기 의존성과 기존 데이터 보존을 함께 처리해야 한다. 운영 DB 적용은 보류한다.
 
 ## QA 임시 ID
 

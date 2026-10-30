@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { loadClanPlayerNames } from "@/lib/game-auth/load-game-player-names";
 import { ArrowLeft } from "lucide-react";
 import { redirect } from "next/navigation";
 import { canManageRound } from "@/lib/balance/room-access";
@@ -132,9 +133,8 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
       ? supabase.rpc("read_balance_prediction_pool", { p_session_id: session.id })
       : Promise.resolve({ data: null, error: null }),
     supabase.rpc("list_balance_roster_pool", { p_clan_id: clanId }),
-    (room.delegated_to ?? room.created_by)
-      ? supabase.from("users").select("nickname").eq("id", (room.delegated_to ?? room.created_by)!).maybeSingle()
-      : Promise.resolve({ data: null }),
+    loadClanPlayerNames(clanId, [room.delegated_to ?? room.created_by].filter((id): id is string => !!id))
+      .then(names => ({ data: { nickname: names.get((room.delegated_to ?? room.created_by)!) ?? null } })),
     supabase.from("clan_participants").select("id,user_id").eq("clan_id", clanId).eq("is_guest", true).not("user_id", "is", null),
   ]);
   const canEditMscore = canViewScores && (canManage || scorePermission);
@@ -191,7 +191,9 @@ export async function ClanBalanceRoomData({ gameSlug, clanId, room }: {
     for (const score of Object.values(visibleSessionScores)) score.a = null;
   }
 
-  const hostNickname = hostRow?.nickname ?? session.operator_name ?? null;
+  const hostNickname = (room.delegated_to ?? room.created_by)
+    ? hostRow?.nickname ?? "게임 ID 미등록"
+    : session.operator_name ?? null;
 
   // Request-time clock aligns the initial reveal on this authenticated server page.
   // eslint-disable-next-line react-hooks/purity

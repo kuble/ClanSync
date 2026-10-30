@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { loadClanPlayerNames } from "@/lib/game-auth/load-game-player-names";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { HOF_COMMENT_MAX_LENGTH, HOF_COMMENT_PAGE_SIZE, HOF_REACTIONS, validHofCommentThread, type HofComment, type HofCommentThread, type HofReaction, type HofReactionKind } from "@/lib/clan/stats/hof-comments";
@@ -53,12 +54,12 @@ export async function addHofCommentAction(thread: HofCommentThread, content: str
     return { ok: false, error: "댓글은 1~500자로 입력해 주십시오." };
   const ctx = await threadContext(thread);
   if (!ctx) return denied;
+  const names = await loadClanPlayerNames(thread.clanId, [ctx.user.id]);
   const { data, error } = await ctx.supabase.from("clan_hof_comments")
     .insert({ clan_id: thread.clanId, ranking: thread.ranking, period_key: thread.periodKey, content: content.trim() })
     .select("id, content, created_at").single();
   if (error) return { ok: false, error: "댓글을 등록하지 못했습니다. 다시 시도해 주십시오." };
-  const { data: profile } = await ctx.supabase.from("users").select("nickname").eq("id", ctx.user.id).maybeSingle();
-  return { ok: true, comment: { id: data.id, content: data.content, createdAt: data.created_at, authorId: ctx.user.id, nickname: profile?.nickname ?? "나", isMine: true, canDelete: true, reactions: [], emojiReactions:[] } };
+  return { ok: true, comment: { id: data.id, content: data.content, createdAt: data.created_at, authorId: ctx.user.id, nickname: names.get(ctx.user.id) ?? "게임 ID 미등록", isMine: true, canDelete: true, reactions: [], emojiReactions:[] } };
 }
 
 async function readReactions(supabase: SupabaseClient<Database>, commentIds: string[]) {

@@ -11,6 +11,8 @@ async function ok(query) {
 test("original host predicts without coins, preserves spectator eligibility and never dilutes payouts", async (t) => {
   const f = await createIsolatedBalanceFixture(13);
   t.after(() => f.cleanup());
+  const hostTag = "PredictionHost#1001";
+  await ok(f.service.from("user_game_profiles").update({ battle_tag: hostTag }).eq("game_id", f.gameId).eq("user_id", f.users[0].id));
   const [host, winner, officer] = await Promise.all([0, 11, 12].map((index) => f.memberClient(index)));
   await ok(f.service.from("users").update({ coin_balance: 100 }).in("id", [0, 11, 12].map((index) => f.users[index].id)));
   await ok(f.service.from("clan_members").update({ role: "officer" }).eq("clan_id", f.clanId).eq("user_id", f.users[12].id));
@@ -77,7 +79,7 @@ test("original host predicts without coins, preserves spectator eligibility and 
     assert.deepEqual((await pool()).mine, { pick: 1, stake: 0, payout: 0, settlement: "win" });
     assert.equal((await pool(winner)).mine.payout, 40, "host zero stake does not dilute the winning share");
     assert.deepEqual((await pool()).ranking.find((entry) => entry.user_id === f.users[0].id), {
-      user_id: f.users[0].id, nickname: f.users[0].nickname, hits: 1, played: 1, profit: 0,
+      user_id: f.users[0].id, nickname: hostTag, hits: 1, played: 1, profit: 0,
     });
     assert.equal((await ok(f.service.from("coin_transactions").select("amount").eq("reference_id", id))).reduce((sum, row) => sum + row.amount, 0), 0);
   });
@@ -93,7 +95,7 @@ test("original host predicts without coins, preserves spectator eligibility and 
       assert.equal((await pool()).mine.settlement, outcome === "void" ? "refund" : outcome === "team2" ? "lose" : "win");
     }
     assert.deepEqual((await pool()).ranking.find((entry) => entry.user_id === f.users[0].id), {
-      user_id: f.users[0].id, nickname: f.users[0].nickname, hits: 3, played: 4, profit: 0,
+      user_id: f.users[0].id, nickname: hostTag, hits: 3, played: 4, profit: 0,
     });
     await next(); await ok(bet(host, 2));
     assert.equal((await ok(host.rpc("close_balance_session_series", { p_clan_id: f.clanId, p_round_id: id }))).ok, true);

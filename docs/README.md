@@ -8,7 +8,7 @@
 
 테마·모바일 재점검: [테마 전환](../src/components/ui/theme-toggle.tsx) · [라이트 검증](../e2e/light-theme.spec.ts) · [실제 저장 선택을 적용하는 Playwright 프로필](../playwright.light.config.ts) · [검증 범위](03-analysis/alpha-review-2026-10-16/verification.md#라이트-테마모바일-점검).
 
-[계정 닉네임 없는 클랜별 프로필·잔여 사용처 점검](03-analysis/profile-game-identity-audit-2026-10-23.md) · [다중 게임/모바일 UI](../e2e/profile-game-identities.spec.ts) · [QA 임시 ID 보정](../scripts/qa-game-identities.mjs).
+[계정 닉네임 없는 클랜별 프로필·표시 전환/DB 호환 필드 구분](03-analysis/profile-game-identity-audit-2026-10-23.md) · [레거시 값 분리·게임 ID/로비/관리 회귀](../e2e/game-player-names.spec.ts) · [다중 게임/모바일 UI](../e2e/profile-game-identities.spec.ts) · [QA 임시 ID 보정](../scripts/qa-game-identities.mjs).
 
 ## 기능별 코드·테스트 진입점
 

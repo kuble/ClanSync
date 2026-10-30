@@ -1,4 +1,5 @@
 import "server-only";
+import { loadClanPlayerNames } from "@/lib/game-auth/load-game-player-names";
 import { profileBattleTag } from "@/lib/game-auth/battle-tag";
 import Link from "next/link";
 import { CalendarDays, Clock, Coins, Swords, Trophy, Users } from "lucide-react";
@@ -118,8 +119,7 @@ async function Notices({ ctx }: Pick<Props, "ctx">) {
     client.from("clan_notices").select("id,title,content,is_pinned,created_at,created_by").eq("clan_id", ctx.clanId).order("is_pinned", { ascending: false }).order("created_at", { ascending: false }).limit(100),
   ]);
   const authorIds = [...new Set((notices.data ?? []).flatMap((notice) => notice.created_by ? [notice.created_by] : []))];
-  const authors = authorIds.length ? await svc.from("users").select("id,nickname").in("id", authorIds) : { data: [] };
-  const names = new Map((authors.data ?? []).map((row) => [row.id, row.nickname]));
+  const names = await loadClanPlayerNames(ctx.clanId, authorIds);
   return <div className="space-y-4">
     <ClanManageNotices gameSlug={ctx.gameSlug} clanId={ctx.clanId} loadFailed={!!notices.error} notices={(notices.data ?? []).map((notice) => ({ id: notice.id, title: notice.title, content: notice.content, isPinned: notice.is_pinned, createdAt: notice.created_at, author: names.get(notice.created_by ?? "") ?? "운영진" }))} />
     <ClanManageRules gameSlug={ctx.gameSlug} clanId={ctx.clanId} initialRules={profile.data?.rules ?? null} loadFailed={!!profile.error || !profile.data} />
@@ -146,16 +146,17 @@ async function Requests({ ctx }: Pick<Props, "ctx">) {
   const requests = await svc.from("clan_join_requests").select("id,user_id,message,applied_at").eq("clan_id", ctx.clanId).eq("status", "pending").order("applied_at");
   if (requests.error) throw new Error("가입 요청을 불러오지 못했습니다.");
   const ids = [...new Set(requests.data.map((row) => row.user_id))];
-  const [profiles, gameProfiles, memberships] = await Promise.all([
-    ids.length ? svc.from("users").select("id,nickname,birth_year,gender").in("id", ids) : { data: [], error: null },
+  const [profiles, gameProfiles, memberships, names] = await Promise.all([
+    ids.length ? svc.from("users").select("id,birth_year,gender").in("id", ids) : { data: [], error: null },
     ids.length ? svc.from("user_game_profiles").select("user_id,game_uid,battle_tag,is_verified,games!inner(slug)").in("user_id", ids).eq("games.slug", ctx.gameSlug) : { data: [], error: null },
     ids.length ? svc.from("clan_members").select("user_id,status").eq("clan_id", ctx.clanId).in("user_id", ids) : { data: [], error: null },
+    loadClanPlayerNames(ctx.clanId, ids),
   ]);
   if (profiles.error || gameProfiles.error || memberships.error) throw new Error("신청자 정보를 불러오지 못했습니다.");
   const returning = new Set((memberships.data ?? []).filter((row) => row.status === "left").map((row) => row.user_id));
   const byId = new Map((profiles.data ?? []).map((row) => [row.id, row]));
   const gamesById = new Map((gameProfiles.data ?? []).map((row) => [row.user_id, row]));
-  return <section className={panel}><ManageJoinRequestsPanel gameSlug={ctx.gameSlug} clanId={ctx.clanId} rows={requests.data.map((row) => ({ id: row.id, userId: row.user_id, returningMember: returning.has(row.user_id), message: row.message ?? "", appliedAt: row.applied_at, nickname: byId.get(row.user_id)?.nickname ?? "—", gameTag: profileBattleTag(gamesById.get(row.user_id)), gameVerified: gamesById.get(row.user_id)?.is_verified ?? false, profile: { birthYear: byId.get(row.user_id)?.birth_year ?? null, gender: byId.get(row.user_id)?.gender ?? null } }))} /></section>;
+  return <section className={panel}><ManageJoinRequestsPanel gameSlug={ctx.gameSlug} clanId={ctx.clanId} rows={requests.data.map((row) => ({ id: row.id, userId: row.user_id, returningMember: returning.has(row.user_id), message: row.message ?? "", appliedAt: row.applied_at, nickname: names.get(row.user_id) ?? "게임 ID 미등록", gameTag: profileBattleTag(gamesById.get(row.user_id)), gameVerified: gamesById.get(row.user_id)?.is_verified ?? false, profile: { birthYear: byId.get(row.user_id)?.birth_year ?? null, gender: byId.get(row.user_id)?.gender ?? null } }))} /></section>;
 }
 
 async function Members({ ctx }: Pick<Props, "ctx">) {
@@ -166,20 +167,17 @@ async function Members({ ctx }: Pick<Props, "ctx">) {
   ]);
   if (members.error) throw new Error("구성원을 불러오지 못했습니다.");
   const ids = members.data.map((row) => row.user_id);
-  const [profiles, gameProfiles, participantNames, links] = await Promise.all([
-    ids.length ? svc.from("users").select("id,nickname").in("id", ids) : { data: [], error: null },
+  const [names, gameProfiles, links] = await Promise.all([
+    loadClanPlayerNames(ctx.clanId, ids),
     ids.length ? svc.from("user_game_profiles").select("user_id,game_uid,battle_tag,is_verified,games!inner(slug)").in("user_id", ids).eq("games.slug", ctx.gameSlug) : { data: [], error: null },
-    (await getRequestClient()).rpc("clan_peer_nicknames", { p_clan_id: ctx.clanId }),
     (await getRequestClient()).from("clan_participants").select("user_id").eq("clan_id", ctx.clanId).eq("is_guest", true).not("user_id", "is", null),
   ]);
-  if (profiles.error || gameProfiles.error || participantNames.error || links.error) throw new Error("구성원 정보를 불러오지 못했습니다.");
-  const byId = new Map((profiles.data ?? []).map((row) => [row.id, row]));
-  const labels = new Map<string, string>((participantNames.data ?? []).map((row: { user_id: string; nickname: string }) => [row.user_id, row.nickname]));
+  if (gameProfiles.error || links.error) throw new Error("구성원 정보를 불러오지 못했습니다.");
   const verified = new Set((gameProfiles.data ?? []).filter((row) => row.is_verified).map((row) => row.user_id));
   const gamesById = new Map((gameProfiles.data ?? []).map((row) => [row.user_id, row]));
   const linkedCounts = new Map<string, number>();
   for (const link of links.data ?? []) if (link.user_id) linkedCounts.set(link.user_id, (linkedCounts.get(link.user_id) ?? 0) + 1);
-  const rows: ManageMemberRow[] = members.data.map((row) => ({ userId: row.user_id, status: row.status === "banned" ? "banned" : row.status === "left" ? "left" : "active", departureKind: row.departure_kind, departedLabel: row.departed_at ? new Date(row.departed_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "—", nickname: byId.get(row.user_id)?.nickname ?? labels.get(row.user_id) ?? "—", gameTag: profileBattleTag(gamesById.get(row.user_id)), linkedCount: linkedCounts.get(row.user_id) ?? 0, gameVerified: verified.has(row.user_id), role: row.role, joinedLabel: new Date(row.joined_at).toLocaleDateString("ko-KR"), participationStatus: row.participation_status as ManageMemberRow["participationStatus"], lastParticipatedAt: row.last_participated_at, participationCheckedOn: row.participation_checked_on, actions: { canKick: row.status === "active" && (row.role === "officer" ? kickOfficer : row.role === "member" && kickMember), canPromote: row.status === "active" && row.role === "member" && ctx.role === "leader", canDemote: row.status === "active" && row.role === "officer" && ctx.role === "leader", canTransferLeadership: row.status === "active" && row.role === "leader" && row.user_id === viewer?.id && ctx.role === "leader", canAllowRejoin: row.status === "banned" && row.role !== "leader" && (ctx.role === "leader" || row.role === "member") } }));
+  const rows: ManageMemberRow[] = members.data.map((row) => ({ userId: row.user_id, status: row.status === "banned" ? "banned" : row.status === "left" ? "left" : "active", departureKind: row.departure_kind, departedLabel: row.departed_at ? new Date(row.departed_at).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" }) : "—", nickname: names.get(row.user_id) ?? "게임 ID 미등록", gameTag: profileBattleTag(gamesById.get(row.user_id)), linkedCount: linkedCounts.get(row.user_id) ?? 0, gameVerified: verified.has(row.user_id), role: row.role, joinedLabel: new Date(row.joined_at).toLocaleDateString("ko-KR"), participationStatus: row.participation_status as ManageMemberRow["participationStatus"], lastParticipatedAt: row.last_participated_at, participationCheckedOn: row.participation_checked_on, actions: { canKick: row.status === "active" && (row.role === "officer" ? kickOfficer : row.role === "member" && kickMember), canPromote: row.status === "active" && row.role === "member" && ctx.role === "leader", canDemote: row.status === "active" && row.role === "officer" && ctx.role === "leader", canTransferLeadership: row.status === "active" && row.role === "leader" && row.user_id === viewer?.id && ctx.role === "leader", canAllowRejoin: row.status === "banned" && row.role !== "leader" && (ctx.role === "leader" || row.role === "member") } }));
   return <div className="space-y-4"><section className={panel}><ManageMembersTable gameSlug={ctx.gameSlug} clanId={ctx.clanId} rows={rows} /></section><ClanParticipantData clanId={ctx.clanId} gameSlug={ctx.gameSlug} /></div>;
 }
 
@@ -219,10 +217,10 @@ async function PurchaseCorrections({ ctx, userId }: Pick<Props, "ctx"> & { userI
   const profileIds = [...new Set([...memberIds, ...clanPurchases.data.map((row) => row.user_id)])];
   const [personal, profiles] = await Promise.all([
     memberIds.length ? svc.from("purchases").select("id,price_coins,purchased_at,user_id,store_items(name_ko)").eq("pool_source", "personal").is("clan_id", null).is("voided_at", null).in("user_id", memberIds).order("purchased_at", { ascending: false }) : Promise.resolve({ data: [], error: null }),
-    profileIds.length ? svc.from("users").select("id,nickname").in("id", profileIds) : Promise.resolve({ data: [], error: null }),
+    loadClanPlayerNames(ctx.clanId, profileIds),
   ]);
-  if (personal.error || profiles.error) throw new Error("구매 내역을 불러오지 못했습니다.");
-  const names = new Map((profiles.data ?? []).map((row) => [row.id, row.nickname]));
+  if (personal.error) throw new Error("구매 내역을 불러오지 못했습니다.");
+  const names = profiles;
   function rows(pool: "clan" | "personal", purchases: NonNullable<typeof clanPurchases.data>): ManageStoreVoidRowVM[] {
     return purchases.map((purchase) => ({ pool, purchaseId: purchase.id, itemNameKo: (Array.isArray(purchase.store_items) ? purchase.store_items[0] : purchase.store_items)?.name_ko ?? "상품", buyerNickname: names.get(purchase.user_id) ?? "—", priceCoins: purchase.price_coins, purchasedAtLabel: new Date(purchase.purchased_at).toLocaleString("ko-KR"), isBuyerSelf: purchase.user_id === userId }));
   }
