@@ -4,6 +4,7 @@ import { Clock3, Search } from "lucide-react";
 import { cancelClanJoinRequestFormAction } from "@/app/actions/game-clan-onboarding";
 import { AccountShell } from "@/components/onboarding/account-shell";
 import { ClanCreateForm } from "@/components/onboarding/clan-create-form";
+import { ClanDiscoveryFilterForm } from "@/components/onboarding/clan-discovery-filter-form";
 import { ClanJoinList, type ClanListRow } from "@/components/onboarding/clan-join-list";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,9 +23,10 @@ export const metadata = { title: "클랜 찾기 · ClanSync" };
 
 export default async function ClanOnboardingPage({ params, searchParams }: {
   params: Promise<{ gameSlug: string }>;
-  searchParams: Promise<{ pending?: string; q?: string; page?: string; style?: string; tier?: string; promotion?: string }>;
+  searchParams: Promise<{ pending?: string; q?: string; page?: string; style?: string; tier?: string; promotion?: string; eligible?: string }>;
 }) {
-  const [{ gameSlug }, { q = "", page: pageStr, style: styleQuery = "", tier: tierQuery = "", promotion = "" }] = await Promise.all([params, searchParams]);
+  const [{ gameSlug }, { q = "", page: pageStr, style: styleQuery = "", tier: tierQuery = "", promotion = "", eligible }] = await Promise.all([params, searchParams]);
+  const eligibleOnly = eligible === "1";
   if (promotion && !/^[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}$/i.test(promotion)) notFound();
   const nextPath = `/games/${gameSlug}/clan${promotion ? `?promotion=${promotion}` : ""}`;
   const TIERS = recruitmentTiers(gameSlug);
@@ -40,22 +42,34 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
   if (!state.identityRegistered) redirect(`/games/${encodeURIComponent(gameSlug)}/auth?next=${encodeURIComponent(nextPath)}`);
   if (state.clanStatus === "member" && state.clanId && !promotion) redirect(`/games/${gameSlug}/clan/${state.clanId}`);
 
-  const { data: game } = await supabase.from("games").select("id, name_ko").eq("slug", gameSlug).maybeSingle();
+  const [{ data: game }, profile] = await Promise.all([
+    supabase.from("games").select("id, name_ko").eq("slug", gameSlug).maybeSingle(),
+    supabase.from("users").select("birth_year,gender").eq("id",user.id).single(),
+  ]);
   if (!game) redirect("/games");
   const pendingBrief = state.clanStatus === "pending" ? state.pendingJoin : null;
   const from = (page - 1) * PAGE_SIZE;
   const clanQuery = () => supabase.from("clans").select(CLAN_FIELDS, { count: "exact" }).eq("game_id", game.id).eq("lifecycle_status", "active").eq("moderation_status", "clean")
     .eq("promotions.post_type","promotion").eq("promotions.game_id",game.id)
     .order("created_at",{referencedTable:"promotions",ascending:false}).order("id",{referencedTable:"promotions",ascending:false}).limit(1,{referencedTable:"promotions"});
-  let listQuery = clanQuery().order("created_at", { ascending: false }).range(from, from + PAGE_SIZE - 1);
+  let listQuery = clanQuery().order("created_at", { ascending: false }).order("id", {ascending: false});
   const safeTerm = term.replace(/[%_]/g, "");
   if (safeTerm) listQuery = listQuery.ilike("name", `%${safeTerm}%`);
   if (style) listQuery = listQuery.eq("style", style);
   if (tier) listQuery = listQuery.contains("tier_range", [tier]);
-  const [{ data: clanRows, count, error: listError }, pinnedResult, profile, requestedPromotion] = await Promise.all([
-    listQuery,
+  // Filter before counting/pagination; use the authenticated account, never URL demographics.
+  if (eligibleOnly) {
+    if (!profile.data || !Number.isInteger(profile.data.birth_year)) listQuery = listQuery.in("id", []);
+    else {
+      const year = profile.data.birth_year;
+      listQuery = listQuery.or(`birth_year_from.is.null,birth_year_from.lte.${year}`)
+        .or(`min_birth_year.is.null,min_birth_year.gte.${year}`)
+        .in("gender_policy", profile.data.gender === "male" || profile.data.gender === "female" ? ["all", profile.data.gender] : ["all"]);
+    }
+  }
+  const [{ data: clanRows, count, error: listError }, pinnedResult, requestedPromotion] = await Promise.all([
+    listQuery.range(from, from + PAGE_SIZE - 1),
     pendingBrief?.clanId ? clanQuery().eq("id", pendingBrief.clanId).maybeSingle() : Promise.resolve({ data: null, error: null }),
-    supabase.from("users").select("birth_year,gender").eq("id",user.id).single(),
     promotion ? supabase.from("board_posts").select("id,clan_id,title,content,content_blocks,created_at,updated_at").eq("id",promotion).eq("game_id",game.id).eq("post_type","promotion").maybeSingle() : Promise.resolve({data:null,error:null}),
   ]);
   if (requestedPromotion.error) throw new Error("홍보글을 불러오지 못했습니다.");
@@ -77,7 +91,7 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
   }
   const initialDetails: ClanListRow | null = previewRow ? {...toListClan(previewRow),promotion:requestedPromotion.data} : null;
   const clans = (clanRows ?? []).map(toListClan);
-  if (initialDetails && !clans.some(clan=>clan.id===initialDetails.id)) clans.unshift(initialDetails);
+  if (initialDetails && !eligibleOnly && !clans.some(clan=>clan.id===initialDetails.id)) clans.unshift(initialDetails);
   const pinnedPendingClan = pinnedResult.data ? toListClan(pinnedResult.data) : null;
   const total = count ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -86,6 +100,7 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
     const query = new URLSearchParams({ q: term, page: String(number) });
     if (style) query.set("style", style);
     if (tier) query.set("tier", tier);
+    if (eligibleOnly) query.set("eligible", "1");
     return `/games/${gameSlug}/clan?${query}`;
   }
 
@@ -98,14 +113,15 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
     <Tabs defaultValue="join" className={`${styles.tabs} ${discover.tabs}`}>
       <TabsList variant="line" className={styles.tabList}><TabsTrigger value="join">클랜 가입</TabsTrigger><TabsTrigger value="create">클랜 생성</TabsTrigger></TabsList>
       <TabsContent value="join">
-        <form method="get" className={discover.filters}>
-          <div className={discover.search}><label htmlFor="q" className="sr-only">클랜 검색</label><Search size={17} aria-hidden="true" /><Input id="q" name="q" defaultValue={term} placeholder="클랜 이름으로 검색" /></div><input type="hidden" name="page" value="1" />
-            <label>지향<select name="style" defaultValue={style}><option value="">전체</option>{STYLES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
-            <label>모집 티어<select name="tier" defaultValue={tier}><option value="">전체</option>{TIERS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+        <ClanDiscoveryFilterForm action={`/games/${gameSlug}/clan`}>
+          <div className={discover.search}><label htmlFor="q" className="sr-only">클랜 검색</label><Search size={17} aria-hidden="true" /><Input key={term} id="q" name="q" defaultValue={term} placeholder="클랜 이름으로 검색" /></div><input type="hidden" name="page" value="1" />
+            <label>지향<select key={style} name="style" defaultValue={style}><option value="">전체</option>{STYLES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+            <label>모집 티어<select key={tier} name="tier" defaultValue={tier}><option value="">전체</option>{TIERS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
             <Button type="submit">검색</Button>
-            {term || style || tier ? <Link href={`/games/${gameSlug}/clan`} className="text-muted-foreground text-xs underline">초기화</Link> : null}
-        </form>
-        {listError ? <p role="alert" className={styles.error}>클랜 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주십시오.</p> : <>
+            {term || style || tier || eligibleOnly ? <Link href={`/games/${gameSlug}/clan`} className="text-muted-foreground text-xs underline">초기화</Link> : null}
+            <div className={discover.eligibilityFilter}><label><input key={String(eligibleOnly)} type="checkbox" name="eligible" value="1" defaultChecked={eligibleOnly} /><span className={discover.filterSwitch} aria-hidden /><span>가입 가능한 클랜만 보기</span></label><p>내 출생연도·성별 기준</p></div>
+        </ClanDiscoveryFilterForm>
+        {eligibleOnly && (profile.error || !profile.data) ? <p role="alert" className={styles.error}>가입 정보를 확인하지 못했습니다. 잠시 후 다시 시도해 주십시오.</p> : listError ? <p role="alert" className={styles.error}>클랜 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주십시오.</p> : <>
           <div className={discover.resultCount}><p>함께할 클랜 <strong>{total.toLocaleString("ko-KR")}</strong></p><span>최근 만들어진 클랜 순</span></div>
           <ClanJoinList key={`${pendingBrief?.requestId ?? "no-pending"}:${promotion}`} gameSlug={gameSlug} pendingClanId={pendingBrief?.clanId ?? null} blockingClanName={pendingBrief?.clanName ?? null} pinnedPendingClan={pinnedPendingClan} clans={clans} initialDetails={initialDetails} canApply={state.clanStatus !== "member"} />
           {totalPages > 1 ? <nav className={styles.pagination} aria-label="클랜 목록 페이지">{page > 1 ? <Link className={buttonVariants({ variant: "outline", size: "sm" })} href={pageHref(page - 1)}>이전</Link> : null}<span>{page} / {totalPages}</span>{page < totalPages ? <Link className={buttonVariants({ variant: "outline", size: "sm" })} href={pageHref(page + 1)}>다음</Link> : null}</nav> : null}

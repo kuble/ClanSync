@@ -11,6 +11,18 @@
 .filters > label { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted-foreground); padding-left: 16px; border-left: 1px solid var(--border); }
 .filters select { min-height: 42px; max-width: 135px; padding-right: 18px; color: var(--foreground); background: var(--card); font-size: 13px; outline: none; }
 .filters > button { min-height: 42px; padding-inline: 22px; }
+.eligibilityFilter { flex-basis: 100%; grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--border); padding-top: 16px; }
+.eligibilityFilter label { position: relative; display: flex; align-items: center; gap: 10px; min-height: 32px; cursor: pointer; font-size: 13px; font-weight: 550; }
+.eligibilityFilter input { position: absolute; width: 36px; height: 24px; opacity: 0; }
+.filterSwitch { pointer-events: none; width: 34px; height: 20px; flex-shrink: 0; padding: 3px; border-radius: 20px; background: var(--muted-foreground); }
+.filterSwitch::after { content: ""; display: block; width: 14px; height: 14px; border-radius: 50%; background: var(--background); }
+.eligibilityFilter input:checked + .filterSwitch { background: var(--primary); }
+.eligibilityFilter input:checked + .filterSwitch::after { transform: translateX(14px); }
+.eligibilityFilter input:focus-visible + .filterSwitch { outline: 2px solid var(--primary); outline-offset: 4px; }
+.eligibilityFilter p { font-size: 11px; color: var(--muted-foreground); }
+.filterStatus { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.filters[aria-busy="true"] { cursor: progress; }
+.filters[aria-busy="true"] > button { opacity: .6; }
 .resultCount { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; font-size: 13px; }
 .resultCount strong { color: var(--primary); margin-left: 5px; font-weight: 600; }
 .resultCount > span { font-size: 11px; color: var(--muted-foreground); }
@@ -71,6 +83,8 @@
   .filters select { width: 100%; min-width: 0; max-width: none; }
   .filters > button { padding-inline: 16px; }
   .filters > a { justify-self: end; }
+  .eligibilityFilter { flex-wrap: wrap; gap: 2px; padding-top: 10px; }
+  .eligibilityFilter p { margin-left: 44px; }
   .filters:not(:has(> a)) > button { grid-column: 1 / -1; }
   .overview { padding: 20px; gap: 18px; }
   .overview[data-has-photo="true"] { grid-template-columns: 1fr; }
