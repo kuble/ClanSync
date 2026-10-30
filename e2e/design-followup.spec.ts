@@ -124,6 +124,7 @@ test("board, coaching, brackets, records and profile editors share fixed actions
 });
 
 test("community composers keep their actions visible and preserve real post submission", async ({ page }) => {
+  test.skip(true,"게임 커뮤니티 사용 보류. 활성 홍보 작성·모바일 검증은 clan-promotion.spec.ts를 따릅니다.");
   test.setTimeout(180_000);
   const f = await createIsolatedBalanceFixture(1);
   const errors: string[] = [];

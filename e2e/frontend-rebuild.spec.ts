@@ -35,6 +35,7 @@ async function expectNoHorizontalOverflow(page: Page) {
 }
 
 test("community promotion modal publishes a real post and opens its detail", async ({ page }) => {
+  test.skip(true,"커뮤니티 진입 보류. 홍보 작성·클랜 찾기 연동은 clan-promotion.spec.ts에서 검증합니다.");
   const svc = qaService();
   const { clanId, userId } = await leaderContext(page, svc);
   const title = `frontend-promo-${randomUUID().slice(0, 8)}`;
@@ -73,6 +74,7 @@ test("community promotion modal publishes a real post and opens its detail", asy
 });
 
 test("KST LFG modal defaults to a future local deadline and stores the same UTC instant", async ({ page }) => {
+  test.skip(true,"게임 커뮤니티 사용 보류로 LFG 작성 화면 진입을 제공하지 않습니다.");
   const svc = qaService();
   const { userId } = await leaderContext(page, svc);
   const description = `frontend-lfg-${randomUUID()}`;
@@ -111,6 +113,7 @@ test("KST LFG modal defaults to a future local deadline and stores the same UTC 
 });
 
 test("390px community menu closes after navigation and browser history restores the tab", async ({ page }) => {
+  test.skip(true,"게임 커뮤니티 사용 보류로 기존 탭 대신 계정의 클랜 흐름으로 연결합니다.");
   await page.setViewportSize({ width: 390, height: 844 });
   await loginAsFixtureRole(page, "Leader");
   await page.goto("/games/overwatch");

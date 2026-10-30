@@ -51,6 +51,7 @@ test("clan navigation acknowledges the click before a delayed page response", as
 test("promotion sorting preserves filters and browser history without refetching the hub", async ({
   page,
 }) => {
+  test.skip(true,"커뮤니티 홍보 정렬은 보류하며 클랜 찾기 연동은 clan-promotion.spec.ts에서 검증합니다.");
   await loginAsFixtureRole(page, "Leader");
   await page.goto("/games/overwatch?tab=promo&promoSort=newest");
   const panel = page.getByTestId("main-game-tab-promo");

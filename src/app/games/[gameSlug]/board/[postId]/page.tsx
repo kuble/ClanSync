@@ -42,6 +42,7 @@ export default async function BoardPostDetailPage({
   if (!row) notFound();
 
   const base = `/games/${encodeURIComponent(gameSlug)}`;
+  if (row.post_type === "promotion") redirect(`${base}/clan?promotion=${encodeURIComponent(row.id)}`);
 
   const typeLabel = row.post_type === "scrim" ? "스크림" : "홍보";
 

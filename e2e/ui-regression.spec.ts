@@ -111,6 +111,7 @@ test.describe("UI 회귀 — MainClan (QA 리더)", () => {
 
 test.describe("UI 회귀 — MainGame 커뮤니티 탭", () => {
   test("홈·홍보·LFG·순위·스크림 패널 문구 확인", async ({ page }) => {
+    test.skip(true,"게임 커뮤니티 사용 보류로 기본 게임 주소는 클랜 흐름으로 연결합니다.");
     await loginAsFixtureRole(page, "Leader");
     await page.goto("/games/overwatch");
     await expect(page.getByRole("heading", { name: "오버워치 커뮤니티" })).toBeVisible({

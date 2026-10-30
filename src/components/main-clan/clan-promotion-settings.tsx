@@ -73,7 +73,7 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, posts }: {
             <div className="space-y-2"><Label htmlFor="promotion-content">내용</Label><textarea id="promotion-content" name="content" required maxLength={8000} rows={9} className="min-h-48 w-full resize-y rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-ring" placeholder="클랜 소개와 주요 활동" aria-describedby="promotion-content-limit" /><p id="promotion-content-limit" className="text-xs text-muted-foreground">최대 8,000자</p></div>
           </fieldset>
           {postError && <p role="alert" className="text-xs text-destructive">{postError}</p>}
-          {postId && <p role="status" className="text-xs text-primary">홍보글을 게시했습니다. <Link className="underline underline-offset-4" href={`/games/${gameSlug}/board/${postId}`}>게시한 글 보기</Link></p>}
+          {postId && <p role="status" className="text-xs text-primary">홍보글을 게시했습니다. <Link className="underline underline-offset-4" href={`/games/${gameSlug}/clan?promotion=${postId}`}>게시한 글 보기</Link></p>}
           <div className="flex justify-end"><Button type="submit" size="sm" disabled={publishing}>{publishing ? "게시 중…" : "홍보글 게시"}</Button></div>
         </form>
       </section>
@@ -97,6 +97,6 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, posts }: {
         </form>
       </section>
     </div>
-    <section className={panel} aria-labelledby="recent-promotions-heading"><h4 id="recent-promotions-heading" className="text-sm font-semibold">최근 홍보글</h4>{posts.length ? <ul className="mt-3 divide-y divide-border">{posts.map(post => <li key={post.id}><Link href={`/games/${gameSlug}/board/${post.id}`} className="flex min-w-0 items-center justify-between gap-3 py-3 text-sm hover:text-primary"><span className="min-w-0 truncate">{post.title}</span><ArrowUpRight className="size-4 shrink-0 text-muted-foreground" aria-hidden /></Link></li>)}</ul> : <p className="mt-3 text-xs text-muted-foreground">아직 게시한 홍보글이 없습니다.</p>}</section>
+    <section className={panel} aria-labelledby="recent-promotions-heading"><h4 id="recent-promotions-heading" className="text-sm font-semibold">최근 홍보글</h4>{posts.length ? <ul className="mt-3 divide-y divide-border">{posts.map(post => <li key={post.id}><Link href={`/games/${gameSlug}/clan?promotion=${post.id}`} className="flex min-w-0 items-center justify-between gap-3 py-3 text-sm hover:text-primary"><span className="min-w-0 truncate">{post.title}</span><ArrowUpRight className="size-4 shrink-0 text-muted-foreground" aria-hidden /></Link></li>)}</ul> : <p className="mt-3 text-xs text-muted-foreground">아직 게시한 홍보글이 없습니다.</p>}</section>
   </div>;
 }

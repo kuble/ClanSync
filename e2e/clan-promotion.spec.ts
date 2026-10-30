@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
-test("clan promotion publishes to the community and saves enforceable recruitment conditions",async({page},testInfo)=>{
+test("clan promotion appears during clan discovery and keeps membership requirements",async({page},testInfo)=>{
   test.setTimeout(180_000);
   const formWarnings: string[]=[];
   page.on("console",message=>{ if (/changing.*(uncontrolled|default value)/i.test(message.text())) formWarnings.push(message.text()); });
@@ -13,6 +13,8 @@ test("clan promotion publishes to the community and saves enforceable recruitmen
     await loginIsolatedBalanceUser(page,f.users[0]);
     await page.goto(base+"/manage?tab=overview");
     await page.getByRole("navigation",{name:"클랜 관리 항목"}).getByRole("link",{name:"클랜 홍보"}).click();
+    const previous=await f.service.from("board_posts").insert({game_id:f.gameId,clan_id:f.clanId,post_type:"promotion",title:"이전 모집 안내",content:"이전 홍보 내용",created_by:f.users[0].id,created_at:"2020-01-01T00:00:00Z"}); expect(previous.error).toBeNull();
+    const scrim=await f.service.from("board_posts").insert({game_id:f.gameId,clan_id:f.clanId,post_type:"scrim",title:"홍보가 아닌 경기 안내",content:"다른 게시판",created_by:f.users[0].id,created_at:"2030-01-01T00:00:00Z"}).select("id").single(); expect(scrim.error).toBeNull();
     await expect(page).toHaveURL(/tab=promotion/);
     const year = page.getByRole("combobox",{name:"출생연도 상한",exact:true});
     const minimum = page.getByRole("slider",{name:"최소 모집 티어",exact:true});
@@ -93,22 +95,66 @@ test("clan promotion publishes to the community and saves enforceable recruitmen
     await expect(page.getByRole("button",{name:"가입 조건 저장",exact:true})).toBeVisible();
     expect(formWarnings).toEqual([]);
     await page.getByRole("link",{name:"게시한 글 보기",exact:true}).click();
-    await expect(page.getByRole("heading",{name:title,exact:true})).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/clan\\?promotion=${saved.data!.id}$`));
+    await expect(page.getByRole("dialog",{name:title,exact:true})).toBeVisible();
+    await expect(page.getByRole("button",{name:"가입 신청",exact:true})).toHaveCount(0);
+    await page.goto(`/games/overwatch/board/${saved.data!.id}`);
+    await expect(page).toHaveURL(new RegExp(`/clan\\?promotion=${saved.data!.id}$`));
+    await expect(page.getByRole("dialog",{name:title,exact:true})).toBeVisible();
     await page.goto("/games/overwatch?tab=promo");
-    await page.getByRole("textbox",{name:"클랜 홍보 검색",exact:true}).fill(title);
-    await expect(page.getByRole("link",{name:title,exact:true})).toBeVisible();
-    await expect(page.getByLabel("클랜 모집 조건").filter({hasText:"1999년생까지 · 남성 · 골드"})).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`${base}$`));
     // The member can see conditions before applying, but cannot enter management.
     const removed=await f.service.from("clan_members").delete().eq("clan_id",f.clanId).eq("user_id",f.users[1].id); expect(removed.error).toBeNull();
     await page.context().clearCookies();
     await loginIsolatedBalanceUser(page,f.users[1]);
-    await page.goto(`/games/overwatch/clan?q=${encodeURIComponent(`BalanceUI-${f.clanId}`)}`);
+    await page.goto("/games/overwatch?tab=lfg");
+    await expect(page).toHaveURL(/\/games\/overwatch\/clan$/);
     await page.getByRole("textbox",{name:"클랜 검색",exact:true}).fill((await f.service.from("clans").select("name").eq("id",f.clanId).single()).data!.name);
     await page.getByRole("button",{name:"검색",exact:true}).click();
     await expect(page.getByTestId(`clan-join-open-${f.clanId}`)).toBeDisabled();
     await expect(page.getByText("1999년생 및 이전 출생자만 신청할 수 있습니다.",{exact:true})).toBeVisible();
+    const clanName=(await f.service.from("clans").select("name").eq("id",f.clanId).single()).data!.name;
+    const card=page.getByRole("button",{name:`${clanName} 클랜 상세 보기`,exact:true});
+    await expect(card).toContainText(title);
+    await expect(card).not.toContainText("이전 모집 안내");
+    await expect(card).not.toContainText("홍보가 아닌 경기 안내");
+    await page.setViewportSize({width:1304,height:884});
+    await page.screenshot({path:testInfo.outputPath("clan-discovery-promotions.png"),fullPage:true});
+    await card.click();
+    const detail=page.getByRole("dialog",{name:title,exact:true});
+    await expect(detail).toContainText("처음 오시는 분도 환영합니다.");
+    await expect(detail.getByRole("button",{name:"가입 조건 미충족",exact:true})).toBeDisabled();
+    await page.screenshot({path:testInfo.outputPath("clan-discovery-promotion-detail.png"),fullPage:true});
+    await page.setViewportSize({width:390,height:844});
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
+    await expect(detail.getByRole("button",{name:"닫기",exact:true}).first()).toBeInViewport();
+    await page.screenshot({path:testInfo.outputPath("clan-discovery-promotion-mobile.png"),fullPage:true});
+    await detail.getByRole("button",{name:"닫기",exact:true}).first().click();
+    const relaxed=await f.service.from("clans").update({min_birth_year:null,gender_policy:"all"}).eq("id",f.clanId); expect(relaxed.error).toBeNull();
+    await page.goto(`/games/overwatch/clan?promotion=${saved.data!.id}`);
+    await detail.getByRole("button",{name:"가입 신청",exact:true}).click();
+    await expect(detail).toBeHidden();
+    await expect(page).not.toHaveURL(/promotion=/);
+    await page.getByTestId(`clan-join-send-${f.clanId}`).click();
+    await expect(page.getByText("가입 신청을 보냈습니다.",{exact:true})).toBeVisible();
+    await expect(page.getByTestId("clan-join-pinned-pending-section")).toContainText(title);
+    const pending=await f.service.from("clan_join_requests").select("status").eq("clan_id",f.clanId).eq("user_id",f.users[1].id).single(); expect(pending.error).toBeNull(); expect(pending.data?.status).toBe("pending");
+    await page.goto(`/games/overwatch/clan?promotion=${scrim.data!.id}`);
+    await expect(page.getByRole("heading",{name:"404",exact:true})).toBeVisible();
+    await expect(page.getByText("홍보가 아닌 경기 안내",{exact:true})).toHaveCount(0);
     await page.goto(base+"/manage?tab=promotion");
     await expect(page.getByRole("button",{name:"홍보글 게시",exact:true})).toHaveCount(0);
+    await page.context().clearCookies();
+    await page.goto(`/games/overwatch/clan?promotion=${saved.data!.id}`);
+    await expect(page).toHaveURL(url=>url.pathname==="/sign-in" && url.searchParams.get("next")===`/games/overwatch/clan?promotion=${saved.data!.id}`);
+    const removedIdentity=await f.service.from("user_game_profiles").delete().eq("user_id",f.users[1].id).eq("game_id",f.gameId); expect(removedIdentity.error).toBeNull();
+    await loginIsolatedBalanceUser(page,f.users[1]);
+    await page.goto(`/games/overwatch/clan?promotion=${saved.data!.id}`);
+    await expect(page).toHaveURL(url=>url.pathname==="/games/overwatch/auth" && url.searchParams.get("next")===`/games/overwatch/clan?promotion=${saved.data!.id}`);
+    await page.getByRole("textbox",{name:"배틀태그 직접 입력",exact:true}).fill(f.users[1].nickname);
+    await page.getByRole("button",{name:"게임 ID 저장",exact:true}).click();
+    await expect(detail).toBeVisible();
+    await expect(detail.getByRole("button",{name:"신청 대기 중",exact:true})).toBeDisabled();
   } finally { await f.cleanup(); }
 });
 

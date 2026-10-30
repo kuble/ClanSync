@@ -128,6 +128,9 @@ export async function proxy(request: NextRequest) {
             );
             return mergeCookies(response, r);
           }
+          // Promotion links are public clan recruitment previews; the page validates
+          // the post/game and keeps existing members in read-only mode.
+          if (url.searchParams.has("promotion")) return response;
           if (state.clanStatus === "member" && state.clanId) {
             const next = safeNextPath(request.cookies.get("clansync-clan-return")?.value, "");
             if (next.startsWith(`/games/${gameSlug}/clan/${state.clanId}/`) || next.startsWith(`/games/${gameSlug}/clan/${state.clanId}?`)) {
