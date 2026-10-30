@@ -1,11 +1,13 @@
 .page {
+  --landing-header-height: 80px;
   --landing-line: color-mix(in srgb, var(--foreground) 11%, transparent);
   --landing-shadow: color-mix(in srgb, var(--primary) 9%, transparent);
   min-height: 100svh;
   background: var(--background);
   color: var(--foreground);
 }
-.header { max-width: 1152px; height: 80px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid var(--landing-line); }
+/* Above preview controls (z-30), below dialogs and popovers (z-50). */
+.header { position: sticky; top: 0; z-index: 40; height: var(--landing-header-height); padding: 0 max(24px, calc((100% - 1104px) / 2)); display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid var(--landing-line); background: var(--background); }
 .sectionNav, .nav { display: flex; align-items: center; gap: 28px; font-size: 13px; font-weight: 550; }
 .sectionNav { color: var(--muted-foreground); }
 .sectionNav a:hover, .footer a:hover { color: var(--foreground); }
@@ -25,7 +27,7 @@
 .page a:focus-visible, .preview:focus-visible { outline: 2px solid var(--primary); outline-offset: 5px; }
 
 /* A fine rim gives the actual product UI depth without adding another illustration. */
-.preview { max-width: 1152px; margin: 0 auto; padding: 0 24px; scroll-margin-top: 32px; }
+.preview { max-width: 1152px; margin: 0 auto; padding: 0 24px; scroll-margin-top: calc(var(--landing-header-height) + 24px); }
 .product { overflow: hidden; border: 1px solid var(--landing-line); border-radius: 20px; background: var(--card); box-shadow: 0 0 0 6px color-mix(in srgb, var(--foreground) 3%, transparent), 0 26px 60px -28px var(--landing-shadow); }
 .productHeader { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 26px; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--surface) 65%, var(--card)); }
 .context { color: var(--muted-foreground); font-size: 11px; }
@@ -35,12 +37,12 @@
 .preview figcaption { display: flex; justify-content: space-between; gap: 12px; padding: 18px 3px; color: var(--muted-foreground); font-size: 11px; }
 .preview figcaption > span:first-child { color: var(--foreground); font-weight: 550; }
 
-.workflow, .activity { max-width: 1152px; margin: 0 auto; padding: 100px 24px 76px; scroll-margin-top: 32px; }
+.workflow, .activity { max-width: 1152px; margin: 0 auto; padding: 100px 24px 76px; scroll-margin-top: calc(var(--landing-header-height) + 24px); }
 .sectionIntro { max-width: 780px; margin: 0 auto 48px; text-align: center; }
 .sectionIntro h2 { font-size: clamp(28px, 3.2vw, 42px); font-weight: 500; line-height: 1.38; letter-spacing: -.045em; word-break: keep-all; color: var(--muted-foreground); }
 .sectionIntro h2 span { color: var(--foreground); font-weight: 650; }
 .sectionIntro p { margin-top: 18px; color: var(--muted-foreground); font-size: 14px; line-height: 1.8; word-break: keep-all; }
-.recordsSection { padding: 82px 24px 76px; background: var(--surface); border-block: 1px solid var(--landing-line); scroll-margin-top: 24px; }
+.recordsSection { padding: 82px 24px 76px; background: var(--surface); border-block: 1px solid var(--landing-line); scroll-margin-top: calc(var(--landing-header-height) + 24px); }
 .recordsInner { max-width: 1104px; margin: 0 auto; }
 .activity { padding-bottom: 80px; }
 .previewNote { text-align: center; color: var(--muted-foreground); font-size: 10px; line-height: 1.7; margin-top: 16px; }
@@ -61,7 +63,7 @@
 .paginationControls [aria-selected="true"] { background: color-mix(in srgb, var(--primary) 10%, var(--card)); color: var(--primary); }
 .paginationControls [aria-selected="true"] .paginationDot { opacity: 1; }
 
-.information { max-width: 1104px; margin: 0 auto; padding: 72px 0 90px; border-top: 1px solid var(--landing-line); display: grid; grid-template-columns: .9fr 1.1fr; gap: 80px; scroll-margin-top: 32px; }
+.information { max-width: 1104px; margin: 0 auto; padding: 72px 0 90px; border-top: 1px solid var(--landing-line); display: grid; grid-template-columns: .9fr 1.1fr; gap: 80px; scroll-margin-top: calc(var(--landing-header-height) + 24px); }
 .information h2 { font-size: clamp(26px, 2.5vw, 32px); font-weight: 600; line-height: 1.5; letter-spacing: -.04em; word-break: keep-all; }
 .information dl { display: grid; gap: 26px; }
 .information dt { font-size: 15px; font-weight: 600; }
@@ -90,7 +92,8 @@
   .information { gap: 36px; }
 }
 @media (max-width: 640px) {
-  .header { height: 72px; padding: 0 20px; border-bottom: 0; }
+  .page { --landing-header-height: 72px; }
+  .header { padding: 0 20px; }
   .nav { gap: 14px; }
   .smallButton { display: none; }
   .hero { padding: 38px 20px 38px; }
