@@ -531,6 +531,8 @@
 .clanProfileName small { font-size:12px; color:var(--muted-foreground); }
 .clanProfileHeading > [role="toolbar"] { flex-shrink:0; margin-left:auto; }
 .clanAccountId { display:grid; gap:5px; margin-top:14px; overflow-wrap:anywhere; }
+.gameVerification { display:flex; align-items:center; flex-wrap:wrap; gap:6px; min-height:24px; font-size:12px; color:var(--muted-foreground); }
+.gameVerification a { margin-left:auto; text-decoration:underline; text-underline-offset:3px; }
 .clanAccountId > strong { font-size:17px; font-weight:650; line-height:1.5; overflow-wrap:anywhere; }
 .playerIdentity[data-read-only] { padding:20px; gap:20px; }
 .playerIdentity[data-read-only] .clanProfile { padding:0; border:0; border-radius:0; background:transparent; }

@@ -10,6 +10,8 @@
 
 [계정 닉네임 없는 클랜별 프로필·표시 전환/DB 호환 필드 구분](03-analysis/profile-game-identity-audit-2026-10-23.md) · [레거시 값 분리·게임 ID/로비/관리 회귀](../e2e/game-player-names.spec.ts) · [다중 게임/모바일 UI](../e2e/profile-game-identities.spec.ts) · [QA 임시 ID 보정](../scripts/qa-game-identities.mjs).
 
+미인증 게임 ID: [직접 입력·본인 저장](../src/app/actions/game-identity.ts) · [진입/인증 상태 분리](../src/lib/onboarding/load-game-onboarding.ts) · [게임 프로필 상태](../src/components/profile/profile-identity.tsx) · [저장/위조 차단·가입/생성·모바일 회귀](../e2e/manual-game-identity.spec.ts).
+
 ## 기능별 코드·테스트 진입점
 
 검증 범위는 [변경 위험도 기준](../.cursor/rules/agent-auto-tasks.mdc), 실행 명령은 [E2E 안내](../e2e/README.md)를 따릅니다. 아래는 관련 파일을 찾는 지도이며 매번 전부 읽거나 실행하는 목록이 아닙니다.

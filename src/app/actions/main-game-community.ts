@@ -1,4 +1,5 @@
 "use server";
+import { gameProfileIdentity } from "@/lib/game-auth/game-profile-identity";
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
@@ -84,13 +85,12 @@ export async function createLfgPostAction(
 
   const { data: ugp } = await supabase
     .from("user_game_profiles")
-    .select("id")
+    .select("battle_tag,riot_id,game_uid")
     .eq("user_id", user.id)
     .eq("game_id", gid)
-    .eq("is_verified", true)
     .maybeSingle();
-  if (!ugp) {
-    return { ok: false, error: "게임 계정을 연동해야 LFG를 등록할 수 있습니다." };
+  if (!gameProfileIdentity(gameSlug, ugp)) {
+    return { ok: false, error: "게임 ID를 등록해야 파티를 모집할 수 있습니다." };
   }
 
   const slots = Math.floor(Number(input.slots));

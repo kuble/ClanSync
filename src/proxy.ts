@@ -73,7 +73,7 @@ export async function proxy(request: NextRequest) {
       }
 
       if (rest.length === 0) {
-        if (!state.authVerified) {
+        if (!state.identityRegistered) {
           const r = NextResponse.redirect(
             new URL(
               `/games/${encodeURIComponent(gameSlug)}/auth?next=${encodeURIComponent(nextTarget)}`,
@@ -89,7 +89,7 @@ export async function proxy(request: NextRequest) {
 
       if (sub === "auth") {
         const reauth = url.searchParams.get("reauth") === "1";
-        if (state.authVerified && !reauth) {
+        if (state.identityRegistered && !reauth) {
           const next = safeNextPath(url.searchParams.get("next"), "");
           if (next.startsWith(`/games/${gameSlug}/`) && !next.startsWith(`/games/${gameSlug}/auth`)) {
             return mergeCookies(response, NextResponse.redirect(new URL(next, request.url)));
@@ -119,7 +119,7 @@ export async function proxy(request: NextRequest) {
 
       if (sub === "clan") {
         if (rest.length === 1) {
-          if (!state.authVerified) {
+          if (!state.identityRegistered) {
             const r = NextResponse.redirect(
               new URL(
                 `/games/${encodeURIComponent(gameSlug)}/auth?next=${encodeURIComponent(nextTarget)}`,
@@ -147,7 +147,7 @@ export async function proxy(request: NextRequest) {
         }
 
         const clanIdSeg = rest[1];
-        if (!state.authVerified) {
+        if (!state.identityRegistered) {
           const r = NextResponse.redirect(
             new URL(
               `/games/${encodeURIComponent(gameSlug)}/auth?next=${encodeURIComponent(nextTarget)}`,
@@ -178,7 +178,7 @@ export async function proxy(request: NextRequest) {
         return response;
       }
 
-      if (!state.authVerified) {
+      if (!state.identityRegistered) {
         const r = NextResponse.redirect(
           new URL(
             `/games/${encodeURIComponent(gameSlug)}/auth?next=${encodeURIComponent(nextTarget)}`,

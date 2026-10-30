@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { gameProfileIdentity } from "@/lib/game-auth/game-profile-identity";
 import type { ActionResult } from "./game-clan-onboarding";
 import type { AltAccountRow } from "@/components/profile/profile-game-alt-accounts";
 import { effectiveViewAltAccountRoles, viewAltAudience, viewAltAudienceCaption } from "@/lib/clan/view-alt-disclosure";
@@ -17,8 +18,9 @@ export async function loadOwnAltAccountsAction(gameSlug: string): Promise<OwnAlt
   const db: SupabaseClient<Database> = await createClient();
   const { data: { user } } = await db.auth.getUser();
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
-  const game = await db.from("user_game_profiles").select("game_id,games!inner(slug,name_ko)").eq("user_id", user.id).eq("is_verified", true).eq("games.slug", gameSlug).maybeSingle();
-  if (game.error || !game.data) return { ok: false, error: "인증된 본인 게임 계정에서만 편집할 수 있습니다." };
+  const game = await db.from("user_game_profiles").select("game_id,battle_tag,riot_id,game_uid,games!inner(slug,name_ko)").eq("user_id", user.id).eq("games.slug", gameSlug).maybeSingle();
+  if (game.error || !gameProfileIdentity(gameSlug, game.data)) return { ok: false, error: "게임 ID를 등록한 본인 계정에서만 편집할 수 있습니다." };
+  if (!game.data) return { ok: false, error: "게임 정보를 찾을 수 없습니다." };
   const linked = game.data;
   const [rows, memberships] = await Promise.all([
     db.from("user_alt_accounts").select("id,game_id,alt_nick,note").eq("user_id", user.id).eq("game_id", linked.game_id).order("alt_nick"),
@@ -43,8 +45,8 @@ export async function updateUserAltAccountAction(input: { id: string; altNick: s
   if (!user) return { ok: false, error: "로그인이 필요합니다." };
   const row = await db.from("user_alt_accounts").select("game_id").eq("id", id).eq("user_id", user.id).maybeSingle();
   if (row.error || !row.data) return { ok: false, error: "수정 가능한 부계정을 찾을 수 없습니다." };
-  const game = await db.from("user_game_profiles").select("game_id").eq("user_id", user.id).eq("game_id", row.data.game_id).eq("is_verified", true).maybeSingle();
-  if (game.error || !game.data) return { ok: false, error: "이 게임을 먼저 인증해야 수정할 수 있습니다." };
+  const game = await db.from("user_game_profiles").select("game_id,battle_tag,riot_id,game_uid,games!inner(slug)").eq("user_id", user.id).eq("game_id", row.data.game_id).maybeSingle();
+  if (game.error || !gameProfileIdentity(game.data?.games.slug ?? "", game.data)) return { ok: false, error: "게임 ID를 먼저 등록해야 수정할 수 있습니다." };
   const note = typeof input.note === "string" ? input.note.trim().slice(0, 500) : "";
   const updated = await db.from("user_alt_accounts").update({ alt_nick: nick, note: note || null }).eq("id", id).eq("user_id", user.id).eq("game_id", row.data.game_id).select("id");
   if (updated.error) return { ok: false, error: updated.error.code === "23505" ? "같은 게임에서 이미 같은 닉네임이 등록되어 있습니다." : "부계정을 수정하지 못했습니다." };
@@ -83,15 +85,15 @@ export async function addUserAltAccountAction(input: {
 
   const { data: gp, error: gpErr } = await supabase
     .from("user_game_profiles")
-    .select("game_id")
+    .select("game_id,battle_tag,riot_id,game_uid,games!inner(slug)")
     .eq("user_id", user.id)
     .eq("game_id", input.gameId)
-    .eq("is_verified", true)
     .maybeSingle();
 
   if (gpErr) return { ok: false, error: gpErr.message };
-  if (!gp?.game_id) {
-    return { ok: false, error: "이 게임을 먼저 인증해야 부계동을 추가할 수 있습니다." };
+  const game = Array.isArray(gp?.games) ? gp.games[0] : gp?.games;
+  if (!gp?.game_id || !gameProfileIdentity(game?.slug ?? "", gp)) {
+    return { ok: false, error: "게임 ID를 먼저 등록해야 부계정을 추가할 수 있습니다." };
   }
 
   const note = (input.note ?? "").trim();

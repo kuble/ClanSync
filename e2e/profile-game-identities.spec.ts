@@ -33,6 +33,7 @@ test("게임 이름으로 클랜을 선택하고 모바일·스와이프·키보
     await expect(dots.filter({ hasText: "오버워치" })).toHaveCount(1);
     await expect(dots.filter({ hasText: "발로란트" })).toHaveCount(1);
     await expect(cards).toHaveCount(2);
+    await expect(ow.getByLabel("오버워치 계정 인증 상태", { exact: true })).toContainText("인증됨");
     await expect(cards.getByRole("img")).toHaveCount(0);
     await expect(ow.locator('a[href*="/clan/"]').locator("..")).toContainText("클랜장");
     await expect(val.locator('a[href*="/clan/"]').locator("..")).toContainText("멤버");
@@ -92,15 +93,15 @@ test("게임 이름으로 클랜을 선택하고 모바일·스와이프·키보
     await expect(identity.getByRole("article").locator("[data-namecard]")).toContainText(riotId);
     await expect(identity.getByRole("toolbar", { name: "네임카드 도구", exact: true })).toHaveCount(1);
     await namecard.getByRole("button", { name: "네임카드 꾸미기", exact: true }).click();
-    await expect(page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true }).locator("[data-namecard]")).toContainText(riotId);
+    await expect(page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true }).locator('[data-namecard][data-compact="false"]')).toContainText(riotId);
     await page.keyboard.press("Escape");
     expect((await f.service.from("user_game_profiles").update({ is_verified: false }).eq("user_id", f.users[0].id).eq("game_id", game.data!.id)).error).toBeNull();
     await page.reload();
     await next.click();
-    await expect(identity.getByRole("article").locator("[data-namecard]").getByText("Player", { exact: true })).toBeVisible();
-    await expect(identity.getByRole("article")).not.toContainText(riotId);
+    await expect(identity.getByRole("article").locator("[data-namecard]")).toContainText(riotId);
+    await expect(identity.getByLabel("발로란트 계정 인증 상태", { exact: true })).toContainText("미인증");
     await namecard.getByRole("button", { name: "네임카드 꾸미기", exact: true }).click();
-    await expect(page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true }).locator("[data-namecard]")).toContainText("Player");
+    await expect(page.getByRole("dialog", { name: "네임카드 꾸미기", exact: true }).locator('[data-namecard][data-compact="false"]')).toContainText(riotId);
     await page.keyboard.press("Escape");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     await page.goto("/games");

@@ -13,7 +13,8 @@ test("personal banners use game-specific BattleTags and signup details within pe
     expect((await f.service.from("users").update({ gender: "female", birth_year: 1997 }).eq("id", f.users[1].id)).error).toBeNull();
     expect((await f.service.from("users").update({ gender: "undisclosed", birth_year: 2002 }).eq("id", f.users[2].id)).error).toBeNull();
     // Legacy tag in game_uid must still win over an unrelated website nickname.
-    expect((await f.service.from("user_game_profiles").update({ game_uid: tag }).eq("game_id", f.gameId).eq("user_id", f.users[1].id)).error).toBeNull();
+    expect((await f.service.from("user_game_profiles").update({ game_uid: tag, battle_tag: null }).eq("game_id", f.gameId).eq("user_id", f.users[1].id)).error).toBeNull();
+    expect((await f.service.from("user_game_profiles").update({ battle_tag: null }).eq("game_id", f.gameId).eq("user_id", f.users[2].id)).error).toBeNull();
     expect((await f.service.from("user_game_profiles").update({ battle_tag: `NewTag#${suffix}` }).eq("game_id", f.gameId).eq("user_id", f.users[0].id)).error).toBeNull();
     expect((await f.service.from("clan_members").delete().eq("clan_id", f.clanId).eq("user_id", f.users[3].id)).error).toBeNull();
     expect((await f.service.from("clan_settings").update({ hof_config: { personal_record_min_role: "member", member_personal_sections: ["records"] } }).eq("clan_id", f.clanId)).error).toBeNull();

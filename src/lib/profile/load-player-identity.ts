@@ -2,7 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { createServiceRoleClient } from "@/lib/supabase/service";
-import { parseBattleTag } from "@/lib/game-auth/battle-tag";
+import { gameProfileIdentity } from "@/lib/game-auth/game-profile-identity";
 import { namecardAppearance } from "./namecard";
 import type { PlayerIdentity, PlayerProfileVisit } from "./visibility";
 import { effectiveViewAltAccountRoles } from "@/lib/clan/view-alt-disclosure";
@@ -23,10 +23,10 @@ export async function loadPlayerIdentity(db: SupabaseClient<Database>, userId: s
   if (catalog.error || selections.error || linkedGames.error) throw new Error("플레이어 소개를 불러오지 못했습니다.");
   return {
     userId: profile.userId, intro: profile.intro ?? "", memberships: profile.memberships,
-    ...(clanProfile ? { clanProfile: { ...clanProfile, ...(viewerId === userId && linkedGames.data.some(game => game.is_verified && game.games?.slug === membership?.gameSlug) ? { canManageAlts: true as const } : {}) } } : {}),
+    ...(clanProfile ? { clanProfile: { ...clanProfile, ...(viewerId === userId && linkedGames.data.some(game => game.games?.slug === membership?.gameSlug && !!gameProfileIdentity(game.games.slug,game)) ? { canManageAlts: true as const } : {}) } } : {}),
     appearance: namecardAppearance(catalog.data, selections.data),
     games: linkedGames.data.flatMap(game => game.games ? [{ gameSlug: game.games.slug, gameName: game.games.name_ko,
-      accountId: game.is_verified ? (game.games.slug === "overwatch" ? parseBattleTag(game.battle_tag || game.game_uid) : ["valorant", "lol"].includes(game.games.slug) ? game.riot_id : null) : null,
+      accountId: gameProfileIdentity(game.games.slug,game), isVerified: game.is_verified,
     }] : []),
   };
 }

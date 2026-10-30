@@ -68,7 +68,7 @@ export default async function MainGamePage({
     state.clanStatus === "member" ? (state.clanId ?? null) : null;
 
   const canPostPromo = state.clanStatus === "member" && !!state.clanId;
-  const canCreateLfg = state.authVerified;
+  const canCreateLfg = state.identityRegistered;
 
   return (
     <MainGameCommunityTabs

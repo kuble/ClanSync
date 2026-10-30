@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
+import { gameProfileIdentity } from "@/lib/game-auth/game-profile-identity";
 import {
   fetchMyClanJoinRequests,
   filterPendingJoinsForGame,
@@ -18,6 +19,7 @@ export type GameOnboardingState = {
   gameId: string;
   slug: string;
   authVerified: boolean;
+  identityRegistered: boolean;
   clanStatus: ClanOnboardingStatus;
   clanId: string | null;
   clanName: string | null;
@@ -44,7 +46,7 @@ export async function loadGameOnboarding(
   const [{ data: ugp }, { data: myClanRows }] = await Promise.all([
     supabase
       .from("user_game_profiles")
-      .select("is_verified")
+      .select("is_verified,battle_tag,riot_id,game_uid")
       .eq("user_id", userId)
       .eq("game_id", game.id)
       .maybeSingle(),
@@ -52,6 +54,7 @@ export async function loadGameOnboarding(
   ]);
 
   const authVerified = ugp?.is_verified === true;
+  const identityRegistered = gameProfileIdentity(game.slug, ugp) !== null;
 
   const myClan = myClanRows?.[0];
   if (myClan?.clan_id) {
@@ -59,6 +62,7 @@ export async function loadGameOnboarding(
       gameId: game.id,
       slug: game.slug,
       authVerified,
+      identityRegistered,
       clanStatus: "member",
       clanId: myClan.clan_id,
       clanName: myClan.clan_name,
@@ -82,6 +86,7 @@ export async function loadGameOnboarding(
       gameId: game.id,
       slug: game.slug,
       authVerified,
+      identityRegistered,
       clanStatus: "none",
       clanId: null,
       clanName: null,
@@ -115,6 +120,7 @@ export async function loadGameOnboarding(
     gameId: game.id,
     slug: game.slug,
     authVerified,
+    identityRegistered,
     clanStatus: "pending",
     clanId: pendingRow.clan_id,
     clanName,

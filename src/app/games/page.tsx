@@ -1,3 +1,4 @@
+import { gameProfileIdentity } from "@/lib/game-auth/game-profile-identity";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ChevronDown, LogOut, UserRound } from "lucide-react";
@@ -27,14 +28,14 @@ export default async function GamesPage() {
     { data: myJoinRows, error: pendingError },
   ] = await Promise.all([
     supabase.from("games").select("id, slug, name_ko, is_active").order("slug"),
-    supabase.from("user_game_profiles").select("game_id, is_verified").eq("user_id", user.id),
+    supabase.from("user_game_profiles").select("game_id,battle_tag,riot_id,game_uid").eq("user_id", user.id),
     supabase.rpc("my_active_clans_by_game"),
     fetchMyClanJoinRequests(supabase),
   ]);
 
   const loadError = gameError ?? verificationError ?? membershipError ?? pendingError;
   if (loadError) console.error("[games] 목록 조회 실패:", loadError.message);
-  const verified = new Map((ugRows ?? []).map((row) => [row.game_id, row.is_verified === true]));
+  const registered = new Map((ugRows ?? []).map((row) => [row.game_id, gameProfileIdentity(games?.find(game => game.id === row.game_id)?.slug ?? "", row) !== null]));
   const memberByGame = new Map<string, { clanId: string; clanName: string }>();
   for (const row of activeByGame ?? []) {
     if (!memberByGame.has(row.game_id)) memberByGame.set(row.game_id, { clanId: row.clan_id, clanName: row.clan_name });
@@ -67,7 +68,7 @@ export default async function GamesPage() {
         slug: game.slug,
         title: game.name_ko,
         emoji: EMOJI[game.slug] ?? "🎮",
-        auth: verified.get(game.id) ?? false,
+        auth: registered.get(game.id) ?? false,
         clanStatus,
         clanId: member?.clanId ?? pending?.clanId ?? null,
         clanName: member?.clanName ?? pending?.clanName ?? null,

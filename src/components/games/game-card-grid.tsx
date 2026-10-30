@@ -10,9 +10,9 @@ import styles from "@/components/entry/entry.module.css";
 function statusLabel(card: GameCardState): { dot: string; text: string } {
   if (card.disabled) return { dot: "bg-zinc-500", text: "출시 예정" };
   if (!card.auth) {
-    if (card.clanStatus === "pending") return { dot: "bg-red-500", text: "계정 미연동 · 신청 보류" };
-    if (card.clanStatus === "member") return { dot: "bg-amber-400", text: "계정 재연동 필요" };
-    return { dot: "bg-red-500", text: "계정 미연동" };
+    if (card.clanStatus === "pending") return { dot: "bg-red-500", text: "게임 ID 미등록 · 신청 보류" };
+    if (card.clanStatus === "member") return { dot: "bg-amber-400", text: "게임 ID 입력 필요" };
+    return { dot: "bg-red-500", text: "게임 ID 미등록" };
   }
   if (card.clanStatus === "none") return { dot: "bg-sky-400", text: "클랜 찾는 중" };
   if (card.clanStatus === "pending" && card.clanName) return { dot: "bg-sky-400", text: `${card.clanName} 가입 신청 중` };

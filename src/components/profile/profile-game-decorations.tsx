@@ -11,7 +11,7 @@ import { ProfileRolePreferences } from "./profile-role-preferences";
 import type { ProfileMembership } from "./profile-identity";
 import styles from "./profile.module.css";
 
-export type DecorationGame = { gameId: string; slug: string; nameKo: string; accountId?: string; linked?: boolean; isActive?: boolean };
+export type DecorationGame = { gameId: string; slug: string; nameKo: string; accountId?: string; isVerified?: boolean; linked?: boolean; isActive?: boolean };
 type Props = {
   games: DecorationGame[]; userId: string; verifiedGameIds: string[];
   memberships: ProfileMembership[];
@@ -31,7 +31,7 @@ function GameAccount({ game, userId, verifiedGameIds, memberships, preferences }
   const available = game.isActive !== false && Boolean(getGameAuthConfig(game.slug)?.oauthReady);
   const clans = memberships.filter((item) => item.gameSlug === game.slug);
   return <section className={styles.gameAccount} aria-label={`${game.nameKo} 관리`}>
-    <div className={styles.gameHeader}><button type="button" aria-label={`${game.nameKo} 게임 정보`} aria-expanded={open} aria-controls={id} onClick={() => setOpen(!open)}><GameLogo slug={game.slug} name={game.nameKo} /><span>{game.nameKo}</span>{verified ? <BadgeCheck size={16} className="text-primary" role="img" aria-label={`${game.nameKo} 계정 연동됨`} /> : <CircleDashed size={16} role="img" aria-label={`${game.nameKo} 계정 미연동`} className="text-muted-foreground" />}<ChevronDown size={16} className={styles.gameChevron} data-open={open} /></button>{available ? <Link href={`/games/${game.slug}/auth?next=/profile`} aria-label={`${game.nameKo} ${verified ? "계정 변경" : "계정 연결"}`} className={buttonVariants({ variant: "outline", size: "sm" })}>{verified ? "계정 변경" : "계정 연결"}</Link> : <span className={styles.label}>연동 준비 중</span>}</div>
+    <div className={styles.gameHeader}><button type="button" aria-label={`${game.nameKo} 게임 정보`} aria-expanded={open} aria-controls={id} onClick={() => setOpen(!open)}><GameLogo slug={game.slug} name={game.nameKo} /><span>{game.nameKo}</span>{verified ? <BadgeCheck size={16} className="text-primary" role="img" aria-label={`${game.nameKo} 계정 인증됨`} /> : <CircleDashed size={16} role="img" aria-label={`${game.nameKo} ${game.accountId ? "계정 미인증" : "게임 ID 미등록"}`} className="text-muted-foreground" />}<ChevronDown size={16} className={styles.gameChevron} data-open={open} /></button>{available ? <Link href={`/games/${game.slug}/auth?reauth=1&next=/profile`} aria-label={`${game.nameKo} ${game.accountId ? "게임 ID 수정" : "게임 ID 입력"}`} className={buttonVariants({ variant: "outline", size: "sm" })}>{verified ? "계정 변경" : "계정 연결"}</Link> : <span className={styles.label}>연동 준비 중</span>}</div>
     <div id={id} hidden={!open} className={styles.gameContent}>
       {!game.linked && <p className={styles.sectionText}>{available ? "게임 계정을 연결하면 관련 정보를 관리할 수 있습니다." : "계정 연동이 제공되면 이곳에서 안내합니다."}</p>}
       {game.linked && <ProfileRolePreferences games={[game]} preferences={preferences.filter((item) => item.game_id === game.gameId)} />}

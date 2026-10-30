@@ -57,7 +57,7 @@ export async function createIsolatedBalanceFixture(userCount = 12) {
     for (let index = 0; index < userCount; index++) {
       const email = `balance-ui-${tag}-${index}@clansync-qa.local`;
       const password = `${randomUUID()}aA1!`;
-      const nickname = `ui${tag.slice(0, 4)}_${String(index).padStart(2, "0")}`;
+      const nickname = `ui${tag.slice(0, 4)}${String(index).padStart(2, "0")}#${1000 + index}`;
       const { data, error } = await service.auth.admin.createUser({
         email,
         password,
@@ -75,6 +75,7 @@ export async function createIsolatedBalanceFixture(userCount = 12) {
           user_id: user.id,
           game_id: game.id,
           game_uid: `balance_ui_${tag}_${user.id}`,
+          battle_tag: user.nickname,
           is_verified: true,
           verified_at: new Date().toISOString(),
         })),

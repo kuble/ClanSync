@@ -1,6 +1,6 @@
 import "server-only";
 import { createServiceRoleClient } from "@/lib/supabase/service";
-import { parseBattleTag } from "./battle-tag";
+import { gameProfileIdentity } from "./game-profile-identity";
 
 /** Call after authorizing the parent view; return only its requested game identities. */
 export async function loadGamePlayerNames(gameId: string, userIds: string[]) {
@@ -10,12 +10,11 @@ export async function loadGamePlayerNames(gameId: string, userIds: string[]) {
   for (let offset = 0; offset < ids.length; offset += 500) {
     const { data, error } = await service.from("user_game_profiles")
       .select("user_id,battle_tag,riot_id,game_uid,games!inner(slug)")
-      .eq("game_id", gameId).eq("is_verified", true).in("user_id", ids.slice(offset, offset + 500));
+      .eq("game_id", gameId).in("user_id", ids.slice(offset, offset + 500));
     if (error) throw new Error("게임 ID를 불러오지 못했습니다.");
     for (const row of data) {
       const game = Array.isArray(row.games) ? row.games[0] : row.games;
-      const name = game?.slug === "overwatch" ? parseBattleTag(row.battle_tag || row.game_uid)
-        : ["valorant", "lol"].includes(game?.slug) ? row.riot_id?.trim() : null;
+      const name = gameProfileIdentity(game?.slug ?? "", row);
       if (name) names.set(row.user_id, name);
     }
   }

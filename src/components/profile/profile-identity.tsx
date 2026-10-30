@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useId, useRef, useState, type ReactNode } from "react";
-import { UsersRound } from "lucide-react";
+import { BadgeCheck, ShieldX, UsersRound } from "lucide-react";
 import { GameLogo } from "@/components/ui/game-logo";
 import { PersonalEmblemCaseLauncher } from "@/components/personal-emblems/personal-emblem-case";
 import { ProfileIntro } from "./profile-intro";
@@ -12,7 +12,7 @@ import { ProfileAltAccountsEditor } from "./profile-alt-accounts-editor";
 import type { NamecardAppearance, NamecardResult } from "@/lib/profile/namecard";
 import styles from "./profile.module.css";
 
-export type ProfileGameIdentity = { gameSlug: string; gameName: string; accountId?: string | null; altAccounts?: string[]; canManageAlts?: boolean };
+export type ProfileGameIdentity = { gameSlug: string; gameName: string; accountId?: string | null; isVerified?: boolean; altAccounts?: string[]; canManageAlts?: boolean };
 export type ProfileMembership = ProfileGameIdentity & { clanId: string; clanName: string; role: string };
 type ProfileSlide = ProfileGameIdentity & Partial<Pick<ProfileMembership, "clanId" | "clanName" | "role">>;
 
@@ -55,11 +55,16 @@ export function ProfileIdentity({ userId, intro, memberships, games = [], nameca
           {index === current && tools}
         </div>}
         <div className={styles.clanAccountId}><Namecard displayName={membership.accountId || "Player"} {...appearance} /></div>
+        <div className={styles.gameVerification} aria-label={`${membership.gameName} 계정 인증 상태`}>
+          {membership.accountId && membership.isVerified ? <BadgeCheck size={14} aria-hidden="true" /> : <ShieldX size={14} aria-hidden="true" />}
+          <span>{!membership.accountId ? "미등록" : membership.isVerified === undefined ? "인증 확인 중" : membership.isVerified ? "인증됨" : "미인증"}</span>
+          {!readOnly && <Link href={`/games/${membership.gameSlug}/auth?reauth=1&next=/profile`}>{membership.accountId ? "게임 ID 수정" : membership.gameSlug === "overwatch" ? "배틀태그 입력" : "게임 ID 입력"}</Link>}
+        </div>
         <div className={styles.profileAlts} role="region" aria-label="부계정" tabIndex={0} data-empty={!membership.altAccounts?.length || undefined} data-editable={membership.canManageAlts || undefined}><span><UsersRound size={14} aria-hidden="true" />부계정</span><div>{membership.altAccounts?.length ? membership.altAccounts.map(nickname => <span key={nickname} className={styles.altTag}>{nickname}</span>) : <span className={styles.altEmpty}>{membership.altAccounts === undefined ? "불러오는 중…" : readOnly ? "공개된 부계정 없음" : "등록된 부계정 없음"}</span>}</div>{membership.canManageAlts && <ProfileAltAccountsEditor key={userId + membership.gameSlug} gameSlug={membership.gameSlug} onChanged={onAltAccountsChanged} />}</div>
       </article>)}
       </div>
       <span className="sr-only" role="status" aria-label="현재 클랜" aria-live="polite">{current + 1} / {profiles.length}</span>
-    </div> : <div className={styles.playerClan}>{!namecard && <h2 className={styles.identityHeading}>게임 프로필</h2>}{tools && <div className={styles.clanProfileHeading}>{tools}</div>}<Namecard displayName="Player" {...appearance} />{!readOnly && <><p>클랜에서 함께한 기록이 이곳에 쌓입니다.</p><Link href="/games" className={styles.playerClanLink}>클랜 찾아보기</Link></>}</div>;
+    </div> : <div className={styles.playerClan}>{!namecard && <h2 className={styles.identityHeading}>게임 프로필</h2>}{tools && <div className={styles.clanProfileHeading}>{tools}</div>}<Namecard displayName="Player" {...appearance} /><div className={styles.gameVerification}><ShieldX size={14} aria-hidden="true" /><span>게임 ID 미등록</span>{!readOnly && <Link href="/games">게임 ID 입력</Link>}</div>{!readOnly && <><p>클랜에서 함께한 기록이 이곳에 쌓입니다.</p><Link href="/games" className={styles.playerClanLink}>클랜 찾아보기</Link></>}</div>;
   return <section className={styles.playerIdentity} data-read-only={readOnly || undefined} aria-label="플레이어 소개">
     <div className={styles.identityMain}>
       {namecard && !readOnly ? <ProfileNamecard initial={namecard} displayName={profiles[current]?.accountId || "Player"}>{gameProfiles}</ProfileNamecard> : gameProfiles()}

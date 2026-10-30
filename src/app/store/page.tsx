@@ -16,7 +16,7 @@ export default async function PersonalStorePage() {
     loadNamecard(user.id),
     db.from("store_items").select("id,price_coins").eq("slug", "profile_entrance_fx").eq("pool_source", "personal").eq("is_active", true).maybeSingle(),
     db.from("clan_members").select("clan_id,clans!inner(subscription_tier,games!inner(slug))").eq("user_id", user.id).eq("status", "active").order("clan_id"),
-    db.from("user_game_profiles").select("game_uid,battle_tag,riot_id,games!inner(slug)").eq("user_id", user.id).eq("is_verified", true),
+    db.from("user_game_profiles").select("game_uid,battle_tag,riot_id,games!inner(slug)").eq("user_id", user.id),
   ]);
   const contexts = (memberships.data ?? []).flatMap(member => {
     const clan = Array.isArray(member.clans) ? member.clans[0] : member.clans;

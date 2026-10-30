@@ -7,7 +7,7 @@
 - QA 확인: `npm run db:test:types` → 생성 타입 대조·동기화 → `npm run db:schema:index`.
 - RLS·제약·함수 본문은 타입에 포함되지 않으므로 해당 마이그레이션을 확인한다. 운영 반영은 별도 승인 범위다.
 
-테이블 66개 · 함수 104개 · 열거형 35개.
+테이블 66개 · 함수 105개 · 열거형 35개.
 
 ## 테이블
 
@@ -160,6 +160,7 @@
 - `save_clan_participant`
 - `save_clan_stats_settings`
 - `save_manual_clan_event`
+- `save_my_game_identity`
 - `save_profile_role_preference`
 - `save_round_role_preference`
 - `select_my_clan_join_requests`

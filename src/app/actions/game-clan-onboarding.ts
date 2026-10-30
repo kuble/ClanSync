@@ -1,4 +1,5 @@
 "use server";
+import { gameProfileIdentity } from "@/lib/game-auth/game-profile-identity";
 import { parseRiotId } from "@/lib/game-auth/riot-id";
 import { safeNextPath } from "@/lib/auth/safe-next-path";
 
@@ -153,12 +154,12 @@ export async function createClanAndLeadAction(
 
   const { data: ugp } = await supabase
     .from("user_game_profiles")
-    .select("is_verified")
+    .select("battle_tag,riot_id,game_uid")
     .eq("user_id", user.id)
     .eq("game_id", game.id)
     .maybeSingle();
-  if (!ugp?.is_verified) {
-    return { ok: false, error: "먼저 게임 계정을 연동해 주십시오." };
+  if (!gameProfileIdentity(gameSlug, ugp)) {
+    return { ok: false, error: "먼저 게임 ID를 등록해 주십시오." };
   }
 
   const name = String(formData.get("name") ?? "").trim();
@@ -275,12 +276,12 @@ export async function submitClanJoinRequestAction(
 
   const { data: ugp } = await supabase
     .from("user_game_profiles")
-    .select("is_verified")
+    .select("battle_tag,riot_id,game_uid")
     .eq("user_id", user.id)
     .eq("game_id", game.id)
     .maybeSingle();
-  if (!ugp?.is_verified) {
-    return { ok: false, error: "먼저 게임 계정을 연동해 주십시오." };
+  if (!gameProfileIdentity(gameSlug, ugp)) {
+    return { ok: false, error: "먼저 게임 ID를 등록해 주십시오." };
   }
 
   const { data: clan } = await supabase

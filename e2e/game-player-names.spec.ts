@@ -9,7 +9,7 @@ test("live names use verified game IDs despite unrelated legacy nicknames", asyn
   const f = await createIsolatedBalanceFixture(4);
   const leader = await f.memberClient(0), outsider = await f.memberClient(3);
   let valorantClan: string | null = null;
-  const names = ["SameName#1001", "SameName#2002", "게임 ID 미등록"];
+  const names = ["SameName#1001", "SameName#2002", "Unverified#3003"];
   try {
     for (let i = 0; i < 3; i++) {
       expect((await f.service.from("user_game_profiles").update({ battle_tag: i < 2 ? names[i] : "Unverified#3003", is_verified: i < 2 }).eq("user_id", f.users[i].id).eq("game_id", f.gameId)).error).toBeNull();
@@ -31,7 +31,7 @@ test("live names use verified game IDs despite unrelated legacy nicknames", asyn
     expect(appearances[f.users[2].id].displayName).toBe(names[2]);
     const mapped = await loadGamePlayerNames(f.gameId, f.users.map(u => u.id));
     expect(mapped.get(f.users[0].id)).toBe(names[0]);
-    expect(mapped.has(f.users[2].id)).toBe(false);
+    expect(mapped.get(f.users[2].id)).toBe(names[2]);
 
     const guestId = randomUUID();
     const guest = await f.service.from("clan_participants").insert({ clan_id: f.clanId, id: guestId, is_guest: true, nickname: "게스트 기록명", alias: "기록 구분" });
@@ -65,6 +65,8 @@ test("live names use verified game IDs despite unrelated legacy nicknames", asyn
     expect((await leader.rpc("open_balance_room", { p_clan_id: f.clanId, p_room_id: room.data!.id })).error).toBeNull();
     expect((await f.service.from("user_game_profiles").update({ battle_tag: null }).eq("game_id", f.gameId).eq("user_id", f.users[0].id)).error).toBeNull();
     expect((await f.service.from("users").update({ nickname: "LegacyAccount0" }).eq("id", f.users[0].id)).error).toBeNull();
+    await page.context().clearCookies();
+    await loginIsolatedBalanceUser(page, f.users[1]);
     await page.goto(`${f.path}?room=${room.data!.id}`);
     await expect(page.getByText("호스트 · 게임 ID 미등록", { exact: true })).toBeVisible();
     await expect(page.getByRole("main")).not.toContainText("LegacyAccount0");

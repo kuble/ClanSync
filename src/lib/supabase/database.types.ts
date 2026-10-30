@@ -3863,6 +3863,10 @@ export type Database = {
         }
         Returns: string
       }
+      save_my_game_identity: {
+        Args: { p_game_slug: string; p_identity: string }
+        Returns: undefined
+      }
       save_profile_role_preference: {
         Args: { p_game_id: string; p_ranking: string[] }
         Returns: undefined

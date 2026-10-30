@@ -5,6 +5,7 @@ export type ClanStatus = "none" | "pending" | "member";
 
 export type GameCardState = {
   slug: string;
+  /** Entry requires a registered game ID; verification is a separate profile status. */
   auth: boolean;
   clanStatus: ClanStatus;
   clanId: string | null;

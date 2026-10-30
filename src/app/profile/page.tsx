@@ -14,7 +14,7 @@ import { AccountShell } from "@/components/onboarding/account-shell";
 import { ProfilePanels } from "@/components/profile/profile-panels";
 import { ProfileAutoLogin } from "@/components/profile/profile-auto-login";
 import { loadNamecard } from "@/lib/profile/load-namecard";
-import { profileBattleTag } from "@/lib/game-auth/battle-tag";
+import { gameProfileIdentity } from "@/lib/game-auth/game-profile-identity";
 import { cookies } from "next/headers";
 import { getSessionMaxAge, REMEMBERED_SESSION_SECONDS } from "@/lib/supabase/session-cookies";
 import styles from "@/components/profile/profile.module.css";
@@ -158,7 +158,7 @@ export default async function ProfilePage() {
         | null;
       const g = Array.isArray(gRaw) ? gRaw[0] : gRaw;
       if (!g) return null;
-      return { gameId: g.id, slug: g.slug, nameKo: g.name_ko, accountId: r.is_verified ? (g.slug === "overwatch" ? profileBattleTag(r) ?? undefined : r.riot_id ?? undefined) : undefined, linked: true };
+      return { gameId: g.id, slug: g.slug, nameKo: g.name_ko, accountId: gameProfileIdentity(g.slug,r) ?? undefined, isVerified: r.is_verified, linked: true };
     })
     .filter((x): x is DecorationGame => x !== null);
 
@@ -183,14 +183,14 @@ export default async function ProfilePage() {
   const memberships: ProfileMembership[] = membershipRows.flatMap((membership) => {
     const clan = Array.isArray(membership.clans) ? membership.clans[0] : membership.clans;
     const game = Array.isArray(clan?.games) ? clan.games[0] : clan?.games;
-    return game ? [{ clanId: membership.clan_id, clanName: clan.name, gameSlug: game.slug, gameName: game.name_ko, role: membership.role, accountId: linkedGames.find((linked) => linked.gameId === clan.game_id)?.accountId ?? null, altAccounts: (altRowsRaw ?? []).filter(alt => alt.game_id === clan.game_id).map(alt => alt.alt_nick), canManageAlts: verifiedGameIds.includes(clan.game_id) }] : [];
+    return game ? [{ clanId: membership.clan_id, clanName: clan.name, gameSlug: game.slug, gameName: game.name_ko, role: membership.role, accountId: linkedGames.find((linked) => linked.gameId === clan.game_id)?.accountId ?? null, isVerified: linkedGames.find(linked => linked.gameId === clan.game_id)?.isVerified ?? false, altAccounts: (altRowsRaw ?? []).filter(alt => alt.game_id === clan.game_id).map(alt => alt.alt_nick), canManageAlts: !!linkedGames.find(linked => linked.gameId === clan.game_id)?.accountId }] : [];
   });
 
   return <AccountShell context="프로필"><main className={styles.page}>
     <ProfilePanels overview={
       <div className={styles.profileHero} data-testid="profile-hero">
       <ProfileIdentity key={`identity:${user.id}`} userId={user.id} intro={intro} memberships={memberships} namecard={namecard}
-        games={linkedGames.map((game) => ({ gameSlug: game.slug, gameName: game.nameKo, accountId: game.accountId, altAccounts: (altRowsRaw ?? []).filter(alt => alt.game_id === game.gameId).map(alt => alt.alt_nick), canManageAlts: verifiedGameIds.includes(game.gameId) }))}>
+        games={linkedGames.map((game) => ({ gameSlug: game.slug, gameName: game.nameKo, accountId: game.accountId, isVerified: game.isVerified, altAccounts: (altRowsRaw ?? []).filter(alt => alt.game_id === game.gameId).map(alt => alt.alt_nick), canManageAlts: !!game.accountId }))}>
         {row && <section className={styles.identityFacts} aria-label="기본 정보"><dl>
           <div><dt>성별</dt><dd>{genderLabel(String(row.gender))}</dd></div>
           <div><dt>출생 연도</dt><dd>{row.birth_year ?? "미등록"}</dd></div>
