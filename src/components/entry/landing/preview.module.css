@@ -75,8 +75,16 @@
 .closing h2 { font-size: clamp(28px, 3.2vw, 40px); font-weight: 650; line-height: 1.4; letter-spacing: -.045em; word-break: keep-all; }
 .closing p { margin-top: 18px; color: var(--muted-foreground); font-size: 15px; }
 .closing .primary { margin-top: 26px; }
-.footer { max-width: 1152px; margin: 40px auto 0; padding: 28px 24px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 18px; color: var(--muted-foreground); font-size: 11px; line-height: 1.7; }
-.footer nav { display: flex; flex-wrap: wrap; gap: 22px; }
+.footer { margin-top: 76px; border-top: 1px solid var(--landing-line); background: color-mix(in srgb, var(--surface) 35%, var(--background)); color: var(--muted-foreground); }
+.footerInner { max-width: 1152px; margin-inline: auto; padding: 36px 24px 28px; }
+.footerTop { display: flex; justify-content: space-between; align-items: flex-start; gap: 32px; }
+.footerTop > a { margin-top: 10px; }
+.footerMenu { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.footerLinks { display: flex; flex-wrap: wrap; gap: 4px 28px; }
+.footerLinks button { min-height: 44px; padding: 0; color: var(--muted-foreground); font-size: 13px; line-height: 1.6; white-space: nowrap; }
+.footerLinks .footerPolicy { color: var(--foreground); font-weight: 600; }
+.footerPending { font-size: 11px; line-height: 1.7; }
+.footerBottom { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 24px; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--landing-line); font-size: 11px; line-height: 1.8; word-break: keep-all; }
 
 @media (prefers-reduced-motion: no-preference) {
   :global(html):has(.page) { scroll-behavior: smooth; }
@@ -131,8 +139,14 @@
   .closing { margin-inline: 20px; padding: 42px 18px; border-radius: 16px; }
   .closing h2 { font-size: clamp(23px, 6.2vw, 32px); }
   .closing p { font-size: 13px; }
-  .footer { margin-top: 24px; padding: 22px 20px; }
-  .footer > span:last-child { flex-basis: 100%; }
+  .footer { margin-top: 48px; }
+  .footerInner { padding: 30px 20px 24px; }
+  .footerTop { flex-direction: column; gap: 20px; }
+  .footerTop > a { margin-top: 0; }
+  .footerMenu { width: 100%; align-items: flex-start; }
+  .footerLinks { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); width: 100%; gap: 0 20px; }
+  .footerLinks button { text-align: left; }
+  .footerBottom { flex-direction: column; gap: 6px; margin-top: 24px; padding-top: 18px; }
 }
 @media (max-width: 360px) {
   .paginationControls [role="tab"] { padding-inline: 6px; font-size: 10px; gap: 4px; white-space: nowrap; }
