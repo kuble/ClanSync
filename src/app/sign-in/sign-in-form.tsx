@@ -3,23 +3,24 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
+import { ArrowRight, LoaderCircle } from "lucide-react";
 import type { AuthMessageState } from "@/app/actions/auth";
 import { signInAction } from "@/app/actions/auth";
 import { PasswordInput } from "@/components/entry/password-input";
 import { Switch } from "@/components/ui/switch";
-import styles from "@/components/entry/entry.module.css";
+import styles from "@/components/entry/sign-in.module.css";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
-  return <button type="submit" className={styles.submit} disabled={pending}>{pending ? "처리 중…" : "로그인"}</button>;
+  return <button type="submit" className={styles.submit} disabled={pending}>{pending ? <><LoaderCircle size={16} className={styles.spinner} aria-hidden="true" />로그인 중…</> : <>로그인 <ArrowRight size={16} aria-hidden="true" /></>}</button>;
 }
 
 export function SignInForm({ nextPath }: { nextPath: string }) {
   const [state, formAction] = useActionState<AuthMessageState, FormData>(signInAction, null);
   return (
     <>
-      <h1 className={styles.authHeading}>다시 오신 것을 환영합니다</h1>
-      <p className={styles.authSubtitle}>ClanSync 계정으로 로그인하십시오.</p>
+      <h1 id="sign-in-title" className={styles.authHeading}>다시 만나 반갑습니다.</h1>
+      <p className={styles.authSubtitle}>로그인하고 우리 클랜의 활동을 이어가세요.</p>
       <form action={formAction} className={styles.form}>
         <input type="hidden" name="next" value={nextPath} />
         {state?.error ? <p className={styles.error} role="alert" aria-live="polite">{state.error}</p> : null}
@@ -29,7 +30,7 @@ export function SignInForm({ nextPath }: { nextPath: string }) {
         </div>
         <div className={styles.field}>
           <label htmlFor="password">비밀번호</label>
-          <PasswordInput id="password" name="password" autoComplete="current-password" required placeholder="비밀번호를 입력하십시오" />
+          <PasswordInput id="password" name="password" autoComplete="current-password" required placeholder="비밀번호 입력" />
         </div>
         <div>
           <label className={styles.remember}>
@@ -40,7 +41,7 @@ export function SignInForm({ nextPath }: { nextPath: string }) {
         </div>
         <SubmitButton />
       </form>
-      <p className={styles.authFooter}>계정이 없으십니까? <Link href={`/sign-up?next=${encodeURIComponent(nextPath)}`}>회원가입</Link></p>
+      <p className={styles.authFooter}>계정이 없으신가요? <Link href={`/sign-up?next=${encodeURIComponent(nextPath)}`}>회원가입 <ArrowRight size={13} aria-hidden="true" /></Link></p>
     </>
   );
 }
