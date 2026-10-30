@@ -12,7 +12,7 @@ import type { ClanEmojiReaction } from "@/lib/clan/cosmetics";
 import styles from "./clan-comment.module.css";
 
 const dateFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric", weekday: "long" });
-const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", hour: "numeric", minute: "2-digit" });
+const timeFormat = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", hour: "numeric", minute: "2-digit", hourCycle: "h23" });
 const reactionOptions = COMMENT_REACTIONS.map(option => ({ ...option, value: option.kind }));
 
 type ClanComment = {
