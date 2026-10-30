@@ -1,0 +1,58 @@
+.frame { height: 560px; display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--border); border-radius: 14px; background: var(--card); }
+.canvas { height: 470px; min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 24px; }
+.frame figcaption { min-height: 88px; padding: 16px 24px; border-top: 1px solid var(--border); }
+.frame figcaption h3 { font-size: 16px; font-weight: 650; letter-spacing: -.025em; }
+.frame figcaption p { margin-top: 6px; font-size: 13px; line-height: 1.6; color: var(--muted-foreground); word-break: keep-all; }
+.frame [data-more-above] { height: auto; max-height: none; overflow: visible; mask-image: none !important; }
+.frame :global(.sticky) { position: static; }
+.frame table { min-width: 0; }
+.frame [data-slot="card"] { padding-block: 12px; gap: 12px; }
+.frame :global(.overflow-x-auto), .frame :global(.overflow-y-auto) { overflow: visible; }
+.formation { max-width: 720px; width: 100%; margin-inline: auto; }
+.formation > div { padding-block: 10px; }
+.formation [role="group"] { min-height: 0; }
+.ban { max-width: 780px; width: 100%; margin-inline: auto; }
+.ban [data-testid="hero-ban-results"] img { height: 96px; width: 88px; }
+.prediction { max-width: 600px; width: 100%; margin-inline: auto; }
+.prediction [aria-label="내전 예측 순위"], .prediction form { display: none; }
+.clan [aria-label="내전 통계 기간"], .clan [aria-label="내전 통계 내용"] > :global(.relative) { display: none; }
+.clan [aria-label="내전 통계 내용"] > :global(.grid) { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.clan :global(.min-h-16) { min-height: 0; }
+.clan [data-slot="card-content"] { gap: 8px; }
+.clan [data-slot="card-content"] > div:first-child { display: none; }
+.clan [data-slot="card-title"] { font-size: 14px; }
+.clan :global(.size-44) { width: 140px; height: 140px; }
+.clan svg + div strong { font-size: 18px; }
+.archive [aria-label="경기 기록 날짜 및 필터"], .archive [aria-label="선택한 날짜 내전 기록"], .archive [aria-label="내전 요약"] { display: none; }
+.archive > div > div { grid-template-columns: 1fr; }
+.archive [aria-label="경기 상세"] { height: auto; max-width: 760px; width: 100%; margin: auto; }
+.archive [aria-label="경기 상세 내용"] > div { padding: 12px; }
+.archive [aria-label$="팀 명단"] > li { min-height: 36px; padding-block: 6px; }
+.personal [aria-label="개인 기록 기간"], .personal [aria-label="맵별 승률"], .personal [aria-label="시너지"], .personal [aria-label="개인 기록 그래프"] { display: none; }
+.personal { max-width: 840px; width: 100%; margin-inline: auto; }
+.personal [aria-label="플레이어 요약"] { margin: 0; }
+.personal table th, .personal table td { padding-block: 7px; }
+.photos { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; max-width: 720px; margin: auto; }
+.events [aria-label="클랜 이벤트 하위 탭"], .events [aria-label="선택한 날짜 일정"] { display: none; }
+.events :global(.lg\:grid-cols-\[minmax\(0\,1fr\)_minmax\(18rem\,0\.45fr\)\]) { grid-template-columns: 1fr; }
+.events [role="gridcell"] > button { height: 42px; padding: 3px; }
+.events [role="gridcell"] > button > div { display: none; }
+.notifications { max-width: 700px; width: 100%; margin: auto; }
+@media (max-width: 640px) {
+  .frame { height: 600px; }
+  .canvas { height: 492px; padding: 14px; }
+  .frame figcaption { min-height: 106px; padding: 16px; }
+  .frame figcaption p { font-size: 12px; }
+  .clan [aria-label="내전 통계 내용"] > :global(.grid) { grid-template-columns: 1fr; }
+  .clan [aria-label="내전 통계 내용"] > :global(.grid) > div:nth-child(n+2) { display: none; }
+  .clan { max-width: 360px; width: 100%; margin: auto; }
+  .personal table th, .personal table td { padding-inline: 4px; font-size: 11px; }
+  .personal :global(.overflow-x-auto) { height: auto; flex-wrap: wrap; }
+  .photos { gap: 12px; }
+  .events [role="gridcell"] > button { height: 35px; }
+  .ban [data-testid="hero-ban-results"] img { height: 64px; width: 58px; }
+}
+.formation [data-board-slot] { min-height: 56px; padding-block: 8px; }
+.ban [data-balance-guide="primary"] { display: none; }
+.events [role="gridcell"] > button { height: 56px; }
+@media (max-width: 640px) { .events [role="gridcell"] > button { height: 48px; } }

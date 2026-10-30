@@ -185,3 +185,9 @@
   .sectionIntro p { font-size: 14px; }
   .footer > span:last-child { flex-basis: 100%; }
 }
+
+.previewNote { text-align: center; color: var(--muted-foreground); font-size: 10px; margin-top: 18px; }
+.activity { max-width: 1080px; padding-inline: 24px; margin-inline: auto; }
+.sectionIntro { margin-bottom: 40px; }
+@media (max-width: 640px) { .activity { padding-inline: 16px; } }
+.recordsInner { max-width: 1032px; }

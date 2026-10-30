@@ -2,12 +2,8 @@ import type { ClanArchiveMatch, ClanStatsPageModel, HofPeriodPayload } from "@/l
 import { buildIntraStats, type PersonalMatch } from "@/lib/clan/stats/clan-stats-analytics";
 import { HOF_CONFIG_DEFAULTS } from "@/lib/clan/stats/hof-config";
 import { EMPTY_INTRA_OVERVIEW } from "@/lib/clan/stats/intra-overview";
-import { awardEmblems } from "@/lib/personal-emblems/catalog";
 
 // Fictional snapshots only. No deferred loaders or real clan identifiers.
-export const exampleEmblems = awardEmblems((["승률", "최다 참여", "최다 출전"] as const).map(category => ({
-  key: `month-2026-09-${category}`, date: "2026-09", period: "month" as const, category, rank: 1,
-})));
 
 export function statsExampleModel(records: ClanArchiveMatch[]): ClanStatsPageModel {
   const people = ["여울", "루나", "모카"].map((nickname, index) => ({ userId: `example-${index}`, nickname }));

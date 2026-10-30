@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowDown, ArrowRight, History } from "lucide-react";
+import { ArrowDown, ArrowRight } from "lucide-react";
 import { EntryBrand } from "@/components/entry/entry-brand";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ClanBalanceRosterEditor } from "@/components/main-clan/clan-balance-roster-editor";
@@ -78,19 +78,20 @@ export default function LandingPreviewPage() {
         </figure>
         <section id="features" className={styles.workflow} aria-labelledby="workflow-title">
           <div className={styles.sectionIntro}>
-            <h2 id="workflow-title">팀을 나누는 방식도,<br />함께 즐기는 재미도 다양하게.</h2>
-            <p>주장 지명부터 팀원 경매까지,<br className={styles.desktopBreak} /> 우리 클랜에 맞는 방식으로 내전을 열어보세요.</p>
+            <h2 id="workflow-title">팀을 나누고, 규칙을 정하고,<br />함께 즐기는 내전.</h2>
+            <p>편성부터 영웅 밴과 승부 예측까지, 한 흐름으로 준비해요.</p>
           </div>
           <FormationModesPreview />
+          <p className={styles.previewNote}>실제 서비스 UI 일부 · 가상 데이터 · 읽기 전용</p>
         </section>
         <section className={styles.recordsSection} aria-labelledby="records-title">
           <div className={styles.recordsInner}>
             <div className={styles.sectionIntro}>
-              <History size={26} aria-hidden="true" />
               <h2 id="records-title">경기가 끝나도,<br />우리 클랜의 기록은 이어집니다.</h2>
-              <p>팀 구성과 승패부터<br className={styles.desktopBreak} /> 클랜 순위와 개인 성적까지 한눈에.</p>
+              <p>클랜의 흐름부터 그날의 경기, 나의 성적까지 돌아보세요.</p>
             </div>
             <RecordsPreview records={records} />
+            <p className={styles.previewNote}>실제 서비스 UI 일부 · 가상 데이터 · 읽기 전용</p>
           </div>
         </section>
         <ClanActivityPreview />
