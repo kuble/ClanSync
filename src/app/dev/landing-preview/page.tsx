@@ -44,6 +44,11 @@ export default function LandingPreviewPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <EntryBrand />
+        <nav aria-label="서비스 소개" className={styles.sectionNav}>
+          <a href="#features">내전 기능</a>
+          <a href="#records">기록과 통계</a>
+          <a href="#clan-activity">클랜 활동</a>
+        </nav>
         <nav aria-label="계정 메뉴" className={styles.nav}>
           <ThemeToggle />
           <Link href="/sign-in" className={styles.login}>로그인</Link>
@@ -78,16 +83,16 @@ export default function LandingPreviewPage() {
         </figure>
         <section id="features" className={styles.workflow} aria-labelledby="workflow-title">
           <div className={styles.sectionIntro}>
-            <h2 id="workflow-title">팀을 나누고, 규칙을 정하고,<br />함께 즐기는 내전.</h2>
+            <h2 id="workflow-title">팀을 나누고, 규칙을 정하고,<br /><span>함께 즐기는 내전.</span></h2>
             <p>편성부터 영웅 밴과 승부 예측까지, 한 흐름으로 준비해요.</p>
           </div>
           <FormationModesPreview />
           <p className={styles.previewNote}>실제 서비스 UI 일부 · 가상 데이터 · 읽기 전용</p>
         </section>
-        <section className={styles.recordsSection} aria-labelledby="records-title">
+        <section id="records" className={styles.recordsSection} aria-labelledby="records-title">
           <div className={styles.recordsInner}>
             <div className={styles.sectionIntro}>
-              <h2 id="records-title">경기가 끝나도,<br />우리 클랜의 기록은 이어집니다.</h2>
+              <h2 id="records-title">경기가 끝나도,<br /><span>우리 클랜의 기록은 이어집니다.</span></h2>
               <p>클랜의 흐름부터 그날의 경기, 나의 성적까지 돌아보세요.</p>
             </div>
             <RecordsPreview records={records} />

@@ -15,7 +15,7 @@ const events: SerializedClanEvent[] = [
 export function ClanActivityPreview() {
   return <section id="clan-activity" className={styles.activity} aria-labelledby="activity-title">
     <div className={styles.sectionIntro}>
-      <h2 id="activity-title">내전이 없는 날에도,<br />함께할 이야기는 계속되니까.</h2>
+      <h2 id="activity-title">내전이 없는 날에도,<br /><span>함께할 이야기는 계속되니까.</span></h2>
       <p>사진과 일정, 놓치면 아쉬운 소식까지 한곳에서 나눠요.</p>
     </div>
     <PreviewPagination label="클랜 활동" slides={[

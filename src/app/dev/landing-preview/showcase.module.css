@@ -1,11 +1,12 @@
-.frame { height: 100%; display: grid; grid-template-columns: minmax(0,.85fr) minmax(0,1.55fr); align-items: center; gap: 48px; min-width: 0; }
-.canvas { grid-column: 2; grid-row: 1; min-width: 0; padding: 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--card); }
+.frame { height: 100%; display: grid; grid-template-columns: minmax(0,.82fr) minmax(0,1.58fr); align-items: center; gap: 64px; min-width: 0; }
+.canvas { grid-column: 2; grid-row: 1; min-width: 0; padding: 20px; border: 1px solid var(--landing-line); border-radius: 16px; background: var(--card); box-shadow: 0 0 0 5px color-mix(in srgb, var(--foreground) 2.5%, transparent), 0 18px 40px -24px var(--landing-shadow); }
 .frame figcaption { grid-column: 1; grid-row: 1; min-width: 0; padding: 0; }
-.reverse { grid-template-columns: minmax(0,1.55fr) minmax(0,.85fr); }
+.frame figcaption::before { content: ""; display: block; width: 30px; height: 2px; margin-bottom: 22px; background: var(--primary); }
+.reverse { grid-template-columns: minmax(0,1.58fr) minmax(0,.82fr); }
 .reverse .canvas { grid-column: 1; }
 .reverse figcaption { grid-column: 2; }
-.frame figcaption h3 { font-size: clamp(22px,2.3vw,28px); line-height: 1.45; word-break: keep-all; font-weight: 650; letter-spacing: -.035em; }
-.frame figcaption p { margin-top: 18px; font-size: 14px; line-height: 1.8; color: var(--muted-foreground); word-break: keep-all; }
+.frame figcaption h3 { max-width: 340px; font-size: clamp(24px,2.5vw,32px); line-height: 1.4; text-wrap: balance; word-break: keep-all; font-weight: 600; letter-spacing: -.04em; }
+.frame figcaption p { max-width: 340px; margin-top: 18px; font-size: 14px; line-height: 1.85; color: var(--muted-foreground); word-break: keep-all; }
 .frame [data-more-above] { height: auto; max-height: none; overflow: visible; mask-image: none !important; }
 .frame :global(.sticky) { position: static; }
 .frame table { min-width: 0; }
@@ -19,7 +20,8 @@
 .prediction { max-width: 600px; width: 100%; margin-inline: auto; }
 .prediction [aria-label="내전 예측 순위"] { display: none; }
 .clan [aria-label="내전 통계 기간"], .clan [aria-label="내전 통계 내용"] > :global(.relative) { display: none; }
-.clan [aria-label="내전 통계 내용"] > :global(.grid) { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.clan [aria-label="내전 통계 내용"] > :global(.grid) { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.clan [aria-label="내전 통계 내용"] > :global(.grid) > div:nth-child(3) { display: none; }
 .clan :global(.min-h-16) { min-height: 0; }
 .clan [data-slot="card-content"] { gap: 8px; }
 .clan [data-slot="card-content"] > div:first-child { display: none; }
@@ -36,14 +38,19 @@
 .personal [aria-label="플레이어 요약"] { margin: 0; }
 .personal table th, .personal table td { padding-block: 7px; }
 .photos { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; max-width: 720px; margin: auto; }
+.canvas:has(.photos) { padding: 20px 8px; border: 0; background: none; box-shadow: none; }
+.photos > :first-child { transform: rotate(-3deg); }
+.photos > :last-child { transform: rotate(3deg) translateY(16px); }
 .events [aria-label="클랜 이벤트 하위 탭"], .events [aria-label="선택한 날짜 일정"] { display: none; }
 .events :global(.lg\:grid-cols-\[minmax\(0\,1fr\)_minmax\(18rem\,0\.45fr\)\]) { grid-template-columns: 1fr; }
-.events [role="gridcell"] > button { height: 42px; padding: 3px; }
+.events [role="gridcell"] > button { height: 56px; padding: 3px; }
 .events [role="gridcell"] > button > div { display: none; }
 .notifications { max-width: 700px; width: 100%; margin: auto; }
 @media (max-width: 640px) {
   .canvas { padding: 12px 14px; }
   .frame figcaption { padding: 0; }
+  .frame figcaption::before { margin-bottom: 16px; }
+  .frame figcaption h3 { font-size: 23px; max-width: none; text-wrap: initial; }
   .frame figcaption p { font-size: 13px; margin-top: 10px; }
   .clan [aria-label="내전 통계 내용"] > :global(.grid) { grid-template-columns: 1fr; }
   .clan [aria-label="내전 통계 내용"] > :global(.grid) > div:nth-child(n+2) { display: none; }
@@ -51,13 +58,11 @@
   .personal table th, .personal table td { padding-inline: 4px; font-size: 11px; }
   .personal :global(.overflow-x-auto) { height: auto; flex-wrap: wrap; }
   .photos { gap: 12px; }
-  .events [role="gridcell"] > button { height: 35px; }
+  .events [role="gridcell"] > button { height: 48px; }
   .ban [data-testid="hero-ban-results"] img { height: 64px; width: 58px; }
 }
 .formation [data-board-slot] { min-height: 56px; padding-block: 8px; }
 .ban [data-balance-guide="primary"] { display: none; }
-.events [role="gridcell"] > button { height: 56px; }
-@media (max-width: 640px) { .events [role="gridcell"] > button { height: 48px; } }
 
 @media (max-width: 900px) {
   .frame, .reverse { grid-template-columns: 1fr; gap: 24px; align-content: start; }
@@ -65,6 +70,3 @@
   .frame .canvas, .reverse .canvas { grid-column: 1; grid-row: 2; }
   .frame figcaption { max-width: 540px; }
 }
-.clan [aria-label="내전 통계 내용"] > :global(.grid) { grid-template-columns: repeat(2,minmax(0,1fr)); }
-.clan [aria-label="내전 통계 내용"] > :global(.grid) > div:nth-child(3) { display: none; }
-@media (max-width: 640px) { .clan [aria-label="내전 통계 내용"] > :global(.grid) { grid-template-columns: 1fr; } }

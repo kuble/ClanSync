@@ -41,10 +41,10 @@ export function PreviewPagination({ label, slides }: { label: string; slides: Sl
             select(next);
             tabs.current[next]?.focus();
           }}
-        ><span aria-hidden /></button>)}
+        ><span className={styles.paginationDot} aria-hidden /><span>{slide.label}</span></button>)}
       </div>
       <button type="button" aria-label={`${label} 다음 페이지`} onClick={() => select(active + 1)}><ChevronRight size={18} aria-hidden /></button>
     </div>
-    <p className={styles.paginationLabel} aria-live="polite" aria-atomic="true">{slides[active].label}<span>{active + 1} / {slides.length}</span></p>
+    <p className="sr-only" aria-live="polite" aria-atomic="true">{slides[active].label}, {active + 1} / {slides.length}</p>
   </div>;
 }
