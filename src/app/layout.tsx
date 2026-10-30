@@ -31,6 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="ko"
+      data-scroll-behavior="smooth"
       className={`${pretendard.variable} ${geistMono.variable} h-full`}
       suppressHydrationWarning
     >
