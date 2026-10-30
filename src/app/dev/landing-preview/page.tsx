@@ -54,7 +54,7 @@ export default function LandingPreviewPage() {
         <section className={styles.hero} aria-labelledby="landing-title">
           <p className={styles.eyebrow}>우리 클랜을 위한 내전 운영</p>
           <h1 id="landing-title">팀 편성이 한결 편해지는<br /><span>우리 클랜의 내전 도구.</span></h1>
-          <p className={styles.description}>참가자 모집부터 팀 편성과 조정까지, 한곳에서 진행할 수 있습니다.<br className={styles.desktopBreak} /> ClanSync가 편성을 돕고, 운영진이 원하는 구성으로 마무리합니다.</p>
+          <p className={styles.description}>참가자 모집부터 팀 편성까지, 한곳에서.<br className={styles.desktopBreak} /> ClanSync가 편성을 돕고, 운영진이 마무리합니다.</p>
           <div className={styles.actions}>
             <Link href="/sign-up" className={styles.primary}>무료로 시작하기 <ArrowRight size={17} aria-hidden="true" /></Link>
             <a href="#formation-preview" className={styles.secondary}>편성 화면 살펴보기 <ArrowDown size={15} aria-hidden="true" /></a>
@@ -79,14 +79,14 @@ export default function LandingPreviewPage() {
         <section id="features" className={styles.workflow} aria-labelledby="workflow-title">
           <div className={styles.sectionIntro}>
             <h2 id="workflow-title">내전 한 번을 열기까지,<br />챙길 일을 한곳에 모았습니다.</h2>
-            <p>함께할 멤버를 모으고, 팀을 나누고, 결과를 남기는 일.<br className={styles.desktopBreak} /> 준비부터 마무리까지 한곳에서 이어집니다.</p>
+            <p>참가자를 모으고, 팀을 나누고,<br className={styles.desktopBreak} /> 경기 결과를 남겨보세요.</p>
           </div>
           <div className={styles.preparation}>
             <div className={styles.featureCopy}>
               <Users size={25} aria-hidden="true" />
               <h3>오늘 함께할 멤버를<br />한눈에.</h3>
-              <p>이번 경기에 나설 멤버와 대기 중인 멤버를 함께 볼 수 있습니다. 참가자를 찾고 출전 명단을 정리하며 내전을 준비해 보세요.</p>
-              <ul><li><Check size={16} aria-hidden="true" />참가자 검색과 출전 명단 관리</li><li><Check size={16} aria-hidden="true" />출전 멤버와 대기 멤버 확인</li></ul>
+              <p>출전·대기 명단을 정리해 다음 경기를 준비해 보세요.</p>
+              <ul><li><Check size={16} aria-hidden="true" />참가자 검색</li><li><Check size={16} aria-hidden="true" />출전·대기 명단 관리</li></ul>
             </div>
             <figure className={styles.peopleExample}>
               <div className={styles.exampleHeading}><strong>오늘 함께할 멤버</strong><span>12명</span></div>
@@ -101,10 +101,10 @@ export default function LandingPreviewPage() {
             <div className={styles.featureCopy}>
               <Shuffle size={25} aria-hidden="true" />
               <h3>팀을 나누고,<br />우리 클랜에 맞게 조정합니다.</h3>
-              <p>양 팀의 평가 점수와 역할 구성을 살펴보세요. 같은 역할의 참가자를 서로 바꾸며 원하는 팀 구성으로 다듬을 수 있습니다.</p>
+              <p>평가 점수를 비교하고, 같은 역할끼리 교환해 보세요.</p>
             </div>
             <figure className={styles.comparison}>
-              <div className={styles.exampleHeading}><strong>양 팀을 함께 살펴보는 기준</strong><span>팀 비교</span></div>
+              <div className={styles.exampleHeading}><strong>양 팀의 평가 점수</strong><span>팀 비교</span></div>
               <div className={styles.comparisonBoard}><BalanceTeamSummary roster={roster} scores={scores} mode="m" premium={false} enabled={false} /></div>
               <div className={styles.teamRoles}>{[1, 2].map((team) => <div key={team}><strong>{team}팀</strong><p>탱커 1 · 딜러 2 · 힐러 2</p></div>)}</div>
               <figcaption>점수는 편성을 돕는 참고 기준입니다.<span>예시 점수</span></figcaption>
@@ -116,26 +116,26 @@ export default function LandingPreviewPage() {
             <div className={styles.sectionIntro}>
               <History size={26} aria-hidden="true" />
               <h2 id="records-title">경기가 끝나도,<br />우리 클랜의 기록은 이어집니다.</h2>
-              <p>어떤 팀으로 뛰었는지, 누가 이겼는지, 이날의 성적은 어땠는지.<br className={styles.desktopBreak} /> 경기 결과와 멤버별 기록을 함께 돌아볼 수 있습니다.</p>
+              <p>팀 구성과 승패부터<br className={styles.desktopBreak} /> 멤버별 성적까지 한눈에.</p>
             </div>
             <div className={styles.archive}>
               <ClanStatsArchive archive={{ datesKst: ["2026-10-30"], sampleByDate: { "2026-10-30": records } }} />
             </div>
-            <p className={styles.exampleNote}>예시 경기 기록입니다. 이전·다음 경기를 살펴보고 멤버별 기록을 정렬할 수 있습니다.</p>
+            <p className={styles.exampleNote}>예시 기록 · 경기 넘김과 멤버별 정렬을 체험해 보세요.</p>
           </div>
         </section>
         <ClanActivityPreview />
         <section id="games" className={styles.information} aria-labelledby="information-title">
           <h2 id="information-title">시작하기 전,<br />궁금한 점을 모았습니다.</h2>
           <dl>
-            <div><dt>어떤 게임을 위한 도구인가요?</dt><dd>오버워치 내전을 중심으로 참가자 모집·팀 편성·경기 기록을 제공합니다. 게임별 제공 기능은 다릅니다.</dd></div>
+            <div><dt>어떤 게임을 위한 도구인가요?</dt><dd>오버워치 중심의 클랜 운영 도구입니다. 지원 기능은 게임별로 다릅니다.</dd></div>
             <div><dt>회원가입은 무료인가요?</dt><dd>회원가입은 무료입니다. 기능에 따라 Free와 Premium으로 구분됩니다.</dd></div>
             <div><dt>Premium은 언제 이용할 수 있나요?</dt><dd>구독 결제는 준비 중입니다. 출시 시 요금과 이용 조건을 안내합니다.</dd></div>
           </dl>
         </section>
         <section className={styles.closing} aria-labelledby="closing-title">
           <h2 id="closing-title">다음 내전은,<br />조금 더 편하게 준비해 보세요.</h2>
-          <p>우리 클랜의 참가자 모집부터 팀 편성까지, ClanSync와 함께.</p>
+          <p>함께할 다음 경기를 ClanSync에서.</p>
           <Link href="/sign-up" className={styles.primary}>무료로 시작하기 <ArrowRight size={17} aria-hidden="true" /></Link>
         </section>
       </main>

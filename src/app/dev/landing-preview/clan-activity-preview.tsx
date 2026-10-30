@@ -33,7 +33,7 @@ export function ClanActivityPreview() {
     <section id="clan-activity" className={styles.activity} aria-labelledby="activity-title">
       <div className={styles.sectionIntro}>
         <h2 id="activity-title">내전이 없는 날에도,<br />우리 클랜이 함께하는 공간.</h2>
-        <p>다음 일정을 정하고, 소식을 나누고, 함께한 순간을 남겨보세요.<br className={styles.desktopBreak} /> 클랜의 일상도, 차곡차곡 쌓이는 기록도 한곳에서 이어집니다.</p>
+        <p>일정을 정하고 소식을 나누며,<br className={styles.desktopBreak} /> 함께한 순간을 남겨보세요.</p>
       </div>
       <div className={styles.activityLayout}>
         <figure className={styles.clanWindow}>
@@ -41,19 +41,19 @@ export function ClanActivityPreview() {
           <div className={styles.clanDashboard} inert>
             <ClanDashboard model={dashboard} gameSlug="overwatch" clanId="landing-example" isPremium={false} actorRole="member" />
           </div>
-          <figcaption>실제 클랜 홈 UI · 예시 데이터 · 읽기 전용<br />공지와 투표, 다가오는 일정, 지난달 승률·참여율 MVP를 함께 볼 수 있습니다.</figcaption>
+          <figcaption>실제 클랜 홈 UI · 예시 데이터 · 읽기 전용<br />공지·투표·일정과 지난달 승률·참여율 MVP.</figcaption>
         </figure>
         <div className={styles.activityFeatures}>
-          <div><CalendarDays size={23} aria-hidden="true" /><h3>다음 만남을 준비하는 곳</h3><p>일정과 투표로 함께할 시간을 정하고, Discord 알림으로 소식을 전해보세요.</p><span>일정 · 투표 · Discord 알림</span></div>
-          <div><MessagesSquare size={23} aria-hidden="true" /><h3>소식과 추억을 나누는 곳</h3><p>중요한 소식은 공지로, 편한 이야기는 게시판으로. 함께한 순간은 사진으로 남길 수 있습니다.</p><span>공지 · 게시판 · 추억 사진</span></div>
-          <div><Palette size={23} aria-hidden="true" /><h3>우리 클랜답게 꾸미는 곳</h3><p>클랜 배너와 이모티콘, 사진 꾸미기로 우리만의 분위기를 만들어보세요.</p><span>클랜 배너 · 이모티콘 · 사진 꾸미기</span></div>
+          <div><CalendarDays size={23} aria-hidden="true" /><h3>다음 만남을 준비하는 곳</h3><p>함께할 시간을 정하고, 멤버들에게 소식을 전해보세요.</p><span>일정 · 투표 · Discord 알림</span></div>
+          <div><MessagesSquare size={23} aria-hidden="true" /><h3>소식과 추억을 나누는 곳</h3><p>중요한 소식부터 일상과 추억까지 함께 나눠보세요.</p><span>공지 · 게시판 · 추억 사진</span></div>
+          <div><Palette size={23} aria-hidden="true" /><h3>우리 클랜답게 꾸미는 곳</h3><p>우리만의 분위기로 클랜 공간을 채워보세요.</p><span>클랜 배너 · 이모티콘 · 사진 꾸미기</span></div>
         </div>
       </div>
       <div className={styles.activityStats}>
         <div className={styles.featureCopy}>
           <TrendingUp size={25} aria-hidden="true" />
           <h3>함께한 시간이,<br />우리 클랜의 통계로.</h3>
-          <p>얼마나 자주 모였는지, 누가 꾸준히 함께했는지. 참여 추이부터 개인 승률과 명예의 전당까지, 쌓인 기록을 다양한 모습으로 돌아볼 수 있습니다.</p>
+          <p>참여 추이와 개인 성적으로 클랜의 활동을 돌아보세요.</p>
           <p className={styles.statsScope}>참여 추이 · 맵별 경기 · 개인 기록 · 명예의 전당</p>
         </div>
         <figure className={styles.trendExample}>
@@ -64,7 +64,7 @@ export function ClanActivityPreview() {
             <div><dt>출전 멤버</dt><dd>18<span>명</span></dd></div>
           </dl>
           <StatsTrend points={trend} label="완료 경기" unit="경기" />
-          <figcaption>실제 통계 그래프 · 예시 데이터<br />그래프 위에 마우스를 올리거나 좌우 방향키로 월별 경기 수를 살펴보세요.</figcaption>
+          <figcaption>실제 통계 그래프 · 예시 데이터<br />마우스나 좌우 방향키로 월별 경기 수를 살펴보세요.</figcaption>
         </figure>
       </div>
     </section>
