@@ -50,10 +50,8 @@
 .detailBody { max-height: min(64svh, 650px); overflow-y: auto; padding: 28px 32px; display: grid; gap: 26px; }
 .detailBody h3 { color: var(--muted-foreground); font-size: 12px; font-weight: 550; margin-bottom: 12px; }
 .detailBody p { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; line-height: 1.9; }
-.promotionBody { display: grid; gap: 22px; }
-.promotionBody p { font-size: 15px; line-height: 1.95; }
-.promotionBody img { display: block; width: 100%; height: auto; border-radius: 10px; }
-.promotionBody figcaption { margin-top: 9px; text-align: center; font-size: 11px; color: var(--muted-foreground); overflow-wrap: anywhere; }
+.promotionBody { display: block; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.95; }
+.promotionBody img { display: inline-block; width: auto; max-width: min(100%,320px); max-height: 320px; height: auto; vertical-align: middle; margin: 4px 3px; border-radius: 8px; }
 .detailInfo { padding-top: 24px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 .detailInfo p { color: var(--muted-foreground); font-size: 12px; }
 .rules { border-top: 1px solid var(--border); padding-top: 18px; }

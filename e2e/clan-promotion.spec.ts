@@ -16,7 +16,7 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     const scrim=await f.service.from("board_posts").insert({game_id:f.gameId,clan_id:f.clanId,post_type:"scrim",title:"홍보가 아닌 경기 안내",content:"다른 게시판",created_by:f.users[0].id,created_at:"2030-01-01T00:00:00Z"}).select("id").single(); expect(scrim.error).toBeNull();
     await page.goto(base+"/manage?tab=overview");
     await page.getByRole("navigation",{name:"클랜 관리 항목"}).getByRole("link",{name:"클랜 홍보"}).click();
-    await expect(page.getByLabel("내용",{exact:true})).toHaveValue("이전 홍보 내용");
+    await expect(page.getByRole("textbox",{name:"내용",exact:true})).toHaveText("이전 홍보 내용");
     await expect(page).toHaveURL(/tab=promotion/);
     const year = page.getByRole("combobox",{name:"출생연도 상한",exact:true});
     const minimum = page.getByRole("slider",{name:"최소 모집 티어",exact:true});
@@ -85,9 +85,8 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     await page.getByLabel("내용",{exact:true}).press("Control+Home");
     await page.getByLabel("내용",{exact:true}).press("End");
     await page.getByLabel("홍보 사진 선택",{exact:true}).setInputFiles("public/images/overwatch/maps/busan.webp");
+    await page.locator("#promotion-content img[data-promotion-key]").click();
     await page.getByPlaceholder("사진 설명 (선택)",{exact:true}).fill("함께하는 금요일 내전");
-    await page.getByRole("button",{name:"사진 위로 이동",exact:true}).click();
-    await page.getByRole("button",{name:"사진 아래로 이동",exact:true}).click();
     await page.getByRole("button",{name:"변경사항 저장",exact:true}).click();
     await expect(page.getByRole("status").filter({hasText:"홍보글과 가입 조건을 저장했습니다."})).toBeVisible();
     await expect(page.getByRole("heading",{name:"최근 홍보글",exact:true})).toHaveCount(0);

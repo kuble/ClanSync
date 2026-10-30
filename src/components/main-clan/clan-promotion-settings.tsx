@@ -47,14 +47,18 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
     setError(""); setSaved(false);
     save(async () => {
       const uploaded: string[] = [];
+      const uploadedByKey = new Map<string,string>();
       try {
         const prepared: PromotionDraftBlock[] = [];
         for (const block of blocks) {
           if (block.type !== "image" || !block.file) { prepared.push(block); continue; }
+          const existing = uploadedByKey.get(block.key);
+          if (existing) { prepared.push({key:block.key,type:"image",path:existing,alt:block.alt}); continue; }
           const response = await fetch(`/api/games/${gameSlug}/clans/${clanId}/promotion-images`, { method: "POST", headers: { "Content-Type": block.file.type, "X-Promotion-Id": postId }, body: block.file });
           const result = await response.json();
           if (!response.ok || !result.ok) throw new Error(result.error ?? "사진을 올리지 못했습니다.");
           uploaded.push(result.path);
+          uploadedByKey.set(block.key,result.path);
           prepared.push({ key: block.key, type: "image", path: result.path, alt: block.alt });
         }
         const body = prepared.map(block => block.type === "text" ? { type: "text", text: block.text } : { type: "image", path: block.path, alt: block.alt });
