@@ -71,15 +71,15 @@ test("legacy webhook APIs are retired, secrets stay private and users cannot inj
 });
 
 test("alternate accounts require a shared clan for the same game; owners retain access", async () => {
-  const other = await ok(f.service.from("games").select("id").neq("id", f.gameId).limit(1).single());
+  const other = await ok(f.service.from("games").select("id").eq("slug", "valorant").single());
   await ok(f.service.from("user_alt_accounts").insert([
-    { user_id: f.users[1].id, game_id: f.gameId, alt_nick: "visible", note: "same game" },
-    { user_id: f.users[1].id, game_id: other.id, alt_nick: "private", note: "different game" },
+    { user_id: f.users[1].id, game_id: f.gameId, alt_nick: "Visible#1234", note: "same game" },
+    { user_id: f.users[1].id, game_id: other.id, alt_nick: "Private#KR1", note: "different game" },
   ]));
   const own = await ok(member.from("user_alt_accounts").select("alt_nick").eq("user_id", f.users[1].id));
   expect(own).toHaveLength(2);
   const peer = await ok(leader.from("user_alt_accounts").select("alt_nick").eq("user_id", f.users[1].id));
-  expect(peer.map(x => x.alt_nick)).toEqual(["visible"]);
+  expect(peer.map(x => x.alt_nick)).toEqual(["Visible#1234"]);
 });
 
 test("single-choice concurrent first votes replace atomically; multiple choice remains supported", async () => {

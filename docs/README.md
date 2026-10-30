@@ -12,6 +12,8 @@
 
 미인증 게임 ID: [직접 입력·본인 저장](../src/app/actions/game-identity.ts) · [진입/인증 상태 분리](../src/lib/onboarding/load-game-onboarding.ts) · [게임 프로필 상태](../src/components/profile/profile-identity.tsx) · [저장/위조 차단·가입/생성·모바일 회귀](../e2e/manual-game-identity.spec.ts).
 
+부계정 ID 형식: [추가·수정 검사](../src/app/actions/profile-alt-accounts.ts) · [본계정/부계정 DB 직접 요청 회귀](../e2e/game-identity-format.spec.ts) · [화면 오류·정상 저장 회귀](../e2e/profile-inline-alt-accounts.spec.ts).
+
 ## 기능별 코드·테스트 진입점
 
 검증 범위는 [변경 위험도 기준](../.cursor/rules/agent-auto-tasks.mdc), 실행 명령은 [E2E 안내](../e2e/README.md)를 따릅니다. 아래는 관련 파일을 찾는 지도이며 매번 전부 읽거나 실행하는 목록이 아닙니다.

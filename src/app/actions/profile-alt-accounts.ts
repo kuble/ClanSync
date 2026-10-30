@@ -47,6 +47,7 @@ export async function updateUserAltAccountAction(input: { id: string; altNick: s
   if (row.error || !row.data) return { ok: false, error: "수정 가능한 부계정을 찾을 수 없습니다." };
   const game = await db.from("user_game_profiles").select("game_id,battle_tag,riot_id,game_uid,games!inner(slug)").eq("user_id", user.id).eq("game_id", row.data.game_id).maybeSingle();
   if (game.error || !gameProfileIdentity(game.data?.games.slug ?? "", game.data)) return { ok: false, error: "게임 ID를 먼저 등록해야 수정할 수 있습니다." };
+  if (!gameProfileIdentity(game.data!.games.slug, { battle_tag: nick, riot_id: nick })) return { ok: false, error: game.data!.games.slug === "overwatch" ? "배틀태그 전체를 입력해 주십시오. 예: Player#1234" : "라이엇 ID 전체를 입력해 주십시오. 예: Player#KR1" };
   const note = typeof input.note === "string" ? input.note.trim().slice(0, 500) : "";
   const updated = await db.from("user_alt_accounts").update({ alt_nick: nick, note: note || null }).eq("id", id).eq("user_id", user.id).eq("game_id", row.data.game_id).select("id");
   if (updated.error) return { ok: false, error: updated.error.code === "23505" ? "같은 게임에서 이미 같은 닉네임이 등록되어 있습니다." : "부계정을 수정하지 못했습니다." };
@@ -69,7 +70,7 @@ export async function addUserAltAccountAction(input: {
     return { ok: false, error: "공개 범위 안내와 동의를 확인해야 등록할 수 있습니다." };
   }
 
-  const nick = normalizeNick(input.altNick ?? "");
+  const nick = normalizeNick(typeof input.altNick === "string" ? input.altNick : "");
   if (nick.length < 1 || nick.length > ALT_NICK_MAX) {
     return {
       ok: false,
@@ -95,6 +96,7 @@ export async function addUserAltAccountAction(input: {
   if (!gp?.game_id || !gameProfileIdentity(game?.slug ?? "", gp)) {
     return { ok: false, error: "게임 ID를 먼저 등록해야 부계정을 추가할 수 있습니다." };
   }
+  if (!gameProfileIdentity(game?.slug ?? "", { battle_tag: nick, riot_id: nick })) return { ok: false, error: game?.slug === "overwatch" ? "배틀태그 전체를 입력해 주십시오. 예: Player#1234" : "라이엇 ID 전체를 입력해 주십시오. 예: Player#KR1" };
 
   const note = (input.note ?? "").trim();
 
