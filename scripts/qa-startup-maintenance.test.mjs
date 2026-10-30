@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createServer } from "node:net";
-import { maintainQaWorkspace, qaPortIsListening } from "./qa-startup-maintenance.mjs";
+import { createServer } from "node:http";
+import { createServer as createTcpServer } from "node:net";
+import { maintainQaWorkspace, waitForQaHttp } from "./qa-startup-maintenance.mjs";
 
 test("QA startup performs one guarded cleanup and reports reuse of its running server", () => {
   let calls = 0;
@@ -20,11 +21,9 @@ test("QA startup performs one guarded cleanup and reports reuse of its running s
   assert.equal(status.QaServerRunning, true);
 });
 
-test("unavailable or invalid cleanup skips deletion without failing startup maintenance", () => {
+test("unavailable or invalid host inspection stops startup before spawning a server", () => {
   for (const result of [{ error: new Error("pwsh missing") }, { status: 1 }, { status: 0, stdout: "bad json" }, { status: 0, stdout: "{}" }]) {
-    let warnings = 0;
-    assert.equal(maintainQaWorkspace("3011", { run: () => result, log() {}, warn() { warnings++; } }), null);
-    assert.equal(warnings, 1);
+    assert.throws(() => maintainQaWorkspace("3011", { run: () => result, log() {} }), /host process\/port access.*require_escalated.*No server was started or stopped/);
   }
 });
 
@@ -34,11 +33,44 @@ test("build-in-progress status preserves the server information", () => {
   assert.equal(status.QaServerRunning, true);
 });
 
-test("fallback port probe detects a listener and its shutdown", async () => {
-  const server = createServer(socket => socket.end());
-  await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+test("HTTP readiness retries compilation errors and verifies both hostnames", async () => {
+  const hosts = new Set();
+  let requests = 0;
+  const server = createServer((request, response) => {
+    hosts.add(request.headers.host.split(":")[0]);
+    response.writeHead(++requests <= 2 ? 503 : 200);
+    response.end("QA page");
+  });
+  await new Promise(resolve => server.listen(0, resolve));
   const port = server.address().port;
-  try { assert.equal(await qaPortIsListening(port), true); }
+  try {
+    assert.deepEqual(await waitForQaHttp(port, { timeoutMs: 5000 }), [`http://localhost:${port}/`, `http://127.0.0.1:${port}/`]);
+    assert.deepEqual(hosts, new Set(["localhost", "127.0.0.1"]));
+    assert.ok(requests >= 4);
+  }
   finally { await new Promise(resolve => server.close(resolve)); }
-  assert.equal(await qaPortIsListening(port), false);
+});
+
+test("an open TCP port without an HTTP response never reports readiness", async () => {
+  const sockets = new Set();
+  const server = createTcpServer(socket => { sockets.add(socket); socket.on("close", () => sockets.delete(socket)); });
+  await new Promise(resolve => server.listen(0, resolve));
+  try {
+    await assert.rejects(waitForQaHttp(server.address().port, { timeoutMs: 150 }), /QA HTTP readiness failed.*no HTTP response/);
+    assert.equal(server.listening, true);
+  } finally {
+    for (const socket of sockets) socket.destroy();
+    await new Promise(resolve => server.close(resolve));
+  }
+});
+
+test("a failed member hostname prevents readiness even when localhost is healthy", async () => {
+  const server = createServer((request, response) => {
+    response.writeHead(request.headers.host.startsWith("localhost:") ? 200 : 500);
+    response.end();
+  });
+  await new Promise(resolve => server.listen(0, resolve));
+  try {
+    await assert.rejects(waitForQaHttp(server.address().port, { timeoutMs: 150 }), /127\.0\.0\.1.*HTTP 500/);
+  } finally { await new Promise(resolve => server.close(resolve)); }
 });

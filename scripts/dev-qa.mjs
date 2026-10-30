@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { loadTestEnv } from "./test-env.mjs";
-import { maintainQaWorkspace, qaPortIsListening } from "./qa-startup-maintenance.mjs";
+import { maintainQaWorkspace, waitForQaHttp } from "./qa-startup-maintenance.mjs";
 
 const port = process.env.QA_DEV_PORT || "3011";
 if (!/^\d+$/.test(port) || Number(port) < 1024 || Number(port) > 65535) {
@@ -16,9 +16,9 @@ const env = {
 };
 console.log(`QA preview: http://localhost:${port} (isolated test database)`);
 const maintenance = maintainQaWorkspace(port);
-if (maintenance?.SkippedReason && !maintenance.QaServerRunning) throw new Error("QA startup deferred until the running Next.js build finishes.");
-if (maintenance?.QaPortOccupied && !maintenance.QaServerRunning) throw new Error(`Port ${port} belongs to another process; it was left running.`);
-if (maintenance?.QaServerRunning || (!maintenance && await qaPortIsListening(port))) {
+if (maintenance.SkippedReason && !maintenance.QaServerRunning) throw new Error("QA startup deferred until the running Next.js build finishes.");
+if (maintenance.QaPortOccupied && !maintenance.QaServerRunning) throw new Error(`Port ${port} belongs to another process; it was left running.`);
+if (maintenance.QaServerRunning) {
   console.log(`Existing server on ${port} preserved; no restart or seed performed.`);
 } else {
   const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", "dev", "--port", port], {
@@ -26,3 +26,6 @@ if (maintenance?.QaServerRunning || (!maintenance && await qaPortIsListening(por
   });
   child.on("exit", (code) => process.exit(code ?? 1));
 }
+console.log("Checking HTTP responses on both QA hosts (up to 60 seconds)...");
+const urls = await waitForQaHttp(port);
+console.log(`QA_HTTP_READY ${urls.join(" ")}`);

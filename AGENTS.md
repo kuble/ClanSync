@@ -15,6 +15,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 사용자가 `/개발시작` 또는 `개발 시작`이라고 입력하면 `npm run dev:qa`로 QA 서버를 실행한 뒤 **GPT 앱 안의 내장 브라우저**에 내전 로비를 두 탭으로 연다.
 
 - `dev:qa`는 서버 실행 전에 로컬 산출물을 자동 점검·정리한다. 프로세스·포트 조회가 가능한 호스트 터미널에서 실행한다. 실행 중인 같은 프로젝트의 QA 서버가 있으면 재시작하지 않고 재사용한다. 별도로 서버를 종료하거나 `.next`를 삭제하지 않는다.
+- Codex는 **첫 실행부터** `exec_command`의 `sandbox_permissions: "require_escalated"`로 `npm run dev:qa`를 호출한다. 제한 터미널에서 먼저 시도하지 않는다. 호스트 점검에 실패하면 서버를 띄우지 않고 즉시 중단한다.
+- Next의 `Ready`나 열린 포트만으로 브라우저를 열지 않는다. `dev:qa`가 두 호스트의 HTTP 본문 응답을 확인해 **`QA_HTTP_READY`**를 출력한 다음 탭을 연다. 새 서버는 같은 터미널 세션의 출력을 확인하고, 이미 실행 중인 서버는 재실행 명령으로 재사용·HTTP 확인만 수행한다. HTTP 확인은 최대 60초이며 실패 시 브라우저 재시도를 반복하지 않고 해당 호스트·프로세스를 진단한다.
 - QA 서버와 다른 Next 서버·빌드가 없을 때만 기존 `.next`도 정리한다. 활성 검증 포트와 최근 캐시는 보존하고, 검증 결과는 7일·최근 3개를 유지한다. DB·환경 파일·연결 설정·백업은 정리 대상에서 제외한다. [정리 기준](docs/maintenance.md).
 
 - 브라우저 대상은 `iab`, 탭은 `visible: true`로 열어 사용자에게 표시한다. 외부 Chrome·Edge 탭으로 대신 열지 않는다. 두 탭은 응답이 끝나도 유지되도록 `markDeliverable()`로 표시한다.
