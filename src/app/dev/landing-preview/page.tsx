@@ -103,7 +103,7 @@ export default function LandingPreviewPage() {
         <section id="games" className={styles.information} aria-labelledby="information-title">
           <h2 id="information-title">시작하기 전,<br />궁금한 점을 모았습니다.</h2>
           <dl>
-            <div><dt>어떤 게임을 위한 도구인가요?</dt><dd>오버워치 중심의 클랜 운영 도구입니다. 지원 기능은 게임별로 다릅니다.</dd></div>
+            <div><dt>어떤 게임을 지원하나요?</dt><dd>현재는 오버워치를 지원해요. 앞으로 더 다양한 게임으로 지원 범위를 넓혀갈 예정이에요.</dd></div>
             <div><dt>회원가입은 무료인가요?</dt><dd>회원가입은 무료입니다. 기능에 따라 Free와 Premium으로 구분됩니다.</dd></div>
             <div><dt>Premium은 언제 이용할 수 있나요?</dt><dd>구독 결제는 준비 중입니다. 출시 시 요금과 이용 조건을 안내합니다.</dd></div>
           </dl>
