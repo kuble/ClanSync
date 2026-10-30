@@ -1,6 +1,6 @@
-.frame { height: 560px; display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--border); border-radius: 14px; background: var(--card); }
-.canvas { height: 470px; min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 24px; }
-.frame figcaption { min-height: 88px; padding: 16px 24px; border-top: 1px solid var(--border); }
+.frame { height: 100%; display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--border); border-radius: 14px; background: var(--card); }
+.canvas { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 12px 24px; }
+.frame figcaption { min-height: 76px; padding: 12px 24px; border-top: 1px solid var(--border); }
 .frame figcaption h3 { font-size: 16px; font-weight: 650; letter-spacing: -.025em; }
 .frame figcaption p { margin-top: 6px; font-size: 13px; line-height: 1.6; color: var(--muted-foreground); word-break: keep-all; }
 .frame [data-more-above] { height: auto; max-height: none; overflow: visible; mask-image: none !important; }
@@ -39,9 +39,8 @@
 .events [role="gridcell"] > button > div { display: none; }
 .notifications { max-width: 700px; width: 100%; margin: auto; }
 @media (max-width: 640px) {
-  .frame { height: 600px; }
-  .canvas { height: 492px; padding: 14px; }
-  .frame figcaption { min-height: 106px; padding: 16px; }
+  .canvas { padding: 12px 14px; }
+  .frame figcaption { min-height: 94px; padding: 12px 16px; }
   .frame figcaption p { font-size: 12px; }
   .clan [aria-label="내전 통계 내용"] > :global(.grid) { grid-template-columns: 1fr; }
   .clan [aria-label="내전 통계 내용"] > :global(.grid) > div:nth-child(n+2) { display: none; }
