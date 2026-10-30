@@ -23,12 +23,12 @@ export async function createDemoFixture() {
     for(let i=0;i<12;i++) {
       const email=`video-demo-${tag}-${i}@clansync-qa.local`;
       const password=`${randomUUID()}aA1!`;
-      const nickname=`${displayNames[i]}_시연`;
-      const auth=checked(await service.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{nickname,birth_year:2000}}));
+      const nickname=`${displayNames[i]}#${1000+i}`;
+      const auth=checked(await service.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{birth_year:2000}}));
       state.users.push({id:auth.user.id,email,password,nickname});
       await save();
     }
-    checked(await service.from('user_game_profiles').insert(state.users.map(u=>({user_id:u.id,game_id:game.id,game_uid:`demo_${tag}_${u.id}`,is_verified:true,verified_at:new Date().toISOString()}))));
+    checked(await service.from('user_game_profiles').insert(state.users.map(u=>({user_id:u.id,game_id:game.id,game_uid:`demo_${tag}_${u.id}`,battle_tag:u.nickname,is_verified:true,verified_at:new Date().toISOString()}))));
     const clan=checked(await service.from('clans').insert({game_id:game.id,name:'ClanSync 시연 클랜',subscription_tier:'premium'}).select('id').single());
     state.clanId=clan.id;
     await save();

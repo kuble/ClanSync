@@ -33,7 +33,7 @@ test("room ownership, reservations, delegation and scheduler stay scoped", async
   for (let index = 0; index < 12; index++) {
     const email = `rooms-${tag}-${index}@clansync-qa.local`;
     const password = `${randomUUID()}aA1!`;
-    const { user } = await ok(svc.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { nickname: `rm_${tag}_${index}`, birth_year: 2000 } }));
+    const { user } = await ok(svc.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { birth_year: 2000 } }));
     const client = index < 6 ? createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, options) : null;
     users.push({ id: user.id, client });
     if (client) await ok(client.auth.signInWithPassword({ email, password }));

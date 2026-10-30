@@ -30,7 +30,10 @@ test("review defects: direct API permissions, transactions and notification life
       await ok(svc.from("coin_transactions").delete().in("created_by", ids));
       await ok(svc.from("lfg_posts").delete().in("creator_user_id", ids));
     }
-    if (clans.length) await ok(svc.from("clans").delete().in("id", clans));
+    if (clans.length) {
+      await ok(svc.from("scrim_rooms").delete().in("clan_a_id", clans));
+      await ok(svc.from("clans").delete().in("id", clans));
+    }
     if (items.length) await ok(svc.from("store_items").delete().in("id", items));
     for (const u of users) {
       const { error } = await svc.auth.admin.deleteUser(u.id);
@@ -41,7 +44,7 @@ test("review defects: direct API permissions, transactions and notification life
     const email = `review-${tag}-${i}@clansync-qa.local`;
     const password = randomUUID() + "aA1!";
     const { data, error } = await svc.auth.admin.createUser({ email, password, email_confirm: true,
-      user_metadata: { nickname: `rv_${tag}_${i}`, birth_year: 2000, coin_balance: 999999 } });
+      user_metadata: { birth_year: 2000, coin_balance: 999999 } });
     assert.equal(error, null, error?.message);
     const client = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, options);
     users.push({ id: data.user.id, email, client });
@@ -49,7 +52,7 @@ test("review defects: direct API permissions, transactions and notification life
   }
   const [leader, officer, member, outsider, applicant, selfInsert] = users;
   await ok(svc.from("user_game_profiles").insert(users.map(u => ({ user_id: u.id, game_id: gid,
-    game_uid: `review:${u.id}`, is_verified: true, verified_at: new Date().toISOString() }))));
+    game_uid: `review:${u.id}`, battle_tag: `QA${u.id.replaceAll("-", "").slice(0, 12)}#1234`, is_verified: true, verified_at: new Date().toISOString() }))));
   async function clan(name, members, cap = 30) {
     const c = await ok(svc.from("clans").insert({ game_id: gid, name: `rv_${tag}_${name}`, max_members: cap }).select("id").single());
     clans.push(c.id);
@@ -76,10 +79,9 @@ test("review defects: direct API permissions, transactions and notification life
   await t.test("R02 balance writes fail, signup/profile writes and purchase/refund preserve ledger", async () => {
     assert.equal((await ok(member.client.from("users").select("coin_balance").eq("id", member.id).single())).coin_balance, 0);
     await denied(member.client.from("users").update({ coin_balance: 999999 }).eq("id", member.id));
-    await denied(member.client.from("users").update({ nickname: `rv_${tag}_edited` }).eq("id", member.id));
     await ok(member.client.from("users").update({ auto_login: true }).eq("id", member.id));
     await ok(svc.from("users").delete().eq("id", selfInsert.id));
-    const profile = { id: selfInsert.id, email: selfInsert.email, nickname: `rv_${tag}_self`, birth_year: 2000 };
+    const profile = { id: selfInsert.id, email: selfInsert.email, birth_year: 2000 };
     await denied(selfInsert.client.from("users").insert({ ...profile, coin_balance: 100 }));
     await ok(selfInsert.client.from("users").insert(profile));
     const item = await ok(svc.from("store_items").insert({ slug: `review-${tag}`, name_ko: "QA item",
@@ -99,7 +101,7 @@ test("review defects: direct API permissions, transactions and notification life
     await denied(member.client.from("user_game_profiles").update({ is_verified: true, game_uid: "forged" }).eq("user_id", member.id));
     await denied(member.client.from("user_game_profiles").update({ battle_tag: "Forged#12345" }).eq("user_id", member.id));
     await denied(selfInsert.client.from("user_game_profiles").insert({ user_id: selfInsert.id, game_id: gid, game_uid: "forged", is_verified: true }));
-    await ok(svc.from("user_game_profiles").insert({ user_id: selfInsert.id, game_id: gid, game_uid: "server-proof", is_verified: true }));
+    await ok(svc.from("user_game_profiles").insert({ user_id: selfInsert.id, game_id: gid, game_uid: "server-proof", battle_tag: `QA${selfInsert.id.replaceAll("-", "").slice(0, 12)}#1234`, is_verified: true }));
   });
   await t.test("R04 member/settings reads have no recursive policy and outsiders see nothing", async () => {
     await ok(leader.client.from("clan_settings").update({ permissions: { kick_member: ["leader"] } }).eq("clan_id", cid));

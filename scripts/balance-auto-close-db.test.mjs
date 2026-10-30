@@ -39,7 +39,7 @@ test("balance sessions honor clan inactivity settings", async (t) => {
         email,
         password,
         email_confirm: true,
-        user_metadata: { nickname: `${role}_${tag}`, birth_year: 2000 },
+        user_metadata: { birth_year: 2000 },
       }),
     );
     const client = createClient(

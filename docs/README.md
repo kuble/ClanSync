@@ -8,7 +8,7 @@
 
 테마·모바일 재점검: [테마 전환](../src/components/ui/theme-toggle.tsx) · [라이트 검증](../e2e/light-theme.spec.ts) · [실제 저장 선택을 적용하는 Playwright 프로필](../playwright.light.config.ts) · [검증 범위](03-analysis/alpha-review-2026-10-16/verification.md#라이트-테마모바일-점검).
 
-[계정 닉네임 없는 클랜별 프로필·표시 전환/DB 호환 필드 구분](03-analysis/profile-game-identity-audit-2026-10-23.md) · [레거시 값 분리·게임 ID/로비/관리 회귀](../e2e/game-player-names.spec.ts) · [다중 게임/모바일 UI](../e2e/profile-game-identities.spec.ts) · [QA 임시 ID 보정](../scripts/qa-game-identities.mjs).
+[게임 ID 표시·QA 레거시 닉네임 컬럼 폐기](03-analysis/profile-game-identity-audit-2026-10-23.md) · [컬럼 부재·기록 보존 회귀](../scripts/legacy-nickname-retirement-db.test.mjs) · [게임 ID/로비/관리 회귀](../e2e/game-player-names.spec.ts) · [다중 게임/모바일 UI](../e2e/profile-game-identities.spec.ts) · [QA 임시 ID 보정](../scripts/qa-game-identities.mjs).
 
 미인증 게임 ID: [직접 입력·본인 저장](../src/app/actions/game-identity.ts) · [진입/인증 상태 분리](../src/lib/onboarding/load-game-onboarding.ts) · [게임 프로필 상태](../src/components/profile/profile-identity.tsx) · [저장/위조 차단·가입/생성·모바일 회귀](../e2e/manual-game-identity.spec.ts).
 

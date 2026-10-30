@@ -30,7 +30,7 @@ test("round prediction settings enforce Premium, persistence and spectator RLS",
   for (let i = 0; i < 12; i++) {
     const email = `prediction-setting-${tag}-${i}@clansync-qa.local`, password = `${randomUUID()}aA1!`;
     const { user } = await ok(svc.auth.admin.createUser({ email, password, email_confirm: true,
-      user_metadata: { nickname: `pred_${tag}_${i}`, birth_year: 2000 } }));
+      user_metadata: { birth_year: 2000 } }));
     const client = i < 3 ? createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, options) : null;
     users.push({ id: user.id, client });
     if (client) await ok(client.auth.signInWithPassword({ email, password }));

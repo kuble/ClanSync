@@ -44,8 +44,8 @@ test("자진 탈퇴·이전 구성원·기록 유지 재가입·강퇴 후 허�
     await page.screenshot({ path: info.outputPath("former-member.png"), animations: "disabled" });
 
     // A different name must not create a new identity when the same account returns.
-    f.users[1].nickname = `돌아온멤버_${f.clanId.slice(0, 4)}`;
-    expect((await f.service.from("users").update({ nickname: f.users[1].nickname }).eq("id", f.users[1].id)).error).toBeNull();
+    f.users[1].nickname = `돌아온멤버${f.clanId.slice(0, 4)}#1234`;
+    expect((await f.service.from("user_game_profiles").update({ battle_tag: f.users[1].nickname }).eq("user_id", f.users[1].id).eq("game_id", f.gameId)).error).toBeNull();
     const apply = async () => {
       await memberPage.goto("/games/overwatch/clan");
       await memberPage.getByTestId(`clan-join-open-${f.clanId}`).click();

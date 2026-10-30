@@ -43,7 +43,7 @@ test("formation revisions authorize writes and serialize live transitions", asyn
         email,
         password,
         email_confirm: true,
-        user_metadata: { nickname: `fm_${tag}_${index}`, birth_year: 2000 },
+        user_metadata: { birth_year: 2000 },
       }),
     );
     const client =

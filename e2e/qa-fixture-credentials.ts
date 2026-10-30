@@ -35,14 +35,14 @@ export function credentialsForOnboarding(): { email: string; password: string } 
 export function allSeededFixtureCredentials(): Array<{
   rolePascal: string;
   numbering: string;
-  nickname: string;
+  label: string;
   email: string;
   password: string;
 }> {
   return QA_SEED_ACCOUNTS.map((a) => ({
     rolePascal: a.rolePascal,
     numbering: a.numbering,
-    nickname: a.nickname,
+    label: `QA_${a.rolePascal}_${a.numbering}`,
     email: qaFixtureEmail(a.rolePascal, a.numbering),
     password: FIXTURE_PASSWORD,
   }));

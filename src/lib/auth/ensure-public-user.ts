@@ -16,12 +16,6 @@ function clampBirthYear(y: number): number {
 
 function rowFromAuthUser(user: User): UserInsert {
   const meta = user.user_metadata ?? {};
-  let nickname = String(
-    meta.nickname ?? "새 회원",
-  ).trim();
-  nickname = nickname.slice(0, 20);
-  if (!nickname) nickname = "새 회원";
-
   const birthRaw = meta.birth_year;
   const birthYear =
     typeof birthRaw === "number" && Number.isFinite(birthRaw)
@@ -36,7 +30,6 @@ function rowFromAuthUser(user: User): UserInsert {
 
   return {
     id: user.id,
-    nickname,
     email: user.email ?? "",
     birth_year: birthYear,
     gender,
@@ -60,7 +53,7 @@ async function insertUserRow(
 
 /**
  * auth.users 와 1:1 인 public.users 행이 없을 때 보강 (FK·RLS 흐름용).
- * 트리거 누락 등으로 프로필이 빠진 계정을 복구한다. 기존 표시 이름은 덮어쓰지 않는다.
+ * 트리거 누락 등으로 프로필이 빠진 계정을 복구한다. 게임 ID는 별도 프로필에서 관리한다.
  *
  * `userClient` 가 있고 세션 uid 가 `userId` 와 일치하면 RLS `users_self_insert` 로
  * 먼저 시도한다(서비스 롤 키 미설정·스키마 GRANT 누락 대비).

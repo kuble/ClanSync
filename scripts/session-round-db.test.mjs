@@ -60,7 +60,7 @@ test("session lifecycle preserves dates, round history and authorization", async
         email,
         password,
         email_confirm: true,
-        user_metadata: { nickname: `rd_${tag}_${index}`, birth_year: 2000 },
+        user_metadata: { birth_year: 2000 },
       }),
     );
     const client =

@@ -7,7 +7,7 @@ import { allSeededFixtureCredentials } from "./qa-fixture-credentials";
 test.describe("QA 픽스처 계정 로그인", () => {
   test.describe.configure({ mode: "serial" });
   for (const acc of allSeededFixtureCredentials()) {
-    test(`${acc.nickname} (@${acc.email.split("@")[1]})`, async ({ page }) => {
+    test(`${acc.label} (@${acc.email.split("@")[1]})`, async ({ page }) => {
       await page.goto("/sign-in");
       await page.getByLabel("이메일").fill(acc.email);
       await page.getByLabel("비밀번호", { exact: true }).fill(acc.password);
@@ -18,8 +18,8 @@ test.describe("QA 픽스처 계정 로그인", () => {
         const msg = (await banner.innerText().catch(() => "")).trim();
         throw new Error(
           msg
-            ? `[E2E] ${acc.nickname} 로그인 실패: ${msg}`
-            : `[E2E] ${acc.nickname} /games 미도달 (${page.url()}). db:seed·Supabase 프로젝트 확인.`,
+            ? `[E2E] ${acc.label} 로그인 실패: ${msg}`
+            : `[E2E] ${acc.label} /games 미도달 (${page.url()}). db:seed·Supabase 프로젝트 확인.`,
         );
       });
 

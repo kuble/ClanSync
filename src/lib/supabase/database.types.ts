@@ -3385,7 +3385,6 @@ export type Database = {
           id: string
           language: Database["public"]["Enums"]["user_language"]
           minor_guardian_consent_at: string | null
-          nickname: string
           password_updated_at: string | null
           updated_at: string
         }
@@ -3401,7 +3400,6 @@ export type Database = {
           id: string
           language?: Database["public"]["Enums"]["user_language"]
           minor_guardian_consent_at?: string | null
-          nickname: string
           password_updated_at?: string | null
           updated_at?: string
         }
@@ -3417,7 +3415,6 @@ export type Database = {
           id?: string
           language?: Database["public"]["Enums"]["user_language"]
           minor_guardian_consent_at?: string | null
-          nickname?: string
           password_updated_at?: string | null
           updated_at?: string
         }

@@ -16,7 +16,6 @@ type AuthUser = {
   id: string;
   email: string;
   password: string;
-  nickname: string;
   ip: string;
 };
 
@@ -26,15 +25,14 @@ const test = base.extend<{ authUser: AuthUser }>({
     const tag = randomUUID().slice(0, 12);
     const email = `auth-speed-${tag}@clansync-qa.local`;
     const password = `${randomUUID()}aA1!`;
-    const nickname = `auth_${tag}`;
     const { data, error } = await svc.auth.admin.createUser({
       email, password, email_confirm: true,
-      user_metadata: { nickname, birth_year: 2000, gender: "undisclosed" },
+      user_metadata: { birth_year: 2000, gender: "undisclosed" },
     });
     expect(error).toBeNull();
     expect(data.user).not.toBeNull();
     try {
-      await provide({ svc, id: data.user!.id, email, password, nickname, ip: "198.51.100.77" });
+      await provide({ svc, id: data.user!.id, email, password, ip: "198.51.100.77" });
     } finally {
       const cleanup = await Promise.all([
         svc.from("auth_failed_logins").delete().eq("email", email),
@@ -58,8 +56,7 @@ async function fillSignIn(page: Page, user: AuthUser, remember = false) {
 
 test("successful login preserves the existing profile, clears failure count and persists remember choice", async ({ page, authUser }) => {
   const { svc, id, email, ip } = authUser;
-  const editedNickname = `saved_${randomUUID().slice(0, 10)}`;
-  expect((await svc.from("users").update({ nickname: editedNickname, birth_year: 1995 }).eq("id", id)).error).toBeNull();
+  expect((await svc.from("users").update({ birth_year: 1995 }).eq("id", id)).error).toBeNull();
   await fillSignIn(page, authUser, true);
   await page.getByLabel("비밀번호", { exact: true }).fill("incorrect-password");
   await page.getByRole("button", { name: "로그인", exact: true }).click();
@@ -77,11 +74,11 @@ test("successful login preserves the existing profile, clears failure count and 
   await page.getByRole("button", { name: "로그인", exact: true }).click();
   await expect(page).toHaveURL(/\/games$/);
   const [profile, cleared] = await Promise.all([
-    svc.from("users").select("nickname,birth_year,auto_login").eq("id", id).single(),
+    svc.from("users").select("birth_year,auto_login").eq("id", id).single(),
     svc.from("auth_login_lockouts").select("consecutive_failures,locked_until").eq("email", email).eq("ip", ip).single(),
   ]);
   expect(profile.error).toBeNull();
-  expect(profile.data).toEqual({ nickname: editedNickname, birth_year: 1995, auto_login: true });
+  expect(profile.data).toEqual({ birth_year: 1995, auto_login: true });
   expect(cleared.error).toBeNull();
   expect(cleared.data).toEqual({ consecutive_failures: 0, locked_until: null });
   const rememberedCookies = (await page.context().cookies()).filter((cookie) => cookie.name.includes("-auth-token"));
@@ -97,9 +94,9 @@ test("successful login preserves the existing profile, clears failure count and 
   await fillSignIn(page, authUser);
   await page.getByRole("button", { name: "로그인", exact: true }).click();
   await expect(page).toHaveURL(/\/games$/);
-  const normal = await svc.from("users").select("auto_login,nickname,birth_year").eq("id", id).single();
+  const normal = await svc.from("users").select("auto_login,birth_year").eq("id", id).single();
   expect(normal.error).toBeNull();
-  expect(normal.data).toEqual({ nickname: editedNickname, birth_year: 1995, auto_login: false });
+  expect(normal.data).toEqual({ birth_year: 1995, auto_login: false });
   const normalCookies = (await page.context().cookies()).filter((cookie) => cookie.name.includes("-auth-token"));
   expect(normalCookies.length).toBeGreaterThan(0);
   for (const cookie of normalCookies) {
@@ -114,9 +111,9 @@ test("login still restores a missing public profile from the authenticated user"
   await fillSignIn(page, authUser, true);
   await page.getByRole("button", { name: "로그인", exact: true }).click();
   await expect(page).toHaveURL(/\/games$/);
-  const restored = await svc.from("users").select("nickname,birth_year,auto_login").eq("id", id).single();
+  const restored = await svc.from("users").select("birth_year,auto_login").eq("id", id).single();
   expect(restored.error).toBeNull();
-  expect(restored.data).toEqual({ nickname: authUser.nickname, birth_year: 2000, auto_login: true });
+  expect(restored.data).toEqual({ birth_year: 2000, auto_login: true });
 });
 
 test("an active login lock blocks even a correct password before a session is created", async ({ page, authUser }) => {

@@ -8,6 +8,7 @@ export type BalanceTestUser = {
   id: string;
   email: string;
   password: string;
+  /** Full BattleTag for UI assertions; no account nickname is stored. */
   nickname: string;
 };
 
@@ -62,7 +63,7 @@ export async function createIsolatedBalanceFixture(userCount = 12) {
         email,
         password,
         email_confirm: true,
-        user_metadata: { nickname, birth_year: 2000 },
+        user_metadata: { birth_year: 2000 },
       });
       if (error || !data.user)
         throw error ?? new Error("Failed to create isolated user");

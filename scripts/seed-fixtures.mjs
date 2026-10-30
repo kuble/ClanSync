@@ -38,15 +38,13 @@ const supabase = createClient(url, serviceKey, {
 
 /**
  * @param {string} email
- * @param {{ nickname: string }} meta
  */
-async function ensureAuthUser(email, meta) {
+async function ensureAuthUser(email) {
   const { data, error } = await supabase.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
     user_metadata: {
-      nickname: meta.nickname,
       birth_year: 2000,
       gender: "undisclosed",
       auto_login: false,
@@ -88,7 +86,7 @@ async function ensureAuthUser(email, meta) {
 const userIds = [];
 for (const acc of QA_SEED_ACCOUNTS) {
   const email = qaFixtureEmail(acc.rolePascal, acc.numbering);
-  const id = await ensureAuthUser(email, { nickname: acc.nickname });
+  const id = await ensureAuthUser(email);
   userIds.push(id);
 }
 

@@ -34,7 +34,7 @@ const clan = await checked(db.from("clans").select("id,name,game_id,subscription
 assert.equal(clan.name, "QA_01_Clan");
 assert.equal(clan.subscription_tier, "premium");
 const members = await all("clan_members");
-const people = await checked(db.from("users").select("id,nickname,email").in("id", members.filter((m) => m.status === "active").map((m) => m.user_id)).order("email"));
+const people = await checked(db.from("users").select("id,email").in("id", members.filter((m) => m.status === "active").map((m) => m.user_id)).order("email"));
 assert.deepEqual(people.map((p) => p.email.toLowerCase()), QA_CLAN_ACCOUNT_EMAILS);
 assert(members.some((m) => m.user_id === people[0].id && m.role === "leader"));
 assert.equal((await checked(db.from("games").select("slug").eq("id", clan.game_id).single())).slug, "overwatch");

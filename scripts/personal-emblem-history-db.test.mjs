@@ -18,7 +18,7 @@ test("permanent personal emblem history preserves closed awards and first thresh
   });
   for (let i = 0; i < 3; i++) {
     const email = `emblem-history-${tag}-${i}@clansync-qa.local`, password = `${randomUUID()}aA1!`;
-    const { user } = await ok(svc.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { nickname: `eh_${tag}_${i}`, birth_year: 2000 } }));
+    const { user } = await ok(svc.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { birth_year: 2000 } }));
     const client = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, options);
     users.push({ id: user.id, client }); await ok(client.auth.signInWithPassword({ email, password }));
   }

@@ -28,7 +28,7 @@ test("private role preferences, saved rules and draw history", async (t) => {
   for (let i = 0; i < 2; i++) {
     const email = `role-${tag}-${i}@clansync-qa.local`, password = `${randomUUID()}aA1!`;
     const { user } = await ok(svc.auth.admin.createUser({ email, password, email_confirm: true,
-      user_metadata: { nickname: `role_${tag}_${i}`, birth_year: 2000 } }));
+      user_metadata: { birth_year: 2000 } }));
     const client = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, options);
     users.push({ id: user.id, client });
     await ok(client.auth.signInWithPassword({ email, password }));
@@ -37,7 +37,7 @@ test("private role preferences, saved rules and draw history", async (t) => {
   const game = await ok(svc.from("games").select("id").eq("slug", "overwatch").single());
   clanId = (await ok(svc.from("clans").insert({ game_id: game.id, name: `Roles-${tag}` }).select("id").single())).id;
   await ok(svc.from("clan_members").insert(users.map((user, i) => ({ clan_id: clanId, user_id: user.id, role: i ? "member" : "leader", status: "active" }))));
-  await ok(svc.from("user_game_profiles").insert(users.map((user, i) => ({ user_id: user.id, game_id: game.id, game_uid: `roles-${tag}-${i}`, is_verified: true }))));
+  await ok(svc.from("user_game_profiles").insert(users.map((user, i) => ({ user_id: user.id, game_id: game.id, game_uid: `roles-${tag}-${i}`, battle_tag: `QA${user.id.replaceAll("-", "").slice(0, 12)}#1234`, is_verified: true }))));
   const { round_id: roundId } = await ok(leader.client.rpc("open_balance_session_series", { p_clan_id: clanId }));
   const roster = { team1: { tank: leader.id, dmg: [null,null], sup: [null,null] }, team2: { tank: member.id, dmg: [null,null], sup: [null,null] } };
   await ok(leader.client.from("balance_sessions").update({ roster }).eq("id", roundId));
@@ -107,7 +107,7 @@ test("private role preferences, saved rules and draw history", async (t) => {
   await t.test("shared draw history persists across reset and includes rules without rankings", async () => {
     const row = await read();
     assert.equal(row.draw_history.length,1);
-    assert.deepEqual(row.draw_history[0].settings,{ ...settings,captains:null,auctionItemsEnabled:false,strategySeconds:30 });
+    assert.deepEqual(row.draw_history[0].settings,{ ...settings,captains:null,auctionItemsEnabled:false,strategySeconds:30,auctionPreparationSeconds:5,bidExtensionSeconds:5 });
     assert.equal(JSON.stringify(row.draw_history).includes("ranking"),false);
     assert.equal(JSON.stringify(row.draw_history).includes("preferences"),false);
     const args = { ...startArgs(row.formation_revision),p_command: "reset",p_state: null };

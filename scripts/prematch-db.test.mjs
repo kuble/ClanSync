@@ -45,7 +45,7 @@ test("prematch rules, voting deadlines and explicit match start are atomic", asy
         email,
         password,
         email_confirm: true,
-        user_metadata: { nickname: `pm_${tag}_${i}`, birth_year: 2000 },
+        user_metadata: { birth_year: 2000 },
       }),
     );
     const client = [0, 1, 2, 11].includes(i)

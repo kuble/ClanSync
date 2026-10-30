@@ -78,7 +78,7 @@
 | `user_game_profiles` | 10 | 2 |
 | `user_namecard_selections` | 5 | 2 |
 | `user_nameplate_inventory` | 3 | 2 |
-| `users` | 14 | 0 |
+| `users` | 13 | 0 |
 
 ## 함수
 

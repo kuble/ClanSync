@@ -60,8 +60,8 @@ test("익명 투표 참여자의 이름·ID를 서버 응답에 포함하지 않
   test.setTimeout(120_000);
   const f = await createIsolatedBalanceFixture(2);
   try {
-    const secretName = `anonymous-${f.clanId.slice(0, 8)}`;
-    await ok(f.service.from("users").update({ nickname: secretName }).eq("id", f.users[1].id));
+    const secretName = `Anon${f.clanId.slice(0, 8)}#1234`;
+    await ok(f.service.from("user_game_profiles").update({ battle_tag: secretName }).eq("user_id", f.users[1].id).eq("game_id", f.gameId));
     const poll = await ok(f.service.from("clan_polls").insert({ clan_id: f.clanId, title: "비공개 참여자", anonymous: true, created_by: f.users[0].id, deadline_at: new Date(Date.now() + 86_400_000).toISOString() }).select("id").single());
     const option = await ok(f.service.from("poll_options").insert([{ poll_id: poll.id, label: "가", sort_order: 0 }, { poll_id: poll.id, label: "나", sort_order: 1 }]).select("id"));
     const member = await f.memberClient(1);
@@ -69,8 +69,16 @@ test("익명 투표 참여자의 이름·ID를 서버 응답에 포함하지 않
     await loginIsolatedBalanceUser(page, f.users[0]);
     const response = await page.goto(f.path.replace(/balance$/, `events?tab=polls&poll=${poll.id}`));
     const payload = await response!.text();
-    expect(payload).not.toContain(secretName);
-    expect(payload).not.toContain(f.users[1].id);
+    // The page also contains public clan namecards; inspect only poll props.
+    const flight = [...payload.matchAll(/self\.__next_f\.push\((\[.*?\])\)<\/script>/g)]
+      .map(match => JSON.parse(match[1])[1] ?? "").join("");
+    const pollProps = flight.match(/"polls":(\[[\s\S]*?\]),"bracketTournaments"/);
+    expect(pollProps, "serialized poll props must be present").not.toBeNull();
+    const serialized = JSON.parse(pollProps![1]).find((value: { id: string }) => value.id === poll.id);
+    expect(serialized).toBeTruthy();
+    expect(JSON.stringify(serialized)).not.toContain(secretName);
+    expect(JSON.stringify(serialized)).not.toContain(f.users[1].id);
+    expect(serialized.options[0]).toMatchObject({ vote_count: 1, voters: [] });
     await expect(page.getByRole("dialog")).toBeVisible();
     await page.getByRole("button", { name: "현재 결과 보기", exact: true }).click();
     await expect(page.getByText("익명 투표로 참여자 정보를 표시하지 않습니다.")).toBeVisible();

@@ -19,7 +19,7 @@ test("clan boards, comments, images and badges isolate actors and clans",async t
   const tag=randomUUID().slice(0,8);
   for(let i=0;i<4;i++){
     const email="board-"+tag+"-"+i+"@clansync-qa.local",password=randomUUID()+"aA1!";
-    const {user}=await ok(service.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{nickname:"bd_"+tag+"_"+i,birth_year:2000}}));
+    const {user}=await ok(service.auth.admin.createUser({email,password,email_confirm:true,user_metadata: { birth_year:2000}}));
     const client=createClient(env.NEXT_PUBLIC_SUPABASE_URL,env.NEXT_PUBLIC_SUPABASE_ANON_KEY,options);
     await ok(client.auth.signInWithPassword({email,password}));users.push({id:user.id,client});
   }

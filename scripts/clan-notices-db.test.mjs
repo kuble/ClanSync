@@ -41,7 +41,7 @@ test("clan notices and rules require active membership and officer permissions",
         email,
         password,
         email_confirm: true,
-        user_metadata: { nickname: `nt_${tag}_${index}`, birth_year: 2000 },
+        user_metadata: { birth_year: 2000 },
       }),
     );
     const client = createClient(

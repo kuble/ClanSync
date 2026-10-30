@@ -3,7 +3,7 @@
  *
  * 규칙:
  * - 이메일 로컬파트: QA_[Role]_[numbering]@
- * - 닉네임: QA_[Role]_[numbering]
+ * - 로그인 구분명: QA_[Role]_[numbering] (계정 닉네임으로 저장하지 않음)
  * - 비밀번호: 고정 (FIXTURE_PASSWORD)
  * - 클랜 표시 이름: QA_[numbering]_Clan
  */
@@ -23,12 +23,12 @@ export function qaFixtureEmail(rolePascal, numbering) {
 
 /** 시드 순서 중 인덱스 1이 QA_01_Clan 리더 */
 export const QA_SEED_ACCOUNTS = [
-  { rolePascal: "Member", numbering: "01", nickname: "QA_Member_01" },
-  { rolePascal: "Leader", numbering: "01", nickname: "QA_Leader_01" },
-  { rolePascal: "Admin", numbering: "01", nickname: "QA_Admin_01" },
+  { rolePascal: "Member", numbering: "01" },
+  { rolePascal: "Leader", numbering: "01" },
+  { rolePascal: "Admin", numbering: "01" },
   ...Array.from({ length: 11 }, (_, index) => {
     const numbering = String(index + 2).padStart(2, "0");
-    return { rolePascal: "Member", numbering, nickname: `QA_Member_${numbering}` };
+    return { rolePascal: "Member", numbering };
   }),
 ];
 

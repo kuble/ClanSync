@@ -6,7 +6,7 @@ import { loadTestEnv } from "../scripts/test-env.mjs";
 import { allowDevGameLink } from "../src/lib/auth/allow-dev-game-link";
 import type { Database } from "../src/lib/supabase/database.types";
 
-test("nickname-free signup retains errors; a new Auth profile uses the BattleTag name", async ({ page }, info) => {
+test("nickname-free signup retains errors and a new profile displays the full BattleTag", async ({ page }, info) => {
   test.setTimeout(120_000);
   const env = loadTestEnv();
   const svc = createClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL!, env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
@@ -30,19 +30,18 @@ test("nickname-free signup retains errors; a new Auth profile uses the BattleTag
     const created = await svc.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { birth_year: 2000 } });
     expect(created.error).toBeNull();
     id = created.data.user!.id;
-    const profile = await svc.from("users").select("id,nickname").eq("email", email).single();
+    const profile = await svc.from("users").select("id").eq("email", email).single();
     expect(profile.error).toBeNull();
     expect(profile.data!.id).toBe(id);
-    expect(profile.data!.nickname).toBe("새 회원");
     expect((await svc.auth.admin.getUserById(id)).data.user?.user_metadata.nickname).toBeUndefined();
     await loginIsolatedBalanceUser(page, { id, email, password, nickname: "새 회원" });
     await page.goto("/games/overwatch/auth");
     await page.getByLabel("테스트 배틀태그", { exact: true }).fill("별빛에임#45678");
     await page.getByRole("button", { name: "테스트 배틀태그로 연결", exact: true }).click();
     await page.waitForURL(/\/games\/overwatch\/clan/);
-    expect((await svc.from("users").select("nickname").eq("id", id).single()).data?.nickname).toBe("별빛에임");
+    expect((await svc.from("user_game_profiles").select("battle_tag").eq("user_id", id).single()).data?.battle_tag).toBe("별빛에임#45678");
     await page.goto("/profile");
-    await expect(page.getByText("별빛에임", { exact: true })).toBeVisible();
+    await expect(page.getByText("별빛에임#45678", { exact: true }).first()).toBeVisible();
     await page.screenshot({ path: info.outputPath("battletag-profile.png") });
     await page.goto("/games");
   } finally {
@@ -65,22 +64,22 @@ test("QA BattleTag relinking preserves stable IDs; duplicate names work and forg
     await page.waitForURL(/\/games\/overwatch\/clan/);
     const linked = await f.service.from("user_game_profiles").select("battle_tag,is_verified,game_uid").eq("user_id", f.users[1].id).eq("game_id", f.gameId).single();
     expect(linked.data).toEqual({ battle_tag: tag, is_verified: true, game_uid: before.game_uid });
-    expect((await f.service.from("users").select("nickname").eq("id", f.users[1].id).single()).data?.nickname).toBe("SameName");
     expect((await f.service.from("user_game_profiles").update({ battle_tag: `SameName#${suffix}1` }).eq("user_id", f.users[2].id).eq("game_id", f.gameId)).error).toBeNull();
-    expect((await f.service.from("users").select("nickname").in("id", [f.users[1].id, f.users[2].id])).data?.map((r) => r.nickname)).toEqual(["SameName", "SameName"]);
+    const sameNames = await f.service.from("user_game_profiles").select("battle_tag").eq("game_id", f.gameId).in("user_id", [f.users[1].id, f.users[2].id]);
+    expect(sameNames.data?.map(r => r.battle_tag).sort()).toEqual([tag, `SameName#${suffix}1`].sort());
     const client = await f.memberClient(1);
     expect((await client.from("user_game_profiles").update({ battle_tag: "Fake#12345" }).eq("user_id", f.users[1].id)).error).toBeTruthy();
-    expect((await client.from("users").update({ nickname: "다른이름" }).eq("id", f.users[1].id)).error).toBeTruthy();
     await page.goto("/games/overwatch/auth?reauth=1");
     await expect(page.getByLabel("테스트 배틀태그", { exact: true })).toHaveValue(tag);
     await page.getByLabel("테스트 배틀태그", { exact: true }).fill(`samename#${suffix}1`);
     await page.getByRole("button", { name: "테스트 배틀태그로 연결", exact: true }).click();
-    await expect(page.getByRole("alert").filter({ hasText: "이미 다른 계정에 연결된 배틀태그" })).toBeVisible();
+    await expect(page.getByRole("alert").filter({ hasText: "이미 다른 계정에 연결된 게임 ID" })).toBeVisible();
     expect((await f.service.from("user_game_profiles").select("battle_tag,game_uid").eq("user_id", f.users[1].id).eq("game_id", f.gameId).single()).data).toEqual({ battle_tag: tag, game_uid: before.game_uid });
     await page.getByLabel("테스트 배틀태그", { exact: true }).fill(`Renamed#${suffix}`);
     await page.getByRole("button", { name: "테스트 배틀태그로 연결", exact: true }).click();
     await page.waitForURL(/\/games\/overwatch\/clan/);
-    expect((await f.service.from("users").select("nickname,coin_balance").eq("id", f.users[1].id).single()).data).toEqual({ nickname: "Renamed", coin_balance: 0 });
+    expect((await f.service.from("user_game_profiles").select("battle_tag").eq("user_id", f.users[1].id).eq("game_id", f.gameId).single()).data?.battle_tag).toBe(`Renamed#${suffix}`);
+    expect((await f.service.from("users").select("coin_balance").eq("id", f.users[1].id).single()).data?.coin_balance).toBe(0);
     expect((await f.service.from("user_game_profiles").select("game_uid").eq("user_id", f.users[1].id).eq("game_id", f.gameId).single()).data?.game_uid).toBe(before.game_uid);
     expect(allowDevGameLink({ VERCEL_ENV: "production", DEV_GAME_LINK_SIMULATOR: "1" })).toBe(false);
     expect(allowDevGameLink({ NEXT_PUBLIC_SUPABASE_URL: "https://mxkrfnzlgaxzdzcjbfkg.supabase.co", NODE_ENV: "development" })).toBe(false);

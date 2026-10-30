@@ -54,7 +54,7 @@ test("RSC request data stays isolated between accounts and refreshes changed per
         email,
         password,
         email_confirm: true,
-        user_metadata: { nickname: `rq_${tag}_${index}`, birth_year: 2000 },
+        user_metadata: { birth_year: 2000 },
       });
       expect(created.error).toBeNull();
       users.push({ id: created.data.user!.id, email, password });

@@ -19,12 +19,12 @@ test("membership departure and return preserve identity, records and permission 
   const game = await ok(svc.from("games").select("id").eq("slug", "overwatch").single());
   for (let i = 0; i < 4; i++) {
     const email = `membership-${tag}-${i}@clansync-qa.local`, password = `${randomUUID()}aA1!`;
-    const { user } = await ok(svc.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { nickname: `mem_${tag}_${i}`, birth_year: 2000 } }));
+    const { user } = await ok(svc.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { birth_year: 2000 } }));
     const client = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, options);
     users.push({ id: user.id, client }); await ok(client.auth.signInWithPassword({ email, password }));
   }
   const [leader, returning, member, outsider] = users;
-  await ok(svc.from("user_game_profiles").insert(users.map((u) => ({ user_id: u.id, game_id: game.id, game_uid: `membership-${tag}-${u.id}`, is_verified: true }))));
+  await ok(svc.from("user_game_profiles").insert(users.map((u) => ({ user_id: u.id, game_id: game.id, game_uid: `membership-${tag}-${u.id}`, battle_tag: `QA${u.id.replaceAll("-", "").slice(0, 12)}#1234`, is_verified: true }))));
   const clan = await ok(svc.from("clans").insert({ game_id: game.id, name: `Membership-${tag}`, subscription_tier: "premium" }).select("id").single()); clans.push(clan.id);
   await ok(svc.from("clan_members").insert(users.slice(0, 3).map((u, i) => ({ clan_id: clan.id, user_id: u.id, status: "active", role: i === 0 ? "leader" : i === 1 ? "officer" : "member" }))));
   const change = (actor, action, target) => actor.rpc("change_clan_membership", { p_clan_id: clan.id, p_action: action, ...(target ? { p_user_id: target } : {}) });
@@ -60,14 +60,15 @@ test("membership departure and return preserve identity, records and permission 
     assert.equal((await ok(svc.from("clan_participants").select("id").eq("clan_id", clan.id).eq("id", returning.id))).length, 1);
     assert.deepEqual(await records(), original);
   });
-  await t.test("returning approvals still enforce capacity, game verification and another active clan", async () => {
+  await t.test("returning approvals enforce capacity, registered game ID and another active clan", async () => {
     await ok(change(returning.client, "leave")); const request = await apply();
     await ok(svc.from("clans").update({ max_members: 2 }).eq("id", clan.id));
     assert.match((await denied(approve(request.id))).message, /정원/);
     await ok(svc.from("clans").update({ max_members: 30 }).eq("id", clan.id));
-    await ok(svc.from("user_game_profiles").update({ is_verified: false }).eq("user_id", returning.id));
-    assert.match((await denied(approve(request.id))).message, /인증/);
-    await ok(svc.from("user_game_profiles").update({ is_verified: true }).eq("user_id", returning.id));
+    const identity = await ok(svc.from("user_game_profiles").select("battle_tag").eq("user_id", returning.id).eq("game_id", game.id).single());
+    await ok(svc.from("user_game_profiles").update({ battle_tag: null, is_verified: false }).eq("user_id", returning.id));
+    assert.match((await denied(approve(request.id))).message, /게임 ID/);
+    await ok(svc.from("user_game_profiles").update({ battle_tag: identity.battle_tag }).eq("user_id", returning.id));
     const other = await ok(svc.from("clans").insert({ game_id: game.id, name: `Other-${tag}` }).select("id").single()); clans.push(other.id);
     await ok(svc.from("clan_members").insert({ clan_id: other.id, user_id: returning.id, status: "active", role: "member" }));
     assert.match((await denied(approve(request.id))).message, /소속/);

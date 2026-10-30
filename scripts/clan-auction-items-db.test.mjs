@@ -31,7 +31,7 @@ test("auction item catalog isolates clans and limits writes to active officers",
   for (const role of ["leader", "officer", "member", "outsider"]) {
     const email = `auction-item-${role}-${tag}@clansync-qa.local`;
     const password = `${randomUUID()}aA1!`;
-    const { user } = await ok(svc.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { nickname: `${role}_${tag}`, birth_year: 2000 } }));
+    const { user } = await ok(svc.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { birth_year: 2000 } }));
     const client = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, options);
     users.push({ id: user.id, client, role });
     await ok(client.auth.signInWithPassword({ email, password }));
