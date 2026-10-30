@@ -1,0 +1,137 @@
+.screen { height: 100%; min-height: 530px; min-width: 0; display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 14px; background: var(--card); }
+.heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; border-bottom: 1px solid var(--border); }
+.heading h3 { font-size: 17px; font-weight: 650; letter-spacing: -.025em; word-break: keep-all; }
+.heading > span { flex-shrink: 0; font-size: 11px; color: var(--muted-foreground); }
+.body { display: grid; align-content: center; gap: 16px; padding: 20px; flex: 1; min-width: 0; }
+.screen figcaption { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; padding: 14px 24px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted-foreground); line-height: 1.6; }
+.twoColumns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.threeCharts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.card { min-width: 0; padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--background); }
+.card h4, .recent h4 { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 650; margin-bottom: 12px; }
+.card h4 svg { color: var(--primary); flex-shrink: 0; }
+.summary { display: flex; flex-wrap: wrap; gap: 10px 24px; font-size: 12px; color: var(--muted-foreground); }
+.summary b { color: var(--foreground); margin-left: 4px; font-weight: 650; }
+.filters { display: flex; gap: 4px; width: fit-content; padding: 4px; border: 1px solid var(--border); border-radius: 10px; }
+.filters button { padding: 7px 16px; font-size: 12px; border-radius: 7px; cursor: pointer; }
+.filters [aria-pressed="true"] { background: var(--primary); color: var(--primary-foreground); }
+.filters button:focus-visible, .matchHeading button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.rankList { display: grid; gap: 8px; }
+.rankList li { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 9px; }
+.rankList li:first-child { background: #e8b44d0a; border-color: #d6ac6266; }
+.rank { display: grid; justify-items: center; gap: 2px; font-size: 22px; font-weight: 750; color: var(--muted-foreground); }
+.rankList li:first-child .rank { color: #a57929; }
+.rankList li > div { flex: 1; min-width: 0; }
+.rankList strong { font-size: 13px; }
+.rankList small { display: block; margin-top: 3px; font-size: 11px; color: var(--muted-foreground); }
+.rankList b { font-size: 17px; white-space: nowrap; }
+.reactions { display: grid; gap: 16px; padding: 8px 0; }
+.reactions strong { display: block; font-size: 12px; margin-bottom: 7px; }
+.reactions p > span { display: inline-block; background: var(--surface); padding: 12px 14px; border-radius: 3px 12px 12px; font-size: 13px; }
+.reaction { justify-self: end; color: var(--primary); font-size: 12px; }
+.chart :global([role="region"]) { height: auto; max-height: none; overflow: visible; }
+.chart :global([role="region"] > div) { padding: 0; }
+.chart :global(button) { font-size: 12px; gap: 6px; }
+.chart > div > div:first-child { position: static; }
+.table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.table th, .table td { padding: 13px 8px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.table th { font-weight: 500; }
+.table th:first-child { text-align: left; }
+.table thead { color: var(--muted-foreground); font-size: 11px; }
+.table tbody tr:last-child > * { border: 0; }
+.footnote { margin: 8px 0; color: var(--muted-foreground); font-size: 11px; line-height: 1.6; }
+.matchHeading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.matchHeading h4 { margin: 0; }
+.matchHeading > div { display: flex; align-items: center; gap: 4px; font-size: 11px; }
+.matchHeading button { display: grid; place-items: center; width: 28px; height: 28px; cursor: pointer; border-radius: 5px; }
+.matchHeading button:disabled { opacity: .3; cursor: default; }
+.teams { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.teams h5 { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 10px; color: var(--team-blue); }
+.teams [data-team="2"] h5 { color: var(--team-red); }
+.teams h5 span { font-size: 11px; }
+.teams ul { display: grid; gap: 6px; }
+.teams li { display: flex; align-items: center; gap: 8px; padding: 8px; border: 1px solid color-mix(in srgb, var(--team-blue) 25%, var(--border)); border-radius: 7px; font-size: 12px; }
+.teams [data-team="2"] li { border-color: color-mix(in srgb, var(--team-red) 25%, var(--border)); }
+.teams svg, .role svg { width: 16px; height: 16px; flex-shrink: 0; }
+.profile { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+.namecard { display: block; font-size: 22px; font-weight: 700; }
+.profile p { margin-top: 6px; color: var(--muted-foreground); font-size: 12px; }
+.emblems { display: flex; gap: 12px; }
+.emblems img { width: 64px; height: 64px; object-fit: contain; }
+.role { display: flex; align-items: center; gap: 8px; }
+.recent { display: flex; justify-content: space-between; gap: 16px; padding: 0 8px; }
+.streak { display: flex; gap: 5px; }
+.streak > span { padding: 5px 8px; border-radius: 4px; font-size: 11px; color: var(--team-blue); background: color-mix(in srgb, var(--team-blue) 10%, transparent); }
+.streak > [data-win="false"] { color: var(--team-red); background: color-mix(in srgb, var(--team-red) 10%, transparent); }
+.recent p { font-size: 12px; }
+.recent p > span { display: block; color: var(--muted-foreground); margin-top: 7px; }
+.partner { display: flex; justify-content: center; align-items: center; gap: 14px; padding: 22px 12px; background: var(--surface); border-radius: 10px; margin-top: 14px; color: var(--primary); }
+.partner strong { font-size: 16px; }
+.partner span { display: block; margin-top: 4px; font-size: 12px; color: var(--muted-foreground); }
+@media (max-width: 800px) {
+  .threeCharts { grid-template-columns: 1fr; }
+  .threeCharts .chart > div { display: grid; grid-template-columns: 130px minmax(0, 1fr); align-items: center; gap: 12px; }
+  .chart > div > div:first-child > div { width: 130px; height: 130px; }
+  .chart :global(.inset-8) { inset: 24px; }
+  .chart :global(.bottom-3) { bottom: 6px; }
+  .chart :global(.text-xl) { font-size: 16px; }
+  .threeCharts .card h4 { margin-bottom: 4px; }
+  .chart :global(.size-7) { width: 22px; height: 22px; }
+}
+@media (max-width: 640px) {
+  .screen { min-height: 0; }
+  .heading { padding: 16px; display: block; }
+  .heading h3 { font-size: 15px; }
+  .heading > span { display: block; margin-top: 5px; }
+  .body { padding: 12px; gap: 12px; }
+  .screen figcaption { padding: 12px 16px; display: block; }
+  .screen figcaption > span { display: block; margin-top: 4px; }
+  .twoColumns { grid-template-columns: 1fr; gap: 12px; }
+  .card { padding: 12px; }
+  .card h4 { margin-bottom: 8px; }
+  .threeCharts .card { padding: 10px; }
+  .threeCharts .chart > div { grid-template-columns: 100px minmax(0, 1fr); gap: 8px; }
+  .threeCharts .chart > div > div:first-child > div { width: 100px; height: 100px; }
+  .threeCharts .chart > div > div:first-child > p { display: none; }
+  .threeCharts .chart :global(.inset-8) { inset: 20px; }
+  .threeCharts .chart :global(.bottom-3) { bottom: 4px; }
+  .threeCharts .chart :global(.text-xl) { font-size: 13px; }
+  .threeCharts .chart :global(.text-xs) { font-size: 10px; }
+  .threeCharts .chart :global(button > span.text-xs) { display: none; }
+  .threeCharts .chart :global(button) { padding: 3px 2px; }
+  .threeCharts .chart :global(.size-7) { width: 20px; height: 20px; }
+  .twoColumns .chart > div > div:first-child { display: none; }
+  .rankList li { padding: 8px; gap: 8px; }
+  .rankList b { font-size: 15px; }
+  .rankList small { font-size: 10px; }
+  .rank { font-size: 18px; }
+  .reactions { gap: 10px; padding: 0; }
+  .reactions p > span { padding: 8px 10px; font-size: 12px; }
+  .filters { width: 100%; }
+  .filters button { flex: 1; padding: 6px; }
+  .summary { gap: 6px 12px; font-size: 11px; }
+  .profile { padding: 12px; gap: 8px; flex-wrap: wrap; }
+  .namecard { font-size: 18px; }
+  .emblems { gap: 8px; }
+  .emblems img { width: 42px; height: 42px; }
+  .table { font-size: 12px; }
+  .table td, .table th { padding: 7px 4px; }
+  .teams li { padding: 5px 8px; }
+  .teams ul { gap: 4px; }
+  .teams h5 { margin-bottom: 6px; }
+  .matchHeading { margin-bottom: 8px; }
+  .recent { padding: 0; gap: 8px; }
+  .streak { gap: 3px; }
+  .streak > span { padding: 4px 6px; }
+  .partner { padding: 12px; }
+}
+@media (max-width: 380px) {
+  .threeCharts .chart > div { grid-template-columns: 90px minmax(0, 1fr); gap: 6px; }
+  .threeCharts .chart > div > div:first-child > div { width: 90px; height: 90px; }
+  .threeCharts .chart :global(.inset-8) { inset: 17px; }
+  .threeCharts .chart :global(.bottom-3) { bottom: 4px; }
+  .threeCharts .chart :global(.text-xl) { font-size: 13px; }
+  .threeCharts .chart :global(.text-xs) { font-size: 10px; }
+  .threeCharts .chart :global(button > span.text-xs) { display: none; }
+  .threeCharts .chart :global(.size-7) { width: 18px; height: 18px; }
+  .threeCharts .chart :global(button) { font-size: 11px; gap: 4px; }
+}

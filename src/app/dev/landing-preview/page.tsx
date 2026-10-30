@@ -119,7 +119,7 @@ export default function LandingPreviewPage() {
             <div className={styles.sectionIntro}>
               <History size={26} aria-hidden="true" />
               <h2 id="records-title">경기가 끝나도,<br />우리 클랜의 기록은 이어집니다.</h2>
-              <p>팀 구성과 승패부터<br className={styles.desktopBreak} /> 활동 추이와 개인 성적까지 한눈에.</p>
+              <p>팀 구성과 승패부터<br className={styles.desktopBreak} /> 클랜 순위와 개인 성적까지 한눈에.</p>
             </div>
             <RecordsPreview records={records} />
           </div>

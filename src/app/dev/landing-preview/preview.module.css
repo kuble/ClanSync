@@ -75,6 +75,15 @@
 .clanWindowHeading h3 { margin-top: 5px; font-size: 18px; font-weight: 650; letter-spacing: -.03em; }
 .clanDashboard { padding: 16px; }
 .clanDashboard :global([data-testid="clan-dashboard-grid"]) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "notices events" "mvps mvps"; gap: 12px; }
+.clanDashboard :global([aria-label="최근 클랜 공지"]) { grid-auto-rows: auto; gap: 8px; }
+.clanDashboard :global([aria-label="최근 클랜 공지"] > li > a) { min-height: 60px; padding: 10px; }
+.clanDashboard :global([aria-label="다가오는 일정 목록"]) { min-height: 0; }
+.clanDashboard :global([aria-label="다가오는 일정 목록"] > div) { grid-auto-rows: auto; gap: 8px; }
+.clanDashboard :global([aria-label="다가오는 일정 목록"] > div > a) { min-height: 60px; padding: 10px; }
+.clanDashboard :global([aria-label="지난달 승부예측 MVP"]) { display: none; }
+.clanDashboard :global(div:has(> [aria-label="지난달 승률 MVP"])) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.clanDashboard :global([aria-label="지난달 승률 MVP"]), .clanDashboard :global([aria-label="지난달 참여율 MVP"]) { min-height: 0; padding: 12px; }
+.clanDashboard :global([data-testid="clan-dashboard-grid"] > section > h3) { font-size: 15px; }
 .clanWindow figcaption, .trendExample figcaption { padding: 16px 22px; border-top: 1px solid var(--border); font-size: 11px; line-height: 1.8; color: var(--muted-foreground); }
 .activityFeatures { display: grid; gap: 32px; }
 .activityFeatures > div + div { padding-top: 28px; border-top: 1px solid var(--border); }
@@ -90,8 +99,6 @@
 .slide > .trendExample { height: 100%; display: flex; flex-direction: column; }
 .slide > .trendExample > figcaption { margin-top: auto; }
 .slide > .trendExample .donutPreview { width: 100%; }
-.recordsInner .slideStack { height: 720px; }
-.recordsInner .slide { height: 100%; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-gutter: stable; }
 .slide:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; }
 .paginationControls { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 24px; }
 .paginationControls > div { display: flex; }
@@ -104,9 +111,8 @@
 .paginationLabel > span { color: var(--muted-foreground); font-size: 11px; font-variant-numeric: tabular-nums; }
 .donutPreview { max-width: 720px; margin: 32px auto; flex: 1; display: grid; align-items: center; }
 .activityExampleBody { padding: 24px 16px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
-.activityExampleBody :global([aria-label="월간 캘린더"] [role="gridcell"] > button) { height: 72px; padding: 6px 2px; align-items: center; }
-.activityLayout .slideStack { height: 700px; }
-.activityLayout .slide { height: 100%; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-gutter: stable; }
+.activityExampleBody :global([aria-label="월간 캘린더"] [role="gridcell"] > button) { height: 56px; padding: 4px 2px; align-items: center; }
+.activityLayout .slideStack { min-height: 540px; }
 .activityLayout .clanWindow { min-height: 100%; display: flex; flex-direction: column; }
 .activityLayout .clanWindow > figcaption { margin-top: auto; }
 .photoExamples { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
@@ -144,9 +150,20 @@
 }
 @media (max-width: 640px) {
   .activity { padding-inline: 16px; }
-  .activityLayout .slideStack { height: 600px; }
-  .photoExamples { grid-template-columns: 1fr; }
+  .photoExamples { grid-template-columns: 1fr; max-width: 240px; margin: 0 auto; gap: 12px; }
   .clanDashboard { padding: 10px; }
+  .clanDashboard :global([aria-label="최근 클랜 공지"] > li:nth-child(n+2)), .clanDashboard :global([aria-label="다가오는 일정 목록"] > div > a:nth-child(n+2)) { display: none; }
+  .clanDashboard :global([data-testid="clan-dashboard-grid"] > section) { padding: 10px; }
+  .clanDashboard :global([data-testid="clan-dashboard-grid"] > section > h3) { margin-bottom: 6px; }
+  .clanDashboard :global([aria-label$="MVP 순위"] > li:nth-child(n+2)) { display: none; }
+  .clanDashboard :global([data-mvp-value]) { font-size: 15px; }
+  .clanDashboard :global([aria-label$="MVP 순위"] > li) { grid-template-columns: minmax(0, 1fr) auto; gap: 4px; }
+  .clanDashboard :global([data-mvp-rank]) { display: none; }
+  .clanDashboard :global([data-mvp-name]) { white-space: nowrap; }
+  .activityExampleBody { padding: 14px 10px; }
+  .activityExampleBody :global([aria-label="월간 캘린더"] [role="gridcell"] > button) { height: 48px; }
+  .activityExampleBody :global([aria-label="게시글 목록"] a) { min-height: 64px; padding: 10px; }
+  .notificationExamples li { padding: 14px 10px; gap: 10px; }
   .clanWindowHeading { padding: 18px 16px; }
   .trendExample { padding: 18px 12px 0; }
   .statsTotals dd { font-size: 24px; }
