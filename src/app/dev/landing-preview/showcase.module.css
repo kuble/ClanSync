@@ -1,8 +1,11 @@
-.frame { height: 100%; display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--border); border-radius: 14px; background: var(--card); }
-.canvas { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 12px 24px; }
-.frame figcaption { min-height: 76px; padding: 12px 24px; border-top: 1px solid var(--border); }
-.frame figcaption h3 { font-size: 16px; font-weight: 650; letter-spacing: -.025em; }
-.frame figcaption p { margin-top: 6px; font-size: 13px; line-height: 1.6; color: var(--muted-foreground); word-break: keep-all; }
+.frame { height: 100%; display: grid; grid-template-columns: minmax(0,.85fr) minmax(0,1.55fr); align-items: center; gap: 48px; min-width: 0; }
+.canvas { grid-column: 2; grid-row: 1; min-width: 0; padding: 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--card); }
+.frame figcaption { grid-column: 1; grid-row: 1; min-width: 0; padding: 0; }
+.reverse { grid-template-columns: minmax(0,1.55fr) minmax(0,.85fr); }
+.reverse .canvas { grid-column: 1; }
+.reverse figcaption { grid-column: 2; }
+.frame figcaption h3 { font-size: clamp(22px,2.3vw,28px); line-height: 1.45; word-break: keep-all; font-weight: 650; letter-spacing: -.035em; }
+.frame figcaption p { margin-top: 18px; font-size: 14px; line-height: 1.8; color: var(--muted-foreground); word-break: keep-all; }
 .frame [data-more-above] { height: auto; max-height: none; overflow: visible; mask-image: none !important; }
 .frame :global(.sticky) { position: static; }
 .frame table { min-width: 0; }
@@ -12,9 +15,9 @@
 .formation > div { padding-block: 10px; }
 .formation [role="group"] { min-height: 0; }
 .ban { max-width: 780px; width: 100%; margin-inline: auto; }
-.ban [data-testid="hero-ban-results"] img { height: 96px; width: 88px; }
+.ban [data-testid="hero-ban-results"] img { height: 148px; width: 116px; }
 .prediction { max-width: 600px; width: 100%; margin-inline: auto; }
-.prediction [aria-label="내전 예측 순위"], .prediction form { display: none; }
+.prediction [aria-label="내전 예측 순위"] { display: none; }
 .clan [aria-label="내전 통계 기간"], .clan [aria-label="내전 통계 내용"] > :global(.relative) { display: none; }
 .clan [aria-label="내전 통계 내용"] > :global(.grid) { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
 .clan :global(.min-h-16) { min-height: 0; }
@@ -40,8 +43,8 @@
 .notifications { max-width: 700px; width: 100%; margin: auto; }
 @media (max-width: 640px) {
   .canvas { padding: 12px 14px; }
-  .frame figcaption { min-height: 94px; padding: 12px 16px; }
-  .frame figcaption p { font-size: 12px; }
+  .frame figcaption { padding: 0; }
+  .frame figcaption p { font-size: 13px; margin-top: 10px; }
   .clan [aria-label="내전 통계 내용"] > :global(.grid) { grid-template-columns: 1fr; }
   .clan [aria-label="내전 통계 내용"] > :global(.grid) > div:nth-child(n+2) { display: none; }
   .clan { max-width: 360px; width: 100%; margin: auto; }
@@ -55,3 +58,13 @@
 .ban [data-balance-guide="primary"] { display: none; }
 .events [role="gridcell"] > button { height: 56px; }
 @media (max-width: 640px) { .events [role="gridcell"] > button { height: 48px; } }
+
+@media (max-width: 900px) {
+  .frame, .reverse { grid-template-columns: 1fr; gap: 24px; align-content: start; }
+  .frame figcaption, .reverse figcaption { grid-column: 1; grid-row: 1; }
+  .frame .canvas, .reverse .canvas { grid-column: 1; grid-row: 2; }
+  .frame figcaption { max-width: 540px; }
+}
+.clan [aria-label="내전 통계 내용"] > :global(.grid) { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.clan [aria-label="내전 통계 내용"] > :global(.grid) > div:nth-child(3) { display: none; }
+@media (max-width: 640px) { .clan [aria-label="내전 통계 내용"] > :global(.grid) { grid-template-columns: 1fr; } }
