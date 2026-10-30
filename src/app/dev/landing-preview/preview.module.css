@@ -24,6 +24,61 @@
 .preview figcaption { display: flex; justify-content: space-between; gap: 12px; padding: 15px 3px; color: var(--muted-foreground); font-size: 11px; }
 .preview figcaption > span:first-child { color: var(--foreground); font-weight: 600; }
 .footer { max-width: 1116px; margin: 44px auto 0; padding: 24px 32px; display: flex; justify-content: space-between; color: var(--muted-foreground); font-size: 11px; border-top: 1px solid var(--border); }
+.workflow { max-width: 1080px; margin: 120px auto 0; padding: 0 24px; scroll-margin-top: 32px; }
+.sectionIntro { max-width: 760px; margin: 0 auto 64px; text-align: center; }
+.sectionIntro h2, .information h2, .closing h2 { font-size: clamp(28px, 3.2vw, 40px); font-weight: 680; line-height: 1.35; letter-spacing: -.045em; word-break: keep-all; }
+.sectionIntro p, .closing p { margin-top: 20px; color: var(--muted-foreground); font-size: 15px; line-height: 1.85; word-break: keep-all; }
+.sectionIntro > svg { margin: 0 auto 20px; color: var(--primary); }
+.preparation { display: grid; grid-template-columns: .85fr 1.15fr; gap: 78px; align-items: center; padding: 16px 0 72px; }
+.featureCopy > svg { color: var(--primary); margin-bottom: 22px; }
+.featureCopy h3 { font-size: clamp(24px, 2.5vw, 30px); line-height: 1.4; font-weight: 650; letter-spacing: -.035em; word-break: keep-all; }
+.featureCopy p { margin-top: 19px; color: var(--muted-foreground); font-size: 15px; line-height: 1.9; word-break: keep-all; }
+.featureCopy ul { margin-top: 25px; display: grid; gap: 13px; font-size: 13px; }
+.featureCopy li { display: flex; gap: 9px; align-items: center; }
+.featureCopy li svg { color: var(--primary); flex-shrink: 0; }
+.peopleExample, .comparison { min-width: 0; padding: 26px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; }
+.exampleHeading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 23px; font-size: 14px; }
+.exampleHeading strong { font-weight: 600; }
+.exampleHeading > span { font-size: 12px; color: var(--muted-foreground); }
+.peopleList { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; row-gap: 19px; }
+.peopleList li { display: flex; gap: 10px; align-items: center; font-size: 13px; }
+.personSymbol { width: 29px; height: 29px; display: grid; place-items: center; flex-shrink: 0; background: var(--surface); border-radius: 50%; color: var(--muted-foreground); font-size: 11px; }
+.peopleList small { margin-left: auto; font-size: 10px; }
+.assigned { color: var(--primary); }
+.waiting { color: var(--muted-foreground); }
+.peopleExample figcaption, .comparison figcaption { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 24px; padding-top: 17px; border-top: 1px solid var(--border); color: var(--muted-foreground); font-size: 11px; }
+.adjustment { display: grid; grid-template-columns: 1.15fr .85fr; gap: 78px; align-items: center; padding: 66px 0 110px; border-top: 1px solid var(--border); }
+.adjustment .featureCopy { grid-column: 2; grid-row: 1; }
+.adjustment .comparison { grid-column: 1; grid-row: 1; }
+.comparisonBoard { padding: 28px 0 22px; }
+.teamRoles { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 23px 0; text-align: center; }
+.teamRoles strong { font-size: 13px; font-weight: 600; }
+.teamRoles p { margin-top: 9px; color: var(--muted-foreground); font-size: 12px; }
+.recordsSection { background: var(--surface); padding: 90px 24px 70px; }
+.recordsInner { max-width: 1080px; margin: 0 auto; }
+.archive { padding: 25px; min-width: 0; background: var(--card); border: 1px solid var(--border); border-radius: 14px; }
+.archive :global([aria-label="경기 기록 날짜 및 필터"]) { position: static; }
+.exampleNote { margin: 16px 0 0; color: var(--muted-foreground); font-size: 11px; text-align: center; line-height: 1.7; }
+.information { max-width: 1080px; margin: 0 auto; padding: 100px 24px; display: grid; grid-template-columns: .85fr 1.15fr; gap: 78px; scroll-margin-top: 25px; }
+.information dl { display: grid; gap: 28px; }
+.information dt { font-size: 15px; font-weight: 600; }
+.information dd { margin-top: 10px; color: var(--muted-foreground); font-size: 14px; line-height: 1.8; word-break: keep-all; }
+.closing { padding: 76px 24px 88px; background: var(--card); text-align: center; }
+.closing .primary { margin-top: 28px; }
+.footer { flex-wrap: wrap; gap: 20px; line-height: 1.7; }
+.footer nav { display: flex; gap: 22px; }
+@media (max-width: 800px) {
+  .workflow { margin-top: 75px; }
+  .preparation, .adjustment, .information { grid-template-columns: 1fr; gap: 32px; }
+  .adjustment .featureCopy, .adjustment .comparison { grid-column: auto; grid-row: auto; }
+  .preparation { padding-bottom: 48px; }
+  .adjustment { padding: 48px 0 64px; }
+  .sectionIntro { margin-bottom: 40px; }
+  .featureCopy { max-width: 540px; }
+  .recordsSection { padding: 60px 16px 46px; }
+  .information { padding: 64px 24px; }
+  .closing { padding: 58px 24px; }
+}
 @media (max-width: 640px) {
   .header { height: 72px; padding: 0 20px; }
   .nav { gap: 14px; }
@@ -40,4 +95,11 @@
   .board { padding: 12px 8px; }
   .preview figcaption { flex-direction: column; gap: 4px; padding: 12px 3px; }
   .footer { margin-top: 28px; padding: 22px 20px; }
+  .workflow { padding: 0 20px; }
+  .peopleExample, .comparison { padding: 20px 16px; }
+  .peopleList { column-gap: 18px; }
+  .peopleList li { gap: 7px; }
+  .archive { padding: 12px 8px; }
+  .sectionIntro p { font-size: 14px; }
+  .footer > span:last-child { flex-basis: 100%; }
 }
