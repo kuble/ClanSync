@@ -33,7 +33,8 @@ test("부계정은 소개·본인 개인 기록에서 편집하고 다른 사람
     await manager.getByRole("button", { name: "부계정 추가", exact: true }).click();
     const add = page.getByRole("dialog", { name: "부계정 추가", exact: true });
     await add.getByRole("textbox", { name: "부계정 닉네임", exact: true }).fill("Added#1001");
-    await add.getByRole("textbox", { name: "메모 (선택)", exact: true }).fill("owner-private-note");
+    await expect(add.getByRole("textbox", { name: "메모 (선택)", exact: true })).toHaveCount(0);
+    await add.screenshot({ path: info.outputPath("alt-add-without-note.png") });
     await expect(add.getByRole("button", { name: "추가", exact: true })).toBeDisabled();
     await add.getByRole("checkbox").check();
     await add.getByRole("button", { name: "추가", exact: true }).click();
@@ -41,10 +42,13 @@ test("부계정은 소개·본인 개인 기록에서 편집하고 다른 사람
     await expect(manager.getByText("Added#1001", { exact: true })).toBeVisible();
     const original = await f.service.from("user_alt_accounts").select("id").eq("user_id", owner.id).eq("alt_nick", "Added#1001").single();
     expect(original.error).toBeNull();
+    expect((await f.service.from("user_alt_accounts").update({ note: "owner-private-note" }).eq("id", original.data!.id)).error).toBeNull();
+    await page.keyboard.press("Escape");
+    await alts.getByRole("button", { name: "부계정 편집", exact: true }).click();
     await manager.getByRole("button", { name: "Added#1001 부계정 수정", exact: true }).click();
     const edit = page.getByRole("dialog", { name: "부계정 수정", exact: true });
     const nick = edit.getByRole("textbox", { name: "부계정 닉네임", exact: true });
-    await expect(edit.getByRole("textbox", { name: "메모 (선택)", exact: true })).toHaveValue("owner-private-note");
+    await expect(edit.getByRole("textbox", { name: "메모 (선택)", exact: true })).toHaveCount(0);
     await nick.fill("Duplicate#7777");
     await edit.getByRole("checkbox").check();
     await edit.getByRole("button", { name: "수정", exact: true }).click();
@@ -82,10 +86,10 @@ test("부계정은 소개·본인 개인 기록에서 편집하고 다른 사람
     expect(await replay(visitor, updateRequest, { altNick: "Hijacked#9999" })).toContain("수정 가능한 부계정을 찾을 수 없습니다.");
     const ownRead = await replay(visitor, loadRequest);
     expect(ownRead).toContain("PeerSide#8888"); expect(ownRead).not.toContain("owner-private-note");
-    expect((await f.service.from("user_game_profiles").update({ is_verified: false }).eq("user_id", owner.id).eq("game_id", f.gameId)).error).toBeNull();
-    expect(await replay(page, updateRequest, { altNick: "Unverified#9999" })).toContain("이 게임을 먼저 인증해야 수정할 수 있습니다.");
+    expect((await f.service.from("user_game_profiles").update({ battle_tag: null, is_verified: false }).eq("user_id", owner.id).eq("game_id", f.gameId)).error).toBeNull();
+    expect(await replay(page, updateRequest, { altNick: "Unregistered#9999" })).toContain("게임 ID를 먼저 등록해야 수정할 수 있습니다.");
     expect((await f.service.from("user_alt_accounts").select("alt_nick").eq("id", original.data!.id).single()).data?.alt_nick).toBe("StatsEdit#1003");
-    expect((await f.service.from("user_game_profiles").update({ is_verified: true }).eq("user_id", owner.id).eq("game_id", f.gameId)).error).toBeNull();
+    expect((await f.service.from("user_game_profiles").update({ battle_tag: owner.nickname, is_verified: true }).eq("user_id", owner.id).eq("game_id", f.gameId)).error).toBeNull();
     await page.setViewportSize({ width: 320, height: 884 });
     await page.goto("/profile");
     await alts.getByRole("button", { name: "부계정 편집", exact: true }).click();
