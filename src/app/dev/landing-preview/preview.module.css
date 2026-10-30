@@ -116,11 +116,6 @@
 .activityLayout .clanWindow { min-height: 100%; display: flex; flex-direction: column; }
 .activityLayout .clanWindow > figcaption { margin-top: auto; }
 .photoExamples { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.notificationExamples { display: grid; gap: 12px; }
-.notificationExamples li { display: flex; gap: 14px; padding: 22px 16px; border-radius: 12px; background: var(--surface); }
-.notificationExamples svg { flex-shrink: 0; color: var(--primary); margin-top: 2px; }
-.notificationExamples strong { font-size: 14px; font-weight: 600; word-break: keep-all; }
-.notificationExamples p { margin-top: 8px; font-size: 12px; color: var(--muted-foreground); }
 .trendExample { min-width: 0; padding: 24px 24px 0; background: var(--card); border: 1px solid var(--border); border-radius: 14px; }
 .trendExample figcaption { padding-inline: 0; }
 .statsTotals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 26px 0 16px; }
@@ -163,7 +158,6 @@
   .activityExampleBody { padding: 14px 10px; }
   .activityExampleBody :global([aria-label="월간 캘린더"] [role="gridcell"] > button) { height: 48px; }
   .activityExampleBody :global([aria-label="게시글 목록"] a) { min-height: 64px; padding: 10px; }
-  .notificationExamples li { padding: 14px 10px; gap: 10px; }
   .clanWindowHeading { padding: 18px 16px; }
   .trendExample { padding: 18px 12px 0; }
   .statsTotals dd { font-size: 24px; }

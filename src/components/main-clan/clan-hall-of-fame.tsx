@@ -23,8 +23,8 @@ const RANKINGS = [
 
 type RankRow = { userId: string; nickname: string; value: string; detail: string; rank?: number | null; shortfall?: number };
 
-export function HallOfFame({ model, clanId, onChoosePerson, settings }: {
-  model: ClanStatsPageModel; clanId: string; onChoosePerson: (userId: string) => void; settings?: ReactNode;
+export function HallOfFame({ model, clanId, onChoosePerson, settings, reactions }: {
+  model: ClanStatsPageModel; clanId: string; onChoosePerson: (userId: string) => void; settings?: ReactNode; reactions?: ReactNode;
 }) {
   const visible = {
     rate: model.permissions.isStaff || model.hof.config.winRateVisibleTop > 0,
@@ -111,7 +111,7 @@ export function HallOfFame({ model, clanId, onChoosePerson, settings }: {
                 </StatsScrollArea>
             </CardContent>
           </Card>
-          <HofComments clanId={clanId} ranking={active.id} periodKey={periodKey} label={`${periodLabel} · ${active.label}`} />
+          {reactions ?? <HofComments clanId={clanId} ranking={active.id} periodKey={periodKey} label={`${periodLabel} · ${active.label}`} />}
       </div>
     </>}
   </div>;

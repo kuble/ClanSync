@@ -11,40 +11,9 @@
 .window > header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 18px 22px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 600; }
 .badge { color: var(--muted-foreground); font-size: 11px; font-weight: 400; }
 .window figcaption { padding: 13px 22px; border-top: 1px solid var(--border); color: var(--muted-foreground); font-size: 11px; }
-.auctionBody, .predictionBody { padding: 24px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
-.credits { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 18px; text-align: center; }
-.credits > div { padding: 12px; background: var(--surface); border-radius: 9px; }
-.credits > svg { color: var(--muted-foreground); }
-.credits span { font-size: 12px; }
-.credits strong { display: block; margin-top: 5px; color: var(--foreground); font-size: 21px; font-weight: 650; font-variant-numeric: tabular-nums; }
-.window small { font-size: 11px; font-weight: 400; }
-.credits small { color: var(--muted-foreground); }
-.window [data-team="blue"] { color: var(--team-blue); }
-.window [data-team="red"] { color: var(--team-red); }
-.window [data-team="draw"] { color: var(--muted-foreground); }
-.player { padding: 22px 0; text-align: center; }
-.avatar { width: 48px; height: 48px; display: grid; place-items: center; margin: 0 auto 12px; background: var(--surface); color: var(--primary); border-radius: 50%; }
-.avatar svg { width: 24px; height: 24px; }
-.player > small, .player > p { color: var(--muted-foreground); font-size: 11px; }
-.player h3 { margin-top: 4px; font-size: 28px; font-weight: 700; }
-.player p { margin-top: 3px; }
-.bid { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--team-blue) 30%, var(--border)); border-radius: 9px; background: color-mix(in srgb, var(--team-blue) 5%, transparent); }
-.bid > span { display: grid; gap: 4px; color: var(--muted-foreground); font-size: 11px; }
-.bid b { color: var(--team-blue); font-size: 13px; }
-.bid > strong { font-size: 24px; font-weight: 650; color: var(--team-blue); }
-.hint { margin-top: 16px; color: var(--muted-foreground); font-size: 11px; line-height: 1.7; text-align: center; word-break: keep-all; }
-.predictionBody > svg { margin: 0 auto 16px; color: var(--primary); }
-.predictionBody > h3 { font-size: 21px; font-weight: 650; letter-spacing: -.035em; text-align: center; word-break: keep-all; }
-.predictionBody > p:not(.hint) { margin-top: 8px; font-size: 12px; color: var(--muted-foreground); text-align: center; }
-.pool { display: flex; justify-content: space-between; align-items: center; margin: 28px 0 14px; gap: 12px; }
-.pool > span { color: var(--muted-foreground); font-size: 12px; }
-.pool strong { font-size: 20px; font-weight: 650; }
-.choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
-.choices > div { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 4px; border: 1px solid var(--border); border-radius: 9px; }
-.choices [data-team="blue"] { background: color-mix(in srgb, var(--team-blue) 6%, transparent); border-color: color-mix(in srgb, var(--team-blue) 30%, var(--border)); }
-.choices [data-team="red"] { background: color-mix(in srgb, var(--team-red) 6%, transparent); border-color: color-mix(in srgb, var(--team-red) 30%, var(--border)); }
-.choices span { font-size: 12px; }
-.choices strong { font-size: 23px; font-weight: 650; }
+.actual { padding: 18px; flex: 1; }
+.actual [data-testid="auction-player"] { padding: 16px; }
+.actual [data-testid="auction-player"] > div { gap: 12px; }
 @media (max-width: 800px) {
   .layout { grid-template-columns: 1fr; gap: 32px; }
   .modes { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
@@ -58,10 +27,4 @@
   .window { min-height: 420px; }
   .window > header { padding: 15px; gap: 8px; }
   .window figcaption { padding: 12px 15px; }
-  .auctionBody, .predictionBody { padding: 18px 15px; }
-  .credits { gap: 10px; }
-  .credits > div { padding: 10px 5px; }
-  .credits strong { font-size: 18px; }
-  .player { padding: 16px 0; }
-  .predictionBody > h3 { font-size: 20px; }
 }

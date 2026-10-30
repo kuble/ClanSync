@@ -77,13 +77,13 @@ function SynergyRing({ peer, relation }: { peer: SynergyPeer | undefined; relati
   </aside>;
 }
 
-export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, settings, pending = false }: { settings?: ReactNode; model: ClanStatsPageModel; selectedId: string; onBack: () => void; gameSlug: string; clanId: string; pending?: boolean }) {
+export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, settings, pending = false, banner, initialPeerId = null }: { banner?: ReactNode; initialPeerId?: string | null; settings?: ReactNode; model: ClanStatsPageModel; selectedId: string; onBack: () => void; gameSlug: string; clanId: string; pending?: boolean }) {
   const now = currentKstYearMonth();
   const [period, setPeriod] = useState<StatsPeriod>({ mode: "all", year: String(now.year), month: String(now.month).padStart(2, "0"), day: "all" });
   const [role, setRole] = useState<Exclude<StatRole, null> | "all">("all");
   const [peerRole, setPeerRole] = useState<Exclude<StatRole, null> | "all">("all");
   const [relation, setRelation] = useState<"ally" | "enemy">("ally");
-  const [peerId, setPeerId] = useState<string | null>(null);
+  const [peerId, setPeerId] = useState<string | null>(initialPeerId);
   const [relationSort, setRelationSort] = useState<"matches" | "wins" | "draws" | "losses" | "rate">("matches");
   const [relationDescending, setRelationDescending] = useState(true);
   const [mapRole, setMapRole] = useState<Exclude<StatRole, null> | "all">("all");
@@ -137,7 +137,7 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
   return (
     <div className="space-y-5" aria-busy={pending}>
       <section aria-label="개인 기록 기간" className="sticky top-[60px] z-30 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/80"><div className="flex items-center justify-between gap-1.5 sm:flex-wrap sm:gap-3"><StatsPeriodFilter value={period} onChange={(next) => { setPeriod(next); setPeerId(null); }} years={years} /><div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2"><Button type="button" variant="outline" size="sm" className="size-8 px-0 sm:h-7 sm:w-auto sm:px-2.5" aria-label="멤버 선택" title="멤버 선택" onClick={onBack}><UserRound className="size-3.5 sm:hidden" aria-hidden="true" /><span className="hidden sm:inline">멤버 선택</span></Button>{settings}</div></div></section>
-      <StatsPlayerBanner gameSlug={gameSlug} clanId={clanId} awards={person.emblems} showEmblems={visible("emblems")} hof={model.hof} userId={person.userId} nickname={person.nickname} profile={person.profile} />
+      {banner !== undefined ? banner : <StatsPlayerBanner gameSlug={gameSlug} clanId={clanId} awards={person.emblems} showEmblems={visible("emblems")} hof={model.hof} userId={person.userId} nickname={person.nickname} profile={person.profile} />}
       {visible("records") && <><Card size="sm" role="region" aria-label="플레이어 요약">
         <CardHeader><CardTitle className="flex items-center gap-2"><UserRound className="size-4 shrink-0 text-primary" aria-hidden="true" />플레이어 요약</CardTitle></CardHeader>
         <CardContent className="space-y-4">
@@ -164,7 +164,7 @@ export function PersonalStats({ model, selectedId, onBack, gameSlug, clanId, set
         <section aria-label="맵별 승률 목록"><StatsDonut busy={pending} label="맵별 승률" unit="경기" showImages horizontal preserveOrder mapResults rows={maps.map((row) => ({ name: row.name, value: row.matches, image: mapDetailsForLabel(row.name)?.image, wins: row.wins, draws: row.draws, losses: row.losses, rate: row.rate }))} /></section>
       </CardContent></Card>
       </>}
-      {model.personal.canSeePeers && <Card size="sm"><CardHeader><CardTitle className="flex items-center gap-2"><Users className="size-4 shrink-0 text-primary" aria-hidden="true" /><StatTitle title="시너지" help={<>내 역할과 상대 역할, 팀 관계를 함께 선택합니다.</>} /></CardTitle></CardHeader><CardContent className="space-y-4">
+      {model.personal.canSeePeers && <Card size="sm" role="region" aria-label="시너지"><CardHeader><CardTitle className="flex items-center gap-2"><Users className="size-4 shrink-0 text-primary" aria-hidden="true" /><StatTitle title="시너지" help={<>내 역할과 상대 역할, 팀 관계를 함께 선택합니다.</>} /></CardTitle></CardHeader><CardContent className="space-y-4">
         {model.personal.canSeePeers ? <>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2"><FilterButtons label="내 역할" options={ROLE_OPTIONS} value={role} onChange={(value) => { setRole(value); setPeerId(null); }} /><FilterButtons label="팀 관계" options={[{ id: "ally", label: "같은 팀" }, { id: "enemy", label: "상대 팀" }]} value={relation} onChange={(value) => { setRelation(value); setPeerId(null); }} />
           <div><FilterButtons label="상대 역할" options={ROLE_OPTIONS} value={peerRole} onChange={(value) => { setPeerRole(value); setPeerId(null); }} /></div></div>

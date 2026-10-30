@@ -147,6 +147,14 @@ export function PersonalEmblemCaseLauncher({ clanId = "", userId, nickname, vari
   const featured = collection?.accountFeaturedKeys ? collection.accountFeaturedKeys.flatMap(key => entries.filter(emblem => emblem.key === key && emblem.earned))
     : featuredKeys.flatMap(key => emblems.filter(emblem => emblem.key === key && emblem.earned));
   const href = `/profile/${encodeURIComponent(userId)}/emblems${variant === "profile" || accountWide ? "" : "?clan=" + encodeURIComponent(clanId)}`;
+  return <PersonalEmblemCaseDisplay featured={featured} href={href} nickname={nickname} variant={variant} error={error} pending={pending} refresh={refresh} />;
+}
+
+/** Presentation shared with static examples; data loading remains in the launcher. */
+export function PersonalEmblemCaseDisplay({ featured, href, nickname, variant = "namecard", error, pending = false, refresh = () => {} }: {
+  featured: (PersonalEmblem | CaseEmblem)[]; href: string; nickname: string;
+  variant?: "compact" | "profile" | "namecard"; error?: string; pending?: boolean; refresh?: () => void;
+}) {
   const slots = [0, 1, 2].map(index => {
     const emblem = featured[index];
     const className = cn(caseStyles.pin, emblem && caseStyles.artworkSocket, styles.pin);

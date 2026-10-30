@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { MessageSquare, RefreshCw } from "lucide-react";
 import { addHofCommentAction, deleteHofCommentAction, listHofCommentsAction, listHofCommentReactionPeopleAction, setHofCommentReactionAction } from "@/app/actions/hof-comments";
 import { HOF_COMMENT_MAX_LENGTH, type HofComment, type HofCommentThread, type HofReactionKind } from "@/lib/clan/stats/hof-comments";
@@ -16,12 +16,18 @@ export function HofComments({ clanId, ranking, periodKey, label }: HofCommentThr
   const [status, setStatus] = useState<{ key: string; loading: boolean; busy: boolean }>();
   const onStatus = useCallback((loading: boolean, busy: boolean) => setStatus({ key, loading, busy }), [key]);
   const disabled = status?.key !== key || status.loading || status.busy;
+  return <HofCommentsCard label={label} disabled={disabled} onRefresh={() => setRefresh(value => value + 1)}>
+    <HofCommentsThread key={key} clanId={clanId} ranking={ranking} periodKey={periodKey} refresh={refresh} onStatus={onStatus} />
+  </HofCommentsCard>;
+}
+
+export function HofCommentsCard({ label, disabled, onRefresh, children }: { label: string; disabled: boolean; onRefresh: () => void; children: ReactNode }) {
   return <Card size="sm" className="h-[36rem] min-w-0 overflow-hidden" aria-label={label + " 반응"}>
     <CardHeader className="grid-cols-[1fr_auto] items-center border-b pb-3">
       <CardTitle><h4 className="flex items-center gap-2"><MessageSquare className="size-4 text-primary" aria-hidden="true" />반응</h4></CardTitle>
-      <Button type="button" variant="ghost" size="icon-sm" aria-label="반응 새로고침" disabled={disabled} onClick={() => setRefresh((value) => value + 1)}><RefreshCw className="size-3.5" aria-hidden="true" /></Button>
+      <Button type="button" variant="ghost" size="icon-sm" aria-label="반응 새로고침" disabled={disabled} onClick={onRefresh}><RefreshCw className="size-3.5" aria-hidden="true" /></Button>
     </CardHeader>
-    <HofCommentsThread key={key} clanId={clanId} ranking={ranking} periodKey={periodKey} refresh={refresh} onStatus={onStatus} />
+    {children}
   </Card>;
 }
 

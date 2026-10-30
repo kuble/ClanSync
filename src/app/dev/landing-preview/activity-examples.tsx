@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { Bell, CalendarDays, MessageSquare, Vote } from "lucide-react";
+import { Bell } from "lucide-react";
+import { NotificationExample } from "./notification-example";
 import { ClanBoardPosts } from "@/components/main-clan/clan-board-posts";
 import { ClanEventsView } from "@/components/main-clan/clan-events-view";
 import { MemoryPhoto } from "@/components/main-clan/memory-photo";
@@ -27,15 +28,9 @@ export function ActivityExamples({ events }: { events: SerializedClanEvent[] }) 
         <MemoryPhoto src="/images/overwatch/maps/kings-row.webp" caption="다음엔 왕의 길에서" />
       </div>
     </Window> },
-    { id: "notifications", label: "알림", content: <Window title="놓치지 않고 함께하는 소식" caption="알림 내용 예시 · 일정·투표·코칭 소식을 한곳에서">
+    { id: "notifications", label: "알림", content: <Window title="놓치지 않고 함께하는 소식" caption="실제 알림 목록 UI · 예시 데이터 · 읽기 전용">
       <div className={styles.exampleHeading}><strong>클랜 알림</strong><Bell size={19} aria-hidden /></div>
-      <ul className={styles.notificationExamples}>
-        {[
-          { icon: CalendarDays, title: "금요일 정기 내전이 곧 시작돼요", detail: "일정 10분 전 · 오늘 20:50" },
-          { icon: Vote, title: "다음 모임 투표가 곧 마감돼요", detail: "투표 마감 1시간 전 · 오늘 19:00" },
-          { icon: MessageSquare, title: "신청한 리플레이에 코칭 댓글이 달렸어요", detail: "코칭 댓글 · 오늘 18:30" },
-        ].map(({ icon: Icon, title, detail }) => <li key={title}><Icon size={19} aria-hidden /><div><strong>{title}</strong><p>{detail}</p></div></li>)}
-      </ul>
+      <NotificationExample />
     </Window> },
     { id: "events", label: "이벤트", content: <Window title="다음 만남을 정하는 달력" caption="실제 일정 UI · 정기 내전과 주말 모임 예시 · 읽기 전용">
       <div inert><ClanEventsView gameSlug="overwatch" clanId="landing-example" serverNow="2026-10-30T10:00:00+09:00" events={events} canManageEvents={false} planIsPremium={false} viewerUserId={null} myRsvpGoingKeys={[]} polls={[]} bracketTournaments={[]} /></div>
