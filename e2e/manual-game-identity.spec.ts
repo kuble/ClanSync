@@ -93,9 +93,13 @@ test("manual IDs remain unverified, allow clan entry and show honest profile sta
     await page.setViewportSize({ width: 390, height: 844 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     await page.getByRole("region", { name: "플레이어 소개", exact: true }).screenshot({ path: info.outputPath("manual-profile-mobile.png") });
-    const response = await page.request.get(`/api/player-profiles/${f.users[0].id}?clanId=${f.clanId}`);
-    expect(response.ok()).toBe(true);
-    const body = await response.json();
+    // Use the browser's real cookie handling on the loopback production build.
+    const response = await page.evaluate(async path => {
+      const result = await fetch(path,{cache:"no-store"});
+      return {ok:result.ok,status:result.status,body:await result.json()};
+    },`/api/player-profiles/${f.users[0].id}?clanId=${f.clanId}`);
+    expect(response.ok,`Player profile API ${response.status}: ${response.body.error ?? "ok"}`).toBe(true);
+    const body = response.body;
     expect(body.profile.memberships.find((row: { clanId: string }) => row.clanId === f.clanId)).toMatchObject({ accountId: "ManualLeader#1001", isVerified: false });
     expect((await f.service.from("clan_members").delete().eq("clan_id", f.clanId).eq("user_id", f.users[1].id)).error).toBeNull();
     await page.context().clearCookies();
