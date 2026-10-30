@@ -48,7 +48,7 @@ export function StatsDonut({ rows, label, unit, showImages = false, preserveOrde
         {!total && <circle cx="90" cy="90" r="70" fill="none" stroke="var(--muted)" strokeWidth="19" />}
         {slices.map((slice, i) => {
           const start = slices.slice(0, i).reduce((sum, row) => sum + row.value, 0) / total * 100;
-          return <circle key={slice.name} cx="90" cy="90" r="70" fill="none" stroke={color(i)} strokeWidth={highlighted === i ? 23 : 19} pathLength="100" strokeDasharray={`${Math.max(0.1, slice.value / total * 100 - (slices.length > 1 ? 0.7 : 0))} 100`} strokeDashoffset={-start} onPointerEnter={() => setActive(i)} onPointerLeave={() => setActive(null)} className="transition-[stroke-width] motion-reduce:transition-none"><title>{slice.name}: {slice.value}{unit} ({share(slice.value, total)}){mapResults && `, 승률 ${centerValue(slice)}`}</title></circle>;
+          return <circle key={slice.name} cx="90" cy="90" r="70" fill="none" stroke={color(i)} strokeWidth={highlighted === i ? 23 : 19} pathLength="100" strokeDasharray={`${Math.max(0.1, slice.value / total * 100 - (slices.length > 1 ? 0.7 : 0))} 100`} strokeDashoffset={-start} onPointerEnter={() => setActive(i)} onPointerLeave={() => setActive(null)} className="transition-[stroke-width] motion-reduce:transition-none"><title>{`${slice.name}: ${slice.value}${unit} (${share(slice.value, total)})${mapResults ? `, 승률 ${centerValue(slice)}` : ""}`}</title></circle>;
         })}
       </svg>
       {showImages && featured?.image ? <div aria-hidden="true" className="pointer-events-none absolute inset-8 isolate overflow-hidden rounded-full bg-zinc-950 text-white ring-1 ring-white/10">
