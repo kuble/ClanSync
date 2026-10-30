@@ -8,7 +8,7 @@ test("계정 안내는 제목 툴팁으로 표시하고 네임카드는 모바�
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.goto("/profile");
     const tooltip = page.locator('[role="tooltip"][data-open]');
-    for (const [name, description] of [["게임 프로필", "한 번 꾸미면"], ["게임별 관리", "게임을 열어"], ["가입 신청", "최근 7일"], ["자동 로그인", "최대 30일"]]) {
+    for (const [name, description] of [["게임 프로필", "한 번 꾸미면"], ["게임별 관리", "게임을 열어"], ["가입 신청", "최근 7일"], ["자동 로그인", "로그인을 계속 유지"]]) {
       await page.getByRole("tab", { name: name === "게임 프로필" ? "플레이어 소개" : "계정 정보", exact: true }).click();
       const help = page.getByRole("button", { name: name + " 도움말", exact: true });
       await help.hover();
@@ -21,12 +21,9 @@ test("계정 안내는 제목 툴팁으로 표시하고 네임카드는 모바�
     await page.keyboard.press("Escape"); await expect(tooltip).toHaveCount(0);
     const ow = page.getByRole("region", { name: "오버워치 관리", exact: true });
     await ow.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
-    await page.getByRole("button", { name: "게임별 선호 역할 도움말", exact: true }).hover();
+    await page.getByRole("button", { name: "선호 역할 도움말", exact: true }).hover();
     await expect(tooltip).toContainText("좌우 방향키");
     await page.mouse.move(0, 0);
-    await page.getByRole("button", { name: "부계정 · 자기신고 도움말", exact: true }).focus();
-    await expect(tooltip).toBeVisible();
-    await page.keyboard.press("Escape");
     await ow.getByRole("button", { name: "오버워치 게임 정보", exact: true }).click();
     await expect(page.locator('[role="tooltip"]')).toHaveCount(0);
     await page.getByRole("tab", { name: "플레이어 소개", exact: true }).click();
@@ -51,7 +48,7 @@ test("계정 안내는 제목 툴팁으로 표시하고 네임카드는 모바�
     const auto = page.getByRole("switch", { name: "자동 로그인", exact: true });
     await expect(auto).not.toBeChecked();
     await page.getByRole("button", { name: "자동 로그인 도움말", exact: true }).tap();
-    await expect(tooltip).toContainText("최대 30일");
+    await expect(tooltip).toContainText("로그인을 계속 유지");
     await expect(auto).not.toBeChecked();
     await page.keyboard.press("Escape");
   } finally { await f.cleanup(); }

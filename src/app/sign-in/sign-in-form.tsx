@@ -37,7 +37,7 @@ export function SignInForm({ nextPath }: { nextPath: string }) {
             <span>자동 로그인</span>
             <Switch name="remember" aria-describedby="remember-hint" />
           </label>
-          <p id="remember-hint" className={styles.inputHint}>약 30일 동안 유지됩니다. 공용 PC에서는 해제해 주십시오.</p>
+          <p id="remember-hint" className={styles.inputHint}>개인 설정에서 해제하기 전까지 로그인을 유지합니다.</p>
         </div>
         <SubmitButton />
       </form>

@@ -10,7 +10,7 @@ export function ProfileAutoLogin({ initial }: { initial: boolean }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const busy = useRef(false);
-  return <div className={styles.autoLogin}><div className={styles.autoLoginRow}><strong><StatHelp title="자동 로그인">이 브라우저에서 로그인을 최대 30일 유지합니다. 끄면 기존 1일 기준을 사용합니다.</StatHelp></strong><Switch aria-label="자동 로그인" checked={value} disabled={pending} onChange={async (event) => {
+  return <div className={styles.autoLogin}><div className={styles.autoLoginRow}><strong><StatHelp title="자동 로그인">켜 두면 이 브라우저에서 로그인을 계속 유지합니다. 끄면 기존 1일 기준을 사용합니다.</StatHelp></strong><Switch aria-label="자동 로그인" checked={value} disabled={pending} onChange={async (event) => {
     if (busy.current) return;
     const next = event.target.checked;
     busy.current = true; setPending(true); setError("");

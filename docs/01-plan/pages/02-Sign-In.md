@@ -70,7 +70,7 @@
 | 이메일 | `type=email`, placeholder "your@email.com". 비면 안내. 형식 검사는 운영 시 추가 |
 | 비밀번호 | `type=password`, placeholder "비밀번호를 입력하세요". 비면 안내. 길이 검사는 가입에서만 |
 | 눈 아이콘 | 비밀번호 보이기/숨기기 토글. `aria-label` 동기화 |
-| 자동 로그인 토글 | **D-AUTH-07**: OFF = refresh token 24h, ON = 30일(슬라이딩 연장). 공용 PC 주의 tooltip. `users.auto_login`은 기본 체크값만 저장 — 실제 세션 TTL은 제출 시 체크박스 상태 우선. |
+| 자동 로그인 토글 | **D-AUTH-07**(2026-10-30 개정): ON이면 해당 브라우저에서 해제 전까지 계속 유지하도록 쿠키 저장 기간을 갱신한다. OFF는 기존 24시간 쿠키 기준. `users.auto_login`은 마지막 선택값이며 로그인 제출 또는 개인 설정에서 변경한다. |
 | 비밀번호 찾기 | **D-AUTH-04** 플로우: 이메일 1칸 → 재설정 메일 발송 → `/auth/reset-password?token=…` → 새 비번(strong 정책) 입력 → `/sign-in`. 토큰 1시간 · 1회용 · 60초/24h 5회 rate limit. 이메일 존재 여부 비노출. |
 | 로그인 (primary) | 폼 제출 → 성공 시 `/games` |
 | Discord로 계속하기 | **D-AUTH-05**: scope `identify email` 만. 길드·메시지 접근 없음. 기존 계정 매칭은 `email_verified=true` 일 때만 병합, 미검증/불일치면 신규 플로우. 클랜↔Discord 연동(알림)은 별도 Bot OAuth로 분리(D-EVENTS-03). |
@@ -94,7 +94,7 @@
 
 ## 데이터·연동
 - Supabase Auth의 이메일+비밀번호 로그인.
-- 성공 시 출입증(access token 1h + refresh token OFF 24h / ON 30d)을 브라우저에 저장 (D-AUTH-07).
+- 성공 시 인증 토큰을 브라우저 쿠키에 저장한다. OFF는 기존 24시간 저장, ON은 해제 전까지 계속 유지하도록 갱신한다 (D-AUTH-07, 2026-10-30 개정).
 - 실패 시 `auth_failed_logins` 에 감사 레코드 적재 (D-AUTH-06).
 - Discord OAuth 사용 시 scope `identify email` 만 요청 (D-AUTH-05). 성공 시 `users.discord_user_id`에 병합.
 - 비밀번호 재설정 토큰은 `password_resets` 테이블에 해시로 저장, 1시간 유효, 1회용 (D-AUTH-04).
@@ -111,14 +111,14 @@
 - ~~D-AUTH-04 비밀번호 찾기 플로우 (메일 발송 → 재설정 화면 → 만료 시간)~~ → [DECIDED: 1시간 유효·중립 카피·rate limit](../decisions.md#d-auth-04--비밀번호-찾기-플로우)
 - ~~D-AUTH-05 Discord OAuth 권한 범위 (식별만? 길드 정보 읽기?)~~ → [DECIDED: `identify email` 만](../decisions.md#d-auth-05--discord-oauth-scope)
 - ~~D-AUTH-06 로그인 실패 잠금 정책 (몇 회 / 몇 분)~~ → [DECIDED: IP+email 5회·15분](../decisions.md#d-auth-06--로그인-실패-잠금-정책)
-- ~~D-AUTH-07 자동 로그인 토글의 출입증 유지 기간~~ → [DECIDED: OFF 24h / ON 30d](../decisions.md#d-auth-07--자동-로그인-유지-기간)
+- ~~D-AUTH-07 자동 로그인 토글의 출입증 유지 기간~~ → [DECIDED: OFF 기존 24h 쿠키 / ON 해제 전까지 유지](../decisions.md#d-auth-07--자동-로그인-유지-기간)
 
 ## 구현 참고 (개발자용)
 
 - 목업 파일: `mockup/pages/sign-in.html`
 - 핵심 함수: `handleSignIn(e)` (이메일 빈 값만 alert), `togglePwd(btn)`, `showForgotAlert()`(D-AUTH-04 시뮬레이션), `showDiscordScopeAlert()`(D-AUTH-05)
 - 빈 에러 슬롯: `.error-msg` (CSS만 정의, 마크업 미사용)
-- 자동 로그인 토글: `#autoLogin` wrapper `title` 속성에 D-AUTH-07 안내 ("체크 시 약 30일 유지 · 공용 PC에서는 해제")
+- 과거 정적 목업의 `#autoLogin` 안내는 폐기된 30일 정책이다. 현재 정책·문구는 실제 로그인 폼과 [상세 설계](../../02-design/entry-experience/01-sign-in.md)를 기준으로 한다.
 - 좌측 패널 숨김 브레이크포인트: 768px
 
 ## 연관 문서

@@ -13,6 +13,8 @@ const authCookie = /^sb-.+-auth-token(?:\.\d+)?$/;
 
 function cookieHarness() {
   const jar = new Map<string, StoredCookie>();
+  const expiresAt = new Map<string, number>();
+  let now = Date.now();
   let writes: StoredCookie[] = [];
   let tokenVersion = 0;
   const user = { id: "00000000-0000-4000-8000-000000000001", aud: "authenticated", email: "cookie@test.invalid" };
@@ -34,12 +36,20 @@ function cookieHarness() {
     });
   };
   const cookieMethods = (loginMaxAge?: number) => ({
-    getAll: () => [...jar.values()].map(({ name, value }) => ({ name, value })),
+    getAll: () => {
+      for (const [name, expiry] of expiresAt) {
+        if (expiry <= now) jar.delete(name);
+      }
+      return [...jar.values()].map(({ name, value }) => ({ name, value }));
+    },
     setAll: ((cookies) => {
       writes = applySessionCookiePolicy(cookies, loginMaxAge ?? getSessionMaxAge([...jar.values()]));
       for (const cookie of writes) {
         if (cookie.options.maxAge === 0) jar.delete(cookie.name);
-        else jar.set(cookie.name, cookie);
+        else {
+          jar.set(cookie.name, cookie);
+          expiresAt.set(cookie.name, now + (cookie.options.maxAge ?? 0) * 1000);
+        }
       }
     }) satisfies SetAllCookies,
   });
@@ -53,7 +63,7 @@ function cookieHarness() {
     auth: { autoRefreshToken: false, detectSessionInUrl: false },
     cookies: cookieMethods(),
   });
-  return { jar, server, browser, getWrites: () => writes };
+  return { jar, server, browser, getWrites: () => writes, advanceDays: (days: number) => { now += days * 86400_000; } };
 }
 
 function expectLifetime(jar: Map<string, StoredCookie>, seconds: number) {
@@ -63,12 +73,12 @@ function expectLifetime(jar: Map<string, StoredCookie>, seconds: number) {
     expect(token.options.maxAge).toBe(seconds);
     expect(token.options.secure).toBe(process.env.NODE_ENV === "production");
   }
-  expect(jar.get(SESSION_CHOICE_COOKIE)?.value).toBe(seconds === REMEMBERED_SESSION_SECONDS ? "30" : "1");
+  expect(jar.get(SESSION_CHOICE_COOKIE)?.value).toBe(seconds === REMEMBERED_SESSION_SECONDS ? "on" : "off");
   expect(jar.get(SESSION_CHOICE_COOKIE)?.options.maxAge).toBe(seconds);
 }
 
 for (const seconds of [DAY_SESSION_SECONDS, REMEMBERED_SESSION_SECONDS]) {
-  test(`${seconds / DAY_SESSION_SECONDS}-day cookie choice survives server and browser SDK refreshes and logout`, async () => {
+  test(`${seconds === DAY_SESSION_SECONDS ? "short" : "persistent"} cookie choice survives server and browser SDK refreshes and logout`, async () => {
     const harness = cookieHarness();
     const signedIn = await harness.server(seconds).auth.signInWithPassword({ email: "cookie@test.invalid", password: "test-password" });
     expect(signedIn.error).toBeNull();
@@ -108,4 +118,24 @@ test("missing or invalid persistence choices fall back to 24 hours without rewri
   expect(getSessionMaxAge([{ name: SESSION_CHOICE_COOKIE, value: "400" }])).toBe(DAY_SESSION_SECONDS);
   const verifier = { name: "sb-test-auth-token-code-verifier", value: "test", options: { maxAge: 60 } };
   expect(applySessionCookiePolicy([verifier], REMEMBERED_SESSION_SECONDS)).toEqual([verifier]);
+});
+
+test("enabled sessions survive 30 days and renew their browser storage on later refreshes", async () => {
+  const harness = cookieHarness();
+  expect((await harness.server(REMEMBERED_SESSION_SECONDS).auth.signInWithPassword({ email: "cookie@test.invalid", password: "test-password" })).error).toBeNull();
+  harness.advanceDays(31);
+  expect((await harness.server().auth.refreshSession()).error).toBeNull();
+  expectLifetime(harness.jar, REMEMBERED_SESSION_SECONDS);
+  // More than 400 days since login, still within storage renewed at day 31.
+  harness.advanceDays(399);
+  expect((await harness.browser().auth.refreshSession()).error).toBeNull();
+  expectLifetime(harness.jar, REMEMBERED_SESSION_SECONDS);
+});
+
+test("a legacy enabled choice migrates on refresh without downgrading the session", async () => {
+  const harness = cookieHarness();
+  expect((await harness.server(REMEMBERED_SESSION_SECONDS).auth.signInWithPassword({ email: "cookie@test.invalid", password: "test-password" })).error).toBeNull();
+  harness.jar.get(SESSION_CHOICE_COOKIE)!.value = "30";
+  expect((await harness.server().auth.refreshSession()).error).toBeNull();
+  expectLifetime(harness.jar, REMEMBERED_SESSION_SECONDS);
 });

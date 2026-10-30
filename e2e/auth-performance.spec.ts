@@ -54,7 +54,16 @@ async function fillSignIn(page: Page, user: AuthUser, remember = false) {
   await page.getByRole("switch", { name: "자동 로그인", exact: true }).setChecked(remember);
 }
 
-test("successful login preserves the existing profile, clears failure count and persists remember choice", async ({ page, authUser }) => {
+async function expectCookieLifetime(page: Page, days: number) {
+  const cookies = (await page.context().cookies()).filter((cookie) => cookie.name.includes("-auth-token") || cookie.name === "clansync-session-days");
+  expect(cookies.length).toBeGreaterThan(1);
+  for (const cookie of cookies) {
+    expect(cookie.expires - Date.now() / 1000).toBeGreaterThan(days * 86400 - 3600);
+    expect(cookie.expires - Date.now() / 1000).toBeLessThanOrEqual(days * 86400 + 5);
+  }
+}
+
+test("successful login preserves the profile, clears failures and keeps the personal auto-login choice until disabled", async ({ page, authUser }) => {
   const { svc, id, email, ip } = authUser;
   expect((await svc.from("users").update({ birth_year: 1995 }).eq("id", id)).error).toBeNull();
   await fillSignIn(page, authUser, true);
@@ -81,12 +90,7 @@ test("successful login preserves the existing profile, clears failure count and 
   expect(profile.data).toEqual({ birth_year: 1995, auto_login: true });
   expect(cleared.error).toBeNull();
   expect(cleared.data).toEqual({ consecutive_failures: 0, locked_until: null });
-  const rememberedCookies = (await page.context().cookies()).filter((cookie) => cookie.name.includes("-auth-token"));
-  expect(rememberedCookies.length).toBeGreaterThan(0);
-  for (const cookie of rememberedCookies) {
-    expect(cookie.expires - Date.now() / 1000).toBeGreaterThan(29 * 86400);
-    expect(cookie.expires - Date.now() / 1000).toBeLessThanOrEqual(30 * 86400 + 5);
-  }
+  await expectCookieLifetime(page, 400);
 
   await page.getByLabel("프로필 메뉴", { exact: true }).click();
   await page.getByRole("button", { name: "로그아웃", exact: true }).click();
@@ -97,12 +101,23 @@ test("successful login preserves the existing profile, clears failure count and 
   const normal = await svc.from("users").select("auto_login,birth_year").eq("id", id).single();
   expect(normal.error).toBeNull();
   expect(normal.data).toEqual({ birth_year: 1995, auto_login: false });
-  const normalCookies = (await page.context().cookies()).filter((cookie) => cookie.name.includes("-auth-token"));
-  expect(normalCookies.length).toBeGreaterThan(0);
-  for (const cookie of normalCookies) {
-    expect(cookie.expires - Date.now() / 1000).toBeGreaterThan(23 * 3600);
-    expect(cookie.expires - Date.now() / 1000).toBeLessThanOrEqual(86400 + 5);
-  }
+  await expectCookieLifetime(page, 1);
+
+  await page.goto("/profile", { waitUntil: "networkidle" });
+  await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
+  const autoLogin = page.getByRole("switch", { name: "자동 로그인", exact: true });
+  await expect(autoLogin).not.toBeChecked();
+  await autoLogin.click();
+  await expect(autoLogin).toBeChecked();
+  await expectCookieLifetime(page, 400);
+  expect((await svc.from("users").select("auto_login").eq("id", id).single()).data?.auto_login).toBe(true);
+  await page.reload({ waitUntil: "networkidle" });
+  await page.getByRole("tab", { name: "계정 정보", exact: true }).click();
+  await expect(page.getByRole("switch", { name: "자동 로그인", exact: true })).toBeChecked();
+  await autoLogin.click();
+  await expect(autoLogin).not.toBeChecked();
+  await expectCookieLifetime(page, 1);
+  expect((await svc.from("users").select("auto_login").eq("id", id).single()).data?.auto_login).toBe(false);
 });
 
 test("login still restores a missing public profile from the authenticated user", async ({ page, authUser }) => {

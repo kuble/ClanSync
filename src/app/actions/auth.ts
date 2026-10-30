@@ -14,6 +14,7 @@ import {
 import { ensurePublicUserProfile } from "@/lib/auth/ensure-public-user";
 import { isStrongPassword, passwordPolicyHint } from "@/lib/auth/password-policy";
 import { createAuthActionClient } from "@/lib/supabase/auth-action-client";
+import { DAY_SESSION_SECONDS, REMEMBERED_SESSION_SECONDS } from "@/lib/supabase/session-cookies";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 
 export type AuthMessageState = { error?: string; ok?: string } | null;
@@ -39,7 +40,7 @@ export async function signInAction(
     return { error: GENERIC_SIGN_IN_ERROR };
   }
 
-  const maxAge = remember ? 60 * 60 * 24 * 30 : 60 * 60 * 24;
+  const maxAge = remember ? REMEMBERED_SESSION_SECONDS : DAY_SESSION_SECONDS;
   const supabase = await createAuthActionClient(maxAge);
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });

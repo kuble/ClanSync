@@ -2,21 +2,24 @@ import type { CookieOptions, SetAllCookies } from "@supabase/ssr";
 
 export const SESSION_CHOICE_COOKIE = "clansync-session-days";
 export const DAY_SESSION_SECONDS = 60 * 60 * 24;
-export const REMEMBERED_SESSION_SECONDS = DAY_SESSION_SECONDS * 30;
+// Browser storage limit, renewed on every token refresh; not a session deadline.
+export const REMEMBERED_SESSION_SECONDS = DAY_SESSION_SECONDS * 400;
 
 type CookieValue = { name: string; value: string };
 type CookiesToSet = Parameters<SetAllCookies>[0];
 
 /** Browser persistence preference only; never use this cookie for authorization. */
 export function getSessionMaxAge(cookies: CookieValue[]): number {
-  return cookies.find(({ name }) => name === SESSION_CHOICE_COOKIE)?.value === "30"
+  const choice = cookies.find(({ name }) => name === SESSION_CHOICE_COOKIE)?.value;
+  // Preserve enabled sessions from before the 30-day policy was removed.
+  return choice === "on" || choice === "30"
     ? REMEMBERED_SESSION_SECONDS
     : DAY_SESSION_SECONDS;
 }
 
 /**
- * The SSR SDK overwrites cookieOptions.maxAge with 400 days. Enforce D-AUTH-07
- * at the final cookie write instead, including browser/server token refreshes.
+ * Apply the device's persistence choice at the final cookie write, including
+ * browser/server refreshes. Enabled sessions use the SDK's storage lifetime.
  */
 export function applySessionCookiePolicy(
   cookiesToSet: CookiesToSet,
@@ -52,7 +55,7 @@ export function applySessionCookiePolicy(
     }),
     {
       name: SESSION_CHOICE_COOKIE,
-      value: hasSession ? (maxAge === REMEMBERED_SESSION_SECONDS ? "30" : "1") : "",
+      value: hasSession ? (maxAge === REMEMBERED_SESSION_SECONDS ? "on" : "off") : "",
       options: choiceOptions,
     },
   ];
