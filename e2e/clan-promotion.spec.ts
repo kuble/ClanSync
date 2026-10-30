@@ -15,6 +15,8 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     const previous=await f.service.from("board_posts").insert({game_id:f.gameId,clan_id:f.clanId,post_type:"promotion",title:"이전 모집 안내",content:"이전 홍보 내용",created_by:f.users[0].id,created_at:"2020-01-01T00:00:00Z"}); expect(previous.error).toBeNull();
     const scrim=await f.service.from("board_posts").insert({game_id:f.gameId,clan_id:f.clanId,post_type:"scrim",title:"홍보가 아닌 경기 안내",content:"다른 게시판",created_by:f.users[0].id,created_at:"2030-01-01T00:00:00Z"}).select("id").single(); expect(scrim.error).toBeNull();
     await page.goto(base+"/manage?tab=overview");
+    await expect(page.getByRole("group",{name:"클랜 운영 요약",exact:true})).toBeVisible();
+    await page.screenshot({path:testInfo.outputPath("clan-operation-overview.png"),fullPage:true});
     await page.getByRole("navigation",{name:"클랜 관리 항목"}).getByRole("link",{name:"클랜 홍보"}).click();
     await expect(page.getByRole("textbox",{name:"내용",exact:true})).toHaveText("이전 홍보 내용");
     await expect(page).toHaveURL(/tab=promotion/);
@@ -52,6 +54,15 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     await expect(page.locator("[data-sonner-toast]")).toHaveCount(0,{timeout:10_000});
     await page.setViewportSize({width:1304,height:884});
     await page.screenshot({path:testInfo.outputPath("clan-promotion-range.png"),fullPage:true});
+    await page.getByTitle("라이트 / 다크 테마 전환",{exact:true}).click();
+    await page.screenshot({path:testInfo.outputPath("clan-promotion-redesign-dark.png"),fullPage:true});
+    await page.setViewportSize({width:390,height:844});
+    await year.scrollIntoViewIfNeeded();
+    await expect(gender.getByRole("radio",{name:"남성",exact:true})).toBeVisible();
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+    await page.screenshot({path:testInfo.outputPath("clan-promotion-redesign-mobile.png"),fullPage:true});
+    await page.setViewportSize({width:1304,height:884});
+    await page.getByTitle("라이트 / 다크 테마 전환",{exact:true}).click();
     await page.getByRole("button",{name:"모집 티어 무관으로 설정",exact:true}).click();
     await expect(minimum).toHaveAttribute("aria-valuenow","0");
     await expect(maximum).toHaveAttribute("aria-valuenow","7");
@@ -67,9 +78,9 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     await expect(minimum).toHaveAttribute("aria-valuenow","0");
     await expect(maximum).toHaveAttribute("aria-valuenow","7");
     // Pointer interaction covers the two-thumb control, including a single-tier range.
+    await maximum.scrollIntoViewIfNeeded();
     const track=await page.locator("[data-tier-track]").boundingBox();
     if (!track) throw new Error("Tier slider track is missing");
-    await maximum.scrollIntoViewIfNeeded();
     const thumb=await maximum.boundingBox();
     if (!thumb) throw new Error("Tier slider thumb is missing");
     await page.mouse.move(thumb.x+thumb.width/2,thumb.y+thumb.height/2);

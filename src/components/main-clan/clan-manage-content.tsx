@@ -34,6 +34,7 @@ import { discordBotConfigured } from "@/lib/notifications/discord-bot";
 import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
 import { readDiscordNotificationRoutes } from "@/lib/clan/discord-notification-settings";
 import { ClanPromotionSettings } from "./clan-promotion-settings";
+import operation from "./clan-operation.module.css";
 
 const panel = "rounded-xl border border-border bg-card p-4 sm:p-5";
 type Props = { ctx: MainClanContext; selected: ManageTab; connectionResult?: string };
@@ -95,28 +96,28 @@ async function Overview({ ctx }: Pick<Props, "ctx">) {
     { label: "총 내전", value: history.total == null ? "—" : `${history.total.toLocaleString()}회`, icon: Swords },
     { label: "클랜 코인", value: Number(profile.data.coin_balance).toLocaleString(), icon: Coins },
   ];
-  return <div className="space-y-5">
-    <div role="group" aria-label="클랜 운영 요약" className="grid grid-cols-3 gap-2 sm:gap-3">
+  return <div className={operation.overview}>
+    <div role="group" aria-label="클랜 운영 요약" className={operation.metrics}>
       {facts.map(({ label, value, icon: Icon }) => (
-        <section key={label} aria-label={`${label} ${value}`} className="min-w-0 rounded-xl border border-border bg-card p-3 sm:p-5">
-          <h4 className="flex items-center gap-1.5 text-xs font-semibold sm:gap-2 sm:text-sm"><Icon className="size-4 shrink-0 text-primary" aria-hidden />{label}</h4>
+        <section key={label} aria-label={`${label} ${value}`} className={operation.metric}>
+          <h4><span><Icon size={18} aria-hidden /></span>{label}</h4>
           {label === "총 내전" ? <>
             <dl className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <div><dt className="text-[11px] text-muted-foreground">정규 내전</dt><dd className="mt-1 break-words text-lg font-semibold tabular-nums sm:text-xl">{history.regular == null ? "확인 필요" : history.regular.toLocaleString()+"회"}</dd></div>
               <div><dt className="text-[11px] text-muted-foreground">깜짝 내전</dt><dd className="mt-1 break-words text-lg font-semibold tabular-nums sm:text-xl">{history.flash == null ? "확인 필요" : history.flash.toLocaleString()+"회"}</dd></div>
             </dl>
             {history.regular != null && history.flash != null && history.total != null && history.regular + history.flash !== history.total && <p role="status" className="mt-2 text-[11px] text-muted-foreground">분류 확인 필요</p>}
-          </> : <p className="mt-3 break-words text-xl font-semibold tabular-nums sm:text-2xl">{value}</p>}
+          </> : <p className={operation.metricValue}>{value}</p>}
         </section>
       ))}
     </div>
-    <section className={panel} aria-label="클랜 기록">
+    <section className={operation.record} aria-label="클랜 기록">
       <dl className="grid gap-5 sm:grid-cols-2 sm:gap-0 sm:divide-x sm:divide-border">
         <div className="flex items-start gap-3 sm:pr-5"><CalendarDays className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden /><div><dt className="text-xs text-muted-foreground">클랜 설립일</dt><dd className="mt-2 text-sm font-medium">{dateLabel(profile.data.created_at)}</dd></div></div>
         <div className="flex items-start gap-3 sm:pl-5"><Clock className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden /><div><dt className="text-xs text-muted-foreground">최근 내전</dt><dd className="mt-2 text-sm font-medium">{history.total == null ? "기록 확인 필요" : history.latestAt ? dateLabel(history.latestAt) : "아직 개설된 내전이 없습니다."}</dd></div></div>
       </dl>
     </section>
-    <section className={`${panel} space-y-4`} aria-label="클랜 배지">
+    <section className={`${operation.badges} space-y-4`} aria-label="클랜 배지">
       <div className="flex items-center gap-2"><Trophy className="size-4 text-primary" aria-hidden /><h4 className="text-sm font-semibold">클랜 배지</h4></div>
       {badges ? <ClanBadges collection={badges} gameSlug={ctx.gameSlug} clanId={ctx.clanId} compact /> : <p role="alert" className="flex min-h-52 items-center justify-center text-sm text-muted-foreground">배지 기록을 불러오지 못했습니다. 잠시 후 새로고침해 주십시오.</p>}
     </section>
