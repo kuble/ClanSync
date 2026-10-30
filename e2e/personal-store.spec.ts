@@ -1,6 +1,25 @@
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
+import { namecardProducts } from "../src/lib/store/namecard-products";
+import { isMvpStoreSlug } from "../src/lib/store/mvp-store-slugs";
+import type { NamecardState } from "../src/lib/profile/namecard";
+
+test("폐기된 프레임은 보유 정보가 남아도 판매하지 않고 현재 디자인은 유지한다", () => {
+  const state: NamecardState = {
+    catalog: [
+      { id: "frame", category: "frame", code: "frame-default", name_ko: "기본 프레임", unlock_source: "default", price_coins: 0 },
+      { id: "title", category: "sub", code: "title-current", name_ko: "현재 칭호", unlock_source: "store", price_coins: 20 },
+      { id: "retired", category: "frame", code: "pf_entrance_store:overwatch", name_ko: "폐기된 프레임", unlock_source: "store", price_coins: 100 },
+    ], owned: ["retired"], selections: [], coinBalance: 30,
+  };
+  const products = namecardProducts(state);
+  expect(products.map(product => product.id)).toEqual(["frame", "title"]);
+  expect(products.find(product => product.id === "frame")).toMatchObject({ available: true, price: 0 });
+  expect(products.find(product => product.id === "title")).toMatchObject({ available: false, price: 20 });
+  expect(isMvpStoreSlug("profile_entrance_fx")).toBe(false);
+  expect(isMvpStoreSlug("clan_emoji_slots_3")).toBe(true);
+});
 
 test("기본 디자인과 공통 잔액은 여러 게임 클랜에서 동일하다", async ({ page }) => {
   const f = await createIsolatedBalanceFixture(1);
@@ -17,6 +36,7 @@ test("기본 디자인과 공통 잔액은 여러 게임 클랜에서 동일하�
     await expect(page.getByRole("main").getByLabel("보유 코인").locator("strong")).toHaveText("1,000");
     const categories=page.getByRole("radiogroup",{name:"개인 꾸미기 분류"});
     await categories.getByRole("radio",{name:"카드 프레임",exact:true}).click();
+    await page.getByRole("textbox",{name:"디자인 검색",exact:true}).fill("기본 카드 프레임");
     await expect(page.getByRole("article")).toHaveCount(1);
     await expect(page.getByRole("article",{name:"기본 카드 프레임",exact:true})).toBeVisible();
     await expect(page.getByRole("article",{name:"프리미엄 골드 프레임",exact:true})).toHaveCount(0);

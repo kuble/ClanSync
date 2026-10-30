@@ -2,13 +2,12 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ChevronLeft, ChevronRight, Coins, Crown, Search, Store } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Coins, Search, Store } from "lucide-react";
 import { toast } from "sonner";
 import { purchaseProfileTitleAction } from "@/app/actions/profile-titles";
-import { purchaseStoreItemAction } from "@/app/actions/clan-store-purchase";
 import { saveNamecardThemeAction, saveNameplateSelectionAction } from "@/app/actions/profile-decorations";
 import { namecardAppearance, type NamecardState } from "@/lib/profile/namecard";
-import { namecardProducts, STORE_CATEGORIES, withProduct, type NamecardProduct, type PremiumFrameOffer, type StoreCategory } from "@/lib/store/namecard-products";
+import { namecardProducts, STORE_CATEGORIES, withProduct, type NamecardProduct, type StoreCategory } from "@/lib/store/namecard-products";
 import { CLANSYNC_NAMEPLATE_CHANGED } from "@/lib/profile-decoration-sync";
 import { Namecard } from "@/components/profile/namecard";
 import { RubberSegment } from "@/components/ui/rubber-segment";
@@ -21,13 +20,13 @@ import { namecardBackground } from "@/lib/profile/backgrounds";
 import type { CosmeticColorPresetId } from "@/lib/cosmetics/color-presets";
 import { CosmeticColorPicker } from "@/components/cosmetics/cosmetic-color-picker";
 
-export function PersonalStoreProducts({ state, displayName, offer }: {
-  state: NamecardState; displayName: string; offer: PremiumFrameOffer | null;
+export function PersonalStoreProducts({ state, displayName }: {
+  state: NamecardState; displayName: string;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const busy = useRef(false);
-  const [category, setCategory] = useState<StoreCategory>(() => namecardProducts(state, offer)[0]?.category ?? "theme");
+  const [category, setCategory] = useState<StoreCategory>(() => namecardProducts(state)[0]?.category ?? "theme");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [previewId, setPreviewId] = useState<string | null>(null);
@@ -40,7 +39,7 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
   const selections = selectionOverride ?? state.selections;
   const coins = coinOverride ?? state.coinBalance;
   const hasInkPalette = (p: NamecardProduct) => p.category === "emblem" || (p.category === "portrait" || p.category === "frame") && p.rarity === "normal";
-  const products = namecardProducts({ ...state, selections }, offer).map(p => {
+  const products = namecardProducts({ ...state, selections }).map(p => {
     const palette = palettes[p.id] !== undefined ? palettes[p.id] : selections.find(s => s.option_id === p.id)?.palette_id;
     const background = namecardBackground(state.catalog.find(option => option.id === p.id)?.code, palette);
     return { ...p, available: p.available || purchased.includes(p.id), selections: background || hasInkPalette(p) ? p.selections.map(s => ({ ...s, palette_id: background?.paletteId ?? palette ?? null })) : p.selections };
@@ -60,7 +59,7 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
   };
   const applied = (p: NamecardProduct) => p.selections.every(next => selections.some(s => s.category === next.category && s.option_id === next.option_id
     && (hasInkPalette(p) ? (s.palette_id ?? null) === (next.palette_id ?? null) : !next.palette_id || namecardBackground(state.catalog.find(o => o.id === s.option_id)?.code, s.palette_id)?.paletteId === next.palette_id)));
-  const reason = (p: NamecardProduct) => p.available ? null : p.premium && !offer?.eligible ? "Premium 클랜 가입 시 구매 가능" : coins < p.price ? "코인 부족" : null;
+  const reason = (p: NamecardProduct) => !p.available && coins < p.price ? "코인 부족" : null;
   const palettePicker = (product: NamecardProduct, compact = false) => hasInkPalette(product)
     ? <CosmeticColorPicker allowDefault compact={compact} label={compact ? `${product.name} 색상` : `${STORE_CATEGORIES.find(c => c.id === product.category)?.label} 색상`} value={product.selections[0]?.palette_id as CosmeticColorPresetId ?? null} disabled={pending} onChange={value => setPalettes(previous => ({ ...previous, [product.id]: value }))} />
     : product.selections[0]?.palette_id ? <CosmeticColorPicker compact={compact} label={compact ? `${product.name} 색상` : "배경 색상"} value={product.selections[0].palette_id as CosmeticColorPresetId} disabled={pending} onChange={value => setPalettes(previous => ({ ...previous, [product.id]: value }))} /> : null;
@@ -89,16 +88,9 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
     start(async () => {
       setError("");
       try {
-        if (product.legacy) {
-          if (!offer?.gameSlug || !offer.clanId) { setError("Premium 클랜 가입 정보를 확인해 주십시오."); return; }
-          const result = await purchaseStoreItemAction(offer.gameSlug, offer.clanId, "profile_entrance_fx");
-          if (!result.ok) { setError(result.error); return; }
-          setCoinOverride(coins - product.price);
-        } else {
-          const result = await purchaseProfileTitleAction(product.id);
-          if (!result.ok) { setError(result.error); return; }
-          setCoinOverride(result.coinBalance);
-        }
+        const result = await purchaseProfileTitleAction(product.id);
+        if (!result.ok) { setError(result.error); return; }
+        setCoinOverride(result.coinBalance);
         setPurchased(ids => [...ids, product.id]);
         setSelected(null);
         toast.success("구매했습니다. 적용 버튼으로 네임카드에 장착해 보십시오.");
@@ -122,12 +114,12 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
       </div>
       <div className={cn(styles.grid,clanStyles.grid)} aria-label="개인 꾸미기 상품" aria-busy={pending}>
         {shown.map(product => <article key={product.id} className={cn(styles.product,clanStyles.product)} data-kind={product.category} data-previewed={candidate?.id === product.id || undefined} aria-label={product.name}>
-          <div className={styles.productHeading}><h3>{product.name}</h3>{product.rarity === "normal" && <span className={clanStyles.rarity}>노말</span>}{product.premium && <span className={styles.premium}><Crown size={12} aria-hidden />Premium</span>}{applied(product) && <span className={styles.applied}><Check size={12} aria-hidden />적용 중</span>}</div>
+          <div className={styles.productHeading}><h3>{product.name}</h3>{product.rarity === "normal" && <span className={clanStyles.rarity}>노말</span>}{applied(product) && <span className={styles.applied}><Check size={12} aria-hidden />적용 중</span>}</div>
           <button type="button" className={styles.preview} aria-label={product.name + " 미리보기"} aria-pressed={candidate?.id === product.id} onClick={() => setPreviewId(product.id)}>{preview(product)}</button>
           {palettePicker(product, true)}
             <div className={styles.productFooter}><strong>{product.available ? product.price === 0 ? "기본 제공" : "보유 중" : <><Coins size={14} aria-hidden />{product.price.toLocaleString("ko-KR")}<small>코인</small></>}</strong>
               {product.available ? <Button size="sm" variant={applied(product) ? "secondary" : "default"} disabled={pending || applied(product)} onClick={() => apply(product)} aria-label={`${product.name} 적용`}>{applied(product) ? "적용 중" : product.category === "theme" ? "세트 적용" : "적용"}</Button>
-                : <Button size="sm" disabled={pending || !!reason(product)} onClick={() => { setSelected(product); setError(""); }} aria-label={`${product.name} 구매`}>{reason(product) ? product.premium && !offer?.eligible ? "Premium 필요" : "코인 부족" : "구매"}</Button>}
+                : <Button size="sm" disabled={pending || !!reason(product)} onClick={() => { setSelected(product); setError(""); }} aria-label={`${product.name} 구매`}>{reason(product) ?? "구매"}</Button>}
             </div>
             {reason(product) && <p className={styles.reason}>{reason(product)}</p>}
         </article>)}
@@ -143,7 +135,7 @@ export function PersonalStoreProducts({ state, displayName, offer }: {
       <DialogHeader><DialogTitle>{candidate?.name} 미리보기</DialogTitle><DialogDescription>{candidate?.description}</DialogDescription></DialogHeader>
       {candidate&&<section aria-label="적용 미리보기" className={styles.modalPreview}>{preview(candidate,true)}</section>}
       {candidate && palettePicker(candidate)}
-      <DialogFooter><Button variant="outline" aria-label="미리보기 닫기" disabled={pending} onClick={()=>setPreviewId(null)}>닫기</Button>{candidate&&(candidate.available?<Button disabled={pending||applied(candidate)} onClick={()=>apply(candidate)} aria-label={candidate.name+" 적용"}>{applied(candidate)?"적용 중":"적용"}</Button>:<Button disabled={pending||!!reason(candidate)} onClick={()=>{setPreviewId(null);setSelected(candidate);setError("");}} aria-label={candidate.name+" 구매"}>{reason(candidate)?candidate.premium&&!offer?.eligible?"Premium 필요":"코인 부족":"구매"}</Button>)}</DialogFooter>
+      <DialogFooter><Button variant="outline" aria-label="미리보기 닫기" disabled={pending} onClick={()=>setPreviewId(null)}>닫기</Button>{candidate&&(candidate.available?<Button disabled={pending||applied(candidate)} onClick={()=>apply(candidate)} aria-label={candidate.name+" 적용"}>{applied(candidate)?"적용 중":"적용"}</Button>:<Button disabled={pending||!!reason(candidate)} onClick={()=>{setPreviewId(null);setSelected(candidate);setError("");}} aria-label={candidate.name+" 구매"}>{reason(candidate)??"구매"}</Button>)}</DialogFooter>
     </DialogContent></Dialog>
     <Dialog open={!!selected} onOpenChange={open => { if (!open && !busy.current) setSelected(null); }}><DialogContent showCloseButton={!pending}>
       <DialogHeader><DialogTitle>네임카드 디자인 구매</DialogTitle><DialogDescription>{selected?.name}을 개인 코인으로 구매합니다. 구매 후 적용할 수 있습니다.</DialogDescription></DialogHeader>

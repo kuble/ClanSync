@@ -8,7 +8,6 @@ export const MVP_STORE_SLUGS = [
   "clan_emoji_slots_3",
   "clan_photo_frames",
   "clan_photo_stickers",
-  "profile_entrance_fx",
 ] as const;
 
 export type MvpStoreSlug = (typeof MVP_STORE_SLUGS)[number];
