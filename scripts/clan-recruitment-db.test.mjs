@@ -4,9 +4,49 @@ import { createClient } from "@supabase/supabase-js";
 import { createIsolatedBalanceFixture } from "../e2e/isolated-balance-fixture.ts";
 import { loadTestEnv } from "./test-env.mjs";
 import { recruitmentTiers, recruitmentTierLabel, normalizeRecruitmentTier } from "../src/lib/clan/recruitment.ts";
+import { randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
 
 async function ok(query) { const {data,error}=await query; assert.equal(error,null,error?.message); return data; }
 async function denied(query) { const {error}=await query; assert.ok(error,"Restricted operation unexpectedly succeeded"); return error; }
+
+test("promotion saves text, inline photos and requirements atomically with conflict and storage protection",async t=>{
+  const f=await createIsolatedBalanceFixture(3), svc=f.service;
+  const [leader,officer,outsider]=await Promise.all(f.users.map((_,i)=>f.memberClient(i)));
+  const bucket="clan-promotion-images", postId=randomUUID(), paths=[];
+  t.after(async()=>{ await Promise.all([leader,officer,outsider].map(client=>client.auth.signOut())); await f.cleanup(); if(paths.length) await ok(svc.storage.from(bucket).remove(paths)); });
+  await ok(svc.from("clan_members").update({role:"officer"}).eq("clan_id",f.clanId).eq("user_id",f.users[1].id));
+  await ok(svc.from("clan_members").delete().eq("clan_id",f.clanId).eq("user_id",f.users[2].id));
+  const file=await readFile(new URL("../public/images/overwatch/maps/busan.webp",import.meta.url));
+  const path=`${f.clanId}/${f.users[0].id}/${postId}/${randomUUID()}.webp`;
+  paths.push(path);
+  await denied(outsider.storage.from(bucket).upload(path,file,{contentType:"image/webp"}));
+  await ok(leader.storage.from(bucket).upload(path,file,{contentType:"image/webp"}));
+  await denied(outsider.storage.from(bucket).download(path));
+  const blocks=[{type:"text",text:"앞 이야기"},{type:"image",path,alt:"금요일 내전"},{type:"text",text:"뒤 이야기"}];
+  const input={p_clan_id:f.clanId,p_post_id:postId,p_title:"새 클랜원 모집",p_blocks:blocks,p_birth_year_limit:2000,p_gender_policy:"all",p_tiers:["gold"]};
+  await denied(outsider.rpc("save_clan_promotion",input));
+  await denied(leader.rpc("save_clan_promotion",{...input,p_tiers:["challenger"]}));
+  assert.equal((await ok(svc.from("board_posts").select("id").eq("id",postId))).length,0);
+  const saved=(await ok(leader.rpc("save_clan_promotion",input)))[0];
+  const row=await ok(svc.from("board_posts").select("title,content,content_blocks,updated_at").eq("id",postId).single());
+  assert.equal(row.content,"앞 이야기\n\n뒤 이야기"); assert.deepEqual(row.content_blocks,blocks);
+  assert.deepEqual(await ok(svc.from("clans").select("min_birth_year,tier_range").eq("id",f.clanId).single()),{min_birth_year:2000,tier_range:["gold"]});
+  await ok(outsider.storage.from(bucket).download(path));
+  await leader.storage.from(bucket).remove([path]); // RLS filters referenced objects out of DELETE.
+  await ok(leader.storage.from(bucket).download(path));
+  await denied(leader.from("board_posts").insert({game_id:f.gameId,clan_id:f.clanId,created_by:f.users[0].id,post_type:"promotion",title:"우회",content_blocks:blocks}));
+  const forged=blocks.map(block=>block.type==="image"?{...block,path:path.replace(f.clanId,randomUUID())}:block);
+  await denied(officer.rpc("save_clan_promotion",{...input,p_expected_updated_at:saved.updated_at,p_blocks:forged,p_birth_year_limit:1999}));
+  assert.equal((await ok(svc.from("clans").select("min_birth_year").eq("id",f.clanId).single())).min_birth_year,2000);
+  const changed=(await ok(officer.rpc("save_clan_promotion",{...input,p_expected_updated_at:saved.updated_at,p_title:"수정한 모집",p_birth_year_limit:1999})))[0];
+  await denied(leader.rpc("save_clan_promotion",{...input,p_expected_updated_at:saved.updated_at,p_title:"오래된 화면"}));
+  assert.equal((await ok(svc.from("board_posts").select("title").eq("id",postId).single())).title,"수정한 모집");
+  assert.equal((await ok(svc.from("clans").select("min_birth_year").eq("id",f.clanId).single())).min_birth_year,1999);
+  const outcomes=await Promise.all(["동시 수정 A","동시 수정 B"].map(p_title=>officer.rpc("save_clan_promotion",{...input,p_expected_updated_at:changed.updated_at,p_title})));
+  assert.equal(outcomes.filter(result=>!result.error).length,1,"Only one concurrent writer may use a revision");
+  assert.equal((await ok(svc.from("board_posts").select("id").eq("clan_id",f.clanId).eq("post_type","promotion"))).length,1);
+});
 
 test("immutable demographics and recruitment rules protect direct API, approvals and request replacement",async t => {
   const f=await createIsolatedBalanceFixture(4), svc=f.service;

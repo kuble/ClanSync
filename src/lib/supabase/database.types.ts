@@ -633,6 +633,7 @@ export type Database = {
         Row: {
           clan_id: string
           content: string
+          content_blocks: Json
           created_at: string
           created_by: string | null
           game_id: string
@@ -641,10 +642,12 @@ export type Database = {
           operator_name: string | null
           post_type: Database["public"]["Enums"]["board_post_type"]
           title: string
+          updated_at: string
         }
         Insert: {
           clan_id: string
           content?: string
+          content_blocks?: Json
           created_at?: string
           created_by?: string | null
           game_id: string
@@ -653,10 +656,12 @@ export type Database = {
           operator_name?: string | null
           post_type?: Database["public"]["Enums"]["board_post_type"]
           title: string
+          updated_at?: string
         }
         Update: {
           clan_id?: string
           content?: string
+          content_blocks?: Json
           created_at?: string
           created_by?: string | null
           game_id?: string
@@ -665,6 +670,7 @@ export type Database = {
           operator_name?: string | null
           post_type?: Database["public"]["Enums"]["board_post_type"]
           title?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -3843,6 +3849,22 @@ export type Database = {
           p_nickname: string
         }
         Returns: string
+      }
+      save_clan_promotion: {
+        Args: {
+          p_birth_year_limit?: number
+          p_blocks: Json
+          p_clan_id: string
+          p_expected_updated_at?: string
+          p_gender_policy?: string
+          p_post_id: string
+          p_tiers?: string[]
+          p_title: string
+        }
+        Returns: {
+          id: string
+          updated_at: string
+        }[]
       }
       save_clan_stats_settings: {
         Args: {

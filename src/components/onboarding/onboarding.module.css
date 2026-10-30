@@ -11,6 +11,8 @@
 .authContent { max-width: 528px; padding-top: 64px; }
 .shell:has(.authContent) .navbar { height: 80px; border-bottom: 0; }
 .shell:has(.authContent) .navbarInner { max-width: 1152px; border-bottom: 1px solid color-mix(in srgb, var(--foreground) 11%, transparent); }
+.shell:has([data-clan-discovery]) .navbar { height: 80px; border-bottom: 0; }
+.shell:has([data-clan-discovery]) .navbarInner { max-width: 1152px; border-bottom: 1px solid color-mix(in srgb, var(--foreground) 11%, transparent); }
 .heading { font-size: 26px; font-weight: 800; line-height: 1.4; letter-spacing: -.025em; }
 .description { margin-top: 8px; color: var(--muted-foreground); font-size: 14px; line-height: 1.7; }
 .gameLabel { color: var(--primary); font-size: 12px; font-weight: 600; margin-bottom: 6px; }

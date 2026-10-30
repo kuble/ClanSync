@@ -12,12 +12,13 @@ import { buttonVariants } from "@/components/ui/button-variants";
 import { loadGameOnboarding } from "@/lib/onboarding/load-game-onboarding";
 import { createClient } from "@/lib/supabase/server";
 import styles from "@/components/onboarding/onboarding.module.css";
+import discover from "@/components/onboarding/clan-discovery.module.css";
 import { recruitmentProfileError, recruitmentTiers, normalizeRecruitmentTier } from "@/lib/clan/recruitment";
 
 const PAGE_SIZE = 5;
-const CLAN_FIELDS = "id, name, description, rules, tags, max_members, style, tier_range, min_birth_year, gender_policy, created_at, discord_url, kakao_url, subscription_tier, promotions:board_posts!board_posts_clan_id_fkey(id,title,content,created_at)" as const;
+const CLAN_FIELDS = "id, name, description, rules, tags, max_members, style, tier_range, min_birth_year, gender_policy, created_at, discord_url, kakao_url, subscription_tier, promotions:board_posts!board_posts_clan_id_fkey(id,title,content,content_blocks,created_at,updated_at)" as const;
 const STYLES = [{ value: "social", label: "친목" }, { value: "casual", label: "즐겜" }, { value: "tryhard", label: "빡겜" }, { value: "pro", label: "프로" }] as const;
-export const metadata = { title: "클랜 참여 · ClanSync" };
+export const metadata = { title: "클랜 찾기 · ClanSync" };
 
 export default async function ClanOnboardingPage({ params, searchParams }: {
   params: Promise<{ gameSlug: string }>;
@@ -55,7 +56,7 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
     listQuery,
     pendingBrief?.clanId ? clanQuery().eq("id", pendingBrief.clanId).maybeSingle() : Promise.resolve({ data: null, error: null }),
     supabase.from("users").select("birth_year,gender").eq("id",user.id).single(),
-    promotion ? supabase.from("board_posts").select("id,clan_id,title,content,created_at").eq("id",promotion).eq("game_id",game.id).eq("post_type","promotion").maybeSingle() : Promise.resolve({data:null,error:null}),
+    promotion ? supabase.from("board_posts").select("id,clan_id,title,content,content_blocks,created_at,updated_at").eq("id",promotion).eq("game_id",game.id).eq("post_type","promotion").maybeSingle() : Promise.resolve({data:null,error:null}),
   ]);
   if (requestedPromotion.error) throw new Error("홍보글을 불러오지 못했습니다.");
   let previewRow = null;
@@ -88,26 +89,24 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
     return `/games/${gameSlug}/clan?${query}`;
   }
 
-  return <AccountShell><main className={styles.content}>
-    <header><p className={styles.gameLabel}>{game.name_ko}</p><h1 className={styles.heading}>클랜에 참여하십시오<span className="sr-only"> · 가입 또는 생성</span></h1><p className={styles.description}>기존 클랜에 가입하거나, 새로운 클랜을 만들어 보십시오.</p></header>
+  return <AccountShell><main className={discover.content} data-clan-discovery>
+    <header className={discover.intro}><p>{game.name_ko} · 클랜 찾기</p><h1>함께할 클랜을 <span>찾아보세요.</span></h1><div>우리와 맞는 분위기, 함께하고 싶은 활동.<br className="sm:hidden" /> 클랜의 이야기를 먼저 만나보세요.</div></header>
     {pendingBrief ? <section className={styles.pending} aria-label="현재 신청 중인 클랜">
       <div className={styles.pendingTop}><div><h2 className="flex items-center gap-2"><Clock3 size={16} aria-hidden="true" />진행 중인 가입 신청</h2><p>「{pendingBrief.clanName ?? "클랜"}」 운영진의 승인을 기다리고 있습니다.</p></div><form action={cancelBound}><Button type="submit" variant="outline" size="sm">신청 취소</Button></form></div>
       {pendingBrief.message ? <blockquote>{pendingBrief.message}</blockquote> : null}
     </section> : null}
-    <Tabs defaultValue="join" className={styles.tabs}>
+    <Tabs defaultValue="join" className={`${styles.tabs} ${discover.tabs}`}>
       <TabsList variant="line" className={styles.tabList}><TabsTrigger value="join">클랜 가입</TabsTrigger><TabsTrigger value="create">클랜 생성</TabsTrigger></TabsList>
       <TabsContent value="join">
-        <form method="get">
-          <div className={styles.searchForm}><div className={styles.searchField}><label htmlFor="q" className="sr-only">클랜 검색</label><Search size={16} aria-hidden="true" /><Input id="q" name="q" defaultValue={term} placeholder="클랜명 검색" /></div><input type="hidden" name="page" value="1" /><Button type="submit" variant="secondary">검색</Button></div>
-          <div className={styles.filters}>
+        <form method="get" className={discover.filters}>
+          <div className={discover.search}><label htmlFor="q" className="sr-only">클랜 검색</label><Search size={17} aria-hidden="true" /><Input id="q" name="q" defaultValue={term} placeholder="클랜 이름으로 검색" /></div><input type="hidden" name="page" value="1" />
             <label>지향<select name="style" defaultValue={style}><option value="">전체</option>{STYLES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
             <label>모집 티어<select name="tier" defaultValue={tier}><option value="">전체</option>{TIERS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-            <Button type="submit" variant="outline" size="sm">필터 적용</Button>
+            <Button type="submit">검색</Button>
             {term || style || tier ? <Link href={`/games/${gameSlug}/clan`} className="text-muted-foreground text-xs underline">초기화</Link> : null}
-          </div>
         </form>
         {listError ? <p role="alert" className={styles.error}>클랜 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주십시오.</p> : <>
-          <p className={styles.resultCount}>클랜 {total.toLocaleString("ko-KR")}개</p>
+          <div className={discover.resultCount}><p>함께할 클랜 <strong>{total.toLocaleString("ko-KR")}</strong></p><span>최근 만들어진 클랜 순</span></div>
           <ClanJoinList key={`${pendingBrief?.requestId ?? "no-pending"}:${promotion}`} gameSlug={gameSlug} pendingClanId={pendingBrief?.clanId ?? null} blockingClanName={pendingBrief?.clanName ?? null} pinnedPendingClan={pinnedPendingClan} clans={clans} initialDetails={initialDetails} canApply={state.clanStatus !== "member"} />
           {totalPages > 1 ? <nav className={styles.pagination} aria-label="클랜 목록 페이지">{page > 1 ? <Link className={buttonVariants({ variant: "outline", size: "sm" })} href={pageHref(page - 1)}>이전</Link> : null}<span>{page} / {totalPages}</span>{page < totalPages ? <Link className={buttonVariants({ variant: "outline", size: "sm" })} href={pageHref(page + 1)}>다음</Link> : null}</nav> : null}
         </>}

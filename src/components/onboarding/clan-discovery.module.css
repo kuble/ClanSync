@@ -1,0 +1,92 @@
+.content { width: 100%; max-width: 1152px; margin-inline: auto; padding: 60px 24px 88px; }
+.intro { margin-bottom: 38px; }
+.intro > p { margin-bottom: 16px; color: var(--primary); font-size: 12px; font-weight: 600; }
+.intro h1 { font-size: clamp(28px, 3.4vw, 40px); line-height: 1.35; font-weight: 650; letter-spacing: -.045em; word-break: keep-all; }
+.intro h1 span { color: var(--primary); }
+.intro > div { margin-top: 16px; color: var(--muted-foreground); font-size: 14px; line-height: 1.85; word-break: keep-all; }
+.tabs { gap: 24px; }
+.filters { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 20px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin: 24px 0 28px; }
+.search { display: flex; align-items: center; flex: 1; min-width: 200px; gap: 10px; color: var(--muted-foreground); }
+.search input { box-shadow: none; border: 0; background: transparent; height: 42px; padding-left: 0; font-size: 14px; }
+.filters > label { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted-foreground); padding-left: 16px; border-left: 1px solid var(--border); }
+.filters select { min-height: 42px; max-width: 135px; padding-right: 18px; color: var(--foreground); background: var(--card); font-size: 13px; outline: none; }
+.filters > button { min-height: 42px; padding-inline: 22px; }
+.resultCount { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; font-size: 13px; }
+.resultCount strong { color: var(--primary); margin-left: 5px; font-weight: 600; }
+.resultCount > span { font-size: 11px; color: var(--muted-foreground); }
+.clanList { display: grid; gap: 20px; }
+.clanCard { min-width: 0; border: 1px solid var(--border); border-radius: 16px; background: var(--card); overflow: hidden; box-shadow: 0 12px 28px -26px color-mix(in srgb, var(--primary) 25%, transparent); }
+.overview { display: grid; width: 100%; padding: 26px; gap: 28px; text-align: left; cursor: pointer; min-width: 0; }
+.overview[data-has-photo="true"] { grid-template-columns: minmax(200px, .8fr) minmax(0, 2fr); align-items: stretch; }
+.cover { display: block; overflow: hidden; border-radius: 10px; aspect-ratio: 4 / 3; align-self: center; background: var(--surface); }
+.cover img { width: 100%; height: 100%; object-fit: cover; }
+.clanText { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; }
+.clanIdentity { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; font-size: 12px; font-weight: 550; }
+.miniEmblem { display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent); border-radius: 7px; color: var(--primary); background: color-mix(in srgb, var(--primary) 8%, transparent); font-weight: 600; }
+.clanSubtitle { padding-left: 9px; border-left: 1px solid var(--border); color: var(--muted-foreground); font-weight: 400; }
+.clanTitle { margin-top: 16px; font-size: 22px; line-height: 1.5; font-weight: 600; letter-spacing: -.03em; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.clanIntro { margin-top: 9px; color: var(--muted-foreground); font-size: 13px; line-height: 1.85; overflow-wrap: anywhere; white-space: pre-line; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tagRow { display: flex; flex-wrap: wrap; gap: 7px; }
+.clanText > .tagRow { margin-top: 16px; }
+.tag { color: var(--muted-foreground); font-size: 11px; line-height: 1.6; background: var(--surface); padding: 3px 8px; border-radius: 5px; }
+.readMore { display: inline-flex; gap: 5px; align-items: center; margin-top: 18px; font-size: 12px; font-weight: 550; color: var(--primary); }
+.clanFooter { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px 26px; border-top: 1px solid var(--border); }
+.cardMeta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; min-width: 0; }
+.memberCount { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; font-size: 12px; color: var(--foreground); }
+.conditions { font-size: 11px; color: var(--muted-foreground); overflow-wrap: anywhere; }
+.clanFooter > button, .clanFooter > [data-slot="badge"] { flex-shrink: 0; }
+.applyPanel { display: grid; gap: 12px; padding: 20px 26px; border-top: 1px solid var(--border); background: var(--surface); }
+.applyPanel label { font-size: 12px; color: var(--muted-foreground); }
+.applyPanel textarea { width: 100%; min-height: 100px; padding: 12px; border: 1px solid var(--input); border-radius: 8px; background: var(--background); font-size: 13px; }
+.actions { display: flex; gap: 8px; }
+.error { color: var(--destructive); font-size: 12px; }
+.empty { padding: 56px 20px; border: 1px dashed var(--border); border-radius: 14px; text-align: center; color: var(--muted-foreground); font-size: 13px; line-height: 1.8; }
+.dialog { gap: 0; padding: 0; overflow: hidden; }
+.dialog > [data-slot="dialog-header"] { padding: 28px 32px 22px; border-bottom: 1px solid var(--border); }
+.dialog > [data-slot="dialog-footer"] { padding: 18px 32px; border-top: 1px solid var(--border); background: var(--card); }
+.detailHeading { display: flex; gap: 16px; align-items: center; padding-right: 16px; text-align: left; }
+.detailHeading [data-slot="dialog-title"] { font-size: 24px; line-height: 1.45; font-weight: 600; letter-spacing: -.035em; overflow-wrap: anywhere; }
+.clanEmblem { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px; color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, var(--card)); font-weight: 600; font-size: 18px; }
+.detailBody { max-height: min(64svh, 650px); overflow-y: auto; padding: 28px 32px; display: grid; gap: 26px; }
+.detailBody h3 { color: var(--muted-foreground); font-size: 12px; font-weight: 550; margin-bottom: 12px; }
+.detailBody p { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; line-height: 1.9; }
+.promotionBody { display: grid; gap: 22px; }
+.promotionBody p { font-size: 15px; line-height: 1.95; }
+.promotionBody img { display: block; width: 100%; height: auto; border-radius: 10px; }
+.promotionBody figcaption { margin-top: 9px; text-align: center; font-size: 11px; color: var(--muted-foreground); overflow-wrap: anywhere; }
+.detailInfo { padding-top: 24px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.detailInfo p { color: var(--muted-foreground); font-size: 12px; }
+.rules { border-top: 1px solid var(--border); padding-top: 18px; }
+.rules summary { font-size: 13px; cursor: pointer; }
+.rules p { margin-top: 12px; color: var(--muted-foreground); }
+.detailBody a { display: inline-flex; align-items: center; gap: 6px; color: var(--primary); font-size: 12px; margin-right: 20px; }
+.content :is(a, button, input, select, textarea):focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.overview:hover .clanTitle { color: var(--primary); }
+@media (prefers-reduced-motion: no-preference) { .overview .clanTitle { transition: color 150ms ease; } }
+@media (max-width: 700px) {
+  .content { padding: 36px 16px 56px; }
+  .intro { margin-bottom: 28px; }
+  .intro > div { font-size: 13px; }
+  .filters { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); padding: 12px; gap: 8px 12px; margin-top: 18px; }
+  .search { grid-column: 1 / -1; min-width: 0; border-bottom: 1px solid var(--border); }
+  .filters > label { min-width: 0; padding: 0; border: 0; gap: 8px; white-space: nowrap; }
+  .filters select { width: 100%; min-width: 0; max-width: none; }
+  .filters > button { padding-inline: 16px; }
+  .filters > a { justify-self: end; }
+  .filters:not(:has(> a)) > button { grid-column: 1 / -1; }
+  .overview { padding: 20px; gap: 18px; }
+  .overview[data-has-photo="true"] { grid-template-columns: 1fr; }
+  .cover { aspect-ratio: 16 / 9; }
+  .clanTitle { margin-top: 12px; font-size: 20px; }
+  .clanFooter { padding: 14px 20px; gap: 12px; }
+  .cardMeta { gap: 6px; flex-direction: column; align-items: flex-start; }
+  .conditions { font-size: 10px; }
+  .applyPanel { padding: 20px; }
+  .resultCount > span { font-size: 10px; }
+  .dialog > [data-slot="dialog-header"] { padding: 24px 20px 18px; }
+  .dialog > [data-slot="dialog-footer"] { padding: 16px 20px; }
+  .detailHeading { gap: 12px; }
+  .detailHeading [data-slot="dialog-title"] { font-size: 20px; }
+  .detailBody { padding: 22px 20px; }
+  .detailInfo { grid-template-columns: 1fr; gap: 20px; }
+}
