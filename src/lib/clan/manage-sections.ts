@@ -1,5 +1,6 @@
 export const MANAGE_SECTIONS = [
   { key: "overview", group: "클랜 운영", label: "운영 현황", description: "클랜 정보와 처리할 일을 확인하십시오." },
+  { key: "promotion", group: "클랜 운영", label: "클랜 홍보", description: "홍보글을 작성하고 가입 조건을 설정하십시오." },
   { key: "notices", group: "클랜 운영", label: "공지·규칙", description: "클랜 소식과 함께 지킬 규칙을 관리하십시오." },
   { key: "appearance", group: "클랜 운영", label: "클랜 꾸미기", description: "클랜 프로필 이미지와 보유 배너를 변경하십시오." },
   { key: "insights", group: "클랜 운영", label: "운영 통계", description: "편성 균형, 맵 투표·경매와 사이트 이용을 확인하십시오." },

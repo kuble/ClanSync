@@ -2,6 +2,7 @@ import { loadGamePlayerNames } from "@/lib/game-auth/load-game-player-names";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/lib/supabase/database.types";
+import type { ClanRecruitment } from "@/lib/clan/recruitment";
 
 export type PromoSort = "newest" | "space";
 
@@ -15,18 +16,19 @@ export type PromoRow = {
   max_members: number;
   active_members: number;
   space_remaining: number;
+  recruitment: ClanRecruitment;
 };
 
 function normalizeClanRow(
   raw: unknown,
-): { name: string; max_members: number } | null {
+): ({ name: string; max_members: number } & Partial<ClanRecruitment>) | null {
   const c = raw as
-    | { name: string; max_members: number }
-    | { name: string; max_members: number }[]
+    | ({ name: string; max_members: number } & Partial<ClanRecruitment>)
+    | ({ name: string; max_members: number } & Partial<ClanRecruitment>)[]
     | null;
   const one = Array.isArray(c) ? c[0] : c;
   if (!one) return null;
-  return { name: one.name, max_members: one.max_members };
+  return one;
 }
 
 async function memberCountMap(
@@ -53,7 +55,7 @@ export async function loadPromotionFeed(
   const { data: posts, error } = await supabase
     .from("board_posts")
     .select(
-      "id, title, content, created_at, clan_id, clans ( id, name, max_members )",
+      "id, title, content, created_at, clan_id, clans ( id, name, max_members, min_birth_year, gender_policy, tier_range )",
     )
     .eq("game_id", gameId)
     .eq("post_type", "promotion")
@@ -80,6 +82,7 @@ export async function loadPromotionFeed(
       max_members: max,
       active_members: act,
       space_remaining: Math.max(0, max - act),
+      recruitment: { min_birth_year: c?.min_birth_year ?? null, gender_policy: c?.gender_policy ?? "all", tier_range: c?.tier_range ?? [] },
     };
   });
 

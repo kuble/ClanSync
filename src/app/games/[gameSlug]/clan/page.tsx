@@ -12,9 +12,10 @@ import { buttonVariants } from "@/components/ui/button-variants";
 import { loadGameOnboarding } from "@/lib/onboarding/load-game-onboarding";
 import { createClient } from "@/lib/supabase/server";
 import styles from "@/components/onboarding/onboarding.module.css";
+import { recruitmentProfileError } from "@/lib/clan/recruitment";
 
 const PAGE_SIZE = 5;
-const CLAN_FIELDS = "id, name, description, rules, tags, max_members, style, tier_range, created_at, discord_url, kakao_url, subscription_tier" as const;
+const CLAN_FIELDS = "id, name, description, rules, tags, max_members, style, tier_range, min_birth_year, gender_policy, created_at, discord_url, kakao_url, subscription_tier" as const;
 const STYLES = [{ value: "social", label: "친목" }, { value: "casual", label: "즐겜" }, { value: "tryhard", label: "빡겜" }, { value: "pro", label: "프로" }] as const;
 const TIERS = [["bronze", "브론즈"], ["silver", "실버"], ["gold", "골드"], ["plat", "플래티넘"], ["diamond", "다이아몬드"], ["master", "마스터"], ["gm", "그랜드마스터"], ["challenger", "챌린저"]] as const;
 export const metadata = { title: "클랜 참여 · ClanSync" };
@@ -45,16 +46,17 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
   if (safeTerm) listQuery = listQuery.ilike("name", `%${safeTerm}%`);
   if (style) listQuery = listQuery.eq("style", style);
   if (tier) listQuery = listQuery.contains("tier_range", [tier]);
-  const [{ data: clanRows, count, error: listError }, pinnedResult] = await Promise.all([
+  const [{ data: clanRows, count, error: listError }, pinnedResult, profile] = await Promise.all([
     listQuery,
     pendingBrief?.clanId ? supabase.from("clans").select(CLAN_FIELDS).eq("id", pendingBrief.clanId).maybeSingle() : Promise.resolve({ data: null, error: null }),
+    supabase.from("users").select("birth_year,gender").eq("id",user.id).single(),
   ]);
   if (listError) console.error("[clan-onboarding] 목록 조회 실패:", listError.message);
   const countIds = [...new Set([...(clanRows ?? []).map((clan) => clan.id), ...(pinnedResult.data ? [pinnedResult.data.id] : [])])];
   const countResult = countIds.length ? await supabase.rpc("clan_active_member_counts", { p_clan_ids: countIds }) : { data: [], error: null };
   const counts = new Map<string, number>((countResult.data ?? []).map((item: { clan_id: string; n: number }) => [item.clan_id, Number(item.n)]));
-  const clans: ClanListRow[] = (clanRows ?? []).map((clan) => ({ ...clan, active_members: counts.get(clan.id) ?? null }));
-  const pinnedPendingClan: ClanListRow | null = pinnedResult.data ? { ...pinnedResult.data, active_members: counts.get(pinnedResult.data.id) ?? null } : null;
+  const clans: ClanListRow[] = (clanRows ?? []).map((clan) => ({ ...clan, active_members: counts.get(clan.id) ?? null, eligibilityError: recruitmentProfileError(clan,profile.data) }));
+  const pinnedPendingClan: ClanListRow | null = pinnedResult.data ? { ...pinnedResult.data, active_members: counts.get(pinnedResult.data.id) ?? null, eligibilityError: recruitmentProfileError(pinnedResult.data,profile.data) } : null;
   const total = count ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const cancelBound = cancelClanJoinRequestFormAction.bind(null, gameSlug);

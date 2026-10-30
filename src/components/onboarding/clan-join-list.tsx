@@ -8,11 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import styles from "./onboarding.module.css";
+import { recruitmentLabels } from "@/lib/clan/recruitment";
 
 export type ClanListRow = {
   id: string; name: string; description: string | null; tags: string[]; max_members: number;
   active_members?: number | null; rules?: string | null; style?: string | null; tier_range?: string[];
   created_at?: string; discord_url?: string | null; kakao_url?: string | null; subscription_tier?: string;
+  min_birth_year?: number | null; gender_policy?: "all" | "male" | "female"; eligibilityError?: string | null;
 };
 const STYLE_LABEL: Record<string, string> = { social: "친목", casual: "즐겜", tryhard: "빡겜", pro: "프로" };
 const TIER_LABEL: Record<string, string> = { bronze: "브론즈", silver: "실버", gold: "골드", plat: "플래티넘", diamond: "다이아몬드", master: "마스터", gm: "그랜드마스터", challenger: "챌린저" };
@@ -78,8 +80,9 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
       </button>
       <div className={styles.clanFooter}>
         <span className={styles.memberCount}><Users size={14} aria-hidden="true" />{clan.active_members != null ? `${clan.active_members}/${clan.max_members}명` : `정원 ${clan.max_members}명`}</span>
-        {isPending ? <Badge variant="outline" data-testid={pinned ? "clan-join-pinned-pending-badge" : `clan-join-pending-${clan.id}`}><Clock3 size={12} aria-hidden="true" />신청 대기 중</Badge> : <Button type="button" size="sm" variant={otherPending ? "secondary" : "default"} disabled={busy || full} data-testid={`clan-join-${otherPending ? "switch" : "open"}-${clan.id}`} aria-expanded={applyingId === clan.id} onClick={() => openApply(clan)}>{full ? "정원 마감" : otherPending ? "이 클랜으로 신청 바꾸기" : applyingId === clan.id ? "신청 폼 닫기" : "가입 신청"}</Button>}
+        {isPending ? <Badge variant="outline" data-testid={pinned ? "clan-join-pinned-pending-badge" : `clan-join-pending-${clan.id}`}><Clock3 size={12} aria-hidden="true" />신청 대기 중</Badge> : <Button type="button" size="sm" variant={otherPending ? "secondary" : "default"} disabled={busy || full || !!clan.eligibilityError} data-testid={`clan-join-${otherPending ? "switch" : "open"}-${clan.id}`} aria-expanded={applyingId === clan.id} aria-describedby={clan.eligibilityError ? `eligibility-${clan.id}` : undefined} onClick={() => openApply(clan)}>{full ? "정원 마감" : clan.eligibilityError ? "가입 조건 미충족" : otherPending ? "이 클랜으로 신청 바꾸기" : applyingId === clan.id ? "신청 폼 닫기" : "가입 신청"}</Button>}
       </div>
+      {clan.eligibilityError && <p id={`eligibility-${clan.id}`} className="px-4 pb-4 text-xs text-muted-foreground">{clan.eligibilityError}{isPending ? " 변경된 조건은 승인 시 적용됩니다." : ""}</p>}
       {applyingId === clan.id && !isPending ? <div className={styles.applyPanel}>
         <p className="text-sm font-semibold">{clan.name}에 신청</p>
         <label htmlFor={`join-message-${clan.id}`}>운영진에게 전달할 메시지 (선택)</label>
@@ -106,7 +109,8 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
         {details ? <div className={styles.detailBody}>
           <section><h3>클랜 소개</h3><p>{details.description || "등록된 소개가 없습니다."}</p></section>
           <section><h3>클랜 규칙</h3><p>{details.rules || "등록된 규칙이 없습니다."}</p></section>
-          <section><h3>모집 정보</h3><div className={styles.tagRow}><span className={styles.tag}>{details.style ? STYLE_LABEL[details.style] ?? details.style : "지향 무관"}</span>{details.tier_range?.map((tier) => <span className={styles.tag} key={tier}>{TIER_LABEL[tier] ?? tier}</span>)}{details.tags.map((tag) => <span className={styles.tag} key={tag}>{tag}</span>)}</div><p className="mt-3">{details.active_members != null ? `${details.active_members} / ${details.max_members}명` : `정원 ${details.max_members}명`}{details.created_at ? ` · ${new Date(details.created_at).toLocaleDateString("ko-KR")} 창설` : ""}</p></section>
+          <section><h3>가입 조건</h3><div className={styles.tagRow}>{recruitmentLabels({min_birth_year:details.min_birth_year ?? null,gender_policy:details.gender_policy ?? "all",tier_range:[]}).slice(0,2).map(label => <span className={styles.tag} key={label}>{label}</span>)}</div><p className="mt-3">출생연도·성별은 가입 시 입력한 정보를 기준으로 검사합니다. 성별 비공개 계정은 성별 제한 클랜에 신청할 수 없습니다.</p></section>
+          <section><h3>모집 정보</h3><div className={styles.tagRow}><span className={styles.tag}>{details.style ? STYLE_LABEL[details.style] ?? details.style : "지향 무관"}</span>{details.tier_range?.map((tier) => <span className={styles.tag} key={tier}>{TIER_LABEL[tier] ?? tier}</span>)}{details.tags.map((tag) => <span className={styles.tag} key={tag}>{tag}</span>)}</div><p className="mt-3">티어는 모집 정보이며 가입을 제한하지 않습니다.</p><p className="mt-3">{details.active_members != null ? `${details.active_members} / ${details.max_members}명` : `정원 ${details.max_members}명`}{details.created_at ? ` · ${new Date(details.created_at).toLocaleDateString("ko-KR")} 창설` : ""}</p></section>
           {safeExternalUrl(details.discord_url) || safeExternalUrl(details.kakao_url) ? <section><h3>외부 링크</h3>{safeExternalUrl(details.discord_url) ? <a href={safeExternalUrl(details.discord_url)!} target="_blank" rel="noopener noreferrer">디스코드 <ExternalLink size={12} aria-hidden="true" /></a> : null}{safeExternalUrl(details.kakao_url) ? <a href={safeExternalUrl(details.kakao_url)!} target="_blank" rel="noopener noreferrer">카카오톡 <ExternalLink size={12} aria-hidden="true" /></a> : null}</section> : null}
         </div> : null}
         <DialogFooter><Button type="button" variant="outline" onClick={() => setDetails(null)}>닫기</Button></DialogFooter>

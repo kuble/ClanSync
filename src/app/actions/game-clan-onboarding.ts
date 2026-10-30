@@ -370,32 +370,14 @@ export async function replacePendingJoinRequestAction(
     .maybeSingle();
   if (!game) return { ok: false, error: "게임을 찾을 수 없습니다." };
 
-  const { data: pending } = await supabase
-    .from("clan_join_requests")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("game_id", game.id)
-    .eq("status", "pending")
-    .maybeSingle();
-
-  if (!pending) {
-    return submitClanJoinRequestAction(gameSlug, newClanId, message);
-  }
-
-  const { error: uErr } = await supabase
-    .from("clan_join_requests")
-    .update({
-      status: "canceled",
-      resolved_at: new Date().toISOString(),
-      resolved_by: user.id,
-    })
-    .eq("id", pending.id)
-    .eq("user_id", user.id)
-    .eq("status", "pending");
-
-  if (uErr) return { ok: false, error: uErr.message };
-
-  return submitClanJoinRequestAction(gameSlug, newClanId, message);
+  const { data: target } = await supabase.from("clans").select("game_id").eq("id", newClanId).maybeSingle();
+  if (!target || target.game_id !== game.id) return { ok: false, error: "클랜을 찾을 수 없습니다." };
+  const { error } = await supabase.rpc("replace_clan_join_request", { p_clan_id: newClanId, p_message: message.trim().slice(0,2000) });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/games");
+  revalidatePath(`/games/${gameSlug}/clan`);
+  revalidatePath("/profile");
+  return { ok: true };
 }
 
 export async function cancelClanJoinRequestAction(

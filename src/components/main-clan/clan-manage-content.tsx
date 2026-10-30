@@ -33,6 +33,7 @@ import { readClanCommunityLinks } from "@/lib/clan/community-links";
 import { discordBotConfigured } from "@/lib/notifications/discord-bot";
 import { readClanEventNotifySettings } from "@/lib/clan/event-notify-settings";
 import { readDiscordNotificationRoutes } from "@/lib/clan/discord-notification-settings";
+import { ClanPromotionSettings } from "./clan-promotion-settings";
 
 const panel = "rounded-xl border border-border bg-card p-4 sm:p-5";
 type Props = { ctx: MainClanContext; selected: ManageTab; connectionResult?: string };
@@ -41,6 +42,7 @@ type Props = { ctx: MainClanContext; selected: ManageTab; connectionResult?: str
 export async function ClanManageContent({ ctx, selected, connectionResult }: Props) {
   switch (selected) {
     case "overview": return <Overview ctx={ctx} />;
+    case "promotion": return <Promotion ctx={ctx} />;
     case "notices": return <Notices ctx={ctx} />;
     case "appearance": return <Appearance ctx={ctx} />;
     case "requests": return <Requests ctx={ctx} />;
@@ -50,6 +52,16 @@ export async function ClanManageContent({ ctx, selected, connectionResult }: Pro
     case "insights": return <Insights ctx={ctx} />;
     case "subscription": return <Subscription ctx={ctx} />;
   }
+}
+
+async function Promotion({ ctx }: Pick<Props, "ctx">) {
+  const client = await getRequestClient();
+  const [conditions, posts] = await Promise.all([
+    client.from("clans").select("min_birth_year,gender_policy,tier_range").eq("id",ctx.clanId).single(),
+    client.from("board_posts").select("id,title,created_at").eq("clan_id",ctx.clanId).eq("post_type","promotion").order("created_at",{ascending:false}).limit(5),
+  ]);
+  if (conditions.error || posts.error) throw new Error("클랜 홍보 정보를 불러오지 못했습니다.");
+  return <ClanPromotionSettings key={`${ctx.clanId}:${ctx.role}`} gameSlug={ctx.gameSlug} clanId={ctx.clanId} initial={conditions.data} posts={posts.data} />;
 }
 
 async function NotificationSettings({ ctx, connectionResult }: Pick<Props, "ctx" | "connectionResult">) {

@@ -43,12 +43,12 @@ export function SignUpForm({ nextPath = "/games" }: { nextPath?: string }) {
         <div className={styles.fieldRow}>
           <div className={styles.field}>
             <label htmlFor="birth_year">출생연도</label>
-            <select id="birth_year" name="birth_year" required defaultValue="">
+            <select id="birth_year" name="birth_year" required defaultValue="" aria-describedby="signup-fixed-info">
               <option value="" disabled>선택</option>
               {years.map((year) => <option key={year} value={year}>{year}년</option>)}
             </select>
           </div>
-          <fieldset className={styles.genderField}>
+          <fieldset className={styles.genderField} aria-describedby="signup-fixed-info">
             <legend>성별 (선택)</legend>
             <div className={styles.genderOptions}>
               <label><input type="radio" name="gender" value="male" /><span>남성</span></label>
@@ -57,6 +57,7 @@ export function SignUpForm({ nextPath = "/games" }: { nextPath?: string }) {
             </div>
           </fieldset>
         </div>
+        <p id="signup-fixed-info" className={styles.inputHint}>출생연도와 성별은 가입 후 변경할 수 없습니다. 비공개 선택도 변경할 수 없으므로 정확히 확인해 주십시오.</p>
         <label className={styles.terms}>
           <input type="checkbox" name="terms" required />
           <span>이용약관 및 개인정보 처리방침에 동의합니다. (필수)<span className={styles.termsNote}>만 14세 미만은 가입 시 법정대리인 동의가 필요합니다. (서비스 오픈 시 추가 절차 안내)</span></span>

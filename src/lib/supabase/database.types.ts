@@ -3794,6 +3794,10 @@ export type Database = {
         Args: { p_clan_id: string }
         Returns: number
       }
+      replace_clan_join_request: {
+        Args: { p_clan_id: string; p_message: string }
+        Returns: undefined
+      }
       replace_event_discord_notifications: {
         Args: { p_actor_id: string; p_event_id: string; p_schedule: Json }
         Returns: undefined
@@ -4040,6 +4044,15 @@ export type Database = {
           p_title: string
         }
         Returns: Json
+      }
+      update_clan_recruitment: {
+        Args: {
+          p_birth_year_limit?: number
+          p_clan_id: string
+          p_gender_policy?: string
+          p_tiers?: string[]
+        }
+        Returns: undefined
       }
       update_clan_rules: {
         Args: { p_clan_id: string; p_rules: string }

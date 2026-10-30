@@ -1,4 +1,5 @@
 "use client";
+import { recruitmentLabels } from "@/lib/clan/recruitment";
 import { Switch } from "@/components/ui/switch";
 
 import Link from "next/link";
@@ -634,7 +635,8 @@ export function MainGameCommunityTabs({
                     {p.clan_name}
                   </Link>
                 </div>
-                <p className="text-muted-foreground mt-2 whitespace-pre-wrap text-xs">
+                <p className="mt-2 text-xs text-muted-foreground" aria-label="클랜 모집 조건">{recruitmentLabels(p.recruitment).join(" · ")}</p>
+                <p className="text-muted-foreground mt-2 line-clamp-3 whitespace-pre-wrap text-xs">
                   {p.content || "—"}
                 </p>
                 <p className="text-muted-foreground mt-2 text-xs">

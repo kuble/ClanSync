@@ -7,7 +7,7 @@ import { MANAGE_SECTIONS, type ManageTab } from "@/lib/clan/manage-sections";
 import { NavigationIcon } from "@/components/ui/navigation-icon";
 import { ClanSectionLinks } from "./clan-section-links";
 
-const icons = { overview: LayoutDashboard, notices: Megaphone, appearance: ImageIcon, requests: UserRoundPlus, members: Users, balance: Swords, notifications: Bell, insights: BarChart3, subscription: CreditCard };
+const icons = { overview: LayoutDashboard, promotion: Megaphone, notices: Megaphone, appearance: ImageIcon, requests: UserRoundPlus, members: Users, balance: Swords, notifications: Bell, insights: BarChart3, subscription: CreditCard };
 const visibleSections = MANAGE_SECTIONS.filter(section => section.key !== "notices");
 // Query changes can remount the page; convert each legacy link once per document.
 const convertedLegacyLinks = new Set<string>();
