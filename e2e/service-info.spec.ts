@@ -14,7 +14,10 @@ test("footer menus open public service pages with draft status and a working ret
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, nofollow");
     }
   }
-  await expect(page.getByRole("button", { name: "Discord 연결 준비 중", exact: true })).toBeDisabled();
+  const discord = page.getByRole("link", { name: "공식 Discord 참여하기 (새 탭)", exact: true });
+  await expect(discord).toHaveAttribute("href", "https://discord.gg/Ss6ezVqh3B");
+  await expect(discord).toHaveAttribute("target", "_blank");
+  await expect(discord).toHaveAttribute("rel", "noopener noreferrer");
   await page.getByRole("link", { name: "홈으로", exact: true }).click();
   await expect(page).toHaveURL(/\/\?from=logo$/);
   await expect(page.getByRole("heading", { level: 1, name: /팀 편성이 한결 편해지는/ })).toBeVisible();
