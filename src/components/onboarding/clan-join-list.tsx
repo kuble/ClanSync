@@ -16,7 +16,7 @@ export type ClanListRow = {
   id: string; name: string; description: string | null; tags: string[]; max_members: number;
   active_members?: number | null; rules?: string | null; style?: string | null; tier_range?: string[];
   created_at?: string; discord_url?: string | null; kakao_url?: string | null; subscription_tier?: string;
-  min_birth_year?: number | null; gender_policy?: "all" | "male" | "female"; eligibilityError?: string | null;
+  birth_year_from?: number | null; min_birth_year?: number | null; gender_policy?: "all" | "male" | "female"; eligibilityError?: string | null;
   promotion?: PromotionPost | null;
 };
 const STYLE_LABEL: Record<string, string> = { social: "친목", casual: "즐겜", tryhard: "빡겜", pro: "프로" };
@@ -81,7 +81,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
     const full = clan.active_members != null && clan.active_members >= clan.max_members;
     const cover = promotionBlocks(clan.promotion).find(block => block.type === "image");
     const tiers = clan.tier_range ?? [];
-    const conditions = recruitmentLabels(gameSlug,{min_birth_year:clan.min_birth_year ?? null,gender_policy:clan.gender_policy ?? "all",tier_range:[]}).slice(0,2);
+    const conditions = recruitmentLabels(gameSlug,{birth_year_from:clan.birth_year_from ?? null,min_birth_year:clan.min_birth_year ?? null,gender_policy:clan.gender_policy ?? "all",tier_range:[]}).slice(0,2);
     conditions.push(tiers.length ? `${recruitmentTierLabel(gameSlug,tiers[0])}${tiers.length > 1 ? ` ~ ${recruitmentTierLabel(gameSlug,tiers[tiers.length - 1])}` : ""}` : "티어 무관");
     return <article className={styles.clanCard}>
       <button type="button" className={styles.overview} data-has-photo={!!cover} onClick={() => setDetails(clan)} aria-label={`${clan.name} 클랜 상세 보기`}>
@@ -125,7 +125,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
         {details ? <div className={styles.detailBody}>
           <section className={styles.promotionBody} aria-label="클랜 홍보 내용">{details.promotion ? promotionBlocks(details.promotion).map((block,index) => block.type === "text" ? <span key={index}>{block.text}</span> : <Image key={index} src={promotionImageUrl(gameSlug,details.id,block.path)} alt={block.alt || "클랜 홍보 사진"} title={block.alt || undefined} width={1200} height={800} unoptimized />) : <span>{details.description || "등록된 소개가 없습니다."}</span>}</section>
           <div className={styles.detailInfo}>
-          <section><h3>가입 조건</h3><div className={styles.tagRow}>{recruitmentLabels(gameSlug,{min_birth_year:details.min_birth_year ?? null,gender_policy:details.gender_policy ?? "all",tier_range:[]}).slice(0,2).map(label => <span className={styles.tag} key={label}>{label}</span>)}</div><p className="mt-3">{details.active_members != null ? `${details.active_members} / ${details.max_members}명` : `정원 ${details.max_members}명`}</p></section>
+          <section><h3>가입 조건</h3><div className={styles.tagRow}>{recruitmentLabels(gameSlug,{birth_year_from:details.birth_year_from ?? null,min_birth_year:details.min_birth_year ?? null,gender_policy:details.gender_policy ?? "all",tier_range:[]}).slice(0,2).map(label => <span className={styles.tag} key={label}>{label}</span>)}</div><p className="mt-3">{details.active_members != null ? `${details.active_members} / ${details.max_members}명` : `정원 ${details.max_members}명`}</p></section>
           <section><h3>모집 정보</h3><div className={styles.tagRow}><span className={styles.tag}>{details.style ? STYLE_LABEL[details.style] ?? details.style : "지향 무관"}</span>{details.tier_range?.map((tier) => <span className={styles.tag} key={tier}>{recruitmentTierLabel(gameSlug,tier)}</span>)}{details.tags.map((tag) => <span className={styles.tag} key={tag}>{tag}</span>)}</div><p className="mt-3">티어는 모집 참고 정보입니다.</p></section>
           </div>
           {details.rules && <details className={styles.rules}><summary>클랜 규칙</summary><p>{details.rules}</p></details>}

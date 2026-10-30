@@ -55,7 +55,7 @@ export async function loadPromotionFeed(
   const { data: posts, error } = await supabase
     .from("board_posts")
     .select(
-      "id, title, content, created_at, clan_id, clans ( id, name, max_members, min_birth_year, gender_policy, tier_range )",
+      "id, title, content, created_at, clan_id, clans ( id, name, max_members, birth_year_from, min_birth_year, gender_policy, tier_range )",
     )
     .eq("game_id", gameId)
     .eq("post_type", "promotion")
@@ -82,7 +82,7 @@ export async function loadPromotionFeed(
       max_members: max,
       active_members: act,
       space_remaining: Math.max(0, max - act),
-      recruitment: { min_birth_year: c?.min_birth_year ?? null, gender_policy: c?.gender_policy ?? "all", tier_range: c?.tier_range ?? [] },
+      recruitment: { birth_year_from: c?.birth_year_from ?? null, min_birth_year: c?.min_birth_year ?? null, gender_policy: c?.gender_policy ?? "all", tier_range: c?.tier_range ?? [] },
     };
   });
 

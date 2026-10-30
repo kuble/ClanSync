@@ -2,7 +2,7 @@
 import { gameProfileIdentity } from "@/lib/game-auth/game-profile-identity";
 import { parseRiotId } from "@/lib/game-auth/riot-id";
 import { safeNextPath } from "@/lib/auth/safe-next-path";
-import { recruitmentTiers } from "@/lib/clan/recruitment";
+import { readRecruitmentYears, recruitmentTiers } from "@/lib/clan/recruitment";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -195,10 +195,8 @@ export async function createClanAndLeadAction(
   if (tierRaw.some(tier => typeof tier !== "string" || !tierSet.has(tier))) return { ok:false,error:"해당 게임의 모집 티어를 선택해 주십시오." };
   const tier_range = [...new Set(tierRaw.map(String))];
 
-  const minYearRaw = String(formData.get("min_birth_year") ?? "").trim();
-  const min_birth_year = minYearRaw
-    ? Math.min(9999, Math.max(1950, Number(minYearRaw)))
-    : null;
+  const years = readRecruitmentYears(formData);
+  if (!years.ok) return years;
 
   const service = createServiceRoleClient();
   const now = new Date().toISOString();
@@ -212,7 +210,8 @@ export async function createClanAndLeadAction(
       rules,
       style,
       tier_range,
-      min_birth_year,
+      birth_year_from: years.birth_year_from,
+      min_birth_year: years.min_birth_year,
       tags,
       gender_policy,
       max_members,

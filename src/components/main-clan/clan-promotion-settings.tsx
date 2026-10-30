@@ -14,9 +14,9 @@ import { recruitmentTiers, normalizeRecruitmentTier, type ClanRecruitment } from
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ClanRecruitmentFields } from "@/components/onboarding/clan-recruitment-fields";
 
 const panel = "min-w-0 rounded-xl border border-border bg-card p-4 sm:p-5";
-const select = "h-9 w-full rounded-lg border border-input bg-background px-3 text-sm";
 
 export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
   gameSlug: string; clanId: string; initial: ClanRecruitment;
@@ -31,7 +31,6 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
   const [version, setVersion] = useState(post?.updated_at ?? "");
   const [title, setTitle] = useState(post?.title ?? "");
   const [blocks, setBlocks] = useState(() => draftPromotionBlocks(promotionBlocks(post)));
-  const [birthYearLimit, setBirthYearLimit] = useState(initial.min_birth_year?.toString() ?? "");
   const [tierRange, setTierRange] = useState<number[]>(() => {
     const initialTiers = initial.tier_range.map(tier => normalizeRecruitmentTier(gameSlug,tier));
     const indices = RECRUITMENT_TIERS.flatMap(([tier], index) => initialTiers.includes(tier) ? [index] : []);
@@ -39,7 +38,6 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
   });
   const allTiers = tierRange[0] === 0 && tierRange[1] === RECRUITMENT_TIERS.length - 1;
   const selectedTiers = allTiers ? [] : RECRUITMENT_TIERS.slice(tierRange[0], tierRange[1] + 1);
-  const maxYear = new Date().getFullYear() - 10;
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (saving) return;
@@ -87,8 +85,7 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
       <section className={panel} aria-labelledby="recruitment-heading">
         <h4 id="recruitment-heading" className="flex items-center gap-2 text-sm font-semibold"><SlidersHorizontal className="size-4 text-primary" aria-hidden />가입 조건</h4>
           <fieldset disabled={saving} className="mt-5 space-y-4">
-            <div className="space-y-2"><Label htmlFor="recruitment-year">출생연도 상한</Label><select id="recruitment-year" name="min_birth_year" value={birthYearLimit} onChange={event=>setBirthYearLimit(event.target.value)} className={select}><option value="">제한 없음</option>{Array.from({length:maxYear-1949},(_,index)=>maxYear-index).map(year=><option key={year} value={year}>{year}년생까지</option>)}</select></div>
-            <div className="space-y-2"><Label htmlFor="recruitment-gender">성별 조건</Label><select id="recruitment-gender" name="gender_policy" defaultValue={initial.gender_policy} className={select} aria-describedby="recruitment-gender-hint"><option value="all">제한 없음</option><option value="male">남성</option><option value="female">여성</option></select><p id="recruitment-gender-hint" className="text-xs leading-relaxed text-muted-foreground">비공개 계정은 성별 제한 클랜에 신청할 수 없습니다.</p></div>
+            <ClanRecruitmentFields prefix="recruitment" initial={initial} disabled={saving} />
             {RECRUITMENT_TIERS.length > 1 && <Slider.Root value={tierRange} onValueChange={setTierRange} min={0} max={RECRUITMENT_TIERS.length-1} step={1} largeStep={1} thumbCollisionBehavior="none" disabled={saving} className="border-t border-border pt-4" aria-describedby="recruitment-tier-hint">
               <div className="flex items-center justify-between gap-2"><Slider.Label className="text-xs font-medium">모집 티어</Slider.Label><Button type="button" variant="ghost" size="sm" className={`h-7 px-2 text-xs ${allTiers ? "text-primary" : "text-muted-foreground"}`} disabled={saving} aria-label="모집 티어 무관으로 설정" aria-pressed={allTiers} onClick={()=>setTierRange([0,RECRUITMENT_TIERS.length-1])}>무관</Button></div>
               <p className="mt-2 text-sm font-medium text-primary" aria-live="polite">{allTiers ? "티어 무관" : tierRange[0] === tierRange[1] ? RECRUITMENT_TIERS[tierRange[0]][1] : `${RECRUITMENT_TIERS[tierRange[0]][1]} ~ ${RECRUITMENT_TIERS[tierRange[1]][1]}`}</p>

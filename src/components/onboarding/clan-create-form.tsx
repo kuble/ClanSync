@@ -6,6 +6,7 @@ import { createClanAndLeadAction } from "@/app/actions/game-clan-onboarding";
 import { Button } from "@/components/ui/button";
 import styles from "./onboarding.module.css";
 import { recruitmentTiers } from "@/lib/clan/recruitment";
+import { ClanRecruitmentFields } from "./clan-recruitment-fields";
 
 const STYLES = [["social", "친목"], ["casual", "즐겜"], ["tryhard", "빡겜"], ["pro", "프로"]] as const;
 
@@ -14,8 +15,6 @@ export function ClanCreateForm({ gameSlug }: { gameSlug: string }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const maxYear = new Date().getFullYear() - 10;
-  const years = Array.from({ length: maxYear - 1969 }, (_, index) => maxYear - index);
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending) return;
@@ -42,12 +41,8 @@ export function ClanCreateForm({ gameSlug }: { gameSlug: string }) {
       <fieldset className={styles.choiceGroup}><legend>지향 (선택)</legend><div className={styles.chips}>{STYLES.map(([value, label]) => <label key={value}><input type="radio" name="style" value={value} />{label}</label>)}</div></fieldset>
       <fieldset className={styles.choiceGroup}><legend>모집 티어 (복수 선택)</legend><div className={styles.chips}>{TIERS.map(([value, label]) => <label key={value}><input type="checkbox" name="tier_range" value={value} />{label}</label>)}</div><p className="mt-2 text-xs text-muted-foreground">모집 정보로만 표시하며 가입을 제한하지 않습니다.</p></fieldset>
       <div className={styles.field}><label htmlFor="tags">태그</label><input id="tags" name="tags" placeholder="예: 저녁, 랭크, 음성" /><p>쉼표로 구분해 최대 5개. 태그마다 한글·영문·숫자·공백 1~12자를 입력할 수 있습니다.</p></div>
-      <div className={styles.fieldGrid}>
-        <div className={styles.field}><label htmlFor="min_birth_year">출생연도 상한 (선택)</label><select id="min_birth_year" name="min_birth_year" defaultValue=""><option value="">무관</option>{years.map((year) => <option key={year} value={year}>{year}년생까지 (이전 출생 포함)</option>)}</select></div>
-        <div className={styles.field}><label htmlFor="max_members">최대 인원 (2~200)</label><input id="max_members" name="max_members" type="number" min={2} max={200} defaultValue={30} required /></div>
-      </div>
-      <fieldset className={styles.choiceGroup}><legend>성별 정책</legend><div className={styles.chips}>{[["all", "무관"], ["male", "남성"], ["female", "여성"]].map(([value, label]) => <label key={value}><input type="radio" name="gender_policy" value={value} defaultChecked={value === "all"} />{label}</label>)}</div></fieldset>
-      <p className="text-xs leading-relaxed text-muted-foreground">출생연도·성별 조건에 맞는 계정만 신청할 수 있습니다. 성별 비공개 계정은 성별 제한 클랜에 신청할 수 없습니다. 생성 후 클랜 관리의 클랜 홍보에서 변경할 수 있습니다.</p>
+      <ClanRecruitmentFields prefix="create-recruitment" disabled={pending} />
+      <div className={styles.field}><label htmlFor="max_members">최대 인원 (2~200)</label><input id="max_members" name="max_members" type="number" min={2} max={200} defaultValue={30} required /></div>
     </fieldset>
     <fieldset className={styles.formSection} disabled={pending}><legend>외부 링크 (선택)</legend><div className={styles.fieldGrid}>
       <div className={styles.field}><label htmlFor="discord_url">디스코드 URL</label><input id="discord_url" name="discord_url" type="url" placeholder="https://" /></div>

@@ -10,6 +10,42 @@ import { readFile } from "node:fs/promises";
 async function ok(query) { const {data,error}=await query; assert.equal(error,null,error?.message); return data; }
 async function denied(query) { const {error}=await query; assert.ok(error,"Restricted operation unexpectedly succeeded"); return error; }
 
+test("inclusive birth-year ranges protect applications, approvals, direct writes and atomic promotion saves",async t=>{
+  const f=await createIsolatedBalanceFixture(4), svc=f.service;
+  const clients=await Promise.all(f.users.map((_,index)=>f.memberClient(index))), [leader]=clients;
+  t.after(async()=>{await Promise.all(clients.map(client=>client.auth.signOut()));await f.cleanup();});
+  await ok(svc.from("clan_members").delete().eq("clan_id",f.clanId).neq("user_id",f.users[0].id));
+  for(const [index,year] of [[1,1990],[2,2000],[3,2005]]) await ok(svc.from("users").update({birth_year:year}).eq("id",f.users[index].id));
+  const save=(from=null,to=null)=>leader.rpc("update_clan_recruitment",{p_clan_id:f.clanId,p_birth_year_from:from,p_birth_year_limit:to,p_gender_policy:"all",p_tiers:[]});
+  const apply=index=>clients[index].from("clan_join_requests").insert({clan_id:f.clanId,game_id:f.gameId,user_id:f.users[index].id}).select("id,status").single();
+  const cancel=async(index,id)=>ok(clients[index].from("clan_join_requests").update({status:"canceled",resolved_by:f.users[index].id}).eq("id",id));
+  await ok(save(1990,2005));
+  for(const index of [1,2,3]) {const request=await ok(apply(index));await cancel(index,request.id);}
+  await ok(save(1991,2004));
+  await denied(apply(1));await denied(apply(3));
+  const pending=await ok(apply(2));
+  await ok(save(2001,2004));
+  await denied(leader.rpc("resolve_clan_join_request",{p_clan_id:f.clanId,p_request_id:pending.id,p_decision:"approved"}));
+  assert.equal((await ok(svc.from("clan_join_requests").select("status").eq("id",pending.id).single())).status,"pending");
+  assert.equal((await ok(svc.from("clan_members").select("user_id").eq("clan_id",f.clanId).eq("user_id",f.users[2].id))).length,0);
+  await ok(save(2000,2000));
+  await ok(leader.rpc("resolve_clan_join_request",{p_clan_id:f.clanId,p_request_id:pending.id,p_decision:"approved"}));
+  await denied(save(2001,1999));
+  await denied(save(1949,null));
+  await denied(save(null,new Date().getFullYear()));
+  await denied(svc.from("clans").update({birth_year_from:2005,min_birth_year:2000}).eq("id",f.clanId));
+  await denied(clients[1].rpc("update_clan_recruitment",{p_clan_id:f.clanId,p_birth_year_from:1950}));
+  await ok(save(2000,null));await denied(apply(1));const younger=await ok(apply(3));await cancel(3,younger.id);
+  await ok(save(null,2000));const older=await ok(apply(1));await cancel(1,older.id);await denied(apply(3));
+  await ok(save());
+  assert.deepEqual(await ok(svc.from("clans").select("birth_year_from,min_birth_year").eq("id",f.clanId).single()),{birth_year_from:null,min_birth_year:null});
+  const input={p_clan_id:f.clanId,p_post_id:randomUUID(),p_title:"범위 모집",p_blocks:[{type:"text",text:"함께해요"}],p_birth_year_from:1990,p_birth_year_limit:2005};
+  const published=(await ok(leader.rpc("save_clan_promotion",input)))[0];
+  await denied(leader.rpc("save_clan_promotion",{...input,p_expected_updated_at:published.updated_at,p_birth_year_from:2005,p_birth_year_limit:1990,p_title:"저장되면 안 됨"}));
+  assert.equal((await ok(svc.from("board_posts").select("title").eq("id",published.id).single())).title,input.p_title);
+  assert.deepEqual(await ok(svc.from("clans").select("birth_year_from,min_birth_year").eq("id",f.clanId).single()),{birth_year_from:1990,min_birth_year:2005});
+});
+
 test("promotion saves text, inline photos and requirements atomically with conflict and storage protection",async t=>{
   const f=await createIsolatedBalanceFixture(3), svc=f.service;
   const [leader,officer,outsider]=await Promise.all(f.users.map((_,i)=>f.memberClient(i)));

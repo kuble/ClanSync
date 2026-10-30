@@ -16,7 +16,7 @@ import discover from "@/components/onboarding/clan-discovery.module.css";
 import { recruitmentProfileError, recruitmentTiers, normalizeRecruitmentTier } from "@/lib/clan/recruitment";
 
 const PAGE_SIZE = 5;
-const CLAN_FIELDS = "id, name, description, rules, tags, max_members, style, tier_range, min_birth_year, gender_policy, created_at, discord_url, kakao_url, subscription_tier, promotions:board_posts!board_posts_clan_id_fkey(id,title,content,content_blocks,created_at,updated_at)" as const;
+const CLAN_FIELDS = "id, name, description, rules, tags, max_members, style, tier_range, birth_year_from, min_birth_year, gender_policy, created_at, discord_url, kakao_url, subscription_tier, promotions:board_posts!board_posts_clan_id_fkey(id,title,content,content_blocks,created_at,updated_at)" as const;
 const STYLES = [{ value: "social", label: "친목" }, { value: "casual", label: "즐겜" }, { value: "tryhard", label: "빡겜" }, { value: "pro", label: "프로" }] as const;
 export const metadata = { title: "클랜 찾기 · ClanSync" };
 

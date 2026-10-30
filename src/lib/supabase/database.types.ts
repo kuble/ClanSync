@@ -2106,6 +2106,7 @@ export type Database = {
           balance_auto_open_enabled: boolean
           balance_auto_open_minutes: number
           banner_url: string | null
+          birth_year_from: number | null
           coin_balance: number
           created_at: string
           description: string | null
@@ -2135,6 +2136,7 @@ export type Database = {
           balance_auto_open_enabled?: boolean
           balance_auto_open_minutes?: number
           banner_url?: string | null
+          birth_year_from?: number | null
           coin_balance?: number
           created_at?: string
           description?: string | null
@@ -2164,6 +2166,7 @@ export type Database = {
           balance_auto_open_enabled?: boolean
           balance_auto_open_minutes?: number
           banner_url?: string | null
+          birth_year_from?: number | null
           coin_balance?: number
           created_at?: string
           description?: string | null
@@ -3852,6 +3855,7 @@ export type Database = {
       }
       save_clan_promotion: {
         Args: {
+          p_birth_year_from?: number
           p_birth_year_limit?: number
           p_blocks: Json
           p_clan_id: string
@@ -4069,6 +4073,7 @@ export type Database = {
       }
       update_clan_recruitment: {
         Args: {
+          p_birth_year_from?: number
           p_birth_year_limit?: number
           p_clan_id: string
           p_gender_policy?: string

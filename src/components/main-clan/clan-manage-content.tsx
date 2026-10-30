@@ -57,7 +57,7 @@ export async function ClanManageContent({ ctx, selected, connectionResult }: Pro
 async function Promotion({ ctx }: Pick<Props, "ctx">) {
   const client = await getRequestClient();
   const [conditions, posts] = await Promise.all([
-    client.from("clans").select("min_birth_year,gender_policy,tier_range").eq("id",ctx.clanId).single(),
+    client.from("clans").select("birth_year_from,min_birth_year,gender_policy,tier_range").eq("id",ctx.clanId).single(),
     client.from("board_posts").select("id,title,content,content_blocks,created_at,updated_at").eq("clan_id",ctx.clanId).eq("post_type","promotion").order("created_at",{ascending:false}).order("id",{ascending:false}).limit(1),
   ]);
   if (conditions.error || posts.error) throw new Error("클랜 홍보 정보를 불러오지 못했습니다.");

@@ -55,7 +55,7 @@
 | `clan_personal_emblem_picks` | 4 | 2 |
 | `clan_polls` | 15 | 3 |
 | `clan_settings` | 8 | 2 |
-| `clans` | 27 | 1 |
+| `clans` | 28 | 1 |
 | `coin_transactions` | 13 | 4 |
 | `event_rsvps` | 5 | 2 |
 | `games` | 8 | 0 |

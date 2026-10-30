@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { recruitmentTiers } from "@/lib/clan/recruitment";
+import { readRecruitmentYears, recruitmentTiers } from "@/lib/clan/recruitment";
 import { managedPromotionClan } from "@/lib/clan/promotion-access";
 import { parsePromotionBlocks } from "@/lib/clan/promotion";
 import { uuidPattern } from "@/lib/clan/board";
@@ -10,8 +10,8 @@ import type { Json } from "@/lib/supabase/database.types";
 export async function saveClanPromotionAction(gameSlug: string, clanId: string, form: FormData) {
   const access = await managedPromotionClan(gameSlug, clanId);
   if (!access) return { ok: false as const, error: "클랜 홍보를 저장할 권한이 없습니다." };
-  const rawYear = String(form.get("min_birth_year") ?? "").trim();
-  const year = rawYear ? Number(rawYear) : null;
+  const years = readRecruitmentYears(form);
+  if (!years.ok) return years;
   const gender = String(form.get("gender_policy") ?? "");
   const tiers = [...new Set(form.getAll("tier_range").map(String))];
   const title = String(form.get("title") ?? "").trim();
@@ -21,11 +21,11 @@ export async function saveClanPromotionAction(gameSlug: string, clanId: string, 
   try { blocks = parsePromotionBlocks(JSON.parse(String(form.get("blocks") ?? ""))); } catch { blocks = null; }
   if (!uuidPattern.test(postId) || (version && !Number.isFinite(Date.parse(version))) || !title || title.length > 200 || !blocks?.length)
     return { ok: false as const, error: "제목과 내용을 확인해 주십시오." };
-  if ((year != null && (!Number.isInteger(year) || year < 1950 || year > new Date().getFullYear() - 10)) || !["all", "male", "female"].includes(gender) || tiers.some(tier => !recruitmentTiers(gameSlug).some(([value]) => value === tier)))
+  if (!["all", "male", "female"].includes(gender) || tiers.some(tier => !recruitmentTiers(gameSlug).some(([value]) => value === tier)))
     return { ok: false as const, error: "가입 조건을 확인해 주십시오." };
   const { data, error } = await access.client.rpc("save_clan_promotion", {
     p_clan_id: clanId, p_post_id: postId, p_expected_updated_at: version || undefined,
-    p_title: title, p_blocks: blocks as Json, p_birth_year_limit: year ?? undefined, p_gender_policy: gender, p_tiers: tiers,
+    p_title: title, p_blocks: blocks as Json, p_birth_year_limit: years.min_birth_year ?? undefined, p_birth_year_from: years.birth_year_from ?? undefined, p_gender_policy: gender, p_tiers: tiers,
   });
   if (error || !data?.[0]) return { ok: false as const, error: error?.code === "40001" ? "다른 운영진이 수정했습니다. 새로고침 후 다시 저장해 주십시오." : "저장하지 못했습니다. 입력 내용과 클랜 권한을 확인해 주십시오." };
   revalidatePath(`/games/${gameSlug}/clan`);
