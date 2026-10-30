@@ -78,13 +78,13 @@ export default function LandingPreviewPage() {
         <section id="features" className={styles.workflow} aria-labelledby="workflow-title">
           <div className={styles.sectionIntro}>
             <h2 id="workflow-title">내전 한 번을 열기까지,<br />챙길 일을 한곳에 모았습니다.</h2>
-            <p>함께할 멤버를 확인하고, 팀을 구성하고, 결과를 남기는 일.<br className={styles.desktopBreak} /> 준비부터 마무리까지 같은 흐름 안에서 이어집니다.</p>
+            <p>함께할 멤버를 모으고, 팀을 나누고, 결과를 남기는 일.<br className={styles.desktopBreak} /> 준비부터 마무리까지 한곳에서 이어집니다.</p>
           </div>
           <div className={styles.preparation}>
             <div className={styles.featureCopy}>
               <Users size={25} aria-hidden="true" />
-              <h3>함께할 멤버부터<br />확인하십시오.</h3>
-              <p>참가할 멤버를 확인하고 출전 명단을 구성합니다. 대기 중인 멤버도 함께 살펴보며 다음 경기를 준비할 수 있습니다.</p>
+              <h3>오늘 함께할 멤버를<br />한눈에.</h3>
+              <p>이번 경기에 나설 멤버와 대기 중인 멤버를 함께 볼 수 있습니다. 참가자를 찾고 출전 명단을 정리하며 내전을 준비해 보세요.</p>
               <ul><li><Check size={16} aria-hidden="true" />참가자 검색과 출전 명단 관리</li><li><Check size={16} aria-hidden="true" />출전 멤버와 대기 멤버 확인</li></ul>
             </div>
             <figure className={styles.peopleExample}>
@@ -99,8 +99,8 @@ export default function LandingPreviewPage() {
           <div className={styles.adjustment}>
             <div className={styles.featureCopy}>
               <Shuffle size={25} aria-hidden="true" />
-              <h3>편성 결과를 살피고,<br />운영진의 판단으로 마무리합니다.</h3>
-              <p>팀별 평가 점수와 역할 구성을 함께 확인하십시오. 같은 역할의 참가자를 교환하며 팀 구성을 조정할 수 있습니다.</p>
+              <h3>팀을 나누고,<br />우리 클랜에 맞게 조정합니다.</h3>
+              <p>양 팀의 평가 점수와 역할 구성을 살펴보세요. 같은 역할의 참가자를 서로 바꾸며 원하는 팀 구성으로 다듬을 수 있습니다.</p>
             </div>
             <figure className={styles.comparison}>
               <div className={styles.exampleHeading}><strong>양 팀을 함께 살펴보는 기준</strong><span>팀 비교</span></div>
@@ -124,7 +124,7 @@ export default function LandingPreviewPage() {
           </div>
         </section>
         <section id="games" className={styles.information} aria-labelledby="information-title">
-          <h2 id="information-title">시작하기 전에<br />확인하십시오.</h2>
+          <h2 id="information-title">시작하기 전,<br />궁금한 점을 모았습니다.</h2>
           <dl>
             <div><dt>어떤 게임을 위한 도구인가요?</dt><dd>오버워치 내전을 중심으로 참가자 모집·팀 편성·경기 기록을 제공합니다. 게임별 제공 기능은 다릅니다.</dd></div>
             <div><dt>회원가입은 무료인가요?</dt><dd>회원가입은 무료입니다. 기능에 따라 Free와 Premium으로 구분됩니다.</dd></div>
@@ -132,7 +132,7 @@ export default function LandingPreviewPage() {
           </dl>
         </section>
         <section className={styles.closing} aria-labelledby="closing-title">
-          <h2 id="closing-title">다음 내전은,<br />조금 더 편하게 준비하십시오.</h2>
+          <h2 id="closing-title">다음 내전은,<br />조금 더 편하게 준비해 보세요.</h2>
           <p>우리 클랜의 참가자 모집부터 팀 편성까지, ClanSync와 함께.</p>
           <Link href="/sign-up" className={styles.primary}>무료로 시작하기 <ArrowRight size={17} aria-hidden="true" /></Link>
         </section>
