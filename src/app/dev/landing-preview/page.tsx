@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowDown, ArrowRight, Check, Users, Shuffle, History } from "lucide-react";
+import { ArrowDown, ArrowRight, History } from "lucide-react";
 import { EntryBrand } from "@/components/entry/entry-brand";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ClanBalanceRosterEditor } from "@/components/main-clan/clan-balance-roster-editor";
-import { BalanceTeamSummary } from "@/components/main-clan/balance-team-summary";
 import { RecordsPreview } from "./records-preview";
-import { PreviewPagination } from "./preview-pagination";
+import { FormationModesPreview } from "./formation-modes-preview";
 import type { ClanArchiveMatch } from "@/lib/clan/stats/load-clan-stats";
 import type { BalanceRoster } from "@/lib/balance/roster-schema";
 import styles from "./preview.module.css";
@@ -79,40 +78,10 @@ export default function LandingPreviewPage() {
         </figure>
         <section id="features" className={styles.workflow} aria-labelledby="workflow-title">
           <div className={styles.sectionIntro}>
-            <h2 id="workflow-title">내전 한 번을 열기까지,<br />챙길 일을 한곳에 모았습니다.</h2>
-            <p>참가자를 모으고, 팀을 나누고,<br className={styles.desktopBreak} /> 경기 결과를 남겨보세요.</p>
+            <h2 id="workflow-title">팀을 나누는 방식도,<br />함께 즐기는 재미도 다양하게.</h2>
+            <p>주장 지명부터 팀원 경매까지,<br className={styles.desktopBreak} /> 우리 클랜에 맞는 방식으로 내전을 열어보세요.</p>
           </div>
-          <PreviewPagination label="내전 준비" slides={[
-            { id: "participants", label: "참가자 확인", content: <div className={styles.preparation}>
-            <div className={styles.featureCopy}>
-              <Users size={25} aria-hidden="true" />
-              <h3>오늘 함께할 멤버를<br />한눈에.</h3>
-              <p>출전·대기 명단을 정리해 다음 경기를 준비해 보세요.</p>
-              <ul><li><Check size={16} aria-hidden="true" />참가자 검색</li><li><Check size={16} aria-hidden="true" />출전·대기 명단 관리</li></ul>
-            </div>
-            <figure className={styles.peopleExample}>
-              <div className={styles.exampleHeading}><strong>오늘 함께할 멤버</strong><span>12명</span></div>
-              <ul className={styles.peopleList}>{pool.map((person, index) => <li key={person.user_id}>
-                <span className={styles.personSymbol} aria-hidden="true">{person.nickname.slice(0, 1)}</span>
-                <span>{person.nickname}</span><small className={index < 10 ? styles.assigned : styles.waiting}>{index < 10 ? "출전" : "대기"}</small>
-              </li>)}</ul>
-              <figcaption>출전 10명 · 대기 2명<span>예시 명단</span></figcaption>
-            </figure>
-          </div> },
-            { id: "teams", label: "팀 비교", content: <div className={styles.adjustment}>
-            <div className={styles.featureCopy}>
-              <Shuffle size={25} aria-hidden="true" />
-              <h3>팀을 나누고,<br />우리 클랜에 맞게 조정합니다.</h3>
-              <p>평가 점수를 비교하고, 같은 역할끼리 교환해 보세요.</p>
-            </div>
-            <figure className={styles.comparison}>
-              <div className={styles.exampleHeading}><strong>양 팀의 평가 점수</strong><span>팀 비교</span></div>
-              <div className={styles.comparisonBoard}><BalanceTeamSummary roster={roster} scores={scores} mode="m" premium={false} enabled={false} /></div>
-              <div className={styles.teamRoles}>{[1, 2].map((team) => <div key={team}><strong>{team}팀</strong><p>탱커 1 · 딜러 2 · 힐러 2</p></div>)}</div>
-              <figcaption>점수는 편성을 돕는 참고 기준입니다.<span>예시 점수</span></figcaption>
-            </figure>
-          </div> },
-          ]} />
+          <FormationModesPreview />
         </section>
         <section className={styles.recordsSection} aria-labelledby="records-title">
           <div className={styles.recordsInner}>
