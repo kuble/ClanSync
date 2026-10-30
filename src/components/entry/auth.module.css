@@ -10,21 +10,41 @@
 .header { width: 100%; max-width: 1152px; height: 80px; flex-shrink: 0; margin-inline: auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--login-line); }
 .page a:focus-visible, .page button:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; }
 .content { width: 100%; max-width: 1152px; margin-inline: auto; padding: 52px 24px; flex: 1; display: grid; grid-template-columns: minmax(0,440px) minmax(0,1fr); gap: 96px; align-items: center; }
+.signUpContent { padding-block: 36px; }
 .card { min-width: 0; padding: 36px; border: 1px solid var(--login-line); border-radius: 16px; background: var(--card); box-shadow: 0 0 0 5px color-mix(in srgb, var(--foreground) 2.5%, transparent), 0 20px 44px -24px var(--login-shadow); }
 .authHeading { font-size: 28px; font-weight: 650; line-height: 1.4; letter-spacing: -.04em; word-break: keep-all; }
 .authSubtitle { margin: 10px 0 28px; color: var(--muted-foreground); font-size: 14px; line-height: 1.8; word-break: keep-all; }
 .form { display: grid; gap: 20px; }
 .field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .field > label { font-size: 13px; font-weight: 550; }
-.field input { width: 100%; min-height: 50px; padding: 12px 14px; border: 1px solid var(--input); border-radius: 10px; color: var(--foreground); background: var(--background); font-size: 14px; outline: none; }
+.field input, .field select { width: 100%; min-height: 50px; padding: 12px 14px; border: 1px solid var(--input); border-radius: 10px; color: var(--foreground); background: var(--background); font-size: 14px; outline: none; }
 .field input::placeholder { color: var(--muted-foreground); }
-.field input:focus-visible { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 14%, transparent); }
+.field input:focus-visible, .field select:focus-visible { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 14%, transparent); }
 .field input:autofill { box-shadow: 0 0 0 1000px var(--background) inset; -webkit-text-fill-color: var(--foreground); caret-color: var(--foreground); }
 .field input:autofill:focus-visible { box-shadow: 0 0 0 1000px var(--background) inset, 0 0 0 3px color-mix(in srgb, var(--primary) 14%, transparent); }
 .field button { width: 44px; height: 50px; border-radius: 10px; color: var(--muted-foreground); }
 .field button:hover { color: var(--foreground); }
 .remember { min-height: 32px; display: flex; justify-content: space-between; align-items: center; gap: 16px; cursor: pointer; font-size: 13px; }
 .inputHint { margin-top: 5px; color: var(--muted-foreground); font-size: 11px; line-height: 1.75; word-break: keep-all; }
+.signUpCard { padding: 30px 36px; }
+.signUpCard .authSubtitle { margin-bottom: 24px; }
+.signUpForm { gap: 18px; }
+.fieldRow { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.6fr); gap: 16px; padding-top: 18px; border-top: 1px solid var(--login-line); }
+.genderField { min-width: 0; border: 0; padding: 0; }
+.genderField legend { margin-bottom: 8px; font-size: 13px; font-weight: 550; }
+.genderOptions { display: flex; min-height: 50px; border: 1px solid var(--input); border-radius: 10px; overflow: hidden; }
+.genderOptions label { position: relative; flex: 1; display: grid; place-items: center; min-width: 0; padding: 8px 4px; color: var(--muted-foreground); font-size: 12px; cursor: pointer; }
+.genderOptions label + label { border-left: 1px solid var(--input); }
+.genderOptions label:has(input:checked) { color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); }
+.genderOptions label:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: -3px; }
+.genderOptions input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.terms { display: flex; align-items: flex-start; gap: 10px; color: var(--foreground); font-size: 12px; line-height: 1.7; cursor: pointer; word-break: keep-all; }
+.terms input { flex-shrink: 0; width: 16px; height: 16px; margin-top: 3px; accent-color: var(--primary); }
+.terms input:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.termsNote { display: block; margin-top: 5px; color: var(--muted-foreground); font-size: 11px; }
+.confirmation { display: grid; gap: 20px; }
+.confirmationIcon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 12px; color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); }
+.confirmation .authSubtitle { margin: 0; }
 .submit { width: 100%; min-height: 50px; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 13px 18px; border: 1px solid transparent; border-radius: 10px; background: var(--primary); color: var(--primary-foreground); font-size: 14px; font-weight: 650; cursor: pointer; }
 .submit:hover { filter: brightness(1.08); }
 .submit:disabled { opacity: .65; cursor: wait; }
@@ -64,4 +84,7 @@
   .form { gap: 18px; }
   .authFooter { font-size: 12px; }
   .footer { width: calc(100% - 40px); padding-top: 12px; }
+}
+@media (max-width: 480px) {
+  .fieldRow { grid-template-columns: minmax(0,1fr); }
 }

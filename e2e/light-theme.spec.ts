@@ -49,6 +49,19 @@ test("light entry pages and theme preference stay readable and fit narrow screen
         expect(await remember.evaluate(el => new FormData((el as HTMLInputElement).form!).get("remember"))).toBe("on");
         await remember.uncheck();
       }
+      if (path === "/sign-up" && width === 320) {
+        const password = page.getByLabel("비밀번호", { exact: true });
+        await password.fill("Preview2026!");
+        await page.getByRole("button", { name: "비밀번호 보기", exact: true }).click();
+        await expect(password).toHaveAttribute("type", "text");
+        await page.getByRole("button", { name: "비밀번호 숨기기", exact: true }).click();
+        await expect(password).toHaveAttribute("type", "password");
+        await password.fill("");
+        await expect(page.getByRole("radio", { name: "비공개", exact: true })).toBeChecked();
+        await page.getByRole("radio", { name: "여성", exact: true }).check();
+        expect(await password.evaluate(el => new FormData((el as HTMLInputElement).form!).get("gender"))).toBe("female");
+        await page.getByRole("radio", { name: "비공개", exact: true }).check();
+      }
       if (width === 320) await page.screenshot({ path: test.info().outputPath(`entry-${path.replaceAll("/", "") || "home"}.png`), animations: "disabled", caret: "initial" });
     }
   }

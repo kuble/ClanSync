@@ -84,7 +84,7 @@ PC 1024px 이상
 
 현재 진입점은 [페이지](../../../src/app/sign-in/page.tsx), [폼](../../../src/app/sign-in/sign-in-form.tsx), [인증 액션](../../../src/app/actions/auth.ts), [비밀번호 입력](../../../src/components/entry/password-input.tsx), [목적지 검증](../../../src/lib/auth/safe-next-path.ts)이다.
 
-시각 구현은 [로그인 셸](../../../src/components/entry/sign-in-shell.tsx)과 [전용 스타일](../../../src/components/entry/sign-in.module.css)을 사용한다. 로그인 상태에서 검토할 수 있는 개발 전용 [미리보기](../../../src/app/dev/sign-in-preview/page.tsx)도 같은 셸·폼을 렌더하며 운영 모드에서는 404다.
+시각 구현은 회원가입과 같은 [인증 셸](../../../src/components/entry/auth-shell.tsx)과 [공용 스타일](../../../src/components/entry/auth.module.css)을 사용한다. 로그인 상태에서 검토할 수 있는 개발 전용 [미리보기](../../../src/app/dev/sign-in-preview/page.tsx)도 같은 셸·폼을 렌더하며 운영 모드에서는 404다.
 
 기본 인증·세션 유지 규칙을 바꾸지 않고 셸·간격·문구·필드 오류·로딩 표현을 정리한다. 필드별 결과 분류를 추가한다면 액션 결과 타입과 보안상 통일해야 할 오류를 함께 검토한다. 소셜 로그인·비밀번호 복구·잠금 정책 개정은 별도 기능이다.
 

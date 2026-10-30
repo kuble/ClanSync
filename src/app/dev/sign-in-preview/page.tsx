@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { SignInShell } from "@/components/entry/sign-in-shell";
+import { AuthShell } from "@/components/entry/auth-shell";
 import { SignInForm } from "@/app/sign-in/sign-in-form";
 
 export const metadata = {
@@ -9,5 +9,5 @@ export const metadata = {
 
 export default function SignInPreviewPage() {
   if (process.env.NODE_ENV !== "development") notFound();
-  return <SignInShell><SignInForm nextPath="/games" /></SignInShell>;
+  return <AuthShell mode="sign-in"><SignInForm nextPath="/games" /></AuthShell>;
 }

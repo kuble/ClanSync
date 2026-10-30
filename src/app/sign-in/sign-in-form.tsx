@@ -8,7 +8,7 @@ import type { AuthMessageState } from "@/app/actions/auth";
 import { signInAction } from "@/app/actions/auth";
 import { PasswordInput } from "@/components/entry/password-input";
 import { Switch } from "@/components/ui/switch";
-import styles from "@/components/entry/sign-in.module.css";
+import styles from "@/components/entry/auth.module.css";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
