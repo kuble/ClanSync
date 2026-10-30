@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { createClient } from "@supabase/supabase-js";
 import { createIsolatedBalanceFixture } from "../e2e/isolated-balance-fixture.ts";
 import { loadTestEnv } from "./test-env.mjs";
+import { recruitmentTiers, recruitmentTierLabel, normalizeRecruitmentTier } from "../src/lib/clan/recruitment.ts";
 
 async function ok(query) { const {data,error}=await query; assert.equal(error,null,error?.message); return data; }
 async function denied(query) { const {error}=await query; assert.ok(error,"Restricted operation unexpectedly succeeded"); return error; }
@@ -71,4 +72,32 @@ test("immutable demographics and recruitment rules protect direct API, approvals
     await ok(leader.rpc("resolve_clan_join_request",{p_clan_id:f.clanId,p_request_id:accepted,p_decision:"approved"}));
     assert.equal((await status(accepted)).status,"approved");
   });
+});
+
+test("each game's tier catalog is accepted in rank order and foreign tiers are rejected by both RPC and direct writes",async t=>{
+  const f=await createIsolatedBalanceFixture(1), owner=await f.memberClient(0), others=[];
+  t.after(async()=>{await owner.auth.signOut(); for(const id of others) await ok(f.service.from("clans").delete().eq("id",id)); await f.cleanup();});
+  assert.equal(recruitmentTierLabel("overwatch","challenger"),"챔피언");
+  assert.equal(recruitmentTierLabel("lol","challenger"),"챌린저");
+  assert.equal(normalizeRecruitmentTier("lol","challenger"),"challenger");
+  assert.deepEqual(recruitmentTiers("constructor"),[]);
+  const foreign={overwatch:"challenger",valorant:"master",lol:"champion",pubg:"gm"};
+  for(const slug of Object.keys(foreign)) await t.test(slug,async()=>{
+    const game=await ok(f.service.from("games").select("id").eq("slug",slug).single());
+    let clanId=f.clanId;
+    if(slug!=="overwatch") {
+      const clan=await ok(f.service.from("clans").insert({game_id:game.id,name:`Tiers-${slug}-${f.clanId.slice(0,6)}`}).select("id").single());
+      clanId=clan.id; others.push(clanId);
+      await ok(f.service.from("clan_members").insert({clan_id:clanId,user_id:f.users[0].id,role:"leader",status:"active"}));
+    }
+    const tiers=recruitmentTiers(slug).map(([id])=>id);
+    await ok(owner.rpc("update_clan_recruitment",{p_clan_id:clanId,p_tiers:[...tiers].reverse()}));
+    assert.deepEqual((await ok(f.service.from("clans").select("tier_range").eq("id",clanId).single())).tier_range,tiers);
+    await denied(owner.rpc("update_clan_recruitment",{p_clan_id:clanId,p_tiers:[foreign[slug]]}));
+    await denied(f.service.from("clans").update({tier_range:[foreign[slug]]}).eq("id",clanId));
+    await denied(f.service.from("clans").insert({game_id:game.id,name:`Invalid-${slug}`,tier_range:[foreign[slug]]}));
+    await ok(owner.rpc("update_clan_recruitment",{p_clan_id:clanId,p_tiers:[]}));
+  });
+  const legacy=await ok(f.service.from("clans").select("id,games!inner(slug)").eq("games.slug","overwatch").contains("tier_range",["challenger"]));
+  assert.equal(legacy.length,0,"QA Overwatch's old Challenger values should have been migrated");
 });

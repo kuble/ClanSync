@@ -12,12 +12,11 @@ import { buttonVariants } from "@/components/ui/button-variants";
 import { loadGameOnboarding } from "@/lib/onboarding/load-game-onboarding";
 import { createClient } from "@/lib/supabase/server";
 import styles from "@/components/onboarding/onboarding.module.css";
-import { recruitmentProfileError } from "@/lib/clan/recruitment";
+import { recruitmentProfileError, recruitmentTiers, normalizeRecruitmentTier } from "@/lib/clan/recruitment";
 
 const PAGE_SIZE = 5;
 const CLAN_FIELDS = "id, name, description, rules, tags, max_members, style, tier_range, min_birth_year, gender_policy, created_at, discord_url, kakao_url, subscription_tier" as const;
 const STYLES = [{ value: "social", label: "친목" }, { value: "casual", label: "즐겜" }, { value: "tryhard", label: "빡겜" }, { value: "pro", label: "프로" }] as const;
-const TIERS = [["bronze", "브론즈"], ["silver", "실버"], ["gold", "골드"], ["plat", "플래티넘"], ["diamond", "다이아몬드"], ["master", "마스터"], ["gm", "그랜드마스터"], ["challenger", "챌린저"]] as const;
 export const metadata = { title: "클랜 참여 · ClanSync" };
 
 export default async function ClanOnboardingPage({ params, searchParams }: {
@@ -25,10 +24,11 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
   searchParams: Promise<{ pending?: string; q?: string; page?: string; style?: string; tier?: string }>;
 }) {
   const [{ gameSlug }, { q = "", page: pageStr, style: styleQuery = "", tier: tierQuery = "" }] = await Promise.all([params, searchParams]);
+  const TIERS = recruitmentTiers(gameSlug);
   const page = Math.max(1, Math.min(10000, parseInt(pageStr ?? "1", 10) || 1));
   const term = q.trim().slice(0, 64);
   const style = STYLES.find((option) => option.value === styleQuery)?.value ?? "";
-  const tier = TIERS.find(([value]) => value === tierQuery)?.[0] ?? "";
+  const tier = TIERS.find(([value]) => value === normalizeRecruitmentTier(gameSlug,tierQuery))?.[0] ?? "";
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect(`/sign-in?next=/games/${encodeURIComponent(gameSlug)}/clan`);

@@ -20,6 +20,7 @@ test("clan promotion publishes to the community and saves enforceable recruitmen
     await year.selectOption("1999");
     await page.getByLabel("성별 조건",{exact:true}).selectOption("male");
     await expect(page.getByRole("slider")).toHaveCount(2);
+    await expect(maximum).toHaveAttribute("aria-valuetext","챔피언");
     await minimum.focus();
     await minimum.press("ArrowRight"); await minimum.press("ArrowRight");
     await maximum.focus();
@@ -30,7 +31,7 @@ test("clan promotion publishes to the community and saves enforceable recruitmen
     await expect(page.getByText("가입 조건을 저장했습니다.",{exact:true})).toBeVisible();
     const conditions=await f.service.from("clans").select("min_birth_year,gender_policy,tier_range").eq("id",f.clanId).single();
     expect(conditions.error).toBeNull();
-    expect(conditions.data).toEqual({min_birth_year:1999,gender_policy:"male",tier_range:["diamond","gold","plat"]});
+    expect(conditions.data).toEqual({min_birth_year:1999,gender_policy:"male",tier_range:["gold","plat","diamond"]});
     await page.reload();
     await expect(year).toHaveValue("1999");
     await expect(minimum).toHaveAttribute("aria-valuetext","골드");
@@ -109,4 +110,58 @@ test("clan promotion publishes to the community and saves enforceable recruitmen
     await page.goto(base+"/manage?tab=promotion");
     await expect(page.getByRole("button",{name:"홍보글 게시",exact:true})).toHaveCount(0);
   } finally { await f.cleanup(); }
+});
+
+test("tier controls, clan creation and search use the selected game's ladder",async({page},testInfo)=>{
+  test.setTimeout(150_000);
+  const f=await createIsolatedBalanceFixture(1);
+  const createdName=`TierVAL-${f.clanId.slice(0,8)}`;
+  const game=await f.service.from("games").select("id").eq("slug","valorant").single();
+  expect(game.error).toBeNull();
+  let createdId: string | undefined;
+  try {
+    const profile=await f.service.from("user_game_profiles").insert({user_id:f.users[0].id,game_id:game.data!.id,game_uid:`tiers-${f.users[0].id}`,riot_id:`Tier${f.users[0].id.slice(0,8)}#KR1`});
+    expect(profile.error).toBeNull();
+    await loginIsolatedBalanceUser(page,f.users[0]);
+    await page.goto("/games/valorant/clan");
+    const tierFilter=page.getByRole("combobox",{name:"모집 티어",exact:true});
+    await expect(tierFilter.getByRole("option",{name:"레디언트",exact:true})).toHaveCount(1);
+    await expect(tierFilter.getByRole("option",{name:"챔피언",exact:true})).toHaveCount(0);
+    await page.getByRole("tab",{name:"클랜 생성",exact:true}).click();
+    await page.getByRole("textbox",{name:"클랜명 *",exact:true}).fill(createdName);
+    await page.getByRole("checkbox",{name:"레디언트",exact:true}).check();
+    await expect(page.getByRole("checkbox",{name:"마스터",exact:true})).toHaveCount(0);
+    await page.getByRole("button",{name:"클랜 만들기",exact:true}).click();
+    await expect(page).toHaveURL(/\/clan\/[\da-f-]+\/welcome/);
+    const created=await f.service.from("clans").select("id,tier_range").eq("name",createdName).eq("game_id",game.data!.id).single();
+    expect(created.error).toBeNull(); createdId=created.data!.id;
+    expect(created.data!.tier_range).toEqual(["radiant"]);
+    await page.goto(`/games/valorant/clan/${createdId}/manage?tab=promotion`);
+    const minimum=page.getByRole("slider",{name:"최소 모집 티어",exact:true});
+    const maximum=page.getByRole("slider",{name:"최대 모집 티어",exact:true});
+    await expect(minimum).toHaveAttribute("aria-valuetext","레디언트");
+    await minimum.focus(); await minimum.press("ArrowLeft"); await minimum.press("ArrowLeft");
+    await expect(minimum).toHaveAttribute("aria-valuetext","초월자");
+    await expect(maximum).toHaveAttribute("aria-valuetext","레디언트");
+    await page.getByRole("button",{name:"가입 조건 저장",exact:true}).click();
+    await expect.poll(async()=>{
+      const result=await f.service.from("clans").select("tier_range").eq("id",createdId!).single();
+      expect(result.error).toBeNull(); return result.data?.tier_range;
+    }).toEqual(["ascendant","immortal","radiant"]);
+    await page.reload();
+    await expect(minimum).toHaveAttribute("aria-valuetext","초월자");
+    await expect(maximum).toHaveAttribute("aria-valuetext","레디언트");
+    await page.setViewportSize({width:1304,height:884});
+    await page.screenshot({path:testInfo.outputPath("valorant-tiers.png"),fullPage:true});
+    const ow=await f.service.from("clans").update({tier_range:["gm","champion"]}).eq("id",f.clanId); expect(ow.error).toBeNull();
+    await page.goto(f.path.replace(/\/balance$/,"/manage?tab=promotion"));
+    await expect(minimum).toHaveAttribute("aria-valuetext","그랜드마스터");
+    await expect(maximum).toHaveAttribute("aria-valuetext","챔피언");
+    await expect(page.getByText("챌린저",{exact:true})).toHaveCount(0);
+    await page.screenshot({path:testInfo.outputPath("overwatch-tiers.png"),fullPage:true});
+  } finally {
+    const owned=createdId ? {id:createdId} : (await f.service.from("clans").select("id").eq("name",createdName).eq("game_id",game.data!.id).maybeSingle()).data;
+    if(owned) {const cleanup=await f.service.from("clans").delete().eq("id",owned.id); expect(cleanup.error).toBeNull();}
+    await f.cleanup();
+  }
 });

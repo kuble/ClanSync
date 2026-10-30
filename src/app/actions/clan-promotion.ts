@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { RECRUITMENT_TIERS } from "@/lib/clan/recruitment";
+import { recruitmentTiers } from "@/lib/clan/recruitment";
 
 async function managedClan(gameSlug: string, clanId: string) {
   const client = await createClient();
@@ -30,7 +30,7 @@ export async function saveClanRecruitmentAction(gameSlug: string, clanId: string
   const year = rawYear ? Number(rawYear) : null;
   const gender = String(form.get("gender_policy") ?? "");
   const tiers = [...new Set(form.getAll("tier_range").map(String))];
-  if ((year != null && (!Number.isInteger(year) || year < 1950 || year > new Date().getFullYear() - 10)) || !["all", "male", "female"].includes(gender) || tiers.some(tier => !RECRUITMENT_TIERS.some(([value]) => value === tier))) return { ok: false as const, error: "가입 조건을 확인해 주십시오." };
+  if ((year != null && (!Number.isInteger(year) || year < 1950 || year > new Date().getFullYear() - 10)) || !["all", "male", "female"].includes(gender) || tiers.some(tier => !recruitmentTiers(gameSlug).some(([value]) => value === tier))) return { ok: false as const, error: "가입 조건을 확인해 주십시오." };
   const { error } = await access.client.rpc("update_clan_recruitment", { p_clan_id: clanId, p_birth_year_limit: year ?? undefined, p_gender_policy: gender, p_tiers: tiers });
   if (error) return { ok: false as const, error: "가입 조건을 저장하지 못했습니다. 권한과 입력값을 확인해 주십시오." };
   refreshRecruitment(gameSlug, clanId);

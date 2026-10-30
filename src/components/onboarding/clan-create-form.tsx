@@ -5,11 +5,12 @@ import { toast } from "sonner";
 import { createClanAndLeadAction } from "@/app/actions/game-clan-onboarding";
 import { Button } from "@/components/ui/button";
 import styles from "./onboarding.module.css";
+import { recruitmentTiers } from "@/lib/clan/recruitment";
 
-const TIERS = [["bronze", "브론즈"], ["silver", "실버"], ["gold", "골드"], ["plat", "플래티넘"], ["diamond", "다이아몬드"], ["master", "마스터"], ["gm", "그랜드마스터"], ["challenger", "챌린저"]] as const;
 const STYLES = [["social", "친목"], ["casual", "즐겜"], ["tryhard", "빡겜"], ["pro", "프로"]] as const;
 
 export function ClanCreateForm({ gameSlug }: { gameSlug: string }) {
+  const TIERS = recruitmentTiers(gameSlug);
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);

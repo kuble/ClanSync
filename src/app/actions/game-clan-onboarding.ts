@@ -2,6 +2,7 @@
 import { gameProfileIdentity } from "@/lib/game-auth/game-profile-identity";
 import { parseRiotId } from "@/lib/game-auth/riot-id";
 import { safeNextPath } from "@/lib/auth/safe-next-path";
+import { recruitmentTiers } from "@/lib/clan/recruitment";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -14,17 +15,6 @@ import {
   tryCreateServiceRoleClient,
 } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
-
-const TIER_SET = new Set([
-  "bronze",
-  "silver",
-  "gold",
-  "plat",
-  "diamond",
-  "master",
-  "gm",
-  "challenger",
-]);
 
 function normalizeTags(raw: string[]): string[] {
   const out: string[] = [];
@@ -200,12 +190,10 @@ export async function createClanAndLeadAction(
     return { ok: false, error: "태그 형식이 올바르지 않습니다." };
   }
 
-  const tierRaw = formData.getAll("tier_range") as string[];
-  const tier_range = [
-    ...new Set(
-      tierRaw.filter((t): t is string => typeof t === "string" && TIER_SET.has(t)),
-    ),
-  ];
+  const tierRaw = formData.getAll("tier_range");
+  const tierSet = new Set(recruitmentTiers(gameSlug).map(([tier]) => tier));
+  if (tierRaw.some(tier => typeof tier !== "string" || !tierSet.has(tier))) return { ok:false,error:"해당 게임의 모집 티어를 선택해 주십시오." };
+  const tier_range = [...new Set(tierRaw.map(String))];
 
   const minYearRaw = String(formData.get("min_birth_year") ?? "").trim();
   const min_birth_year = minYearRaw

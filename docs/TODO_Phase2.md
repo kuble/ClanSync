@@ -1,5 +1,11 @@
 # Phase 2 — Next.js `src/` · Supabase · RLS
 
+### 2026-10-30 게임별 모집 티어 정정
+
+- 기존 LoL 혼합 공통 배열을 게임별로 분리해 홍보 슬라이더·생성·검색·상세/목록 표시와 액션 검증에 함께 사용한다. OW 8개(챔피언), VAL 9개(아이언·초월자·불멸·레디언트), LoL 10개(에메랄드·챌린저), PUBG 8개(크리스탈·서바이버)를 공식 문서와 대조했다. 게임 활성화·티어의 모집 정보 정책은 유지한다. [기준·출처](01-plan/pages/12-Clan-Manage.md).
+- QA 마이그레이션 `20261030141612`: 오버워치의 `challenger`만 `champion`으로 정정했다. 클랜 게임에 맞는 티어를 RPC와 INSERT/UPDATE 트리거에서 검사하고 등급 순으로 정렬·중복 제거한다. 새 public API/열은 없으며 `db:test:push` → `db:test:types`의 생성 타입이 앱 타입과 같음을 확인했다. 다른 게임의 과거 잘못된 값을 임의로 추정 변환하지 않는다.
+- 검증: 변경 소스 ESLint·`tsc --noEmit`, `node --test scripts/clan-recruitment-db.test.mjs` **11개 통과**(기존 조건/권한과 네 게임의 전체 티어 저장·교차 입력/직접 생성/수정 거절·정렬·OW 과거 값 잔존 없음). `E2E_SKIP_SEED=1 CI=1 npx playwright test e2e/clan-promotion.spec.ts e2e/onboarding.spec.ts --project=chromium`의 프로덕션 빌드 및 **3개 통과**(기존 홍보/가입, VAL 검색 옵션·레디언트 클랜 생성·범위 저장 복원, OW 챔피언 표시). 쓰기는 임시 계정·클랜을 사용하고 정리했다. 운영 DB·배포는 보류한다.
+
 ### 2026-10-30 클랜 홍보·가입 조건
 
 - 회원가입에 출생연도·성별(비공개 포함) 변경 불가를 안내하고 QA의 해당 UPDATE 권한을 제거했다. 이메일·비밀번호는 고정 대상이 아니며 변경 UI·접근 상실 복구 수단·실명 본인인증을 이번 작업에서 구현한 것으로 표시하지 않는다.

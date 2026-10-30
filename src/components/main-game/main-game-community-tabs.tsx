@@ -635,7 +635,7 @@ export function MainGameCommunityTabs({
                     {p.clan_name}
                   </Link>
                 </div>
-                <p className="mt-2 text-xs text-muted-foreground" aria-label="클랜 모집 조건">{recruitmentLabels(p.recruitment).join(" · ")}</p>
+                <p className="mt-2 text-xs text-muted-foreground" aria-label="클랜 모집 조건">{recruitmentLabels(g,p.recruitment).join(" · ")}</p>
                 <p className="text-muted-foreground mt-2 line-clamp-3 whitespace-pre-wrap text-xs">
                   {p.content || "—"}
                 </p>
