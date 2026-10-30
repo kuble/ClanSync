@@ -79,6 +79,7 @@
 .footer nav { display: flex; flex-wrap: wrap; gap: 22px; }
 
 @media (prefers-reduced-motion: no-preference) {
+  :global(html):has(.page) { scroll-behavior: smooth; }
   .primary, .smallButton, .secondary svg { transition: transform 180ms ease, filter 180ms ease; }
   .primary:hover, .smallButton:hover { transform: translateY(-2px); }
   .secondary:hover svg { transform: translateY(3px); }
