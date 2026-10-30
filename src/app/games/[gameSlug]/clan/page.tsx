@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Clock3, Search } from "lucide-react";
 import { cancelClanJoinRequestFormAction } from "@/app/actions/game-clan-onboarding";
-import { AccountShell, OnboardingSteps } from "@/components/onboarding/account-shell";
+import { AccountShell } from "@/components/onboarding/account-shell";
 import { ClanCreateForm } from "@/components/onboarding/clan-create-form";
 import { ClanJoinList, type ClanListRow } from "@/components/onboarding/clan-join-list";
 import { Button } from "@/components/ui/button";
@@ -66,7 +66,6 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
   }
 
   return <AccountShell><main className={styles.content}>
-    <OnboardingSteps current={3} />
     <header><p className={styles.gameLabel}>{game.name_ko}</p><h1 className={styles.heading}>클랜에 참여하십시오<span className="sr-only"> · 가입 또는 생성</span></h1><p className={styles.description}>기존 클랜에 가입하거나, 새로운 클랜을 만들어 보십시오.</p></header>
     {pendingBrief ? <section className={styles.pending} aria-label="현재 신청 중인 클랜">
       <div className={styles.pendingTop}><div><h2 className="flex items-center gap-2"><Clock3 size={16} aria-hidden="true" />진행 중인 가입 신청</h2><p>「{pendingBrief.clanName ?? "클랜"}」 운영진의 승인을 기다리고 있습니다.</p></div><form action={cancelBound}><Button type="submit" variant="outline" size="sm">신청 취소</Button></form></div>

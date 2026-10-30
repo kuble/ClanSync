@@ -8,28 +8,24 @@
 .gameTrigger:hover,.gameTrigger[data-popup-open] { background:var(--muted); }
 .gameTrigger:focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
 .content { width: 100%; max-width: 850px; margin: 0 auto; padding: 56px 24px 72px; }
-.authContent { max-width: 560px; }
-.steps { display: flex; gap: 0; margin: 0 0 36px; padding: 0; list-style: none; }
-.steps li { display: flex; align-items: center; gap: 8px; flex: 1; font-size: 12px; color: var(--muted-foreground); }
-.steps li:not(:last-child)::after { content: ""; height: 1px; background: var(--border); flex: 1; margin-inline: 4px 12px; }
-.steps li:last-child { flex: 0 0 auto; }
-.steps li > span { width: 25px; height: 25px; border-radius: 50%; border: 1px solid var(--border); display: grid; place-items: center; font-size: 12px; }
-.steps li > strong { font-weight: 400; white-space: nowrap; }
-.steps li[aria-current] { color: var(--foreground); }
-.steps li[aria-current] > span { background: var(--brand-primary); border-color: var(--primary); color: #fff; }
-.steps li[data-done="true"] > span { background: #27834f; border-color: #27834f; color: #fff; }
-.steps li[data-done="true"]::after { background: #27834f; }
+.authContent { max-width: 528px; padding-top: 64px; }
+.shell:has(.authContent) .navbar { height: 80px; border-bottom: 0; }
+.shell:has(.authContent) .navbarInner { max-width: 1152px; border-bottom: 1px solid color-mix(in srgb, var(--foreground) 11%, transparent); }
 .heading { font-size: 26px; font-weight: 800; line-height: 1.4; letter-spacing: -.025em; }
 .description { margin-top: 8px; color: var(--muted-foreground); font-size: 14px; line-height: 1.7; }
 .gameLabel { color: var(--primary); font-size: 12px; font-weight: 600; margin-bottom: 6px; }
-.authCard { padding: 32px; border: 1px solid var(--border); border-radius: 14px; }
-.gameIcon { width: 72px; height: 72px; border-radius: 10px; display: grid; place-items: center; background: #143027; color: #7bdda9; margin-bottom: 22px; }
-.authCard .heading { font-size: 22px; }
-.provider { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-top: 26px; }
-.providerHeader { display: flex; gap: 12px; align-items: center; margin-bottom: 18px; }
-.providerHeader > svg { color: var(--info); flex-shrink: 0; }
-.providerHeader h2 { font-size: 15px; font-weight: 600; }
-.providerHeader p { color: var(--muted-foreground); font-size: 12px; margin-top: 4px; line-height: 1.6; }
+.authCard { padding: 36px; border: 1px solid color-mix(in srgb, var(--foreground) 11%, transparent); border-radius: 16px; background: var(--card); box-shadow: 0 0 0 5px color-mix(in srgb, var(--foreground) 2.5%, transparent), 0 20px 44px -24px color-mix(in srgb, var(--primary) 9%, transparent); }
+.gameIcon { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; background: color-mix(in srgb, var(--primary) 10%, var(--background)); color: var(--primary); margin-bottom: 22px; }
+.authCard .heading { font-size: 28px; font-weight: 650; letter-spacing: -.04em; word-break: keep-all; }
+.identityForms { margin-top: 28px; }
+.identityNote { display: flex; align-items: flex-start; gap: 8px; border-top: 1px solid var(--border); padding-top: 18px; color: var(--muted-foreground); font-size: 12px; line-height: 1.8; word-break: keep-all; }
+.identityNote > svg { margin-top: 3px; flex-shrink: 0; }
+.qaTools { margin-top: 24px; border-top: 1px solid var(--border); padding-top: 18px; }
+.qaTools summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 32px; color: var(--muted-foreground); cursor: pointer; list-style: none; font-size: 12px; }
+.qaTools summary::-webkit-details-marker { display: none; }
+.qaTools summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; }
+.qaTools[open] summary > svg { transform: rotate(180deg); }
+.qaTools > p { margin: 10px 0 16px; color: var(--muted-foreground); font-size: 12px; line-height: 1.7; }
 .notice { display: flex; align-items: flex-start; gap: 10px; padding: 13px 16px; border: 1px solid #60a5fa35; background: #3b82f60d; color: var(--info); border-radius: 7px; font-size: 13px; line-height: 1.7; margin-top: 20px; }
 .notice svg { flex-shrink: 0; margin-top: 3px; }
 .warning { border-color: #f59e0b44; background: #f59e0b0d; color: var(--warning); margin-top: 0; margin-bottom: 18px; }
@@ -104,8 +100,7 @@
 @media (max-width: 600px) {
   .content { padding: 36px 16px 52px; }
   .authCard { padding: 24px 20px; }
-  .steps li { gap: 6px; font-size: 12px; }
-  .steps li:not(:last-child)::after { margin-inline: 4px 7px; }
+  .authCard .heading { font-size: 24px; }
   .heading { font-size: 24px; }
   .cardTags { display: none; }
   .createForm { padding: 20px 16px; }

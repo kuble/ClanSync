@@ -36,6 +36,35 @@ test("manual IDs remain unverified, allow clan entry and show honest profile sta
     await expect(page.getByRole("region", { name: "플레이어 소개", exact: true })).toContainText("게임 ID 미등록");
     await page.goto("/games/overwatch/clan");
     await expect(page).toHaveURL(/\/games\/overwatch\/auth/);
+    await page.getByRole("link", { name: "게임 선택으로", exact: true }).click();
+    await expect(page).toHaveURL(/\/games$/);
+    await page.getByRole("link", { name: /^오버워치 / }).click();
+    await expect(page).toHaveURL(/\/games\/overwatch\/auth/);
+    await expect(page.getByRole("list", { name: "클랜 참여 단계" })).toHaveCount(0);
+    await expect(page.getByRole("textbox", { name: "테스트 배틀태그", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "계정 연동 준비 중", exact: true })).toHaveCount(0);
+    for (const theme of ["dark", "light"]) {
+      if (!(await page.locator("html").getAttribute("class"))?.split(" ").includes(theme)) await page.getByRole("button", { name: "라이트 테마", exact: true }).click();
+      await expect(page.locator("html")).toHaveClass(new RegExp(`\\b${theme}\\b`));
+      for (const width of [1304, 390, 320]) {
+        await page.setViewportSize({ width, height: 884 });
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+        await expect(page.getByRole("button", { name: "게임 ID 저장", exact: true })).toBeInViewport();
+        await page.screenshot({ path: info.outputPath(`game-id-${theme}-${width}.png`) });
+      }
+    }
+    await page.setViewportSize({ width: 1304, height: 884 });
+    await page.goto("/games/overwatch/auth?reauth=1&next=%2Fprofile");
+    await expect(page.getByRole("link", { name: "프로필로 돌아가기", exact: true })).toHaveAttribute("href", "/profile");
+    await page.goto("/games/valorant/auth");
+    const riotInput = page.getByRole("textbox", { name: "라이엇 ID 직접 입력", exact: true });
+    await expect(riotInput).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "테스트 라이엇 ID", exact: true })).toHaveCount(0);
+    await riotInput.fill("BadId");
+    await page.getByRole("button", { name: "게임 ID 저장", exact: true }).click();
+    await expect(page.getByRole("alert").filter({ hasText: "라이엇 ID 전체" })).toBeVisible();
+    await expect(riotInput).toHaveValue("BadId");
+    await page.goto("/games/overwatch/auth");
     const input = page.getByRole("textbox", { name: "배틀태그 직접 입력", exact: true });
     await input.fill("BadTag");
     await page.getByRole("button", { name: "게임 ID 저장", exact: true }).click();
@@ -44,6 +73,7 @@ test("manual IDs remain unverified, allow clan entry and show honest profile sta
     await input.fill("ManualNewcomer#3003");
     await page.getByRole("button", { name: "게임 ID 저장", exact: true }).click();
     await expect(page).toHaveURL(/\/games\/overwatch\/clan/);
+    await expect(page.getByRole("list", { name: "클랜 참여 단계" })).toHaveCount(0);
     expect((await profile(2)).data).toMatchObject({ battle_tag: "ManualNewcomer#3003", is_verified: false, verified_at: null });
     const clan = await f.service.from("clans").select("name").eq("id", f.clanId).single();
     await page.goto(`/games/overwatch/clan?q=${encodeURIComponent(clan.data!.name)}`);

@@ -6,10 +6,11 @@ test("isolated onboarding links a BattleTag and requests the intended clan", asy
   const f = await createIsolatedBalanceFixture(2);
   try {
     expect((await f.service.from("clan_members").delete().eq("clan_id", f.clanId).eq("user_id", f.users[1].id)).error).toBeNull();
-    expect((await f.service.from("user_game_profiles").update({ is_verified: false }).eq("user_id", f.users[1].id)).error).toBeNull();
+    expect((await f.service.from("user_game_profiles").delete().eq("user_id", f.users[1].id)).error).toBeNull();
     await loginIsolatedBalanceUser(page, f.users[1]);
     await page.getByRole("link", { name: /오버워치/i }).first().click();
     await page.waitForURL(/\/games\/overwatch\/auth/);
+    await page.getByText("개발용 연결 테스트", { exact: true }).click();
     await page.getByLabel("테스트 배틀태그", { exact: true }).fill(`NewPlayer#${String(Date.now()).slice(-8)}`);
     await page.getByRole("button", { name: "테스트 배틀태그로 연결", exact: true }).click();
     await page.waitForURL(/\/games\/overwatch\/clan/);

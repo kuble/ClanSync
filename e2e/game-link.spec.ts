@@ -36,6 +36,7 @@ test("nickname-free signup retains errors and a new profile displays the full Ba
     expect((await svc.auth.admin.getUserById(id)).data.user?.user_metadata.nickname).toBeUndefined();
     await loginIsolatedBalanceUser(page, { id, email, password, nickname: "새 회원" });
     await page.goto("/games/overwatch/auth");
+    await page.getByText("개발용 연결 테스트", { exact: true }).click();
     await page.getByLabel("테스트 배틀태그", { exact: true }).fill("별빛에임#45678");
     await page.getByRole("button", { name: "테스트 배틀태그로 연결", exact: true }).click();
     await page.waitForURL(/\/games\/overwatch\/clan/);
@@ -59,6 +60,7 @@ test("QA BattleTag relinking preserves stable IDs; duplicate names work and forg
     const before = (await f.service.from("user_game_profiles").select("game_uid").eq("user_id", f.users[1].id).eq("game_id", f.gameId).single()).data!;
     await loginIsolatedBalanceUser(page, f.users[1]);
     await page.goto("/games/overwatch/auth?reauth=1");
+    await page.getByText("개발용 연결 테스트", { exact: true }).click();
     await page.getByLabel("테스트 배틀태그", { exact: true }).fill(tag);
     await page.getByRole("button", { name: "테스트 배틀태그로 연결", exact: true }).click();
     await page.waitForURL(/\/games\/overwatch\/clan/);
@@ -70,6 +72,7 @@ test("QA BattleTag relinking preserves stable IDs; duplicate names work and forg
     const client = await f.memberClient(1);
     expect((await client.from("user_game_profiles").update({ battle_tag: "Fake#12345" }).eq("user_id", f.users[1].id)).error).toBeTruthy();
     await page.goto("/games/overwatch/auth?reauth=1");
+    await page.getByText("개발용 연결 테스트", { exact: true }).click();
     await expect(page.getByLabel("테스트 배틀태그", { exact: true })).toHaveValue(tag);
     await page.getByLabel("테스트 배틀태그", { exact: true }).fill(`samename#${suffix}1`);
     await page.getByRole("button", { name: "테스트 배틀태그로 연결", exact: true }).click();

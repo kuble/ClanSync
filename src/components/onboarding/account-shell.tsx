@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Check, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
 import { EntryBrand } from "@/components/entry/entry-brand";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { HeaderBreadcrumbs } from "@/components/ui/header-breadcrumbs";
@@ -16,12 +16,4 @@ export function AccountShell({ children, context, profileHref = "/profile" }: { 
     </div></header>
     {children}
   </div>;
-}
-
-export function OnboardingSteps({ current }: { current: 2 | 3 }) {
-  return <ol className={styles.steps} aria-label="클랜 참여 단계">
-    {["게임 선택", "계정 연동", "클랜 참여"].map((label, index) => <li key={label} aria-current={index + 1 === current ? "step" : undefined} data-done={index + 1 < current}>
-      <span>{index + 1 < current ? <Check size={13} aria-hidden="true" /> : index + 1}</span><strong>{label}</strong>
-    </li>)}
-  </ol>;
 }
