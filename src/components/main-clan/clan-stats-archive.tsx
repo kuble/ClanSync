@@ -228,6 +228,7 @@ function ArchiveRecords({ records, dayRecords, editor, pending, emptyText }: { r
               timeZone: "Asia/Seoul",
               dateStyle: "medium",
               timeStyle: "short",
+              hourCycle: "h23",
             })}
             <span className="min-w-0 break-all">· 운영 {match.operatorName || "운영자 정보 없음"}</span>
           </p>
