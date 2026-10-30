@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { ArrowRight, Search } from "lucide-react";
+import { GameLogo } from "@/components/ui/game-logo";
 import type { GameCardState } from "@/lib/routing/game-card-router";
 import { buildGameCardHref } from "@/lib/routing/game-card-router";
 import styles from "@/components/entry/entry.module.css";
@@ -28,40 +29,57 @@ const searchAliases: Record<string, string> = {
 };
 
 export function GameCardGrid({ cards, basePath = "" }: {
-  cards: (GameCardState & { title: string; emoji: string })[];
+  cards: (GameCardState & { title: string })[];
   basePath?: string;
 }) {
   const [query, setQuery] = useState("");
   const normalizedQuery = query.trim().toLocaleLowerCase();
   const visibleCards = cards.filter((card) => `${card.title} ${card.slug} ${searchAliases[card.slug] ?? ""}`.toLocaleLowerCase().includes(normalizedQuery));
+  const availableCards = visibleCards.filter((card) => !card.disabled);
+  const upcomingCards = visibleCards.filter((card) => card.disabled);
 
   return (
     <>
       <header className={styles.gameHeader}>
-        <div><h1 className={styles.gameHeading}>게임 선택</h1><p className={styles.gameDescription}>플레이할 게임을 선택하십시오.</p></div>
+        <div><h1 className={styles.gameHeading}>게임 선택</h1><p className={styles.gameDescription}>게임별 클랜과 가입 상태를 한눈에 확인할 수 있습니다.</p></div>
         <div className={styles.search}>
           <Search size={16} aria-hidden="true" />
           <input className={styles.input} type="search" aria-label="게임 검색" placeholder="게임 검색" value={query} onChange={(event) => setQuery(event.target.value)} />
         </div>
       </header>
-      {visibleCards.length ? (
-        <div className={styles.gameGrid}>
-          {visibleCards.map((card) => {
+      {visibleCards.length ? <div className={styles.gameGroups}>
+        {availableCards.length > 0 && <section aria-labelledby="available-games-title">
+          <h2 id="available-games-title" className={styles.gameGroupTitle}>이용 가능한 게임 <span>{availableCards.length}</span></h2>
+          <div className={styles.gameGrid}>
+          {availableCards.map((card) => {
             const { dot, text } = statusLabel(card);
             const href = buildGameCardHref(basePath, card);
+            const action = !card.auth ? "게임 ID 등록" : card.clanStatus === "member" ? "클랜으로 이동" : card.clanStatus === "pending" ? "신청 확인" : "클랜 찾기";
             const inner = <>
-              <div className={styles.gameThumbnail}><span aria-hidden="true">{card.emoji}</span></div>
+              <span className={styles.gameLogo} aria-hidden="true"><GameLogo slug={card.slug} name={card.title} className="size-7" /></span>
               <div className={styles.gameBody}>
-                <h2 className={styles.gameName}>{card.title}</h2>
+                <h3 className={styles.gameName}>{card.title}</h3>
                 <div className={styles.gameStatus}><span className={`${styles.gameDot} ${dot}`} aria-hidden="true" /><span>{text}</span></div>
               </div>
+              <span className={styles.gameAction}>{action}<ArrowRight size={17} aria-hidden="true" /></span>
             </>;
-            return card.disabled || href === "#" ?
+            return href === "#" ?
               <div key={card.slug} className={styles.gameCard} aria-disabled="true">{inner}</div> :
               <Link key={card.slug} href={href} className={styles.gameCard}>{inner}</Link>;
           })}
-        </div>
-      ) : <p className={styles.empty} role="status">“{query}”에 해당하는 게임이 없습니다. 다른 이름으로 검색해 주십시오.</p>}
+          </div>
+        </section>}
+        {upcomingCards.length > 0 && <section className={styles.upcomingGames} aria-labelledby="upcoming-games-title">
+          <h2 id="upcoming-games-title" className={styles.gameGroupTitle}>출시 예정</h2>
+          <ul className={styles.upcomingList}>
+            {upcomingCards.map((card) => <li key={card.slug} className={styles.upcomingGame}>
+              <span className={styles.upcomingLogo} aria-hidden="true"><GameLogo slug={card.slug} name={card.title} className="size-5" /></span>
+              <span>{card.title}</span>
+              <span className={styles.upcomingLabel}>준비 중</span>
+            </li>)}
+          </ul>
+        </section>}
+      </div> : <p className={styles.empty} role="status">“{query}”에 해당하는 게임이 없습니다. 다른 이름으로 검색해 주십시오.</p>}
     </>
   );
 }

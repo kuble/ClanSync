@@ -122,26 +122,39 @@
 .genderOptions input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .terms { display: flex; gap: 10px; align-items: flex-start; color: var(--entry-muted); font-size: 12px; line-height: 1.65; cursor: pointer; }
 .terms input { accent-color: var(--primary); width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; }
-.gamesPage { --entry-bg: var(--background); --entry-surface: var(--card); --entry-border: var(--border); }
-.gamesPage .navbar { background: var(--entry-bg); }
-.gamesPage .navbarInner { max-width: 900px; }
-.gamesContent { max-width: 900px; padding: 64px 24px; margin: 0 auto; }
-.gameHeader { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 36px; }
-.gameHeading { font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
-.gameDescription { color: var(--muted-foreground); font-size: 14px; margin-top: 4px; }
+.gamesPage { --entry-bg: var(--background); --entry-surface: var(--card); --entry-border: color-mix(in srgb, var(--foreground) 11%, transparent); width: 100%; min-height: 100dvh; }
+.gamesPage .navbar { background: var(--entry-bg); height: 80px; border-bottom: 0; }
+.gamesPage .navbarInner { max-width: 1152px; border-bottom: 1px solid var(--entry-border); }
+.gamesPage a:focus-visible, .gamesPage .profileSummary:focus-visible { outline-color: var(--primary); }
+.gamesContent { width: 100%; max-width: 960px; padding: 64px 24px 80px; margin: 0 auto; }
+.gameHeader { display: flex; align-items: center; justify-content: space-between; gap: 32px; margin-bottom: 40px; }
+.gameHeading { font-size: 32px; font-weight: 650; line-height: 1.4; letter-spacing: -.04em; }
+.gameDescription { color: var(--muted-foreground); font-size: 14px; line-height: 1.8; margin-top: 8px; word-break: keep-all; }
 .search { width: 280px; position: relative; }
-.search svg { position: absolute; top: 12px; left: 12px; color: var(--muted-foreground); pointer-events: none; }
-.search input { padding-left: 38px; color: var(--foreground); min-height: 40px; }
-.gameGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
-.gameCard { min-width: 0; display: block; border: 1px solid var(--entry-border); border-radius: 14px; overflow: hidden; color: var(--foreground); background: transparent; transition: border-color .2s, background-color .2s; }
-.gameCard:hover { border-color: #46af7566; background: var(--entry-surface); }
-.gameCard[aria-disabled="true"] { opacity: .5; }
-.gameCard[aria-disabled="true"]:hover { border-color: var(--entry-border); background: transparent; }
-.gameThumbnail { display: flex; align-items: center; justify-content: center; aspect-ratio: 16 / 9; border-bottom: 1px solid var(--entry-border); font-size: 48px; }
-.gameBody { padding: 16px; }
-.gameName { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.search svg { position: absolute; top: 15px; left: 14px; color: var(--muted-foreground); pointer-events: none; }
+.search input { padding-left: 40px; color: var(--foreground); min-height: 46px; border-radius: 10px; }
+.gameGroups { display: grid; gap: 36px; }
+.gameGroupTitle { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; font-size: 13px; font-weight: 550; color: var(--muted-foreground); }
+.gameGroupTitle > span { font-size: 12px; font-variant-numeric: tabular-nums; }
+.gameGrid { display: grid; gap: 12px; }
+.gameCard { min-width: 0; display: flex; align-items: center; gap: 20px; min-height: 112px; padding: 24px; border: 1px solid var(--entry-border); border-radius: 14px; color: var(--foreground); background: var(--entry-surface); transition: border-color .18s, background-color .18s; }
+.gameCard:hover { border-color: color-mix(in srgb, var(--primary) 55%, var(--entry-border)); background: color-mix(in srgb, var(--primary) 4%, var(--entry-surface)); }
+.gameCard[aria-disabled="true"] { pointer-events: none; }
+.gameLogo { width: 56px; height: 56px; flex-shrink: 0; display: grid; place-items: center; border-radius: 12px; color: var(--foreground); background: color-mix(in srgb, var(--foreground) 5%, var(--entry-bg)); }
+.gameBody { min-width: 0; flex: 1; }
+.gameName { font-size: 20px; font-weight: 600; letter-spacing: -.025em; line-height: 1.4; margin-bottom: 7px; overflow-wrap: anywhere; }
 .gameStatus { display: flex; gap: 6px; align-items: center; color: var(--muted-foreground); font-size: 13px; line-height: 1.5; }
+.gameStatus > span:last-child { min-width: 0; overflow-wrap: anywhere; }
 .gameDot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.gameAction { display: flex; align-items: center; gap: 14px; color: var(--primary); font-size: 13px; font-weight: 550; white-space: nowrap; }
+.gameAction svg { flex-shrink: 0; }
+.upcomingGames { padding-top: 28px; border-top: 1px solid var(--entry-border); }
+.upcomingList { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 28px; padding: 0; margin: 0; list-style: none; }
+.upcomingGame { display: flex; align-items: center; min-width: 0; gap: 12px; min-height: 48px; color: var(--muted-foreground); font-size: 13px; }
+.upcomingLogo { flex-shrink: 0; width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid var(--entry-border); border-radius: 10px; }
+.upcomingGame > span:nth-child(2) { min-width: 0; overflow-wrap: anywhere; }
+.upcomingLabel { margin-left: auto; flex-shrink: 0; font-size: 11px; }
+.gamesPage .profileSummary { min-height: 44px; border-radius: 10px; }
 .empty { padding: 50px 24px; text-align: center; border: 1px dashed var(--entry-border); border-radius: 10px; color: var(--muted-foreground); font-size: 14px; }
 .profileMenu { position: relative; }
 .profileSummary { display: flex; align-items: center; gap: 10px; border: 1px solid var(--entry-border); border-radius: 5px; padding: 6px 10px; cursor: pointer; list-style: none; color: var(--foreground); }
@@ -168,8 +181,8 @@
   .authPanel { width: 100%; padding: 120px 24px 52px; }
   .authForm { max-width: 464px; margin: 0 auto; }
   .featureCard { flex-basis: calc((100% - 22px) / 2); }
-  .gameGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .gameHeader { flex-wrap: wrap; }
+  .gameHeader .search { width: 100%; }
 }
 @media (max-width: 768px) {
   .navbarInner { padding-inline: 16px; gap: 8px; }
@@ -195,10 +208,18 @@
   .pricingCard { padding: 26px; }
   .footer { margin-top: 48px; }
   .authHeading { font-size: 24px; }
-  .gamesContent { padding: 40px 16px; }
-  .gameHeader { gap: 24px; }
+  .gamesContent { padding: 36px 20px 52px; }
+  .gameHeader { gap: 22px; margin-bottom: 30px; }
+  .gameHeading { font-size: 28px; }
+  .gameDescription { font-size: 13px; }
   .search { width: 100%; }
-  .gameGrid { grid-template-columns: 1fr; }
+  .gameCard { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px 16px; padding: 20px; }
+  .gameLogo { width: 44px; height: 44px; border-radius: 10px; }
+  .gameName { font-size: 18px; }
+  .gameStatus { font-size: 12px; }
+  .gameAction { grid-column: 2; justify-content: space-between; font-size: 12px; }
+  .gameGroups { gap: 28px; }
+  .upcomingList { grid-template-columns: 1fr; gap: 8px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .landing *, .authShell *, .gamesPage * { scroll-behavior: auto; transition: none; }

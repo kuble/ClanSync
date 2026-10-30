@@ -11,7 +11,6 @@ import { createClient } from "@/lib/supabase/server";
 import { fetchMyClanJoinRequests } from "@/lib/clan/fetch-my-clan-join-requests";
 import styles from "@/components/entry/entry.module.css";
 
-const EMOJI: Record<string, string> = { overwatch: "🎮", valorant: "🎯", lol: "⚔️", pubg: "🪖" };
 const gameOrder = ["overwatch", "valorant", "lol", "pubg"];
 
 export const metadata = { title: "게임 선택 · ClanSync" };
@@ -54,7 +53,7 @@ export default async function GamesPage() {
     if (!pendingByGame.has(row.game_id)) pendingByGame.set(row.game_id, { clanId: row.clan_id, clanName: clanNamesById.get(row.clan_id) ?? "" });
   }
 
-  const cards: (GameCardState & { title: string; emoji: string })[] = [...(games ?? [])]
+  const cards: (GameCardState & { title: string })[] = [...(games ?? [])]
     .sort((a, b) => {
       const aIndex = gameOrder.indexOf(a.slug);
       const bIndex = gameOrder.indexOf(b.slug);
@@ -67,7 +66,6 @@ export default async function GamesPage() {
       return {
         slug: game.slug,
         title: game.name_ko,
-        emoji: EMOJI[game.slug] ?? "🎮",
         auth: registered.get(game.id) ?? false,
         clanStatus,
         clanId: member?.clanId ?? pending?.clanId ?? null,
