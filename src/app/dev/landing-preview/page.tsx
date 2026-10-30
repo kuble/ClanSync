@@ -11,6 +11,7 @@ import type { ClanArchiveMatch } from "@/lib/clan/stats/load-clan-stats";
 import type { BalanceRoster } from "@/lib/balance/roster-schema";
 import styles from "./preview.module.css";
 import { ClanActivityPreview } from "./clan-activity-preview";
+import { LandingSectionNav } from "./landing-section-nav";
 
 export const metadata: Metadata = {
   title: "랜딩 중앙형 시안 · ClanSync",
@@ -44,11 +45,7 @@ export default function LandingPreviewPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <EntryBrand />
-        <nav aria-label="서비스 소개" className={styles.sectionNav}>
-          <a href="#features">내전 기능</a>
-          <a href="#records">기록과 통계</a>
-          <a href="#clan-activity">클랜 활동</a>
-        </nav>
+        <LandingSectionNav />
         <nav aria-label="계정 메뉴" className={styles.nav}>
           <ThemeToggle />
           <Link href="/sign-in" className={styles.login}>로그인</Link>

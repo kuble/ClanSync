@@ -10,7 +10,10 @@
 .header { position: sticky; top: 0; z-index: 40; height: var(--landing-header-height); padding: 0 max(24px, calc((100% - 1104px) / 2)); display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid var(--landing-line); background: var(--background); }
 .sectionNav, .nav { display: flex; align-items: center; gap: 28px; font-size: 13px; font-weight: 550; }
 .sectionNav { color: var(--muted-foreground); }
+.sectionNav a { position: relative; display: inline-flex; align-items: center; min-height: 44px; }
 .sectionNav a:hover, .footer a:hover { color: var(--foreground); }
+.sectionNav a[aria-current="location"] { color: var(--primary); }
+.sectionNav a[aria-current="location"]::after { content: ""; position: absolute; right: 0; bottom: 4px; left: 0; height: 2px; border-radius: 2px; background: currentColor; }
 .login { padding: 12px 0; }
 .smallButton, .primary { display: inline-flex; align-items: center; justify-content: center; gap: 16px; color: var(--primary-foreground); background: var(--primary); border: 1px solid transparent; border-radius: 10px; font-weight: 650; }
 .smallButton { padding: 10px 16px; min-height: 44px; }
