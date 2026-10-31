@@ -9,15 +9,16 @@
 .editorFields input { min-height: 44px; font-size: 14px; }
 .editorFields label { font-size: 12px; color: var(--muted-foreground); }
 .editorFields :global(.tiptap) { min-height: 260px; }
-.sidebar { display: grid; gap: 12px; min-width: 0; }
-.conditionFields { padding: 18px 20px 8px; }
-.tierPanel { padding: 16px 20px; }
-.tierHeading { display: flex; align-items: center; gap: 9px; font-size: 13px; font-weight: 550; }
-.tierHeading > svg { color: var(--muted-foreground); }
-.tierValue { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; }
-.tierValue p { font-size: 17px; font-weight: 600; letter-spacing: -.025em; color: var(--primary); }
+.recruitmentPanel { container: recruitment / inline-size; }
+.settingsBody { display: grid; gap: 20px; padding: 18px 20px 20px; }
+.groupTitle { font-size: 14px; font-weight: 600; letter-spacing: -.025em; }
+.settingsBody > section > .groupTitle { margin-bottom: 12px; }
+.tierSection { min-width: 0; border-top: 1px solid var(--border); padding-top: 16px; }
+.tierHeading { display: flex; align-items: start; justify-content: space-between; gap: 8px; }
+.tierHeading p { margin-top: 3px; font-size: 12px; color: var(--muted-foreground); }
+.tierValue { display: block; margin-top: 10px; font-size: 13px; font-weight: 600; color: var(--primary); }
 .saveBar { flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 14px 4px; border-top: 1px solid var(--border); background: var(--background); }
 .saveBar > button { min-height: 40px; border-radius: 10px; padding-inline: 20px; gap: 8px; }
 .saveBar > div { display: grid; gap: 4px; }
 @media(max-width: 1050px) { .layout { grid-template-columns: minmax(0,1fr); } .editorFields :global(.tiptap) { min-height: 260px; } }
-@media(max-width: 600px) { .panelHeader { padding: 16px; gap: 9px; } .editorFields { padding: 18px 16px; gap: 20px; } .conditionFields { padding: 20px 16px 10px; } .tierPanel { padding: 20px 16px; } .panelHeader h4 { font-size: 14px; } .tag { font-size: 9px; } .saveBar > div { flex: 1; min-width: 0; } .saveBar > button { padding-inline: 14px; } }
+@media(max-width: 600px) { .panelHeader { padding: 16px; gap: 9px; } .editorFields { padding: 18px 16px; gap: 20px; } .settingsBody { padding: 16px; } .panelHeader h4 { font-size: 14px; } .tag { font-size: 9px; } .saveBar > div { flex: 1; min-width: 0; } .saveBar > button { padding-inline: 14px; } }

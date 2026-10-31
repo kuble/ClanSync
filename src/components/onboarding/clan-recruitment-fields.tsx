@@ -10,14 +10,20 @@ type Values = Pick<ClanRecruitment,"birth_year_from"|"min_birth_year"|"gender_po
 const unrestricted: Values = {birth_year_from:null,min_birth_year:null,gender_policy:"all"};
 const genders = [{value:"all",label:"제한 없음",icon:Users},{value:"male",label:"남성",icon:Mars},{value:"female",label:"여성",icon:Venus}] as const;
 
-export function ClanRecruitmentFields({initial=unrestricted,prefix,disabled=false}:{initial?:Values;prefix:string;disabled?:boolean}) {
+export function ClanRecruitmentFields({initial=unrestricted,prefix,disabled=false,layout="stacked"}:{initial?:Values;prefix:string;disabled?:boolean;layout?:"stacked"|"grouped"}) {
   const [years, setYears] = useState(() => ({ birth_year_from: initial.birth_year_from, min_birth_year: initial.min_birth_year }));
   const [gender,setGender]=useState(initial.gender_policy);
   const [lastYear] = useState(lastRecruitmentYear);
   // Reserve a step beyond each real year so the first and last years stay selectable.
   const openStart = FIRST_RECRUITMENT_YEAR - 1, openEnd = lastYear + 1;
   const range = [years.birth_year_from ?? openStart, years.min_birth_year ?? openEnd];
-  return <div className={styles.fields}>
+  const genderField = <fieldset disabled={disabled} className={styles.group} aria-describedby={gender !== "all" ? `${prefix}-gender-hint` : undefined}>
+    <legend>성별 조건</legend>
+    <div className={styles.genders}>{genders.map(({value,label,icon:Icon})=><label key={value}><input type="radio" name="gender_policy" value={value} checked={gender===value} onChange={()=>setGender(value)} /><Icon size={15} aria-hidden /><span>{label}</span></label>)}</div>
+    {gender !== "all" && <p id={`${prefix}-gender-hint`}>성별 비공개 계정은 신청할 수 없습니다.</p>}
+  </fieldset>;
+  return <div className={`${styles.fields} ${styles[layout]}`}>
+    {layout === "grouped" && genderField}
     <fieldset disabled={disabled} className={styles.group}>
       <legend>출생연도</legend>
       <output className={styles.yearSummary}>{recruitmentYearLabel(years)}</output>
@@ -44,10 +50,6 @@ export function ClanRecruitmentFields({initial=unrestricted,prefix,disabled=fals
       <input type="hidden" name="birth_year_from" value={years.birth_year_from ?? ""} />
       <input type="hidden" name="min_birth_year" value={years.min_birth_year ?? ""} />
     </fieldset>
-    <fieldset disabled={disabled} className={styles.group} aria-describedby={gender !== "all" ? `${prefix}-gender-hint` : undefined}>
-      <legend>성별 조건</legend>
-      <div className={styles.genders}>{genders.map(({value,label,icon:Icon})=><label key={value}><input type="radio" name="gender_policy" value={value} checked={gender===value} onChange={()=>setGender(value)} /><Icon size={15} aria-hidden /><span>{label}</span></label>)}</div>
-      {gender !== "all" && <p id={`${prefix}-gender-hint`}>성별 비공개 계정은 신청할 수 없습니다.</p>}
-    </fieldset>
+    {layout === "stacked" && genderField}
   </div>;
 }

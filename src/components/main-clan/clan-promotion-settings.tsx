@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUpRight, Megaphone, ShieldCheck, Trophy, Check, Save } from "lucide-react";
+import { ArrowUpRight, Megaphone, SlidersHorizontal, RotateCcw, Check, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Slider } from "@base-ui/react/slider";
 import { saveClanPromotionAction } from "@/app/actions/clan-promotion";
@@ -81,22 +81,31 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
             <div className="space-y-2"><Label htmlFor="promotion-content">내용</Label><PromotionEditor gameSlug={gameSlug} clanId={clanId} blocks={blocks} onChange={setBlocks} disabled={saving} /></div>
           </fieldset>
       </section>
-      <div className={styles.sidebar}>
-      <section className={styles.panel} aria-labelledby="recruitment-heading">
-        <header className={styles.panelHeader}><span className={styles.sectionIcon}><ShieldCheck size={20} aria-hidden /></span><h4 id="recruitment-heading">가입 조건</h4><span className={styles.tag}>신청 기준</span></header>
-          <fieldset disabled={saving} className={styles.conditionFields}>
-            <ClanRecruitmentFields prefix="recruitment" initial={initial} disabled={saving} />
-          </fieldset>
+      <section className={`${styles.panel} ${styles.recruitmentPanel}`} aria-labelledby="recruitment-heading">
+        <header className={styles.panelHeader}>
+          <span className={styles.sectionIcon}><SlidersHorizontal size={20} aria-hidden /></span>
+          <h4 id="recruitment-heading">모집 설정</h4>
+        </header>
+        <div className={styles.settingsBody}>
+          <section aria-labelledby="eligibility-heading">
+            <h5 id="eligibility-heading" className={styles.groupTitle}>가입 조건</h5>
+            <ClanRecruitmentFields prefix="recruitment" initial={initial} disabled={saving} layout="grouped" />
+          </section>
+          {RECRUITMENT_TIERS.length > 1 && <Slider.Root value={tierRange} onValueChange={setTierRange} min={0} max={RECRUITMENT_TIERS.length-1} step={1} largeStep={1} thumbCollisionBehavior="none" disabled={saving} className={styles.tierSection} aria-describedby="recruitment-tier-hint">
+            <div className={styles.tierHeading}>
+              <div>
+                <Slider.Label render={<h5 />} className={styles.groupTitle}>모집 티어</Slider.Label>
+                <p id="recruitment-tier-hint">이 범위 밖의 티어도 가입을 신청할 수 있습니다.</p>
+              </div>
+              <Button type="button" variant="ghost" size="sm" className="h-7 gap-1 px-2 text-xs text-muted-foreground" disabled={saving || allTiers} aria-label="모집 티어 무관으로 설정" onClick={()=>setTierRange([0,RECRUITMENT_TIERS.length-1])}><RotateCcw size={13} aria-hidden />무관으로 설정</Button>
+            </div>
+            <output className={styles.tierValue}>{allTiers ? "티어 무관" : tierRange[0] === tierRange[1] ? RECRUITMENT_TIERS[tierRange[0]][1] : `${RECRUITMENT_TIERS[tierRange[0]][1]} ~ ${RECRUITMENT_TIERS[tierRange[1]][1]}`}</output>
+            <div className="mx-2.5"><Slider.Control className="relative flex min-h-11 w-full touch-none items-center"><Slider.Track data-tier-track className="relative h-1.5 w-full rounded-full bg-muted"><Slider.Indicator className="absolute h-full rounded-full bg-primary" />{RECRUITMENT_TIERS.map(([tier],index)=><span key={tier} aria-hidden className="pointer-events-none absolute top-1/2 size-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/30" style={{left:`${index/(RECRUITMENT_TIERS.length-1)*100}%`}} />)}{[0,1].map(index=><Slider.Thumb key={index} index={index} aria-label={index===0 ? "최소 모집 티어" : "최대 모집 티어"} getAriaValueText={(_,value)=>RECRUITMENT_TIERS[value][1]} className="block size-5 rounded-full border-2 border-primary bg-background shadow-sm outline-none focus-within:ring-4 focus-within:ring-ring/30" />)}</Slider.Track></Slider.Control></div>
+            <div className="flex justify-between text-[11px] text-muted-foreground" aria-hidden><span>{RECRUITMENT_TIERS[0][1]}</span><span>{RECRUITMENT_TIERS[RECRUITMENT_TIERS.length-1][1]}</span></div>
+            {selectedTiers.map(([tier])=><input key={tier} type="hidden" name="tier_range" value={tier} />)}
+          </Slider.Root>}
+        </div>
       </section>
-            {RECRUITMENT_TIERS.length > 1 && <Slider.Root value={tierRange} onValueChange={setTierRange} min={0} max={RECRUITMENT_TIERS.length-1} step={1} largeStep={1} thumbCollisionBehavior="none" disabled={saving} className={`${styles.panel} ${styles.tierPanel}`} aria-describedby="recruitment-tier-hint">
-              <div className={styles.tierHeading}><Trophy size={17} aria-hidden /><Slider.Label>모집 티어</Slider.Label><span className={styles.tag}>참고 정보</span></div>
-              <div className={styles.tierValue}><p aria-live="polite">{allTiers ? "티어 무관" : tierRange[0] === tierRange[1] ? RECRUITMENT_TIERS[tierRange[0]][1] : `${RECRUITMENT_TIERS[tierRange[0]][1]} ~ ${RECRUITMENT_TIERS[tierRange[1]][1]}`}</p><Button type="button" variant="ghost" size="sm" className={`h-7 px-2 text-xs ${allTiers ? "text-primary" : "text-muted-foreground"}`} disabled={saving} aria-label="모집 티어 무관으로 설정" aria-pressed={allTiers} onClick={()=>setTierRange([0,RECRUITMENT_TIERS.length-1])}>무관</Button></div>
-              <div className="mx-2.5"><Slider.Control className="relative flex min-h-11 w-full touch-none items-center"><Slider.Track data-tier-track className="relative h-1.5 w-full rounded-full bg-muted"><Slider.Indicator className="absolute h-full rounded-full bg-primary" />{RECRUITMENT_TIERS.map(([tier],index)=><span key={tier} aria-hidden className="pointer-events-none absolute top-1/2 size-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/30" style={{left:`${index/(RECRUITMENT_TIERS.length-1)*100}%`}} />)}{[0,1].map(index=><Slider.Thumb key={index} index={index} aria-label={index===0 ? "최소 모집 티어" : "최대 모집 티어"} getAriaValueText={(_,value)=>RECRUITMENT_TIERS[value][1]} className="block size-5 rounded-full border-2 border-primary bg-background shadow-sm outline-none focus-within:ring-4 focus-within:ring-ring/30" />)}</Slider.Track></Slider.Control></div>
-              <div className="flex justify-between text-[11px] text-muted-foreground" aria-hidden><span>{RECRUITMENT_TIERS[0][1]}</span><span>{RECRUITMENT_TIERS[RECRUITMENT_TIERS.length-1][1]}</span></div>
-              {selectedTiers.map(([tier])=><input key={tier} type="hidden" name="tier_range" value={tier} />)}
-              <p id="recruitment-tier-hint" className="mt-3 text-xs text-muted-foreground">모집 정보로만 표시됩니다.</p>
-            </Slider.Root>}
-      </div>
     </div>
     <div className={styles.saveBar}>
       <div>{error && <p role="alert" className="text-xs text-destructive">{error}</p>}{saved && <p role="status" className="text-xs text-primary">홍보글과 가입 조건을 저장했습니다.</p>}{version && <Link className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary" href={`/games/${gameSlug}/clan?promotion=${postId}`}>클랜 찾기에서 보기<ArrowUpRight size={14} aria-hidden /></Link>}</div>
