@@ -86,17 +86,32 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     await expect(maximum).toHaveAttribute("aria-valuetext","다이아몬드");
     await expect(page.locator("[data-sonner-toast]")).toHaveCount(0,{timeout:10_000});
     await page.setViewportSize({width:1304,height:884});
+    await expect(page.getByRole("button",{name:"모집 티어 무관으로 설정",exact:true})).toHaveCount(0);
+    await expect(page.getByRole("link",{name:"클랜 찾기에서 보기",exact:true})).toHaveCount(0);
+    const editorPanel=await page.getByRole("region",{name:"홍보글 작성",exact:true}).boundingBox();
+    const recruitmentPanel=await page.getByRole("region",{name:"모집 설정",exact:true}).boundingBox();
+    expect(editorPanel).not.toBeNull(); expect(recruitmentPanel).not.toBeNull();
+    expect(Math.abs(editorPanel!.height-recruitmentPanel!.height)).toBeLessThanOrEqual(1);
     await page.screenshot({path:testInfo.outputPath("clan-promotion-range.png"),fullPage:true});
     await page.getByTitle("라이트 / 다크 테마 전환",{exact:true}).click();
     await page.screenshot({path:testInfo.outputPath("clan-promotion-redesign-dark.png"),fullPage:true});
-    await page.setViewportSize({width:390,height:844});
-    await year.scrollIntoViewIfNeeded();
-    await expect(gender.getByRole("radio",{name:"남성",exact:true})).toBeVisible();
-    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+    for (const width of [744,390]) {
+      await page.setViewportSize({width,height:844});
+      await year.scrollIntoViewIfNeeded();
+      await expect(gender.getByRole("radio",{name:"남성",exact:true})).toBeVisible();
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+      const innerScrollers=await page.getByRole("region",{name:"클랜 홍보",exact:true}).evaluate(element=>
+        [element,...element.querySelectorAll("*")].filter(node=>
+          /^(auto|scroll)$/.test(getComputedStyle(node).overflowY) && node.scrollHeight>node.clientHeight+1
+        ).length);
+      expect(innerScrollers).toBe(0);
+      await page.getByRole("button",{name:"변경사항 저장",exact:true}).scrollIntoViewIfNeeded();
+      expect(await page.evaluate(()=>document.scrollingElement!.scrollTop)).toBeGreaterThan(0);
+    }
     await page.screenshot({path:testInfo.outputPath("clan-promotion-redesign-mobile.png"),fullPage:true});
     await page.setViewportSize({width:1304,height:884});
     await page.getByTitle("라이트 / 다크 테마 전환",{exact:true}).click();
-    await page.getByRole("button",{name:"모집 티어 무관으로 설정",exact:true}).click();
+    await minimum.press("Home"); await maximum.press("End");
     await expect(minimum).toHaveAttribute("aria-valuenow","0");
     await expect(maximum).toHaveAttribute("aria-valuenow","7");
     await fromYear.press("Home"); await year.press("End");
@@ -169,7 +184,7 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     await page.getByRole("button",{name:"변경사항 저장",exact:true}).scrollIntoViewIfNeeded();
     await expect(page.getByRole("button",{name:"변경사항 저장",exact:true})).toBeVisible();
     expect(formWarnings).toEqual([]);
-    await page.getByRole("link",{name:"클랜 찾기에서 보기",exact:true}).click();
+    await page.goto(`/games/overwatch/clan?promotion=${saved.data!.id}`);
     await expect(page).toHaveURL(new RegExp(`/clan\\?promotion=${saved.data!.id}$`));
     await expect(page.getByRole("dialog",{name:title,exact:true})).toBeVisible();
     await expect(page.getByRole("button",{name:"가입 신청",exact:true})).toHaveCount(0);

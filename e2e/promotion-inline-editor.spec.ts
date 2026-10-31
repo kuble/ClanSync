@@ -82,7 +82,7 @@ test("promotion photos are inline text atoms with deletion, undo and one continu
     await page.setViewportSize({width:390,height:844});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
     await page.screenshot({path:testInfo.outputPath("promotion-inline-mobile.png"),fullPage:true});
-    await page.getByRole("link",{name:"클랜 찾기에서 보기",exact:true}).click();
+    await page.goto(`/games/overwatch/clan?promotion=${saved.data!.id}`);
     const body=page.getByRole("region",{name:"클랜 홍보 내용"});
     await expect(body).toHaveText("앞글뒤글");
     await expect(body.locator("img")).toHaveCount(2);

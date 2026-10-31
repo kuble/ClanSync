@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUpRight, Megaphone, SlidersHorizontal, RotateCcw, Check, Save } from "lucide-react";
+import { Megaphone, SlidersHorizontal, Check, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Slider } from "@base-ui/react/slider";
 import { saveClanPromotionAction } from "@/app/actions/clan-promotion";
@@ -102,7 +101,6 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
               <div className={styles.tierHeading}>
                 <Slider.Label className={styles.audienceLabel}>모집 티어</Slider.Label>
                 <output className={styles.tierValue}>{allTiers ? "티어 무관" : tierRange[0] === tierRange[1] ? RECRUITMENT_TIERS[tierRange[0]][1] : `${RECRUITMENT_TIERS[tierRange[0]][1]} ~ ${RECRUITMENT_TIERS[tierRange[1]][1]}`}</output>
-                <Button type="button" variant="ghost" size="sm" className="h-7 gap-1 px-2 text-xs text-muted-foreground" disabled={saving || allTiers} aria-label="모집 티어 무관으로 설정" onClick={()=>setTierRange([0,RECRUITMENT_TIERS.length-1])}><RotateCcw size={13} aria-hidden />무관으로 설정</Button>
               </div>
               <p id="recruitment-tier-hint" className="sr-only">이 범위 밖의 티어도 가입을 신청할 수 있습니다.</p>
               <div className="mx-2.5"><Slider.Control className="relative flex min-h-11 w-full touch-none items-center"><Slider.Track data-tier-track className="relative h-1.5 w-full rounded-full bg-muted"><Slider.Indicator className="absolute h-full rounded-full bg-primary" />{RECRUITMENT_TIERS.map(([tier],index)=><span key={tier} aria-hidden className="pointer-events-none absolute top-1/2 size-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/30" style={{left:`${index/(RECRUITMENT_TIERS.length-1)*100}%`}} />)}{[0,1].map(index=><Slider.Thumb key={index} index={index} aria-label={index===0 ? "최소 모집 티어" : "최대 모집 티어"} getAriaValueText={(_,value)=>RECRUITMENT_TIERS[value][1]} className="block size-5 rounded-full border-2 border-primary bg-background shadow-sm outline-none focus-within:ring-4 focus-within:ring-ring/30" />)}</Slider.Track></Slider.Control></div>
@@ -114,7 +112,7 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
       </section>
     </div>
     <div className={styles.saveBar}>
-      <div>{error && <p role="alert" className="text-xs text-destructive">{error}</p>}{saved && <p role="status" className="text-xs text-primary">홍보글과 가입 조건을 저장했습니다.</p>}{version && <Link className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary" href={`/games/${gameSlug}/clan?promotion=${postId}`}>클랜 찾기에서 보기<ArrowUpRight size={14} aria-hidden /></Link>}</div>
+      <div>{error && <p role="alert" className="text-xs text-destructive">{error}</p>}{saved && <p role="status" className="text-xs text-primary">홍보글과 가입 조건을 저장했습니다.</p>}</div>
       <Button type="submit" disabled={saving}>{saved ? <Check size={15} aria-hidden /> : <Save size={15} aria-hidden />}{saving ? "저장 중…" : "변경사항 저장"}</Button>
     </div>
   </form>;
