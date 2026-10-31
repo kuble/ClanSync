@@ -1,5 +1,12 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
+
+async function moveToYear(thumb: Locator, year: number) {
+  const steps = year - Number(await thumb.inputValue());
+  for (let i = 0; i < Math.floor(Math.abs(steps) / 10); i++) await thumb.press(steps > 0 ? "PageUp" : "PageDown");
+  for (let i = 0; i < Math.abs(steps) % 10; i++) await thumb.press(steps > 0 ? "ArrowRight" : "ArrowLeft");
+  await expect(thumb).toHaveAttribute("aria-valuetext", `${year}년생`);
+}
 
 test("clan promotion appears during clan discovery and keeps membership requirements",async({page},testInfo)=>{
   test.setTimeout(180_000);
@@ -20,19 +27,27 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     await page.getByRole("navigation",{name:"클랜 관리 항목"}).getByRole("link",{name:"클랜 홍보"}).click();
     await expect(page.getByRole("textbox",{name:"내용",exact:true})).toHaveText("이전 홍보 내용");
     await expect(page).toHaveURL(/tab=promotion/);
-    const year = page.getByRole("combobox",{name:"출생연도 상한",exact:true});
-    const fromYear = page.getByRole("combobox",{name:"출생연도 하한",exact:true});
+    const year = page.getByRole("slider",{name:"출생연도 상한",exact:true});
+    const fromYear = page.getByRole("slider",{name:"출생연도 하한",exact:true});
     const minimum = page.getByRole("slider",{name:"최소 모집 티어",exact:true});
     const maximum = page.getByRole("slider",{name:"최대 모집 티어",exact:true});
-    await fromYear.selectOption("1990");
-    await year.selectOption("1999");
-    await expect(fromYear.getByRole("option",{name:"2000년생",exact:true})).toHaveCount(0);
-    await expect(year.getByRole("option",{name:"1989년생",exact:true})).toHaveCount(0);
+    const yearGroup = page.getByRole("group",{name:"출생연도",exact:true});
+    await expect(yearGroup.getByText("제한 없음",{exact:true})).toHaveCount(2);
+    await fromYear.press("ArrowRight");
+    await expect(fromYear).toHaveAttribute("aria-valuetext","1950년생");
+    await expect(yearGroup.getByText("1950년생부터")).toBeVisible();
+    await fromYear.press("Home");
+    await year.press("ArrowLeft");
+    await expect(yearGroup.locator("output")).toHaveText(`${await year.inputValue()}년생까지`);
+    await moveToYear(year,1999);
+    await fromYear.press("End"); await fromYear.press("ArrowRight");
+    await expect(yearGroup.locator("output")).toHaveText("1999년생");
+    await moveToYear(fromYear,1990);
     const gender = page.getByRole("group",{name:"성별 조건",exact:true});
     await expect(gender.getByRole("radio")).toHaveCount(3);
     await expect(gender.locator("svg")).toHaveCount(3);
     await gender.getByRole("radio",{name:"남성",exact:true}).check();
-    await expect(page.getByRole("slider")).toHaveCount(2);
+    await expect(page.getByRole("slider")).toHaveCount(4);
     await expect(maximum).toHaveAttribute("aria-valuetext","챔피언");
     await minimum.focus();
     await minimum.press("ArrowRight"); await minimum.press("ArrowRight");
@@ -66,15 +81,15 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     await page.getByRole("button",{name:"모집 티어 무관으로 설정",exact:true}).click();
     await expect(minimum).toHaveAttribute("aria-valuenow","0");
     await expect(maximum).toHaveAttribute("aria-valuenow","7");
-    await fromYear.selectOption(""); await year.selectOption("");
+    await fromYear.press("Home"); await year.press("End");
     await page.getByRole("button",{name:"변경사항 저장",exact:true}).click();
     await expect.poll(async()=>{
       const result=await f.service.from("clans").select("birth_year_from,min_birth_year,tier_range").eq("id",f.clanId).single();
       expect(result.error).toBeNull(); return result.data;
     }).toEqual({birth_year_from:null,min_birth_year:null,tier_range:[]});
     await page.reload();
-    await expect(year).toHaveValue("");
-    await expect(fromYear).toHaveValue("");
+    await expect(year).toHaveAttribute("aria-valuetext","제한 없음");
+    await expect(fromYear).toHaveAttribute("aria-valuetext","제한 없음");
     await expect(minimum).toHaveAttribute("aria-valuenow","0");
     await expect(maximum).toHaveAttribute("aria-valuenow","7");
     // Pointer interaction covers the two-thumb control, including a single-tier range.
@@ -89,8 +104,8 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     await page.mouse.up();
     await expect(maximum).toHaveAttribute("aria-valuetext","골드");
     await minimum.focus(); await minimum.press("ArrowRight"); await minimum.press("ArrowRight");
-    await year.selectOption("1999");
-    await fromYear.selectOption("1990");
+    await moveToYear(year,1999);
+    await moveToYear(fromYear,1990);
     await page.getByRole("button",{name:"변경사항 저장",exact:true}).click();
     await expect.poll(async()=>{
       const result=await f.service.from("clans").select("min_birth_year,tier_range").eq("id",f.clanId).single();
@@ -235,8 +250,8 @@ test("tier controls, clan creation and search use the selected game's ladder",as
     await expect(tierFilter.getByRole("option",{name:"챔피언",exact:true})).toHaveCount(0);
     await page.getByRole("tab",{name:"클랜 생성",exact:true}).click();
     await page.getByRole("textbox",{name:"클랜명 *",exact:true}).fill(createdName);
-    await page.getByRole("combobox",{name:"출생연도 하한",exact:true}).selectOption("1990");
-    await page.getByRole("combobox",{name:"출생연도 상한",exact:true}).selectOption("2005");
+    await moveToYear(page.getByRole("slider",{name:"출생연도 하한",exact:true}),1990);
+    await moveToYear(page.getByRole("slider",{name:"출생연도 상한",exact:true}),2005);
     const gender=page.getByRole("group",{name:"성별 조건",exact:true});
     await expect(gender.getByRole("radio")).toHaveCount(3);
     await gender.getByRole("radio",{name:"남성",exact:true}).check();

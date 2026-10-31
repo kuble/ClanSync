@@ -1,22 +1,28 @@
 .fields { display: grid; gap: 16px; min-width: 0; }
-.yearSummary { display: block; color: var(--primary); font-size: 18px; letter-spacing: -.035em; line-height: 1.5; font-weight: 600; margin: -2px 0 10px; }
+.yearSummary { display: block; color: var(--primary); font-size: 17px; letter-spacing: -.025em; line-height: 1.4; font-weight: 600; font-variant-numeric: tabular-nums; }
 .group + .group { border-top: 1px solid var(--border); padding-top: 16px; }
 .group + .group > legend { float: left; width: 100%; }
 .group + .group > legend + * { clear: both; }
-.genderHint { min-height: 24px; }
 .group { min-width: 0; padding: 0; border: 0; }
 .fields .group > legend { width: auto; padding: 0; margin: 0 0 10px; border: 0; font-size: 13px; font-weight: 550; }
-.years { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); gap: 10px; align-items: end; }
-.years label { display: grid; min-width: 0; gap: 7px; color: var(--muted-foreground); font-size: 11px; }
-.years > span { display: grid; place-items: center; height: 40px; color: var(--muted-foreground); font-size: 12px; }
-.years select { width: 100%; height: 40px; min-width: 0; padding: 0 12px; border: 1px solid var(--input); border-radius: 9px; background: var(--background); color: var(--foreground); font-size: 13px; }
-.genders { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 3px; padding: 3px; border: 1px solid var(--input); border-radius: 10px; background: var(--background); }
-.genders label { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 52px; padding: 8px 4px; border-radius: 7px; color: var(--muted-foreground); cursor: pointer; font-size: 12px; white-space: nowrap; }
+.yearControl { position: relative; display: flex; align-items: center; height: 42px; margin-inline: 10px; touch-action: none; user-select: none; }
+.yearTrack { position: relative; width: 100%; height: 6px; border-radius: 999px; background: color-mix(in srgb, var(--muted-foreground) 46%, var(--card)); }
+.yearIndicator { position: absolute; height: 100%; border-radius: inherit; background: var(--primary); }
+.yearThumb { display: block; width: 20px; height: 20px; border: 2px solid var(--primary); border-radius: 50%; background: var(--background); cursor: grab; }
+.yearThumb:active { cursor: grabbing; }
+.yearThumb:has(:focus-visible) { outline: 2px solid var(--primary); outline-offset: 3px; }
+.yearScale { position: relative; display: flex; justify-content: space-between; margin-inline: 10px; color: var(--muted-foreground); font-size: 11px; font-variant-numeric: tabular-nums; }
+.yearScale > :first-child { margin-inline-start: -10px; }
+.yearScale > :last-child { margin-inline-end: -10px; }
+.yearTick { position: absolute; transform: translateX(-50%); }
+.yearTick::before { content: ""; position: absolute; left: 50%; bottom: calc(100% + 2px); height: 4px; border-left: 1px solid currentColor; }
+.genders { display: grid; grid-template-columns: repeat(3,auto); width: fit-content; max-width: 100%; gap: 2px; padding: 2px; border: 1px solid var(--input); border-radius: 9px; background: var(--background); }
+.genders label { position: relative; display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 30px; padding-inline: 10px; border-radius: 6px; color: var(--muted-foreground); cursor: pointer; font-size: 12px; white-space: nowrap; }
 .genders input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .genders label:has(input:checked) { color: var(--primary); background: color-mix(in srgb,var(--primary) 12%,var(--background)); box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--primary) 20%,transparent); }
-.genders label:has(input:focus-visible), .years select:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.genders label:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 3px; }
 .genders label:hover { color: var(--foreground); }
 .group p { margin-top: 8px; color: var(--muted-foreground); font-size: 11px; line-height: 1.7; }
 .group:disabled { opacity: .65; }
 .group:disabled label, .group:disabled input { cursor: default; }
-@media(max-width: 380px) { .genders label { gap: 4px; font-size: 11px; } .years { gap: 7px; } .years select { padding-inline: 8px; } }
+@media (pointer: coarse) { .genders label { min-height: 38px; } }
