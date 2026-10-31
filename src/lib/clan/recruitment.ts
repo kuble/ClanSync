@@ -8,6 +8,21 @@ const TIERS_BY_GAME: Record<string, readonly (readonly [string, string])[]> = {
 export const recruitmentTiers = (gameSlug: string) => Object.hasOwn(TIERS_BY_GAME,gameSlug) ? TIERS_BY_GAME[gameSlug] : [];
 export const normalizeRecruitmentTier = (gameSlug: string, tier: string) => gameSlug === "overwatch" && tier === "challenger" ? "champion" : tier;
 
+export const CLAN_STYLES = [
+  { value: "social", label: "친목" }, { value: "casual", label: "즐겜" },
+  { value: "tryhard", label: "빡겜" }, { value: "pro", label: "프로" },
+] as const;
+
+export const OVERWATCH_POSITIONS = [
+  { value: "tank", label: "탱커" }, { value: "sup", label: "힐러" }, { value: "dmg", label: "딜러" },
+] as const;
+
+export function recruitmentPositionLabel(positions: readonly string[]) {
+  const selected = OVERWATCH_POSITIONS.filter(option => positions.includes(option.value));
+  if (selected.length === 0 || selected.length === OVERWATCH_POSITIONS.length) return "포지션 전체";
+  return selected.map(option => option.label).join("·") + " 모집";
+}
+
 // min_birth_year is the historical inclusive UPPER bound; keep saved values unchanged.
 export type ClanRecruitment = { birth_year_from: number | null; min_birth_year: number | null; gender_policy: "all" | "male" | "female"; tier_range: string[] };
 export type RecruitmentYears = Pick<ClanRecruitment,"birth_year_from"|"min_birth_year">;

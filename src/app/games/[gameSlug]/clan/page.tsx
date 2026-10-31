@@ -14,11 +14,10 @@ import { loadGameOnboarding } from "@/lib/onboarding/load-game-onboarding";
 import { createClient } from "@/lib/supabase/server";
 import styles from "@/components/onboarding/onboarding.module.css";
 import discover from "@/components/onboarding/clan-discovery.module.css";
-import { recruitmentProfileError, recruitmentTiers, normalizeRecruitmentTier } from "@/lib/clan/recruitment";
+import { CLAN_STYLES, recruitmentProfileError, recruitmentTiers, normalizeRecruitmentTier } from "@/lib/clan/recruitment";
 
 const PAGE_SIZE = 5;
-const CLAN_FIELDS = "id, name, description, rules, tags, max_members, style, tier_range, birth_year_from, min_birth_year, gender_policy, created_at, discord_url, kakao_url, subscription_tier, promotions:board_posts!board_posts_clan_id_fkey(id,title,content,content_blocks,created_at,updated_at)" as const;
-const STYLES = [{ value: "social", label: "친목" }, { value: "casual", label: "즐겜" }, { value: "tryhard", label: "빡겜" }, { value: "pro", label: "프로" }] as const;
+const CLAN_FIELDS = "id, name, description, rules, tags, max_members, style, recruitment_positions, tier_range, birth_year_from, min_birth_year, gender_policy, created_at, discord_url, kakao_url, subscription_tier, promotions:board_posts!board_posts_clan_id_fkey(id,title,content,content_blocks,created_at,updated_at)" as const;
 export const metadata = { title: "클랜 찾기 · ClanSync" };
 
 export default async function ClanOnboardingPage({ params, searchParams }: {
@@ -32,7 +31,7 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
   const TIERS = recruitmentTiers(gameSlug);
   const page = Math.max(1, Math.min(10000, parseInt(pageStr ?? "1", 10) || 1));
   const term = q.trim().slice(0, 64);
-  const style = STYLES.find((option) => option.value === styleQuery)?.value ?? "";
+  const style = CLAN_STYLES.find((option) => option.value === styleQuery)?.value ?? "";
   const tier = TIERS.find(([value]) => value === normalizeRecruitmentTier(gameSlug,tierQuery))?.[0] ?? "";
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -115,7 +114,7 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
       <TabsContent value="join">
         <ClanDiscoveryFilterForm action={`/games/${gameSlug}/clan`}>
           <div className={discover.search}><label htmlFor="q" className="sr-only">클랜 검색</label><Search size={17} aria-hidden="true" /><Input key={term} id="q" name="q" defaultValue={term} placeholder="클랜 이름으로 검색" /></div><input type="hidden" name="page" value="1" />
-            <label>지향<select key={style} name="style" defaultValue={style}><option value="">전체</option>{STYLES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+            <label>지향<select key={style} name="style" defaultValue={style}><option value="">전체</option>{CLAN_STYLES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
             <label>모집 티어<select key={tier} name="tier" defaultValue={tier}><option value="">전체</option>{TIERS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
             <Button type="submit">검색</Button>
             {term || style || tier || eligibleOnly ? <Link href={`/games/${gameSlug}/clan`} className="text-muted-foreground text-xs underline">초기화</Link> : null}

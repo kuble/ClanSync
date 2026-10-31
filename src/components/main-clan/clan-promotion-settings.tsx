@@ -15,10 +15,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ClanRecruitmentFields } from "@/components/onboarding/clan-recruitment-fields";
+import { PromotionAudienceFields } from "./promotion-audience-fields";
 import styles from "./clan-promotion-settings.module.css";
 
 export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
-  gameSlug: string; clanId: string; initial: ClanRecruitment;
+  gameSlug: string; clanId: string; initial: ClanRecruitment & { style: string | null; recruitment_positions: string[] };
   post: PromotionPost | null;
 }) {
   const RECRUITMENT_TIERS = recruitmentTiers(gameSlug);
@@ -91,19 +92,24 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
             <h5 id="eligibility-heading" className={styles.groupTitle}>가입 조건</h5>
             <ClanRecruitmentFields prefix="recruitment" initial={initial} disabled={saving} layout="grouped" />
           </section>
-          {RECRUITMENT_TIERS.length > 1 && <Slider.Root value={tierRange} onValueChange={setTierRange} min={0} max={RECRUITMENT_TIERS.length-1} step={1} largeStep={1} thumbCollisionBehavior="none" disabled={saving} className={styles.tierSection} aria-describedby="recruitment-tier-hint">
-            <div className={styles.tierHeading}>
-              <div>
-                <Slider.Label render={<h5 />} className={styles.groupTitle}>모집 티어</Slider.Label>
-                <p id="recruitment-tier-hint">이 범위 밖의 티어도 가입을 신청할 수 있습니다.</p>
-              </div>
-              <Button type="button" variant="ghost" size="sm" className="h-7 gap-1 px-2 text-xs text-muted-foreground" disabled={saving || allTiers} aria-label="모집 티어 무관으로 설정" onClick={()=>setTierRange([0,RECRUITMENT_TIERS.length-1])}><RotateCcw size={13} aria-hidden />무관으로 설정</Button>
+          <section className={styles.audienceSection} aria-labelledby="audience-heading">
+            <div className={styles.audienceHeading}>
+              <h5 id="audience-heading" className={styles.groupTitle}>모집 대상</h5>
+              <span>홍보글에 표시</span>
             </div>
-            <output className={styles.tierValue}>{allTiers ? "티어 무관" : tierRange[0] === tierRange[1] ? RECRUITMENT_TIERS[tierRange[0]][1] : `${RECRUITMENT_TIERS[tierRange[0]][1]} ~ ${RECRUITMENT_TIERS[tierRange[1]][1]}`}</output>
-            <div className="mx-2.5"><Slider.Control className="relative flex min-h-11 w-full touch-none items-center"><Slider.Track data-tier-track className="relative h-1.5 w-full rounded-full bg-muted"><Slider.Indicator className="absolute h-full rounded-full bg-primary" />{RECRUITMENT_TIERS.map(([tier],index)=><span key={tier} aria-hidden className="pointer-events-none absolute top-1/2 size-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/30" style={{left:`${index/(RECRUITMENT_TIERS.length-1)*100}%`}} />)}{[0,1].map(index=><Slider.Thumb key={index} index={index} aria-label={index===0 ? "최소 모집 티어" : "최대 모집 티어"} getAriaValueText={(_,value)=>RECRUITMENT_TIERS[value][1]} className="block size-5 rounded-full border-2 border-primary bg-background shadow-sm outline-none focus-within:ring-4 focus-within:ring-ring/30" />)}</Slider.Track></Slider.Control></div>
-            <div className="flex justify-between text-[11px] text-muted-foreground" aria-hidden><span>{RECRUITMENT_TIERS[0][1]}</span><span>{RECRUITMENT_TIERS[RECRUITMENT_TIERS.length-1][1]}</span></div>
-            {selectedTiers.map(([tier])=><input key={tier} type="hidden" name="tier_range" value={tier} />)}
-          </Slider.Root>}
+            <PromotionAudienceFields gameSlug={gameSlug} initialStyle={initial.style} initialPositions={initial.recruitment_positions} disabled={saving} />
+            {RECRUITMENT_TIERS.length > 1 && <Slider.Root value={tierRange} onValueChange={setTierRange} min={0} max={RECRUITMENT_TIERS.length-1} step={1} largeStep={1} thumbCollisionBehavior="none" disabled={saving} className={styles.tierSection} aria-describedby="recruitment-tier-hint">
+              <div className={styles.tierHeading}>
+                <Slider.Label className={styles.audienceLabel}>모집 티어</Slider.Label>
+                <output className={styles.tierValue}>{allTiers ? "티어 무관" : tierRange[0] === tierRange[1] ? RECRUITMENT_TIERS[tierRange[0]][1] : `${RECRUITMENT_TIERS[tierRange[0]][1]} ~ ${RECRUITMENT_TIERS[tierRange[1]][1]}`}</output>
+                <Button type="button" variant="ghost" size="sm" className="h-7 gap-1 px-2 text-xs text-muted-foreground" disabled={saving || allTiers} aria-label="모집 티어 무관으로 설정" onClick={()=>setTierRange([0,RECRUITMENT_TIERS.length-1])}><RotateCcw size={13} aria-hidden />무관으로 설정</Button>
+              </div>
+              <p id="recruitment-tier-hint" className="sr-only">이 범위 밖의 티어도 가입을 신청할 수 있습니다.</p>
+              <div className="mx-2.5"><Slider.Control className="relative flex min-h-11 w-full touch-none items-center"><Slider.Track data-tier-track className="relative h-1.5 w-full rounded-full bg-muted"><Slider.Indicator className="absolute h-full rounded-full bg-primary" />{RECRUITMENT_TIERS.map(([tier],index)=><span key={tier} aria-hidden className="pointer-events-none absolute top-1/2 size-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/30" style={{left:`${index/(RECRUITMENT_TIERS.length-1)*100}%`}} />)}{[0,1].map(index=><Slider.Thumb key={index} index={index} aria-label={index===0 ? "최소 모집 티어" : "최대 모집 티어"} getAriaValueText={(_,value)=>RECRUITMENT_TIERS[value][1]} className="block size-5 rounded-full border-2 border-primary bg-background shadow-sm outline-none focus-within:ring-4 focus-within:ring-ring/30" />)}</Slider.Track></Slider.Control></div>
+              <div className="flex justify-between text-[11px] text-muted-foreground" aria-hidden><span>{RECRUITMENT_TIERS[0][1]}</span><span>{RECRUITMENT_TIERS[RECRUITMENT_TIERS.length-1][1]}</span></div>
+              {selectedTiers.map(([tier])=><input key={tier} type="hidden" name="tier_range" value={tier} />)}
+            </Slider.Root>}
+          </section>
         </div>
       </section>
     </div>

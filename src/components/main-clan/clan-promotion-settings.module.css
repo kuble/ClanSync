@@ -13,10 +13,28 @@
 .settingsBody { display: grid; gap: 20px; padding: 18px 20px 20px; }
 .groupTitle { font-size: 14px; font-weight: 600; letter-spacing: -.025em; }
 .settingsBody > section > .groupTitle { margin-bottom: 12px; }
-.tierSection { min-width: 0; border-top: 1px solid var(--border); padding-top: 16px; }
-.tierHeading { display: flex; align-items: start; justify-content: space-between; gap: 8px; }
-.tierHeading p { margin-top: 3px; font-size: 12px; color: var(--muted-foreground); }
-.tierValue { display: block; margin-top: 10px; font-size: 13px; font-weight: 600; color: var(--primary); }
+.audienceSection { min-width: 0; border-top: 1px solid var(--border); padding-top: 16px; }
+.audienceHeading { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
+.audienceHeading span, .choiceHint { font-size: 11px; color: var(--muted-foreground); }
+.audienceFields { display: grid; align-items: start; gap: 12px 20px; }
+.styleField { display: grid; gap: 6px; max-width: 13rem; }
+.styleField > span, .positions legend, .audienceLabel { font-size: 12px; font-weight: 550; color: var(--muted-foreground); line-height: 18px; }
+.styleField select { height: 36px; min-width: 0; padding-inline: 10px; border: 1px solid var(--input); border-radius: 8px; background: var(--background); color: var(--foreground); font-size: 13px; }
+.positions { min-width: 0; border: 0; padding: 0; }
+.positions legend { float: left; margin-inline-end: 8px; }
+.choiceHint { display: block; line-height: 18px; }
+.positionToggle { display: inline-grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; padding: 2px; margin-top: 6px; border: 1px solid var(--input); border-radius: 9px; background: var(--background); }
+.positionToggle button { min-height: 30px; padding-inline: 10px; border-radius: 6px; color: var(--muted-foreground); font-size: 12px; white-space: nowrap; cursor: pointer; }
+.positionToggle button[aria-pressed="true"] { background: color-mix(in srgb,var(--primary) 12%,var(--background)); color: var(--primary); box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--primary) 24%,transparent); }
+.positionToggle button:focus-visible, .styleField select:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.positionToggle button:disabled { cursor: default; opacity: .65; }
+.tierSection { min-width: 0; margin-top: 16px; }
+.tierHeading { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; }
+.tierValue { margin-inline-start: auto; font-size: 13px; font-weight: 600; color: var(--primary); }
+@container recruitment (min-width: 370px) {
+  .audienceFields { grid-template-columns: minmax(100px, .65fr) minmax(176px, 1fr); }
+}
+@media (pointer: coarse) { .positionToggle button { min-height: 38px; } .styleField select { height: 44px; } }
 .saveBar { flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 14px 4px; border-top: 1px solid var(--border); background: var(--background); }
 .saveBar > button { min-height: 40px; border-radius: 10px; padding-inline: 20px; gap: 8px; }
 .saveBar > div { display: grid; gap: 4px; }
