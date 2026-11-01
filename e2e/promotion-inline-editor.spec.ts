@@ -66,6 +66,17 @@ test("promotion photos are inline text atoms with deletion, undo and one continu
     await expect(page.getByRole("button",{name:"선택한 사진 삭제",exact:true})).toHaveCount(0);
     await editor.evaluate((element,html)=>{const data=new DataTransfer();data.setData("text/html",`<p>${html}</p>`);element.dispatchEvent(new ClipboardEvent("paste",{bubbles:true,cancelable:true,clipboardData:data}));},html);
     await expect(photo).toHaveCount(2);
+    await page.getByRole("button",{name:"미리보기",exact:true}).click();
+    const draftPreview=page.getByRole("dialog",{name:"우리 클랜의 이야기",exact:true});
+    const draftBody=draftPreview.getByRole("region",{name:"클랜 홍보 내용"});
+    await expect(draftBody).toHaveText("앞글뒤글");
+    await expect(draftBody.locator("img")).toHaveCount(2);
+    await expect(draftBody.locator("img").first()).toHaveAttribute("src",/^blob:/);
+    expect(uploads).toBe(0);
+    expect((await f.service.from("board_posts").select("id").eq("clan_id",f.clanId).eq("post_type","promotion")).data).toEqual([]);
+    await page.screenshot({path:testInfo.outputPath("promotion-inline-draft-preview.png")});
+    await draftPreview.getByRole("button",{name:"닫기",exact:true}).first().click();
+    await expect(editor).toHaveText("앞글뒤글");
     await page.getByRole("button",{name:"변경사항 저장",exact:true}).click();
     await expect(page.getByRole("status").filter({hasText:"홍보글과 가입 조건을 저장했습니다."})).toBeVisible();
     expect(uploads).toBe(1);

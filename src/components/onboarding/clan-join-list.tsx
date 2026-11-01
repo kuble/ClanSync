@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useState } from "react";
-import { ArrowUpRight, Clock3, ExternalLink, Users } from "lucide-react";
+import { ArrowUpRight, Clock3, Users } from "lucide-react";
 import { toast } from "sonner";
 import { replacePendingJoinRequestAction, submitClanJoinRequestAction } from "@/app/actions/game-clan-onboarding";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import styles from "./clan-discovery.module.css";
 import { CLAN_STYLES, recruitmentLabels, recruitmentPositionLabel, recruitmentTierLabel } from "@/lib/clan/recruitment";
 import { promotionBlocks, promotionImageUrl, type PromotionPost } from "@/lib/clan/promotion";
+import { ClanPromotionDialogContent } from "./clan-promotion-dialog-content";
 
 export type ClanListRow = {
   id: string; name: string; description: string | null; tags: string[]; max_members: number;
@@ -20,11 +21,6 @@ export type ClanListRow = {
   promotion?: PromotionPost | null;
 };
 const STYLE_LABEL: Record<string, string> = Object.fromEntries(CLAN_STYLES.map(({value, label}) => [value, label]));
-
-function safeExternalUrl(value?: string | null) {
-  if (!value) return null;
-  try { const url = new URL(value); return url.protocol === "https:" || url.protocol === "http:" ? url.href : null; } catch { return null; }
-}
 
 export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingClanName = null, pinnedPendingClan = null, initialDetails = null, canApply = true }: {
   gameSlug: string; clans: ClanListRow[]; pendingClanId?: string | null; blockingClanName?: string | null; pinnedPendingClan?: ClanListRow | null; initialDetails?: ClanListRow | null; canApply?: boolean;
@@ -121,25 +117,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
       </DialogContent>
     </Dialog>
     <Dialog open={details != null} onOpenChange={(open) => { if (!open) closeDetails(); }}>
-      <DialogContent className={`sm:max-w-3xl ${styles.dialog}`}>
-        <DialogHeader><div className={styles.detailHeading}><span className={styles.clanEmblem} aria-hidden="true">{details?.name.slice(0, 1)}</span><div className="min-w-0"><DialogTitle className="break-words">{details?.promotion?.title ?? details?.name}</DialogTitle><DialogDescription className="mt-2">{details?.name}</DialogDescription></div></div></DialogHeader>
-        {details ? <div className={styles.detailBody}>
-          <section className={styles.promotionBody} aria-label="클랜 홍보 내용">{details.promotion ? promotionBlocks(details.promotion).map((block,index) => block.type === "text" ? <span key={index}>{block.text}</span> : <Image key={index} src={promotionImageUrl(gameSlug,details.id,block.path)} alt={block.alt || "클랜 홍보 사진"} title={block.alt || undefined} width={1200} height={800} unoptimized />) : <span>{details.description || "등록된 소개가 없습니다."}</span>}</section>
-          <div className={styles.detailInfo}>
-          <section><h3>가입 조건</h3><div className={styles.tagRow}>{recruitmentLabels(gameSlug,{birth_year_from:details.birth_year_from ?? null,min_birth_year:details.min_birth_year ?? null,gender_policy:details.gender_policy ?? "all",tier_range:[]}).slice(0,2).map(label => <span className={styles.tag} key={label}>{label}</span>)}</div><p className="mt-3">{details.active_members != null ? `${details.active_members} / ${details.max_members}명` : `정원 ${details.max_members}명`}</p></section>
-          <section><h3>모집 정보</h3><div className={styles.tagRow}>
-            <span className={styles.tag}>{details.style ? STYLE_LABEL[details.style] ?? details.style : "지향 무관"}</span>
-            {gameSlug === "overwatch" && <span className={styles.tag}>{recruitmentPositionLabel(details.recruitment_positions ?? [])}</span>}
-            {details.tier_range?.map((tier) => <span className={styles.tag} key={tier}>{recruitmentTierLabel(gameSlug,tier)}</span>)}
-            {details.tags.map((tag) => <span className={styles.tag} key={tag}>{tag}</span>)}</div>
-            <p className="mt-3">모집 정보는 가입 신청을 제한하지 않습니다.</p>
-          </section>
-          </div>
-          {details.rules && <details className={styles.rules}><summary>클랜 규칙</summary><p>{details.rules}</p></details>}
-          {safeExternalUrl(details.discord_url) || safeExternalUrl(details.kakao_url) ? <section><h3>외부 링크</h3>{safeExternalUrl(details.discord_url) ? <a href={safeExternalUrl(details.discord_url)!} target="_blank" rel="noopener noreferrer">디스코드 <ExternalLink size={12} aria-hidden="true" /></a> : null}{safeExternalUrl(details.kakao_url) ? <a href={safeExternalUrl(details.kakao_url)!} target="_blank" rel="noopener noreferrer">카카오톡 <ExternalLink size={12} aria-hidden="true" /></a> : null}</section> : null}
-        </div> : null}
-        <DialogFooter><Button type="button" variant="outline" onClick={closeDetails}>닫기</Button>{details && canApply && <Button type="button" disabled={busy || effectivePendingId === details.id || !!details.eligibilityError || (details.active_members != null && details.active_members >= details.max_members)} onClick={()=>{const clan=details; closeDetails(); openApply(clan,true);}}>{effectivePendingId === details.id ? "신청 대기 중" : details.eligibilityError ? "가입 조건 미충족" : details.active_members != null && details.active_members >= details.max_members ? "정원 마감" : "가입 신청"}</Button>}</DialogFooter>
-      </DialogContent>
+      {details && <ClanPromotionDialogContent gameSlug={gameSlug} clan={details} onClose={closeDetails} action={canApply && <Button type="button" disabled={busy || effectivePendingId === details.id || !!details.eligibilityError || (details.active_members != null && details.active_members >= details.max_members)} onClick={()=>{const clan=details; closeDetails(); openApply(clan,true);}}>{effectivePendingId === details.id ? "신청 대기 중" : details.eligibilityError ? "가입 조건 미충족" : details.active_members != null && details.active_members >= details.max_members ? "정원 마감" : "가입 신청"}</Button>} />}
     </Dialog>
   </>;
 }
