@@ -13,7 +13,9 @@ test("promotion shares a QR invite and recipients join immediately after login a
     await loginIsolatedBalanceUser(page, f.users[0]);
     await page.clock.install();
     await page.goto(f.path.replace("/balance", "/manage?tab=promotion"));
-    const share = page.getByRole("region", { name: "바로 가입 초대", exact: true });
+    const share = page.getByRole("region", { name: "클랜 초대", exact: true });
+    await expect(share.getByText("초대 링크나 QR코드를 공유해 클랜원을 초대하세요.", { exact: true })).toBeVisible();
+    await expect(share.getByText("승인 대기 없이 클랜에 가입할 수 있습니다. QR코드는 30분 동안 유효하며, 만료 후 새 QR코드가 발급됩니다.", { exact: true })).toBeVisible();
     const urlInput = share.getByRole("textbox", { name: "초대 링크", exact: true });
     await expect(urlInput).toHaveValue(/\/games\/overwatch\/invite\/[0-9a-f-]{36}$/);
     let url = await urlInput.inputValue();
@@ -32,6 +34,17 @@ test("promotion shares a QR invite and recipients join immediately after login a
     await page.setViewportSize({ width: 1304, height: 884 });
     await share.scrollIntoViewIfNeeded();
     await page.screenshot({ path: testInfo.outputPath("clan-invite-qr-desktop.png") });
+    await expect(share.getByText("30분간 유효", { exact: true })).toHaveCount(0);
+    const timer = share.getByRole("timer");
+    await page.clock.pauseAt(new Date(Date.now() + 60_000));
+    const countdown = (await timer.innerText()).match(/(\d{2}):(\d{2})/)!;
+    await page.clock.fastForward((Number(countdown[1]) * 60 + Number(countdown[2]) - 181) * 1000);
+    await expect(timer).toHaveText("남은 시간 03:01");
+    await expect(timer).not.toHaveClass(/text-destructive/);
+    await page.clock.fastForward(1000);
+    await expect(timer).toHaveText("남은 시간 03:00");
+    await expect(timer).toHaveClass(/text-destructive/);
+    await page.screenshot({ path: testInfo.outputPath("clan-invite-qr-expiring.png") });
     expireClanInvite(f.clanId);
     await page.clock.fastForward(31 * 60 * 1000);
     await expect(urlInput).not.toHaveValue(originalUrl);
