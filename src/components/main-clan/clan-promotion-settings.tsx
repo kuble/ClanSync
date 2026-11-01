@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ClanRecruitmentFields } from "@/components/onboarding/clan-recruitment-fields";
 import { PromotionAudienceFields } from "./promotion-audience-fields";
+import { ClanInviteShare } from "./clan-invite-share";
 import styles from "./clan-promotion-settings.module.css";
 
 export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
@@ -110,6 +111,7 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
           </section>
         </div>
       </section>
+      <ClanInviteShare gameSlug={gameSlug} clanId={clanId} />
     </div>
     <div className={styles.saveBar}>
       <div>{error && <p role="alert" className="text-xs text-destructive">{error}</p>}{saved && <p role="status" className="text-xs text-primary">홍보글과 가입 조건을 저장했습니다.</p>}</div>

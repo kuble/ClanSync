@@ -1,0 +1,76 @@
+import { expect, test } from "@playwright/test";
+import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
+import { expireClanInvite } from "../scripts/fixtures/clan-invite-expiry.mjs";
+
+test("promotion shares a QR invite and recipients join immediately after login and game registration", async ({ page, browser }, testInfo) => {
+  test.setTimeout(150_000);
+  const f = await createIsolatedBalanceFixture(3);
+  const recipient = await browser.newContext();
+  const newPlayer = await browser.newContext();
+  try {
+    expect((await f.service.from("clan_members").delete().eq("clan_id", f.clanId).neq("user_id", f.users[0].id)).error).toBeNull();
+    expect((await f.service.from("user_game_profiles").delete().eq("user_id", f.users[2].id).eq("game_id", f.gameId)).error).toBeNull();
+    await loginIsolatedBalanceUser(page, f.users[0]);
+    await page.clock.install();
+    await page.goto(f.path.replace("/balance", "/manage?tab=promotion"));
+    const share = page.getByRole("region", { name: "바로 가입 초대", exact: true });
+    const urlInput = share.getByRole("textbox", { name: "초대 링크", exact: true });
+    await expect(urlInput).toHaveValue(/\/games\/overwatch\/invite\/[0-9a-f-]{36}$/);
+    let url = await urlInput.inputValue();
+    const originalUrl = url;
+    await expect(share.getByRole("img", { name: "승인 없이 클랜에 가입하는 초대 QR코드" })).toBeVisible();
+    await expect(share.getByRole("timer")).toHaveText(/남은 시간 (29|30):\d{2}/);
+    const downloaded = page.waitForEvent("download");
+    await share.getByRole("button", { name: "QR 저장", exact: true }).click();
+    expect((await downloaded).suggestedFilename()).toBe("clansync-invite.svg");
+    await page.reload();
+    await expect(urlInput).toHaveValue(url);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await share.scrollIntoViewIfNeeded();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath("clan-invite-qr-mobile.png"), fullPage: true });
+    await page.setViewportSize({ width: 1304, height: 884 });
+    await share.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: testInfo.outputPath("clan-invite-qr-desktop.png") });
+    expireClanInvite(f.clanId);
+    await page.clock.fastForward(31 * 60 * 1000);
+    await expect(urlInput).not.toHaveValue(originalUrl);
+    await expect(urlInput).toHaveValue(/\/games\/overwatch\/invite\/[0-9a-f-]{36}$/);
+    url = await urlInput.inputValue();
+    const path = new URL(url).pathname;
+    await expect(share.getByRole("timer")).toHaveText(/남은 시간 (29|30):\d{2}/);
+
+    const memberPage = await recipient.newPage();
+    await memberPage.goto(url);
+    await expect(memberPage).toHaveURL(address => address.pathname === "/sign-in" && address.searchParams.get("next") === path);
+    await memberPage.getByLabel("이메일").fill(f.users[1].email);
+    await memberPage.getByLabel("비밀번호", { exact: true }).fill(f.users[1].password);
+    await memberPage.getByRole("button", { name: "로그인", exact: true }).click();
+    await expect(memberPage).toHaveURL(url);
+    await expect(memberPage.getByRole("heading", { name: /^BalanceUI-/ })).toBeVisible();
+    expect((await f.service.from("clan_members").select("id").eq("clan_id", f.clanId).eq("user_id", f.users[1].id)).data).toEqual([]);
+    await memberPage.getByRole("button", { name: "바로 가입", exact: true }).click();
+    await expect(memberPage).toHaveURL(new RegExp(f.path + "$"));
+    const joined = await f.service.from("clan_members").select("role,status").eq("clan_id", f.clanId).eq("user_id", f.users[1].id).single();
+    expect(joined.error).toBeNull(); expect(joined.data).toEqual({ role: "member", status: "active" });
+    await memberPage.goto(url);
+    await expect(memberPage.getByText("이미 이 클랜의 구성원입니다.", { exact: true })).toBeVisible();
+
+    const identityPage = await newPlayer.newPage();
+    await identityPage.goto(url);
+    await identityPage.getByLabel("이메일").fill(f.users[2].email);
+    await identityPage.getByLabel("비밀번호", { exact: true }).fill(f.users[2].password);
+    await identityPage.getByRole("button", { name: "로그인", exact: true }).click();
+    await expect(identityPage.getByRole("heading", { name: "오버워치 게임 ID 등록", exact: true })).toBeVisible();
+    await identityPage.getByLabel("배틀태그 직접 입력").fill("InviteNew#12345");
+    await identityPage.getByRole("button", { name: "게임 ID 저장", exact: true }).click();
+    await expect(identityPage).toHaveURL(url);
+    await identityPage.getByRole("button", { name: "바로 가입", exact: true }).click();
+    await expect(identityPage).toHaveURL(new RegExp(f.path + "$"));
+    await identityPage.goto(originalUrl);
+    await expect(identityPage.getByRole("heading", { name: "초대 링크가 만료되었습니다", exact: true })).toBeVisible();
+    await expect(identityPage.getByRole("button", { name: "바로 가입", exact: true })).toHaveCount(0);
+  } finally {
+    await recipient.close(); await newPlayer.close(); await f.cleanup();
+  }
+});

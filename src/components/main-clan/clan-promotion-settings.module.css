@@ -38,6 +38,13 @@
 .saveBar { flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 14px 4px; border-top: 1px solid var(--border); background: var(--background); }
 .saveBar > button { min-height: 40px; border-radius: 10px; padding-inline: 20px; gap: 8px; }
 .saveBar > div { display: grid; gap: 4px; }
+.invitePanel { grid-column: 1 / -1; }
+.inviteBody { display: grid; grid-template-columns: 176px minmax(0, 1fr); align-items: center; gap: 24px; padding: 20px; min-height: 216px; }
+.inviteQr { display: grid; place-items: center; width: 176px; height: 176px; border-radius: 10px; background: #fff; overflow: hidden; }
+.inviteDetails { display: grid; gap: 12px; min-width: 0; }
+.inviteUrl { width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid var(--input); border-radius: 8px; background: var(--background); font-size: 12px; }
+.inviteActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+@media(max-width: 520px) { .inviteBody { grid-template-columns: minmax(0, 1fr); padding: 16px; gap: 16px; } .inviteQr { justify-self: center; } }
 @media(max-width: 1050px) {
   .form { height: auto; }
   .layout { grid-template-columns: minmax(0,1fr); flex: none; overflow: visible; overscroll-behavior: auto; }
