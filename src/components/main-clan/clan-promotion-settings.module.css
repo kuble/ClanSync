@@ -1,5 +1,5 @@
-.form { display: flex; flex-direction: column; min-width: 0; height: 100%; min-height: 0; }
-.layout { display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: max-content; gap: 20px; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 16px; scroll-padding-block: 20px; }
+.form { min-width: 0; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
 .panel { min-width: 0; border: 1px solid var(--border); border-radius: 16px; background: var(--card); overflow: hidden; }
 .panelHeader { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border); }
 .panelHeader h4 { font-size: 15px; font-weight: 600; letter-spacing: -.025em; }
@@ -13,7 +13,8 @@
 .groupTitle { font-size: 14px; font-weight: 600; letter-spacing: -.025em; }
 .settingsBody > section > .groupTitle { margin-bottom: 12px; }
 .audienceSection { min-width: 0; container: recruitment / inline-size; border-inline-start: 1px solid var(--border); padding-inline-start: 24px; }
-.previewActions { display: flex; justify-content: flex-end; }
+.previewActions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px; }
+.previewActions > div { margin-inline-end: auto; }
 .audienceHeading { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
 .audienceHeading span, .choiceHint { font-size: 11px; color: var(--muted-foreground); }
 .audienceFields { display: grid; align-items: start; gap: 12px 20px; }
@@ -35,9 +36,6 @@
   .audienceFields { grid-template-columns: minmax(100px, .65fr) minmax(176px, 1fr); }
 }
 @media (pointer: coarse) { .positionToggle button { min-height: 38px; } .styleField select { height: 44px; } }
-.saveBar { flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 14px 4px; border-top: 1px solid var(--border); background: var(--background); }
-.saveBar > button { min-height: 40px; border-radius: 10px; padding-inline: 20px; gap: 8px; }
-.saveBar > div { display: grid; gap: 4px; }
 .invitePanel { grid-column: 1 / -1; }
 .inviteBody { display: grid; grid-template-columns: 176px minmax(0, 1fr); align-items: center; gap: 24px; padding: 20px; min-height: 216px; }
 .inviteQr { display: grid; place-items: center; width: 176px; height: 176px; border-radius: 10px; background: #fff; overflow: hidden; }
@@ -45,9 +43,5 @@
 .inviteUrl { width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid var(--input); border-radius: 8px; background: var(--background); font-size: 12px; }
 .inviteActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 @media(max-width: 520px) { .inviteBody { grid-template-columns: minmax(0, 1fr); padding: 16px; gap: 16px; } .inviteQr { justify-self: center; } }
-@media(max-width: 1050px) {
-  .form { height: auto; }
-  .layout { grid-template-columns: minmax(0,1fr); flex: none; overflow: visible; overscroll-behavior: auto; }
-}
 @media(max-width: 850px) { .settingsBody { grid-template-columns: minmax(0, 1fr); gap: 20px; } .audienceSection { border-inline-start: 0; padding-inline-start: 0; border-top: 1px solid var(--border); padding-top: 20px; } }
-@media(max-width: 600px) { .panelHeader { padding: 16px; gap: 9px; } .editorFields { padding: 18px 16px; gap: 20px; } .panelHeader h4 { font-size: 14px; } .tag { font-size: 9px; } .saveBar > div { flex: 1; min-width: 0; } .saveBar > button { padding-inline: 14px; } }
+@media(max-width: 600px) { .panelHeader { padding: 16px; gap: 9px; } .editorFields { padding: 18px 16px; gap: 20px; } .panelHeader h4 { font-size: 14px; } .tag { font-size: 9px; } }

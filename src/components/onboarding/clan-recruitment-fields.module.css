@@ -14,8 +14,9 @@
   .grouped { grid-template-columns: max-content minmax(0, 1fr); gap: 24px; }
   .grouped > .group + .group { border-inline-start: 1px solid var(--border); padding-inline-start: 24px; }
 }
-.yearControl { position: relative; display: flex; align-items: center; height: 42px; margin-inline: 10px; touch-action: none; user-select: none; }
-.yearTrack { position: relative; width: 100%; height: 6px; border-radius: 999px; background: color-mix(in srgb, var(--muted-foreground) 46%, var(--card)); }
+.yearControl { position: relative; display: flex; align-items: center; min-height: 44px; margin-inline: 10px; touch-action: none; user-select: none; }
+.yearTrack { position: relative; width: 100%; height: 6px; border-radius: 999px; background: var(--muted); }
+.yearMark { position: absolute; top: 50%; width: 4px; height: 4px; border-radius: 50%; transform: translate(-50%,-50%); background: color-mix(in srgb,var(--foreground) 30%,transparent); pointer-events: none; }
 .yearIndicator { position: absolute; height: 100%; border-radius: inherit; background: var(--primary); }
 .yearThumb { display: block; width: 20px; height: 20px; border: 2px solid var(--primary); border-radius: 50%; background: var(--background); cursor: grab; }
 .yearThumb:active { cursor: grabbing; }
@@ -24,7 +25,6 @@
 .yearScale > :first-child { margin-inline-start: -10px; }
 .yearScale > :last-child { margin-inline-end: -10px; }
 .yearTick { position: absolute; transform: translateX(-50%); }
-.yearTick::before { content: ""; position: absolute; left: 50%; bottom: calc(100% + 2px); height: 4px; border-left: 1px solid currentColor; }
 .genders { display: grid; grid-template-columns: repeat(3,auto); width: fit-content; max-width: 100%; gap: 2px; padding: 2px; border: 1px solid var(--input); border-radius: 9px; background: var(--background); }
 .genders label { position: relative; display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 30px; padding-inline: 10px; border-radius: 6px; color: var(--muted-foreground); cursor: pointer; font-size: 12px; white-space: nowrap; }
 .genders input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }

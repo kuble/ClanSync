@@ -115,6 +115,6 @@ export function PromotionEditor({ gameSlug, clanId, blocks, onChange, disabled }
     <input ref={picker} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden aria-label="홍보 사진 선택" disabled={disabled} onChange={event => { insertPhotos(Array.from(event.target.files ?? []),insertion.current); insertion.current=null; event.target.value = ""; }} />
     {selection?.image && <div className={styles.imageTools}><input aria-label="사진 설명" placeholder="사진 설명 (선택)" maxLength={160} value={selection.alt} disabled={disabled} onChange={event => editor?.commands.updateAttributes("image", { alt: event.target.value })} /><Button type="button" size="sm" variant="ghost" disabled={disabled} onMouseDown={event => event.preventDefault()} onClick={() => editor?.chain().focus().command(({tr})=>{closeHistory(tr);return true;}).deleteSelection().run()}><Trash2 size={14} aria-hidden />선택한 사진 삭제</Button></div>}
     <div className={styles.canvas} data-empty={empty} data-ready={!!editor}><EditorContent editor={editor} />{empty && <span className={styles.placeholder}>클랜 소개와 함께하고 싶은 활동을 적어보세요.</span>}</div>
-    <p id="promotion-content-hint" className={styles.hint} aria-live="polite"><span className={length > 8000 ? "text-destructive" : ""}>{length.toLocaleString()} / 8,000자</span><span>커서 위치에 사진을 넣을 수 있습니다.</span></p>
+    <p id="promotion-content-hint" className={styles.hint} aria-live="polite"><span className={length > 8000 ? "text-destructive" : ""}>{length.toLocaleString()} / 8,000자</span></p>
   </div>;
 }

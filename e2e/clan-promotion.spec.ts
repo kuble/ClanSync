@@ -32,6 +32,10 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     const minimum = page.getByRole("slider",{name:"최소 모집 티어",exact:true});
     const maximum = page.getByRole("slider",{name:"최대 모집 티어",exact:true});
     const yearGroup = page.getByRole("group",{name:"출생연도",exact:true});
+    const decades=await yearGroup.locator("[data-year-tick]").evaluateAll(nodes=>nodes.map(node=>Number(node.getAttribute("data-year-tick"))));
+    expect(decades[0]).toBe(1950);
+    expect(decades).toContain(2000);
+    for(let index=1;index<decades.length;index++) expect(decades[index]-decades[index-1]).toBe(10);
     await expect(yearGroup.getByText("제한 없음",{exact:true})).toHaveCount(2);
     await fromYear.press("ArrowRight");
     await expect(fromYear).toHaveAttribute("aria-valuetext","1950년생");
@@ -47,6 +51,8 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     await expect(gender.getByRole("radio")).toHaveCount(3);
     await expect(gender.locator("svg")).toHaveCount(3);
     await gender.getByRole("radio",{name:"남성",exact:true}).check();
+    await expect(page.getByText("성별 비공개 계정은 신청할 수 없습니다.",{exact:true})).toHaveCount(0);
+    await expect(page.getByText("커서 위치에 사진을 넣을 수 있습니다.",{exact:true})).toHaveCount(0);
     const styleSelect = page.getByRole("combobox", {name:"지향",exact:true});
     const positions = page.getByRole("group", {name:"주포지션",exact:true});
     const roleButton = (name: string) => positions.getByRole("button", { name, exact:true });
@@ -110,7 +116,7 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     await page.screenshot({path:testInfo.outputPath("clan-promotion-range.png"),fullPage:true});
     await page.getByTitle("라이트 / 다크 테마 전환",{exact:true}).click();
     await page.screenshot({path:testInfo.outputPath("clan-promotion-redesign-dark.png"),fullPage:true});
-    for (const width of [744,390]) {
+    for (const width of [1304,744,390]) {
       await page.setViewportSize({width,height:844});
       await year.scrollIntoViewIfNeeded();
       await expect(gender.getByRole("radio",{name:"남성",exact:true})).toBeVisible();
@@ -122,6 +128,9 @@ test("clan promotion appears during clan discovery and keeps membership requirem
       expect(innerScrollers).toBe(0);
       await page.getByRole("button",{name:"변경사항 저장",exact:true}).scrollIntoViewIfNeeded();
       expect(await page.evaluate(()=>document.scrollingElement!.scrollTop)).toBeGreaterThan(0);
+      const previewButton=await page.getByRole("button",{name:"미리보기",exact:true}).boundingBox();
+      const saveButton=await page.getByRole("button",{name:"변경사항 저장",exact:true}).boundingBox();
+      expect(Math.abs(previewButton!.y-saveButton!.y)).toBeLessThan(4);
       await page.getByRole("button",{name:"미리보기",exact:true}).click();
       await expect(draftPreview).toBeVisible();
       expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);

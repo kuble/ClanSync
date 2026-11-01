@@ -123,14 +123,14 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
               </section>
             </div>
             <div className="space-y-2"><Label htmlFor="promotion-content">내용</Label><PromotionEditor gameSlug={gameSlug} clanId={clanId} blocks={blocks} onChange={setBlocks} disabled={saving} /></div>
-            <div className={styles.previewActions}><Button type="button" variant="outline" disabled={saving} onClick={showPreview}><Eye size={15} aria-hidden />미리보기</Button></div>
+            <div className={styles.previewActions}>
+              <div>{error && <p role="alert" className="text-xs text-destructive">{error}</p>}{saved && <p role="status" className="text-xs text-primary">홍보글과 가입 조건을 저장했습니다.</p>}</div>
+              <Button type="button" variant="outline" disabled={saving} onClick={showPreview}><Eye size={15} aria-hidden />미리보기</Button>
+              <Button type="submit" disabled={saving}>{saved ? <Check size={15} aria-hidden /> : <Save size={15} aria-hidden />}{saving ? "저장 중…" : "변경사항 저장"}</Button>
+            </div>
           </fieldset>
       </section>
       <ClanInviteShare gameSlug={gameSlug} clanId={clanId} />
-    </div>
-    <div className={styles.saveBar}>
-      <div>{error && <p role="alert" className="text-xs text-destructive">{error}</p>}{saved && <p role="status" className="text-xs text-primary">홍보글과 가입 조건을 저장했습니다.</p>}</div>
-      <Button type="submit" disabled={saving}>{saved ? <Check size={15} aria-hidden /> : <Save size={15} aria-hidden />}{saving ? "저장 중…" : "변경사항 저장"}</Button>
     </div>
   </form>
     <Dialog open={preview !== null} onOpenChange={open => { if (!open) setPreview(null); }}>
