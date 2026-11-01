@@ -55,9 +55,14 @@ test("30-minute clan invites enforce membership, expiry and atomic capacity", as
     await ok(leader.rpc("update_clan_recruitment", { p_clan_id: f.clanId, p_birth_year_from: 2001 }));
     await denied(joinInvite(first));
     await ok(leader.rpc("update_clan_recruitment", { p_clan_id: f.clanId, p_gender_policy: "male" }));
-    await denied(joinInvite(first));
+    await ok(joinInvite(first));
+    await ok(first.rpc("change_clan_membership", { p_clan_id: f.clanId, p_action: "leave" }));
+    await ok(f.service.from("users").update({ gender: "undisclosed" }).eq("id", f.users[1].id));
+    await ok(leader.rpc("update_clan_recruitment", { p_clan_id: f.clanId, p_gender_policy: "female" }));
+    await ok(joinInvite(first));
+    await ok(first.rpc("change_clan_membership", { p_clan_id: f.clanId, p_action: "leave" }));
     await ok(leader.rpc("update_clan_recruitment", { p_clan_id: f.clanId }));
-    await ok(f.service.from("clan_members").insert({ clan_id: f.clanId, user_id: f.users[1].id, role: "officer", status: "banned" }));
+    await ok(f.service.from("clan_members").update({ role: "officer", status: "banned" }).eq("clan_id", f.clanId).eq("user_id", f.users[1].id));
     await denied(joinInvite(first));
     await ok(f.service.from("clan_members").update({ status: "left" }).eq("clan_id", f.clanId).eq("user_id", f.users[1].id));
     otherClan = (await ok(f.service.from("clans").insert({ name: "Invite-isolated-other", game_id: f.gameId }).select("id").single())).id;

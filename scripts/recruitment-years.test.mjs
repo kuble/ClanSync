@@ -15,6 +15,8 @@ test("display and eligibility use the same inclusive range and preserve the old 
   const conditions={birth_year_from:1990,min_birth_year:2005,gender_policy:"all"};
   assert.equal(recruitmentYearLabel(conditions),"1990~2005년생");
   for(const birth_year of [1990,2000,2005]) assert.equal(recruitmentProfileError(conditions,{birth_year,gender:"undisclosed"}),null);
+  for(const gender_policy of ["male","female"]) for(const gender of ["male","female","undisclosed"])
+    assert.equal(recruitmentProfileError({...conditions,gender_policy},{birth_year:2000,gender}),null);
   assert.match(recruitmentProfileError(conditions,{birth_year:1989,gender:"male"}),/이후 출생/);
   assert.match(recruitmentProfileError(conditions,{birth_year:2006,gender:"female"}),/이전 출생/);
   assert.equal(recruitmentYearLabel({...conditions,birth_year_from:null}),"2005년생까지");

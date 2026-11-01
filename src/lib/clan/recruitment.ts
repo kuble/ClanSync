@@ -45,7 +45,6 @@ export function recruitmentProfileError(conditions: Pick<ClanRecruitment, "birth
   if (!profile) return "가입 정보를 확인할 수 없습니다. 다시 로그인해 주십시오.";
   if (conditions.birth_year_from != null && profile.birth_year < conditions.birth_year_from) return `${conditions.birth_year_from}년생 및 이후 출생자만 신청할 수 있습니다.`;
   if (conditions.min_birth_year != null && profile.birth_year > conditions.min_birth_year) return `${conditions.min_birth_year}년생 및 이전 출생자만 신청할 수 있습니다.`;
-  if (conditions.gender_policy !== "all" && profile.gender !== conditions.gender_policy) return `이 클랜은 ${conditions.gender_policy === "male" ? "남성" : "여성"}만 신청할 수 있습니다. 성별 비공개 계정은 신청할 수 없습니다.`;
   return null;
 }
 

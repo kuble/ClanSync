@@ -130,10 +130,18 @@ test("immutable demographics and recruitment rules protect direct API, approvals
     await cancel(staleId);
     assert.match((await denied(apply())).message,/1999/);
   });
-  await t.test("gender restrictions reject undisclosed/wrong gender; unrestricted and matching applicants pass",async()=>{
-    await ok(save(leader,null,"male")); await denied(apply());
-    await ok(svc.from("users").update({gender:"female"}).eq("id",applicantId)); await denied(apply());
-    await ok(save(leader,null,"female")); await cancel((await ok(apply())).id);
+  await t.test("gender preferences allow every gender to apply and be approved",async()=>{
+    for (const preference of ["male","female"]) {
+      await ok(save(leader,null,preference));
+      for (const gender of ["undisclosed","male","female"]) {
+        await ok(svc.from("users").update({gender}).eq("id",applicantId));
+        const request=await ok(apply());
+        await ok(leader.rpc("approve_clan_join_with_participant",{p_clan_id:f.clanId,p_request_id:request.id}));
+        assert.equal((await status(request.id)).status,"approved");
+        assert.equal((await ok(svc.from("clan_members").select("status").eq("clan_id",f.clanId).eq("user_id",applicantId).single())).status,"active");
+        await ok(applicant.rpc("change_clan_membership",{p_clan_id:f.clanId,p_action:"leave"}));
+      }
+    }
     await ok(save(leader,null,"all")); await cancel((await ok(apply())).id);
   });
   await t.test("failed replacement preserves the pending request; success swaps once, and rejection remains possible",async()=>{

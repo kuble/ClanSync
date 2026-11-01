@@ -62,8 +62,7 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
     else {
       const year = profile.data.birth_year;
       listQuery = listQuery.or(`birth_year_from.is.null,birth_year_from.lte.${year}`)
-        .or(`min_birth_year.is.null,min_birth_year.gte.${year}`)
-        .in("gender_policy", profile.data.gender === "male" || profile.data.gender === "female" ? ["all", profile.data.gender] : ["all"]);
+        .or(`min_birth_year.is.null,min_birth_year.gte.${year}`);
     }
   }
   const [{ data: clanRows, count, error: listError }, pinnedResult, requestedPromotion] = await Promise.all([
@@ -118,7 +117,7 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
             <label>모집 티어<select key={tier} name="tier" defaultValue={tier}><option value="">전체</option>{TIERS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
             <Button type="submit">검색</Button>
             {term || style || tier || eligibleOnly ? <Link href={`/games/${gameSlug}/clan`} className="text-muted-foreground text-xs underline">초기화</Link> : null}
-            <div className={discover.eligibilityFilter}><label><input key={String(eligibleOnly)} type="checkbox" name="eligible" value="1" defaultChecked={eligibleOnly} /><span className={discover.filterSwitch} aria-hidden /><span>가입 가능한 클랜만 보기</span></label><p>내 출생연도·성별 기준</p></div>
+            <div className={discover.eligibilityFilter}><label><input key={String(eligibleOnly)} type="checkbox" name="eligible" value="1" defaultChecked={eligibleOnly} /><span className={discover.filterSwitch} aria-hidden /><span>가입 가능한 클랜만 보기</span></label><p>내 출생연도 기준</p></div>
         </ClanDiscoveryFilterForm>
         {eligibleOnly && (profile.error || !profile.data) ? <p role="alert" className={styles.error}>가입 정보를 확인하지 못했습니다. 잠시 후 다시 시도해 주십시오.</p> : listError ? <p role="alert" className={styles.error}>클랜 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주십시오.</p> : <>
           <div className={discover.resultCount}><p>함께할 클랜 <strong>{total.toLocaleString("ko-KR")}</strong></p><span>최근 만들어진 클랜 순</span></div>
