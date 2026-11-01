@@ -3619,6 +3619,14 @@ export type Database = {
         Args: { p_error: string; p_log_id: string; p_ok: boolean }
         Returns: undefined
       }
+      get_clan_join_invite: {
+        Args: { p_clan_id: string }
+        Returns: {
+          expires_at: string
+          server_now: string
+          token: string
+        }[]
+      }
       get_clan_namecards: { Args: { p_clan_id: string }; Returns: Json }
       is_active_clan_member: { Args: { p_clan_id: string }; Returns: boolean }
       is_clan_officer_plus: { Args: { p_clan_id: string }; Returns: boolean }
@@ -3629,6 +3637,13 @@ export type Database = {
       issue_clan_participant_invite: {
         Args: { p_clan_id: string; p_id: string }
         Returns: string
+      }
+      join_clan_by_invite: {
+        Args: { p_token: string }
+        Returns: {
+          game_slug: string
+          joined_clan_id: string
+        }[]
       }
       link_clan_participant: {
         Args: { p_clan_id: string; p_participant_id: string; p_user_id: string }
@@ -3745,6 +3760,16 @@ export type Database = {
         Returns: Json
       }
       read_clan_badge_metrics: { Args: { p_clan_id: string }; Returns: Json }
+      read_clan_join_invite: {
+        Args: { p_token: string }
+        Returns: {
+          clan_id: string
+          clan_name: string
+          expires_at: string
+          game_slug: string
+          server_now: string
+        }[]
+      }
       read_clan_match_record_corrections: {
         Args: { p_clan_id: string }
         Returns: {
