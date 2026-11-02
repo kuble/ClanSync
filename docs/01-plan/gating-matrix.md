@@ -111,6 +111,8 @@
 
 ## 6. 이벤트 (`view-events`)
 
+> **2026-11-02 변경:** 대진표 생성기는 폐기했다. 캘린더·투표 권한은 유지한다.
+>
 > **D-EVENTS-01~05** (DECIDED 2026-04-20) 전면 반영. 상세 근거는 [decisions.md §D-EVENTS-01](./decisions.md#d-events-01--스크림-확정--클랜-이벤트-자동-생성동기화), [§D-EVENTS-02](./decisions.md#d-events-02--일정-반복-종료-조건), [§D-EVENTS-03](./decisions.md#d-events-03--일정투표-알림-채널정책), [§D-EVENTS-04](./decisions.md#d-events-04--투표-알림과-마감일-일관성-검증), [§D-EVENTS-05](./decisions.md#d-events-05--대진표-결과의-통계코인-반영).
 
 | 항목 | leader | officer | member | free | premium |
@@ -122,8 +124,6 @@
 | RSVP (참석 응답) | ✓ | ✓ | ✓ | — | — |
 | 투표 카드 열람·투표 | ✓ | ✓ | ✓ | — | — |
 | "+ 투표 만들기" | ✓ | ✓ | ✗ | — | — |
-| 대진표 생성기 (클랜 내 이벤트) | ✓ | ✓ | ✓ (열람·참가) | 🔒 안내만 | ✓ |
-| 대진표 **개최**·**결과 입력** | ✓ | ✓ | ✗ | ✗ | ✓ |
 | 알림 발송 (Discord) | — | — | — | ✗ | ✓ (D-EVENTS-03) |
 
 ## 7. 클랜 관리 (`view-manage`)
@@ -195,7 +195,7 @@
 |--------|------|-----------|
 | `mock-officer-only` | 운영진+에게만 표시 | 사이드바 관리, 대시보드 공지/규칙 링크, 이벤트 일정·투표 만들기, 관리 개요 운영진 카드 |
 | `mock-member-only` | 구성원에게만 표시 | 구독 탭의 "구독·결제는 운영진 이상만…" 안내 |
-| `mock-hide-on-free` | Free 플랜에서 숨김 | 대진표 마법사, 승부예측 사이드바, M·A 점수 등 |
+| `mock-hide-on-free` | Free 플랜에서 숨김 | 승부예측 사이드바, M·A 점수 등 |
 | `mock-plan-premium` | 본문 클래스. Premium일 때 ✓ 표시 등 활성 | body 토글 |
 | `mock-plan-free` | 본문 클래스. Free일 때 적용 | body 토글 |
 | `mock-leader-only` | leader에게만 표시 — officer 세션에서는 숨김 | 개인 상세 모달의 역할 변경·officer 강퇴·leader 위임 버튼, 휴면 섹션 일괄 강퇴 버튼, 운영 권한 설정 카드의 토글 입력, 구독·결제 탭의 플랜 변경·환불·영수증 상세 버튼 (D-MANAGE-01~04) |

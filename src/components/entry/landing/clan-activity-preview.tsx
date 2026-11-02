@@ -24,7 +24,7 @@ export function ClanActivityPreview() {
         <MemoryPhoto src="/images/overwatch/maps/kings-row.webp" caption="다음엔 왕의 길에서" />
       </div></ShowcaseFrame> },
       { id: "events", label: "일정", content: <ShowcaseFrame title="다음에 만날 시간을 정해요." description="정기 내전부터 자유 모임까지, 클랜 일정을 달력으로 확인하세요."><div className={showcase.events} inert>
-        <ClanEventsView gameSlug="overwatch" clanId="landing-example" serverNow="2026-10-30T10:00:00+09:00" events={events} canManageEvents={false} planIsPremium={false} viewerUserId={null} myRsvpGoingKeys={[]} polls={[]} bracketTournaments={[]} />
+        <ClanEventsView gameSlug="overwatch" clanId="landing-example" serverNow="2026-10-30T10:00:00+09:00" events={events} canManageEvents={false} viewerUserId={null} myRsvpGoingKeys={[]} polls={[]} />
       </div></ShowcaseFrame> },
       { id: "notifications", label: "알림", content: <ShowcaseFrame title="중요한 소식은 놓치지 않도록." description="다가오는 일정과 투표 마감, 새로운 댓글을 알림으로 받아보세요."><div className={showcase.notifications}><NotificationExample /></div></ShowcaseFrame> },
     ]} />

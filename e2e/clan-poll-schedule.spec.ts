@@ -72,7 +72,7 @@ test("익명 투표 참여자의 이름·ID를 서버 응답에 포함하지 않
     // The page also contains public clan namecards; inspect only poll props.
     const flight = [...payload.matchAll(/self\.__next_f\.push\((\[.*?\])\)<\/script>/g)]
       .map(match => JSON.parse(match[1])[1] ?? "").join("");
-    const pollProps = flight.match(/"polls":(\[[\s\S]*?\]),"bracketTournaments"/);
+    const pollProps = flight.match(/"polls":(\[[\s\S]*?\]),"initialTab"/);
     expect(pollProps, "serialized poll props must be present").not.toBeNull();
     const serialized = JSON.parse(pollProps![1]).find((value: { id: string }) => value.id === poll.id);
     expect(serialized).toBeTruthy();
@@ -85,7 +85,7 @@ test("익명 투표 참여자의 이름·ID를 서버 응답에 포함하지 않
     await ok(f.service.from("clan_members").update({ status: "left" }).eq("clan_id", f.clanId).eq("user_id", f.users[0].id));
     await page.reload();
     await expect(page).toHaveURL(/\/clan(?:\?|$)/);
-    await expect(page.getByRole("heading", { name: /클랜에 참여하십시오/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "클랜 찾기", exact: true })).toBeVisible();
     await expect(page.getByRole("dialog")).toHaveCount(0);
   } finally { await f.cleanup(); }
 });

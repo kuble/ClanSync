@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { loginAsFixtureRole, gotoOverwatchLeaderClanBase } from "./fixture-login-helper";
+import { createIsolatedBalanceFixture, loginIsolatedBalanceUser } from "./isolated-balance-fixture";
 
 /**
  * TODO_Phase2 · pages.md 에서 live 로 표시된 화면 위주로
@@ -60,53 +61,29 @@ test.describe("UI 회귀 — MainClan (QA 리더)", () => {
     await expect(sheet.getByText("알림", { exact: true })).toBeVisible();
   });
 
-  test("이벤트 대진표: 초안·팀 슬롯 이름(Premium 픽스처)", async ({ page }) => {
-    const base = await gotoOverwatchLeaderClanBase(page);
-    const title = `E2E 브래킷 ${Date.now()}`;
-    await page.goto(`${base}/events?tab=bracket`);
-
-    await expect(page.getByTestId("clan-events-bracket-tab")).toHaveAttribute(
-      "data-has-premium",
-      "true",
-      { timeout: 20_000 },
-    );
-
-    await page.getByRole("button", { name: "대진표 초안 만들기" }).click();
-
-    const dialog = page.getByTestId("bracket-create-draft-dialog");
-    await expect(dialog).toBeVisible({ timeout: 10_000 });
-    await dialog.getByLabel("대회명").fill(title);
-
-    await dialog.getByRole("button", { name: "저장" }).click();
-    await expect(page.getByText("대진표 초안을 저장했습니다")).toBeVisible({
-      timeout: 15_000,
-    });
-
-    const list = page.getByTestId("bracket-tournament-list");
-    await expect(list.getByText(title)).toBeVisible({ timeout: 15_000 });
-
-    const rowLocator = page
-      .locator('[data-testid^="bracket-tournament-row-"]')
-      .filter({ hasText: title })
-      .first();
-
-    await expect(rowLocator.getByText("1라운드 배치 미리보기", { exact: true })).toBeVisible();
-    await expect(rowLocator.getByText("팀 1", { exact: true })).toBeVisible();
-
-    await rowLocator.getByText("팀 슬롯 이름 편집").click();
-
-    await rowLocator.getByTestId("bracket-team-slot-input-0").fill("E2E슬롯A");
-    await rowLocator.getByRole("button", { name: "팀 슬롯 저장" }).click();
-    await expect(page.getByText("팀 슬롯 이름을 저장했습니다")).toBeVisible({
-      timeout: 15_000,
-    });
-    await expect(rowLocator.getByText("E2E슬롯A", { exact: true })).toBeVisible();
-
-    page.once("dialog", (d) => void d.accept());
-    await rowLocator.getByRole("button", { name: "삭제" }).click();
-    await expect(list.getByText(title)).not.toBeVisible({ timeout: 15_000 });
+  test("이벤트는 캘린더·투표만 제공하고 구형 대진표 주소는 캘린더로 연다", async ({ page }) => {
+    const f = await createIsolatedBalanceFixture(1);
+    const events = f.path.replace(/balance$/, "events");
+    try {
+      await loginIsolatedBalanceUser(page, f.users[0]);
+      await page.goto(events + "?tab=bracket");
+      const tabs = page.getByRole("tablist", { name: "클랜 이벤트 하위 탭" });
+      await expect(tabs.getByRole("tab")).toHaveText(["캘린더", "투표"]);
+      await expect(tabs.getByRole("tab", { name: "캘린더", exact: true })).toHaveAttribute("aria-selected", "true");
+      await expect(page.getByRole("button", { name: "대진표 초안 만들기", exact: true })).toHaveCount(0);
+      await tabs.getByRole("tab", { name: "투표", exact: true }).click();
+      await page.getByRole("button", { name: "투표 만들기", exact: true }).click();
+      await expect(page.getByRole("dialog", { name: "투표 만들기", exact: true })).toBeVisible();
+      await page.keyboard.press("Escape");
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto(events);
+      await expect(tabs.getByRole("tab")).toHaveText(["캘린더", "투표"]);
+      await expect(tabs.getByRole("tab", { name: "캘린더", exact: true })).toHaveAttribute("aria-selected", "true");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+      await page.goto(events + "?tab=polls");
+      await expect(tabs.getByRole("tab", { name: "투표", exact: true })).toHaveAttribute("aria-selected", "true");
+    } finally { await f.cleanup(); }
   });
-
 });
 
 test.describe("UI 회귀 — MainGame 커뮤니티 탭", () => {

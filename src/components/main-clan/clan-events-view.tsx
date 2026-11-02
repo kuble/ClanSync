@@ -9,7 +9,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
-  GitBranch,
   MapPin,
   Pencil,
   Plus,
@@ -24,7 +23,6 @@ import {
   toggleClanEventRsvpAction,
   updateClanEventAction,
 } from "@/app/actions/clan-events";
-import { ClanEventsBracketTab } from "@/components/main-clan/clan-events-bracket-tab";
 import { ClanEventsPollsTab } from "@/components/main-clan/clan-events-polls-tab";
 import { CreateClanEventForm } from "@/components/main-clan/create-clan-event-form";
 import { EventDiscordFields } from "@/components/main-clan/event-discord-fields";
@@ -51,7 +49,6 @@ import {
   expandClanEventsForMonth,
   repeatSummaryKo,
 } from "@/lib/clan/expand-clan-event-occurrences";
-import type { SerializedBracketTournament } from "@/lib/clan/load-bracket-tournaments";
 import type { SerializedClanPoll } from "@/lib/clan/load-clan-polls";
 import { cn } from "@/lib/utils";
 import { koreanCalendarDate } from "@/lib/clan/event-timezone";
@@ -119,11 +116,9 @@ export function ClanEventsView({
   serverNow,
   events,
   canManageEvents,
-  planIsPremium,
   viewerUserId,
   myRsvpGoingKeys,
   polls,
-  bracketTournaments,
   initialTab = "calendar",
   notificationSettings,
   discordAvailable = false,
@@ -137,12 +132,10 @@ export function ClanEventsView({
   serverNow: string;
   events: SerializedClanEvent[];
   canManageEvents: boolean;
-  planIsPremium: boolean;
   viewerUserId: string | null;
   myRsvpGoingKeys: readonly string[];
   polls: SerializedClanPoll[];
-  bracketTournaments: SerializedBracketTournament[];
-  initialTab?: "calendar" | "bracket" | "polls";
+  initialTab?: "calendar" | "polls";
   notificationSettings?: React.ReactNode;
   discordAvailable?: boolean;
   discordChannelName?: string | null;
@@ -714,13 +707,6 @@ export function ClanEventsView({
           <CalendarDays className="size-4" aria-hidden="true" />
           캘린더
         </TabsTrigger>
-        <TabsTrigger value="bracket" className="gap-1.5">
-          <GitBranch className="hidden size-4 sm:block" aria-hidden="true" />
-          대진표 생성기{" "}
-          <span className="rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-700 dark:text-amber-300">
-            Premium
-          </span>
-        </TabsTrigger>
         <TabsTrigger value="polls" className="gap-1.5">
           <Vote className="size-4" aria-hidden="true" />
           투표
@@ -1043,16 +1029,6 @@ export function ClanEventsView({
             </SheetContent>
           </Sheet>
         ) : null}
-      </TabsContent>
-
-      <TabsContent value="bracket" className="space-y-4">
-        <ClanEventsBracketTab
-          gameSlug={gameSlug}
-          clanId={clanId}
-          tournaments={bracketTournaments}
-          canManageEvents={canManageEvents}
-          planIsPremium={planIsPremium}
-        />
       </TabsContent>
 
       <TabsContent value="polls" className="space-y-4">

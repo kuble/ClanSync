@@ -65,7 +65,7 @@ test("remaining pages fit desktop and mobile without document overflow", async (
   } finally { await f.cleanup(); }
 });
 
-test("board, coaching, brackets, records and profile editors share fixed actions on mobile", async ({ page }) => {
+test("board, coaching, records and profile editors share fixed actions on mobile", async ({ page }) => {
   test.setTimeout(240_000);
   const f = await createIsolatedBalanceFixture(2), base = f.path.replace(/\/balance$/, "");
   try {
@@ -88,20 +88,10 @@ test("board, coaching, brackets, records and profile editors share fixed actions
       await dialog.getByRole("button", { name: "닫기", exact: true }).last().click();
       await expect(dialog).toBeHidden();
     }
-    await page.goto(`${base}/events?tab=bracket`);
-    await page.getByRole("button", { name: "대진표 초안 만들기", exact: true }).click();
-    let dialog = page.getByRole("dialog", { name: "대진표 초안", exact: true });
-    await checkEditor(page, dialog, "저장", "bracket-mobile.png");
-    const longTitle = "MobileBracket".repeat(8);
-    await dialog.getByLabel("대회명", { exact: true }).fill(longTitle);
-    await dialog.getByRole("button", { name: "저장", exact: true }).click();
-    await expect(dialog).toBeHidden();
-    await expect(page.getByText(longTitle, { exact: true })).toBeVisible();
-    await noPageOverflow(page);
     await page.goto(`${base}/stats`);
     await page.getByRole("tab", { name: "경기 기록", exact: true }).click();
     await page.getByRole("button", { name: "기록 추가", exact: true }).click();
-    dialog = page.getByRole("dialog", { name: "경기 기록 추가", exact: true });
+    let dialog = page.getByRole("dialog", { name: "경기 기록 추가", exact: true });
     await checkEditor(page, dialog, "기록 저장", "record-mobile.png");
     await dialog.getByRole("button", { name: "닫기", exact: true }).last().click();
     await page.goto("/profile");

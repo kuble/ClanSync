@@ -80,7 +80,7 @@
 | 07 | [07-MainClan.md](./pages/07-MainClan.md) | `/games/[gameSlug]/clan/[clanId]` | 1) 비로그인 → `/sign-in` · 2) 게임 인증 없음 → `.../auth` · 3) 클랜 미가입 → `.../clan` · 4) 다른 클랜 ID → 본인 클랜으로 정정 | 사이드바 메뉴별 `mock-officer-only`, `mock-hide-on-free` | URL 해시(`#dashboard`, `#balance` 등), `sessionStorage.clansync_sidebar_collapsed` | 알림 드로어, 채팅 패널 |
 | 09 | [09-BalanceMaker.md](./pages/09-BalanceMaker.md) | `/games/[gameSlug]/clan/[clanId]/balance` | 07 가드 + 열린 세션은 클랜원 접근, 운영은 권한별 | 배치 편집: 밸런스장. 구성원: 실시간 참여·기능별 조작. 승부예측: Premium 클랜·해당 라운드 비출전. M/A: `edit_mscore` 플래그 | 테스트 훅: `data-testid="clan-balance-session-panel"` | 세션·라운드·맵밴·영웅밴(OW)·예측·결과 확정(RPC)·Realtime |
 | 10 | [10-Clan-Stats.md](./pages/10-Clan-Stats.md) | `/games/[gameSlug]/clan/[clanId]/stats` | 07 가드 + (경기 기록 탭은 officer+) | "경기 기록" 탭: officer+. 그 외: 전원 | URL 해시 `#stats` + 탭 쿼리(가능) | HoF 설정 모달 |
-| 11 | [11-Clan-Events.md](./pages/11-Clan-Events.md) | `/games/[gameSlug]/clan/[clanId]/events` | 07 가드 | 일정 등록·삭제: officer+. 대진표 생성기: premium. 투표 생성: officer+ | URL 해시 `#events`, **`?tab=`** `calendar`/`bracket`/`polls` | 일정 등록·상세, 클랜 관리의 알림·연동(리더: Discord 설정), 대진표 초안(팀 슬롯 이름), 투표 생성 |
+| 11 | [11-Clan-Events.md](./pages/11-Clan-Events.md) | `/games/[gameSlug]/clan/[clanId]/events` | 07 가드 | 일정 등록·삭제 및 투표 생성: officer+ | URL 해시 `#events`, **`?tab=`** `calendar`/`polls` | 일정 등록·상세, 클랜 관리의 알림·연동(리더: Discord 설정), 투표 생성 |
 | 12 | [12-Clan-Manage.md](./pages/12-Clan-Manage.md) | `/games/[gameSlug]/clan/[clanId]/manage` | 07 가드 + officer+ (구성원 직접 접근은 403 또는 클랜 홈) | officer+ 전체. 구독결제 탭은 leader 전용(D-MANAGE-01) | URL 해시 `#manage` | 가입 요청 처리, 구성원 상세, 권한 변경 |
 | 13 | [13-Clan-Store.md](./pages/13-Clan-Store.md) | `/games/[gameSlug]/clan/[clanId]/store` | 07 가드 | 클랜 풀 결제: leader. 개인 풀 충전·구매: 본인 | URL 해시 `#store` | 코인 충전, 아이템 구매 확인, Premium 업셀 |
 | 08 | [08-MainGame.md](./pages/08-MainGame.md) | `/games/[gameSlug]` | 1) 비로그인 → `/sign-in` · 2) 게임 인증 없음 → `.../auth` (클랜 미가입은 허용) | 스크림 자동 매칭: officer+. 스크림 평판 열람: leader | **`?promoSort=`**(newest/space)·**`?tab=`**(home/promo/lfg/rank/scrim)·목업 레퍼런스 `#…` 등 | 홍보·LFG·순위·스크림 MVP, 게임 허브 전역 알림(`clan_id` null)·LFG 만료 깊링크 |
@@ -175,7 +175,7 @@ S01 쉘·온보딩·전역 프로필은 아래 파일이 **단일 목업**으로
 ### 클랜 이벤트 (`/games/[gameSlug]/clan/[clanId]/events`, MainClan 탭)
 - **월간 캘린더**(현재 월·요일 그리드, 일자별 일정 점/하이라이트) + 하단 **이번 달 일정 그리드**(카드: 유형 배지·시간·장소·반복/자동출처 표기).
 - 일정 등록: 유형, 일시, **반복**(없음 / 매주 / 매월 / 격주 등 목업), 장소·채널. 스크림은 매칭 확정 시 **자동 등록**되어 별도 입력 없이 노출(목업 안내 카피).
-- Premium: 대진표 생성기(비활성·업셀 목업 가능).
+- 대진표 생성기는 2026-11-02 폐기했다.
 
 ### 클랜 관리 (`/manage`, MainClan 탭 · 운영진+)
 - 개요(프로필·공지·규칙·코인 요약·배너 편집) · 구성원 관리(가입 요청·테이블·개인 상세) · 구독결제(클랜장 중심 목업). 정적 목업: `view-manage`, 사이드바 `mock-officer-only`.

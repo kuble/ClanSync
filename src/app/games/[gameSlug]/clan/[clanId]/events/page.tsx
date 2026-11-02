@@ -10,7 +10,6 @@ import {
   type SerializedClanEvent,
 } from "@/lib/clan/expand-clan-event-occurrences";
 import { cancelStalePollNotificationLogs } from "@/lib/clan/cancel-stale-poll-notifications";
-import { loadSerializedBracketTournaments } from "@/lib/clan/load-bracket-tournaments";
 import { loadSerializedClanPolls } from "@/lib/clan/load-clan-polls";
 import { hasRequestClanPermission } from "@/lib/clan/request-clan-access";
 import { getRequestMainClanContext } from "@/lib/clan/load-main-clan-context";
@@ -29,10 +28,7 @@ export default async function ClanEventsPage({
   const { gameSlug, clanId } = await params;
   const sp = await searchParams;
   const tab = sp.tab;
-  const initialTab: "calendar" | "bracket" | "polls" =
-    tab === "polls" || tab === "bracket" || tab === "calendar"
-      ? tab
-      : "calendar";
+  const initialTab = tab === "polls" ? "polls" : "calendar";
   const user = await getRequestUser();
   if (!user) redirect(`/sign-in?next=/games/${gameSlug}/clan/${clanId}/events`);
   const ctx = await getRequestMainClanContext(gameSlug, clanId);
@@ -89,7 +85,6 @@ export default async function ClanEventsPage({
     { data: settingsRow },
     { events, myRsvpGoingKeys },
     polls,
-    bracketTournaments,
   ] = await Promise.all([
     hasRequestClanPermission(clanId, "manage_clan_events"),
     svc
@@ -99,7 +94,6 @@ export default async function ClanEventsPage({
       .maybeSingle(),
     eventsPromise,
     pollsPromise,
-    loadSerializedBracketTournaments(clanId),
   ]);
   const canEditEventNotify = ctx.role === "leader";
   const notify = readClanEventNotifySettings(
@@ -119,11 +113,9 @@ export default async function ClanEventsPage({
         serverNow={new Date().toISOString()}
         events={events}
         canManageEvents={canManage}
-        planIsPremium={ctx?.plan === "premium"}
         viewerUserId={user?.id ?? null}
         myRsvpGoingKeys={myRsvpGoingKeys}
         polls={polls}
-        bracketTournaments={bracketTournaments}
         initialTab={initialTab}
         initialEventId={sp.event}
         initialEventAt={sp.at}
