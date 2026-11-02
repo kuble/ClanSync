@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, Gamepad2 } from "lucide-react";
+import { Gamepad2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { GameLogo } from "@/components/ui/game-logo";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import styles from "./onboarding.module.css";
+import { headerActionClassName } from "@/components/ui/header-action-style";
 
 type Game = { slug: string; name_ko: string; is_active: boolean };
 const order = ["overwatch", "valorant", "lol", "pubg"];
@@ -31,8 +31,8 @@ export function AccountGameMenu() {
     return () => { active = false; };
   }, [open, games, attempt]);
   return <DropdownMenu open={open} onOpenChange={next => { setOpen(next); if (next) setError(false); }} modal={false}>
-    <DropdownMenuTrigger openOnHover delay={120} closeDelay={160} className={styles.gameTrigger} aria-label="게임 선택">
-      <Gamepad2 size={16} aria-hidden="true" /><span className={styles.navLabel}>게임 선택</span><ChevronDown size={12} aria-hidden="true" />
+    <DropdownMenuTrigger openOnHover delay={120} closeDelay={160} className={headerActionClassName} aria-label="게임 선택" title="게임 선택">
+      <Gamepad2 aria-hidden="true" />
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" sideOffset={8} className="w-64 max-w-[calc(100vw-24px)]" aria-label="게임 선택지">
       <div className="min-h-44" aria-busy={games === null && !error}>

@@ -1,12 +1,12 @@
+import { Suspense } from "react";
 import { gameProfileIdentity } from "@/lib/game-auth/game-profile-identity";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ChevronDown, LogOut, UserRound } from "lucide-react";
 import { GameCardGrid } from "@/components/games/game-card-grid";
 import { EntryBrand } from "@/components/entry/entry-brand";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { HeaderActions } from "@/components/ui/header-actions";
+import { AccountNotifications } from "@/components/onboarding/account-notifications";
 import type { ClanStatus, GameCardState } from "@/lib/routing/game-card-router";
-import { signOutAction } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/server";
 import { fetchMyClanJoinRequests } from "@/lib/clan/fetch-my-clan-join-requests";
 import styles from "@/components/entry/entry.module.css";
@@ -79,16 +79,7 @@ export default async function GamesPage() {
       <header className={styles.navbar}>
         <div className={styles.navbarInner}>
           <EntryBrand />
-          <div className={styles.navActions}><ThemeToggle /><details className={styles.profileMenu}>
-            <summary className={styles.profileSummary} aria-label="프로필 메뉴">
-              <span className={styles.avatar}><UserRound size={19} aria-hidden="true" /></span><ChevronDown size={14} aria-hidden="true" />
-            </summary>
-            <div className={styles.profileDropdown}>
-              <div className={styles.profileIdentity}><strong>내 계정</strong><p>{user.email}</p></div>
-              <Link href="/profile"><UserRound size={16} aria-hidden="true" />프로필</Link>
-              <form action={signOutAction}><button type="submit"><LogOut size={16} aria-hidden="true" />로그아웃</button></form>
-            </div>
-          </details></div>
+          <HeaderActions notifications={<Suspense fallback={<span className="size-8 sm:size-9" aria-hidden />}><AccountNotifications /></Suspense>} />
         </div>
       </header>
       <main className={styles.gamesContent}>

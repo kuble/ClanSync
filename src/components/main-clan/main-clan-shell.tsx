@@ -32,7 +32,7 @@ import type { MainClanContext } from "@/lib/clan/load-main-clan-context";
 import { cn } from "@/lib/utils";
 import { NavigationIcon } from "@/components/ui/navigation-icon";
 import { HeaderBreadcrumbs } from "@/components/ui/header-breadcrumbs";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { HeaderActions } from "@/components/ui/header-actions";
 import styles from "./main-clan-shell.module.css";
 
 type NavItem = {
@@ -240,19 +240,13 @@ export function MainClanShell({
             ...(pageTitle ? [{ label: pageTitle }] : []),
           ]} />
         </div>
-        <div className={styles.headerRight}>
-          <ThemeToggle />
-          {ctx.plan === "premium" ? (
-            <span className={styles.plan}>Premium</span>
-          ) : null}
-          <ClanInAppNotificationBell
+        <HeaderActions notifications={<ClanInAppNotificationBell
             gameSlug={ctx.gameSlug}
             clanId={ctx.clanId}
             canOpenInquiry={ctx.role === "leader" || ctx.role === "officer"}
             initialItems={inAppNotifications.items}
             initialUnreadCount={inAppNotifications.unreadCount}
-          />
-        </div>
+          />} />
       </header>
       <aside className={styles.rail} aria-label="클랜 탐색">
         <nav aria-label="클랜 메뉴">
