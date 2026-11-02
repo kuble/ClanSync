@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { ClanRecruitmentFields } from "@/components/onboarding/clan-recruitment-fields";
 import { PromotionAudienceFields } from "./promotion-audience-fields";
 import { ClanInviteShare } from "./clan-invite-share";
+import { StatHelp } from "./stat-help";
 import { Dialog } from "@/components/ui/dialog";
 import { ClanPromotionDialogContent, type PromotionDisplayBlock } from "@/components/onboarding/clan-promotion-dialog-content";
 import type { ClanListRow } from "@/components/onboarding/clan-join-list";
@@ -96,17 +97,25 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
   return <><form ref={formRef} onSubmit={submit} className={styles.form}>
     <div className={styles.layout}>
       <section className={styles.panel} aria-labelledby="promotion-heading">
-        <header className={styles.panelHeader}><span className={styles.sectionIcon}><Megaphone size={20} aria-hidden /></span><h4 id="promotion-heading">홍보글 작성</h4><label className={styles.visibility}>클랜 찾기에 공개<input type="checkbox" role="switch" name="promotion_public" defaultChecked={initial.promotion_public} disabled={saving} /><span aria-hidden="true" /></label></header>
+        <header className={styles.panelHeader}>
+          <span className={styles.sectionIcon}><Megaphone size={20} aria-hidden /></span>
+          <h4 id="promotion-heading">홍보글 작성</h4>
+          <div className={styles.publishControl}>
+            <StatHelp title="홍보글 게시">켜고 저장하면 클랜 찾기에 공개됩니다. 끄고 저장하면 목록에서 숨겨지고 기존 홍보글 링크도 열리지 않습니다.</StatHelp>
+            <label className={styles.visibility}>
+              <input type="checkbox" role="switch" aria-label="홍보글 게시" name="promotion_public" defaultChecked={initial.promotion_public} disabled={saving} />
+              <span aria-hidden="true" />
+            </label>
+          </div>
+        </header>
           <fieldset disabled={saving} className={styles.editorFields}>
             <div className={`space-y-2 ${styles.titleField}`}><Label htmlFor="promotion-title">제목</Label><Input id="promotion-title" name="title" value={title} onChange={event => setTitle(event.target.value)} required maxLength={200} placeholder="함께할 클랜원을 찾습니다" /></div>
             <div className={styles.settingsBody}>
-              <section aria-labelledby="eligibility-heading">
-                <h5 id="eligibility-heading" className={styles.groupTitle}>가입 조건</h5>
-                <div className={styles.groupBody}><ClanRecruitmentFields prefix="recruitment" initial={initial} disabled={saving} layout="grouped" /></div>
+              <section aria-label="가입 조건">
+                <ClanRecruitmentFields prefix="recruitment" initial={initial} disabled={saving} layout="grouped" />
               </section>
-              <section className={styles.audienceSection} aria-labelledby="audience-heading">
-                <h5 id="audience-heading" className={styles.groupTitle}>모집 대상</h5>
-                <div className={styles.groupBody}><PromotionAudienceFields gameSlug={gameSlug} initialStyle={initial.style} initialPositions={initial.recruitment_positions} disabled={saving} />
+              <section className={styles.audienceSection} aria-label="모집 대상">
+                <PromotionAudienceFields gameSlug={gameSlug} initialStyle={initial.style} initialPositions={initial.recruitment_positions} disabled={saving} />
                 {RECRUITMENT_TIERS.length > 1 && <Slider.Root value={tierRange} onValueChange={setTierRange} min={0} max={RECRUITMENT_TIERS.length-1} step={1} largeStep={1} thumbCollisionBehavior="none" disabled={saving} className={styles.tierSection} aria-describedby="recruitment-tier-hint">
                   <div className={styles.tierHeading}>
                     <Slider.Label className={styles.audienceLabel}>모집 티어</Slider.Label>
@@ -116,7 +125,7 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
                   <div className="mx-2.5"><Slider.Control className="relative flex min-h-11 w-full touch-none items-center"><Slider.Track data-tier-track className="relative h-1.5 w-full rounded-full bg-muted"><Slider.Indicator className="absolute h-full rounded-full bg-primary" />{RECRUITMENT_TIERS.map(([tier],index)=><span key={tier} aria-hidden className="pointer-events-none absolute top-1/2 size-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/30" style={{left:`${index/(RECRUITMENT_TIERS.length-1)*100}%`}} />)}{[0,1].map(index=><Slider.Thumb key={index} index={index} aria-label={index===0 ? "최소 모집 티어" : "최대 모집 티어"} getAriaValueText={(_,value)=>RECRUITMENT_TIERS[value][1]} className="block size-5 rounded-full border-2 border-primary bg-background shadow-sm outline-none focus-within:ring-4 focus-within:ring-ring/30" />)}</Slider.Track></Slider.Control></div>
                   <div className="flex justify-between text-[11px] text-muted-foreground" aria-hidden><span>{RECRUITMENT_TIERS[0][1]}</span><span>{RECRUITMENT_TIERS[RECRUITMENT_TIERS.length-1][1]}</span></div>
                   {selectedTiers.map(([tier])=><input key={tier} type="hidden" name="tier_range" value={tier} />)}
-                </Slider.Root>}</div>
+                </Slider.Root>}
               </section>
             </div>
             <div className="space-y-2"><Label htmlFor="promotion-content">내용</Label><PromotionEditor gameSlug={gameSlug} clanId={clanId} blocks={blocks} onChange={setBlocks} disabled={saving} /></div>

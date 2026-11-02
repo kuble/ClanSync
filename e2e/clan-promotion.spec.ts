@@ -190,7 +190,10 @@ test("clan promotion appears during clan discovery and keeps membership requirem
     await expect(page.getByRole("heading",{name:"최근 홍보글",exact:true})).toHaveCount(0);
     const saved=await f.service.from("board_posts").select("id,clan_id,game_id,created_by,post_type,content_blocks").eq("clan_id",f.clanId).eq("title",title).single();
     expect(saved.error).toBeNull(); expect(saved.data).toMatchObject({clan_id:f.clanId,game_id:f.gameId,created_by:f.users[0].id,post_type:"promotion"});
-    const visibility=page.getByRole("switch",{name:"클랜 찾기에 공개"});
+    await page.getByRole("button",{name:"홍보글 게시 도움말"}).focus();
+    await expect(page.getByRole("tooltip")).toContainText("켜고 저장하면 클랜 찾기에 공개됩니다.");
+    await page.keyboard.press("Escape");
+    const visibility=page.getByRole("switch",{name:"홍보글 게시",exact:true});
     const reader=await f.memberClient(1);
     await expect(visibility).toBeChecked();
     await visibility.uncheck();
