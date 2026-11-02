@@ -74,10 +74,10 @@ function readText(root: Node): string {
   return text;
 }
 
-export function ClanEmojiInput({ id, label, value, onChange, maxLength, disabled = false, placeholder, className, name, editorRef, pickerLabel, variant="comment", actions }: {
+export function ClanEmojiInput({ id, label, value, onChange, maxLength, disabled = false, placeholder, className, name, editorRef, pickerLabel, variant="comment", actions, textOnly = false }: {
   id?: string; label: string; value: string; onChange: (value: string) => void; maxLength: number; disabled?: boolean;
   placeholder?: string; className?: string; name?: string; editorRef?: RefObject<HTMLDivElement | null>; pickerLabel?:string;
-  variant?:"comment"|"post"|"caption"; actions?:ReactNode;
+  variant?:"comment"|"post"|"caption"; actions?:ReactNode; textOnly?:boolean;
 }) {
   const context = useClanEmojis();
   const singleLine = variant === "caption";
@@ -86,6 +86,10 @@ export function ClanEmojiInput({ id, label, value, onChange, maxLength, disabled
   const [error, setError] = useState("");
   function fragment(text: string) {
     const result = document.createDocumentFragment();
+    if (textOnly) {
+      result.append(document.createTextNode(text));
+      return result;
+    }
     for (const part of splitEmojiText(text, context.emojis)) {
       if (!part.emoji) {
         if(part.token) { const missing=document.createElement("span");missing.contentEditable="false";missing.dataset.emojiId=part.token.slice(3,-1);missing.textContent=part.text??"";missing.className="text-muted-foreground";result.append(missing); }
@@ -128,7 +132,7 @@ export function ClanEmojiInput({ id, label, value, onChange, maxLength, disabled
       onInput={commit} onBlur={remember} onKeyUp={remember} onMouseUp={remember} onKeyDown={event=>{if(event.nativeEvent.isComposing)return;if(event.key==="Enter"&&!disabled){if(event.ctrlKey||event.metaKey){event.preventDefault();event.currentTarget.closest("form")?.requestSubmit();}else if(singleLine)event.preventDefault();}}}
       onPaste={event => { event.preventDefault(); remember(); insert(event.clipboardData.getData("text/plain")); }} onDrop={event => event.preventDefault()}
       onCopy={event => { const current = window.getSelection(); if (!current?.rangeCount) return; const wrapper = document.createElement("div"); wrapper.append(current.getRangeAt(0).cloneContents()); event.clipboardData.setData("text/plain", readText(wrapper)); event.preventDefault(); }} />
-    <div className={styles.toolbar}><ClanEmojiPicker label={pickerLabel??`${label} 이모티콘 선택`} disabled={disabled} onOpen={remember} finalFocus={input} onSelect={insert} /><span className={styles.counter}>{value.length} / {maxLength.toLocaleString("ko-KR")}</span>{actions?<div className={styles.actions}>{actions}</div>:<span className={styles.hint}>Ctrl + Enter</span>}</div>
+    <div className={styles.toolbar}>{!textOnly && <ClanEmojiPicker label={pickerLabel??`${label} 이모티콘 선택`} disabled={disabled} onOpen={remember} finalFocus={input} onSelect={insert} />}<span className={styles.counter}>{value.length} / {maxLength.toLocaleString("ko-KR")}</span>{actions?<div className={styles.actions}>{actions}</div>:<span className={styles.hint}>Ctrl + Enter</span>}</div>
     {error && <p role="alert" className="px-3 pb-2 text-xs text-destructive">{error}</p>}
   </div>;
 }

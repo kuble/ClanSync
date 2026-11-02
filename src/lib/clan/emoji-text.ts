@@ -2,6 +2,11 @@ import type { ClanEmoji } from "./cosmetics";
 
 export const emojiToken = (id: string) => `[e:${id}]`;
 const pattern = () => /\[e:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\]/gi;
+// Plain digits, # and * are text. Their keycap sequences contain U+20E3.
+const unicodeEmoji = new RegExp("(?![#*0-9])\\p{Emoji}|\\u20e3", "u");
+export function containsEmoji(text: string) {
+  return unicodeEmoji.test(text) || pattern().test(text);
+}
 export function splitEmojiText(text: string, emojis: ClanEmoji[]) {
   const known = new Map(emojis.map(emoji => [emoji.id, emoji]));
   const parts: { text?: string; emoji?: ClanEmoji; missing?: boolean; token?:string }[] = [];

@@ -62,7 +62,7 @@ test("board and stats comments share basic and custom emoji behavior", async ({ 
       await expect(own).toBeVisible();
       await expect(surface.scope.getByRole("button", { name: /댓글 편집$/ })).toHaveCount(0);
       await expect(surface.scope.getByRole("button", { name: "댓글 수정", exact: true })).toHaveCount(0);
-      await expect(own.locator("time")).toHaveText("오전 12:04");
+      await expect(own.locator("time")).toHaveText("00:04");
       await own.hover();await picker.click();
       for (const label of ["좋아요", "하트", "웃음", "박수", "놀람", "슬픔"]) await expect(current.getByRole("button", { name: `${label} 공감`, exact: true })).toBeVisible();
       await current.getByRole("button", { name: "좋아요 공감", exact: true }).click();
@@ -177,8 +177,8 @@ test("comment groups share identity until the author or KST day changes", async 
       }
       for (const index of [1, 3]) await expect(rows[index].locator("time")).toHaveCount(0);
       for (const index of [0, 2, 4, 5, 6, 7, 8]) await expect(rows[index].locator("time")).toHaveCount(1);
-      await expect(rows[2].locator("time")).toHaveText("오전 12:00");
-      await expect(rows[6].locator("time")).toHaveText("오전 12:01");
+      await expect(rows[2].locator("time")).toHaveText("00:00");
+      await expect(rows[6].locator("time")).toHaveText("00:01");
       for (const index of [2, 4, 6]) {
         await expect(rows[index].locator("strong")).toHaveCount(0);
         await expect(rows[index].getByRole("img", { name: /프로필 (사진|심볼)$/ })).toHaveCount(0);
@@ -214,8 +214,8 @@ test("comment groups share identity until the author or KST day changes", async 
       await rows[5].getByRole("button", { name: "삭제 확인", exact: true }).click();
       await expect(rows[5]).toHaveCount(0);
       await expect(rows[1].locator("time")).toHaveCount(0);
-      await expect(rows[2].locator("time")).toHaveText("오전 12:00");
-      await expect(rows[6].locator("time")).toHaveText("오전 12:01");
+      await expect(rows[2].locator("time")).toHaveText("00:00");
+      await expect(rows[6].locator("time")).toHaveText("00:01");
     }
   } finally { await f.cleanup(); }
 });

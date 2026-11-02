@@ -2,7 +2,7 @@
 import { createContext, useContext, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import type { ClanNamecards } from "@/lib/profile/namecard";
+import type { ClanNamecards, NamecardAppearance } from "@/lib/profile/namecard";
 import { CLANSYNC_NAMEPLATE_CHANGED } from "@/lib/profile-decoration-sync";
 import { Namecard } from "./namecard";
 import { PlayerAvatar } from "./player-avatar";
@@ -24,8 +24,10 @@ export function useClanNamecard(userId?: string | null) {
   return useContext(Cards)[userId ?? ""];
 }
 export function useNamecardDecorationHidden() { return useContext(HideDecoration); }
-export function ClanPlayerAvatar({ userId, label, size = 32 }: { userId?: string | null; label: string; size?: number }) {
-  const card = useClanNamecard(userId);
+export type PlayerAvatarAppearance = Pick<NamecardAppearance, "emblem" | "symbolPalette" | "portrait" | "portraitPalette">;
+export function ClanPlayerAvatar({ userId, label, size = 32, appearance }: { userId?: string | null; label: string; size?: number; appearance?: PlayerAvatarAppearance | null }) {
+  const clanCard = useClanNamecard(userId);
+  const card = appearance ?? clanCard;
   return <PlayerAvatar emblem={card?.emblem} symbolPalette={card?.symbolPalette} portrait={card?.portrait} portraitPalette={card?.portraitPalette} label={label} size={size}/>;
 }
 export function ClanPlayerNamecard({ userId, fallback, fill = false, children }: { userId?: string | null; fallback: string; fill?: boolean; children?: ReactNode }) {
