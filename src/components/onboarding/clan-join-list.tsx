@@ -1,5 +1,5 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { useState, type ReactNode } from "react";
 import { CalendarDays, ChevronRight, Clock3, Compass, Shield, Star, Trophy } from "lucide-react";
@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { replacePendingJoinRequestAction, submitClanJoinRequestAction } from "@/app/actions/game-clan-onboarding";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import styles from "./clan-discovery.module.css";
 import onboarding from "./onboarding.module.css";
@@ -28,11 +28,21 @@ export type ClanListRow = {
 const STYLE_LABEL: Record<string, string> = Object.fromEntries(CLAN_STYLES.map(({value, label}) => [value, label]));
 
 export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingClanName = null, pinnedPendingClan = null, initialDetails = null, canApply = true,
-  pendingActions, filters, listingFailed, pagination }: {
+  pendingActions, filters, listingFailed, pagination, createContent }: {
   gameSlug: string; clans: ClanListRow[]; pendingClanId?: string | null; blockingClanName?: string | null; pinnedPendingClan?: ClanListRow | null; initialDetails?: ClanListRow | null; canApply?: boolean;
-  pendingActions: ReactNode; filters: ReactNode; listingFailed: boolean; pagination: ReactNode;
+  pendingActions: ReactNode; filters: ReactNode; listingFailed: boolean; pagination: ReactNode; createContent: ReactNode;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const activeTab = pendingClanId && searchParams.get("inquiry") === pendingClanId ? "pending"
+    : requestedTab === "join" || requestedTab === "create" ? requestedTab
+    : pendingClanId ? "pending" : "join";
+  function changeTab(value: string) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", value);
+    window.history.replaceState(null, "", url);
+  }
   const [savedFavorites, setSavedFavorites] = useState<Record<string,boolean>>({});
   const [savingFavorite, setSavingFavorite] = useState(false);
   const [replaceOpen, setReplaceOpen] = useState(false);
@@ -67,6 +77,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
       const result = replace ? await replacePendingJoinRequestAction(gameSlug, selected.id) : await submitClanJoinRequestAction(gameSlug, selected.id);
       if (result.ok) {
         setSentId(selected.id); setSelected(null); setReplaceOpen(false);
+        changeTab("pending");
         toast.success(replace ? "기존 신청을 취소하고 새로 신청했습니다." : "가입 신청을 보냈습니다.", { duration: 4800 });
         router.refresh();
       } else if (result.error.startsWith("PENDING_ELSEWHERE:")) {
@@ -125,14 +136,18 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
     </article>;
   }
 
-  return <>
-    {pendingClanId && <section aria-label="현재 신청 중인 클랜" data-testid="clan-join-pinned-pending-section">
+  return <Tabs value={activeTab} onValueChange={value => { if (typeof value === "string") changeTab(value); }} className={`${onboarding.tabs} ${styles.tabs}`}>
+    <TabsList variant="line" className={styles.tabList}>
+      {pendingClanId && <TabsTrigger value="pending">가입 대기</TabsTrigger>}
+      <TabsTrigger value="join">클랜 가입</TabsTrigger>
+      <TabsTrigger value="create">클랜 생성</TabsTrigger>
+    </TabsList>
+    {pendingClanId && <TabsContent value="pending"><section aria-label="현재 신청 중인 클랜" data-testid="clan-join-pinned-pending-section">
       {pinnedPendingClan ? renderCard(pinnedPendingClan, true) : <article className={styles.clanCard} data-pending-card>
         <div className="flex flex-wrap items-center gap-2"><strong>{blockingClanName || "클랜"}</strong><Badge variant="outline"><Clock3 aria-hidden />신청 대기 중</Badge></div>
         <div className={styles.pendingActions}>{pendingActions}</div>
       </article>}
-    </section>}
-    <TabsList variant="line" className={styles.tabList}><TabsTrigger value="join">클랜 가입</TabsTrigger><TabsTrigger value="create">클랜 생성</TabsTrigger></TabsList>
+    </section></TabsContent>}
     <TabsContent value="join">
       <div className={styles.directory}>
         {filters}
@@ -145,6 +160,7 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
         </section>
       </div>
     </TabsContent>
+    <TabsContent value="create">{createContent}</TabsContent>
     <Dialog open={selected != null} onOpenChange={open => { if (!open && !busy) setSelected(null); }}>
       {selected && <DialogContent showCloseButton={!busy}>
         <DialogHeader>
@@ -169,5 +185,5 @@ export function ClanJoinList({ gameSlug, clans, pendingClanId = null, blockingCl
           </Button>}
         </>} />}
     </Dialog>
-  </>;
+  </Tabs>;
 }

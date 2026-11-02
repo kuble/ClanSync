@@ -11,7 +11,6 @@ import { ClanJoinList, type ClanListRow } from "@/components/onboarding/clan-joi
 import { Button } from "@/components/ui/button";
 import { GameLogo } from "@/components/ui/game-logo";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { loadGameOnboarding } from "@/lib/onboarding/load-game-onboarding";
@@ -93,7 +92,7 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const cancelBound = cancelClanJoinRequestFormAction.bind(null, gameSlug);
   function pageHref(number: number) {
-    const query = new URLSearchParams({ q: term, page: String(number), seed });
+    const query = new URLSearchParams({ q: term, page: String(number), seed, tab: "join" });
     if (style) query.set("style", style);
     if (tier) query.set("tier", tier);
     if (eligibleOnly) query.set("eligible", "1");
@@ -105,19 +104,20 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
       <span className={discover.gameMark} aria-hidden><GameLogo slug={gameSlug} name={game.name_ko} className="size-7" /></span>
       <div><p>{game.name_ko}</p><h1>클랜 찾기</h1></div>
     </header>
-    <Tabs defaultValue="join" className={`${styles.tabs} ${discover.tabs}`}>
       <ClanJoinList key={`${pendingBrief?.requestId ?? "no-pending"}:${promotion}`} gameSlug={gameSlug}
         pendingClanId={pendingBrief?.clanId} blockingClanName={pendingBrief?.clanName} pinnedPendingClan={pinnedPendingClan}
         clans={clans} initialDetails={initialDetails} canApply={state.clanStatus !== "member"}
+        createContent={state.clanStatus === "member" ? <p className={styles.empty}>이미 이 게임의 클랜에 소속되어 있습니다.</p> : <ClanCreateForm gameSlug={gameSlug} />}
         pendingActions={pendingBrief && <>
           <InquiryButton clanId={pendingBrief.clanId} />
           <form action={cancelBound}><Button type="submit" variant="destructive" size="sm">신청 취소</Button></form>
         </>}
         filters={<ClanDiscoveryFilterForm action={`/games/${gameSlug}/clan`}>
+          <input type="hidden" name="tab" value="join" />
           <div className={discover.filterHeader}>
             <h2 className={discover.filterTitle}><SlidersHorizontal size={15} aria-hidden />검색 조건</h2>
             {term || style || tier || eligibleOnly ? (
-              <Link href={`/games/${gameSlug}/clan`} aria-label="초기화" title="검색 조건 초기화"
+              <Link href={`/games/${gameSlug}/clan?tab=join`} aria-label="초기화" title="검색 조건 초기화"
                 className={buttonVariants({ variant: "ghost", size: "icon-sm", className: "text-muted-foreground" })}>
                 <RotateCcw aria-hidden />
               </Link>
@@ -135,7 +135,5 @@ export default async function ClanOnboardingPage({ params, searchParams }: {
         listingFailed={!!listError}
         pagination={totalPages > 1 && <nav className={styles.pagination} aria-label="클랜 목록 페이지">{page > 1 ? <Link className={buttonVariants({ variant: "outline", size: "sm" })} href={pageHref(page - 1)}>이전</Link> : null}<span>{page} / {totalPages}</span>{page < totalPages ? <Link className={buttonVariants({ variant: "outline", size: "sm" })} href={pageHref(page + 1)}>다음</Link> : null}</nav>}
       />
-      <TabsContent value="create">{state.clanStatus === "member" ? <p className={styles.empty}>이미 이 게임의 클랜에 소속되어 있습니다.</p> : <ClanCreateForm gameSlug={gameSlug} />}</TabsContent>
-    </Tabs>
   </main></AccountShell>;
 }
