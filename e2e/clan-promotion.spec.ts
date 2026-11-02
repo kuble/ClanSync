@@ -390,7 +390,11 @@ test("tier controls, clan creation and search use the selected game's ladder",as
     await gender.getByRole("radio",{name:"남성",exact:true}).press("ArrowRight");
     await expect(gender.getByRole("radio",{name:"여성",exact:true})).toBeChecked();
     await gender.getByRole("radio",{name:"제한 없음",exact:true}).check();
-    await page.getByRole("checkbox",{name:"레디언트",exact:true}).check();
+    await page.getByRole("slider",{name:"최소 모집 티어",exact:true}).press("End");
+    await page.getByLabel("내용",{exact:true}).fill("함께할 클랜원을 찾습니다.");
+    await page.getByRole("button",{name:"미리보기",exact:true}).click();
+    await expect(page.getByRole("dialog")).toContainText(createdName);
+    await page.getByRole("dialog").getByRole("button",{name:"닫기",exact:true}).last().click();
     await expect(page.getByRole("checkbox",{name:"마스터",exact:true})).toHaveCount(0);
     await page.getByRole("button",{name:"클랜 만들기",exact:true}).click();
     await expect(page).toHaveURL(/\/clan\/[\da-f-]+\/welcome/);

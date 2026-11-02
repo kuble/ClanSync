@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CircleHelp, Megaphone, Eye, Check, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Slider } from "@base-ui/react/slider";
+import { createClanAndLeadAction } from "@/app/actions/game-clan-onboarding";
 import { saveClanPromotionAction } from "@/app/actions/clan-promotion";
 import { createClient } from "@/lib/supabase/client";
 import { PROMOTION_IMAGE_BUCKET, promotionBlocks, promotionImageUrl, parsePromotionBlocks, type PromotionPost } from "@/lib/clan/promotion";
@@ -23,10 +24,12 @@ import type { ClanListRow } from "@/components/onboarding/clan-join-list";
 import styles from "./clan-promotion-settings.module.css";
 
 export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
-  gameSlug: string; clanId: string; initial: ClanRecruitment & ClanListRow & { promotion_public: boolean; style: string | null; recruitment_positions: string[] };
+  gameSlug: string; clanId: string | null; initial: ClanRecruitment & ClanListRow & { promotion_public: boolean; style: string | null; recruitment_positions: string[] };
   post: PromotionPost | null;
 }) {
   const RECRUITMENT_TIERS = recruitmentTiers(gameSlug);
+  const creating = clanId === null;
+  const [createdId, setCreatedId] = useState<string | null>(null);
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const previewUrls = useRef(new Set<string>());
@@ -57,16 +60,16 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
     if (!years.ok) { setError(years.error); return; }
     const positions = form.getAll("recruitment_positions").map(String);
     setPreview({
-      clan: { ...initial, birth_year_from: years.birth_year_from, min_birth_year: years.min_birth_year, style: String(form.get("style") ?? "") || null,
+      clan: { ...initial, ...(creating ? { name: String(form.get("name") || "클랜명"), rules: String(form.get("rules") ?? ""), tags: String(form.get("tags") ?? "").split(",").map(tag => tag.trim()).filter(Boolean) } : {}), birth_year_from: years.birth_year_from, min_birth_year: years.min_birth_year, style: String(form.get("style") ?? "") || null,
         gender_policy: String(form.get("gender_policy") ?? "all") as ClanRecruitment["gender_policy"],
         tier_range: selectedTiers.map(([tier]) => tier), recruitment_positions: positions.includes("all") ? [] : positions },
-      title: title.trim() || "홍보글 미리보기",
+      title: title.trim() || String(form.get("name") || "홍보글 미리보기"),
       blocks: blocks.map(block => block.type === "text" ? { type: "text", text: block.text }
         : { type: "image", src: previewImageSource(block), alt: block.alt }),
     });
   }
   function previewImageSource(image: Extract<PromotionDraftBlock, { type: "image" }>) {
-    if (!image.file) return promotionImageUrl(gameSlug, clanId, image.path);
+    if (!image.file) return promotionImageUrl(gameSlug, clanId ?? createdId ?? "", image.path);
     const url = URL.createObjectURL(image.file);
     previewUrls.current.add(url);
     return url;
@@ -82,15 +85,34 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
     const form = new FormData(event.currentTarget);
     setError(""); setSaved(false);
     save(async () => {
+      let targetId = clanId ?? createdId;
       const uploaded: string[] = [];
       const uploadedByKey = new Map<string,string>();
       try {
+        if (creating) {
+          form.set("title", title.trim() || String(form.get("name") ?? "").trim());
+          if (!targetId) {
+            form.set("description", blocks.flatMap(block => block.type === "text" ? [block.text] : []).join("\n\n").trim());
+            const hasContent = blocks.some(block => block.type === "image" || block.text.trim());
+            if (hasContent) form.set("create_private", "1");
+            const created = await createClanAndLeadAction(gameSlug, form);
+            if (!created.ok) throw new Error(created.error);
+            targetId = created.clanId;
+            setCreatedId(targetId);
+            if (!hasContent) {
+              toast.success("클랜을 만들었습니다.");
+              window.location.assign(`/games/${gameSlug}/clan/${targetId}/welcome`);
+              return;
+            }
+          }
+        }
+        if (!targetId) throw new Error("클랜을 확인해 주세요.");
         const prepared: PromotionDraftBlock[] = [];
         for (const block of blocks) {
           if (block.type !== "image" || !block.file) { prepared.push(block); continue; }
           const existing = uploadedByKey.get(block.key);
           if (existing) { prepared.push({key:block.key,type:"image",path:existing,alt:block.alt}); continue; }
-          const response = await fetch(`/api/games/${gameSlug}/clans/${clanId}/promotion-images`, { method: "POST", headers: { "Content-Type": block.file.type, "X-Promotion-Id": postId }, body: block.file });
+          const response = await fetch(`/api/games/${gameSlug}/clans/${targetId}/promotion-images`, { method: "POST", headers: { "Content-Type": block.file.type, "X-Promotion-Id": postId }, body: block.file });
           const result = await response.json();
           if (!response.ok || !result.ok) throw new Error(result.error ?? "사진을 올리지 못했습니다.");
           uploaded.push(result.path);
@@ -100,13 +122,21 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
         const body = prepared.map(block => block.type === "text" ? { type: "text", text: block.text } : { type: "image", path: block.path, alt: block.alt });
         if (!parsePromotionBlocks(body)) throw new Error("내용은 8,000자, 사진은 6장까지 저장할 수 있습니다.");
         form.set("post_id", postId); form.set("updated_at", version); form.set("blocks", JSON.stringify(body));
-        const result = await saveClanPromotionAction(gameSlug, clanId, form);
+        const result = creating
+          ? await fetch(`/api/games/${gameSlug}/clans/${targetId}/promotion`, { method: "POST", body: form }).then(response => response.json())
+          : await saveClanPromotionAction(gameSlug, targetId, form);
         if (!result.ok) throw new Error(result.error);
         setVersion(result.updatedAt); setBlocks(prepared); setSaved(true);
         uploaded.length = 0;
-        toast.success("홍보글과 가입 조건을 저장했습니다."); router.refresh();
+        if (creating) {
+          toast.success("클랜을 만들었습니다.");
+          window.location.assign(`/games/${gameSlug}/clan/${targetId}/welcome`);
+        } else {
+          toast.success("홍보글과 가입 조건을 저장했습니다."); router.refresh();
+        }
       } catch (cause) {
-        setError(cause instanceof Error ? cause.message : "저장하지 못했습니다. 다시 시도해 주십시오.");
+        const reason = cause instanceof Error ? cause.message : "다시 시도해 주세요.";
+        setError(creating && targetId ? `클랜이 생성되었습니다. 홍보글 저장을 다시 시도해 주세요. ${reason}` : reason);
         if (uploaded.length) await createClient().storage.from(PROMOTION_IMAGE_BUCKET).remove(uploaded);
       }
     });
@@ -116,7 +146,7 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
       <section className={styles.panel} aria-labelledby="promotion-heading">
         <header className={styles.panelHeader}>
           <span className={styles.sectionIcon}><Megaphone size={20} aria-hidden /></span>
-          <h4 id="promotion-heading">홍보글 작성</h4>
+          <h4 id="promotion-heading">{creating ? "클랜 만들기" : "홍보글 작성"}</h4>
           <div className={styles.publishControl}>
             <StatHelp title="홍보글 게시">켜고 저장하면 클랜 찾기에 공개됩니다. 끄고 저장하면 목록에서 숨겨지고 기존 홍보글 링크도 열리지 않습니다.</StatHelp>
             <label className={styles.visibility}>
@@ -126,7 +156,8 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
           </div>
         </header>
           <fieldset disabled={saving} className={styles.editorFields}>
-            <div className={`space-y-2 ${styles.titleField}`}><Label htmlFor="promotion-title">제목</Label><Input id="promotion-title" name="title" value={title} onChange={event => setTitle(event.target.value)} required maxLength={200} placeholder="함께할 클랜원을 찾습니다" /></div>
+            {creating && <div className="space-y-2"><Label htmlFor="name">클랜명 *</Label><Input id="name" name="name" maxLength={24} required readOnly={!!createdId} placeholder="클랜 이름을 입력해 주세요" /></div>}
+            <div className={`space-y-2 ${styles.titleField}`}><Label htmlFor="promotion-title">제목</Label><Input id="promotion-title" name="title" value={title} onChange={event => setTitle(event.target.value)} required={!creating} maxLength={200} placeholder="함께할 클랜원을 찾습니다" /></div>
             <div className={styles.settingsBody}>
               <section aria-label="가입 조건">
                 <ClanRecruitmentFields prefix="recruitment" initial={initial} disabled={saving} layout="grouped" />
@@ -145,7 +176,7 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
                 </Slider.Root>}
               </section>
             </div>
-            <div className="space-y-2"><Label htmlFor="promotion-content">내용</Label><PromotionEditor gameSlug={gameSlug} clanId={clanId} blocks={blocks} onChange={setBlocks} disabled={saving} /></div>
+            <div className="space-y-2"><Label htmlFor="promotion-content">내용</Label><PromotionEditor gameSlug={gameSlug} clanId={clanId ?? createdId ?? ""} blocks={blocks} onChange={setBlocks} disabled={saving} /></div>
             <div className="space-y-2">
               <div className="flex items-center gap-1">
                 <Label htmlFor="interview-url">클랜 연락 링크 (선택)</Label>
@@ -155,14 +186,24 @@ export function ClanPromotionSettings({ gameSlug, clanId, initial, post }: {
               </div>
               <Input id="interview-url" name="interview_url" type="url" maxLength={1000} value={contactUrl} onChange={event => setContactUrl(event.target.value)} placeholder="https://…" />
             </div>
+            {creating && <details className="rounded-lg border border-border p-4">
+              <summary className="cursor-pointer text-sm font-medium">클랜 추가 설정</summary>
+              <fieldset disabled={!!createdId} className="mt-4 grid gap-4">
+                <label className="grid gap-2 text-xs">클랜 규칙<textarea name="rules" rows={3} className="rounded-lg border border-border bg-background p-3" /></label>
+                <label className="grid gap-2 text-xs">태그<Input name="tags" placeholder="쉼표로 구분해 최대 5개" /></label>
+                <label className="grid gap-2 text-xs">최대 인원 (2~200)<Input name="max_members" type="number" min={2} max={200} defaultValue={30} required /></label>
+                <label className="grid gap-2 text-xs">디스코드 URL<Input name="discord_url" type="url" placeholder="https://" /></label>
+                <label className="grid gap-2 text-xs">카카오 URL<Input name="kakao_url" type="url" placeholder="https://" /></label>
+              </fieldset>
+            </details>}
             <div className={styles.previewActions}>
               <div>{error && <p role="alert" className="text-xs text-destructive">{error}</p>}{saved && <p role="status" className="text-xs text-primary">홍보글과 가입 조건을 저장했습니다.</p>}</div>
               <Button type="button" variant="outline" disabled={saving} onClick={showPreview}><Eye size={15} aria-hidden />미리보기</Button>
-              <Button type="submit" disabled={saving}>{saved ? <Check size={15} aria-hidden /> : <Save size={15} aria-hidden />}{saving ? "저장 중…" : "변경사항 저장"}</Button>
+              <Button type="submit" disabled={saving}>{saved ? <Check size={15} aria-hidden /> : <Save size={15} aria-hidden />}{saving ? "저장 중…" : creating && !createdId ? "클랜 만들기" : "변경사항 저장"}</Button>
             </div>
           </fieldset>
       </section>
-      <ClanInviteShare gameSlug={gameSlug} clanId={clanId} />
+      {clanId && <ClanInviteShare gameSlug={gameSlug} clanId={clanId} />}
     </div>
   </form>
     <Dialog open={preview !== null} onOpenChange={open => { if (!open) closePreview(); }}>

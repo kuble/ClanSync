@@ -362,3 +362,5 @@ none ──► pending ──── (클랜장 승인) ────► approved 
 - [schema.md](../schema.md) (`clans`, `clan_members`)
 - [decisions.md](../decisions.md) (D-CLAN-01 ~ 06)
 - [gating-matrix.md](../gating-matrix.md)
+
+클랜 생성은 홍보 관리와 같은 작성 폼을 사용한다. 클랜명, 모집 조건, 본문·사진, 연락 링크를 입력하고 생성 전 미리볼 수 있다. 규칙·태그·정원·외부 링크는 추가 설정에 두며, 초대 QR은 생성 후 관리 화면에서 제공한다.
