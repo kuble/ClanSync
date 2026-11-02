@@ -5,7 +5,6 @@
 .panelHeader h4 { font-size: 15px; font-weight: 600; letter-spacing: -.025em; }
 .sectionIcon { display: grid; place-items: center; width: 32px; height: 32px; flex-shrink: 0; border-radius: 9px; color: var(--primary); background: color-mix(in srgb,var(--primary) 10%,transparent); }
 .publishControl { margin-inline-start: auto; display: flex; align-items: center; gap: 8px; font-size: 12px; }
-.publishControl button { text-decoration: underline dotted var(--muted-foreground); text-underline-offset: 3px; }
 .visibility { position: relative; display: inline-flex; align-items: center; min-height: 32px; cursor: pointer; }
 .visibility input { position: absolute; right: 0; opacity: 0; }
 .visibility span { width: 30px; height: 18px; padding: 3px; border-radius: 99px; background: var(--muted-foreground); pointer-events: none; }
